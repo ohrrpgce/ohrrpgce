@@ -58,13 +58,15 @@ are expected to report any bugs you find to us.
 ---
 DISTRIBUTION INFO
 
-Feel free to share this game with your friends, but please do not
-mass-distribute it without permission (for example, do not upload it
-to your website, or include it in a CD collection without asking
-Bob@HamsterRepublic.com first)
+WANDER.EXE (the game engine) is the OHRRPGCE, which is free software
+under the GPL license. Read LICENSE.txt for details. To get the source
+code, visit http://HamsterRepublic.com/ohrrpgce/source.php
 
-You may edit it for your own amusement and education, but do NOT
-redistribute altered copies.
+WANDER.RPG (the game data) is Copyright 1998 James Paige
+Feel free to share this game with your friends, but please do not
+re-distributed edited copies. (for example, it is okay to edit the
+game for your own amusement and education, but to not distribute
+an edited copy)
 
 Anyone who wants to write a review or walkthrough has pre-emptive
 permission to do so.

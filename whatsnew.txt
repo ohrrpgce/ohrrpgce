@@ -1,16 +1,24 @@
 WHAT IS NEW?                                                   
 
-Feb ?? 2005 [quaternion]
-
-  * Mike Caron fixed bug 35: enemy spawned backwards in place of
-    "flee-instead-of-die"...
-
-  * Mike Caron fixed bug 40: Maps can be resized to invalid dimensions
+?? ?? 2005 [quaternion]
 
   * GPL Licensed source code. See LICENSE.txt
 
-  * Cleaned up build system to make it possible for people other than me
-    to compile if they can get ahold of a copy of QuickBasic 4.5
+  * Bugs fixed thanks to help from Mike Caron (pkmnfrk)
+
+    * bug 40: Maps can be resized to invalid dimensions
+    * bug 35: enemy spawned backwards in place of"flee-instead-of-die"...
+    * bug 20: CUSTOM does no error checking for NPCs that point to text
+               boxes that have been deleted
+
+  * Code cleanup (things that users won't notice)
+
+     * Cleaned up build system to make it possible for people other than
+       me to compile if they can get ahold of a copy of QuickBasic 4.5
+     * Support for compiling with QuickBasic 7.1 thanks to Mike Caron
+       (pkmnfrk)
+     * Massive indentation cleanup thanks to David Gowers (NeoTA)
+
 
 June 28 2004 [ozarks]
 

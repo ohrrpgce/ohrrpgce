@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Game Player            (June 28 2004 ozarks)
+ O.H.R.RPG.C.E Game Player          (?? ?? 2005 quaternion)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
@@ -11,7 +11,14 @@ To learn how to use the OHRRPGCE, please visit
 http://HamsterRepublic.com/ohrrpgce/
 
 If you have questions, read the FAQ at
-http://HamsterRepublic.com/ohrrpgce/rpgfaq.html
+http://HamsterRepublic.com/ohrrpgce/faq.php
+
+---
+DISTRIBUTION INFO
+
+GAME.EXE is a part of the OHRRPGCE, which is free software under the GPL
+License. See LICENSE.txt for details. If you want to get the source code,
+just visit: http://HamsterRepublic.com/ohrrpgce/source.php
 
 ---
 WHERE TO FIND GAMES?
@@ -21,24 +28,15 @@ of links to OHRRPGCE related sites with downloadable games, or you can
 search the internet for the word OHRRPGCE with your favorite search engine
 
 ---
-PLAYTESTING INFO
+BUG TESTING INFO
 
-This is a testing demo of the O.H.R.RPG.C.E game engine, so as a playtester
-you are expected to report any bugs you find to us. Please note that the
-engine is still under construction, so not all features work yet.
-
-  Report bugs to:   OHRRPGCE Development<ohrrpgce@HamsterRepublic.com>
-
----
-DISTRIBUTION INFO
-
-Feel free to share this program with your friends, but please do not
-mass-distribute it without permission (for example, do not upload it
-to your website, or include it in a CD collection)
+We appreciate bug-reports. If you find a bug, you can report it at:
+http://HamsterRepublic.com/bugzilla/ or e-mail it to:
+ohrrpgce-bugs@HamsterRepublic.com
 
 ---
 Have fun playing!
 
-                                            James `SPAM Man' Paige
+                                            James Paige
                                             Hamster Republic Productions
                                             http://HamsterRepublic.com/
