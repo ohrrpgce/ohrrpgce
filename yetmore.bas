@@ -24,7 +24,6 @@ DECLARE FUNCTION gethighbyte% (n%)
 DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE SUB wrappedsong (songnumber%)
-DECLARE FUNCTION hex2dec% (h$)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE SUB delitem (it%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
@@ -444,28 +443,6 @@ IF slot >= 0 AND slot <= 3 THEN
  NEXT i
 END IF
 herobyrank = result
-END FUNCTION
-
-FUNCTION hex2dec (h$)
-
-result = 0
-
-hexdig$ = "123456789ABCDEF"
-
-FOR i = 1 TO LEN(h$)
- result = result * 16
- n$ = MID$(h$, i, 1)
- FOR j = 1 TO 15
-  dig$ = MID$(hexdig$, j, 1)
-  IF n$ = dig$ THEN
-   result = result + j
-   EXIT FOR
-  END IF
- NEXT j
-NEXT i
-
-hex2dec = result
-
 END FUNCTION
 
 SUB initgame

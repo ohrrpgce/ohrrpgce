@@ -43,8 +43,6 @@ DECLARE FUNCTION gethighbyte% (n%)
 DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE SUB wrappedsong (songnumber%)
-DECLARE FUNCTION hex2dec% (h$)
-DECLARE SUB prepareFM ()
 DECLARE SUB scriptmisc (id%)
 DECLARE SUB scriptcam (id%)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
@@ -295,7 +293,6 @@ DATA !,@,#,$,%,^,&,*,(,),_,+,"","",Q,W,E,R,T,Y,U,I,O,P,{,},"","",A,S,D,F,G,H,J,K
 textcolor 15, 0
 
 'DEBUG debug "init sound"
-'prepareFM
 setupmusic music()
 'resetfm
 'setfmvol 7
@@ -2588,62 +2585,6 @@ END IF
 '10*20=200
 
 END FUNCTION
-
-SUB prepareFM
-
-'--disabled because it was possably nuking FM on some computers
-'dummy = resetfm 'this is all we do
-
-'--the rest is disabled because it caused more problems than it fixed
-
-'trydefault = 1
-
-'IF isfile(progdir$ + "soundset.ini" + CHR$(0)) THEN
-'  '--use soundset.ini
-'  fh = FREEFILE
-'  OPEN progdir$ + "soundset.ini" FOR INPUT AS #fh
-'    safety = 0
-'    DO WHILE NOT EOF(fh) AND safety < 100
-'      LINE INPUT #fh, a$
-'      IF settingstring(a$, "FMPORT", port$) THEN
-'        '--found fmport= line
-'        IF hex2dec(port$) = 0 THEN
-'          '--port 0 disables sound
-'          EXIT DO
-'        ELSE
-'          '--try any non-zero port
-'          setFMbase hex2dec(port$)
-'          IF resetfm > 1 THEN
-'            'it was good?
-'            '--set the mixerbase too
-'            setFMMixerbase hex2dec(port$)
-'            trydefault = 0
-'            EXIT DO
-'          END IF
-'        END IF
-'      END IF
-'      safety = safety + 1
-'    LOOP
-'  CLOSE #fh
-'END IF
-
-'IF trydefault THEN
-'  '--try default 0388
-'  setFMbase &H388
-'  IF resetfm > 1 THEN
-'    'it was good?
-'    setFMMixerbase &H388
-'  ELSE
-'    setFMbase &H220
-'    '--try default 0220
-'    IF resetfm > 1 THEN
-'      'it was good?
-'      setFMMixerbase &H220
-'    END IF
-'  END IF
-'END IF
-
-END SUB
 
 SUB safekill (f$)
 IF isfile(f$ + CHR$(0)) THEN KILL f$
