@@ -44,7 +44,7 @@ DECLARE FUNCTION isremovable (BYVAL d)
 DECLARE FUNCTION isvirtual (BYVAL d)
 DECLARE FUNCTION hasmedia (BYVAL d)
 
-DIM buffer(16383), lumpbuf(32767)
+DIM buffer(16383), lumpbuf(16383)
 
 nowversion = 5
 

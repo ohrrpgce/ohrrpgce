@@ -334,7 +334,7 @@ edgeprint "Loading...", xstring("Loading...", 160), 6, 15, vpage
 'DEBUG debug "unlumping "+sourcerpg$
 
 '---GAME SELECTED, PREPARING TO PLAY---
-DIM lumpbuf(32767)
+DIM lumpbuf(16383)
 unlump sourcerpg$ + CHR$(0), workingdir$ + "\", lumpbuf()
 initgame '--set game$
 unlump game$ + ".hsp" + CHR$(0), workingdir$ + "\", lumpbuf()

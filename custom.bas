@@ -143,7 +143,7 @@ printstr "UNLUMPING DATA: please wait.", 0, 0, 0
 touchfile workingdir$ + "\__danger.tmp"
 
 ERASE scroll, pass, emap
-DIM lumpbuf(32767)
+DIM lumpbuf(16383)
 unlump gamefile$ + ".rpg" + CHR$(0), workingdir$ + "\", lumpbuf()
 ERASE lumpbuf
 DIM scroll(16002), pass(16002), emap(16002)
@@ -328,7 +328,7 @@ DO
    copyfile "ohrrpgce.new" + CHR$(0), game$ + ".rpg" + CHR$(0), buffer()
    printstr "Unlumping", 0, 60, vpage
    ERASE scroll, pass, emap
-   DIM lumpbuf(32767)
+   DIM lumpbuf(16383)
    unlump game$ + ".rpg" + CHR$(0), workingdir$ + "\", lumpbuf()
    ERASE lumpbuf
    DIM scroll(16002), pass(16002), emap(16002)
@@ -558,7 +558,7 @@ findfiles workingdir$ + "\*.*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
 fixorder "temp.lst"
 '---KILL BUFFERS, LUMP, REDEFINE BUFFERS---
 ERASE scroll, pass, emap
-DIM lumpbuf(32767)
+DIM lumpbuf(16383)
 unsafefile$ = "RPG lumping failed!"
 lumpfiles "temp.lst" + CHR$(0), filetolump$ + CHR$(0), workingdir$ + "\", lumpbuf()
 unsafefile$ = ""
