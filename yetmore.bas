@@ -1022,7 +1022,7 @@ SELECT CASE id
   loadset game$ + ".itm" + CHR$(0), bound(retvals(1), 0, 255), 0
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   i = hero(retval(0)) - 1
+   i = hero(retvals(0)) - 1
    IF i >= 0 THEN
     IF readbit(buffer(), 66, i) THEN
      scriptret = buffer(49)
