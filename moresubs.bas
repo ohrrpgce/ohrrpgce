@@ -37,7 +37,7 @@ DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE SUB minimap (scroll%(), mx%, my%, gmap%(), x%, y%, tastuf%())
-DECLARE SUB heroswap (all%, stat%())
+DECLARE SUB heroswap (iAll%, stat%())
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
 DECLARE FUNCTION runscript% (n%, index%, newcall%, er$)
@@ -145,7 +145,7 @@ DECLARE FUNCTION pathlength ()
 DECLARE FUNCTION rpathlength ()
 DECLARE FUNCTION drivelist (d())
 DECLARE SUB setdrive (BYVAL n)
-DECLARE FUNCTION isdir (dir$)
+DECLARE FUNCTION isdir (sDir$)
 DECLARE FUNCTION isremovable (BYVAL d)
 DECLARE FUNCTION isvirtual (BYVAL d)
 DECLARE FUNCTION hasmedia (BYVAL d)
@@ -1023,7 +1023,7 @@ IF isfile(game$ + ".stt" + CHR$(0)) THEN
 END IF
 END SUB
 
-SUB heroswap (all, stat())
+SUB heroswap (iAll%, stat())
 
 'Page 2 has the npcs, which dont need to be reloaded afterward
 'Page 3 holds a copy of vpage.
@@ -1054,7 +1054,7 @@ DO
    EXIT SUB
   END IF
  END IF
- IF all THEN
+ IF iAll THEN
   IF carray(0) > 1 THEN
    IF ecsr < 0 THEN
     ecsr = la
@@ -1143,7 +1143,7 @@ showswapmenu:
   END IF
  NEXT i
  IF ecsr < 0 THEN edgeprint CHR$(24), 111 + 30 * acsr, 52, 14 + tog, dpage
- IF all THEN
+ IF iAll THEN
   centerbox 160, 100 + small(high, 8) * 5, wide * 8 + 16, small(high, 8) * 10 + 10, 1, dpage
   FOR i = top TO small(top + 7, la)
    c = 7
@@ -1567,7 +1567,7 @@ range = n + INT(RND * (a * 2)) - a
 END FUNCTION
 
 SUB readjoysettings
- 
+
   IF isfile(progdir$ + "joyset.ini" + CHR$(0)) THEN
     '--use joyset.ini
     fh = FREEFILE
@@ -2168,7 +2168,7 @@ SUB scriptmath
 END SUB
 
 FUNCTION settingstring (searchee$, setting$, result$)
- 
+
   ' checks to see if searchee$ begins with setting$=
   ' if so, sets result$ to the uppercased space-trimmed value that
   ' follows the = sign and returns true. If not found, returns false

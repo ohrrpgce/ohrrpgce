@@ -51,7 +51,7 @@ DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE SUB minimap (scroll%(), mx%, my%, gmap%(), x%, y%, tastuf%())
-DECLARE SUB heroswap (all%, stat%())
+DECLARE SUB heroswap (iAll%, stat%())
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
 DECLARE FUNCTION runscript% (n%, index%, newcall%, er$)
@@ -159,7 +159,7 @@ DECLARE FUNCTION pathlength ()
 DECLARE FUNCTION rpathlength ()
 DECLARE FUNCTION drivelist (d())
 DECLARE SUB setdrive (BYVAL n)
-DECLARE FUNCTION isdir (dir$)
+DECLARE FUNCTION isdir (sDir$)
 DECLARE FUNCTION isremovable (BYVAL d)
 DECLARE FUNCTION isvirtual (BYVAL d)
 DECLARE FUNCTION hasmedia (BYVAL d)
@@ -448,11 +448,11 @@ END FUNCTION
 
 FUNCTION getnpcref (seekid, offset)
   SELECT CASE seekid
- 
+
   CASE -300 TO -1'--direct reference
     getnpcref = (seekid + 1) * -1
     EXIT FUNCTION
- 
+
   CASE 0 TO 35 'ID
     found = 0
     FOR i = 0 TO 299

@@ -5,7 +5,7 @@
 '
 ' This utility is semi-obsolete, and could easily be replaced with a
 ' Euphoria version based on the unlumping code in hsspiffy.e
-' 
+'
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
@@ -257,11 +257,11 @@ END SUB
 
 FUNCTION getcurdir$
 
-curdir$ = STRING$(pathlength, 0)
-getstring curdir$
-IF RIGHT$(curdir$, 1) = "\" AND LEN(curdir$) > 3 THEN curdir$ = LEFT$(curdir$, LEN(curdir$) - 1)
+sCurdir$ = STRING$(pathlength, 0)
+getstring sCurdir$
+IF RIGHT$(sCurdir$, 1) = "\" AND LEN(sCurdir$) > 3 THEN sCurdir$ = LEFT$(sCurdir$, LEN(sCurdir$) - 1)
 
-getcurdir$ = curdir$
+getcurdir$ = sCurdir$
 
 END FUNCTION
 

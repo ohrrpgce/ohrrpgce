@@ -168,7 +168,7 @@ DECLARE FUNCTION envlength (e$)
 DECLARE FUNCTION drivelist (drbuf())
 DECLARE SUB setdrive (BYVAL drive)
 DECLARE FUNCTION isfile (n$)
-DECLARE FUNCTION isdir (dir$)
+DECLARE FUNCTION isdir (sDir$)
 DECLARE FUNCTION isremovable (BYVAL d)
 DECLARE FUNCTION isvirtual (BYVAL d)
 DECLARE FUNCTION hasmedia (BYVAL d)
@@ -257,7 +257,7 @@ DECLARE FUNCTION envlength (e$)
 DECLARE FUNCTION drivelist (drbuf())
 DECLARE SUB setdrive (BYVAL drive)
 DECLARE FUNCTION isfile (n$)
-DECLARE FUNCTION isdir (dir$)
+DECLARE FUNCTION isdir (sDir$)
 DECLARE FUNCTION isremovable (BYVAL d)
 DECLARE FUNCTION isvirtual (BYVAL d)
 DECLARE FUNCTION hasmedia (BYVAL d)
@@ -915,7 +915,7 @@ AtkUpdateMenu:
   ''caption$(AtkCapDamageEq + 1) = "Blunt: " + caption$(AtkCapBaseAtk + recbuf(AtkDatBaseAtk)) + "*.8 - " + sname$(5) + "*.1"
   ''caption$(AtkCapDamageEq + 2) = "Sharp: " + caption$(AtkCapBaseAtk + recbuf(AtkDatBaseAtk)) + "*1.3 - " + sname$(5)
   ''caption$(AtkCapDamageEq + 3) = "Pure Damage: " + caption$(AtkCapBaseAtk + recbuf(AtkDatBaseAtk))
- 
+
   '--percentage damage shows target stat
   caption$(AtkCapDamageEq + 5) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " =" + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
   caption$(AtkCapDamageEq + 6) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " =" + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Current"
@@ -1123,7 +1123,7 @@ FUNCTION readbinstring$ (array(), offset, maxlen)
     END IF
 
   LOOP
- 
+
   readbinstring$ = result$
 END FUNCTION
 
@@ -1137,7 +1137,7 @@ SUB setactivemenu (workmenu(), newmenu(), ptr, top, size)
 END SUB
 
 FUNCTION tagstring$ (tag, zero$, one$, negone$)
- 
+
   SELECT CASE tag
     CASE 0
       result$ = zero$
@@ -1148,7 +1148,7 @@ FUNCTION tagstring$ (tag, zero$, one$, negone$)
     CASE ELSE
       result$ = LTRIM$(STR$(ABS(tag))) + "=" + onoroff$(tag) + " (" + lmnemonic$(ABS(tag)) + ")"
   END SELECT
- 
+
   tagstring$ = result$
 END FUNCTION
 

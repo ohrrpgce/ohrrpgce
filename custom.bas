@@ -159,7 +159,7 @@ DECLARE FUNCTION envlength (e$)
 DECLARE FUNCTION drivelist (drbuf())
 DECLARE SUB setdrive (BYVAL drive)
 DECLARE FUNCTION isfile (n$)
-DECLARE FUNCTION isdir (dir$)
+DECLARE FUNCTION isdir (sDir$)
 DECLARE FUNCTION isremovable (BYVAL d)
 DECLARE FUNCTION isvirtual (BYVAL d)
 DECLARE FUNCTION hasmedia (BYVAL d)
@@ -193,9 +193,9 @@ workingdir$ = "working.tmp"
 '$INCLUDE: 'cver.txt'
 IF COMMAND$ = "/V" THEN PRINT version$: SYSTEM
 
-curdir$ = STRING$(pathlength, 0)
-getstring curdir$
-IF RIGHT$(curdir$, 1) = "\" AND LEN(curdir$) > 3 THEN curdir$ = LEFT$(curdir$, LEN(curdir$) - 1)
+sCurdir$ = STRING$(pathlength, 0)
+getstring sCurdir$
+IF RIGHT$(sCurdir$, 1) = "\" AND LEN(sCurdir$) > 3 THEN sCurdir$ = LEFT$(sCurdir$, LEN(sCurdir$) - 1)
 gamedir$ = STRING$(rpathlength, 0)
 getstring gamedir$
 IF RIGHT$(gamedir$, 1) = "\" AND LEN(gamedir$) > 3 THEN gamedir$ = LEFT$(gamedir$, LEN(gamedir$) - 1)
@@ -696,8 +696,8 @@ printstr "files!", 0, 32, 0
 w = getkey
 GOSUB shutoff
 'closefile
-CHDIR curdir$
-'setdrive ASC(UCASE$(LEFT$(curdir$, 1))) - 64
+CHDIR sCurdir$
+'setdrive ASC(UCASE$(LEFT$(sCurdir$, 1))) - 64
 CLEAR
 restoremode
 SYSTEM
@@ -1108,14 +1108,14 @@ importfont:
   newfont$ = browse$(0, default$, "*.ohf", "")
   IF newfont$ <> "" THEN
     copyfile newfont$ + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
-  
+
     '--never overwrite 0 thru 31
     FOR i = 0 TO 2047
       setbit buffer(), 0, i, readbit(font(), 0, i)
     NEXT i
-       
+
     GOSUB loadfont
-  
+
     FOR i = 0 TO 2047
       setbit font(), 0, i, readbit(buffer(), 0, i)
     NEXT i
@@ -1793,7 +1793,7 @@ IF NOT isfile(workingdir$ + "\attack.bin" + CHR$(0)) THEN
   FOR i = 0 TO general(34)
     storeset workingdir$ + "\attack.bin" + CHR$(0), i, 0
   NEXT i
- 
+
   '--and while we are at it, clear the old death-string from enemys
   printstr "Re-init recycled enemy data...", 0, 10, vpage
   setpicstuf buffer(), 320, -1

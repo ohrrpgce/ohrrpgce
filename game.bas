@@ -101,7 +101,7 @@ DECLARE SUB reinitnpc (remember%, map%)
 DECLARE FUNCTION findhero% (who%, f%, l%, d%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE FUNCTION howmanyh% (f%, l%)
-DECLARE SUB heroswap (all%, stat%())
+DECLARE SUB heroswap (iAll%, stat%())
 DECLARE SUB patcharray (array%(), n$, max%)
 DECLARE SUB debug (s$)
 DECLARE SUB drawsay (saybit%(), sayenh%(), say$(), showsay%, choose$(), choosep%)
@@ -209,7 +209,7 @@ DECLARE FUNCTION rpathlength ()
 DECLARE FUNCTION exenamelength ()
 DECLARE FUNCTION drivelist (d())
 DECLARE SUB setdrive (BYVAL n)
-DECLARE FUNCTION isdir (dir$)
+DECLARE FUNCTION isdir (sDir$)
 DECLARE FUNCTION isremovable (BYVAL d)
 DECLARE FUNCTION isvirtual (BYVAL d)
 DECLARE FUNCTION hasmedia (BYVAL d)
@@ -257,7 +257,7 @@ DIM door(300), gen(104), npcl(2100), npcs(1500), saytag(21), tag(127), hero(40),
 DIM item(-3 TO 199), item$(-3 TO 199), eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), zbuf(3), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7),  _
 hmask(3), tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 4)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
-DIM script(4096), heap(2048), global(1024), stack(512), scrat(128, 12), retvals(32)
+DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 12), retvals(32)
 
 '--stuff we used to DIM here, but have defered to later
 'DIM scroll(16002), pass(16002)
@@ -265,8 +265,8 @@ DIM script(4096), heap(2048), global(1024), stack(512), scrat(128, 12), retvals(
 'DEBUG debug "setup directories"
 
 '---GET CURRENT DIR, PROG DIRECTORY and WORK dir---
-curdir$ = STRING$(pathlength, 0): getstring curdir$
-IF RIGHT$(curdir$, 1) <> "\" THEN curdir$ = curdir$ + "\"
+sCurdir$ = STRING$(pathlength, 0): getstring sCurdir$
+IF RIGHT$(sCurdir$, 1) <> "\" THEN sCurdir$ = sCurdir$ + "\"
 progdir$ = STRING$(rpathlength, 0): getstring progdir$
 IF RIGHT$(progdir$, 1) <> "\" THEN progdir$ = progdir$ + "\"
 exename$ = STRING$(exenamelength, 0): getstring exename$
@@ -391,7 +391,7 @@ GOSUB defaultc
 'DEBUG debug "enable autorunning"
 autorungame = 0
 a$ = cline$
-IF MID$(a$, 2, 1) <> ":" THEN a$ = curdir$ + a$
+IF MID$(a$, 2, 1) <> ":" THEN a$ = sCurdir$ + a$
 IF RIGHT$(a$, 4) = ".RPG" AND isfile(a$ + CHR$(0)) THEN
  sourcerpg$ = a$
  autorungame = 1
@@ -457,7 +457,7 @@ map = gen(104)
 nowscript = -1
 depth = 0
 releasestack
-setupstack stack(), 1024, workingdir$ + "\stack.tmp" + CHR$(0)
+setupstack astack(), 1024, workingdir$ + "\stack.tmp" + CHR$(0)
 
 GOSUB titlescr
 temp = pickload(svcsr)
@@ -1766,7 +1766,7 @@ modeXerr:
  exitprogram 0
 
 '--this is what we have dimed for scripts
-'--script(4096), heap(2048), global(1024), stack(1024), scrat(128, 12), nowscript
+'--script(4096), heap(2048), global(1024), astack(1024), scrat(128, 12), nowscript
 interpret:
  IF scrwatch THEN scriptwatcher vpage
  IF nowscript >= 0 THEN
@@ -2060,7 +2060,7 @@ DO
       tmpvar = popw
       pushw tmpvar
       pushw tmpstart
-     
+
       '--update for counter (is this right for globals?)
       writescriptvar tmpvar, tmpstart
       '---???    global(tmpvar) = tmpstart - tmpstep
@@ -2664,7 +2664,7 @@ FUNCTION isonscreen (x, y)
   ELSE
     isonscreen = 0
   END IF
- 
+
   '17*20=340
   '10*20=200
 
@@ -2707,7 +2707,7 @@ SUB prepareFM
   '    LOOP
   '  CLOSE #fh
   'END IF
-  
+
   'IF trydefault THEN
   '  '--try default 0388
   '  setFMbase &H388
@@ -2767,7 +2767,7 @@ SUB wrapaheadxy (x, y, direction, distance, mapwide, maphigh, wrapmode)
   'alters X and Y ahead by distance in direction, wrapping if neccisary
 
   aheadxy x, y, direction, distance
- 
+
   IF wrapmode THEN
     wrapxy x, y, mapwide, maphigh
   END IF

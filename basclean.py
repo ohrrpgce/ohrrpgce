@@ -1,6 +1,5 @@
 """ Autoindent a .BAS file """
 import sys
-import re
 
 def sw(s,l):
     for j in l:
@@ -8,27 +7,27 @@ def sw(s,l):
             return True
     return False
 
-tab_kw = [ "FUNCTION", "SUB", "DO", "WHILE", "FOR"]
-untab_kw = [ "END SUB", "END FUNCTION", "LOOP", "WEND"]
-
-ignore_regex = []
-for regex in ( "^DO\b.*?\bLOOP", "^WHILE\b.*?\bWEND", "^FOR\b.*?\bNEXT" ):
-    ignore_regex.append(re.compile(regex))
-
-next_regex = re.compile("^NEXT( [a-z][a-z0-9]?)?")
+tab_kw = [ "SELECT CASE","FUNCTION", "SUB", "DO", "WHILE", "FOR"]
+untab_kw = [ "END SUB", "END FUNCTION", "LOOP", "WEND", "NEXT"]
 
 # You can swap this for \t when using the simple-indenter
 # beware excessive line length though
-indentstr = "  "
+indentstr = "    "
 
 #customize the adaptive indenter using this.
 #make sure the last item uses a threshold which your code will not exceed.
 adaptive_data = (
     #threshold, indentstring
-    (        0, "\t"),
-    (        2, "    "),
-    ( 99999999, "  "),
+#    (        0, "\t"),
+#    (        2, "    "),
+#     ( 99999999, "  "),
+     ( 99999999, " "),
 )
+
+#the above in english:
+# the first two indentation will be 4 spaces per indent
+# after that, all will be 2 space indents.
+
 
 def adaptive(n):
     r = ""
@@ -37,22 +36,29 @@ def adaptive(n):
 	n -= take
 	r += i[1] * take
 
+    # replace [eight spaces] with [tab]
+    r = r.replace("        ","\t")
+
     return r
 
 def simple(n):
     return indentstr * n
 
-indent = simple
+indent = adaptive
 
-#delete the \x0d to use unix endline format rather than dos.
+#delete the \x0d if you want to use unix endline format rather than dos.
 endline = "\x0d\x0a"
 
 # change in tabulation after the end of this line
 latertabs = 0
 tabs = 0
-
+inselect = False
 
 for fname in sys.argv[1:]:
+    # reset state
+    latertabs = 0
+    tabs = 0
+    inselect = False
     f = open(fname)
     o = open(fname + ".i","w")
     for i in f.readlines():
@@ -62,19 +68,25 @@ for fname in sys.argv[1:]:
     	    tabs -= 1
 	if sw(i, tab_kw):
             latertabs += 1
-
-        # support for specfic NEXT commands
-        if next_regex.match(i):
-            tabs -= 1
 	
  	# if structures
 	if i.startswith("IF") and i.endswith("THEN"):
     	    latertabs += 1
 
-        if i.startswith("ELSE"):
-            tabs -=1
-    	    latertabs += 1
-
+	# hack!
+	if i.startswith("CASE"):
+	    if not inselect:
+		inselect = True
+		#tabs += 1
+		latertabs += 1
+	    else:
+		latertabs += 1
+		tabs -= 1
+	
+	if i.startswith("END SELECT"):
+	    inselect = False
+            tabs -= 2
+	
         if i.startswith("END IF"):
             tabs -=1
         
