@@ -17,6 +17,7 @@ CONST curargn = 9    'current arg for current statement
 CONST scrdepth = 10  'stack depth of current script
 CONST scrid = 11     'id number current script
 CONST curwaitarg = 12'wait state argument
+CONST scrsize = 13   'amount the script takes up in the buffer
 '---INTERPRETER STATES---
 'suspended scripts have negative states
 CONST stnone = 0

@@ -1613,7 +1613,6 @@ mapx = 0
 mapy = 0
 gold& = 0
 showsay = 0
-nowscript = 0
 scriptout$ = ""
 '--return gen to defaults
 xbload game$ + ".gen", gen(), "General data is missing from " + game$
@@ -1675,7 +1674,7 @@ NEXT i
 flusharray hmask(), 3, 0
 flusharray global(), 1024, 0
 FOR i = 0 TO 128
- FOR o = 0 TO 9
+ FOR o = 0 TO 13
   scrat(i, o) = 0
  NEXT o
 NEXT i
@@ -1764,20 +1763,28 @@ loadinstead = -1
 '-- we can re-use it.
 FOR i = 0 TO nowscript
  IF scrat(i, scrid) = n THEN loadinstead = i : EXIT FOR
- IF scrat(i, scrid) = -1 THEN EXIT FOR  
 NEXT i
 
-FOR i = 2 TO 5
- scrat(index, i) = 0 'erase state, pointer and return value
+'-- if the script was the last terminated it can also be reused
+IF loadinstead = -1 THEN
+ IF scrat(index, scrid) = n AND scrat(index, scroff) = nextscroff THEN loadinstead = index
+END IF
+
+'erase state, pointer, return value and depth, set id
+FOR i = 2 TO 3
+ scrat(index, i) = 0 
 NEXT i
+scrat(index, scrret) = 0
 scrat(index, scrdepth) = 0
 scrat(index, scrid) = n
 
 IF loadinstead <> -1 THEN
  '--reuse the script from memory
- scrat(index + 1, scroff) = scrat(index, scroff)
- scrat(index, scroff) = scrat(loadinstead, scroff)
- scrat(index, scrargs) = scrat(loadinstead, scrargs)
+ IF loadinstead <> index THEN
+  scrat(index, scrsize) = 0
+  scrat(index, scroff) = scrat(loadinstead, scroff)
+  scrat(index, scrargs) = scrat(loadinstead, scrargs)
+ END IF
 ELSE
  '--load the script from file
  IF isfile(workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" + CHR$(0)) THEN
@@ -1785,19 +1792,13 @@ ELSE
   OPEN workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" FOR BINARY AS #f
   GET #f, 1, skip
   GET #f, 3, scrat(index, scrargs)
-  scrat(index + 1, scroff) = scrat(index, scroff) + (LOF(f) - skip) / 2
-  IF scrat(index + 1, scroff) > 4096 THEN
-   scripterr "Script buffer overflow"
-   CLOSE #f
-   runscript = 0'--error
-   scripterr "failed to load " + er$ + " script" + STR$(n)
-   EXIT FUNCTION
-  END IF
+  scrat(index, scroff) = nextscroff
+  scrat(index, scrsize) = (LOF(f) - skip) / 2
   '--mysterious. why can't I do this?
   'bigstring$ = STRING$(LOF(f) - skip, 0)
   'GET #f, 1 + skip, bigstring$
   'str2array bigstring$, script(), scrat(index, scroff)
-  FOR i = skip TO LOF(f) STEP 2
+  FOR i = skip TO LOF(f) - 2 STEP 2
    GET #f, 1 + i, script(scrat(index, scroff) + ((i - skip) / 2))
   NEXT i
   CLOSE #f
@@ -1805,6 +1806,22 @@ ELSE
   scripterr "failed to unlump " + LTRIM$(STR$(n)) + ".hsx"
  END IF
  
+END IF
+
+nextscroff = nextscroff + scrat(index, scrsize)
+
+'--if any higher scripts have been overwritten, invalidate them
+FOR i = index + 1 TO 127
+ IF scrat(i, scrid) = 0 THEN EXIT FOR
+ IF nextscroff > scrat(i, scroff) THEN scrat(i, scrid) = -1 ELSE EXIT FOR
+NEXT i
+
+IF nextscroff > 4096 THEN
+ scripterr "Script buffer overflow"
+ CLOSE #f
+ runscript = 0'--error
+ scripterr "failed to load " + er$ + " script" + STR$(n)
+ EXIT FUNCTION
 END IF
 
 scrat(index + 1, scrheap) = scrat(index, scrheap) + scrat(index, scrargs)

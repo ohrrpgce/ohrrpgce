@@ -174,7 +174,7 @@ DIM door(300), gen(104), npcl(2100), npcs(1500), saytag(21), tag(127), hero(40),
 DIM item(-3 TO 199), item$(-3 TO 199), eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), zbuf(3), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7),  _
 hmask(3), tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 4)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
-DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 12), retvals(32)
+DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 13), retvals(32)
 
 '--stuff we used to DIM here, but have defered to later
 'DIM scroll(16002), pass(16002)
@@ -371,6 +371,7 @@ foep = range(100, 60)
 map = gen(104)
 
 nowscript = -1
+nextscroff = 0
 depth = 0
 releasestack
 setupstack astack(), 1024, workingdir$ + "\stack.tmp" + CHR$(0)

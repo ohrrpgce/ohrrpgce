@@ -299,16 +299,20 @@ FUNCTION functiondone
 'returns 1 when all scripts are finished
 'returns 2 when reactivating a suspended script
 
-IF nowscript + 1 < 128 THEN
- '-- when a script terminates, the script directly above it in
- '-- the script buffer must be invalidated for caching
- scrat(nowscript + 1, scrid) = -1
-END IF
+'IF nowscript + 1 < 128 THEN
+' '-- when a script terminates, the script directly above it in
+' '-- the script buffer must be invalidated for caching
+' scrat(nowscript + 1, scrid) = -1
+'END IF
+
+'--if the finishing script is at the top of the script buffer, 
+'--then nextscroff needs to be changed
+IF scrat(nowscript, scrsize) <> 0 THEN nextscroff = scrat(nowscript, scroff)
 
 nowscript = nowscript - 1
+
 IF nowscript < 0 THEN
  functiondone = 1'--no scripts are running anymore
- EXIT FUNCTION
 ELSE
  IF scrat(nowscript, scrstate) < 0 THEN
   '--suspended script is resumed
@@ -1287,7 +1291,7 @@ END SUB
 SUB scriptwatcher (page)
 
 rectangle 0, 0, 320, 4, 0, page
-rectangle 0, 0, (320 / 4096) * scrat(nowscript + 1, scroff), 2, 9, page
+rectangle 0, 0, (320 / 4096) * nextscroff, 2, 9, page
 rectangle 0, 2, (320 / 2048) * scrat(nowscript + 1, scrheap), 2, 12, page
 
 edgeprint " #     ID    Rtval CmdKn CmdID State", 0, 192, 15, page
