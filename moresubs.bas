@@ -1869,8 +1869,8 @@ ELSE
   OPEN workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" FOR BINARY AS #f
   GET #f, 1, skip
   GET #f, 3, scrat(index, scrargs)
-  scrat(index + 1, scroff) = scrat(index, scroff) + (LOF(f) - skip) / 2 + 1
-  IF scrat(index + 1, scroff) >= 4096 THEN
+  scrat(index + 1, scroff) = scrat(index, scroff) + (LOF(f) - skip) / 2
+  IF scrat(index + 1, scroff) > 4096 THEN
    scripterr "Script buffer overflow"
    CLOSE #f
    runscript = 0'--error
@@ -1891,9 +1891,9 @@ ELSE
  
 END IF
 
-scrat(index + 1, scrheap) = scrat(index, scrheap) + (scrat(index, scrargs) + 1)
+scrat(index + 1, scrheap) = scrat(index, scrheap) + scrat(index, scrargs)
 
-IF scrat(index + 1, scrheap) >= 2048 THEN
+IF scrat(index + 1, scrheap) > 2048 THEN
  scripterr "Script heap overflow"
  runscript = 0'--error
  scripterr "failed to load " + er$ + " script" + STR$(n)

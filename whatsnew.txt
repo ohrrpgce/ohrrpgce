@@ -6,15 +6,17 @@ WHAT IS NEW?
 
   * Bugs fixed thanks to help from Ralph Versteegen (TeeEmCee)
 
-    * bug 1: item-based stat increases go away after level-up
+    * bug  1: item-based stat increases go away after level-up
     * bug 32: blank exp/gold box after battle when you earn no exp/gold
+    * bug 47: Off by one bug in assigning script buffer and heap wastes
+              memory
 
   * Bugs fixed thanks to help from Mike Caron (pkmnfrk)
 
     * bug 40: Maps can be resized to invalid dimensions
     * bug 35: enemy spawned backwards in place of"flee-instead-of-die"...
     * bug 20: CUSTOM does no error checking for NPCs that point to text
-               boxes that have been deleted
+              boxes that have been deleted
 
   * Code cleanup (things that users won't notice)
 
