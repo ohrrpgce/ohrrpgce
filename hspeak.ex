@@ -15,7 +15,8 @@
 --Changelog
 
 --2E 2005-02-15 Changed license to GPL
-
+--              Added += and -= operators thanks to a patch from
+--              The Mad Cacti and Fyrewulff
 --2D 2002-08-03 Only a small change, strip out \r from lines of
 --              the script as we read them to avoid errors related
 --              to busted newlines
@@ -2226,5 +2227,4 @@ dump_debug_report()
 write_output_file()
 
 color_print("done (%g seconds)\n",{time()-start_time})
-
 

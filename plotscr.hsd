@@ -1,4 +1,4 @@
-# PLOTSCR.HSD last modified August 03 2003
+# PLOTSCR.HSD last modified Feb 15 2005
 # This file holds the language definition for OHRRPGCE plotscripting.
 # modifying this file may have undesired/disasterous effects,
 # but reading it can be somewhat educational. Especially the constants.
@@ -321,6 +321,8 @@ define operator,begin
 60,and,and
 60,or,or
 70,:=,setvariable
+70,+=,increment
+70,-=,decrement
 end
 
 #--------------------------------------------------------------------------
