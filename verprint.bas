@@ -32,6 +32,6 @@ CLOSE #1
 
 REM $STATIC
 FUNCTION datetag$
- datetag$ = MID$(DATE$, 7, 4) + MID$(DATE$, 1, 2) + MID$(DATE$, 4, 2)
+datetag$ = MID$(DATE$, 7, 4) + MID$(DATE$, 1, 2) + MID$(DATE$, 4, 2)
 END FUNCTION
 

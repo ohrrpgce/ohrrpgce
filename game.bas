@@ -2425,360 +2425,360 @@ RETURN
 
 REM $STATIC
 SUB aheadxy (x, y, direction, distance)
- '--alters the input X and Y, moving them "ahead" by distance in direction
- 
- IF direction = 0 THEN y = y - distance
- IF direction = 1 THEN x = x + distance
- IF direction = 2 THEN y = y + distance
- IF direction = 3 THEN x = x - distance
- 
+'--alters the input X and Y, moving them "ahead" by distance in direction
+
+IF direction = 0 THEN y = y - distance
+IF direction = 1 THEN x = x + distance
+IF direction = 2 THEN y = y + distance
+IF direction = 3 THEN x = x - distance
+
 END SUB
 
 FUNCTION checkfordeath (stat())
- checkfordeath = 0' --default alive
- 
- o = 0
- FOR i = 0 TO 3 '--for each slot
-  IF hero(i) > 0 THEN '--if hero exists
-   o = o + 1
-   IF stat(i, 0, 0) <= 0 AND stat(i, 1, 0) > 0 THEN o = o - 1
-  END IF
- NEXT i
- IF o = 0 THEN checkfordeath = 1
- 
+checkfordeath = 0' --default alive
+
+o = 0
+FOR i = 0 TO 3 '--for each slot
+ IF hero(i) > 0 THEN '--if hero exists
+  o = o + 1
+  IF stat(i, 0, 0) <= 0 AND stat(i, 1, 0) > 0 THEN o = o - 1
+ END IF
+NEXT i
+IF o = 0 THEN checkfordeath = 1
+
 END FUNCTION
 
 SUB cleanuptemp
- KILL workingdir$ + "\lockfile.tmp"
- 'KILL workingdir$ + "\*.*"
- findfiles workingdir$ + "\*.*" + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
- fh = FREEFILE
- OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh)
-  INPUT #fh, filename$
-  filename$ = UCASE$(filename$)
-  IF LEFT$(filename$, 3) = "VDM" AND RIGHT$(filename$, 4) = ".TMP" THEN
-   '-- mysterious locked file, leave it alone
-  ELSE
-   '-- delte file
-  END IF
-  KILL workingdir$ + "\" + filename$
- LOOP
- CLOSE #fh
- KILL tmpdir$ + "filelist.tmp"
- 
+KILL workingdir$ + "\lockfile.tmp"
+'KILL workingdir$ + "\*.*"
+findfiles workingdir$ + "\*.*" + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
+fh = FREEFILE
+OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
+DO UNTIL EOF(fh)
+ INPUT #fh, filename$
+ filename$ = UCASE$(filename$)
+ IF LEFT$(filename$, 3) = "VDM" AND RIGHT$(filename$, 4) = ".TMP" THEN
+  '-- mysterious locked file, leave it alone
+ ELSE
+  '-- delte file
+ END IF
+ KILL workingdir$ + "\" + filename$
+LOOP
+CLOSE #fh
+KILL tmpdir$ + "filelist.tmp"
+
 END SUB
 
 SUB correctbackdrop (gmap())
- 
- IF gen(58) THEN
-  '--restore text box backdrop
-  loadpage game$ + ".mxs" + CHR$(0), gen(58) - 1, 3
-  EXIT SUB
- END IF
- 
- IF gen(50) THEN
-  '--restore script backdrop
-  loadpage game$ + ".mxs" + CHR$(0), gen(50) - 1, 3
-  EXIT SUB
- END IF
- 
- loadpage game$ + ".til" + CHR$(0), gmap(0), 3
- 
+
+IF gen(58) THEN
+ '--restore text box backdrop
+ loadpage game$ + ".mxs" + CHR$(0), gen(58) - 1, 3
+ EXIT SUB
+END IF
+
+IF gen(50) THEN
+ '--restore script backdrop
+ loadpage game$ + ".mxs" + CHR$(0), gen(50) - 1, 3
+ EXIT SUB
+END IF
+
+loadpage game$ + ".til" + CHR$(0), gmap(0), 3
+
 END SUB
 
 SUB crashexplain
- PRINT "Please report this exact error message to ohrrpgce@HamsterRepublic.com"
- PRINT "Be sure to describe in detail what you were doing when it happened"
- PRINT
- PRINT version$
- PRINT "Memory Info:"; SETMEM(0); FRE(-1); FRE(-2); FRE(0)
- PRINT "Executable: "; progdir$ + exename$ + ".EXE"
- PRINT "RPG file: "; sourcerpg$
- 'IF LEN(parting$) > 0 THEN PRINT parting$
+PRINT "Please report this exact error message to ohrrpgce@HamsterRepublic.com"
+PRINT "Be sure to describe in detail what you were doing when it happened"
+PRINT
+PRINT version$
+PRINT "Memory Info:"; SETMEM(0); FRE(-1); FRE(-2); FRE(0)
+PRINT "Executable: "; progdir$ + exename$ + ".EXE"
+PRINT "RPG file: "; sourcerpg$
+'IF LEN(parting$) > 0 THEN PRINT parting$
 END SUB
 
 SUB exitprogram (needfade)
- 
- 'DEBUG debug "Exiting Program"
- 'DEBUG debug "fade music"
- fademusic 0
- 'DEBUG debug "fade screen"
- IF needfade THEN fadeout 0, 0, 0, -1
- quitcleanup
- 'DEBUG debug "Restore Old Graphics Mode"
- restoremode
- 'DEBUG debug "Terminate NOW (boom!)"
- SYSTEM
- 
+
+'DEBUG debug "Exiting Program"
+'DEBUG debug "fade music"
+fademusic 0
+'DEBUG debug "fade screen"
+IF needfade THEN fadeout 0, 0, 0, -1
+quitcleanup
+'DEBUG debug "Restore Old Graphics Mode"
+restoremode
+'DEBUG debug "Terminate NOW (boom!)"
+SYSTEM
+
 END SUB
 
 FUNCTION framewalkabout (x, y, framex, framey, mapwide, maphigh, wrapmode)
- 'Given an X and a Y returns true if a walkabout at that
- 'spot would be on-screen, and false if off-screen.
- 'Also checks wraparound map, and sets framex and framey
- 'to the position on screen where the walkabout should
- 'be drawn (relative to the top-left corner of the screen,
- 'not the top left corner of the map)
- 
- '--by default, assume we will not draw the walkaout
- yesdraw = 0
- 
- IF isonscreen(x, y) THEN
-  '--walkabout is on-screen
-  yesdraw = 1
-  framex = x - mapx
-  framey = y - mapy
- ELSE
-  IF wrapmode = 1 THEN
-   '--in wrap-mode
-   '--I hope this checking isn't too slow!
-   DO '--just so I can exit do
-    IF isonscreen(x - mapwide, y) THEN
-     '--off-left
-     yesdraw = 1
-     framex = (x - mapwide) - mapx
-     framey = y - mapy
-     EXIT DO
-    END IF
-    IF isonscreen(x + mapwide, y) THEN
-     '--off-right
-     yesdraw = 1
-     framex = (x + mapwide) - mapx
-     framey = y - mapy
-     EXIT DO
-    END IF
-    IF isonscreen(x, y - maphigh) THEN
-     '--off-top
-     yesdraw = 1
-     framex = x - mapx
-     framey = (y - maphigh) - mapy
-     EXIT DO
-    END IF
-    IF isonscreen(x, y + maphigh) THEN
-     '--off-bottom
-     yesdraw = 1
-     framex = x - mapx
-     framey = (y + maphigh) - mapy
-     EXIT DO
-    END IF
-    IF isonscreen(x - mapwide, y - maphigh) THEN
-     '--off-top-left
-     yesdraw = 1
-     framex = (x - mapwide) - mapx
-     framey = (y - maphigh) - mapy
-     EXIT DO
-    END IF
-    IF isonscreen(x + mapwide, y - maphigh) THEN
-     '--off-top-right
-     yesdraw = 1
-     framex = (x + mapwide) - mapx
-     framey = (y - maphigh) - mapy
-     EXIT DO
-    END IF
-    IF isonscreen(x - mapwide, y + maphigh) THEN
-     '--off-bottom-left
-     yesdraw = 1
-     framex = (x - mapwide) - mapx
-     framey = (y + maphigh) - mapy
-     EXIT DO
-    END IF
-    IF isonscreen(x + mapwide, y + maphigh) THEN
-     '--off-bottom-right
-     yesdraw = 1
-     framex = (x + mapwide) - mapx
-     framey = (y + maphigh) - mapy
-     EXIT DO
-    END IF
+'Given an X and a Y returns true if a walkabout at that
+'spot would be on-screen, and false if off-screen.
+'Also checks wraparound map, and sets framex and framey
+'to the position on screen where the walkabout should
+'be drawn (relative to the top-left corner of the screen,
+'not the top left corner of the map)
+
+'--by default, assume we will not draw the walkaout
+yesdraw = 0
+
+IF isonscreen(x, y) THEN
+ '--walkabout is on-screen
+ yesdraw = 1
+ framex = x - mapx
+ framey = y - mapy
+ELSE
+ IF wrapmode = 1 THEN
+  '--in wrap-mode
+  '--I hope this checking isn't too slow!
+  DO '--just so I can exit do
+   IF isonscreen(x - mapwide, y) THEN
+    '--off-left
+    yesdraw = 1
+    framex = (x - mapwide) - mapx
+    framey = y - mapy
     EXIT DO
-   LOOP
-  END IF
+   END IF
+   IF isonscreen(x + mapwide, y) THEN
+    '--off-right
+    yesdraw = 1
+    framex = (x + mapwide) - mapx
+    framey = y - mapy
+    EXIT DO
+   END IF
+   IF isonscreen(x, y - maphigh) THEN
+    '--off-top
+    yesdraw = 1
+    framex = x - mapx
+    framey = (y - maphigh) - mapy
+    EXIT DO
+   END IF
+   IF isonscreen(x, y + maphigh) THEN
+    '--off-bottom
+    yesdraw = 1
+    framex = x - mapx
+    framey = (y + maphigh) - mapy
+    EXIT DO
+   END IF
+   IF isonscreen(x - mapwide, y - maphigh) THEN
+    '--off-top-left
+    yesdraw = 1
+    framex = (x - mapwide) - mapx
+    framey = (y - maphigh) - mapy
+    EXIT DO
+   END IF
+   IF isonscreen(x + mapwide, y - maphigh) THEN
+    '--off-top-right
+    yesdraw = 1
+    framex = (x + mapwide) - mapx
+    framey = (y - maphigh) - mapy
+    EXIT DO
+   END IF
+   IF isonscreen(x - mapwide, y + maphigh) THEN
+    '--off-bottom-left
+    yesdraw = 1
+    framex = (x - mapwide) - mapx
+    framey = (y + maphigh) - mapy
+    EXIT DO
+   END IF
+   IF isonscreen(x + mapwide, y + maphigh) THEN
+    '--off-bottom-right
+    yesdraw = 1
+    framex = (x + mapwide) - mapx
+    framey = (y + maphigh) - mapy
+    EXIT DO
+   END IF
+   EXIT DO
+  LOOP
  END IF
- 
- framewalkabout = yesdraw
+END IF
+
+framewalkabout = yesdraw
 END FUNCTION
 
 SUB herowrappass (whoi, x, y, xgo(), ygo(), mapwide, maphigh, wrapmode, veh())
- 
- DIM pd(3)
- 
+
+DIM pd(3)
+
+tilex = x: tiley = y
+p = readmapblock(tilex, tiley)
+
+FOR i = 0 TO 3
  tilex = x: tiley = y
- p = readmapblock(tilex, tiley)
- 
- FOR i = 0 TO 3
-  tilex = x: tiley = y
-  wrapaheadxy tilex, tiley, i, 1, mapwide, maphigh, wrapmode
-  pd(i) = readmapblock(tilex, tiley)
- NEXT i
- 
- IF ygo(whoi) > 0 AND movdivis(ygo(whoi)) AND ((p AND 1) = 1 OR (pd(0) AND 4) = 4 OR (veh(0) AND vehpass(veh(18), pd(0), 0))) THEN ygo(whoi) = 0
- IF ygo(whoi) < 0 AND movdivis(ygo(whoi)) AND ((p AND 4) = 4 OR (pd(2) AND 1) = 1 OR (veh(0) AND vehpass(veh(18), pd(2), 0))) THEN ygo(whoi) = 0
- IF xgo(whoi) > 0 AND movdivis(xgo(whoi)) AND ((p AND 8) = 8 OR (pd(3) AND 2) = 2 OR (veh(0) AND vehpass(veh(18), pd(3), 0))) THEN xgo(whoi) = 0
- IF xgo(whoi) < 0 AND movdivis(xgo(whoi)) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (veh(0) AND vehpass(veh(18), pd(1), 0))) THEN xgo(whoi) = 0
- 
+ wrapaheadxy tilex, tiley, i, 1, mapwide, maphigh, wrapmode
+ pd(i) = readmapblock(tilex, tiley)
+NEXT i
+
+IF ygo(whoi) > 0 AND movdivis(ygo(whoi)) AND ((p AND 1) = 1 OR (pd(0) AND 4) = 4 OR (veh(0) AND vehpass(veh(18), pd(0), 0))) THEN ygo(whoi) = 0
+IF ygo(whoi) < 0 AND movdivis(ygo(whoi)) AND ((p AND 4) = 4 OR (pd(2) AND 1) = 1 OR (veh(0) AND vehpass(veh(18), pd(2), 0))) THEN ygo(whoi) = 0
+IF xgo(whoi) > 0 AND movdivis(xgo(whoi)) AND ((p AND 8) = 8 OR (pd(3) AND 2) = 2 OR (veh(0) AND vehpass(veh(18), pd(3), 0))) THEN xgo(whoi) = 0
+IF xgo(whoi) < 0 AND movdivis(xgo(whoi)) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (veh(0) AND vehpass(veh(18), pd(1), 0))) THEN xgo(whoi) = 0
+
 END SUB
 
 SUB initgamedefaults
- 
- '--items
- item$(-3) = readglobalstring$(35, "DONE", 10)
- item$(-2) = readglobalstring$(36, "AUTOSORT", 10)
- item$(-1) = readglobalstring$(37, "TRASH", 10)
- FOR i = -3 TO -1
-  item(i) = 1
-  item$(i) = rpad$(item$(i), " ", 11)
- NEXT i
- FOR i = 0 TO 199: item$(i) = "           ": NEXT i
- 
- '--money
- gold& = gen(96)
- 
- '--hero's speed
- FOR i = 0 TO 3
-  herospeed(i) = 4
- NEXT i
- 
- '--hero's position
- FOR i = 0 TO 15
-  catx(i) = gen(102) * 20
-  caty(i) = gen(103) * 20
-  catd(i) = 2
- NEXT i
- 
+
+'--items
+item$(-3) = readglobalstring$(35, "DONE", 10)
+item$(-2) = readglobalstring$(36, "AUTOSORT", 10)
+item$(-1) = readglobalstring$(37, "TRASH", 10)
+FOR i = -3 TO -1
+ item(i) = 1
+ item$(i) = rpad$(item$(i), " ", 11)
+NEXT i
+FOR i = 0 TO 199: item$(i) = "           ": NEXT i
+
+'--money
+gold& = gen(96)
+
+'--hero's speed
+FOR i = 0 TO 3
+ herospeed(i) = 4
+NEXT i
+
+'--hero's position
+FOR i = 0 TO 15
+ catx(i) = gen(102) * 20
+ caty(i) = gen(103) * 20
+ catd(i) = 2
+NEXT i
+
 END SUB
 
 SUB interpolatecat
- 'given the current positions of the caterpillar party, interpolate their inbetween frames
- FOR o = 0 TO 10 STEP 5
-  FOR i = o + 1 TO o + 4
-   catx(i) = catx(i - 1) + ((catx(o + 5) - catx(o)) / 4)
-   caty(i) = caty(i - 1) + ((caty(o + 5) - caty(o)) / 4)
-   catd(i) = catd(o)
-  NEXT i
- NEXT o
+'given the current positions of the caterpillar party, interpolate their inbetween frames
+FOR o = 0 TO 10 STEP 5
+ FOR i = o + 1 TO o + 4
+  catx(i) = catx(i - 1) + ((catx(o + 5) - catx(o)) / 4)
+  caty(i) = caty(i - 1) + ((caty(o + 5) - caty(o)) / 4)
+  catd(i) = catd(o)
+ NEXT i
+NEXT o
 END SUB
 
 FUNCTION isonscreen (x, y)
- IF x >= mapx - 20 AND x <= mapx + 340 AND y >= mapy - 20 AND y <= mapy + 200 THEN
-  isonscreen = -1
- ELSE
-  isonscreen = 0
- END IF
- 
- '17*20=340
- '10*20=200
- 
+IF x >= mapx - 20 AND x <= mapx + 340 AND y >= mapy - 20 AND y <= mapy + 200 THEN
+ isonscreen = -1
+ELSE
+ isonscreen = 0
+END IF
+
+'17*20=340
+'10*20=200
+
 END FUNCTION
 
 SUB prepareFM
- 
- '--disabled because it was possably nuking FM on some computers
- 'dummy = resetfm 'this is all we do
- 
- '--the rest is disabled because it caused more problems than it fixed
- 
- 'trydefault = 1
- 
- 'IF isfile(progdir$ + "soundset.ini" + CHR$(0)) THEN
- '  '--use soundset.ini
- '  fh = FREEFILE
- '  OPEN progdir$ + "soundset.ini" FOR INPUT AS #fh
- '    safety = 0
- '    DO WHILE NOT EOF(fh) AND safety < 100
- '      LINE INPUT #fh, a$
- '      IF settingstring(a$, "FMPORT", port$) THEN
- '        '--found fmport= line
- '        IF hex2dec(port$) = 0 THEN
- '          '--port 0 disables sound
- '          EXIT DO
- '        ELSE
- '          '--try any non-zero port
- '          setFMbase hex2dec(port$)
- '          IF resetfm > 1 THEN
- '            'it was good?
- '            '--set the mixerbase too
- '            setFMMixerbase hex2dec(port$)
- '            trydefault = 0
- '            EXIT DO
- '          END IF
- '        END IF
- '      END IF
- '      safety = safety + 1
- '    LOOP
- '  CLOSE #fh
- 'END IF
- 
- 'IF trydefault THEN
- '  '--try default 0388
- '  setFMbase &H388
- '  IF resetfm > 1 THEN
- '    'it was good?
- '    setFMMixerbase &H388
- '  ELSE
- '    setFMbase &H220
- '    '--try default 0220
- '    IF resetfm > 1 THEN
- '      'it was good?
- '      setFMMixerbase &H220
- '    END IF
- '  END IF
- 'END IF
- 
+
+'--disabled because it was possably nuking FM on some computers
+'dummy = resetfm 'this is all we do
+
+'--the rest is disabled because it caused more problems than it fixed
+
+'trydefault = 1
+
+'IF isfile(progdir$ + "soundset.ini" + CHR$(0)) THEN
+'  '--use soundset.ini
+'  fh = FREEFILE
+'  OPEN progdir$ + "soundset.ini" FOR INPUT AS #fh
+'    safety = 0
+'    DO WHILE NOT EOF(fh) AND safety < 100
+'      LINE INPUT #fh, a$
+'      IF settingstring(a$, "FMPORT", port$) THEN
+'        '--found fmport= line
+'        IF hex2dec(port$) = 0 THEN
+'          '--port 0 disables sound
+'          EXIT DO
+'        ELSE
+'          '--try any non-zero port
+'          setFMbase hex2dec(port$)
+'          IF resetfm > 1 THEN
+'            'it was good?
+'            '--set the mixerbase too
+'            setFMMixerbase hex2dec(port$)
+'            trydefault = 0
+'            EXIT DO
+'          END IF
+'        END IF
+'      END IF
+'      safety = safety + 1
+'    LOOP
+'  CLOSE #fh
+'END IF
+
+'IF trydefault THEN
+'  '--try default 0388
+'  setFMbase &H388
+'  IF resetfm > 1 THEN
+'    'it was good?
+'    setFMMixerbase &H388
+'  ELSE
+'    setFMbase &H220
+'    '--try default 0220
+'    IF resetfm > 1 THEN
+'      'it was good?
+'      setFMMixerbase &H220
+'    END IF
+'  END IF
+'END IF
+
 END SUB
 
 SUB safekill (f$)
- IF isfile(f$ + CHR$(0)) THEN KILL f$
+IF isfile(f$ + CHR$(0)) THEN KILL f$
 END SUB
 
 SUB strgrabber (s$, maxl)
- STATIC clip$
+STATIC clip$
+
+'--BACKSPACE support
+IF keyval(14) > 1 AND LEN(s$) > 0 THEN s$ = LEFT$(s$, LEN(s$) - 1)
+
+'--SHIFT support
+shift = 0
+IF keyval(54) > 0 OR keyval(42) > 0 THEN shift = 1
+
+'--adding chars
+IF LEN(s$) < maxl THEN
  
- '--BACKSPACE support
- IF keyval(14) > 1 AND LEN(s$) > 0 THEN s$ = LEFT$(s$, LEN(s$) - 1)
+ '--SPACE support
+ IF keyval(57) > 1 THEN s$ = s$ + " "
  
- '--SHIFT support
- shift = 0
- IF keyval(54) > 0 OR keyval(42) > 0 THEN shift = 1
+ '--all other keys
+ FOR i = 2 TO 53
+  IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN s$ = s$ + CHR$(keyv(i, shift))
+ NEXT i
  
- '--adding chars
- IF LEN(s$) < maxl THEN
-  
-  '--SPACE support
-  IF keyval(57) > 1 THEN s$ = s$ + " "
-  
-  '--all other keys
-  FOR i = 2 TO 53
-   IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN s$ = s$ + CHR$(keyv(i, shift))
-  NEXT i
-  
- END IF
- 
+END IF
+
 END SUB
 
 SUB touchfile (f$)
- 
- fh = FREEFILE
- OPEN f$ FOR BINARY AS #fh
- CLOSE #fh
- 
+
+fh = FREEFILE
+OPEN f$ FOR BINARY AS #fh
+CLOSE #fh
+
 END SUB
 
 SUB wrapaheadxy (x, y, direction, distance, mapwide, maphigh, wrapmode)
- 'alters X and Y ahead by distance in direction, wrapping if neccisary
- 
- aheadxy x, y, direction, distance
- 
- IF wrapmode THEN
-  wrapxy x, y, mapwide, maphigh
- END IF
- 
+'alters X and Y ahead by distance in direction, wrapping if neccisary
+
+aheadxy x, y, direction, distance
+
+IF wrapmode THEN
+ wrapxy x, y, mapwide, maphigh
+END IF
+
 END SUB
 
 SUB wrapxy (x, y, wide, high)
- '--wraps the given X and Y values within the bounds of width and height
- IF x < 0 THEN x = wide + x
- IF x >= wide THEN x = x - wide
- IF y < 0 THEN y = high + y
- IF y >= high THEN y = y - high
+'--wraps the given X and Y values within the bounds of width and height
+IF x < 0 THEN x = wide + x
+IF x >= wide THEN x = x - wide
+IF y < 0 THEN y = high + y
+IF y >= high THEN y = y - high
 END SUB
 

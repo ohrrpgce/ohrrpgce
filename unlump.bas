@@ -205,159 +205,159 @@ SYSTEM
 
 REM $STATIC
 FUNCTION bound (num, min, max)
- 
- bound = num
- IF num < min THEN bound = min
- IF num > max THEN bound = max
- 
+
+bound = num
+IF num < min THEN bound = min
+IF num > max THEN bound = max
+
 END FUNCTION
 
 FUNCTION editstr$ (stri$, key$, cur, max, number)
- 
- pre$ = LEFT$(stri$, cur)
- post$ = RIGHT$(stri$, LEN(stri$) - cur)
- 
- SELECT CASE key$
-  CASE CHR$(8)
-   'backspace
-   IF LEN(pre$) > 0 THEN pre$ = LEFT$(pre$, LEN(pre$) - 1): cur = cur - 1
-  CASE CHR$(0) + CHR$(83)
-   'delete
-   IF LEN(post$) > 0 THEN post$ = RIGHT$(post$, LEN(post$) - 1)
-  CASE ELSE
-   IF LEN(key$) > 0 THEN
-    IF (ASC(key$) >= 32 AND ASC(key$) < 127 AND key$ <> "," AND key$ <> "~" AND NOT number) OR (ASC(key$) >= 48 AND ASC(key$) <= 57 AND number) THEN
-     IF LEN(post$) = 0 AND LEN(pre$) < max THEN post$ = " "
-     IF LEN(post$) > 0 THEN
-      MID$(post$, 1, 1) = key$
-      cur = bound(cur + 1, 0, LEN(pre$ + post$))
-     END IF
+
+pre$ = LEFT$(stri$, cur)
+post$ = RIGHT$(stri$, LEN(stri$) - cur)
+
+SELECT CASE key$
+ CASE CHR$(8)
+  'backspace
+  IF LEN(pre$) > 0 THEN pre$ = LEFT$(pre$, LEN(pre$) - 1): cur = cur - 1
+ CASE CHR$(0) + CHR$(83)
+  'delete
+  IF LEN(post$) > 0 THEN post$ = RIGHT$(post$, LEN(post$) - 1)
+ CASE ELSE
+  IF LEN(key$) > 0 THEN
+   IF (ASC(key$) >= 32 AND ASC(key$) < 127 AND key$ <> "," AND key$ <> "~" AND NOT number) OR (ASC(key$) >= 48 AND ASC(key$) <= 57 AND number) THEN
+    IF LEN(post$) = 0 AND LEN(pre$) < max THEN post$ = " "
+    IF LEN(post$) > 0 THEN
+     MID$(post$, 1, 1) = key$
+     cur = bound(cur + 1, 0, LEN(pre$ + post$))
     END IF
    END IF
- END SELECT
- 
- editstr$ = pre$ + post$
- 
- 
+  END IF
+END SELECT
+
+editstr$ = pre$ + post$
+
+
 END FUNCTION
 
 SUB fatalerror (e$)
- 
- IF e$ <> "" THEN PRINT "ERROR: " + e$
- SYSTEM
- 
+
+IF e$ <> "" THEN PRINT "ERROR: " + e$
+SYSTEM
+
 END SUB
 
 SUB forcewd (wd$)
- 
- CHDIR wd$
- setdrive ASC(UCASE$(LEFT$(wd$, 1))) - 65
- 
+
+CHDIR wd$
+setdrive ASC(UCASE$(LEFT$(wd$, 1))) - 65
+
 END SUB
 
 FUNCTION getcurdir$
- 
- sCurdir$ = STRING$(pathlength, 0)
- getstring sCurdir$
- IF RIGHT$(sCurdir$, 1) = "\" AND LEN(sCurdir$) > 3 THEN sCurdir$ = LEFT$(sCurdir$, LEN(sCurdir$) - 1)
- 
- getcurdir$ = sCurdir$
- 
+
+sCurdir$ = STRING$(pathlength, 0)
+getstring sCurdir$
+IF RIGHT$(sCurdir$, 1) = "\" AND LEN(sCurdir$) > 3 THEN sCurdir$ = LEFT$(sCurdir$, LEN(sCurdir$) - 1)
+
+getcurdir$ = sCurdir$
+
 END FUNCTION
 
 FUNCTION getrundir$
- 
- rundir$ = STRING$(rpathlength, 0)
- getstring rundir$
- IF RIGHT$(rundir$, 1) = "\" AND LEN(rundir$) > 3 THEN rundir$ = LEFT$(rundir$, LEN(rundir$) - 1)
- 
- getrundir$ = rundir$
- 
+
+rundir$ = STRING$(rpathlength, 0)
+getstring rundir$
+IF RIGHT$(rundir$, 1) = "\" AND LEN(rundir$) > 3 THEN rundir$ = LEFT$(rundir$, LEN(rundir$) - 1)
+
+getrundir$ = rundir$
+
 END FUNCTION
 
 FUNCTION large (n1, n2)
- large = n1
- IF n2 > n1 THEN large = n2
+large = n1
+IF n2 > n1 THEN large = n2
 END FUNCTION
 
 FUNCTION loopvar (var, min, max, inc)
- a = var + inc
- IF a > max THEN a = a - ((max - min) + 1): loopvar = a: EXIT FUNCTION
- IF a < min THEN a = a + ((max - min) + 1): loopvar = a: EXIT FUNCTION
- loopvar = a
+a = var + inc
+IF a > max THEN a = a - ((max - min) + 1): loopvar = a: EXIT FUNCTION
+IF a < min THEN a = a + ((max - min) + 1): loopvar = a: EXIT FUNCTION
+loopvar = a
 END FUNCTION
 
 FUNCTION readkey$
- 
- w$ = ""
- WHILE w$ = ""
-  w$ = INKEY$
- WEND
- 
- readkey$ = w$
- 
+
+w$ = ""
+WHILE w$ = ""
+ w$ = INKEY$
+WEND
+
+readkey$ = w$
+
 END FUNCTION
 
 SUB readscatter (s$, lhold, array(), start)
- DIM stray(10)
- s$ = STRING$(20, "!")
- 
- FOR i = 0 TO lhold
-  setbit stray(), 0, i, readbit(array(), start - 1, array(start + i))
- NEXT i
- 
- array2str stray(), 0, s$
- s$ = LEFT$(s$, INT((lhold + 1) / 8))
- 
+DIM stray(10)
+s$ = STRING$(20, "!")
+
+FOR i = 0 TO lhold
+ setbit stray(), 0, i, readbit(array(), start - 1, array(start + i))
+NEXT i
+
+array2str stray(), 0, s$
+s$ = LEFT$(s$, INT((lhold + 1) / 8))
+
 END SUB
 
 FUNCTION rightafter$ (s$, d$)
- 
- rightafter$ = ""
- new$ = ""
- 
- FOR i = LEN(s$) TO 1 STEP -1
-  IF MID$(s$, i, 1) = d$ THEN
-   rightafter$ = new$
-   EXIT FOR
-  END IF
-  new$ = MID$(s$, i, 1) + new$
- NEXT i
- 
+
+rightafter$ = ""
+new$ = ""
+
+FOR i = LEN(s$) TO 1 STEP -1
+ IF MID$(s$, i, 1) = d$ THEN
+  rightafter$ = new$
+  EXIT FOR
+ END IF
+ new$ = MID$(s$, i, 1) + new$
+NEXT i
+
 END FUNCTION
 
 FUNCTION rotascii$ (s$, o)
- 
- temp$ = ""
- 
- FOR i = 1 TO LEN(s$)
-  temp$ = temp$ + CHR$(loopvar(ASC(MID$(s$, i, 1)), 0, 255, o))
- NEXT i
- 
- rotascii$ = temp$
- 
+
+temp$ = ""
+
+FOR i = 1 TO LEN(s$)
+ temp$ = temp$ + CHR$(loopvar(ASC(MID$(s$, i, 1)), 0, 255, o))
+NEXT i
+
+rotascii$ = temp$
+
 END FUNCTION
 
 FUNCTION small (n1, n2)
- small = n1
- IF n2 < n1 THEN small = n2
+small = n1
+IF n2 < n1 THEN small = n2
 END FUNCTION
 
 SUB xbload (f$, array(), e$)
- 
- IF isfile(f$ + CHR$(0)) THEN
-  handle = FREEFILE
-  OPEN f$ FOR BINARY AS #handle
-  bytes = LOF(handle)
-  CLOSE #handle
-  IF bytes THEN
-   DEF SEG = VARSEG(array(0)): BLOAD f$, VARPTR(array(0))
-  ELSE
-   fatalerror e$ + "(zero byte)"
-  END IF
+
+IF isfile(f$ + CHR$(0)) THEN
+ handle = FREEFILE
+ OPEN f$ FOR BINARY AS #handle
+ bytes = LOF(handle)
+ CLOSE #handle
+ IF bytes THEN
+  DEF SEG = VARSEG(array(0)): BLOAD f$, VARPTR(array(0))
  ELSE
-  fatalerror e$
+  fatalerror e$ + "(zero byte)"
  END IF
- 
+ELSE
+ fatalerror e$
+END IF
+
 END SUB
 

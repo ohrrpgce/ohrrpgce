@@ -17,10 +17,10 @@ def uncomment(line):
         return res[0].rstrip()
     return line
 
-always_tab_kw = ["SELECT CASE", "FUNCTION", "SUB", "TYPE"]
+always_tab_kw = ["SELECT CASE", "TYPE"]
 tab_kw = [ "DO", "WHILE", "FOR"]
 untab_kw = [ "LOOP", "WEND", "NEXT"]
-always_untab_kw = [ "END SUB", "END FUNCTION", "END TYPE"]
+always_untab_kw = ["END TYPE"]
 
 def indent_change_ok(line):
     "Return False on cases where it looks like a line should be indented but it shouldn't"

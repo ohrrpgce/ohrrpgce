@@ -180,1517 +180,1517 @@ DECLARE FUNCTION stackpos ()
 
 REM $STATIC
 SUB alterhero (id, stat())
- 
- SELECT CASE id
-  CASE 110'--set hero picture
-   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-    i = bound(retvals(0), 0, 40)
-    j = bound(retvals(2), 0, 1)
-    stat(i, j, 14) = bound(retvals(1), 0, gen(26 + (j * 4)))
-    IF i < 4 THEN
-     vishero stat()
-    END IF
+
+SELECT CASE id
+ CASE 110'--set hero picture
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   i = bound(retvals(0), 0, 40)
+   j = bound(retvals(2), 0, 1)
+   stat(i, j, 14) = bound(retvals(1), 0, gen(26 + (j * 4)))
+   IF i < 4 THEN
+    vishero stat()
    END IF
-  CASE 111'--set hero palette
-   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-    i = bound(retvals(0), 0, 40)
-    j = bound(retvals(2), 0, 1)
-    stat(i, j, 15) = bound(retvals(1), -1, 32767)
-    IF i < 4 THEN
-     vishero stat()
-    END IF
+  END IF
+ CASE 111'--set hero palette
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   i = bound(retvals(0), 0, 40)
+   j = bound(retvals(2), 0, 1)
+   stat(i, j, 15) = bound(retvals(1), -1, 32767)
+   IF i < 4 THEN
+    vishero stat()
    END IF
-  CASE 112'--get hero picture
-   scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(1), 0, 1), 14)
-  CASE 113'--get hero palette
-   scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(1), 0, 1), 15)
- END SELECT
- 
+  END IF
+ CASE 112'--get hero picture
+  scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(1), 0, 1), 14)
+ CASE 113'--get hero palette
+  scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(1), 0, 1), 15)
+END SELECT
+
 END SUB
 
 SUB arslhero (saytag(), stat())
- '---ADD/REMOVE/SWAP/LOCK
- '---ADD---
- IF saytag(10) > 0 THEN
-  i = findhero(0, 0, 40, 1)
-  IF i > -1 THEN
-   addhero saytag(10), i, stat()
-   vishero stat()
-  END IF
- END IF '---end if > 0
- '---REMOVE---
- IF saytag(10) < 0 THEN
-  IF howmanyh(0, 40) > 1 THEN
-   i = findhero(ABS(saytag(10)), 0, 40, 1)
-   IF i > -1 THEN hero(i) = 0
-   IF howmanyh(0, 3) = 0 THEN forceparty stat()
-  END IF
- END IF '---end if < 0
- vishero stat()
- '---SWAP-IN---
- IF saytag(19) > 0 THEN
-  i = findhero(ABS(saytag(19)), 40, 0, -1)
-  IF i > -1 THEN
-   FOR o = 0 TO 3
-    IF hero(o) = 0 THEN
-     doswap i, o, stat()
-     EXIT FOR
-    END IF
-   NEXT o
-  END IF
- END IF '---end if > 0
- '---SWAP-OUT---
- IF saytag(19) < 0 THEN
-  i = findhero(ABS(saytag(19)), 0, 40, 1)
-  IF i > -1 THEN
-   FOR o = 40 TO 4 STEP -1
-    IF hero(o) = 0 THEN
-     doswap i, o, stat()
-     IF howmanyh(0, 3) = 0 THEN forceparty stat()
-     EXIT FOR
-    END IF
-   NEXT o
-  END IF
- END IF '---end if < 0
- '---UNLOCK HERO---
- IF saytag(20) > 0 THEN
-  temp = findhero(ABS(saytag(20)), 0, 40, 1)
-  IF temp > -1 THEN setbit hmask(), 0, temp, 0
- END IF '---end if > 0
- '---LOCK HERO---
- IF saytag(20) < 0 THEN
-  temp = findhero(ABS(saytag(20)), 0, 40, 1)
-  IF temp > -1 THEN setbit hmask(), 0, temp, 1
- END IF '---end if > 0
+'---ADD/REMOVE/SWAP/LOCK
+'---ADD---
+IF saytag(10) > 0 THEN
+ i = findhero(0, 0, 40, 1)
+ IF i > -1 THEN
+  addhero saytag(10), i, stat()
+  vishero stat()
+ END IF
+END IF '---end if > 0
+'---REMOVE---
+IF saytag(10) < 0 THEN
+ IF howmanyh(0, 40) > 1 THEN
+  i = findhero(ABS(saytag(10)), 0, 40, 1)
+  IF i > -1 THEN hero(i) = 0
+  IF howmanyh(0, 3) = 0 THEN forceparty stat()
+ END IF
+END IF '---end if < 0
+vishero stat()
+'---SWAP-IN---
+IF saytag(19) > 0 THEN
+ i = findhero(ABS(saytag(19)), 40, 0, -1)
+ IF i > -1 THEN
+  FOR o = 0 TO 3
+   IF hero(o) = 0 THEN
+    doswap i, o, stat()
+    EXIT FOR
+   END IF
+  NEXT o
+ END IF
+END IF '---end if > 0
+'---SWAP-OUT---
+IF saytag(19) < 0 THEN
+ i = findhero(ABS(saytag(19)), 0, 40, 1)
+ IF i > -1 THEN
+  FOR o = 40 TO 4 STEP -1
+   IF hero(o) = 0 THEN
+    doswap i, o, stat()
+    IF howmanyh(0, 3) = 0 THEN forceparty stat()
+    EXIT FOR
+   END IF
+  NEXT o
+ END IF
+END IF '---end if < 0
+'---UNLOCK HERO---
+IF saytag(20) > 0 THEN
+ temp = findhero(ABS(saytag(20)), 0, 40, 1)
+ IF temp > -1 THEN setbit hmask(), 0, temp, 0
+END IF '---end if > 0
+'---LOCK HERO---
+IF saytag(20) < 0 THEN
+ temp = findhero(ABS(saytag(20)), 0, 40, 1)
+ IF temp > -1 THEN setbit hmask(), 0, temp, 1
+END IF '---end if > 0
 END SUB
 
 FUNCTION dignum$ (n, dig)
- a$ = LTRIM$(STR$(n))
- WHILE LEN(a$) < dig
-  a$ = "0" + a$
- WEND
- dignum$ = a$
+a$ = LTRIM$(STR$(n))
+WHILE LEN(a$) < dig
+ a$ = "0" + a$
+WEND
+dignum$ = a$
 END FUNCTION
 
 SUB doihavebits
- setpicstuf buffer(), 636, -1
- FOR i = 0 TO large(gen(35), 59)
-  loadset game$ + ".dt0" + CHR$(0), i, 0
-  herobits(i, 0) = buffer(292)    'have hero tag
-  herobits(i, 1) = buffer(293)    'is alive tag
-  herobits(i, 2) = buffer(294)    'is leader tag
-  herobits(i, 3) = buffer(295)    'is in active party tag
- NEXT i
- setpicstuf buffer(), 200, -1
- FOR i = 0 TO 255
-  loadset game$ + ".itm" + CHR$(0), i, 0
-  itembits(i, 0) = buffer(74)   'when have tag
-  itembits(i, 1) = buffer(75)   'is in inventory
-  itembits(i, 2) = buffer(76)   'is equiped tag
-  itembits(i, 3) = buffer(77)   'is equiped by hero in active party
-  itembits(i, 4) = buffer(0)    'tracks if item has a name or not
- NEXT i
+setpicstuf buffer(), 636, -1
+FOR i = 0 TO large(gen(35), 59)
+ loadset game$ + ".dt0" + CHR$(0), i, 0
+ herobits(i, 0) = buffer(292)    'have hero tag
+ herobits(i, 1) = buffer(293)    'is alive tag
+ herobits(i, 2) = buffer(294)    'is leader tag
+ herobits(i, 3) = buffer(295)    'is in active party tag
+NEXT i
+setpicstuf buffer(), 200, -1
+FOR i = 0 TO 255
+ loadset game$ + ".itm" + CHR$(0), i, 0
+ itembits(i, 0) = buffer(74)   'when have tag
+ itembits(i, 1) = buffer(75)   'is in inventory
+ itembits(i, 2) = buffer(76)   'is equiped tag
+ itembits(i, 3) = buffer(77)   'is equiped by hero in active party
+ itembits(i, 4) = buffer(0)    'tracks if item has a name or not
+NEXT i
 END SUB
 
 SUB embedtext (text$)
- '--Clobbers buffer() !
- start = 1
- DO WHILE start < LEN(text$)
-  '--seek an embed spot
-  embedbegin = INSTR(start, text$, "${")
-  IF embedbegin = 0 THEN EXIT DO '--failed to find an embed spot
-  embedend = INSTR(embedbegin + 4, text$, "}")
-  IF embedend = 0 THEN EXIT DO '--embed spot has no end
-  '--break apart the string
-  before$ = MID$(text$, 1, large(embedbegin - 1, 0))
-  after$ = MID$(text$, embedend + 1)
-  '--extract the command and arg
-  act$ = MID$(text$, embedbegin + 2, 1)
-  arg$ = MID$(text$, embedbegin + 3, large(embedend - (embedbegin + 3), 0))
-  '--convert the arg to a number
-  arg = VAL(arg$)
-  '--discourage bad arg values (not perfect)
-  IF NOT (arg = 0 AND arg$ <> STRING$(LEN(arg$), "0")) THEN
-   IF arg >= 0 THEN '--only permit postive args
-    '--by default the embed is unchanged
-    insert$ = "${" + act$ + arg$ + "}"
-    '--evalued possible actions
-    SELECT CASE UCASE$(act$)
-     CASE "H": '--Hero name by ID
+'--Clobbers buffer() !
+start = 1
+DO WHILE start < LEN(text$)
+ '--seek an embed spot
+ embedbegin = INSTR(start, text$, "${")
+ IF embedbegin = 0 THEN EXIT DO '--failed to find an embed spot
+ embedend = INSTR(embedbegin + 4, text$, "}")
+ IF embedend = 0 THEN EXIT DO '--embed spot has no end
+ '--break apart the string
+ before$ = MID$(text$, 1, large(embedbegin - 1, 0))
+ after$ = MID$(text$, embedend + 1)
+ '--extract the command and arg
+ act$ = MID$(text$, embedbegin + 2, 1)
+ arg$ = MID$(text$, embedbegin + 3, large(embedend - (embedbegin + 3), 0))
+ '--convert the arg to a number
+ arg = VAL(arg$)
+ '--discourage bad arg values (not perfect)
+ IF NOT (arg = 0 AND arg$ <> STRING$(LEN(arg$), "0")) THEN
+  IF arg >= 0 THEN '--only permit postive args
+   '--by default the embed is unchanged
+   insert$ = "${" + act$ + arg$ + "}"
+   '--evalued possible actions
+   SELECT CASE UCASE$(act$)
+    CASE "H": '--Hero name by ID
+     '--defaults blank if not found
+     insert$ = ""
+     where = findhero(arg + 1, 0, 40, 1)
+     IF where >= 0 THEN
+      insert$ = name$(where)
+     END IF
+    CASE "P": '--Hero name by Party position
+     IF arg < 40 THEN
       '--defaults blank if not found
       insert$ = ""
-      where = findhero(arg + 1, 0, 40, 1)
-      IF where >= 0 THEN
-       insert$ = name$(where)
+      IF hero(arg) > 0 THEN
+       insert$ = name$(arg)
       END IF
-     CASE "P": '--Hero name by Party position
-      IF arg < 40 THEN
-       '--defaults blank if not found
-       insert$ = ""
-       IF hero(arg) > 0 THEN
-	insert$ = name$(arg)
-       END IF
-      END IF
-     CASE "C": '--Hero name by caterpillar position
-      '--defaults blank if not found
-      insert$ = ""
-      where = partybyrank(arg)
-      IF where >= 0 THEN
-       insert$ = name$(where)
-      END IF
-     CASE "V": '--global variable by ID
-      '--defaults blank if out-of-range
-      insert$ = ""
-      IF arg >= 0 AND arg <= 1024 THEN
-       insert$ = LTRIM$(STR$(global(arg)))
-      END IF
-    END SELECT
-    text$ = before$ + insert$ + after$
-    embedend = LEN(before$) + LEN(insert$) + 1
-   END IF
+     END IF
+    CASE "C": '--Hero name by caterpillar position
+     '--defaults blank if not found
+     insert$ = ""
+     where = partybyrank(arg)
+     IF where >= 0 THEN
+      insert$ = name$(where)
+     END IF
+    CASE "V": '--global variable by ID
+     '--defaults blank if out-of-range
+     insert$ = ""
+     IF arg >= 0 AND arg <= 1024 THEN
+      insert$ = LTRIM$(STR$(global(arg)))
+     END IF
+   END SELECT
+   text$ = before$ + insert$ + after$
+   embedend = LEN(before$) + LEN(insert$) + 1
   END IF
-  '--skip past this embed
-  start = embedend + 1
- LOOP
+ END IF
+ '--skip past this embed
+ start = embedend + 1
+LOOP
 END SUB
 
 SUB flusharray (array(), size, value)
- FOR i = 0 TO size
-  array(i) = value
- NEXT i
+FOR i = 0 TO size
+ array(i) = value
+NEXT i
 END SUB
 
 SUB forceparty (stat())
- '---MAKE SURE YOU HAVE AN ACTIVE PARTY---
- fpi = findhero(-1, 0, 40, 1)
- IF fpi > -1 THEN
-  FOR fpo = 0 TO 3
-   IF hero(fpo) = 0 THEN
-    doswap fpi, fpo, stat()
-    EXIT FOR
-   END IF
-  NEXT fpo
- END IF
+'---MAKE SURE YOU HAVE AN ACTIVE PARTY---
+fpi = findhero(-1, 0, 40, 1)
+IF fpi > -1 THEN
+ FOR fpo = 0 TO 3
+  IF hero(fpo) = 0 THEN
+   doswap fpi, fpo, stat()
+   EXIT FOR
+  END IF
+ NEXT fpo
+END IF
 END SUB
 
 FUNCTION functiondone
- 'returns 0 when returning a value to a caller
- 'returns 1 when all scripts are finished
- 'returns 2 when reactivating a suspended script
- 
- IF nowscript + 1 < 128 THEN
-  '-- when a script terminates, the script directly above it in
-  '-- the script buffer must be invalidated for caching
-  scrat(nowscript + 1, scrid) = -1
- END IF
- 
- nowscript = nowscript - 1
- IF nowscript < 0 THEN
-  functiondone = 1'--no scripts are running anymore
-  EXIT FUNCTION
+'returns 0 when returning a value to a caller
+'returns 1 when all scripts are finished
+'returns 2 when reactivating a suspended script
+
+IF nowscript + 1 < 128 THEN
+ '-- when a script terminates, the script directly above it in
+ '-- the script buffer must be invalidated for caching
+ scrat(nowscript + 1, scrid) = -1
+END IF
+
+nowscript = nowscript - 1
+IF nowscript < 0 THEN
+ functiondone = 1'--no scripts are running anymore
+ EXIT FUNCTION
+ELSE
+ IF scrat(nowscript, scrstate) < 0 THEN
+  '--suspended script is resumed
+  scrat(nowscript, scrstate) = ABS(scrat(nowscript, scrstate))
+  functiondone = 2'--reactivating a supended script
  ELSE
-  IF scrat(nowscript, scrstate) < 0 THEN
-   '--suspended script is resumed
-   scrat(nowscript, scrstate) = ABS(scrat(nowscript, scrstate))
-   functiondone = 2'--reactivating a supended script
-  ELSE
-   scriptret = scrat(nowscript + 1, scrret)
-   scrat(nowscript, scrstate) = streturn'---return
-   functiondone = 0'--returning a value to a caller
-  END IF
+  scriptret = scrat(nowscript + 1, scrret)
+  scrat(nowscript, scrstate) = streturn'---return
+  functiondone = 0'--returning a value to a caller
  END IF
- 
+END IF
+
 END FUNCTION
 
 FUNCTION functionread
- 'returns false normally, true when it should terminate
- functionread = 0
- scriptret = 0'--default returnvalue is zero
- scrat(nowscript, curkind) = script(scrat(nowscript, scroff) + scrat(nowscript, scrptr))
- scrat(nowscript, curvalue) = script(scrat(nowscript, scroff) + scrat(nowscript, scrptr) + 1)
- scrat(nowscript, curargc) = script(scrat(nowscript, scroff) + scrat(nowscript, scrptr) + 2)
- scrat(nowscript, curargn) = 0
- 'scriptdump "functionread"
- SELECT CASE scrat(nowscript, curkind)
-  CASE tystop
-   scripterr "interpretloop encountered noop": nowscript = -1: functionread = -1: EXIT FUNCTION
-  CASE tynumber
-   scriptret = scrat(nowscript, curvalue)
-   scrat(nowscript, scrstate) = streturn'---return
-  CASE tyglobal
-   scriptret = global(bound(scrat(nowscript, curvalue), 0, 1024))
-   scrat(nowscript, scrstate) = streturn'---return
-  CASE tylocal
-   scriptret = heap(scrat(nowscript, scrheap) + scrat(nowscript, curvalue))'--get from heap
-   scrat(nowscript, scrstate) = streturn'---return
-   '--flow control would be a special case
-  CASE tymath, tyfunct, tyscript, tyflow
-   scrat(nowscript, scrstate) = stnext '---function
-  CASE ELSE
-   scripterr "Illegal statement type" + STR$(scrat(nowscript, curkind))
- END SELECT
+'returns false normally, true when it should terminate
+functionread = 0
+scriptret = 0'--default returnvalue is zero
+scrat(nowscript, curkind) = script(scrat(nowscript, scroff) + scrat(nowscript, scrptr))
+scrat(nowscript, curvalue) = script(scrat(nowscript, scroff) + scrat(nowscript, scrptr) + 1)
+scrat(nowscript, curargc) = script(scrat(nowscript, scroff) + scrat(nowscript, scrptr) + 2)
+scrat(nowscript, curargn) = 0
+'scriptdump "functionread"
+SELECT CASE scrat(nowscript, curkind)
+ CASE tystop
+  scripterr "interpretloop encountered noop": nowscript = -1: functionread = -1: EXIT FUNCTION
+ CASE tynumber
+  scriptret = scrat(nowscript, curvalue)
+  scrat(nowscript, scrstate) = streturn'---return
+ CASE tyglobal
+  scriptret = global(bound(scrat(nowscript, curvalue), 0, 1024))
+  scrat(nowscript, scrstate) = streturn'---return
+ CASE tylocal
+  scriptret = heap(scrat(nowscript, scrheap) + scrat(nowscript, curvalue))'--get from heap
+  scrat(nowscript, scrstate) = streturn'---return
+  '--flow control would be a special case
+ CASE tymath, tyfunct, tyscript, tyflow
+  scrat(nowscript, scrstate) = stnext '---function
+ CASE ELSE
+  scripterr "Illegal statement type" + STR$(scrat(nowscript, curkind))
+END SELECT
 END FUNCTION
 
 FUNCTION gethighbyte (n)
- 
- DIM buf(1)
- 
- buf(0) = 0
- buf(1) = n
- 
- FOR i = 0 TO 7
-  setbit buf(), 0, i, readbit(buf(), 1, 8 + i)
- NEXT i
- 
- gethighbyte = buf(0)
- 
+
+DIM buf(1)
+
+buf(0) = 0
+buf(1) = n
+
+FOR i = 0 TO 7
+ setbit buf(), 0, i, readbit(buf(), 1, 8 + i)
+NEXT i
+
+gethighbyte = buf(0)
+
 END FUNCTION
 
 FUNCTION getnpcref (seekid, offset)
- SELECT CASE seekid
-  
-  CASE -300 TO -1'--direct reference
-   getnpcref = (seekid + 1) * -1
-   EXIT FUNCTION
-   
-  CASE 0 TO 35 'ID
-   found = 0
-   FOR i = 0 TO 299
-    IF npcl(i + 600) - 1 = seekid THEN
-     IF found = offset THEN
-      getnpcref = i
-      EXIT FUNCTION
-     END IF
-     found = found + 1
-    END IF
-   NEXT i
-   
- END SELECT
+SELECT CASE seekid
  
- '--failure
- getnpcref = -1
+ CASE -300 TO -1'--direct reference
+  getnpcref = (seekid + 1) * -1
+  EXIT FUNCTION
+  
+ CASE 0 TO 35 'ID
+  found = 0
+  FOR i = 0 TO 299
+   IF npcl(i + 600) - 1 = seekid THEN
+    IF found = offset THEN
+     getnpcref = i
+     EXIT FUNCTION
+    END IF
+    found = found + 1
+   END IF
+  NEXT i
+  
+END SELECT
+
+'--failure
+getnpcref = -1
 END FUNCTION
 
 SUB getpal16 (array(), aoffset, foffset)
- 
- setpicstuf buffer(), 16, -1
- loadset game$ + ".pal" + CHR$(0), 0, 0
- 
- IF buffer(0) = 4444 THEN '--check magic number
-  IF buffer(1) >= foffset AND foffset >= 0 THEN
-   'palette is available
-   loadset game$ + ".pal" + CHR$(0), 1 + foffset, 0
-   FOR i = 0 TO 7
-    array(aoffset * 8 + i) = buffer(i)
-   NEXT i
-  ELSE
-   'palette is out of range, return blank
-   FOR i = 0 TO 7
-    array(aoffset * 8 + i) = 0
-   NEXT i
-  END IF
- ELSE '--magic number not found, palette is still in BSAVE format
-  xbload game$ + ".pal", buffer(), "16-color palletes missing from " + game$
+
+setpicstuf buffer(), 16, -1
+loadset game$ + ".pal" + CHR$(0), 0, 0
+
+IF buffer(0) = 4444 THEN '--check magic number
+ IF buffer(1) >= foffset AND foffset >= 0 THEN
+  'palette is available
+  loadset game$ + ".pal" + CHR$(0), 1 + foffset, 0
   FOR i = 0 TO 7
-   array(aoffset * 8 + i) = buffer(foffset * 8 + i)
+   array(aoffset * 8 + i) = buffer(i)
+  NEXT i
+ ELSE
+  'palette is out of range, return blank
+  FOR i = 0 TO 7
+   array(aoffset * 8 + i) = 0
   NEXT i
  END IF
- 
+ELSE '--magic number not found, palette is still in BSAVE format
+ xbload game$ + ".pal", buffer(), "16-color palletes missing from " + game$
+ FOR i = 0 TO 7
+  array(aoffset * 8 + i) = buffer(foffset * 8 + i)
+ NEXT i
+END IF
+
 END SUB
 
 SUB greyscalepal
- FOR i = bound(retvals(0), 0, 255) TO bound(retvals(1), 0, 255)
-  r = master(i * 3)
-  g = master(i * 3 + 1)
-  b = master(i * 3 + 2)
-  FOR j = 0 TO 2
-   master(i * 3 + j) = bound((r + g + b) / 3, 0, 63)
-  NEXT j
- NEXT i
+FOR i = bound(retvals(0), 0, 255) TO bound(retvals(1), 0, 255)
+ r = master(i * 3)
+ g = master(i * 3 + 1)
+ b = master(i * 3 + 2)
+ FOR j = 0 TO 2
+  master(i * 3 + j) = bound((r + g + b) / 3, 0, 63)
+ NEXT j
+NEXT i
 END SUB
 
 FUNCTION herobyrank (slot)
- result = -1
- IF slot >= 0 AND slot <= 3 THEN
-  j = -1
-  FOR i = 0 TO 3
-   IF hero(i) > 0 THEN j = j + 1
-   IF j = slot THEN
-    result = hero(i) - 1
-    EXIT FOR
-   END IF
-  NEXT i
- END IF
- herobyrank = result
+result = -1
+IF slot >= 0 AND slot <= 3 THEN
+ j = -1
+ FOR i = 0 TO 3
+  IF hero(i) > 0 THEN j = j + 1
+  IF j = slot THEN
+   result = hero(i) - 1
+   EXIT FOR
+  END IF
+ NEXT i
+END IF
+herobyrank = result
 END FUNCTION
 
 FUNCTION hex2dec (h$)
- 
- result = 0
- 
- hexdig$ = "123456789ABCDEF"
- 
- FOR i = 1 TO LEN(h$)
-  result = result * 16
-  n$ = MID$(h$, i, 1)
-  FOR j = 1 TO 15
-   dig$ = MID$(hexdig$, j, 1)
-   IF n$ = dig$ THEN
-    result = result + j
-    EXIT FOR
-   END IF
-  NEXT j
- NEXT i
- 
- hex2dec = result
- 
+
+result = 0
+
+hexdig$ = "123456789ABCDEF"
+
+FOR i = 1 TO LEN(h$)
+ result = result * 16
+ n$ = MID$(h$, i, 1)
+ FOR j = 1 TO 15
+  dig$ = MID$(hexdig$, j, 1)
+  IF n$ = dig$ THEN
+   result = result + j
+   EXIT FOR
+  END IF
+ NEXT j
+NEXT i
+
+hex2dec = result
+
 END FUNCTION
 
 SUB initgame
- 
- '--back compat game$
- a$ = ""
- i = 0
- DO UNTIL LEFT$(a$, 1) = "\"
-  i = i + 1
-  a$ = RIGHT$(sourcerpg$, i)
- LOOP
- a$ = LEFT$(a$, LEN(a$) - 4)
- game$ = workingdir$ + a$
- '--set game$ according to the archinym
- IF isfile(workingdir$ + "\archinym.lmp" + CHR$(0)) THEN
-  fh = FREEFILE
-  OPEN workingdir$ + "\archinym.lmp" FOR INPUT AS #fh
-  LINE INPUT #fh, a$
-  CLOSE #fh
-  IF LEN(a$) <= 8 THEN game$ = workingdir$ + "\" + a$
- END IF
+
+'--back compat game$
+a$ = ""
+i = 0
+DO UNTIL LEFT$(a$, 1) = "\"
+ i = i + 1
+ a$ = RIGHT$(sourcerpg$, i)
+LOOP
+a$ = LEFT$(a$, LEN(a$) - 4)
+game$ = workingdir$ + a$
+'--set game$ according to the archinym
+IF isfile(workingdir$ + "\archinym.lmp" + CHR$(0)) THEN
+ fh = FREEFILE
+ OPEN workingdir$ + "\archinym.lmp" FOR INPUT AS #fh
+ LINE INPUT #fh, a$
+ CLOSE #fh
+ IF LEN(a$) <= 8 THEN game$ = workingdir$ + "\" + a$
+END IF
 END SUB
 
 SUB keyhandleroff
- 
- regs.ax = &H2509: regs.ds = seg9: regs.dx = off9
- CALL interruptx(&H21, regs, regs)
- 
+
+regs.ax = &H2509: regs.ds = seg9: regs.dx = off9
+CALL interruptx(&H21, regs, regs)
+
 END SUB
 
 SUB keyhandleron
- 
- regs.ax = &H2509: regs.ds = Keyseg: regs.dx = keyoff
- CALL interruptx(&H21, regs, regs)
- 
+
+regs.ax = &H2509: regs.ds = Keyseg: regs.dx = keyoff
+CALL interruptx(&H21, regs, regs)
+
 END SUB
 
 SUB loadsay (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap())
- DIM temp$
- 
- loadsaybegin:
- 
- gen(58) = 0
- choosep = 0
- 
- '--load data from the textbox lump
- setpicstuf buffer(), 400, -1
- loadset game$ + ".say" + CHR$(0), say, 0
- 
- '--read in the lines of text
- FOR j = 0 TO 7
-  say$(j) = STRING$(38, 0)
-  array2str buffer(), j * 38, say$(j)
- NEXT j
- 
- FOR j = 0 TO 7
-  embedtext say$(j)
- NEXT j
- 
- '--reload data from the textbox lump because embedtext clobbered it
- setpicstuf buffer(), 400, -1
- loadset game$ + ".say" + CHR$(0), say, 0
- 
- temp$ = STRING$(42, 0)
- array2str buffer(), 305, temp$
- str2array temp$, buffer(), 0
- FOR j = 0 TO 20
-  saytag(j) = buffer(j)
- NEXT j
- IF istag(saytag(0), 0) THEN
-  '--do something else instead
-  IF saytag(1) < 0 THEN
-   rsr = runscript(ABS(saytag(1)), nowscript + 1, -1, "instead")
-   sayer = -1
-   EXIT SUB
-  ELSE
-   IF say <> saytag(1) THEN say = saytag(1): GOTO loadsaybegin
-  END IF
+DIM temp$
+
+loadsaybegin:
+
+gen(58) = 0
+choosep = 0
+
+'--load data from the textbox lump
+setpicstuf buffer(), 400, -1
+loadset game$ + ".say" + CHR$(0), say, 0
+
+'--read in the lines of text
+FOR j = 0 TO 7
+ say$(j) = STRING$(38, 0)
+ array2str buffer(), j * 38, say$(j)
+NEXT j
+
+FOR j = 0 TO 7
+ embedtext say$(j)
+NEXT j
+
+'--reload data from the textbox lump because embedtext clobbered it
+setpicstuf buffer(), 400, -1
+loadset game$ + ".say" + CHR$(0), say, 0
+
+temp$ = STRING$(42, 0)
+array2str buffer(), 305, temp$
+str2array temp$, buffer(), 0
+FOR j = 0 TO 20
+ saytag(j) = buffer(j)
+NEXT j
+IF istag(saytag(0), 0) THEN
+ '--do something else instead
+ IF saytag(1) < 0 THEN
+  rsr = runscript(ABS(saytag(1)), nowscript + 1, -1, "instead")
+  sayer = -1
+  EXIT SUB
+ ELSE
+  IF say <> saytag(1) THEN say = saytag(1): GOTO loadsaybegin
  END IF
- IF istag(saytag(2), 0) THEN
-  IF ABS(saytag(3)) > 1 THEN setbit tag(), 0, ABS(saytag(3)), SGN(SGN(saytag(3)) + 1)
-  IF ABS(saytag(4)) > 1 THEN setbit tag(), 0, ABS(saytag(4)), SGN(SGN(saytag(4)) + 1)
- END IF
- FOR j = 0 TO 1
-  choose$(j) = STRING$(15, 0)
-  array2str buffer(), 349 + (j * 18), choose$(j)
-  WHILE RIGHT$(choose$(j), 1) = CHR$(0): choose$(j) = LEFT$(choose$(j), LEN(choose$(j)) - 1): WEND
-  chtag(j) = buffer(182 + (j * 9))
- NEXT j
- saybit(0) = buffer(174)
- FOR j = 0 TO 6
-  sayenh(j) = buffer(193 + j)
- NEXT j
- IF sayenh(4) > 0 THEN
-  gen(58) = sayenh(4)
-  correctbackdrop gmap()
- END IF
- IF sayenh(5) > 0 THEN wrappedsong sayenh(5) - 1
- showsay = 8
+END IF
+IF istag(saytag(2), 0) THEN
+ IF ABS(saytag(3)) > 1 THEN setbit tag(), 0, ABS(saytag(3)), SGN(SGN(saytag(3)) + 1)
+ IF ABS(saytag(4)) > 1 THEN setbit tag(), 0, ABS(saytag(4)), SGN(SGN(saytag(4)) + 1)
+END IF
+FOR j = 0 TO 1
+ choose$(j) = STRING$(15, 0)
+ array2str buffer(), 349 + (j * 18), choose$(j)
+ WHILE RIGHT$(choose$(j), 1) = CHR$(0): choose$(j) = LEFT$(choose$(j), LEN(choose$(j)) - 1): WEND
+ chtag(j) = buffer(182 + (j * 9))
+NEXT j
+saybit(0) = buffer(174)
+FOR j = 0 TO 6
+ sayenh(j) = buffer(193 + j)
+NEXT j
+IF sayenh(4) > 0 THEN
+ gen(58) = sayenh(4)
+ correctbackdrop gmap()
+END IF
+IF sayenh(5) > 0 THEN wrappedsong sayenh(5) - 1
+showsay = 8
 END SUB
 
 SUB npcplot (npcs())
- FOR i = 0 TO 299
-  curnpc = ABS(npcl(i + 600)) - 1
-  
-  IF npcl(i + 600) < 0 THEN
-   '--check reappearance tags for existing but hidden NPCs
-   IF istag(npcs(curnpc * 15 + 9), 1) AND istag(npcs(curnpc * 15 + 10), 1) AND istag(1000 + npcs(curnpc * 15 + 11), 0) = 0 THEN
-    npcl(i + 600) = ABS(npcl(i + 600))
-   END IF
+FOR i = 0 TO 299
+ curnpc = ABS(npcl(i + 600)) - 1
+ 
+ IF npcl(i + 600) < 0 THEN
+  '--check reappearance tags for existing but hidden NPCs
+  IF istag(npcs(curnpc * 15 + 9), 1) AND istag(npcs(curnpc * 15 + 10), 1) AND istag(1000 + npcs(curnpc * 15 + 11), 0) = 0 THEN
+   npcl(i + 600) = ABS(npcl(i + 600))
   END IF
-  
-  IF npcl(i + 600) > 0 THEN
-   '--check removal tags for existing visible NPCs
-   IF istag(npcs(curnpc * 15 + 9), 1) = 0 OR istag(npcs(curnpc * 15 + 10), 1) = 0 OR istag(1000 + npcs(curnpc * 15 + 11), 0) THEN
-    npcl(i + 600) = npcl(i + 600) * -1
-   END IF
-   'IF readbit(tag(), 0, ABS(npcs(curnpc * 15 + 9))) <> SGN(SGN(npcs(curnpc * 15 + 9)) + 1) AND npcs(curnpc * 15 + 9) <> 0 THEN
-   '  npcl(i + 600) = npcl(i + 600) * -1
-   'END IF
-   'IF readbit(tag(), 0, ABS(npcs(curnpc * 15 + 10))) <> SGN(SGN(npcs(curnpc * 15 + 10)) + 1) AND npcs(curnpc * 15 + 10) <> 0 THEN
-   '  npcl(i + 600) = npcl(i + 600) * -1
-   'END IF
-   'IF npcs(curnpc * 15 + 11) > 0 THEN
-   '  IF readbit(tag(), 0, 1000 + npcs(curnpc * 15 + 11)) = 1 THEN
-   '    npcl(i + 600) = npcl(i + 600) * -1
-   '  END IF
-   'END IF
+ END IF
+ 
+ IF npcl(i + 600) > 0 THEN
+  '--check removal tags for existing visible NPCs
+  IF istag(npcs(curnpc * 15 + 9), 1) = 0 OR istag(npcs(curnpc * 15 + 10), 1) = 0 OR istag(1000 + npcs(curnpc * 15 + 11), 0) THEN
+   npcl(i + 600) = npcl(i + 600) * -1
   END IF
-  
- NEXT i
+  'IF readbit(tag(), 0, ABS(npcs(curnpc * 15 + 9))) <> SGN(SGN(npcs(curnpc * 15 + 9)) + 1) AND npcs(curnpc * 15 + 9) <> 0 THEN
+  '  npcl(i + 600) = npcl(i + 600) * -1
+  'END IF
+  'IF readbit(tag(), 0, ABS(npcs(curnpc * 15 + 10))) <> SGN(SGN(npcs(curnpc * 15 + 10)) + 1) AND npcs(curnpc * 15 + 10) <> 0 THEN
+  '  npcl(i + 600) = npcl(i + 600) * -1
+  'END IF
+  'IF npcs(curnpc * 15 + 11) > 0 THEN
+  '  IF readbit(tag(), 0, 1000 + npcs(curnpc * 15 + 11)) = 1 THEN
+  '    npcl(i + 600) = npcl(i + 600) * -1
+  '  END IF
+  'END IF
+ END IF
+ 
+NEXT i
 END SUB
 
 SUB onkeyscript (scriptnum)
- doit = 0
- 
- FOR i = 0 TO 5
-  IF carray(i) THEN doit = 1: EXIT FOR
+doit = 0
+
+FOR i = 0 TO 5
+ IF carray(i) THEN doit = 1: EXIT FOR
+NEXT i
+
+IF doit = 0 THEN
+ FOR i = 1 TO 127
+  IF keyval(i) THEN doit = 1: EXIT FOR
  NEXT i
- 
- IF doit = 0 THEN
-  FOR i = 1 TO 127
-   IF keyval(i) THEN doit = 1: EXIT FOR
-  NEXT i
+END IF
+
+IF nowscript >= 0 THEN
+ IF scrat(nowscript, scrstate) = stwait AND scrat(nowscript, curvalue) = 9 THEN
+  '--never trigger a onkey script when the previous script
+  '--has a "wait for key" command active
+  doit = 0
  END IF
- 
- IF nowscript >= 0 THEN
-  IF scrat(nowscript, scrstate) = stwait AND scrat(nowscript, curvalue) = 9 THEN
-   '--never trigger a onkey script when the previous script
-   '--has a "wait for key" command active
-   doit = 0
-  END IF
- END IF
- 
- IF doit = 1 THEN
-  rsr = runscript(scriptnum, nowscript + 1, -1, "on-key")
- END IF
- 
+END IF
+
+IF doit = 1 THEN
+ rsr = runscript(scriptnum, nowscript + 1, -1, "on-key")
+END IF
+
 END SUB
 
 FUNCTION partybyrank (slot)
- result = -1
- IF slot >= 0 AND slot <= 3 THEN
-  j = -1
-  FOR i = 0 TO 3
-   IF hero(i) > 0 THEN j = j + 1
-   IF j = slot THEN
-    result = i
-    EXIT FOR
-   END IF
-  NEXT i
- END IF
- partybyrank = result
+result = -1
+IF slot >= 0 AND slot <= 3 THEN
+ j = -1
+ FOR i = 0 TO 3
+  IF hero(i) > 0 THEN j = j + 1
+  IF j = slot THEN
+   result = i
+   EXIT FOR
+  END IF
+ NEXT i
+END IF
+partybyrank = result
 END FUNCTION
 
 FUNCTION playtime$ (d, h, m)
- s$ = ""
- 
- SELECT CASE d
-  CASE 1
-   s$ = s$ + LTRIM$(STR$(d)) + " day "
-  CASE IS > 1
-   s$ = s$ + LTRIM$(STR$(d)) + " days "
- END SELECT
- 
- SELECT CASE h
-  CASE 1
-   s$ = s$ + LTRIM$(STR$(h)) + " hour "
-  CASE IS > 1
-   s$ = s$ + LTRIM$(STR$(h)) + " hours "
- END SELECT
- 
- SELECT CASE m
-  CASE 1
-   s$ = s$ + LTRIM$(STR$(m)) + " minute"
-  CASE IS > 1
-   s$ = s$ + LTRIM$(STR$(m)) + " minutes"
- END SELECT
- 
- playtime$ = s$
- 
+s$ = ""
+
+SELECT CASE d
+ CASE 1
+  s$ = s$ + LTRIM$(STR$(d)) + " day "
+ CASE IS > 1
+  s$ = s$ + LTRIM$(STR$(d)) + " days "
+END SELECT
+
+SELECT CASE h
+ CASE 1
+  s$ = s$ + LTRIM$(STR$(h)) + " hour "
+ CASE IS > 1
+  s$ = s$ + LTRIM$(STR$(h)) + " hours "
+END SELECT
+
+SELECT CASE m
+ CASE 1
+  s$ = s$ + LTRIM$(STR$(m)) + " minute"
+ CASE IS > 1
+  s$ = s$ + LTRIM$(STR$(m)) + " minutes"
+END SELECT
+
+playtime$ = s$
+
 END FUNCTION
 
 SUB playtimer
- STATIC n!
- 
- IF TIMER >= n! + 10 OR n! - TIMER > 3600 THEN
-  n! = TIMER
-  gen(54) = gen(54) + 10
-  WHILE gen(54) >= 60
-   gen(54) = gen(54) - 60
-   gen(53) = gen(53) + 1
-  WEND
-  WHILE gen(53) >= 60
-   gen(53) = gen(53) - 60
-   gen(52) = gen(52) + 1
-  WEND
-  WHILE gen(52) >= 24
-   gen(52) = gen(52) - 24
-   IF gen(51) < 32767 THEN gen(51) = gen(51) + 1
-  WEND
- END IF
- 
+STATIC n!
+
+IF TIMER >= n! + 10 OR n! - TIMER > 3600 THEN
+ n! = TIMER
+ gen(54) = gen(54) + 10
+ WHILE gen(54) >= 60
+  gen(54) = gen(54) - 60
+  gen(53) = gen(53) + 1
+ WEND
+ WHILE gen(53) >= 60
+  gen(53) = gen(53) - 60
+  gen(52) = gen(52) + 1
+ WEND
+ WHILE gen(52) >= 24
+  gen(52) = gen(52) - 24
+  IF gen(51) < 32767 THEN gen(51) = gen(51) + 1
+ WEND
+END IF
+
 END SUB
 
 SUB quitcleanup
- 
- 'DEBUG debug "Cleanup Routine"
- '--open files
- 'DEBUG debug "Close foemap handle"
- CLOSE #foemaph
- 'DEBUG debug "Close lockfile"
- CLOSE #lockfile
- '--keyboard
- 'DEBUG debug "Shut off keyhandler"
- keyhandleroff
- '--script stack
- 'DEBUG debug "Release script stack"
- releasestack
- '--working files
- 'DEBUG debug "Touch killfile"
- touchfile workingdir$ + "\kill.tmp"
- 'DEBUG debug "Kill working files"
- KILL workingdir$ + "\*.*"
- 'DEBUG debug "Remove working directory"
- RMDIR workingdir$
- 'DEBUG debug "Kill stored command-line"
- safekill tmpdir$ + "ohrcline.tmp"
- '--reset audio
- 'closefile
- 'DEBUG debug "Unload BAM player"
- closemusic
- 'DEBUG debug "Restore original FM volume"
- setfmvol fmvol
- 
+
+'DEBUG debug "Cleanup Routine"
+'--open files
+'DEBUG debug "Close foemap handle"
+CLOSE #foemaph
+'DEBUG debug "Close lockfile"
+CLOSE #lockfile
+'--keyboard
+'DEBUG debug "Shut off keyhandler"
+keyhandleroff
+'--script stack
+'DEBUG debug "Release script stack"
+releasestack
+'--working files
+'DEBUG debug "Touch killfile"
+touchfile workingdir$ + "\kill.tmp"
+'DEBUG debug "Kill working files"
+KILL workingdir$ + "\*.*"
+'DEBUG debug "Remove working directory"
+RMDIR workingdir$
+'DEBUG debug "Kill stored command-line"
+safekill tmpdir$ + "ohrcline.tmp"
+'--reset audio
+'closefile
+'DEBUG debug "Unload BAM player"
+closemusic
+'DEBUG debug "Restore original FM volume"
+setfmvol fmvol
+
 END SUB
 
 FUNCTION rankincaterpillar (heroid)
- result = -1
- o = 0
- FOR i = 0 TO 3
-  IF hero(i) > 0 THEN
-   IF hero(i) - 1 = heroid THEN result = o
-   o = o + 1
-  END IF
- NEXT i
- rankincaterpillar = result
+result = -1
+o = 0
+FOR i = 0 TO 3
+ IF hero(i) > 0 THEN
+  IF hero(i) - 1 = heroid THEN result = o
+  o = o + 1
+ END IF
+NEXT i
+rankincaterpillar = result
 END FUNCTION
 
 FUNCTION readbadbinstring$ (array(), offset, maxlen, skipword)
- 
- result$ = ""
- strlen = bound(array(offset), 0, maxlen)
- 
- FOR i = 1 TO strlen
-  '--read and int
-  n = array(offset + skipword + i)
-  '--if the int is a char use it.
-  IF n >= 0 AND n <= 255 THEN
-   '--take the low byte
-   n = (n AND &HFF)
-   '--use it
-   result$ = result$ + CHR$(n)
-  END IF
- NEXT i
- 
- readbadbinstring$ = result$
- 
+
+result$ = ""
+strlen = bound(array(offset), 0, maxlen)
+
+FOR i = 1 TO strlen
+ '--read and int
+ n = array(offset + skipword + i)
+ '--if the int is a char use it.
+ IF n >= 0 AND n <= 255 THEN
+  '--take the low byte
+  n = (n AND &HFF)
+  '--use it
+  result$ = result$ + CHR$(n)
+ END IF
+NEXT i
+
+readbadbinstring$ = result$
+
 END FUNCTION
 
 FUNCTION readbinstring$ (array(), offset, maxlen)
+
+result$ = ""
+strlen = bound(array(offset), 0, maxlen)
+
+i = 1
+DO WHILE LEN(result$) < strlen
+ '--get an int
+ n = array(offset + i)
+ i = i + 1
  
- result$ = ""
- strlen = bound(array(offset), 0, maxlen)
+ '--break apart the int
+ lowbyte = (n AND &HFF)
+ highbyte = gethighbyte(n)
  
- i = 1
- DO WHILE LEN(result$) < strlen
-  '--get an int
-  n = array(offset + i)
-  i = i + 1
-  
-  '--break apart the int
-  lowbyte = (n AND &HFF)
-  highbyte = gethighbyte(n)
-  
-  '--append the lowbyte as a char
-  result$ = result$ + CHR$(lowbyte)
-  
-  '--if we still care about the highbyte, append it as a char too
-  IF LEN(result$) < strlen THEN
-   result$ = result$ + CHR$(highbyte)
-  END IF
-  
- LOOP
+ '--append the lowbyte as a char
+ result$ = result$ + CHR$(lowbyte)
  
- readbinstring$ = result$
+ '--if we still care about the highbyte, append it as a char too
+ IF LEN(result$) < strlen THEN
+  result$ = result$ + CHR$(highbyte)
+ END IF
  
- 
+LOOP
+
+readbinstring$ = result$
+
+
 END FUNCTION
 
 FUNCTION readfoemap (x, y, wide, high, fh)
- 
- a$ = CHR$(0)
- 
- o = 12 + (y * wide) + x
- 
- GET #fh, o, a$
- 
- readfoemap = ASC(a$)
- 
+
+a$ = CHR$(0)
+
+o = 12 + (y * wide) + x
+
+GET #fh, o, a$
+
+readfoemap = ASC(a$)
+
 END FUNCTION
 
 SUB scriptadvanced (id)
+
+'contains advanced scripting stuff such as pixel-perfect movement
+
+SELECT CASE id
  
- 'contains advanced scripting stuff such as pixel-perfect movement
- 
- SELECT CASE id
+ CASE 135'--puthero
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   catx(retvals(0) * 5) = retvals(1)
+   caty(retvals(0) * 5) = retvals(2)
+  END IF
+ CASE 136'--putnpc
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN
+   npcl(npcref) = retvals(1)
+   npcl(npcref + 300) = retvals(2)
+  END IF
+ CASE 137'--putcamera
+  gen(cameramode) = stopcam
+  mapx = retvals(0)
+  mapy = retvals(1)
+ CASE 138'--heropixelx
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   scriptret = catx(retvals(0))
+  END IF
+ CASE 139'--heropixely
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   scriptret = caty(retvals(0))
+  END IF
+ CASE 140'--npcpixelx
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN
+   scriptret = npcl(npcref)
+  END IF
+ CASE 141'--npcpixely
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN
+   scriptret = npcl(npcref + 300)
+  END IF
+ CASE 142'--camerapixelx
+  scriptret = mapx
+ CASE 143'--camerapixely
+  scriptret = mapy
+ CASE 147'--read general
+  IF retvals(0) >= 0 AND retvals(0) <= 104 THEN
+   scriptret = gen(retvals(0))
+  END IF
+ CASE 148'--write general
+  IF retvals(0) >= 0 AND retvals(0) <= 104 THEN
+   gen(retvals(0)) = retvals(1)
+  END IF
   
-  CASE 135'--puthero
-   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-    catx(retvals(0) * 5) = retvals(1)
-    caty(retvals(0) * 5) = retvals(2)
-   END IF
-  CASE 136'--putnpc
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 THEN
-    npcl(npcref) = retvals(1)
-    npcl(npcref + 300) = retvals(2)
-   END IF
-  CASE 137'--putcamera
-   gen(cameramode) = stopcam
-   mapx = retvals(0)
-   mapy = retvals(1)
-  CASE 138'--heropixelx
-   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-    scriptret = catx(retvals(0))
-   END IF
-  CASE 139'--heropixely
-   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-    scriptret = caty(retvals(0))
-   END IF
-  CASE 140'--npcpixelx
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 THEN
-    scriptret = npcl(npcref)
-   END IF
-  CASE 141'--npcpixely
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 THEN
-    scriptret = npcl(npcref + 300)
-   END IF
-  CASE 142'--camerapixelx
-   scriptret = mapx
-  CASE 143'--camerapixely
-   scriptret = mapy
-  CASE 147'--read general
-   IF retvals(0) >= 0 AND retvals(0) <= 104 THEN
-    scriptret = gen(retvals(0))
-   END IF
-  CASE 148'--write general
-   IF retvals(0) >= 0 AND retvals(0) <= 104 THEN
-    gen(retvals(0)) = retvals(1)
-   END IF
-   
- END SELECT
- 
+END SELECT
+
 END SUB
 
 SUB scriptdump (s$)
- '
- 'DIM statestr$(6)
- 'statestr$(0) = "none"
- 'statestr$(1) = "wait"
- 'statestr$(2) = "read"
- 'statestr$(3) = "return"
- 'statestr$(4) = "next"
- 'statestr$(5) = "doarg"
- 'statestr$(6) = "done"
- '
- 'IF scrat(nowscript, scrdepth) >= 0 THEN
- '  indent$ = STRING$(scrat(nowscript, scrdepth), " ")
- 'ELSE
- '  indent$ = STRING$(ABS(scrat(nowscript, scrdepth)), "<")
- 'END IF
- '
- 'SELECT CASE scrat(nowscript, scrstate)
- ' CASE 0 TO 6
- '   state$ = " " + statestr$(scrat(nowscript, scrstate))
- ' CASE ELSE
- '   state$ = STR$(scrat(nowscript, scrstate))
- 'END SELECT
- '
- 'debug indent$ + "[" + s$ + "]"
- 'debug indent$ + "script =" + STR$(nowscript)
- 'debug indent$ + "ptr    =" + STR$(scrat(nowscript, scrptr))
- 'debug indent$ + "state  =" + state$
- 'debug indent$ + "kind   =" + STR$(scrat(nowscript, curkind))
- 'debug indent$ + "value  =" + STR$(scrat(nowscript, curvalue))
- 'debug indent$ + "argc   =" + STR$(scrat(nowscript, curargc))
- 
+'
+'DIM statestr$(6)
+'statestr$(0) = "none"
+'statestr$(1) = "wait"
+'statestr$(2) = "read"
+'statestr$(3) = "return"
+'statestr$(4) = "next"
+'statestr$(5) = "doarg"
+'statestr$(6) = "done"
+'
+'IF scrat(nowscript, scrdepth) >= 0 THEN
+'  indent$ = STRING$(scrat(nowscript, scrdepth), " ")
+'ELSE
+'  indent$ = STRING$(ABS(scrat(nowscript, scrdepth)), "<")
+'END IF
+'
+'SELECT CASE scrat(nowscript, scrstate)
+' CASE 0 TO 6
+'   state$ = " " + statestr$(scrat(nowscript, scrstate))
+' CASE ELSE
+'   state$ = STR$(scrat(nowscript, scrstate))
+'END SELECT
+'
+'debug indent$ + "[" + s$ + "]"
+'debug indent$ + "script =" + STR$(nowscript)
+'debug indent$ + "ptr    =" + STR$(scrat(nowscript, scrptr))
+'debug indent$ + "state  =" + state$
+'debug indent$ + "kind   =" + STR$(scrat(nowscript, curkind))
+'debug indent$ + "value  =" + STR$(scrat(nowscript, curvalue))
+'debug indent$ + "argc   =" + STR$(scrat(nowscript, curargc))
+
 END SUB
 
 SUB scriptmisc (id)
+
+'contains a whole mess of scripting commands that do not depend on
+'any main-module level local variables or GOSUBs, and therefore
+'can be moved out here to save memory
+
+SELECT CASE id
  
- 'contains a whole mess of scripting commands that do not depend on
- 'any main-module level local variables or GOSUBs, and therefore
- 'can be moved out here to save memory
- 
- SELECT CASE id
-  
-  CASE 1'--Wait (cycles)
-   IF retvals(0) > 0 THEN
-    GOSUB setwaitstate
-   END IF
-  CASE 2'--wait for all
+ CASE 1'--Wait (cycles)
+  IF retvals(0) > 0 THEN
    GOSUB setwaitstate
-  CASE 3'--wait for hero
-   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-    GOSUB setwaitstate
-   END IF
-  CASE 4'--wait for NPC
-   IF retvals(0) >= -300 AND retvals(0) <= 35 THEN
-    GOSUB setwaitstate
-   END IF
-  CASE 5'--suspend npcs
-   setbit gen(), 44, suspendnpcs, 1
-  CASE 6'--suspend player
-   setbit gen(), 44, suspendplayer, 1
-  CASE 7'--resume npcs
-   setbit gen(), 44, suspendnpcs, 0
-  CASE 8'--resume player
-   setbit gen(), 44, suspendplayer, 0
-  CASE 9'--wait for key
+  END IF
+ CASE 2'--wait for all
+  GOSUB setwaitstate
+ CASE 3'--wait for hero
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    GOSUB setwaitstate
-  CASE 12'--check tag
-   scriptret = ABS(istag(retvals(0), 0))
-  CASE 17'--get item
-   FOR i = 1 TO retvals(1)
-    getitem retvals(0) + 1
-   NEXT i
-  CASE 18'--delete item
-   FOR i = 1 TO retvals(1)
-    delitem retvals(0) + 1
-   NEXT i
-  CASE 19'--leader
-   FOR i = 0 TO 3
-    IF hero(0) > 0 THEN scriptret = hero(0) - 1: EXIT FOR
-   NEXT i
-  CASE 20'--get money
-   gold& = gold& + retvals(0)
-  CASE 21'--lose money
+  END IF
+ CASE 4'--wait for NPC
+  IF retvals(0) >= -300 AND retvals(0) <= 35 THEN
+   GOSUB setwaitstate
+  END IF
+ CASE 5'--suspend npcs
+  setbit gen(), 44, suspendnpcs, 1
+ CASE 6'--suspend player
+  setbit gen(), 44, suspendplayer, 1
+ CASE 7'--resume npcs
+  setbit gen(), 44, suspendnpcs, 0
+ CASE 8'--resume player
+  setbit gen(), 44, suspendplayer, 0
+ CASE 9'--wait for key
+  GOSUB setwaitstate
+ CASE 12'--check tag
+  scriptret = ABS(istag(retvals(0), 0))
+ CASE 17'--get item
+  FOR i = 1 TO retvals(1)
+   getitem retvals(0) + 1
+  NEXT i
+ CASE 18'--delete item
+  FOR i = 1 TO retvals(1)
+   delitem retvals(0) + 1
+  NEXT i
+ CASE 19'--leader
+  FOR i = 0 TO 3
+   IF hero(0) > 0 THEN scriptret = hero(0) - 1: EXIT FOR
+  NEXT i
+ CASE 20'--get money
+  gold& = gold& + retvals(0)
+ CASE 21'--lose money
+  gold& = gold& - retvals(0)
+  IF gold& < 0 THEN gold& = 0
+ CASE 22'--pay money
+  IF gold& - retvals(0) >= 0 THEN
    gold& = gold& - retvals(0)
-   IF gold& < 0 THEN gold& = 0
-  CASE 22'--pay money
-   IF gold& - retvals(0) >= 0 THEN
-    gold& = gold& - retvals(0)
-    scriptret = -1
-   ELSE
-    scriptret = 0
-   END IF
-  CASE 27'--suspend overlay
-   setbit gen(), 44, suspendoverlay, 1
-  CASE 28'--play song
-   'loadsong game$ + "." + LTRIM$(STR$(retvals(0))) + CHR$(0)
-   wrappedsong retvals(0)
-  CASE 29'--stop song
-   stopsong
-  CASE 30'--key is pressed
-   scriptret = keyval(retvals(0))
-  CASE 31'--rank in caterpillar
-   scriptret = rankincaterpillar(retvals(0))
-  CASE 38'--camera follows hero
-   gen(cameramode) = herocam
-   gen(cameraArg) = bound(retvals(0), 0, 3) * 5
-  CASE 40'--pan camera
-   gen(cameramode) = pancam
-   gen(cameraArg) = small(large(retvals(0), 0), 3)
-   gen(cameraArg2) = large(retvals(1), 0) * (20 / large(retvals(2), 1))
-   gen(cameraArg3) = large(retvals(2), 0)
-  CASE 41'--focus camera
-   gen(cameramode) = focuscam
-   gen(cameraArg) = (retvals(0) * 20) - 150
-   gen(cameraArg2) = (retvals(1) * 20) - 90
-   gen(cameraArg3) = ABS(retvals(2))
-   gen(cameraArg4) = ABS(retvals(2))
-  CASE 42'--wait for camera
-   GOSUB setwaitstate
-  CASE 47'--suspend obstruction
-   setbit gen(), 44, suspendobstruction, 1
-  CASE 48'--resume obstruction
-   setbit gen(), 44, suspendobstruction, 0
-  CASE 49'--suspend hero walls
-   setbit gen(), 44, suspendherowalls, 1
-  CASE 50'--suspend NPC walls
-   setbit gen(), 44, suspendnpcwalls, 1
-  CASE 51'--resume hero walls
-   setbit gen(), 44, suspendherowalls, 0
-  CASE 57, 118'--suspend caterpillar
-   setbit gen(), 44, suspendcatapillar, 1
-   '--resume caterpillar is not here! it works different!
-  CASE 59'--wait for text box
-   IF readbit(gen(), 44, suspendboxadvance) = 0 THEN
-    GOSUB setwaitstate
-   END IF
-  CASE 60'--equip where
-   setpicstuf buffer(), 200, -1
-   loadset game$ + ".itm" + CHR$(0), bound(retvals(1), 0, 255), 0
+   scriptret = -1
+  ELSE
    scriptret = 0
-   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-    i = hero(retval(0)) - 1
-    IF i >= 0 THEN
-     IF readbit(buffer(), 66, i) THEN
-      scriptret = buffer(49)
-     END IF
+  END IF
+ CASE 27'--suspend overlay
+  setbit gen(), 44, suspendoverlay, 1
+ CASE 28'--play song
+  'loadsong game$ + "." + LTRIM$(STR$(retvals(0))) + CHR$(0)
+  wrappedsong retvals(0)
+ CASE 29'--stop song
+  stopsong
+ CASE 30'--key is pressed
+  scriptret = keyval(retvals(0))
+ CASE 31'--rank in caterpillar
+  scriptret = rankincaterpillar(retvals(0))
+ CASE 38'--camera follows hero
+  gen(cameramode) = herocam
+  gen(cameraArg) = bound(retvals(0), 0, 3) * 5
+ CASE 40'--pan camera
+  gen(cameramode) = pancam
+  gen(cameraArg) = small(large(retvals(0), 0), 3)
+  gen(cameraArg2) = large(retvals(1), 0) * (20 / large(retvals(2), 1))
+  gen(cameraArg3) = large(retvals(2), 0)
+ CASE 41'--focus camera
+  gen(cameramode) = focuscam
+  gen(cameraArg) = (retvals(0) * 20) - 150
+  gen(cameraArg2) = (retvals(1) * 20) - 90
+  gen(cameraArg3) = ABS(retvals(2))
+  gen(cameraArg4) = ABS(retvals(2))
+ CASE 42'--wait for camera
+  GOSUB setwaitstate
+ CASE 47'--suspend obstruction
+  setbit gen(), 44, suspendobstruction, 1
+ CASE 48'--resume obstruction
+  setbit gen(), 44, suspendobstruction, 0
+ CASE 49'--suspend hero walls
+  setbit gen(), 44, suspendherowalls, 1
+ CASE 50'--suspend NPC walls
+  setbit gen(), 44, suspendnpcwalls, 1
+ CASE 51'--resume hero walls
+  setbit gen(), 44, suspendherowalls, 0
+ CASE 57, 118'--suspend caterpillar
+  setbit gen(), 44, suspendcatapillar, 1
+  '--resume caterpillar is not here! it works different!
+ CASE 59'--wait for text box
+  IF readbit(gen(), 44, suspendboxadvance) = 0 THEN
+   GOSUB setwaitstate
+  END IF
+ CASE 60'--equip where
+  setpicstuf buffer(), 200, -1
+  loadset game$ + ".itm" + CHR$(0), bound(retvals(1), 0, 255), 0
+  scriptret = 0
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   i = hero(retval(0)) - 1
+   IF i >= 0 THEN
+    IF readbit(buffer(), 66, i) THEN
+     scriptret = buffer(49)
     END IF
    END IF
-  CASE 62'--suspend random enemys
-   setbit gen(), 44, suspendrandomenemys, 1
-   '--resume random enemys is not here! it works different!
-  CASE 65'--resume overlay
-   setbit gen(), 44, suspendoverlay, 0
-  CASE 70'--room in active party
-   scriptret = 4 - howmanyh(0, 3)
-  CASE 71'--lock hero
-   temp = findhero(retvals(0) + 1, 0, 40, 1)
-   IF temp > -1 THEN setbit hmask(), 0, temp, 1
-  CASE 72'--unlock hero
-   temp = findhero(retvals(0) + 1, 0, 40, 1)
-   IF temp > -1 THEN setbit hmask(), 0, temp, 0
-  CASE 74'--set death script
-   gen(42) = large(retvals(0), 0)
-  CASE 75'--fade screen out
-   fadeout bound(retvals(0), 0, 63), bound(retvals(1), 0, 63), bound(retvals(2), 0, 63), -1
-  CASE 76'--fade screen in
-   fadein -1
-  CASE 82'--inventory
-   scriptret = countitem(retvals(0) + 1)
-  CASE 84'--suspend box advance
-   setbit gen(), 44, suspendboxadvance, 1
-  CASE 85'--resume box advance
-   setbit gen(), 44, suspendboxadvance, 0
-  CASE 90'--find hero
-   scriptret = findhero(retvals(0) + 1, 0, 40, 1)
-  CASE 91'--check equipment
-   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-    scriptret = eqstuf(retvals(0), bound(retvals(1) - 1, 0, 4)) - 1
-   ELSE
-    scriptret = 0
-   END IF
-  CASE 92'--days of play
-   scriptret = gen(51)
-  CASE 93'--hours of play
-   scriptret = gen(52)
-  CASE 94'--minutes of play
-   scriptret = gen(53)
-  CASE 95'--resume NPC walls
-   setbit gen(), 44, suspendnpcwalls, 0
-  CASE 103'--reset palette
-   xbload game$ + ".mas", master(), "master palette missing from " + game$
-  CASE 104'--tweak palette
-   tweakpalette
-  CASE 105'--read color
-   scriptret = master(bound(retvals(0), 0, 255) * 3 + bound(retvals(1), 0, 3))
-  CASE 106'--write color
-   master(bound(retvals(0), 0, 255) * 3 + bound(retvals(1), 0, 3)) = bound(retvals(2), 0, 63)
-  CASE 107'--update palette
-   setpal master()
-  CASE 108'--reseed random
-   IF retvals(0) THEN
-    RANDOMIZE retvals(0)
-   ELSE
-    RANDOMIZE TIMER
-   END IF
-  CASE 109'--grey scale palette
-   greyscalepal
-  CASE 114'--read global
-   IF retvals(0) >= 0 AND retvals(0) <= 1024 THEN
-    scriptret = global(retvals(0))
-   ELSE
-    scripterr "Cannot read global" + STR$(retvals(0)) + ". out of range"
-   END IF
-  CASE 115'--write global
-   IF retvals(0) >= 0 AND retvals(0) <= 1024 THEN
-    global(retvals(0)) = retvals(1)
-   ELSE
-    scripterr "Cannot write global" + STR$(retvals(0)) + ". out of range"
-   END IF
-  CASE 127'--teach spell
-   scriptret = trylearn(bound(retvals(0), 0, 40), retvals(1), retvals(2))
-  CASE 128'--forget spell
+  END IF
+ CASE 62'--suspend random enemys
+  setbit gen(), 44, suspendrandomenemys, 1
+  '--resume random enemys is not here! it works different!
+ CASE 65'--resume overlay
+  setbit gen(), 44, suspendoverlay, 0
+ CASE 70'--room in active party
+  scriptret = 4 - howmanyh(0, 3)
+ CASE 71'--lock hero
+  temp = findhero(retvals(0) + 1, 0, 40, 1)
+  IF temp > -1 THEN setbit hmask(), 0, temp, 1
+ CASE 72'--unlock hero
+  temp = findhero(retvals(0) + 1, 0, 40, 1)
+  IF temp > -1 THEN setbit hmask(), 0, temp, 0
+ CASE 74'--set death script
+  gen(42) = large(retvals(0), 0)
+ CASE 75'--fade screen out
+  fadeout bound(retvals(0), 0, 63), bound(retvals(1), 0, 63), bound(retvals(2), 0, 63), -1
+ CASE 76'--fade screen in
+  fadein -1
+ CASE 82'--inventory
+  scriptret = countitem(retvals(0) + 1)
+ CASE 84'--suspend box advance
+  setbit gen(), 44, suspendboxadvance, 1
+ CASE 85'--resume box advance
+  setbit gen(), 44, suspendboxadvance, 0
+ CASE 90'--find hero
+  scriptret = findhero(retvals(0) + 1, 0, 40, 1)
+ CASE 91'--check equipment
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   scriptret = eqstuf(retvals(0), bound(retvals(1) - 1, 0, 4)) - 1
+  ELSE
    scriptret = 0
-   retvals(0) = bound(retvals(0), 0, 40)
+  END IF
+ CASE 92'--days of play
+  scriptret = gen(51)
+ CASE 93'--hours of play
+  scriptret = gen(52)
+ CASE 94'--minutes of play
+  scriptret = gen(53)
+ CASE 95'--resume NPC walls
+  setbit gen(), 44, suspendnpcwalls, 0
+ CASE 103'--reset palette
+  xbload game$ + ".mas", master(), "master palette missing from " + game$
+ CASE 104'--tweak palette
+  tweakpalette
+ CASE 105'--read color
+  scriptret = master(bound(retvals(0), 0, 255) * 3 + bound(retvals(1), 0, 3))
+ CASE 106'--write color
+  master(bound(retvals(0), 0, 255) * 3 + bound(retvals(1), 0, 3)) = bound(retvals(2), 0, 63)
+ CASE 107'--update palette
+  setpal master()
+ CASE 108'--reseed random
+  IF retvals(0) THEN
+   RANDOMIZE retvals(0)
+  ELSE
+   RANDOMIZE TIMER
+  END IF
+ CASE 109'--grey scale palette
+  greyscalepal
+ CASE 114'--read global
+  IF retvals(0) >= 0 AND retvals(0) <= 1024 THEN
+   scriptret = global(retvals(0))
+  ELSE
+   scripterr "Cannot read global" + STR$(retvals(0)) + ". out of range"
+  END IF
+ CASE 115'--write global
+  IF retvals(0) >= 0 AND retvals(0) <= 1024 THEN
+   global(retvals(0)) = retvals(1)
+  ELSE
+   scripterr "Cannot write global" + STR$(retvals(0)) + ". out of range"
+  END IF
+ CASE 127'--teach spell
+  scriptret = trylearn(bound(retvals(0), 0, 40), retvals(1), retvals(2))
+ CASE 128'--forget spell
+  scriptret = 0
+  retvals(0) = bound(retvals(0), 0, 40)
+  FOR i = 0 TO 3
+   FOR j = 0 TO 23
+    IF spell(retvals(0), i, j) = retvals(1) THEN
+     spell(retvals(0), i, j) = 0
+     scriptret = 1
+    END IF
+   NEXT j
+  NEXT i
+ CASE 129'--read spell
+  IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 AND retvals(1) <= 3 AND retvals(2) >= 0 AND retvals(2) <= 23 THEN
+   scriptret = spell(retvals(0), retvals(1), retvals(2))
+  ELSE
+   scriptret = 0
+  END IF
+ CASE 130'--write spell
+  IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 AND retvals(1) <= 3 AND retvals(2) >= 0 AND retvals(2) <= 23 AND retvals(3) >= 0 THEN
+   spell(retvals(0), retvals(1), retvals(2)) = retvals(3)
+  END IF
+ CASE 131'--knows spell
+  scriptret = 0
+  retvals(0) = bound(retvals(0), 0, 40)
+  IF retvals(1) > 0 THEN
    FOR i = 0 TO 3
     FOR j = 0 TO 23
      IF spell(retvals(0), i, j) = retvals(1) THEN
-      spell(retvals(0), i, j) = 0
       scriptret = 1
+      EXIT FOR
      END IF
     NEXT j
    NEXT i
-  CASE 129'--read spell
-   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 AND retvals(1) <= 3 AND retvals(2) >= 0 AND retvals(2) <= 23 THEN
-    scriptret = spell(retvals(0), retvals(1), retvals(2))
-   ELSE
-    scriptret = 0
-   END IF
-  CASE 130'--write spell
-   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 AND retvals(1) <= 3 AND retvals(2) >= 0 AND retvals(2) <= 23 AND retvals(3) >= 0 THEN
-    spell(retvals(0), retvals(1), retvals(2)) = retvals(3)
-   END IF
-  CASE 131'--knows spell
-   scriptret = 0
-   retvals(0) = bound(retvals(0), 0, 40)
-   IF retvals(1) > 0 THEN
-    FOR i = 0 TO 3
-     FOR j = 0 TO 23
-      IF spell(retvals(0), i, j) = retvals(1) THEN
+  END IF
+ CASE 132'--can learn spell
+  scriptret = 0
+  retvals(0) = bound(retvals(0), 0, 40)
+  IF retvals(1) > 0 THEN
+   setpicstuf buffer(), 636, -1
+   loadset game$ + ".dt0" + CHR$(0), hero(retvals(0)) - 1, 0
+   FOR i = 0 TO 3
+    FOR j = 0 TO 23
+     IF spell(retvals(0), i, j) = 0 THEN
+      k = (i * 48) + (j * 2)
+      IF buffer(47 + k) = retvals(1) AND buffer(48 + k) = retvals(2) THEN
        scriptret = 1
        EXIT FOR
       END IF
-     NEXT j
-    NEXT i
-   END IF
-  CASE 132'--can learn spell
-   scriptret = 0
-   retvals(0) = bound(retvals(0), 0, 40)
-   IF retvals(1) > 0 THEN
-    setpicstuf buffer(), 636, -1
-    loadset game$ + ".dt0" + CHR$(0), hero(retvals(0)) - 1, 0
-    FOR i = 0 TO 3
-     FOR j = 0 TO 23
-      IF spell(retvals(0), i, j) = 0 THEN
-       k = (i * 48) + (j * 2)
-       IF buffer(47 + k) = retvals(1) AND buffer(48 + k) = retvals(2) THEN
-	scriptret = 1
-	EXIT FOR
-       END IF
-      END IF
-     NEXT j
-    NEXT i
-   END IF
-  CASE 133'--hero by slot
-   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-    scriptret = hero(retvals(0)) - 1
-   ELSE
-    scriptret = -1
-   END IF
-  CASE 134'--hero by rank
-   scriptret = herobyrank(retvals(0))
-  CASE 145'--pick hero
-   scriptret = onwho(readglobalstring$(135, "Which Hero?", 20), 1)
-  CASE 146'--rename hero by slot
-   IF hero(retvals(0)) > 0 THEN
-    renamehero retvals(0)
-   END IF
-   
- END SELECT
- 
- EXIT SUB
- 
- setwaitstate:
- scrat(nowscript, curwaitarg) = retvals(0)
- scrat(nowscript, scrstate) = stwait
- RETURN
- 
+     END IF
+    NEXT j
+   NEXT i
+  END IF
+ CASE 133'--hero by slot
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   scriptret = hero(retvals(0)) - 1
+  ELSE
+   scriptret = -1
+  END IF
+ CASE 134'--hero by rank
+  scriptret = herobyrank(retvals(0))
+ CASE 145'--pick hero
+  scriptret = onwho(readglobalstring$(135, "Which Hero?", 20), 1)
+ CASE 146'--rename hero by slot
+  IF hero(retvals(0)) > 0 THEN
+   renamehero retvals(0)
+  END IF
+  
+END SELECT
+
+EXIT SUB
+
+setwaitstate:
+scrat(nowscript, curwaitarg) = retvals(0)
+scrat(nowscript, scrstate) = stwait
+RETURN
+
 END SUB
 
 SUB scriptnpc (id)
+
+'contains npc related scripting commands
+
+SELECT CASE id
  
- 'contains npc related scripting commands
- 
- SELECT CASE id
-  
-  CASE 26'--set NPC frame
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 THEN npcl(npcref + 1200) = bound(retvals(1), 0, 1) * 2
-  CASE 39'--camera follows NPC
-   gen(cameramode) = npccam
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 THEN gen(cameraArg) = npcref
-  CASE 45'--NPC x
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 THEN scriptret = npcl(npcref) / 20
-  CASE 46'--NPC y
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 THEN scriptret = npcl(npcref + 300) / 20
-  CASE 52'--walk NPC
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 THEN
-    SELECT CASE retvals(1)
-     CASE 0'--north
-      npcl(npcref + 900) = 0
-      npcl(npcref + 1800) = retvals(2) * 20
-     CASE 1'--east
-      npcl(npcref + 900) = 1
-      npcl(npcref + 1500) = (retvals(2) * 20) * -1
-     CASE 2'--south
-      npcl(npcref + 900) = 2
-      npcl(npcref + 1800) = (retvals(2) * 20) * -1
-     CASE 3'--west
-      npcl(npcref + 900) = 3
-      npcl(npcref + 1500) = retvals(2) * 20
-    END SELECT
+ CASE 26'--set NPC frame
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN npcl(npcref + 1200) = bound(retvals(1), 0, 1) * 2
+ CASE 39'--camera follows NPC
+  gen(cameramode) = npccam
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN gen(cameraArg) = npcref
+ CASE 45'--NPC x
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN scriptret = npcl(npcref) / 20
+ CASE 46'--NPC y
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN scriptret = npcl(npcref + 300) / 20
+ CASE 52'--walk NPC
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN
+   SELECT CASE retvals(1)
+    CASE 0'--north
+     npcl(npcref + 900) = 0
+     npcl(npcref + 1800) = retvals(2) * 20
+    CASE 1'--east
+     npcl(npcref + 900) = 1
+     npcl(npcref + 1500) = (retvals(2) * 20) * -1
+    CASE 2'--south
+     npcl(npcref + 900) = 2
+     npcl(npcref + 1800) = (retvals(2) * 20) * -1
+    CASE 3'--west
+     npcl(npcref + 900) = 3
+     npcl(npcref + 1500) = retvals(2) * 20
+   END SELECT
+  END IF
+ CASE 54'--set NPC direction
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN npcl(npcref + 900) = ABS(retvals(1)) MOD 4
+ CASE 88'--set NPC position
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN
+   npcl(npcref + 0) = retvals(1) * 20
+   npcl(npcref + 300) = retvals(2) * 20
+  END IF
+ CASE 101'--NPC direction
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN scriptret = npcl(npcref + 900)
+ CASE 117'--NPC is walking
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN
+   IF npcl(npcref + 1500) = 0 AND npcl(npcref + 1800) = 0 THEN
+    scriptret = 1
+   ELSE
+    scriptret = 0
    END IF
-  CASE 54'--set NPC direction
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 THEN npcl(npcref + 900) = ABS(retvals(1)) MOD 4
-  CASE 88'--set NPC position
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 THEN
-    npcl(npcref + 0) = retvals(1) * 20
-    npcl(npcref + 300) = retvals(2) * 20
-   END IF
-  CASE 101'--NPC direction
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 THEN scriptret = npcl(npcref + 900)
-  CASE 117'--NPC is walking
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 THEN
-    IF npcl(npcref + 1500) = 0 AND npcl(npcref + 1800) = 0 THEN
-     scriptret = 1
-    ELSE
-     scriptret = 0
-    END IF
-   END IF
-  CASE 120'--NPC reference
-   scriptret = 0
-   IF retvals(0) >= 0 AND retvals(0) < 36 THEN
-    found = 0
-    FOR i = 0 TO 299
-     IF npcl(i + 600) - 1 = retvals(0) THEN
-      IF found = retvals(1) THEN
-       scriptret = (i + 1) * -1
-       EXIT FOR
-      END IF
-      found = found + 1
-     END IF
-    NEXT i
-   END IF
-  CASE 121'--NPC at spot
-   scriptret = 0
+  END IF
+ CASE 120'--NPC reference
+  scriptret = 0
+  IF retvals(0) >= 0 AND retvals(0) < 36 THEN
    found = 0
    FOR i = 0 TO 299
-    IF npcl(i) / 20 = retvals(0) AND npcl(i + 300) / 20 = retvals(1) AND npcl(i + 600) > 0 THEN
-     IF found = retvals(2) THEN
+    IF npcl(i + 600) - 1 = retvals(0) THEN
+     IF found = retvals(1) THEN
       scriptret = (i + 1) * -1
       EXIT FOR
      END IF
      found = found + 1
     END IF
    NEXT i
-  CASE 122'--get NPC ID
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 THEN
-    scriptret = npcl(npcref + 600) - 1
-   ELSE
-    scriptret = -1
+  END IF
+ CASE 121'--NPC at spot
+  scriptret = 0
+  found = 0
+  FOR i = 0 TO 299
+   IF npcl(i) / 20 = retvals(0) AND npcl(i + 300) / 20 = retvals(1) AND npcl(i + 600) > 0 THEN
+    IF found = retvals(2) THEN
+     scriptret = (i + 1) * -1
+     EXIT FOR
+    END IF
+    found = found + 1
    END IF
-  CASE 123'--NPC copy count
-   scriptret = 0
-   IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
-    FOR i = 0 TO 299
-     IF npcl(i + 600) - 1 = retvals(0) THEN
-      scriptret = scriptret + 1
-     END IF
-    NEXT i
-   END IF
-  CASE 124'--change NPC ID
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= 35 THEN npcl(npcref + 600) = retvals(1) + 1
-  CASE 125'--create NPC
-   scriptret = 0
-   IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
-    FOR i = 299 TO 0 STEP -1
-     IF npcl(i + 600) <= 0 THEN
-      npcl(i + 600) = retvals(0) + 1
-      npcl(i) = retvals(1) * 20
-      npcl(i + 300) = retvals(2) * 20
-      npcl(i + 900) = ABS(retvals(3)) MOD 4
-      npcl(i + 1500) = 0 'xgo
-      npcl(i + 1800) = 0 'ygo
-      scriptret = (i + 1) * -1
-      EXIT FOR
-     END IF
-    NEXT i
-   END IF
-  CASE 126 '--destroy NPC
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 THEN npcl(npcref + 600) = 0
-   
- END SELECT
- 
+  NEXT i
+ CASE 122'--get NPC ID
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN
+   scriptret = npcl(npcref + 600) - 1
+  ELSE
+   scriptret = -1
+  END IF
+ CASE 123'--NPC copy count
+  scriptret = 0
+  IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
+   FOR i = 0 TO 299
+    IF npcl(i + 600) - 1 = retvals(0) THEN
+     scriptret = scriptret + 1
+    END IF
+   NEXT i
+  END IF
+ CASE 124'--change NPC ID
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= 35 THEN npcl(npcref + 600) = retvals(1) + 1
+ CASE 125'--create NPC
+  scriptret = 0
+  IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
+   FOR i = 299 TO 0 STEP -1
+    IF npcl(i + 600) <= 0 THEN
+     npcl(i + 600) = retvals(0) + 1
+     npcl(i) = retvals(1) * 20
+     npcl(i + 300) = retvals(2) * 20
+     npcl(i + 900) = ABS(retvals(3)) MOD 4
+     npcl(i + 1500) = 0 'xgo
+     npcl(i + 1800) = 0 'ygo
+     scriptret = (i + 1) * -1
+     EXIT FOR
+    END IF
+   NEXT i
+  END IF
+ CASE 126 '--destroy NPC
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN npcl(npcref + 600) = 0
+  
+END SELECT
+
 END SUB
 
 SUB scriptwatcher (page)
- 
- rectangle 0, 0, 320, 4, 0, page
- rectangle 0, 0, (320 / 4096) * scrat(nowscript + 1, scroff), 2, 9, page
- rectangle 0, 2, (320 / 2048) * scrat(nowscript + 1, scrheap), 2, 12, page
- 
- edgeprint " #     ID    Rtval CmdKn CmdID State", 0, 192, 15, page
- ol = 184
- FOR i = large(nowscript - 23, 0) TO nowscript
-  edgeprint STR$(i), 0, ol, 15, page
-  edgeprint STR$(scrat(i, scrid)), 48, ol, 15, page
-  edgeprint STR$(scrat(i, scrret)), 96, ol, 15, page
-  edgeprint STR$(scrat(i, curkind)), 144, ol, 15, page
-  edgeprint STR$(scrat(i, curvalue)), 192, ol, 15, page
-  edgeprint STR$(scrat(i, scrstate)), 240, ol, 15, page
-  ol = ol - 8
- NEXT i
+
+rectangle 0, 0, 320, 4, 0, page
+rectangle 0, 0, (320 / 4096) * scrat(nowscript + 1, scroff), 2, 9, page
+rectangle 0, 2, (320 / 2048) * scrat(nowscript + 1, scrheap), 2, 12, page
+
+edgeprint " #     ID    Rtval CmdKn CmdID State", 0, 192, 15, page
+ol = 184
+FOR i = large(nowscript - 23, 0) TO nowscript
+ edgeprint STR$(i), 0, ol, 15, page
+ edgeprint STR$(scrat(i, scrid)), 48, ol, 15, page
+ edgeprint STR$(scrat(i, scrret)), 96, ol, 15, page
+ edgeprint STR$(scrat(i, curkind)), 144, ol, 15, page
+ edgeprint STR$(scrat(i, curvalue)), 192, ol, 15, page
+ edgeprint STR$(scrat(i, scrstate)), 240, ol, 15, page
+ ol = ol - 8
+NEXT i
 END SUB
 
 SUB setdebugpan
- 
- gen(cameramode) = pancam
- gen(cameraArg2) = 1
- gen(cameraArg3) = 5
- 
+
+gen(cameramode) = pancam
+gen(cameraArg2) = 1
+gen(cameraArg3) = 5
+
 END SUB
 
 SUB storekeyhandler
- 
- 'DEBUG debug "store original keyhandler"
- regs.ax = &H3509: CALL interruptx(&H21, regs, regs)
- off9 = regs.bx: seg9 = regs.es
- 
+
+'DEBUG debug "store original keyhandler"
+regs.ax = &H3509: CALL interruptx(&H21, regs, regs)
+off9 = regs.bx: seg9 = regs.es
+
 END SUB
 
 SUB subdoarg
- scrat(nowscript, scrdepth) = scrat(nowscript, scrdepth) + 1
- pushw scrat(nowscript, scrptr)
- pushw scrat(nowscript, curkind)
- pushw scrat(nowscript, curvalue)
- pushw scrat(nowscript, curargc)
- pushw scrat(nowscript, curargn)
- '--set script pointer to new offset
- scrat(nowscript, scrptr) = script(scrat(nowscript, scroff) + scrat(nowscript, scrptr) + 3 + scrat(nowscript, curargn))
- scrat(nowscript, scrstate) = stread '---read new statement
+scrat(nowscript, scrdepth) = scrat(nowscript, scrdepth) + 1
+pushw scrat(nowscript, scrptr)
+pushw scrat(nowscript, curkind)
+pushw scrat(nowscript, curvalue)
+pushw scrat(nowscript, curargc)
+pushw scrat(nowscript, curargn)
+'--set script pointer to new offset
+scrat(nowscript, scrptr) = script(scrat(nowscript, scroff) + scrat(nowscript, scrptr) + 3 + scrat(nowscript, curargn))
+scrat(nowscript, scrstate) = stread '---read new statement
 END SUB
 
 SUB subreturn
- scrat(nowscript, scrdepth) = scrat(nowscript, scrdepth) - 1
- IF scrat(nowscript, scrdepth) < 0 THEN
-  scrat(nowscript, scrstate) = stdone
- ELSE
-  scrat(nowscript, curargn) = popw
-  scrat(nowscript, curargc) = popw
-  scrat(nowscript, curvalue) = popw
-  scrat(nowscript, curkind) = popw
-  scrat(nowscript, scrptr) = popw
-  '--push return value
-  pushw scriptret
-  scrat(nowscript, curargn) = scrat(nowscript, curargn) + 1
-  scrat(nowscript, scrstate) = stnext'---try next arg
- END IF
+scrat(nowscript, scrdepth) = scrat(nowscript, scrdepth) - 1
+IF scrat(nowscript, scrdepth) < 0 THEN
+ scrat(nowscript, scrstate) = stdone
+ELSE
+ scrat(nowscript, curargn) = popw
+ scrat(nowscript, curargc) = popw
+ scrat(nowscript, curvalue) = popw
+ scrat(nowscript, curkind) = popw
+ scrat(nowscript, scrptr) = popw
+ '--push return value
+ pushw scriptret
+ scrat(nowscript, curargn) = scrat(nowscript, curargn) + 1
+ scrat(nowscript, scrstate) = stnext'---try next arg
+END IF
 END SUB
 
 SUB templockexplain
- PRINT "Either " + exename$ + ".EXE is already running in the background, or it"
- PRINT "terminated incorrectly last time it was run, and was unable to clean up"
- PRINT "its temporary files. The operating system is denying access to the"
- PRINT "files in " + workingdir$
- PRINT
- PRINT "If this problem persists, manually delete playing.tmp"
- PRINT
- PRINT "Error code"; ERR
+PRINT "Either " + exename$ + ".EXE is already running in the background, or it"
+PRINT "terminated incorrectly last time it was run, and was unable to clean up"
+PRINT "its temporary files. The operating system is denying access to the"
+PRINT "files in " + workingdir$
+PRINT
+PRINT "If this problem persists, manually delete playing.tmp"
+PRINT
+PRINT "Error code"; ERR
 END SUB
 
 SUB tweakpalette
- FOR i = bound(retvals(3), 0, 255) TO bound(retvals(4), 0, 255)
-  FOR j = 0 TO 2
-   master(i * 3 + j) = bound(INT(master(i * 3 + j) + retvals(j)), 0, 63)
-  NEXT j
- NEXT i
+FOR i = bound(retvals(3), 0, 255) TO bound(retvals(4), 0, 255)
+ FOR j = 0 TO 2
+  master(i * 3 + j) = bound(INT(master(i * 3 + j) + retvals(j)), 0, 63)
+ NEXT j
+NEXT i
 END SUB
 
 FUNCTION vehiclestuff (disx, disy, foep)
- STATIC aheadx, aheady
- 
- result = 0
- IF readbit(veh(), 6, 0) THEN '--scramble-----------------------
-  '--part of the vehicle automount where heros scramble--
-  IF npcl(veh(5) + 1500) = 0 AND npcl(veh(5) + 1800) = 0 THEN
-   '--npc must stop before we mount
-   targx = npcl(veh(5) + 0)
-   targy = npcl(veh(5) + 300)
-   untrigbit = 0
-   GOSUB vehscramble
-  END IF
- END IF'--scramble mount
- IF readbit(veh(), 6, 1) THEN '--rise----------------------
-  tmp = 0
-  FOR i = 0 TO 3
-   IF catz(i * 5) < veh(21) THEN
-    catz(i * 5) = catz(i * 5) + large(1, small(4, (veh(21) - catz(i * 5)) / 2))
-   ELSE
-    tmp = tmp + 1
-   END IF
-  NEXT i
-  IF tmp = 4 THEN
-   setbit veh(), 6, 1, 0
-  END IF
+STATIC aheadx, aheady
+
+result = 0
+IF readbit(veh(), 6, 0) THEN '--scramble-----------------------
+ '--part of the vehicle automount where heros scramble--
+ IF npcl(veh(5) + 1500) = 0 AND npcl(veh(5) + 1800) = 0 THEN
+  '--npc must stop before we mount
+  targx = npcl(veh(5) + 0)
+  targy = npcl(veh(5) + 300)
+  untrigbit = 0
+  GOSUB vehscramble
  END IF
- IF readbit(veh(), 6, 2) THEN '--fall-------------------
-  tmp = 0
-  FOR i = 0 TO 3
-   IF catz(i * 5) > 0 THEN
-    catz(i * 5) = catz(i * 5) - large(1, small(4, (veh(21) - catz(i * 5)) / 2))
-   ELSE
-    tmp = tmp + 1
-   END IF
-  NEXT i
-  IF tmp = 4 THEN
-   FOR i = 0 TO 3
-    catz(i * 5) = 0
-   NEXT i
-   setbit veh(), 6, 2, 0
-   setbit veh(), 6, 3, 1 '--dismount
-  END IF
- END IF
- IF readbit(veh(), 6, 3) THEN '--dismount---------------
-  setbit veh(), 6, 3, 0
-  IF vehpass(veh(20), readmapblock(disx, disy), -1) THEN
-   '--dismount point is landable
-   FOR i = 0 TO 15
-    catx(i) = catx(0)
-    caty(i) = caty(0)
-    catd(i) = catd(0)
-    catz(i) = 0
-   NEXT i
-   IF readbit(veh(), 9, 6) = 1 THEN
-    setbit veh(), 6, 5, 1'--ahead
-    aheadx = disx * 20
-    aheady = disy * 20
-   ELSE
-    setbit veh(), 6, 4, 1'--clear vehicle
-   END IF
+END IF'--scramble mount
+IF readbit(veh(), 6, 1) THEN '--rise----------------------
+ tmp = 0
+ FOR i = 0 TO 3
+  IF catz(i * 5) < veh(21) THEN
+   catz(i * 5) = catz(i * 5) + large(1, small(4, (veh(21) - catz(i * 5)) / 2))
   ELSE
-   '--dismount point is unlandable
-   IF veh(21) THEN
-    setbit veh(), 6, 1, 1'--riseagain
-   END IF
+   tmp = tmp + 1
   END IF
+ NEXT i
+ IF tmp = 4 THEN
+  setbit veh(), 6, 1, 0
  END IF
- IF readbit(veh(), 6, 4) THEN '--clear
-  IF veh(16) < 0 THEN result = veh(16)
-  IF veh(16) > 0 THEN result = 1 + veh(16)
-  IF veh(14) > 1 THEN setbit tag(), 0, veh(14), 0
-  IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) = 0 THEN
-   '--dismount-ahead is true, dismount-passwalls is false
-   SELECT CASE catd(0)
-    CASE 0
-     ygo(0) = 20
-    CASE 1
-     xgo(0) = -20
-    CASE 2
-     ygo(0) = -20
-    CASE 3
-     xgo(0) = 20
-   END SELECT
+END IF
+IF readbit(veh(), 6, 2) THEN '--fall-------------------
+ tmp = 0
+ FOR i = 0 TO 3
+  IF catz(i * 5) > 0 THEN
+   catz(i * 5) = catz(i * 5) - large(1, small(4, (veh(21) - catz(i * 5)) / 2))
+  ELSE
+   tmp = tmp + 1
   END IF
-  herospeed(0) = veh(7)
-  IF herospeed(0) = 3 THEN herospeed(0) = 10
-  npcl(veh(5) + 1500) = 0
-  npcl(veh(5) + 1800) = 0
-  '--clear vehicle
-  FOR i = 0 TO 21
-   veh(i) = 0
+ NEXT i
+ IF tmp = 4 THEN
+  FOR i = 0 TO 3
+   catz(i * 5) = 0
   NEXT i
+  setbit veh(), 6, 2, 0
+  setbit veh(), 6, 3, 1 '--dismount
+ END IF
+END IF
+IF readbit(veh(), 6, 3) THEN '--dismount---------------
+ setbit veh(), 6, 3, 0
+ IF vehpass(veh(20), readmapblock(disx, disy), -1) THEN
+  '--dismount point is landable
   FOR i = 0 TO 15
    catx(i) = catx(0)
    caty(i) = caty(0)
    catd(i) = catd(0)
    catz(i) = 0
   NEXT i
-  foep = range(100, 60)
- END IF
- IF readbit(veh(), 6, 5) THEN '--ahead
-  targx = aheadx
-  targy = aheady
-  untrigbit = 5
-  GOSUB vehscramble
- END IF
- IF veh(6) = 0 THEN
-  IF showsay = 0 AND readbit(gen(), 44, suspendplayer) = 0 THEN
-   FOR i = 0 TO 1
-    IF carray(4 + i) > 1 AND xgo(0) = 0 AND ygo(0) = 0 THEN
-     SELECT CASE veh(12 + i)
-      CASE -2
-       '-disabled
-      CASE -1
-       result = 1
-      CASE 0
-       '--dismount
-       xgo(0) = 0: ygo(0) = 0
-       IF veh(21) THEN
-	setbit veh(), 6, 2, 1
-       ELSE
-	setbit veh(), 6, 3, 1
-       END IF
-      CASE IS > 0
-       result = veh(12 + i) * -1
-     END SELECT
-    END IF
-   NEXT i
-  END IF
- END IF'--normal
- 
- vehiclestuff = result
- 
- EXIT FUNCTION
- 
- vehscramble:
- tmp = 0
- FOR i = 0 TO 3
-  IF hero(i) <= 0 THEN
-   tmp = tmp + 1
+  IF readbit(veh(), 9, 6) = 1 THEN
+   setbit veh(), 6, 5, 1'--ahead
+   aheadx = disx * 20
+   aheady = disy * 20
   ELSE
-   IF ABS(catx(i * 5) - targx) < large(herospeed(i), 4) THEN
-    catx(i * 5) = targx
-    xgo(i) = 0
-    ygo(i) = 0
-   END IF
-   IF ABS(caty(i * 5) - targy) < large(herospeed(i), 4) THEN
-    caty(i * 5) = targy
-    xgo(i) = 0
-    ygo(i) = 0
-   END IF
-   IF ABS(targx - catx(i * 5)) > 0 AND xgo(i) = 0 THEN
-    xgo(i) = 20 * SGN(catx(i * 5) - targx)
-   END IF
-   IF ABS(targy - caty(i * 5)) > 0 AND ygo(i) = 0 THEN
-    ygo(i) = 20 * SGN(caty(i * 5) - targy)
-   END IF
-   IF catx(i * 5) - targx = 0 AND caty(i * 5) - targy = 0 THEN tmp = tmp + 1
+   setbit veh(), 6, 4, 1'--clear vehicle
   END IF
- NEXT i
- IF tmp = 4 THEN
-  setbit veh(), 6, untrigbit, 0
-  IF veh(15) < 0 THEN result = veh(15)
-  IF veh(15) > 0 THEN result = 1 + veh(15)
-  herospeed(0) = veh(8)
-  IF herospeed(0) = 3 THEN herospeed(0) = 10
-  '--null out hero's movement
-  FOR i = 0 TO 3
-   xgo(i) = 0: ygo(i) = 0
-  NEXT i
-  '--transfer any residual NPC movement
-  'xgo(0) = npcl(veh(5) + 1500)
-  'ygo(0) = npcl(veh(5) + 1800)
-  'npcl(veh(5) + 1500) = 0
-  'npcl(veh(5) + 1800) = 0
-  '--!!!
-  IF untrigbit = 5 THEN setbit veh(), 6, 4, 1'--clear
-  IF veh(21) THEN setbit veh(), 6, 1, 1'--rise
+ ELSE
+  '--dismount point is unlandable
+  IF veh(21) THEN
+   setbit veh(), 6, 1, 1'--riseagain
+  END IF
  END IF
- RETURN
- 
+END IF
+IF readbit(veh(), 6, 4) THEN '--clear
+ IF veh(16) < 0 THEN result = veh(16)
+ IF veh(16) > 0 THEN result = 1 + veh(16)
+ IF veh(14) > 1 THEN setbit tag(), 0, veh(14), 0
+ IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) = 0 THEN
+  '--dismount-ahead is true, dismount-passwalls is false
+  SELECT CASE catd(0)
+   CASE 0
+    ygo(0) = 20
+   CASE 1
+    xgo(0) = -20
+   CASE 2
+    ygo(0) = -20
+   CASE 3
+    xgo(0) = 20
+  END SELECT
+ END IF
+ herospeed(0) = veh(7)
+ IF herospeed(0) = 3 THEN herospeed(0) = 10
+ npcl(veh(5) + 1500) = 0
+ npcl(veh(5) + 1800) = 0
+ '--clear vehicle
+ FOR i = 0 TO 21
+  veh(i) = 0
+ NEXT i
+ FOR i = 0 TO 15
+  catx(i) = catx(0)
+  caty(i) = caty(0)
+  catd(i) = catd(0)
+  catz(i) = 0
+ NEXT i
+ foep = range(100, 60)
+END IF
+IF readbit(veh(), 6, 5) THEN '--ahead
+ targx = aheadx
+ targy = aheady
+ untrigbit = 5
+ GOSUB vehscramble
+END IF
+IF veh(6) = 0 THEN
+ IF showsay = 0 AND readbit(gen(), 44, suspendplayer) = 0 THEN
+  FOR i = 0 TO 1
+   IF carray(4 + i) > 1 AND xgo(0) = 0 AND ygo(0) = 0 THEN
+    SELECT CASE veh(12 + i)
+     CASE -2
+      '-disabled
+     CASE -1
+      result = 1
+     CASE 0
+      '--dismount
+      xgo(0) = 0: ygo(0) = 0
+      IF veh(21) THEN
+       setbit veh(), 6, 2, 1
+      ELSE
+       setbit veh(), 6, 3, 1
+      END IF
+     CASE IS > 0
+      result = veh(12 + i) * -1
+    END SELECT
+   END IF
+  NEXT i
+ END IF
+END IF'--normal
+
+vehiclestuff = result
+
+EXIT FUNCTION
+
+vehscramble:
+tmp = 0
+FOR i = 0 TO 3
+ IF hero(i) <= 0 THEN
+  tmp = tmp + 1
+ ELSE
+  IF ABS(catx(i * 5) - targx) < large(herospeed(i), 4) THEN
+   catx(i * 5) = targx
+   xgo(i) = 0
+   ygo(i) = 0
+  END IF
+  IF ABS(caty(i * 5) - targy) < large(herospeed(i), 4) THEN
+   caty(i * 5) = targy
+   xgo(i) = 0
+   ygo(i) = 0
+  END IF
+  IF ABS(targx - catx(i * 5)) > 0 AND xgo(i) = 0 THEN
+   xgo(i) = 20 * SGN(catx(i * 5) - targx)
+  END IF
+  IF ABS(targy - caty(i * 5)) > 0 AND ygo(i) = 0 THEN
+   ygo(i) = 20 * SGN(caty(i * 5) - targy)
+  END IF
+  IF catx(i * 5) - targx = 0 AND caty(i * 5) - targy = 0 THEN tmp = tmp + 1
+ END IF
+NEXT i
+IF tmp = 4 THEN
+ setbit veh(), 6, untrigbit, 0
+ IF veh(15) < 0 THEN result = veh(15)
+ IF veh(15) > 0 THEN result = 1 + veh(15)
+ herospeed(0) = veh(8)
+ IF herospeed(0) = 3 THEN herospeed(0) = 10
+ '--null out hero's movement
+ FOR i = 0 TO 3
+  xgo(i) = 0: ygo(i) = 0
+ NEXT i
+ '--transfer any residual NPC movement
+ 'xgo(0) = npcl(veh(5) + 1500)
+ 'ygo(0) = npcl(veh(5) + 1800)
+ 'npcl(veh(5) + 1500) = 0
+ 'npcl(veh(5) + 1800) = 0
+ '--!!!
+ IF untrigbit = 5 THEN setbit veh(), 6, 4, 1'--clear
+ IF veh(21) THEN setbit veh(), 6, 1, 1'--rise
+END IF
+RETURN
+
 END FUNCTION
 
 FUNCTION vehpass (n, tile, default)
- 
- '--true means passable
- '--false means impassable
- 
- v = default
- 
- SELECT CASE n
-  CASE 1
-   v = (tile AND 16)
-  CASE 2
-   v = (tile AND 32)
-  CASE 3
-   v = ((tile AND 16) = 16) AND ((tile AND 32) = 32)
-  CASE 4
-   v = ((tile AND 16) = 16) OR ((tile AND 32) = 32)
-  CASE 5
-   v = NOT ((tile AND 16) = 16)
-  CASE 6
-   v = NOT ((tile AND 32) = 32)
-  CASE 7
-   v = NOT (((tile AND 16) = 16) OR ((tile AND 32) = 32))
-  CASE 8
-   v = -1
- END SELECT
- 
- v = ABS(SGN(v)) * -1
- 
- vehpass = v
- 
- 'tiles
- '1   north
- '2   east
- '4   south
- '8   west
- '16  vehicle A
- '32  vehicle B
- '64  harm tile
- '128 overhead
- 
+
+'--true means passable
+'--false means impassable
+
+v = default
+
+SELECT CASE n
+ CASE 1
+  v = (tile AND 16)
+ CASE 2
+  v = (tile AND 32)
+ CASE 3
+  v = ((tile AND 16) = 16) AND ((tile AND 32) = 32)
+ CASE 4
+  v = ((tile AND 16) = 16) OR ((tile AND 32) = 32)
+ CASE 5
+  v = NOT ((tile AND 16) = 16)
+ CASE 6
+  v = NOT ((tile AND 32) = 32)
+ CASE 7
+  v = NOT (((tile AND 16) = 16) OR ((tile AND 32) = 32))
+ CASE 8
+  v = -1
+END SELECT
+
+v = ABS(SGN(v)) * -1
+
+vehpass = v
+
+'tiles
+'1   north
+'2   east
+'4   south
+'8   west
+'16  vehicle A
+'32  vehicle B
+'64  harm tile
+'128 overhead
+
 END FUNCTION
 
 SUB vishero (stat())
- o = 0
- FOR i = 0 TO 3
-  IF hero(i) > 0 THEN
-   getpal16 pal16(), o, stat(i, 1, 15)
-   setpicstuf buffer(), 1600, 2
-   loadset game$ + ".pt4" + CHR$(0), stat(i, 1, 14), 5 * o
-   o = o + 1
-  END IF
- NEXT i
- FOR i = o TO 3
-  '--black out unused heros
-  rectangle 0, i * 5, 320, 5, 0, 2
- NEXT i
+o = 0
+FOR i = 0 TO 3
+ IF hero(i) > 0 THEN
+  getpal16 pal16(), o, stat(i, 1, 15)
+  setpicstuf buffer(), 1600, 2
+  loadset game$ + ".pt4" + CHR$(0), stat(i, 1, 14), 5 * o
+  o = o + 1
+ END IF
+NEXT i
+FOR i = o TO 3
+ '--black out unused heros
+ rectangle 0, i * 5, 320, 5, 0, 2
+NEXT i
 END SUB
 
 SUB wrappedsong (songnumber)
- 
- IF songnumber <> presentsong THEN
-  loadsong game$ + "." + LTRIM$(STR$(songnumber)) + CHR$(0)
-  presentsong = songnumber
- ELSE
-  resumesong
- END IF
- 
+
+IF songnumber <> presentsong THEN
+ loadsong game$ + "." + LTRIM$(STR$(songnumber)) + CHR$(0)
+ presentsong = songnumber
+ELSE
+ resumesong
+END IF
+
 END SUB
 
