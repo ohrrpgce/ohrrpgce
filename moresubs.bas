@@ -1758,14 +1758,14 @@ IF newcall AND index > 0 THEN
  END IF
 END IF
 
-skipload = 0
+loadinstead = -1
 
-'-- If we are re-loading the same script that was just loaded previously
+'-- If we are loading a script that is already running
 '-- we can re-use it.
-IF n = scrat(index, scrid) THEN
- '--currently broken
- 'skipload = -1
-END IF
+FOR i = 0 TO nowscript
+ IF scrat(i, scrid) = n THEN loadinstead = i : EXIT FOR
+ IF scrat(i, scrid) = -1 THEN EXIT FOR  
+NEXT i
 
 FOR i = 2 TO 5
  scrat(index, i) = 0 'erase state, pointer and return value
@@ -1773,8 +1773,11 @@ NEXT i
 scrat(index, scrdepth) = 0
 scrat(index, scrid) = n
 
-IF skipload THEN
+IF loadinstead <> -1 THEN
  '--reuse the script from memory
+ scrat(index + 1, scroff) = scrat(index, scroff)
+ scrat(index, scroff) = scrat(loadinstead, scroff)
+ scrat(index, scrargs) = scrat(loadinstead, scrargs)
 ELSE
  '--load the script from file
  IF isfile(workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" + CHR$(0)) THEN

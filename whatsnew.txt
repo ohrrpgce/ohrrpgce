@@ -4,6 +4,11 @@ WHAT IS NEW?
 
   * GPL Licensed source code. See LICENSE.txt
 
+  * Very nice plotscript buffer usage optimization. Scripts that run more
+    than once take no extra space in the buffer, allowing you to write
+    recursive scripts without fear of buffer-overflow. Thanks to Ralph
+    Versteegen (TeeEmCee)
+
   * Bugs fixed thanks to help from Simon Bradley
 
     * "equip where" plotscripting command always uses hero #0's
