@@ -1,31 +1,29 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Editor Testing Demo (January 31 2000 Update)
+ O.H.R.RPG.C.E Editor                 (June 28 2004 ozarks)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
 ---
-Be sure to Unzip CUSTOM.ZIP with directories (-d option for pkunzip). If you
-fail to do this, your IMPORT directory will not be properly constructed. If
-you have already unzipped without directories... oh, well. It doesnt make
-that big a difference
+
+To get started, read http://HamsterRepublic.com/ohrrpgce/howto.html or
+the included HOWTO.TXT file
+
 ---
 
-Please see WHATSNEW.TXT for more information.
+Please see WHATSNEW.TXT for revision information.
 
 ---
 This is a TESTING distribution of the O.H.R.RPG.C.E.
 
-Any .RPG files you create are yours to distribute as you please. You may 
-freely distribute GAME.EXE, OHRRPGCE.MAS, and OHRRPGCE.FNT with your .RPG
-files. Do _not_ distribute CUSTOM.EXE or NOTATE.EXE
+Any .RPG files you create are yours to distribute as you please.
+You may freely distribute GAME.EXE, with your .RPG files. No other
+files are needed for people to play your RPG files
 
-HOWTO.TXT is a tutorial that will help you get started on making a game.
-I reccomend that you print it, because it is a rather long file.
-I apologise for not updating HOWTO.TXT very often. Some information
-in it is obsolete.
+To learn how to use the OHRRPGCE, please read HOWTO.TXT or visit
+http://HamsterRepublic.com/ohrrpgce/howto.html
 
-the included files, SAMPLE.RPG , NPC_TAG.RPG , and PSTUTOR.RPG are part
-of the tutorial
+If you have questions, read the FAQ at
+http://HamsterRepublic.com/ohrrpgce/rpgfaq.html
 
 ---
 PLAYTESTING INFO
@@ -35,14 +33,21 @@ are expected to report any bugs you find to us. Please note that the editor
 is still under construction, so not all features work yet.
 
   Report bugs to:      Hamster Republic<ohrrpgce@HamsterRepublic.com>
-  Send files to:       Hamster Republic<files@HamsterRepublic.com>
+
   Send suggestions to: Hamster Republic<suggestionbox@HamsterRepublic.com>
+                       (suggestions will be read, but not replied to)
 
 And visit:   http://HamsterRepublic.com
 For downloads of the latest copy of the demo.
 
 ---
+DISTRIBUTION INFO
 
+Feel free to share this program with your friends, but please do not
+mass-distribute it without permission (for example, do not upload it
+to your website, or include it in a CD collection)
+
+---
 MUSIC UTILITIES
 
 The programs NOTATE.EXE and MIDI2BAM have been provided for you in your 
@@ -51,10 +56,12 @@ IMPORT directory. you can use them to create your own .BAM files
 contain instructions on how to use the utilities
 
 A small assortment of Public-Domain music has also been included for you to
-use for free if you do not want to compose your own music.
+use for free if you do not want to compose your own music. Please read
+MUSIC.TXT for more info on the songs.
 
 ---
 Spiffy, Spiffy! Enjoy the editor. We look forward to your input.
 
                                             James `SPAM Man' Paige
                                             Hamster Republic Productions
+                                            http://HamsterRepublic.com/

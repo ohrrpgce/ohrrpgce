@@ -1,3 +1,7 @@
+'OHRRPGCE CUSTOM - Ironhoof's donated code
+'(C) Copyright 2001 Russel Hamrick
+' TODO: Resolve licencing permission!!!
+'
 '$DYNAMIC
 DEFINT A-Z
 '---------------------------------------------------------------------------
@@ -41,7 +45,7 @@ DECLARE SUB fademusic (BYVAL vol)
 DECLARE FUNCTION getfmvol ()
 DECLARE SUB setfmvol (BYVAL vol)
 '---------------------------------------------------------------------------
-DECLARE SUB QUAKE (L#)
+'DECLARE SUB QUAKE (L#)
 'Quake runs from 0 to 32000, 0 wont even show while 32000 makes a perfect quake
 
 DECLARE SUB ffbox (x, y, x2, y2, c, c2, p)
@@ -96,6 +100,8 @@ DECLARE SUB airbrush (x, y, d, m, c, p)
 'printstr "AINT IT SPIFFISH?", 5, 5, 0
 'x$ = INPUT$(2)
 
+'$INCLUDE: 'cglobals.bi'
+
 REM $STATIC
 SUB airbrush (x, y, d, m, c, p)
 
@@ -146,13 +152,5 @@ IF y > y2 THEN SWAP y2, y
 rectangle x + 1, y, x2 - 2, y2, c, p
 rectangle x, y + 1, x2, y2 - 2, c, p
 rectangle x + 2, y + 2, x2 - 4, y2 - 4, c2, p
-END SUB
-
-DEFDBL A-Z
-SUB QUAKE (L#)
-DO WHILE x# < L#
-OUT &H3D4, 8: OUT &H3D5, x#
-x# = x# + 1: LOOP
-OUT &H3D4, 8: OUT &H3D5, 0
 END SUB
 

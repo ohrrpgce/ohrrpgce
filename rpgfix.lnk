@@ -1,7 +1,8 @@
-\wander\rpgfix.obj +
+rpgfix.obj +
+nocom.obj +
 ,
-\wander\rpgfix.exe,
+rpgfix.exe,
 ,
-\wander\allmodex.lib +
-\wander\bcom45.lib +
+allmodex.lib +
+bcom45.lib +
 

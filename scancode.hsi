@@ -1,0 +1,125 @@
+# this include file defines a whole mess of key: constants for use with
+# the "key is pressed" command. This is more complete than it needs to be :)
+
+define constant,begin
+01,key:ESC
+02,key:1
+02,key:EXCLAMATION
+03,key:2
+03,key:AT SIGN
+04,key:3
+04,key:HASH
+05,key:4
+05,key:DOLLAR SIGN
+06,key:5
+07,key:6
+07,key:CIRCUMFLEX
+08,key:7
+08,key:AMPERSAND
+09,key:8
+09,key:ASTERIX
+10,key:9
+10,key:LEFT PARENTHESIS
+11,key:0
+11,key:RIGHT PARENTHESIS
+12,key:MINUS
+12,key:UNDERSCORE
+13,key:EQUALS
+13,key:PLUS
+14,key:BACKSPACE
+15,key:TAB
+16,key:Q
+17,key:W
+18,key:E
+19,key:R
+20,key:T
+21,key:Y
+22,key:U
+23,key:I
+24,key:O
+25,key:P
+26,key:LEFT BRACKET
+26,key:LEFT BRACE
+27,key:RIGHT BRACKET
+27,key:RIGHT BRACE
+28,key:ENTER
+29,key:CTRL
+30,key:A
+31,key:S
+32,key:D
+33,key:F
+34,key:G
+35,key:H
+36,key:J
+37,key:K
+38,key:L
+39,key:SEMICOLON
+39,key:COLON
+40,key:QUOTE
+40,key:DOUBLEQUOTE
+40,key:APOSTROPHE
+41,key:BACKQUOTE
+41,key:TILDE
+42,key:LEFT SHIFT
+43,key:BACKSLASH
+43,key:PIPE
+44,key:Z
+45,key:X
+46,key:C
+47,key:V
+48,key:B
+49,key:N
+50,key:M
+51,key:COMMA
+51,key:LEFT CARET
+52,key:PERIOD
+52,key:RIGHT CARET
+53,key:SLASH
+53,key:QUESTION MARK
+54,key:RIGHT SHIFT
+55,key:PRINT SCREEN
+55,key:NUMPAD ASTERIX
+56,key:ALT
+57,key:SPACE
+58,key:CAPSLOCK
+59,key:F1
+60,key:F2
+61,key:F3
+62,key:F4
+63,key:F5
+64,key:F6
+65,key:F7
+66,key:F8
+67,key:F9
+68,key:F10
+69,key:NUMLOCK
+70,key:SCROLL LOCK
+71,key:HOME
+71,key:NUMPAD 7
+72,key:UP
+72,key:NUMPAD 8
+73,key:PAGEUP
+73,key:NUMPAD 9
+74,key:NUMPAD MINUS
+75,key:LEFT
+75,key:NUMPAD 4
+76,key:NUMPAD 5
+77,key:RIGHT
+77,key:NUMPAD 6
+78,key:NUMPAD PLUS
+79,key:END
+79,key:NUMPAD 1
+80,key:DOWN
+80,key:NUMPAD 2
+81,key:PAGEDOWN
+81,key:NUMPAD 3
+82,key:INSERT
+82,key:NUMPAD 0
+83,key:DELETE
+83,key:NUMPAD PERIOD
+87,key:F11
+88,key:F12
+91,key:LEFT WIN LOGO
+92,key:RIGHT WIN LOGO
+93,key:CONTEXT
+end

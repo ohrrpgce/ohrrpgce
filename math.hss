@@ -1,7 +1,0 @@
-include, plotscr.hsd
-
- Define Script (1,testing,none)
-
- script, testing, begin
-  wait for hero () + wait for hero()
- end

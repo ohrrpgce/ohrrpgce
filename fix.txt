@@ -1,0 +1,9 @@
+[June 28 2004]
+These are two utilities for repairing RPG files for the OHRRPGCE
+
+RPGFIX.EXE   Upgrades an RPG to the latest format without needing to
+             know the file's password
+
+LUMPFIX.EXE  Attempts to repair a corrupt RPG file
+
+For more info about the OHRRPGCE visit http://HamsterRepublic.com/ohrrpgce

@@ -1,6 +1,8 @@
-# PLOTSCR.HSD last modified January 28 2000
+# PLOTSCR.HSD last modified August 03 2003
 # This file holds the language definition for OHRRPGCE plotscripting.
-# modifying this file may have undesired/disasterous effects
+# modifying this file may have undesired/disasterous effects,
+# but reading it can be somewhat educational. Especially the constants.
+
 # functions marked with an x have not been implemented yet.
 # functions marked with a ? are implemented but untested
 
@@ -22,7 +24,7 @@ define function, begin
 11,showtextbox,1,1          # show a text box
 12,checktag,1,0             # returns the value of a tag
 13,settag,2,0,0             # set tag(#,true/false)
-15,usedoor,1,0              #? use door(#)
+15,usedoor,1,0              # use door(#)
 16,fightformation,1,0       # fight formation(#)
 17,getitem,2,0,1            # get item(item,quantity)
 18,deleteitem,2,0,1         # delete item(item,quantity)
@@ -30,21 +32,20 @@ define function, begin
 20,getmoney,1,0             # get money(amount)
 21,losemoney,1,0            #? lose money(amount) no checking
 22,paymoney,1,0             # returns false and subtracts nothing if cannot afford
-23,walkherotospot,3,0,0,0   #x walk hero to spot (who,x,y)
-24,walknpctospot,3,0,0,0    #x walk npc to spot (who,x,y)
+23,unequip,2,0,1            # (who,where)
+24,forceequip,3,0,1,0       # (who,where,item)
 25,setheroframe,2,0,0       # (who,frame) frame is 0 or 1
 26,setNPCframe,2,0,0        # (who,frame) frame is 0 or 1
-27,suspendoverlay,0         #? turns off overhead tiles
+27,suspendoverlay,0         # turns off overhead tiles
 28,playsong,1,0             # play song(#)
-29,stopsong,0               #? stop the music
-30,playsound,1,0            #x play sound(#)
-31,equip,2,0,0              #x equip an item (who,what)
-32,showbackdrop,1,0         #? showbackdrop (#)
-33,showmap,0                #? cancels a showbackdrop
-34,showmovie,1,0            #x show flic movie clip
-35,waitformovie,0           #x waits for movie to stop
-36,waitforframe,1,0         #x wait for specific frame of movie
-37,useshop,1,0              #x use shop(#)
+29,stopsong,0               # stop the music
+30,keyispressed,1,0         # check key by scancode
+31,rankincaterpillar,1,0    # finds the heros position in the caterpillar
+32,showbackdrop,1,0         # showbackdrop (#)
+33,showmap,0                # cancels a showbackdrop
+34,dismountvehicle,0        # dismount whatever vehicle you may be riding
+35,useNPC,1,0               # trigger an NPC remotely
+37,useshop,1,0              #? use shop(#)
 38,camerafollowshero,1,0    # make camera follow a hero
 39,camerafollowsnpc,1,0     # make camera follow an npc
 40,pancamera,3,0,1,2        # pan camera(direction,distance,pixelstep)
@@ -56,32 +57,32 @@ define function, begin
 46,npcy,1,0                 # returns the npc's y coordinate
 47,suspendobstruction,0     # lets heros walk through NPCs and vice versa
 48,resumeobstruction,0      # restores normal obstruction behavior
-49,suspendherowalls,0       #? lets heros walk through walls
-50,suspendNPCwalls,0        #? lets heros and npcs walk through walls
-51,resumeherowalls,0        #? restores normal hero wall behavior
+49,suspendherowalls,0       # lets heros walk through walls
+50,suspendNPCwalls,0        # lets heros and npcs walk through walls
+51,resumeherowalls,0        # restores normal hero wall behavior
 52,walknpc,3,0,2,1          # walk npc(who,direction,distance)
 53,setherodirection,2,0,2   # set hero direction(who,direction)
 54,setnpcdirection,2,0,2    # set npc direction(who,direction)
-55,floathero,3,0,2,1        #x like walk hero, but does not change direction/move feet/check obstruction
-56,floatnpc,3,0,2,1         #x like walk npc, but does not change direction/move feet/check obstruction
-57,suspendcatapillar,0      # other heros stop following the leader, and can be manipulated separately.
-58,resumecatapillar,0       # turns catapillar party back on
+55,getdefaultweapon,1,0     # (who)
+56,setdefaultweapon,2,0,0   # (who,item)
+57,suspendcatapillar,0      # misspelled alias for backcompat
+58,resumecatapillar,0       # misspelled alias for backcompat
 59,waitfortextbox,0         # waits for text box to go away
-60,simulatekeypress,1,0     #x presses a key as if the player pressed it
-61,teleporttomap,3,0,0,0    #? teleport to map (map,x,y)
+60,equipwhere,2,0,0         #? (who,item) returns the slot that an item can be equipped in, or false if the hero cant equip it
+61,teleporttomap,3,0,0,0    # teleport to map (map,x,y)
 62,suspendrandomenemys,0    # keeps random enemys from attacking
 63,resumerandomenemys,0     # undoes suspendrandomenemys
-64,getherostat,3,0,0,1      #? returns a hero's stat (who,stat,cur/max)
-65,resumeoverlay,0          #? turns overhead tiles back on
+64,getherostat,3,0,0,1      # returns a hero's stat (who,stat,cur/max)
+65,resumeoverlay,0          # turns overhead tiles back on
 66,addhero,1,0              # adds a hero to the party
-67,deletehero,1,0           #? deletes a hero from the party
+67,deletehero,1,0           # deletes a hero from the party
 68,swapouthero,1,0          # move a hero out of the active party
 69,swapinhero,1,0           # moves a hero into the active party (if there is room)
 70,roominactiveparty,0      # returns the number of empty slots in the active party (0-3)
-71,lockhero,1,0             #? prevents swapping of a hero
+71,lockhero,1,0             # prevents swapping of a hero
 72,unlockhero,1,0           #? reverses lockhero
 73,gameover,0               # returns you to the title screen
-74,setdeathscript,1,0       #? changes what script is run when you die
+74,setdeathscript,1,0       # changes what script is run when you die
 75,fadescreenout,3,0,0,0    # fade screen out (red,green,blue)
 76,fadescreenin,0           # fade back to color after fade screen out
 77,showvalue,1,0            # display a number in the bottom left corner
@@ -89,22 +90,81 @@ define function, begin
 79,shownovalue,0            # hide the number from showvalue
 80,currentmap,0             # returns the number of the current map
 81,setherospeed,2,0,4       # changes a heros walking speed
-82,inventory,1,0            #? returns the count of a given item
-83,setherostat,4,0,0,1,0    #? alters a hero's stats (who,stat,cur/max,value)
+82,inventory,1,0            # returns the count of a given item
+83,setherostat,4,0,0,1,0    # alters a hero's stats (who,stat,cur/max,value)
 84,suspendboxadvance,0      # prevents user from advancing text boxes
 85,resumeboxadvance,0       # reverses suspendboxadvance
 86,advancetextbox,0         # as if the user had pressed a key
-87,setheroposition,3,0,0,0  #? arbitraraly set x,y
+87,setheroposition,3,0,0,0  # arbitraraly set x,y
 88,setNPCposition,3,0,0,0   # arbitraraly set x,y
 89,swapbyposition,2,0,0     # swap two hero slots
 90,findhero,1,0             # locate hero slot by hero name
-91,checkequipment,2,0,0     #x what is a hero equipped with? (who,where)
-92,daysofplay,0             #? returns the days
-93,hoursofplay,0            #? returns the hours
-94,minutesofplay,0          #? returns the minutes
+91,checkequipment,2,0,1     # what is a hero equipped with? (who,where)
+92,daysofplay,0             # returns the days
+93,hoursofplay,0            # returns the hours
+94,minutesofplay,0          # returns the minutes
 95,resumeNPCwalls,0         # restores normal NPC wall behavior
-96,setheroz,2,0,0           #? sets the hero's vertical position
-97,setNPCz,2,0,0            #x sets an NPCs vertical position
+96,setheroz,2,0,0           # sets the hero's vertical position
+97,readmapblock,2,0,0       # get mapblock x,y
+98,writemapblock,3,0,0,0    # set mapblock x,y,value
+99,readpassblock,2,0,0      # get passblock x,y
+100,writepassblock,3,0,0,0  # set passblock x,y,value
+101,NPCdirection,1,0        # return an NPC's direction
+102,herodirection,1,0       # return a hero's direction
+103,resetpalette,0          # return the master palette to defaults
+104,tweakpalette,5,0,0,0,0,255 # alter the master palette
+105,readcolor,2,0,0         # return a color value
+106,writecolor,3,0,0,0      # change a color value
+107,updatepalette,0         # apply changes made with writecolor
+108,seedrandom,1,0          #? reseed the random number generator
+109,greyscalepalette,2,0,255# convert the palette to greyscale
+110,setheropicture,3,0,0,1  # who,picture,type
+111,setheropalette,3,0,0,1  # who,palette,type
+112,getheropicture,2,0,1    # who,type
+113,getheropalette,2,0,1    # who,type
+114,readglobal,1,0          # index
+115,writeglobal,2,0,0       # index,value
+116,heroiswalking,1,0       # index,value
+117,NPCiswalking,1,0        # index,value
+118,suspendcaterpillar,0    # other heros stop following the leader, and can be manipulated separately.
+119,resumecaterpillar,0     # turns catapillar party back on
+120,NPCreference,2,0,0      # get an NPC reference by ID number
+121,NPCatspot,3,0,0,0       # get NPC reference by X,Y
+122,getNPCID,1,0            # get the ID number of an NPC reference
+123,NPCcopycount,1,0        # find out how many copys of an NPC ID are on the map
+124,changeNPCID,2,0,0       # given an NPC reference, changes its ID
+125,createNPC,4,0,0,0,2     # create an NPC by ID at a location and return its reference
+126,destroyNPC,1,0          # destroy the referenced NPC
+127,teachspell,3,0,0,0      # (who,spell,learntype) tries to teach a hero a spell
+128,forgetspell,2,0,0       # (who,spell) forget a learned spell
+129,readspell,3,0,0,0       # (who,list,slot) returns the number of the spell in a slot
+130,writespell,4,0,0,0,0    # (who,list,slot,spell) forces a hero to learn a spell
+131,knowsspell,2,0,0        # (who,spell) returns true if the hero already knows this spell
+132,canlearnspell,3,0,0,0   # (who,spell,learntype) returns true if the hero can learn the spell
+133,herobyslot,1,0          # returns the hero ID/name of the hero at a particular slot in the party
+134,herobyrank,1,0          # returns the hero ID/name of the hero at a particular rank in the caterpillar
+135,puthero,3,0,0,0         #? (who,x,y) set hero pixel-position
+136,putnpc,3,0,0,0          # (who,x,y) set npc pixel position
+137,putcamera,2,0,0         # (x,y) set screen pixel position
+138,heropixelx,1,0          #? (who) get hero pixel x
+139,heropixely,1,0          #? (who) get hero pixel y
+140,npcpixelx,1,0           # (who) get npc pixel x
+141,npcpixely,1,0           # (who) get npc pixel y
+142,camerapixelx,0          #? get camera pixel x
+143,camerapixely,0          #? get camera pixel y
+144,loadtileset,1,-1        # load a new tileset for the current map
+145,pickhero,0              # lets you manually pick a hero
+146,renameherobyslot,1,0    # lets you manually rename a hero
+147,readgeneral,1,0         # directly read from the in-memory array of general game data
+148,writegeneral,2,0,0      # directly write to the in-memory array of general game data. If you crash your game with this command, don't be too surprised
+150,statusscreen,1,0        # display the status screen for a hero
+151,showminimap,0           # display the mini-map
+152,spellsmenu,1,0          # display the spell menu for a hero
+153,itemsmenu,0             # display the items menu
+154,equipmenu,1,0           # display the equip menu for a hero
+155,savemenu,0              # display the save menu
+157,ordermenu,0             # display the order menu
+158,teammenu,0              # display the team menu
 end
 
 #--------------------------------------------------------------------------
@@ -113,10 +173,12 @@ end
 define script,begin
 autonumber,walkherotoX,2,0,0        # walk hero to X (who,x)
 autonumber,walknpctoX,2,0,0         # walk npc to X (who,x)
-autonumber,walkherotoY,2,0,0        #? walk hero to Y (who,y)
-autonumber,walknpctoY,2,0,0         #? walk npc to Y (who,y)
+autonumber,walkherotoY,2,0,0        # walk hero to Y (who,y)
+autonumber,walknpctoY,2,0,0         # walk npc to Y (who,y)
 autonumber,setNPCspeed,2,0,4        # set an NPC's walking speed
 autonumber,swapbyname,2,0,0         # make two named heros switch places
+autonumber,getherolevel,1,0         # return hero's current level
+autonumber,renamehero,1,0           # rename a hero (uses hero:name)
 end
 
 script,walkherotoX,who,n,begin
@@ -151,6 +213,93 @@ script,swapbyname,hero1,hero2,begin
   else (return(true),swapbyposition(hero1,hero2))
 end
 
+script,renamehero,who,begin
+  renameherobyslot(findhero(who))
+end
+
+# this exploits an undocumented feature of getherostat. You can
+# also change the hero's level by using setherostat on stat 12, but
+# that is not reccomended, as it does not update the hero's experience
+script,getherolevel,who,begin
+  return(getherostat(who,12,currentstat))
+end
+
+#--------------------------------------------------------------------------
+# read/write general wrappers
+
+define script(autonumber,set victory music,1,0)
+script,set victory music,song,begin
+  write general(3,song)
+end
+
+define script(autonumber,get death script,none)
+script,get death script,begin
+  return(read general(42))
+end
+
+define script(autonumber,get load script,none)
+script,get load script,begin
+  return(read general(57))
+end
+
+define script(autonumber,set load script,1,0)
+script,set load script,ID,begin
+  write general(57,ID)
+end
+
+define script(autonumber,set battle wait mode,1,0)
+script,set battle wait mode,bit,begin
+  if(bit) then(bit:=1)
+  write general(101,(read general(101),and,32766)+bit)
+end
+
+define script(autonumber,set caterpillar mode,1,0)
+script,set caterpillar mode,bit,begin
+  if(bit) then(bit:=2)
+  write general(101,(read general(101),and,32765)+bit)
+end
+
+define script(autonumber,set no HP level up restore,1,0)
+script,set no HP level up restore,bit,begin
+  if(bit) then(bit:=4)
+  write general(101,(read general(101),and,32763)+bit)
+end
+
+define script(autonumber,set no MP level up restore,1,0)
+script,set no MP level up restore,bit,begin
+  if(bit) then(bit:=8)
+  write general(101,(read general(101),and,32759)+bit)
+end
+
+define script(autonumber,set inn no revive mode,1,0)
+script,set inn no revive mode,bit,begin
+  if(bit) then(bit:=16)
+  write general(101,(read general(101),and,32751)+bit)
+end
+
+define script(autonumber,set full hero swap mode,1,0)
+script,set full hero swap mode,bit,begin
+  if(bit) then(bit:=32)
+  write general(101,(read general(101),and,32735)+bit)
+end
+
+define script(autonumber,hide battle ready meter,1,0)
+script,hide battle ready meter,bit,begin
+  if(bit) then(bit:=64)
+  write general(101,(read general(101),and,32703)+bit)
+end
+
+define script(autonumber,hide battle health meter,1,0)
+script,hide battle health meter,bit,begin
+  if(bit) then(bit:=128)
+  write general(101,(read general(101),and,32639)+bit)
+end
+
+define script(autonumber,set debug keys disable,1,0)
+script,set debug keys disable,bit,begin
+  if(bit) then(bit:=256)
+  write general(101,(read general(101),and,32511)+bit)
+end
 
 #--------------------------------------------------------------------------
 # betweenable operators
@@ -170,7 +319,8 @@ define operator,begin
 50 >=  greaterthanorequalto
 60,xor,xor
 60,and,and
-60,or, or
+60,or,or
+70,:=,setvariable
 end
 
 #--------------------------------------------------------------------------
@@ -213,6 +363,16 @@ define constant, begin
 -1,autonumber
 0,currentstat
 1,maximumstat
+1,northwall
+2,eastwall
+4,southwall
+8,westwall
+16,vehicleA
+32,vehicleB
+64,harmtile
+128,overheadtile
+0,inside battle
+1,outside battle
 0,NPCstat:picture
 1,NPCstat:palette
 2,NPCstat:movetype
@@ -246,4 +406,8 @@ define constant, begin
   2,NPCactivation:stepon
 12,NPCstat:script
 13,NPCstat:scriptargument
+14,NPCstat:vehicle
+0,color:red
+1,color:green
+2,color:blue
 end

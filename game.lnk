@@ -1,12 +1,13 @@
-\wander\game.obj +
-\wander\bmod.obj +
-\wander\bmodsubs.obj +
-\wander\menustuf.obj +
-\wander\moresubs.obj +
-\wander\yetmore.obj +
+game.obj +
+bmod.obj +
+bmodsubs.obj +
+menustuf.obj +
+moresubs.obj +
+yetmore.obj +
+nocom.obj +
 ,
-\wander\game.exe,
+game.exe,
 ,
-\wander\allmodex.lib +
-\wander\bcom45.lib +
+allmodex.lib +
+bcom45.lib +
 

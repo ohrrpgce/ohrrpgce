@@ -1,8 +1,0 @@
-# HamsterSpeak Default Battlescript for the O.H.R.RPG.C.E.
-#---------------------------------------------------------------------------
-
-include (battle.hsd)    #language definition
-include (wander.hsi)    #replace wander.hsi with the hsi file for your game
-
-#---------------------------------------------------------------------------
-

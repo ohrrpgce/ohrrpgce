@@ -1,0 +1,641 @@
+#----------------------------------------------------------------------
+# Baby-Bob's Side-Scroller Plotscript. Version 1.1
+# Copyright (c) 2003 James Paige / Hamster Republic Productions
+# An advanced example of how to make a side-scrolling plotscript
+# in the OHRRPGCE http://HamsterRepublic.com/ohrrpgce/
+#
+# This script is free. It is a learning tool.
+# You may use and modify it any way you want.
+#----------------------------------------------------------------------
+
+# Version 1.1 - Added support for multiple critters
+#             - Added lots of comments and explanations
+
+# Version 1.0 - initial release
+
+#----------------------------------------------------------------------
+
+# A WARNING: This script is not for the faint of heart. If you have
+# never written a HamsterSpeak plotscript before, this will all go
+# way over your head. If you are new to the OHRRPGCE, this script is
+# definitely NOT a good introduction to its capabilities. The OHRRPGCE
+# is designed for making role-playing games easily with no programming
+# required-- But if you want to make side-scrolling games with an
+# engine designed for role-playing games, you are going to have to
+# learn quite a lot about programming in the process!
+
+#----------------------------------------------------------------------
+
+include, plotscr.hsd
+include, scancode.hsi
+
+#----------------------------------------------------------------------
+
+# These are the only scripts that you will call directly from your RPG.
+# The "master game loop" is run in the background as the new-game script
+# or as the on-load script, and the "keypress  handler" (as you can
+# probably guess) is used as the map's on-keypress script.
+
+define script(1,master game loop,none)
+define script(2,keypress handler,none)
+
+#----------------------------------------------------------------------
+
+define script(autonumber,initialize,none)
+define script(autonumber,aquire critters, 0)
+define script(autonumber,add critter, 1,0)
+define script(autonumber,do movement, 1,0)
+define script(autonumber,wall at spot, 2,0,0)
+define script(autonumber,try left, 4,0,0,0,0)
+define script(autonumber,try right, 4,0,0,0,0)
+define script(autonumber,try up, 4,0,0,0,0)
+define script(autonumber,try down, 4,0,0,0,0)
+define script(autonumber,point to tile, 1,0)
+
+#----------------------------------------------------------------------
+
+# These global variables are used to keep track of game state
+
+global variable(1,game is active)
+global variable(2,player)
+global variable(3,want jump)
+global variable(4,want left)
+global variable(5,want right)
+global variable(6,toggle)
+global variable(7,active critter count)
+
+
+# This script uses three fake array keeps track of the NPC reference
+# and the X-velocity and the Y-velocity of all the active critters on
+# the map. A critter is an NPC that is under the control of this
+# side-scrolling script. Baby Bob is a critter, the baby plips are
+# critters. Why am I inventing the name "Critter" for describing
+# these NPCs? Why don't I just call them NPCs? Well, A critter is more
+# than an NPC. Each critter is made of the combination of an NPC and
+# also some global variables that keep track of how that NPC is moving;
+# its X and Y velocity. In this script I will use the word "critter" to
+# describe this "logical object" made of an NPC and some variables
+# that go with it. Are you confused yet? Yay!
+
+define constant(50,max critters)
+define constant(50,critter)  # vars 50 to 99 are critter NPC ID's
+define constant(100,Xv)      # vars 100 to 149 are X velocity
+define constant(150,Yv)      # vars 150 to 199 are Y velocity
+
+# Fake arrays? What is a fake array? Well, In this script there
+# can be up to 50 critters on the map at one time. Each one needs
+# three global variables. One to keep track of its NPC reference, and
+# two to track its velocity. That is a total of 150 global variables.
+# It would be silly to give a separate name to each one. What are we
+# going to do; write 50 if/then statements every time we want to check
+# the X-velocity of a critter? That would be pretty painful. Instead we
+# use the "read global" and "write global" commands. Suppose we want to
+# know the NPC reference of the first critter? "read global(critter+0)"
+# The X-velocuty of the second critter? "read global(xv+1)" or what
+# about (and here is where fake arrays get really cool) what if we want
+# to know the Y-velocity of the critter who's number is stored in
+# the variable "critter index"? say: "read global(yv+critter index)"
+# Get it? Cool, huh? Read on for more.
+
+#----------------------------------------------------------------------
+
+# This script is the master loop. it will be running in the background
+# as long as your RPG is acting as a side-scroller. This script does
+# Three main things. Forces (friction and gravity), actions (walking
+# and jumping), and movement (the end result of forces and actions)
+
+script, master game loop, begin
+
+  # before the loop begins, the game must be initialized. see the
+  # "initialize" script for more info on what is happening here.
+  initialize
+
+  # this variable is used for loops where an action must happen
+  # for each active critter on the map
+  variable(critter index)
+
+  # the game loop will last as long as the "game is active" global
+  # variable is true. The game can be stopped at any time by setting
+  # "game is active" to false.
+  while (game is active) do, begin
+
+    # the toggle variable switches from 0 to 1 to 0 to 1 and so on
+    # as the game loop runs. This is used for things like making
+    # Baby Bob's feet move when he walks. look for the toggle
+    # variable later on.
+    toggle:=toggle,xor,1
+
+    # A word about Velocity: X velocity is sideways motion. When
+    # x velocity is smaller than zero the critter goes left. When
+    # x velocity is larger than zero the critter goes right. Y
+    # velocity is vertical motion. When y velocity is less than
+    # zero the critter is jumping up, and when y velocity is greater
+    # than zero the critter is falling down. Forces and motion will
+    # make no sense at all if you do not understand that. To review:
+    #   X velocity << 0 goes left
+    #   X velocity >> 0 goes right
+    #   Y velocity << 0 jumps up
+    #   Y velocity >> 0 falls down
+
+    # FRICTION - the first force is friction. Whenever a critter is
+    # moving, that motion will decrease by one for each game cycle.
+    # Take a look at how we read and write the critter's sideways
+    # motion speed (X-velocity) from the Xv fake array.
+
+    for(critter index,0,active critter count--1) do,begin
+      if (read global(xv+critter index) >> 0) then (write global(xv+critter index,read global(xv+critter index)--1))
+      if (read global(xv+critter index) << 0) then (write global(xv+critter index,read global(xv+critter index)+1))
+    end
+
+    # GRAVITY - gravity constantly pulls downward on any critter
+    # who is moving upward. This isn't how gravity works in real life
+    # of course, but for the purposes of a simple side scroller, it
+    # is good enough. Notice that gravity pulls differently on the
+    # critter depending on what its Y velocity already is. This is a
+    # tacky way of making critters start to fall slowly after they
+    # jump and then to fall faster as they go down.
+
+    for(critter index,0,active critter count--1) do,begin
+      if (read global(yv+critter index) << 2) then (
+        write global(yv+critter index,read global(yv+critter index)+2)
+      )else(
+        if (read global(yv+critter index) << 9) then (write global(yv+critter index,read global(yv+critter index)+3))
+      )
+    end
+
+    # WALKING - The first action is walking. Walking works differently
+    # for Baby Bob than it does for the Baby Plips.
+
+    # For Baby Bob, we check the "want" variables to see if Bob should
+    # try to move or not. Where are these variables set? Look at the
+    # "keypress handler" script.
+
+    if (want left, xor, want right) then(
+      if (want left) then(
+
+        # When walking left, the X velocity must get smaller.
+        write global(xv+player,read global(xv+player)--3)
+
+        # we limit the X velocity to a minimum of -6 to keep Baby Bob
+        # from going too fast.
+        if (read global(xv+player) <= -6) then(write global(xv+player,-6))
+
+      )
+      if (want right) then(
+
+        # When walking right, the X velocity must get larger.
+        write global(xv+player,read global(xv+player)+3)
+
+        # we limit the X velocity to a maximum of 6 to keep Baby Bob
+        # from going too fast.
+        if (read global(xv+player) >= 6) then(write global(xv+player,6))
+
+      )
+    )
+
+    # JUMPING - In this script, only Baby Bob jumps. Notice the
+    # "try down" script. Bob can only jump if an attempt to move down
+    # fails, proving that his feet are planted on the ground
+    if (want jump) then(
+      if (try down(player,NPC pixel x(read global(critter+player)),NPC pixel y(read global(critter+player)),1)==0) then(
+        # to make Baby Bob jump, we suddenly decrease his Y velocity
+        # to a value of negative 10
+        write global(yv+player,-10)
+      )
+    )
+
+    # MOVEMENT - Now that the friction, gravity, walking and jumping
+    # have set all the critter's velocities, we do the actual movement
+    # for each critter.
+
+    for(critter index,0,active critter count--1) do,begin
+      do movement(critter index)
+    end
+
+    # The "want" variables must be reset to false each game cycle.
+    # Otherwise, a single keytap would make Baby Bob walk forever
+    want jump:=false
+    want left:=false
+    want right:=false
+
+    # Before the game loop starts over it is neccisary to stop the
+    # script and let one game tick pass. This allows the OHRRPGCE
+    # draw all the graphics to the screen.
+    wait(1)
+
+  end
+
+  # if the game loop ever exits, the game will end
+  game over
+
+end
+
+#----------------------------------------------------------------------
+
+# This script is called once by the "master game loop" script right
+# before it starts looping. The initialize script makes sure that
+# the global variables are set to their correct starting values, and
+# aquires the critters on the starting map.
+
+script, initialize, begin
+
+  # first, we must disable normal RPG-style player motion so that
+  # it will not interfere with scripted motion.
+  suspend player
+
+  # As long as the "game is active" variable is true, the master game
+  # loop will keep looping.
+  game is active:=true
+
+  # Next we call the "aquire critters" script to find and set up all
+  # the moving critters on the map.
+  aquire critters
+
+  # last we clear the "want" variables that help keep track of player
+  # movement.
+  want left:=false
+  want right:=false
+  want jump:=false
+
+end
+
+#----------------------------------------------------------------------
+
+script, keypress handler, begin
+
+
+  if (key is pressed(key:ESC))
+    then(game is active:=false)
+
+  if (key is pressed(key:UP))
+    then(want jump:=true)
+
+  if (key is pressed(key:LEFT))
+    then(want left:=true)
+
+  if (key is pressed(key:RIGHT))
+    then(want right:=true)
+
+  if (key is pressed(key:1))
+    then(advance text box,show text box(1))
+
+  if (key is pressed(key:2))
+    then(advance text box)
+
+end
+
+#----------------------------------------------------------------------
+
+# The job of this script is to find all the critters (player and
+# enemies) on the current map.
+
+script, aquire critters, begin
+
+  # reset the critter counter to zero.
+  active critter count:=0
+
+  # The player (Baby Bob) is the first copy of NPC ID 0
+  add critter(NPC reference(0))
+
+  # the player is the first critter
+  player:=0
+
+  # make the camera follow the player
+  camera follows NPC (player)
+
+  # Next we must find all the Baby Plips on the map. Even though they
+  # are not controlled by the player, they are critters too.
+
+  variable(copy)
+  for(copy,0,npc copy count(1)--1) do, begin
+
+    # Every copy of NPC ID 1 is a Baby Plip, and must be added to the
+    # critter list.
+    add critter(NPC reference(1,copy))
+
+  end
+
+end
+
+#----------------------------------------------------------------------
+
+# This script takes a reference to an NPC and adds it to the critter
+# list. It also clears the X and Y velocity for the new critter.
+
+script, add critter, NPC ref, begin
+
+  # enforce the maximum number of critters on the map
+  if(active critter count << max critters) then, begin
+
+    # store the new critter's NPC reference
+    write global(critter+active critter count,NPC ref)
+
+    # clear the new critter's velocity
+    write global(xv+active critter count,0)
+    write global(yv+active critter count,0)
+
+    # increase the "active critter count" variable by one.
+    # next time the "add critter" script gets run it will operate
+    # on the next critter instead of this one
+    increment(active critter count)
+
+  end
+
+end
+
+#----------------------------------------------------------------------
+
+script, do movement, who, begin
+
+  variable(ref,x,y,x change,ychange)
+
+  ref:=read global(critter+who)
+
+  x:=NPC pixel x(ref)
+  y:=NPC pixel y(ref)
+
+  x change:=read global(xv+who)
+  y change:=read global(yv+who)
+
+  if (x change << 0) then(
+    x:=x+try left(who,x,y,x change)
+    set NPC direction(ref,left)
+    set NPC frame (ref,toggle)
+  )
+
+  if (x change >> 0) then(
+    x:=x+try right(who,x,y,x change)
+    set NPC direction(ref,right)
+    set NPC direction(ref,right)
+    set NPC frame (ref,toggle)
+  )
+
+  if (y change << 0) then(
+    y:=y+try up(who,x,y,y change)
+  )
+ 
+  if (y change >> 0) then(
+    y:=y+try down(who,x,y,y change)
+  )
+
+  put NPC (ref,x,y)
+
+end
+
+#----------------------------------------------------------------------
+
+script, try left, who, x, y, gamma, begin
+
+  variable(wall)
+  variable(blocked)
+
+  blocked:=false
+
+  # -20 is min possible movement
+  if (gamma << -20) then(gamma:=-20)
+
+  # if crossing a tile boundary
+  if (point to tile(x) <> point to tile(x+gamma)) then(
+    # top left
+    wall:=wall at spot(x,y)
+    if (wall,and,west wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x+gamma,y)
+    if (wall,and,east wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(y)<>y) then(
+      # you not y-aligned
+      if (wall,and,south wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+    # bottom left
+    wall:=wall at spot(x,y+19)
+    if (wall,and,west wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x+gamma,y+19)
+    if (wall,and,east wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(y)<>y) then(
+      # you not y-aligned
+      if (wall,and,north wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+  )
+
+  if (blocked) then (
+    gamma:=point to tile(x)--x
+    write global(xv+who,0)
+  )
+
+  return(gamma)
+
+end
+
+#----------------------------------------------------------------------
+
+script, try right, who, x, y, gamma, begin
+
+  variable(wall)
+  variable(blocked)
+
+  blocked:=false
+
+  # 20 is max possible movement
+  if (gamma >> 20) then(gamma:=20)
+
+  # if crossing a tile boundary
+  if (point to tile(x+19) <> point to tile(x+19+gamma)) then(
+    # top right
+    wall:=wall at spot(x+19,y)
+    if (wall,and,east wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x+19+gamma,y)
+    if (wall,and,west wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(y)<>y) then(
+      # you not y-aligned
+      if (wall,and,south wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+    # bottom right
+    wall:=wall at spot(x+19,y+19)
+    if (wall,and,east wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x+19+gamma,y+19)
+    if (wall,and,west wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(y)<>y) then(
+      # you not y-aligned
+      if (wall,and,north wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+  )
+
+  if (blocked) then (
+    gamma:=point to tile(x+19)--x
+    write global(xv+who,0)
+  )
+
+  return(gamma)
+
+end
+
+#----------------------------------------------------------------------
+
+script, try up, who, x, y, gamma, begin
+
+  variable(wall)
+  variable(blocked)
+
+  blocked:=false
+
+  # -20 is min possible movement
+  if (gamma << -20) then(gamma:=-20)
+
+  # if crossing a tile boundary
+  if (point to tile(y) <> point to tile(y+gamma)) then(
+    # top left
+    wall:=wall at spot(x,y)
+    if (wall,and,north wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x,y+gamma)
+    if (wall,and,south wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(x)<>x) then(
+      # you not x-aligned
+      if (wall,and,east wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+    # top right
+    wall:=wall at spot(x+19,y)
+    if (wall,and,north wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x+19,y+gamma)
+    if (wall,and,south wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(x)<>x) then(
+      # you not x-aligned
+      if (wall,and,west wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+  )
+
+  if (blocked) then (
+    gamma:=point to tile(y)--y
+    write global(yv+who,0)
+  )
+
+  return(gamma)
+
+end
+
+#----------------------------------------------------------------------
+
+script, try down, who, x, y, gamma, begin
+
+  variable(wall)
+  variable(blocked)
+
+  blocked:=false
+
+  # 20 is max possible movement
+  if (gamma >> 20) then(gamma:=20)
+
+  # if crossing a tile boundary
+  if (point to tile(y+19) <> point to tile(y+19+gamma)) then(
+    # bottom left
+    wall:=wall at spot(x,y+19)
+    if (wall,and,south wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x,y+19+gamma)
+    if (wall,and,north wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(x)<>x) then(
+      # you not x-aligned
+      if (wall,and,east wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+    # bottom right
+    wall:=wall at spot(x+19,y+19)
+    if (wall,and,south wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x+19,y+19+gamma)
+    if (wall,and,north wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(x)<>x) then(
+      # you not x-aligned
+      if (wall,and,west wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+  )
+
+  if (blocked) then (
+    gamma:=point to tile(y+19)--y
+    write global(yv+who,0)
+  )
+
+  return(gamma)
+
+end
+
+#----------------------------------------------------------------------
+
+script, wall at spot, x, y, begin
+  return(read pass block(x/20,y/20))
+end
+
+#----------------------------------------------------------------------
+
+script, point to tile, point, begin
+  return((point/20)*20)
+end
+
+#----------------------------------------------------------------------

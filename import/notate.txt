@@ -24,7 +24,7 @@ DEL clears any note directly under the cursor
 
 F2 saves your song
 
-F3 loads a song
+F3 loads a song (only songs saved with NOTATE can be opened, sorry)
 
 F4 exports your song as a BAM file which can be used in our games, and
    can be played with PLAYBAM.EXE

@@ -1,7 +1,0 @@
-# This file holds the language definition for OHRRPGCE battlescripting.
-# modifying this file may have undesired/disasterous effects
-
-define functions, begin
-0,noop,0                       #no operation
-1,wait,1,1                     #wait n cycles
-2,

@@ -1,0 +1,232 @@
+#---------------------------------------------------------------------
+# PUSH-PUSH (SOKOBAN) SCRIPT for the O.H.R.RPG.C.E
+#---------------------------------------------------------------------
+include, plotscr.hsd
+include, scancode.hsi
+#---------------------------------------------------------------------
+define script(1,init game,none)
+define script(2,each step handler,none)
+define script(3,on keypress handler,none)
+define script(autonumber,load next map,none)
+define script(autonumber,load previous map,none)
+define script(autonumber,reload current map,none)
+define script(autonumber,set starting point,none)
+define script(autonumber,build box list,none)
+define script(autonumber,check for victory,none)
+#---------------------------------------------------------------------
+global variable(0,allow play)
+global variable(1,steps)
+global variable(2,cheater)
+global variable(3,boxes)
+define constant(4,box)
+define constant(31,max map width)
+define constant(19,max map height)
+define constant(2,song offset)
+define constant(12,number of songs)
+define constant(1,palette offset)
+define constant(10,number of palettes)
+#---------------------------------------------------------------------
+script, init game, begin
+  cheater:=false
+  suspend player
+  allow play:=false
+  suspend box advance
+  show text box(2)
+  wait for key
+  advance text box
+  resume box advance
+  fade screen out
+  advance text box
+  load next map
+end
+#---------------------------------------------------------------------
+script, load next map, begin
+  allow play:=false
+  steps:=0
+  variable(old map)
+  old map:=current map
+  teleport to map(current map+1,0,0)
+  if(old map==current map)
+    then(teleport to map(1,0,0))
+  play song(song offset+(current map,mod,number of songs))
+  show no value
+  set starting point
+  build box list
+  check for victory
+  alter NPC(0,NPCstat:move speed,4)
+  alter NPC(0,NPCstat:pushability,NPCpush:full)
+  alter NPC(1,NPCstat:move speed,4)
+  alter NPC(1,NPCstat:pushability,NPCpush:full)
+  alter NPC(1,NPCstat:picture,1)
+  wait(1)
+  fade screen in
+  allow play:=true
+  set hero speed(me,4)
+end
+#---------------------------------------------------------------------
+script, set starting point, begin
+  variable(x,y)
+  for(y,0,max map height) do(
+    for(x,0,max map width) do(
+      if(read pass block(x,y),and,harm tile) then(
+        set hero position (me,x,y)
+      )
+    )
+  )
+end
+#---------------------------------------------------------------------
+script, reload current map, begin
+  fade screen out
+  teleport to map (current map--1,0,0)
+  load next map
+end
+#---------------------------------------------------------------------
+script, load previous map, begin
+  fade screen out
+  teleport to map (current map--2,0,0)
+  load next map
+end
+#---------------------------------------------------------------------
+script, on keypress handler, begin
+  variable(x,y,handle,wall)
+  x:=hero X(me)
+  y:=hero Y(me)
+  if(hero is walking(me)==false, and, allow play) then(
+    if(key is pressed(key:UP)) then(
+      handle:=NPC at spot(X,Y--1)
+      if(handle<<0) then(
+        wall:=read pass block(X,Y--2)
+        if((wall,and,south wall)==false,and,NPC at spot(X,Y--2)>=0) then(
+          walk NPC(handle,UP,1)
+          change NPC ID(handle,0)
+        )
+      )
+      walk hero(me,UP,1)
+    )else(
+      if(key is pressed(key:RIGHT)) then(
+        handle:=NPC at spot(X+1,Y)
+        if(handle<<0) then(
+          wall:=read pass block(X+2,Y)
+          if((wall,and,west wall)==false,and,NPC at spot(X+2,Y)>=0) then(
+            walk NPC(handle,RIGHT,1)
+            change NPC ID(handle,0)
+          )
+        )
+        walk hero(me,RIGHT,1)
+      )else(
+        if(key is pressed(key:DOWN)) then(
+          handle:=NPC at spot(X,Y+1)
+          if(handle<<0) then(
+            wall:=read pass block(X,Y+2)
+            if((wall,and,north wall)==false,and,NPC at spot(X,Y+2)>=0) then(
+              walk NPC(handle,DOWN,1)
+              change NPC ID(handle,0)
+            )
+          )
+          walk hero(me,DOWN,1)
+        )else(
+          if(key is pressed(key:LEFT)) then(
+            handle:=NPC at spot(X--1,Y)
+            if(handle<<0) then(
+              wall:=read pass block(X--2,Y)
+              if((wall,and,east wall)==false,and,NPC at spot(X--2,Y)>=0) then(
+                walk NPC(handle,LEFT,1)
+                change NPC ID(handle,0)
+              )
+            )
+            walk hero(me,LEFT,1)
+          )
+        )
+      )
+    )
+  )
+  if(key is pressed(key:ESC)) then(
+    show text box(3)
+    wait for text box
+    if(check tag(2)) then(
+      set tag(2,OFF)
+      wait for hero(me)
+      reload current map
+    )
+    if(check tag(3)) then(
+      set tag(3,OFF)
+      fade screen out
+      game over
+    )
+  )
+  if(key is pressed(key:PERIOD)) then(
+    wait for hero(me)
+    fade screen out
+    cheater:=current map+1
+    show text box(6) # cheater
+    load next map
+  )
+  if(key is pressed(key:COMMA)) then(
+    if(current map<=cheater) then(cheater:=false)
+    wait for hero(me)
+    load previous map
+  )
+  if(key is pressed(key:SPACE)>>1) then(
+    set hero palette(0,palette offset+((get hero palette(0)--palette offset+1),mod,number of palettes))
+  )
+end
+#---------------------------------------------------------------------
+script, build box list, begin
+  variable(x,y,tile,ref)
+  boxes:=0
+  for(y,0,max map height) do(
+    for(x,0,max map width) do(
+      tile:=read pass block(x,y)
+      if(tile,and,vehicle B) then(
+        ref:=create NPC(0,x,y)
+        write global(box+boxes,ref)
+        boxes:=boxes+1
+      )
+    )
+  )
+end
+#---------------------------------------------------------------------
+script, each step handler, begin
+  if(allow play) then(
+    steps:=steps+1
+    show value(steps)
+    check for victory
+  )
+end
+#---------------------------------------------------------------------
+script, check for victory, begin
+  variable(i,ref,tile,done)
+  # search to see if all tiles are done
+  done:=0
+  for(i,0,boxes--1) do(
+    ref:=read global(box+i)
+    tile:=read pass block(NPC X(ref),NPC Y(ref))
+    if(tile,and,vehicle A) then(
+      done:=done+1
+      change NPC ID(ref,1)
+    )else(
+      change NPC ID(ref,0)
+    )
+  )
+  if(done>=boxes) then(
+    allow play:=false
+    alter NPC(0,NPCstat:move speed,0)
+    alter NPC(0,NPCstat:pushability,NPCpush:off)
+    alter NPC(1,NPCstat:move speed,0)
+    alter NPC(1,NPCstat:pushability,NPCpush:off)
+    set hero speed(me,0)
+    play song(1)
+    suspend box advance
+    if(cheater)
+      then(show text box (6)) # cheater
+      else(show text box (1)) # victory
+    wait (6)
+    wait for key
+    advance text box
+    resume box advance
+    fade screen out
+    stop song
+    load next map
+  )
+end
+#---------------------------------------------------------------------

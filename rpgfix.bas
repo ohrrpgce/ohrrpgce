@@ -1,11 +1,19 @@
+'OHRRPGCE RPGFIX - RPG File format upgrade utility
+'(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'See README.txt for code docs and apologies for crappyness of this code ;)
+'
+DECLARE SUB writepassword (p$, gen%())
 '$DYNAMIC
 DEFINT A-Z
+DECLARE SUB readscatter (s$, lhold%, array%(), start%)
+DECLARE SUB xbload (file$, array%(), e$)
 DECLARE SUB writescatter (s$, lhold%, array%(), start%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB savetanim (n%, tastuf%(), game$)
 DECLARE FUNCTION f$ (n%)
-DECLARE FUNCTION upgrade% (buffer%(), game$)
+DECLARE FUNCTION upgrade% (buffer%(), game$, nowv%)
 'assembly subs and functions
 DECLARE SUB setpicstuf (buf(), BYVAL b, BYVAL p)
 DECLARE SUB loadset (fil$, BYVAL i, BYVAL l)
@@ -38,14 +46,16 @@ DECLARE FUNCTION hasmedia (BYVAL d)
 
 DIM buffer(16383), lumpbuf(32767)
 
+nowversion = 5
+
 game$ = LCASE$(COMMAND$)
 
 IF game$ = "" OR RIGHT$(game$, 1) = "?" THEN
- PRINT "RPGFIX.EXE v.3                     O.H.R.RPG.C.E. game updating utility"
+ PRINT "RPGFIX.EXE v." + LTRIM$(STR$(nowversion)) + "                     O.H.R.RPG.C.E. game updating utility"
  PRINT ""
  PRINT "this program allows you to update an obsolete RPG file to the latest"
  PRINT "file-format version. This copy of RPGFIX upgrades RPG files from versions"
- PRINT "0,1,2 to version 3. If your copy of GAME.EXE requires a newer version,"
+ PRINT "0-" + LTRIM$(STR$(nowversion - 1)) + " to version " + LTRIM$(STR$(nowversion)) + ". If your copy of GAME.EXE requires a newer version,"
  PRINT "you must download the latest RPGFIX from http://HamsterRepublic.com"
  PRINT ""
  PRINT "To use, type RPGFIX MYGAME.RPG at the dos prompt, or in Windows,"
@@ -54,7 +64,7 @@ IF game$ = "" OR RIGHT$(game$, 1) = "?" THEN
 END IF
 
 progdir$ = STRING$(rpathlength, 0): getstring progdir$
-IF RIGHT$(progdir$, 1) <> "\" THEN progdir$ = progdir$ + "\"
+IF RIGHT$(progdir$, 1) = "\" THEN progdir$ = LEFT$(progdir$, LEN(progdir$) - 1)
 CHDIR progdir$
 
 IF RIGHT$(game$, 4) = ".rpg" THEN game$ = LEFT$(game$, LEN(game$) - 4)
@@ -81,11 +91,11 @@ DO
  temp$ = LEFT$(temp$, LEN(temp$) - 1)
 LOOP
 
-IF upgrade(buffer(), "rpgfix.tmp\" + rpg$) THEN
+IF upgrade(buffer(), "rpgfix.tmp\" + rpg$, nowversion) THEN
  PRINT "making a backup copy"
  copyfile game$ + ".rpg" + CHR$(0), game$ + ".old" + CHR$(0), buffer()
  PRINT "relumping"
- findfiles "rpgfix.tmp\" + rpg$ + ".*" + CHR$(0), 32, "rpgfix.tmp\____lump.tmp" + CHR$(0), buffer()
+ findfiles "rpgfix.tmp\" + "*.*" + CHR$(0), 0, "rpgfix.tmp\____lump.tmp" + CHR$(0), buffer()
  lumpfiles "rpgfix.tmp\____lump.tmp" + CHR$(0), game$ + ".rpg" + CHR$(0), "rpgfix.tmp\", lumpbuf()
 END IF
 
@@ -109,6 +119,20 @@ IF a < min THEN a = a + ((max - min) + 1): loopvar = a: EXIT FUNCTION
 loopvar = a
 END FUNCTION
 
+SUB readscatter (s$, lhold, array(), start)
+
+DIM stray(10)
+s$ = STRING$(20, "!")
+
+FOR i = 0 TO lhold
+ setbit stray(), 0, i, readbit(array(), start - 1, array(start + i))
+NEXT i
+
+array2str stray(), 0, s$
+s$ = LEFT$(s$, INT((lhold + 1) / 8))
+
+END SUB
+
 FUNCTION rotascii$ (s$, o)
 
 temp$ = ""
@@ -126,29 +150,52 @@ SUB savetanim (n%, tastuf%(), game$)
  storeset game$ + ".tap" + CHR$(0), n, 0
 END SUB
 
-FUNCTION upgrade (buffer(), game$)
+FUNCTION upgrade (buffer(), game$, nowv)
+
+DIM pal16(8)
 
 upgrade = 0 'false
 
-'current RPG format version is 3
-nowv = 3
-
 DIM general(500), font(1024)
 
-DEF SEG = VARSEG(font(0)): BLOAD game$ + ".fnt", VARPTR(font(0))
-DEF SEG = VARSEG(general(0)): BLOAD game$ + ".gen", VARPTR(general(0))
+IF NOT isfile("rpgfix.tmp\archinym.lmp" + CHR$(0)) THEN
+ PRINT "inserting archinym"
+ '--create archinym information lump
+ fh = FREEFILE
+ OPEN "rpgfix.tmp\archinym.lmp" FOR OUTPUT AS #fh
+  PRINT #fh, RIGHT$(game$, LEN(game$) - LEN("rpgfix.tmp\"))
+  PRINT #fh, "upgraded with RPGFIX.EXE 20000412"
+ CLOSE #fh
+ upgrade = -1
+ELSE
+'--set game$ according to the archinym
+ IF isfile("rpgfix.tmp\archinym.lmp" + CHR$(0)) THEN
+  fh = FREEFILE
+  OPEN "rpgfix.tmp\archinym.lmp" FOR INPUT AS #fh
+  LINE INPUT #fh, a$
+  CLOSE #fh
+  IF LEN(a$) <= 8 THEN game$ = "rpgfix.tmp\" + a$
+ END IF
+END IF
+
+xbload game$ + ".fnt", font(), "missing font file!"
+xbload game$ + ".gen", general(), "missing general game data!"
 
 PRINT "checking current version"
+PRINT "RPG file version is" + STR$(general(95))
 
 IF general(95) > nowv THEN
- PRINT "RPG file version is" + STR$(general(95))
  PRINT "this copy of RPGFIX.EXE only supports up to version" + STR$(nowv)
  EXIT FUNCTION
 END IF
 
 IF general(95) = nowv THEN
- PRINT "there is no need to upgrade this RPG file"
- EXIT FUNCTION
+ IF general(5) < 256 THEN
+   PRINT "updating password from scattertable to slightly saner format"
+ ELSE
+   PRINT "there is no need to upgrade this RPG file"
+   EXIT FUNCTION
+ END IF
 END IF
 
 IF general(95) = 0 THEN
@@ -166,7 +213,7 @@ IF general(95) = 1 THEN
  general(95) = 2
  PRINT "Updating Door Format..."
  FOR o = 0 TO 19
-  DEF SEG = VARSEG(buffer(0)): BLOAD game$ + ".dor", VARPTR(buffer(0))
+  xbload game$ + ".dor", buffer(), "map" + STR$(o) + " missing door data!"
   FOR i = 0 TO 299
    buffer(i) = buffer(o * 300 + i)
   NEXT i
@@ -176,7 +223,7 @@ IF general(95) = 1 THEN
  PRINT "Enforcing default font"
  IF NOT isfile("ohrrpgce.fnt" + CHR$(0)) THEN PRINT "unable to force default font: cannot find default font OHRRPGCE.FNT"
  copyfile "ohrrpgce.fnt" + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
- DEF SEG = VARSEG(font(0)): BLOAD game$ + ".fnt", VARPTR(font(0))
+ xbload game$ + ".fnt", font(), "missing font file"
  PRINT "Making AniMaptiles Backward Compatable"
  FOR i = 0 TO 39
   buffer(i) = 0
@@ -203,7 +250,7 @@ IF general(95) = 1 THEN
  NEXT i
  FOR i = 0 TO general(0)
   PRINT " map" + STR$(i)
-  DEF SEG = VARSEG(buffer(0)): BLOAD game$ + ".t" + f$(i), VARPTR(buffer(0))
+  xbload game$ + ".t" + f$(i), buffer(), "map" + STR$(i) + " missing tilemap!"
   setmapdata buffer(), buffer(), 0, 0
   FOR tx = 0 TO buffer(0)
    FOR ty = 0 TO buffer(1)
@@ -251,7 +298,77 @@ IF general(95) = 2 THEN
  general(38) = 99
  general(39) = 999
 END IF
+'--VERSION 4--
+IF general(95) = 3 THEN
+ general(95) = 4
+ PRINT "Clearing New Attack Bitsets..."
+ setpicstuf buffer(), 80, -1
+ FOR o = 0 TO general(34)
+  loadset game$ + ".dt6" + CHR$(0), o, 0
+  buffer(18) = 0
+  IF readbit(buffer(), 20, 60) THEN buffer(18) = 1
+  setbit buffer(), 20, 2, 0
+  FOR i = 21 TO 58
+   setbit buffer(), 20, i, 0
+  NEXT i
+  FOR i = 60 TO 63
+   setbit buffer(), 20, i, 0
+  NEXT i
+  storeset game$ + ".dt6" + CHR$(0), o, 0
+ NEXT o
+ setbit general(), 101, 6, 0 'no hide readymeter
+ setbit general(), 101, 7, 0 'no hide health meter
+END IF
+'--VERSION 5--
+IF general(95) = 4 THEN
+ general(95) = 5
+ PRINT "Upgrading 16-color Palette Format..."
+ setpicstuf pal16(), 16, -1
+ xbload game$ + ".pal", buffer(), "16-color palletes missing from " + game$
+ KILL game$ + ".pal"
+ '--find last used palette
+ last = 99
+ foundpal = 0
+ FOR j = 99 TO 0 STEP -1
+   FOR i = 0 TO 7
+     IF buffer(j * 8 + i) <> 0 THEN
+       last = j
+       foundpal = 1
+       EXIT FOR
+     END IF
+   NEXT i
+   IF foundpal THEN EXIT FOR
+ NEXT j
+ PRINT "Last used palette is" + STR$(last)
+ '--write header
+ pal16(0) = 4444
+ pal16(1) = last
+ FOR i = 2 TO 7
+   pal16(i) = 0
+ NEXT i
+ storeset game$ + ".pal" + CHR$(0), 0, 0
+ '--convert palettes
+ FOR j = 0 TO last
+   FOR i = 0 TO 7
+     pal16(i) = buffer(j * 8 + i)
+   NEXT i
+   storeset game$ + ".pal" + CHR$(0), 1 + j, 0
+ NEXT j
+END IF
 
+'--update to new (3rd) password format
+IF general(5) < 256 THEN
+  general(5) = 256
+  IF general(94) = -1 THEN
+    '--no password, write a blank one
+    pas$ = ""
+  ELSE
+    '--read the old scattertable
+    readscatter pas$, general(94), general(), 200
+    pas$ = rotascii(pas$, general(93) * -1)
+  END IF
+  writepassword pas$, general()
+END IF
 
 DEF SEG = VARSEG(font(0)): BSAVE game$ + ".fnt", VARPTR(font(0)), 2048
 DEF SEG = VARSEG(general(0)): BSAVE game$ + ".gen", VARPTR(general(0)), 1000
@@ -260,6 +377,29 @@ upgrade = -1 'true
 
 'wow! this is quite a big and ugly routine!
 END FUNCTION
+
+SUB writepassword (p$, gen())
+
+'-- set password version number (only if needed)
+IF gen(5) < 256 THEN gen(5) = 256
+
+'--pad the password with some silly obfuscating low-ascii chars
+FOR i = 1 TO 17 - LEN(p$)
+  IF INT(RND * 10) < 5 THEN
+    p$ = p$ + CHR$(INT(RND * 30))
+  ELSE
+    p$ = CHR$(INT(RND * 30)) + p$
+  END IF
+NEXT i
+
+'--apply a new ascii rotation / weak obfuscation number
+gen(6) = INT(RND * 253) + 1
+p$ = rotascii(p$, gen(6))
+
+'--write the password into GEN
+str2array p$, gen(), 14
+
+END SUB
 
 SUB writescatter (s$, lhold, array(), start)
 DIM stray(10)
@@ -279,6 +419,35 @@ NEXT i
 FOR i = lhold + 1 TO 159
  array(start + i) = INT(RND * 4444)
 NEXT i
+
+END SUB
+
+SUB xbload (file$, array(), e$)
+
+IF isfile(file$ + CHR$(0)) THEN
+  handle = FREEFILE
+  OPEN file$ FOR BINARY AS #handle
+  bytes = LOF(handle)
+  CLOSE #handle
+  IF bytes THEN
+    OPEN file$ FOR BINARY AS #handle
+    a$ = " "
+    GET #handle, 1, a$
+    CLOSE #handle
+    IF a$ = CHR$(253) THEN
+      DEF SEG = VARSEG(array(0)): BLOAD file$, VARPTR(array(0))
+    ELSE
+      PRINT e$ + "(unbloadable)"
+      SYSTEM
+    END IF
+  ELSE
+    PRINT e$ + "(zero byte)"
+    SYSTEM
+  END IF
+ELSE
+  PRINT e$
+  SYSTEM
+END IF
 
 END SUB
 

@@ -1,49 +1,69 @@
-DECLARE SUB standardmenu (menu$(), size%, vis%, ptr%, top%, x%, y%, dpage%)
-DECLARE SUB xbload (f$, array%(), e$)
+'OHRRPGCE CUSTOM - Mostly drawing-related routines
+'(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'See README.txt for code docs and apologies for crappyness of this code ;)
+'
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
-DECLARE FUNCTION scriptname$ (num%, f$, gen%(), buffer%())
+DECLARE SUB writepassword (p$, gen%())
+DECLARE FUNCTION readpassword$ (gen%())
+DECLARE SUB fixfilename (s$)
+DECLARE FUNCTION filenum$ (n%)
+DECLARE FUNCTION readattackname$ (index%)
+DECLARE SUB copymapblock (buf%(), sx%, sy%, sp%, dx%, dy%, dp%)
+DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
+DECLARE FUNCTION getLongName$ (filename$)
+DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
+DECLARE FUNCTION changepal% (oldval%, newval%, workpal%(), aindex%)
+DECLARE SUB storepal16 (array%(), aoffset%, foffset%)
+DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
+DECLARE SUB smnemonic (tagname$, index%)
+DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
+DECLARE SUB flusharray (array%(), size%, value%)
+DECLARE SUB standardmenu (menu$(), size%, vis%, ptr%, top%, x%, y%, dpage%, edge%)
+DECLARE SUB xbload (f$, array%(), e$)
+DECLARE FUNCTION scriptname$ (num%, f$, gen%())
 DECLARE SUB airbrush (x%, y%, d%, m%, c%, p%)
 DECLARE SUB ellipse (x%, y%, radius%, c%, p%, squish1%, squish2%)
-DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, buffer%(), bytes%, game$, timing%())
-DECLARE FUNCTION needaddset (ptr%, check%, what$, vpage%, dpage%, timing%())
+DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
+DECLARE FUNCTION needaddset (ptr%, check%, what$)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB writescatter (s$, lhold%, array%(), start%)
 DECLARE SUB readscatter (s$, lhold%, array%(), start%)
-DECLARE FUNCTION browse$ (special, default$, fmask$, dpage%, vpage%, buffer%(), timing%(), tmp$)
+DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$)
 DECLARE SUB cycletile (cycle%(), tastuf%(), ptr%(), skip%())
-DECLARE SUB testanimpattern (tastuf%(), taset%, timing%(), vpage%, dpage%, buffer%())
+DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
 DECLARE FUNCTION onoroff$ (n%)
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE SUB debug (s$)
-DECLARE SUB setanimpattern (tastuf%(), taset%, timing%(), vpage%, dpage%, game$)
+DECLARE SUB setanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION intstr$ (n%)
-DECLARE SUB loadtanim (n%, tastuf%(), game$)
-DECLARE SUB savetanim (n%, tastuf%(), game$)
-DECLARE FUNCTION lmnemonic$ (index%, game$)
-DECLARE FUNCTION heroname$ (num%, cond%(), a%(), game$)
-DECLARE SUB bitset (array%(), wof%, last%, name$(), timing%(), vpage%, dpage%)
+DECLARE SUB loadtanim (n%, tastuf%())
+DECLARE SUB savetanim (n%, tastuf%())
+DECLARE FUNCTION lmnemonic$ (index%)
+DECLARE FUNCTION heroname$ (num%, cond%(), a%())
+DECLARE SUB bitset (array%(), wof%, last%, name$())
 DECLARE FUNCTION mouseover% (mouse%(), zox%, zoy%, zcsr%, area%())
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
-DECLARE SUB strgrabber (s$, maxl%, keyv%())
+DECLARE SUB strgrabber (s$, maxl%)
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
-DECLARE SUB formation (game$, timing%(), general%(), pal%(), buffer%(), song$())
-DECLARE SUB importbmp (buffer%(), game$, timing%(), general%(), keyv%(), master%())
-DECLARE SUB enemydata (game$, timing%(), general%(), pal%(), buffer%(), keyv%(), con$())
-DECLARE SUB herodata (game$, timing%(), general%(), pal%(), buffer%(), keyv%(), con$())
-DECLARE SUB attackdata (game$, atkdat$(), atklim%(), timing%(), general%(), pal%(), buffer%(), con$(), keyv%())
-DECLARE SUB getnames (game$, stat$(), max%)
-DECLARE SUB statname (game$, timing%(), general%(), name$(), keyv%())
-DECLARE SUB textage (game$, timing%(), general%(), keyv(), buffer(), song$())
-DECLARE FUNCTION sublist% (num%, s$(), timing%())
-DECLARE SUB maptile (game$, master%(), buffer%(), timing%(), font(), general())
+DECLARE SUB formation (general%(), song$())
+DECLARE SUB enemydata (general%())
+DECLARE SUB herodata (general%())
+DECLARE SUB attackdata (atkdat$(), atklim%(), general%())
+DECLARE SUB getnames (stat$(), max%)
+DECLARE SUB statname (general%())
+DECLARE SUB textage (general%(), song$())
+DECLARE FUNCTION sublist% (num%, s$())
+DECLARE SUB maptile (master%(), font(), general())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 'assembly subs and functions
 DECLARE SUB setmodeX ()
+DECLARE SUB restoremode ()
 DECLARE SUB setpicstuf (buf(), BYVAL b, BYVAL p)
 DECLARE SUB loadset (fil$, BYVAL i, BYVAL l)
 DECLARE SUB storeset (fil$, BYVAL i, BYVAL l)
@@ -77,6 +97,7 @@ DECLARE SUB fuzzyrect (BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL c, BYVAL p)
 DECLARE SUB rectangle (BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL c, BYVAL p)
 DECLARE SUB drawline (BYVAL x1, BYVAL y1, BYVAL x2, BYVAL y2, BYVAL c, BYVAL p)
 DECLARE SUB paintat (BYVAL x, BYVAL y, BYVAL c, BYVAL page, buf(), BYVAL max)
+DECLARE SUB putpixel (BYVAL x%, BYVAL y%, BYVAL col%, BYVAL page%)
 DECLARE SUB setwait (b(), BYVAL t)
 DECLARE SUB dowait ()
 DECLARE SUB setmapdata (array(), pas(), BYVAL t, BYVAL b)
@@ -108,18 +129,45 @@ DECLARE SUB movemouse (BYVAL x, BYVAL y)
 DECLARE SUB array2str (arr(), BYVAL o, s$)
 DECLARE SUB str2array (s$, arr(), BYVAL o)
 DECLARE FUNCTION isfile (n$)
+DECLARE FUNCTION LongNameLength (filename$)
+'DECLARE FUNCTION ShortNameLength (filename$)
+
+'$INCLUDE: 'cglobals.bi'
 
 REM $STATIC
-SUB gendata (game$, general(), timing(), buffer(), song$(), keyv())
-DIM m$(14), max(11), bit$(15), subm$(3)
-dpage = 1: vpage = 0
+FUNCTION changepal (oldval, newval, workpal(), aindex)
 
-last = 14
+storepal16 workpal(), aindex, oldval
+result = bound(newval, 0, 32767)
+getpal16 workpal(), aindex, result
+
+changepal = result
+
+END FUNCTION
+
+SUB copymapblock (buf(), sx, sy, sp, dx, dy, dp)
+
+ 'buf() is a 20-byte array
+
+ FOR i = 0 TO 19
+   loadsprite buf(), 0, sx, sy + i, 40, 1, sp
+   stosprite buf(), 0, dx, dy + i, dp
+ NEXT i
+
+END SUB
+
+SUB gendata (general(), song$(), master())
+STATIC default$
+DIM m$(16), max(16), bit$(15), subm$(4), scriptgenof(4)
+
+last = 15
 m$(0) = "Return to Main Menu"
 m$(1) = "Preference Bitsets..."
+m$(8) = "Password For Editing..."
 m$(9) = "Pick Title Screen..."
 m$(10) = "Rename Game..."
 m$(12) = "Special PlotScripts..."
+m$(15) = "Import New Master Palette..."
 max(1) = 1
 max(2) = 320
 max(3) = 200
@@ -137,22 +185,28 @@ setwait timing(), 100
 setkeys
 tog = tog XOR 1
 IF keyval(1) > 1 THEN GOTO donegen
-IF keyval(72) > 1 AND csr > 0 THEN csr = csr - 1
-IF keyval(80) > 1 AND csr < last THEN csr = csr + 1
+dummy = usemenu(csr, 0, 0, last, 24)
 IF (keyval(28) > 1 OR keyval(57) > 1) THEN
  IF csr = 0 THEN GOTO donegen
  IF csr = 1 THEN
-  bit$(0) = "Dont Pause on Menus"
+  bit$(0) = "Pause on Battle Menus"
   bit$(1) = "Enable Caterpillar Party"
   bit$(2) = "Dont Restore HP on Levelup"
   bit$(3) = "Dont Restore MP on Levelup"
   bit$(4) = "Inns Dont Revive Dead Heros"
   bit$(5) = "Hero Swapping Always Available"
-  bitset general(), 101, 5, bit$(), timing(), vpage, dpage
+  bit$(6) = "Hide Ready-meter in Battle"
+  bit$(7) = "Hide Health-meter in Battle"
+  bit$(8) = "Disable Debugging Keys"
+  bit$(9) = "Simulate Old Levelup Bug"
+  bit$(10) = "Permit double-triggering of scripts"
+  bitset general(), 101, 10, bit$()
  END IF
  IF csr = 9 THEN GOSUB ttlbrowse
  IF csr = 10 THEN GOSUB renrpg
  IF csr = 12 THEN GOSUB specialplot
+ IF csr = 15 THEN GOSUB importmaspal
+ IF csr = 8 THEN GOSUB inputpasw
 END IF
 IF csr > 1 AND csr <= 4 THEN
  IF intgrabber(general(100 + csr), 0, max(csr), 75, 77) THEN GOSUB genstr
@@ -160,28 +214,19 @@ END IF
 IF csr > 4 AND csr < 8 THEN
  IF intgrabber(general(csr - 3), 0, max(csr), 75, 77) THEN GOSUB genstr
 END IF
-IF csr = 8 THEN
- strgrabber pas$, 17, keyv()
- GOSUB genstr
-END IF
 IF csr = 11 THEN
  IF intgrabber(general(96), 0, max(csr), 75, 77) THEN GOSUB genstr
 END IF
 IF csr = 13 THEN
- strgrabber longname$, 38, keyv()
+ strgrabber longname$, 38
  GOSUB genstr
 END IF
 IF csr = 14 THEN
- strgrabber aboutline$, 38, keyv()
+ strgrabber aboutline$, 38
  GOSUB genstr
 END IF
 
-standardmenu m$(), last, 22, csr, 0, 0, 0, dpage
-'FOR i = 0 TO last
-' textcolor 7, 0
-' IF csr = i THEN textcolor 14 + tog, 0
-' printstr m$(i), 0, i * 8, dpage
-'NEXT i
+standardmenu m$(), last, 22, csr, 0, 0, 0, dpage, 0
 
 SWAP vpage, dpage
 setvispage vpage
@@ -200,7 +245,6 @@ m$(6) = "Battle Victory Music:"
 IF general(3) = 0 THEN m$(6) = m$(6) + " -none-" ELSE m$(6) = m$(6) + STR$(general(3) - 1) + " " + song$(general(3) - 1)
 m$(7) = "Default Battle Music:"
 IF general(4) = 0 THEN m$(7) = m$(7) + " -none-" ELSE m$(7) = m$(7) + STR$(general(4) - 1) + " " + song$(general(4) - 1)
-m$(8) = "Password For Editing [" + pas$ + "]"
 m$(11) = "Starting Money:" + STR$(general(96))
 m$(13) = "Long Name:" + longname$
 m$(14) = "About Line:" + aboutline$
@@ -238,31 +282,44 @@ loadpage game$ + ".mxs" + CHR$(0), general(1), 2
 RETURN
 
 loadpass:
- readscatter pas$, general(94), general(), 200
- pas$ = rotascii(pas$, general(93) * -1)
- IF isfile("working.tmp\browse.txt" + CHR$(0)) THEN
-  setpicstuf buffer(), 40, -1
-  loadset "working.tmp\browse.txt" + CHR$(0), 0, 0
-  longname$ = STRING$(bound(buffer(0), 0, 38), " ")
-  array2str buffer(), 2, longname$
-  loadset "working.tmp\browse.txt" + CHR$(0), 1, 0
-  aboutline$ = STRING$(bound(buffer(0), 0, 38), " ")
-  array2str buffer(), 2, aboutline$
+ IF general(5) >= 256 THEN
+   '--new simple format
+   pas$ = readpassword$(general())
+ ELSE
+   '--old scattertable format
+   readscatter pas$, general(94), general(), 200
+   pas$ = rotascii(pas$, general(93) * -1)
+ END IF
+ IF isfile(workingdir$ + "\browse.txt" + CHR$(0)) THEN
+   setpicstuf buffer(), 40, -1
+   loadset workingdir$ + "\browse.txt" + CHR$(0), 0, 0
+   longname$ = STRING$(bound(buffer(0), 0, 38), " ")
+   array2str buffer(), 2, longname$
+   loadset workingdir$ + "\browse.txt" + CHR$(0), 1, 0
+   aboutline$ = STRING$(bound(buffer(0), 0, 38), " ")
+   array2str buffer(), 2, aboutline$
  END IF
 RETURN
 
 savepass:
+
+ newpas$ = pas$
+ writepassword newpas$, general()
+
+ '--also write old scattertable format, for backwards
+ '-- compatability with older versions of game.exe
  general(93) = INT(RND * 250) + 1
- pas$ = rotascii(pas$, general(93))
- writescatter pas$, general(94), general(), 200
- '--write long name and about line
+ oldpas$ = rotascii(pas$, general(93))
+ writescatter oldpas$, general(94), general(), 200
+
+'--write long name and about line
  setpicstuf buffer(), 40, -1
  buffer(0) = bound(LEN(longname$), 0, 38)
  str2array longname$, buffer(), 2
- storeset "working.tmp\browse.txt" + CHR$(0), 0, 0
+ storeset workingdir$ + "\browse.txt" + CHR$(0), 0, 0
  buffer(0) = bound(LEN(aboutline$), 0, 38)
  str2array aboutline$, buffer(), 2
- storeset "working.tmp\browse.txt" + CHR$(0), 1, 0
+ storeset workingdir$ + "\browse.txt" + CHR$(0), 1, 0
 RETURN
 
 renrpg:
@@ -274,47 +331,45 @@ setwait timing(), 100
 setkeys
 tog = tog XOR 1
 IF keyval(1) > 1 THEN RETURN
-strgrabber newgame$, 8, keyv()
-IF LEN(newgame$) > 0 THEN
- IF RIGHT$(newgame$, 1) = " " THEN newgame$ = LEFT$(newgame$, LEN(newgame$) - 1) + "_"
- IF ASC(RIGHT$(newgame$, 1)) < 48 THEN newgame$ = LEFT$(newgame$, LEN(newgame$) - 1)
- IF ASC(RIGHT$(newgame$, 1)) > 57 AND ASC(RIGHT$(newgame$, 1)) < 65 THEN newgame$ = LEFT$(newgame$, LEN(newgame$) - 1)
- IF ASC(RIGHT$(newgame$, 1)) > 90 AND ASC(RIGHT$(newgame$, 1)) < 94 THEN newgame$ = LEFT$(newgame$, LEN(newgame$) - 1)
- IF ASC(RIGHT$(newgame$, 1)) = 96 OR ASC(RIGHT$(newgame$, 1)) > 122 THEN newgame$ = LEFT$(newgame$, LEN(newgame$) - 1)
-END IF
+strgrabber newgame$, 8
+fixfilename newgame$
 IF keyval(28) > 1 THEN
  IF oldgame$ <> newgame$ AND newgame$ <> "" THEN
-  findfiles newgame$ + ".rpg" + CHR$(0), 32, "temp.lst" + CHR$(0), buffer()
-  OPEN "temp.lst" FOR APPEND AS #1
-   WRITE #1, "-END OF LIST-"
-  CLOSE #1
-  OPEN "temp.lst" FOR INPUT AS #1
-   INPUT #1, check$
-  CLOSE #1
-  KILL "temp.lst"
-  IF check$ = "-END OF LIST-" THEN
+  IF NOT isfile(newgame$ + ".rpg" + CHR$(0)) THEN
    textcolor 10, 0
    printstr "Finding files...", 0, 30, vpage
-   findfiles "working.tmp\" + oldgame$ + ".*" + CHR$(0), 32, "temp.lst" + CHR$(0), buffer()
-   OPEN "temp.lst" FOR APPEND AS #1
-    WRITE #1, "-END OF LIST-"
-   CLOSE #1
-   OPEN "temp.lst" FOR INPUT AS #1
+   findfiles workingdir$ + "\" + oldgame$ + ".*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
+   fh = FREEFILE
+   OPEN "temp.lst" FOR APPEND AS #fh
+    WRITE #fh, "-END OF LIST-"
+   CLOSE #fh
+   fh = FREEFILE
+   OPEN "temp.lst" FOR INPUT AS #fh
     textcolor 10, 0
     printstr "Renaming Lumps...", 0, 40, vpage
     textcolor 15, 2
     DO
-     INPUT #1, temp$
+     INPUT #fh, temp$
      IF temp$ = "-END OF LIST-" THEN EXIT DO
-     IF LCASE$(temp$) <> "plotscr.lst" AND LCASE$(temp$) <> "browse.txt" THEN
-      printstr " " + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)) + " ", 0, 50, vpage
-      copyfile "working.tmp\" + temp$ + CHR$(0), "working.tmp\" + newgame$ + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)) + CHR$(0), buffer()
-      KILL "working.tmp\" + temp$
-     END IF
+     printstr " " + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)) + " ", 0, 50, vpage
+     copyfile workingdir$ + "\" + temp$ + CHR$(0), workingdir$ + "\" + newgame$ + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)) + CHR$(0), buffer()
+     KILL workingdir$ + "\" + temp$
     LOOP
-   CLOSE #1
+   CLOSE #fh
    KILL "temp.lst"
-   game$ = "working.tmp\" + newgame$
+   '--update archinym information lump
+   fh = FREEFILE
+   IF isfile(workingdir$ + "\archinym.lmp" + CHR$(0)) THEN
+    OPEN workingdir$ + "\archinym.lmp" FOR INPUT AS #fh
+     LINE INPUT #fh, oldversion$
+     LINE INPUT #fh, oldversion$
+    CLOSE #fh
+   END IF
+   OPEN workingdir$ + "\archinym.lmp" FOR OUTPUT AS #fh
+    PRINT #fh, newgame$
+    PRINT #fh, oldversion$
+   CLOSE #fh
+   game$ = workingdir$ + "\" + newgame$
   ELSE '---IN CASE FILE EXISTS
    edgeprint newgame$ + " Already Exists. Cannot Rename.", 0, 30, 15, vpage
    w = getkey
@@ -336,26 +391,26 @@ LOOP
 specialplot:
 subcsr = 0
 subm$(0) = "Previous Menu"
-subm$(1) = "new-game script: " + scriptname$(general(41), "plotscr.lst", general(), buffer())
-subm$(2) = "game-over script: " + scriptname$(general(42), "plotscr.lst", general(), buffer())
+scriptgenof(1) = 41
+scriptgenof(2) = 42
+scriptgenof(3) = 57
+GOSUB setspecialplotstr
 setkeys
 DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETURN
- IF keyval(72) > 1 THEN subcsr = loopvar(subcsr, 0, 2, -1)
- IF keyval(80) > 1 THEN subcsr = loopvar(subcsr, 0, 2, 1)
+ dummy = usemenu(subcsr, 0, 0, 3, 24)
  SELECT CASE subcsr
  CASE 0
   IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
- CASE 1, 2
-  IF intgrabber(general(40 + subcsr), 0, general(43), 75, 77) THEN
-   subm$(1) = "new-game script: " + scriptname$(general(41), "plotscr.lst", general(), buffer())
-   subm$(2) = "game-over script: " + scriptname$(general(42), "plotscr.lst", general(), buffer())
+ CASE 1 TO 3
+  IF intgrabber(general(scriptgenof(subcsr)), 0, general(43), 75, 77) THEN
+   GOSUB setspecialplotstr
   END IF
  END SELECT
- FOR i = 0 TO 2
+ FOR i = 0 TO 3
   col = 7: IF subcsr = i THEN col = 14 + tog
   textcolor col, 0
   printstr subm$(i), 0, i * 8, dpage
@@ -367,6 +422,66 @@ DO
 LOOP
 RETURN
 
+inputpasw:
+setkeys
+DO
+  setwait timing(), 100
+  setkeys
+  tog = tog XOR 1
+  IF keyval(1) > 1 OR keyval(28) > 1 THEN EXIT DO
+  strgrabber pas$, 17
+  textcolor 7, 0
+  printstr "You can require a password for this", 0, 0, dpage
+  printstr "game to be opened in CUSTOM.EXE", 0, 8, dpage
+  printstr "This does not encrypt your file, and", 0, 16, dpage
+  printstr "should only be considered weak security", 0, 24, dpage
+  printstr "PASSWORD", 30, 64, dpage
+  IF LEN(pas$) THEN
+    textcolor 14 + tog, 1
+    printstr pas$, 30, 74, dpage
+  ELSE
+    printstr "(NONE SET)", 30, 74, dpage
+  END IF
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+LOOP
+RETURN
+
+setspecialplotstr:
+ subm$(1) = "new-game script: " + scriptname$(general(41), "plotscr.lst", general())
+ subm$(2) = "game-over script: " + scriptname$(general(42), "plotscr.lst", general())
+ subm$(3) = "load-game script: " + scriptname$(general(57), "plotscr.lst", general())
+RETURN
+
+importmaspal:
+
+clearpage vpage
+textcolor 15, 0
+printstr "WARNING: Importing a new master palette", 0, 0, vpage
+printstr "will change ALL of your graphics!", 48, 8, vpage
+w = getkey
+
+f$ = browse$(4, default$, "*.mas", "")
+IF f$ <> "" THEN
+  '--copy the new palette in
+  copyfile f$ + CHR$(0), game$ + ".mas" + CHR$(0), buffer()
+  '--patch the header in case it is a corrupt PalEdit header.
+  masfh = FREEFILE
+  OPEN game$ + ".mas" FOR BINARY AS #masfh
+   a$ = CHR$(13)
+   PUT #masfh, 2, a$
+   a$ = CHR$(0)
+   PUT #masfh, 6, a$
+  CLOSE #masfh
+  '--load the new palette!
+  xbload game$ + ".mas", master(), "MAS load error"
+  setpal master()
+END IF
+
+RETURN
+
 donegen:
 GOSUB savepass
 clearpage 0
@@ -375,72 +490,72 @@ clearpage 2
 clearpage 3
 END SUB
 
-SUB importbmp (buffer(), game$, timing(), general(), keyv(), master())
+SUB importbmp (f$, cap$, count, general(), master())
 STATIC default$
-DIM menu$(10), bmp$(500), pmask(767)
+DIM menu$(10), pmask(767)
 
-IF general(100) = 0 THEN general(100) = 1
+IF count = 0 THEN count = 1
 clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-dpage = 0: vpage = 1
 menu$(0) = "Return to Main Menu"
 menu$(1) = CHR$(27) + "Browse" + STR$(ptr) + CHR$(26)
-menu$(2) = "Replace current screen"
-menu$(3) = "Append a new screen"
+menu$(2) = "Replace current " + cap$
+menu$(3) = "Append a new " + cap$
 menu$(4) = "Disable palette colors"
 GOSUB resetpal
-setdiskpages buffer(), 200, 0
 GOSUB showpage
+
 setkeys
 DO
-setwait timing(), 100
-setkeys
-tog = tog XOR 1
-IF keyval(29) > 0 AND keyval(14) > 1 THEN
- this = general(100) - 1
- cropafter ptr, this, 3, ".mxs", buffer(), -1, game$, timing()
- general(100) = this + 1
-END IF
-IF keyval(1) > 1 THEN GOTO donebmp
-IF keyval(72) > 1 THEN csr = large(csr - 1, 0)
-IF keyval(80) > 1 THEN csr = small(csr + 1, 4)
-IF csr = 1 THEN
- IF intgrabber(ptr, 0, general(100) - 1, 75, 77) THEN
-  menu$(1) = CHR$(27) + "Browse" + STR$(ptr) + CHR$(26)
-  GOSUB showpage
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(29) > 0 AND keyval(14) > 1 THEN
+   this = count - 1
+   cropafter ptr, this, 3, game$ + f$, -1, 1
+   count = this + 1
  END IF
-END IF
-IF keyval(57) > 1 OR keyval(28) > 1 THEN
- IF csr = 0 THEN GOTO donebmp
- IF csr = 2 THEN
-  at = ptr
-  srcbmp$ = browse$(3, default$, "*.bmp", dpage, vpage, buffer(), timing(), "")
-  IF srcbmp$ <> "" THEN
-   GOSUB bimport
+ IF keyval(1) > 1 THEN GOTO donebmp
+ 'IF keyval(72) > 1 THEN csr = large(csr - 1, 0)
+ 'IF keyval(80) > 1 THEN csr = small(csr + 1, 4)
+ dummy = usemenu(csr, 0, 0, 4, 24)
+ IF csr = 1 THEN
+  IF intgrabber(ptr, 0, count - 1, 75, 77) THEN
+    menu$(1) = CHR$(27) + "Browse" + STR$(ptr) + CHR$(26)
+    GOSUB showpage
   END IF
-  GOSUB showpage
  END IF
- IF csr = 3 AND general(100) < 32767 THEN
-  at = general(100)
-  srcbmp$ = browse$(3, default$, "*.bmp", dpage, vpage, buffer(), timing(), "")
-  IF srcbmp$ <> "" THEN
-   GOSUB bimport
-   general(100) = general(100) + 1
+ IF keyval(57) > 1 OR keyval(28) > 1 THEN
+  IF csr = 0 THEN GOTO donebmp
+  IF csr = 2 THEN
+   at = ptr
+   srcbmp$ = browse$(3, default$, "*.bmp", "")
+   IF srcbmp$ <> "" THEN
+    GOSUB bimport
+   END IF
+   GOSUB showpage
   END IF
-  GOSUB showpage
+  IF csr = 3 AND count < 32767 THEN
+   at = count
+   srcbmp$ = browse$(3, default$, "*.bmp", "")
+   IF srcbmp$ <> "" THEN
+    GOSUB bimport
+    count = count + 1
+   END IF
+   GOSUB showpage
+  END IF
+  IF csr = 4 THEN GOSUB disable
  END IF
- IF csr = 4 THEN GOSUB disable
-END IF
-FOR i = 0 TO 4
-col = 7: IF i = csr THEN col = 14 + tog
-edgeprint menu$(i), 1, 1 + 10 * i, col, dpage
-NEXT i
-SWAP vpage, dpage
-setvispage vpage
-copypage 2, dpage
-dowait
+ FOR i = 0 TO 4
+ col = 7: IF i = csr THEN col = 14 + tog
+ edgeprint menu$(i), 1, 1 + 10 * i, col, dpage
+ NEXT i
+ SWAP vpage, dpage
+ setvispage vpage
+ copypage 2, dpage
+ dowait
 LOOP
 
 disable:
@@ -469,7 +584,7 @@ IF csr2 = 1 THEN
  END IF
 END IF
 textcolor 7, 0: IF csr2 = 0 THEN textcolor 15 + 225 * tog, 0
-printstr "Go Back", 0, 0, dpage
+printstr "Previous Menu", 0, 0, dpage
 IF csr2 = 1 THEN rectangle 0 + cx * 10, 8 + cy * 10, 10, 10, 15 + 225 * tog, dpage
 FOR i = 0 TO 15
  FOR o = 0 TO 15
@@ -483,20 +598,21 @@ dowait
 LOOP
 
 resetpal:
-DEF SEG = VARSEG(pmask(0)): BLOAD game$ + ".mas", VARPTR(pmask(0))
+xbload game$ + ".mas", pmask(), "internal master palette missing!"
 RETURN
 
 bimport:
 clearpage 3
 setvispage 3
-IF at < general(100) THEN loadpage game$ + ".mxs" + CHR$(0), at, 3
+IF at < count THEN loadpage game$ + f$ + CHR$(0), at, 3
 bitmap2page pmask(), srcbmp$ + CHR$(0), 3
-storepage game$ + ".mxs" + CHR$(0), at, 3
+storepage game$ + f$ + CHR$(0), at, 3
 GOSUB resetpal
 RETURN
 
 showpage:
-loadpage game$ + ".mxs" + CHR$(0), ptr, 2
+ setdiskpages buffer(), 200, 0
+ loadpage game$ + f$ + CHR$(0), ptr, 2
 RETURN
 
 donebmp:
@@ -506,16 +622,16 @@ clearpage 2
 clearpage 3
 END SUB
 
-SUB importsong (song$(), buffer(), game$, timing(), general(), keyv(), master())
+SUB importsong (song$(), general(), master())
 STATIC default$
-DIM music(32000)
+DIM music(16384)
 setupmusic music()
 setfmvol getfmvol
 clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-dpage = 0: vpage = 1: top1 = -1: csr = -1
+top1 = -1: csr = -1
 
 setkeys
 DO
@@ -528,24 +644,24 @@ IF usemenu(csr, top1, -1, 99, 20) THEN
  IF csr > -1 AND song$(csr) <> "" THEN loadsong game$ + "." + intstr$(csr) + CHR$(0)
 END IF
 IF csr > -1 THEN
- strgrabber song$(csr), 30, keyv()
+ strgrabber song$(csr), 30
 END IF
 IF keyval(28) > 1 THEN
  IF csr = -1 THEN GOTO donesong
  IF csr > -1 THEN
   stopsong
-  sourcesong$ = browse$(1, default$, "*.bam", dpage, vpage, buffer(), timing(), "")
+  sourcesong$ = browse$(1, default$, "*.bam", "")
   IF sourcesong$ <> "" THEN
    copyfile sourcesong$ + CHR$(0), game$ + "." + intstr$(csr) + CHR$(0), buffer()
-   a$ = ""
-   i = 0
-   WHILE LEFT$(a$, 1) <> "\"
-    i = i + 1
-    a$ = RIGHT$(sourcesong$, i)
-   WEND
-   a$ = RIGHT$(a$, LEN(a$) - 1)
+   'a$ = ""
+   'i = 0
+   'WHILE LEFT$(a$, 1) <> "\"
+   ' i = i + 1
+   ' a$ = RIGHT$(sourcesong$, i)
+   'WEND
+   a$ = getLongName$(sourcesong$)
    a$ = LEFT$(a$, LEN(a$) - 4)
-   song$(csr) = UCASE$(a$)
+   song$(csr) = a$
   END IF
   IF csr > -1 AND song$(csr) <> "" THEN loadsong game$ + "." + intstr$(csr) + CHR$(0)
  END IF
@@ -565,22 +681,6 @@ copypage 2, dpage
 dowait
 LOOP
 
-'simport:
-'OPEN "import\" + b$ FOR BINARY AS #1
-'temp$ = "    "
-'GET #1, 1, temp$
-'CLOSE #1
-'IF temp$ <> "CBMF" THEN
-' stopsong
-' textcolor 10, 0
-' printstr "Not a Valid BAM file (Bob Adlib Music)", 112, 0, vpage
-' w = getkey
-' RETURN
-'END IF
-'copyfile "import\" + b$ + CHR$(0), game$ + "." + intstr$(at) + CHR$(0), buffer()
-'song$(csr) = LEFT$(b$, LEN(b$) - 4)
-'RETURN
-
 donesong:
 clearpage 0
 clearpage 1
@@ -590,13 +690,47 @@ stopsong
 closemusic
 END SUB
 
-SUB loadtanim (n, tastuf(), game$)
+SUB loadpasdefaults (array(), tilesetnum)
+  '--get file size
+  'fh = FREEFILE
+  'OPEN workingdir$ + "\defpass.BIN" FOR BINARY AS #fh
+  '  size& = LOF(fh)
+  'CLOSE #fh
+  flusharray array(), 160, 0
+  '--load defaults from tile set defaults file
+  setpicstuf array(), 322, -1
+  loadset workingdir$ + "\defpass.BIN" + CHR$(0), tilesetnum, 0
+  '--enforce magic number and filesize
+  IF array(160) <> 4444 THEN
+    flusharray array(), 160, 0
+  END IF
+END SUB
+
+SUB loadtanim (n, tastuf())
 setpicstuf tastuf(), 80, -1
 loadset game$ + ".tap" + CHR$(0), n, 0
 END SUB
 
-SUB maptile (game$, master(), buffer(), timing(), font(), general())
-DIM map(320), cutnpaste(19, 19), mouse(4), area(20, 4), tool$(5), menu$(10), tastuf(40), icon$(5), shortk(5), cursor(5)
+SUB maptile (master(), font(), general())
+DIM mover(10), cutnpaste(19, 19), mouse(4), area(20, 4), tool$(5), menu$(10), tastuf(40), icon$(5), shortk(5), cursor(5), defaults(160), bitmenu$(10), pastogkey(7)
+
+bitmenu$(0) = "Impassable to the North"
+bitmenu$(1) = "Impassable to the East"
+bitmenu$(2) = "Impassable to the South"
+bitmenu$(3) = "Impassable to the West"
+bitmenu$(4) = "A-type vehicle Tile"
+bitmenu$(5) = "B-type vehicle Tile"
+bitmenu$(6) = "Harm Tile"
+bitmenu$(7) = "Overhead Tile"
+
+pastogkey(0) = 72
+pastogkey(1) = 77
+pastogkey(2) = 80
+pastogkey(3) = 75
+pastogkey(4) = 30
+pastogkey(5) = 48
+pastogkey(6) = 35
+pastogkey(7) = 24
 
 setdiskpages buffer(), 200, 0
 
@@ -667,7 +801,6 @@ area(19, 2) = 8
 area(19, 3) = 8
 area(19, 4) = 0
 
-vpage = 0: dpage = 1
 bnum = 0: c = 17
 tmode = 0: cutfrom = 0
 pagenum = -1
@@ -679,12 +812,12 @@ setwait timing(), 100
 setkeys
 tog = tog XOR 1
 IF keyval(1) > 1 THEN GOTO donemaptile
-IF keyval(29) > 0 AND keyval(14) > 1 THEN
- cropafter pagenum, general(33), 3, ".til", buffer(), -1, game$, timing()
+IF keyval(29) > 0 AND keyval(14) > 1 AND pagenum > -1 THEN
+ cropafter pagenum, general(33), 3, game$ + ".til", -1, 1
 END IF
 IF keyval(80) > 1 AND pagenum = general(33) AND general(33) < 32767 THEN
  pagenum = pagenum + 1
- IF needaddset(pagenum, general(33), "tile set", vpage, dpage, timing()) THEN
+ IF needaddset(pagenum, general(33), "tile set") THEN
   WHILE pagenum > top + 20: top = top + 1: WEND
   clearpage 3
   storepage mapfile$, pagenum, 3
@@ -710,27 +843,41 @@ copypage 3, dpage
 dowait
 LOOP
 
+savepasdefaults:
+  '--set magic number
+  defaults(160) = 4444
+  '--write defaults into tile set defaults file
+  setpicstuf defaults(), 322, -1
+  storeset workingdir$ + "\defpass.BIN" + CHR$(0), pagenum, 0
+RETURN
+
 tilemode:
+loadpasdefaults defaults(), pagenum
 GOSUB tilemodemenu
 setkeys
 DO
 setwait timing(), 100
 setkeys
 tog = tog XOR 1
-IF keyval(1) > 1 THEN tmode = 0: RETURN
-IF keyval(72) > 1 THEN tmode = loopvar(tmode, 0, 3, -1)
-IF keyval(80) > 1 THEN tmode = loopvar(tmode, 0, 3, 1)
+IF keyval(1) > 1 THEN tmode = 0: GOSUB savepasdefaults: RETURN
+'IF keyval(72) > 1 THEN tmode = loopvar(tmode, 0, 4, -1)
+'IF keyval(80) > 1 THEN tmode = loopvar(tmode, 0, 4, 1)
+dummy = usemenu(tmode, 0, 0, 4, 24)
 IF keyval(57) OR keyval(28) > 1 THEN
- IF tmode <= 1 THEN GOSUB tiling
- IF tmode = 2 THEN
-  GOSUB tileanim
-  setkeys
-  GOSUB tilemodemenu
-  RETURN
- END IF
- IF tmode = 3 THEN tmode = 0: RETURN
+ SELECT CASE tmode
+   CASE 0, 1, 2
+        GOSUB tiling
+   CASE 3
+        GOSUB tileanim
+        setkeys
+        GOSUB tilemodemenu
+   CASE 4
+        tmode = 0
+        GOSUB savepasdefaults
+        RETURN
+ END SELECT
 END IF
-FOR i = 0 TO 3
+FOR i = 0 TO 4
  textcolor 7, 240
  IF tmode = i THEN textcolor 14 + tog, 240
  printstr menu$(i), 10, 8 * (i + 1), dpage
@@ -743,13 +890,14 @@ LOOP
 tilemodemenu:
  menu$(0) = "Draw Tiles"
  menu$(1) = "Cut Tiles"
- menu$(2) = "Define Tile Animation"
- menu$(3) = "Cancel"
+ menu$(2) = "Set Default Passability"
+ menu$(3) = "Define Tile Animation"
+ menu$(4) = "Cancel"
 RETURN
 
 tileanim:
 taset = 0
-loadtanim pagenum, tastuf(), game$
+loadtanim pagenum, tastuf()
 GOSUB utamenu
 menu$(0) = "Previous Menu"
 menu$(2) = "Set Animation Range"
@@ -760,19 +908,19 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN savetanim pagenum, tastuf(), game$: RETURN
+ IF keyval(1) > 1 THEN savetanim pagenum, tastuf(): RETURN
  IF usemenu(taptr, dummy, 0, 5, 5) THEN GOSUB utamenu
  IF taptr = 1 THEN
   IF intgrabber(taset, 0, 1, 75, 77) THEN GOSUB utamenu
  END IF
  IF taptr = 4 THEN
-  IF intgrabber(tastuf(1 + 20 * taset), -500, 500, 75, 77) THEN GOSUB utamenu
+  IF intgrabber(tastuf(1 + 20 * taset), -999, 999, 75, 77) THEN GOSUB utamenu
  END IF
  IF keyval(57) OR keyval(28) > 1 THEN
-  IF taptr = 0 THEN savetanim pagenum, tastuf(), game$: RETURN
+  IF taptr = 0 THEN savetanim pagenum, tastuf(): RETURN
   IF taptr = 2 THEN GOSUB setanimrange
-  IF taptr = 3 THEN setanimpattern tastuf(), taset, timing(), vpage, dpage, game$
-  IF taptr = 5 THEN testanimpattern tastuf(), taset, timing(), vpage, dpage, buffer()
+  IF taptr = 3 THEN setanimpattern tastuf(), taset
+  IF taptr = 5 THEN testanimpattern tastuf(), taset
 
  END IF
  FOR i = 0 TO 5
@@ -787,7 +935,7 @@ DO
 LOOP
 utamenu:
  menu$(1) = CHR$(27) + "Animation set" + STR$(taset) + CHR$(26)
- menu$(4) = "Disable if Tag#" + intstr$(ABS(tastuf(1 + 20 * taset))) + "=" + onoroff$(tastuf(1 + 20 * taset)) + " (" + lmnemonic(ABS(tastuf(1 + 20 * taset)), game$) + ")"
+ menu$(4) = "Disable if Tag#" + intstr$(ABS(tastuf(1 + 20 * taset))) + "=" + onoroff$(tastuf(1 + 20 * taset)) + " (" + lmnemonic(ABS(tastuf(1 + 20 * taset))) + ")"
 RETURN
 
 setanimrange:
@@ -820,7 +968,7 @@ RETURN
 
 tiling:
 loadpage mapfile$, pagenum, 3
-'pick block to draw
+'pick block to draw/import/default
 setkeys
 pickit:
 setwait timing(), 120
@@ -830,12 +978,24 @@ IF gotm THEN
  readmouse mouse()
 END IF
 IF keyval(1) > 1 THEN storepage mapfile$, pagenum, 3: RETURN
-IF keyval(75) > 0 THEN IF bnum > 0 THEN bnum = bnum - 1: IF gotm THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
-IF keyval(77) > 0 THEN IF bnum < 159 THEN bnum = bnum + 1: IF gotm THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
-IF keyval(72) > 0 THEN IF bnum > 15 THEN bnum = bnum - 16: IF gotm THEN mouse(1) = mouse(1) - 20: movemouse mouse(0), mouse(1)
-IF keyval(80) > 0 THEN IF bnum < 144 THEN bnum = bnum + 16: IF gotm THEN mouse(1) = mouse(1) + 20: movemouse mouse(0), mouse(1)
+IF tmode <> 2 OR keyval(29) = 0 THEN
+  IF keyval(75) > 0 THEN IF bnum > 0 THEN bnum = bnum - 1: IF gotm THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
+  IF keyval(77) > 0 THEN IF bnum < 159 THEN bnum = bnum + 1: IF gotm THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
+  IF keyval(72) > 0 THEN IF bnum > 15 THEN bnum = bnum - 16: IF gotm THEN mouse(1) = mouse(1) - 20: movemouse mouse(0), mouse(1)
+  IF keyval(80) > 0 THEN IF bnum < 144 THEN bnum = bnum + 16: IF gotm THEN mouse(1) = mouse(1) + 20: movemouse mouse(0), mouse(1)
+END IF
 IF gotm THEN
  bnum = INT(mouse(1) / 20) * 16 + INT(mouse(0) / 20)
+END IF
+IF tmode = 2 THEN
+  '--pass mode shortcuts
+  FOR i = 0 TO 7
+    IF keyval(29) > 0 OR i > 3 THEN
+      IF keyval(pastogkey(i)) > 1 THEN
+        setbit defaults(), bnum, i, readbit(defaults(), bnum, i) XOR 1
+      END IF
+    END IF
+  NEXT i
 END IF
 IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN GOSUB copy
 IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN GOSUB paste
@@ -845,8 +1005,27 @@ IF keyval(28) > 1 OR keyval(57) OR mouse(3) > 0 THEN
  setkeys
  IF tmode = 0 THEN GOSUB drawit
  IF tmode = 1 THEN GOSUB tilecut
+ IF tmode = 2 THEN
+   bitset defaults(), bnum, 7, bitmenu$()
+ END IF
 END IF
 IF c < 30 THEN c = c + 1 ELSE c = 17
+tog = tog XOR 1
+IF tmode = 2 THEN
+  FOR o = 0 TO 9
+   FOR i = 0 TO 15
+    IF (defaults(i + o * 16) AND 1) THEN rectangle i * 20, o * 20, 20, 3, 7 + tog, dpage
+    IF (defaults(i + o * 16) AND 2) THEN rectangle i * 20 + 17, o * 20, 3, 20, 7 + tog, dpage
+    IF (defaults(i + o * 16) AND 4) THEN rectangle i * 20, o * 20 + 17, 20, 3, 7 + tog, dpage
+    IF (defaults(i + o * 16) AND 8) THEN rectangle i * 20, o * 20, 3, 20, 7 + tog, dpage
+    textcolor 14 + tog, 0
+    IF (defaults(i + o * 16) AND 16) THEN printstr "A", i * 20, o * 20, dpage
+    IF (defaults(i + o * 16) AND 32) THEN printstr "B", i * 20 + 10, o * 20, dpage
+    IF (defaults(i + o * 16) AND 64) THEN printstr "H", i * 20, o * 20 + 10, dpage
+    IF (defaults(i + o * 16) AND 128) THEN printstr "O", i * 20 + 10, o * 20 + 10, dpage
+   NEXT i
+  NEXT o
+END IF
 rectangle bx * 20 + 7, by * 20 + 7, 6, 6, c, dpage
 IF gotm THEN
  textcolor 10 + tog * 5, 0
@@ -859,8 +1038,17 @@ GOTO pickit
 
 'draw large block
 drawit:
+justpainted = 0
+undoptr = 0
+allowundo = 0
 clearpage 2
+FOR i = 0 TO 5
+  rectangle 279, 9 + (i * 21), 22, 22, 7, 2
+  rectangle 280, 10 + (i * 21), 20, 20, 0, 2
+NEXT i
 GOSUB refreshbig
+textcolor 7, 0
+printstr ">", 270, 16 + (undoptr * 21), 2
 FOR i = 0 TO 31
  FOR j = 0 TO 7
   rectangle i * 10, j * 4 + 160, 10, 4, j * 32 + i, 2
@@ -884,6 +1072,7 @@ IF gotm THEN
 END IF
 tog = tog XOR 1
 delay = large(delay - 1, 0)
+justpainted = large(justpainted - 1, 0)
 IF keyval(1) > 1 THEN
  IF hold THEN
   hold = 0
@@ -909,6 +1098,10 @@ IF keyval(52) > 1 OR (keyval(56) > 0 AND keyval(77) > 0) THEN IF cc < 255 THEN c
 IF keyval(56) > 0 AND keyval(72) > 0 THEN IF cc > 31 THEN cc = cc - 32
 IF keyval(56) > 0 AND keyval(80) > 0 THEN IF cc < 224 THEN cc = cc + 32
 IF keyval(41) > 1 THEN hideptr = hideptr XOR 1
+IF keyval(29) > 0 AND keyval(44) > 1 AND allowundo THEN
+  undoptr = loopvar(undoptr, 0, 5, -1)
+  GOSUB readundoblock
+END IF
 IF keyval(57) > 0 THEN GOSUB clicktile
 IF keyval(28) > 1 THEN cc = readpixel(bx * 20 + x, by * 20 + y, 3)
 IF gotm THEN
@@ -927,6 +1120,17 @@ IF gotm THEN
   hold = 0
  END IF
  IF zone >= 13 AND zone <= 16 AND mouse(3) = 1 THEN GOSUB fliptile
+ '--mouse over undo
+ IF mouse(0) >= 280 AND mouse(0) < 300 THEN
+   FOR i = 0 TO 5
+     IF mouse(1) >= (10 + (i * 21)) AND mouse(1) < (30 + (i * 21)) THEN
+       IF mouse(3) = 1 AND allowundo THEN
+         undoptr = i
+         GOSUB readundoblock
+       END IF
+     END IF
+   NEXT i
+ END IF
 END IF
 IF tool = 5 THEN '--adjust airbrush
  IF mouse(3) = 1 OR mouse(2) = 1 THEN
@@ -972,6 +1176,7 @@ END SELECT
 textcolor 15, 1
 printstr tool$(tool), 8, 8, dpage
 printstr "Tool", 8, 16, dpage
+printstr "Undo", 274, 1, dpage
 FOR i = 0 TO 5
  t1 = 7: t2 = 8
  IF tool = i THEN t1 = 15: t2 = 7
@@ -1017,10 +1222,14 @@ clicktile:
  IF delay > 0 THEN RETURN
  SELECT CASE tool
  CASE 0'---DRAW
+  IF justpainted = 0 THEN GOSUB writeundoblock
+  justpainted = 3
+  putpixel 280 + x, 10 + (undoptr * 21) + y, cc, 2
   rectangle bx * 20 + x, by * 20 + y, 1, 1, cc, 3: rectangle 60 + x * 10, y * 8, 10, 8, cc, 2
  CASE 1'---BOX
   IF mouse(3) > 0 OR keyval(57) > 1 THEN
    IF hold = 1 THEN
+    GOSUB writeundoblock
     rectangle small(bx * 20 + x, bx * 20 + hox), small(by * 20 + y, by * 20 + hoy), ABS(x - hox) + 1, ABS(y - hoy) + 1, cc, 3
     GOSUB refreshbig
     hold = 0
@@ -1033,6 +1242,7 @@ clicktile:
  CASE 2'---LINE
   IF mouse(3) > 0 OR keyval(57) > 1 THEN
    IF hold = 2 THEN
+    GOSUB writeundoblock
     drawline bx * 20 + x, by * 20 + y, bx * 20 + hox, by * 20 + hoy, cc, 3
     GOSUB refreshbig
     hold = 0
@@ -1044,6 +1254,7 @@ clicktile:
   END IF
  CASE 3'---FILL
   IF mouse(3) > 0 OR keyval(57) > 1 THEN
+   GOSUB writeundoblock
    rectangle 0, 0, 22, 22, 15, dpage
    FOR i = 0 TO 19
     FOR j = 0 TO 19
@@ -1062,6 +1273,7 @@ clicktile:
  CASE 4'---OVAL
   IF mouse(3) > 0 OR keyval(57) > 1 THEN
    IF hold = 3 THEN
+    GOSUB writeundoblock
     radius = large(ABS(hox - x), ABS(hoy - y))
     rectangle 0, 0, 22, 22, 15, dpage
     FOR i = 0 TO 19
@@ -1084,6 +1296,8 @@ clicktile:
    END IF
   END IF
  CASE 5'---AIR
+  IF justpainted = 0 THEN GOSUB writeundoblock
+  justpainted = 3
   rectangle 19, 119, 22, 22, 15, dpage
   FOR i = 0 TO 19
    FOR j = 0 TO 19
@@ -1101,6 +1315,7 @@ clicktile:
 RETURN
 
 refreshbig:
+ copymapblock mover(), bx * 20, by * 20, 3, 280, 10 + (undoptr * 21), 2
  rectangle 59, 0, 202, 161, 15, 2
  FOR i = 0 TO 19
   FOR j = 0 TO 19
@@ -1109,7 +1324,27 @@ refreshbig:
  NEXT i
 RETURN
 
+writeundoblock:
+  rectangle 270, 16 + (undoptr * 21), 8, 8, 0, 2
+  undoptr = loopvar(undoptr, 0, 5, 1)
+  copymapblock mover(), bx * 20, by * 20, 3, 280, 10 + (undoptr * 21), 2
+  textcolor 7, 0
+  printstr ">", 270, 16 + (undoptr * 21), 2
+  allowundo = 1
+RETURN
+
+readundoblock:
+  FOR j = 0 TO 5
+    rectangle 270, 16 + (j * 21), 8, 8, 0, 2
+  NEXT j
+  copymapblock mover(), 280, 10 + (undoptr * 21), 2, bx * 20, by * 20, 3
+  textcolor 7, 0
+  printstr ">", 270, 16 + (undoptr * 21), 2
+  GOSUB refreshbig
+RETURN
+
 fliptile:
+GOSUB writeundoblock
 rectangle 0, 0, 20, 20, 0, dpage
 flipx = 0: flipy = 0
 IF (zone = 13 OR zone = 16) OR keyval(26) > 1 OR (keyval(14) > 1 AND keyval(29) = 0) THEN flipx = 19
@@ -1250,12 +1485,109 @@ NEXT i
 
 END FUNCTION
 
-SUB savetanim (n, tastuf(), game$)
+FUNCTION pal16browse (curpal, usepic, picx, picy, picw, pich, picpage)
+
+DIM pal16(80)
+
+result = curpal
+clearpage vpage
+setvispage vpage
+top = curpal - 1
+
+'--get last pal
+setpicstuf buffer(), 16, -1
+loadset game$ + ".pal" + CHR$(0), 0, 0
+lastpal = buffer(1)
+o = 0
+FOR i = lastpal TO 0 STEP -1
+  loadset game$ + ".pal" + CHR$(0), 1 + i, 0
+  FOR j = 0 TO 7
+    IF buffer(j) <> 0 THEN o = 1: EXIT FOR
+  NEXT j
+  IF o = 1 THEN EXIT FOR
+  lastpal = i
+NEXT i
+
+GOSUB onscreenpals
+
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN EXIT DO
+ IF usemenu(curpal, top, -1, 32767, 9) THEN GOSUB onscreenpals
+ IF intgrabber(curpal, 0, 32767, 51, 52) THEN
+   top = bound(top, curpal - 8, curpal - 1)
+   GOSUB onscreenpals
+ END IF
+ IF keyval(71) > 1 THEN curpal = -1: top = -1: GOSUB onscreenpals
+ IF keyval(79) > 1 THEN curpal = lastpal: top = large(-1, lastpal - 8): GOSUB onscreenpals
+ IF keyval(28) > 1 OR keyval(57) > 1 THEN
+   IF curpal >= 0 THEN result = curpal
+   EXIT DO
+ END IF
+
+ FOR i = 0 TO 9
+   textcolor 7, 0
+   IF top + i = curpal THEN textcolor 14 + tog, 0
+   SELECT CASE top + i
+   CASE IS >= 0
+     printstr LTRIM$(STR$(top + i)), 4, 5 + i * 20, dpage
+     o = LEN(STR$(top + i)) * 8
+     IF top + i = curpal THEN
+       rectangle o - 1, 1 + i * 20, 114, 18, 7, dpage
+       rectangle o, 2 + i * 20, 112, 16, 0, dpage
+     END IF
+     FOR j = 0 TO 15
+       c = pal16(i * 8 + j \ 2)
+       IF (j AND 1) = 1 THEN
+         c = (c \ 256)
+       ELSE
+         c = (c AND &HFF)
+       END IF
+       rectangle o + j * 7, 2 + i * 20, 5, 16, c, dpage
+     NEXT j
+     IF top + i <> curpal THEN
+       FOR k = 0 TO usepic - 1
+         loadsprite buffer(), 0, picx + k * (picw * pich \ 2), picy, picw, pich, picpage
+         drawsprite buffer(), 0, pal16(), i * 16, o + 140 + (k * picw), i * 20 - (pich \ 2 - 10), dpage
+       NEXT k
+     END IF
+   CASE 0
+     printstr "Cancel", 4, 5 + i * 20, dpage
+   END SELECT
+ NEXT i
+ IF curpal >= 0 THEN '--write current pic on top
+   o = LEN(STR$(curpal)) * 8
+   FOR k = 0 TO usepic - 1
+     loadsprite buffer(), 0, picx + k * (picw * pich \ 2), picy, picw, pich, picpage
+     drawsprite buffer(), 0, pal16(), (curpal - top) * 16, o + 120 + (k * picw), (curpal - top) * 20 - (pich \ 2 - 10), dpage
+   NEXT k
+ END IF
+
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
+pal16browse = result
+EXIT FUNCTION
+
+onscreenpals:
+  FOR i = 0 TO 9
+    getpal16 pal16(), i, top + i
+  NEXT i
+RETURN
+
+END FUNCTION
+
+SUB savetanim (n, tastuf())
  setpicstuf tastuf(), 80, -1
  storeset game$ + ".tap" + CHR$(0), n, 0
 END SUB
 
-SUB setanimpattern (tastuf(), taset, timing(), vpage, dpage, game$)
+SUB setanimpattern (tastuf(), taset)
 DIM menu$(12), stuff$(7), llim(7), ulim(7)
 menu$(0) = "Previous Menu"
 stuff$(0) = "end of animation"
@@ -1276,8 +1608,8 @@ FOR i = 3 TO 4
 NEXT i
 llim(5) = 0
 ulim(5) = 32767
-llim(6) = -500
-ulim(6) = 500
+llim(6) = -999
+ulim(6) = 999
 
 GOSUB refreshmenu
 
@@ -1339,7 +1671,7 @@ FOR i = 0 TO 8
  menu$(i + 1) = stuff$(a)
  IF a = 0 THEN EXIT FOR
  IF a > 0 AND a < 6 THEN menu$(i + 1) = menu$(i + 1) + STR$(b)
- IF a = 6 THEN menu$(i + 1) = menu$(i + 1) + lmnemonic(b, game$)
+ IF a = 6 THEN menu$(i + 1) = menu$(i + 1) + lmnemonic(b)
 NEXT i
 IF i = 8 THEN menu$(10) = "end of animation"
 menu$(10) = "Action=" + stuff$(bound(tastuf(2 + bound(ptr - 1, 0, 8) + 20 * taset), 0, 7))
@@ -1351,7 +1683,7 @@ SELECT CASE tastuf(2 + bound(ptr - 1, 0, 8) + 20 * taset)
  CASE 5
   menu$(11) = menu$(11) + intstr$(this) + " Ticks"
  CASE 6
-  menu$(11) = menu$(11) + "Tag#" + intstr$(ABS(this)) + "=" + onoroff$(this) + " " + lmnemonic(ABS(this), game$)
+  menu$(11) = menu$(11) + "Tag#" + intstr$(ABS(this)) + "=" + onoroff$(this) + " " + lmnemonic(ABS(this))
  CASE ELSE
   menu$(11) = menu$(11) + "N/A"
 END SELECT
@@ -1370,9 +1702,39 @@ GOSUB forcebounds
 
 END SUB
 
-SUB sprite (buffer(), xw, yw, pal(), timing(), game$, sets, perset, soff, foff, atatime, info$(), size, zoom, file$, master(), font())
-STATIC default$
-DIM nulpal(16), placer(2000), clip(2000), pclip(16), menu$(255), pmenu$(3), bmpd(40), mouse(4), area(20, 4), tool$(5), icon$(5), shortk(5), cursor(5)
+SUB sizemar (array(), wide, high, tempx, tempy, tempw, temph, yout, page)
+'---FLUSH BUFFER---
+edgeprint "Flushing buffer...", 0, yout * 10, 15, page: yout = yout + 1
+buffer(0) = tempw
+buffer(1) = temph
+FOR i = 2 TO 16002
+ buffer(i) = 0
+NEXT i
+'---WRITE RESIZED MAP INTO BUFFER
+edgeprint "Resizing Map...", 0, yout * 10, 15, page: yout = yout + 1
+FOR i = tempy TO tempy + temph
+ FOR o = tempx TO tempx + tempw
+  setmapdata array(), array(), 20, 0
+  IF o < wide AND i < high THEN
+   j = readmapblock(o, i)
+  ELSE
+   j = 0
+  END IF
+  setmapdata buffer(), buffer(), 20, 0
+  setmapblock o - tempx, i - tempy, j
+ NEXT o
+NEXT i
+'---MOVE BUFFER TO ARRAY---
+edgeprint "Refreshing from buffer...", 0, yout * 10, 15, page: yout = yout + 1
+FOR i = 0 TO 16002
+ array(i) = buffer(i)
+NEXT i
+
+END SUB
+
+SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, file$, master(), font())
+STATIC default$, clippedpal
+DIM nulpal(8), placer(1600), clip(1600), pclip(8), menu$(255), pmenu$(3), bmpd(40), mouse(4), area(20, 4), tool$(5), icon$(5), shortk(5), cursor(5), workpal(8)
 
 gotm = setmouse(mouse())
 GOSUB initmarea
@@ -1394,13 +1756,14 @@ tool$(5) = "Air ": icon$(5) = "A":     shortk(5) = 30: cursor(5) = 3
 
 DEF SEG = VARSEG(nulpal(0))
 FOR i = 0 TO 15
-POKE i, i
+  POKE i, i
 NEXT i
-dpage = 1: vpage = 0
-xbload game$ + ".pal", pal(), "cant find 16-color palettes"
-'DEF SEG = VARSEG(pal(0)): BLOAD game$ + ".pal", VARPTR(pal(0))
+offset = 0
+getpal16 workpal(), 0, offset
 
-FOR j = 0 TO 0 + atatime: GOSUB loadwuc: NEXT j
+FOR j = 0 TO 0 + atatime
+ GOSUB loadwuc
+NEXT j
 
 setkeys
 DO
@@ -1408,19 +1771,24 @@ setwait timing(), 120
 setkeys
 tog = tog XOR 1
 IF keyval(1) > 1 THEN GOTO donedraw
-IF keyval(29) > 0 AND keyval(14) > 1 THEN cropafter ptr, sets, 0, file$, buffer(), size * perset, game$, timing()
+IF keyval(29) > 0 AND keyval(14) > 1 THEN
+  GOSUB savealluc
+  cropafter ptr, sets, 0, game$ + file$, size * perset, 1
+  clearpage 3
+  GOSUB loadalluc
+END IF
 IF keyval(57) > 1 OR keyval(28) > 1 THEN GOSUB spriteage
 IF keyval(73) > 1 THEN
- FOR j = top TO top + atatime: GOSUB savewuc: NEXT j
+  GOSUB savealluc
   top = large(top - atatime, 0)
   ptr = large(ptr - atatime, 0)
- FOR j = top TO top + atatime: GOSUB loadwuc: NEXT j
+  GOSUB loadalluc
 END IF
 IF keyval(81) > 1 THEN
- FOR j = top TO top + atatime: GOSUB savewuc: NEXT j
-  top = small(top + atatime, sets - atatime)
-  ptr = small(ptr + atatime, sets - atatime)
- FOR j = top TO top + atatime: GOSUB loadwuc: NEXT j
+  GOSUB savealluc
+  top = large(small(top + atatime, sets - atatime), 0)
+  ptr = large(small(ptr + atatime, sets - atatime), 0)
+  GOSUB loadalluc
 END IF
 IF keyval(72) > 1 THEN
  ptr = large(ptr - 1, 0)
@@ -1438,7 +1806,7 @@ IF keyval(72) > 1 THEN
 END IF
 IF keyval(80) > 1 AND ptr < 32767 THEN
  ptr = ptr + 1
- IF needaddset(ptr, sets, "graphics", vpage, dpage, timing()) THEN
+ IF needaddset(ptr, sets, "graphics") THEN
   setpicstuf buffer(), size * perset, -1
   FOR i = 0 TO (size * perset) / 2
    buffer(i) = 0
@@ -1459,8 +1827,12 @@ IF keyval(80) > 1 AND ptr < 32767 THEN
 END IF
 IF keyval(75) > 1 THEN num = large(num - 1, 0)
 IF keyval(77) > 1 THEN num = small(num + 1, perset - 1)
-IF keyval(26) > 1 THEN offset = large(offset - 1, 0)
-IF keyval(27) > 1 THEN offset = small(offset + 1, 90)
+IF keyval(26) > 1 THEN
+  offset = changepal(offset, offset - 1, workpal(), 0)
+END IF
+IF keyval(27) > 1 THEN
+  offset = changepal(offset, offset + 1, workpal(), 0)
+END IF
 IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN loadsprite clip(), 0, num * size, soff * (ptr - top), xw, yw, 3: paste = 1
 IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN stosprite clip(), 0, num * size, soff * (ptr - top), 3
 GOSUB choose
@@ -1481,12 +1853,15 @@ FOR i = top TO small(top + atatime, sets)
  FOR o = 0 TO perset - 1
   rectangle 5 + (o * (xw + 1)), 1 + ((i - top) * (yw + 5)), xw, yw, 0, dpage
   loadsprite placer(), 0, size * o, soff * (i - top), xw, yw, 3
-  drawsprite placer(), 0, pal(), offset * 16, 5 + (o * (xw + 1)), 1 + ((i - top) * (yw + 5)), dpage
+  drawsprite placer(), 0, workpal(), 0, 5 + (o * (xw + 1)), 1 + ((i - top) * (yw + 5)), dpage
  NEXT o
 NEXT i
 RETURN
 
 spriteage:
+undodepth = 0
+undoptr = 0
+undomax = (32000 \ size) - 1
 GOSUB spedbak
 loadsprite placer(), 0, num * size, soff * (ptr - top), xw, yw, 3
 setkeys
@@ -1525,27 +1900,63 @@ IF mouse(2) = 0 THEN
  oldx = -1
  oldy = -1
 END IF
+IF keyval(4) > 1 THEN setvispage 3: w = getkey
 IF keyval(41) > 1 THEN hideptr = hideptr XOR 1
 IF keyval(51) > 1 AND col > 0 THEN col = col - 1
 IF keyval(52) > 1 AND col < 15 THEN col = col + 1
 IF zone = 2 THEN
  IF mouse(3) > 0 THEN col = small(INT(zox / 4), 15)
 END IF
-IF keyval(26) > 1 OR (zone = 5 AND mouse(3) > 0) THEN offset = large(offset - 1, 0)
-IF keyval(27) > 1 OR (zone = 6 AND mouse(3) > 0) THEN offset = small(offset + 1, 90)
-IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN loadsprite clip(), 0, num * size, soff * (ptr - top), xw, yw, 3: paste = 1
-IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN stosprite clip(), 0, num * size, soff * (ptr - top), 3: loadsprite placer(), 0, num * size, soff * (ptr - top), xw, yw, 3
-IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN DEF SEG = VARSEG(pal(0)): FOR i = 0 TO 15: pclip(i) = PEEK(offset * 16 + i): NEXT
-IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN DEF SEG = VARSEG(pal(0)): FOR i = 0 TO 15: POKE offset * 16 + i, pclip(i): NEXT
+IF keyval(26) > 1 OR (zone = 5 AND mouse(3) > 0) THEN
+  offset = changepal(offset, offset - 1, workpal(), 0)
+END IF
+IF keyval(27) > 1 OR (zone = 6 AND mouse(3) > 0) THEN
+  offset = changepal(offset, offset + 1, workpal(), 0)
+END IF
+IF keyval(25) > 1 OR (zone = 19 AND mouse(3) > 0) THEN '--call palette browser
+  '--write changes so far
+  stosprite placer(), 0, num * size, soff * (ptr - top), 3
+  '--save current palette
+  storepal16 workpal(), 0, offset
+  offset = pal16browse(offset, 1, num * size, soff * (ptr - top), xw, yw, 3)
+  getpal16 workpal(), 0, offset
+END IF
+'--UNDO
+IF (keyval(29) > 0 AND keyval(44) > 1) OR (zone = 20 AND mouse(3) > 0) THEN GOSUB readundospr
+'--COPY (CTRL+INS,SHIFT+DEL,CTRL+C)
+IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN
+  stosprite placer(), 0, num * size, soff * (ptr - top), 3
+  loadsprite clip(), 0, num * size, soff * (ptr - top), xw, yw, 3: paste = 1
+END IF
+'--PASTE (SHIFT+INS,CTRL+V)
+IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN
+  stosprite clip(), 0, num * size, soff * (ptr - top), 3
+  loadsprite placer(), 0, num * size, soff * (ptr - top), xw, yw, 3
+END IF
+'--COPY PALETTE (ALT+C)
+IF keyval(56) > 0 AND keyval(46) > 1 THEN
+  FOR i = 0 TO 7
+   pclip(i) = workpal(i)
+  NEXT
+  clippedpal = 1
+END IF
+'--PASTE PALETTE (ALT+V)
+IF keyval(56) > 0 AND keyval(47) > 1 THEN
+  IF clippedpal THEN
+    FOR i = 0 TO 8
+      workpal(i) = pclip(i)
+    NEXT
+  END IF
+END IF
 IF keyval(56) > 0 AND col > 0 THEN
- DEF SEG = VARSEG(pal(0))
- IF keyval(72) > 0 AND PEEK(offset * 16 + col) > 15 THEN POKE offset * 16 + col, PEEK(offset * 16 + col) - 16
- IF keyval(80) > 0 AND PEEK(offset * 16 + col) < 240 THEN POKE offset * 16 + col, PEEK(offset * 16 + col) + 16
- IF keyval(75) > 0 AND PEEK(offset * 16 + col) > 0 THEN POKE offset * 16 + col, PEEK(offset * 16 + col) - 1
- IF keyval(77) > 0 AND PEEK(offset * 16 + col) < 255 THEN POKE offset * 16 + col, PEEK(offset * 16 + col) + 1
+  DEF SEG = VARSEG(workpal(0))
+  IF keyval(72) > 0 AND PEEK(col) > 15 THEN POKE col, PEEK(col) - 16
+  IF keyval(80) > 0 AND PEEK(col) < 240 THEN POKE col, PEEK(col) + 16
+  IF keyval(75) > 0 AND PEEK(col) > 0 THEN POKE col, PEEK(col) - 1
+  IF keyval(77) > 0 AND PEEK(col) < 255 THEN POKE col, PEEK(col) + 1
 END IF
 IF mouse(3) = 1 AND zone = 3 AND col > 0 THEN
- POKE offset * 16 + col, INT(INT(zoy / 6) * 16) + INT(zox / 4)
+ POKE col, INT(INT(zoy / 6) * 16) + INT(zox / 4)
 END IF
 IF keyval(56) = 0 THEN
  IF keyval(72) > 0 THEN
@@ -1650,13 +2061,15 @@ FOR i = 0 TO 5
   dcsr = cursor(i) + 1
  END IF
 NEXT i
-IF keyval(28) > 1 OR (zone = 1 AND mouse(2) = 2) THEN drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage: col = readpixel(239 + x, 119 + y, dpage)
+IF keyval(28) > 1 OR (zone = 1 AND mouse(2) = 2) THEN
+  drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage: col = readpixel(239 + x, 119 + y, dpage)
+END IF
 IF keyval(14) > 1 OR (zone = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, nulpal(), 0, 239, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
 IF keyval(58) > 0 THEN
- IF keyval(72) > 0 THEN rectangle 239, 119, xw, yw, 0, 2: drawsprite placer(), 0, nulpal(), 0, 239, 118, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
- IF keyval(80) > 0 THEN rectangle 239, 119, xw, yw, 0, 2: drawsprite placer(), 0, nulpal(), 0, 239, 120, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
- IF keyval(75) > 0 THEN rectangle 239, 119, xw, yw, 0, 2: drawsprite placer(), 0, nulpal(), 0, 238, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
- IF keyval(77) > 0 THEN rectangle 239, 119, xw, yw, 0, 2: drawsprite placer(), 0, nulpal(), 0, 240, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+ IF keyval(72) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 118, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+ IF keyval(80) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 120, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+ IF keyval(75) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 238, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+ IF keyval(77) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 240, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
 END IF
 IF keyval(23) > 1 OR (zone = 13 AND mouse(3) > 0) THEN GOSUB import16
 RETURN
@@ -1676,69 +2089,76 @@ area(13, 3) = yw
 RETURN
 
 import16:
-srcbmp$ = browse$(2, default$, "*.bmp", dpage, vpage, buffer(), timing(), "")
+srcbmp$ = browse$(2, default$, "*.bmp", "")
+IF srcbmp$ = "" THEN RETURN
 '--------------------
 'DECIDE ABOUT PALETTE
 pcsr = 0
 setkeys
 DO
-setwait timing(), 110
-setkeys
-tog = tog XOR 1
-IF keyval(1) > 1 THEN RETURN
-IF keyval(75) > 1 OR keyval(26) > 1 THEN offset = large(offset - 1, 0)
-IF keyval(77) > 1 OR keyval(27) > 1 THEN offset = small(offset + 1, 90)
-IF keyval(72) > 1 THEN pcsr = large(pcsr - 1, 0)
-IF keyval(80) > 1 THEN pcsr = small(pcsr + 1, 2)
-IF keyval(57) > 1 OR keyval(28) > 1 THEN
- IF pcsr = 2 THEN RETURN
- EXIT DO
-END IF
-GOSUB spritescreen
-rectangle 4, 156, 208, 32, 8, dpage
-FOR i = 0 TO 2
- c = 7: IF i = pcsr THEN c = 14 + tog
- edgeprint pmenu$(i), 8, 160 + (i * 8), c, dpage
-NEXT i
-SWAP vpage, dpage
-setvispage vpage
-copypage 2, dpage
-dowait
+  setwait timing(), 110
+  setkeys
+  tog = tog XOR 1
+  IF keyval(1) > 1 THEN RETURN
+  IF keyval(75) > 1 OR keyval(26) > 1 THEN
+    offset = changepal(offset, offset - 1, workpal(), 0)
+  END IF
+  IF keyval(77) > 1 OR keyval(27) > 1 THEN
+    offset = changepal(offset, offset + 1, workpal(), 0)
+  END IF
+  dummy = usemenu(pcsr, 0, 0, 2, 24)
+  IF keyval(57) > 1 OR keyval(28) > 1 THEN
+    IF pcsr = 2 THEN RETURN
+    EXIT DO
+  END IF
+  GOSUB spritescreen
+  rectangle 4, 156, 208, 32, 8, dpage
+  FOR i = 0 TO 2
+   c = 7: IF i = pcsr THEN c = 14 + tog
+   edgeprint pmenu$(i), 8, 160 + (i * 8), c, dpage
+  NEXT i
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage 2, dpage
+  dowait
 LOOP
 
 clearpage dpage
 clearpage 2
 
-loadbmp srcbmp$ + CHR$(0), 0, 0, buffer(), 2
+loadbmp srcbmp$ + CHR$(0), 1, 1, buffer(), 2
 
 '---------------------
 'PICK BACKGROUND COLOR
-gx = 0
-gy = 0
+gx = 1
+gy = 1
 temp = bmpinfo(srcbmp$ + CHR$(0), bmpd())
 edjx = small(320, bmpd(1))
 edjy = small(200, bmpd(2))
 setkeys
 DO
-setwait timing(), 110
-setkeys
-tog = tog XOR 1
-IF keyval(1) > 1 THEN GOSUB spedbak: RETURN
-IF keyval(72) > 0 THEN gy = large(gy - (1 + (keyval(56) * 8)), 1)
-IF keyval(80) > 0 THEN gy = small(gy + (1 + (keyval(56) * 8)), edjy)
-IF keyval(75) > 0 THEN gx = large(gx - (1 + (keyval(56) * 8)), 1)
-IF keyval(77) > 0 THEN gx = small(gx + (1 + (keyval(56) * 8)), edjx)
-IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
-rectangle gx, gy, 1, 1, 15 + tog, dpage
-edgeprint "Pick Background Color", 0, 190, 7, dpage
-SWAP vpage, dpage
-setvispage vpage
-copypage 2, dpage
-dowait
+  setwait timing(), 110
+  setkeys
+  tog = tog XOR 1
+  IF keyval(1) > 1 THEN GOSUB spedbak: RETURN '--Cancel
+  IF keyval(72) > 0 THEN gy = large(gy - (1 + (keyval(56) * 8)), 1)
+  IF keyval(80) > 0 THEN gy = small(gy + (1 + (keyval(56) * 8)), edjy)
+  IF keyval(75) > 0 THEN gx = large(gx - (1 + (keyval(56) * 8)), 1)
+  IF keyval(77) > 0 THEN gx = small(gx + (1 + (keyval(56) * 8)), edjx)
+  IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
+  rectangle gx, gy, 1, 1, 15 + tog, dpage
+  edgeprint "Pick Background Color", 0, 190, 7, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage 2, dpage
+  dowait
 LOOP
+
+'--picked a transparent pixel
 temp = readpixel(gx, gy, 2)
-FOR i = 0 TO edjx - 1
- FOR o = 0 TO edjy
+'--swap the transparent pixels to 0
+FOR i = 1 TO edjx
+ FOR o = 1 TO edjy
   IF readpixel(i, o, 2) = temp THEN
    rectangle i, o, 1, 1, 0, 2
   ELSE
@@ -1748,17 +2168,21 @@ FOR i = 0 TO edjx - 1
   END IF
  NEXT o
 NEXT i
+'--swap the transparent palette entry to 0
 IF pcsr = 0 THEN
- getbmppal srcbmp$ + CHR$(0), master(), pal(), offset * 16
- DEF SEG = VARSEG(pal(0))
- POKE offset * 16 + temp, PEEK(offset * 16 + 0)
- POKE offset * 16, 0
+ getbmppal srcbmp$ + CHR$(0), master(), workpal(), 0
+ DEF SEG = VARSEG(workpal(0))
+ 'swap black with the transparent color
+ POKE temp, PEEK(0)
+ POKE 0, 0
 END IF
+'--read the sprite
 getsprite placer(), 0, 1, 1, xw, yw, 2
 GOSUB spedbak
 RETURN
 
 floodfill:
+GOSUB writeundospr
 rectangle 238, 118, xw + 2, yw + 2, 17, dpage
 rectangle 239, 119, xw, yw, 0, dpage
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
@@ -1767,14 +2191,32 @@ getsprite placer(), 0, 239, 119, xw, yw, dpage
 RETURN
 
 sprayspot:
-drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-airbrush 239 + x, 119 + y, airsize, mist, col, dpage
-getsprite placer(), 0, 239, 119, xw, yw, dpage
+IF oldx = -1 AND oldy = -1 THEN GOSUB writeundospr
+  drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
+  airbrush 239 + x, 119 + y, airsize, mist, col, dpage
+  getsprite placer(), 0, 239, 119, xw, yw, dpage
+  oldx = x
+  oldy = y
+RETURN
+
+writeundospr:
+  stosprite placer(), 0, undoptr * size, 100, 3
+  undoptr = loopvar(undoptr, 0, undomax, 1)
+  undodepth = small(undodepth + 1, undomax + 1)
+RETURN
+
+readundospr:
+  IF undodepth > 0 THEN
+    undodepth = undodepth - 1
+    undoptr = loopvar(undoptr, 0, undomax, -1)
+    loadsprite placer(), 0, undoptr * size, 100, xw, yw, 3
+  END IF
 RETURN
 
 putdot:
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 IF oldx = -1 AND oldy = -1 THEN
+ GOSUB writeundospr
  rectangle 239 + x, 119 + y, 1, 1, col, dpage
 ELSE
  drawline 239 + x, 119 + y, 239 + oldx, 119 + oldy, col, dpage
@@ -1785,72 +2227,75 @@ oldy = y
 RETURN
 
 drawoval:
+GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 ellipse 239 + bx, 119 + by, radius, col, dpage, squishx, squishy
 getsprite placer(), 0, 239, 119, xw, yw, dpage
 RETURN
 
 drawsquare:
+GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
 RETURN
 
 straitline:
+GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 drawline 239 + x, 119 + y, 239 + bx, 119 + by, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
 RETURN
 
 spritescreen:
-DEF SEG = VARSEG(pal(0))
-rectangle 247 + ((PEEK(offset * 16 + col) - (INT(PEEK(offset * 16 + col) / 16) * 16)) * 4), 0 + (INT(PEEK(offset * 16 + col) / 16) * 6), 5, 7, 15, dpage
+DEF SEG = VARSEG(workpal(0))
+rectangle 247 + ((PEEK(col) - (INT(PEEK(col) / 16) * 16)) * 4), 0 + (INT(PEEK(col) / 16) * 6), 5, 7, 15, dpage
 FOR i = 0 TO 15
-FOR o = 0 TO 15
-rectangle 248 + (i * 4), 1 + (o * 6), 3, 5, o * 16 + i, dpage
-NEXT: NEXT
+  FOR o = 0 TO 15
+   rectangle 248 + (i * 4), 1 + (o * 6), 3, 5, o * 16 + i, dpage
+  NEXT o
+NEXT i
 textcolor 15, 8: IF zone = 5 THEN textcolor 15, 6
 printstr CHR$(27), 248, 100, dpage
 textcolor 15, 8: IF zone = 6 THEN textcolor 15, 6
 printstr CHR$(26), 304, 100, dpage
 textcolor 15, 0
-printstr " Pal" + STR$(offset), 248, 100, dpage
+printstr LEFT$(" Pal", 4 - (LEN(STR$(offset)) - 3)) + STR$(offset), 248, 100, dpage
 rectangle 247 + (col * 4), 110, 5, 7, 15, dpage
 FOR i = 0 TO 15
-rectangle 248 + (i * 4), 111, 3, 5, PEEK((offset * 16) + i), dpage
+rectangle 248 + (i * 4), 111, 3, 5, PEEK(i), dpage
 NEXT
-IF zoom = 4 THEN hugesprite placer(), pal(), offset * 16, 4, 1, dpage
-IF zoom = 2 THEN bigsprite placer(), pal(), offset * 16, 4, 1, dpage
+IF zoom = 4 THEN hugesprite placer(), workpal(), 0, 4, 1, dpage
+IF zoom = 2 THEN bigsprite placer(), workpal(), 0, 4, 1, dpage
 IF box = 1 THEN
- DEF SEG = VARSEG(pal(0))
- rectangle 4 + small(x, bx) * zoom, 1 + small(y, by) * zoom, (ABS(x - bx) + 1) * zoom, (ABS(y - by) + 1) * zoom, PEEK(offset * 16 + col), dpage
+ DEF SEG = VARSEG(workpal(0))
+ rectangle 4 + small(x, bx) * zoom, 1 + small(y, by) * zoom, (ABS(x - bx) + 1) * zoom, (ABS(y - by) + 1) * zoom, PEEK(col), dpage
  rectangle 4 + bx * zoom, 1 + by * zoom, zoom, zoom, tog * 15, dpage
 END IF
 rectangle 4 + (x * zoom), 1 + (y * zoom), zoom, zoom, tog * 15, dpage
-drawsprite placer(), 0, pal(), offset * 16, 239, 119, dpage
+drawsprite placer(), 0, workpal(), 0, 239, 119, dpage
 IF box = 1 THEN
- DEF SEG = VARSEG(pal(0))
- rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, PEEK(offset * 16 + col), dpage
+ DEF SEG = VARSEG(workpal(0))
+ rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, PEEK(col), dpage
  rectangle 239 + bx, 119 + by, 1, 1, tog * 15, dpage
 END IF
 IF drl = 1 THEN
- DEF SEG = VARSEG(pal(0))
- drawline 239 + x, 119 + y, 239 + bx, 119 + by, PEEK(offset * 16 + col), dpage
- drawline 5 + (x * zoom), 2 + (y * zoom), 5 + (bx * zoom), 2 + (by * zoom), PEEK(offset * 16 + col), dpage
+ DEF SEG = VARSEG(workpal(0))
+ drawline 239 + x, 119 + y, 239 + bx, 119 + by, PEEK(col), dpage
+ drawline 5 + (x * zoom), 2 + (y * zoom), 5 + (bx * zoom), 2 + (by * zoom), PEEK(col), dpage
 END IF
 IF ovalstep > 0 THEN
- DEF SEG = VARSEG(pal(0))
- ellipse 239 + bx, 119 + by, radius, PEEK(offset * 16 + col), dpage, squishx, squishy
- ellipse 5 + (bx * zoom), 2 + (by * zoom), radius * zoom, PEEK(offset * 16 + col), dpage, squishx, squishy
+ DEF SEG = VARSEG(workpal(0))
+ ellipse 239 + bx, 119 + by, radius, PEEK(col), dpage, squishx, squishy
+ ellipse 5 + (bx * zoom), 2 + (by * zoom), radius * zoom, PEEK(col), dpage, squishx, squishy
 END IF
 IF tool = 5 THEN
- DEF SEG = VARSEG(pal(0))
- ellipse 239 + x, 119 + y, airsize / 2, PEEK(offset * 16 + col), dpage, 0, 0
- ellipse 5 + (x * zoom), 2 + (y * zoom), (airsize / 2) * zoom, PEEK(offset * 16 + col), dpage, 0, 0
+ DEF SEG = VARSEG(workpal(0))
+ ellipse 239 + x, 119 + y, airsize / 2, PEEK(col), dpage, 0, 0
+ ellipse 5 + (x * zoom), 2 + (y * zoom), (airsize / 2) * zoom, PEEK(col), dpage, 0, 0
 END IF
 rectangle 239 + x, 119 + y, 1, 1, tog * 15, dpage
 textcolor 7, 0
-'printstr STR$(zone) + STR$(zox) + STR$(zoy), 0, 174, dpage
 printstr info$(num), 0, 182, dpage
 printstr "Tool:" + tool$(tool), 0, 190, dpage
 FOR i = 0 TO 5
@@ -1864,6 +2309,8 @@ textcolor 7, 8: IF zone = 4 THEN textcolor 15, 6
 printstr CHR$(7), 182, 190, dpage
 textcolor 7, 8: IF zone = 13 THEN textcolor 15, 6
 printstr "I", 194, 190, dpage
+textcolor 0 + (7 * SGN(undodepth)), 8: IF zone = 20 AND undodepth > 0 THEN textcolor 15, 6
+printstr "UNDO", 170, 182, dpage
 IF tool = 5 THEN
  textcolor 7, 0
  printstr "SIZE" + LTRIM$(STR$(airsize)), 218, 182, dpage
@@ -1969,29 +2416,53 @@ area(17, 1) = 190
 area(17, 2) = 8
 area(17, 3) = 8
 area(17, 4) = 0
+'PALETTE NUMBER
+area(18, 0) = 256
+area(18, 1) = 100
+area(18, 2) = 48
+area(18, 3) = 8
+area(18, 4) = 0
+'UNDO BUTTON
+area(19, 0) = 170
+area(19, 1) = 182
+area(19, 2) = 32
+area(19, 3) = 8
+area(19, 4) = 0
+RETURN
+
+savealluc:
+FOR j = top TO top + atatime: GOSUB savewuc: NEXT j
 RETURN
 
 savewuc:
-setpicstuf buffer(), size * perset, 2
-FOR o = 0 TO (perset - 1)
-loadsprite placer(), 0, size * o, soff * (j - top), xw, yw, 3
-stosprite placer(), 0, size * o, 0, 2
-NEXT o
-storeset game$ + file$ + CHR$(0), j, 0
+IF j <= sets THEN
+  setpicstuf buffer(), size * perset, 2
+  FOR o = 0 TO (perset - 1)
+    loadsprite placer(), 0, size * o, soff * (j - top), xw, yw, 3
+    stosprite placer(), 0, size * o, 0, 2
+  NEXT o
+  storeset game$ + file$ + CHR$(0), large(j, 0), 0
+END IF
+RETURN
+
+loadalluc:
+FOR j = top TO top + atatime: GOSUB loadwuc: NEXT j
 RETURN
 
 loadwuc:
-setpicstuf buffer(), size * perset, 2
-loadset game$ + file$ + CHR$(0), j, 0
-FOR o = 0 TO (perset - 1)
-loadsprite placer(), 0, size * o, 0, xw, yw, 2
-stosprite placer(), 0, size * o, soff * (j - top), 3
-NEXT o
+IF j <= sets THEN
+  setpicstuf buffer(), size * perset, 2
+  loadset game$ + file$ + CHR$(0), large(j, 0), 0
+  FOR o = 0 TO (perset - 1)
+    loadsprite placer(), 0, size * o, 0, xw, yw, 2
+    stosprite placer(), 0, size * o, soff * (j - top), 3
+  NEXT o
+END IF
 RETURN
 
 donedraw:
-DEF SEG = VARSEG(pal(0)): BSAVE game$ + ".pal", VARPTR(pal(0)), 1600
-FOR j = top TO top + atatime: GOSUB savewuc: NEXT j
+offset = changepal(offset, offset, workpal(), 0)
+GOSUB savealluc
 clearpage 0
 clearpage 1
 clearpage 2
@@ -1999,7 +2470,59 @@ clearpage 3
 
 END SUB
 
-SUB testanimpattern (tastuf(), taset, timing(), vpage, dpage, buffer())
+SUB tagnames (general())
+DIM menu$(2)
+clearpage 0
+clearpage 1
+
+IF general(59) < 1 THEN general(59) = 1
+ptr = 2
+csr = 0
+menu$(0) = "Previous Menu"
+tagname$ = lmnemonic$(ptr)
+
+setkeys
+DO
+setwait timing(), 100
+setkeys
+tog = tog XOR 1
+IF keyval(1) > 1 THEN GOTO donetagname
+'IF keyval(72) > 1 THEN csr = large(csr - 1, 0)
+'IF keyval(80) > 1 THEN csr = small(csr + 1, 2)
+dummy = usemenu(csr, 0, 0, 2, 24)
+IF csr = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN GOTO donetagname
+IF csr = 1 THEN
+ oldptr = ptr
+ IF intgrabber(ptr, 0, small(general(56) + 1, 999), 75, 77) THEN
+   IF ptr > general(56) THEN general(56) = ptr
+   smnemonic tagname$, oldptr
+   tagname$ = lmnemonic$(ptr)
+ END IF
+END IF
+IF csr = 2 THEN
+ strgrabber tagname$, 20
+ IF keyval(28) > 1 THEN
+  smnemonic tagname$, ptr
+  ptr = small(ptr + 1, 999)
+  tagname$ = lmnemonic$(ptr)
+ END IF
+END IF
+menu$(1) = "Tag" + STR$(ptr)
+menu$(2) = "Name:" + tagname$
+
+standardmenu menu$(), 2, 22, csr, 0, 0, 0, dpage, 0
+
+SWAP vpage, dpage
+setvispage vpage
+clearpage dpage
+dowait
+LOOP
+
+donetagname:
+smnemonic tagname$, ptr
+END SUB
+
+SUB testanimpattern (tastuf(), taset)
 
 DIM cycle(1), sample(7), cycptr(1), cycskip(1)
 

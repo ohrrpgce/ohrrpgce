@@ -1,9 +1,40 @@
+; Copyright (c) 1996 Brian Fisher
+; All rights reserved.
+;
+; Redistribution and use in source and binary forms, with or without
+; modification, are permitted provided that the following conditions
+; are met:
+; 1. Redistributions of source code must retain the above copyright
+;    notice, this list of conditions and the following disclaimer.
+; 2. Redistributions in binary form must reproduce the above copyright
+;    notice, this list of conditions and the following disclaimer in the
+;    documentation and/or other materials provided with the distribution.
+; 3. The name of the author may not be used to endorse or promote products
+;    derived from this software without specific prior written permission.
+;
+; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+; IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+; OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+; IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+; INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+; NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+; DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+; THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+; THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;*************************************************************************
 
 ;****** File stuff for directories and lump files
 ;*
 ;*
-;* last modified February 1, 1900
+;* April 7,2001 (Brian) Added LongNameLength and ShortNameLength.
+;*                      uses Virtual Machine Interrupts (from Win '95)
+;* March 9 2001 (James)
+;*        * hacked findfiles to return all-true on attribute mask zero
+;*        * unlump and unlumpfile now open the file read-only
+;* November 6, 2000 (James)
+;*        * hacked a copy of rpathlength into exenamelength
+;* February 1, 1900
 ;*         modularized lump code
 ;*       made unlumpfile (uses file mask - supports *, ?)
 ;*         ? means any 1 char, * means match 0-n chars up to next char
@@ -17,8 +48,8 @@
 .286
 Ideal
 Model Small
-Public findfiles, lumpfiles, unlump, unlumpfile, isfile, pathlength, getstring, drivelist, rpathlength, setdrive, envlength
-Public isdir, isvirtual, isremovable, hasmedia
+Public findfiles, lumpfiles, unlump, unlumpfile, isfile, pathlength, getstring, drivelist, rpathlength, exenamelength, setdrive, envlength
+Public isdir, isvirtual, isremovable, hasmedia, ShortNameLength, LongNameLength
 
 Codeseg
 
@@ -45,7 +76,7 @@ lumpdatalow 	dw ?
 blocks	dw ?
 path    dw ?
 amask   dw ?
-cpath	db 70 dup (0)
+cpath	db 261 dup (0)
 plen	dw ?
 media	db ?
 
@@ -82,15 +113,19 @@ momask:
 	mov dx,[cs:list]
 	mov cx,[ss:bp+10]       ;set attribute mask
 	mov ax,4e00h
-	int 21h
-	jc file                 ;find first file
+	int 21h                 ;find first file
+	jc file
 mofile:
 	mov ds,[cs:bseg]
 	mov si,[cs:amask]
-	mov al,[ds:si]
+	mov al,[ss:bp+10]       ;
+        cmp al,0                ;
+        je allattribs           ;skip attrib check for attrib mask 0 (james)
+	mov al,[ds:si]          
 	and al,[ss:bp+10]
 	cmp al,0
 	jz badtype              ;compare attribute mask for match
+allattribs:                     ;(james)
 	mov si,[cs:found]       ;ds:si = found file
 moletter:
 	lodsb
@@ -294,7 +329,7 @@ Proc    Unlump          ; file$, path$, temp()
 	mov si,[ss:bp+10]	;get path to lumpfile
 	add si,2
 	mov dx,[ds:si]
-	mov ax,3d02h
+	mov ax,3d00h            ;read only (James 20010309)
 	int 21h			;open lumpfile
 	jnc goodwad
 	jmp nowad
@@ -348,7 +383,7 @@ Proc    Unlumpfile          ; file$, mask$, path$, temp()
 	mov si,[ss:bp+12]	;get path to lumpfile
 	add si,2
 	mov dx,[ds:si]
-	mov ax,3d02h
+	mov ax,3d00h
 	int 21h			;open lumpfile
 	jnc goodwad2
 	jmp nowad2
@@ -761,10 +796,10 @@ scanrpath:
 	cmp al,0
 	jnz scanrpath
 scanback:
-	dec si
-	mov al,[ds:si]
-	cmp al,'\'
-	jnz scanback
+        dec si
+        mov al,[ds:si]
+        cmp al,'\'
+        jnz scanback
 	mov cx,si
 	sub cx,bx
 	inc cx
@@ -776,6 +811,50 @@ scanback:
 	pop di es si ds
 	retf
 endp    rpathlength
+
+Proc    exenamelength
+	push ds si es di
+
+	mov ax,cs
+	mov es,ax
+	lea di,[cs:cpath]
+	mov ax,5100h
+	int 21h
+	mov ds,bx
+	mov si,2ch
+	mov ax,[ds:si]
+	mov ds,ax
+	xor si,si
+scanexeenv:
+	mov ax,[ds:si]
+	cmp ax,0000h
+        jz readexe
+	inc si
+        jmp scanexeenv
+readexe:
+	add si,4
+	mov bx,si
+scanexe:
+	lodsb
+	cmp al,0
+        jnz scanexe
+scanexeback:
+        dec si
+        mov al,[ds:si]
+        cmp al,0              ;scan back for a zero
+        jnz scanexeback
+        dec si                ;do not include the zero terminator
+	mov cx,si
+	sub cx,bx
+	inc cx
+	mov [cs:plen],cx
+	mov si,bx
+	rep movsb
+	mov ax,[cs:plen]
+
+	pop di es si ds
+	retf
+endp    exenamelength
 
 proc	setdrive	;num
 	push bp
@@ -917,5 +996,86 @@ nomedia:
 	pop ds bp
 	retf 2
 endp	hasmedia
+
+Proc	CountBuffer		; string is in cpath, length returned in AX
+	push es di
+	mov cx, 261
+	mov ax, cs
+	mov es, ax
+	lea di, [cs:cpath]
+	xor al, al
+	repne scasb
+	mov ax, 261
+	sub ax, cx
+	mov [cs:plen], ax
+	pop di es
+	retn
+endp	CountBuffer
+
+Proc	ReadShort2Buffer	; string is in ds:si
+	push es di
+	mov ax, cs
+	mov es, ax
+	lea di, [cs:cpath]
+	mov ax, 7160h
+	mov cx, 8001h
+	int 21h
+	pop di es
+	retn
+endp	ReadShort2Buffer
+
+Proc	ReadLong2Buffer		; string is in ds:si
+	push es di
+	mov ax, cs
+	mov es, ax
+	lea di, [cs:cpath]
+	mov ax, 7160h
+	mov cx, 8002h
+	int 21h
+	pop di es
+	retn
+endp	ReadLong2Buffer
+
+Proc    ShortNameLength       ;file$
+	push bp
+	mov bp,sp
+	push ds si
+
+	mov [cs:data],ds        ;store data segment
+	mov si,[ss:bp+06]
+	lodsw
+	mov si, [ds:si]
+	call ReadShort2Buffer
+	jc shorterror
+	call CountBuffer
+	mov [cs:plen],ax
+	jmp noshorterror
+shorterror:
+	mov ax, -1
+noshorterror:
+	pop si ds bp
+	retf 2
+endp    ShortNameLength
+
+Proc    LongNameLength       ;file$
+	push bp
+	mov bp,sp
+	push ds si
+
+	mov [cs:data],ds        ;store data segment
+	mov si,[ss:bp+06]
+	lodsw
+	mov si, [ds:si]
+	call ReadLong2Buffer
+	jc longerror
+	call CountBuffer
+	mov [cs:plen],ax
+	jmp nolongerror
+longerror:
+	mov ax, -1
+nolongerror:
+	pop si ds bp
+	retf 2
+endp    LongNameLength
 end
 

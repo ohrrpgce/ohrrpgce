@@ -1,0 +1,1 @@
+version$ = "OHRRPGCE Debug: quaternion v.20050215"

@@ -1,1 +1,0 @@
-pkzip a:\wander *.* -&
