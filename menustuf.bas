@@ -1227,9 +1227,16 @@ END SELECT
 'bounds
 stat(t, 0, targstat) = large(stat(t, 0, targstat), 0)
 IF w >= 0 THEN stat(w, 0, targstat) = large(stat(w, 0, targstat), 0)
+'bitset 58 allows cure to exceed maximum
 IF readbit(buffer(), 20, 58) = 0 THEN
  stat(t, 0, targstat) = small(stat(t, 0, targstat), stat(t, 1, targstat))
  IF w >= 0 THEN stat(w, 0, targstat) = small(stat(w, 0, targstat), stat(w, 1, targstat))
+ELSE
+ 'increase maximum as well if not hp or mp
+ IF targstat > 1 THEN
+  stat(t, 1, targstat) = large(stat(t, 0, targstat), stat(t, 1, targstat))
+  IF w >= 0 THEN stat(w, 0, targstat) = large(stat(w, 0, targstat), stat(w, 1, targstat))
+ END IF
 END IF
 
 END SUB
@@ -2146,14 +2153,14 @@ DO
    'current/max HP
    edgeprint sname$(0), 236 - LEN(sname$(0)) * 4, 65, 15, dpage
    edgeprint RIGHT$(STR$(stat(ptr, 0, 0)), LEN(STR$(stat(ptr, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(ptr, 1, 0)), LEN(STR$(stat(ptr, 1, 0))) - 1), 236 - LEN(RIGHT$(STR$(stat(ptr, 0, 0)), LEN(STR$(stat(ptr, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(ptr, 0 _
-   , 0)), LEN(STR$(stat(ptr, 0, 0))) - 1)) * 4, 75, 15, dpage
+, 0)), LEN(STR$(stat(ptr, 0, 0))) - 1)) * 4, 75, 15, dpage
    
    '--MP and level MP
    FOR i = 0 TO 5
     IF mtype(i) = 0 THEN
      edgeprint sname$(1), 236 - LEN(sname$(1)) * 4, 95, 15, dpage
-     edgeprint RIGHT$(STR$(stat(ptr, 0, 1)), LEN(STR$(stat(ptr, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(ptr, 1, 1)), LEN(STR$(stat(ptr, 1, 1))) - 1), 236 - LEN(RIGHT$(STR$(stat(ptr, 0, 1)), LEN(STR$(stat(ptr, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(ptr,  _
-     0, 1)), LEN(STR$(stat(ptr, 0, 1))) - 1)) * 4, 105, 15, dpage
+     edgeprint RIGHT$(STR$(stat(ptr, 0, 1)), LEN(STR$(stat(ptr, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(ptr, 1, 1)), LEN(STR$(stat(ptr, 1, 1))) - 1), 236 - LEN(RIGHT$(STR$(stat(ptr, 0, 1)), LEN(STR$(stat(ptr, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(ptr _
+, 0, 1)), LEN(STR$(stat(ptr, 0, 1))) - 1)) * 4, 105, 15, dpage
     END IF
     IF mtype(i) = 1 THEN
      edgeprint sname$(34) + " " + sname$(1), 236 - LEN(sname$(34) + " " + sname$(1)) * 4, 125, 15, dpage

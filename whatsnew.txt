@@ -4,6 +4,9 @@ WHAT IS NEW?
 
   * GPL Licensed source code. See LICENSE.txt
 
+  * Bugs fixed thanks to help from Ralph Versteegen (TeeEmCee)
+    * bug 1: item-based stat increases go away after level-up
+
   * Bugs fixed thanks to help from Mike Caron (pkmnfrk)
 
     * bug 40: Maps can be resized to invalid dimensions
