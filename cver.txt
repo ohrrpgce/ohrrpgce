@@ -1,1 +1,1 @@
-version$ = "OHRRPGCE Editor: quaternion v.20050221"
+version$ = "OHRRPGCE Editor: quaternion v.20050224"

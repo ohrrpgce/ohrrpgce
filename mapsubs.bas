@@ -844,9 +844,9 @@ IF keyval(29) THEN
  tempy = large(tempy, 0)
 ELSE
  IF keyval(72) > 0 THEN temph = temph - (1 + (keyval(56) * 8)): temph = large(temph, 10)
- IF keyval(80) > 0 THEN temph = temph + (1 + (keyval(56) * 8)): temph = small(temph, 32000): WHILE temph * tempw > 32000: tempw = tempw - 1: WEND
+ IF keyval(80) > 0 THEN temph = temph + (1 + (keyval(56) * 8)): temph = small(temph, 32000): WHILE temph * tempw > 32000 AND tempw > 16: tempw = tempw - 1: WEND
  IF keyval(75) > 0 THEN tempw = tempw - (1 + (keyval(56) * 8)): tempw = large(tempw, 16)
- IF keyval(77) > 0 THEN tempw = tempw + (1 + (keyval(56) * 8)): tempw = small(tempw, 32000): WHILE temph * tempw > 32000: temph = temph - 1: WEND
+ IF keyval(77) > 0 THEN tempw = tempw + (1 + (keyval(56) * 8)): tempw = small(tempw, 32000): WHILE temph * tempw > 32000 AND temph > 10: temph = temph - 1: WEND
  th& = temph
  tw& = tempw
  WHILE th& * tw& >= 32000
