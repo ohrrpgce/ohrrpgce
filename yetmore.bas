@@ -581,17 +581,28 @@ CALL interruptx(&H21, regs, regs)
 
 END SUB
 
+SUB loadSayToBuffer (say)
+
+'--load data from the textbox lump into the buffer
+
+IF say > gen(39) THEN ' It's 39!
+ str2array "Invalid textbox" + STRING$(385, 0), buffer(), 0
+ELSE
+ setpicstuf buffer(), 400, -1
+ loadset game$ + ".say" + CHR$(0), say, 0
+END IF
+
+END SUB
+
 SUB loadsay (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap())
 DIM temp$
 
 loadsaybegin:
-
 gen(58) = 0
 choosep = 0
 
 '--load data from the textbox lump
-setpicstuf buffer(), 400, -1
-loadset game$ + ".say" + CHR$(0), say, 0
+loadSayToBuffer say
 
 '--read in the lines of text
 FOR j = 0 TO 7
@@ -604,8 +615,7 @@ FOR j = 0 TO 7
 NEXT j
 
 '--reload data from the textbox lump because embedtext clobbered it
-setpicstuf buffer(), 400, -1
-loadset game$ + ".say" + CHR$(0), say, 0
+loadSayToBuffer say
 
 temp$ = STRING$(42, 0)
 array2str buffer(), 305, temp$
