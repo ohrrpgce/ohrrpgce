@@ -2006,11 +2006,13 @@ vdance = 1
 RETURN
 
 vicdance:
-centerfuz 160, 30, 280, 50, 1, dpage
+IF drawbox THEN centerfuz 160, 30, 280, 50, 1, dpage
 IF vdance = 4 THEN
+ '--print found items, one at a time
  GOSUB vicfind
 END IF
 IF vdance = 3 THEN
+ '--print learned spells, one at a time
  IF showlearn = 0 THEN
   DO WHILE readbit(learnmask(), 0, learna * 96 + learnb * 24 + learnc) = 0
    learnc = learnc + 1
@@ -2019,6 +2021,7 @@ IF vdance = 3 THEN
    IF learna > 3 THEN
     vdance = 4
     found$ = ""
+    drawbox = 0
     EXIT DO
    END IF
   LOOP
@@ -2028,6 +2031,7 @@ IF vdance = 3 THEN
    loadset game$ + ".dt6" + CHR$(0), spell(learna, learnb, learnc) - 1, 0
    found$ = found$ + readbadbinstring$(buffer(), 24, 10, 1)
    showlearn = 1
+   drawbox = 1
   END IF
  ELSE
   IF carray(4) > 1 OR carray(5) > 1 THEN
@@ -2038,9 +2042,11 @@ IF vdance = 3 THEN
  END IF
 END IF
 IF vdance = 2 THEN
+ '--print levelups
  IF carray(4) > 1 OR carray(5) > 1 THEN found$ = "": vdance = 3
  o = 0
  FOR i = 0 TO 3
+  IF o = 0 AND exstat(i, 1, 12) THEN centerfuz 160, 30, 280, 50, 1, dpage
   SELECT CASE exstat(i, 1, 12)
    CASE 1
     edgeprint "Level up for " + batname$(i) + "!", xstring("Level up for " + batname$(i) + "!", 160), 12 + i * 10, 15, dpage
@@ -2050,20 +2056,21 @@ IF vdance = 2 THEN
     o = 1
   END SELECT
  NEXT i
- IF o = 0 THEN vdance = 3
+ IF o = 0 THEN vdance = 3 ELSE drawbox = 1
 END IF
 IF vdance = 1 THEN
+ '--print acquired gold and experience
  IF carray(4) > 1 OR carray(5) > 1 OR (plunder& = 0 AND exper& = 0) THEN
   vdance = 2
- ELSE
-  IF plunder& > 0 THEN
-   temp$ = goldcap$ + STR$(plunder&) + " " + goldname$ + "!"
-   edgeprint temp$, xstring(temp$, 160), 16, 15, dpage
-  END IF
-  IF exper& > 0 THEN
-   temp$ = expcap$ + STR$(exper&) + " " + expname$ + "!"
-   edgeprint temp$, xstring(temp$, 160), 28, 15, dpage
-  END IF
+ END IF
+ IF plunder& > 0 OR exper& > 0 THEN drawbox = 1: centerfuz 160, 30, 280, 50, 1, dpage
+ IF plunder& > 0 THEN
+  temp$ = goldcap$ + STR$(plunder&) + " " + goldname$ + "!"
+  edgeprint temp$, xstring(temp$, 160), 16, 15, dpage
+ END IF
+ IF exper& > 0 THEN
+  temp$ = expcap$ + STR$(exper&) + " " + expname$ + "!"
+  edgeprint temp$, xstring(temp$, 160), 28, 15, dpage
  END IF
 END IF
 RETURN
@@ -2086,6 +2093,7 @@ IF found(fptr, 1) = 1 THEN
 ELSE
  temp$ = foundpcap$ + STR$(found(fptr, 1)) + " " + found$
 END IF
+IF LEN(temp$) THEN centerfuz 160, 30, 280, 50, 1, dpage
 edgeprint temp$, xstring(temp$, 160), 22, 15, dpage
 '--check for a keypress
 IF carray(4) > 1 OR carray(5) > 1 THEN

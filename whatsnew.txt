@@ -5,7 +5,9 @@ WHAT IS NEW?
   * GPL Licensed source code. See LICENSE.txt
 
   * Bugs fixed thanks to help from Ralph Versteegen (TeeEmCee)
+
     * bug 1: item-based stat increases go away after level-up
+    * bug 32: blank exp/gold box after battle when you earn no exp/gold
 
   * Bugs fixed thanks to help from Mike Caron (pkmnfrk)
 
