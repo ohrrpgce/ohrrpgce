@@ -4,9 +4,9 @@ improvements, and apologies for the general crappyness of almost all the
 code :)
 
 -----------------------------------------------------------------------------
-REQUIREMENT: Quickbasic 4.5
+REQUIREMENT: Quickbasic (version 4.5 or 7.1)
   The only way to compile the source code into an EXE file you can actually
-  run is to use Microsoft Quickbasic 4.5. How do you get it? ... Well, I
+  run is to use Microsoft Quickbasic. How do you get it? ... Well, I
   hate to say this, but unless you purchased a copy back in 1989, your only
   hope is to pirate a copy. Quickbasic 4.5 is not hard to find on abandonware
   websites. Search around, and you should be able to find it easily. I was
@@ -22,6 +22,7 @@ INSTRUCTIONS
   Install the OHRRPGCE source code into C:\OHRRPGCE\
   Install Quickbasic 4.5 into C:\QB45\
   If you want to install to a different location you should edit env-set.bat
+  If you install Quickbasic 7.1 instead you will need to edit env-set.bat
   If you are using Windows, run the "OHRRPGCE Hacking" shortcut.
   If you are using real DOS, run env-set.bat
   Type "compile" to compile the source code into EXE files

@@ -1,11 +1,11 @@
-IF NOT EXIST %QBDIR%\qb.exe GOTO NOQB
+IF NOT EXIST %QBDIR%\%QBEDIT% GOTO NOQB
 cd %OHRRPGCE%
-%QBDIR%\qb.exe /lallmodex /ah %1
+%QBDIR%\%QBEDIT% /lallmodex /ah %1
 cd %OHRRPGCE%
 GOTO FINISH
 
 :NOQB
-ECHO QB.EXE QuickBasic 4.5 editor is not present in %QBDIR%
+ECHO %QBEDIT% QuickBasic %QBVER% editor is not present in %QBDIR%
 ECHO Please read README.TXT
 
 :FINISH
