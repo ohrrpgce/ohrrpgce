@@ -4,6 +4,11 @@ WHAT IS NEW?
 
   * GPL Licensed source code. See LICENSE.txt
 
+  * Bugs fixed thanks to help from Simon Bradley
+
+    * "equip where" plotscripting command always uses hero #0's
+       equipability data no matter which hero you specify
+
   * Bugs fixed thanks to help from Ralph Versteegen (TeeEmCee)
 
     * bug  1: item-based stat increases go away after level-up
