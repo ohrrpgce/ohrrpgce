@@ -118,7 +118,7 @@ GOSUB listmake
 RANDOMIZE TIMER
 textxbload "ohrrpgce.mas", master(), "default master palette OHRRPGCE.MAS is missing"
 textxbload "ohrrpgce.fnt", font(), "default font OHRRPGCE.FNT is missing"
-setmodeX
+setmodex
 ON ERROR GOTO modeXerr
 setpal master()
 setfont font()
@@ -363,7 +363,7 @@ DO
   END IF
   IF csr = 1 THEN GOTO finis
   game$ = rpg$(csr): RETURN
-  nomakegame:
+nomakegame:
  END IF
  
  standardmenu rpg$(), L, 22, csr, top, 0, 0, dpage, 0
@@ -727,7 +727,7 @@ DATA "±","²","³","´","µ","¶","·","¸","¹","º","»","¼","","","½","¾","¿","À","Á","
 'setwait timing(), 100
 'setkeys
 'tog = tog XOR 1
-'IF keyval(1) > 1 THEN GOTO donewhatever
+'IF keyval(1) > 1 THEN EXIT DO
 
 '---GENERIC LOOP TAIL---
 'SWAP vpage, dpage
@@ -899,18 +899,16 @@ DO
  tog = tog XOR 1
  SELECT CASE mode
   CASE -1
-   IF keyval(1) > 1 THEN GOTO donefont
+   IF keyval(1) > 1 THEN EXIT DO
    dummy = usemenu(menuptr, 0, 0, 3, 22)
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
-    IF menuptr = 0 THEN GOTO donefont
+    IF menuptr = 0 THEN EXIT DO
     IF menuptr = 1 THEN mode = 0
     IF menuptr = 2 THEN GOSUB importfont
     IF menuptr = 3 THEN GOSUB exportfont
    END IF
   CASE 0
    IF keyval(1) > 1 THEN mode = -1
-   'IF keyval(51) > 1 THEN linesize = large(linesize - 1, 1)
-   'IF keyval(52) > 1 THEN linesize = small(linesize + 1, 40)
    IF keyval(72) > 1 THEN ptr = large(ptr - linesize, -1 * linesize)
    IF keyval(80) > 1 THEN ptr = small(ptr + linesize, last)
    IF keyval(75) > 1 THEN ptr = large(ptr - 1, 0)
@@ -990,6 +988,8 @@ DO
  clearpage dpage
  dowait
 LOOP
+GOSUB savefont
+EXIT SUB
 
 loadfont:
 DEF SEG = VARSEG(font(0)): BLOAD game$ + ".fnt", VARPTR(font(0))
@@ -1077,8 +1077,6 @@ DO
 LOOP
 RETURN
 
-donefont:
-GOSUB savefont
 END SUB
 
 FUNCTION needaddset (ptr, check, what$)
@@ -1206,7 +1204,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO doneshop
+ IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) THEN cropafter ptr, general(97), 0, game$ + ".sho", 40, 1: GOSUB menugen
  dummy = usemenu(csr, 0, 0, li, 24)
  IF csr = 1 THEN
@@ -1227,7 +1225,7 @@ DO
   GOSUB menuup
  END IF
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
-  IF csr = 0 THEN GOTO doneshop
+  IF csr = 0 THEN EXIT DO
   IF csr = 3 AND havestuf THEN GOSUB shopstuf: GOSUB sstuf
   IF csr = 4 THEN bitset a(), 17, 7, sbit$(): GOSUB menuup
  END IF
@@ -1250,6 +1248,12 @@ DO
  clearpage dpage
  dowait
 LOOP
+GOSUB sshopset
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+EXIT SUB
 
 menugen:
 menu$(0) = "Return to Main Menu"
@@ -1449,15 +1453,13 @@ storeset game$ + ".stf" + CHR$(0), ptr * 50 + thing, 0
 RETURN
 
 itstrsh:
-IF b(25) = 0 THEN it$ = "-NONE-": GOTO ittrade
-setpicstuf buffer(), 200, -1
-loadset game$ + ".itm" + CHR$(0), b(25) - 1, 0
-it$ = readbadbinstring$(buffer(), 0, 8, 0)
-'it$ = ""
-'FOR o = 1 TO small(buffer(0), 10)
-' IF buffer(o) < 256 AND buffer(o) > -1 THEN it$ = it$ + CHR$(buffer(o)) ELSE it$ = ""
-'NEXT o
-ittrade:
+IF b(25) = 0 THEN
+ it$ = "-NONE-"
+ELSE
+ setpicstuf buffer(), 200, -1
+ loadset game$ + ".itm" + CHR$(0), b(25) - 1, 0
+ it$ = readbadbinstring$(buffer(), 0, 8, 0)
+END IF
 IF b(28) = 0 THEN trit$ = "-NONE-": RETURN
 setpicstuf buffer(), 200, -1
 loadset game$ + ".itm" + CHR$(0), b(28) - 1, 0
@@ -1467,13 +1469,6 @@ trit$ = readbadbinstring$(buffer(), 0, 8, 0)
 ' IF buffer(o) < 256 AND buffer(o) > -1 THEN trit$ = trit$ + CHR$(buffer(o)) ELSE trit$ = ""
 'NEXT o
 RETURN
-
-doneshop:
-GOSUB sshopset
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 
 'shopdata
 

@@ -188,12 +188,12 @@ setkeys
 DO
  setwait timing(), 120
  setkeys
- IF keyval(1) > 1 THEN GOTO donemapping
+ IF keyval(1) > 1 THEN EXIT DO
  oldtop = maptop
  dummy = usemenu(ptr, maptop, 0, 2 + general(0), 24)
  IF oldtop <> maptop THEN GOSUB maketopmenu
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  IF ptr = 0 THEN GOTO donemapping
+  IF ptr = 0 THEN EXIT DO
   IF ptr > 0 AND ptr <= general(0) + 1 THEN
    '--silly backcompat ptr adjustment
    ptr = ptr - 1
@@ -215,6 +215,11 @@ DO
  clearpage dpage
  dowait
 LOOP
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+EXIT SUB
 
 maketopmenu:
 FOR i = 0 TO 24
@@ -1160,12 +1165,6 @@ END IF
 loadpage game$ + ".til" + CHR$(0), gmap(0), 3
 xbload game$ + ".t" + filenum$(ptr), map(), "Tilemap lump disappeared!"
 RETURN
-
-donemapping:
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 
 '----
 'gmap(20)

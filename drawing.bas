@@ -66,6 +66,28 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 '$INCLUDE: 'cglobals.bi'
 
 REM $STATIC
+SUB airbrush (x, y, d, m, c, p)
+'airbrush thanks to Ironhoof (Russel Hamrick)
+
+'AirBrush this rutine works VERY well parameters as fallows:
+' AIRBRUSH x , y , diameter , mist_amount , color , page
+' diameter sets the width & hight by square radius
+' mist_amount sets how many pixels to place i put 100 and it ran fast so
+' it works EXCELLENTLY with a mouse on the DTE =)
+
+DO WHILE count < m
+ x2 = RND * d
+ y2 = RND * d
+ r = d \ 2
+ x3 = x - r
+ y3 = y - r
+ IF ABS((x3 + x2) - x) ^ 2 + ABS((y3 + y2) - y) ^ 2 < r ^ 2 THEN
+  putpixel x3 + x2, y3 + y2, c, p
+ END IF
+count = count + 1: LOOP
+
+END SUB
+
 FUNCTION changepal (oldval, newval, workpal(), aindex)
 
 storepal16 workpal(), aindex, oldval
@@ -84,6 +106,46 @@ FOR i = 0 TO 19
  loadsprite buf(), 0, sx, sy + i, 40, 1, sp
  stosprite buf(), 0, dx, dy + i, dp
 NEXT i
+
+END SUB
+
+SUB ellipse (x, y, radius, c, p, squish1, squish2)
+'ellipse thankss to Ironhoof (Russel Hamrick)
+
+'works mostly like the normal QB circle but with
+'more usefull features
+' ELLIPSE x , y , radius , color , page , vertical pull , horizontal pull
+'the vertical pull & horizontal pull should be in decimals or whole
+'numbers. when both numbers are large it shrinks the circle to fit
+'the screen like so ellipse 10,10,25,7,0,25,40 will make the ellispe
+'smaller. but if its smaller number is 1 or 0 (same) and the other large 0, 25 it will only bend not shrink the ellipse.
+
+r = radius
+b = squish1
+b2 = squish2
+
+IF b = 0 THEN b = 1
+IF b2 = 0 THEN b2 = 1
+'IF b > b2 THEN r = r * b
+'IF b < b2 THEN r = r * b2
+t = -45
+DO
+ a# = (3.141593 * t) / 180
+ xi# = COS(a#)
+ yi# = SIN(a#)
+ x2# = x - xi# * r / b
+ y2# = y - yi# * r / b2
+ IF x2# < 0 THEN x2# = 0
+ IF x2# > 319 THEN x2# = 319
+ IF y2# < 0 THEN y2# = 0
+ IF y2# > 199 THEN y2# = 199
+ IF lx# = 0 AND ly# = 0 THEN lx# = x2#: ly# = y2#
+ drawline x2#, y2#, lx#, ly#, c, p
+ lx# = x2#
+ ly# = y2#
+ t = t + 4:
+ IF t > 360 THEN EXIT DO
+LOOP
 
 END SUB
 
@@ -115,10 +177,10 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO donegen
+ IF keyval(1) > 1 THEN EXIT DO
  dummy = usemenu(csr, 0, 0, last, 24)
  IF (keyval(28) > 1 OR keyval(57) > 1) THEN
-  IF csr = 0 THEN GOTO donegen
+  IF csr = 0 THEN EXIT DO
   IF csr = 1 THEN
    bit$(0) = "Pause on Battle Menus"
    bit$(1) = "Enable Caterpillar Party"
@@ -164,6 +226,12 @@ DO
  clearpage dpage
  dowait
 LOOP
+GOSUB savepass
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+EXIT SUB
 
 genstr:
 'IF general(101) = 0 THEN m$(1) = "Active Menu Mode" ELSE m$(1) = "Wait Menu Mode"
@@ -413,12 +481,6 @@ END IF
 
 RETURN
 
-donegen:
-GOSUB savepass
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 END SUB
 
 SUB importbmp (f$, cap$, count, general(), master())
@@ -448,9 +510,7 @@ DO
   cropafter ptr, this, 3, game$ + f$, -1, 1
   count = this + 1
  END IF
- IF keyval(1) > 1 THEN GOTO donebmp
- 'IF keyval(72) > 1 THEN csr = large(csr - 1, 0)
- 'IF keyval(80) > 1 THEN csr = small(csr + 1, 4)
+ IF keyval(1) > 1 THEN EXIT DO
  dummy = usemenu(csr, 0, 0, 4, 24)
  IF csr = 1 THEN
   IF intgrabber(ptr, 0, count - 1, 75, 77) THEN
@@ -459,7 +519,7 @@ DO
   END IF
  END IF
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  IF csr = 0 THEN GOTO donebmp
+  IF csr = 0 THEN EXIT DO
   IF csr = 2 THEN
    at = ptr
    srcbmp$ = browse$(3, default$, "*.bmp", "")
@@ -488,6 +548,11 @@ DO
  copypage 2, dpage
  dowait
 LOOP
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+EXIT SUB
 
 disable:
 csr2 = 0
@@ -546,11 +611,6 @@ setdiskpages buffer(), 200, 0
 loadpage game$ + f$ + CHR$(0), ptr, 2
 RETURN
 
-donebmp:
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 END SUB
 
 SUB importsong (song$(), general(), master())
@@ -569,7 +629,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO donesong
+ IF keyval(1) > 1 THEN EXIT DO
  IF usemenu(csr, top1, -1, 99, 20) THEN
   stopsong
   IF csr > -1 AND song$(csr) <> "" THEN loadsong game$ + "." + intstr$(csr) + CHR$(0)
@@ -578,7 +638,7 @@ DO
   strgrabber song$(csr), 30
  END IF
  IF keyval(28) > 1 THEN
-  IF csr = -1 THEN GOTO donesong
+  IF csr = -1 THEN EXIT DO
   IF csr > -1 THEN
    stopsong
    sourcesong$ = browse$(1, default$, "*.bam", "")
@@ -611,14 +671,13 @@ DO
  copypage 2, dpage
  dowait
 LOOP
-
-donesong:
 clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
 stopsong
 closemusic
+
 END SUB
 
 SUB loadpasdefaults (array(), tilesetnum)
@@ -742,7 +801,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO donemaptile
+ IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) > 1 AND pagenum > -1 THEN
   cropafter pagenum, general(33), 3, game$ + ".til", -1, 1
  END IF
@@ -757,7 +816,7 @@ DO
  IF usemenu(pagenum, top, -1, general(33), 20) THEN
   IF pagenum = -1 THEN clearpage 3 ELSE loadpage mapfile$, pagenum, 3
  END IF
- IF (keyval(57) > 1 OR keyval(28) > 1) AND pagenum = -1 THEN GOTO donemaptile
+ IF (keyval(57) > 1 OR keyval(28) > 1) AND pagenum = -1 THEN EXIT DO
  IF (keyval(57) > 1 OR keyval(28) > 1) AND pagenum > -1 THEN GOSUB tilemode
  FOR i = top TO small(top + 20, general(33))
   textcolor 7, 240
@@ -773,6 +832,11 @@ DO
  copypage 3, dpage
  dowait
 LOOP
+clearpage 3
+clearpage 2
+clearpage 1
+clearpage 0
+EXIT SUB
 
 savepasdefaults:
 '--set magic number
@@ -901,71 +965,71 @@ tiling:
 loadpage mapfile$, pagenum, 3
 'pick block to draw/import/default
 setkeys
-pickit:
-setwait timing(), 120
-setkeys
-copypage 3, dpage
-IF gotm THEN
- readmouse mouse()
-END IF
-IF keyval(1) > 1 THEN storepage mapfile$, pagenum, 3: RETURN
-IF tmode <> 2 OR keyval(29) = 0 THEN
- IF keyval(75) > 0 THEN IF bnum > 0 THEN bnum = bnum - 1: IF gotm THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
- IF keyval(77) > 0 THEN IF bnum < 159 THEN bnum = bnum + 1: IF gotm THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
- IF keyval(72) > 0 THEN IF bnum > 15 THEN bnum = bnum - 16: IF gotm THEN mouse(1) = mouse(1) - 20: movemouse mouse(0), mouse(1)
- IF keyval(80) > 0 THEN IF bnum < 144 THEN bnum = bnum + 16: IF gotm THEN mouse(1) = mouse(1) + 20: movemouse mouse(0), mouse(1)
-END IF
-IF gotm THEN
- bnum = INT(mouse(1) / 20) * 16 + INT(mouse(0) / 20)
-END IF
-IF tmode = 2 THEN
- '--pass mode shortcuts
- FOR i = 0 TO 7
-  IF keyval(29) > 0 OR i > 3 THEN
-   IF keyval(pastogkey(i)) > 1 THEN
-    setbit defaults(), bnum, i, readbit(defaults(), bnum, i) XOR 1
-   END IF
-  END IF
- NEXT i
-END IF
-IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN GOSUB copy
-IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN GOSUB paste
-bx = bnum AND 15
-by = INT(bnum / 16)
-IF keyval(28) > 1 OR keyval(57) OR mouse(3) > 0 THEN
+DO
+ setwait timing(), 120
  setkeys
- IF tmode = 0 THEN GOSUB drawit
- IF tmode = 1 THEN GOSUB tilecut
- IF tmode = 2 THEN
-  bitset defaults(), bnum, 7, bitmenu$()
+ copypage 3, dpage
+ IF gotm THEN
+  readmouse mouse()
  END IF
-END IF
-IF c < 30 THEN c = c + 1 ELSE c = 17
-tog = tog XOR 1
-IF tmode = 2 THEN
- FOR o = 0 TO 9
-  FOR i = 0 TO 15
-   IF (defaults(i + o * 16) AND 1) THEN rectangle i * 20, o * 20, 20, 3, 7 + tog, dpage
-   IF (defaults(i + o * 16) AND 2) THEN rectangle i * 20 + 17, o * 20, 3, 20, 7 + tog, dpage
-   IF (defaults(i + o * 16) AND 4) THEN rectangle i * 20, o * 20 + 17, 20, 3, 7 + tog, dpage
-   IF (defaults(i + o * 16) AND 8) THEN rectangle i * 20, o * 20, 3, 20, 7 + tog, dpage
-   textcolor 14 + tog, 0
-   IF (defaults(i + o * 16) AND 16) THEN printstr "A", i * 20, o * 20, dpage
-   IF (defaults(i + o * 16) AND 32) THEN printstr "B", i * 20 + 10, o * 20, dpage
-   IF (defaults(i + o * 16) AND 64) THEN printstr "H", i * 20, o * 20 + 10, dpage
-   IF (defaults(i + o * 16) AND 128) THEN printstr "O", i * 20 + 10, o * 20 + 10, dpage
+ IF keyval(1) > 1 THEN storepage mapfile$, pagenum, 3: RETURN
+ IF tmode <> 2 OR keyval(29) = 0 THEN
+  IF keyval(75) > 0 THEN IF bnum > 0 THEN bnum = bnum - 1: IF gotm THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
+  IF keyval(77) > 0 THEN IF bnum < 159 THEN bnum = bnum + 1: IF gotm THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
+  IF keyval(72) > 0 THEN IF bnum > 15 THEN bnum = bnum - 16: IF gotm THEN mouse(1) = mouse(1) - 20: movemouse mouse(0), mouse(1)
+  IF keyval(80) > 0 THEN IF bnum < 144 THEN bnum = bnum + 16: IF gotm THEN mouse(1) = mouse(1) + 20: movemouse mouse(0), mouse(1)
+ END IF
+ IF gotm THEN
+  bnum = INT(mouse(1) / 20) * 16 + INT(mouse(0) / 20)
+ END IF
+ IF tmode = 2 THEN
+  '--pass mode shortcuts
+  FOR i = 0 TO 7
+   IF keyval(29) > 0 OR i > 3 THEN
+    IF keyval(pastogkey(i)) > 1 THEN
+     setbit defaults(), bnum, i, readbit(defaults(), bnum, i) XOR 1
+    END IF
+   END IF
   NEXT i
- NEXT o
-END IF
-rectangle bx * 20 + 7, by * 20 + 7, 6, 6, c, dpage
-IF gotm THEN
- textcolor 10 + tog * 5, 0
- printstr CHR$(2), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
-END IF
-SWAP dpage, vpage
-setvispage vpage
-dowait
-GOTO pickit
+ END IF
+ IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN GOSUB copy
+ IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN GOSUB paste
+ bx = bnum AND 15
+ by = INT(bnum / 16)
+ IF keyval(28) > 1 OR keyval(57) OR mouse(3) > 0 THEN
+  setkeys
+  IF tmode = 0 THEN GOSUB drawit
+  IF tmode = 1 THEN GOSUB tilecut
+  IF tmode = 2 THEN
+   bitset defaults(), bnum, 7, bitmenu$()
+  END IF
+ END IF
+ IF c < 30 THEN c = c + 1 ELSE c = 17
+ tog = tog XOR 1
+ IF tmode = 2 THEN
+  FOR o = 0 TO 9
+   FOR i = 0 TO 15
+    IF (defaults(i + o * 16) AND 1) THEN rectangle i * 20, o * 20, 20, 3, 7 + tog, dpage
+    IF (defaults(i + o * 16) AND 2) THEN rectangle i * 20 + 17, o * 20, 3, 20, 7 + tog, dpage
+    IF (defaults(i + o * 16) AND 4) THEN rectangle i * 20, o * 20 + 17, 20, 3, 7 + tog, dpage
+    IF (defaults(i + o * 16) AND 8) THEN rectangle i * 20, o * 20, 3, 20, 7 + tog, dpage
+    textcolor 14 + tog, 0
+    IF (defaults(i + o * 16) AND 16) THEN printstr "A", i * 20, o * 20, dpage
+    IF (defaults(i + o * 16) AND 32) THEN printstr "B", i * 20 + 10, o * 20, dpage
+    IF (defaults(i + o * 16) AND 64) THEN printstr "H", i * 20, o * 20 + 10, dpage
+    IF (defaults(i + o * 16) AND 128) THEN printstr "O", i * 20 + 10, o * 20 + 10, dpage
+   NEXT i
+  NEXT o
+ END IF
+ rectangle bx * 20 + 7, by * 20 + 7, 6, 6, c, dpage
+ IF gotm THEN
+  textcolor 10 + tog * 5, 0
+  printstr CHR$(2), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
+ END IF
+ SWAP dpage, vpage
+ setvispage vpage
+ dowait
+LOOP
 
 'draw large block
 drawit:
@@ -1391,11 +1455,6 @@ FOR i = 0 TO 19
 NEXT j: NEXT i
 RETURN
 
-donemaptile:
-clearpage 3
-clearpage 2
-clearpage 1
-clearpage 0
 END SUB
 
 FUNCTION mouseover (mouse(), zox, zoy, zcsr, area())
@@ -1551,11 +1610,11 @@ DO
  tog = tog XOR 1
  SELECT CASE context
   CASE 0 '---PICK A STATEMENT---
-   IF keyval(1) > 1 THEN GOTO donesap
+   IF keyval(1) > 1 THEN EXIT DO
    IF usemenu(ptr, dummy, 0, 9, 9) THEN GOSUB refreshmenu
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
     IF ptr = 0 THEN
-     GOTO donesap
+     EXIT DO
     ELSE
      context = 1
     END IF
@@ -1589,6 +1648,8 @@ DO
  clearpage dpage
  dowait
 LOOP
+GOSUB forcebounds
+EXIT SUB
 
 refreshmenu:
 GOSUB forcebounds
@@ -1627,9 +1688,6 @@ FOR i = 0 TO 8
  tastuf(11 + j) = bound(tastuf(11 + j), llim(tastuf(2 + j)), ulim(tastuf(2 + j)))
 NEXT i
 RETURN
-
-donesap:
-GOSUB forcebounds
 
 END SUB
 
@@ -1701,7 +1759,7 @@ DO
  setwait timing(), 120
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO donedraw
+ IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) > 1 THEN
   GOSUB savealluc
   cropafter ptr, sets, 0, game$ + file$, size * perset, 1
@@ -1776,6 +1834,13 @@ DO
  clearpage dpage
  dowait
 LOOP
+offset = changepal(offset, offset, workpal(), 0)
+GOSUB savealluc
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+EXIT SUB
 
 choose:
 rectangle 0, 0, 320, 200, 244, dpage
@@ -2391,14 +2456,6 @@ IF j <= sets THEN
 END IF
 RETURN
 
-donedraw:
-offset = changepal(offset, offset, workpal(), 0)
-GOSUB savealluc
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
-
 END SUB
 
 SUB tagnames (general())
@@ -2417,11 +2474,9 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO donetagname
- 'IF keyval(72) > 1 THEN csr = large(csr - 1, 0)
- 'IF keyval(80) > 1 THEN csr = small(csr + 1, 2)
+ IF keyval(1) > 1 THEN EXIT DO
  dummy = usemenu(csr, 0, 0, 2, 24)
- IF csr = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN GOTO donetagname
+ IF csr = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN EXIT DO
  IF csr = 1 THEN
   oldptr = ptr
   IF intgrabber(ptr, 0, small(general(56) + 1, 999), 75, 77) THEN
@@ -2448,9 +2503,8 @@ DO
  clearpage dpage
  dowait
 LOOP
-
-donetagname:
 smnemonic tagname$, ptr
+
 END SUB
 
 SUB testanimpattern (tastuf(), taset)
@@ -2479,7 +2533,7 @@ DO
  setkeys
  tog = tog XOR 1
  
- IF keyval(1) > 1 THEN GOTO donetap
+ IF keyval(1) > 1 THEN EXIT DO
  IF keyval(72) > 1 THEN csr = loopvar(csr, 0, 47, -16): GOSUB setupsample
  IF keyval(80) > 1 THEN csr = loopvar(csr, 0, 47, 16): GOSUB setupsample
  IF keyval(75) > 1 THEN csr = loopvar(csr, 0, 47, -1): GOSUB setupsample
@@ -2504,6 +2558,7 @@ DO
  
  dowait
 LOOP
+EXIT SUB
 
 setupsample:
 setmapdata sample(), sample(), 100, 70
@@ -2513,67 +2568,6 @@ FOR i = 0 TO 8
  setmapblock x, y, 160 + (taset * 48) + csr
 NEXT i
 RETURN
-
-donetap:
-
-END SUB
-
-SUB airbrush (x, y, d, m, c, p)
-'airbrush thanks to Ironhoof (Russel Hamrick)
-
-'AirBrush this rutine works VERY well parameters as fallows:
-' AIRBRUSH x , y , diameter , mist_amount , color , page
-' diameter sets the width & hight by square radius
-' mist_amount sets how many pixels to place i put 100 and it ran fast so
-' it works EXCELLENTLY with a mouse on the DTE =)
-
-DO WHILE count < m
- x2 = RND * d
- y2 = RND * d
- r = d \ 2
- x3 = x - r
- y3 = y - r
- IF ABS((x3 + x2) - x) ^ 2 + ABS((y3 + y2) - y) ^ 2 < r ^ 2 THEN
-  putpixel x3 + x2, y3 + y2, c, p
- END IF
-count = count + 1: LOOP
-
-END SUB
-
-SUB ellipse (x, y, radius, c, p, squish1, squish2)
-'ellipse thankss to Ironhoof (Russel Hamrick)
-
-'works mostly like the normal QB circle but with
-'more usefull features
-' ELLIPSE x , y , radius , color , page , vertical pull , horizontal pull
-'the vertical pull & horizontal pull should be in decimals or whole
-'numbers. when both numbers are large it shrinks the circle to fit
-'the screen like so ellipse 10,10,25,7,0,25,40 will make the ellispe
-'smaller. but if its smaller number is 1 or 0 (same) and the other large 0, 25 it will only bend not shrink the ellipse.
-
-r = radius
-b = squish1
-b2 = squish2
-
-IF b = 0 THEN b = 1
-IF b2 = 0 THEN b2 = 1
-'IF b > b2 THEN r = r * b
-'IF b < b2 THEN r = r * b2
-t = -45
-weave:
-a# = (3.141593 * t) / 180
-xi# = COS(a#)
-yi# = SIN(a#)
-x2# = x - xi# * r / b
-y2# = y - yi# * r / b2
-IF x2# < 0 THEN x2# = 0
-IF x2# > 319 THEN x2# = 319
-IF y2# < 0 THEN y2# = 0
-IF y2# > 199 THEN y2# = 199
-IF lx# = 0 AND ly# = 0 THEN lx# = x2#: ly# = y2#
-drawline x2#, y2#, lx#, ly#, c, p
-lx# = x2#: ly# = y2#
-t = t + 4: IF t > 360 THEN  ELSE GOTO weave:
 
 END SUB
 

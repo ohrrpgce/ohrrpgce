@@ -19,5 +19,7 @@ freelink.exe @game.l
 freelink.exe @custom.l
 del *.obj
 del freelink.exe
+del cver.txt
+del gver.txt
 grep "\^" compile.out
 echo.

@@ -112,7 +112,7 @@ NEXT o
 
 GOSUB setstock
 GOSUB stufmask
-IF total = 0 THEN GOTO exitbuy
+IF total = 0 THEN EXIT SUB
 
 ptr = 0: top = 0
 DO UNTIL readbit(vmask(), 0, ptr) = 0
@@ -153,7 +153,7 @@ DO
   LOOP UNTIL readbit(vmask(), 0, ptr) = 0
   GOSUB curinfo
  END IF
- IF carray(5) > 1 GOTO exitbuy
+ IF carray(5) > 1 THEN EXIT DO
  IF carray(4) > 1 THEN '---PRESS ENTER---------------------
   IF readbit(emask(), 0, ptr) = 0 THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
    IF stock(id, ptr) > 1 THEN stock(id, ptr) = stock(id, ptr) - 1
@@ -254,6 +254,8 @@ DO
  IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
+vishero stat()
+EXIT SUB
 
 curinfo:
 showhero = -1
@@ -355,8 +357,6 @@ FOR i = 0 TO storebuf(16)
 NEXT i
 RETURN
 
-exitbuy:
-vishero stat()
 END SUB
 
 SUB centerbox (x, y, w, h, c, p)
@@ -795,6 +795,7 @@ centerbox 160, 92, 304, 176, 1, 3
 
 GOSUB infostr
 setkeys
+quit = 0
 DO
  setwait timing(), speedcontrol
  setkeys
@@ -802,6 +803,7 @@ DO
  playtimer
  control
  GOSUB itcontrol
+ IF quit THEN EXIT DO
  FOR i = top TO top + 62
   textcolor 8, 0
   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor 7, 0
@@ -840,6 +842,8 @@ DO
  copypage 3, dpage
  dowait
 LOOP
+loadtemppage 3
+EXIT FUNCTION
 
 infostr:
 info$ = ""
@@ -866,11 +870,11 @@ itcontrol:
 IF pick = 0 THEN
  IF carray(5) > 1 THEN
   '--deselect currently selected item
-  IF sel > -1 THEN sel = -4 ELSE GOTO doneitem
+  IF sel > -1 THEN sel = -4 ELSE quit = 1
  END IF
  IF carray(4) > 1 THEN
   '--exit
-  IF ic = -3 THEN GOTO doneitem
+  IF ic = -3 THEN quit = 1
   '--sort
   IF ic = -2 THEN GOSUB autosort
   '--try to thow item away
@@ -1052,8 +1056,6 @@ setbit permask(), 0, 3 + i, t1
 setbit permask(), 0, 3 + o, t2
 RETURN
 
-doneitem:
-loadtemppage 3
 END FUNCTION
 
 SUB itstr (i)
@@ -1632,6 +1634,7 @@ ic = 0: top = 0
 GOSUB refreshs
 
 GOSUB sellinfostr
+quit = 0
 setkeys
 DO
  setwait timing(), speedcontrol
@@ -1640,6 +1643,7 @@ DO
  playtimer
  control
  GOSUB keysell
+ IF quit THEN EXIT DO
  centerbox 160, 92, 304, 176, 1, dpage
  FOR i = top TO top + 62
   textcolor 7, 0
@@ -1663,6 +1667,8 @@ DO
  copypage 3, dpage
  dowait
 LOOP
+vishero stat()
+EXIT SUB
 
 sellinfostr:
 info$ = ""
@@ -1690,7 +1696,7 @@ END IF
 RETURN
 
 keysell:
-IF carray(5) > 1 THEN GOTO donesell
+IF carray(5) > 1 THEN quit = 1
 IF carray(4) > 1 AND readbit(permask(), 0, ic) = 0 AND item(ic) > 0 THEN
  alert = 10: alert$ = sold$ + " " + LEFT$(item$(ic), 8): WHILE RIGHT$(item$(ic), 1) = " ": item$(ic) = LEFT$(item$(ic), LEN(item$(ic)) - 1): WEND
  'INCREMENT GOLD-----------
@@ -1760,8 +1766,6 @@ FOR i = 0 TO storebuf(16)
 NEXT i
 RETURN
 
-donesell:
-vishero stat()
 END SUB
 
 SUB spells (ptr, stat())

@@ -95,20 +95,6 @@ DECLARE SUB snapshot ()
 
 '$INCLUDE: 'const.bi'
 
-'---GENERIC LOOP HEAD---
-'setkeys
-'DO
-'setwait timing(), speedcontrol
-'setkeys
-'tog = tog XOR 1
-'IF keyval(1) > 1 THEN GOTO donewhatever
-
-'---GENERIC LOOP TAIL---
-'SWAP vpage, dpage
-'setvispage vpage
-'copypage 3, dpage
-'dowait
-'LOOP
 
 REM $STATIC
 SUB addhero (who, slot, stat())
@@ -285,7 +271,7 @@ DO
  setwait timing(), speedcontrol
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO donebrowse
+ IF keyval(1) > 1 THEN EXIT DO
  dummy = usemenu(treeptr, treetop, 0, treesize, 16)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   SELECT CASE treec(treeptr)
@@ -341,6 +327,7 @@ DO
  IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
+EXIT FUNCTION
 
 context:
 timeout! = TIMER
@@ -524,8 +511,6 @@ FOR i = 0 TO drivetotal - 1
  END IF'--check removable--
 NEXT i
 RETURN
-
-donebrowse:
 
 END FUNCTION
 
@@ -2128,7 +2113,7 @@ menu$(6) = readglobalstring$(68, "Map", 10)
 menu$(7) = readglobalstring$(65, "Team", 10)
 
 GOSUB initshop
-IF last = -1 THEN GOTO exitshop
+IF last = -1 THEN EXIT SUB
 IF last = 0 THEN autopick = 1
 last = last + 1: menu$(last) = readglobalstring$(74, "Exit", 10)
 
@@ -2216,8 +2201,6 @@ DO
  IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
-
-exitshop:
 EXIT SUB
 
 repaintback:

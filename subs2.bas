@@ -143,7 +143,6 @@ FOR i = 0 TO 25
  WEND
 NEXT i
 
-'GOSUB vlabels
 remember$ = STRING$(pathlength, 0): getstring remember$
 IF RIGHT$(remember$, 1) <> "\" THEN remember$ = remember$ + "\"
 IF default$ = "" THEN
@@ -162,7 +161,7 @@ DO
  setwait timing(), 80
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO donebrowse
+ IF keyval(1) > 1 THEN EXIT DO
  IF usemenu(treeptr, treetop, 0, treesize, 17) OR changed THEN
   alert$ = ""
   changed = 0
@@ -208,15 +207,8 @@ DO
   changed = 1
   IF special = 1 THEN stopsong
   SELECT CASE treec(treeptr)
-   'CASE 0
-   ' IF hasmedia(ASC(LEFT$(tree$(treeptr), 1)) - 64) THEN
-   '  nowdir$ = LEFT$(tree$(treeptr), 3)
-   '  GOSUB context
-   ' END IF
    CASE 0, 1
-    'nowdir$ = LEFT$(tree$(1), 3)
     nowdir$ = LEFT$(tree$(0), 3)
-    'FOR i = 2 TO treeptr
     FOR i = 1 TO treeptr
      nowdir$ = nowdir$ + tree$(i)
     NEXT i
@@ -226,7 +218,7 @@ DO
     GOSUB context
    CASE 3
     browse$ = nowdir$ + tree$(treeptr)
-    GOTO donebrowse
+    EXIT DO
    CASE 4
     nowdir$ = ""
     GOSUB context
@@ -254,18 +246,13 @@ DO
  clearpage dpage
  dowait
 LOOP
+default$ = nowdir$
+EXIT FUNCTION
 
 context:
 treesize = 0
 IF nowdir$ = "" THEN
- ' FOR i = 0 TO drivetotal - 1
- '  tree$(i) = drive$(i)
- '  treec(i) = 0
- ' NEXT i
- ' treesize = drivetotal - 1
 ELSE
- 'tree$(treesize) = "[ROOT]"
- 'treec(treesize) = 4
  a = ASC(LEFT$(nowdir$, 1)) - 64
  FOR i = 0 TO drivetotal - 1
   'IF a = drive(i) THEN tree$(treesize) = drive$(i)
@@ -395,35 +382,6 @@ NEXT i
 
 RETURN
 
-vlabels:
-FOR i = 0 TO drivetotal - 1
- IF isremovable(drive(i)) = 0 THEN
-  drive$(i) = CHR$(64 + drive(i)) + ":\ (removable)"
- ELSE '--not removable--
-  IF hasmedia(drive(i)) THEN
-   findfiles CHR$(64 + drive(i)) + ":\*.*" + CHR$(0), 8, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
-   fh = FREEFILE
-   OPEN tmp$ + "hrbrowse.tmp" FOR INPUT AS #fh
-   IF LOF(fh) THEN
-    INPUT #fh, a$
-    a$ = UCASE$(a$)
-    b$ = ""
-    FOR j = 1 TO LEN(a$)
-     IF MID$(a$, j, 1) <> "." THEN b$ = b$ + MID$(a$, j, 1)
-    NEXT j
-    drive$(i) = CHR$(64 + drive(i)) + ":\ (" + b$ + ")"
-   END IF
-   CLOSE #fh
-   safekill tmp$ + "hrbrowse.tmp"
-  ELSE '--no media--
-   drive$(i) = CHR$(64 + drive(i)) + ":\ (not ready)"
-  END IF'--check media--
- END IF'--check removable--
-NEXT i
-RETURN
-
-donebrowse:
-default$ = nowdir$
 END FUNCTION
 
 SUB cropafter (index, limit, flushafter, lump$, bytes, prompt)
@@ -896,28 +854,25 @@ DIM n AS LONG
 
 IF s$ = "" THEN
  out$ = "BLANK"
- GOTO endnumbertail
-END IF
-
-a = ASC(RIGHT$(s$, 1))
-IF a < 48 OR a > 57 THEN
- out$ = s$ + "2"
- GOTO endnumbertail
 ELSE
- a$ = s$
- b$ = ""
- DO WHILE ASC(RIGHT$(a$, 1)) >= 48 AND ASC(RIGHT$(a$, 1)) <= 57
-  b$ = RIGHT$(a$, 1) + b$
-  a$ = LEFT$(a$, LEN(a$) - 1)
-  IF LEN(a$) = 0 THEN EXIT DO
- LOOP
- IF LEN(b$) > 9 THEN b$ = "0"
- n = VAL(b$)
- n = n + 1
- out$ = a$ + LTRIM$(STR$(n))
+ a = ASC(RIGHT$(s$, 1))
+ IF a < 48 OR a > 57 THEN
+  out$ = s$ + "2"
+ ELSE
+  a$ = s$
+  b$ = ""
+  DO WHILE ASC(RIGHT$(a$, 1)) >= 48 AND ASC(RIGHT$(a$, 1)) <= 57
+   b$ = RIGHT$(a$, 1) + b$
+   a$ = LEFT$(a$, LEN(a$) - 1)
+   IF LEN(a$) = 0 THEN EXIT DO
+  LOOP
+  IF LEN(b$) > 9 THEN b$ = "0"
+  n = VAL(b$)
+  n = n + 1
+  out$ = a$ + LTRIM$(STR$(n))
+ END IF
 END IF
 
-endnumbertail:
 numbertail$ = out$
 
 END FUNCTION
@@ -977,14 +932,12 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO donescriptman
- 'IF keyval(72) > 1 THEN ptr = loopvar(ptr, 0, menumax, -1)
- 'IF keyval(80) > 1 THEN ptr = loopvar(ptr, 0, menumax, 1)
+ IF keyval(1) > 1 THEN EXIT DO
  dummy = usemenu(ptr, 0, 0, menumax, 24)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   SELECT CASE ptr
    CASE 0
-    GOTO donescriptman
+    EXIT DO
    CASE 1
     exportnames gamedir$, general(), song$()
    CASE 2
@@ -1019,6 +972,7 @@ DO
  copypage 3, dpage
  dowait
 LOOP
+EXIT SUB
 
 maknamlst:
 textcolor 7, 0
@@ -1062,8 +1016,6 @@ LOOP
 CLOSE #fptr
 safekill workingdir$ + "\scripts.txt"
 RETURN
-
-donescriptman:
 
 END SUB
 
@@ -1237,7 +1189,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO donename
+ IF keyval(1) > 1 THEN EXIT DO
  dummy = usemenu(ptr, top, 0, max, 22)
  strgrabber stat$(ptr), maxlen(ptr)
  IF keyval(28) > 1 THEN GOSUB typestat
@@ -1249,6 +1201,14 @@ DO
  clearpage dpage
  dowait
 LOOP
+j = 0
+FOR i = 0 TO max
+ writeglobalstring j, stat$(i), maxlen(i)
+ j = j + 1 + (maxlen(i) \ 11)
+NEXT i
+clearpage 0
+clearpage 1
+EXIT SUB
 
 typestat:
 setkeys
@@ -1277,16 +1237,6 @@ DO
  dowait
 LOOP
 
-donename:
-
-j = 0
-FOR i = 0 TO max
- writeglobalstring j, stat$(i), maxlen(i)
- j = j + 1 + (maxlen(i) \ 11)
-NEXT i
-
-clearpage 0
-clearpage 1
 END SUB
 
 SUB storepal16 (array(), aoffset, foffset)
@@ -1328,27 +1278,33 @@ END IF
 END SUB
 
 FUNCTION sublist (num, s$())
-clearpage 1: clearpage 0
+clearpage 0
+clearpage 1
 
 setkeys
 DO
  setwait timing(), 90
  setkeys
  dummy = usemenu(ptr, 0, 0, num, 22)
- IF keyval(57) > 1 OR keyval(28) > 1 THEN sublist = ptr: GOTO donelist
+ IF keyval(1) > 1 THEN
+  sublist = -1
+  EXIT DO
+ END IF
+ IF keyval(57) > 1 OR keyval(28) > 1 THEN
+  sublist = ptr
+  EXIT DO
+ END IF
  tog = tog XOR 1
- 
  standardmenu s$(), num, 22, ptr, top, 0, 0, dpage, 0
- 
  SWAP dpage, vpage
  setvispage vpage
  clearpage dpage
  dowait
-LOOP UNTIL keyval(1) > 1
-sublist = -1
-donelist:
+LOOP
+
 clearpage 0
 clearpage 1
+
 END FUNCTION
 
 SUB textage (general(), song$())
@@ -1411,7 +1367,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO donetext
+ IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) THEN
   GOSUB savelines
   cropafter ptr, general(39), 0, game$ + ".say", 400, 1
@@ -1447,7 +1403,7 @@ DO
    END IF'--next/add text box
  END SELECT
  IF (keyval(28) > 1 OR keyval(57) > 1) THEN
-  IF csr = 0 THEN GOTO donetext
+  IF csr = 0 THEN EXIT DO
   IF csr = 2 THEN GOSUB picktext
   IF csr = 3 THEN GOSUB conditions: GOSUB nextboxline
   IF csr = 4 THEN GOSUB tchoice
@@ -1479,6 +1435,12 @@ DO
  clearpage dpage
  dowait
 LOOP
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+GOSUB savelines
+EXIT SUB
 
 nextboxline:
 SELECT CASE cond(11)
@@ -1894,13 +1856,6 @@ LOOP
 
 RETURN
 
-donetext:
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
-GOSUB savelines
-
 '--text box record (byte offsets! not words!)
 '0-303   lines
 '304     unused?
@@ -2036,12 +1991,12 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO doneveh
+ IF keyval(1) > 1 THEN EXIT DO
  dummy = usemenu(csr, top, 0, 15, 22)
  SELECT CASE csr
   CASE 0
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
-    GOTO doneveh
+    EXIT DO
    END IF
   CASE 1
    IF ptr = general(55) AND keyval(77) > 1 THEN
@@ -2081,6 +2036,8 @@ DO
  clearpage dpage
  dowait
 LOOP
+GOSUB saveveh
+EXIT SUB
 
 vehmenu:
 menu$(0) = "Previous Menu"
@@ -2171,9 +2128,6 @@ str2array vehname$, veh(), 1
 setpicstuf veh(), 80, -1
 storeset game$ + ".veh" + CHR$(0), ptr, 0
 RETURN
-
-doneveh:
-GOSUB saveveh
 
 END SUB
 

@@ -69,7 +69,14 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
+
 REM $STATIC
+FUNCTION bound (n, lowest, highest)
+bound = n
+IF n < lowest THEN bound = lowest
+IF n > highest THEN bound = highest
+END FUNCTION
+
 FUNCTION charpicker$
 
 STATIC ptr
@@ -709,10 +716,10 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO doneform
+ IF keyval(1) > 1 THEN EXIT DO
  dummy = usemenu(csr, 0, 0, 2, 24)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  IF csr = 0 THEN GOTO doneform
+  IF csr = 0 THEN EXIT DO
   IF csr = 1 THEN GOSUB editform
   IF csr = 2 THEN GOSUB formsets
  END IF
@@ -724,6 +731,11 @@ DO
  clearpage dpage
  dowait
 LOOP
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+EXIT SUB
 
 formsets:
 bmenu$(0) = "Previous Menu"
@@ -945,11 +957,6 @@ FOR i = 0 TO 7
 NEXT i
 RETURN
 
-doneform:
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 END SUB
 
 FUNCTION getbinsize (id)
@@ -1007,13 +1014,13 @@ DO
  setkeys
  tog = tog XOR 1
  GOSUB movesmall
- IF keyval(1) > 1 THEN GOTO donehero
+ IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) THEN
   cropafter ptr, general(35), -1, game$ + ".dt0", 636, 1
  END IF
  dummy = usemenu(csr, 0, 0, 8, 24)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  IF csr = 0 THEN GOTO donehero
+  IF csr = 0 THEN EXIT DO
   IF csr = 3 THEN GOSUB picnpal
   IF csr = 4 THEN GOSUB levstats
   IF csr = 5 THEN GOSUB speltypes '--spell list contents
@@ -1050,6 +1057,12 @@ DO
  clearpage dpage
  dowait
 LOOP
+GOSUB lasthero
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+EXIT SUB
 
 heromenu:
 bmenu$(0) = "Previous Menu": bctr = 0
@@ -1391,13 +1404,6 @@ FOR o = 1 TO small(buffer(0), 20)
 NEXT o
 RETURN
 
-donehero:
-GOSUB lasthero
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
-
 '0-318,636 bytes
 '0       name length
 '1-16    name content
@@ -1431,13 +1437,11 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO doneherotags
- 'IF keyval(72) > 1 THEN ptr = large(ptr - 1, 0)
- 'IF keyval(80) > 1 THEN ptr = small(ptr + 1, 4)
+ IF keyval(1) > 1 THEN EXIT DO
  dummy = usemenu(ptr, 0, 0, 4, 24)
  SELECT CASE ptr
   CASE 0
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN GOTO doneherotags
+   IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
   CASE ELSE
    dummy = intgrabber(a(291 + ptr), 0, 999, 75, 77)
  END SELECT
@@ -1455,8 +1459,8 @@ DO
  clearpage dpage
  dowait
 LOOP
+EXIT SUB
 
-doneherotags:
 '292     have hero tag
 '293     is alive tag
 '294     is leader tag
@@ -1466,30 +1470,33 @@ END SUB
 FUNCTION intgrabber (n, min, max, less, more)
 STATIC clip
 old = n
-IF keyval(more) > 1 THEN n = loopvar(n, min, max, 1): GOTO doneintgrabber
-IF keyval(less) > 1 THEN n = loopvar(n, min, max, -1): GOTO doneintgrabber
-s = SGN(n)
-n$ = intstr$(ABS(n))
-IF keyval(14) > 1 AND LEN(n$) > 0 THEN n$ = LEFT$(n$, LEN(n$) - 1)
-FOR i = 1 TO 9
- IF keyval(i + 1) > 1 THEN n$ = n$ + intstr$(i)
-NEXT i
-IF keyval(11) > 1 THEN n$ = n$ + "0"
-IF min < 0 THEN
- IF keyval(12) > 1 OR keyval(13) > 1 OR keyval(74) > 1 OR keyval(78) > 1 THEN s = s * -1
-END IF
-capper& = INT(VAL(n$))
-IF capper& > 32767 THEN capper& = 32767
-IF capper& < -32767 THEN capper& = -32767
-n = capper&
-IF s <> 0 THEN n = n * s
-'CLIPBOARD
-IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN clip = n
-IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN n = clip
-n = large(min, n)
-n = small(max, n)
 
-doneintgrabber:
+IF keyval(more) > 1 THEN
+ n = loopvar(n, min, max, 1)
+ELSEIF keyval(less) > 1 THEN
+ n = loopvar(n, min, max, -1)
+ELSE
+ s = SGN(n)
+ n$ = intstr$(ABS(n))
+ IF keyval(14) > 1 AND LEN(n$) > 0 THEN n$ = LEFT$(n$, LEN(n$) - 1)
+ FOR i = 1 TO 9
+  IF keyval(i + 1) > 1 THEN n$ = n$ + intstr$(i)
+ NEXT i
+ IF keyval(11) > 1 THEN n$ = n$ + "0"
+ IF min < 0 THEN
+  IF keyval(12) > 1 OR keyval(13) > 1 OR keyval(74) > 1 OR keyval(78) > 1 THEN s = s * -1
+ END IF
+ capper& = INT(VAL(n$))
+ IF capper& > 32767 THEN capper& = 32767
+ IF capper& < -32767 THEN capper& = -32767
+ n = capper&
+ IF s <> 0 THEN n = n * s
+ 'CLIPBOARD
+ IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN clip = n
+ IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN n = clip
+ n = large(min, n)
+ n = small(max, n)
+END IF
 
 IF old = n THEN
  intgrabber = 0
@@ -1535,14 +1542,14 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO doneitem
+ IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) AND csr >= 0 THEN
   cropafter csr, 254, -1, game$ + ".itm", 200, 1
   GOSUB litemname
  END IF
  dummy = usemenu(csr, top, -1, 254, 23)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  IF csr = -1 THEN GOTO doneitem
+  IF csr = -1 THEN EXIT DO
   IF csr <= 254 THEN
    GOSUB edititem
    setpicstuf a(), 200, -1
@@ -1564,6 +1571,11 @@ DO
  clearpage dpage
  dowait
 LOOP
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+EXIT SUB
 
 edititem:
 setpicstuf a(), 200, -1
@@ -1763,12 +1775,6 @@ NEXT i
 bitset a(), 66, 59, ibit$()
 RETURN
 
-doneitem:
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
-
 'SHOP STUFF
 '0       Name length
 '1-8     Name
@@ -1869,9 +1875,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN
-  GOTO npcdone
- END IF
+ IF keyval(1) > 1 THEN EXIT DO
  dummy = usemenu(cur, top, 0, 35, 7)
  IF (keyval(57) > 1 OR keyval(28) > 1) THEN GOSUB npcstats
  FOR i = top TO top + 7
@@ -1886,6 +1890,10 @@ DO
  clearpage dpage
  dowait
 LOOP
+clearpage 0
+clearpage 1
+clearpage 2
+EXIT SUB
 
 loadnpcpic:
 setpicstuf buffer(), 1600, 2
@@ -2024,11 +2032,6 @@ setpicstuf buffer(), 400, -1
 loadset game$ + ".say" + CHR$(0), npc(cur * 15 + 4), 0
 array2str buffer(), 0, x$
 RETURN
-
-npcdone:
-clearpage 0
-clearpage 1
-clearpage 2
 
 'npc(i * 15 + 0) = picture
 'npc(i * 15 + 1) = palette
@@ -2252,11 +2255,4 @@ ELSE
 END IF
 
 END FUNCTION
-
-FUNCTION bound (n, lowest, highest)
-bound = n
-IF n < lowest THEN bound = lowest
-IF n > highest THEN bound = highest
-END FUNCTION
-
 
