@@ -19,20 +19,16 @@ pkzip distrib\wh_demo.zip wander.exe wander.rpg wh_demo.txt
 del wander.exe
 
 REM Create custom package
-pkzip distrib\custom.zip game.exe custom.exe hspeak.exe unlump.exe
-pkzip distrib\custom.zip ohrrpgce.mas ohrrpgce.fnt ohrrpgce.new custom.txt whatsnew.txt howto.txt
-pkzip distrib\custom.zip sample.rpg npc_tag.rpg pstutor.rpg
-pkzip distrib\custom.zip cleanup.bat plotscr.hsd scancode.hsi game.ico
-pkzip distrib\custom.zip hamsterspeak.html plotscripttutor.html plotdictionary.html
-pkzip distrib\custom.zip wanderp.hss wander.hsi
-pkzip -P -r distrib\custom.zip import\*.*
+support\pkzip distrib\custom.zip game.exe custom.exe hspeak.exe unlump.exe
+support\pkzip distrib\custom.zip ohrrpgce.mas ohrrpgce.fnt ohrrpgce.new custom.txt whatsnew.txt howto.txt
+support\pkzip distrib\custom.zip sample.rpg npc_tag.rpg pstutor.rpg
+support\pkzip distrib\custom.zip cleanup.bat plotscr.hsd scancode.hsi game.ico
+support\pkzip distrib\custom.zip hamsterspeak.html plotscripttutor.html plotdictionary.html
+support\pkzip distrib\custom.zip wanderp.hss wander.hsi
+support\pkzip -P -r distrib\custom.zip import\*.*
 
 REM Create ohrrpgce_play package
-pkzip distrib\ohrrpgce_play.zip game.exe ohrrpgce.fnt game.txt game.ico
+support\pkzip distrib\ohrrpgce_play.zip game.exe ohrrpgce.fnt game.txt game.ico
 
 REM Create rpgfix package
-pkzip distrib\rpgfix.zip rpgfix.exe lumpfix.exe fix.txt
-
-REM Create hspeak-source packages
-pkzip distrib\hspeak-eu-source.zip hspeak.ex hsspiffy.e
-REM pkzip distrib\hspeak-qb-source.zip hspeak.bas allmodex.*
+support\pkzip distrib\rpgfix.zip rpgfix.exe lumpfix.exe fix.txt
