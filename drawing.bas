@@ -131,6 +131,8 @@ DECLARE SUB str2array (s$, arr(), BYVAL o)
 DECLARE FUNCTION isfile (n$)
 DECLARE FUNCTION LongNameLength (filename$)
 'DECLARE FUNCTION ShortNameLength (filename$)
+DECLARE SUB ellipse (x, y, radius, c, p, squish1, squish2)
+DECLARE SUB airbrush (x, y, d, m, c, p)
 
 '$INCLUDE: 'cglobals.bi'
 
@@ -2584,6 +2586,65 @@ setupsample:
 RETURN
 
 donetap:
+
+END SUB
+
+SUB airbrush (x, y, d, m, c, p)
+'airbrush thanks to Ironhoof (Russel Hamrick)
+
+'AirBrush this rutine works VERY well parameters as fallows:
+' AIRBRUSH x , y , diameter , mist_amount , color , page
+' diameter sets the width & hight by square radius
+' mist_amount sets how many pixels to place i put 100 and it ran fast so
+' it works EXCELLENTLY with a mouse on the DTE =)
+
+DO WHILE count < m
+x2 = RND * d
+y2 = RND * d
+r = d \ 2
+x3 = x - r
+y3 = y - r
+IF ABS((x3 + x2) - x) ^ 2 + ABS((y3 + y2) - y) ^ 2 < r ^ 2 THEN
+ putpixel x3 + x2, y3 + y2, c, p
+END IF
+count = count + 1: LOOP
+
+END SUB
+
+SUB ellipse (x, y, radius, c, p, squish1, squish2)
+'ellipse thankss to Ironhoof (Russel Hamrick)
+
+'works mostly like the normal QB circle but with
+'more usefull features
+' ELLIPSE x , y , radius , color , page , vertical pull , horizontal pull
+'the vertical pull & horizontal pull should be in decimals or whole
+'numbers. when both numbers are large it shrinks the circle to fit
+'the screen like so ellipse 10,10,25,7,0,25,40 will make the ellispe
+'smaller. but if its smaller number is 1 or 0 (same) and the other large 0, 25 it will only bend not shrink the ellipse.
+
+r = radius
+b = squish1
+b2 = squish2
+
+IF b = 0 THEN b = 1
+IF b2 = 0 THEN b2 = 1
+'IF b > b2 THEN r = r * b
+'IF b < b2 THEN r = r * b2
+t = -45
+weave:
+a# = (3.141593 * t) / 180
+xi# = COS(a#)
+yi# = SIN(a#)
+x2# = x - xi# * r / b
+y2# = y - yi# * r / b2
+IF x2# < 0 THEN x2# = 0
+IF x2# > 319 THEN x2# = 319
+IF y2# < 0 THEN y2# = 0
+IF y2# > 199 THEN y2# = 199
+IF lx# = 0 AND ly# = 0 THEN lx# = x2#: ly# = y2#
+drawline x2#, y2#, lx#, ly#, c, p
+lx# = x2#: ly# = y2#
+t = t + 4: IF t > 360 THEN  ELSE GOTO weave:
 
 END SUB
 

@@ -37,8 +37,6 @@ cat subs.bas | sed s/"'DEBUG debug"/"debug"/ > subs.bas
 call callbc.bat subs
 cat subs2.bas | sed s/"'DEBUG debug"/"debug"/ > subs2.bas
 call callbc.bat subs2
-cat ironhoof.bas | sed s/"'DEBUG debug"/"debug"/ > ironhoof.bas
-call callbc.bat ironhoof
 cat flexmenu.bas | sed s/"'DEBUG debug"/"debug"/ > flexmenu.bas
 call callbc.bat flexmenu
 

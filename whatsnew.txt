@@ -1,5 +1,12 @@
 WHAT IS NEW?                                                   
 
+Feb ?? 2005 [quaternion]
+
+  * GPL Licensed source code. See LICENSE.txt
+
+  * Cleaned up build system to make it possible for people other than me
+    to compile if they can get ahold of a copy of QuickBasic 4.5
+
 June 28 2004 [ozarks]
 
   * Everybody who has worked so hard to try to plotscript this is

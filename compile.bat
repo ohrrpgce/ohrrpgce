@@ -12,7 +12,6 @@ call callbc.bat drawing
 call callbc.bat subs
 call callbc.bat subs2
 call callbc.bat mapsubs
-call callbc.bat ironhoof
 call callbc.bat flexmenu
 support\pkunzip.exe -o support\nocom.zip nocom.obj > NUL
 support\pkunzip.exe -o support\freelink.zip freelink.exe > NUL

@@ -46,7 +46,7 @@ WHAT IF YOU WANT TO BREAK COMPATABILITY?
 -----------------------------------------------------------------------------
 APOLOGY
   The OHRRPGCE's Source code is ugly. UGLY! Messy! Poorly planned! I most
-  sincerely apologize for this fact, and I protest that I am not realy the
+  sincerely apologize for this fact, and I protest that I am not really the
   terribly incompetent programmer that you might assume I am just by reading
   this code.
 
@@ -66,7 +66,7 @@ APOLOGY
   solve the problem, so I had to break the code up into multiple modules,
   and the only way to do that was to convert my GOSUBs into SUBs and
   FUNCTIONs. Remember now, at the time I was still an ignorant newbie
-  programmer, and I did not under- stand the concept of functional
+  programmer, and I did not understand the concept of functional
   programming. I just saw subs and functions as a way to break my code into
   smaller pieces, and my code was heavily dependant on global namespace, so I
   ended up with a bunch of subs and functions with very very long argument
@@ -89,7 +89,7 @@ APOLOGY
   wealth of things that could easily be re-written properly... except that
   they work well enough now, who has the time and motivation to fix them?
 
-  Well, I hope that doesn't discourage you too much. Play aroun with the
+  Well, I hope that doesn't discourage you too much. Play around with the
   code, have fun, and if you make any improvements that you would like me
   to merge back into the official version, submit patches to me at
   http://HamsterRepublic.com/bugzilla/
