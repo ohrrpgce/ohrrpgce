@@ -18,13 +18,15 @@ WHAT IS NEW?
     * bug 20: CUSTOM does no error checking for NPCs that point to text
               boxes that have been deleted
 
-  * Code cleanup (things that users won't notice)
+  * Code cleanup (things that only developers will notice)
 
      * Cleaned up build system to make it possible for people other than
        me to compile if they can get ahold of a copy of QuickBasic 4.5
      * Support for compiling with QuickBasic 7.1 thanks to Mike Caron
        (pkmnfrk)
      * Massive indentation cleanup thanks to David Gowers (NeoTA)
+     * Assembly DECLARE cleanup (moved to to allmodex.bi) thanks to Simon
+       Bradley
 
 
 June 28 2004 [ozarks]

@@ -6,18 +6,5 @@
 COMMON SHARED /trueglobals/ game$, sourcerpg$, buffer(), master(), gen(), workingdir$, tag(), timing(), global(), carray(), csetup(), gotj(), joy(), veh(), hero(), vpage, dpage, pal16(), name$(), eqstuf(), item(), item$(), lmp(), bmenu(), spell(),  _
 exlev&(), gold&, herobits%(), itembits%(), fmvol, hmask(), version$, speedcontrol, deferpaint, tmpdir$, nativehbits(), catx(), caty(), catz(), catd(), herospeed(), xgo(), ygo(), npcl(), mapx, mapy, presentsong, keyv(), fadestate, foemaph, lockfile
 
-'--register type used for direct assembly language calls
-TYPE Regtype
- ax AS INTEGER
- bx AS INTEGER
- cx AS INTEGER
- dx AS INTEGER
- bp AS INTEGER
- si AS INTEGER
- di AS INTEGER
- flags AS INTEGER
- ds AS INTEGER
- es AS INTEGER
-END TYPE
 COMMON SHARED /assemblyglobals/ regs AS Regtype, off9, seg9
 
