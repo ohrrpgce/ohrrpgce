@@ -18,6 +18,12 @@ REM SET OHRRPGCE=C:\OHRRPGCE
 REM SET QBEDIT=QBX.EXE
 REM SET LINKEXT=l7
 
+REM Attention Windows XP users! You must define these five
+REM environment variables manually. This batch file will not
+REM work. Right-click on "My Computer", pick "Properties", go
+REM to the "Advanced" tab, and click "Environment Variables"
+
+
 ECHO ####################
 ECHO #  O.H.R.RPG.C.E.  #
 ECHO ####################
