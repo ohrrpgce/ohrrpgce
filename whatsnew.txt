@@ -20,6 +20,7 @@ WHAT IS NEW?
     * bug 32: blank exp/gold box after battle when you earn no exp/gold
     * bug 47: Off by one bug in assigning script buffer and heap wastes
               memory
+    * bug 54: Aim math text for Magic damage in CUSTOM is incorrect
 
   * Bugs fixed thanks to help from Mike Caron (pkmnfrk)
 

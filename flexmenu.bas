@@ -262,7 +262,7 @@ addcaption caption$(), capindex, "Normal: " + sname$(3) + "*4 ~ " + sname$(6)
 addcaption caption$(), capindex, "Poor: " + sname$(3) + "*2 ~ " + sname$(6)
 addcaption caption$(), capindex, "Bad: " + sname$(3) + " ~ " + sname$(6)
 addcaption caption$(), capindex, "Never Misses"
-addcaption caption$(), capindex, "Magic: " + sname$(29) + " ~ " + sname$(30) + "*1.5"
+addcaption caption$(), capindex, "Magic: " + sname$(29) + " ~ " + sname$(30) + "*1.25"
 
 CONST AtkLimBaseAtk = 7
 max(AtkLimBaseAtk) = 20
