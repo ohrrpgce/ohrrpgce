@@ -1,0 +1,7 @@
+Wandering Hamster is included in the subversion repository
+for your convenience and mine, but it is not under the same
+license as the source code. You are welcome to edit
+WANDER.RPG for your own amusement and education, but please
+do not redistribute modified versions of it.
+
+If you have any questions, ask Bob@HamsterRepublic.com
