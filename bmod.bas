@@ -1223,6 +1223,7 @@ IF stat(deadguy, 0, 0) = 0 THEN
  v(deadguy) = 0
  ready(deadguy) = 0
  godo(deadguy) = 0
+ d(deadguy) = 0
  '--reset poison/regen/stun
  FOR j = 12 TO 17
    '--am I certain that these all should be reset?
