@@ -1,0 +1,319 @@
+WHAT IS NEW?                                                   
+
+March X 2000
+
+  * Adjusted levelup calculation, and fixed starting-experience bug
+    for heros added at levels higher than 1
+
+  * Fixed a bug in the "resume hero walls" plotscripting command
+
+  * Fixed a big bug in the "while" looping command for plotscripting
+    now it is possible to use a while loop that iterates more than once
+    without crashing and burning :)
+
+  * You can give your game a long title and "about" information that will
+    be displayed instead of the filename when browsing for RPG files
+
+January 31 2000
+
+  * GAME.EXE now keeps track of how long you have played a game.
+    This is displayed on the save/load screens instead of HP
+
+  * Days, hours, and minutes of gameplay are available to plotscripts
+    via the plotscripting functions: days of play, hours of play,
+    minutes of play
+
+  * Heros and NPCs are no longer drawn 5 pixels up from the maptiles.
+    You can now set a custom "Foot Offset" for each map
+
+  * File browser now alphabetizes file listings
+    (only by the first letter, for speed)
+
+  * BMP files of the wrong size and bit depth now show up greyed-out
+    in the import browser
+
+  * The PlotScript interpreter is now more resistant to being crashed
+    by bad scripts
+
+  * Fixed cursor glytch while picking tiles in tilemap mode
+
+  * Fixed the swapped menu items in the graphics menu
+
+January 25 2000
+
+  * Reorganised the main menu, and put al graphics-related stuff in an
+    "Edit Graphics" submenu
+
+  * You can now make tiles on a map damage your hero when you step on them.
+    Press H in wallmap mode to place Harm-Tiles. (default damage is zero)
+
+  * The If-tag-set-tag conditional for text boxes can now set two tags
+    instead of just one. In making this change, I removed the
+    "If tag then stop" conditional, as it was pretty much completely
+    useless, and as far as I know nobody ever used it. If anyone out
+    there did actually use it, I appologise for the inconvenience.
+
+  * The airbrush tool in the MapTile editor can no longer wrap over the
+    edge of the screen and mess up other tiles.
+
+  * Yay! The mapeditor in wallmapping mode no longer flickers in a
+    seisure-inducing way. Yay!
+
+  * Eliminated OHRRPGCE.ALL and OHRRPGCE.PAL. These files are no longer
+    needed to run custom.exe.
+
+  * Fixed the bug that resulted in corrupt map data after deleting a map,
+    and repaired Map 0 in the default new-game. 
+
+  * Fixed a bug that would cause CUSTOM.EXE to lock while exporting an HSI
+    file if you gave something a name that ended with a very long number.
+
+  * Fixed some crashes in the Shop Stuff editor
+
+December 21 1999
+
+  * Re-fixed the running-scripts-from-text-boxes bug.
+    Deja-vu! I couldve sworn I fixed that already :P
+
+December 19 1999
+
+  * The HamsterSpeak syntax for math and comparison has changed.
+    If you have a script that uses the old style of commands
+    it will not compile correctly. See hamsterspeak.html and
+    plotdictionary.html for details
+
+  * Added the following plotscripting commands:
+    getherostat, setherostat, setNPCspeed, suspendboxadvance,
+    resumeboxadvance, advancebox, setheroframe, setNPCframe
+
+  * Fixed bugs in the following plotscripting commands:
+    addhero, swapouthero, swapinhero, lockhero, unlockhero
+
+  * Global script variables are now stored in savegames
+
+  * Autodetection and repair of corrupted maps
+
+  * When you create a new text box, it takes its default appearance
+    from text box 0
+
+  * You can now set a hero's default level to "Party Average"
+
+  * TAB characters are now allowed in plotscripts
+
+  * HSPEAK.EXE now runs in DOS (for real this time :)
+
+November 17 1999
+
+  * Fixed the bug that stripped scripts from the text boxes that where
+    supposed to trigger them
+
+  * Fixed the bug in the "wait for hero" plotscripting command
+
+  * I had to restore from a backup copy of my code, and a few commands
+    present in the buggy November 12 update have not been reimplemented,
+    namely, findhero, swapspecifichero, setherostat, and getherostat
+
+November 11 1999
+
+  * Reduced the conventional memory requirements of GAME.EXE and CUSTOM.EXE
+    Im not happy about the way I had to do this, but too many people where
+    getting DOS memory errors.
+
+November 10 1999
+
+  * Fixed the bug in CUSTOM.EXE that sometimes caused animating maptiles to
+    crash the program
+
+  * Fixed the bug that prevented one-time-usable NPCs from disappearing
+    after you use them
+
+November 9 1999
+
+  * Plotscripting!
+    For more information, view plotscripttutor.html, plotdictionary.html
+    and hamsterspeak.html. I have also included the source for the
+    plotscripts in Wandering Hamster so you can look at them for examples
+
+  * fixed the nasty, but simple bug that used to cause GAME.EXE to crash
+    on maps numbered above 39
+
+  * CUSTOM.EXE now runs some checks on an RPG file before it will save it
+    to help prevent corruption
+
+  * Joystick support that actually works! Press J to calibrate at any time.
+
+  * You can now link together Text boxes without going into the conditionals
+    screen
+
+  * The conditionals screen for text boxes is now much easyer to look at.
+    Disabled conditions are greyed out
+    "Always" conditionals appear in blue
+    normal conditionals appear in brown
+
+  * Quiting, or dying in battle now takes you back to the title screen,
+    not all the way to the game select screen.
+
+  * You can make your map display a default tile beyond its borders
+    instead of usinging the camera to crop the edges. This way you can have
+    a map where your hero is always in the center of the screen, no matter
+    how close you come to the edges.
+
+  * You can make your map wrap at the edges, so if you walk off one side,
+    you automatically go to the other side. Great for overworld maps!
+    (NPCs no not wrap)
+
+  * GAME.EXE now prints an error message instead of locking if it cant find
+    OHRRPGCE.MAS or OHRRPGCE.FNT
+
+  * Consumable items that trigger text boxes are actually consumed now
+
+  * You can give names to your Maps.
+    these names can optionally be displayed when you enter a map,
+    and the name of the map that you saved on will be displayed
+    on the save/load screens
+    (your existing maps may start with gibberish names that you will
+     have to replace. this does not affect new maps)
+
+  * If you use hero swapping to remove all of the living heros from a
+    party, leaving an active party of all-dead heros, one of them will
+    automatically pop back to life with 1 HP
+
+  * When CUSTOM.EXE finds and attempts to recover unlumped data, it will
+    save it with a .BAK extention instead of overwriting the existing
+    .RPG file
+
+  * assorted minor/frivolous/gratuitous bugfixes that you wont notice
+
+Aug 26 1999
+
+  * Repaired a bug in RPG file unlumping
+
+  * Eliminated the delay after text boxes (actually just vastly reduced it)
+
+  * Improved built-in Sprite editor and built-in Maptile editor.
+    Added circle tool and airbrush. thanks to IronHoof for both
+
+  * Assorted Small bugfixes
+
+July 8 1999
+
+  * Fixes the bug in the July 5 version that causes GAME.EXE to crash when
+    you try to save. I cant believe I let that one slip past me! Argh!
+
+  * Fixes a problem some people had with the "Do I have this item?" tags
+
+  * A new feature has been added to several parts of CUSTOM.EXE that lets
+    you delete all records after the current record. For example, RPG files
+    created with older versions of custom.exe have 999 text boxes, even if
+    you have not put any text in any of them. By erasing extra data you can
+    fix the problem that some people experience with undefined heros, enemies
+    or items getting filled with copies of the last hero/enemy/item you made.
+    It can also slightly reduce the size of your RPG file.
+    To use this feature, find the last record (last hero, last text box,
+    last whatever) and press CTRL+BACKSPACE. this feature works for:
+     -text boxes
+     -hero data
+     -item data
+     -enemy data
+     -attack data
+     -enemy formations
+     -map tile sets
+     -imported backgrounds
+     -all sprite graphics
+     -shops
+
+  * Maximum enemy definitions increased from 500 to 32767
+    Maximum attack definitions increased from 200 to 32767
+    Maximum enemy formations increased from 1000 to 32767
+    Maximum map tile sets increased from 15 to 32767
+    Maximum shops sets increased from 255 to 32767
+    Maximum of all types of sprites increased to 32767
+    (note that making 32767 hero sprites would be silly, because the limit
+     for heros is still 40, and will remain 40 in the forseeable future)
+    
+July 5 1999
+
+  * If you buy/hire everything in a shop and there is nothing left,
+    you get knocked out of the shop (instead of giving you an unlimited
+    free supply of the first item)
+
+  * You can make a item call a text box when used. A positive "when used
+    outside of battle" is still an attack, but a negative value now
+    represents a text box.
+
+  * Browsing for files in CUSTOM.EXE no longer crashes under real DOS
+
+  * GAME.EXE does not keep all of its .SAV files in its own directory
+    anymore. .SAV file now belong in the same directory as the .RPG files
+    that they go with
+
+  * Snapshot (F12) works again
+
+June 21 1999
+
+  * Fixed the bug that deleted the mouse cursor for some people.
+    people who already have this problem in their RPG files need
+    to go into the font editor and press CTRL+ALT+F to reload the
+    default font
+
+June 18 1999
+
+  * Fixed the _other_ bug in levelup calculation.
+    You will now have the correct stats at level 99
+
+  * Tag Naming-- You can give descriptions to your tags to help you
+    remember what each tag means
+
+  * Second "Check" and Second "Set" tags in the item data now apply to
+    selling items instead of buying items
+
+  * Save Changes/Discard Changes choice has been replaced with
+    Continue Editing/Save Changes/Discard Changes for the benefit of
+    people who get trigger-happy with the ESC key.
+
+  * GAME.EXE no longer crashes if you highlight "CANCEL" while picking
+    a spell to cast and press left or right 
+
+  * The map editor no longer crashes when placing doors on a map numbered
+    20 or higher
+
+  * New animating maptiles! The last two tile in a set do NOT automatically
+    animate. Instead, you need to create animation-patterns. See HOWTO.TXT
+    for details
+
+  * GAME.EXE can now browse for RPG files in any directory
+    (browsing other drives is not yet supported)
+
+  * Windows users can now associate .RPG files with GAME.EXE and run any
+    game just by double clicking it
+
+  * CUSTOM.EXE can browse for BAM files and BMP files from any directory.
+    You no longer have to keep it all in the IMPORT subdirectory
+    (browsing other drives is not yet supported)
+
+  * The lockup bug in the shop editor has been fixed
+
+  * You can give descriptive names to BAM files after you import them
+
+  * A built-in font editor!
+
+  * NPCs set to "Chase" or "Avoid" no longer flicker
+
+  * Passwords are stored in a more secure way
+
+  * You can now add up to 32767 text boxes instead of just 999
+
+  * The dialogue editor allows you to jump to any text box by typing its
+    number
+
+  * Tag-debug mode in GAME.EXE. Press F4 to enable it, and + and -
+    to scroll through the tags
+
+  * You can assign tags to be automatically set when a hero is in your
+    party, is the leader, is alive, or is in your currently active
+    party
+
+  * You can assign tags to be automatically set when you own at least one
+    of a particular item, have that item in your inventory, have that
+    item equiped, or have that item equiped on a hero you are currently
+    using

@@ -1,0 +1,27 @@
+MIDI2BAM Converter
+------------------
+The utility MIDI2BAM.EXE can convert a song in .MID format into a .BAM song
+for use in O.H.R.RPG.C.E
+
+If you cannot hear MIDI2BAM in Windows95, Restart in DOS-mode
+---------------------------------------------------------------------------
+This is an early version of the converter, so it is not fully functional.
+
+* does not yet have any instrument-editing capabilities
+
+* cannot load MID files from a drive other than the drive it was run from
+
+* cannot save BAM files into a directory other than the directory it was
+  run from.
+---------------------------------------------------------------------------
+
+CONTROLS:
+
+F2    Save a BAM file (type name, no long filenames)
+F3    Import a MID file (browse for file)
+F5    Start/Stop Music
+1-9   Enable/Disable Tracks
+SPACE Toggle Track-View/Voice-View
++     Raise Volume
+-     Lower Volume
+ESC   Exit program

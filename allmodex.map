@@ -1,0 +1,35 @@
+
+ Start  Stop   Length Name                   Class
+ 00000H 03C08H 03C09H _TEXT                  CODE
+ 03C0AH 03D10H 00107H INTRPT_TEXT            CODE
+ 03D12H 04285H 00574H CODE                   CODE
+ 04290H 04290H 00000H FAR_DATA               FAR_DATA
+ 04290H 04290H 00000H FAR_BSS                FAR_BSS
+ 04290H 075A6H 03317H NULL                   BEGDATA
+ 075A8H 075D9H 00032H _DATA                  DATA
+ 075DAH 075E7H 0000EH CDATA                  DATA
+ 075E8H 075E8H 00000H XIB                    DATA
+ 075E8H 075E8H 00000H XI                     DATA
+ 075E8H 075E8H 00000H XIE                    DATA
+ 075E8H 075E8H 00000H XPB                    DATA
+ 075E8H 075E8H 00000H XP                     DATA
+ 075E8H 075E8H 00000H XPE                    DATA
+ 075E8H 075E8H 00000H XCB                    DATA
+ 075E8H 075E8H 00000H XC                     DATA
+ 075E8H 075E8H 00000H XCE                    DATA
+ 075E8H 075F3H 0000CH DBDATA                 DATA
+ 075F4H 075F9H 00006H _BSS                   DATA
+ 075FAH 075FAH 00000H BC_SAB                 BC_SEGS
+ 075FAH 075FDH 00004H BC_SA                  BC_SEGS
+ 075FEH 07603H 00006H NMALLOC                BC_VARS
+ 07604H 07604H 00000H ENMALLOC               BC_VARS
+ 07604H 07604H 00000H XOB                    BSS
+ 07604H 07604H 00000H XO                     BSS
+ 07604H 07604H 00000H XOE                    BSS
+ 07610H 07610H 00000H STACK                  STACK
+ 07610H 08465H 00E56H SYMBOL                 
+
+ Origin   Group
+ 0429:0   DGROUP
+
+Program entry point at 0761:0000

@@ -1,0 +1,60 @@
+------------------------------------------------------------
+ O.H.R.RPG.C.E Editor Testing Demo (January 31 2000 Update)
+------------------------------------------------------------
+Official Hamster Republic RPG Construction Engine
+
+---
+Be sure to Unzip CUSTOM.ZIP with directories (-d option for pkunzip). If you
+fail to do this, your IMPORT directory will not be properly constructed. If
+you have already unzipped without directories... oh, well. It doesnt make
+that big a difference
+---
+
+Please see WHATSNEW.TXT for more information.
+
+---
+This is a TESTING distribution of the O.H.R.RPG.C.E.
+
+Any .RPG files you create are yours to distribute as you please. You may 
+freely distribute GAME.EXE, OHRRPGCE.MAS, and OHRRPGCE.FNT with your .RPG
+files. Do _not_ distribute CUSTOM.EXE or NOTATE.EXE
+
+HOWTO.TXT is a tutorial that will help you get started on making a game.
+I reccomend that you print it, because it is a rather long file.
+I apologise for not updating HOWTO.TXT very often. Some information
+in it is obsolete.
+
+the included files, SAMPLE.RPG , NPC_TAG.RPG , and PSTUTOR.RPG are part
+of the tutorial
+
+---
+PLAYTESTING INFO
+
+This is a testing demo of the O.H.R.RPG.C.E Editor, so as a playtester you
+are expected to report any bugs you find to us. Please note that the editor
+is still under construction, so not all features work yet.
+
+  Report bugs to:      Hamster Republic<ohrrpgce@HamsterRepublic.com>
+  Send files to:       Hamster Republic<files@HamsterRepublic.com>
+  Send suggestions to: Hamster Republic<suggestionbox@HamsterRepublic.com>
+
+And visit:   http://HamsterRepublic.com
+For downloads of the latest copy of the demo.
+
+---
+
+MUSIC UTILITIES
+
+The programs NOTATE.EXE and MIDI2BAM have been provided for you in your 
+IMPORT directory. you can use them to create your own .BAM files 
+(Bob's Adlib Music) for use in your RPG. NOTATE.TXT and MIDI2BAM.TXT 
+contain instructions on how to use the utilities
+
+A small assortment of Public-Domain music has also been included for you to
+use for free if you do not want to compose your own music.
+
+---
+Spiffy, Spiffy! Enjoy the editor. We look forward to your input.
+
+                                            James `SPAM Man' Paige
+                                            Hamster Republic Productions

@@ -1,0 +1,125 @@
+game 
+Microsoft (R) QuickBASIC Compiler Version 4.50
+(C) Copyright Microsoft Corporation 1982-1988.
+All rights reserved.
+Simultaneously published in the U.S. and Canada.
+ 1D05   0582      IF catx(i) - npcl(veh(5) + 0) = 0 AND caty(i) - npcl(veh(5) + 300) = 0 THEN tmp tmp + 1
+                                                                                                  ^ Equal sign missing
+                                                                                                      ^ Syntax error
+                                                                                                      ^ Statement unrecognizable
+
+43725 Bytes Available
+    0 Bytes Free
+
+    0 Warning Error(s)
+    3 Severe  Error(s)
+bmod 
+Microsoft (R) QuickBASIC Compiler Version 4.50
+(C) Copyright Microsoft Corporation 1982-1988.
+All rights reserved.
+Simultaneously published in the U.S. and Canada.
+
+43725 Bytes Available
+10165 Bytes Free
+
+    0 Warning Error(s)
+    0 Severe  Error(s)
+bmodsubs 
+Microsoft (R) QuickBASIC Compiler Version 4.50
+(C) Copyright Microsoft Corporation 1982-1988.
+All rights reserved.
+Simultaneously published in the U.S. and Canada.
+
+43709 Bytes Available
+23754 Bytes Free
+
+    0 Warning Error(s)
+    0 Severe  Error(s)
+menustuf 
+Microsoft (R) QuickBASIC Compiler Version 4.50
+(C) Copyright Microsoft Corporation 1982-1988.
+All rights reserved.
+Simultaneously published in the U.S. and Canada.
+
+43709 Bytes Available
+ 8846 Bytes Free
+
+    0 Warning Error(s)
+    0 Severe  Error(s)
+moresubs 
+Microsoft (R) QuickBASIC Compiler Version 4.50
+(C) Copyright Microsoft Corporation 1982-1988.
+All rights reserved.
+Simultaneously published in the U.S. and Canada.
+
+43709 Bytes Available
+    0 Bytes Free
+
+    0 Warning Error(s)
+    0 Severe  Error(s)
+yetmore 
+Microsoft (R) QuickBASIC Compiler Version 4.50
+(C) Copyright Microsoft Corporation 1982-1988.
+All rights reserved.
+Simultaneously published in the U.S. and Canada.
+
+43725 Bytes Available
+20289 Bytes Free
+
+    0 Warning Error(s)
+    0 Severe  Error(s)
+custom 
+Microsoft (R) QuickBASIC Compiler Version 4.50
+(C) Copyright Microsoft Corporation 1982-1988.
+All rights reserved.
+Simultaneously published in the U.S. and Canada.
+
+43725 Bytes Available
+    0 Bytes Free
+
+    0 Warning Error(s)
+    0 Severe  Error(s)
+drawing 
+Microsoft (R) QuickBASIC Compiler Version 4.50
+(C) Copyright Microsoft Corporation 1982-1988.
+All rights reserved.
+Simultaneously published in the U.S. and Canada.
+
+43725 Bytes Available
+ 5782 Bytes Free
+
+    0 Warning Error(s)
+    0 Severe  Error(s)
+subs 
+Microsoft (R) QuickBASIC Compiler Version 4.50
+(C) Copyright Microsoft Corporation 1982-1988.
+All rights reserved.
+Simultaneously published in the U.S. and Canada.
+
+43725 Bytes Available
+ 2506 Bytes Free
+
+    0 Warning Error(s)
+    0 Severe  Error(s)
+subs2 
+Microsoft (R) QuickBASIC Compiler Version 4.50
+(C) Copyright Microsoft Corporation 1982-1988.
+All rights reserved.
+Simultaneously published in the U.S. and Canada.
+
+43725 Bytes Available
+ 4029 Bytes Free
+
+    0 Warning Error(s)
+    0 Severe  Error(s)
+ironhoof 
+Microsoft (R) QuickBASIC Compiler Version 4.50
+(C) Copyright Microsoft Corporation 1982-1988.
+All rights reserved.
+Simultaneously published in the U.S. and Canada.
+
+43709 Bytes Available
+37083 Bytes Free
+
+    0 Warning Error(s)
+    0 Severe  Error(s)

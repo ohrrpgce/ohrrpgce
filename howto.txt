@@ -1,0 +1,1077 @@
+HOW TO USE the O.H.R.RPG.C.E                     ---Updated January 25 2000
+
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+   Okay. Nothing is really finished, and alot of stuff isnt in, but here 
+goes anyway. This is probably more than you can remember, so you might
+want to print this file... or just ALT-TAB back and forth.
+
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+  CONTENTS:
+   Important Notes
+   Keyboard Conventions
+   Getting Started
+   Making Maptiles
+   Making Walkabout Graphics
+   Moving on to Map construction
+   Battles   
+   How to use NPCs and Tags
+   Adding, Removing, Swapping, Heros
+   Animating Maptiles
+
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+ NOTE: If you want to password protect your game to prevent others from
+  altering it, you can do so in the "General Game Data" menu. A password
+  is never required to _play_ a game, only to _edit_ it.
+  DONT FORGET YOUR PASSWORD!!!
+
+ NOTE: Always remember to backup your work. I cannot stress this enough.
+  This applies to everything you do on your computer that is even the
+  slightest bit important to you-- but you must be especially careful
+  about backing up your RPG files. The OHRRPGCE is unfinished software,
+  and the whole reason that you have it in the first place is that you
+  are looking for bugs. sometimes when you find one of these bugs, it
+  may corrupt your RPG file. Whenever this happenes to someone, I always
+  want to try to identify the cause of the corruption so I can fix it and
+  prevent it from happening to others, but I can seldom recover the lost
+  data that you put so much hard work into. I make backups of Wandering
+  Hamster every day I work on it, and I even make backups of my backups
+  (okay, maybe Im a little paranoid :) bit the point is that backing up
+  your files is important.
+
+ NOTE: HOWTO.TXT does not contain information about plotscripting, cause
+  thats really more of an `advanced' topic For info on plotscripting, see
+  plotscripttutor.html
+
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+Keyboard Conventions
+
+Most of the CUSTOM.EXE is menu based. You can move up and down menus with
+the up and down arrow keys. Submenus can be selected by pressing ENTER
+or SPACE. You can always go back to the previous menu by pressing ESC.
+Numbers and other values can be changed either by typing, by pressing the
+left and right arrows, or when the left and right arrows are unavailable,
+by pressing the < and > keys (period and comma)
+
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+Getting Started
+
+Run CUSTOM.EXE
+
+You will want to create a new game. If you want, you can pick WANDER from
+the list, and try out editing the prexisting game-- it might be easyer to
+get used to that way.
+
+First of all, You should draw some graphics. You dont need to draw them all
+to begin with, you can make them as you go along, but you will need some
+graphics to start out.
+
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+Making Maptiles
+
+Pick "Edit Graphics" from the main menu, and then "Draw Maptiles" from
+the graphics menu, and then pick "Tile Set 0"
+
+A tile set is a page of 160 maptiles. You can use different tile sets
+for different maps.
+
+You can Pick "Draw Tiles" , "Cut Tiles" or "Define Animation". For now,
+just draw some tiles. Cutting tiles will be explained later.
+
+See that blue box up in the corner? That is your cursor. The screen is 
+divided up into 160 tiles. The first one (top left) is the default tile
+You will want this one to be grass, water, void, whatever you want the
+map to be full of before you edit it.
+
+Press Enter, and you will start editing the tile.
+
+  * Arrow keys move your cursor
+  * SPACEBAR places a pixel, fills a area, or sarts/finishes a line or box
+  * Hold ALT and press arrow keys to change your current drawing color
+  * period and comma also change drawing color
+  * ENTER or Right-Click matches the current drawing color with the pixel
+    under the cursor
+  * D switches to the "Draw" tool
+  * B switches to the "Box" tool
+  * L switches to the "Line" tool
+  * F switches to the "Fill" tool
+  * BACKSPACE flips the tile on the Y axis
+  * CTRL+BACKSPACE flips the tile on the X axis
+  * [ and ] brackets rotate the tile
+  * Press ESC when finished
+
+Draw a tile, and then press ESC. you will see your tile at normal size. 
+
+When you draw your tiles, bear in mind that the hero's feet will be five
+pixels up from the bottom.
+
+You can copy tiles with CTRL+C and paste them with CTRL+V
+
+Animating maptiles will be explained later in this file.
+
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+Making Walkabout Graphics
+
+Okay, use ESC to back up to the graphics menu, and pick
+"Walkabout Graphics"
+
+Walkabout picture are the small pictures used for heros and NPCs on the
+overmap. Each character uses eight pictures, two for each of four directions.
+Look in the top righthand side on the screen. See where it says "Up A"?
+Press right, and this will change. Start with "Down A" of "Set 0", and
+press ENTER to begin editing.
+
+The procedure for drawing sprites is a little different from drawing tiles.
+
+First, you need to define a palette. See the wide empty rectangle just
+below the word "Pal 0"? That is your palette. By pressing period and comma,
+you can change which palette color is selected. The leftmost color is 
+transparent, and cannot be changed, so first press "." to select the next
+color.
+
+Now hold down ALT, and use the arrow keys to pick a color from the big
+palette above. The press "." again and set the next color, and so-on.
+
+Now that you have your palette, you can begin to draw in the same way as
+you drew the maptiles. You are limited to 16 colors, so choose them
+carefully.
+
+After you have drawn a sprite, press Right Bracket "]"
+
+Dont worry! Your picture is not really gone!, you have just switched 
+palettes. If you press left Bracket "[" you will switch back to your first
+palette. Remember the brackets, because you will need to make many palettes.
+
+You might want to stop right now and make a few palettes of colors you
+think might be useful together.
+
+If you dont have your picture centered just right, you can realign it by 
+holding CAPSLOCK and pressing the arrow keys.
+
+As with maptiles, you can copy and paste with CTRL+C and CTRL+V
+and you can also copy palettes with ALT+C and paste them with ALT+V
+
+And lastly, You can mirror the picture with BACKSPACE. I find this very
+usefull for saving drawing time. Draw left facing pictures, copy them
+to the right facing slots, and reverse them! haha!
+
+Once again, the controls for sprite drawing are as follows:
+  
+  * Arrow keys move your cursor
+  * SPACEBAR places a pixel, Fills an area, or start/finish a line or box
+  * Hold ALT and press arrow keys alters your current palette color
+  * period and comma change wich palette color you will draw with
+  * ENTER or Right-Click matches the current drawing color with the pixel
+    under the cursor
+  * TAB starts a box. Size the box with the arrow keys, and finish
+    with the SPACE BAR.
+  * [ and ] pick your current palette
+  * CAPSLOCK + arrow keys move the whole picture
+  * D switches to the "Draw" tool
+  * B switches to the "Box" tool
+  * L switches to the "Line" tool
+  * F switches to the "Fill" tool
+  * BACKSPACE reverses the image
+  * CTRL+C copies the picture
+  * CTRL+V pastes the picture
+  * ALT+C copies the palette
+  * ALT+V pastes the palette
+  * I allows you to import a 16-color BMP file
+  * Press ESC when finished
+
+This process applies to all sprites-- that means Walkabouts, Heros, Enemys,
+Weapons, and Attacks.
+
+Many people would much rather create graphics in their favorite drawing
+program, and then import them. This can be done by saving images as 
+16-color BMP files (4-bit BMP) into the IMPORT directory. When you reduce
+your pictures to 16-color, you may be dissapointed with the loss of quality,
+but this loss can be minimised if you are carefull.
+ -Carefully choose your colors. Avoid overuse of halftones, and half-greys.
+  Your images will convert better if they have high color-saturation
+ -Make sure your drawing program is optimizing the palette. Avoid using
+  Windows Paintbrush. It has the worst palette managing I have ever seen
+  in any program.
+ -If you can, draw the picture in 16-colors to begin with, rather than
+  drawing it with more colors and converting it.
+ -Make sure that all your frames use the same palette. Some drawing
+  programs allow you to save and load palettes, but for other drawing
+  programs, you may, for example, have to draw all 8 frames of your hero in
+  one large picture, and then cut each one out and save it separately.
+
+To import a BMP, press "I" while editing a sprite. You will be able to
+browse for BMP files. Pick the one you want, and then choose what you want
+to do with the palette. You can press left and right to pick which slot the
+palette will be written into.
+
+Then choose the background color (transparent color) and boom! You have
+your picture, ready to use.
+
+The size of sprites are as follows:
+
+ Heros..........32x40
+ Walkabout......20x20
+ Small Enemies..34x34
+ Large Enemies..50x50
+ Huge Enemies...80x80
+ Attacks........50x50
+ Weapons........20x20
+
+A very common mistake is to save your BMP files with a color depth other
+than 16 color (4-bit color). If you save your files in the wrong color
+depth, they will not even show up in the import screen.
+
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+Moving on to Map construction.
+
+Pick Edit Maps from the main menu. Map00 is ready to edit. As you go along,
+you can make more maps. There is a limit of 99 maps.
+
+First, pick "Resize map..."
+you will see a small preview of your map (now empty) where each pixel
+represents one tile (it _is_ possible to have a map wider than 320 and
+taller than 200). A screen is 16 tiles wide by 10 tiles, so size your map
+accordingly.
+
+The arrow keys resize the map, and CTRL+arrow keys offset it.
+Hold ALT to move fast. Press ESC to cancel, or ENTER to confirm and resize.
+
+I reccomend starting off with a smallish map. Try 40 wide and
+20 high. You can change the size later.
+
+Your map can be no smaller than 16x10 and it's total area can be no greater
+than 32000 square tiles
+
+Start by choosing "Edit TileMap". The last five options are the five editing
+modes, Tilemap, Wallmap, Doors, NPCs, and Foemap. You can change between 
+them while editing by pressing F1 thru F5, but for now, just worry about
+Tilemap.
+You should see the tiles you drew earlier along the top of the screen
+
+While Editing the TileMap:
+  * Arrow keys move the cursor
+  * SPACE places a tile
+  * Period and comma change wich tile you will place
+  * ENTER lets you pick your tile full screen. ENTER again returns to the
+    map.
+  * Hold ALT and press arrow keys to scroll the whole screen around. 
+  * Press TAB to turn on and off a box that will show you what portion
+    of the map you are looking at.
+  * Press CAPSLOCK to set the selected tile to be the same as the tile
+    under the cursor
+  * Hold CTRL and press F to fill the screen with the current tile.
+  * Press ~ to see a tiny version of your map
+  * Press Function keys to change editing modes.
+  * ESC returns to the menu
+  * Press 1 or 2 to make a tile animate (animatiing tiles explained later)
+  * Press CTRL+1 or CTRL+2 to make all instances of a particular tile
+    animate
+
+After you have made your map, press F2 to switch to Passability mode.
+This is the same as pressing ESC and picking "Edit WallMap" from the menu
+
+Now you get to define where heros and NPCs can walk.
+
+The controls in Passability mode are as follows:
+  * Arrow keys move the cursor
+  * SPACE makes a tile impassable. SPACE again makes it passable
+  * Hold ALT and press arrow keys to scroll the whole screen around. 
+  * Hold CTRL and press arrow keys to selectively change the passability
+    of a tile. Try it, and you will see what I mean.
+    CTRL Up makes the tile impassable on the top.
+    CTRL Down makes the tile impassable on the bottom.
+    CTRL Left makes the tile impassable on the left side.
+    CTRL Right makes the tile impassable on the right side.
+  * Press O to make a tile overhead. Overhead tiles will be draw _over_
+    sprites instead of under them.
+  * Press H to mark a tile as a harm-tile. Harm-tiles can be made to
+    inflict damage on your hero when you step on them
+  * Press TAB to turn on and off a box that will show you what portion
+    of the map you are looking at.
+  * Press Function keys to change editing modes.
+  * ESC returns to the menu
+
+As you press SPACE or CTRL+Arrow-Keys, you will place walls on the map.
+they will show up as flashing grey lines Nobody, hero nor NPC can walk
+across the flashing grey lines.
+
+Now press F3 to go to door mode.
+By this time, you should have the hang of the controls, so I wont go into
+detail. 
+  * SPACE places a door, and if there is already a door under the 
+    cursor, SPACE will remove it.
+
+Just for the sake of practice, create two doors on your map. Door 0 and
+door 1. The press ESC, and pick "Link Doors" from the map menu.
+
+Each of the statements links an entry to an exit. by default, all links are
+Door 0 always leads to Door 0 on map 00.
+Pick the first statement, and press SPACE or ENTER
+
+The first number identifies the entry door. The second number identifies
+the exit door, and the third number identifies what map the exit door is on.
+The fourth and fifth numbers are for conditional tags.
+
+Change the numbers to:
+ Entrance Door 0
+ Exit Door 1
+ Exit Map 0
+ Require Tag 0 [N/A]
+ Require Tag 0 [N/A]
+
+now press ESC, and pick the next statement down the list.
+
+Change the numbers to:
+ Entrance Door 1
+ Exit Door 0
+ Exit Map 0
+ Require Tag 0 [N/A]
+ Require Tag 0 [N/A]
+
+Now Door 0 and Door 1 on your map are linked!
+
+Before you can test out your map and your doors, you need to make a hero.
+Go back up to the main menu, and into the graphics menu.
+
+First, Draw a set of walkabout graphics for your hero. If you want to do it
+now, you can draw hero graphics too, but you will be able to test your map
+without them.
+
+Pick "Edit Hero Stats" from the main menu.
+Highlight "Name:" and type in a name for your hero.
+By highlighting "<-Pick Hero #->" and pressing left and right you can
+choose other heros to edit. Just make hero 0. Right now, you automatically
+start the game with hero 0. That will be changed later.
+
+By picking "Apperance..." you can set the hero's picture and palette.
+
+Okay, now you are ready to test. Quit to DOS, and run GAME.EXE
+
+Pick your game from the menu, and voila! You will be able to walk your hero
+around your map. Try out your walls, try out your doors.
+
+By default, the hero starts in the top left-hand corner of the map. You can
+change this in CUSTOM.EXE by picking "Edit General Data" from the main menu.
+
+If you want to pinpoint a specific spot, just edit the tilemap, and look at
+the numbers in the bottom left of the screen. they show the X and Y location 
+of the cursor. Put the cursor where you want your hero to start, and remember
+the numbers. Then set them in "General Game Data"
+
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+Battles
+
+Okay. Now lets talk about getting a battle going. There are alot of steps.
+Load up the game "SAMPLE". It is a single simple map, and some pre-made
+graphics that you can use to learn to make battles.
+
+Start up CUSTOM.EXE and pick SAMPLE
+
+First, you should name all the stats. Pick "Edit Stat Names"
+
+You will see a list of stats. For each of them, press ENTER, and type in
+a name for the stat. I named the first few. Go ahead and name them all.
+If you do not name them, then it will be difficult to set character and
+enemy stats later on.
+
+Okay. Now pick "Edit Hero Stats"
+
+You should see HappyFace. Pick "Edit Stats". Now, you will see all of the
+stat names, along with numbers. The numbers on the left are the character's
+abilities at level 0, and by level 99, the character will have built up to 
+the numbers on the right. Normally, you would want small numbers at level
+0, and high numbers at level 99, of course, If you want your character
+to get weaker over time, then you can do that too. If you have played Final
+Fantasy II, you might have noticed that Tellah loses strength with each
+levelup.
+
+Anyway. Pick some numbers. You will probably want to re-adjust these numbers
+if your character is too strong or too weak in battle. I would just start 
+with something like:
+
+100           1000
+10            100
+10            50
+10            50
+10            50
+10            50
+10            50
+10            50
+20            30
+0             0
+0             0
+0             0
+
+Anyway. Just get some numbers.
+This is the meaning of each stat:
+HP     Health Energy. Run out, and you die.
+MP     Magic Points. Consumed when you cast a spell
+Atk    Attack power. Normally determines the damage you do to your enemy
+Aim    effects weather or not you miss your target
+Def    Subtracted from the enemy's Atk stat
+Dog    Effects weather or not you dodge the enemy's attack.
+Mag    Magic power. Normally determines the damage your spells do
+Wil    Subtracted from the enemy's Mag stat
+Spd    How fast you get your turn. This should usually be within the range
+       of 10-30
+Ctr    Not implemented yet. Will effect counterattacks
+MP~    A percentage by which your MP conumption is reduced. A high MP~ lets
+       you cast alot more spells
+Hits   Use this sparingly. It causes attacks to be duplicated. Nothing is
+       more annoying that a game where every single hero and every single
+       enemy does 20 hits with each attack.
+
+Now go back to the main menu, and pick "Edit Attacks"
+
+See the twitching fuzzball in the lower right? That is going to be the
+attack.
+
+First change the palette. I pre-defined a few palettes for you to use. Make
+it blue or red or something.
+
+For most of the attack-stats, you can just leave the defaults. Change them 
+however you want.
+The meaning of each attack-stat will be explained later in the this file.
+
+Set "Attack Motion" to "Projectile"
+
+the "Delay" option tells how many game ticks the character will wait between 
+the time you tell the character to attack, and when they actually do it. 
+I have not calculated it, but I would guess that 10 ticks is about one 
+second.
+
+And now, --this is important-- name the attack. If you dont name it, there
+will just be a blank in your hero's battle menu.
+
+Now to make enemies. go back to the main menu, and pick "Edit Enemy Stats"
+
+Type in a name for the little booger. Dont bother with typing any death
+text, because it isnt used yet-- and probably wont ever be. Im gonna use
+that data for something else.
+
+Now pick "General data..." I personally would give it the green palette,
+but that is just a matter of taste.
+Go ahead and set gold and experience, but dont bother with the Item stuff,
+since you have not created any items yet.
+
+Now go back and pick "Edit Stats" from the enemy menu. The enemy never grows
+in experience, so there is only one set of numbers. I would set them 
+something like this:
+
+20
+0
+10
+10
+10
+10
+10
+10
+0
+0
+0
+
+Just dont make them too much higher than the numbers you gave to your hero,
+or you will get slaughtered.
+
+Now back to the enemy menu, and pick "Edit Attacks"  Set one of the standard
+attacks to the be the little twitching fuzzball attack you made earlier.
+Then the enemy will attack the same way the hero does.
+
+This is the way an enemy fights: Normally, it randomly picks one of the five
+"Standard" attacks. If the enemy is almost dead, it will instead pick one
+of the "Desperation" attacks. If it is the only enemy alive, it will pick
+its attack from the "Alone" attacks. If there are no desperation or alone
+attacks, then the enemy will just resort back to it's standard attacks. 
+"Counter" attacks dont work yet.
+
+All an enemy really needs is a single standard attack, and it will work.
+
+Now make another enemy. Go back to the enemy menu, and switch to the next
+enemy-- now you should see <-Pick Enemy 1-> instead of <-Pick Enemy 0->
+
+Type in a new name.
+
+Pick "General data". Change the "Size" option. There are three sizes of
+enemy graphics; small, medium, and large. The size option picks which set of
+graphics the enemy will use. When you change size to 1, you will see a
+three headed thingy.
+
+Go back to the enemy menu, and Edit stats to make this enemy different.
+Maybe give it less power(third number), but more extra attacks(last number)
+
+Since you only have one attack right now anyway, there is no point in 
+changing the second enemy's attacks. Just make sure that it has one
+standard attack set to the twitching fuzzball attack.
+
+Good! Now you are ready to make some enemy formations. Back to the main menu,
+and pick "Edit Enemy Formations"
+
+Now pick "Edit Individual Formations"
+
+Oh! I forgot! You have no background. A background is just for looks, it
+doesnt affect gameplay, but naturally you will want one. Back to the Main
+Menu, and pick "Import screens"
+
+Pick "Replace Current Screen" -- you will be replacing the null-black
+background. If you think you might want to use the blank background for 
+something, then choose "Append a new screen" instead
+
+I packaged one sample BMP file for you to test. You will see it's name
+"SANDSEA.BMP"
+You can make your own background in any drawing program. I use PaintShop Pro
+or Corel PhotoPaint. Just make sure that the picture is exactly 320 pixels
+wide, and 200 pixels tall, and is saved as a 24-bit BMP file. Just put the 
+file in the IMPORT subdirectory, and it will show up on the list.
+
+Pick SANDSEA.BMP, and it will be imported. This may take a few minutes if 
+you are using a 486.
+
+Looks kindof bad, doesnt it? The ground was supposed to be yellow, but
+It was just a little too close to brown, and translated wrong. This is easy
+to fix. Pick the "Disable Palette Colors" option. You will see a big palette
+showing you all of the available colors. By highlighting a color and pressing
+SPACE BAR, you can disable and enable colors. Eliminate the entire Brown row.
+when you do this, you should see most of the picture blacked out. Now, pick
+"Replace Current Screen" , and the picture will be re-imported. It will now
+ignore the ugly browns, and use the next best color, Yellow.
+
+(Note: The very same process of importing is used to import your Title
+ screen. After you have imported a title screen, you can pick it in 
+ "Edit General Game Data" on the main menu)
+
+NOW you are ready to make formations!
+
+Back to the main menu.
+
+Pick "Edit Enemy Formations"
+
+Pick "Edit Individual Formations"
+
+Now you can see the background you just imported. The Blue Rectangles
+represent the locations of your party.
+
+"Victory Text" does not work yet.
+
+You can set the "Battle Music" number, but it wont do any good until you
+have imported some BAM files.
+
+Go to an "-EMPTY-" slot, and press right. Your first enemy should appear.
+Press ENTER, and you can move him around. (hold ALT to move him fast)
+
+Press escape, and set another enemy. You can have up to 8, but I wouldnt
+reccomend setting too many right now, otherwize your hero may get 
+slaughtered. One or two is fine.
+
+Now change the formation number -- <-formation 1-> instead of <-formation 0->
+And set your second enemy instead. Then edit formation 2, and set a
+combination of both enemies. Now you have three enemy formations, (0 to 2)
+
+Press ESC, and go back to the formation menu. 
+Pick "Construct Formation Sets"
+
+You are editing formation-set 1. remember that. "1"
+Set the battle frequency. 
+There is a number, internal to the game, that averages about 100. Every
+time you step on a spot where an enemy could be, it subtracts the battle 
+frequency from that number, and when that number reaches 0, a battle happens.
+
+So, A battle frequency of 0 means no battles at all.
+A frequency of 1 means about 100 steps between each battle.
+A frequency of 10 means about 10 steps between each battle.
+A frequency of 20 means about 5 steps between each battle.
+A frequency of 99 means a battle almost every step.
+
+I reccomend 9, but pick whatever you want.
+
+Now, change three of the "Empty" slots to read "Formation 0" "Formation 1"
+and "Formation 2". Now, when a battle occurs, it will randomly pick from
+the three enemy formations that you set up earlyer.
+
+Okay. Final Step. Now you have to make the Foe-mapping
+
+Go back to the main menu, and pick "Edit Map Data"
+
+Pick "Map 00"
+
+and pick "Edit Foemap"
+
+You will see a simple map that I have already created.
+
+See the word "Set: 0" in the top left of the screen? Press "." to change it
+to "Set: 1"
+
+Now you can choose which maptiles you must walk over to fight the enemies
+you made from the enemy formations you made in formation set one 
+(that you just made)
+
+Move the cursor over the sand, and press SPACE. a "1" appears. Now,
+whenever you step on that tile, there is a chance of having a battle.
+
+Do the same for each tile of the sand.
+
+If you made a mistake, you can correct it. Press "," and the "Set 1" in the
+upper left will become "Set 0" again. Now you can press SPACE to make a
+tile safe to walk across again.
+
+Now exit to DOS, and run GAME.EXE
+
+Pick "SAMPLE", and try out what you have done. You should be able to walk
+around safely in the grass, but fight enemies when you walk on the sand.
+
+If you used the stats I reccomended for the hero and the enemies, then
+you may want to adjust them. I had a hard time beating the enemies.
+
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+How to use NPCs and Tags.
+
+In case you dont know, NPC stands for Non-Playing-Character. In other words,
+generic townspeople. in the O.H.R.RPG.C.E, NPCs are also used as treasure
+chests, pushable scenery, etc.
+
+Okay. Start CUSTOM.EXE, and load up NPC_TAG. It is another pre-made
+tutorial.
+
+Pick "Edit NPCs"
+
+Pick "Map 00 NPCs"
+
+You will see a list of happyfaces. The first one is green. He is pre-made.
+Pick the second happyface on the list. (the first yellow one)
+
+Change his "Palette" to 2 (light blue) so that you will be able to tell him
+apart from the other happyfaces.
+
+Change his move type. It determines how he will move around on the map.
+The meanings of each move type are as follows.
+
+ Stand Still...Stand there like an idiot
+ Wander........Wander aimlessly and randomly
+ Pace..........Walk strait until it runs into something, and then it turns
+               around and walks back the other way
+ Right Turns...Walk strait until it runs into something, and then turn right
+ Left Turns....Walk strait until it runs into something, and then turn left
+ Random Turns..Walk strait until it runs into something, and then pick a new
+               direction at random.
+ Chase you.....Always walk towards the player
+ Avoid you.....Always walk away from the player
+
+After choosing a move type, give the NPC a "Move Speed"
+The move speed determines how many pixels the NPC moves each step. 
+The player moves 4 pixels each step.
+
+Now set "Display Text" to "2" 
+At the bottom of the screen you should see the words 
+ 
+ "Talking to me will make the green guy"
+
+This is the first line of a text box that I pre-made using "Edit Text Boxes"
+on the main menu.
+
+Now, when you use this NPC, text box 2 will be activated.
+
+"Pushability" may be set if you want the player to be able to push the
+NPC around the map.
+
+"Autoactivation" can be turned "On" if you want the NPC to be used 
+automaticly when you stand next to it, rather than waiting for the player
+to press SPACE or ENTER
+
+Now Press ESC to go back to the list of happyfaces.
+
+Pick the next NPC on the list.
+
+Set its "palette" to "3" (red)
+and set its "Display text" to 3 ("With proper use of...")
+
+Set any other stats as you wish, and
+press ESC.
+
+Now pick the next NPC on the list of happyfaces.
+
+make his "palette" 4 (purple)
+and his "display text" 6 (I am an Inn...)
+
+Now go back to the list of happyfaces.
+
+You should see the Green pre-made NPC, and the three NPCs that you just made.
+blue, red, and purple.
+
+Now you are going to place these NPCs on the map.
+
+Go back to the main menu, and pick "Edit Map data"
+
+pick "Map 00"
+
+and pick "Place NPCs"
+
+Now you should se a pre-made map. Your cursor is the spinning Green-happy.
+A green happy has already been placed on the map.
+
+By pressing "." and "," you can change which NPC the cursor is. Press
+"." once, and it will become your blue-happy.
+
+The controls in NPC mode are as follows:
+  * Arrow keys move the cursor
+  * SPACE places a copy of the current NPC. SPACE again will remove it
+  * Hold ALT and press arrow keys to scroll the whole screen around. 
+  * Hold CTRL and press arrow keys to place an NPC facing in a particular
+    direction.
+    CTRL Up places a copy of the current NPC facing north
+    CTRL Down places a copy of the current NPC facing south
+    CTRL Left places a copy of the current NPC facing west
+    CTRL Right places a copy of the current NPC facing east
+    (If you want to place two different NPCs in exactly the same place,
+     you cannot do so with SPACE. You must use CTRL+arrowkey)
+  * Press TAB to turn on and off a box that will show you what portion
+    of the map you are looking at.
+  * Press Function keys to change editing modes.
+  * ESC returns to the menu
+
+Place a copy of your blue-happy somewhere on the green part of the map.
+
+press "." again to select your red-happy. Place it, and repeat the process
+ again for the purple-happy.
+
+Now exit to DOS, and run GAME.EXE
+
+load NPC_TAG
+
+As you walk around and talk to the happyfaces, you will notice that they 
+make a variety of claims which simply are not true.
+
+The blue-happy claims to make the green-happy dissapear,
+the purple-happy claims to be an Inn,
+and the red-happy keeps repeating that he can say other things
+
+Next, I will show you how to make the happyfaces actually do these things.
+
+Exit back to DOS, and run CUSTOM.EXE
+
+First, to make the blue-happy remove the green-happy. this is done with
+tags. Pick "Edit Maps", open Map 00, and pick "Edit NPCs".
+
+pick the green-happy.
+
+see the two lines that say "Appear if Tag 0 [N/A]" ?
+See at the bottom of the screen where it says "Appears all the time"
+that is what "Appear if Tag 0 [N/A]" means
+
+Change one of the two lines to "Appear if tag 2 = OFF"
+
+The game keeps track of 1000 little tags,
+each of them can be OFF or ON.
+All tags start out OFF
+That means that tag 2 should start out OFF, and As long as tag 2 stays OFF
+then the green-happy will exist, but the moment tag 2 becomes ON then
+the green-happy will dissapear.
+
+Now go back to the main menu.
+
+pick "Edit Text Boxes"
+
+Now press right until you get to "text box 2"
+You will see the text where the blue-happy is claiming to make the 
+green-happy dissapear.
+
+Pick "Edit conditionals"
+
+look where it says:
+
+ Never do the following
+  set tag 0 = ON [unchangeable]
+  set tag 0 = ON [unchangeable]
+
+Tag 0 is always OFF, and it is a special tag that can never be set ON.
+This means that the two "set tag" statement will never happen.
+
+pressing left and right will change the conditionals.
+
+Change them to read:
+
+ always do the following
+  set tag 2 = ON (green-smiley)
+  set tag 0 = ON [unchangeable]
+
+Now, when you talk to the blue-happy, the game will check to see if it
+needs to do any of its conditional commands, and it will see the "always
+do the following" and it will know that it needs to set some tags. Tag 2
+will be turned ON
+
+Now, since tag 2 = ON, the green-happy can no longer exist. Poof! he is gone.
+
+how come there are two "Set tag" commands? Thats just in case you want
+to set two tags at the same time with a single text box.
+
+Now to make the Red-Happy say different things.
+
+In "Edit Text Boxes" press right until you reach "text box 3"
+
+pick "edit conditionals"
+
+look where it says:
+
+ never do the following
+  [choose text box or script]
+
+Quite obviously, this does nothing.
+
+Change it to read:
+
+ If tag 3 = ON (red sez other stuff)
+  jump to text box 4 instead
+  
+Now, remember that tags start OFF, so the jump still isnt taking place.
+
+Just like with the blue-happy, change the second "If-Then" to:
+
+ always do the following
+  set tag 3 = ON (red sez other stuff)
+  set tag 0 = ON [unchangeable]
+
+Now, the first time you talk to the red-happy, the jump will be ignored,
+and tag 3 will be set to ON
+
+The second time you speak to the red-happy, the first "If" will be true
+because tag 3 is now ON. Text box 4 will be displayed instead of text box 3
+
+Now pres ESC, and move right to text box 4.
+
+Change the first two conditionals to:
+
+ If tag 4 = ON (red sez yet more)
+  jump to text box 5 instead
+ always do the following
+  set tag 4 = ON (red sez yet more)
+  set tag 0 = ON [unchangeable]
+
+Voila! Now the red-happy can say three different things in a row!
+
+So where are those names coming from? like "red sez more stuff"
+On the main menu you can pick "edit tag names" and give names to
+the tags so it is easy for you to remember what they mean in the game
+
+Now to make the Purple-happy an Inn.
+
+In "Edit Text Boxes" move right to "text box 6"
+
+Pick "Edit Conditionals"
+
+The sixth conditional says:
+
+ never do the following
+  restore the party's HP and MP
+
+Change it to:
+
+ always do the following
+  goto an in that costs 5$
+
+Now, when you speak to the purple-happy, he will be an inn that costs
+five bucks!
+
+Now exit out to DOS, and test it all!
+
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+Adding, Removing, Swapping-In, Swapping-Out, Locking and Unlocking Heros
+
+Many people ask how to add heros to your party, well, let me tell ya.
+
+If you went thru the previous section of this HOWTO, you should know how to
+use text box conditionals. You use them the same way to manipulate your
+party.
+
+Pick "Edit Text Boxes"
+
+Locate the text box you want to use to add/remove/whatever heros
+
+Pick "Edit Conditionals"
+
+Down near the bottom of the list, you will see:
+
+ never do the following
+  do not add/remove heros
+  do not swap in/out heros
+  do not unlock/lock heros
+
+I apologise for the double negatives :)
+So far, this text box will not change your party in any way.
+
+So, change the first line to "always do the following"
+
+Now, you can modify each of the three lines to make changes to your party.
+here is what each change means.
+
+ Add Hero-      The specified hero is added to your party at the first
+                available space. If no spaces are available, the hero is
+                placed in your reserves.
+
+ Remove Hero-   The specified hero, and all of his/her equipment is deleted,
+                never to be seen again. If you add the hero back again,
+                he/she will start over with beginning stats.
+
+ Swap In-       If you have an empty space, the specified hero will be
+                moved from your reserves into your active party.
+
+ Swap Out-      If the specified hero is in your active party, he/she will
+                be moved into your reserves.
+
+ Lock Hero-     If the specified hero is in your active party, he/she will
+                be locked there, and cannot be swapped on the "Team" menu
+                If the specified hero is in your reserves, then he/she will
+                be hidden and unavailable on the "Team" menu.
+
+ Unlock Hero-   Releases a specified hero that has already been locked, so
+                that he/she can be moved on the "Team" menu again. 
+
+
+Sooo... How do you make a character leave your party, but still have the
+same experience and equipment when he/she returns? Simple. Dont remove the
+hero at all. Just "Swap-out" the hero, and then "Lock" the hero. When you
+want the hero back, you can just "Swap-in" and "Unlock" him/her
+
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+Animating Maptiles
+
+In previous versions, the last two tiles in a tileset have magically
+toggled, creating simple animation. This is no longer true. The new
+system for animating maptiles is much more complicated, but the results
+are far spiffyer.
+
+It is now possible to animate many different tiles, in two possible
+patterns for each tileset.
+
+Pick "Edit Maptiles" from the main menu, and choose a tileset.
+
+Pick "Define Tile Animation"
+
+You have your choice of animation set 0 and animation set 1.
+Each can be applied to a different range of tiles, and each can have it's
+own pattern. For example, I like to use the first animation set for a rapid
+toggle between two tiles to get that "flicker" or "twitch" effect. I usually
+use the second animation set to cycle through three or more tiles to get
+a "pulsing" or "waving" look.
+
+Start by picking "Set Animation Range"
+
+You will now see your whole tile set, with all except the bottom three rows
+greyed out. The greyed tiles are unavailable for animation. The clear tiles
+can be animated. Using the arrow keys, you can change the range of animatable
+tiles. Try it.
+
+Next pick "Set Animation Pattern"
+
+The Animation pattern is a sort of a simple script that shows how your
+animating tiles should move.
+
+Right now, what you should see in the animation pattern is:
+
+     wait 3
+     right 1
+     wait 3
+     left 1
+     end of animation 
+
+With this pattern, your tile waits three ticks, becomes the tile to its
+right, waits three more ticks, becomes the original tile again, and repeats.
+This way, your tile changes between two pictures every three ticks in an
+A, B, A, B, A, B... pattern
+
+By pressing enter on any of the steps, you can change its "Action" and
+"Value". The meaning of each possible action is as follows:
+
+ Action=end of animation             -The animation will start over from the
+                                      beginning
+ Action=Up                           -The tile will look like the tile
+                                      above it. The value=# determines
+                                      how far. normally you will only use 1
+ Action=Down                         -The tile will look like the tile
+                                      "value" spaces below it
+ Action=Right                        -The tile will look like the tile
+                                      "value" spaces to its right
+ Action=Left                         -The tile will look like the tile
+                                      "value" spaces to its left
+ Action=Wait                         -The tile will hold its current picture
+                                      for "value" ticks. (I would estimate
+                                      that there are about 12 ticks in a
+                                      second)
+ Action=If tag do rest               -the tag specified by "value" is
+                                      checked, and if it is not true, the
+                                      animation jumps back to the beginning
+
+You might want to try something fancyer:
+
+     wait 2
+     right 1
+     wait 2
+     right 1
+     wait 2
+     left 1
+     wait 2
+     left 1
+     end of animation 
+
+causing the animating tile to go in an A, B, C, B, A, B, C, B, A... pattern
+
+There is a limit to how complex your animation can be. Only eight steps
+(not counting the "end of animation")
+
+Back up to the previous menu, and pick "Test Animation"
+
+Here you will see three rows of maptiles. these are the same tiles that
+you selected under "Set Animation Range"
+
+Move the cursor around to see a preview of how each tile would look when
+animating.
+
+The last step is to make tiles on your map animate.
+
+Go back to the main menu, and pick "Edit Map Data". Choose your map,
+and go into "Edit TileMap" mode. Place your cursor over a tile that you want
+to animate and press "1"
+
+The tile should start using the animation pattern you just defined. If you
+want to make a tile stop annimating, press 1 again. Press 2 if you want 
+a tile to start or stop using the second animation set.
+
+If your tile isnt doing anything, there are several things that could be
+wrong:
+
+ A) Your animation pattern is blank
+ B) You didnt put any "Wait" actions in your pattern. Without waits, the
+    animation happens so fast that it doesnt get displayed on the screen.
+ C) The tile that you are trying to animate isnt in the "Animation Range"
+    Only the tiles in the range that you chose can animate. Go back, and
+    move your range.
+
+So what if you have a whole bunch of tile to animate? Do you have to press
+"1" on each and every one of them? Nope. Just put your cursor over one of
+them, hold CTRL and press "1". Every single tile on the map that looks
+exactly the same as the one under your cursor will start to animate. This
+is very usefull if you are like me, and enjoy making entire oceans animate.
+
+What if this all sounds too complicated?
+What if you just want to make all of your tiles work like they used to?
+no problem. When you load an old RPG file, it will be automatically updated
+so that any animating tiles you had before wills till work.
+
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+---
+Last time I updated this HOWTO, I fixed a bunch of obsolete instructions.
+This file should actually be useful for people again! ... but it does need
+lots more work. Anyone who is interested in helping me by writing new
+chapters for the HOWTO should mail HOWTO@HamsterRepublic.com
+
+James `SPAM Man' Paige
+

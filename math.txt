@@ -1,0 +1,26 @@
+0 random (minimum,maximum)         10    minumum,?,maximum
+
+1  exponent (number,power)          20    number,^,power 
+
+2  modulus (number,number)          30    number,%,power
+3  divide (number,number)                 number,/,number
+4  multiply (number,number)               number,*,number
+
+5  subtract (number,number)         40    number,-,number
+6  add (number,number)                    number,+,number
+
+7  xor (expression,expression)      50    number,xor,number
+8  or (expression,expression)             number,or,number
+9  and (expression,expression)            number,and,number
+
+10 equal (number,number)            60    number,=,number
+11 notequal (number,number)               number,<>,number
+12 lessthan (number,check)                number,<,number
+13 greaterthan (number,check)             number,>,number
+14 lessthanorequalto (number,check)       number,<=,number
+15 greaterthanorequalto (number,check)    number,>=,number
+
+16 setvariable (variable,value)
+17 increment (variable,value) 
+18 decrement (variable,value) 
+

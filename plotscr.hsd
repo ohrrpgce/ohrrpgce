@@ -1,0 +1,249 @@
+# PLOTSCR.HSD last modified January 28 2000
+# This file holds the language definition for OHRRPGCE plotscripting.
+# modifying this file may have undesired/disasterous effects
+# functions marked with an x have not been implemented yet.
+# functions marked with a ? are implemented but untested
+
+#--------------------------------------------------------------------------
+# hard coded functions
+
+define function, begin
+0,noop,0                    # no operation
+1,wait,1,1                  # wait(cycles)
+2,waitforall,0              # wait for script-related walking&panning to stop
+3,waitforhero,1,0           # wait for hero to stop moving
+4,waitfornpc,1,0            # wait for npc to stop moving
+5,suspendnpcs,0             # pause normal NPC movement
+6,suspendplayer,0           # stop the player from controlling stuff (except text boxes)
+7,resumenpcs,0              # resume npc automation
+8,resumeplayer,0            # unlock players controls
+9,waitforkey,1,99           # wait for a keypress
+10,walkhero,3,0,2,1         # walk hero(who,direction,distance)
+11,showtextbox,1,1          # show a text box
+12,checktag,1,0             # returns the value of a tag
+13,settag,2,0,0             # set tag(#,true/false)
+15,usedoor,1,0              #? use door(#)
+16,fightformation,1,0       # fight formation(#)
+17,getitem,2,0,1            # get item(item,quantity)
+18,deleteitem,2,0,1         # delete item(item,quantity)
+19,leader,0                 # returns the current leader
+20,getmoney,1,0             # get money(amount)
+21,losemoney,1,0            #? lose money(amount) no checking
+22,paymoney,1,0             # returns false and subtracts nothing if cannot afford
+23,walkherotospot,3,0,0,0   #x walk hero to spot (who,x,y)
+24,walknpctospot,3,0,0,0    #x walk npc to spot (who,x,y)
+25,setheroframe,2,0,0       # (who,frame) frame is 0 or 1
+26,setNPCframe,2,0,0        # (who,frame) frame is 0 or 1
+27,suspendoverlay,0         #? turns off overhead tiles
+28,playsong,1,0             # play song(#)
+29,stopsong,0               #? stop the music
+30,playsound,1,0            #x play sound(#)
+31,equip,2,0,0              #x equip an item (who,what)
+32,showbackdrop,1,0         #? showbackdrop (#)
+33,showmap,0                #? cancels a showbackdrop
+34,showmovie,1,0            #x show flic movie clip
+35,waitformovie,0           #x waits for movie to stop
+36,waitforframe,1,0         #x wait for specific frame of movie
+37,useshop,1,0              #x use shop(#)
+38,camerafollowshero,1,0    # make camera follow a hero
+39,camerafollowsnpc,1,0     # make camera follow an npc
+40,pancamera,3,0,1,2        # pan camera(direction,distance,pixelstep)
+41,focuscamera,3,0,0,2      # focus camera(x,y,pixelstep)
+42,waitforcamera,0          # waits for pan or focus to finish
+43,herox,1,0                # returns the hero's x coordinate
+44,heroy,1,0                # returns the hero's y coordinate
+45,npcx,1,0                 # returns the npc's x coordinate
+46,npcy,1,0                 # returns the npc's y coordinate
+47,suspendobstruction,0     # lets heros walk through NPCs and vice versa
+48,resumeobstruction,0      # restores normal obstruction behavior
+49,suspendherowalls,0       #? lets heros walk through walls
+50,suspendNPCwalls,0        #? lets heros and npcs walk through walls
+51,resumeherowalls,0        #? restores normal hero wall behavior
+52,walknpc,3,0,2,1          # walk npc(who,direction,distance)
+53,setherodirection,2,0,2   # set hero direction(who,direction)
+54,setnpcdirection,2,0,2    # set npc direction(who,direction)
+55,floathero,3,0,2,1        #x like walk hero, but does not change direction/move feet/check obstruction
+56,floatnpc,3,0,2,1         #x like walk npc, but does not change direction/move feet/check obstruction
+57,suspendcatapillar,0      # other heros stop following the leader, and can be manipulated separately.
+58,resumecatapillar,0       # turns catapillar party back on
+59,waitfortextbox,0         # waits for text box to go away
+60,simulatekeypress,1,0     #x presses a key as if the player pressed it
+61,teleporttomap,3,0,0,0    #? teleport to map (map,x,y)
+62,suspendrandomenemys,0    # keeps random enemys from attacking
+63,resumerandomenemys,0     # undoes suspendrandomenemys
+64,getherostat,3,0,0,1      #? returns a hero's stat (who,stat,cur/max)
+65,resumeoverlay,0          #? turns overhead tiles back on
+66,addhero,1,0              # adds a hero to the party
+67,deletehero,1,0           #? deletes a hero from the party
+68,swapouthero,1,0          # move a hero out of the active party
+69,swapinhero,1,0           # moves a hero into the active party (if there is room)
+70,roominactiveparty,0      # returns the number of empty slots in the active party (0-3)
+71,lockhero,1,0             #? prevents swapping of a hero
+72,unlockhero,1,0           #? reverses lockhero
+73,gameover,0               # returns you to the title screen
+74,setdeathscript,1,0       #? changes what script is run when you die
+75,fadescreenout,3,0,0,0    # fade screen out (red,green,blue)
+76,fadescreenin,0           # fade back to color after fade screen out
+77,showvalue,1,0            # display a number in the bottom left corner
+78,alterNPC,3,0,0,0         # replaces one of an NPC's stats
+79,shownovalue,0            # hide the number from showvalue
+80,currentmap,0             # returns the number of the current map
+81,setherospeed,2,0,4       # changes a heros walking speed
+82,inventory,1,0            #? returns the count of a given item
+83,setherostat,4,0,0,1,0    #? alters a hero's stats (who,stat,cur/max,value)
+84,suspendboxadvance,0      # prevents user from advancing text boxes
+85,resumeboxadvance,0       # reverses suspendboxadvance
+86,advancetextbox,0         # as if the user had pressed a key
+87,setheroposition,3,0,0,0  #? arbitraraly set x,y
+88,setNPCposition,3,0,0,0   # arbitraraly set x,y
+89,swapbyposition,2,0,0     # swap two hero slots
+90,findhero,1,0             # locate hero slot by hero name
+91,checkequipment,2,0,0     #x what is a hero equipped with? (who,where)
+92,daysofplay,0             #? returns the days
+93,hoursofplay,0            #? returns the hours
+94,minutesofplay,0          #? returns the minutes
+95,resumeNPCwalls,0         # restores normal NPC wall behavior
+96,setheroz,2,0,0           #? sets the hero's vertical position
+97,setNPCz,2,0,0            #x sets an NPCs vertical position
+end
+
+#--------------------------------------------------------------------------
+# soft coded functions
+
+define script,begin
+autonumber,walkherotoX,2,0,0        # walk hero to X (who,x)
+autonumber,walknpctoX,2,0,0         # walk npc to X (who,x)
+autonumber,walkherotoY,2,0,0        #? walk hero to Y (who,y)
+autonumber,walknpctoY,2,0,0         #? walk npc to Y (who,y)
+autonumber,setNPCspeed,2,0,4        # set an NPC's walking speed
+autonumber,swapbyname,2,0,0         # make two named heros switch places
+end
+
+script,walkherotoX,who,n,begin
+if (n<<heroX(who)) then(walk hero(who,west,heroX(who)--n))
+if (n>>heroX(who)) then(walk hero(who,east,n--heroX(who)))
+end
+
+script,walkherotoY,who,n,begin
+if (n<<heroY(who)) then(walk hero(who,north,heroY(who)--n))
+if (n>>heroY(who)) then(walk hero(who,south,n--heroY(who)))
+end
+
+script,walkNPCtoX,who,n,begin
+if (n<<NPCX(who)) then(walk NPC(who,west,NPCX(who)--n))
+if (n>>NPCX(who)) then(walk NPC(who,east,n--NPCX(who)))
+end
+
+script,walkNPCtoY,who,n,begin
+if (n<<NPCY(who)) then(walk NPC(who,north,NPCY(who)--n))
+if (n>>NPCY(who)) then(walk NPC(who,south,n--NPCY(who)))
+end
+
+script,setNPCspeed,who,speed,begin
+alterNPC(who,NPCstat:movespeed,speed)
+end
+
+script,swapbyname,hero1,hero2,begin
+ set variable(hero1,findhero(hero1))
+ set variable(hero2,findhero(hero2))
+ if (hero1==-1,or,hero2==-1)
+  then (return(false))
+  else (return(true),swapbyposition(hero1,hero2))
+end
+
+
+#--------------------------------------------------------------------------
+# betweenable operators
+
+define operator,begin
+20 ^   exponent
+30,mod,modulus
+30 /   divide
+30 *   multiply
+40 --  subtract
+40 +   add
+50 ==  equal
+50 <>  notequal
+50 <<  lessthan
+50 >>  greaterthan
+50 <=  lessthanorequalto
+50 >=  greaterthanorequalto
+60,xor,xor
+60,and,and
+60,or, or
+end
+
+#--------------------------------------------------------------------------
+# global constants
+
+define constant, begin
+0,zero
+1,one
+2,two
+3,three
+4,four
+5,five
+6,six
+7,seven
+8,eight
+9,nine
+10,ten
+0,false
+1,true
+0,off
+1,on
+0,north
+1,east
+2,south
+3,west
+0,up
+2,down
+3,left
+1,right
+0,upkey
+1,downkey
+2,leftkey
+3,rightkey
+4,usekey
+5,cancelkey
+5,menukey
+99,anykey
+0,me
+0,none
+-1,autonumber
+0,currentstat
+1,maximumstat
+0,NPCstat:picture
+1,NPCstat:palette
+2,NPCstat:movetype
+  0,NPCmovetype:standstill
+  1,NPCmovetype:wander
+  2,NPCmovetype:pace
+  3,NPCmovetype:rightturns
+  4,NPCmovetype:leftturns
+  5,NPCmovetype:randomturns
+  6,NPCmovetype:chaseyou
+  7,NPCmovetype:avoidyou
+3,NPCstat:movespeed
+4,NPCstat:displaytext
+5,NPCstat:whenactivated
+  0,NPCwhenactivated:changedirection
+  1,NPCwhenactivated:faceplayer
+  2,NPCwhenactivated:donotfaceplayer
+6,NPCstat:giveitem
+7,NPCstat:pushability
+  0,NPCpush:off
+  1,NPCpush:full
+  2,NPCpush:horizontal
+  3,NPCpush:vertical
+  4,NPCpush:uponly
+  5,NPCpush:rightonly
+  6,NPCpush:downonly
+  7,NPCpush:leftonly
+8,NPCstat:activation
+  0,NPCactivation:use
+  1,NPCactivation:touch
+  2,NPCactivation:stepon
+12,NPCstat:script
+13,NPCstat:scriptargument
+end

@@ -1,0 +1,20 @@
+@echo off
+echo -------------------------------------------
+echo If you failed to reconstruct subdirectories
+echo when you unzipped CUSTOM.ZIP, this utility
+echo will create the IMPORT directory for you,
+echo and move the appropriate files into it.
+echo -------------------------------------------
+md import >nul
+move *.bmp import >nul
+move *.bam import >nul
+move *.not import >nul
+move *.ibk import >nul
+move notate.* import >nul
+move playbam.exe import >nul
+move midi2bam.* import >nul
+move palette.sto import >nul
+move text.fnt import >nul
+echo -------------------------------------------
+echo Your O.H.R.RPG.C.E directorys are clean.
+echo -------------------------------------------

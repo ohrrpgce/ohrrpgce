@@ -1,0 +1,58 @@
+------------------------------------------------------------
+ Wandering Hamster O.H.R.RPG.C.E Demo (January 31 2000)
+------------------------------------------------------------
+
+NEW IN THIS RELEASE
+
+   * updated GAME.EXE, no new playable content
+
+---
+HOW TO PLAY
+
+Arrow keys  *Move your hero on the map
+            *Move the cursor on menus
+            *Pick your target in battle
+
+SPACE or ENTER  *Talk to people on the map
+ or CTRL        *Confirm menu choices
+                *Confirm targets
+
+ESC or ALT  *Calls up the menu while you are on the map
+            *Cancels any choice
+            *Hold down to run away in battle (ESC only)
+
+< and >  *Change the leader
+
+PAUSE   *Pauses the game in battle. Bet you could have guessed that one.
+
+J *Calibrate Joystick
+
+PGUP+PGDN+ESC   *Exit strait to DOS
+
+F12     *Take ScreenShot in BMP format
+
+---
+PLAYTESTING INFO
+
+This is a beta-testing demo of Wandering Hamster, so as a playtester you
+are expected to report any bugs you find to us.
+
+  Report bugs to:      OHRRPGCE Development<ohrrpgce@HamsterRepublic.com>
+  Send suggestions to: suggestionbox@HamsterRepublic.com
+
+  And visit:   http://HamsterRepublic.com
+  For downloads of the latest copy of the demo.
+
+---
+MUSIC CREDITS
+
+I would like to thank the following people who have given me permission to
+use their music in Wandering Hamster:
+
+ Aaron Walz
+ Shael Riley
+ Jeremy Jacobs
+
+I would also like to thank Modest Petrovitch Mousorgsky, who died long
+before the invention of copyright law, and left all of his great songs
+to the public domain.

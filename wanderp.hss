@@ -1,0 +1,622 @@
+# HamsterSpeak Plotscript for Wandering Hamster -- 1999 James Paige
+#---------------------------------------------------------------------------
+
+include, plotscr.hsd   #language definition
+include, wander.hsi    #game-specific include
+
+#---------------------------------------------------------------------------
+
+define script (1,introduction,none)
+define script (2,broaste returns,none)
+define script (3,find a SPAM icon,none)
+define script (4,shell game,none)
+define script (5,pick a shell,1,0)
+define script (6,hide and seek,none)
+define script (7,reset hide and seek,none)
+define script (8,Panic and Run Around,none)
+define script (9,Show James House,none)
+define script (10,Sleep at the Inn,none)
+define script (11,die in battle,none)
+define script (12,broaste lackeys block castle,none)
+define script (13,flanat castle area autorun,none)
+define script (14,broaste castle inn,none)
+define script (15,ixnekolan inn,none)
+define script (16,Cactus Sighting in Flanat,0)
+define script (17,Cactus Sighting on Mountain,0)
+
+define script (autonumber,Spin NPC,3,0,2,1)
+
+#---------------------------------------------------------------------------
+
+global variable(0,SPAM icons)
+global variable(1,shell game variable)
+
+#---------------------------------------------------------------------------
+
+script, introduction, begin
+
+ suspend npcs
+ suspend player
+ suspend obstruction
+
+ show text box (157)
+ wait for text box
+
+ resume npcs
+ resume player
+ resume obstruction
+
+end
+
+#---------------------------------------------------------------------------
+
+#NPC 16 is Lord Hasim
+#NPC 29 is Lord Broaste
+
+script, Broaste Returns, begin
+ suspend player
+ suspend NPCs
+ show text box (83)
+ wait for text box
+ set NPC direction (16,south)
+ walk hero (me,north,3)
+ wait for hero (me)
+ show text box (62)
+ wait for text box
+ wait (20)
+ play song (Song:Broaste's Madness)
+ set hero direction (me,south)
+ wait (8)
+ set hero direction (1,south)
+ wait (8)
+ set hero direction (2,south)
+ wait (8)
+ set tag(tag:Broaste is Back, ON)
+ show text box (64)
+ wait for text box
+ walk hero (me, south, 3)
+ wait for hero (me)
+ show text box (199)
+ wait for text box
+ focus camera (NPC x(29), NPC y(29), 5)
+ wait for camera
+ camera follows NPC (29)
+ walk NPC (29,north,3)
+ wait for NPC (29)
+ show text box (65)
+ wait for text box
+ add hero (hero:Lord Hasim)
+ set tag(tag:Beat Broaste 2, ON)
+ set tag(tag:Broaste is Back, OFF)
+ fight formation (41)
+ camera follows hero (me)
+ play song (song:Triumphant Music)
+ show text box (91)
+ wait for text box
+ walk hero (me,south,3) 
+ wait for hero (me)
+ delete hero (hero:Lord Hasim)
+ use door (97)
+ resume player
+ resume NPCs
+end
+
+#---------------------------------------------------------------------------
+
+script, Find a SPAM icon, begin
+ increment(SPAM icons)
+ if (SPAM icons >> 4)
+ then,begin
+  set tag(tag:SPAM tree open, ON)
+ end
+end
+
+#---------------------------------------------------------------------------
+# this script and the next one work together to make a simple mini-game
+# where you pay 10$ and then try to guess which of five clam shells
+# contains the 50$ pearl. It is dependent on NPCs already placed on the map
+
+script, shell game, begin
+  # this variable is a loop counter
+  variable (i)
+  if (checktag(tag:playing shell game))
+  then,begin
+    # already playing
+    show text box (213)
+    end
+  else,begin
+    # want to play?
+    show text box (209)
+    wait for text box
+    if (checktag(tag:shell game choice)) then,begin
+      if (pay money (10))
+      then,begin
+        for (i,1,5) do(set NPC direction(i,north))
+        set variable(shell game variable, random(1,5))
+        set tag (tag:playing shell game,on)
+        end
+      else,begin
+        # sorry not enough money
+        show text box (208)
+        end
+      end
+    end
+  end
+
+script, pick a shell, my shell, begin
+ variable (i)
+ if (check tag(tag:playing shell game))
+ then(
+  suspend player
+  for (i,0,3) do,begin
+   set NPC direction (my shell,i)
+   wait (2)
+   end
+  if (my shell == shell game variable)
+  then,begin
+   # congratulations!
+   show text box (210)
+   wait for text box
+   end
+  else,begin
+   # sorry, you guessed wrong
+   show text box (211)
+   wait for text box
+   end
+  for (i,3,0,-1) do,begin
+   set NPC direction (my shell,i)
+   wait (2)
+   end
+  resume player
+  set tag (tag:playing shell game,off)
+  set variable(shell game variable, zero)
+  end
+ else,begin
+  # pay before you play!
+  show text box (212)
+  end
+end
+
+#---------------------------------------------------------------------------
+
+script, Hide and Seek, begin
+ variable (i)
+ # Want to play hide and Seek?
+ show text box (201)
+ wait for text box
+ if (check tag(tag:hide n seek)) then, begin
+  show text box (204)
+  wait for text box
+  alter NPC (14,NPCstat:Script,none)
+  set tag (tag:hide n seek, OFF)
+  for (i,30,0,-1) do,begin
+   # make sure you didnt go thru a door
+   if (current map == 0)
+   then, begin
+    wait (9)
+    show value (i)
+   end
+   else, begin
+    show no value
+   end
+  end #for
+  show no value
+  # make sure you didnt go thru a door
+  if (current map == 0)
+  then, begin
+   # ready or not, here I come!
+   show text box (202)
+   wait for text box
+   alter NPC (14,NPCstat:MoveType,NPCmovetype:ChaseYou)
+   alter NPC (14,NPCstat:Script,7)
+   alter NPC (14,NPCstat:activation,NPCactivation:touch)
+  end #then
+ end #then
+end #script
+
+script,Reset Hide and Seek, begin
+ alter NPC (14,NPCstat:MoveType,NPCmovetype:standstill)
+ alter NPC (14,NPCstat:Script,6)
+ alter NPC (14,NPCstat:activation,NPCactivation:use)
+ show text box (203)
+end
+
+#---------------------------------------------------------------------------
+
+script,Panic and Run Around,begin
+ suspend player
+ set hero direction (me,west)
+ walk hero (me,north,1)
+ walk hero (me,west,1)
+ wait for hero ()
+ set hero direction (me,north)
+ walk hero (me,north,1)
+ wait for hero ()
+ walk hero (me,north,1)
+ walk hero (me,east,1)
+ wait for hero ()
+ set hero direction (me,east)
+ walk hero (me,east,1)
+ wait for hero ()
+ walk hero (me,south,1)
+ walk hero (me,east,1)
+ wait for hero ()
+ set hero direction (me,south)
+ walk hero (me,south,1)
+ wait for hero ()
+ walk hero (me,south,1)
+ walk hero (me,west,1)
+ wait for hero ()
+ set hero direction (me,west)
+ walk hero (me,west,1)
+ wait for hero ()
+ resume player
+end
+
+#---------------------------------------------------------------------------
+
+script, Show James House, begin
+ suspend player
+ focus camera (41,23,5)
+ wait (20)
+ show text box (206)
+ wait for camera
+ wait for text box
+ focus camera (hero X(me), hero Y(me) -- 3, 10)
+ wait for camera
+ camera follows hero (me)
+ resume player
+end
+
+#---------------------------------------------------------------------------
+
+script, Sleep at the Inn, begin
+ suspend player
+ focus camera (hero x(me),+,1,hero y(me) -- 2,2)
+ walk hero (me,east,2)
+ wait for hero (me)
+ walk hero (me,north,2)
+ wait for hero (me)
+ walk hero (me,west,3)
+ wait for hero (me)
+ suspend obstruction
+ suspend catapillar
+ walk hero (me,north,1)
+ walk hero (1,west,1)
+ walk hero (2,north,1)
+ walk hero (3,west,1)
+ wait for hero (me)
+ walk hero (me,west,1)
+ walk hero (1,north,1)
+ walk hero (2,east,1)
+ walk hero (3,north,1)
+ wait for hero (me)
+ set hero direction (me,south)
+ walk hero (1,east,1)
+ set hero direction (2,south)
+ set hero direction (3,west)
+ wait for hero (1)
+ set hero direction (1,south)
+
+ if (room in active party == 0)
+ then,begin
+  set hero direction (3,west)
+  wait (8)
+  set hero direction (3,east)
+  wait (8)
+  set hero direction (3,west)
+  wait (8)
+  set hero direction (3,east)
+  wait (12)
+  set hero speed (2,10)
+  walk hero (2,east,2)
+  set hero direction (2,north)
+  wait for hero (2)
+  set hero speed (2,4)
+  walk hero (3,east,1)
+  wait for hero (3)
+  set hero direction (3,south)
+  wait (15)
+  set hero direction (2,west)
+ end
+
+ play song (song:Sleeping Music)
+ fade screen out (0,0,20)
+ wait (15)
+ if (room in active party == 0)
+ then,begin
+  set hero speed (2,20)
+  set hero speed (3,20)
+  walk hero (3,east,1)
+  wait for hero (3)
+  walk hero (2,west,2)
+  wait for hero (2)
+  set hero direction (2,south)
+  set hero direction (3,north)
+  set hero speed (2,4)
+  set hero speed (3,4)
+  wait (1)
+ end
+ fade screen in
+ play song (song:Cheerful Town Music)
+ wait (5)
+
+ focus camera (hero x(me), hero y(me),10)
+ wait for camera
+ camera follows hero (me)
+ walk hero (me,east,1)
+ wait for hero (me)
+ walk hero (me,south,1)
+ walk hero (1,west,1)
+ walk hero (2,west,1)
+ wait for hero (me)
+ walk hero (me,east,1)
+ walk hero (1,south,1)
+ set hero direction (2,south)
+ wait for hero (me)
+ walk hero (me,east,2)
+ walk hero (1,east,2)
+ wait for hero (me)
+ walk hero (me,south,1)
+ walk hero (1,east,1)
+ walk hero (2,south,1)
+ wait for hero (me)
+ walk hero (me,south,2)
+ walk hero (1,south,2)
+ walk hero (2,east,1)
+ wait for hero (2)
+ walk hero (2,south,1)
+
+ if (room in active party == 0)
+ then,begin
+  set hero direction (3,south)
+  wait (5)
+  set hero direction (3,west)
+  wait (5)
+  set hero direction (3,north)
+  wait (5)
+  set hero direction (3,east)
+  wait (5)
+  set hero direction (3,south)
+  wait (5)
+  set hero speed (3,10)
+  walk hero (3,south,1)
+  wait for hero (3)
+  walk hero (3,west,1)
+  wait for hero (3)
+  set hero speed (3,4)
+ end
+
+ resume catapillar
+ resume obstruction
+ resume player
+end
+
+#---------------------------------------------------------------------------
+
+script,die in battle,begin
+ suspend player
+ play song (song:Game Over)
+ show backdrop (19)
+ wait for key (anykey)
+ fade screen out (20,0,0)
+ game over
+end
+
+#---------------------------------------------------------------------------
+
+script, Broaste Lackeys Block Castle,begin
+ suspend player
+ suspend obstruction
+ pan camera (north,3,4)
+ walk NPC (0,south,1)
+ wait for NPC (0)
+ walk NPC (0,south,1)
+ walk NPC (6,south,1)
+ wait for NPC (0)
+ walk NPC (0,south,1)
+ walk NPC (6,south,1)
+ walk NPC (7,south,1)
+ wait for NPC (0)
+ walk NPC (6,west,1)
+ walk NPC (7,south,1)
+ wait for NPC (6)
+ walk NPC (7,east,1)
+ wait for NPC (7)
+ wait (5)
+ pan camera (south,3,4)
+ wait for camera
+ camera follows hero (me)
+ show text box (5)
+ wait for text box
+ resume obstruction
+ resume player
+ end
+
+#---------------------------------------------------------------------------
+
+script,Flanat Castle Area Autorun,begin
+  if (check tag(tag:spoke to guards))
+  then,begin
+    set NPC position (0,24,55)
+    set NPC position (6,23,54)
+    set NPC position (7,25,54)
+    set NPC direction (6,west)
+    set NPC direction (7,east)
+    end
+  end
+
+#---------------------------------------------------------------------------
+
+script,Broaste Castle Inn,begin
+  suspend player
+  walk hero to X (me,55)
+  wait for hero (me)
+  walk hero to Y (me,42)
+  wait for hero (me)
+  walk hero (me,left,2)
+  wait for hero (me)
+  walk hero (me,up,2)
+  wait for hero (me)
+  walk hero (me,right,4)
+  wait for hero (me)
+
+  variable (i)
+  for (i,0,9)
+  do,begin
+    set hero direction (random(0,3),random(0,3))
+    wait (random(2,8))
+    end
+
+  play song (song:Sleeping Music)
+  fade screen out (0,0,20)
+  wait (15)
+  fade screen in
+  play song (song:Cheerful Town Music)
+  wait (5)
+
+  for (i,0,3)
+  do,begin
+    set hero direction (i,south)
+    end
+
+  walk hero (me,right,1)
+  wait for hero (me)
+  walk hero (me,down,2)
+  wait for hero (me)
+  walk hero (me,left,3)
+  wait for hero (me)
+  walk hero (me,down,3)
+  wait for hero (me)
+  resume player
+  end
+
+#---------------------------------------------------------------------------
+
+script,Ixnekolan Inn,begin
+  variable (i)
+  suspend player
+  walk hero to X (me,32)
+  wait for hero (me)
+  show text box (217)
+  suspend catapillar
+  for (i,0,3)
+  do,begin
+    set hero direction (i,west)
+    end 
+  resume catapillar
+  wait for text box
+  wait (8)
+  set hero speed (me,2)
+  walk hero (me,west,1)
+  wait for hero (me)
+  set hero speed (me,4)
+  walk hero to Y (me,4)
+  wait for hero (me)
+  walk hero (me,north,2)
+  wait for hero (me)
+  walk hero (me,east,3)
+  wait for hero (me)
+
+  suspend catapillar
+  walk hero (me,north,1)
+  walk hero (me,east,1)
+  walk hero (1,north,1)
+  walk hero (2,north,1)  
+  walk hero (2,west,1)  
+  walk hero (3,west,1)
+  wait for hero (me)
+
+  for (i,0,3)
+  do,begin
+    set hero direction (i,east)
+    end
+
+  play song (song:Sleeping Music)
+  fade screen out (0,0,20)
+  wait (15)
+  fade screen in
+  play song (song:Cheerful Town Music)
+  wait (5)
+
+  resume catapillar
+  resume player
+  end
+
+#---------------------------------------------------------------------------
+
+script,Cactus sighting in Flanat,begin
+  variable (cactus)
+  set variable (cactus,10)
+
+  walk NPC (cactus,east,3)
+  wait for NPC (cactus)
+  walk NPC (cactus,west,4)
+  wait for NPC (cactus)
+  set NPC speed (cactus,10)
+  walk NPC to X (cactus,10)
+  wait for NPC (cactus)
+  walk NPC to Y (cactus,21)
+  wait for NPC (cactus)
+  walk NPC to X (cactus,0)
+  wait for NPC (cactus)
+  set NPC position (cactus,0,0)
+  set tag (tag:flanat cactus,ON)
+  end
+
+#---------------------------------------------------------------------------
+
+script,Cactus Sighting on Mountain,begin
+  variable (i)
+  suspend player
+  suspend random enemys
+  suspend NPCs
+  suspend NPC walls
+
+  for (i,0,3) do (set hero direction (i,north))
+  Pan Camera (north,6,2)
+  show text box (225)
+  wait for all
+  advance text box
+  walk NPC (17,up,2)
+  walk NPC (17,left,2)
+  wait for NPC (17)
+  walk hero (me,north,5)
+  walk NPC (17,left,1)
+  wait for NPC (17)
+  set NPC direction (17,right)
+  wait (2)
+  set NPC speed (17,10)
+  walk NPC (17,up,1)
+  walk NPC (17,left,1)
+  wait for NPC
+  for (i,0,3) do (set hero direction (i,left))
+  walk NPC (17,left,1)
+  wait for NPC
+  walk NPC (17,south,1)
+  walk NPC (17,left,1)
+  wait for NPC
+  focus camera(heroX(me),heroY(me),2)
+  walk NPC (17,south,5)
+  spin NPC (17,2,5)
+  wait for NPC
+  set tag (tag:Troll Mtn Cactus,ON)
+  camera follows hero (me)
+  
+  resume player
+  resume random enemys
+  resume NPCs
+  resume NPC walls
+end
+
+#---------------------------------------------------------------------------
+
+script,Spin NPC,who,speed,turns,begin
+  variable(i)
+  for (i,1,turns) do,begin
+    set NPC direction (who,(i,mod,4))
+    wait (speed)
+  end
+end
+
+#---------------------------------------------------------------------------

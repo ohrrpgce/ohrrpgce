@@ -1,0 +1,329 @@
+;*****************************************************************************
+
+;*** Redraw a screen from a map and page of map blocks
+;* This should work okay...
+;* Brian Fisher
+;*
+;* modified June 29 '98 last made y>255 work
+
+.386
+Ideal
+Model Small
+Public setmapdata,setmapblock,readmapblock,drawmap,setanim
+CodeSeg
+
+mapx    dw ?
+mapy    dw ?
+topbar  dw 0
+botbar  dw 200
+mapoff  dw ?
+mapseg  dw ?
+write   db ?
+awrit	db ?
+read    db 0
+howmany dw ?
+lines   dw ?
+extra   dw 0
+maploc  dw ?
+blocks  dw 0
+screen  dw 0
+rowscr	dw 0
+gap     dw 0
+widt    dw 0
+pixels  dw 0
+sizev   dw 0
+rot1	dw 0
+rot2	dw 0
+
+Proc    Setmapdata      ; array, top bar, bottom
+	push bp
+	mov bp,sp
+	push ds si
+
+	mov bx,[ss:bp+10]
+	mov si,[ds:bx+0ah]
+	mov ds,[ds:bx+02h]
+	lodsw
+	mov [cs:mapx],ax
+	lodsw
+	mov [cs:mapy],ax
+	mov [cs:mapseg],ds
+	mov [cs:mapoff],si
+	mov ax,[ss:bp+08]
+	mov [cs:topbar],ax         ;topbar= lines to move down
+	mov bx,200
+	sub bx,ax
+	mov ax,[ss:bp+06]
+	sub bx,ax
+	mov [cs:botbar],bx         ;Botbar= lines to draw
+	pop si ds bp
+	retf 6
+endp    Setmapdata
+
+Proc    SetMapBlock     ; X, Y, Value
+	push bp
+	mov bp,sp
+	push es di
+	
+	mov ax,[cs:mapseg]
+	mov es,ax
+	mov di,[cs:mapoff]
+	mov ax,[ss:bp+08]
+	mov bx,[cs:mapx]
+	mul bx
+	mov bx,[ss:bp+10]
+	add ax,bx
+	add di,ax
+	mov ax,[ss:bp+06]
+	stosb
+
+	pop di es bp
+	retf 6
+endp    SetMapBlock
+
+Proc    ReadMapBlock    ; X, Y
+	push bp
+	mov bp,sp
+	push ds si
+
+	mov ax,[cs:mapseg]
+	mov ds,ax
+	mov si,[cs:mapoff]
+	mov ax,[cs:mapx]
+	mov bx,[ss:bp+06]
+	mul bx
+	mov bx,[ss:bp+08]
+	add ax,bx
+	add si,ax
+	lodsb
+	xor ah,ah
+
+	pop si ds bp
+	retf 4
+endp    ReadMapBlock
+	
+Proc	Setanim		; 1, 2
+	push bp
+	mov bp,sp
+
+	mov ax,[ss:bp+08]
+	mov [cs:rot1],ax
+	mov ax,[ss:bp+06]
+	mov [cs:rot2],ax
+
+	pop bp
+	retf 4
+endp	Setanim
+
+Proc    Drawmap        ; X, Y, Page
+	push bp
+	mov bp,sp
+	push es di ds si
+
+	mov ax,0a000h
+	mov es,ax
+	mov ax,[ss:bp+06]       ;get dest. offset
+	shl ax,14
+	mov [cs:rowscr],ax         ;set screen to offset for screen
+	mov ax,80
+	mul [cs:topbar]
+	add [cs:rowscr],ax         ;move down for top status bar
+	mov ax,[ss:bp+08]
+	add ax,[cs:topbar]
+	xor dx,dx
+	mov bx,20
+	div bx
+	sub bx,dx
+	mov [cs:howmany],bx        ;set howmany for top row
+	mov cx,dx
+	mov bx,cx
+	shl bx,4
+	shl cx,6
+	add cx,bx
+	mov [cs:extra],cx          ;set pixel adjustment to read blocks for first row
+	mul [cs:mapx]
+	mov bx,ax
+	xor dx,dx
+	mov ax,[ss:bp+10]
+	mov cx,20
+	div cx
+	mov [cs:gap],20
+	sub cx,dx
+	mov [cs:widt],0
+	cmp cx,20
+	jz nosides
+	mov [cs:gap],dx
+	mov [cs:widt],cx
+nosides:
+	add bx,ax
+	add bx,[cs:mapoff]
+	mov [cs:maploc],bx         ;set map block number
+	mov ax,[cs:botbar]
+	mov [cs:lines],ax
+	mov cx,[cs:widt]
+	mov ax,1
+	and cx,3
+	shl al,cl
+	mov [cs:awrit],al
+loop4:          ;set up a column
+	push [cs:maploc]
+	mov ax,[cs:rowscr]
+	mov [cs:screen],ax
+	mov [cs:blocks],16
+	mov bx,[cs:widt]
+	cmp bx,0
+	jz loop3
+	mov [cs:blocks],17
+loop3:          ;set up a new block
+	mov di,[cs:screen]
+	mov ds,[cs:mapseg]
+	mov si,[cs:maploc]
+	mov al,[ds:si]          ;read map blocknumber to draw
+	xor ah,ah
+	cmp ax,160
+	jb noanim
+	cmp ax,207
+	ja type2
+	sub ax,160
+	add ax,[cs:rot1]
+	jmp noanim
+type2:
+	sub ax,208
+	add ax,[cs:rot2]
+noanim:
+	mov bx,es
+	mov ds,bx
+	mov si,49152
+	mov cx,ax
+	and ax,15
+	mov bx,5
+	mul bx
+	add si,ax               ;add blocknumber mod 16 times 5 to the reading screen
+	shr cx,4
+	mov ax,1600
+	mul cx
+	add si,ax               ;add blocknumber div 16 times 1600
+	add si,[cs:extra]          ;add for starting row
+	mov al,[cs:awrit]
+	mov [cs:write],al
+	mov ax,20
+	mov [cs:read],0
+	cmp [cs:blocks],17
+	jnz normalblock
+	mov ax,[cs:gap]
+	mov bx,ax
+	and ax,3
+	mov [cs:read],al           ;if it's the left edge, start read from
+	inc ah                  ;the right place
+	mov [cs:write],ah          ;start write from the left edge
+	shr bx,2                
+	add si,bx
+	mov ax,[cs:widt]
+normalblock:
+	cmp [cs:blocks],1
+	jnz notlastinrow
+	mov ax,[cs:gap]
+notlastinrow:
+	mov [cs:pixels],ax
+	call near drawablock		;draw the block
+	mov ax,[cs:pixels]
+	shr ax,2
+	add [cs:screen],ax
+	inc [cs:maploc]
+	dec [cs:blocks]
+	cmp [cs:blocks],0
+	jz donerow                 ;do another block
+	jmp loop3
+donerow:
+	pop [cs:maploc]
+	mov ax,80
+	mul [cs:howmany]
+	add [cs:rowscr],ax
+	mov ax,[cs:mapx]
+	add [cs:maploc],ax
+	mov [cs:extra],0
+	mov ax,[cs:howmany]
+	sub [cs:lines],ax
+	jna donewithcenter
+	mov [cs:howmany],20
+	cmp [cs:lines],20
+	ja notlist
+	mov ax,[cs:lines]
+	mov [cs:howmany],ax
+notlist:
+	jmp loop4               ;do another row
+donewithcenter:
+	pop si ds di es bp
+	retf 6
+endp    Drawmap
+
+proc    drawablock      ; si:read start of block
+	push si di
+	mov ax,[cs:pixels]
+	add ax,3        
+	mov [cs:sizev],ax  
+loop2:                
+	mov al,02h
+	mov ah,[cs:write]
+	mov dx,03c4h
+	out dx,ax               ;set the write plane enable
+	mov dx,3ceh
+	mov al,04h
+	mov ah,[cs:read]
+	out dx,ax               ;set the read plane enable
+	cmp [cs:pixels],20
+	jnz edge
+	mov cx,[cs:howmany]
+	push si di
+drawlinefourth:
+	movsd
+	movsb
+	add si,75
+	add di,75
+	loop drawlinefourth
+	pop di si
+	jmp nonehere
+edge:
+	mov dx,[cs:howmany]
+	mov bx,[cs:sizev]
+	shr bx,2
+	cmp bx,0
+	jz nonehere
+	push si di
+loop1:          ;draw a fourth of a block
+	mov cx,bx
+	rep movsb
+	mov ax,80
+	sub ax,bx
+	add si,ax
+	add di,ax
+	sub dx,1
+	jnz loop1
+	pop di si
+nonehere:
+	mov al,[cs:write]
+	mov bl,al
+	shr al,3
+	xor ah,ah
+	add di,ax
+	shl bl,1
+	and bx,0fh
+	add ax,bx
+	mov [cs:write],al
+	mov al,[cs:read]
+	inc al
+	cmp al,4
+	jb goodread
+	inc si
+	mov al,0
+goodread:
+	mov [cs:read],al
+	dec [cs:sizev]
+	mov ax,[cs:sizev]
+	cmp ax,[cs:pixels]
+	jnb loop2                ;do another set o' columns
+	pop di si
+	retn
+endp    drawablock
+end
+ 

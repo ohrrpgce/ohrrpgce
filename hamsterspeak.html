@@ -1,0 +1,697 @@
+<html>
+<head>
+<title>General Specification for HamsterSpeak</title>
+</head>
+<body bgcolor="000000" text="f0f0f0" link="00ff00" vlink="009090" alink="d0d000">
+
+<font size="6">HamsterSpeak</font>
+<font size="4">version 0</font><br>
+Last Updated December 16 1999<br>
+
+<p>
+HamsterSpeak is the language used by the OHRRPGCE for plotscripting, (and later for battlescripting) This file explains the syntax and reserved words for HamsterSpeak.<br>
+</p>
+
+<p>
+This document may appear ovewhelming to non-programmers, so instead, you will want to read the <a href="plotscripttutor.html">Plotscripting Tutorial</a>, which is written for beginners, and the <a href="plotdictionary.html">Dictionary of PlotScripting Commands</a>.
+</p>
+
+<hr>
+
+<font size="4">
+<a href="#syntax">Syntax</a><br>
+<a href="#declarations">Declarations</a><br>
+<a href="#operatortable">Old vs. New Style Operators</a><br>
+<a href="#reservedwords">Reserved Words</a><br>
+</font>
+
+<hr>
+
+<a name="syntax"></a>
+<font size="4" color="f06060">Syntax</font><br>
+<p>
+HamsterSpeak is a semicompiler that parses scripts and converts them into bytecodes that can be easyly and quickly parsed by an interpreter such as the one that will be built into the OHRRPGCE.<br>
+</p>
+
+<p>
+HamsterSpeak function and variable names are case insensitive and whitespace insensitive. The following are all valid ways of writing the same command:<br>
+<br><table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000"><tt>
+Suspend Player<br>
+suspendplayer<br>
+sUsPeNdPlAyRr<br>
+Susp Endpla Yer<br>
+</tt></font></b></td></tr></table><br>
+Remember this when you are naming your scripts and variables.<br>
+</p>
+
+<p>
+Statements are separated by commas or newlines. Blank lines are ignored, and double commas are treated as single commas. You can use commas and newlines interchangeably. For example, the following blocks of code are the same:<br>
+<br><table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000"><tt>
+Suspend Player<br>
+Suspend NPCs<br>
+Suspend Obstruction<br>
+</tt></font></b></td></tr></table>
+<br><table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000"><tt>
+Suspend Player,
+Suspend NPCs,
+Suspend Obstruction<br>
+</tt></font></b></td></tr></table><br>
+</p>
+
+<p>
+Most HamsterSpeak functions take arguments. The arguments for a function follow it in parenthesis. The following are examples of HamsterSpeak functions:<br>
+<br><table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000"><tt>
+walk hero (me,north,3)<br>
+wait for hero (me)<br>
+show text box (37)<br>
+</tt></font></b></td></tr></table><br>
+</p>
+
+<p>
+Also, as an alternative to using parenthesis, you can use the <b>begin</b> and <b>end</b> commands. These are useful for functions that take lots of arguments easyer to look at.<br>
+<br>
+The following blocks of code do exactly the same thing<br>
+<br><table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000"><tt>
+walk hero (me, north, 3)
+</tt></font></b></td></tr></table>
+<br><table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000"><tt>
+walk hero, begin<br>
+&nbsp;&nbsp;&nbsp;me<br>
+&nbsp;&nbsp;&nbsp;north<br>
+&nbsp;&nbsp;&nbsp;3<br>
+end
+</tt></font></b></td></tr></table><br>
+</p>
+
+<p>
+You can use the # symbol to put comments in your script. Anything from the # to the end of the line is ignored.<br>
+<br><table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000"><tt>
+walk hero, begin<br>
+&nbsp;&nbsp;&nbsp;me&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# who does the walking? Me!<br>
+&nbsp;&nbsp;&nbsp;north&nbsp;&nbsp;&nbsp;# this is the direction we want to walk<br>
+&nbsp;&nbsp;&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# this is how many tiles we want to go<br>
+end
+</tt></font></b></td></tr></table><br>
+</p>
+
+<hr>
+
+<a name="declarations"></a>
+<font size="4" color="f06060">Declarations</font><br>
+
+<p>
+There are seven kinds of declarations in HamsterSpeak.
+<b><tt>
+ <a href="#about-script">script</a>,
+ <a href="#about-definescript">define script</a>,
+ <a href="#about-definefunction">define function</a>,
+ <a href="#about-defineconstant">define constant</a>,
+ <a href="#about-defineoperator">define operator</a>,
+ <a href="#about-globalvariable">global variable</a>,
+</tt></b> and <b><tt>
+ <a href="#about-variable">variable</a>,
+</tt></b><br>
+</p>
+
+<hr size="1">
+
+<a name="about-definescript"></a>
+<a name="about-script"></a>
+<p>
+<u>script and definescript</u><br>
+</p>
+
+<p>
+Most of the code in HamsterSpeak is in <b>script</b> statements. for every script statement, there must also be a <b>definescript</b> statement that assigns the script a unique ID number, and tells how many arguments it can accept.<br>
+</p>
+
+<p>
+Here is a sample script<br>
+<br><table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000"><tt>
+Define Script (1,My Script,none)<br>
+<br>
+script, My Script, begin<br>
+&nbsp;&nbsp;# code goes here<br>
+end<br>
+</tt></font></b></td></tr></table><br>
+</p>
+
+<p>
+Each script you define needs a number<i>(1)</i>, a name<i>(My Script)</i>, and the argument count<i>(none)</i>. Scripts that have arguments, need default values fot those arguments in the <b><tt>definescript</tt></b> statement, and names for the arguments in the <b><tt>script</tt></b> statement.<br>
+</p>
+
+<p>
+Here is a sample script with arguments<br>
+<br><table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000"><tt>
+Define Script (2,My Fancy Script,2,0,0)<br>
+# this script has two arguments, both default to zero<br>
+<br>
+script, My Fancy Script, firstarg, secondarg, begin<br>
+&nbsp;&nbsp;# This script can use the arguments by name<br>
+&nbsp;&nbsp;# just as if they were local variables<br>
+end<br>
+</tt></font></b></td></tr></table><br>
+</p>
+
+<p>
+Okay, now lets look in more detail at the definescript statement. Every script you write needs a number, a name, and info about it's arguments.<br>
+</p>
+
+<p>
+<br><table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000"><tt>
+include, plotscr.hsd<br>
+<br>
+Define Script (1,My Script,none)<br>
+Define Script (2,My Other Script,none)<br>
+<br>
+script, My Script, begin<br>
+&nbsp;&nbsp;# do nothing<br>
+end<br>
+<br>
+script, My Other Script, begin<br>
+&nbsp;&nbsp;# do nothing<br>
+end<br>
+</tt></font></b></td></tr></table><br>
+</p>
+
+<p>
+The first argument of definescript is the id number of the script. This is the number that the OHRRPGCE identifies the script by. No two scripts can have the same id number<br>
+</p>
+
+<p>
+<table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000"><tt>
+# this is bad! It will not compile. BAD! BAD! BAD!<br>
+Define Script (1,My Script,none)<br>
+Define Script (1,My Other Script,none)<br>
+</tt></font></b></td></tr></table><br>
+</p>
+
+<p>
+If you do this, and give two scripts the same number, the compiler will throw a fit.<br>
+</p>
+
+<p>
+The second argument of definescript is the friendly name of your script. When the compiler sees <b>My Script</b> in the code, it will know you mean the script with ID number <b>1</b><br>
+</p>
+
+<p>
+Why do scripts need ID numbers? That is how CUSTOM.EXE and GAME.EXE know what script to attach to what event, without having to remember the entire name of the script. But if you have a script that will never be called directly by your game, and is only called by other scripts, you can autonumber the script.
+</p>
+
+<p>
+Here is a sample script that is autonumbered<br>
+<br><table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000"><tt>
+Define Script (autonumber,My Numberless Script,none)<br>
+# this script will be hidden in CUSTOM.EXE,<br>
+# but can be called by other scripts<br>
+<br>
+script, My Numberless Script, begin<br>
+&nbsp;&nbsp;# blah blah blah<br>
+end<br>
+</tt></font></b></td></tr></table><br>
+</p>
+
+<hr size="1">
+
+<a name="about-definefunction"></a>
+<p>
+<u>definefunction</u><br>
+</p>
+
+<p>
+For a script to make use of any plotscripting functions or battlescripting functions, It needs <b>definefunction</b> statements. <b>Definefunction</b> statements are just like <b>definescript</b> statements, except that they refer to special functions that are hard-coded into the interpreter.<br>
+</p>
+
+<p>
+If you had to manually type your <b>definefunction</b> statements, your code would look like this, only there would be waaaaay more of them:<br>
+<br><table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000"><tt>
+define function, begin<br>
+&nbsp;0,noop,0<br>
+&nbsp;1,wait,1,1<br>
+&nbsp;2,waitforall,0<br>
+&nbsp;3,waitforhero,1,0<br>
+&nbsp;4,waitfornpc,1,0<br>
+&nbsp;5,suspendnpcs,0<br>
+&nbsp;6,suspendplayer,0<br>
+&nbsp;7,resumenpcs,0<br>
+&nbsp;8,resumeplayer,0<br>
+&nbsp;9,waitforkey,1,99<br>
+&nbsp;10,walkhero,3,0,2,1<br>
+&nbsp;11,showtextbox,1,1<br>
+&nbsp;12,checktag,1,0<br>
+&nbsp;13,settag,2,0,0<br>
+&nbsp;# this isnt all! there are more than 80 plotscripting functions!<br>
+end<br>
+<br>
+Define Script (1,My Script,none)<br>
+<br>
+script, My Script, begin<br>
+&nbsp;&nbsp;# I can only use functions here if they have been declared<br>
+end<br>
+</tt></font></b></td></tr></table><br>
+</p>
+
+<p>
+obviously nobody wants to type all that junk at the top of their script just to make it run, so I have put all of the plotscripting functions into a single file called <b>plotscr.hsd</b><br>
+All you have to do is add one include statement, and all of the plotscripting functions will be ready to use.<br>
+<br><table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000"><tt>
+include, plotscr.hsd<br>
+<br>
+Define Script (1,My Script,none)<br>
+<br>
+script, My Script, begin<br>
+&nbsp;&nbsp;# I can use any plotscripting function here I want,<br>
+&nbsp;&nbsp;# because they have all been declared in the include file.<br>
+end<br>
+</tt></font></b></td></tr></table><br>
+</p>
+
+<hr size="1">
+
+<a name="about-constant"></a>
+<p>
+<u>defineconstant</u><br>
+</p>
+
+<p>
+<b>plotscr.hsd</b> also has some constants to make life easyer. Thanks to constants, there is no need to know what numbers plotscripting uses to internaly represent things. The following are some of the constants defined in <b>plotscr.hsd</b><br>
+<b><font color="60f060">
+zero, one, two, three, four, five, six, seven, eight, nine, ten, false, true, off, on, north, east, south, west, up, down, left, right, upkey, downkey, leftkey, rightkey, usekey, cancelkey, menukey, anykey, me, none, autonumber...<br>
+</font></b>
+</p>
+
+<p>
+Another use for constants is the ability to refer to heros, maps, songs, items, and all sorts of other things in your RPG by name instead of by number. CUSTOM.EXE can export an include file from its <b>Script Management</b> that is full of constants that represent the names in your RPG. This file will have the same name as your RPG file, with the extension HSI (HamsterSpeak Include), and you can include it into your script the exact same way you include the <b>plotscr.hsd</b> file
+</p>
+
+<p>
+You can add your own constants to your script with a <b>defineconstant</b> statement<br>
+</p>
+
+<p>
+<br><table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000"><tt>
+include, plotscr.hsd<br>
+include, myrpg.hsi<br>
+<br>
+Define Constant (1000,thousand)<br>
+Define Script (1,My Script,none)<br>
+<br>
+script, My Script, begin<br>
+&nbsp;&nbsp;# now I can use the word thousand instead of 1000 in my script<br>
+&nbsp;&nbsp;get money (thousand)<br> 
+end<br>
+</tt></font></b></td></tr></table><br>
+</p>
+
+<hr size="1">
+
+<a name="about-defineoperator"></a>
+<p>
+<u>defineoperator</u><br>
+</p>
+
+<p>
+The <b><tt>defineoperator</tt></b> command substitutes an infix operator for a function or script that is defined elswhere. Hamsterspeak uses this to support math and logic operators such as <b><tt>1+2</tt></b>. If you dont know what "infix" means, or what "operators" are, dont worry. You will never use <b><tt>defineoperator</tt></b> for anything. I only mention it here for the sake of documentation. If you want to turn some of your scripts into operators, you can use PLOTSCR.HSD as an example, or mail me and ask questions.
+</p>
+
+<p>
+The important part is knowing how to use the infix operators that have already been defined for you. The most common use of these operators is for doing math, and checking equality. For a complete list of them, check the <a href="plotdictionary.html#operators">Operator</a> section of the Plotscripting Dictionary.
+</p>
+
+<p>
+<font color="aaaaff"><b>Math:</b></font> Math operators take the value on their left, and the value on their right, preform math on them, and return the result.
+</p>
+
+<p>
+<table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000">
+<pre>include, plotscr.hsd
+
+Define Script (1,Math Sample,none)
+
+script, Math Sample, begin
+  variable (n)
+  set variable (n,100)
+  # we start with 100
+  set variable (n,n+5)  # now n is 105
+  set variable (n,n*2)  # now n is 210
+  set variable (n,n--6) # now n is 204
+  set variable (n,n/4)  # now n is 51
+  show value (n)
+end</pre>
+</font></b></td></tr></table><br>
+</p>
+
+<p>
+Notice that the symbol for <b>subtract</b> is <b>--</b> That is neccisary to avoid confusion with script names and constants that have hyphens in them, and numbers that start with - to indicate negativity. If you wanted to subtract a negative number, you should write <b>n -- -6</b>
+</p>
+
+<p>
+<font color="aaaaff"><b>Comparison and Logic:</b></font> Comparison and logic operators take the value on their left, and the value on their right, compare them, and return true or false based on the comparison. They are most often used in <a href="plotdictionary.html#about-if">if</a> statements
+</p>
+
+<a name="sample-comparison"></a>
+<p>
+<table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000">
+<pre>include, plotscr.hsd
+
+Define Script (1,Comparison Sample,none)
+
+script, Comparison Sample, begin
+
+  if (5==7)
+  then,begin
+    # five is never equal to seven, so this cant be true
+  end
+
+  if (5<<7)
+  then,begin
+    # five is always less than seven, so this is always true
+  end
+
+  if (5>>7)
+  then,begin
+    # five is never greater than seven, so this cant be true
+  end
+
+  if (5<=random(1,10))
+  then,begin
+    # there is a 50% chance that 5 will be less than or equal to
+    # the random number between 1 and 10, so sometimes this will be
+    # true and other times it will be false
+  end
+
+  if (1==1,and,2<>2)
+  then,begin
+    # one is always equal to one, but two is never not-equal to itself
+    # so this can never be true
+  end
+
+end</pre>
+</font></b></td></tr></table><br>
+</p>
+
+<hr size="1">
+
+<a name="about-globalvariable">
+<a name="about-variable">
+<p>
+<u>variables</u><br>
+</p>
+
+<p>
+A variable is a named number-holder in your script that you can give any value to. Variables can be global, which means they are available to every single script, and are saved in your RPG, or they can be local, which means they only work in the script they where created in, and once that script ends, they go away.
+</p>
+
+<p>
+Global variables are defined with the <b><tt>globalvariable</tt></b> statement. Like scripts, global variables need unique ID numbers.
+</p>
+
+<p>
+<table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000">
+<pre>include, plotscr.hsd
+
+Define Script (1,one script,none)
+Define Script (2,another script,none)
+
+Global Variable (1,var)
+
+script, one script, begin
+  # I can set a global variable in one script...
+  set variable (var,100)
+end
+
+script, one script, begin
+  # ...and use it in another
+  show value (var)
+end</pre>
+</font></b></td></tr></table><br>
+</p>
+
+<p>
+Local variables are declared with the <b><tt>variable</tt></b> statement. A local variable always starts out as zero when the script starts. You can use the variable throughout the script, and when the script finishes, zap! the variable is gone. If you run the script a second time, it will be created all over again. Local variables do not need an ID number
+</p>
+
+<p>
+<table border=1><tr><td bgcolor="f0f0f0"><img src="/img/spacer.gif" width="580" height="1"><br><b><font color="000000">
+<pre>include, plotscr.hsd
+
+Define Script (1,test script,none)
+
+script, test script, begin
+  variable (var)
+  # this variable is only available to this script
+  set variable (var,100)
+end</pre>
+</font></b></td></tr></table><br>
+</p>
+
+<p>
+Note that <b><tt>globalvariable</tt></b> always goes outside of your scripts. <b><tt>Variable</tt></b> always goes inside a script. Local variables are created as soon as the script starts, regardless of where in the script you define them.
+</p>
+
+<hr>
+
+<a name="operatortable"></a>
+<font size="4" color="f06060">Old vs. New Style Operators</font><br>
+
+<p>
+If you wrote a HamsterSpeak script before December XX 1999, you probably used the old style of math and logic operators. When you try to compile one of these old scripts with a newer version of HSPEAK.EXE, you may run into errors when compiling, or strange behavior after the script is imported into your RPG file. The following table will help you convert your script to the new version. Special attention should be payed to the conditions in <a href="plotdictionary.html#about-if">if</a> statements.
+</p>
+
+<center>
+<p>
+<table border="1">
+ <tr>
+  <td><font size="4" color="aaaaff">Old Style</font></td>
+  <td><font size="4" color="aaaaff">New Style</font></td>
+ </tr>
+ <tr>
+  <td><tt>add(n,n)</tt></td>
+  <td><tt>n+n</tt></td>
+ </tr>
+ <tr>
+  <td><tt>subtract(n,n)</tt></td>
+  <td><tt>n--n</tt></td>
+ </tr>
+ <tr>
+  <td><tt>multiply(n,n)</tt></td>
+  <td><tt>n*n</tt></td>
+ </tr>
+ <tr>
+  <td><tt>divide(n,n)</tt></td>
+  <td><tt>n/n</tt></td>
+ </tr>
+ <tr>
+  <td><tt>modulus(n,n)</tt></td>
+  <td><tt>n,mod,n</tt></td>
+ </tr>
+ <tr>
+  <td><tt>exponent(n,n)</tt></td>
+  <td><tt>n^n</tt></td>
+ </tr>
+ <tr>
+  <td><tt>equal(n,n)</tt></td>
+  <td><tt>n==n</tt></td>
+ </tr>
+ <tr>
+  <td><tt>notequal(n,n)</tt></td>
+  <td><tt>n&lt;&gt;n</tt></td>
+ </tr>
+ <tr>
+  <td><tt>lessthan(n,n)</tt></td>
+  <td><tt>n&lt;&lt;n</tt></td>
+ </tr>
+ <tr>
+  <td><tt>greaterthan(n,n)</tt></td>
+  <td><tt>n&gt;&gt;n</tt></td>
+ </tr>
+ <tr>
+  <td><tt>lessthanorequalto(n,n)</tt></td>
+  <td><tt>n&lt;=n</tt></td>
+ </tr>
+ <tr>
+  <td><tt>greaterthanorequalto(n,n)</tt></td>
+  <td><tt>n&gt;=n</tt></td>
+ </tr>
+ <tr>
+  <td><tt>and(n,n)</tt></td>
+  <td><tt>n,and,n</tt></td>
+ </tr>
+ <tr>
+  <td><tt>or(n,n)</tt></td>
+  <td><tt>n,or,n</tt></td>
+ </tr>
+ <tr>
+  <td><tt>xor(n,n)</tt></td>
+  <td><tt>n,xor,n</tt></td>
+ </tr>
+</table>
+</p>
+</center>
+
+<p>
+for explanations of all the operators, see the <a href="plotdictionary.html#operators">Math, Comparison, and Logic Operators</a> section of the Plotscripting Dictionary<br>
+</p>
+
+<hr>
+
+<a name="reservedwords"></a>
+<font size="4" color="f06060">Reserved Words</font><br>
+
+Okay, kids. Here is a list of all the reserved words in HamsterSpeak some of them are not implemented yet, and some may never be implemented. The only reason I am providing this list is so that when you try use one of these names for one of your scripts or variables, and the compiler squeals at you, you will know why :)<br>
+<p><tt><b><font color="f0f000">
+include
+definescript
+definefunction
+defineconstant
+globalvariable
+variable
+script
+do
+begin
+end
+return
+if
+then
+else
+for
+cfor
+foreach
+while
+break
+random
+exponent
+modulus
+divide
+multiply
+subtract
+add
+xor
+or
+and
+equal
+notequal
+lessthan
+greaterthan
+lessthanorequalto
+greaterthanorequalto
+setvariable
+increment
+decrement
+zero
+one
+two
+three
+four
+five
+six
+seven
+eight
+nine
+ten
+false
+true
+off
+on
+north
+east
+south
+west
+up
+down
+left
+right
+upkey
+downkey
+leftkey
+rightkey
+usekey
+cancelkey
+menukey
+anykey
+me
+none
+autonumber
+noop
+wait
+waitforall
+waitforhero
+waitfornpc
+suspendnpcs
+suspendplayer
+resumenpcs
+resumeplayer
+waitforkey
+walkhero
+showtextbox
+checktag
+settag
+usedoor
+fightformation
+getitem
+deleteitem
+leader
+getmoney
+losemoney
+paymoney
+walkherotospot
+walknpctospot
+walkherotoX
+walknpctoX
+walkherotoY
+walknpctoY
+playsong
+stopsong
+playsound
+unequipall
+showbackdrop
+showmap
+showmovie
+waitformovie
+waitforframe
+useshop
+camerafollowshero
+camerafollowsnpc
+pancamera
+focuscamera
+waitforcamera
+herox
+heroy
+npcx
+npcy
+suspendobstruction
+resumeobstruction
+suspendherowalls
+suspendnpcwalls
+resumewalls
+walknpc
+setherodirection
+setnpcdirection
+floathero
+floatnpc
+suspendcatapillar
+resumecatapillar
+waitfortextbox
+simulatekeypress
+teleporttomap
+suspendrandomenemys
+resumerandomenemys
+moveherotospot
+movenpctospot
+addhero
+deletehero
+swapouthero
+swapinhero
+roominactiveparty
+lockhero
+unlockhero
+gameover
+setdeathscript
+</font></b></tt></p>
+
+These arent written in stone. Ill probably add more... or Ill add them to HamsterSpeak but forget to add them here... yeah, thats whats going to happen. Im glad we worked that out now :)
+
+<hr>
+
+</body>
+</html>

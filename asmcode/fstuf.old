@@ -1,0 +1,607 @@
+;*************************************************************************
+
+;****** File stuff for directories and lump files
+;*
+;*
+;* last modified July 20, '98, now uses 32k buffer & works
+
+.286
+Ideal
+Model Small
+Public findfiles, lumpfiles, unlump, isfile, pathlength, getstring, drivelist, rpathlength, setdrive, envlength
+
+Codeseg
+
+dta     dw ?
+src     dw ?
+dest    dw ?
+lump    dw ?
+wrote   dw ?
+found   dw ?
+data    dw ?
+bseg    dw ?
+list    dw ?
+listlen dw ?
+path    dw ?
+amask   dw ?
+cpath	db 70 dup (0)
+plen	dw ?
+
+Proc    Findfiles       ;fil$, attrib, newfile$, buff()
+	push bp
+	mov bp,sp
+	push ds si es di
+
+	mov [cs:data],ds        ;store data segment
+	mov bx,[ss:bp+06]
+	mov di,[ds:bx+0ah]
+	mov [cs:dta],di
+	add di,21
+	mov [cs:amask],di
+	add di,9
+	mov [cs:found],di
+	add di,98
+	mov [cs:wrote],di       ;store saved file address
+	mov ax,[ds:bx+02h]
+	mov [cs:bseg],ax        ;store buffer segment
+	mov es,ax               ;set es to buffer seg
+	mov si,[ss:bp+12]
+	mov ds,[cs:data]
+	lodsw
+	mov [cs:listlen],ax     ;store filemask string length
+	mov dx,[ds:si]
+	mov [cs:list],dx        ;store pointer to next filemask
+momask:
+	mov ds,[cs:bseg]
+	mov dx,[cs:dta]
+	mov ax,1a00h
+	int 21h                 ;set dta
+	mov ds,[cs:data]
+	mov dx,[cs:list]
+	mov cx,[ss:bp+10]       ;set attribute mask
+	mov ax,4e00h
+	int 21h
+	jc file                 ;find first file
+mofile:
+	mov ds,[cs:bseg]
+	mov si,[cs:amask]
+	mov al,[ds:si]
+	and al,[ss:bp+10]
+	cmp al,0
+	jz badtype              ;compare attribute mask for match
+	mov si,[cs:found]       ;ds:si = found file
+moletter:
+	lodsb
+	stosb                   ;write filename to write buffer
+	cmp al,0
+	jnz moletter
+	mov ax,0a0dh
+	stosw
+badtype:
+	mov ax,4f00h
+	int 21h
+	jnc mofile              ;find next file
+	mov ds,[cs:data]
+	mov si,[cs:list]
+checkit:
+	lodsb                   ;load a character
+	sub [cs:listlen],1
+	jz file                 ;if len = 0 done
+	cmp al,0
+	jnz checkit             ;if it's not chr$(0), keep looking
+	mov [cs:list],si        ;set list pointer to next set
+	jmp momask
+file:
+	mov ds,[cs:data]
+	mov si,[ss:bp+08]
+	add si,2
+	mov dx,[ds:si]
+	mov ax,3c00h
+	mov cx,0
+	int 21h
+	jc done
+	mov [cs:dest],ax
+	mov dx,[cs:wrote]
+	mov cx,di
+	sub cx,dx
+	jz nodata
+	mov bx,[cs:dest]
+	mov ds,[cs:bseg]
+	mov ax,4000h
+	int 21h
+nodata:
+	mov bx,[cs:dest]
+	mov ax,3e00h
+	int 21h
+done:   
+	pop di es si ds bp
+	retf 8
+endp    Findfiles
+
+Proc    Lumpfiles       ;files$, dest$, path$, buf()
+	push bp
+	mov bp,sp
+	push ds si es di
+
+	mov [cs:data],ds
+	mov bx,[ss:bp+06]
+	mov di,[ds:bx+0ah]
+	mov [cs:path],di        ;set path to start of buffer
+	mov ax,[ds:bx+02h]
+	mov [cs:bseg],ax        ;set bseg to buffer segment
+	mov es,ax
+	mov si,[ss:bp+08]
+	lodsw
+	mov cx,ax
+	mov si,[ds:si]
+	rep movsb               ;write path to start of buffer
+	mov [cs:found],di       ;set found to beginning of filename
+	mov si,[ss:bp+12]
+	add si,2
+	mov dx,[ds:si]
+	mov ax,3d02h
+	int 21h                 ;open filelist as list
+	jnc gotalistfile
+	jmp badquit
+gotalistfile:
+	mov [cs:list],ax
+	mov si,[ss:bp+10]
+	add si,2
+	mov dx,[ds:si]
+	mov ax,3c00h
+	int 21h
+	jnc createddest
+	jmp closelist
+createddest:
+	mov [cs:dest],ax        ;open the destination file
+nextfile:
+	mov bx,[cs:list]        
+	mov cx,13
+	mov ds,[cs:bseg]
+	mov dx,[cs:found]
+	mov ax,3f00h
+	int 21h                 ;read the next filename
+	jnc stillreadmore
+	jmp closem
+stillreadmore:
+	cmp ax,0
+	jnz stillmorefiles      ;quit if no more files
+	jmp closem
+stillmorefiles:
+	mov si,[cs:found]
+	mov cx,ax
+find0:
+	lodsb
+	cmp al,0
+	jz found0
+	loop find0
+	jmp closem
+found0:
+	neg cx
+	add cx,3
+	mov dx,cx
+	xor cx,cx
+	cmp dx,0
+	jns notneg
+	mov cx,0ffffh           ;cx|dx = signed offset for the file pointer
+notneg:
+	mov bx,[cs:list]
+	mov ax,4201h
+	int 21h                 ;set file pointer to start of next name
+	mov ds,[cs:bseg]
+	mov dx,[cs:path]
+	mov ax,3d00h
+	int 21h
+	jc nextfile             ;open file to write
+	mov [cs:lump],ax
+	mov ax,4202h
+	xor cx,cx
+	xor dx,dx
+	mov bx,[cs:lump]
+	int 21h			;find file length
+	mov ds,[cs:bseg]
+	mov [ds:si],dx
+	add si,2
+	mov [ds:si],ax
+	add si,2
+	mov [cs:wrote],si       ;set wrote to end of filename + length
+	mov bx,[cs:dest]
+	mov dx,[cs:found]
+	mov cx,[cs:wrote]
+	sub cx,[cs:found]
+	mov ax,4000h
+	int 21h                 ;write filename and length
+	mov bx,[cs:lump]
+	xor cx,cx
+	xor dx,dx
+	mov ax,4200h
+	int 21h			;set file pointer to start
+nextblock:
+	mov dx,[cs:wrote]
+	mov cx,4000h
+	mov bx,[cs:lump]
+	mov ax,3f00h
+	int 21h                 ;read 16k bytes
+	jc closelump
+	cmp ax,0
+	jz closelump
+	mov cx,ax
+	mov bx,[cs:dest]
+	mov ax,4000h
+	int 21h                 ;write how much we read
+	jmp nextblock
+closelump:
+	mov bx,[cs:lump]
+	mov ax,3e00h
+	int 21h                 ;close the file I just lumped
+	jmp nextfile
+closem:
+	mov bx,[cs:dest]
+	mov ax,3e00h
+	int 21h                 ;close the lump file
+closelist:
+	mov bx,[cs:list]
+	mov ax,3e00h
+	int 21h                 ;close the list file
+badquit:        
+	pop di es si ds bp
+	retf 8
+endp    Lumpfiles
+
+Proc    Unlump          ; file$, path$, temp()
+	push bp
+	mov bp,sp
+	push ds si es di
+	
+	mov [cs:data],ds
+	mov bx,[ss:bp+06]
+	mov di,[ds:bx+0ah]
+	mov [cs:path],di        ;set path to start of buffer
+	mov ax,[ds:bx+02h]
+	mov [cs:bseg],ax        ;set bseg to buffer segment
+	mov es,ax
+	mov si,[ss:bp+10]
+	add si,2
+	mov dx,[ds:si]
+	mov ax,3d02h
+	int 21h
+	jnc goodwad
+	jmp nowad
+goodwad:
+	mov [cs:lump],ax	;store file handle for wad
+nextunlump:
+	mov ds,[cs:data]
+	mov si,[ss:bp+08]
+	lodsw
+	mov cx,ax
+	mov si,[ds:si]
+	mov di,[cs:path]
+	rep movsb               ;write path to start of buffer
+	mov [cs:found],di       ;set found to beginning of filename
+	mov ds,[cs:bseg]
+	mov dx,[cs:found]
+	mov bx,[cs:lump]
+	mov cx,18
+	mov ax,3f00h
+	int 21h
+	jnc canread
+	jmp nomore
+canread:
+	cmp ax,0
+	jnz readsome
+	jmp nomore
+readsome:
+	mov [cs:wrote],ax
+	mov si,[cs:found]
+	mov cx,17
+findlen:
+	lodsb
+	cmp al,0
+	jz foundit
+	dec cx
+	cmp cx,0
+	jnz findlen		
+	jmp nomore
+foundit:			;found termination
+	mov [cs:src],si
+	lodsw
+	mov [cs:list],ax
+	lodsw
+	mov [cs:listlen],ax	;put length in list:listlen
+	mov dx,si
+	sub dx,[cs:found]
+	sub dx,[cs:wrote]
+	mov cx,0ffffh
+	mov bx,[cs:lump]
+	mov ax,4201h		;move file pointer to end of filename
+	int 21h
+	mov ds,[cs:bseg]
+	mov dx,[cs:path]
+	mov ax,3c00h
+	xor cx,cx
+	int 21h
+	jnc goodfile		;if you can't make the file do the next one
+	mov bx,[cs:lump]
+	mov cx,[cs:list]
+	mov dx,[cs:listlen]
+	mov ax,4201h
+	int 21h
+	jmp nextunlump
+goodfile:
+	mov [cs:dest],ax
+	mov cx,[cs:list]
+	shl cx,1
+	mov ax,[cs:listlen]
+	shr ax,15
+	add ax,cx
+	inc ax
+	mov [cs:list],ax
+	mov cx,[cs:listlen]
+	and cx,07fffh
+	cmp cx,0
+	jz notmuch
+doblocks:
+	mov bx,[cs:lump]
+	mov ds,[cs:bseg]
+	mov dx,[cs:path]
+	mov ax,3f00h
+	int 21h
+	mov cx,ax
+	mov bx,[cs:dest]
+	mov ds,[cs:bseg]
+	mov dx,[cs:path]
+	mov ax,4000h
+	int 21h
+notmuch:
+	mov cx,08000h
+	dec [cs:list]
+	cmp [cs:list],0
+	jnz doblocks
+	mov bx,[cs:dest]
+	mov ax,3e00h
+	int 21h
+	jmp nextunlump
+nomore:
+	mov bx,[cs:lump]
+	mov ax,3e00h
+	int 21h
+nowad:
+	pop di es si ds bp
+	retf 6
+endp    Unlump
+
+Proc	isfile		; filename
+	push bp
+	mov bp,sp
+	push si
+
+	mov si,[ss:bp+06]
+	add si,2
+	mov dx,[ds:si]
+	mov ax,3d00h
+	int 21h
+	jc notthere
+	mov bx,ax
+	mov ax,3e00h
+	int 21h
+	mov ax,-1
+	jmp donelook
+notthere:
+	xor ax,ax
+donelook:
+	pop si bp
+	retf 2
+endp	isfile
+
+Proc	pathlength
+	push ds si
+
+	mov ax,cs
+	mov ds,ax
+	lea si,[cs:cpath]
+	mov ax,1900h
+	int 21h
+	mov dl,al
+	inc dl
+	add al,41h
+	mov [ds:si],al
+	inc si
+	mov ax,'\:'
+	mov [ds:si],ax
+	add si,2
+	mov ah,47h
+	int 21h
+	mov cx,65
+seek0:
+	lodsb	
+	cmp al,0
+	jz got0
+	loop seek0
+got0:
+	cmp cx,0
+	jz nopath
+	cmp cx,65
+	jz nopath
+	dec cx
+	mov al,'\'
+	mov [ds:si-1],al
+nopath:
+	mov ax,68
+	sub ax,cx
+	mov [cs:plen],ax
+	pop si ds
+	retf
+endp	pathlength
+
+proc	getstring		;string
+	push bp
+	mov bp,sp
+	push ds si es di
+
+	mov si,[ss:bp+06]
+	lodsw
+	cmp ax,[cs:plen]
+	mov cx,ax
+	jnz bad
+	mov di,[ds:si]
+	lea si,[cs:cpath]
+	mov ax,ds
+	mov es,ax
+	mov ax,cs
+	mov ds,ax
+	rep movsb
+bad:
+	pop di es si ds bp
+	retf 2
+endp	getstring
+
+proc	drivelist	;buffer
+	push bp
+	mov bp,sp
+	push es di
+
+	mov bx,[ss:bp+06]
+	mov di,[ds:bx+0ah]
+	mov es,[ds:bx+02h]
+	mov [cs:found],0
+	mov ax,1900h
+	int 21h
+	xor ah,ah
+	mov [cs:src],ax
+	mov [cs:list],0
+checkall:
+	mov dx,[cs:list]
+	mov ax,0e00h
+	int 21h
+	mov ax,1900h
+	int 21h
+	xor ah,ah
+	cmp ax,[cs:list]
+	jnz notdrive
+	inc [cs:found]
+	mov ax,[cs:list]
+	stosw
+notdrive:
+	inc [cs:list]
+	cmp [cs:list],26
+	jb checkall
+	mov dx,[cs:src]
+	mov ax,0e00h
+	int 21h
+	mov ax,[cs:found]
+
+	pop di es bp
+	retf 2
+endp	drivelist
+
+Proc    rpathlength
+	push ds si es di
+
+	mov ax,cs
+	mov es,ax
+	lea di,[cs:cpath]
+	mov ax,5100h
+	int 21h
+	mov ds,bx
+	mov si,2ch
+	mov ax,[ds:si]
+	mov ds,ax
+	xor si,si
+scanenv:
+	mov ax,[ds:si]
+	cmp ax,0000h
+	jz readrpath
+	inc si
+	jmp scanenv
+readrpath:
+	add si,4
+	mov bx,si
+scanrpath:
+	lodsb
+	cmp al,0
+	jnz scanrpath
+scanback:
+	dec si
+	mov al,[ds:si]
+	cmp al,'\'
+	jnz scanback
+	mov cx,si
+	sub cx,bx
+	inc cx
+	mov [cs:plen],cx
+	mov si,bx
+	rep movsb
+	mov ax,[cs:plen]
+
+	pop di es si ds
+	retf
+endp    rpathlength
+
+proc	setdrive	;num
+	push bp
+	mov bp,sp
+
+	mov dx,[ss:bp+06]
+	mov ax,0e00h
+	int 21h
+	pop bp
+	retf 2
+endp	setdrive
+
+proc	envlength		;string
+	push bp
+	mov bp,sp
+	push ds si es di
+
+	mov si,[ss:bp+06]
+	lodsw
+	mov [cs:listlen],ax
+	mov di,[ds:si]
+	mov [cs:list],di
+	mov ax,ds
+	mov es,ax
+	mov ax,5100h
+	int 21h
+	mov ds,bx
+	mov bx,02ch
+	mov ax,[ds:bx]
+	mov ds,ax
+	xor si,si
+nextenv:
+	mov ax,0
+	cmp al,[ds:si]
+	jz noenv
+	mov cx,[cs:listlen]
+checkvar:
+	mov di,[cs:list]
+	rep cmpsb
+	jz gotenv
+findnext:
+	lodsb
+	cmp al,0
+	jnz findnext
+	jmp nextenv
+gotenv:
+	lodsb
+	cmp al,61
+	jnz findnext
+	mov ax,cs
+	mov es,ax
+	lea di,[cs:cpath]
+	mov cx,0
+loadenv:
+	lodsb
+	cmp al,0
+	jz gotvar
+	stosb
+	inc cx
+	jmp loadenv
+gotvar:
+	mov ax,cx
+	mov [cs:plen],cx
+noenv:
+	pop di es si ds bp
+	retf 2	
+endp	envlength
+end
+
