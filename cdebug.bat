@@ -45,8 +45,8 @@ move GAME.EXE GAME.EX_      > NUL
 move CUSTOM.EXE CUSTOM.EX_  > NUL
 support\pkunzip.exe -o support\nocom.zip nocom.obj > NUL
 support\pkunzip.exe -o support\freelink.zip freelink.exe > NUL
-freelink.exe @game.l
-freelink.exe @custom.l
+freelink.exe @game.%LINKEXT%
+freelink.exe @custom.%LINKEXT%
 del *.obj
 move GAME.EXE G_DEBUG.EXE   > NUL
 move CUSTOM.EXE C_DEBUG.EXE > NUL

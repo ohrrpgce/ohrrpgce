@@ -1,0 +1,12 @@
+custom.obj +
+drawing.obj +
+subs.obj +
+subs2.obj +
+mapsubs.obj +
+flexmenu.obj +
+,
+custom.exe,
+,
+allmodex.lib +
+bcl71enr.lib +
+

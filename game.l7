@@ -1,0 +1,12 @@
+game.obj +
+bmod.obj +
+bmodsubs.obj +
+menustuf.obj +
+moresubs.obj +
+yetmore.obj +
+,
+game.exe,
+,
+allmodex.lib +
+bcl71enr.lib +
+

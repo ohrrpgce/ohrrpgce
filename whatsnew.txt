@@ -28,7 +28,7 @@ WHAT IS NEW?
      * Cleaned up build system to make it possible for people other than
        me to compile if they can get ahold of a copy of QuickBasic 4.5
      * Support for compiling with QuickBasic 7.1 thanks to Mike Caron
-       (pkmnfrk)
+       (pkmnfrk) and Ralph Versteegen (TeeEmCee)
      * Massive indentation cleanup thanks to David Gowers (NeoTA)
      * Assembly DECLARE cleanup (moved to to allmodex.bi) thanks to Simon
        Bradley
