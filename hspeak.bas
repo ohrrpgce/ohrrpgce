@@ -795,6 +795,8 @@ END SUB
 
 SUB functiontable (in$, out$, seek$)
 
+ DIM idmask(2048)
+
  autonumber = 32767
 
  OPEN in$ FOR INPUT AS #1
@@ -814,12 +816,19 @@ SUB functiontable (in$, out$, seek$)
     IF a$ = "end" THEN
      mode = 0
     ELSE
-     IF VAL(a$) = -1 THEN a$ = LTRIM$(STR$(autonumber)): autonumber = autonumber - 1
      LINE INPUT #1, mne$
      LINE INPUT #1, argc$
-     IF NOT isnumeric(a$) THEN spiterror seek$ + ": expected ID number but found name": SYSTEM
+     IF VAL(a$) = -1 THEN
+      a$ = LTRIM$(STR$(autonumber)): autonumber = autonumber - 1
+      IF VAL(a$) = 16384 THEN spiterror "Warning:" + mne$ + ": too many autonumbered scripts... thats just silly. How did you make sixteen thousand of them?"
+     ELSE
+      IF VAL(a$) > 16384 THEN spiterror "Warning: ID number " + a$ + " for " + mne$ + " exceeds the limit of 16384"
+     END IF
+     IF readbit(idmask(), 0, VAL(a$)) THEN spiterror seek$ + ": Duplicate ID number " + a$ + " in " + mne$: SYSTEM
+     IF NOT isnumeric(a$) THEN spiterror seek$ + ":" + mne$ + ": expected ID number but found name `" + a$ + "'": SYSTEM
      IF isnumeric(mne$) THEN spiterror seek$ + ": expected name but found number " + mne$ + ". The most likely cause of this error is that you have defined a constant with the same name as a predefined function": SYSTEM
-     IF NOT isnumeric(argc$) THEN spiterror seek$ + ": expected argument count but found the name " + argc$ + " instead": SYSTEM
+     IF NOT isnumeric(argc$) THEN spiterror seek$ + ":" + mne$ + ": expected argument count but found the name " + argc$ + " instead": SYSTEM
+     setbit idmask(), 0, VAL(a$), true
      PRINT #3, mne$
      PRINT #3, a$
      PRINT #3, argc$

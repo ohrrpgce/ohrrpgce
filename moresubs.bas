@@ -1176,7 +1176,8 @@ gold& = VAL(temp$)
 
 z = 34
 FOR i = 0 TO 500
- gen(i) = buffer(z): z = z + 1
+ IF i <= 104 THEN gen(i) = buffer(z)
+ z = z + 1
 NEXT i
 FOR i = 0 TO 2100
  npcl(i) = buffer(z): z = z + 1
@@ -1690,7 +1691,12 @@ NEXT i
 
 z = 34
 FOR i = 0 TO 500
- buffer(z) = gen(i): z = z + 1
+ IF i <= 104 THEN
+  buffer(z) = gen(i)
+ ELSE
+  buffer(z) = 0
+ END IF
+ z = z + 1
 NEXT i
 FOR i = 0 TO 2100
  buffer(z) = npcl(i): z = z + 1

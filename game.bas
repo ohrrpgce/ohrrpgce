@@ -137,9 +137,6 @@ DECLARE FUNCTION getfmvol ()
 DECLARE SUB setfmvol (BYVAL vol)
 DECLARE SUB screenshot (f$, BYVAL p, maspal(), buf())
 DECLARE FUNCTION readjoy (joybuf(), BYVAL jnum)
-'DECLARE FUNCTION setmouse (mbuf())
-'DECLARE SUB readmouse (mbuf())
-'DECLARE SUB movemouse (BYVAL x, BYVAL y)
 DECLARE SUB array2str (arr(), BYVAL o, s$)
 DECLARE SUB str2array (s$, arr(), BYVAL o)
 
@@ -249,12 +246,11 @@ regs.ax = &H3509: CALL interruptx(&H21, regs, regs)
 off9 = regs.bx: seg9 = regs.es
 
 DIM font(1024), master(767), buffer(16384), pal(1584), timing(4), mouse(4), joy(14), music(32767)
-DIM filenum$(99), door(300), link(1000), gen(500), npcl(2100), npcs(1500), saytag(21), tag(127), hero(40), a(500), stat(40, 1, 13), bmenu(40, 5), spell(40, 3, 24), lmp(40, 7), foef(99), menu$(20), exlev&(40, 1), name$(40), mi(10), gotj(2)
+DIM filenum$(99), door(300), link(1000), gen(104), npcl(2100), npcs(1500), saytag(21), tag(127), hero(40), a(500), stat(40, 1, 13), bmenu(40, 5), spell(40, 3, 24), lmp(40, 7), foef(99), menu$(20), exlev&(40, 1), name$(40), mi(10), gotj(2), veh(20)
 DIM item(-3 TO 199), item$(-3 TO 199), eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), zbuf(3), catx(15), caty(15), catz(15), catd(15), catp(3), xgo(3), ygo(3), herospeed(3), wtog(3), say$( _
 7), hmask(3), tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 4)
 DIM scroll(16002), pass(16002), emap(16002), mapname$
 DIM script(2048), heap(2048), global(1024), stack(1024), scrat(128, 11), retvals(32)
-
 
 '---GET CURRENT DIRECTORY AND PROGRAM DIRECTORY---
 curdir$ = STRING$(pathlength, 0): getstring curdir$
@@ -335,7 +331,10 @@ needf = 1
 xbload game$ + ".mas", master(), "master palette missing from " + game$
 xbload game$ + ".fnt", font(), "font missing from " + game$
 xbload game$ + ".pal", pal(), "16-color palletes missing from " + game$
-xbload game$ + ".gen", gen(), "general data missing from " + game$
+xbload game$ + ".gen", buffer(), "general data missing from " + game$
+FOR i = 0 TO 104
+ gen(i) = buffer(i)
+NEXT i
 
 rpgversion gen(95)
 
@@ -362,9 +361,6 @@ FOR i = 0 TO 199: item$(i) = "           ": NEXT i
 
 leader = 0: gold& = gen(96): svcsr = 0: fatal = 0: abortg = 0
 addhero 1, 0, hero(), bmenu(), spell(), stat(), lmp(), exlev&(), name$(), eqstuf()
-'addhero 6, 1, hero(), bmenu(), spell(), stat(), lmp(), exlev&(), name$(), eqstuf()
-'addhero 7, 2, hero(), bmenu(), spell(), stat(), lmp(), exlev&(), name$(), eqstuf()
-'addhero 4, 3, hero(), bmenu(), spell(), stat(), lmp(), exlev&(), name$(), eqstuf()
 
 FOR i = 0 TO 3
  herospeed(i) = 4
@@ -418,7 +414,7 @@ IF keyval(73) > 0 AND keyval(81) > 0 THEN
  IF keyval(2) > 1 THEN patcharray gen(), "gen", 499, timing(), vpage, dpage
  IF keyval(3) > 1 THEN patcharray hmask(), "hmask", 3, timing(), vpage, dpage
 END IF
-IF carray(5) > 1 AND showsay = 0 AND readbit(gen(), 44, suspendplayer) = 0 THEN
+IF carray(5) > 1 AND showsay = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND readbit(veh(), 6, 0) = 0 THEN
  GOSUB usermenu
  evalherotag tag(), herobits(), hero(), stat(), leader
  evalitemtag tag(), itembits(), hero(), eqstuf(), item()
@@ -428,7 +424,7 @@ END IF
 IF carray(4) > 1 AND showsay = 1 AND readbit(gen(), 44, suspendboxadvance) = 0 THEN
  GOSUB nextsay
 END IF
-IF showsay = 0 AND readbit(gen(), 44, suspendplayer) = 0 THEN
+IF showsay = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND readbit(veh(), 6, 0) = 0 THEN
  IF carray(0) > 0 AND xgo(0) = 0 AND ygo(0) = 0 THEN ygo(0) = 20: catd(0) = 0
  IF carray(1) > 0 AND xgo(0) = 0 AND ygo(0) = 0 THEN ygo(0) = -20: catd(0) = 2
  IF carray(2) > 0 AND xgo(0) = 0 AND ygo(0) = 0 THEN xgo(0) = 20: catd(0) = 3
@@ -436,6 +432,28 @@ IF showsay = 0 AND readbit(gen(), 44, suspendplayer) = 0 THEN
  IF carray(4) > 1 AND xgo(0) = 0 AND ygo(0) = 0 THEN
   auto = 0
   GOSUB usething
+ END IF
+END IF
+IF veh(0) AND readbit(veh(), 6, 0) THEN
+ '--this is only run when you are mounting a vehicle--
+ tmp = 0
+ FOR i = 0 TO 3
+  IF ABS(catx(i) - npcl(veh(5) + 0)) < herospeed(i) THEN
+   catx(i) = npcl(veh(5) + 0)
+  END IF
+  IF ABS(caty(i) - npcl(veh(5) + 300)) < herospeed(i) THEN
+   caty(i) = npcl(veh(5) + 300)
+  END IF
+  IF ABS(npcl(veh(5) + 0) - catx(i)) > 0 THEN xgo(i) = SGN(catx(i) - npcl(veh(5) + 0))
+  IF ABS(npcl(veh(5) + 300) - caty(i)) > 0 THEN ygo(i) = SGN(caty(i) - npcl(veh(5) + 300))
+  IF catx(i) - npcl(veh(5) + 0) = 0 AND caty(i) - npcl(veh(5) + 300) = 0 THEN tmp tmp + 1
+ NEXT i
+ IF tmp = 4 THEN
+  setbit veh(), 6, 0, 0
+  herospeed(0) = veh(8)
+  FOR i = 0 TO 3
+   xgo(i) = 0: ygo(i) = 0
+  NEXT i
  END IF
 END IF
 IF showsay = 1 THEN
@@ -477,9 +495,10 @@ IF keyval(64) > 1 THEN
 END IF
 IF keyval(87) > 1 THEN ghost = ghost XOR 1
 IF keyval(88) > 1 THEN snapshot vpage
-IF foep = 0 AND readbit(gen(), 44, suspendrandomenemys) = 0 THEN
+IF foep = 0 AND readbit(gen(), 44, suspendrandomenemys) = 0 AND (veh(0) = 0 OR veh(11) > -1) THEN
  setmapdata emap(), pass(), 0, 0
  temp = readmapblock(INT(catx(0) / 20), INT(caty(0) / 20))
+ IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
  IF temp > 0 THEN
   setpicstuf buffer(), 50, -1
   loadset game$ + ".efs" + CHR$(0), temp - 1, 0
@@ -761,7 +780,7 @@ j = -1
 DO
  j = j + 1
  IF j > 299 THEN RETURN
-LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0
+LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
 sayer = j
 IF sayer >= 0 THEN
  '--Step-on NPCs cannot be used
@@ -786,6 +805,18 @@ IF sayer >= 0 THEN
   ELSE
    scripterr "failed to load" + STR$(npcs((npcl(sayer + 600) - 1) * 15 + 12))
   END IF
+ END IF
+ vehuse = npcs((npcl(sayer + 600) - 1) * 15 + 14)
+ IF vehuse THEN '---activate a vehicle---
+  setpicstuf buffer(), 80, -1
+  loadset game$ + ".veh" + CHR$(0), vehuse - 1, 0
+  FOR i = 0 TO 7: veh(i) = 0: NEXT i
+  FOR i = 8 TO 20: veh(i) = buffer(i): NEXT i
+  veh(0) = -1
+  veh(5) = sayer
+  veh(7) = herospeed(0)
+  herospeed(0) = 10
+  setbit veh(), 6, 0, 1 '--trigger mounting sequence
  END IF
  say = npcs((npcl(sayer + 600) - 1) * 15 + 4)
  SELECT CASE say
@@ -867,14 +898,6 @@ IF readbit(saybit(), 0, 3) THEN
   stopsong
  END IF
 END IF
-'---STOP...???----------
-'IF istag(tag(), saytag(4), 0) THEN
-' reinitnpc 1, npcl(), map, filenum$()
-' GOSUB npcplot
-' IF sayenh(4) > 0 THEN loadpage game$ + ".til" + CHR$(0), gmap(0), 3
-' FOR i = 0 TO 6: sayenh(i) = 0: NEXT i
-' showsay = 0: sayer = -1: setkeys: FOR i = 0 TO 7: carray(i) = 0: NEXT i: RETURN
-'END IF
 '---GAIN/LOSE CASH-----
 IF istag(tag(), saytag(13), 0) THEN
  gold& = gold& + saytag(14)
@@ -1049,7 +1072,7 @@ RETURN
 movement:
 FOR whoi = 0 TO 3
  IF (movdivis(xgo(whoi)) OR movdivis(ygo(whoi))) AND ghost = 0 THEN
-  IF readbit(gen(), 44, suspendherowalls) = 0 THEN
+  IF readbit(gen(), 44, suspendherowalls) = 0 AND readbit(veh(), 6, 0) = 0 THEN
    '--this only happens if herowalls is on
    '--wrapping passability
    p = readmapblock(INT(catx(whoi * 5) / 20), INT(caty(whoi * 5) / 20))
@@ -1070,7 +1093,7 @@ FOR whoi = 0 TO 3
    IF xgo(whoi) > 0 AND movdivis(xgo(whoi)) AND ((p AND 8) = 8 OR (pl AND 2) = 2) THEN xgo(whoi) = 0
    IF xgo(whoi) < 0 AND movdivis(xgo(whoi)) AND ((p AND 2) = 2 OR (pr AND 8) = 8) THEN xgo(whoi) = 0
   END IF
-  IF readbit(gen(), 44, suspendobstruction) = 0 THEN
+  IF readbit(gen(), 44, suspendobstruction) = 0 AND readbit(veh(), 6, 0) = 0 THEN
    '--this only happens if obstruction is on
    FOR i = 0 TO 299
    IF npcl(i + 600) > 0 THEN '---NPC EXISTS---
@@ -1171,7 +1194,7 @@ IF xgo(0) = 0 AND ygo(0) = 0 AND (didgo(0) = 1 OR ng = 1) THEN
  IF readbit(gen(), 44, suspendobstruction) = 0 THEN
   '--this only happens if obstruction is on
   FOR i = 0 TO 299
-   IF npcl(i + 600) > 0 THEN '---NPC EXISTS---
+   IF npcl(i + 600) > 0 AND (veh(0) = 0 OR veh(5) <> i) THEN '---NPC EXISTS---
     IF npcs((npcl(i + 600) - 1) * 15 + 8) = 2 THEN '---NPC IS PASSABLE---
      IF npcl(i + 0) = catx(0) AND npcl(i + 300) = caty(0) THEN '---YOU ARE ON NPC---
       ux = npcl(i + 0)
@@ -1250,52 +1273,60 @@ movenpc:
 FOR o = 0 TO 299
 IF npcl(o + 600) > 0 THEN
  id = (npcl(o + 600) - 1)
- IF npcs(id * 15 + 2) > 0 AND npcs(id * 15 + 3) > 0 AND sayer <> o AND readbit(gen(), 44, suspendnpcs) = 0 THEN
-  IF npcl(o + 1500) = 0 AND npcl(o + 1800) = 0 THEN
-   'RANDOM WANDER---
-   IF npcs(id * 15 + 2) = 1 THEN
-    rand = 25
-    IF ABS(npcl(o + 0) - catx(0)) <= 20 AND ABS(npcl(o + 300) - caty(0)) <= 20 THEN rand = 5
-    IF INT(RND * 100) < rand THEN
-     temp = INT(RND * 4)
-     npcl(o + 900) = temp
-     IF temp = 0 THEN npcl(o + 1800) = 20
-     IF temp = 2 THEN npcl(o + 1800) = -20
-     IF temp = 3 THEN npcl(o + 1500) = 20
-     IF temp = 1 THEN npcl(o + 1500) = -20
-    END IF
-   END IF '---RANDOM WANDER
-   'ASSORTED PACING---
-   IF npcs(id * 15 + 2) > 1 AND npcs(id * 15 + 2) < 6 THEN
-    IF npcl(o + 900) = 0 THEN npcl(o + 1800) = 20
-    IF npcl(o + 900) = 2 THEN npcl(o + 1800) = -20
-    IF npcl(o + 900) = 3 THEN npcl(o + 1500) = 20
-    IF npcl(o + 900) = 1 THEN npcl(o + 1500) = -20
-   END IF '---ASSORTED PACING
-   'CHASE/FLEE---
-   IF npcs(id * 15 + 2) > 5 AND npcs(id * 15 + 2) < 8 THEN
-    rand = 100
-    IF INT(RND * 100) < rand THEN
-     IF INT(RND * 100) < 50 THEN
-      IF caty(0) < npcl(o + 300) THEN temp = 0
-      IF caty(0) > npcl(o + 300) THEN temp = 2
-      IF caty(0) = npcl(o + 300) THEN temp = INT(RND * 4)
-     ELSE
-      IF catx(0) < npcl(o + 0) THEN temp = 3
-      IF catx(0) > npcl(o + 0) THEN temp = 1
-      IF catx(0) = npcl(o + 0) THEN temp = INT(RND * 4)
+ IF veh(0) AND veh(5) = o AND readbit(veh(), 6, 0) = 0 THEN
+  '--match vehicle to main hero
+  npcl(o + 0) = catx(0)
+  npcl(o + 300) = caty(0)
+  npcl(o + 900) = catd(0)
+  npcl(o + 1200) = wtog(0)
+ ELSE
+  IF npcs(id * 15 + 2) > 0 AND npcs(id * 15 + 3) > 0 AND sayer <> o AND readbit(gen(), 44, suspendnpcs) = 0 THEN
+   IF npcl(o + 1500) = 0 AND npcl(o + 1800) = 0 THEN
+    'RANDOM WANDER---
+    IF npcs(id * 15 + 2) = 1 THEN
+     rand = 25
+     IF ABS(npcl(o + 0) - catx(0)) <= 20 AND ABS(npcl(o + 300) - caty(0)) <= 20 THEN rand = 5
+     IF INT(RND * 100) < rand THEN
+      temp = INT(RND * 4)
+      npcl(o + 900) = temp
+      IF temp = 0 THEN npcl(o + 1800) = 20
+      IF temp = 2 THEN npcl(o + 1800) = -20
+      IF temp = 3 THEN npcl(o + 1500) = 20
+      IF temp = 1 THEN npcl(o + 1500) = -20
      END IF
-     IF npcs(id * 15 + 2) = 7 THEN temp = loopvar(temp, 0, 3, 2)
-     npcl(o + 900) = temp
-     IF temp = 0 THEN npcl(o + 1800) = 20
-     IF temp = 2 THEN npcl(o + 1800) = -20
-     IF temp = 3 THEN npcl(o + 1500) = 20
-     IF temp = 1 THEN npcl(o + 1500) = -20
-    END IF
-   END IF '---CHASE/FLEE
+    END IF '---RANDOM WANDER
+    'ASSORTED PACING---
+    IF npcs(id * 15 + 2) > 1 AND npcs(id * 15 + 2) < 6 THEN
+     IF npcl(o + 900) = 0 THEN npcl(o + 1800) = 20
+     IF npcl(o + 900) = 2 THEN npcl(o + 1800) = -20
+     IF npcl(o + 900) = 3 THEN npcl(o + 1500) = 20
+     IF npcl(o + 900) = 1 THEN npcl(o + 1500) = -20
+    END IF '---ASSORTED PACING
+    'CHASE/FLEE---
+    IF npcs(id * 15 + 2) > 5 AND npcs(id * 15 + 2) < 8 THEN
+     rand = 100
+     IF INT(RND * 100) < rand THEN
+      IF INT(RND * 100) < 50 THEN
+       IF caty(0) < npcl(o + 300) THEN temp = 0
+       IF caty(0) > npcl(o + 300) THEN temp = 2
+       IF caty(0) = npcl(o + 300) THEN temp = INT(RND * 4)
+      ELSE
+       IF catx(0) < npcl(o + 0) THEN temp = 3
+       IF catx(0) > npcl(o + 0) THEN temp = 1
+       IF catx(0) = npcl(o + 0) THEN temp = INT(RND * 4)
+      END IF
+      IF npcs(id * 15 + 2) = 7 THEN temp = loopvar(temp, 0, 3, 2)
+      npcl(o + 900) = temp
+      IF temp = 0 THEN npcl(o + 1800) = 20
+      IF temp = 2 THEN npcl(o + 1800) = -20
+      IF temp = 3 THEN npcl(o + 1500) = 20
+      IF temp = 1 THEN npcl(o + 1500) = -20
+     END IF
+    END IF '---CHASE/FLEE
+   END IF
   END IF
+  IF npcl(o + 1500) <> 0 OR npcl(o + 1800) <> 0 THEN GOSUB movenpcgo
  END IF
- IF npcl(o + 1500) <> 0 OR npcl(o + 1800) <> 0 THEN GOSUB movenpcgo
 END IF
 NEXT o
 RETURN
@@ -1363,27 +1394,28 @@ hitwall:
 RETURN
 
 cathero:
-IF readbit(gen(), 101, 1) = 1 THEN
- FOR i = 0 TO 3
-  zbuf(i) = 3 - i
- NEXT i
- FOR i = 0 TO 12 STEP 5
-  temp = 200
-  FOR o = 12 TO i STEP -5
-   IF (caty(zbuf(o / 5)) - mapy) < temp THEN temp = (caty(zbuf(o / 5)) - mapy): j = o
-  NEXT o
-  SWAP zbuf(j / 5), zbuf(i / 5)
- NEXT i
- FOR i = 0 TO 3
-  IF catp(zbuf(i)) > -1 AND catx(zbuf(i) * 5) = bound(catx(zbuf(i) * 5), mapx - 20, mapx + 320) AND caty(zbuf(i) * 5) = bound(caty(zbuf(i) * 5), mapy - 20, mapy + 200) THEN
-   loadsprite buffer(), 0, 200 * ((catd(zbuf(i) * 5) * 2) + INT(wtog(zbuf(i)) / 2)), zbuf(i) * 5, 20, 20, 2
-   drawsprite buffer(), 0, pal(), catp(zbuf(i)) * 16, catx(zbuf(i) * 5) - mapx, (caty(zbuf(i) * 5) - mapy) - catz(zbuf(i) * 5) + gmap(11), dpage
-  END IF
- NEXT i
-ELSE
- loadsprite buffer(), 0, 200 * ((catd(0) * 2) + INT(wtog(0) / 2)), 0, 20, 20, 2
- drawsprite buffer(), 0, pal(), catp(0) * 16, catx(0) - mapx, (caty(0) - mapy) - catz(0) + gmap(11), dpage
-END IF
+ IF veh(0) AND readbit(veh(), 6, 0) = 0 THEN RETURN
+ IF readbit(gen(), 101, 1) = 1 THEN
+  FOR i = 0 TO 3
+   zbuf(i) = 3 - i
+  NEXT i
+  FOR i = 0 TO 12 STEP 5
+   temp = 200
+   FOR o = 12 TO i STEP -5
+    IF (caty(zbuf(o / 5)) - mapy) < temp THEN temp = (caty(zbuf(o / 5)) - mapy): j = o
+   NEXT o
+   SWAP zbuf(j / 5), zbuf(i / 5)
+  NEXT i
+  FOR i = 0 TO 3
+   IF catp(zbuf(i)) > -1 AND catx(zbuf(i) * 5) = bound(catx(zbuf(i) * 5), mapx - 20, mapx + 320) AND caty(zbuf(i) * 5) = bound(caty(zbuf(i) * 5), mapy - 20, mapy + 200) THEN
+    loadsprite buffer(), 0, 200 * ((catd(zbuf(i) * 5) * 2) + INT(wtog(zbuf(i)) / 2)), zbuf(i) * 5, 20, 20, 2
+    drawsprite buffer(), 0, pal(), catp(zbuf(i)) * 16, catx(zbuf(i) * 5) - mapx, (caty(zbuf(i) * 5) - mapy) - catz(zbuf(i) * 5) + gmap(11), dpage
+   END IF
+  NEXT i
+ ELSE
+  loadsprite buffer(), 0, 200 * ((catd(0) * 2) + INT(wtog(0) / 2)), 0, 20, 20, 2
+  drawsprite buffer(), 0, pal(), catp(0) * 16, catx(0) - mapx, (caty(0) - mapy) - catz(0) + gmap(11), dpage
+ END IF
 RETURN
 
 drawnpc:
@@ -1481,6 +1513,13 @@ IF afterbat = 0 THEN
 END IF
 GOSUB npcplot
 IF afterbat = 0 THEN
+ IF veh(0) THEN
+  '--clear vehicle on loading new map--
+  herospeed(0) = veh(7)
+  FOR i = 0 TO 20
+   veh(i) = 0
+  NEXT i
+ END IF
  FOR i = 0 TO 15
   catx(i) = catx(0)
   caty(i) = caty(0)
@@ -1724,12 +1763,6 @@ RETURN
 
 interpretloop:
 DO
-  'debug "state =" + STR$(scrat(nowscript, scrstate))
-  'debug "kind =" + STR$(scrat(nowscript, curkind))
-  'debug "value =" + STR$(scrat(nowscript, curvalue))
-  'debug "argn =" + STR$(scrat(nowscript, curargn))
-  'debug "argc =" + STR$(scrat(nowscript, curargc))
-  'debug "depth =" + STR$(scrat(nowscript, scrdepth))
  SELECT CASE scrat(nowscript, scrstate)
 '---------------------------------------------------------------------------
  CASE stwait'---begin waiting for something
