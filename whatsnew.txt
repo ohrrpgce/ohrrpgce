@@ -2,6 +2,11 @@ WHAT IS NEW?
 
 Feb ?? 2005 [quaternion]
 
+  * Mike Caron fixed bug 35: enemy spawned backwards in place of
+    "flee-instead-of-die"...
+
+  * Mike Caron fixed bug 40: Maps can be resized to invalid dimensions
+
   * GPL Licensed source code. See LICENSE.txt
 
   * Cleaned up build system to make it possible for people other than me

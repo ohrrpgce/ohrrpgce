@@ -249,10 +249,10 @@ DEF SEG = VARSEG(master(0)): BLOAD game$ + ".mas", VARPTR(master(0))
 setpal master()
 IF NOT isfile(game$ + ".fnt" + CHR$(0)) THEN copyfile "ohrrpgce.fnt" + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
 DEF SEG = VARSEG(font(0)): BLOAD game$ + ".fnt", VARPTR(font(0))
- '--loadgen, upgrade, resave
- xbload game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
- upgrade general(), font()
- DEF SEG = VARSEG(general(0)): BSAVE game$ + ".gen", VARPTR(general(0)), 1000
+'--loadgen, upgrade, resave
+xbload game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
+upgrade general(), font()
+DEF SEG = VARSEG(general(0)): BSAVE game$ + ".gen", VARPTR(general(0)), 1000
 GOSUB lsongstr
 setfont font()
 needf = 1
@@ -260,72 +260,72 @@ needf = 1
 setkeys
 GOSUB setmainmenu
 DO:
-setwait timing(), 90
-setkeys
-tog = tog XOR 1
-IF keyval(1) > 1 THEN
- SELECT CASE menumode
- CASE 0'--normal
-  GOSUB relump
-  IF quitnow > 1 THEN GOTO finis
- CASE 1'--graphics
-  ptr = 0: menumode = 0: GOSUB setmainmenu
- END SELECT
-END IF
-dummy = usemenu(ptr, 0, 0, mainmax, 24)
-IF keyval(57) > 1 OR keyval(28) > 1 THEN
- SELECT CASE menumode
- CASE 0'--normal mode
-  IF ptr = 0 THEN ptr = 0: menumode = 1: GOSUB setgraphicmenu
-  IF ptr = 1 THEN mapmaker font(), master(), scroll(), pass(), emap(), general(), doors(), link(), npc(), npcstat(), song$(), npc$(), unpc(), lnpc()
-  IF ptr = 2 THEN statname general()
-  IF ptr = 3 THEN herodata general()
-  IF ptr = 4 THEN enemydata general()
-  IF ptr = 5 THEN attackdata general()
-  IF ptr = 6 THEN itemdata general()
-  IF ptr = 7 THEN shopdata general()
-  IF ptr = 8 THEN formation general(), song$()
-  IF ptr = 9 THEN textage general(), song$()
-  IF ptr = 10 THEN vehicles general()
-  IF ptr = 11 THEN tagnames general()
-  IF ptr = 12 THEN importsong song$(), general(), master()
-  IF ptr = 13 THEN fontedit font(), gamedir$
-  IF ptr = 14 THEN gendata general(), song$(), master()
-  IF ptr = 15 THEN scriptman gamedir$, general(), song$()
-  IF ptr = 16 THEN
-   GOSUB relump
-   IF quitnow > 1 THEN GOTO finis
-  END IF
- CASE 1'--graphics mode
-  IF ptr = 0 THEN ptr = 0: menumode = 0: GOSUB setmainmenu
-  IF ptr = 1 THEN maptile master(), font(), general()
-  IF ptr = 2 THEN sprite 20, 20, general(30), 8, 5, 0, 7, winfo$(), 200, 4, ".pt4", master(), font()
-  IF ptr = 3 THEN sprite 32, 40, general(26), 8, 16, 0, 3, hinfo$(), 640, 4, ".pt0", master(), font()
-  IF ptr = 4 THEN sprite 34, 34, general(27), 1, 2, 0, 4, einfo$(), 578, 4, ".pt1", master(), font()
-  IF ptr = 5 THEN sprite 50, 50, general(28), 1, 4, 1, 2, einfo$(), 1250, 2, ".pt2", master(), font()
-  IF ptr = 6 THEN sprite 80, 80, general(29), 1, 10, 2, 1, einfo$(), 3200, 2, ".pt3", master(), font()
-  IF ptr = 7 THEN sprite 50, 50, general(32), 3, 12, 0, 2, ainfo$(), 1250, 2, ".pt6", master(), font()
-  IF ptr = 8 THEN sprite 24, 24, general(31), 2, 2, 0, 5, xinfo$(), 288, 4, ".pt5", master(), font()
-  IF ptr = 9 THEN importbmp ".mxs", "screen", general(100), general(), master()
-  IF ptr = 10 THEN
-    general(33) = general(33) + 1
-    importbmp ".til", "tileset", general(33), general(), master()
-    general(33) = general(33) - 1
-  END IF
- END SELECT
- '--always resave the .GEN lump after any menu
- DEF SEG = VARSEG(general(0)): BSAVE game$ + ".gen", VARPTR(general(0)), 1000
-END IF
-
-standardmenu menu$(), mainmax, 22, ptr, 0, 0, 0, dpage, 0
-
-textcolor 6, 0
-printstr version$, 0, 192, dpage
-
-SWAP vpage, dpage
-setvispage vpage
-copypage 2, dpage
-dowait
+ setwait timing(), 90
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN
+  SELECT CASE menumode
+   CASE 0'--normal
+    GOSUB relump
+    IF quitnow > 1 THEN GOTO finis
+   CASE 1'--graphics
+    ptr = 0: menumode = 0: GOSUB setmainmenu
+  END SELECT
+ END IF
+ dummy = usemenu(ptr, 0, 0, mainmax, 24)
+ IF keyval(57) > 1 OR keyval(28) > 1 THEN
+  SELECT CASE menumode
+   CASE 0'--normal mode
+    IF ptr = 0 THEN ptr = 0: menumode = 1: GOSUB setgraphicmenu
+    IF ptr = 1 THEN mapmaker font(), master(), scroll(), pass(), emap(), general(), doors(), link(), npc(), npcstat(), song$(), npc$(), unpc(), lnpc()
+    IF ptr = 2 THEN statname general()
+    IF ptr = 3 THEN herodata general()
+    IF ptr = 4 THEN enemydata general()
+    IF ptr = 5 THEN attackdata general()
+    IF ptr = 6 THEN itemdata general()
+    IF ptr = 7 THEN shopdata general()
+    IF ptr = 8 THEN formation general(), song$()
+    IF ptr = 9 THEN textage general(), song$()
+    IF ptr = 10 THEN vehicles general()
+    IF ptr = 11 THEN tagnames general()
+    IF ptr = 12 THEN importsong song$(), general(), master()
+    IF ptr = 13 THEN fontedit font(), gamedir$
+    IF ptr = 14 THEN gendata general(), song$(), master()
+    IF ptr = 15 THEN scriptman gamedir$, general(), song$()
+    IF ptr = 16 THEN
+     GOSUB relump
+     IF quitnow > 1 THEN GOTO finis
+    END IF
+   CASE 1'--graphics mode
+    IF ptr = 0 THEN ptr = 0: menumode = 0: GOSUB setmainmenu
+    IF ptr = 1 THEN maptile master(), font(), general()
+    IF ptr = 2 THEN sprite 20, 20, general(30), 8, 5, 0, 7, winfo$(), 200, 4, ".pt4", master(), font()
+    IF ptr = 3 THEN sprite 32, 40, general(26), 8, 16, 0, 3, hinfo$(), 640, 4, ".pt0", master(), font()
+    IF ptr = 4 THEN sprite 34, 34, general(27), 1, 2, 0, 4, einfo$(), 578, 4, ".pt1", master(), font()
+    IF ptr = 5 THEN sprite 50, 50, general(28), 1, 4, 1, 2, einfo$(), 1250, 2, ".pt2", master(), font()
+    IF ptr = 6 THEN sprite 80, 80, general(29), 1, 10, 2, 1, einfo$(), 3200, 2, ".pt3", master(), font()
+    IF ptr = 7 THEN sprite 50, 50, general(32), 3, 12, 0, 2, ainfo$(), 1250, 2, ".pt6", master(), font()
+    IF ptr = 8 THEN sprite 24, 24, general(31), 2, 2, 0, 5, xinfo$(), 288, 4, ".pt5", master(), font()
+    IF ptr = 9 THEN importbmp ".mxs", "screen", general(100), general(), master()
+    IF ptr = 10 THEN
+     general(33) = general(33) + 1
+     importbmp ".til", "tileset", general(33), general(), master()
+     general(33) = general(33) - 1
+    END IF
+  END SELECT
+  '--always resave the .GEN lump after any menu
+  DEF SEG = VARSEG(general(0)): BSAVE game$ + ".gen", VARPTR(general(0)), 1000
+ END IF
+ 
+ standardmenu menu$(), mainmax, 22, ptr, 0, 0, 0, dpage, 0
+ 
+ textcolor 6, 0
+ printstr version$, 0, 192, dpage
+ 
+ SWAP vpage, dpage
+ setvispage vpage
+ copypage 2, dpage
+ dowait
 LOOP
 
 setmainmenu:
@@ -404,30 +404,30 @@ END IF
 
 setkeys
 DO
-setwait timing(), 100
-setkeys
-tog = tog XOR 1
-IF keyval(1) > 1 THEN GOTO finis
-dummy = usemenu(csr, top, 0, L, 20)
-IF keyval(57) > 1 OR keyval(28) > 1 THEN
- IF csr = 0 THEN
-  'IF game$ = "" THEN GOTO finis
-  GOSUB gamestr
-  IF game$ = "" GOTO nomakegame
-  textcolor 6, 0
-  printstr "Please Wait...", 0, 40, vpage
-  printstr "Creating RPG File", 0, 50, vpage
-  copyfile "ohrrpgce.new" + CHR$(0), game$ + ".rpg" + CHR$(0), buffer()
-  printstr "Unlumping", 0, 60, vpage
-  ERASE scroll, pass, emap
-  DIM lumpbuf(32767)
-  unlump game$ + ".rpg" + CHR$(0), workingdir$ + "\", lumpbuf()
-  ERASE lumpbuf
-  DIM scroll(16002), pass(16002), emap(16002)
-  findfiles workingdir$ + "\ohrrpgce.*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
-  printstr "Translumping", 0, 70, vpage
-  fh = FREEFILE
-  OPEN "temp.lst" FOR INPUT AS #fh
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN GOTO finis
+ dummy = usemenu(csr, top, 0, L, 20)
+ IF keyval(57) > 1 OR keyval(28) > 1 THEN
+  IF csr = 0 THEN
+   'IF game$ = "" THEN GOTO finis
+   GOSUB gamestr
+   IF game$ = "" GOTO nomakegame
+   textcolor 6, 0
+   printstr "Please Wait...", 0, 40, vpage
+   printstr "Creating RPG File", 0, 50, vpage
+   copyfile "ohrrpgce.new" + CHR$(0), game$ + ".rpg" + CHR$(0), buffer()
+   printstr "Unlumping", 0, 60, vpage
+   ERASE scroll, pass, emap
+   DIM lumpbuf(32767)
+   unlump game$ + ".rpg" + CHR$(0), workingdir$ + "\", lumpbuf()
+   ERASE lumpbuf
+   DIM scroll(16002), pass(16002), emap(16002)
+   findfiles workingdir$ + "\ohrrpgce.*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
+   printstr "Translumping", 0, 70, vpage
+   fh = FREEFILE
+   OPEN "temp.lst" FOR INPUT AS #fh
    DO WHILE NOT EOF(fh)
     a$ = ""
     INPUT #fh, a$
@@ -439,108 +439,108 @@ IF keyval(57) > 1 OR keyval(28) > 1 THEN
     END IF
     copyfile workingdir$ + "\ohrrpgce" + a$ + CHR$(0), workingdir$ + "\" + b$ + a$ + CHR$(0), buffer()
    LOOP
-  CLOSE #fh
-  KILL workingdir$ + "\ohrrpgce.*"
-  '--create archinym information lump
-  fh = FREEFILE
-  OPEN workingdir$ + "\archinym.lmp" FOR OUTPUT AS #fh
+   CLOSE #fh
+   KILL workingdir$ + "\ohrrpgce.*"
+   '--create archinym information lump
+   fh = FREEFILE
+   OPEN workingdir$ + "\archinym.lmp" FOR OUTPUT AS #fh
    PRINT #fh, game$
    PRINT #fh, version$
-  CLOSE #fh
-  printstr "Finalumping", 0, 80, vpage
-  '--re-lump files as NEW rpg file
-  filetolump$ = game$ + ".rpg"
-  GOSUB dolumpfiles
-  RETURN
+   CLOSE #fh
+   printstr "Finalumping", 0, 80, vpage
+   '--re-lump files as NEW rpg file
+   filetolump$ = game$ + ".rpg"
+   GOSUB dolumpfiles
+   RETURN
+  END IF
+  IF csr = 1 THEN GOTO finis
+  game$ = rpg$(csr): RETURN
+  nomakegame:
  END IF
- IF csr = 1 THEN GOTO finis
- game$ = rpg$(csr): RETURN
-nomakegame:
-END IF
-
-standardmenu rpg$(), L, 22, csr, top, 0, 0, dpage, 0
-
-SWAP vpage, dpage
-setvispage vpage
-clearpage dpage
-dowait
+ 
+ standardmenu rpg$(), L, 22, csr, top, 0, 0, dpage, 0
+ 
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
 LOOP
 
 gamestr:
 setkeys
 DO
-setwait timing(), 100
-setkeys
-tog = tog XOR 1
-IF keyval(1) > 1 THEN game$ = "": RETURN
-strgrabber game$, 8
-fixfilename game$
-IF keyval(28) > 1 THEN
- FOR i = 2 TO L
-  IF UCASE$(rpg$(i)) = UCASE$(game$) AND game$ <> "" THEN alert$ = game$ + " already exists": alert = 30: game$ = "": EXIT FOR
- NEXT i
- IF game$ <> "" THEN RETURN
-END IF
-textcolor 15, 0
-printstr "Filename of New Game?", 160 - LEN("Filename of New Game?") * 4, 20, dpage
-IF alert > 0 THEN printstr alert$, 160 - LEN(alert$) * 4, 40, dpage: alert = alert - 1
-textcolor 14 + tog, 1
-printstr game$, 160 - LEN(game$) * 4, 30, dpage
-SWAP vpage, dpage
-setvispage vpage
-clearpage dpage
-dowait
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN game$ = "": RETURN
+ strgrabber game$, 8
+ fixfilename game$
+ IF keyval(28) > 1 THEN
+  FOR i = 2 TO L
+   IF UCASE$(rpg$(i)) = UCASE$(game$) AND game$ <> "" THEN alert$ = game$ + " already exists": alert = 30: game$ = "": EXIT FOR
+  NEXT i
+  IF game$ <> "" THEN RETURN
+ END IF
+ textcolor 15, 0
+ printstr "Filename of New Game?", 160 - LEN("Filename of New Game?") * 4, 20, dpage
+ IF alert > 0 THEN printstr alert$, 160 - LEN(alert$) * 4, 40, dpage: alert = alert - 1
+ textcolor 14 + tog, 1
+ printstr game$, 160 - LEN(game$) * 4, 30, dpage
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
 LOOP
 
 cleanup:
 temp = 0
 setkeys
 DO
-setwait timing(), 100
-setkeys
-tog = tog XOR 1
-dummy = usemenu(temp, 0, 0, 2, 2)
-IF keyval(57) > 1 OR keyval(28) > 1 THEN
- IF temp = 0 THEN
-  IF isfile(workingdir$ + "\__danger.tmp" + CHR$(0)) THEN
-   textcolor 14, 4
-   printstr "Data is corrupt, not safe to relump", 0, 100, vpage
-   w = getkey
-  ELSE '---END UNSAFE
-   printstr "Saving as " + a$ + ".BAK", 0, 180, vpage
-   printstr "LUMPING DATA: please wait...", 0, 190, vpage
-   '--re-lump recovered files as BAK file
-   filetolump$ = a$ + ".bak"
-   GOSUB dolumpfiles
-   clearpage vpage
-   printstr "the recovered data has been saved.", 0, 0, vpage
-   printstr "if CUSTOM.EXE crashed last time you", 0, 8, vpage
-   printstr "ran it and you lost work, you may", 0, 16, vpage
-   printstr "be able to recover it. make a backup", 0, 24, vpage
-   printstr "copy of " + a$ + ".RPG and then rename", 0, 32, vpage
-   printstr a$ + ".BAK to " + a$ + ".RPG", 0, 40, vpage
-   printstr "If you have questions, ask", 0, 56, vpage
-   printstr "ohrrpgce-crash@HamsterRepublic.com", 0, 64, vpage
-   w = getkey
-   RETURN
-  END IF '---END RELUMP
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ dummy = usemenu(temp, 0, 0, 2, 2)
+ IF keyval(57) > 1 OR keyval(28) > 1 THEN
+  IF temp = 0 THEN
+   IF isfile(workingdir$ + "\__danger.tmp" + CHR$(0)) THEN
+    textcolor 14, 4
+    printstr "Data is corrupt, not safe to relump", 0, 100, vpage
+    w = getkey
+   ELSE '---END UNSAFE
+    printstr "Saving as " + a$ + ".BAK", 0, 180, vpage
+    printstr "LUMPING DATA: please wait...", 0, 190, vpage
+    '--re-lump recovered files as BAK file
+    filetolump$ = a$ + ".bak"
+    GOSUB dolumpfiles
+    clearpage vpage
+    printstr "the recovered data has been saved.", 0, 0, vpage
+    printstr "if CUSTOM.EXE crashed last time you", 0, 8, vpage
+    printstr "ran it and you lost work, you may", 0, 16, vpage
+    printstr "be able to recover it. make a backup", 0, 24, vpage
+    printstr "copy of " + a$ + ".RPG and then rename", 0, 32, vpage
+    printstr a$ + ".BAK to " + a$ + ".RPG", 0, 40, vpage
+    printstr "If you have questions, ask", 0, 56, vpage
+    printstr "ohrrpgce-crash@HamsterRepublic.com", 0, 64, vpage
+    w = getkey
+    RETURN
+   END IF '---END RELUMP
+  END IF
+  IF temp = 1 THEN RETURN
+  IF temp = 2 THEN nocleanup = 1: RETURN
  END IF
- IF temp = 1 THEN RETURN
- IF temp = 2 THEN nocleanup = 1: RETURN
-END IF
-textcolor 9, 0
-printstr a$ + " was found unlumped", 0, 0, dpage
-printstr "This may mean that CUSTOM.EXE crashed", 0, 40, dpage
-printstr "last time you used it, or it may mean", 0, 48, dpage
-printstr "that another copy of CUSTOM.EXE is", 0, 56, dpage
-printstr "already running in the background.", 0, 64, dpage
-
-standardmenu rpg$(), 2, 2, temp, 0, 0, 8, dpage, 0
-
-SWAP vpage, dpage
-setvispage vpage
-clearpage dpage
-dowait
+ textcolor 9, 0
+ printstr a$ + " was found unlumped", 0, 0, dpage
+ printstr "This may mean that CUSTOM.EXE crashed", 0, 40, dpage
+ printstr "last time you used it, or it may mean", 0, 48, dpage
+ printstr "that another copy of CUSTOM.EXE is", 0, 56, dpage
+ printstr "already running in the background.", 0, 64, dpage
+ 
+ standardmenu rpg$(), 2, 2, temp, 0, 0, 8, dpage, 0
+ 
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
 LOOP
 
 listmake:
@@ -551,12 +551,12 @@ WRITE #fh, "-END-"
 CLOSE #fh
 
 IF NOT isdir(workingdir$ + CHR$(0)) THEN
-  MKDIR workingdir$
+ MKDIR workingdir$
 ELSE
-  ON ERROR GOTO tempDirErr
-  safekill (workingdir$ + "\lockfile.tmp")
-  ON ERROR GOTO 0
-  oldcrash = 1
+ ON ERROR GOTO tempDirErr
+ safekill (workingdir$ + "\lockfile.tmp")
+ ON ERROR GOTO 0
+ oldcrash = 1
 END IF
 '--open a lockfile to notify other instances of custom that the working
 '--dir is in use
@@ -584,15 +584,15 @@ setkeys
 RETURN
 
 dorelump:
- clearpage 0
- setvispage 0
- textcolor 15, 0
- printstr "LUMPING DATA: please wait.", 0, 0, 0
- '--verify that maps are not corrupt--
- verifyrpg game$
- '--lump data to SAVE rpg file
- filetolump$ = RIGHT$(game$, LEN(game$) - 12) + ".rpg"
- GOSUB dolumpfiles
+clearpage 0
+setvispage 0
+textcolor 15, 0
+printstr "LUMPING DATA: please wait.", 0, 0, 0
+'--verify that maps are not corrupt--
+verifyrpg game$
+'--lump data to SAVE rpg file
+filetolump$ = RIGHT$(game$, LEN(game$) - 12) + ".rpg"
+GOSUB dolumpfiles
 RETURN
 
 checkpass:
@@ -609,13 +609,13 @@ unlumpfile gamefile$ + ".rpg" + CHR$(0), game$ + ".gen", workingdir$ + "\", buff
 xbload workingdir$ + "\" + game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
 '----load password-----
 IF general(5) >= 256 THEN
-  '--new format password
-  rpas$ = readpassword$(general())
+ '--new format password
+ rpas$ = readpassword$(general())
 ELSE
-  '--old scattertable format
-  IF general(94) = -1 THEN RETURN 'this is stupid
-  readscatter rpas$, general(94), general(), 200
-  rpas$ = rotascii(rpas$, general(93) * -1)
+ '--old scattertable format
+ IF general(94) = -1 THEN RETURN 'this is stupid
+ readscatter rpas$, general(94), general(), 200
+ rpas$ = rotascii(rpas$, general(93) * -1)
 END IF
 '--if password is unset, do not prompt
 IF rpas$ = "" THEN RETURN
@@ -645,43 +645,43 @@ DO
 LOOP
 
 dolumpfiles:
-  '--build the list of files to lump
-  findfiles workingdir$ + "\*.*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
-  fixorder "temp.lst"
-  '---KILL BUFFERS, LUMP, REDEFINE BUFFERS---
-  ERASE scroll, pass, emap
-  DIM lumpbuf(32767)
-  unsafefile$ = "RPG lumping failed!"
-  lumpfiles "temp.lst" + CHR$(0), filetolump$ + CHR$(0), workingdir$ + "\", lumpbuf()
-  unsafefile$ = ""
-  ERASE lumpbuf
-  DIM scroll(16002), pass(16002), emap(16002)
+'--build the list of files to lump
+findfiles workingdir$ + "\*.*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
+fixorder "temp.lst"
+'---KILL BUFFERS, LUMP, REDEFINE BUFFERS---
+ERASE scroll, pass, emap
+DIM lumpbuf(32767)
+unsafefile$ = "RPG lumping failed!"
+lumpfiles "temp.lst" + CHR$(0), filetolump$ + CHR$(0), workingdir$ + "\", lumpbuf()
+unsafefile$ = ""
+ERASE lumpbuf
+DIM scroll(16002), pass(16002), emap(16002)
 RETURN
 
 tempDirErr:
-  PRINT "Either CUSTOM.EXE is already running in the background, or it"
-  PRINT "terminated incorrectly last time it was run, and was unable to clean up"
-  PRINT "its temporary files. The operating system is denying access to the"
-  PRINT "files in " + workingdir$
-  PRINT
-  PRINT "Error code"; ERR
-  ON ERROR GOTO 0
+PRINT "Either CUSTOM.EXE is already running in the background, or it"
+PRINT "terminated incorrectly last time it was run, and was unable to clean up"
+PRINT "its temporary files. The operating system is denying access to the"
+PRINT "files in " + workingdir$
+PRINT
+PRINT "Error code"; ERR
+ON ERROR GOTO 0
 SYSTEM
 
 modeXerr:
- GOSUB shutoff
- restoremode
- IF LEN(unsafefile$) THEN
-   PRINT unsafefile$
-   GOSUB cleanupfiles
- END IF
- PRINT "Please report this exact error message to ohrrpgce@HamsterRepublic.com"
- PRINT
- PRINT "Version:"; version$
- PRINT "Memory Info:"; SETMEM(0); FRE(-1); FRE(-2); FRE(0)
- PRINT "Game:"; gamedir$ + "\" + gamefile$ + ".RPG"
- '--crash and print the error
- ON ERROR GOTO 0
+GOSUB shutoff
+restoremode
+IF LEN(unsafefile$) THEN
+ PRINT unsafefile$
+ GOSUB cleanupfiles
+END IF
+PRINT "Please report this exact error message to ohrrpgce@HamsterRepublic.com"
+PRINT
+PRINT "Version:"; version$
+PRINT "Memory Info:"; SETMEM(0); FRE(-1); FRE(-2); FRE(0)
+PRINT "Game:"; gamedir$ + "\" + gamefile$ + ".RPG"
+'--crash and print the error
+ON ERROR GOTO 0
 
 finis:
 GOSUB cleanupfiles
@@ -703,14 +703,14 @@ restoremode
 SYSTEM
 
 cleanupfiles:
-  CLOSE #lockfile
-  IF nocleanup = 0 THEN
-    touchfile workingdir$ + "\kill.tmp"
-    KILL workingdir$ + "\*.*"
-    RMDIR workingdir$
-  END IF
-  safekill "rpg.lst"
-  safekill "temp.lst"
+CLOSE #lockfile
+IF nocleanup = 0 THEN
+ touchfile workingdir$ + "\kill.tmp"
+ KILL workingdir$ + "\*.*"
+ RMDIR workingdir$
+END IF
+safekill "rpg.lst"
+safekill "temp.lst"
 RETURN
 
 switchon:
@@ -726,28 +726,28 @@ RETURN
 readstuff:
 RESTORE menuitems
 FOR i = 0 TO 7
-READ winfo$(i)
+ READ winfo$(i)
 NEXT i
 FOR i = 0 TO 7
-READ hinfo$(i)
+ READ hinfo$(i)
 NEXT i
 FOR i = 0 TO 0
-READ einfo$(i)
+ READ einfo$(i)
 NEXT i
 FOR i = 0 TO 1
-READ xinfo$(i)
+ READ xinfo$(i)
 NEXT i
 FOR i = 0 TO 2
-READ ainfo$(i)
+ READ ainfo$(i)
 NEXT i
 FOR i = 0 TO 14
-READ npc$(i)
+ READ npc$(i)
 NEXT i
 FOR i = 0 TO 14
-READ unpc(i)
+ READ unpc(i)
 NEXT i
 FOR i = 0 TO 14
-READ lnpc(i)
+ READ lnpc(i)
 NEXT i
 
 FOR o = 0 TO 3
@@ -895,954 +895,954 @@ FUNCTION filenum$ (n)
 END FUNCTION
 
 SUB fixfilename (s$)
-  result$ = ""
-  FOR i = 1 TO LEN(s$)
-    char$ = MID$(s$, i, 1)
-    ascii = ASC(char$)
-    SELECT CASE ascii
-      CASE 32
-        result$ = result$ + "_"
-      CASE 48 TO 57, 65 TO 90, 97 TO 122, 95, 126, 45
-        result$ = result$ + char$
-    END SELECT
-  NEXT
-  s$ = result$
+ result$ = ""
+ FOR i = 1 TO LEN(s$)
+  char$ = MID$(s$, i, 1)
+  ascii = ASC(char$)
+  SELECT CASE ascii
+   CASE 32
+    result$ = result$ + "_"
+   CASE 48 TO 57, 65 TO 90, 97 TO 122, 95, 126, 45
+    result$ = result$ + char$
+  END SELECT
+ NEXT
+ s$ = result$
 END SUB
 
 SUB fixorder (f$)
-
-copyfile f$ + CHR$(0), "fixorder.tmp" + CHR$(0), buffer()
-
-ofh = FREEFILE
-OPEN f$ FOR OUTPUT AS #ofh
-
-ifh = FREEFILE
-OPEN "fixorder.tmp" FOR INPUT AS #ifh
-
-'--first output the ARCHINYM.LMP and BROWSE.TXT files
-WHILE NOT EOF(ifh)
- LINE INPUT #ifh, a$
- b$ = LCASE$(a$)
- IF b$ = "archinym.lmp" OR b$ = "browse.txt" THEN
+ 
+ copyfile f$ + CHR$(0), "fixorder.tmp" + CHR$(0), buffer()
+ 
+ ofh = FREEFILE
+ OPEN f$ FOR OUTPUT AS #ofh
+ 
+ ifh = FREEFILE
+ OPEN "fixorder.tmp" FOR INPUT AS #ifh
+ 
+ '--first output the ARCHINYM.LMP and BROWSE.TXT files
+ WHILE NOT EOF(ifh)
+  LINE INPUT #ifh, a$
+  b$ = LCASE$(a$)
+  IF b$ = "archinym.lmp" OR b$ = "browse.txt" THEN
    PRINT #ofh, a$ + CHR$(0)
- END IF
-WEND
-
-'--close and re-open
-CLOSE #ifh
-OPEN "fixorder.tmp" FOR INPUT AS #ifh
-
-'--output the other files, excluding illegal files
-WHILE NOT EOF(ifh)
- LINE INPUT #ifh, a$
- b$ = LCASE$(a$)
- SELECT CASE b$
+  END IF
+ WEND
+ 
+ '--close and re-open
+ CLOSE #ifh
+ OPEN "fixorder.tmp" FOR INPUT AS #ifh
+ 
+ '--output the other files, excluding illegal files
+ WHILE NOT EOF(ifh)
+  LINE INPUT #ifh, a$
+  b$ = LCASE$(a$)
+  SELECT CASE b$
    CASE "archinym.lmp", "browse.txt", "scripts.txt", "hs"
-     '--do nothing
+    '--do nothing
    CASE ELSE
-     '--check extenstion
-     c$ = RIGHT$(b$, 4)
-     SELECT CASE c$
-       CASE ".tmp", ".hsx"
-         '--do nothing
-       CASE ELSE
-         '--output all other names
-         PRINT #ofh, a$ + CHR$(0)
-     END SELECT
- END SELECT
-WEND
-CLOSE #ifh
-
-CLOSE #ofh
-
-safekill "fixorder.tmp"
-
+    '--check extenstion
+    c$ = RIGHT$(b$, 4)
+    SELECT CASE c$
+     CASE ".tmp", ".hsx"
+      '--do nothing
+     CASE ELSE
+      '--output all other names
+      PRINT #ofh, a$ + CHR$(0)
+    END SELECT
+  END SELECT
+ WEND
+ CLOSE #ifh
+ 
+ CLOSE #ofh
+ 
+ safekill "fixorder.tmp"
+ 
 END SUB
 
 SUB fontedit (font(), gamedir$)
-
-STATIC default$
-
-DIM f(255), copybuf(4), menu$(3)
-
-menu$(0) = "Previous Menu"
-menu$(1) = "Edit Font..."
-menu$(2) = "Import Font..."
-menu$(3) = "Export Font..."
-
-last = -1
-FOR i = 32 TO 255
+ 
+ STATIC default$
+ 
+ DIM f(255), copybuf(4), menu$(3)
+ 
+ menu$(0) = "Previous Menu"
+ menu$(1) = "Edit Font..."
+ menu$(2) = "Import Font..."
+ menu$(3) = "Export Font..."
+ 
+ last = -1
+ FOR i = 32 TO 255
   last = last + 1
   f(last) = i
-NEXT i
-
-mode = -1
-
-menuptr = 0
-top = 0
-
-ptr = -1 * linesize
-linesize = 14
-
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- SELECT CASE mode
-  CASE -1
-   IF keyval(1) > 1 THEN GOTO donefont
-   dummy = usemenu(menuptr, 0, 0, 3, 22)
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
-     IF menuptr = 0 THEN GOTO donefont
-     IF menuptr = 1 THEN mode = 0
-     IF menuptr = 2 THEN GOSUB importfont
-     IF menuptr = 3 THEN GOSUB exportfont
-   END IF
-  CASE 0
-   IF keyval(1) > 1 THEN mode = -1
-   'IF keyval(51) > 1 THEN linesize = large(linesize - 1, 1)
-   'IF keyval(52) > 1 THEN linesize = small(linesize + 1, 40)
-   IF keyval(72) > 1 THEN ptr = large(ptr - linesize, -1 * linesize)
-   IF keyval(80) > 1 THEN ptr = small(ptr + linesize, last)
-   IF keyval(75) > 1 THEN ptr = large(ptr - 1, 0)
-   IF keyval(77) > 1 THEN ptr = small(ptr + 1, last)
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
-     IF ptr < 0 THEN
-       mode = -1
-     ELSE
-       mode = 1
-       x = 0: y = 0
-     END IF
-   END IF
-   IF keyval(29) > 0 AND keyval(19) > 1 THEN romfontchar font(), ptr
-  CASE 1
-   IF keyval(1) > 1 OR keyval(28) > 1 THEN mode = 0
-   IF keyval(72) > 1 THEN y = loopvar(y, 0, 7, -1)
-   IF keyval(80) > 1 THEN y = loopvar(y, 0, 7, 1)
-   IF keyval(75) > 1 THEN x = loopvar(x, 0, 7, -1)
-   IF keyval(77) > 1 THEN x = loopvar(x, 0, 7, 1)
-   IF keyval(57) > 1 THEN
-    setbit font(), 0, (f(ptr) * 8 + x) * 8 + y, (readbit(font(), 0, (f(ptr) * 8 + x) * 8 + y) XOR 1)
-   END IF
- END SELECT
- IF mode >= 0 THEN
-   '--copy and paste support
-   IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN GOSUB copychar
-   IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN GOSUB pastechar
- END IF
-
- IF mode = -1 THEN
-   standardmenu menu$(), 3, 22, menuptr, 0, 0, 0, dpage, 0
- END IF
-
- IF mode >= 0 THEN
-  xoff = 8: yoff = 8
-  FOR i = 0 TO last
-    textcolor 7, 8
-    IF ptr >= 0 THEN
-      IF mode = 0 THEN
-        IF (i MOD linesize) = (ptr MOD linesize) OR (i \ linesize) = (ptr \ linesize) THEN textcolor 7, 1
-      END IF
-      IF ptr = i THEN textcolor 14 + tog, 0
-    END IF
-    printstr CHR$(f(i)), xoff + (i MOD linesize) * 9, yoff + (i \ linesize) * 9, dpage
-  NEXT i
-  textcolor 7, 0
-  IF ptr < 0 THEN textcolor 14 + tog, 0
-  printstr menu$(0), 8, 0, dpage
-
-  IF ptr >= 0 THEN
-   xoff = 150
-   yoff = 4
-   rectangle xoff, yoff, 160, 160, 8, dpage
-   FOR i = 0 TO 7
-    FOR j = 0 TO 7
-     z = readbit(font(), 0, (f(ptr) * 8 + i) * 8 + j)
-     IF z THEN rectangle xoff + i * 20, yoff + j * 20, 20, 20, 7, dpage
-    NEXT j
-   NEXT i
-   IF mode = 1 THEN rectangle xoff + x * 20, yoff + y * 20, 20, 20, 2 + 8 * readbit(font(), 0, (f(ptr) * 8 + x) * 8 + y), dpage
-   textcolor 15, 0
-   printstr "ASCII" + STR$(f(ptr)), 20, 190, dpage
-   IF f(ptr) < 32 THEN
-     printstr "RESERVED", 120, 190, dpage
-   ELSE
-     FOR i = 2 TO 53
-      IF f(ptr) = keyv(i, 2) THEN printstr "ALT+" + UCASE$(CHR$(keyv(i, 0))), 120, 190, dpage
-      IF f(ptr) = keyv(i, 3) THEN printstr "ALT+SHIFT+" + UCASE$(CHR$(keyv(i, 0))), 120, 190, dpage
-     NEXT i
-     IF f(ptr) = 32 THEN printstr "SPACE", 120, 190, dpage
-   END IF
-  END IF
- END IF
-
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-
-loadfont:
- DEF SEG = VARSEG(font(0)): BLOAD game$ + ".fnt", VARPTR(font(0))
- setfont font()
-RETURN
-
-savefont:
-  DEF SEG = VARSEG(font(0)): BSAVE game$ + ".fnt", VARPTR(font(0)), 2048
-RETURN
-
-copychar:
-  FOR i = 0 TO 63
-    setbit copybuf(), 0, i, readbit(font(), 0, f(ptr) * 64 + i)
-  NEXT i
-RETURN
-
-pastechar:
-  FOR i = 0 TO 63
-    setbit font(), 0, f(ptr) * 64 + i, readbit(copybuf(), 0, i)
-  NEXT i
-RETURN
-
-importfont:
-  newfont$ = browse$(0, default$, "*.ohf", "")
-  IF newfont$ <> "" THEN
-    copyfile newfont$ + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
-
-    '--never overwrite 0 thru 31
-    FOR i = 0 TO 2047
-      setbit buffer(), 0, i, readbit(font(), 0, i)
-    NEXT i
-
-    GOSUB loadfont
-
-    FOR i = 0 TO 2047
-      setbit font(), 0, i, readbit(buffer(), 0, i)
-    NEXT i
-    menuptr = 1
-    mode = 0
-  END IF
-RETURN
-
-exportfont:
-setkeys
-newfont$ = "newfont"
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
-
- old$ = newfont$
- strgrabber newfont$, 8
- IF old$ <> newfont$ THEN
-   '--make sure only legal DOS filename chars are used
-   lastchar = ASC(UCASE$(RIGHT$("_" + newfont$, 1)))
-   SELECT CASE lastchar
-   CASE 48 TO 57, 65 TO 90, 95, 126
-     '--legal chars
-   CASE 32
-     '--replace space with underscore
-     newfont$ = old$ + "_"
-   CASE ELSE
-     '--illegal chars
-     newfont$ = old$
-   END SELECT
- END IF
-
- IF keyval(28) > 1 THEN
-    GOSUB savefont
-    copyfile game$ + ".fnt" + CHR$(0), gamedir$ + "\" + newfont$ + ".ohf" + CHR$(0), buffer()
-    EXIT DO
- END IF
-
- textcolor 7, 0
- printstr "Input a filename to save to", 0, 0, dpage
- printstr "[" + gamedir$ + "\" + newfont$ + ".ohf]", 0, 8, dpage
- textcolor 14 + tog, 1
- printstr newfont$, 0, 16, dpage
-
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-RETURN
-
-donefont:
-GOSUB savefont
-END SUB
-
-FUNCTION needaddset (ptr, check, what$)
-needaddset = 0
-IF ptr > check THEN
+ NEXT i
+ 
+ mode = -1
+ 
+ menuptr = 0
+ top = 0
+ 
+ ptr = -1 * linesize
+ linesize = 14
+ 
  setkeys
  DO
   setwait timing(), 100
   setkeys
   tog = tog XOR 1
-  IF keyval(1) > 1 THEN ptr = ptr - 1: EXIT DO
-  IF keyval(72) > 1 OR keyval(80) > 1 OR keyval(75) > 1 OR keyval(77) > 1 THEN csr = csr XOR 1
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN
-   IF csr = 0 THEN
-    check = check + 1
-    needaddset = -1
-   ELSE
-    ptr = ptr - 1
-   END IF
-   setkeys
-   EXIT FUNCTION
+  SELECT CASE mode
+   CASE -1
+    IF keyval(1) > 1 THEN GOTO donefont
+    dummy = usemenu(menuptr, 0, 0, 3, 22)
+    IF keyval(57) > 1 OR keyval(28) > 1 THEN
+     IF menuptr = 0 THEN GOTO donefont
+     IF menuptr = 1 THEN mode = 0
+     IF menuptr = 2 THEN GOSUB importfont
+     IF menuptr = 3 THEN GOSUB exportfont
+    END IF
+   CASE 0
+    IF keyval(1) > 1 THEN mode = -1
+    'IF keyval(51) > 1 THEN linesize = large(linesize - 1, 1)
+    'IF keyval(52) > 1 THEN linesize = small(linesize + 1, 40)
+    IF keyval(72) > 1 THEN ptr = large(ptr - linesize, -1 * linesize)
+    IF keyval(80) > 1 THEN ptr = small(ptr + linesize, last)
+    IF keyval(75) > 1 THEN ptr = large(ptr - 1, 0)
+    IF keyval(77) > 1 THEN ptr = small(ptr + 1, last)
+    IF keyval(57) > 1 OR keyval(28) > 1 THEN
+     IF ptr < 0 THEN
+      mode = -1
+     ELSE
+      mode = 1
+      x = 0: y = 0
+     END IF
+    END IF
+    IF keyval(29) > 0 AND keyval(19) > 1 THEN romfontchar font(), ptr
+   CASE 1
+    IF keyval(1) > 1 OR keyval(28) > 1 THEN mode = 0
+    IF keyval(72) > 1 THEN y = loopvar(y, 0, 7, -1)
+    IF keyval(80) > 1 THEN y = loopvar(y, 0, 7, 1)
+    IF keyval(75) > 1 THEN x = loopvar(x, 0, 7, -1)
+    IF keyval(77) > 1 THEN x = loopvar(x, 0, 7, 1)
+    IF keyval(57) > 1 THEN
+     setbit font(), 0, (f(ptr) * 8 + x) * 8 + y, (readbit(font(), 0, (f(ptr) * 8 + x) * 8 + y) XOR 1)
+    END IF
+  END SELECT
+  IF mode >= 0 THEN
+   '--copy and paste support
+   IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN GOSUB copychar
+   IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN GOSUB pastechar
   END IF
-  rectangle 80, 10, 160, 40, 1, dpage
-  edgeprint "Add new " + what$ + "?", 160 - LEN("Add new " + what$ + "?") * 4, 20, 15, dpage
-  textcolor 7, 1: IF csr = 0 THEN textcolor 14 + tog, 9
-  printstr " YES ", 120, 30, dpage
-  textcolor 7, 1: IF csr = 1 THEN textcolor 14 + tog, 9
-  printstr " NO ", 164, 30, dpage
+  
+  IF mode = -1 THEN
+   standardmenu menu$(), 3, 22, menuptr, 0, 0, 0, dpage, 0
+  END IF
+  
+  IF mode >= 0 THEN
+   xoff = 8: yoff = 8
+   FOR i = 0 TO last
+    textcolor 7, 8
+    IF ptr >= 0 THEN
+     IF mode = 0 THEN
+      IF (i MOD linesize) = (ptr MOD linesize) OR (i \ linesize) = (ptr \ linesize) THEN textcolor 7, 1
+     END IF
+     IF ptr = i THEN textcolor 14 + tog, 0
+    END IF
+    printstr CHR$(f(i)), xoff + (i MOD linesize) * 9, yoff + (i \ linesize) * 9, dpage
+   NEXT i
+   textcolor 7, 0
+   IF ptr < 0 THEN textcolor 14 + tog, 0
+   printstr menu$(0), 8, 0, dpage
+   
+   IF ptr >= 0 THEN
+    xoff = 150
+    yoff = 4
+    rectangle xoff, yoff, 160, 160, 8, dpage
+    FOR i = 0 TO 7
+     FOR j = 0 TO 7
+      z = readbit(font(), 0, (f(ptr) * 8 + i) * 8 + j)
+      IF z THEN rectangle xoff + i * 20, yoff + j * 20, 20, 20, 7, dpage
+     NEXT j
+    NEXT i
+    IF mode = 1 THEN rectangle xoff + x * 20, yoff + y * 20, 20, 20, 2 + 8 * readbit(font(), 0, (f(ptr) * 8 + x) * 8 + y), dpage
+    textcolor 15, 0
+    printstr "ASCII" + STR$(f(ptr)), 20, 190, dpage
+    IF f(ptr) < 32 THEN
+     printstr "RESERVED", 120, 190, dpage
+    ELSE
+     FOR i = 2 TO 53
+      IF f(ptr) = keyv(i, 2) THEN printstr "ALT+" + UCASE$(CHR$(keyv(i, 0))), 120, 190, dpage
+      IF f(ptr) = keyv(i, 3) THEN printstr "ALT+SHIFT+" + UCASE$(CHR$(keyv(i, 0))), 120, 190, dpage
+     NEXT i
+     IF f(ptr) = 32 THEN printstr "SPACE", 120, 190, dpage
+    END IF
+   END IF
+  END IF
+  
   SWAP vpage, dpage
   setvispage vpage
   clearpage dpage
   dowait
  LOOP
-END IF
+ 
+ loadfont:
+ DEF SEG = VARSEG(font(0)): BLOAD game$ + ".fnt", VARPTR(font(0))
+ setfont font()
+ RETURN
+ 
+ savefont:
+ DEF SEG = VARSEG(font(0)): BSAVE game$ + ".fnt", VARPTR(font(0)), 2048
+ RETURN
+ 
+ copychar:
+ FOR i = 0 TO 63
+  setbit copybuf(), 0, i, readbit(font(), 0, f(ptr) * 64 + i)
+ NEXT i
+ RETURN
+ 
+ pastechar:
+ FOR i = 0 TO 63
+  setbit font(), 0, f(ptr) * 64 + i, readbit(copybuf(), 0, i)
+ NEXT i
+ RETURN
+ 
+ importfont:
+ newfont$ = browse$(0, default$, "*.ohf", "")
+ IF newfont$ <> "" THEN
+  copyfile newfont$ + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
+  
+  '--never overwrite 0 thru 31
+  FOR i = 0 TO 2047
+   setbit buffer(), 0, i, readbit(font(), 0, i)
+  NEXT i
+  
+  GOSUB loadfont
+  
+  FOR i = 0 TO 2047
+   setbit font(), 0, i, readbit(buffer(), 0, i)
+  NEXT i
+  menuptr = 1
+  mode = 0
+ END IF
+ RETURN
+ 
+ exportfont:
+ setkeys
+ newfont$ = "newfont"
+ DO
+  setwait timing(), 100
+  setkeys
+  tog = tog XOR 1
+  IF keyval(1) > 1 THEN EXIT DO
+  
+  old$ = newfont$
+  strgrabber newfont$, 8
+  IF old$ <> newfont$ THEN
+   '--make sure only legal DOS filename chars are used
+   lastchar = ASC(UCASE$(RIGHT$("_" + newfont$, 1)))
+   SELECT CASE lastchar
+    CASE 48 TO 57, 65 TO 90, 95, 126
+     '--legal chars
+    CASE 32
+     '--replace space with underscore
+     newfont$ = old$ + "_"
+    CASE ELSE
+     '--illegal chars
+     newfont$ = old$
+   END SELECT
+  END IF
+  
+  IF keyval(28) > 1 THEN
+   GOSUB savefont
+   copyfile game$ + ".fnt" + CHR$(0), gamedir$ + "\" + newfont$ + ".ohf" + CHR$(0), buffer()
+   EXIT DO
+  END IF
+  
+  textcolor 7, 0
+  printstr "Input a filename to save to", 0, 0, dpage
+  printstr "[" + gamedir$ + "\" + newfont$ + ".ohf]", 0, 8, dpage
+  textcolor 14 + tog, 1
+  printstr newfont$, 0, 16, dpage
+  
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+ RETURN
+ 
+ donefont:
+ GOSUB savefont
+END SUB
+
+FUNCTION needaddset (ptr, check, what$)
+ needaddset = 0
+ IF ptr > check THEN
+  setkeys
+  DO
+   setwait timing(), 100
+   setkeys
+   tog = tog XOR 1
+   IF keyval(1) > 1 THEN ptr = ptr - 1: EXIT DO
+   IF keyval(72) > 1 OR keyval(80) > 1 OR keyval(75) > 1 OR keyval(77) > 1 THEN csr = csr XOR 1
+   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+    IF csr = 0 THEN
+     check = check + 1
+     needaddset = -1
+    ELSE
+     ptr = ptr - 1
+    END IF
+    setkeys
+    EXIT FUNCTION
+   END IF
+   rectangle 80, 10, 160, 40, 1, dpage
+   edgeprint "Add new " + what$ + "?", 160 - LEN("Add new " + what$ + "?") * 4, 20, 15, dpage
+   textcolor 7, 1: IF csr = 0 THEN textcolor 14 + tog, 9
+   printstr " YES ", 120, 30, dpage
+   textcolor 7, 1: IF csr = 1 THEN textcolor 14 + tog, 9
+   printstr " NO ", 164, 30, dpage
+   SWAP vpage, dpage
+   setvispage vpage
+   clearpage dpage
+   dowait
+  LOOP
+ END IF
 END FUNCTION
 
 FUNCTION readpassword$ (gen())
-
-  '--read a 17-byte string from GEN at word offset 7
-  '--(Note that array2str uses the byte offset not the word offset)
-  s$ = STRING$(17, 0)
-  array2str gen(), 14, s$
-
-  '--reverse ascii rotation / weak obfuscation
-  s$ = rotascii(s$, gen(6) * -1)
-
-  '-- discard ascii chars lower than 32
-  p$ = ""
-  FOR i = 1 TO 17
-    c$ = MID$(s$, i, 1)
-    IF ASC(c$) >= 32 THEN p$ = p$ + c$
-  NEXT i
-
-  readpassword$ = p$
-
+ 
+ '--read a 17-byte string from GEN at word offset 7
+ '--(Note that array2str uses the byte offset not the word offset)
+ s$ = STRING$(17, 0)
+ array2str gen(), 14, s$
+ 
+ '--reverse ascii rotation / weak obfuscation
+ s$ = rotascii(s$, gen(6) * -1)
+ 
+ '-- discard ascii chars lower than 32
+ p$ = ""
+ FOR i = 1 TO 17
+  c$ = MID$(s$, i, 1)
+  IF ASC(c$) >= 32 THEN p$ = p$ + c$
+ NEXT i
+ 
+ readpassword$ = p$
+ 
 END FUNCTION
 
 SUB romfontchar (font(), char)
-
-  regs.ax = &H1130
-  regs.bx = &H300
-  CALL interruptx(&H10, regs, regs)
-  off9 = regs.bx: seg9 = regs.es
-  DEF SEG = regs.es
-  'FOR i = 1 TO 255
-    FOR j = 0 TO 7
-      b = PEEK(regs.bp + (8 * char) + j)
-      FOR k = 0 TO 7
-        setbit font(), char * 4, (7 - k) * 8 + j, (b AND 2 ^ k)
-      NEXT k
-    NEXT j
-  'NEXT i
-
+ 
+ regs.ax = &H1130
+ regs.bx = &H300
+ CALL interruptx(&H10, regs, regs)
+ off9 = regs.bx: seg9 = regs.es
+ DEF SEG = regs.es
+ 'FOR i = 1 TO 255
+ FOR j = 0 TO 7
+  b = PEEK(regs.bp + (8 * char) + j)
+  FOR k = 0 TO 7
+   setbit font(), char * 4, (7 - k) * 8 + j, (b AND 2 ^ k)
+  NEXT k
+ NEXT j
+ 'NEXT i
+ 
 END SUB
 
 SUB safekill (f$)
-  IF isfile(f$ + CHR$(0)) THEN KILL f$
+ IF isfile(f$ + CHR$(0)) THEN KILL f$
 END SUB
 
 SUB shopdata (general())
-DIM name$(32), a(20), b(32), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16)
-
-max = 32: ptr = 0: it$ = "-NONE-"
-sbit$(0) = "Buy"
-sbit$(1) = "Sell"
-sbit$(2) = "Hire"
-sbit$(3) = "Inn"
-sbit$(4) = "Equip"
-sbit$(5) = "Save"
-sbit$(6) = "Map"
-sbit$(7) = "Team"
-smenu$(0) = "Previous Menu"
-max(3) = 1
-min(5) = -1
-max(5) = 99
-FOR i = 6 TO 9
- min(i) = -999: max(i) = 999
-NEXT i
-min(10) = -32767
-max(10) = 32767
-max(11) = 255
-min(13) = -32767
-max(13) = 32767
-max(14) = 255
-stf$(0) = "Item"
-stf$(1) = "Hero"
-stf$(2) = "Script"
-stf$(3) = "Normal"
-stf$(4) = "Aquire Inventory"
-stf$(5) = "Increment Inventory"
-stf$(6) = "Refuse to Buy"
-stf$(7) = "In Stock: Infinite"
-stf$(8) = "In Stock: None"
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
-getnames name$(), max
-
-GOSUB lshopset
-GOSUB menugen
-li = 6
-setkeys
-DO
-setwait timing(), 100
-setkeys
-tog = tog XOR 1
-IF keyval(1) > 1 THEN GOTO doneshop
-IF keyval(29) > 0 AND keyval(14) THEN cropafter ptr, general(97), 0, game$ + ".sho", 40, 1: GOSUB menugen
-dummy = usemenu(csr, 0, 0, li, 24)
-IF csr = 1 THEN
- IF keyval(75) > 1 AND ptr > 0 THEN GOSUB sshopset: ptr = ptr - 1: GOSUB lshopset
- IF keyval(77) > 1 AND ptr < 32767 THEN
-  GOSUB sshopset
-  ptr = ptr + 1
-  IF needaddset(ptr, general(97), "Shop") THEN
-   FOR i = 0 TO 19: a(i) = 0: NEXT i
-   setpicstuf a(), 40, -1
-   storeset game$ + ".sho" + CHR$(0), ptr, 0
-  END IF
-  GOSUB lshopset
- END IF
-END IF
-IF csr = 2 THEN
- strgrabber sn$, 15
- GOSUB menuup
-END IF
-IF keyval(28) > 1 OR keyval(57) > 1 THEN
- IF csr = 0 THEN GOTO doneshop
- IF csr = 3 AND havestuf THEN GOSUB shopstuf: GOSUB sstuf
- IF csr = 4 THEN bitset a(), 17, 7, sbit$(): GOSUB menuup
-END IF
-IF csr = 5 THEN
- IF intgrabber(a(18), 0, 32767, 75, 77) THEN GOSUB menuup
-END IF
-IF csr = 6 THEN
- IF intgrabber(a(19), 0, general(43), 75, 77) THEN GOSUB menuup
-END IF
-FOR i = 0 TO li
- c = 7: IF i = csr THEN c = 14 + tog
- IF i = 3 AND havestuf = 0 THEN
-  c = 8: IF i = csr THEN c = 6 + tog
- END IF
- textcolor c, 0
- printstr menu$(i), 0, i * 8, dpage
-NEXT i
-SWAP vpage, dpage
-setvispage vpage
-clearpage dpage
-dowait
-LOOP
-
-menugen:
-menu$(0) = "Return to Main Menu"
-menu$(3) = "Edit Available Stuff..."
-menu$(4) = "Edit Shop Bitsets..."
-GOSUB menuup
-RETURN
-
-lshopset:
-setpicstuf a(), 40, -1
-loadset game$ + ".sho" + CHR$(0), ptr, 0
-sn$ = ""
-FOR i = 1 TO small(a(0), 15)
-  sn$ = sn$ + CHR$(a(i))
-NEXT i
-GOSUB menuup
-RETURN
-
-sshopset:
-a(16) = small(a(16), 49)
-a(0) = LEN(sn$)
-FOR i = 1 TO small(a(0), 15)
- a(i) = ASC(MID$(sn$, i, 1))
-NEXT i
-setpicstuf a(), 40, -1
-storeset game$ + ".sho" + CHR$(0), ptr, 0
-RETURN
-
-menuup:
-menu$(1) = CHR$(27) + " Shop" + STR$(ptr) + " of" + STR$(general(97)) + CHR$(26)
-menu$(2) = "Name:" + sn$
-menu$(5) = "Inn Price:" + STR$(a(18))
-IF readbit(a(), 17, 3) = 0 THEN menu$(5) = "Inn Price: N/A"
-menu$(6) = "Inn Script: " + scriptname$(a(19), "plotscr.lst", general())
-IF readbit(a(), 17, 0) OR readbit(a(), 17, 1) OR readbit(a(), 17, 2) THEN havestuf = 1 ELSE havestuf = 0
-RETURN
-
-shopstuf:
-thing = 0
-tcsr = 0
-last = 2
-GOSUB lstuf
-GOSUB othertype
-GOSUB stufmenu
-setkeys
-DO
- setwait timing(), 100
+ DIM name$(32), a(20), b(32), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16)
+ 
+ max = 32: ptr = 0: it$ = "-NONE-"
+ sbit$(0) = "Buy"
+ sbit$(1) = "Sell"
+ sbit$(2) = "Hire"
+ sbit$(3) = "Inn"
+ sbit$(4) = "Equip"
+ sbit$(5) = "Save"
+ sbit$(6) = "Map"
+ sbit$(7) = "Team"
+ smenu$(0) = "Previous Menu"
+ max(3) = 1
+ min(5) = -1
+ max(5) = 99
+ FOR i = 6 TO 9
+  min(i) = -999: max(i) = 999
+ NEXT i
+ min(10) = -32767
+ max(10) = 32767
+ max(11) = 255
+ min(13) = -32767
+ max(13) = 32767
+ max(14) = 255
+ stf$(0) = "Item"
+ stf$(1) = "Hero"
+ stf$(2) = "Script"
+ stf$(3) = "Normal"
+ stf$(4) = "Aquire Inventory"
+ stf$(5) = "Increment Inventory"
+ stf$(6) = "Refuse to Buy"
+ stf$(7) = "In Stock: Infinite"
+ stf$(8) = "In Stock: None"
+ clearpage 0
+ clearpage 1
+ clearpage 2
+ clearpage 3
+ getnames name$(), max
+ 
+ GOSUB lshopset
+ GOSUB menugen
+ li = 6
  setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
- IF tcsr = 0 THEN IF keyval(57) > 1 OR keyval(28) > 1 THEN RETURN
- 'IF keyval(72) > 1 THEN tcsr = large(0, tcsr - 1)
- 'IF keyval(80) > 1 THEN tcsr = small(last, tcsr + 1)
- dummy = usemenu(tcsr, 0, 0, last, 24)
- IF tcsr = 1 THEN
-  IF keyval(75) > 1 AND thing > 0 THEN GOSUB sstuf: thing = thing - 1: GOSUB lstuf: GOSUB itstrsh
-  IF keyval(77) > 1 AND thing < 49 THEN
-   GOSUB sstuf
-   thing = thing + 1
-   IF needaddset(thing, a(16), "Shop Thing") THEN
-    FOR i = 0 TO 31: b(i) = 0: NEXT i
-    setpicstuf b(), 64, -1
-    storeset game$ + ".stf" + CHR$(0), ptr * 50 + thing, 0
+ DO
+  setwait timing(), 100
+  setkeys
+  tog = tog XOR 1
+  IF keyval(1) > 1 THEN GOTO doneshop
+  IF keyval(29) > 0 AND keyval(14) THEN cropafter ptr, general(97), 0, game$ + ".sho", 40, 1: GOSUB menugen
+  dummy = usemenu(csr, 0, 0, li, 24)
+  IF csr = 1 THEN
+   IF keyval(75) > 1 AND ptr > 0 THEN GOSUB sshopset: ptr = ptr - 1: GOSUB lshopset
+   IF keyval(77) > 1 AND ptr < 32767 THEN
+    GOSUB sshopset
+    ptr = ptr + 1
+    IF needaddset(ptr, general(97), "Shop") THEN
+     FOR i = 0 TO 19: a(i) = 0: NEXT i
+     setpicstuf a(), 40, -1
+     storeset game$ + ".sho" + CHR$(0), ptr, 0
+    END IF
+    GOSUB lshopset
    END IF
-   GOSUB lstuf
-   GOSUB itstrsh
   END IF
- END IF
- IF tcsr = 2 THEN strgrabber thing$, 16
- IF tcsr > 2 THEN
-  IF b(17) = 1 THEN
+  IF csr = 2 THEN
+   strgrabber sn$, 15
+   GOSUB menuup
+  END IF
+  IF keyval(28) > 1 OR keyval(57) > 1 THEN
+   IF csr = 0 THEN GOTO doneshop
+   IF csr = 3 AND havestuf THEN GOSUB shopstuf: GOSUB sstuf
+   IF csr = 4 THEN bitset a(), 17, 7, sbit$(): GOSUB menuup
+  END IF
+  IF csr = 5 THEN
+   IF intgrabber(a(18), 0, 32767, 75, 77) THEN GOSUB menuup
+  END IF
+  IF csr = 6 THEN
+   IF intgrabber(a(19), 0, general(43), 75, 77) THEN GOSUB menuup
+  END IF
+  FOR i = 0 TO li
+   c = 7: IF i = csr THEN c = 14 + tog
+   IF i = 3 AND havestuf = 0 THEN
+    c = 8: IF i = csr THEN c = 6 + tog
+   END IF
+   textcolor c, 0
+   printstr menu$(i), 0, i * 8, dpage
+  NEXT i
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+ 
+ menugen:
+ menu$(0) = "Return to Main Menu"
+ menu$(3) = "Edit Available Stuff..."
+ menu$(4) = "Edit Shop Bitsets..."
+ GOSUB menuup
+ RETURN
+ 
+ lshopset:
+ setpicstuf a(), 40, -1
+ loadset game$ + ".sho" + CHR$(0), ptr, 0
+ sn$ = ""
+ FOR i = 1 TO small(a(0), 15)
+  sn$ = sn$ + CHR$(a(i))
+ NEXT i
+ GOSUB menuup
+ RETURN
+ 
+ sshopset:
+ a(16) = small(a(16), 49)
+ a(0) = LEN(sn$)
+ FOR i = 1 TO small(a(0), 15)
+  a(i) = ASC(MID$(sn$, i, 1))
+ NEXT i
+ setpicstuf a(), 40, -1
+ storeset game$ + ".sho" + CHR$(0), ptr, 0
+ RETURN
+ 
+ menuup:
+ menu$(1) = CHR$(27) + " Shop" + STR$(ptr) + " of" + STR$(general(97)) + CHR$(26)
+ menu$(2) = "Name:" + sn$
+ menu$(5) = "Inn Price:" + STR$(a(18))
+ IF readbit(a(), 17, 3) = 0 THEN menu$(5) = "Inn Price: N/A"
+ menu$(6) = "Inn Script: " + scriptname$(a(19), "plotscr.lst", general())
+ IF readbit(a(), 17, 0) OR readbit(a(), 17, 1) OR readbit(a(), 17, 2) THEN havestuf = 1 ELSE havestuf = 0
+ RETURN
+ 
+ shopstuf:
+ thing = 0
+ tcsr = 0
+ last = 2
+ GOSUB lstuf
+ GOSUB othertype
+ GOSUB stufmenu
+ setkeys
+ DO
+  setwait timing(), 100
+  setkeys
+  tog = tog XOR 1
+  IF keyval(1) > 1 THEN RETURN
+  IF tcsr = 0 THEN IF keyval(57) > 1 OR keyval(28) > 1 THEN RETURN
+  'IF keyval(72) > 1 THEN tcsr = large(0, tcsr - 1)
+  'IF keyval(80) > 1 THEN tcsr = small(last, tcsr + 1)
+  dummy = usemenu(tcsr, 0, 0, last, 24)
+  IF tcsr = 1 THEN
+   IF keyval(75) > 1 AND thing > 0 THEN GOSUB sstuf: thing = thing - 1: GOSUB lstuf: GOSUB itstrsh
+   IF keyval(77) > 1 AND thing < 49 THEN
+    GOSUB sstuf
+    thing = thing + 1
+    IF needaddset(thing, a(16), "Shop Thing") THEN
+     FOR i = 0 TO 31: b(i) = 0: NEXT i
+     setpicstuf b(), 64, -1
+     storeset game$ + ".stf" + CHR$(0), ptr * 50 + thing, 0
+    END IF
+    GOSUB lstuf
+    GOSUB itstrsh
+   END IF
+  END IF
+  IF tcsr = 2 THEN strgrabber thing$, 16
+  IF tcsr > 2 THEN
+   IF b(17) = 1 THEN
     '--using a hero
     min(12) = -1
     max(12) = 99
-  ELSE
+   ELSE
     '--not a hero
     min(12) = 0: max(12) = 3
+   END IF
+   IF intgrabber(b(17 + tcsr - 3), min(tcsr), max(tcsr), 75, 77) THEN
+    IF tcsr = 3 OR tcsr = 4 THEN GOSUB othertype: GOSUB setdefault
+    IF tcsr = 11 OR tcsr = 14 THEN GOSUB itstrsh
+    IF (b(26) < 0 OR b(26) > 3) AND b(17) <> 1 THEN b(26) = 0
+   END IF
   END IF
-  IF intgrabber(b(17 + tcsr - 3), min(tcsr), max(tcsr), 75, 77) THEN
-   IF tcsr = 3 OR tcsr = 4 THEN GOSUB othertype: GOSUB setdefault
-   IF tcsr = 11 OR tcsr = 14 THEN GOSUB itstrsh
-   IF (b(26) < 0 OR b(26) > 3) AND b(17) <> 1 THEN b(26) = 0
-  END IF
+  GOSUB othertype
+  GOSUB stufmenu
+  
+  standardmenu smenu$(), last, 22, tcsr, 0, 0, 0, dpage, 0
+  
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+ 
+ othertype:
+ SELECT CASE b(17)
+  CASE 0
+   last = 14
+   max(4) = 254: IF b(18) > 255 THEN b(18) = 0
+   max(12) = 3
+  CASE 1
+   last = 12
+   max(4) = 59: IF b(18) > 59 THEN b(18) = 0
+   max(12) = 99
+  CASE 2
+   last = 11
+   max(4) = 999
+ END SELECT
+ GOSUB itstrsh
+ RETURN
+ 
+ setdefault:
+ IF b(17) = 0 THEN
+  setpicstuf buffer(), 200, -1
+  loadset game$ + ".itm" + CHR$(0), b(18), 0
+  thing$ = readbadbinstring$(buffer(), 0, 8, 0)
+  'thing$ = ""
+  'FOR o = 1 TO small(buffer(0), 10)
+  ' IF buffer(o) < 256 AND buffer(o) > -1 THEN thing$ = thing$ + CHR$(buffer(o)) ELSE thing$ = ""
+  'NEXT o
+  b(24) = buffer(46)
+  b(27) = INT(buffer(46) / 2)
  END IF
- GOSUB othertype
- GOSUB stufmenu
-
-standardmenu smenu$(), last, 22, tcsr, 0, 0, 0, dpage, 0
-
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-
-othertype:
-SELECT CASE b(17)
- CASE 0
-  last = 14
-  max(4) = 254: IF b(18) > 255 THEN b(18) = 0
-  max(12) = 3
- CASE 1
-  last = 12
-  max(4) = 59: IF b(18) > 59 THEN b(18) = 0
-  max(12) = 99
- CASE 2
-  last = 11
-  max(4) = 999
-END SELECT
-GOSUB itstrsh
-RETURN
-
-setdefault:
-IF b(17) = 0 THEN
- setpicstuf buffer(), 200, -1
- loadset game$ + ".itm" + CHR$(0), b(18), 0
- thing$ = readbadbinstring$(buffer(), 0, 8, 0)
+ IF b(17) = 1 THEN
+  thing$ = ""
+  setpicstuf buffer(), 636, -1
+  loadset game$ + ".dt0" + CHR$(0), b(18), 0
+  FOR i = 1 TO small(buffer(0), 16)
+   thing$ = thing$ + CHR$(buffer(i))
+  NEXT i
+ END IF
+ IF b(17) = 2 THEN thing$ = "Unsupported"
+ RETURN
+ 
+ stufmenu:
+ smenu$(1) = CHR$(27) + "Shop Thing" + STR$(thing) + " of" + STR$(a(16)) + CHR$(26)
+ smenu$(2) = "Name: " + thing$
+ smenu$(3) = "Type:" + STR$(b(17)) + "-" + stf$(bound(b(17), 0, 2))
+ smenu$(4) = "Number:" + STR$(b(18)) + " " + nit$
+ IF b(19) > 0 THEN
+  smenu$(5) = "In Stock:" + STR$(b(19))
+ ELSE
+  smenu$(5) = stf$(8 + bound(b(19), -1, 0))
+ END IF
+ smenu$(6) = "Buy Require Tag" + STR$(ABS(b(20))) + " =" + STR$(SGN(SGN(b(20)) + 1)) + " (" + lmnemonic$(ABS(b(20))) + ")"
+ IF b(20) = 1 THEN smenu$(6) = smenu$(6) + "[Never]"
+ IF b(20) = -1 THEN smenu$(6) = smenu$(6) + "[Always]"
+ IF b(20) = 0 THEN smenu$(6) = "[No Tag Check]"
+ smenu$(7) = "Sell Require Tag" + STR$(ABS(b(21))) + " =" + STR$(SGN(SGN(b(21)) + 1)) + " (" + lmnemonic$(ABS(b(21))) + ")"
+ IF b(21) = 1 THEN smenu$(7) = smenu$(7) + "[Never]"
+ IF b(21) = -1 THEN smenu$(7) = smenu$(7) + "[Always]"
+ IF b(21) = 0 THEN smenu$(7) = "[No Tag Check]"
+ smenu$(8) = "Buy Set Tag" + STR$(ABS(b(22))) + " =" + STR$(SGN(SGN(b(22)) + 1)) + " (" + lmnemonic$(ABS(b(22))) + ")"
+ IF b(22) = 1 THEN smenu$(8) = smenu$(8) + "[Unalterable]"
+ IF b(22) = -1 THEN smenu$(8) = smenu$(8) + "[Unalterable]"
+ IF b(22) = 0 THEN smenu$(8) = "[No Tag Set]"
+ smenu$(9) = "Sell Set Tag" + STR$(ABS(b(23))) + " =" + STR$(SGN(SGN(b(23)) + 1)) + " (" + lmnemonic$(ABS(b(23))) + ")"
+ IF b(23) = 1 THEN smenu$(9) = smenu$(9) + "[Unalterable]"
+ IF b(23) = -1 THEN smenu$(9) = smenu$(9) + "[Unalterable]"
+ IF b(23) = 0 THEN smenu$(9) = "[No Tag Set]"
+ smenu$(10) = name$(32) + " Price:" + STR$(b(24))
+ smenu$(11) = "Must Trade:" + it$
+ IF b(17) = 0 THEN
+  smenu$(12) = "Sell type: " + stf$(bound(b(26), 0, 3) + 3)
+  smenu$(13) = "Sell Price:" + STR$(b(27))
+  smenu$(14) = "Trade In For: " + trit$
+ END IF
+ IF b(17) = 1 THEN
+  smenu$(12) = "Experience Level:" + STR$(b(26))
+ END IF
+ '--mutate menu for item/hero
+ RETURN
+ 
+ lstuf:
+ setpicstuf b(), 64, -1
+ loadset game$ + ".stf" + CHR$(0), ptr * 50 + thing, 0
+ thing$ = readbadbinstring$(b(), 0, 16, 0)
  'thing$ = ""
- 'FOR o = 1 TO small(buffer(0), 10)
- ' IF buffer(o) < 256 AND buffer(o) > -1 THEN thing$ = thing$ + CHR$(buffer(o)) ELSE thing$ = ""
- 'NEXT o
- b(24) = buffer(46)
- b(27) = INT(buffer(46) / 2)
-END IF
-IF b(17) = 1 THEN
- thing$ = ""
- setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0" + CHR$(0), b(18), 0
- FOR i = 1 TO small(buffer(0), 16)
-  thing$ = thing$ + CHR$(buffer(i))
+ 'FOR i = 1 TO bound(b(0), 0, 16)
+ ' thing$ = thing$ + CHR$(bound(b(i), 0, 255))
+ 'NEXT i
+ '---check for invalid data
+ IF b(17) < 0 OR b(17) > 2 THEN b(17) = 0
+ IF b(19) < -1 THEN b(19) = 0
+ IF (b(26) < 0 OR b(26) > 3) AND b(17) <> 1 THEN b(26) = 0
+ GOSUB menuup
+ RETURN
+ 
+ sstuf:
+ b(0) = LEN(thing$)
+ FOR i = 1 TO small(b(0), 16)
+  b(i) = ASC(MID$(thing$, i, 1))
  NEXT i
-END IF
-IF b(17) = 2 THEN thing$ = "Unsupported"
-RETURN
-
-stufmenu:
-smenu$(1) = CHR$(27) + "Shop Thing" + STR$(thing) + " of" + STR$(a(16)) + CHR$(26)
-smenu$(2) = "Name: " + thing$
-smenu$(3) = "Type:" + STR$(b(17)) + "-" + stf$(bound(b(17), 0, 2))
-smenu$(4) = "Number:" + STR$(b(18)) + " " + nit$
-IF b(19) > 0 THEN
- smenu$(5) = "In Stock:" + STR$(b(19))
-ELSE
- smenu$(5) = stf$(8 + bound(b(19), -1, 0))
-END IF
-smenu$(6) = "Buy Require Tag" + STR$(ABS(b(20))) + " =" + STR$(SGN(SGN(b(20)) + 1)) + " (" + lmnemonic$(ABS(b(20))) + ")"
-IF b(20) = 1 THEN smenu$(6) = smenu$(6) + "[Never]"
-IF b(20) = -1 THEN smenu$(6) = smenu$(6) + "[Always]"
-IF b(20) = 0 THEN smenu$(6) = "[No Tag Check]"
-smenu$(7) = "Sell Require Tag" + STR$(ABS(b(21))) + " =" + STR$(SGN(SGN(b(21)) + 1)) + " (" + lmnemonic$(ABS(b(21))) + ")"
-IF b(21) = 1 THEN smenu$(7) = smenu$(7) + "[Never]"
-IF b(21) = -1 THEN smenu$(7) = smenu$(7) + "[Always]"
-IF b(21) = 0 THEN smenu$(7) = "[No Tag Check]"
-smenu$(8) = "Buy Set Tag" + STR$(ABS(b(22))) + " =" + STR$(SGN(SGN(b(22)) + 1)) + " (" + lmnemonic$(ABS(b(22))) + ")"
-IF b(22) = 1 THEN smenu$(8) = smenu$(8) + "[Unalterable]"
-IF b(22) = -1 THEN smenu$(8) = smenu$(8) + "[Unalterable]"
-IF b(22) = 0 THEN smenu$(8) = "[No Tag Set]"
-smenu$(9) = "Sell Set Tag" + STR$(ABS(b(23))) + " =" + STR$(SGN(SGN(b(23)) + 1)) + " (" + lmnemonic$(ABS(b(23))) + ")"
-IF b(23) = 1 THEN smenu$(9) = smenu$(9) + "[Unalterable]"
-IF b(23) = -1 THEN smenu$(9) = smenu$(9) + "[Unalterable]"
-IF b(23) = 0 THEN smenu$(9) = "[No Tag Set]"
-smenu$(10) = name$(32) + " Price:" + STR$(b(24))
-smenu$(11) = "Must Trade:" + it$
-IF b(17) = 0 THEN
- smenu$(12) = "Sell type: " + stf$(bound(b(26), 0, 3) + 3)
- smenu$(13) = "Sell Price:" + STR$(b(27))
- smenu$(14) = "Trade In For: " + trit$
-END IF
-IF b(17) = 1 THEN
- smenu$(12) = "Experience Level:" + STR$(b(26))
-END IF
-'--mutate menu for item/hero
-RETURN
-
-lstuf:
-setpicstuf b(), 64, -1
-loadset game$ + ".stf" + CHR$(0), ptr * 50 + thing, 0
-thing$ = readbadbinstring$(b(), 0, 16, 0)
-'thing$ = ""
-'FOR i = 1 TO bound(b(0), 0, 16)
-' thing$ = thing$ + CHR$(bound(b(i), 0, 255))
-'NEXT i
-'---check for invalid data
-IF b(17) < 0 OR b(17) > 2 THEN b(17) = 0
-IF b(19) < -1 THEN b(19) = 0
-IF (b(26) < 0 OR b(26) > 3) AND b(17) <> 1 THEN b(26) = 0
-GOSUB menuup
-RETURN
-
-sstuf:
-b(0) = LEN(thing$)
-FOR i = 1 TO small(b(0), 16)
- b(i) = ASC(MID$(thing$, i, 1))
-NEXT i
-setpicstuf b(), 64, -1
-storeset game$ + ".stf" + CHR$(0), ptr * 50 + thing, 0
-RETURN
-
-itstrsh:
-IF b(25) = 0 THEN it$ = "-NONE-": GOTO ittrade
-setpicstuf buffer(), 200, -1
-loadset game$ + ".itm" + CHR$(0), b(25) - 1, 0
-it$ = readbadbinstring$(buffer(), 0, 8, 0)
-'it$ = ""
-'FOR o = 1 TO small(buffer(0), 10)
-' IF buffer(o) < 256 AND buffer(o) > -1 THEN it$ = it$ + CHR$(buffer(o)) ELSE it$ = ""
-'NEXT o
-ittrade:
-IF b(28) = 0 THEN trit$ = "-NONE-": RETURN
-setpicstuf buffer(), 200, -1
-loadset game$ + ".itm" + CHR$(0), b(28) - 1, 0
-trit$ = readbadbinstring$(buffer(), 0, 8, 0)
-'trit$ = ""
-'FOR o = 1 TO small(buffer(0), 10)
-' IF buffer(o) < 256 AND buffer(o) > -1 THEN trit$ = trit$ + CHR$(buffer(o)) ELSE trit$ = ""
-'NEXT o
-RETURN
-
-doneshop:
-GOSUB sshopset
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
-
-'shopdata
-
-'0    shop name length
-'1-15 shop name
-'16   stuff count
-'17   bitsets
-'18   inn price
-'19   inn script
+ setpicstuf b(), 64, -1
+ storeset game$ + ".stf" + CHR$(0), ptr * 50 + thing, 0
+ RETURN
+ 
+ itstrsh:
+ IF b(25) = 0 THEN it$ = "-NONE-": GOTO ittrade
+ setpicstuf buffer(), 200, -1
+ loadset game$ + ".itm" + CHR$(0), b(25) - 1, 0
+ it$ = readbadbinstring$(buffer(), 0, 8, 0)
+ 'it$ = ""
+ 'FOR o = 1 TO small(buffer(0), 10)
+ ' IF buffer(o) < 256 AND buffer(o) > -1 THEN it$ = it$ + CHR$(buffer(o)) ELSE it$ = ""
+ 'NEXT o
+ ittrade:
+ IF b(28) = 0 THEN trit$ = "-NONE-": RETURN
+ setpicstuf buffer(), 200, -1
+ loadset game$ + ".itm" + CHR$(0), b(28) - 1, 0
+ trit$ = readbadbinstring$(buffer(), 0, 8, 0)
+ 'trit$ = ""
+ 'FOR o = 1 TO small(buffer(0), 10)
+ ' IF buffer(o) < 256 AND buffer(o) > -1 THEN trit$ = trit$ + CHR$(buffer(o)) ELSE trit$ = ""
+ 'NEXT o
+ RETURN
+ 
+ doneshop:
+ GOSUB sshopset
+ clearpage 0
+ clearpage 1
+ clearpage 2
+ clearpage 3
+ 
+ 'shopdata
+ 
+ '0    shop name length
+ '1-15 shop name
+ '16   stuff count
+ '17   bitsets
+ '18   inn price
+ '19   inn script
 END SUB
 
 SUB smnemonic (tagname$, index)
-DIM buf(20)
-setpicstuf buf(), 42, -1
-
-buf(0) = LEN(tagname$)
-FOR i = 1 TO small(buf(0), 20)
- buf(i) = ASC(MID$(tagname$, i, 1))
-NEXT i
-
-storeset game$ + ".tmn" + CHR$(0), index, 0
-
+ DIM buf(20)
+ setpicstuf buf(), 42, -1
+ 
+ buf(0) = LEN(tagname$)
+ FOR i = 1 TO small(buf(0), 20)
+  buf(i) = ASC(MID$(tagname$, i, 1))
+ NEXT i
+ 
+ storeset game$ + ".tmn" + CHR$(0), index, 0
+ 
 END SUB
 
 SUB touchfile (f$)
-
-fh = FREEFILE
-OPEN f$ FOR BINARY AS #fh
-CLOSE #fh
-
+ 
+ fh = FREEFILE
+ OPEN f$ FOR BINARY AS #fh
+ CLOSE #fh
+ 
 END SUB
 
 SUB upgrade (general(), font())
-
-DIM pal16(8)
-
-IF general(95) = 0 THEN
- general(95) = 1
- clearpage vpage
- printstr "Flushing New Text Data...", 0, 0, vpage
- setpicstuf buffer(), 400, -1
- FOR o = 0 TO 999
-  loadset game$ + ".say" + CHR$(0), o, 0
-  temp$ = STRING$(68, 0)
-  str2array temp$, buffer(), 331
-  storeset game$ + ".say" + CHR$(0), o, 0
- NEXT o
-END IF
-IF general(95) = 1 THEN
- general(95) = 2
- clearpage vpage
- printstr "Updating Door Format...", 0, 0, vpage
- FOR o = 0 TO 19
-  IF isfile(game$ + ".dor" + CHR$(0)) THEN DEF SEG = VARSEG(buffer(0)): BLOAD game$ + ".dor", VARPTR(buffer(0))
-  FOR i = 0 TO 299
-   buffer(i) = buffer(o * 300 + i)
+ 
+ DIM pal16(8)
+ 
+ IF general(95) = 0 THEN
+  general(95) = 1
+  clearpage vpage
+  printstr "Flushing New Text Data...", 0, 0, vpage
+  setpicstuf buffer(), 400, -1
+  FOR o = 0 TO 999
+   loadset game$ + ".say" + CHR$(0), o, 0
+   temp$ = STRING$(68, 0)
+   str2array temp$, buffer(), 331
+   storeset game$ + ".say" + CHR$(0), o, 0
+  NEXT o
+ END IF
+ IF general(95) = 1 THEN
+  general(95) = 2
+  clearpage vpage
+  printstr "Updating Door Format...", 0, 0, vpage
+  FOR o = 0 TO 19
+   IF isfile(game$ + ".dor" + CHR$(0)) THEN DEF SEG = VARSEG(buffer(0)): BLOAD game$ + ".dor", VARPTR(buffer(0))
+   FOR i = 0 TO 299
+    buffer(i) = buffer(o * 300 + i)
+   NEXT i
+   setpicstuf buffer(), 600, -1
+   storeset game$ + ".dox" + CHR$(0), o, 0
+  NEXT o
+  printstr "Enforcing default font", 0, 16, vpage
+  copyfile "ohrrpgce.fnt" + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
+  DEF SEG = VARSEG(font(0)): BLOAD game$ + ".fnt", VARPTR(font(0))
+  setfont font()
+  printstr "Making AniMaptiles Backward Compatable", 0, 16, vpage
+  FOR i = 0 TO 39
+   buffer(i) = 0
   NEXT i
-  setpicstuf buffer(), 600, -1
-  storeset game$ + ".dox" + CHR$(0), o, 0
- NEXT o
- printstr "Enforcing default font", 0, 16, vpage
- copyfile "ohrrpgce.fnt" + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
- DEF SEG = VARSEG(font(0)): BLOAD game$ + ".fnt", VARPTR(font(0))
- setfont font()
- printstr "Making AniMaptiles Backward Compatable", 0, 16, vpage
- FOR i = 0 TO 39
-  buffer(i) = 0
- NEXT i
- FOR i = 0 TO 1
-  o = i * 20
-  buffer(0 + o) = 112
-  buffer(1 + o) = 0
-  '--wait 3--
-  buffer(2 + o + 0) = 5
-  buffer(11 + o + 0) = 3
-  '--right 1--
-  buffer(2 + o + 1) = 3
-  buffer(11 + o + 1) = 1
-  '--wait 3--
-  buffer(2 + o + 2) = 5
-  buffer(11 + o + 2) = 3
-  '--left 1--
-  buffer(2 + o + 3) = 4
-  buffer(11 + o + 3) = 1
- NEXT i
- FOR i = 0 TO 14
-  savetanim n, buffer()
- NEXT i
- FOR i = 0 TO general(0)
-  printstr " map" + STR$(i), 16, 24 + i * 8, vpage
-  DEF SEG = VARSEG(buffer(0)): BLOAD game$ + ".t" + filenum$(i), VARPTR(buffer(0))
-  setmapdata buffer(), buffer(), 0, 0
-  FOR tx = 0 TO buffer(0)
-   FOR ty = 0 TO buffer(1)
-    IF readmapblock(tx, ty) = 158 THEN setmapblock tx, ty, 206
-   NEXT ty
-  NEXT tx
-  DEF SEG = VARSEG(buffer(0)): BSAVE game$ + ".t" + filenum$(i), VARPTR(buffer(0)), buffer(0) * buffer(1) + 4
- NEXT i
-END IF
-'---VERSION 3---
-IF general(95) = 2 THEN
- general(95) = 3
- clearpage vpage
- '-get old-old password
- rpas$ = ""
- FOR i = 1 TO general(99)
-  IF general(4 + i) >= 0 AND general(4 + i) <= 255 THEN rpas$ = rpas$ + CHR$(loopvar(general(4 + i), 0, 255, general(98) * -1))
- NEXT i
- '-SET (obsolete) SCATTERTABLE BASE
- general(199) = INT(RND * 15) + 1
- '-WRITE PASSWORD INTO (obsolete) SCATTERTABLE
- general(93) = INT(RND * 250) + 1
- rpas$ = rotascii(rpas$, general(93))
- '--write old password (will be upgraded again later in this same routine)
- writescatter rpas$, general(94), general(), 200
- '-REPLACE OLD-OLD PASSWORD
- pas$ = rotascii("ufxx|twi%|fx%rt{ji", -5)
- general(99) = LEN(pas$)
- general(98) = INT(RND * 250) + 1
- FOR i = 1 TO general(99)
-  temp = ASC(MID$(pas$, i, 1))
-  general(4 + i) = loopvar(temp, 0, 255, general(98))
- NEXT i
- printstr "Data Scaling Shtuff...", 0, 0, vpage
- general(26) = 40
- general(27) = 149
- general(28) = 79
- general(29) = 29
- general(30) = 119
- general(31) = 149
- general(32) = 99
- general(33) = 14
- general(34) = 200
- general(35) = 59
- general(36) = 500
- general(37) = 1000
- general(38) = 99
- general(39) = 999
-END IF
-'--VERSION 4--
-IF general(95) = 3 THEN
- general(95) = 4
- clearpage vpage
- printstr "Clearing New Attack Bitsets...", 0, 0, vpage
- setpicstuf buffer(), 80, -1
- FOR o = 0 TO general(34)
-  loadset game$ + ".dt6" + CHR$(0), o, 0
-  buffer(18) = 0
-  IF readbit(buffer(), 20, 60) THEN buffer(18) = 1
-  setbit buffer(), 20, 2, 0
-  FOR i = 21 TO 58
-   setbit buffer(), 20, i, 0
+  FOR i = 0 TO 1
+   o = i * 20
+   buffer(0 + o) = 112
+   buffer(1 + o) = 0
+   '--wait 3--
+   buffer(2 + o + 0) = 5
+   buffer(11 + o + 0) = 3
+   '--right 1--
+   buffer(2 + o + 1) = 3
+   buffer(11 + o + 1) = 1
+   '--wait 3--
+   buffer(2 + o + 2) = 5
+   buffer(11 + o + 2) = 3
+   '--left 1--
+   buffer(2 + o + 3) = 4
+   buffer(11 + o + 3) = 1
   NEXT i
-  FOR i = 60 TO 63
-   setbit buffer(), 20, i, 0
+  FOR i = 0 TO 14
+   savetanim n, buffer()
   NEXT i
-  storeset game$ + ".dt6" + CHR$(0), o, 0
- NEXT o
- setbit general(), 101, 6, 0 'no hide readymeter
- setbit general(), 101, 7, 0 'no hide health meter
-END IF
-'--VERSION 5--
-IF general(95) = 4 THEN
- general(95) = 5
- clearpage vpage
- printstr "Upgrading 16-color Palette Format...", 0, 0, vpage
- setpicstuf pal16(), 16, -1
- xbload game$ + ".pal", buffer(), "16-color palletes missing from " + game$
- KILL game$ + ".pal"
- '--find last used palette
- last = 99
- foundpal = 0
- FOR j = 99 TO 0 STEP -1
+  FOR i = 0 TO general(0)
+   printstr " map" + STR$(i), 16, 24 + i * 8, vpage
+   DEF SEG = VARSEG(buffer(0)): BLOAD game$ + ".t" + filenum$(i), VARPTR(buffer(0))
+   setmapdata buffer(), buffer(), 0, 0
+   FOR tx = 0 TO buffer(0)
+    FOR ty = 0 TO buffer(1)
+     IF readmapblock(tx, ty) = 158 THEN setmapblock tx, ty, 206
+    NEXT ty
+   NEXT tx
+   DEF SEG = VARSEG(buffer(0)): BSAVE game$ + ".t" + filenum$(i), VARPTR(buffer(0)), buffer(0) * buffer(1) + 4
+  NEXT i
+ END IF
+ '---VERSION 3---
+ IF general(95) = 2 THEN
+  general(95) = 3
+  clearpage vpage
+  '-get old-old password
+  rpas$ = ""
+  FOR i = 1 TO general(99)
+   IF general(4 + i) >= 0 AND general(4 + i) <= 255 THEN rpas$ = rpas$ + CHR$(loopvar(general(4 + i), 0, 255, general(98) * -1))
+  NEXT i
+  '-SET (obsolete) SCATTERTABLE BASE
+  general(199) = INT(RND * 15) + 1
+  '-WRITE PASSWORD INTO (obsolete) SCATTERTABLE
+  general(93) = INT(RND * 250) + 1
+  rpas$ = rotascii(rpas$, general(93))
+  '--write old password (will be upgraded again later in this same routine)
+  writescatter rpas$, general(94), general(), 200
+  '-REPLACE OLD-OLD PASSWORD
+  pas$ = rotascii("ufxx|twi%|fx%rt{ji", -5)
+  general(99) = LEN(pas$)
+  general(98) = INT(RND * 250) + 1
+  FOR i = 1 TO general(99)
+   temp = ASC(MID$(pas$, i, 1))
+   general(4 + i) = loopvar(temp, 0, 255, general(98))
+  NEXT i
+  printstr "Data Scaling Shtuff...", 0, 0, vpage
+  general(26) = 40
+  general(27) = 149
+  general(28) = 79
+  general(29) = 29
+  general(30) = 119
+  general(31) = 149
+  general(32) = 99
+  general(33) = 14
+  general(34) = 200
+  general(35) = 59
+  general(36) = 500
+  general(37) = 1000
+  general(38) = 99
+  general(39) = 999
+ END IF
+ '--VERSION 4--
+ IF general(95) = 3 THEN
+  general(95) = 4
+  clearpage vpage
+  printstr "Clearing New Attack Bitsets...", 0, 0, vpage
+  setpicstuf buffer(), 80, -1
+  FOR o = 0 TO general(34)
+   loadset game$ + ".dt6" + CHR$(0), o, 0
+   buffer(18) = 0
+   IF readbit(buffer(), 20, 60) THEN buffer(18) = 1
+   setbit buffer(), 20, 2, 0
+   FOR i = 21 TO 58
+    setbit buffer(), 20, i, 0
+   NEXT i
+   FOR i = 60 TO 63
+    setbit buffer(), 20, i, 0
+   NEXT i
+   storeset game$ + ".dt6" + CHR$(0), o, 0
+  NEXT o
+  setbit general(), 101, 6, 0 'no hide readymeter
+  setbit general(), 101, 7, 0 'no hide health meter
+ END IF
+ '--VERSION 5--
+ IF general(95) = 4 THEN
+  general(95) = 5
+  clearpage vpage
+  printstr "Upgrading 16-color Palette Format...", 0, 0, vpage
+  setpicstuf pal16(), 16, -1
+  xbload game$ + ".pal", buffer(), "16-color palletes missing from " + game$
+  KILL game$ + ".pal"
+  '--find last used palette
+  last = 99
+  foundpal = 0
+  FOR j = 99 TO 0 STEP -1
    FOR i = 0 TO 7
-     IF buffer(j * 8 + i) <> 0 THEN
-       last = j
-       foundpal = 1
-       EXIT FOR
-     END IF
+    IF buffer(j * 8 + i) <> 0 THEN
+     last = j
+     foundpal = 1
+     EXIT FOR
+    END IF
    NEXT i
    IF foundpal THEN EXIT FOR
- NEXT j
- printstr "Last used palette is" + STR$(last), 0, 8, vpage
- '--write header
- pal16(0) = 4444
- pal16(1) = last
- FOR i = 2 TO 7
+  NEXT j
+  printstr "Last used palette is" + STR$(last), 0, 8, vpage
+  '--write header
+  pal16(0) = 4444
+  pal16(1) = last
+  FOR i = 2 TO 7
    pal16(i) = 0
- NEXT i
- storeset game$ + ".pal" + CHR$(0), 0, 0
- '--convert palettes
- FOR j = 0 TO last
+  NEXT i
+  storeset game$ + ".pal" + CHR$(0), 0, 0
+  '--convert palettes
+  FOR j = 0 TO last
    FOR i = 0 TO 7
-     pal16(i) = buffer(j * 8 + i)
+    pal16(i) = buffer(j * 8 + i)
    NEXT i
    storeset game$ + ".pal" + CHR$(0), 1 + j, 0
- NEXT j
-END IF
-
-IF NOT isfile(workingdir$ + "\archinym.lmp" + CHR$(0)) THEN
- '--create archinym information lump
- fh = FREEFILE
- OPEN workingdir$ + "\archinym.lmp" FOR OUTPUT AS #fh
+  NEXT j
+ END IF
+ 
+ IF NOT isfile(workingdir$ + "\archinym.lmp" + CHR$(0)) THEN
+  '--create archinym information lump
+  fh = FREEFILE
+  OPEN workingdir$ + "\archinym.lmp" FOR OUTPUT AS #fh
   PRINT #fh, RIGHT$(game$, LEN(game$) - LEN(workingdir$ + "\"))
   PRINT #fh, version$ + "(previous)"
- CLOSE #fh
-END IF
-
-IF NOT isfile(game$ + ".veh" + CHR$(0)) THEN
- '--make sure vehicle lump is present
- IF isfile("ohrrpgce.new" + CHR$(0)) THEN
-  IF unlumpone("ohrrpgce.new", "ohrrpgce.veh", game$ + ".veh") THEN
-   general(55) = 2
+  CLOSE #fh
+ END IF
+ 
+ IF NOT isfile(game$ + ".veh" + CHR$(0)) THEN
+  '--make sure vehicle lump is present
+  IF isfile("ohrrpgce.new" + CHR$(0)) THEN
+   IF unlumpone("ohrrpgce.new", "ohrrpgce.veh", game$ + ".veh") THEN
+    general(55) = 2
+   END IF
   END IF
  END IF
-END IF
-
-IF NOT isfile(workingdir$ + "\attack.bin" + CHR$(0)) THEN
+ 
+ IF NOT isfile(workingdir$ + "\attack.bin" + CHR$(0)) THEN
   clearpage vpage
   printstr "Init extended attack data...", 0, 0, vpage
   flusharray buffer(), 60, 0
   setbinsize 0, 120
   setpicstuf buffer(), 120, -1
   FOR i = 0 TO general(34)
-    storeset workingdir$ + "\attack.bin" + CHR$(0), i, 0
+   storeset workingdir$ + "\attack.bin" + CHR$(0), i, 0
   NEXT i
-
+  
   '--and while we are at it, clear the old death-string from enemys
   printstr "Re-init recycled enemy data...", 0, 10, vpage
   setpicstuf buffer(), 320, -1
   FOR i = 0 TO general(36)
-    loadset game$ + ".dt1" + CHR$(0), i, 0
-    FOR j = 17 TO 52
-      buffer(j) = 0
-    NEXT j
-    storeset game$ + ".dt1" + CHR$(0), i, 0
+   loadset game$ + ".dt1" + CHR$(0), i, 0
+   FOR j = 17 TO 52
+    buffer(j) = 0
+   NEXT j
+   storeset game$ + ".dt1" + CHR$(0), i, 0
   NEXT i
-END IF
-
-'--update to new (3rd) password format
-IF general(5) < 256 THEN
+ END IF
+ 
+ '--update to new (3rd) password format
+ IF general(5) < 256 THEN
   general(5) = 256
   IF general(94) = -1 THEN
-    '--no password, write a blank one
-    pas$ = ""
+   '--no password, write a blank one
+   pas$ = ""
   ELSE
-    '--read the old scattertable
-    readscatter pas$, general(94), general(), 200
-    pas$ = rotascii(pas$, general(93) * -1)
+   '--read the old scattertable
+   readscatter pas$, general(94), general(), 200
+   pas$ = rotascii(pas$, general(93) * -1)
   END IF
   writepassword pas$, general()
-END IF
-
-'wow! this is quite a big and ugly routine!
+ END IF
+ 
+ 'wow! this is quite a big and ugly routine!
 END SUB
 
 SUB writepassword (p$, gen())
-
-'-- set password version number (only if needed)
-IF gen(5) < 256 THEN gen(5) = 256
-
-'--pad the password with some silly obfuscating low-ascii chars
-FOR i = 1 TO 17 - LEN(p$)
+ 
+ '-- set password version number (only if needed)
+ IF gen(5) < 256 THEN gen(5) = 256
+ 
+ '--pad the password with some silly obfuscating low-ascii chars
+ FOR i = 1 TO 17 - LEN(p$)
   IF INT(RND * 10) < 5 THEN
-    p$ = p$ + CHR$(INT(RND * 30))
+   p$ = p$ + CHR$(INT(RND * 30))
   ELSE
-    p$ = CHR$(INT(RND * 30)) + p$
+   p$ = CHR$(INT(RND * 30)) + p$
   END IF
-NEXT i
-
-'--apply a new ascii rotation / weak obfuscation number
-gen(6) = INT(RND * 253) + 1
-p$ = rotascii(p$, gen(6))
-
-'--write the password into GEN
-str2array p$, gen(), 14
-
+ NEXT i
+ 
+ '--apply a new ascii rotation / weak obfuscation number
+ gen(6) = INT(RND * 253) + 1
+ p$ = rotascii(p$, gen(6))
+ 
+ '--write the password into GEN
+ str2array p$, gen(), 14
+ 
 END SUB
 

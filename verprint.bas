@@ -9,7 +9,7 @@ DEFINT A-Z
 
 
 OPEN "codename.txt" FOR INPUT AS #1
-  INPUT #1, codename$
+INPUT #1, codename$
 CLOSE #1
 codename$ = LEFT$(codename$, 11)
 
@@ -18,15 +18,15 @@ PRINT "Codename " + codename$
 
 OPEN "cver.txt" FOR OUTPUT AS #1
 
- a$ = "version$ = " + CHR$(34) + "OHRRPGCE Editor: " + codename$ + " v." + datetag$ + CHR$(34)
- PRINT #1, a$
+a$ = "version$ = " + CHR$(34) + "OHRRPGCE Editor: " + codename$ + " v." + datetag$ + CHR$(34)
+PRINT #1, a$
 
 CLOSE #1
 
 OPEN "gver.txt" FOR OUTPUT AS #1
 
- a$ = "version$ = " + CHR$(34) + "O.H.R.RPG.C.E version " + datetag$ + CHR$(34)
- PRINT #1, a$
+a$ = "version$ = " + CHR$(34) + "O.H.R.RPG.C.E version " + datetag$ + CHR$(34)
+PRINT #1, a$
 
 CLOSE #1
 

@@ -237,7 +237,7 @@ aquiretempdir
 '---WRITE COMMAND-LINE ARGS TO A TEMP FILE---
 fh = FREEFILE
 OPEN tmpdir$ + "ohrcline.tmp" FOR OUTPUT AS #fh
- WRITE #fh, COMMAND$
+WRITE #fh, COMMAND$
 CLOSE #fh
 
 'DEBUG debug "Thestart"
@@ -271,7 +271,7 @@ progdir$ = STRING$(rpathlength, 0): getstring progdir$
 IF RIGHT$(progdir$, 1) <> "\" THEN progdir$ = progdir$ + "\"
 exename$ = STRING$(exenamelength, 0): getstring exename$
 DO WHILE INSTR(exename$, "\")
-  exename$ = RIGHT$(exename$, LEN(exename$) - INSTR(exename$, "\"))
+ exename$ = RIGHT$(exename$, LEN(exename$) - INSTR(exename$, "\"))
 LOOP
 exename$ = UCASE$(LEFT$(exename$, LEN(exename$) - 4))
 aquiretempdir
@@ -301,7 +301,7 @@ OPEN workingdir$ + "\lockfile.tmp" FOR BINARY AS #lockfile
 '---RELOAD COMMAND LINE FROM TEMP FILE---
 fh = FREEFILE
 OPEN tmpdir$ + "ohrcline.tmp" FOR INPUT AS #fh
- INPUT #fh, cline$
+INPUT #fh, cline$
 CLOSE #fh
 IF LCASE$(cline$) <> "/keyonly" AND LCASE$(cline$) <> "-keyonly" THEN
  FOR i = 0 TO 1
@@ -319,9 +319,9 @@ gen(60) = 0'--leave joystick calibration enabled
 
 RANDOMIZE TIMER
 FOR i = 1 TO 15
-  master(i * 3 + 0) = SGN(i AND 4) * 32 + SGN(i AND 8) * 16
-  master(i * 3 + 1) = SGN(i AND 2) * 32 + SGN(i AND 8) * 16
-  master(i * 3 + 2) = SGN(i AND 1) * 32 + SGN(i AND 8) * 16
+ master(i * 3 + 0) = SGN(i AND 4) * 32 + SGN(i AND 8) * 16
+ master(i * 3 + 1) = SGN(i AND 2) * 32 + SGN(i AND 8) * 16
+ master(i * 3 + 2) = SGN(i AND 1) * 32 + SGN(i AND 8) * 16
 NEXT i
 
 'DEBUG debug "load font"
@@ -329,20 +329,20 @@ NEXT i
 IF isfile(progdir$ + "ohrrpgce.fnt" + CHR$(0)) THEN
  DEF SEG = VARSEG(font(0)): BLOAD progdir$ + "ohrrpgce.fnt", VARPTR(font(0))
 ELSE
-  '--load the ROM font
-  regs.ax = &H1130
-  regs.bx = &H300
-  CALL interruptx(&H10, regs, regs)
-  'off9 = regs.bx: seg9 = regs.es
-  DEF SEG = regs.es
-  FOR i = 1 TO 255
-    FOR j = 0 TO 7
-      b = PEEK(regs.bp + (8 * i) + j)
-      FOR k = 0 TO 7
-        setbit font(), i * 4, (7 - k) * 8 + j, (b AND 2 ^ k)
-      NEXT k
-    NEXT j
-  NEXT i
+ '--load the ROM font
+ regs.ax = &H1130
+ regs.bx = &H300
+ CALL interruptx(&H10, regs, regs)
+ 'off9 = regs.bx: seg9 = regs.es
+ DEF SEG = regs.es
+ FOR i = 1 TO 255
+  FOR j = 0 TO 7
+   b = PEEK(regs.bp + (8 * i) + j)
+   FOR k = 0 TO 7
+    setbit font(), i * 4, (7 - k) * 8 + j, (b AND 2 ^ k)
+   NEXT k
+  NEXT j
+ NEXT i
 END IF
 
 'DEBUG debug "set mode-X"
@@ -397,21 +397,21 @@ IF RIGHT$(a$, 4) = ".RPG" AND isfile(a$ + CHR$(0)) THEN
  autorungame = 1
 ELSE
  IF exename$ <> "GAME" THEN
-   IF isfile(progdir$ + exename$ + ".RPG" + CHR$(0)) THEN
-     sourcerpg$ = progdir$ + exename$ + ".RPG"
-     autorungame = 1
-   END IF
+  IF isfile(progdir$ + exename$ + ".RPG" + CHR$(0)) THEN
+   sourcerpg$ = progdir$ + exename$ + ".RPG"
+   autorungame = 1
+  END IF
  END IF
 END IF
 IF autorungame = 0 THEN
-'DEBUG debug "browse for RPG"
-  sourcerpg$ = browse$("*.rpg", 1, 2)
+ 'DEBUG debug "browse for RPG"
+ sourcerpg$ = browse$("*.rpg", 1, 2)
 END IF
 IF sourcerpg$ = "" THEN exitprogram 0
 
 IF autorungame = 0 THEN
-  rectangle 4, 3, 312, 14, 9, vpage
-  rectangle 5, 4, 310, 12, 1, vpage
+ rectangle 4, 3, 312, 14, 9, vpage
+ rectangle 5, 4, 310, 12, 1, vpage
 END IF
 
 edgeprint "Loading...", xstring("Loading...", 160), 6, 15, vpage
@@ -473,7 +473,7 @@ ELSE
  clearpage 1
  addhero 1, 0, stat()
  IF gen(41) > 0 THEN
-   rsr = runscript(gen(41), nowscript + 1, -1, "newgame")
+  rsr = runscript(gen(41), nowscript + 1, -1, "newgame")
  END IF
 END IF
 ERASE scroll, pass
@@ -486,101 +486,101 @@ needf = 1: ng = 1
 GOSUB movement
 setkeys
 DO
-'DEBUG debug "top of master loop"
-setwait timing(), speedcontrol
-setkeys
-tog = tog XOR 1
-'DEBUG debug "read controls"
-control
-IF gmap(15) THEN onkeyscript gmap(15)
-'DEBUG debug "enter script interpreter"
-GOSUB interpret
-'DEBUG debug "increment timers"
-playtimer
-'DEBUG debug "keyboard handling"
-IF carray(5) > 1 AND showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(0) = 0 AND xgo(0) = 0 AND ygo(0) = 0 THEN
- GOSUB usermenu
- FOR i = 1 TO 10
+ 'DEBUG debug "top of master loop"
+ setwait timing(), speedcontrol
+ setkeys
+ tog = tog XOR 1
+ 'DEBUG debug "read controls"
+ control
+ IF gmap(15) THEN onkeyscript gmap(15)
+ 'DEBUG debug "enter script interpreter"
+ GOSUB interpret
+ 'DEBUG debug "increment timers"
+ playtimer
+ 'DEBUG debug "keyboard handling"
+ IF carray(5) > 1 AND showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(0) = 0 AND xgo(0) = 0 AND ygo(0) = 0 THEN
+  GOSUB usermenu
+  FOR i = 1 TO 10
    evalitemtag
- NEXT i
- npcplot npcs()
-END IF
-IF showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(6) = 0 THEN
- IF xgo(0) = 0 AND ygo(0) = 0 THEN
-   DO
-     IF carray(0) > 0 THEN ygo(0) = 20: catd(0) = 0: EXIT DO
-     IF carray(1) > 0 THEN ygo(0) = -20: catd(0) = 2: EXIT DO
-     IF carray(2) > 0 THEN xgo(0) = 20: catd(0) = 3: EXIT DO
-     IF carray(3) > 0 THEN xgo(0) = -20: catd(0) = 1: EXIT DO
-     IF carray(4) > 1 AND veh(0) = 0 THEN
-       auto = 0
-       GOSUB usething
-     END IF
-     EXIT DO
-   LOOP
+  NEXT i
+  npcplot npcs()
  END IF
-END IF
-IF carray(4) > 1 AND showsay = 1 AND readbit(gen(), 44, suspendboxadvance) = 0 THEN
- GOSUB nextsay
-END IF
-IF veh(0) THEN
-'DEBUG debug "evaluate vehicles"
- setmapdata pass(), pass(), 0, 0
- pasx = INT(catx(0) / 20)
- pasy = INT(caty(0) / 20)
- IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) THEN
-  '--dismount-ahead is true, dismount-passwalls is true
-  SELECT CASE catd(0)
-   CASE 0
-    pasy = pasy - 1
-    IF pasy < 0 THEN pasy = (scroll(1) - 1)
+ IF showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(6) = 0 THEN
+  IF xgo(0) = 0 AND ygo(0) = 0 THEN
+   DO
+    IF carray(0) > 0 THEN ygo(0) = 20: catd(0) = 0: EXIT DO
+    IF carray(1) > 0 THEN ygo(0) = -20: catd(0) = 2: EXIT DO
+    IF carray(2) > 0 THEN xgo(0) = 20: catd(0) = 3: EXIT DO
+    IF carray(3) > 0 THEN xgo(0) = -20: catd(0) = 1: EXIT DO
+    IF carray(4) > 1 AND veh(0) = 0 THEN
+     auto = 0
+     GOSUB usething
+    END IF
+    EXIT DO
+   LOOP
+  END IF
+ END IF
+ IF carray(4) > 1 AND showsay = 1 AND readbit(gen(), 44, suspendboxadvance) = 0 THEN
+  GOSUB nextsay
+ END IF
+ IF veh(0) THEN
+  'DEBUG debug "evaluate vehicles"
+  setmapdata pass(), pass(), 0, 0
+  pasx = INT(catx(0) / 20)
+  pasy = INT(caty(0) / 20)
+  IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) THEN
+   '--dismount-ahead is true, dismount-passwalls is true
+   SELECT CASE catd(0)
+    CASE 0
+     pasy = pasy - 1
+     IF pasy < 0 THEN pasy = (scroll(1) - 1)
+    CASE 1
+     pasx = pasx + 1
+     IF pasx > (scroll(0) - 1) THEN pasx = 0
+    CASE 2
+     pasy = pasy + 1
+     IF pasy > (scroll(1) - 1) THEN pasy = 0
+    CASE 3
+     pasx = pasx - 1
+     IF pasx < 0 THEN pasx = (scroll(0) - 1)
+   END SELECT
+  END IF
+  tmp = vehiclestuff(pasx, pasy, foep)
+  SELECT CASE tmp
+   CASE IS < 0
+    rsr = runscript(ABS(tmp), nowscript + 1, -1, "vehicle")
    CASE 1
-    pasx = pasx + 1
-    IF pasx > (scroll(0) - 1) THEN pasx = 0
-   CASE 2
-    pasy = pasy + 1
-    IF pasy > (scroll(1) - 1) THEN pasy = 0
-   CASE 3
-    pasx = pasx - 1
-    IF pasx < 0 THEN pasx = (scroll(0) - 1)
+    GOSUB usermenu
+    evalherotag stat()
+    evalitemtag
+    npcplot npcs()
+   CASE IS > 1
+    say = tmp - 1
+    loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
   END SELECT
  END IF
- tmp = vehiclestuff(pasx, pasy, foep)
- SELECT CASE tmp
-  CASE IS < 0
-   rsr = runscript(ABS(tmp), nowscript + 1, -1, "vehicle")
-  CASE 1
-   GOSUB usermenu
-   evalherotag stat()
-   evalitemtag
-   npcplot npcs()
-  CASE IS > 1
-   say = tmp - 1
-   loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
- END SELECT
-END IF
-IF showsay = 1 THEN
- IF carray(0) > 1 THEN choosep = 0
- IF carray(1) > 1 THEN choosep = 1
-END IF
-'DEBUG debug "setmapdata pass"
-setmapdata pass(), pass(), 0, 0
-'DEBUG debug "hero movement"
-GOSUB movement
-'DEBUG debug "NPC movement"
-GOSUB movenpc
-IF readbit(gen(), 101, 8) = 0 THEN
+ IF showsay = 1 THEN
+  IF carray(0) > 1 THEN choosep = 0
+  IF carray(1) > 1 THEN choosep = 1
+ END IF
+ 'DEBUG debug "setmapdata pass"
+ setmapdata pass(), pass(), 0, 0
+ 'DEBUG debug "hero movement"
+ GOSUB movement
+ 'DEBUG debug "NPC movement"
+ GOSUB movenpc
+ IF readbit(gen(), 101, 8) = 0 THEN
   '--debugging keys
-'DEBUG debug "evaluate debugging keys"
+  'DEBUG debug "evaluate debugging keys"
   IF keyval(41) > 0 THEN
-    IF keyval(59) > 1 THEN
-      catx(0) = (catx(0) \ 20) * 20
-      caty(0) = (caty(0) \ 20) * 20
-      xgo(0) = 0
-      ygo(0) = 0
-    END IF
+   IF keyval(59) > 1 THEN
+    catx(0) = (catx(0) \ 20) * 20
+    caty(0) = (caty(0) \ 20) * 20
+    xgo(0) = 0
+    ygo(0) = 0
+   END IF
   ELSE
-    IF keyval(59) > 1 AND showsay = 0 THEN minimap scroll(), mx, my, gmap(), catx(0), caty(0), tastuf()
+   IF keyval(59) > 1 AND showsay = 0 THEN minimap scroll(), mx, my, gmap(), catx(0), caty(0), tastuf()
   END IF
   IF keyval(60) > 1 AND showsay = 0 THEN
    savegame 4, map, foep, stat(), stock()
@@ -594,160 +594,160 @@ IF readbit(gen(), 101, 8) = 0 THEN
   IF keyval(62) > 1 THEN showtags = showtags XOR 1
   IF keyval(63) > 1 THEN
    SELECT CASE gen(cameramode)
-   CASE herocam
-    IF gen(cameraArg) < 15 THEN
-     gen(cameraArg) = gen(cameraArg) + 5
-    ELSE
+    CASE herocam
+     IF gen(cameraArg) < 15 THEN
+      gen(cameraArg) = gen(cameraArg) + 5
+     ELSE
+      gen(cameraArg) = 0
+     END IF
+    CASE ELSE
+     gen(cameramode) = herocam
      gen(cameraArg) = 0
-    END IF
-   CASE ELSE
-    gen(cameramode) = herocam
-    gen(cameraArg) = 0
    END SELECT
   END IF
   IF keyval(64) > 0 AND (gen(cameramode) <> pancam OR gen(cameraArg2) = 0) THEN
    '--only permit movement when not already panning
    IF keyval(72) > 0 THEN
-     gen(cameraArg) = 0 'north
-     setdebugpan
+    gen(cameraArg) = 0 'north
+    setdebugpan
    END IF
    IF keyval(77) > 0 THEN
-     gen(cameraArg) = 1 'east
-     setdebugpan
+    gen(cameraArg) = 1 'east
+    setdebugpan
    END IF
    IF keyval(80) > 0 THEN
-     gen(cameraArg) = 2 'south
-     setdebugpan
+    gen(cameraArg) = 2 'south
+    setdebugpan
    END IF
    IF keyval(75) > 0 THEN
-     gen(cameraArg) = 3 'west
-     setdebugpan
+    gen(cameraArg) = 3 'west
+    setdebugpan
    END IF
   END IF
   IF keyval(65) > 1 THEN
-    showmapname = 15
-    IF readbit(gen(), 101, 9) = 0 THEN
-      mapname$ = "levelup bug enabled"
-      setbit gen(), 101, 9, 1
-    ELSE
-      mapname$ = "levelup bug disabled"
-      setbit gen(), 101, 9, 0
-    END IF
+   showmapname = 15
+   IF readbit(gen(), 101, 9) = 0 THEN
+    mapname$ = "levelup bug enabled"
+    setbit gen(), 101, 9, 1
+   ELSE
+    mapname$ = "levelup bug disabled"
+    setbit gen(), 101, 9, 0
+   END IF
   END IF
   IF keyval(66) > 1 THEN patcharray gen(), "gen", 104
   IF keyval(67) > 1 THEN patcharray gmap(), "gmap", 20
   IF keyval(68) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1)
   IF keyval(87) > 1 THEN ghost = ghost XOR 1
   IF keyval(29) > 0 THEN
-    IF keyval(74) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = STR$(speedcontrol)
-    IF keyval(78) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = STR$(speedcontrol)
+   IF keyval(74) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = STR$(speedcontrol)
+   IF keyval(78) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = STR$(speedcontrol)
   END IF
-END IF
-'DEBUG debug "random enemys"
-IF foep = 0 AND readbit(gen(), 44, suspendrandomenemys) = 0 AND (veh(0) = 0 OR veh(11) > -1) THEN
- temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
- IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
- IF temp > 0 THEN
-  setpicstuf buffer(), 50, -1
-  loadset game$ + ".efs" + CHR$(0), temp - 1, 0
-  FOR i = 0 TO INT(RND * range(19, 27))
-   foenext = loopvar(foenext, 0, 19, 1)
-   breakout = 0
-   DO WHILE buffer(1 + foenext) = 0
-    breakout = breakout + 1
-    IF breakout > 40 THEN EXIT FOR
+ END IF
+ 'DEBUG debug "random enemys"
+ IF foep = 0 AND readbit(gen(), 44, suspendrandomenemys) = 0 AND (veh(0) = 0 OR veh(11) > -1) THEN
+  temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
+  IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
+  IF temp > 0 THEN
+   setpicstuf buffer(), 50, -1
+   loadset game$ + ".efs" + CHR$(0), temp - 1, 0
+   FOR i = 0 TO INT(RND * range(19, 27))
     foenext = loopvar(foenext, 0, 19, 1)
-   LOOP
-  NEXT i
-  batform = buffer(1 + foenext) - 1
-  IF gmap(13) <= 0 THEN
+    breakout = 0
+    DO WHILE buffer(1 + foenext) = 0
+     breakout = breakout + 1
+     IF breakout > 40 THEN EXIT FOR
+     foenext = loopvar(foenext, 0, 19, 1)
+    LOOP
+   NEXT i
+   batform = buffer(1 + foenext) - 1
+   IF gmap(13) <= 0 THEN
     '--normal battle
     fatal = 0
     ERASE scroll, pass
     wonbattle = battle(batform, fatal, stat())
     afterbat = 1
     GOSUB preparemap: needf = 2
-  ELSE
+   ELSE
     rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle")
     IF rsr = 1 THEN
-      heap(scrat(nowscript, scrheap)) = batform
-      heap(scrat(nowscript, scrheap) + 1) = temp
+     heap(scrat(nowscript, scrheap)) = batform
+     heap(scrat(nowscript, scrheap) + 1) = temp
     END IF
+   END IF
+   foep = range(100, 60)
   END IF
-  foep = range(100, 60)
  END IF
-END IF
-'DEBUG debug "check for death"
-IF fatal = 1 THEN
- '--this is what happens when you die in battle
- showsay = 0
- IF gen(42) > 0 THEN
-  rsr = runscript(gen(42), nowscript + 1, -1, "death")
-  IF rsr = 1 THEN
+ 'DEBUG debug "check for death"
+ IF fatal = 1 THEN
+  '--this is what happens when you die in battle
+  showsay = 0
+  IF gen(42) > 0 THEN
+   rsr = runscript(gen(42), nowscript + 1, -1, "death")
+   IF rsr = 1 THEN
     fatal = 0
     needf = 2
+   END IF
+  ELSE
+   fadeout 63, 0, 0, 0
   END IF
- ELSE
-  fadeout 63, 0, 0, 0
  END IF
-END IF
-GOSUB displayall
-IF fatal = 1 OR abortg = 1 THEN
- resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
- GOTO beginplay
-END IF
-'DEBUG debug "swap video pages"
-SWAP vpage, dpage
-setvispage vpage
-'DEBUG debug "fade in"
-'DEBUG debug "needf"+str$(needf)
-IF needf = 1 AND fatal = 0 THEN
+ GOSUB displayall
+ IF fatal = 1 OR abortg = 1 THEN
+  resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
+  GOTO beginplay
+ END IF
+ 'DEBUG debug "swap video pages"
+ SWAP vpage, dpage
+ setvispage vpage
+ 'DEBUG debug "fade in"
+ 'DEBUG debug "needf"+str$(needf)
+ IF needf = 1 AND fatal = 0 THEN
   needf = 0
   fademusic fmvol
   fadein 0
   setkeys
-END IF
-IF needf > 1 THEN needf = needf - 1
-'DEBUG debug "tail of main loop"
-dowait
+ END IF
+ IF needf > 1 THEN needf = needf - 1
+ 'DEBUG debug "tail of main loop"
+ dowait
 LOOP
 
 doloadgame:
- loadgame temp, map, foep, stat(), stock()
- afterload = -1
- IF gen(57) > 0 THEN
-  rsr = runscript(gen(57), nowscript + 1, -1, "loadgame")
-  IF rsr = 1 THEN
-    '--pass save slot as argument
-    IF temp = 4 THEN temp = -1 'quickload slot
-    heap(scrat(nowscript, scrheap)) = temp
-  END IF
+loadgame temp, map, foep, stat(), stock()
+afterload = -1
+IF gen(57) > 0 THEN
+ rsr = runscript(gen(57), nowscript + 1, -1, "loadgame")
+ IF rsr = 1 THEN
+  '--pass save slot as argument
+  IF temp = 4 THEN temp = -1 'quickload slot
+  heap(scrat(nowscript, scrheap)) = temp
  END IF
- samemap = -1
+END IF
+samemap = -1
 RETURN
 
 displayall:
 'DEBUG debug "display"
 IF gen(58) = 0 AND gen(50) = 0 THEN
  '---NORMAL DISPLAY---
-'DEBUG debug "normal display"
+ 'DEBUG debug "normal display"
  setmapdata scroll(), pass(), 0, 0
  setanim tastuf(0) + cycle(0), tastuf(20) + cycle(1)
  cycletile cycle(), tastuf(), cycptr(), cycskip()
-'DEBUG debug "drawmap"
+ 'DEBUG debug "drawmap"
  drawmap mapx, mapy, 0, dpage
-'DEBUG debug "draw npcs and heroes"
+ 'DEBUG debug "draw npcs and heroes"
  IF gmap(16) = 1 THEN
-   GOSUB cathero
-   GOSUB drawnpc
+  GOSUB cathero
+  GOSUB drawnpc
  ELSE
-   GOSUB drawnpc
-   GOSUB cathero
+  GOSUB drawnpc
+  GOSUB cathero
  END IF
-'DEBUG debug "drawoverhead"
+ 'DEBUG debug "drawoverhead"
  IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 2, dpage
 ELSE '---END NORMAL DISPLAY---
-'DEBUG debug "backdrop display"
+ 'DEBUG debug "backdrop display"
  copypage 3, dpage
 END IF '---END BACKDROP DISPLAY---
 'DEBUG debug "text box"
@@ -755,12 +755,12 @@ IF showsay > 0 THEN drawsay saybit(), sayenh(), say$(), showsay, choose$(), choo
 'DEBUG debug "map name"
 IF showmapname > 0 THEN showmapname = showmapname - 1: edgeprint mapname$, xstring(mapname$, 160), 180, 15, dpage
 '--FPS
-  'framecount = framecount + 1
-  'IF fpstimer! + 1 < TIMER THEN
-  '  scriptout$ = "FPS" + STR$(framecount)
-  '  fpstimer! = TIMER
-  '  framecount = 0
-  'END IF
+'framecount = framecount + 1
+'IF fpstimer! + 1 < TIMER THEN
+'  scriptout$ = "FPS" + STR$(framecount)
+'  fpstimer! = TIMER
+'  framecount = 0
+'END IF
 edgeprint scriptout$, 0, 190, 15, dpage
 IF showtags > 0 THEN tagdisplay
 IF scrwatch THEN scriptwatcher dpage
@@ -789,95 +789,95 @@ mi(6) = 6
 mi(7) = 0
 mi(8) = 7
 IF gmap(2) = 0 THEN
-  '--minimap not available
-  o = 0
-  FOR i = 0 TO mt
-    IF mi(i) = 2 THEN o = 1: SWAP mi(i), mi(i + 1)
-  NEXT i
-  IF o = 1 THEN mt = mt - 1
+ '--minimap not available
+ o = 0
+ FOR i = 0 TO mt
+  IF mi(i) = 2 THEN o = 1: SWAP mi(i), mi(i + 1)
+ NEXT i
+ IF o = 1 THEN mt = mt - 1
 END IF
 IF gmap(3) = 0 THEN
-  '--save not available
-  o = 0
-  FOR i = 0 TO mt
-    IF mi(i) = 6 THEN o = 1: SWAP mi(i), mi(i + 1)
-  NEXT i
-  IF o = 1 THEN mt = mt - 1
+ '--save not available
+ o = 0
+ FOR i = 0 TO mt
+  IF mi(i) = 6 THEN o = 1: SWAP mi(i), mi(i + 1)
+ NEXT i
+ IF o = 1 THEN mt = mt - 1
 END IF
 csr = 0: ptr = 0
 setkeys
 DO
-  setwait timing(), speedcontrol
-  setkeys
-  tog = tog XOR 1
-  playtimer
-  control
-  GOSUB displayall
-  IF carray(5) > 1 OR abortg = 1 THEN
+ setwait timing(), speedcontrol
+ setkeys
+ tog = tog XOR 1
+ playtimer
+ control
+ GOSUB displayall
+ IF carray(5) > 1 OR abortg = 1 THEN
+  EXIT DO
+ END IF
+ IF carray(0) > 1 THEN ptr = loopvar(ptr, 0, mt, -1)
+ IF carray(1) > 1 THEN ptr = loopvar(ptr, 0, mt, 1)
+ IF mi(ptr) = 7 THEN
+  '--volume control
+  IF carray(2) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
+  IF carray(3) > 1 THEN fmvol = small(fmvol + 1, 15): setfmvol fmvol
+ END IF
+ IF carray(4) > 1 THEN
+  IF mi(ptr) = 4 THEN
+   say = items(stat())
+   IF say THEN
+    '--player has used an item that calls a text box--
+    IF say > 0 THEN
+     loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
+    END IF
     EXIT DO
+   END IF
   END IF
-  IF carray(0) > 1 THEN ptr = loopvar(ptr, 0, mt, -1)
-  IF carray(1) > 1 THEN ptr = loopvar(ptr, 0, mt, 1)
-  IF mi(ptr) = 7 THEN
-    '--volume control
-    IF carray(2) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
-    IF carray(3) > 1 THEN fmvol = small(fmvol + 1, 15): setfmvol fmvol
+  IF mi(ptr) = 1 THEN
+   w = onwho(readglobalstring$(104, "Who's Status?", 20), 0)
+   IF w >= 0 THEN
+    status w, stat()
+   END IF
   END IF
-  IF carray(4) > 1 THEN
-   IF mi(ptr) = 4 THEN
-    say = items(stat())
-    IF say THEN
-      '--player has used an item that calls a text box--
-      IF say > 0 THEN
-        loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
-      END IF
-      EXIT DO
-    END IF
+  IF mi(ptr) = 3 THEN
+   w = onwho(readglobalstring$(106, "Who's Spells?", 20), 0)
+   IF w >= 0 THEN
+    spells w, stat()
    END IF
-   IF mi(ptr) = 1 THEN
-     w = onwho(readglobalstring$(104, "Who's Status?", 20), 0)
-     IF w >= 0 THEN
-       status w, stat()
-     END IF
-   END IF
-   IF mi(ptr) = 3 THEN
-    w = onwho(readglobalstring$(106, "Who's Spells?", 20), 0)
-    IF w >= 0 THEN
-     spells w, stat()
-    END IF
-   END IF
-   IF mi(ptr) = 6 THEN
-    temp = picksave(svcsr)
-    IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
-    GOSUB reloadnpc
-   END IF
-   IF mi(ptr) = 5 THEN
-    w = onwho(readglobalstring$(108, "Equip Who?", 20), 0)
-    IF w >= 0 THEN
-     equip w, stat()
-    END IF
-   END IF
-   IF mi(ptr) = 2 THEN minimap scroll(), mx, my, gmap(), catx(0), caty(0), tastuf()
-   IF mi(ptr) = 8 THEN
-    heroswap readbit(gen(), 101, 5), stat()
-   END IF
-   IF mi(ptr) = 0 THEN GOSUB verquit
-   '---After all sub-menus are done, re-evaluate the hero/item tags
-   '---that way if you revive a hero, kill a hero swap out... whatever
-   evalherotag stat()
-   evalitemtag
   END IF
-  centerfuz 160, 100, 120, (mt + 2) * 10, 1, dpage
-  FOR i = 0 TO mt
-   col = 7
-   IF mi(i) = 7 AND fmvol THEN centerbox 160, 110 - ((mt + 2) * 10) * .5 + (i * 10), fmvol * 6, 10, 1, dpage
-   IF ptr = i THEN col = 14 + tog
-   edgeprint menu$(mi(i)), xstring(menu$(mi(i)), 160), 106 - ((mt + 2) * 10) * .5 + (i * 10), col, dpage
-  NEXT i
-  SWAP vpage, dpage
-  setvispage vpage
-  'copypage 3, dpage
-  dowait
+  IF mi(ptr) = 6 THEN
+   temp = picksave(svcsr)
+   IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
+   GOSUB reloadnpc
+  END IF
+  IF mi(ptr) = 5 THEN
+   w = onwho(readglobalstring$(108, "Equip Who?", 20), 0)
+   IF w >= 0 THEN
+    equip w, stat()
+   END IF
+  END IF
+  IF mi(ptr) = 2 THEN minimap scroll(), mx, my, gmap(), catx(0), caty(0), tastuf()
+  IF mi(ptr) = 8 THEN
+   heroswap readbit(gen(), 101, 5), stat()
+  END IF
+  IF mi(ptr) = 0 THEN GOSUB verquit
+  '---After all sub-menus are done, re-evaluate the hero/item tags
+  '---that way if you revive a hero, kill a hero swap out... whatever
+  evalherotag stat()
+  evalitemtag
+ END IF
+ centerfuz 160, 100, 120, (mt + 2) * 10, 1, dpage
+ FOR i = 0 TO mt
+  col = 7
+  IF mi(i) = 7 AND fmvol THEN centerbox 160, 110 - ((mt + 2) * 10) * .5 + (i * 10), fmvol * 6, 10, 1, dpage
+  IF ptr = i THEN col = 14 + tog
+  edgeprint menu$(mi(i)), xstring(menu$(mi(i)), 160), 106 - ((mt + 2) * 10) * .5 + (i * 10), col, dpage
+ NEXT i
+ SWAP vpage, dpage
+ setvispage vpage
+ 'copypage 3, dpage
+ dowait
 LOOP
 setkeys
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
@@ -893,32 +893,32 @@ dd = 2
 ptr2 = 0
 setkeys
 DO
-  setwait timing(), speedcontrol
+ setwait timing(), speedcontrol
+ setkeys
+ tog = tog XOR 1
+ playtimer
+ control
+ wtog(0) = loopvar(wtog(0), 0, 3, 1)
+ IF carray(5) > 1 THEN abortg = 0: setkeys: FOR i = 0 TO 7: carray(i) = 0: NEXT i: RETURN
+ IF (carray(4) > 1 AND ABS(ptr2) > 20) OR ABS(ptr2) > 50 THEN
+  IF ptr2 < 0 THEN abortg = 1: fadeout 0, 0, 0, 0
   setkeys
-  tog = tog XOR 1
-  playtimer
-  control
-  wtog(0) = loopvar(wtog(0), 0, 3, 1)
-  IF carray(5) > 1 THEN abortg = 0: setkeys: FOR i = 0 TO 7: carray(i) = 0: NEXT i: RETURN
-  IF (carray(4) > 1 AND ABS(ptr2) > 20) OR ABS(ptr2) > 50 THEN
-    IF ptr2 < 0 THEN abortg = 1: fadeout 0, 0, 0, 0
-    setkeys
-    FOR i = 0 TO 7: carray(i) = 0: NEXT i
-    RETURN
-  END IF
-  IF carray(2) > 0 THEN ptr2 = ptr2 - 5: dd = 3
-  IF carray(3) > 0 THEN ptr2 = ptr2 + 5: dd = 1
-  centerbox 160, 95, 200, 42, 15, dpage
-  loadsprite buffer(), 0, 200 * ((dd * 2) + INT(wtog(0) / 2)), 0 * 5, 20, 20, 2
-  drawsprite buffer(), 0, pal16(), 0, 150 + (ptr2), 90, dpage
-  edgeprint quitprompt$, xstring(quitprompt$, 160), 80, 15, dpage
-  col = 7: IF ptr2 < -20 THEN col = 10 + tog * 5
-  edgeprint quityes$, 70, 96, col, dpage
-  col = 7: IF ptr2 > 20 THEN col = 10 + tog * 5
-  edgeprint quitno$, 256 - LEN(quitno$) * 8, 96, col, dpage
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
+  FOR i = 0 TO 7: carray(i) = 0: NEXT i
+  RETURN
+ END IF
+ IF carray(2) > 0 THEN ptr2 = ptr2 - 5: dd = 3
+ IF carray(3) > 0 THEN ptr2 = ptr2 + 5: dd = 1
+ centerbox 160, 95, 200, 42, 15, dpage
+ loadsprite buffer(), 0, 200 * ((dd * 2) + INT(wtog(0) / 2)), 0 * 5, 20, 20, 2
+ drawsprite buffer(), 0, pal16(), 0, 150 + (ptr2), 90, dpage
+ edgeprint quitprompt$, xstring(quitprompt$, 160), 80, 15, dpage
+ col = 7: IF ptr2 < -20 THEN col = 10 + tog * 5
+ edgeprint quityes$, 70, 96, col, dpage
+ col = 7: IF ptr2 > 20 THEN col = 10 + tog * 5
+ edgeprint quitno$, 256 - LEN(quitno$) * 8, 96, col, dpage
+ SWAP vpage, dpage
+ setvispage vpage
+ dowait
 LOOP
 
 usething:
@@ -928,13 +928,13 @@ IF auto = 0 THEN
  wrapaheadxy ux, uy, catd(0), 20, scroll(0) * 20, scroll(1) * 20, gmap(5)
 END IF
 IF auto <> 2 THEN 'find the NPC to trigger the hard way
-  sayer = -1
-  j = -1
-  DO
-   j = j + 1
-   IF j > 299 THEN RETURN
-  LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
-  sayer = j
+ sayer = -1
+ j = -1
+ DO
+  j = j + 1
+  IF j > 299 THEN RETURN
+ LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
+ sayer = j
 END IF
 IF sayer >= 0 THEN
  '--Step-on NPCs cannot be used
@@ -955,8 +955,8 @@ IF sayer >= 0 THEN
   '--summon a script directly from an NPC
   rsr = runscript(npcs((npcl(sayer + 600) - 1) * 15 + 12), nowscript + 1, -1, "NPC")
   IF rsr = 1 THEN
-    heap(scrat(nowscript, scrheap)) = npcs((npcl(sayer + 600) - 1) * 15 + 13)
-    heap(scrat(nowscript, scrheap) + 1) = (sayer + 1) * -1 'reference
+   heap(scrat(nowscript, scrheap)) = npcs((npcl(sayer + 600) - 1) * 15 + 13)
+   heap(scrat(nowscript, scrheap) + 1) = (sayer + 1) * -1 'reference
   END IF
  END IF
  vehuse = npcs((npcl(sayer + 600) - 1) * 15 + 14)
@@ -978,10 +978,10 @@ IF sayer >= 0 THEN
  END IF
  say = npcs((npcl(sayer + 600) - 1) * 15 + 4)
  SELECT CASE say
- CASE 0
-  sayer = -1
- CASE IS > 0
-  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
+  CASE 0
+   sayer = -1
+  CASE IS > 0
+   loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
  END SELECT
  evalherotag stat()
  evalitemtag
@@ -1046,9 +1046,9 @@ IF istag(saytag(7), 0) THEN
  IF saytag(8) <= 0 AND inn = 0 THEN
   FOR i = 0 TO 3
    IF hero(i) > 0 AND (stat(i, 0, 0) OR readbit(gen(), 101, 4) = 0) THEN
-     stat(i, 0, 0) = stat(i, 1, 0)
-     stat(i, 0, 1) = stat(i, 1, 1)
-     resetlmp i, stat(i, 0, 12)
+    stat(i, 0, 0) = stat(i, 1, 0)
+    stat(i, 0, 1) = stat(i, 1, 1)
+    resetlmp i, stat(i, 0, 12)
    END IF
   NEXT i
  END IF
@@ -1091,8 +1091,8 @@ IF sayer >= 0 AND npcl(sayer + 600) > 0 THEN
  END IF
 END IF
 IF sayenh(4) > 0 THEN
-  gen(58) = 0
-  correctbackdrop gmap()
+ gen(58) = 0
+ correctbackdrop gmap()
 END IF
 FOR i = 0 TO 6
  sayenh(i) = 0
@@ -1112,34 +1112,34 @@ FOR whoi = 0 TO 3
   IF readbit(gen(), 44, suspendherowalls) = 0 AND veh(6) = 0 THEN
    '--this only happens if herowalls is on
    '--wrapping passability
-    herowrappass whoi, thisherotilex, thisherotiley, xgo(), ygo(), scroll(0), scroll(1), gmap(5), veh()
+   herowrappass whoi, thisherotilex, thisherotiley, xgo(), ygo(), scroll(0), scroll(1), gmap(5), veh()
   END IF
   IF readbit(gen(), 44, suspendobstruction) = 0 AND veh(6) = 0 THEN
    '--this only happens if obstruction is on
    FOR i = 0 TO 299
-   IF npcl(i + 600) > 0 THEN '---NPC EXISTS---
-    IF npcs((npcl(i + 600) - 1) * 15 + 8) < 2 THEN '---NPC IS AN OBSTRUCTION---
-     IF INT((npcl(i + 0) - bound(npcl(i + 1500), -20, 20)) / 20) = INT((catx(whoi * 5) - bound(xgo(whoi), -20, 20)) / 20) AND INT((npcl(i + 300) - bound(npcl(i + 1800), -20, 20)) / 20) = INT((caty(whoi * 5) - bound(ygo(whoi), -20, 20)) / 20) THEN
-      xgo(whoi) = 0: ygo(whoi) = 0
-      id = (npcl(i + 600) - 1)
-      IF npcs(id * 15 + 7) > 0 AND npcl(i + 1500) = 0 AND npcl(i + 1800) = 0 THEN
-       temp = npcs(id * 15 + 7)
-       IF catd(whoi) = 0 THEN IF (temp = 1 OR temp = 2 OR temp = 4) THEN npcl(i + 1800) = 20
-       IF catd(whoi) = 2 THEN IF (temp = 1 OR temp = 2 OR temp = 6) THEN npcl(i + 1800) = -20
-       IF catd(whoi) = 3 THEN IF (temp = 1 OR temp = 3 OR temp = 7) THEN npcl(i + 1500) = 20
-       IF catd(whoi) = 1 THEN IF (temp = 1 OR temp = 3 OR temp = 5) THEN npcl(i + 1500) = -20
-      END IF
-      IF npcs(id * 15 + 8) = 1 AND whoi = 0 THEN
-       IF ABS(npcl(i + 0) - catx(0)) <= 20 AND ABS(npcl(i + 300) - caty(0)) <= 20 THEN
-        ux = npcl(i + 0)
-        uy = npcl(i + 300)
-        auto = 1
-        GOSUB usething
+    IF npcl(i + 600) > 0 THEN '---NPC EXISTS---
+     IF npcs((npcl(i + 600) - 1) * 15 + 8) < 2 THEN '---NPC IS AN OBSTRUCTION---
+      IF INT((npcl(i + 0) - bound(npcl(i + 1500), -20, 20)) / 20) = INT((catx(whoi * 5) - bound(xgo(whoi), -20, 20)) / 20) AND INT((npcl(i + 300) - bound(npcl(i + 1800), -20, 20)) / 20) = INT((caty(whoi * 5) - bound(ygo(whoi), -20, 20)) / 20) THEN
+       xgo(whoi) = 0: ygo(whoi) = 0
+       id = (npcl(i + 600) - 1)
+       IF npcs(id * 15 + 7) > 0 AND npcl(i + 1500) = 0 AND npcl(i + 1800) = 0 THEN
+	temp = npcs(id * 15 + 7)
+	IF catd(whoi) = 0 THEN IF (temp = 1 OR temp = 2 OR temp = 4) THEN npcl(i + 1800) = 20
+	IF catd(whoi) = 2 THEN IF (temp = 1 OR temp = 2 OR temp = 6) THEN npcl(i + 1800) = -20
+	IF catd(whoi) = 3 THEN IF (temp = 1 OR temp = 3 OR temp = 7) THEN npcl(i + 1500) = 20
+	IF catd(whoi) = 1 THEN IF (temp = 1 OR temp = 3 OR temp = 5) THEN npcl(i + 1500) = -20
        END IF
-      END IF '---autoactivate
-     END IF ' ---NPC IS IN THE WAY
-    END IF ' ---NPC IS AN OBSTRUCTION
-   END IF '---NPC EXISTS
+       IF npcs(id * 15 + 8) = 1 AND whoi = 0 THEN
+	IF ABS(npcl(i + 0) - catx(0)) <= 20 AND ABS(npcl(i + 300) - caty(0)) <= 20 THEN
+	 ux = npcl(i + 0)
+	 uy = npcl(i + 300)
+	 auto = 1
+	 GOSUB usething
+	END IF
+       END IF '---autoactivate
+      END IF ' ---NPC IS IN THE WAY
+     END IF ' ---NPC IS AN OBSTRUCTION
+    END IF '---NPC EXISTS
    NEXT i
   END IF
  END IF'--this only gets run when starting a movement to a new tile
@@ -1170,31 +1170,31 @@ FOR whoi = 0 TO 3
   IF ygo(whoi) > 0 THEN ygo(whoi) = ygo(whoi) - herospeed(whoi): caty(whoi * 5) = caty(whoi * 5) - herospeed(whoi): didgo(whoi) = 1
   IF ygo(whoi) < 0 THEN ygo(whoi) = ygo(whoi) + herospeed(whoi): caty(whoi * 5) = caty(whoi * 5) + herospeed(whoi): didgo(whoi) = 1
  END IF
-
+ 
  o = whoi
  '--if catapillar is not suspended, only the leader's motion matters
  IF readbit(gen(), 44, suspendcatapillar) = 0 THEN o = 0
-
+ 
  '--leader always checks harm tiles, allies only if caterpillar is enabled
  IF whoi = 0 OR readbit(gen(), 101, 1) = 1 THEN
-   '--Stuff that should only happen when you finish moving
-   IF didgo(o) = 1 AND xgo(o) = 0 AND ygo(o) = 0 THEN
-     '---check for harm tile
-     p = readmapblock(INT(catx(whoi * 5) / 20), INT(caty(whoi * 5) / 20))
-     IF (p AND 64) THEN
-       o = -1
-       FOR i = 0 TO whoi
-         o = o + 1
-         WHILE hero(o) = 0 AND o < 4: o = o + 1: WEND
-       NEXT i
-       IF o < 4 THEN
-         stat(o, 0, 0) = bound(stat(o, 0, 0) - gmap(9), 0, stat(o, 1, 0))
-         IF gmap(10) THEN rectangle 0, 0, 320, 200, gmap(10), vpage
-       END IF
-       '--check for death
-       fatal = checkfordeath(stat())
-     END IF
+  '--Stuff that should only happen when you finish moving
+  IF didgo(o) = 1 AND xgo(o) = 0 AND ygo(o) = 0 THEN
+   '---check for harm tile
+   p = readmapblock(INT(catx(whoi * 5) / 20), INT(caty(whoi * 5) / 20))
+   IF (p AND 64) THEN
+    o = -1
+    FOR i = 0 TO whoi
+     o = o + 1
+     WHILE hero(o) = 0 AND o < 4: o = o + 1: WEND
+    NEXT i
+    IF o < 4 THEN
+     stat(o, 0, 0) = bound(stat(o, 0, 0) - gmap(9), 0, stat(o, 1, 0))
+     IF gmap(10) THEN rectangle 0, 0, 320, 200, gmap(10), vpage
+    END IF
+    '--check for death
+    fatal = checkfordeath(stat())
    END IF
+  END IF
  END IF
  IF gmap(5) = 1 THEN
   '--wrap walking
@@ -1239,12 +1239,12 @@ IF (xgo(0) = 0 OR movdivis(xgo(0))) AND (ygo(0) = 0 OR movdivis(ygo(0))) AND (di
   setmapdata scroll(), pass(), 0, 0
  END IF
  IF gmap(14) > 0 THEN
-   rsr = runscript(gmap(14), nowscript + 1, -1, "eachstep")
-   IF rsr = 1 THEN
-     heap(scrat(nowscript, scrheap)) = catx(0) \ 20
-     heap(scrat(nowscript, scrheap) + 1) = caty(0) \ 20
-     heap(scrat(nowscript, scrheap) + 2) = catd(0)
-   END IF
+  rsr = runscript(gmap(14), nowscript + 1, -1, "eachstep")
+  IF rsr = 1 THEN
+   heap(scrat(nowscript, scrheap)) = catx(0) \ 20
+   heap(scrat(nowscript, scrheap) + 1) = caty(0) \ 20
+   heap(scrat(nowscript, scrheap) + 2) = catd(0)
+  END IF
  END IF
 END IF
 GOSUB setmapxy
@@ -1252,46 +1252,46 @@ RETURN
 
 setmapxy:
 SELECT CASE gen(cameramode)
-CASE herocam
- mapx = catx(gen(cameraArg)) - 150
- mapy = caty(gen(cameraArg)) - 90
- GOSUB limitcamera
-CASE npccam
- mapx = npcl(gen(cameraArg)) - 150
- mapy = npcl(gen(cameraArg) + 300) - 90
- GOSUB limitcamera
-CASE pancam ' 1=dir, 2=dist, 3=step
- IF gen(cameraArg2) > 0 THEN
-  SELECT CASE gen(cameraArg)
-  CASE 0'north
-   mapy = mapy - gen(cameraArg3)
-  CASE 1'east
+ CASE herocam
+  mapx = catx(gen(cameraArg)) - 150
+  mapy = caty(gen(cameraArg)) - 90
+  GOSUB limitcamera
+ CASE npccam
+  mapx = npcl(gen(cameraArg)) - 150
+  mapy = npcl(gen(cameraArg) + 300) - 90
+  GOSUB limitcamera
+ CASE pancam ' 1=dir, 2=dist, 3=step
+  IF gen(cameraArg2) > 0 THEN
+   SELECT CASE gen(cameraArg)
+    CASE 0'north
+     mapy = mapy - gen(cameraArg3)
+    CASE 1'east
+     mapx = mapx + gen(cameraArg3)
+    CASE 2'south
+     mapy = mapy + gen(cameraArg3)
+    CASE 3'west
+     mapx = mapx - gen(cameraArg3)
+   END SELECT
+   gen(cameraArg2) = gen(cameraArg2) - 1
+   IF gen(cameraArg2) = 0 THEN gen(cameramode) = stopcam
+  END IF
+ CASE focuscam
+  IF mapx < gen(cameraArg) THEN
    mapx = mapx + gen(cameraArg3)
-  CASE 2'south
-   mapy = mapy + gen(cameraArg3)
-  CASE 3'west
-   mapx = mapx - gen(cameraArg3)
-  END SELECT
-  gen(cameraArg2) = gen(cameraArg2) - 1
-  IF gen(cameraArg2) = 0 THEN gen(cameramode) = stopcam
- END IF
-CASE focuscam
- IF mapx < gen(cameraArg) THEN
-  mapx = mapx + gen(cameraArg3)
- ELSE
-  IF mapx > gen(cameraArg) THEN mapx = mapx - gen(cameraArg3)
- END IF
- IF mapy < gen(cameraArg2) THEN
-  mapy = mapy + gen(cameraArg4)
- ELSE
-  IF mapy > gen(cameraArg2) THEN mapy = mapy - gen(cameraArg4)
- END IF
- IF mapx < gen(cameraArg) + gen(cameraArg3) AND mapx > gen(cameraArg) - gen(cameraArg3) AND ABS(gen(cameraArg3)) > 1 THEN gen(cameraArg3) = gen(cameraArg3) - 1
- IF mapy < gen(cameraArg2) + gen(cameraArg4) AND mapy > gen(cameraArg2) - gen(cameraArg4) AND ABS(gen(cameraArg4)) > 1 THEN gen(cameraArg4) = gen(cameraArg4) - 1
- IF mapx = gen(cameraArg) THEN gen(cameraArg3) = 0
- IF mapy = gen(cameraArg2) THEN gen(cameraArg4) = 0
- IF gen(cameraArg3) = 0 AND gen(cameraArg4) = 0 THEN gen(cameramode) = stopcam
- IF mapx <> bound(mapx, -320, scroll(0) * 20) OR mapy <> bound(mapy, -200, scroll(1) * 20) THEN gen(cameramode) = stopcam
+  ELSE
+   IF mapx > gen(cameraArg) THEN mapx = mapx - gen(cameraArg3)
+  END IF
+  IF mapy < gen(cameraArg2) THEN
+   mapy = mapy + gen(cameraArg4)
+  ELSE
+   IF mapy > gen(cameraArg2) THEN mapy = mapy - gen(cameraArg4)
+  END IF
+  IF mapx < gen(cameraArg) + gen(cameraArg3) AND mapx > gen(cameraArg) - gen(cameraArg3) AND ABS(gen(cameraArg3)) > 1 THEN gen(cameraArg3) = gen(cameraArg3) - 1
+  IF mapy < gen(cameraArg2) + gen(cameraArg4) AND mapy > gen(cameraArg2) - gen(cameraArg4) AND ABS(gen(cameraArg4)) > 1 THEN gen(cameraArg4) = gen(cameraArg4) - 1
+  IF mapx = gen(cameraArg) THEN gen(cameraArg3) = 0
+  IF mapy = gen(cameraArg2) THEN gen(cameraArg4) = 0
+  IF gen(cameraArg3) = 0 AND gen(cameraArg4) = 0 THEN gen(cameramode) = stopcam
+  IF mapx <> bound(mapx, -320, scroll(0) * 20) OR mapy <> bound(mapy, -200, scroll(1) * 20) THEN gen(cameramode) = stopcam
 END SELECT
 RETURN
 
@@ -1304,67 +1304,67 @@ RETURN
 
 movenpc:
 FOR o = 0 TO 299
-IF npcl(o + 600) > 0 THEN
- id = (npcl(o + 600) - 1)
- '--if this is the active vehicle
- IF veh(0) AND veh(5) = o THEN
-  '-- if we are not scrambling clearing or aheading
-  IF readbit(veh(), 6, 0) = 0 AND readbit(veh(), 6, 4) = 0 AND readbit(veh(), 6, 5) = 0 THEN
+ IF npcl(o + 600) > 0 THEN
+  id = (npcl(o + 600) - 1)
+  '--if this is the active vehicle
+  IF veh(0) AND veh(5) = o THEN
+   '-- if we are not scrambling clearing or aheading
+   IF readbit(veh(), 6, 0) = 0 AND readbit(veh(), 6, 4) = 0 AND readbit(veh(), 6, 5) = 0 THEN
     '--match vehicle to main hero
     npcl(o + 0) = catx(0)
     npcl(o + 300) = caty(0)
     npcl(o + 900) = catd(0)
     npcl(o + 1200) = wtog(0)
-  END IF
- ELSE
-  IF npcs(id * 15 + 2) > 0 AND npcs(id * 15 + 3) > 0 AND sayer <> o AND readbit(gen(), 44, suspendnpcs) = 0 THEN
-   IF npcl(o + 1500) = 0 AND npcl(o + 1800) = 0 THEN
-    'RANDOM WANDER---
-    IF npcs(id * 15 + 2) = 1 THEN
-     rand = 25
-     IF ABS(npcl(o + 0) - catx(0)) <= 20 AND ABS(npcl(o + 300) - caty(0)) <= 20 THEN rand = 5
-     IF INT(RND * 100) < rand THEN
-      temp = INT(RND * 4)
-      npcl(o + 900) = temp
-      IF temp = 0 THEN npcl(o + 1800) = 20
-      IF temp = 2 THEN npcl(o + 1800) = -20
-      IF temp = 3 THEN npcl(o + 1500) = 20
-      IF temp = 1 THEN npcl(o + 1500) = -20
-     END IF
-    END IF '---RANDOM WANDER
-    'ASSORTED PACING---
-    IF npcs(id * 15 + 2) > 1 AND npcs(id * 15 + 2) < 6 THEN
-     IF npcl(o + 900) = 0 THEN npcl(o + 1800) = 20
-     IF npcl(o + 900) = 2 THEN npcl(o + 1800) = -20
-     IF npcl(o + 900) = 3 THEN npcl(o + 1500) = 20
-     IF npcl(o + 900) = 1 THEN npcl(o + 1500) = -20
-    END IF '---ASSORTED PACING
-    'CHASE/FLEE---
-    IF npcs(id * 15 + 2) > 5 AND npcs(id * 15 + 2) < 8 THEN
-     rand = 100
-     IF INT(RND * 100) < rand THEN
-      IF INT(RND * 100) < 50 THEN
-       IF caty(0) < npcl(o + 300) THEN temp = 0
-       IF caty(0) > npcl(o + 300) THEN temp = 2
-       IF caty(0) = npcl(o + 300) THEN temp = INT(RND * 4)
-      ELSE
-       IF catx(0) < npcl(o + 0) THEN temp = 3
-       IF catx(0) > npcl(o + 0) THEN temp = 1
-       IF catx(0) = npcl(o + 0) THEN temp = INT(RND * 4)
+   END IF
+  ELSE
+   IF npcs(id * 15 + 2) > 0 AND npcs(id * 15 + 3) > 0 AND sayer <> o AND readbit(gen(), 44, suspendnpcs) = 0 THEN
+    IF npcl(o + 1500) = 0 AND npcl(o + 1800) = 0 THEN
+     'RANDOM WANDER---
+     IF npcs(id * 15 + 2) = 1 THEN
+      rand = 25
+      IF ABS(npcl(o + 0) - catx(0)) <= 20 AND ABS(npcl(o + 300) - caty(0)) <= 20 THEN rand = 5
+      IF INT(RND * 100) < rand THEN
+       temp = INT(RND * 4)
+       npcl(o + 900) = temp
+       IF temp = 0 THEN npcl(o + 1800) = 20
+       IF temp = 2 THEN npcl(o + 1800) = -20
+       IF temp = 3 THEN npcl(o + 1500) = 20
+       IF temp = 1 THEN npcl(o + 1500) = -20
       END IF
-      IF npcs(id * 15 + 2) = 7 THEN temp = loopvar(temp, 0, 3, 2)
-      npcl(o + 900) = temp
-      IF temp = 0 THEN npcl(o + 1800) = 20
-      IF temp = 2 THEN npcl(o + 1800) = -20
-      IF temp = 3 THEN npcl(o + 1500) = 20
-      IF temp = 1 THEN npcl(o + 1500) = -20
-     END IF
-    END IF '---CHASE/FLEE
+     END IF '---RANDOM WANDER
+     'ASSORTED PACING---
+     IF npcs(id * 15 + 2) > 1 AND npcs(id * 15 + 2) < 6 THEN
+      IF npcl(o + 900) = 0 THEN npcl(o + 1800) = 20
+      IF npcl(o + 900) = 2 THEN npcl(o + 1800) = -20
+      IF npcl(o + 900) = 3 THEN npcl(o + 1500) = 20
+      IF npcl(o + 900) = 1 THEN npcl(o + 1500) = -20
+     END IF '---ASSORTED PACING
+     'CHASE/FLEE---
+     IF npcs(id * 15 + 2) > 5 AND npcs(id * 15 + 2) < 8 THEN
+      rand = 100
+      IF INT(RND * 100) < rand THEN
+       IF INT(RND * 100) < 50 THEN
+	IF caty(0) < npcl(o + 300) THEN temp = 0
+	IF caty(0) > npcl(o + 300) THEN temp = 2
+	IF caty(0) = npcl(o + 300) THEN temp = INT(RND * 4)
+       ELSE
+	IF catx(0) < npcl(o + 0) THEN temp = 3
+	IF catx(0) > npcl(o + 0) THEN temp = 1
+	IF catx(0) = npcl(o + 0) THEN temp = INT(RND * 4)
+       END IF
+       IF npcs(id * 15 + 2) = 7 THEN temp = loopvar(temp, 0, 3, 2)
+       npcl(o + 900) = temp
+       IF temp = 0 THEN npcl(o + 1800) = 20
+       IF temp = 2 THEN npcl(o + 1800) = -20
+       IF temp = 3 THEN npcl(o + 1500) = 20
+       IF temp = 1 THEN npcl(o + 1500) = -20
+      END IF
+     END IF '---CHASE/FLEE
+    END IF
    END IF
   END IF
+  IF npcl(o + 1500) <> 0 OR npcl(o + 1800) <> 0 THEN GOSUB movenpcgo
  END IF
- IF npcl(o + 1500) <> 0 OR npcl(o + 1800) <> 0 THEN GOSUB movenpcgo
-END IF
 NEXT o
 RETURN
 
@@ -1389,37 +1389,37 @@ IF movdivis(npcl(o + 1500)) OR movdivis(npcl(o + 1800)) THEN
   FOR i = 0 TO 299
    IF npcl(i + 600) > 0 AND o <> i THEN
     IF INT((npcl(i + 0) - bound(npcl(i + 1500), -20, 20)) / 20) = INT((npcl(o + 0) - bound(npcl(o + 1500), -20, 20)) / 20) AND INT((npcl(i + 300) - bound(npcl(i + 1800), -20, 20)) / 20) = INT((npcl(o + 300) - bound(npcl(o + 1800), -20, 20)) / 20)  _
-THEN
-      npcl(o + 1500) = 0
-      npcl(o + 1800) = 0
-      GOSUB hitwall
-      GOTO nogo
+    THEN
+     npcl(o + 1500) = 0
+     npcl(o + 1800) = 0
+     GOSUB hitwall
+     GOTO nogo
     END IF
    END IF
   NEXT i
   '---CHECK THAT NPC IS OBSTRUCTABLE-----
   IF npcl(o + 600) > 0 THEN
-    IF npcs((npcl(o + 600) - 1) * 15 + 8) < 2 THEN
-     IF INT((catx(0) - bound(xgo(0), -20, 20)) / 20) = INT((npcl(o + 0) - bound(npcl(o + 1500), -20, 20)) / 20) AND INT((caty(0) - bound(ygo(0), -20, 20)) / 20) = INT((npcl(o + 300) - bound(npcl(o + 1800), -20, 20)) / 20) THEN
-      npcl(o + 1500) = 0
-      npcl(o + 1800) = 0
-      IF npcl(o + 1200) = 3 THEN GOSUB hitwall: GOTO nogo
-     END IF
-     IF INT((catx(0) = npcl(o + 0) - bound(npcl(o + 1500), -20, 20)) / 20) AND INT((caty(0) = npcl(o + 300) - bound(npcl(o + 1800), -20, 20)) / 20) THEN npcl(o + 1500) = 0: npcl(o + 1800) = 0
+   IF npcs((npcl(o + 600) - 1) * 15 + 8) < 2 THEN
+    IF INT((catx(0) - bound(xgo(0), -20, 20)) / 20) = INT((npcl(o + 0) - bound(npcl(o + 1500), -20, 20)) / 20) AND INT((caty(0) - bound(ygo(0), -20, 20)) / 20) = INT((npcl(o + 300) - bound(npcl(o + 1800), -20, 20)) / 20) THEN
+     npcl(o + 1500) = 0
+     npcl(o + 1800) = 0
+     IF npcl(o + 1200) = 3 THEN GOSUB hitwall: GOTO nogo
     END IF
+    IF INT((catx(0) = npcl(o + 0) - bound(npcl(o + 1500), -20, 20)) / 20) AND INT((caty(0) = npcl(o + 300) - bound(npcl(o + 1800), -20, 20)) / 20) THEN npcl(o + 1500) = 0: npcl(o + 1800) = 0
+   END IF
   END IF
  END IF
 END IF
 IF npcs(id * 15 + 3) THEN
-  '--change x,y and decrement wantgo by speed
-  IF npcl(o + 1500) > 0 THEN npcl(o + 1500) = npcl(o + 1500) - npcs(id * 15 + 3): npcl(o + 0) = npcl(o + 0) - npcs(id * 15 + 3)
-  IF npcl(o + 1500) < 0 THEN npcl(o + 1500) = npcl(o + 1500) + npcs(id * 15 + 3): npcl(o + 0) = npcl(o + 0) + npcs(id * 15 + 3)
-  IF npcl(o + 1800) > 0 THEN npcl(o + 1800) = npcl(o + 1800) - npcs(id * 15 + 3): npcl(o + 300) = npcl(o + 300) - npcs(id * 15 + 3)
-  IF npcl(o + 1800) < 0 THEN npcl(o + 1800) = npcl(o + 1800) + npcs(id * 15 + 3): npcl(o + 300) = npcl(o + 300) + npcs(id * 15 + 3)
+ '--change x,y and decrement wantgo by speed
+ IF npcl(o + 1500) > 0 THEN npcl(o + 1500) = npcl(o + 1500) - npcs(id * 15 + 3): npcl(o + 0) = npcl(o + 0) - npcs(id * 15 + 3)
+ IF npcl(o + 1500) < 0 THEN npcl(o + 1500) = npcl(o + 1500) + npcs(id * 15 + 3): npcl(o + 0) = npcl(o + 0) + npcs(id * 15 + 3)
+ IF npcl(o + 1800) > 0 THEN npcl(o + 1800) = npcl(o + 1800) - npcs(id * 15 + 3): npcl(o + 300) = npcl(o + 300) - npcs(id * 15 + 3)
+ IF npcl(o + 1800) < 0 THEN npcl(o + 1800) = npcl(o + 1800) + npcs(id * 15 + 3): npcl(o + 300) = npcl(o + 300) + npcs(id * 15 + 3)
 ELSE
-  '--no speed, kill wantgo
-  npcl(o + 1500) = 0
-  npcl(o + 1800) = 0
+ '--no speed, kill wantgo
+ npcl(o + 1500) = 0
+ npcl(o + 1800) = 0
 END IF
 IF npcl(o + 0) < 0 THEN npcl(o + 0) = 0: npcl(o + 1500) = 0: GOSUB hitwall
 IF npcl(o + 0) > (scroll(0) - 1) * 20 THEN npcl(o + 0) = (scroll(0) - 1) * 20: npcl(o + 1500) = 0: GOSUB hitwall
@@ -1437,60 +1437,60 @@ END IF
 RETURN
 
 hitwall:
- IF npcs(id * 15 + 2) = 2 THEN npcl(o + 900) = loopvar(npcl(o + 900), 0, 3, 2)
- IF npcs(id * 15 + 2) = 3 THEN npcl(o + 900) = loopvar(npcl(o + 900), 0, 3, 1)
- IF npcs(id * 15 + 2) = 4 THEN npcl(o + 900) = loopvar(npcl(o + 900), 0, 3, -1)
- IF npcs(id * 15 + 2) = 5 THEN npcl(o + 900) = INT(RND * 4)
+IF npcs(id * 15 + 2) = 2 THEN npcl(o + 900) = loopvar(npcl(o + 900), 0, 3, 2)
+IF npcs(id * 15 + 2) = 3 THEN npcl(o + 900) = loopvar(npcl(o + 900), 0, 3, 1)
+IF npcs(id * 15 + 2) = 4 THEN npcl(o + 900) = loopvar(npcl(o + 900), 0, 3, -1)
+IF npcs(id * 15 + 2) = 5 THEN npcl(o + 900) = INT(RND * 4)
 RETURN
 
 cathero:
- '--if riding a vehicle and not mounting and not hiding leader and not hiding party then exit
- IF veh(0) AND readbit(veh(), 6, 0) = 0 AND readbit(veh(), 6, 4) = 0 AND readbit(veh(), 6, 5) = 0 AND readbit(veh(), 9, 4) = 0 AND readbit(veh(), 9, 5) = 0 THEN RETURN
- IF readbit(gen(), 101, 1) = 1 AND (veh(0) = 0 OR readbit(veh(), 9, 4) = 0) THEN
-  '--caterpillar party (normal)
-  '--this should Y-sort
-  catermask(0) = 0
-  FOR i = 0 TO 3
-    FOR o = 0 TO 3
-      IF readbit(catermask(), 0, o) = 0 THEN j = o
-    NEXT o
-    FOR o = 0 TO 3
-      IF caty(o * 5) - mapy < caty(j * 5) - mapy AND readbit(catermask(), 0, o) = 0 THEN
-        j = o
-      END IF
-    NEXT o
-    zbuf(i) = j
-    setbit catermask(), 0, j, 1
-  NEXT i
-  FOR i = 0 TO 3
-   IF framewalkabout(catx(zbuf(i) * 5), caty(zbuf(i) * 5), framex, framey, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
-     loadsprite buffer(), 0, 200 * ((catd(zbuf(i) * 5) * 2) + INT(wtog(zbuf(i)) / 2)), zbuf(i) * 5, 20, 20, 2
-     drawsprite buffer(), 0, pal16(), zbuf(i) * 16, framex, framey - catz(zbuf(i) * 5) + gmap(11), dpage
+'--if riding a vehicle and not mounting and not hiding leader and not hiding party then exit
+IF veh(0) AND readbit(veh(), 6, 0) = 0 AND readbit(veh(), 6, 4) = 0 AND readbit(veh(), 6, 5) = 0 AND readbit(veh(), 9, 4) = 0 AND readbit(veh(), 9, 5) = 0 THEN RETURN
+IF readbit(gen(), 101, 1) = 1 AND (veh(0) = 0 OR readbit(veh(), 9, 4) = 0) THEN
+ '--caterpillar party (normal)
+ '--this should Y-sort
+ catermask(0) = 0
+ FOR i = 0 TO 3
+  FOR o = 0 TO 3
+   IF readbit(catermask(), 0, o) = 0 THEN j = o
+  NEXT o
+  FOR o = 0 TO 3
+   IF caty(o * 5) - mapy < caty(j * 5) - mapy AND readbit(catermask(), 0, o) = 0 THEN
+    j = o
    END IF
-  NEXT i
- ELSE
-  '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
-  loadsprite buffer(), 0, 200 * ((catd(0) * 2) + INT(wtog(0) / 2)), 0, 20, 20, 2
-  drawsprite buffer(), 0, pal16(), 0, catx(0) - mapx, (caty(0) - mapy) - catz(0) + gmap(11), dpage
- END IF
+  NEXT o
+  zbuf(i) = j
+  setbit catermask(), 0, j, 1
+ NEXT i
+ FOR i = 0 TO 3
+  IF framewalkabout(catx(zbuf(i) * 5), caty(zbuf(i) * 5), framex, framey, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+   loadsprite buffer(), 0, 200 * ((catd(zbuf(i) * 5) * 2) + INT(wtog(zbuf(i)) / 2)), zbuf(i) * 5, 20, 20, 2
+   drawsprite buffer(), 0, pal16(), zbuf(i) * 16, framex, framey - catz(zbuf(i) * 5) + gmap(11), dpage
+  END IF
+ NEXT i
+ELSE
+ '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
+ loadsprite buffer(), 0, 200 * ((catd(0) * 2) + INT(wtog(0) / 2)), 0, 20, 20, 2
+ drawsprite buffer(), 0, pal16(), 0, catx(0) - mapx, (caty(0) - mapy) - catz(0) + gmap(11), dpage
+END IF
 RETURN
 
 drawnpc:
 FOR i = 0 TO 299 '-- for each NPC instance
-IF npcl(i + 600) > 0 THEN '-- if visible
+ IF npcl(i + 600) > 0 THEN '-- if visible
   o = npcl(i + 600) - 1
   z = 0
   IF framewalkabout(npcl(i + 0), npcl(i + 300), drawnpcX, drawnpcY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
-    IF veh(0) AND veh(5) = i THEN z = catz(0) '--special vehicle magic
-    IF z AND readbit(veh(), 9, 8) = 0 THEN '--shadow
-      rectangle npcl(i + 0) - mapx + 6, npcl(i + 300) - mapy + gmap(11) + 13, 8, 5, 0, dpage
-      rectangle npcl(i + 0) - mapx + 5, npcl(i + 300) - mapy + gmap(11) + 14, 10, 3, 0, dpage
-    END IF
-    loadsprite buffer(), 0, (400 * npcl(i + 900)) + (200 * INT(npcl(i + 1200) / 2)), 20 + (5 * o), 20, 20, 2
-    drawsprite buffer(), 0, pal16(), (4 + o) * 16, drawnpcX, drawnpcY + gmap(11) - z, dpage
-    'edgeprint LTRIM$(STR$(i)), drawnpcX, drawnpcY + gmap(11) - z, 15, dpage
+   IF veh(0) AND veh(5) = i THEN z = catz(0) '--special vehicle magic
+   IF z AND readbit(veh(), 9, 8) = 0 THEN '--shadow
+    rectangle npcl(i + 0) - mapx + 6, npcl(i + 300) - mapy + gmap(11) + 13, 8, 5, 0, dpage
+    rectangle npcl(i + 0) - mapx + 5, npcl(i + 300) - mapy + gmap(11) + 14, 10, 3, 0, dpage
+   END IF
+   loadsprite buffer(), 0, (400 * npcl(i + 900)) + (200 * INT(npcl(i + 1200) / 2)), 20 + (5 * o), 20, 20, 2
+   drawsprite buffer(), 0, pal16(), (4 + o) * 16, drawnpcX, drawnpcY + gmap(11) - z, dpage
+   'edgeprint LTRIM$(STR$(i)), drawnpcX, drawnpcY + gmap(11) - z, 15, dpage
   END IF
-END IF
+ END IF
 NEXT i
 RETURN
 
@@ -1513,26 +1513,26 @@ oldmap = map
 '--load link data into buffer() -- Take care not to clobber it!
 xbload game$ + ".d" + dignum(map, 2), buffer(), "Oh no! Map" + dignum(map, 2) + " doorlinks missing"
 FOR o = 0 TO 199
-IF doori = buffer(o) THEN
- 'PLOT CHECKING FOR DOORS
- bad = 1
- IF istag(buffer(o + 800), -1) AND istag(buffer(o + 600), -1) THEN bad = 0
- IF bad = 0 THEN
-  map = buffer(o + 400)
-  loaddoor map, door()
-  catx(0) = door(buffer(o + 200)) * 20
-  caty(0) = (door(buffer(o + 200) + 100) - 1) * 20
-  '--buffer() gets clobbered here, but thats okay because we are done with it
-  fadeout 0, 0, 0, 0
-  needf = 2
-  ERASE scroll, pass
-  afterbat = 0
-  IF oldmap = map THEN samemap = -1
-  GOSUB preparemap
-  foep = range(100, 60)
-  EXIT FOR
+ IF doori = buffer(o) THEN
+  'PLOT CHECKING FOR DOORS
+  bad = 1
+  IF istag(buffer(o + 800), -1) AND istag(buffer(o + 600), -1) THEN bad = 0
+  IF bad = 0 THEN
+   map = buffer(o + 400)
+   loaddoor map, door()
+   catx(0) = door(buffer(o + 200)) * 20
+   caty(0) = (door(buffer(o + 200) + 100) - 1) * 20
+   '--buffer() gets clobbered here, but thats okay because we are done with it
+   fadeout 0, 0, 0, 0
+   needf = 2
+   ERASE scroll, pass
+   afterbat = 0
+   IF oldmap = map THEN samemap = -1
+   GOSUB preparemap
+   foep = range(100, 60)
+   EXIT FOR
+  END IF
  END IF
-END IF
 NEXT o
 RETURN
 
@@ -1572,7 +1572,7 @@ IF afterbat = 0 THEN
 END IF
 npcplot npcs()
 IF afterbat = 0 AND NOT samemap THEN
-  GOSUB forcedismount
+ GOSUB forcedismount
 END IF
 IF afterbat = 0 AND afterload = 0 THEN
  FOR i = 0 TO 15
@@ -1583,10 +1583,10 @@ IF afterbat = 0 AND afterload = 0 THEN
  NEXT i
 END IF
 IF afterload THEN
-  interpolatecat
-  xgo(0) = 0
-  ygo(0) = 0
-  herospeed(0) = 4
+ interpolatecat
+ xgo(0) = 0
+ ygo(0) = 0
+ herospeed(0) = 4
 END IF
 IF veh(0) AND samemap THEN
  FOR i = 0 TO 3
@@ -1608,9 +1608,9 @@ SELECT CASE gmap(5) '--outer edge wrapping
 END SELECT
 sayer = -1
 IF gmap(1) = 0 THEN
-  stopsong
+ stopsong
 ELSE
-  wrappedsong gmap(1) - 1
+ wrappedsong gmap(1) - 1
 END IF
 evalherotag stat()
 evalitemtag
@@ -1618,15 +1618,15 @@ IF afterbat = 0 THEN
  IF gmap(7) > 0 THEN
   rsr = runscript(gmap(7), nowscript + 1, -1, "map")
   IF rsr = 1 THEN
-    heap(scrat(nowscript, scrheap)) = gmap(8)
+   heap(scrat(nowscript, scrheap)) = gmap(8)
   END IF
  END IF
 ELSE
  IF gmap(12) > 0 THEN
   rsr = runscript(gmap(12), nowscript + 1, -1, "afterbattle")
   IF rsr = 1 THEN
-    '--afterbattle script gets one arg telling if you won or ran
-    heap(scrat(nowscript, scrheap)) = wonbattle
+   '--afterbattle script gets one arg telling if you won or ran
+   heap(scrat(nowscript, scrheap)) = wonbattle
   END IF
  END IF
 END IF
@@ -1637,49 +1637,49 @@ afterload = 0
 RETURN
 
 reloadnpc:
- vishero stat()
- FOR i = 0 TO 35
-  setpicstuf buffer(), 1600, 2
-  loadset game$ + ".pt4" + CHR$(0), npcs(i * 15 + 0), 20 + (5 * i)
-  getpal16 pal16(), 4 + i, npcs(i * 15 + 1)
- NEXT i
+vishero stat()
+FOR i = 0 TO 35
+ setpicstuf buffer(), 1600, 2
+ loadset game$ + ".pt4" + CHR$(0), npcs(i * 15 + 0), 20 + (5 * i)
+ getpal16 pal16(), 4 + i, npcs(i * 15 + 1)
+NEXT i
 RETURN
 
 forcedismount:
- IF veh(0) THEN
-  '--clear vehicle on loading new map--
-  IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) = 0 THEN
-   '--dismount-ahead is true, dismount-passwalls is false
-   SELECT CASE catd(0)
-    CASE 0
-     ygo(0) = 20
-    CASE 1
-     xgo(0) = -20
-    CASE 2
-     ygo(0) = -20
-    CASE 3
-     xgo(0) = 20
-   END SELECT
-  END IF
-  IF veh(16) > 0 THEN
-   say = veh(16)
-   loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
-  END IF
-  IF veh(16) < 0 THEN
-    rsr = runscript(ABS(veh(16)), nowscript + 1, -1, "dismount")
-  END IF
-  IF veh(14) > 1 THEN setbit tag(), 0, veh(14), 0
-  herospeed(0) = veh(7)
-  IF herospeed(0) = 3 THEN herospeed(0) = 10
-  FOR i = 0 TO 21
-   veh(i) = 0
-  NEXT i
-  FOR i = 1 TO 15
-   catx(i) = catx(0)
-   caty(i) = caty(0)
-  NEXT i
-  foep = range(100, 60)
+IF veh(0) THEN
+ '--clear vehicle on loading new map--
+ IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) = 0 THEN
+  '--dismount-ahead is true, dismount-passwalls is false
+  SELECT CASE catd(0)
+   CASE 0
+    ygo(0) = 20
+   CASE 1
+    xgo(0) = -20
+   CASE 2
+    ygo(0) = -20
+   CASE 3
+    xgo(0) = 20
+  END SELECT
  END IF
+ IF veh(16) > 0 THEN
+  say = veh(16)
+  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
+ END IF
+ IF veh(16) < 0 THEN
+  rsr = runscript(ABS(veh(16)), nowscript + 1, -1, "dismount")
+ END IF
+ IF veh(14) > 1 THEN setbit tag(), 0, veh(14), 0
+ herospeed(0) = veh(7)
+ IF herospeed(0) = 3 THEN herospeed(0) = 10
+ FOR i = 0 TO 21
+  veh(i) = 0
+ NEXT i
+ FOR i = 1 TO 15
+  catx(i) = catx(0)
+  caty(i) = caty(0)
+ NEXT i
+ foep = range(100, 60)
+END IF
 RETURN
 
 titlescr:
@@ -1690,39 +1690,39 @@ IF gen(2) > 0 THEN wrappedsong gen(2) - 1
 fademusic fmvol
 setkeys
 DO
-  setwait timing(), speedcontrol
-  setkeys
-  control
-  IF carray(5) > 1 THEN GOTO resetg
-  IF carray(4) > 1 OR carray(5) > 1 THEN EXIT DO
-  FOR i = 2 TO 88
-    IF keyval(i) > 1 THEN
-      EXIT DO
-    END IF
-  NEXT i
-  FOR i = 0 TO 1
-    gotj(i) = readjoy(joy(), i)
-    IF gotj(i) THEN
-      IF joy(2) = 0 OR joy(3) = 0 THEN
-        joy(2) = -1: joy(3) = -1
-        readjoysettings
-        joy(2) = -1: joy(3) = -1
-        EXIT DO
-      ELSE
-        gotj(i) = 0
-      END IF
-    END IF
-  NEXT i
-  SWAP vpage, dpage
-  setvispage vpage
-  copypage 3, dpage
-  IF needf = 1 THEN
-    needf = 0
-    fademusic fmvol
-    fadein -1
+ setwait timing(), speedcontrol
+ setkeys
+ control
+ IF carray(5) > 1 THEN GOTO resetg
+ IF carray(4) > 1 OR carray(5) > 1 THEN EXIT DO
+ FOR i = 2 TO 88
+  IF keyval(i) > 1 THEN
+   EXIT DO
   END IF
-  IF needf > 1 THEN needf = needf - 1
-  dowait
+ NEXT i
+ FOR i = 0 TO 1
+  gotj(i) = readjoy(joy(), i)
+  IF gotj(i) THEN
+   IF joy(2) = 0 OR joy(3) = 0 THEN
+    joy(2) = -1: joy(3) = -1
+    readjoysettings
+    joy(2) = -1: joy(3) = -1
+    EXIT DO
+   ELSE
+    gotj(i) = 0
+   END IF
+  END IF
+ NEXT i
+ SWAP vpage, dpage
+ setvispage vpage
+ copypage 3, dpage
+ IF needf = 1 THEN
+  needf = 0
+  fademusic fmvol
+  fadein -1
+ END IF
+ IF needf > 1 THEN needf = needf - 1
+ dowait
 LOOP
 RETURN
 
@@ -1751,26 +1751,26 @@ restoremode
 GOTO thestart
 
 tempDirErr:
-  templockexplain
-  ON ERROR GOTO 0
+templockexplain
+ON ERROR GOTO 0
 SYSTEM
 
 modeXerr:
- '--get back to text mode
- restoremode
- quitcleanup
- crashexplain
- '--crash and print the error
- PRINT "Error code"; ERR
- ON ERROR GOTO 0
- exitprogram 0
+'--get back to text mode
+restoremode
+quitcleanup
+crashexplain
+'--crash and print the error
+PRINT "Error code"; ERR
+ON ERROR GOTO 0
+exitprogram 0
 
 '--this is what we have dimed for scripts
 '--script(4096), heap(2048), global(1024), astack(1024), scrat(128, 12), nowscript
 interpret:
- IF scrwatch THEN scriptwatcher vpage
- IF nowscript >= 0 THEN
-  SELECT CASE scrat(nowscript, scrstate)
+IF scrwatch THEN scriptwatcher vpage
+IF nowscript >= 0 THEN
+ SELECT CASE scrat(nowscript, scrstate)
   CASE IS < stnone
    scripterr "illegally suspended script"
    scrat(nowscript, scrstate) = ABS(scrat(nowscript, scrstate))
@@ -1779,327 +1779,327 @@ interpret:
   CASE stwait
    '--evaluate wait conditions
    SELECT CASE scrat(nowscript, curvalue)
-   CASE 15, 16, 35, 61'--use door, teleport to map, use NPC, want battle
-    scrat(nowscript, scrstate) = streturn
-   CASE 1'--wait number of ticks
-    scrat(nowscript, curwaitarg) = scrat(nowscript, curwaitarg) - 1
-    IF scrat(nowscript, curwaitarg) < 1 THEN
+    CASE 15, 16, 35, 61'--use door, teleport to map, use NPC, want battle
+     scrat(nowscript, scrstate) = streturn
+    CASE 1'--wait number of ticks
+     scrat(nowscript, curwaitarg) = scrat(nowscript, curwaitarg) - 1
+     IF scrat(nowscript, curwaitarg) < 1 THEN
       scrat(nowscript, scrstate) = streturn
-    END IF
-   CASE 2'--wait for all
-    n = 0
-    FOR i = 0 TO 3
-     IF xgo(i) <> 0 OR ygo(i) <> 0 THEN n = 1
-    NEXT i
-    IF readbit(gen(), 44, suspendnpcs) = 1 THEN
-     FOR i = 0 TO 299
-      IF npcl(i + 1500) <> 0 OR npcl(i + 1800) <> 0 THEN n = 1
-      EXIT FOR
+     END IF
+    CASE 2'--wait for all
+     n = 0
+     FOR i = 0 TO 3
+      IF xgo(i) <> 0 OR ygo(i) <> 0 THEN n = 1
      NEXT i
-    END IF
-    IF gen(cameramode) = pancam OR gen(cameramode) = focuscam THEN n = 1
-    IF n = 0 THEN
+     IF readbit(gen(), 44, suspendnpcs) = 1 THEN
+      FOR i = 0 TO 299
+       IF npcl(i + 1500) <> 0 OR npcl(i + 1800) <> 0 THEN n = 1
+       EXIT FOR
+      NEXT i
+     END IF
+     IF gen(cameramode) = pancam OR gen(cameramode) = focuscam THEN n = 1
+     IF n = 0 THEN
       scrat(nowscript, scrstate) = streturn
-    END IF
-   CASE 3'--wait for hero
-    IF scrat(nowscript, curwaitarg) < 0 OR scrat(nowscript, curwaitarg) > 3 THEN
+     END IF
+    CASE 3'--wait for hero
+     IF scrat(nowscript, curwaitarg) < 0 OR scrat(nowscript, curwaitarg) > 3 THEN
       scripterr "waiting for nonexistant hero" + STR$(scrat(nowscript, curwaitarg))
       scrat(nowscript, scrstate) = streturn
-    ELSE
+     ELSE
       IF xgo(scrat(nowscript, curwaitarg)) = 0 AND ygo(scrat(nowscript, curwaitarg)) = 0 THEN
-        scrat(nowscript, scrstate) = streturn
+       scrat(nowscript, scrstate) = streturn
       END IF
-    END IF
-   CASE 4'--wait for NPC
-    npcref = getnpcref(scrat(nowscript, curwaitarg), 0)
-    IF npcref >= 0 THEN
+     END IF
+    CASE 4'--wait for NPC
+     npcref = getnpcref(scrat(nowscript, curwaitarg), 0)
+     IF npcref >= 0 THEN
       IF npcl(npcref + 1500) = 0 AND npcl(npcref + 1800) = 0 THEN
-        scrat(nowscript, scrstate) = streturn
+       scrat(nowscript, scrstate) = streturn
       END IF
-    ELSE
+     ELSE
       '--no reference found, why wait for a non-existant npc?
       scrat(nowscript, scrstate) = streturn
-    END IF
-   CASE 9'--wait for key
-    IF scrat(nowscript, curwaitarg) >= 0 AND scrat(nowscript, curwaitarg) <= 5 THEN
-     IF carray(scrat(nowscript, curwaitarg)) > 1 THEN
-       scrat(nowscript, scrstate) = streturn
      END IF
-    ELSE
-     FOR i = 0 TO 5
-      IF carray(i) > 1 THEN
-        scriptret = csetup(i)
-        scrat(nowscript, scrstate) = streturn
+    CASE 9'--wait for key
+     IF scrat(nowscript, curwaitarg) >= 0 AND scrat(nowscript, curwaitarg) <= 5 THEN
+      IF carray(scrat(nowscript, curwaitarg)) > 1 THEN
+       scrat(nowscript, scrstate) = streturn
       END IF
-     NEXT i
-     FOR i = 1 TO 127
-      IF keyval(i) > 1 THEN
-        scriptret = i
-        scrat(nowscript, scrstate) = streturn
-      END IF
-     NEXT i
-    END IF
-   CASE 42'--wait for camera
-    IF gen(cameramode) <> pancam AND gen(cameramode) <> focuscam THEN scrat(nowscript, scrstate) = streturn
-   CASE 59'--wait for text box
-    IF showsay = 0 OR readbit(gen(), 44, suspendboxadvance) = 1 THEN
+     ELSE
+      FOR i = 0 TO 5
+       IF carray(i) > 1 THEN
+	scriptret = csetup(i)
+	scrat(nowscript, scrstate) = streturn
+       END IF
+      NEXT i
+      FOR i = 1 TO 127
+       IF keyval(i) > 1 THEN
+	scriptret = i
+	scrat(nowscript, scrstate) = streturn
+       END IF
+      NEXT i
+     END IF
+    CASE 42'--wait for camera
+     IF gen(cameramode) <> pancam AND gen(cameramode) <> focuscam THEN scrat(nowscript, scrstate) = streturn
+    CASE 59'--wait for text box
+     IF showsay = 0 OR readbit(gen(), 44, suspendboxadvance) = 1 THEN
       scrat(nowscript, scrstate) = streturn
-    END IF
-   CASE 73'--game over
-   CASE ELSE
+     END IF
+    CASE 73'--game over
+    CASE ELSE
      scripterr "illegal wait substate" + STR$(scrat(nowscript, curvalue))
      scrat(nowscript, scrstate) = streturn
    END SELECT
    IF scrat(nowscript, scrstate) = streturn THEN
-     '--this allows us to resume the script without losing a game cycle
-     wantimmediate = -1
+    '--this allows us to resume the script without losing a game cycle
+    wantimmediate = -1
    END IF
   CASE ELSE
    '--interpret script
    GOSUB interpretloop
-  END SELECT
-IF wantimmediate = -1 THEN
+ END SELECT
+ IF wantimmediate = -1 THEN
   '--wow! I hope this doesnt screw things up!
   wantimmediate = 0
   GOTO interpret
+ END IF
 END IF
+'--do spawned text boxes, battles, etc.
+IF wantbox > 0 THEN
+ say = wantbox
+ loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
+ wantbox = 0
+END IF
+IF wantdoor > 0 THEN
+ dforce = wantdoor
+ wantdoor = 0
+ GOSUB opendoor
+ IF needf = 0 THEN
+  temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
+  IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
+  IF temp > 0 THEN foep = large(foep - foef(temp - 1), 0)
+  setmapdata scroll(), pass(), 0, 0
  END IF
- '--do spawned text boxes, battles, etc.
- IF wantbox > 0 THEN
-  say = wantbox
-  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
-  wantbox = 0
- END IF
- IF wantdoor > 0 THEN
-   dforce = wantdoor
-   wantdoor = 0
-   GOSUB opendoor
-   IF needf = 0 THEN
-    temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
-    IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
-    IF temp > 0 THEN foep = large(foep - foef(temp - 1), 0)
-    setmapdata scroll(), pass(), 0, 0
-   END IF
-   GOSUB setmapxy
- END IF
- IF wantbattle > 0 THEN
-   fatal = 0
-   ERASE scroll, pass
-   wonbattle = battle(wantbattle - 1, fatal, stat())
-   scriptret = wonbattle
-   wantbattle = 0
-   afterbat = 1
-   GOSUB preparemap
-   foep = range(100, 60)
-   needf = 3
-   setkeys
- END IF
- IF wantteleport > 0 THEN
-   wantteleport = 0
-   ERASE scroll, pass
-   afterbat = 0
-   GOSUB preparemap
-   foep = range(100, 60)
- END IF
- IF wantusenpc > 0 THEN
-   sayer = wantusenpc - 1
-   wantusenpc = 0
-   auto = 2
-   GOSUB usething
- END IF
+ GOSUB setmapxy
+END IF
+IF wantbattle > 0 THEN
+ fatal = 0
+ ERASE scroll, pass
+ wonbattle = battle(wantbattle - 1, fatal, stat())
+ scriptret = wonbattle
+ wantbattle = 0
+ afterbat = 1
+ GOSUB preparemap
+ foep = range(100, 60)
+ needf = 3
+ setkeys
+END IF
+IF wantteleport > 0 THEN
+ wantteleport = 0
+ ERASE scroll, pass
+ afterbat = 0
+ GOSUB preparemap
+ foep = range(100, 60)
+END IF
+IF wantusenpc > 0 THEN
+ sayer = wantusenpc - 1
+ wantusenpc = 0
+ auto = 2
+ GOSUB usething
+END IF
 RETURN
 
 interpretloop:
 DO
  'scriptdump "interpretloop"
  IF scrwatch = 2 THEN
-   scriptwatcher vpage
-   IF keyval(1) > 1 THEN scrwatch = 0
+  scriptwatcher vpage
+  IF keyval(1) > 1 THEN scrwatch = 0
  END IF
  SELECT CASE scrat(nowscript, scrstate)
- CASE stwait'---begin waiting for something
+  CASE stwait'---begin waiting for something
    EXIT DO
- CASE stdoarg'---do argument
+  CASE stdoarg'---do argument
    subdoarg
- CASE stread'---read statement
+  CASE stread'---read statement
    '--FIRST STATE
    '--sets stnext for a function, or streturn for others
    IF functionread THEN EXIT DO
- CASE streturn'---return
+  CASE streturn'---return
    '--sets stdone if done with entire script, stnext otherwise
    subreturn
- CASE stnext'---check if all args are done
-  IF scrat(nowscript, curargn) >= scrat(nowscript, curargc) THEN
-   '--pop return values of each arg
-   '--evaluate function, math, script, whatever
-   '--scriptret would be set here, pushed at return
-   SELECT CASE scrat(nowscript, curkind)
-   CASE tystop
-    scripterr "stnext encountered noop" + STR$(scrat(nowscript, curvalue)) + " at" + STR$(scrat(nowscript, scrptr)) + " in" + STR$(nowscript): nowscript = -1: EXIT DO
-   CASE tymath, tyfunct
-    '--complete math and functions, nice and easy.
-    FOR i = scrat(nowscript, curargc) - 1 TO 0 STEP -1
-     retvals(i) = popw
-    NEXT i
-    GOSUB sfunctions
-    '--unless you have switched to wait mode, return
-    IF scrat(nowscript, scrstate) = stnext THEN scrat(nowscript, scrstate) = streturn'---return
-   CASE tyflow
-    '--finish flow control? tricky!
-    SELECT CASE scrat(nowscript, curvalue)
-    CASE flowwhile'--repeat or terminate while
-     SELECT CASE scrat(nowscript, curargn)
-     CASE 2
-      '--if a while statement finishes normally (argn is 2) then it repeats.
-      dummy = popw
-      scrat(nowscript, curargn) = 0
-     CASE 3
-      '--if it is broken, argn will be three, and execution will continue as normal
-      pushw 9999 '--while must pad the stack becuase it autodiscards the return value of it's conditional
-      pushw 9998
-      GOSUB dumpandreturn
-     CASE ELSE
-      scripterr "while fell out of bounds, landed on" + STR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
-     END SELECT
-    CASE flowfor'--repeat or terminate for
-     SELECT CASE scrat(nowscript, curargn)
-     CASE 5
-      '--normal for termination means repeat
-      dummy = popw
-      GOSUB incrementflow
-      scrat(nowscript, curargn) = 4
-     CASE 6
-      '--return
-      GOSUB dumpandreturn
-     CASE ELSE
-      scripterr "for fell out of bounds, landed on" + STR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
-     END SELECT
-    CASE flowreturn
-     scrat(nowscript, scrret) = popw
-     scriptret = 0
-     scrat(nowscript, scrstate) = streturn'---return
-    CASE ELSE
-     '--do, then, etc... terminate normally
-     scriptret = -1
-     GOSUB dumpandreturn
-    END SELECT
-    'scrat(nowscript, scrstate) = streturn'---return
-   CASE tyscript
-    rsr = runscript(scrat(nowscript, curvalue), nowscript + 1, 0, "indirect")
-    IF rsr = 1 THEN
-      '--fill heap with return values
-      FOR i = scrat(nowscript - 1, curargc) - 1 TO 0 STEP -1
-       heap(scrat(nowscript, scrheap) + i) = popw
+  CASE stnext'---check if all args are done
+   IF scrat(nowscript, curargn) >= scrat(nowscript, curargc) THEN
+    '--pop return values of each arg
+    '--evaluate function, math, script, whatever
+    '--scriptret would be set here, pushed at return
+    SELECT CASE scrat(nowscript, curkind)
+     CASE tystop
+      scripterr "stnext encountered noop" + STR$(scrat(nowscript, curvalue)) + " at" + STR$(scrat(nowscript, scrptr)) + " in" + STR$(nowscript): nowscript = -1: EXIT DO
+     CASE tymath, tyfunct
+      '--complete math and functions, nice and easy.
+      FOR i = scrat(nowscript, curargc) - 1 TO 0 STEP -1
+       retvals(i) = popw
       NEXT i
-    END IF
-    IF rsr = 0 THEN
-      scrat(nowscript, scrstate) = streturn'---return
-    END IF
-   CASE ELSE
-    scripterr "illegal kind" + STR$(scrat(nowscript, curkind)) + STR$(scrat(nowscript, curvalue)) + " in stnext": nowscript = -1: EXIT DO
-   END SELECT
-  ELSE
-   '--flow control is special, for all else, do next arg
-   SELECT CASE scrat(nowscript, curkind)
-   CASE tyflow
-    SELECT CASE scrat(nowscript, curvalue)
-    CASE flowif'--we got an if!
-     SELECT CASE scrat(nowscript, curargn)
-     CASE 0
-      scrat(nowscript, scrstate) = stdoarg'---call conditional
-     CASE 1
-      r = popw
-      pushw r
-      IF r THEN
-       scrat(nowscript, scrstate) = stdoarg'---call then block
-      ELSE
-       scrat(nowscript, curargn) = 2
-       scrat(nowscript, scrstate) = stdoarg'---call else block
+      GOSUB sfunctions
+      '--unless you have switched to wait mode, return
+      IF scrat(nowscript, scrstate) = stnext THEN scrat(nowscript, scrstate) = streturn'---return
+     CASE tyflow
+      '--finish flow control? tricky!
+      SELECT CASE scrat(nowscript, curvalue)
+       CASE flowwhile'--repeat or terminate while
+	SELECT CASE scrat(nowscript, curargn)
+	 CASE 2
+	  '--if a while statement finishes normally (argn is 2) then it repeats.
+	  dummy = popw
+	  scrat(nowscript, curargn) = 0
+	 CASE 3
+	  '--if it is broken, argn will be three, and execution will continue as normal
+	  pushw 9999 '--while must pad the stack becuase it autodiscards the return value of it's conditional
+	  pushw 9998
+	  GOSUB dumpandreturn
+	 CASE ELSE
+	  scripterr "while fell out of bounds, landed on" + STR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
+	END SELECT
+       CASE flowfor'--repeat or terminate for
+	SELECT CASE scrat(nowscript, curargn)
+	 CASE 5
+	  '--normal for termination means repeat
+	  dummy = popw
+	  GOSUB incrementflow
+	  scrat(nowscript, curargn) = 4
+	 CASE 6
+	  '--return
+	  GOSUB dumpandreturn
+	 CASE ELSE
+	  scripterr "for fell out of bounds, landed on" + STR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
+	END SELECT
+       CASE flowreturn
+	scrat(nowscript, scrret) = popw
+	scriptret = 0
+	scrat(nowscript, scrstate) = streturn'---return
+       CASE ELSE
+	'--do, then, etc... terminate normally
+	scriptret = -1
+	GOSUB dumpandreturn
+      END SELECT
+      'scrat(nowscript, scrstate) = streturn'---return
+     CASE tyscript
+      rsr = runscript(scrat(nowscript, curvalue), nowscript + 1, 0, "indirect")
+      IF rsr = 1 THEN
+       '--fill heap with return values
+       FOR i = scrat(nowscript - 1, curargc) - 1 TO 0 STEP -1
+	heap(scrat(nowscript, scrheap) + i) = popw
+       NEXT i
       END IF
-      '--if-then-else needs one extra thing on the stack to account for the option that didnt get used.
-      pushw 0
-     CASE 2
-      scrat(nowscript, curargn) = 3 '---done
-     CASE ELSE
-      scripterr "if statement overstepped bounds"
-     END SELECT
-    CASE flowwhile'--we got a while!
-     SELECT CASE scrat(nowscript, curargn)
-     CASE 0
-      scrat(nowscript, scrstate) = stdoarg'---call condition
-     CASE 1
-      r = popw
-      'pushw r
-      IF r THEN
-       scrat(nowscript, scrstate) = stdoarg'---call do block
-      ELSE
-       scrat(nowscript, curargn) = 3
-      END IF
-     CASE ELSE
-      scripterr "while statement has jumped the curb"
-     END SELECT
-    CASE flowfor'--we got a for!
-     SELECT CASE scrat(nowscript, curargn)
-     '--argn 0 is var
-     '--argn 1 is start
-     '--argn 2 is end
-     '--argn 3 is step
-     '--argn 4 is do block
-     '--argn 5 is repeat (normal termination)
-     '--argn 6 is break (failed limit check)
-     CASE 0
-      '--get var
-      scrat(nowscript, scrstate) = stdoarg
-      pushw 0
-     CASE 1, 3
-      '--get start, and later step
-      scrat(nowscript, scrstate) = stdoarg
-     CASE 2
-      '--set variable to start val
-      tmpstart = popw
-      tmpvar = popw
-      pushw tmpvar
-      pushw tmpstart
-
-      '--update for counter (is this right for globals?)
-      writescriptvar tmpvar, tmpstart
-      '---???    global(tmpvar) = tmpstart - tmpstep
-
-      '---now get end value
-      scrat(nowscript, scrstate) = stdoarg
-     CASE 4
-      tmpstep = popw
-      tmpend = popw
-      tmpstart = popw
-      tmpvar = popw
-      pushw tmpvar
-      pushw tmpstart
-      pushw tmpend
-      pushw tmpstep
-      tmpnow = readscriptvar(tmpvar)
-      IF (tmpnow > tmpend AND tmpstep > 0) OR (tmpnow < tmpend AND tmpstep < 0) THEN
-       scrat(nowscript, curargn) = 6
-      ELSE
-       scrat(nowscript, scrstate) = stdoarg'---execute the do block
+      IF rsr = 0 THEN
+       scrat(nowscript, scrstate) = streturn'---return
       END IF
      CASE ELSE
-      scripterr "for statement is being difficult"
-     END SELECT
-    CASE ELSE
-     scrat(nowscript, scrstate) = stdoarg'---call argument
+      scripterr "illegal kind" + STR$(scrat(nowscript, curkind)) + STR$(scrat(nowscript, curvalue)) + " in stnext": nowscript = -1: EXIT DO
     END SELECT
-   CASE ELSE
-    scrat(nowscript, scrstate) = stdoarg'---call argument
-   END SELECT
-  END IF
- CASE stdone'---script terminates
+   ELSE
+    '--flow control is special, for all else, do next arg
+    SELECT CASE scrat(nowscript, curkind)
+     CASE tyflow
+      SELECT CASE scrat(nowscript, curvalue)
+       CASE flowif'--we got an if!
+	SELECT CASE scrat(nowscript, curargn)
+	 CASE 0
+	  scrat(nowscript, scrstate) = stdoarg'---call conditional
+	 CASE 1
+	  r = popw
+	  pushw r
+	  IF r THEN
+	   scrat(nowscript, scrstate) = stdoarg'---call then block
+	  ELSE
+	   scrat(nowscript, curargn) = 2
+	   scrat(nowscript, scrstate) = stdoarg'---call else block
+	  END IF
+	  '--if-then-else needs one extra thing on the stack to account for the option that didnt get used.
+	  pushw 0
+	 CASE 2
+	  scrat(nowscript, curargn) = 3 '---done
+	 CASE ELSE
+	  scripterr "if statement overstepped bounds"
+	END SELECT
+       CASE flowwhile'--we got a while!
+	SELECT CASE scrat(nowscript, curargn)
+	 CASE 0
+	  scrat(nowscript, scrstate) = stdoarg'---call condition
+	 CASE 1
+	  r = popw
+	  'pushw r
+	  IF r THEN
+	   scrat(nowscript, scrstate) = stdoarg'---call do block
+	  ELSE
+	   scrat(nowscript, curargn) = 3
+	  END IF
+	 CASE ELSE
+	  scripterr "while statement has jumped the curb"
+	END SELECT
+       CASE flowfor'--we got a for!
+	SELECT CASE scrat(nowscript, curargn)
+	 '--argn 0 is var
+	 '--argn 1 is start
+	 '--argn 2 is end
+	 '--argn 3 is step
+	 '--argn 4 is do block
+	 '--argn 5 is repeat (normal termination)
+	 '--argn 6 is break (failed limit check)
+	 CASE 0
+	  '--get var
+	  scrat(nowscript, scrstate) = stdoarg
+	  pushw 0
+	 CASE 1, 3
+	  '--get start, and later step
+	  scrat(nowscript, scrstate) = stdoarg
+	 CASE 2
+	  '--set variable to start val
+	  tmpstart = popw
+	  tmpvar = popw
+	  pushw tmpvar
+	  pushw tmpstart
+	  
+	  '--update for counter (is this right for globals?)
+	  writescriptvar tmpvar, tmpstart
+	  '---???    global(tmpvar) = tmpstart - tmpstep
+	  
+	  '---now get end value
+	  scrat(nowscript, scrstate) = stdoarg
+	 CASE 4
+	  tmpstep = popw
+	  tmpend = popw
+	  tmpstart = popw
+	  tmpvar = popw
+	  pushw tmpvar
+	  pushw tmpstart
+	  pushw tmpend
+	  pushw tmpstep
+	  tmpnow = readscriptvar(tmpvar)
+	  IF (tmpnow > tmpend AND tmpstep > 0) OR (tmpnow < tmpend AND tmpstep < 0) THEN
+	   scrat(nowscript, curargn) = 6
+	  ELSE
+	   scrat(nowscript, scrstate) = stdoarg'---execute the do block
+	  END IF
+	 CASE ELSE
+	  scripterr "for statement is being difficult"
+	END SELECT
+       CASE ELSE
+	scrat(nowscript, scrstate) = stdoarg'---call argument
+      END SELECT
+     CASE ELSE
+      scrat(nowscript, scrstate) = stdoarg'---call argument
+    END SELECT
+   END IF
+  CASE stdone'---script terminates
    '--if resuming a supended script, restore its state (normally stwait)
    '--if returning a value to a calling script, set streturn
    '--if no scripts left, break the loop
    SELECT CASE functiondone
-   CASE 1
+    CASE 1
      EXIT DO
-   CASE 2
+    CASE 2
      wantimmediate = -1
    END SELECT
  END SELECT
@@ -2107,128 +2107,128 @@ LOOP
 RETURN
 
 incrementflow:
- tmpstep = popw
- tmpend = popw
- tmpstart = popw
- tmpvar = popw
- pushw tmpvar
- pushw tmpstart
- pushw tmpend
- pushw tmpstep
- writescriptvar tmpvar, readscriptvar(tmpvar) + tmpstep
+tmpstep = popw
+tmpend = popw
+tmpstart = popw
+tmpvar = popw
+pushw tmpvar
+pushw tmpstart
+pushw tmpend
+pushw tmpstep
+writescriptvar tmpvar, readscriptvar(tmpvar) + tmpstep
 RETURN
 
 dumpandreturn:
- FOR i = scrat(nowscript, curargc) - 1 TO 0 STEP -1
-  dummy = popw
- NEXT i
- scriptret = 0
- scrat(nowscript, scrstate) = streturn'---return
+FOR i = scrat(nowscript, curargc) - 1 TO 0 STEP -1
+ dummy = popw
+NEXT i
+scriptret = 0
+scrat(nowscript, scrstate) = streturn'---return
 RETURN
 
 '---DO THE ACTUAL EFFECTS OF MATH AND FUNCTIONS----
 sfunctions:
- SELECT CASE scrat(nowscript, curkind)
-'---MATH----------------------------------------------------------------------
+SELECT CASE scrat(nowscript, curkind)
+ '---MATH----------------------------------------------------------------------
  CASE tymath
   scriptmath
-'---FUNCTIONS-----------------------------------------------------------------
+  '---FUNCTIONS-----------------------------------------------------------------
  CASE tyfunct
   'the only commands that belong at the top level are the ones that need
   'access to main-module top-level global variables or GOSUBs
   SELECT CASE scrat(nowscript, curvalue)
-  CASE 0'--noop
-   scripterr "encountered clean noop"
-  CASE 10'--walk hero
-   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-    SELECT CASE retvals(1)
-    CASE 0'--north
-     catd(retvals(0) * 5) = 0
-     ygo(retvals(0)) = retvals(2) * 20
-    CASE 1'--east
-     catd(retvals(0) * 5) = 1
-     xgo(retvals(0)) = (retvals(2) * 20) * -1
-    CASE 2'--south
-     catd(retvals(0) * 5) = 2
-     ygo(retvals(0)) = (retvals(2) * 20) * -1
-    CASE 3'--west
-     catd(retvals(0) * 5) = 3
-     xgo(retvals(0)) = retvals(2) * 20
-    END SELECT
-   END IF
-  CASE 11'--Show Text Box (box)
-   wantbox = retvals(0)
-  CASE 13'--set tag
-   IF retvals(0) > 1 THEN
-    setbit tag(), 0, retvals(0), retvals(1)
-    'reinitnpc 1,  map
-    npcplot npcs()
-   END IF
-  CASE 15'--use door
-   wantdoor = retvals(0) + 1
-   scrat(nowscript, curwaitarg) = 0
-   scrat(nowscript, scrstate) = stwait
-  CASE 16'--fight formation
-   wantbattle = retvals(0) + 1
-   scrat(nowscript, curwaitarg) = 0
-   scrat(nowscript, scrstate) = stwait
-  CASE 23'--unequip
-   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   CASE 0'--noop
+    scripterr "encountered clean noop"
+   CASE 10'--walk hero
+    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+     SELECT CASE retvals(1)
+      CASE 0'--north
+       catd(retvals(0) * 5) = 0
+       ygo(retvals(0)) = retvals(2) * 20
+      CASE 1'--east
+       catd(retvals(0) * 5) = 1
+       xgo(retvals(0)) = (retvals(2) * 20) * -1
+      CASE 2'--south
+       catd(retvals(0) * 5) = 2
+       ygo(retvals(0)) = (retvals(2) * 20) * -1
+      CASE 3'--west
+       catd(retvals(0) * 5) = 3
+       xgo(retvals(0)) = retvals(2) * 20
+     END SELECT
+    END IF
+   CASE 11'--Show Text Box (box)
+    wantbox = retvals(0)
+   CASE 13'--set tag
+    IF retvals(0) > 1 THEN
+     setbit tag(), 0, retvals(0), retvals(1)
+     'reinitnpc 1,  map
+     npcplot npcs()
+    END IF
+   CASE 15'--use door
+    wantdoor = retvals(0) + 1
+    scrat(nowscript, curwaitarg) = 0
+    scrat(nowscript, scrstate) = stwait
+   CASE 16'--fight formation
+    wantbattle = retvals(0) + 1
+    scrat(nowscript, curwaitarg) = 0
+    scrat(nowscript, scrstate) = stwait
+   CASE 23'--unequip
+    IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
      i = retvals(0)
      unequip i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat(), 1
-   END IF
-  CASE 24'--force equip
-   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+    END IF
+   CASE 24'--force equip
+    IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
      i = retvals(0)
      unequip i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat(), 0
      doequip bound(retvals(2), 0, 255) + 1, i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat()
-   END IF
-  CASE 25'--set hero frame
-   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+    END IF
+   CASE 25'--set hero frame
+    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
      wtog(retvals(0)) = bound(retvals(1), 0, 1) * 2
-   END IF
-  CASE 32'--show backdrop
-   gen(50) = bound(retvals(0) + 1, 0, gen(100))
-   correctbackdrop gmap()
-  CASE 33'--show map
-   gen(50) = 0
-   correctbackdrop gmap()
-  CASE 34'--dismount vehicle
-   GOSUB forcedismount
-  CASE 35'--use NPC
-   npcref = getnpcref(retvals(0), 0)
-   IF npcref >= 0 THEN
+    END IF
+   CASE 32'--show backdrop
+    gen(50) = bound(retvals(0) + 1, 0, gen(100))
+    correctbackdrop gmap()
+   CASE 33'--show map
+    gen(50) = 0
+    correctbackdrop gmap()
+   CASE 34'--dismount vehicle
+    GOSUB forcedismount
+   CASE 35'--use NPC
+    npcref = getnpcref(retvals(0), 0)
+    IF npcref >= 0 THEN
      wantusenpc = npcref + 1
      scrat(nowscript, curwaitarg) = 0
      scrat(nowscript, scrstate) = stwait
-   END IF
-  CASE 37'--use shop
-    IF retvals(0) >= 0 THEN
-      shop retvals(0), needf, stock(), stat(), svcsr, map, foep, mx, my, scroll(), gmap(), tastuf()
-      GOSUB reloadnpc
-      vishero stat()
-      loadpage game$ + ".til" + CHR$(0), gmap(0), 3
     END IF
-  CASE 43'--hero x
-   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-    scriptret = catx(retvals(0) * 5) \ 20
-   END IF
-  CASE 44'--hero y
-   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-    scriptret = caty(retvals(0) * 5) \ 20
-   END IF
-  CASE 53'--set hero direction
-   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-    catd(retvals(0) * 5) = ABS(retvals(1)) MOD 4
-   END IF
-  CASE 55'--get default weapon
-   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   CASE 37'--use shop
+    IF retvals(0) >= 0 THEN
+     shop retvals(0), needf, stock(), stat(), svcsr, map, foep, mx, my, scroll(), gmap(), tastuf()
+     GOSUB reloadnpc
+     vishero stat()
+     loadpage game$ + ".til" + CHR$(0), gmap(0), 3
+    END IF
+   CASE 43'--hero x
+    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+     scriptret = catx(retvals(0) * 5) \ 20
+    END IF
+   CASE 44'--hero y
+    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+     scriptret = caty(retvals(0) * 5) \ 20
+    END IF
+   CASE 53'--set hero direction
+    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+     catd(retvals(0) * 5) = ABS(retvals(1)) MOD 4
+    END IF
+   CASE 55'--get default weapon
+    IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
      scriptret = stat(retvals(0), 0, 16) - 1
-   ELSE
+    ELSE
      scriptret = 0
-   END IF
-  CASE 56'--set default weapon
-   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+    END IF
+   CASE 56'--set default weapon
+    IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
      '--identify new default weapon
      newdfw = bound(retvals(1), 0, 255) + 1
      '--remember old default weapon
@@ -2240,212 +2240,212 @@ sfunctions:
      '--blank weapon
      unequip retvals(0), 0, olddfw, stat(), 0
      IF cureqw <> olddfw THEN
-       '--if previously using a weapon, re-equip old weapon
-       doequip cureqw, retvals(0), 0, newdfw, stat()
+      '--if previously using a weapon, re-equip old weapon
+      doequip cureqw, retvals(0), 0, newdfw, stat()
      ELSE
-       '--otherwize equip new default weapon
-       doequip newdfw, retvals(0), 0, newdfw, stat()
+      '--otherwize equip new default weapon
+      doequip newdfw, retvals(0), 0, newdfw, stat()
      END IF
-   END IF
-  CASE 58, 119'--resume caterpillar
-   setbit gen(), 44, suspendcatapillar, 0
-   interpolatecat
-  CASE 61'--teleport to map
-   map = bound(retvals(0), 0, gen(0))
-   FOR i = 0 TO 3
-    catx(i) = retvals(1) * 20
-    caty(i) = retvals(2) * 20
-   NEXT i
-   wantteleport = 1
-   scrat(nowscript, curwaitarg) = 0
-   scrat(nowscript, scrstate) = stwait
-  CASE 63'--resume random enemys
-   setbit gen(), 44, suspendrandomenemys, 0
-   foep = range(100, 60)
-  CASE 64'--get hero stat
-   scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(2), 0, 1), bound(retvals(1), 0, 13))
-  CASE 66'--add hero
-   IF retvals(0) >= 0 THEN
-    FOR i = 37 TO 0 STEP -1
-     IF hero(i) = 0 THEN slot = i
+    END IF
+   CASE 58, 119'--resume caterpillar
+    setbit gen(), 44, suspendcatapillar, 0
+    interpolatecat
+   CASE 61'--teleport to map
+    map = bound(retvals(0), 0, gen(0))
+    FOR i = 0 TO 3
+     catx(i) = retvals(1) * 20
+     caty(i) = retvals(2) * 20
     NEXT i
-    addhero retvals(0) + 1, slot, stat()
-    vishero stat()
-   END IF
-  CASE 67'--delete hero
-   IF howmanyh(0, 40) > 1 THEN
-    i = findhero(bound(retvals(0), 0, 59) + 1, 0, 40, 1)
-    IF i > -1 THEN hero(i) = 0
-    IF howmanyh(0, 3) = 0 THEN forceparty stat()
-    vishero stat()
-   END IF
-  CASE 68'--swap out hero
-   i = findhero(retvals(0) + 1, 0, 40, 1)
-   IF i > -1 THEN
-    FOR o = 40 TO 4 STEP -1
-     IF hero(o) = 0 THEN
-      doswap i, o, stat()
-      IF howmanyh(0, 3) = 0 THEN forceparty stat()
-      vishero stat()
-      EXIT FOR
-     END IF
-    NEXT o
-   END IF
-  CASE 69'--swap in hero
-   i = findhero(retvals(0) + 1, 40, 0, -1)
-   IF i > -1 THEN
-    FOR o = 0 TO 3
-     IF hero(o) = 0 THEN
-      doswap i, o, stat()
-      vishero stat()
-      EXIT FOR
-     END IF
-    NEXT o
-   END IF
-  CASE 73'--game over
-   abortg = 1
-   scrat(nowscript, curwaitarg) = 0
-   scrat(nowscript, scrstate) = stwait
-  CASE 77'--show value
-   scriptout$ = LTRIM$(STR$(retvals(0)))
-  CASE 78'--alter NPC
-   IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
+    wantteleport = 1
+    scrat(nowscript, curwaitarg) = 0
+    scrat(nowscript, scrstate) = stwait
+   CASE 63'--resume random enemys
+    setbit gen(), 44, suspendrandomenemys, 0
+    foep = range(100, 60)
+   CASE 64'--get hero stat
+    scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(2), 0, 1), bound(retvals(1), 0, 13))
+   CASE 66'--add hero
+    IF retvals(0) >= 0 THEN
+     FOR i = 37 TO 0 STEP -1
+      IF hero(i) = 0 THEN slot = i
+     NEXT i
+     addhero retvals(0) + 1, slot, stat()
+     vishero stat()
+    END IF
+   CASE 67'--delete hero
+    IF howmanyh(0, 40) > 1 THEN
+     i = findhero(bound(retvals(0), 0, 59) + 1, 0, 40, 1)
+     IF i > -1 THEN hero(i) = 0
+     IF howmanyh(0, 3) = 0 THEN forceparty stat()
+     vishero stat()
+    END IF
+   CASE 68'--swap out hero
+    i = findhero(retvals(0) + 1, 0, 40, 1)
+    IF i > -1 THEN
+     FOR o = 40 TO 4 STEP -1
+      IF hero(o) = 0 THEN
+       doswap i, o, stat()
+       IF howmanyh(0, 3) = 0 THEN forceparty stat()
+       vishero stat()
+       EXIT FOR
+      END IF
+     NEXT o
+    END IF
+   CASE 69'--swap in hero
+    i = findhero(retvals(0) + 1, 40, 0, -1)
+    IF i > -1 THEN
+     FOR o = 0 TO 3
+      IF hero(o) = 0 THEN
+       doswap i, o, stat()
+       vishero stat()
+       EXIT FOR
+      END IF
+     NEXT o
+    END IF
+   CASE 73'--game over
+    abortg = 1
+    scrat(nowscript, curwaitarg) = 0
+    scrat(nowscript, scrstate) = stwait
+   CASE 77'--show value
+    scriptout$ = LTRIM$(STR$(retvals(0)))
+   CASE 78'--alter NPC
+    IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
      IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
-       npcs(retvals(0) * 15 + retvals(1)) = retvals(2)
+      npcs(retvals(0) * 15 + retvals(1)) = retvals(2)
      ELSE
-       npcref = getnpcref(retvals(0), 0)
-       IF npcref >= 0 THEN
-         id = (npcl(npcref + 600) - 1)
-         npcs(id * 15 + retvals(1)) = retvals(2)
-       END IF
+      npcref = getnpcref(retvals(0), 0)
+      IF npcref >= 0 THEN
+       id = (npcl(npcref + 600) - 1)
+       npcs(id * 15 + retvals(1)) = retvals(2)
+      END IF
      END IF
      IF retvals(1) = 0 OR retvals(1) = 1 THEN GOSUB reloadnpc
-   END IF
-  CASE 79'--show no value
-   scriptout$ = ""
-  CASE 80'--current map
-   scriptret = map
-  CASE 81'--set hero speed
-   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-    herospeed(retvals(0)) = bound(retvals(1), 0, 20)
-   END IF
-  CASE 83'--set hero stat
-   stat(bound(retvals(0), 0, 40), bound(retvals(3), 0, 1), bound(retvals(1), 0, 13)) = retvals(2)
-  CASE 86'--advance text box
-   GOSUB nextsay
-  CASE 87'--set hero position
-   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-    FOR i = 0 TO 4
-     catx(small(retvals(0) * 5 + i, 15)) = retvals(1) * 20
-     caty(small(retvals(0) * 5 + i, 15)) = retvals(2) * 20
-    NEXT i
-   END IF
-  CASE 89'--swap by position
-   doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40), stat()
-   vishero stat()
-  CASE 96'--set hero Z
-   catz(bound(retvals(0), 0, 3) * 5) = retvals(1)
-  CASE 97'--read map block
-   setmapdata scroll(), pass(), 0, 0
-   scriptret = readmapblock(bound(retvals(0), 0, scroll(0)), bound(retvals(1), 0, scroll(1)))
-  CASE 98'--write map block
-   setmapdata scroll(), pass(), 0, 0
-   setmapblock bound(retvals(0), 0, scroll(0)), bound(retvals(1), 0, scroll(1)), bound(retvals(2), 0, 255)
-  CASE 99'--read pass block
-   setmapdata pass(), pass(), 0, 0
-   scriptret = readmapblock(bound(retvals(0), 0, pass(0)), bound(retvals(1), 0, pass(1)))
-  CASE 100'--write pass block
-   setmapdata pass(), pass(), 0, 0
-   setmapblock bound(retvals(0), 0, pass(0)), bound(retvals(1), 0, pass(1)), bound(retvals(2), 0, 255)
-  CASE 102'--hero direction
-   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-    scriptret = catd(retvals(0) * 5)
-   END IF
-  CASE 110 TO 113
-    alterhero scrat(nowscript, curvalue), stat()
-  CASE 116'--hero is walking
-   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-    IF (xgo(retvals(0)) OR ygo(retvals(0))) THEN
-      scriptret = 1
-    ELSE
-      scriptret = 0
     END IF
-   END IF
-  CASE 144'--load tileset
+   CASE 79'--show no value
+    scriptout$ = ""
+   CASE 80'--current map
+    scriptret = map
+   CASE 81'--set hero speed
+    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+     herospeed(retvals(0)) = bound(retvals(1), 0, 20)
+    END IF
+   CASE 83'--set hero stat
+    stat(bound(retvals(0), 0, 40), bound(retvals(3), 0, 1), bound(retvals(1), 0, 13)) = retvals(2)
+   CASE 86'--advance text box
+    GOSUB nextsay
+   CASE 87'--set hero position
+    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+     FOR i = 0 TO 4
+      catx(small(retvals(0) * 5 + i, 15)) = retvals(1) * 20
+      caty(small(retvals(0) * 5 + i, 15)) = retvals(2) * 20
+     NEXT i
+    END IF
+   CASE 89'--swap by position
+    doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40), stat()
+    vishero stat()
+   CASE 96'--set hero Z
+    catz(bound(retvals(0), 0, 3) * 5) = retvals(1)
+   CASE 97'--read map block
+    setmapdata scroll(), pass(), 0, 0
+    scriptret = readmapblock(bound(retvals(0), 0, scroll(0)), bound(retvals(1), 0, scroll(1)))
+   CASE 98'--write map block
+    setmapdata scroll(), pass(), 0, 0
+    setmapblock bound(retvals(0), 0, scroll(0)), bound(retvals(1), 0, scroll(1)), bound(retvals(2), 0, 255)
+   CASE 99'--read pass block
+    setmapdata pass(), pass(), 0, 0
+    scriptret = readmapblock(bound(retvals(0), 0, pass(0)), bound(retvals(1), 0, pass(1)))
+   CASE 100'--write pass block
+    setmapdata pass(), pass(), 0, 0
+    setmapblock bound(retvals(0), 0, pass(0)), bound(retvals(1), 0, pass(1)), bound(retvals(2), 0, 255)
+   CASE 102'--hero direction
+    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+     scriptret = catd(retvals(0) * 5)
+    END IF
+   CASE 110 TO 113
+    alterhero scrat(nowscript, curvalue), stat()
+   CASE 116'--hero is walking
+    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+     IF (xgo(retvals(0)) OR ygo(retvals(0))) THEN
+      scriptret = 1
+     ELSE
+      scriptret = 0
+     END IF
+    END IF
+   CASE 144'--load tileset
     IF retvals(0) >= 0 THEN
-      o = retvals(0)
+     o = retvals(0)
     ELSE
-      o = gmap(0)
+     o = gmap(0)
     END IF
     loadpage game$ + ".til" + CHR$(0), o, 3
     loadtanim o, tastuf()
     FOR i = 0 TO 1
-      cycle(i) = 0
-      cycptr(i) = 0
-      cycskip(i) = 0
+     cycle(i) = 0
+     cycptr(i) = 0
+     cycskip(i) = 0
     NEXT i
-  CASE 150'--status screen
+   CASE 150'--status screen
     IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-      IF hero(retvals(0)) > 0 THEN
-        status retvals(0), stat()
-      END IF
+     IF hero(retvals(0)) > 0 THEN
+      status retvals(0), stat()
+     END IF
     END IF
-  CASE 151'--show mini map
+   CASE 151'--show mini map
     minimap scroll(), mx, my, gmap(), catx(0), caty(0), tastuf()
-  CASE 152'--spells menu
+   CASE 152'--spells menu
     IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-      IF hero(retvals(0)) > 0 THEN
-        spells retvals(0), stat()
-      END IF
+     IF hero(retvals(0)) > 0 THEN
+      spells retvals(0), stat()
+     END IF
     END IF
-  CASE 153'--items menu
+   CASE 153'--items menu
     wantbox = items(stat())
-  CASE 154'--equip menu
+   CASE 154'--equip menu
     IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-      IF hero(retvals(0)) > 0 THEN
-        equip retvals(0), stat()
-      END IF
+     IF hero(retvals(0)) > 0 THEN
+      equip retvals(0), stat()
+     END IF
     END IF
-  CASE 155'--save menu
+   CASE 155'--save menu
     scriptret = picksave(svcsr)
     IF scriptret >= 0 THEN savegame scriptret, map, foep, stat(), stock()
     GOSUB reloadnpc
-  CASE 157'--order menu
+   CASE 157'--order menu
     heroswap 0, stat()
-  CASE 158'--team menu
+   CASE 158'--team menu
     heroswap 1, stat()
-  CASE ELSE '--try all the scripts implemented in subs
+   CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript, curvalue)
     scriptmisc scrat(nowscript, curvalue)
     scriptadvanced scrat(nowscript, curvalue)
-  '---------
+    '---------
   END SELECT
- END SELECT
+END SELECT
 RETURN
 
 REM $STATIC
 SUB aheadxy (x, y, direction, distance)
  '--alters the input X and Y, moving them "ahead" by distance in direction
-
+ 
  IF direction = 0 THEN y = y - distance
  IF direction = 1 THEN x = x + distance
  IF direction = 2 THEN y = y + distance
  IF direction = 3 THEN x = x - distance
-
+ 
 END SUB
 
 FUNCTION checkfordeath (stat())
-  checkfordeath = 0' --default alive
-
-  o = 0
-  FOR i = 0 TO 3 '--for each slot
-    IF hero(i) > 0 THEN '--if hero exists
-      o = o + 1
-      IF stat(i, 0, 0) <= 0 AND stat(i, 1, 0) > 0 THEN o = o - 1
-    END IF
-  NEXT i
-  IF o = 0 THEN checkfordeath = 1
-
+ checkfordeath = 0' --default alive
+ 
+ o = 0
+ FOR i = 0 TO 3 '--for each slot
+  IF hero(i) > 0 THEN '--if hero exists
+   o = o + 1
+   IF stat(i, 0, 0) <= 0 AND stat(i, 1, 0) > 0 THEN o = o - 1
+  END IF
+ NEXT i
+ IF o = 0 THEN checkfordeath = 1
+ 
 END FUNCTION
 
 SUB cleanuptemp
@@ -2455,36 +2455,36 @@ SUB cleanuptemp
  fh = FREEFILE
  OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
-   INPUT #fh, filename$
-   filename$ = UCASE$(filename$)
-   IF LEFT$(filename$, 3) = "VDM" AND RIGHT$(filename$, 4) = ".TMP" THEN
-     '-- mysterious locked file, leave it alone
-   ELSE
-     '-- delte file
-   END IF
-   KILL workingdir$ + "\" + filename$
+  INPUT #fh, filename$
+  filename$ = UCASE$(filename$)
+  IF LEFT$(filename$, 3) = "VDM" AND RIGHT$(filename$, 4) = ".TMP" THEN
+   '-- mysterious locked file, leave it alone
+  ELSE
+   '-- delte file
+  END IF
+  KILL workingdir$ + "\" + filename$
  LOOP
  CLOSE #fh
  KILL tmpdir$ + "filelist.tmp"
-
+ 
 END SUB
 
 SUB correctbackdrop (gmap())
-
-   IF gen(58) THEN
-    '--restore text box backdrop
-    loadpage game$ + ".mxs" + CHR$(0), gen(58) - 1, 3
-    EXIT SUB
-   END IF
-
-   IF gen(50) THEN
-    '--restore script backdrop
-    loadpage game$ + ".mxs" + CHR$(0), gen(50) - 1, 3
-    EXIT SUB
-   END IF
-
-   loadpage game$ + ".til" + CHR$(0), gmap(0), 3
-
+ 
+ IF gen(58) THEN
+  '--restore text box backdrop
+  loadpage game$ + ".mxs" + CHR$(0), gen(58) - 1, 3
+  EXIT SUB
+ END IF
+ 
+ IF gen(50) THEN
+  '--restore script backdrop
+  loadpage game$ + ".mxs" + CHR$(0), gen(50) - 1, 3
+  EXIT SUB
+ END IF
+ 
+ loadpage game$ + ".til" + CHR$(0), gmap(0), 3
+ 
 END SUB
 
 SUB crashexplain
@@ -2499,286 +2499,286 @@ SUB crashexplain
 END SUB
 
 SUB exitprogram (needfade)
-
-'DEBUG debug "Exiting Program"
-'DEBUG debug "fade music"
-fademusic 0
-'DEBUG debug "fade screen"
-IF needfade THEN fadeout 0, 0, 0, -1
-quitcleanup
-'DEBUG debug "Restore Old Graphics Mode"
-restoremode
-'DEBUG debug "Terminate NOW (boom!)"
-SYSTEM
-
+ 
+ 'DEBUG debug "Exiting Program"
+ 'DEBUG debug "fade music"
+ fademusic 0
+ 'DEBUG debug "fade screen"
+ IF needfade THEN fadeout 0, 0, 0, -1
+ quitcleanup
+ 'DEBUG debug "Restore Old Graphics Mode"
+ restoremode
+ 'DEBUG debug "Terminate NOW (boom!)"
+ SYSTEM
+ 
 END SUB
 
 FUNCTION framewalkabout (x, y, framex, framey, mapwide, maphigh, wrapmode)
-  'Given an X and a Y returns true if a walkabout at that
-  'spot would be on-screen, and false if off-screen.
-  'Also checks wraparound map, and sets framex and framey
-  'to the position on screen where the walkabout should
-  'be drawn (relative to the top-left corner of the screen,
-  'not the top left corner of the map)
-
-  '--by default, assume we will not draw the walkaout
-  yesdraw = 0
-
-  IF isonscreen(x, y) THEN
-    '--walkabout is on-screen
-    yesdraw = 1
-    framex = x - mapx
-    framey = y - mapy
-  ELSE
-    IF wrapmode = 1 THEN
-      '--in wrap-mode
-      '--I hope this checking isn't too slow!
-      DO '--just so I can exit do
-        IF isonscreen(x - mapwide, y) THEN
-          '--off-left
-          yesdraw = 1
-          framex = (x - mapwide) - mapx
-          framey = y - mapy
-          EXIT DO
-        END IF
-        IF isonscreen(x + mapwide, y) THEN
-          '--off-right
-          yesdraw = 1
-          framex = (x + mapwide) - mapx
-          framey = y - mapy
-          EXIT DO
-        END IF
-        IF isonscreen(x, y - maphigh) THEN
-          '--off-top
-          yesdraw = 1
-          framex = x - mapx
-          framey = (y - maphigh) - mapy
-          EXIT DO
-        END IF
-        IF isonscreen(x, y + maphigh) THEN
-          '--off-bottom
-          yesdraw = 1
-          framex = x - mapx
-          framey = (y + maphigh) - mapy
-          EXIT DO
-        END IF
-        IF isonscreen(x - mapwide, y - maphigh) THEN
-          '--off-top-left
-          yesdraw = 1
-          framex = (x - mapwide) - mapx
-          framey = (y - maphigh) - mapy
-          EXIT DO
-        END IF
-        IF isonscreen(x + mapwide, y - maphigh) THEN
-          '--off-top-right
-          yesdraw = 1
-          framex = (x + mapwide) - mapx
-          framey = (y - maphigh) - mapy
-          EXIT DO
-        END IF
-        IF isonscreen(x - mapwide, y + maphigh) THEN
-          '--off-bottom-left
-          yesdraw = 1
-          framex = (x - mapwide) - mapx
-          framey = (y + maphigh) - mapy
-          EXIT DO
-        END IF
-        IF isonscreen(x + mapwide, y + maphigh) THEN
-          '--off-bottom-right
-          yesdraw = 1
-          framex = (x + mapwide) - mapx
-          framey = (y + maphigh) - mapy
-          EXIT DO
-        END IF
-        EXIT DO
-      LOOP
+ 'Given an X and a Y returns true if a walkabout at that
+ 'spot would be on-screen, and false if off-screen.
+ 'Also checks wraparound map, and sets framex and framey
+ 'to the position on screen where the walkabout should
+ 'be drawn (relative to the top-left corner of the screen,
+ 'not the top left corner of the map)
+ 
+ '--by default, assume we will not draw the walkaout
+ yesdraw = 0
+ 
+ IF isonscreen(x, y) THEN
+  '--walkabout is on-screen
+  yesdraw = 1
+  framex = x - mapx
+  framey = y - mapy
+ ELSE
+  IF wrapmode = 1 THEN
+   '--in wrap-mode
+   '--I hope this checking isn't too slow!
+   DO '--just so I can exit do
+    IF isonscreen(x - mapwide, y) THEN
+     '--off-left
+     yesdraw = 1
+     framex = (x - mapwide) - mapx
+     framey = y - mapy
+     EXIT DO
     END IF
+    IF isonscreen(x + mapwide, y) THEN
+     '--off-right
+     yesdraw = 1
+     framex = (x + mapwide) - mapx
+     framey = y - mapy
+     EXIT DO
+    END IF
+    IF isonscreen(x, y - maphigh) THEN
+     '--off-top
+     yesdraw = 1
+     framex = x - mapx
+     framey = (y - maphigh) - mapy
+     EXIT DO
+    END IF
+    IF isonscreen(x, y + maphigh) THEN
+     '--off-bottom
+     yesdraw = 1
+     framex = x - mapx
+     framey = (y + maphigh) - mapy
+     EXIT DO
+    END IF
+    IF isonscreen(x - mapwide, y - maphigh) THEN
+     '--off-top-left
+     yesdraw = 1
+     framex = (x - mapwide) - mapx
+     framey = (y - maphigh) - mapy
+     EXIT DO
+    END IF
+    IF isonscreen(x + mapwide, y - maphigh) THEN
+     '--off-top-right
+     yesdraw = 1
+     framex = (x + mapwide) - mapx
+     framey = (y - maphigh) - mapy
+     EXIT DO
+    END IF
+    IF isonscreen(x - mapwide, y + maphigh) THEN
+     '--off-bottom-left
+     yesdraw = 1
+     framex = (x - mapwide) - mapx
+     framey = (y + maphigh) - mapy
+     EXIT DO
+    END IF
+    IF isonscreen(x + mapwide, y + maphigh) THEN
+     '--off-bottom-right
+     yesdraw = 1
+     framex = (x + mapwide) - mapx
+     framey = (y + maphigh) - mapy
+     EXIT DO
+    END IF
+    EXIT DO
+   LOOP
   END IF
-
-  framewalkabout = yesdraw
+ END IF
+ 
+ framewalkabout = yesdraw
 END FUNCTION
 
 SUB herowrappass (whoi, x, y, xgo(), ygo(), mapwide, maphigh, wrapmode, veh())
-
-  DIM pd(3)
-
+ 
+ DIM pd(3)
+ 
+ tilex = x: tiley = y
+ p = readmapblock(tilex, tiley)
+ 
+ FOR i = 0 TO 3
   tilex = x: tiley = y
-  p = readmapblock(tilex, tiley)
-
-  FOR i = 0 TO 3
-    tilex = x: tiley = y
-    wrapaheadxy tilex, tiley, i, 1, mapwide, maphigh, wrapmode
-    pd(i) = readmapblock(tilex, tiley)
-  NEXT i
-
-  IF ygo(whoi) > 0 AND movdivis(ygo(whoi)) AND ((p AND 1) = 1 OR (pd(0) AND 4) = 4 OR (veh(0) AND vehpass(veh(18), pd(0), 0))) THEN ygo(whoi) = 0
-  IF ygo(whoi) < 0 AND movdivis(ygo(whoi)) AND ((p AND 4) = 4 OR (pd(2) AND 1) = 1 OR (veh(0) AND vehpass(veh(18), pd(2), 0))) THEN ygo(whoi) = 0
-  IF xgo(whoi) > 0 AND movdivis(xgo(whoi)) AND ((p AND 8) = 8 OR (pd(3) AND 2) = 2 OR (veh(0) AND vehpass(veh(18), pd(3), 0))) THEN xgo(whoi) = 0
-  IF xgo(whoi) < 0 AND movdivis(xgo(whoi)) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (veh(0) AND vehpass(veh(18), pd(1), 0))) THEN xgo(whoi) = 0
-
+  wrapaheadxy tilex, tiley, i, 1, mapwide, maphigh, wrapmode
+  pd(i) = readmapblock(tilex, tiley)
+ NEXT i
+ 
+ IF ygo(whoi) > 0 AND movdivis(ygo(whoi)) AND ((p AND 1) = 1 OR (pd(0) AND 4) = 4 OR (veh(0) AND vehpass(veh(18), pd(0), 0))) THEN ygo(whoi) = 0
+ IF ygo(whoi) < 0 AND movdivis(ygo(whoi)) AND ((p AND 4) = 4 OR (pd(2) AND 1) = 1 OR (veh(0) AND vehpass(veh(18), pd(2), 0))) THEN ygo(whoi) = 0
+ IF xgo(whoi) > 0 AND movdivis(xgo(whoi)) AND ((p AND 8) = 8 OR (pd(3) AND 2) = 2 OR (veh(0) AND vehpass(veh(18), pd(3), 0))) THEN xgo(whoi) = 0
+ IF xgo(whoi) < 0 AND movdivis(xgo(whoi)) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (veh(0) AND vehpass(veh(18), pd(1), 0))) THEN xgo(whoi) = 0
+ 
 END SUB
 
 SUB initgamedefaults
-
-'--items
-item$(-3) = readglobalstring$(35, "DONE", 10)
-item$(-2) = readglobalstring$(36, "AUTOSORT", 10)
-item$(-1) = readglobalstring$(37, "TRASH", 10)
-FOR i = -3 TO -1
+ 
+ '--items
+ item$(-3) = readglobalstring$(35, "DONE", 10)
+ item$(-2) = readglobalstring$(36, "AUTOSORT", 10)
+ item$(-1) = readglobalstring$(37, "TRASH", 10)
+ FOR i = -3 TO -1
   item(i) = 1
   item$(i) = rpad$(item$(i), " ", 11)
-NEXT i
-FOR i = 0 TO 199: item$(i) = "           ": NEXT i
-
-'--money
-gold& = gen(96)
-
-'--hero's speed
-FOR i = 0 TO 3
- herospeed(i) = 4
-NEXT i
-
-'--hero's position
-FOR i = 0 TO 15
- catx(i) = gen(102) * 20
- caty(i) = gen(103) * 20
- catd(i) = 2
-NEXT i
-
+ NEXT i
+ FOR i = 0 TO 199: item$(i) = "           ": NEXT i
+ 
+ '--money
+ gold& = gen(96)
+ 
+ '--hero's speed
+ FOR i = 0 TO 3
+  herospeed(i) = 4
+ NEXT i
+ 
+ '--hero's position
+ FOR i = 0 TO 15
+  catx(i) = gen(102) * 20
+  caty(i) = gen(103) * 20
+  catd(i) = 2
+ NEXT i
+ 
 END SUB
 
 SUB interpolatecat
-   'given the current positions of the caterpillar party, interpolate their inbetween frames
-   FOR o = 0 TO 10 STEP 5
-    FOR i = o + 1 TO o + 4
-      catx(i) = catx(i - 1) + ((catx(o + 5) - catx(o)) / 4)
-      caty(i) = caty(i - 1) + ((caty(o + 5) - caty(o)) / 4)
-      catd(i) = catd(o)
-    NEXT i
-   NEXT o
+ 'given the current positions of the caterpillar party, interpolate their inbetween frames
+ FOR o = 0 TO 10 STEP 5
+  FOR i = o + 1 TO o + 4
+   catx(i) = catx(i - 1) + ((catx(o + 5) - catx(o)) / 4)
+   caty(i) = caty(i - 1) + ((caty(o + 5) - caty(o)) / 4)
+   catd(i) = catd(o)
+  NEXT i
+ NEXT o
 END SUB
 
 FUNCTION isonscreen (x, y)
-  IF x >= mapx - 20 AND x <= mapx + 340 AND y >= mapy - 20 AND y <= mapy + 200 THEN
-    isonscreen = -1
-  ELSE
-    isonscreen = 0
-  END IF
-
-  '17*20=340
-  '10*20=200
-
+ IF x >= mapx - 20 AND x <= mapx + 340 AND y >= mapy - 20 AND y <= mapy + 200 THEN
+  isonscreen = -1
+ ELSE
+  isonscreen = 0
+ END IF
+ 
+ '17*20=340
+ '10*20=200
+ 
 END FUNCTION
 
 SUB prepareFM
-
-  '--disabled because it was possably nuking FM on some computers
-  'dummy = resetfm 'this is all we do
-
-  '--the rest is disabled because it caused more problems than it fixed
-
-  'trydefault = 1
-
-  'IF isfile(progdir$ + "soundset.ini" + CHR$(0)) THEN
-  '  '--use soundset.ini
-  '  fh = FREEFILE
-  '  OPEN progdir$ + "soundset.ini" FOR INPUT AS #fh
-  '    safety = 0
-  '    DO WHILE NOT EOF(fh) AND safety < 100
-  '      LINE INPUT #fh, a$
-  '      IF settingstring(a$, "FMPORT", port$) THEN
-  '        '--found fmport= line
-  '        IF hex2dec(port$) = 0 THEN
-  '          '--port 0 disables sound
-  '          EXIT DO
-  '        ELSE
-  '          '--try any non-zero port
-  '          setFMbase hex2dec(port$)
-  '          IF resetfm > 1 THEN
-  '            'it was good?
-  '            '--set the mixerbase too
-  '            setFMMixerbase hex2dec(port$)
-  '            trydefault = 0
-  '            EXIT DO
-  '          END IF
-  '        END IF
-  '      END IF
-  '      safety = safety + 1
-  '    LOOP
-  '  CLOSE #fh
-  'END IF
-
-  'IF trydefault THEN
-  '  '--try default 0388
-  '  setFMbase &H388
-  '  IF resetfm > 1 THEN
-  '    'it was good?
-  '    setFMMixerbase &H388
-  '  ELSE
-  '    setFMbase &H220
-  '    '--try default 0220
-  '    IF resetfm > 1 THEN
-  '      'it was good?
-  '      setFMMixerbase &H220
-  '    END IF
-  '  END IF
-  'END IF
-
+ 
+ '--disabled because it was possably nuking FM on some computers
+ 'dummy = resetfm 'this is all we do
+ 
+ '--the rest is disabled because it caused more problems than it fixed
+ 
+ 'trydefault = 1
+ 
+ 'IF isfile(progdir$ + "soundset.ini" + CHR$(0)) THEN
+ '  '--use soundset.ini
+ '  fh = FREEFILE
+ '  OPEN progdir$ + "soundset.ini" FOR INPUT AS #fh
+ '    safety = 0
+ '    DO WHILE NOT EOF(fh) AND safety < 100
+ '      LINE INPUT #fh, a$
+ '      IF settingstring(a$, "FMPORT", port$) THEN
+ '        '--found fmport= line
+ '        IF hex2dec(port$) = 0 THEN
+ '          '--port 0 disables sound
+ '          EXIT DO
+ '        ELSE
+ '          '--try any non-zero port
+ '          setFMbase hex2dec(port$)
+ '          IF resetfm > 1 THEN
+ '            'it was good?
+ '            '--set the mixerbase too
+ '            setFMMixerbase hex2dec(port$)
+ '            trydefault = 0
+ '            EXIT DO
+ '          END IF
+ '        END IF
+ '      END IF
+ '      safety = safety + 1
+ '    LOOP
+ '  CLOSE #fh
+ 'END IF
+ 
+ 'IF trydefault THEN
+ '  '--try default 0388
+ '  setFMbase &H388
+ '  IF resetfm > 1 THEN
+ '    'it was good?
+ '    setFMMixerbase &H388
+ '  ELSE
+ '    setFMbase &H220
+ '    '--try default 0220
+ '    IF resetfm > 1 THEN
+ '      'it was good?
+ '      setFMMixerbase &H220
+ '    END IF
+ '  END IF
+ 'END IF
+ 
 END SUB
 
 SUB safekill (f$)
-  IF isfile(f$ + CHR$(0)) THEN KILL f$
+ IF isfile(f$ + CHR$(0)) THEN KILL f$
 END SUB
 
 SUB strgrabber (s$, maxl)
  STATIC clip$
-
+ 
  '--BACKSPACE support
  IF keyval(14) > 1 AND LEN(s$) > 0 THEN s$ = LEFT$(s$, LEN(s$) - 1)
-
+ 
  '--SHIFT support
  shift = 0
  IF keyval(54) > 0 OR keyval(42) > 0 THEN shift = 1
-
+ 
  '--adding chars
  IF LEN(s$) < maxl THEN
-
-   '--SPACE support
-   IF keyval(57) > 1 THEN s$ = s$ + " "
-
-   '--all other keys
-   FOR i = 2 TO 53
-    IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN s$ = s$ + CHR$(keyv(i, shift))
-   NEXT i
-
+  
+  '--SPACE support
+  IF keyval(57) > 1 THEN s$ = s$ + " "
+  
+  '--all other keys
+  FOR i = 2 TO 53
+   IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN s$ = s$ + CHR$(keyv(i, shift))
+  NEXT i
+  
  END IF
-
+ 
 END SUB
 
 SUB touchfile (f$)
-
-fh = FREEFILE
-OPEN f$ FOR BINARY AS #fh
-CLOSE #fh
-
+ 
+ fh = FREEFILE
+ OPEN f$ FOR BINARY AS #fh
+ CLOSE #fh
+ 
 END SUB
 
 SUB wrapaheadxy (x, y, direction, distance, mapwide, maphigh, wrapmode)
-  'alters X and Y ahead by distance in direction, wrapping if neccisary
-
-  aheadxy x, y, direction, distance
-
-  IF wrapmode THEN
-    wrapxy x, y, mapwide, maphigh
-  END IF
-
+ 'alters X and Y ahead by distance in direction, wrapping if neccisary
+ 
+ aheadxy x, y, direction, distance
+ 
+ IF wrapmode THEN
+  wrapxy x, y, mapwide, maphigh
+ END IF
+ 
 END SUB
 
 SUB wrapxy (x, y, wide, high)
-  '--wraps the given X and Y values within the bounds of width and height
-  IF x < 0 THEN x = wide + x
-  IF x >= wide THEN x = x - wide
-  IF y < 0 THEN y = high + y
-  IF y >= high THEN y = y - high
+ '--wraps the given X and Y values within the bounds of width and height
+ IF x < 0 THEN x = wide + x
+ IF x >= wide THEN x = x - wide
+ IF y < 0 THEN y = high + y
+ IF y >= high THEN y = y - high
 END SUB
 
