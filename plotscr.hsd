@@ -1,4 +1,4 @@
-# PLOTSCR.HSD last modified Feb 15 2005
+# PLOTSCR.HSD last modified March 29 2005
 # This file holds the language definition for OHRRPGCE plotscripting.
 # modifying this file may have undesired/disasterous effects,
 # but reading it can be somewhat educational. Especially the constants.
@@ -165,6 +165,12 @@ define function, begin
 155,savemenu,0              # display the save menu
 157,ordermenu,0             # display the order menu
 158,teammenu,0              # display the team menu
+159,initmouse,0             # init mouse, return true if a mouse is installed
+160,mousepixelx,0           # returns mouse x coordinate on the screen
+161,mousepixely,0           # returns mouse x coordinate on the screen
+162,mousebutton,1,0         # returns true if the specified button is pressed
+163,putmouse,2,160,100      # places the mouse at a point on the screen
+164,mouseregion,4,0,318,0,198 # define the rectangle in which the mouse can move (xmin, xmax, ymin, ymax)
 end
 
 #--------------------------------------------------------------------------
@@ -319,10 +325,10 @@ define operator,begin
 50 >=  greaterthanorequalto
 60,xor,xor
 60,and,and
-60,or,or
-70,:=,setvariable
-70,+=,increment
-70,-=,decrement
+60,or, or
+70 :=  setvariable
+70 +=  increment
+70 -=  decrement
 end
 
 #--------------------------------------------------------------------------
@@ -412,4 +418,6 @@ define constant, begin
 0,color:red
 1,color:green
 2,color:blue
+0,leftbutton
+1,rightbutton
 end

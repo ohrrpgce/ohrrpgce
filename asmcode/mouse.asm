@@ -30,8 +30,13 @@
 .286
 Ideal
 Model Small
-Public setmouse,readmouse,movemouse
+Public setmouse,readmouse,movemouse,mouserect
 codeseg
+
+xmin dw 0
+xmax dw 636
+ymin dw 0
+ymax dw 198
 
 Proc    Setmouse        ;buff
 	push bp
@@ -71,18 +76,32 @@ Proc    readmouse        ;buff
 	mov di,[ds:bx+0ah]
 	mov ax,3
 	int 33h
-	cmp cx,638
-	jb xok
-	mov cx,636
+	cmp cx,[cs:xmax]
+	jle xmaxok
+	mov cx,[cs:xmax]
 	mov ax,4
 	int 33h
-xok:
-	cmp dx,199
-	jb yok
-	mov dx,198
+	jmp xminok
+xmaxok:
+	cmp cx,[cs:xmin]
+	jge xminok
+	mov cx,[cs:xmin]
 	mov ax,4
 	int 33h
-yok:
+xminok:
+	cmp dx,[cs:ymax]
+	jle ymaxok
+	mov dx,[cs:ymax]
+	mov ax,4
+	int 33h
+	jmp yminok
+ymaxok:
+	cmp dx,[cs:ymin]
+	jge yminok
+	mov dx,[cs:ymin]
+	mov ax,4
+	int 33h	
+yminok:
 	mov ax,cx
 	shr ax,1
 	stosw
@@ -111,5 +130,24 @@ proc 	movemouse	;x, y
 	pop bp
 	retf 4
 endp 	movemouse
+
+proc	mouserect	;xmin, xmax, ymin, ymax	
+	push bp
+	mov bp, sp
+	
+	mov ax,[ss:bp+12]
+	shl ax, 1
+	mov [cs:xmin], ax
+	mov ax,[ss:bp+10]
+	shl ax, 1
+	mov [cs:xmax], ax
+	mov ax,[ss:bp+8]
+	mov [cs:ymin], ax
+	mov ax,[ss:bp+6]
+	mov [cs:ymax], ax
+
+	pop bp
+	retf 8
+endp	mouserect
 End
 		
