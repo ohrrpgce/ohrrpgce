@@ -14,10 +14,11 @@ call callbc.bat subs2
 call callbc.bat mapsubs
 call callbc.bat ironhoof
 call callbc.bat flexmenu
-pkunzip.exe -o support\nocom.zip nocom.obj > NUL
-pkunzip.exe -o support\freelink.zip freelink.exe > NUL
+support\pkunzip.exe -o support\nocom.zip nocom.obj > NUL
+support\pkunzip.exe -o support\freelink.zip freelink.exe > NUL
 freelink.exe @game.lnk
 freelink.exe @custom.lnk
 del *.obj
+del freelink.exe
 grep "\^" compile.out
 echo.

@@ -1,5 +1,6 @@
 %QBDIR%\bc %OHRRPGCE%\rpgfix.bas/O/AH/T/C:512; >cfix.out
-pkunzip -o support\nocom.zip nocom.obj > NUL
-pkunzip -o support\freelink.zip freelink.exe > NUL
+support\pkunzip.exe -o support\nocom.zip nocom.obj > NUL
+support\pkunzip.exe -o support\freelink.zip freelink.exe > NUL
 freelink @rpgfix.lnk
 del *.obj
+del freelink.exe

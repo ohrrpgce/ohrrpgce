@@ -18,3 +18,4 @@ ECHO.
 ECHO   q game        Edit the GAME source code
 ECHO   q custom      Edit the CUSTOM source code
 ECHO   compile       Compile both GAME and CUSTOM to EXE files
+ECHO.
