@@ -1,1 +1,1 @@
-version$ = "OHRRPGCE debug build 20050215"
+version$ = "O.H.R.RPG.C.E version 20050215"

@@ -4,8 +4,8 @@ REM --- Edit this file to select the locations ---
 REM --- where you have installed Quickbasic,   ---
 REM --- and the OHRRPGCE source code.          ---
 
-SET QBDIR=L:\QB45
-SET OHRRPGCE=F:\OHRRPGCE
+SET QBDIR=C:\QB45
+SET OHRRPGCE=C:\OHRRPGCE
 
 ECHO ####################
 ECHO #  O.H.R.RPG.C.E.  #
