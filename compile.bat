@@ -15,8 +15,8 @@ call callbc.bat mapsubs
 call callbc.bat flexmenu
 support\pkunzip.exe -o support\nocom.zip nocom.obj > NUL
 support\pkunzip.exe -o support\freelink.zip freelink.exe > NUL
-freelink.exe @game.lnk
-freelink.exe @custom.lnk
+freelink.exe @game.l
+freelink.exe @custom.l
 del *.obj
 del freelink.exe
 grep "\^" compile.out
