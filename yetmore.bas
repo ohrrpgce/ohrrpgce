@@ -617,12 +617,17 @@ NEXT j
 '--reload data from the textbox lump because embedtext clobbered it
 loadSayToBuffer say
 
+'-- get the block of data used for conditionals
 temp$ = STRING$(42, 0)
 array2str buffer(), 305, temp$
 str2array temp$, buffer(), 0
+
+'-- store the conditionals data in saytag()
 FOR j = 0 TO 20
  saytag(j) = buffer(j)
 NEXT j
+
+'-- evaluate "instead" conditionals
 IF istag(saytag(0), 0) THEN
  '--do something else instead
  IF saytag(1) < 0 THEN
@@ -633,26 +638,38 @@ IF istag(saytag(0), 0) THEN
   IF say <> saytag(1) THEN say = saytag(1): GOTO loadsaybegin
  END IF
 END IF
+
+'-- set tags indicating the text box has been seen.
 IF istag(saytag(2), 0) THEN
  IF ABS(saytag(3)) > 1 THEN setbit tag(), 0, ABS(saytag(3)), SGN(SGN(saytag(3)) + 1)
  IF ABS(saytag(4)) > 1 THEN setbit tag(), 0, ABS(saytag(4)), SGN(SGN(saytag(4)) + 1)
 END IF
+
+'-- load choicebox data
 FOR j = 0 TO 1
  choose$(j) = STRING$(15, 0)
  array2str buffer(), 349 + (j * 18), choose$(j)
  WHILE RIGHT$(choose$(j), 1) = CHR$(0): choose$(j) = LEFT$(choose$(j), LEN(choose$(j)) - 1): WEND
  chtag(j) = buffer(182 + (j * 9))
 NEXT j
+
+'--the bitset that determines whether the choicebox is enabled
 saybit(0) = buffer(174)
+
+'--load box appearance into sayenh()
 FOR j = 0 TO 6
  sayenh(j) = buffer(193 + j)
 NEXT j
+'-- update backdrop if neccisary
 IF sayenh(4) > 0 THEN
  gen(58) = sayenh(4)
  correctbackdrop gmap()
 END IF
+'-- change music if neccisary
 IF sayenh(5) > 0 THEN wrappedsong sayenh(5) - 1
+
 showsay = 8
+
 END SUB
 
 SUB npcplot (npcs())
