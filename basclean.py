@@ -9,7 +9,13 @@ def sw(s,l):
     return False
 
 tab_kw = [ "FUNCTION", "SUB", "DO", "WHILE", "FOR"]
-untab_kw = [ "END SUB", "END FUNCTION", "LOOP", "WEND", "NEXT"]
+untab_kw = [ "END SUB", "END FUNCTION", "LOOP", "WEND"]
+
+ignore_regex = []
+for regex in ( "^DO\b.*?\bLOOP", "^WHILE\b.*?\bWEND", "^FOR\b.*?\bNEXT" ):
+    ignore_regex.append(re.compile(regex))
+
+next_regex = re.compile("^NEXT( [a-z][a-z0-9]?)?")
 
 # You can swap this for \t when using the simple-indenter
 # beware excessive line length though
@@ -56,6 +62,10 @@ for fname in sys.argv[1:]:
     	    tabs -= 1
 	if sw(i, tab_kw):
             latertabs += 1
+
+        # support for specfic NEXT commands
+        if next_regex.match(i):
+            tabs -= 1
 	
  	# if structures
 	if i.startswith("IF") and i.endswith("THEN"):
