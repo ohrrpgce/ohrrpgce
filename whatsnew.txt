@@ -1,12 +1,12 @@
 WHAT IS NEW?                                                   
 
-?? ?? 2005 [quaternion]
+April ?? 2005 [quaternion]
 
   * GPL Licensed source code. See LICENSE.txt
 
   * New plotscripting commands: init mouse, mouse pixel x, mouse pixel
-    y, mouse button, put mouse, mouse region, Thanks to Ralf Versteegen
-    (TeeEmCee)
+    y, mouse button, put mouse, mouse region, NPC at pixel
+    Thanks to Ralph Versteegen (TeeEmCee)
 
   * Very nice plotscript buffer usage optimization. Scripts that run more
     than once take no extra space in the buffer, allowing you to write

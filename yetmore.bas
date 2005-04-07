@@ -1263,6 +1263,7 @@ SELECT CASE id
     found = found + 1
    END IF
   NEXT i
+  IF retvals(2) = -1 THEN scriptret = found
  CASE 122'--get NPC ID
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
@@ -1301,6 +1302,19 @@ SELECT CASE id
  CASE 126 '--destroy NPC
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN npcl(npcref + 600) = 0
+ CASE 165'--NPC at pixel
+  scriptret = 0
+  found = 0 
+  FOR i = 0 TO 299
+   IF npcl(i + 600) > 0 AND npcl(i) <= retvals(0) AND npcl(i) > (retvals(0) - 20) AND npcl(i + 300) <= retvals(1) AND npcl(i + 300) > (retvals(1) - 20) THEN
+    IF found = retvals(2) THEN
+     scriptret = (i + 1) * -1
+     EXIT FOR
+    END IF
+    found = found + 1
+   END IF
+  NEXT i
+  IF retvals(2) = -1 THEN scriptret = found
   
 END SELECT
 
