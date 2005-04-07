@@ -421,5 +421,5 @@ define constant, begin
 2,color:blue
 0,leftbutton
 1,rightbutton
--1,npccount
+-1,getcount
 end
