@@ -366,7 +366,7 @@ j = 0
 beginplay:
 
 initgamedefaults
-lastsaveslot = 0: fatal = 0: abortg = 0
+fatal = 0: abortg = 0
 foep = range(100, 60)
 map = gen(104)
 
@@ -2542,6 +2542,8 @@ IF xgo(whoi) < 0 AND movdivis(xgo(whoi)) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8
 END SUB
 
 SUB initgamedefaults
+
+lastsaveslot = 0
 
 '--items
 item$(-3) = readglobalstring$(35, "DONE", 10)
