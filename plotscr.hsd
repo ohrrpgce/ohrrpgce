@@ -70,8 +70,8 @@ define function, begin
 59,waitfortextbox,0         # waits for text box to go away
 60,equipwhere,2,0,0         #? (who,item) returns the slot that an item can be equipped in, or false if the hero cant equip it
 61,teleporttomap,3,0,0,0    # teleport to map (map,x,y)
-62,suspendrandomenemys,0    # keeps random enemys from attacking
-63,resumerandomenemys,0     # undoes suspendrandomenemys
+62,suspendrandomenemys,0    # misspelled alias for backcompat
+63,resumerandomenemys,0     # misspelled alias for backcompat
 64,getherostat,3,0,0,1      # returns a hero's stat (who,stat,cur/max)
 65,resumeoverlay,0          # turns overhead tiles back on
 66,addhero,1,0              # adds a hero to the party
@@ -172,6 +172,10 @@ define function, begin
 163,putmouse,2,160,100      # places the mouse at a point on the screen
 164,mouseregion,4,0,318,0,198 # define the rectangle in which the mouse can move (xmin, xmax, ymin, ymax)
 165,npcatpixel,3,0,0,0      # returns NPC at pixel x,y, third arg is which npc (on -1 returns number of npcs at pixel)
+166,saveinslot,1,0	    # save game in slot
+167,lastsaveslot,0	    # returns the last save slot the game was saved in, false if unsaved
+168,suspendrandomenemies,0  # keeps random enemies from attacking
+169,resumerandomenemies,0   # undoes suspendrandomenemies
 end
 
 #--------------------------------------------------------------------------

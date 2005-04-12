@@ -54,8 +54,8 @@ DECLARE SUB debug (s$)
 DECLARE FUNCTION browse$ (fmask$, needf%, bpage%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
-DECLARE FUNCTION pickload% (svcsr%)
-DECLARE FUNCTION picksave% (svcsr%)
+DECLARE FUNCTION pickload% ()
+DECLARE FUNCTION picksave% ()
 DECLARE SUB equip (ptr%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
@@ -94,7 +94,6 @@ DECLARE SUB snapshot ()
 '$INCLUDE: 'sglobals.bi'
 
 '$INCLUDE: 'const.bi'
-
 
 REM $STATIC
 SUB addhero (who, slot, stat())
@@ -1762,7 +1761,7 @@ loadinstead = -1
 '-- If we are loading a script that is already running
 '-- we can re-use it.
 FOR i = 0 TO nowscript
- IF scrat(i, scrid) = n THEN loadinstead = i : EXIT FOR
+ IF scrat(i, scrid) = n THEN loadinstead = i: EXIT FOR
 NEXT i
 
 '-- if the script was the last terminated it can also be reused
@@ -1772,7 +1771,7 @@ END IF
 
 'erase state, pointer, return value and depth, set id
 FOR i = 2 TO 3
- scrat(index, i) = 0 
+ scrat(index, i) = 0
 NEXT i
 scrat(index, scrret) = 0
 scrat(index, scrdepth) = 0
@@ -2115,7 +2114,7 @@ END IF
 
 END FUNCTION
 
-SUB shop (id, needf, stock(), stat(), svcsr, map, foep, mx, my, scroll(), gmap(), tastuf())
+SUB shop (id, needf, stock(), stat(), map, foep, mx, my, scroll(), gmap(), tastuf())
 
 DIM storebuf(40), menu$(10), menuid(10)
 
@@ -2174,7 +2173,7 @@ DO
    END IF
   END IF
   IF menuid(ptr) = 5 THEN '--SAVE
-   temp = picksave(svcsr)
+   temp = picksave
    IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
    vishero stat()
   END IF

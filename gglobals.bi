@@ -4,7 +4,8 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 COMMON SHARED /trueglobals/ game$, sourcerpg$, buffer(), master(), gen(), workingdir$, tag(), timing(), global(), carray(), csetup(), gotj(), joy(), veh(), hero(), vpage, dpage, pal16(), name$(), eqstuf(), item(), item$(), lmp(), bmenu(), spell(),  _
-exlev&(), gold&, herobits%(), itembits%(), fmvol, hmask(), version$, speedcontrol, deferpaint, tmpdir$, nativehbits(), catx(), caty(), catz(), catd(), herospeed(), xgo(), ygo(), npcl(), mapx, mapy, presentsong, keyv(), fadestate, foemaph, lockfile
+exlev&(), gold&, herobits%(), itembits%(), fmvol, hmask(), version$, speedcontrol, deferpaint, tmpdir$, nativehbits(), catx(), caty(), catz(), catd(), herospeed(), xgo(), ygo(), npcl(), mapx, mapy, presentsong, keyv(), fadestate, foemaph, lockfile,  _
+lastsaveslot
 
 COMMON SHARED /assemblyglobals/ regs AS Regtype, off9, seg9
 

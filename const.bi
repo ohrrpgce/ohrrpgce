@@ -51,7 +51,7 @@ CONST suspendobstruction = 2
 CONST suspendherowalls = 3
 CONST suspendnpcwalls = 4
 CONST suspendcatapillar = 5
-CONST suspendrandomenemys = 6
+CONST suspendrandomenemies = 6
 CONST suspendboxadvance = 7
 CONST suspendoverlay = 8
 '--CAMERA CONSTANTS--

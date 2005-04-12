@@ -4,6 +4,13 @@ April ?? 2005 [quaternion]
 
   * GPL Licensed source code. See LICENSE.txt
 
+  * Fixed misspellings of "enemies" as in plotscripting commands "suspend
+    random enemies" and "resume random enemies" (Misspelled versions
+    still work for backwards compatability)
+
+  * New plotscripting commands: save in slot, last save slot. Thanks to
+    Yuriy (Draknight) and Ralph Versteegen (TeeEmCee)
+
   * New plotscripting commands: init mouse, mouse pixel x, mouse pixel
     y, mouse button, put mouse, mouse region, NPC at pixel
     Thanks to Ralph Versteegen (TeeEmCee)

@@ -68,8 +68,8 @@ DECLARE SUB debug (s$)
 DECLARE FUNCTION browse$ (fmask$, needf%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
-DECLARE FUNCTION pickload% (svcsr%)
-DECLARE FUNCTION picksave% (svcsr%)
+DECLARE FUNCTION pickload%
+DECLARE FUNCTION picksave%
 DECLARE SUB equip (ptr%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
@@ -305,7 +305,7 @@ FUNCTION functiondone
 ' scrat(nowscript + 1, scrid) = -1
 'END IF
 
-'--if the finishing script is at the top of the script buffer, 
+'--if the finishing script is at the top of the script buffer,
 '--then nextscroff needs to be changed
 IF scrat(nowscript, scrsize) <> 0 THEN nextscroff = scrat(nowscript, scroff)
 
@@ -1028,9 +1028,9 @@ SELECT CASE id
     END IF
    END IF
   END IF
- CASE 62'--suspend random enemys
-  setbit gen(), 44, suspendrandomenemys, 1
-  '--resume random enemys is not here! it works different!
+ CASE 62,168'--suspend random enemies
+  setbit gen(), 44, suspendrandomenemies, 1
+  '--resume random enemies is not here! it works different!
  CASE 65'--resume overlay
   setbit gen(), 44, suspendoverlay, 0
  CASE 70'--room in active party
@@ -1304,7 +1304,7 @@ SELECT CASE id
   IF npcref >= 0 THEN npcl(npcref + 600) = 0
  CASE 165'--NPC at pixel
   scriptret = 0
-  found = 0 
+  found = 0
   FOR i = 0 TO 299
    IF npcl(i + 600) > 0 AND npcl(i) <= retvals(0) AND npcl(i) > (retvals(0) - 20) AND npcl(i + 300) <= retvals(1) AND npcl(i + 300) > (retvals(1) - 20) THEN
     IF found = retvals(2) THEN

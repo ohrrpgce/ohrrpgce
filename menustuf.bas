@@ -41,8 +41,8 @@ DECLARE SUB debug (s$)
 DECLARE SUB intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB itstr (i%)
 DECLARE SUB control ()
-DECLARE FUNCTION pickload% (svcsr%)
-DECLARE FUNCTION picksave% (svcsr%)
+DECLARE FUNCTION pickload% ()
+DECLARE FUNCTION picksave% ()
 DECLARE SUB equip (ptr%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
@@ -1240,9 +1240,11 @@ LOOP
 
 END SUB
 
-FUNCTION pickload (svcsr)
+FUNCTION pickload
 
 DIM full(3), loadname$(3), svtime$(3), mapname$(3), lev$(3), id(3, 3), tstat(3, 1, 16), pic(3, 3)
+
+svcsr = 0
 
 newgame$ = readglobalstring$(52, "New Game", 10)
 exitgame$ = readglobalstring$(53, "Exit", 10)
@@ -1352,9 +1354,17 @@ DO
   IF carray(3) > 1 THEN svcsr = -2
  END IF
  IF carray(4) > 1 THEN
-  IF svcsr < 0 THEN pickload = svcsr: clearpage 2: EXIT FUNCTION
+  IF svcsr < 0 THEN
+    pickload = svcsr
+    clearpage 2
+    EXIT FUNCTION
+  END IF
   IF svcsr >= 0 AND full(svcsr) = 1 THEN
-   pickload = svcsr: clearpage 2: EXIT FUNCTION
+    '--normal load of an existing save
+    pickload = svcsr
+    lastsaveslot = svcsr + 1
+    clearpage 2
+    EXIT FUNCTION
   END IF
  END IF
  GOSUB drawld
@@ -1399,9 +1409,12 @@ RETURN
 
 END FUNCTION
 
-FUNCTION picksave (svcsr)
+FUNCTION picksave
 
 DIM full(3), savename$(3), mapname$(3), svtime$(3), lev$(3), id(3, 3), tstat(3, 1, 16), pic(3, 3), menu$(1)
+
+svcsr = lastsaveslot - 1
+
 menu$(0) = readglobalstring$(44, "Yes", 10)
 menu$(1) = readglobalstring$(45, "No", 10)
 menuwidth = 8 * large(LEN(menu$(0)), LEN(menu$(1)))
@@ -1502,7 +1515,12 @@ DO
   IF svcsr >= 0 THEN
    deny = 0
    IF full(svcsr) = 1 THEN GOSUB confirm
-   IF deny = 0 THEN picksave = svcsr: EXIT DO
+   IF deny = 0 THEN
+     '--normal save in a slot
+     picksave = svcsr
+     lastsaveslot = svcsr + 1
+     EXIT DO
+   END IF
   END IF
  END IF
  GOSUB drawsv

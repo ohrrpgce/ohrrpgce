@@ -19,7 +19,5 @@ freelink.exe @game.%LINKEXT%
 freelink.exe @custom.%LINKEXT%
 del *.obj
 del freelink.exe
-del cver.txt
-del gver.txt
 grep "\^" compile.out
 echo.

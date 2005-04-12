@@ -103,14 +103,14 @@ DECLARE SUB heroswap (iAll%, stat%())
 DECLARE SUB patcharray (array%(), n$, max%)
 DECLARE SUB debug (s$)
 DECLARE SUB drawsay (saybit%(), sayenh%(), say$(), showsay%, choose$(), choosep%)
-DECLARE SUB shop (id%, needf%, stock%(), stat%(), svcsr%, map%, foep%, mx%, my%, scroll%(), gmap%(), tastuf%())
+DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, mx%, my%, scroll%(), gmap%(), tastuf%())
 DECLARE SUB minimap (scroll%(), mx%, my%, gmap%(), x%, y%, tastuf%())
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB itstr (i%)
 DECLARE SUB control ()
-DECLARE FUNCTION pickload% (svcsr%)
-DECLARE FUNCTION picksave% (svcsr%)
+DECLARE FUNCTION pickload% ()
+DECLARE FUNCTION picksave% ()
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock())
 DECLARE SUB loadgame (slot%, map%, foep%, stat%(), stock())
 DECLARE SUB equip (ptr%, stat%())
@@ -366,7 +366,7 @@ j = 0
 beginplay:
 
 initgamedefaults
-svcsr = 0: fatal = 0: abortg = 0
+lastsaveslot = 0: fatal = 0: abortg = 0
 foep = range(100, 60)
 map = gen(104)
 
@@ -377,7 +377,7 @@ releasestack
 setupstack astack(), 1024, workingdir$ + "\stack.tmp" + CHR$(0)
 
 GOSUB titlescr
-temp = pickload(svcsr)
+temp = pickload
 'DEBUG debug "picked save slot"+str$(temp)
 fademusic 0
 stopsong
@@ -560,8 +560,8 @@ DO
    IF keyval(78) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = STR$(speedcontrol)
   END IF
  END IF
- 'DEBUG debug "random enemys"
- IF foep = 0 AND readbit(gen(), 44, suspendrandomenemys) = 0 AND (veh(0) = 0 OR veh(11) > -1) THEN
+ 'DEBUG debug "random enemies"
+ IF foep = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (veh(0) = 0 OR veh(11) > -1) THEN
   temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
   IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
   IF temp > 0 THEN
@@ -764,7 +764,7 @@ DO
    END IF
   END IF
   IF mi(ptr) = 6 THEN
-   temp = picksave(svcsr)
+   temp = picksave
    IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
    GOSUB reloadnpc
   END IF
@@ -950,7 +950,7 @@ END IF
 IF istag(saytag(7), 0) THEN
  copypage vpage, 3
  IF saytag(8) > 0 THEN
-  shop saytag(8) - 1, needf, stock(), stat(), svcsr, map, foep, mx, my, scroll(), gmap(), tastuf()
+  shop saytag(8) - 1, needf, stock(), stat(), map, foep, mx, my, scroll(), gmap(), tastuf()
   GOSUB reloadnpc
  END IF
  inn = 0
@@ -1306,7 +1306,7 @@ IF movdivis(npcl(o + 1500)) OR movdivis(npcl(o + 1800)) THEN
   FOR i = 0 TO 299
    IF npcl(i + 600) > 0 AND o <> i THEN
     IF INT((npcl(i + 0) - bound(npcl(i + 1500), -20, 20)) / 20) = INT((npcl(o + 0) - bound(npcl(o + 1500), -20, 20)) / 20) AND INT((npcl(i + 300) - bound(npcl(i + 1800), -20, 20)) / 20) = INT((npcl(o + 300) - bound(npcl(o + 1800), -20, 20)) / 20)  _
-    THEN
+THEN
      npcl(o + 1500) = 0
      npcl(o + 1800) = 0
      GOSUB hitwall
@@ -2121,7 +2121,7 @@ SELECT CASE scrat(nowscript, curkind)
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 THEN
-     shop retvals(0), needf, stock(), stat(), svcsr, map, foep, mx, my, scroll(), gmap(), tastuf()
+     shop retvals(0), needf, stock(), stat(), map, foep, mx, my, scroll(), gmap(), tastuf()
      GOSUB reloadnpc
      vishero stat()
      loadpage game$ + ".til" + CHR$(0), gmap(0), 3
@@ -2176,8 +2176,8 @@ SELECT CASE scrat(nowscript, curkind)
     wantteleport = 1
     scrat(nowscript, curwaitarg) = 0
     scrat(nowscript, scrstate) = stwait
-   CASE 63'--resume random enemys
-    setbit gen(), 44, suspendrandomenemys, 0
+   CASE 63,169'--resume random enemies
+    setbit gen(), 44, suspendrandomenemies, 0
     foep = range(100, 60)
    CASE 64'--get hero stat
     scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(2), 0, 1), bound(retvals(1), 0, 13))
@@ -2324,13 +2324,19 @@ SELECT CASE scrat(nowscript, curkind)
      END IF
     END IF
    CASE 155'--save menu
-    scriptret = picksave(svcsr)
+    scriptret = picksave
     IF scriptret >= 0 THEN savegame scriptret, map, foep, stat(), stock()
     GOSUB reloadnpc
    CASE 157'--order menu
     heroswap 0, stat()
    CASE 158'--team menu
     heroswap 1, stat()
+   CASE 166'--save in slot
+    IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
+     savegame retvals(0) - 1, map, foep, stat(), stock()
+    END IF
+   CASE 167'--last save slot
+    scriptret = lastsaveslot
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript, curvalue)
     scriptmisc scrat(nowscript, curvalue)

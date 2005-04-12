@@ -646,7 +646,7 @@ EXIT SUB
 
 EnUpdateMenu:
 
-'--in case new enemys have been added
+'--in case new enemies have been added
 max(EnLimSpawn) = general(36) + 1
 
 '--in case the PicSize has changed

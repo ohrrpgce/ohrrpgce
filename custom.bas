@@ -1697,7 +1697,7 @@ IF NOT isfile(workingdir$ + "\attack.bin" + CHR$(0)) THEN
   storeset workingdir$ + "\attack.bin" + CHR$(0), i, 0
  NEXT i
  
- '--and while we are at it, clear the old death-string from enemys
+ '--and while we are at it, clear the old death-string from enemies
  printstr "Re-init recycled enemy data...", 0, 10, vpage
  setpicstuf buffer(), 320, -1
  FOR i = 0 TO general(36)
