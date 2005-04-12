@@ -1,7 +1,7 @@
 WHAT IS NEW?                                                   
 
 April ?? 2005 [quaternion]
-
+ 
   * GPL Licensed source code. See LICENSE.txt
 
   * Fixed misspellings of "enemies" as in plotscripting commands "suspend
