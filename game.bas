@@ -1,4 +1,3 @@
-DECLARE SUB innRestore (stat%())
 'OHRRPGCE GAME - Main module
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
@@ -7,6 +6,7 @@ DECLARE SUB innRestore (stat%())
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
+DECLARE SUB innRestore (stat%())
 DECLARE SUB exitprogram (needfade%)
 DECLARE SUB quitcleanup ()
 DECLARE SUB keyhandleroff ()
@@ -2318,9 +2318,12 @@ SELECT CASE scrat(nowscript, curkind)
       equip retvals(0), stat()
      END IF
     END IF
-   CASE 155'--save menu
-    scriptret = picksave
-    IF scriptret >= 0 THEN savegame scriptret, map, foep, stat(), stock()
+   CASE 155, 170'--save menu
+    'ID 155 is a backcompat hack
+    scriptret = picksave + 1
+    IF scriptret > 0 AND (retvals(0) OR scrat(nowscript, curvalue) = 155) THEN
+     savegame scriptret - 1, map, foep, stat(), stock()
+    END IF
     GOSUB reloadnpc
    CASE 157'--order menu
     heroswap 0, stat()

@@ -162,7 +162,7 @@ define function, begin
 152,spellsmenu,1,0          # display the spell menu for a hero
 153,itemsmenu,0             # display the items menu
 154,equipmenu,1,0           # display the equip menu for a hero
-155,savemenu,0              # display the save menu
+#155,savemenu,0             # obsolete in favor of ID 170
 157,ordermenu,0             # display the order menu
 158,teammenu,0              # display the team menu
 159,initmouse,0             # init mouse, return true if a mouse is installed
@@ -176,6 +176,7 @@ define function, begin
 167,lastsaveslot,0	    # returns the last save slot the game was saved in, false if unsaved
 168,suspendrandomenemies,0  # keeps random enemies from attacking
 169,resumerandomenemies,0   # undoes suspendrandomenemies
+170,savemenu,1,-1           # display the save menu
 end
 
 #--------------------------------------------------------------------------
@@ -190,6 +191,7 @@ autonumber,setNPCspeed,2,0,4        # set an NPC's walking speed
 autonumber,swapbyname,2,0,0         # make two named heros switch places
 autonumber,getherolevel,1,0         # return hero's current level
 autonumber,renamehero,1,0           # rename a hero (uses hero:name)
+autonumber,autosave,0               # automatically save in the most recent slot
 end
 
 script,walkherotoX,who,n,begin
@@ -233,6 +235,12 @@ end
 # that is not reccomended, as it does not update the hero's experience
 script,getherolevel,who,begin
   return(getherostat(who,12,currentstat))
+end
+
+script,autosave,begin
+if (lastsaveslot==0)
+  then(return(savemenu))
+  else(saveinslot(lastsaveslot),return(lastsaveslot))
 end
 
 #--------------------------------------------------------------------------

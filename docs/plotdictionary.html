@@ -1329,7 +1329,7 @@ Takes you directly to a hero's equip menu. Specify the hero using its position i
 <p>
 <tt>
 <b><font color="yellow">save menu</font></b><br>
-Takes you directly to the save menu. Will return a number 1-4 indicating the slot the player saved in, or <b>false</b> if the player did not save.<br>
+Takes you directly to the save menu. Will return a number 1-4 indicating the slot the player saved in, or <b>false</b> if the player did not save. You can optionally add an argument of <font color="yellow">(false)</font> to make the menu display without actually saving<br>
 <br>
 See also <a href="#about-autosave">autosave</a>
 </tt>
@@ -2875,6 +2875,7 @@ keys are disabled.
 <b><font color="yellow">autosave</font></b><br>
 Transparently saves the game to the last save slot used, or if the 
 game has not been saved yet, calls <a href="#about-savemenu">save menu</a>.<br>
+Returns the number of the last save slot, or if the user cancelled the save menu, returns false<br>
 See also <a href="#about-lastsaveslot">last save slot</a>
 </tt>
 </p>

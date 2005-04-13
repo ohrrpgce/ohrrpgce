@@ -1,7 +1,3 @@
-DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, mapwide%, maphigh%, wrapmode%)
-DECLARE SUB aheadxy (x%, y%, direction%, distance%)
-DECLARE SUB wrapxy (x%, y%, wide%, high%)
-DECLARE SUB loadSayToBuffer (say%)
 'OHRRPGCE GAME - More various unsorted routines
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
@@ -9,6 +5,10 @@ DECLARE SUB loadSayToBuffer (say%)
 '
 '$DYNAMIC
 DEFINT A-Z
+DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, mapwide%, maphigh%, wrapmode%)
+DECLARE SUB aheadxy (x%, y%, direction%, distance%)
+DECLARE SUB wrapxy (x%, y%, wide%, high%)
+DECLARE SUB loadSayToBuffer (say%)
 DECLARE SUB safekill (f$)
 DECLARE SUB touchfile (f$)
 DECLARE SUB keyhandleroff ()

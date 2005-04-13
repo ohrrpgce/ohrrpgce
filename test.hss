@@ -1,0 +1,334 @@
+include, plotscr.hsd
+include, scancode.hsi
+include, test.hsi
+
+define script(1,testing,none)
+define script(2,doortest,none)
+define script(3,mapautorun,none)
+define script(4,makesuseofretvals,none)
+define script(5,loader,none)
+define script(6,random battle,2,0,0)
+define script(7,each step,3,0,0,0)
+define script(8,key trigger,none)
+define script(9,reference dance,none)
+define script(10,use NPC test,none)
+define script(autonumber,sum of some stuff,none)
+define script(11,backdrop displayer,none)
+define script(12,swap def wep,none)
+define script(13,death stalks you at every turn,none)
+define script(14,box within script,none)
+define script(15,script within box,none)
+define script(16,another map while backdroped,none)
+define script(17,empty onkey,none)
+define script(18,keywaiter,none)
+define script(19,teachspelltest,none)
+define script(20,forgetspelltest,none)
+define script(21,writespelltest,none)
+define script(22,erasespelltest,none)
+define script(23,readspelltest,none)
+define script(24,canlearnspelltest,none)
+define script(25,heropositiontest,none)
+define script(26,scriptmenutest,none)
+
+# globals 0 to 4 are used
+global variable (1024,highval)
+
+script,makesuseofretvals,begin
+  show value (sum of some stuff)
+end
+
+script,sum of some stuff,begin
+  variable(a,b,c)
+  set variable(a,hero X(me))
+  set variable(b,hero direction(3))
+  set variable(c,minutes of play)
+  return(a+b+c)
+end
+
+script,testing,begin
+  variable (timer)
+  show text box (9) # Oh no! Its sinking!
+  set hero picture(0,1)
+  set hero palette(0,1)
+  set variable(timer,15)
+  set tag(6,ON)
+
+  while(timer>>0, and, check tag(6))
+  do, begin
+    show value (timer)
+    wait (18) # roughly 18 tics in a second
+    decrement(timer)
+  end
+
+  if (timer<=0)
+  then,begin
+    show text box(10)#ah! Its crumbling! we are dead!
+    wait for text box
+    game over
+  end
+
+  show no value
+
+  set hero picture(0,0)
+  set hero palette(0,0)
+  show text box(11)# yipee!
+
+end #of script testing
+
+#-----------------------------------------------------------------------
+
+script,doortest,begin
+  fight formation(1)
+  usedoor(3) 
+end
+
+#-----------------------------------------------------------------------
+
+script,map autorun,begin
+  highval:=random(4,6)
+  set hero palette(0,highval)
+  set hero palette(0,highval,inside battle)
+  show value(highval)
+end
+
+#-----------------------------------------------------------------------
+
+script,loader,begin
+  suspend NPCs
+  show value(random(-32000,32000))
+  show text box (13)
+  wait for text box
+  resume NPCs
+end
+
+#-----------------------------------------------------------------------
+
+script,random battle,form,set,begin
+  show value(form)
+  wait for key(any key)
+  greyscale palette
+  fight formation(form)
+  reset palette
+end
+
+#-----------------------------------------------------------------------
+
+script,each step,x,y,d,begin
+  show value(x*100+y)
+  variable(i)
+  for (i,1,3) do(
+    set hero direction(i,d)
+  )
+end
+
+#-----------------------------------------------------------------------
+
+script,key trigger,begin
+  if (key is pressed(key:S))
+     then (suspend overlay,show text box(14))
+  if (key is pressed(key:R))
+     then (resume overlay,show text box(15))
+  if (key is pressed(key:N))
+     then (rename hero by slot(pick hero))
+end
+
+#-----------------------------------------------------------------------
+
+script,reference dance,begin
+  variable(i,j)
+
+  for(i,0,4) do(
+    create NPC(1,6+i,1,random(0,3))
+    wait (1)
+  )
+  wait (5)
+
+  for(i,0,4) do(
+    write global(i,NPC reference(1,i))
+  )
+
+  for(i,0,4) do(
+    walk NPC(read global(i),south,2)
+    wait(3)
+  )
+
+  wait for all
+
+  for(j,1,20) do(
+    for(i,0,4) do(
+      set NPC direction(read global(i),(j,mod,4))
+      wait(1)
+    )
+  )
+
+
+end
+
+#-----------------------------------------------------------------------
+
+script,use NPC test,begin
+  use NPC (0)
+  show value(get hero level(0))
+end
+
+#-----------------------------------------------------------------------
+
+script, backdrop displayer, begin
+  show backdrop (random(0,4))
+end
+
+#-----------------------------------------------------------------------
+script, swap def wep, begin
+  if (get default weapon(0)==4),then(
+    set default weapon(0,6)
+  )else(
+    set default weapon(0,4)
+  )
+end
+
+#-----------------------------------------------------------------------
+
+script, death stalks you at every turn, begin
+  show text box(18)
+  wait for text box
+  game over
+end
+
+#-----------------------------------------------------------------------
+
+script,box within script,begin
+  walk hero(me,hero direction(me)+2,1)
+  show backdrop(5)
+  wait for key
+  show text box(19)
+  wait for text box
+  wait for key
+  show map
+end
+
+#-----------------------------------------------------------------------
+
+script,script within box,begin
+  walk hero(me,hero direction(me)+2,1)
+  suspend box advance
+  show text box(19)
+  wait for key
+  show backdrop(5)
+  wait for key
+  show map
+  resume box advance
+  wait for text box
+end
+
+#-----------------------------------------------------------------------
+
+script,another map while backdroped,begin
+  walk hero(me,hero direction(me)+2,1)
+  show backdrop(5)
+  wait for key
+  teleport to map (0,0,0)
+  wait for key
+  show map
+end
+
+#-----------------------------------------------------------------------
+
+script,empty onkey,begin
+  show value(2000)
+end
+
+#-----------------------------------------------------------------------
+
+script,keywaiter,begin
+  show value (1000)
+  wait for key
+  show value (1001)
+  wait for key
+  show value (1002)
+  wait for key
+  show value (1003)
+  wait for key
+  show value (1004)
+  wait for key
+end
+
+#-----------------------------------------------------------------------
+
+script,teachspelltest,begin
+  show text box (20)
+  show value(teach spell(3,atk:learnable))
+end
+
+script,forgetspelltest,begin
+  show text box (21)
+  show value(forget spell(3,atk:learnable))
+end
+
+script,writespelltest,begin
+  show text box (22)
+  show value(write spell(3,1,2,atk:unlearnab))
+end
+
+script,erasespelltest,begin
+  show text box (23)
+  show value(write spell(3,1,2,none))
+end
+
+script,readspelltest,begin
+  if (read spell(3,1,2)==atk:unlearnab) then(
+    show text box(24)
+  )else(
+    show text box(25)
+  )
+  show no value
+end
+
+script,canlearnspelltest,begin
+  if (can learn spell(3,atk:learnable)) then(
+    show text box(26)
+  )else(
+    if (knows spell(3,atk:learnable)) then(
+      show text box(28)
+    )else(
+      show text box(27)
+    )
+  )
+  show no value
+end
+
+#-----------------------------------------------------------------------
+
+script, heropositiontest, begin
+
+  show text box(29)
+  show value(hero by slot(0))
+  wait for text box
+  show no value
+
+  show text box(30)
+  show value(hero by rank(0))
+  wait for text box
+  show no value
+
+  show text box(31)
+  show value(hero by slot(1))
+  wait for text box
+  show no value
+
+  show text box(32)
+  show value(hero by rank(1))
+  wait for text box
+  show no value
+
+end
+
+#-----------------------------------------------------------------------
+
+script, script menu test, begin
+  variable(slot)
+  slot := save menu (false)
+  if (slot) then (
+    save in slot (slot)
+  )
+  wait(2) # make sure exit-keypress will not be re-read
+end
