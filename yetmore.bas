@@ -1,3 +1,6 @@
+DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, mapwide%, maphigh%, wrapmode%)
+DECLARE SUB aheadxy (x%, y%, direction%, distance%)
+DECLARE SUB wrapxy (x%, y%, wide%, high%)
 DECLARE SUB loadSayToBuffer (say%)
 'OHRRPGCE GAME - More various unsorted routines
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
@@ -449,6 +452,26 @@ END IF
 herobyrank = result
 END FUNCTION
 
+SUB herowrappass (whoi, x, y, xgo(), ygo(), mapwide, maphigh, wrapmode, veh())
+
+DIM pd(3)
+
+tilex = x: tiley = y
+p = readmapblock(tilex, tiley)
+
+FOR i = 0 TO 3
+ tilex = x: tiley = y
+ wrapaheadxy tilex, tiley, i, 1, mapwide, maphigh, wrapmode
+ pd(i) = readmapblock(tilex, tiley)
+NEXT i
+
+IF ygo(whoi) > 0 AND movdivis(ygo(whoi)) AND ((p AND 1) = 1 OR (pd(0) AND 4) = 4 OR (veh(0) AND vehpass(veh(18), pd(0), 0))) THEN ygo(whoi) = 0
+IF ygo(whoi) < 0 AND movdivis(ygo(whoi)) AND ((p AND 4) = 4 OR (pd(2) AND 1) = 1 OR (veh(0) AND vehpass(veh(18), pd(2), 0))) THEN ygo(whoi) = 0
+IF xgo(whoi) > 0 AND movdivis(xgo(whoi)) AND ((p AND 8) = 8 OR (pd(3) AND 2) = 2 OR (veh(0) AND vehpass(veh(18), pd(3), 0))) THEN xgo(whoi) = 0
+IF xgo(whoi) < 0 AND movdivis(xgo(whoi)) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (veh(0) AND vehpass(veh(18), pd(1), 0))) THEN xgo(whoi) = 0
+
+END SUB
+
 SUB initgame
 
 '--back compat game$
@@ -468,6 +491,17 @@ IF isfile(workingdir$ + "\archinym.lmp" + CHR$(0)) THEN
  CLOSE #fh
  IF LEN(a$) <= 8 THEN game$ = workingdir$ + "\" + a$
 END IF
+END SUB
+
+SUB interpolatecat
+'given the current positions of the caterpillar party, interpolate their inbetween frames
+FOR o = 0 TO 10 STEP 5
+ FOR i = o + 1 TO o + 4
+  catx(i) = catx(i - 1) + ((catx(o + 5) - catx(o)) / 4)
+  caty(i) = caty(i - 1) + ((caty(o + 5) - caty(o)) / 4)
+  catd(i) = catd(o)
+ NEXT i
+NEXT o
 END SUB
 
 SUB keyhandleroff
@@ -1028,7 +1062,7 @@ SELECT CASE id
     END IF
    END IF
   END IF
- CASE 62,168'--suspend random enemies
+ CASE 62, 168'--suspend random enemies
   setbit gen(), 44, suspendrandomenemies, 1
   '--resume random enemies is not here! it works different!
  CASE 65'--resume overlay
@@ -1645,6 +1679,17 @@ FOR i = o TO 3
 NEXT i
 END SUB
 
+SUB wrapaheadxy (x, y, direction, distance, mapwide, maphigh, wrapmode)
+'alters X and Y ahead by distance in direction, wrapping if neccisary
+
+aheadxy x, y, direction, distance
+
+IF wrapmode THEN
+ wrapxy x, y, mapwide, maphigh
+END IF
+
+END SUB
+
 SUB wrappedsong (songnumber)
 
 IF songnumber <> presentsong THEN
@@ -1654,5 +1699,13 @@ ELSE
  resumesong
 END IF
 
+END SUB
+
+SUB wrapxy (x, y, wide, high)
+'--wraps the given X and Y values within the bounds of width and height
+IF x < 0 THEN x = wide + x
+IF x >= wide THEN x = x - wide
+IF y < 0 THEN y = high + y
+IF y >= high THEN y = y - high
 END SUB
 

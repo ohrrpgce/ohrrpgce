@@ -1,3 +1,4 @@
+DECLARE SUB innRestore (stat%())
 'OHRRPGCE GAME - Various unsorted routines
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
@@ -2181,13 +2182,7 @@ DO
    inn = 0
    IF shoption(inn, storebuf(18), needf, stat()) THEN
     IF inn = 0 THEN
-     FOR i = 0 TO 3
-      IF hero(i) > 0 THEN
-       stat(i, 0, 0) = stat(i, 1, 0)
-       stat(i, 0, 1) = stat(i, 1, 1)
-       resetlmp i, stat(i, 0, 12)
-      END IF
-     NEXT i
+     innRestore stat()
     END IF
     IF storebuf(19) > 0 THEN
      '--Run animation for Inn

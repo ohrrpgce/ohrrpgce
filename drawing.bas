@@ -184,9 +184,9 @@ DO
   IF csr = 1 THEN
    bit$(0) = "Pause on Battle Menus"
    bit$(1) = "Enable Caterpillar Party"
-   bit$(2) = "Dont Restore HP on Levelup"
-   bit$(3) = "Dont Restore MP on Levelup"
-   bit$(4) = "Inns Dont Revive Dead Heros"
+   bit$(2) = "Don't Restore HP on Levelup"
+   bit$(3) = "Don't Restore MP on Levelup"
+   bit$(4) = "Inns Don't Revive Dead Heroes"
    bit$(5) = "Hero Swapping Always Available"
    bit$(6) = "Hide Ready-meter in Battle"
    bit$(7) = "Hide Health-meter in Battle"

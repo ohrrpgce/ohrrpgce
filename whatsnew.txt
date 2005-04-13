@@ -4,6 +4,8 @@ April ?? 2005 [quaternion]
  
   * GPL Licensed source code. See LICENSE.txt
 
+  * "Inns don't revive dead heroes" bitset now works on all Inns (bug 23)
+
   * "Level up for (hero)" and "(#) levels for (hero)" battle text is now
     customizable (bug 46)
 
