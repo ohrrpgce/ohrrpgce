@@ -11,6 +11,7 @@ call callbc.bat custom
 call callbc.bat drawing
 call callbc.bat subs
 call callbc.bat subs2
+call callbc.bat subs3
 call callbc.bat mapsubs
 call callbc.bat flexmenu
 support\pkunzip.exe -o support\nocom.zip nocom.obj > NUL

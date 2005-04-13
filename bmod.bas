@@ -102,6 +102,8 @@ expcap$ = readglobalstring$(126, "Gained", 10)
 foundcap$ = readglobalstring$(139, "Found a", 20)
 foundpcap$ = readglobalstring$(141, "Found", 20)
 cannotrun$ = readglobalstring$(147, "CANNOT RUN!", 20)
+level1up$ = readglobalstring$(149, "Level up for", 20)
+levelXup$ = readglobalstring$(151, "levels for", 20)
 
 battlecaptime = 0
 battlecapdelay = 0
@@ -1984,10 +1986,12 @@ IF vdance = 2 THEN
   IF o = 0 AND exstat(i, 1, 12) THEN centerfuz 160, 30, 280, 50, 1, dpage
   SELECT CASE exstat(i, 1, 12)
    CASE 1
-    edgeprint "Level up for " + batname$(i) + "!", xstring("Level up for " + batname$(i) + "!", 160), 12 + i * 10, 15, dpage
+    temp$ = level1up$ + " " + batname$(i)
+    edgeprint temp$, xstring(temp$, 160), 12 + i * 10, 15, dpage
     o = 1
    CASE IS > 1
-    edgeprint STR$(exstat(i, 1, 12)) + " levels for " + batname$(i) + "!", xstring(STR$(exstat(i, 1, 12)) + "levels for " + batname$(i) + "!", 160), 12 + i * 10, 15, dpage
+    temp$ = LTRIM$(STR$(exstat(i, 1, 12))) + " " + levelXup$ + " " + batname$(i)
+    edgeprint temp$, xstring(temp$, 160), 12 + i * 10, 15, dpage
     o = 1
   END SELECT
  NEXT i

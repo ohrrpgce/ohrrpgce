@@ -473,12 +473,6 @@ NEXT i
 
 END SUB
 
-SUB debug (s$)
-OPEN "c_debug.txt" FOR APPEND AS #3
-PRINT #3, s$
-CLOSE #3
-END SUB
-
 SUB drawmini (high, wide, cursor(), page, tastuf())
 
 clearpage vpage
@@ -495,30 +489,6 @@ FOR i = 0 TO high
 NEXT i
 
 END SUB
-
-FUNCTION exclude$ (s$, x$)
-out$ = ""
-FOR i = 1 TO LEN(s$)
- ok = -1
- FOR j = 1 TO LEN(x$)
-  IF MID$(s$, i, 1) = MID$(x$, j, 1) THEN ok = 0
- NEXT j
- IF ok THEN out$ = out$ + MID$(s$, i, 1)
-NEXT i
-exclude$ = out$
-END FUNCTION
-
-FUNCTION exclusive$ (s$, x$)
-out$ = ""
-FOR i = 1 TO LEN(s$)
- ok = 0
- FOR j = 1 TO LEN(x$)
-  IF MID$(s$, i, 1) = MID$(x$, j, 1) THEN ok = 1
- NEXT j
- IF ok THEN out$ = out$ + MID$(s$, i, 1)
-NEXT i
-exclusive$ = out$
-END FUNCTION
 
 SUB exportnames (gamedir$, gen(), song$())
 
@@ -651,50 +621,6 @@ IF w = 1 THEN
 END IF
 
 END SUB
-
-SUB flusharray (array(), size, value)
-FOR i = 0 TO size
- array(i) = value
-NEXT i
-END SUB
-
-FUNCTION getLongName$ (filename$)
-'--given a filename, returns its longname.
-'  it will always return the filename only, without the path
-'  even though it can accept a fully qualified filename as input
-
-'--has a bug that prevents it from returning files that are longer
-'  than 260 chars including pathname
-
-failed = 0
-result$ = ""
-length = LongNameLength(filename$ + CHR$(0))
-IF length = -1 THEN
- '--failed to get any name at all
- failed = -1
-ELSE
- a$ = STRING$(length, 0)
- getstring a$
- FOR i = LEN(a$) TO 1 STEP -1
-  IF MID$(a$, i, 1) = "\" OR MID$(a$, i, 1) = ":" THEN EXIT FOR
-  IF MID$(a$, i, 1) <> CHR$(0) THEN
-   result$ = MID$(a$, i, 1) + result$
-  END IF
- NEXT i
- IF result$ = "" THEN
-  '--never return a null result!
-  failed = -1
- END IF
-END IF
-IF failed THEN
- '--failed, return input (minus path)
- FOR i = LEN(filename$) TO 1 STEP -1
-  IF MID$(filename$, i, 1) = "\" OR MID$(filename$, i, 1) = ":" THEN EXIT FOR
-  result$ = MID$(filename$, i, 1) + result$
- NEXT i
-END IF
-getLongName$ = result$
-END FUNCTION
 
 FUNCTION getmapname$ (m)
 setpicstuf buffer(), 80, -1
@@ -848,74 +774,12 @@ NEXT i
 loadname$ = a$
 END FUNCTION
 
-FUNCTION numbertail$ (s$)
-
-DIM n AS LONG
-
-IF s$ = "" THEN
- out$ = "BLANK"
-ELSE
- a = ASC(RIGHT$(s$, 1))
- IF a < 48 OR a > 57 THEN
-  out$ = s$ + "2"
- ELSE
-  a$ = s$
-  b$ = ""
-  DO WHILE ASC(RIGHT$(a$, 1)) >= 48 AND ASC(RIGHT$(a$, 1)) <= 57
-   b$ = RIGHT$(a$, 1) + b$
-   a$ = LEFT$(a$, LEN(a$) - 1)
-   IF LEN(a$) = 0 THEN EXIT DO
-  LOOP
-  IF LEN(b$) > 9 THEN b$ = "0"
-  n = VAL(b$)
-  n = n + 1
-  out$ = a$ + LTRIM$(STR$(n))
- END IF
-END IF
-
-numbertail$ = out$
-
-END FUNCTION
-
 FUNCTION onoroff$ (n)
 IF SGN(n) + 1 THEN
  onoroff$ = "ON"
 ELSE
  onoroff$ = "OFF"
 END IF
-END FUNCTION
-
-FUNCTION readglobalstring$ (index, default$, maxlen)
-
-fh = FREEFILE
-OPEN game$ + ".stt" FOR BINARY AS #fh
-
-a$ = CHR$(0)
-GET #fh, 1 + index * 11, a$
-namelen = 0: IF a$ <> "" THEN namelen = ASC(a$)
-
-IF index * 11 + i > LOF(fh) THEN
- result$ = default$
-ELSE
- result$ = STRING$(small(namelen, maxlen), CHR$(0))
- GET #fh, 2 + index * 11, result$
-END IF
-
-CLOSE #fh
-
-readglobalstring = result$
-END FUNCTION
-
-FUNCTION rotascii$ (s$, o)
-
-temp$ = ""
-
-FOR i = 1 TO LEN(s$)
- temp$ = temp$ + CHR$(loopvar(ASC(MID$(s$, i, 1)), 0, 255, o))
-NEXT i
-
-rotascii$ = temp$
-
 END FUNCTION
 
 SUB scriptman (gamedir$, general(), song$())
@@ -1059,8 +923,8 @@ NEXT i
 END SUB
 
 SUB statname (general())
-DIM stat$(113), name$(113), maxlen(113)
-max = 113
+DIM stat$(115), name$(115), maxlen(115)
+max = 115
 clearpage 0
 clearpage 1
 
@@ -1069,7 +933,7 @@ getnames stat$(), 32 '--undefaulted
 
 FOR i = 0 TO max
  SELECT CASE i
-  CASE 55, 74 TO 76, 78, 80 TO 86, 88 TO 92, 97 TO 98, 106 TO 113
+  CASE 55, 74 TO 76, 78, 80 TO 86, 88 TO 92, 97 TO 98, 106 TO 115
    maxlen(i) = 20
   CASE 39, 40
    maxlen(i) = 8
@@ -1181,6 +1045,8 @@ name$(110) = "Found (number) (items)": stat$(110) = readglobalstring$(141, "Foun
 name$(111) = "THE INN COSTS (# gold)": stat$(111) = readglobalstring$(143, "THE INN COSTS", 20)
 name$(112) = "You have (# gold)":      stat$(112) = readglobalstring$(145, "You have", 20)
 name$(113) = "CANNOT RUN!":            stat$(113) = readglobalstring$(147, "CANNOT RUN!", 20)
+name$(114) = "Level up for (hero)":    stat$(114) = readglobalstring$(149, "Level up for", 20)
+name$(115) = "(#) levels for (hero)":  stat$(115) = readglobalstring$(151, "levels for", 20)
 
 'name$() = "":      stat$() = readglobalstring$(, "", 10)
 
@@ -1906,24 +1772,6 @@ END IF
 
 END SUB
 
-FUNCTION unlumpone (lumpfile$, onelump$, asfile$)
-unlumpone = 0
-
-IF NOT isdir("unlump1.tmp" + CHR$(0)) THEN MKDIR "unlump1.tmp"
-CALL unlump(lumpfile$ + CHR$(0), "unlump1.tmp\", buffer())
-
-IF isfile("unlump1.tmp\" + onelump$ + CHR$(0)) THEN
- copyfile "unlump1.tmp\" + onelump$ + CHR$(0), asfile$ + CHR$(0), buffer()
- unlumpone = -1
-END IF
-
-touchfile "unlump1.tmp\nothing.tmp"
-
-KILL "unlump1.tmp\*.*"
-RMDIR "unlump1.tmp"
-
-END FUNCTION
-
 FUNCTION usemenu (ptr, top, first, last, size)
 
 oldptr = ptr
@@ -2154,21 +2002,6 @@ IF a$ <> "" THEN
  a$ = LTRIM$(STR$(num)) + "," + prefix$ + ":" + a$
  PRINT #filehandle, a$
 END IF
-END SUB
-
-SUB writeglobalstring (index, s$, maxlen)
-
-fh = FREEFILE
-
-OPEN game$ + ".stt" FOR BINARY AS #fh
-
-a$ = CHR$(small(LEN(s$), small(maxlen, 255)))
-PUT #fh, 1 + index * 11, a$
-a$ = LEFT$(s$, small(maxlen, 255))
-PUT #fh, 2 + index * 11, a$
-
-CLOSE #fh
-
 END SUB
 
 SUB xbload (f$, array(), e$)
