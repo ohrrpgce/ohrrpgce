@@ -4,6 +4,9 @@ April ?? 2005 [quaternion]
  
   * GPL Licensed source code. See LICENSE.txt
 
+  * "Level up for (hero)" and "(#) levels for (hero)" battle text is now
+    customizable (bug 46)
+
   * Fixed misspellings of "enemies" as in plotscripting commands "suspend
     random enemies" and "resume random enemies" (Misspelled versions
     still work for backwards compatability)
