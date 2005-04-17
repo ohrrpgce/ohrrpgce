@@ -224,6 +224,8 @@ script, check for victory, begin
     wait for key
     advance text box
     resume box advance
+    auto save
+    wait (1)
     fade screen out
     stop song
     load next map

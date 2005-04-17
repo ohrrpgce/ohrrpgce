@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- Wandering Hamster O.H.R.RPG.C.E Demo        (June 28 2004)
+ Wandering Hamster O.H.R.RPG.C.E Demo        (April ?? 2005)
 ------------------------------------------------------------
 
 This is a Work-in-Progress demo of Wandering Hamster. This version
@@ -9,14 +9,12 @@ contains roughly three hours of playing time
 
 NEW IN THIS RELEASE
 
-   * Updated WANDER.EXE
+   * Updated WANDER.EXE (GPL)
    * No new game content this time, sorry!
 
 RECENT CHANGES
 
-   * Added a missing plotscript to make Dusty leave your
-     party eventually if you do not take him home when he asks.
-   * A really spiffy new intro when you start a new game
+   * Nothing new in ages, sorry :(
 
 
 ---
