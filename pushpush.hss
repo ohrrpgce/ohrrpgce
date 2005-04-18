@@ -13,12 +13,15 @@ define script(autonumber,reload current map,none)
 define script(autonumber,set starting point,none)
 define script(autonumber,build box list,none)
 define script(autonumber,check for victory,none)
+define script(autonumber,save progress,none)
 #---------------------------------------------------------------------
 global variable(0,allow play)
 global variable(1,steps)
 global variable(2,cheater)
 global variable(3,boxes)
-define constant(4,box)
+global variable(4,save)
+#---------------------------------------------------------------------
+define constant(5,box)
 define constant(31,max map width)
 define constant(19,max map height)
 define constant(2,song offset)
@@ -224,11 +227,17 @@ script, check for victory, begin
     wait for key
     advance text box
     resume box advance
-    auto save
+    save progress
     wait (1)
     fade screen out
     stop song
     load next map
+  )
+end
+#---------------------------------------------------------------------
+script, save progress, begin
+  if (save >= 0) then (
+    if (autosave) else (save := -1)
   )
 end
 #---------------------------------------------------------------------
