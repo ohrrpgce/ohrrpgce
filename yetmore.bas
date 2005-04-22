@@ -95,6 +95,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
+DECLARE FUNCTION checksaveslot (slot%)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
@@ -1201,7 +1202,41 @@ SELECT CASE id
   IF hero(retvals(0)) > 0 THEN
    renamehero retvals(0)
   END IF
-  
+ CASE 171'--saveslotused
+  IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
+   IF checksaveslot(retvals(0)) THEN scriptret = 1
+  END IF
+ CASE 172'--importglobals
+  IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 AND retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
+   sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
+   setpicstuf buffer(), 30000, -1
+   loadset sg$ + CHR$(0), retvals(0) * 2 - 1, 0
+   FOR i = retvals(1) TO retvals(2)
+    global(i) = buffer(i + 5013)
+   NEXT i
+  END IF
+ CASE 173'--exportglobals
+  IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 AND retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
+   setpicstuf buffer(), 30000, -1
+   sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
+   loadset sg$ + CHR$(0), retvals(0) * 2 - 1, 0
+   FOR i = retvals(1) TO retvals(2)
+    buffer(i + 5013) = global(i)
+   NEXT i
+   storeset sg$ + CHR$(0), retvals(0) * 2 - 1, 0
+  END IF
+ CASE 175'--deletesave
+  IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
+   IF checksaveslot(retvals(0)) THEN
+    sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
+    savh = FREEFILE
+    OPEN sg$ FOR BINARY AS savh
+    savver = 0
+    PUT savh, 1 + 60000 * (retvals(0) - 1), savver
+    CLOSE savh
+   END IF
+  END IF
+
 END SELECT
 
 EXIT SUB
@@ -1212,6 +1247,14 @@ scrat(nowscript, scrstate) = stwait
 RETURN
 
 END SUB
+
+FUNCTION checksaveslot (slot)
+  sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
+  savh = FREEFILE
+  OPEN sg$ FOR BINARY AS savh
+  GET savh, 1 + 60000 * (slot - 1), checksaveslot
+  CLOSE savh
+END FUNCTION
 
 SUB scriptnpc (id)
 

@@ -13,8 +13,10 @@ April ?? 2005 [quaternion]
     random enemies" and "resume random enemies" (Misspelled versions
     still work for backwards compatability)
 
-  * New plotscripting commands: save in slot, last save slot, auto save.
-    Thanks to Yuriy (Draknight) and Ralph Versteegen (TeeEmCee)
+  * New plotscripting commands: save in slot, last save slot, auto save,
+    save slot used, import globals, export globals, load from slot,
+    delete save. Thanks to Ysoft-entertainment and Ralph Versteegen
+    (TeeEmCee)
 
   * It is now possible to display the save menu without actually saving
     using "save menu (false)"

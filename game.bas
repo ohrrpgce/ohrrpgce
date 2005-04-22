@@ -137,6 +137,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
+DECLARE FUNCTION checksaveslot (slot%)
 
 '---INCLUDE FILES---
 '$INCLUDE: 'allmodex.bi'
@@ -501,13 +502,10 @@ DO
    IF keyval(59) > 1 AND showsay = 0 THEN minimap scroll(), mx, my, gmap(), catx(0), caty(0), tastuf()
   END IF
   IF keyval(60) > 1 AND showsay = 0 THEN
-   savegame 4, map, foep, stat(), stock()
+   savegame 32, map, foep, stat(), stock()
   END IF
   IF keyval(61) > 1 AND showsay = 0 THEN
-   temp = 4
-   GOSUB doloadgame
-   ERASE scroll, pass
-   GOSUB preparemap
+   wantloadgame = 33
   END IF
   IF keyval(62) > 1 THEN showtags = showtags XOR 1
   IF keyval(63) > 1 THEN
@@ -560,6 +558,24 @@ DO
    IF keyval(74) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = STR$(speedcontrol)
    IF keyval(78) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = STR$(speedcontrol)
   END IF
+ END IF
+ IF wantloadgame > 0 THEN
+  'DEBUG debug "loading game slot" + STR$(wantloadgame - 1)
+  temp = wantloadgame - 1
+  wantloadgame = 0
+  resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
+  initgamedefaults
+  nowscript = -1
+  nextscroff = 0
+  releasestack
+  setupstack astack(), 1024, workingdir$ + "\stack.tmp" + CHR$(0)
+  fademusic 0
+  stopsong
+  fadeout 0, 0, 0, -1
+  needf = 1: ng = 1
+  GOSUB doloadgame
+  ERASE scroll, pass
+  GOSUB preparemap
  END IF
  'DEBUG debug "random enemies"
  IF foep = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (veh(0) = 0 OR veh(11) > -1) THEN
@@ -2335,6 +2351,13 @@ SELECT CASE scrat(nowscript, curkind)
     END IF
    CASE 167'--last save slot
     scriptret = lastsaveslot
+   CASE 174'--loadfromslot
+    IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
+     IF checksaveslot(retvals(0)) = 3 THEN
+      wantloadgame = retvals(0)
+      scrat(nowscript, scrstate) = stwait
+     END IF
+    END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript, curvalue)
     scriptmisc scrat(nowscript, curvalue)

@@ -26,7 +26,7 @@
 <font size="3">Dictionary of Commands</font><br>
 
 <p>
-This is a listing of all the plotscripting commands implemented as of April 2 
+This is a listing of all the plotscripting commands implemented as of April 22 
 2005.
 </p>
 <p>
@@ -97,10 +97,12 @@ Alphabetical Index
 <a href="#about-definescript">define script (id,name,aruments)</a><br>
 <a href="#about-deletehero">delete hero (who)</a><br>
 <a href="#about-deleteitem">delete item (item,number)</a><br>
+<a href="#about-deletesave">delete save (slot)</a><br>
 <a href="#about-destroynpc">destroy NPC (reference)</a><br>
 <a href="#about-dismountvehicle">dismount vehicle</a><br>
 <a href="#about-equipmenu">equip menu (who)</a><br>
 <a href="#about-equipwhere">equip where (hero,item)</a><br>
+<a href="#about-exportglobals">export globals (slot,first,last)</a><br>
 <a href="#about-fadescreenin">fade screen in</a><br>
 <a href="#about-fadescreenout">fade screen out (red,green,blue)</a><br>
 <a href="#about-fightformation">fight formation (number)</a><br>
@@ -134,6 +136,7 @@ Alphabetical Index
 <a href="#about-hidebattlereadymeter">hide battle ready meter (state)</a><br>
 <a href="#about-hoursofplay">hours of play</a><br>
 <a href="#about-if">if(condition) then(commands) else(commands)</a><br>
+<a href="#about-importglobals">import globals (slot,first,last)</a><br>
 <a href="#about-include">include, filename</a><br>
 <a href="#about-increment">increment (variable,amount)</a><br>
 <a href="#about-initmouse">init mouse</a><br>
@@ -143,6 +146,7 @@ Alphabetical Index
 <a href="#about-knowsspell">knows spell (hero,attack)</a><br>
 <a href="#about-leader">leader</a><br>
 <a href="#about-lastsaveslot">last save slot</a><br>
+<a href="#about-loadfromslot">load from slot (slot)</a><br>
 <a href="#about-loadtileset">load tileset (set)</a><br>
 <a href="#about-lockhero">lock hero (who)</a><br>
 <a href="#about-losemoney">lose money (amount)</a><br>
@@ -207,6 +211,7 @@ Alphabetical Index
 <a href="#about-roominactiveparty">room in active party</a><br>
 <a href="#about-savemenu">save menu</a><br>
 <a href="#about-saveinslot">save in slot (slot)</a><br>
+<a href="#about-saveslotused">save slot used (slot)</a><br>
 <a href="#about-script">script,name (statements)</a><br>
 <a href="#about-setbattlewaitmode">set battle wait mode (state)</a><br>
 <a href="#about-setcaterpillarmode">set caterpillar mode (state)</a><br>
@@ -2148,9 +2153,18 @@ argument is the hero's position in the party as returned by <a href="#about-find
 <a name="about-lastsaveslot"></a>
 <p>
 <tt>
-<b><font color="yellow">last save slot</font></b><br>Pops up
+<b><font color="yellow">last save slot</font></b><br>
 Returns the last save slot saved in, or false if the game has not been saved yet.
 See also <a href="#about-saveinslot">save in slot</a> and <a href="#about-savemenu">save menu</a>.
+</tt>
+</p>
+
+<a name="about-saveslotused"></a>
+<p>
+<tt>
+<b><font color="yellow">save slot used (slot)</font></b><br>
+Returns whether a game has been saved in the save slot. Use if you, for example, don't want to overwrite a saved game with
+<a href="#about-saveinslot">save in slot</a>.
 </tt>
 </p>
 
@@ -2884,7 +2898,83 @@ See also <a href="#about-lastsaveslot">last save slot</a>
 <p>
 <tt>
 <b><font color="yellow">save in slot (slot)</font></b><br>
-Saves in the specified save slot (1 to 4). To display the save game menu instead, see <a href="#about-savemenu">save menu</a>.
+Saves in the specified save slot (1 to 32, where only 1 to 4 are visible on the save and load menus). If a saved game already exists in the slot, it will be overwritten. If you want to make sure that no save game will be overwritten, use <a href="#about-saveslotused">save slot used</a>. To display the save game menu instead, see <a href="#about-savemenu">save menu</a>.
+</tt>
+</p>
+
+<a name="about-loadfromslot"></a>
+<p>
+<tt>
+<b><font color="yellow">load from slot (slot)</font></b><br>
+Loads a saved game from a save slot as if it had been loaded from the load game menu. This command will 
+end the current game.
+</tt>
+</p>
+
+<a name="about-deletesave"></a>
+<p>
+<tt>
+<b><font color="yellow">delete save (slot)</font></b><br>
+Deletes a saved game. The save will no longer be visible on the load game menu or loadable with 
+<a href="#about-loadfromslot">load from slot</a>.
+However, <a href="#about-importglobals">import globals</a> can still be used to read globals out of the slot.
+See also <a href="#about-saveinslot">save in slot</a>. 
+</tt>
+</p>
+
+<a name="about-importglobals"></a>
+<p>
+<tt>
+<b><font color="yellow">import globals (slot, first, last)</font></b><br>
+Loads a range of globals from a saved game, overwriting the current globals in that range. 
+"First" and "Last" are the id numbers of the globals at the beginning and end of the range.  </tt></span><tt><span
+style='font-size:10.0pt;color:yellow'>import globals (slot)</span></tt><tt><span
+style='font-size:10.0pt'> is equivalent to </tt></span><tt><span
+style='font-size:10.0pt;color:yellow'>import globals (slot,0,1024)</span></tt><tt><span
+style='font-size:10.0pt'> and will copy all globals. 
+<b>import globals</b> and <b>export globals</b> can be used to save and retrieve info about a saved game without loading it, and also to store variables that any game the player starts can use, like in the following example:
+</tt>
+</p><pre class="hss"><tt>define script (21, game finished, none)
+
+define script (22, check game finished, none)
+
+global variable (100, game completed)
+global variable (101, hours to complete)
+global variable (102, minutes to complete)
+
+script, game finished, begin
+  game complete := true
+  hours to complete := hours of play
+  minutes to complete := minutes of play
+  export globals (5, 100, 102) #special slot that the player can not load, which we can use for anything
+end
+
+script, check game finished, begin
+  import globals (5, 100, 102) #copy saved values into globals 100, 101, 102
+  if (game completed) then (
+    show textbox (105) #"you have previously finished this game in ${V101} hours and ${V102} minutes"
+  ) else (
+    show textbox (106) #"you have yet to complete the game!"
+  )
+  wait for textbox
+end
+</tt></pre>
+<p><tt>See also <a href="#about-readglobal">read global</a> and <a
+href="#about-exportglobals">export globals</a>.</tt></p>
+
+
+<a name="about-exportglobals"></a>
+<p>
+<tt>
+<b><font color="yellow">export globals (slot, first, last)</font></b><br>
+Writes a range of globals to a saved game, overwriting the saved games globals. 
+"First" and "Last" are the id numbers of the globals at the beginning and end of the range.  
+</tt></span><tt><span
+style='font-size:10.0pt;color:yellow'>export globals (slot)</span></tt><tt><span
+style='font-size:10.0pt'> is equivalent to </tt></span><tt><span
+style='font-size:10.0pt;color:yellow'>export globals (slot,0,1024)</span></tt><tt><span
+style='font-size:10.0pt'> and will write all globals to the save. See also <a href="#about-writeglobal">write global</a> and <a
+href="#about-importglobals">import globals</a>.
 </tt>
 </p>
 
