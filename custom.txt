@@ -1,51 +1,36 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Editor                 (June 28 2004 ozarks)
+ O.H.R.RPG.C.E Editor              (May xx 2005 quaternion)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
 ---
 
-To get started, read http://HamsterRepublic.com/ohrrpgce/howto.html or
-the included HOWTO.TXT file
+To get started, read http://HamsterRepublic.com/ohrrpgce/wiki.php
 
 ---
 
 Please see WHATSNEW.TXT for revision information.
 
 ---
-This is a TESTING distribution of the O.H.R.RPG.C.E.
+DISTRIBUTION
+
+The OHRRPGCE is free software under the terms of the GPL
+Please read LICENSE.txt for more information. Visit
+http://HamsterRepublic.com/ohrrpgce/source.php to download
+the source code.
 
 Any .RPG files you create are yours to distribute as you please.
-You may freely distribute GAME.EXE, with your .RPG files. No other
-files are needed for people to play your RPG files
-
-To learn how to use the OHRRPGCE, please read HOWTO.TXT or visit
-http://HamsterRepublic.com/ohrrpgce/howto.html
+You may freely distribute GAME.EXE, with your .RPG files provided
+that you include a copy of LICENSE-binary.txt so that people will
+know where to get the source code. No other files are needed for
+people to play your RPG files
 
 If you have questions, read the FAQ at
-http://HamsterRepublic.com/ohrrpgce/rpgfaq.html
+http://HamsterRepublic.com/ohrrpgce/wiki.php
 
 ---
-PLAYTESTING INFO
 
-This is a testing demo of the O.H.R.RPG.C.E Editor, so as a playtester you
-are expected to report any bugs you find to us. Please note that the editor
-is still under construction, so not all features work yet.
-
-  Report bugs to:      Hamster Republic<ohrrpgce@HamsterRepublic.com>
-
-  Send suggestions to: Hamster Republic<suggestionbox@HamsterRepublic.com>
-                       (suggestions will be read, but not replied to)
-
-And visit:   http://HamsterRepublic.com
-For downloads of the latest copy of the demo.
-
----
-DISTRIBUTION INFO
-
-Feel free to share this program with your friends, but please do not
-mass-distribute it without permission (for example, do not upload it
-to your website, or include it in a CD collection)
+Report bugs at: http://HamsterRepublic.com/ohrrpgce/buglist.php
 
 ---
 MUSIC UTILITIES
@@ -60,7 +45,7 @@ use for free if you do not want to compose your own music. Please read
 MUSIC.TXT for more info on the songs.
 
 ---
-Spiffy, Spiffy! Enjoy the editor. We look forward to your input.
+Spiffy, Spiffy! Enjoy the editor.
 
                                             James `SPAM Man' Paige
                                             Hamster Republic Productions
