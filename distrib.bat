@@ -22,9 +22,6 @@ copy plotscr.hsd tmp
 copy scancode.hsi tmp
 copy game.ico tmp
 copy custom.ico tmp
-copy hamsterspeak.html tmp
-copy plotscripttutor.html tmp
-copy plotdictionary.html tmp
 
 del distrib\custom.zip
 
@@ -32,4 +29,5 @@ cd tmp
 ..\support\pkzip ..\distrib\custom.zip *.*
 cd ..
 support\pkzip -p -r distrib\custom.zip import
+support\pkzip -p -r distrib\custom.zip docs
 
