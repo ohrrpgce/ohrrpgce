@@ -669,7 +669,9 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
  setanim tastuf(0) + cycle(0), tastuf(20) + cycle(1)
  cycletile cycle(), tastuf(), cycptr(), cycskip()
  'DEBUG debug "drawmap"
- drawmap mapx, mapy, 0, dpage
+ overlay = 1
+ IF readbit(gen(), 44, suspendoverlay) THEN overlay = 0
+ drawmap mapx, mapy, overlay, dpage
  'DEBUG debug "draw npcs and heroes"
  IF gmap(16) = 1 THEN
   GOSUB cathero
