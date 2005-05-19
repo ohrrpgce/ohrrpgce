@@ -4,7 +4,7 @@ improvements, and apologies for the general crappyness of almost all the
 code :)
 
 -----------------------------------------------------------------------------
-REQUIREMENT: Quickbasic (version 4.5 or 7.1)
+REQUIREMENT: Quickbasic version 4.5 or 7.1  (4.5 is preferred)
   The only way to compile the source code into an EXE file you can actually
   run is to use Microsoft Quickbasic. How do you get it? ... Well, I
   hate to say this, but unless you purchased a copy back in 1989, your only
