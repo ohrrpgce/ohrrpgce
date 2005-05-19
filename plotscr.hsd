@@ -232,7 +232,11 @@ script,swapbyname,hero1,hero2,begin
 end
 
 script,renamehero,who,begin
-  renameherobyslot(findhero(who))
+  variable(slot)
+  slot:=findhero(who)
+  if(slot>=0)
+    then(renameherobyslot(slot),return(true))
+    else(return(false))
 end
 
 # this exploits an undocumented feature of getherostat. You can
