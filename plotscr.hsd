@@ -224,8 +224,8 @@ alterNPC(who,NPCstat:movespeed,speed)
 end
 
 script,swapbyname,hero1,hero2,begin
- set variable(hero1,findhero(hero1))
- set variable(hero2,findhero(hero2))
+ hero1:=findhero(hero1)
+ hero2:=findhero(hero2)
  if (hero1==-1,or,hero2==-1)
   then (return(false))
   else (return(true),swapbyposition(hero1,hero2))

@@ -52,6 +52,7 @@ April ?? 2005 [quaternion]
     * bug 35: enemy spawned backwards in place of"flee-instead-of-die"...
     * bug 20: CUSTOM does no error checking for NPCs that point to text
               boxes that have been deleted
+    * bug 63: Crash when trying to rename a hero not in party
 
   * Code cleanup (things that only developers will notice)
 
