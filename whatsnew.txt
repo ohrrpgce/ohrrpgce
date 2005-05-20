@@ -1,6 +1,6 @@
 WHAT IS NEW?                                                   
 
-April 19 2005 [quaternion]
+May 19 2005 [quaternion]
  
   * GPL Licensed source code. See LICENSE.txt
 
