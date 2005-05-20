@@ -2,7 +2,8 @@ Welcome to the OHRRPGCE Source Code documentation! This file explains what
 you need in order to compile the OHRRPGCE, some hints for hacking
 improvements, and apologies for the general crappyness of almost all the
 code :)
-
+-----------------------------------------------------------------------------
+http://HamsterRepublic.com/ohrrpgce/source.php for more information 
 -----------------------------------------------------------------------------
 REQUIREMENT: Quickbasic version 4.5 or 7.1  (4.5 is preferred)
   The only way to compile the source code into an EXE file you can actually

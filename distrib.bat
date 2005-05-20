@@ -28,6 +28,8 @@ del distrib\custom.zip
 cd tmp
 ..\support\pkzip ..\distrib\custom.zip *.*
 cd ..
-support\pkzip -p -r distrib\custom.zip import
-support\pkzip -p -r distrib\custom.zip docs
+support\pkzip distrib\custom.zip import
+support\pkzip -P -r distrib\custom.zip import\*.*
+support\pkzip distrib\custom.zip docs
+support\pkzip -P -r distrib\custom.zip docs\*.*
 

@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Game Player          (?? ?? 2005 quaternion)
+ O.H.R.RPG.C.E Game Player         (May 19 2005 quaternion)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 

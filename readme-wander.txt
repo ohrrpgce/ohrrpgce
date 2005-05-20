@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- Wandering Hamster O.H.R.RPG.C.E Demo        (April ?? 2005)
+ Wandering Hamster O.H.R.RPG.C.E Demo        (May 19 2005)
 ------------------------------------------------------------
 
 This is a Work-in-Progress demo of Wandering Hamster. This version
