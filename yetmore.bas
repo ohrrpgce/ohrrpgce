@@ -1236,7 +1236,14 @@ SELECT CASE id
     CLOSE savh
    END IF
   END IF
-
+ 'until further notice, this is done by Mike C
+ CASE 200'--system hour
+  scriptret = INT(TIMER / 3600)
+ case 201'--system minute
+  scriptret = INT(TIMER / 60) MOD 60
+ case 202'--system second
+  scriptret = TIMER MOD 60
+ 'finished Mike's block
 END SELECT
 
 EXIT SUB

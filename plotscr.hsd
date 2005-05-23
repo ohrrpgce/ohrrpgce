@@ -182,6 +182,10 @@ define function, begin
 173,exportglobals,3,1,0,1024 # (slot, first, last) writes a range of globals to a save slot
 174,loadfromslot,1,1        # loads saved game from slot
 175,deletesave,1,1          # delete (hide from load/save screen - data not *actaully* deleted) specified slot
+
+200,system hour,0
+201,system minute,0
+202,system second,0
 end
 
 #--------------------------------------------------------------------------
