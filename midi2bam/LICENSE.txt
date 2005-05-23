@@ -1,4 +1,4 @@
-NOTATE.BAS is free software under the terms of the GNU General Public License:
+MIDI2BAM.BAS is free software under the terms of the GNU General Public License:
 
 ------------------------------------------------------------------------------
 
