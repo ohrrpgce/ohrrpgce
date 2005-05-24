@@ -2,8 +2,17 @@ WHAT IS NEW?
 
 ??? ?? 2005 [rusalka]
 
-  * plotscripting commands to read system time: system hour, system minute,
-    system second. Thanks to Mike Caron
+  * Bug-Fixes
+
+  * New Features
+
+    * plotscripting commands to read system time: system hour, system minute,
+      system second. Thanks to Mike Caron
+
+  * Stuff only Developers Will Notice
+
+    * Plotscripting Dictionary Documentation is now in xml format instead
+      of html (but still exportable to html) Big thanks to Mike Caron
 
 May 19 2005 [quaternion]
  
