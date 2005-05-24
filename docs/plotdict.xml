@@ -1361,7 +1361,7 @@ end</example>
 		</command>
 		<command id="findhero">
 			<cannon>find hero (who)</cannon>
-			<shortname>find hero (who)</shortname>
+			<shortname>find hero</shortname>
 			<description>Searches through your party to see if the specified hero is there, and returns the position where the hero was found, or -1 if the hero was not found. Use the names defined in your HSI file in the format hero:name. Not only does this tell you if a hero is in your party, but you can also use it to tell whether or not the hero is in your active party. find hero will return 0,1,2 or 3 if the hero is in the active party, but it will return a number 4 or higher if the hero is in the reserve.</description>
 			<seealso>
 				<ref>rankincaterpillar</ref>
