@@ -1,0 +1,1787 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="htmlplot.xsl"?>
+
+<!DOCTYPE plotscript [
+	<!ELEMENT plotscript (section+)>
+	<!ATTLIST plotscript lastmodified CDATA "the dawn of time">
+	<!ATTLIST plotscript show-alias CDATA "yes">
+	<!ELEMENT section (comment?,command*)>
+	<!ATTLIST section title CDATA #REQUIRED>
+	<!ELEMENT comment	  (#PCDATA)>
+	<!ELEMENT command ((cannon,shortname,description,example*,seealso?) | (alias,shortname))>
+	<!ATTLIST command id ID #REQUIRED
+			          created CDATA #IMPLIED>
+  	<!ELEMENT cannon      (#PCDATA)>
+  	<!ELEMENT shortname   (#PCDATA)>
+  	<!ELEMENT description ANY>
+  	<!ELEMENT example     (#PCDATA)>
+  	<!ATTLIST example c IDREF #IMPLIED>
+  	<!ELEMENT alias       (#PCDATA)>
+  	<!ELEMENT seealso (ref+)>
+
+  	<!ELEMENT ref         (#PCDATA)>
+  	<!ELEMENT lb		  (#PCDATA)>
+]>
+<!--
+
+DOCUMENTATION FOR THIS XML FILE:
+
+This markup (hereby refered to as PDL (Plotscript Dictionary Language)) is designed to reduce the time spent
+maintaining the Plotscripting Dictionary, and to enable easier porting to other formats.
+
+The root element is the <plotscript> element. It has a lastmodified attribute, which is the text date that
+the file was last modified. Only the documentation administrator should modify this.
+
+In <plotscript>, there is a series of <section> elements, each with a title attribute. These are to group the
+plotscripting commands into logical groups, such as <section title="Wait Commands"> or <section title="Math
+Operators">
+
+The heart of the PDL are the <command> elements inside the <section>s. It has a single attribute, id. This is
+essentially the whitespace stripped version of the command (the "wait for text box" command would have an id
+of "waitfortextbox"). This is used to uniquely identify each command. It's used in many ways, from crosslinking
+command entries to generating a file for HssEd to use.
+
+Inside the <command> element are either two or four+ elements, in this order:
+Case 1: Full command definition
+  <cannon> - This is the "cannonical" form of the command: the fully spaced command with parameter prototypes
+             Example: move hero to x (who, x)
+  <shortname> - This is the short version of the command, used for crosslinking, indexes, etc. It is the
+  				<cannon> element, minus the parameters.
+				Example: move hero to x
+  <description> - This is a paragraph (or more) of text describing what the command does, and how to use it.
+                  Use <lb/> to put paragraphs in. No HTML is allowed (at this time)
+				  Example: Well, it would be pretty long...
+  <example>* - Finally, most commands should have some sort of example on how to use the command. It will be
+  			  displayed in a mono-space font, so it's easy to Plotscript. But, be sure to format it properly:
+			  Example:
+			  <example># first example line has no line-break
+# the second (and more) lines should have no indentation
+# and so forth</example>
+
+Case 2: Alias command definition
+  <alias> - If a command is an alias to another command (or is so closely related that they&apos;re in the same
+            entry, use the <alias> element. Put the ID of the real command in here.
+			Example: begin
+  <shortname> - Aliases also need a short name, since they are technically different from their alias.
+  		        Example: end
+
+Basically, you should be able to examine the entries that already exist. It's fairly self evident what
+everything does.
+
+These are cut-and-paste copies of <command> elements, so you don't have to type everything out 10000000000
+times. They are also indented properly for this file.
+
+#===== Full description
+
+		<command id="">
+			<cannon></cannon>
+			<shortname></shortname>
+			<description></description>
+			<example></example>
+		</command>
+
+#===== Full description with borrowed example
+
+		<command id="">
+			<cannon></cannon>
+			<shortname></shortname>
+			<description></description>
+			<example c="">
+		</command>
+
+#===== Alias
+
+		<command id="">
+			<alias></alias>
+			<shortname></shortname>
+		</command>
+
+
+#=====
+
+Which reminds me: Indentation. For each "level" you go down in the heirarchy, you indent once. Many code
+specific editors will maintain this indentation level for until you explicitly change it, so it isn't
+difficult. Notepad users will have to do it manually, but you MUST do it. Remember: 1 indent = 1 tab.
+
+"Mono means 'one'. Rail means 'rail'. And that concludes our training."
+	~ Monorail guy, Simpsons
+
+-->
+<plotscript lastmodified="May 23, 2005">
+	<section title="Declarations">
+		<command id="definescript">
+			<cannon>define script (id,name,arguments)</cannon>
+			<shortname>define script</shortname>
+			<description>The define script command names a script, and associates it with an ID number. Every script must have a unique ID number for your game to call it directly (scripts that will only be called indirectly, by other scripts can use the special ID autonumber). The first argument is the ID number. It is a number between 1 and 16383. If you try to give two individual scripts the same ID number, your script file will not compile. The next argument is the name of the script. this is the same name that will used later in your script command. The third argument is the number of arguments that the script can accept. If it doesnt need any arguments (most scripts dont) then use none. If there are arguments, you then follow the argument count with default values for each argument.</description>
+			<example># example of a simple script definition
+define script (1,my first script,none)</example>
+			<example># example of a script definition with arguments. this script
+# has three arguments, all of which default to zero if they
+# are not specified
+define script (2,my fancy script,3,0,0,0)</example>
+		</command>
+		<command id="script">
+			<cannon>script, name, argumentnames (statements)</cannon>
+			<shortname>script</shortname>
+			<description>The script command contains the actual source code of a plotscript. every script command must have a corresponding <ref>definescript</ref> statement. Script starts with the keyword script, a comma, and then the name of the script. If there are any arguments to the script, you list their names separated by commas after the name of the script. Then comes the text of the script. It is usually enclosed in <ref>begin</ref> and <ref>end</ref> statements.</description>
+			<example># example of a simple script
+script,my first script,begin
+	# commands go here
+end</example>
+			<example># example of a script with arguments
+script,my fancy script,fe,fi,fo,begin
+	# commands go here,
+	# and they can use the aruments fe, fi, and fo
+	# that where passed to the script
+end</example>
+		</command>
+		<command id="globalvariable">
+			<cannon>global variable (id,name)</cannon>
+			<shortname>global variable</shortname>
+			<description>Creates a global variable that can be used in any script. The first argument to the global variable declaration is a unique ID number. The second argument is the name of the variable. The ID number for a global variable is a number from 0 to 1024. Each global variable must have a unique number, but this number will not conflict with the ID numbers you use for scripts. It is all right to have a script and a global variable with the same ID number. See also <ref>variable</ref></description>
+			<example># any script can read and set the value of a global
+global variable(1,mini game score)</example>
+		</command>
+		<command id="variable">
+			<cannon>variable (name)</cannon>
+			<shortname>variable</shortname>
+			<description>Creates a local variable that can only be used inside the script where it was created. The value of this variable is lost when the script ends. If you need a variable who&apos;s value persists between calls to a script, or that is automatically saved when the player saves their game, you will need to use a <ref>globalvariable</ref> instead.</description>
+			<example>variable(points) # make a new variable
+variable+=1 # add one to it</example>
+		</command>
+		<command id="defineconstant">
+			<cannon>define constant (number,name)</cannon>
+			<shortname>define constant</shortname>
+			<description>Creates a global constant. The first argument is the number that the constant will represent, and the second argument is the name of the constant. Use constants to replace commonly used numbers with friendly names. The following constants have been delacred for you in PLOTSRC.HSD:<lb /><ref>zero</ref> <ref>one</ref> <ref>two</ref> <ref>three</ref> <ref>four</ref> <ref>five</ref> <ref>six</ref> <ref>seven</ref> <ref>eight</ref> <ref>nine</ref> <ref>ten</ref> <ref>false</ref> <ref>true</ref> <ref>off</ref> <ref>on</ref> <ref>north</ref> <ref>east</ref> <ref>south</ref> <ref>west</ref> <ref>up</ref> <ref>down</ref> <ref>left</ref> <ref>right</ref> <ref>upkey</ref> <ref>downkey</ref> <ref>leftkey</ref> <ref>rightkey</ref> <ref>usekey</ref> <ref>cancelkey</ref> <ref>menukey</ref> <ref>anykey</ref> <ref>me</ref> <ref>none</ref> <ref>autonumber</ref> <ref>currentstat</ref> <ref>maximumstat</ref> <ref>northwall</ref> <ref>eastwall</ref> <ref>southwall</ref> <ref>westwall</ref> <ref>vehiclea</ref> <ref>vehiclea</ref> <ref>harmtile</ref> <ref>overheadtile</ref></description>
+		</command>
+		<command id="include">
+			<cannon>include, filename</cannon>
+			<shortname>include</shortname>
+			<description>The include command inserts another text file into your script. It is followed by a single filename that tells what file will be included. Windows long filenames are not supported. Every plotscript file should start with include, plotscr.hsd The PLOTSCR.HSD file contains definitions and constants for most of the other plotscripting commands.</description>
+			<example>include, plotscr.hsd # Plotscripting definitions
+include, mygame.hsi # constants particular to my game</example>
+		</command>
+	</section>
+	<section title="Wait Commands">
+		<command id="wait">
+			<cannon>wait (ticks)</cannon>
+			<shortname>wait</shortname>
+			<description>Makes the script wait for the specified number of ticks. I havent timed how many ticks there are in a second, but I would guess roughly 15. If you leave out the argument, it will wait for one tick.</description>
+			<example>show text box(2) # Show a text box
+wait(45) # Wait about 3 seconds
+advance text box # "hit spacebar"</example>
+		</command>
+		<command id="waitfortextbox">
+			<cannon>wait for text box</cannon>
+			<shortname>wait for text box</shortname>
+			<description>Makes the script wait until there is no text box displaying on the screen. Useful to know when to move on after using a <ref>showtextbox</ref> command</description>
+			<example>show text box(2) # Show a text box
+wait for text box # wait until the player continues</example>
+		</command>
+		<command id="waitforhero">
+			<cannon>wait for hero (who)</cannon>
+			<shortname>wait for hero</shortname>
+			<description>Waits for the specified hero stop walking. Use the constant <ref>me</ref> to refer to the leader, or use numbers 0,1,2,3 to refer to a specific hero. If you leave out the argument, the first hero will be assumed.</description>
+			<example>move hero to y (me, 10) # move hero to (x, 10)
+wait for hero (me) # wait until he stops</example>
+		</command>
+		<command id="waitforkey">
+			<cannon>wait for key (key)</cannon>
+			<shortname>wait for key</shortname>
+			<description>Waits for the player to press a key. You can use the follwing constants: <ref>anykey</ref>, <ref>upkey</ref>, <ref>downkey</ref>, <ref>leftkey</ref>, <ref>rightkey</ref>, <ref>usekey</ref>, <ref>cancelkey</ref>, or <ref>menukey</ref>. If you do not specify, then <ref>anykey</ref> will be used.</description>
+			<example>show text box(623) # "press cancel!"
+wait for key(cancel key)</example>
+		</command>
+		<command id="waitfornpc">
+			<cannon>wait for NPC (who)</cannon>
+			<shortname>wait for NPC</shortname>
+			<description>Waits for the specified NPC to stop walking. The argument is the number of the NPC, 0 to 35. If more than one copy of the NPC exists on the map, it only checks the first one.</description>
+			<example>walk NPC (2,up,3) # make the NPC go up three spaces
+wait for NPC (2) # wait until he&apos;s done</example>
+		</command>
+		<command id="waitforcamera">
+			<cannon>wait for camera</cannon>
+			<shortname>wait for camera</shortname>
+			<description>Wait for the camera to stop panning after a <ref>pancamera</ref> or <ref>focuscamera</ref> command.</description>
+			<example>pan camera (left,10) # show the villan 10 tiles off screen
+wait for camera # wait until he&apos;s on screen</example>
+		</command>
+		<command id="waitforall">
+			<cannon>wait for all</cannon>
+			<shortname>wait for all</shortname>
+			<description>Waits for any camera motion to stop, waits for all heros to stop walking, and if <ref>suspendnpcs</ref> is active, waits for all NPCs to stop walking.</description>
+			<example># do a bunch of things all at once
+wait for all # wait until everything is done</example>
+		</command>
+	</section>
+	<section title="Suspend and Resume">
+		<command id="suspendplayer">
+			<cannon>suspend player</cannon>
+			<shortname>suspend player</shortname>
+			<description>Blocks the player from controlling the game, so the plotscript can have exclusive control. The one exception to this is text boxes. The player can advance text boxes no matter what, unless you use <ref>suspendboxadvance</ref>.</description>
+			<example>suspend player
+# do stuff
+resume player</example>
+		</command>
+		<command id="resumeplayer">
+			<cannon>resume player</cannon>
+			<shortname>resume player</shortname>
+			<description>Restores normal control after a <ref>suspendplayer</ref> command. This is very important. If you use <ref>suspendplayer</ref>, but forget resume player, the game will be stuck after the script ends.</description>
+			<example c="suspendplayer" />
+		</command>
+		<command id="suspendnpcs">
+			<cannon>suspend NPCs</cannon>
+			<shortname>suspend NPCs</shortname>
+			<description>Stops NPCs from walking around automatically. When suspend NPCs is run, all NPCs stop in their tracks, ready for you to control them with the <ref>walknpc</ref> command</description>
+			<example>suspend NPCs
+# do stuff
+resume NPCs</example>
+		</command>
+		<command id="resumenpcs">
+			<cannon>resume NPCs</cannon>
+			<shortname>resume NPCs</shortname>
+			<description>Restores automatic NPC movement after a <ref>suspendnpcs</ref> command</description>
+			<example c="suspendnpcs" />
+		</command>
+		<command id="suspendobstruction">
+			<cannon>suspend obstruction</cannon>
+			<shortname>suspend obstruction</shortname>
+			<description>Allows heros to walk through NPCs, allows NPCs to walk through heros, and allows NPCs to walk through each other. Use <ref>resumeobstruction</ref> to restore normal obstruction behavior.</description>
+			<example>suspend obstruction
+# walk through things
+resume obstruction</example>
+		</command>
+		<command id="resumeobstruction">
+			<cannon>resume obstruction</cannon>
+			<shortname>resume obstruction</shortname>
+			<description>Restores normal obstruction after a <ref>suspendobstruction</ref> command</description>
+			<example c="suspendobstruction" />
+		</command>
+		<command id="suspendherowalls">
+			<cannon>suspend hero walls</cannon>
+			<shortname>suspend hero walls</shortname>
+			<description>Allows heros to walk through walls. Use <ref>resumeherowalls</ref> to restore normal wall behavior.</description>
+			<example>suspend hero walls # hero is now a ghost
+# walk through things
+resume hero walls # back to mortality...</example>
+		</command>
+		<command id="resumeherowalls">
+			<cannon>resume hero walls</cannon>
+			<shortname>resume hero walls</shortname>
+			<description>Restores normal wall behavior after a <ref>suspendherowalls</ref> command</description>
+			<example c="suspendherowalls" />
+		</command>
+		<command id="suspendnpcwalls">
+			<cannon>suspend NPC walls</cannon>
+			<shortname>suspend NPC walls</shortname>
+			<description>Allows NPCs to walk through walls. Use <ref>resumenpcwalls</ref> to restore normal wall behavior.</description>
+			<example>suspend NPC walls # npc is now a ghost
+# walk through things
+resume NPC walls # back to mortality...</example>
+		</command>
+		<command id="resumenpcwalls">
+			<cannon>resume NPC walls</cannon>
+			<shortname>resume NPC walls</shortname>
+			<description>Restores normal wall behavior after a <ref>suspendnpcwalls</ref> command.</description>
+			<example c="suspendnpcwalls" />
+		</command>
+		<command id="suspendcaterpillar">
+			<cannon>suspend caterpillar</cannon>
+			<shortname>suspend caterpillar</shortname>
+			<description>Stops your other heros from following the leader. This is useful when you want to control them individually with <ref>walkhero</ref> commands. In earlier versions this was misspelled as suspend catapillar. The old spelling still works for backwards compatability.</description>
+			<example>suspend caterpillar # cutscene
+# move heros, probably fight a battle or two...
+resume caterpillar # normal game again.</example>
+		</command>
+		<command id="resumecaterpillar">
+			<cannon>resume caterpillar</cannon>
+			<shortname>resume caterpillar</shortname>
+			<description>Reverses the <ref>suspendcaterpillar</ref> command, and makes your other heros follow the leader as normal. In earlier versions this was misspelled as resume catapillar. The old spelling still works for backwards compatability.</description>
+			<example c="suspendcaterpillar" />
+		</command>
+		<command id="suspendcatapillar">
+			<alias>suspendcaterpillar</alias>
+			<shortname>suspend catapillar</shortname>
+		</command>
+		<command id="resumecatapillar">
+			<alias>resumecaterpillar</alias>
+			<shortname>resume catapillar</shortname>
+		</command>
+		<command id="suspendrandomenemies">
+			<cannon>suspend random enemies</cannon>
+			<shortname>suspend random enemies</shortname>
+			<description>Prevents enemies from attacking your party while walking over tiles that can normally spawn random battles. This is useful to prevent battles from interrupting a plotscript. In earlier versions, this was misspelled as suspend random enemys. The old spelling still works for backwards compatability.</description>
+			<example>suspend random enemies # no battles for now
+walk hero (me, up, 10) # cross pit of evil monsters of doom
+resume random enemies # back to normal</example>
+		</command>
+		<command id="resumerandomenemies">
+			<cannon>resume random enemies</cannon>
+			<shortname>resume random enemies</shortname>
+			<description>Undoes the <ref>suspendrandomenemies</ref> command and allows random battles to occur as normal. In earlier versions, this was misspelled as resume random enemys. The old spelling still works for backwards compatability.</description>
+			<example c="suspendrandomenemies" />
+		</command>
+		<command id="suspendrandomenemys">
+			<alias>suspendrandomenemies</alias>
+			<shortname>suspend random enemies</shortname>
+		</command>
+		<command id="resumerandomenemys">
+			<alias>resumerandomenemies</alias>
+			<shortname>resume random enemies</shortname>
+		</command>
+		<command id="suspendboxadvance">
+			<cannon>suspend box advance</cannon>
+			<shortname>suspend box advance</shortname>
+			<description>Prevents the player from advancing or clearing text boxes by pressing keys. While this is active, the only way to make a text box advance is with the <ref>advancetextbox</ref> command. Be very careful with this command, since you do not want to leave the player stuck on a text box forever.</description>
+			<example>suspend box advance # stop players from mucking things up
+show text box(2) # Show a text box
+wait(45) # Wait about 3 seconds
+advance text box # "hit spacebar"
+resume box advance # go back to normal</example>
+		</command>
+		<command id="resumeboxadvance">
+			<cannon>resume box advance</cannon>
+			<shortname>resume box advance</shortname>
+			<description>Undoes the <ref>suspendboxadvance</ref> command and allows the player to advance and clear text boxes by pressing keys as normal.</description>
+			<example c="suspendboxadvance" />
+		</command>
+		<command id="suspendoverlay">
+			<cannon>suspend overlay</cannon>
+			<shortname>suspend overlay</shortname>
+			<description>Prevents overhead tiles from being drawn over heros and NPCs.</description>
+		</command>
+		<command id="resumeoverlay">
+			<cannon>resume overlay</cannon>
+			<shortname>resume overlay</shortname>
+			<description>Causes overhead tiles to be drawn over heros and NPCs as normal.</description>
+		</command>
+	</section>
+	<section title="Moving Heros">
+		<command id="walkhero">
+			<cannon>walk hero (who, direction, distance)</cannon>
+			<shortname>walk hero</shortname>
+			<description>Makes the specified hero move in the specified direction for the specified number of tiles. The first argument tells who to move. Use <ref>me</ref> or numbers 0-3. The second argument is the direction. Use the constants: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. The third argument is the number of tiles to move. If you leave out the third argument, the hero will move one tile. Walk hero is usually used with the <ref>waitforhero</ref> command. You should normally use the <ref>suspendplayer</ref> command before moving heros, and if you want to move heros other than the leader, you should use the <ref>suspendcaterpillar</ref> command.</description>
+			<example>suspend player # stop player
+walk hero(me,up,3) # move him up 3 tiles
+resume player # ok, done</example>
+		</command>
+		<command id="setherodirection">
+			<cannon>set hero direction(who, direction)</cannon>
+			<shortname>set hero direction</shortname>
+			<description>Makes the specified hero face in the specified direction. The following constants are avaialable for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>.</description>
+			<example>set hero direction(me,right) # face right</example>
+		</command>
+		<command id="setheroframe">
+			<cannon>set hero frame(who, frame)</cannon>
+			<shortname>set hero frame</shortname>
+			<description>Sets the walking frame of the specified hero to 0 or 1.</description>
+		</command>
+		<command id="setheroposition">
+			<cannon>set hero position (who, x, y)</cannon>
+			<shortname>set hero position</shortname>
+			<description>Instantly moves the specified hero to an X,Y position on the map. The coordinates are in units of tiles. For pixel-positioning use the <ref>puthero</ref> command.</description>
+		</command>
+		<command id="setheroz">
+			<cannon>set hero z (who, z)</cannon>
+			<shortname>set hero z</shortname>
+			<description>Sets the Z location of the specified hero. The Z location is the number of pixels above the tile they are standing on. Useful for scripts where you want a hero to jump or levitate.</description>
+		</command>
+		<command id="walkherotox">
+			<cannon>walk hero to x (who,x)</cannon>
+			<shortname>walk hero to x</shortname>
+			<description>Makes the specified hero walk to a given X coordinate on the map</description>
+		</command>
+		<command id="walkherotoy">
+			<cannon>walk hero to y (who,x)</cannon>
+			<shortname>walk hero to y</shortname>
+			<description>Makes the specified hero walk to a given Y coordinate on the map</description>
+		</command>
+		<command id="setherospeed">
+			<cannon>set hero speed (who, speed)</cannon>
+			<shortname>set hero speed</shortname>
+			<description>Changes the walking speed of the specified hero. If you do not specify a speed, the hero&apos;s speed will return to the default, 4. Be careful with using speeds that do not divide evenly into 20, because tiles are 20 pixels in size, and an irregular walking speed may cause your hero to become misaligned with the tiles.</description>
+		</command>
+		<command id="usedoor">
+			<cannon>use door (number)</cannon>
+			<shortname>use door</shortname>
+			<description>Instantly uses the numbered door, just as if you had stepped into it.</description>
+		</command>
+		<command id="teleporttomap">
+			<cannon>teleport to map (map, x, y)</cannon>
+			<shortname>teleport to map</shortname>
+			<description>An alternative to <ref>usedoor</ref>, teleport to map moves you to a given x,y position on the specified map without the need to create a door-link on the map. Teleport to map does not fade to black.</description>
+		</command>
+		<command id="dismountvehicle">
+			<cannon>dismount vehicle</cannon>
+			<shortname>dismount vehicle</shortname>
+			<description>Makes you dismount whatever vehicle you are riding. If you are not riding a vehicle, nothing will happen.</description>
+		</command>
+		<command id="heroiswalking">
+			<cannon>hero is walking (who)</cannon>
+			<shortname>hero is walking</shortname>
+			<description>Returns <ref>true</ref> if the specified hero (by position in the caterpillar) is currently walking. Returns <ref>false</ref> if the hero is standing still.</description>
+		</command>
+		<command id="puthero">
+			<cannon>put hero (who,x,y)</cannon>
+			<shortname>put hero</shortname>
+			<description>Moves a hero to a precise location on the map. The first argument is the her&apos;s position in the walkabout party. The second and third arguments are the X,Y pixel position relative to the top left corner of the map. Be aware that using this command can mis-align your hero with the tile-grid, preventing it from walking normally. To position the hero by tile, use the <ref>setheroposition</ref> command.</description>
+		</command>
+	</section>
+	<section title="Moving NPCs">
+		<command id="npcreference">
+			<cannon>NPC reference (ID,copy)</cannon>
+			<shortname>NPC reference</shortname>
+			<description>What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you dont specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. If you plan on using the same NPC reference many times in a script you can store it in a <ref>variable</ref>. If the NPC with the ID you asked for (or the NPC copy you asked for with ID you asked for) is not found on the map then NPC reference will return <ref>false</ref>.</description>
+			<example>include,plotscr.hsd
+define script(1,ref example,none)
+
+#---NPC reference example---
+
+script,ref example,begin
+
+  variable(Fred)
+
+  # find the first copy of NPC 10,
+  # and store the reference in a variable
+  set variable(Fred,NPC reference(10,0))
+
+  # now we can manipulate that NPC with the variable
+  walk NPC     (Fred,south,3)
+  wait for NPC (Fred)
+
+  # make the NPC spin!
+  set NPC direction (Fred,east)
+  wait(2)
+  set NPC direction (Fred,north)
+  wait(2)
+  set NPC direction (Fred,west)
+  wait(2)
+  set NPC direction (Fred,south)
+  wait(2)
+
+end</example>
+			<seealso>
+				<ref>npcatspot</ref>
+				<ref>npcatpixel</ref>
+				<ref>createnpc</ref>
+			</seealso>
+		</command>
+		<command id="npcatspot">
+			<cannon>NPC at spot (x,y,number)</cannon>
+			<shortname>NPC at spot</shortname>
+			<description>This command returns a reference to the NPC at the given X and Y coordinate on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom most NPC, which is number 0). You can also pass the constant <ref>npccount</ref> for the third argument to return the total number of npcs on that tile.</description>
+			<seealso>
+				<ref>npcreference</ref>
+			</seealso>
+		</command>
+		<command id="npcatpixel">
+			<cannon>NPC at pixel (x,y,number)</cannon>
+			<shortname>NPC at pixel</shortname>
+			<description>This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). You can also pass the constant <ref>npccount</ref> for the third argument to return the total number of npcs on that tile.</description>
+			<seealso>
+				<ref>npcreference</ref>
+			</seealso>
+		</command>
+		<command id="walknpc">
+			<cannon>walk NPC (who,direction,distance)</cannon>
+			<shortname>walk NPC</shortname>
+			<description>Makes the specified NPC move in the specified direction for the specified number of tiles. The first argument tells who to move. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The second argument is the direction. Use the constants: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. The third argument is the number of tiles to move. If you leave out the third argument, the NPC will move one tile. walk NPC is usually used with the <ref>waitfornpc</ref> command. You should normally use the <ref>suspendnpcs</ref> command before moving NPCs to prevent their automatic movements from interfering with your scripted movements.</description>
+		</command>
+		<command id="setnpcdirection">
+			<cannon>set NPC direction (who,direction)</cannon>
+			<shortname>set NPC direction</shortname>
+			<description>Makes the specified NPC face in the specified direction. The following constants are avaialable for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will turn.</description>
+		</command>
+		<command id="setnpcframe">
+			<cannon>set NPC frame (who,frame)</cannon>
+			<shortname>set NPC frame</shortname>
+			<description>Sets the walking frame of the specified NPC to 0 or 1. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will change.</description>
+		</command>
+		<command id="setnpcposition">
+			<cannon>set NPC position (who,X,Y)</cannon>
+			<shortname>set NPC position</shortname>
+			<description>Instantly moves the specified NPC to an X,Y position on the map. The coordinates are in units of tiles. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will be moved.</description>
+		</command>
+		<command id="walknpctox">
+			<cannon>walk NPC to X (who,X)</cannon>
+			<shortname>walk NPC to X</shortname>
+			<description>Makes the specified NPC walk to a given X coordinate on the map. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will move.</description>
+		</command>
+		<command id="walknpctoy">
+			<cannon>walk NPC to Y (who,Y)</cannon>
+			<shortname>walk NPC to Y</shortname>
+			<description>Makes the specified NPC walk to a given Y coordinate on the map. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will move.</description>
+		</command>
+		<command id="setnpcspeed">
+			<cannon>set NPC speed (who,speed)</cannon>
+			<shortname>set NPC speed</shortname>
+			<description>Changes the walking speed of the specified NPC. If you do not specify a speed, the NPC&apos;s speed will return to the default, 4. Be careful with using speeds that do not divide evenly into 20, because tiles are 20 pixels in size, and an irregular walking speed may cause the NPC to become misaligned with the tiles.<lb/>Normally you would only give an NPC ID number to set NPC speed, but if you want to use an <ref>npcreference</ref> it will still work. Just remember that set NPC speed changes every copy of the NPC on the map, not just the specific one you referenced.</description>
+		</command>
+		<command id="npciswalking">
+			<cannon>NPC is walking (who)</cannon>
+			<shortname>NPC is walking</shortname>
+			<description>Returns <ref>true</ref> if the specified NPC is currently walking. Returns <ref>false</ref> if the NPC is standing still. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will be checked.</description>
+		</command>
+		<command id="getnpcid">
+			<cannon>get NPC ID (reference)</cannon>
+			<shortname>get NPC ID</shortname>
+			<description>This command is the opposite of <ref>npcreference</ref>. If you give get NPC ID a reference to an NPC it will return the NPC&amp;s ID.<lb/>(Note: in some older versions, This command was useful if you needed to do an <ref>alternpc</ref> or a <ref>setnpcspeed</ref> on an NPC that you are working with by reference. This is no longer neccisary, because both those commands now support NPC references (although they still affect every copy of that NPC on the map))</description>
+		</command>
+		<command id="npccopycount">
+			<cannon>NPC copy count (ID)</cannon>
+			<shortname>NPC copy count</shortname>
+			<description>This command tells you how many copys of a particular NPC ID exist on the map. This can be very useful if you want apply the same action to each copy of an NPC on the map.</description>
+			<example>include,plotscr.hsd
+define script(1,every NPC example,none)
+
+#---NPC copy count example---
+
+script,every NPC example,begin
+
+  variable(loop,guard count,current guard)
+
+  # the guard is NPC 10, and there are many copies of him on the map
+  set variable(guard count,NPC copy count(10))
+
+  # this loop repeats once for each copy of NPC 10
+  for(loop,0,guard count) do,begin
+
+    set variable(current guard,NPC reference(10,loop))
+    walk NPC(current guard,south,4)
+    # if we added a "wait for NPC(current guard)" right here
+    # then the guards would walk one t a time
+
+  end
+
+  # but we want them to all walk at the same time,
+  # so we just wait here
+  wait for all
+
+end</example>
+		</command>
+		<command id="changenpcid">
+			<cannon>change NPC ID (reference,new ID)</cannon>
+			<shortname>change NPC ID</shortname>
+			<description>This command takes an <ref>npcreference</ref> and lets you change the ID number of the NPC it points to. This means that the NPC will now use a different picture, an different palette, a different walking speed, an different text box, everything. This change is not permanent. It only lasts until the next time a map gets loaded.</description>
+		</command>
+		<command id="createnpc">
+			<cannon>create NPC (ID,X,Y,direction)</cannon>
+			<shortname>create NPC</shortname>
+			<description>This command will magically create a new copy of an NPC with the given ID number. You can specify an X and Y position where it will be created, and optionally a direction too (if you leave out the direction, the new NPC will be facing south). create NPC returns an <ref>npcreference</ref> that you can use to refer to the new NPC in other commands like <ref>walknpc</ref>. If the new NPC cannot be created (there is a maximum of 300 total NPC copies in memory at a time) then create NPC will return false (zero). The new NPC is not permanent. It only lasts until a new map is loaded.</description>
+		</command>
+		<command id="destroynpc">
+			<cannon>destroy NPC (reference)</cannon>
+			<shortname>destroy NPC</shortname>
+			<description>This command will erase the specified NPC. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number. The deletion is not permanent. Unless this is an NPC that you created with <ref>createnpc</ref>, the NPC will be back again next time the map gets loaded. If you need to permanently remove an NPC, use tags. (Note: this only deletes the one NPC you specify. If you use an NPC ID number as the argument, only the first copy of the NPC on the map will be deleted)</description>
+		</command>
+		<command id="putnpc">
+			<cannon>put npc (who,x,y)</cannon>
+			<shortname>put npc</shortname>
+			<description>Moves an NPC to a precise location on the map. The first argument is and <ref>npcreference</ref> or an NPC ID number. The second and third arguments are the X,Y pixel position relative to the top left corner of the map. Be aware that using this command can mis-align your NPC with the tile-grid, preventing it from walking normally. To position the NPC by tile, use the <ref>setnpcposition</ref> command.</description>
+		</command>
+	</section>
+	<section title="Moving the Camera">
+		<command id="camerafollowshero">
+			<cannon>camera follows hero (who)</cannon>
+			<shortname>camera follows hero</shortname>
+			<description>Normally, the camera follows your leader. With this command, you can make the camera follow any hero you want. If you leave out the argument, the camera will follow your leader as normal.</description>
+		</command>
+		<command id="camerafollowsnpc">
+			<cannon>camera follows NPC (who)</cannon>
+			<shortname>camera follows NPC</shortname>
+			<description>With this command, you can make the camera follow an NPC instead of the hero. If more than one copy of the specified NPC exists, the camera will follow the first one. To revert the camera to normal, use <ref>camerafollowshero</ref>.</description>
+		</command>
+		<command id="pancamera">
+			<cannon>pan camera (direction,distance,pixelstep)</cannon>
+			<shortname>pan camera</shortname>
+			<description>This command causes the camera to stop following your leader and pan in the specified direction. For direction, you can use the constants: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. The distance is the number of tiles you want the camera to move before it stops. You can also specify the number of pixels you want the camera to move for each tick. if you leave the last argument out, the camera will move by 2 pixels per tick. This command is normally used with <ref>waitforcamera</ref>. To revert the camera to normal, use <ref>camerafollowshero</ref>.</description>
+		</command>
+		<command id="focuscamera">
+			<cannon>focus camera (x,y,speed)</cannon>
+			<shortname>focus camera</shortname>
+			<description>This command causes the camera to focus itself on the specified X,Y coordinates of the map. These coordinates are in units of tiles. The third argument, the speed, tells how fast the camera will pan. If you do not specify a speed, the camera will pan 2 pixels per tick. This command is normally used with <ref>waitforcamera</ref>. To revert the camera to normal, use <ref>camerafollowshero</ref>.</description>
+		</command>
+		<command id="putcamera">
+			<cannon>put camera (x,y)</cannon>
+			<shortname>put camera</shortname>
+			<description>This command causes the top left corner of the camera to instantly jump to the specified X,Y pixel coordinates of the map. These coordinates are in units of pixels, not tiles. To position the camera by tiles, just multiply the tile position by 20. To revert the camera to normal, use <ref>camerafollowshero</ref>.</description>
+		</command>
+	</section>
+	<section title="Text Boxes">
+		<command id="showtextbox">
+			<cannon>show text box (number)</cannon>
+			<shortname>show text box</shortname>
+			<description>Displays the numbered text box, just as if you had talked to an NPC. The text box will not actually pop up until the next wait command. This command is most often used with the <ref>waitfortextbox</ref> command.</description>
+			<example>show text box(2) # Show a text box
+wait for text box # wait until the player continues</example>
+		</command>
+		<command id="advancetextbox">
+			<cannon>advance text box</cannon>
+			<shortname>advance text box</shortname>
+			<description>Advances a text box just as if the player had pressed a key. For use while <ref>suspendboxadvance</ref> is active.</description>
+			<example c="suspendboxadvance" />
+		</command>
+	</section>
+	<section title="Triggering and Showing Stuff">
+		<command id="fightformation">
+			<cannon>fight formation (number)</cannon>
+			<shortname>fight formation</shortname>
+			<description>Starts a battle with the numbered enemy formation. This command returns <ref>false</ref> if you lost or ran from battle, or <ref>true</ref> if you won.</description>
+		</command>
+		<command id="usenpc">
+			<cannon>Use NPC (who)</cannon>
+			<shortname>Use NPC</shortname>
+			<description>Remotely trigger an NPC. You can use either an <ref>npcreference</ref> or an NPC ID number. Whatever actions are associated with triggering that NPC will be taken, text box, script, vehicle, item, whatever.</description>
+		</command>
+		<command id="gameover">
+			<cannon>game over</cannon>
+			<shortname>game over</shortname>
+			<description>Resets the game and returns you to the title screen. This command is most useful for after-you-win-the-game type scripts, and for death-scripts that are triggered when you lose in battle.</description>
+		</command>
+		<command id="showvalue">
+			<cannon>show value (number)</cannon>
+			<shortname>show value</shortname>
+			<description>Displays the number in the bottom left corner of the screen. Useful for count-down timers, and for debugging complicated scripts.</description>
+		</command>
+		<command id="shownovalue">
+			<cannon>show no value</cannon>
+			<shortname>show no value</shortname>
+			<description>Gets rid of the number in the bottom left corner of the screen after a <ref>showvalue</ref> command.</description>
+		</command>
+		<command id="showbackdrop">
+			<cannon>show backdrop (number)</cannon>
+			<shortname>show backdrop</shortname>
+			<description>displays the specified full screen backdrop on the screen. This allows you to show full screen pictures without attaching them to text boxes. You can also do some simple animation effects by calling show backdrop many times with <ref>wait</ref> commands in between.</description>
+		</command>
+		<command id="showmap">
+			<cannon>show map</cannon>
+			<shortname>show map</shortname>
+			<description>shows the map again after a <ref>showbackdrop</ref> command</description>
+		</command>
+		<command id="useshop">
+			<cannon>use shop (shop)</cannon>
+			<shortname>use shop</shortname>
+			<description>Takes you directly to a shop. You can specify the shop&apos;s ID number or its name in the form shop:name</description>
+		</command>
+		<command id="showminimap">
+			<cannon>show mini map</cannon>
+			<shortname>show mini map</shortname>
+			<description>Displays the mini-map</description>
+		</command>
+		<command id="itemsmenu">
+			<cannon>items menu</cannon>
+			<shortname>items menu</shortname>
+			<description>Takes you directly to the items menu. Note that if the player uses an item that calls up a text box, the items menu command will behave like a <ref>showtextbox</ref> command for that text box.</description>
+		</command>
+		<command id="statusscreen">
+			<cannon>status screen (who)</cannon>
+			<shortname>status screen</shortname>
+			<description>Takes you directly to a hero&apos;s status screen. Specify the hero using its position in the party 0-3. Use <ref>findhero</ref> if you want to specify the hero by name. The <ref>pickhero</ref> command can also be useful.</description>
+		</command>
+		<command id="spellsmenu">
+			<cannon>spells menu (who)</cannon>
+			<shortname>spells menu</shortname>
+			<description>Takes you directly to a hero&apos;s spells menu. Specify the hero using its position in the party 0-3. Use <ref>findhero</ref> if you want to specify the hero by name. The <ref>pickhero</ref> command can also be useful.</description>
+		</command>
+		<command id="equipmenu">
+			<cannon>equip menu (who)</cannon>
+			<shortname>equip menu</shortname>
+			<description>Takes you directly to a hero&apos;s equip menu. Specify the hero using its position in the party 0-3. Use <ref>findhero</ref> if you want to specify the hero by name. The <ref>pickhero</ref> command can also be useful.</description>
+		</command>
+		<command id="savemenu">
+			<cannon>save menu (reallysave)</cannon>
+			<shortname>save menu</shortname>
+			<description>Takes you directly to the save menu. Will return a number 1-4 indicating the slot the player saved in, or <ref>false</ref> if the player did not save. You can optionally pass an argument of <ref>false</ref> to make the menu display without actually saving</description>
+			<seealso>
+				<ref>autosave</ref>
+			</seealso>
+		</command>
+		<command id="ordermenu">
+			<cannon>order menu</cannon>
+			<shortname>order menu</shortname>
+			<description>Takes you directly to the order menu, where you can change the order of the heroes in your active party.</description>
+		</command>
+		<command id="teammenu">
+			<cannon>team menu</cannon>
+			<shortname>team menu</shortname>
+			<description>Takes you directly to the team menu, where you can change the order of the heroes in your active party, and swap heroes in and out of your reserve.</description>
+		</command>
+	</section>
+	<section title="Adding and Removing">
+		<command id="getmoney">
+			<cannon>get money (amount)</cannon>
+			<shortname>get money</shortname>
+			<description>Adds the specified amount to your party&apos;s money</description>
+		</command>
+		<command id="losemoney">
+			<cannon>lose money (amount)</cannon>
+			<shortname>lose money</shortname>
+			<description>Subtracts the specified amount from your party&apos;s money.</description>
+		</command>
+		<command id="paymoney">
+			<cannon>pay money (amount)</cannon>
+			<shortname>pay money</shortname>
+			<description>A function that checks to see if you have enough money to pay the amount specified. If you do, it subtracts it, and returns <ref>true</ref>. If you do not have enough, it subtracts nothing, but returns <ref>false</ref>. Intended for use in <ref>if</ref> statements.</description>
+			<example>if(pay money(1000)) then, begin
+	get item(item:uber sword)
+end, else, begin
+	show text box(61) # ha ha, no uber sword for you!
+	wait for text box
+end</example>
+		</command>
+		<command id="addhero">
+			<cannon>add hero (who)</cannon>
+			<shortname>add hero</shortname>
+			<description>Puts the named hero in your party. If there is no room, the hero will be added to your reserve. Use the constants defined in your HSI file. They are in the form of hero:name</description>
+		</command>
+		<command id="deletehero">
+			<cannon>delete hero (who)</cannon>
+			<shortname>delete hero</shortname>
+			<description>Removes the named hero from your party. If you have more than one copy of the hero in your party, only the first one will be deleted. Use the constants defined in your HSI file. They are in the form of hero:name</description>
+		</command>
+		<command id="swapinhero">
+			<cannon>swap in hero (who)</cannon>
+			<shortname>swap in hero</shortname>
+			<description>Moves the named hero in your from your reserves to your active party. If there is no room in your active party, the hero will not be moved. Use the constants defined in your HSI file. They are in the form of hero:name</description>
+		</command>
+		<command id="swapouthero">
+			<cannon>swap out hero (who)</cannon>
+			<shortname>swap out hero</shortname>
+			<description>Moves the named hero from your active party into your reserve. Use the constants defined in your HSI file. They are in the form of hero:name</description>
+		</command>
+		<command id="lockhero">
+			<cannon>lock hero (who)</cannon>
+			<shortname>lock hero</shortname>
+			<description>Locking a hero prevents the player from moving the hero on the party menu. Locked heros in the active party cannot be moved into the reserve, and locked heros in the reserve are completely hidden. Also prevents a hero from being moved by <ref>swapinhero</ref> or <ref>swapouthero</ref>. Use the constants defined in your HSI file. They are in the form of hero:name</description>
+		</command>
+		<command id="unlockhero">
+			<cannon>unlock hero (who)</cannon>
+			<shortname>unlock hero</shortname>
+			<description>Reverses <ref>lockhero</ref>, and makes it possible to move a hero in and out of the active party again. Use the constants defined in your HSI file. They are in the form of hero:name</description>
+		</command>
+		<command id="swapbyname">
+			<cannon>swap by name (name,name)</cannon>
+			<shortname>swap by name</shortname>
+			<description>Swaps two named heros in your party no matter what position they are in. Use the names defined in your HSI file in the form hero:name</description>
+		</command>
+		<command id="swapbyposition">
+			<cannon>swap by position (position,position)</cannon>
+			<shortname>swap by position</shortname>
+			<description>Swaps two heros in your party based on their positions in the party</description>
+		</command>
+		<command id="getitem">
+			<cannon>get item (item,number)</cannon>
+			<shortname>get item</shortname>
+			<description>Adds the specified number of the specified item to your inventory. If you do not specify a number, only one will be added. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name</description>
+		</command>
+		<command id="deleteitem">
+			<cannon>delete item (item,number)</cannon>
+			<shortname>delete item</shortname>
+			<description>Removes the specified number of the specified item from your inventory. If you do not specify a number, only one will be removed. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name</description>
+		</command>
+		<command id="unequip">
+			<cannon>unequip (hero,slot)</cannon>
+			<shortname>unequip</shortname>
+			<description>Removes the item that the specified hero has equipped in the specified slot. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the slot to unequip. Use the number 1-5 or the names slot:weapon, slot:armor, etc.</description>
+		</command>
+		<command id="forceequip">
+			<cannon>force equip (hero,slot,item)</cannon>
+			<shortname>force equip</shortname>
+			<description>Forces a hero to equip an item, even if it is not normally equipable. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the slot to equip. Use the number 1-5 or the names slot:weapon, slot:armor, etc. The third argument is the item to equip. you can use the item&apos;s number or the item:name constants from your .HSI file.</description>
+		</command>
+		<command id="equipwhere">
+			<cannon>equip where (hero,item)</cannon>
+			<shortname>equip where</shortname>
+			<description>Returns the number of the slot that a hero can equip an item in, or false if the hero cannot equip it. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the item to check the equipability of. you can use the item&apos;s number or the item:name constants from your .HSI file.</description>
+		</command>
+		<command id="checkequipment">
+			<cannon>check equipment (hero,slot)</cannon>
+			<shortname>check equipment</shortname>
+			<description>eturns the number of the item that the specified hero has equipped in the specified slot, or -1 if there is nothing equipped there. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the slot to unequip. Use the number 1-5 or the names slot:weapon, slot:armor, etc.</description>
+		</command>
+		<command id="getdefaultweapon">
+			<cannon>get default weapon (hero)</cannon>
+			<shortname>get default weapon</shortname>
+			<description>Returns the number of the item that the specified hero uses as a default weapon when no other weapon is equipped. The argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name).</description>
+		</command>
+		<command id="setdefaultweapon">
+			<cannon>set default weapon (hero,item)</cannon>
+			<shortname>set default weapon</shortname>
+			<description>Changes the item that the specified hero uses as a default weapon when no other weapon is equipped. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the item to use as the new default weapon. you can use the item&apos;s number or the item:name constants from your .HSI file.</description>
+		</command>
+	</section>
+	<section title="Effects">
+		<command id="playsong">
+			<cannon>play song (song)</cannon>
+			<shortname>play song</shortname>
+			<description>Plays the specified song. Use the constants defined in your HSI file. They appear in the form of song:name</description>
+		</command>
+		<command id="currentsong">
+			<cannon>current song</cannon>
+			<shortname>current song</shortname>
+			<description>Returns the number of the currently playing song.</description>
+		</command>
+		<command id="stopsong">
+			<cannon>stop song</cannon>
+			<shortname>stop song</shortname>
+			<description>Stops whatever music is currently playing.</description>
+		</command>
+		<command id="setvictorymusic">
+			<cannon>set victory music (song)</cannon>
+			<shortname>set victory music</shortname>
+			<description>Changes the after-battle victory music to the specified song. Use the constants defined in your HSI file. They appear in the form of song:name</description>
+		</command>
+		<command id="fadescreenout">
+			<cannon>fade screen out (red,green,blue)</cannon>
+			<shortname>fade screen out</shortname>
+			<description>Fades the screen to a solid color. If you do not specify any arguments, the screen will fade to black. The red, green, blue values are numbers from 0 to 63 that tell how bright that particular color should be. (63,0,0) would be blood red. (40,0,40) would be purple. (63,63,63) would be bright white. The screen will remain faded out until you run <ref>fadescreenin</ref>, fight a battle, or use a door.</description>
+		</command>
+		<command id="fadescreenin">
+			<cannon>fade screen in</cannon>
+			<shortname>fade screen in</shortname>
+			<description>Fades the screen back to normal after a <ref>fadescreenout</ref> command, or applies the changes made with other palette commands such as <ref>greyscalepalette</ref>, <ref>tweakpalette</ref>, <ref>resetpalette</ref>, and <ref>writecolor</ref>.</description>
+		</command>
+		<command id="updatepalette">
+			<cannon>update palette</cannon>
+			<shortname>update palette</shortname>
+			<description>Instantly returns from fade screen out, and applies changes made by other palette command such as <ref>greyscalepalette</ref>, <ref>tweakpalette</ref>, <ref>resetpalette</ref>, and <ref>writecolor</ref>.</description>
+		</command>
+		<command id="greyscalepalette">
+			<cannon>greyscale palette (first,last)</cannon>
+			<shortname>greyscale palette</shortname>
+			<description>converts a section of the master palette from color to greyscale. The two arguments determine what range of colors will be affected. If called with no arguments, the entire palette is affected. Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>. Changes to the master palette last as long as you are playing, but are not stored in saved-games. If you need to make master-palette changes persist in saved-games you will have to use the on-load plotscript trigger.</description>
+		</command>
+		<command id="tweakpalette">
+			<cannon>tweak palette (red, green ,blue ,first,last)</cannon>
+			<shortname>tweak palette</shortname>
+			<description>Color-adjusts a section of the master palette. The first three arguments are the changes to make to the red, green, and blue values of each palette color. For example, tweak palette (20,-30,0) would redden everything, and drop out most of the green. The last two arguments determine what range of colors will be affected. If they are left out, the entire palette is affected. Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>. Changes to the master palette last as long as you are playing, but are not stored in saved-games. If you need to make master-palette changes persist in saved-games you will have to use the on-load plotscript trigger.</description>
+		</command>
+		<command id="resetpalette">
+			<cannon>reset palette</cannon>
+			<shortname>reset palette</shortname>
+			<description>Reloads the default palette, undoing any changes you have made with other palette-altering commands such as <ref>tweakpalette</ref> or <ref>greyscalepalette</ref> Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref></description>
+		</command>
+		<command id="readcolor">
+			<cannon>read color (index,element)</cannon>
+			<shortname>read color</shortname>
+			<description>Returns a color value from the master palette. The first argument is the index in the palette to read from, 0 to 255. The second argument is the color value to read, red, green, or blue. You can use 0,1, and 2, or you can use the predefined constants <ref>colorred</ref>, <ref>colorgreen</ref>, and <ref>colorblue</ref>. The counterpart to this is <ref>writecolor</ref>.</description>
+		</command>
+		<command id="writecolor">
+			<cannon>write color (index,element,value)</cannon>
+			<shortname>write color</shortname>
+			<description>Writes a color value into the master palette. The first argument is the index in the palette to write to, 0 to 255. The second argument is the color value to write, red, green, or blue. You can use 0,1, and 2, or you can use the predefined constants <ref>colorred</ref>, <ref>colorgreen</ref>, and <ref>colorblue</ref>. The third argument is the color value to write. It can be in the range of 0 to 63. Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref> The counterpart to this is <ref>readcolor</ref>. Changes to the master palette last as long as you are playing, but are not stored in saved-games. If you need to make master-palette changes persist in saved-games you will have to use the on-load plotscript trigger.</description>
+		</command>
+	</section>
+	<section title="Hero&apos;s Spells">
+		<command id="teachspell">
+			<cannon>teach spell (hero,attack)</cannon>
+			<shortname>teach spell</shortname>
+			<description>Tries to teach a hero a spell. The first argument is the hero&apos;s position in the party (as returned by <ref>findhero</ref>). The second argument is the attack to learn. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1). If the hero is capable of learning the spell, teach spell will return <ref>true</ref>, or if the hero cannot learn the spell it will return <ref>false</ref>. Note that this only works when a spell is set to "learned from item". It will not work for spells learned based on level.</description>
+		</command>
+		<command id="forgetspell">
+			<cannon>forget spell (hero,attack)</cannon>
+			<shortname>forget spell</shortname>
+			<description>Causes a hero to forget a spell. The first argument is the hero&apos;s position in the party (as returned by <ref>findhero</ref>). The second argument is the attack to forget. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1). If the hero does not know the spell, nothing happens.</description>
+		</command>
+		<command id="readspell">
+			<cannon>read spell (hero,list,slot)</cannon>
+			<shortname>read spell</shortname>
+			<description>Returns the ID number of a chosen spell slot, or 0 (<ref>false</ref>) if there is no spell in that slot. The first argument is the hero&apos;s position in the party (as returned by <ref>findhero</ref>). The second argument is the number of the spell list to check. This is a value from 0 to 3. The third argument is the slot to check. This is a number from 0 to 23. Spell slots are numbered in rows, so the first row is 0,1,2 the second row is 3,4,5, and so-on.</description>
+		</command>
+		<command id="writespell">
+			<cannon>write spell (hero,list,slot,attack)</cannon>
+			<shortname>write spell</shortname>
+			<description>Forces a hero to learn a particular spell. The first argument is the hero&apos;s position in the party (as returned by find hero). The second argument is the spell list to put the spell in. This is a number from 0 to 3. The third argument is the slot to put the spell in. This is a number from 0 to 23. Spell slots are numbered in rows, so the first row is 0,1,2 the second row is 3,4,5, and so-on. The last argument is the attack to put in the spell list. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1). You can also erase a spell by writing 0 or <ref>none</ref> as the attack ID. Note that this command will overwrite and replace any spell that is already in that slot. If you overwrite a slot that can normally learn another spell, you will never learn that other spell (unless you first erase the spell you wrote there)</description>
+		</command>
+		<command id="knowsspell">
+			<cannon>knows spell (hero,attack)</cannon>
+			<shortname>knows spell</shortname>
+			<description>Checks to see if a hero already knows a spell. The first argument is the hero&apos;s position in the party (as returned by <ref>findhero</ref>). The second argument is the attack to check for. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1). If the hero knows the spell, knows spell will return <ref>true</ref>. If the hero does not know the spell, it will return <ref>false</ref></description>
+		</command>
+		<command id="canlearnspell">
+			<cannon>can learn spell (hero,attack)</cannon>
+			<shortname>can learn spell</shortname>
+			<description>Checks to see if a hero is capable of learning a spell from an item or from the teach spell command. The first argument is the hero&apos;s position in the party (as returned by <ref>findhero</ref>). The second argument is the attack to check for. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1). If the hero can learn the spell, can learn spell will return <ref>true</ref>. If the hero cannot learn the spell (or learns it from levelups), it will return <ref>false</ref></description>
+		</command>
+	</section>
+	<section title="Mouse Functions">
+		<command id="initmouse">
+			<cannon>init mouse</cannon>
+			<shortname>init mouse</shortname>
+			<description>Initializes the mouse, returning <ref>true</ref> if one is present, and loads the mouse driver. This command much be run before any mouse functions can be used. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<lb/>The mouse will start in the middle of the screen with bounds of 0-318 horizontally and 0-198 vertically. The bounds can be changed with <ref>mouseregion</ref>, and you can reposition the mouse with <ref>putmouse</ref>.<lb/>NOTE: Running this command does not draw a cursor on screen - your script must do this itself by placing an npc at the appropriate location. Here is an example:</description>
+			<example>include,plotscr.hsd
+define script(1,displaymouse,none)
+
+#Mouse cursor example
+
+script, display mouse, begin
+
+  #start up the mouse
+  init mouse
+
+  #loop while the game is running
+  while (true) do,begin
+
+    #NPC 0 is the mouse cursor
+    put npc (0, mouse pixel x + camera pixel x, mouse pixel y + camera pixel y)
+    wait
+  end
+end</example>
+		</command>
+		<command id="mousepixelx">
+			<cannon>mouse pixel X</cannon>
+			<shortname>mouse pixel X</shortname>
+			<description>Returns the X coordinate in pixels of the mouse on the screen. <ref>initmouse</ref> must be called before this command can be used.</description>
+		</command>
+		<command id="mousepixely">
+			<cannon>mouse pixel Y</cannon>
+			<shortname>mouse pixel Y</shortname>
+			<description>Returns the Y coordinate in pixels of the mouse on the screen. <ref>initmouse</ref> must be called before this command can be used.</description>
+		</command>
+		<command id="mousebutton">
+			<cannon>mouse button (which)</cannon>
+			<shortname>mouse button</shortname>
+			<description>Returns <ref>true</ref> if the specified mouse button is pressed. You can use the constants <ref>leftbutton</ref> and <ref>rightbutton</ref> to specify the button. <ref>initmouse</ref> must be called before this command can be used.</description>
+		</command>
+		<command id="putmouse">
+			<cannon>put mouse (X,Y)</cannon>
+			<shortname>put mouse</shortname>
+			<description>Changes the location of the mouse on the screen, in pixels. <ref>initmouse</ref> must be called before this command can be used.</description>
+		</command>
+		<command id="mouseregion">
+			<cannon>mouse region (x min, x max, y min, y max)</cannon>
+			<shortname>mouse region</shortname>
+			<description>Sets the edges of the rectangle to which the mouse is constricted. Use if you want to force the mouse into some region, like a choice selection box. <ref>initmouse</ref> must be called before this command can be used.</description>
+		</command>
+	</section>
+	<section title="Misc Functions">
+		<command id="random">
+			<cannon>random(lownumber, highnumber)</cannon>
+			<shortname>random</shortname>
+			<description>Returns a random number in the range of the two numbers. The returned value will be greater than or equal to the first number, and less than or equal to the second number</description>
+		</command>
+		<command id="inventory">
+			<cannon>inventory (item)</cannon>
+			<shortname>inventory</shortname>
+			<description>Returns a count of how many of the specified item are in your inventory. If you do not have the item, it returns <ref>zero</ref> or <ref>false</ref>. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name</description>
+		</command>
+		<command id="leader">
+			<cannon>leader</cannon>
+			<shortname>leader</shortname>
+			<description>Returns the hero number of the current leader</description>
+		</command>
+		<command id="herox">
+			<cannon>hero X (who)</cannon>
+			<shortname>hero X</shortname>
+			<description>returns the specified hero&apos;s X position in tiles.</description>
+		</command>
+		<command id="heroy">
+			<cannon>hero Y (who)</cannon>
+			<shortname>hero Y</shortname>
+			<description>returns the specified hero&apos;s Y position in tiles.</description>
+		</command>
+		<command id="npcx">
+			<cannon>NPC X (who)</cannon>
+			<shortname>NPC X</shortname>
+			<description>returns the specified NPC&apos;s X position in tiles.</description>
+		</command>
+		<command id="npcy">
+			<cannon>NPC Y (who)</cannon>
+			<shortname>NPC Y</shortname>
+			<description>returns the specified NPC&apos;s Y position in tiles.</description>
+		</command>
+		<command id="herodirection">
+			<cannon>hero direction (who)</cannon>
+			<shortname>hero direction (who)</shortname>
+			<description>Returns the specified hero&apos;s direction.</description>
+		</command>
+		<command id="npcdirection">
+			<cannon>NPC direction (who)</cannon>
+			<shortname>NPC direction (who)</shortname>
+			<description>Returns the specified NPC&apos;s direction.</description>
+		</command>
+		<command id="roominactiveparty">
+			<cannon>room in active party</cannon>
+			<shortname>room in active party</shortname>
+			<description>A function that returns the number of available spaces in your active party. It will return <ref>zero</ref> or <ref>false</ref> if there is no room.</description>
+		</command>
+		<command id="currentmap">
+			<cannon>current map</cannon>
+			<shortname>current map</shortname>
+			<description>Returns the number of the current map.</description>
+		</command>
+		<command id="daysofplay">
+			<cannon>days of play</cannon>
+			<shortname>days of play</shortname>
+			<description>returns the number of days that the game has been played</description>
+		</command>
+		<command id="hoursofplay">
+			<cannon>hours of play</cannon>
+			<shortname>hours of play</shortname>
+			<description>returns the number of hours that the game has been played, 0 to 23</description>
+		</command>
+		<command id="minutesofplay">
+			<cannon>minutes of play</cannon>
+			<shortname>minutes of play</shortname>
+			<description>returns the number of minutes that the game has been played, 0 to 59</description>
+		</command>
+		<command id="systemhour">
+			<cannon>system hour</cannon>
+			<shortname>system hour</shortname>
+			<description>Returns the current real-world hour, 0 to 23</description>
+		</command>
+		<command id="systemminute">
+			<cannon>system minute</cannon>
+			<shortname>system minute</shortname>
+			<description>Returns the current real-world minute, 0 to 59</description>
+		</command>
+		<command id="systemsecond">
+			<cannon>system second</cannon>
+			<shortname>system second</shortname>
+			<description>Returns the current real-world second, 0 to 59</description>
+		</command>
+		<command id="keyispressed">
+			<cannon>key is pressed (scancode)</cannon>
+			<shortname>key is pressed (scancode)</shortname>
+			<description>Returns <ref>true</ref> if the keyboard key with the specified scancode is being pressed, or <ref>false</ref> if it is not. The argument is a scancode, NOT the <ref>upkey</ref>, <ref>downkey</ref>, etc used with <ref>waitforkey</ref>. I have provided an extra include file, SCANCODE.HSI that you can use to define friendly names for all the scancodes.<lb/>
+<ul><li>00</li><li>01 ESC</li><li>02 1</li><li>03 2</li><li>04 3</li><li>05 4</li><li>06 5</li><li>07 6</li><li>08 7</li><li>09 8</li><li>10 9</li><li>11 0</li><li>12 - _</li><li>13 = +</li><li>14 BACKSPACE</li><li>15 TAB</li><li>16 Q</li><li>17 W</li><li>18 E</li><li>19 R</li><li>20 T</li><li>21 Y</li><li>22 U</li><li>23 I</li><li>24 O</li><li>25 P</li><li>26 [ {</li><li>27 ] }</li><li>28 ENTER</li><li>29 CTRL</li><li>30 A</li><li>31 S</li><li>32 D</li><li>33 F</li><li>34 G</li><li>35 H</li><li>36 J</li><li>37 K</li><li>38 L</li><li>39 ; :</li><li>40 &quot; &apos;</li><li>41 ` ~</li><li>42 LEFT SHIFT</li><li>43 \ |</li><li>44 Z</li><li>45 X</li><li>46 C</li><li>47 V</li><li>48 B</li><li>49 N</li><li>50 M</li><li>51 , &lt;</li><li>52 . ></li><li>53 / ?</li><li>54 RIGHT SHIFT</li><li>55 PRINT SCREEN *</li><li>56 ALT</li><li>57 SPACE</li><li>58 CAPSLOCK</li><li>59 F1</li><li>60 F2</li><li>61 F3</li><li>62 F4</li><li>63 F5</li><li>64 F6</li><li>65 F7</li><li>66 F8</li><li>67 F9</li><li>68 F10</li><li>69 NUMLOCK</li><li>70 SCROLL LOCK</li><li>71 HOME 7</li><li>72 UP 8</li><li>73 PAGEUP 9</li><li>74 KEYPAD -</li><li>75 LEFT 4</li><li>76 KEYPAD 5</li><li>77 RIGHT 6</li><li>78 KEYPAD +</li><li>79 END 1</li><li>80 DOWN 2</li><li>81 PAGEDOWN 3</li><li>82 INSERT 0</li><li>83 DEL .</li><li>84</li><li>85</li><li>86</li><li>87 F11</li><li>88 F12</li><li>89</li><li>90</li><li>91 L WIN LOGO</li><li>92 R WIN LOGO</li><li>93 CONTEXT</li></ul></description>
+		</command>
+		<command id="heropixelx">
+			<cannon>hero pixel X (who)</cannon>
+			<shortname>hero pixel X (who)</shortname>
+			<description>Returns the hero&apos;s X position on the map in pixels. To find the hero&apos;s position in tiles, use the <ref>herox</ref> function instead.</description>
+		</command>
+		<command id="heropixely">
+			<cannon>hero pixel Y (who)</cannon>
+			<shortname>hero pixel Y(who)</shortname>
+			<description>Returns the hero&apos;s Y position on the map in pixels. To find the hero&apos;s position in tiles, use the <ref>heroy</ref> function instead.</description>
+		</command>
+		<command id="npcpixelx">
+			<cannon>NPC pixel X (who)</cannon>
+			<shortname>NPC pixel X (who)</shortname>
+			<description>Returns the NPC&apos;s X position on the map in pixels. The argument is an <ref>npcreference</ref> or an NPC ID number. To find the NPC&apos;s position in tiles, use the <ref>npcx</ref> function instead.</description>
+		</command>
+		<command id="npcpixely">
+			<cannon>NPC pixel Y (who)</cannon>
+			<shortname>NPC pixel Y (who)</shortname>
+			<description>Returns the NPC&apos;s Y position on the map in pixels. The argument is an <ref>npcreference</ref> or an NPC ID number. To find the NPC&apos;s position in tiles, use the <ref>npcy</ref> function instead.</description>
+		</command>
+		<command id="camerapixelx">
+			<cannon>camera pixel X</cannon>
+			<shortname>camera pixel X</shortname>
+			<description>Returns the X position of the top left corner of the screen in pixels.</description>
+		</command>
+		<command id="camerapixely">
+			<cannon>camera pixel Y</cannon>
+			<shortname>camera pixel Y</shortname>
+			<description>Returns the Y position of the top left corner of the screen in pixels.</description>
+		</command>
+		<command id="pickhero">
+			<cannon>pick hero</cannon>
+			<shortname>pick hero</shortname>
+			<description>Pops up a hero-picker box that lets you choose one of the heros in your active party. The return value is the position in the party of the hero you picked.</description>
+		</command>
+		<command id="renamehero">
+			<cannon>rename hero(who)</cannon>
+			<shortname>rename hero</shortname>
+			<description>Pops up a name-editing box that allows you to change a hero&apos;s name. The argument is the hero&apos;s ID number, or name in the format hero:name</description>
+		</command>
+		<command id="renameherobyslot">
+			<cannon>rename hero by slot(who)</cannon>
+			<shortname>rename hero by slot</shortname>
+			<description>Pops up a name-editing box that allows you to change a hero&apos;s name. The argument is the hero&apos;s position in the party as returned by <ref>findhero</ref></description>
+		</command>
+		<command id="lastsaveslot">
+			<cannon>last save slot</cannon>
+			<shortname>last save slot</shortname>
+			<description>Returns the last save slot saved in, or <ref>false</ref> if the game has not been saved yet.</description>
+			<seealso>
+				<ref>saveinslot</ref>
+				<ref>savemenu</ref>
+			</seealso>
+		</command>
+		<command id="saveslotused">
+			<cannon>save slot used (slot)</cannon>
+			<shortname>save slot used (slot)</shortname>
+			<description>Returns whether a game has been saved in the save slot. Use if you, for example, don&apos;t want to overwrite a saved game with <ref>saveinslot</ref>.</description>
+		</command>
+	</section>
+	<section title="Tweaking Maps">
+		<command id="readmapblock">
+			<cannon>read map block (x,y)</cannon>
+			<shortname>read map block</shortname>
+			<description>Returns the value of a map tile on the current map at the specified X,Y position. Normal map tiles return values from 0-159, animating maptiles from set 1 return 160-207 and animating maptiles from set 2 return 208-255.</description>
+		</command>
+		<command id="writemapblock">
+			<cannon>write map block (x,y,value)</cannon>
+			<shortname>write map block (x,y,value)</shortname>
+			<description>Writes a new tile to the specified X,Y position on the current map. This change will only persist until you leave the map or fight a battle.</description>
+		</command>
+		<command id="readpassblock">
+			<cannon>read pass block (x,y)</cannon>
+			<shortname>read pass block</shortname>
+			<description>Returns the value of a passability (wallmap) tile on the current map at the specified X,Y position. The return value will be from 0 to 255 and consists of eight flag bits.<lb/><lb/>bit 1 = <ref>northwall</ref><lb/>bit 2 = <ref>eastwall</ref><lb/>bit 4 = <ref>southwall</ref><lb/>bit 8 = <ref>westwall</ref><lb/>bit 16  = <ref>vehiclea</ref><lb/>bit 32 = <ref>vehicleb</ref><lb/>bit 64 = <ref>harmtile</ref><lb/>bit 128 = <ref>overheadtile</ref><lb/><lb/>To check the value of a specific bit, use the <ref>and</ref> operator. For example:  </description>
+			<example>  variable (pass)
+  set variable(pass,read pass block(hero X(me),hero Y(me)))
+  if (pass,and,harm tile) then begin
+    # this checks if the hero is standing
+    # on a harm tile
+  end</example>
+		</command>
+		<command id="writepassblock">
+			<cannon>write pass block (x,y,value)</cannon>
+			<shortname>write pass block</shortname>
+			<description>Writes a new passability (wallmap) information to the specified X,Y position on the current map. This change will only persist until you leave the map or fight a battle. The value is a number from from 0 to 255 that consists of eight flag bits.<lb/><lb/>bit 1 = <ref>northwall</ref><lb/>bit 2 = <ref>eastwall</ref><lb/>bit 4 = <ref>southwall</ref><lb/>bit 8 = <ref>westwall</ref><lb/>bit 16  = <ref>vehiclea</ref><lb/>bit 32 = <ref>vehicleb</ref><lb/>bit 64 = <ref>harmtile</ref><lb/>bit 128 = <ref>overheadtile</ref><lb/><lb/>You can <ref>add</ref> the constants together. For example:</description>
+			<example>variable (pass)
+set variable(pass,northwall+southwall+eastwall+westwall)
+write pass block(15,3,pass)
+# this makes the fifteenth tile in the third column
+# impassable on all directions</example>
+		</command>
+		<command id="loadtileset">
+			<cannon>load tileset (set)</cannon>
+			<shortname>load tileset</shortname>
+			<description>Loads a different tileset for the currently displaying map. The argument is the ID number of the tileset to load. To restore the map&apos;s default tileset, use load tileset with no arguments.</description>
+		</command>
+	</section>
+	<section title="Working with Tags">
+		<command id="settag">
+			<cannon>set tag (tag,value)</cannon>
+			<shortname>set tag</shortname>
+			<description>Sets the value of a tag. The available constants are: <ref>off</ref>, <ref>on</ref>, <ref>true</ref>, or <ref>false</ref>. You can specify the number of the tag, or you can use the constants in your HSI file. These constants are in the form of tag:name.</description>
+		</command>
+		<command id="checktag">
+			<cannon>check tag (tag)</cannon>
+			<shortname>check tag</shortname>
+			<description>A function that checks the value of a tag, and returns <ref>true</ref> if the tag is turned on, and <ref>false</ref> if the tag is turned off. It can be used in <ref>if</ref> and <ref>while</ref> statements. You can specify the number of the tag, or you can use the constants in your HSI file. These constants are in the form of tag:name.</description>
+		</command>
+	</section>
+	<section title="Working with Variables">
+		<command id="setvariable">
+			<cannon>set variable (variable,value)</cannon>
+			<shortname>set variable</shortname>
+			<description>This command assigns a new value to a variable. If you do not specify the new value, the variable will be reset to zero. This command works exactly the same for global and local variables.<lb/>If you prefer, you can also set variables by writing variable := value</description>
+		</command>
+		<command id="increment">
+			<cannon>increment (variable,amount)</cannon>
+			<shortname>increment</shortname>
+			<description>This command adds an amount to the current value of a variable. If you do not specify the amount, then the variable will be incremented by one. This command works exactly the same for global and local variables.<lb/>You can also increment variables by writing variable += amount</description>
+		</command>
+		<command id="decrement">
+			<cannon>decrement (variable,amount)</cannon>
+			<shortname>decrement</shortname>
+			<description>This command subtracts an amount from the current value of a variable. If you do not specify the amount, then the variable will be decremented by one. This command works exactly the same for global and local variables.<lb/>You can also decrement variables by writing variable -= amount</description>
+		</command>
+	</section>
+	<section title="Math, Comparison, and Logic Operators">
+		<comment>Pre-December 1999 versions of HamsterSpeak used a different syntax for math. For more information, see the HamsterSpeak Specification</comment>
+		<command id="add">
+			<cannon>number + number</cannon>
+			<shortname>add</shortname>
+			<description>Adds two values together and returns the result. This can also be written as add(number,number)</description>
+		</command>
+		<command id="subtract">
+			<cannon>number -- number</cannon>
+			<shortname>subtract</shortname>
+			<description>Subtracts the second number from the first number and returns the result. It is neccisary to use the double minus so that HSPEAK.EXE can tell the difference between subtraction, and a minus sign that indicates a negative number. You can also write subtract(number,number)</description>
+		</command>
+		<command id="multiply">
+			<cannon>number * number</cannon>
+			<shortname>multiply</shortname>
+			<description>Multiplies two values together and returns the result. This can also be written as multiply(number,number)</description>
+		</command>
+		<command id="divide">
+			<cannon>number / number</cannon>
+			<shortname>divide</shortname>
+			<description>Divides the second number into the first number and returns the result. The result is rounded down to an integer. This can also be written as divide(number,number)</description>
+		</command>
+		<command id="modulus">
+			<cannon>number,mod,number</cannon>
+			<shortname>mod</shortname>
+			<description>Divides the second number into the first number and returns the remainder. This can also be written as modulus(number,number)</description>
+		</command>
+		<command id="exponent">
+			<cannon>number ^ power</cannon>
+			<shortname>^</shortname>
+			<description>Raises a number to a power and returns the result. Normally you will only be raising things to a power of 2. Raising to very large powers will most certainly produce an overflow error. This can also be written as exponent(number,power)</description>
+		</command>
+		<command id="equal">
+			<cannon>number == number</cannon>
+			<shortname>==</shortname>
+			<description>Checks to see if the two numbers are equal. If they are equal it returns true, otherwise it returns false. This can also be written as equal(number,number)</description>
+		</command>
+		<command id="notequal">
+			<cannon>number &lt;> number</cannon>
+			<shortname>&lt;></shortname>
+			<description>Checks to see if the two numbers are not equal. If they are not equal it returns true. If they are equal it returns false. This can also be written as not equal(number,number)</description>
+		</command>
+		<command id="lessthan">
+			<cannon>number &lt;&lt; number</cannon>
+			<shortname>&lt;&lt;</shortname>
+			<description>Checks to see if the first number is less than the second number. If it is, it returns true, otherwise it returns false. This can also be written as less than(number,number)</description>
+		</command>
+		<command id="greaterthan">
+			<cannon>number >> number</cannon>
+			<shortname>>></shortname>
+			<description>Checks to see if the first number is greater than the second number. If it is, it returns true, otherwise it returns false. This can also be written as greater than(number,number)</description>
+		</command>
+		<command id="lessthanorequalto">
+			<cannon>number &lt;= number</cannon>
+			<shortname>&lt;=</shortname>
+			<description>Checks to see if the first number is less than or equal to the second number. If it is, it returns true, otherwise it returns false. This can also be written as less than or equal to(number,number)</description>
+		</command>
+		<command id="greaterthanorequalto">
+			<cannon>number >= number</cannon>
+			<shortname>>=</shortname>
+			<description>Checks to see if the first number is greater than or equal to the second number. If it is, it returns true, otherwise it returns false. This can also be written as greater than or equal to(number,number)</description>
+		</command>
+		<command id="and">
+			<cannon>value,and,value</cannon>
+			<shortname>and</shortname>
+			<description>Returns true if both of the values are true (non-zero). If either of them is false, and returns false.</description>
+		</command>
+		<command id="or">
+			<cannon>value,or,value</cannon>
+			<shortname>or</shortname>
+			<description>Returns true if at least one of the values are true (non-zero). Only if both of them are false does or return false.</description>
+		</command>
+		<command id="xor">
+			<cannon>value,xor,value</cannon>
+			<shortname>xor</shortname>
+			<description>Returns true if one, but not both of the values are true (non-zero). If both of them are true, or both of them are false, xor returns false.</description>
+		</command>
+	</section>
+	<section title="Flow Control">
+		<command id="begin">
+			<cannon>begin,other commands,end</cannon>
+			<shortname>begin</shortname>
+			<description>Begin is a synonym for ( and end is a synonym for ). Parenthesis are normally used for bracketing things that all fit on the same line, and begin/end statements are often used to enclose very long things such as whole scripts or long flow control blocks that take up several lines. For example, the following two blocks of code are identical:</description>
+			<example>if (check tag(2)) then (show text box (5),wait for text box)</example>
+			<example>if (check tag(2)) then
+begin
+	show text box (5)
+	wait for text box
+end</example>
+		</command>
+		<command id="end">
+			<alias>begin</alias>
+			<shortname>end</shortname>
+		</command>
+		<command id="if">
+			<cannon>if(condition) then(commands) else(commands)</cannon>
+			<shortname>if</shortname>
+			<description>The if statement checks the value of its condition, and if the value is <ref>true</ref>, it runs the commands in the then block. If the value is <ref>false</ref>, it runs the commands in its else block. The conditional is usually an equality operator such as <ref>equal</ref> or <ref>notequal</ref>, or it is a <ref>checktag</ref> command. The else is optional as long as you have a then, and the then is optional as long as you have an else. There are some examples of if statements in the HamsterSpeak Specification, and in WANDERP.HSS</description>
+		</command>
+		<command id="then">
+			<alias>if</alias>
+			<shortname>then</shortname>
+		</command>
+		<command id="else">
+			<alias>if</alias>
+			<shortname>else</shortname>
+		</command>
+		<command id="while">
+			<cannon>while(condition) do(commands)</cannon>
+			<shortname>while</shortname>
+			<description>The while command checks the value of its condition, and if the value is <ref>true</ref> it runs the commands in the do block. It keeps checking the conditional and runs the do block over and over again until the conditional returns <ref>false</ref>. The conditional is usually an equality operator such as <ref>equal</ref> or <ref>notequal</ref>, or it is a check tag command.</description>
+		</command>
+		<command id="do">
+			<cannon>do</cannon>
+			<shortname>do</shortname>
+			<description />
+			<seealso>
+				<ref>while</ref>
+				<ref>for</ref>
+			</seealso>
+		</command>
+		<command id="for">
+			<cannon>for(counter,start,finish,step) do(commands)</cannon>
+			<shortname>for</shortname>
+			<description>The for command runs the commands in the do block a specified number of times. The first argument to for is the counter. It must be a variable. The next two arguments are the starting value and the finishing value. For example, if you use a start value of 1 and a finish value of 10 then the do block will run 10 times. The first time the do block runs, the counter will be 1, then it will be 2, then 3 and so on until it reaches 10, the finish value. The fourth argument of for is optional. It is the step by which the counter will change each loop. If you use a step of 2 then the counter will count 1,3,5,7,9. If you switch the start and finish values and use a step of -1 then the counter will go backwards. If you use 0 as the step, the counter will never change, so the do block will repeat forever. There are examples of for commands in WANDERP.HSS</description>
+		</command>
+		<command id="return">
+			<cannon>return(value)</cannon>
+			<shortname>return</shortname>
+			<description>Sets the value to be returned by the script. This is only useful when the script has been called as a function from another script. It is irrelevant to scripts called directly from your RPG. This command does NOT cause the script to terminate, it just sets the return value. If return is used more than once in the same script, only the last one executed matters</description>
+		</command>
+	</section>
+	<section title="Advanced Commands">
+		<command id="setheropicture">
+			<cannon>set hero picture (who,picture,type)</cannon>
+			<shortname>set hero picture</shortname>
+			<description>Permanently changes a hero&apos;s picture. The first argument is the heros position in the party as returned by <ref>findhero</ref>. The second argument is the index number of the picture to use, and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the heros battle picture or their walkabout picture. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+		</command>
+		<command id="setheropalette">
+			<cannon>set hero palette (who,palette,type)</cannon>
+			<shortname>set hero palette</shortname>
+			<description>Permanently changes a hero&apos;s 16-color palette. The first argument is the heros position in the party as returned by <ref>findhero</ref>. The second argument is the index number of the 16-color palette to use, and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the heros battle palette or their walkabout palette. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+		</command>
+		<command id="getheropicture">
+			<cannon>get hero picture (who,type)</cannon>
+			<shortname>get hero picture</shortname>
+			<description>A function that returns the index number of a hero&apos;s picture. The first argument is the heros position in the party as returned by <ref>findhero</ref>. The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are checking the heros battle picture or their walkabout picture. If the second argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+		</command>
+		<command id="getheropalette">
+			<cannon>get hero palette (who,type)</cannon>
+			<shortname>get hero palette</shortname>
+			<description>A function that returns the index number of a hero&apos;s 16-color palette. The first argument is the heros position in the party as returned by <ref>findhero</ref>. The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are checking the heros battle palette or their walkabout palette. If the second argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+		</command>
+		<command id="alternpc">
+			<cannon>alter NPC (who,NPCstat,value)</cannon>
+			<shortname>alter NPC</shortname>
+			<description>Changes the stats of an NPC. Constants for this command have been included in PLOTSCR.HSD. Alter NPC can be used for many purposes.<lb/>
+<ul><li>Alter NPC (who,NPCstat:picture,picture number)</li><li>Alter NPC (who,NPCstat:palette,palette number)</li><li>Alter NPC (who,NPCstat:move type,move type code)<lb/>Available move types<ul><li>NPCmovetype:standstill</li><li>NPCmovetype:wander</li><li>NPCmovetype:pace</li><li>NPCmovetype:rightturns</li><li>NPCmovetype:leftturns</li><li>NPCmovetype:randomturns</li><li>NPCmovetype:chaseyou</li><li>NPCmovetype:avoidyou</li></ul></li><li>Alter NPC (who,NPCstat:move speed,speed)</li><li>Alter NPC (who,NPCstat:display text,text box number)</li><li>Alter NPC (who,NPCstat:when activated,when activated code)<lb/>Available when activated codes<ul><li>NPCwhenactivated:changedirection</li><li>NPCwhenactivated:faceplayer</li><li>NPCwhenactivated:donotfaceplayer</li></ul></li><li>Alter NPC (who,NPCstat:give item,item number)</li><li>Alter NPC (who,NPCstat:pushability,pushability code)<lb/>Available pushability codes<ul><li>NPCpush:off</li><li>NPCpush:full</li><li>NPCpush:horizontal</li><li>NPCpush:vertical</li><li>NPCpush:uponly</li><li>NPCpush:rightonly</li><li>NPCpush:downonly</li><li>NPCpush:leftonly</li></ul></li><li>Alter NPC (who,NPCstat:activation,activation code)<lb/>Available activation codes<ul><li>NPCactivation:use</li><li>NPCactivation:touch</li><li>NPCactivation:stepon</li></ul></li><li>Alter NPC (who,NPCstat:script,script ID)</li><li>Alter NPC (who,NPCstat:script argument,number)</li><li>Alter NPC (who,NPCstat:vehicle,vehicle ID)</li></ul>Normally you would only give an NPC ID number to alter NPC, but if you want to use an <ref>npcreference</ref> it will still work. Just remember that alter NPC changes every copy of the NPC on the map, not just the specific one you referenced.<lb/>A good way to make use of Alter NPC is to wrap it in your own script. For example:</description>
+		<example># Example AlterNPC wrapper for changing NPC appearance
+Define Script (autonumber,change NPC,3,0,0,0)
+
+script,change NPC,who,picture,palette,begin
+  Alter NPC(who,NPCstat:picture,picture)
+  Alter NPC(who,NPCstat:palette,palette)
+end</example>
+		</command>
+		<command id="setdeathscript">
+			<cannon>set death script (id)</cannon>
+			<shortname>set death script</shortname>
+			<description>Changes the script that is run when you die in battle. The argument is the script&apos;s ID number, NOT the script&apos;s name. Calling set death script with no argument disables the death script.</description>
+		</command>
+		<command id="getdeathscript">
+			<cannon>get death script</cannon>
+			<shortname>get death script</shortname>
+			<description>Returns the ID number of script that is run when you die in battle.</description>
+		</command>
+		<command id="setloadscript">
+			<cannon>set load script (id)</cannon>
+			<shortname>set load script (id)</shortname>
+			<description>Changes the script that is run when you load a saved game. The argument is the script&apos;s ID number, NOT the script&apos;s name. Calling set load script with no argument disables the load script.</description>
+		</command>
+		<command id="getloadscript">
+			<cannon>get load script</cannon>
+			<shortname>get load script</shortname>
+			<description>Returns the ID number of script that is run when you load a saved game.</description>
+		</command>
+		<command id="findhero">
+			<cannon>find hero (who)</cannon>
+			<shortname>find hero (who)</shortname>
+			<description>Searches through your party to see if the specified hero is there, and returns the position where the hero was found, or -1 if the hero was not found. Use the names defined in your HSI file in the format hero:name. Not only does this tell you if a hero is in your party, but you can also use it to tell whether or not the hero is in your active party. find hero will return 0,1,2 or 3 if the hero is in the active party, but it will return a number 4 or higher if the hero is in the reserve.</description>
+			<seealso>
+				<ref>rankincaterpillar</ref>
+			</seealso>
+		</command>
+		<command id="herobyslot">
+			<cannon>hero by slot (where)</cannon>
+			<shortname>hero by slot</shortname>
+			<description>This command is the reverse of <ref>findhero</ref>. Given a position in your party, it will tell you which hero is in that slot, or -1 if no hero is in that slot. The number returned can be compared with the names defined in your HSI file in the format hero:name.</description>
+		</command>
+		<command id="rankincaterpillar">
+			<cannon>rank in caterpillar (who)</cannon>
+			<shortname>rank in caterpillar</shortname>
+			<description>Searches through your active party to see if the specified hero is there, and returns the position int the walkabout caterpillar where the hero was found, or -1 if the hero was not found. Use the names defined in your HSI file in the format hero:name. This is particularaly useful if you need to use a command like walk hero but you are not sure which position the hero is in.</description>
+			<seealso>
+				<ref>findhero</ref>
+			</seealso>
+		</command>
+		<command id="herobyrank">
+			<cannon>hero by rank (where)</cannon>
+			<shortname>hero by rank</shortname>
+			<description>This command is the reverse of <ref>rankincaterpillar</ref>. Given a position in your walkabout party, it will tell you which hero is in that position, or -1 if no hero is in that position. The number returned can be compared with the names defined in your HSI file in the format hero:name.</description>
+		</command>
+		<command id="getherostat">
+			<cannon>get hero stat (who,stat,type)</cannon>
+			<shortname>get hero stat</shortname>
+			<description>A function that returns one of a hero&apos;s stats. The first argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. The second argument is the name of the stat that you want to check. The names of the stats are also define in your HSI file in the form stat:name. The third argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave the last argument blank, <ref>currentstat</ref> will be assumed.</description>
+		</command>
+		<command id="setherostat">
+			<cannon>set hero stat (who,stat,value,type)</cannon>
+			<shortname>set hero stat</shortname>
+			<description>A command that changes one of a hero&apos;s stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also define in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave the last argument blank, <ref>currentstat</ref> will be assumed.</description>
+		</command>
+		<command id="getherolevel">
+			<cannon>get hero level (who)</cannon>
+			<shortname>get hero level</shortname>
+			<description>A function that returns a hero&apos;s current level. The argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. The return value with be your current level, from 0 to 99</description>
+		</command>
+		<command id="readglobal">
+			<cannon>read global (id)</cannon>
+			<shortname>read global</shortname>
+			<description>A function that returns the value of a global variable using its ID number instead of its name. Why would you want to do a silly thing like that? Because it allows you to simulate simple fake arrays, in the old C-pointer style.</description>
+			<seealso>
+				<ref>writeglobal</ref>
+			</seealso>
+		</command>
+		<command id="writeglobal">
+			<cannon>write global (id,value)</cannon>
+			<shortname>write global</shortname>
+			<description>A function that writes a value into a global variable using its ID number instead of its name. Why would you want to do a silly thing like that? Because it allows you to simulate simple fake arrays, in the old C-pointer style</description>
+			<seealso>
+				<ref>readglobal</ref>
+			</seealso>
+		</command>
+		<command id="setbattlewaitmode">
+			<cannon>set battle wait mode (state)</cannon>
+			<shortname>set battle wait mode</shortname>
+			<description>Set whether or not battles pause on spell and item menus. If the argument is <ref>off</ref> then enemies continue to attack while menus are up, if the argument is <ref>on</ref> then enemies wait while menus are up.</description>
+		</command>
+		<command id="setcaterpillarmode">
+			<cannon>set caterpillar mode (state)</cannon>
+			<shortname>set caterpillar mode</shortname>
+			<description>Sets whether or not to display the whole party in "caterpillar" style. If the argument is <ref>off</ref> then only the leader will be displayed. If the argument is <ref>on</ref> then the whole party will be displayed. (do not confuse this with the <ref>suspendcaterpillar</ref> and <ref>resumecaterpillar</ref> commands, which only apply when caterpillar mode is ON)</description>
+		</command>
+		<command id="setnohpleveluprestore">
+			<cannon>set no HP level up restore (state)</cannon>
+			<shortname>set no HP level up restore</shortname>
+			<description>Sets whether or not a hero regains full HP after a levelup. If the argument is <ref>off</ref> then HP is restored on a levelup. If the argument is <ref>on</ref> then the hero&apos;s HP is not restored on a levelup.</description>
+		</command>
+		<command id="setnompleveluprestore">
+			<cannon>set no MP level up restore (state)</cannon>
+			<shortname>set no MP level up restore</shortname>
+			<description>Sets whether or not a hero regains full MP after a levelup. If the argument is <ref>off</ref> then MP is restored on a levelup. If the argument is <ref>on</ref> then the hero&apos;s MP is not restored on a levelup.</description>
+		</command>
+		<command id="setinnnorevivemode">
+			<cannon>set inn no revive mode (state)</cannon>
+			<shortname>set inn no revive mode</shortname>
+			<description>Sets whether or not inns restore dead heros to life. If the argument is <ref>off</ref> then dead heros are restored by inns. If the argument is <ref>on</ref> then dead heros remain dead in inns.</description>
+		</command>
+		<command id="setfullheroswapmode">
+			<cannon>set full hero swap mode (state)</cannon>
+			<shortname>set full hero swap mode</shortname>
+			<description>Sets whether or not you can swap heros in and out of your active party from the menu. If the argument is <ref>off</ref> then the "Order" menu will be available. If the argument is <ref>on</ref> then the "Team" menu will be available.</description>
+		</command>
+		<command id="hidebattlereadymeter">
+			<cannon>hide battle ready meter (state)</cannon>
+			<shortname>hide battle ready meter</shortname>
+			<description>Sets whether or not the ready meter appears in battle. If the argument is <ref>off</ref> then the ready meter appears. If the argument is <ref>on</ref> then the ready meter will be hidden.</description>
+		</command>
+		<command id="hidebattlehealthmeter">
+			<cannon>hide battle health meter (state)</cannon>
+			<shortname>hide battle health meter</shortname>
+			<description>Sets whether or not the health meter appears in battle. If the argument is <ref>off</ref> then the health meter appears. If the argument is <ref>on</ref> then the health meter will be hidden.</description>
+		</command>
+		<command id="setdebugkeysdisable">
+			<cannon>set debug keys disable (state)</cannon>
+			<shortname>set debug keys disable</shortname>
+			<description>Sets whether or not the debugging keys are allowed. If the argument is <ref>off</ref> then debugging keys are allowed. If the argument is <ref>on</ref> then debugging keys are disabled.</description>
+		</command>
+		<command id="autosave">
+			<cannon>autosave</cannon>
+			<shortname>autosave</shortname>
+			<description>Transparently saves the game to the last save slot used, or if the game has not been saved yet, calls <ref>savemenu</ref>. Returns the number of the last save slot, or if the user cancelled the save menu, returns false</description>
+			<seealso>
+				<ref>lastsaveslot</ref>
+			</seealso>
+		</command>
+		<command id="saveinslot">
+			<cannon>save in slot (slot)</cannon>
+			<shortname>save in slot</shortname>
+			<description>Saves in the specified save slot (1 to 32, where only 1 to 4 are visible on the save and load menus). If a saved game already exists in the slot, it will be overwritten. If you want to make sure that no save game will be overwritten, use <ref>saveslotused</ref>. To display the save game menu instead, use <ref>savemenu</ref>.</description>
+		</command>
+		<command id="loadfromslot">
+			<cannon>load from slot (slot)</cannon>
+			<shortname>load from slot</shortname>
+			<description>Loads a saved game from a save slot as if it had been loaded from the load game menu. This command will end the current game.</description>
+		</command>
+		<command id="deletesave">
+			<cannon>delete save (slot)</cannon>
+			<shortname>delete save</shortname>
+			<description>Deletes a saved game. The save will no longer be visible on the load game menu or loadable with <ref>loadfromslot</ref>. However, <ref>importglobals</ref> can still be used to read globals out of the slot.</description>
+			<seealso>
+				<ref>saveinslot</ref>
+			</seealso>
+		</command>
+		<command id="importglobals">
+			<cannon>import globals (slot, first, last)</cannon>
+			<shortname>import globals</shortname>
+			<description>Loads a range of globals from a saved game, overwriting the current globals in that range. First and Last are the id numbers of the globals at the beginning and end of the range. First defaults to 0, and Last defaults to 1024. import globals and <ref>exportglobals</ref> can be used to save and retrieve info about a saved game without loading it, and also to store variables that any game the player starts can use, like in the following example:</description>
+			<example>define script (21, game finished, none)
+
+define script (22, check game finished, none)
+
+global variable (100, game completed)
+global variable (101, hours to complete)
+global variable (102, minutes to complete)
+
+script, game finished, begin
+  game complete := true
+  hours to complete := hours of play
+  minutes to complete := minutes of play
+  export globals (5, 100, 102) #special slot that the player can not load, which we can use for anything
+end
+
+script, check game finished, begin
+  import globals (5, 100, 102) #copy saved values into globals 100, 101, 102
+  if (game completed) then (
+    show textbox (105) #"you have previously finished this game in ${V101} hours and ${V102} minutes"
+  ) else (
+    show textbox (106) #"you have yet to complete the game!"
+  )
+  wait for textbox
+end</example>
+			<seealso>
+				<ref>readglobal</ref>
+				<ref>exportglobals</ref>
+			</seealso>
+		</command>
+		<command id="exportglobals">
+			<cannon>export globals (slot, first, last)</cannon>
+			<shortname>export globals</shortname>
+			<description>Writes a range of globals to a saved game, overwriting the saved games globals. "First" and "Last" are the id numbers of the globals at the beginning and end of the range. First defaults to 0, and Last defaults to 1024. Therefore, if you pass no range, all the globals will be written.</description>
+			<seealso>
+				<ref>writeglobal</ref>
+				<ref>importglobals</ref>
+			</seealso>
+		</command>
+	</section>
+	<section title="Predefined Constants">
+		<command id="numericconstants">
+			<cannon>Numeric Constants</cannon>
+			<shortname>Numeric Constants</shortname>
+			<description>PLOTSCR.HSD defines constants for the numbers from 0 to 10. you can use these constants to make your scripts look friendly :)<lb />zero, one, two, three, four, five, six, seven, eight, nine, ten</description>
+		</command>
+		<command id="zero">
+			<alias>numericconstants</alias>
+			<shortname>zero</shortname>
+		</command>
+		<command id="one">
+			<alias>numericconstants</alias>
+			<shortname>one</shortname>
+		</command>
+		<command id="two">
+			<alias>numericconstants</alias>
+			<shortname>two</shortname>
+		</command>
+		<command id="three">
+			<alias>numericconstants</alias>
+			<shortname>three</shortname>
+		</command>
+		<command id="four">
+			<alias>numericconstants</alias>
+			<shortname>four</shortname>
+		</command>
+		<command id="five">
+			<alias>numericconstants</alias>
+			<shortname>five</shortname>
+		</command>
+		<command id="six">
+			<alias>numericconstants</alias>
+			<shortname>six</shortname>
+		</command>
+		<command id="seven">
+			<alias>numericconstants</alias>
+			<shortname>seven</shortname>
+		</command>
+		<command id="eight">
+			<alias>numericconstants</alias>
+			<shortname>eight</shortname>
+		</command>
+		<command id="nine">
+			<alias>numericconstants</alias>
+			<shortname>nine</shortname>
+		</command>
+		<command id="ten">
+			<alias>numericconstants</alias>
+			<shortname>nine</shortname>
+		</command>
+		<command id="keyconstants">
+			<cannon>Key Constants</cannon>
+			<shortname>Key Constants</shortname>
+			<description>PLOTSCR.HSD defines constants that correspond to each of the usable keys (or joystick buttons) that the player can press while playing. These are useful with the <ref>waitforkey</ref> command.<lb />any key, up key, down key, left key, right key, use key, menu key, cancel key</description>
+		</command>
+		<command id="anykey">
+			<alias>keyconstants</alias>
+			<shortname>any key</shortname>
+		</command>
+		<command id="upkey">
+			<alias>keyconstants</alias>
+			<shortname>up key</shortname>
+		</command>
+		<command id="downkey">
+			<alias>keyconstants</alias>
+			<shortname>down key</shortname>
+		</command>
+		<command id="leftkey">
+			<alias>keyconstants</alias>
+			<shortname>left key</shortname>
+		</command>
+		<command id="rightkey">
+			<alias>keyconstants</alias>
+			<shortname>right key</shortname>
+		</command>
+		<command id="usekey">
+			<alias>keyconstants</alias>
+			<shortname>use key</shortname>
+		</command>
+		<command id="menukey">
+			<alias>keyconstants</alias>
+			<shortname>menu key</shortname>
+		</command>
+		<command id="cancelkey">
+			<alias>keyconstants</alias>
+			<shortname>cancel key</shortname>
+		</command>
+		<command id="booleanconstants">
+			<cannon>Boolean Constants</cannon>
+			<shortname>Boolean Constants</shortname>
+			<description>PLOTSCR.HSD defines constants for true and false, and for ON and OFF. These are useful for checking and setting the values of tags, and in conditional statements.<lb/>true, false, on, off</description>
+		</command>
+		<command id="true">
+			<alias>booleanconstants</alias>
+			<shortname>true</shortname>
+		</command>
+		<command id="false">
+			<alias>booleanconstants</alias>
+			<shortname>false</shortname>
+		</command>
+		<command id="on">
+			<alias>booleanconstants</alias>
+			<shortname>on</shortname>
+		</command>
+		<command id="off">
+			<alias>booleanconstants</alias>
+			<shortname>off</shortname>
+		</command>
+		<command id="directionconstants">
+			<cannon>Direction Constants</cannon>
+			<shortname>Direction Constants</shortname>
+			<description>PLOTSCR.HSD defines constants for each of the four directions. These constants are useful for commands such as <ref>walkhero</ref> and <ref>walknpc</ref>, which take a direction as an argument.<lb/>north, south, east, west, up, down, right, left</description>
+		</command>
+		<command id="north">
+			<alias>directionconstants</alias>
+			<shortname>north</shortname>
+		</command>
+		<command id="south">
+			<alias>directionconstants</alias>
+			<shortname>south</shortname>
+		</command>
+		<command id="east">
+			<alias>directionconstants</alias>
+			<shortname>east</shortname>
+		</command>
+		<command id="west">
+			<alias>directionconstants</alias>
+			<shortname>west</shortname>
+		</command>
+		<command id="up">
+			<alias>directionconstants</alias>
+			<shortname>up</shortname>
+		</command>
+		<command id="down">
+			<alias>directionconstants</alias>
+			<shortname>down</shortname>
+		</command>
+		<command id="right">
+			<alias>directionconstants</alias>
+			<shortname>right</shortname>
+		</command>
+		<command id="left">
+			<alias>directionconstants</alias>
+			<shortname>left</shortname>
+		</command>
+		<command id="me">
+			<cannon>me</cannon>
+			<shortname>me</shortname>
+			<description>me is a constant that can be used to refer to the first hero in your party (hero zero) in any command that takes a hero number as an argument.</description>
+		</command>
+		<command id="none">
+			<cannon>none</cannon>
+			<shortname>none</shortname>
+			<description>none is a constant that means the same as zero. It is normally used in <ref>definescript</ref> commands for scripts that do not have any arguments</description>
+		</command>
+		<command id="autonumber">
+			<cannon>autonumber</cannon>
+			<shortname>autonumber</shortname>
+			<description>autonumber is a constant that is used as the ID number in <ref>definescript</ref> commands for scripts that do not need to be called directly from the OHRRPGCE. Autonumber scripts are only called from within other scripts.</description>
+		</command>
+		<command id="currentstat">
+			<cannon>current stat</cannon>
+			<shortname>current stat</shortname>
+			<description>A constant for use with the <ref>getherostat</ref> and <ref>setherostat</ref> commands.</description>
+		</command>
+		<command id="maximumstat">
+			<cannon>maximum stat</cannon>
+			<shortname>maximum stat</shortname>
+			<description>A constant for use with the <ref>getherostat</ref> and <ref>setherostat</ref> commands.</description>
+		</command>
+		<command id="insidebattle">
+			<cannon>inside battle</cannon>
+			<shortname>inside battle</shortname>
+			<description>A constant used in the <ref>getheropicture</ref>, <ref>setheropicture</ref>, <ref>getheropalette</ref> and <ref>setheropalette</ref> commands to represent the battle graphics.</description>
+		</command>
+		<command id="outsidebattle">
+			<cannon>outside battle</cannon>
+			<shortname>outside battle</shortname>
+			<description>A constant used in the <ref>getheropicture</ref>, <ref>setheropicture</ref>, <ref>getheropalette</ref> and <ref>setheropalette</ref> commands to represent the walkabout graphics.</description>
+		</command>
+		<command id="colorconstants">
+			<cannon>Color Constants</cannon>
+			<shortname>Color Constants</shortname>
+			<description>PLOTSCR.HSD defines constants for each of the three primary colors. These are used in commands like <ref>readcolor</ref> or <ref>writecolor</ref><lb/>color:red, color:green, color:blue</description>
+		</command>
+		<command id="colorred">
+			<alias>colorconstants</alias>
+			<shortname>color:red</shortname>
+		</command>
+		<command id="colorgreen">
+			<alias>colorconstants</alias>
+			<shortname>color:green</shortname>
+		</command>
+		<command id="colorblue">
+			<alias>colorconstants</alias>
+			<shortname>color:blue</shortname>
+		</command>
+		<command id="mouseconstants">
+			<cannon>Mouse Constants</cannon>
+			<shortname>Mouse Constants</shortname>
+			<description>PLOTSCR.HSD defines constants for use with the mouse functions. They&apos;re used the <ref>mousebutton</ref> command.<lb/>left button, right button</description>
+		</command>
+		<command id="leftbutton">
+			<alias>mouseconstants</alias>
+			<shortname>left button</shortname>
+		</command>
+		<command id="rightbutton">
+			<alias>mouseconstants</alias>
+			<shortname>right button</shortname>
+		</command>
+		<command id="npccount">
+			<cannon>NPC count</cannon>
+			<shortname>NPC count</shortname>
+			<description>When passed to <ref>npcatpixel</ref> or <ref>npcatspot</ref>, they return the number of NPCs at that spot.</description>
+		</command>
+		<command id="tileconstants">
+			<cannon>Tile Constants</cannon>
+			<shortname>Tile Constants</shortname>
+			<description>PLOTSCR.HSD defines constants for use with functions like <ref>readpassblock</ref> or <ref>writepassblock</ref>.<lb/>north wall, east wall, south wall, west wall, vehicle A, vehicle B, harm tile, overhead tile</description>
+		</command>
+		<command id="northwall">
+			<alias>tileconstants</alias>
+			<shortname>north wall</shortname>
+		</command>
+		<command id="eastwall">
+			<alias>tileconstants</alias>
+			<shortname>east wall</shortname>
+		</command>
+		<command id="westwall">
+			<alias>tileconstants</alias>
+			<shortname>west wall</shortname>
+		</command>
+		<command id="southwall">
+			<alias>tileconstants</alias>
+			<shortname>south wall</shortname>
+		</command>
+		<command id="vehiclea">
+			<alias>tileconstants</alias>
+			<shortname>vehicle A</shortname>
+		</command>
+		<command id="vehicleb">
+			<alias>tileconstants</alias>
+			<shortname>vehicle B</shortname>
+		</command>
+		<command id="harmtile">
+			<alias>tileconstants</alias>
+			<shortname>harm tile</shortname>
+		</command>
+		<command id="overheadtile">
+			<alias>tileconstants</alias>
+			<shortname>overhead tile</shortname>
+		</command>
+	</section>
+</plotscript>
+
