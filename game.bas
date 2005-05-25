@@ -2622,12 +2622,17 @@ IF keyval(54) > 0 OR keyval(42) > 0 THEN shift = 1
 IF LEN(s$) < maxl THEN
  
  '--SPACE support
- IF keyval(57) > 1 THEN s$ = s$ + " "
- 
- '--all other keys
- FOR i = 2 TO 53
-  IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN s$ = s$ + CHR$(keyv(i, shift))
- NEXT i
+ IF keyval(57) > 1 THEN
+   s$ = s$ + " "
+ ELSE
+  '--all other keys
+  FOR i = 2 TO 53
+   IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
+    s$ = s$ + CHR$(keyv(i, shift))
+    EXIT FOR
+   END IF
+  NEXT i
+ END IF
  
 END IF
 

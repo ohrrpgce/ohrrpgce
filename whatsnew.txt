@@ -4,10 +4,13 @@ WHAT IS NEW?
 
   * Bug-Fixes
 
+    * Fixed bug 76: "Hitting two keys at the same time allows you to
+      overflow text-entry fields
+
   * New Features
 
-    * plotscripting commands to read system time: system hour, system minute,
-      system second. Thanks to Mike Caron
+    * plotscripting commands to read system time: system hour, system
+      minute, system second. Thanks to Mike Caron
 
   * Stuff only Developers Will Notice
 

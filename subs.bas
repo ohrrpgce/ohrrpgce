@@ -2173,17 +2173,22 @@ IF keyval(56) THEN shift = shift + 2
 '--adding chars
 IF LEN(s$) < maxl THEN
  
- '--SPACE support
- IF keyval(57) > 1 AND keyval(29) = 0 THEN s$ = s$ + " "
- 
- '--all other keys
- FOR i = 2 TO 53
-  IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN s$ = s$ + CHR$(keyv(i, shift))
- NEXT i
- 
- '--charlist support
- IF keyval(29) > 0 AND keyval(57) > 1 THEN
-  s$ = s$ + charpicker$
+ IF keyval(57) > 1 THEN
+  IF keyval(29) = 0 THEN
+   '--SPACE support
+   s$ = s$ + " "
+  ELSE
+   '--charlist support
+   s$ = s$ + charpicker$
+  END IF
+ ELSE 
+  '--all other keys
+  FOR i = 2 TO 53
+   IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
+    s$ = s$ + CHR$(keyv(i, shift))
+    EXIT FOR
+   END IF
+  NEXT i
  END IF
  
 END IF
