@@ -377,11 +377,11 @@ END FUNCTION
 
 FUNCTION getnpcref (seekid, offset)
 SELECT CASE seekid
- 
+
  CASE -300 TO -1'--direct reference
   getnpcref = (seekid + 1) * -1
   EXIT FUNCTION
-  
+
  CASE 0 TO 35 'ID
   found = 0
   FOR i = 0 TO 299
@@ -393,7 +393,7 @@ SELECT CASE seekid
     found = found + 1
    END IF
   NEXT i
-  
+
 END SELECT
 
 '--failure
@@ -613,14 +613,14 @@ END SUB
 SUB npcplot (npcs())
 FOR i = 0 TO 299
  curnpc = ABS(npcl(i + 600)) - 1
- 
+
  IF npcl(i + 600) < 0 THEN
   '--check reappearance tags for existing but hidden NPCs
   IF istag(npcs(curnpc * 15 + 9), 1) AND istag(npcs(curnpc * 15 + 10), 1) AND istag(1000 + npcs(curnpc * 15 + 11), 0) = 0 THEN
    npcl(i + 600) = ABS(npcl(i + 600))
   END IF
  END IF
- 
+
  IF npcl(i + 600) > 0 THEN
   '--check removal tags for existing visible NPCs
   IF istag(npcs(curnpc * 15 + 9), 1) = 0 OR istag(npcs(curnpc * 15 + 10), 1) = 0 OR istag(1000 + npcs(curnpc * 15 + 11), 0) THEN
@@ -638,7 +638,7 @@ FOR i = 0 TO 299
   '  END IF
   'END IF
  END IF
- 
+
 NEXT i
 END SUB
 
@@ -809,19 +809,19 @@ DO WHILE LEN(result$) < strlen
  '--get an int
  n = array(offset + i)
  i = i + 1
- 
+
  '--break apart the int
  lowbyte = (n AND &HFF)
  highbyte = gethighbyte(n)
- 
+
  '--append the lowbyte as a char
  result$ = result$ + CHR$(lowbyte)
- 
+
  '--if we still care about the highbyte, append it as a char too
  IF LEN(result$) < strlen THEN
   result$ = result$ + CHR$(highbyte)
  END IF
- 
+
 LOOP
 
 readbinstring$ = result$
@@ -848,7 +848,7 @@ SUB scriptadvanced (id)
 DIM mouse(4)
 
 SELECT CASE id
- 
+
  CASE 135'--puthero
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    catx(retvals(0) * 5) = retvals(1)
@@ -956,7 +956,7 @@ SUB scriptmisc (id)
 'can be moved out here to save memory
 
 SELECT CASE id
- 
+
  CASE 1'--Wait (cycles)
   IF retvals(0) > 0 THEN
    GOSUB setwaitstate
@@ -1236,14 +1236,14 @@ SELECT CASE id
     CLOSE savh
    END IF
   END IF
- 'until further notice, this is done by Mike C
  CASE 200'--system hour
   scriptret = INT(TIMER / 3600)
- case 201'--system minute
+ CASE 201'--system minute
   scriptret = INT(TIMER / 60) MOD 60
- case 202'--system second
+ CASE 202'--system second
   scriptret = TIMER MOD 60
- 'finished Mike's block
+ CASE 203'--current song
+  scriptret = presentsong
 END SELECT
 
 EXIT SUB
@@ -1268,7 +1268,7 @@ SUB scriptnpc (id)
 'contains npc related scripting commands
 
 SELECT CASE id
- 
+
  CASE 26'--set NPC frame
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN npcl(npcref + 1200) = bound(retvals(1), 0, 1) * 2
@@ -1399,7 +1399,7 @@ SELECT CASE id
    END IF
   NEXT i
   IF retvals(2) = -1 THEN scriptret = found
-  
+
 END SELECT
 
 END SUB

@@ -186,6 +186,7 @@ define function, begin
 200,system hour,0
 201,system minute,0
 202,system second,0
+203,current song,0
 end
 
 #--------------------------------------------------------------------------
