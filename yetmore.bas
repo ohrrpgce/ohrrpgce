@@ -1263,46 +1263,46 @@ SELECT CASE id
  CASE 203'--current song
   scriptret = presentsong
  CASE 204'--get hero name(str,her)
-  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 or retvals(1) > 39 THEN
-  	scriptret = 0
+  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 39 THEN
+   scriptret = 0
   ELSE
-  	plotstring$(retvals(0)) = name$(retvals(1))
-    scriptret = 1
+   plotstring$(retvals(0)) = name$(retvals(1))
+   scriptret = 1
   END IF
  CASE 205'--set hero name
-  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 or retvals(1) > 39 THEN
-  	scriptret = 0
+  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 39 THEN
+   scriptret = 0
   ELSE
-  	name$(retvals(1)) = plotstring$(retvals(0))
-    scriptret = 1
+   name$(retvals(1)) = plotstring$(retvals(0))
+   scriptret = 1
   END IF
  CASE 206'--get item name(str,itm)
-  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 or retvals(1) > 255 THEN
-  	scriptret = 0
+  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 255 THEN
+   scriptret = 0
   ELSE
-  	plotstring$(retvals(0)) = readitemname(retvals(1))
-  	scriptret = 1
+   plotstring$(retvals(0)) = readitemname(retvals(1))
+   scriptret = 1
   END IF
  CASE 207'--get map name(str,map)
-   IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 or retvals(1) > 99 THEN
-  	scriptret = 0
+   IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 99 THEN
+   scriptret = 0
   ELSE
-  	getmapname plotstring$(retvals(0)), retvals(1)
-  	scriptret = 1
+   getmapname plotstring$(retvals(0)), retvals(1)
+   scriptret = 1
   END IF
  CASE 208'--get attack name(str,atk)
-  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 or retvals(1) > 32768 THEN
-  	scriptret = 0
+  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 32768 THEN
+   scriptret = 0
   ELSE
-  	plotstring$(retvals(0)) = readatkname$(retvals(1))
-  	scriptret = 1
+   plotstring$(retvals(0)) = readatkname$(retvals(1))
+   scriptret = 1
   END IF
  CASE 209'--get global string(str,glo)
-  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 or retvals(1) > 80 THEN
-  	scriptret = 0
+  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 80 THEN
+   scriptret = 0
   ELSE
-  	plotstring$(retvals(0)) = readglobalstring$(retvals(1),"",255)
-  	scriptret = 1
+   plotstring$(retvals(0)) = readglobalstring$(retvals(1), "", 255)
+   scriptret = 1
   END IF
 
  CASE 211'--clear string
@@ -1310,40 +1310,76 @@ SELECT CASE id
 
  CASE 212'--append ascii
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
-  IF retvals(1) >= 0 AND retvals(1) <= 255 THEN
-  IF (LEN(plotstring$(retvals(0))) + 1) <= 40 THEN
- plotstring$(retvals(0)) = plotstring$(retvals(0)) + CHR$(retvals(1))
-  END IF
-  END IF
+   IF retvals(1) >= 0 AND retvals(1) <= 255 THEN
+    IF (LEN(plotstring$(retvals(0))) + 1) <= 40 THEN
+     plotstring$(retvals(0)) = plotstring$(retvals(0)) + CHR$(retvals(1))
+    END IF
+   END IF
   END IF
  CASE 213'--append number
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND (LEN(plotstring$(retvals(0))) + LEN(STR$(retvals(1)))) THEN plotstring$(retvals(0)) = plotstring$(retvals(0)) + STR$(retvals(1))
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND (LEN(plotstring$(retvals(0))) + LEN(STR$(retvals(1)))) THEN
+   plotstring$(retvals(0)) = plotstring$(retvals(0)) + STR$(retvals(1))
+  END IF
  CASE 214'--copy string
- IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN plotstring$(retvals(0)) = plotstring$(retvals(1))
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
+   plotstring$(retvals(0)) = plotstring$(retvals(1))
+  END IF
  CASE 215'--concatenate strings
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND (LEN(plotstring$(retvals(0)) + plotstring$(retvals(1)))) <= 40 THEN plotstring$(retvals(0)) = plotstring$(retvals(0)) + plotstring$(retvals(1))
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND (LEN(plotstring$(retvals(0)) + plotstring$(retvals(1)))) <= 40 THEN
+   plotstring$(retvals(0)) = plotstring$(retvals(0)) + plotstring$(retvals(1))
+  END IF
  CASE 216'--string length
-  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN scriptret = LEN(plotstring$(retvals(1)))
+  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+   scriptret = LEN(plotstring$(retvals(0)))
+  END IF
  CASE 217'--delete char
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
-  IF retvals(1) > 1 AND retvals(1) <= 40 AND retvals(1) <= LEN(plotstring$(retvals(0))) THEN
-   temp2$ = LEFT$(plotstring$(retvals(0)), retvals(1) - 1)
-   temp3$ = MID$(plotstring$(retvals(0)), retvals(1) + 1)
-   plotstring$(retvals(0)) = temp2$ + temp3$
-   temp3$ = ""
-   temp2$ = ""
-  END IF
+   IF retvals(1) > 1 AND retvals(1) <= 40 AND retvals(1) <= LEN(plotstring$(retvals(0))) THEN
+    temp2$ = LEFT$(plotstring$(retvals(0)), retvals(1) - 1)
+    temp3$ = MID$(plotstring$(retvals(0)), retvals(1) + 1)
+    plotstring$(retvals(0)) = temp2$ + temp3$
+    temp3$ = ""
+    temp2$ = ""
+   END IF
   END IF
  CASE 218'--replace char
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(2) >= 0 AND retvals(2) <= 255 THEN
-  IF retvals(1) >= 1 AND retvals(1) <= LEN(plotstring$(retvals(0))) THEN
-   MID$(plotstring$(retvals(0)), retvals(1), 1) = CHR$(retvals(2))
- END IF
- END IF
+   IF retvals(1) >= 1 AND retvals(1) <= LEN(plotstring$(retvals(0))) THEN
+    MID$(plotstring$(retvals(0)), retvals(1), 1) = CHR$(retvals(2))
+   END IF
+  END IF
  CASE 219'--ascii from string
- IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 1 AND retvals(0) <= LEN(plotstring$(retvals(0))) THEN
- scriptret = ASC(MID$(plotstring$(retvals(0)), retvals(1), 1))
- END IF
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 1 AND retvals(0) <= LEN(plotstring$(retvals(0))) THEN
+   scriptret = ASC(MID$(plotstring$(retvals(0)), retvals(1), 1))
+  END IF
+ CASE 220'--position string
+  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+   plotstrX(retvals(0)) = retvals(1)
+   plotstrY(retvals(0)) = retvals(2)
+  END IF
+ CASE 221'--set string bit
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 15 THEN
+   IF retvals(2) THEN retvals(2) = 1
+   setbit plotstrBits(), retvals(0), retvals(1), retvals(2)
+  END IF
+ CASE 222'--get string bit
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 15 THEN
+   scriptret = readbit(plotstrBits(), retvals(0), retvals(1))
+   IF scriptret THEN scriptret = 1
+  END IF
+ CASE 223'--string color
+  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+   plotstrCol(retvals(0)) = bound(retvals(1), 0, 255)
+   plotstrBGCol(retvals(0)) = bound(retvals(2), 0, 255)
+  END IF
+ CASE 224'--string X
+  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+   scriptret = plotstrX(retvals(0))
+  END IF
+ CASE 225'--string Y
+  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+   scriptret = plotstrY(retvals(0))
+  END IF
 END SELECT
 
 EXIT SUB

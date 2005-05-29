@@ -204,7 +204,12 @@ define function, begin
 217,deletechar,2,0,1		#deletes character from string(stringID,position)
 218,replacechar,3,0,1,0		#replaces character in the specified string(stringID,position,ascii)
 219,asciifromstring,2,0,1	#returns the ascii in the string(ascii number)(stringID,position)
-
+220,positionstring,3,0,0,0    #move a string to a position on the screen(stringID,x,y)
+221,setstringbit,3,0,0,0      #set a string bit, such as: visibility, style(stringID,bit,value)
+222,getstringbit,2,0,0        #return a string bit, such as: visibilitym style(stringID,bit)
+223,stringcolor,3,0,15,0      #set a string's color,also optional background color(stringID,fColor,bColor)
+224,stringx,1,0               #return a string's X position(stringID) 
+225,stringy,1,0               #return a string's Y position(stringID)
 end
 
 #--------------------------------------------------------------------------
@@ -220,8 +225,12 @@ autonumber,swapbyname,2,0,0         # make two named heros switch places
 autonumber,getherolevel,1,0         # return hero's current level
 autonumber,renamehero,1,0           # rename a hero (uses hero:name)
 autonumber,autosave,0               # automatically save in the most recent slot
-autonumber,stringtoglobals,3,0,0,0    #converts string to global(stringID,start,length)
-autonumber,globalstostring,3,0,0,0    #builds strings from globals(stringID,start,length)
+autonumber,stringtoglobals,3,0,0,0  #converts string to global(stringID,start,length)
+autonumber,globalstostring,3,0,0,0  #builds strings from globals(stringID,start,length)
+autonumber,showstringat,3,0,0,0     #positions a string on the screen and makes it visible(stringID,x,y) 
+autonumber,centerstringat,3,0,0,0   #positions a string on the screen and makes it visible(stringID,x,y)
+autonumber,hidestring,1,0           #makes a visible string invisible(stringID)
+autonumber,stringstyle,2,0,0        #changes a string's style: outline,flat(stringID,style)
 
 end
 
@@ -298,6 +307,24 @@ temp2:=readglobal(start+(temp--1))
 if(temp2>=0,and,temp2<=255)then(appendascii(stringid,temp2))
 )
 ))
+end
+
+script,showstringat,stringID,x,y,begin
+setstringbit(stringID,0,1)
+positionstring(stringID,x,y)
+end
+
+script,centerstringat,stringID,x,y,begin
+setstringbit(stringID,0,1)
+positionstring(stringID,x--(stringlength(stringID)*4),y)
+end
+
+script,hidestring,stringID,begin
+setstringbit(stringID,0,0)
+end
+
+script,stringstyle,stringID,style,begin
+setstringbit(stringID,1,style)
 end
 
 #--------------------------------------------------------------------------
@@ -491,7 +518,7 @@ define constant, begin
 0,leftbutton
 1,rightbutton
 -1,getcount
-65,asc:UA
+65,asc:UA #temporary, will be removed later...
 66,asc:UB
 67,asc:UC
 68,asc:UD
@@ -516,5 +543,7 @@ define constant, begin
 87,asc:UW
 88,asc:UX
 89,asc:UY
-90,asc:UZ
+90,asc:UZ #...temporary, will be removed later
+0,string:outline
+1,string:flat
 end

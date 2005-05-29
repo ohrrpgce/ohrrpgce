@@ -6,6 +6,7 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
+DECLARE SUB showplotstrings ()
 DECLARE SUB innRestore (stat%())
 DECLARE SUB exitprogram (needfade%)
 DECLARE SUB quitcleanup ()
@@ -176,7 +177,7 @@ DIM door(300), gen(104), npcl(2100), npcs(1500), saytag(21), tag(127), hero(40),
 DIM item(-3 TO 199), item$(-3 TO 199), eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), zbuf(3), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7),  _
 hmask(3), tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 4)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
-DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 13), retvals(32), plotstring$(31)
+DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 13), retvals(32), plotstring$(31), plotstrX(31), plotstrY(31), plotstrCol(31), plotstrBGCol(31), plotstrBits(31)
 '--stuff we used to DIM here, but have defered to later
 'DIM scroll(16002), pass(16002)
 
@@ -264,7 +265,6 @@ ELSE
 END IF
 
 'DEBUG debug "set mode-X"
-
 setmodex
 
 'DEBUG debug "init error-handler"
@@ -292,6 +292,9 @@ DATA 1,2,3,4,5,6,7,8,9,0,-,=,"","",q,w,e,r,t,y,u,i,o,p,[,],"","",a,s,d,f,g,h,j,k
 DATA !,@,#,$,%,^,&,*,(,),_,+,"","",Q,W,E,R,T,Y,U,I,O,P,{,},"","",A,S,D,F,G,H,J,K,L,":"," ",~,"",|,Z,X,C,V,B,N,M,"<",">","?"
 
 textcolor 15, 0
+FOR i = 0 TO 31
+ plotstrCol(i) = 15
+NEXT i
 
 'DEBUG debug "init sound"
 setupmusic music()
@@ -697,6 +700,7 @@ IF showmapname > 0 THEN showmapname = showmapname - 1: edgeprint mapname$, xstri
 '  framecount = 0
 'END IF
 edgeprint scriptout$, 0, 190, 15, dpage
+showplotstrings
 IF showtags > 0 THEN tagdisplay
 IF scrwatch THEN scriptwatcher dpage
 RETURN
@@ -2609,6 +2613,25 @@ END FUNCTION
 
 SUB safekill (f$)
 IF isfile(f$ + CHR$(0)) THEN KILL f$
+END SUB
+
+SUB showplotstrings
+
+FOR i = 0 TO 31
+ '-- for each string
+ IF readbit(plotstrBits(), i, 0) THEN
+  '-- only display visible strings
+  IF readbit(plotstrBits(), i, 1) THEN
+    '-- flat text
+    textcolor plotstrCol(i), plotstrBGCol(i)
+    printstr plotstring$(i), plotstrX(i), plotstrY(i), dpage
+  ELSE
+    '-- with outline
+    edgeprint plotstring$(i), plotstrX(i), plotstrY(i), plotstrCol(i), dpage
+  END IF
+ END IF
+NEXT i
+
 END SUB
 
 SUB strgrabber (s$, maxl)

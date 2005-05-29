@@ -5,37 +5,57 @@ WHAT IS NEW?
   * Bug-Fixes
 
     * Fixed bug 76: "Hitting two keys at the same time allows you to
-      overflow text-entry fields
+      overflow text-entry fields [James Paige]
 
   * New Features
 
     * plotscripting commands to read system time: system hour, system
-      minute, system second. Thanks to Mike Caron
+      minute, system second. [Mike Caron]
     
     * plotscripting command to find out the currently playing song.
-      Thanks to Mike Caron
+      [Mike Caron]
       
     * Strings! Specifically:
     
-      * New commands: show string(string ID), clear string(string ID),
-        append ascii(string ID, ascii code), append number(string ID,
-        number), copy string(source string, dest string), concatenate
-        strings(source string, dest string), string length(string ID),
-        replace char(string ID, position, ascii), delete char(string ID,
-        position), ascii from string(string ID, position), string to
-        globals(string ID, starting global, length), globals to string(
-        string ID, starting global, length). BIG HUGE thanks to Yuriy
-        (Draknight2@wmconnect.com)
+      * New commands:
+          show string(string ID)
+          clear string(string ID)
+          append ascii(string ID, ascii code)
+          append number(string ID, number)
+          copy string(source string, dest string)
+          concatenate strings(source string, dest string)
+          string length(string ID)
+          replace char(string ID, position, ascii)
+          delete char(string ID, position)
+          ascii from string(string ID, position)
+          string to globals(string ID, starting global, length)
+          globals to string(string ID, starting global, length)
+        [BIG HUGE thanks to Yuriy (Draknight2@wmconnect.com)]
         
-      * More string commands: get hero name(string, hero), set hero name(
-        string, hero), get item name(string, item), get map name(string,
-        map), get attack name(string, attack), get global string(string,
-        global)
+      * Commands to get useful strings:
+          get hero name(string, hero)
+          set hero name(string, hero)
+          get item name(string, item)
+          get map name(string, map)
+          get attack name(string, attack)
+          get global string(string, global)
+        [Mike Caron]
+
+      * Commands to display strings on the screen:
+          show string at (string, x, y)
+          center string at (string, x, y)
+          hide string (string)
+          string style (string, style)
+          string color (string, color, background color)
+          position string (string, x, y)
+          string X (string)
+          string Y (string)
+        [James Paige]
 
   * Stuff only Developers Will Notice
 
     * Plotscripting Dictionary Documentation is now in xml format instead
-      of html (but still exportable to html) Big thanks to Mike Caron
+      of html (but still exportable to html) [Big thanks to Mike Caron]
 
 May 19 2005 [quaternion]
  

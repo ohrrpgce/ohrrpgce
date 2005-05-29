@@ -95,10 +95,17 @@ end
 
 script,loader,begin
   suspend NPCs
-  show value(random(-32000,32000))
+  show value(random(-32000,32000))           
   show text box (13)
   wait for text box
   resume NPCs
+  get hero name (1,find hero(hero by rank(leader)))
+  string color (1,12,240)
+  string style (1,string:flat)
+  center string at (1,160,40)
+  clear string (2)
+  append number(2,string length(1))
+  show string at (2,0,0)
 end
 
 #-----------------------------------------------------------------------
