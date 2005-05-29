@@ -187,6 +187,24 @@ define function, begin
 201,system minute,0
 202,system second,0
 203,current song,0
+204,get hero name,2,0,0	    # (string, hero) - puts the name of hero(hero) in string(string)
+205,set hero name,2,0,0	    # (string, hero) - sets the name of hero(hero) to string(string)
+206,get item name,2,0,0	    # (string, item) - puts the name of item(item) in string(string)
+207,get map name,2,0,0	    # (string, map) - puts the name of map(map) in string(string)
+208,get attack name,2,0,0   # (string, attack) - puts the name of attack(attack) in string(string)
+209,get global string,2,0,0 # (string, global) - puts the global string (global) in string(string)
+
+210,showstring,1,0 		#shows string on the bottom(stringID)
+211,clearstring,1,0		#deletes the data from string(stringID)
+212,appendascii,2,0,0		#adds ascii to string(stringID,ascii)
+213,appendnumber,2,0,0		#adds number to string(stringID,number)
+214,copystring,2,0,0		#copies string from one to another(sourceID,destinationID)
+215,concatenatestrings,2,0,0	#adds two strings(sourceID,destinationID)
+216,stringlength,1,0		#returns the length of string(stringID)
+217,deletechar,2,0,1		#deletes character from string(stringID,position)
+218,replacechar,3,0,1,0		#replaces character in the specified string(stringID,position,ascii)
+219,asciifromstring,2,0,1	#returns the ascii in the string(ascii number)(stringID,position)
+
 end
 
 #--------------------------------------------------------------------------
@@ -202,6 +220,9 @@ autonumber,swapbyname,2,0,0         # make two named heros switch places
 autonumber,getherolevel,1,0         # return hero's current level
 autonumber,renamehero,1,0           # rename a hero (uses hero:name)
 autonumber,autosave,0               # automatically save in the most recent slot
+autonumber,stringtoglobals,3,0,0,0    #converts string to global(stringID,start,length)
+autonumber,globalstostring,3,0,0,0    #builds strings from globals(stringID,start,length)
+
 end
 
 script,walkherotoX,who,n,begin
@@ -255,6 +276,28 @@ script,autosave,begin
 if (lastsaveslot==0)
   then(return(savemenu))
   else(saveinslot(lastsaveslot),return(lastsaveslot))
+end
+
+script,stringtoglobals,stringID,start,length,begin
+variable(temp)
+if(stringID>=0 ,and, stringID<=31) then(
+if(length >=1, and, length <=40) then(
+for(temp,1,length) do(
+writeglobal(start+(temp--1),asciifromstring(stringid,temp))
+)
+))
+end
+script,globalstostring,stringID,start,length,begin
+variable(temp)
+variable(temp2)
+if(stringID>=0 ,and, stringID<=31) then(
+clearstring(stringid)
+if(length >=1, and, length <=40) then(
+for(temp,1,length) do(
+temp2:=readglobal(start+(temp--1))
+if(temp2>=0,and,temp2<=255)then(appendascii(stringid,temp2))
+)
+))
 end
 
 #--------------------------------------------------------------------------
@@ -448,4 +491,30 @@ define constant, begin
 0,leftbutton
 1,rightbutton
 -1,getcount
+65,asc:UA
+66,asc:UB
+67,asc:UC
+68,asc:UD
+69,asc:UE
+70,asc:UF
+71,asc:UG
+72,asc:UH
+73,asc:UI
+74,asc:UJ
+75,asc:UK
+76,asc:UL
+77,asc:UM
+78,asc:UN
+79,asc:UO
+80,asc:UP
+81,asc:UQ
+82,asc:UR
+83,asc:US
+84,asc:UT
+85,asc:UU
+86,asc:UV
+87,asc:UW
+88,asc:UX
+89,asc:UY
+90,asc:UZ
 end

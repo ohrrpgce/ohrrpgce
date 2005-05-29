@@ -14,6 +14,23 @@ WHAT IS NEW?
     
     * plotscripting command to find out the currently playing song.
       Thanks to Mike Caron
+      
+    * Strings! Specifically:
+    
+      * New commands: show string(string ID), clear string(string ID),
+        append ascii(string ID, ascii code), append number(string ID,
+        number), copy string(source string, dest string), concatenate
+        strings(source string, dest string), string length(string ID),
+        replace char(string ID, position, ascii), delete char(string ID,
+        position), ascii from string(string ID, position), string to
+        globals(string ID, starting global, length), globals to string(
+        string ID, starting global, length). BIG HUGE thanks to Yuriy
+        (Draknight2@wmconnect.com)
+        
+      * More string commands: get hero name(string, hero), set hero name(
+        string, hero), get item name(string, item), get map name(string,
+        map), get attack name(string, attack), get global string(string,
+        global)
 
   * Stuff only Developers Will Notice
 
