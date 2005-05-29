@@ -56,6 +56,11 @@
 						font-weight:bold;
 						color:red;
 					}
+					
+					.key {
+						font-weight: bold;
+						color: yellow;
+					}
 
 				</style>
 			</head>
@@ -137,7 +142,8 @@
 			<pre><xsl:value-of select="." /></pre>
 		</xsl:if>
 	</xsl:template>
-
+	
+	<xsl:template match="p"><span class="key"><xsl:value-of select="." /></span></xsl:template>
 	<xsl:template match="seealso"><br />See also: <xsl:apply-templates /></xsl:template>
 	<xsl:template match="ref">
 		<xsl:if test='count(id(.))=0'>
