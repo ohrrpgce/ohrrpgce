@@ -1306,8 +1306,7 @@ SELECT CASE id
   END IF
 
  CASE 211'--clear string
- IF retvals(0) >= 0 AND retvals(0) <= 31 THEN plotstring$(retvals(0)) = ""
-
+  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN plotstring$(retvals(0)) = ""
  CASE 212'--append ascii
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
    IF retvals(1) >= 0 AND retvals(1) <= 255 THEN
@@ -1317,16 +1316,18 @@ SELECT CASE id
    END IF
   END IF
  CASE 213'--append number
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND (LEN(plotstring$(retvals(0))) + LEN(STR$(retvals(1)))) THEN
-   plotstring$(retvals(0)) = plotstring$(retvals(0)) + STR$(retvals(1))
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND (LEN(plotstring$(retvals(0))) + LEN(STR$(retvals(1))) - 1) <= 40 THEN
+   plotstring$(retvals(0)) = plotstring$(retvals(0)) + LTRIM$(STR$(retvals(1)))
   END IF
  CASE 214'--copy string
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
    plotstring$(retvals(0)) = plotstring$(retvals(1))
   END IF
  CASE 215'--concatenate strings
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND (LEN(plotstring$(retvals(0)) + plotstring$(retvals(1)))) <= 40 THEN
-   plotstring$(retvals(0)) = plotstring$(retvals(0)) + plotstring$(retvals(1))
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
+   IF (LEN(plotstring$(retvals(0)) + plotstring$(retvals(1)))) <= 40 THEN
+    plotstring$(retvals(0)) = plotstring$(retvals(0)) + plotstring$(retvals(1))
+   END IF
   END IF
  CASE 216'--string length
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
@@ -1334,7 +1335,7 @@ SELECT CASE id
   END IF
  CASE 217'--delete char
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
-   IF retvals(1) > 1 AND retvals(1) <= 40 AND retvals(1) <= LEN(plotstring$(retvals(0))) THEN
+   IF retvals(1) >= 1 AND retvals(1) <= LEN(plotstring$(retvals(0))) THEN
     temp2$ = LEFT$(plotstring$(retvals(0)), retvals(1) - 1)
     temp3$ = MID$(plotstring$(retvals(0)), retvals(1) + 1)
     plotstring$(retvals(0)) = temp2$ + temp3$
