@@ -5,6 +5,7 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+DECLARE FUNCTION cropPlotStr% (s$)
 DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, mapwide%, maphigh%, wrapmode%)
 DECLARE SUB aheadxy (x%, y%, direction%, distance%)
 DECLARE SUB wrapxy (x%, y%, wide%, high%)
@@ -199,6 +200,11 @@ FUNCTION checksaveslot (slot)
   OPEN sg$ FOR BINARY AS savh
   GET savh, 1 + 60000 * (slot - 1), checksaveslot
   CLOSE savh
+END FUNCTION
+
+FUNCTION cropPlotStr (s$)
+ cropPlotStr = large(0, LEN(s$) - 40)
+ s$ = LEFT$(s$, 40)
 END FUNCTION
 
 FUNCTION dignum$ (n, dig)
@@ -1310,14 +1316,14 @@ SELECT CASE id
  CASE 212'--append ascii
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
    IF retvals(1) >= 0 AND retvals(1) <= 255 THEN
-    IF (LEN(plotstring$(retvals(0))) + 1) <= 40 THEN
-     plotstring$(retvals(0)) = plotstring$(retvals(0)) + CHR$(retvals(1))
-    END IF
+    plotstring$(retvals(0)) = plotstring$(retvals(0)) + CHR$(retvals(1))
+    scriptret = cropPlotStr(plotstring$(retvals(0)))
    END IF
   END IF
  CASE 213'--append number
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND (LEN(plotstring$(retvals(0))) + LEN(STR$(retvals(1))) - 1) <= 40 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
    plotstring$(retvals(0)) = plotstring$(retvals(0)) + LTRIM$(STR$(retvals(1)))
+   scriptret = cropPlotStr(plotstring$(retvals(0)))
   END IF
  CASE 214'--copy string
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
@@ -1325,9 +1331,8 @@ SELECT CASE id
   END IF
  CASE 215'--concatenate strings
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
-   IF (LEN(plotstring$(retvals(0)) + plotstring$(retvals(1)))) <= 40 THEN
-    plotstring$(retvals(0)) = plotstring$(retvals(0)) + plotstring$(retvals(1))
-   END IF
+   plotstring$(retvals(0)) = plotstring$(retvals(0)) + plotstring$(retvals(1))
+   scriptret = cropPlotStr(plotstring$(retvals(0)))
   END IF
  CASE 216'--string length
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
