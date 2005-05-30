@@ -6,7 +6,7 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
-DECLARE FUNCTION addmaphow% (general%())
+DECLARE FUNCTION addmaphow% ()
 DECLARE FUNCTION filenum$ (n%)
 DECLARE FUNCTION animadjust% (tilenum%, tastuf%())
 DECLARE SUB setbinsize (id%, size%)
@@ -14,22 +14,22 @@ DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
-DECLARE SUB importbmp (f$, cap$, count%, general%(), master%())
+DECLARE SUB importbmp (f$, cap$, count%, master%())
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
-DECLARE SUB upgrade (general%(), font%())
+DECLARE SUB upgrade (font%())
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
 DECLARE SUB textxbload (f$, array%(), e$)
 DECLARE SUB fixorder (f$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE SUB standardmenu (menu$(), size%, vis%, ptr%, top%, x%, y%, page%, edge%)
-DECLARE SUB vehicles (general%())
+DECLARE SUB vehicles ()
 DECLARE SUB verifyrpg (game$)
 DECLARE SUB xbload (f$, array%(), e$)
-DECLARE FUNCTION scriptname$ (num%, f$, gen%())
+DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION getmapname$ (m%)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-DECLARE SUB scriptman (gamedir$, general(), song$())
+DECLARE SUB scriptman (gamedir$, song$())
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB writescatter (s$, lhold%, array%(), start%)
@@ -46,32 +46,32 @@ DECLARE FUNCTION onoroff$ (n%)
 DECLARE FUNCTION intstr$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE SUB smnemonic (tagname$, index%)
-DECLARE SUB tagnames (general%())
+DECLARE SUB tagnames ()
 DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%)
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), general%(), doors%(), link%(), npc%(), npcstat%(), song$(), npc$(), unpc%(), lnpc%())
-DECLARE SUB npcdef (npc%(), ptr%, general%(), npc$(), unpc%(), lnpc%())
+DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npc%(), npcstat%(), song$(), npc$(), unpc%(), lnpc%())
+DECLARE SUB npcdef (npc%(), ptr%, npc$(), unpc%(), lnpc%())
 DECLARE SUB bitset (array%(), wof%, last%, name$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, file$, master%(), font%())
 DECLARE FUNCTION needaddset (ptr%, check%, what$)
-DECLARE SUB shopdata (general%())
+DECLARE SUB shopdata ()
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
-DECLARE SUB importsong (song$(), general%(), master())
+DECLARE SUB importsong (song$(), master())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
-DECLARE SUB gendata (general%(), song$())
-DECLARE SUB itemdata (general%())
-DECLARE SUB formation (general%(), song$())
-DECLARE SUB enemydata (general%())
-DECLARE SUB herodata (general%())
-DECLARE SUB attackdata (atkdat$(), atklim%(), general%())
+DECLARE SUB gendata (song$())
+DECLARE SUB itemdata ()
+DECLARE SUB formation (song$())
+DECLARE SUB enemydata ()
+DECLARE SUB herodata ()
+DECLARE SUB attackdata (atkdat$(), atklim%())
 DECLARE SUB getnames (stat$(), max%)
-DECLARE SUB statname (general%())
-DECLARE SUB textage (general%(), song$())
+DECLARE SUB statname ()
+DECLARE SUB textage (song$())
 DECLARE FUNCTION sublist% (num%, s$())
-DECLARE SUB maptile (master%(), font(), general())
+DECLARE SUB maptile (master%(), font())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
@@ -81,7 +81,7 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 
 REM $STATIC
 
-FUNCTION addmaphow (general())
+FUNCTION addmaphow
 '--Return values
 '  -2  =Cancel
 '  -1  =New blank
@@ -148,7 +148,7 @@ IF pic >= 160 THEN pic = (pic - 160) + tastuf(0)
 animadjust = pic
 END FUNCTION
 
-SUB mapmaker (font(), master(), map(), pass(), emap(), general(), doors(), link(), npc(), npcstat(), song$(), npc$(), unpc(), lnpc())
+SUB mapmaker (font(), master(), map(), pass(), emap(), doors(), link(), npc(), npcstat(), song$(), npc$(), unpc(), lnpc())
 DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 5), topmenu$(24), gmap(20), gd$(-1 TO 20), gdmax(20), gdmin(20), destdoor(300), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
 defaults(160), pal16(288), gmapscr$(5), gmapscrof(5)
 
@@ -262,7 +262,7 @@ DO
   IF csr = 0 THEN GOSUB savemap: RETURN
   IF csr = 1 THEN GOSUB sizemap
   IF csr = 2 THEN
-   npcdef npcstat(), ptr, general(), npc$(), unpc(), lnpc()
+   npcdef npcstat(), ptr, npc$(), unpc(), lnpc()
    'xbload game$ + ".n" + filenum$(ptr), npcstat(), "NPCstat lump has dissapeared!"
   END IF
   IF csr = 3 THEN
@@ -443,7 +443,7 @@ LOOP
 
 setgmapscriptstr:
 FOR i = 0 TO 4
- gmapscr$(i) = scriptname$(gmap(gmapscrof(i)), "plotscr.lst", general())
+ gmapscr$(i) = scriptname$(gmap(gmapscrof(i)), "plotscr.lst")
 NEXT i
 RETURN
 
@@ -890,7 +890,7 @@ RETURN
 
 addmap:
 IF general(0) >= 99 THEN RETURN
-how = addmaphow(general())
+how = addmaphow
 '-- -2  =Cancel
 '-- -1  =New blank
 '-- >=0 =Copy

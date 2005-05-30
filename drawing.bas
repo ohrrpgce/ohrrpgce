@@ -6,8 +6,8 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
-DECLARE SUB writepassword (p$, gen%())
-DECLARE FUNCTION readpassword$ (gen%())
+DECLARE SUB writepassword (p$)
+DECLARE FUNCTION readpassword$ ()
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE FUNCTION readattackname$ (index%)
@@ -23,14 +23,14 @@ DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE SUB standardmenu (menu$(), size%, vis%, ptr%, top%, x%, y%, dpage%, edge%)
 DECLARE SUB xbload (f$, array%(), e$)
-DECLARE FUNCTION scriptname$ (num%, f$, gen%())
+DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE SUB airbrush (x%, y%, d%, m%, c%, p%)
 DECLARE SUB ellipse (x%, y%, radius%, c%, p%, squish1%, squish2%)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION needaddset (ptr%, check%, what$)
 DECLARE FUNCTION rotascii$ (s$, o%)
-DECLARE SUB writescatter (s$, lhold%, array%(), start%)
-DECLARE SUB readscatter (s$, lhold%, array%(), start%)
+DECLARE SUB writescatter (s$, lhold%, start%)
+DECLARE SUB readscatter (s$, lhold%, start%)
 DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$)
 DECLARE SUB cycletile (cycle%(), tastuf%(), ptr%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
@@ -49,15 +49,15 @@ DECLARE FUNCTION mouseover% (mouse%(), zox%, zoy%, zcsr%, area%())
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
-DECLARE SUB formation (general%(), song$())
-DECLARE SUB enemydata (general%())
-DECLARE SUB herodata (general%())
-DECLARE SUB attackdata (atkdat$(), atklim%(), general%())
+DECLARE SUB formation (song$())
+DECLARE SUB enemydata ()
+DECLARE SUB herodata ()
+DECLARE SUB attackdata (atkdat$(), atklim%())
 DECLARE SUB getnames (stat$(), max%)
-DECLARE SUB statname (general%())
-DECLARE SUB textage (general%(), song$())
+DECLARE SUB statname ()
+DECLARE SUB textage (song$())
 DECLARE FUNCTION sublist% (num%, s$())
-DECLARE SUB maptile (master%(), font(), general())
+DECLARE SUB maptile (master%(), font())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
@@ -149,7 +149,7 @@ LOOP
 
 END SUB
 
-SUB gendata (general(), song$(), master())
+SUB gendata (song$(), master())
 STATIC default$
 DIM m$(16), max(16), bit$(15), subm$(4), scriptgenof(4)
 
@@ -283,10 +283,10 @@ RETURN
 loadpass:
 IF general(5) >= 256 THEN
  '--new simple format
- pas$ = readpassword$(general())
+ pas$ = readpassword$
 ELSE
  '--old scattertable format
- readscatter pas$, general(94), general(), 200
+ readscatter pas$, general(94), 200
  pas$ = rotascii(pas$, general(93) * -1)
 END IF
 IF isfile(workingdir$ + "\browse.txt" + CHR$(0)) THEN
@@ -303,13 +303,13 @@ RETURN
 savepass:
 
 newpas$ = pas$
-writepassword newpas$, general()
+writepassword newpas$
 
 '--also write old scattertable format, for backwards
 '-- compatability with older versions of game.exe
 general(93) = INT(RND * 250) + 1
 oldpas$ = rotascii(pas$, general(93))
-writescatter oldpas$, general(94), general(), 200
+writescatter oldpas$, general(94), 200
 
 '--write long name and about line
 setpicstuf buffer(), 40, -1
@@ -449,9 +449,9 @@ LOOP
 RETURN
 
 setspecialplotstr:
-subm$(1) = "new-game script: " + scriptname$(general(41), "plotscr.lst", general())
-subm$(2) = "game-over script: " + scriptname$(general(42), "plotscr.lst", general())
-subm$(3) = "load-game script: " + scriptname$(general(57), "plotscr.lst", general())
+subm$(1) = "new-game script: " + scriptname$(general(41), "plotscr.lst")
+subm$(2) = "game-over script: " + scriptname$(general(42), "plotscr.lst")
+subm$(3) = "load-game script: " + scriptname$(general(57), "plotscr.lst")
 RETURN
 
 importmaspal:
@@ -483,7 +483,7 @@ RETURN
 
 END SUB
 
-SUB importbmp (f$, cap$, count, general(), master())
+SUB importbmp (f$, cap$, count, master())
 STATIC default$
 DIM menu$(10), pmask(767)
 
@@ -613,7 +613,7 @@ RETURN
 
 END SUB
 
-SUB importsong (song$(), general(), master())
+SUB importsong (song$(), master())
 STATIC default$
 DIM music(16384)
 setupmusic music()
@@ -701,7 +701,7 @@ setpicstuf tastuf(), 80, -1
 loadset game$ + ".tap" + CHR$(0), n, 0
 END SUB
 
-SUB maptile (master(), font(), general())
+SUB maptile (master(), font())
 DIM mover(10), cutnpaste(19, 19), mouse(4), area(20, 4), tool$(5), menu$(10), tastuf(40), icon$(5), shortk(5), cursor(5), defaults(160), bitmenu$(10), pastogkey(7)
 
 bitmenu$(0) = "Impassable to the North"
@@ -2458,7 +2458,7 @@ RETURN
 
 END SUB
 
-SUB tagnames (general())
+SUB tagnames
 DIM menu$(2)
 clearpage 0
 clearpage 1

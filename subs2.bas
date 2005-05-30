@@ -23,14 +23,14 @@ DECLARE FUNCTION getLongName$ (filename$)
 DECLARE SUB textfatalerror (e$)
 DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
-DECLARE FUNCTION scriptname$ (num%, f$, gen%())
+DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE FUNCTION getmapname$ (m%)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION isunique% (s$, u$(), r%)
 DECLARE FUNCTION loadname$ (length%, offset%)
-DECLARE SUB exportnames (gamedir$, gen%(), song$())
+DECLARE SUB exportnames (gamedir$, song$())
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE FUNCTION needaddset (ptr%, check%, what$)
@@ -48,15 +48,15 @@ DECLARE SUB debug (s$)
 DECLARE SUB bitset (array%(), wof%, last%, name$())
 DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
-DECLARE SUB formation (general%(), song$())
-DECLARE SUB enemydata (general%())
-DECLARE SUB herodata (general%())
-DECLARE SUB attackdata (general%())
+DECLARE SUB formation (song$())
+DECLARE SUB enemydata ()
+DECLARE SUB herodata ()
+DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
-DECLARE SUB statname (general%())
-DECLARE SUB textage (general%(), song$())
+DECLARE SUB statname ()
+DECLARE SUB textage (song$())
 DECLARE FUNCTION sublist% (num%, s$())
-DECLARE SUB maptile (master%(), font%(), general())
+DECLARE SUB maptile (master%(), font%())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
@@ -490,7 +490,7 @@ NEXT i
 
 END SUB
 
-SUB exportnames (gamedir$, gen(), song$())
+SUB exportnames (gamedir$, song$())
 
 DIM u$(1024), name$(32), stat$(11)
 max = 32
@@ -539,7 +539,7 @@ NEXT i
 
 printstr "hero names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
-FOR i = 0 TO gen(35)
+FOR i = 0 TO general(35)
  setpicstuf buffer(), 636, -1
  loadset game$ + ".dt0" + CHR$(0), i, 0
  writeconstant fh, i, loadname(0, 1), u$(), "hero"
@@ -566,19 +566,19 @@ NEXT i
 
 printstr "map names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
-FOR i = 0 TO gen(0)
+FOR i = 0 TO general(0)
  writeconstant fh, i, getmapname$(i), u$(), "map"
 NEXT i
 
 printstr "attack names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
-FOR i = 0 TO gen(34)
+FOR i = 0 TO general(34)
  writeconstant fh, i + 1, readattackname$(i), u$(), "atk"
 NEXT i
 
 printstr "shop names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
-FOR i = 0 TO gen(97)
+FOR i = 0 TO general(97)
  writeconstant fh, i, readshopname$(i), u$(), "shop"
 NEXT i
 
@@ -782,7 +782,7 @@ ELSE
 END IF
 END FUNCTION
 
-SUB scriptman (gamedir$, general(), song$())
+SUB scriptman (gamedir$, song$())
 STATIC defaultdir$
 DIM menu$(5)
 
@@ -803,7 +803,7 @@ DO
    CASE 0
     EXIT DO
    CASE 1
-    exportnames gamedir$, general(), song$()
+    exportnames gamedir$, song$()
    CASE 2
     f$ = browse(0, defaultdir$, "*.hs", "")
     IF f$ <> "" THEN
@@ -883,11 +883,11 @@ RETURN
 
 END SUB
 
-FUNCTION scriptname$ (num, f$, gen())
+FUNCTION scriptname$ (num, f$)
 a$ = LTRIM$(STR$(num))
 IF num THEN
  setpicstuf buffer(), 40, -1
- FOR i = 0 TO gen(40) - 1
+ FOR i = 0 TO general(40) - 1
   loadset workingdir$ + "\" + f$ + CHR$(0), i, 0
   IF buffer(0) = num THEN
    a$ = STRING$(small(large(buffer(1), 0), 38), " ")
@@ -922,7 +922,7 @@ NEXT i
 
 END SUB
 
-SUB statname (general())
+SUB statname
 DIM stat$(115), name$(115), maxlen(115)
 max = 115
 clearpage 0
@@ -1173,7 +1173,7 @@ clearpage 1
 
 END FUNCTION
 
-SUB textage (general(), song$())
+SUB textage (song$())
 DIM m$(10), x$(8), cond(21), ct(-1 TO 21), menu$(21), a(318), order(21), grey(21), choice$(1), max(8), min(8), buf(16384), h$(2), tagmn$
 ptr = 1
 
@@ -1316,13 +1316,13 @@ SELECT CASE cond(11)
   IF cond(12) >= 0 THEN
    m$(6) = "Next: Box" + STR$(cond(12))
   ELSE
-   m$(6) = "Next: script " + scriptname$(ABS(cond(12)), "plotscr.lst", general())
+   m$(6) = "Next: script " + scriptname$(ABS(cond(12)), "plotscr.lst")
   END IF
  CASE ELSE
   IF cond(12) >= 0 THEN
    m$(6) = "Next: Box" + STR$(cond(12)) + " (conditional)"
   ELSE
-   m$(6) = "Next: script " + scriptname$(ABS(cond(12)), "plotscr.lst", general()) + " (conditional)"
+   m$(6) = "Next: script " + scriptname$(ABS(cond(12)), "plotscr.lst") + " (conditional)"
   END IF
 END SELECT
 RETURN
@@ -1384,7 +1384,7 @@ SELECT CASE cond(1)
  CASE 0
   menu$(1) = " use [text box or script] instead"
  CASE IS < 0
-  menu$(1) = " run " + scriptname$(cond(1) * -1, "plotscr.lst", general()) + " instead"
+  menu$(1) = " run " + scriptname$(cond(1) * -1, "plotscr.lst") + " instead"
  CASE IS > 0
   menu$(1) = " jump to text box" + STR$(cond(1)) + " instead"
 END SELECT
@@ -1414,7 +1414,7 @@ SELECT CASE cond(12)
  CASE 0
   menu$(12) = " use [text box or script] next"
  CASE IS < 0
-  menu$(12) = " run " + scriptname$(cond(12) * -1, "plotscr.lst", general()) + " next"
+  menu$(12) = " run " + scriptname$(cond(12) * -1, "plotscr.lst") + " next"
  CASE IS > 0
   menu$(12) = " jump to text box" + STR$(cond(12)) + " next"
 END SELECT
@@ -1794,7 +1794,7 @@ END IF
 
 END FUNCTION
 
-SUB vehicles (general())
+SUB vehicles
 
 DIM menu$(20), veh(39), min(39), max(39), offset(39), vehbit$(15), tiletype$(8)
 
@@ -1925,7 +1925,7 @@ FOR i = 0 TO 1
   CASE 0
    tmp$ = "dismount"
   CASE ELSE
-   tmp$ = "script " + scriptname$(ABS(veh(offset(10 + i))), "plotscr.lst", general())
+   tmp$ = "script " + scriptname$(ABS(veh(offset(10 + i))), "plotscr.lst")
  END SELECT
  IF i = 0 THEN menu$(10 + i) = "Use button: " + tmp$'12
  IF i = 1 THEN menu$(10 + i) = "Menu button: " + tmp$'13
@@ -1945,7 +1945,7 @@ SELECT CASE veh(offset(13))
  CASE 0
   tmp$ = "[script/textbox]"
  CASE IS < 0
-  tmp$ = "run script " + scriptname$(ABS(veh(offset(13))), "plotscr.lst", general())
+  tmp$ = "run script " + scriptname$(ABS(veh(offset(13))), "plotscr.lst")
  CASE IS > 0
   tmp$ = "text box" + STR$(veh(offset(13)))
 END SELECT
@@ -1955,7 +1955,7 @@ SELECT CASE veh(offset(14))
  CASE 0
   tmp$ = "[script/textbox]"
  CASE IS < 0
-  tmp$ = "run script " + scriptname$(ABS(veh(offset(14))), "plotscr.lst", general())
+  tmp$ = "run script " + scriptname$(ABS(veh(offset(14))), "plotscr.lst")
  CASE IS > 0
   tmp$ = "text box" + STR$(veh(offset(14)))
 END SELECT

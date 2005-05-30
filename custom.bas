@@ -6,8 +6,8 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
-DECLARE SUB writepassword (p$, gen%())
-DECLARE FUNCTION readpassword$ (gen%())
+DECLARE SUB writepassword (p$)
+DECLARE FUNCTION readpassword$ ()
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION filenum$ (n%)
@@ -24,25 +24,25 @@ DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
-DECLARE SUB importbmp (f$, cap$, count%, general%(), master%())
+DECLARE SUB importbmp (f$, cap$, count%, master%())
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
-DECLARE SUB upgrade (general%(), font%())
+DECLARE SUB upgrade (font%())
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
 DECLARE SUB textxbload (f$, array%(), e$)
 DECLARE SUB fixorder (f$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
-DECLARE SUB vehicles (general%())
+DECLARE SUB vehicles ()
 DECLARE SUB verifyrpg (game$)
 DECLARE SUB xbload (f$, array%(), e$)
-DECLARE FUNCTION scriptname$ (num%, f$, gen%())
+DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION getmapname$ (m%)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-DECLARE SUB scriptman (gamedir$, general(), song$())
+DECLARE SUB scriptman (gamedir$, song$())
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
-DECLARE SUB writescatter (s$, lhold%, array%(), start%)
-DECLARE SUB readscatter (s$, lhold%, array%(), start%)
+DECLARE SUB writescatter (s$, lhold%, start%)
+DECLARE SUB readscatter (s$, lhold%, start%)
 DECLARE SUB fontedit (font%(), gamedir$)
 DECLARE SUB savetanim (n%, tastuf%())
 DECLARE SUB loadtanim (n%, tastuf%())
@@ -55,32 +55,32 @@ DECLARE FUNCTION onoroff$ (n%)
 DECLARE FUNCTION intstr$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE SUB smnemonic (tagname$, index%)
-DECLARE SUB tagnames (general%())
+DECLARE SUB tagnames ()
 DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%)
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), general%(), doors%(), link%(), npc%(), npcstat%(), song$(), npc$(), unpc%(), lnpc%())
-DECLARE SUB npcdef (npc%(), ptr%, general%(), npc$(), unpc%(), lnpc%())
+DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npc%(), npcstat%(), song$(), npc$(), unpc%(), lnpc%())
+DECLARE SUB npcdef (npc%(), ptr%, npc$(), unpc%(), lnpc%())
 DECLARE SUB bitset (array%(), wof%, last%, name$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, file$, master%(), font%())
 DECLARE FUNCTION needaddset (ptr%, check%, what$)
-DECLARE SUB shopdata (general%())
+DECLARE SUB shopdata ()
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
-DECLARE SUB importsong (song$(), general%(), master())
+DECLARE SUB importsong (song$(), master())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
-DECLARE SUB gendata (general%(), song$(), master%())
-DECLARE SUB itemdata (general%())
-DECLARE SUB formation (general%(), song$())
-DECLARE SUB enemydata (general%())
-DECLARE SUB herodata (general%())
-DECLARE SUB attackdata (general%())
+DECLARE SUB gendata (song$(), master%())
+DECLARE SUB itemdata ()
+DECLARE SUB formation (song$())
+DECLARE SUB enemydata ()
+DECLARE SUB herodata ()
+DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
-DECLARE SUB statname (general%())
-DECLARE SUB textage (general%(), song$())
+DECLARE SUB statname ()
+DECLARE SUB textage (song$())
 DECLARE FUNCTION sublist% (num%, s$())
-DECLARE SUB maptile (master%(), font(), general())
+DECLARE SUB maptile (master%(), font())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
@@ -159,7 +159,7 @@ IF NOT isfile(game$ + ".fnt" + CHR$(0)) THEN copyfile "ohrrpgce.fnt" + CHR$(0), 
 DEF SEG = VARSEG(font(0)): BLOAD game$ + ".fnt", VARPTR(font(0))
 '--loadgen, upgrade, resave
 xbload game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
-upgrade general(), font()
+upgrade font()
 DEF SEG = VARSEG(general(0)): BSAVE game$ + ".gen", VARPTR(general(0)), 1000
 GOSUB lsongstr
 setfont font()
@@ -185,28 +185,29 @@ DO:
   SELECT CASE menumode
    CASE 0'--normal mode
     IF ptr = 0 THEN ptr = 0: menumode = 1: GOSUB setgraphicmenu
-    IF ptr = 1 THEN mapmaker font(), master(), scroll(), pass(), emap(), general(), doors(), link(), npc(), npcstat(), song$(), npc$(), unpc(), lnpc()
-    IF ptr = 2 THEN statname general()
-    IF ptr = 3 THEN herodata general()
-    IF ptr = 4 THEN enemydata general()
-    IF ptr = 5 THEN attackdata general()
-    IF ptr = 6 THEN itemdata general()
-    IF ptr = 7 THEN shopdata general()
-    IF ptr = 8 THEN formation general(), song$()
-    IF ptr = 9 THEN textage general(), song$()
-    IF ptr = 10 THEN vehicles general()
-    IF ptr = 11 THEN tagnames general()
-    IF ptr = 12 THEN importsong song$(), general(), master()
-    IF ptr = 13 THEN fontedit font(), gamedir$
-    IF ptr = 14 THEN gendata general(), song$(), master()
-    IF ptr = 15 THEN scriptman gamedir$, general(), song$()
-    IF ptr = 16 THEN
+    IF ptr = 1 THEN mapmaker font(), master(), scroll(), pass(), emap(), doors(), link(), npc(), npcstat(), song$(), npc$(), unpc(), lnpc()
+    IF ptr = 2 THEN statname
+    IF ptr = 3 THEN herodata
+    IF ptr = 4 THEN enemydata
+    IF ptr = 5 THEN attackdata
+    IF ptr = 6 THEN itemdata
+    IF ptr = 7 THEN shopdata
+    IF ptr = 8 THEN formation song$()
+    IF ptr = 9 THEN textage song$()
+    'if ptr = 10 then editmenus
+    IF ptr = 11 THEN vehicles
+    IF ptr = 12 THEN tagnames
+    IF ptr = 13 THEN importsong song$(), master()
+    IF ptr = 14 THEN fontedit font(), gamedir$
+    IF ptr = 15 THEN gendata song$(), master()
+    IF ptr = 16 THEN scriptman gamedir$, song$()
+    IF ptr = 17 THEN
      GOSUB relump
      IF quitnow > 1 THEN GOTO finis
     END IF
    CASE 1'--graphics mode
     IF ptr = 0 THEN ptr = 0: menumode = 0: GOSUB setmainmenu
-    IF ptr = 1 THEN maptile master(), font(), general()
+    IF ptr = 1 THEN maptile master(), font()
     IF ptr = 2 THEN sprite 20, 20, general(30), 8, 5, 0, 7, winfo$(), 200, 4, ".pt4", master(), font()
     IF ptr = 3 THEN sprite 32, 40, general(26), 8, 16, 0, 3, hinfo$(), 640, 4, ".pt0", master(), font()
     IF ptr = 4 THEN sprite 34, 34, general(27), 1, 2, 0, 4, einfo$(), 578, 4, ".pt1", master(), font()
@@ -214,10 +215,10 @@ DO:
     IF ptr = 6 THEN sprite 80, 80, general(29), 1, 10, 2, 1, einfo$(), 3200, 2, ".pt3", master(), font()
     IF ptr = 7 THEN sprite 50, 50, general(32), 3, 12, 0, 2, ainfo$(), 1250, 2, ".pt6", master(), font()
     IF ptr = 8 THEN sprite 24, 24, general(31), 2, 2, 0, 5, xinfo$(), 288, 4, ".pt5", master(), font()
-    IF ptr = 9 THEN importbmp ".mxs", "screen", general(100), general(), master()
+    IF ptr = 9 THEN importbmp ".mxs", "screen", general(100), master()
     IF ptr = 10 THEN
      general(33) = general(33) + 1
-     importbmp ".til", "tileset", general(33), general(), master()
+     importbmp ".til", "tileset", general(33), master()
      general(33) = general(33) - 1
     END IF
   END SELECT
@@ -237,7 +238,7 @@ DO:
 LOOP
 
 setmainmenu:
-mainmax = 16
+mainmax = 17
 menu$(0) = "Edit Graphics"
 menu$(1) = "Edit Map Data"
 menu$(2) = "Edit Global Text Strings"
@@ -248,13 +249,14 @@ menu$(6) = "Edit Items"
 menu$(7) = "Edit Shops"
 menu$(8) = "Edit Battle Formations"
 menu$(9) = "Edit Text Boxes"
-menu$(10) = "Edit Vehicles"
-menu$(11) = "Edit Tag Names"
-menu$(12) = "Import Music"
-menu$(13) = "Edit Font"
-menu$(14) = "Edit General Game Data"
-menu$(15) = "Script Management"
-menu$(16) = "Quit Editing"
+menu$(10) = "Edit Menus"
+menu$(11) = "Edit Vehicles"
+menu$(12) = "Edit Tag Names"
+menu$(13) = "Import Music"
+menu$(14) = "Edit Font"
+menu$(15) = "Edit General Game Data"
+menu$(16) = "Script Management"
+menu$(17) = "Quit Editing"
 RETURN
 
 setgraphicmenu:
@@ -518,11 +520,11 @@ xbload workingdir$ + "\" + game$ + ".gen", general(), "general data is missing, 
 '----load password-----
 IF general(5) >= 256 THEN
  '--new format password
- rpas$ = readpassword$(general())
+ rpas$ = readpassword$
 ELSE
  '--old scattertable format
  IF general(94) = -1 THEN RETURN 'this is stupid
- readscatter rpas$, general(94), general(), 200
+ readscatter rpas$, general(94), 200
  rpas$ = rotascii(rpas$, general(93) * -1)
 END IF
 '--if password is unset, do not prompt
@@ -1113,15 +1115,15 @@ IF ptr > check THEN
 END IF
 END FUNCTION
 
-FUNCTION readpassword$ (gen())
+FUNCTION readpassword$
 
 '--read a 17-byte string from GEN at word offset 7
 '--(Note that array2str uses the byte offset not the word offset)
 s$ = STRING$(17, 0)
-array2str gen(), 14, s$
+array2str general(), 14, s$
 
 '--reverse ascii rotation / weak obfuscation
-s$ = rotascii(s$, gen(6) * -1)
+s$ = rotascii(s$, general(6) * -1)
 
 '-- discard ascii chars lower than 32
 p$ = ""
@@ -1156,7 +1158,7 @@ SUB safekill (f$)
 IF isfile(f$ + CHR$(0)) THEN KILL f$
 END SUB
 
-SUB shopdata (general())
+SUB shopdata
 DIM name$(32), a(20), b(32), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16)
 
 max = 32: ptr = 0: it$ = "-NONE-"
@@ -1287,7 +1289,7 @@ menu$(1) = CHR$(27) + " Shop" + STR$(ptr) + " of" + STR$(general(97)) + CHR$(26)
 menu$(2) = "Name:" + sn$
 menu$(5) = "Inn Price:" + STR$(a(18))
 IF readbit(a(), 17, 3) = 0 THEN menu$(5) = "Inn Price: N/A"
-menu$(6) = "Inn Script: " + scriptname$(a(19), "plotscr.lst", general())
+menu$(6) = "Inn Script: " + scriptname$(a(19), "plotscr.lst")
 IF readbit(a(), 17, 0) OR readbit(a(), 17, 1) OR readbit(a(), 17, 2) THEN havestuf = 1 ELSE havestuf = 0
 RETURN
 
@@ -1501,7 +1503,7 @@ CLOSE #fh
 
 END SUB
 
-SUB upgrade (general(), font())
+SUB upgrade (font())
 
 DIM pal16(8)
 
@@ -1584,7 +1586,7 @@ IF general(95) = 2 THEN
  general(93) = INT(RND * 250) + 1
  rpas$ = rotascii(rpas$, general(93))
  '--write old password (will be upgraded again later in this same routine)
- writescatter rpas$, general(94), general(), 200
+ writescatter rpas$, general(94), 200
  '-REPLACE OLD-OLD PASSWORD
  pas$ = rotascii("ufxx|twi%|fx%rt{ji", -5)
  general(99) = LEN(pas$)
@@ -1717,19 +1719,19 @@ IF general(5) < 256 THEN
   pas$ = ""
  ELSE
   '--read the old scattertable
-  readscatter pas$, general(94), general(), 200
+  readscatter pas$, general(94), 200
   pas$ = rotascii(pas$, general(93) * -1)
  END IF
- writepassword pas$, general()
+ writepassword pas$
 END IF
 
 'wow! this is quite a big and ugly routine!
 END SUB
 
-SUB writepassword (p$, gen())
+SUB writepassword (p$)
 
 '-- set password version number (only if needed)
-IF gen(5) < 256 THEN gen(5) = 256
+IF general(5) < 256 THEN general(5) = 256
 
 '--pad the password with some silly obfuscating low-ascii chars
 FOR i = 1 TO 17 - LEN(p$)
@@ -1741,11 +1743,11 @@ FOR i = 1 TO 17 - LEN(p$)
 NEXT i
 
 '--apply a new ascii rotation / weak obfuscation number
-gen(6) = INT(RND * 253) + 1
-p$ = rotascii(p$, gen(6))
+general(6) = INT(RND * 253) + 1
+p$ = rotascii(p$, general(6))
 
 '--write the password into GEN
-str2array p$, gen(), 14
+str2array p$, general(), 14
 
 END SUB
 

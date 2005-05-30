@@ -36,7 +36,7 @@ DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE SUB xbload (f$, array%(), e$)
-DECLARE FUNCTION scriptname$ (num%, f$, gen%())
+DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION needaddset (ptr%, check%, what$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE SUB herotags (a%())
@@ -53,22 +53,21 @@ DECLARE SUB debug (s$)
 DECLARE SUB bitset (array%(), wof%, last%, name$())
 DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
-DECLARE SUB formation (general%(), song$())
-DECLARE SUB enemydata (general%())
-DECLARE SUB herodata (general%())
-DECLARE SUB attackdata (general%())
+DECLARE SUB formation (song$())
+DECLARE SUB enemydata ()
+DECLARE SUB herodata ()
+DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
-DECLARE SUB statname (general%())
-DECLARE SUB textage (general%(), song$())
+DECLARE SUB statname ()
+DECLARE SUB textage (song$())
 DECLARE FUNCTION sublist% (num%, s$())
-DECLARE SUB maptile (master%(), font%(), general())
+DECLARE SUB maptile (master%(), font%())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
-
 
 REM $STATIC
 FUNCTION bound (n, lowest, highest)
@@ -140,7 +139,7 @@ textcolor c, 0
 printstr s$, x + 1, y + 1, p
 END SUB
 
-SUB enemydata (general())
+SUB enemydata
 
 '--stat names
 DIM name$(32), nof(11), elemtype$(2)
@@ -700,7 +699,7 @@ RETURN
 '-----------------------------------------------------------------------
 END SUB
 
-SUB formation (general(), song$())
+SUB formation (song$())
 DIM a(40), b(160), c(24), s(7), w(7), menu$(10), ename$(7), max(10), z(7), bmenu$(22), pal16(64)
 clearpage 0
 clearpage 1
@@ -975,7 +974,7 @@ END IF
 
 END FUNCTION
 
-SUB herodata (general())
+SUB herodata
 DIM name$(100), a(318), menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), option$(10), hbit$(-1 TO 25), hmenu$(4), pal16(16), elemtype$(2)
 wd = 1: max = 32
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
@@ -1506,7 +1505,7 @@ END IF
 
 END FUNCTION
 
-SUB itemdata (general())
+SUB itemdata
 DIM name$(100), a(99), menu$(18), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), item$(-1 TO 255), eqst$(5), max(18), sbmax(11), workpal(8), elemtype$(2)
 max = 32
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
@@ -1828,7 +1827,7 @@ IF a < min THEN a = a + ((max - min) + 1): loopvar = a: EXIT FUNCTION
 loopvar = a
 END FUNCTION
 
-SUB npcdef (npc(), ptr, general(), npc$(), unpc(), lnpc())
+SUB npcdef (npc(), ptr, npc$(), unpc(), lnpc())
 DIM mtype$(10), push$(7), stepi(5), info$(5, 1), pal16(288)
 clearpage 0: clearpage 1
 setvispage vpage
@@ -1964,7 +1963,7 @@ DO
    CASE 11
     IF npc(cur * 15 + i) THEN temp$ = " Only Once (tag" + STR$(1000 + npc(cur * 15 + i)) + ")" ELSE temp$ = " Repeatedly"
    CASE 12 'script
-    temp$ = scriptname$(npc(cur * 15 + i), "plotscr.lst", general())
+    temp$ = scriptname$(npc(cur * 15 + i), "plotscr.lst")
    CASE 13 'script arg
     IF npc(cur * 15 + 12) = 0 THEN temp$ = " N/A"
    CASE 14 'vehicle
@@ -2116,12 +2115,12 @@ readitemname$ = readbadgenericname$(index, game$ + ".itm", 200, 0, 8, 0)
 
 END FUNCTION
 
-SUB readscatter (s$, lhold, array(), start)
+SUB readscatter (s$, lhold, start)
 DIM stray(10)
 s$ = STRING$(20, "!")
 
 FOR i = 0 TO lhold
- setbit stray(), 0, i, readbit(array(), start - 1, array(start + i))
+ setbit stray(), 0, i, readbit(general(), start - 1, general(start + i))
 NEXT i
 
 array2str stray(), 0, s$
@@ -2181,7 +2180,7 @@ IF LEN(s$) < maxl THEN
    '--charlist support
    s$ = s$ + charpicker$
   END IF
- ELSE 
+ ELSE
   '--all other keys
   FOR i = 2 TO 53
    IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
@@ -2217,7 +2216,7 @@ setpicstuf buf(), 320, -1
 storeset game$ + ".dt1" + CHR$(0), index, 0
 END SUB
 
-SUB writescatter (s$, lhold, array(), start)
+SUB writescatter (s$, lhold, start)
 DIM stray(10)
 
 s$ = LEFT$(s$, 20)
@@ -2228,14 +2227,13 @@ FOR i = 0 TO lhold
  trueb = readbit(stray(), 0, i)
  DO
   scatb = INT(RND * (16 + (i * 16)))
- LOOP UNTIL readbit(array(), start - 1, scatb) = trueb
- array(start + i) = scatb
+ LOOP UNTIL readbit(general(), start - 1, scatb) = trueb
+ general(start + i) = scatb
 NEXT i
 
 FOR i = lhold + 1 TO 159
- array(start + i) = INT(RND * 4444)
+ general(start + i) = INT(RND * 4444)
 NEXT i
-
 END SUB
 
 FUNCTION zintgrabber (n, min, max, less, more)
