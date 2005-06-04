@@ -14,6 +14,9 @@
 
 --Changelog
 
+--2F 2005-06-02 Strings implemented by TeeEmCee:
+--              $id="..." -> setstring
+--              $id+"..." -> appendstring
 --2E 2005-02-15 Changed license to GPL
 --              Added += and -= operators thanks to a patch from
 --              The Mad Cacti and Fyrewulff
@@ -44,7 +47,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=2
-constant COMPILER_SUB_VERSION='D'
+constant COMPILER_SUB_VERSION='F'
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -529,6 +532,67 @@ end procedure
 
 ---------------------------------------------------------------------------
 
+function convert_strings(sequence s)
+  integer start
+  integer stringstart
+  integer ptr
+  integer at
+  integer at2
+  sequence output
+  sequence result
+  start=1
+  result=""
+  while start<length(s) do
+    stringstart=find('$',s[start..length(s)])
+    if stringstart=0 then
+      exit
+    end if
+    stringstart+=start-1
+    if stringstart>start then
+      result=result&s[start..stringstart-1]
+    end if
+    start=stringstart
+    at=match("=\"",s[start..length(s)])
+    at2=match("+\"",s[start..length(s)])
+    if at=0 and at2=0 then 
+      exit
+    end if
+    if at!=0 and at<at2 or at2=0 then 
+      output=",setstring("
+    else
+      output=",appendstring("
+      at=at2
+    end if
+    if at=2 then --no id
+      exit
+    end if
+    at+=start-1
+    output=output&s[stringstart+1..at-1]  --id
+    ptr=at+2
+    while true do
+      if ptr>length(s) then  --did not find a closing " so not a valid string
+        result=result&s[stringstart..at+1]
+	start=at+2 --skip the $..=" and try again
+	exit
+      end if
+      if s[ptr]='"' then
+        if s[ptr-1]='\\' then
+          output=output[1..length(output)-3] --remove the ",92" from the \
+        else
+          result=result&output&")"
+          start=ptr+1
+          exit
+        end if
+      end if
+      output=output&sprintf(",%d",{s[ptr]})
+      ptr+=1
+    end while
+  end while
+  return(result&s[start..length(s)])
+end function
+
+---------------------------------------------------------------------------
+
 --function smush_line(sequence s)
 --  sequence sep
 --  s=hs_lower(exclude(strip_comments(s)," \t\n"))
@@ -546,6 +610,7 @@ function smush_line(sequence s)
   integer start
   sequence sep
   sequence masked
+  s=convert_strings(s)
   s=hs_lower(exclude(strip_comments(s)," \t\n"))
   s=substring_replace(s,"(",",begin,")
   s=substring_replace(s,")",",end,")
