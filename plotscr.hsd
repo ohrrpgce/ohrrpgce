@@ -182,6 +182,7 @@ define function, begin
 173,exportglobals,3,1,0,1024 # (slot, first, last) writes a range of globals to a save slot
 174,loadfromslot,1,1        # loads saved game from slot
 175,deletesave,1,1          # delete (hide from load/save screen - data not *actaully* deleted) specified slot
+176,runscriptbyid,9,0,0,0,0,0,0,0,0,0 # run a script by its id number and pass up to 8 arguments
 
 200,system hour,0
 201,system minute,0

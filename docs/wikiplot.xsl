@@ -10,7 +10,7 @@
 <xsl:template match="plotscript">
 This is a listing of all the plotscripting commands implemented as of <xsl:value-of select="@lastmodified" />.
 
-In addition to reading this document, I also reccomend you check out [[Plotscripting Tutorial]] and the [[HamsterSpeak Specification]]
+In addition to reading this document, I also recommend you check out [[Plotscripting Tutorial]] and the [[HamsterSpeak Specification]]
 
 <xsl:apply-templates select="section" mode="full" />
 

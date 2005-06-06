@@ -1529,6 +1529,19 @@ end</example>
 				<ref>importglobals</ref>
 			</seealso>
 		</command>
+		<command id="runscriptbyid">
+			<cannon>run script by ID (id, argument1, argument2, argument3...)</cannon>
+			<shortname>run script by ID</shortname>
+			<description>To making switching between scripts easier, you can call a script by its ID number. Pass arguments after the ID as normal. The script can also return a value as normal. -1 is returned if the script does not exist.</description>
+			<example>variable (return value)
+return value := run script by id (10, 1, 2, 3)
+show value (return value)
+
+define script (10,sum,3,0,0,0)
+script,sum,a,b,c,begin
+  return(a+b+c)
+end</example>
+		</command>
 	</section>
 	<section title="Predefined Constants">
 		<command id="numericconstants">

@@ -1260,6 +1260,18 @@ SELECT CASE id
     CLOSE savh
    END IF
   END IF
+ CASE 176'--runscriptbyid
+  IF isfile(workingdir$ + "\" + LTRIM$(STR$(retvals(0))) + ".hsx" + CHR$(0)) THEN
+   rsr = runscript(retvals(0), nowscript + 1, 0, "indirect")
+   IF rsr = 1 THEN
+    '--fill heap with return values
+    FOR i = scrat(nowscript - 1, curargc) - 1 TO 1 STEP -1  'flexible argument number!
+     heap(scrat(nowscript, scrheap) + (i - 1)) = retvals(i)
+    NEXT i
+   END IF
+  ELSE
+   scriptret = -1
+  END IF
  CASE 200'--system hour
   scriptret = INT(TIMER / 3600)
  CASE 201'--system minute
@@ -1385,7 +1397,7 @@ SELECT CASE id
  CASE 225'--string Y
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
    scriptret = plotstrY(retvals(0))
-  END IF
+  END IF 
 END SELECT
 
 EXIT SUB

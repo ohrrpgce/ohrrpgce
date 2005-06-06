@@ -67,7 +67,7 @@
 			<body>
 				<h1>Plotscripting Dictionary</h1>
 				<p>This is a listing of all the plotscripting commands implemented as of <xsl:value-of select="@lastmodified" />.</p>
-				<p>In addition to reading this document, I also reccomend you check out Plotscripting Tutorial and the HamsterSpeak Specification</p>
+				<p>In addition to reading this document, I also recommend you check out Plotscripting Tutorial and the HamsterSpeak Specification</p>
 				<hr/>
 				<h2>Commands by Category</h2>
 				<p>
