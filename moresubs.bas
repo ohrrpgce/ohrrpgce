@@ -1679,10 +1679,15 @@ FOR i = 0 TO 128
  NEXT o
 NEXT i
 flusharray veh(), 21, 0
-
 flusharray sayenh(), 6, 0
-FOR i = 0 TO 6
- sayenh(i) = 0
+
+FOR i = 0 TO 31
+ plotstring$(i) = ""
+ plotstrCol(i) = 15
+ plotstrBGCol(i) = 0
+ plotstrX(i) = 0
+ plotstrY(i) = 0
+ plotstrBits(i) = 0
 NEXT i
 
 xbload game$ + ".mas", master(), "master palette missing from " + game$
