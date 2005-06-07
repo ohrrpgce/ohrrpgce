@@ -6,6 +6,7 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
+DECLARE SUB setScriptArg (arg%, value%)
 DECLARE SUB showplotstrings ()
 DECLARE SUB innRestore (stat%())
 DECLARE SUB exitprogram (needfade%)
@@ -606,8 +607,8 @@ DO
    ELSE
     rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle")
     IF rsr = 1 THEN
-     heap(scrat(nowscript, scrheap)) = batform
-     heap(scrat(nowscript, scrheap) + 1) = temp
+     setScriptArg 0, batform
+     setScriptArg 1, temp
     END IF
    END IF
    foep = range(100, 60)
@@ -655,8 +656,8 @@ IF gen(57) > 0 THEN
  rsr = runscript(gen(57), nowscript + 1, -1, "loadgame")
  IF rsr = 1 THEN
   '--pass save slot as argument
-  IF temp = 4 THEN temp = -1 'quickload slot
-  heap(scrat(nowscript, scrheap)) = temp
+  IF temp = 32 THEN temp = -1 'quickload slot
+  setScriptArg 0, temp
  END IF
 END IF
 samemap = -1
@@ -894,8 +895,8 @@ IF sayer >= 0 THEN
   '--summon a script directly from an NPC
   rsr = runscript(npcs((npcl(sayer + 600) - 1) * 15 + 12), nowscript + 1, -1, "NPC")
   IF rsr = 1 THEN
-   heap(scrat(nowscript, scrheap)) = npcs((npcl(sayer + 600) - 1) * 15 + 13)
-   heap(scrat(nowscript, scrheap) + 1) = (sayer + 1) * -1 'reference
+   setScriptArg 0, npcs((npcl(sayer + 600) - 1) * 15 + 13)
+   setScriptArg 1, (sayer + 1) * -1 'reference
   END IF
  END IF
  vehuse = npcs((npcl(sayer + 600) - 1) * 15 + 14)
@@ -1174,9 +1175,9 @@ IF (xgo(0) = 0 OR movdivis(xgo(0))) AND (ygo(0) = 0 OR movdivis(ygo(0))) AND (di
  IF gmap(14) > 0 THEN
   rsr = runscript(gmap(14), nowscript + 1, -1, "eachstep")
   IF rsr = 1 THEN
-   heap(scrat(nowscript, scrheap)) = catx(0) \ 20
-   heap(scrat(nowscript, scrheap) + 1) = caty(0) \ 20
-   heap(scrat(nowscript, scrheap) + 2) = catd(0)
+   setScriptArg 0, catx(0) \ 20
+   setScriptArg 1, caty(0) \ 20
+   setScriptArg 2, catd(0)
   END IF
  END IF
 END IF
@@ -1551,7 +1552,7 @@ IF afterbat = 0 THEN
  IF gmap(7) > 0 THEN
   rsr = runscript(gmap(7), nowscript + 1, -1, "map")
   IF rsr = 1 THEN
-   heap(scrat(nowscript, scrheap)) = gmap(8)
+   setScriptArg 0, gmap(8)
   END IF
  END IF
 ELSE
@@ -1559,7 +1560,7 @@ ELSE
   rsr = runscript(gmap(12), nowscript + 1, -1, "afterbattle")
   IF rsr = 1 THEN
    '--afterbattle script gets one arg telling if you won or ran
-   heap(scrat(nowscript, scrheap)) = wonbattle
+   setScriptArg 0, wonbattle
   END IF
  END IF
 END IF
@@ -1922,7 +1923,7 @@ DO
       IF rsr = 1 THEN
        '--fill heap with return values
        FOR i = scrat(nowscript - 1, curargc) - 1 TO 0 STEP -1
-	heap(scrat(nowscript, scrheap) + i) = popw
+	setScriptArg i, popw
        NEXT i
       END IF
       IF rsr = 0 THEN
@@ -2613,6 +2614,12 @@ END FUNCTION
 
 SUB safekill (f$)
 IF isfile(f$ + CHR$(0)) THEN KILL f$
+END SUB
+
+SUB setScriptArg (arg, value)
+ IF scrat(nowscript, scrargs) > arg THEN
+  heap(scrat(nowscript, scrheap) + arg) = value
+ END IF
 END SUB
 
 SUB showplotstrings

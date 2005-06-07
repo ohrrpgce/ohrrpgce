@@ -7,6 +7,11 @@ WHAT IS NEW?
     * Fixed bug 76: "Hitting two keys at the same time allows you to
       overflow text-entry fields [James Paige]
 
+    * Fixed a bug that allowed argument values to pre-fill local
+      variables in scripts that did not have enough arguments declared
+      (It is now safe to assume that all your local variables will
+      start out set to zero) [James Paige]
+
   * New Features
 
     * plotscripting commands to read system time: system hour, system

@@ -5,6 +5,7 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+DECLARE SUB setScriptArg (arg%, value%)
 DECLARE FUNCTION cropPlotStr% (s$)
 DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, mapwide%, maphigh%, wrapmode%)
 DECLARE SUB aheadxy (x%, y%, direction%, distance%)
@@ -1266,7 +1267,7 @@ SELECT CASE id
    IF rsr = 1 THEN
     '--fill heap with return values
     FOR i = scrat(nowscript - 1, curargc) - 1 TO 1 STEP -1  'flexible argument number!
-     heap(scrat(nowscript, scrheap) + (i - 1)) = retvals(i)
+     setScriptArg i - 1, retvals(i)
     NEXT i
    END IF
   ELSE
@@ -1397,7 +1398,7 @@ SELECT CASE id
  CASE 225'--string Y
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
    scriptret = plotstrY(retvals(0))
-  END IF 
+  END IF
 END SELECT
 
 EXIT SUB
