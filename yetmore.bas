@@ -17,7 +17,7 @@ DECLARE SUB keyhandleroff ()
 DECLARE FUNCTION partybyrank% (slot%)
 DECLARE FUNCTION herobyrank% (slot%)
 DECLARE FUNCTION rankincaterpillar% (heroid%)
-DECLARE SUB embedtext (text$)
+DECLARE SUB embedtext (text$, limit%)
 DECLARE SUB renamehero (who%)
 DECLARE SUB fadeout (red%, green%, blue%, force%)
 DECLARE SUB fadein (force%)
@@ -236,7 +236,7 @@ FOR i = 0 TO 255
 NEXT i
 END SUB
 
-SUB embedtext (text$)
+SUB embedtext (text$, limit)
 '--Clobbers buffer() !
 start = 1
 DO WHILE start < LEN(text$)
@@ -301,6 +301,10 @@ DO WHILE start < LEN(text$)
  '--skip past this embed
  start = embedend + 1
 LOOP
+'--enforce limit (if set)
+IF limit > 0 THEN
+ text$ = LEFT$(text$, limit)
+END IF
 END SUB
 
 SUB flusharray (array(), size, value)
@@ -560,7 +564,7 @@ FOR j = 0 TO 7
 NEXT j
 
 FOR j = 0 TO 7
- embedtext say$(j)
+ embedtext say$(j), 38
 NEXT j
 
 '--reload data from the textbox lump because embedtext clobbered it
