@@ -1403,6 +1403,13 @@ SELECT CASE id
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
    scriptret = plotstrY(retvals(0))
   END IF
+ CASE 226'--system day
+ scriptret = VAL(MID$(DATE$, 1, 2))
+ CASE 227'--system month
+ scriptret = VAL(MID$(DATE$, 4, 2))
+ CASE 228'--system year
+ scriptret = VAL(MID$(DATE$, 7, 4))
+                            
 END SELECT
 
 EXIT SUB
