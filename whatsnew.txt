@@ -16,6 +16,9 @@ WHAT IS NEW?
 
     * plotscripting commands to read system time: system hour, system
       minute, system second. [Mike Caron]
+
+    * plotscripting commands to read system date: system day, system
+      month, system year. [Yuriy]
     
     * plotscripting command to find out the currently playing song.
       [Mike Caron]
