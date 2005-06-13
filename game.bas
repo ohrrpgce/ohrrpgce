@@ -1104,11 +1104,11 @@ FOR whoi = 0 TO 3
   IF ygo(whoi) > 0 THEN ygo(whoi) = ygo(whoi) - herospeed(whoi): caty(whoi * 5) = caty(whoi * 5) - herospeed(whoi): didgo(whoi) = 1
   IF ygo(whoi) < 0 THEN ygo(whoi) = ygo(whoi) + herospeed(whoi): caty(whoi * 5) = caty(whoi * 5) + herospeed(whoi): didgo(whoi) = 1
  END IF
- 
+
  o = whoi
  '--if catapillar is not suspended, only the leader's motion matters
  IF readbit(gen(), 44, suspendcatapillar) = 0 THEN o = 0
- 
+
  '--leader always checks harm tiles, allies only if caterpillar is enabled
  IF whoi = 0 OR readbit(gen(), 101, 1) = 1 THEN
   '--Stuff that should only happen when you finish moving
@@ -1994,11 +1994,11 @@ DO
 	  tmpvar = popw
 	  pushw tmpvar
 	  pushw tmpstart
-	  
+
 	  '--update for counter (is this right for globals?)
 	  writescriptvar tmpvar, tmpstart
 	  '---???    global(tmpvar) = tmpstart - tmpstep
-	  
+
 	  '---now get end value
 	  scrat(nowscript, scrstate) = stdoarg
 	 CASE 4
@@ -2103,9 +2103,13 @@ SELECT CASE scrat(nowscript, curkind)
     scrat(nowscript, curwaitarg) = 0
     scrat(nowscript, scrstate) = stwait
    CASE 16'--fight formation
-    wantbattle = retvals(0) + 1
-    scrat(nowscript, curwaitarg) = 0
-    scrat(nowscript, scrstate) = stwait
+    IF retvals(0) <= gen(37) THEN
+     wantbattle = retvals(0) + 1
+     scrat(nowscript, curwaitarg) = 0
+     scrat(nowscript, scrstate) = stwait
+    ELSE
+     scriptret = -1
+    END IF
    CASE 23'--unequip
     IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
      i = retvals(0)
@@ -2653,7 +2657,7 @@ IF keyval(54) > 0 OR keyval(42) > 0 THEN shift = 1
 
 '--adding chars
 IF LEN(s$) < maxl THEN
- 
+
  '--SPACE support
  IF keyval(57) > 1 THEN
    s$ = s$ + " "
@@ -2666,7 +2670,7 @@ IF LEN(s$) < maxl THEN
    END IF
   NEXT i
  END IF
- 
+
 END IF
 
 END SUB
