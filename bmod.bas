@@ -973,6 +973,12 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    'DEBUG debug "~ inflict" + STR$(targ)
    IF inflict(who, targ, stat(), x(), y(), w(), h(), harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
     '--attack succeeded
+        IF readbit(atk(), 20, 50) = 1 THEN
+         es(targ - 4, 56) = 0
+         es(targ - 4, 57) = 0
+         es(targ - 4, 59) = 0
+         es(targ - 4, 61) = 0
+        END IF
     IF trytheft(who, targ, atk(), es()) THEN
      GOSUB checkitemusability
     END IF

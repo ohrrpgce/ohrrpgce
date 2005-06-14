@@ -143,10 +143,11 @@ FOR i = 0 TO 7
 NEXT i
 
 '37 to 51 are unused
-FOR i = 37 TO 50
+FOR i = 37 TO 49
  atkbit$(i) = "[placeholder " + LTRIM$(STR$(i)) + "]"
 NEXT i
 
+atkbit$(50) = "No Reward from target"
 atkbit$(51) = "Show damage without inflicting"
 atkbit$(52) = "Store Target"
 atkbit$(53) = "Delete Stored Target"
