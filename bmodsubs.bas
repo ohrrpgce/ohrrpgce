@@ -183,7 +183,7 @@ carray(4) = large(large(keyval(csetup(4)), keyval(csetup(5))), keyval(csetup(6))
 carray(5) = large(keyval(csetup(7)), keyval(csetup(8))): carray(15) = carray(15) - 1
 carray(6) = large(keyval(csetup(9)), keyval(csetup(10))): carray(15) = carray(15) - 1
 '--gen(60) is the calibration disabler flag
-IF gen(60) = 0 AND keyval(csetup(11)) > 1 THEN
+IF gen(60) = 0 AND keyval(29) > 0 AND keyval(csetup(11)) > 1 THEN
  calibrate
  FOR i = 0 TO 1
   gotj(i) = readjoy(joy(), i)

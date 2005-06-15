@@ -15,6 +15,9 @@ WHAT IS NEW?
     * Fixed bug 81: "fight formation() with an invalid formation would
       start a battle which would immediately end") [Yuriy]
 
+    * To bring up the Joystick calibration screen, you should now
+      press CTRL+J rather than just J
+
   * New Features
 
     * plotscripting commands to read system time: system hour, system
