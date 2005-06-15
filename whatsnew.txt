@@ -72,6 +72,14 @@ WHAT IS NEW?
           string Y (string)
         [James Paige]
 
+       * ${S#} Meta String for textboxes
+
+       * Support in HSpeak for "auto strings":
+
+          $1="My string"
+
+          That will set the string with ID 1 to "My string"
+
   * Stuff only Developers Will Notice
 
     * Plotscripting Dictionary Documentation is now in xml format instead
