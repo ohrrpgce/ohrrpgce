@@ -146,7 +146,7 @@ DECLARE FUNCTION checksaveslot (slot%)
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'sglobals.bi'
 
-'$INCLUDE: 'const.bi'
+'$INCLUDE: 'scrconst.bi'
 
 'DEBUG debug "started debug session "+date$+" "+time$
 

@@ -107,7 +107,7 @@ DECLARE SUB getmapname (mapname$, m%)
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'sglobals.bi'
 
-'$INCLUDE: 'const.bi'
+'$INCLUDE: 'scrconst.bi'
 
 REM $STATIC
 SUB alterhero (id, stat())

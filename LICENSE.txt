@@ -5,7 +5,7 @@ BMOD.BAS        BMODSUBS.BAS    CUSTOM.BAS      DRAWING.BAS     FLEXMENU.BAS
 GAME.BAS        IRONHOOF.BAS    MAPSUBS.BAS     MENUSTUF.BAS    MORESUBS.BAS
 RPGFIX.BAS      SUBS.BAS        SUBS2.BAS       UNLUMP.BAS      VERPRINT.BAS
 YETMORE.BAS     BGLOBALS.BI     CGLOBALS.BI     GGLOBALS.BI     SGLOBALS.BI
-CONST.BI        HSPEAK.EX       INDEXER.EX      LUMPFIX.EX      HSSPIFFY.E
+SCRCONST.BI     HSPEAK.EX       INDEXER.EX      LUMPFIX.EX      HSSPIFFY.E
 SUBS3.BAS
 
 ------------------------------------------------------------------------------
@@ -14,7 +14,7 @@ SUBS3.BAS
 		       Version 2, June 1991
 
  Copyright (C) 1989, 1991 Free Software Foundation, Inc.
-                       59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+		       59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  Everyone is permitted to copy and distribute verbatim copies
  of this license document, but changing it is not allowed.
 

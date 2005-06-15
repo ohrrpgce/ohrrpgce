@@ -94,7 +94,7 @@ DECLARE SUB snapshot ()
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'sglobals.bi'
 
-'$INCLUDE: 'const.bi'
+'$INCLUDE: 'scrconst.bi'
 
 REM $STATIC
 SUB addhero (who, slot, stat())
