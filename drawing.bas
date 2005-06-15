@@ -2491,7 +2491,7 @@ DIM menu$(2)
 clearpage 0
 clearpage 1
 
-IF general(59) < 1 THEN general(59) = 1
+IF general(56) < 1 THEN general(56) = 1
 ptr = 2
 csr = 0
 menu$(0) = "Previous Menu"
