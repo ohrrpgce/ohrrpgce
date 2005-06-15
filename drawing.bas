@@ -6,6 +6,7 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
+DECLARE FUNCTION charpicker$ ()
 DECLARE SUB writepassword (p$)
 DECLARE FUNCTION readpassword$ ()
 DECLARE SUB fixfilename (s$)
@@ -151,9 +152,9 @@ END SUB
 
 SUB gendata (song$(), master())
 STATIC default$
-DIM m$(16), max(16), bit$(15), subm$(4), scriptgenof(4)
+DIM m$(18), max(18), bit$(15), subm$(4), scriptgenof(4)
 
-last = 15
+last = 17
 m$(0) = "Return to Main Menu"
 m$(1) = "Preference Bitsets..."
 m$(8) = "Password For Editing..."
@@ -170,6 +171,8 @@ max(6) = 100
 max(7) = 100
 max(8) = 0
 max(11) = 32000
+max(16) = 255
+max(17) = 255
 GOSUB loadpass
 GOSUB genstr
 setkeys
@@ -200,6 +203,21 @@ DO
   IF csr = 12 THEN GOSUB specialplot
   IF csr = 15 THEN GOSUB importmaspal
   IF csr = 8 THEN GOSUB inputpasw
+ IF csr = 16 THEN
+  d$ = charpicker$
+  IF d$ <> "" THEN
+  general(60) = ASC(d$)
+   GOSUB genstr
+  END IF
+ END IF
+ IF csr = 17 THEN
+  d$ = charpicker$
+  IF d$ <> "" THEN
+  general(61) = ASC(d$)
+   GOSUB genstr
+  END IF
+ END IF
+
  END IF
  IF csr > 1 AND csr <= 4 THEN
   IF intgrabber(general(100 + csr), 0, max(csr), 75, 77) THEN GOSUB genstr
@@ -218,7 +236,13 @@ DO
   strgrabber aboutline$, 38
   GOSUB genstr
  END IF
- 
+ IF csr = 16 THEN
+  IF intgrabber(general(60), 32, max(csr), 75, 77) THEN GOSUB genstr
+ END IF
+ IF csr = 17 THEN
+  IF intgrabber(general(61), 32, max(csr), 75, 77) THEN GOSUB genstr
+ END IF
+
  standardmenu m$(), last, 22, csr, 0, 0, 0, dpage, 0
  
  SWAP vpage, dpage
@@ -247,6 +271,8 @@ IF general(4) = 0 THEN m$(7) = m$(7) + " -none-" ELSE m$(7) = m$(7) + STR$(gener
 m$(11) = "Starting Money:" + STR$(general(96))
 m$(13) = "Long Name:" + longname$
 m$(14) = "About Line:" + aboutline$
+m$(16) = "Poison Indicator " + STR$(general(60)) + " " + CHR$(general(60))
+m$(17) = "Stun Indicator " + STR$(general(61)) + " " + CHR$(general(61))
 RETURN
 
 ttlbrowse:

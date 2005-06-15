@@ -1,4 +1,4 @@
-WHAT IS NEW?                                                   
+WHAT IS NEW?
 
 ??? ?? 2005 [rusalka]
 
@@ -12,6 +12,9 @@ WHAT IS NEW?
       (It is now safe to assume that all your local variables will
       start out set to zero) [James Paige]
 
+    * Fixed bug 81: "fight formation() with an invalid formation would
+      start a battle which would immediately end") [Yuriy]
+
   * New Features
 
     * plotscripting commands to read system time: system hour, system
@@ -19,15 +22,21 @@ WHAT IS NEW?
 
     * plotscripting commands to read system date: system day, system
       month, system year. [Yuriy]
-    
+
     * plotscripting command to find out the currently playing song.
       [Mike Caron]
 
-    * plotscripting command run script by ID which does just that 
+    * plotscripting command run script by ID which does just that
       [Ralph Versteegen]
-      
+
+    * status indicators (poison/stun) via characters appended to stats
+      in battle [Yuriy]
+
+    * "No reward for targets killed" bitset (useful for monsters "running
+      away") [Yuriy]
+
     * Strings! Specifically:
-    
+
       * New commands:
           show string(string ID)
           clear string(string ID)
@@ -42,7 +51,7 @@ WHAT IS NEW?
           string to globals(string ID, starting global, length)
           globals to string(string ID, starting global, length)
         [BIG HUGE thanks to Yuriy (Draknight2@wmconnect.com)]
-        
+
       * Commands to get useful strings:
           get hero name(string, hero)
           set hero name(string, hero)
@@ -69,7 +78,7 @@ WHAT IS NEW?
       of html (but still exportable to html) [Big thanks to Mike Caron]
 
 May 19 2005 [quaternion]
- 
+
   * GPL Licensed source code. See LICENSE.txt
 
   * Added += and -= operators to Hspeak, thanks to a patch from
@@ -308,7 +317,7 @@ July 31 2003 [espereble]
   * Fixed the bug that prevented the attack with ID 0 from working in
     spell lists
 
-  * Fixed two bugs with the text-char-picker. One, that it would 
+  * Fixed two bugs with the text-char-picker. One, that it would
     insert an extra space along with every char, and second that it
     would ignore the text-length limit
 
@@ -363,7 +372,7 @@ Nov 23 2002
 
   * GAME.EXE and CUSTOM.EXE can now both detect when you attempt to
     run a second instance of the program without first closing the
-    first. 
+    first.
 
   * Added plotscripting commands "hero by slot" and "hero by rank"
     which are the opposites of "find hero" and "rank in caterpillar"
@@ -398,7 +407,7 @@ Nov 23 2002
     currently no visual indicator of afflictions! That will be added
     later.
 
-  * Greatly improved the font editor. You can now edit 224 text 
+  * Greatly improved the font editor. You can now edit 224 text
     characters, copy and paste, and import/export font files. Added
     three importable sample fonts in the IMPORT directory, ASCII,
     Japanese, and Cyrillic.
@@ -419,7 +428,7 @@ Nov 23 2002
 
   * Fixed the broken "Require Tag" feature in shops
 
-  * Fixed the crash that could occur after reloading the 
+  * Fixed the crash that could occur after reloading the
     default passability of a large map.
 
   * Fixed bugs involving showing the tileset in GAME.EXE. If you spot
@@ -472,7 +481,7 @@ Feb 25 2002
 
 Feb 19 2002
 
-  * A change in the soundcard code that will hopefully fix the new 
+  * A change in the soundcard code that will hopefully fix the new
     sound problems introduced in the last update. (if it doesnt, I
     will regress to the June 11 2001 sound code.)
 
@@ -604,7 +613,7 @@ June 8 2001
   * fixed a crasher caused by passing an out-of-range NPC ID to certain
     plotscripting commands
 
-  * fixed a bug that prevented tag-dependant NPCs from immediately 
+  * fixed a bug that prevented tag-dependant NPCs from immediately
     appearing after their tag changed
 
   * fixed a bug that could cause NPCs to get stuck mid-movement when you
@@ -666,7 +675,7 @@ May 22 2001
     RPG files are still  _not_ supported.
 
   * Added new debugging key F10 that shows plotscript interpreter
-    status. 
+    status.
 
   * Added plotscripting commands "hero is walking", "NPC is walking"
 
@@ -833,13 +842,13 @@ December 9 2000
   * Announces when you learn a new spell from a levelup
 
   * You can get multiple levelups after one battle if you earn enough
-    experience 
+    experience
 
   * Added new damage base-stats "previous attack", "Last damage to
     attacker" and "Last damage to target"
 
   * Added new target classes "Revenge (last hit)", "Revenge (Whole Battle)",
-    "Previous Target" and "Stored Target"  
+    "Previous Target" and "Stored Target"
 
   * Added attack bitset "Store Target" that memorizes the target for use
     with later "Stored Target" class attacks.
@@ -871,7 +880,7 @@ December 9 2000
     to load an RPG file of the same name from the same directory. This
     means if your game's name is QUEST.RPG then you can distribute a copy
     of GAME.EXE renamed to QUEST.EXE together with it and make it nice and
-    easy for users to run your game    
+    easy for users to run your game
 
   * GAME.EXE no longer requires OHRRPGCE.MAS (but CUSTOM.EXE still needs it)
 
@@ -985,7 +994,7 @@ May 28 2000
   * Fixed a bug that sometimes caused scripts to interfere with each other
     (the intro in Wandering Hamster works again)
 
-  * Fixed the bug that caused vehicles of speed 10 to freeze 
+  * Fixed the bug that caused vehicles of speed 10 to freeze
 
   * When activating an NPC that changes tags, the tag changes no longer
     take effect instantly, they wait for the text box.
@@ -1090,7 +1099,7 @@ January 25 2000
     needed to run custom.exe.
 
   * Fixed the bug that resulted in corrupt map data after deleting a map,
-    and repaired Map 0 in the default new-game. 
+    and repaired Map 0 in the default new-game.
 
   * Fixed a bug that would cause CUSTOM.EXE to lock while exporting an HSI
     file if you gave something a name that ended with a very long number.
@@ -1257,7 +1266,7 @@ July 8 1999
     Maximum of all types of sprites increased to 32767
     (note that making 32767 hero sprites would be silly, because the limit
      for heros is still 40, and will remain 40 in the forseeable future)
-    
+
 July 5 1999
 
   * If you buy/hire everything in a shop and there is nothing left,
@@ -1299,7 +1308,7 @@ June 18 1999
     people who get trigger-happy with the ESC key.
 
   * GAME.EXE no longer crashes if you highlight "CANCEL" while picking
-    a spell to cast and press left or right 
+    a spell to cast and press left or right
 
   * The map editor no longer crashes when placing doors on a map numbered
     20 or higher
