@@ -139,6 +139,8 @@ FOR i = 0 TO 11
  prtimer(i, 1) = INT(RND * 2000)
 NEXT i
 laststun! = TIMER
+IF gen(61) <= 0 THEN gen(61) = 161
+IF gen(62) <= 0 THEN gen(62) = 159
 
 clearpage 0
 clearpage 1
@@ -1611,11 +1613,11 @@ IF vdance = 0 THEN 'only display interface till you win
    edgeprint LTRIM$(STR$(stat(i, 0, 0))) + "/" + LTRIM$(STR$(stat(i, 1, 0))), 136, 5 + i * 10, col, dpage
    'poison indicator
    IF (stat(i, 1, 12) - stat(i, 0, 12)) > 0 THEN
-   edgeprint LTRIM$(CHR$(gen(61))), 209, 5 + i * 10, col, dpage
+   edgeprint CHR$(gen(61)), 209, 5 + i * 10, col, dpage
    END IF
    'stun indicator
    IF (stat(i, 1, 14) - stat(i, 0, 14)) > 0 THEN
-   edgeprint LTRIM$(CHR$(gen(62))), 217, 5 + i * 10, col, dpage
+   edgeprint CHR$(gen(62)), 217, 5 + i * 10, col, dpage
    END IF
 
   END IF
