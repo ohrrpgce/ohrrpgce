@@ -66,6 +66,8 @@ DECLARE SUB strgrabber (s$, maxl%)
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
+'$INCLUDE: 'const.bi'
+
 REM $STATIC
 SUB debug (s$)
 OPEN "c_debug.txt" FOR APPEND AS #3

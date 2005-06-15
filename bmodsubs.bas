@@ -66,6 +66,8 @@ DECLARE SUB snapshot ()
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'bglobals.bi'
 
+'$INCLUDE: 'const.bi'
+
 REM $STATIC
 SUB advance (who, atk(), x(), y(), w(), h(), t())
 

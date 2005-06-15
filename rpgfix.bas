@@ -44,6 +44,8 @@ DECLARE FUNCTION isremovable (BYVAL d)
 DECLARE FUNCTION isvirtual (BYVAL d)
 DECLARE FUNCTION hasmedia (BYVAL d)
 
+'$INCLUDE: 'const.bi'
+
 DIM buffer(16383), lumpbuf(16383)
 
 nowversion = 5

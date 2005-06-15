@@ -66,6 +66,8 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
+'$INCLUDE: 'const.bi'
+
 REM $STATIC
 SUB airbrush (x, y, d, m, c, p)
 'airbrush thanks to Ironhoof (Russel Hamrick)

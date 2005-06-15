@@ -66,6 +66,8 @@ DECLARE SUB strgrabber (s$, maxl%)
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
+'$INCLUDE: 'const.bi'
+
 REM $STATIC
 SUB bitset (array(), wof, last, name$())
 

@@ -80,6 +80,8 @@ DECLARE SUB snapshot ()
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'bglobals.bi'
 
+'$INCLUDE: 'const.bi'
+
 REM $STATIC
 FUNCTION battle (form, fatal, exstat())
 

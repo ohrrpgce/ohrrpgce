@@ -88,6 +88,8 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
+'$INCLUDE: 'const.bi'
+
 '--make stack bigger
 CLEAR , , 2100
 

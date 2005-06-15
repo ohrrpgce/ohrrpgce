@@ -70,6 +70,8 @@ DECLARE SUB snapshot ()
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'sglobals.bi'
 
+'$INCLUDE: 'const.bi'
+
 REM $STATIC
 FUNCTION bound (n, lowest, highest)
 bound = n

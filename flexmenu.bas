@@ -103,6 +103,8 @@ DECLARE SUB strgrabber (s$, maxl%)
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
+'$INCLUDE: 'const.bi'
+
 REM $STATIC
 SUB addcaption (caption$(), indexer, cap$)
 IF indexer > UBOUND(caption$) THEN

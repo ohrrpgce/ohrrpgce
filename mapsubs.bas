@@ -79,6 +79,8 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
+'$INCLUDE: 'const.bi'
+
 REM $STATIC
 
 FUNCTION addmaphow
