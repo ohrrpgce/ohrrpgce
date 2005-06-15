@@ -1609,11 +1609,11 @@ IF vdance = 0 THEN 'only display interface till you win
    edgeprint LTRIM$(STR$(stat(i, 0, 0))) + "/" + LTRIM$(STR$(stat(i, 1, 0))), 136, 5 + i * 10, col, dpage
    'poison indicator
    IF (stat(i, 1, 12) - stat(i, 0, 12)) > 0 THEN
-   edgeprint LTRIM$(CHR$(gen(60))), 209, 5 + i * 10, col, dpage
+   edgeprint LTRIM$(CHR$(gen(61))), 209, 5 + i * 10, col, dpage
    END IF
    'stun indicator
    IF (stat(i, 1, 14) - stat(i, 0, 14)) > 0 THEN
-   edgeprint LTRIM$(CHR$(gen(61))), 217, 5 + i * 10, col, dpage
+   edgeprint LTRIM$(CHR$(gen(62))), 217, 5 + i * 10, col, dpage
    END IF
 
   END IF

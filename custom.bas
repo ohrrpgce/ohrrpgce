@@ -781,7 +781,8 @@ DATA "±","²","³","´","µ","¶","·","¸","¹","º","»","¼","","","½","¾","¿","À","Á","
 '57       load-game plotscript
 '58       text box backdrop
 '60       Joystick calibration disabler
-
+'61       poison indicator
+'62       stun indicator
 '93       new passcode offset
 '94       new passcode length
 '95       RPG file format version ID
