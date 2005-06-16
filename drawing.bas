@@ -155,7 +155,8 @@ END SUB
 SUB gendata (song$(), master())
 STATIC default$
 DIM m$(18), max(18), bit$(15), subm$(4), scriptgenof(4)
-
+IF general(61) <= 0 THEN general(61) = 161
+IF general(62) <= 0 THEN general(62) = 159
 last = 17
 m$(0) = "Return to Main Menu"
 m$(1) = "Preference Bitsets..."
