@@ -7,6 +7,7 @@ call callbc.bat bmodsubs
 call callbc.bat menustuf
 call callbc.bat moresubs
 call callbc.bat yetmore
+call callbc.bat yetmore2
 call callbc.bat custom
 call callbc.bat drawing
 call callbc.bat subs
