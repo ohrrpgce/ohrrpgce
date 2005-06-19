@@ -38,6 +38,8 @@ WHAT IS NEW?
     * "No reward for targets killed" bitset (useful for monsters "running
       away") [Yuriy]
 
+    * Command to get the ASCII code of a key being pressed (last ascii())
+
     * Strings! Specifically:
 
       * New commands:
@@ -62,6 +64,7 @@ WHAT IS NEW?
           get map name(string, map)
           get attack name(string, attack)
           get global string(string, global)
+          input string (string, use current)
         [Mike Caron]
 
       * Commands to display strings on the screen:

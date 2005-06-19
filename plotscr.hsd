@@ -235,6 +235,8 @@ autonumber,showstringat,3,0,0,0     #positions a string on the screen and makes 
 autonumber,centerstringat,3,0,0,0   #positions a string on the screen and makes it visible(stringID,x,y)
 autonumber,hidestring,1,0           #makes a visible string invisible(stringID)
 autonumber,stringstyle,2,0,0        #changes a string's style: outline,flat(stringID,style)
+autonumber,lastascii,0			#returns the ascii code of the key being held down
+autonumber,inputstring,3,0,0,0	#allows the player to input a string. Returns false on ESC. (string,max len,use cur)
 end
 
 script,walkherotoX,who,n,begin
@@ -332,6 +334,104 @@ end
 script,stringstyle,stringID,style,begin
   setstringbit(stringID,1,style)
 end
+
+script, last ascii, begin
+	variable(code, shift)
+
+	shift := keyispressed(42)==true, or, keyispressed(54)==true
+
+	if(keyispressed(30)) then (code := 65) #A...
+	if(keyispressed(48)) then (code := 66)
+	if(keyispressed(46)) then (code := 67)
+	if(keyispressed(32)) then (code := 68)
+	if(keyispressed(18)) then (code := 69)
+	if(keyispressed(33)) then (code := 70)
+	if(keyispressed(34)) then (code := 71)
+	if(keyispressed(35)) then (code := 72)
+	if(keyispressed(23)) then (code := 73)
+	if(keyispressed(36)) then (code := 74)
+	if(keyispressed(37)) then (code := 75)
+	if(keyispressed(38)) then (code := 76)
+	if(keyispressed(50)) then (code := 77)
+	if(keyispressed(49)) then (code := 78)
+	if(keyispressed(24)) then (code := 79)
+	if(keyispressed(25)) then (code := 80)
+	if(keyispressed(16)) then (code := 81)
+	if(keyispressed(19)) then (code := 82)
+	if(keyispressed(31)) then (code := 83)
+	if(keyispressed(20)) then (code := 84)
+	if(keyispressed(22)) then (code := 85)
+	if(keyispressed(47)) then (code := 86)
+	if(keyispressed(17)) then (code := 87)
+	if(keyispressed(45)) then (code := 88)
+	if(keyispressed(21)) then (code := 89)
+	if(keyispressed(44)) then (code := 90)#...Z
+	if(keyispressed(2)) then (if(shift) then (code :=33) else (code :=49)) # 1...
+	if(keyispressed(3)) then (if(shift) then (code :=64) else (code :=50))
+	if(keyispressed(4)) then (if(shift) then (code :=35) else (code :=51))
+	if(keyispressed(5)) then (if(shift) then (code :=36) else (code :=52))
+	if(keyispressed(6)) then (if(shift) then (code :=37) else (code :=53))
+	if(keyispressed(7)) then (if(shift) then (code :=94) else (code :=54))
+	if(keyispressed(8)) then (if(shift) then (code :=38) else (code :=55))
+	if(keyispressed(9)) then (if(shift) then (code :=42) else (code :=56))
+	if(keyispressed(10)) then (if(shift) then (code :=40) else (code :=57))
+	if(keyispressed(11)) then (if(shift) then (code :=41) else (code :=48)) # ...0
+	if(keyispressed(41)) then (if(shift) then (code :=126) else (code :=96)) # ` ~
+	if(keyispressed(12)) then (if(shift) then (code :=95) else (code :=45)) # - _
+	if(keyispressed(13)) then (if(shift) then (code := 43) else (code := 61)) # = +
+	if(keyispressed(26)) then (if(shift) then (code := 123) else (code := 91)) # [ {
+	if(keyispressed(27)) then (if(shift) then (code := 125) else (code := 93)) # ] }
+	if(keyispressed(39)) then (if(shift) then (code := 58) else (code := 59)) # ; :
+	if(keyispressed(40)) then (if(shift) then (code := 34) else (code := 39)) # ' "
+	if(keyispressed(51)) then (if(shift) then (code := 60) else (code := 44)) # , <
+	if(keyispressed(52)) then (if(shift) then (code := 62) else (code := 46)) # . >
+	if(keyispressed(53)) then (if(shift) then (code := 63) else (code := 47)) # / ?
+	if(keyispressed(43)) then (if(shift) then (code := 124) else (code := 92)) # \ |
+	#if(keyispressed(40)) then (code := 47) # Num / WTF? What's the code for the other "/"?
+	if(keyispressed(55)) then (code := 42) # Num *
+	if(keyispressed(71)) then (code := 55) # Num 7
+	if(keyispressed(72)) then (code := 56) # Num 8
+	if(keyispressed(73)) then (code := 57) # Num 9
+	if(keyispressed(74)) then (code := 45) # Num -
+	if(keyispressed(75)) then (code := 52) # Num 4
+	if(keyispressed(76)) then (code := 53) # Num 5
+	if(keyispressed(77)) then (code := 54) # Num 6
+	if(keyispressed(78)) then (code := 43) # Num +
+	if(keyispressed(79)) then (code := 49) # Num 1
+	if(keyispressed(80)) then (code := 59) # Num 2
+	if(keyispressed(81)) then (code := 51) # Num 3
+	if(keyispressed(82)) then (code := 48) # Num 0
+	if(keyispressed(83)) then (code := 46) # Num .
+	if(keyispressed(57)) then (code := 32) #Space
+
+
+	if(code <= 90, and, code >= 65) then, begin
+		if(shift == false) then (code += 32)
+	end
+
+	return (code)
+
+end
+
+script, input string, str, max len, useexist, begin
+	variable(done, key,count)
+	if(useexist==false) then (clear string(str))
+	count := string length(str)
+	while(done == false) do, begin
+		center string at(str,160,110)
+		wait for key
+		if(key is pressed(28)) then (done := true, return(true)) else, begin
+			if(key is pressed(14)) then (delete char(str,string length(str)))
+			if(key is pressed(1)) then (done:=true,return(false)) else, begin
+				key := last ascii
+				if(last ascii, and, count << max len) then(append ascii(str,key), count += 1, show value(max len -- count))
+			end
+		end
+	end
+	show no value
+	hide string
+end
+
 
 #--------------------------------------------------------------------------
 # read/write general wrappers
