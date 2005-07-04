@@ -140,6 +140,7 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
+DECLARE SUB defaultc ()
 
 '---INCLUDE FILES---
 '$INCLUDE: 'allmodex.bi'
@@ -306,7 +307,7 @@ fmvol = getfmvol
 setfmvol 0
 
 'DEBUG debug "set up default controls"
-GOSUB defaultc
+defaultc
 
 '---IF A VALID RPG FILE WAS SPECIFIED ON THE COMMAND LINE, RUN IT, ELSE BROWSE---
 '---ALSO CHECKS FOR GAME.EXE RENAMING
@@ -1660,19 +1661,6 @@ DO
  dowait
 LOOP
 RETURN
-
-defaultc:
-RESTORE ctrldata
-FOR i = 0 TO 12
- READ csetup(i)
-NEXT i
-FOR i = 9 TO 12
- READ joy(i)
-NEXT i
-RETURN
-ctrldata:
-DATA 72,80,75,77,57,28,29,1,56,1,15,36,51
-DATA 150,650,150,650
 
 resetg:
 IF autorungame THEN exitprogram (NOT abortg)

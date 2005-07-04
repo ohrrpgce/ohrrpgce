@@ -105,6 +105,7 @@ DECLARE FUNCTION readitemname$ (itemnum%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION readatkname$ (id%)
 DECLARE SUB getmapname (mapname$, m%)
+DECLARE SUB defaultc ()
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
@@ -326,3 +327,17 @@ CLOSE #fh
 
 END SUB
 
+SUB defaultc
+ RESTORE ctrldata
+ FOR i = 0 TO 12
+  READ csetup(i)
+ NEXT i
+ FOR i = 9 TO 12
+  READ joy(i)
+ NEXT i
+ EXIT SUB
+
+ctrldata:
+ DATA 72,80,75,77,57,28,29,1,56,1,15,36,51
+ DATA 150,650,150,650
+END SUB
