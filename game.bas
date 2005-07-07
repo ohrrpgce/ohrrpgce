@@ -1416,14 +1416,14 @@ FOR i = 0 TO 299 '-- for each NPC instance
  IF npcl(i + 600) > 0 THEN '-- if visible
   o = npcl(i + 600) - 1
   z = 0
-  IF framewalkabout(npcl(i + 0), npcl(i + 300), drawnpcX, drawnpcY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+  IF framewalkabout(npcl(i + 0), npcl(i + 300) + gmap(11), drawnpcX, drawnpcY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
    IF veh(0) AND veh(5) = i THEN z = catz(0) '--special vehicle magic
    IF z AND readbit(veh(), 9, 8) = 0 THEN '--shadow
     rectangle npcl(i + 0) - mapx + 6, npcl(i + 300) - mapy + gmap(11) + 13, 8, 5, 0, dpage
     rectangle npcl(i + 0) - mapx + 5, npcl(i + 300) - mapy + gmap(11) + 14, 10, 3, 0, dpage
    END IF
    loadsprite buffer(), 0, (400 * npcl(i + 900)) + (200 * INT(npcl(i + 1200) / 2)), 20 + (5 * o), 20, 20, 2
-   drawsprite buffer(), 0, pal16(), (4 + o) * 16, drawnpcX, drawnpcY + gmap(11) - z, dpage
+   drawsprite buffer(), 0, pal16(), (4 + o) * 16, drawnpcX, drawnpcY - z, dpage
    'edgeprint LTRIM$(STR$(i)), drawnpcX, drawnpcY + gmap(11) - z, 15, dpage
   END IF
  END IF

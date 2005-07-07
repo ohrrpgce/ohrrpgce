@@ -5,7 +5,7 @@ WHAT IS NEW?
   * Bug-Fixes
 
     * Fixed bug 76: "Hitting two keys at the same time allows you to
-      overflow text-entry fields [James Paige]
+      overflow text-entry fields" [James Paige]
 
     * Fixed a bug that allowed argument values to pre-fill local
       variables in scripts that did not have enough arguments declared
@@ -13,10 +13,13 @@ WHAT IS NEW?
       start out set to zero) [James Paige]
 
     * Fixed bug 81: "fight formation() with an invalid formation would
-      start a battle which would immediately end") [Yuriy]
+      start a battle which would immediately end" [Yuriy]
 
     * To bring up the Joystick calibration screen, you should now
       press CTRL+J rather than just J
+
+    * Fixed bug 86: "Foot offset is not taken into account when culling
+      npcs to draw onscreen" [Ralph Versteegen]
 
   * New Features
 
