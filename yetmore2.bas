@@ -106,6 +106,7 @@ DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION readatkname$ (id%)
 DECLARE SUB getmapname (mapname$, m%)
 DECLARE SUB defaultc ()
+DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%(), gmap%())
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
@@ -113,8 +114,63 @@ DECLARE SUB defaultc ()
 
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
+101
+DATA 72,80,75,77,57,28,29,1,56,1,15,36,51
+DATA 150,650,150,650
 
 REM $STATIC
+SUB defaultc
+ RESTORE 101
+ FOR i = 0 TO 12
+  READ csetup(i)
+ NEXT i
+ FOR i = 9 TO 12
+  READ joy(i)
+ NEXT i
+ EXIT SUB
+
+ctrldata:
+ 
+ 
+END SUB
+
+SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap(), catd(), foep)
+IF veh(0) THEN
+ '--clear vehicle on loading new map--
+ IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) = 0 THEN
+  '--dismount-ahead is true, dismount-passwalls is false
+  SELECT CASE catd(0)
+   CASE 0
+    ygo(0) = 20
+   CASE 1
+    xgo(0) = -20
+   CASE 2
+    ygo(0) = -20
+   CASE 3
+    xgo(0) = 20
+  END SELECT
+ END IF
+ IF veh(16) > 0 THEN
+  say = veh(16)
+  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
+ END IF
+ IF veh(16) < 0 THEN
+  rsr = runscript(ABS(veh(16)), nowscript + 1, -1, "dismount")
+ END IF
+ IF veh(14) > 1 THEN setbit tag(), 0, veh(14), 0
+ herospeed(0) = veh(7)
+ IF herospeed(0) = 3 THEN herospeed(0) = 10
+ FOR i = 0 TO 21
+  veh(i) = 0
+ NEXT i
+ FOR i = 1 TO 15
+  catx(i) = catx(0)
+  caty(i) = caty(0)
+ NEXT i
+ foep = range(100, 60)
+END IF
+END SUB
+
 FUNCTION framewalkabout (x, y, framex, framey, mapwide, maphigh, wrapmode)
 'Given an X and a Y returns true if a walkabout at that
 'spot would be on-screen, and false if off-screen.
@@ -270,6 +326,32 @@ SUB setScriptArg (arg, value)
  END IF
 END SUB
 
+SUB setusermenu (menu$(), mt, mi())
+
+menu$(0) = readglobalstring$(67, "Quit", 10)
+menu$(1) = readglobalstring$(62, "Status", 10)
+menu$(2) = readglobalstring$(68, "Map", 10)
+menu$(3) = readglobalstring$(61, "Spells", 10)
+menu$(4) = readglobalstring$(60, "Items", 10)
+menu$(5) = readglobalstring$(63, "Equip", 10)
+menu$(6) = readglobalstring$(66, "Save", 10)
+menu$(7) = readglobalstring$(69, "Volume", 10)
+menu$(8) = readglobalstring$(64, "Order", 10)
+IF readbit(gen(), 101, 5) THEN menu$(8) = readglobalstring$(65, "Team", 10)
+'THIS STUFF WILL CHANGE LATER...yes it will!
+mt = 8
+mi(0) = 4
+mi(1) = 3
+mi(2) = 1
+mi(3) = 5
+mi(4) = 8
+mi(5) = 2
+mi(6) = 6
+mi(7) = 0
+mi(8) = 7
+
+END SUB
+
 SUB showplotstrings
 
 FOR i = 0 TO 31
@@ -327,17 +409,3 @@ CLOSE #fh
 
 END SUB
 
-SUB defaultc
- RESTORE ctrldata
- FOR i = 0 TO 12
-  READ csetup(i)
- NEXT i
- FOR i = 9 TO 12
-  READ joy(i)
- NEXT i
- EXIT SUB
-
-ctrldata:
- DATA 72,80,75,77,57,28,29,1,56,1,15,36,51
- DATA 150,650,150,650
-END SUB

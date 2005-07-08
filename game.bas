@@ -141,6 +141,8 @@ DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
+DECLARE SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap(), catd(), foep)
+DECLARE SUB setusermenu (menu$(), mt%, mi%())
 
 '---INCLUDE FILES---
 '$INCLUDE: 'allmodex.bi'
@@ -709,27 +711,7 @@ IF scrwatch THEN scriptwatcher dpage
 RETURN
 
 usermenu:
-menu$(0) = readglobalstring$(67, "Quit", 10)
-menu$(1) = readglobalstring$(62, "Status", 10)
-menu$(2) = readglobalstring$(68, "Map", 10)
-menu$(3) = readglobalstring$(61, "Spells", 10)
-menu$(4) = readglobalstring$(60, "Items", 10)
-menu$(5) = readglobalstring$(63, "Equip", 10)
-menu$(6) = readglobalstring$(66, "Save", 10)
-menu$(7) = readglobalstring$(69, "Volume", 10)
-menu$(8) = readglobalstring$(64, "Order", 10)
-IF readbit(gen(), 101, 5) THEN menu$(8) = readglobalstring$(65, "Team", 10)
-'THIS STUFF WILL CHANGE LATER...yes it will!
-mt = 8
-mi(0) = 4
-mi(1) = 3
-mi(2) = 1
-mi(3) = 5
-mi(4) = 8
-mi(5) = 2
-mi(6) = 6
-mi(7) = 0
-mi(8) = 7
+setusermenu menu$(), mt, mi()
 IF gmap(2) = 0 THEN
  '--minimap not available
  o = 0
@@ -1508,7 +1490,7 @@ IF afterbat = 0 THEN
 END IF
 npcplot npcs()
 IF afterbat = 0 AND NOT samemap THEN
- GOSUB forcedismount
+ forcedismount choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap(), catd(), foep
 END IF
 IF afterbat = 0 AND afterload = 0 THEN
  FOR i = 0 TO 15
@@ -1579,43 +1561,6 @@ FOR i = 0 TO 35
  loadset game$ + ".pt4" + CHR$(0), npcs(i * 15 + 0), 20 + (5 * i)
  getpal16 pal16(), 4 + i, npcs(i * 15 + 1)
 NEXT i
-RETURN
-
-forcedismount:
-IF veh(0) THEN
- '--clear vehicle on loading new map--
- IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) = 0 THEN
-  '--dismount-ahead is true, dismount-passwalls is false
-  SELECT CASE catd(0)
-   CASE 0
-    ygo(0) = 20
-   CASE 1
-    xgo(0) = -20
-   CASE 2
-    ygo(0) = -20
-   CASE 3
-    xgo(0) = 20
-  END SELECT
- END IF
- IF veh(16) > 0 THEN
-  say = veh(16)
-  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
- END IF
- IF veh(16) < 0 THEN
-  rsr = runscript(ABS(veh(16)), nowscript + 1, -1, "dismount")
- END IF
- IF veh(14) > 1 THEN setbit tag(), 0, veh(14), 0
- herospeed(0) = veh(7)
- IF herospeed(0) = 3 THEN herospeed(0) = 10
- FOR i = 0 TO 21
-  veh(i) = 0
- NEXT i
- FOR i = 1 TO 15
-  catx(i) = catx(0)
-  caty(i) = caty(0)
- NEXT i
- foep = range(100, 60)
-END IF
 RETURN
 
 titlescr:
@@ -2121,7 +2066,7 @@ SELECT CASE scrat(nowscript, curkind)
     gen(50) = 0
     correctbackdrop gmap()
    CASE 34'--dismount vehicle
-    GOSUB forcedismount
+    forcedismount choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap(), catd(), foep
    CASE 35'--use NPC
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
