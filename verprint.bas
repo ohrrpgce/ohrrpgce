@@ -18,14 +18,23 @@ PRINT "Codename " + codename$
 
 OPEN "cver.txt" FOR OUTPUT AS #1
 
-a$ = "version$ = " + CHR$(34) + "OHRRPGCE Editor: " + codename$ + " v." + datetag$ + CHR$(34)
+a$ = "version$ = " + CHR$(34) + "OHRRPGCE Editor: " + codename$ + " " + datetag$ + CHR$(34)
 PRINT #1, a$
 
 CLOSE #1
 
 OPEN "gver.txt" FOR OUTPUT AS #1
 
-a$ = "version$ = " + CHR$(34) + "O.H.R.RPG.C.E version " + datetag$ + CHR$(34)
+a$ = "version$ = " + CHR$(34) + "OHRRPGCE Player " + codename$ + " " + datetag$ + CHR$(34)
+PRINT #1, a$
+
+CLOSE #1
+
+OPEN "iver.txt" FOR OUTPUT AS #1
+
+a$ = "AppVerName=" + "OHRRPGCE (" + codename$ + ") " + datetag$
+PRINT #1, a$
+a$ = "VersionInfoVersion=" + MID$(datetag$, 1, 4) + "." + MID$(datetag$, 5, 2) + "." + MID$(datetag$, 7, 2) + ".0"
 PRINT #1, a$
 
 CLOSE #1

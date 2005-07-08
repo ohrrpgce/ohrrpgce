@@ -14,4 +14,4 @@ del distrib\ohrrpgce_play.zip
 
 cd tmp
 ..\support\pkzip ..\distrib\ohrrpgce_play.zip *.*
-
+cd ..
