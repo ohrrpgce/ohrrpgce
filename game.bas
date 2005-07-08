@@ -67,7 +67,7 @@ DECLARE SUB doequip (toequip%, who%, where%, defwep%, stat%())
 DECLARE SUB scriptdump (s$)
 DECLARE SUB getitem (getit%)
 DECLARE SUB doihavebits ()
-DECLARE SUB npcplot (npcs%())
+DECLARE SUB npcplot ()
 DECLARE SUB vishero (stat%())
 DECLARE FUNCTION vehpass% (n%, tile%, default%)
 DECLARE SUB initgame ()
@@ -429,7 +429,7 @@ DO
   FOR i = 1 TO 10
    evalitemtag
   NEXT i
-  npcplot npcs()
+  npcplot
  END IF
  IF showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(6) = 0 THEN
   IF xgo(0) = 0 AND ygo(0) = 0 THEN
@@ -479,7 +479,7 @@ DO
     GOSUB usermenu
     evalherotag stat()
     evalitemtag
-    npcplot npcs()
+    npcplot
    CASE IS > 1
     say = tmp - 1
     loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
@@ -911,7 +911,7 @@ IF sayer >= 0 THEN
  evalitemtag
  IF say = 0 THEN
   'reinitnpc 1, map
-  npcplot npcs()
+  npcplot
  END IF
 END IF
 RETURN
@@ -1002,7 +1002,7 @@ evalitemtag
 '---DONE EVALUATING CONDITIONALS--------
 'reinitnpc 1, map
 vishero stat()
-npcplot npcs()
+npcplot
 IF sayer >= 0 AND npcl(sayer + 600) > 0 THEN
  IF npcs((npcl(sayer + 600) - 1) * 15 + 5) = 1 THEN
   npcl(sayer + 900) = recalld
@@ -1488,7 +1488,7 @@ IF afterbat = 0 THEN
   npcl(i + 1800) = 0                        'ygo
  NEXT
 END IF
-npcplot npcs()
+npcplot
 IF afterbat = 0 AND NOT samemap THEN
  forcedismount choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap(), catd(), foep
 END IF
@@ -2030,7 +2030,7 @@ SELECT CASE scrat(nowscript, curkind)
     IF retvals(0) > 1 THEN
      setbit tag(), 0, retvals(0), retvals(1)
      'reinitnpc 1,  map
-     npcplot npcs()
+     npcplot
     END IF
    CASE 15'--use door
     wantdoor = retvals(0) + 1
@@ -2315,6 +2315,7 @@ SELECT CASE scrat(nowscript, curkind)
 END SELECT
 RETURN
 
+
 REM $STATIC
 SUB aheadxy (x, y, direction, distance)
 '--alters the input X and Y, moving them "ahead" by distance in direction
@@ -2404,5 +2405,4 @@ restoremode
 SYSTEM
 
 END SUB
-
 

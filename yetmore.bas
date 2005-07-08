@@ -639,7 +639,7 @@ END IF
 
 END SUB
 
-SUB npcplot (npcs())
+SUB npcplot
 FOR i = 0 TO 299
  curnpc = ABS(npcl(i + 600)) - 1
 
