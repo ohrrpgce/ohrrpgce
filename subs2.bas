@@ -717,14 +717,6 @@ END IF
 heroname$ = h$
 END FUNCTION
 
-FUNCTION intstr$ (n)
-IF n < 0 THEN
- intstr$ = STR$(n)
-ELSE
- intstr$ = RIGHT$(STR$(n), LEN(STR$(n)) - 1)
-END IF
-END FUNCTION
-
 FUNCTION isunique (s$, u$(), r)
 STATIC uptr
 
@@ -1733,22 +1725,6 @@ RETURN
 
 END SUB
 
-SUB textfatalerror (e$)
-
-debug "fatal error:" + e$
-
-touchfile workingdir$ + "\__danger.tmp"
-
-PRINT "fatal error:"
-PRINT e$
-
-KILL workingdir$ + "\*.*"
-RMDIR workingdir$
-
-SYSTEM
-
-END SUB
-
 SUB textxbload (f$, array(), e$)
 
 IF isfile(f$ + CHR$(0)) THEN
@@ -2005,31 +1981,5 @@ IF a$ <> "" THEN
  a$ = LTRIM$(STR$(num)) + "," + prefix$ + ":" + a$
  PRINT #filehandle, a$
 END IF
-END SUB
-
-SUB xbload (f$, array(), e$)
-
-IF isfile(f$ + CHR$(0)) THEN
- handle = FREEFILE
- OPEN f$ FOR BINARY AS #handle
- bytes = LOF(handle)
- CLOSE #handle
- IF bytes THEN
-  OPEN f$ FOR BINARY AS #handle
-  a$ = " "
-  GET #handle, 1, a$
-  CLOSE #handle
-  IF a$ = CHR$(253) THEN
-   DEF SEG = VARSEG(array(0)): BLOAD f$, VARPTR(array(0))
-  ELSE
-   fatalerror e$ + "(unbloadable)"
-  END IF
- ELSE
-  fatalerror e$ + "(zero byte)"
- END IF
-ELSE
- fatalerror e$
-END IF
-
 END SUB
 

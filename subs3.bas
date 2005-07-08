@@ -143,6 +143,14 @@ END IF
 getLongName$ = result$
 END FUNCTION
 
+FUNCTION intstr$ (n)
+IF n < 0 THEN
+ intstr$ = STR$(n)
+ELSE
+ intstr$ = RIGHT$(STR$(n), LEN(STR$(n)) - 1)
+END IF
+END FUNCTION
+
 FUNCTION numbertail$ (s$)
 
 DIM n AS LONG
@@ -205,6 +213,22 @@ rotascii$ = temp$
 
 END FUNCTION
 
+SUB textfatalerror (e$)
+
+debug "fatal error:" + e$
+
+touchfile workingdir$ + "\__danger.tmp"
+
+PRINT "fatal error:"
+PRINT e$
+
+KILL workingdir$ + "\*.*"
+RMDIR workingdir$
+
+SYSTEM
+
+END SUB
+
 FUNCTION unlumpone (lumpfile$, onelump$, asfile$)
 unlumpone = 0
 
@@ -235,6 +259,32 @@ a$ = LEFT$(s$, small(maxlen, 255))
 PUT #fh, 2 + index * 11, a$
 
 CLOSE #fh
+
+END SUB
+
+SUB xbload (f$, array(), e$)
+
+IF isfile(f$ + CHR$(0)) THEN
+ handle = FREEFILE
+ OPEN f$ FOR BINARY AS #handle
+ bytes = LOF(handle)
+ CLOSE #handle
+ IF bytes THEN
+  OPEN f$ FOR BINARY AS #handle
+  a$ = " "
+  GET #handle, 1, a$
+  CLOSE #handle
+  IF a$ = CHR$(253) THEN
+   DEF SEG = VARSEG(array(0)): BLOAD f$, VARPTR(array(0))
+  ELSE
+   fatalerror e$ + "(unbloadable)"
+  END IF
+ ELSE
+  fatalerror e$ + "(zero byte)"
+ END IF
+ELSE
+ fatalerror e$
+END IF
 
 END SUB
 
