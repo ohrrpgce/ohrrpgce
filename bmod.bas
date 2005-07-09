@@ -335,10 +335,13 @@ IF countai(ai, them, es()) > 0 THEN
  'get the delay to wait for this attack
  delay(them) = atktemp(16)
  
- 'focused attack
- IF atktemp(4) = 0 OR atktemp(4) >= 2 OR atktemp(4) <= 4 THEN eaifocus them, atktemp(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
- 'spread attack
- IF atktemp(4) = 1 OR (atktemp(4) = 2 AND INT(RND * 100) < 33) THEN eaispread them, atktemp(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+ IF atktemp(4) = 1 OR (atktemp(4) = 2 AND INT(RND * 100) < 33) THEN
+  'spread attack
+  eaispread them, atktemp(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+ ELSE
+  'focused attack
+  eaifocus them, atktemp(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+ END IF
  
 END IF
 
@@ -1037,8 +1040,11 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     IF stat(i, 0, 0) = 0 THEN o = o + 1
    NEXT i
    IF stat(targ, 0, 0) = 0 AND o < 8 AND anim > -1 THEN
-    IF atk(4) = 0 OR atk(4) >= 2 OR atk(4) <= 4 THEN eaifocus who, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
-    IF atk(4) = 1 OR (atk(4) = 2 AND INT(RND * 100) < 33) THEN eaispread who, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+    IF atk(4) = 1 OR (atk(4) = 2 AND INT(RND * 100) < 33) THEN
+     eaispread who, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+    ELSE
+     eaifocus who, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+    END IF
    END IF
   CASE 11 'setz(who,z)
    w = popw
@@ -1085,8 +1091,11 @@ IF anim = -1 THEN
   NEXT i
   IF o < 8 THEN
    IF buffer(4) <> atk(4) OR buffer(3) <> atk(3) THEN
-    IF buffer(4) = 0 OR buffer(4) >= 2 OR buffer(4) <= 4 THEN eaifocus who, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
-    IF buffer(4) = 1 OR (buffer(4) = 2 AND INT(RND * 100) < 33) THEN eaispread who, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+    IF buffer(4) = 1 OR (buffer(4) = 2 AND INT(RND * 100) < 33) THEN
+     eaispread who, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+    ELSE
+     eaifocus who, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+    END IF
    END IF
   END IF
  END IF
@@ -1473,7 +1482,7 @@ RETURN
 setuptarg: '---------------------------------------------------------------
 
 'init
-spred = 0: aim = 0: ran = 0: firstt(you) = 0
+spred = 0: aim = 0: ran = 0: firstt(you) = 0: tptr = 0
 FOR i = 0 TO 11
  targ(i) = 0
  tmask(i) = 0
@@ -1547,7 +1556,6 @@ FOR i = 4 TO 11
 NEXT i
 
 'fail if there are no targets
-tptr = 0
 WHILE tmask(tptr) = 0
  tptr = tptr + 1: IF tptr > 11 THEN ptarg = 0: RETURN
 WEND
@@ -1619,7 +1627,6 @@ IF vdance = 0 THEN 'only display interface till you win
    IF (stat(i, 1, 14) - stat(i, 0, 14)) > 0 THEN
    edgeprint CHR$(gen(62)), 217, 5 + i * 10, col, dpage
    END IF
-
   END IF
  NEXT i
  IF battlecaptime > 0 THEN
