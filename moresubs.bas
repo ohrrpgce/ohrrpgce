@@ -1800,6 +1800,15 @@ ELSE
   GET #f, 3, scrat(index, scrargs)
   scrat(index, scroff) = nextscroff
   scrat(index, scrsize) = (LOF(f) - skip) / 2
+  nextscroff = nextscroff + scrat(index, scrsize)
+  IF nextscroff > 4096 THEN
+   scripterr "Script buffer overflow"
+   CLOSE #f
+   runscript = 0'--error
+   scripterr "failed to load " + er$ + " script" + STR$(n)
+   EXIT FUNCTION
+  END IF
+
   '--mysterious. why can't I do this?
   'bigstring$ = STRING$(LOF(f) - skip, 0)
   'GET #f, 1 + skip, bigstring$
@@ -1808,26 +1817,15 @@ ELSE
    GET #f, 1 + i, script(scrat(index, scroff) + ((i - skip) / 2))
   NEXT i
   CLOSE #f
+
+  '--if any higher scripts have been overwritten, invalidate them
+  FOR i = index + 1 TO 127
+   IF scrat(i, scrid) = 0 THEN EXIT FOR
+   IF nextscroff > scrat(i, scroff) THEN scrat(i, scrid) = -1 ELSE EXIT FOR
+  NEXT i
  ELSE
   scripterr "failed to unlump " + LTRIM$(STR$(n)) + ".hsx"
  END IF
- 
-END IF
-
-nextscroff = nextscroff + scrat(index, scrsize)
-
-'--if any higher scripts have been overwritten, invalidate them
-FOR i = index + 1 TO 127
- IF scrat(i, scrid) = 0 THEN EXIT FOR
- IF nextscroff > scrat(i, scroff) THEN scrat(i, scrid) = -1 ELSE EXIT FOR
-NEXT i
-
-IF nextscroff > 4096 THEN
- scripterr "Script buffer overflow"
- CLOSE #f
- runscript = 0'--error
- scripterr "failed to load " + er$ + " script" + STR$(n)
- EXIT FUNCTION
 END IF
 
 scrat(index + 1, scrheap) = scrat(index, scrheap) + scrat(index, scrargs)
