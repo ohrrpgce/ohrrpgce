@@ -21,6 +21,9 @@ WHAT IS NEW?
     * Fixed bug 86: "Foot offset is not taken into account when culling
       npcs to draw onscreen" [Ralph Versteegen]
 
+    * Fixed bug 88: "A script buffer overflow crashes or freezes game.exe
+      instead of displaying an error message" [Ralph Versteegen]
+
   * New Features
 
     * plotscripting commands to read system time: system hour, system
