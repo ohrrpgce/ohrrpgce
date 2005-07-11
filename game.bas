@@ -178,7 +178,7 @@ storekeyhandler
 'DEBUG debug "dim (almost) everything"
 
 DIM font(1024), master(767), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
-DIM door(300), gen(104), npcl(2100), npcs(1500), saytag(21), tag(127), hero(40), stat(40, 1, 16), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(99), menu$(20), exlev&(40, 1), name$(40), mi(10), gotj(2), veh(21)
+DIM door(206), gen(104), npcl(2100), npcs(1500), saytag(21), tag(127), hero(40), stat(40, 1, 16), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(99), menu$(20), exlev&(40, 1), name$(40), mi(10), gotj(2), veh(21)
 DIM item(-3 TO 199), item$(-3 TO 199), eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), zbuf(3), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7),  _
 hmask(3), tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 4)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
@@ -1415,7 +1415,7 @@ RETURN
 opendoor:
 IF veh(0) AND readbit(veh(), 9, 3) = 0 AND dforce = 0 THEN RETURN
 FOR doori = 0 TO 99
- IF door(doori + 200) = 1 THEN
+ IF readbit(door(), 200, doori) THEN
   IF (door(doori) = INT(catx(0) / 20) AND door(doori + 100) = INT(caty(0) / 20) + 1) OR dforce - 1 = doori THEN
    dforce = 0
    GOSUB thrudoor
@@ -1437,10 +1437,11 @@ FOR o = 0 TO 199
   IF istag(buffer(o + 800), -1) AND istag(buffer(o + 600), -1) THEN bad = 0
   IF bad = 0 THEN
    map = buffer(o + 400)
-   loaddoor map, door()
-   catx(0) = door(buffer(o + 200)) * 20
-   caty(0) = (door(buffer(o + 200) + 100) - 1) * 20
+   destdoor = buffer(o + 200)
    '--buffer() gets clobbered here, but thats okay because we are done with it
+   loaddoor map, door()
+   catx(0) = door(destdoor) * 20
+   caty(0) = (door(destdoor + 100) - 1) * 20
    fadeout 0, 0, 0, 0
    needf = 2
    ERASE scroll, pass
@@ -2314,7 +2315,6 @@ SELECT CASE scrat(nowscript, curkind)
   END SELECT
 END SELECT
 RETURN
-
 
 REM $STATIC
 SUB aheadxy (x, y, direction, distance)

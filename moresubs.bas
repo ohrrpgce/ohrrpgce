@@ -1153,12 +1153,18 @@ IF n2 > n1 THEN large = n2
 END FUNCTION
 
 SUB loaddoor (map, door())
+'--clobbers buffer!
 IF gen(95) < 2 THEN
  '--obsolete doors
 ELSE
  '--THE RIGHT WAY--
- setpicstuf door(), 600, -1
+ setpicstuf buffer(), 600, -1
  loadset game$ + ".dox" + CHR$(0), map, 0
+ FOR i = 0 TO 99
+  door(i) = buffer(i)
+  door(100 + i) = buffer(100 + i)
+  setbit door(), 200, i, buffer(200 + i)
+ NEXT i
 END IF
 END SUB
 
