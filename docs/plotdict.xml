@@ -1102,8 +1102,28 @@ end</example>
 		</command>
 		<command id="saveslotused">
 			<cannon>save slot used (slot)</cannon>
-			<shortname>save slot used (slot)</shortname>
+			<shortname>save slot used</shortname>
 			<description>Returns whether a game has been saved in the save slot. Use if you, for example, don&apos;t want to overwrite a saved game with <ref>saveinslot</ref>.</description>
+		</command>
+		<command id="getenemystat">
+			<cannon>get enemy stat(enemy, stat)</cannon>
+			<shortname>get enemy stat</shortname>
+			<description>Returns the selected stat from the selected enemy. The first argument is the number of the enemy whose stats you want to check. The second argument is the name of the stat that you want to check. The names of the stats are also defined in your HSI file in the form stat:name.</description>
+			<seealso>
+				<ref>setenemystat</ref>
+				<ref>getherostat</ref>
+				<ref>setherostat</ref>
+			</seealso>
+		</command>
+		<command id="setenemystat">
+			<cannon>set enemy stat(enemy, stat, value)</cannon>
+			<shortname>set enemy stat</shortname>
+			<description>Sets the selected stat of the selected enemy to the value you supply. The first argument is the number of the enemy whose stats you want to set. The second argument is the name of the stat that you want to set. The names of the stats are also defined in your HSI file in the form stat:name. The third is the new value of the stat.<lb/>Note: Stat changes are not saved in the save game.</description>
+			<seealso>
+				<ref>getenemystat</ref>
+				<ref>getherostat</ref>
+				<ref>setherostat</ref>
+			</seealso>
 		</command>
 	</section>
 	<section title="Tweaking Maps">
@@ -1389,11 +1409,21 @@ end</example>
 			<cannon>get hero stat (who,stat,type)</cannon>
 			<shortname>get hero stat</shortname>
 			<description>A function that returns one of a hero&apos;s stats. The first argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. The second argument is the name of the stat that you want to check. The names of the stats are also define in your HSI file in the form stat:name. The third argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave the last argument blank, <ref>currentstat</ref> will be assumed.</description>
+			<seealso>
+				<ref>setherostat</ref>
+				<ref>setenemystat</ref>
+				<ref>getenemystat</ref>
+			</seealso>
 		</command>
 		<command id="setherostat">
 			<cannon>set hero stat (who,stat,value,type)</cannon>
 			<shortname>set hero stat</shortname>
 			<description>A command that changes one of a hero&apos;s stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also define in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave the last argument blank, <ref>currentstat</ref> will be assumed.</description>
+			<seealso>
+				<ref>getherostat</ref>
+				<ref>setenemystat</ref>
+				<ref>getenemystat</ref>
+			</seealso>
 		</command>
 		<command id="getherolevel">
 			<cannon>get hero level (who)</cannon>

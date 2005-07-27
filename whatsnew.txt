@@ -92,6 +92,8 @@ WHAT IS NEW?
 
           That will set the string with ID 1 to "My string"
 
+    * getenemystat() and setenemystat() [Mike Caron]
+
   * Stuff only Developers Will Notice
 
     * Plotscripting Dictionary Documentation is now in xml format instead
