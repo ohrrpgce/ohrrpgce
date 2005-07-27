@@ -214,8 +214,8 @@ define function, begin
 226,systemday,0               #returns system day
 227,systemmonth,0             #returns system month
 228,systemyear,0              #returns system year
-229,getenemystat,2,0,0        #returns selected stat(enemy,stat)
-230,setenemystat,3,0,0,0      #sets selected stat(enemy,stat,value)
+229,readenemydata,2,0,0       #reads enemy data(enemy,dataposition)
+230,writeenemydata,3,0,0,0    #writes enemy data(enemy,dataposition,value)
 end
 
 #--------------------------------------------------------------------------
@@ -433,7 +433,36 @@ script, input string, str, max len, useexist, begin
 	show no value
 	hide string
 end
+#--------------------------------------------------------------------------
+#read/write enemy wrappers
 
+define script(autonumber,getenemyname,2,0,0)
+script,getenemyname,enemyID,stringID,begin
+variable(t)
+   for (t,1,readenemydata(enemyID,0))do(
+     appendascii(stringID,readenemydata(enemyid,t))
+   end
+end
+
+define script(autonumber,getenemystat,2,0,0)
+script,getenemystat,enemyid,stat,begin
+  return(readenemydata(enemyid,stat))
+end
+
+define script(autonumber,alterenemy,3,0,0,0)
+script,alterenemy,enemyid,stat,value,begin
+  writeenemydata(enemyid,stat,value)
+end
+
+define script(autonumber,setenemyname,2,0,0)
+script,setenemyname,enemyid,stringid,begin
+variable(t,t2)
+if(stringlength(stringid)>=16)then(t2:=16)else(t2:=stringlength(stringid))
+ writeenemydata(enemyid,0,t2)
+ for(t,1,t2)do(
+  writeenemydata(enemyid,t,asciifromstring(stringid,t))
+  )
+end
 
 #--------------------------------------------------------------------------
 # read/write general wrappers
@@ -726,4 +755,28 @@ define constant, begin
 -1,getcount
 0,string:outline
 1,string:flat
+53,Enemy:Picture
+54,Enemy:Palette
+55,Enemy:PictureSize
+  0, Enemy:pictureSize:small
+  1, Enemy:pictureSize:medium
+  2, Enemy:pictureSize:large
+56,Enemy:Gold
+57,Enemy:Experience
+58,Enemy:Item
+59,Enemy:ItemPercent
+60,Enemy:RareItem
+61,Enemy:RareItemPercent
+62,Enemy:HP
+63,Enemy:MP
+64,Enemy:Attack
+65,Enemy:Accuracy
+66,Enemy:Defence
+67,Enemy:Dodge
+68,Enemy:MagicPower
+69,Enemy:MagicDefense
+70,Enemy:Speed
+71,Enemy:Counter
+72,Enemy:MPReduction
+73,Enemy:Hits
 end

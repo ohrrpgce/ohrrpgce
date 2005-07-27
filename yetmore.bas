@@ -1410,18 +1410,19 @@ SELECT CASE id
  scriptret = VAL(MID$(DATE$, 4, 2))
  CASE 228'--system year
  scriptret = VAL(MID$(DATE$, 7, 4))
- CASE 229'--get enemy stat
- f = FreeFile
- open game$ + ".dt1" for binary as #f
- get #f,retvals(0) * 320 + retvals(1) * 2 + 125,v%
- close #f
+  CASE 229'--read enemy data
+ f = FREEFILE
+ OPEN game$ + ".dt1" FOR BINARY AS #f
+ GET #f, (bound(retvals(0), 0, gen(36)) * 320) + (bound(retvals(1), 0, 158) * 2) + 1, v%
+ CLOSE #f
  scriptret = v%
- CASE 230'--set enemy stat
+
+ CASE 230'--write enemy data
  v% = retvals(2)
- f = FreeFile
- open game$ + ".dt1" for binary as #f
- put #f,retvals(0) * 320 + retvals(1) * 2 + 125,v%
- close #f
+ f = FREEFILE
+ OPEN game$ + ".dt1" FOR BINARY AS #f
+ PUT #f, (bound(retvals(0), 0, gen(36)) * 320) + (bound(retvals(1), 0, 158) * 2) + 1, v%
+ CLOSE #f
 END SELECT
 
 EXIT SUB
