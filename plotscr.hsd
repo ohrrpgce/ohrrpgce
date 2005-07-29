@@ -446,12 +446,12 @@ end
 
 define script(autonumber,getenemystat,2,0,0)
 script,getenemystat,enemyid,stat,begin
-  return(readenemydata(enemyid,stat))
+  return(readenemydata(enemyid,stat+62))
 end
 
 define script(autonumber,alterenemy,3,0,0,0)
 script,alterenemy,enemyid,stat,value,begin
-  writeenemydata(enemyid,stat,value)
+  writeenemydata(enemyid,stat+62,value)
 end
 
 define script(autonumber,setenemyname,2,0,0)
@@ -755,18 +755,18 @@ define constant, begin
 -1,getcount
 0,string:outline
 1,string:flat
-53,Enemy:Picture
-54,Enemy:Palette
-55,Enemy:PictureSize
-  0, Enemy:pictureSize:small
-  1, Enemy:pictureSize:medium
-  2, Enemy:pictureSize:large
-56,Enemy:Gold
-57,Enemy:Experience
-58,Enemy:Item
-59,Enemy:ItemPercent
-60,Enemy:RareItem
-61,Enemy:RareItemPercent
+53,Enemystat:Picture
+54,Enemystat:Palette
+55,Enemystat:PictureSize
+  0, EnemySize:small
+  1, EnemySize:medium
+  2, EnemySize:large
+56,Enemystat:Gold
+57,Enemystat:Experience
+58,Enemystat:Item
+59,Enemystat:ItemPercent
+60,Enemystat:RareItem
+61,Enemystat:RareItemPercent
 62,Enemy:HP
 63,Enemy:MP
 64,Enemy:Attack

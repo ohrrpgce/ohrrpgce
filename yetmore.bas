@@ -1308,14 +1308,14 @@ SELECT CASE id
    scriptret = 1
   END IF
  CASE 207'--get map name(str,map)
-   IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 99 THEN
+   IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > gen(genMaxMap) THEN
    scriptret = 0
   ELSE
    getmapname plotstring$(retvals(0)), retvals(1)
    scriptret = 1
   END IF
  CASE 208'--get attack name(str,atk)
-  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 32768 THEN
+  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > gen(genMaxAttack) THEN
    scriptret = 0
   ELSE
    plotstring$(retvals(0)) = readatkname$(retvals(1))
@@ -1405,24 +1405,23 @@ SELECT CASE id
    scriptret = plotstrY(retvals(0))
   END IF
  CASE 226'--system day
- scriptret = VAL(MID$(DATE$, 1, 2))
+  scriptret = VAL(MID$(DATE$, 1, 2))
  CASE 227'--system month
- scriptret = VAL(MID$(DATE$, 4, 2))
+  scriptret = VAL(MID$(DATE$, 4, 2))
  CASE 228'--system year
- scriptret = VAL(MID$(DATE$, 7, 4))
-  CASE 229'--read enemy data
- f = FREEFILE
- OPEN game$ + ".dt1" FOR BINARY AS #f
- GET #f, (bound(retvals(0), 0, gen(36)) * 320) + (bound(retvals(1), 0, 158) * 2) + 1, v%
- CLOSE #f
- scriptret = v%
-
+  scriptret = VAL(MID$(DATE$, 7, 4))
+ CASE 229'--read enemy data
+  f = FREEFILE
+  OPEN game$ + ".dt1" FOR BINARY AS #f
+  GET #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, v%
+  CLOSE #f
+  scriptret = v%
  CASE 230'--write enemy data
- v% = retvals(2)
- f = FREEFILE
- OPEN game$ + ".dt1" FOR BINARY AS #f
- PUT #f, (bound(retvals(0), 0, gen(36)) * 320) + (bound(retvals(1), 0, 158) * 2) + 1, v%
- CLOSE #f
+  v% = retvals(2)
+  f = FREEFILE
+  OPEN game$ + ".dt1" FOR BINARY AS #f
+  PUT #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, v%
+  CLOSE #f
 END SELECT
 
 EXIT SUB
