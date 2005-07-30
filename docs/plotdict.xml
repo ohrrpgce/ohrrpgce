@@ -1520,7 +1520,7 @@ end</example>
 		<command id="importglobals">
 			<cannon>import globals (slot, first, last)</cannon>
 			<shortname>import globals</shortname>
-			<description>Loads a range of globals from a saved game, overwriting the current globals in that range. First and Last are the id numbers of the globals at the beginning and end of the range. First defaults to 0, and Last defaults to 1024. import globals and <ref>exportglobals</ref> can be used to save and retrieve info about a saved game without loading it, and also to store variables that any game the player starts can use, like in the following example:</description>
+			<description>Loads a range of globals from a saved game, overwriting the current globals in that range. First and Last are the id numbers of the globals at the beginning and end of the range. First defaults to 0, and Last defaults to 1024 if both are not given. <lb/>To read a single global from a save slot without overwriting any, use the form 'var := import globals (slot, id)'<lb/>import globals and <ref>exportglobals</ref> can be used to save and retrieve info about a saved game without loading it, and also to store variables that any game the player starts can use, like in the following example:</description>
 			<example>define script (21, game finished, none)
 
 define script (22, check game finished, none)
@@ -1547,7 +1547,6 @@ script, check game finished, begin
 end</example>
 			<seealso>
 				<ref>readglobal</ref>
-				<ref>exportglobals</ref>
 			</seealso>
 		</command>
 		<command id="exportglobals">
@@ -1556,7 +1555,6 @@ end</example>
 			<description>Writes a range of globals to a saved game, overwriting the saved games globals. "First" and "Last" are the id numbers of the globals at the beginning and end of the range. First defaults to 0, and Last defaults to 1024. Therefore, if you pass no range, all the globals will be written.</description>
 			<seealso>
 				<ref>writeglobal</ref>
-				<ref>importglobals</ref>
 			</seealso>
 		</command>
 		<command id="runscriptbyid">

@@ -46,6 +46,9 @@ WHAT IS NEW?
 
     * Command to get the ASCII code of a key being pressed (last ascii())
 
+    * importglobals behaviour extended: importglobals(slot,id) returns
+      the value of a global without overwriting anything
+
     * Strings! Specifically:
 
       * New commands:
@@ -98,6 +101,8 @@ WHAT IS NEW?
 
     * Plotscripting Dictionary Documentation is now in xml format instead
       of html (but still exportable to html) [Big thanks to Mike Caron]
+
+    * Constants for the gen()/general() array data [James Paige]
 
 May 19 2005 [quaternion]
 
@@ -385,7 +390,7 @@ Nov 23 2002
 
   * Added pixel-perfect positioning plotscripting commands; put hero,
     put npc, put camera, hero pixel x, hero pixel y, NPC pixel x, NPC
-    pixel y, camera x, camera y
+    pixel y, camera pixel x, camera pixel y
 
   * Fixed a bug that caused the hero to become misaligned with the
     maptiles if you tried to mount a vehicle that was already moving

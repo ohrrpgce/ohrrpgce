@@ -1237,13 +1237,23 @@ SELECT CASE id
    IF checksaveslot(retvals(0)) THEN scriptret = 1
   END IF
  CASE 172'--importglobals
-  IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 AND retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
+  IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
    sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
    setpicstuf buffer(), 30000, -1
    loadset sg$ + CHR$(0), retvals(0) * 2 - 1, 0
-   FOR i = retvals(1) TO retvals(2)
-    global(i) = buffer(i + 5013)
-   NEXT i
+   IF retvals(1) = -1 THEN 'importglobals(slot)
+    retvals(1) = 0
+    retvals(2) = 1024
+   END IF
+   IF retvals(2) = -1 THEN 'importglobals(slot,id)
+    scriptret = buffer(retvals(1) + 5013)
+   ELSE                    'importglobals(slot,first,last)
+    IF retvals(1) >= 0 AND retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
+     FOR i = retvals(1) TO retvals(2)
+      global(i) = buffer(i + 5013)
+     NEXT i
+    END IF
+   END IF
   END IF
  CASE 173'--exportglobals
   IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 AND retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN

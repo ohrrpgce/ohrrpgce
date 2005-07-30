@@ -178,7 +178,7 @@ define function, begin
 169,resumerandomenemies,0   # undoes suspendrandomenemies
 170,savemenu,1,-1           # display the save menu
 171,saveslotused,1,1        # returns true if a saved game exists in the specified slot
-172,importglobals,3,1,0,1024 # (slot, first, last) reads a range of globals from a save slot
+172,importglobals,3,1,-1,-1 # (slot, first, last) reads a range of globals from a save slot
 173,exportglobals,3,1,0,1024 # (slot, first, last) writes a range of globals to a save slot
 174,loadfromslot,1,1        # loads saved game from slot
 175,deletesave,1,1          # delete (hide from load/save screen - data not *actaully* deleted) specified slot
