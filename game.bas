@@ -1381,9 +1381,9 @@ IF readbit(gen(), 101, 1) = 1 AND (veh(0) = 0 OR readbit(veh(), 9, 4) = 0) THEN
   setbit catermask(), 0, j, 1
  NEXT i
  FOR i = 0 TO 3
-  IF framewalkabout(catx(zbuf(i) * 5), caty(zbuf(i) * 5), framex, framey, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+  IF framewalkabout(catx(zbuf(i) * 5) + gmap(11), caty(zbuf(i) * 5), framex, framey, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
    loadsprite buffer(), 0, 200 * ((catd(zbuf(i) * 5) * 2) + INT(wtog(zbuf(i)) / 2)), zbuf(i) * 5, 20, 20, 2
-   drawsprite buffer(), 0, pal16(), zbuf(i) * 16, framex, framey - catz(zbuf(i) * 5) + gmap(11), dpage
+   drawsprite buffer(), 0, pal16(), zbuf(i) * 16, framex, framey - catz(zbuf(i) * 5), dpage
   END IF
  NEXT i
 ELSE
