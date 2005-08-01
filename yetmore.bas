@@ -925,6 +925,7 @@ SELECT CASE id
   END IF
  CASE 159'--init mouse
   IF setmouse(mouse()) THEN scriptret = 1 ELSE scriptret = 0
+  mouserect 0, 319, 0, 199
  CASE 160'--get mouse x
   readmouse mouse()
   scriptret = mouse(0)

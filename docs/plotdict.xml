@@ -908,7 +908,7 @@ end</example>
 		<command id="initmouse">
 			<cannon>init mouse</cannon>
 			<shortname>init mouse</shortname>
-			<description>Initializes the mouse, returning <ref>true</ref> if one is present, and loads the mouse driver. This command much be run before any mouse functions can be used. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<lb/>The mouse will start in the middle of the screen with bounds of 0-318 horizontally and 0-198 vertically. The bounds can be changed with <ref>mouseregion</ref>, and you can reposition the mouse with <ref>putmouse</ref>.<lb/>NOTE: Running this command does not draw a cursor on screen - your script must do this itself by placing an npc at the appropriate location. Here is an example:</description>
+			<description>Initializes the mouse, returning <ref>true</ref> if one is present, and loads the mouse driver. This command much be run before any mouse functions can be used. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<lb/>The mouse will start in the middle of the screen with bounds of 0-319 horizontally and 0-199 vertically. The bounds can be changed with <ref>mouseregion</ref>, and you can reposition the mouse with <ref>putmouse</ref>.<lb/>NOTE: Running this command does not draw a cursor on screen - your script must do this itself by placing an npc at the appropriate location. Here is an example:</description>
 			<example>include,plotscr.hsd
 define script(1,displaymouse,none)
 
