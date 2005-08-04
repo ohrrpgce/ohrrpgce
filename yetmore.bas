@@ -482,7 +482,7 @@ END IF
 herobyrank = result
 END FUNCTION
 
-SUB herowrappass (whoi, x, y, xgo(), ygo(), mapwide, maphigh, wrapmode, veh())
+SUB herowrappass (whoi, x, y, xgo(), ygo(), mapwide, maphigh, wrapmode)
 
 DIM pd(3)
 

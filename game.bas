@@ -6,6 +6,7 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
+DECLARE SUB cathero ()
 DECLARE SUB setScriptArg (arg%, value%)
 DECLARE SUB showplotstrings ()
 DECLARE SUB innRestore (stat%())
@@ -14,7 +15,7 @@ DECLARE SUB quitcleanup ()
 DECLARE SUB keyhandleroff ()
 DECLARE SUB keyhandleron ()
 DECLARE SUB storekeyhandler ()
-DECLARE SUB herowrappass (whoi%, x%, y%, xgo%(), ygo%(), mapwide%, maphigh%, wrapmode%, veh%())
+DECLARE SUB herowrappass (whoi%, x%, y%, xgo%(), ygo%(), mapwide%, maphigh%, wrapmode%)
 DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, mapwide%, maphigh%, wrapmode%)
 DECLARE SUB aheadxy (x%, y%, direction%, distance%)
 DECLARE SUB wrapxy (x%, y%, wide%, high%)
@@ -168,7 +169,6 @@ CLOSE #fh
 'DEBUG debug "Thestart"
 thestart:
 'DEBUG debug "set stack size"
-' was 2500
 CLEAR , , 2650
 
 storekeyhandler
@@ -681,11 +681,11 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
  drawmap mapx, mapy, overlay, dpage
  'DEBUG debug "draw npcs and heroes"
  IF gmap(16) = 1 THEN
-  GOSUB cathero
+  cathero
   GOSUB drawnpc
  ELSE
   GOSUB drawnpc
-  GOSUB cathero
+  cathero
  END IF
  'DEBUG debug "drawoverhead"
  IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 2, dpage
@@ -1030,7 +1030,7 @@ FOR whoi = 0 TO 3
   IF readbit(gen(), 44, suspendherowalls) = 0 AND veh(6) = 0 THEN
    '--this only happens if herowalls is on
    '--wrapping passability
-   herowrappass whoi, thisherotilex, thisherotiley, xgo(), ygo(), scroll(0), scroll(1), gmap(5), veh()
+   herowrappass whoi, thisherotilex, thisherotiley, xgo(), ygo(), scroll(0), scroll(1), gmap(5)
   END IF
   IF readbit(gen(), 44, suspendobstruction) = 0 AND veh(6) = 0 THEN
    '--this only happens if obstruction is on
@@ -1361,37 +1361,6 @@ IF npcs(id * 15 + 2) = 4 THEN npcl(o + 900) = loopvar(npcl(o + 900), 0, 3, -1)
 IF npcs(id * 15 + 2) = 5 THEN npcl(o + 900) = INT(RND * 4)
 RETURN
 
-cathero:
-'--if riding a vehicle and not mounting and not hiding leader and not hiding party then exit
-IF veh(0) AND readbit(veh(), 6, 0) = 0 AND readbit(veh(), 6, 4) = 0 AND readbit(veh(), 6, 5) = 0 AND readbit(veh(), 9, 4) = 0 AND readbit(veh(), 9, 5) = 0 THEN RETURN
-IF readbit(gen(), 101, 1) = 1 AND (veh(0) = 0 OR readbit(veh(), 9, 4) = 0) THEN
- '--caterpillar party (normal)
- '--this should Y-sort
- catermask(0) = 0
- FOR i = 0 TO 3
-  FOR o = 0 TO 3
-   IF readbit(catermask(), 0, o) = 0 THEN j = o
-  NEXT o
-  FOR o = 0 TO 3
-   IF caty(o * 5) - mapy < caty(j * 5) - mapy AND readbit(catermask(), 0, o) = 0 THEN
-    j = o
-   END IF
-  NEXT o
-  zbuf(i) = j
-  setbit catermask(), 0, j, 1
- NEXT i
- FOR i = 0 TO 3
-  IF framewalkabout(catx(zbuf(i) * 5) + gmap(11), caty(zbuf(i) * 5), framex, framey, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
-   loadsprite buffer(), 0, 200 * ((catd(zbuf(i) * 5) * 2) + INT(wtog(zbuf(i)) / 2)), zbuf(i) * 5, 20, 20, 2
-   drawsprite buffer(), 0, pal16(), zbuf(i) * 16, framex, framey - catz(zbuf(i) * 5), dpage
-  END IF
- NEXT i
-ELSE
- '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
- loadsprite buffer(), 0, 200 * ((catd(0) * 2) + INT(wtog(0) / 2)), 0, 20, 20, 2
- drawsprite buffer(), 0, pal16(), 0, catx(0) - mapx, (caty(0) - mapy) - catz(0) + gmap(11), dpage
-END IF
-RETURN
 
 drawnpc:
 FOR i = 0 TO 299 '-- for each NPC instance

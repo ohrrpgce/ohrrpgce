@@ -119,6 +119,41 @@ DATA 72,80,75,77,57,28,29,1,56,1,15,36,51
 DATA 150,650,150,650
 
 REM $STATIC
+SUB cathero
+
+'--if riding a vehicle and not mounting and not hiding leader and not hiding party then exit
+IF veh(0) AND readbit(veh(), 6, 0) = 0 AND readbit(veh(), 6, 4) = 0 AND readbit(veh(), 6, 5) = 0 AND readbit(veh(), 9, 4) = 0 AND readbit(veh(), 9, 5) = 0 THEN EXIT SUB
+
+IF readbit(gen(), 101, 1) = 1 AND (veh(0) = 0 OR readbit(veh(), 9, 4) = 0) THEN
+ '--caterpillar party (normal)
+ '--this should Y-sort
+ catermask(0) = 0
+ FOR i = 0 TO 3
+  FOR o = 0 TO 3
+   IF readbit(catermask(), 0, o) = 0 THEN j = o
+  NEXT o
+  FOR o = 0 TO 3
+   IF caty(o * 5) - mapy < caty(j * 5) - mapy AND readbit(catermask(), 0, o) = 0 THEN
+    j = o
+   END IF
+  NEXT o
+  zbuf(i) = j
+  setbit catermask(), 0, j, 1
+ NEXT i
+ FOR i = 0 TO 3
+  IF framewalkabout(catx(zbuf(i) * 5) + gmap(11), caty(zbuf(i) * 5), framex, framey, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+   loadsprite buffer(), 0, 200 * ((catd(zbuf(i) * 5) * 2) + INT(wtog(zbuf(i)) / 2)), zbuf(i) * 5, 20, 20, 2
+   drawsprite buffer(), 0, pal16(), zbuf(i) * 16, framex, framey - catz(zbuf(i) * 5), dpage
+  END IF
+ NEXT i
+ELSE
+ '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
+ loadsprite buffer(), 0, 200 * ((catd(0) * 2) + INT(wtog(0) / 2)), 0, 20, 20, 2
+ drawsprite buffer(), 0, pal16(), 0, catx(0) - mapx, (caty(0) - mapy) - catz(0) + gmap(11), dpage
+END IF
+
+END SUB
+
 SUB defaultc
  RESTORE 101
  FOR i = 0 TO 12
