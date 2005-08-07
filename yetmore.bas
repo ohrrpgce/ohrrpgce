@@ -1234,7 +1234,7 @@ SELECT CASE id
   END IF
  CASE 171'--saveslotused
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
-   IF checksaveslot(retvals(0)) THEN scriptret = 1
+   IF checksaveslot(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 172'--importglobals
   IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 AND retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
