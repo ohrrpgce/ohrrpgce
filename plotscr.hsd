@@ -1,4 +1,4 @@
-# PLOTSCR.HSD (quaternion)
+# PLOTSCR.HSD (quaternion) 
 # This file holds the language definition for OHRRPGCE plotscripting.
 # modifying this file may have undesired/disasterous effects,
 # but reading it can be somewhat educational. Especially the constants.
@@ -215,10 +215,8 @@ define function, begin
 227,systemmonth,0             #returns system month
 228,systemyear,0              #returns system year
 229,stringcompare,2,0,0		#returns whether two strings are the same(stringID1, stringID2)
-230,ucase,1,0			#makes the given string all upper case (stringID)
-231,lcase,1,0			#makes the given string all lower case (stringID)
-232,readenemydata,2,0,0       #reads enemy data(enemy,dataposition)
-233,writeenemydata,3,0,0,0    #writes enemy data(enemy,dataposition,value)
+230,readenemydata,2,0,0       #reads enemy data(enemy,dataposition)
+231,writeenemydata,3,0,0,0    #writes enemy data(enemy,dataposition,value)
 end
 
 #--------------------------------------------------------------------------

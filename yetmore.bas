@@ -482,7 +482,7 @@ END IF
 herobyrank = result
 END FUNCTION
 
-SUB herowrappass (whoi, x, y, xgo(), ygo(), mapwide, maphigh, wrapmode, veh())
+SUB herowrappass (whoi, x, y, xgo(), ygo(), mapwide, maphigh, wrapmode)
 
 DIM pd(3)
 
@@ -925,6 +925,7 @@ SELECT CASE id
   END IF
  CASE 159'--init mouse
   IF setmouse(mouse()) THEN scriptret = 1 ELSE scriptret = 0
+  mouserect 0, 319, 0, 199
  CASE 160'--get mouse x
   readmouse mouse()
   scriptret = mouse(0)
@@ -1237,13 +1238,23 @@ SELECT CASE id
    IF checksaveslot(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 172'--importglobals
-  IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 AND retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
+  IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
    sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
    setpicstuf buffer(), 30000, -1
    loadset sg$ + CHR$(0), retvals(0) * 2 - 1, 0
-   FOR i = retvals(1) TO retvals(2)
-    global(i) = buffer(i + 5013)
-   NEXT i
+   IF retvals(1) = -1 THEN 'importglobals(slot)
+    retvals(1) = 0
+    retvals(2) = 1024
+   END IF
+   IF retvals(2) = -1 THEN 'importglobals(slot,id)
+    scriptret = buffer(retvals(1) + 5013)
+   ELSE                    'importglobals(slot,first,last)
+    IF retvals(1) >= 0 AND retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
+     FOR i = retvals(1) TO retvals(2)
+      global(i) = buffer(i + 5013)
+     NEXT i
+    END IF
+   END IF
   END IF
  CASE 173'--exportglobals
   IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 AND retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
@@ -1409,22 +1420,14 @@ SELECT CASE id
  CASE 227'--system month
   scriptret = VAL(MID$(DATE$, 4, 2))
  CASE 228'--system year
- scriptret = VAL(MID$(DATE$, 7, 4))
- CASE 229'--string compare
- if retvals(0) >= 0 and retvals(0) <= 31 and retvals(1) >= 0 and retvals(1) <= 31 then
- 	scriptret = (plotstring$(retvals(0)) =plotstring$(retvals(1)))
- end if
- case 230'--ucase
- if retvals(0) >= 0 and retvals(0) <= 31 then plotstring$(retvals(0)) = ucase$(plotstring$(retvals(0)))
- case 231'--lcase
- if retvals(0) >= 0 and retvals(0) <= 31 then plotstring$(retvals(0)) = lcase$(plotstring$(retvals(0)))
-  CASE 232'--read enemy data
+  scriptret = VAL(MID$(DATE$, 7, 4))
+ CASE 229'--read enemy data
   f = FREEFILE
   OPEN game$ + ".dt1" FOR BINARY AS #f
   GET #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, v%
   CLOSE #f
   scriptret = v%
- CASE 233'--write enemy data
+ CASE 230'--write enemy data
   v% = retvals(2)
   f = FREEFILE
   OPEN game$ + ".dt1" FOR BINARY AS #f
