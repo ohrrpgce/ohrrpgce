@@ -213,9 +213,9 @@ FUNCTION atlevel (now, a0, a99)
 
 'CLS : a = 80: b = 8500: PRINT : FOR i = 0 TO 99 STEP 5: PRINT i; " "; atlevel(i, a, b): LINE (640, i)-(640 - atlevel(i, a, b) / 100, i), 4: NEXT i
 
-'atlevel = (.8 + now / 50) * now * ((a99 - a0) / 100) + a0
+'atlevel = (.8 + now / 50) * now * ((a99 - a0) / 100) + a0 + .1
 IF now < 0 THEN atlevel = 0: EXIT FUNCTION
-atlevel = (.8 + now / 50) * now * ((a99 - a0) / 275.222) + a0
+atlevel = (.8 + now / 50) * now * ((a99 - a0) / 275.222) + a0 + .1
 
 END FUNCTION
 
