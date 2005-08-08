@@ -1421,13 +1421,13 @@ SELECT CASE id
   scriptret = VAL(MID$(DATE$, 4, 2))
  CASE 228'--system year
   scriptret = VAL(MID$(DATE$, 7, 4))
- CASE 229'--read enemy data
+ CASE 230'--read enemy data
   f = FREEFILE
   OPEN game$ + ".dt1" FOR BINARY AS #f
   GET #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, v%
   CLOSE #f
   scriptret = v%
- CASE 230'--write enemy data
+ CASE 231'--write enemy data
   v% = retvals(2)
   f = FREEFILE
   OPEN game$ + ".dt1" FOR BINARY AS #f
