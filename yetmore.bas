@@ -1421,6 +1421,10 @@ SELECT CASE id
   scriptret = VAL(MID$(DATE$, 4, 2))
  CASE 228'--system year
   scriptret = VAL(MID$(DATE$, 7, 4))
+ CASE 229'--string compare
+  if retvals(0) >= 0 and retvals(0) <= 31 and retvals(1) >= 0 and retvals(1) <= 31 then
+   scriptret = (plotstring$(retvals(0)) = plotstring$(retvals(1)))
+  end if
  CASE 230'--read enemy data
   f = FREEFILE
   OPEN game$ + ".dt1" FOR BINARY AS #f
