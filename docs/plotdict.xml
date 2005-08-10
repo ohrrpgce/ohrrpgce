@@ -1118,7 +1118,7 @@ end</example>
 		<command id="setenemystat">
 			<cannon>set enemy stat(enemy, stat, value)</cannon>
 			<shortname>set enemy stat</shortname>
-			<description>Sets the selected stat of the selected enemy to the value you supply. The first argument is the number of the enemy whose stats you want to set. The second argument is the name of the stat that you want to set. The names of the stats are also defined in your HSI file in the form stat:name. The third is the new value of the stat. <lb/>Note: Stat changes are not saved in the save game.</description>
+			<description>Sets the selected stat of the selected enemy to the value you supply. The first argument is the number of the enemy whose stats you want to set. The second argument is the name of the stat that you want to set. The names of the stats are also defined in your HSI file in the form stat:name. The third is the new value of the stat. <lb/>Note: Enemy stat changes are temporary. They are not saved in the save game.</description>
 			<seealso>
 				<ref>getenemystat</ref>
 				<ref>getherostat</ref>
@@ -1136,7 +1136,7 @@ end</example>
 		<command id="setenemyname">
 			<cannon>set enemy name (enemyid, stringid)</cannon>
 			<shortname>set enemy name</shortname>
-			<description>Lets you set the enemy name from a string, the string length cannot be more then 16 characters, if it is more then 16 the name will be truncated.  The first argument is the number of the enemy's name you want to change, second argument is the number of the string that you supply the name of the enemy from.</description>
+			<description>Lets you set the enemy name from a string, the string length cannot be more then 16 characters, if it is more then 16 the name will be truncated.  The first argument is the number of the enemy's name you want to change, second argument is the number of the string that you supply the name of the enemy from. <lb/>Note: Enemy name changes are temporary. They are not saved in the save game.</description>
 			<seealso>
 				<ref>getenemyname</ref>
 			</seealso>
@@ -1152,7 +1152,7 @@ end</example>
 		<command id="setenemyappearance">
 			<cannon>set enemy appearance (enemyid, appearance,value)</cannon>
 			<shortname>set enemy appearance</shortname>
-			<description>Lets you set the enemy's appearance.  Enemyid is the number of the enemy's appearance that you want to change, appearance is either picture, palette, or size. Value can is the new number that you want to assign, use constants enemysize:small, enemysize:medium, or enemysize:large, when changing picture size, when changing palette use the palette number, etc...</description>
+			<description>Lets you set the enemy's appearance.  Enemyid is the number of the enemy's appearance that you want to change, appearance is either picture, palette, or size. Value can is the new number that you want to assign, use constants enemysize:small, enemysize:medium, or enemysize:large, when changing picture size, when changing palette use the palette number, etc... <lb/>Note: Enemy appearance changes are temporary. They are not saved in the save game.</description>
 			<seealso>
 				<ref>getenemyappearance</ref>
 			</seealso>
@@ -1168,7 +1168,7 @@ end</example>
 		<command id="setenemyrewards">
 			<cannon>set enemy rewards (enemyid, reward, value)</cannon>
 			<shortname>set enemy rewards</shortname>
-			<description>Lets you set enemy's rewards as well as stealible items. Enemyid is the number of enemy, reward is the number of the reward you want returned. Value is the number you want to set on reward. Use the following constants<li>enemy:gold</li><li>enemy:experience</li><li>enemy:item(0 to 255)</li><li>enemy:itempercent(0 to 100)</li><li>enemy:rareitem(0 to 255)</li><li>enemy:rareitempercent(0 to 100)</li><li>stealability(isnotstealable,stealableonce,stealableinfinity)</li><li>stealableitem(0 to 255)</li><li>stealableitemchance(0 to 100)</li><li>stealablerareitem(0 to 255)</li><li>stealablerareitemchance(0 to 100)</li></description>
+			<description>Lets you set enemy's rewards as well as stealible items. Enemyid is the number of enemy, reward is the number of the reward you want returned. Value is the number you want to set on reward. Use the following constants<li>enemy:gold</li><li>enemy:experience</li><li>enemy:item(0 to 255)</li><li>enemy:itempercent(0 to 100)</li><li>enemy:rareitem(0 to 255)</li><li>enemy:rareitempercent(0 to 100)</li><li>stealability(isnotstealable,stealableonce,stealableinfinity)</li><li>stealableitem(0 to 255)</li><li>stealableitemchance(0 to 100)</li><li>stealablerareitem(0 to 255)</li><li>stealablerareitemchance(0 to 100)</li> <lb/>Note: Enemy stat rewards are temporary. They are not saved in the save game.</description>
 			<seealso>
 				<ref>getenemyrewards</ref>
 			</seealso>
