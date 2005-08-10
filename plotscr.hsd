@@ -467,7 +467,7 @@ end
 
 define script(autonumber,getenemyrewards,2,0,0)
 script,getenemyrewards,enemyid,reward,begin
-  return(readenemydata(enemyid,num+56))
+  return(readenemydata(enemyid,reward+56))
 end
 
 define script(autonumber,setenemyrewards,3,0,0,0)
