@@ -95,7 +95,11 @@ WHAT IS NEW?
 
           That will set the string with ID 1 to "My string"
 
-    * getenemystat() and setenemystat() [Mike Caron]
+    *  get enemy name, set enemy name
+       get enemy stat, set enemy stat
+       get enemy appearance, set enemy appearance
+       get enemy rewards, set enemy rewards
+	             [Mike Caron and Yuriy]
 
   * Stuff only Developers Will Notice
 

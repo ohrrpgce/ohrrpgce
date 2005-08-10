@@ -450,8 +450,8 @@ script,getenemystat,enemyid,stat,begin
   return(readenemydata(enemyid,stat+62))
 end
 
-define script(autonumber,alterenemy,3,0,0,0)
-script,alterenemy,enemyid,stat,value,begin
+define script(autonumber,setenemystat,3,0,0,0)
+script,setenemystat,enemyid,stat,value,begin
   writeenemydata(enemyid,stat+62,value)
 end
 
@@ -465,6 +465,25 @@ if(stringlength(stringid)>=16)then(t2:=16)else(t2:=stringlength(stringid))
   )
 end
 
+define script(autonumber,getenemyrewards,2,0,0)
+script,getenemyrewards,enemyid,reward,begin
+  return(readenemydata(enemyid,num+56))
+end
+
+define script(autonumber,setenemyrewards,3,0,0,0)
+script,setenemyrewards,enemyid,reward,value,begin
+  writeenemydata(enemyid,reward+56,value)
+end
+
+define script(autonumber,getenemyappearance,2,0,0)
+script,getenemyappearance,enemyid,appearance,begin)
+  return(readenemydata(enemyid,appearance)  
+end
+
+define script(autonumber,setenemyappearance,3,0,0,0)
+script,setenemyappearance,enemyid,appearance,value)
+  writeenemydata(enemyid,appearance,value)
+end
 #--------------------------------------------------------------------------
 # read/write general wrappers
 
@@ -756,28 +775,24 @@ define constant, begin
 -1,getcount
 0,string:outline
 1,string:flat
-53,Enemystat:Picture
-54,Enemystat:Palette
-55,Enemystat:PictureSize
+0,Enemy:Picture
+1,Enemy:Palette
+2,Enemy:PictureSize
   0, EnemySize:small
   1, EnemySize:medium
   2, EnemySize:large
-56,Enemystat:Gold
-57,Enemystat:Experience
-58,Enemystat:Item
-59,Enemystat:ItemPercent
-60,Enemystat:RareItem
-61,Enemystat:RareItemPercent
-62,Enemy:HP
-63,Enemy:MP
-64,Enemy:Attack
-65,Enemy:Accuracy
-66,Enemy:Defence
-67,Enemy:Dodge
-68,Enemy:MagicPower
-69,Enemy:MagicDefense
-70,Enemy:Speed
-71,Enemy:Counter
-72,Enemy:MPReduction
-73,Enemy:Hits
+56,Enemy:Gold
+57,Enemy:Experience
+58,Enemy:Item
+59,Enemy:ItemPercent
+60,Enemy:RareItem
+61,Enemy:RareItemPercent
+17,Stealability
+   -1, IsNotStealable
+    0, StealableOnce
+    1, StealableInfinity
+18, StealableItem
+19, StealableItemChance
+20, StealableRareItem
+21, StealableRareItemchance
 end
