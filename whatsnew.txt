@@ -18,8 +18,11 @@ WHAT IS NEW?
     * To bring up the Joystick calibration screen, you should now
       press CTRL+J rather than just J
 
+    * Fixed bug 85: "menu called when exiting a script triggered menu or
+      screen with ESC" [Yuriy and Ralph Versteegen]
+
     * Fixed bug 86: "Foot offset is not taken into account when culling
-      npcs to draw onscreen" [Ralph Versteegen]
+      npcs and heroes to draw onscreen" [Ralph Versteegen]
 
     * Fixed bug 88: "A script buffer overflow crashes or freezes game.exe
       instead of displaying an error message" [Ralph Versteegen]

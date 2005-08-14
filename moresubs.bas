@@ -965,6 +965,7 @@ DO
    swapme = -1
   ELSE
    loadtemppage 3
+   FOR t = 4 TO 5: carray(t) = 0: NEXT t
    EXIT SUB
   END IF
  END IF
@@ -2225,6 +2226,7 @@ DO
  IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
+FOR t = 4 TO 5: carray(t) = 0: NEXT t
 EXIT SUB
 
 repaintback:

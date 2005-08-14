@@ -470,7 +470,7 @@ DO
  control
  IF mset = 0 THEN
   '--primary menu
-  IF carray(5) > 1 THEN loadtemppage 3: EXIT SUB
+  IF carray(5) > 1 THEN loadtemppage 3: FOR t = 4 TO 5: carray(t) = 0: NEXT t: EXIT SUB
   IF carray(2) > 1 THEN DO: ptr = loopvar(ptr, 0, 3, -1): LOOP UNTIL hero(ptr) > 0: GOSUB setupeq
   IF carray(3) > 1 THEN DO: ptr = loopvar(ptr, 0, 3, 1): LOOP UNTIL hero(ptr) > 0: GOSUB setupeq
   IF carray(0) > 1 THEN csr = csr - 1: IF csr < 0 THEN csr = 6
@@ -498,7 +498,7 @@ DO
     'UPDATE ITEM POSESSION BITSETS
     evalitemtag
    END IF
-   IF csr = 6 THEN loadtemppage 3: EXIT SUB
+   IF csr = 6 THEN loadtemppage 3: carray(4) = 0: EXIT SUB
   END IF
  ELSE
   '--change equip menu
@@ -845,6 +845,7 @@ DO
  dowait
 LOOP
 loadtemppage 3
+FOR t = 4 TO 5: carray(t) = 0: NEXT t
 EXIT FUNCTION
 
 infostr:
@@ -1532,6 +1533,7 @@ DO
  dowait
 LOOP
 loadtemppage 3
+FOR t = 4 TO 5: carray(t) = 0: NEXT t
 EXIT FUNCTION
 
 confirm:
@@ -2085,7 +2087,7 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF carray(5) > 1 THEN loadtemppage 3: EXIT SUB
+ IF carray(5) > 1 THEN loadtemppage 3: FOR t = 4 TO 5: carray(t) = 0: NEXT t: EXIT SUB
  IF carray(4) > 1 THEN mode = loopvar(mode, 0, 2, 1)
  IF carray(2) > 1 THEN DO: ptr = loopvar(ptr, 0, 3, -1): LOOP UNTIL hero(ptr) > 0: GOSUB nextstat
  IF carray(3) > 1 THEN DO: ptr = loopvar(ptr, 0, 3, 1): LOOP UNTIL hero(ptr) > 0: GOSUB nextstat
