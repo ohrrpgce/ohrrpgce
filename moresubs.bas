@@ -157,7 +157,7 @@ FOR i = 0 TO 3
 NEXT i
 
 '--elemental bitsets
-FOR i = 0 TO 4
+FOR i = 0 TO 2
  thishbits(i) = buffer(240 + i)
  nativehbits(slot, i) = buffer(240 + i)
 NEXT i
