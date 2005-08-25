@@ -5,18 +5,18 @@ REM --- where you have installed Quickbasic,   ---
 REM --- and the OHRRPGCE source code.          ---
 
 REM -- Quickbasic 4.5 is the default --
-REM SET QBVER=4.5
-REM SET QBDIR=C:\QB45
-REM SET OHRRPGCE=C:\OHRRPGCE
-REM SET QBEDIT=QB.EXE
-REM SET LINKEXT=l
+SET QBVER=4.5
+SET QBDIR=C:\QB45
+SET OHRRPGCE=C:\OHRRPGCE
+SET QBEDIT=QB.EXE
+SET LINKEXT=l
 
 REM -- Quickbasic 7.1 also works --
-SET QBVER=7.1
-SET QBDIR=C:\QBX\BINB
-SET OHRRPGCE=C:\OHRRPGCE\SOURCE\CURRENT
-SET QBEDIT=QBX.EXE
-SET LINKEXT=l7
+REM SET QBVER=7.1
+REM SET QBDIR=C:\QB71
+REM SET OHRRPGCE=C:\OHRRPGCE
+REM SET QBEDIT=QBX.EXE
+REM SET LINKEXT=l7
 
 REM Attention Windows XP users! You must define these five
 REM environment variables manually. This batch file will not
