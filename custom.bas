@@ -32,7 +32,7 @@ DECLARE SUB textxbload (f$, array%(), e$)
 DECLARE SUB fixorder (f$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE SUB vehicles ()
-DECLARE SUB verifyrpg (game$)
+DECLARE SUB verifyrpg ()
 DECLARE SUB xbload (f$, array%(), e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION getmapname$ (m%)
@@ -84,6 +84,7 @@ DECLARE SUB maptile (master%(), font())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
+DECLARE FUNCTION maplumpname$(map, oldext$)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -149,11 +150,11 @@ DIM lumpbuf(16383)
 unlump gamefile$ + ".rpg" + CHR$(0), workingdir$ + "\", lumpbuf()
 ERASE lumpbuf
 DIM scroll(16002), pass(16002), emap(16002)
-verifyrpg workingdir$ + "\" + game$
-
-safekill workingdir$ + "\__danger.tmp"
 
 game$ = workingdir$ + "\" + game$
+verifyrpg
+safekill workingdir$ + "\__danger.tmp"
+
 IF NOT isfile(game$ + ".mas" + CHR$(0)) THEN copyfile "ohrrpgce.mas" + CHR$(0), game$ + ".mas" + CHR$(0), buffer()
 DEF SEG = VARSEG(master(0)): BLOAD game$ + ".mas", VARPTR(master(0))
 setpal master()
@@ -501,7 +502,7 @@ setvispage 0
 textcolor 15, 0
 printstr "LUMPING DATA: please wait.", 0, 0, 0
 '--verify that maps are not corrupt--
-verifyrpg game$
+verifyrpg
 '--lump data to SAVE rpg file
 filetolump$ = RIGHT$(game$, LEN(game$) - 12) + ".rpg"
 GOSUB dolumpfiles
@@ -804,7 +805,11 @@ DATA "±","²","³","´","µ","¶","·","¸","¹","º","»","¼","","","½","¾","¿","À","Á","
 
 REM $STATIC
 FUNCTION filenum$ (n)
-filenum$ = RIGHT$("00" + LTRIM$(STR$(n)), 2)
+ IF n < 100 THEN
+  filenum$ = RIGHT$("00" + LTRIM$(STR$(n)), 2)
+ ELSE
+  filenum$ = LTRIM$(STR$(n))
+ END IF
 END FUNCTION
 
 SUB fixfilename (s$)
@@ -1564,14 +1569,14 @@ IF general(95) = 1 THEN
  NEXT i
  FOR i = 0 TO general(0)
   printstr " map" + STR$(i), 16, 24 + i * 8, vpage
-  DEF SEG = VARSEG(buffer(0)): BLOAD game$ + ".t" + filenum$(i), VARPTR(buffer(0))
+  DEF SEG = VARSEG(buffer(0)): BLOAD maplumpname$(i, "t"), VARPTR(buffer(0))
   setmapdata buffer(), buffer(), 0, 0
   FOR tx = 0 TO buffer(0)
    FOR ty = 0 TO buffer(1)
     IF readmapblock(tx, ty) = 158 THEN setmapblock tx, ty, 206
    NEXT ty
   NEXT tx
-  DEF SEG = VARSEG(buffer(0)): BSAVE game$ + ".t" + filenum$(i), VARPTR(buffer(0)), buffer(0) * buffer(1) + 4
+  DEF SEG = VARSEG(buffer(0)): BSAVE maplumpname$(i, "t"), VARPTR(buffer(0)), buffer(0) * buffer(1) + 4
  NEXT i
 END IF
 '---VERSION 3---

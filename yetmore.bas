@@ -44,7 +44,6 @@ DECLARE SUB vishero (stat%())
 DECLARE SUB forceparty (stat%())
 DECLARE SUB scriptdump (s$)
 DECLARE FUNCTION vehpass% (n%, tile%, default%)
-DECLARE FUNCTION dignum$ (n%, dig%)
 DECLARE FUNCTION readfoemap% (x%, y%, wide%, high%, fh%)
 DECLARE FUNCTION playtime$ (d%, h%, m%)
 DECLARE FUNCTION functiondone% ()
@@ -207,14 +206,6 @@ END FUNCTION
 FUNCTION cropPlotStr (s$)
  cropPlotStr = large(0, LEN(s$) - 40)
  s$ = LEFT$(s$, 40)
-END FUNCTION
-
-FUNCTION dignum$ (n, dig)
-a$ = LTRIM$(STR$(n))
-WHILE LEN(a$) < dig
- a$ = "0" + a$
-WEND
-dignum$ = a$
 END FUNCTION
 
 SUB doihavebits

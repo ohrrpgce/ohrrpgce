@@ -47,7 +47,6 @@ DECLARE SUB vishero (stat%())
 DECLARE SUB forceparty (stat%())
 DECLARE SUB scriptdump (s$)
 DECLARE FUNCTION vehpass% (n%, tile%, default%)
-DECLARE FUNCTION dignum$ (n%, dig%)
 DECLARE FUNCTION readfoemap% (x%, y%, wide%, high%, fh%)
 DECLARE FUNCTION playtime$ (d%, h%, m%)
 DECLARE FUNCTION functiondone% ()
@@ -107,6 +106,7 @@ DECLARE FUNCTION readatkname$ (id%)
 DECLARE SUB getmapname (mapname$, m%)
 DECLARE SUB defaultc ()
 DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%(), gmap%())
+DECLARE FUNCTION maplumpname$(map, oldext$)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
@@ -444,3 +444,10 @@ CLOSE #fh
 
 END SUB
 
+FUNCTION maplumpname$(map, oldext$)
+ IF map < 100 THEN
+  maplumpname$ = game$ + "." + oldext$ + RIGHT$("0" + LTRIM$(STR$(map)), 2)
+ ELSE
+  maplumpname$ = workingdir$ + "\" + LTRIM$(STR$(map)) + "." + oldext$
+ END IF
+END FUNCTION

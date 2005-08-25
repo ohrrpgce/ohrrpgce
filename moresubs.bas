@@ -29,7 +29,6 @@ DECLARE SUB vishero (stat%())
 DECLARE SUB sellstuff (id%, storebuf%(), stock%(), stat%())
 DECLARE SUB buystuff (id%, shoptype%, storebuf%(), stock%(), stat%())
 DECLARE SUB textfatalerror (e$)
-DECLARE FUNCTION dignum$ (n%, dig%)
 DECLARE SUB playtimer ()
 DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION countitem% (it%)
@@ -79,6 +78,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
+DECLARE FUNCTION maplumpname$(map, oldext$)
 
 '--CD playing (not compiled in yet)
 'DECLARE FUNCTION drivelist (l())
@@ -1551,7 +1551,7 @@ IF remember THEN
   buffer(i + 1800) = npcl(i + 1800)
  NEXT i
 END IF
-xbload game$ + ".l" + dignum(map, 2), npcl(), "Oh No! Map" + dignum(map, 2) + " NPC locations are missing"
+xbload maplumpname$(map, "l"), npcl(), "Oh No! Map" + LTRIM$(STR$(map)) + " NPC locations are missing"
 IF remember THEN
  FOR i = 0 TO 299
   npcl(i + 0) = buffer(i + 0)

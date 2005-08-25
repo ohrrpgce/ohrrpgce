@@ -72,7 +72,6 @@ DECLARE SUB npcplot ()
 DECLARE SUB vishero (stat%())
 DECLARE FUNCTION vehpass% (n%, tile%, default%)
 DECLARE SUB initgame ()
-DECLARE FUNCTION dignum$ (n%, dig%)
 DECLARE FUNCTION readfoemap% (x%, y%, wide%, high%, fh%)
 DECLARE SUB playtimer ()
 DECLARE FUNCTION functiondone% ()
@@ -144,6 +143,7 @@ DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
 DECLARE SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap(), catd(), foep)
 DECLARE SUB setusermenu (menu$(), mt%, mi%())
+DECLARE FUNCTION maplumpname$(map, oldext$)
 
 '---INCLUDE FILES---
 '$INCLUDE: 'allmodex.bi'
@@ -1398,7 +1398,7 @@ thrudoor:
 samemap = 0
 oldmap = map
 '--load link data into buffer() -- Take care not to clobber it!
-xbload game$ + ".d" + dignum(map, 2), buffer(), "Oh no! Map" + dignum(map, 2) + " doorlinks missing"
+xbload maplumpname$(map, "d"), buffer(), "Oh no! Map" + LTRIM$(STR$(map)) + " doorlinks missing"
 FOR o = 0 TO 199
  IF doori = buffer(o) THEN
   'PLOT CHECKING FOR DOORS
@@ -1437,20 +1437,20 @@ FOR i = 0 TO 1
  cycptr(i) = 0
  cycskip(i) = 0
 NEXT i
-xbload game$ + ".t" + dignum(map, 2), scroll(), "Oh no! Map" + dignum(map, 2) + " tilemap is missing"
-xbload game$ + ".p" + dignum(map, 2), pass(), "Oh no! Map" + dignum(map, 2) + " passabilitymap is missing"
-IF isfile(game$ + ".e" + dignum(map, 2) + CHR$(0)) THEN
+xbload maplumpname$(map, "t"), scroll(), "Oh no! Map" + LTRIM$(STR$(map)) + " tilemap is missing"
+xbload maplumpname$(map, "p"), pass(), "Oh no! Map" + LTRIM$(STR$(map)) + " passabilitymap is missing"
+IF isfile(maplumpname$(map, "e") + CHR$(0)) THEN
  CLOSE #foemaph
  foemaph = FREEFILE
- OPEN game$ + ".e" + dignum(map, 2) FOR BINARY AS #foemaph
+ OPEN maplumpname$(map, "e") FOR BINARY AS #foemaph
 ELSE
- fatalerror "Oh no! Map" + dignum(map, 2) + " foemap is missing"
+ fatalerror "Oh no! Map" +LTRIM$(STR$(map)) + " foemap is missing"
 END IF
 loaddoor map, door()
 IF afterbat = 0 THEN
  showmapname = gmap(4)
- xbload game$ + ".l" + dignum(map, 2), npcl(), "Oh no! Map" + dignum(map, 2) + " NPC locations are missing"
- xbload game$ + ".n" + dignum(map, 2), npcs(), "Oh no! Map" + dignum(map, 2) + " NPC definitions are missing"
+ xbload maplumpname$(map, "l"), npcl(), "Oh no! Map" + LTRIM$(STR$(map)) + " NPC locations are missing"
+ xbload maplumpname$(map, "n"), npcs(), "Oh no! Map" + LTRIM$(STR$(map)) + " NPC definitions are missing"
  FOR i = 0 TO 299
   npcl(i + 0) = npcl(i + 0) * 20            'x
   npcl(i + 300) = (npcl(i + 300) - 1) * 20  'y

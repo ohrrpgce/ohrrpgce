@@ -62,6 +62,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
+DECLARE FUNCTION maplumpname$(map, oldext$)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -1958,19 +1959,18 @@ RETURN
 
 END SUB
 
-SUB verifyrpg (game$)
+SUB verifyrpg
 
 xbload game$ + ".gen", buffer(), "General data is missing!"
 
 FOR i = 0 TO buffer(0)
- IF NOT isfile(game$ + ".t" + filenum$(i) + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " tilemap is missing!"
- IF NOT isfile(game$ + ".p" + filenum$(i) + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " passmap is missing!"
- IF NOT isfile(game$ + ".e" + filenum$(i) + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " foemap is missing!"
- IF NOT isfile(game$ + ".l" + filenum$(i) + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " NPClocations are missing!"
- IF NOT isfile(game$ + ".n" + filenum$(i) + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " NPCdefinitions are missing!"
- IF NOT isfile(game$ + ".d" + filenum$(i) + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " doorlinks are missing!"
-NEXT i
-
+ IF NOT isfile(maplumpname$(i, "t") + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " tilemap is missing!"
+ IF NOT isfile(maplumpname$(i, "p") + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " passmap is missing!"
+ IF NOT isfile(maplumpname$(i, "e") + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " foemap is missing!"
+ IF NOT isfile(maplumpname$(i, "l") + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " NPClocations are missing!"
+ IF NOT isfile(maplumpname$(i, "n") + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " NPCdefinitions are missing!"
+ IF NOT isfile(maplumpname$(i, "d") + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " doorlinks are missing!"
+NEXT
 END SUB
 
 SUB writeconstant (filehandle, num, name$, unique$(), prefix$)

@@ -23,7 +23,7 @@ DECLARE SUB fixorder (f$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE SUB standardmenu (menu$(), size%, vis%, ptr%, top%, x%, y%, page%, edge%)
 DECLARE SUB vehicles ()
-DECLARE SUB verifyrpg (game$)
+DECLARE SUB verifyrpg ()
 DECLARE SUB xbload (f$, array%(), e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION getmapname$ (m%)
@@ -75,6 +75,7 @@ DECLARE SUB maptile (master%(), font())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
+DECLARE FUNCTION maplumpname$(map, oldext$)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -877,11 +878,11 @@ IF yesno = 1 THEN
   doors(i + 100) = 0
   doors(i + 200) = 0
  NEXT
- DEF SEG = VARSEG(map(0)): BSAVE game$ + ".t" + filenum$(ptr), VARPTR(map(0)), map(0) * map(1) + 4
- DEF SEG = VARSEG(pass(0)): BSAVE game$ + ".p" + filenum$(ptr), VARPTR(pass(0)), pass(0) * pass(1) + 4
- DEF SEG = VARSEG(emap(0)): BSAVE game$ + ".e" + filenum$(ptr), VARPTR(emap(0)), emap(0) * emap(1) + 4
- DEF SEG = VARSEG(link(0)): BSAVE game$ + ".d" + filenum$(ptr), VARPTR(link(0)), 2000
- DEF SEG = VARSEG(npc(0)): BSAVE game$ + ".l" + filenum$(ptr), VARPTR(npc(0)), 3000
+ DEF SEG = VARSEG(map(0)): BSAVE maplumpname$(ptr, "t"), VARPTR(map(0)), map(0) * map(1) + 4
+ DEF SEG = VARSEG(pass(0)): BSAVE maplumpname$(ptr, "p"), VARPTR(pass(0)), pass(0) * pass(1) + 4
+ DEF SEG = VARSEG(emap(0)): BSAVE maplumpname$(ptr, "e"), VARPTR(emap(0)), emap(0) * emap(1) + 4
+ DEF SEG = VARSEG(link(0)): BSAVE maplumpname$(ptr, "d"), VARPTR(link(0)), 2000
+ DEF SEG = VARSEG(npc(0)): BSAVE maplumpname$(ptr, "l"), VARPTR(npc(0)), 3000
  setpicstuf doors(), 600, -1
  storeset game$ + ".dox" + CHR$(0), ptr, 0
 END IF
@@ -891,7 +892,6 @@ x = 0: y = 0: mapx = 0: mapy = 0
 RETURN
 
 addmap:
-IF general(0) >= 99 THEN RETURN
 how = addmaphow
 '-- -2  =Cancel
 '-- -1  =New blank
@@ -927,12 +927,12 @@ map(0) = 64: map(1) = 64
 pass(0) = 64: pass(1) = 64
 emap(0) = 64: emap(1) = 64
 '--save map buffers
-DEF SEG = VARSEG(map(0)): BSAVE game$ + ".t" + filenum$(general(0)), VARPTR(map(0)), map(0) * map(1) + 4
-DEF SEG = VARSEG(pass(0)): BSAVE game$ + ".p" + filenum$(general(0)), VARPTR(pass(0)), pass(0) * pass(1) + 4
-DEF SEG = VARSEG(emap(0)): BSAVE game$ + ".e" + filenum$(general(0)), VARPTR(emap(0)), emap(0) * emap(1) + 4
-DEF SEG = VARSEG(link(0)): BSAVE game$ + ".d" + filenum$(general(0)), VARPTR(link(0)), 2000
-DEF SEG = VARSEG(npcstat(0)): BSAVE game$ + ".n" + filenum$(general(0)), VARPTR(npcstat(0)), 3000
-DEF SEG = VARSEG(npc(0)): BSAVE game$ + ".l" + filenum$(general(0)), VARPTR(npc(0)), 3000
+DEF SEG = VARSEG(map(0)): BSAVE maplumpname$(general(0), "t"), VARPTR(map(0)), map(0) * map(1) + 4
+DEF SEG = VARSEG(pass(0)): BSAVE maplumpname$(general(0), "p"), VARPTR(pass(0)), pass(0) * pass(1) + 4
+DEF SEG = VARSEG(emap(0)): BSAVE maplumpname$(general(0), "e"), VARPTR(emap(0)), emap(0) * emap(1) + 4
+DEF SEG = VARSEG(link(0)): BSAVE maplumpname$(general(0), "d"), VARPTR(link(0)), 2000
+DEF SEG = VARSEG(npcstat(0)): BSAVE maplumpname$(general(0), "n"), VARPTR(npcstat(0)), 3000
+DEF SEG = VARSEG(npc(0)): BSAVE maplumpname$(general(0), "l"), VARPTR(npc(0)), 3000
 setpicstuf doors(), 600, -1
 storeset game$ + ".dox" + CHR$(0), general(0), 0
 '--setup map name
@@ -944,12 +944,12 @@ RETURN
 savemap:
 setpicstuf gmap(), 40, -1
 storeset game$ + ".map" + CHR$(0), ptr, 0
-DEF SEG = VARSEG(map(0)): BSAVE game$ + ".t" + filenum$(ptr), VARPTR(map(0)), map(0) * map(1) + 4
-DEF SEG = VARSEG(pass(0)): BSAVE game$ + ".p" + filenum$(ptr), VARPTR(pass(0)), pass(0) * pass(1) + 4
-DEF SEG = VARSEG(emap(0)): BSAVE game$ + ".e" + filenum$(ptr), VARPTR(emap(0)), emap(0) * emap(1) + 4
-DEF SEG = VARSEG(npc(0)): BSAVE game$ + ".l" + filenum$(ptr), VARPTR(npc(0)), 3000
-DEF SEG = VARSEG(link(0)): BSAVE game$ + ".d" + filenum$(ptr), VARPTR(link(0)), 2000
-DEF SEG = VARSEG(npcstat(0)): BSAVE game$ + ".n" + filenum$(ptr), VARPTR(npcstat(0)), 3000
+DEF SEG = VARSEG(map(0)): BSAVE maplumpname$(ptr, "t"), VARPTR(map(0)), map(0) * map(1) + 4
+DEF SEG = VARSEG(pass(0)): BSAVE maplumpname$(ptr, "p"), VARPTR(pass(0)), pass(0) * pass(1) + 4
+DEF SEG = VARSEG(emap(0)): BSAVE maplumpname$(ptr, "e"), VARPTR(emap(0)), emap(0) * emap(1) + 4
+DEF SEG = VARSEG(npc(0)): BSAVE maplumpname$(ptr, "l"), VARPTR(npc(0)), 3000
+DEF SEG = VARSEG(link(0)): BSAVE maplumpname$(ptr, "d"), VARPTR(link(0)), 2000
+DEF SEG = VARSEG(npcstat(0)): BSAVE maplumpname$(ptr, "n"), VARPTR(npcstat(0)), 3000
 setpicstuf doors(), 600, -1
 storeset game$ + ".dox" + CHR$(0), ptr, 0
 '--save map name
@@ -969,12 +969,12 @@ FOR i = 0 TO 1
  cycptr(i) = 0
  cycskip(i) = 0
 NEXT i
-xbload game$ + ".t" + filenum$(ptr), map(), "tilemap lump is missing!"
-xbload game$ + ".p" + filenum$(ptr), pass(), "passmap lump is missing!"
-xbload game$ + ".e" + filenum$(ptr), emap(), "foemap lump is missing!"
-xbload game$ + ".l" + filenum$(ptr), npc(), "npclocation lump is missing!"
-xbload game$ + ".n" + filenum$(ptr), npcstat(), "npcstat lump is missing!"
-xbload game$ + ".d" + filenum$(ptr), link(), "doorlink lump is missing!"
+xbload maplumpname$(ptr, "t"), map(), "tilemap lump is missing!"
+xbload maplumpname$(ptr, "p"), pass(), "passmap lump is missing!"
+xbload maplumpname$(ptr, "e"), emap(), "foemap lump is missing!"
+xbload maplumpname$(ptr, "l"), npc(), "npclocation lump is missing!"
+xbload maplumpname$(ptr, "n"), npcstat(), "npcstat lump is missing!"
+xbload maplumpname$(ptr, "d"), link(), "doorlink lump is missing!"
 setpicstuf doors(), 600, -1
 loadset game$ + ".dox" + CHR$(0), ptr, 0
 wide = map(0): high = map(1)
@@ -1054,7 +1054,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN DEF SEG = VARSEG(link(0)): BSAVE game$ + ".d" + filenum$(ptr), VARPTR(link(0)), 2000: RETURN
+ IF keyval(1) > 1 THEN DEF SEG = VARSEG(link(0)): BSAVE maplumpname$(ptr, "d"), VARPTR(link(0)), 2000: RETURN
  'IF keyval(72) > 1 AND cur > 0 THEN cur = cur - 1: IF cur < ttop THEN ttop = ttop - 1
  'IF keyval(80) > 1 AND cur < 199 THEN cur = cur + 1: IF cur > ttop + 10 THEN ttop = ttop + 1
  dummy = usemenu(cur, ttop, 0, 199, 10)
@@ -1077,7 +1077,7 @@ DO
 LOOP
 
 seedoors:
-DEF SEG = VARSEG(map(0)): BSAVE game$ + ".t" + filenum$(ptr), VARPTR(map(0)), map(0) * map(1) + 4
+DEF SEG = VARSEG(map(0)): BSAVE maplumpname$(ptr, "t"), VARPTR(map(0)), map(0) * map(1) + 4
 menu$(-1) = "Go Back"
 menu$(0) = "Entrance Door"
 menu$(1) = "Exit Door"
@@ -1146,7 +1146,7 @@ END IF
 '-----------------EXIT DOOR
 setpicstuf destdoor(), 600, -1
 loadset game$ + ".dox" + CHR$(0), link(cur + (2 * 200)), 0
-xbload game$ + ".t" + filenum$(link(cur + (2 * 200))), map(), "Could not find map" + filenum$(link(cur + (2 * 200)))
+xbload maplumpname$(link(cur + (2 * 200)), "t"), map(), "Could not find map" + filenum$(link(cur + (2 * 200)))
 setpicstuf buffer(), 40, -1
 loadset game$ + ".map" + CHR$(0), link(cur + (2 * 200)), 0
 loadpage game$ + ".til" + CHR$(0), buffer(0), 3
@@ -1165,7 +1165,7 @@ IF destdoor(link(cur + (1 * 200)) + 200) = 1 THEN
 END IF
 '-----------------RESET DATA
 loadpage game$ + ".til" + CHR$(0), gmap(0), 3
-xbload game$ + ".t" + filenum$(ptr), map(), "Tilemap lump disappeared!"
+xbload maplumpname$(ptr, "t"), map(), "Tilemap lump disappeared!"
 RETURN
 
 '----
@@ -1198,3 +1198,10 @@ RETURN
 '128 overhead
 END SUB
 
+FUNCTION maplumpname$(map, oldext$)
+ IF map < 100 THEN
+  maplumpname$ = game$ + "." + oldext$ + filenum$(map)
+ ELSE
+  maplumpname$ = workingdir$ + "\" + LTRIM$(STR$(map)) + "." + oldext$
+ END IF
+END FUNCTION

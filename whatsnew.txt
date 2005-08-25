@@ -104,6 +104,9 @@ WHAT IS NEW?
        get enemy rewards, set enemy rewards
 	             [Mike Caron and Yuriy]
 
+    *  Map limit increased from 100 to 32767 maps
+       [Ralph Versteegen]
+
   * Stuff only Developers Will Notice
 
     * Plotscripting Dictionary Documentation is now in xml format instead
