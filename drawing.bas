@@ -1023,6 +1023,7 @@ DO
  END IF
  IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN GOSUB copy
  IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN GOSUB paste
+ IF (keyval(29) > 0 AND keyval(20) > 1) THEN GOSUB transpaste
  bx = bnum AND 15
  by = INT(bnum / 16)
  IF keyval(28) > 1 OR keyval(57) OR mouse(3) > 0 THEN
@@ -1484,6 +1485,15 @@ FOR i = 0 TO 19
 NEXT j: NEXT i
 RETURN
 
+transpaste:
+IF canpaste = 0 THEN RETURN
+FOR i = 0 TO 19
+ FOR j = 0 TO 19
+  IF cutnpaste(i, j) THEN rectangle bx * 20 + i, by * 20 + j, 1, 1, cutnpaste(i, j), 3
+ NEXT j
+NEXT i
+RETURN
+
 END SUB
 
 FUNCTION mouseover (mouse(), zox, zoy, zcsr, area())
@@ -1853,6 +1863,22 @@ DO
  END IF
  IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN loadsprite clip(), 0, num * size, soff * (ptr - top), xw, yw, 3: paste = 1
  IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN stosprite clip(), 0, num * size, soff * (ptr - top), 3
+ IF (keyval(29) > 0 AND keyval(20) > 1) AND paste = 1 THEN     'transparent pasting
+  loadsprite placer(), 0, num * size, soff * (ptr - top), xw, yw, 3
+  FOR i = 0 TO size / 2
+   outword = placer(i)
+   lowestb = clip(i) AND &hF
+   IF lowestb THEN outword = (outword AND &hFFF0) OR lowestb
+   lowb = clip(i) AND &hF0
+   IF lowb THEN outword = (outword AND &hFF0F) OR lowb
+   highb = clip(i) AND &hF00
+   IF highb THEN outword = (outword AND &hF0FF) OR highb
+   highestb = clip(i) AND &hF000
+   IF highestb THEN outword = (outword AND &hFFF) OR highestb
+   placer(i) = outword
+  NEXT
+  stosprite placer(), 0, num * size, soff * (ptr - top), 3
+ END IF
  GOSUB choose
  textcolor 7, 0
  printstr "Palette" + STR$(offset), 320 - (LEN("Palette" + STR$(offset)) * 8), 0, dpage
