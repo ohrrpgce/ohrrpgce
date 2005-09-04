@@ -488,7 +488,8 @@ DO
    IF keyval(33) > 1 AND keyval(29) > 0 THEN
     FOR i = 0 TO 14
      FOR o = 0 TO 8
-      setmapblock INT(mapx / 20) + i, INT(mapy / 20) + o, pic
+      setmapblock mapx \ 20 + i, mapy \ 20 + o, pic
+      IF defpass THEN setpassblock mapx \ 20 + i, mapy \ 20 + o, defaults(pic)
      NEXT o
     NEXT i
     setmapdata map(), pass(), 20, 0

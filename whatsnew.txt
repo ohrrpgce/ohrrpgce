@@ -4,6 +4,9 @@ WHAT IS NEW?
 
   * Bug-Fixes
 
+    * Fixed bug 18: "In the map editor, CTRL+F doesn't use default
+      passability" [Ralph Versteegen]
+
     * Fixed bug 76: "Hitting two keys at the same time allows you to
       overflow text-entry fields" [James Paige]
 
