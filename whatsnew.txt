@@ -111,6 +111,9 @@ WHAT IS NEW?
        Copy a sprite normally, then paste it with Ctrl + T. Transparent
        (colour 0) areas will not get pasted [Ralph Versteegen]
 
+    *  Place tiles without overwriting passibility with the default by 
+       hitting Ctrl + D when tilemapping [Ralph Versteegen]
+
   * Stuff only Developers Will Notice
 
     * Plotscripting Dictionary Documentation is now in xml format instead

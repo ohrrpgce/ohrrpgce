@@ -458,6 +458,7 @@ FOR i = 0 TO 35
  loadset game$ + ".pt4" + CHR$(0), npcstat(i * 15 + 0), 5 * i
  getpal16 pal16(), i, npcstat(i * 15 + 1)
 NEXT i
+defpass = 1
 
 setkeys
 DO
@@ -495,9 +496,7 @@ DO
    IF keyval(41) > 1 THEN GOSUB minimap
    IF keyval(28) > 1 THEN GOSUB pickblock
    IF keyval(57) > 0 THEN
-    setmapdata pass(), pass(), 20, 0
-    setmapblock x, y, defaults(pic)
-    setmapdata map(), pass(), 20, 0
+    IF defpass THEN setpassblock x, y, defaults(pic)
     setmapblock x, y, pic
    END IF
    IF keyval(58) > 1 THEN 'grab tile
@@ -505,6 +504,7 @@ DO
     menu = small(pic, 145)
     by = INT(pic / 16): bx = pic - (by * 16)
    END IF
+   IF keyval(29) > 0 AND keyval(32) > 1 THEN defpass = defpass XOR 1   
    FOR i = 0 TO 1
     IF keyval(2 + i) > 1 THEN
      old = readmapblock(x, y)
@@ -733,6 +733,11 @@ DO
  setmapdata map(), pass(), 20, 0
  rectangle 300, 0, 20, 200, 0, dpage
  rectangle 0, 19, 320, 1, 15, dpage
+ IF editmode = 0 THEN
+  status$ = "Default Passibility "
+  IF defpass THEN status$ = status$ + "On" ELSE status$ = status$ + "Off"
+  printstr status$, 124, 192, dpage
+ END IF
  textcolor 15, 0
  printstr mode$(editmode), 0, 24, dpage
  IF editmode = 4 THEN textcolor 15, 1: printstr "Formation Set:" + STR$(foe), 0, 16, dpage
