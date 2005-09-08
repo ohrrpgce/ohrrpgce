@@ -5,7 +5,7 @@
 '
 COMMON SHARED /trueglobals/ game$, sourcerpg$, buffer(), master(), gen(), workingdir$, tag(), timing(), global(), carray(), csetup(), gotj(), joy(), veh(), hero(), vpage, dpage, pal16(), name$(), eqstuf(), item(), item$(), lmp(), bmenu(), spell(),  _
 exlev&(), gold&, herobits%(), itembits%(), fmvol, hmask(), version$, speedcontrol, deferpaint, tmpdir$, nativehbits(), catx(), caty(), catz(), catd(), herospeed(), xgo(), ygo(), npcl(), mapx, mapy, presentsong, keyv(), fadestate, foemaph, lockfile,  _
-lastsaveslot, plotstring$(), plotstrX(), plotstrY(), plotstrCol(), plotstrBGCol(), plotstrBits(), npcs(), wtog(), catermask(), zbuf(), framex, framey
+lastsaveslot, plotstring$(), plotstrX(), plotstrY(), plotstrCol(), plotstrBGCol(), plotstrBits(), npcs(), wtog(), catermask(), zbuf(), framex, framey, zbuf1()
 
 COMMON SHARED /assemblyglobals/ regs AS Regtype, off9, seg9
 

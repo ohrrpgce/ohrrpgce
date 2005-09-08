@@ -137,13 +137,13 @@ IF readbit(gen(), 101, 1) = 1 AND (veh(0) = 0 OR readbit(veh(), 9, 4) = 0) THEN
     j = o
    END IF
   NEXT o
-  zbuf(i) = j
+  zbuf1(i) = j
   setbit catermask(), 0, j, 1
  NEXT i
  FOR i = 0 TO 3
-  IF framewalkabout(catx(zbuf(i) * 5) + gmap(11), caty(zbuf(i) * 5), framex, framey, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
-   loadsprite buffer(), 0, 200 * ((catd(zbuf(i) * 5) * 2) + INT(wtog(zbuf(i)) / 2)), zbuf(i) * 5, 20, 20, 2
-   drawsprite buffer(), 0, pal16(), zbuf(i) * 16, framex, framey - catz(zbuf(i) * 5), dpage
+  IF framewalkabout(catx(zbuf1(i) * 5) + gmap(11), caty(zbuf1(i) * 5), framex, framey, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+   loadsprite buffer(), 0, 200 * ((catd(zbuf1(i) * 5) * 2) + INT(wtog(zbuf1(i)) / 2)), zbuf1(i) * 5, 20, 20, 2
+   drawsprite buffer(), 0, pal16(), zbuf1(i) * 16, framex, framey - catz(zbuf1(i) * 5), dpage
   END IF
  NEXT i
 ELSE
@@ -351,6 +351,14 @@ END IF
 
 END FUNCTION
 
+FUNCTION maplumpname$ (map, oldext$)
+ IF map < 100 THEN
+  maplumpname$ = game$ + "." + oldext$ + RIGHT$("0" + LTRIM$(STR$(map)), 2)
+ ELSE
+  maplumpname$ = workingdir$ + "\" + LTRIM$(STR$(map)) + "." + oldext$
+ END IF
+END FUNCTION
+
 SUB safekill (f$)
 IF isfile(f$ + CHR$(0)) THEN KILL f$
 END SUB
@@ -443,11 +451,3 @@ OPEN f$ FOR BINARY AS #fh
 CLOSE #fh
 
 END SUB
-
-FUNCTION maplumpname$(map, oldext$)
- IF map < 100 THEN
-  maplumpname$ = game$ + "." + oldext$ + RIGHT$("0" + LTRIM$(STR$(map)), 2)
- ELSE
-  maplumpname$ = workingdir$ + "\" + LTRIM$(STR$(map)) + "." + oldext$
- END IF
-END FUNCTION
