@@ -106,7 +106,7 @@ DECLARE FUNCTION readatkname$ (id%)
 DECLARE SUB getmapname (mapname$, m%)
 DECLARE SUB defaultc ()
 DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%(), gmap%())
-DECLARE FUNCTION maplumpname$(map, oldext$)
+DECLARE FUNCTION maplumpname$ (map, oldext$)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
@@ -120,6 +120,8 @@ DATA 150,650,150,650
 
 REM $STATIC
 SUB cathero
+
+DIM zsort(3)
 
 '--if riding a vehicle and not mounting and not hiding leader and not hiding party then exit
 IF veh(0) AND readbit(veh(), 6, 0) = 0 AND readbit(veh(), 6, 4) = 0 AND readbit(veh(), 6, 5) = 0 AND readbit(veh(), 9, 4) = 0 AND readbit(veh(), 9, 5) = 0 THEN EXIT SUB
@@ -137,13 +139,13 @@ IF readbit(gen(), 101, 1) = 1 AND (veh(0) = 0 OR readbit(veh(), 9, 4) = 0) THEN
     j = o
    END IF
   NEXT o
-  zbuf1(i) = j
+  zsort(i) = j
   setbit catermask(), 0, j, 1
  NEXT i
  FOR i = 0 TO 3
-  IF framewalkabout(catx(zbuf1(i) * 5) + gmap(11), caty(zbuf1(i) * 5), framex, framey, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
-   loadsprite buffer(), 0, 200 * ((catd(zbuf1(i) * 5) * 2) + INT(wtog(zbuf1(i)) / 2)), zbuf1(i) * 5, 20, 20, 2
-   drawsprite buffer(), 0, pal16(), zbuf1(i) * 16, framex, framey - catz(zbuf1(i) * 5), dpage
+  IF framewalkabout(catx(zsort(i) * 5) + gmap(11), caty(zsort(i) * 5), framex, framey, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+   loadsprite buffer(), 0, 200 * ((catd(zsort(i) * 5) * 2) + INT(wtog(zsort(i)) / 2)), zsort(i) * 5, 20, 20, 2
+   drawsprite buffer(), 0, pal16(), zsort(i) * 16, framex, framey - catz(zsort(i) * 5), dpage
   END IF
  NEXT i
 ELSE
@@ -451,3 +453,4 @@ OPEN f$ FOR BINARY AS #fh
 CLOSE #fh
 
 END SUB
+
