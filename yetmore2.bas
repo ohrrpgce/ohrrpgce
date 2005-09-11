@@ -27,7 +27,7 @@ DECLARE SUB fadein (force%)
 'basic subs and functions
 DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%)
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
-DECLARE SUB correctbackdrop (gmap%())
+DECLARE SUB correctbackdrop ()
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
@@ -57,7 +57,7 @@ DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
-DECLARE SUB minimap (scroll%(), mx%, my%, gmap%(), x%, y%, tastuf%())
+DECLARE SUB minimap (scroll%(), mx%, my%, x%, y%, tastuf%())
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
@@ -105,7 +105,7 @@ DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION readatkname$ (id%)
 DECLARE SUB getmapname (mapname$, m%)
 DECLARE SUB defaultc ()
-DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%(), gmap%())
+DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 
 '$INCLUDE: 'allmodex.bi'
@@ -171,7 +171,7 @@ ctrldata:
  
 END SUB
 
-SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap(), catd(), foep)
+SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
 IF veh(0) THEN
  '--clear vehicle on loading new map--
  IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) = 0 THEN
@@ -189,7 +189,7 @@ IF veh(0) THEN
  END IF
  IF veh(16) > 0 THEN
   say = veh(16)
-  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
+  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
  END IF
  IF veh(16) < 0 THEN
   rsr = runscript(ABS(veh(16)), nowscript + 1, -1, "dismount")

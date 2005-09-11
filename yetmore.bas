@@ -24,7 +24,7 @@ DECLARE SUB fadein (force%)
 'basic subs and functions
 DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%)
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
-DECLARE SUB correctbackdrop (gmap%())
+DECLARE SUB correctbackdrop ()
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
@@ -54,7 +54,7 @@ DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
-DECLARE SUB minimap (scroll%(), mx%, my%, gmap%(), x%, y%, tastuf%())
+DECLARE SUB minimap (scroll%(), mx%, my%, x%, y%, tastuf%())
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
@@ -539,7 +539,7 @@ CALL interruptx(&H21, regs, regs)
 
 END SUB
 
-SUB loadsay (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap())
+SUB loadsay (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh())
 DIM temp$
 
 loadsaybegin:
@@ -608,7 +608,7 @@ NEXT j
 '-- update backdrop if neccisary
 IF sayenh(4) > 0 THEN
  gen(58) = sayenh(4)
- correctbackdrop gmap()
+ correctbackdrop
 END IF
 '-- change music if neccisary
 IF sayenh(5) > 0 THEN wrappedsong sayenh(5) - 1
@@ -1413,9 +1413,9 @@ SELECT CASE id
  CASE 228'--system year
   scriptret = VAL(MID$(DATE$, 7, 4))
  CASE 229'--string compare
-  if retvals(0) >= 0 and retvals(0) <= 31 and retvals(1) >= 0 and retvals(1) <= 31 then
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
    scriptret = (plotstring$(retvals(0)) = plotstring$(retvals(1)))
-  end if
+  END IF
  CASE 230'--read enemy data
   f = FREEFILE
   OPEN game$ + ".dt1" FOR BINARY AS #f

@@ -32,8 +32,8 @@ DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%)
 DECLARE SUB safekill (f$)
 DECLARE SUB touchfile (f$)
 DECLARE FUNCTION checkfordeath (stat())
-DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%(), gmap%())
-DECLARE SUB correctbackdrop (gmap%())
+DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
+DECLARE SUB correctbackdrop ()
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
 DECLARE SUB aquiretempdir ()
 DECLARE FUNCTION isonscreen% (x%, y%)
@@ -106,8 +106,8 @@ DECLARE SUB heroswap (iAll%, stat%())
 DECLARE SUB patcharray (array%(), n$, max%)
 DECLARE SUB debug (s$)
 DECLARE SUB drawsay (saybit%(), sayenh%(), say$(), showsay%, choose$(), choosep%)
-DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, mx%, my%, scroll%(), gmap%(), tastuf%())
-DECLARE SUB minimap (scroll%(), mx%, my%, gmap%(), x%, y%, tastuf%())
+DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, mx%, my%, scroll%(), tastuf%())
+DECLARE SUB minimap (scroll%(), mx%, my%, x%, y%, tastuf%())
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB itstr (i%)
@@ -141,7 +141,7 @@ DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
-DECLARE SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap(), catd(), foep)
+DECLARE SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
 DECLARE SUB setusermenu (menu$(), mt%, mi%())
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 
@@ -482,7 +482,7 @@ DO
     npcplot
    CASE IS > 1
     say = tmp - 1
-    loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
+    loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
   END SELECT
  END IF
  IF showsay = 1 THEN
@@ -506,7 +506,7 @@ DO
     ygo(0) = 0
    END IF
   ELSE
-   IF keyval(59) > 1 AND showsay = 0 THEN minimap scroll(), mx, my, gmap(), catx(0), caty(0), tastuf()
+   IF keyval(59) > 1 AND showsay = 0 THEN minimap scroll(), mx, my, catx(0), caty(0), tastuf()
   END IF
   IF keyval(60) > 1 AND showsay = 0 THEN
    savegame 32, map, foep, stat(), stock()
@@ -753,7 +753,7 @@ DO
    IF say THEN
     '--player has used an item that calls a text box--
     IF say > 0 THEN
-     loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
+     loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
     END IF
     EXIT DO
    END IF
@@ -781,7 +781,7 @@ DO
     equip w, stat()
    END IF
   END IF
-  IF mi(ptr) = 2 THEN minimap scroll(), mx, my, gmap(), catx(0), caty(0), tastuf()
+  IF mi(ptr) = 2 THEN minimap scroll(), mx, my, catx(0), caty(0), tastuf()
   IF mi(ptr) = 8 THEN
    heroswap readbit(gen(), 101, 5), stat()
   END IF
@@ -905,7 +905,7 @@ IF sayer >= 0 THEN
   CASE 0
    sayer = -1
   CASE IS > 0
-   loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
+   loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
  END SELECT
  evalherotag stat()
  evalitemtag
@@ -920,7 +920,7 @@ nextsay:
 IF sayenh(4) > 0 THEN
  '--backdrop needs resetting
  gen(58) = 0
- correctbackdrop gmap()
+ correctbackdrop
 END IF
 '---IF MADE A CHOICE---
 IF readbit(saybit(), 0, 0) THEN
@@ -957,7 +957,7 @@ END IF
 IF istag(saytag(7), 0) THEN
  copypage vpage, 3
  IF saytag(8) > 0 THEN
-  shop saytag(8) - 1, needf, stock(), stat(), map, foep, mx, my, scroll(), gmap(), tastuf()
+  shop saytag(8) - 1, needf, stock(), stat(), map, foep, mx, my, scroll(), tastuf()
   GOSUB reloadnpc
  END IF
  inn = 0
@@ -993,7 +993,7 @@ IF istag(saytag(11), 0) THEN
   rsr = runscript(ABS(saytag(12)), nowscript + 1, -1, "textbox")
  ELSE
   say = saytag(12)
-  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
+  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
   RETURN
  END IF
 END IF
@@ -1010,7 +1010,7 @@ IF sayer >= 0 AND npcl(sayer + 600) > 0 THEN
 END IF
 IF sayenh(4) > 0 THEN
  gen(58) = 0
- correctbackdrop gmap()
+ correctbackdrop
 END IF
 FOR i = 0 TO 6
  sayenh(i) = 0
@@ -1460,7 +1460,7 @@ IF afterbat = 0 THEN
 END IF
 npcplot
 IF afterbat = 0 AND NOT samemap THEN
- forcedismount choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap(), catd(), foep
+ forcedismount choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
 END IF
 IF afterbat = 0 AND afterload = 0 THEN
  FOR i = 0 TO 15
@@ -1487,7 +1487,7 @@ GOSUB reloadnpc
 FOR i = 0 TO 35
  IF npcs(i * 15 + 3) = 3 THEN npcs(i * 15 + 3) = 10
 NEXT i
-correctbackdrop gmap()
+correctbackdrop
 SELECT CASE gmap(5) '--outer edge wrapping
  CASE 0, 1'--crop edges or wrap
   setoutside -1
@@ -1705,7 +1705,7 @@ END IF
 '--do spawned text boxes, battles, etc.
 IF wantbox > 0 THEN
  say = wantbox
- loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap()
+ loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
  wantbox = 0
 END IF
 IF wantdoor > 0 THEN
@@ -2031,12 +2031,12 @@ SELECT CASE scrat(nowscript, curkind)
     END IF
    CASE 32'--show backdrop
     gen(50) = bound(retvals(0) + 1, 0, gen(100))
-    correctbackdrop gmap()
+    correctbackdrop
    CASE 33'--show map
     gen(50) = 0
-    correctbackdrop gmap()
+    correctbackdrop
    CASE 34'--dismount vehicle
-    forcedismount choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), gmap(), catd(), foep
+    forcedismount choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
    CASE 35'--use NPC
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
@@ -2046,7 +2046,7 @@ SELECT CASE scrat(nowscript, curkind)
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 THEN
-     shop retvals(0), needf, stock(), stat(), map, foep, mx, my, scroll(), gmap(), tastuf()
+     shop retvals(0), needf, stock(), stat(), map, foep, mx, my, scroll(), tastuf()
      GOSUB reloadnpc
      vishero stat()
      loadpage game$ + ".til" + CHR$(0), gmap(0), 3
@@ -2233,7 +2233,7 @@ SELECT CASE scrat(nowscript, curkind)
      END IF
     END IF
    CASE 151'--show mini map
-    minimap scroll(), mx, my, gmap(), catx(0), caty(0), tastuf()
+    minimap scroll(), mx, my, catx(0), caty(0), tastuf()
    CASE 152'--spells menu
     IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
      IF hero(retvals(0)) > 0 THEN
@@ -2331,7 +2331,7 @@ KILL tmpdir$ + "filelist.tmp"
 
 END SUB
 
-SUB correctbackdrop (gmap())
+SUB correctbackdrop
 
 IF gen(58) THEN
  '--restore text box backdrop
