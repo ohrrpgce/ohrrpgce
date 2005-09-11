@@ -57,7 +57,7 @@ DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
-DECLARE SUB minimap (scroll%(), mx%, my%, x%, y%, tastuf%())
+DECLARE SUB minimap (mx%, my%, x%, y%, tastuf%())
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
@@ -215,6 +215,9 @@ FUNCTION framewalkabout (x, y, framex, framey, mapwide, maphigh, wrapmode)
 'to the position on screen where the walkabout should
 'be drawn (relative to the top-left corner of the screen,
 'not the top left corner of the map)
+
+setbit plotstrBits(), 0, 0, 1
+plotstring$(0) = STR$(mapwide) + STR$(maphigh) + STR$(x) + STR$(y)
 
 '--by default, assume we will not draw the walkaout
 yesdraw = 0

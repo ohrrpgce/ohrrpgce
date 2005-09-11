@@ -106,8 +106,8 @@ DECLARE SUB heroswap (iAll%, stat%())
 DECLARE SUB patcharray (array%(), n$, max%)
 DECLARE SUB debug (s$)
 DECLARE SUB drawsay (saybit%(), sayenh%(), say$(), showsay%, choose$(), choosep%)
-DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, mx%, my%, scroll%(), tastuf%())
-DECLARE SUB minimap (scroll%(), mx%, my%, x%, y%, tastuf%())
+DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, mx%, my%, tastuf%())
+DECLARE SUB minimap (mx%, my%, x%, y%, tastuf%())
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB itstr (i%)
@@ -506,7 +506,7 @@ DO
     ygo(0) = 0
    END IF
   ELSE
-   IF keyval(59) > 1 AND showsay = 0 THEN minimap scroll(), mx, my, catx(0), caty(0), tastuf()
+   IF keyval(59) > 1 AND showsay = 0 THEN minimap mx, my, catx(0), caty(0), tastuf()
   END IF
   IF keyval(60) > 1 AND showsay = 0 THEN
    savegame 32, map, foep, stat(), stock()
@@ -781,7 +781,7 @@ DO
     equip w, stat()
    END IF
   END IF
-  IF mi(ptr) = 2 THEN minimap scroll(), mx, my, catx(0), caty(0), tastuf()
+  IF mi(ptr) = 2 THEN minimap mx, my, catx(0), caty(0), tastuf()
   IF mi(ptr) = 8 THEN
    heroswap readbit(gen(), 101, 5), stat()
   END IF
@@ -957,7 +957,7 @@ END IF
 IF istag(saytag(7), 0) THEN
  copypage vpage, 3
  IF saytag(8) > 0 THEN
-  shop saytag(8) - 1, needf, stock(), stat(), map, foep, mx, my, scroll(), tastuf()
+  shop saytag(8) - 1, needf, stock(), stat(), map, foep, mx, my, tastuf()
   GOSUB reloadnpc
  END IF
  inn = 0
@@ -2046,7 +2046,7 @@ SELECT CASE scrat(nowscript, curkind)
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 THEN
-     shop retvals(0), needf, stock(), stat(), map, foep, mx, my, scroll(), tastuf()
+     shop retvals(0), needf, stock(), stat(), map, foep, mx, my, tastuf()
      GOSUB reloadnpc
      vishero stat()
      loadpage game$ + ".til" + CHR$(0), gmap(0), 3
@@ -2233,7 +2233,7 @@ SELECT CASE scrat(nowscript, curkind)
      END IF
     END IF
    CASE 151'--show mini map
-    minimap scroll(), mx, my, catx(0), caty(0), tastuf()
+    minimap mx, my, catx(0), caty(0), tastuf()
    CASE 152'--spells menu
     IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
      IF hero(retvals(0)) > 0 THEN

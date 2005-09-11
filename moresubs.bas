@@ -36,7 +36,7 @@ DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
-DECLARE SUB minimap (scroll%(), mx%, my%, x%, y%, tastuf%())
+DECLARE SUB minimap (mx%, my%, x%, y%, tastuf%())
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
@@ -1376,7 +1376,7 @@ IF a < min THEN a = a + ((max - min) + 1): loopvar = a: EXIT FUNCTION
 loopvar = a
 END FUNCTION
 
-SUB minimap (scroll(), mx, my, x, y, tastuf())
+SUB minimap (mx, my, x, y, tastuf())
 
 'loadpage game$ + ".til" + CHR$(0), gmap(0), 3
 centerfuz 160, 100, 304, 184, 1, vpage
@@ -2126,7 +2126,7 @@ END IF
 
 END FUNCTION
 
-SUB shop (id, needf, stock(), stat(), map, foep, mx, my, scroll(), tastuf())
+SUB shop (id, needf, stock(), stat(), map, foep, mx, my, tastuf())
 
 DIM storebuf(40), menu$(10), menuid(10)
 
@@ -2173,7 +2173,7 @@ DO
   END IF
   IF menuid(ptr) = 6 THEN '--MAP
    loadpage game$ + ".til" + CHR$(0), gmap(0), 3
-   minimap scroll(), mx, my, catx(0), caty(0), tastuf()
+   minimap mx, my, catx(0), caty(0), tastuf()
   END IF
   IF menuid(ptr) = 7 THEN '--TEAM
    heroswap 1, stat()
