@@ -114,8 +114,11 @@ WHAT IS NEW?
        Copy a sprite normally, then paste it with Ctrl + T. Transparent
        (colour 0) areas will not get pasted [Ralph Versteegen]
 
-    *  Place tiles without overwriting passibility with the default by 
+    *  Place tiles without overwriting passability with the default by 
        hitting Ctrl + D when tilemapping [Ralph Versteegen]
+
+    *  Attack bitset to ignore attacking hero's/enemy's Extra Hits
+       stat [Ralph Versteegen]
 
   * Stuff only Developers Will Notice
 

@@ -735,7 +735,7 @@ DO
  rectangle 300, 0, 20, 200, 0, dpage
  rectangle 0, 19, 320, 1, 15, dpage
  IF editmode = 0 THEN
-  status$ = "Default Passibility "
+  status$ = "Default Passability "
   IF defpass THEN status$ = status$ + "On" ELSE status$ = status$ + "Off"
   printstr status$, 124, 192, dpage
  END IF
