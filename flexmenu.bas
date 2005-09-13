@@ -145,10 +145,11 @@ FOR i = 0 TO 7
 NEXT i
 
 '37 to 51 are unused
-FOR i = 37 TO 49
+FOR i = 37 TO 48
  atkbit$(i) = "[placeholder " + LTRIM$(STR$(i)) + "]"
 NEXT i
 
+atkbit$(49) = "Ignore hero's extra hits"
 atkbit$(50) = "No Reward from target"
 atkbit$(51) = "Show damage without inflicting"
 atkbit$(52) = "Store Target"
@@ -532,7 +533,7 @@ menuoff(AtkDelay) = AtkDatDelay
 menulimits(AtkDelay) = AtkLimDelay
 
 CONST AtkHitX = 26
-menu$(AtkHitX) = "Extra Hits:"
+menu$(AtkHitX) = "Number of Hits:"
 menutype(AtkHitX) = 0
 menuoff(AtkHitX) = AtkDatHitX
 menulimits(AtkHitX) = AtkLimHitX

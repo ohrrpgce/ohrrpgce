@@ -492,10 +492,12 @@ IF who < 4 THEN
  p(24) = 52
  getpal16 pal16(), 52, exstat(who, 1, 13)
 END IF
+numhits = atk(17) + INT(RND * (stat(who, 0, 11) + 1))
+IF readbit(atk(), 20, 49) THEN numhits = atk(17)
 '----------------------------NULL ANIMATION
 IF atk(15) = 10 THEN
  IF who < 4 THEN advance who, atk(), x(), y(), w(), h(), t()
- FOR j = 1 TO atk(17) + INT(RND * (stat(who, 0, 11) + 1))
+ FOR j = 1 TO numhits
   IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
   IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
   FOR i = 0 TO tcount
@@ -521,7 +523,7 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
   END IF
  NEXT i
  IF who < 4 THEN advance who, atk(), x(), y(), w(), h(), t()
- FOR j = 1 TO atk(17) + INT(RND * (stat(who, 0, 11) + 1))
+ FOR j = 1 TO numhits
   IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
   IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
   FOR i = 0 TO tcount
@@ -588,7 +590,7 @@ END IF
 '----------------------------SEQUENTIAL PROJECTILE
 IF atk(15) = 7 THEN
  IF who < 4 THEN advance who, atk(), x(), y(), w(), h(), t()
- FOR j = 1 TO atk(17) + INT(RND * (stat(who, 0, 11) + 1))
+ FOR j = 1 TO numhits
   IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
   IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
   temp = 50: IF who < 4 THEN temp = -50
@@ -633,7 +635,7 @@ END IF
 '-----------------PROJECTILE, REVERSE PROJECTILE and METEOR
 IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
  IF who < 4 THEN advance who, atk(), x(), y(), w(), h(), t()
- FOR j = 1 TO atk(17) + INT(RND * (stat(who, 0, 11) + 1))
+ FOR j = 1 TO numhits
   FOR i = 0 TO tcount
    temp = 50: IF who < 4 THEN temp = -50
    dtemp = 0: IF readbit(atk(), 20, 3) = 0 THEN dtemp = pdir
@@ -704,7 +706,7 @@ END IF
 '--------------------------------------DRIVEBY
 IF atk(15) = 9 THEN
  IF who < 4 THEN advance who, atk(), x(), y(), w(), h(), t()
- FOR j = 1 TO atk(17) + INT(RND * (stat(who, 0, 11) + 1))
+ FOR j = 1 TO numhits
   dtemp = 0: IF readbit(atk(), 20, 3) = 0 THEN dtemp = pdir
   FOR i = 0 TO tcount
    yt = (h(t(who, i)) - 50) + 2
@@ -764,7 +766,7 @@ END IF
 IF atk(15) = 4 AND tcount = 0 THEN
  dtemp = 0: IF readbit(atk(), 20, 3) = 0 THEN dtemp = pdir
  IF who < 4 THEN advance who, atk(), x(), y(), w(), h(), t()
- FOR j = 1 TO atk(17) + INT(RND * (stat(who, 0, 11) + 1))
+ FOR j = 1 TO numhits
   i = 0
   yt = (h(t(who, i)) - 50) + 2
   xt = 0: IF t(who, i) = who AND who < 4 AND atk(14) <> 7 THEN xt = -20
@@ -819,7 +821,7 @@ END IF
 IF atk(15) = 5 THEN
  yt = y(t(who, 0)) + (h(t(who, 0)) - 50) + 2
  IF who < 4 THEN advance who, atk(), x(), y(), w(), h(), t()
- FOR j = 1 TO atk(17) + INT(RND * (stat(who, 0, 11) + 1))
+ FOR j = 1 TO numhits
   FOR i = 0 TO 11
    temp = -50: IF who < 4 THEN temp = 320
    IF tcount > 0 OR atk(4) = 1 THEN
