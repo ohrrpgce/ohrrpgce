@@ -1331,30 +1331,30 @@ IF version = 2 THEN gen(95) = 3
 
 IF picpalmagicnum <> 4444 THEN
  '--fix appearance settings
- FOR slot = 0 TO 40
-  IF hero(slot) > 0 THEN
+ FOR sl = 0 TO 40
+  IF hero(sl) > 0 THEN
    setpicstuf buffer(), 636, -1
-   loadset game$ + ".dt0" + CHR$(0), hero(slot) - 1, 0
-   stat(slot, 0, 14) = buffer(17)'bat pic
-   stat(slot, 0, 15) = buffer(18)'bat pal
-   stat(slot, 1, 14) = buffer(19)'walk pic
-   stat(slot, 1, 15) = buffer(20)'walk pal
-   stat(slot, 0, 16) = buffer(22) + 1'default weapon
+   loadset game$ + ".dt0" + CHR$(0), hero(sl) - 1, 0
+   stat(sl, 0, 14) = buffer(17)'bat pic
+   stat(sl, 0, 15) = buffer(18)'bat pal
+   stat(sl, 1, 14) = buffer(19)'walk pic
+   stat(sl, 1, 15) = buffer(20)'walk pal
+   stat(sl, 0, 16) = buffer(22) + 1'default weapon
   END IF
- NEXT slot
+ NEXT sl
 END IF
 
 IF nativebitmagicnum <> 4444 THEN
  '--fix native hero bits
- FOR slot = 0 TO 40
-  IF hero(slot) > 0 THEN
+ FOR sl = 0 TO 40
+  IF hero(sl) > 0 THEN
    setpicstuf buffer(), 636, -1
-   loadset game$ + ".dt0" + CHR$(0), hero(slot) - 1, 0
+   loadset game$ + ".dt0" + CHR$(0), hero(sl) - 1, 0
    FOR i = 0 TO 4
-    nativehbits(slot, i) = buffer(240 + i)
+    nativehbits(sl, i) = buffer(240 + i)
    NEXT i
   END IF
- NEXT slot
+ NEXT sl
 END IF
 
 'ALL THE STUFF THAT MUST BE SAVED
