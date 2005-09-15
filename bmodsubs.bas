@@ -651,7 +651,7 @@ END IF
 
 END SUB
 
-FUNCTION inflict (w, t, stat(), x(), y(), w(), h(), harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
+FUNCTION inflict (w, t, stat(), x(), y(), wid(), hei(), harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
 
 DIM tbits(4)
 
@@ -681,8 +681,8 @@ IF atk(5) <> 4 THEN
  harm$(t) = ""
  'harm$(w) = "" ' this is probably bad! What if they already have a harm$ and we wipe it out?
  hc(t) = 7
- hx(t) = x(t) + (w(t) * .5)
- hy(t) = y(t) + (h(t) * .5)
+ hx(t) = x(t) + (wid(t) * .5)
+ hy(t) = y(t) + (hei(t) * .5)
  targstat = atk(18)
  
  'accuracy
@@ -809,8 +809,8 @@ IF atk(5) <> 4 THEN
      END IF
      hc(w) = 7
      hc(w + 12) = 12 'pink
-     hx(w) = x(w) + (w(w) * .5)
-     hy(w) = y(w) + (h(w) * .5)
+     hx(w) = x(w) + (wid(w) * .5)
+     hy(w) = y(w) + (hei(w) * .5)
      stat(w, 0, targstat) = stat(w, 0, targstat) + h
     END IF
   END SELECT
