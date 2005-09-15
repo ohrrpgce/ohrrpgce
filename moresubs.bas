@@ -49,19 +49,19 @@ DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE FUNCTION consumeitem% (index%)
 DECLARE FUNCTION istag% (num%, zero%)
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
-DECLARE FUNCTION usemenu% (ptr%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu% (pt%, top%, first%, last%, size%)
 DECLARE SUB debug (s$)
 DECLARE FUNCTION browse$ (fmask$, needf%, bpage%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
 DECLARE FUNCTION pickload% ()
 DECLARE FUNCTION picksave% ()
-DECLARE SUB equip (ptr%, stat%())
+DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (ptr%, stat%())
-DECLARE SUB status (ptr%, stat%())
+DECLARE SUB spells (pt%, stat%())
+DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
@@ -603,8 +603,8 @@ DO
  END IF
  edgeprint "Calibrate Joystick", 88, 8, 15, dpage
  edgeprint state$, 160 - 4 * LEN(state$), 174, 14 + tog, dpage
- pos$ = "X=" + LTRIM$(STR$(joy(0))) + " Y=" + LTRIM$(STR$(joy(1)))
- edgeprint pos$, 160 - 4 * LEN(pos$), 184, 14 + tog, dpage
+ jpos$ = "X=" + LTRIM$(STR$(joy(0))) + " Y=" + LTRIM$(STR$(joy(1)))
+ edgeprint jpos$, 160 - 4 * LEN(jpos$), 184, 14 + tog, dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -635,7 +635,7 @@ NEXT o
 countitem = c
 END FUNCTION
 
-SUB cycletile (cycle(), tastuf(), ptr(), skip())
+SUB cycletile (cycle(), tastuf(), pt(), skip())
 
 FOR i = 0 TO 1
  IF NOT istag(tastuf(1 + 20 * i), 0) THEN
@@ -643,34 +643,34 @@ FOR i = 0 TO 1
   IF skip(i) = 0 THEN
    notstuck = 10
    DO
-    SELECT CASE tastuf(2 + 20 * i + ptr(i))
+    SELECT CASE tastuf(2 + 20 * i + pt(i))
      CASE 0
-      ptr(i) = 0
+      pt(i) = 0
       cycle(i) = 0
      CASE 1
-      cycle(i) = cycle(i) - tastuf(11 + 20 * i + ptr(i)) * 16
-      ptr(i) = loopvar(ptr(i), 0, 8, 1)
+      cycle(i) = cycle(i) - tastuf(11 + 20 * i + pt(i)) * 16
+      pt(i) = loopvar(pt(i), 0, 8, 1)
      CASE 2
-      cycle(i) = cycle(i) + tastuf(11 + 20 * i + ptr(i)) * 16
-      ptr(i) = loopvar(ptr(i), 0, 8, 1)
+      cycle(i) = cycle(i) + tastuf(11 + 20 * i + pt(i)) * 16
+      pt(i) = loopvar(pt(i), 0, 8, 1)
      CASE 3
-      cycle(i) = cycle(i) + tastuf(11 + 20 * i + ptr(i))
-      ptr(i) = loopvar(ptr(i), 0, 8, 1)
+      cycle(i) = cycle(i) + tastuf(11 + 20 * i + pt(i))
+      pt(i) = loopvar(pt(i), 0, 8, 1)
      CASE 4
-      cycle(i) = cycle(i) - tastuf(11 + 20 * i + ptr(i))
-      ptr(i) = loopvar(ptr(i), 0, 8, 1)
+      cycle(i) = cycle(i) - tastuf(11 + 20 * i + pt(i))
+      pt(i) = loopvar(pt(i), 0, 8, 1)
      CASE 5
-      skip(i) = tastuf(11 + 20 * i + ptr(i))
-      ptr(i) = loopvar(ptr(i), 0, 8, 1)
+      skip(i) = tastuf(11 + 20 * i + pt(i))
+      pt(i) = loopvar(pt(i), 0, 8, 1)
      CASE 6
-      IF istag(tastuf(11 + 20 * i + ptr(i)), 0) THEN
-       ptr(i) = loopvar(ptr(i), 0, 8, 1)
+      IF istag(tastuf(11 + 20 * i + pt(i)), 0) THEN
+       pt(i) = loopvar(pt(i), 0, 8, 1)
       ELSE
-       ptr(i) = 0
+       pt(i) = 0
        cycle(i) = 0
       END IF
      CASE ELSE
-      ptr(i) = loopvar(ptr(i), 0, 8, 1)
+      pt(i) = loopvar(pt(i), 0, 8, 1)
     END SELECT
     notstuck = large(notstuck - 1, 0)
    LOOP WHILE notstuck AND skip(i) = 0
@@ -2157,39 +2157,39 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF carray(0) > 1 THEN ptr = large(ptr - 1, 0)
- IF carray(1) > 1 THEN ptr = small(ptr + 1, last)
+ IF carray(0) > 1 THEN pt = large(pt - 1, 0)
+ IF carray(1) > 1 THEN pt = small(pt + 1, last)
  IF carray(5) > 1 THEN EXIT DO
  IF carray(4) > 1 OR autopick THEN
-  IF ptr = last THEN EXIT DO
-  IF menuid(ptr) = 0 THEN '--BUY
+  IF pt = last THEN EXIT DO
+  IF menuid(pt) = 0 THEN '--BUY
    buystuff id, 0, storebuf(), stock(), stat()
   END IF
-  IF menuid(ptr) = 1 THEN '--SELL
+  IF menuid(pt) = 1 THEN '--SELL
    sellstuff id, storebuf(), stock(), stat()
   END IF
-  IF menuid(ptr) = 2 THEN '--HIRE
+  IF menuid(pt) = 2 THEN '--HIRE
    buystuff id, 1, storebuf(), stock(), stat()
   END IF
-  IF menuid(ptr) = 6 THEN '--MAP
+  IF menuid(pt) = 6 THEN '--MAP
    loadpage game$ + ".til" + CHR$(0), gmap(0), 3
    minimap mx, my, catx(0), caty(0), tastuf()
   END IF
-  IF menuid(ptr) = 7 THEN '--TEAM
+  IF menuid(pt) = 7 THEN '--TEAM
    heroswap 1, stat()
   END IF
-  IF menuid(ptr) = 4 THEN '--EQUIP
+  IF menuid(pt) = 4 THEN '--EQUIP
    w = onwho(readglobalstring$(108, "Equip Who?", 20), 0)
    IF w >= 0 THEN
     equip w, stat()
    END IF
   END IF
-  IF menuid(ptr) = 5 THEN '--SAVE
+  IF menuid(pt) = 5 THEN '--SAVE
    temp = picksave
    IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
    vishero stat()
   END IF
-  IF menuid(ptr) = 3 THEN '--INN
+  IF menuid(pt) = 3 THEN '--INN
    inn = 0
    IF shoption(inn, storebuf(18), needf, stat()) THEN
     IF inn = 0 THEN
@@ -2216,7 +2216,7 @@ DO
  centerbox 160, 90, LEN(sn$) * 8 + 8, 16, 1, dpage
  edgeprint sn$, xstring(sn$, 160), 85, 15, dpage
  FOR i = 0 TO last
-  c = 7: IF ptr = i THEN c = 14 + tog
+  c = 7: IF pt = i THEN c = 14 + tog
   edgeprint menu$(i), xstring(menu$(i), 160), 109 + i * 10, c, dpage
  NEXT i
  SWAP vpage, dpage
@@ -2347,29 +2347,29 @@ END IF
 END SUB
 
 SUB tagdisplay
-STATIC ptr, top
+STATIC pt, top
 DIM buf(20)
 
-ptr = large(ptr, 0)
+pt = large(pt, 0)
 
 IF keyval(74) > 1 OR keyval(12) > 1 THEN
  '--minus
  IF keyval(29) > 0 THEN
-  setbit tag(), 0, ptr, 0
+  setbit tag(), 0, pt, 0
  ELSE
-  ptr = large(ptr - 1, 0)
+  pt = large(pt - 1, 0)
  END IF
 END IF
 IF keyval(78) > 1 OR keyval(13) > 1 THEN
  '--plus
  IF keyval(29) > 0 THEN
-  setbit tag(), 0, ptr, 1
+  setbit tag(), 0, pt, 1
  ELSE
-  ptr = small(ptr + 1, 1999)
+  pt = small(pt + 1, 1999)
  END IF
 END IF
 
-top = bound(top, ptr - 4, ptr)
+top = bound(top, pt - 4, pt)
 
 setpicstuf buf(), 42, -1
 fuzzyrect 0, 0, 208, 50, 240, dpage
@@ -2387,7 +2387,7 @@ FOR i = top TO top + 4
  END SELECT
  c = 8 + (-7 * istag(i, 0))
  edgeprint temp$, 8, (i - top) * 10, c, dpage
- IF i = ptr THEN edgeprint "->", 0, (i - top) * 10, 15, dpage
+ IF i = pt THEN edgeprint "->", 0, (i - top) * 10, 15, dpage
 NEXT i
 
 END SUB

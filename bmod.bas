@@ -36,7 +36,7 @@ DECLARE SUB readattackdata (array%(), index%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE SUB traceshow (s$)
-DECLARE SUB smartarrows (ptr%, d%, axis%(), targ%(), tmask%(), spred%)
+DECLARE SUB smartarrows (pt%, d%, axis%(), targ%(), tmask%(), spred%)
 DECLARE FUNCTION targetmaskcount% (tmask%())
 DECLARE SUB eaispread (j%, atkdat%(), t%(), stat%(), v%(), ebits%(), revenge%(), revengemask%(), targmem%())
 DECLARE SUB eaifocus (j%, atkdat%(), t%(), stat%(), v%(), ebits%(), revenge%(), revengemask%(), targmem%())
@@ -53,12 +53,12 @@ DECLARE SUB debug (s$)
 DECLARE SUB control ()
 DECLARE FUNCTION pickload% (svcsr%)
 DECLARE FUNCTION picksave% (svcsr%)
-DECLARE SUB equip (ptr%, stat%())
+DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (ptr%, stat%())
-DECLARE SUB status (ptr%, stat%())
+DECLARE SUB spells (pt%, stat%())
+DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
@@ -202,7 +202,7 @@ DO
   '--if it is no heros turn, check to see if anyone is alive and ready
   IF ready(yn) = 1 AND stat(yn, 0, 0) > 0 AND dead = 0 THEN
    you = yn
-   ptr = 0
+   pt = 0
    mset = 0
   END IF
  END IF
@@ -361,11 +361,11 @@ RETURN
 
 heromenu: '-----------------------------------------------------------------
 IF carray(5) > 1 THEN : yn = you: you = -1: RETURN
-IF carray(0) > 1 THEN ptr = ptr - 1: IF ptr < 0 THEN ptr = mend(you)
-IF carray(1) > 1 THEN ptr = ptr + 1: IF ptr > mend(you) THEN ptr = 0
+IF carray(0) > 1 THEN pt = pt - 1: IF pt < 0 THEN pt = mend(you)
+IF carray(1) > 1 THEN pt = pt + 1: IF pt > mend(you) THEN pt = 0
 IF carray(4) > 1 THEN
- IF bmenu(you, ptr) > 0 THEN 'simple attack
-  godo(you) = bmenu(you, ptr)
+ IF bmenu(you, pt) > 0 THEN 'simple attack
+  godo(you) = bmenu(you, pt)
   setpicstuf buffer(), 80, -1
   loadset game$ + ".dt6" + CHR$(0), godo(you) - 1, 0
   delay(you) = large(buffer(16), 1)
@@ -373,10 +373,10 @@ IF carray(4) > 1 THEN
   flusharray carray(), 7, 0
   RETURN
  END IF
- IF bmenu(you, ptr) < 0 AND bmenu(you, ptr) >= -4 AND st(you, 288 + (bmenu(you, ptr) + 1) * -1) < 2 THEN
+ IF bmenu(you, pt) < 0 AND bmenu(you, pt) >= -4 AND st(you, 288 + (bmenu(you, pt) + 1) * -1) < 2 THEN
   '--init spell menu
   mset = 1: sptr = 0
-  sptype = (bmenu(you, ptr) + 1) * -1 '-tells which menu
+  sptype = (bmenu(you, pt) + 1) * -1 '-tells which menu
   FOR i = 0 TO 23
    spel$(i) = ""
    cost$(i) = ""
@@ -402,9 +402,9 @@ IF carray(4) > 1 THEN
    spel$(i) = rpad$(spel$(i), " ", 10)
   NEXT i
  END IF
- IF bmenu(you, ptr) < 0 AND bmenu(you, ptr) >= -4 AND st(you, 288 + (bmenu(you, ptr) + 1) * -1) = 2 THEN
+ IF bmenu(you, pt) < 0 AND bmenu(you, pt) >= -4 AND st(you, 288 + (bmenu(you, pt) + 1) * -1) = 2 THEN
   last = -1
-  sptype = (bmenu(you, ptr) + 1) * -1
+  sptype = (bmenu(you, pt) + 1) * -1
   FOR i = 0 TO 23
    spel(i) = -1
    IF spell(you, sptype, i) > 0 THEN
@@ -428,7 +428,7 @@ IF carray(4) > 1 THEN
   flusharray carray(), 7, 0
   RETURN
  END IF
- IF bmenu(you, ptr) = -10 THEN mset = 2: iptr = 0: itop = 0
+ IF bmenu(you, pt) = -10 THEN mset = 2: iptr = 0: itop = 0
 END IF
 RETURN
 
@@ -1644,7 +1644,7 @@ IF vdance = 0 THEN 'only display interface till you win
   centerbox 268, 5 + (4 * (mend(you) + 2)), 88, 8 * (mend(you) + 2), 1, dpage
   FOR i = 0 TO mend(you)
    textcolor 7, 0
-   IF ptr = i THEN textcolor 14 + tog, 1
+   IF pt = i THEN textcolor 14 + tog, 1
    printstr menu$(you, i), 228, 9 + i * 8, dpage
   NEXT i
   IF mset = 1 THEN '--draw spell menu

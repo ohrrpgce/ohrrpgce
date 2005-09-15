@@ -95,7 +95,7 @@ DECLARE SUB evalherotag (stat%())
 DECLARE SUB tagdisplay ()
 DECLARE SUB rpgversion (v%)
 DECLARE FUNCTION browse$ (fmask$, needf%, bpage%)
-DECLARE SUB cycletile (cycle%(), tastuf%(), ptr%(), skip%())
+DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB loadtanim (n%, tastuf%())
 DECLARE SUB loaddoor (map%, door%())
 DECLARE SUB reinitnpc (remember%, map%)
@@ -116,13 +116,13 @@ DECLARE FUNCTION pickload% ()
 DECLARE FUNCTION picksave% ()
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock())
 DECLARE SUB loadgame (slot%, map%, foep%, stat%(), stock())
-DECLARE SUB equip (ptr%, stat%())
+DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
 DECLARE SUB delitem (it%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (ptr%, stat%())
-DECLARE SUB status (ptr%, stat%())
+DECLARE SUB spells (pt%, stat%())
+DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
@@ -728,7 +728,7 @@ IF gmap(3) = 0 THEN
  NEXT i
  IF o = 1 THEN mt = mt - 1
 END IF
-csr = 0: ptr = 0
+csr = 0: pt = 0
 setkeys
 DO
  setwait timing(), speedcontrol
@@ -740,15 +740,15 @@ DO
  IF carray(5) > 1 OR abortg = 1 THEN
   EXIT DO
  END IF
- IF carray(0) > 1 THEN ptr = loopvar(ptr, 0, mt, -1)
- IF carray(1) > 1 THEN ptr = loopvar(ptr, 0, mt, 1)
- IF mi(ptr) = 7 THEN
+ IF carray(0) > 1 THEN pt = loopvar(pt, 0, mt, -1)
+ IF carray(1) > 1 THEN pt = loopvar(pt, 0, mt, 1)
+ IF mi(pt) = 7 THEN
   '--volume control
   IF carray(2) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
   IF carray(3) > 1 THEN fmvol = small(fmvol + 1, 15): setfmvol fmvol
  END IF
  IF carray(4) > 1 THEN
-  IF mi(ptr) = 4 THEN
+  IF mi(pt) = 4 THEN
    say = items(stat())
    IF say THEN
     '--player has used an item that calls a text box--
@@ -758,34 +758,34 @@ DO
     EXIT DO
    END IF
   END IF
-  IF mi(ptr) = 1 THEN
+  IF mi(pt) = 1 THEN
    w = onwho(readglobalstring$(104, "Who's Status?", 20), 0)
    IF w >= 0 THEN
     status w, stat()
    END IF
   END IF
-  IF mi(ptr) = 3 THEN
+  IF mi(pt) = 3 THEN
    w = onwho(readglobalstring$(106, "Who's Spells?", 20), 0)
    IF w >= 0 THEN
     spells w, stat()
    END IF
   END IF
-  IF mi(ptr) = 6 THEN
+  IF mi(pt) = 6 THEN
    temp = picksave
    IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
    GOSUB reloadnpc
   END IF
-  IF mi(ptr) = 5 THEN
+  IF mi(pt) = 5 THEN
    w = onwho(readglobalstring$(108, "Equip Who?", 20), 0)
    IF w >= 0 THEN
     equip w, stat()
    END IF
   END IF
-  IF mi(ptr) = 2 THEN minimap mx, my, catx(0), caty(0), tastuf()
-  IF mi(ptr) = 8 THEN
+  IF mi(pt) = 2 THEN minimap mx, my, catx(0), caty(0), tastuf()
+  IF mi(pt) = 8 THEN
    heroswap readbit(gen(), 101, 5), stat()
   END IF
-  IF mi(ptr) = 0 THEN GOSUB verquit
+  IF mi(pt) = 0 THEN GOSUB verquit
   '---After all sub-menus are done, re-evaluate the hero/item tags
   '---that way if you revive a hero, kill a hero swap out... whatever
   evalherotag stat()
@@ -795,7 +795,7 @@ DO
  FOR i = 0 TO mt
   col = 7
   IF mi(i) = 7 AND fmvol THEN centerbox 160, 110 - ((mt + 2) * 10) * .5 + (i * 10), fmvol * 6, 10, 1, dpage
-  IF ptr = i THEN col = 14 + tog
+  IF pt = i THEN col = 14 + tog
   edgeprint menu$(mi(i)), xstring(menu$(mi(i)), 160), 106 - ((mt + 2) * 10) * .5 + (i * 10), col, dpage
  NEXT i
  SWAP vpage, dpage

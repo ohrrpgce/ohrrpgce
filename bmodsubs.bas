@@ -25,7 +25,7 @@ DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB readattackdata (array%(), index%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
-DECLARE SUB smartarrowmask (inrange%(), ptr%, d%, axis%(), tmask%())
+DECLARE SUB smartarrowmask (inrange%(), pt%, d%, axis%(), tmask%())
 DECLARE SUB debug (s$)
 DECLARE FUNCTION targetmaskcount% (tmask%())
 DECLARE FUNCTION randomally% (who%)
@@ -39,12 +39,12 @@ DECLARE SUB calibrate ()
 DECLARE SUB control ()
 DECLARE FUNCTION pickload% (svcsr%)
 DECLARE FUNCTION picksave% (svcsr%)
-DECLARE SUB equip (ptr%, stat%())
+DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (ptr%, stat%())
-DECLARE SUB status (ptr%, stat%())
+DECLARE SUB spells (pt%, stat%())
+DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
@@ -980,10 +980,10 @@ battlecaptime = captime
 battlecapdelay = capdelay
 END SUB
 
-SUB smartarrowmask (inrange(), ptr, d, axis(), tmask())
+SUB smartarrowmask (inrange(), pt, d, axis(), tmask())
 FOR i = 0 TO 11
  IF tmask(i) THEN
-  distance = (axis(i) - axis(ptr)) * d
+  distance = (axis(i) - axis(pt)) * d
   IF distance > 0 THEN
    setbit inrange(), 0, i, 1
   END IF
@@ -991,23 +991,23 @@ FOR i = 0 TO 11
 NEXT i
 END SUB
 
-SUB smartarrows (ptr, d, axis(), targ(), tmask(), spred)
+SUB smartarrows (pt, d, axis(), targ(), tmask(), spred)
 DIM inrange(0)
 inrange(0) = 0
-smartarrowmask inrange(), ptr, d, axis(), tmask()
+smartarrowmask inrange(), pt, d, axis(), tmask()
 IF inrange(0) THEN
  best = 999
- newptr = ptr
+ newptr = pt
  FOR i = 0 TO 11
   IF readbit(inrange(), 0, i) THEN
-   distance = (axis(i) - axis(ptr)) * d
+   distance = (axis(i) - axis(pt)) * d
    IF distance < best THEN
     best = distance
     newptr = i
    END IF
   END IF
  NEXT i
- ptr = newptr
+ pt = newptr
 ELSE
  IF spred = 1 THEN
   FOR i = 0 TO 11

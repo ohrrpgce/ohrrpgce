@@ -36,19 +36,19 @@ DECLARE SUB getmapname (mapname$, m%)
 DECLARE FUNCTION consumeitem% (index%)
 DECLARE SUB evalitemtag ()
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
-DECLARE FUNCTION usemenu% (ptr%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu% (pt%, top%, first%, last%, size%)
 DECLARE SUB debug (s$)
 DECLARE SUB intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB itstr (i%)
 DECLARE SUB control ()
 DECLARE FUNCTION pickload% ()
 DECLARE FUNCTION picksave% ()
-DECLARE SUB equip (ptr%, stat%())
+DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (ptr%, stat%())
-DECLARE SUB status (ptr%, stat%())
+DECLARE SUB spells (pt%, stat%())
+DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
@@ -116,9 +116,9 @@ GOSUB setstock
 GOSUB stufmask
 IF total = 0 THEN EXIT SUB
 
-ptr = 0: top = 0
-DO UNTIL readbit(vmask(), 0, ptr) = 0
- ptr = ptr + 1
+pt = 0: top = 0
+DO UNTIL readbit(vmask(), 0, pt) = 0
+ pt = pt + 1
 LOOP
 GOSUB curinfo
 
@@ -132,53 +132,53 @@ DO
  control
  IF carray(0) > 1 THEN
   DO
-   ptr = ptr - 1
-   IF ptr < 0 THEN
+   pt = pt - 1
+   IF pt < 0 THEN
     DO
-     ptr = ptr + 1
-    LOOP UNTIL readbit(vmask(), 0, ptr) = 0 OR ptr > storebuf(16)
+     pt = pt + 1
+    LOOP UNTIL readbit(vmask(), 0, pt) = 0 OR pt > storebuf(16)
     EXIT DO
    END IF
-  LOOP UNTIL readbit(vmask(), 0, ptr) = 0
-  top = small(ptr, top)
+  LOOP UNTIL readbit(vmask(), 0, pt) = 0
+  top = small(pt, top)
   GOSUB curinfo
  END IF
  IF carray(1) > 1 THEN
   DO
-   ptr = ptr + 1
-   IF ptr > storebuf(16) THEN
+   pt = pt + 1
+   IF pt > storebuf(16) THEN
     DO
-     ptr = ptr - 1
-    LOOP UNTIL readbit(vmask(), 0, ptr) = 0 OR ptr < 0
+     pt = pt - 1
+    LOOP UNTIL readbit(vmask(), 0, pt) = 0 OR pt < 0
     EXIT DO
    END IF
-  LOOP UNTIL readbit(vmask(), 0, ptr) = 0
+  LOOP UNTIL readbit(vmask(), 0, pt) = 0
   GOSUB curinfo
  END IF
  IF carray(5) > 1 THEN EXIT DO
  IF carray(4) > 1 THEN '---PRESS ENTER---------------------
-  IF readbit(emask(), 0, ptr) = 0 THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
-   IF stock(id, ptr) > 1 THEN stock(id, ptr) = stock(id, ptr) - 1
-   IF b(ptr * 32 + 22) THEN setbit tag(), 0, ABS(b(ptr * 32 + 22)), SGN(SGN(b(ptr * 32 + 22)) + 1)
-   gold& = gold& - b(ptr * 32 + 24)
-   IF b(ptr * 32 + 25) > 0 THEN '---TRADE IN ITEM----------
-    delitem b(ptr * 32 + 25)
+  IF readbit(emask(), 0, pt) = 0 THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
+   IF stock(id, pt) > 1 THEN stock(id, pt) = stock(id, pt) - 1
+   IF b(pt * 32 + 22) THEN setbit tag(), 0, ABS(b(pt * 32 + 22)), SGN(SGN(b(pt * 32 + 22)) + 1)
+   gold& = gold& - b(pt * 32 + 24)
+   IF b(pt * 32 + 25) > 0 THEN '---TRADE IN ITEM----------
+    delitem b(pt * 32 + 25)
    END IF '-------END TRADE IN ITEM----------------------------
-   IF b(ptr * 32 + 17) = 0 THEN '---BUY ITEM-------------------
-    getitem b(ptr * 32 + 18) + 1
+   IF b(pt * 32 + 17) = 0 THEN '---BUY ITEM-------------------
+    getitem b(pt * 32 + 18) + 1
     acol = 4
     alert = 10
-    alert$ = purchased$ + " " + stuf$(ptr)
+    alert$ = purchased$ + " " + stuf$(pt)
    END IF '-------END IF ITEM-------------------------------------
-   IF b(ptr * 32 + 17) = 1 THEN '---HIRE HERO------------------
-    'getitem b(ptr * 32 + 18) + 1
+   IF b(pt * 32 + 17) = 1 THEN '---HIRE HERO------------------
+    'getitem b(pt * 32 + 18) + 1
     FOR i = 37 TO 0 STEP -1
      IF hero(i) = 0 THEN slot = i
     NEXT i
-    addhero b(ptr * 32 + 18) + 1, slot, stat()
+    addhero b(pt * 32 + 18) + 1, slot, stat()
     acol = 4
     alert = 10
-    alert$ = stuf$(ptr) + " " + joined$
+    alert$ = stuf$(pt) + " " + joined$
    END IF '-------END IF HERO-------------------------------------
    'the last thing to do is re-eval the item and hero tags in case
    'stuff changed
@@ -187,16 +187,16 @@ DO
   ELSE ' WHEN CANNOT AFFORD------------------------------------
    acol = 3
    alert = 10
-   alert$ = buytype$(1, shoptype) + stuf$(ptr)
+   alert$ = buytype$(1, shoptype) + stuf$(pt)
   END IF '--------END BUY THING------------
   GOSUB stufmask
-  DO WHILE readbit(vmask(), 0, ptr) = 1
-   ptr = ptr - 1
-   IF ptr < 0 THEN
-    ptr = 0
-    DO WHILE readbit(vmask(), 0, ptr) = 1
-     ptr = ptr + 1
-     IF ptr > storebuf(16) THEN EXIT SUB
+  DO WHILE readbit(vmask(), 0, pt) = 1
+   pt = pt - 1
+   IF pt < 0 THEN
+    pt = 0
+    DO WHILE readbit(vmask(), 0, pt) = 1
+     pt = pt + 1
+     IF pt > storebuf(16) THEN EXIT SUB
     LOOP
     EXIT DO
    END IF
@@ -210,12 +210,12 @@ DO
  centerbox 240, 20, LEN(STR$(gold&) + " " + sname$(32)) * 8 + 8, 12, 4, dpage
  edgeprint STR$(gold&) + " " + sname$(32), xstring(STR$(gold&) + " " + sname$(32) + " ", 240), 15, 15, dpage
  o = 0
- edgeprint stuf$(ptr), xstring(stuf$(ptr), 240), 30 + o * 10, 7, dpage: o = o + 1
+ edgeprint stuf$(pt), xstring(stuf$(pt), 240), 30 + o * 10, 7, dpage: o = o + 1
  IF info1$ <> "" THEN edgeprint info1$, xstring(info1$, 240), 30 + o * 10, 8, dpage: o = o + 1
  IF info2$ <> "" THEN edgeprint info2$, xstring(info2$, 240), 30 + o * 10, 8, dpage: o = o + 1
  IF eqinfo$ <> "" THEN edgeprint eqinfo$, xstring(eqinfo$, 240), 30 + o * 10, 7, dpage: o = o + 1
- IF stock(id, ptr) > 1 THEN
-  edgeprint STR$(stock(id, ptr) - 1) + " " + instock$ + " ", xstring(STR$(stock(id, ptr) - 1) + " in stock ", 240), 30 + o * 10, 7, dpage: o = o + 1
+ IF stock(id, pt) > 1 THEN
+  edgeprint STR$(stock(id, pt) - 1) + " " + instock$ + " ", xstring(STR$(stock(id, pt) - 1) + " in stock ", 240), 30 + o * 10, 7, dpage: o = o + 1
  END IF
  IF showhero > -1 THEN
   centerbox 240, 130, 36, 44, 4, dpage
@@ -226,12 +226,12 @@ DO
  o = 0
  FOR i = top TO storebuf(16)
   IF readbit(vmask(), 0, i) = 0 THEN
-   c = 7: IF ptr = i THEN c = 14 + tog
-   IF readbit(emask(), 0, i) THEN c = 8: IF ptr = i THEN c = 7 + tog
+   c = 7: IF pt = i THEN c = 14 + tog
+   IF readbit(emask(), 0, i) THEN c = 8: IF pt = i THEN c = 7 + tog
    edgeprint stuf$(i), 10, 15 + o * 10, c, dpage
    o = o + 1
    IF o > 14 THEN
-    IF ptr > i THEN
+    IF pt > i THEN
      DO
       top = top + 1
      LOOP UNTIL readbit(vmask(), 0, top) = 0
@@ -265,23 +265,23 @@ price$ = ""
 eqinfo$ = ""
 info1$ = ""
 info2$ = ""
-IF b(ptr * 32 + 24) > 0 THEN price$ = RIGHT$(STR$(b(ptr * 32 + 24)), LEN(STR$(b(ptr * 32 + 24))) - 1) + " " + sname$(32)
-IF b(ptr * 32 + 25) > 0 THEN
+IF b(pt * 32 + 24) > 0 THEN price$ = RIGHT$(STR$(b(pt * 32 + 24)), LEN(STR$(b(pt * 32 + 24))) - 1) + " " + sname$(32)
+IF b(pt * 32 + 25) > 0 THEN
  IF price$ = "" THEN
   price$ = buytype$(0, shoptype)
  ELSE
   price$ = price$ + " " + anda$
  END IF
- price$ = price$ + readitemname$(b(ptr * 32 + 25) - 1)
+ price$ = price$ + readitemname$(b(pt * 32 + 25) - 1)
  'setpicstuf buffer(), 200, -1
- 'loadset game$ + ".itm" + CHR$(0), b(ptr * 32 + 25) - 1, 0
+ 'loadset game$ + ".itm" + CHR$(0), b(pt * 32 + 25) - 1, 0
  'FOR o = 1 TO buffer(0)
  ' price$ = price$ + CHR$(small(large(buffer(o), 0), 255))
  'NEXT o
 END IF
-IF b(ptr * 32 + 17) = 0 THEN
+IF b(pt * 32 + 17) = 0 THEN
  setpicstuf buffer(), 200, -1
- loadset game$ + ".itm" + CHR$(0), b(ptr * 32 + 18), 0
+ loadset game$ + ".itm" + CHR$(0), b(pt * 32 + 18), 0
  IF buffer(49) = 1 THEN eqinfo$ = eqprefix$ + " " + wepslot$
  IF buffer(49) > 1 THEN eqinfo$ = eqprefix$ + " " + sname$(23 + buffer(49))
  info1$ = readbadbinstring$(buffer(), 9, 40, 0)
@@ -300,10 +300,10 @@ IF b(ptr * 32 + 17) = 0 THEN
   info1$ = LEFT$(info1$, 18)
  END IF
 END IF
-IF b(ptr * 32 + 17) = 1 THEN
+IF b(pt * 32 + 17) = 1 THEN
  'hire
  setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0" + CHR$(0), b(ptr * 32 + 18), 0
+ loadset game$ + ".dt0" + CHR$(0), b(pt * 32 + 18), 0
  setpicstuf wbuf(), 200, -1
  loadset game$ + ".itm" + CHR$(0), buffer(22), 0
  IF buffer(21) < 0 THEN buffer(21) = averagelev(stat())
@@ -418,7 +418,7 @@ END IF
 
 END SUB
 
-SUB equip (ptr, stat())
+SUB equip (pt, stat())
 
 '--dim stuff
 DIM sname$(40), sno(11), eq(199), toff(4), tlim(4), m$(4), menu$(6), stb(11)
@@ -471,14 +471,14 @@ DO
  IF mset = 0 THEN
   '--primary menu
   IF carray(5) > 1 THEN loadtemppage 3: FOR t = 4 TO 5: carray(t) = 0: NEXT t: EXIT SUB
-  IF carray(2) > 1 THEN DO: ptr = loopvar(ptr, 0, 3, -1): LOOP UNTIL hero(ptr) > 0: GOSUB setupeq
-  IF carray(3) > 1 THEN DO: ptr = loopvar(ptr, 0, 3, 1): LOOP UNTIL hero(ptr) > 0: GOSUB setupeq
+  IF carray(2) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: GOSUB setupeq
+  IF carray(3) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: GOSUB setupeq
   IF carray(0) > 1 THEN csr = csr - 1: IF csr < 0 THEN csr = 6
   IF carray(1) > 1 THEN csr = csr + 1: IF csr > 6 THEN csr = 0
   IF carray(4) > 1 THEN
    IF csr < 5 THEN
     '--change equipment
-    IF tlim(csr) >= 0 OR eqstuf(ptr, csr) > 0 THEN
+    IF tlim(csr) >= 0 OR eqstuf(pt, csr) > 0 THEN
      '--switch to change equipment mode
      mset = 1
      top = toff(csr)
@@ -491,7 +491,7 @@ DO
    IF csr = 5 THEN
     '--unequip all
     FOR csr = 0 TO 4
-     unequip ptr, csr, dw, stat(), 1
+     unequip pt, csr, dw, stat(), 1
     NEXT csr
     GOSUB setupeq
     csr = 5
@@ -508,7 +508,7 @@ DO
   IF carray(4) > 1 THEN
    IF csr2 = toff(csr) + tlim(csr) + 1 THEN
     '--unequip
-    unequip ptr, csr, dw, stat(), 1
+    unequip pt, csr, dw, stat(), 1
     GOSUB EquBacktomenuSub
    ELSE
     '--normal equip
@@ -519,13 +519,13 @@ DO
  END IF
  
  '--display
- edgeprint names$(ptr), 84 - LEN(names$(ptr)) * 4, 12, 15, dpage
+ edgeprint names$(pt), 84 - LEN(names$(pt)) * 4, 12, 15, dpage
  FOR i = 0 TO 11
   edgeprint sname$(sno(i)), 20, 42 + i * 10, 7, dpage
   col = 7
   IF stb(i) < 0 THEN col = 8
   IF stb(i) > 0 THEN col = 14 + tog
-  temp$ = STR$(stat(ptr, 1, i) + stb(i))
+  temp$ = STR$(stat(pt, 1, i) + stb(i))
   edgeprint temp$, 148 - LEN(temp$) * 8, 42 + i * 10, col, dpage
  NEXT i
  IF mset = 0 THEN
@@ -533,7 +533,7 @@ DO
   FOR i = 0 TO 6
    textcolor 7, 1
    IF i < 5 THEN
-    IF eqstuf(ptr, i) = 0 AND tlim(i) < 0 THEN textcolor 7, 18
+    IF eqstuf(pt, i) = 0 AND tlim(i) < 0 THEN textcolor 7, 18
    END IF
    IF csr = i THEN
     textcolor 14 + tog, 1 + tog
@@ -607,8 +607,8 @@ ELSE
  NEXT i
 END IF
 
-IF eqstuf(ptr, csr) > 0 THEN
- loadset game$ + ".itm" + CHR$(0), eqstuf(ptr, csr) - 1, 0
+IF eqstuf(pt, csr) > 0 THEN
+ loadset game$ + ".itm" + CHR$(0), eqstuf(pt, csr) - 1, 0
  FOR i = 0 TO 11
   stb(i) = stb(i) - buffer(54 + i)
  NEXT i
@@ -617,8 +617,8 @@ END IF
 RETURN
 
 newequip:
-unequip ptr, csr, dw, stat(), 0
-doequip ie, ptr, csr, dw, stat()
+unequip pt, csr, dw, stat(), 0
+doequip ie, pt, csr, dw, stat()
 GOSUB EquBacktomenuSub
 RETURN
 
@@ -632,15 +632,15 @@ RETURN
 
 setupeq:
 'setpicstuf buffer(), 636, -1
-'loadset game$ + ".dt0" + CHR$(0), hero(ptr) - 1, 0
-dw = stat(ptr, 0, 16)
+'loadset game$ + ".dt0" + CHR$(0), hero(pt) - 1, 0
+dw = stat(pt, 0, 16)
 dw$ = rpad(readitemname$(dw - 1), " ", 11)
 
 setpicstuf buffer(), 200, -1
 FOR i = 0 TO 4
  menu$(i) = "        "
- IF eqstuf(ptr, i) > 0 THEN
-  menu$(i) = rpad$(readitemname$(eqstuf(ptr, i) - 1), " ", 8)
+ IF eqstuf(pt, i) > 0 THEN
+  menu$(i) = rpad$(readitemname$(eqstuf(pt, i) - 1), " ", 8)
  END IF
 NEXT i
 o = 0
@@ -652,7 +652,7 @@ FOR i = 0 TO 197
   loadset game$ + ".itm" + CHR$(0), lb - 1, 0
   IF buffer(49) > 0 THEN
    '--if this item is equipable
-   IF readbit(buffer(), 66, hero(ptr) - 1) THEN
+   IF readbit(buffer(), 66, hero(pt) - 1) THEN
     '--if this item is equipable by this hero
     'eq low is item number
     'eq high is equip slot
@@ -1211,18 +1211,18 @@ DO
  IF keyval(1) > 1 THEN EXIT SUB
  IF keyval(72) > 1 THEN csr = large(0, csr - 1)
  IF keyval(80) > 1 THEN csr = small(2, csr + 1)
- IF csr = 0 THEN intgrabber ptr, 0, max, 75, 77
- IF csr = 1 THEN intgrabber array(ptr), -32768, 32767, 75, 77
+ IF csr = 0 THEN intgrabber pt, 0, max, 75, 77
+ IF csr = 1 THEN intgrabber array(pt), -32768, 32767, 75, 77
  IF csr = 2 THEN
   FOR i = 0 TO 15
-   IF keyval(hexk(i)) > 1 THEN setbit array(), ptr, i, readbit(array(), ptr, i) XOR 1
+   IF keyval(hexk(i)) > 1 THEN setbit array(), pt, i, readbit(array(), pt, i) XOR 1
   NEXT i
  END IF
- num$(0) = n$ + "(" + RIGHT$(STR$(ptr), LEN(STR$(ptr)) - 1) + ")"
- num$(1) = "value =" + STR$(array(ptr))
+ num$(0) = n$ + "(" + RIGHT$(STR$(pt), LEN(STR$(pt)) - 1) + ")"
+ num$(1) = "value =" + STR$(array(pt))
  num$(2) = ""
  FOR i = 0 TO 15
-  IF readbit(array(), ptr, i) THEN
+  IF readbit(array(), pt, i) THEN
    num$(2) = num$(2) + "1"
   ELSE
    num$(2) = num$(2) + "0"
@@ -1790,7 +1790,7 @@ RETURN
 
 END SUB
 
-SUB spells (ptr, stat())
+SUB spells (pt, stat())
 DIM sname$(40), menu$(4), mi(4), mtype(5), spel$(24), cost$(24), spel(24), canuse(24), targt(24), spid(5), ondead(2), onlive(2)
 getnames sname$()
 
@@ -1837,8 +1837,8 @@ DO
   IF csr = i THEN textcolor 14 + tog, 2: IF mset = 1 THEN textcolor 7, 2
   printstr menu$(i), 21, 25 + i * 10, dpage
  NEXT i
- IF last = 0 THEN edgeprint names$(ptr) + " " + hasnone$, xstring(names$(ptr) + " " + hasnone$, 160), 120, 15, dpage
- edgeprint names$(ptr), xstring(names$(ptr), 206), 31, 15, dpage
+ IF last = 0 THEN edgeprint names$(pt) + " " + hasnone$, xstring(names$(pt) + " " + hasnone$, 160), 120, 15, dpage
+ edgeprint names$(pt), xstring(names$(pt), 206), 31, 15, dpage
  IF pick = 1 THEN
   centerbox 196, 47, 160, 88, 2, dpage
   IF spred = 0 THEN rectangle 120, 8 + wptr * 20, 152, 20, 2, dpage ELSE rectangle 120, 8, 152, 80, 2 * tog, dpage
@@ -1865,8 +1865,8 @@ curspellist:
 IF mtype(csr) < 0 THEN RETURN
 FOR i = 0 TO 23
  spel$(i) = "": cost$(i) = "": spel(i) = -1: canuse(i) = 0: targt(i) = 0
- IF spell(ptr, spid(csr), i) > 0 THEN
-  spel(i) = spell(ptr, spid(csr), i) - 1
+ IF spell(pt, spid(csr), i) > 0 THEN
+  spel(i) = spell(pt, spid(csr), i) - 1
   setpicstuf buffer(), 80, -1
   loadset game$ + ".dt6" + CHR$(0), spel(i), 0
   IF readbit(buffer(), 20, 59) = 1 AND buffer(3) > 0 THEN
@@ -1877,13 +1877,13 @@ FOR i = 0 TO 23
    IF buffer(3) = 4 OR buffer(3) = 10 THEN setbit ondead(), 0, i, 1
    IF buffer(3) = 10 THEN setbit onlive(), 0, i, 0
   END IF
-  cost = focuscost(buffer(8), stat(ptr, 0, 10))
-  IF mtype(csr) = 0 AND stat(ptr, 0, 1) < cost THEN canuse(i) = 0
-  IF mtype(csr) = 1 AND lmp(ptr, INT(i / 3)) = 0 THEN canuse(i) = 0
-  IF stat(ptr, 0, 0) = 0 THEN canuse(i) = 0
+  cost = focuscost(buffer(8), stat(pt, 0, 10))
+  IF mtype(csr) = 0 AND stat(pt, 0, 1) < cost THEN canuse(i) = 0
+  IF mtype(csr) = 1 AND lmp(pt, INT(i / 3)) = 0 THEN canuse(i) = 0
+  IF stat(pt, 0, 0) = 0 THEN canuse(i) = 0
   spel$(i) = readbadbinstring$(buffer(), 24, 10, 1)
-  IF mtype(csr) = 0 THEN cost$(i) = STR$(cost) + " " + sname$(1) + " " + RIGHT$(STR$(stat(ptr, 0, 1)), LEN(STR$(stat(ptr, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(ptr, 1, 1)), LEN(STR$(stat(ptr, 1, 1))) - 1)
-  IF mtype(csr) = 1 THEN cost$(i) = readglobalstring$(43, "Level", 10) + STR$(INT(i / 3) + 1) + ":  " + STR$(lmp(ptr, INT(i / 3)))
+  IF mtype(csr) = 0 THEN cost$(i) = STR$(cost) + " " + sname$(1) + " " + RIGHT$(STR$(stat(pt, 0, 1)), LEN(STR$(stat(pt, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(pt, 1, 1)), LEN(STR$(stat(pt, 1, 1))) - 1)
+  IF mtype(csr) = 1 THEN cost$(i) = readglobalstring$(43, "Level", 10) + STR$(INT(i / 3) + 1) + ":  " + STR$(lmp(pt, INT(i / 3)))
  END IF
  WHILE LEN(spel$(i)) < 10: spel$(i) = spel$(i) + " ": WEND
 NEXT i
@@ -1896,11 +1896,11 @@ FOR i = 0 TO 5
  mtype(i) = -1
  '--load hero data
  setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0" + CHR$(0), hero(ptr) - 1, 0
+ loadset game$ + ".dt0" + CHR$(0), hero(pt) - 1, 0
  '--if it is a menu...
- IF bmenu(ptr, i) < 0 AND bmenu(ptr, i) > -10 THEN
+ IF bmenu(pt, i) < 0 AND bmenu(pt, i) > -10 THEN
   '--set spell-menu-id and menu-type
-  spid(i) = (bmenu(ptr, i) + 1) * -1
+  spid(i) = (bmenu(pt, i) + 1) * -1
   mtype(i) = buffer(288 + spid(i))
  END IF
 NEXT i
@@ -1913,10 +1913,10 @@ FOR o = 0 TO 5
   
   '--load herodata
   setpicstuf buffer(), 636, -1
-  loadset game$ + ".dt0" + CHR$(0), hero(ptr) - 1, 0
+  loadset game$ + ".dt0" + CHR$(0), hero(pt) - 1, 0
   
   '--get menu index
-  mi(last) = (bmenu(ptr, o) + 1) * -1
+  mi(last) = (bmenu(pt, o) + 1) * -1
   
   '--read menu name
   menu$(last) = readbadbinstring$(buffer(), 243 + mi(last) * 11, 10, 0)
@@ -1952,8 +1952,8 @@ IF pick = 0 THEN
    loadtemppage 3
    EXIT SUB
   END IF
-  IF carray(2) > 1 THEN DO: ptr = loopvar(ptr, 0, 3, -1): LOOP UNTIL hero(ptr) > 0: GOSUB splname
-  IF carray(3) > 1 THEN DO: ptr = loopvar(ptr, 0, 3, 1): LOOP UNTIL hero(ptr) > 0: GOSUB splname
+  IF carray(2) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: GOSUB splname
+  IF carray(3) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: GOSUB splname
   IF carray(0) > 1 THEN csr = large(csr - 1, 0): GOSUB curspellist
   IF carray(1) > 1 THEN csr = small(csr + 1, last): GOSUB curspellist
   IF carray(4) > 1 THEN
@@ -1979,7 +1979,7 @@ IF pick = 0 THEN
    IF sptr = 24 THEN mset = 0
    IF canuse(sptr) > 0 THEN
     '--spell that can be used oob
-    wptr = ptr
+    wptr = pt
     pick = 1
     spred = 0
     IF targt(sptr) = 1 AND canuse(sptr) <> 2 THEN
@@ -2019,21 +2019,21 @@ ELSE
   IF mtype(csr) = 0 THEN
    setpicstuf buffer(), 80, -1
    loadset game$ + ".dt6" + CHR$(0), spel(sptr), 0
-   cost = focuscost(buffer(8), stat(ptr, 0, 10))
-   IF cost > stat(ptr, 0, 1) THEN pick = 0: RETURN
-   stat(ptr, 0, 1) = small(large(stat(ptr, 0, 1) - cost, 0), stat(ptr, 1, 1))
+   cost = focuscost(buffer(8), stat(pt, 0, 10))
+   IF cost > stat(pt, 0, 1) THEN pick = 0: RETURN
+   stat(pt, 0, 1) = small(large(stat(pt, 0, 1) - cost, 0), stat(pt, 1, 1))
   END IF
   IF mtype(csr) = 1 THEN
-   IF lmp(ptr, INT(sptr / 3)) = 0 THEN pick = 0: RETURN
-   lmp(ptr, INT(sptr / 3)) = lmp(ptr, INT(sptr / 3)) - 1
+   IF lmp(pt, INT(sptr / 3)) = 0 THEN pick = 0: RETURN
+   lmp(pt, INT(sptr / 3)) = lmp(pt, INT(sptr / 3)) - 1
   END IF
   'DO ACTUAL EFFECT
   IF spred = 0 THEN
-   IF chkOOBtarg(wptr, sptr, stat(), ondead(), onlive()) THEN oobcure ptr, wptr, spel(sptr), spred, stat()
+   IF chkOOBtarg(wptr, sptr, stat(), ondead(), onlive()) THEN oobcure pt, wptr, spel(sptr), spred, stat()
   ELSE
    FOR i = 0 TO 3
-    'IF hero(i) > 0 AND (stat(i, 0, 0) > 0 OR readbit(ondead(), 0, sptr)) THEN oobcure ptr, i, spel(sptr), spred, stat()
-    IF chkOOBtarg(i, sptr, stat(), ondead(), onlive()) THEN oobcure ptr, i, spel(sptr), spred, stat()
+    'IF hero(i) > 0 AND (stat(i, 0, 0) > 0 OR readbit(ondead(), 0, sptr)) THEN oobcure pt, i, spel(sptr), spred, stat()
+    IF chkOOBtarg(i, sptr, stat(), ondead(), onlive()) THEN oobcure pt, i, spel(sptr), spred, stat()
    NEXT i
   END IF
   GOSUB curspellist
@@ -2043,7 +2043,7 @@ RETURN
 
 END SUB
 
-SUB status (ptr, stat())
+SUB status (pt, stat())
 DIM sname$(40), sno(9), mtype(5), hbits(3, 4), thishbits(4), elemtype$(2), info$(25)
 
 savetemppage 3
@@ -2089,8 +2089,8 @@ DO
  control
  IF carray(5) > 1 THEN loadtemppage 3: FOR t = 4 TO 5: carray(t) = 0: NEXT t: EXIT SUB
  IF carray(4) > 1 THEN mode = loopvar(mode, 0, 2, 1)
- IF carray(2) > 1 THEN DO: ptr = loopvar(ptr, 0, 3, -1): LOOP UNTIL hero(ptr) > 0: GOSUB nextstat
- IF carray(3) > 1 THEN DO: ptr = loopvar(ptr, 0, 3, 1): LOOP UNTIL hero(ptr) > 0: GOSUB nextstat
+ IF carray(2) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: GOSUB nextstat
+ IF carray(3) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: GOSUB nextstat
  IF carray(0) > 1 THEN top = large(top - 1, 0)
  IF carray(1) > 1 THEN top = small(top + 1, large(0, lastinfo - 11))
  
@@ -2102,9 +2102,9 @@ DO
    centerbox 160, 120, 292, 120, 4, dpage
  END SELECT
  
- edgeprint names$(ptr), 160 - LEN(names$(ptr)) * 4, 20, 15, dpage
- edgeprint sname$(34) + STR$(stat(ptr, 0, 12)), 160 - LEN(sname$(34) + STR$(stat(ptr, 0, 12))) * 4, 30, 15, dpage
- temp$ = LTRIM$(STR$(exlev&(ptr, 1) - exlev&(ptr, 0))) + " " + sname$(33) + " " + readglobalstring$(47, "for next", 10) + " " + sname$(34)
+ edgeprint names$(pt), 160 - LEN(names$(pt)) * 4, 20, 15, dpage
+ edgeprint sname$(34) + STR$(stat(pt, 0, 12)), 160 - LEN(sname$(34) + STR$(stat(pt, 0, 12))) * 4, 30, 15, dpage
+ temp$ = LTRIM$(STR$(exlev&(pt, 1) - exlev&(pt, 0))) + " " + sname$(33) + " " + readglobalstring$(47, "for next", 10) + " " + sname$(34)
  edgeprint temp$, 160 - LEN(temp$) * 4, 40, 15, dpage
  
  SELECT CASE mode
@@ -2112,32 +2112,32 @@ DO
    '--show stats
    FOR i = 0 TO 9
     edgeprint sname$(sno(i)), 20, 62 + i * 10, 15, dpage
-    edgeprint STR$(stat(ptr, 0, i + 2)), 148 - LEN(STR$(stat(ptr, 0, i + 2))) * 8, 62 + i * 10, 15, dpage
+    edgeprint STR$(stat(pt, 0, i + 2)), 148 - LEN(STR$(stat(pt, 0, i + 2))) * 8, 62 + i * 10, 15, dpage
    NEXT i
    
    'current/max HP
    edgeprint sname$(0), 236 - LEN(sname$(0)) * 4, 65, 15, dpage
-   edgeprint RIGHT$(STR$(stat(ptr, 0, 0)), LEN(STR$(stat(ptr, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(ptr, 1, 0)), LEN(STR$(stat(ptr, 1, 0))) - 1), 236 - LEN(RIGHT$(STR$(stat(ptr, 0, 0)), LEN(STR$(stat(ptr, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(ptr, 0 _
-, 0)), LEN(STR$(stat(ptr, 0, 0))) - 1)) * 4, 75, 15, dpage
+   edgeprint RIGHT$(STR$(stat(pt, 0, 0)), LEN(STR$(stat(pt, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(pt, 1, 0)), LEN(STR$(stat(pt, 1, 0))) - 1), 236 - LEN(RIGHT$(STR$(stat(pt, 0, 0)), LEN(STR$(stat(pt, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(pt, 0, 0)),  _
+LEN(STR$(stat(pt, 0, 0))) - 1)) * 4, 75, 15, dpage
    
    '--MP and level MP
    FOR i = 0 TO 5
     IF mtype(i) = 0 THEN
      edgeprint sname$(1), 236 - LEN(sname$(1)) * 4, 95, 15, dpage
-     edgeprint RIGHT$(STR$(stat(ptr, 0, 1)), LEN(STR$(stat(ptr, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(ptr, 1, 1)), LEN(STR$(stat(ptr, 1, 1))) - 1), 236 - LEN(RIGHT$(STR$(stat(ptr, 0, 1)), LEN(STR$(stat(ptr, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(ptr _
-, 0, 1)), LEN(STR$(stat(ptr, 0, 1))) - 1)) * 4, 105, 15, dpage
+     edgeprint RIGHT$(STR$(stat(pt, 0, 1)), LEN(STR$(stat(pt, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(pt, 1, 1)), LEN(STR$(stat(pt, 1, 1))) - 1), 236 - LEN(RIGHT$(STR$(stat(pt, 0, 1)), LEN(STR$(stat(pt, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(pt, 0, 1)) _
+, LEN(STR$(stat(pt, 0, 1))) - 1)) * 4, 105, 15, dpage
     END IF
     IF mtype(i) = 1 THEN
      edgeprint sname$(34) + " " + sname$(1), 236 - LEN(sname$(34) + " " + sname$(1)) * 4, 125, 15, dpage
      temp$ = ""
      FOR o = 0 TO 3
-      temp$ = temp$ + RIGHT$(STR$(lmp(ptr, o)), LEN(STR$(lmp(ptr, o))) - 1) + "/"
+      temp$ = temp$ + RIGHT$(STR$(lmp(pt, o)), LEN(STR$(lmp(pt, o))) - 1) + "/"
      NEXT o
      temp$ = LEFT$(temp$, LEN(temp$) - 1)
      edgeprint temp$, 236 - LEN(temp$) * 4, 135, 15, dpage
      temp$ = ""
      FOR o = 4 TO 7
-      temp$ = temp$ + RIGHT$(STR$(lmp(ptr, o)), LEN(STR$(lmp(ptr, o))) - 1) + "/"
+      temp$ = temp$ + RIGHT$(STR$(lmp(pt, o)), LEN(STR$(lmp(pt, o))) - 1) + "/"
      NEXT o
      temp$ = LEFT$(temp$, LEN(temp$) - 1)
      edgeprint temp$, 236 - LEN(temp$) * 4, 145, 15, dpage
@@ -2157,7 +2157,7 @@ DO
    '--tigger rename
    IF readbit(thishbits(), 0, 25) THEN
     '--status-screen rename is allowed
-    renamehero ptr
+    renamehero pt
     mode = 0
    END IF
    
@@ -2169,22 +2169,22 @@ DO
  dowait
 LOOP
 
-nextstat: '--loads the hero who's ID is held in ptr
+nextstat: '--loads the hero who's ID is held in pt
 '--load the hero data lump only to get the spell list types
 setpicstuf buffer(), 636, -1
-loadset game$ + ".dt0" + CHR$(0), hero(ptr) - 1, 0
+loadset game$ + ".dt0" + CHR$(0), hero(pt) - 1, 0
 
 FOR i = 0 TO 5
  mtype(i) = -1
- IF bmenu(ptr, i) < 0 AND bmenu(ptr, i) > -10 THEN
-  temp = (bmenu(ptr, i) + 1) * -1
+ IF bmenu(pt, i) < 0 AND bmenu(pt, i) > -10 THEN
+  temp = (bmenu(pt, i) + 1) * -1
   IF buffer(243 + temp * 11) > 0 THEN mtype(i) = buffer(288 + temp)
  END IF
 NEXT i
 
 '--get this heros bits
 FOR i = 0 TO 4
- thishbits(i) = hbits(ptr, i)
+ thishbits(i) = hbits(pt, i)
 NEXT i
 
 '--build elemental strings
@@ -2271,18 +2271,18 @@ END IF
 
 END SUB
 
-FUNCTION usemenu (ptr, top, first, last, size)
+FUNCTION usemenu (pt, top, first, last, size)
 
-oldptr = ptr
+oldptr = pt
 oldtop = top
 
-IF keyval(72) > 1 THEN ptr = large(ptr - 1, first)
-IF keyval(80) > 1 THEN ptr = small(ptr + 1, last)
-IF keyval(73) > 1 THEN ptr = large(ptr - size, first)
-IF keyval(81) > 1 THEN ptr = small(ptr + size, last)
-top = bound(top, ptr - size, ptr)
+IF keyval(72) > 1 THEN pt = large(pt - 1, first)
+IF keyval(80) > 1 THEN pt = small(pt + 1, last)
+IF keyval(73) > 1 THEN pt = large(pt - size, first)
+IF keyval(81) > 1 THEN pt = small(pt + size, last)
+top = bound(top, pt - size, pt)
 
-IF olptr = ptr AND oldtop = top THEN
+IF olptr = pt AND oldtop = top THEN
  usemenu = 0
 ELSE
  usemenu = 1
