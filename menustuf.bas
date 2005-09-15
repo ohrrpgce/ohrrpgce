@@ -80,7 +80,7 @@ IF n > highest THEN bound = highest
 END FUNCTION
 
 SUB buystuff (id, shoptype, storebuf(), stock(), stat())
-DIM b(1600), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walk(15), hpal(8)
+DIM b(1600), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walks(15), hpal(8)
 
 getnames sname$()
 buytype$(0, 0) = readglobalstring$(85, "Trade for", 20) + " "
@@ -96,12 +96,12 @@ eqprefix$ = readglobalstring$(99, "Equip:", 10)
 noroom$ = readglobalstring$(100, "No Room in Party", 20)
 
 FOR i = 0 TO 10 STEP 2
- walk(i) = 1
+ walks(i) = 1
 NEXT i
-walk(11) = 2
-walk(12) = 2
-walk(13) = 3
-walk(14) = 3
+walks(11) = 2
+walks(12) = 2
+walks(13) = 3
+walks(14) = 3
 
 setpicstuf b(), 3200, -1
 loadset game$ + ".stf" + CHR$(0), id, 0
@@ -219,7 +219,7 @@ DO
  END IF
  IF showhero > -1 THEN
   centerbox 240, 130, 36, 44, 4, dpage
-  loadsprite buffer(), 0, 640 * walk(walk), 0, 32, 40, 2
+  loadsprite buffer(), 0, 640 * walks(walk), 0, 32, 40, 2
   drawsprite buffer(), 0, hpal(), 0, 224, 110, dpage
  END IF
  '-----LEFT PANEL-------------------------------------------
