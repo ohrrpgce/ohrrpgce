@@ -829,7 +829,7 @@ DO
   o = 0
   FOR i = 0 TO 3
    IF hero(i) > 0 THEN
-    wt = 0: IF wptr = i THEN wt = INT(wtog / 2)
+    wt = 0: IF wptr = i THEN wt = INT(wtogl / 2)
     loadsprite buffer(), 0, 200 * ((2 * 2) + wt), o * 5, 20, 20, 2
     drawsprite buffer(), 0, pal16(), o * 16, 89, 8 + i * 20, dpage
     col = 7: IF i = wptr THEN col = 14 + tog
@@ -1812,7 +1812,7 @@ DO
  setwait timing(), speedcontrol
  setkeys
  tog = tog XOR 1
- wtog = loopvar(wtog, 0, 3, 1)
+ wtogl = loopvar(wtogl, 0, 3, 1)
  playtimer
  control
  GOSUB scontrol
@@ -1845,7 +1845,7 @@ DO
   o = 0
   FOR i = 0 TO 3
    IF hero(i) > 0 THEN
-    wt = 0: IF wptr = i THEN wt = INT(wtog / 2)
+    wt = 0: IF wptr = i THEN wt = INT(wtogl / 2)
     loadsprite buffer(), 0, 200 * ((2 * 2) + wt), o * 5, 20, 20, 2
     drawsprite buffer(), 0, pal16(), o * 16, 125, 8 + i * 20, dpage
     temp$ = RIGHT$(STR$(stat(i, 0, 0)), LEN(STR$(stat(i, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(i, 1, 0)), LEN(STR$(stat(i, 1, 0))) - 1)
