@@ -98,7 +98,6 @@ DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE FUNCTION readitemname$ (itemnum%)
-DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION readatkname$ (id%)
 DECLARE SUB getmapname (mapname$, m%)
 
@@ -199,7 +198,7 @@ FUNCTION checksaveslot (slot)
   sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
   savh = FREEFILE
   OPEN sg$ FOR BINARY AS savh
-  GET savh, 1 + 60000 * (slot - 1), checksaveslot
+  GET #savh, 1 + 60000 * (slot - 1), checksaveslot
   CLOSE savh
 END FUNCTION
 
@@ -1264,7 +1263,7 @@ SELECT CASE id
     savh = FREEFILE
     OPEN sg$ FOR BINARY AS savh
     savver = 0
-    PUT savh, 1 + 60000 * (retvals(0) - 1), savver
+    PUT #savh, 1 + 60000 * (retvals(0) - 1), savver
     CLOSE savh
    END IF
   END IF
