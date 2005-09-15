@@ -185,7 +185,7 @@ stat(slot, 1, 15) = buffer(20)'walk pal
 stat(slot, 0, 16) = buffer(22) + 1'default weapon
 
 '--read hero's name (doing this last because it clobbers the buffer)
-name$(slot) = readbadbinstring$(buffer(), 0, 16, 0)
+names$(slot) = readbadbinstring$(buffer(), 0, 16, 0)
 '--if renaming is permitted, do it
 IF readbit(thishbits(), 0, 24) THEN
  '--add-hero rename is allowed
@@ -740,7 +740,7 @@ FOR i = 0 TO 1
 NEXT i
 
 '--name
-SWAP name$(s), name$(d)
+SWAP names$(s), names$(d)
 
 '---Equipment
 FOR i = 0 TO 4
@@ -755,7 +755,7 @@ NEXT i
 '---reload hero pictures and palettes
 vishero stat()
 
-'hero(40), bmenu(40,5), spell(40,3,23), stat(40,1,13), lmp(40,7), exlev&(40,1), name$(40), eqstuf(40,4)
+'hero(40), bmenu(40,5), spell(40,3,23), stat(40,1,13), lmp(40,7), exlev&(40,1), names$(40), eqstuf(40,4)
 END SUB
 
 SUB drawsay (saybit(), sayenh(), say$(), showsay, choose$(), choosep)
@@ -951,7 +951,7 @@ ecsr = -1
 
 GOSUB resetswap
 
-IF hero(acsr) THEN info$ = name$(acsr) ELSE info$ = ""
+IF hero(acsr) THEN info$ = names$(acsr) ELSE info$ = ""
 
 setkeys
 DO
@@ -991,11 +991,11 @@ DO
  END IF
  IF carray(2) > 1 AND ecsr < 0 THEN
   acsr = loopvar(acsr, 0, 3, -1)
-  IF hero(acsr) AND ecsr < 0 THEN info$ = name$(acsr) ELSE info$ = ""
+  IF hero(acsr) AND ecsr < 0 THEN info$ = names$(acsr) ELSE info$ = ""
  END IF
  IF carray(3) > 1 AND ecsr < 0 THEN
   acsr = loopvar(acsr, 0, 3, 1)
-  IF hero(acsr) AND ecsr < 0 THEN info$ = name$(acsr) ELSE info$ = ""
+  IF hero(acsr) AND ecsr < 0 THEN info$ = names$(acsr) ELSE info$ = ""
  END IF
  IF carray(4) > 1 THEN
   IF swapme = -1 THEN
@@ -1042,7 +1042,7 @@ LOOP
 refreshemenu:
 IF ecsr < top THEN top = large(ecsr, 0)
 IF ecsr > top + 7 THEN top = ecsr - 7
-IF hero(acsr) AND ecsr < 0 THEN info$ = name$(acsr) ELSE info$ = ""
+IF hero(acsr) AND ecsr < 0 THEN info$ = names$(acsr) ELSE info$ = ""
 RETURN
 
 '---DRAWS SWAP MENU AND CURRENT SELECTION----
@@ -1087,7 +1087,7 @@ FOR i = 4 TO 40
  IF readbit(hmask(), 0, i) = 0 AND hero(i) THEN
   la = la + 1
   swindex(la) = i
-  swname$(la) = name$(i)
+  swname$(la) = names$(i)
   wide = large(wide, LEN(swname$(la)))
  END IF
 NEXT i
@@ -1106,7 +1106,7 @@ FOR i = 0 TO 3
   numhero = numhero + 1
  END IF
 NEXT i
-IF hero(acsr) AND ecsr < 0 THEN info$ = name$(acsr) ELSE info$ = ""
+IF hero(acsr) AND ecsr < 0 THEN info$ = names$(acsr) ELSE info$ = ""
 RETURN
 END SUB
 
@@ -1260,7 +1260,7 @@ FOR i = 0 TO 40
   IF buffer(z) > 0 THEN temp$ = temp$ + CHR$(buffer(z))
   z = z + 1
  NEXT j
- name$(i) = temp$
+ names$(i) = temp$
 NEXT i
 FOR i = -3 TO 199
  item(i) = buffer(z): z = z + 1
@@ -1358,7 +1358,7 @@ IF nativebitmagicnum <> 4444 THEN
 END IF
 
 'ALL THE STUFF THAT MUST BE SAVED
-'map,x,y,d,foep,gold&,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev&(40,1),name$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
+'map,x,y,d,foep,gold&,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev&(40,1),names$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
 'ALL THE STUFF THAT MUST BE PASSED
 'slot,map,x,y,d,foep,gold&,stat(),bmenu(),spell(),lmp(),exlev&(),item(),item$()
 '30000
@@ -1572,8 +1572,8 @@ limit = buffer(296)
 IF limit = 0 THEN limit = 16
 
 prompt$ = readglobalstring$(137, "Name the Hero", 20)
-spacer$ = STRING$(large(limit, LEN(name$(who))), " ")
-remember$ = name$(who)
+spacer$ = STRING$(large(limit, LEN(names$(who))), " ")
+remember$ = names$(who)
 rememberjoycal = gen(60)
 gen(60) = 1'--disable joystick calibration
 
@@ -1591,12 +1591,12 @@ DO
  control
  centerbox 160, 100, 168, 32, 1, dpage
  IF carray(4) > 1 AND keyval(57) = 0 THEN EXIT DO
- IF carray(5) > 1 THEN name$(who) = remember$
- strgrabber name$(who), limit
+ IF carray(5) > 1 THEN names$(who) = remember$
+ strgrabber names$(who), limit
  edgeprint prompt$, xstring(prompt$, 160), 90, 15, dpage
  textcolor 1, 1
  printstr spacer$, xstring(spacer$, 161), 101, dpage
- edgeprint name$(who), xstring(name$(who), 160), 100, 7, dpage
+ edgeprint names$(who), xstring(names$(who), 160), 100, 7, dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -1658,7 +1658,7 @@ FOR i = 0 TO 40
  NEXT o
 NEXT i
 FOR i = 0 TO 40
- name$(i) = ""
+ names$(i) = ""
 NEXT i
 FOR i = -3 TO 199
  item(i) = 0
@@ -1701,7 +1701,7 @@ NEXT i
 xbload game$ + ".mas", master(), "master palette missing from " + game$
 
 'ALL THE STUFF THAT MUST BE RESET
-'map,foep,gold&,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev&(40,1),name$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
+'map,foep,gold&,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev&(40,1),names$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
 '30000
 END SUB
 
@@ -1947,7 +1947,7 @@ FOR i = 0 TO 40
  NEXT o
 NEXT i
 FOR i = 0 TO 40
- temp$ = name$(i)
+ temp$ = names$(i)
  FOR j = 0 TO 16
   IF j < LEN(temp$) THEN
    IF MID$(temp$, j + 1, 1) <> "" THEN buffer(z) = ASC(MID$(temp$, j + 1, 1))
@@ -2029,7 +2029,7 @@ storeset sg$ + CHR$(0), slot * 2 + 1, 0
 
 
 'ALL THE STUFF THAT MUST BE SAVED
-'map,x,y,d,foep,gold&,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev&(40,1),name$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
+'map,x,y,d,foep,gold&,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev&(40,1),names$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
 'ALL THE STUFF THAT MUST BE PASSED
 'slot,map,x,y,d,foep,gold&,stat(),bmenu(),spell(),lmp(),exlev&(),item(),item$()
 '30000
@@ -2286,7 +2286,7 @@ DO
  FOR i = 0 TO 3
   IF hero(i) > 0 THEN
    col = 15
-   edgeprint name$(i), 128 - LEN(name$(i)) * 8, 5 + i * 10, col, dpage
+   edgeprint names$(i), 128 - LEN(names$(i)) * 8, 5 + i * 10, col, dpage
    edgeprint RIGHT$(STR$(stat(i, 0, 0)), LEN(STR$(stat(i, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(i, 1, 0)), LEN(STR$(stat(i, 1, 0))) - 1), 136, 5 + i * 10, col, dpage
   END IF
  NEXT i

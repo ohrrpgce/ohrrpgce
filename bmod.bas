@@ -1883,7 +1883,7 @@ FOR i = 0 TO 3
    stat(i, 1, o) = exstat(i, 1, o)
   NEXT o
   herobattlebits bits(), i
-  batname$(i) = name$(i)
+  batname$(i) = names$(i)
   FOR o = 0 TO 5
    menu$(i, o) = ""
    IF bmenu(i, o) > 0 THEN

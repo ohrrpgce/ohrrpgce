@@ -257,14 +257,14 @@ DO WHILE start < LEN(text$)
      insert$ = ""
      where = findhero(arg + 1, 0, 40, 1)
      IF where >= 0 THEN
-      insert$ = name$(where)
+      insert$ = names$(where)
      END IF
     CASE "P": '--Hero name by Party position
      IF arg < 40 THEN
       '--defaults blank if not found
       insert$ = ""
       IF hero(arg) > 0 THEN
-       insert$ = name$(arg)
+       insert$ = names$(arg)
       END IF
      END IF
     CASE "C": '--Hero name by caterpillar position
@@ -272,7 +272,7 @@ DO WHILE start < LEN(text$)
      insert$ = ""
      where = partybyrank(arg)
      IF where >= 0 THEN
-      insert$ = name$(where)
+      insert$ = names$(where)
      END IF
     CASE "V": '--global variable by ID
      '--defaults blank if out-of-range
@@ -1292,14 +1292,14 @@ SELECT CASE id
   IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 39 THEN
    scriptret = 0
   ELSE
-   plotstring$(retvals(0)) = name$(retvals(1))
+   plotstring$(retvals(0)) = names$(retvals(1))
    scriptret = 1
   END IF
  CASE 205'--set hero name
   IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 39 THEN
    scriptret = 0
   ELSE
-   name$(retvals(1)) = plotstring$(retvals(0))
+   names$(retvals(1)) = plotstring$(retvals(0))
    scriptret = 1
   END IF
  CASE 206'--get item name(str,itm)
