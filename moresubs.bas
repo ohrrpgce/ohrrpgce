@@ -1453,7 +1453,7 @@ DO
  tog = tog XOR 1
  playtimer
  control
- wtog = loopvar(wtog, 0, 3, 1)
+ wtg = loopvar(wtg, 0, 3, 1)
  IF carray(5) > 1 THEN
   onwho = -1: EXIT DO
  END IF
@@ -1464,7 +1464,7 @@ DO
  o = 0
  FOR i = 0 TO 3
   IF hero(i) > 0 THEN
-   wt = 0: IF w = i THEN wt = INT(wtog / 2)
+   wt = 0: IF w = i THEN wt = INT(wtg / 2)
    loadsprite buffer(), 0, 200 * ((2 * 2) + wt), o * 5, 20, 20, 2
    drawsprite buffer(), 0, pal16(), o * 16, 100 + i * 30, 100, dpage
    o = o + 1
