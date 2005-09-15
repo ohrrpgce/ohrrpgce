@@ -519,7 +519,7 @@ DO
  END IF
  
  '--display
- edgeprint name$(ptr), 84 - LEN(name$(ptr)) * 4, 12, 15, dpage
+ edgeprint names$(ptr), 84 - LEN(names$(ptr)) * 4, 12, 15, dpage
  FOR i = 0 TO 11
   edgeprint sname$(sno(i)), 20, 42 + i * 10, 7, dpage
   col = 7
@@ -995,7 +995,7 @@ ELSE
    didlearn = trylearn(wptr, atk, 0)
    '--announce learn
    IF didlearn = 1 THEN
-    tmp$ = name$(wptr) + " " + readglobalstring$(124, "learned", 10) + " " + readatkname$(atk)
+    tmp$ = names$(wptr) + " " + readglobalstring$(124, "learned", 10) + " " + readatkname$(atk)
     centerbox 160, 100, small(LEN(tmp$) * 8 + 16, 320), 24, 1, vpage
     edgeprint tmp$, large(xstring(tmp$, 160), 0), 95, 15, vpage
     dummy = getkey
@@ -1837,8 +1837,8 @@ DO
   IF csr = i THEN textcolor 14 + tog, 2: IF mset = 1 THEN textcolor 7, 2
   printstr menu$(i), 21, 25 + i * 10, dpage
  NEXT i
- IF last = 0 THEN edgeprint name$(ptr) + " " + hasnone$, xstring(name$(ptr) + " " + hasnone$, 160), 120, 15, dpage
- edgeprint name$(ptr), xstring(name$(ptr), 206), 31, 15, dpage
+ IF last = 0 THEN edgeprint names$(ptr) + " " + hasnone$, xstring(names$(ptr) + " " + hasnone$, 160), 120, 15, dpage
+ edgeprint names$(ptr), xstring(names$(ptr), 206), 31, 15, dpage
  IF pick = 1 THEN
   centerbox 196, 47, 160, 88, 2, dpage
   IF spred = 0 THEN rectangle 120, 8 + wptr * 20, 152, 20, 2, dpage ELSE rectangle 120, 8, 152, 80, 2 * tog, dpage
@@ -2102,7 +2102,7 @@ DO
    centerbox 160, 120, 292, 120, 4, dpage
  END SELECT
  
- edgeprint name$(ptr), 160 - LEN(name$(ptr)) * 4, 20, 15, dpage
+ edgeprint names$(ptr), 160 - LEN(names$(ptr)) * 4, 20, 15, dpage
  edgeprint sname$(34) + STR$(stat(ptr, 0, 12)), 160 - LEN(sname$(34) + STR$(stat(ptr, 0, 12))) * 4, 30, 15, dpage
  temp$ = LTRIM$(STR$(exlev&(ptr, 1) - exlev&(ptr, 0))) + " " + sname$(33) + " " + readglobalstring$(47, "for next", 10) + " " + sname$(34)
  edgeprint temp$, 160 - LEN(temp$) * 4, 40, 15, dpage
