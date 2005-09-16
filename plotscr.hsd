@@ -476,12 +476,12 @@ script,setenemyrewards,enemyid,reward,value,begin
 end
 
 define script(autonumber,getenemyappearance,2,0,0)
-script,getenemyappearance,enemyid,appearance,begin)
-  return(readenemydata(enemyid,appearance)  
+script,getenemyappearance,enemyid,appearance,begin
+  return(readenemydata(enemyid,appearance))
 end
 
 define script(autonumber,setenemyappearance,3,0,0,0)
-script,setenemyappearance,enemyid,appearance,value)
+script,setenemyappearance,enemyid,appearance,value,begin
   writeenemydata(enemyid,appearance,value)
 end
 #--------------------------------------------------------------------------

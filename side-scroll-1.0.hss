@@ -1,0 +1,516 @@
+# Instructions: 
+#----------------------------------------------------------------------
+
+include, plotscr.hsd
+include, scancode.hsi
+
+#----------------------------------------------------------------------
+
+define script(1,master game loop,none)
+define script(2,keypress handler,none)
+
+define script(autonumber, initialize,none)
+define script(autonumber, aquire player, 0)
+define script(autonumber, do movement, 1,0)
+define script(autonumber, wall at spot, 2,0,0)
+define script(autonumber, try left, 4,0,0,0,0)
+define script(autonumber, try right, 4,0,0,0,0)
+define script(autonumber, try up, 4,0,0,0,0)
+define script(autonumber, try down, 4,0,0,0,0)
+define script(autonumber, point to tile, 1,0)
+
+#----------------------------------------------------------------------
+
+global variable(1,game is active)
+global variable(2,player)
+global variable(3,want jump)
+global variable(4,want left)
+global variable(5,want right)
+global variable(6,toggle)
+global variable(7,can boost)
+global variable(8,dash left)
+global variable(9,dash right)
+
+define constant(100,Xv) # vars 100 to 399 are X velocity
+define constant(400,Yv) # vars 400 to 699 are Y velocity
+
+#----------------------------------------------------------------------
+
+script, master game loop, begin
+
+  initialize
+
+  while (game is active) do, begin
+
+    toggle:=toggle,xor,1
+
+    #friction
+    if (read global(xv+player) >> 0) then (write global(xv+player,read global(xv+player)--1))
+    if (read global(xv+player) << 0) then (write global(xv+player,read global(xv+player)+1))
+
+    #gravity
+    if (read global(yv+player) << 2) then (
+      write global(yv+player,read global(yv+player)+2)
+    )else(
+      if (read global(yv+player) << 9) then (write global(yv+player,read global(yv+player)+3))
+    )
+
+    #dashing
+    if (want left) then(
+      # key is down
+      if (dash left==0) then(
+        # might be starting a tap
+        dash left:=1
+      )else(
+        if (dash left==1) then(
+          # not a tap
+          dash left:=0
+        )else(
+          if (dash left==2) then(
+            # double-tap
+            dash left:=3
+          )
+        )
+      )
+    )else(
+      # key is up
+      if (dash left==0) then(
+        # not tapping
+      )else(
+        if (dash left==1) then(
+          # released the tap
+          dash left:=2
+        )else(
+          if (dash left==2) then(
+            # no second tap
+            dash left:=0
+          )else(
+            if (dash left==3) then(
+              dash left:=0
+            )
+          )
+        )
+      )
+    )
+    if (want right) then(
+      # key is down
+      if (dash right==0) then(
+        # might be starting a tap
+        dash right:=1
+      )else(
+        if (dash right==1) then(
+          # not a tap
+          dash right:=0
+        )else(
+          if (dash right==2) then(
+            # double-tap
+            dash right:=3
+          )
+        )
+      )
+    )else(
+      # key is up
+      if (dash right==0) then(
+        # not tapping
+      )else(
+        if (dash right==1) then(
+          # released the tap
+          dash right:=2
+        )else(
+          if (dash right==2) then(
+            # no second tap
+            dash right:=0
+          )else(
+            if (dash right==3) then(
+              dash right:=0
+            )
+          )
+        )
+      )
+    )
+
+    #walking
+    if (want left, xor, want right) then(
+      if (want left) then(
+        if (dash left==3) then(
+          # dashing
+          write global(xv+player,-14)
+        )else(
+          # normal walking
+          write global(xv+player,read global(xv+player)--3)
+          if (read global(xv+player) <= -6) then(write global(xv+player,-6))
+        )
+      )
+      if (want right) then(
+        if (dash right==3) then(
+          # dashing
+          write global(xv+player,14)
+        )else(
+          # normal walking
+          write global(xv+player,read global(xv+player)+3)
+          if (read global(xv+player) >= 6) then(write global(xv+player,6))
+        )
+      )
+    )
+
+    #jumping
+    if (can boost) then(
+      if (want jump) then(
+        write global(yv+player,-12)
+      )
+      decrement(can boost)
+    )
+    if (want jump) then(
+      if (try down(player,NPC pixel x(player),NPC pixel y(player),1)==0) then(
+        can boost:=1
+        write global(yv+player,-10)
+      )
+    )
+
+    do movement(player)
+
+    want jump:=false
+    want left:=false
+    want right:=false
+
+    wait(1)
+
+  end
+
+  game over
+
+end
+
+#----------------------------------------------------------------------
+
+script, initialize, begin
+  suspend player
+  suspend NPCs
+  game is active:=true
+  aquire player
+  want left:=false
+  want right:=false
+  want jump:=false
+  can boost:=0
+end
+
+#----------------------------------------------------------------------
+
+script, keypress handler, begin
+
+
+  if (key is pressed(key:ESC))
+    then(game is active:=false)
+
+  if (key is pressed(key:SPACE))
+    then(want jump:=true)
+
+  if (key is pressed(key:LEFT))
+    then(want left:=true)
+
+  if (key is pressed(key:RIGHT))
+    then(want right:=true)
+
+end
+
+#----------------------------------------------------------------------
+
+script, aquire player, begin
+  player:=NPC reference(0)
+  camera follows NPC (player)
+end
+
+#----------------------------------------------------------------------
+
+script, do movement, who, begin
+
+  variable(x,y,x change,ychange)
+
+  x:=NPC pixel x(who)
+  y:=NPC pixel y(who)
+
+  x change:=read global(xv+who)
+  y change:=read global(yv+who)
+
+  if (x change << 0) then(
+    x:=x+try left(who,x,y,x change)
+    set NPC direction(who,left)
+    set NPC frame (who,toggle)
+  )
+
+  if (x change >> 0) then(
+    x:=x+try right(who,x,y,x change)
+    set NPC direction(who,right)
+    set NPC direction(who,right)
+    set NPC frame (who,toggle)
+  )
+
+  if (y change << 0) then(
+    y:=y+try up(who,x,y,y change)
+  )
+ 
+  if (y change >> 0) then(
+    y:=y+try down(who,x,y,y change)
+  )
+
+  put NPC (who,x,y)
+
+end
+
+#----------------------------------------------------------------------
+
+script, try left, who, x, y, gamma, begin
+
+  variable(wall)
+  variable(blocked)
+
+  blocked:=false
+
+  # -20 is min possible movement
+  if (gamma << -20) then(gamma:=-20)
+
+  # if crossing a tile boundary
+  if (point to tile(x) <> point to tile(x+gamma)) then(
+    # top left
+    wall:=wall at spot(x,y)
+    if (wall,and,west wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x+gamma,y)
+    if (wall,and,east wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(y)<>y) then(
+      # you not y-aligned
+      if (wall,and,south wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+    # bottom left
+    wall:=wall at spot(x,y+19)
+    if (wall,and,west wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x+gamma,y+19)
+    if (wall,and,east wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(y)<>y) then(
+      # you not y-aligned
+      if (wall,and,north wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+  )
+
+  if (blocked) then (
+    gamma:=point to tile(x)--x
+    write global(xv+who,0)
+  )
+
+  return(gamma)
+
+end
+
+#----------------------------------------------------------------------
+
+script, try right, who, x, y, gamma, begin
+
+  variable(wall)
+  variable(blocked)
+
+  blocked:=false
+
+  # 20 is max possible movement
+  if (gamma >> 20) then(gamma:=20)
+
+  # if crossing a tile boundary
+  if (point to tile(x+19) <> point to tile(x+19+gamma)) then(
+    # top right
+    wall:=wall at spot(x+19,y)
+    if (wall,and,east wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x+19+gamma,y)
+    if (wall,and,west wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(y)<>y) then(
+      # you not y-aligned
+      if (wall,and,south wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+    # bottom right
+    wall:=wall at spot(x+19,y+19)
+    if (wall,and,east wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x+19+gamma,y+19)
+    if (wall,and,west wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(y)<>y) then(
+      # you not y-aligned
+      if (wall,and,north wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+  )
+
+  if (blocked) then (
+    gamma:=point to tile(x+19)--x
+    write global(xv+who,0)
+  )
+
+  return(gamma)
+
+end
+
+#----------------------------------------------------------------------
+
+script, try up, who, x, y, gamma, begin
+
+  variable(wall)
+  variable(blocked)
+
+  blocked:=false
+
+  # -20 is min possible movement
+  if (gamma << -20) then(gamma:=-20)
+
+  # if crossing a tile boundary
+  if (point to tile(y) <> point to tile(y+gamma)) then(
+    # top left
+    wall:=wall at spot(x,y)
+    if (wall,and,north wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x,y+gamma)
+    if (wall,and,south wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(x)<>x) then(
+      # you not x-aligned
+      if (wall,and,east wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+    # top right
+    wall:=wall at spot(x+19,y)
+    if (wall,and,north wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x+19,y+gamma)
+    if (wall,and,south wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(x)<>x) then(
+      # you not x-aligned
+      if (wall,and,west wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+  )
+
+  if (blocked) then (
+    gamma:=point to tile(y)--y
+    write global(yv+who,0)
+  )
+
+  return(gamma)
+
+end
+
+#----------------------------------------------------------------------
+
+script, try down, who, x, y, gamma, begin
+
+  variable(wall)
+  variable(blocked)
+
+  blocked:=false
+
+  # 20 is max possible movement
+  if (gamma >> 20) then(gamma:=20)
+
+  # if crossing a tile boundary
+  if (point to tile(y+19) <> point to tile(y+19+gamma)) then(
+    # bottom left
+    wall:=wall at spot(x,y+19)
+    if (wall,and,south wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x,y+19+gamma)
+    if (wall,and,north wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(x)<>x) then(
+      # you not x-aligned
+      if (wall,and,east wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+    # bottom right
+    wall:=wall at spot(x+19,y+19)
+    if (wall,and,south wall) then(
+      # the tile you are leaving blocked you
+      blocked:=true
+    )
+    wall:=wall at spot(x+19,y+19+gamma)
+    if (wall,and,north wall) then(
+      # the tile you are entering blocked you
+      blocked:=true
+    )
+    if (point to tile(x)<>x) then(
+      # you not x-aligned
+      if (wall,and,west wall) then(
+        # you hit a wall edge
+        blocked:=true
+      )
+    )
+  )
+
+  if (blocked) then (
+    gamma:=point to tile(y+19)--y
+    write global(yv+who,0)
+  )
+
+  return(gamma)
+
+end
+
+#----------------------------------------------------------------------
+
+script, wall at spot, x, y, begin
+  return(read pass block(x/20,y/20))
+end
+
+#----------------------------------------------------------------------
+
+script, point to tile, point, begin
+  return((point/20)*20)
+end
+
+#----------------------------------------------------------------------

@@ -108,6 +108,8 @@ script, master game loop, begin
 
   # before the loop begins, the game must be initialized. see the
   # "initialize" script for more info on what is happening here.
+  show string at (0,0,0)
+  $0="Init"
   initialize
 
   # this variable is used for loops where an action must happen
@@ -117,8 +119,10 @@ script, master game loop, begin
   # the game loop will last as long as the "game is active" global
   # variable is true. The game can be stopped at any time by setting
   # "game is active" to false.
+  $0="Before Loop"
   while (game is active) do, begin
 
+    $0="Loop Head"
     # the toggle variable switches from 0 to 1 to 0 to 1 and so on
     # as the game loop runs. This is used for things like making
     # Baby Bob's feet move when he walks. look for the toggle
@@ -142,6 +146,7 @@ script, master game loop, begin
     # Take a look at how we read and write the critter's sideways
     # motion speed (X-velocity) from the Xv fake array.
 
+    $0="Friction"
     for(critter index,0,active critter count--1) do,begin
       if (read global(xv+critter index) >> 0) then (write global(xv+critter index,read global(xv+critter index)--1))
       if (read global(xv+critter index) << 0) then (write global(xv+critter index,read global(xv+critter index)+1))
@@ -155,6 +160,7 @@ script, master game loop, begin
     # tacky way of making critters start to fall slowly after they
     # jump and then to fall faster as they go down.
 
+    $0="Gravity"
     for(critter index,0,active critter count--1) do,begin
       if (read global(yv+critter index) << 2) then (
         write global(yv+critter index,read global(yv+critter index)+2)
@@ -170,6 +176,7 @@ script, master game loop, begin
     # try to move or not. Where are these variables set? Look at the
     # "keypress handler" script.
 
+    $0="Walking"
     if (want left, xor, want right) then(
       if (want left) then(
 
@@ -196,6 +203,7 @@ script, master game loop, begin
     # JUMPING - In this script, only Baby Bob jumps. Notice the
     # "try down" script. Bob can only jump if an attempt to move down
     # fails, proving that his feet are planted on the ground
+    $0="Jumping"
     if (want jump) then(
       if (try down(player,NPC pixel x(read global(critter+player)),NPC pixel y(read global(critter+player)),1)==0) then(
         # to make Baby Bob jump, we suddenly decrease his Y velocity
@@ -208,6 +216,7 @@ script, master game loop, begin
     # have set all the critter's velocities, we do the actual movement
     # for each critter.
 
+    $0="Movement"
     for(critter index,0,active critter count--1) do,begin
       do movement(critter index)
     end
@@ -221,8 +230,10 @@ script, master game loop, begin
     # Before the game loop starts over it is neccisary to stop the
     # script and let one game tick pass. This allows the OHRRPGCE
     # draw all the graphics to the screen.
+    $0="Wait"
     wait(1)
 
+    $0="Loop Tail"
   end
 
   # if the game loop ever exits, the game will end
@@ -262,7 +273,6 @@ end
 #----------------------------------------------------------------------
 
 script, keypress handler, begin
-
 
   if (key is pressed(key:ESC))
     then(game is active:=false)
