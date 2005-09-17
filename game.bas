@@ -112,8 +112,7 @@ DECLARE FUNCTION onwho% (w$, alone)
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB itstr (i%)
 DECLARE SUB control ()
-DECLARE FUNCTION pickload% ()
-DECLARE FUNCTION picksave% ()
+DECLARE FUNCTION picksave% (load%)
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock())
 DECLARE SUB loadgame (slot%, map%, foep%, stat%(), stock())
 DECLARE SUB equip (pt%, stat%())
@@ -386,7 +385,7 @@ releasestack
 setupstack astack(), 1024, workingdir$ + "\stack.tmp" + CHR$(0)
 
 GOSUB titlescr
-temp = pickload
+temp = picksave(1)
 'DEBUG debug "picked save slot"+str$(temp)
 fademusic 0
 stopsong
@@ -771,7 +770,7 @@ DO
    END IF
   END IF
   IF mi(pt) = 6 THEN
-   temp = picksave
+   temp = picksave(0)
    IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
    GOSUB reloadnpc
   END IF
@@ -2250,7 +2249,7 @@ SELECT CASE scrat(nowscript, curkind)
     END IF
    CASE 155, 170'--save menu
     'ID 155 is a backcompat hack
-    scriptret = picksave + 1
+    scriptret = picksave(0) + 1
     IF scriptret > 0 AND (retvals(0) OR scrat(nowscript, curvalue) = 155) THEN
      savegame scriptret - 1, map, foep, stat(), stock()
     END IF

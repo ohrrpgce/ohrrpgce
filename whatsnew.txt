@@ -127,6 +127,9 @@ WHAT IS NEW?
 
     * Constants for the gen()/general() array data [James Paige]
 
+    * Combined save- and load- menus to save memory (about 3.7kb) and
+      make future changes easier [Ralph Versteegen]
+
 May 19 2005 [quaternion]
 
   * GPL Licensed source code. See LICENSE.txt

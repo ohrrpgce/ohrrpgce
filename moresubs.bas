@@ -54,8 +54,7 @@ DECLARE SUB debug (s$)
 DECLARE FUNCTION browse$ (fmask$, needf%, bpage%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
-DECLARE FUNCTION pickload% ()
-DECLARE FUNCTION picksave% ()
+DECLARE FUNCTION picksave% (load%)
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
@@ -2185,7 +2184,7 @@ DO
    END IF
   END IF
   IF menuid(pt) = 5 THEN '--SAVE
-   temp = picksave
+   temp = picksave(0)
    IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
    vishero stat()
   END IF

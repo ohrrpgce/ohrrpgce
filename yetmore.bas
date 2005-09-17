@@ -72,8 +72,7 @@ DECLARE SUB debug (s$)
 DECLARE FUNCTION browse$ (fmask$, needf%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
-DECLARE FUNCTION pickload%
-DECLARE FUNCTION picksave%
+DECLARE FUNCTION picksave%(load%)
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)

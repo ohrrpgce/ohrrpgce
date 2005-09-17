@@ -41,8 +41,7 @@ DECLARE SUB debug (s$)
 DECLARE SUB intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB itstr (i%)
 DECLARE SUB control ()
-DECLARE FUNCTION pickload% ()
-DECLARE FUNCTION picksave% ()
+DECLARE FUNCTION picksave% (load%)
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
@@ -1243,23 +1242,42 @@ LOOP
 
 END SUB
 
-FUNCTION pickload
+FUNCTION picksave (loading)
 
-DIM full(3), loadname$(3), svtime$(3), mapname$(3), lev$(3), id(3, 3), tstat(3, 1, 16), pic(3, 3)
+DIM full(3), herosname$(3), mapname$(3), svtime$(3), lev$(3), id(3, 3), tstat(3, 1, 16), pic(3, 3), confirm$(1), menu$(1)
 
-svcsr = 0
+'--load strings. menu$ array holds the names of the options 
+'--at the top of the screeen (only one appears when saving)
 
-newgame$ = readglobalstring$(52, "New Game", 10)
-exitgame$ = readglobalstring$(53, "Exit", 10)
+IF loading THEN 
+ cursor = 0
+ menu$(0) = readglobalstring$(52, "New Game", 10)
+ menu$(1) = readglobalstring$(53, "Exit", 10)
+ELSE
+ cursor = lastsaveslot - 1
+ confirm$(0) = readglobalstring$(44, "Yes", 10)
+ confirm$(1) = readglobalstring$(45, "No", 10)
+ menu$(0) = readglobalstring$(59, "CANCEL", 10)
+ replacedat$ = readglobalstring$(102, "Replace Old Data?", 20)
+ menuwidth = 8 * large(LEN(confirm$(0)), LEN(confirm$(1)))
+END IF
 
-centerbox 50, 10, 80, 12, 15, 3
-centerbox 270, 10, 80, 12, 15, 3
+'--draw buttons, save current display
+IF loading THEN
+ centerbox 50, 10, 80, 12, 15, 3
+ centerbox 270, 10, 80, 12, 15, 3
+ELSE
+ savetemppage 3
+ copypage dpage, 3
+ centerbox 50, 10, 80, 12, 15, 3
+END IF
+
 FOR i = 0 TO 3
  centerbox 160, 40 + i * 44, 310, 42, 15, 3
  sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
  setpicstuf buffer(), 30000, -1
  loadset sg$ + CHR$(0), i * 2, 0
- IF buffer(0) = 3 THEN 'save version number
+ IF buffer(0) = 3 THEN 'current version number
   full(i) = 1
   '--get map number
   map = buffer(1)
@@ -1281,13 +1299,14 @@ FOR i = 0 TO 3
   '--hero ID
   foundleader = 0
   FOR o = 0 TO 3
+   '--load hero ID
    id(i, o) = buffer(2763 + o)
    '--leader name and level
    IF foundleader = 0 AND id(i, o) > 0 THEN
     foundleader = 1
     FOR j = 0 TO 15
      k = buffer(11259 + (o * 17) + j)
-     IF k > 0 AND k < 255 THEN loadname$(i) = loadname$(i) + CHR$(k)
+     IF k > 0 AND k < 255 THEN herosname$(i) = herosname$(i) + CHR$(k)
     NEXT j
     lev$(i) = readglobalstring$(43, "Level", 10) + STR$(tstat(o, 0, 12))
    END IF
@@ -1331,11 +1350,15 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 
-nofull = 0
-FOR i = 0 TO 3
- IF full(i) = 1 THEN nofull = 1
-NEXT i
-IF nofull = 0 THEN pickload = -1: clearpage 2: EXIT FUNCTION
+IF loading THEN
+ 'check for no slots
+ nofull = 0
+ FOR i = 0 TO 3
+  IF full(i) = 1 THEN nofull = 1
+ NEXT i
+ IF nofull = 0 THEN picksave = -1: clearpage 2: EXIT FUNCTION
+END IF
+
 
 setkeys
 DO
@@ -1343,200 +1366,59 @@ DO
  setkeys
  tog = tog XOR 1
  walk = walk XOR tog
+ IF loading = 0 THEN playtimer
  control
- IF carray(5) > 1 THEN pickload = -2: clearpage 2: EXIT FUNCTION
- IF svcsr = -2 THEN
-  IF carray(0) > 1 THEN svcsr = 3
-  IF carray(1) > 1 THEN svcsr = 0
+ IF carray(5) > 1 THEN 
+  IF loading THEN picksave = -2 ELSE picksave = -1  
+  EXIT DO
+ END IF
+ IF cursor = -2 THEN
+  IF carray(0) > 1 THEN cursor = 3
+  IF carray(1) > 1 THEN cursor = 0
  ELSE
-  IF carray(0) > 1 THEN svcsr = loopvar(svcsr, -1, 3, -1)
-  IF carray(1) > 1 THEN svcsr = loopvar(svcsr, -1, 3, 1)
+  IF carray(0) > 1 THEN cursor = loopvar(cursor, -1, 3, -1)
+  IF carray(1) > 1 THEN cursor = loopvar(cursor, -1, 3, 1)
  END IF
- IF svcsr < 0 THEN
-  IF carray(2) > 1 THEN svcsr = -1
-  IF carray(3) > 1 THEN svcsr = -2
+ IF cursor < 0 AND loading THEN
+  IF carray(2) > 1 THEN cursor = -1
+  IF carray(3) > 1 THEN cursor = -2
  END IF
  IF carray(4) > 1 THEN
-  IF svcsr < 0 THEN
-    pickload = svcsr
-    clearpage 2
-    EXIT FUNCTION
-  END IF
-  IF svcsr >= 0 AND full(svcsr) = 1 THEN
+  IF cursor < 0 THEN 
+   picksave = cursor
+   EXIT DO
+  ELSE
+   allow = 1
+   IF loading THEN
     '--normal load of an existing save
-    pickload = svcsr
-    lastsaveslot = svcsr + 1
-    clearpage 2
-    EXIT FUNCTION
-  END IF
- END IF
- GOSUB drawld
- SWAP vpage, dpage
- setvispage vpage
- copypage 3, dpage
- dowait
-LOOP
-
-drawld:
-SELECT CASE svcsr
- CASE -2
-  centerbox 270, 10, 82, 14, 2, dpage
- CASE -1
-  centerbox 50, 10, 82, 14, 2, dpage
- CASE ELSE
-  centerbox 160, 40 + svcsr * 44, 312, 44, 2, dpage
-END SELECT
-FOR i = 0 TO 3
- IF full(i) = 1 THEN
-  FOR o = 0 TO 3
-   IF id(i, o) > 0 THEN
-    temp = 16 + (i * 16) + (o * 4)
-    IF svcsr = i THEN temp = temp + (2 * walk)
-    loadsprite buffer(), 0, 0, temp, 32, 40, 2
-    drawsprite buffer(), 0, pal16(), (40 + (i * 4) + o) * 16, 140 + (o * 42), 20 + i * 44, dpage
+    IF full(cursor) = 0 THEN allow = 0
+   ELSE
+    '--normal save in a slot
+    IF full(cursor) = 1 THEN GOSUB confirm
    END IF
-  NEXT o
-  col = 7
-  IF svcsr = i THEN col = 14 + tog
-  edgeprint loadname$(i), 14, 21 + i * 44, col, dpage
-  edgeprint lev$(i), 14, 30 + i * 44, col, dpage
-  edgeprint svtime$(i), 14, 39 + i * 44, col, dpage
-  edgeprint mapname$(i), 14, 48 + i * 44, col, dpage
- END IF
-NEXT i
-col = 7: IF svcsr = -1 THEN col = 14 + tog
-edgeprint newgame$, xstring(newgame$, 50), 5, col, dpage
-col = 7: IF svcsr = -2 THEN col = 14 + tog
-edgeprint exitgame$, xstring(exitgame$, 270), 5, col, dpage
-RETURN
-
-END FUNCTION
-
-FUNCTION picksave
-
-DIM full(3), savename$(3), mapname$(3), svtime$(3), lev$(3), id(3, 3), tstat(3, 1, 16), pic(3, 3), menu$(1)
-
-svcsr = lastsaveslot - 1
-
-menu$(0) = readglobalstring$(44, "Yes", 10)
-menu$(1) = readglobalstring$(45, "No", 10)
-menuwidth = 8 * large(LEN(menu$(0)), LEN(menu$(1)))
-menuquit$ = readglobalstring$(59, "CANCEL", 10)
-replacedat$ = readglobalstring$(102, "Replace Old Data?", 20)
-
-savetemppage 3
-copypage dpage, 3
-
-centerbox 60, 10, 86, 12, 15, 3
-FOR i = 0 TO 3
- centerbox 160, 40 + i * 44, 310, 42, 15, 3
- setpicstuf buffer(), 30000, -1
- sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
- loadset sg$ + CHR$(0), i * 2, 0
- IF buffer(0) = 3 THEN 'save version id
-  full(i) = 1
-  map = buffer(1)
-  '--if the save format changes, so must this
-  z = 3305
-  FOR i1 = 0 TO 3
-   FOR i2 = 0 TO 1
-    FOR i3 = 0 TO 13
-     tstat(i1, i2, i3) = buffer(z)
-     z = z + 1
-    NEXT i3
-   NEXT i2
-  NEXT i1
-  '--if the save format changes, so must this
-  z = 34 + 51
-  svtime$(i) = playtime$(buffer(z), buffer(z + 1), buffer(z + 2))
-  '--hero ID
-  foundleader = 0
-  FOR o = 0 TO 3
-   '--load hero ID
-   id(i, o) = buffer(2763 + o)
-   '--leader name and level
-   IF foundleader = 0 AND id(i, o) > 0 THEN
-    foundleader = 1
-    FOR j = 0 TO 15
-     k = buffer(11259 + (o * 17) + j)
-     IF k > 0 AND k < 255 THEN savename$(i) = savename$(i) + CHR$(k)
-    NEXT j
-    lev$(i) = readglobalstring$(43, "Level", 10) + STR$(tstat(o, 0, 12))
-   END IF
-  NEXT o
-  '--load second record
-  loadset sg$ + CHR$(0), i * 2 + 1, 0
-  '--get picture and palette info
-  z = 6060
-  picpalmagic = buffer(z): z = z + 1
-  FOR i1 = 0 TO 3
-   FOR i2 = 0 TO 1
-    FOR i3 = 14 TO 16
-     IF picpalmagic = 4444 THEN tstat(i1, i2, i3) = buffer(z)
-     z = z + 1
-    NEXT i3
-   NEXT i2
-  NEXT i1
-  FOR o = 0 TO 3
-   IF id(i, o) >= 0 THEN
-    '--hero pic and palette
-    IF picpalmagic = 4444 THEN
-     pic(i, o) = tstat(o, 0, 14)
-     getpal16 pal16(), 40 + (i * 4) + o, tstat(o, 0, 15)
-    ELSE
-     '--backcompat
-     setpicstuf buffer(), 636, -1
-     loadset game$ + ".dt0" + CHR$(0), id(i, o) - 1, 0
-     pic(i, o) = buffer(17)
-     getpal16 pal16(), 40 + (i * 4) + o, buffer(18)
-    END IF
-    setpicstuf buffer(), 5120, 2
-    loadset game$ + ".pt0" + CHR$(0), pic(i, o), 0
-    loadsprite buffer(), 0, 0, 0, 32, 40, 2
-    stosprite buffer(), 0, 0, 16 + (i * 16) + (o * 4), 2
-    loadsprite buffer(), 0, 0, 2, 32, 40, 2
-    stosprite buffer(), 0, 0, 16 + (i * 16) + (o * 4) + 2, 2
-   END IF
-  NEXT o
-  getmapname mapname$(i), map
- END IF
-NEXT i
-
-setkeys
-DO
- setwait timing(), speedcontrol
- setkeys
- tog = tog XOR 1
- walk = walk XOR tog
- playtimer
- control
- IF carray(5) > 1 THEN picksave = -1: EXIT DO
- IF carray(0) > 1 THEN svcsr = loopvar(svcsr, -1, 3, -1)
- IF carray(1) > 1 THEN svcsr = loopvar(svcsr, -1, 3, 1)
- IF carray(4) > 1 THEN
-  IF svcsr = -1 THEN picksave = -1: EXIT DO
-  IF svcsr >= 0 THEN
-   deny = 0
-   IF full(svcsr) = 1 THEN GOSUB confirm
-   IF deny = 0 THEN
-     '--normal save in a slot
-     picksave = svcsr
-     lastsaveslot = svcsr + 1
+   IF allow = 1 THEN
+     picksave = cursor
+     lastsaveslot = cursor + 1
      EXIT DO
    END IF
   END IF
  END IF
- GOSUB drawsv
+ GOSUB drawmenu
  SWAP vpage, dpage
  setvispage vpage
  copypage 3, dpage
  dowait
 LOOP
-loadtemppage 3
+IF loading THEN
+ clearpage 2
+ELSE
+ loadtemppage 3
+END IF
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
 EXIT FUNCTION
 
 confirm:
+allow = 0
 setkeys
 DO
  setwait timing(), speedcontrol
@@ -1544,15 +1426,15 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF carray(5) > 1 THEN deny = 1: RETURN
- IF carray(0) > 1 OR carray(1) > 1 THEN deny = deny XOR 1
+ IF carray(5) > 1 THEN allow = 0: RETURN
+ IF carray(0) > 1 OR carray(1) > 1 THEN allow = allow XOR 1
  IF carray(4) > 1 THEN RETURN
- GOSUB drawsv
- centerbox 160, 14 + (44 * svcsr), 40 + (LEN(replacedat$) * 8) + menuwidth, 22, 3, dpage
- edgeprint replacedat$, 200 - (LEN(replacedat$) * 8), 9 + (44 * svcsr), 15, dpage
+ GOSUB drawmenu
+ centerbox 160, 14 + (44 * cursor), 40 + (LEN(replacedat$) * 8) + menuwidth, 22, 3, dpage
+ edgeprint replacedat$, 200 - (LEN(replacedat$) * 8), 9 + (44 * cursor), 15, dpage
  FOR i = 0 TO 1
-  col = 7: IF deny = i THEN col = 14 + tog
-  edgeprint menu$(i), 216, 5 + (i * 9) + (44 * svcsr), col, dpage
+ col = 14 + tog: IF allow = i THEN col = 7
+  edgeprint confirm$(i), 216, 5 + (i * 9) + (44 * cursor), col, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1560,33 +1442,41 @@ DO
  dowait
 LOOP
 
-drawsv:
-IF svcsr >= 0 THEN
- centerbox 160, 40 + svcsr * 44, 312, 44, 1, dpage
-ELSE
- centerbox 60, 10, 88, 14, 1, dpage
-END IF
+drawmenu:
+'load and save menus enjoy different colour schemes
+IF loading THEN activec = 2 ELSE activec = 1 
+SELECT CASE cursor
+ CASE -2
+  centerbox 270, 10, 82, 14, activec, dpage
+ CASE -1
+  centerbox 50, 10, 82, 14, activec, dpage
+ CASE ELSE
+  centerbox 160, 40 + cursor * 44, 312, 44, activec, dpage
+END SELECT
 FOR i = 0 TO 3
  IF full(i) = 1 THEN
   FOR o = 0 TO 3
    IF id(i, o) > 0 THEN
     temp = 16 + (i * 16) + (o * 4)
-    IF svcsr = i THEN temp = temp + (2 * walk)
+    IF cursor = i THEN temp = temp + (2 * walk)
     loadsprite buffer(), 0, 0, temp, 32, 40, 2
     drawsprite buffer(), 0, pal16(), (40 + (i * 4) + o) * 16, 140 + (o * 42), 20 + i * 44, dpage
    END IF
   NEXT o
   col = 7
-  IF svcsr = i THEN col = 14 + tog
-  edgeprint savename$(i), 14, 21 + i * 44, col, dpage
+  IF cursor = i THEN col = 14 + tog
+  edgeprint herosname$(i), 14, 21 + i * 44, col, dpage
   edgeprint lev$(i), 14, 30 + i * 44, col, dpage
   edgeprint svtime$(i), 14, 39 + i * 44, col, dpage
   edgeprint mapname$(i), 14, 48 + i * 44, col, dpage
  END IF
 NEXT i
-col = 7
-IF svcsr = -1 THEN col = 14 + tog
-edgeprint menuquit$, xstring(menuquit$, 60), 5, col, dpage
+col = 7: IF cursor = -1 THEN col = 14 + tog
+edgeprint menu$(0), xstring(menu$(0), 50), 5, col, dpage
+IF loading THEN
+ col = 7: IF cursor = -2 THEN col = 14 + tog
+ edgeprint menu$(1), xstring(menu$(1), 270), 5, col, dpage
+END IF
 RETURN
 
 END FUNCTION
@@ -2289,4 +2179,3 @@ ELSE
 END IF
 
 END FUNCTION
-
