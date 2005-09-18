@@ -120,6 +120,9 @@ WHAT IS NEW?
     *  Attack bitset to ignore attacking hero's/enemy's Extra Hits
        stat [Ralph Versteegen]
 
+    *  Plotscript command alternpc has been considerably optimised. It 
+       no longer reloads all npcs and heros on the map [Ralph Versteegen]
+
   * Stuff only Developers Will Notice
 
     * Plotscripting Dictionary Documentation is now in xml format instead

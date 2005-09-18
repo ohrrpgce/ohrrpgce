@@ -2160,7 +2160,11 @@ SELECT CASE scrat(nowscript, curkind)
        npcs(id * 15 + retvals(1)) = retvals(2)
       END IF
      END IF
-     IF retvals(1) = 0 OR retvals(1) = 1 THEN GOSUB reloadnpc
+     IF retvals(1) = 0 THEN
+      setpicstuf buffer(), 1600, 2
+      loadset game$ + ".pt4" + CHR$(0), retvals(2), 20 + (5 * retvals(0))
+     END IF
+     IF retvals(1) = 1 THEN getpal16 pal16(), 4 + retvals(0), retvals(2)
     END IF
    CASE 79'--show no value
     scriptout$ = ""
