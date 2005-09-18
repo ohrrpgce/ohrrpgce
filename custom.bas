@@ -228,12 +228,12 @@ DO:
   '--always resave the .GEN lump after any menu
   DEF SEG = VARSEG(general(0)): BSAVE game$ + ".gen", VARPTR(general(0)), 1000
  END IF
- 
+
  standardmenu menu$(), mainmax, 22, ptr, 0, 0, 0, dpage, 0
- 
+
  textcolor 6, 0
  printstr version$, 0, 192, dpage
- 
+
  SWAP vpage, dpage
  setvispage vpage
  copypage 2, dpage
@@ -330,6 +330,16 @@ DO
    textcolor 6, 0
    printstr "Please Wait...", 0, 40, vpage
    printstr "Creating RPG File", 0, 50, vpage
+   if dir$("ohrrpgce.new") = "" then
+    'er...
+    printstr "Error: ohrrpgce.new not found", 0, 60, vpage
+    printstr "Press Enter to quit", 0, 70, vpage
+    do
+     setkeys
+     IF keyval(28) > 1 THEN exit do
+    loop
+    goto finis
+   end if
    copyfile "ohrrpgce.new" + CHR$(0), game$ + ".rpg" + CHR$(0), buffer()
    printstr "Unlumping", 0, 60, vpage
    ERASE scroll, pass, emap
@@ -370,9 +380,9 @@ DO
   game$ = rpg$(csr): RETURN
 nomakegame:
  END IF
- 
+
  standardmenu rpg$(), L, 22, csr, top, 0, 0, dpage, 0
- 
+
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -429,7 +439,7 @@ DO
     printstr "the recovered data has been saved.", 0, 0, vpage
     printstr "if CUSTOM.EXE crashed last time you", 0, 8, vpage
     printstr "ran it and you lost work, you may", 0, 16, vpage
-    printstr "be able to recover it. make a backup", 0, 24, vpage
+    printstr "be able to recover it. Make a backup", 0, 24, vpage
     printstr "copy of " + a$ + ".RPG and then rename", 0, 32, vpage
     printstr a$ + ".BAK to " + a$ + ".RPG", 0, 40, vpage
     printstr "If you have questions, ask", 0, 56, vpage
@@ -447,9 +457,9 @@ DO
  printstr "last time you used it, or it may mean", 0, 48, dpage
  printstr "that another copy of CUSTOM.EXE is", 0, 56, dpage
  printstr "already running in the background.", 0, 64, dpage
- 
+
  standardmenu rpg$(), 2, 2, temp, 0, 0, 8, dpage, 0
- 
+
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -947,11 +957,11 @@ DO
   IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN GOSUB copychar
   IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN GOSUB pastechar
  END IF
- 
+
  IF mode = -1 THEN
   standardmenu menu$(), 3, 22, menuptr, 0, 0, 0, dpage, 0
  END IF
- 
+
  IF mode >= 0 THEN
   xoff = 8: yoff = 8
   FOR i = 0 TO last
@@ -967,7 +977,7 @@ DO
   textcolor 7, 0
   IF ptr < 0 THEN textcolor 14 + tog, 0
   printstr menu$(0), 8, 0, dpage
-  
+
   IF ptr >= 0 THEN
    xoff = 150
    yoff = 4
@@ -992,7 +1002,7 @@ DO
    END IF
   END IF
  END IF
- 
+
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -1026,14 +1036,14 @@ importfont:
 newfont$ = browse$(0, default$, "*.ohf", "")
 IF newfont$ <> "" THEN
  copyfile newfont$ + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
- 
+
  '--never overwrite 0 thru 31
  FOR i = 0 TO 2047
   setbit buffer(), 0, i, readbit(font(), 0, i)
  NEXT i
- 
+
  GOSUB loadfont
- 
+
  FOR i = 0 TO 2047
   setbit font(), 0, i, readbit(buffer(), 0, i)
  NEXT i
@@ -1050,7 +1060,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- 
+
  old$ = newfont$
  strgrabber newfont$, 8
  IF old$ <> newfont$ THEN
@@ -1067,19 +1077,19 @@ DO
     newfont$ = old$
   END SELECT
  END IF
- 
+
  IF keyval(28) > 1 THEN
   GOSUB savefont
   copyfile game$ + ".fnt" + CHR$(0), gamedir$ + "\" + newfont$ + ".ohf" + CHR$(0), buffer()
   EXIT DO
  END IF
- 
+
  textcolor 7, 0
  printstr "Input a filename to save to", 0, 0, dpage
  printstr "[" + gamedir$ + "\" + newfont$ + ".ohf]", 0, 8, dpage
  textcolor 14 + tog, 1
  printstr newfont$, 0, 16, dpage
- 
+
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -1350,9 +1360,9 @@ DO
  END IF
  GOSUB othertype
  GOSUB stufmenu
- 
+
  standardmenu smenu$(), last, 22, tcsr, 0, 0, 0, dpage, 0
- 
+
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -1706,7 +1716,7 @@ IF NOT isfile(workingdir$ + "\attack.bin" + CHR$(0)) THEN
  FOR i = 0 TO general(34)
   storeset workingdir$ + "\attack.bin" + CHR$(0), i, 0
  NEXT i
- 
+
  '--and while we are at it, clear the old death-string from enemies
  printstr "Re-init recycled enemy data...", 0, 10, vpage
  setpicstuf buffer(), 320, -1
