@@ -1779,20 +1779,22 @@ NEXT i
 
 '-- if the script was the last terminated it can also be reused
 IF loadinstead = -1 THEN
- IF scrat(index, scrid) = n AND scrat(index, scroff) = nextscroff THEN loadinstead = index
+ IF scrat(index, scrid) = n AND scrat(index, scroff) = nextscroff AND scrat(index, scrsize) <> 0 THEN loadinstead = index
 END IF
 
 'erase state, pointer, return value and depth, set id
-FOR i = 2 TO 3
- scrat(index, i) = 0
-NEXT i
+scrat(index, scrstate) = 0
+scrat(index, scrptr) = 0
 scrat(index, scrret) = 0
 scrat(index, scrdepth) = 0
 scrat(index, scrid) = n
 
 IF loadinstead <> -1 THEN
  '--reuse the script from memory
- IF loadinstead <> index THEN
+ IF loadinstead = index THEN
+  '--because the reloaded script will be on top of the script stack, we need to recalculate nextscroff
+  nextscroff = scrat(index, scroff) + scrat(index, scrsize)
+ ELSE
   scrat(index, scrsize) = 0
   scrat(index, scroff) = scrat(loadinstead, scroff)
   scrat(index, scrargs) = scrat(loadinstead, scrargs)
@@ -1804,16 +1806,16 @@ ELSE
   OPEN workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" FOR BINARY AS #f
   GET #f, 1, skip
   GET #f, 3, scrat(index, scrargs)
-  scrat(index, scroff) = nextscroff
-  scrat(index, scrsize) = (LOF(f) - skip) / 2
-  nextscroff = nextscroff + scrat(index, scrsize)
-  IF nextscroff > 4096 THEN
+  IF nextscroff + (LOF(f) - skip) / 2 > 4096 THEN
    scripterr "Script buffer overflow"
    CLOSE #f
    runscript = 0'--error
    scripterr "failed to load " + er$ + " script" + STR$(n)
    EXIT FUNCTION
   END IF
+  scrat(index, scroff) = nextscroff
+  scrat(index, scrsize) = (LOF(f) - skip) / 2
+  nextscroff = nextscroff + scrat(index, scrsize)
 
   '--mysterious. why can't I do this?
   'bigstring$ = STRING$(LOF(f) - skip, 0)
@@ -1827,7 +1829,7 @@ ELSE
   '--if any higher scripts have been overwritten, invalidate them
   FOR i = index + 1 TO 127
    IF scrat(i, scrid) = 0 THEN EXIT FOR
-   IF nextscroff > scrat(i, scroff) THEN scrat(i, scrid) = -1 ELSE EXIT FOR
+   IF nextscroff > scrat(i, scroff) THEN scrat(i, scrid) = 0 ELSE EXIT FOR
   NEXT i
  ELSE
   scripterr "failed to unlump " + LTRIM$(STR$(n)) + ".hsx"
@@ -1856,7 +1858,6 @@ END IF
 
 '--we are sucessful, so now tis safe to increment this
 nowscript = nowscript + 1
-
 END FUNCTION
 
 SUB savegame (slot, map, foep, stat(), stock())
