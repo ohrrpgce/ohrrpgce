@@ -5,9 +5,8 @@
 	<!ELEMENT plotscript (section+)>
 	<!ATTLIST plotscript lastmodified CDATA "the dawn of time">
 	<!ATTLIST plotscript show-alias CDATA "yes">
-	<!ELEMENT section (comment?,command*)>
+	<!ELEMENT section (description?,command*)>
 	<!ATTLIST section title CDATA #REQUIRED>
-	<!ELEMENT comment	  (#PCDATA)>
 	<!ELEMENT command ((cannon,shortname,description,example*,seealso?) | (alias,shortname))>
 	<!ATTLIST command id ID #REQUIRED
 			          created CDATA #IMPLIED>
@@ -21,55 +20,58 @@
 
   	<!ELEMENT ref         (#PCDATA)>
   	<!ELEMENT lb		  (#PCDATA)>
+  	<!ELEMENT param		  (#PCDATA)>
 ]>
 <!--
 
 DOCUMENTATION FOR THIS XML FILE:
 
-This markup (hereby refered to as PDL (Plotscript Dictionary Language)) is designed to reduce the time spent
-maintaining the Plotscripting Dictionary, and to enable easier porting to other formats.
+This markup (hereby refered to as PDL (Plotscript Dictionary Language)) is designed to reduce
+the time spent maintaining the Plotscripting Dictionary, and to enable easier porting to other
+formats.
 
-The root element is the <plotscript> element. It has a lastmodified attribute, which is the text date that
-the file was last modified. Only the documentation administrator should modify this.
+The root element is the <plotscript> element. It has a lastmodified attribute, which is the text
+date that the file was last modified. Update this when you make a change.
 
-In <plotscript>, there is a series of <section> elements, each with a title attribute. These are to group the
-plotscripting commands into logical groups, such as <section title="Wait Commands"> or <section title="Math
-Operators">
+In <plotscript>, there is a series of <section> elements, each with a title attribute. These are
+to group the plotscripting commands into logical groups, such as <section title="Wait Commands">
+or <section title="Math Operators">
 
-The heart of the PDL are the <command> elements inside the <section>s. It has a single attribute, id. This is
-essentially the whitespace stripped version of the command (the "wait for text box" command would have an id
-of "waitfortextbox"). This is used to uniquely identify each command. It's used in many ways, from crosslinking
-command entries to generating a file for HssEd to use.
+The heart of the PDL are the <command> elements inside the <section>s. It has a single attribute,
+id. This is essentially the whitespace stripped version of the command (the "wait for text box"
+command would have an id of "waitfortextbox"). This is used to uniquely identify each command.
+It's used in many ways, from crosslinking command entries to generating a file for HssEd to use.
 
 Inside the <command> element are either two or four+ elements, in this order:
 Case 1: Full command definition
-  <cannon> - This is the "cannonical" form of the command: the fully spaced command with parameter prototypes
-             Example: move hero to x (who, x)
-  <shortname> - This is the short version of the command, used for crosslinking, indexes, etc. It is the
-  				<cannon> element, minus the parameters.
-				Example: move hero to x
-  <description> - This is a paragraph (or more) of text describing what the command does, and how to use it.
-                  Use <lb/> to put paragraphs in. No HTML is allowed (at this time)
-				  Example: Well, it would be pretty long...
-  <example>* - Finally, most commands should have some sort of example on how to use the command. It will be
-  			  displayed in a mono-space font, so it's easy to Plotscript. But, be sure to format it properly:
-			  Example:
-			  <example># first example line has no line-break
+  <cannon> - This is the "cannonical" form of the command: the fully spaced command with parameter
+             prototypes. Example: move hero to x (who, x)
+  <shortname> - This is the short version of the command, used for crosslinking, indexes, etc. It
+                is the <cannon> element, minus the parameters. Example: move hero to x
+  <description> - This is a paragraph (or more) of text describing what the command does, and how
+                  to use it. Use <lb/> to put paragraphs in, and <p></p> when refering to a
+                  parameter (to avoid user confusion) No HTML is allowed (at this time)
+                  Example: Well, it would be pretty long...
+  <example>* - Finally, most commands should have some sort of example on how to use the command.
+               It will be displayed in a mono-space font, so it's easy to Plotscript. But, be
+               sure to format it properly:
+			   Example:
+			   <example># first example line has no line-break
 # the second (and more) lines should have no indentation
 # and so forth</example>
 
 Case 2: Alias command definition
-  <alias> - If a command is an alias to another command (or is so closely related that they&apos;re in the same
-            entry, use the <alias> element. Put the ID of the real command in here.
-			Example: begin
+  <alias> - If a command is an alias to another command (or is so closely related that they're in
+            the same entry, use the <alias> element. Put the ID of the real command in here.
+            Example: begin
   <shortname> - Aliases also need a short name, since they are technically different from their alias.
-  		        Example: end
+                Example: end
 
 Basically, you should be able to examine the entries that already exist. It's fairly self evident what
 everything does.
 
-These are cut-and-paste copies of <command> elements, so you don't have to type everything out 10000000000
-times. They are also indented properly for this file.
+These are cut-and-paste copies of <command> elements, so you don't have to type everything out
+10000000000 times. They are also indented properly for this file.
 
 #===== Full description
 
@@ -107,12 +109,12 @@ difficult. Notepad users will have to do it manually, but you MUST do it. Rememb
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript lastmodified="May 23, 2005">
+<plotscript lastmodified="September 17, 2005">
 	<section title="Declarations">
 		<command id="definescript">
 			<cannon>define script (id,name,arguments)</cannon>
 			<shortname>define script</shortname>
-			<description>The define script command names a script, and associates it with an ID number. Every script must have a unique ID number for your game to call it directly (scripts that will only be called indirectly, by other scripts can use the special ID autonumber). The first argument is the ID number. It is a number between 1 and 16383. If you try to give two individual scripts the same ID number, your script file will not compile. The next argument is the name of the script. this is the same name that will used later in your script command. The third argument is the number of arguments that the script can accept. If it doesnt need any arguments (most scripts dont) then use none. If there are arguments, you then follow the argument count with default values for each argument.</description>
+			<description>The define script command names a script, and associates it with an ID number. Every script must have a unique ID number for your game to call it directly (scripts that will only be called indirectly, by other scripts can use the special ID autonumber). The first argument is the <p>ID number</p>. It is a number between 1 and 16383. If you try to give two individual scripts the same <p>ID number</p>, your script file will not compile. The next argument is the <p>name</p> of the script. this is the same name that will used later in your script command. The third argument is the number of arguments that the script can accept. If it doesnt need any arguments (most scripts dont) then use <ref>none</ref>. If there are arguments, you then follow the argument count with default values for each argument.</description>
 			<example># example of a simple script definition
 define script (1,my first script,none)</example>
 			<example># example of a script definition with arguments. this script
@@ -954,9 +956,115 @@ end</example>
 			<description>Sets the edges of the rectangle to which the mouse is constricted. Use if you want to force the mouse into some region, like a choice selection box. <ref>initmouse</ref> must be called before this command can be used.</description>
 		</command>
 	</section>
+	<section title="String Functions">
+		<description>When refering to a position in a string, <p>position</p> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!<lb/>Also note that a string cannot exceed 40 characters. If it does, it will be truncated to 40 characters.</description>
+		<command id="showstring">
+			<cannon>show string (ID)</cannon>
+			<shortname>show string</shortname>
+			<description>Displays string #ID on the screen, as with the <ref>showvalue</ref> command. Use <ref>shownovalue</ref> to remove the string from the screen.</description>
+			<seealso>
+				<ref>showvalue</ref>
+				<ref>shownovalue</ref>
+			</seealso>
+		</command>
+		<command id="clearstring">
+			<cannon>clear string(ID)</cannon>
+			<shortname>clear string</shortname>
+			<description>Erases the string buffer #ID to the empty string (""). That's all.</description>
+		</command>
+		<command id="appendascii">
+			<cannon>append ascii (ID, char)</cannon>
+			<shortname>append ascii</shortname>
+			<description>Appends the character with ascii code 'ascii' to the string with ID #ID. Remember: Numbers are 48 - 57, uppercase letters are 65 - 90, lowercase letters are 97 - 122.</description>
+			<seealso><ref>appendnumber</ref></seealso>
+		</command>
+		<command id="appendnumber">
+			<cannon>append number (ID, number)</cannon>
+			<shortname>append number</shortname>
+			<description>Appends the textual representation of <p>number</p> to the string with ID #<p>ID</p>. For example, append number(1,65) will append "65", not "A".</description>
+			<seealso><ref>appendnumber</ref></seealso>
+		</command>
+		<command id="copystring">
+			<cannon>copy string (source, dest)</cannon>
+			<shortname>copy string</shortname>
+			<description>Copies the text from string #<p>source</p> to string #<p>dest</p>, overwriting the existing string completely.</description>
+		</command>
+		<command id="concatenatestrings">
+			<cannon>concantenate strings (source, dest)</cannon>
+			<shortname>concatenate strings</shortname>
+			<description>Copies the text from string #<p>source</p> to string #<p>dest</p>. However, unlike <ref>copystring</ref>, the text is appended to the end of <p>dest</p>. The resulting string is then trimmed to the limit of 38 characters <!-- is that the limit? --></description>
+		</command>
+		<command id="stringlength">
+			<cannon>string length (ID)</cannon>
+			<shortname>string length</shortname>
+			<description>Returns the length of string #<p>ID</p>.</description>
+		</command>
+		<command id="replacechar">
+			<cannon>replace char (ID, position, char)</cannon>
+			<shortname>replace char</shortname>
+			<description>Replaces the character at <p>position</p> in string #<p>ID</p> with a character with ascii code <p>char</p>.</description>
+		</command>
+		<command id="deletechar">
+			<cannon>delete char (ID, position)</cannon>
+			<shortname>delete char</shortname>
+			<description>This deletes the character at <p>postion</p> in string #<p>ID</p>, causing all the following characters to move over a slot.</description>
+		</command>
+		<command id="stringtoglobals">
+			<cannon>string to globals (ID, starting global, length)</cannon>
+			<shortname>string to globals</shortname>
+			<description>This command will fill global variables (starting with #<p>starting global</p>), up to <p>length</p> globals, with the ascii values of the characters in string #<p>ID</p>. Don&quot;t ask us why you would want to, but I&quot;m sure there&quot;s a use (encryption?)</description>
+			<seealso><ref>globalstostring</ref></seealso>
+		</command>
+		<command id="globalstostring">
+			<cannon>globals to string(ID, starting global, length)</cannon>
+			<shortname>globals to string</shortname>
+			<description>This command is the opposite of <ref>stringtoglobals</ref>. It will build a new string in slot #<p>ID</p>, using the ascii values from the global variables #<p>starting global</p> and <p>length</p> globals thereafter. If a global has a value greater than 255, the behaviour is undefined...</description>
+			<seealso><ref>stringtoglobals</ref></seealso>
+		</command>
+		<command id="">
+			<cannon></cannon>
+			<shortname></shortname>
+			<description></description>
+		</command>
+		<command id="getheroname">
+			<cannon>get hero name (ID, hero)</cannon>
+			<shortname>get hero name</shortname>
+			<description>This command will take the name of hero #<p>hero</p>, and stick it in string #<p>ID</p>, overwriting its contents.</description>
+		</command>
+		<command id="setheroname">
+			<cannon>set hero name (ID, hero)</cannon>
+			<shortname>set hero name</shortname>
+			<description>This command will take string #<p>ID</p>, and set hero #<p>hero</p>&apos;s name to it.</description>
+		</command>
+		<command id="getitemname">
+			<cannon>get item name (ID, item)</cannon>
+			<shortname>get item name</shortname>
+			<description>This command will take the name of item #<p>item</p> and stick it in string #<p>ID</p>. This can be useful for "You got &lt;item&gt;!" type messages.</description>
+		</command>
+		<command id="">
+			<cannon></cannon>
+			<shortname></shortname>
+			<description></description>
+		</command>
+		<command id="">
+			<cannon></cannon>
+			<shortname></shortname>
+			<description></description>
+		</command>
+		<command id="">
+			<cannon></cannon>
+			<shortname></shortname>
+			<description></description>
+		</command>
+		<command id="">
+			<cannon></cannon>
+			<shortname></shortname>
+			<description></description>
+		</command>
+	</section>
 	<section title="Misc Functions">
 		<command id="random">
-			<cannon>random(lownumber, highnumber)</cannon>
+			<cannon>random (lownumber, highnumber)</cannon>
 			<shortname>random</shortname>
 			<description>Returns a random number in the range of the two numbers. The returned value will be greater than or equal to the first number, and less than or equal to the second number</description>
 		</command>
@@ -1242,7 +1350,7 @@ write pass block(15,3,pass)
 		</command>
 	</section>
 	<section title="Math, Comparison, and Logic Operators">
-		<comment>Pre-December 1999 versions of HamsterSpeak used a different syntax for math. For more information, see the HamsterSpeak Specification</comment>
+		<description>Pre-December 1999 versions of HamsterSpeak used a different syntax for math. For more information, see the HamsterSpeak Specification</description>
 		<command id="add">
 			<cannon>number + number</cannon>
 			<shortname>add</shortname>

@@ -14,7 +14,7 @@
 			<head>
 				<title>Dictionary of Plotscripting Commands</title>
 				<style type="text/css">
-
+<![CDATA[
 					body,p,h1,h2,h3,h4,h5,h6 {
 						color: white;
 						background-color: black;
@@ -57,11 +57,19 @@
 						color:red;
 					}
 					
-					.key {
+					a.ref:after {
+						/*content: " ?";*/
+					}
+					
+					.key, .param {
 						font-weight: bold;
 						color: yellow;
 					}
-
+					
+					/*.param {
+						color: yellow;
+					}*/
+]]>
 				</style>
 			</head>
 			<body>
@@ -105,7 +113,7 @@
 		</xsl:text><a name="{@title}" ></a><xsl:text>
 		
 		</xsl:text><font color="#f06060" size="4"><xsl:value-of select="@title" /></font><xsl:text>
-		</xsl:text><p><xsl:apply-templates select="comment"/></p><xsl:text>
+		</xsl:text><p><xsl:apply-templates select="description"/></p><xsl:text>
 		</xsl:text><xsl:apply-templates select="command" mode="full" /><xsl:text>
 		
 		</xsl:text><hr></hr><xsl:text>
@@ -151,16 +159,17 @@
 		</xsl:if>
 		<xsl:if test='count(id(.))>0'>
 			<xsl:if test='not(id(.)/alias)'>
-				<a href="#about-{.}"><xsl:value-of select='id(.)/shortname' /></a>
+				<a href="#about-{.}" class="ref"><xsl:value-of select='id(.)/shortname' /></a>
 			</xsl:if>
 			<xsl:if test='id(.)/alias'>
-				<a href="#about-{id(.)/alias}"><xsl:value-of select='id(.)/shortname' /></a>
+				<a href="#about-{id(.)/alias}" class="ref"><xsl:value-of select='id(.)/shortname' /></a>
 			</xsl:if>
 		</xsl:if>
 	</xsl:template>
 
 	<xsl:template match="lb"><br/></xsl:template>
-
+	
+	<xsl:template match="p"><span class="param"><xsl:apply-templates /></span></xsl:template>
 
 </xsl:stylesheet>
 
