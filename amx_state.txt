@@ -1,0 +1,80 @@
+setmodex		DONE
+restoremode				NOT REQD
+copypage		DONE
+clearpage		DONE
+setvispage		DONE
+setpal			DONE
+fadeto			DONE
+fadetopal		DONE
+setmapdata		DONE
+setmapblock		DONE
+readmapblock	DONE
+drawmap			DONE
+setanim			DONE
+setoutside		DONE
+drawsprite		DONE
+wardsprite		DONE
+stosprite		DONE
+loadsprite		DONE
+INTERRUPTX				NOT REQD
+Keyseg					NOT REQD
+keyoff					NOT REQD
+keyval			DONE
+igetkey			DONE
+setkeys					NOT REQD
+putpixel		DONE
+readpixel		DONE
+rectangle		DONE
+fuzzyrect		DONE
+drawline		DONE
+paintat			DONE
+storepage		DONE
+loadpage		DONE
+setdiskpages			NOT REQD
+setwait			DONE
+dowait			DONE
+printstr		DONE
+textcolor		DONE
+setfont			DONE
+setbit			DONE
+readbit			DONE
+storeset		DONE
+loadset			DONE
+setpicstuf		DONE
+findfiles		DONE
+unlump			DONE
+unlumpfile		DONE
+isfile			DONE
+pathlength		DONE
+getstring		DONE
+drivelist							FAKED
+rpathlength		DONE
+exenamelength	DONE
+setdrive									NOT DONE	
+envlength		DONE
+isdir			DONE
+isremovable									NOT DONE
+hasmedia									NOT DONE
+LongNameLength						FAKED
+setupmusic									NOT DONE--
+closemusic									NOT DONE |
+loadsong									NOT DONE |
+stopsong									NOT DONE | 
+resumesong									NOT DONE -- Music (SAFE)
+fademusic									NOT DONE |
+getfmvol									NOT DONE |
+setfmvol									NOT DONE-- 
+copyfile				NOT REQD
+screenshot		DONE
+isetmouse									NOT DONE--
+readmouse									NOT DONE |
+movemouse									NOT DONE -- Mouse/joystick (SAFE)
+mouserect									NOT DONE |
+readjoy										NOT DONE--
+array2str		DONE
+str2array		DONE
+setupstack		DONE
+pushw			DONE
+popw			DONE
+releasestack	DONE
+stackpos		DONE
