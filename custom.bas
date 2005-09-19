@@ -84,7 +84,7 @@ DECLARE SUB maptile (master%(), font())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
-DECLARE FUNCTION maplumpname$(map, oldext$)
+DECLARE FUNCTION maplumpname$ (map, oldext$)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -330,16 +330,13 @@ DO
    textcolor 6, 0
    printstr "Please Wait...", 0, 40, vpage
    printstr "Creating RPG File", 0, 50, vpage
-   if dir$("ohrrpgce.new") = "" then
+   IF NOT isfile("ohrrpgce.new" + CHR$(1)) THEN
     'er...
     printstr "Error: ohrrpgce.new not found", 0, 60, vpage
     printstr "Press Enter to quit", 0, 70, vpage
-    do
-     setkeys
-     IF keyval(28) > 1 THEN exit do
-    loop
-    goto finis
-   end if
+    w = getkey
+    GOTO finis
+   END IF
    copyfile "ohrrpgce.new" + CHR$(0), game$ + ".rpg" + CHR$(0), buffer()
    printstr "Unlumping", 0, 60, vpage
    ERASE scroll, pass, emap
