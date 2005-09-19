@@ -330,7 +330,7 @@ DO
    textcolor 6, 0
    printstr "Please Wait...", 0, 40, vpage
    printstr "Creating RPG File", 0, 50, vpage
-   IF NOT isfile("ohrrpgce.new" + CHR$(1)) THEN
+   IF NOT isfile("ohrrpgce.new" + CHR$(0)) THEN
     'er...
     printstr "Error: ohrrpgce.new not found", 0, 60, vpage
     printstr "Press Enter to quit", 0, 70, vpage
