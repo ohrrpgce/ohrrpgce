@@ -70,18 +70,17 @@ DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE FUNCTION consumeitem% (index%)
 DECLARE FUNCTION istag% (num%, zero%)
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
-DECLARE FUNCTION usemenu% (pt%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu% (ptr%, top%, first%, last%, size%)
 DECLARE SUB debug (s$)
 DECLARE FUNCTION browse$ (fmask$, needf%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
-DECLARE FUNCTION picksave%(load%)
-DECLARE SUB equip (pt%, stat%())
+DECLARE SUB equip (ptr%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (pt%, stat%())
-DECLARE SUB status (pt%, stat%())
+DECLARE SUB spells (ptr%, stat%())
+DECLARE SUB status (ptr%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
@@ -104,7 +103,8 @@ DECLARE FUNCTION readatkname$ (id%)
 DECLARE SUB getmapname (mapname$, m%)
 DECLARE SUB defaultc ()
 DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
-DECLARE FUNCTION maplumpname$ (map, oldext$)
+DECLARE FUNCTION maplumpname$(map, oldext$)
+DECLARE SUB cathero()
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
@@ -117,9 +117,9 @@ DATA 72,80,75,77,57,28,29,1,56,1,15,36,51
 DATA 150,650,150,650
 
 REM $STATIC
-SUB cathero
+SUB cathero()
 
-DIM zsort(3)
+dim zsort(3) as integer 'moved from game.bas
 
 '--if riding a vehicle and not mounting and not hiding leader and not hiding party then exit
 IF veh(0) AND readbit(veh(), 6, 0) = 0 AND readbit(veh(), 6, 4) = 0 AND readbit(veh(), 6, 5) = 0 AND readbit(veh(), 9, 4) = 0 AND readbit(veh(), 9, 5) = 0 THEN EXIT SUB
@@ -187,7 +187,7 @@ IF veh(0) THEN
  END IF
  IF veh(16) > 0 THEN
   say = veh(16)
-  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh() 
  END IF
  IF veh(16) < 0 THEN
   rsr = runscript(ABS(veh(16)), nowscript + 1, -1, "dismount")
@@ -351,14 +351,6 @@ END IF
 
 END FUNCTION
 
-FUNCTION maplumpname$ (map, oldext$)
- IF map < 100 THEN
-  maplumpname$ = game$ + "." + oldext$ + RIGHT$("0" + LTRIM$(STR$(map)), 2)
- ELSE
-  maplumpname$ = workingdir$ + "\" + LTRIM$(STR$(map)) + "." + oldext$
- END IF
-END FUNCTION
-
 SUB safekill (f$)
 IF isfile(f$ + CHR$(0)) THEN KILL f$
 END SUB
@@ -452,3 +444,10 @@ CLOSE #fh
 
 END SUB
 
+FUNCTION maplumpname$(map, oldext$)
+ IF map < 100 THEN
+  maplumpname$ = game$ + "." + oldext$ + RIGHT$("0" + LTRIM$(STR$(map)), 2)
+ ELSE
+  maplumpname$ = workingdir$ + "\" + LTRIM$(STR$(map)) + "." + oldext$
+ END IF
+END FUNCTION

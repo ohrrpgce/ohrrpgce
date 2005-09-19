@@ -51,8 +51,6 @@ DECLARE SUB writestats (exstat%(), stat%())
 DECLARE SUB playtimer ()
 DECLARE SUB debug (s$)
 DECLARE SUB control ()
-DECLARE FUNCTION pickload% (svcsr%)
-DECLARE FUNCTION picksave% (svcsr%)
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
@@ -90,7 +88,7 @@ bstackstart = stackpos
 
 battle = 1
 DIM a(40), atktemp(40), atk(100), st(3, 318), es(7, 160), x(24), y(24), z(24), d(24), zbuf(24), xm(24), ym(24), zm(24), mvx(24), mvy(24), mvz(24), v(24), p(24), w(24), h(24), of(24), ext$(7), ctr(11), stat(11, 1, 17), ready(11), batname$(11), menu$( _
-3, 5), mend(3), spel$(23), spel(23), cost$(24), godo(11), targ(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11), fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11),  _
+3, 5), mend(3), spel$(23), spel(23), cost$(24), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11), fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11),  _
 ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), tbits(4), revenge(11), revengemask(11), revengeharm(11), repeatharm(11), targmem(23), learnmask(24), prtimer(11, 1), spelmask(1)
 
 mpname$ = readglobalstring(1, "MP", 10)
@@ -277,13 +275,14 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
+
 EXIT FUNCTION '---------------------------------------------------------------
 
 pgame:
 fuzzyrect 0, 0, 320, 200, 19, vpage
 edgeprint pause$, xstring(pause$, 160), 95, 15, vpage
 '--wait for a key
-w = getkey
+wk = igetkey
 RETURN
 
 enemyai: '-------------------------------------------------------------------
@@ -342,7 +341,6 @@ IF countai(ai, them, es()) > 0 THEN
   'focused attack
   eaifocus them, atktemp(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
  END IF
- 
 END IF
 
 'fail if MP is inadequate
@@ -934,52 +932,52 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    anim = -1
    'DEBUG debug "~ 1???"
   CASE 2 'setmovement(who,xm,ym,xstep,ystep)
-   w = popw
-   xm(w) = popw
-   ym(w) = popw
-   mvx(w) = popw
-   mvy(w) = popw
+   ww = popw
+   xm(ww) = popw
+   ym(ww) = popw
+   mvx(ww) = popw
+   mvy(ww) = popw
    'DEBUG debug "~ setmovement" + STR$(w) + STR$(xm(w)) + STR$(ym(w)) + STR$(mvx(w)) + STR$(mvy(w))
   CASE 3 'setposition(who,x,y,d)
-   w = popw
-   x(w) = popw
-   y(w) = popw
-   d(w) = popw
+   ww = popw
+   x(ww) = popw
+   y(ww) = popw
+   d(ww) = popw
    'DEBUG debug "~ setposition" + STR$(w) + STR$(x(w)) + STR$(y(w)) + STR$(d(w))
   CASE 4 '???()
    '--undefined
    'DEBUG debug "~ undefined4"
   CASE 5 'appear(who)
-   w = popw
-   v(w) = 1
+   ww = popw
+   v(ww) = 1
    'DEBUG debug "~ appear" + STR$(w)
   CASE 6 'disappear(who)
-   w = popw
-   v(w) = 0
+   ww = popw
+   v(ww) = 0
    'DEBUG debug "~ disappear" + STR$(w)
   CASE 7 'setframe(who,frame)
-   w = popw
+   ww = popw
    fr = popw
-   IF w < 4 THEN walk(w) = 0: of(w) = fr
-   IF w > 23 THEN of(w) = fr '--is this right?
+   IF ww < 4 THEN walk(ww) = 0: of(ww) = fr
+   IF ww > 23 THEN of(ww) = fr '--is this right?
    'DEBUG debug "~ setframe" + STR$(w) + STR$(fr)
   CASE 8 'relmovement(who,n,n,n,n)
-   w = popw
+   ww = popw
    tmp1 = popw
    tmp2 = popw
    tmp3 = popw
    tmp4 = popw
-   mvx(w) = (tmp1 - x(w)) / tmp3
-   mvy(w) = (tmp2 - y(w)) / tmp4
-   xm(w) = tmp3
-   ym(w) = tmp4
+   mvx(ww) = (tmp1 - x(ww)) / tmp3
+   mvy(ww) = (tmp2 - y(ww)) / tmp4
+   xm(ww) = tmp3
+   ym(ww) = tmp4
    'DEBUG debug "~ relmovement" + STR$(w) + STR$(tmp1) + STR$(tmp2) + STR$(tmp3) + STR$(tmp4)
   CASE 9 'waitforall()
    wf = -1
    'DEBUG debug "~ waitforall"
   CASE 10 'inflict(targ)
    targ = popw
-   'DEBUG debug "~ inflict" + STR$(targ)
+   'DEBUG debug "~ inflict on " + STR$(targ) + " by " + str$(who)
    IF inflict(who, targ, stat(), x(), y(), w(), h(), harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
     '--attack succeeded
         IF readbit(atk(), 20, 50) = 1 THEN
@@ -1049,8 +1047,8 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     END IF
    END IF
   CASE 11 'setz(who,z)
-   w = popw
-   z(w) = popw
+   ww = popw
+   z(ww) = popw
    'DEBUG debug "~ setz" + STR$(w) + STR$(z(w))
   CASE 12 '???(n,n,n,n,n)
    'unimplemented
@@ -1059,14 +1057,14 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    wf = popw
    'DEBUG debug "~ waitfor" + STR$(wf)
   CASE 14 'walktoggle(who)
-   w = popw
-   of(w) = 0
-   IF w < 4 THEN walk(w) = walk(w) XOR 1
-   'DEBUG debug "~ walktoggle" + STR$(w)
+   ww = popw
+   of(ww) = 0
+   IF ww < 4 THEN walk(ww) = walk(ww) XOR 1
+   'DEBUG debug "~ walktoggle" + STR$(ww)
   CASE 15 'zmovement(who,zm,zstep)
-   w = popw
-   zm(w) = popw
-   mvz(w) = popw
+   ww = popw
+   zm(ww) = popw
+   mvz(ww) = popw
    'DEBUG debug "~ zmovement" + STR$(w) + STR$(zm(w)) + STR$(mvz(w))
  END SELECT
 LOOP UNTIL wf <> 0 OR anim = -1
@@ -1230,7 +1228,7 @@ IF stat(deadguy, 0, 0) = 0 THEN
     END IF
    END IF
    IF tmask(deadguy) = 1 THEN tmask(deadguy) = 0
-   IF targ(deadguy) = 1 THEN targ(deadguy) = 0
+   IF targs(deadguy) = 1 THEN targs(deadguy) = 0
   NEXT j
   IF tptr = deadguy THEN
    WHILE tmask(tptr) = 0
@@ -1442,33 +1440,33 @@ IF ran = 2 THEN
 END IF
 IF spred = 2 AND (carray(2) > 1 OR carray(3) > 1) THEN
  FOR i = 0 TO 11
-  targ(i) = 0
+  targs(i) = 0
  NEXT i
  spred = 1
  flusharray carray(), 7, 0
 END IF
 IF aim = 1 AND spred < 2 THEN
  IF carray(0) > 1 THEN
-  smartarrows tptr, -1, y(), targ(), tmask(), 0
+  smartarrows tptr, -1, y(), targs(), tmask(), 0
  END IF
  IF carray(1) > 1 THEN
-  smartarrows tptr, 1, y(), targ(), tmask(), 0
+  smartarrows tptr, 1, y(), targs(), tmask(), 0
  END IF
  IF carray(2) > 1 THEN
-  smartarrows tptr, -1, x(), targ(), tmask(), spred
+  smartarrows tptr, -1, x(), targs(), tmask(), spred
  END IF
  IF carray(3) > 1 THEN
-  smartarrows tptr, 1, x(), targ(), tmask(), spred
+  smartarrows tptr, 1, x(), targs(), tmask(), spred
  END IF
 END IF
 IF carray(4) > 1 THEN GOSUB gottarg
 RETURN
 
 gottarg: '-----------------------------------------------------------------
-targ(tptr) = 1
+targs(tptr) = 1
 o = 0
 FOR i = 0 TO 11
- IF targ(i) = 1 THEN
+ IF targs(i) = 1 THEN
   t(you, o) = i: o = o + 1
   IF noifdead THEN setbit ltarg(), you, i, 1
  END IF
@@ -1486,7 +1484,7 @@ setuptarg: '---------------------------------------------------------------
 'init
 spred = 0: aim = 0: ran = 0: firstt(you) = 0: tptr = 0
 FOR i = 0 TO 11
- targ(i) = 0
+ targs(i) = 0
  tmask(i) = 0
  t(you, i) = -1
 NEXT i
@@ -1569,7 +1567,7 @@ IF readbit(buffer(), 20, 54) THEN
 END IF
 
 IF buffer(4) = 0 THEN aim = 1
-IF buffer(4) = 1 THEN FOR i = 0 TO 11: targ(i) = tmask(i): NEXT i
+IF buffer(4) = 1 THEN FOR i = 0 TO 11: targs(i) = tmask(i): NEXT i
 IF buffer(4) = 2 THEN aim = 1: spred = 1
 IF buffer(4) = 3 THEN ran = 1
 IF buffer(4) = 4 THEN ran = 2
@@ -1671,7 +1669,7 @@ IF vdance = 0 THEN 'only display interface till you win
   END IF
   IF ptarg > 0 THEN
    FOR i = 0 TO 11
-    IF targ(i) = 1 OR tptr = i THEN
+    IF targs(i) = 1 OR tptr = i THEN
      edgeprint CHR$(24), x(i) + (w(i) / 2) - 4, y(i) - 6, 160 + flash, dpage
      edgeprint batname$(i), xstring(batname$(i), x(i) + (w(i) / 2)), y(i) - 16, 14 + tog, dpage
     END IF

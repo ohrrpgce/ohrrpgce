@@ -67,18 +67,17 @@ DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE FUNCTION consumeitem% (index%)
 DECLARE FUNCTION istag% (num%, zero%)
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
-DECLARE FUNCTION usemenu% (pt%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu% (ptr%, top%, first%, last%, size%)
 DECLARE SUB debug (s$)
 DECLARE FUNCTION browse$ (fmask$, needf%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
-DECLARE FUNCTION picksave%(load%)
-DECLARE SUB equip (pt%, stat%())
+DECLARE SUB equip (ptr%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (pt%, stat%())
-DECLARE SUB status (pt%, stat%())
+DECLARE SUB spells (ptr%, stat%())
+DECLARE SUB status (ptr%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
@@ -194,11 +193,13 @@ END IF '---end if > 0
 END SUB
 
 FUNCTION checksaveslot (slot)
+  dim checkslot as short
   sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
   savh = FREEFILE
-  OPEN sg$ FOR BINARY AS savh
-  GET #savh, 1 + 60000 * (slot - 1), checksaveslot
-  CLOSE savh
+  OPEN sg$ FOR BINARY AS #savh
+  GET #savh, 1 + 60000 * (slot - 1), checkslot
+  CLOSE #savh
+  checksaveslot = checkslot
 END FUNCTION
 
 FUNCTION cropPlotStr (s$)
@@ -570,6 +571,9 @@ FOR j = 0 TO 20
  saytag(j) = buffer(j)
 NEXT j
 
+'debugmsg "next item is " + str$(saytag(12)) + ", if " + Str$(saytag(11))
+'debugmsg "use door " + str$(saytag(16)) + ", if " + Str$(saytag(15))
+
 '-- evaluate "instead" conditionals
 IF istag(saytag(0), 0) THEN
  '--do something else instead
@@ -598,6 +602,7 @@ NEXT j
 
 '--the bitset that determines whether the choicebox is enabled
 saybit(0) = buffer(174)
+'debugmsg "choicebox " + str$(saybit(0)) + " (" + str$(say) + ")"
 
 '--load box appearance into sayenh()
 FOR j = 0 TO 6
@@ -606,7 +611,7 @@ NEXT j
 '-- update backdrop if neccisary
 IF sayenh(4) > 0 THEN
  gen(58) = sayenh(4)
- correctbackdrop
+ correctbackdrop 
 END IF
 '-- change music if neccisary
 IF sayenh(5) > 0 THEN wrappedsong sayenh(5) - 1
@@ -913,7 +918,7 @@ SELECT CASE id
    gen(retvals(0)) = retvals(1)
   END IF
  CASE 159'--init mouse
-  IF setmouse(mouse()) THEN scriptret = 1 ELSE scriptret = 0
+  IF isetmouse(mouse()) THEN scriptret = 1 ELSE scriptret = 0
   mouserect 0, 319, 0, 199
  CASE 160'--get mouse x
   readmouse mouse()
@@ -969,6 +974,7 @@ SUB scriptdump (s$)
 END SUB
 
 SUB scriptmisc (id)
+ 	dim temp16 as short 'required for FB to fix get and put
 
 'contains a whole mess of scripting commands that do not depend on
 'any main-module level local variables or GOSUBs, and therefore
@@ -1258,12 +1264,13 @@ SELECT CASE id
  CASE 175'--deletesave
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
    IF checksaveslot(retvals(0)) THEN
+   	dim savver as short ' for FB
     sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
     savh = FREEFILE
-    OPEN sg$ FOR BINARY AS savh
+    OPEN sg$ FOR BINARY AS #savh
     savver = 0
     PUT #savh, 1 + 60000 * (retvals(0) - 1), savver
-    CLOSE savh
+    CLOSE #savh
    END IF
   END IF
  CASE 176'--runscriptbyid
@@ -1272,6 +1279,7 @@ SELECT CASE id
    IF rsr = 1 THEN
     '--fill heap with return values
     FOR i = scrat(nowscript - 1, curargc) - 1 TO 1 STEP -1  'flexible argument number!
+'    FOR i = scrat(nowscript - 1, curargc) TO 1 STEP -1  'flexible argument number!
      setScriptArg i - 1, retvals(i)
     NEXT i
    END IF
@@ -1411,20 +1419,21 @@ SELECT CASE id
  CASE 228'--system year
   scriptret = VAL(MID$(DATE$, 7, 4))
  CASE 229'--string compare
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
+  if retvals(0) >= 0 and retvals(0) <= 31 and retvals(1) >= 0 and retvals(1) <= 31 then
    scriptret = (plotstring$(retvals(0)) = plotstring$(retvals(1)))
-  END IF
+  end if
  CASE 230'--read enemy data
   f = FREEFILE
   OPEN game$ + ".dt1" FOR BINARY AS #f
-  GET #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, v%
+  GET #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, temp16
+  v% = temp16
   CLOSE #f
   scriptret = v%
  CASE 231'--write enemy data
-  v% = retvals(2)
+  temp16 = retvals(2)
   f = FREEFILE
   OPEN game$ + ".dt1" FOR BINARY AS #f
-  PUT #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, v%
+  PUT #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, temp16
   CLOSE #f
 END SELECT
 

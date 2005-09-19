@@ -4,9 +4,6 @@ WHAT IS NEW?
 
   * Bug-Fixes
 
-    * Fixed bug 18: "In the map editor, CTRL+F doesn't use default
-      passability" [Ralph Versteegen]
-
     * Fixed bug 76: "Hitting two keys at the same time allows you to
       overflow text-entry fields" [James Paige]
 
@@ -110,28 +107,12 @@ WHAT IS NEW?
     *  Map limit increased from 100 to 32767 maps
        [Ralph Versteegen]
 
-    *  Transparent tile and sprite pasting in all graphics editors.
-       Copy a sprite normally, then paste it with Ctrl + T. Transparent
-       (colour 0) areas will not get pasted [Ralph Versteegen]
-
-    *  Place tiles without overwriting passability with the default by 
-       hitting Ctrl + D when tilemapping [Ralph Versteegen]
-
-    *  Attack bitset to ignore attacking hero's/enemy's Extra Hits
-       stat [Ralph Versteegen]
-
-    *  Plotscript command alternpc has been considerably optimised. It 
-       no longer reloads all npcs and heros on the map [Ralph Versteegen]
-
   * Stuff only Developers Will Notice
 
     * Plotscripting Dictionary Documentation is now in xml format instead
       of html (but still exportable to html) [Big thanks to Mike Caron]
 
     * Constants for the gen()/general() array data [James Paige]
-
-    * Combined save- and load- menus to save memory (about 3.7kb) and
-      make future changes easier [Ralph Versteegen]
 
 May 19 2005 [quaternion]
 

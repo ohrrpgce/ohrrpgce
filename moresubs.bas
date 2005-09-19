@@ -49,18 +49,18 @@ DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE FUNCTION consumeitem% (index%)
 DECLARE FUNCTION istag% (num%, zero%)
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
-DECLARE FUNCTION usemenu% (pt%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu% (ptr%, top%, first%, last%, size%)
 DECLARE SUB debug (s$)
 DECLARE FUNCTION browse$ (fmask$, needf%, bpage%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
 DECLARE FUNCTION picksave% (load%)
-DECLARE SUB equip (pt%, stat%())
+DECLARE SUB equip (ptr%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (pt%, stat%())
-DECLARE SUB status (pt%, stat%())
+DECLARE SUB spells (ptr%, stat%())
+DECLARE SUB status (ptr%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
@@ -77,7 +77,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
-DECLARE FUNCTION maplumpname$ (map, oldext$)
+DECLARE FUNCTION maplumpname$(map, oldext$)
 
 '--CD playing (not compiled in yet)
 'DECLARE FUNCTION drivelist (l())
@@ -379,6 +379,7 @@ ELSE
   INPUT #fh, tree$(treesize)
   tree$(treesize) = UCASE$(tree$(treesize))
   IF tree$(treesize) = "." OR tree$(treesize) = ".." OR RIGHT$(tree$(treesize), 4) = ".TMP" THEN treesize = treesize - 1
+  if tree$(treesize) = "" then treesize = treesize - 1
   GOSUB drawmeter
  LOOP
  CLOSE #fh
@@ -392,26 +393,30 @@ ELSE
   treec(treesize) = 3
   INPUT #fh, true$(treesize)
   true$(treesize) = LCASE$(true$(treesize))
-  IF timeout! + 15 > TIMER THEN
-   unlumpfile nowdir$ + true$(treesize) + CHR$(0), "browse.txt", tmpdir$, buffer()
-   IF isfile(tmpdir$ + "browse.txt" + CHR$(0)) THEN
-    setpicstuf buffer(), 40, -1
-    loadset tmpdir$ + "browse.txt" + CHR$(0), 0, 0
-    tree$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
-    array2str buffer(), 2, tree$(treesize)
-    loadset tmpdir$ + "browse.txt" + CHR$(0), 1, 0
-    about$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
-    array2str buffer(), 2, about$(treesize)
-    safekill tmpdir$ + "browse.txt"
-    IF LEN(tree$(treesize)) = 0 THEN tree$(treesize) = true$(treesize)
-   ELSE
-    tree$(treesize) = true$(treesize)
-    about$(treesize) = ""
-   END IF
-  ELSE
-   tree$(treesize) = true$(treesize)
-   about$(treesize) = ""
-  END IF
+  if true$(treesize) = "" then 
+  	treesize = treesize - 1
+  else
+	  IF timeout! + 15 > TIMER THEN
+	   unlumpfile nowdir$ + true$(treesize) + CHR$(0), "browse.txt", tmpdir$, buffer()
+	   IF isfile(tmpdir$ + "browse.txt" + CHR$(0)) THEN
+	    setpicstuf buffer(), 40, -1
+	    loadset tmpdir$ + "browse.txt" + CHR$(0), 0, 0
+	    tree$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
+	    array2str buffer(), 2, tree$(treesize)
+	    loadset tmpdir$ + "browse.txt" + CHR$(0), 1, 0
+	    about$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
+	    array2str buffer(), 2, about$(treesize)
+	    safekill tmpdir$ + "browse.txt"
+	    IF LEN(tree$(treesize)) = 0 THEN tree$(treesize) = true$(treesize)
+	   ELSE
+	    tree$(treesize) = true$(treesize)
+	    about$(treesize) = ""
+	   END IF
+	  ELSE
+	   tree$(treesize) = true$(treesize)
+	   about$(treesize) = ""
+	  END IF
+  end if
   GOSUB drawmeter
  LOOP
  CLOSE #fh
@@ -885,7 +890,7 @@ edgeprint "Press ESC to cleanly close GAME.EXE", 15, 40, 7, 0
 edgeprint "or any other key to ignore the", 15, 50, 7, 0
 edgeprint "error and try to continue playing.", 15, 60, 7, 0
 
-w = getkey
+w = igetkey
 
 IF w = 1 THEN
  '--close digital audio file
@@ -1746,7 +1751,7 @@ IF v > current THEN
  printstr "http://HamsterRepublic.com", 52, 122, 0
 END IF
 fadein -1
-w = getkey
+w = igetkey
 fadeout 0, 0, 0, -1
 END SUB
 
@@ -1802,10 +1807,15 @@ IF loadinstead <> -1 THEN
 ELSE
  '--load the script from file
  IF isfile(workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" + CHR$(0)) THEN
+ 	dim temp as short 'needed by FB to get the right length ints
+ 	
   f = FREEFILE
   OPEN workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" FOR BINARY AS #f
-  GET #f, 1, skip
-  GET #f, 3, scrat(index, scrargs)
+  GET #f, 1, temp
+  skip = temp
+  GET #f, 3, temp
+  scrat(index, scrargs) = temp
+  
   IF nextscroff + (LOF(f) - skip) / 2 > 4096 THEN
    scripterr "Script buffer overflow"
    CLOSE #f
@@ -1822,7 +1832,8 @@ ELSE
   'GET #f, 1 + skip, bigstring$
   'str2array bigstring$, script(), scrat(index, scroff)
   FOR i = skip TO LOF(f) - 2 STEP 2
-   GET #f, 1 + i, script(scrat(index, scroff) + ((i - skip) / 2))
+   GET #f, 1 + i, temp
+   script(scrat(index, scroff) + ((i - skip) / 2)) = temp
   NEXT i
   CLOSE #f
 
@@ -1858,6 +1869,7 @@ END IF
 
 '--we are sucessful, so now tis safe to increment this
 nowscript = nowscript + 1
+
 END FUNCTION
 
 SUB savegame (slot, map, foep, stat(), stock())
@@ -1972,6 +1984,7 @@ FOR i = 0 TO 40
   buffer(z) = eqstuf(i, o): z = z + 1
  NEXT o
 NEXT i
+
 setpicstuf buffer(), 30000, -1
 sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
 storeset sg$ + CHR$(0), slot * 2, 0
@@ -2049,7 +2062,7 @@ SELECT CASE errormode
    printstr "Script Error!", 108, 10, i
    printstr e$, 160 - 4 * LEN(e$), 20, i
   NEXT i
-  w = getkey
+  w = igetkey
  CASE 2'--write error to file
   debug e$
 END SELECT
@@ -2445,10 +2458,34 @@ END SUB
 
 SUB xbload (f$, array(), e$)
 
-IF isfile(f$ + CHR$(0)) THEN
- DEF SEG = VARSEG(array(0)): BLOAD f$, VARPTR(array(0))
+IF isfile(f$) THEN
+' BLOAD f$, VARPTR(array(0))
+' BLOAD is not compatible with the old format. So, I make my own.
+DIM ff%, byt as UByte, seg AS Short, offset AS Short, length AS Short
+dim ilength as integer
+
+ff = FreeFile
+OPEN f$ FOR BINARY AS #ff
+GET #ff,, byt 'Magic number, always 253
+IF byt <> 253 THEN fatalerror e$
+GET #ff,, seg 'Segment, no use anymore
+GET #ff,, offset 'Offset into the array, not used now
+GET #ff,, length 'Length
+'length is in bytes, so divide by 2, and subtract 1 because 0-based
+ilength = (length / 2) - 1
+
+dim buf(ilength) as short
+
+GET #ff,, buf()
+CLOSE #ff
+
+'REDIM array(length) 'noooooo
+for i = 0 to small(ilength, ubound(array))
+	array(i) = buf(i)	
+next i
+
 ELSE
- fatalerror e$
+fatalerror e$
 END IF
 
 END SUB

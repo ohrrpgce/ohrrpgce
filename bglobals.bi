@@ -3,5 +3,5 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-COMMON SHARED /battleglobal/ battlecaption$, battlecaptime, battlecapdelay, bstackstart
+COMMON SHARED battlecaption$, battlecaptime, battlecapdelay, bstackstart
 

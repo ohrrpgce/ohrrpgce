@@ -25,7 +25,7 @@ DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB readattackdata (array%(), index%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
-DECLARE SUB smartarrowmask (inrange%(), pt%, d%, axis%(), tmask%())
+DECLARE SUB smartarrowmask (inrange%(), ptr%, d%, axis%(), tmask%())
 DECLARE SUB debug (s$)
 DECLARE FUNCTION targetmaskcount% (tmask%())
 DECLARE FUNCTION randomally% (who%)
@@ -37,20 +37,18 @@ DECLARE FUNCTION countai% (ai%, them%, es%())
 DECLARE FUNCTION enemycount% (v%(), stat%())
 DECLARE SUB calibrate ()
 DECLARE SUB control ()
-DECLARE FUNCTION pickload% (svcsr%)
-DECLARE FUNCTION picksave% (svcsr%)
-DECLARE SUB equip (pt%, stat%())
+DECLARE SUB equip (ptr%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (pt%, stat%())
-DECLARE SUB status (pt%, stat%())
+DECLARE SUB spells (ptr%, stat%())
+DECLARE SUB status (ptr%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
 DECLARE SUB resetlmp (slot%, lev%)
 DECLARE SUB loadfoe (i%, formdata%(), es%(), x%(), y%(), p%(), v%(), w%(), h%(), ext$(), bits%(), stat%(), ebits%(), batname$())
-DECLARE FUNCTION inflict (w%, t%, stat%(), x%(), y%(), w%(), h%(), harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())
+DECLARE FUNCTION inflict (ww%, t%, stat%(), x%(), y%(), w%(), h%(), harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())
 DECLARE FUNCTION battle (form%, fatal%, exstat%())
 DECLARE SUB addhero (who%, slot%, stat%())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
@@ -571,11 +569,12 @@ END IF
 END SUB
 
 FUNCTION getbinsize (id)
+dim recordsize as short
 
 IF isfile(workingdir$ + "\binsize.bin" + CHR$(0)) THEN
  fh = FREEFILE
  OPEN workingdir$ + "\binsize.bin" FOR BINARY AS #fh
- GET #fh, 1 + id * 2, recordsize
+ GET #fh, 1 + (id * 2), recordsize
  CLOSE #fh
  getbinsize = recordsize
 ELSE
@@ -651,7 +650,7 @@ END IF
 
 END SUB
 
-FUNCTION inflict (w, t, stat(), x(), y(), wid(), hei(), harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
+FUNCTION inflict (ww, t, stat(), x(), y(), w(), h(), harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
 
 DIM tbits(4)
 
@@ -659,13 +658,13 @@ DIM tbits(4)
 inflict = 0
 
 'remember this target
-setbit targmem(), w, t, 1
+setbit targmem(), ww, t, 1
 
 'stored targs
-IF readbit(atk(), 20, 52) THEN setbit targmem(), w + 12, t, 1
+IF readbit(atk(), 20, 52) THEN setbit targmem(), ww + 12, t, 1
 IF readbit(atk(), 20, 53) THEN
  FOR i = 0 TO 11
-  setbit targmem(), w + 12, i, 0
+  setbit targmem(), ww + 12, i, 0
  NEXT i
 END IF
 
@@ -681,40 +680,40 @@ IF atk(5) <> 4 THEN
  harm$(t) = ""
  'harm$(w) = "" ' this is probably bad! What if they already have a harm$ and we wipe it out?
  hc(t) = 7
- hx(t) = x(t) + (wid(t) * .5)
- hy(t) = y(t) + (hei(t) * .5)
+ hx(t) = x(t) + (w(t) * .5)
+ hy(t) = y(t) + (h(t) * .5)
  targstat = atk(18)
  
  'accuracy
- a = stat(w, 0, 3): d = stat(t, 0, 5): dm! = .25
+ a = stat(ww, 0, 3): d = stat(t, 0, 5): dm! = .25
  IF atk(6) = 1 THEN dm! = .5
  IF atk(6) = 2 THEN dm! = 1
  IF atk(6) = 3 THEN dm! = 0
- IF atk(6) = 4 THEN a = stat(w, 0, 6): d = stat(t, 0, 7): dm! = 1.25
+ IF atk(6) = 4 THEN a = stat(ww, 0, 6): d = stat(t, 0, 7): dm! = 1.25
  IF range(a, 75) < range(d * dm!, 75) THEN
   harm$(t) = readglobalstring$(120, "miss", 20)
   EXIT FUNCTION
  END IF
  
  'attack and defence base
- a = stat(w, 0, 2): d = stat(t, 0, 4)
+ a = stat(ww, 0, 2): d = stat(t, 0, 4)
  SELECT CASE atk(7)
   CASE 1
-   a = stat(w, 0, 6): d = stat(t, 0, 7)
+   a = stat(ww, 0, 6): d = stat(t, 0, 7)
   CASE 2
-   a = stat(w, 0, 0)
+   a = stat(ww, 0, 0)
   CASE 3
-   a = (stat(w, 1, 0) - stat(w, 0, 0))
+   a = (stat(ww, 1, 0) - stat(ww, 0, 0))
   CASE 4
    a = INT(RND * 999)
   CASE 5
    a = 100
   CASE 6 TO 17
-   a = stat(w, 0, atk(7) - 6)
+   a = stat(ww, 0, atk(7) - 6)
   CASE 18
-   a = repeatharm(w)
+   a = repeatharm(ww)
   CASE 19
-   a = revengeharm(w)
+   a = revengeharm(ww)
   CASE 20
    a = revengeharm(t)
  END SELECT
@@ -733,17 +732,17 @@ IF atk(5) <> 4 THEN
  END IF
  
  'calc harm
- h = (a * am!) - (d * dm!)
+ hm = (a * am!) - (d * dm!)
  
  'elementals
  FOR i = 0 TO 7
   IF readbit(atk(), 20, 5 + i) = 1 THEN
-   IF readbit(tbits(), 0, 0 + i) = 1 THEN h = h * 2   'weakness
-   IF readbit(tbits(), 0, 8 + i) = 1 THEN h = h * .12 'resistance
+   IF readbit(tbits(), 0, 0 + i) = 1 THEN hm = hm * 2   'weakness
+   IF readbit(tbits(), 0, 8 + i) = 1 THEN hm = hm * .12 'resistance
    IF readbit(tbits(), 0, 16 + i) = 1 THEN cure = 1   'absorb
   END IF
   IF readbit(atk(), 20, 13 + i) = 1 THEN
-   IF t >= 4 AND readbit(tbits(), 0, 24 + i) = 1 THEN h = h * 1.8
+   IF t >= 4 AND readbit(tbits(), 0, 24 + i) = 1 THEN hm = hm * 1.8
   END IF
   IF readbit(atk(), 20, 21 + i) = 1 THEN
    IF readbit(tbits(), 0, 8 + i) = 1 THEN
@@ -760,20 +759,20 @@ IF atk(5) <> 4 THEN
  NEXT i
  
  'extra damage
- h = h + (h / 100) * atk(11)
+ hm = hm + (hm / 100) * atk(11)
  
  'randomize
- IF readbit(atk(), 20, 61) = 0 THEN h = range(h, 20)
+ IF readbit(atk(), 20, 61) = 0 THEN hm = range(hm, 20)
  
  'spread damage
- IF readbit(atk(), 20, 1) = 1 THEN h = h / (tcount + 1)
+ IF readbit(atk(), 20, 1) = 1 THEN hm = hm / (tcount + 1)
  
  'cap out
- h = large(h, 1 - readbit(atk(), 20, 62))
+ hm = large(hm, 1 - readbit(atk(), 20, 62))
  
- IF readbit(atk(), 20, 0) = 1 THEN h = ABS(h) * -1 'cure bit
- IF readbit(tbits(), 0, 54) THEN h = ABS(h)        'zombie
- IF cure = 1 THEN h = ABS(h) * -1                  'absorb
+ IF readbit(atk(), 20, 0) = 1 THEN hm = ABS(hm) * -1 'cure bit
+ IF readbit(tbits(), 0, 54) THEN hm = ABS(hm)        'zombie
+ IF cure = 1 THEN hm = ABS(hm) * -1                  'absorb
  
  'backcompat MP-targstat
  IF readbit(atk(), 20, 60) THEN
@@ -782,14 +781,14 @@ IF atk(5) <> 4 THEN
  
  'remember target stat
  remtargstat = stat(t, 0, targstat)
- rematkrstat = stat(w, 0, targstat)
+ rematkrstat = stat(ww, 0, targstat)
  
  'pre-calculate percentage damage for display
  SELECT CASE atk(5)
   CASE 5'% of max
-   h = stat(t, 0, targstat) - (stat(t, 1, targstat) + (stat(t, 1, targstat) / 100 * atk(11)))
+   hm = stat(t, 0, targstat) - (stat(t, 1, targstat) + (stat(t, 1, targstat) / 100 * atk(11)))
   CASE 6'% of cur
-   h = stat(t, 0, targstat) - (stat(t, 0, targstat) + (stat(t, 0, targstat) / 100 * atk(11)))
+   hm = stat(t, 0, targstat) - (stat(t, 0, targstat) + (stat(t, 0, targstat) / 100 * atk(11)))
  END SELECT
  
  'inflict
@@ -800,43 +799,43 @@ IF atk(5) <> 4 THEN
    CASE 6'% of cur
     stat(t, 0, targstat) = stat(t, 0, targstat) + (stat(t, 0, targstat) / 100 * atk(11))
    CASE ELSE'normal
-    stat(t, 0, targstat) = safesubtract(stat(t, 0, targstat), h)
+    stat(t, 0, targstat) = safesubtract(stat(t, 0, targstat), hm)
     IF readbit(atk(), 20, 2) THEN
      '--drain
      IF readbit(atk(), 20, 56) = 0 THEN
-      harm$(w) = RIGHT$(STR$(h), LEN(STR$(h)) - 1)
-      IF h > 0 THEN harm$(w) = "+" + harm$(w)
+      harm$(ww) = RIGHT$(STR$(hm), LEN(STR$(hm)) - 1)
+      IF hm > 0 THEN harm$(ww) = "+" + harm$(ww)
      END IF
-     hc(w) = 7
-     hc(w + 12) = 12 'pink
-     hx(w) = x(w) + (wid(w) * .5)
-     hy(w) = y(w) + (hei(w) * .5)
-     stat(w, 0, targstat) = stat(w, 0, targstat) + h
+     hc(ww) = 7
+     hc(ww + 12) = 12 'pink
+     hx(ww) = x(ww) + (w(ww) * .5)
+     hy(ww) = y(ww) + (h(ww) * .5)
+     stat(ww, 0, targstat) = stat(ww, 0, targstat) + hm
     END IF
   END SELECT
  END IF
  
  'enforce bounds
  stat(t, 0, targstat) = large(stat(t, 0, targstat), 0)
- stat(w, 0, targstat) = large(stat(w, 0, targstat), 0)
+ stat(ww, 0, targstat) = large(stat(ww, 0, targstat), 0)
  IF readbit(atk(), 20, 58) = 0 THEN
   stat(t, 0, targstat) = small(stat(t, 0, targstat), large(stat(t, 1, targstat), remtargstat))
-  stat(w, 0, targstat) = small(stat(w, 0, targstat), large(stat(w, 1, targstat), rematkrstat))
+  stat(ww, 0, targstat) = small(stat(ww, 0, targstat), large(stat(ww, 1, targstat), rematkrstat))
  END IF
  
  'set damage display
  IF readbit(atk(), 20, 56) = 0 THEN
-  harm$(t) = RIGHT$(STR$(h), LEN(STR$(h)) - 1)
+  harm$(t) = RIGHT$(STR$(hm), LEN(STR$(hm)) - 1)
   '--if cure, show + sign
-  IF h < 0 THEN harm$(t) = "+" + harm$(t)
+  IF hm < 0 THEN harm$(t) = "+" + harm$(t)
  END IF
  
  'remember revenge data
  IF remtargstat > stat(t, 0, targstat) THEN
-  setbit revengemask(), t, w, 1
-  revenge(t) = w
+  setbit revengemask(), t, ww, 1
+  revenge(t) = ww
   revengeharm(t) = remtargstat - stat(t, 0, targstat)
-  repeatharm(w) = remtargstat - stat(t, 0, targstat)
+  repeatharm(ww) = remtargstat - stat(t, 0, targstat)
  END IF
  
 END IF 'skips to here if no damage
@@ -849,7 +848,6 @@ END IF
 
 '--success!
 inflict = 1
-
 END FUNCTION
 
 FUNCTION liveherocount (stat())
@@ -997,17 +995,17 @@ inrange(0) = 0
 smartarrowmask inrange(), pt, d, axis(), tmask()
 IF inrange(0) THEN
  best = 999
- newptr = pt
+ newpt = pt
  FOR i = 0 TO 11
   IF readbit(inrange(), 0, i) THEN
    distance = (axis(i) - axis(pt)) * d
    IF distance < best THEN
     best = distance
-    newptr = i
+    newpt = i
    END IF
   END IF
  NEXT i
- pt = newptr
+ pt = newpt
 ELSE
  IF spred = 1 THEN
   FOR i = 0 TO 11
