@@ -961,10 +961,12 @@ end</example>
 		<command id="showstring">
 			<cannon>show string (ID)</cannon>
 			<shortname>show string</shortname>
-			<description>Displays string #ID on the screen, as with the <ref>showvalue</ref> command. Use <ref>shownovalue</ref> to remove the string from the screen.</description>
+			<description>Displays string #ID on the screen, as with the <ref>showvalue</ref> command. Use <ref>shownovalue</ref> to remove the string from the screen. Note that this command displays the value of the string at the moment the command was run. Later changes to the value of the string will not appear unless you run show string again. If you need real-time display of changes to a string, use <ref>showstringat</ref> or <ref>centerstringat</ref> instead.</description>
 			<seealso>
 				<ref>showvalue</ref>
 				<ref>shownovalue</ref>
+                                <ref>showstringat</ref>
+                                <ref>centerstringat</ref>
 			</seealso>
 		</command>
 		<command id="clearstring">
@@ -992,7 +994,7 @@ end</example>
 		<command id="concatenatestrings">
 			<cannon>concantenate strings (source, dest)</cannon>
 			<shortname>concatenate strings</shortname>
-			<description>Copies the text from string #<p>source</p> to string #<p>dest</p>. However, unlike <ref>copystring</ref>, the text is appended to the end of <p>dest</p>. The resulting string is then trimmed to the limit of 38 characters <!-- is that the limit? --></description>
+			<description>Copies the text from string #<p>source</p> to string #<p>dest</p>. However, unlike <ref>copystring</ref>, the text is appended to the end of <p>dest</p>. The resulting string is then trimmed to the limit of 40 characters</description>
 		</command>
 		<command id="stringlength">
 			<cannon>string length (ID)</cannon>
@@ -1018,13 +1020,8 @@ end</example>
 		<command id="globalstostring">
 			<cannon>globals to string(ID, starting global, length)</cannon>
 			<shortname>globals to string</shortname>
-			<description>This command is the opposite of <ref>stringtoglobals</ref>. It will build a new string in slot #<p>ID</p>, using the ascii values from the global variables #<p>starting global</p> and <p>length</p> globals thereafter. If a global has a value greater than 255, the behaviour is undefined...</description>
+			<description>This command is the opposite of <ref>stringtoglobals</ref>. It will build a new string in slot #<p>ID</p>, using the ascii values from the global variables #<p>starting global</p> and <p>length</p> globals thereafter. If a global has a value greater than 255, the value will be ignored.</description>
 			<seealso><ref>stringtoglobals</ref></seealso>
-		</command>
-		<command id="">
-			<cannon></cannon>
-			<shortname></shortname>
-			<description></description>
 		</command>
 		<command id="getheroname">
 			<cannon>get hero name (ID, hero)</cannon>
@@ -1039,27 +1036,67 @@ end</example>
 		<command id="getitemname">
 			<cannon>get item name (ID, item)</cannon>
 			<shortname>get item name</shortname>
-			<description>This command will take the name of item #<p>item</p> and stick it in string #<p>ID</p>. This can be useful for "You got &lt;item&gt;!" type messages.</description>
+			<description>This command will take the name of item #<p>item</p> and stick it in string #<p>ID</p>, overwriting its contents. This can be useful for "You got &lt;item&gt;!" type messages.</description>
 		</command>
-		<command id="">
-			<cannon></cannon>
-			<shortname></shortname>
-			<description></description>
+		<command id="getmapname">
+			<cannon>get map name (ID, map)</cannon>
+			<shortname>get map name</shortname>
+			<description>This command will take the name of map #<p>map</p> and stick it in string #<p>ID</p>, overwriting its contents.</description>
 		</command>
-		<command id="">
-			<cannon></cannon>
-			<shortname></shortname>
-			<description></description>
+		<command id="getattackname">
+			<cannon>get attack name (ID, attack)</cannon>
+			<shortname>get attack name</shortname>
+			<description>This command will take the name of attack #<p>attack</p> and stick it in string #<p>ID</p>, overwriting its contents.</description>
 		</command>
-		<command id="">
-			<cannon></cannon>
-			<shortname></shortname>
-			<description></description>
+		<command id="getglobalstring">
+			<cannon>get global string (ID, global)</cannon>
+			<shortname>get global string</shortname>
+			<description>This command will take the name of global string #<p>global</p> and stick it in string #<p>ID</p>, overwriting its contents. Global strings include every text string in the game, such as prompts and messages. See a the Global String Editor in CUSTOM for a list of all of them. Due to the way global strings are stored internally, not all values of #<p>global</p> will produce valid results. <!-- need a table of them here? ot at least on the wiki? --></description>
 		</command>
-		<command id="">
-			<cannon></cannon>
-			<shortname></shortname>
-			<description></description>
+		<command id="inputstring">
+			<cannon>input string (ID, use current)</cannon>
+			<shortname>input string</shortname>
+			<description>Allows the player to type in a string. Returns false if they press ESC to cancel.</description>
+		</command>
+		<command id="showstringat">
+			<cannon>show string at (ID, x, y)</cannon>
+			<shortname>show string at</shortname>
+			<description>Displays string #<p>ID</p> on the screen, positioning its top left corner at the given <p>x</p>,<p>y</p> coordinates. Unlike <ref>showstring</ref>, changes to the string will be displayed in real-time.</description>
+		</command>
+		<command id="centerstringat">
+			<cannon>center string at (ID, x, y)</cannon>
+			<shortname>show string at</shortname>
+			<description>Displays string #<p>ID</p> on the screen, Centering it at the given <p>x</p>,<p>y</p> coordinates. Unlike <ref>showstring</ref>, changes to the string will be displayed in real-time.</description>
+		</command>
+		<command id="hidestring">
+			<cannon>hide string (ID)</cannon>
+			<shortname>hide string</shortname>
+			<description>Makes a string previously displayed with <ref>showstringat</ref> or <ref>centerstringat</ref> disappear. Has no effect on strings displayed with <ref>showstring</ref></description>
+		</command>
+		<command id="stringstyle">
+			<cannon>string style (ID, style)</cannon>
+			<shortname>string style</shortname>
+			<description>Changes the appearance of a string previously displayed with <ref>showstringat</ref> or <ref>centerstringat</ref>. Choice of <p>style</p> is string:outline and string:flat</description>
+		</command>
+		<command id="stringcolor">
+			<cannon>string color (ID, foreground color, background color)</cannon>
+			<shortname>string color</shortname>
+			<description>Changes the color of a string previously displayed with <ref>showstringat</ref> or <ref>centerstringat</ref>. Use 0 for transparent, and 1 to 255 for each different color in the palette. If you ommit <p>background color</p>, the background will be transparent.</description>
+		</command>
+		<command id="positionstring">
+			<cannon>positionstring (ID, x, y)</cannon>
+			<shortname>position string</shortname>
+			<description>Positions the top left corner of string #<p>ID</p> at the given <p>x</p>,<p>y</p> coordinates. Unlike <ref>showstringat</ref>, this command will not affect the visibility of a string.</description>
+		</command>
+		<command id="stringx">
+			<cannon>string X (ID)</cannon>
+			<shortname>string X</shortname>
+			<description>returns the horizontal X position of the top left corner of string #<p>ID</p></description>
+		</command>
+		<command id="stringy">
+			<cannon>string Y (ID)</cannon>
+			<shortname>string Y</shortname>
+			<description>returns the vertical Y position of the top left corner of string #<p>ID</p></description>
 		</command>
 	</section>
 	<section title="Misc Functions">
