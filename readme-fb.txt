@@ -1,6 +1,7 @@
 -----------------------------------------------------------
 OHRRPGCE FreeBasic version
 
+2005-09-19 - Filled in more functions and updated from QB.
 2005-09-14 - Combat bug fix.
 2005-09-11 - Initial release.
 -----------------------------------------------------------
@@ -9,9 +10,6 @@ ORDER I THINK OF IT.
 
 Not Yet Done
 ------------
-- Most obviously, the fade in/fade out. I don't think this
-is especially difficult, but I haven't quite got round to 
-it yet.
 - Drives. The drive list is faked, and there's no way to 
 change drives yet, so run it from the same drive as your
 game files.
@@ -54,12 +52,6 @@ to write an editor from scratch knowing only the .rpg file
 specification. Game.exe, on the other hand, needs to copy
 the internal logic exactly, and so a direct port makes more
 sense.
-
-Some of the newer stuff in svn might need to be applied. I
-included my own (different) solution to the battle bug. I
-expect it is inevitable that this version will diverge from 
-the QB as time passes and it moves further from the QB
-source.
 
 I can only hope I removed all my swearing from the comments.
 
