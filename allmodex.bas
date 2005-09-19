@@ -1,4 +1,6 @@
-''
+'' FBOHR COMPATIBILITY FUNCTIONS
+'' GPL and stuff. See LICENSE.txt.
+'
 '$include: 'allmodex.bi'
 '$include: 'fbgfx.bi'
 
@@ -35,6 +37,7 @@ dim shared anim2 as integer
 
 dim shared waittime as integer
 dim shared keybd(0 to 255) as integer
+dim shared keytime(0 to 255) as integer
 
 dim shared stacktop as ubyte ptr
 dim shared stackptr as ubyte ptr
@@ -54,7 +57,8 @@ sub setmodex()
 	
 	'init vars
 	for i = 0 to 255
-		keybd(i) = -1
+		keybd(i) = 0
+		keytime(i) = -1
 	next
 	stacksize = -1
 end sub
@@ -608,41 +612,7 @@ FUNCTION keyoff () as integer	'not required
 end FUNCTION
 
 FUNCTION keyval (BYVAL a as integer) as integer
-'Much more complicated version of this function (which used to be a thin
-'wrapper around multikey()) now checks against an array of times to see
-'it's time for the key to repeat yet.
-'It would be nice to make changes in game.bas and elsewhere so this can 
-'revert to the simpler form, but at the moment it is required or the
-'context menu never shows.
-	dim ktime as integer
-	
-	keyval = 0
-	if multikey(a) < 0 then
-		'NOTE there are 86,400,000 thousandths in a day
-		ktime = int(timer() * 1000)
-		if ktime > keybd(a) then
-			keyval = 2
-			if ktime > keybd(a) + 1000 then
-				keybd(a) = ktime + 200
-			else
-				keybd(a) = ktime + 50
-			end if
-		else
-			if keybd(a) > 80000000 and ktime < 1800000 then
-				keybd(a) = keybd(a) - 86400000
-				if ktime > keybd(a) then
-					keyval = 2
-					if keybd(a) = -1 or ktime > keybd(a) + 1000 then
-						keybd(a) = ktime + 200
-					else
-						keybd(a) = ktime + 50
-					end if
-				end if
-			end if
-		end if
-	else
-		keybd(a) = -1
-	end if
+	keyval = keybd(a)
 end FUNCTION
 
 FUNCTION igetkey () as integer
@@ -654,7 +624,7 @@ FUNCTION igetkey () as integer
 	do
 		'I think this wants a scancode, and the only way I can see is to check
 		'them all
-		for i=0 to &h80
+		for i=0 to 255
 			if multikey(i) then
 				key = i
 				exit for
@@ -667,6 +637,50 @@ FUNCTION igetkey () as integer
 end FUNCTION
 
 SUB setkeys ()
+'Quite nasty. Moved all this functionality from keyval() because this
+'is where it seems to happen in the original.
+'The keytime array is used to store the repeat delay timeout so that a 
+'key "event" will only fire once every now and again rather than every
+'time this function is called while the key is down. This probably doesn't
+'need to be per key, but it mostly works, so I'll leave it be.
+'Actual key state goes in keybd array for retrieval via keyval().
+	dim ktime as integer
+	dim a as integer
+	
+	ktime = int(timer() * 1000)
+	
+	'set key state for every key
+	for a = 0 to 255
+		keybd(a) = 0 'default to not pressed
+		if multikey(a) < 0 then
+			'key is down
+			if ktime > keytime(a) then
+				'ok to fire a key event
+				keybd(a) = 2
+				if ktime > keytime(a) + 1000 then
+					keytime(a) = ktime + 200
+				else
+					keytime(a) = ktime + 50
+				end if
+			else
+				'NOTE there are 86,400,000 thousandths in a day
+				if keytime(a) > 80000000 and ktime < 1800000 then
+					'check wrap over midnight (stupid timer)
+					keytime(a) = keytime(a) - 86400000
+					if ktime > keytime(a) then
+						keybd(a) = 2
+						if keytime(a) = -1 or ktime > keytime(a) + 1000 then
+							keytime(a) = ktime + 200
+						else
+							keytime(a) = ktime + 50
+						end if
+					end if
+				end if
+			end if
+		else
+			keytime(a) = -1
+		end if
+	next
 end SUB
 
 SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
@@ -1521,3 +1535,34 @@ function calcblock(byval x as integer, byval y as integer, byval t as integer) a
 	
 	calcblock = block
 end function
+
+'----------------------------------------------------------------------
+'Stub functions which aren't used in game.exe, but are declared in 
+'allmodex.bi for custom.exe.
+'----------------------------------------------------------------------
+SUB setpassblock (BYVAL x, BYVAL y, BYVAL v)
+END SUB
+
+FUNCTION readpassblock (BYVAL x, BYVAL y)
+	readpassblock = 0
+END FUNCTION
+
+SUB bitmap2page (temp(), bmp$, BYVAL p)
+END SUB
+
+SUB lumpfiles (listf$, lump$, path$, buffer())
+END SUB
+
+FUNCTION isvirtual (BYVAL d)
+	isvirtual = 0
+END FUNCTION
+
+SUB loadbmp (f$, BYVAL x, BYVAL y, buf(), BYVAL p)
+END SUB
+
+SUB getbmppal (f$, mpal(), pal(), BYVAL o)
+END SUB
+
+FUNCTION bmpinfo (f$, dat())
+	bmpinfo = 0
+END FUNCTION
