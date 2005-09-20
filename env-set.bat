@@ -1,20 +1,21 @@
 @ECHO OFF
 
-REM --- Edit this file to select the locations ---
+REM --- Make a copy of this file as MYENV.BAT  ---
+REM --- and edit it to select the locations    ---
 REM --- where you have installed Quickbasic,   ---
 REM --- and the OHRRPGCE source code.          ---
 
 REM -- Quickbasic 4.5 is the default --
 SET QBVER=4.5
-SET QBDIR=D:\QB45
-SET OHRRPGCE=D:\OHRRPGCE\SOURCE\CURRENT2
+SET QBDIR=C:\QB45
+SET OHRRPGCE=C:\OHRRPGCE
 SET QBEDIT=QB.EXE
 SET LINKEXT=l
 
 REM -- Quickbasic 7.1 also works --
 REM SET QBVER=7.1
-REM SET QBDIR=D:\QB45
-REM SET OHRRPGCE=D:\OHRRPGCE\SOURCE\CURRENT2
+REM SET QBDIR=C:\QB45
+REM SET OHRRPGCE=C:\OHRRPGCE
 REM SET QBEDIT=QB.EXE
 REM SET LINKEXT=l7
 
