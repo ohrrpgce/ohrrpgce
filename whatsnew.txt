@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-??? ?? 2005 [rusalka]
+September ?? 2005 [rusalka]
 
   * Bug-Fixes
 
@@ -29,6 +29,12 @@ WHAT IS NEW?
 
     * Fixed bug 88: "A script buffer overflow crashes or freezes game.exe
       instead of displaying an error message" [Ralph Versteegen]
+
+    * "NPC is walking" now returns true when the NPC is walking and false
+      if not walking. Used to be backwards. Old compiled scripts that
+      depended on the backwards behaviour will still work as they did
+      before, but you will have fixed them if you recompile them.
+      [James Paige]
 
   * New Features
 
