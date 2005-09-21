@@ -987,12 +987,12 @@ end</example>
 			<seealso><ref>appendnumber</ref></seealso>
 		</command>
 		<command id="copystring">
-			<cannon>copy string (source, dest)</cannon>
+			<cannon>copy string (dest, source)</cannon>
 			<shortname>copy string</shortname>
 			<description>Copies the text from string #<p>source</p> to string #<p>dest</p>, overwriting the existing string completely.</description>
 		</command>
 		<command id="concatenatestrings">
-			<cannon>concantenate strings (source, dest)</cannon>
+			<cannon>concantenate strings (dest, source)</cannon>
 			<shortname>concatenate strings</shortname>
 			<description>Copies the text from string #<p>source</p> to string #<p>dest</p>. However, unlike <ref>copystring</ref>, the text is appended to the end of <p>dest</p>. The resulting string is then trimmed to the limit of 40 characters</description>
 		</command>
