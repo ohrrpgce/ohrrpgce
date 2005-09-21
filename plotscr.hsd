@@ -124,8 +124,8 @@ define function, begin
 113,getheropalette,2,0,1    # who,type
 114,readglobal,1,0          # index
 115,writeglobal,2,0,0       # index,value
-116,heroiswalking,1,0       # index,value
-117,NPCiswalking,1,0        # index,value
+116,heroiswalking,1,0       # (who)
+#117,NPCiswalking,1,0       #x obsolete, backwards compatability only
 118,suspendcaterpillar,0    # other heros stop following the leader, and can be manipulated separately.
 119,resumecaterpillar,0     # turns catapillar party back on
 120,NPCreference,2,0,0      # get an NPC reference by ID number
@@ -183,6 +183,7 @@ define function, begin
 174,loadfromslot,1,1        # loads saved game from slot
 175,deletesave,1,1          # delete (hide from load/save screen - data not *actaully* deleted) specified slot
 176,runscriptbyid,9,0,0,0,0,0,0,0,0,0 # run a script by its id number and pass up to 8 arguments
+177,NPCiswalking,1,0        # (who) returns true if walking (for real, unlike the old implementation)
 
 200,system hour,0
 201,system minute,0

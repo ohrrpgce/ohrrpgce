@@ -72,7 +72,7 @@ DECLARE SUB debug (s$)
 DECLARE FUNCTION browse$ (fmask$, needf%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
-DECLARE FUNCTION picksave%(load%)
+DECLARE FUNCTION picksave% (load%)
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
@@ -1486,14 +1486,15 @@ SELECT CASE id
  CASE 101'--NPC direction
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN scriptret = npcl(npcref + 900)
- CASE 117'--NPC is walking
+ CASE 117, 177'--NPC is walking
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    IF npcl(npcref + 1500) = 0 AND npcl(npcref + 1800) = 0 THEN
-    scriptret = 1
-   ELSE
     scriptret = 0
+   ELSE
+    scriptret = 1
    END IF
+   IF id = 117 THEN scriptret = scriptret XOR 1 'Backcompat hack
   END IF
  CASE 120'--NPC reference
   scriptret = 0
