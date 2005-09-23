@@ -1,8 +1,11 @@
 WHAT IS NEW?
 
-??? ?? 2005 [rusalka]
+September ?? 2005 [rusalka]
 
   * Bug-Fixes
+
+    * Fixed bug 18: "In the map editor, CTRL+F doesn't use default
+      passability" [Ralph Versteegen]
 
     * Fixed bug 76: "Hitting two keys at the same time allows you to
       overflow text-entry fields" [James Paige]
@@ -26,6 +29,12 @@ WHAT IS NEW?
 
     * Fixed bug 88: "A script buffer overflow crashes or freezes game.exe
       instead of displaying an error message" [Ralph Versteegen]
+
+    * "NPC is walking" now returns true when the NPC is walking and false
+      if not walking. Used to be backwards. Old compiled scripts that
+      depended on the backwards behaviour will still work as they did
+      before, but you will have fixed them if you recompile them.
+      [James Paige]
 
   * New Features
 
@@ -59,8 +68,8 @@ WHAT IS NEW?
           clear string(string ID)
           append ascii(string ID, ascii code)
           append number(string ID, number)
-          copy string(source string, dest string)
-          concatenate strings(source string, dest string)
+          copy string(dest string, source string)
+          concatenate strings(dest string, source string)
           string length(string ID)
           replace char(string ID, position, ascii)
           delete char(string ID, position)
@@ -107,12 +116,28 @@ WHAT IS NEW?
     *  Map limit increased from 100 to 32767 maps
        [Ralph Versteegen]
 
+    *  Transparent tile and sprite pasting in all graphics editors.
+       Copy a sprite normally, then paste it with Ctrl + T. Transparent
+       (colour 0) areas will not get pasted [Ralph Versteegen]
+
+    *  Place tiles without overwriting passability with the default by 
+       hitting Ctrl + D when tilemapping [Ralph Versteegen]
+
+    *  Attack bitset to ignore attacking hero's/enemy's Extra Hits
+       stat [Ralph Versteegen]
+
+    *  Plotscript command alternpc has been considerably optimised. It 
+       no longer reloads all npcs and heros on the map [Ralph Versteegen]
+
   * Stuff only Developers Will Notice
 
     * Plotscripting Dictionary Documentation is now in xml format instead
       of html (but still exportable to html) [Big thanks to Mike Caron]
 
     * Constants for the gen()/general() array data [James Paige]
+
+    * Combined save- and load- menus to save memory (about 3.7kb) and
+      make future changes easier [Ralph Versteegen]
 
 May 19 2005 [quaternion]
 
