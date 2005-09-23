@@ -147,6 +147,7 @@ DECLARE FUNCTION maplumpname$(map, oldext$)
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'sglobals.bi'
+'$include: 'compat.bi'
 
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
