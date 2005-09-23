@@ -68,6 +68,7 @@ DECLARE SUB snapshot ()
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'sglobals.bi'
+'$include: 'compat.bi'
 
 '$INCLUDE: 'const.bi'
 

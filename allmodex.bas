@@ -4,6 +4,9 @@
 '$include: 'allmodex.bi'
 '$include: 'fbgfx.bi'
 
+#define DEMACRO
+'$include: 'compat.bi'
+
 option explicit
 
 declare function matchmask(match as string, mask as string) as integer
@@ -624,7 +627,7 @@ FUNCTION igetkey () as integer
 	do
 		'I think this wants a scancode, and the only way I can see is to check
 		'them all
-		for i=0 to 255
+		for i=0 to &h80
 			if multikey(i) then
 				key = i
 				exit for
@@ -650,7 +653,8 @@ SUB setkeys ()
 	ktime = int(timer() * 1000)
 	
 	'set key state for every key
-	for a = 0 to 255
+	'highest scancode in fbgfx.bi is &h79, no point overdoing it
+	for a = 0 to &h80 
 		keybd(a) = 0 'default to not pressed
 		if multikey(a) < 0 then
 			'key is down
@@ -1566,3 +1570,14 @@ END SUB
 FUNCTION bmpinfo (f$, dat())
 	bmpinfo = 0
 END FUNCTION
+
+''-----------------------------------------------------------------------
+'' Compatibility stuff that should probably go in another file
+''-----------------------------------------------------------------------
+function xstr$(x as integer)
+	if x >= 0 then
+		xstr$ = " " + str$(x)
+	else
+		xstr$ = str$(x)
+	end if
+end function

@@ -82,6 +82,8 @@ game.bas:
 Get it working
 ============================
 
+New file: compat.bi
+
 moresubs.bas:
 	hrbrowse.tmp - Had to make some changes to the file read loops to prevent
 		empty lines being added to the browse lists. Not sure why, I think it
@@ -119,4 +121,11 @@ gglobals.bi:
 bmodsubs.bas:
 	recordsize - declare as short, so get # reads the right number of bytes.
 		(Currently not declared, therefore integer.)
+	
+compat.bi:
+	str$ - str$ is different in FB in that it doesn't add the leading space
+		to positive numbers. FB uses a macro to replace the function with
+		xstr$() throughout the rest of the code, and xstr$ fixes the 
+		incompatibility.
+	interruptx - moved the declaration into here, since QB doesn't need it.	
 	
