@@ -13,6 +13,14 @@ option nokeyword str
 #endif
 #endif
 
+#ifdef __FB_LINUX__
+#define PATH_SEP "/"
+#else
+#define PATH_SEP "\"
+#endif
+
 ' keyword(?) in QB
 DECLARE SUB INTERRUPTX (intnum AS INTEGER,inreg AS RegType, outreg AS RegType)
-declare function xstr$ (x as integer)
+declare function xstr$ overload (x as integer)
+declare function xstr$ (x as single)
+declare function xstr$ (x as double)

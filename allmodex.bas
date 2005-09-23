@@ -46,6 +46,11 @@ dim shared stacktop as ubyte ptr
 dim shared stackptr as ubyte ptr
 dim shared stacksize as integer
 
+dim shared mouse_xmin as integer
+dim shared mouse_xmax as integer
+dim shared mouse_ymin as integer
+dim shared mouse_ymax as integer
+
 'This is the fontdata() array, initialised with the contents of ohrrpgce.fnt
 '$include: 'fontdata.bi'
 
@@ -64,6 +69,11 @@ sub setmodex()
 		keytime(i) = -1
 	next
 	stacksize = -1
+	
+	mouse_xmin = 0
+	mouse_xmax = 319 ' 636 in orig
+	mouse_ymin = 0
+	mouse_ymax = 199 ' 198 in orig
 end sub
 
 sub restoremode() ' not needed
@@ -1291,19 +1301,47 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
 end SUB
 
 FUNCTION isetmouse (mbuf() as integer) as integer
-	isetmouse = 0
+'don't think this does much except says whether there is a mouse
+'no idea what the parameter is for
+	dim mousebuf(0 to 3) as integer
+	readmouse(mousebuf())
+	if (mousebuf(2) = -1) then	'no mouse if button = -1
+		isetmouse = 0
+	end if
+	'switch off the pointer 
+	'(should this be done in setmode? should it be done at all?)
+	setmouse(mousebuf(0), mousebuf(1), 0)
+	isetmouse = 1
 end FUNCTION
 
 SUB readmouse (mbuf() as integer)
+	dim as integer mx, my, mw, mb
+	
+	getmouse(mx, my, mw, mb)
+	if (mx > mouse_xmax) then mx = mouse_xmax
+	if (mx < mouse_xmin) then mx = mouse_xmin
+	if (my > mouse_ymax) then my = mouse_ymax
+	if (my < mouse_ymin) then my = mouse_ymin
+	
+	mbuf(0) = mx
+	mbuf(1) = my
+	mbuf(2) = mb
+	mbuf(3) = mw 'not supported at the moment, but shouldn't hurt
 end SUB
 
 SUB movemouse (BYVAL x as integer, BYVAL y as integer)
+	setmouse(x, y)
 end SUB
 
 SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)
+	mouse_xmin = xmin
+	mouse_xmax = xmax
+	mouse_ymin = ymin
+	mouse_ymax = ymax
 end sub
 
 FUNCTION readjoy (joybuf() as integer, BYVAL jnum as integer) as integer
+'would be easy if I knew what was going where in the buffer
 	readjoy = 0
 end FUNCTION
 
@@ -1581,3 +1619,20 @@ function xstr$(x as integer)
 		xstr$ = str$(x)
 	end if
 end function
+
+function xstr$(x as single)
+	if x >= 0 then
+		xstr$ = " " + str$(x)
+	else
+		xstr$ = str$(x)
+	end if
+end function
+
+function xstr$(x as double)
+	if x >= 0 then
+		xstr$ = " " + str$(x)
+	else
+		xstr$ = str$(x)
+	end if
+end function
+

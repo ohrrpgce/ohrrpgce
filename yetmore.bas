@@ -67,17 +67,17 @@ DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE FUNCTION consumeitem% (index%)
 DECLARE FUNCTION istag% (num%, zero%)
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
-DECLARE FUNCTION usemenu% (ptr%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu% (pt%, top%, first%, last%, size%)
 DECLARE SUB debug (s$)
 DECLARE FUNCTION browse$ (fmask$, needf%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
-DECLARE SUB equip (ptr%, stat%())
+DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (ptr%, stat%())
-DECLARE SUB status (ptr%, stat%())
+DECLARE SUB spells (pt%, stat%())
+DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
@@ -572,9 +572,6 @@ FOR j = 0 TO 20
  saytag(j) = buffer(j)
 NEXT j
 
-'debugmsg "next item is " + str$(saytag(12)) + ", if " + Str$(saytag(11))
-'debugmsg "use door " + str$(saytag(16)) + ", if " + Str$(saytag(15))
-
 '-- evaluate "instead" conditionals
 IF istag(saytag(0), 0) THEN
  '--do something else instead
@@ -603,7 +600,6 @@ NEXT j
 
 '--the bitset that determines whether the choicebox is enabled
 saybit(0) = buffer(174)
-'debugmsg "choicebox " + str$(saybit(0)) + " (" + str$(say) + ")"
 
 '--load box appearance into sayenh()
 FOR j = 0 TO 6
@@ -1496,14 +1492,15 @@ SELECT CASE id
  CASE 101'--NPC direction
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN scriptret = npcl(npcref + 900)
- CASE 117'--NPC is walking
+ CASE 117, 177'--NPC is walking
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    IF npcl(npcref + 1500) = 0 AND npcl(npcref + 1800) = 0 THEN
-    scriptret = 1
-   ELSE
     scriptret = 0
+   ELSE
+    scriptret = 1
    END IF
+   IF id = 117 THEN scriptret = scriptret XOR 1 'Backcompat hack
   END IF
  CASE 120'--NPC reference
   scriptret = 0

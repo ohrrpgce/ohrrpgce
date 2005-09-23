@@ -66,11 +66,11 @@ getfmvol									NOT DONE |
 setfmvol									NOT DONE-- 
 copyfile				NOT REQD
 screenshot		DONE
-isetmouse									NOT DONE--
-readmouse									NOT DONE |
-movemouse									NOT DONE -- Mouse/joystick (SAFE)
-mouserect									NOT DONE |
-readjoy										NOT DONE--
+isetmouse		DONE
+readmouse		DONE
+movemouse		DONE
+mouserect		DONE
+readjoy										NOT DONE
 array2str		DONE
 str2array		DONE
 setupstack		DONE
