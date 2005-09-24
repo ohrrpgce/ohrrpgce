@@ -318,7 +318,7 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 			todraw = calcblock(xpos, ypos, t)
 			if (todraw >= 160) then
 				if (todraw > 207) then
-					todraw = todraw - 207 + anim2
+					todraw = todraw - 208 + anim2
 				else
 					todraw = todraw - 160 + anim1
 				end if
