@@ -51,6 +51,9 @@ dim shared mouse_xmax as integer
 dim shared mouse_ymin as integer
 dim shared mouse_ymax as integer
 
+dim shared textfg as integer
+dim shared textbg as integer
+
 'This is the fontdata() array, initialised with the contents of ohrrpgce.fnt
 '$include: 'fontdata.bi'
 
@@ -889,7 +892,6 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 	dim ch as integer 'character
 	dim fi as integer 'font index
 	dim cc as integer 'char column
-	dim fcol as ubyte 'font color
 	dim pix as integer
 	dim bval as integer
 	dim tbyte as ubyte
@@ -902,7 +904,6 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 	'is it actually faster to use a direct buffer write, or would pset be
 	'sufficiently quick?
 	col = x
-	fcol = (color() and &hff) 'fg color - should I store text color separately?
 	screenlock
 	pscr = screenptr
 	for ch = 0 to len(s$) - 1
@@ -914,11 +915,22 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 				for pix = 0 to 7
 					bval = fontdata(fi) and tbyte
 					if bval > 0 then
-						pscr[si] = fcol
+						pscr[si] = textfg
+					else
+						if textbg > 0 then
+							pscr[si] = textbg
+						end if
 					end if
 					si = si + 320
 					tbyte = tbyte shl 1
 				next
+			else
+				if textbg > 0 then
+					for pix = 0 to 7
+						pscr[si] = textbg
+						si = si + 320
+					next
+				end if
 			end if
 			col = col + 1
 			fi = fi + 1
@@ -928,7 +940,8 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 end SUB
 
 SUB textcolor (BYVAL f as integer, BYVAL b as integer)
-	color f, b
+	textfg = f
+	textbg = b
 end SUB
 
 SUB setfont (f() as integer) 
