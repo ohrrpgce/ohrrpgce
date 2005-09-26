@@ -249,6 +249,7 @@ NEXT i
 
 'DEBUG debug "load font"
 
+getdefaultfont(font())
 'No longer required, default font is compiled in
 'IF isfile(progdir$ + "ohrrpgce.fnt" + CHR$(0)) THEN
 ' 'DEF SEG = VARSEG(font(0)): 
@@ -280,7 +281,7 @@ ON ERROR GOTO modeXerr
 setdiskpages buffer(), 200, 0
 
 'DEBUG debug "apply font"
-'setfont font() 'no longer required
+setfont font()
 
 'DEBUG debug "switch on keyhandler"
 keyhandleron

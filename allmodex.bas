@@ -55,8 +55,7 @@ dim shared mouse_ymax as integer
 dim shared textfg as integer
 dim shared textbg as integer
 
-'This is the fontdata() array, initialised with the contents of ohrrpgce.fnt
-'$include: 'fontdata.bi'
+dim shared fontdata(0 to 2048-1) as ubyte
 
 sub setmodex()
 	dim i as integer
