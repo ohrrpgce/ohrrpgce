@@ -74,10 +74,10 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'bglobals.bi'
-'$include: 'compat.bi'
 
 '$INCLUDE: 'const.bi'
 
@@ -283,7 +283,7 @@ pgame:
 fuzzyrect 0, 0, 320, 200, 19, vpage
 edgeprint pause$, xstring(pause$, 160), 95, 15, vpage
 '--wait for a key
-wk = igetkey
+wk = getkey
 RETURN
 
 enemyai: '-------------------------------------------------------------------

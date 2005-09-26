@@ -106,10 +106,10 @@ DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose
 DECLARE FUNCTION maplumpname$(map, oldext$)
 DECLARE SUB cathero()
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'sglobals.bi'
-'$include: 'compat.bi'
 
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
