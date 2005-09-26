@@ -12,9 +12,6 @@ New for FB = allmodex.bas
 - XBLOAD - FreeBasic has a BLOAD but it is not compatible with QB and
 		so this function needs to be rewritten. Fortunately this
 	   	(in moresubs.bas) wraps all occurences of BLOAD in game.
-- getkey() and setmouse() - these are standard functions in freebasic
-		so need to be renamed everywhere to igetkey() and isetmouse().
-		They are declared in allmodex.bi.
 - globals - inline /comments/ not recognised, remove. (g,s and b)
 - globals - FB doesn't seem to allow reuse of keywords as variable names.	
 		Change to names$(), and replace in all .bas files.

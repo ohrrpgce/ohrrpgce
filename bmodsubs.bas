@@ -25,7 +25,7 @@ DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB readattackdata (array%(), index%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
-DECLARE SUB smartarrowmask (inrange%(), ptr%, d%, axis%(), tmask%())
+DECLARE SUB smartarrowmask (inrange%(), pt%, d%, axis%(), tmask%())
 DECLARE SUB debug (s$)
 DECLARE FUNCTION targetmaskcount% (tmask%())
 DECLARE FUNCTION randomally% (who%)
@@ -37,12 +37,12 @@ DECLARE FUNCTION countai% (ai%, them%, es%())
 DECLARE FUNCTION enemycount% (v%(), stat%())
 DECLARE SUB calibrate ()
 DECLARE SUB control ()
-DECLARE SUB equip (ptr%, stat%())
+DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (ptr%, stat%())
-DECLARE SUB status (ptr%, stat%())
+DECLARE SUB spells (pt%, stat%())
+DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
@@ -60,10 +60,10 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'bglobals.bi'
-'$include: 'compat.bi'
 
 '$INCLUDE: 'const.bi'
 

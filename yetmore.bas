@@ -99,10 +99,10 @@ DECLARE FUNCTION readitemname$ (itemnum%)
 DECLARE FUNCTION readatkname$ (id%)
 DECLARE SUB getmapname (mapname$, m%)
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'sglobals.bi'
-'$include: 'compat.bi'
 
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
@@ -915,7 +915,7 @@ SELECT CASE id
    gen(retvals(0)) = retvals(1)
   END IF
  CASE 159'--init mouse
-  IF isetmouse(mouse()) THEN scriptret = 1 ELSE scriptret = 0
+  IF setmouse(mouse()) THEN scriptret = 1 ELSE scriptret = 0
   mouserect 0, 319, 0, 199
  CASE 160'--get mouse x
   readmouse mouse()
@@ -1276,7 +1276,6 @@ SELECT CASE id
    IF rsr = 1 THEN
     '--fill heap with return values
     FOR i = scrat(nowscript - 1, curargc) - 1 TO 1 STEP -1  'flexible argument number!
-'    FOR i = scrat(nowscript - 1, curargc) TO 1 STEP -1  'flexible argument number!
      setScriptArg i - 1, retvals(i)
     NEXT i
    END IF
@@ -1416,9 +1415,9 @@ SELECT CASE id
  CASE 228'--system year
   scriptret = VAL(MID$(DATE$, 7, 4))
  CASE 229'--string compare
-  if retvals(0) >= 0 and retvals(0) <= 31 and retvals(1) >= 0 and retvals(1) <= 31 then
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
    scriptret = (plotstring$(retvals(0)) = plotstring$(retvals(1)))
-  end if
+  END IF
  CASE 230'--read enemy data
   f = FREEFILE
   OPEN game$ + ".dt1" FOR BINARY AS #f

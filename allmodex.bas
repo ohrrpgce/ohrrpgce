@@ -1,11 +1,10 @@
 '' FBOHR COMPATIBILITY FUNCTIONS
 '' GPL and stuff. See LICENSE.txt.
 '
-'$include: 'allmodex.bi'
-'$include: 'fbgfx.bi'
-
 #define DEMACRO
 '$include: 'compat.bi'
+'$include: 'allmodex.bi'
+'$include: 'fbgfx.bi'
 
 option explicit
 
@@ -15,6 +14,8 @@ declare function calcblock(byval x as integer, byval y as integer, byval t as in
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
+declare function smouse alias "fb_SetMouse" ( byval x as integer = -1, byval y as integer = -1, byval cursor as integer = -1 ) as integer
+
 'extern
 declare sub debug(s$)
 declare sub fatalerror(e$)
@@ -77,6 +78,8 @@ sub setmodex()
 	mouse_xmax = 319 ' 636 in orig
 	mouse_ymin = 0
 	mouse_ymax = 199 ' 198 in orig
+	
+	smouse(0, 0, 0) 'hide mouse
 end sub
 
 sub restoremode() ' not needed
@@ -631,7 +634,7 @@ FUNCTION keyval (BYVAL a as integer) as integer
 	keyval = keybd(a)
 end FUNCTION
 
-FUNCTION igetkey () as integer
+FUNCTION getkey () as integer
 	dim i as integer, key as integer
 	while inkey$ <> "": wend
 	
@@ -649,7 +652,7 @@ FUNCTION igetkey () as integer
 		sleep 50
 	loop while key = 0
 	
-	igetkey = key
+	getkey = key
 end FUNCTION
 
 SUB setkeys ()
@@ -1313,28 +1316,32 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
 	bsave f$, 0
 end SUB
 
-FUNCTION isetmouse (mbuf() as integer) as integer
+FUNCTION setmouse (mbuf() as integer) as integer
 'don't think this does much except says whether there is a mouse
 'no idea what the parameter is for
 	dim mousebuf(0 to 3) as integer
 	readmouse(mousebuf())
 	if (mousebuf(2) = -1) then	'no mouse if button = -1
-		isetmouse = 0
+		setmouse = 0
 	end if
-	'switch off the pointer 
-	'(should this be done in setmode? should it be done at all?)
-	setmouse(mousebuf(0), mousebuf(1), 0)
-	isetmouse = 1
+	setmouse = 1
 end FUNCTION
 
 SUB readmouse (mbuf() as integer)
 	dim as integer mx, my, mw, mb
+	static lastx as integer = 0
+	static lasty as integer = 0
 	
 	getmouse(mx, my, mw, mb)
+	if (mx = -1) then mx = lastx
+	if (my = -1) then my = lasty
 	if (mx > mouse_xmax) then mx = mouse_xmax
 	if (mx < mouse_xmin) then mx = mouse_xmin
 	if (my > mouse_ymax) then my = mouse_ymax
 	if (my < mouse_ymin) then my = mouse_ymin
+	
+	lastx = mx
+	lasty = my
 	
 	mbuf(0) = mx
 	mbuf(1) = my
@@ -1343,7 +1350,7 @@ SUB readmouse (mbuf() as integer)
 end SUB
 
 SUB movemouse (BYVAL x as integer, BYVAL y as integer)
-	setmouse(x, y)
+	smouse(x, y)
 end SUB
 
 SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)

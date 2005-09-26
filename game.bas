@@ -95,7 +95,7 @@ DECLARE SUB evalherotag (stat%())
 DECLARE SUB tagdisplay ()
 DECLARE SUB rpgversion (v%)
 DECLARE FUNCTION browse$ (fmask$, needf%, bpage%)
-DECLARE SUB cycletile (cycle%(), tastuf%(), ptr%(), skip%())
+DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB loadtanim (n%, tastuf%())
 DECLARE SUB loaddoor (map%, door%())
 DECLARE SUB reinitnpc (remember%, map%)
@@ -115,12 +115,12 @@ DECLARE SUB control ()
 DECLARE FUNCTION picksave% (load%)
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock())
 DECLARE SUB loadgame (slot%, map%, foep%, stat%(), stock())
-DECLARE SUB equip (ptr%, stat%())
+DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB delitem (it%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (ptr%, stat%())
-DECLARE SUB status (ptr%, stat%())
+DECLARE SUB spells (pt%, stat%())
+DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
@@ -144,10 +144,10 @@ DECLARE SUB setusermenu (menu$(), mt%, mi%())
 DECLARE FUNCTION maplumpname$(map, oldext$)
 
 '---INCLUDE FILES---
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'sglobals.bi'
-'$include: 'compat.bi'
 
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
@@ -1837,7 +1837,7 @@ DO
        scrat(nowscript, scrstate) = streturn'---return
       END IF
      CASE ELSE
-      scripterr "illegal kind " + STR$(scrat(nowscript, curkind)) + " " + STR$(scrat(nowscript, curvalue)) + " in stnext": nowscript = -1: EXIT DO
+      scripterr "illegal kind" + STR$(scrat(nowscript, curkind)) + STR$(scrat(nowscript, curvalue)) + " in stnext": nowscript = -1: EXIT DO
     END SELECT
    ELSE
     '--flow control is special, for all else, do next arg
@@ -2338,7 +2338,7 @@ KILL tmpdir$ + "filelist.tmp"
 
 END SUB
 
-SUB correctbackdrop ()
+SUB correctbackdrop
 
 IF gen(58) THEN
  '--restore text box backdrop

@@ -36,18 +36,18 @@ DECLARE SUB getmapname (mapname$, m%)
 DECLARE FUNCTION consumeitem% (index%)
 DECLARE SUB evalitemtag ()
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
-DECLARE FUNCTION usemenu% (ptr%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu% (pt%, top%, first%, last%, size%)
 DECLARE SUB debug (s$)
 DECLARE SUB intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB itstr (i%)
 DECLARE SUB control ()
 DECLARE FUNCTION picksave% (load%)
-DECLARE SUB equip (ptr%, stat%())
+DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (ptr%, stat%())
-DECLARE SUB status (ptr%, stat%())
+DECLARE SUB spells (pt%, stat%())
+DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
@@ -65,10 +65,10 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'sglobals.bi'
-'$include: 'compat.bi'
 
 '$INCLUDE: 'const.bi'
 
@@ -998,7 +998,7 @@ ELSE
     tmp$ = names$(wptr) + " " + readglobalstring$(124, "learned", 10) + " " + readatkname$(atk)
     centerbox 160, 100, small(LEN(tmp$) * 8 + 16, 320), 24, 1, vpage
     edgeprint tmp$, large(xstring(tmp$, 160), 0), 95, 15, vpage
-    dummy = igetkey
+    dummy = getkey
    END IF
   END IF
   setpicstuf buffer(), 200, -1
@@ -2008,15 +2008,15 @@ DO
    
    'current/max HP
    edgeprint sname$(0), 236 - LEN(sname$(0)) * 4, 65, 15, dpage
-   edgeprint RIGHT$(STR$(stat(pt, 0, 0)), LEN(STR$(stat(pt, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(pt, 1, 0)), LEN(STR$(stat(pt, 1, 0))) - 1), 236 - LEN(RIGHT$(STR$(stat(pt, 0, 0)), LEN(STR$(stat(pt, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(pt, 0 _
-, 0)), LEN(STR$(stat(pt, 0, 0))) - 1)) * 4, 75, 15, dpage
+   edgeprint RIGHT$(STR$(stat(pt, 0, 0)), LEN(STR$(stat(pt, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(pt, 1, 0)), LEN(STR$(stat(pt, 1, 0))) - 1), 236 - LEN(RIGHT$(STR$(stat(pt, 0, 0)), LEN(STR$(stat(pt, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(pt, 0, 0)), _
+LEN(STR$(stat(pt, 0, 0))) - 1)) * 4, 75, 15, dpage
    
    '--MP and level MP
    FOR i = 0 TO 5
     IF mtype(i) = 0 THEN
      edgeprint sname$(1), 236 - LEN(sname$(1)) * 4, 95, 15, dpage
-     edgeprint RIGHT$(STR$(stat(pt, 0, 1)), LEN(STR$(stat(pt, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(pt, 1, 1)), LEN(STR$(stat(pt, 1, 1))) - 1), 236 - LEN(RIGHT$(STR$(stat(pt, 0, 1)), LEN(STR$(stat(pt, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(pt _
-, 0, 1)), LEN(STR$(stat(pt, 0, 1))) - 1)) * 4, 105, 15, dpage
+     edgeprint RIGHT$(STR$(stat(pt, 0, 1)), LEN(STR$(stat(pt, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(pt, 1, 1)), LEN(STR$(stat(pt, 1, 1))) - 1), 236 - LEN(RIGHT$(STR$(stat(pt, 0, 1)), LEN(STR$(stat(pt, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(pt, 0, 1)) _
+, LEN(STR$(stat(pt, 0, 1))) - 1)) * 4, 105, 15, dpage
     END IF
     IF mtype(i) = 1 THEN
      edgeprint sname$(34) + " " + sname$(1), 236 - LEN(sname$(34) + " " + sname$(1)) * 4, 125, 15, dpage

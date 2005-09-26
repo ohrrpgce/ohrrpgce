@@ -5,6 +5,9 @@
 
 '' FreeBasic version
 
+option nokeyword getkey
+option nokeyword setmouse
+
 #ifndef DEMACRO
 #ifndef DONESTR
 option nokeyword str
@@ -20,7 +23,8 @@ option nokeyword str
 #endif
 
 ' keyword(?) in QB
-DECLARE SUB INTERRUPTX (intnum AS INTEGER,inreg AS RegType, outreg AS RegType)
+' had to change reg params to any because type not declared yet
+DECLARE SUB INTERRUPTX (intnum AS INTEGER,inreg AS any, outreg AS any)
 declare function xstr$ overload (x as integer)
 declare function xstr$ (x as single)
 declare function xstr$ (x as double)

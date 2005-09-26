@@ -49,18 +49,18 @@ DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE FUNCTION consumeitem% (index%)
 DECLARE FUNCTION istag% (num%, zero%)
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
-DECLARE FUNCTION usemenu% (ptr%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu% (pt%, top%, first%, last%, size%)
 DECLARE SUB debug (s$)
 DECLARE FUNCTION browse$ (fmask$, needf%, bpage%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
 DECLARE FUNCTION picksave% (load%)
-DECLARE SUB equip (ptr%, stat%())
+DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (ptr%, stat%())
-DECLARE SUB status (ptr%, stat%())
+DECLARE SUB spells (pt%, stat%())
+DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
@@ -89,10 +89,10 @@ DECLARE FUNCTION maplumpname$(map, oldext$)
 'DECLARE FUNCTION getCDvol ()
 'DECLARE SUB setcdvol (BYVAL v)
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'sglobals.bi'
-'$include: 'compat.bi'
 
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
@@ -891,7 +891,7 @@ edgeprint "Press ESC to cleanly close GAME.EXE", 15, 40, 7, 0
 edgeprint "or any other key to ignore the", 15, 50, 7, 0
 edgeprint "error and try to continue playing.", 15, 60, 7, 0
 
-w = igetkey
+w = getkey
 
 IF w = 1 THEN
  '--close digital audio file
@@ -1752,7 +1752,7 @@ IF v > current THEN
  printstr "http://HamsterRepublic.com", 52, 122, 0
 END IF
 fadein -1
-w = igetkey
+w = getkey
 fadeout 0, 0, 0, -1
 END SUB
 
@@ -2063,7 +2063,7 @@ SELECT CASE errormode
    printstr "Script Error!", 108, 10, i
    printstr e$, 160 - 4 * LEN(e$), 20, i
   NEXT i
-  w = igetkey
+  w = getkey
  CASE 2'--write error to file
   debug e$
 END SELECT
