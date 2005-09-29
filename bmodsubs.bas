@@ -570,7 +570,7 @@ END IF
 END SUB
 
 FUNCTION getbinsize (id)
-dim recordsize as short
+fbdim recordsize
 
 IF isfile(workingdir$ + "\binsize.bin" + CHR$(0)) THEN
  fh = FREEFILE
