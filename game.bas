@@ -22,7 +22,6 @@ DECLARE SUB wrapxy (x%, y%, wide%, high%)
 DECLARE FUNCTION framewalkabout% (x%, y%, framex%, framey%, mapwide%, maphigh%, wrapmode%)
 DECLARE SUB initgamedefaults ()
 DECLARE SUB templockexplain ()
-DECLARE SUB crashexplain ()
 DECLARE SUB cleanuptemp ()
 DECLARE FUNCTION getfilelist% (wildcard$)
 DECLARE SUB fadeout (red%, green%, blue%, force%)
@@ -83,7 +82,6 @@ DECLARE FUNCTION countitem% (it%)
 DECLARE SUB scriptmath ()
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE SUB fatalerror (e$)
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE SUB scripterr (e$)
 DECLARE SUB calibrate ()
@@ -168,7 +166,7 @@ CLOSE #fh
 'DEBUG debug "Thestart"
 thestart:
 'DEBUG debug "set stack size"
-'CLEAR , , 2650
+CLEAR , , 2650
 
 storekeyhandler
 
@@ -249,27 +247,7 @@ NEXT i
 
 'DEBUG debug "load font"
 
-getdefaultfont(font())
-'No longer required, default font is compiled in
-'IF isfile(progdir$ + "ohrrpgce.fnt" + CHR$(0)) THEN
-' 'DEF SEG = VARSEG(font(0)): 
-' xBLOAD progdir$ + "ohrrpgce.fnt", font(), "Failed to load font"
-'ELSE
-' '--load the ROM font
-' regs.ax = &H1130
-' regs.bx = &H300
-' CALL interruptx(&H10, regs, regs)
-' 'off9 = regs.bx: seg9 = regs.es
-' 'DEF SEG = regs.es
-' FOR i = 1 TO 255
-'  FOR j = 0 TO 7
-'   b = PEEK(regs.bp + (8 * i) + j)
-'   FOR k = 0 TO 7
-'    setbit font(), i * 4, (7 - k) * 8 + j, (b AND 2 ^ k)
-'   NEXT k
-'  NEXT j
-' NEXT i
-'END IF
+getdefaultfont font()
 
 'DEBUG debug "set mode-X"
 setmodex
@@ -1082,7 +1060,7 @@ ELSE
   IF xgo(whoi) OR ygo(whoi) THEN wtog(whoi) = loopvar(wtog(whoi), 0, 3, 1)
  NEXT whoi
 END IF
-dim didgo(0 to 3) as integer
+DIM didgo(0 to 3) AS INTEGER
 FOR whoi = 0 TO 3
  didgo(whoi) = 0
  IF xgo(whoi) OR ygo(whoi) THEN
@@ -1169,6 +1147,7 @@ IF (xgo(0) = 0 OR movdivis(xgo(0))) AND (ygo(0) = 0 OR movdivis(ygo(0))) AND (di
   END IF
  END IF
 END IF
+ERASE didgo
 GOSUB setmapxy
 RETURN
 
@@ -2355,18 +2334,6 @@ END IF
 
 loadpage game$ + ".til" + CHR$(0), gmap(0), 3
 
-END SUB
-
-SUB crashexplain
-PRINT "Please report this exact error message to ohrrpgce@HamsterRepublic.com"
-PRINT "Be sure to describe in detail what you were doing when it happened"
-PRINT
-PRINT version$
-'PRINT "Memory Info:"; SETMEM(0); FRE(-1); FRE(-2); FRE(0)
-PRINT "Memory Info:"; FRE(0)
-PRINT "Executable: "; progdir$ + exename$ + ".EXE"
-PRINT "RPG file: "; sourcerpg$
-'IF LEN(parting$) > 0 THEN PRINT parting$
 END SUB
 
 SUB exitprogram (needfade)

@@ -50,7 +50,6 @@ DECLARE FUNCTION functiondone% ()
 DECLARE FUNCTION functionread% ()
 DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION countitem% (it%)
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
@@ -194,7 +193,7 @@ END IF '---end if > 0
 END SUB
 
 FUNCTION checksaveslot (slot)
-  dim checkslot as short
+  fbdim checkslot
   sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
   savh = FREEFILE
   OPEN sg$ FOR BINARY AS #savh
@@ -971,7 +970,7 @@ SUB scriptdump (s$)
 END SUB
 
 SUB scriptmisc (id)
- 	dim temp16 as short 'required for FB to fix get and put
+ 	fbdim temp16 'required for FB to fix get and put
 
 'contains a whole mess of scripting commands that do not depend on
 'any main-module level local variables or GOSUBs, and therefore
@@ -1261,7 +1260,7 @@ SELECT CASE id
  CASE 175'--deletesave
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
    IF checksaveslot(retvals(0)) THEN
-   	dim savver as short ' for FB
+   	fbdim savver ' for FB
     sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
     savh = FREEFILE
     OPEN sg$ FOR BINARY AS #savh

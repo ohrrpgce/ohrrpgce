@@ -32,7 +32,6 @@ DECLARE SUB textfatalerror (e$)
 DECLARE SUB playtimer ()
 DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION countitem% (it%)
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
@@ -1808,7 +1807,7 @@ IF loadinstead <> -1 THEN
 ELSE
  '--load the script from file
  IF isfile(workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" + CHR$(0)) THEN
- 	dim temp as short 'needed by FB to get the right length ints
+ 	fbdim temp
  	
   f = FREEFILE
   OPEN workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" FOR BINARY AS #f
@@ -2457,39 +2456,6 @@ END SELECT
 
 END SUB
 
-SUB xbload (f$, array(), e$)
-
-IF isfile(f$) THEN
-' BLOAD f$, VARPTR(array(0))
-' BLOAD is not compatible with the old format. So, I make my own.
-DIM ff%, byt as UByte, seg AS Short, offset AS Short, length AS Short
-dim ilength as integer
-
-ff = FreeFile
-OPEN f$ FOR BINARY AS #ff
-GET #ff,, byt 'Magic number, always 253
-IF byt <> 253 THEN fatalerror e$
-GET #ff,, seg 'Segment, no use anymore
-GET #ff,, offset 'Offset into the array, not used now
-GET #ff,, length 'Length
-'length is in bytes, so divide by 2, and subtract 1 because 0-based
-ilength = (length / 2) - 1
-
-dim buf(ilength) as short
-
-GET #ff,, buf()
-CLOSE #ff
-
-'REDIM array(length) 'noooooo
-for i = 0 to small(ilength, ubound(array))
-	array(i) = buf(i)	
-next i
-
-ELSE
-fatalerror e$
-END IF
-
-END SUB
 
 FUNCTION xstring (s$, x)
 xstring = small(large(x - LEN(s$) * 4, 0), 319 - LEN(s$) * 8)

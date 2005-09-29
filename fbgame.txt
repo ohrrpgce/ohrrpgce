@@ -1,3 +1,8 @@
+-----------------------------------------------------------------------------
+This document is effectively obsolete now the source has been unified. I will
+remove it from future versions of FBOHR.
+-----------------------------------------------------------------------------
+
 Steps to convert game.exe to FreeBasic:
 
 ========== PHASE ONE ==============
