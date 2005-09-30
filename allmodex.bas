@@ -39,7 +39,8 @@ dim shared mapy as integer
 dim shared anim1 as integer
 dim shared anim2 as integer
 
-dim shared waittime as integer
+dim shared waittime as single
+dim shared rollflag as integer	'set if midnight is within wait period
 dim shared keybd(0 to 255) as integer
 dim shared keytime(0 to 255) as integer
 
@@ -157,7 +158,7 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 			pal(j) = pal(j) or (hue shl 16)
 		next
 		palette using pal
-		sleep 20 'how long?
+		sleep 15 'how long?
 	next
 	
 end SUB
@@ -210,7 +211,7 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 			p = p + 1
 		next
 		palette using intpal
-		sleep 20 'how long?
+		sleep 15 'how long?
 	next
 end SUB
 
@@ -862,28 +863,32 @@ SUB setdiskpages (buf() as integer, BYVAL h as integer, BYVAL l as integer)
 end SUB
 
 SUB setwait (b() as integer, BYVAL t as integer)
-'b() is actually the destination, where the time gets written to, but is
-'never accessed outside of here, so I'll ignore it. t is the delay in 
-'1/1024ths of a second. 
-	waittime = t
+'t is a value in milliseconds which, in the original, is used to set the event 
+'frequency and is also used to set the wait time, but the resolution of the 
+'dos timer means that the latter is always truncated to the last multiple of
+'55 milliseconds.
+	dim millis as integer
+	millis = (t \ 55) * 55
+	rollflag = 0
+	
+	waittime = timer + (millis / 1000)
+	if waittime >= 86400 then
+		rollflag = 1
+	end if
 end SUB
 
 SUB dowait ()
-'wait for as long as defined in setwait()
+'wait until alarm time set in setwait()
 'In freebasic, sleep is in 1000ths, and a value of less than 100 will not 
-'be exited by a keypress, so break the wait time up into 50s.
-	dim i as integer
-	
-	i = waittime
-	while i > 0
-		if i > 50 then
-			sleep 50
-			i = i - 50
-		else
-			sleep i
-			i = 0
+'be exited by a keypress, so sleep for 5ms until timer > waittime.
+	do while timer < waittime
+		if rollflag = 1 then
+			if timer + 86400 >= waittime then
+				exit do
+			end if
 		end if
-	wend
+		sleep 5 'is this worth it?
+	loop
 end SUB
 
 SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
