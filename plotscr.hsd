@@ -184,6 +184,8 @@ define function, begin
 175,deletesave,1,1          # delete (hide from load/save screen - data not *actaully* deleted) specified slot
 176,runscriptbyid,9,0,0,0,0,0,0,0,0,0 # run a script by its id number and pass up to 8 arguments
 177,NPCiswalking,1,0        # (who) returns true if walking (for real, unlike the old implementation)
+178,readgmap,1,0            # read from general map data array
+179,writegmap,2,0,0         # write a gmap data item
 
 200,system hour,0
 201,system minute,0
@@ -435,6 +437,7 @@ script, input string, str, max len, useexist, begin
 	show no value
 	hide string
 end
+
 #--------------------------------------------------------------------------
 #read/write enemy wrappers
 
@@ -485,6 +488,7 @@ define script(autonumber,setenemyappearance,3,0,0,0)
 script,setenemyappearance,enemyid,appearance,value,begin
   writeenemydata(enemyid,appearance,value)
 end
+
 #--------------------------------------------------------------------------
 # read/write general wrappers
 
@@ -560,6 +564,101 @@ define script(autonumber,set debug keys disable,1,0)
 script,set debug keys disable,bit,begin
   if(bit) then(bit:=256)
   write general(101,(read general(101),and,32511)+bit)
+end
+
+#--------------------------------------------------------------------------
+# read/write gmap wrappers
+
+define script(autonumber,get map tileset,0)
+script,get map tileset,begin
+  return(read gmap(0))
+end
+
+define script(autonumber,get ambient music,0)
+script, get ambient music, begin
+  return (read gmap(1) -- 1)
+end
+
+define script(autonumber,set ambient music,1,-1)
+script, set ambient music, song, begin
+  write gmap(1,song + 1)
+  if (song >= 0) then (play song (song)) else (stop song)
+end
+
+define script(autonumber,allow minimap,1,1)
+script,allow minimap,setting,begin
+  write gmap(2,setting)
+end
+
+define script(autonumber,allow save anywhere,1,1)
+script,allow save anywhere,setting,begin
+  write gmap(3,setting)
+end
+
+define script(autonumber,set map edge mode,2,0,0) #second argument only used with DefaultTile
+script,set map edge mode,mode,tile,begin
+  write gmap(5,mode)
+  write gmap(6,tile)
+end
+
+define script(autonumber,get map edge mode,0)
+script,get map edge mode,begin
+  return(read gmap(5))
+end
+
+define script(autonumber,set harm tile damage,1,0)
+script,set harm tile damage,damage,begin
+  write gmap(9,damage)
+end
+
+define script(autonumber,set harm tile flash,1,0)
+script,set harm tile flash,colour,begin
+  write gmap(10,colour)
+end
+
+define script(autonumber,get footoffset,0)
+script,get footoffset,begin
+  return(read gmap(11))
+end
+
+define script(autonumber,set footoffset,1,0)
+script,set footoffset,offset,begin
+  write gmap(11,offset)
+end
+
+define script(autonumber,get instead of battle script,0)
+script,get instead of battle script,begin
+  return (read gmap(13))
+end
+
+define script(autonumber,set instead of battle script,1,0)
+script,set instead of battle script,ID,begin
+  write gmap(13,ID)
+end
+
+define script(autonumber,get each step script,0)
+script,get each step script,begin
+  return (read gmap(14))
+end
+
+define script(autonumber,set each step script,1,0)
+script,set each step script,ID,begin
+  write gmap(14,ID)
+end
+
+define script(autonumber,get on keypress script,0)
+script,get on keypress script,begin
+  return (read gmap(15))
+end
+
+define script(autonumber,set on keypress script,1,0)
+script,set on keypress script,ID,begin
+  write gmap(15,ID)
+end
+
+define script(autonumber,draw npcs above heroes,1,0)
+script,draw npcs above heroes,setting,begin
+  write gmap(16,setting)
 end
 
 #--------------------------------------------------------------------------
@@ -796,4 +895,7 @@ define constant, begin
 19, StealableItemChance
 20, StealableRareItem
 21, StealableRareItemchance
+0, Crop
+1, Wrap
+2, Defaulttile
 end

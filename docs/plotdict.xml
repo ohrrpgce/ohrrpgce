@@ -109,7 +109,7 @@ difficult. Notepad users will have to do it manually, but you MUST do it. Rememb
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript lastmodified="September 17, 2005">
+<plotscript lastmodified="October 3, 2005">
 	<section title="Declarations">
 		<command id="definescript">
 			<cannon>define script (id,name,arguments)</cannon>
@@ -833,6 +833,22 @@ end</example>
 			<shortname>set victory music</shortname>
 			<description>Changes the after-battle victory music to the specified song. Use the constants defined in your HSI file. They appear in the form of song:name</description>
 		</command>
+		<command id="setambientmusic">
+			<cannon>set ambient music (song)</cannon>
+			<shortname>set ambient music</shortname>
+			<description>Plays a song and sets it as the map's ambient music, that is the song that is played after a textbox with 'restore music' set. The effect goes away if you change maps or fight a battle. Calling set ambient music with no argument stops the music and disables the ambient music.</description>
+			<seealso>
+				<ref>playsong</ref>
+			</seealso>
+		</command>
+		<command id="getambientmusic">
+			<cannon>get ambient music</cannon>
+			<shortname>get ambient music</shortname>
+			<description>Returns the song number of the map's ambient music.</description>
+			<seealso>
+				<ref>currentsong</ref>
+			</seealso>
+		</command>
 		<command id="fadescreenout">
 			<cannon>fade screen out (red,green,blue)</cannon>
 			<shortname>fade screen out</shortname>
@@ -1356,6 +1372,11 @@ write pass block(15,3,pass)
 			<shortname>load tileset</shortname>
 			<description>Loads a different tileset for the currently displaying map. The argument is the ID number of the tileset to load. To restore the map&apos;s default tileset, use load tileset with no arguments.</description>
 		</command>
+		<command id="getmaptileset">
+			<cannon>get map tileset</cannon>
+			<shortname>get map tileset</shortname>
+			<description>Returns the ID number of the default tileset for the map. <ref>loadtileset</ref> does NOT affect the value returned by this function.</description>
+		</command>
 	</section>
 	<section title="Working with Tags">
 		<command id="settag">
@@ -1564,13 +1585,78 @@ end</example>
 		</command>
 		<command id="setloadscript">
 			<cannon>set load script (id)</cannon>
-			<shortname>set load script (id)</shortname>
+			<shortname>set load script</shortname>
 			<description>Changes the script that is run when you load a saved game. The argument is the script&apos;s ID number, NOT the script&apos;s name. Calling set load script with no argument disables the load script.</description>
 		</command>
 		<command id="getloadscript">
 			<cannon>get load script</cannon>
 			<shortname>get load script</shortname>
 			<description>Returns the ID number of script that is run when you load a saved game.</description>
+		</command>
+		<command id="setonkeypressscript">
+			<cannon>set on keypress script (id)</cannon>
+			<shortname>set on keypress script</shortname>
+			<description>Changes the script that is run when you press a key. The argument is the script&apos;s ID number, NOT the script&apos;s name. Calling set on keypress script with no argument disables the keypress script. The effect goes away if you change maps or fight a battle.</description>
+		</command>
+		<command id="getonkeypressscript">
+			<cannon>get on keypress script</cannon>
+			<shortname>get on keypress script</shortname>
+			<description>Returns the ID number of script that is run when you press a key.</description>
+		</command>
+		<command id="seteachstepscript">
+			<cannon>set each step script (id)</cannon>
+			<shortname>set each step script</shortname>
+			<description>Changes the script that is run when you take a step. The argument is the script&apos;s ID number, NOT the script&apos;s name. Calling set each step script with no argument disables the each step script. The effect goes away if you change maps or fight a battle.</description>
+		</command>
+		<command id="geteachstepscript">
+			<cannon>get each step script</cannon>
+			<shortname>get each step script</shortname>
+			<description>Returns the ID number of script that is run when you take a step.</description>
+		</command>
+		<command id="setinsteadofbattlescript">
+			<cannon>set instead of battle script (id)</cannon>
+			<shortname>set instead of battle script</shortname>
+			<description>Changes the script that is run instead of a battle when one is triggered. The argument is the script&apos;s ID number, NOT the script&apos;s name. Calling set instead of battle script with no argument disables the instead of battle script. The effect goes away if you change maps or fight a battle.</description>
+		</command>
+		<command id="getinsteadofbattlescript">
+			<cannon>get instead of battle script</cannon>
+			<shortname>get instead of battle script</shortname>
+			<description>Returns the ID number of script that is run instead of battles.</description>
+		</command>
+		<command id="setharmtiledamage">
+			<cannon>set harm tile damage (amount)</cannon>
+			<shortname>set harm tile damage</shortname>
+			<description>Sets the amount of damage taken when you step on a harm tile. The effect goes away if you change maps or fight a battle.</description>
+		</command>
+		<command id="setharmtileflash">
+			<cannon>set harm tile flash (color)</cannon>
+			<shortname>set harm tile flash</shortname>
+			<description>Sets the color (from the master palette) which the screen flashs when you step on a harm tile. Call with no argument to disable the flash. The effect goes away if you change maps or fight a battle.</description>
+		</command>
+		<command id="setfootoffset">
+			<cannon>set foot offset (offset)</cannon>
+			<shortname>set foot offset</shortname>
+			<description>Sets the foot offset in pixels, the vertical displacement of npc and hero sprites from the base of the tiles on which they stand. The effect goes away if you change maps or fight a battle.</description>
+		</command>
+		<command id="getfootoffset">
+			<cannon>get foot offset</cannon>
+			<shortname>get foot offset</shortname>
+			<description>Returns the map's foot offset.</description>
+		</command>
+		<command id="drawnpcsaboveheroes">
+			<cannon>draw NPCs above heroes (setting)</cannon>
+			<shortname>draw NPCs above heroes</shortname>
+			<description>Sets whether NPCs are drawn above heros or the default of beneath. The effect goes away if you change maps or fight a battle.</description>
+		</command>
+		<command id="setmapedgemode">
+			<cannon>set map edge mode (mode, default tile)</cannon>
+			<shortname>set map edge mode</shortname>
+			<description>Sets the behaviour at the edge of the map. Use the constants <ref>crop</ref>, <ref>wrap</ref> and <ref>defaulttile</ref>. When the behaviour is default tile, you should give a second argument specifying which tile should be displayed off the boundaries of the map, otherwise ignore the second argument. The effect goes away if you change maps or fight a battle.</description>
+		</command>
+		<command id="getmapedgemode">
+			<cannon>get map edge mode</cannon>
+			<shortname>get map edge mode</shortname>
+			<description>Returns the map's edge mode. Use the constants <ref>crop</ref>, <ref>wrap</ref> and <ref>defaulttile</ref> to compare with the value returned.</description>
 		</command>
 		<command id="findhero">
 			<cannon>find hero (who)</cannon>
@@ -1683,6 +1769,22 @@ end</example>
 			<cannon>set debug keys disable (state)</cannon>
 			<shortname>set debug keys disable</shortname>
 			<description>Sets whether or not the debugging keys are allowed. If the argument is <ref>off</ref> then debugging keys are allowed. If the argument is <ref>on</ref> then debugging keys are disabled.</description>
+		</command>
+		<command id="allowminimap">
+			<cannon>allow minimap (setting)</cannon>
+			<shortname>allow minimap</shortname>
+			<description>Sets whether the Map option appears in the menu. Give no argument or <ref>true</ref> to enable, or <ref>false</ref> to disable. The effect goes away if you change maps or fight a battle.</description>
+			<seealso>
+				<ref>showminimap</ref>
+			</seealso>
+		</command>
+		<command id="allowsaveanywhere">
+			<cannon>allow save anywhere (setting)</cannon>
+			<shortname>allow save anywhere</shortname>
+			<description>Sets whether the Save option appears in the menu. Give no argument or <ref>true</ref> to enable, or <ref>false</ref> to disable. The effect goes away if you change maps or fight a battle.</description>
+			<seealso>
+				<ref>savemenu</ref>
+			</seealso>
 		</command>
 		<command id="autosave">
 			<cannon>autosave</cannon>
@@ -2016,7 +2118,21 @@ end</example>
 			<alias>tileconstants</alias>
 			<shortname>overhead tile</shortname>
 		</command>
-
+		<command id="crop">
+			<cannon>crop</cannon>
+			<shortname>crop</shortname>
+			<description>A constant used in <ref>setmapedgemode</ref> which makes the edges of the map impassible and prevents the camera from scrolling off them.</description>
+		</command>
+		<command id="wrap">
+			<cannon>wrap</cannon>
+			<shortname>wrap</shortname>
+			<description>A constant used in <ref>setmapedgemode</ref> which lets the player walk over the edge of the map around to the opposite side.</description>
+		</command>
+		<command id="defaulttile">
+			<cannon>defaulttile</cannon>
+			<shortname>defaulttile</shortname>
+			<description>A constant used in <ref>setmapedgemode</ref> which makes the edges of the map impassible and displays a specified tile everywhere off the edge of the map.</description>
+		</command>
 	</section>
 </plotscript>
 

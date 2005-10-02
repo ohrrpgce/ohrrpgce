@@ -129,6 +129,14 @@ September ?? 2005 [rusalka]
     *  Plotscript command alternpc has been considerably optimised. It 
        no longer reloads all npcs and heros on the map [Ralph Versteegen]
 
+    *  New plotscript commands: get map tileset, get ambient music,
+       set ambient music, allow minimap, allow save anywhere, set map
+       edge mode, get map edge mode, set harm tile damage, set harm tile
+       flash, get foot offset, set foot offset, get instead of battle
+       script, set instead of battle script, get each step script, set
+       each step script, get on keypress script, set on keypress script,
+       draw npcs above heroes [Ralph Versteegen] 
+
   * Stuff only Developers Will Notice
 
     * Plotscripting Dictionary Documentation is now in xml format instead
