@@ -857,7 +857,6 @@ FOR j = 0 TO 40 'search hero list
    IF itembits(id, 0) > 1 THEN setbit tag(), 0, itembits(id, 0), 1 'you have it
    IF itembits(id, 2) > 1 THEN setbit tag(), 0, itembits(id, 2), 1 'it is equipped
    IF j < 4 AND itembits(id, 3) > 1 THEN setbit tag(), 0, itembits(id, 3), 1   'it is equipped by an active hero
-   EXIT FOR
   END IF
  NEXT k
 NEXT j

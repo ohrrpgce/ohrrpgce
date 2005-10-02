@@ -425,9 +425,7 @@ DO
  'DEBUG debug "keyboard handling"
  IF carray(5) > 1 AND showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(0) = 0 AND xgo(0) = 0 AND ygo(0) = 0 THEN
   GOSUB usermenu
-  FOR i = 1 TO 10
-   evalitemtag
-  NEXT i
+  evalitemtag
   npcplot
  END IF
  IF showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(6) = 0 THEN
