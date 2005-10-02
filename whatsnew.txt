@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-September ?? 2005 [rusalka]
+October 03 2005 [rusalka]
 
   * Bug-Fixes
 
