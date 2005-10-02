@@ -1081,7 +1081,7 @@ end</example>
 		</command>
 		<command id="centerstringat">
 			<cannon>center string at (ID, x, y)</cannon>
-			<shortname>show string at</shortname>
+			<shortname>center string at</shortname>
 			<description>Displays string #<p>ID</p> on the screen, Centering it at the given <p>x</p>,<p>y</p> coordinates. Unlike <ref>showstring</ref>, changes to the string will be displayed in real-time.</description>
 		</command>
 		<command id="hidestring">
