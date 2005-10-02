@@ -222,7 +222,6 @@ FOR i = 0 TO 255
  itembits(i, 1) = buffer(75)   'is in inventory
  itembits(i, 2) = buffer(76)   'is equiped tag
  itembits(i, 3) = buffer(77)   'is equiped by hero in active party
- itembits(i, 4) = buffer(0)    'tracks if item has a name or not
 NEXT i
 END SUB
 
