@@ -1171,6 +1171,21 @@ end</example>
 			<shortname>current map</shortname>
 			<description>Returns the number of the current map.</description>
 		</command>
+		<command id="mapwidth">
+			<cannon>map width</cannon>
+			<shortname>map width</shortname>
+			<description>Returns the width of the map in tiles.</description>
+		</command>
+		<command id="mapheight">
+			<cannon>map height</cannon>
+			<shortname>map height</shortname>
+			<description>Returns the height of the map in tiles.</description>
+		</command>
+		<command id="getmaptileset">
+			<cannon>get map tileset</cannon>
+			<shortname>get map tileset</shortname>
+			<description>Returns the ID number of the default tileset for the map. <ref>loadtileset</ref> does NOT affect the value returned by this function.</description>
+		</command>
 		<command id="daysofplay">
 			<cannon>days of play</cannon>
 			<shortname>days of play</shortname>
@@ -1371,11 +1386,9 @@ write pass block(15,3,pass)
 			<cannon>load tileset (set)</cannon>
 			<shortname>load tileset</shortname>
 			<description>Loads a different tileset for the currently displaying map. The argument is the ID number of the tileset to load. To restore the map&apos;s default tileset, use load tileset with no arguments.</description>
-		</command>
-		<command id="getmaptileset">
-			<cannon>get map tileset</cannon>
-			<shortname>get map tileset</shortname>
-			<description>Returns the ID number of the default tileset for the map. <ref>loadtileset</ref> does NOT affect the value returned by this function.</description>
+			<seealso>
+				<ref>getmaptileset</ref>
+			</seealso>
 		</command>
 	</section>
 	<section title="Working with Tags">

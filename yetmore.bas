@@ -1287,6 +1287,10 @@ SELECT CASE id
   ELSE
    scriptret = -1
   END IF
+ CASE 180'--mapwidth
+  scriptret = scroll(0)
+ CASE 181'--mapheight
+  scriptret = scroll(1)
  CASE 200'--system hour
   scriptret = INT(TIMER / 3600)
  CASE 201'--system minute

@@ -135,7 +135,7 @@ October 03 2005 [rusalka]
        flash, get foot offset, set foot offset, get instead of battle
        script, set instead of battle script, get each step script, set
        each step script, get on keypress script, set on keypress script,
-       draw npcs above heroes [Ralph Versteegen] 
+       draw npcs above heroes, map width, map height [Ralph Versteegen] 
 
   * Stuff only Developers Will Notice
 
