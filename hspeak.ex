@@ -14,6 +14,8 @@
 
 --Changelog
 
+--2G 2005-10-03 Additional operators $+ and $= by TeeEmCee
+--              Mention GPL in help text
 --2F 2005-07-24 Strings implemented by TeeEmCee:
 --              $id="..." -> setstring
 --              $id+"..." -> appendstring
@@ -47,7 +49,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=2
-constant COMPILER_SUB_VERSION='F'
+constant COMPILER_SUB_VERSION='G'
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -336,6 +338,7 @@ end procedure
 procedure check_arg_count(sequence args)
   if length(args)=2 then
     wrap_print("HamsterSpeak semicompiler v%d%s (C)%s James Paige, Hamster Republic Productions\n",{COMPILER_VERSION,COMPILER_SUB_VERSION,COPYRIGHT_DATE})
+    wrap_print("Please read LICENSE.txt for GPL License details and disclaimer of liability",{})
     wrap_print(COLYEL&"%s [-cdefwy] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
     color_print("   -c colors will be disabled\n",{})
     color_print("   -d dump debug report to hs_debug.txt\n",{})
