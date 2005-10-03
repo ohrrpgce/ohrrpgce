@@ -1005,12 +1005,12 @@ end</example>
 		<command id="copystring">
 			<cannon>copy string (dest, source)</cannon>
 			<shortname>copy string</shortname>
-			<description>Copies the text from string #<p>source</p> to string #<p>dest</p>, overwriting the existing string completely.</description>
+			<description>Copies the text from string #<p>source</p> to string #<p>dest</p>, overwriting the existing string completely. <lb/>If you prefer, you can write <p>dest $= source</p> instead. You must supply string id numbers, not strings, as arguments.</description>
 		</command>
 		<command id="concatenatestrings">
-			<cannon>concantenate strings (dest, source)</cannon>
+			<cannon>concatenate strings (dest, source)</cannon>
 			<shortname>concatenate strings</shortname>
-			<description>Copies the text from string #<p>source</p> to string #<p>dest</p>. However, unlike <ref>copystring</ref>, the text is appended to the end of <p>dest</p>. The resulting string is then trimmed to the limit of 40 characters</description>
+			<description>Copies the text from string #<p>source</p> to string #<p>dest</p>. However, unlike <ref>copystring</ref>, the text is appended to the end of <p>dest</p>. The resulting string is then trimmed to the limit of 40 characters. <lb/>If you prefer, you can write <p>dest $+ source</p> instead. You must supply string id numbers, not strings, as arguments.</description>
 		</command>
 		<command id="stringlength">
 			<cannon>string length (ID)</cannon>

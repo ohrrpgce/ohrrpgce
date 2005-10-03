@@ -627,7 +627,7 @@ function smush_line(sequence s)
   s=substring_replace(s,"(",",begin,")
   s=substring_replace(s,")",",end,")
   masked=s
-  sep={"+=","-=","+","--","/","*","^^","^","==","<>",">>","<<","<=",">=",":=","&&","||"}
+  sep={"+=","-=","$+","$=","+","--","/","*","^^","^","==","<>",">>","<<","<=",">=",":=","&&","||"}
   for i=1 to length(sep) do
     at=match(sep[i],masked)
     start=1

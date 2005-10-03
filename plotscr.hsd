@@ -783,6 +783,8 @@ define operator,begin
 70 :=  setvariable
 70 +=  increment
 70 -=  decrement
+70 $+  concatenatestrings
+70 $=  copystring
 end
 
 #--------------------------------------------------------------------------

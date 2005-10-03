@@ -78,6 +78,12 @@ October 03 2005 [rusalka]
           globals to string(string ID, starting global, length)
         [BIG HUGE thanks to Yuriy (Draknight2@wmconnect.com)]
 
+      * New operators for strings:
+          destid $= srcid  instead of  copy string(destid,srcid)
+          destid $+ srcid  instead of  concatenate strings(destid,srcid)
+        Please note that  id $+ "TESTING"  is NOT valid
+        [Ralph Versteegen]
+
       * Commands to get useful strings:
           get hero name(string, hero)
           set hero name(string, hero)
