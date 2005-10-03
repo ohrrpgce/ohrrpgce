@@ -200,7 +200,7 @@
 		
 		<a href="#about-colorconstants">color:red</a><br>
 	
-		<a href="#about-concatenatestrings">concantenate strings (dest, source)</a><br>
+		<a href="#about-concatenatestrings">concatenate strings (dest, source)</a><br>
 		
 	
 		<a href="#about-copystring">copy string (dest, source)</a><br>
@@ -537,6 +537,12 @@
 		
 	
 		<a href="#about-losemoney">lose money (amount)</a><br>
+		
+	
+		<a href="#about-mapheight">map height</a><br>
+		
+	
+		<a href="#about-mapwidth">map width</a><br>
 		
 	
 		<a href="#about-maximumstat">maximum stat</a><br>
@@ -2499,15 +2505,15 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">copy string (dest, source)</font></b><br>
-			Copies the text from string #<span class="param">source</span> to string #<span class="param">dest</span>, overwriting the existing string completely.
+			Copies the text from string #<span class="param">source</span> to string #<span class="param">dest</span>, overwriting the existing string completely. <br>If you prefer, you can write <span class="param">dest $= source</span> instead. You must supply string id numbers, not strings, as arguments.
 			
 			
 		</tt></p>
 		<a name="about-concatenatestrings"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">concantenate strings (dest, source)</font></b><br>
-			Copies the text from string #<span class="param">source</span> to string #<span class="param">dest</span>. However, unlike <a href="#about-copystring" class="ref">copy string</a>, the text is appended to the end of <span class="param">dest</span>. The resulting string is then trimmed to the limit of 40 characters
+		<b><font color="yellow">concatenate strings (dest, source)</font></b><br>
+			Copies the text from string #<span class="param">source</span> to string #<span class="param">dest</span>. However, unlike <a href="#about-copystring" class="ref">copy string</a>, the text is appended to the end of <span class="param">dest</span>. The resulting string is then trimmed to the limit of 40 characters. <br>If you prefer, you can write <span class="param">dest $+ source</span> instead. You must supply string id numbers, not strings, as arguments.
 			
 			
 		</tt></p>
@@ -2764,6 +2770,30 @@ end</pre>
 		<tt>
 		<b><font color="yellow">current map</font></b><br>
 			Returns the number of the current map.
+			
+			
+		</tt></p>
+		<a name="about-mapwidth"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">map width</font></b><br>
+			Returns the width of the map in tiles.
+			
+			
+		</tt></p>
+		<a name="about-mapheight"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">map height</font></b><br>
+			Returns the height of the map in tiles.
+			
+			
+		</tt></p>
+		<a name="about-getmaptileset"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get map tileset</font></b><br>
+			Returns the ID number of the default tileset for the map. <a href="#about-loadtileset" class="ref">load tileset</a> does NOT affect the value returned by this function.
 			
 			
 		</tt></p>
@@ -3169,14 +3199,8 @@ write pass block(15,3,pass)
 		<b><font color="yellow">load tileset (set)</font></b><br>
 			Loads a different tileset for the currently displaying map. The argument is the ID number of the tileset to load. To restore the map's default tileset, use load tileset with no arguments.
 			
-			
-		</tt></p>
-		<a name="about-getmaptileset"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">get map tileset</font></b><br>
-			Returns the ID number of the default tileset for the map. <a href="#about-loadtileset" class="ref">load tileset</a> does NOT affect the value returned by this function.
-			
+			<br>See also: 
+				<a href="#about-getmaptileset" class="ref">get map tileset</a>
 			
 		</tt></p>
 		
@@ -4418,7 +4442,7 @@ end</pre>
 		</tt></p>
 		
 		<hr>
-	<p>Stats: There are 342 commands in this file, of which 51 are only references to other commands.</p>
+	<p>Stats: There are 344 commands in this file, of which 51 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
