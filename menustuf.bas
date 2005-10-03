@@ -64,6 +64,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
+DECLARE SUB fadein (force%)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
@@ -1246,6 +1247,14 @@ FUNCTION picksave (loading)
 
 DIM full(3), herosname$(3), mapname$(3), svtime$(3), lev$(3), id(3, 3), tstat(3, 1, 16), pic(3, 3), confirm$(1), menu$(1)
 
+'--if loading is 2, that means fade the screen in, and loadmenu
+'--terribly sorry for the dirtyness
+needf = 0
+IF loading = 2 THEN
+ loading = 1
+ needf = 2
+END IF
+
 '--load strings. menu$ array holds the names of the options 
 '--at the top of the screeen (only one appears when saving)
 
@@ -1407,6 +1416,12 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  copypage 3, dpage
+ IF needf = 1 THEN   'the titlescreen might be skipped and with it the fading in
+  needf = 0
+  fademusic fmvol
+  fadein -1
+ END IF
+ IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
 IF loading THEN

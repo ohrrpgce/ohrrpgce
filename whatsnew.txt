@@ -148,6 +148,10 @@ October 03 2005 [rusalka]
        each step script, get on keypress script, set on keypress script,
        draw npcs above heroes, map width, map height [Ralph Versteegen] 
 
+    *  New general bitsets: skip title screen, skip load screen (which
+       can be set or off in any combination), pause on all battle menus
+       [Ralph Versteegen]
+
   * Stuff only Developers Will Notice
 
     * Plotscripting Dictionary Documentation is now in xml format instead

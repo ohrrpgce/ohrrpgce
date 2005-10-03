@@ -384,8 +384,18 @@ depth = 0
 releasestack
 setupstack astack(), 1024, workingdir$ + "\stack.tmp" + CHR$(0)
 
-GOSUB titlescr
-temp = picksave(1)
+temp = -1
+IF readbit(gen(), genBits, 11) = 0 THEN 
+ GOSUB titlescr 
+ IF readbit(gen(), genBits, 12) = 0 THEN temp = picksave(1)
+ELSE
+ IF readbit(gen(), genBits, 12) = 0 THEN 
+  IF gen(2) > 0 THEN wrappedsong gen(2) - 1
+  fademusic fmvol
+  clearpage 3
+  temp = picksave(2)
+ END IF
+END IF
 'DEBUG debug "picked save slot"+str$(temp)
 fademusic 0
 stopsong
@@ -632,7 +642,8 @@ DO
  GOSUB displayall
  IF fatal = 1 OR abortg = 1 THEN
   resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
-  GOTO beginplay
+  'if skip loadmenu and title bits set, quit 
+  IF readbit(gen(), genBits, 11) AND readbit(gen(), genBits, 12) THEN GOTO resetg ELSE GOTO beginplay 
  END IF
  'DEBUG debug "swap video pages"
  SWAP vpage, dpage
@@ -2273,10 +2284,10 @@ SELECT CASE scrat(nowscript, curkind)
       scrat(nowscript, scrstate) = stwait
      END IF
     END IF
- CASE 210'--show string
- IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
- scriptout$ = plotstring$(retvals(0))
- END IF
+   CASE 210'--show string
+    IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+     scriptout$ = plotstring$(retvals(0))
+    END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript, curvalue)
     scriptmisc scrat(nowscript, curvalue)

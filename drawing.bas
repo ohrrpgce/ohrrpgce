@@ -188,7 +188,7 @@ DO
  IF (keyval(28) > 1 OR keyval(57) > 1) THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 1 THEN
-   bit$(0) = "Pause on Battle Menus"
+   bit$(0) = "Pause on Battle Sub-menus"
    bit$(1) = "Enable Caterpillar Party"
    bit$(2) = "Don't Restore HP on Levelup"
    bit$(3) = "Don't Restore MP on Levelup"
@@ -199,7 +199,10 @@ DO
    bit$(8) = "Disable Debugging Keys"
    bit$(9) = "Simulate Old Levelup Bug"
    bit$(10) = "Permit double-triggering of scripts"
-   bitset general(), 101, 10, bit$()
+   bit$(11) = "Skip title screen"
+   bit$(12) = "Skip load screen"
+   bit$(13) = "Pause on All Battle Menus"
+   bitset general(), 101, 13, bit$()
   END IF
   IF csr = 9 THEN GOSUB ttlbrowse
   IF csr = 10 THEN GOSUB renrpg
