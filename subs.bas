@@ -72,12 +72,6 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 '$INCLUDE: 'const.bi'
 
 REM $STATIC
-FUNCTION bound (n, lowest, highest)
-bound = n
-IF n < lowest THEN bound = lowest
-IF n > highest THEN bound = highest
-END FUNCTION
-
 FUNCTION charpicker$
 
 STATIC ptr

@@ -62,7 +62,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
-DECLARE FUNCTION maplumpname$(map, oldext$)
+DECLARE FUNCTION maplumpname$ (map, oldext$)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -472,23 +472,6 @@ FOR i = 0 TO 1
    notstuck = large(notstuck - 1, 0)
   LOOP WHILE notstuck AND skip(i) = 0
  END IF
-NEXT i
-
-END SUB
-
-SUB drawmini (high, wide, cursor(), page, tastuf())
-
-clearpage vpage
-FOR i = 0 TO high
- FOR o = 0 TO wide
-  block = readmapblock(o, i)
-  IF block > 207 THEN block = (block - 207) + tastuf(20)
-  IF block > 159 THEN block = (block - 159) + tastuf(0)
-  mx = block - (INT(block / 16) * 16)
-  my = INT(block / 16)
-  loadsprite cursor(), 0, (INT(RND * 7) + 7) + (mx * 20), (INT(RND * 7) + 7) + (my * 20), 1, 1, 3
-  stosprite cursor(), 0, o, i, page
- NEXT o
 NEXT i
 
 END SUB

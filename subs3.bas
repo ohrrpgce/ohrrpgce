@@ -69,10 +69,33 @@ DECLARE SUB strgrabber (s$, maxl%)
 '$INCLUDE: 'const.bi'
 
 REM $STATIC
+FUNCTION bound (n, lowest, highest)
+bound = n
+IF n < lowest THEN bound = lowest
+IF n > highest THEN bound = highest
+END FUNCTION
+
 SUB debug (s$)
 OPEN "c_debug.txt" FOR APPEND AS #3
 PRINT #3, s$
 CLOSE #3
+END SUB
+
+SUB drawmini (high, wide, cursor(), page, tastuf())
+
+clearpage vpage
+FOR i = 0 TO high
+ FOR o = 0 TO wide
+  block = readmapblock(o, i)
+  IF block > 207 THEN block = (block - 207) + tastuf(20)
+  IF block > 159 THEN block = (block - 159) + tastuf(0)
+  mx = block - (INT(block / 16) * 16)
+  my = INT(block / 16)
+  loadsprite cursor(), 0, (INT(RND * 7) + 7) + (mx * 20), (INT(RND * 7) + 7) + (my * 20), 1, 1, 3
+  stosprite cursor(), 0, o, i, page
+ NEXT o
+NEXT i
+
 END SUB
 
 FUNCTION exclude$ (s$, x$)
