@@ -168,7 +168,7 @@ CLOSE #fh
 'DEBUG debug "Thestart"
 thestart:
 'DEBUG debug "set stack size"
-CLEAR , , 2650
+CLEAR , , 2700
 
 storekeyhandler
 
@@ -385,11 +385,11 @@ releasestack
 setupstack astack(), 1024, workingdir$ + "\stack.tmp" + CHR$(0)
 
 temp = -1
-IF readbit(gen(), genBits, 11) = 0 THEN 
- GOSUB titlescr 
+IF readbit(gen(), genBits, 11) = 0 THEN
+ GOSUB titlescr
  IF readbit(gen(), genBits, 12) = 0 THEN temp = picksave(1)
 ELSE
- IF readbit(gen(), genBits, 12) = 0 THEN 
+ IF readbit(gen(), genBits, 12) = 0 THEN
   IF gen(2) > 0 THEN wrappedsong gen(2) - 1
   fademusic fmvol
   clearpage 3
@@ -642,8 +642,8 @@ DO
  GOSUB displayall
  IF fatal = 1 OR abortg = 1 THEN
   resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
-  'if skip loadmenu and title bits set, quit 
-  IF readbit(gen(), genBits, 11) AND readbit(gen(), genBits, 12) THEN GOTO resetg ELSE GOTO beginplay 
+  'if skip loadmenu and title bits set, quit
+  IF readbit(gen(), genBits, 11) AND readbit(gen(), genBits, 12) THEN GOTO resetg ELSE GOTO beginplay
  END IF
  'DEBUG debug "swap video pages"
  SWAP vpage, dpage
