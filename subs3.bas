@@ -62,6 +62,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
+DECLARE SUB smnemonic (tagname$, index%)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -311,3 +312,51 @@ END IF
 
 END SUB
 
+SUB tagnames
+DIM menu$(2)
+clearpage 0
+clearpage 1
+
+IF general(56) < 1 THEN general(56) = 1
+ptr = 2
+csr = 0
+menu$(0) = "Previous Menu"
+tagname$ = lmnemonic$(ptr)
+
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN EXIT DO
+ dummy = usemenu(csr, 0, 0, 2, 24)
+ IF csr = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN EXIT DO
+ IF csr = 1 THEN
+  oldptr = ptr
+  IF intgrabber(ptr, 0, small(general(56) + 1, 999), 75, 77) THEN
+   IF ptr > general(56) THEN general(56) = ptr
+   smnemonic tagname$, oldptr
+   tagname$ = lmnemonic$(ptr)
+  END IF
+ END IF
+ IF csr = 2 THEN
+  strgrabber tagname$, 20
+  IF keyval(28) > 1 THEN
+   smnemonic tagname$, ptr
+   ptr = small(ptr + 1, 999)
+   tagname$ = lmnemonic$(ptr)
+  END IF
+ END IF
+ menu$(1) = "Tag" + STR$(ptr)
+ menu$(2) = "Name:" + tagname$
+ 
+ standardmenu menu$(), 2, 22, csr, 0, 0, 0, dpage, 0
+ 
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
+smnemonic tagname$, ptr
+
+END SUB

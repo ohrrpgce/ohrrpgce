@@ -126,6 +126,11 @@ October 03 2005 [rusalka]
        Copy a sprite normally, then paste it with Ctrl + T. Transparent
        (colour 0) areas will not get pasted [Ralph Versteegen]
 
+    *  You can now use capslock + directional keys to move a tile around
+       like you can in the sprite editor. In the tile editor however,
+       pieces of the tile that go over the edge wrap around to the other
+       side  [Ralph Versteegen]
+
     *  Place tiles without overwriting passability with the default by 
        hitting Ctrl + D when tilemapping [Ralph Versteegen]
 

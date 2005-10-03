@@ -1129,6 +1129,7 @@ DO
  END IF
  IF keyval(57) > 0 THEN GOSUB clicktile
  IF keyval(28) > 1 THEN cc = readpixel(bx * 20 + x, by * 20 + y, 3)
+ IF keyval(58) > 0 THEN GOSUB scrolltile
  IF gotm THEN
   IF zone = 1 THEN
    x = INT(zox / 10)
@@ -1337,6 +1338,29 @@ SELECT CASE tool
   NEXT i
   GOSUB refreshbig
 END SELECT
+RETURN
+
+scrolltile:
+rectangle 0, 0, 20, 20, 0, dpage
+shiftx = 0: shifty = 0
+IF keyval(72) > 0 THEN shifty = -1
+IF keyval(80) > 0 THEN shifty = 1
+IF keyval(75) > 0 THEN shiftx = -1
+IF keyval(77) > 0 THEN shiftx = 1
+FOR i = 0 TO 19
+ FOR j = 0 TO 19
+  tempx = (i + shiftx + 20) MOD 20
+  tempy = (j + shifty + 20) MOD 20
+  rectangle tempx, tempy, 1, 1, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
+ NEXT j
+NEXT i
+FOR i = 0 TO 19
+ FOR j = 0 TO 19
+  rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(i, j, dpage), 3
+ NEXT j
+NEXT i
+GOSUB refreshbig
+rectangle 0, 0, 20, 20, 0, dpage
 RETURN
 
 refreshbig:
@@ -2510,55 +2534,6 @@ IF j <= sets THEN
  NEXT o
 END IF
 RETURN
-
-END SUB
-
-SUB tagnames
-DIM menu$(2)
-clearpage 0
-clearpage 1
-
-IF general(56) < 1 THEN general(56) = 1
-ptr = 2
-csr = 0
-menu$(0) = "Previous Menu"
-tagname$ = lmnemonic$(ptr)
-
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(csr, 0, 0, 2, 24)
- IF csr = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN EXIT DO
- IF csr = 1 THEN
-  oldptr = ptr
-  IF intgrabber(ptr, 0, small(general(56) + 1, 999), 75, 77) THEN
-   IF ptr > general(56) THEN general(56) = ptr
-   smnemonic tagname$, oldptr
-   tagname$ = lmnemonic$(ptr)
-  END IF
- END IF
- IF csr = 2 THEN
-  strgrabber tagname$, 20
-  IF keyval(28) > 1 THEN
-   smnemonic tagname$, ptr
-   ptr = small(ptr + 1, 999)
-   tagname$ = lmnemonic$(ptr)
-  END IF
- END IF
- menu$(1) = "Tag" + STR$(ptr)
- menu$(2) = "Name:" + tagname$
- 
- standardmenu menu$(), 2, 22, csr, 0, 0, 0, dpage, 0
- 
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-smnemonic tagname$, ptr
 
 END SUB
 
