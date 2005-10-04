@@ -1,5 +1,15 @@
 WHAT IS NEW?
 
+??? ?? 200? [simonsays? serendipity? something?]
+
+  * Bug Fixes
+
+  * New Features
+
+  * New Plotscripting Commands
+
+  * Stuff only Developers Will Notice
+
 October 03 2005 [rusalka]
 
   * Bug-Fixes
