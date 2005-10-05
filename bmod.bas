@@ -1684,7 +1684,7 @@ RETURN
 meters:
 IF away = 1 THEN RETURN
 '--if a menu is up, and pause-on-menus is ON then no time passes
-IF mset > 0 AND readbit(gen(), 101, 0) THEN RETURN
+IF (mset > 0 AND readbit(gen(), genBits, 0)) OR (mset >= 0 AND you >= 0 AND readbit(gen(), genBits, 13)) THEN RETURN
 
 FOR i = 0 TO 11
  

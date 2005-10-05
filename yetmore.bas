@@ -223,7 +223,6 @@ FOR i = 0 TO 255
  itembits(i, 1) = buffer(75)   'is in inventory
  itembits(i, 2) = buffer(76)   'is equiped tag
  itembits(i, 3) = buffer(77)   'is equiped by hero in active party
- itembits(i, 4) = buffer(0)    'tracks if item has a name or not
 NEXT i
 END SUB
 
@@ -931,6 +930,16 @@ SELECT CASE id
   movemouse retvals(0), retvals(1)
  CASE 164'--mouse region
   mouserect retvals(0), retvals(1), retvals(2), retvals(3)
+ CASE 178'--readgmap
+  IF retvals(0) >= 0 AND retvals(0) <= 19 THEN
+   scriptret = gmap(retvals(0))
+  END IF
+ CASE 179'--writegmap
+  IF retvals(0) >= 0 AND retvals(0) <= 19 THEN
+   gmap(retvals(0)) = retvals(1)
+   IF retvals(0) = 5 THEN setoutside -1  'hint: always use the wrapper
+   IF retvals(0) = 6 AND gmap(5) = 2 THEN setoutside retvals(1)
+  END IF
 END SELECT
 
 END SUB
@@ -1281,6 +1290,10 @@ SELECT CASE id
   ELSE
    scriptret = -1
   END IF
+ CASE 180'--mapwidth
+  scriptret = scroll(0)
+ CASE 181'--mapheight
+  scriptret = scroll(1)
  CASE 200'--system hour
   scriptret = INT(TIMER / 3600)
  CASE 201'--system minute

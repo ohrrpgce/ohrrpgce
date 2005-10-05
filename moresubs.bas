@@ -839,35 +839,37 @@ END SUB
 SUB evalitemtag
 
 FOR i = 0 TO 255
- IF itembits(i, 4) > 0 THEN
-  FOR j = 0 TO 3
-   IF itembits(i, j) > 1 THEN setbit tag(), 0, itembits(i, j), 0
-  NEXT j
-  FOR j = 0 TO 199
-   lb = (item(j) AND 255)
-   IF i = lb - 1 THEN
-    IF itembits(i, 0) > 1 THEN setbit tag(), 0, itembits(i, 0), 1  'you have it
-    IF itembits(i, 1) > 1 THEN setbit tag(), 0, itembits(i, 1), 1 'it is in your inventory
-    EXIT FOR
-   END IF
-  NEXT j
-  FOR j = 0 TO 40
-   FOR k = 0 TO 4
-    IF i = eqstuf(j, k) - 1 THEN
-     IF itembits(i, 0) > 1 THEN setbit tag(), 0, itembits(i, 0), 1  'you have it
-     IF itembits(i, 2) > 1 THEN setbit tag(), 0, itembits(i, 2), 1  'it is equipped
-     IF j < 4 AND itembits(i, 3) > 1 THEN setbit tag(), 0, itembits(i, 3), 1   'it is equipped by an active hero
-     EXIT FOR
-    END IF
-   NEXT k
-  NEXT j
- END IF '---Only checks items with names
+ 'clear all four bits
+ FOR j = 0 TO 3
+  IF itembits(i, j) > 1 THEN setbit tag(), 0, itembits(i, j), 0
+ NEXT j
 NEXT i
 
-'74      when have tag
-'75      is in inventory
-'76      is equiped tag
-'77      is equiped by hero in active party
+'search inventory slots
+FOR j = 0 TO 199
+ 'get item ID
+ id = (item(j) AND 255) - 1
+ IF id >= 0 THEN 'there is an item in this slot
+  IF itembits(id, 0) > 1 THEN setbit tag(), 0, itembits(id, 0), 1 'you have it
+  IF itembits(id, 1) > 1 THEN setbit tag(), 0, itembits(id, 1), 1 'it is in your inventory
+ END IF
+NEXT j
+ 
+FOR j = 0 TO 40 'search hero list
+ FOR k = 0 TO 4 'search equipment slots
+  id = eqstuf(j, k) - 1
+  IF id >= 0 THEN ' there is an item equipped in this slot
+   IF itembits(id, 0) > 1 THEN setbit tag(), 0, itembits(id, 0), 1 'you have it
+   IF itembits(id, 2) > 1 THEN setbit tag(), 0, itembits(id, 2), 1 'it is equipped
+   IF j < 4 AND itembits(id, 3) > 1 THEN setbit tag(), 0, itembits(id, 3), 1   'it is equipped by an active hero
+  END IF
+ NEXT k
+NEXT j
+
+'itembits(n,0)      when have tag
+'itembits(n,1)      is in inventory
+'itembits(n,2)      is equiped tag
+'itembits(n,3)      is equiped by hero in active party
 
 END SUB
 

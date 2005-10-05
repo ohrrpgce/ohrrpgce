@@ -1,6 +1,16 @@
 WHAT IS NEW?
 
-September ?? 2005 [rusalka]
+??? ?? 200? [simonsays? serendipity? something?]
+
+  * Bug Fixes
+
+  * New Features
+
+  * New Plotscripting Commands
+
+  * Stuff only Developers Will Notice
+
+October 03 2005 [rusalka]
 
   * Bug-Fixes
 
@@ -78,6 +88,12 @@ September ?? 2005 [rusalka]
           globals to string(string ID, starting global, length)
         [BIG HUGE thanks to Yuriy (Draknight2@wmconnect.com)]
 
+      * New operators for strings:
+          destid $= srcid  instead of  copy string(destid,srcid)
+          destid $+ srcid  instead of  concatenate strings(destid,srcid)
+        Please note that  id $+ "TESTING"  is NOT valid
+        [Ralph Versteegen]
+
       * Commands to get useful strings:
           get hero name(string, hero)
           set hero name(string, hero)
@@ -120,6 +136,11 @@ September ?? 2005 [rusalka]
        Copy a sprite normally, then paste it with Ctrl + T. Transparent
        (colour 0) areas will not get pasted [Ralph Versteegen]
 
+    *  You can now use capslock + directional keys to move a tile around
+       like you can in the sprite editor. In the tile editor however,
+       pieces of the tile that go over the edge wrap around to the other
+       side  [Ralph Versteegen]
+
     *  Place tiles without overwriting passability with the default by 
        hitting Ctrl + D when tilemapping [Ralph Versteegen]
 
@@ -128,6 +149,18 @@ September ?? 2005 [rusalka]
 
     *  Plotscript command alternpc has been considerably optimised. It 
        no longer reloads all npcs and heros on the map [Ralph Versteegen]
+
+    *  New plotscript commands: get map tileset, get ambient music,
+       set ambient music, allow minimap, allow save anywhere, set map
+       edge mode, get map edge mode, set harm tile damage, set harm tile
+       flash, get foot offset, set foot offset, get instead of battle
+       script, set instead of battle script, get each step script, set
+       each step script, get on keypress script, set on keypress script,
+       draw npcs above heroes, map width, map height [Ralph Versteegen] 
+
+    *  New general bitsets: skip title screen, skip load screen (which
+       can be set or off in any combination), pause on all battle menus
+       [Ralph Versteegen]
 
   * Stuff only Developers Will Notice
 
