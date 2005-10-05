@@ -166,7 +166,7 @@ CLOSE #fh
 'DEBUG debug "Thestart"
 thestart:
 'DEBUG debug "set stack size"
-CLEAR , , 2650
+CLEAR , , 2700
 
 storekeyhandler
 
@@ -177,7 +177,7 @@ storekeyhandler
 DIM font(1024), master(767), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
 DIM door(206), gen(104), npcl(2100), npcs(1500), saytag(21), tag(127), hero(40), stat(40, 1, 16), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(99), menu$(20), exlev&(40, 1), names$(40), mi(10), gotj(2), veh(21)
 DIM item(-3 TO 199), item$(-3 TO 199), eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), _
-tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 4)
+tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
 DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 13), retvals(32), plotstring$(31), plotstrX(31), plotstrY(31), plotstrCol(31), plotstrBGCol(31), plotstrBits(31)
 '--stuff we used to DIM here, but have defered to later
@@ -365,8 +365,18 @@ depth = 0
 releasestack
 setupstack astack(), 1024, workingdir$ + "\stack.tmp" + CHR$(0)
 
-GOSUB titlescr
-temp = picksave(1)
+temp = -1
+IF readbit(gen(), genBits, 11) = 0 THEN
+ GOSUB titlescr
+ IF readbit(gen(), genBits, 12) = 0 THEN temp = picksave(1)
+ELSE
+ IF readbit(gen(), genBits, 12) = 0 THEN
+  IF gen(2) > 0 THEN wrappedsong gen(2) - 1
+  fademusic fmvol
+  clearpage 3
+  temp = picksave(2)
+ END IF
+END IF
 'DEBUG debug "picked save slot"+str$(temp)
 fademusic 0
 stopsong
@@ -407,9 +417,7 @@ DO
  'DEBUG debug "keyboard handling"
  IF carray(5) > 1 AND showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(0) = 0 AND xgo(0) = 0 AND ygo(0) = 0 THEN
   GOSUB usermenu
-  FOR i = 1 TO 10
-   evalitemtag
-  NEXT i
+  evalitemtag
   npcplot
  END IF
  IF showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(6) = 0 THEN
@@ -616,7 +624,8 @@ DO
  GOSUB displayall
  IF fatal = 1 OR abortg = 1 THEN
   resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
-  GOTO beginplay
+  'if skip loadmenu and title bits set, quit
+  IF readbit(gen(), genBits, 11) AND readbit(gen(), genBits, 12) THEN GOTO resetg ELSE GOTO beginplay
  END IF
  'DEBUG debug "swap video pages"
  SWAP vpage, dpage
