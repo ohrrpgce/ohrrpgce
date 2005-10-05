@@ -704,7 +704,11 @@ END IF '---END BACKDROP DISPLAY---
 'DEBUG debug "text box"
 IF showsay > 0 THEN drawsay saybit(), sayenh(), say$(), showsay, choose$(), choosep
 'DEBUG debug "map name"
-IF showmapname > 0 THEN showmapname = showmapname - 1: edgeprint mapname$, xstring(mapname$, 160), 180, 15, dpage
+IF showmapname > 0 and gmap(4) >= showmapname THEN
+ showmapname = showmapname - 1: edgeprint mapname$, xstring(mapname$, 160), 180, 15, dpage
+ELSE
+ showmapname = 0
+END IF
 '--FPS
 'framecount = framecount + 1
 'IF fpstimer! + 1 < TIMER THEN

@@ -650,6 +650,11 @@ wait for text box # wait until the player continues</example>
 			<shortname>show no value</shortname>
 			<description>Gets rid of the number in the bottom left corner of the screen after a <ref>showvalue</ref> command.</description>
 		</command>
+		<command id="cancelmapnamedisplay">
+			<cannon>cancel map name display</cannon>
+			<shortname>cancel map name display</shortname>
+			<description>If the map name is being displayed, this command makes it disappear. For example, this may be useful if you want the map name to appear when you enter a map normally, but not when you jump to the map for a plotscripted cutscene.</description>
+		</command>
 		<command id="showbackdrop">
 			<cannon>show backdrop (number)</cannon>
 			<shortname>show backdrop</shortname>

@@ -8,6 +8,8 @@ WHAT IS NEW?
 
   * New Plotscripting Commands
 
+    * "cancel map name display" [James Paige]
+
   * Stuff only Developers Will Notice
 
 October 03 2005 [rusalka]

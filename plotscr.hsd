@@ -597,6 +597,11 @@ script,allow save anywhere,setting,begin
   write gmap(3,setting)
 end
 
+define script(autonumber,cancel map name display,0)
+script,set map name display,ticks,begin
+  write gmap(4,0)
+end
+
 define script(autonumber,set map edge mode,2,0,0) #second argument only used with DefaultTile
 script,set map edge mode,mode,tile,begin
   write gmap(5,mode)
