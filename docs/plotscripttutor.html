@@ -28,7 +28,7 @@ Last Updated June 7 2001<br>
 What is plotscripting? From the most simple perspective plotscripting is where the computer takes control of the characters in your RPG, and moves them around, and makes them say stuff. Anyone who has played popular RPGs like Final Fantasy will be familiar with this concept.
 </p>
 <p>
-Plotscripting is actually capable of far more than that, even allowing you to create puzzles, mini-games, and special effects in your game, but that sort of thing is not covered in this tutorial. People who want to use the programming-language-like features of plotscripting should read the <a href="plotdictionary.html">Dictionary of PlotScripting Commands</a> and the <a href="hamsterspeak.html">HamsterSpeak Specification</a>
+Plotscripting is actually capable of far more than that, even allowing you to create puzzles, mini-games, and special effects in your game, but that sort of thing is not covered in this tutorial. People who want to use the programming-language-like features of plotscripting should read the <a href="docs/plotdict.xml">Dictionary of PlotScripting Commands</a> and the <a href="hamsterspeak.html">HamsterSpeak Specification</a>
 </p>
 
 <hr>
@@ -515,7 +515,7 @@ In "Special Plotscripts" in the "General Game Data" editor you can set the scrip
 
 <p>
 <big><b><font color="blue">Game-Over Script</font></b></big><br>
-In "Special Plotscripts" in the "General Game Data" editor you can set the "Game-over" script. Normally when you die in battle, the game resets back to the title screen, but if you have set a game-over script, then it will be run instead. Perhaps you want to restore the dead heros to life with the <a href="plotdictionary.html#about-setherostat">set hero stat</a> command. Perhaps you want to show "game over" picture with <a href="plotdictionary.html#about-showbackdrop">show backdrop</a> before reseting the game with the <a href="plotdictionary.html#about-gameover">game over</a> command (which can be called from ANY plotscript, not just a Game-over plotscript) Or perhaps you want to use <a href="plotdictionary.html#about-if">if</a> statements and do different things depending on the values of tags.
+In "Special Plotscripts" in the "General Game Data" editor you can set the "Game-over" script. Normally when you die in battle, the game resets back to the title screen, but if you have set a game-over script, then it will be run instead. Perhaps you want to restore the dead heros to life with the <a href="docs/plotdict.xml#about-setherostat">set hero stat</a> command. Perhaps you want to show "game over" picture with <a href="docs/plotdict.xml#about-showbackdrop">show backdrop</a> before reseting the game with the <a href="docs/plotdict.xml#about-gameover">game over</a> command (which can be called from ANY plotscript, not just a Game-over plotscript) Or perhaps you want to use <a href="docs/plotdict.xml#about-if">if</a> statements and do different things depending on the values of tags.
 </p>
 
 <p>
@@ -535,7 +535,7 @@ Although you cannot directly call a script from an item, you can call a text box
 
 <p>
 <big><b><font color="blue">NPC Scripts</font></b></big><br>
-In the NPC editor you can assign a script to be triggered by an NPC. You also have the option of assigning an argument that will be passed to that script. Also, if your script is defined to accept a second argument, it will be automatically passed an <a href="plotdictionary.html#about-npcreference">NPC reference</a>
+In the NPC editor you can assign a script to be triggered by an NPC. You also have the option of assigning an argument that will be passed to that script. Also, if your script is defined to accept a second argument, it will be automatically passed an <a href="docs/plotdict.xml#about-npcreference">NPC reference</a>
 </p>
 
 <p>
@@ -560,17 +560,17 @@ In the "General Map Data" menu of the Map editor, you can set a script that will
 
 <p>
 <big><b><font color="blue">Instead-of-Battle Script</font></b></big><br>
-In the "General Map Data" menu of the Map editor, you can set a script that will be run instead whenever a random battle would have been triggered. It automatically gets two arguments passed to it, the first is the formation number of the battle you would have fought (in case you want to go ahead and trigger the battle from your script with the <a href="plotdictionary.html#about-fightformation">fight formation</a> command), and the second argument is the number of the battle-formation-set that the random battle was chosen from.
+In the "General Map Data" menu of the Map editor, you can set a script that will be run instead whenever a random battle would have been triggered. It automatically gets two arguments passed to it, the first is the formation number of the battle you would have fought (in case you want to go ahead and trigger the battle from your script with the <a href="docs/plotdict.xml#about-fightformation">fight formation</a> command), and the second argument is the number of the battle-formation-set that the random battle was chosen from.
 </p>
 
 <p>
 <big><b><font color="blue">Each-Step Script</font></b></big><br>
-In the "General Map Data" menu of the Map editor, you can set a script that gets called every single time your hero takes a step on that map. It is automatically passed three arguments, the hero's horizontal position (X), the hero's vertical position (Y), and the hero's current direction, north, south, east, or west. Since this script will get called frequently, it is a good idea not to use any <a href="plotdictionary.html#about-wait">wait</a> type commands in it
+In the "General Map Data" menu of the Map editor, you can set a script that gets called every single time your hero takes a step on that map. It is automatically passed three arguments, the hero's horizontal position (X), the hero's vertical position (Y), and the hero's current direction, north, south, east, or west. Since this script will get called frequently, it is a good idea not to use any <a href="docs/plotdict.xml#about-wait">wait</a> type commands in it
 </p>
 
 <p>
 <big><b><font color="blue">On-Keypress Script</font></b></big><br>
-In the "General Map Data" menu of the Map editor, you can set a script that gets run every single time the player presses a key on the map. This applies to every key on the keyboard, not just the ones that normally do something. Inside your script you can use the <a href="plotdictionary.html#about-keyispressed">key is pressed</a> command to see if a key you care about has been triggered. Because holding a key down can cause this script to be rapidly and repeatedly called, dont make the script too long or you will see your game slow down. Also, be careful using <a href="plotdictionary.html#about-wait">wait</a> type commands in this kind of script.
+In the "General Map Data" menu of the Map editor, you can set a script that gets run every single time the player presses a key on the map. This applies to every key on the keyboard, not just the ones that normally do something. Inside your script you can use the <a href="docs/plotdict.xml#about-keyispressed">key is pressed</a> command to see if a key you care about has been triggered. Because holding a key down can cause this script to be rapidly and repeatedly called, dont make the script too long or you will see your game slow down. Also, be careful using <a href="docs/plotdict.xml#about-wait">wait</a> type commands in this kind of script.
 </p>
 
 <hr>
@@ -578,7 +578,7 @@ In the "General Map Data" menu of the Map editor, you can set a script that gets
 <a name="learnmore"></a>
 <h4>Learning More</h4><br>
 <p>
-I hope this is enough to get you started. The next step is to read the <a href="plotdictionary.html">Dictionary of PlotScripting Commands</a> and try out some of the commands listed there.
+I hope this is enough to get you started. The next step is to read the <a href="docs/plotdict.xml">Dictionary of PlotScripting Commands</a> and try out some of the commands listed there.
 </p>
 
 </body>
