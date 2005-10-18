@@ -5,11 +5,14 @@
 '$include: 'compat.bi'
 '$include: 'allmodex.bi'
 '$include: 'fbgfx.bi'
+'$include: 'fmodex.bi'
+'$include: 'gglobals.bi'
 
 option explicit
 
 declare function matchmask(match as string, mask as string) as integer
 declare function calcblock(byval x as integer, byval y as integer, byval t as integer) as integer
+declare sub bamconvert(bamfile as string, songfile as string)
 
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
@@ -19,6 +22,7 @@ declare function smouse alias "fb_SetMouse" ( byval x as integer = -1, byval y a
 'extern
 declare sub debug(s$)
 declare sub fatalerror(e$)
+declare sub bam2mid(infile as string, outfile as string)
 
 dim shared path as string
 dim shared vispage as integer
@@ -33,8 +37,8 @@ dim shared aptr as integer ptr	' array ptr
 dim shared pptr as integer ptr	' pass ptr
 dim shared maptop as integer
 dim shared maplines as integer
-dim shared mapx as integer
-dim shared mapy as integer
+dim shared map_x as integer
+dim shared map_y as integer
 
 dim shared anim1 as integer
 dim shared anim2 as integer
@@ -55,6 +59,12 @@ dim shared mouse_ymax as integer
 
 dim shared textfg as integer
 dim shared textbg as integer
+
+dim shared music_on as integer = 0
+dim shared music_song as FMOD_SOUND ptr = 0 'integer = 0
+dim shared fmod as FMOD_SYSTEM ptr
+dim shared fmod_channel as FMOD_CHANNEL ptr = 0
+dim shared music_vol as integer
 
 dim shared fontdata(0 to 2048-1) as ubyte
 
@@ -218,8 +228,8 @@ end SUB
 SUB setmapdata (array() as integer, pas() as integer, BYVAL t as integer, BYVAL b as integer)
 'I think this is a setup routine like setpicstuf
 't and b are top and bottom margins
-	mapx = array(0)
-	mapy = array(1)
+	map_x = array(0)
+	map_y = array(1)
 	aptr = @array(2)
 	pptr = @pas(2)
 	maptop = t
@@ -230,7 +240,7 @@ SUB setmapblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
 	dim index as integer
 	dim hilow as integer
 	
-	index = (mapx * y) + x	'raw byte offset
+	index = (map_x * y) + x	'raw byte offset
 	hilow = index mod 2		'which byte in word
 	index = index shr 1 	'divide by 2
 	
@@ -253,7 +263,7 @@ FUNCTION readmapblock (BYVAL x as integer, BYVAL y as integer) as integer
 	dim index as integer
 	dim hilow as integer
 	
-	index = (mapx * y) + x	'raw byte offset
+	index = (map_x * y) + x	'raw byte offset
 	hilow = index mod 2		'which byte in word
 	index = index shr 1 	'divide by 2
 	
@@ -868,10 +878,12 @@ SUB setwait (b() as integer, BYVAL t as integer)
 'dos timer means that the latter is always truncated to the last multiple of
 '55 milliseconds.
 	dim millis as integer
+	dim secs as single
 	millis = (t \ 55) * 55
 	rollflag = 0
 	
-	waittime = timer + (millis / 1000)
+	secs = millis / 1000
+	waittime = timer + secs
 	if waittime >= 86400 then
 		rollflag = 1
 	end if
@@ -881,7 +893,7 @@ SUB dowait ()
 'wait until alarm time set in setwait()
 'In freebasic, sleep is in 1000ths, and a value of less than 100 will not 
 'be exited by a keypress, so sleep for 5ms until timer > waittime.
-	do while timer < waittime
+	do while timer <= waittime
 		if rollflag = 1 then
 			if timer + 86400 >= waittime then
 				exit do
@@ -1287,28 +1299,172 @@ FUNCTION LongNameLength (filename$) as integer
 end FUNCTION
 
 SUB setupmusic (mbuf() as integer)
+	dim version as uinteger
+	if music_on = 0 then
+		if FMOD_System_Create(@fmod) <> 0 then
+			'Debug "Oops"
+			music_on = -1
+			exit sub
+		end if
+		
+		FMOD_System_GetVersion(fmod, @version)
+		If version < FMOD_VERSION Then
+			'need a proper error message here, look up the function later
+	  		Debug "FMOD version " + STR$(FMOD_VERSION) + " or greater required"
+	  		music_on = -1 'don't bother trying again
+	  		exit sub
+		End If
+		
+		if FMOD_System_Init(fmod, 1, FMOD_INIT_NORMAL, 0) <> 0 then
+		'If FSOUND_Init(44100, 32, 0) = 0 Then
+	  		Debug "Can't initialize FMOD"
+	  		music_on = -1
+	  		exit sub
+		End If
+		
+		music_vol = 15
+		music_on = 1
+	end if	
 end SUB
 
 SUB closemusic ()
+	if music_on = 1 then
+		if music_song > 0 then
+			FMOD_Sound_Release(music_song)
+			'FMUSIC_FreeSong(music_song)
+			music_song = 0
+		end if
+		
+		FMOD_System_Close(fmod)
+		FMOD_System_Release(fmod)
+		'FSOUND_Close
+		music_on = 0
+	end if
 end SUB
 
 SUB loadsong (f$)
+'would be nice if we had a routine that took the number as a param
+'instead of the name, maybe abstract one into compat.bas?
+	if music_on = 1 then
+		dim exten as string
+		dim dotpos as integer
+		dim i as integer
+		dim songname as string
+		dim found as integer = 0
+		dim pass as integer = 0
+		dim bamfile as string
+		
+		bamfile = rtrim$(f$) 	'lose the null terminator
+		
+		'get the extension (ie. song number)
+		dotpos = 0
+		do 
+			i = instr(dotpos + 1, bamfile, ".")
+			if i <> 0 then
+				dotpos = i
+			end if
+		loop until i = 0
+		exten = mid$(bamfile, dotpos + 1)
+		
+		're-ordered filename without extension
+		songname = workingdir$ + PATH_SEP + "song" + exten
+		
+		'stop current song
+		if music_song > 0 then
+			FMOD_Sound_Release(music_song)
+			'FMUSIC_FreeSong(music_song)
+			music_song = 0
+		end if
+
+		'find song
+		pass = 0
+		while pass < 2 and found = 0
+			if isfile(songname + ".xm") then
+				songname = songname + ".xm"
+				found = 1
+			elseif isfile(songname + ".it") then
+				songname = songname + ".it"
+				found = 1
+			elseif isfile(songname + ".mod") then
+				songname = songname + ".mod"
+				found = 1
+			elseif isfile(songname + ".mp3") then
+				songname = songname + ".mp3"
+				found = 1
+			elseif isfile(songname + ".mid") then
+				songname = songname + ".mid"
+				found = 1
+			end if
+			
+			if found = 0 then
+				'convert BAM
+				bamconvert(bamfile, songname)
+			end if
+			pass = pass + 1
+		wend
+		
+		if (found = 1) then
+			FMOD_System_CreateStream(fmod, songname, FMOD_HARDWARE or FMOD_LOOP_NORMAL or FMOD_2D, 0, @music_song)
+			'music_song = FMUSIC_LoadSong(songname)
+			If music_song = 0 Then
+  				debug "Can't load music file"
+  				exit sub
+			End if
+		
+			'FMUSIC_SetLooping(music_song, 1)
+			FMOD_System_PlaySound(fmod, FMOD_CHANNEL_FREE, music_song, 0, @fmod_channel)
+			'FMUSIC_PlaySong(music_song)
+			
+			dim realvol as single
+			realvol = music_vol / 15
+			FMOD_Channel_SetVolume(fmod_channel, realvol)
+		end if
+	end if
 end SUB
 
 SUB stopsong ()
+	if music_on = 1 then
+		if music_song > 0 then
+			FMOD_Channel_SetPaused(fmod_channel, 1)
+			'FMUSIC_SetPaused(music_song, 1)
+		end if
+	end if
 end SUB
 
 SUB resumesong ()
+	if music_on = 1 then
+		if music_song > 0 then
+			FMOD_Channel_SetPaused(fmod_channel, 0)
+			'FMUSIC_SetPaused(music_song, 0)
+		end if
+	end if
 end SUB
 
 SUB fademusic (BYVAL vol as integer)
+'Unlike the original version, this will pause everything else while it
+'fades, so make sure it doesn't take too long
+	dim vstep as integer = 1
+	dim i as integer
+	
+	if music_vol > vol then vstep = -1
+	for i = music_vol to vol step vstep
+		setfmvol(i)
+		sleep 30
+	next
+	
 end SUB
 
 FUNCTION getfmvol () as integer
-	getfmvol = 0
+	getfmvol = music_vol
 end FUNCTION
 
 SUB setfmvol (BYVAL vol as integer)
+	music_vol = vol
+	if music_on = 1 then
+		dim realvol as single
+		realvol = music_vol / 15
+		FMOD_Channel_SetVolume(fmod_channel, realvol)
+	end if
 end SUB
 
 SUB copyfile (s$, d$, buf() as integer)
@@ -1562,23 +1718,23 @@ function calcblock(byval x as integer, byval y as integer, byval t as integer) a
 	if bordertile = -1 then
 		'wrap
 		while y < 0
-			y = y + mapy
+			y = y + map_y
 		wend
-		while y >= mapy
-			y = y - mapy
+		while y >= map_y
+			y = y - map_y
 		wend
 		while x < 0
-			x = x + mapx
+			x = x + map_x
 		wend
-		while x >= mapx
-			x = x - mapx
+		while x >= map_x
+			x = x - map_x
 		wend
 	else
-		if (y < 0) or (y >= mapy) then 
+		if (y < 0) or (y >= map_y) then 
 			calcblock = bordertile
 			exit function
 		end if
-		if (x < 0) or (x >= mapx) then
+		if (x < 0) or (x >= map_x) then
 			calcblock = bordertile
 			exit function
 		end if
@@ -1660,3 +1816,7 @@ function xstr$(x as double)
 	end if
 end function
 
+sub bamconvert(bamfile as string, songfile as string)
+'note, songfile has no extension, so this sub can add whichever it likes
+	bam2mid(bamfile, songfile + ".mid")
+end sub
