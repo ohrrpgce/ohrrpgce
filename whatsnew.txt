@@ -1,10 +1,12 @@
 WHAT IS NEW?
 
-??? ?? 200? [simonsays? serendipity? something?]
-
-  * Bug Fixes
+??? ?? 200? [aristotle? simonsays? serendipity? something?]
 
   * New Features
+
+    * !!! Native Windows port of GAME.EXE [Simon Bradley] !!!
+
+  * Bug Fixes
 
   * New Plotscripting Commands
 

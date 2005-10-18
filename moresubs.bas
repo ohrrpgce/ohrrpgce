@@ -32,7 +32,6 @@ DECLARE SUB textfatalerror (e$)
 DECLARE SUB playtimer ()
 DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION countitem% (it%)
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
@@ -89,6 +88,7 @@ DECLARE FUNCTION maplumpname$ (map, oldext$)
 'DECLARE FUNCTION getCDvol ()
 'DECLARE SUB setcdvol (BYVAL v)
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'sglobals.bi'
@@ -379,6 +379,7 @@ ELSE
   INPUT #fh, tree$(treesize)
   tree$(treesize) = UCASE$(tree$(treesize))
   IF tree$(treesize) = "." OR tree$(treesize) = ".." OR RIGHT$(tree$(treesize), 4) = ".TMP" THEN treesize = treesize - 1
+  IF tree$(treesize) = "" THEN treesize = treesize - 1
   GOSUB drawmeter
  LOOP
  CLOSE #fh
@@ -392,25 +393,29 @@ ELSE
   treec(treesize) = 3
   INPUT #fh, true$(treesize)
   true$(treesize) = LCASE$(true$(treesize))
-  IF timeout! + 15 > TIMER THEN
-   unlumpfile nowdir$ + true$(treesize) + CHR$(0), "browse.txt", tmpdir$, buffer()
-   IF isfile(tmpdir$ + "browse.txt" + CHR$(0)) THEN
-    setpicstuf buffer(), 40, -1
-    loadset tmpdir$ + "browse.txt" + CHR$(0), 0, 0
-    tree$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
-    array2str buffer(), 2, tree$(treesize)
-    loadset tmpdir$ + "browse.txt" + CHR$(0), 1, 0
-    about$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
-    array2str buffer(), 2, about$(treesize)
-    safekill tmpdir$ + "browse.txt"
-    IF LEN(tree$(treesize)) = 0 THEN tree$(treesize) = true$(treesize)
+  IF true$(treesize) = "" THEN
+   treesize = treesize - 1
+  ELSE
+   IF timeout! + 15 > TIMER THEN
+    unlumpfile nowdir$ + true$(treesize) + CHR$(0), "browse.txt", tmpdir$, buffer()
+    IF isfile(tmpdir$ + "browse.txt" + CHR$(0)) THEN
+     setpicstuf buffer(), 40, -1
+     loadset tmpdir$ + "browse.txt" + CHR$(0), 0, 0
+     tree$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
+     array2str buffer(), 2, tree$(treesize)
+     loadset tmpdir$ + "browse.txt" + CHR$(0), 1, 0
+     about$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
+     array2str buffer(), 2, about$(treesize)
+     safekill tmpdir$ + "browse.txt"
+     IF LEN(tree$(treesize)) = 0 THEN tree$(treesize) = true$(treesize)
+    ELSE
+     tree$(treesize) = true$(treesize)
+     about$(treesize) = ""
+    END IF
    ELSE
     tree$(treesize) = true$(treesize)
     about$(treesize) = ""
    END IF
-  ELSE
-   tree$(treesize) = true$(treesize)
-   about$(treesize) = ""
   END IF
   GOSUB drawmeter
  LOOP
@@ -1804,10 +1809,15 @@ IF loadinstead <> -1 THEN
 ELSE
  '--load the script from file
  IF isfile(workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" + CHR$(0)) THEN
+  fbdim temp
+	
   f = FREEFILE
   OPEN workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" FOR BINARY AS #f
-  GET #f, 1, skip
-  GET #f, 3, scrat(index, scrargs)
+  GET #f, 1, temp
+  skip = temp
+  GET #f, 3, temp
+  scrat(index, scrargs) = temp
+  
   IF nextscroff + (LOF(f) - skip) / 2 > 4096 THEN
    scripterr "Script buffer overflow"
    CLOSE #f
@@ -1824,7 +1834,8 @@ ELSE
   'GET #f, 1 + skip, bigstring$
   'str2array bigstring$, script(), scrat(index, scroff)
   FOR i = skip TO LOF(f) - 2 STEP 2
-   GET #f, 1 + i, script(scrat(index, scroff) + ((i - skip) / 2))
+   GET #f, 1 + i, temp
+   script(scrat(index, scroff) + ((i - skip) / 2)) = temp
   NEXT i
   CLOSE #f
 
@@ -1860,6 +1871,7 @@ END IF
 
 '--we are sucessful, so now tis safe to increment this
 nowscript = nowscript + 1
+
 END FUNCTION
 
 SUB savegame (slot, map, foep, stat(), stock())
@@ -1974,6 +1986,7 @@ FOR i = 0 TO 40
   buffer(z) = eqstuf(i, o): z = z + 1
  NEXT o
 NEXT i
+
 setpicstuf buffer(), 30000, -1
 sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
 storeset sg$ + CHR$(0), slot * 2, 0
@@ -2442,16 +2455,6 @@ SELECT CASE id
  CASE ELSE
   scripterr "Cannot write global" + STR$(id) + ". out of range"
 END SELECT
-
-END SUB
-
-SUB xbload (f$, array(), e$)
-
-IF isfile(f$ + CHR$(0)) THEN
- DEF SEG = VARSEG(array(0)): BLOAD f$, VARPTR(array(0))
-ELSE
- fatalerror e$
-END IF
 
 END SUB
 
