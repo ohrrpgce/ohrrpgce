@@ -70,49 +70,6 @@ DECLARE FUNCTION maplumpname$ (map, oldext$)
 '$INCLUDE: 'const.bi'
 
 REM $STATIC
-SUB bitset (array(), wof, last, name$())
-
-'---DIM AND INIT---
-ptr = -1
-top = -1
-
-'---MAIN LOOP---
-setkeys
-DO
- setwait timing(), 80
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(ptr, top, -1, last, 24)
- IF ptr >= 0 THEN
-  IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, ptr, 0
-  IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, ptr, 1
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN setbit array(), wof, ptr, readbit(array(), wof, ptr) XOR 1
- ELSE
-  IF keyval(28) > 1 OR keyval(57) > 1 THEN EXIT DO
- END IF
- FOR i = top TO small(top + 24, last)
-  c = 8 - readbit(array(), wof, i)
-  IF ptr = i THEN c = (8 * readbit(array(), wof, i)) + 6 + tog
-  textcolor c, 0
-  IF i >= 0 THEN
-   printstr name$(i), 8, (i - top) * 8, dpage
-  ELSE
-   IF c = 8 THEN c = 7
-   textcolor c, 0
-   printstr "Previous Menu", 8, (i - top) * 8, dpage
-  END IF
- NEXT i
- ' printstr STR$(ptr) + STR$(top) + STR$(last), 160, 0, dpage
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-'---TERMINATE---
-
-END SUB
-
 FUNCTION browse$ (special, default$, fmask$, tmp$)
 browse$ = ""
 

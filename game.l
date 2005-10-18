@@ -5,9 +5,10 @@ menustuf.obj +
 moresubs.obj +
 yetmore.obj +
 yetmore2.obj +
+compat.obj +
 nocom.obj +
 ,
-game.exe,
+game-qb.exe,
 ,
 allmodex.lib +
 bcom45.lib +

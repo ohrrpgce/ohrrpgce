@@ -70,6 +70,49 @@ DECLARE SUB smnemonic (tagname$, index%)
 '$INCLUDE: 'const.bi'
 
 REM $STATIC
+SUB bitset (array(), wof, last, name$())
+
+'---DIM AND INIT---
+ptr = -1
+top = -1
+
+'---MAIN LOOP---
+setkeys
+DO
+ setwait timing(), 80
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN EXIT DO
+ dummy = usemenu(ptr, top, -1, last, 24)
+ IF ptr >= 0 THEN
+  IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, ptr, 0
+  IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, ptr, 1
+  IF keyval(57) > 1 OR keyval(28) > 1 THEN setbit array(), wof, ptr, readbit(array(), wof, ptr) XOR 1
+ ELSE
+  IF keyval(28) > 1 OR keyval(57) > 1 THEN EXIT DO
+ END IF
+ FOR i = top TO small(top + 24, last)
+  c = 8 - readbit(array(), wof, i)
+  IF ptr = i THEN c = (8 * readbit(array(), wof, i)) + 6 + tog
+  textcolor c, 0
+  IF i >= 0 THEN
+   printstr name$(i), 8, (i - top) * 8, dpage
+  ELSE
+   IF c = 8 THEN c = 7
+   textcolor c, 0
+   printstr "Previous Menu", 8, (i - top) * 8, dpage
+  END IF
+ NEXT i
+ ' printstr STR$(ptr) + STR$(top) + STR$(last), 160, 0, dpage
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
+'---TERMINATE---
+
+END SUB
+
 FUNCTION bound (n, lowest, highest)
 bound = n
 IF n < lowest THEN bound = lowest
@@ -237,6 +280,55 @@ rotascii$ = temp$
 
 END FUNCTION
 
+SUB tagnames
+DIM menu$(2)
+clearpage 0
+clearpage 1
+
+IF general(56) < 1 THEN general(56) = 1
+ptr = 2
+csr = 0
+menu$(0) = "Previous Menu"
+tagname$ = lmnemonic$(ptr)
+
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN EXIT DO
+ dummy = usemenu(csr, 0, 0, 2, 24)
+ IF csr = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN EXIT DO
+ IF csr = 1 THEN
+  oldptr = ptr
+  IF intgrabber(ptr, 0, small(general(56) + 1, 999), 75, 77) THEN
+   IF ptr > general(56) THEN general(56) = ptr
+   smnemonic tagname$, oldptr
+   tagname$ = lmnemonic$(ptr)
+  END IF
+ END IF
+ IF csr = 2 THEN
+  strgrabber tagname$, 20
+  IF keyval(28) > 1 THEN
+   smnemonic tagname$, ptr
+   ptr = small(ptr + 1, 999)
+   tagname$ = lmnemonic$(ptr)
+  END IF
+ END IF
+ menu$(1) = "Tag" + STR$(ptr)
+ menu$(2) = "Name:" + tagname$
+ 
+ standardmenu menu$(), 2, 22, csr, 0, 0, 0, dpage, 0
+ 
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
+smnemonic tagname$, ptr
+
+END SUB
+
 SUB textfatalerror (e$)
 
 debug "fatal error:" + e$
@@ -312,51 +404,3 @@ END IF
 
 END SUB
 
-SUB tagnames
-DIM menu$(2)
-clearpage 0
-clearpage 1
-
-IF general(56) < 1 THEN general(56) = 1
-ptr = 2
-csr = 0
-menu$(0) = "Previous Menu"
-tagname$ = lmnemonic$(ptr)
-
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(csr, 0, 0, 2, 24)
- IF csr = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN EXIT DO
- IF csr = 1 THEN
-  oldptr = ptr
-  IF intgrabber(ptr, 0, small(general(56) + 1, 999), 75, 77) THEN
-   IF ptr > general(56) THEN general(56) = ptr
-   smnemonic tagname$, oldptr
-   tagname$ = lmnemonic$(ptr)
-  END IF
- END IF
- IF csr = 2 THEN
-  strgrabber tagname$, 20
-  IF keyval(28) > 1 THEN
-   smnemonic tagname$, ptr
-   ptr = small(ptr + 1, 999)
-   tagname$ = lmnemonic$(ptr)
-  END IF
- END IF
- menu$(1) = "Tag" + STR$(ptr)
- menu$(2) = "Name:" + tagname$
- 
- standardmenu menu$(), 2, 22, csr, 0, 0, 0, dpage, 0
- 
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-smnemonic tagname$, ptr
-
-END SUB

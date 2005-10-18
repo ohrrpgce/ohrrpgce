@@ -22,7 +22,6 @@ DECLARE SUB wrapxy (x%, y%, wide%, high%)
 DECLARE FUNCTION framewalkabout% (x%, y%, framex%, framey%, mapwide%, maphigh%, wrapmode%)
 DECLARE SUB initgamedefaults ()
 DECLARE SUB templockexplain ()
-DECLARE SUB crashexplain ()
 DECLARE SUB cleanuptemp ()
 DECLARE FUNCTION getfilelist% (wildcard$)
 DECLARE SUB fadeout (red%, green%, blue%, force%)
@@ -83,7 +82,6 @@ DECLARE FUNCTION countitem% (it%)
 DECLARE SUB scriptmath ()
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE SUB fatalerror (e$)
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE SUB scripterr (e$)
 DECLARE SUB calibrate ()
@@ -117,7 +115,6 @@ DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock())
 DECLARE SUB loadgame (slot%, map%, foep%, stat%(), stock())
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
-DECLARE SUB getitem (getit%)
 DECLARE SUB delitem (it%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
 DECLARE SUB spells (pt%, stat%())
@@ -145,6 +142,7 @@ DECLARE SUB setusermenu (menu$(), mt%, mi%())
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 
 '---INCLUDE FILES---
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'sglobals.bi'
@@ -249,24 +247,7 @@ NEXT i
 
 'DEBUG debug "load font"
 
-IF isfile(progdir$ + "ohrrpgce.fnt" + CHR$(0)) THEN
- DEF SEG = VARSEG(font(0)): BLOAD progdir$ + "ohrrpgce.fnt", VARPTR(font(0))
-ELSE
- '--load the ROM font
- regs.ax = &H1130
- regs.bx = &H300
- CALL interruptx(&H10, regs, regs)
- 'off9 = regs.bx: seg9 = regs.es
- DEF SEG = regs.es
- FOR i = 1 TO 255
-  FOR j = 0 TO 7
-   b = PEEK(regs.bp + (8 * i) + j)
-   FOR k = 0 TO 7
-    setbit font(), i * 4, (7 - k) * 8 + j, (b AND 2 ^ k)
-   NEXT k
-  NEXT j
- NEXT i
-END IF
+getdefaultfont font()
 
 'DEBUG debug "set mode-X"
 setmodex
@@ -292,8 +273,8 @@ FOR o = 0 TO 1
  NEXT i
 NEXT o
 keyv(40, 1) = 34
-DATA 1,2,3,4,5,6,7,8,9,0,-,=,"","",q,w,e,r,t,y,u,i,o,p,[,],"","",a,s,d,f,g,h,j,k,l,";","'",`,"",\,z,x,c,v,b,n,m,",",".","/"
-DATA !,@,#,$,%,^,&,*,(,),_,+,"","",Q,W,E,R,T,Y,U,I,O,P,{,},"","",A,S,D,F,G,H,J,K,L,":"," ",~,"",|,Z,X,C,V,B,N,M,"<",">","?"
+DATA "1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/"
+DATA "!","@","#","$","%","^","&","*","(",")","_","+","","","Q","W","E","R","T","Y","U","I","O","P","{","}","","","A","S","D","F","G","H","J","K","L",":"," ","~","","|","Z","X","C","V","B","N","M","<",">","?"
 
 textcolor 15, 0
 FOR i = 0 TO 31
@@ -418,6 +399,7 @@ evalherotag stat()
 needf = 1: ng = 1
 
 'DEBUG debug "pre-call movement"
+setmapdata pass(), pass(), 0, 0
 GOSUB movement
 setkeys
 DO
@@ -704,7 +686,7 @@ END IF '---END BACKDROP DISPLAY---
 'DEBUG debug "text box"
 IF showsay > 0 THEN drawsay saybit(), sayenh(), say$(), showsay, choose$(), choosep
 'DEBUG debug "map name"
-IF showmapname > 0 and gmap(4) >= showmapname THEN
+IF showmapname > 0 AND gmap(4) >= showmapname THEN
  showmapname = showmapname - 1: edgeprint mapname$, xstring(mapname$, 160), 180, 15, dpage
 ELSE
  showmapname = 0
@@ -771,13 +753,13 @@ DO
    END IF
   END IF
   IF mi(pt) = 1 THEN
-   w = onwho(readglobalstring$(104, "Who's Status?", 20), 0)
+   w = onwho(readglobalstring$(104, "Whose Status?", 20), 0)
    IF w >= 0 THEN
     status w, stat()
    END IF
   END IF
   IF mi(pt) = 3 THEN
-   w = onwho(readglobalstring$(106, "Who's Spells?", 20), 0)
+   w = onwho(readglobalstring$(106, "Whose Spells?", 20), 0)
    IF w >= 0 THEN
     spells w, stat()
    END IF
@@ -788,7 +770,7 @@ DO
    GOSUB reloadnpc
   END IF
   IF mi(pt) = 5 THEN
-   w = onwho(readglobalstring$(108, "Equip Who?", 20), 0)
+   w = onwho(readglobalstring$(108, "Equip Whom?", 20), 0)
    IF w >= 0 THEN
     equip w, stat()
    END IF
@@ -1091,6 +1073,7 @@ ELSE
   IF xgo(whoi) OR ygo(whoi) THEN wtog(whoi) = loopvar(wtog(whoi), 0, 3, 1)
  NEXT whoi
 END IF
+DIM didgo(0 TO 3) AS INTEGER
 FOR whoi = 0 TO 3
  didgo(whoi) = 0
  IF xgo(whoi) OR ygo(whoi) THEN
@@ -1177,6 +1160,7 @@ IF (xgo(0) = 0 OR movdivis(xgo(0))) AND (ygo(0) = 0 OR movdivis(ygo(0))) AND (di
   END IF
  END IF
 END IF
+ERASE didgo
 GOSUB setmapxy
 RETURN
 
@@ -2288,10 +2272,10 @@ SELECT CASE scrat(nowscript, curkind)
       scrat(nowscript, scrstate) = stwait
      END IF
     END IF
-   CASE 210'--show string
-    IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
-     scriptout$ = plotstring$(retvals(0))
-    END IF
+ CASE 210'--show string
+ IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+ scriptout$ = plotstring$(retvals(0))
+ END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript, curvalue)
     scriptmisc scrat(nowscript, curvalue)
@@ -2363,17 +2347,6 @@ END IF
 
 loadpage game$ + ".til" + CHR$(0), gmap(0), 3
 
-END SUB
-
-SUB crashexplain
-PRINT "Please report this exact error message to ohrrpgce@HamsterRepublic.com"
-PRINT "Be sure to describe in detail what you were doing when it happened"
-PRINT
-PRINT version$
-PRINT "Memory Info:"; SETMEM(0); FRE(-1); FRE(-2); FRE(0)
-PRINT "Executable: "; progdir$ + exename$ + ".EXE"
-PRINT "RPG file: "; sourcerpg$
-'IF LEN(parting$) > 0 THEN PRINT parting$
 END SUB
 
 SUB exitprogram (needfade)

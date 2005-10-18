@@ -1,4 +1,6 @@
 @echo off
+copy /y qbcompat.bi compat.bi
+copy /y qbcompat.bas compat.bas
 verprint
 verprint > compile.out
 call callbc.bat game
@@ -8,6 +10,7 @@ call callbc.bat menustuf
 call callbc.bat moresubs
 call callbc.bat yetmore
 call callbc.bat yetmore2
+call callbc.bat compat
 call callbc.bat custom
 call callbc.bat drawing
 call callbc.bat subs

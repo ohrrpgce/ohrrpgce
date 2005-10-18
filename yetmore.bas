@@ -50,7 +50,6 @@ DECLARE FUNCTION functiondone% ()
 DECLARE FUNCTION functionread% ()
 DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION countitem% (it%)
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
@@ -72,7 +71,6 @@ DECLARE SUB debug (s$)
 DECLARE FUNCTION browse$ (fmask$, needf%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
-DECLARE FUNCTION picksave% (load%)
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
@@ -100,6 +98,7 @@ DECLARE FUNCTION readitemname$ (itemnum%)
 DECLARE FUNCTION readatkname$ (id%)
 DECLARE SUB getmapname (mapname$, m%)
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'sglobals.bi'
@@ -194,11 +193,13 @@ END IF '---end if > 0
 END SUB
 
 FUNCTION checksaveslot (slot)
+  fbdim checkslot
   sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
   savh = FREEFILE
-  OPEN sg$ FOR BINARY AS savh
-  GET #savh, 1 + 60000 * (slot - 1), checksaveslot
-  CLOSE savh
+  OPEN sg$ FOR BINARY AS #savh
+  GET #savh, 1 + 60000 * (slot - 1), checkslot
+  CLOSE #savh
+  checksaveslot = checkslot
 END FUNCTION
 
 FUNCTION cropPlotStr (s$)
@@ -978,6 +979,7 @@ SUB scriptdump (s$)
 END SUB
 
 SUB scriptmisc (id)
+ fbdim temp16 'required for FB to fix get and put
 
 'contains a whole mess of scripting commands that do not depend on
 'any main-module level local variables or GOSUBs, and therefore
@@ -1267,12 +1269,13 @@ SELECT CASE id
  CASE 175'--deletesave
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
    IF checksaveslot(retvals(0)) THEN
+    fbdim savver ' for FB
     sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
     savh = FREEFILE
-    OPEN sg$ FOR BINARY AS savh
+    OPEN sg$ FOR BINARY AS #savh
     savver = 0
     PUT #savh, 1 + 60000 * (retvals(0) - 1), savver
-    CLOSE savh
+    CLOSE #savh
    END IF
   END IF
  CASE 176'--runscriptbyid
@@ -1430,14 +1433,15 @@ SELECT CASE id
  CASE 230'--read enemy data
   f = FREEFILE
   OPEN game$ + ".dt1" FOR BINARY AS #f
-  GET #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, v%
+  GET #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, temp16
+  v% = temp16
   CLOSE #f
   scriptret = v%
  CASE 231'--write enemy data
-  v% = retvals(2)
+  temp16 = retvals(2)
   f = FREEFILE
   OPEN game$ + ".dt1" FOR BINARY AS #f
-  PUT #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, v%
+  PUT #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, temp16
   CLOSE #f
 END SELECT
 
