@@ -56,14 +56,14 @@ isdir			DONE
 isremovable									NOT DONE
 hasmedia									NOT DONE
 LongNameLength						FAKED
-setupmusic									NOT DONE--
-closemusic									NOT DONE |
-loadsong									NOT DONE |
-stopsong									NOT DONE | 
-resumesong									NOT DONE -- Music (SAFE)
-fademusic									NOT DONE |
-getfmvol									NOT DONE |
-setfmvol									NOT DONE-- 
+setupmusic		DONE
+closemusic		DONE
+loadsong		DONE
+stopsong		DONE
+resumesong		DONE
+fademusic		DONE
+getfmvol		DONE
+setfmvol		DONE
 copyfile				NOT REQD
 screenshot		DONE
 isetmouse		DONE

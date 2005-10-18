@@ -44,7 +44,6 @@ dim shared anim1 as integer
 dim shared anim2 as integer
 
 dim shared waittime as single
-dim shared rollflag as integer	'set if midnight is within wait period
 dim shared keybd(0 to 255) as integer
 dim shared keytime(0 to 255) as integer
 
@@ -880,13 +879,9 @@ SUB setwait (b() as integer, BYVAL t as integer)
 	dim millis as integer
 	dim secs as single
 	millis = (t \ 55) * 55
-	rollflag = 0
 	
 	secs = millis / 1000
 	waittime = timer + secs
-	if waittime >= 86400 then
-		rollflag = 1
-	end if
 end SUB
 
 SUB dowait ()
@@ -894,11 +889,6 @@ SUB dowait ()
 'In freebasic, sleep is in 1000ths, and a value of less than 100 will not 
 'be exited by a keypress, so sleep for 5ms until timer > waittime.
 	do while timer <= waittime
-		if rollflag = 1 then
-			if timer + 86400 >= waittime then
-				exit do
-			end if
-		end if
 		sleep 5 'is this worth it?
 	loop
 end SUB
