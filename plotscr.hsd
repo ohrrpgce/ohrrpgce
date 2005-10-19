@@ -598,7 +598,7 @@ script,allow save anywhere,setting,begin
 end
 
 define script(autonumber,cancel map name display,0)
-script,set map name display,ticks,begin
+script,cancel map name display,begin
   write gmap(4,0)
 end
 
