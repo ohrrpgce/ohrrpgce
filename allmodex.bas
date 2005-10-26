@@ -5,7 +5,8 @@
 '$include: 'compat.bi'
 '$include: 'allmodex.bi'
 '$include: 'fbgfx.bi'
-'$include: 'fmodex.bi'
+'$include: "SDL\SDL.bi"
+'$include: "SDL\SDL_mixer.bi"
 '$include: 'gglobals.bi'
 
 option explicit
@@ -60,10 +61,13 @@ dim shared textfg as integer
 dim shared textbg as integer
 
 dim shared music_on as integer = 0
-dim shared music_song as FMOD_SOUND ptr = 0 'integer = 0
-dim shared fmod as FMOD_SYSTEM ptr
-dim shared fmod_channel as FMOD_CHANNEL ptr = 0
+'dim shared music_song as FMOD_SOUND ptr = 0 'integer = 0
+'dim shared fmod as FMOD_SYSTEM ptr
+'dim shared fmod_channel as FMOD_CHANNEL ptr = 0
 dim shared music_vol as integer
+dim shared music_paused as integer
+dim shared music_song as Mix_Music ptr = NULL
+dim shared orig_vol as integer = -1
 
 dim shared fontdata(0 to 2048-1) as ubyte
 
@@ -486,10 +490,10 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	'create sprite
 	hspr = imagecreate(sw, sh)
 	dspr = hspr + 4	'jump to data (hope this works sensibly)
-	dspr = dspr + sh - 1 'jump to last column
+	dspr = dspr + sw - 1 'jump to last column
 	hmsk = imagecreate(sw, sh)
 	dmsk = hmsk + 4
-	dmsk = dmsk + sh - 1 'jump to last column
+	dmsk = dmsk + sw - 1 'jump to last column
 	
 	'now do the pixels
 	'pixels are in columns, so this might not be the best way to do it
@@ -1291,43 +1295,48 @@ end FUNCTION
 SUB setupmusic (mbuf() as integer)
 	dim version as uinteger
 	if music_on = 0 then
-		if FMOD_System_Create(@fmod) <> 0 then
-			'Debug "Oops"
+		dim audio_rate as integer
+		dim audio_format as Uint16
+		dim audio_channels as integer
+		dim audio_buffers as integer
+	
+		' We're going to be requesting certain things from our audio
+		' device, so we set them up beforehand
+		audio_rate = MIX_DEFAULT_FREQUENCY
+		audio_format = MIX_DEFAULT_FORMAT
+		audio_channels = 2
+		audio_buffers = 4096
+		
+		SDL_Init(SDL_INIT_VIDEO or SDL_INIT_AUDIO)
+		
+		if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) <> 0 then
+			Debug "Can't open audio"
 			music_on = -1
+			SDL_Quit()
 			exit sub
 		end if
 		
-		FMOD_System_GetVersion(fmod, @version)
-		If version < FMOD_VERSION Then
-			'need a proper error message here, look up the function later
-	  		Debug "FMOD version " + STR$(FMOD_VERSION) + " or greater required"
-	  		music_on = -1 'don't bother trying again
-	  		exit sub
-		End If
-		
-		if FMOD_System_Init(fmod, 1, FMOD_INIT_NORMAL, 0) <> 0 then
-		'If FSOUND_Init(44100, 32, 0) = 0 Then
-	  		Debug "Can't initialize FMOD"
-	  		music_on = -1
-	  		exit sub
-		End If
-		
-		music_vol = 15
+		music_vol = 8
 		music_on = 1
+		music_paused = 0
 	end if	
 end SUB
 
 SUB closemusic ()
 	if music_on = 1 then
-		if music_song > 0 then
-			FMOD_Sound_Release(music_song)
-			'FMUSIC_FreeSong(music_song)
-			music_song = 0
+		if orig_vol > -1 then
+			'restore original volume
+			Mix_VolumeMusic(orig_vol)
 		end if
 		
-		FMOD_System_Close(fmod)
-		FMOD_System_Release(fmod)
-		'FSOUND_Close
+		if music_song <> 0 then
+			Mix_FreeMusic(music_song)
+			music_song = 0
+			music_paused = 0
+		end if
+		
+		Mix_CloseAudio
+		SDL_Quit
 		music_on = 0
 	end if
 end SUB
@@ -1339,7 +1348,7 @@ SUB loadsong (f$)
 		dim exten as string
 		dim dotpos as integer
 		dim i as integer
-		dim songname as string
+		dim songname as string = ""
 		dim found as integer = 0
 		dim pass as integer = 0
 		dim bamfile as string
@@ -1360,10 +1369,10 @@ SUB loadsong (f$)
 		songname = workingdir$ + PATH_SEP + "song" + exten
 		
 		'stop current song
-		if music_song > 0 then
-			FMOD_Sound_Release(music_song)
-			'FMUSIC_FreeSong(music_song)
+		if music_song <> 0 then
+			Mix_FreeMusic(music_song)
 			music_song = 0
+			music_paused = 0
 		end if
 
 		'find song
@@ -1378,8 +1387,8 @@ SUB loadsong (f$)
 			elseif isfile(songname + ".mod") then
 				songname = songname + ".mod"
 				found = 1
-			elseif isfile(songname + ".mp3") then
-				songname = songname + ".mp3"
+			elseif isfile(songname + ".ogg") then
+				songname = songname + ".ogg"
 				found = 1
 			elseif isfile(songname + ".mid") then
 				songname = songname + ".mid"
@@ -1387,27 +1396,34 @@ SUB loadsong (f$)
 			end if
 			
 			if found = 0 then
-				'convert BAM
 				bamconvert(bamfile, songname)
 			end if
 			pass = pass + 1
 		wend
 		
 		if (found = 1) then
-			FMOD_System_CreateStream(fmod, songname, FMOD_HARDWARE or FMOD_LOOP_NORMAL or FMOD_2D, 0, @music_song)
-			'music_song = FMUSIC_LoadSong(songname)
-			If music_song = 0 Then
-  				debug "Can't load music file"
-  				exit sub
-			End if
-		
-			'FMUSIC_SetLooping(music_song, 1)
-			FMOD_System_PlaySound(fmod, FMOD_CHANNEL_FREE, music_song, 0, @fmod_channel)
-			'FMUSIC_PlaySong(music_song)
+			music_song = Mix_LoadMUS(songname)
+			if music_song = 0 then
+				debug "Could not load song " + songname
+				exit sub
+			end if
 			
-			dim realvol as single
-			realvol = music_vol / 15
-			FMOD_Channel_SetVolume(fmod_channel, realvol)
+			Mix_PlayMusic(music_song, -1)			
+			music_paused = 0
+
+			if orig_vol = -1 then
+				orig_vol = Mix_VolumeMusic(-1)
+			end if
+						
+			'dim realvol as single
+			'realvol = music_vol / 15
+			'FMOD_Channel_SetVolume(fmod_channel, realvol)
+			if music_vol = 0 then
+				Mix_VolumeMusic(0)
+			else
+				'add a small adjustment because 15 doesn't go into 128
+				Mix_VolumeMusic((music_vol * 8) + 8)
+			end if
 		end if
 	end if
 end SUB
@@ -1415,8 +1431,10 @@ end SUB
 SUB stopsong ()
 	if music_on = 1 then
 		if music_song > 0 then
-			FMOD_Channel_SetPaused(fmod_channel, 1)
-			'FMUSIC_SetPaused(music_song, 1)
+			if music_paused = 0 then
+				Mix_PauseMusic
+				music_paused = 1
+			end if
 		end if
 	end if
 end SUB
@@ -1424,8 +1442,8 @@ end SUB
 SUB resumesong ()
 	if music_on = 1 then
 		if music_song > 0 then
-			FMOD_Channel_SetPaused(fmod_channel, 0)
-			'FMUSIC_SetPaused(music_song, 0)
+			Mix_ResumeMusic
+			music_paused = 0
 		end if
 	end if
 end SUB
@@ -1439,7 +1457,7 @@ SUB fademusic (BYVAL vol as integer)
 	if music_vol > vol then vstep = -1
 	for i = music_vol to vol step vstep
 		setfmvol(i)
-		sleep 30
+		sleep 10
 	next
 	
 end SUB
@@ -1451,9 +1469,12 @@ end FUNCTION
 SUB setfmvol (BYVAL vol as integer)
 	music_vol = vol
 	if music_on = 1 then
-		dim realvol as single
-		realvol = music_vol / 15
-		FMOD_Channel_SetVolume(fmod_channel, realvol)
+		if music_vol = 0 then
+			Mix_VolumeMusic(0)
+		else
+			'add a small adjustment because 15 doesn't go into 128
+			Mix_VolumeMusic((music_vol * 8) + 8)
+		end if
 	end if
 end SUB
 
@@ -1809,4 +1830,5 @@ end function
 sub bamconvert(bamfile as string, songfile as string)
 'note, songfile has no extension, so this sub can add whichever it likes
 	bam2mid(bamfile, songfile + ".mid")
+	'exec("tools/bam2mid.exe", bamfile + " " + songfile + ".mid")
 end sub
