@@ -12,7 +12,7 @@ option explicit
 
 #include banks.bi
 
-#define VELOCITY 		127
+#define VELOCITY 		96
 
 #define NOTE_OFF 		&10000000
 #define NOTE_ON  		&10010000
@@ -51,12 +51,14 @@ sub bam2mid(infile as string, outfile as string)
 	
 	dim as integer f1, f2, i, j
 	
+	'initialise shared vals
+	setbigval(0)
+	setsmallval(0)
+	
 	for i = 0 to 15
 		labelpos(i) = -1
 		loopcount(i) = -1
 	next
-	
-	f1 = freefile
 	
 	if outfile = "" then
 		outfile = infile + ".mid"
@@ -214,8 +216,8 @@ sub bam2mid(infile as string, outfile as string)
 	setbigval(tracklen)
 	put #f2, lenpos, bignum()
 	
-	close #f1
 	close #f2
+	close #f1
 	
 end sub
 
