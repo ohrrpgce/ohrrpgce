@@ -145,8 +145,6 @@ DECLARE FUNCTION maplumpname$ (map, oldext$)
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
-'$INCLUDE: 'sglobals.bi'
-
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
 
@@ -166,7 +164,7 @@ CLOSE #fh
 'DEBUG debug "Thestart"
 thestart:
 'DEBUG debug "set stack size"
-CLEAR , , 2700
+CLEAR , , 2800
 
 storekeyhandler
 
@@ -594,9 +592,12 @@ DO
     '--normal battle
     fatal = 0
     ERASE scroll, pass
+    debug "before normal battle"
     wonbattle = battle(batform, fatal, stat())
+    debug "after normal battle"
     afterbat = 1
     GOSUB preparemap: needf = 2
+    debug "after preparemap"
    ELSE
     rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle")
     IF rsr = 1 THEN
@@ -938,7 +939,9 @@ END IF
 IF istag(saytag(5), 0) THEN
  fatal = 0
  ERASE scroll, pass
+ debug "before text box battle"
  wonbattle = battle(saytag(6), fatal, stat())
+ debug "after text box battle"
  afterbat = 1
  GOSUB preparemap: foep = range(100, 60): needf = 1
 END IF
@@ -1719,7 +1722,9 @@ END IF
 IF wantbattle > 0 THEN
  fatal = 0
  ERASE scroll, pass
+ debug "before script battle"
  wonbattle = battle(wantbattle - 1, fatal, stat())
+ debug "after script battle"
  scriptret = wonbattle
  wantbattle = 0
  afterbat = 1

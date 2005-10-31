@@ -77,20 +77,20 @@ DECLARE SUB snapshot ()
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
-'$INCLUDE: 'bglobals.bi'
-
 '$INCLUDE: 'const.bi'
 
 REM $STATIC
 FUNCTION battle (form, fatal, exstat())
+
+debug "in battle"
 
 '--prepare stack
 bstackstart = stackpos
 
 battle = 1
 DIM a(40), atktemp(40), atk(100), st(3, 318), es(7, 160), x(24), y(24), z(24), d(24), zbuf(24), xm(24), ym(24), zm(24), mvx(24), mvy(24), mvz(24), v(24), p(24), w(24), h(24), of(24), ext$(7), ctr(11), stat(11, 1, 17), ready(11), batname$(11), menu$( _
-3, 5), mend(3), spel$(23), spel(23), cost$(24), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11), fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11),  _
-ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), tbits(4), revenge(11), revengemask(11), revengeharm(11), repeatharm(11), targmem(23), learnmask(24), prtimer(11, 1), spelmask(1)
+3, 5), mend(3), spel$(23), spel(23), cost$(24), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11), fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11) _
+, ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), tbits(4), revenge(11), revengemask(11), revengeharm(11), repeatharm(11), targmem(23), learnmask(24), prtimer(11, 1), spelmask(1)
 
 mpname$ = readglobalstring(1, "MP", 10)
 goldname$ = readglobalstring(32, "Gold", 10)
@@ -270,12 +270,19 @@ IF (stackpos - bstackstart) \ 2 < 0 THEN
  fatalerror "bstack underflow" + STR$(stackpos) + STR$(bstackstart)
 END IF
 
+debug "fademusic 0"
 fademusic 0
+
+debug "fadeout"
 fadeout 0, 0, 0, -1
+
+debug "clearpage"
 clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
+
+debug "exit function"
 
 EXIT FUNCTION '---------------------------------------------------------------
 

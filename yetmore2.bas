@@ -108,8 +108,6 @@ DECLARE SUB cathero ()
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
-'$INCLUDE: 'sglobals.bi'
-
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
 101
