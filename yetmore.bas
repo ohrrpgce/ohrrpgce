@@ -101,8 +101,6 @@ DECLARE SUB getmapname (mapname$, m%)
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
-'$INCLUDE: 'sglobals.bi'
-
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
 
