@@ -1847,7 +1847,7 @@ ELSE
  END IF
 END IF
 
-scrat(index + 1, scrheap) = scrat(index, scrheap) + scrat(index, scrargs)
+scrat(index + 1, scrheap) = scrat(index, scrheap) + (scrat(index, scrargs) + 1)
 
 IF scrat(index + 1, scrheap) > 2048 THEN
  scripterr "Script heap overflow"
