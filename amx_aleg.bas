@@ -5,9 +5,22 @@
 '$include: 'allegro.bi'
 dim shared music_song as MIDI ptr = NULL
 
+dim shared back_buffer as BITMAP ptr
 
 sub setmodex()
 	allegro_init
+	
+	set_gfx_mode(GFX_AUTODETECT,640,400,0,0)
+	set_display_switch_mode(SWITCH_PAUSE) 'needs to be set, since the default in windows is
+	                                      'SWITCH_AMNESIA, which clears all the surfaces if
+	                                      'the user switches away! Ow!
+	back_buffer = create_bitmap(320,200)
+	back_buffer = null '(fer testin)
+	if not back_buffer then
+		'erm, that's not good.
+		fatalerror "Could not create screen."
+	end if
+	acquire_bitmap(back_buffer)
 end sub
 
 sub restoremode() ' not needed
@@ -40,7 +53,7 @@ sub setpal(pal() as integer)
 		p = p + 3
 	next i
 		
-	palette using intpal
+	'palette using intpal
 end sub
 
 SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
@@ -49,7 +62,7 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 	dim j as integer
 	dim hue as integer
 	
-	palette get using pal
+	'palette get using pal
 	
 	'max of 64 steps
 	for i = 0 to 63
@@ -85,7 +98,7 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 			end if
 			pal(j) = pal(j) or (hue shl 16)
 		next
-		palette using pal
+	'	palette using pal
 		sleep 15 'how long?
 	next
 	
@@ -98,7 +111,7 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 	dim hue as integer
 	dim p as integer	'index to passed palette, which has separate r, g, b
 	
-	palette get using intpal
+	'palette get using intpal
 	
 	'max of 64 steps
 	for i = 0 to 63
@@ -138,7 +151,7 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 			intpal(j) = intpal(j) or (hue shl 16)
 			p = p + 1
 		next
-		palette using intpal
+	'	palette using intpal
 		sleep 15 'how long?
 	next
 end SUB
@@ -168,7 +181,7 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 	end if
 
 	'set viewport to allow for top and bottom bars
-	view screen (0, maptop) - (319, maptop + maplines - 1)
+	'view screen (0, maptop) - (319, maptop + maplines - 1)
 	
 	'copied from the asm
 	ypos = y \ 20	
@@ -232,7 +245,7 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 		
 	imagedestroy tbuf	
 	'reset viewport
-	view screen (0, 0) - (319, 199)
+	'view screen (0, 0) - (319, 199)
 end SUB
 
 
@@ -517,7 +530,7 @@ SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 		wrkpage = p
 	end if
 	
-	line (x, y) - (x+w-1, y+h-1), c, BF
+'	line (x, y) - (x+w-1, y+h-1), c, BF
 	
 end SUB
 
@@ -532,11 +545,11 @@ SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 	'can't see how to do this with fills, so it'll have to be lines
 	'unless I draw direct to the buffer
 	for i = y to y+h-1 step 2
-		line (x, i) - (x+w-1, i), c, , &h5555
+		'line (x, i) - (x+w-1, i), c, , &h5555
 	next
 
 	for i = y+1 to y+h-1 step 2
-		line (x, i) - (x+w-1, i), c, , &haaaa
+		'line (x, i) - (x+w-1, i), c, , &haaaa
 	next
 end SUB
 
@@ -546,7 +559,7 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 		wrkpage = p
 	end if
 	
-	line (x1, y1) - (x2, y2), c
+	'line (x1, y1) - (x2, y2), c
 end SUB
 
 SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL page as integer, buf() as integer, BYVAL max as integer)
@@ -817,26 +830,11 @@ end SUB
 SUB setupmusic (mbuf() as integer)
 	dim version as uinteger
 	if music_on = 0 then
-		dim audio_rate as integer
-		dim audio_format as Uint16
-		dim audio_channels as integer
-		dim audio_buffers as integer
-	
-		' We're going to be requesting certain things from our audio
-		' device, so we set them up beforehand
-		audio_rate = MIX_DEFAULT_FREQUENCY
-		audio_format = MIX_DEFAULT_FORMAT
-		audio_channels = 2
-		audio_buffers = 4096
 		
-		SDL_Init(SDL_INIT_VIDEO or SDL_INIT_AUDIO)
+		install_sound(DIGI_NONE, -1,"")
 		
-		if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) <> 0 then
-			Debug "Can't open audio"
-			music_on = -1
-			SDL_Quit()
-			exit sub
-		end if
+		
+		
 		
 		music_vol = 8
 		music_on = 1
@@ -846,19 +844,16 @@ end SUB
 
 SUB closemusic ()
 	if music_on = 1 then
-		if orig_vol > -1 then
-			'restore original volume
-			Mix_VolumeMusic(orig_vol)
-		end if
+		
 		
 		if music_song <> 0 then
-			Mix_FreeMusic(music_song)
+			
 			music_song = 0
 			music_paused = 0
 		end if
 		
-		Mix_CloseAudio
-		SDL_Quit
+		'Mix_CloseAudio
+		'SDL_Quit
 		music_on = 0
 	end if
 end SUB
@@ -892,7 +887,7 @@ SUB loadsong (f$)
 		
 		'stop current song
 		if music_song <> 0 then
-			Mix_FreeMusic(music_song)
+			'Mix_FreeMusic(music_song)
 			music_song = 0
 			music_paused = 0
 		end if
@@ -924,27 +919,27 @@ SUB loadsong (f$)
 		wend
 		
 		if (found = 1) then
-			music_song = Mix_LoadMUS(songname)
+			'music_song = Mix_LoadMUS(songname)
 			if music_song = 0 then
 				debug "Could not load song " + songname
 				exit sub
 			end if
 			
-			Mix_PlayMusic(music_song, -1)			
+			'Mix_PlayMusic(music_song, -1)			
 			music_paused = 0
 
 			if orig_vol = -1 then
-				orig_vol = Mix_VolumeMusic(-1)
+				'orig_vol = Mix_VolumeMusic(-1)
 			end if
 						
 			'dim realvol as single
 			'realvol = music_vol / 15
 			'FMOD_Channel_SetVolume(fmod_channel, realvol)
 			if music_vol = 0 then
-				Mix_VolumeMusic(0)
+				'Mix_VolumeMusic(0)
 			else
 				'add a small adjustment because 15 doesn't go into 128
-				Mix_VolumeMusic((music_vol * 8) + 8)
+				'Mix_VolumeMusic((music_vol * 8) + 8)
 			end if
 		end if
 	end if
@@ -954,7 +949,7 @@ SUB stopsong ()
 	if music_on = 1 then
 		if music_song > 0 then
 			if music_paused = 0 then
-				Mix_PauseMusic
+				'Mix_PauseMusic
 				music_paused = 1
 			end if
 		end if
@@ -964,7 +959,7 @@ end SUB
 SUB resumesong ()
 	if music_on = 1 then
 		if music_song > 0 then
-			Mix_ResumeMusic
+			'Mix_ResumeMusic
 			music_paused = 0
 		end if
 	end if
@@ -992,14 +987,14 @@ SUB setfmvol (BYVAL vol as integer)
 	music_vol = vol
 	if music_on = 1 then
 		if music_vol = 0 then
-			Mix_VolumeMusic(0)
+			'Mix_VolumeMusic(0)
 		else
 			'add a small adjustment because 15 doesn't go into 128
-			Mix_VolumeMusic((music_vol * 8) + 8)
+			'Mix_VolumeMusic((music_vol * 8) + 8)
 		end if
 	end if
 end SUB
 
 SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
-	bsave f$, 0
+	'bsave f$, 0
 end SUB
