@@ -943,7 +943,7 @@ END SUB
 
 SUB heroswap (iAll%, stat())
 
-'Page 2 has the npcs, which dont need to be reloaded afterward
+'Page 2 has the npcs, which don't need to be reloaded afterward
 'Page 3 holds a copy of vpage.
 savetemppage 3
 copypage dpage, 3
