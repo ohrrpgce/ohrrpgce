@@ -608,7 +608,7 @@ GOSUB cleanupfiles
 setvispage 0
 clearpage 0
 textcolor 15, 0
-printstr "Dont forget to keep backup copies of", 0, 0, 0
+printstr "Don't forget to keep backup copies of", 0, 0, 0
 printstr "your work! You never know when an", 0, 8, 0
 printstr "unknown bug or a hard-drive crash or", 0, 16, 0
 printstr "a little brother might delete your", 0, 24, 0

@@ -41,6 +41,7 @@ script, init game, begin
   fade screen out
   advance text box
   load next map
+  $1="Steps:"
 end
 #---------------------------------------------------------------------
 script, load next map, begin
@@ -51,8 +52,10 @@ script, load next map, begin
   teleport to map(current map+1,0,0)
   if(old map==current map)
     then(teleport to map(1,0,0))
+  write gmap
   play song(song offset+(current map,mod,number of songs))
   show no value
+  write gmap(4,0) # disable map name display
   set starting point
   build box list
   check for victory
@@ -61,6 +64,10 @@ script, load next map, begin
   alter NPC(1,NPCstat:move speed,4)
   alter NPC(1,NPCstat:pushability,NPCpush:full)
   alter NPC(1,NPCstat:picture,1)
+  show string at (0,5,5)
+  $0="Level:"
+  append number (0,current map)
+  hide string (2)
   wait(1)
   fade screen in
   allow play:=true
@@ -192,7 +199,9 @@ end
 script, each step handler, begin
   if(allow play) then(
     steps:=steps+1
-    show value(steps)
+    copy string(2,1)
+    append number(2,steps)
+    show string at (2,315--string length(2)*8,5)
     check for victory
   )
 end
