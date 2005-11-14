@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# *WARNING* Do not schedule this script as a nightly cron job from the same copy of the
+# sources that it updates. That would be equivalent to giving any developer with write
+# access to the repository full control of the user-account which this script is run as.
+# Instead, configure cron to execute a manually updated copy of this script, and pay
+# attention to changes to it.
+
 TODAY=`date "+%Y-%m-%d"`
 
 cd ~/src/nightly
