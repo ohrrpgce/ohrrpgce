@@ -1194,17 +1194,42 @@ end</example>
 		<command id="daysofplay">
 			<cannon>days of play</cannon>
 			<shortname>days of play</shortname>
-			<description>returns the number of days that the game has been played</description>
+			<description>Returns the number of days that the game has been played</description>
+		</command>
+		<command id="setdaysofplay">
+			<cannon>set days of play (days)</cannon>
+			<shortname>set days of play</shortname>
+			<description>Sets the number of days that the game has been "played" to <p>days</p>, as long as <p>days</p> is greater than 0. Useful if there are times that shouldn't count towards the play time, or for penalizing bad players >:)</description>
 		</command>
 		<command id="hoursofplay">
 			<cannon>hours of play</cannon>
 			<shortname>hours of play</shortname>
-			<description>returns the number of hours that the game has been played, 0 to 23</description>
+			<description>Returns the number of hours that the game has been played, 0 to 23</description>
+		</command>
+		<command id="sethoursofplay">
+			<cannon>set hours of play (hours)</cannon>
+			<shortname>set hours of play</shortname>
+			<description>Sets the number of hours that the game has been "played" to <p>hours</p>, as long as <p>hours</p> is within the 0-23 range.</description>
 		</command>
 		<command id="minutesofplay">
 			<cannon>minutes of play</cannon>
 			<shortname>minutes of play</shortname>
 			<description>returns the number of minutes that the game has been played, 0 to 59</description>
+		</command>
+		<command id="setminutesofplay">
+			<cannon>set minutes of play (min)</cannon>
+			<shortname>set minutes of play</shortname>
+			<description>Sets the number of minutes that the game has been "played" to <p>min</p>, as long as <p>min</p> is within the 0-59 range.</description>
+		</command>
+		<command id="secondsofplay">
+			<cannon>seconds of play</cannon>
+			<shortname>seconds of play</shortname>
+			<description>returns the number of seconds that the game has been played, 0 to 59</description>
+		</command>
+		<command id="setsecondssofplay">
+			<cannon>set seconds of play (sec)</cannon>
+			<shortname>set seconds of play</shortname>
+			<description>Sets the number of seconds that the game has been "played" to <p>sec</p>, as long as <p>sec</p> is within the 0-59 range.</description>
 		</command>
 		<command id="systemhour">
 			<cannon>system hour</cannon>
