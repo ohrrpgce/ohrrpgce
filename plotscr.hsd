@@ -471,16 +471,6 @@ if(stringlength(stringid)>=16)then(t2:=16)else(t2:=stringlength(stringid))
   )
 end
 
-define script(autonumber,getenemyrewards,2,0,0)
-script,getenemyrewards,enemyid,reward,begin
-  return(readenemydata(enemyid,reward+56))
-end
-
-define script(autonumber,setenemyrewards,3,0,0,0)
-script,setenemyrewards,enemyid,reward,value,begin
-  writeenemydata(enemyid,reward+56,value)
-end
-
 define script(autonumber,getenemyappearance,2,0,0)
 script,getenemyappearance,enemyid,appearance,begin
   return(readenemydata(enemyid,appearance))
