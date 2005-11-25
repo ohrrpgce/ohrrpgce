@@ -695,7 +695,7 @@ script, seconds of play, begin
 	return(read general(54))
 end
 script,set days of play,d, begin
-	if(h >= 0) then (write general(51,d))
+	if(d >= 0) then (write general(51,d))
 end
 script,set hours of play,h, begin
 	if(h >= 0, and, h << 24) then (write general(52,h))
