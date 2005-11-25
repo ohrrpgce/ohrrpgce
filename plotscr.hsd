@@ -100,9 +100,9 @@ define function, begin
 89,swapbyposition,2,0,0     # swap two hero slots
 90,findhero,1,0             # locate hero slot by hero name
 91,checkequipment,2,0,1     # what is a hero equipped with? (who,where)
-92,daysofplay,0             # returns the days
-93,hoursofplay,0            # returns the hours
-94,minutesofplay,0          # returns the minutes
+#92,daysofplay,0             # returns the days, these opcodes remain for compatability
+#93,hoursofplay,0            # returns the hours
+#94,minutesofplay,0          # returns the minutes
 95,resumeNPCwalls,0         # restores normal NPC wall behavior
 96,setheroz,2,0,0           # sets the hero's vertical position
 97,readmapblock,2,0,0       # get mapblock x,y
@@ -666,6 +666,45 @@ end
 define script(autonumber,draw npcs above heroes,1,0)
 script,draw npcs above heroes,setting,begin
   write gmap(16,setting)
+end
+
+#--------------------------------------------------------------------------
+# new wrappers/re-inventing of the wheel commands
+
+define script, begin
+	autonumber,days of play,0
+	autonumber,hours of play,0
+	autonumber,minutes of play,0
+	autonumber,seconds of play,0
+	autonumber,set days of play,1,0
+	autonumber,set hours of play,1,0
+	autonumber,set minutes of play,1,0
+	autonumber,set seconds of play,1,0
+end
+
+script, days of play, begin
+	return(read general(51))
+end
+script, hours of play, begin
+	return(read general(52))
+end
+script, minutes  of play, begin
+	return(read general(53))
+end
+script, seconds of play, begin
+	return(read general(54))
+end
+script,set days of play,d, begin
+	if(h >= 0) then (write general(51,d))
+end
+script,set hours of play,h, begin
+	if(h >= 0, and, h << 24) then (write general(52,h))
+end
+script,set minutes  of play,m, begin
+	if(m >= 0, and, m << 60) then (write general(53,m))
+end
+script,set seconds of play,s, begin
+	if(s >= 0, and, s << 60) then (write general(54,s))
 end
 
 #--------------------------------------------------------------------------
