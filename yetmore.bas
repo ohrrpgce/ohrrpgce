@@ -731,9 +731,9 @@ END FUNCTION
 SUB playtimer
 STATIC n!
 
-IF TIMER >= n! + 10 OR n! - TIMER > 3600 THEN
- n! = TIMER
- gen(54) = gen(54) + 10
+IF TIMER >= n! + 1 OR n! - TIMER > 3600 THEN
+ n! = INT(TIMER)
+ gen(54) = gen(54) + 1
  WHILE gen(54) >= 60
   gen(54) = gen(54) - 60
   gen(53) = gen(53) + 1
