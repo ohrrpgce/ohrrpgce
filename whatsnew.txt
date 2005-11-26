@@ -8,6 +8,9 @@ WHAT IS NEW?
 
   * Bug Fixes
 
+    * Fixed bug 107: "An MP~ stat over 66 makes all spells free"
+      [Ralph Versteegen]
+
   * New Plotscripting Commands
 
     * "cancel map name display" [James Paige]
