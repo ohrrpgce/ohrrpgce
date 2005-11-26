@@ -2103,7 +2103,7 @@ END FUNCTION
 
 FUNCTION focuscost (cost, focus)
 IF focus > 0 THEN
- focuscost = cost - (cost \ (100 / focus))
+ focuscost = cost - INT(cost / (100 / focus))
 ELSE
  focuscost = cost
 END IF
