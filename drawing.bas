@@ -1788,14 +1788,13 @@ NEXT i
 END SUB
 
 SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, file$, master(), font())
-STATIC default$, clippedpal
-DIM nulpal(8), placer(1600), clip(1600), pclip(8), menu$(255), pmenu$(3), bmpd(40), mouse(4), area(20, 4), tool$(5), icon$(5), shortk(5), cursor(5), workpal(8)
+STATIC default$, clippedpal, clippedw, clippedh, paste
+DIM nulpal(8), placer(1600), pclip(8), menu$(255), pmenu$(3), bmpd(40), mouse(4), area(20, 4), tool$(5), icon$(5), shortk(5), cursor(5), workpal(8)
 
 gotm = setmouse(mouse())
 GOSUB initmarea
 airsize = 5
 mist = 10
-paste = 0
 icsr = 0
 itop = 0
 dcsr = 1
@@ -1888,22 +1887,27 @@ DO
  IF keyval(27) > 1 THEN
   offset = changepal(offset, offset + 1, workpal(), 0)
  END IF
- IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN loadsprite clip(), 0, num * size, soff * (ptr - top), xw, yw, 3: paste = 1
- IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN stosprite clip(), 0, num * size, soff * (ptr - top), 3
+ IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN 
+  loadsprite spriteclip(), 0, num * size, soff * (ptr - top), xw, yw, 3
+  paste = 1
+  clippedw = xw
+  clippedh = yw
+ END IF
+ IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN
+  loadsprite placer(), 0, num * size, soff * (ptr - top), xw, yw, 3
+  rectangle 0, 0, xw, yw, 0, dpage
+  drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
+  rectangle 0, 0, clippedw, clippedh, 0, dpage
+  drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
+  getsprite placer(), 0, 0, 0, xw, yw, dpage
+  stosprite placer(), 0, num * size, soff * (ptr - top), 3
+ END IF
  IF (keyval(29) > 0 AND keyval(20) > 1) AND paste = 1 THEN     'transparent pasting
   loadsprite placer(), 0, num * size, soff * (ptr - top), xw, yw, 3
-  FOR i = 0 TO size / 2
-   outword = placer(i)
-   lowestb = clip(i) AND &hF
-   IF lowestb THEN outword = (outword AND &hFFF0) OR lowestb
-   lowb = clip(i) AND &hF0
-   IF lowb THEN outword = (outword AND &hFF0F) OR lowb
-   highb = clip(i) AND &hF00
-   IF highb THEN outword = (outword AND &hF0FF) OR highb
-   highestb = clip(i) AND &hF000
-   IF highestb THEN outword = (outword AND &hFFF) OR highestb
-   placer(i) = outword
-  NEXT
+  rectangle 0, 0, xw, yw, 0, dpage
+  drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
+  drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
+  getsprite placer(), 0, 0, 0, xw, yw, dpage
   stosprite placer(), 0, num * size, soff * (ptr - top), 3
  END IF
  GOSUB choose
@@ -1960,10 +1964,10 @@ DO
  END IF
  GOSUB sprctrl
  tog = tog XOR 1
+ copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
  GOSUB spritescreen
  SWAP vpage, dpage
  setvispage vpage
- copypage 2, dpage
  dowait
 LOOP
 
@@ -2003,13 +2007,26 @@ END IF
 IF (keyval(29) > 0 AND keyval(44) > 1) OR (zone = 20 AND mouse(3) > 0) THEN GOSUB readundospr
 '--COPY (CTRL+INS,SHIFT+DEL,CTRL+C)
 IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN
+ clippedw = xw
+ clippedh = yw
  stosprite placer(), 0, num * size, soff * (ptr - top), 3
- loadsprite clip(), 0, num * size, soff * (ptr - top), xw, yw, 3: paste = 1
+ loadsprite spriteclip(), 0, num * size, soff * (ptr - top), xw, yw, 3
+ paste = 1
 END IF
 '--PASTE (SHIFT+INS,CTRL+V)
 IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN
- stosprite clip(), 0, num * size, soff * (ptr - top), 3
- loadsprite placer(), 0, num * size, soff * (ptr - top), xw, yw, 3
+ rectangle 0, 0, xw, yw, 0, dpage
+ drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
+ rectangle x, y, clippedw, clippedh, 0, dpage
+ drawsprite spriteclip(), 0, nulpal(), 0, x, y, dpage
+ getsprite placer(), 0, 0, 0, xw, yw, dpage
+END IF
+'--TRANSPARENT PASTE (CTRL+T)
+IF (keyval(29) > 0 AND keyval(20) > 1) AND paste = 1 THEN
+ rectangle 0, 0, xw, yw, 0, dpage
+ drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
+ drawsprite spriteclip(), 0, nulpal(), 0, x, y, dpage
+ getsprite placer(), 0, 0, 0, xw, yw, dpage
 END IF
 '--COPY PALETTE (ALT+C)
 IF keyval(56) > 0 AND keyval(46) > 1 THEN

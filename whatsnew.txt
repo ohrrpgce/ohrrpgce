@@ -6,6 +6,11 @@ WHAT IS NEW?
 
     * !!! Native Windows port of GAME.EXE [Simon Bradley] !!!
 
+    * You can copy and paste different sized sprites across the sprite
+      editors, and while you are drawing a sprite you now paste and
+      transparent-paste at the current cursor position instead of
+      top left corner [Ralph Versteegen]
+
   * Bug Fixes
 
     * Fixed bug 107: "An MP~ stat over 66 makes all spells free"
