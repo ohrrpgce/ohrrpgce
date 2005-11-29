@@ -2177,13 +2177,15 @@ IF LEN(s$) < maxl THEN
    s$ = s$ + charpicker$
   END IF
  ELSE
-  '--all other keys
-  FOR i = 2 TO 53
-   IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
-    s$ = s$ + CHR$(keyv(i, shift))
-    EXIT FOR
-   END IF
-  NEXT i
+  IF keyval(29) = 0 THEN
+   '--all other keys
+   FOR i = 2 TO 53
+    IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
+     s$ = s$ + CHR$(keyv(i, shift))
+     EXIT FOR
+    END IF
+   NEXT i
+  END IF
  END IF
  
 END IF
