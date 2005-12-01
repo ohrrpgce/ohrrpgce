@@ -183,7 +183,7 @@ SUB setkeys ()
 	'highest scancode in fbgfx.bi is &h79, no point overdoing it
 	for a = 0 to &h80 
 		keybd(a) = 0 'default to not pressed
-		if multikey(a) < 0 then
+		if multikey(a) <> 0 then
 			'key is down
 			if ktime > keytime(a) then
 				'ok to fire a key event

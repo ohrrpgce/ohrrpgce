@@ -14,9 +14,9 @@ option explicit
 
 #define VELOCITY 		96
 
-#define NOTE_OFF 		&10000000
-#define NOTE_ON  		&10010000
-#define PATCH_CHANGE 	&11000000
+#define NOTE_OFF 		&b10000000
+#define NOTE_ON  		&b10010000
+#define PATCH_CHANGE 	&b11000000
 
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
 
