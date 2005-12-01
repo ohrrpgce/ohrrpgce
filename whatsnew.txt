@@ -11,6 +11,10 @@ WHAT IS NEW?
       transparent-paste at the current cursor position instead of
       top left corner [Ralph Versteegen]
 
+    * Attack bitsets to disable certain target slots on an
+      attack-by-attack basis. [James Paige]
+      (Unfinished! Only works for heroes right now, see bug 102)
+
   * Bug Fixes
 
     * Fixed bug 107: "An MP~ stat over 66 makes all spells free"

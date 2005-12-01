@@ -144,9 +144,11 @@ FOR i = 0 TO 7
  atkbit$(i + 29) = "Fail vs " + sname$(i + 9)                  '29-36
 NEXT i
 
-'37 to 51 are unused
-FOR i = 37 TO 48
- atkbit$(i) = "[placeholder " + LTRIM$(STR$(i)) + "]"
+FOR i = 0 TO 7
+ atkbit$(i + 37) = "Cannot target enemy slot" + STR$(i)
+NEXT i
+FOR i = 0 TO 3
+ atkbit$(i + 45) = "Cannot target hero slot" + STR$(i)
 NEXT i
 
 atkbit$(49) = "Ignore hero's extra hits"
