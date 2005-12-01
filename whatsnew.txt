@@ -16,6 +16,9 @@ WHAT IS NEW?
     * Fixed bug 107: "An MP~ stat over 66 makes all spells free"
       [Ralph Versteegen]
 
+    * c and v no longer appended to a string when copying and pasting
+      [Ralph Versteegen]
+
   * New Plotscripting Commands
 
     * "cancel map name display" [James Paige]
