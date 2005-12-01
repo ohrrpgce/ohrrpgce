@@ -571,7 +571,8 @@ SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BY
 	sbytes = (w * h) \ 2 	'only 4 bits per pixel
 	
 	screenlock
-	sptr = screenptr + (320 * y) + x
+	sptr = screenptr
+	sptr = sptr + (320 * y) + x
 	
 	'copy to passed int buffer, with 2 bytes per int as usual
 	toggle = 0
@@ -608,7 +609,8 @@ SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, B
 	sbytes = (w * h) \ 2 	'only 4 bits per pixel
 	
 	screenlock
-	sptr = screenptr + (320 * y) + x
+	sptr = screenptr
+	sptr = sptr + (320 * y) + x
 	
 	'copy to passed int buffer, with 2 bytes per int as usual
 	toggle = 0
@@ -685,7 +687,7 @@ SUB setkeys ()
 	'highest scancode in fbgfx.bi is &h79, no point overdoing it
 	for a = 0 to &h80 
 		keybd(a) = 0 'default to not pressed
-		if multikey(a) < 0 then
+		if multikey(a) <> 0 then
 			'key is down
 			if ktime > keytime(a) then
 				'ok to fire a key event
@@ -792,6 +794,7 @@ SUB storepage (fil$, BYVAL i as integer, BYVAL p as integer)
 	dim bi as integer
 	dim ub as ubyte
 	dim sptr as ubyte ptr
+	dim scrnbase as ubyte ptr
 	dim plane as integer
 	
 	if wrkpage <> p then
@@ -812,8 +815,9 @@ SUB storepage (fil$, BYVAL i as integer, BYVAL p as integer)
 	screenlock
 	
 	'modex format, 4 planes
+	scrnbase = screenptr()
 	for plane = 0 to 3
-		sptr = screenptr() + plane
+		sptr = scrnbase + plane
 		
 		for idx = 0 to (16000 - 1) '1/4 of a screenfull
 			ub = *sptr
@@ -833,6 +837,7 @@ SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
 	dim bi as integer
 	dim ub as ubyte
 	dim sptr as ubyte ptr
+	dim scrnbase as ubyte ptr
 	dim plane as integer
 	
 	if wrkpage <> p then
@@ -853,8 +858,9 @@ SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
 	screenlock
 	
 	'modex format, 4 planes
+	scrnbase = screenptr()
 	for plane = 0 to 3
-		sptr = screenptr() + plane
+		sptr = scrnbase + plane
 		
 		for idx = 0 to (16000 - 1) '1/4 of a screenfull
 			get #f, , ub
@@ -1040,7 +1046,8 @@ SUB storeset (fil$, BYVAL i as integer, BYVAL l as integer)
 	if bpage >= 0 then
 		'read from screen
 		screenlock
-		sptr = screenptr + (320 * l)
+		sptr = screenptr
+		sptr = sptr + (320 * l)
 		fput(f, ,sptr, bsize)
 		screenunlock
 		'do I need to bother with buffer?
@@ -1087,7 +1094,8 @@ SUB loadset (fil$, BYVAL i as integer, BYVAL l as integer)
 	if bpage >= 0 then
 		'read to screen
 		screenlock
-		sptr = screenptr + (320 * l)
+		sptr = screenptr
+		sptr = sptr + (320 * l)
 		fget(f, ,sptr, bsize)
 		screenunlock
 		'do I need to bother with buffer?

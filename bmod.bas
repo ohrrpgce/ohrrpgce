@@ -359,7 +359,7 @@ RETURN
 
 
 heromenu: '-----------------------------------------------------------------
-IF carray(5) > 1 THEN : yn = you: you = -1: RETURN
+IF carray(5) > 1 THEN yn = you: you = -1: RETURN
 IF carray(0) > 1 THEN pt = pt - 1: IF pt < 0 THEN pt = mend(you)
 IF carray(1) > 1 THEN pt = pt + 1: IF pt > mend(you) THEN pt = 0
 IF carray(4) > 1 THEN
