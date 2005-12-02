@@ -2,6 +2,7 @@
 OHRFB - OHRRPGCE FreeBasic version - Game Player
 
 2005-10-18 - Aristotle
+2005-12-xx - Berkeley
 -----------------------------------------------------------
 
 This is the first proper release of the Windows version,
@@ -10,7 +11,7 @@ and there will probably be a few issues.
 ALT-ENTER switches between fullscreen and windowed modes.
 
 Music is converted to MIDI and played with the external
-FMOD EX library. The DLL should be included with exe
+SDL_Mixer library. The DLL should be included with exe
 distributions. The conversion might not always be a
 good match, and the final infinite loop will always go
 to the start of the file instead of any other loop point.

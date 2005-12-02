@@ -76,7 +76,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
-DECLARE FUNCTION maplumpname$(map, oldext$)
+DECLARE FUNCTION maplumpname$ (map, oldext$)
 
 '--CD playing (not compiled in yet)
 'DECLARE FUNCTION drivelist (l())
@@ -91,8 +91,6 @@ DECLARE FUNCTION maplumpname$(map, oldext$)
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
-'$INCLUDE: 'sglobals.bi'
-
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
 
@@ -379,7 +377,7 @@ ELSE
   INPUT #fh, tree$(treesize)
   tree$(treesize) = UCASE$(tree$(treesize))
   IF tree$(treesize) = "." OR tree$(treesize) = ".." OR RIGHT$(tree$(treesize), 4) = ".TMP" THEN treesize = treesize - 1
-  if tree$(treesize) = "" then treesize = treesize - 1
+  IF tree$(treesize) = "" THEN treesize = treesize - 1
   GOSUB drawmeter
  LOOP
  CLOSE #fh
@@ -393,30 +391,30 @@ ELSE
   treec(treesize) = 3
   INPUT #fh, true$(treesize)
   true$(treesize) = LCASE$(true$(treesize))
-  if true$(treesize) = "" then 
-  	treesize = treesize - 1
-  else
-	  IF timeout! + 15 > TIMER THEN
-	   unlumpfile nowdir$ + true$(treesize) + CHR$(0), "browse.txt", tmpdir$, buffer()
-	   IF isfile(tmpdir$ + "browse.txt" + CHR$(0)) THEN
-	    setpicstuf buffer(), 40, -1
-	    loadset tmpdir$ + "browse.txt" + CHR$(0), 0, 0
-	    tree$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
-	    array2str buffer(), 2, tree$(treesize)
-	    loadset tmpdir$ + "browse.txt" + CHR$(0), 1, 0
-	    about$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
-	    array2str buffer(), 2, about$(treesize)
-	    safekill tmpdir$ + "browse.txt"
-	    IF LEN(tree$(treesize)) = 0 THEN tree$(treesize) = true$(treesize)
-	   ELSE
-	    tree$(treesize) = true$(treesize)
-	    about$(treesize) = ""
-	   END IF
-	  ELSE
-	   tree$(treesize) = true$(treesize)
-	   about$(treesize) = ""
-	  END IF
-  end if
+  IF true$(treesize) = "" THEN
+   treesize = treesize - 1
+  ELSE
+   IF timeout! + 15 > TIMER THEN
+    unlumpfile nowdir$ + true$(treesize) + CHR$(0), "browse.txt", tmpdir$, buffer()
+    IF isfile(tmpdir$ + "browse.txt" + CHR$(0)) THEN
+     setpicstuf buffer(), 40, -1
+     loadset tmpdir$ + "browse.txt" + CHR$(0), 0, 0
+     tree$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
+     array2str buffer(), 2, tree$(treesize)
+     loadset tmpdir$ + "browse.txt" + CHR$(0), 1, 0
+     about$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
+     array2str buffer(), 2, about$(treesize)
+     safekill tmpdir$ + "browse.txt"
+     IF LEN(tree$(treesize)) = 0 THEN tree$(treesize) = true$(treesize)
+    ELSE
+     tree$(treesize) = true$(treesize)
+     about$(treesize) = ""
+    END IF
+   ELSE
+    tree$(treesize) = true$(treesize)
+    about$(treesize) = ""
+   END IF
+  END IF
   GOSUB drawmeter
  LOOP
  CLOSE #fh
@@ -945,7 +943,7 @@ END SUB
 
 SUB heroswap (iAll%, stat())
 
-'Page 2 has the npcs, which dont need to be reloaded afterward
+'Page 2 has the npcs, which don't need to be reloaded afterward
 'Page 3 holds a copy of vpage.
 savetemppage 3
 copypage dpage, 3
@@ -1809,8 +1807,8 @@ IF loadinstead <> -1 THEN
 ELSE
  '--load the script from file
  IF isfile(workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" + CHR$(0)) THEN
- 	fbdim temp
- 	
+  fbdim temp
+	
   f = FREEFILE
   OPEN workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" FOR BINARY AS #f
   GET #f, 1, temp
@@ -1849,7 +1847,7 @@ ELSE
  END IF
 END IF
 
-scrat(index + 1, scrheap) = scrat(index, scrheap) + scrat(index, scrargs)
+scrat(index + 1, scrheap) = scrat(index, scrheap) + (scrat(index, scrargs) + 1)
 
 IF scrat(index + 1, scrheap) > 2048 THEN
  scripterr "Script heap overflow"
@@ -2457,7 +2455,6 @@ SELECT CASE id
 END SELECT
 
 END SUB
-
 
 FUNCTION xstring (s$, x)
 xstring = small(large(x - LEN(s$) * 4, 0), 319 - LEN(s$) * 8)
