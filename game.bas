@@ -145,7 +145,6 @@ DECLARE FUNCTION maplumpname$(map, oldext$)
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
-'$INCLUDE: 'sglobals.bi'
 
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
@@ -166,7 +165,7 @@ CLOSE #fh
 'DEBUG debug "Thestart"
 thestart:
 'DEBUG debug "set stack size"
-CLEAR , , 2700
+CLEAR , , 2800
 
 storekeyhandler
 
@@ -686,7 +685,11 @@ END IF '---END BACKDROP DISPLAY---
 'DEBUG debug "text box"
 IF showsay > 0 THEN drawsay saybit(), sayenh(), say$(), showsay, choose$(), choosep
 'DEBUG debug "map name"
-IF showmapname > 0 THEN showmapname = showmapname - 1: edgeprint mapname$, xstring(mapname$, 160), 180, 15, dpage
+IF showmapname > 0 AND gmap(4) >= showmapname THEN 
+	showmapname = showmapname - 1: edgeprint mapname$, xstring(mapname$, 160), 180, 15, dpage
+ELSE
+	showmapname = 0
+END IF
 '--FPS
 'framecount = framecount + 1
 'IF fpstimer! + 1 < TIMER THEN
@@ -1069,7 +1072,7 @@ ELSE
   IF xgo(whoi) OR ygo(whoi) THEN wtog(whoi) = loopvar(wtog(whoi), 0, 3, 1)
  NEXT whoi
 END IF
-DIM didgo(0 to 3) AS INTEGER
+DIM didgo(0 TO 3) AS INTEGER
 FOR whoi = 0 TO 3
  didgo(whoi) = 0
  IF xgo(whoi) OR ygo(whoi) THEN

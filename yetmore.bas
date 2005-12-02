@@ -101,8 +101,6 @@ DECLARE SUB getmapname (mapname$, m%)
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
-'$INCLUDE: 'sglobals.bi'
-
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
 
@@ -606,7 +604,7 @@ NEXT j
 '-- update backdrop if neccisary
 IF sayenh(4) > 0 THEN
  gen(58) = sayenh(4)
- correctbackdrop 
+ correctbackdrop
 END IF
 '-- change music if neccisary
 IF sayenh(5) > 0 THEN wrappedsong sayenh(5) - 1
@@ -733,9 +731,9 @@ END FUNCTION
 SUB playtimer
 STATIC n!
 
-IF TIMER >= n! + 10 OR n! - TIMER > 3600 THEN
- n! = TIMER
- gen(54) = gen(54) + 10
+IF TIMER >= n! + 1 OR n! - TIMER > 3600 THEN
+ n! = INT(TIMER)
+ gen(54) = gen(54) + 1
  WHILE gen(54) >= 60
   gen(54) = gen(54) - 60
   gen(53) = gen(53) + 1
@@ -979,7 +977,7 @@ SUB scriptdump (s$)
 END SUB
 
 SUB scriptmisc (id)
- 	fbdim temp16 'required for FB to fix get and put
+ fbdim temp16 'required for FB to fix get and put
 
 'contains a whole mess of scripting commands that do not depend on
 'any main-module level local variables or GOSUBs, and therefore
@@ -1269,7 +1267,7 @@ SELECT CASE id
  CASE 175'--deletesave
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
    IF checksaveslot(retvals(0)) THEN
-   	fbdim savver ' for FB
+    fbdim savver ' for FB
     sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
     savh = FREEFILE
     OPEN sg$ FOR BINARY AS #savh
@@ -1433,7 +1431,7 @@ SELECT CASE id
  CASE 230'--read enemy data
   f = FREEFILE
   OPEN game$ + ".dt1" FOR BINARY AS #f
-  GET #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, temp16
+  GET #f, (CLNG(bound(retvals(0), 0, gen(genMaxEnemy))) * CLNG(320)) + (bound(retvals(1), 0, 159) * 2) + 1, temp16
   v% = temp16
   CLOSE #f
   scriptret = v%
@@ -1441,7 +1439,7 @@ SELECT CASE id
   temp16 = retvals(2)
   f = FREEFILE
   OPEN game$ + ".dt1" FOR BINARY AS #f
-  PUT #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, temp16
+  PUT #f, (CLNG(bound(retvals(0), 0, gen(genMaxEnemy))) * CLNG(320)) + (bound(retvals(1), 0, 159) * 2) + 1, temp16
   CLOSE #f
 END SELECT
 
