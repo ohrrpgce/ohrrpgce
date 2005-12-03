@@ -9,5 +9,5 @@ cd c:\nightly\ohrrpgce
 svn update
 call makegame
 del distrib\ohrrpgce-binary-win-nightly.zip
-support\pkzip distrib\ohrrpgce-binary-win-nightly.zip game.exe whatsnew.txt LICENSE-binary.txt
+support\pkzip distrib\ohrrpgce-binary-win-nightly.zip game.exe whatsnew.txt LICENSE-binary.txt SDL.dll SDL_mixer.dll
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-binary-win-nightly.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/archive/
