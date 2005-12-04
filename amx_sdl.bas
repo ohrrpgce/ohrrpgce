@@ -518,6 +518,12 @@ SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL 
 		wrkpage = p
 	end if
 	
+	'wrap if x is too high	
+	if x >= 320 then
+		y = y + (x \ 320)
+		x = x mod 320
+	end if
+	
 	' lock the screen first?
 	pset (x, y), c	
 	
@@ -527,6 +533,12 @@ FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) 
 	if wrkpage <> p then
 		screenset p
 		wrkpage = p
+	end if
+	
+	'wrap if x is too high	
+	if x >= 320 then
+		y = y + (x \ 320)
+		x = x mod 320
 	end if
 	
 	readpixel = point (x, y)	
