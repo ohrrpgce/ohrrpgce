@@ -1347,7 +1347,7 @@ SELECT CASE id
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN plotstring$(retvals(0)) = ""
  CASE 212'--append ascii
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
-   IF retvals(1) >= 0 AND retvals(1) <= 255 THEN
+   IF retvals(1) >= 1 AND retvals(1) <= 255 THEN
     plotstring$(retvals(0)) = plotstring$(retvals(0)) + CHR$(retvals(1))
     scriptret = cropPlotStr(plotstring$(retvals(0)))
    END IF
