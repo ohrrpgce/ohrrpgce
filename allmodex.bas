@@ -7,7 +7,6 @@
 '$include: 'fbgfx.bi'
 '$include: "SDL\SDL.bi"
 '$include: "SDL\SDL_mixer.bi"
-'$include: 'gglobals.bi'
 
 option explicit
 
@@ -1249,9 +1248,11 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 end SUB
 
 FUNCTION isfile (n$) as integer
+	dim fname as string
 	dim f as integer
+	fname = rtrim$(n$)
 	f = freefile
-	open n$ for input as #f
+	open fname for input as #f
 	if err > 0 then
 		isfile = 0
 	else
@@ -1386,7 +1387,9 @@ SUB loadsong (f$)
 		exten = mid$(bamfile, dotpos + 1)
 		
 		're-ordered filename without extension
-		songname = workingdir$ + PATH_SEP + "song" + exten
+		'TODO
+		songname = "song" + exten
+		'songname = workingdir$ + PATH_SEP + "song" + exten
 		
 		'stop current song
 		if music_song <> 0 then
@@ -1793,6 +1796,15 @@ end function
 'Stub functions which aren't used in game.exe, but are declared in 
 'allmodex.bi for custom.exe.
 '----------------------------------------------------------------------
+SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL page)
+END SUB
+
+SUB bigsprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
+END SUB
+
+SUB hugesprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
+END SUB
+
 SUB setpassblock (BYVAL x, BYVAL y, BYVAL v)
 END SUB
 

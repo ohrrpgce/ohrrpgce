@@ -7,7 +7,7 @@ option explicit
 
 #include compat.bi
 #include allmodex.bi
-#include gglobals.bi
+#include cglobals.bi
 #include fontdata.bi
 
 
@@ -57,16 +57,46 @@ SUB xbload (f$, array(), e$)
 
 END SUB
 
+SUB xbsave (f$, array%(), bsize%)
+
+	DIM ff%, byt as UByte, seg AS uShort, offset AS Short, length AS Short
+	dim ilength as integer
+	dim i as integer
+
+	seg = &h9999
+	offset = 0
+	ilength = (bsize \ 2) - 1
+	length = bsize	'bsize is in bytes
+	byt = 253
+	
+	'copy array to shorts
+	DIM buf(ilength) as short
+	for i = 0 to small(ilength, ubound(array))
+		buf(i) = array(i)
+	next		
+	
+	ff = FreeFile
+	OPEN f$ FOR BINARY AS #ff
+	PUT #ff, , byt				'Magic number
+	PUT #ff, , seg				'segment - obsolete
+	PUT #ff, , offset			'offset - obsolete
+	PUT #ff, , length			'size in bytes
+	
+	PUT #ff,, buf()
+	CLOSE #ff
+		
+END SUB
+
 SUB crashexplain()
 	PRINT "Please report this exact error message to ohrrpgce@HamsterRepublic.com"
 	PRINT "Be sure to describe in detail what you were doing when it happened"
 	PRINT
 	PRINT version$
 	PRINT "Memory Info:"; FRE(0)
-#ifndef __FB_LINUX__
-	PRINT "Executable: "; progdir$ + exename$ + ".EXE"
-#else
-	PRINT "Executable: "; progdir$ + exename$
-#endif	
-	PRINT "RPG file: "; sourcerpg$
+'#ifndef __FB_LINUX__
+'	PRINT "Executable: "; progdir$ + exename$ + ".EXE"
+'#else
+'	PRINT "Executable: "; progdir$ + exename$
+'#endif	
+'	PRINT "RPG file: "; sourcerpg$
 END SUB

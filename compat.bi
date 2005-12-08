@@ -34,6 +34,7 @@ declare function xstr$ (x as double)
 
 DECLARE SUB getdefaultfont (font() as integer)
 DECLARE SUB xbload (f$, array%(), e$)
+DECLARE SUB xbsave (f$, array%(), bsize%)
 'only used in game.bas, maybe don't declare here?
 DECLARE SUB crashexplain ()
 declare sub dummyclear (arg1%=0, arg2%=0, arg3%=0)

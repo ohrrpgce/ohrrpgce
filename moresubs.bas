@@ -32,6 +32,7 @@ DECLARE SUB textfatalerror (e$)
 DECLARE SUB playtimer ()
 DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION countitem% (it%)
+DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
@@ -88,9 +89,10 @@ DECLARE FUNCTION maplumpname$ (map, oldext$)
 'DECLARE FUNCTION getCDvol ()
 'DECLARE SUB setcdvol (BYVAL v)
 
-'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
+'$INCLUDE: 'sglobals.bi'
+
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
 
@@ -377,7 +379,6 @@ ELSE
   INPUT #fh, tree$(treesize)
   tree$(treesize) = UCASE$(tree$(treesize))
   IF tree$(treesize) = "." OR tree$(treesize) = ".." OR RIGHT$(tree$(treesize), 4) = ".TMP" THEN treesize = treesize - 1
-  IF tree$(treesize) = "" THEN treesize = treesize - 1
   GOSUB drawmeter
  LOOP
  CLOSE #fh
@@ -391,29 +392,25 @@ ELSE
   treec(treesize) = 3
   INPUT #fh, true$(treesize)
   true$(treesize) = LCASE$(true$(treesize))
-  IF true$(treesize) = "" THEN
-   treesize = treesize - 1
-  ELSE
-   IF timeout! + 15 > TIMER THEN
-    unlumpfile nowdir$ + true$(treesize) + CHR$(0), "browse.txt", tmpdir$, buffer()
-    IF isfile(tmpdir$ + "browse.txt" + CHR$(0)) THEN
-     setpicstuf buffer(), 40, -1
-     loadset tmpdir$ + "browse.txt" + CHR$(0), 0, 0
-     tree$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
-     array2str buffer(), 2, tree$(treesize)
-     loadset tmpdir$ + "browse.txt" + CHR$(0), 1, 0
-     about$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
-     array2str buffer(), 2, about$(treesize)
-     safekill tmpdir$ + "browse.txt"
-     IF LEN(tree$(treesize)) = 0 THEN tree$(treesize) = true$(treesize)
-    ELSE
-     tree$(treesize) = true$(treesize)
-     about$(treesize) = ""
-    END IF
+  IF timeout! + 15 > TIMER THEN
+   unlumpfile nowdir$ + true$(treesize) + CHR$(0), "browse.txt", tmpdir$, buffer()
+   IF isfile(tmpdir$ + "browse.txt" + CHR$(0)) THEN
+    setpicstuf buffer(), 40, -1
+    loadset tmpdir$ + "browse.txt" + CHR$(0), 0, 0
+    tree$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
+    array2str buffer(), 2, tree$(treesize)
+    loadset tmpdir$ + "browse.txt" + CHR$(0), 1, 0
+    about$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
+    array2str buffer(), 2, about$(treesize)
+    safekill tmpdir$ + "browse.txt"
+    IF LEN(tree$(treesize)) = 0 THEN tree$(treesize) = true$(treesize)
    ELSE
     tree$(treesize) = true$(treesize)
     about$(treesize) = ""
    END IF
+  ELSE
+   tree$(treesize) = true$(treesize)
+   about$(treesize) = ""
   END IF
   GOSUB drawmeter
  LOOP
@@ -837,37 +834,35 @@ END SUB
 SUB evalitemtag
 
 FOR i = 0 TO 255
- 'clear all four bits
- FOR j = 0 TO 3
-  IF itembits(i, j) > 1 THEN setbit tag(), 0, itembits(i, j), 0
- NEXT j
+ IF itembits(i, 4) > 0 THEN
+  FOR j = 0 TO 3
+   IF itembits(i, j) > 1 THEN setbit tag(), 0, itembits(i, j), 0
+  NEXT j
+  FOR j = 0 TO 199
+   lb = (item(j) AND 255)
+   IF i = lb - 1 THEN
+    IF itembits(i, 0) > 1 THEN setbit tag(), 0, itembits(i, 0), 1  'you have it
+    IF itembits(i, 1) > 1 THEN setbit tag(), 0, itembits(i, 1), 1 'it is in your inventory
+    EXIT FOR
+   END IF
+  NEXT j
+  FOR j = 0 TO 40
+   FOR k = 0 TO 4
+    IF i = eqstuf(j, k) - 1 THEN
+     IF itembits(i, 0) > 1 THEN setbit tag(), 0, itembits(i, 0), 1  'you have it
+     IF itembits(i, 2) > 1 THEN setbit tag(), 0, itembits(i, 2), 1  'it is equipped
+     IF j < 4 AND itembits(i, 3) > 1 THEN setbit tag(), 0, itembits(i, 3), 1   'it is equipped by an active hero
+     EXIT FOR
+    END IF
+   NEXT k
+  NEXT j
+ END IF '---Only checks items with names
 NEXT i
 
-'search inventory slots
-FOR j = 0 TO 199
- 'get item ID
- id = (item(j) AND 255) - 1
- IF id >= 0 THEN 'there is an item in this slot
-  IF itembits(id, 0) > 1 THEN setbit tag(), 0, itembits(id, 0), 1 'you have it
-  IF itembits(id, 1) > 1 THEN setbit tag(), 0, itembits(id, 1), 1 'it is in your inventory
- END IF
-NEXT j
- 
-FOR j = 0 TO 40 'search hero list
- FOR k = 0 TO 4 'search equipment slots
-  id = eqstuf(j, k) - 1
-  IF id >= 0 THEN ' there is an item equipped in this slot
-   IF itembits(id, 0) > 1 THEN setbit tag(), 0, itembits(id, 0), 1 'you have it
-   IF itembits(id, 2) > 1 THEN setbit tag(), 0, itembits(id, 2), 1 'it is equipped
-   IF j < 4 AND itembits(id, 3) > 1 THEN setbit tag(), 0, itembits(id, 3), 1   'it is equipped by an active hero
-  END IF
- NEXT k
-NEXT j
-
-'itembits(n,0)      when have tag
-'itembits(n,1)      is in inventory
-'itembits(n,2)      is equiped tag
-'itembits(n,3)      is equiped by hero in active party
+'74      when have tag
+'75      is in inventory
+'76      is equiped tag
+'77      is equiped by hero in active party
 
 END SUB
 
@@ -943,7 +938,7 @@ END SUB
 
 SUB heroswap (iAll%, stat())
 
-'Page 2 has the npcs, which don't need to be reloaded afterward
+'Page 2 has the npcs, which dont need to be reloaded afterward
 'Page 3 holds a copy of vpage.
 savetemppage 3
 copypage dpage, 3
@@ -1807,15 +1802,10 @@ IF loadinstead <> -1 THEN
 ELSE
  '--load the script from file
  IF isfile(workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" + CHR$(0)) THEN
-  fbdim temp
-	
   f = FREEFILE
   OPEN workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" FOR BINARY AS #f
-  GET #f, 1, temp
-  skip = temp
-  GET #f, 3, temp
-  scrat(index, scrargs) = temp
-  
+  GET #f, 1, skip
+  GET #f, 3, scrat(index, scrargs)
   IF nextscroff + (LOF(f) - skip) / 2 > 4096 THEN
    scripterr "Script buffer overflow"
    CLOSE #f
@@ -1832,8 +1822,7 @@ ELSE
   'GET #f, 1 + skip, bigstring$
   'str2array bigstring$, script(), scrat(index, scroff)
   FOR i = skip TO LOF(f) - 2 STEP 2
-   GET #f, 1 + i, temp
-   script(scrat(index, scroff) + ((i - skip) / 2)) = temp
+   GET #f, 1 + i, script(scrat(index, scroff) + ((i - skip) / 2))
   NEXT i
   CLOSE #f
 
@@ -1847,7 +1836,7 @@ ELSE
  END IF
 END IF
 
-scrat(index + 1, scrheap) = scrat(index, scrheap) + (scrat(index, scrargs) + 1)
+scrat(index + 1, scrheap) = scrat(index, scrheap) + scrat(index, scrargs)
 
 IF scrat(index + 1, scrheap) > 2048 THEN
  scripterr "Script heap overflow"
@@ -1869,7 +1858,6 @@ END IF
 
 '--we are sucessful, so now tis safe to increment this
 nowscript = nowscript + 1
-
 END FUNCTION
 
 SUB savegame (slot, map, foep, stat(), stock())
@@ -1984,7 +1972,6 @@ FOR i = 0 TO 40
   buffer(z) = eqstuf(i, o): z = z + 1
  NEXT o
 NEXT i
-
 setpicstuf buffer(), 30000, -1
 sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
 storeset sg$ + CHR$(0), slot * 2, 0
@@ -2453,6 +2440,16 @@ SELECT CASE id
  CASE ELSE
   scripterr "Cannot write global" + STR$(id) + ". out of range"
 END SELECT
+
+END SUB
+
+SUB xbload (f$, array(), e$)
+
+IF isfile(f$ + CHR$(0)) THEN
+ DEF SEG = VARSEG(array(0)): BLOAD f$, VARPTR(array(0))
+ELSE
+ fatalerror e$
+END IF
 
 END SUB
 

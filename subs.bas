@@ -8,7 +8,7 @@ DEFINT A-Z
 'basic subs and functions
 DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE FUNCTION filenum$ (n%)
-DECLARE SUB standardmenu (menu$(), size%, vis%, ptr%, top%, x%, y%, page%, edge%)
+DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION charpicker$ ()
 DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
@@ -20,7 +20,7 @@ DECLARE SUB clearallpages ()
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
 DECLARE SUB updateflexmenu (nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
-DECLARE SUB setactivemenu (workmenu%(), newmenu%(), ptr%, top%, size%)
+DECLARE SUB setactivemenu (workmenu%(), newmenu%(), pt%, top%, size%)
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE SUB testflexmenu ()
 DECLARE SUB setbinsize (id%, size%)
@@ -35,14 +35,13 @@ DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
-DECLARE FUNCTION needaddset (ptr%, check%, what$)
+DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE SUB herotags (a%())
-DECLARE SUB cycletile (cycle%(), tastuf%(), ptr%(), skip%())
+DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE FUNCTION onoroff$ (n%)
@@ -50,8 +49,7 @@ DECLARE FUNCTION intstr$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB bitset (array%(), wof%, last%, name$())
-DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
+DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE SUB formation (song$())
 DECLARE SUB enemydata ()
@@ -66,21 +64,16 @@ DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'
 
 REM $STATIC
-FUNCTION bound (n, lowest, highest)
-bound = n
-IF n < lowest THEN bound = lowest
-IF n > highest THEN bound = highest
-END FUNCTION
-
 FUNCTION charpicker$
 
-STATIC ptr
+STATIC pt
 
 DIM f(255)
 
@@ -101,17 +94,17 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN charpicker$ = "": EXIT DO
  
- IF keyval(72) > 1 THEN ptr = large(ptr - linesize, 0)
- IF keyval(80) > 1 THEN ptr = small(ptr + linesize, last)
- IF keyval(75) > 1 THEN ptr = large(ptr - 1, 0)
- IF keyval(77) > 1 THEN ptr = small(ptr + 1, last)
+ IF keyval(72) > 1 THEN pt = large(pt - linesize, 0)
+ IF keyval(80) > 1 THEN pt = small(pt + linesize, last)
+ IF keyval(75) > 1 THEN pt = large(pt - 1, 0)
+ IF keyval(77) > 1 THEN pt = small(pt + 1, last)
  
- IF keyval(28) > 1 OR keyval(57) > 1 THEN charpicker$ = CHR$(f(ptr)): EXIT DO
+ IF keyval(28) > 1 OR keyval(57) > 1 THEN charpicker$ = CHR$(f(pt)): EXIT DO
  
  FOR i = 0 TO last
   textcolor 7, 8
-  IF (i MOD linesize) = (ptr MOD linesize) OR (i \ linesize) = (ptr \ linesize) THEN textcolor 7, 1
-  IF ptr = i THEN textcolor 14 + tog, 0
+  IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor 7, 1
+  IF pt = i THEN textcolor 14 + tog, 0
   printstr CHR$(f(i)), xoff + (i MOD linesize) * 9, yoff + (i \ linesize) * 9, dpage
  NEXT i
  
@@ -144,11 +137,11 @@ END SUB
 SUB enemydata
 
 '--stat names
-DIM name$(32), nof(11), elemtype$(2)
+DIM names$(32), nof(11), elemtype$(2)
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
-getnames name$(), 32
+getnames names$(), 32
 '--name offsets
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
 
@@ -168,10 +161,10 @@ rectangle 220, 100, 80, 80, 8, 3
 DIM ebit$(61)
 
 FOR i = 0 TO 7
- ebit$(0 + i) = elemtype$(0) + " " + name$(17 + i)
- ebit$(8 + i) = elemtype$(1) + " " + name$(17 + i)
- ebit$(16 + i) = elemtype$(2) + " " + name$(17 + i)
- ebit$(24 + i) = "Is " + name$(9 + i)
+ ebit$(0 + i) = elemtype$(0) + " " + names$(17 + i)
+ ebit$(8 + i) = elemtype$(1) + " " + names$(17 + i)
+ ebit$(16 + i) = elemtype$(2) + " " + names$(17 + i)
+ ebit$(24 + i) = "Is " + names$(9 + i)
 NEXT i
 FOR i = 32 TO 53
  ebit$(i) = "(placeholder" + STR$(i) + ")"
@@ -372,7 +365,7 @@ menulimits(EnMenuRareItemP) = EnLimPercent
 
 CONST EnMenuStat = 18' to 29
 FOR i = 0 TO 11
- menu$(EnMenuStat + i) = name$(nof(i)) + ":"
+ menu$(EnMenuStat + i) = names$(nof(i)) + ":"
  menutype(EnMenuStat + i) = 0
  menuoff(EnMenuStat + i) = EnDatStat + i
  menulimits(EnMenuStat + i) = EnLimStat + i
@@ -404,7 +397,7 @@ menulimits(EnMenuSpawnNEHit) = EnLimSpawn
 
 CONST EnMenuSpawnElement = 34' to 41
 FOR i = 0 TO 7
- menu$(EnMenuSpawnElement + i) = "on " + name$(17 + i) + " Hit:"
+ menu$(EnMenuSpawnElement + i) = "on " + names$(17 + i) + " Hit:"
  menutype(EnMenuSpawnElement + i) = 9
  menuoff(EnMenuSpawnElement + i) = EnDatSpawnElement + i
  menulimits(EnMenuSpawnElement + i) = EnLimSpawn
@@ -473,7 +466,7 @@ menulimits(EnMenuStealAvail) = EnLimStealAvail
 '-------------------------------------------------------------------------
 '--menu structure
 DIM workmenu(15), dispmenu$(15)
-ptr = 0: top = 0: size = 0
+pt = 0: top = 0: size = 0
 
 DIM mainMenu(8)
 mainMenu(0) = EnMenuBackAct
@@ -532,7 +525,7 @@ FOR i = 0 TO 4
 NEXT i
 
 '--default starting menu
-setactivemenu workmenu(), mainMenu(), ptr, top, size
+setactivemenu workmenu(), mainMenu(), pt, top, size
 
 menudepth = 0
 lastptr = 0
@@ -563,9 +556,9 @@ DO
   cropafter recindex, general(36), 0, game$ + ".dt1", 320, 1
  END IF
  
- dummy = usemenu(ptr, top, 0, size, 22)
+ dummy = usemenu(pt, top, 0, size, 22)
  
- IF workmenu(ptr) = EnMenuChooseAct THEN
+ IF workmenu(pt) = EnMenuChooseAct THEN
   lastindex = recindex
   IF keyval(77) > 1 AND recindex = general(36) AND recindex < 32767 THEN
    '--attempt to add a new set
@@ -587,7 +580,7 @@ DO
  END IF
  
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
-  SELECT CASE workmenu(ptr)
+  SELECT CASE workmenu(pt)
    CASE EnMenuBackAct
     IF menudepth = 1 THEN
      GOSUB EnBackSub
@@ -596,39 +589,39 @@ DO
     END IF
    CASE EnMenuAppearAct
     GOSUB EnPushPtrSub
-    setactivemenu workmenu(), appearMenu(), ptr, top, size
+    setactivemenu workmenu(), appearMenu(), pt, top, size
     GOSUB EnUpdateMenu
    CASE EnMenuRewardAct
     GOSUB EnPushPtrSub
-    setactivemenu workmenu(), rewardMenu(), ptr, top, size
+    setactivemenu workmenu(), rewardMenu(), pt, top, size
     GOSUB EnUpdateMenu
    CASE EnMenuStatAct
     GOSUB EnPushPtrSub
-    setactivemenu workmenu(), statMenu(), ptr, top, size
+    setactivemenu workmenu(), statMenu(), pt, top, size
     GOSUB EnUpdateMenu
    CASE EnMenuSpawnAct
     GOSUB EnPushPtrSub
-    setactivemenu workmenu(), spawnMenu(), ptr, top, size
+    setactivemenu workmenu(), spawnMenu(), pt, top, size
     GOSUB EnUpdateMenu
    CASE EnMenuAtkAct
     GOSUB EnPushPtrSub
-    setactivemenu workmenu(), atkMenu(), ptr, top, size
+    setactivemenu workmenu(), atkMenu(), pt, top, size
     GOSUB EnUpdateMenu
    CASE EnMenuPal
     recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), 1, 0, 0, previewsize(recbuf(EnDatPicSize)), previewsize(recbuf(EnDatPicSize)), 2)
     GOSUB EnUpdateMenu
    CASE EnMenuBitsetAct
-    bitset recbuf(), EnDatBitset, 61, ebit$()
+    editbitset recbuf(), EnDatBitset, 61, ebit$()
   END SELECT
  END IF
  
- IF editflexmenu(workmenu(ptr), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
+ IF editflexmenu(workmenu(pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
   GOSUB EnUpdateMenu
  END IF
  
  GOSUB EnPreviewSub
  
- standardmenu dispmenu$(), size, 22, ptr, top, 0, 0, dpage, 0
+ standardmenu dispmenu$(), size, 22, pt, top, 0, 0, dpage, 0
  
  SWAP vpage, dpage
  setvispage vpage
@@ -675,9 +668,9 @@ RETURN
 '-----------------------------------------------------------------------
 
 EnBackSub:
-setactivemenu workmenu(), mainMenu(), ptr, top, size
+setactivemenu workmenu(), mainMenu(), pt, top, size
 menudepth = 0
-ptr = lastptr
+pt = lastptr
 top = lasttop
 GOSUB EnUpdateMenu
 RETURN
@@ -685,7 +678,7 @@ RETURN
 '-----------------------------------------------------------------------
 
 EnPushPtrSub:
-lastptr = ptr
+lastptr = pt
 lasttop = top
 menudepth = 1
 RETURN
@@ -768,7 +761,7 @@ DO
   IF zintgrabber(c(bcsr - 2), -1, general(37), 75, 77) THEN
    GOSUB lpreviewform
   END IF
-  IF ptr >= 0 THEN
+  IF pt >= 0 THEN
    '--preview form
    GOSUB formsprite
   END IF
@@ -784,7 +777,7 @@ DO
  
  SWAP vpage, dpage
  setvispage vpage
- IF bcsr > 2 AND ptr >= 0 THEN
+ IF bcsr > 2 AND pt >= 0 THEN
   copypage 2, dpage
  ELSE
   clearpage dpage
@@ -795,8 +788,8 @@ LOOP
 lpreviewform:
 IF bcsr > 2 THEN
  '--have form selected
- ptr = c(bcsr - 2) - 1
- IF ptr >= 0 THEN
+ pt = c(bcsr - 2) - 1
+ IF pt >= 0 THEN
   '--form not empty
   GOSUB loadform
   GOSUB formpics
@@ -819,7 +812,7 @@ menu$(3) = "Previous Menu"
 max(0) = general(100) - 1
 max(1) = 100
 max(2) = 999
-ptr = 0: csr2 = -5: csr3 = 0
+pt = 0: csr2 = -5: csr3 = 0
 GOSUB loadform
 GOSUB formpics
 setkeys
@@ -840,7 +833,7 @@ DO
  IF csr3 = 0 THEN
   '--menu mode
   IF keyval(1) > 1 THEN GOSUB saveform: RETURN
-  IF keyval(29) > 0 AND keyval(14) THEN cropafter ptr, general(37), 0, game$ + ".for", 80, 1
+  IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, general(37), 0, game$ + ".for", 80, 1
   dummy = usemenu(csr2, -5, -5, 7, 24)
   IF keyval(57) > 1 OR keyval(28) > 1 THEN
    IF csr2 = -5 THEN GOSUB saveform: RETURN
@@ -850,19 +843,19 @@ DO
    IF intgrabber(a(35 + csr2), 0, max(csr2 + 3), 75, 77) THEN GOSUB saveform: GOSUB loadform
   END IF
   IF csr2 = -4 THEN '---SELECT A DIFFERENT FORMATION
-   remptr = ptr
-   IF intgrabber(ptr, 0, general(37), 51, 52) THEN
-    SWAP ptr, remptr
+   remptr = pt
+   IF intgrabber(pt, 0, general(37), 51, 52) THEN
+    SWAP pt, remptr
     GOSUB saveform
-    SWAP ptr, remptr
+    SWAP pt, remptr
     GOSUB loadform
     GOSUB formpics
    END IF
-   IF keyval(75) > 1 AND ptr > 0 THEN GOSUB saveform: ptr = large(ptr - 1, 0): GOSUB loadform: GOSUB formpics
-   IF keyval(77) > 1 AND ptr < 32767 THEN
+   IF keyval(75) > 1 AND pt > 0 THEN GOSUB saveform: pt = large(pt - 1, 0): GOSUB loadform: GOSUB formpics
+   IF keyval(77) > 1 AND pt < 32767 THEN
     GOSUB saveform
-    ptr = ptr + 1
-    IF needaddset(ptr, general(37), "formation") THEN GOSUB clearformation
+    pt = pt + 1
+    IF needaddset(pt, general(37), "formation") THEN GOSUB clearformation
     GOSUB loadform
     GOSUB formpics
    END IF
@@ -878,7 +871,7 @@ DO
   rectangle 240 + i * 8, 75 + i * 22, 32, 40, 18 + i * 2, dpage
  NEXT i
  IF csr3 = 0 THEN
-  menu$(4) = CHR$(27) + "formation" + STR$(ptr) + CHR$(26)
+  menu$(4) = CHR$(27) + "formation" + STR$(pt) + CHR$(26)
   menu$(5) = "Backdrop screen:" + STR$(a(32))
   menu$(6) = "Battle Music:"
   IF a(33) = 0 THEN menu$(6) = menu$(6) + " -none-" ELSE menu$(6) = menu$(6) + STR$(a(33)) + " " + song$(a(33) - 1)
@@ -923,17 +916,17 @@ FOR i = 0 TO 40
  a(i) = 0
 NEXT i
 setpicstuf a(), 80, -1
-storeset game$ + ".for" + CHR$(0), ptr, 0
+storeset game$ + ".for" + CHR$(0), pt, 0
 RETURN
 
 saveform:
 setpicstuf a(), 80, -1
-storeset game$ + ".for" + CHR$(0), ptr, 0
+storeset game$ + ".for" + CHR$(0), pt, 0
 RETURN
 
 loadform:
 setpicstuf a(), 80, -1
-loadset game$ + ".for" + CHR$(0), ptr, 0
+loadset game$ + ".for" + CHR$(0), pt, 0
 loadpage game$ + ".mxs" + CHR$(0), a(32), 2
 IF a(33) = 0 THEN a(33) = general(4)
 RETURN
@@ -977,29 +970,29 @@ END IF
 END FUNCTION
 
 SUB herodata
-DIM name$(100), a(318), menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), option$(10), hbit$(-1 TO 25), hmenu$(4), pal16(16), elemtype$(2)
-wd = 1: max = 32
+DIM names$(100), a(318), menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 25), hmenu$(4), pal16(16), elemtype$(2)
+wd = 1: hmax = 32
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
 clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-getnames name$(), max
+getnames names$(), hmax
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
 
 csr = 1
 FOR i = 0 TO 7
- hbit$(i) = elemtype$(0) + " " + name$(17 + i)
- hbit$(i + 8) = elemtype$(1) + " " + name$(17 + i)
- hbit$(i + 16) = elemtype$(2) + " " + name$(17 + i)
+ hbit$(i) = elemtype$(0) + " " + names$(17 + i)
+ hbit$(i + 8) = elemtype$(1) + " " + names$(17 + i)
+ hbit$(i + 16) = elemtype$(2) + " " + names$(17 + i)
 NEXT i
 hbit$(24) = "Rename when added to party"
 hbit$(25) = "Permit renaming on status screen"
 
 menu$(0) = "Return to Main Menu"
-menu$(1) = CHR$(27) + "Pick Hero" + STR$(ptr) + CHR$(26)
+menu$(1) = CHR$(27) + "Pick Hero" + STR$(pt) + CHR$(26)
 menu$(2) = "Name:"
 menu$(3) = "Appearance and Misc..."
 menu$(4) = "Edit Stats..."
@@ -1017,7 +1010,7 @@ DO
  GOSUB movesmall
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) THEN
-  cropafter ptr, general(35), -1, game$ + ".dt0", 636, 1
+  cropafter pt, general(35), -1, game$ + ".dt0", 636, 1
  END IF
  dummy = usemenu(csr, 0, 0, 8, 24)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
@@ -1026,22 +1019,22 @@ DO
   IF csr = 4 THEN GOSUB levstats
   IF csr = 5 THEN GOSUB speltypes '--spell list contents
   IF csr = 6 THEN GOSUB heromenu '--spell list names
-  IF csr = 7 THEN bitset a(), 240, 25, hbit$()
+  IF csr = 7 THEN editbitset a(), 240, 25, hbit$()
   IF csr = 8 THEN herotags a()
  END IF
  IF csr = 1 THEN
-  remptr = ptr
-  IF intgrabber(ptr, 0, general(35), 51, 52) THEN
-   SWAP ptr, remptr
+  remptr = pt
+  IF intgrabber(pt, 0, general(35), 51, 52) THEN
+   SWAP pt, remptr
    GOSUB lasthero
-   SWAP ptr, remptr
+   SWAP pt, remptr
    GOSUB thishero
   END IF
-  IF keyval(75) > 1 AND ptr > 0 THEN GOSUB lasthero: ptr = ptr - 1: GOSUB thishero
-  IF keyval(77) > 1 AND ptr < 59 THEN
+  IF keyval(75) > 1 AND pt > 0 THEN GOSUB lasthero: pt = pt - 1: GOSUB thishero
+  IF keyval(77) > 1 AND pt < 59 THEN
    GOSUB lasthero
-   ptr = ptr + 1
-   IF needaddset(ptr, general(35), "hero") THEN GOSUB clearhero
+   pt = pt + 1
+   IF needaddset(pt, general(35), "hero") THEN GOSUB clearhero
    GOSUB thishero
   END IF
  END IF
@@ -1096,10 +1089,10 @@ FOR i = 0 TO 3
  IF a(288 + i) > 10 OR a(288 + i) < 0 THEN a(288 + i) = 0
 NEXT i
 bctr = -1
-option$(0) = "Spells (MP Based)"
-option$(1) = "Spells (FF1 Style)"
-option$(2) = "Random Effects"
-option$(3) = "Item Consuming (not implemented)"
+opt$(0) = "Spells (MP Based)"
+opt$(1) = "Spells (FF1 Style)"
+opt$(2) = "Random Effects"
+opt$(3) = "Item Consuming (not implemented)"
 setkeys
 DO
  setwait timing(), 100
@@ -1116,7 +1109,7 @@ DO
  printstr "Previous Menu", 0, 0, dpage
  FOR i = 0 TO 3
   textcolor 7, 0: IF bctr = i THEN textcolor 14 + tog, 0
-  printstr "Type" + STR$(i) + " Spells:" + option$(a(288 + i)), 0, 8 + i * 8, dpage
+  printstr "Type" + STR$(i) + " Spells:" + opt$(a(288 + i)), 0, 8 + i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1286,7 +1279,7 @@ DO
    GOSUB setsticky
   END IF
  END IF
- textcolor 10, 0: printstr UCASE$(option$(a(288 + temp))), 300 - LEN(option$(a(288 + temp))) * 8, 0, dpage
+ textcolor 10, 0: printstr UCASE$(opt$(a(288 + temp))), 300 - LEN(opt$(a(288 + temp))) * 8, 0, dpage
  textcolor 7, 0: IF bctr = 0 THEN textcolor 14 + tog, 0
  printstr "Previous Menu", 0, 0, dpage
  FOR i = 1 TO 24
@@ -1328,7 +1321,7 @@ RETURN
 graph:
 o = INT((bctr - 1) / 2)
 textcolor 7, 0
-printstr name$(nof(o)), 310 - LEN(name$(nof(o))) * 8, 180, dpage
+printstr names$(nof(o)), 310 - LEN(names$(nof(o))) * 8, 180, dpage
 FOR i = 0 TO 99 STEP 4
  ii = (.8 * i / 50) * i * ((a(24 + o * 2) - a(23 + o * 2)) / 100) + a(23 + o * 2)
  ii = large(ii, 0)
@@ -1339,8 +1332,8 @@ RETURN
 
 smi:
 FOR i = 0 TO 11
- bmenu$(i * 2 + 1) = name$(nof(i)) + STR$(a(i * 2 + 23))
- bmenu$(i * 2 + 2) = name$(nof(i)) + STR$(a(i * 2 + 24))
+ bmenu$(i * 2 + 1) = names$(nof(i)) + STR$(a(i * 2 + 23))
+ bmenu$(i * 2 + 2) = names$(nof(i)) + STR$(a(i * 2 + 24))
 NEXT i
 RETURN
 
@@ -1357,7 +1350,7 @@ FOR i = 0 TO 318
  a(i) = 0
 NEXT i
 setpicstuf a(), 636, -1
-storeset game$ + ".dt0" + CHR$(0), ptr, 0
+storeset game$ + ".dt0" + CHR$(0), pt, 0
 RETURN
 
 lasthero:
@@ -1372,18 +1365,18 @@ FOR i = 0 TO 3
  NEXT o
 NEXT i
 setpicstuf a(), 636, -1
-storeset game$ + ".dt0" + CHR$(0), ptr, 0
+storeset game$ + ".dt0" + CHR$(0), pt, 0
 RETURN
 
 thishero:
 setpicstuf a(), 636, -1
-loadset game$ + ".dt0" + CHR$(0), ptr, 0
+loadset game$ + ".dt0" + CHR$(0), pt, 0
 nam$ = readbadbinstring$(a(), 0, 16, 0)
 FOR i = 0 TO 3
  hmenu$(i) = readbadbinstring$(a(), 243 + i * 11, 10, 0)
 NEXT i
 menu$(2) = "Name:" + nam$
-menu$(1) = CHR$(27) + "Pick Hero" + STR$(ptr) + CHR$(26)
+menu$(1) = CHR$(27) + "Pick Hero" + STR$(pt) + CHR$(26)
 GOSUB heropics
 RETURN
 
@@ -1439,12 +1432,12 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(ptr, 0, 0, 4, 24)
- SELECT CASE ptr
+ dummy = usemenu(pt, 0, 0, 4, 24)
+ SELECT CASE pt
   CASE 0
    IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
   CASE ELSE
-   dummy = intgrabber(a(291 + ptr), 0, 999, 75, 77)
+   dummy = intgrabber(a(291 + pt), 0, 999, 75, 77)
  END SELECT
  FOR i = 0 TO 4
   a$ = ""
@@ -1452,7 +1445,7 @@ DO
    a$ = STR$(a(291 + i)) + " (" + lmnemonic(a(291 + i)) + ")"
   END IF
   textcolor 7, 0
-  IF ptr = i THEN textcolor 14 + tog, 0
+  IF pt = i THEN textcolor 14 + tog, 0
   printstr menu$(i) + a$, 0, i * 8, dpage
  NEXT i
  SWAP vpage, dpage
@@ -1508,14 +1501,14 @@ END IF
 END FUNCTION
 
 SUB itemdata
-DIM name$(100), a(99), menu$(18), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), item$(-1 TO 255), eqst$(5), max(18), sbmax(11), workpal(8), elemtype$(2)
-max = 32
+DIM names$(100), a(99), menu$(18), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), item$(-1 TO 255), eqst$(5), max(18), sbmax(11), workpal(8), elemtype$(2)
+imax = 32
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
 clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-getnames name$(), max
+getnames names$(), imax
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
@@ -1523,7 +1516,7 @@ elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
 eqst$(0) = "NEVER EQUIPPED"
 eqst$(1) = "Weapon"
 FOR i = 0 TO 3
- eqst$(i + 2) = name$(25 + i)
+ eqst$(i + 2) = names$(25 + i)
 NEXT i
 FOR i = 0 TO 1
  sbmax(i) = 9999
@@ -1615,44 +1608,44 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETURN
- dummy = usemenu(ptr, 0, 0, 18, 24)
+ dummy = usemenu(pt, 0, 0, 18, 24)
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
-  IF ptr = 0 THEN RETURN
+  IF pt = 0 THEN RETURN
   IF a(49) > 0 THEN
-   IF ptr = 16 THEN GOSUB statbon: GOSUB itemmenu
-   IF ptr = 17 THEN GOSUB ibitset: GOSUB itemmenu
-   IF ptr = 18 THEN GOSUB equipbit: GOSUB itemmenu
+   IF pt = 16 THEN GOSUB statbon: GOSUB itemmenu
+   IF pt = 17 THEN GOSUB ibitset: GOSUB itemmenu
+   IF pt = 18 THEN GOSUB equipbit: GOSUB itemmenu
   END IF
-  IF ptr = 10 THEN '--palette picker
-   a(46 + (ptr - 3)) = pal16browse(a(46 + (ptr - 3)), 2, 0, 0, 24, 24, 2)
-   getpal16 workpal(), 0, a(46 + (ptr - 3))
+  IF pt = 10 THEN '--palette picker
+   a(46 + (pt - 3)) = pal16browse(a(46 + (pt - 3)), 2, 0, 0, 24, 24, 2)
+   getpal16 workpal(), 0, a(46 + (pt - 3))
    GOSUB itemmenu
   END IF
  END IF
- IF ptr >= 3 AND ptr <= 10 THEN
-  min = 0: IF ptr = 8 THEN min = general(39) * -1
-  IF intgrabber(a(46 + (ptr - 3)), min, max(ptr), 75, 77) THEN GOSUB itemmenu
+ IF pt >= 3 AND pt <= 10 THEN
+  min = 0: IF pt = 8 THEN min = general(39) * -1
+  IF intgrabber(a(46 + (pt - 3)), min, max(pt), 75, 77) THEN GOSUB itemmenu
  END IF
- IF ptr = 11 THEN
+ IF pt = 11 THEN
   IF intgrabber(a(73), 0, 2, 75, 77) THEN GOSUB itemmenu
  END IF
- IF ptr >= 12 AND ptr <= 15 THEN
-  IF intgrabber(a(74 + (ptr - 12)), 0, max(ptr), 75, 77) THEN GOSUB itemmenu
+ IF pt >= 12 AND pt <= 15 THEN
+  IF intgrabber(a(74 + (pt - 12)), 0, max(pt), 75, 77) THEN GOSUB itemmenu
  END IF
- IF ptr = 1 THEN
+ IF pt = 1 THEN
   strgrabber item$(csr), 8
   menu$(1) = "Name:" + item$(csr)
  END IF
- IF ptr = 2 THEN
+ IF pt = 2 THEN
   strgrabber info$, 34
   menu$(2) = "Info:" + info$
  END IF
  FOR i = 0 TO 18
   textcolor 7, 0
-  IF ptr = i THEN textcolor 14 + tog, 0
+  IF pt = i THEN textcolor 14 + tog, 0
   IF i >= 16 AND a(49) = 0 THEN
    textcolor 8, 0
-   IF ptr = i THEN textcolor 6 + tog, 0
+   IF pt = i THEN textcolor 6 + tog, 0
   END IF
   printstr menu$(i), 0, i * 8, dpage
  NEXT i
@@ -1693,7 +1686,7 @@ menu$(12) = "own item TAG" + STR$(a(74)) + " " + lmnemonic(a(74))
 menu$(13) = "is in inventory TAG" + STR$(a(75)) + " " + lmnemonic(a(75))
 menu$(14) = "is equipped TAG" + STR$(a(76)) + " " + lmnemonic(a(76))
 menu$(15) = "eqpt by active hero TAG" + STR$(a(77)) + " " + lmnemonic(a(77))
-IF ptr = 9 OR ptr = 10 THEN
+IF pt = 9 OR pt = 10 THEN
  setpicstuf buffer(), 576, 2
  loadset game$ + ".pt5" + CHR$(0), a(52), 0
  getpal16 workpal(), 0, a(53)
@@ -1721,7 +1714,7 @@ DO
  FOR i = 0 TO 11
   textcolor 7, 0
   IF ptr2 = i THEN textcolor 14 + tog, 0
-  printstr name$(nof(i)) + " Bonus:" + STR$(a(54 + i)), 0, 8 + i * 8, dpage
+  printstr names$(nof(i)) + " Bonus:" + STR$(a(54 + i)), 0, 8 + i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1759,11 +1752,11 @@ RETURN
 
 ibitset:
 FOR i = 0 TO 7
- ibit$(i) = elemtype$(0) + " " + name$(17 + i)
- ibit$(i + 8) = elemtype$(1) + " " + name$(17 + i)
- ibit$(i + 16) = elemtype$(2) + " " + name$(17 + i)
+ ibit$(i) = elemtype$(0) + " " + names$(17 + i)
+ ibit$(i + 8) = elemtype$(1) + " " + names$(17 + i)
+ ibit$(i + 16) = elemtype$(2) + " " + names$(17 + i)
 NEXT i
-bitset a(), 70, 23, ibit$()
+editbitset a(), 70, 23, ibit$()
 RETURN
 
 equipbit:
@@ -1773,7 +1766,7 @@ FOR i = 0 TO 59
  ibit$(i) = readbadbinstring$(buffer(), 0, 16, 0)
  ibit$(i) = "Equipable by " + ibit$(i)
 NEXT i
-bitset a(), 66, 59, ibit$()
+editbitset a(), 66, 59, ibit$()
 RETURN
 
 'SHOP STUFF
@@ -1829,7 +1822,7 @@ IF a < min THEN a = a + ((max - min) + 1): loopvar = a: EXIT FUNCTION
 loopvar = a
 END FUNCTION
 
-SUB npcdef (npc(), ptr, npc$(), unpc(), lnpc())
+SUB npcdef (npc(), pt, npc$(), unpc(), lnpc())
 DIM mtype$(10), push$(7), stepi(5), info$(5, 1), pal16(288)
 clearpage 0: clearpage 1
 setvispage vpage
@@ -2183,13 +2176,15 @@ IF LEN(s$) < maxl THEN
    s$ = s$ + charpicker$
   END IF
  ELSE
-  '--all other keys
-  FOR i = 2 TO 53
-   IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
-    s$ = s$ + CHR$(keyv(i, shift))
-    EXIT FOR
-   END IF
-  NEXT i
+  IF keyval(29) = 0 THEN
+   '--all other keys
+   FOR i = 2 TO 53
+    IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
+     s$ = s$ + CHR$(keyv(i, shift))
+     EXIT FOR
+    END IF
+   NEXT i
+  END IF
  END IF
  
 END IF

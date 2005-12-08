@@ -37,6 +37,8 @@ DECLARE FUNCTION countai% (ai%, them%, es%())
 DECLARE FUNCTION enemycount% (v%(), stat%())
 DECLARE SUB calibrate ()
 DECLARE SUB control ()
+DECLARE FUNCTION pickload% (svcsr%)
+DECLARE FUNCTION picksave% (svcsr%)
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
@@ -48,7 +50,7 @@ DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
 DECLARE SUB resetlmp (slot%, lev%)
 DECLARE SUB loadfoe (i%, formdata%(), es%(), x%(), y%(), p%(), v%(), w%(), h%(), ext$(), bits%(), stat%(), ebits%(), batname$())
-DECLARE FUNCTION inflict (w%, t%, stat%(), x%(), y%(), wid%(), hei%(), harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())
+DECLARE FUNCTION inflict (w%, t%, stat%(), x%(), y%(), w%(), h%(), harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())
 DECLARE FUNCTION battle (form%, fatal%, exstat%())
 DECLARE SUB addhero (who%, slot%, stat%())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
@@ -60,9 +62,10 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 
-'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
+'$INCLUDE: 'bglobals.bi'
+
 '$INCLUDE: 'const.bi'
 
 REM $STATIC
@@ -568,12 +571,11 @@ END IF
 END SUB
 
 FUNCTION getbinsize (id)
-fbdim recordsize
 
 IF isfile(workingdir$ + "\binsize.bin" + CHR$(0)) THEN
  fh = FREEFILE
  OPEN workingdir$ + "\binsize.bin" FOR BINARY AS #fh
- GET #fh, 1 + (id * 2), recordsize
+ GET #fh, 1 + id * 2, recordsize
  CLOSE #fh
  getbinsize = recordsize
 ELSE

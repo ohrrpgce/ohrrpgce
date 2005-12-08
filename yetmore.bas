@@ -50,6 +50,7 @@ DECLARE FUNCTION functiondone% ()
 DECLARE FUNCTION functionread% ()
 DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION countitem% (it%)
+DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
@@ -71,6 +72,7 @@ DECLARE SUB debug (s$)
 DECLARE FUNCTION browse$ (fmask$, needf%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
+DECLARE FUNCTION picksave%(load%)
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
@@ -98,9 +100,10 @@ DECLARE FUNCTION readitemname$ (itemnum%)
 DECLARE FUNCTION readatkname$ (id%)
 DECLARE SUB getmapname (mapname$, m%)
 
-'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
+'$INCLUDE: 'sglobals.bi'
+
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
 
@@ -191,13 +194,11 @@ END IF '---end if > 0
 END SUB
 
 FUNCTION checksaveslot (slot)
-  fbdim checkslot
   sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
   savh = FREEFILE
-  OPEN sg$ FOR BINARY AS #savh
-  GET #savh, 1 + 60000 * (slot - 1), checkslot
-  CLOSE #savh
-  checksaveslot = checkslot
+  OPEN sg$ FOR BINARY AS savh
+  GET #savh, 1 + 60000 * (slot - 1), checksaveslot
+  CLOSE savh
 END FUNCTION
 
 FUNCTION cropPlotStr (s$)
@@ -221,6 +222,7 @@ FOR i = 0 TO 255
  itembits(i, 1) = buffer(75)   'is in inventory
  itembits(i, 2) = buffer(76)   'is equiped tag
  itembits(i, 3) = buffer(77)   'is equiped by hero in active party
+ itembits(i, 4) = buffer(0)    'tracks if item has a name or not
 NEXT i
 END SUB
 
@@ -731,9 +733,9 @@ END FUNCTION
 SUB playtimer
 STATIC n!
 
-IF TIMER >= n! + 1 OR n! - TIMER > 3600 THEN
- n! = INT(TIMER)
- gen(54) = gen(54) + 1
+IF TIMER >= n! + 10 OR n! - TIMER > 3600 THEN
+ n! = TIMER
+ gen(54) = gen(54) + 10
  WHILE gen(54) >= 60
   gen(54) = gen(54) - 60
   gen(53) = gen(53) + 1
@@ -928,16 +930,6 @@ SELECT CASE id
   movemouse retvals(0), retvals(1)
  CASE 164'--mouse region
   mouserect retvals(0), retvals(1), retvals(2), retvals(3)
- CASE 178'--readgmap
-  IF retvals(0) >= 0 AND retvals(0) <= 19 THEN
-   scriptret = gmap(retvals(0))
-  END IF
- CASE 179'--writegmap
-  IF retvals(0) >= 0 AND retvals(0) <= 19 THEN
-   gmap(retvals(0)) = retvals(1)
-   IF retvals(0) = 5 THEN setoutside -1  'hint: always use the wrapper
-   IF retvals(0) = 6 AND gmap(5) = 2 THEN setoutside retvals(1)
-  END IF
 END SELECT
 
 END SUB
@@ -977,7 +969,6 @@ SUB scriptdump (s$)
 END SUB
 
 SUB scriptmisc (id)
- fbdim temp16 'required for FB to fix get and put
 
 'contains a whole mess of scripting commands that do not depend on
 'any main-module level local variables or GOSUBs, and therefore
@@ -1267,13 +1258,12 @@ SELECT CASE id
  CASE 175'--deletesave
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
    IF checksaveslot(retvals(0)) THEN
-    fbdim savver ' for FB
     sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
     savh = FREEFILE
-    OPEN sg$ FOR BINARY AS #savh
+    OPEN sg$ FOR BINARY AS savh
     savver = 0
     PUT #savh, 1 + 60000 * (retvals(0) - 1), savver
-    CLOSE #savh
+    CLOSE savh
    END IF
   END IF
  CASE 176'--runscriptbyid
@@ -1288,10 +1278,6 @@ SELECT CASE id
   ELSE
    scriptret = -1
   END IF
- CASE 180'--mapwidth
-  scriptret = scroll(0)
- CASE 181'--mapheight
-  scriptret = scroll(1)
  CASE 200'--system hour
   scriptret = INT(TIMER / 3600)
  CASE 201'--system minute
@@ -1387,7 +1373,7 @@ SELECT CASE id
    END IF
   END IF
  CASE 219'--ascii from string
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 1 AND retvals(1) <= LEN(plotstring$(retvals(0))) THEN
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 1 AND retvals(0) <= LEN(plotstring$(retvals(0))) THEN
    scriptret = ASC(MID$(plotstring$(retvals(0)), retvals(1), 1))
   END IF
  CASE 220'--position string
@@ -1431,15 +1417,14 @@ SELECT CASE id
  CASE 230'--read enemy data
   f = FREEFILE
   OPEN game$ + ".dt1" FOR BINARY AS #f
-  GET #f, (CLNG(bound(retvals(0), 0, gen(genMaxEnemy))) * CLNG(320)) + (bound(retvals(1), 0, 159) * 2) + 1, temp16
-  v% = temp16
+  GET #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, v%
   CLOSE #f
   scriptret = v%
  CASE 231'--write enemy data
-  temp16 = retvals(2)
+  v% = retvals(2)
   f = FREEFILE
   OPEN game$ + ".dt1" FOR BINARY AS #f
-  PUT #f, (CLNG(bound(retvals(0), 0, gen(genMaxEnemy))) * CLNG(320)) + (bound(retvals(1), 0, 159) * 2) + 1, temp16
+  PUT #f, (bound(retvals(0), 0, gen(genMaxEnemy)) * 320) + (bound(retvals(1), 0, 159) * 2) + 1, v%
   CLOSE #f
 END SELECT
 
@@ -1501,15 +1486,14 @@ SELECT CASE id
  CASE 101'--NPC direction
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN scriptret = npcl(npcref + 900)
- CASE 117, 177'--NPC is walking
+ CASE 117'--NPC is walking
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    IF npcl(npcref + 1500) = 0 AND npcl(npcref + 1800) = 0 THEN
-    scriptret = 0
-   ELSE
     scriptret = 1
+   ELSE
+    scriptret = 0
    END IF
-   IF id = 117 THEN scriptret = scriptret XOR 1 'Backcompat hack
   END IF
  CASE 120'--NPC reference
   scriptret = 0

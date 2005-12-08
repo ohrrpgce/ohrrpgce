@@ -53,6 +53,7 @@ DECLARE FUNCTION functiondone% ()
 DECLARE FUNCTION functionread% ()
 DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION countitem% (it%)
+DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
@@ -74,6 +75,7 @@ DECLARE SUB debug (s$)
 DECLARE FUNCTION browse$ (fmask$, needf%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
+DECLARE FUNCTION picksave%(load%)
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%)
@@ -102,12 +104,12 @@ DECLARE FUNCTION readatkname$ (id%)
 DECLARE SUB getmapname (mapname$, m%)
 DECLARE SUB defaultc ()
 DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
-DECLARE FUNCTION maplumpname$(map, oldext$)
-DECLARE SUB cathero()
+DECLARE FUNCTION maplumpname$ (map, oldext$)
 
-'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
+'$INCLUDE: 'sglobals.bi'
+
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
 101
@@ -185,7 +187,7 @@ IF veh(0) THEN
  END IF
  IF veh(16) > 0 THEN
   say = veh(16)
-  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh() 
+  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
  END IF
  IF veh(16) < 0 THEN
   rsr = runscript(ABS(veh(16)), nowscript + 1, -1, "dismount")
@@ -349,7 +351,7 @@ END IF
 
 END FUNCTION
 
-FUNCTION maplumpname$(map, oldext$)
+FUNCTION maplumpname$ (map, oldext$)
  IF map < 100 THEN
   maplumpname$ = game$ + "." + oldext$ + RIGHT$("0" + LTRIM$(STR$(map)), 2)
  ELSE

@@ -64,11 +64,11 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
-DECLARE SUB fadein (force%)
 
-'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
+'$INCLUDE: 'sglobals.bi'
+
 '$INCLUDE: 'const.bi'
 
 REM $STATIC
@@ -1246,18 +1246,10 @@ FUNCTION picksave (loading)
 
 DIM full(3), herosname$(3), mapname$(3), svtime$(3), lev$(3), id(3, 3), tstat(3, 1, 16), pic(3, 3), confirm$(1), menu$(1)
 
-'--if loading is 2, that means fade the screen in, and loadmenu
-'--terribly sorry for the dirtyness
-needf = 0
-IF loading = 2 THEN
- loading = 1
- needf = 2
-END IF
-
-'--load strings. menu$ array holds the names of the options
+'--load strings. menu$ array holds the names of the options 
 '--at the top of the screeen (only one appears when saving)
 
-IF loading THEN
+IF loading THEN 
  cursor = 0
  menu$(0) = readglobalstring$(52, "New Game", 10)
  menu$(1) = readglobalstring$(53, "Exit", 10)
@@ -1376,8 +1368,8 @@ DO
  walk = walk XOR tog
  IF loading = 0 THEN playtimer
  control
- IF carray(5) > 1 THEN
-  IF loading THEN picksave = -2 ELSE picksave = -1
+ IF carray(5) > 1 THEN 
+  IF loading THEN picksave = -2 ELSE picksave = -1  
   EXIT DO
  END IF
  IF cursor = -2 THEN
@@ -1392,7 +1384,7 @@ DO
   IF carray(3) > 1 THEN cursor = -2
  END IF
  IF carray(4) > 1 THEN
-  IF cursor < 0 THEN
+  IF cursor < 0 THEN 
    picksave = cursor
    EXIT DO
   ELSE
@@ -1415,12 +1407,6 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  copypage 3, dpage
- IF needf = 1 THEN   'the titlescreen might be skipped and with it the fading in
-  needf = 0
-  fademusic fmvol
-  fadein -1
- END IF
- IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
 IF loading THEN
@@ -1458,7 +1444,7 @@ LOOP
 
 drawmenu:
 'load and save menus enjoy different colour schemes
-IF loading THEN activec = 2 ELSE activec = 1
+IF loading THEN activec = 2 ELSE activec = 1 
 SELECT CASE cursor
  CASE -2
   centerbox 270, 10, 82, 14, activec, dpage
@@ -2193,4 +2179,3 @@ ELSE
 END IF
 
 END FUNCTION
-

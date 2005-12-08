@@ -22,6 +22,7 @@ DECLARE SUB wrapxy (x%, y%, wide%, high%)
 DECLARE FUNCTION framewalkabout% (x%, y%, framex%, framey%, mapwide%, maphigh%, wrapmode%)
 DECLARE SUB initgamedefaults ()
 DECLARE SUB templockexplain ()
+DECLARE SUB crashexplain ()
 DECLARE SUB cleanuptemp ()
 DECLARE FUNCTION getfilelist% (wildcard$)
 DECLARE SUB fadeout (red%, green%, blue%, force%)
@@ -82,6 +83,7 @@ DECLARE FUNCTION countitem% (it%)
 DECLARE SUB scriptmath ()
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE SUB fatalerror (e$)
+DECLARE SUB xbload (f$, array%(), e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE SUB scripterr (e$)
 DECLARE SUB calibrate ()
@@ -115,6 +117,7 @@ DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock())
 DECLARE SUB loadgame (slot%, map%, foep%, stat%(), stock())
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
+DECLARE SUB getitem (getit%)
 DECLARE SUB delitem (it%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
 DECLARE SUB spells (pt%, stat%())
@@ -139,12 +142,12 @@ DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
 DECLARE SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
 DECLARE SUB setusermenu (menu$(), mt%, mi%())
-DECLARE FUNCTION maplumpname$(map, oldext$)
+DECLARE FUNCTION maplumpname$ (map, oldext$)
 
 '---INCLUDE FILES---
-'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
+'$INCLUDE: 'sglobals.bi'
 
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
@@ -165,7 +168,7 @@ CLOSE #fh
 'DEBUG debug "Thestart"
 thestart:
 'DEBUG debug "set stack size"
-CLEAR , , 2800
+CLEAR , , 2650
 
 storekeyhandler
 
@@ -175,8 +178,8 @@ storekeyhandler
 
 DIM font(1024), master(767), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
 DIM door(206), gen(104), npcl(2100), npcs(1500), saytag(21), tag(127), hero(40), stat(40, 1, 16), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(99), menu$(20), exlev&(40, 1), names$(40), mi(10), gotj(2), veh(21)
-DIM item(-3 TO 199), item$(-3 TO 199), eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), _
-tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 3)
+DIM item(-3 TO 199), item$(-3 TO 199), eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3),  _
+tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 4)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
 DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 13), retvals(32), plotstring$(31), plotstrX(31), plotstrY(31), plotstrCol(31), plotstrBGCol(31), plotstrBits(31)
 '--stuff we used to DIM here, but have defered to later
@@ -246,7 +249,24 @@ NEXT i
 
 'DEBUG debug "load font"
 
-getdefaultfont font()
+IF isfile(progdir$ + "ohrrpgce.fnt" + CHR$(0)) THEN
+ DEF SEG = VARSEG(font(0)): BLOAD progdir$ + "ohrrpgce.fnt", VARPTR(font(0))
+ELSE
+ '--load the ROM font
+ regs.ax = &H1130
+ regs.bx = &H300
+ CALL interruptx(&H10, regs, regs)
+ 'off9 = regs.bx: seg9 = regs.es
+ DEF SEG = regs.es
+ FOR i = 1 TO 255
+  FOR j = 0 TO 7
+   b = PEEK(regs.bp + (8 * i) + j)
+   FOR k = 0 TO 7
+    setbit font(), i * 4, (7 - k) * 8 + j, (b AND 2 ^ k)
+   NEXT k
+  NEXT j
+ NEXT i
+END IF
 
 'DEBUG debug "set mode-X"
 setmodex
@@ -272,8 +292,8 @@ FOR o = 0 TO 1
  NEXT i
 NEXT o
 keyv(40, 1) = 34
-DATA "1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/"
-DATA "!","@","#","$","%","^","&","*","(",")","_","+","","","Q","W","E","R","T","Y","U","I","O","P","{","}","","","A","S","D","F","G","H","J","K","L",":"," ","~","","|","Z","X","C","V","B","N","M","<",">","?"
+DATA 1,2,3,4,5,6,7,8,9,0,-,=,"","",q,w,e,r,t,y,u,i,o,p,[,],"","",a,s,d,f,g,h,j,k,l,";","'",`,"",\,z,x,c,v,b,n,m,",",".","/"
+DATA !,@,#,$,%,^,&,*,(,),_,+,"","",Q,W,E,R,T,Y,U,I,O,P,{,},"","",A,S,D,F,G,H,J,K,L,":"," ",~,"",|,Z,X,C,V,B,N,M,"<",">","?"
 
 textcolor 15, 0
 FOR i = 0 TO 31
@@ -364,18 +384,8 @@ depth = 0
 releasestack
 setupstack astack(), 1024, workingdir$ + "\stack.tmp" + CHR$(0)
 
-temp = -1
-IF readbit(gen(), genBits, 11) = 0 THEN
- GOSUB titlescr
- IF readbit(gen(), genBits, 12) = 0 THEN temp = picksave(1)
-ELSE
- IF readbit(gen(), genBits, 12) = 0 THEN
-  IF gen(2) > 0 THEN wrappedsong gen(2) - 1
-  fademusic fmvol
-  clearpage 3
-  temp = picksave(2)
- END IF
-END IF
+GOSUB titlescr
+temp = picksave(1)
 'DEBUG debug "picked save slot"+str$(temp)
 fademusic 0
 stopsong
@@ -398,7 +408,6 @@ evalherotag stat()
 needf = 1: ng = 1
 
 'DEBUG debug "pre-call movement"
-setmapdata pass(), pass(), 0, 0
 GOSUB movement
 setkeys
 DO
@@ -416,7 +425,9 @@ DO
  'DEBUG debug "keyboard handling"
  IF carray(5) > 1 AND showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(0) = 0 AND xgo(0) = 0 AND ygo(0) = 0 THEN
   GOSUB usermenu
-  evalitemtag
+  FOR i = 1 TO 10
+   evalitemtag
+  NEXT i
   npcplot
  END IF
  IF showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(6) = 0 THEN
@@ -470,7 +481,7 @@ DO
     npcplot
    CASE IS > 1
     say = tmp - 1
-    loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh() 
+    loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
   END SELECT
  END IF
  IF showsay = 1 THEN
@@ -623,8 +634,7 @@ DO
  GOSUB displayall
  IF fatal = 1 OR abortg = 1 THEN
   resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
-  'if skip loadmenu and title bits set, quit
-  IF readbit(gen(), genBits, 11) AND readbit(gen(), genBits, 12) THEN GOTO resetg ELSE GOTO beginplay
+  GOTO beginplay
  END IF
  'DEBUG debug "swap video pages"
  SWAP vpage, dpage
@@ -685,11 +695,7 @@ END IF '---END BACKDROP DISPLAY---
 'DEBUG debug "text box"
 IF showsay > 0 THEN drawsay saybit(), sayenh(), say$(), showsay, choose$(), choosep
 'DEBUG debug "map name"
-IF showmapname > 0 AND gmap(4) >= showmapname THEN 
-	showmapname = showmapname - 1: edgeprint mapname$, xstring(mapname$, 160), 180, 15, dpage
-ELSE
-	showmapname = 0
-END IF
+IF showmapname > 0 THEN showmapname = showmapname - 1: edgeprint mapname$, xstring(mapname$, 160), 180, 15, dpage
 '--FPS
 'framecount = framecount + 1
 'IF fpstimer! + 1 < TIMER THEN
@@ -746,19 +752,19 @@ DO
    IF say THEN
     '--player has used an item that calls a text box--
     IF say > 0 THEN
-     loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh() 
+     loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
     END IF
     EXIT DO
    END IF
   END IF
   IF mi(pt) = 1 THEN
-   w = onwho(readglobalstring$(104, "Whose Status?", 20), 0)
+   w = onwho(readglobalstring$(104, "Who's Status?", 20), 0)
    IF w >= 0 THEN
     status w, stat()
    END IF
   END IF
   IF mi(pt) = 3 THEN
-   w = onwho(readglobalstring$(106, "Whose Spells?", 20), 0)
+   w = onwho(readglobalstring$(106, "Who's Spells?", 20), 0)
    IF w >= 0 THEN
     spells w, stat()
    END IF
@@ -769,7 +775,7 @@ DO
    GOSUB reloadnpc
   END IF
   IF mi(pt) = 5 THEN
-   w = onwho(readglobalstring$(108, "Equip Whom?", 20), 0)
+   w = onwho(readglobalstring$(108, "Equip Who?", 20), 0)
    IF w >= 0 THEN
     equip w, stat()
    END IF
@@ -898,7 +904,7 @@ IF sayer >= 0 THEN
   CASE 0
    sayer = -1
   CASE IS > 0
-   loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh() 
+   loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
  END SELECT
  evalherotag stat()
  evalitemtag
@@ -913,7 +919,7 @@ nextsay:
 IF sayenh(4) > 0 THEN
  '--backdrop needs resetting
  gen(58) = 0
- correctbackdrop 
+ correctbackdrop
 END IF
 '---IF MADE A CHOICE---
 IF readbit(saybit(), 0, 0) THEN
@@ -986,7 +992,7 @@ IF istag(saytag(11), 0) THEN
   rsr = runscript(ABS(saytag(12)), nowscript + 1, -1, "textbox")
  ELSE
   say = saytag(12)
-  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh() 
+  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
   RETURN
  END IF
 END IF
@@ -1003,7 +1009,7 @@ IF sayer >= 0 AND npcl(sayer + 600) > 0 THEN
 END IF
 IF sayenh(4) > 0 THEN
  gen(58) = 0
- correctbackdrop 
+ correctbackdrop
 END IF
 FOR i = 0 TO 6
  sayenh(i) = 0
@@ -1072,7 +1078,6 @@ ELSE
   IF xgo(whoi) OR ygo(whoi) THEN wtog(whoi) = loopvar(wtog(whoi), 0, 3, 1)
  NEXT whoi
 END IF
-DIM didgo(0 TO 3) AS INTEGER
 FOR whoi = 0 TO 3
  didgo(whoi) = 0
  IF xgo(whoi) OR ygo(whoi) THEN
@@ -1159,7 +1164,6 @@ IF (xgo(0) = 0 OR movdivis(xgo(0))) AND (ygo(0) = 0 OR movdivis(ygo(0))) AND (di
   END IF
  END IF
 END IF
-ERASE didgo
 GOSUB setmapxy
 RETURN
 
@@ -1439,7 +1443,7 @@ IF isfile(maplumpname$(map, "e") + CHR$(0)) THEN
  foemaph = FREEFILE
  OPEN maplumpname$(map, "e") FOR BINARY AS #foemaph
 ELSE
- fatalerror "Oh no! Map" +LTRIM$(STR$(map)) + " foemap is missing"
+ fatalerror "Oh no! Map" + LTRIM$(STR$(map)) + " foemap is missing"
 END IF
 loaddoor map, door()
 IF afterbat = 0 THEN
@@ -1482,7 +1486,7 @@ GOSUB reloadnpc
 FOR i = 0 TO 35
  IF npcs(i * 15 + 3) = 3 THEN npcs(i * 15 + 3) = 10
 NEXT i
-correctbackdrop 
+correctbackdrop
 SELECT CASE gmap(5) '--outer edge wrapping
  CASE 0, 1'--crop edges or wrap
   setoutside -1
@@ -1700,7 +1704,7 @@ END IF
 '--do spawned text boxes, battles, etc.
 IF wantbox > 0 THEN
  say = wantbox
- loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh() 
+ loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
  wantbox = 0
 END IF
 IF wantdoor > 0 THEN
@@ -1781,32 +1785,32 @@ DO
       '--finish flow control? tricky!
       SELECT CASE scrat(nowscript, curvalue)
        CASE flowwhile'--repeat or terminate while
-		SELECT CASE scrat(nowscript, curargn)
-		 CASE 2
-		  '--if a while statement finishes normally (argn is 2) then it repeats.
-		  dummy = popw
-		  scrat(nowscript, curargn) = 0
-		 CASE 3
-		  '--if it is broken, argn will be three, and execution will continue as normal
-		  pushw 9999 '--while must pad the stack becuase it autodiscards the return value of it's conditional
-		  pushw 9998
-		  GOSUB dumpandreturn
-		 CASE ELSE
-		  scripterr "while fell out of bounds, landed on" + STR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
-		END SELECT
+	SELECT CASE scrat(nowscript, curargn)
+	 CASE 2
+	  '--if a while statement finishes normally (argn is 2) then it repeats.
+	  dummy = popw
+	  scrat(nowscript, curargn) = 0
+	 CASE 3
+	  '--if it is broken, argn will be three, and execution will continue as normal
+	  pushw 9999 '--while must pad the stack becuase it autodiscards the return value of it's conditional
+	  pushw 9998
+	  GOSUB dumpandreturn
+	 CASE ELSE
+	  scripterr "while fell out of bounds, landed on" + STR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
+	END SELECT
        CASE flowfor'--repeat or terminate for
-		SELECT CASE scrat(nowscript, curargn)
-		 CASE 5
-		  '--normal for termination means repeat
-		  dummy = popw
-		  GOSUB incrementflow
-		  scrat(nowscript, curargn) = 4
-		 CASE 6
-		  '--return
-		  GOSUB dumpandreturn
-		 CASE ELSE
-		  scripterr "for fell out of bounds, landed on" + STR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
-		END SELECT
+	SELECT CASE scrat(nowscript, curargn)
+	 CASE 5
+	  '--normal for termination means repeat
+	  dummy = popw
+	  GOSUB incrementflow
+	  scrat(nowscript, curargn) = 4
+	 CASE 6
+	  '--return
+	  GOSUB dumpandreturn
+	 CASE ELSE
+	  scripterr "for fell out of bounds, landed on" + STR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
+	END SELECT
        CASE flowreturn
 	scrat(nowscript, scrret) = popw
 	scriptret = 0
@@ -2026,10 +2030,10 @@ SELECT CASE scrat(nowscript, curkind)
     END IF
    CASE 32'--show backdrop
     gen(50) = bound(retvals(0) + 1, 0, gen(100))
-    correctbackdrop 
+    correctbackdrop
    CASE 33'--show map
     gen(50) = 0
-    correctbackdrop 
+    correctbackdrop
    CASE 34'--dismount vehicle
     forcedismount choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
    CASE 35'--use NPC
@@ -2346,6 +2350,17 @@ END IF
 
 loadpage game$ + ".til" + CHR$(0), gmap(0), 3
 
+END SUB
+
+SUB crashexplain
+PRINT "Please report this exact error message to ohrrpgce@HamsterRepublic.com"
+PRINT "Be sure to describe in detail what you were doing when it happened"
+PRINT
+PRINT version$
+PRINT "Memory Info:"; SETMEM(0); FRE(-1); FRE(-2); FRE(0)
+PRINT "Executable: "; progdir$ + exename$ + ".EXE"
+PRINT "RPG file: "; sourcerpg$
+'IF LEN(parting$) > 0 THEN PRINT parting$
 END SUB
 
 SUB exitprogram (needfade)
