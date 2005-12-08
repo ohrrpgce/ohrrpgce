@@ -1,0 +1,56 @@
+Initial translation
+-------------------
+
+Compat files won't be completely identical to game.exe. Need to 
+either change the name or split out the unique parts.
+
+all .bas files
+- add compat.bi
+- xbload duplicate (in compat.bi)
+- bitset() keyword - changed to editbitset()
+- ptr vars changed to pt
+
+custom.bas
+- name$() keyword
+- option$() keyword - doesn't seem to be needed at all
+- def seg stuff mostly changed to xbloads, which might not be appropriate
+- npc%() and npc$() can't coexist - change the first to npcn()
+- setmem, fre() stuff - replace with fre(0)
+- data statments need quotes for all character data
+- max used as array and int in shop sub, change int to maxcount
+
+drawing.bas
+- bit is a keyword, change bit$() to bitname$()
+- uses a lot of DEF SEG & PEEK/POKE stuff which will all need to be
+  rewritten, and I have no idea how to make it compatible.
+  
+flexmenu.bas
+- bound function declared twice, in fact whole block of functions
+- getbinsize needs to be declared (? apparently)
+
+mapsubs.bas
+- temp$ and temp$() are both used at the same time (as well as
+  an integer called temp, by the look of it, but that doesn't
+  seem to be causing problems yet). Changed temp$ to xtemp$.
+- BSAVEs to xbsave.
+
+subs.bas
+- usemenu() duplicate definition
+- name$ -> names$
+- option$() keyword - change to opt$()
+- in herodata max is used as an int and an array, change int to hmax
+- same for itemdata - changed to imax
+
+subs2.bas
+- usemenu() as above
+- name$ as above
+- out$ keyword, changed to outf$
+- textxbload has a def seg/bload. changed to xbload but might need
+  further investigation (why is it different from normal xbload?)
+  
+subs3.bas
+- usemenu
+- name$
+- remove xbload sub
+- out$ again. Changed to outf$ again but doesn't make sense in this
+  context (in subs2 it was a file name). Never mind.
