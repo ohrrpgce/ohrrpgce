@@ -5,12 +5,13 @@
 '$include: 'compat.bi'
 '$include: 'allmodex.bi'
 #include "gfx.bi"
-'$include: 'fbgfx.bi'
-'$include: "SDL\SDL.bi"
-'$include: "SDL\SDL_mixer.bi"
+#include "music.bi"
+'$include: 'fbgfx.bi'		
 '$include: 'gglobals.bi'
 
 option explicit
+
+#define NULL 0
 
 type ohrsprite
 	w as integer
@@ -33,7 +34,6 @@ declare sub droprect(image as ubyte ptr)
 
 declare function matchmask(match as string, mask as string) as integer
 declare function calcblock(byval x as integer, byval y as integer, byval t as integer) as integer
-declare sub bamconvert(bamfile as string, songfile as string)
 
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
@@ -43,7 +43,6 @@ declare function smouse alias "fb_SetMouse" ( byval x as integer = -1, byval y a
 'extern
 declare sub debug(s$)
 declare sub fatalerror(e$)
-declare sub bam2mid(infile as string, outfile as string)
 
 dim shared path as string
 dim shared vispage as integer
@@ -80,15 +79,6 @@ dim shared mouse_ymax as integer
 
 dim shared textfg as integer
 dim shared textbg as integer
-
-dim shared music_on as integer = 0
-'dim shared music_song as FMOD_SOUND ptr = 0 'integer = 0
-'dim shared fmod as FMOD_SYSTEM ptr
-'dim shared fmod_channel as FMOD_CHANNEL ptr = 0
-dim shared music_vol as integer
-dim shared music_paused as integer
-dim shared music_song as Mix_Music ptr = NULL
-dim shared orig_vol as integer = -1
 
 dim shared fontdata(0 to 2048-1) as ubyte
 
@@ -1546,189 +1536,35 @@ FUNCTION LongNameLength (filename$) as integer
 end FUNCTION
 
 SUB setupmusic (mbuf() as integer)
-	dim version as uinteger
-	if music_on = 0 then
-		dim audio_rate as integer
-		dim audio_format as Uint16
-		dim audio_channels as integer
-		dim audio_buffers as integer
-	
-		' We're going to be requesting certain things from our audio
-		' device, so we set them up beforehand
-		audio_rate = MIX_DEFAULT_FREQUENCY
-		audio_format = MIX_DEFAULT_FORMAT
-		audio_channels = 2
-		audio_buffers = 4096
-		
-		SDL_Init(SDL_INIT_VIDEO or SDL_INIT_AUDIO)
-		
-		if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) <> 0 then
-			Debug "Can't open audio"
-			music_on = -1
-			SDL_Quit()
-			exit sub
-		end if
-		
-		music_vol = 8
-		music_on = 1
-		music_paused = 0
-	end if	
+	music_init
 end SUB
 
 SUB closemusic ()
-	if music_on = 1 then
-		if orig_vol > -1 then
-			'restore original volume
-			Mix_VolumeMusic(orig_vol)
-		end if
-		
-		if music_song <> 0 then
-			Mix_FreeMusic(music_song)
-			music_song = 0
-			music_paused = 0
-		end if
-		
-		Mix_CloseAudio
-		SDL_Quit
-		music_on = 0
-	end if
+	music_close
 end SUB
 
 SUB loadsong (f$)
-'would be nice if we had a routine that took the number as a param
-'instead of the name, maybe abstract one into compat.bas?
-	if music_on = 1 then
-		dim exten as string
-		dim dotpos as integer
-		dim i as integer
-		dim songname as string = ""
-		dim found as integer = 0
-		dim pass as integer = 0
-		dim bamfile as string
-		
-		bamfile = rtrim$(f$) 	'lose the null terminator
-		
-		'get the extension (ie. song number)
-		dotpos = 0
-		do 
-			i = instr(dotpos + 1, bamfile, ".")
-			if i <> 0 then
-				dotpos = i
-			end if
-		loop until i = 0
-		exten = mid$(bamfile, dotpos + 1)
-		
-		're-ordered filename without extension
-		songname = workingdir$ + PATH_SEP + "song" + exten
-		
-		'stop current song
-		if music_song <> 0 then
-			Mix_FreeMusic(music_song)
-			music_song = 0
-			music_paused = 0
-		end if
-
-		'find song
-		pass = 0
-		while pass < 2 and found = 0
-			if isfile(songname + ".xm") then
-				songname = songname + ".xm"
-				found = 1
-			elseif isfile(songname + ".it") then
-				songname = songname + ".it"
-				found = 1
-			elseif isfile(songname + ".mod") then
-				songname = songname + ".mod"
-				found = 1
-			elseif isfile(songname + ".ogg") then
-				songname = songname + ".ogg"
-				found = 1
-			elseif isfile(songname + ".mid") then
-				songname = songname + ".mid"
-				found = 1
-			end if
-			
-			if found = 0 then
-				bamconvert(bamfile, songname)
-			end if
-			pass = pass + 1
-		wend
-		
-		if (found = 1) then
-			music_song = Mix_LoadMUS(songname)
-			if music_song = 0 then
-				debug "Could not load song " + songname
-				exit sub
-			end if
-			
-			Mix_PlayMusic(music_song, -1)			
-			music_paused = 0
-
-			if orig_vol = -1 then
-				orig_vol = Mix_VolumeMusic(-1)
-			end if
-						
-			'dim realvol as single
-			'realvol = music_vol / 15
-			'FMOD_Channel_SetVolume(fmod_channel, realvol)
-			if music_vol = 0 then
-				Mix_VolumeMusic(0)
-			else
-				'add a small adjustment because 15 doesn't go into 128
-				Mix_VolumeMusic((music_vol * 8) + 8)
-			end if
-		end if
-	end if
+	music_play(f$)
 end SUB
 
 SUB stopsong ()
-	if music_on = 1 then
-		if music_song > 0 then
-			if music_paused = 0 then
-				Mix_PauseMusic
-				music_paused = 1
-			end if
-		end if
-	end if
+	music_pause()
 end SUB
 
 SUB resumesong ()
-	if music_on = 1 then
-		if music_song > 0 then
-			Mix_ResumeMusic
-			music_paused = 0
-		end if
-	end if
+	music_resume
 end SUB
 
 SUB fademusic (BYVAL vol as integer)
-'Unlike the original version, this will pause everything else while it
-'fades, so make sure it doesn't take too long
-	dim vstep as integer = 1
-	dim i as integer
-	
-	if music_vol > vol then vstep = -1
-	for i = music_vol to vol step vstep
-		setfmvol(i)
-		sleep 10
-	next
-	
+	music_fade(vol)
 end SUB
 
 FUNCTION getfmvol () as integer
-	getfmvol = music_vol
+	getfmvol = music_getvolume
 end FUNCTION
 
 SUB setfmvol (BYVAL vol as integer)
-	music_vol = vol
-	if music_on = 1 then
-		if music_vol = 0 then
-			Mix_VolumeMusic(0)
-		else
-			'add a small adjustment because 15 doesn't go into 128
-			Mix_VolumeMusic((music_vol * 8) + 8)
-		end if
-	end if
+	music_setvolume(vol)
 end SUB
 
 SUB copyfile (s$, d$, buf() as integer)
@@ -2079,12 +1915,6 @@ function xstr$(x as double)
 		xstr$ = str$(x)
 	end if
 end function
-
-sub bamconvert(bamfile as string, songfile as string)
-'note, songfile has no extension, so this sub can add whichever it likes
-	bam2mid(bamfile, songfile + ".mid")
-	'exec("tools/bam2mid.exe", bamfile + " " + songfile + ".mid")
-end sub
 
 '-------------- Software GFX mode routines -----------------
 sub setclip(l as integer, t as integer, r as integer, b as integer)
