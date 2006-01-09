@@ -809,11 +809,11 @@ loadset game$ + ".efs" + CHR$(0), gptr, 0
 RETURN
 
 editform:
-menu$(3) = "Previous Menu"
-max(0) = general(100) - 1
-max(1) = 100
-max(2) = 999
-ptr = 0: csr2 = -5: csr3 = 0
+max(1) = general(100) - 1
+max(2) = 100
+max(3) = 49
+max(4) = 1000
+ptr = 0: csr2 = -6: csr3 = 0
 GOSUB loadform
 GOSUB formpics
 setkeys
@@ -835,15 +835,15 @@ DO
   '--menu mode
   IF keyval(1) > 1 THEN GOSUB saveform: RETURN
   IF keyval(29) > 0 AND keyval(14) THEN cropafter ptr, general(37), 0, game$ + ".for", 80, 1
-  dummy = usemenu(csr2, -5, -5, 7, 24)
+  dummy = usemenu(csr2, -6, -6, 7, 25)
   IF keyval(57) > 1 OR keyval(28) > 1 THEN
-   IF csr2 = -5 THEN GOSUB saveform: RETURN
+   IF csr2 = -6 THEN GOSUB saveform: RETURN
    IF csr2 >= 0 THEN IF a(csr2 * 4 + 0) > 0 THEN csr3 = 1
   END IF
-  IF csr2 > -4 AND csr2 < 0 THEN
-   IF intgrabber(a(35 + csr2), 0, max(csr2 + 3), 75, 77) THEN GOSUB saveform: GOSUB loadform
+  IF csr2 > -6 AND csr2 < 0 THEN
+   IF intgrabber(a(36 + csr2), 0, max(csr2 + 5), 75, 77) THEN GOSUB saveform: GOSUB loadform
   END IF
-  IF csr2 = -4 THEN '---SELECT A DIFFERENT FORMATION
+  IF csr2 = -5 THEN '---SELECT A DIFFERENT FORMATION
    remptr = ptr
    IF intgrabber(ptr, 0, general(37), 51, 52) THEN
     SWAP ptr, remptr
@@ -875,15 +875,16 @@ DO
   menu$(4) = CHR$(27) + "formation" + STR$(ptr) + CHR$(26)
   menu$(5) = "Backdrop screen:" + STR$(a(32))
   menu$(6) = "Battle Music:"
-  IF a(33) = 0 THEN menu$(6) = menu$(6) + " -none-" ELSE menu$(6) = menu$(6) + STR$(a(33)) + " " + song$(a(33) - 1)
-  menu$(7) = "*Unused*:" + STR$(a(34))
-  FOR i = 0 TO 4
-   col = 7: IF csr2 + 5 = i THEN col = 14 + tog
+  menu$(7) = "Backdrop Frames:" 
+  IF a(34) = 0 THEN menu$(7) = menu$(7) + " no animation" ELSE menu$(7) = menu$(7) + STR$(a(34)+1)
+  menu$(8) = "Backdrop Speed:" + STR$(a(35))
+  FOR i = 0 TO 5
+   col = 7: IF csr2 + 6 = i THEN col = 14 + tog
    edgeprint menu$(i + 3), 1, 1 + (i * 10), col, dpage
   NEXT i
   FOR i = 0 TO 7
    col = 7: IF csr2 = i THEN col = 14 + tog
-   edgeprint "Enemy:" + ename$(i), 1, 50 + (i * 10), col, dpage
+   edgeprint "Enemy:" + ename$(i), 1, 61 + (i * 10), col, dpage
   NEXT i
  END IF
  SWAP vpage, dpage
