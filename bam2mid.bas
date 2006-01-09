@@ -69,14 +69,14 @@ sub bam2mid(infile as string, outfile as string)
 	open infile for binary as #f1
 	if err <> 0 then
 		debug "File " + infile + " could not be opened."
-		end
+		exit sub
 	end if
 	
 	get #f1, , magic
 	if magic <> "CBMF" then
 		debug "File " + infile + " is not a BAM."
 		close #f1
-		end
+		exit sub
 	end if
 	
 	kill outfile
@@ -86,7 +86,7 @@ sub bam2mid(infile as string, outfile as string)
 	if err <> 0 then
 		debug "Output file " + outfile + " could not be opened."
 		close #f1
-		end
+		exit sub
 	end if
 	
 	'write the midi header
