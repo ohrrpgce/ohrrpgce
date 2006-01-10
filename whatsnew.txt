@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-??? ?? 200? [aristotle? simonsays? serendipity? something?]
+??? ?? 2006 [serendipity]
 
   * New Features
 
@@ -28,6 +28,7 @@ WHAT IS NEW?
     * "cancel map name display" [James Paige]
     * "seconds of play", "set days of play", "set hours of play",
       "set minutes of play", "set seconds of play" [Mike Caron]
+    * "read NPC" (counterpart of alter NPC) [James Paige]
 
   * Stuff only Developers Will Notice
 
