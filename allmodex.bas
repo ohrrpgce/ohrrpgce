@@ -302,6 +302,7 @@ FUNCTION readbit (bb() as integer, BYVAL w as integer, BYVAL b as integer)  as i
 end FUNCTION
 
 SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
+	IF attrib = 0 THEN attrib = 255
 	dim ff%
 	ff = FreeFile
 	OPEN outfile$ FOR OUTPUT as #ff
