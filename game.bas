@@ -2277,6 +2277,18 @@ SELECT CASE scrat(nowscript, curkind)
       scrat(nowscript, scrstate) = stwait
      END IF
     END IF
+   CASE 182'--read NPC
+    IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
+     IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
+      scriptret = npcs(retvals(0) * 15 + retvals(1))
+     ELSE
+      npcref = getnpcref(retvals(0), 0)
+      IF npcref >= 0 THEN
+       id = (npcl(npcref + 600) - 1)
+       scriptret = npcs(id * 15 + retvals(1))
+      END IF
+     END IF
+    END IF
  CASE 210'--show string
  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
  scriptout$ = plotstring$(retvals(0))
