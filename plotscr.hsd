@@ -188,6 +188,7 @@ define function, begin
 179,writegmap,2,0,0         # write a gmap data item
 180,mapwidth,0              # returns map height in tiles
 181,mapheight,0             # returns map width in tiles
+182,readNPC,2,0,0           # reads information about an NPC on the current map (corresponds to alterNPC)
 
 200,system hour,0
 201,system minute,0
