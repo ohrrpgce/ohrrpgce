@@ -1616,6 +1616,11 @@ script,change NPC,who,picture,palette,begin
   Alter NPC(who,NPCstat:palette,palette)
 end</example>
 		</command>
+		<command id="readnpc">
+			<cannon>read NPC (who,NPCstat)</cannon>
+			<shortname>read NPC</shortname>
+			<description>Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <ref>alternpc</ref></description>
+		</command>
 		<command id="setdeathscript">
 			<cannon>set death script (id)</cannon>
 			<shortname>set death script</shortname>
