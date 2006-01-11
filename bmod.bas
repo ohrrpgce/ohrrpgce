@@ -155,6 +155,15 @@ DO
  playtimer
  control
  flash = loopvar(flash, 0, 14, 1)
+ '--background animation hack
+ if a(34)>0 then
+  bgspeed = loopvar(bgspeed,0,a(35),1)
+  if bgspeed=0 then 
+   curbg = loopvar(curbg, a(32),a(32) + a(34),1)
+   loadpage game$ + ".mxs" + CHR$(0), curbg, 2
+  end if
+ end if
+
  IF readbit(gen(), 101, 8) = 0 THEN
   '--debug keys
   IF keyval(62) > 1 THEN away = 11 ' Instant-cheater-running
