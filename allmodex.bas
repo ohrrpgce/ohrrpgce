@@ -1370,6 +1370,7 @@ SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 end SUB
 
 SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
+	if attrib = 0 then attrib = 255
 	dim ff%
 	ff = FreeFile
 	OPEN outfile$ FOR OUTPUT as #ff
