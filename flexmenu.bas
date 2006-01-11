@@ -129,7 +129,7 @@ rectangle 260, 140, 50, 50, 8, 3
 '----------------------------------------------------------
 '--bitsets
 
-DIM atkbit$(-1 TO 62)
+DIM atkbit$(-1 TO 63)
 
 atkbit$(0) = "Cure Instead of Harm"
 atkbit$(1) = "Divide Spread Damage"
@@ -165,6 +165,8 @@ atkbit$(59) = "Useable Outside of Battle"
 atkbit$(60) = "Damage " + sname$(1) + " (obsolete)"
 atkbit$(61) = "Do not randomize"
 atkbit$(62) = "Damage can be Zero"
+atkbit$(63) = "Cause heroes to run away"
+' hacks required to add additional attack bitsets, see DT6 documentation
 
 '----------------------------------------------------------
 DIM recbuf(100) '--stores the 200 bytes of attack data
@@ -717,7 +719,7 @@ DO
     recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), 3, 0, 0, 50, 50, 2)
     GOSUB AtkUpdateMenu
    CASE AtkBitAct
-    bitset recbuf(), AtkDatBitsets, 62, atkbit$()
+    bitset recbuf(), AtkDatBitsets, 63, atkbit$()
   END SELECT
  END IF
  

@@ -73,6 +73,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
+DECLARE FUNCTION checkNoRunBit (stat%(), ebits%())
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -159,13 +160,13 @@ DO
  flash = loopvar(flash, 0, 14, 1)
  
  '--background animation hack
- if a(34)>0 then
-  bgspeed = loopvar(bgspeed,0,a(35),1)
-  if bgspeed=0 then 
-   curbg = loopvar(curbg, a(32),a(32) + a(34),1)
+ IF a(34) > 0 THEN
+  bgspeed = loopvar(bgspeed, 0, a(35), 1)
+  IF bgspeed = 0 THEN
+   curbg = loopvar(curbg, a(32), a(32) + a(34), 1)
    loadpage game$ + ".mxs" + CHR$(0), curbg, 2
-  end if
- end if
+  END IF
+ END IF
 
  IF readbit(gen(), 101, 8) = 0 THEN
   '--debug keys
@@ -1003,6 +1004,15 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
          es(targ - 4, 57) = 0
          es(targ - 4, 59) = 0
          es(targ - 4, 61) = 0
+        END IF
+        IF readbit(atk(), 20, 63) = 1 THEN
+         'force heroes to run away
+         IF checkNoRunBit(stat(), ebits()) THEN
+          alert$ = cannotrun$
+          alert = 10
+         ELSE
+          away = 1
+         END IF
         END IF
     IF trytheft(who, targ, atk(), es()) THEN
      GOSUB checkitemusability
@@ -1855,9 +1865,11 @@ IF flee > 0 AND flee < 4 THEN
  END IF
 END IF
 IF flee = 4 THEN
- FOR i = 4 TO 11
-  IF stat(i, 0, 0) > 0 AND v(i) = 1 AND readbit(ebits(), (i - 4) * 5, 57) = 1 THEN flee = 0: alert$ = cannotrun$: alert = 10
- NEXT i
+ IF checkNoRunBit(stat(), ebits()) THEN
+  flee = 0
+  alert$ = cannotrun$
+  alert = 10
+ END IF
 END IF
 IF flee > 4 THEN
  FOR i = 0 TO 3
@@ -2117,6 +2129,13 @@ RETURN
 '16=unused
 '17=unused
 
+END FUNCTION
+
+FUNCTION checkNoRunBit (stat(), ebits())
+ checkNoRunBit = 0
+ FOR i = 4 TO 11
+  IF stat(i, 0, 0) > 0 AND v(i) = 1 AND readbit(ebits(), (i - 4) * 5, 57) = 1 THEN checkNoRunBit = 1
+ NEXT i
 END FUNCTION
 
 FUNCTION focuscost (cost, focus)
