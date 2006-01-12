@@ -27,6 +27,10 @@ WHAT IS NEW?
     * c and v no longer appended to a string when copying and pasting
       [Ralph Versteegen]
 
+    * renamed attack bitset "No Reward from target" to
+      "Erase rewards (Enemy target only)" to clarify that it
+      happens even if the attack does not kill the target
+
   * New Plotscripting Commands
 
     * "cancel map name display" [James Paige]
