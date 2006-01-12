@@ -83,8 +83,6 @@ DECLARE FUNCTION checkNoRunBit (stat%(), ebits%())
 REM $STATIC
 FUNCTION battle (form, fatal, exstat())
 
-debug "in battle"
-
 '--prepare stack
 bstackstart = stackpos
 
@@ -281,19 +279,14 @@ IF (stackpos - bstackstart) \ 2 < 0 THEN
  fatalerror "bstack underflow" + STR$(stackpos) + STR$(bstackstart)
 END IF
 
-debug "fademusic 0"
 fademusic 0
 
-debug "fadeout"
 fadeout 0, 0, 0, -1
 
-debug "clearpage"
 clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-
-debug "exit function"
 
 EXIT FUNCTION '---------------------------------------------------------------
 
