@@ -43,9 +43,46 @@ sub gfx_setpal(pal() as integer)
 	palette using pal
 end sub
 
+function gfx_screenshot(fname as string, byval page as integer) as integer
+	gfx_screenshot = 0
+end function
+
+'------------- IO Functions --------------
+sub io_init
+	setmouse(0, 0, 0) 'hide mouse
+end sub
+
 function io_keypressed(byval scancode as integer)
 'the contract of this function is basically the same as multikey
 'in this case it's just a wrapper, but multikey only works with
 'the built-in gfxlib
 	io_keypressed = multikey(scancode)
+end function
+
+function io_enablemouse() as integer
+'returns 0 if mouse okay
+	dim as integer mx, my, mw, mb
+	getmouse(mx, my, mw, mb)
+	if (mb = -1) then	'no mouse if button = -1
+		io_enablemouse = -1
+		exit function
+	end if
+	io_enablemouse = 0
+end function
+
+sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
+	getmouse(mx, my, mwheel, mbuttons)
+end sub
+
+sub io_setmouse(byval x as integer, byval y as integer)
+	setmouse(x, y)
+end sub
+
+sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+	'nothing to do
+end sub
+
+function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
+	'don't know
+	io_readjoy = 0
 end function
