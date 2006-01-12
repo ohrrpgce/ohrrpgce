@@ -152,7 +152,7 @@ FOR i = 0 TO 3
 NEXT i
 
 atkbit$(49) = "Ignore hero's extra hits"
-atkbit$(50) = "No Reward from target"
+atkbit$(50) = "Erase rewards (Enemy target only)"
 atkbit$(51) = "Show damage without inflicting"
 atkbit$(52) = "Store Target"
 atkbit$(53) = "Delete Stored Target"
