@@ -14,6 +14,8 @@ WHAT IS NEW?
     * Attack bitsets to disable certain target slots on an
       attack-by-attack basis. [James Paige]
       (Unfinished! Only works for heroes right now, see bug 102)
+      
+    * Animated backdrops in battle [Mike Caron]
 
     * Attack bitset to force the heroes to run away [James Paige]
 
