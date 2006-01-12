@@ -592,12 +592,9 @@ DO
     '--normal battle
     fatal = 0
     ERASE scroll, pass
-    debug "before normal battle"
     wonbattle = battle(batform, fatal, stat())
-    debug "after normal battle"
     afterbat = 1
     GOSUB preparemap: needf = 2
-    debug "after preparemap"
    ELSE
     rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle")
     IF rsr = 1 THEN
