@@ -8,6 +8,7 @@
 #include "music.bi"
 '$include: 'fbgfx.bi'		
 '$include: 'gglobals.bi'
+#include "bitmap.bi"
 
 option explicit
 
@@ -38,7 +39,6 @@ declare function calcblock(byval x as integer, byval y as integer, byval t as in
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
-declare function smouse alias "fb_SetMouse" ( byval x as integer = -1, byval y as integer = -1, byval cursor as integer = -1 ) as integer
 
 'extern
 declare sub debug(s$)
@@ -64,7 +64,7 @@ dim shared map_y as integer
 dim shared anim1 as integer
 dim shared anim2 as integer
 
-dim shared waittime as single
+dim shared waittime as double
 dim shared keybd(0 to 255) as integer
 dim shared keytime(0 to 255) as integer
 
@@ -106,12 +106,8 @@ sub setmodex()
 	next
 	stacksize = -1
 	
-	mouse_xmin = 0
-	mouse_xmax = 319 ' 636 in orig
-	mouse_ymin = 0
-	mouse_ymax = 199 ' 198 in orig
-	
-	smouse(0, 0, 0) 'hide mouse
+	io_init
+	mouserect(0,319,0,199)
 end sub
 
 sub restoremode() 
@@ -389,6 +385,9 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 									
 				'draw it on the map
 				drawohr(tbuf, tx, ty)
+				
+				'deallocate
+				droprect(tbuf.image)
 			end if
 			
 			tx = tx + 20
@@ -398,7 +397,6 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 		ypos = ypos + 1
 	wend
 		
-	deallocate(tbuf.image)
 	'reset viewport
 	setclip
 end SUB
@@ -724,20 +722,6 @@ SUB setkeys ()
 					keytime(a) = ktime + 200
 				else
 					keytime(a) = ktime + 50
-				end if
-			else
-				'NOTE there are 86,400,000 thousandths in a day
-				if keytime(a) > 80000000 and ktime < 1800000 then
-					'check wrap over midnight (stupid timer)
-					keytime(a) = keytime(a) - 86400000
-					if ktime > keytime(a) then
-						keybd(a) = 2
-						if keytime(a) = -1 or ktime > keytime(a) + 1000 then
-							keytime(a) = ktime + 200
-						else
-							keytime(a) = ktime + 50
-						end if
-					end if
 				end if
 			end if
 		else
@@ -1130,7 +1114,7 @@ SUB setwait (b() as integer, BYVAL t as integer)
 'dos timer means that the latter is always truncated to the last multiple of
 '55 milliseconds.
 	dim millis as integer
-	dim secs as single
+	dim secs as double
 	millis = (t \ 55) * 55
 	
 	secs = millis / 1000
@@ -1574,16 +1558,85 @@ SUB copyfile (s$, d$, buf() as integer)
 end SUB
 
 SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
+'Not sure whether this should be in here or in gfx. Possibly both?
 '	bsave f$, 0
+	dim fname as string
+	
+	fname = rtrim$(f$)
+	
+	'try external first
+	if gfx_screenshot(fname, p) = 0 then
+		'otherwise save it ourselves
+		dim header as BITMAPFILEHEADER
+		dim info as BITMAPINFOHEADER
+
+		dim as integer of, w, h, i, bfSize, biSizeImage, bfOffBits, biClrUsed, pitch, argb
+		dim as ubyte ptr s
+	
+		w = 320
+		h = 200
+		s = spage(p)
+		pitch = w
+
+		biSizeImage = w * h
+		bfOffBits = 54 + 1024
+		bfSize = bfOffBits + biSizeImage
+		biClrUsed = 256
+	
+		header.bfType = 19778
+		header.bfSize = bfSize
+		header.bfReserved1 = 0
+		header.bfReserved2 = 0
+		header.bfOffBits = bfOffBits
+		
+		info.biSize = 40
+		info.biWidth = w
+		info.biHeight = h
+		info.biPlanes = 1
+		info.biBitCount = 8
+		info.biCompression = 0
+		info.biSizeImage = biSizeImage
+		info.biXPelsPerMeter = &hB12
+		info.biYPelsPerMeter = &hB12
+		info.biClrUsed = biClrUsed
+		info.biClrImportant = biClrUsed
+		
+		of = freefile
+		open fname for binary access write as #of
+		if err > 0 then
+			'debug "Couldn't open " + fname
+			exit sub
+		end if
+
+		put #of, , header
+		put #of, , info
+				
+		for i = 0 to 255
+			'note: values are multiplied by 4 which is shr 2
+			'combined with the other rearrangements BGR->RGB
+			argb = (intpal(i) and &hff0000) shl 14
+			argb = argb or ((intpal(i) and &hff00) shr 2)
+			argb = argb or ((intpal(i) and &hff) shl 14)
+			put #of, , argb 'I'm sure this is wrong, but let's try
+		next
+	
+		s += (h - 1) * pitch
+		while h > 0
+			fput(of, , s, pitch)
+			s -= pitch
+			h -= 1
+		wend
+	
+		close #of
+	end if
 end SUB
 
 FUNCTION setmouse (mbuf() as integer) as integer
 'don't think this does much except says whether there is a mouse
 'no idea what the parameter is for
-	dim mousebuf(0 to 3) as integer
-	readmouse(mousebuf())
-	if (mousebuf(2) = -1) then	'no mouse if button = -1
+	if io_enablemouse <> 0 then
 		setmouse = 0
+		exit function
 	end if
 	setmouse = 1
 end FUNCTION
@@ -1593,7 +1646,7 @@ SUB readmouse (mbuf() as integer)
 	static lastx as integer = 0
 	static lasty as integer = 0
 	
-	getmouse(mx, my, mw, mb)
+	io_getmouse(mx, my, mw, mb)
 	if (mx = -1) then mx = lastx
 	if (my = -1) then my = lasty
 	if (mx > mouse_xmax) then mx = mouse_xmax
@@ -1611,7 +1664,7 @@ SUB readmouse (mbuf() as integer)
 end SUB
 
 SUB movemouse (BYVAL x as integer, BYVAL y as integer)
-	smouse(x, y)
+	io_setmouse(x, y)
 end SUB
 
 SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)
@@ -1619,10 +1672,12 @@ SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)
 	mouse_xmax = xmax
 	mouse_ymin = ymin
 	mouse_ymax = ymax
+	io_mouserect(xmin, xmax, ymin, ymax)
 end sub
 
 FUNCTION readjoy (joybuf() as integer, BYVAL jnum as integer) as integer
 'would be easy if I knew what was going where in the buffer
+	io_readjoy(joybuf(), jnum)
 	readjoy = 0
 end FUNCTION
 
@@ -1966,6 +2021,8 @@ sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer
 end sub
 
 function grabrect(page as integer, x as integer, y as integer, w as integer, h as integer) as ubyte ptr
+'should possibly move the allocate out and pass the pointer in. as it is
+'the space is allocated and deallocated hundreds of times per frame.
 	dim iptr as ubyte ptr
 	dim sptr as ubyte ptr
 	dim as integer i, j, px, py
@@ -1996,154 +2053,3 @@ sub droprect(image as ubyte ptr)
 	deallocate(image)
 end sub
 
-'--------------- Stolen graphics functions ------------------
-
-
-' typedef struct SPAN
-' {
-' 	int y, x1, x2;
-' 	struct SPAN *row_next;
-' 	struct SPAN *next;
-' } SPAN;
-
-
-' /*:::::*/
-' static SPAN *add_span(SPAN **span, int *x, int y, unsigned int border_color)
-' {
-' 	SPAN *s;
-' 	int x1, x2;
-
-' 	x1 = x2 = *x;
-' 	while ((x1 > fb_mode->view_x) && (fb_hGetPixel(x1 - 1, y) != border_color))
-' 		x1--;
-' 	while ((x2 < fb_mode->view_x + fb_mode->view_w - 1) && (fb_hGetPixel(x2 + 1, y) != border_color))
-' 		x2++;
-' 	*x = x2 + 1;
-' 	for (s = span[y]; s; s = s->row_next) {
-' 		if ((x1 == s->x1) && (x2 == s->x2))
-' 			return NULL;
-' 	}
-' 	s = (SPAN *)malloc(sizeof(SPAN));
-' 	s->x1 = x1;
-' 	s->x2 = x2;
-' 	s->y = y;
-' 	s->next = NULL;
-' 	s->row_next = span[y];
-' 	span[y] = s;
-
-' 	return s;
-' }
-
-
-' /*:::::*/
-' FBCALL void fb_GfxPaint(void *target, float fx, float fy, unsigned int color, unsigned int border_color, FBSTRING *pattern, int mode, int coord_type)
-' {
-' 	int size, x, y;
-' 	unsigned char data[256], *dest, *src;
-' 	SPAN **span, *s, *tail, *head;
-
-' 	if (!fb_mode)
-' 		return;
-
-' 	if (color == DEFAULT_COLOR)
-' 		color = fb_mode->fg_color;
-' 	else
-' 		color = fb_hFixColor(color);
-' 	if (border_color == DEFAULT_COLOR)
-' 		border_color = color;
-' 	else
-' 		border_color = fb_hFixColor(border_color);
-
-' 	fb_hPrepareTarget(target);
-
-' 	fb_hFixRelative(coord_type, &fx, &fy, NULL, NULL);
-
-' 	fb_hTranslateCoord(fx, fy, &x, &y);
-
-' 	fb_hMemSet(data, 0, sizeof(data));
-' 	if ((mode == PAINT_TYPE_PATTERN) && (pattern)) {
-' 		fb_hMemCpy(data, pattern->data, MIN(256, FB_STRSIZE(pattern)));
-'     }
-'     if (pattern) {
-'         /* del if temp */
-'         fb_hStrDelTemp( pattern );
-'     }
-
-' 	if ((x < fb_mode->view_x) || (x >= fb_mode->view_x + fb_mode->view_w) ||
-' 	    (y < fb_mode->view_y) || (y >= fb_mode->view_y + fb_mode->view_h))
-' 		return;
-
-' 	if (fb_hGetPixel(x, y) == border_color)
-' 		return;
-
-' 	size = sizeof(SPAN *) * fb_mode->h;
-' 	span = (SPAN **)malloc(size);
-' 	fb_hMemSet(span, 0, size);
-
-' 	tail = head = add_span(span, &x, y, border_color);
-
-' 	/* Find all spans to paint */
-' 	while (tail) {
-' 		if (tail->y - 1 >= fb_mode->view_y) {
-' 			for (x = tail->x1; x <= tail->x2; x++) {
-' 				if (fb_hGetPixel(x, tail->y - 1) != border_color) {
-' 					s = add_span(span, &x, tail->y - 1, border_color);
-' 					if (s) {
-' 						head->next = s;
-' 						head = s;
-' 					}
-' 				}
-' 			}
-' 		}
-' 		if (tail->y + 1 < fb_mode->view_y + fb_mode->view_h) {
-' 			for (x = tail->x1; x <= tail->x2; x++) {
-' 				if (fb_hGetPixel(x, tail->y + 1) != border_color) {
-' 					s = add_span(span, &x, tail->y + 1, border_color);
-' 					if (s) {
-' 						head->next = s;
-' 						head = s;
-' 					}
-' 				}
-' 			}
-' 		}
-' 		tail = tail->next;
-' 	}
-
-' 	DRIVER_LOCK();
-
-' 	/* Fill spans */
-' 	for (y = 0; y < fb_mode->h; y++) {
-' 		for (s = tail = span[y]; s; s = s->row_next, free(tail), tail = s) {
-
-' 			dest = fb_mode->line[s->y] + (s->x1 * fb_mode->bpp);
-
-' 			if (mode == PAINT_TYPE_FILL)
-' 				fb_hPixelSet(dest, color, s->x2 - s->x1 + 1);
-' 			else {
-' 				src = data + (((s->y & 0x7) << 3) * fb_mode->bpp);
-' 				if (s->x1 & 0x7) {
-' 					if ((s->x1 & ~0x7) == (s->x2 & ~0x7))
-' 						size = s->x2 - s->x1 + 1;
-' 					else
-' 						size = 8 - (s->x1 & 0x7);
-' 					fb_hPixelCpy(dest, src + ((s->x1 & 0x7) * fb_mode->bpp), size);
-' 					dest += size * fb_mode->bpp;
-' 				}
-' 				s->x2++;
-' 				for (x = (s->x1 + 7) >> 3; x < (s->x2 & ~0x7) >> 3; x++) {
-' 					fb_hPixelCpy(dest, src, 8);
-' 					dest += 8 * fb_mode->bpp;
-' 				}
-' 				if ((s->x2 & 0x7) && ((s->x1 & ~0x7) != (s->x2 & ~0x7)))
-' 					fb_hPixelCpy(dest, src, s->x2 & 0x7);
-' 			}
-
-' 			if (fb_mode->framebuffer == fb_mode->line[0])
-' 				fb_mode->dirty[y] = TRUE;
-' 		}
-' 	}
-' 	free(span);
-
-' 	DRIVER_UNLOCK();
-
-' }

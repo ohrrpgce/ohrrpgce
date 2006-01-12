@@ -9,8 +9,10 @@ option explicit
 #include "allegro.bi"
 #include "gfx.bi"
 
-dim shared init_gfx = 0
+dim shared init_gfx as integer = 0
 dim shared screenbuf as BITMAP ptr = null
+
+dim shared mouse_hidden as integer = 0
 
 'Scancodes are different, need a translation
 dim shared keytrans(0 to 127) as integer => { _
@@ -45,6 +47,7 @@ sub gfx_init
 		clear_bitmap(screen)
 		
 		install_keyboard
+		install_mouse
 		
 		init_gfx = 1
 	end if
@@ -93,6 +96,47 @@ sub gfx_setpal(pal() as integer)
 	set_palette(@alpal(0))
 end sub
 
+function gfx_screenshot(fname as string, byval page as integer) as integer
+	gfx_screenshot = 0
+end function
+
+'------------- IO Functions --------------
+sub io_init
+	'mostly handled above
+	if mouse_hidden = 0 then
+		scare_mouse() 'hide mouse
+		mouse_hidden = 1
+	end if
+end sub
+
 function io_keypressed(byval scancode as integer)
 	io_keypressed = key(keytrans(scancode))
+end function
+
+function io_enablemouse() as integer
+'returns 0 if mouse okay
+	if mouse_hidden = 1
+		unscare_mouse()
+	end if
+	io_enablemouse = 0
+end function
+
+sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
+	mx = mouse_x \ 2	'allegro screen is double res
+	my = mouse_y \ 2
+	mwheel = mouse_z
+	mbuttons = mouse_b
+end sub
+
+sub io_setmouse(byval x as integer, byval y as integer)
+	position_mouse(x * 2, y * 2)
+end sub
+
+sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+	set_mouse_range(xmin * 2, xmax * 2 + 1, ymin * 2, ymax * 2 + 1)
+end sub
+
+function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
+	'don't know
+	io_readjoy = 0
 end function
