@@ -1712,7 +1712,7 @@ IF vdance = 0 THEN 'only display interface till you win
    NEXT i
   END IF
  END IF
- IF you >= 0 AND ptarg = 0 THEN edgeprint CHR$(24), x(you) + (w(you) / 2) - 4, y(you) - 5 + (tog * 2), 14 + tog, dpage
+ IF you >= 0 AND ptarg = 0 AND readbit(gen(), genBits, 14) = 0 THEN edgeprint CHR$(24), x(you) + (w(you) / 2) - 4, y(you) - 5 + (tog * 2), 14 + tog, dpage
 END IF'--end if vdance=0
 RETURN
 

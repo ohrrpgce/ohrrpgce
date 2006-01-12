@@ -19,6 +19,8 @@ WHAT IS NEW?
 
     * Attack bitset to force the heroes to run away [James Paige]
 
+    * General bitset to "Disable Hero's Battle Cursor" [Yuriy]
+
   * Bug Fixes
 
     * Fixed bug 107: "An MP~ stat over 66 makes all spells free"

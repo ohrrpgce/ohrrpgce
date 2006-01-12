@@ -202,7 +202,8 @@ DO
    bit$(11) = "Skip title screen"
    bit$(12) = "Skip load screen"
    bit$(13) = "Pause on All Battle Menus"
-   bitset general(), 101, 13, bit$()
+   bit$(14) = "Disable Hero's Battle Cursor"
+   bitset general(), 101, 14, bit$()
   END IF
   IF csr = 9 THEN GOSUB ttlbrowse
   IF csr = 10 THEN GOSUB renrpg
