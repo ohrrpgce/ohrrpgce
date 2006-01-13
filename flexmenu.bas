@@ -197,11 +197,16 @@ CONST AtkDatCaption = 37'to 56
 CONST AtkDatCaptDelay = 57
 CONST AtkDatBaseDef = 58
 CONST AtkDatTag = 59
+CONST AtkDatTagIf = 60
+CONST AtkDatTagAnd = 61
+CONST AtkDatTag2 = 62
+CONST AtkDatTagIf2 = 63
+CONST AtkDatTagAnd2 = 64
 
 '----------------------------------------------------------
 capindex = 0
-DIM caption$(103)
-DIM max(23), min(23)
+DIM caption$(108)
+DIM max(25), min(25)
 
 'Limit(0) is not used
 
@@ -395,11 +400,24 @@ Const AtkLimTag = 23
 max(AtkLimTag) = 1000
 min(AtkLimTag) = -1000
 
-'next limit is 24 (remember to update the dim)
+Const AtkLimTagIf = 24
+max(AtkLimTagIf) = 4
+AtkCapTagIf = capindex
+addcaption caption$(), capindex, "Never" '0
+addcaption caption$(), capindex, "Use"   '1
+addcaption caption$(), capindex, "Hit"   '2
+addcaption caption$(), capindex, "Miss"  '3
+addcaption caption$(), capindex, "Kill"  '4
+
+Const AtkLimTagAnd = 25
+max(AtkLimTag) = 1000
+min(AtkLimTag) = -1000
+
+'next limit is 26 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 33
+CONST MnuItems = 37
 DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -579,16 +597,46 @@ menuoff(AtkBaseDef) = AtkDatBaseDef
 menulimits(AtkBaseDef) = AtkLimBaseDef
 
 Const AtkTag = 32
-menu$(AtkTag) = "Tag:"
+menu$(AtkTag) = "Set Tag"
 menutype(AtkTag) = 2
 menuoff(AtkTag) = AtkDatTag
 menulimits(AtkTag) = AtkLimTag
 
-'Next menu item is 33 (remember to update the dims)
+Const AtkTagIf = 33
+menu$(AtkTagIf) = "On"
+menutype(AtkTagIf) = 2000 + AtkCapTagIf
+menuoff(AtkTagIf) = AtkDatTagIf
+menulimits(AtkTagIf) = AtkLimTagIf
+
+Const AtkTagAnd = 34
+menu$(AtkTagAnd) = "If Tag"
+menutype(AtkTagAnd) = 2
+menuoff(AtkTagAnd) = AtkDatTagAnd
+menulimits(AtkTagAnd) = AtkLimTagAnd
+
+Const AtkTag2 = 35
+menu$(AtkTag2) = "Set Tag"
+menutype(AtkTag2) = 2
+menuoff(AtkTag2) = AtkDatTag2
+menulimits(AtkTag2) = AtkLimTag
+
+Const AtkTagIf2 = 36
+menu$(AtkTagIf2) = "On"
+menutype(AtkTagIf2) = 2000 + AtkCapTagIf
+menuoff(AtkTagIf2) = AtkDatTagIf2
+menulimits(AtkTagIf2) = AtkLimTagIf
+
+Const AtkTagAnd2 = 37
+menu$(AtkTagAnd2) = "If Tag"
+menutype(AtkTagAnd2) = 2
+menuoff(AtkTagAnd2) = AtkDatTagAnd2
+menulimits(AtkTagAnd2) = AtkLimTagAnd
+
+'Next menu item is 38 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
-DIM workmenu(10), dispmenu$(10)
+DIM workmenu(20), dispmenu$(20)
 ptr = 0: top = 0: size = 0
 
 DIM mainMenu(9)
@@ -613,7 +661,7 @@ appearMenu(5) = AtkAnimAttacker
 appearMenu(6) = AtkCapTime
 appearMenu(7) = AtkCaptDelay
 
-DIM dmgMenu(9)
+DIM dmgMenu(14)
 dmgMenu(0) = AtkBackAct
 dmgMenu(1) = AtkDamageEq
 dmgMenu(2) = AtkBaseAtk
@@ -623,7 +671,13 @@ dmgMenu(5) = AtkExtraDamage
 dmgMenu(6) = AtkAimEq
 dmgMenu(7) = AtkHitX
 dmgMenu(8) = AtkDelay
-dmgMenu(9) = AtkTag
+dmgMenu(9) = AtkTagIf
+dmgMenu(10) = AtkTagAnd
+dmgMenu(11) = AtkTag
+dmgMenu(12) = AtkTagIf2
+dmgMenu(13) = AtkTagAnd2
+dmgMenu(14) = AtkTag2
+
 
 DIM targMenu(2)
 targMenu(0) = AtkBackAct
