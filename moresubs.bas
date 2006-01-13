@@ -482,10 +482,12 @@ RETURN
 
 drawmeter:
 meter = meter + 1: rectangle 5 + meter, 177, 2, 5, 9, vpage
+setvispage vpage 'force update
 RETURN
 
 drawmeter2:
 meter = meter + 1: rectangle 5 + meter, 186, 2, 2, 9, vpage
+setvispage vpage 'force update
 RETURN
 
 vlabels:

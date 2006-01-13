@@ -102,11 +102,11 @@ end function
 
 '------------- IO Functions --------------
 sub io_init
-	'mostly handled above
-	if mouse_hidden = 0 then
-		scare_mouse() 'hide mouse
-		mouse_hidden = 1
-	end if
+' 	'mostly handled above
+' 	if mouse_hidden = 0 then
+' 		scare_mouse() 'hide mouse
+' 		mouse_hidden = 1
+' 	end if
 end sub
 
 function io_keypressed(byval scancode as integer)
@@ -115,25 +115,26 @@ end function
 
 function io_enablemouse() as integer
 'returns 0 if mouse okay
-	if mouse_hidden = 1
-		unscare_mouse()
-	end if
+' 	if mouse_hidden = 1 then
+' 		unscare_mouse()
+' 		mouse_hidden = 0
+' 	end if
 	io_enablemouse = 0
 end function
 
 sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
-	mx = mouse_x \ 2	'allegro screen is double res
-	my = mouse_y \ 2
+	mx = mouse_x \ 2		'allegro screen is double res
+	my = (mouse_y \ 2) - 40	'and centred
 	mwheel = mouse_z
 	mbuttons = mouse_b
 end sub
 
 sub io_setmouse(byval x as integer, byval y as integer)
-	position_mouse(x * 2, y * 2)
+	position_mouse(x * 2, y * 2 + 40)
 end sub
 
 sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-	set_mouse_range(xmin * 2, xmax * 2 + 1, ymin * 2, ymax * 2 + 1)
+	set_mouse_range(xmin * 2, ymin * 2 + 40, xmax * 2 + 1, ymax * 2 + 1 + 40)
 end sub
 
 function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
