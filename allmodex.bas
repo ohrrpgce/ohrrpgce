@@ -130,6 +130,9 @@ SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer)
 	for i = 0 to (320 * 200) - 1
 		spage(page2)[i] = spage(page1)[i]
 	next
+	if page2 = vispage then
+		setvispage(vispage)
+	end if
 end sub
 
 SUB clearpage (BYVAL page as integer)
@@ -599,7 +602,7 @@ SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BY
 	h = pic(p)
 	w = pic(p + 1)
 	p = p + 2
-	sbytes = (w * h) \ 2 	'only 4 bits per pixel
+	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
 	
 	sptr = spage(page)
 	sptr = sptr + (320 * y) + x
@@ -634,7 +637,7 @@ SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, B
 		wrkpage = page
 	end if
 	
-	sbytes = (w * h) \ 2 	'only 4 bits per pixel
+	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
 	
 	sptr = spage(page)
 	sptr = sptr + (320 * y) + x
