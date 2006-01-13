@@ -1372,7 +1372,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 END SUB
 
 SUB unlump (lump$, ulpath$, buffer() as integer)
-	unlumpfile(lump$, "*.*", ulpath$, buffer())
+	unlumpfile(lump$, "", ulpath$, buffer())
 end SUB
 
 SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
@@ -1805,6 +1805,12 @@ function matchmask(match as string, mask as string) as integer
 	dim i as integer
 	dim m as integer
 	dim si as integer, sm as integer
+	
+	'special cases
+	if mask = "" or mask = "*.*" then 
+		matchmask = 1
+		exit function
+	end if
 	
 	i = 0
 	m = 0
