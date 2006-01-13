@@ -73,7 +73,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
-DECLARE FUNCTION checkNoRunBit (stat%(), ebits%())
+DECLARE FUNCTION checkNoRunBit (stat%(), ebits%(), v%())
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -1000,7 +1000,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
         END IF
         IF readbit(atk(), 20, 63) = 1 THEN
          'force heroes to run away
-         IF checkNoRunBit(stat(), ebits()) THEN
+         IF checkNoRunBit(stat(), ebits(), v()) THEN
           alert$ = cannotrun$
           alert = 10
          ELSE
@@ -1858,7 +1858,7 @@ IF flee > 0 AND flee < 4 THEN
  END IF
 END IF
 IF flee = 4 THEN
- IF checkNoRunBit(stat(), ebits()) THEN
+ IF checkNoRunBit(stat(), ebits(), v()) THEN
   flee = 0
   alert$ = cannotrun$
   alert = 10
@@ -2124,7 +2124,7 @@ RETURN
 
 END FUNCTION
 
-FUNCTION checkNoRunBit (stat(), ebits())
+FUNCTION checkNoRunBit (stat(), ebits(), v())
  checkNoRunBit = 0
  FOR i = 4 TO 11
   IF stat(i, 0, 0) > 0 AND v(i) = 1 AND readbit(ebits(), (i - 4) * 5, 57) = 1 THEN checkNoRunBit = 1
