@@ -74,6 +74,7 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checkNoRunBit (stat%(), ebits%(), v%())
+DECLARE SUB checkTagCond(t,check,tag,tagand)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -989,6 +990,9 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    'DEBUG debug "~ waitforall"
   CASE 10 'inflict(targ)
    targ = popw
+   'set tag, if there is one
+   checkTagCond atk(60),1,atk(59),atk(61)
+   checkTagCond atk(63),1,atk(62),atk(64)
    'DEBUG debug "~ inflict on " + STR$(targ) + " by " + str$(who)
    IF inflict(who, targ, stat(), x(), y(), w(), h(), harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
     '--attack succeeded
@@ -1007,13 +1011,19 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
           away = 1
          END IF
         END IF
-        'set tag, if there is one
-        IF atk(59) <> 0 THEN
-        	setbit tag(), 0, ABS(atk(59)), SGN(SGN(atk(59)) + 1)
+        checkTagCond atk(60),2,atk(59),atk(61)
+        checkTagCond atk(63),2,atk(62),atk(64)
+        IF stat(targ, 0, 0) = 0 THEN
+         checkTagCond atk(60),4,atk(59),atk(61)
+         checkTagCond atk(63),4,atk(62),atk(64)
         END IF
+        
     IF trytheft(who, targ, atk(), es()) THEN
      GOSUB checkitemusability
     END IF
+   ELSE
+   	checkTagCond atk(60),3,atk(59),atk(61)
+   	checkTagCond atk(63),3,atk(62),atk(64)
    END IF
    tdwho = targ
    GOSUB triggerfade
@@ -2192,3 +2202,10 @@ END IF
 stat(targ, 0, 0) = bound(stat(targ, 0, 0) - harm, 0, stat(targ, 1, 0))
 END SUB
 
+SUB checkTagCond(t,check,tg,tagand)
+ 't - type, check = curtype, tg - the tag to be set, tagand - the tag to check
+ IF t = check THEN
+  IF tagand <> 0 AND readbit(tag(), 0, ABS(tagand)) <> SGN(SGN(tagand) + 1) THEN EXIT SUB
+  setbit tag(), 0, ABS(tg), SGN(SGN(tg) + 1) 'Set the original damned tag!
+ END IF
+END SUB
