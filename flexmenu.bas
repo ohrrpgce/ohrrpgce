@@ -196,11 +196,12 @@ CONST AtkDatCapTime = 36
 CONST AtkDatCaption = 37'to 56
 CONST AtkDatCaptDelay = 57
 CONST AtkDatBaseDef = 58
+CONST AtkDatTag = 59
 
 '----------------------------------------------------------
 capindex = 0
 DIM caption$(103)
-DIM max(22), min(22)
+DIM max(23), min(23)
 
 'Limit(0) is not used
 
@@ -390,11 +391,16 @@ addcaption caption$(), capindex, sname$(7) 'ctr
 addcaption caption$(), capindex, sname$(31) 'focus
 addcaption caption$(), capindex, sname$(4) 'hitX
 
-'next limit is 23 (remember to update the dim)
+Const AtkLimTag = 23
+max(AtkLimTag) = 1000
+min(AtkLimTag) = -1000
+
+'next limit is 24 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
-DIM menu$(32), menutype(32), menuoff(32), menulimits(32)
+CONST MnuItems = 33
+DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
 menu$(AtkBackAct) = "Previous Menu"
@@ -572,6 +578,14 @@ menutype(AtkBaseDef) = 2000 + AtkCapBaseDef
 menuoff(AtkBaseDef) = AtkDatBaseDef
 menulimits(AtkBaseDef) = AtkLimBaseDef
 
+Const AtkTag = 32
+menu$(AtkTag) = "Tag:"
+menutype(AtkTag) = 2
+menuoff(AtkTag) = AtkDatTag
+menulimits(AtkTag) = AtkLimTag
+
+'Next menu item is 33 (remember to update the dims)
+
 '----------------------------------------------------------
 '--menu structure
 DIM workmenu(10), dispmenu$(10)
@@ -599,7 +613,7 @@ appearMenu(5) = AtkAnimAttacker
 appearMenu(6) = AtkCapTime
 appearMenu(7) = AtkCaptDelay
 
-DIM dmgMenu(8)
+DIM dmgMenu(9)
 dmgMenu(0) = AtkBackAct
 dmgMenu(1) = AtkDamageEq
 dmgMenu(2) = AtkBaseAtk
@@ -609,6 +623,7 @@ dmgMenu(5) = AtkExtraDamage
 dmgMenu(6) = AtkAimEq
 dmgMenu(7) = AtkHitX
 dmgMenu(8) = AtkDelay
+dmgMenu(9) = AtkTag
 
 DIM targMenu(2)
 targMenu(0) = AtkBackAct

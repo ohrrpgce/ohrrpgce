@@ -466,7 +466,7 @@ NEXT i
 tcount = -1: pdir = 0: conmp = 1
 IF who >= 4 THEN pdir = 1
 ltarg(who) = 0
-'CANNOT HIT INVISABLE FOES
+'CANNOT HIT INVISIBLE FOES
 FOR i = 0 TO 11
  IF t(who, i) > -1 THEN
   IF v(t(who, i)) = 0 AND (atk(3) <> 4 AND atk(3) <> 10) THEN
@@ -1006,6 +1006,10 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
          ELSE
           away = 1
          END IF
+        END IF
+        'set tag, if there is one
+        IF atk(59) <> 0 THEN
+        	setbit tag(), 0, ABS(atk(59)), SGN(SGN(atk(59)) + 1)
         END IF
     IF trytheft(who, targ, atk(), es()) THEN
      GOSUB checkitemusability
