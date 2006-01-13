@@ -417,7 +417,7 @@ min(AtkLimTag) = -1000
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 37
+CONST MnuItems = 38
 DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -632,6 +632,10 @@ menutype(AtkTagAnd2) = 2
 menuoff(AtkTagAnd2) = AtkDatTagAnd2
 menulimits(AtkTagAnd2) = AtkLimTagAnd
 
+Const AtkTagAct = 38
+menu$(AtkTagAct) = "Tags..."
+menutype(AtkTagAct) = 1
+
 'Next menu item is 38 (remember to update the dims)
 
 '----------------------------------------------------------
@@ -639,7 +643,7 @@ menulimits(AtkTagAnd2) = AtkLimTagAnd
 DIM workmenu(20), dispmenu$(20)
 ptr = 0: top = 0: size = 0
 
-DIM mainMenu(9)
+DIM mainMenu(10)
 mainMenu(0) = AtkBackAct
 mainMenu(1) = AtkChooseAct
 mainMenu(2) = AtkName
@@ -650,6 +654,7 @@ mainMenu(6) = AtkTargAct
 mainMenu(7) = AtkCostAct
 mainMenu(8) = AtkChainAct
 mainMenu(9) = AtkBitAct
+mainMenu(10) = AtkTagAct
 
 DIM appearMenu(7)
 appearMenu(0) = AtkBackAct
@@ -661,7 +666,7 @@ appearMenu(5) = AtkAnimAttacker
 appearMenu(6) = AtkCapTime
 appearMenu(7) = AtkCaptDelay
 
-DIM dmgMenu(14)
+DIM dmgMenu(8)
 dmgMenu(0) = AtkBackAct
 dmgMenu(1) = AtkDamageEq
 dmgMenu(2) = AtkBaseAtk
@@ -671,13 +676,6 @@ dmgMenu(5) = AtkExtraDamage
 dmgMenu(6) = AtkAimEq
 dmgMenu(7) = AtkHitX
 dmgMenu(8) = AtkDelay
-dmgMenu(9) = AtkTagIf
-dmgMenu(10) = AtkTagAnd
-dmgMenu(11) = AtkTag
-dmgMenu(12) = AtkTagIf2
-dmgMenu(13) = AtkTagAnd2
-dmgMenu(14) = AtkTag2
-
 
 DIM targMenu(2)
 targMenu(0) = AtkBackAct
@@ -694,6 +692,15 @@ DIM chainMenu(2)
 chainMenu(0) = AtkBackAct
 chainMenu(1) = AtkChainTo
 chainMenu(2) = AtkChainRate
+
+Dim tagMenu(6)
+tagMenu(0) = AtkBackAct
+tagMenu(1) = AtkTagIf
+tagMenu(2) = AtkTagAnd
+tagMenu(3) = AtkTag
+tagMenu(4) = AtkTagIf2
+tagMenu(5) = AtkTagAnd2
+tagMenu(6) = AtkTag2
 
 '--default starting menu
 setactivemenu workmenu(), mainMenu(), ptr, top, size
@@ -783,6 +790,10 @@ DO
    CASE AtkChainAct
     GOSUB AtkPushPtrSub
     setactivemenu workmenu(), chainMenu(), ptr, top, size
+    GOSUB AtkUpdateMenu
+   CASE AtkTagAct
+    GOSUB AtkPushPtrSub
+    setactivemenu workmenu(), tagMenu(), ptr, top, size
     GOSUB AtkUpdateMenu
    CASE AtkPal
     recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), 3, 0, 0, 50, 50, 2)
