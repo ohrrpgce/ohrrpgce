@@ -42,7 +42,7 @@ dim shared map_y as integer
 dim shared anim1 as integer
 dim shared anim2 as integer
 
-dim shared waittime as single
+dim shared waittime as double
 dim shared keybd(0 to 255) as integer
 dim shared keytime(0 to 255) as integer
 
@@ -193,20 +193,6 @@ SUB setkeys ()
 				else
 					keytime(a) = ktime + 50
 				end if
-			else
-				'NOTE there are 86,400,000 thousandths in a day
-				if keytime(a) > 80000000 and ktime < 1800000 then
-					'check wrap over midnight (stupid timer)
-					keytime(a) = keytime(a) - 86400000
-					if ktime > keytime(a) then
-						keybd(a) = 2
-						if keytime(a) = -1 or ktime > keytime(a) + 1000 then
-							keytime(a) = ktime + 200
-						else
-							keytime(a) = ktime + 50
-						end if
-					end if
-				end if
 			end if
 		else
 			keytime(a) = -1
@@ -220,7 +206,7 @@ SUB setwait (b() as integer, BYVAL t as integer)
 'dos timer means that the latter is always truncated to the last multiple of
 '55 milliseconds.
 	dim millis as integer
-	dim secs as single
+	dim secs as double
 	millis = (t \ 55) * 55
 	
 	secs = millis / 1000
