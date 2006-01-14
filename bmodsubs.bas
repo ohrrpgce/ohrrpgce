@@ -1071,16 +1071,33 @@ IF who <= 3 AND targ >= 4 THEN
 END IF
 END FUNCTION
 
-SUB updatestatslevelup (i, exstat(), stat(), learnmask())
+FUNCTION exptolevel& (level)
+' cp needed to level: calling with level 0 returns xp to lvl 1
+' HINT: Customisation goes here :)
 
+ exper& = 30
+ FOR o = 1 TO level
+  exper& = exper& * 1.2 + 5
+  IF exper& > 1000000 THEN exper& = 1000000
+ NEXT o
+ exptolevel = exper&
+END FUNCTION
+
+SUB updatestatslevelup (i, exstat(), stat(), allowforget)
 ' i = who
 ' exstat = external stats
 ' stat = in-battle stats
-' learnmask = which spells learned
+' allowforget = forget spells if level dropped below requirement
+
+'wipe learnmask for this hero
+'for heroes not in the active party, 5th hero is used for spell bitsets (oob only)
+FOR o = small(i, 4) * 6 TO small(i, 4) * 6 + 5
+ learnmask(o) = 0
+NEXT
 
 'THIS PART UPDATES STATS FOR A LEVEL UP
-IF exstat(i, 1, 12) > 0 THEN
- 
+IF exstat(i, 1, 12) THEN
+
  'load hero's data
  setpicstuf buffer(), 636, -1
  loadset game$ + ".dt0" + CHR$(0), hero(i) - 1, 0
@@ -1101,7 +1118,7 @@ IF exstat(i, 1, 12) > 0 THEN
    loadset game$ + ".dt0" + CHR$(0), hero(i) - 1, 0
   END IF
  NEXT o
- 
+
  'stat restoration
  IF readbit(gen(), 101, 2) = 0 THEN
   '--HP restoration ON
@@ -1130,13 +1147,34 @@ IF exstat(i, 1, 12) > 0 THEN
    '--if slot is empty and slot accepts this spell and learn-by-level condition is true
    IF spell(i, j, o) = 0 AND buffer(47 + (j * 48) + (o * 2)) > 0 AND buffer(48 + (j * 48) + (o * 2)) - 1 <= exstat(i, 0, 12) AND buffer(48 + (j * 48) + (o * 2)) > 0 THEN
     spell(i, j, o) = buffer(47 + (j * 48) + (o * 2))
-    setbit learnmask(), 0, i * 96 + j * 24 + o, 1
+    setbit learnmask(), 0, small(i, 4) * 96 + j * 24 + o, 1
+   END IF
+   IF allowforget THEN
+    '--plotscripts may lower level, forget spells if drop below requirement and know the spell specified
+    IF spell(i, j, o) = buffer(47 + (j * 48) + (o * 2)) AND buffer(48 + (j * 48) + (o * 2)) - 1 > exstat(i, 0, 12) THEN
+     spell(i, j, o) = 0
+    END IF
    END IF
   NEXT o
  NEXT j
  
 END IF
 
+END SUB
+
+SUB giveheroexperience (i, exstat(), exper&)
+ 'experience
+ IF hero(i) > 0 AND exstat(i, 0, 12) < 99 THEN
+  exlev&(i, 0) = exlev&(i, 0) + exper&
+  'levelups
+  exstat(i, 1, 12) = 0
+  WHILE exlev&(i, 0) >= exlev&(i, 1) AND exstat(i, 0, 12) < 99
+   exlev&(i, 0) = exlev&(i, 0) - exlev&(i, 1)
+   exstat(i, 0, 12) = exstat(i, 0, 12) + 1 'current level
+   exstat(i, 1, 12) = exstat(i, 1, 12) + 1 'levelup flag
+   exlev&(i, 1) = exptolevel(exstat(i, 0, 12))
+  WEND
+ END IF
 END SUB
 
 FUNCTION visibleandalive (o, stat(), v())
@@ -1146,7 +1184,6 @@ END FUNCTION
 SUB writestats (exstat(), stat())
 setpicstuf buffer(), 636, -1
 FOR i = 0 TO 3
- exstat(i, 1, 12) = 0
  IF hero(i) > 0 THEN
   '--set out-of-battle HP and MP equal to in-battle HP and MP
   FOR o = 0 TO 1

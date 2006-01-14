@@ -24,7 +24,7 @@ DECLARE SUB etwitch (who%, atk%(), x%(), y%(), w%(), h%(), t%())
 DECLARE SUB eretreat (who%, atk%(), x%(), y%(), w%(), h%(), t%())
 DECLARE SUB invertstack ()
 DECLARE SUB fatalerror (e$)
-DECLARE SUB updatestatslevelup (i%, exstat%(), stat%(), learnmask%())
+DECLARE SUB updatestatslevelup (i%, exstat%(), stat%(), allowforget)
 DECLARE FUNCTION readitemname$ (itemnum%)
 DECLARE FUNCTION trytheft (who%, targ%, atk%(), es%())
 DECLARE SUB setbatcap (cap$, captime%, capdelay%)
@@ -75,6 +75,8 @@ DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checkNoRunBit (stat%(), ebits%(), v%())
 DECLARE SUB checkTagCond (t, check, tag, tagand)
+DECLARE FUNCTION exptolevel& (level%)
+DECLARE SUB giveheroexperience (i%, exstat%(), exper&)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -90,7 +92,7 @@ bstackstart = stackpos
 battle = 1
 DIM a(40), atktemp(40), atk(100), st(3, 318), es(7, 160), x(24), y(24), z(24), d(24), zbuf(24), xm(24), ym(24), zm(24), mvx(24), mvy(24), mvz(24), v(24), p(24), w(24), h(24), of(24), ext$(7), ctr(11), stat(11, 1, 17), ready(11), batname$(11), menu$( _
 3, 5), mend(3), spel$(23), spel(23), cost$(24), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11), fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11) _
-, ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11), targmem(23), learnmask(24), prtimer(11, 1), spelmask(1)
+, ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11), targmem(23), prtimer(11, 1), spelmask(1)
 
 mpname$ = readglobalstring(1, "MP", 10)
 goldname$ = readglobalstring(32, "Gold", 10)
@@ -1991,24 +1993,8 @@ gold& = gold& + plunder&
 IF gold& > 1000000000 THEN gold& = 1000000000
 IF liveherocount(stat()) > 0 THEN exper& = exper& / liveherocount(stat())
 FOR i = 0 TO 3
- 'experience
- IF hero(i) > 0 AND stat(i, 0, 0) > 0 AND exstat(i, 0, 12) < 99 THEN
-  exlev&(i, 0) = exlev&(i, 0) + exper&
-  'levelups
-  WHILE exlev&(i, 0) >= exlev&(i, 1) AND exstat(i, 0, 12) < 99
-   exlev&(i, 0) = exlev&(i, 0) - exlev&(i, 1)
-   exlev&(i, 1) = 30
-   exstat(i, 0, 12) = exstat(i, 0, 12) + 1 'current level
-   exstat(i, 1, 12) = exstat(i, 1, 12) + 1 'levelup flag
-   FOR o = 1 TO exstat(i, 0, 12)
-    exlev&(i, 1) = exlev&(i, 1) * 1.2 + 5
-    IF exlev&(i, 1) > 1000000 THEN exlev&(i, 1) = 1000000
-   NEXT o
-  WEND
- END IF
-NEXT i
-FOR i = 0 TO 3
- updatestatslevelup i, exstat(), stat(), learnmask()
+ IF stat(i, 0, 0) > 0 THEN giveheroexperience i, exstat(), exper&
+ updatestatslevelup i, exstat(), stat(), 0
 NEXT i
 vdance = 1
 RETURN
@@ -2022,7 +2008,8 @@ END IF
 IF vdance = 3 THEN
  '--print learned spells, one at a time
  IF showlearn = 0 THEN
-  DO WHILE readbit(learnmask(), 0, learna * 96 + learnb * 24 + learnc) = 0
+  DO WHILE readbit(learnmask(), 0, learna * 96 + learnb * 24 + learnc) = 0 OR nextbit
+   nextbit = 0 '-- to skip a set bit
    learnc = learnc + 1
    IF learnc > 23 THEN learnc = 0: learnb = learnb + 1
    IF learnb > 3 THEN learnb = 0: learna = learna + 1
@@ -2044,7 +2031,8 @@ IF vdance = 3 THEN
  ELSE
   IF carray(4) > 1 OR carray(5) > 1 THEN
    showlearn = 0
-   setbit learnmask(), 0, learna * 96 + learnb * 24 + learnc, 0
+   'setbit learnmask(), 0, learna * 96 + learnb * 24 + learnc, 0
+   nextbit = 1
   END IF
   edgeprint found$, xstring(found$, 160), 22, 15, dpage
  END IF
@@ -2209,4 +2197,3 @@ ELSE
 END IF
 stat(targ, 0, 0) = bound(stat(targ, 0, 0) - harm, 0, stat(targ, 1, 0))
 END SUB
-

@@ -79,6 +79,7 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION maplumpname$ (map, oldext$)
+DECLARE FUNCTION exptolevel& (level%)
 
 '--CD playing (not compiled in yet)
 'DECLARE FUNCTION drivelist (l())
@@ -166,12 +167,9 @@ resetlmp slot, buffer(21)
 
 '--setup experience
 stat(slot, 0, 12) = buffer(21)
+stat(slot, 1, 12) = 0
 exlev&(slot, 0) = 0
-exlev&(slot, 1) = 30
-FOR i = 1 TO stat(slot, 0, 12)
- exlev&(slot, 1) = exlev&(slot, 1) * 1.2 + 5
- IF exlev&(slot, 1) > 1000000 THEN exlev&(slot, 1) = 1000000
-NEXT i
+exlev&(slot, 1) = exptolevel(buffer(21))
 
 '--heros are added unlocked
 setbit hmask(), 0, who - 1, 0
