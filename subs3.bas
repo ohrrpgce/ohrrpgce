@@ -6,6 +6,8 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
+DECLARE FUNCTION str2lng& (stri$)
+DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION filenum$ (n%)
@@ -295,7 +297,7 @@ ELSE
    IF LEN(a$) = 0 THEN EXIT DO
   LOOP
   IF LEN(b$) > 9 THEN b$ = "0"
-  n = VAL(b$)
+  n = str2int(b$)
   n = n + 1
   out$ = a$ + LTRIM$(STR$(n))
  END IF
@@ -335,6 +337,44 @@ FOR i = 1 TO LEN(s$)
 NEXT i
 
 rotascii$ = temp$
+
+END FUNCTION
+
+FUNCTION str2int (stri$)
+
+n = 0
+s$ = LTRIM$(stri$)
+sign = 1
+
+FOR i = 1 TO LEN(s$)
+ c$ = MID$(s$, i, 1)
+ IF c$ = "-" AND i = 1 THEN sign = -1
+ c = ASC(c$) - 48
+ IF c >= 0 AND c <= 9 THEN
+  n = n * 10 + (c * sign)
+ END IF
+NEXT i
+
+str2int = n
+
+END FUNCTION
+
+FUNCTION str2lng& (stri$)
+
+n& = 0
+s$ = LTRIM$(stri$)
+sign = 1
+
+FOR i = 1 TO LEN(s$)
+ c$ = MID$(s$, i, 1)
+ IF c$ = "-" AND i = 1 THEN sign = -1
+ c = ASC(c$) - 48
+ IF c >= 0 AND c <= 9 THEN
+  n& = n& * 10 + (c * sign)
+ END IF
+NEXT i
+
+str2lng& = n&
 
 END FUNCTION
 

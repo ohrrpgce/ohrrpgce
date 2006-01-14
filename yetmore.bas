@@ -5,6 +5,8 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+DECLARE FUNCTION str2int% (stri$)
+DECLARE FUNCTION str2lng& (stri$)
 DECLARE SUB setScriptArg (arg%, value%)
 DECLARE FUNCTION cropPlotStr% (s$)
 DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, mapwide%, maphigh%, wrapmode%)
@@ -240,7 +242,7 @@ DO WHILE start < LEN(text$)
  act$ = MID$(text$, embedbegin + 2, 1)
  arg$ = MID$(text$, embedbegin + 3, large(embedend - (embedbegin + 3), 0))
  '--convert the arg to a number
- arg = VAL(arg$)
+ arg = str2int(arg$)
  '--discourage bad arg values (not perfect)
  IF NOT (arg = 0 AND arg$ <> STRING$(LEN(arg$), "0")) THEN
   IF arg >= 0 THEN '--only permit postive args
@@ -1419,11 +1421,11 @@ SELECT CASE id
    scriptret = plotstrY(retvals(0))
   END IF
  CASE 226'--system day
-  scriptret = VAL(MID$(DATE$, 1, 2))
+  scriptret = str2int(MID$(DATE$, 1, 2))
  CASE 227'--system month
-  scriptret = VAL(MID$(DATE$, 4, 2))
+  scriptret = str2int(MID$(DATE$, 4, 2))
  CASE 228'--system year
-  scriptret = VAL(MID$(DATE$, 7, 4))
+  scriptret = str2int(MID$(DATE$, 7, 4))
  CASE 229'--string compare
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
    scriptret = (plotstring$(retvals(0)) = plotstring$(retvals(1)))

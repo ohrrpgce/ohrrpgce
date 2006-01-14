@@ -3,6 +3,8 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
+DECLARE FUNCTION str2int% (stri$)
+DECLARE FUNCTION str2lng& (stri$)
 DECLARE SUB innRestore (stat%())
 DECLARE SUB renamehero (who%)
 DECLARE SUB strgrabber (s$, maxl%)
@@ -1134,7 +1136,7 @@ FOR i = 1 TO 9
 NEXT i
 IF keyval(11) > 1 THEN n$ = n$ + "0"
 IF min < 0 THEN IF keyval(12) > 1 OR keyval(13) > 1 OR keyval(74) > 1 OR keyval(78) > 1 THEN s = s * -1
-capper& = INT(VAL(n$))
+capper& = str2lng&(n$)
 IF capper& > 32767 THEN capper& = 32767
 n = capper&
 IF s THEN n = n * s
@@ -1198,7 +1200,7 @@ FOR i = 0 TO 24
  IF buffer(i + 9) < 0 OR buffer(i + 9) > 255 THEN buffer(i + 9) = 0
  IF buffer(i + 9) > 0 THEN temp$ = temp$ + CHR$(buffer(i + 9))
 NEXT i
-gold& = VAL(temp$)
+gold& = str2lng&(temp$)
 
 z = 34
 FOR i = 0 TO 500
@@ -1254,7 +1256,7 @@ FOR i = 0 TO 40
    IF buffer(z) > 0 THEN temp$ = temp$ + CHR$(buffer(z))
    z = z + 1
   NEXT j
-  exlev&(i, o) = VAL(temp$)
+  exlev&(i, o) = str2lng&(temp$)
  NEXT o
 NEXT i
 FOR i = 0 TO 40
@@ -1501,22 +1503,22 @@ IF isfile(progdir$ + "joyset.ini" + CHR$(0)) THEN
  DO WHILE NOT EOF(fh) AND safety < 100
   LINE INPUT #fh, a$
   IF settingstring(a$, "UPTHRESH", n$) THEN
-   joy(9) = VAL(n$)
+   joy(9) = str2int(n$)
   END IF
   IF settingstring(a$, "DOWNTHRESH", n$) THEN
-   joy(10) = VAL(n$)
+   joy(10) = str2int(n$)
   END IF
   IF settingstring(a$, "LEFTTHRESH", n$) THEN
-   joy(11) = VAL(n$)
+   joy(11) = str2int(n$)
   END IF
   IF settingstring(a$, "RIGHTTHRESH", n$) THEN
-   joy(12) = VAL(n$)
+   joy(12) = str2int(n$)
   END IF
   IF settingstring(a$, "USEBUTTON", n$) THEN
-   joy(13) = bound(VAL(n$) + 2, 2, 3)
+   joy(13) = bound(str2int(n$) + 2, 2, 3)
   END IF
   IF settingstring(a$, "MENUBUTTON", n$) THEN
-   joy(14) = bound(VAL(n$) + 2, 2, 3)
+   joy(14) = bound(str2int(n$) + 2, 2, 3)
   END IF
   safety = safety + 1
  LOOP
