@@ -166,13 +166,9 @@ atkbit$(60) = "Damage " + sname$(1) + " (obsolete)"
 atkbit$(61) = "Do not randomize"
 atkbit$(62) = "Damage can be Zero"
 atkbit$(63) = "Cause heroes to run away"
-' hacks required to add additional attack bitsets, see DT6 documentation
 
-DIM atkbit2$(-1 to 127)
-
-FOR i = 0 to 127
-	atkbit2$(i) = ""
-NEXT
+'--191 attack bits allowed in menu.
+'--Data is split, See AtkDatBits and AtkDatBits2 for offsets
 
 '----------------------------------------------------------
 DIM recbuf(100) '--stores the 200 bytes of attack data
@@ -403,11 +399,11 @@ addcaption caption$(), capindex, sname$(7) 'ctr
 addcaption caption$(), capindex, sname$(31) 'focus
 addcaption caption$(), capindex, sname$(4) 'hitX
 
-Const AtkLimTag = 23
+CONST AtkLimTag = 23
 max(AtkLimTag) = 1000
 min(AtkLimTag) = -1000
 
-Const AtkLimTagIf = 24
+CONST AtkLimTagIf = 24
 max(AtkLimTagIf) = 4
 AtkCapTagIf = capindex
 addcaption caption$(), capindex, "Never" '0
@@ -416,7 +412,7 @@ addcaption caption$(), capindex, "Hit"   '2
 addcaption caption$(), capindex, "Miss"  '3
 addcaption caption$(), capindex, "Kill"  '4
 
-Const AtkLimTagAnd = 25
+CONST AtkLimTagAnd = 25
 max(AtkLimTag) = 1000
 min(AtkLimTag) = -1000
 
@@ -424,7 +420,7 @@ min(AtkLimTag) = -1000
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 39
+CONST MnuItems = 38
 DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -603,49 +599,45 @@ menutype(AtkBaseDef) = 2000 + AtkCapBaseDef
 menuoff(AtkBaseDef) = AtkDatBaseDef
 menulimits(AtkBaseDef) = AtkLimBaseDef
 
-Const AtkTag = 32
+CONST AtkTag = 32
 menu$(AtkTag) = "Set Tag"
 menutype(AtkTag) = 2
 menuoff(AtkTag) = AtkDatTag
 menulimits(AtkTag) = AtkLimTag
 
-Const AtkTagIf = 33
+CONST AtkTagIf = 33
 menu$(AtkTagIf) = "On"
 menutype(AtkTagIf) = 2000 + AtkCapTagIf
 menuoff(AtkTagIf) = AtkDatTagIf
 menulimits(AtkTagIf) = AtkLimTagIf
 
-Const AtkTagAnd = 34
+CONST AtkTagAnd = 34
 menu$(AtkTagAnd) = "If Tag"
 menutype(AtkTagAnd) = 2
 menuoff(AtkTagAnd) = AtkDatTagAnd
 menulimits(AtkTagAnd) = AtkLimTagAnd
 
-Const AtkTag2 = 35
+CONST AtkTag2 = 35
 menu$(AtkTag2) = "Set Tag"
 menutype(AtkTag2) = 2
 menuoff(AtkTag2) = AtkDatTag2
 menulimits(AtkTag2) = AtkLimTag
 
-Const AtkTagIf2 = 36
+CONST AtkTagIf2 = 36
 menu$(AtkTagIf2) = "On"
 menutype(AtkTagIf2) = 2000 + AtkCapTagIf
 menuoff(AtkTagIf2) = AtkDatTagIf2
 menulimits(AtkTagIf2) = AtkLimTagIf
 
-Const AtkTagAnd2 = 37
+CONST AtkTagAnd2 = 37
 menu$(AtkTagAnd2) = "If Tag"
 menutype(AtkTagAnd2) = 2
 menuoff(AtkTagAnd2) = AtkDatTagAnd2
 menulimits(AtkTagAnd2) = AtkLimTagAnd
 
-Const AtkTagAct = 38
+CONST AtkTagAct = 38
 menu$(AtkTagAct) = "Tags..."
 menutype(AtkTagAct) = 1
-
-CONST AtkBit2Act = 39
-menu$(AtkBit2Act) = "Bitsets (cont)..."
-menutype(AtkBit2Act) = 1
 
 'Next menu item is 39 (remember to update the dims)
 
@@ -654,7 +646,7 @@ menutype(AtkBit2Act) = 1
 DIM workmenu(20), dispmenu$(20)
 ptr = 0: top = 0: size = 0
 
-DIM mainMenu(11)
+DIM mainMenu(10)
 mainMenu(0) = AtkBackAct
 mainMenu(1) = AtkChooseAct
 mainMenu(2) = AtkName
@@ -665,8 +657,7 @@ mainMenu(6) = AtkTargAct
 mainMenu(7) = AtkCostAct
 mainMenu(8) = AtkChainAct
 mainMenu(9) = AtkBitAct
-mainMenu(10) = AtkBit2Act
-mainMenu(11) = AtkTagAct
+mainMenu(10) = AtkTagAct
 
 DIM appearMenu(7)
 appearMenu(0) = AtkBackAct
@@ -705,7 +696,7 @@ chainMenu(0) = AtkBackAct
 chainMenu(1) = AtkChainTo
 chainMenu(2) = AtkChainRate
 
-Dim tagMenu(6)
+DIM tagMenu(6)
 tagMenu(0) = AtkBackAct
 tagMenu(1) = AtkTagIf
 tagMenu(2) = AtkTagAnd
@@ -811,9 +802,21 @@ DO
     recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), 3, 0, 0, 50, 50, 2)
     GOSUB AtkUpdateMenu
    CASE AtkBitAct
-    bitset recbuf(), AtkDatBitsets, 63, atkbit$()
-   CASE AtkBit2Act
-   	bitset recbuf(), AtkDatBitsets2, 127, atkbit2$()
+    'merge the two blocks of bitsets into the buffer
+    FOR i = 0 TO 3
+     buffer(i) = recbuf(AtkDatBitsets + i)
+    NEXT i
+    FOR i = 0 TO 7
+     buffer(4 + i) = recbuf(AtkDatBitsets2 + i)
+    NEXT i
+    bitset buffer(), 0, 63, atkbit$()
+    'split the buffer to the two bitset blocks
+    FOR i = 0 TO 3
+     recbuf(AtkDatBitsets + i) = buffer(i)
+    NEXT i
+    FOR i = 0 TO 7
+     recbuf(AtkDatBitsets2 + i) = buffer(4 + i)
+    NEXT i
   END SELECT
  END IF
  
