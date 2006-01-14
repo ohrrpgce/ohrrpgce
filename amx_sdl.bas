@@ -446,7 +446,7 @@ SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BY
 	h = pic(p)
 	w = pic(p + 1)
 	p = p + 2
-	sbytes = (w * h) \ 2 	'only 4 bits per pixel
+	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
 	
 	screenlock
 	sptr = screenptr
@@ -484,7 +484,7 @@ SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, B
 		wrkpage = page
 	end if
 	
-	sbytes = (w * h) \ 2 	'only 4 bits per pixel
+	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
 	
 	screenlock
 	sptr = screenptr
