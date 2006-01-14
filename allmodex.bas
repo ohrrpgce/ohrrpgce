@@ -2,12 +2,10 @@
 '' GPL and stuff. See LICENSE.txt.
 '
 #define DEMACRO
-'$include: 'compat.bi'
-'$include: 'allmodex.bi'
+#include "compat.bi"
+#include "allmodex.bi"
 #include "gfx.bi"
 #include "music.bi"
-'$include: 'fbgfx.bi'		
-'$include: 'gglobals.bi'
 #include "bitmap.bi"
 
 option explicit
@@ -1927,6 +1925,15 @@ end function
 'Stub functions which aren't used in game.exe, but are declared in 
 'allmodex.bi for custom.exe.
 '----------------------------------------------------------------------
+SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL page)
+END SUB
+
+SUB bigsprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
+END SUB
+
+SUB hugesprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
+END SUB
+
 SUB setpassblock (BYVAL x, BYVAL y, BYVAL v)
 END SUB
 

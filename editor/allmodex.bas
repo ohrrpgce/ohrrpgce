@@ -2,31 +2,50 @@
 '' GPL and stuff. See LICENSE.txt.
 '
 #define DEMACRO
-'$include: 'compat.bi'
-'$include: 'allmodex.bi'
-'$include: 'fbgfx.bi'
-'$include: "SDL\SDL.bi"
-'$include: "SDL\SDL_mixer.bi"
+#include "compat.bi"
+#include "allmodex.bi"
+#include "gfx.bi"
+#include "music.bi"
+#include "bitmap.bi"
 
 option explicit
 
+#define NULL 0
+
+type ohrsprite
+	w as integer
+	h as integer
+	image as ubyte ptr
+	mask as ubyte ptr
+end type
+	
+type node 	'only used for floodfill
+	x as integer
+	y as integer
+	nextnode as node ptr
+end type
+
+'add page? or assume workpage? (all pages for clip?)
+declare sub setclip(l as integer=0, t as integer=0, r as integer=319, b as integer=199)
+declare sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer=1)
+declare function grabrect(page as integer, x as integer, y as integer, w as integer, h as integer) as ubyte ptr
+declare sub droprect(image as ubyte ptr)
+
 declare function matchmask(match as string, mask as string) as integer
 declare function calcblock(byval x as integer, byval y as integer, byval t as integer) as integer
-declare sub bamconvert(bamfile as string, songfile as string)
 
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
-declare function smouse alias "fb_SetMouse" ( byval x as integer = -1, byval y as integer = -1, byval cursor as integer = -1 ) as integer
 
 'extern
 declare sub debug(s$)
 declare sub fatalerror(e$)
-declare sub bam2mid(infile as string, outfile as string)
 
 dim shared path as string
 dim shared vispage as integer
 dim shared wrkpage as integer
+dim shared spage(0 to 3) as ubyte ptr
 
 dim shared bptr as integer ptr	' buffer 
 dim shared bsize as integer
@@ -43,7 +62,7 @@ dim shared map_y as integer
 dim shared anim1 as integer
 dim shared anim2 as integer
 
-dim shared waittime as single
+dim shared waittime as double
 dim shared keybd(0 to 255) as integer
 dim shared keytime(0 to 255) as integer
 
@@ -59,23 +78,22 @@ dim shared mouse_ymax as integer
 dim shared textfg as integer
 dim shared textbg as integer
 
-dim shared music_on as integer = 0
-'dim shared music_song as FMOD_SOUND ptr = 0 'integer = 0
-'dim shared fmod as FMOD_SYSTEM ptr
-'dim shared fmod_channel as FMOD_CHANNEL ptr = 0
-dim shared music_vol as integer
-dim shared music_paused as integer
-dim shared music_song as Mix_Music ptr = NULL
-dim shared orig_vol as integer = -1
-
 dim shared fontdata(0 to 2048-1) as ubyte
+
+dim shared as integer clipl, clipt, clipr, clipb
+
+dim shared intpal(0 to 255) as integer	'current palette
 
 sub setmodex()
 	dim i as integer
-	
-	'screen 13, , 4, 1 for fullscreen
-	screen 13, ,4
-	screenset 0, 0
+
+	'initialise software gfx	
+	for i = 0 to 3
+		spage(i) = allocate(320 * 200)
+	next
+	setclip
+
+	gfx_init	
 	vispage = 0
 	wrkpage = 0
 	
@@ -86,35 +104,52 @@ sub setmodex()
 	next
 	stacksize = -1
 	
-	mouse_xmin = 0
-	mouse_xmax = 319 ' 636 in orig
-	mouse_ymin = 0
-	mouse_ymax = 199 ' 198 in orig
-	
-	smouse(0, 0, 0) 'hide mouse
+	io_init
+	mouserect(0,319,0,199)
 end sub
 
-sub restoremode() ' not needed
+sub restoremode() 
+	dim i as integer
+	
+	gfx_close
+	
+	'clear up software gfx
+	for i = 0 to 3
+		deallocate(spage(i))
+	next
+	
 	releasestack
 end sub
 
 SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer)
-	screencopy page1, page2
+	dim i as integer
+
+	'inefficient, could be improved with memcpy	
+	for i = 0 to (320 * 200) - 1
+		spage(page2)[i] = spage(page1)[i]
+	next
+	if page2 = vispage then
+		setvispage(vispage)
+	end if
 end sub
 
 SUB clearpage (BYVAL page as integer)
-	screenset page
-	cls
+	dim i as integer
+	
+	'inefficient, could be improved with memcpy	
+	for i = 0 to (320 * 200) - 1
+		spage(page)[i] = 0
+	next
 	wrkpage = page
 end SUB
 
 SUB setvispage (BYVAL page as integer)
-	screenset , page
+	gfx_showpage(spage(page))
+	
 	vispage = page
 end SUB
 
 sub setpal(pal() as integer)
-	dim intpal(0 to 255) as integer
 	dim p as integer
 	dim i as integer
 	
@@ -123,66 +158,62 @@ sub setpal(pal() as integer)
 		intpal(i) = pal(p) or (pal(p+1) shl 8) or (pal(p+2) shl 16)
 		p = p + 3
 	next i
-		
-	palette using intpal
+	
+	gfx_setpal(intpal())	
 end sub
 
 SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
-	dim pal(255) as integer
 	dim i as integer
 	dim j as integer
 	dim hue as integer
 	
-	palette get using pal
+	'palette get using pal 'intpal holds current palette
 	
 	'max of 64 steps
 	for i = 0 to 63
 		for j = 0 to 255
 			'red
-			hue = pal(j) and &hff
-			pal(j) = pal(j) and &hffff00 'clear
+			hue = intpal(j) and &hff
+			intpal(j) = intpal(j) and &hffff00 'clear
 			if hue > red then
 				hue = hue - 1
 			end if
 			if hue < red then
 				hue = hue + 1
 			end if
-			pal(j) = pal(j) or hue
+			intpal(j) = intpal(j) or hue
 			'green
-			hue = (pal(j) and &hff00) shr 8
-			pal(j) = pal(j) and &hff00ff 'clear
+			hue = (intpal(j) and &hff00) shr 8
+			intpal(j) = intpal(j) and &hff00ff 'clear
 			if hue > green then
 				hue = hue - 1
 			end if
 			if hue < green then
 				hue = hue + 1
 			end if
-			pal(j) = pal(j) or (hue shl 8)
+			intpal(j) = intpal(j) or (hue shl 8)
 			'blue
-			hue = (pal(j) and &hff0000) shr 16
-			pal(j) = pal(j) and &h00ffff 'clear
+			hue = (intpal(j) and &hff0000) shr 16
+			intpal(j) = intpal(j) and &h00ffff 'clear
 			if hue > blue then
 				hue = hue - 1
 			end if
 			if hue < blue then
 				hue = hue + 1
 			end if
-			pal(j) = pal(j) or (hue shl 16)
+			intpal(j) = intpal(j) or (hue shl 16)
 		next
-		palette using pal
+		gfx_setpal(intpal())
 		sleep 15 'how long?
 	next
 	
 end SUB
 
 SUB fadetopal (pal() as integer, palbuff() as integer)
-	dim intpal(255) as integer
 	dim i as integer
 	dim j as integer
 	dim hue as integer
 	dim p as integer	'index to passed palette, which has separate r, g, b
-	
-	palette get using intpal
 	
 	'max of 64 steps
 	for i = 0 to 63
@@ -222,7 +253,7 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 			intpal(j) = intpal(j) or (hue shl 16)
 			p = p + 1
 		next
-		palette using intpal
+		gfx_setpal(intpal())
 		sleep 15 'how long?
 	next
 end SUB
@@ -290,19 +321,18 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 	dim calc as integer
 	dim ty as integer
 	dim tx as integer
-	dim tbuf as any ptr
+	dim tbuf as ohrsprite
 	dim tpx as integer
 	dim tpy as integer
 	dim todraw as integer
 	dim tpage as integer
 		
 	if wrkpage <> p then
-		screenset p
 		wrkpage = p
 	end if
 
 	'set viewport to allow for top and bottom bars
-	view screen (0, maptop) - (319, maptop + maplines - 1)
+	setclip(0, maptop, 319, maptop + maplines - 1) 
 	
 	'copied from the asm
 	ypos = y \ 20	
@@ -323,7 +353,10 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 	xstart = xpos
 		
 	'create tile buffer
-	tbuf = imagecreate(40,40)
+	tbuf.w = 20
+	tbuf.h = 20
+	tbuf.mask = 0
+	
 	tpage = 3
 	
 	'screen is 16 * 10 tiles, which means we need to draw 17x11
@@ -349,12 +382,13 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 				'page 3 is the tileset page (#define??)
 				'get and put don't take a page argument, so I'll
 				'have to toggle the work page, not sure that's efficient
-				screenset 3
-				get (tpx, tpy)-(tpx+20-1,tpy+20-1), tbuf
+				tbuf.image = grabrect(3, tpx, tpy, 20, 20)
 									
 				'draw it on the map
-				screenset p
-				put (tx, ty), tbuf, PSET
+				drawohr(tbuf, tx, ty)
+				
+				'deallocate
+				droprect(tbuf.image)
 			end if
 			
 			tx = tx + 20
@@ -364,9 +398,8 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 		ypos = ypos + 1
 	wend
 		
-	imagedestroy tbuf	
 	'reset viewport
-	view screen (0, 0) - (319, 199)
+	setclip
 end SUB
 
 SUB setanim (BYVAL cycle1 as integer, BYVAL cycle2 as integer)
@@ -382,7 +415,7 @@ SUB drawsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 'draw sprite from pic(picoff) onto page using pal() starting at po
 	dim sw as integer
 	dim sh as integer
-	dim hspr as ubyte ptr
+	dim hspr as ohrsprite
 	dim dspr as ubyte ptr
 	dim hmsk as ubyte ptr
 	dim dmsk as ubyte ptr
@@ -394,7 +427,6 @@ SUB drawsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	dim row as integer
 	
 	if wrkpage <> page then
-		screenset page
 		wrkpage = page
 	end if
 	
@@ -403,10 +435,12 @@ SUB drawsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	picoff = picoff + 2
 	
 	'create sprite
-	hspr = imagecreate(sw, sh)
-	dspr = hspr + 4	'jump to data (hope this works sensibly)
-	hmsk = imagecreate(sw, sh)
-	dmsk = hmsk + 4
+	hspr.w = sw
+	hspr.h = sh
+	hspr.image = allocate(sw * sh)
+	hspr.mask = allocate(sw * sh)
+	dspr = hspr.image
+	dmsk = hspr.mask
 	
 	'now do the pixels
 	'pixels are in columns, so this might not be the best way to do it
@@ -454,11 +488,10 @@ SUB drawsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 		nib = nib and 3	'= mod 4, but possibly more efficient
 	next
 	
-	'now draw the image and mask
-	put (x, y), hmsk, AND
-	put (x, y), hspr, XOR
-	imagedestroy hspr
-	imagedestroy hmsk
+	'now draw the image
+	drawohr(hspr,x,y)
+	deallocate(hspr.image)
+	deallocate(hspr.mask)
 end SUB
 
 SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer)
@@ -466,7 +499,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 'are the coords top left or top right, though?
 	dim sw as integer
 	dim sh as integer
-	dim hspr as ubyte ptr
+	dim hspr as ohrsprite
 	dim dspr as ubyte ptr
 	dim hmsk as ubyte ptr
 	dim dmsk as ubyte ptr
@@ -487,11 +520,13 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	picoff = picoff + 2
 	
 	'create sprite
-	hspr = imagecreate(sw, sh)
-	dspr = hspr + 4	'jump to data (hope this works sensibly)
+	hspr.w = sw
+	hspr.h = sh
+	hspr.image = allocate(sw * sh)
+	hspr.mask = allocate(sw * sh)
+	dspr = hspr.image
+	dmsk = hspr.mask
 	dspr = dspr + sw - 1 'jump to last column
-	hmsk = imagecreate(sw, sh)
-	dmsk = hmsk + 4
 	dmsk = dmsk + sw - 1 'jump to last column
 	
 	'now do the pixels
@@ -540,11 +575,10 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 		nib = nib and 3	'= mod 4, but possibly more efficient
 	next
 	
-	'now draw the image and mask
-	put (x, y), hmsk, AND
-	put (x, y), hspr, XOR
-	imagedestroy hspr
-	imagedestroy hmsk
+	'now draw the image
+	drawohr(hspr,x,y)
+	deallocate(hspr.image)
+	deallocate(hspr.mask)
 end SUB
 
 SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer)
@@ -559,7 +593,6 @@ SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BY
 	dim w as integer
 
 	if wrkpage <> page then
-		screenset page
 		wrkpage = page
 	end if
 	
@@ -567,10 +600,9 @@ SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BY
 	h = pic(p)
 	w = pic(p + 1)
 	p = p + 2
-	sbytes = (w * h) \ 2 	'only 4 bits per pixel
+	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
 	
-	screenlock
-	sptr = screenptr
+	sptr = spage(page)
 	sptr = sptr + (320 * y) + x
 	
 	'copy to passed int buffer, with 2 bytes per int as usual
@@ -587,7 +619,6 @@ SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BY
 		sptr = sptr + 1
 	next
 	
-	screenunlock	
 end SUB
 
 SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL page as integer)
@@ -601,14 +632,12 @@ SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, B
 	dim temp as integer
 
 	if wrkpage <> page then
-		screenset page
 		wrkpage = page
 	end if
 	
-	sbytes = (w * h) \ 2 	'only 4 bits per pixel
+	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
 	
-	screenlock
-	sptr = screenptr
+	sptr = spage(page)
 	sptr = sptr + (320 * y) + x
 	
 	'copy to passed int buffer, with 2 bytes per int as usual
@@ -630,7 +659,6 @@ SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, B
 		sptr = sptr + 1
 	next
 	
-	screenunlock
 end SUB
 
 SUB interruptx (intnum as integer,inreg AS RegType, outreg AS RegType) 'not required
@@ -658,7 +686,7 @@ FUNCTION getkey () as integer
 		'I think this wants a scancode, and the only way I can see is to check
 		'them all
 		for i=0 to &h80
-			if multikey(i) then
+			if io_keypressed(i) then
 				key = i
 				exit for
 			end if
@@ -686,7 +714,7 @@ SUB setkeys ()
 	'highest scancode in fbgfx.bi is &h79, no point overdoing it
 	for a = 0 to &h80 
 		keybd(a) = 0 'default to not pressed
-		if multikey(a) <> 0 then
+		if io_keypressed(a) <> 0 then
 			'key is down
 			if ktime > keytime(a) then
 				'ok to fire a key event
@@ -695,20 +723,6 @@ SUB setkeys ()
 					keytime(a) = ktime + 200
 				else
 					keytime(a) = ktime + 50
-				end if
-			else
-				'NOTE there are 86,400,000 thousandths in a day
-				if keytime(a) > 80000000 and ktime < 1800000 then
-					'check wrap over midnight (stupid timer)
-					keytime(a) = keytime(a) - 86400000
-					if ktime > keytime(a) then
-						keybd(a) = 2
-						if keytime(a) = -1 or ktime > keytime(a) + 1000 then
-							keytime(a) = ktime + 200
-						else
-							keytime(a) = ktime + 50
-						end if
-					end if
 				end if
 			end if
 		else
@@ -719,7 +733,6 @@ end SUB
 
 SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
 	if wrkpage <> p then
-		screenset p
 		wrkpage = p
 	end if
 
@@ -728,15 +741,13 @@ SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL 
 		y = y + (x \ 320)
 		x = x mod 320
 	end if
-	
-	' lock the screen first?
-	pset (x, y), c	
+
+	spage(p)[y*320 + x] = c	
 	
 end SUB
 
 FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) as integer
 	if wrkpage <> p then
-		screenset p
 		wrkpage = p
 	end if
 	
@@ -746,56 +757,268 @@ FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) 
 		x = x mod 320
 	end if
 	
-	readpixel = point (x, y)	
+	readpixel = spage(p)[y*320 + x]
 end FUNCTION
 
 SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-	dim hh as string
-	dim ww as string
+	dim sptr as ubyte ptr
+	dim i as integer
+	
 	if wrkpage <> p then
-		screenset p
 		wrkpage = p
 	end if
 	
-	line (x, y) - (x+w-1, y+h-1), c, BF
+	'clip
+	if x + w > clipr then w = (clipr - x) + 1
+	if y + h > clipb then h = (clipb - y) + 1
+	if x < clipl then x = clipl
+	if y < clipt then y = clipt	
+	
+	'draw
+	sptr = spage(p) + (y*320) + x
+	while h > 0
+		for i = 0 to w-1
+			sptr[i] = c
+		next
+		h -= 1
+		sptr += 320
+	wend
+'	line (x, y) - (x+w-1, y+h-1), c, BF
 	
 end SUB
 
 SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
+	dim sptr as ubyte ptr
 	dim i as integer
+	dim tog as integer 'pattern toggle
 	
 	if wrkpage <> p then
-		screenset p
 		wrkpage = p
 	end if
 
-	'can't see how to do this with fills, so it'll have to be lines
-	'unless I draw direct to the buffer
-	for i = y to y+h-1 step 2
-		line (x, i) - (x+w-1, i), c, , &h5555
-	next
-
-	for i = y+1 to y+h-1 step 2
-		line (x, i) - (x+w-1, i), c, , &haaaa
-	next
+	'clip
+	if x + w > clipr then w = (clipr - x) + 1
+	if y + h > clipb then h = (clipb - y) + 1
+	if x < clipl then x = clipl
+	if y < clipt then y = clipt	
+	
+	'draw
+	sptr = spage(p) + (y*320) + x
+	while h > 0
+		tog = h mod 2
+		for i = 0 to w-1
+			if tog = 0 then
+				sptr[i] = c
+				tog = 1
+			else
+				tog = 0
+			end if
+		next
+		h -= 1
+		sptr += 320
+	wend
+	
 end SUB
 
 SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYVAL y2 as integer, BYVAL c as integer, BYVAL p as integer)
+'uses Bresenham's run-length slice algorithm
+  	dim as integer xdiff,ydiff 
+  	dim as integer xdirection 	'direction of X travel from top to bottom point (1 or -1)
+  	dim as integer minlength  	'minimum length of a line strip
+  	dim as integer startLength 	'length of start strip (approx half 'minLength' to balance line)
+  	dim as integer runLength  	'current run-length to be used (minLength or minLength+1)
+  	dim as integer endLength   	'length of end of line strip (usually same as startLength)
+  	
+  	dim as integer instep		'xdirection or 320 (inner loop)
+	dim as integer outstep		'xdirection or 320 (outer loop)
+	dim as integer shortaxis	'outer loop control
+	dim as integer longaxis
+	
+  	dim as integer errorterm   	'when to draw an extra pixel
+  	dim as integer erroradd 		'add to errorTerm for each strip drawn
+  	dim as integer errorsub 		'subtract from errorterm when triggered
+
+  	dim as integer i,j
+  	dim sptr as ubyte ptr
+  
+'Macro to simplify code
+#define DRAW_SLICE(a) for i=0 to a: *sptr = c: sptr += instep: next
+
 	if wrkpage <> p then
-		screenset p
 		wrkpage = p
 	end if
 	
-	line (x1, y1) - (x2, y2), c
+  	if (y1>y2) then
+  		'swap ends, we only draw downwards
+    	i=y1: y1=y2: y2=i
+    	i=x1: x1=x2: x2=i
+    end if
+
+    'point to start
+    sptr = spage(p) + y1*320 + x1
+
+  	xdiff=x2-x1
+  	ydiff=y2-y1
+
+  	if (xDiff<0) then 
+  		'right to left
+    	xdiff=-xdiff
+    	xdirection=-1
+  	else
+    	xdirection=1
+    end if
+
+	'special case for vertical
+  	if (xdiff = 0) then
+  		instep = 320
+  		DRAW_SLICE(ydiff+1)
+    	exit sub
+  	end if
+
+	'and for horizontal
+  	if (ydiff = 0) then
+  		instep = xdirection
+  		DRAW_SLICE(xdiff+1)
+    	exit sub
+  	end if
+
+  	'and also for pure diagonals
+  	if xdiff = ydiff then
+  		instep = 320 + xdirection
+  		DRAW_SLICE(ydiff+1)
+    	exit sub
+  	end if
+
+	'now the actual bresenham
+  	if xdiff > ydiff then
+  		longaxis = xdiff
+    	shortaxis = ydiff
+    	
+    	instep = xdirection
+    	outstep = 320
+  	else
+		'other way round, draw vertical slices
+		longaxis = ydiff
+		shortaxis = xdiff
+		
+		instep = 320
+		outstep = xdirection
+	end if
+
+	'calculate stuff    	
+    minlength = longaxis \ shortaxis
+	erroradd = (longaxis mod shortaxis) * 2
+	errorsub = shortaxis * 2
+
+	'errorTerm must be initialized properly since first pixel
+	'is about in the center of a strip ... not the start
+	errorterm = (erroradd \ 2) - errorsub
+
+	startLength = (minLength \ 2) + 1
+	endLength = startlength 'half +1 of normal strip length
+
+	'If the minimum strip length is even
+	if (minLength and 1) <> 0 then
+  		errorterm += shortaxis 'adjust errorTerm
+	else
+		'If the line had no remainder (x&yDiff divided evenly)
+  		if erroradd = 0 then
+			startLength -= 1 'leave out extra start pixel
+		end if
+	end if
+
+	'draw the start strip 
+	DRAW_SLICE(startlength)
+	sptr += outstep
+
+	'draw the middle strips
+	for j = 1 to shortaxis-1
+      	runLength = minLength
+  		errorTerm += erroradd
+
+  		if errorTerm > 0 then
+  			errorTerm -= errorsub
+			runLength += 1
+  		end if
+
+  		DRAW_SLICE(runlength)
+  		sptr += outstep
+	next
+
+	DRAW_SLICE(endlength)
 end SUB
 
 SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL page as integer, buf() as integer, BYVAL max as integer)
+'I'm not really sure what this does, I assume it's a floodfill, but then what are buf and max for?
+'Uses putpixel and readpixel, so could probably be sped up with direct access. Also ignores clipping
+'at the moment, which is possibly foolish
+	dim tcol as integer
+	dim queue as node ptr = null
+	dim tail as node ptr = null
+	dim as integer w, e		'x coords west and east
+	dim i as integer
+	dim tnode as node ptr = null
+	
 	if wrkpage <> page then
-		screenset page
 		wrkpage = page
 	end if
 	
-	paint (x, y), c
+	tcol = readpixel(x, y, page)	'get target colour
+	
+	queue = allocate(sizeof(node))
+	queue->x = x
+	queue->y = y
+	queue->nextnode = null
+	tail = queue
+	
+	do
+		if readpixel(queue->x, queue->y, page) = tcol then
+			putpixel(queue->x, queue->y, c, page) 'change color
+			w = queue->x
+			e = queue->x
+			'find western limit
+			while w > 0 and readpixel(w-1, queue->y, page) = tcol
+				w = w-1
+				putpixel(w, queue->y, c, page) 'change
+			wend
+			'find eastern limit
+			while e < 319 and readpixel(e+1, queue->y, page) = tcol
+				e = e+1
+				putpixel(e, queue->y, c, page)
+			wend
+			'add bordering nodes
+			for i = w to e
+				if queue->y > 0 then
+					'north
+					if readpixel(i, queue->y-1, page) = tcol then
+						tail->nextnode = allocate(sizeof(node))
+						tail = tail->nextnode
+						tail->x = i
+						tail->y = queue->y-1
+						tail->nextnode = null
+					end if
+				end if
+				if queue->y < 199 then
+					'south
+					if readpixel(i, queue->y+1, page) = tcol then
+						tail->nextnode = allocate(sizeof(node))
+						tail = tail->nextnode
+						tail->x = i
+						tail->y = queue->y+1
+						tail->nextnode = null
+					end if
+				end if
+			next
+		end if
+		
+		'advance queue pointer, and delete behind us
+		tnode = queue
+		queue = queue->nextnode
+		deallocate(tnode)
+		
+	loop while queue <> null
+	'should only exit when queue has caught up with tail
+	
 end SUB
 
 SUB storepage (fil$, BYVAL i as integer, BYVAL p as integer)
@@ -809,7 +1032,6 @@ SUB storepage (fil$, BYVAL i as integer, BYVAL p as integer)
 	dim plane as integer
 	
 	if wrkpage <> p then
-		screenset p
 		wrkpage = p
 	end if
 	
@@ -826,7 +1048,7 @@ SUB storepage (fil$, BYVAL i as integer, BYVAL p as integer)
 	screenlock
 	
 	'modex format, 4 planes
-	scrnbase = screenptr()
+	scrnbase = spage(p)
 	for plane = 0 to 3
 		sptr = scrnbase + plane
 		
@@ -837,7 +1059,6 @@ SUB storepage (fil$, BYVAL i as integer, BYVAL p as integer)
 		next
 	next
 	
-	screenunlock
 	close #f		
 end SUB
 
@@ -852,7 +1073,6 @@ SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
 	dim plane as integer
 	
 	if wrkpage <> p then
-		screenset p
 		wrkpage = p
 	end if
 	
@@ -866,10 +1086,8 @@ SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
 	'skip to index
 	seek #f, (i*64000) + 1
 	
-	screenlock
-	
 	'modex format, 4 planes
-	scrnbase = screenptr()
+	scrnbase = spage(p)
 	for plane = 0 to 3
 		sptr = scrnbase + plane
 		
@@ -880,7 +1098,6 @@ SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
 		next
 	next
 	
-	screenunlock
 	close #f
 	
 end SUB
@@ -898,7 +1115,7 @@ SUB setwait (b() as integer, BYVAL t as integer)
 'dos timer means that the latter is always truncated to the last multiple of
 '55 milliseconds.
 	dim millis as integer
-	dim secs as single
+	dim secs as double
 	millis = (t \ 55) * 55
 	
 	secs = millis / 1000
@@ -927,15 +1144,13 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 	dim tbyte as ubyte
 	
 	if wrkpage <> p then
-		screenset p
 		wrkpage = p
 	end if
 	
 	'is it actually faster to use a direct buffer write, or would pset be
 	'sufficiently quick?
 	col = x
-	screenlock
-	pscr = screenptr
+	pscr = spage(p)
 	for ch = 0 to len(s$) - 1
 		fi = s$[ch] * 8	'index to fontdata
 		for cc = 0 to 7
@@ -966,7 +1181,6 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 			fi = fi + 1
 		next
 	next
-	screenunlock
 end SUB
 
 SUB textcolor (BYVAL f as integer, BYVAL b as integer)
@@ -1056,11 +1270,9 @@ SUB storeset (fil$, BYVAL i as integer, BYVAL l as integer)
 	toggle = 0
 	if bpage >= 0 then
 		'read from screen
-		screenlock
-		sptr = screenptr
+		sptr = spage(wrkpage)
 		sptr = sptr + (320 * l)
 		fput(f, ,sptr, bsize)
-		screenunlock
 		'do I need to bother with buffer?
 	else
 		'debug "buffer size to read = " + str$(bsize)
@@ -1104,11 +1316,9 @@ SUB loadset (fil$, BYVAL i as integer, BYVAL l as integer)
 	toggle = 0
 	if bpage >= 0 then
 		'read to screen
-		screenlock
-		sptr = screenptr
+		sptr = spage(wrkpage)
 		sptr = sptr + (320 * l)
 		fget(f, ,sptr, bsize)
-		screenunlock
 		'do I need to bother with buffer?
 	else
 		'debug "buffer size to read = " + str$(bsize)
@@ -1135,7 +1345,6 @@ end SUB
 SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 	if p >= 0 then
 		if wrkpage <> p then
-			screenset p
 			wrkpage = p
 		end if
 	end if
@@ -1146,6 +1355,7 @@ SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 end SUB
 
 SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
+	if attrib = 0 then attrib = 255
 	dim ff%
 	ff = FreeFile
 	OPEN outfile$ FOR OUTPUT as #ff
@@ -1160,7 +1370,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 END SUB
 
 SUB unlump (lump$, ulpath$, buffer() as integer)
-	unlumpfile(lump$, "*.*", ulpath$, buffer())
+	unlumpfile(lump$, "", ulpath$, buffer())
 end SUB
 
 SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
@@ -1248,11 +1458,9 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 end SUB
 
 FUNCTION isfile (n$) as integer
-	dim fname as string
 	dim f as integer
-	fname = rtrim$(n$)
 	f = freefile
-	open fname for input as #f
+	open n$ for input as #f
 	if err > 0 then
 		isfile = 0
 	else
@@ -1314,191 +1522,35 @@ FUNCTION LongNameLength (filename$) as integer
 end FUNCTION
 
 SUB setupmusic (mbuf() as integer)
-	dim version as uinteger
-	if music_on = 0 then
-		dim audio_rate as integer
-		dim audio_format as Uint16
-		dim audio_channels as integer
-		dim audio_buffers as integer
-	
-		' We're going to be requesting certain things from our audio
-		' device, so we set them up beforehand
-		audio_rate = MIX_DEFAULT_FREQUENCY
-		audio_format = MIX_DEFAULT_FORMAT
-		audio_channels = 2
-		audio_buffers = 4096
-		
-		SDL_Init(SDL_INIT_VIDEO or SDL_INIT_AUDIO)
-		
-		if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) <> 0 then
-			Debug "Can't open audio"
-			music_on = -1
-			SDL_Quit()
-			exit sub
-		end if
-		
-		music_vol = 8
-		music_on = 1
-		music_paused = 0
-	end if	
+	music_init
 end SUB
 
 SUB closemusic ()
-	if music_on = 1 then
-		if orig_vol > -1 then
-			'restore original volume
-			Mix_VolumeMusic(orig_vol)
-		end if
-		
-		if music_song <> 0 then
-			Mix_FreeMusic(music_song)
-			music_song = 0
-			music_paused = 0
-		end if
-		
-		Mix_CloseAudio
-		SDL_Quit
-		music_on = 0
-	end if
+	music_close
 end SUB
 
 SUB loadsong (f$)
-'would be nice if we had a routine that took the number as a param
-'instead of the name, maybe abstract one into compat.bas?
-	if music_on = 1 then
-		dim exten as string
-		dim dotpos as integer
-		dim i as integer
-		dim songname as string = ""
-		dim found as integer = 0
-		dim pass as integer = 0
-		dim bamfile as string
-		
-		bamfile = rtrim$(f$) 	'lose the null terminator
-		
-		'get the extension (ie. song number)
-		dotpos = 0
-		do 
-			i = instr(dotpos + 1, bamfile, ".")
-			if i <> 0 then
-				dotpos = i
-			end if
-		loop until i = 0
-		exten = mid$(bamfile, dotpos + 1)
-		
-		're-ordered filename without extension
-		'TODO
-		songname = "song" + exten
-		'songname = workingdir$ + PATH_SEP + "song" + exten
-		
-		'stop current song
-		if music_song <> 0 then
-			Mix_FreeMusic(music_song)
-			music_song = 0
-			music_paused = 0
-		end if
-
-		'find song
-		pass = 0
-		while pass < 2 and found = 0
-			if isfile(songname + ".xm") then
-				songname = songname + ".xm"
-				found = 1
-			elseif isfile(songname + ".it") then
-				songname = songname + ".it"
-				found = 1
-			elseif isfile(songname + ".mod") then
-				songname = songname + ".mod"
-				found = 1
-			elseif isfile(songname + ".ogg") then
-				songname = songname + ".ogg"
-				found = 1
-			elseif isfile(songname + ".mid") then
-				songname = songname + ".mid"
-				found = 1
-			end if
-			
-			if found = 0 then
-				bamconvert(bamfile, songname)
-			end if
-			pass = pass + 1
-		wend
-		
-		if (found = 1) then
-			music_song = Mix_LoadMUS(songname)
-			if music_song = 0 then
-				debug "Could not load song " + songname
-				exit sub
-			end if
-			
-			Mix_PlayMusic(music_song, -1)			
-			music_paused = 0
-
-			if orig_vol = -1 then
-				orig_vol = Mix_VolumeMusic(-1)
-			end if
-						
-			'dim realvol as single
-			'realvol = music_vol / 15
-			'FMOD_Channel_SetVolume(fmod_channel, realvol)
-			if music_vol = 0 then
-				Mix_VolumeMusic(0)
-			else
-				'add a small adjustment because 15 doesn't go into 128
-				Mix_VolumeMusic((music_vol * 8) + 8)
-			end if
-		end if
-	end if
+	music_play(f$)
 end SUB
 
 SUB stopsong ()
-	if music_on = 1 then
-		if music_song > 0 then
-			if music_paused = 0 then
-				Mix_PauseMusic
-				music_paused = 1
-			end if
-		end if
-	end if
+	music_pause()
 end SUB
 
 SUB resumesong ()
-	if music_on = 1 then
-		if music_song > 0 then
-			Mix_ResumeMusic
-			music_paused = 0
-		end if
-	end if
+	music_resume
 end SUB
 
 SUB fademusic (BYVAL vol as integer)
-'Unlike the original version, this will pause everything else while it
-'fades, so make sure it doesn't take too long
-	dim vstep as integer = 1
-	dim i as integer
-	
-	if music_vol > vol then vstep = -1
-	for i = music_vol to vol step vstep
-		setfmvol(i)
-		sleep 10
-	next
-	
+	music_fade(vol)
 end SUB
 
 FUNCTION getfmvol () as integer
-	getfmvol = music_vol
+	getfmvol = music_getvolume
 end FUNCTION
 
 SUB setfmvol (BYVAL vol as integer)
-	music_vol = vol
-	if music_on = 1 then
-		if music_vol = 0 then
-			Mix_VolumeMusic(0)
-		else
-			'add a small adjustment because 15 doesn't go into 128
-			Mix_VolumeMusic((music_vol * 8) + 8)
-		end if
-	end if
+	music_setvolume(vol)
 end SUB
 
 SUB copyfile (s$, d$, buf() as integer)
@@ -1507,16 +1559,85 @@ SUB copyfile (s$, d$, buf() as integer)
 end SUB
 
 SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
-	bsave f$, 0
+'Not sure whether this should be in here or in gfx. Possibly both?
+'	bsave f$, 0
+	dim fname as string
+	
+	fname = rtrim$(f$)
+	
+	'try external first
+	if gfx_screenshot(fname, p) = 0 then
+		'otherwise save it ourselves
+		dim header as BITMAPFILEHEADER
+		dim info as BITMAPINFOHEADER
+
+		dim as integer of, w, h, i, bfSize, biSizeImage, bfOffBits, biClrUsed, pitch, argb
+		dim as ubyte ptr s
+	
+		w = 320
+		h = 200
+		s = spage(p)
+		pitch = w
+
+		biSizeImage = w * h
+		bfOffBits = 54 + 1024
+		bfSize = bfOffBits + biSizeImage
+		biClrUsed = 256
+	
+		header.bfType = 19778
+		header.bfSize = bfSize
+		header.bfReserved1 = 0
+		header.bfReserved2 = 0
+		header.bfOffBits = bfOffBits
+		
+		info.biSize = 40
+		info.biWidth = w
+		info.biHeight = h
+		info.biPlanes = 1
+		info.biBitCount = 8
+		info.biCompression = 0
+		info.biSizeImage = biSizeImage
+		info.biXPelsPerMeter = &hB12
+		info.biYPelsPerMeter = &hB12
+		info.biClrUsed = biClrUsed
+		info.biClrImportant = biClrUsed
+		
+		of = freefile
+		open fname for binary access write as #of
+		if err > 0 then
+			'debug "Couldn't open " + fname
+			exit sub
+		end if
+
+		put #of, , header
+		put #of, , info
+				
+		for i = 0 to 255
+			'note: values are multiplied by 4 which is shr 2
+			'combined with the other rearrangements BGR->RGB
+			argb = (intpal(i) and &hff0000) shl 14
+			argb = argb or ((intpal(i) and &hff00) shr 2)
+			argb = argb or ((intpal(i) and &hff) shl 14)
+			put #of, , argb 'I'm sure this is wrong, but let's try
+		next
+	
+		s += (h - 1) * pitch
+		while h > 0
+			fput(of, , s, pitch)
+			s -= pitch
+			h -= 1
+		wend
+	
+		close #of
+	end if
 end SUB
 
 FUNCTION setmouse (mbuf() as integer) as integer
 'don't think this does much except says whether there is a mouse
 'no idea what the parameter is for
-	dim mousebuf(0 to 3) as integer
-	readmouse(mousebuf())
-	if (mousebuf(2) = -1) then	'no mouse if button = -1
+	if io_enablemouse <> 0 then
 		setmouse = 0
+		exit function
 	end if
 	setmouse = 1
 end FUNCTION
@@ -1526,7 +1647,7 @@ SUB readmouse (mbuf() as integer)
 	static lastx as integer = 0
 	static lasty as integer = 0
 	
-	getmouse(mx, my, mw, mb)
+	io_getmouse(mx, my, mw, mb)
 	if (mx = -1) then mx = lastx
 	if (my = -1) then my = lasty
 	if (mx > mouse_xmax) then mx = mouse_xmax
@@ -1544,7 +1665,7 @@ SUB readmouse (mbuf() as integer)
 end SUB
 
 SUB movemouse (BYVAL x as integer, BYVAL y as integer)
-	smouse(x, y)
+	io_setmouse(x, y)
 end SUB
 
 SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)
@@ -1552,10 +1673,12 @@ SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)
 	mouse_xmax = xmax
 	mouse_ymin = ymin
 	mouse_ymax = ymax
+	io_mouserect(xmin, xmax, ymin, ymax)
 end sub
 
 FUNCTION readjoy (joybuf() as integer, BYVAL jnum as integer) as integer
 'would be easy if I knew what was going where in the buffer
+	io_readjoy(joybuf(), jnum)
 	readjoy = 0
 end FUNCTION
 
@@ -1680,6 +1803,12 @@ function matchmask(match as string, mask as string) as integer
 	dim i as integer
 	dim m as integer
 	dim si as integer, sm as integer
+	
+	'special cases
+	if mask = "" or mask = "*.*" then 
+		matchmask = 1
+		exit function
+	end if
 	
 	i = 0
 	m = 0
@@ -1859,8 +1988,84 @@ function xstr$(x as double)
 	end if
 end function
 
-sub bamconvert(bamfile as string, songfile as string)
-'note, songfile has no extension, so this sub can add whichever it likes
-	bam2mid(bamfile, songfile + ".mid")
-	'exec("tools/bam2mid.exe", bamfile + " " + songfile + ".mid")
+'-------------- Software GFX mode routines -----------------
+sub setclip(l as integer, t as integer, r as integer, b as integer)
+	clipl = l
+	clipt = t
+	clipr = r
+	clipb = b
 end sub
+
+sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer)
+	dim sptr as ubyte ptr
+	dim as integer tx, ty
+	dim as integer i, j, pix, spix
+	
+	'assume wrkpage
+	sptr = spage(wrkpage)
+	
+	if scale = 0 then scale = 1
+	
+	'checking the clip region should really be outside the loop,
+	'I think, but we'll see how this works
+	ty = y
+	for i = 0 to (spr.h * scale) - 1
+		tx = x
+		for j = 0 to (spr.w * scale) - 1
+			'check bounds
+			if not (tx < clipl or tx > clipr or ty < clipt or ty > clipb) then
+				'ok to draw pixel
+				pix = (ty * 320) + tx
+				spix = ((i \ scale) * spr.w) + (j \ scale)
+				'check mask
+				if spr.mask <> 0 then
+					'not really sure whether to leave the masks like
+					'this or change them above, this is the wrong
+					'way round, really. perhaps.
+					if spr.mask[spix] = 0 then
+						sptr[pix] = spr.image[spix]
+					end if
+				else
+					sptr[pix] = spr.image[spix]
+				end if
+			end if
+			tx += 1
+		next
+		ty += 1
+	next
+	
+end sub
+
+function grabrect(page as integer, x as integer, y as integer, w as integer, h as integer) as ubyte ptr
+'should possibly move the allocate out and pass the pointer in. as it is
+'the space is allocated and deallocated hundreds of times per frame.
+	dim iptr as ubyte ptr
+	dim sptr as ubyte ptr
+	dim as integer i, j, px, py
+	
+	sptr = spage(page)
+	
+	iptr = allocate(w * h)
+	
+	py = y
+	for i = 0 to h-1
+		px = x 
+		for j = 0 to w-1
+			'ignore clip rect, but check screen bounds
+			if not (px < 0 or px > 319 or py < 0 or py > 199) then
+				iptr[i*w + j] = sptr[(py * 320) + px]
+			else
+				iptr[i*w + j] = 0
+			end if
+			px += 1
+		next
+		py += 1
+	next
+	
+	grabrect = iptr
+end function
+
+sub droprect(image as ubyte ptr)
+	deallocate(image)
+end sub
+
