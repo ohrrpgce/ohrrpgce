@@ -169,8 +169,12 @@ sub bam2mid(infile as string, outfile as string)
 					get #f1, , ub 'loop control
 					if labelpos(chan) > 0 then
 						if ub = 255 then
-							returnpos = seek(f1) + 1
-							seek f1, labelpos(chan)
+							'chorus loop, but only if not already
+							'in a chorus
+							if returnpos = -1 then
+								returnpos = seek(f1) + 1
+								seek f1, labelpos(chan)
+							end if
 						end if
 						if ub < 254 then
 							if loopcount(chan) = -1 then
