@@ -29,12 +29,18 @@ WHAT IS NEW?
     * Fixed bug 107: "An MP~ stat over 66 makes all spells free"
       [Ralph Versteegen]
 
+    * In the plotscripting dictionary, NPCcount was described as
+      returning number of npcs at spot with NPCatpixel or NPCatspot.
+      This is incorrect, the constant getcount does this (and more).
+
     * c and v no longer appended to a string when copying and pasting
       [Ralph Versteegen]
 
-    * renamed attack bitset "No Reward from target" to
+    * Renamed attack bitset "No Reward from target" to
       "Erase rewards (Enemy target only)" to clarify that it
       happens even if the attack does not kill the target
+
+    * Fixed off by one bug in "get attack name" [Ralph Versteegen]
 
   * New Plotscripting Commands
 
@@ -42,6 +48,8 @@ WHAT IS NEW?
     * "seconds of play", "set days of play", "set hours of play",
       "set minutes of play", "set seconds of play" [Mike Caron]
     * "read NPC" (counterpart of alter NPC) [James Paige]
+    * "set hero level", "give experience", "hero levelled",
+      "spells learnt" [Ralph Versteegen]
 
   * Stuff only Developers Will Notice
 

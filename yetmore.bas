@@ -99,6 +99,11 @@ DECLARE FUNCTION checksaveslot (slot%)
 DECLARE FUNCTION readitemname$ (itemnum%)
 DECLARE FUNCTION readatkname$ (id%)
 DECLARE SUB getmapname (mapname$, m%)
+DECLARE FUNCTION exptolevel& (level%)
+DECLARE SUB updatestatslevelup (i%, exstat%(), stat%(), allowforget%)
+DECLARE SUB giveheroexperience (i%, exstat%(), exper&)
+DECLARE FUNCTION liveherocount% (stat%())
+
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -295,6 +300,49 @@ LOOP
 IF limit > 0 THEN
  text$ = LEFT$(text$, limit)
 END IF
+END SUB
+
+SUB expcommands (id, stat())
+STATIC spellmaskhero
+DIM dummystats(40, 1, 1) 'just need HP and MP
+
+SELECT CASE id
+ CASE 183'--setherolevel (who, what, allow forgetting spells)
+  IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
+   spellmaskhero = retvals(0)  'used for spells learnt
+   stat(retvals(0), 1, 12) = retvals(1) - stat(retvals(0), 0, 12)
+   stat(retvals(0), 0, 12) = retvals(1)
+   exlev&(retvals(0), 1) = exptolevel(retvals(1))  
+   exlev&(retvals(0), 0) = 0  'XP attained towards the next level
+   updatestatslevelup retvals(0), stat(), dummystats(), retvals(2) 'updates stats and spells
+  END IF
+ CASE 184'--give experience (who, how much)
+  spellmaskhero = retvals(0)  'used for spells learnt
+  IF retvals(0) = -1 AND liveherocount(stat()) > 0 THEN retvals(1) = retvals(1) / liveherocount(stat())
+  FOR i = 0 TO 40
+   IF i = retvals(0) OR (retvals(0) = -1 AND i <= 3) THEN  
+    'give the XP to the hero only if it is alive if party is target
+    IF retvals(0) <> -1 OR stat(i, 0, 0) THEN giveheroexperience i, stat(), (retvals(1))
+    updatestatslevelup i, stat(), dummystats(), 0
+   END IF
+  NEXT i
+ CASE 185'--hero levelled (who)
+  scriptret = stat(bound(retvals(0), 0, 40), 1, 12)
+ CASE 186'--spells learnt
+  IF retvals(0) >= 0 AND (retvals(0) <= 3 OR retvals(0) = spellmaskhero) THEN
+   effectivehero = small(retvals(0), 4)  'if the hero num was greater than 3, use hero 4's learnmask slots
+   FOR i = effectivehero * 96 TO effectivehero * 96 + 95
+    IF readbit(learnmask(), 0, i) THEN
+     IF retvals(1) = found THEN
+      scriptret = spell(retvals(0), (i \ 24) MOD 4, i MOD 24) - 1
+      EXIT FOR
+     END IF
+     found = found + 1
+    END IF
+   NEXT
+   IF retvals(1) = -1 THEN scriptret = found  'getcount
+  END IF
+END SELECT
 END SUB
 
 SUB flusharray (array(), size, value)
@@ -1334,7 +1382,7 @@ SELECT CASE id
   IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > gen(genMaxAttack) THEN
    scriptret = 0
   ELSE
-   plotstring$(retvals(0)) = readatkname$(retvals(1))
+   plotstring$(retvals(0)) = readatkname$(retvals(1) + 1)
    scriptret = 1
   END IF
  CASE 209'--get global string(str,glo)
@@ -1950,4 +1998,3 @@ IF x >= wide THEN x = x - wide
 IF y < 0 THEN y = high + y
 IF y >= high THEN y = y - high
 END SUB
-

@@ -471,7 +471,7 @@ end</example>
 		<command id="npcatspot">
 			<cannon>NPC at spot (x,y,number)</cannon>
 			<shortname>NPC at spot</shortname>
-			<description>This command returns a reference to the NPC at the given X and Y coordinate on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom most NPC, which is number 0). You can also pass the constant <ref>npccount</ref> for the third argument to return the total number of npcs on that tile.</description>
+			<description>This command returns a reference to the NPC at the given X and Y coordinate on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom most NPC, which is number 0). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile.</description>
 			<seealso>
 				<ref>npcreference</ref>
 			</seealso>
@@ -479,7 +479,7 @@ end</example>
 		<command id="npcatpixel">
 			<cannon>NPC at pixel (x,y,number)</cannon>
 			<shortname>NPC at pixel</shortname>
-			<description>This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). You can also pass the constant <ref>npccount</ref> for the third argument to return the total number of npcs on that tile.</description>
+			<description>This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile.</description>
 			<seealso>
 				<ref>npcreference</ref>
 			</seealso>
@@ -816,6 +816,11 @@ end</example>
 			<shortname>set default weapon</shortname>
 			<description>Changes the item that the specified hero uses as a default weapon when no other weapon is equipped. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the item to use as the new default weapon. you can use the item&apos;s number or the item:name constants from your .HSI file.</description>
 		</command>
+		<command id="giveexperience">
+			<cannon>give experience (hero,amount)</cannon>
+			<shortname>give experience</shortname>
+			<description>Gives (or removes, but you can't drop level) experience to either a hero by position in party (use result returned by <ref>findhero</ref> command) or the whole active party, if the constant <ref>party</ref> is passed as first argument. If you give experience to the whole party, then it will be split amongst live heroes as it is in battle. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <ref>herolevelled</ref> and <ref>spellslearnt</ref> for dealing with this.</description>
+		</command>
 	</section>
 	<section title="Effects">
 		<command id="playsong">
@@ -925,6 +930,26 @@ end</example>
 			<cannon>can learn spell (hero,attack)</cannon>
 			<shortname>can learn spell</shortname>
 			<description>Checks to see if a hero is capable of learning a spell from an item or from the teach spell command. The first argument is the hero&apos;s position in the party (as returned by <ref>findhero</ref>). The second argument is the attack to check for. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1). If the hero can learn the spell, can learn spell will return <ref>true</ref>. If the hero cannot learn the spell (or learns it from levelups), it will return <ref>false</ref></description>
+		</command>
+		<command id="spellslearnt">
+			<cannon>spells learnt (hero,number)</cannon>
+			<shortname>spells learnt</shortname>
+			<description>Used to return the id numbers of spells the hero learnt from the last battle or <ref>giveexperience</ref> or <ref>setherolevel</ref> command. (Returns only the spells learnt from the very last battle or <ref>giveexperience</ref>/<ref>setherolevel</ref> command). If the second argument is <ref>getcount</ref> then the number of spells that the hero learnt is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learnt:</description>
+			<example>define script (autonumber, print learnt spells, 1, 0)
+# the following script uses strings 0, 1, 2 for its use (will be overwritten)
+script, print learnt spells, who, begin
+  variable(i)
+  get hero name (1, who) # construct the static part of the text in string 1
+  $1+" learnt spell "
+  for (i, 0, spells learnt (who, get count) -- 1) do (
+    get attack name (2, spells learnt (who, i))  # get the i-th spell learnt
+    0 $= 1  # copy the static part to the displayed string
+    0 $+ 2  # combine with the spell name
+    show string at (0, 160, 100)
+    wait for keypress (anykey)
+  )
+  hide string (0)
+end</example>
 		</command>
 	</section>
 	<section title="Mouse Functions">
@@ -1379,7 +1404,19 @@ end</example>
 				<ref>getenemyrewards</ref>
 			</seealso>
 		</command>
-     	</section>
+		<command id="herolevelled">
+			<cannon>hero levelled (who)</cannon>
+			<shortname>hero levelled</shortname>
+			<description>Returns the number of levels the specified hero (use result from <ref>findhero</ref>) gained from only the very last battle or <ref>giveexperience</ref> command - levels gained from previous battles or commands is not recorded. In other words, does not return true or false, but can be be used in an if statement like:</description>
+			<example>give experience (party, 50)
+if (herolevelled (find hero (hero: Bob))) then (
+  $31="Bob gained "
+  append number(31, hero levelled (find hero (hero: Bob)))
+  $31+" levels!"
+  show textbox (233) # ${S31} :show string 31
+)</example>
+		</command>
+	</section>
 	<section title="Tweaking Maps">
 		<command id="readmapblock">
 			<cannon>read map block (x,y)</cannon>
@@ -1757,6 +1794,11 @@ end</example>
 			<shortname>get hero level</shortname>
 			<description>A function that returns a hero&apos;s current level. The argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. The return value with be your current level, from 0 to 99</description>
 		</command>
+		<command id="setherolevel">
+			<cannon>set hero level (who, level, forgetspells)</cannon>
+			<shortname>set hero level</shortname>
+			<description>A command that sets a hero&apos;s current level. The first argument is the position of the hero you want to change in your party as as returned by <ref>findhero</ref>. You can specify any hero in the active or reserve party and any (positive) level. Unlike old workarounds, this command teachs the hero any spells they would have learnt by that level and correctly sets the experience to next levelup (experience gained to the current next level is lost). You can also decrease the hero&apos;s level, which will cause spells to be forgotten, unless the optional 3rd argument (defaulting to true) is set as false.</description>
+		</command>
 		<command id="readglobal">
 			<cannon>read global (id)</cannon>
 			<shortname>read global</shortname>
@@ -2124,10 +2166,10 @@ end</example>
 			<alias>mouseconstants</alias>
 			<shortname>right button</shortname>
 		</command>
-		<command id="npccount">
-			<cannon>NPC count</cannon>
-			<shortname>NPC count</shortname>
-			<description>When passed to <ref>npcatpixel</ref> or <ref>npcatspot</ref>, they return the number of NPCs at that spot.</description>
+		<command id="getcount">
+			<cannon>get count</cannon>
+			<shortname>get count</shortname>
+			<description>When passed to <ref>npcatpixel</ref> or <ref>npcatspot</ref>, they return the number of NPCs at that spot. With <ref>spellslearnt</ref> returns the number of spells a hero learnt.</description>
 		</command>
 		<command id="tileconstants">
 			<cannon>Tile Constants</cannon>
@@ -2177,9 +2219,14 @@ end</example>
 			<description>A constant used in <ref>setmapedgemode</ref> which lets the player walk over the edge of the map around to the opposite side.</description>
 		</command>
 		<command id="defaulttile">
-			<cannon>defaulttile</cannon>
-			<shortname>defaulttile</shortname>
+			<cannon>default tile</cannon>
+			<shortname>default tile</shortname>
 			<description>A constant used in <ref>setmapedgemode</ref> which makes the edges of the map impassible and displays a specified tile everywhere off the edge of the map.</description>
+		</command>
+		<command id="party">
+			<cannon>party</cannon>
+			<shortname>party</shortname>
+			<description>Pass as first argument to <ref>giveexperience</ref> to divide the experience between all the live heroes in the battle (active) party.</description>
 		</command>
 	</section>
 </plotscript>

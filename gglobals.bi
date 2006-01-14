@@ -15,5 +15,5 @@ COMMON SHARED regs AS Regtype, off9, seg9
 COMMON SHARED script(), heap(), astack(), scrat(), retvals(), nowscript, scriptret, nextscroff
 
 'Battle globals
-COMMON SHARED battlecaption$, battlecaptime, battlecapdelay, bstackstart
+COMMON SHARED battlecaption$, battlecaptime, battlecapdelay, bstackstart, learnmask()
 
