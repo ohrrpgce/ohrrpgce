@@ -133,7 +133,7 @@ NEXT
 
 count = ptr
 ptr = -1
-debug("count = " + str$(count) + ", last = " + str$(last))
+
 '---MAIN LOOP---
 setkeys
 DO
