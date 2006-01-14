@@ -168,7 +168,7 @@ FOR i = 0 TO 7
  ebit$(24 + i) = "Is " + name$(9 + i)
 NEXT i
 FOR i = 32 TO 53
- ebit$(i) = "(placeholder" + STR$(i) + ")"
+ ebit$(i) = "" 'preferable to be blank, so we can hide it
 NEXT i
 ebit$(54) = "Harmed by Cure"
 ebit$(55) = "MP Idiot"

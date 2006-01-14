@@ -601,12 +601,12 @@ saybit(0) = buffer(174)
 FOR j = 0 TO 6
  sayenh(j) = buffer(193 + j)
 NEXT j
-'-- update backdrop if neccisary
+'-- update backdrop if necessary
 IF sayenh(4) > 0 THEN
  gen(58) = sayenh(4)
  correctbackdrop
 END IF
-'-- change music if neccisary
+'-- change music if necessary
 IF sayenh(5) > 0 THEN wrappedsong sayenh(5) - 1
 
 showsay = 8

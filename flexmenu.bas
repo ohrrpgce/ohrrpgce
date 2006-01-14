@@ -168,6 +168,12 @@ atkbit$(62) = "Damage can be Zero"
 atkbit$(63) = "Cause heroes to run away"
 ' hacks required to add additional attack bitsets, see DT6 documentation
 
+DIM atkbit2$(-1 to 127)
+
+FOR i = 0 to 127
+	atkbit2$(i) = ""
+NEXT
+
 '----------------------------------------------------------
 DIM recbuf(100) '--stores the 200 bytes of attack data
 
@@ -202,6 +208,7 @@ CONST AtkDatTagAnd = 61
 CONST AtkDatTag2 = 62
 CONST AtkDatTagIf2 = 63
 CONST AtkDatTagAnd2 = 64
+CONST AtkDatBitsets2 = 65' to 73
 
 '----------------------------------------------------------
 capindex = 0
@@ -417,7 +424,7 @@ min(AtkLimTag) = -1000
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 38
+CONST MnuItems = 39
 DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -636,14 +643,18 @@ Const AtkTagAct = 38
 menu$(AtkTagAct) = "Tags..."
 menutype(AtkTagAct) = 1
 
-'Next menu item is 38 (remember to update the dims)
+CONST AtkBit2Act = 39
+menu$(AtkBit2Act) = "Bitsets (cont)..."
+menutype(AtkBit2Act) = 1
+
+'Next menu item is 39 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
 DIM workmenu(20), dispmenu$(20)
 ptr = 0: top = 0: size = 0
 
-DIM mainMenu(10)
+DIM mainMenu(11)
 mainMenu(0) = AtkBackAct
 mainMenu(1) = AtkChooseAct
 mainMenu(2) = AtkName
@@ -654,7 +665,8 @@ mainMenu(6) = AtkTargAct
 mainMenu(7) = AtkCostAct
 mainMenu(8) = AtkChainAct
 mainMenu(9) = AtkBitAct
-mainMenu(10) = AtkTagAct
+mainMenu(10) = AtkBit2Act
+mainMenu(11) = AtkTagAct
 
 DIM appearMenu(7)
 appearMenu(0) = AtkBackAct
@@ -800,6 +812,8 @@ DO
     GOSUB AtkUpdateMenu
    CASE AtkBitAct
     bitset recbuf(), AtkDatBitsets, 63, atkbit$()
+   CASE AtkBit2Act
+   	bitset recbuf(), AtkDatBitsets2, 127, atkbit2$()
   END SELECT
  END IF
  

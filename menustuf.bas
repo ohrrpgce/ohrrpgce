@@ -65,6 +65,7 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE SUB fadein (force%)
+DECLARE SUB checkTagCond(t,check,tag,tagand) 'in bmod.bas
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -1181,6 +1182,10 @@ ELSE
   IF w >= 0 THEN stat(w, 0, targstat) = large(stat(w, 0, targstat), stat(w, 1, targstat))
  END IF
 END IF
+
+'--TODO: Must add the attack-tag conditional stuff. Except, this sub doesn't use
+'        the full attack data set, so I can't access the data. I also don't
+'        know enough about it to make it use the whole thing...
 
 END SUB
 
