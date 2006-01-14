@@ -6,6 +6,8 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
+DECLARE FUNCTION str2lng& (stri$)
+DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION filenum$ (n%)
@@ -788,11 +790,11 @@ DO
  LINE INPUT #fptr, name$
  LINE INPUT #fptr, num$
  LINE INPUT #fptr, argc$
- FOR i = 1 TO VAL(argc$)
+ FOR i = 1 TO str2int(argc$)
   LINE INPUT #fptr, dummy$
  NEXT i
  name$ = LEFT$(name$, 36)
- buffer(0) = VAL(num$)
+ buffer(0) = str2int(num$)
  buffer(1) = LEN(name$)
  str2array name$, buffer(), 4
  storeset workingdir$ + "\plotscr.lst" + CHR$(0), general(40), 0

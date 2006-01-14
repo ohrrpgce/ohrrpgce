@@ -6,6 +6,8 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
+DECLARE FUNCTION str2lng& (stri$)
+DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB standardmenu (menu$(), size%, vis%, ptr%, top%, x%, y%, page%, edge%)
@@ -875,8 +877,8 @@ DO
   menu$(4) = CHR$(27) + "formation" + STR$(ptr) + CHR$(26)
   menu$(5) = "Backdrop screen:" + STR$(a(32))
   menu$(6) = "Battle Music:"
-  menu$(7) = "Backdrop Frames:" 
-  IF a(34) = 0 THEN menu$(7) = menu$(7) + " no animation" ELSE menu$(7) = menu$(7) + STR$(a(34)+1)
+  menu$(7) = "Backdrop Frames:"
+  IF a(34) = 0 THEN menu$(7) = menu$(7) + " no animation" ELSE menu$(7) = menu$(7) + STR$(a(34) + 1)
   menu$(8) = "Backdrop Speed:" + STR$(a(35))
   FOR i = 0 TO 5
    col = 7: IF csr2 + 6 = i THEN col = 14 + tog
@@ -1482,7 +1484,7 @@ ELSE
  IF min < 0 THEN
   IF keyval(12) > 1 OR keyval(13) > 1 OR keyval(74) > 1 OR keyval(78) > 1 THEN s = s * -1
  END IF
- capper& = INT(VAL(n$))
+ capper& = str2lng&(n$)
  IF capper& > 32767 THEN capper& = 32767
  IF capper& < -32767 THEN capper& = -32767
  n = capper&
