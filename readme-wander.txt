@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- Wandering Hamster O.H.R.RPG.C.E Demo        (May 19 2005)
+ Wandering Hamster O.H.R.RPG.C.E Demo        (??? ?? 2006)
 ------------------------------------------------------------
 
 This is a Work-in-Progress demo of Wandering Hamster. This version
@@ -9,13 +9,16 @@ contains roughly three hours of playing time
 
 NEW IN THIS RELEASE
 
-   * Updated WANDER.EXE (GPL)
-   * No new game content this time, sorry!
+  * Fixed bug that prevented dismounting the Myrmidon suit
+  * Fixed bug that prevented James from talking to you in the
+    throne room
+  * Fixed bug that prevented the Teddy bear from being removed
+    if you manually equipped it
+
 
 RECENT CHANGES
 
-   * Nothing new in ages, sorry :(
-
+   * Updated WANDER.EXE (GPL)
 
 ---
 HOW TO PLAY

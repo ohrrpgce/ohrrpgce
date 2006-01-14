@@ -1184,6 +1184,7 @@ end
 #---------------------------------------------------------------------------
 
 script,Mount Myrmidon,begin
+  myrmidon text := 0
   if (check tag(tag:used myrmidon suit)==OFF)
   then,begin
     show text box(249)
@@ -1458,20 +1459,23 @@ script,Attack Broaste Ghost with Teddy,begin
   show text box (264)
   wait for text box
 
+  Bob:=find hero(hero:Bob the Hamster)
+  remember weapon:=check equipment(Bob,slot:weapon)
+
   if (remember weapon<>item:teddy) then,begin
     show text box (266)
     wait for text box
   end
-
-  Bob:=find hero(hero:Bob the Hamster)
-  remember weapon:=check equipment(Bob,slot:weapon)
 
   force equip    (Bob,slot:weapon,item:teddy)
   set NPC position (Broaste,0,0)
   fight formation(78)
   unequip        (Bob,slot:weapon)
   delete item    (item:teddy)
-  force equip    (Bob,slot:weapon,remember weapon)
+
+  if (remember weapon<>item:teddy) then, begin
+    force equip    (Bob,slot:weapon,remember weapon)
+  end
 
   play song (song:Triumphant Music)
 
@@ -1920,7 +1924,7 @@ script,Cyclic James Saying,begin
   show text box(283+James Saying)
   wait for text Box
   increment(James Saying,1)
-  if (James Saying >> 3) then(James Saying:=0)
+  if (James Saying >> 3 ,or, James Saying << 0) then(James Saying:=0)
 end
 
 #---------------------------------------------------------------------------
