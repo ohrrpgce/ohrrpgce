@@ -1375,7 +1375,7 @@ end</example>
 		<command id="getenemyappearance">
 			<cannon>get enemy appearance (enemyid, appearance)</cannon>
 			<shortname>get enemy appearance</shortname>
-			<description>Returns the appearace of the enemy. Enemyid, is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size. Use enemy:picture to return enemy's picture, enemy:picturesize returns the size of the enemy.</description>
+			<description>Returns data on the appearance of a enemy. Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size. You can use the following constants for appearance: <li>enemy:picture</li><li>enemy:palette</li><li>enemy:picturesize</li> <lb/>You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large</description>
 			<seealso>
 				<ref>setenemyappearance</ref>
 			</seealso>
@@ -1383,25 +1383,25 @@ end</example>
 		<command id="setenemyappearance">
 			<cannon>set enemy appearance (enemyid, appearance,value)</cannon>
 			<shortname>set enemy appearance</shortname>
-			<description>Lets you set the enemy's appearance.  Enemyid is the number of the enemy's appearance that you want to change, appearance is either picture, palette, or size. Value can is the new number that you want to assign, use constants enemysize:small, enemysize:medium, or enemysize:large, when changing picture size, when changing palette use the palette number, etc... <lb/>Note: Enemy appearance changes are temporary. They are not saved in the save game.</description>
+			<description>Lets you change an enemy's appearance.  Enemyid is the number of the enemy's appearance that you want to change, appearance is one of the constants given in <ref>getenemyappearance</ref>. Value can is the new number that you want to assign, constants enemysize:small, enemysize:medium, or enemysize:large when changing picture size, or palette number when changing palette. <lb/>Note: Enemy appearance changes are temporary. They are not saved in the save game.</description>
 			<seealso>
 				<ref>getenemyappearance</ref>
 			</seealso>
 		</command>
-		<command id="getenemyrewards">
-			<cannon>get enemy rewards (enemyid, reward)</cannon>
-			<shortname>get enemy rewards</shortname>
-			<description>Returns the enemy's reward values. Enemyid is the number of enemy, reward is the number of the reward you want returned. Use the following constants<li>enemy:gold</li><li>enemy:experience</li><li>enemy:item</li><li>enemy:itempercent</li><li>enemy:rareitem</li><li>enemy:rareitempercent</li><li>stealability</li><li>stealableitem</li><li>stealableitemchance</li><li>stealablerareitem</li><li>stealablerareitemchance</li></description>
+		<command id="readenemydata">
+			<cannon>read enemy data (enemyid, data)</cannon>
+			<shortname>read enemy data</shortname>
+			<description>Returns the enemy's reward values. Enemyid is the number of enemy, data is a predefined constant defining the data you want returned. Use the following constants:<li>enemy:gold</li><li>enemy:experience</li><li>enemy:item</li><li>enemy:itempercent</li><li>enemy:rareitem</li><li>enemy:rareitempercent</li><li>stealability</li><li>stealableitem</li><li>stealableitemchance</li><li>stealablerareitem</li><li>stealablerareitemchance</li></description>
 			<seealso>
-				<ref>setenemyrewards</ref>
+				<ref>writeenemydata</ref>
 			</seealso>
 		</command>
-		<command id="setenemyrewards">
-			<cannon>set enemy rewards (enemyid, reward, value)</cannon>
-			<shortname>set enemy rewards</shortname>
-			<description>Lets you set enemy's rewards as well as stealible items. Enemyid is the number of enemy, reward is the number of the reward you want returned. Value is the number you want to set on reward. Use the following constants<li>enemy:gold</li><li>enemy:experience</li><li>enemy:item(0 to 255)</li><li>enemy:itempercent(0 to 100)</li><li>enemy:rareitem(0 to 255)</li><li>enemy:rareitempercent(0 to 100)</li><li>stealability(isnotstealable,stealableonce,stealableinfinity)</li><li>stealableitem(0 to 255)</li><li>stealableitemchance(0 to 100)</li><li>stealablerareitem(0 to 255)</li><li>stealablerareitemchance(0 to 100)</li> <lb/>Note: Enemy stat rewards are temporary. They are not saved in the save game.</description>
+		<command id="writeenemydata">
+			<cannon>write enemy data (enemyid, data, value)</cannon>
+			<shortname>write enemy data</shortname>
+			<description>Lets you set items of an enemy's data. Enemyid is the number of enemy, data is a predefined constant for the data you want to change. Value is the new value given to that setting. Use the same constants as are given at <ref>readenemydata</ref>.<lb/>Note: Enemy data changes are temporary. They are not saved in the save game.</description>
 			<seealso>
-				<ref>getenemyrewards</ref>
+				<ref>readenemydata</ref>
 			</seealso>
 		</command>
 		<command id="herolevelled">

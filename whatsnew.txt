@@ -42,6 +42,10 @@ WHAT IS NEW?
 
     * Fixed off by one bug in "get attack name" [Ralph Versteegen]
 
+    * Buggy "set enemy rewards" and "get enemy rewards" commands removed,
+      use (previously undocumented) "read enemy data" and "write enemy
+      data" instead (you can use the same constants)
+
   * New Plotscripting Commands
 
     * "cancel map name display" [James Paige]
