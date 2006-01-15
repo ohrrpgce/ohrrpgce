@@ -325,11 +325,11 @@ resume random enemies # back to normal</example>
 		</command>
 		<command id="suspendrandomenemys">
 			<alias>suspendrandomenemies</alias>
-			<shortname>suspend random enemies</shortname>
+			<shortname>suspend random enemys</shortname>
 		</command>
 		<command id="resumerandomenemys">
 			<alias>resumerandomenemies</alias>
-			<shortname>resume random enemies</shortname>
+			<shortname>resume random enemys</shortname>
 		</command>
 		<command id="suspendboxadvance">
 			<cannon>suspend box advance</cannon>
