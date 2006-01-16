@@ -37,3 +37,6 @@ DECLARE SUB xbload (f$, array%(), e$)
 'only used in game.bas, maybe don't declare here?
 DECLARE SUB crashexplain ()
 declare sub dummyclear (arg1%=0, arg2%=0, arg3%=0)
+declare sub togglewindowed()
+declare sub storecommandline()
+declare function getcommandline() as string

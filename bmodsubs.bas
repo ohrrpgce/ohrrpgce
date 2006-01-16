@@ -164,6 +164,11 @@ IF keyval(73) > 0 AND keyval(81) > 0 THEN
  IF keyval(1) > 1 THEN exitprogram 0
 END IF
 
+'alt-enter toggle windowed
+if keyval(&h38) > 0 and keyval(&h1c) > 0 then
+	togglewindowed
+end if
+
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
 
 IF keyval(88) > 1 THEN snapshot

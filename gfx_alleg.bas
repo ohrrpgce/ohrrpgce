@@ -13,6 +13,9 @@ dim shared init_gfx as integer = 0
 dim shared screenbuf as BITMAP ptr = null
 
 dim shared mouse_hidden as integer = 0
+dim shared offset as integer = 0
+dim shared windowed as integer = 0
+dim shared alpal(255) as RGB
 
 'Scancodes are different, need a translation
 dim shared keytrans(0 to 127) as integer => { _
@@ -43,7 +46,13 @@ sub gfx_init
 		allegro_init()
 	
 		set_color_depth(8)
-		set_gfx_mode(GFX_AUTODETECT, 640, 480, 0, 0)
+		if windowed <> 0 then
+			set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 400, 0, 0)
+			offset = 0
+		else
+			set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0)
+			offset = 40
+		end if
 		clear_bitmap(screen)
 		
 		install_keyboard
@@ -76,7 +85,7 @@ sub gfx_showpage(byval raw as ubyte ptr)
 		next
 	next
 	
-	stretch_blit(screenbuf, screen, 0, 0, 320, 200, 0, 40, 640, 400)
+	stretch_blit(screenbuf, screen, 0, 0, 320, 200, 0, offset, 640, 400)
 	
 end sub
 
@@ -84,7 +93,6 @@ sub gfx_setpal(pal() as integer)
 'NOTE: component colour values are 0-63 not 0-255
 'Format is BGR, packed within 1 integer, which may not be that
 'useful. Should it be 768 bytes instead of 256 ints?
-	dim alpal(255) as RGB
 	dim as integer i
 	
 	for i = 0 to 255
@@ -99,6 +107,32 @@ end sub
 function gfx_screenshot(fname as string, byval page as integer) as integer
 	gfx_screenshot = 0
 end function
+
+sub gfx_setwindowed(byval iswindow as integer)
+	if iswindow <> 0 then iswindow = 1 'only 1 "true" value
+	if iswindow = windowed then exit sub
+	
+	windowed = iswindow
+	
+	if init_gfx = 1 then
+		if windowed <> 0 then
+			set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 400, 0, 0)
+			offset = 0
+		else
+			set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0)
+			offset = 40
+		end if
+		set_palette(@alpal(0))		
+	end if
+end sub
+
+sub gfx_togglewindowed()
+	if windowed = 0 then
+		gfx_setwindowed(1)
+	else
+		gfx_setwindowed(0)
+	end if
+end sub
 
 '------------- IO Functions --------------
 sub io_init
@@ -124,17 +158,17 @@ end function
 
 sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
 	mx = mouse_x \ 2		'allegro screen is double res
-	my = (mouse_y \ 2) - 40	'and centred
+	my = (mouse_y \ 2) - offset	'and centred
 	mwheel = mouse_z
 	mbuttons = mouse_b
 end sub
 
 sub io_setmouse(byval x as integer, byval y as integer)
-	position_mouse(x * 2, y * 2 + 40)
+	position_mouse(x * 2, y * 2 + offset)
 end sub
 
 sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-	set_mouse_range(xmin * 2, ymin * 2 + 40, xmax * 2 + 1, ymax * 2 + 1 + 40)
+	set_mouse_range(xmin * 2, ymin * 2 + offset, xmax * 2 + 1, ymax * 2 + 1 + offset)
 end sub
 
 function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
