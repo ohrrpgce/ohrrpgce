@@ -1245,7 +1245,7 @@ IF stat(deadguy, 0, 0) = 0 THEN
     END IF '---END RARE ITEM-------------
    END IF '----END GET ITEMS----------------
   END IF
-  a((deadguy - 4) * 4) = 0
+  'a((deadguy - 4) * 4) = 0 ' fixing spawning bug
  END IF'------------END PLUNDER-------------------
  IF noifdead = 0 THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
   tcount = tcount - 1
@@ -1813,6 +1813,7 @@ FOR i = 0 TO 11
     x(i) = x(i) - 10: d(i) = 1
    END IF
    die(i) = die(i) - 1
+   IF die(i) = 0 THEN a(i * 4) = 0 'moved from way above
   END IF
   IF i < 4 THEN of(i) = 7
  END IF
