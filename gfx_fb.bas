@@ -9,14 +9,24 @@ option explicit
 
 #include gfx.bi
 
+dim shared windowed as integer = 1
+dim shared init_gfx as integer = 0
+
 'Note, init is called before the browser is shown, and close is
 'called when an RPG is exited, they will usually be run more than
 'once. Perhaps there is also call for once-only routines outside
 'the main loop?
 sub gfx_init
 	'screen 13, , , 1 for fullscreen
-	screen 13, ,1
-	screenset 0, 0
+	if init_gfx = 0 then
+		if windowed = 0 then
+			screen 13, , 1, 1
+		else
+			screen 13, ,1
+		end if
+		screenset 0, 0
+		init_gfx = 1
+	end if
 end sub
 
 sub gfx_close
@@ -46,6 +56,32 @@ end sub
 function gfx_screenshot(fname as string, byval page as integer) as integer
 	gfx_screenshot = 0
 end function
+
+sub gfx_setwindowed(byval iswindow as integer)
+	if iswindow <> 0 then iswindow = 1 'only 1 "true" value
+	if iswindow = windowed then exit sub
+	
+	windowed = iswindow
+	
+	if init_gfx = 1 then
+		dim pal(255) as integer
+		palette get using pal
+		if windowed = 0 then
+			screen 13, , 1, 1
+		else
+			screen 13, , 1
+		end if
+		palette using pal		
+	end if
+end sub
+
+sub gfx_togglewindowed()
+	if windowed = 0 then
+		gfx_setwindowed(1)
+	else
+		gfx_setwindowed(0)
+	end if
+end sub
 
 '------------- IO Functions --------------
 sub io_init

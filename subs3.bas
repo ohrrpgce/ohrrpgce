@@ -119,9 +119,10 @@ IF n > highest THEN bound = highest
 END FUNCTION
 
 SUB debug (s$)
-OPEN "c_debug.txt" FOR APPEND AS #3
-PRINT #3, s$
-CLOSE #3
+ff = freefile
+OPEN "c_debug.txt" FOR APPEND AS #ff
+PRINT #ff, s$
+CLOSE #ff
 END SUB
 
 SUB drawmini (high, wide, cursor(), page, tastuf())
