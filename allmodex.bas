@@ -169,8 +169,8 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 	
 	'palette get using pal 'intpal holds current palette
 	
-	'max of 64 steps
-	for i = 0 to 63
+	'max of 64-1 steps
+	for i = 0 to 62
 		for j = 0 to 255
 			'red
 			hue = intpal(j) and &hff
@@ -204,7 +204,7 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 			intpal(j) = intpal(j) or (hue shl 16)
 		next
 		gfx_setpal(intpal())
-		sleep 15 'how long?
+		sleep 10 'how long?
 	next
 	
 end SUB
@@ -215,8 +215,8 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 	dim hue as integer
 	dim p as integer	'index to passed palette, which has separate r, g, b
 	
-	'max of 64 steps
-	for i = 0 to 63
+	'max of 64-1 steps
+	for i = 0 to 62
 		p = 0
 		for j = 0 to 255
 			'red
@@ -254,7 +254,7 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 			p = p + 1
 		next
 		gfx_setpal(intpal())
-		sleep 15 'how long?
+		sleep 10 'how long?
 	next
 end SUB
 
