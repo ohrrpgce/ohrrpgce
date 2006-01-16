@@ -10,6 +10,7 @@ option explicit
 #include cglobals.bi
 #include fontdata.bi
 
+dim shared seg as integer ptr
 
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION small% (n1%, n2%)
@@ -100,3 +101,43 @@ SUB crashexplain()
 '#endif	
 '	PRINT "RPG file: "; sourcerpg$
 END SUB
+
+'replacements for def seg and peek, use seg shared ptr 
+'assumes def seg will always be used to point to an integer and
+'that integers are only holding 2 bytes of data
+sub defseg(byref var as integer)
+	seg = @var
+end sub
+
+function xpeek(byval idx as integer) as integer
+	dim as ubyte bval
+	dim as integer hilow
+	
+	hilow = idx mod 2
+	idx = idx \ 2
+	
+	if hilow = 0 then
+		bval = seg[idx] and &hff
+	else
+		bval = (seg[idx] and &hff00) shr 8
+	end if
+	xpeek = bval
+end function
+
+sub xpoke(byval idx as integer, byval v as integer)
+	dim as integer bval
+	dim as integer hilow
+	dim as integer newval
+	
+	hilow = idx mod 2
+	idx = idx \ 2
+	
+	bval = v and &hff
+	if hilow = 0 then
+		newval = seg[idx] and &hff00
+		seg[idx] = newval or bval
+	else
+		newval = seg[idx] and &hff
+		seg[idx] = newval or (bval shl 8)
+	end if
+end sub

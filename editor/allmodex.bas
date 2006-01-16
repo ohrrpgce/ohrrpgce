@@ -26,10 +26,15 @@ type node 	'only used for floodfill
 end type
 
 'add page? or assume workpage? (all pages for clip?)
+declare SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer=1)
 declare sub setclip(l as integer=0, t as integer=0, r as integer=319, b as integer=199)
 declare sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer=1)
 declare function grabrect(page as integer, x as integer, y as integer, w as integer, h as integer) as ubyte ptr
 declare sub droprect(image as ubyte ptr)
+
+'used for map and pass
+DECLARE SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, BYVAL mp as integer ptr)
+DECLARE FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, BYVAL mp as integer ptr) as integer
 
 declare function matchmask(match as string, mask as string) as integer
 declare function calcblock(byval x as integer, byval y as integer, byval t as integer) as integer
@@ -52,7 +57,7 @@ dim shared bsize as integer
 dim shared bpage as integer
 
 dim shared bordertile as integer
-dim shared aptr as integer ptr	' array ptr
+dim shared mptr as integer ptr	' map ptr
 dim shared pptr as integer ptr	' pass ptr
 dim shared maptop as integer
 dim shared maplines as integer
@@ -169,8 +174,8 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 	
 	'palette get using pal 'intpal holds current palette
 	
-	'max of 64 steps
-	for i = 0 to 63
+	'max of 64-1 steps
+	for i = 0 to 62
 		for j = 0 to 255
 			'red
 			hue = intpal(j) and &hff
@@ -204,7 +209,7 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 			intpal(j) = intpal(j) or (hue shl 16)
 		next
 		gfx_setpal(intpal())
-		sleep 15 'how long?
+		sleep 10 'how long?
 	next
 	
 end SUB
@@ -215,8 +220,8 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 	dim hue as integer
 	dim p as integer	'index to passed palette, which has separate r, g, b
 	
-	'max of 64 steps
-	for i = 0 to 63
+	'max of 64-1 steps
+	for i = 0 to 62
 		p = 0
 		for j = 0 to 255
 			'red
@@ -254,7 +259,7 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 			p = p + 1
 		next
 		gfx_setpal(intpal())
-		sleep 15 'how long?
+		sleep 10 'how long?
 	next
 end SUB
 
@@ -263,13 +268,29 @@ SUB setmapdata (array() as integer, pas() as integer, BYVAL t as integer, BYVAL 
 't and b are top and bottom margins
 	map_x = array(0)
 	map_y = array(1)
-	aptr = @array(2)
+	mptr = @array(2)
 	pptr = @pas(2)
 	maptop = t
 	maplines = 200 - t - b
 end SUB
 
 SUB setmapblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
+	setblock(x, y, v, mptr)
+end sub
+
+FUNCTION readmapblock (BYVAL x as integer, BYVAL y as integer) as integer
+	readmapblock = readblock(x, y, mptr)
+end function
+
+SUB setpassblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
+	setblock(x, y, v, pptr)
+END SUB
+
+FUNCTION readpassblock (BYVAL x as integer, BYVAL y as integer)
+	readpassblock = readblock(y, y, pptr)
+END FUNCTION
+
+SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, BYVAL mp as integer ptr)
 	dim index as integer
 	dim hilow as integer
 	
@@ -279,19 +300,19 @@ SUB setmapblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
 	
 	if hilow > 0 then
 		'delete original value
-		aptr[index] = aptr[index] and &hff 
+		mp[index] = mp[index] and &hff 
 		'set new value
-		aptr[index] = aptr[index] or ((v and &hff) shl 8)
+		mp[index] = mp[index] or ((v and &hff) shl 8)
 	else
 		'delete original value
-		aptr[index] = aptr[index] and &hff00
+		mp[index] = mp[index] and &hff00
 		'set new value
-		aptr[index] = aptr[index] or (v and &hff)
+		mp[index] = mp[index] or (v and &hff)
 	end if
 
 end SUB
 
-FUNCTION readmapblock (BYVAL x as integer, BYVAL y as integer) as integer
+FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, BYVAL mp as integer ptr) as integer
 	dim block as integer
 	dim index as integer
 	dim hilow as integer
@@ -301,12 +322,12 @@ FUNCTION readmapblock (BYVAL x as integer, BYVAL y as integer) as integer
 	index = index shr 1 	'divide by 2
 	
 	if hilow > 0 then
-		block = (aptr[index] and &hff00) shr 8
+		block = (mp[index] and &hff00) shr 8
 	else
-		block = aptr[index] and &hff
+		block = mp[index] and &hff
 	end if
 	
-	readmapblock = block
+	readblock = block
 end FUNCTION
 
 SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer)
@@ -413,6 +434,19 @@ end SUB
 
 SUB drawsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer)
 'draw sprite from pic(picoff) onto page using pal() starting at po
+	drawspritex(pic(), picoff, pal(), po, x, y, page, 1)
+end sub
+
+SUB bigsprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
+	drawspritex(pic(), 0, pal(), 0, x, y, page, 2)
+END SUB
+
+SUB hugesprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
+	drawspritex(pic(), 0, pal(), 0, x, y, page, 4)
+END SUB
+
+SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer)
+'draw sprite scaled, used for drawsprite(x1), bigsprite(x2) and hugesprite(x4)
 	dim sw as integer
 	dim sh as integer
 	dim hspr as ohrsprite
@@ -489,7 +523,7 @@ SUB drawsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	next
 	
 	'now draw the image
-	drawohr(hspr,x,y)
+	drawohr(hspr,x,y, scale)
 	deallocate(hspr.image)
 	deallocate(hspr.mask)
 end SUB
@@ -660,6 +694,47 @@ SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, B
 	next
 	
 end SUB
+
+SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL page)
+'This seems to convert a normal graphic into a sprite, storing the result in pic() at picoff
+	dim as ubyte ptr sbase, sptr
+	dim nyb as integer = 0
+	dim p as integer = 0
+	dim as integer sw, sh
+
+	'store width and height	
+	p = picoff
+	pic(p) = w
+	p += 1
+	pic(p) = h
+	p += 1
+	
+	'find start of image
+	sbase = spage(page)
+	sbase = sbase + (y * 320) + x
+	'pixels are stored in columns for the sprites (argh)
+	for sh = 0 to w - 1
+		sptr = sbase
+		for sw = 0 to h - 1
+			select case nyb
+				case 0
+					pic(p) = (*sptr and &h0f) shl 12
+				case 1
+					pic(p) = pic(p) or ((*sptr and &h0f) shl 8)
+				case 2
+					pic(p) = pic(p) or ((*sptr and &h0f) shl 4)
+				case 3
+					pic(p) = pic(p) or (*sptr and &h0f)
+					p += 1
+			end select
+			sptr += 320
+			nyb += 1
+			nyb = nyb and &h03
+		next
+		sbase = sbase + 1 'next col
+	next
+	
+END SUB
 
 SUB interruptx (intnum as integer,inreg AS RegType, outreg AS RegType) 'not required
 end SUB
@@ -1355,13 +1430,16 @@ SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 end SUB
 
 SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
-	if attrib = 0 then attrib = 255
+	if attrib = 0 then attrib = 255 xor 16
 	dim ff%
 	ff = FreeFile
 	OPEN outfile$ FOR OUTPUT as #ff
 	dim a$
 	a$ = DIR$(fmask$, attrib)
-	if a$ = "" then exit sub
+	if a$ = "" then 
+		close #ff
+		exit sub
+	end if
 	DO UNTIL a$ = ""
 		PRINT #ff,a$
 		a$ = DIR$("", attrib)
@@ -1457,6 +1535,84 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 	
 end SUB
 
+SUB lumpfiles (listf$, lump$, path$, buffer())
+	dim as integer lf, fl, tl	'lumpfile, filelist, tolump
+
+	dim dat as ubyte
+	dim size as integer
+	dim lname as string
+	dim lpath as string
+	dim bufr as ubyte ptr
+	dim csize as integer
+
+	lpath = rtrim(path$)
+	
+	fl = freefile
+	open listf$ for input as #fl
+	if err <> 0 then
+		exit sub
+	end if
+	
+	lf = freefile
+	open lump$ for binary access write as #lf
+	if err <> 0 then
+		'debug "Could not open file " + lump$
+		exit sub
+	end if
+	
+	bufr = allocate(16000)
+	
+	'get file to lump
+	line input #fl, lname
+	while not eof(fl) and lname <> "-END OF LIST-"
+		debug lname
+		'write lump name
+		put #lf, , lname
+		'dat = 0
+		'put #lf, , dat
+		
+		tl = freefile
+		open lpath + lname for binary access read as #tl
+		if err <> 0 then
+			debug "failed to open " + lpath + lname
+			exit while
+		end if
+		
+		'write lump size - byte order = 3,4,1,2 I think
+		size = lof(tl)
+		dat = (size and &hff0000) shr 16
+		put #lf, , dat
+		dat = (size and &hff000000) shr 24
+		put #lf, , dat
+		dat = size and &hff
+		put #lf, , dat
+		dat = (size and &hff00) shr 8
+		put #lf, , dat
+		
+		'write lump	
+		while size > 0
+			if size > 16000 then
+				csize = 16000
+			else
+				csize = size
+			end if
+			'copy a chunk of file
+			fget(tl, , bufr, csize)
+			fput(lf, , bufr, csize)
+			size = size - csize
+		wend
+
+		close #tl
+				
+		line input #fl, lname
+	wend
+	
+	close #lf
+	close #fl
+	
+	deallocate bufr
+END SUB
+
 FUNCTION isfile (n$) as integer
 	dim f as integer
 	f = freefile
@@ -1512,6 +1668,10 @@ FUNCTION isremovable (BYVAL d) as integer
 	isremovable = 0
 end FUNCTION
 
+FUNCTION isvirtual (BYVAL d)
+	isvirtual = 0
+END FUNCTION
+
 FUNCTION hasmedia (BYVAL d as integer) as integer
 	hasmedia = 0
 end FUNCTION
@@ -1554,8 +1714,50 @@ SUB setfmvol (BYVAL vol as integer)
 end SUB
 
 SUB copyfile (s$, d$, buf() as integer)
-'this is only called from the obsolete function unlumpone() in moresubs.bas
-'which itself is never called, so this can be removed when unlumpone() is.
+	dim bufr as ubyte ptr
+	dim as integer fi, fo, size, csize
+
+	fi = freefile
+	open s$ for binary access read as #fi
+	if err <> 0 then
+		exit sub
+	end if
+	
+	fo = freefile
+	open d$ for binary access write as #fo
+	if err <> 0 then
+		close #fi
+		exit sub
+	end if
+	
+	size = lof(fi)
+	
+	if size < 16000 then
+		bufr = allocate(size)
+		'copy a chunk of file
+		fget(fi, , bufr, size)
+		fput(fo, , bufr, size)
+	else
+		bufr = allocate(16000)
+		
+		'write lump	
+		while size > 0
+			if size > 16000 then
+				csize = 16000
+			else
+				csize = size
+			end if
+			'copy a chunk of file
+			fget(fi, , bufr, csize)
+			fput(fo, , bufr, csize)
+			size = size - csize
+		wend
+	end if
+
+	deallocate bufr
+	close #fi
+	close #fo
+	
 end SUB
 
 SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
@@ -1805,7 +2007,7 @@ function matchmask(match as string, mask as string) as integer
 	dim si as integer, sm as integer
 	
 	'special cases
-	if mask = "" or mask = "*.*" then 
+	if mask = "" then 
 		matchmask = 1
 		exit function
 	end if
@@ -1907,15 +2109,11 @@ function calcblock(byval x as integer, byval y as integer, byval t as integer) a
 	
 	'check overlay (??)
 	if t > 0 then
-		'cheat massively by switching array pointers and recycling readmapblock
-		tptr = aptr
-		aptr = pptr
-		over = readmapblock(x, y)
+		over = readpassblock(x, y)
 		over = (over and 128) + t 'whuh?
 		if (over <> 130) and (over <> 1) then
 			block = -1
 		end if
-		aptr = tptr	'restore pointer
 	end if
 	
 	calcblock = block
@@ -1925,31 +2123,8 @@ end function
 'Stub functions which aren't used in game.exe, but are declared in 
 'allmodex.bi for custom.exe.
 '----------------------------------------------------------------------
-SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL page)
-END SUB
-
-SUB bigsprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
-END SUB
-
-SUB hugesprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
-END SUB
-
-SUB setpassblock (BYVAL x, BYVAL y, BYVAL v)
-END SUB
-
-FUNCTION readpassblock (BYVAL x, BYVAL y)
-	readpassblock = 0
-END FUNCTION
-
 SUB bitmap2page (temp(), bmp$, BYVAL p)
 END SUB
-
-SUB lumpfiles (listf$, lump$, path$, buffer())
-END SUB
-
-FUNCTION isvirtual (BYVAL d)
-	isvirtual = 0
-END FUNCTION
 
 SUB loadbmp (f$, BYVAL x, BYVAL y, buf(), BYVAL p)
 END SUB

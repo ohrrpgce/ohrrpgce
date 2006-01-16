@@ -15,6 +15,10 @@ option nokeyword clear
 option nokeyword str
 #define str$(x) xstr$((x))
 #define fbdim dim as short
+option nokeyword peek
+#define peek(x) xpeek(x)
+option nokeyword poke
+#define poke xpoke
 #define DONESTR
 #endif
 #endif
@@ -31,6 +35,10 @@ DECLARE SUB INTERRUPTX (intnum AS INTEGER,inreg AS any, outreg AS any)
 declare function xstr$ overload (x as integer)
 declare function xstr$ (x as single)
 declare function xstr$ (x as double)
+
+declare sub defseg(byref var as integer)
+declare function xpeek (byval idx as integer) as integer
+declare sub xpoke(byval idx as integer, byval v as integer)
 
 DECLARE SUB getdefaultfont (font() as integer)
 DECLARE SUB xbload (f$, array%(), e$)
