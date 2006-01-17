@@ -10,6 +10,7 @@ DECLARE SUB exitprogram (needfade%)
 DECLARE SUB quitcleanup ()
 DECLARE FUNCTION focuscost% (cost%, focus%)
 DECLARE FUNCTION safesubtract% (number%, minus%)
+DECLARE FUNCTION safemultiply% (number%, by!)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
 DECLARE FUNCTION atkallowed% (atkid%, attacker%, spclass%, lmplev%, stat%())
 DECLARE FUNCTION trytheft% (who%, targ%, atk%(), es%())
@@ -654,6 +655,8 @@ FUNCTION inflict (w, t, stat(), x(), y(), wid(), hei(), harm$(), hc(), hx(), hy(
 
 DIM tbits(4)
 
+dim h&
+
 'failure by default
 inflict = 0
 
@@ -717,6 +720,7 @@ IF atk(5) <> 4 THEN
   CASE 20
    a = revengeharm(t)
  END SELECT
+ 
  '--defense base
  IF atk(58) > 0 THEN d = stat(t, 0, atk(58) - 1)
  
@@ -732,17 +736,17 @@ IF atk(5) <> 4 THEN
  END IF
  
  'calc harm
- h = (a * am!) - (d * dm!)
+ h& = (a * am!) - (d * dm!)
  
  'elementals
  FOR i = 0 TO 7
   IF readbit(atk(), 20, 5 + i) = 1 THEN
-   IF readbit(tbits(), 0, 0 + i) = 1 THEN h = h * 2   'weakness
-   IF readbit(tbits(), 0, 8 + i) = 1 THEN h = h * .12 'resistance
+   IF readbit(tbits(), 0, 0 + i) = 1 THEN h& = h& * 2   'weakness
+   IF readbit(tbits(), 0, 8 + i) = 1 THEN h& = h& * .12 'resistance
    IF readbit(tbits(), 0, 16 + i) = 1 THEN cure = 1   'absorb
   END IF
   IF readbit(atk(), 20, 13 + i) = 1 THEN
-   IF t >= 4 AND readbit(tbits(), 0, 24 + i) = 1 THEN h = h * 1.8
+   IF t >= 4 AND readbit(tbits(), 0, 24 + i) = 1 THEN h& = h& * 1.8
   END IF
   IF readbit(atk(), 20, 21 + i) = 1 THEN
    IF readbit(tbits(), 0, 8 + i) = 1 THEN
@@ -759,21 +763,22 @@ IF atk(5) <> 4 THEN
  NEXT i
  
  'extra damage
- h = h + (h / 100) * atk(11)
+ h& = h& + (h& / 100) * atk(11)
  
  'randomize
- IF readbit(atk(), 20, 61) = 0 THEN h = range(h, 20)
+ r = 0
+ IF readbit(atk(), 20, 61) = 0 THEN r = INT(RND * 40) - 20
+ h& = h& + r
  
  'spread damage
- IF readbit(atk(), 20, 1) = 1 THEN h = h / (tcount + 1)
+ IF readbit(atk(), 20, 1) = 1 THEN h& = h& / (tcount + 1)
  
  'cap out
- h = large(h, 1 - readbit(atk(), 20, 62))
-
+ IF readbit(atk(), 20, 62) = 0 AND h& <= 0 THEN h& = 1
  
- IF readbit(atk(), 20, 0) = 1 THEN h = ABS(h) * -1 'cure bit
- IF readbit(tbits(), 0, 54) THEN h = ABS(h)        'zombie
- IF cure = 1 THEN h = ABS(h) * -1                  'absorb
+ IF readbit(atk(), 20, 0) = 1 THEN h& = ABS(h&) * -1 'cure bit
+ IF readbit(tbits(), 0, 54) THEN h& = ABS(h&)        'zombie
+ IF cure = 1 THEN h& = ABS(h&) * -1                  'absorb
  
  'backcompat MP-targstat
  IF readbit(atk(), 20, 60) THEN
@@ -787,26 +792,23 @@ IF atk(5) <> 4 THEN
  'pre-calculate percentage damage for display
  SELECT CASE atk(5)
   CASE 5'% of max
-   h = stat(t, 0, targstat) - (stat(t, 1, targstat) + (stat(t, 1, targstat) / 100 * atk(11)))
+   chp& = stat(t, 0, targstat)
+   mhp& = stat(t, 1, targstat)
+   h& = chp& - (mhp& + (atk(11) * mhp& / 100))
   CASE 6'% of cur
-   h = stat(t, 0, targstat) - (stat(t, 0, targstat) + (stat(t, 0, targstat) / 100 * atk(11)))
+   h& = stat(t, 0, targstat) - (stat(t, 0, targstat) + (atk(11) * stat(t, 0, targstat) / 100))
  END SELECT
 
  'inflict
  IF readbit(atk(), 20, 51) = 0 THEN
   IF readbit(gen(),genBits,15) = 1 THEN 'all this will be simplified soon
-   IF h > 0 THEN
-    h = small(h,9999)
-   ELSE
-    h = large(h,-9999)
-   END IF
+   IF h& > 9999 THEN h& = 9999
+   IF h& < -9999 THEN h& = -9999
   ELSE
-   IF h > 0 THEN
-    h = small(h,32767)
-   ELSE
-    h = large(h,-32768)
-   END IF
+   IF h& > 32767 THEN h& = 32767
+   IF h& < -32768 THEN h& = -32768
   END IF
+  h = h&
   stat(t, 0, targstat) = safesubtract(stat(t, 0, targstat), h)
   IF readbit(atk(), 20, 2) THEN
    '--drain
@@ -978,6 +980,16 @@ IF longresult& > 32767 THEN longresult& = 32767
 IF longresult& < -32768 THEN longresult& = -32768
 result = longresult&
 safesubtract = result
+END FUNCTION
+
+FUNCTION safemultiply (number, by!)
+longnumber& = number
+longby! = by!
+longresult& = longnumber& * longby!
+IF longresult& > 32767 THEN longresult& = 32767
+IF longresult& < -32768 THEN longresult& = -32768
+result = longresult&
+safemultiply = result
 END FUNCTION
 
 SUB setbatcap (cap$, captime, capdelay)
