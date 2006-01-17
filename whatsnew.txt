@@ -45,6 +45,11 @@ WHAT IS NEW?
     * Buggy "set enemy rewards" and "get enemy rewards" commands removed,
       use (previously undocumented) "read enemy data" and "write enemy
       data" instead (you can use the same constants)
+    
+    * Added mucho overflow checking to the battle routines [Mike Caron]
+    
+    * Added bitset to cap damage at 9999 (Final Fantasy style) [Mike Caron]
+    
 
     * Fixed bug 13: "No math overflow checking in battle" [Mike Caron]
 
@@ -62,6 +67,8 @@ WHAT IS NEW?
       "spells learnt" [Ralph Versteegen]
 
   * Stuff only Developers Will Notice
+  
+    * More attack bitsets [Mike Caron]
 
 October 03 2005 [rusalka]
 
