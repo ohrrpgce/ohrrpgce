@@ -798,12 +798,6 @@ IF atk(5) <> 4 THEN
  
  'inflict
  IF readbit(atk(), 20, 51) = 0 THEN
-  SELECT CASE atk(5)
-   CASE 5'% of max
-    stat(t, 0, targstat) = stat(t, 1, targstat) + (stat(t, 1, targstat) / 100 * atk(11))
-   CASE 6'% of cur
-    stat(t, 0, targstat) = stat(t, 0, targstat) + (stat(t, 0, targstat) / 100 * atk(11))
-   CASE ELSE'normal
     stat(t, 0, targstat) = safesubtract(stat(t, 0, targstat), h)
     IF readbit(atk(), 20, 2) THEN
      '--drain
@@ -817,7 +811,6 @@ IF atk(5) <> 4 THEN
      hy(w) = y(w) + (hei(w) * .5)
      stat(w, 0, targstat) = stat(w, 0, targstat) + h
     END IF
-  END SELECT
  END IF
  
  'enforce bounds
@@ -827,8 +820,6 @@ IF atk(5) <> 4 THEN
   stat(t, 0, targstat) = small(stat(t, 0, targstat), large(stat(t, 1, targstat), remtargstat))
   stat(w, 0, targstat) = small(stat(w, 0, targstat), large(stat(w, 1, targstat), rematkrstat))
  END IF
- stat(t,0,targstat) = bound(stat(t,0,targstat),-32768,32767)
- stat(w,0,targstat) = bound(stat(w,0,targstat),-32768,32767)
  
  'set damage display
  IF readbit(atk(), 20, 56) = 0 THEN
