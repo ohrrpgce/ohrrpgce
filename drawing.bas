@@ -204,7 +204,7 @@ DO
    bit$(13) = "Pause on All Battle Menus"
    bit$(14) = "Disable Hero's Battle Cursor"
    bit$(15) = "Damage is capped at 9999"
-   bitset general(), 101, 14, bit$()
+   bitset general(), 101, 15, bit$()
   END IF
   IF csr = 9 THEN GOSUB ttlbrowse
   IF csr = 10 THEN GOSUB renrpg
