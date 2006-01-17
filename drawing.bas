@@ -203,6 +203,7 @@ DO
    bit$(12) = "Skip load screen"
    bit$(13) = "Pause on All Battle Menus"
    bit$(14) = "Disable Hero's Battle Cursor"
+   bit$(15) = "Damage is capped at 9999"
    bitset general(), 101, 14, bit$()
   END IF
   IF csr = 9 THEN GOSUB ttlbrowse

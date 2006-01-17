@@ -56,3 +56,4 @@ CONST genStartX = 102           'starting X
 CONST genStartY = 103           'starting Y
 CONST genStartMap = 104         'starting Map
 CONST genOneTimeNPC = 105       'one-time-NPC indexer
+CONST genMaxMenu = 171			'max menus in menus.dat
