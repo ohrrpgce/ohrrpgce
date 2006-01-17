@@ -23,6 +23,8 @@ WHAT IS NEW?
     
     * Attack option to set a tag (with a number of options relating to what
       triggers the tag, and conditional to another tag) [Mike Caron]
+      
+    * Added bitset to cap damage at 9999 (Final Fantasy style) [Mike Caron]
 
   * Bug Fixes
 
@@ -45,11 +47,6 @@ WHAT IS NEW?
     * Buggy "set enemy rewards" and "get enemy rewards" commands removed,
       use (previously undocumented) "read enemy data" and "write enemy
       data" instead (you can use the same constants)
-    
-    * Added mucho overflow checking to the battle routines [Mike Caron]
-    
-    * Added bitset to cap damage at 9999 (Final Fantasy style) [Mike Caron]
-    
 
     * Fixed bug 13: "No math overflow checking in battle" [Mike Caron]
 
