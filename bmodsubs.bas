@@ -769,11 +769,7 @@ IF atk(5) <> 4 THEN
  
  'cap out
  h = large(h, 1 - readbit(atk(), 20, 62))
- IF readbit(gen(),genBits,15) = 1 THEN
-  h = small(h,9999)
- ELSE
-  h = small(h,32767)
- END IF
+
  
  IF readbit(atk(), 20, 0) = 1 THEN h = ABS(h) * -1 'cure bit
  IF readbit(tbits(), 0, 54) THEN h = ABS(h)        'zombie
@@ -795,22 +791,35 @@ IF atk(5) <> 4 THEN
   CASE 6'% of cur
    h = stat(t, 0, targstat) - (stat(t, 0, targstat) + (stat(t, 0, targstat) / 100 * atk(11)))
  END SELECT
- 
+
  'inflict
  IF readbit(atk(), 20, 51) = 0 THEN
-    stat(t, 0, targstat) = safesubtract(stat(t, 0, targstat), h)
-    IF readbit(atk(), 20, 2) THEN
-     '--drain
-     IF readbit(atk(), 20, 56) = 0 THEN
-      harm$(w) = RIGHT$(STR$(h), LEN(STR$(h)) - 1)
-      IF h > 0 THEN harm$(w) = "+" + harm$(w)
-     END IF
-     hc(w) = 7
-     hc(w + 12) = 12 'pink
-     hx(w) = x(w) + (wid(w) * .5)
-     hy(w) = y(w) + (hei(w) * .5)
-     stat(w, 0, targstat) = stat(w, 0, targstat) + h
-    END IF
+  IF readbit(gen(),genBits,15) = 1 THEN 'all this will be simplified soon
+   IF h > 0 THEN
+    h = small(h,9999)
+   ELSE
+    h = large(h,-9999)
+   END IF
+  ELSE
+   IF h > 0 THEN
+    h = small(h,32767)
+   ELSE
+    h = large(h,-32768)
+   END IF
+  END IF
+  stat(t, 0, targstat) = safesubtract(stat(t, 0, targstat), h)
+  IF readbit(atk(), 20, 2) THEN
+   '--drain
+   IF readbit(atk(), 20, 56) = 0 THEN
+    harm$(w) = RIGHT$(STR$(h), LEN(STR$(h)) - 1)
+    IF h > 0 THEN harm$(w) = "+" + harm$(w)
+   END IF
+   hc(w) = 7
+   hc(w + 12) = 12 'pink
+   hx(w) = x(w) + (wid(w) * .5)
+   hy(w) = y(w) + (hei(w) * .5)
+   stat(w, 0, targstat) = stat(w, 0, targstat) + h
+  END IF
  END IF
  
  'enforce bounds
