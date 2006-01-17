@@ -59,6 +59,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
+DECLARE FUNCTION bound% (n%, lowest%, highest%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -768,6 +769,11 @@ IF atk(5) <> 4 THEN
  
  'cap out
  h = large(h, 1 - readbit(atk(), 20, 62))
+ IF readbit(gen(),genBits,15) = 1 THEN
+  h = small(h,9999)
+ ELSE
+  h = small(h,32767)
+ END IF
  
  IF readbit(atk(), 20, 0) = 1 THEN h = ABS(h) * -1 'cure bit
  IF readbit(tbits(), 0, 54) THEN h = ABS(h)        'zombie
@@ -821,6 +827,8 @@ IF atk(5) <> 4 THEN
   stat(t, 0, targstat) = small(stat(t, 0, targstat), large(stat(t, 1, targstat), remtargstat))
   stat(w, 0, targstat) = small(stat(w, 0, targstat), large(stat(w, 1, targstat), rematkrstat))
  END IF
+ stat(t,0,targstat) = bound(stat(t,0,targstat),-32768,32767)
+ stat(w,0,targstat) = bound(stat(w,0,targstat),-32768,32767)
  
  'set damage display
  IF readbit(atk(), 20, 56) = 0 THEN

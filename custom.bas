@@ -79,6 +79,7 @@ DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE SUB textage (song$())
+DECLARE SUB editmenus ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (master%(), font())
 DECLARE FUNCTION small% (n1%, n2%)
@@ -197,7 +198,7 @@ DO:
     IF ptr = 7 THEN shopdata
     IF ptr = 8 THEN formation song$()
     IF ptr = 9 THEN textage song$()
-    'if ptr = 10 then editmenus
+    if ptr = 10 then editmenus
     IF ptr = 11 THEN vehicles
     IF ptr = 12 THEN tagnames
     IF ptr = 13 THEN importsong song$(), master()

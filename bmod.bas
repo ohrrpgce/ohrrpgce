@@ -2196,5 +2196,10 @@ IF harm < 0 THEN
 ELSE
  harm$(targ) = LTRIM$(STR$(harm))
 END IF
+IF readbit(gen(),genBits,15) = 1 THEN
+ harm = small(harm,9999)
+ELSE
+ harm = small(harm,32767)
+END IF
 stat(targ, 0, 0) = bound(stat(targ, 0, 0) - harm, 0, stat(targ, 1, 0))
 END SUB

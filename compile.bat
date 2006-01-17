@@ -21,6 +21,7 @@ call callbc.bat subs2
 call callbc.bat subs3
 call callbc.bat mapsubs
 call callbc.bat flexmenu
+call callbc.bat menus
 :nocust
 support\pkunzip.exe -o support\nocom.zip nocom.obj > NUL
 support\pkunzip.exe -o support\freelink.zip freelink.exe > NUL

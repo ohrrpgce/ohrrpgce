@@ -5,6 +5,7 @@ subs2.obj +
 subs3.obj +
 mapsubs.obj +
 flexmenu.obj +
+menus.obj +
 nocom.obj +
 ,
 custom.exe,
