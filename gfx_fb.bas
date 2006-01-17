@@ -12,6 +12,8 @@ option explicit
 dim shared windowed as integer = 1
 dim shared init_gfx as integer = 0
 
+declare sub debug(s$)
+
 'Note, init is called before the browser is shown, and close is
 'called when an RPG is exited, they will usually be run more than
 'once. Perhaps there is also call for once-only routines outside
@@ -101,6 +103,7 @@ function io_enablemouse() as integer
 	getmouse(mx, my, mw, mb)
 	if (mb = -1) then	'no mouse if button = -1
 		io_enablemouse = -1
+		'debug "No mouse detected"
 		exit function
 	end if
 	io_enablemouse = 0

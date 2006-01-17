@@ -171,6 +171,7 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 	dim i as integer
 	dim j as integer
 	dim hue as integer
+	dim count as integer = 0
 	
 	'palette get using pal 'intpal holds current palette
 	
@@ -208,7 +209,11 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 			end if
 			intpal(j) = intpal(j) or (hue shl 16)
 		next
-		gfx_setpal(intpal())
+		if count = 1 then 
+			gfx_setpal(intpal())
+			count = 0
+		end if
+		count = count + 1
 		sleep 10 'how long?
 	next
 	
@@ -219,6 +224,7 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 	dim j as integer
 	dim hue as integer
 	dim p as integer	'index to passed palette, which has separate r, g, b
+	dim count as integer = 0
 	
 	'max of 64-1 steps
 	for i = 0 to 62
@@ -258,7 +264,11 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 			intpal(j) = intpal(j) or (hue shl 16)
 			p = p + 1
 		next
-		gfx_setpal(intpal())
+		if count = 1 then 
+			gfx_setpal(intpal())
+			count = 0
+		end if
+		count = count + 1
 		sleep 10 'how long?
 	next
 end SUB
@@ -1690,7 +1700,32 @@ SUB closemusic ()
 end SUB
 
 SUB loadsong (f$)
-	music_play(f$)
+	'check for extension
+	dim ext as string
+	dim songname as string
+	dim songtype as MUSIC_FORMAT
+	
+	songname = rtrim(f$) 'lose null
+	songtype = FORMAT_BAM
+	ext = lcase(right(songname, 4))
+	if ext = ".mid" then
+		songtype = FORMAT_MIDI
+	elseif ext = ".ogg" then
+		songtype = FORMAT_OGG
+	elseif ext = ".mod" then
+		'going to need to change ext to support .it or .xm
+		songtype = FORMAT_MOD
+	end if
+		
+	if songtype = FORMAT_BAM then
+		'check if already converted
+		if isfile(songname + ".mid") then
+			songname = songname + ".mid"
+			songtype = FORMAT_MIDI
+		end if
+	end if
+	
+	music_play(songname, songtype)
 end SUB
 
 SUB stopsong ()
@@ -1845,9 +1880,10 @@ FUNCTION setmouse (mbuf() as integer) as integer
 end FUNCTION
 
 SUB readmouse (mbuf() as integer)
-	dim as integer mx, my, mw, mb
+	dim as integer mx, my, mw, mb, mc
 	static lastx as integer = 0
 	static lasty as integer = 0
+	static lastb as integer = 0
 	
 	io_getmouse(mx, my, mw, mb)
 	if (mx = -1) then mx = lastx
@@ -1860,10 +1896,16 @@ SUB readmouse (mbuf() as integer)
 	lastx = mx
 	lasty = my
 	
+	'mc = mouseclicked, only set (to 1) if this is a new click
+	'faking the effect of dos int33h cmd 5
+	mc = 0
+	if lastb = 0 and mb <> 0 then mc = 1
+	lastb = mb
+	
 	mbuf(0) = mx
 	mbuf(1) = my
 	mbuf(2) = mb
-	mbuf(3) = mw 'not supported at the moment, but shouldn't hurt
+	mbuf(3) = mc
 end SUB
 
 SUB movemouse (BYVAL x as integer, BYVAL y as integer)
