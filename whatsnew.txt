@@ -46,6 +46,12 @@ WHAT IS NEW?
       use (previously undocumented) "read enemy data" and "write enemy
       data" instead (you can use the same constants)
 
+    * Fixed bug 13: "No math overflow checking in battle" [Mike Caron]
+
+    * Worked around bug 78: "Using Custom under DosBox dosen't allow for
+      browsing certain areas." by avoiding the use of VAL() which is
+      buggy in some versions of DosBox and QEMU [James Paige]
+
   * New Plotscripting Commands
 
     * "cancel map name display" [James Paige]
