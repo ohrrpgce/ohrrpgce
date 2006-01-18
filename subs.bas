@@ -1731,7 +1731,7 @@ LOOP
 itatkname: 'n is the offset
 temp$ = "NOTHING"
 IF a(n) <= 0 THEN RETURN
-temp$ = readattackname$(a(n) - 1)
+temp$ = STR$(a(n) - 1) + " " + readattackname$(a(n) - 1)
 RETURN
 
 litemname:
