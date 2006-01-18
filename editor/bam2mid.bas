@@ -69,14 +69,14 @@ sub bam2mid(infile as string, outfile as string)
 	open infile for binary as #f1
 	if err <> 0 then
 		debug "File " + infile + " could not be opened."
-		end
+		exit sub
 	end if
 	
 	get #f1, , magic
 	if magic <> "CBMF" then
 		debug "File " + infile + " is not a BAM."
 		close #f1
-		end
+		exit sub
 	end if
 	
 	kill outfile
@@ -86,7 +86,7 @@ sub bam2mid(infile as string, outfile as string)
 	if err <> 0 then
 		debug "Output file " + outfile + " could not be opened."
 		close #f1
-		end
+		exit sub
 	end if
 	
 	'write the midi header
@@ -169,8 +169,12 @@ sub bam2mid(infile as string, outfile as string)
 					get #f1, , ub 'loop control
 					if labelpos(chan) > 0 then
 						if ub = 255 then
-							returnpos = seek(f1) + 1
-							seek f1, labelpos(chan)
+							'chorus loop, but only if not already
+							'in a chorus
+							if returnpos = -1 then
+								returnpos = seek(f1) + 1
+								seek f1, labelpos(chan)
+							end if
 						end if
 						if ub < 254 then
 							if loopcount(chan) = -1 then
