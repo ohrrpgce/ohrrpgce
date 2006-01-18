@@ -88,6 +88,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB updaterecordlength (lumpf$, bindex%)
+DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -1391,13 +1392,14 @@ RETURN
 
 setdefault:
 IF b(17) = 0 THEN
- setpicstuf buffer(), 200, -1
- loadset game$ + ".itm" + CHR$(0), b(18), 0
- thing$ = readbadbinstring$(buffer(), 0, 8, 0)
+'  setpicstuf buffer(), 200, -1
+'  loadset game$ + ".itm" + CHR$(0), b(18), 0
+'  thing$ = readbadbinstring$(buffer(), 0, 8, 0)
  'thing$ = ""
  'FOR o = 1 TO small(buffer(0), 10)
  ' IF buffer(o) < 256 AND buffer(o) > -1 THEN thing$ = thing$ + CHR$(buffer(o)) ELSE thing$ = ""
  'NEXT o
+ thing$ = itemstr$(b(18),1,1)
  b(24) = buffer(46)
  b(27) = INT(buffer(46) / 2)
 END IF
@@ -1476,21 +1478,8 @@ storeset game$ + ".stf" + CHR$(0), ptr * 50 + thing, 0
 RETURN
 
 itstrsh:
-IF b(25) = 0 THEN
- it$ = "-NONE-"
-ELSE
- setpicstuf buffer(), 200, -1
- loadset game$ + ".itm" + CHR$(0), b(25) - 1, 0
- it$ = readbadbinstring$(buffer(), 0, 8, 0)
-END IF
-IF b(28) = 0 THEN trit$ = "-NONE-": RETURN
-setpicstuf buffer(), 200, -1
-loadset game$ + ".itm" + CHR$(0), b(28) - 1, 0
-trit$ = readbadbinstring$(buffer(), 0, 8, 0)
-'trit$ = ""
-'FOR o = 1 TO small(buffer(0), 10)
-' IF buffer(o) < 256 AND buffer(o) > -1 THEN trit$ = trit$ + CHR$(buffer(o)) ELSE trit$ = ""
-'NEXT o
+it$ = itemstr$(b(25),0,0)
+trit$ = itemstr$(b(28),0,0)
 RETURN
 
 END SUB

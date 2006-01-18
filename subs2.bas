@@ -65,6 +65,7 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE FUNCTION maplumpname$ (map, oldext$)
+DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -1365,8 +1366,8 @@ n = 15: GOSUB txttag
 menu$(16) = " instantly use door" + STR$(cond(16))
 n = 17: GOSUB txttag
 IF cond(18) = 0 THEN menu$(18) = " do not add/remove items"
-IF cond(18) > 0 THEN menu$(18) = " add one " + item$
-IF cond(18) < 0 THEN menu$(18) = " remove one " + item$
+IF cond(18) > 0 THEN menu$(18) = " add one" + item$
+IF cond(18) < 0 THEN menu$(18) = " remove one" + item$
 RETURN
 
 txttag:
@@ -1437,13 +1438,7 @@ RETURN
 
 itemar:
 item$ = ""
-IF cond(18) <> 0 THEN
- setpicstuf a(), 200, -1
- loadset game$ + ".itm" + CHR$(0), ABS(cond(18)) - 1, 0
- FOR i = 1 TO small(a(0), 15)
-  item$ = item$ + CHR$(a(i))
- NEXT i
-END IF
+IF cond(18) <> 0 THEN item$ = itemstr$(ABS(cond(18)),0,0)
 RETURN
 
 picktext:
