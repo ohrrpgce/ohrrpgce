@@ -99,13 +99,14 @@ end function
 
 function io_enablemouse() as integer
 'returns 0 if mouse okay
-	dim as integer mx, my, mw, mb
-	getmouse(mx, my, mw, mb)
-	if (mb = -1) then	'no mouse if button = -1
-		io_enablemouse = -1
-		'debug "No mouse detected"
-		exit function
-	end if
+	'This fails if mouse is outside window, so just always return 0
+' 	dim as integer mx, my, mw, mb
+' 	getmouse(mx, my, mw, mb)
+' 	if (mb = -1) then	'no mouse if button = -1
+' 		io_enablemouse = -1
+' 		'debug "No mouse detected"
+' 		exit function
+' 	end if
 	io_enablemouse = 0
 end function
 
