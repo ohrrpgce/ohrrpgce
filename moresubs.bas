@@ -1491,6 +1491,11 @@ a = (n / 100) * r
 range = n + INT(RND * (a * 2)) - a
 END FUNCTION
 
+FUNCTION rangel (n&, r)
+a = (n& / 100) * r
+range = n + INT(RND * (a * 2)) - a
+END FUNCTION
+
 SUB readjoysettings
 
 IF isfile(progdir$ + "joyset.ini" + CHR$(0)) THEN

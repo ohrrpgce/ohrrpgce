@@ -55,6 +55,7 @@ DECLARE SUB addhero (who%, slot%, stat%())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
+DECLARE FUNCTION rangel% (n&, r%)
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
@@ -771,9 +772,7 @@ IF atk(5) <> 4 THEN
  h& = h& + (h& / 100) * atk(11)
  
  'randomize
- r = 0
- IF readbit(atk(), 20, 61) = 0 THEN r = INT(RND * 40) - 20
- h& = h& + r
+ IF readbit(atk(), 20, 61) = 0 THEN h& = rangel(h&,20)
  
  'spread damage
  IF readbit(atk(), 20, 1) = 1 THEN h& = h& / (tcount + 1)
