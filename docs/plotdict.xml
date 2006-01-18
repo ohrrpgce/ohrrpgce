@@ -889,12 +889,12 @@ end</example>
 		<command id="setmusicvolume">
 			<cannon>set music volume (volume)</cannon>
 			<shortname>set music volume</shortname>
-			<description>Sets the volume at which music is played, volume being a number on the scale of 0 to 15, 0 being silent, 15 loudest. If you want to manipulate the sound (e.g. fading out the music) you should take note of the original vulume that the player has set and return to this. By default volume is not maximum, so you should not hardcode fades to begin at volume 15.</description>
+			<description>Sets the volume at which music is played, volume being a number on the scale of 0 to 255, 0 being silent, 255 loudest. If you want to manipulate the sound (e.g. fading out the music) you should take note of the original vulume that the player has set and return to this. By default volume is not maximum, so you should not hardcode fades to begin at volume 255. NOTE: the actual resolution at which the volume is set is not necessarily 1/255th of full volume but depends on your implementation. Currently vanilla OHR uses only 0-15 internally, so 240-255 all translate to the same volume.</description>
 		</command>
 		<command id="getmusicvolume">
 			<cannon>get music volume</cannon>
 			<shortname>get music volume</shortname>
-			<description>Returns the volume at which music is played, on a scale of 0 to 15, 0 being silent, 15 loudest.</description>
+			<description>Returns the volume at which music is played, on a scale of 0 to 15, 0 being silent, 255 loudest.</description>
 		</command>
 		<command id="fadescreenout">
 			<cannon>fade screen out (red,green,blue)</cannon>
