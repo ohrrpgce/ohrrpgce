@@ -1495,10 +1495,12 @@ SELECT CASE gmap(5) '--outer edge wrapping
   setoutside gmap(6)
 END SELECT
 sayer = -1
-IF gmap(1) = 0 THEN
- stopsong
-ELSE
- wrappedsong gmap(1) - 1
+IF readbit(gen(), 44, suspendambientmusic) = 0 THEN
+ IF gmap(1) = 0 THEN
+  stopsong
+ ELSE
+  wrappedsong gmap(1) - 1
+ END IF
 END IF
 evalherotag stat()
 evalitemtag

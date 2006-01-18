@@ -357,6 +357,33 @@ resume box advance # go back to normal</example>
 			<shortname>resume overlay</shortname>
 			<description>Causes overhead tiles to be drawn over heros and NPCs as normal.</description>
 		</command>
+		<command id="suspendmapmusic">
+			<cannon>suspend map music</cannon>
+			<shortname>resume map music</shortname>
+			<description>Causes ambient music not to automatically play when you enter a map. Does not affect the currently playing music, or the map's ambient music. Use when playing thematic music during a scene that involves changing maps.</description>
+			<example># begin scene
+play song(song:Happy Times)
+show textbox (117)
+wait for textbox
+# goto another map without triggering music
+fade screen out
+wait
+suspend map music
+use door(3)
+fade screen in
+# continue scene
+show textbox (118)
+wait for textbox
+# return to normal music behaviour and play the ambient music
+resume map music
+play song (get ambient music)</example>
+		<seealso><ref>setambientmusic</ref> <ref>getambientmusic</ref></seealso>
+		</command>
+		<command id="resumemapmusic">
+			<cannon>resume map music</cannon>
+			<shortname>resume map music</shortname>
+			<description>Causes ambient music to automatically start playing when you enter a map again after a <ref>suspendmapmusic</ref> command.</description>
+		</command>
 	</section>
 	<section title="Moving Heros">
 		<command id="walkhero">
