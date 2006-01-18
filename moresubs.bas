@@ -1,3 +1,4 @@
+DECLARE FUNCTION rangel% (n&, r%)
 'OHRRPGCE GAME - Various unsorted routines
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
@@ -1493,7 +1494,7 @@ END FUNCTION
 
 FUNCTION rangel (n&, r)
 a = (n& / 100) * r
-range = n + INT(RND * (a * 2)) - a
+rangel = n + INT(RND * (a * 2)) - a
 END FUNCTION
 
 SUB readjoysettings
