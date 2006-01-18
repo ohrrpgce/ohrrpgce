@@ -26,10 +26,18 @@ type node 	'only used for floodfill
 end type
 
 'add page? or assume workpage? (all pages for clip?)
+declare SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer=1)
 declare sub setclip(l as integer=0, t as integer=0, r as integer=319, b as integer=199)
 declare sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer=1)
 declare function grabrect(page as integer, x as integer, y as integer, w as integer, h as integer) as ubyte ptr
 declare sub droprect(image as ubyte ptr)
+declare function nearcolor(pal() as integer, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
+declare SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
+declare SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
+
+'used for map and pass
+DECLARE SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, BYVAL mp as integer ptr)
+DECLARE FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, BYVAL mp as integer ptr) as integer
 
 declare function matchmask(match as string, mask as string) as integer
 declare function calcblock(byval x as integer, byval y as integer, byval t as integer) as integer
@@ -52,7 +60,7 @@ dim shared bsize as integer
 dim shared bpage as integer
 
 dim shared bordertile as integer
-dim shared aptr as integer ptr	' array ptr
+dim shared mptr as integer ptr	' map ptr
 dim shared pptr as integer ptr	' pass ptr
 dim shared maptop as integer
 dim shared maplines as integer
@@ -166,6 +174,7 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 	dim i as integer
 	dim j as integer
 	dim hue as integer
+	dim count as integer = 0
 	
 	'palette get using pal 'intpal holds current palette
 	
@@ -203,7 +212,11 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 			end if
 			intpal(j) = intpal(j) or (hue shl 16)
 		next
-		gfx_setpal(intpal())
+		if count = 1 then 
+			gfx_setpal(intpal())
+			count = 0
+		end if
+		count = count + 1
 		sleep 10 'how long?
 	next
 	
@@ -214,6 +227,7 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 	dim j as integer
 	dim hue as integer
 	dim p as integer	'index to passed palette, which has separate r, g, b
+	dim count as integer = 0
 	
 	'max of 64-1 steps
 	for i = 0 to 62
@@ -253,7 +267,11 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 			intpal(j) = intpal(j) or (hue shl 16)
 			p = p + 1
 		next
-		gfx_setpal(intpal())
+		if count = 1 then 
+			gfx_setpal(intpal())
+			count = 0
+		end if
+		count = count + 1
 		sleep 10 'how long?
 	next
 end SUB
@@ -263,13 +281,29 @@ SUB setmapdata (array() as integer, pas() as integer, BYVAL t as integer, BYVAL 
 't and b are top and bottom margins
 	map_x = array(0)
 	map_y = array(1)
-	aptr = @array(2)
+	mptr = @array(2)
 	pptr = @pas(2)
 	maptop = t
 	maplines = 200 - t - b
 end SUB
 
 SUB setmapblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
+	setblock(x, y, v, mptr)
+end sub
+
+FUNCTION readmapblock (BYVAL x as integer, BYVAL y as integer) as integer
+	readmapblock = readblock(x, y, mptr)
+end function
+
+SUB setpassblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
+	setblock(x, y, v, pptr)
+END SUB
+
+FUNCTION readpassblock (BYVAL x as integer, BYVAL y as integer)
+	readpassblock = readblock(y, y, pptr)
+END FUNCTION
+
+SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, BYVAL mp as integer ptr)
 	dim index as integer
 	dim hilow as integer
 	
@@ -279,19 +313,19 @@ SUB setmapblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
 	
 	if hilow > 0 then
 		'delete original value
-		aptr[index] = aptr[index] and &hff 
+		mp[index] = mp[index] and &hff 
 		'set new value
-		aptr[index] = aptr[index] or ((v and &hff) shl 8)
+		mp[index] = mp[index] or ((v and &hff) shl 8)
 	else
 		'delete original value
-		aptr[index] = aptr[index] and &hff00
+		mp[index] = mp[index] and &hff00
 		'set new value
-		aptr[index] = aptr[index] or (v and &hff)
+		mp[index] = mp[index] or (v and &hff)
 	end if
 
 end SUB
 
-FUNCTION readmapblock (BYVAL x as integer, BYVAL y as integer) as integer
+FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, BYVAL mp as integer ptr) as integer
 	dim block as integer
 	dim index as integer
 	dim hilow as integer
@@ -301,12 +335,12 @@ FUNCTION readmapblock (BYVAL x as integer, BYVAL y as integer) as integer
 	index = index shr 1 	'divide by 2
 	
 	if hilow > 0 then
-		block = (aptr[index] and &hff00) shr 8
+		block = (mp[index] and &hff00) shr 8
 	else
-		block = aptr[index] and &hff
+		block = mp[index] and &hff
 	end if
 	
-	readmapblock = block
+	readblock = block
 end FUNCTION
 
 SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer)
@@ -413,6 +447,19 @@ end SUB
 
 SUB drawsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer)
 'draw sprite from pic(picoff) onto page using pal() starting at po
+	drawspritex(pic(), picoff, pal(), po, x, y, page, 1)
+end sub
+
+SUB bigsprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
+	drawspritex(pic(), 0, pal(), 0, x, y, page, 2)
+END SUB
+
+SUB hugesprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
+	drawspritex(pic(), 0, pal(), 0, x, y, page, 4)
+END SUB
+
+SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer)
+'draw sprite scaled, used for drawsprite(x1), bigsprite(x2) and hugesprite(x4)
 	dim sw as integer
 	dim sh as integer
 	dim hspr as ohrsprite
@@ -489,7 +536,7 @@ SUB drawsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	next
 	
 	'now draw the image
-	drawohr(hspr,x,y)
+	drawohr(hspr,x,y, scale)
 	deallocate(hspr.image)
 	deallocate(hspr.mask)
 end SUB
@@ -660,6 +707,47 @@ SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, B
 	next
 	
 end SUB
+
+SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL page)
+'This seems to convert a normal graphic into a sprite, storing the result in pic() at picoff
+	dim as ubyte ptr sbase, sptr
+	dim nyb as integer = 0
+	dim p as integer = 0
+	dim as integer sw, sh
+
+	'store width and height	
+	p = picoff
+	pic(p) = w
+	p += 1
+	pic(p) = h
+	p += 1
+	
+	'find start of image
+	sbase = spage(page)
+	sbase = sbase + (y * 320) + x
+	'pixels are stored in columns for the sprites (argh)
+	for sh = 0 to w - 1
+		sptr = sbase
+		for sw = 0 to h - 1
+			select case nyb
+				case 0
+					pic(p) = (*sptr and &h0f) shl 12
+				case 1
+					pic(p) = pic(p) or ((*sptr and &h0f) shl 8)
+				case 2
+					pic(p) = pic(p) or ((*sptr and &h0f) shl 4)
+				case 3
+					pic(p) = pic(p) or (*sptr and &h0f)
+					p += 1
+			end select
+			sptr += 320
+			nyb += 1
+			nyb = nyb and &h03
+		next
+		sbase = sbase + 1 'next col
+	next
+	
+END SUB
 
 SUB interruptx (intnum as integer,inreg AS RegType, outreg AS RegType) 'not required
 end SUB
@@ -1355,13 +1443,16 @@ SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 end SUB
 
 SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
-	if attrib = 0 then attrib = 255
+	if attrib = 0 then attrib = 255 xor 16
 	dim ff%
 	ff = FreeFile
 	OPEN outfile$ FOR OUTPUT as #ff
 	dim a$
 	a$ = DIR$(fmask$, attrib)
-	if a$ = "" then exit sub
+	if a$ = "" then 
+		close #ff
+		exit sub
+	end if
 	DO UNTIL a$ = ""
 		PRINT #ff,a$
 		a$ = DIR$("", attrib)
@@ -1457,6 +1548,84 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 	
 end SUB
 
+SUB lumpfiles (listf$, lump$, path$, buffer())
+	dim as integer lf, fl, tl	'lumpfile, filelist, tolump
+
+	dim dat as ubyte
+	dim size as integer
+	dim lname as string
+	dim lpath as string
+	dim bufr as ubyte ptr
+	dim csize as integer
+
+	lpath = rtrim(path$)
+	
+	fl = freefile
+	open listf$ for input as #fl
+	if err <> 0 then
+		exit sub
+	end if
+	
+	lf = freefile
+	open lump$ for binary access write as #lf
+	if err <> 0 then
+		'debug "Could not open file " + lump$
+		exit sub
+	end if
+	
+	bufr = allocate(16000)
+	
+	'get file to lump
+	line input #fl, lname
+	while not eof(fl) and lname <> "-END OF LIST-"
+		debug lname
+		'write lump name
+		put #lf, , lname
+		'dat = 0
+		'put #lf, , dat
+		
+		tl = freefile
+		open lpath + lname for binary access read as #tl
+		if err <> 0 then
+			debug "failed to open " + lpath + lname
+			exit while
+		end if
+		
+		'write lump size - byte order = 3,4,1,2 I think
+		size = lof(tl)
+		dat = (size and &hff0000) shr 16
+		put #lf, , dat
+		dat = (size and &hff000000) shr 24
+		put #lf, , dat
+		dat = size and &hff
+		put #lf, , dat
+		dat = (size and &hff00) shr 8
+		put #lf, , dat
+		
+		'write lump	
+		while size > 0
+			if size > 16000 then
+				csize = 16000
+			else
+				csize = size
+			end if
+			'copy a chunk of file
+			fget(tl, , bufr, csize)
+			fput(lf, , bufr, csize)
+			size = size - csize
+		wend
+
+		close #tl
+				
+		line input #fl, lname
+	wend
+	
+	close #lf
+	close #fl
+	
+	deallocate bufr
+END SUB
+
 FUNCTION isfile (n$) as integer
 	dim f as integer
 	f = freefile
@@ -1512,6 +1681,10 @@ FUNCTION isremovable (BYVAL d) as integer
 	isremovable = 0
 end FUNCTION
 
+FUNCTION isvirtual (BYVAL d)
+	isvirtual = 0
+END FUNCTION
+
 FUNCTION hasmedia (BYVAL d as integer) as integer
 	hasmedia = 0
 end FUNCTION
@@ -1530,7 +1703,32 @@ SUB closemusic ()
 end SUB
 
 SUB loadsong (f$)
-	music_play(f$)
+	'check for extension
+	dim ext as string
+	dim songname as string
+	dim songtype as MUSIC_FORMAT
+	
+	songname = rtrim(f$) 'lose null
+	songtype = FORMAT_BAM
+	ext = lcase(right(songname, 4))
+	if ext = ".mid" then
+		songtype = FORMAT_MIDI
+	elseif ext = ".ogg" then
+		songtype = FORMAT_OGG
+	elseif ext = ".mod" then
+		'going to need to change ext to support .it or .xm
+		songtype = FORMAT_MOD
+	end if
+		
+	if songtype = FORMAT_BAM then
+		'check if already converted
+		if isfile(songname + ".mid") then
+			songname = songname + ".mid"
+			songtype = FORMAT_MIDI
+		end if
+	end if
+	
+	music_play(songname, songtype)
 end SUB
 
 SUB stopsong ()
@@ -1554,8 +1752,50 @@ SUB setfmvol (BYVAL vol as integer)
 end SUB
 
 SUB copyfile (s$, d$, buf() as integer)
-'this is only called from the obsolete function unlumpone() in moresubs.bas
-'which itself is never called, so this can be removed when unlumpone() is.
+	dim bufr as ubyte ptr
+	dim as integer fi, fo, size, csize
+
+	fi = freefile
+	open s$ for binary access read as #fi
+	if err <> 0 then
+		exit sub
+	end if
+	
+	fo = freefile
+	open d$ for binary access write as #fo
+	if err <> 0 then
+		close #fi
+		exit sub
+	end if
+	
+	size = lof(fi)
+	
+	if size < 16000 then
+		bufr = allocate(size)
+		'copy a chunk of file
+		fget(fi, , bufr, size)
+		fput(fo, , bufr, size)
+	else
+		bufr = allocate(16000)
+		
+		'write lump	
+		while size > 0
+			if size > 16000 then
+				csize = 16000
+			else
+				csize = size
+			end if
+			'copy a chunk of file
+			fget(fi, , bufr, csize)
+			fput(fo, , bufr, csize)
+			size = size - csize
+		wend
+	end if
+
+	deallocate bufr
+	close #fi
+	close #fo
+	
 end SUB
 
 SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
@@ -1643,9 +1883,10 @@ FUNCTION setmouse (mbuf() as integer) as integer
 end FUNCTION
 
 SUB readmouse (mbuf() as integer)
-	dim as integer mx, my, mw, mb
+	dim as integer mx, my, mw, mb, mc
 	static lastx as integer = 0
 	static lasty as integer = 0
+	static lastb as integer = 0
 	
 	io_getmouse(mx, my, mw, mb)
 	if (mx = -1) then mx = lastx
@@ -1658,10 +1899,16 @@ SUB readmouse (mbuf() as integer)
 	lastx = mx
 	lasty = my
 	
+	'mc = mouseclicked, only set (to 1) if this is a new click
+	'faking the effect of dos int33h cmd 5
+	mc = 0
+	if lastb = 0 and mb > 0 then mc = 1
+	lastb = mb
+	
 	mbuf(0) = mx
 	mbuf(1) = my
 	mbuf(2) = mb
-	mbuf(3) = mw 'not supported at the moment, but shouldn't hurt
+	mbuf(3) = mc
 end SUB
 
 SUB movemouse (BYVAL x as integer, BYVAL y as integer)
@@ -1805,7 +2052,7 @@ function matchmask(match as string, mask as string) as integer
 	dim si as integer, sm as integer
 	
 	'special cases
-	if mask = "" or mask = "*.*" then 
+	if mask = "" then 
 		matchmask = 1
 		exit function
 	end if
@@ -1907,59 +2154,411 @@ function calcblock(byval x as integer, byval y as integer, byval t as integer) a
 	
 	'check overlay (??)
 	if t > 0 then
-		'cheat massively by switching array pointers and recycling readmapblock
-		tptr = aptr
-		aptr = pptr
-		over = readmapblock(x, y)
+		over = readpassblock(x, y)
 		over = (over and 128) + t 'whuh?
 		if (over <> 130) and (over <> 1) then
 			block = -1
 		end if
-		aptr = tptr	'restore pointer
 	end if
 	
 	calcblock = block
 end function
 
 '----------------------------------------------------------------------
-'Stub functions which aren't used in game.exe, but are declared in 
-'allmodex.bi for custom.exe.
+'Bitmap import functions - other formats are probably quite simple
+'with Allegro or SDL or FreeImage, but we'll stick to this for now.
 '----------------------------------------------------------------------
-SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL page)
-END SUB
-
-SUB bigsprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
-END SUB
-
-SUB hugesprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
-END SUB
-
-SUB setpassblock (BYVAL x, BYVAL y, BYVAL v)
-END SUB
-
-FUNCTION readpassblock (BYVAL x, BYVAL y)
-	readpassblock = 0
-END FUNCTION
-
 SUB bitmap2page (temp(), bmp$, BYVAL p)
-END SUB
+'loads the 24-bit bitmap bmp$ into page p with palette temp()
+'I'm pretty sure this is only ever called with 320x200 pics, but I
+'have tried to generalise it to cope with any size.
+	dim fname as string
+	dim header as BITMAPFILEHEADER
+	dim info as BITMAPINFOHEADER
+	dim pix as RGBTRIPLE
+	dim bf as integer
+	dim as integer w, h, maxw, maxh
+	dim as ubyte ptr sptr, sbase
+	dim ub as ubyte
+	dim pad as integer
+	
+	fname = rtrim$(bmp$)
+	
+	bf = freefile
+	open fname for binary access read as #bf
+	if err > 0 then
+		'debug "Couldn't open " + fname
+		exit sub
+	end if
 
-SUB lumpfiles (listf$, lump$, path$, buffer())
-END SUB
+	get #bf, , header
+	if header.bfType <> 19778 then
+		'not a bitmap
+		close #bf
+		exit sub
+	end if
+	
+	get #bf, , info
 
-FUNCTION isvirtual (BYVAL d)
-	isvirtual = 0
-END FUNCTION
+	if info.biBitCount <> 24 then
+		close #bf
+		exit sub
+	end if
+	
+	sbase = spage(p)
+
+	'data lines are padded to 32-bit boundaries	
+	pad = 4 - ((info.biWidth * 3) mod 4)
+	if pad = 4 then	pad = 0
+	
+	'crop images larger than screen
+	maxw = info.biWidth - 1
+	if maxw > 319 then
+		maxw = 319
+		pad = pad + ((info.biWidth - 320) * 3)
+	end if
+	maxh = info.biHeight - 1
+	if maxh > 199 then 
+		maxh = 199
+	end if
+
+	for h = info.biHeight - 1 to 0 step -1
+		if h > maxh then
+			for w = 0 to maxw
+				'read the data
+				get #bf, , pix
+			next
+		else	
+			sptr = sbase + (h * 320)
+			for w = 0 to maxw
+				'read the data
+				get #bf, , pix
+				*sptr = nearcolor(temp(), pix.rgbtRed, pix.rgbtGreen, pix.rgbtBlue)
+				sptr += 1
+			next
+		end if
+		
+		'padding to dword boundary, plus excess pixels
+		for w = 0 to pad-1
+			get #bf, , ub
+		next
+	next
+	
+	close #bf
+END SUB
 
 SUB loadbmp (f$, BYVAL x, BYVAL y, buf(), BYVAL p)
+'loads the 4-bit bitmap f$ into page p at x, y
+'sets palette to match file???
+	dim fname as string
+	dim header as BITMAPFILEHEADER
+	dim info as BITMAPINFOHEADER
+	dim bf as integer
+	dim as integer maxw, maxh
+	dim sbase as ubyte ptr
+	dim i as integer
+	dim col as RGBQUAD
+	
+	fname = rtrim$(f$)
+	
+	bf = freefile
+	open fname for binary access read as #bf
+	if err > 0 then
+		'debug "Couldn't open " + fname
+		exit sub
+	end if
+
+	get #bf, , header
+	if header.bfType <> 19778 then
+		'not a bitmap
+		close #bf
+		exit sub
+	end if
+	
+	get #bf, , info
+
+	if info.biBitCount <> 4 then
+		close #bf
+		exit sub
+	end if
+	
+	'skip palette
+	for i = 0 to 15
+		get #bf, , col
+	next
+	
+	sbase = spage(p) + (y * 320) + x
+
+	'crop images larger than screen
+	maxw = info.biWidth - 1
+	if maxw > 319 - x then	maxw = 319 - x
+	maxh = info.biHeight - 1
+	if maxh > 199 - y then 	maxh = 199 - y
+
+	'call one of two loaders depending on compression
+	if info.biCompression = BI_RGB then
+		loadbmp4(bf, info.biWidth, info.biHeight, maxw, maxh, sbase)
+	elseif info.biCompression = BI_RLE4 then
+		loadbmprle4(bf, info.biWidth, info.biHeight, maxw, maxh, sbase)
+	end if
+	
+	close #bf
 END SUB
 
+SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
+'takes an open file handle and a screen pointer, should only be called within loadbmp
+	dim pix as ubyte
+	dim ub as ubyte
+	dim linelen as integer
+	dim toggle as integer
+	dim bcount as integer
+	dim as integer w, h
+	dim sptr as ubyte ptr
+	
+	linelen = (iw + 1) \ 2 	'num of bytes
+	linelen = ((linelen + 3) \ 4) * 4 	'nearest dword bound
+	
+	for h = ih - 1 to 0 step -1
+		bcount = 0
+		toggle = 0
+		if h > maxh then
+			for w = 0 to maxw
+				if toggle = 0 then
+					'read the data
+					get #bf, , pix
+					toggle = 1
+					bcount += 1
+				else
+					toggle = 0
+				end if
+			next
+		else	
+			sptr = sbase + (h * 320)
+			for w = 0 to maxw
+				if toggle = 0 then
+					'read the data
+					get #bf, , pix
+					*sptr = (pix and &hf0) shr 4
+					sptr += 1
+					toggle = 1
+					bcount += 1
+				else
+					'2nd nybble in byte
+					*sptr = pix and &h0f
+					sptr += 1
+					toggle = 0
+				end if
+			next
+		end if
+		
+		'padding to dword boundary, plus excess pixels
+		while bcount < linelen
+			get #bf, , ub
+			bcount += 1
+		wend
+	next
+END SUB
+
+SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
+'takes an open file handle and a screen pointer, should only be called within loadbmp
+	dim pix as ubyte
+	dim ub as ubyte
+	dim toggle as integer
+	dim as integer w, h
+	dim sptr as ubyte ptr
+	dim i as integer
+	dim as ubyte bval, v1, v2
+
+	w = 0
+	h = ih -1
+	
+	'read bytes until we're done
+	while not eof(bf)
+		'get command byte
+		get #bf, , ub
+		select case ub
+			case 0	'special, check next byte
+				get #bf, , ub
+				select case ub
+					case 0		'end of line
+						w = 0
+						h -= 1
+					case 1		'end of bitmap
+						exit while
+					case 2 		'delta (how can this ever be used?)
+						get #bf, , ub
+						w = w + ub
+						get #bf, , ub
+						h = h + ub
+					case else	'absolute mode
+						toggle = 0
+						for i = 1 to ub
+							if toggle = 0 then
+								get #bf, , pix
+								toggle = 1
+								bval = (pix and &hf0) shr 4
+							else
+								toggle = 0
+								bval = pix and &h0f
+							end if
+							if h <= maxh and w <= maxw then
+								sptr = sbase + (h * 320) + w
+								*sptr = bval
+							end if
+							w += 1
+						next
+						if (ub + 1) mod 4 > 1 then	'is this right?
+							get #bf, , ub 'pad to word bound
+						end if
+				end select
+			case else	'run-length
+				get #bf, , pix	'2 colours
+				v1 = (pix and &hf0) shr 4
+				v2 = pix and &h0f
+				
+				toggle = 0
+				for i = 1 to ub
+					if toggle = 0 then
+						toggle = 1
+						bval = v1
+					else
+						toggle = 0
+						bval = v2
+					end if
+					if h <= maxh and w <= maxw then
+						sptr = sbase + (h * 320) + w
+						*sptr = bval
+					end if
+					w += 1
+				next
+		end select
+	wend
+	
+end sub
+
 SUB getbmppal (f$, mpal(), pal(), BYVAL o)
+'gets the nearest-match palette pal() starting at offset o, from file f$
+'according to the master palette mpal()
+	dim fname as string
+	dim header as BITMAPFILEHEADER
+	dim info as BITMAPINFOHEADER
+	dim col as RGBQUAD
+	dim col8 as integer
+	dim bf as integer
+	dim i as integer
+	dim p as integer
+	dim toggle as integer
+	
+	fname = rtrim$(f$)
+	
+	bf = freefile
+	open fname for binary access read as #bf
+	if err > 0 then
+		'debug "Couldn't open " + fname
+		exit sub
+	end if
+
+	get #bf, , header
+	if header.bfType <> 19778 then
+		'not a bitmap
+		close #bf
+		exit sub
+	end if
+	
+	get #bf, , info
+
+	if info.biBitCount <> 4 then
+		close #bf
+		exit sub
+	end if
+
+	'read and translate the 16 colour entries	
+	p = o
+	toggle = p mod 2
+	for i = 0 to 15
+		get #bf, , col
+		col8 = nearcolor(mpal(), col.rgbRed, col.rgbGreen, col.rgbBlue)
+		if toggle = 0 then
+			pal(p) = col8
+			toggle = 1
+		else
+			pal(p) = pal(p) or (col8  shl 8)
+			toggle = 0
+			p += 1
+		end if
+	next
+	
+	close #bf
 END SUB
 
 FUNCTION bmpinfo (f$, dat())
-	bmpinfo = 0
+	dim fname as string
+	dim header as BITMAPFILEHEADER
+	dim info as BITMAPINFOHEADER
+	dim bf as integer
+	
+	fname = rtrim$(f$)
+	
+	bf = freefile
+	open fname for binary access read as #bf
+	if err > 0 then
+		'debug "Couldn't open " + fname
+		bmpinfo = 0
+		exit function
+	end if
+
+	get #bf, , header
+	if header.bfType <> 19778 then
+		'not a bitmap
+		bmpinfo = 0
+		close #bf
+		exit function
+	end if
+	
+	get #bf, , info
+
+	'only these 4 fields are returned by the asm	
+	dat(0) = info.biBitCount
+	dat(1) = info.biWidth
+	dat(2) = info.biHeight
+	'seems to be a gap here, or all 4 bytes of height are returned
+	'but I doubt this will be relevant anyway
+	dat(3) = 0				
+	dat(4) = info.biCompression
+	'code doesn't actually seem to use anything higher than 2 anway
+			
+	close #bf
+	
+	bmpinfo = -1
 END FUNCTION
+
+function nearcolor(pal() as integer, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
+'figure out nearest palette colour
+'supplied pal() is r,g,b
+	dim as integer i, diff, col, best, save, rdif, bdif, gdif
+	
+	best = 1000
+	save = 0
+	for col = 0 to 255
+		i = col * 3
+		rdif = (red shr 2) - pal(i)
+		gdif = (green shr 2) - pal(i+1)
+		bdif = (blue shr 2) - pal(i+2)
+		diff = abs(rdif) + abs(gdif) + abs(bdif)
+		'diff = rdif^2 + gdif^2 + bdif^2
+		if diff = 0 then
+			'early out on direct hit
+			save = col
+			exit for
+		end if
+		if diff < best then 
+			save = col
+			best = diff
+		end if
+	next
+	
+	nearcolor = save
+end function
 
 ''-----------------------------------------------------------------------
 '' Compatibility stuff that should probably go in another file
