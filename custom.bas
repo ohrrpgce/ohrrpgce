@@ -20,6 +20,7 @@ DECLARE FUNCTION readenemyname$ (index%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE FUNCTION readitemname$ (index%)
 DECLARE SUB setbinsize (id%, size%)
+DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
@@ -86,6 +87,7 @@ DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION maplumpname$ (map, oldext$)
+DECLARE SUB updaterecordlength (lumpf$, bindex%)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -116,6 +118,9 @@ setdrive ASC(UCASE$(LEFT$(gamedir$, 1))) - 65
 
 DIM font(1024), master(767), buffer(16384), timing(4), joy(4), scroll(16002), pass(16002), emap(16002)
 DIM menu$(22), option$(10), general(360), npc$(15), unpc(15), lnpc(15), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npc(1500), npcstat(1500), song$(-1 TO 100), spriteclip(1600)
+
+'--DIM binsize arrays
+'$INCLUDE: 'binsize.bi'
 
 GOSUB listmake
 
@@ -1175,7 +1180,7 @@ IF isfile(f$ + CHR$(0)) THEN KILL f$
 END SUB
 
 SUB shopdata
-DIM name$(32), a(20), b(32), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16)
+DIM name$(32), a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16)
 
 max = 32: ptr = 0: it$ = "-NONE-"
 sbit$(0) = "Buy"
@@ -1231,7 +1236,7 @@ DO
    GOSUB sshopset
    ptr = ptr + 1
    IF needaddset(ptr, general(97), "Shop") THEN
-    FOR i = 0 TO 19: a(i) = 0: NEXT i
+    flusharray a(), 19, 0
     setpicstuf a(), 40, -1
     storeset game$ + ".sho" + CHR$(0), ptr, 0
    END IF
@@ -1332,8 +1337,8 @@ DO
    GOSUB sstuf
    thing = thing + 1
    IF needaddset(thing, a(16), "Shop Thing") THEN
-    FOR i = 0 TO 31: b(i) = 0: NEXT i
-    setpicstuf b(), 64, -1
+    flusharray b(), getbinsize(1) / 2 - 1, 0
+    setpicstuf b(), getbinsize(1), -1
     storeset game$ + ".stf" + CHR$(0), ptr * 50 + thing, 0
    END IF
    GOSUB lstuf
@@ -1447,7 +1452,7 @@ END IF
 RETURN
 
 lstuf:
-setpicstuf b(), 64, -1
+setpicstuf b(), getbinsize(1), -1
 loadset game$ + ".stf" + CHR$(0), ptr * 50 + thing, 0
 thing$ = readbadbinstring$(b(), 0, 16, 0)
 'thing$ = ""
@@ -1466,7 +1471,7 @@ b(0) = LEN(thing$)
 FOR i = 1 TO small(b(0), 16)
  b(i) = ASC(MID$(thing$, i, 1))
 NEXT i
-setpicstuf b(), 64, -1
+setpicstuf b(), getbinsize(1), -1
 storeset game$ + ".stf" + CHR$(0), ptr * 50 + thing, 0
 RETURN
 
@@ -1488,14 +1493,6 @@ trit$ = readbadbinstring$(buffer(), 0, 8, 0)
 'NEXT o
 RETURN
 
-'shopdata
-
-'0    shop name length
-'1-15 shop name
-'16   stuff count
-'17   bitsets
-'18   inn price
-'19   inn script
 END SUB
 
 SUB smnemonic (tagname$, index)
@@ -1708,9 +1705,9 @@ END IF
 IF NOT isfile(workingdir$ + "\attack.bin" + CHR$(0)) THEN
  clearpage vpage
  printstr "Init extended attack data...", 0, 0, vpage
- flusharray buffer(), 60, 0
- setbinsize 0, 120
- setpicstuf buffer(), 120, -1
+ flusharray buffer(), curbinsize(0) / 2, 0
+ setbinsize 0, curbinsize(0)
+ setpicstuf buffer(), curbinsize(0), -1
  FOR i = 0 TO general(34)
   storeset workingdir$ + "\attack.bin" + CHR$(0), i, 0
  NEXT i
@@ -1726,6 +1723,10 @@ IF NOT isfile(workingdir$ + "\attack.bin" + CHR$(0)) THEN
   storeset game$ + ".dt1" + CHR$(0), i, 0
  NEXT i
 END IF
+
+'--check variable record size lumps and reoutput them if records have been extended
+updaterecordlength workingdir$ + "\ATTACK.BIN", 0
+updaterecordlength game$ + ".STF", 1
 
 '--update to new (3rd) password format
 IF general(5) < 256 THEN

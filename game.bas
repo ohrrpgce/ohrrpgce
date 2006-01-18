@@ -182,6 +182,9 @@ DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 13), retvals
 '--stuff we used to DIM here, but have defered to later
 'DIM scroll(16002), pass(16002)
 
+'DEBUG debug "dim binsize arrays"
+'$INCLUDE: 'binsize.bi'
+
 'DEBUG debug "setup directories"
 
 '---GET CURRENT DIR, PROG DIRECTORY and WORK dir---

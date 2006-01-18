@@ -27,7 +27,7 @@ DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION tagstring$ (tag%, zero$, one$, negone$)
 DECLARE FUNCTION bytes2int% (lowbyte%, highbyte%)
-
+DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB setbinsize (id%, size%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION readattackname$ (index%)
@@ -171,7 +171,7 @@ atkbit$(63) = "Cause heroes to run away"
 '--Data is split, See AtkDatBits and AtkDatBits2 for offsets
 
 '----------------------------------------------------------
-DIM recbuf(100) '--stores the 200 bytes of attack data
+DIM recbuf(40 + curbinsize(0) / 2) '--stores the 200 bytes of attack data
 
 CONST AtkDatPic = 0
 CONST AtkDatPal = 1
@@ -755,7 +755,7 @@ DO
    recindex = recindex + 1
    '--make sure we really have permission to increment
    IF needaddset(recindex, general(34), "attack") THEN
-    flusharray recbuf(), 99, 0
+    flusharray recbuf(), 39 + curbinsize(0) / 2, 0
     GOSUB AtkUpdateMenu
    END IF
   ELSE

@@ -575,14 +575,19 @@ fbdim recordsize
 IF isfile(workingdir$ + "\binsize.bin" + CHR$(0)) THEN
  fh = FREEFILE
  OPEN workingdir$ + "\binsize.bin" FOR BINARY AS #fh
- GET #fh, 1 + (id * 2), recordsize
+ IF LOF(fh) < id * 2 + 2 THEN
+  getbinsize = defbinsize(id)
+ ELSE
+  GET #fh, 1 + (id * 2), recordsize
+  getbinsize = recordsize
+ END IF
  CLOSE #fh
- getbinsize = recordsize
 ELSE
- getbinsize = 0
+ getbinsize = defbinsize(id)
 END IF
 
 '0  ATTACK.BIN
+'1 .STF
 
 END FUNCTION
 
@@ -934,7 +939,7 @@ END FUNCTION
 
 SUB readattackdata (array(), index)
 
-flusharray array(), 99, 0
+flusharray array(), 39 + curbinsize(0) / 2, 0
 
 setpicstuf array(), 80, -1
 loadset game$ + ".dt6" + CHR$(0), index, 0
@@ -945,7 +950,7 @@ IF size THEN
  IF isfile(workingdir$ + "\attack.bin" + CHR$(0)) THEN
   setpicstuf buffer(), size, -1
   loadset workingdir$ + "\attack.bin" + CHR$(0), index, 0
-  FOR i = 0 TO 59
+  FOR i = 0 TO size / 2 - 1
    array(40 + i) = buffer(i)
   NEXT i
  END IF

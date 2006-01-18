@@ -962,14 +962,16 @@ FUNCTION getbinsize (id)
 IF isfile(workingdir$ + "\binsize.bin" + CHR$(0)) THEN
  fh = FREEFILE
  OPEN workingdir$ + "\binsize.bin" FOR BINARY AS #fh
- GET #fh, 1 + id * 2, recordsize
+ IF LOF(fh) < 2 * id + 2 THEN
+  getbinsize = defbinsize(id)
+ ELSE
+  GET #fh, 1 + id * 2, recordsize%
+  getbinsize = recordsize%
+ END IF
  CLOSE #fh
- getbinsize = recordsize
 ELSE
- getbinsize = 0
+ getbinsize = defbinsize(id)
 END IF
-
-'0  ATTACK.BIN
 
 END FUNCTION
 
@@ -2053,20 +2055,20 @@ END SUB
 
 SUB readattackdata (array(), index)
 
-flusharray array(), 99, 0
+flusharray array(), 39 + curbinsize(0) / 2, 0
 
 '--load 40 elements from the .dt6 lump
 setpicstuf array(), 80, -1
 loadset game$ + ".dt6" + CHR$(0), index, 0
 
-'--load the rest from the attack.bin lump (120 bytes)
+'--load the rest from the attack.bin lump
 size = getbinsize(0)
 
 IF size THEN
  IF isfile(workingdir$ + "\attack.bin" + CHR$(0)) THEN
   setpicstuf buffer(), size, -1
   loadset workingdir$ + "\attack.bin" + CHR$(0), index, 0
-  FOR i = 0 TO 59
+  FOR i = 0 TO size / 2 - 1
    array(40 + i) = buffer(i)
   NEXT i
  END IF
@@ -2204,10 +2206,7 @@ FOR i = 0 TO 59
  buffer(i) = array(40 + i)
 NEXT i
 
-'re-enforce what shuld already be set (in case we are creating the file, cxu ne?)
-setbinsize 0, 120
-
-setpicstuf buffer(), 120, -1
+setpicstuf buffer(), curbinsize(0), -1
 storeset workingdir$ + "\attack.bin" + CHR$(0), index, 0
 
 END SUB

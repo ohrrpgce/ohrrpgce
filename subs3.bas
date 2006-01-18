@@ -65,6 +65,8 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE SUB smnemonic (tagname$, index%)
+DECLARE SUB setbinsize (id%, size%)
+DECLARE FUNCTION getbinsize% (id%)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -460,6 +462,39 @@ KILL "unlump1.tmp\*.*"
 RMDIR "unlump1.tmp"
 
 END FUNCTION
+
+SUB updaterecordlength (lumpf$, bindex)
+IF getbinsize(bindex) < curbinsize(bindex) THEN
+ printstr "Upgrading " + lumpf$ + " to new record size...", 0, 10, vpage
+
+ tempf$ = workingdir$ + "\" + "resize.tmp"
+
+ oldsize = getbinsize(bindex)
+ newsize = curbinsize(bindex)
+
+ flusharray buffer(), newsize / 2, 0
+
+ ff = FREEFILE
+ OPEN lumpf$ FOR BINARY AS #ff
+ records = LOF(ff) / oldsize
+ CLOSE #ff
+
+ copyfile lumpf$ + CHR$(0), tempf$ + CHR$(0), buffer()
+ KILL lumpf$
+
+ FOR i = 0 TO records - 1
+  setpicstuf buffer(), oldsize, -1
+  loadset tempf$ + CHR$(0), i, 0
+  setpicstuf buffer(), newsize, -1
+  storeset lumpf$ + CHR$(0), i, 0
+ NEXT
+
+ KILL tempf$
+
+ setbinsize bindex, newsize
+
+END IF
+END SUB
 
 SUB writeglobalstring (index, s$, maxlen)
 
