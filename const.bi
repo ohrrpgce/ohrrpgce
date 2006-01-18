@@ -47,6 +47,7 @@ CONST genTextboxBackdrop = 58   'currently displaying text box backdrop in .MXS
 CONST genJoy = 60               'enable/disable joystick
 CONST genPoison = 61            'poison status indicator char
 CONST genStun = 62              'Stun status indicator char
+CONST genDamageCap = 63			'Damage cap
 CONST genVersion = 95           'RPG file format version(5 is the latest)
 CONST genStartMoney = 96        'starting money
 CONST genMaxShop = 97           'last shop in .SHO
