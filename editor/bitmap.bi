@@ -66,7 +66,7 @@ end type
 type LPBITMAPINFOHEADER as BITMAPINFOHEADER ptr
 type PBITMAPINFOHEADER as BITMAPINFOHEADER ptr
 
-type RGBQUAD
+type RGBQUAD field = 1
 	rgbBlue as BYTE
 	rgbGreen as BYTE
 	rgbRed as BYTE
