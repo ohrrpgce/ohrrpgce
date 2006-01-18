@@ -57,6 +57,7 @@ WHAT IS NEW?
   * New Plotscripting Commands
 
     * "cancel map name display" [James Paige]
+    * "suspend map music", "resume map music" [Ralph Versteegen]
     * "seconds of play", "set days of play", "set hours of play",
       "set minutes of play", "set seconds of play" [Mike Caron]
     * "read NPC" (counterpart of alter NPC) [James Paige]

@@ -564,6 +564,16 @@ script,set debug keys disable,bit,begin
   write general(101,(read general(101),and,32511)+bit)
 end
 
+define script(autonumber,suspend map music,0)
+script,suspend map music, begin
+ write general(44,read general(44),or,512)
+end
+
+define script(autonumber,resume map music,0)
+script,resume map music, begin
+ write general(44,read general(44),and,32255)
+end
+
 #--------------------------------------------------------------------------
 # read/write gmap wrappers
 
