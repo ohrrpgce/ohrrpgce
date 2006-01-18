@@ -193,6 +193,8 @@ define function, begin
 184,giveexperience,2,-1,1   # (who, how much) gives a hero or the active party experience
 185,herolevelled,1,0        # number of levels gained last battle/giveexperience command.
 186,spellslearnt,2,0,0      # number spells and spell ids hero learnt at last battle/giveexperience command.
+187,getmusicvolume,0        # music volume on a scale of 0-15
+188,setmusicvolume,1,7      # set music volume on a scale of 0-15
 
 200,system hour,0
 201,system minute,0

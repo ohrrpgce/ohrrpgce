@@ -62,6 +62,7 @@ WHAT IS NEW?
     * "read NPC" (counterpart of alter NPC) [James Paige]
     * "set hero level", "give experience", "hero levelled",
       "spells learnt" [Ralph Versteegen]
+    * "get music volume", "set music volume" [Ralph Versteegen]
 
   * Stuff only Developers Will Notice
   
