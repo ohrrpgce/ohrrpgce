@@ -32,6 +32,8 @@ declare sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as
 declare function grabrect(page as integer, x as integer, y as integer, w as integer, h as integer) as ubyte ptr
 declare sub droprect(image as ubyte ptr)
 declare function nearcolor(pal() as integer, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
+declare SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
+declare SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 
 'used for map and pass
 DECLARE SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, BYVAL mp as integer ptr)
@@ -2247,11 +2249,246 @@ END SUB
 
 SUB loadbmp (f$, BYVAL x, BYVAL y, buf(), BYVAL p)
 'loads the 4-bit bitmap f$ into page p at x, y
+'sets palette to match file???
+	dim fname as string
+	dim header as BITMAPFILEHEADER
+	dim info as BITMAPINFOHEADER
+	dim bf as integer
+	dim as integer maxw, maxh
+	dim sbase as ubyte ptr
+	dim i as integer
+	dim col as RGBQUAD
+	
+	fname = rtrim$(f$)
+	
+	bf = freefile
+	open fname for binary access read as #bf
+	if err > 0 then
+		'debug "Couldn't open " + fname
+		exit sub
+	end if
+
+	get #bf, , header
+	if header.bfType <> 19778 then
+		'not a bitmap
+		close #bf
+		exit sub
+	end if
+	
+	get #bf, , info
+
+	if info.biBitCount <> 4 then
+		close #bf
+		exit sub
+	end if
+	
+	'skip palette
+	for i = 0 to 15
+		get #bf, , col
+	next
+	
+	sbase = spage(p) + (y * 320) + x
+
+	'crop images larger than screen
+	maxw = info.biWidth - 1
+	if maxw > 319 - x then	maxw = 319 - x
+	maxh = info.biHeight - 1
+	if maxh > 199 - y then 	maxh = 199 - y
+
+	'call one of two loaders depending on compression
+	if info.biCompression = BI_RGB then
+		loadbmp4(bf, info.biWidth, info.biHeight, maxw, maxh, sbase)
+	elseif info.biCompression = BI_RLE4 then
+		loadbmprle4(bf, info.biWidth, info.biHeight, maxw, maxh, sbase)
+	end if
+	
+	close #bf
 END SUB
+
+SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
+'takes an open file handle and a screen pointer, should only be called within loadbmp
+	dim pix as ubyte
+	dim ub as ubyte
+	dim linelen as integer
+	dim toggle as integer
+	dim bcount as integer
+	dim as integer w, h
+	dim sptr as ubyte ptr
+	
+	linelen = (iw + 1) \ 2 	'num of bytes
+	linelen = ((linelen + 3) \ 4) * 4 	'nearest dword bound
+	
+	for h = ih - 1 to 0 step -1
+		bcount = 0
+		toggle = 0
+		if h > maxh then
+			for w = 0 to maxw
+				if toggle = 0 then
+					'read the data
+					get #bf, , pix
+					toggle = 1
+					bcount += 1
+				else
+					toggle = 0
+				end if
+			next
+		else	
+			sptr = sbase + (h * 320)
+			for w = 0 to maxw
+				if toggle = 0 then
+					'read the data
+					get #bf, , pix
+					*sptr = (pix and &hf0) shr 4
+					sptr += 1
+					toggle = 1
+					bcount += 1
+				else
+					'2nd nybble in byte
+					*sptr = pix and &h0f
+					sptr += 1
+					toggle = 0
+				end if
+			next
+		end if
+		
+		'padding to dword boundary, plus excess pixels
+		while bcount < linelen
+			get #bf, , ub
+			bcount += 1
+		wend
+	next
+END SUB
+
+SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
+'takes an open file handle and a screen pointer, should only be called within loadbmp
+	dim pix as ubyte
+	dim ub as ubyte
+	dim toggle as integer
+	dim as integer w, h
+	dim sptr as ubyte ptr
+	dim i as integer
+	dim as ubyte bval, v1, v2
+
+	w = 0
+	h = ih -1
+	
+	'read bytes until we're done
+	while not eof(bf)
+		'get command byte
+		get #bf, , ub
+		select case ub
+			case 0	'special, check next byte
+				get #bf, , ub
+				select case ub
+					case 0		'end of line
+						w = 0
+						h -= 1
+					case 1		'end of bitmap
+						exit while
+					case 2 		'delta (how can this ever be used?)
+						get #bf, , ub
+						w = w + ub
+						get #bf, , ub
+						h = h + ub
+					case else	'absolute mode
+						toggle = 0
+						for i = 1 to ub
+							if toggle = 0 then
+								get #bf, , pix
+								toggle = 1
+								bval = (pix and &hf0) shr 4
+							else
+								toggle = 0
+								bval = pix and &h0f
+							end if
+							if h <= maxh and w <= maxw then
+								sptr = sbase + (h * 320) + w
+								*sptr = bval
+							end if
+							w += 1
+						next
+						if (ub + 1) mod 4 > 1 then	'is this right?
+							get #bf, , ub 'pad to word bound
+						end if
+				end select
+			case else	'run-length
+				get #bf, , pix	'2 colours
+				v1 = (pix and &hf0) shr 4
+				v2 = pix and &h0f
+				
+				toggle = 0
+				for i = 1 to ub
+					if toggle = 0 then
+						toggle = 1
+						bval = v1
+					else
+						toggle = 0
+						bval = v2
+					end if
+					if h <= maxh and w <= maxw then
+						sptr = sbase + (h * 320) + w
+						*sptr = bval
+					end if
+					w += 1
+				next
+		end select
+	wend
+	
+end sub
 
 SUB getbmppal (f$, mpal(), pal(), BYVAL o)
 'gets the nearest-match palette pal() starting at offset o, from file f$
 'according to the master palette mpal()
+	dim fname as string
+	dim header as BITMAPFILEHEADER
+	dim info as BITMAPINFOHEADER
+	dim col as RGBQUAD
+	dim col8 as integer
+	dim bf as integer
+	dim i as integer
+	dim p as integer
+	dim toggle as integer
+	
+	fname = rtrim$(f$)
+	
+	bf = freefile
+	open fname for binary access read as #bf
+	if err > 0 then
+		'debug "Couldn't open " + fname
+		exit sub
+	end if
+
+	get #bf, , header
+	if header.bfType <> 19778 then
+		'not a bitmap
+		close #bf
+		exit sub
+	end if
+	
+	get #bf, , info
+
+	if info.biBitCount <> 4 then
+		close #bf
+		exit sub
+	end if
+
+	'read and translate the 16 colour entries	
+	p = o
+	toggle = p mod 2
+	for i = 0 to 15
+		get #bf, , col
+		col8 = nearcolor(mpal(), col.rgbRed, col.rgbGreen, col.rgbBlue)
+		if toggle = 0 then
+			pal(p) = col8
+			toggle = 1
+		else
+			pal(p) = pal(p) or (col8  shl 8)
+			toggle = 0
+			p += 1
+		end if
+	next
+	
+	close #bf
 END SUB
 
 FUNCTION bmpinfo (f$, dat())
@@ -2308,6 +2545,7 @@ function nearcolor(pal() as integer, byval red as ubyte, byval green as ubyte, b
 		gdif = (green shr 2) - pal(i+1)
 		bdif = (blue shr 2) - pal(i+2)
 		diff = abs(rdif) + abs(gdif) + abs(bdif)
+		'diff = rdif^2 + gdif^2 + bdif^2
 		if diff = 0 then
 			'early out on direct hit
 			save = col
