@@ -1342,6 +1342,11 @@ SELECT CASE id
   scriptret = scroll(0)
  CASE 181'--mapheight
   scriptret = scroll(1)
+ CASE 187'--getmusicvolume
+  scriptret = fmvol
+ CASE 188'--setmusicvolume
+  fmvol = bound(retvals(0), 0, 15)
+  setfmvol fmvol
  CASE 200'--system hour
   scriptret = INT(TIMER / 3600)
  CASE 201'--system minute
