@@ -806,12 +806,9 @@ IF atk(5) <> 4 THEN
 
  'inflict
  IF readbit(atk(), 20, 51) = 0 THEN
-  IF readbit(gen(),genBits,15) = 1 THEN 'all this will be simplified soon
-   IF h& > 9999 THEN h& = 9999
-   IF h& < -9999 THEN h& = -9999
-  ELSE
-   IF h& > 32767 THEN h& = 32767
-   IF h& < -32768 THEN h& = -32768
+  IF gen(genDamageCap) > 0 THEN
+   IF h& > gen(genDamageCap) THEN h& = gen(genDamageCap)
+   IF h& < -gen(genDamageCap) THEN h& = -gen(genDamageCap)
   END IF
   h = h&
   stat(t, 0, targstat) = safesubtract(stat(t, 0, targstat), h)

@@ -1965,6 +1965,16 @@ script,sum,a,b,c,begin
   return(a+b+c)
 end</example>
 		</command>
+		<command id="getdamagecap">
+			<cannon>get damage cap</cannon>
+			<shortname>get damage cap</shortname>
+			<description>Returns the current damage cap, or 0 if none</description>
+		</command>
+		<command id="setdamagecap">
+			<cannon>set damage cap (cap)</cannon>
+			<shortname>set damage cap</shortname>
+			<description>Sets the current damage cap to <p>cap</p>. Use 0 for no cap.</description>
+		</command>
 	</section>
 	<section title="Predefined Constants">
 		<command id="numericconstants">

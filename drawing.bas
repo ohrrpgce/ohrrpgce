@@ -154,10 +154,10 @@ END SUB
 
 SUB gendata (song$(), master())
 STATIC default$
-DIM m$(18), max(18), bit$(15), subm$(4), scriptgenof(4)
+DIM m$(19), max(19), bit$(15), subm$(4), scriptgenof(4)
 IF general(61) <= 0 THEN general(61) = 161
 IF general(62) <= 0 THEN general(62) = 159
-last = 17
+last = 18
 m$(0) = "Return to Main Menu"
 m$(1) = "Preference Bitsets..."
 m$(8) = "Password For Editing..."
@@ -176,6 +176,7 @@ max(8) = 0
 max(11) = 32000
 max(16) = 255
 max(17) = 255
+max(18) = 32767
 GOSUB loadpass
 GOSUB genstr
 setkeys
@@ -203,7 +204,7 @@ DO
    bit$(12) = "Skip load screen"
    bit$(13) = "Pause on All Battle Menus"
    bit$(14) = "Disable Hero's Battle Cursor"
-   bit$(15) = "Damage is capped at 9999"
+   'bit$(15) = "Damage is capped at 9999"
    bitset general(), 101, 15, bit$()
   END IF
   IF csr = 9 THEN GOSUB ttlbrowse
@@ -250,6 +251,9 @@ DO
  IF csr = 17 THEN
   IF intgrabber(general(62), 32, max(csr), 75, 77) THEN GOSUB genstr
  END IF
+ IF csr = 18 THEN
+  IF intgrabber(general(genDamageCap), 0, max(csr), 75, 77) THEN GOSUB genstr
+ END IF
 
  standardmenu m$(), last, 22, csr, 0, 0, 0, dpage, 0
  
@@ -281,6 +285,8 @@ m$(13) = "Long Name:" + longname$
 m$(14) = "About Line:" + aboutline$
 m$(16) = "Poison Indicator " + STR$(general(61)) + " " + CHR$(general(61))
 m$(17) = "Stun Indicator " + STR$(general(62)) + " " + CHR$(general(62))
+m$(18) = "Damage Cap:"
+if general(genDamageCap) = 0 THEN m$(18) = m$(18) + " None" ELSE m$(18) = m$(18) + STR$(general(genDamageCap))
 RETURN
 
 ttlbrowse:

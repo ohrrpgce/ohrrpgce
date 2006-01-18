@@ -37,9 +37,9 @@ ESC or ALT  *Calls up the menu while you are on the map
 
 PAUSE   *Pauses the game in battle. Bet you could have guessed that one.
 
-J *Calibrate Joystick
+CTRL+J *Calibrate Joystick
 
-PGUP+PGDN+ESC   *Exit strait to DOS
+PGUP+PGDN+ESC   *Exit straight to DOS
 
 F12     *Take ScreenShot in BMP format
 

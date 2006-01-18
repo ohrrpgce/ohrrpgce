@@ -167,7 +167,7 @@ define function, begin
 158,teammenu,0              # display the team menu
 159,initmouse,0             # init mouse, return true if a mouse is installed
 160,mousepixelx,0           # returns mouse x coordinate on the screen
-161,mousepixely,0           # returns mouse x coordinate on the screen
+161,mousepixely,0           # returns mouse y coordinate on the screen
 162,mousebutton,1,0         # returns true if the specified button is pressed
 163,putmouse,2,160,100      # places the mouse at a point on the screen
 164,mouseregion,4,0,319,0,199 # define the rectangle in which the mouse can move (xmin, xmax, ymin, ymax)
@@ -206,7 +206,6 @@ define function, begin
 207,get map name,2,0,0	    # (string, map) - puts the name of map(map) in string(string)
 208,get attack name,2,0,0   # (string, attack) - puts the name of attack(attack) in string(string)
 209,get global string,2,0,0 # (string, global) - puts the global string (global) in string(string)
-
 210,showstring,1,0 		#shows string on the bottom(stringID)
 211,clearstring,1,0		#deletes the data from string(stringID)
 212,appendascii,2,0,0		#adds ascii to string(stringID,ascii)
@@ -663,6 +662,14 @@ end
 define script(autonumber,draw npcs above heroes,1,0)
 script,draw npcs above heroes,setting,begin
   write gmap(16,setting)
+end
+define script(autonumber,get damage cap,0)
+script,get damage cap,end
+	return(readgeneral(63))
+end
+define script(autonumber,set damage cap,1,0)
+script,set damage cap,c,end
+	writegeneral(63,c)
 end
 
 #--------------------------------------------------------------------------
