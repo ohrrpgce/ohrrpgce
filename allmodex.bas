@@ -31,6 +31,7 @@ declare sub setclip(l as integer=0, t as integer=0, r as integer=319, b as integ
 declare sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer=1)
 declare function grabrect(page as integer, x as integer, y as integer, w as integer, h as integer) as ubyte ptr
 declare sub droprect(image as ubyte ptr)
+declare function nearcolor(pal() as integer, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
 
 'used for map and pass
 DECLARE SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, BYVAL mp as integer ptr)
@@ -2162,21 +2163,164 @@ function calcblock(byval x as integer, byval y as integer, byval t as integer) a
 end function
 
 '----------------------------------------------------------------------
-'Stub functions which aren't used in game.exe, but are declared in 
-'allmodex.bi for custom.exe.
+'Bitmap import functions - other formats are probably quite simple
+'with Allegro or SDL or FreeImage, but we'll stick to this for now.
 '----------------------------------------------------------------------
 SUB bitmap2page (temp(), bmp$, BYVAL p)
+'loads the 24-bit bitmap bmp$ into page p with palette temp()
+'I'm pretty sure this is only ever called with 320x200 pics, but I
+'have tried to generalise it to cope with any size.
+	dim fname as string
+	dim header as BITMAPFILEHEADER
+	dim info as BITMAPINFOHEADER
+	dim pix as RGBTRIPLE
+	dim bf as integer
+	dim as integer w, h, maxw, maxh
+	dim as ubyte ptr sptr, sbase
+	dim ub as ubyte
+	dim pad as integer
+	
+	fname = rtrim$(bmp$)
+	
+	bf = freefile
+	open fname for binary access read as #bf
+	if err > 0 then
+		'debug "Couldn't open " + fname
+		exit sub
+	end if
+
+	get #bf, , header
+	if header.bfType <> 19778 then
+		'not a bitmap
+		close #bf
+		exit sub
+	end if
+	
+	get #bf, , info
+
+	if info.biBitCount <> 24 then
+		close #bf
+		exit sub
+	end if
+	
+	sbase = spage(p)
+
+	'data lines are padded to 32-bit boundaries	
+	pad = 4 - ((info.biWidth * 3) mod 4)
+	if pad = 4 then	pad = 0
+	
+	'crop images larger than screen
+	maxw = info.biWidth - 1
+	if maxw > 319 then
+		maxw = 319
+		pad = pad + ((info.biWidth - 320) * 3)
+	end if
+	maxh = info.biHeight - 1
+	if maxh > 199 then 
+		maxh = 199
+	end if
+
+	for h = info.biHeight - 1 to 0 step -1
+		if h > maxh then
+			for w = 0 to maxw
+				'read the data
+				get #bf, , pix
+			next
+		else	
+			sptr = sbase + (h * 320)
+			for w = 0 to maxw
+				'read the data
+				get #bf, , pix
+				*sptr = nearcolor(temp(), pix.rgbtRed, pix.rgbtGreen, pix.rgbtBlue)
+				sptr += 1
+			next
+		end if
+		
+		'padding to dword boundary, plus excess pixels
+		for w = 0 to pad-1
+			get #bf, , ub
+		next
+	next
+	
+	close #bf
 END SUB
 
 SUB loadbmp (f$, BYVAL x, BYVAL y, buf(), BYVAL p)
+'loads the 4-bit bitmap f$ into page p at x, y
 END SUB
 
 SUB getbmppal (f$, mpal(), pal(), BYVAL o)
+'gets the nearest-match palette pal() starting at offset o, from file f$
+'according to the master palette mpal()
 END SUB
 
 FUNCTION bmpinfo (f$, dat())
-	bmpinfo = 0
+	dim fname as string
+	dim header as BITMAPFILEHEADER
+	dim info as BITMAPINFOHEADER
+	dim bf as integer
+	
+	fname = rtrim$(f$)
+	
+	bf = freefile
+	open fname for binary access read as #bf
+	if err > 0 then
+		'debug "Couldn't open " + fname
+		bmpinfo = 0
+		exit function
+	end if
+
+	get #bf, , header
+	if header.bfType <> 19778 then
+		'not a bitmap
+		bmpinfo = 0
+		close #bf
+		exit function
+	end if
+	
+	get #bf, , info
+
+	'only these 4 fields are returned by the asm	
+	dat(0) = info.biBitCount
+	dat(1) = info.biWidth
+	dat(2) = info.biHeight
+	'seems to be a gap here, or all 4 bytes of height are returned
+	'but I doubt this will be relevant anyway
+	dat(3) = 0				
+	dat(4) = info.biCompression
+	'code doesn't actually seem to use anything higher than 2 anway
+			
+	close #bf
+	
+	bmpinfo = -1
 END FUNCTION
+
+function nearcolor(pal() as integer, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
+'figure out nearest palette colour
+'supplied pal() is r,g,b
+	dim as integer i, diff, col, best, save, rdif, bdif, gdif
+	
+	best = 1000
+	save = 0
+	for col = 0 to 255
+		i = col * 3
+		rdif = (red shr 2) - pal(i)
+		gdif = (green shr 2) - pal(i+1)
+		bdif = (blue shr 2) - pal(i+2)
+		diff = abs(rdif) + abs(gdif) + abs(bdif)
+		if diff = 0 then
+			'early out on direct hit
+			save = col
+			exit for
+		end if
+		if diff < best then 
+			save = col
+			best = diff
+		end if
+	next
+	
+	nearcolor = save
+end function
 
 ''-----------------------------------------------------------------------
 '' Compatibility stuff that should probably go in another file
