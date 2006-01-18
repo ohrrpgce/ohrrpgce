@@ -9,8 +9,11 @@ option explicit
 #include allmodex.bi
 #include cglobals.bi
 #include fontdata.bi
+#include gfx.bi
 
 dim shared seg as integer ptr
+'bit of a waste, just stores the rpg name from the command line
+dim shared storecmd as string
 
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION small% (n1%, n2%)
@@ -141,3 +144,35 @@ sub xpoke(byval idx as integer, byval v as integer)
 		seg[idx] = newval or (bval shl 8)
 	end if
 end sub
+
+sub togglewindowed()
+	gfx_togglewindowed
+end sub
+
+sub storecommandline
+'a thinly veiled excuse to get some commandline stuff into FB
+	dim i as integer = 1
+	dim temp as string
+	
+	while command(i) <> ""
+		temp = left$(command(i), 1)
+		'/ should not be a flag under linux
+		if temp = "-" or temp = "/" then
+			'option
+			temp = mid$(command(i), 2)
+			if temp = "w" or temp = "windowed" then
+				gfx_setwindowed(1)
+			elseif temp = "f" or temp = "fullscreen" then
+				gfx_setwindowed(0)
+			end if
+		else
+			'only keep one non-flag argument, hopefully the file
+			storecmd = command(i)
+		end if
+		i = i + 1
+	wend
+end sub
+
+function getcommandline() as string
+	getcommandline = storecmd
+end function

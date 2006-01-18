@@ -103,6 +103,9 @@ workingdir$ = "working.tmp"
 'version ID
 '$INCLUDE: 'cver.txt'
 IF COMMAND$ = "/V" THEN PRINT version$: SYSTEM
+'only included for the windowed/fullscreen stuff
+storecommandline
+gamedir$ = getcommandline 'does nothing, but needs to tidy up
 
 sCurdir$ = STRING$(pathlength, 0)
 getstring sCurdir$
@@ -620,6 +623,7 @@ printstr "your work! You never know when an", 0, 8, 0
 printstr "unknown bug or a hard-drive crash or", 0, 16, 0
 printstr "a little brother might delete your", 0, 24, 0
 printstr "files!", 0, 32, 0
+setvispage 0 'force a refresh
 w = getkey
 GOSUB shutoff
 'closefile
