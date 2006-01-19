@@ -338,7 +338,18 @@ touchfile workingdir$ + "\__danger.tmp"
 PRINT "fatal error:"
 PRINT e$
 
-KILL workingdir$ + "\*.*"
+'KILL workingdir$ + "\*.*"
+'borrowed this code from game.bas cos wildcard didn't work
+findfiles workingdir$ + "\*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
+fh = FREEFILE
+OPEN "filelist.tmp" FOR INPUT AS #fh
+DO UNTIL EOF(fh)
+INPUT #fh, filename$
+filename$ = UCASE$(filename$)
+KILL workingdir$ + "\" + filename$
+LOOP
+CLOSE #fh
+KILL "filelist.tmp"
 RMDIR workingdir$
 
 SYSTEM
@@ -358,7 +369,19 @@ END IF
 
 touchfile "unlump1.tmp\nothing.tmp"
 
-KILL "unlump1.tmp\*.*"
+'KILL "unlump1.tmp\*.*"
+ 'borrowed this code from game.bas cos wildcard didn't work
+ findfiles "unlump1.tmp\*.*" + chr$(0), 0, "unlist.tmp" + CHR$(0), buffer()
+ fh = FREEFILE
+ OPEN "unlist.tmp" FOR INPUT AS #fh
+ DO UNTIL EOF(fh)
+  INPUT #fh, filename$
+  filename$ = UCASE$(filename$)
+  KILL "unlump1.tmp\" + filename$
+ LOOP
+ CLOSE #fh
+ KILL "unlist.tmp"
+
 RMDIR "unlump1.tmp"
 
 END FUNCTION

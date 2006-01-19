@@ -956,6 +956,7 @@ END SUB
 FUNCTION getbinsize (id)
 
 IF isfile(workingdir$ + "\binsize.bin" + CHR$(0)) THEN
+ fbdim recordsize
  fh = FREEFILE
  OPEN workingdir$ + "\binsize.bin" FOR BINARY AS #fh
  GET #fh, 1 + id * 2, recordsize
@@ -2132,10 +2133,11 @@ readshopname$ = readbadgenericname$(shopnum, game$ + ".sho", 40, 0, 15, 0)
 END FUNCTION
 
 SUB setbinsize (id, size)
-
+fbdim size16
+size16 = size
 fh = FREEFILE
 OPEN workingdir$ + "\binsize.bin" FOR BINARY AS #fh
-PUT #fh, 1 + id * 2, size
+PUT #fh, 1 + id * 2, size16
 CLOSE #fh
 
 END SUB
