@@ -1576,9 +1576,11 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 	bufr = allocate(16000)
 	
 	'get file to lump
-	line input #fl, lname
-	while not eof(fl) and lname <> "-END OF LIST-"
-		debug lname
+	do until eof(fl) 
+		line input #fl, lname
+		if lname = "-END OF LIST-" then
+			exit do
+		end if
 		'write lump name
 		put #lf, , lname
 		'dat = 0
@@ -1587,8 +1589,8 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 		tl = freefile
 		open lpath + lname for binary access read as #tl
 		if err <> 0 then
-			debug "failed to open " + lpath + lname
-			exit while
+			'debug "failed to open " + lpath + lname
+			continue do
 		end if
 		
 		'write lump size - byte order = 3,4,1,2 I think
@@ -1616,9 +1618,7 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 		wend
 
 		close #tl
-				
-		line input #fl, lname
-	wend
+	loop
 	
 	close #lf
 	close #fl
