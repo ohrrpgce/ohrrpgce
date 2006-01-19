@@ -72,6 +72,7 @@ DECLARE FUNCTION getbinsize% (id%)
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
+'$INCLUDE: 'binsize.bi'
 
 REM $STATIC
 FUNCTION bound (n, lowest, highest)
@@ -1703,7 +1704,7 @@ RETURN
 END SUB
 
 SUB spells (pt, stat())
-DIM sname$(40), menu$(4), mi(4), mtype(5), spel$(24), cost$(24), spel(24), canuse(24), targt(24), spid(5), ondead(2), onlive(2)
+DIM sname$(40), menu$(4), mi(4), mtype(5), spel$(24), speld$(24), cost$(24), spel(24), canuse(24), targt(24), spid(5), ondead(2), onlive(2)
 getnames sname$()
 
 savetemppage 3
@@ -1714,11 +1715,12 @@ hasnone$ = readglobalstring$(133, "has no spells", 20)
 
 GOSUB splname
 copypage vpage, 3
-centerfuz 160, 100, 304, 184, 1, 3
-centerbox 206, 36, 200, 20, 2, 3
-centerbox 60, 50, 82, 60, 2, 3
-centerbox 160, 135, 280, 80, 2, 3
-rectangle 21, 164, 280, 1, 40, 3
+centerfuz 160, 100, 304, 184, 1, 3	'outer box
+centerbox 206, 36, 200, 20, 2, 3 	'name box
+centerbox 60, 50, 82, 60, 2, 3		'menu box
+centerbox 160, 135, 280, 100, 2, 3	'spell list
+rectangle 21, 159, 280, 1, 40, 3	'divider 1
+rectangle 21, 172, 280, 1, 40, 3	'divider 2
 setkeys
 DO
  setwait timing(), speedcontrol
@@ -1735,19 +1737,20 @@ DO
     IF sptr = o AND mset = 1 THEN
      IF canuse(o) > 0 THEN textcolor 14 + tog, 1 ELSE textcolor 7, 1
     END IF
-    printstr spel$(o), 24 + (((o / 3) - INT(o / 3)) * 3) * 88, 98 + INT(o / 3) * 8, dpage
+    printstr spel$(o), 24 + (((o / 3) - INT(o / 3)) * 3) * 88, 90 + INT(o / 3) * 8, dpage 'spells
    NEXT o
    textcolor 7, 0
    IF sptr = 24 AND mset = 1 THEN textcolor 14 + tog, 1
-   printstr cancelmenu$, 24, 166, dpage
+   printstr cancelmenu$, 24, 175, dpage 'cancel
    IF mset = 1 THEN
     textcolor 10, 0
-    printstr cost$(sptr), 288 - LEN(cost$(sptr)) * 8, 166, dpage
+    printstr cost$(sptr), 288 - LEN(cost$(sptr)) * 8, 175, dpage 'cost
+    printstr speld$(sptr), 24, 162, dpage 'description
    END IF
   END IF
   textcolor 7, 0
   IF csr = i THEN textcolor 14 + tog, 2: IF mset = 1 THEN textcolor 7, 2
-  printstr menu$(i), 21, 25 + i * 10, dpage
+  printstr menu$(i), 21, 25 + i * 10, dpage 'spell menu
  NEXT i
  IF last = 0 THEN edgeprint names$(pt) + " " + hasnone$, xstring(names$(pt) + " " + hasnone$, 160), 120, 15, dpage
  edgeprint names$(pt), xstring(names$(pt), 206), 31, 15, dpage
@@ -1767,6 +1770,7 @@ DO
    END IF
   NEXT i
  END IF
+ 
  SWAP vpage, dpage
  setvispage vpage
  copypage 3, dpage
@@ -1776,9 +1780,15 @@ LOOP
 curspellist:
 IF mtype(csr) < 0 THEN RETURN
 FOR i = 0 TO 23
- spel$(i) = "": cost$(i) = "": spel(i) = -1: canuse(i) = 0: targt(i) = 0
+ spel$(i) = "": speld$(i) = "": cost$(i) = "": spel(i) = -1: canuse(i) = 0: targt(i) = 0
  IF spell(pt, spid(csr), i) > 0 THEN
   spel(i) = spell(pt, spid(csr), i) - 1
+  'flusharray buffer(), 39 + curbinsize(0) / 2
+  setpicstuf buffer(), getbinsize(0),-1
+  loadset workingdir$ + "\attack.bin" + CHR$(0), spel(i), 0
+  FOR j = getbinsize(0) / 2 - 1 TO 0 STEP -1
+   buffer(40 + j) = buffer(j)
+  NEXT j
   setpicstuf buffer(), 80, -1
   loadset game$ + ".dt6" + CHR$(0), spel(i), 0
   IF readbit(buffer(), 20, 59) = 1 AND buffer(3) > 0 THEN
@@ -1794,6 +1804,8 @@ FOR i = 0 TO 23
   IF mtype(csr) = 1 AND lmp(pt, INT(i / 3)) = 0 THEN canuse(i) = 0
   IF stat(pt, 0, 0) = 0 THEN canuse(i) = 0
   spel$(i) = readbadbinstring$(buffer(), 24, 10, 1)
+  speld$(i) = readbinstring$(buffer(),73,38)
+  'debug "i = " + str$(i) + ", spel(sptr) = " + str$(spel(sptr))
   IF mtype(csr) = 0 THEN cost$(i) = STR$(cost) + " " + sname$(1) + " " + RIGHT$(STR$(stat(pt, 0, 1)), LEN(STR$(stat(pt, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(pt, 1, 1)), LEN(STR$(stat(pt, 1, 1))) - 1)
   IF mtype(csr) = 1 THEN cost$(i) = readglobalstring$(43, "Level", 10) + STR$(INT(i / 3) + 1) + ":  " + STR$(lmp(pt, INT(i / 3)))
  END IF
@@ -1929,6 +1941,12 @@ ELSE
  END IF
  IF carray(4) > 1 THEN
   IF mtype(csr) = 0 THEN
+'   flusharray buffer(), 39 + curbinsize(0) / 2
+'   setpicstuf buffer(), getbinsize(0),-1
+'   loadset "attack.bin" + CHR$(0), spel(sptr), 0
+'   FOR i = getbinsize(0) / 2 - 1 TO 0 STEP -1
+'    buffer(40 + i) = buffer(i)
+'   NEXT i
    setpicstuf buffer(), 80, -1
    loadset game$ + ".dt6" + CHR$(0), spel(sptr), 0
    cost = focuscost(buffer(8), stat(pt, 0, 10))

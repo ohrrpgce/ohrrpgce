@@ -25,6 +25,8 @@ WHAT IS NEW?
       triggers the tag, and conditional to another tag) [Mike Caron]
       
     * Added damage cap option (in General Game Data) [Mike Caron]
+    
+    * Spell Descriptions! (set in Attacks->Appearance) [Mike Caron]
 
   * Bug Fixes
 
@@ -69,6 +71,8 @@ WHAT IS NEW?
   * Stuff only Developers Will Notice
   
     * More attack bitsets [Mike Caron]
+    * Unified item-name editor data (all item slots are formatted the same now)
+      [Mike Caron]
 
 October 03 2005 [rusalka]
 

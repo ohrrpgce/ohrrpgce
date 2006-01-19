@@ -204,7 +204,8 @@ CONST AtkDatTagAnd = 61
 CONST AtkDatTag2 = 62
 CONST AtkDatTagIf2 = 63
 CONST AtkDatTagAnd2 = 64
-CONST AtkDatBitsets2 = 65' to 73
+CONST AtkDatBitsets2 = 65' to 72
+CONST AtkDatDescription = 73
 
 '----------------------------------------------------------
 capindex = 0
@@ -420,7 +421,7 @@ min(AtkLimTag) = -1000
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 38
+CONST MnuItems = 39
 DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -639,7 +640,13 @@ CONST AtkTagAct = 38
 menu$(AtkTagAct) = "Tags..."
 menutype(AtkTagAct) = 1
 
-'Next menu item is 39 (remember to update the dims)
+CONST AtkDescription = 39
+menu$(AtkDescription) = "Description: "
+menutype(AtkDescription) = 3
+menuoff(AtkDescription) = AtkDatDescription
+menulimits(AtkDescription) = AtkLimStr38
+
+'Next menu item is 40 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
@@ -659,7 +666,7 @@ mainMenu(8) = AtkChainAct
 mainMenu(9) = AtkBitAct
 mainMenu(10) = AtkTagAct
 
-DIM appearMenu(7)
+DIM appearMenu(8)
 appearMenu(0) = AtkBackAct
 appearMenu(1) = AtkPic
 appearMenu(2) = AtkPal
@@ -668,6 +675,7 @@ appearMenu(4) = AtkAnimPattern
 appearMenu(5) = AtkAnimAttacker
 appearMenu(6) = AtkCapTime
 appearMenu(7) = AtkCaptDelay
+appearMenu(8) = AtkDescription
 
 DIM dmgMenu(8)
 dmgMenu(0) = AtkBackAct
