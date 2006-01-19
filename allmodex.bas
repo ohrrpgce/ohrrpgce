@@ -930,7 +930,7 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
   	dim sptr as ubyte ptr
   
 'Macro to simplify code
-#define DRAW_SLICE(a) for i=0 to a: *sptr = c: sptr += instep: next
+#define DRAW_SLICE(a) for i=0 to a-1: *sptr = c: sptr += instep: next
 
 	if wrkpage <> p then
 		wrkpage = p
@@ -959,21 +959,21 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 	'special case for vertical
   	if (xdiff = 0) then
   		instep = 320
-  		DRAW_SLICE(ydiff+1)
+  		DRAW_SLICE(ydiff)
     	exit sub
   	end if
 
 	'and for horizontal
   	if (ydiff = 0) then
   		instep = xdirection
-  		DRAW_SLICE(xdiff+1)
+  		DRAW_SLICE(xdiff)
     	exit sub
   	end if
 
   	'and also for pure diagonals
   	if xdiff = ydiff then
   		instep = 320 + xdirection
-  		DRAW_SLICE(ydiff+1)
+  		DRAW_SLICE(ydiff)
     	exit sub
   	end if
 
@@ -1581,8 +1581,9 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 		if lname = "-END OF LIST-" then
 			exit do
 		end if
-		'write lump name
-		put #lf, , lname
+		'write lump name (seems to need to be upper-case, at least 
+		'for any files opened with unlumpone in the QB version)
+		put #lf, , ucase(lname)
 		'dat = 0
 		'put #lf, , dat
 		
