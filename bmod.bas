@@ -1702,8 +1702,8 @@ IF vdance = 0 THEN 'only display interface till you win
   NEXT i
   IF mset = 1 THEN '--draw spell menu
    centerbox 148, 55, 280, 100, 1, dpage
-   rectangle 7, 82, 282, 1, 25, dpage
-   rectangle 7, 93, 282, 1, 25, dpage
+   rectangle 8, 82, 281, 1, 25, dpage
+   rectangle 8, 93, 281, 1, 25, dpage
    FOR i = 0 TO 23
     textcolor 8 - readbit(spelmask(), 0, i), 0
     IF sptr = i THEN textcolor 7 + (7 * readbit(spelmask(), 0, i)) + tog, 1
@@ -1714,7 +1714,7 @@ IF vdance = 0 THEN 'only display interface till you win
    printstr cancelspell$, 16, 96, dpage
    textcolor 10, 0
    IF sptr < 24 THEN
-    printstr speld$(sptr), 16, 85, dpage
+    printstr speld$(sptr), 16, 84, dpage
     printstr cost$(sptr), 280 - LEN(cost$(sptr)) * 8, 96, dpage
    END IF
   END IF
