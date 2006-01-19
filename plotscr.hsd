@@ -674,12 +674,12 @@ script,draw npcs above heroes,setting,begin
   write gmap(16,setting)
 end
 define script(autonumber,get damage cap,0)
-script,get damage cap,end
+script,get damage cap,begin
 	return(readgeneral(63))
 end
 define script(autonumber,set damage cap,1,0)
-script,set damage cap,c,end
-	writegeneral(63,c)
+script,set damage cap,c,begin
+	writegeneral(63,c) 
 end
 
 #--------------------------------------------------------------------------
