@@ -77,11 +77,13 @@ DECLARE FUNCTION checkNoRunBit (stat%(), ebits%(), v%())
 DECLARE SUB checkTagCond (t, check, tag, tagand)
 DECLARE FUNCTION exptolevel& (level%)
 DECLARE SUB giveheroexperience (i%, exstat%(), exper&)
+DECLARE FUNCTION getbinsize% (id%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
+'$INCLUDE: 'binsize.bi'
 
 REM $STATIC
 FUNCTION battle (form, fatal, exstat())
@@ -90,8 +92,8 @@ FUNCTION battle (form, fatal, exstat())
 bstackstart = stackpos
 
 battle = 1
-DIM a(40), atktemp(40), atk(40 + curbinsize(0) / 2), st(3, 318), es(7, 160), x(24), y(24), z(24), d(24), zbuf(24), xm(24), ym(24), zm(24), mvx(24), mvy(24), mvz(24), v(24), p(24), w(24), h(24), of(24), ext$(7), ctr(11), stat(11, 1, 17), ready(11), _ 
-batname$(11), menu$(3, 5), mend(3), spel$(23), spel(23), cost$(24), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11), fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), _
+DIM a(40), atktemp(40 + curbinsize(0) / 2), atk(40 + curbinsize(0) / 2), st(3, 318), es(7, 160), x(24), y(24), z(24), d(24), zbuf(24), xm(24), ym(24), zm(24), mvx(24), mvy(24), mvz(24), v(24), p(24), w(24), h(24), of(24), ext$(7), ctr(11), stat(11, 1, 17), ready(11), _ 
+batname$(11), menu$(3, 5), mend(3), spel$(23), speld$(23), spel(23), cost$(24), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11), fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), _
 iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11), targmem(23), prtimer(11, 1), spelmask(1)
 
 mpname$ = readglobalstring(1, "MP", 10)
@@ -392,14 +394,21 @@ IF carray(4) > 1 THEN
   sptype = (bmenu(you, pt) + 1) * -1 '-tells which menu
   FOR i = 0 TO 23
    spel$(i) = ""
+   speld$(i) = ""
    cost$(i) = ""
    spel(i) = -1
    setbit spelmask(), 0, i, 0
    IF spell(you, sptype, i) > 0 THEN
     spel(i) = spell(you, sptype, i) - 1
+    setpicstuf atktemp(), getbinsize(0),-1
+    loadset workingdir$ + "\attack.bin" + CHR$(0), spel(i), 0
+    FOR j = getbinsize(0) / 2 - 1 TO 0 STEP -1
+     atktemp(40 + j) = atktemp(j)
+    NEXT j
     setpicstuf atktemp(), 80, -1
     loadset game$ + ".dt6" + CHR$(0), spel(i), 0
     spel$(i) = readbadbinstring$(atktemp(), 24, 10, 1)
+    speld$(i) = readbinstring$(atktemp(),73,38)
     IF st(you, 288 + sptype) = 0 THEN
      '--regular MP
      cost$(i) = STR$(focuscost(atktemp(8), stat(you, 0, 10))) + " " + mpname$ + " " + LTRIM$(STR$(stat(you, 0, 1))) + "/" + LTRIM$(STR$(stat(you, 1, 1)))
@@ -1691,8 +1700,9 @@ IF vdance = 0 THEN 'only display interface till you win
    printstr menu$(you, i), 228, 9 + i * 8, dpage
   NEXT i
   IF mset = 1 THEN '--draw spell menu
-   centerbox 148, 45, 280, 80, 1, dpage
-   rectangle 7, 74, 282, 1, 25, dpage
+   centerbox 148, 55, 280, 100, 1, dpage
+   rectangle 7, 82, 282, 1, 25, dpage
+   rectangle 7, 93, 282, 1, 25, dpage
    FOR i = 0 TO 23
     textcolor 8 - readbit(spelmask(), 0, i), 0
     IF sptr = i THEN textcolor 7 + (7 * readbit(spelmask(), 0, i)) + tog, 1
@@ -1700,9 +1710,10 @@ IF vdance = 0 THEN 'only display interface till you win
    NEXT i
    textcolor 7, 0
    IF sptr = 24 THEN textcolor 14 + tog, 1
-   printstr cancelspell$, 16, 76, dpage
+   printstr cancelspell$, 16, 96, dpage
    textcolor 10, 0
-   printstr cost$(sptr), 280 - LEN(cost$(sptr)) * 8, 76, dpage
+   printstr speld$(sptr), 16, 85, dpage
+   printstr cost$(sptr), 280 - LEN(cost$(sptr)) * 8, 96, dpage
   END IF
   IF mset = 2 THEN
    centerbox 160, 45, 304, 80, 1, dpage
