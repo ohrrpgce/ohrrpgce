@@ -100,8 +100,13 @@ IF atkid < 0 THEN
 END IF
 
 '--load attack data
-setpicstuf buffer(), 80, -1
-loadset game$ + ".dt6" + CHR$(0), atkid, 0
+readattackdata buffer(), atkid
+
+'--check for mutedness
+IF readbit(buffer(),65,0) = 1 AND stat(attacker, 0, 15) < stat(attacker, 1, 15) THEN
+ atkallowed = 0
+ EXIT FUNCTION
+END IF
 
 '--check for sufficient mp
 IF stat(attacker, 0, 1) - focuscost(buffer(8), stat(attacker, 0, 10)) < 0 THEN
@@ -704,6 +709,23 @@ IF atk(5) <> 4 THEN
   EXIT FUNCTION
  END IF
  
+ IF readbit(atk(),65,1) = 1 AND stat(t,0,12) < stat(t,1,12) THEN
+  harm$(t) = readglobalstring$(121, "fail", 20)
+  EXIT FUNCTION
+ END IF
+ IF readbit(atk(),65,2) = 1 AND stat(t,0,13) < stat(t,1,13) THEN
+  harm$(t) = readglobalstring$(121, "fail", 20)
+  EXIT FUNCTION
+ END IF
+ IF readbit(atk(),65,3) = 1 AND stat(t,0,14) <> stat(t,1,14) THEN
+  harm$(t) = readglobalstring$(121, "fail", 20)
+  EXIT FUNCTION
+ END IF
+ IF readbit(atk(),65,4) = 1 AND stat(t,0,15) <> stat(t,1,15) THEN
+  harm$(t) = readglobalstring$(121, "fail", 20)
+  EXIT FUNCTION
+ END IF
+ 
  'attack and defence base
  a = stat(w, 0, 2): d = stat(t, 0, 4)
  SELECT CASE atk(7)
@@ -849,7 +871,7 @@ IF atk(5) <> 4 THEN
  END IF
  
 END IF 'skips to here if no damage
-
+'debug(readbadbinstring$(atk(), 24, 10, 1) + " - " + str$(targstat))
 'name
 IF readbit(atk(), 20, 55) = 1 THEN
  IF LEN(harm$(t)) > 0 THEN harm$(t) = harm$(t) + " "

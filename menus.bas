@@ -66,6 +66,11 @@ DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB editmenus ()
+DECLARE SUB writepassword (p$)
+DECLARE FUNCTION readpassword$ ()
+DECLARE SUB writescatter (s$, lhold%, start%)
+DECLARE SUB readscatter (s$, lhold%, start%)
+DECLARE SUB fixfilename (s$)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -429,6 +434,389 @@ veh(0) = bound(LEN(vehname$), 0, 15)
 str2array vehname$, veh(), 1
 setpicstuf veh(), 80, -1
 storeset game$ + ".veh" + CHR$(0), ptr, 0
+RETURN
+
+END SUB
+
+SUB gendata (song$(), master())
+STATIC default$
+DIM m$(19), max(19), bit$(15), subm$(4), scriptgenof(4)
+IF general(genPoison) <= 0 THEN general(genPoison) = 161
+IF general(genStun) <= 0 THEN general(genStun) = 159
+IF general(genMute) <= 0 THEN general(genMute) = 163
+last = 19
+m$(0) = "Return to Main Menu"
+m$(1) = "Preference Bitsets..."
+m$(8) = "Password For Editing..."
+m$(9) = "Pick Title Screen..."
+m$(10) = "Rename Game..."
+m$(12) = "Special PlotScripts..."
+m$(15) = "Import New Master Palette..."
+max(1) = 1
+max(2) = 320
+max(3) = 200
+max(4) = general(0)
+max(5) = 100
+max(6) = 100
+max(7) = 100
+max(8) = 0
+max(11) = 32000
+max(16) = 255 'poison
+max(17) = 255 'stun
+max(18) = 255 'mute
+max(19) = 32767
+GOSUB loadpass
+GOSUB genstr
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN EXIT DO
+ dummy = usemenu(csr, 0, 0, last, 24)
+ IF (keyval(28) > 1 OR keyval(57) > 1) THEN
+  IF csr = 0 THEN EXIT DO
+  IF csr = 1 THEN
+   bit$(0) = "Pause on Battle Sub-menus"
+   bit$(1) = "Enable Caterpillar Party"
+   bit$(2) = "Don't Restore HP on Levelup"
+   bit$(3) = "Don't Restore MP on Levelup"
+   bit$(4) = "Inns Don't Revive Dead Heroes"
+   bit$(5) = "Hero Swapping Always Available"
+   bit$(6) = "Hide Ready-meter in Battle"
+   bit$(7) = "Hide Health-meter in Battle"
+   bit$(8) = "Disable Debugging Keys"
+   bit$(9) = "Simulate Old Levelup Bug"
+   bit$(10) = "Permit double-triggering of scripts"
+   bit$(11) = "Skip title screen"
+   bit$(12) = "Skip load screen"
+   bit$(13) = "Pause on All Battle Menus"
+   bit$(14) = "Disable Hero's Battle Cursor"
+   bitset general(), 101, 15, bit$()
+  END IF
+  IF csr = 9 THEN GOSUB ttlbrowse
+  IF csr = 10 THEN GOSUB renrpg
+  IF csr = 12 THEN GOSUB specialplot
+  IF csr = 15 THEN GOSUB importmaspal
+  IF csr = 8 THEN GOSUB inputpasw
+ IF csr = 16 THEN
+  d$ = charpicker$
+  IF d$ <> "" THEN
+  general(genPoison) = ASC(d$)
+   GOSUB genstr
+  END IF
+ END IF
+ IF csr = 17 THEN
+  d$ = charpicker$
+  IF d$ <> "" THEN
+  general(genStun) = ASC(d$)
+   GOSUB genstr
+  END IF
+ END IF
+ IF csr = 18 THEN
+  d$ = charpicker$
+  IF d$ <> "" THEN
+  general(genMute) = ASC(d$)
+   GOSUB genstr
+  END IF
+ END IF
+
+ END IF
+ IF csr > 1 AND csr <= 4 THEN
+  IF intgrabber(general(100 + csr), 0, max(csr), 75, 77) THEN GOSUB genstr
+ END IF
+ IF csr > 4 AND csr < 8 THEN
+  IF intgrabber(general(csr - 3), 0, max(csr), 75, 77) THEN GOSUB genstr
+ END IF
+ IF csr = 11 THEN
+  IF intgrabber(general(96), 0, max(csr), 75, 77) THEN GOSUB genstr
+ END IF
+ IF csr = 13 THEN
+  strgrabber longname$, 38
+  GOSUB genstr
+ END IF
+ IF csr = 14 THEN
+  strgrabber aboutline$, 38
+  GOSUB genstr
+ END IF
+ IF csr = 16 THEN
+  IF intgrabber(general(genPoison), 32, max(csr), 75, 77) THEN GOSUB genstr
+ END IF
+ IF csr = 17 THEN
+  IF intgrabber(general(genStun), 32, max(csr), 75, 77) THEN GOSUB genstr
+ END IF
+ IF csr = 18 THEN
+  IF intgrabber(general(genMute), 32, max(csr), 75, 77) THEN GOSUB genstr
+ END IF
+ IF csr = 19 THEN
+  IF intgrabber(general(genDamageCap), 0, max(csr), 75, 77) THEN GOSUB genstr
+ END IF
+
+ standardmenu m$(), last, 22, csr, 0, 0, 0, dpage, 0
+ 
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
+GOSUB savepass
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+EXIT SUB
+
+genstr:
+'IF general(101) = 0 THEN m$(1) = "Active Menu Mode" ELSE m$(1) = "Wait Menu Mode"
+m$(2) = "Starting X" + STR$(general(102))
+m$(3) = "Starting Y" + STR$(general(103))
+m$(4) = "Starting Map" + STR$(general(104))
+m$(5) = "Title Music:"
+IF general(2) = 0 THEN m$(5) = m$(5) + " -none-" ELSE m$(5) = m$(5) + STR$(general(2) - 1) + " " + song$(general(2) - 1)
+m$(6) = "Battle Victory Music:"
+IF general(3) = 0 THEN m$(6) = m$(6) + " -none-" ELSE m$(6) = m$(6) + STR$(general(3) - 1) + " " + song$(general(3) - 1)
+m$(7) = "Default Battle Music:"
+IF general(4) = 0 THEN m$(7) = m$(7) + " -none-" ELSE m$(7) = m$(7) + STR$(general(4) - 1) + " " + song$(general(4) - 1)
+m$(11) = "Starting Money:" + STR$(general(96))
+m$(13) = "Long Name:" + longname$
+m$(14) = "About Line:" + aboutline$
+m$(16) = "Poison Indicator " + STR$(general(61)) + " " + CHR$(general(61))
+m$(17) = "Stun Indicator " + STR$(general(62)) + " " + CHR$(general(62))
+m$(18) = "Mute Indicator " + STR$(general(genMute)) + " " + CHR$(general(genMute))
+m$(19) = "Damage Cap:"
+if general(genDamageCap) = 0 THEN m$(19) = m$(19) + " None" ELSE m$(19) = m$(19) + STR$(general(genDamageCap))
+RETURN
+
+ttlbrowse:
+setdiskpages buffer(), 200, 0
+GOSUB gshowpage
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN RETURN
+ IF keyval(72) > 1 AND gcsr = 1 THEN gcsr = 0
+ IF keyval(80) > 1 AND gcsr = 0 THEN gcsr = 1
+ IF gcsr = 1 THEN
+  IF intgrabber(general(1), 0, general(100) - 1, 75, 77) THEN GOSUB gshowpage
+ END IF
+ IF keyval(57) > 1 OR keyval(28) > 1 THEN
+  IF gcsr = 0 THEN RETURN
+ END IF
+ col = 7: IF gcsr = 0 THEN col = 14 + tog
+ edgeprint "Go Back", 1, 1, col, dpage
+ col = 7: IF gcsr = 1 THEN col = 14 + tog
+ edgeprint CHR$(27) + "Browse" + CHR$(26), 1, 11, col, dpage
+ SWAP vpage, dpage
+ setvispage vpage
+ copypage 2, dpage
+ dowait
+LOOP
+
+gshowpage:
+loadpage game$ + ".mxs" + CHR$(0), general(1), 2
+RETURN
+
+loadpass:
+IF general(5) >= 256 THEN
+ '--new simple format
+ pas$ = readpassword$
+ELSE
+ '--old scattertable format
+ readscatter pas$, general(94), 200
+ pas$ = rotascii(pas$, general(93) * -1)
+END IF
+IF isfile(workingdir$ + "\browse.txt" + CHR$(0)) THEN
+ setpicstuf buffer(), 40, -1
+ loadset workingdir$ + "\browse.txt" + CHR$(0), 0, 0
+ longname$ = STRING$(bound(buffer(0), 0, 38), " ")
+ array2str buffer(), 2, longname$
+ loadset workingdir$ + "\browse.txt" + CHR$(0), 1, 0
+ aboutline$ = STRING$(bound(buffer(0), 0, 38), " ")
+ array2str buffer(), 2, aboutline$
+END IF
+RETURN
+
+savepass:
+
+newpas$ = pas$
+writepassword newpas$
+
+'--also write old scattertable format, for backwards
+'-- compatability with older versions of game.exe
+general(93) = INT(RND * 250) + 1
+oldpas$ = rotascii(pas$, general(93))
+writescatter oldpas$, general(94), 200
+
+'--write long name and about line
+setpicstuf buffer(), 40, -1
+buffer(0) = bound(LEN(longname$), 0, 38)
+str2array longname$, buffer(), 2
+storeset workingdir$ + "\browse.txt" + CHR$(0), 0, 0
+buffer(0) = bound(LEN(aboutline$), 0, 38)
+str2array aboutline$, buffer(), 2
+storeset workingdir$ + "\browse.txt" + CHR$(0), 1, 0
+RETURN
+
+renrpg:
+oldgame$ = RIGHT$(game$, LEN(game$) - 12)
+newgame$ = oldgame$
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN RETURN
+ strgrabber newgame$, 8
+ fixfilename newgame$
+ IF keyval(28) > 1 THEN
+  IF oldgame$ <> newgame$ AND newgame$ <> "" THEN
+   IF NOT isfile(newgame$ + ".rpg" + CHR$(0)) THEN
+    textcolor 10, 0
+    printstr "Finding files...", 0, 30, vpage
+    findfiles workingdir$ + "\" + oldgame$ + ".*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
+    fh = FREEFILE
+    OPEN "temp.lst" FOR APPEND AS #fh
+    WRITE #fh, "-END OF LIST-"
+    CLOSE #fh
+    fh = FREEFILE
+    OPEN "temp.lst" FOR INPUT AS #fh
+    textcolor 10, 0
+    printstr "Renaming Lumps...", 0, 40, vpage
+    textcolor 15, 2
+    DO
+     INPUT #fh, temp$
+     IF temp$ = "-END OF LIST-" THEN EXIT DO
+     printstr " " + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)) + " ", 0, 50, vpage
+     copyfile workingdir$ + "\" + temp$ + CHR$(0), workingdir$ + "\" + newgame$ + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)) + CHR$(0), buffer()
+     KILL workingdir$ + "\" + temp$
+    LOOP
+    CLOSE #fh
+    KILL "temp.lst"
+    '--update archinym information lump
+    fh = FREEFILE
+    IF isfile(workingdir$ + "\archinym.lmp" + CHR$(0)) THEN
+     OPEN workingdir$ + "\archinym.lmp" FOR INPUT AS #fh
+     LINE INPUT #fh, oldversion$
+     LINE INPUT #fh, oldversion$
+     CLOSE #fh
+    END IF
+    OPEN workingdir$ + "\archinym.lmp" FOR OUTPUT AS #fh
+    PRINT #fh, newgame$
+    PRINT #fh, oldversion$
+    CLOSE #fh
+    game$ = workingdir$ + "\" + newgame$
+   ELSE '---IN CASE FILE EXISTS
+    edgeprint newgame$ + " Already Exists. Cannot Rename.", 0, 30, 15, vpage
+    w = getkey
+   END IF '---END IF OKAY TO COPY
+  END IF '---END IF VALID NEW ENTRY
+  RETURN
+ END IF
+ textcolor 7, 0
+ printstr "Current Name: " + oldgame$, 0, 0, dpage
+ printstr "Type New Name and press ENTER", 0, 10, dpage
+ textcolor 14 + tog, 2
+ printstr newgame$, 0, 20, dpage
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
+
+specialplot:
+subcsr = 0
+subm$(0) = "Previous Menu"
+scriptgenof(1) = 41
+scriptgenof(2) = 42
+scriptgenof(3) = 57
+GOSUB setspecialplotstr
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN RETURN
+ dummy = usemenu(subcsr, 0, 0, 3, 24)
+ SELECT CASE subcsr
+  CASE 0
+   IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
+  CASE 1 TO 3
+   IF intgrabber(general(scriptgenof(subcsr)), 0, general(43), 75, 77) THEN
+    GOSUB setspecialplotstr
+   END IF
+ END SELECT
+ FOR i = 0 TO 3
+  col = 7: IF subcsr = i THEN col = 14 + tog
+  textcolor col, 0
+  printstr subm$(i), 0, i * 8, dpage
+ NEXT i
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
+RETURN
+
+inputpasw:
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 OR keyval(28) > 1 THEN EXIT DO
+ strgrabber pas$, 17
+ textcolor 7, 0
+ printstr "You can require a password for this", 0, 0, dpage
+ printstr "game to be opened in CUSTOM.EXE", 0, 8, dpage
+ printstr "This does not encrypt your file, and", 0, 16, dpage
+ printstr "should only be considered weak security", 0, 24, dpage
+ printstr "PASSWORD", 30, 64, dpage
+ IF LEN(pas$) THEN
+  textcolor 14 + tog, 1
+  printstr pas$, 30, 74, dpage
+ ELSE
+  printstr "(NONE SET)", 30, 74, dpage
+ END IF
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
+RETURN
+
+setspecialplotstr:
+subm$(1) = "new-game script: " + scriptname$(general(41), "plotscr.lst")
+subm$(2) = "game-over script: " + scriptname$(general(42), "plotscr.lst")
+subm$(3) = "load-game script: " + scriptname$(general(57), "plotscr.lst")
+RETURN
+
+importmaspal:
+
+clearpage vpage
+textcolor 15, 0
+printstr "WARNING: Importing a new master palette", 0, 0, vpage
+printstr "will change ALL of your graphics!", 48, 8, vpage
+w = getkey
+
+f$ = browse$(4, default$, "*.mas", "")
+IF f$ <> "" THEN
+ '--copy the new palette in
+ copyfile f$ + CHR$(0), game$ + ".mas" + CHR$(0), buffer()
+ '--patch the header in case it is a corrupt PalEdit header.
+ masfh = FREEFILE
+ OPEN game$ + ".mas" FOR BINARY AS #masfh
+ a$ = CHR$(13)
+ PUT #masfh, 2, a$
+ a$ = CHR$(0)
+ PUT #masfh, 6, a$
+ CLOSE #masfh
+ '--load the new palette!
+ xbload game$ + ".mas", master(), "MAS load error"
+ setpal master()
+END IF
+
 RETURN
 
 END SUB

@@ -129,7 +129,7 @@ rectangle 260, 140, 50, 50, 8, 3
 '----------------------------------------------------------
 '--bitsets
 
-DIM atkbit$(-1 TO 63)
+DIM atkbit$(-1 TO 68)
 
 atkbit$(0) = "Cure Instead of Harm"
 atkbit$(1) = "Divide Spread Damage"
@@ -166,6 +166,11 @@ atkbit$(60) = "Damage " + sname$(1) + " (obsolete)"
 atkbit$(61) = "Do not randomize"
 atkbit$(62) = "Damage can be Zero"
 atkbit$(63) = "Cause heroes to run away"
+atkbit$(64) = "Mutable"
+atkbit$(65) = "Fail if target is poisoned"
+atkbit$(66) = "Fail if target is regened"
+atkbit$(67) = "Fail if target is stunned"
+atkbit$(68) = "Fail if target is muted"
 
 '--191 attack bits allowed in menu.
 '--Data is split, See AtkDatBits and AtkDatBits2 for offsets
@@ -205,11 +210,11 @@ CONST AtkDatTag2 = 62
 CONST AtkDatTagIf2 = 63
 CONST AtkDatTagAnd2 = 64
 CONST AtkDatBitsets2 = 65' to 72
-CONST AtkDatDescription = 73
+CONST AtkDatDescription = 73'to 91
 
 '----------------------------------------------------------
 capindex = 0
-DIM caption$(108)
+DIM caption$(120)
 DIM max(25), min(25)
 
 'Limit(0) is not used
@@ -353,7 +358,7 @@ max(AtkLimHitX) = 20
 min(AtkLimHitX) = 1
 
 CONST AtkLimTargStat = 18
-max(AtkLimTargStat) = 14
+max(AtkLimTargStat) = 15
 AtkCapTargStat = capindex
 addcaption caption$(), capindex, sname$(0) 'hp
 addcaption caption$(), capindex, sname$(1) 'mp
@@ -370,6 +375,7 @@ addcaption caption$(), capindex, sname$(4) 'hitX
 addcaption caption$(), capindex, "poison register"
 addcaption caption$(), capindex, "regen register"
 addcaption caption$(), capindex, "stun register"
+addcaption caption$(), capindex, "mute register"
 
 CONST AtkLimCapTime = 20
 max(AtkLimCapTime) = 16383
@@ -817,7 +823,7 @@ DO
     FOR i = 0 TO 7
      buffer(4 + i) = recbuf(AtkDatBitsets2 + i)
     NEXT i
-    bitset buffer(), 0, 63, atkbit$()
+    bitset buffer(), 0, ubound(atkbit$), atkbit$()
     'split the buffer to the two bitset blocks
     FOR i = 0 TO 3
      recbuf(AtkDatBitsets + i) = buffer(i)
