@@ -1576,6 +1576,7 @@ script,Attack Broaste Ghost with Teddy,begin
   swap out hero (hero:James)
   lock hero     (hero:James)
   set tag       (tag:James took Castle,ON)
+  James Saying := 0
 
   set tag (tag:Beat Broaste Ghost,ON)
 
