@@ -2294,6 +2294,7 @@ RETURN
 
 sprayspot:
 IF oldx = -1 AND oldy = -1 THEN GOSUB writeundospr
+rectangle 239, 119, xw, yw, 0, dpage 'erase first
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 airbrush 239 + x, 119 + y, airsize, mist, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
@@ -2316,6 +2317,7 @@ END IF
 RETURN
 
 putdot:
+rectangle 239, 119, xw, yw, 0, dpage 'erase first
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 IF oldx = -1 AND oldy = -1 THEN
  GOSUB writeundospr
