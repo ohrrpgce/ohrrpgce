@@ -95,7 +95,7 @@ battle = 1
 DIM a(40), atktemp(40 + curbinsize(0) / 2), atk(40 + curbinsize(0) / 2), st(3, 318), es(7, 160), x(24), y(24), z(24), d(24), zbuf(24), xm(24), ym(24), zm(24), mvx(24), mvy(24), mvz(24), v(24), p(24), w(24), h(24), of(24), ext$(7), ctr(11), stat(11,  _
 1, 17), ready(11), batname$(11), menu$(3, 5), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
-), targmem(23), prtimer(11, 1), spelmask(1)
+), targmem(23), prtimer(11,1), spelmask(1)
 
 mpname$ = readglobalstring(1, "MP", 10)
 goldname$ = readglobalstring(32, "Gold", 10)
@@ -143,8 +143,9 @@ FOR i = 0 TO 11
  prtimer(i, 1) = INT(RND * 2000)
 NEXT i
 laststun! = TIMER
-IF gen(61) <= 0 THEN gen(61) = 161
-IF gen(62) <= 0 THEN gen(62) = 159
+IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
+IF gen(genStun) <= 0 THEN gen(genStun) = 159
+IF gen(genMute) <= 0 THEN gen(genMute) = 163
 
 clearpage 0
 clearpage 1
@@ -1227,7 +1228,7 @@ IF stat(deadguy, 0, 0) = 0 THEN
  ready(deadguy) = 0
  godo(deadguy) = 0
  d(deadguy) = 0
- '--reset poison/regen/stun
+ '--reset poison/regen/stun/mute
  FOR j = 12 TO 17
   '--am I certain that these all should be reset?
   stat(deadguy, 0, j) = stat(deadguy, 1, j)
@@ -1676,11 +1677,14 @@ IF vdance = 0 THEN 'only display interface till you win
    edgeprint LTRIM$(STR$(stat(i, 0, 0))) + "/" + LTRIM$(STR$(stat(i, 1, 0))), 136, 5 + i * 10, col, dpage
    'poison indicator
    IF (stat(i, 1, 12) - stat(i, 0, 12)) > 0 THEN
-   edgeprint CHR$(gen(61)), 209, 5 + i * 10, col, dpage
+    edgeprint CHR$(gen(genPoison)), 209, 5 + i * 10, col, dpage
    END IF
    'stun indicator
    IF (stat(i, 1, 14) - stat(i, 0, 14)) > 0 THEN
-   edgeprint CHR$(gen(62)), 217, 5 + i * 10, col, dpage
+    edgeprint CHR$(gen(genStun)), 217, 5 + i * 10, col, dpage
+   END IF
+   IF (stat(i, 1, 15) - stat(i, 0, 15)) > 0 THEN
+    edgeprint CHR$(gen(genMute)), 217, 5 + i * 10, col, dpage
    END IF
   END IF
  NEXT i
@@ -1779,10 +1783,11 @@ FOR i = 0 TO 11
  
 NEXT i
 
-'--decrement stun
+'--decrement stun and mute
 
 IF TIMER > laststun! + 1 THEN
  FOR i = 0 TO 11
+  stat(i, 0, 15) = small(stat(i, 0, 15) + 1, stat(i, 1, 15))
   stat(i, 0, 14) = small(stat(i, 0, 14) + 1, stat(i, 1, 14))
   IF stat(i, 0, 14) < stat(i, 1, 14) THEN
    ready(i) = 0
@@ -2135,7 +2140,7 @@ RETURN
 '12=poison
 '13=regen
 '14=stun
-'15=limit
+'15=limit (?)
 '16=unused
 '17=unused
 
