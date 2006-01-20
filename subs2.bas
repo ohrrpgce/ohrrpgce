@@ -65,7 +65,7 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE FUNCTION maplumpname$ (map, oldext$)
-DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
+DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -1438,7 +1438,7 @@ RETURN
 
 itemar:
 item$ = ""
-IF cond(18) <> 0 THEN item$ = itemstr$(ABS(cond(18)),0,0)
+IF cond(18) <> 0 THEN item$ = itemstr$(ABS(cond(18)), 0, 0)
 RETURN
 
 picktext:

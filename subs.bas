@@ -21,7 +21,7 @@ DECLARE FUNCTION readitemname$ (index%)
 DECLARE SUB clearallpages ()
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
-DECLARE SUB updateflexmenu (nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
+DECLARE SUB updateflexmenu (pointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
 DECLARE SUB setactivemenu (workmenu%(), newmenu%(), ptr%, top%, size%)
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE SUB testflexmenu ()
@@ -66,7 +66,7 @@ DECLARE SUB maptile (master%(), font%())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
-DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
+DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -652,7 +652,7 @@ max(EnLimPic) = general(27 + bound(recbuf(EnDatPicSize), 0, 2))
 '--re-enforce bounds, as they might have just changed
 enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
 
-updateflexmenu dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
+updateflexmenu ptr, dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
 
 '--load the picture and palette
 setpicstuf buffer(), (previewsize(recbuf(EnDatPicSize)) ^ 2) / 2, 2
@@ -1133,7 +1133,7 @@ min(4) = 0: max(4) = 32767
 min(5) = -1: max(5) = 99
 min(6) = 0: max(6) = 254
 min(7) = 0: max(7) = 16
-it$ = itemstr(a(22),0,1)
+it$ = itemstr(a(22), 0, 1)
 setkeys
 DO
  GOSUB genheromenu
@@ -1149,7 +1149,7 @@ DO
    CASE 0 TO 6
     IF intgrabber(a(16 + bctr), min(bctr), max(bctr), 75, 77) THEN
      IF bctr >= 1 OR bctr <= 4 THEN GOSUB heropics
-     IF bctr = 6 THEN it$ = itemstr$(a(22),0,1)
+     IF bctr = 6 THEN it$ = itemstr$(a(22), 0, 1)
     END IF
    CASE 7
     dummy = intgrabber(a(296), min(bctr), max(bctr), 75, 77)
@@ -1816,6 +1816,21 @@ RETURN
 
 END SUB
 
+FUNCTION itemstr$ (it%, hidden%, offbyone%)
+ 'it - the item number
+ 'hidden - whether to *not* prefix the item number
+ 'offbyone - whether it is the item number (1), or the itemnumber + 1 (0)
+ IF it = 0 AND offbyone = 0 THEN itemstr$ = " NONE": EXIT FUNCTION
+ IF offbyone THEN itn = it ELSE itn = it - 1
+
+ setpicstuf buffer(), 200, -1
+ loadset game$ + ".itm" + CHR$(0), itn, 0
+ re$ = ""
+ re$ = readbadbinstring$(buffer(), 0, 8, 0)
+ IF hidden = 0 THEN re$ = STR$(itn) + " " + re$
+ itemstr$ = re$
+END FUNCTION
+
 FUNCTION large (n1, n2)
 large = n1
 IF n2 > n1 THEN large = n2
@@ -1902,7 +1917,7 @@ getpal16 pal16(), i, npc(i * 15 + 1)
 RETURN
 
 npcstats:
-it$ = itemstr(npc(cur * 15 + 6),0,0)
+it$ = itemstr(npc(cur * 15 + 6), 0, 0)
 GOSUB frstline
 setkeys
 DO
@@ -1920,7 +1935,7 @@ DO
  IF (csr >= 1 AND csr < 11) OR csr > 11 THEN
   IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr), 75, 77) THEN
    IF csr = 1 THEN getpal16 pal16(), cur, npc(cur * 15 + 1)
-   IF csr = 6 THEN it$ = itemstr(npc(cur * 15 + 6),0,0)
+   IF csr = 6 THEN it$ = itemstr(npc(cur * 15 + 6), 0, 0)
    IF csr = 4 THEN GOSUB frstline
   END IF
  END IF
@@ -2260,17 +2275,3 @@ END IF
 
 END FUNCTION
 
-FUNCTION itemstr$(it%,hidden%,offbyone%)
- 'it - the item number
- 'hidden - whether to *not* prefix the item number
- 'offbyone - whether it is the item number (1), or the itemnumber + 1 (0)
- IF it = 0 AND offbyone = 0 THEN itemstr$ = " NONE": EXIT FUNCTION
- IF offbyone THEN itn = it ELSE itn = it - 1
-
- setpicstuf buffer(), 200, -1
- loadset game$ + ".itm" + CHR$(0), itn, 0
- re$ = ""
- re$ = readbadbinstring$(buffer(), 0, 8, 0)
- IF hidden = 0 THEN re$ = STR$(itn) + " " + re$
- itemstr$ = re$
-END FUNCTION

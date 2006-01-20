@@ -19,7 +19,7 @@ DECLARE FUNCTION readitemname$ (index%)
 
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
-DECLARE SUB updateflexmenu (nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
+DECLARE SUB updateflexmenu (pointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
 DECLARE SUB writebinstring (savestr$, array%(), offset%, maxlen%)
 DECLARE SUB writebadbinstring (savestr$, array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION gethighbyte% (n%)
@@ -98,7 +98,7 @@ DECLARE FUNCTION onoroff$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
-DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
+DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -823,7 +823,7 @@ DO
     FOR i = 0 TO 7
      buffer(4 + i) = recbuf(AtkDatBitsets2 + i)
     NEXT i
-    bitset buffer(), 0, ubound(atkbit$), atkbit$()
+    bitset buffer(), 0, UBOUND(atkbit$), atkbit$()
     'split the buffer to the two bitset blocks
     FOR i = 0 TO 3
      recbuf(AtkDatBitsets + i) = buffer(i)
@@ -875,7 +875,7 @@ enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
 caption$(AtkCapDamageEq + 5) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " =" + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
 caption$(AtkCapDamageEq + 6) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " =" + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Current"
 
-updateflexmenu dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
+updateflexmenu ptr, dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
 
 '--load the picture and palette
 setpicstuf buffer(), 3750, 2
@@ -1205,7 +1205,7 @@ SUB testflexmenu
 ''-------
 'mode = 0
 '
-'updateflexmenu showmenu$(), thismenu(), size(mode), menu$(), menutype(), menuoff(), menulimits(), dat(), caption$(), max(), recindex
+'updateflexmenu ptr, showmenu$(), thismenu(), size(mode), menu$(), menutype(), menuoff(), menulimits(), dat(), caption$(), max(), recindex
 '
 'setkeys
 'DO
@@ -1217,7 +1217,7 @@ SUB testflexmenu
 '  dummy = usemenu(ptr(mode), top(mode), 0, size(mode), 22)
 '
 '  IF editflexmenu(thismenu(ptr(mode)), menutype(), menuoff(), menulimits(), dat(), min(), max()) THEN
-'    updateflexmenu showmenu$(), thismenu(), size(mode), menu$(), menutype(), menuoff(), menulimits(), dat(), caption$(), max(), recindex
+'    updateflexmenu ptr, showmenu$(), thismenu(), size(mode), menu$(), menutype(), menuoff(), menulimits(), dat(), caption$(), max(), recindex
 '  END IF
 '
 '  standardmenu showmenu$(), size(mode), 22, ptr(mode), top(mode), 0, 0, dpage, 0
@@ -1234,7 +1234,7 @@ SUB testflexmenu
 '
 END SUB
 
-SUB updateflexmenu (nowmenu$(), nowdat(), size, menu$(), menutype(), menuoff(), menulimits(), datablock(), caption$(), maxtable(), recindex)
+SUB updateflexmenu (pointer, nowmenu$(), nowdat(), size, menu$(), menutype(), menuoff(), menulimits(), datablock(), caption$(), maxtable(), recindex)
 
 '--generates a nowmenu subset from generic menu data
 
@@ -1294,7 +1294,7 @@ FOR i = 0 TO size
   CASE 8 '--item number
    'nowmenu$(i) = nowmenu$(i) + STR$(datablock(menuoff(nowdat(i))))
    'nowmenu$(i) = nowmenu$(i) + " " + readitemname$(datablock(menuoff(nowdat(i))))
-   nowmenu$(i) = nowmenu$(i) + itemstr(datablock(menuoff(nowdat(i))),0,1)
+   nowmenu$(i) = nowmenu$(i) + itemstr(datablock(menuoff(nowdat(i))), 0, 1)
   CASE 9 '--enemy number
    IF datablock(menuoff(nowdat(i))) <= 0 THEN
     nowmenu$(i) = nowmenu$(i) + " None"
@@ -1316,6 +1316,9 @@ FOR i = 0 TO size
     nowmenu$(i) = nowmenu$(i) + " " + caption$(capnum + ABS(datablock(menuoff(nowdat(i)))))
    END IF
  END SELECT
+ IF pointer = i THEN
+   nowmenu$(i) = RIGHT$(nowmenu$(i), 40)
+ END IF
 NEXT i
 
 END SUB
