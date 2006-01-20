@@ -7,7 +7,8 @@
 	<!ATTLIST plotscript show-alias CDATA "yes">
 	<!ELEMENT section (description?,command*)>
 	<!ATTLIST section title CDATA #REQUIRED>
-	<!ELEMENT command ((cannon,shortname,description,example*,seealso?) | (alias,shortname))>
+	<!ELEMENT command ((cannon,shortname,description,example*,seealso?) |
+					   (alias,shortname))>
 	<!ATTLIST command id ID #REQUIRED
 			          created CDATA #IMPLIED>
   	<!ELEMENT cannon      (#PCDATA)>
@@ -26,52 +27,56 @@
 
 DOCUMENTATION FOR THIS XML FILE:
 
-This markup (hereby refered to as PDL (Plotscript Dictionary Language)) is designed to reduce
-the time spent maintaining the Plotscripting Dictionary, and to enable easier porting to other
-formats.
+This markup (hereby refered to as PDL (Plotscript Dictionary Language)) is
+designed to reduce the time spent maintaining the Plotscripting Dictionary, and
+to enable easier porting to other formats.
 
-The root element is the <plotscript> element. It has a lastmodified attribute, which is the text
-date that the file was last modified. Update this when you make a change.
+The root element is the <plotscript> element. It has a lastmodified attribute,
+which is the text date that the file was last modified. Update this when you
+make a change.
 
-In <plotscript>, there is a series of <section> elements, each with a title attribute. These are
-to group the plotscripting commands into logical groups, such as <section title="Wait Commands">
-or <section title="Math Operators">
+In <plotscript>, there is a series of <section> elements, each with a title
+attribute. These are to group the plotscripting commands into logical groups,
+such as <section title="Wait Commands"> or <section title="Math Operators">
 
-The heart of the PDL are the <command> elements inside the <section>s. It has a single attribute,
-id. This is essentially the whitespace stripped version of the command (the "wait for text box"
-command would have an id of "waitfortextbox"). This is used to uniquely identify each command.
-It's used in many ways, from crosslinking command entries to generating a file for HssEd to use.
+The heart of the PDL are the <command> elements inside the <section>s. It has a
+single attribute, id. This is essentially the whitespace stripped version of the
+command (the "wait for text box" command would have an id of "waitfortextbox").
+This is used to uniquely identify each command. It's used in many ways, from
+crosslinking command entries to generating a file for HssEd to use.
 
 Inside the <command> element are either two or four+ elements, in this order:
 Case 1: Full command definition
-  <cannon> - This is the "cannonical" form of the command: the fully spaced command with parameter
-             prototypes. Example: move hero to x (who, x)
-  <shortname> - This is the short version of the command, used for crosslinking, indexes, etc. It
-                is the <cannon> element, minus the parameters. Example: move hero to x
-  <description> - This is a paragraph (or more) of text describing what the command does, and how
-                  to use it. Use <lb/> to put paragraphs in, and <p></p> when refering to a
-                  parameter (to avoid user confusion) No HTML is allowed (at this time)
-                  Example: Well, it would be pretty long...
-  <example>* - Finally, most commands should have some sort of example on how to use the command.
-               It will be displayed in a mono-space font, so it's easy to Plotscript. But, be
-               sure to format it properly:
+  <cannon> - This is the "cannonical" form of the command: the fully spaced
+  			 command with parameter prototypes. Example: move hero to x (who, x)
+  <shortname> - This is the short version of the command, used for crosslinking,
+  				indexes, etc. It is the <cannon> element, minus the parameters.
+  				Example: move hero to x
+  <description> - This is a paragraph (or more) of text describing what the
+  				  command does, and how to use it. Use <lb/> to put paragraphs
+  				  in, and <p></p> when refering to a parameter (to avoid user
+  				  confusion) No HTML is allowed (at this time) Example: Well, it
+  				  would be pretty long...
+  <example>* - Finally, most commands should have some sort of example on how to
+  			   use the command. It will be displayed in a mono-space font, so
+  			   it's easy to Plotscript. But, be sure to format it properly:
 			   Example:
 			   <example># first example line has no line-break
 # the second (and more) lines should have no indentation
 # and so forth</example>
 
 Case 2: Alias command definition
-  <alias> - If a command is an alias to another command (or is so closely related that they're in
-            the same entry, use the <alias> element. Put the ID of the real command in here.
-            Example: begin
-  <shortname> - Aliases also need a short name, since they are technically different from their alias.
-                Example: end
+  <alias> - If a command is an alias to another command (or is so closely
+  			related that they're in the same entry, use the <alias> element. Put
+  			the ID of the real command in here. Example: begin
+  <shortname> - Aliases also need a short name, since they are technically
+  				different from their alias. Example: end
 
-Basically, you should be able to examine the entries that already exist. It's fairly self evident what
-everything does.
+Basically, you should be able to examine the entries that already exist. It's
+fairly self evident what everything does.
 
-These are cut-and-paste copies of <command> elements, so you don't have to type everything out
-10000000000 times. They are also indented properly for this file.
+These are cut-and-paste copies of <command> elements, so you don't have to type
+everything out 10000000000 times. They are also indented properly for this file.
 
 #===== Full description
 
@@ -101,15 +106,16 @@ These are cut-and-paste copies of <command> elements, so you don't have to type 
 
 #=====
 
-Which reminds me: Indentation. For each "level" you go down in the heirarchy, you indent once. Many code
-specific editors will maintain this indentation level for until you explicitly change it, so it isn't
-difficult. Notepad users will have to do it manually, but you MUST do it. Remember: 1 indent = 1 tab.
+Which reminds me: Indentation. For each "level" you go down in the heirarchy,
+you indent once. Many code specific editors will maintain this indentation level
+for until you explicitly change it, so it isn't difficult. Notepad users will
+have to do it manually, but you MUST do it. Remember: 1 indent = 1 tab.
 
 "Mono means 'one'. Rail means 'rail'. And that concludes our training."
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript lastmodified="October 3, 2005">
+<plotscript lastmodified="January 20, 2006">
 	<section title="Declarations">
 		<command id="definescript">
 			<cannon>define script (id,name,arguments)</cannon>

@@ -69,6 +69,17 @@
 					/*.param {
 						color: yellow;
 					}*/
+					
+					.seealso {
+						display: inline;
+						margin:0;
+						padding:0;
+					}
+					
+					.seealso li {
+						display: inline;
+						
+					}
 ]]>
 				</style>
 			</head>
@@ -152,7 +163,6 @@
 	</xsl:template>
 	
 	<xsl:template match="p"><span class="key"><xsl:value-of select="." /></span></xsl:template>
-	<xsl:template match="seealso"><br />See also: <xsl:apply-templates /></xsl:template>
 	<xsl:template match="ref">
 		<xsl:if test='count(id(.))=0'>
 			<a href="#{.}" class="undef"><xsl:value-of select='.' /></a>
@@ -166,6 +176,18 @@
 			</xsl:if>
 		</xsl:if>
 	</xsl:template>
+	<xsl:template match="seealso"><br /><br />See also: <ul class="seealso"><xsl:apply-templates select="ref" mode="seealso"/></ul></xsl:template>
+	<xsl:template match="ref" mode="seealso"><li><xsl:if test='count(id(.))=0'>
+			<a href="#{.}" class="undef"><xsl:value-of select='.' /></a>
+		</xsl:if>
+		<xsl:if test='count(id(.))>0'>
+			<xsl:if test='not(id(.)/alias)'>
+				<a href="#about-{.}" class="ref"><xsl:value-of select='id(.)/shortname' /></a>
+			</xsl:if>
+			<xsl:if test='id(.)/alias'>
+				<a href="#about-{id(.)/alias}" class="ref"><xsl:value-of select='id(.)/shortname' /></a>
+			</xsl:if>
+		</xsl:if><xsl:if test="not(position() = last())">, </xsl:if></li></xsl:template>
 
 	<xsl:template match="lb"><br/></xsl:template>
 	
