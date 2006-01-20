@@ -27,6 +27,11 @@ WHAT IS NEW?
     * Added damage cap option (in General Game Data) [Mike Caron]
     
     * Spell Descriptions! (set in Attacks->Appearance) [Mike Caron]
+    
+    * Mute status affliction (and a bitset to make a spell mutable) [Mike Caron]
+    
+    * New attack bitsets: Fail if target is [poisoned/regened/stunned/muted]
+      (so you can't mute someone twice, for example)
 
   * Bug Fixes
 
