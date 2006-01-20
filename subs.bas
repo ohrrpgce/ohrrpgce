@@ -561,7 +561,7 @@ DO
  
  dummy = usemenu(ptr, top, 0, size, 22)
  
- IF workmenu(ptr) = EnMenuChooseAct THEN
+ IF workmenu(ptr) = EnMenuChooseAct OR keyval(56) > 0 THEN
   lastindex = recindex
   IF keyval(77) > 1 AND recindex = general(36) AND recindex < 32767 THEN
    '--attempt to add a new set
@@ -618,13 +618,20 @@ DO
   END SELECT
  END IF
  
- IF editflexmenu(workmenu(ptr), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
-  GOSUB EnUpdateMenu
+ IF keyval(56) = 0 THEN 'not holding ALT
+  IF editflexmenu(workmenu(ptr), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
+   GOSUB EnUpdateMenu
+  END IF
  END IF
  
  GOSUB EnPreviewSub
  
  standardmenu dispmenu$(), size, 22, ptr, top, 0, 0, dpage, 0
+ IF keyval(56) > 0 THEN 'holding ALT
+  tmp$ = readbadbinstring$(recbuf(), EnDatName, 15, 0) + STR$(recindex)
+  textcolor 15, 1
+  printstr tmp$, 320 - LEN(tmp$) * 8, 0, dpage
+ END IF
  
  SWAP vpage, dpage
  setvispage vpage

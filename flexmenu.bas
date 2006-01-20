@@ -759,7 +759,7 @@ DO
  
  dummy = usemenu(ptr, top, 0, size, 22)
  
- IF workmenu(ptr) = AtkChooseAct THEN
+ IF workmenu(ptr) = AtkChooseAct OR keyval(56) > 0 THEN
   lastindex = recindex
   IF keyval(77) > 1 AND recindex = general(34) AND recindex < 32767 THEN
    '--attempt to add a new set
@@ -833,14 +833,21 @@ DO
     NEXT i
   END SELECT
  END IF
- 
- IF editflexmenu(workmenu(ptr), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
-  GOSUB AtkUpdateMenu
+
+ IF keyval(56) = 0 THEN 'not pressing ALT
+  IF editflexmenu(workmenu(ptr), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
+   GOSUB AtkUpdateMenu
+  END IF
  END IF
  
  GOSUB AtkPreviewSub
  
  standardmenu dispmenu$(), size, 22, ptr, top, 0, 0, dpage, 0
+ IF keyval(56) > 0 THEN 'holding ALT
+   tmp$ = readbadbinstring$(recbuf(), AtkDatName, 10, 1) + STR$(recindex)
+   textcolor 15, 1
+   printstr tmp$, 320 - LEN(tmp$) * 8, 0, dpage
+ END IF
  
  SWAP vpage, dpage
  setvispage vpage

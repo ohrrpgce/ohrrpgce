@@ -21,17 +21,25 @@ WHAT IS NEW?
 
     * General bitset to "Disable Hero's Battle Cursor" [Yuriy]
     
-    * Attack option to set a tag (with a number of options relating to what
-      triggers the tag, and conditional to another tag) [Mike Caron]
+    * Attack option to set a tag (with a number of options relating
+      to what triggers the tag, and conditional to another tag)
+      [Mike Caron]
       
     * Added damage cap option (in General Game Data) [Mike Caron]
     
     * Spell Descriptions! (set in Attacks->Appearance) [Mike Caron]
     
-    * Mute status affliction (and a bitset to make a spell mutable) [Mike Caron]
+    * Mute status affliction (and a bitset to make a spell mutable)
+     [Mike Caron]
     
-    * New attack bitsets: Fail if target is [poisoned/regened/stunned/muted]
+    * New attack bitsets:
+      Fail if target is [poisoned/regened/stunned/muted]
       (so you can't mute someone twice, for example)
+
+    * In Attack editor and Enemy editor you can hold ALT and press
+      left and right to navigate records from anywhere in the menu
+      (This feature will eventually be added to other menus also)
+      [James Paige]
 
   * Bug Fixes
 
