@@ -11,6 +11,12 @@
 option explicit
 
 #define NULL 0
+'a few key constants borrowed from fbgfx.bi, they should all be defined
+'in a separate .bi file really, but this will do for now
+#define SC_CONTROL		&h1D
+#define SC_LSHIFT		&h2A
+#define SC_RSHIFT		&h36
+#define SC_ALT			&h38
 
 type ohrsprite
 	w as integer
@@ -798,6 +804,12 @@ SUB setkeys ()
 	
 	ktime = int(timer() * 1000)
 	
+	'special - never time out modifier keys
+	keytime(SC_CONTROL) = -1
+	keytime(SC_LSHIFT) = -1
+	keytime(SC_RSHIFT) = -1
+	keytime(SC_ALT) = -1
+	
 	'set key state for every key
 	'highest scancode in fbgfx.bi is &h79, no point overdoing it
 	for a = 0 to &h80 
@@ -810,7 +822,7 @@ SUB setkeys ()
 				if ktime > keytime(a) + 1000 then
 					keytime(a) = ktime + 200
 				else
-					keytime(a) = ktime + 50
+					keytime(a) = ktime + 80
 				end if
 			end if
 		else
@@ -959,21 +971,21 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 	'special case for vertical
   	if (xdiff = 0) then
   		instep = 320
-  		DRAW_SLICE(ydiff)
+  		DRAW_SLICE(ydiff+1)
     	exit sub
   	end if
 
 	'and for horizontal
   	if (ydiff = 0) then
   		instep = xdirection
-  		DRAW_SLICE(xdiff)
+  		DRAW_SLICE(xdiff+1)
     	exit sub
   	end if
 
   	'and also for pure diagonals
   	if xdiff = ydiff then
   		instep = 320 + xdirection
-  		DRAW_SLICE(ydiff)
+  		DRAW_SLICE(ydiff+1)
     	exit sub
   	end if
 
