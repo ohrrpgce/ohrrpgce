@@ -14,6 +14,7 @@ NEW IN THIS RELEASE
     throne room
   * Fixed bug that prevented the Teddy bear from being removed
     if you manually equipped it
+  * Numerous spelling fixes, especially apostrophes
 
 
 RECENT CHANGES
