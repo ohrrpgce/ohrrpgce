@@ -41,6 +41,10 @@ WHAT IS NEW?
       (This feature will eventually be added to other menus also)
       [James Paige]
 
+    * Text box editor no longer sucks! You can insert, delete, and
+      edit anywhere in the line of text without needing to delete the
+      end of the line. [James Paige]
+
   * Bug Fixes
 
     * Fixed bug 107: "An MP~ stat over 66 makes all spells free"
