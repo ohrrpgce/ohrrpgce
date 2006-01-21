@@ -1451,21 +1451,19 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETURN
- 'IF keyval(72) > 1 AND y > 0 THEN y = y - 1
  IF keyval(28) > 1 AND y < 7 THEN y = y + 1
- dummy = usemenu(y, 0, 0, 7, 24)
+ IF usemenu(y, 0, 0, 7, 24) THEN insert = -1
  IF y <= 7 AND y >= 0 THEN
-  'stredit x$(y), 38
-  strgrabber x$(y), 38
+  stredit x$(y), 38
  END IF
  rectangle 4, 4, 312, 88, 15, dpage
  rectangle 5, 5, 310, 86, 243, dpage
  FOR i = 0 TO 7
   textcolor 7, 0
   IF y = i THEN
-   'textcolor 15, 3
-   'printstr " ", 8 + insert * 8, 8 + i * 10, dpage
-   textcolor 10 + (tog * 5), 1 + tog
+   textcolor 15, 2 + tog
+   printstr " ", 8 + insert * 8, 8 + i * 10, dpage
+   textcolor 15 - tog, 0
   END IF
   printstr x$(i), 8, 8 + i * 10, dpage
  NEXT i
