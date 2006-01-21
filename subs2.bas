@@ -6,6 +6,7 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
+DECLARE SUB stredit (s$, maxl%)
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION readshopname$ (shopnum%)
@@ -1443,6 +1444,7 @@ RETURN
 
 picktext:
 y = 0
+insert = -1
 setkeys
 DO
  setwait timing(), 100
@@ -1453,13 +1455,18 @@ DO
  IF keyval(28) > 1 AND y < 7 THEN y = y + 1
  dummy = usemenu(y, 0, 0, 7, 24)
  IF y <= 7 AND y >= 0 THEN
+  'stredit x$(y), 38
   strgrabber x$(y), 38
  END IF
  rectangle 4, 4, 312, 88, 15, dpage
  rectangle 5, 5, 310, 86, 243, dpage
  FOR i = 0 TO 7
   textcolor 7, 0
-  IF y = i THEN textcolor 10 + (tog * 5), 1 + tog
+  IF y = i THEN
+   'textcolor 15, 3
+   'printstr " ", 8 + insert * 8, 8 + i * 10, dpage
+   textcolor 10 + (tog * 5), 1 + tog
+  END IF
   printstr x$(i), 8, 8 + i * 10, dpage
  NEXT i
  textcolor 10, 0

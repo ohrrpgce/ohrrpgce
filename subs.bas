@@ -2174,6 +2174,71 @@ small = n1
 IF n2 < n1 THEN small = n2
 END FUNCTION
 
+SUB stredit (s$, maxl)
+STATIC clip$
+
+'--copy support
+IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN clip$ = s$
+
+'--paste support
+IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN s$ = LEFT$(clip$, maxl)
+
+'--insert cursor movement
+IF keyval(75) > 1 THEN insert = large(0, insert - 1)
+IF keyval(77) > 1 THEN insert = small(LEN(s$), insert + 1)
+IF keyval(29) > 0 THEN 'CTRL
+ IF keyval(71) > 1 THEN insert = 0    'HOME
+ IF keyval(79) > 1 THEN insert = maxl 'END
+END IF
+
+IF insert < 0 THEN insert = LEN(s$)
+insert = bound(insert, 0, LEN(s$))
+
+pre$ = LEFT$(s$, insert)
+post$ = RIGHT$(s$, large(0, LEN(s) - insert))
+
+'--BACKSPACE support
+IF keyval(14) > 1 AND LEN(pre$) > 0 THEN pre$ = LEFT$(pre$, LEN(pre$) - 1)
+
+'--DEL support
+IF keyval(83) > 1 AND LEN(post$) > 0 THEN post$ = RIGHT$(post$, LEN(post$) - 1)
+
+'--SHIFT support
+shift = 0
+IF keyval(54) > 0 OR keyval(42) > 0 THEN shift = 1
+
+'--ALT support
+IF keyval(56) THEN shift = shift + 2
+
+'--adding chars
+IF LEN(pre$) + LEN(post$) < maxl THEN
+
+ IF keyval(57) > 1 THEN
+  IF keyval(29) = 0 THEN
+   '--SPACE support
+   pre$ = pre$ + " "
+  ELSE
+   '--charlist support
+   pre$ = pre$ + charpicker$
+  END IF
+ ELSE
+  IF keyval(29) = 0 THEN
+   '--all other keys
+   FOR i = 2 TO 53
+    IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
+     pre$ = pre$ + CHR$(keyv(i, shift))
+     EXIT FOR
+    END IF
+   NEXT i
+  END IF
+ END IF
+
+END IF
+
+s$ = pre$ + post$
+
+END SUB
+
 SUB strgrabber (s$, maxl)
 STATIC clip$
 
