@@ -1600,10 +1600,11 @@ DO
  END IF
  GOSUB sprctrl
  tog = tog XOR 1
- copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
+' copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
  GOSUB spritescreen
  SWAP vpage, dpage
  setvispage vpage
+ copypage 2, dpage	'undid the above move. this is necessary to avoid garbage in sprite.
  dowait
 LOOP
 
@@ -1923,7 +1924,6 @@ RETURN
 
 sprayspot:
 IF oldx = -1 AND oldy = -1 THEN GOSUB writeundospr
-rectangle 239, 119, xw, yw, 0, dpage 'erase first
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 airbrush 239 + x, 119 + y, airsize, mist, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
@@ -1946,7 +1946,6 @@ END IF
 RETURN
 
 putdot:
-rectangle 239, 119, xw, yw, 0, dpage 'erase first
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 IF oldx = -1 AND oldy = -1 THEN
  GOSUB writeundospr
@@ -1961,7 +1960,6 @@ RETURN
 
 drawoval:
 GOSUB writeundospr
-rectangle 239, 119, xw, yw, 0, dpage 'erase first
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 ellipse 239 + bx, 119 + by, radius, col, dpage, squishx, squishy
 getsprite placer(), 0, 239, 119, xw, yw, dpage
@@ -1969,7 +1967,6 @@ RETURN
 
 drawsquare:
 GOSUB writeundospr
-rectangle 239, 119, xw, yw, 0, dpage 'erase first
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
@@ -1977,7 +1974,6 @@ RETURN
 
 straitline:
 GOSUB writeundospr
-rectangle 239, 119, xw, yw, 0, dpage 'erase first
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 drawline 239 + x, 119 + y, 239 + bx, 119 + by, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
