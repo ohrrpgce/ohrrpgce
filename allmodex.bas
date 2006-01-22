@@ -1733,14 +1733,6 @@ SUB loadsong (f$)
 		songtype = FORMAT_MOD
 	end if
 		
-	if songtype = FORMAT_BAM then
-		'check if already converted
-		if isfile(songname + ".mid") then
-			songname = songname + ".mid"
-			songtype = FORMAT_MIDI
-		end if
-	end if
-	
 	music_play(songname, songtype)
 end SUB
 
