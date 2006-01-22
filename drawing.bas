@@ -1967,10 +1967,11 @@ DO
  END IF
  GOSUB sprctrl
  tog = tog XOR 1
- copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
+' copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
  GOSUB spritescreen
  SWAP vpage, dpage
  setvispage vpage
+ copypage 2, dpage	'undid the above move. this is necessary to avoid garbage in sprite.
  dowait
 LOOP
 
@@ -2294,7 +2295,6 @@ RETURN
 
 sprayspot:
 IF oldx = -1 AND oldy = -1 THEN GOSUB writeundospr
-rectangle 239, 119, xw, yw, 0, dpage 'erase first
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 airbrush 239 + x, 119 + y, airsize, mist, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
@@ -2317,7 +2317,6 @@ END IF
 RETURN
 
 putdot:
-rectangle 239, 119, xw, yw, 0, dpage 'erase first
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 IF oldx = -1 AND oldy = -1 THEN
  GOSUB writeundospr
