@@ -13,6 +13,7 @@ option explicit
 'extern
 declare sub debug(s$)
 declare sub bam2mid(infile as string, outfile as string)
+declare function isfile(n$) as integer
 
 dim shared music_on as integer = 0
 'dim shared music_song as FMOD_SOUND ptr = 0 'integer = 0
@@ -22,6 +23,15 @@ dim shared music_vol as integer
 dim shared music_paused as integer
 dim shared music_song as Mix_Music ptr = NULL
 dim shared orig_vol as integer = -1
+
+'The music module needs to manage a list of temporary files to
+'delete when closed, mainly for custom, so they don't get lumped
+type delitem
+	fname as zstring ptr
+	nextitem as delitem ptr
+end type
+
+dim shared delhead as delitem ptr = null
 
 sub music_init()	
 	dim version as uinteger
@@ -69,6 +79,24 @@ sub music_close()
 		Mix_CloseAudio
 		SDL_Quit
 		music_on = 0
+		
+		if delhead <> null then
+			'delete temp files
+			dim ditem as delitem ptr
+			dim dlast as delitem ptr
+			
+			ditem = delhead
+			while ditem <> null
+				if isfile(*(ditem->fname)) then
+					kill *(ditem->fname)
+				end if
+				deallocate ditem->fname 'deallocate string
+				dlast = ditem
+				ditem = ditem->nextitem
+				deallocate dlast 'deallocate delitem
+			wend
+			delhead = null
+		end if
 	end if
 end sub
 
@@ -79,7 +107,29 @@ sub music_play(songname as string, fmt as music_format)
 		songname = rtrim$(songname)	'lose any added nulls
 		
 		if fmt = FORMAT_BAM then
-			bam2mid(songname, songname + ".mid")
+			dim midname as string
+			midname = songname + ".mid"
+			'check if already converted
+			if isfile(midname) = 0 then
+				bam2mid(songname, midname)
+				'add to list of temp files
+				dim ditem as delitem ptr
+				if delhead = null then
+					delhead = allocate(sizeof(delitem))
+					ditem = delhead
+				else
+					ditem = delhead
+					while ditem->nextitem <> null
+						ditem = ditem->nextitem
+					wend
+					ditem->nextitem = allocate(sizeof(delitem))
+					ditem = ditem->nextitem
+				end if
+				ditem->nextitem = null
+				'allocate space for zstring
+				ditem->fname = allocate(len(midname) + 1)
+				*(ditem->fname) = midname 'set zstring
+			end if
 			songname = songname + ".mid"
 			fmt = FORMAT_MIDI
 		end if
