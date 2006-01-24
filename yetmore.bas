@@ -312,7 +312,7 @@ SELECT CASE id
    spellmaskhero = retvals(0)  'used for spells learnt
    stat(retvals(0), 1, 12) = retvals(1) - stat(retvals(0), 0, 12)
    stat(retvals(0), 0, 12) = retvals(1)
-   exlev&(retvals(0), 1) = exptolevel(retvals(1))  
+   exlev&(retvals(0), 1) = exptolevel(retvals(1))
    exlev&(retvals(0), 0) = 0  'XP attained towards the next level
    updatestatslevelup retvals(0), stat(), dummystats(), retvals(2) 'updates stats and spells
   END IF
@@ -320,7 +320,7 @@ SELECT CASE id
   spellmaskhero = retvals(0)  'used for spells learnt
   IF retvals(0) = -1 AND liveherocount(stat()) > 0 THEN retvals(1) = retvals(1) / liveherocount(stat())
   FOR i = 0 TO 40
-   IF i = retvals(0) OR (retvals(0) = -1 AND i <= 3) THEN  
+   IF i = retvals(0) OR (retvals(0) = -1 AND i <= 3) THEN
     'give the XP to the hero only if it is alive if party is target
     IF retvals(0) <> -1 OR stat(i, 0, 0) THEN giveheroexperience i, stat(), (retvals(1))
     updatestatslevelup i, stat(), dummystats(), 0
@@ -1496,6 +1496,8 @@ SELECT CASE id
   OPEN game$ + ".dt1" FOR BINARY AS #f
   PUT #f, (CLNG(bound(retvals(0), 0, gen(genMaxEnemy))) * CLNG(320)) + (bound(retvals(1), 0, 159) * 2) + 1, temp16
   CLOSE #f
+ CASE 232'--trace
+   debug "TRACE: " + plotstring$(bound(retvals(0),0,31))
 END SELECT
 
 EXIT SUB
