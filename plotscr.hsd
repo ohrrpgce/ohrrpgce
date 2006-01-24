@@ -1,4 +1,4 @@
-# PLOTSCR.HSD (rusalka) 
+# PLOTSCR.HSD (rusalka)
 # This file holds the language definition for OHRRPGCE plotscripting.
 # modifying this file may have undesired/disasterous effects,
 # but reading it can be somewhat educational. Especially the constants.
@@ -228,6 +228,7 @@ define function, begin
 229,stringcompare,2,0,0		#returns whether two strings are the same(stringID1, stringID2)
 230,readenemydata,2,0,0       #reads enemy data(enemy,dataposition)
 231,writeenemydata,3,0,0,0    #writes enemy data(enemy,dataposition,value)
+232,trace,1,0				#writes the provided string to G_DEBUG.txt
 end
 
 #--------------------------------------------------------------------------
@@ -679,7 +680,7 @@ script,get damage cap,begin
 end
 define script(autonumber,set damage cap,1,0)
 script,set damage cap,c,begin
-	writegeneral(63,c) 
+	writegeneral(63,c)
 end
 
 #--------------------------------------------------------------------------

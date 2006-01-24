@@ -14,27 +14,27 @@ WHAT IS NEW?
     * Attack bitsets to disable certain target slots on an
       attack-by-attack basis. [James Paige]
       (Unfinished! Only works for heroes right now, see bug 102)
-      
+
     * Animated backdrops in battle [Mike Caron]
 
     * Attack bitset to force the heroes to run away [James Paige]
 
     * General bitset to "Disable Hero's Battle Cursor" [Yuriy]
-    
+
     * Attack option to set a tag (with a number of options relating
       to what triggers the tag, and conditional to another tag)
       [Mike Caron]
-      
+
     * Added damage cap option (in General Game Data) [Mike Caron]
-    
+
     * Spell Descriptions! (set in Attacks->Appearance) [Mike Caron]
-    
+
     * Mute status affliction (and a bitset to make a spell mutable)
      [Mike Caron]
-    
+
     * New attack bitsets:
       Fail if target is [poisoned/regened/stunned/muted]
-      (so you can't mute someone twice, for example)
+      (so you can't mute someone twice, for example) [Mike Caron]
 
     * In Attack editor and Enemy editor you can hold ALT and press
       left and right to navigate records from anywhere in the menu
@@ -84,9 +84,10 @@ WHAT IS NEW?
       "spells learnt" [Ralph Versteegen]
     * "get damage cap", "set damage cap" [Mike Caron]
     * "get music volume", "set music volume" [Ralph Versteegen]
+    * "trace" [Mike Caron]
 
   * Stuff only Developers Will Notice
-  
+
     * More attack bitsets [Mike Caron]
     * Unified item-name editor data (all item slots are formatted the same now)
       [Mike Caron]
@@ -222,13 +223,13 @@ October 03 2005 [rusalka]
        pieces of the tile that go over the edge wrap around to the other
        side  [Ralph Versteegen]
 
-    *  Place tiles without overwriting passability with the default by 
+    *  Place tiles without overwriting passability with the default by
        hitting Ctrl + D when tilemapping [Ralph Versteegen]
 
     *  Attack bitset to ignore attacking hero's/enemy's Extra Hits
        stat [Ralph Versteegen]
 
-    *  Plotscript command alternpc has been considerably optimised. It 
+    *  Plotscript command alternpc has been considerably optimised. It
        no longer reloads all npcs and heros on the map [Ralph Versteegen]
 
     *  New plotscript commands: get map tileset, get ambient music,
@@ -237,7 +238,7 @@ October 03 2005 [rusalka]
        flash, get foot offset, set foot offset, get instead of battle
        script, set instead of battle script, get each step script, set
        each step script, get on keypress script, set on keypress script,
-       draw npcs above heroes, map width, map height [Ralph Versteegen] 
+       draw npcs above heroes, map width, map height [Ralph Versteegen]
 
     *  New general bitsets: skip title screen, skip load screen (which
        can be set or off in any combination), pause on all battle menus
