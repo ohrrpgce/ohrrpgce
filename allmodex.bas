@@ -225,7 +225,12 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 		count = count + 1
 		sleep 10 'how long?
 	next
-	
+
+	'I don't think the palette was getting set on the final pass
+	'so add this little check	
+	if count = 1 then 
+		gfx_setpal(intpal())
+	end if
 end SUB
 
 SUB fadetopal (pal() as integer, palbuff() as integer)
@@ -280,6 +285,10 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 		count = count + 1
 		sleep 10 'how long?
 	next
+
+	if count = 1 then 
+		gfx_setpal(intpal())
+	end if
 end SUB
 
 SUB setmapdata (array() as integer, pas() as integer, BYVAL t as integer, BYVAL b as integer)
@@ -306,7 +315,7 @@ SUB setpassblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
 END SUB
 
 FUNCTION readpassblock (BYVAL x as integer, BYVAL y as integer)
-	readpassblock = readblock(y, y, pptr)
+	readpassblock = readblock(x, y, pptr)
 END FUNCTION
 
 SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, BYVAL mp as integer ptr)
@@ -2158,6 +2167,11 @@ function calcblock(byval x as integer, byval y as integer, byval t as integer) a
 	block = readmapblock(x, y)
 	
 	'check overlay (??)
+	'I think it should work like this:
+	'if overlay (t) is 0, then ignore the overlay flag
+	'if it's 1, return -1 and don't draw overhead tiles (this is 
+	'actually not working, but doesn't matter too much)
+	'if it's 130 then return the tile id
 	if t > 0 then
 		over = readpassblock(x, y)
 		over = (over and 128) + t 'whuh?
