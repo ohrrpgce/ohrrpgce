@@ -73,6 +73,9 @@ WHAT IS NEW?
       browsing certain areas." by avoiding the use of VAL() which is
       buggy in some versions of DosBox and QEMU [James Paige]
 
+    * Fixed bug 98: "plotscript commands that alter enemys [sic] persist after
+      quitting" [Mike Caron]
+
   * New Plotscripting Commands
 
     * "cancel map name display" [James Paige]

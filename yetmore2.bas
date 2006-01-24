@@ -165,8 +165,8 @@ SUB defaultc
  EXIT SUB
 
 ctrldata:
- 
- 
+
+
 END SUB
 
 SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
@@ -490,3 +490,10 @@ CLOSE #fh
 
 END SUB
 
+SUB checklumpmod
+ IF readbit(lumpmod(),0,0) THEN
+  unlumpfile sourcerpg$ + CHR$(0), "*.DT1", workingdir$ + "\", buffer()
+  setbit lumpmod(),0,0,0
+ END IF
+
+END SUB
