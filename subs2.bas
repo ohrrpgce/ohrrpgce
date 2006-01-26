@@ -9,11 +9,11 @@ DEFINT A-Z
 DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION filenum$ (n%)
-DECLARE SUB writeconstant (filehandle%, num%, name$, unique$(), prefix$)
+DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
 DECLARE SUB safekill (f$)
 DECLARE SUB touchfile (f$)
 DECLARE SUB romfontchar (font%(), char%)
-DECLARE SUB standardmenu (menu$(), size%, vis%, ptr%, top%, x%, y%, page%, edge%)
+DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION readitemname$ (index%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
@@ -21,7 +21,6 @@ DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION getShortName$ (filename$)
 DECLARE FUNCTION getLongName$ (filename$)
 DECLARE SUB textfatalerror (e$)
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
@@ -33,11 +32,11 @@ DECLARE FUNCTION loadname$ (length%, offset%)
 DECLARE SUB exportnames (gamedir$, song$())
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
-DECLARE FUNCTION needaddset (ptr%, check%, what$)
+DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$)
-DECLARE SUB cycletile (cycle%(), tastuf%(), ptr%(), skip%())
+DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE FUNCTION onoroff$ (n%)
@@ -45,8 +44,7 @@ DECLARE FUNCTION intstr$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB bitset (array%(), wof%, last%, name$())
-DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
+DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE SUB formation (song$())
 DECLARE SUB enemydata ()
@@ -62,57 +60,15 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
-DECLARE FUNCTION maplumpname$(map, oldext$)
+DECLARE FUNCTION maplumpname$ (map, oldext$)
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'
 
 REM $STATIC
-SUB bitset (array(), wof, last, name$())
-
-'---DIM AND INIT---
-ptr = -1
-top = -1
-
-'---MAIN LOOP---
-setkeys
-DO
- setwait timing(), 80
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(ptr, top, -1, last, 24)
- IF ptr >= 0 THEN
-  IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, ptr, 0
-  IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, ptr, 1
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN setbit array(), wof, ptr, readbit(array(), wof, ptr) XOR 1
- ELSE
-  IF keyval(28) > 1 OR keyval(57) > 1 THEN EXIT DO
- END IF
- FOR i = top TO small(top + 24, last)
-  c = 8 - readbit(array(), wof, i)
-  IF ptr = i THEN c = (8 * readbit(array(), wof, i)) + 6 + tog
-  textcolor c, 0
-  IF i >= 0 THEN
-   printstr name$(i), 8, (i - top) * 8, dpage
-  ELSE
-   IF c = 8 THEN c = 7
-   textcolor c, 0
-   printstr "Previous Menu", 8, (i - top) * 8, dpage
-  END IF
- NEXT i
- ' printstr STR$(ptr) + STR$(top) + STR$(last), 160, 0, dpage
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-'---TERMINATE---
-
-END SUB
-
 FUNCTION browse$ (special, default$, fmask$, tmp$)
 browse$ = ""
 
@@ -440,34 +396,34 @@ safekill workingdir$ + "\_cropped.tmp"
 
 END SUB
 
-SUB cycletile (cycle(), tastuf(), ptr(), skip())
+SUB cycletile (cycle(), tastuf(), pt(), skip())
 
 FOR i = 0 TO 1
  skip(i) = large(skip(i) - 1, 0)
  IF skip(i) = 0 THEN
   notstuck = 10
   DO
-   SELECT CASE tastuf(2 + 20 * i + ptr(i))
+   SELECT CASE tastuf(2 + 20 * i + pt(i))
     CASE 0
-     ptr(i) = 0
+     pt(i) = 0
      cycle(i) = 0
     CASE 1
-     cycle(i) = cycle(i) - tastuf(11 + 20 * i + ptr(i)) * 16
-     ptr(i) = loopvar(ptr(i), 0, 8, 1)
+     cycle(i) = cycle(i) - tastuf(11 + 20 * i + pt(i)) * 16
+     pt(i) = loopvar(pt(i), 0, 8, 1)
     CASE 2
-     cycle(i) = cycle(i) + tastuf(11 + 20 * i + ptr(i)) * 16
-     ptr(i) = loopvar(ptr(i), 0, 8, 1)
+     cycle(i) = cycle(i) + tastuf(11 + 20 * i + pt(i)) * 16
+     pt(i) = loopvar(pt(i), 0, 8, 1)
     CASE 3
-     cycle(i) = cycle(i) + tastuf(11 + 20 * i + ptr(i))
-     ptr(i) = loopvar(ptr(i), 0, 8, 1)
+     cycle(i) = cycle(i) + tastuf(11 + 20 * i + pt(i))
+     pt(i) = loopvar(pt(i), 0, 8, 1)
     CASE 4
-     cycle(i) = cycle(i) - tastuf(11 + 20 * i + ptr(i))
-     ptr(i) = loopvar(ptr(i), 0, 8, 1)
+     cycle(i) = cycle(i) - tastuf(11 + 20 * i + pt(i))
+     pt(i) = loopvar(pt(i), 0, 8, 1)
     CASE 5
-     skip(i) = tastuf(11 + 20 * i + ptr(i))
-     ptr(i) = loopvar(ptr(i), 0, 8, 1)
+     skip(i) = tastuf(11 + 20 * i + pt(i))
+     pt(i) = loopvar(pt(i), 0, 8, 1)
     CASE ELSE
-     ptr(i) = loopvar(ptr(i), 0, 8, 1)
+     pt(i) = loopvar(pt(i), 0, 8, 1)
    END SELECT
    notstuck = large(notstuck - 1, 0)
   LOOP WHILE notstuck AND skip(i) = 0
@@ -476,43 +432,26 @@ NEXT i
 
 END SUB
 
-SUB drawmini (high, wide, cursor(), page, tastuf())
-
-clearpage vpage
-FOR i = 0 TO high
- FOR o = 0 TO wide
-  block = readmapblock(o, i)
-  IF block > 207 THEN block = (block - 207) + tastuf(20)
-  IF block > 159 THEN block = (block - 159) + tastuf(0)
-  mx = block - (INT(block / 16) * 16)
-  my = INT(block / 16)
-  loadsprite cursor(), 0, (INT(RND * 7) + 7) + (mx * 20), (INT(RND * 7) + 7) + (my * 20), 1, 1, 3
-  stosprite cursor(), 0, o, i, page
- NEXT o
-NEXT i
-
-END SUB
-
 SUB exportnames (gamedir$, song$())
 
-DIM u$(1024), name$(32), stat$(11)
+DIM u$(1024), names$(32), stat$(11)
 max = 32
 
-getnames name$(), max
-stat$(0) = name$(0)
-stat$(1) = name$(1)
-stat$(2) = name$(2)
-stat$(3) = name$(3)
-stat$(4) = name$(5)
-stat$(5) = name$(6)
-stat$(6) = name$(29)
-stat$(7) = name$(30)
-stat$(8) = name$(8)
-stat$(9) = name$(7)
-stat$(10) = name$(31)
-stat$(11) = name$(4)
+getnames names$(), max
+stat$(0) = names$(0)
+stat$(1) = names$(1)
+stat$(2) = names$(2)
+stat$(3) = names$(3)
+stat$(4) = names$(5)
+stat$(5) = names$(6)
+stat$(6) = names$(29)
+stat$(7) = names$(30)
+stat$(8) = names$(8)
+stat$(9) = names$(7)
+stat$(10) = names$(31)
+stat$(11) = names$(4)
 
-out$ = gamedir$ + "\" + RIGHT$(game$, LEN(game$) - 12) + ".hsi"
+outf$ = gamedir$ + "\" + RIGHT$(game$, LEN(game$) - 12) + ".hsi"
 
 clearpage 0
 clearpage 1
@@ -520,10 +459,10 @@ setvispage 0
 textcolor 15, 0
 pl = 0
 printstr "exporting HamsterSpeak Definitions to:", 0, pl * 8, 0: pl = pl + 1
-printstr out$, 0, pl * 8, 0: pl = pl + 1
+printstr outf$, 0, pl * 8, 0: pl = pl + 1
 
 fh = FREEFILE
-OPEN out$ FOR OUTPUT AS #fh
+OPEN outf$ FOR OUTPUT AS #fh
 PRINT #fh, "# HamsterSpeak constant definitions for " + RIGHT$(game$, LEN(game$) - 12)
 PRINT #fh, ""
 PRINT #fh, "define constant, begin"
@@ -564,7 +503,7 @@ printstr "slot names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
 writeconstant fh, 1, "Weapon", u$(), "slot"
 FOR i = 0 TO 3
- writeconstant fh, i + 2, name$(25 + i), u$(), "slot"
+ writeconstant fh, i + 2, names$(25 + i), u$(), "slot"
 NEXT i
 
 printstr "map names", 0, pl * 8, 0: pl = pl + 1
@@ -617,7 +556,18 @@ IF w = 1 THEN
  PRINT "fatal error:"
  PRINT e$
  
- KILL workingdir$ + "\*.*"
+ 'KILL workingdir$ + "\*.*"
+ 'borrowed this code from game.bas cos wildcard didn't work
+ findfiles workingdir$ + "\*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
+ fh = FREEFILE
+ OPEN "filelist.tmp" FOR INPUT AS #fh
+ DO UNTIL EOF(fh)
+  INPUT #fh, filename$
+  filename$ = UCASE$(filename$)
+  KILL workingdir$ + "\" + filename$
+ LOOP
+ CLOSE #fh
+ KILL "filelist.tmp"
  RMDIR workingdir$
  
  SYSTEM
@@ -792,9 +742,9 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(ptr, 0, 0, menumax, 24)
+ dummy = usemenu(pt, 0, 0, menumax, 24)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  SELECT CASE ptr
+  SELECT CASE pt
    CASE 0
     EXIT DO
    CASE 1
@@ -824,7 +774,7 @@ DO
   END SELECT
  END IF
  
- standardmenu menu$(), menumax, 22, ptr, 0, 0, 0, dpage, 0
+ standardmenu menu$(), menumax, 22, pt, 0, 0, 0, dpage, 0
  
  SWAP vpage, dpage
  setvispage vpage
@@ -845,20 +795,20 @@ general(43) = 0
 viscount = 0
 DO
  IF EOF(fptr) THEN EXIT DO
- LINE INPUT #fptr, name$
+ LINE INPUT #fptr, names$
  LINE INPUT #fptr, num$
  LINE INPUT #fptr, argc$
  FOR i = 1 TO VAL(argc$)
   LINE INPUT #fptr, dummy$
  NEXT i
- name$ = LEFT$(name$, 36)
+ names$ = LEFT$(names$, 36)
  buffer(0) = VAL(num$)
- buffer(1) = LEN(name$)
- str2array name$, buffer(), 4
+ buffer(1) = LEN(names$)
+ str2array names$, buffer(), 4
  storeset workingdir$ + "\plotscr.lst" + CHR$(0), general(40), 0
  general(40) = general(40) + 1
  IF buffer(0) > general(43) AND buffer(0) < 16384 THEN general(43) = buffer(0)
- IF textx + LEN(name$) + 1 >= 40 THEN
+ IF textx + LEN(names$) + 1 >= 40 THEN
   textx = 0
   texty = texty + 1
   IF texty > 23 THEN
@@ -868,8 +818,8 @@ DO
  END IF
  IF buffer(0) < 16384 THEN
   viscount = viscount + 1
-  printstr name$ + ",", textx * 8, texty * 8, vpage
-  textx = textx + LEN(name$) + 2
+  printstr names$ + ",", textx * 8, texty * 8, vpage
+  textx = textx + LEN(names$) + 2
  END IF
 LOOP
 CLOSE #fptr
@@ -896,7 +846,7 @@ END IF
 scriptname$ = a$
 END FUNCTION
 
-SUB standardmenu (menu$(), size, vis, ptr, top, x, y, page, edge)
+SUB standardmenu (menu$(), size, vis, pt, top, x, y, page, edge)
 STATIC tog
 
 tog = tog XOR 1
@@ -905,11 +855,11 @@ FOR i = top TO top + vis
  IF i <= size THEN
   IF edge THEN
    col = 7
-   IF ptr = i THEN col = 14 + tog
+   IF pt = i THEN col = 14 + tog
    edgeprint menu$(i), x + 0, y + (i - top) * 8, col, page
   ELSE
    textcolor 7, 0
-   IF ptr = i THEN textcolor 14 + tog, 0
+   IF pt = i THEN textcolor 14 + tog, 0
    printstr menu$(i), x + 0, y + (i - top) * 8, page
   END IF
  END IF
@@ -918,7 +868,7 @@ NEXT i
 END SUB
 
 SUB statname
-DIM stat$(115), name$(115), maxlen(115)
+DIM stat$(115), names$(115), maxlen(115)
 max = 115
 clearpage 0
 clearpage 1
@@ -939,111 +889,111 @@ FOR i = 0 TO max
  END SELECT
 NEXT i
 
-name$(0) = "Health Points"
-name$(1) = "Spell Points"
-name$(2) = "Attack Power"
-name$(3) = "Accuracy"
-name$(4) = "Extra Hits"
-name$(5) = "Blocking Power"
-name$(6) = "Dodge Rate"
-name$(7) = "Counter Rate"
-name$(8) = "Speed"
+names$(0) = "Health Points"
+names$(1) = "Spell Points"
+names$(2) = "Attack Power"
+names$(3) = "Accuracy"
+names$(4) = "Extra Hits"
+names$(5) = "Blocking Power"
+names$(6) = "Dodge Rate"
+names$(7) = "Counter Rate"
+names$(8) = "Speed"
 FOR i = 1 TO 8
- name$(8 + i) = "Enemy Type" + STR$(i)
- name$(16 + i) = "Elemental" + STR$(i)
+ names$(8 + i) = "Enemy Type" + STR$(i)
+ names$(16 + i) = "Elemental" + STR$(i)
 NEXT i
 FOR i = 1 TO 4
- name$(24 + i) = "Armor" + STR$(i)
+ names$(24 + i) = "Armor" + STR$(i)
 NEXT i
-name$(29) = "Spell Skill"
-name$(30) = "Spell Block"
-name$(31) = "Spell cost %"
-name$(32) = "Money"
-name$(33) = "Experience":              stat$(33) = readglobalstring$(33, "Experience", 10)
-name$(34) = "Battle Item Menu":        stat$(34) = readglobalstring$(34, "Item", 10)
-name$(35) = "Exit Item Menu":          stat$(35) = readglobalstring$(35, "DONE", 10)
-name$(36) = "Sort Item Menu":          stat$(36) = readglobalstring$(36, "AUTOSORT", 10)
-name$(37) = "Drop Item":               stat$(37) = readglobalstring$(37, "TRASH", 10)
-name$(38) = "Weapon":                  stat$(38) = readglobalstring$(38, "Weapon", 10)
-name$(39) = "Unequip All":             stat$(39) = readglobalstring$(39, "-REMOVE-", 10)
-name$(40) = "Exit Equip":              stat$(40) = readglobalstring$(40, "-EXIT-", 10)
-name$(41) = "Drop Prompt":             stat$(41) = readglobalstring$(41, "Discard", 10)
-name$(42) = "Negative Drop Prefix":    stat$(42) = readglobalstring$(42, "Cannot", 10)
-name$(43) = "Level":                   stat$(43) = readglobalstring$(43, "Level", 10)
-name$(44) = "Overwrite Save Yes":      stat$(44) = readglobalstring$(44, "Yes", 10)
-name$(45) = "Overwrite Save No":       stat$(45) = readglobalstring$(45, "No", 10)
-name$(46) = "Exit Spell List Menu":    stat$(46) = readglobalstring$(46, "EXIT", 10)
-name$(47) = "(exp) for next (level)":  stat$(47) = readglobalstring$(47, "for next", 10)
-name$(48) = "Remove Hero from Team":   stat$(48) = readglobalstring$(48, "REMOVE", 10)
-name$(49) = "Pay at Inn":              stat$(49) = readglobalstring$(49, "Pay", 10)
-name$(50) = "Cancel Inn":              stat$(50) = readglobalstring$(50, "Cancel", 10)
-name$(51) = "Cancel Spell Menu":       stat$(51) = readglobalstring$(51, "(CANCEL)", 10)
-name$(52) = "New Game":                stat$(52) = readglobalstring$(52, "NEW GAME", 10)
-name$(53) = "Exit Game":               stat$(53) = readglobalstring$(53, "EXIT", 10)
-name$(54) = "Pause":                   stat$(54) = readglobalstring$(54, "PAUSE", 10)
-name$(55) = "Quit Playing Prompt":     stat$(55) = readglobalstring$(55, "Quit Playing?", 20)
-name$(56) = "Quit Playing Yes":        stat$(56) = readglobalstring$(57, "Yes", 10)
-name$(57) = "Quit Playing No":         stat$(57) = readglobalstring$(58, "No", 10)
-name$(58) = "Cancel Save":             stat$(58) = readglobalstring$(59, "CANCEL", 10)
-name$(59) = "Menu: Items":             stat$(59) = readglobalstring$(60, "Items", 10)
-name$(60) = "Menu: Spells":            stat$(60) = readglobalstring$(61, "Spells", 10)
-name$(61) = "Menu: Status":            stat$(61) = readglobalstring$(62, "Status", 10)
-name$(62) = "Menu: Equip":             stat$(62) = readglobalstring$(63, "Equip", 10)
-name$(63) = "Menu: Order":             stat$(63) = readglobalstring$(64, "Order", 10)
-name$(64) = "Menu: Team":              stat$(64) = readglobalstring$(65, "Team", 10)
-name$(65) = "Menu: Save":              stat$(65) = readglobalstring$(66, "Save", 10)
-name$(66) = "Menu: Quit":              stat$(66) = readglobalstring$(67, "Quit", 10)
-name$(67) = "Menu: Minimap":           stat$(67) = readglobalstring$(68, "Map", 10)
-name$(68) = "Volume Control":          stat$(68) = readglobalstring$(69, "Volume", 10)
-name$(69) = "Shop Menu: Buy":          stat$(69) = readglobalstring$(70, "Buy", 10)
-name$(70) = "Shop Menu: Sell":         stat$(70) = readglobalstring$(71, "Sell", 10)
-name$(71) = "Shop Menu: Inn":          stat$(71) = readglobalstring$(72, "Inn", 10)
-name$(72) = "Shop Menu: Hire":         stat$(72) = readglobalstring$(73, "Hire", 10)
-name$(73) = "Shop Menu: Exit":         stat$(73) = readglobalstring$(74, "Exit", 10)
-name$(74) = "Unsellable item warning": stat$(74) = readglobalstring$(75, "CANNOT SELL", 20)
-name$(75) = "Sell value prefix":       stat$(75) = readglobalstring$(77, "Worth", 20)
-name$(76) = "Sell trade prefix":       stat$(76) = readglobalstring$(79, "Trade for", 20)
-name$(77) = "($) and a (item)":        stat$(77) = readglobalstring$(81, "and a", 10)
-name$(78) = "Worthless item warning":  stat$(78) = readglobalstring$(82, "Worth Nothing", 20)
-name$(79) = "Sell alert":              stat$(79) = readglobalstring$(84, "Sold", 10)
-name$(80) = "Buy trade prefix":        stat$(80) = readglobalstring$(85, "Trade for", 20)
-name$(81) = "Hire price prefix":       stat$(81) = readglobalstring$(87, "Joins for", 20)
-name$(82) = "Cannot buy prefix":       stat$(82) = readglobalstring$(89, "Cannot Afford", 20)
-name$(83) = "Cannot hire prefix":      stat$(83) = readglobalstring$(91, "Cannot Hire", 20)
-name$(84) = "Buy alert":               stat$(84) = readglobalstring$(93, "Purchased", 20)
-name$(85) = "Hire alert (suffix)":     stat$(85) = readglobalstring$(95, "Joined!", 20)
-name$(86) = "(#) in stock":            stat$(86) = readglobalstring$(97, "in stock", 20)
-name$(87) = "Equipability prefix":     stat$(87) = readglobalstring$(99, "Equip:", 10)
-name$(88) = "Party full warning":      stat$(88) = readglobalstring$(100, "No Room In Party", 20)
-name$(89) = "Replace Save Prompt":     stat$(89) = readglobalstring$(102, "Replace Old Data?", 20)
-name$(90) = "Status Prompt":           stat$(90) = readglobalstring$(104, "Who's Status?", 20)
-name$(91) = "Spells Prompt":           stat$(91) = readglobalstring$(106, "Who's Spells?", 20)
-name$(92) = "Equip Prompt":            stat$(92) = readglobalstring$(108, "Equip Who?", 20)
-name$(93) = "Equip Nothing (unequip)": stat$(93) = readglobalstring$(110, "Nothing", 10)
-name$(94) = "Nothing to Steal":        stat$(94) = readglobalstring$(111, "Has Nothing", 30)
-name$(95) = "Steal Failure":           stat$(95) = readglobalstring$(114, "Cannot Steal", 30)
-name$(96) = "Stole (itemname)":        stat$(96) = readglobalstring$(117, "Stole", 30)
-name$(97) = "When an Attack Misses":   stat$(97) = readglobalstring$(120, "miss", 20)
-name$(98) = "When a Spell Fails":      stat$(98) = readglobalstring$(122, "fail", 20)
-name$(99) = "(hero) learned (spell)":  stat$(99) = readglobalstring$(124, "learned", 10)
-name$(100) = "Found (gold)":           stat$(100) = readglobalstring$(125, "Found", 10)
-name$(101) = "Gained (experience)":    stat$(101) = readglobalstring$(126, "Gained", 10)
-name$(102) = "Weak to (elemental)":    stat$(102) = readglobalstring$(127, "Weak to", 10)
-name$(103) = "Strong to (elemental)":  stat$(103) = readglobalstring$(128, "Strong to", 10)
-name$(104) = "Absorbs (elemental)":    stat$(104) = readglobalstring$(129, "Absorbs", 10)
-name$(105) = "No Elemental Effects":   stat$(105) = readglobalstring$(130, "No Elemental Effects", 30)
-name$(106) = "(hero) has no spells":   stat$(106) = readglobalstring$(133, "has no spells", 20)
-name$(107) = "Plotscript: pick hero":  stat$(107) = readglobalstring$(135, "Which Hero?", 20)
-name$(108) = "Hero name prompt":       stat$(108) = readglobalstring$(137, "Name the Hero", 20)
-name$(109) = "Found a (item)":         stat$(109) = readglobalstring$(139, "Found a", 20)
-name$(110) = "Found (number) (items)": stat$(110) = readglobalstring$(141, "Found", 20)
-name$(111) = "THE INN COSTS (# gold)": stat$(111) = readglobalstring$(143, "THE INN COSTS", 20)
-name$(112) = "You have (# gold)":      stat$(112) = readglobalstring$(145, "You have", 20)
-name$(113) = "CANNOT RUN!":            stat$(113) = readglobalstring$(147, "CANNOT RUN!", 20)
-name$(114) = "Level up for (hero)":    stat$(114) = readglobalstring$(149, "Level up for", 20)
-name$(115) = "(#) levels for (hero)":  stat$(115) = readglobalstring$(151, "levels for", 20)
+names$(29) = "Spell Skill"
+names$(30) = "Spell Block"
+names$(31) = "Spell cost %"
+names$(32) = "Money"
+names$(33) = "Experience":              stat$(33) = readglobalstring$(33, "Experience", 10)
+names$(34) = "Battle Item Menu":        stat$(34) = readglobalstring$(34, "Item", 10)
+names$(35) = "Exit Item Menu":          stat$(35) = readglobalstring$(35, "DONE", 10)
+names$(36) = "Sort Item Menu":          stat$(36) = readglobalstring$(36, "AUTOSORT", 10)
+names$(37) = "Drop Item":               stat$(37) = readglobalstring$(37, "TRASH", 10)
+names$(38) = "Weapon":                  stat$(38) = readglobalstring$(38, "Weapon", 10)
+names$(39) = "Unequip All":             stat$(39) = readglobalstring$(39, "-REMOVE-", 10)
+names$(40) = "Exit Equip":              stat$(40) = readglobalstring$(40, "-EXIT-", 10)
+names$(41) = "Drop Prompt":             stat$(41) = readglobalstring$(41, "Discard", 10)
+names$(42) = "Negative Drop Prefix":    stat$(42) = readglobalstring$(42, "Cannot", 10)
+names$(43) = "Level":                   stat$(43) = readglobalstring$(43, "Level", 10)
+names$(44) = "Overwrite Save Yes":      stat$(44) = readglobalstring$(44, "Yes", 10)
+names$(45) = "Overwrite Save No":       stat$(45) = readglobalstring$(45, "No", 10)
+names$(46) = "Exit Spell List Menu":    stat$(46) = readglobalstring$(46, "EXIT", 10)
+names$(47) = "(exp) for next (level)":  stat$(47) = readglobalstring$(47, "for next", 10)
+names$(48) = "Remove Hero from Team":   stat$(48) = readglobalstring$(48, "REMOVE", 10)
+names$(49) = "Pay at Inn":              stat$(49) = readglobalstring$(49, "Pay", 10)
+names$(50) = "Cancel Inn":              stat$(50) = readglobalstring$(50, "Cancel", 10)
+names$(51) = "Cancel Spell Menu":       stat$(51) = readglobalstring$(51, "(CANCEL)", 10)
+names$(52) = "New Game":                stat$(52) = readglobalstring$(52, "NEW GAME", 10)
+names$(53) = "Exit Game":               stat$(53) = readglobalstring$(53, "EXIT", 10)
+names$(54) = "Pause":                   stat$(54) = readglobalstring$(54, "PAUSE", 10)
+names$(55) = "Quit Playing Prompt":     stat$(55) = readglobalstring$(55, "Quit Playing?", 20)
+names$(56) = "Quit Playing Yes":        stat$(56) = readglobalstring$(57, "Yes", 10)
+names$(57) = "Quit Playing No":         stat$(57) = readglobalstring$(58, "No", 10)
+names$(58) = "Cancel Save":             stat$(58) = readglobalstring$(59, "CANCEL", 10)
+names$(59) = "Menu: Items":             stat$(59) = readglobalstring$(60, "Items", 10)
+names$(60) = "Menu: Spells":            stat$(60) = readglobalstring$(61, "Spells", 10)
+names$(61) = "Menu: Status":            stat$(61) = readglobalstring$(62, "Status", 10)
+names$(62) = "Menu: Equip":             stat$(62) = readglobalstring$(63, "Equip", 10)
+names$(63) = "Menu: Order":             stat$(63) = readglobalstring$(64, "Order", 10)
+names$(64) = "Menu: Team":              stat$(64) = readglobalstring$(65, "Team", 10)
+names$(65) = "Menu: Save":              stat$(65) = readglobalstring$(66, "Save", 10)
+names$(66) = "Menu: Quit":              stat$(66) = readglobalstring$(67, "Quit", 10)
+names$(67) = "Menu: Minimap":           stat$(67) = readglobalstring$(68, "Map", 10)
+names$(68) = "Volume Control":          stat$(68) = readglobalstring$(69, "Volume", 10)
+names$(69) = "Shop Menu: Buy":          stat$(69) = readglobalstring$(70, "Buy", 10)
+names$(70) = "Shop Menu: Sell":         stat$(70) = readglobalstring$(71, "Sell", 10)
+names$(71) = "Shop Menu: Inn":          stat$(71) = readglobalstring$(72, "Inn", 10)
+names$(72) = "Shop Menu: Hire":         stat$(72) = readglobalstring$(73, "Hire", 10)
+names$(73) = "Shop Menu: Exit":         stat$(73) = readglobalstring$(74, "Exit", 10)
+names$(74) = "Unsellable item warning": stat$(74) = readglobalstring$(75, "CANNOT SELL", 20)
+names$(75) = "Sell value prefix":       stat$(75) = readglobalstring$(77, "Worth", 20)
+names$(76) = "Sell trade prefix":       stat$(76) = readglobalstring$(79, "Trade for", 20)
+names$(77) = "($) and a (item)":        stat$(77) = readglobalstring$(81, "and a", 10)
+names$(78) = "Worthless item warning":  stat$(78) = readglobalstring$(82, "Worth Nothing", 20)
+names$(79) = "Sell alert":              stat$(79) = readglobalstring$(84, "Sold", 10)
+names$(80) = "Buy trade prefix":        stat$(80) = readglobalstring$(85, "Trade for", 20)
+names$(81) = "Hire price prefix":       stat$(81) = readglobalstring$(87, "Joins for", 20)
+names$(82) = "Cannot buy prefix":       stat$(82) = readglobalstring$(89, "Cannot Afford", 20)
+names$(83) = "Cannot hire prefix":      stat$(83) = readglobalstring$(91, "Cannot Hire", 20)
+names$(84) = "Buy alert":               stat$(84) = readglobalstring$(93, "Purchased", 20)
+names$(85) = "Hire alert (suffix)":     stat$(85) = readglobalstring$(95, "Joined!", 20)
+names$(86) = "(#) in stock":            stat$(86) = readglobalstring$(97, "in stock", 20)
+names$(87) = "Equipability prefix":     stat$(87) = readglobalstring$(99, "Equip:", 10)
+names$(88) = "Party full warning":      stat$(88) = readglobalstring$(100, "No Room In Party", 20)
+names$(89) = "Replace Save Prompt":     stat$(89) = readglobalstring$(102, "Replace Old Data?", 20)
+names$(90) = "Status Prompt":           stat$(90) = readglobalstring$(104, "Who's Status?", 20)
+names$(91) = "Spells Prompt":           stat$(91) = readglobalstring$(106, "Who's Spells?", 20)
+names$(92) = "Equip Prompt":            stat$(92) = readglobalstring$(108, "Equip Who?", 20)
+names$(93) = "Equip Nothing (unequip)": stat$(93) = readglobalstring$(110, "Nothing", 10)
+names$(94) = "Nothing to Steal":        stat$(94) = readglobalstring$(111, "Has Nothing", 30)
+names$(95) = "Steal Failure":           stat$(95) = readglobalstring$(114, "Cannot Steal", 30)
+names$(96) = "Stole (itemname)":        stat$(96) = readglobalstring$(117, "Stole", 30)
+names$(97) = "When an Attack Misses":   stat$(97) = readglobalstring$(120, "miss", 20)
+names$(98) = "When a Spell Fails":      stat$(98) = readglobalstring$(122, "fail", 20)
+names$(99) = "(hero) learned (spell)":  stat$(99) = readglobalstring$(124, "learned", 10)
+names$(100) = "Found (gold)":           stat$(100) = readglobalstring$(125, "Found", 10)
+names$(101) = "Gained (experience)":    stat$(101) = readglobalstring$(126, "Gained", 10)
+names$(102) = "Weak to (elemental)":    stat$(102) = readglobalstring$(127, "Weak to", 10)
+names$(103) = "Strong to (elemental)":  stat$(103) = readglobalstring$(128, "Strong to", 10)
+names$(104) = "Absorbs (elemental)":    stat$(104) = readglobalstring$(129, "Absorbs", 10)
+names$(105) = "No Elemental Effects":   stat$(105) = readglobalstring$(130, "No Elemental Effects", 30)
+names$(106) = "(hero) has no spells":   stat$(106) = readglobalstring$(133, "has no spells", 20)
+names$(107) = "Plotscript: pick hero":  stat$(107) = readglobalstring$(135, "Which Hero?", 20)
+names$(108) = "Hero name prompt":       stat$(108) = readglobalstring$(137, "Name the Hero", 20)
+names$(109) = "Found a (item)":         stat$(109) = readglobalstring$(139, "Found a", 20)
+names$(110) = "Found (number) (items)": stat$(110) = readglobalstring$(141, "Found", 20)
+names$(111) = "THE INN COSTS (# gold)": stat$(111) = readglobalstring$(143, "THE INN COSTS", 20)
+names$(112) = "You have (# gold)":      stat$(112) = readglobalstring$(145, "You have", 20)
+names$(113) = "CANNOT RUN!":            stat$(113) = readglobalstring$(147, "CANNOT RUN!", 20)
+names$(114) = "Level up for (hero)":    stat$(114) = readglobalstring$(149, "Level up for", 20)
+names$(115) = "(#) levels for (hero)":  stat$(115) = readglobalstring$(151, "levels for", 20)
 
-'name$() = "":      stat$() = readglobalstring$(, "", 10)
+'names$() = "":      stat$() = readglobalstring$(, "", 10)
 
 setkeys
 DO
@@ -1051,12 +1001,12 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(ptr, top, 0, max, 22)
- strgrabber stat$(ptr), maxlen(ptr)
+ dummy = usemenu(pt, top, 0, max, 22)
+ strgrabber stat$(pt), maxlen(pt)
  IF keyval(28) > 1 THEN GOSUB typestat
  
- standardmenu name$(), max, 22, ptr, top, 0, 0, dpage, 0
- standardmenu stat$(), max, 22, ptr, top, 232, 0, dpage, 0
+ standardmenu names$(), max, 22, pt, top, 0, 0, dpage, 0
+ standardmenu stat$(), max, 22, pt, top, 232, 0, dpage, 0
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -1078,14 +1028,14 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 OR keyval(28) > 1 OR keyval(72) > 1 OR keyval(80) > 1 THEN RETURN
- strgrabber stat$(ptr), maxlen(ptr)
+ strgrabber stat$(pt), maxlen(pt)
  
  FOR i = top TO top + 22
   textcolor 7, 0
-  IF i = ptr THEN textcolor 14 + tog, 0
-  printstr name$(i), 0, (i - top) * 8, dpage
+  IF i = pt THEN textcolor 14 + tog, 0
+  printstr names$(i), 0, (i - top) * 8, dpage
   xpos = 232
-  IF i = ptr THEN
+  IF i = pt THEN
    textcolor 15, 1
    xpos = 312 - (8 * LEN(stat$(i)))
   END IF
@@ -1146,17 +1096,17 @@ setkeys
 DO
  setwait timing(), 90
  setkeys
- dummy = usemenu(ptr, 0, 0, num, 22)
+ dummy = usemenu(pt, 0, 0, num, 22)
  IF keyval(1) > 1 THEN
   sublist = -1
   EXIT DO
  END IF
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  sublist = ptr
+  sublist = pt
   EXIT DO
  END IF
  tog = tog XOR 1
- standardmenu s$(), num, 22, ptr, top, 0, 0, dpage, 0
+ standardmenu s$(), num, 22, pt, top, 0, 0, dpage, 0
  SWAP dpage, vpage
  setvispage vpage
  clearpage dpage
@@ -1170,7 +1120,7 @@ END FUNCTION
 
 SUB textage (song$())
 DIM m$(10), x$(8), cond(21), ct(-1 TO 21), menu$(21), a(318), order(21), grey(21), choice$(1), max(8), min(8), buf(16384), h$(2), tagmn$
-ptr = 1
+pt = 1
 
 order(0) = 0:      grey(0) = -1
 order(1) = 1:      grey(1) = 0
@@ -1231,11 +1181,11 @@ DO
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) THEN
   GOSUB savelines
-  cropafter ptr, general(39), 0, game$ + ".say", 400, 1
+  cropafter pt, general(39), 0, game$ + ".say", 400, 1
   GOSUB loadlines
  END IF
  dummy = usemenu(csr, 0, 0, 7, 24)
- remptr = ptr
+ remptr = pt
  SELECT CASE csr
   CASE 7'textsearch
    strgrabber search$, 36
@@ -1249,17 +1199,17 @@ DO
     GOSUB nextboxline
    END IF'--modify next
   CASE ELSE '--not using the quick textbox chainer
-   IF intgrabber(ptr, 0, general(39), 51, 52) THEN
-    SWAP ptr, remptr
+   IF intgrabber(pt, 0, general(39), 51, 52) THEN
+    SWAP pt, remptr
     GOSUB savelines
-    SWAP ptr, remptr
+    SWAP pt, remptr
     GOSUB loadlines
    END IF
-   IF keyval(75) > 1 AND ptr > 0 THEN GOSUB savelines: ptr = ptr - 1: GOSUB loadlines
-   IF keyval(77) > 1 AND ptr < 32767 THEN
+   IF keyval(75) > 1 AND pt > 0 THEN GOSUB savelines: pt = pt - 1: GOSUB loadlines
+   IF keyval(77) > 1 AND pt < 32767 THEN
     GOSUB savelines
-    ptr = ptr + 1
-    IF needaddset(ptr, general(39), "text box") THEN GOSUB clearlines
+    pt = pt + 1
+    IF needaddset(pt, general(39), "text box") THEN GOSUB clearlines
     GOSUB loadlines
    END IF'--next/add text box
  END SELECT
@@ -1271,7 +1221,7 @@ DO
   IF csr = 5 THEN GOSUB groovybox
   IF csr = 6 AND cond(12) > 0 THEN
    GOSUB savelines
-   ptr = cond(12)
+   pt = cond(12)
    GOSUB loadlines
   END IF
   IF csr = 7 AND keyval(28) > 1 THEN
@@ -1282,7 +1232,7 @@ DO
  END IF
  textcolor 7, 0
  IF csr = 1 THEN textcolor 14 + tog, 0
- printstr STR$(ptr), 64, 8, dpage
+ printstr STR$(pt), 64, 8, dpage
  m$(7) = "Text Search:" + search$
  
  standardmenu m$(), 7, 7, csr, 0, 0, 0, dpage, 0
@@ -1528,7 +1478,7 @@ DO
  textcolor 10, 0
  printstr "-", 0, 8 + y * 10, dpage
  textcolor 15, 0
- printstr "Text Box" + STR$(ptr), 0, 100, dpage
+ printstr "Text Box" + STR$(pt), 0, 100, dpage
  printstr "${C0} = Leader's name", 0, 120, dpage
  printstr "${C#} = Hero name at caterpillar slot #", 0, 128, dpage
  printstr "${P#} = Hero name at party slot #", 0, 136, dpage
@@ -1633,7 +1583,7 @@ RETURN
 
 loadlines:
 setpicstuf buffer(), 400, -1
-loadset game$ + ".say" + CHR$(0), ptr, 0
+loadset game$ + ".say" + CHR$(0), pt, 0
 temp$ = STRING$(42, 0)
 array2str buffer(), 305, temp$
 str2array temp$, cond(), 0
@@ -1674,7 +1624,7 @@ FOR i = 0 TO 1
  WHILE LEN(choice$(i)) < 15: choice$(i) = choice$(i) + CHR$(0): WEND
  str2array choice$(i), buffer(), 349 + (i * 18)
 NEXT i
-storeset game$ + ".say" + CHR$(0), ptr, 0
+storeset game$ + ".say" + CHR$(0), pt, 0
 RETURN
 
 clearlines:
@@ -1689,22 +1639,22 @@ FOR i = 0 TO 199
    buffer(i) = 0
  END SELECT
 NEXT i
-storeset game$ + ".say" + CHR$(0), ptr, 0
+storeset game$ + ".say" + CHR$(0), pt, 0
 RETURN
 
 seektextbox:
 setpicstuf buffer(), 400, -1
-remptr = ptr
-ptr = ptr + 1
+remptr = pt
+pt = pt + 1
 DO
- IF ptr > general(39) THEN ptr = 0
- IF ptr = remptr THEN
+ IF pt > general(39) THEN pt = 0
+ IF pt = remptr THEN
   rectangle 115, 90, 100, 20, 1, vpage
   edgeprint "Not found.", 120, 95, 15, vpage
   w = getkey
   EXIT DO
  END IF
- loadset game$ + ".say" + CHR$(0), ptr, 0
+ loadset game$ + ".say" + CHR$(0), pt, 0
  foundstr = 0
  FOR i = 0 TO 7
   tmp$ = STRING$(38, 0)
@@ -1713,7 +1663,7 @@ DO
   IF INSTR(UCASE$(tmp$), UCASE$(search$)) > 0 THEN foundstr = 1
  NEXT i
  IF foundstr = 1 THEN EXIT DO
- ptr = ptr + 1
+ pt = pt + 1
 LOOP
 
 RETURN
@@ -1739,7 +1689,7 @@ IF isfile(f$ + CHR$(0)) THEN
   GET #handle, 1, a$
   CLOSE #handle
   IF a$ = CHR$(253) THEN
-   DEF SEG = VARSEG(array(0)): BLOAD f$, VARPTR(array(0))
+   xBLOAD f$, array(0), "Load failed" 'not sure about this
   ELSE
    textfatalerror e$ + "(unbloadable)"
   END IF
@@ -1752,20 +1702,20 @@ END IF
 
 END SUB
 
-FUNCTION usemenu (ptr, top, first, last, size)
+FUNCTION usemenu (pt, top, first, last, size)
 
-oldptr = ptr
+oldptr = pt
 oldtop = top
 
-IF keyval(72) > 1 THEN ptr = loopvar(ptr, first, last, -1) 'UP
-IF keyval(80) > 1 THEN ptr = loopvar(ptr, first, last, 1)  'DOWN
-IF keyval(73) > 1 THEN ptr = large(ptr - size, first)      'PGUP
-IF keyval(81) > 1 THEN ptr = small(ptr + size, last)       'PGDN
-IF keyval(71) > 1 THEN ptr = first                         'HOME
-IF keyval(79) > 1 THEN ptr = last                          'END
-top = bound(top, ptr - size, ptr)
+IF keyval(72) > 1 THEN pt = loopvar(pt, first, last, -1) 'UP
+IF keyval(80) > 1 THEN pt = loopvar(pt, first, last, 1)  'DOWN
+IF keyval(73) > 1 THEN pt = large(pt - size, first)      'PGUP
+IF keyval(81) > 1 THEN pt = small(pt + size, last)       'PGDN
+IF keyval(71) > 1 THEN pt = first                         'HOME
+IF keyval(79) > 1 THEN pt = last                          'END
+top = bound(top, pt - size, pt)
 
-IF oldptr = ptr AND oldtop = top THEN
+IF oldptr = pt AND oldtop = top THEN
  usemenu = 0
 ELSE
  usemenu = 1
@@ -1777,7 +1727,7 @@ SUB vehicles
 
 DIM menu$(20), veh(39), min(39), max(39), offset(39), vehbit$(15), tiletype$(8)
 
-ptr = 0: csr = 0
+pt = 0: csr = 0
 
 vehbit$(0) = "Pass through walls"
 vehbit$(1) = "Pass through NPCs"
@@ -1827,10 +1777,10 @@ DO
     EXIT DO
    END IF
   CASE 1
-   IF ptr = general(55) AND keyval(77) > 1 THEN
+   IF pt = general(55) AND keyval(77) > 1 THEN
     GOSUB saveveh
-    ptr = bound(ptr + 1, 0, 32767)
-    IF needaddset(ptr, general(55), "vehicle") THEN
+    pt = bound(pt + 1, 0, 32767)
+    IF needaddset(pt, general(55), "vehicle") THEN
      FOR i = 0 TO 39
       veh(i) = 0
      NEXT i
@@ -1838,10 +1788,10 @@ DO
      GOSUB vehmenu
     END IF
    END IF
-   newptr = ptr
+   newptr = pt
    IF intgrabber(newptr, 0, general(55), 75, 77) THEN
     GOSUB saveveh
-    ptr = newptr
+    pt = newptr
     GOSUB loadveh
     GOSUB vehmenu
    END IF
@@ -1855,7 +1805,7 @@ DO
    END IF
   CASE 4
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
-    bitset veh(), 9, 8, vehbit$()
+    editbitset veh(), 9, 8, vehbit$()
    END IF
  END SELECT
  standardmenu menu$(), 15, 15, csr, top, 0, 0, dpage, 0
@@ -1869,7 +1819,7 @@ EXIT SUB
 
 vehmenu:
 menu$(0) = "Previous Menu"
-menu$(1) = "Vehicle" + STR$(ptr)
+menu$(1) = "Vehicle" + STR$(pt)
 menu$(2) = "Name: " + vehname$
 
 IF veh(offset(3)) = 3 THEN tmp$ = " 10" ELSE tmp$ = STR$(veh(8))
@@ -1945,7 +1895,7 @@ RETURN
 
 loadveh:
 setpicstuf veh(), 80, -1
-loadset game$ + ".veh" + CHR$(0), ptr, 0
+loadset game$ + ".veh" + CHR$(0), pt, 0
 vehname$ = STRING$(bound(veh(0) AND 255, 0, 15), 0)
 array2str veh(), 1, vehname$
 RETURN
@@ -1954,7 +1904,7 @@ saveveh:
 veh(0) = bound(LEN(vehname$), 0, 15)
 str2array vehname$, veh(), 1
 setpicstuf veh(), 80, -1
-storeset game$ + ".veh" + CHR$(0), ptr, 0
+storeset game$ + ".veh" + CHR$(0), pt, 0
 RETURN
 
 END SUB
@@ -1973,9 +1923,9 @@ FOR i = 0 TO buffer(0)
 NEXT
 END SUB
 
-SUB writeconstant (filehandle, num, name$, unique$(), prefix$)
+SUB writeconstant (filehandle, num, names$, unique$(), prefix$)
 'prints to already-open filehandle 1
-a$ = exclusive(name$, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _'~")
+a$ = exclusive(names$, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _'~")
 WHILE NOT isunique(a$, unique$(), 0): a$ = numbertail(a$): WEND
 IF a$ <> "" THEN
  a$ = LTRIM$(STR$(num)) + "," + prefix$ + ":" + a$

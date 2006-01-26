@@ -21,10 +21,9 @@ DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
 DECLARE SUB textxbload (f$, array%(), e$)
 DECLARE SUB fixorder (f$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
-DECLARE SUB standardmenu (menu$(), size%, vis%, ptr%, top%, x%, y%, page%, edge%)
+DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE SUB vehicles ()
 DECLARE SUB verifyrpg ()
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION getmapname$ (m%)
 DECLARE FUNCTION numbertail$ (s$)
@@ -37,9 +36,9 @@ DECLARE SUB readscatter (s$, lhold%, array%(), start%)
 DECLARE SUB fontedit (font%(), gamedir$)
 DECLARE SUB savetanim (n%, tastuf%())
 DECLARE SUB loadtanim (n%, tastuf%())
-DECLARE SUB cycletile (cycle%(), tastuf%(), ptr%(), skip%())
+DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE FUNCTION onoroff$ (n%)
@@ -52,10 +51,10 @@ DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
 DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npc%(), npcstat%(), song$(), npc$(), unpc%(), lnpc%())
-DECLARE SUB npcdef (npc%(), ptr%, npc$(), unpc%(), lnpc%())
-DECLARE SUB bitset (array%(), wof%, last%, name$())
+DECLARE SUB npcdef (npc%(), pt%, npc$(), unpc%(), lnpc%())
+DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, file$, master%(), font%())
-DECLARE FUNCTION needaddset (ptr%, check%, what$)
+DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB shopdata ()
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
@@ -77,6 +76,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION maplumpname$(map, oldext$)
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
@@ -94,7 +94,7 @@ FUNCTION addmaphow
 DIM temp$(2)
 
 maptocopy = 0
-ptr = 0
+pt = 0
 
 GOSUB addmaphowmenu
 setkeys
@@ -107,16 +107,16 @@ DO
   addmaphow = -2
   EXIT DO
  END IF
- IF usemenu(ptr, 0, 0, 2, 22) THEN
+ IF usemenu(pt, 0, 0, 2, 22) THEN
   GOSUB addmaphowmenu
  END IF
- IF ptr = 2 THEN
+ IF pt = 2 THEN
   IF intgrabber(maptocopy, 0, general(0), 75, 77) THEN
    GOSUB addmaphowmenu
   END IF
  END IF
  IF keyval(28) > 1 OR keyval(56) > 1 THEN
-  SELECT CASE ptr
+  SELECT CASE pt
    CASE 0 ' cancel
     addmaphow = -2
    CASE 1 ' blank
@@ -126,7 +126,7 @@ DO
   END SELECT
   EXIT DO
  END IF
- standardmenu temp$(), 2, 22, ptr, 0, 0, 0, dpage, 0
+ standardmenu temp$(), 2, 22, pt, 0, 0, 0, dpage, 0
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -157,9 +157,9 @@ defaults(160), pal16(288), gmapscr$(5), gmapscrof(5)
 
 textcolor 15, 0
 
-temp$ = ""
-FOR i = 0 TO 15: temp$ = temp$ + CHR$(i): NEXT i
-str2array temp$, cursorpal(), 0
+xtemp$ = ""
+FOR i = 0 TO 15: xtemp$ = xtemp$ + CHR$(i): NEXT i
+str2array xtemp$, cursorpal(), 0
 
 '--create cursor
 clearpage 2
@@ -193,24 +193,24 @@ DO
  setkeys
  IF keyval(1) > 1 THEN EXIT DO
  oldtop = maptop
- dummy = usemenu(ptr, maptop, 0, 2 + general(0), 24)
+ dummy = usemenu(pt, maptop, 0, 2 + general(0), 24)
  IF oldtop <> maptop THEN GOSUB maketopmenu
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  IF ptr = 0 THEN EXIT DO
-  IF ptr > 0 AND ptr <= general(0) + 1 THEN
-   '--silly backcompat ptr adjustment
-   ptr = ptr - 1
+  IF pt = 0 THEN EXIT DO
+  IF pt > 0 AND pt <= general(0) + 1 THEN
+   '--silly backcompat pt adjustment
+   pt = pt - 1
    GOSUB loadmap
    GOSUB whattodo
-   ptr = ptr + 1
+   pt = pt + 1
    GOSUB maketopmenu
   END IF
-  IF ptr = general(0) + 2 THEN GOSUB addmap: GOSUB maketopmenu
+  IF pt = general(0) + 2 THEN GOSUB addmap: GOSUB maketopmenu
  END IF
  tog = tog XOR 1
  FOR i = 0 TO 24
   textcolor 7, 0
-  IF ptr = maptop + i THEN textcolor 14 + tog, 0
+  IF pt = maptop + i THEN textcolor 14 + tog, 0
   printstr topmenu$(i), 0, i * 8, dpage
  NEXT i
  SWAP vpage, dpage
@@ -265,8 +265,8 @@ DO
   IF csr = 0 THEN GOSUB savemap: RETURN
   IF csr = 1 THEN GOSUB sizemap
   IF csr = 2 THEN
-   npcdef npcstat(), ptr, npc$(), unpc(), lnpc()
-   'xbload game$ + ".n" + filenum$(ptr), npcstat(), "NPCstat lump has dissapeared!"
+   npcdef npcstat(), pt, npc$(), unpc(), lnpc()
+   'xbload game$ + ".n" + filenum$(pt), npcstat(), "NPCstat lump has dissapeared!"
   END IF
   IF csr = 3 THEN
    GOSUB gmapdata
@@ -370,66 +370,66 @@ DO
  END IF
  scri = 0
  FOR i = -1 TO gmapmax
-  temp$ = ""
+  xtemp$ = ""
   SELECT CASE i
    CASE 0, 9
-    temp$ = STR$(gmap(i))
+    xtemp$ = STR$(gmap(i))
    CASE 1
-    IF gmap(1) = 0 THEN temp$ = " -none-" ELSE temp$ = STR$(gmap(1) - 1) + " " + song$(gmap(1) - 1)
+    IF gmap(1) = 0 THEN xtemp$ = " -none-" ELSE xtemp$ = STR$(gmap(1) - 1) + " " + song$(gmap(1) - 1)
    CASE 2, 3
-    IF gmap(i) = 0 THEN temp$ = " NO" ELSE temp$ = " YES"
+    IF gmap(i) = 0 THEN xtemp$ = " NO" ELSE xtemp$ = " YES"
    CASE 4
-    IF gmap(i) = 0 THEN temp$ = " NO" ELSE temp$ = STR$(gmap(i)) + " ticks"
+    IF gmap(i) = 0 THEN xtemp$ = " NO" ELSE xtemp$ = STR$(gmap(i)) + " ticks"
    CASE 5
     SELECT CASE gmap(i)
      CASE 0
-      temp$ = " Crop"
+      xtemp$ = " Crop"
      CASE 1
-      temp$ = " Wrap"
+      xtemp$ = " Wrap"
      CASE 2
-      temp$ = " use default edge tile"
+      xtemp$ = " use default edge tile"
     END SELECT
    CASE 6
     IF gmap(5) = 2 THEN
-     temp$ = STR$(gmap(i))
+     xtemp$ = STR$(gmap(i))
     ELSE
-     temp$ = " N/A"
+     xtemp$ = " N/A"
     END IF
    CASE 7, 12 TO 15
-    temp$ = gmapscr$(scri)
+    xtemp$ = gmapscr$(scri)
     scri = scri + 1
    CASE 8
     IF gmap(7) = 0 THEN
-     temp$ = " N/A"
+     xtemp$ = " N/A"
     ELSE
-     temp$ = STR$(gmap(i))
+     xtemp$ = STR$(gmap(i))
     END IF
    CASE 10
     IF gmap(i) = 0 THEN
-     temp$ = " none"
+     xtemp$ = " none"
     ELSE
-     temp$ = STR$(gmap(i))
+     xtemp$ = STR$(gmap(i))
     END IF
    CASE 11
     SELECT CASE gmap(i)
      CASE 0
-      temp$ = " none"
+      xtemp$ = " none"
      CASE IS < 0
-      temp$ = " up" + STR$(ABS(gmap(i))) + " pixels"
+      xtemp$ = " up" + STR$(ABS(gmap(i))) + " pixels"
      CASE IS > 0
-      temp$ = " down" + STR$(gmap(i)) + " pixels"
+      xtemp$ = " down" + STR$(gmap(i)) + " pixels"
     END SELECT
    CASE 16
     IF gmap(i) = 1 THEN
-     temp$ = " NPCs over Heroes"
+     xtemp$ = " NPCs over Heroes"
     ELSE
-     temp$ = " Heroes over NPCs"
+     xtemp$ = " Heroes over NPCs"
     END IF
   END SELECT
   textcolor 7, 0
   IF i = gd THEN textcolor 14 + tog, 0
-  printstr gd$(i) + temp$, 0, 8 + (8 * i), dpage
-  IF i = 10 THEN rectangle 4 + (8 * LEN(gd$(i) + temp$)), 8 + (8 * i), 8, 8, gmap(i), dpage
+  printstr gd$(i) + xtemp$, 0, 8 + (8 * i), dpage
+  IF i = 10 THEN rectangle 4 + (8 * LEN(gd$(i) + xtemp$)), 8 + (8 * i), 8, 8, gmap(i), dpage
  NEXT i
  IF gmap(5) = 2 THEN
   '--show default edge tile
@@ -692,8 +692,8 @@ DO
      loadsprite cursor(), 0, 400 * npc(i + 900) + (200 * INT(walk / 2)), 5 * (npc(i + 600) - 1), 20, 20, 2
      drawsprite cursor(), 0, pal16(), 16 * (npc(i + 600) - 1), npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy, dpage
      textcolor 14 + tog, 0
-     temp$ = intstr$(npc(i + 600) - 1)
-     printstr temp$, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy + 8, dpage
+     xtemp$ = intstr$(npc(i + 600) - 1)
+     printstr xtemp$, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy + 8, dpage
     END IF
    END IF
   NEXT
@@ -713,8 +713,8 @@ DO
   loadsprite cursor(), 0, (walk * 400), nptr * 5, 20, 20, 2
   drawsprite cursor(), 0, pal16(), 16 * nptr, (x * 20) - mapx, (y * 20) - mapy + 20, dpage
   textcolor 14 + tog, 0
-  temp$ = intstr$(nptr)
-  printstr temp$, (x * 20) - mapx, (y * 20) - mapy + 28, dpage
+  xtemp$ = intstr$(nptr)
+  printstr xtemp$, (x * 20) - mapx, (y * 20) - mapy + 28, dpage
  END IF
  
  '--show foemap--
@@ -884,13 +884,13 @@ IF yesno = 1 THEN
   doors(i + 100) = 0
   doors(i + 200) = 0
  NEXT
- DEF SEG = VARSEG(map(0)): BSAVE maplumpname$(ptr, "t"), VARPTR(map(0)), map(0) * map(1) + 4
- DEF SEG = VARSEG(pass(0)): BSAVE maplumpname$(ptr, "p"), VARPTR(pass(0)), pass(0) * pass(1) + 4
- DEF SEG = VARSEG(emap(0)): BSAVE maplumpname$(ptr, "e"), VARPTR(emap(0)), emap(0) * emap(1) + 4
- DEF SEG = VARSEG(link(0)): BSAVE maplumpname$(ptr, "d"), VARPTR(link(0)), 2000
- DEF SEG = VARSEG(npc(0)): BSAVE maplumpname$(ptr, "l"), VARPTR(npc(0)), 3000
+ xBSAVE maplumpname$(pt, "t"), map(), map(0) * map(1) + 4
+ xBSAVE maplumpname$(pt, "p"), pass(), pass(0) * pass(1) + 4
+ xBSAVE maplumpname$(pt, "e"), emap(), emap(0) * emap(1) + 4
+ xBSAVE maplumpname$(pt, "d"), link(), 2000
+ xBSAVE maplumpname$(pt, "l"), npc(), 3000
  setpicstuf doors(), 600, -1
- storeset game$ + ".dox" + CHR$(0), ptr, 0
+ storeset game$ + ".dox" + CHR$(0), pt, 0
 END IF
 '--reset scroll position
 wide = map(0): high = map(1)
@@ -910,10 +910,10 @@ copymap:
 '--increment map count
 general(0) = general(0) + 1
 '--load the source map
-ptr = how
+pt = how
 GOSUB loadmap
 '-- save the new map
-ptr = general(0)
+pt = general(0)
 GOSUB savemap
 RETURN
 
@@ -933,12 +933,12 @@ map(0) = 64: map(1) = 64
 pass(0) = 64: pass(1) = 64
 emap(0) = 64: emap(1) = 64
 '--save map buffers
-DEF SEG = VARSEG(map(0)): BSAVE maplumpname$(general(0), "t"), VARPTR(map(0)), map(0) * map(1) + 4
-DEF SEG = VARSEG(pass(0)): BSAVE maplumpname$(general(0), "p"), VARPTR(pass(0)), pass(0) * pass(1) + 4
-DEF SEG = VARSEG(emap(0)): BSAVE maplumpname$(general(0), "e"), VARPTR(emap(0)), emap(0) * emap(1) + 4
-DEF SEG = VARSEG(link(0)): BSAVE maplumpname$(general(0), "d"), VARPTR(link(0)), 2000
-DEF SEG = VARSEG(npcstat(0)): BSAVE maplumpname$(general(0), "n"), VARPTR(npcstat(0)), 3000
-DEF SEG = VARSEG(npc(0)): BSAVE maplumpname$(general(0), "l"), VARPTR(npc(0)), 3000
+xBSAVE maplumpname$(general(0), "t"), map(), map(0) * map(1) + 4
+xBSAVE maplumpname$(general(0), "p"), pass(), pass(0) * pass(1) + 4
+xBSAVE maplumpname$(general(0), "e"), emap(), emap(0) * emap(1) + 4
+xBSAVE maplumpname$(general(0), "d"), link(), 2000
+xBSAVE maplumpname$(general(0), "n"), npcstat(), 3000
+xBSAVE maplumpname$(general(0), "l"), npc(), 3000
 setpicstuf doors(), 600, -1
 storeset game$ + ".dox" + CHR$(0), general(0), 0
 '--setup map name
@@ -949,25 +949,25 @@ RETURN
 
 savemap:
 setpicstuf gmap(), 40, -1
-storeset game$ + ".map" + CHR$(0), ptr, 0
-DEF SEG = VARSEG(map(0)): BSAVE maplumpname$(ptr, "t"), VARPTR(map(0)), map(0) * map(1) + 4
-DEF SEG = VARSEG(pass(0)): BSAVE maplumpname$(ptr, "p"), VARPTR(pass(0)), pass(0) * pass(1) + 4
-DEF SEG = VARSEG(emap(0)): BSAVE maplumpname$(ptr, "e"), VARPTR(emap(0)), emap(0) * emap(1) + 4
-DEF SEG = VARSEG(npc(0)): BSAVE maplumpname$(ptr, "l"), VARPTR(npc(0)), 3000
-DEF SEG = VARSEG(link(0)): BSAVE maplumpname$(ptr, "d"), VARPTR(link(0)), 2000
-DEF SEG = VARSEG(npcstat(0)): BSAVE maplumpname$(ptr, "n"), VARPTR(npcstat(0)), 3000
+storeset game$ + ".map" + CHR$(0), pt, 0
+xBSAVE maplumpname$(pt, "t"), map(), map(0) * map(1) + 4
+xBSAVE maplumpname$(pt, "p"), pass(), pass(0) * pass(1) + 4
+xBSAVE maplumpname$(pt, "e"), emap(), emap(0) * emap(1) + 4
+xBSAVE maplumpname$(pt, "l"), npc(), 3000
+xBSAVE maplumpname$(pt, "d"), link(), 2000
+xBSAVE maplumpname$(pt, "n"), npcstat(), 3000
 setpicstuf doors(), 600, -1
-storeset game$ + ".dox" + CHR$(0), ptr, 0
+storeset game$ + ".dox" + CHR$(0), pt, 0
 '--save map name
 buffer(0) = LEN(mapname$)
 str2array LEFT$(mapname$, 39), buffer(), 1
 setpicstuf buffer(), 80, -1
-storeset game$ + ".mn" + CHR$(0), ptr, 0
+storeset game$ + ".mn" + CHR$(0), pt, 0
 RETURN
 
 loadmap:
 setpicstuf gmap(), 40, -1
-loadset game$ + ".map" + CHR$(0), ptr, 0
+loadset game$ + ".map" + CHR$(0), pt, 0
 loadpage game$ + ".til" + CHR$(0), gmap(0), 3
 loadtanim gmap(0), tastuf()
 FOR i = 0 TO 1
@@ -975,16 +975,16 @@ FOR i = 0 TO 1
  cycptr(i) = 0
  cycskip(i) = 0
 NEXT i
-xbload maplumpname$(ptr, "t"), map(), "tilemap lump is missing!"
-xbload maplumpname$(ptr, "p"), pass(), "passmap lump is missing!"
-xbload maplumpname$(ptr, "e"), emap(), "foemap lump is missing!"
-xbload maplumpname$(ptr, "l"), npc(), "npclocation lump is missing!"
-xbload maplumpname$(ptr, "n"), npcstat(), "npcstat lump is missing!"
-xbload maplumpname$(ptr, "d"), link(), "doorlink lump is missing!"
+xbload maplumpname$(pt, "t"), map(), "tilemap lump is missing!"
+xbload maplumpname$(pt, "p"), pass(), "passmap lump is missing!"
+xbload maplumpname$(pt, "e"), emap(), "foemap lump is missing!"
+xbload maplumpname$(pt, "l"), npc(), "npclocation lump is missing!"
+xbload maplumpname$(pt, "n"), npcstat(), "npcstat lump is missing!"
+xbload maplumpname$(pt, "d"), link(), "doorlink lump is missing!"
 setpicstuf doors(), 600, -1
-loadset game$ + ".dox" + CHR$(0), ptr, 0
+loadset game$ + ".dox" + CHR$(0), pt, 0
 wide = map(0): high = map(1)
-mapname$ = getmapname$(ptr)
+mapname$ = getmapname$(pt)
 loadpasdefaults defaults(), gmap(0)
 GOSUB verifymap
 RETURN
@@ -995,7 +995,7 @@ IF map(0) <> pass(0) OR map(0) <> emap(0) OR map(1) <> pass(1) OR map(1) <> emap
  clearpage vpage
  j = 0
  textcolor 15, 0
- printstr "Map" + filenum$(ptr) + ":" + mapname$, 0, j * 8, vpage: j = j + 1
+ printstr "Map" + filenum$(pt) + ":" + mapname$, 0, j * 8, vpage: j = j + 1
  j = j + 1
  printstr "this map seems to be corrupted", 0, j * 8, vpage: j = j + 1
  j = j + 1
@@ -1060,7 +1060,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN DEF SEG = VARSEG(link(0)): BSAVE maplumpname$(ptr, "d"), VARPTR(link(0)), 2000: RETURN
+ IF keyval(1) > 1 THEN xBSAVE maplumpname$(pt, "d"), link(), 2000: RETURN
  'IF keyval(72) > 1 AND cur > 0 THEN cur = cur - 1: IF cur < ttop THEN ttop = ttop - 1
  'IF keyval(80) > 1 AND cur < 199 THEN cur = cur + 1: IF cur > ttop + 10 THEN ttop = ttop + 1
  dummy = usemenu(cur, ttop, 0, 199, 10)
@@ -1083,7 +1083,7 @@ DO
 LOOP
 
 seedoors:
-DEF SEG = VARSEG(map(0)): BSAVE maplumpname$(ptr, "t"), VARPTR(map(0)), map(0) * map(1) + 4
+xBSAVE maplumpname$(pt, "t"), map(), map(0) * map(1) + 4
 menu$(-1) = "Go Back"
 menu$(0) = "Entrance Door"
 menu$(1) = "Exit Door"
@@ -1113,17 +1113,17 @@ DO
  END IF
  rectangle 0, 100, 320, 2, 1 + tog, dpage
  FOR i = -1 TO 4
-  temp$ = ""
-  IF i >= 0 AND i <= 2 THEN temp$ = STR$(link(cur + (i * 200)))
+  xtemp$ = ""
+  IF i >= 0 AND i <= 2 THEN xtemp$ = STR$(link(cur + (i * 200)))
   IF i > 2 THEN
    IF link(cur + (i * 200)) THEN
-    temp$ = STR$(ABS(link(cur + (i * 200)))) + " = " + onoroff$(link(cur + (i * 200))) + " (" + lmnemonic$(ABS(link(cur + (i * 200)))) + ")"
+    xtemp$ = STR$(ABS(link(cur + (i * 200)))) + " = " + onoroff$(link(cur + (i * 200))) + " (" + lmnemonic$(ABS(link(cur + (i * 200)))) + ")"
    ELSE
-    temp$ = " 0 [N/A]"
+    xtemp$ = " 0 [N/A]"
    END IF
   END IF
   col = 7: IF cur2 = i THEN col = 14 + tog
-  edgeprint menu$(i) + temp$, 1, 1 + (i + 1) * 10, col, dpage
+  edgeprint menu$(i) + xtemp$, 1, 1 + (i + 1) * 10, col, dpage
  NEXT i
  edgeprint "ENTER", 275, 0, 15, dpage
  edgeprint "EXIT", 283, 190, 15, dpage
@@ -1146,8 +1146,8 @@ IF doors(link(cur + (0 * 200)) + 200) = 1 THEN
  rectangle doors(link(cur + (0 * 200))) * 20 - dmx, doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 20, 20, 20, 240, 2
  rectangle 1 + doors(link(cur + (0 * 200))) * 20 - dmx, 1 + doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 20, 18, 18, 7, 2
  textcolor 240, 0
- temp$ = STR$(link(cur + (0 * 200)))
- printstr RIGHT$(temp$, LEN(temp$) - 1), doors(link(cur + (0 * 200))) * 20 - dmx + 10 - (4 * LEN(temp$)), doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 14, 2
+ xtemp$ = STR$(link(cur + (0 * 200)))
+ printstr RIGHT$(xtemp$, LEN(xtemp$) - 1), doors(link(cur + (0 * 200))) * 20 - dmx + 10 - (4 * LEN(xtemp$)), doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 14, 2
 END IF
 '-----------------EXIT DOOR
 setpicstuf destdoor(), 600, -1
@@ -1166,12 +1166,12 @@ IF destdoor(link(cur + (1 * 200)) + 200) = 1 THEN
  rectangle destdoor(link(cur + (1 * 200))) * 20 - dmx, destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 80, 20, 20, 240, 2
  rectangle 1 + destdoor(link(cur + (1 * 200))) * 20 - dmx, 1 + destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 80, 18, 18, 7, 2
  textcolor 240, 0
- temp$ = STR$(link(cur + (1 * 200)))
- printstr RIGHT$(temp$, LEN(temp$) - 1), destdoor(link(cur + (1 * 200))) * 20 - dmx + 10 - (4 * LEN(temp$)), destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 86, 2
+ xtemp$ = STR$(link(cur + (1 * 200)))
+ printstr RIGHT$(xtemp$, LEN(xtemp$) - 1), destdoor(link(cur + (1 * 200))) * 20 - dmx + 10 - (4 * LEN(xtemp$)), destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 86, 2
 END IF
 '-----------------RESET DATA
 loadpage game$ + ".til" + CHR$(0), gmap(0), 3
-xbload maplumpname$(ptr, "t"), map(), "Tilemap lump disappeared!"
+xbload maplumpname$(pt, "t"), map(), "Tilemap lump disappeared!"
 RETURN
 
 '----

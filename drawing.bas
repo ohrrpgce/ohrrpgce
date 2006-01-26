@@ -22,20 +22,19 @@ DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE SUB smnemonic (tagname$, index%)
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
 DECLARE SUB flusharray (array%(), size%, value%)
-DECLARE SUB standardmenu (menu$(), size%, vis%, ptr%, top%, x%, y%, dpage%, edge%)
-DECLARE SUB xbload (f$, array%(), e$)
+DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, dpage%, edge%)
 DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE SUB airbrush (x%, y%, d%, m%, c%, p%)
 DECLARE SUB ellipse (x%, y%, radius%, c%, p%, squish1%, squish2%)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-DECLARE FUNCTION needaddset (ptr%, check%, what$)
+DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB writescatter (s$, lhold%, start%)
 DECLARE SUB readscatter (s$, lhold%, start%)
 DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$)
-DECLARE SUB cycletile (cycle%(), tastuf%(), ptr%(), skip%())
+DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE FUNCTION onoroff$ (n%)
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE SUB debug (s$)
@@ -45,7 +44,7 @@ DECLARE SUB loadtanim (n%, tastuf%())
 DECLARE SUB savetanim (n%, tastuf%())
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
-DECLARE SUB bitset (array%(), wof%, last%, name$())
+DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE FUNCTION mouseover% (mouse%(), zox%, zoy%, zcsr%, area%())
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
@@ -63,6 +62,7 @@ DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
@@ -154,7 +154,7 @@ END SUB
 
 SUB gendata (song$(), master())
 STATIC default$
-DIM m$(18), max(18), bit$(15), subm$(4), scriptgenof(4)
+DIM m$(18), max(18), bitname$(15), subm$(4), scriptgenof(4)
 IF general(61) <= 0 THEN general(61) = 161
 IF general(62) <= 0 THEN general(62) = 159
 last = 17
@@ -188,18 +188,21 @@ DO
  IF (keyval(28) > 1 OR keyval(57) > 1) THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 1 THEN
-   bit$(0) = "Pause on Battle Menus"
-   bit$(1) = "Enable Caterpillar Party"
-   bit$(2) = "Don't Restore HP on Levelup"
-   bit$(3) = "Don't Restore MP on Levelup"
-   bit$(4) = "Inns Don't Revive Dead Heroes"
-   bit$(5) = "Hero Swapping Always Available"
-   bit$(6) = "Hide Ready-meter in Battle"
-   bit$(7) = "Hide Health-meter in Battle"
-   bit$(8) = "Disable Debugging Keys"
-   bit$(9) = "Simulate Old Levelup Bug"
-   bit$(10) = "Permit double-triggering of scripts"
-   bitset general(), 101, 10, bit$()
+   bitname$(0) = "Pause on Battle Sub-menus"
+   bitname$(1) = "Enable Caterpillar Party"
+   bitname$(2) = "Don't Restore HP on Levelup"
+   bitname$(3) = "Don't Restore MP on Levelup"
+   bitname$(4) = "Inns Don't Revive Dead Heroes"
+   bitname$(5) = "Hero Swapping Always Available"
+   bitname$(6) = "Hide Ready-meter in Battle"
+   bitname$(7) = "Hide Health-meter in Battle"
+   bitname$(8) = "Disable Debugging Keys"
+   bitname$(9) = "Simulate Old Levelup Bug"
+   bitname$(10) = "Permit double-triggering of scripts"
+   bitname$(11) = "Skip title screen"
+   bitname$(12) = "Skip load screen"
+   bitname$(13) = "Pause on All Battle Menus"
+   editbitset general(), 101, 13, bitname$()
   END IF
   IF csr = 9 THEN GOSUB ttlbrowse
   IF csr = 10 THEN GOSUB renrpg
@@ -522,7 +525,7 @@ clearpage 1
 clearpage 2
 clearpage 3
 menu$(0) = "Return to Main Menu"
-menu$(1) = CHR$(27) + "Browse" + STR$(ptr) + CHR$(26)
+menu$(1) = CHR$(27) + "Browse" + STR$(pt) + CHR$(26)
 menu$(2) = "Replace current " + cap$
 menu$(3) = "Append a new " + cap$
 menu$(4) = "Disable palette colors"
@@ -536,21 +539,21 @@ DO
  tog = tog XOR 1
  IF keyval(29) > 0 AND keyval(14) > 1 THEN
   this = count - 1
-  cropafter ptr, this, 3, game$ + f$, -1, 1
+  cropafter pt, this, 3, game$ + f$, -1, 1
   count = this + 1
  END IF
  IF keyval(1) > 1 THEN EXIT DO
  dummy = usemenu(csr, 0, 0, 4, 24)
  IF csr = 1 THEN
-  IF intgrabber(ptr, 0, count - 1, 75, 77) THEN
-   menu$(1) = CHR$(27) + "Browse" + STR$(ptr) + CHR$(26)
+  IF intgrabber(pt, 0, count - 1, 75, 77) THEN
+   menu$(1) = CHR$(27) + "Browse" + STR$(pt) + CHR$(26)
    GOSUB showpage
   END IF
  END IF
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 2 THEN
-   at = ptr
+   at = pt
    srcbmp$ = browse$(3, default$, "*.bmp", "")
    IF srcbmp$ <> "" THEN
     GOSUB bimport
@@ -637,7 +640,7 @@ RETURN
 
 showpage:
 setdiskpages buffer(), 200, 0
-loadpage game$ + f$ + CHR$(0), ptr, 2
+loadpage game$ + f$ + CHR$(0), pt, 2
 RETURN
 
 END SUB
@@ -1031,7 +1034,7 @@ DO
   IF tmode = 0 THEN GOSUB drawit
   IF tmode = 1 THEN GOSUB tilecut
   IF tmode = 2 THEN
-   bitset defaults(), bnum, 7, bitmenu$()
+   editbitset defaults(), bnum, 7, bitmenu$()
   END IF
  END IF
  IF c < 30 THEN c = c + 1 ELSE c = 17
@@ -1129,6 +1132,7 @@ DO
  END IF
  IF keyval(57) > 0 THEN GOSUB clicktile
  IF keyval(28) > 1 THEN cc = readpixel(bx * 20 + x, by * 20 + y, 3)
+ IF keyval(58) > 0 THEN GOSUB scrolltile
  IF gotm THEN
   IF zone = 1 THEN
    x = INT(zox / 10)
@@ -1337,6 +1341,29 @@ SELECT CASE tool
   NEXT i
   GOSUB refreshbig
 END SELECT
+RETURN
+
+scrolltile:
+rectangle 0, 0, 20, 20, 0, dpage
+shiftx = 0: shifty = 0
+IF keyval(72) > 0 THEN shifty = -1
+IF keyval(80) > 0 THEN shifty = 1
+IF keyval(75) > 0 THEN shiftx = -1
+IF keyval(77) > 0 THEN shiftx = 1
+FOR i = 0 TO 19
+ FOR j = 0 TO 19
+  tempx = (i + shiftx + 20) MOD 20
+  tempy = (j + shifty + 20) MOD 20
+  rectangle tempx, tempy, 1, 1, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
+ NEXT j
+NEXT i
+FOR i = 0 TO 19
+ FOR j = 0 TO 19
+  rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(i, j, dpage), 3
+ NEXT j
+NEXT i
+GOSUB refreshbig
+rectangle 0, 0, 20, 20, 0, dpage
 RETURN
 
 refreshbig:
@@ -1650,9 +1677,9 @@ DO
  SELECT CASE context
   CASE 0 '---PICK A STATEMENT---
    IF keyval(1) > 1 THEN EXIT DO
-   IF usemenu(ptr, dummy, 0, 9, 9) THEN GOSUB refreshmenu
+   IF usemenu(pt, dummy, 0, 9, 9) THEN GOSUB refreshmenu
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
-    IF ptr = 0 THEN
+    IF pt = 0 THEN
      EXIT DO
     ELSE
      context = 1
@@ -1661,18 +1688,18 @@ DO
   CASE 1 '---EDIT THAT STATEMENT---
    IF keyval(1) > 1 OR keyval(28) > 1 OR keyval(57) > 1 THEN context = 0
    dummy = usemenu(ptr2, dummy, 0, 1, 1)
-   IF ptr2 = 0 THEN IF intgrabber(tastuf(2 + bound(ptr - 1, 0, 8) + 20 * taset), 0, 6, 75, 77) THEN GOSUB refreshmenu
-   IF ptr2 = 1 THEN IF intgrabber(tastuf(11 + bound(ptr - 1, 0, 8) + 20 * taset), llim(tastuf(2 + bound(ptr - 1, 0, 8) + 20 * taset)), ulim(tastuf(2 + bound(ptr - 1, 0, 8) + 20 * taset)), 75, 77) THEN GOSUB refreshmenu
+   IF ptr2 = 0 THEN IF intgrabber(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset), 0, 6, 75, 77) THEN GOSUB refreshmenu
+   IF ptr2 = 1 THEN IF intgrabber(tastuf(11 + bound(pt - 1, 0, 8) + 20 * taset), llim(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)), ulim(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)), 75, 77) THEN GOSUB refreshmenu
  END SELECT
  FOR i = 0 TO 9
   textcolor 7, 0
-  IF i = ptr THEN
+  IF i = pt THEN
    textcolor 14 + tog, 0
   END IF
   IF context = 1 THEN textcolor 8, 0
   printstr menu$(i), 0, i * 8, dpage
  NEXT i
- IF ptr > 0 THEN
+ IF pt > 0 THEN
   FOR i = 0 TO 1
    textcolor 7, 0
    IF context = 1 AND i = ptr2 THEN
@@ -1681,7 +1708,7 @@ DO
    IF context = 0 THEN textcolor 8, 0
    printstr menu$(10 + i), 0, 100 + i * 8, dpage
   NEXT i
- END IF 'ptr > 1
+ END IF 'pt > 1
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -1705,10 +1732,10 @@ FOR i = 0 TO 8
  IF a = 6 THEN menu$(i + 1) = menu$(i + 1) + lmnemonic(b)
 NEXT i
 IF i = 8 THEN menu$(10) = "end of animation"
-menu$(10) = "Action=" + stuff$(bound(tastuf(2 + bound(ptr - 1, 0, 8) + 20 * taset), 0, 7))
+menu$(10) = "Action=" + stuff$(bound(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset), 0, 7))
 menu$(11) = "Value="
-this = tastuf(11 + bound(ptr - 1, 0, 8) + 20 * taset)
-SELECT CASE tastuf(2 + bound(ptr - 1, 0, 8) + 20 * taset)
+this = tastuf(11 + bound(pt - 1, 0, 8) + 20 * taset)
+SELECT CASE tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)
  CASE 1 TO 4
   menu$(11) = menu$(11) + intstr$(this) + " Tiles"
  CASE 5
@@ -1761,14 +1788,13 @@ NEXT i
 END SUB
 
 SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, file$, master(), font())
-STATIC default$, clippedpal
-DIM nulpal(8), placer(1600), clip(1600), pclip(8), menu$(255), pmenu$(3), bmpd(40), mouse(4), area(20, 4), tool$(5), icon$(5), shortk(5), cursor(5), workpal(8)
+STATIC default$, clippedpal, clippedw, clippedh, paste
+DIM nulpal(8), placer(1600), pclip(8), menu$(255), pmenu$(3), bmpd(40), mouse(4), area(20, 4), tool$(5), icon$(5), shortk(5), cursor(5), workpal(8)
 
 gotm = setmouse(mouse())
 GOSUB initmarea
 airsize = 5
 mist = 10
-paste = 0
 icsr = 0
 itop = 0
 dcsr = 1
@@ -1782,7 +1808,9 @@ tool$(3) = "Fill": icon$(3) = "F":     shortk(3) = 33: cursor(3) = 3
 tool$(4) = "Oval": icon$(4) = "O":     shortk(4) = 24: cursor(4) = 2
 tool$(5) = "Air ": icon$(5) = "A":     shortk(5) = 30: cursor(5) = 3
 
-DEF SEG = VARSEG(nulpal(0))
+' TODO : needs to go in compat.bas, probably
+'DEF SEG = VARSEG(nulpal(0))
+defseg(nulpal(0))
 FOR i = 0 TO 15
  POKE i, i
 NEXT i
@@ -1801,7 +1829,7 @@ DO
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) > 1 THEN
   GOSUB savealluc
-  cropafter ptr, sets, 0, game$ + file$, size * perset, 1
+  cropafter pt, sets, 0, game$ + file$, size * perset, 1
   clearpage 3
   GOSUB loadalluc
  END IF
@@ -1809,39 +1837,39 @@ DO
  IF keyval(73) > 1 THEN
   GOSUB savealluc
   top = large(top - atatime, 0)
-  ptr = large(ptr - atatime, 0)
+  pt = large(pt - atatime, 0)
   GOSUB loadalluc
  END IF
  IF keyval(81) > 1 THEN
   GOSUB savealluc
   top = large(small(top + atatime, sets - atatime), 0)
-  ptr = large(small(ptr + atatime, sets - atatime), 0)
+  pt = large(small(pt + atatime, sets - atatime), 0)
   GOSUB loadalluc
  END IF
  IF keyval(72) > 1 THEN
-  ptr = large(ptr - 1, 0)
-  IF ptr < top THEN
+  pt = large(pt - 1, 0)
+  IF pt < top THEN
    j = top + atatime: GOSUB savewuc
-   top = ptr
+   top = pt
    FOR i = atatime TO 1 STEP -1
     FOR o = 0 TO perset - 1
      loadsprite placer(), 0, size * o, soff * (i - 1), xw, yw, 3
      stosprite placer(), 0, size * o, soff * i, 3
     NEXT o
    NEXT i
-   j = ptr: GOSUB loadwuc
+   j = pt: GOSUB loadwuc
   END IF
  END IF
- IF keyval(80) > 1 AND ptr < 32767 THEN
-  ptr = ptr + 1
-  IF needaddset(ptr, sets, "graphics") THEN
+ IF keyval(80) > 1 AND pt < 32767 THEN
+  pt = pt + 1
+  IF needaddset(pt, sets, "graphics") THEN
    setpicstuf buffer(), size * perset, -1
    FOR i = 0 TO (size * perset) / 2
     buffer(i) = 0
    NEXT i
-   storeset game$ + file$ + CHR$(0), ptr, 0
+   storeset game$ + file$ + CHR$(0), pt, 0
   END IF
-  IF ptr > top + atatime THEN
+  IF pt > top + atatime THEN
    j = top: GOSUB savewuc
    top = top + 1
    FOR i = 0 TO atatime - 1
@@ -1850,7 +1878,7 @@ DO
      stosprite placer(), 0, size * o, soff * i, 3
     NEXT o
    NEXT i
-   j = ptr: GOSUB loadwuc
+   j = pt: GOSUB loadwuc
   END IF
  END IF
  IF keyval(75) > 1 THEN num = large(num - 1, 0)
@@ -1861,34 +1889,40 @@ DO
  IF keyval(27) > 1 THEN
   offset = changepal(offset, offset + 1, workpal(), 0)
  END IF
- IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN loadsprite clip(), 0, num * size, soff * (ptr - top), xw, yw, 3: paste = 1
- IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN stosprite clip(), 0, num * size, soff * (ptr - top), 3
+ IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN 
+  loadsprite spriteclip(), 0, num * size, soff * (pt - top), xw, yw, 3
+  paste = 1
+  clippedw = xw
+  clippedh = yw
+ END IF
+ IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN
+  loadsprite placer(), 0, num * size, soff * (pt - top), xw, yw, 3
+  rectangle 0, 0, xw, yw, 0, dpage
+  drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
+  rectangle 0, 0, clippedw, clippedh, 0, dpage
+  drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
+  getsprite placer(), 0, 0, 0, xw, yw, dpage
+  stosprite placer(), 0, num * size, soff * (pt - top), 3
+ END IF
  IF (keyval(29) > 0 AND keyval(20) > 1) AND paste = 1 THEN     'transparent pasting
-  loadsprite placer(), 0, num * size, soff * (ptr - top), xw, yw, 3
-  FOR i = 0 TO size / 2
-   outword = placer(i)
-   lowestb = clip(i) AND &hF
-   IF lowestb THEN outword = (outword AND &hFFF0) OR lowestb
-   lowb = clip(i) AND &hF0
-   IF lowb THEN outword = (outword AND &hFF0F) OR lowb
-   highb = clip(i) AND &hF00
-   IF highb THEN outword = (outword AND &hF0FF) OR highb
-   highestb = clip(i) AND &hF000
-   IF highestb THEN outword = (outword AND &hFFF) OR highestb
-   placer(i) = outword
-  NEXT
-  stosprite placer(), 0, num * size, soff * (ptr - top), 3
+  loadsprite placer(), 0, num * size, soff * (pt - top), xw, yw, 3
+  rectangle 0, 0, xw, yw, 0, dpage
+  drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
+  drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
+  getsprite placer(), 0, 0, 0, xw, yw, dpage
+  stosprite placer(), 0, num * size, soff * (pt - top), 3
  END IF
  GOSUB choose
  textcolor 7, 0
  printstr "Palette" + STR$(offset), 320 - (LEN("Palette" + STR$(offset)) * 8), 0, dpage
- printstr "Set" + STR$(ptr), 320 - (LEN("Set" + STR$(ptr)) * 8), 8, dpage
+ printstr "Set" + STR$(pt), 320 - (LEN("Set" + STR$(pt)) * 8), 8, dpage
  printstr info$(num), 320 - (LEN(info$(num)) * 8), 16, dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
  dowait
 LOOP
+
 offset = changepal(offset, offset, workpal(), 0)
 GOSUB savealluc
 clearpage 0
@@ -1899,7 +1933,7 @@ EXIT SUB
 
 choose:
 rectangle 0, 0, 320, 200, 244, dpage
-rectangle 4 + (num * (xw + 1)), (ptr - top) * (yw + 5), xw + 2, yw + 2, 15, dpage
+rectangle 4 + (num * (xw + 1)), (pt - top) * (yw + 5), xw + 2, yw + 2, 15, dpage
 FOR i = top TO small(top + atatime, sets)
  FOR o = 0 TO perset - 1
   rectangle 5 + (o * (xw + 1)), 1 + ((i - top) * (yw + 5)), xw, yw, 0, dpage
@@ -1914,7 +1948,7 @@ undodepth = 0
 undoptr = 0
 undomax = (32000 \ size) - 1
 GOSUB spedbak
-loadsprite placer(), 0, num * size, soff * (ptr - top), xw, yw, 3
+loadsprite placer(), 0, num * size, soff * (pt - top), xw, yw, 3
 setkeys
 DO
  setwait timing(), 110
@@ -1928,15 +1962,17 @@ DO
   IF box OR drl OR ovalstep THEN
    GOSUB resettool
   ELSE
-   stosprite placer(), 0, num * size, soff * (ptr - top), 3: GOSUB resettool: RETURN
+   stosprite placer(), 0, num * size, soff * (pt - top), 3: GOSUB resettool: RETURN
   END IF
  END IF
  GOSUB sprctrl
  tog = tog XOR 1
+ copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
  GOSUB spritescreen
  SWAP vpage, dpage
  setvispage vpage
- copypage 2, dpage
+ 'copypage 2, dpage	'undid the above move. this is necessary to avoid garbage in sprite.
+ rectangle 239, 119, xw, yw, 0, dpage
  dowait
 LOOP
 
@@ -1966,23 +2002,36 @@ IF keyval(27) > 1 OR (zone = 6 AND mouse(3) > 0) THEN
 END IF
 IF keyval(25) > 1 OR (zone = 19 AND mouse(3) > 0) THEN '--call palette browser
  '--write changes so far
- stosprite placer(), 0, num * size, soff * (ptr - top), 3
+ stosprite placer(), 0, num * size, soff * (pt - top), 3
  '--save current palette
  storepal16 workpal(), 0, offset
- offset = pal16browse(offset, 1, num * size, soff * (ptr - top), xw, yw, 3)
+ offset = pal16browse(offset, 1, num * size, soff * (pt - top), xw, yw, 3)
  getpal16 workpal(), 0, offset
 END IF
 '--UNDO
 IF (keyval(29) > 0 AND keyval(44) > 1) OR (zone = 20 AND mouse(3) > 0) THEN GOSUB readundospr
 '--COPY (CTRL+INS,SHIFT+DEL,CTRL+C)
 IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN
- stosprite placer(), 0, num * size, soff * (ptr - top), 3
- loadsprite clip(), 0, num * size, soff * (ptr - top), xw, yw, 3: paste = 1
+ clippedw = xw
+ clippedh = yw
+ stosprite placer(), 0, num * size, soff * (pt - top), 3
+ loadsprite spriteclip(), 0, num * size, soff * (pt - top), xw, yw, 3
+ paste = 1
 END IF
 '--PASTE (SHIFT+INS,CTRL+V)
 IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN
- stosprite clip(), 0, num * size, soff * (ptr - top), 3
- loadsprite placer(), 0, num * size, soff * (ptr - top), xw, yw, 3
+ rectangle 0, 0, xw, yw, 0, dpage
+ drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
+ rectangle x, y, clippedw, clippedh, 0, dpage
+ drawsprite spriteclip(), 0, nulpal(), 0, x, y, dpage
+ getsprite placer(), 0, 0, 0, xw, yw, dpage
+END IF
+'--TRANSPARENT PASTE (CTRL+T)
+IF (keyval(29) > 0 AND keyval(20) > 1) AND paste = 1 THEN
+ rectangle 0, 0, xw, yw, 0, dpage
+ drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
+ drawsprite spriteclip(), 0, nulpal(), 0, x, y, dpage
+ getsprite placer(), 0, 0, 0, xw, yw, dpage
 END IF
 '--COPY PALETTE (ALT+C)
 IF keyval(56) > 0 AND keyval(46) > 1 THEN
@@ -2000,7 +2049,9 @@ IF keyval(56) > 0 AND keyval(47) > 1 THEN
  END IF
 END IF
 IF keyval(56) > 0 AND col > 0 THEN
- DEF SEG = VARSEG(workpal(0))
+' TODO - find some way of making this compatible
+' DEF SEG = VARSEG(workpal(0))
+ defseg(workpal(0))  
  IF keyval(72) > 0 AND PEEK(col) > 15 THEN POKE col, PEEK(col) - 16
  IF keyval(80) > 0 AND PEEK(col) < 240 THEN POKE col, PEEK(col) + 16
  IF keyval(75) > 0 AND PEEK(col) > 0 THEN POKE col, PEEK(col) - 1
@@ -2222,7 +2273,9 @@ NEXT i
 '--swap the transparent palette entry to 0
 IF pcsr = 0 THEN
  getbmppal srcbmp$ + CHR$(0), master(), workpal(), 0
- DEF SEG = VARSEG(workpal(0))
+ 'TODO more def seg and poke stuff
+' DEF SEG = VARSEG(workpal(0))
+ defseg(workpal(0))
  'swap black with the transparent color
  POKE temp, PEEK(0)
  POKE 0, 0
@@ -2299,7 +2352,9 @@ getsprite placer(), 0, 239, 119, xw, yw, dpage
 RETURN
 
 spritescreen:
-DEF SEG = VARSEG(workpal(0))
+'TODO
+'DEF SEG = VARSEG(workpal(0))
+defseg(workpal(0))
 rectangle 247 + ((PEEK(col) - (INT(PEEK(col) / 16) * 16)) * 4), 0 + (INT(PEEK(col) / 16) * 6), 5, 7, 15, dpage
 FOR i = 0 TO 15
  FOR o = 0 TO 15
@@ -2314,34 +2369,44 @@ textcolor 15, 0
 printstr LEFT$(" Pal", 4 - (LEN(STR$(offset)) - 3)) + STR$(offset), 248, 100, dpage
 rectangle 247 + (col * 4), 110, 5, 7, 15, dpage
 FOR i = 0 TO 15
- rectangle 248 + (i * 4), 111, 3, 5, PEEK(i), dpage
+  rectangle 248 + (i * 4), 111, 3, 5, PEEK(i), dpage
 NEXT
 IF zoom = 4 THEN hugesprite placer(), workpal(), 0, 4, 1, dpage
 IF zoom = 2 THEN bigsprite placer(), workpal(), 0, 4, 1, dpage
 IF box = 1 THEN
- DEF SEG = VARSEG(workpal(0))
+'TODO
+ 'DEF SEG = VARSEG(workpal(0))
+ defseg(workpal(0))
  rectangle 4 + small(x, bx) * zoom, 1 + small(y, by) * zoom, (ABS(x - bx) + 1) * zoom, (ABS(y - by) + 1) * zoom, PEEK(col), dpage
  rectangle 4 + bx * zoom, 1 + by * zoom, zoom, zoom, tog * 15, dpage
 END IF
 rectangle 4 + (x * zoom), 1 + (y * zoom), zoom, zoom, tog * 15, dpage
 drawsprite placer(), 0, workpal(), 0, 239, 119, dpage
 IF box = 1 THEN
- DEF SEG = VARSEG(workpal(0))
+'TODO
+ 'DEF SEG = VARSEG(workpal(0))
+ defseg(workpal(0))
  rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, PEEK(col), dpage
  rectangle 239 + bx, 119 + by, 1, 1, tog * 15, dpage
 END IF
 IF drl = 1 THEN
- DEF SEG = VARSEG(workpal(0))
+'TODO
+' DEF SEG = VARSEG(workpal(0))
+ defseg(workpal(0))
  drawline 239 + x, 119 + y, 239 + bx, 119 + by, PEEK(col), dpage
  drawline 5 + (x * zoom), 2 + (y * zoom), 5 + (bx * zoom), 2 + (by * zoom), PEEK(col), dpage
 END IF
 IF ovalstep > 0 THEN
- DEF SEG = VARSEG(workpal(0))
+'TODO
+' DEF SEG = VARSEG(workpal(0))
+ defseg(workpal(0))
  ellipse 239 + bx, 119 + by, radius, PEEK(col), dpage, squishx, squishy
  ellipse 5 + (bx * zoom), 2 + (by * zoom), radius * zoom, PEEK(col), dpage, squishx, squishy
 END IF
 IF tool = 5 THEN
- DEF SEG = VARSEG(workpal(0))
+'TODO
+' DEF SEG = VARSEG(workpal(0))
+ defseg(workpal(0))
  ellipse 239 + x, 119 + y, airsize / 2, PEEK(col), dpage, 0, 0
  ellipse 5 + (x * zoom), 2 + (y * zoom), (airsize / 2) * zoom, PEEK(col), dpage, 0, 0
 END IF
@@ -2510,55 +2575,6 @@ IF j <= sets THEN
  NEXT o
 END IF
 RETURN
-
-END SUB
-
-SUB tagnames
-DIM menu$(2)
-clearpage 0
-clearpage 1
-
-IF general(56) < 1 THEN general(56) = 1
-ptr = 2
-csr = 0
-menu$(0) = "Previous Menu"
-tagname$ = lmnemonic$(ptr)
-
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(csr, 0, 0, 2, 24)
- IF csr = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN EXIT DO
- IF csr = 1 THEN
-  oldptr = ptr
-  IF intgrabber(ptr, 0, small(general(56) + 1, 999), 75, 77) THEN
-   IF ptr > general(56) THEN general(56) = ptr
-   smnemonic tagname$, oldptr
-   tagname$ = lmnemonic$(ptr)
-  END IF
- END IF
- IF csr = 2 THEN
-  strgrabber tagname$, 20
-  IF keyval(28) > 1 THEN
-   smnemonic tagname$, ptr
-   ptr = small(ptr + 1, 999)
-   tagname$ = lmnemonic$(ptr)
-  END IF
- END IF
- menu$(1) = "Tag" + STR$(ptr)
- menu$(2) = "Name:" + tagname$
- 
- standardmenu menu$(), 2, 22, csr, 0, 0, 0, dpage, 0
- 
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-smnemonic tagname$, ptr
 
 END SUB
 

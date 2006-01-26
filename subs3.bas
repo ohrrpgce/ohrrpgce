@@ -9,11 +9,11 @@ DEFINT A-Z
 DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION filenum$ (n%)
-DECLARE SUB writeconstant (filehandle%, num%, name$, unique$(), prefix$)
+DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
 DECLARE SUB safekill (f$)
 DECLARE SUB touchfile (f$)
 DECLARE SUB romfontchar (font%(), char%)
-DECLARE SUB standardmenu (menu$(), size%, vis%, ptr%, top%, x%, y%, page%, edge%)
+DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION readitemname$ (index%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
@@ -21,7 +21,6 @@ DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION getShortName$ (filename$)
 DECLARE FUNCTION getLongName$ (filename$)
 DECLARE SUB textfatalerror (e$)
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
@@ -33,11 +32,11 @@ DECLARE FUNCTION loadname$ (length%, offset%)
 DECLARE SUB exportnames (gamedir$, song$())
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
-DECLARE FUNCTION needaddset (ptr%, check%, what$)
+DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$)
-DECLARE SUB cycletile (cycle%(), tastuf%(), ptr%(), skip%())
+DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE FUNCTION onoroff$ (n%)
@@ -45,8 +44,7 @@ DECLARE FUNCTION intstr$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB bitset (array%(), wof%, last%, name$())
-DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
+DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE SUB formation (song$())
 DECLARE SUB enemydata ()
@@ -62,41 +60,110 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
+DECLARE SUB smnemonic (tagname$, index%)
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'
 
 REM $STATIC
+SUB editbitset (array(), wof, last, names$())
+
+'---DIM AND INIT---
+pt = -1
+top = -1
+
+'---MAIN LOOP---
+setkeys
+DO
+ setwait timing(), 80
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN EXIT DO
+ dummy = usemenu(pt, top, -1, last, 24)
+ IF pt >= 0 THEN
+  IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, pt, 0
+  IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, pt, 1
+  IF keyval(57) > 1 OR keyval(28) > 1 THEN setbit array(), wof, pt, readbit(array(), wof, pt) XOR 1
+ ELSE
+  IF keyval(28) > 1 OR keyval(57) > 1 THEN EXIT DO
+ END IF
+ FOR i = top TO small(top + 24, last)
+  c = 8 - readbit(array(), wof, i)
+  IF pt = i THEN c = (8 * readbit(array(), wof, i)) + 6 + tog
+  textcolor c, 0
+  IF i >= 0 THEN
+   printstr names$(i), 8, (i - top) * 8, dpage
+  ELSE
+   IF c = 8 THEN c = 7
+   textcolor c, 0
+   printstr "Previous Menu", 8, (i - top) * 8, dpage
+  END IF
+ NEXT i
+ ' printstr STR$(pt) + STR$(top) + STR$(last), 160, 0, dpage
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
+'---TERMINATE---
+
+END SUB
+
+FUNCTION bound (n, lowest, highest)
+bound = n
+IF n < lowest THEN bound = lowest
+IF n > highest THEN bound = highest
+END FUNCTION
+
 SUB debug (s$)
-OPEN "c_debug.txt" FOR APPEND AS #3
-PRINT #3, s$
-CLOSE #3
+ff = freefile
+OPEN "c_debug.txt" FOR APPEND AS #ff
+PRINT #ff, s$
+CLOSE #ff
+END SUB
+
+SUB drawmini (high, wide, cursor(), page, tastuf())
+
+clearpage vpage
+FOR i = 0 TO high
+ FOR o = 0 TO wide
+  block = readmapblock(o, i)
+  IF block > 207 THEN block = (block - 207) + tastuf(20)
+  IF block > 159 THEN block = (block - 159) + tastuf(0)
+  mx = block - (INT(block / 16) * 16)
+  my = INT(block / 16)
+  loadsprite cursor(), 0, (INT(RND * 7) + 7) + (mx * 20), (INT(RND * 7) + 7) + (my * 20), 1, 1, 3
+  stosprite cursor(), 0, o, i, page
+ NEXT o
+NEXT i
+
 END SUB
 
 FUNCTION exclude$ (s$, x$)
-out$ = ""
+outf$ = ""
 FOR i = 1 TO LEN(s$)
  ok = -1
  FOR j = 1 TO LEN(x$)
   IF MID$(s$, i, 1) = MID$(x$, j, 1) THEN ok = 0
  NEXT j
- IF ok THEN out$ = out$ + MID$(s$, i, 1)
+ IF ok THEN outf$ = outf$ + MID$(s$, i, 1)
 NEXT i
-exclude$ = out$
+exclude$ = outf$
 END FUNCTION
 
 FUNCTION exclusive$ (s$, x$)
-out$ = ""
+outf$ = ""
 FOR i = 1 TO LEN(s$)
  ok = 0
  FOR j = 1 TO LEN(x$)
   IF MID$(s$, i, 1) = MID$(x$, j, 1) THEN ok = 1
  NEXT j
- IF ok THEN out$ = out$ + MID$(s$, i, 1)
+ IF ok THEN outf$ = outf$ + MID$(s$, i, 1)
 NEXT i
-exclusive$ = out$
+exclusive$ = outf$
 END FUNCTION
 
 SUB flusharray (array(), size, value)
@@ -156,11 +223,11 @@ FUNCTION numbertail$ (s$)
 DIM n AS LONG
 
 IF s$ = "" THEN
- out$ = "BLANK"
+ outf$ = "BLANK"
 ELSE
  a = ASC(RIGHT$(s$, 1))
  IF a < 48 OR a > 57 THEN
-  out$ = s$ + "2"
+  outf$ = s$ + "2"
  ELSE
   a$ = s$
   b$ = ""
@@ -172,11 +239,11 @@ ELSE
   IF LEN(b$) > 9 THEN b$ = "0"
   n = VAL(b$)
   n = n + 1
-  out$ = a$ + LTRIM$(STR$(n))
+  outf$ = a$ + LTRIM$(STR$(n))
  END IF
 END IF
 
-numbertail$ = out$
+numbertail$ = outf$
 
 END FUNCTION
 
@@ -213,6 +280,55 @@ rotascii$ = temp$
 
 END FUNCTION
 
+SUB tagnames
+DIM menu$(2)
+clearpage 0
+clearpage 1
+
+IF general(56) < 1 THEN general(56) = 1
+pt = 2
+csr = 0
+menu$(0) = "Previous Menu"
+tagname$ = lmnemonic$(pt)
+
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN EXIT DO
+ dummy = usemenu(csr, 0, 0, 2, 24)
+ IF csr = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN EXIT DO
+ IF csr = 1 THEN
+  oldptr = pt
+  IF intgrabber(pt, 0, small(general(56) + 1, 999), 75, 77) THEN
+   IF pt > general(56) THEN general(56) = pt
+   smnemonic tagname$, oldptr
+   tagname$ = lmnemonic$(pt)
+  END IF
+ END IF
+ IF csr = 2 THEN
+  strgrabber tagname$, 20
+  IF keyval(28) > 1 THEN
+   smnemonic tagname$, pt
+   pt = small(pt + 1, 999)
+   tagname$ = lmnemonic$(pt)
+  END IF
+ END IF
+ menu$(1) = "Tag" + STR$(pt)
+ menu$(2) = "Name:" + tagname$
+ 
+ standardmenu menu$(), 2, 22, csr, 0, 0, 0, dpage, 0
+ 
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
+smnemonic tagname$, pt
+
+END SUB
+
 SUB textfatalerror (e$)
 
 debug "fatal error:" + e$
@@ -222,7 +338,18 @@ touchfile workingdir$ + "\__danger.tmp"
 PRINT "fatal error:"
 PRINT e$
 
-KILL workingdir$ + "\*.*"
+'KILL workingdir$ + "\*.*"
+'borrowed this code from game.bas cos wildcard didn't work
+findfiles workingdir$ + "\*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
+fh = FREEFILE
+OPEN "filelist.tmp" FOR INPUT AS #fh
+DO UNTIL EOF(fh)
+INPUT #fh, filename$
+filename$ = UCASE$(filename$)
+KILL workingdir$ + "\" + filename$
+LOOP
+CLOSE #fh
+KILL "filelist.tmp"
 RMDIR workingdir$
 
 SYSTEM
@@ -242,7 +369,19 @@ END IF
 
 touchfile "unlump1.tmp\nothing.tmp"
 
-KILL "unlump1.tmp\*.*"
+'KILL "unlump1.tmp\*.*"
+ 'borrowed this code from game.bas cos wildcard didn't work
+ findfiles "unlump1.tmp\*.*" + chr$(0), 0, "unlist.tmp" + CHR$(0), buffer()
+ fh = FREEFILE
+ OPEN "unlist.tmp" FOR INPUT AS #fh
+ DO UNTIL EOF(fh)
+  INPUT #fh, filename$
+  filename$ = UCASE$(filename$)
+  KILL "unlump1.tmp\" + filename$
+ LOOP
+ CLOSE #fh
+ KILL "unlist.tmp"
+
 RMDIR "unlump1.tmp"
 
 END FUNCTION
@@ -259,32 +398,6 @@ a$ = LEFT$(s$, small(maxlen, 255))
 PUT #fh, 2 + index * 11, a$
 
 CLOSE #fh
-
-END SUB
-
-SUB xbload (f$, array(), e$)
-
-IF isfile(f$ + CHR$(0)) THEN
- handle = FREEFILE
- OPEN f$ FOR BINARY AS #handle
- bytes = LOF(handle)
- CLOSE #handle
- IF bytes THEN
-  OPEN f$ FOR BINARY AS #handle
-  a$ = " "
-  GET #handle, 1, a$
-  CLOSE #handle
-  IF a$ = CHR$(253) THEN
-   DEF SEG = VARSEG(array(0)): BLOAD f$, VARPTR(array(0))
-  ELSE
-   fatalerror e$ + "(unbloadable)"
-  END IF
- ELSE
-  fatalerror e$ + "(zero byte)"
- END IF
-ELSE
- fatalerror e$
-END IF
 
 END SUB
 

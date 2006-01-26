@@ -7,9 +7,9 @@ DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, pic
 DECLARE SUB clearallpages ()
 DECLARE SUB writeattackdata (array%(), index%)
 DECLARE SUB readattackdata (array%(), index%)
-DECLARE SUB standardmenu (menu$(), size%, vis%, ptr%, top%, x%, y%, page%, edge%)
+DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
-DECLARE SUB setactivemenu (workmenu%(), newmenu%(), ptr%, top%, size%)
+DECLARE SUB setactivemenu (workmenu%(), newmenu%(), pt%, top%, size%)
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DEFINT A-Z
 '$DYNAMIC
@@ -42,7 +42,6 @@ DECLARE SUB fixorder (f$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE SUB vehicles ()
 DECLARE SUB verifyrpg ()
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION getmapname$ (m%)
 DECLARE FUNCTION numbertail$ (s$)
@@ -55,9 +54,9 @@ DECLARE SUB readscatter (s$, lhold%, start%)
 DECLARE SUB fontedit (font%(), gamedir$)
 DECLARE SUB savetanim (n%, tastuf%())
 DECLARE SUB loadtanim (n%, tastuf%())
-DECLARE SUB cycletile (cycle%(), tastuf%(), ptr%(), skip%())
+DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE FUNCTION onoroff$ (n%)
@@ -70,10 +69,10 @@ DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
 DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npc%(), npcstat%(), song$(), npc$(), unpc%(), lnpc%())
-DECLARE SUB npcdef (npc%(), ptr%, npc$(), unpc%(), lnpc%())
-DECLARE SUB bitset (array%(), wof%, last%, name$())
+DECLARE SUB npcdef (npc%(), pt%, npc$(), unpc%(), lnpc%())
+DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, file$, master%(), font%())
-DECLARE FUNCTION needaddset (ptr%, check%, what$)
+DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB shopdata ()
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
@@ -93,13 +92,9 @@ DECLARE SUB maptile (master%(), font())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
+DECLARE FUNCTION getbinsize% (id%)
 
-DECLARE FUNCTION bound% (n%, lowest%, highest%)
-DECLARE FUNCTION onoroff$ (n%)
-DECLARE FUNCTION lmnemonic$ (index%)
-DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
-DECLARE SUB strgrabber (s$, maxl%)
-
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
@@ -144,9 +139,11 @@ FOR i = 0 TO 7
  atkbit$(i + 29) = "Fail vs " + sname$(i + 9)                  '29-36
 NEXT i
 
-'37 to 51 are unused
-FOR i = 37 TO 48
- atkbit$(i) = "[placeholder " + LTRIM$(STR$(i)) + "]"
+FOR i = 0 TO 7
+ atkbit$(i + 37) = "Cannot target enemy slot" + STR$(i)
+NEXT i
+FOR i = 0 TO 3
+ atkbit$(i + 45) = "Cannot target hero slot" + STR$(i)
 NEXT i
 
 atkbit$(49) = "Ignore hero's extra hits"
@@ -571,7 +568,7 @@ menulimits(AtkBaseDef) = AtkLimBaseDef
 '----------------------------------------------------------
 '--menu structure
 DIM workmenu(10), dispmenu$(10)
-ptr = 0: top = 0: size = 0
+pt = 0: top = 0: size = 0
 
 DIM mainMenu(9)
 mainMenu(0) = AtkBackAct
@@ -623,7 +620,7 @@ chainMenu(1) = AtkChainTo
 chainMenu(2) = AtkChainRate
 
 '--default starting menu
-setactivemenu workmenu(), mainMenu(), ptr, top, size
+setactivemenu workmenu(), mainMenu(), pt, top, size
 
 menudepth = 0
 lastptr = 0
@@ -660,9 +657,9 @@ DO
   END IF
  END IF
  
- dummy = usemenu(ptr, top, 0, size, 22)
+ dummy = usemenu(pt, top, 0, size, 22)
  
- IF workmenu(ptr) = AtkChooseAct THEN
+ IF workmenu(pt) = AtkChooseAct THEN
   lastindex = recindex
   IF keyval(77) > 1 AND recindex = general(34) AND recindex < 32767 THEN
    '--attempt to add a new set
@@ -684,7 +681,7 @@ DO
  END IF
  
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
-  SELECT CASE workmenu(ptr)
+  SELECT CASE workmenu(pt)
    CASE AtkBackAct
     IF menudepth = 1 THEN
      GOSUB AtkBackSub
@@ -693,39 +690,39 @@ DO
     END IF
    CASE AtkAppearAct
     GOSUB AtkPushPtrSub
-    setactivemenu workmenu(), appearMenu(), ptr, top, size
+    setactivemenu workmenu(), appearMenu(), pt, top, size
     GOSUB AtkUpdateMenu
    CASE AtkDmgAct
     GOSUB AtkPushPtrSub
-    setactivemenu workmenu(), dmgMenu(), ptr, top, size
+    setactivemenu workmenu(), dmgMenu(), pt, top, size
     GOSUB AtkUpdateMenu
    CASE AtkTargAct
     GOSUB AtkPushPtrSub
-    setactivemenu workmenu(), targMenu(), ptr, top, size
+    setactivemenu workmenu(), targMenu(), pt, top, size
     GOSUB AtkUpdateMenu
    CASE AtkCostAct
     GOSUB AtkPushPtrSub
-    setactivemenu workmenu(), costMenu(), ptr, top, size
+    setactivemenu workmenu(), costMenu(), pt, top, size
     GOSUB AtkUpdateMenu
    CASE AtkChainAct
     GOSUB AtkPushPtrSub
-    setactivemenu workmenu(), chainMenu(), ptr, top, size
+    setactivemenu workmenu(), chainMenu(), pt, top, size
     GOSUB AtkUpdateMenu
    CASE AtkPal
     recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), 3, 0, 0, 50, 50, 2)
     GOSUB AtkUpdateMenu
    CASE AtkBitAct
-    bitset recbuf(), AtkDatBitsets, 62, atkbit$()
+    editbitset recbuf(), AtkDatBitsets, 62, atkbit$()
   END SELECT
  END IF
  
- IF editflexmenu(workmenu(ptr), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
+ IF editflexmenu(workmenu(pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
   GOSUB AtkUpdateMenu
  END IF
  
  GOSUB AtkPreviewSub
  
- standardmenu dispmenu$(), size, 22, ptr, top, 0, 0, dpage, 0
+ standardmenu dispmenu$(), size, 22, pt, top, 0, 0, dpage, 0
  
  SWAP vpage, dpage
  setvispage vpage
@@ -788,9 +785,9 @@ RETURN
 '-----------------------------------------------------------------------
 
 AtkBackSub:
-setactivemenu workmenu(), mainMenu(), ptr, top, size
+setactivemenu workmenu(), mainMenu(), pt, top, size
 menudepth = 0
-ptr = lastptr
+pt = lastptr
 top = lasttop
 GOSUB AtkUpdateMenu
 RETURN
@@ -798,7 +795,7 @@ RETURN
 '-----------------------------------------------------------------------
 
 AtkPushPtrSub:
-lastptr = ptr
+lastptr = pt
 lasttop = top
 menudepth = 1
 RETURN
@@ -967,11 +964,11 @@ LOOP
 readbinstring$ = result$
 END FUNCTION
 
-SUB setactivemenu (workmenu(), newmenu(), ptr, top, size)
+SUB setactivemenu (workmenu(), newmenu(), pt, top, size)
 FOR i = 0 TO UBOUND(newmenu)
  workmenu(i) = newmenu(i)
 NEXT i
-ptr = 0
+pt = 0
 top = 0
 size = UBOUND(newmenu)
 END SUB
@@ -1073,7 +1070,7 @@ SUB testflexmenu
 'menulimits(TESTmenuhandedness) = LIMITtristate
 '
 ''--menu pointers---------------------------------------------------------
-'DIM ptr(3), top(3), size(3)
+'DIM pt(3), top(3), size(3)
 '
 '--current working menu
 'DIM thismenu(22), showmenu$(22)
@@ -1099,13 +1096,13 @@ SUB testflexmenu
 '  tog = tog XOR 1
 '  IF keyval(1) > 1 THEN EXIT DO
 '
-'  dummy = usemenu(ptr(mode), top(mode), 0, size(mode), 22)
+'  dummy = usemenu(pt(mode), top(mode), 0, size(mode), 22)
 '
-'  IF editflexmenu(thismenu(ptr(mode)), menutype(), menuoff(), menulimits(), dat(), min(), max()) THEN
+'  IF editflexmenu(thismenu(pt(mode)), menutype(), menuoff(), menulimits(), dat(), min(), max()) THEN
 '    updateflexmenu showmenu$(), thismenu(), size(mode), menu$(), menutype(), menuoff(), menulimits(), dat(), caption$(), max(), recindex
 '  END IF
 '
-'  standardmenu showmenu$(), size(mode), 22, ptr(mode), top(mode), 0, 0, dpage, 0
+'  standardmenu showmenu$(), size(mode), 22, pt(mode), top(mode), 0, 0, dpage, 0
 '
 '  FOR i = 0 TO 19
 '    printstr STR$(dat(i)), i * 20, 180, dpage
