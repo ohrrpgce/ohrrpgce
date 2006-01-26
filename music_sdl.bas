@@ -170,7 +170,7 @@ sub music_pause()
 	if music_on = 1 then
 		if music_song > 0 then
 			if music_paused = 0 then
-				Mix_PauseMusic
+				Mix_PauseMusic	'doesn't seem to work
 				music_paused = 1
 			end if
 		end if
