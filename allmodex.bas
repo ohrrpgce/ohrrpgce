@@ -35,8 +35,7 @@ end type
 declare SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer=1)
 declare sub setclip(l as integer=0, t as integer=0, r as integer=319, b as integer=199)
 declare sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer=1)
-declare function grabrect(page as integer, x as integer, y as integer, w as integer, h as integer) as ubyte ptr
-declare sub droprect(image as ubyte ptr)
+declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr)
 declare function nearcolor(pal() as integer, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
 declare SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 declare SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
@@ -98,6 +97,9 @@ dim shared as integer clipl, clipt, clipr, clipb
 
 dim shared intpal(0 to 255) as integer	'current palette
 
+'global sprite buffer, to allow reuse without allocate/deallocate
+dim shared tbuf as ohrsprite ptr = null
+
 sub setmodex()
 	dim i as integer
 
@@ -132,6 +134,14 @@ sub restoremode()
 		deallocate(spage(i))
 	next
 	
+	'clean up tile buffer
+	if tbuf <> null then
+		'mask should always be null, but no harm in future-proofing
+		if tbuf->mask <> null then	deallocate tbuf->mask
+		if tbuf->image <> null then	deallocate tbuf->image
+		deallocate tbuf
+		tbuf = null
+	end if
 	releasestack
 end sub
 
@@ -370,11 +380,12 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 	dim calc as integer
 	dim ty as integer
 	dim tx as integer
-	dim tbuf as ohrsprite
 	dim tpx as integer
 	dim tpy as integer
 	dim todraw as integer
 	dim tpage as integer
+	'this is static to allow optimised reuse
+	static lasttile as integer
 		
 	if wrkpage <> p then
 		wrkpage = p
@@ -400,11 +411,17 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 	end if
 	xoff = -calc
 	xstart = xpos
-		
-	'create tile buffer
-	tbuf.w = 20
-	tbuf.h = 20
-	tbuf.mask = 0
+
+	if tbuf = null then		
+		'create tile buffer
+		tbuf = callocate(sizeof(ohrsprite))
+		tbuf->w = 20
+		tbuf->h = 20
+		tbuf->mask = 0
+		tbuf->image = callocate(20 * 20)
+	end if
+	'force it to be cleared for each redraw
+	lasttile = -1
 	
 	tpage = 3
 	
@@ -426,18 +443,18 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 
 			'get the tile
 			if (todraw >= 0) then
-				tpx = (todraw mod 16) * 20
-				tpy = (todraw \ 16) * 20
-				'page 3 is the tileset page (#define??)
-				'get and put don't take a page argument, so I'll
-				'have to toggle the work page, not sure that's efficient
-				tbuf.image = grabrect(3, tpx, tpy, 20, 20)
+				if todraw <> lasttile then
+					tpx = (todraw mod 16) * 20
+					tpy = (todraw \ 16) * 20
+					'page 3 is the tileset page (#define??)
+					'get and put don't take a page argument, so I'll
+					'have to toggle the work page, not sure that's efficient
+					grabrect(3, tpx, tpy, 20, 20, tbuf->image)
+				end if
 									
 				'draw it on the map
-				drawohr(tbuf, tx, ty)
-				
-				'deallocate
-				droprect(tbuf.image)
+				drawohr(*tbuf, tx, ty)
+				lasttile = todraw
 			end if
 			
 			tx = tx + 20
@@ -2654,16 +2671,14 @@ sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer
 	
 end sub
 
-function grabrect(page as integer, x as integer, y as integer, w as integer, h as integer) as ubyte ptr
-'should possibly move the allocate out and pass the pointer in. as it is
-'the space is allocated and deallocated hundreds of times per frame.
-	dim iptr as ubyte ptr
+sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr)
+'ibuf should be pre-allocated
 	dim sptr as ubyte ptr
 	dim as integer i, j, px, py
 	
-	sptr = spage(page)
+	if ibuf = null then exit sub
 	
-	iptr = allocate(w * h)
+	sptr = spage(page)
 	
 	py = y
 	for i = 0 to h-1
@@ -2671,19 +2686,13 @@ function grabrect(page as integer, x as integer, y as integer, w as integer, h a
 		for j = 0 to w-1
 			'ignore clip rect, but check screen bounds
 			if not (px < 0 or px > 319 or py < 0 or py > 199) then
-				iptr[i*w + j] = sptr[(py * 320) + px]
+				ibuf[i*w + j] = sptr[(py * 320) + px]
 			else
-				iptr[i*w + j] = 0
+				ibuf[i*w + j] = 0
 			end if
 			px += 1
 		next
 		py += 1
 	next
 	
-	grabrect = iptr
-end function
-
-sub droprect(image as ubyte ptr)
-	deallocate(image)
 end sub
-
