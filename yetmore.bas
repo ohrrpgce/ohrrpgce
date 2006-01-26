@@ -104,7 +104,6 @@ DECLARE SUB updatestatslevelup (i%, exstat%(), stat%(), allowforget%)
 DECLARE SUB giveheroexperience (i%, exstat%(), exper&)
 DECLARE FUNCTION liveherocount% (stat%())
 
-
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
@@ -1496,6 +1495,7 @@ SELECT CASE id
   OPEN game$ + ".dt1" FOR BINARY AS #f
   PUT #f, (CLNG(bound(retvals(0), 0, gen(genMaxEnemy))) * CLNG(320)) + (bound(retvals(1), 0, 159) * 2) + 1, temp16
   CLOSE #f
+  setbit lumpmod(),0,0,1
  CASE 232'--trace
    debug "TRACE: " + plotstring$(bound(retvals(0),0,31))
 END SELECT
