@@ -77,7 +77,7 @@ dim shared anim2 as integer
 
 dim shared waittime as double
 dim shared keybd(0 to 255) as integer
-dim shared keytime(0 to 255) as integer
+dim shared keysteps(0 to 255) as integer
 
 dim shared stacktop as ubyte ptr
 dim shared stackptr as ubyte ptr
@@ -116,7 +116,7 @@ sub setmodex()
 	'init vars
 	for i = 0 to 255
 		keybd(i) = 0
-		keytime(i) = -1
+ 		keysteps(i) = -1
 	next
 	stacksize = -1
 	
@@ -820,41 +820,46 @@ end FUNCTION
 SUB setkeys ()
 'Quite nasty. Moved all this functionality from keyval() because this
 'is where it seems to happen in the original.
-'The keytime array is used to store the repeat delay timeout so that a 
-'key "event" will only fire once every now and again rather than every
-'time this function is called while the key is down. This probably doesn't
-'need to be per key, but it mostly works, so I'll leave it be.
+'I have rewritten this to use steps (frames based on the 55ms DOS timer)
+'rather than raw time. It makes the maths a bit simpler. The way the 
+'rest of the code is structured means we need to emulate the original
+'functionality of clearing the event until a repeat fires. I do this
+'by stalling for 3 steps on a new keypress and 1 step on a repeat.
+'1 step means the event will fire once per step, but won't fire many
+'times in one frame (which is a problem, setkeys() is often called 
+'more than once per frame, particularly when new screens are brought
+'up). - sb 2006-01-27
 'Actual key state goes in keybd array for retrieval via keyval().
-	dim ktime as integer
 	dim a as integer
 	
-	ktime = int(timer() * 1000)
-	
 	'special - never time out modifier keys
-	keytime(SC_CONTROL) = -1
-	keytime(SC_LSHIFT) = -1
-	keytime(SC_RSHIFT) = -1
-	keytime(SC_ALT) = -1
+	keysteps(SC_CONTROL) = -1
+	keysteps(SC_LSHIFT) = -1
+	keysteps(SC_RSHIFT) = -1
+	keysteps(SC_ALT) = -1
 	
 	'set key state for every key
 	'highest scancode in fbgfx.bi is &h79, no point overdoing it
 	for a = 0 to &h80 
-		keybd(a) = 0 'default to not pressed
 		if io_keypressed(a) <> 0 then
-			'key is down
-			if ktime > keytime(a) then
+			if keysteps(a) > 0 then 
+				keybd(a) = 0
+			else
 				'ok to fire a key event
-				keybd(a) = 2
-				if ktime > keytime(a) + 1000 then
-					keytime(a) = ktime + 200
+				if keysteps(a) = -1 then
+					'this is a new keypress
+					keysteps(a) = 3
 				else
-					keytime(a) = ktime + 80
+					keysteps(a) = 1
 				end if
+				keybd(a) = 2
 			end if
 		else
-			keytime(a) = -1
+			keybd(a) = 0 'not pressed
+			keysteps(a) = -1 '-1 means it's a new press next time
 		end if
 	next
+	
 end SUB
 
 SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
@@ -1252,9 +1257,15 @@ SUB dowait ()
 'wait until alarm time set in setwait()
 'In freebasic, sleep is in 1000ths, and a value of less than 100 will not 
 'be exited by a keypress, so sleep for 5ms until timer > waittime.
+	dim i as integer
 	do while timer <= waittime
 		sleep 5 'is this worth it?
 	loop
+	for i = 0 to &h80
+		if keysteps(i) > 0 then 
+			keysteps(i) -= 1
+		end if
+	next
 end SUB
 
 SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
@@ -1508,11 +1519,18 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 	dim size as integer
 	dim lname as string
 	dim i as integer
+	dim bufr as ubyte ptr
 	
 	lf = freefile
 	open lump$ for binary access read as #lf
 	if err > 0 then
 		'debug "Could not open file " + lump$
+		exit sub
+	end if
+	
+	bufr = allocate(16383)
+	if bufr = null then 
+		close #lf
 		exit sub
 	end if
 	
@@ -1543,7 +1561,6 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 			if matchmask(ucase$(lname), ucase$(fmask$)) then
 				'write yon file
 				dim of as integer
-				redim bufr(0) as ubyte
 				dim csize as integer
 				
 				of = freefile
@@ -1555,19 +1572,17 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 				
 				'copy the data
 				while size > 0
-					if size > 8192 then
-						csize = 8192
+					if size > 16383 then
+						csize = 16383
 					else
 						csize = size
 					end if
-					redim bufr(csize - 1)
 					'copy a chunk of file
-					get #lf, , bufr()
-					put #of, , bufr()
+					fget lf, , bufr, csize
+					fput of, , bufr, csize
 					size = size - csize
 				wend
 				
-				erase bufr
 				close #of
 			else
 				'skip to next name
@@ -1582,6 +1597,7 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 		end if
 	wend
 	
+	deallocate bufr
 	close #lf
 	
 end SUB
