@@ -45,6 +45,15 @@ WHAT IS NEW?
       edit anywhere in the line of text without needing to delete the
       end of the line. [James Paige]
 
+    * New Import Music... menu. This means:
+      * You can import .MIDs as well as .BAMs (and as we support more
+        music formats, you will be able to import them too.) You can
+        only play midis in the FB build. 
+      * Export and delete songs
+      Until QBOHR is dropped, you can have a BAM fallback version of
+      any MIDI file you import. Just import a MIDI over top of a BAM.
+      [Ralph Versteegen]
+
   * Bug Fixes
 
     * Fixed bug 107: "An MP~ stat over 66 makes all spells free"
@@ -75,6 +84,9 @@ WHAT IS NEW?
 
     * Fixed bug 98: "plotscript commands that alter enemys [sic] persist after
       quitting" [Mike Caron]
+
+    * You can now no longer import invalid BAM music even though a
+      warning is given [Ralph Versteegen]
 
   * New Plotscripting Commands
 

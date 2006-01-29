@@ -71,6 +71,8 @@ DECLARE FUNCTION readpassword$ ()
 DECLARE SUB writescatter (s$, lhold%, start%)
 DECLARE SUB readscatter (s$, lhold%, start%)
 DECLARE SUB fixfilename (s$)
+DECLARE FUNCTION filesize$ (file$)
+DECLARE FUNCTION inputfilename$ (query$, ext$)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -817,6 +819,181 @@ IF f$ <> "" THEN
  setpal master()
 END IF
 
+RETURN
+
+END SUB
+
+'NOTE TO SIMON: delete this:
+FUNCTION canplay(file$)
+	canplay = 0
+	ext$ = LCASE$(MID$(file$, INSTR(file$, ".")))
+	IF ext$ = ".bam" THEN canplay = 1
+END FUNCTION
+
+SUB importsong (song$(), master())
+STATIC default$
+DIM music(16384)
+setupmusic music()
+setfmvol getfmvol
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+DIM menu$(10), submenu$(2)
+menu$(0) = "Previous Menu"
+menu$(3) = "Import Song..."
+menu$(4) = "Export Song..."
+menu$(5) = "Delete Song"
+
+csr = 1
+snum = 0
+lastsong = 99
+GOSUB getinfo
+
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ IF keyval(1) > 1 THEN EXIT DO
+
+ dummy = usemenu(csr, 0, 0, optionsbottom, 22)
+
+ IF csr = 2 AND songfile$ <> "" THEN 
+  strgrabber sname$, 30
+  menu$(2) = "Name: " + sname$
+ ELSE
+  '-- check for switching song
+  oldsong = snum
+  IF intgrabber(snum, 0, lastsong, 51, 52) THEN
+   song$(oldsong) = sname$
+   GOSUB getinfo
+  END IF
+  IF keyval(75) > 1 AND snum > 0 THEN
+   song$(snum) = sname$
+   snum = snum - 1
+   GOSUB getinfo
+  END IF
+  IF keyval(77) > 1 AND snum < 32767 THEN
+   song$(snum) = sname$
+   snum = snum + 1
+   'following commented out until 100+ songs supported
+   'IF needaddset(snum, lastsong, "song") THEN song$(snum) = ""
+   GOSUB getinfo
+  END IF
+ END IF
+ IF (keyval(28) > 1 OR keyval(57) > 1) THEN
+  IF csr = 0 THEN EXIT DO
+  IF csr = 3 THEN GOSUB importsong
+  IF csr = 4 AND songfile$ <> "" THEN GOSUB exportsong
+  IF csr = 5 AND songfile$ <> "" THEN  'delete song
+   safekill songfile$
+   safekill bamfile$ 
+   GOSUB getinfo
+  END IF
+  IF csr = 6 THEN  'delete BAM fallback
+   safekill bamfile$
+   GOSUB getinfo
+   csr = 0
+  END IF
+ END IF
+
+ standardmenu menu$(), 10, 22, csr, 0, 0, 0, dpage, 0
+
+ SWAP vpage, dpage
+ setvispage vpage
+ copypage 2, dpage
+ dowait
+LOOP
+song$(snum) = sname$
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+stopsong
+closemusic
+
+EXIT SUB
+
+getinfo:
+stopsong
+
+'-- first job: find the song's name
+temp$ = workingdir$ + "\song" + intstr$(snum)
+songfile$ = ""
+songtype$ = "NO FILE"
+'-- BAM special case and least desirable, so check first and override
+IF snum > 99 THEN
+ IF isfile(temp$ + ".bam" + CHR$(0)) THEN ext$ = ".bam" : songfile$ = temp$ + ext$ : songtype$ = "Bob's Adlib Music (BAM)"
+ELSE 
+ IF isfile(game$ + "." + intstr$(snum) + CHR$(0)) THEN ext$ = ".bam" : songfile$ = game$ + "." + intstr$(snum) : songtype$ = "Bob's Adlib Music (BAM)"
+END IF
+bamfile$ = songfile$
+IF isfile(temp$ + ".mid" + CHR$(0)) THEN ext$ = ".mid" : songfile$ = temp$ + ext$ : songtype$ = "MIDI Music (MID)"
+'--add more formats here
+
+IF songfile$ <> "" THEN '--song exists
+ IF canplay(songfile$) THEN
+  loadsong songfile$ + CHR$(0)
+ ELSE
+  IF bamfile$ <> "" THEN loadsong bamfile$ + CHR$(0)
+ END IF
+ELSE
+ song$(snum) = ""
+END IF
+
+sname$ = song$(snum)
+
+menu$(1) = "<- Song " + intstr$(snum) + " of " + intstr$(lastsong) + " ->"
+IF songfile$ <> "" THEN menu$(2) = "Name: " + sname$ ELSE menu$(2) = "-Unused-"
+menu$(7) = ""
+menu$(8) = "Type: " + songtype$ 
+menu$(9) = "Filesize: " + filesize$(songfile$)
+IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
+ menu$(10) = "BAM fallback exists. Filesize: " + filesize$(bamfile$)
+ menu$(6) = "Delete BAM fallback"
+ optionsbottom = 6
+ELSE
+ menu$(10) = ""
+ menu$(6) = ""
+ optionsbottom = 5
+END IF
+'-- add author, length, etc, info here
+RETURN
+
+importsong:
+stopsong
+'sourcesong$ = browse$(1, default$, "*.bam", "")
+sourcesong$ = browse$(5, default$, "", "")
+'--remove song file (except BAM, we can leave those as fallback for QB version)
+IF songfile$ <> bamfile$ THEN safekill songfile$
+
+IF sourcesong$ <> "" THEN
+ IF LCASE$(RIGHT$(sourcesong$, 4)) = ".bam" AND snum <= 99 THEN
+  songfile$ = game$ + "." + intstr$(snum)
+ ELSE
+  songfile$ = workingdir$ + "\song" + intstr$(snum) + MID$(sourcesong$, INSTR(sourcesong$, "."))
+ END IF
+ copyfile sourcesong$ + CHR$(0), songfile$ + CHR$(0), buffer()
+ a$ = getLongName$(sourcesong$)
+ a$ = MID$(a$, 1, INSTR(a$, ".") - 1)
+ song$(snum) = a$
+END IF
+GOSUB getinfo
+RETURN
+
+exportsong:
+query$ = "Name of file to export to?"
+IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
+ submenu$(0) = "Export " + ext$ + " file"
+ submenu$(1) = "Export .bam fallback file"
+ submenu$(2) = "Cancel"
+ choice = sublist(2, submenu$())
+ IF choice = 1 THEN ext$ = ".bam" : songfile$ = bamfile$
+ IF choice = 2 THEN RETURN
+END IF
+outfile$ = inputfilename$(query$, ext$)
+IF outfile$ = "" THEN RETURN
+copyfile songfile$ + CHR$(0), outfile$ + ext$ + CHR$(0), buffer()
 RETURN
 
 END SUB

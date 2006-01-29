@@ -89,6 +89,7 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB updaterecordlength (lumpf$, bindex%)
 DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
+DECLARE FUNCTION inputfilename$ (query$, ext$)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -332,7 +333,7 @@ DO
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF csr = 0 THEN
    'IF game$ = "" THEN GOTO finis
-   GOSUB gamestr
+   game$ = inputfilename$("Filename of New Game?", ".rpg")
    IF game$ = "" GOTO nomakegame
    textcolor 6, 0
    printstr "Please Wait...", 0, 40, vpage
@@ -387,32 +388,6 @@ nomakegame:
 
  standardmenu rpg$(), L, 22, csr, top, 0, 0, dpage, 0
 
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-
-gamestr:
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN game$ = "": RETURN
- strgrabber game$, 8
- fixfilename game$
- IF keyval(28) > 1 THEN
-  FOR i = 2 TO L
-   IF UCASE$(rpg$(i)) = UCASE$(game$) AND game$ <> "" THEN alert$ = game$ + " already exists": alert = 30: game$ = "": EXIT FOR
-  NEXT i
-  IF game$ <> "" THEN RETURN
- END IF
- textcolor 15, 0
- printstr "Filename of New Game?", 160 - LEN("Filename of New Game?") * 4, 20, dpage
- IF alert > 0 THEN printstr alert$, 160 - LEN(alert$) * 4, 40, dpage: alert = alert - 1
- textcolor 14 + tog, 1
- printstr game$, 160 - LEN(game$) * 4, 30, dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage

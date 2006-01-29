@@ -13,6 +13,7 @@ option explicit
 
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION small% (n1%, n2%)
+DECLARE FUNCTION canplay (file$)
 
 SUB dummyclear(arg1%,arg2%,arg3%) 'dummy sub for compatibility
 END SUB
@@ -69,4 +70,22 @@ SUB crashexplain()
 	PRINT "Executable: "; progdir$ + exename$
 #endif	
 	PRINT "RPG file: "; sourcerpg$
+END SUB
+
+FUNCTION canplay (file$)
+	'dummy, you should be able to play anything passed in (unless this sub finds uses elsewhere)
+	canplay = 1
+END FUNCTION
+
+SUB playsongnum (songnum%)
+	'will need changing
+	songbase$ = workingdir$ + "\song" + LTRIM$(STR$(songnum))
+	songfile$ = ""
+	IF songnum > 99 THEN
+		IF isfile(songbase$ + ".bam" + CHR$(0)) THEN songfile$ = songbase$ + ".bam"
+	ELSE
+		IF isfile(game$ + "." + LTRIM$(STR$(songnum)) + CHR$(0)) THEN songfile$ = game$ + "." + LTRIM$(STR$(songnum))
+	END IF
+	IF isfile(songfile$ + ".mid" + CHR$(0)) THEN songfile$ = songbase$ + ".mid"
+	IF songfile$ <> "" THEN loadsong songfile$ + CHR$(0)
 END SUB

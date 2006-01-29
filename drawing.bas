@@ -61,6 +61,7 @@ DECLARE SUB maptile (master%(), font())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
+DECLARE SUB safekill (f$)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -278,73 +279,6 @@ showpage:
 setdiskpages buffer(), 200, 0
 loadpage game$ + f$ + CHR$(0), ptr, 2
 RETURN
-
-END SUB
-
-SUB importsong (song$(), master())
-STATIC default$
-DIM music(16384)
-setupmusic music()
-setfmvol getfmvol
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
-top1 = -1: csr = -1
-
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
- IF usemenu(csr, top1, -1, 99, 20) THEN
-  stopsong
-  IF csr > -1 AND song$(csr) <> "" THEN loadsong game$ + "." + intstr$(csr) + CHR$(0)
- END IF
- IF csr > -1 THEN
-  strgrabber song$(csr), 30
- END IF
- IF keyval(28) > 1 THEN
-  IF csr = -1 THEN EXIT DO
-  IF csr > -1 THEN
-   stopsong
-   sourcesong$ = browse$(1, default$, "*.bam", "")
-   IF sourcesong$ <> "" THEN
-    copyfile sourcesong$ + CHR$(0), game$ + "." + intstr$(csr) + CHR$(0), buffer()
-    'a$ = ""
-    'i = 0
-    'WHILE LEFT$(a$, 1) <> "\"
-    ' i = i + 1
-    ' a$ = RIGHT$(sourcesong$, i)
-    'WEND
-    a$ = getLongName$(sourcesong$)
-    a$ = LEFT$(a$, LEN(a$) - 4)
-    song$(csr) = a$
-   END IF
-   IF csr > -1 AND song$(csr) <> "" THEN loadsong game$ + "." + intstr$(csr) + CHR$(0)
-  END IF
- END IF
- FOR i = top1 TO top1 + 20
-  textcolor 7, 0: IF i = csr THEN textcolor 14 + tog, 0
-  temp$ = song$(i)
-  IF i > -1 THEN
-   IF temp$ = "" THEN temp$ = "-EMPTY SLOT-"
-   temp$ = intstr$(i) + ":" + temp$
-  END IF
-  printstr temp$, 1, 1 + 8 * (i - top1), dpage
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- copypage 2, dpage
- dowait
-LOOP
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
-stopsong
-closemusic
 
 END SUB
 

@@ -67,6 +67,9 @@ DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
+DECLARE FUNCTION validmusicfile(file$)
+
+DECLARE FUNCTION canplay (file$) '-- duplicate, NOTE TO SIMON: delete
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -78,10 +81,11 @@ FUNCTION browse$ (special, default$, fmask$, tmp$)
 browse$ = ""
 
 'special=0   no preview
-'special=1   BAM
+'special=1   just BAM
 'special=2   16 color BMP
 'special=3   background
 'special=4   master palette
+'special=5   any supported music (currently *.BAM and *.MID)  (fmask$ is ignored)
 mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
 
@@ -132,13 +136,8 @@ DO
   SELECT CASE special
    CASE 1
     stopsong
-    IF treec(treeptr) = 3 THEN
-     bamfh = FREEFILE
-     OPEN nowdir$ + tree$(treeptr) FOR BINARY AS #bamfh
-     a$ = "    "
-     GET #bamfh, 1, a$
-     CLOSE #bamfh
-     IF a$ = "CBMF" THEN
+    IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
+     IF validmusicfile(nowdir$ + tree$(treeptr)) THEN
       loadsong nowdir$ + tree$(treeptr) + CHR$(0)
      ELSE
       alert$ = tree$(treeptr) + " is not a valid BAM file"
@@ -164,12 +163,24 @@ DO
        alert$ = "Not a valid MAS file"
      END SELECT
     END IF
+   CASE 5
+    stopsong
+    IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
+     IF validmusicfile(nowdir$ + tree$(treeptr)) THEN
+      '-- NOTE TO SIMON: when you get to this, wrap this in a compat file, QB: as it is, FB: without the IF
+      IF canplay(tree$(treeptr)) THEN
+       loadsong nowdir$ + tree$(treeptr) + CHR$(0)
+      END IF
+     ELSE
+      alert$ = tree$(treeptr) + " is not a valid music file"
+     END IF
+    END IF
   END SELECT
  END IF
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   alert$ = ""
   changed = 1
-  IF special = 1 THEN stopsong
+  IF special = 1 OR special = 5 THEN stopsong
   SELECT CASE treec(treeptr)
    CASE 0, 1
     nowdir$ = LEFT$(tree$(0), 3)
@@ -249,48 +260,16 @@ ELSE
  CLOSE #fh
  safekill tmp$ + "hrbrowse.tmp"
  '---FIND ALL FILES IN FILEMASK---
- findfiles nowdir$ + fmask$ + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
- fh = FREEFILE
- OPEN tmp$ + "hrbrowse.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh) OR treesize >= 255
-  treesize = treesize + 1
-  treec(treesize) = 3
-  INPUT #fh, tree$(treesize)
-  tree$(treesize) = LCASE$(tree$(treesize))
-  '---4-bit BMP browsing
-  IF special = 2 THEN
-   IF bmpinfo(nowdir$ + tree$(treesize) + CHR$(0), bmpd()) THEN
-    IF bmpd(0) <> 4 OR bmpd(1) > 320 OR bmpd(2) > 200 THEN
-     treec(treesize) = 6
-    END IF
-   ELSE
-    treesize = treesize - 1
-   END IF
-  END IF
-  '---320x200x24bit BMP files
-  IF special = 3 THEN
-   IF bmpinfo(nowdir$ + tree$(treesize) + CHR$(0), bmpd()) THEN
-    IF bmpd(0) <> 24 OR bmpd(1) <> 320 OR bmpd(2) <> 200 THEN
-     treec(treesize) = 6
-    END IF
-   ELSE
-    treesize = treesize - 1
-   END IF
-  END IF
-  '--master palettes
-  IF special = 4 THEN
-   masfh = FREEFILE
-   OPEN nowdir$ + tree$(treesize) FOR BINARY AS #masfh
-   a$ = "       "
-   GET #masfh, 1, a$
-   CLOSE #masfh
-   IF a$ <> mashead$ AND a$ <> paledithead$ THEN
-    treec(treesize) = 6
-   END IF
-  END IF
- LOOP
- CLOSE #fh
- safekill tmp$ + "hrbrowse.tmp"
+ IF special = 5 THEN
+  '--disregard fmask$. one call per extension
+  findfiles nowdir$ + "*.bam" + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
+  GOSUB addmatchs
+  findfiles nowdir$ + "*.mid" + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
+  GOSUB addmatchs
+ ELSE
+  findfiles nowdir$ + fmask$ + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
+  GOSUB addmatchs
+ END IF
 END IF
 
 '--get longnames for display
@@ -343,6 +322,57 @@ widest = 0
 FOR i = 0 TO treesize
  IF LEN(tree$(i)) > widest THEN widest = LEN(tree$(i))
 NEXT i
+
+RETURN
+
+addmatchs:
+fh = FREEFILE
+OPEN tmp$ + "hrbrowse.tmp" FOR INPUT AS #fh
+DO UNTIL EOF(fh) OR treesize >= 255
+ treesize = treesize + 1
+ treec(treesize) = 3
+ INPUT #fh, tree$(treesize)
+ tree$(treesize) = LCASE$(tree$(treesize))
+ '---music files
+ IF special = 1 OR special = 5 THEN
+  IF validmusicfile(nowdir$ + tree$(treesize)) = 0 THEN
+   treec(treesize) = 6
+  END IF
+ END IF
+ '---4-bit BMP browsing
+ IF special = 2 THEN
+  IF bmpinfo(nowdir$ + tree$(treesize) + CHR$(0), bmpd()) THEN
+   IF bmpd(0) <> 4 OR bmpd(1) > 320 OR bmpd(2) > 200 THEN
+    treec(treesize) = 6
+   END IF
+  ELSE
+   treesize = treesize - 1
+  END IF
+ END IF
+ '---320x200x24bit BMP files
+ IF special = 3 THEN
+  IF bmpinfo(nowdir$ + tree$(treesize) + CHR$(0), bmpd()) THEN
+   IF bmpd(0) <> 24 OR bmpd(1) <> 320 OR bmpd(2) <> 200 THEN
+    treec(treesize) = 6
+   END IF
+  ELSE
+   treesize = treesize - 1
+  END IF
+ END IF
+ '--master palettes  (why isn't this up there?)
+ IF special = 4 THEN
+  masfh = FREEFILE
+  OPEN nowdir$ + tree$(treesize) FOR BINARY AS #masfh
+  a$ = "       "
+  GET #masfh, 1, a$
+  CLOSE #masfh
+  IF a$ <> mashead$ AND a$ <> paledithead$ THEN
+   treec(treesize) = 6
+  END IF
+ END IF
+LOOP
+CLOSE #fh
+safekill tmp$ + "hrbrowse.tmp"
 
 RETURN
 
@@ -1713,6 +1743,24 @@ ELSE
  usemenu = 1
 END IF
 
+END FUNCTION
+
+FUNCTION validmusicfile (file$)
+'-- actually, doesn't need to be a music file, but only multi-filetype imported data right now
+ext$ = UCASE$(RIGHT$(file$, 4))
+SELECT CASE ext$
+ CASE ".BAM"
+  a$ = "    "
+  realhd$ = "CBMF"
+ CASE ".MID"
+  a$ = "    "
+  realhd$ = "MThd"
+END SELECT
+musfh = FREEFILE
+OPEN file$ FOR BINARY AS #musfh
+GET #musfh, 1, a$
+CLOSE #musfh
+IF a$ = realhd$ THEN validmusicfile = 1 ELSE validmusicfile = 0
 END FUNCTION
 
 SUB verifyrpg

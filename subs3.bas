@@ -67,6 +67,8 @@ DECLARE SUB strgrabber (s$, maxl%)
 DECLARE SUB smnemonic (tagname$, index%)
 DECLARE SUB setbinsize (id%, size%)
 DECLARE FUNCTION getbinsize% (id%)
+DECLARE SUB fixfilename (s$)
+DECLARE FUNCTION inputfilename$ (query$, ext$)
 
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
@@ -228,6 +230,29 @@ NEXT i
 exclusive$ = out$
 END FUNCTION
 
+FUNCTION filesize$ (file$)
+'returns size of a file in formatted string
+IF isfile(file$ + CHR$(0)) THEN
+ ff = FREEFILE
+ OPEN file$ FOR BINARY AS #ff
+ size = LOF(ff)
+ CLOSE #ff
+
+ units$ = " B"
+ IF size > 1024 THEN split = 1 : units$ = " KB"
+ IF size > 1048576 THEN split = 1 : size = size / 1024 : units$ = " MB"
+ fsize$ = intstr$(size)
+ IF split THEN
+  size = size / 102.4
+  fsize$ = intstr$(size \ 10)
+  IF size < 1000 THEN fsize$ = fsize$ + "." + intstr$(size MOD 10)
+ END IF
+ filesize$ = fsize$ + units$
+ELSE
+ filesize$ = "N/A"
+END IF
+END FUNCTION
+
 SUB flusharray (array(), size, value)
 FOR i = 0 TO size
  array(i) = value
@@ -270,6 +295,31 @@ IF failed THEN
  NEXT i
 END IF
 getLongName$ = result$
+END FUNCTION
+
+FUNCTION inputfilename$ (query$, ext$)
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN inputfilename$ = "": EXIT DO
+ strgrabber file$, 8
+ fixfilename file$
+ IF keyval(28) > 1 THEN
+  IF isfile(file$ + ext$ + CHR$(0)) AND file$ <> "" THEN alert$ = file$ + ext$ + " already exists": alert = 30: file$ = ""
+  IF file$ <> "" THEN inputfilename$ = file$: EXIT DO
+ END IF
+ textcolor 15, 0
+ printstr query$, 160 - LEN(query$) * 4, 20, dpage
+ IF alert > 0 THEN printstr alert$, 160 - LEN(alert$) * 4, 40, dpage: alert = alert - 1
+ textcolor 14 + tog, 1
+ printstr file$, 160 - LEN(game$) * 4, 30, dpage
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
 END FUNCTION
 
 FUNCTION intstr$ (n)

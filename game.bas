@@ -141,7 +141,7 @@ DECLARE SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choos
 DECLARE SUB setusermenu (menu$(), mt%, mi%())
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB expcommands (id%, stat%())
-DECLARE SUB checklumpmod
+DECLARE SUB checklumpmod ()
 
 '---INCLUDE FILES---
 '$INCLUDE: 'compat.bi'
