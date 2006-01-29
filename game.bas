@@ -2160,7 +2160,7 @@ SELECT CASE scrat(nowscript, curkind)
    CASE 78'--alter NPC
     IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
      IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
-      npcs(retvals(0) * 15 + retvals(1)) = retvals(2)
+      npcs(abs(retvals(0)) * 15 + retvals(1)) = retvals(2)
      ELSE
       npcref = getnpcref(retvals(0), 0)
       IF npcref >= 0 THEN
@@ -2170,9 +2170,9 @@ SELECT CASE scrat(nowscript, curkind)
      END IF
      IF retvals(1) = 0 THEN
       setpicstuf buffer(), 1600, 2
-      loadset game$ + ".pt4" + CHR$(0), retvals(2), 20 + (5 * retvals(0))
+      loadset game$ + ".pt4" + CHR$(0), retvals(2), 20 + (5 * abs(retvals(0)))
      END IF
-     IF retvals(1) = 1 THEN getpal16 pal16(), 4 + retvals(0), retvals(2)
+     IF retvals(1) = 1 THEN getpal16 pal16(), 4 + abs(retvals(0)), retvals(2)
     END IF
    CASE 79'--show no value
     scriptout$ = ""
