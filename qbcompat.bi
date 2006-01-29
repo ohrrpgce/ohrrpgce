@@ -10,3 +10,5 @@ DECLARE SUB xbload (f$, array%(), e$)
 ''only used in game.bas, maybe don't declare here?
 DECLARE SUB crashexplain ()
 DECLARE SUB fbdim (v%)
+DECLARE SUB playsongnum (songnum%)
+DECLARE FUNCTION canplay (file$)

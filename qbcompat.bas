@@ -11,7 +11,9 @@ DEFINT A-Z
 
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION small% (n1%, n2%)
-declare sub debug (m$)
+DECLARE SUB debug (m$)
+DECLARE FUNCTION canplay (file$)
+DECLARE SUB playsongnum (songnum%)
 
 SUB getdefaultfont(font() as integer)
 	IF isfile(progdir$ + "ohrrpgce.fnt" + CHR$(0)) THEN
@@ -54,4 +56,19 @@ END SUB
 
 SUB fbdim (v%)
 'dummy sub for compatibility
+END SUB
+
+FUNCTION canplay (file$)
+	canplay = 0
+	ext$ = LCASE$(MID$(file$, INSTR(file$, ".")))
+	IF ext$ = ".bam" THEN canplay = 1
+END FUNCTION
+
+SUB playsongnum (songnum%)
+	IF songnum > 99 THEN
+		songfile$ = workingdir$ + "\song" + LTRIM$(STR$(songnum)) + ".bam"
+	ELSE
+		songfile$ = game$ + "." + LTRIM$(STR$(songnum))
+	END IF
+	IF isfile(songfile$ + CHR$(0)) THEN loadsong songfile$ + CHR$(0)
 END SUB
