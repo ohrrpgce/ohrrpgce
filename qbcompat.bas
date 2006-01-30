@@ -12,8 +12,6 @@ DEFINT A-Z
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE SUB debug (m$)
-DECLARE FUNCTION canplay (file$)
-DECLARE SUB playsongnum (songnum%)
 
 SUB getdefaultfont(font() as integer)
 	IF isfile(progdir$ + "ohrrpgce.fnt" + CHR$(0)) THEN
