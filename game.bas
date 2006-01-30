@@ -2159,20 +2159,15 @@ SELECT CASE scrat(nowscript, curkind)
     scriptout$ = LTRIM$(STR$(retvals(0)))
    CASE 78'--alter NPC
     IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
+     IF retvals(0) < 0 THEN retvals(0) = (npcl(npcref + 600) - 1)
      IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
       npcs(retvals(0) * 15 + retvals(1)) = retvals(2)
-     ELSE
-      retvals(0) = getnpcref(retvals(0), 0)
-      IF retvals(0) >= 0 THEN
-       id = (npcl(retvals(0) + 600) - 1)
-       npcs(id * 15 + retvals(1)) = retvals(2)
+      IF retvals(1) = 0 THEN
+       setpicstuf buffer(), 1600, 2
+       loadset game$ + ".pt4" + CHR$(0), retvals(2), 20 + (5 * retvals(0))
       END IF
+      IF retvals(1) = 1 THEN getpal16 pal16(), 4 + retvals(0), retvals(2)
      END IF
-     IF retvals(1) = 0 AND retvals(0) >= 0 THEN
-      setpicstuf buffer(), 1600, 2
-      loadset game$ + ".pt4" + CHR$(0), retvals(2), 20 + (5 * retvals(0))
-     END IF
-     IF retvals(1) = 1 AND retvals(0) >= 0 THEN getpal16 pal16(), 4 + retvals(0), retvals(2)
     END IF
    CASE 79'--show no value
     scriptout$ = ""
