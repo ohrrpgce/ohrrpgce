@@ -91,7 +91,7 @@ dim shared mouse_ymax as integer
 dim shared textfg as integer
 dim shared textbg as integer
 
-dim shared fontdata(0 to 2048-1) as ubyte
+dim shared fontdata as ubyte ptr
 
 dim shared as integer clipl, clipt, clipr, clipb
 
@@ -1279,6 +1279,7 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 	dim pix as integer
 	dim bval as integer
 	dim tbyte as ubyte
+	dim fstep as integer
 	
 	if wrkpage <> p then
 		wrkpage = p
@@ -1289,13 +1290,20 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 	col = x
 	pscr = spage(p)
 	for ch = 0 to len(s$) - 1
-		fi = s$[ch] * 8	'index to fontdata
+		'find fontdata index, bearing in mind that the data is stored
+		'2-bytes at a time in 4-byte integers, due to QB->FB quirks,
+		'and fontdata itself is a byte pointer. Because there are 
+		'always 8 bytes per character, we will always use exactly 4
+		'ints, or 16 bytes, making the initial calc pretty simple.
+		fi = (s$[ch] * 16)
+		'fi = s$[ch] * 8	'index to fontdata
+		fstep = 1 'used because our indexing is messed up, see above
 		for cc = 0 to 7
 			si = (y * 320) + col
-			if (fontdata(fi) > 0) then
+			if (fontdata[fi] > 0) then
 				tbyte = 1
 				for pix = 0 to 7
-					bval = fontdata(fi) and tbyte
+					bval = fontdata[fi] and tbyte
 					if bval > 0 then
 						pscr[si] = textfg
 					else
@@ -1315,7 +1323,8 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 				end if
 			end if
 			col = col + 1
-			fi = fi + 1
+			fi = fi + fstep
+			fstep = iif(fstep = 1, 3, 1) 'uneven steps due to 2->4 byte thunk
 		next
 	next
 end SUB
@@ -1326,23 +1335,7 @@ SUB textcolor (BYVAL f as integer, BYVAL b as integer)
 end SUB
 
 SUB setfont (f() as integer) 
-' no bounds checking, probably not smart
-' 2 characters per int
-	dim i as integer
-	dim j as integer
-	dim t as integer
-	j = 0
-	t = 0
-	for i = 0 to (256 * 8) - 1
-		if t = 0 then
-			fontdata(i) = f(j) and &hff
-			t = 1
-		else
-			fontdata(i) = (f(j) and &hff00) shr 8
-			t = 0
-			j = j + 1
-		end if
-	next
+	fontdata = cast(ubyte ptr, @f(0))
 end SUB
 
 SUB setbit (bb() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as integer)
