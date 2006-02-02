@@ -1933,7 +1933,7 @@ END SUB
 SUB wrappedsong (songnumber)
 
 IF songnumber <> presentsong THEN
- loadsong game$ + "." + LTRIM$(STR$(songnumber)) + CHR$(0)
+ playsongnum songnumber
  presentsong = songnumber
 ELSE
  resumesong

@@ -11,7 +11,7 @@ option explicit
 #include gfx.bi
 
 'Can do this in FB but not in QB - need another solution
-common shared version$
+common shared workingdir$, version$, game$
 
 dim shared seg as integer ptr
 'bit of a waste, just stores the rpg name from the command line
@@ -174,3 +174,22 @@ end sub
 function getcommandline() as string
 	getcommandline = storecmd
 end function
+
+FUNCTION canplay (file$)
+	'dummy, you should be able to play anything passed in (unless this sub finds uses elsewhere)
+	canplay = 1
+END FUNCTION
+
+SUB playsongnum (songnum%)
+	'will need changing
+	DIM songbase$, songfile$
+	songbase$ = workingdir$ + "\song" + LTRIM$(STR$(songnum))
+	songfile$ = ""
+	IF songnum > 99 THEN
+		IF isfile(songbase$ + ".bam" + CHR$(0)) THEN songfile$ = songbase$ + ".bam"
+	ELSE
+		IF isfile(game$ + "." + LTRIM$(STR$(songnum)) + CHR$(0)) THEN songfile$ = game$ + "." + LTRIM$(STR$(songnum))
+	END IF
+	IF isfile(songfile$ + ".mid" + CHR$(0)) THEN songfile$ = songbase$ + ".mid"
+	IF songfile$ <> "" THEN loadsong songfile$ + CHR$(0)
+END SUB
