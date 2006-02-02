@@ -11,11 +11,11 @@ DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION filenum$ (n%)
-DECLARE SUB writeconstant (filehandle%, num%, name$, unique$(), prefix$)
+DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
 DECLARE SUB safekill (f$)
 DECLARE SUB touchfile (f$)
 DECLARE SUB romfontchar (font%(), char%)
-DECLARE SUB standardmenu (menu$(), size%, vis%, ptr%, top%, x%, y%, page%, edge%)
+DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION readitemname$ (index%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
@@ -35,11 +35,11 @@ DECLARE FUNCTION loadname$ (length%, offset%)
 DECLARE SUB exportnames (gamedir$, song$())
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
-DECLARE FUNCTION needaddset (ptr%, check%, what$)
+DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$)
-DECLARE SUB cycletile (cycle%(), tastuf%(), ptr%(), skip%())
+DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE FUNCTION onoroff$ (n%)
@@ -47,8 +47,8 @@ DECLARE FUNCTION intstr$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB bitset (array%(), wof%, last%, name$())
-DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
+DECLARE SUB bitset (array%(), wof%, last%, names$())
+DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE SUB formation (song$())
 DECLARE SUB enemydata ()
@@ -76,10 +76,10 @@ DECLARE FUNCTION inputfilename$ (query$, ext$)
 '$INCLUDE: 'const.bi'
 
 REM $STATIC
-' SUB bitset (array(), wof, last, name$())
+' SUB bitset (array(), wof, last, names$())
 
 ' '---DIM AND INIT---
-' ptr = -1
+' pt = -1
 ' top = -1
 
 ' '---MAIN LOOP---
@@ -89,27 +89,27 @@ REM $STATIC
 '  setkeys
 '  tog = tog XOR 1
 '  IF keyval(1) > 1 THEN EXIT DO
-'  dummy = usemenu(ptr, top, -1, last, 24)
-'  IF ptr >= 0 THEN
-'   IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, ptr, 0
-'   IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, ptr, 1
-'   IF keyval(57) > 1 OR keyval(28) > 1 THEN setbit array(), wof, ptr, readbit(array(), wof, ptr) XOR 1
+'  dummy = usemenu(pt, top, -1, last, 24)
+'  IF pt >= 0 THEN
+'   IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, pt, 0
+'   IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, pt, 1
+'   IF keyval(57) > 1 OR keyval(28) > 1 THEN setbit array(), wof, pt, readbit(array(), wof, pt) XOR 1
 '  ELSE
 '   IF keyval(28) > 1 OR keyval(57) > 1 THEN EXIT DO
 '  END IF
 '  FOR i = top TO small(top + 24, last)
 '   c = 8 - readbit(array(), wof, i)
-'   IF ptr = i THEN c = (8 * readbit(array(), wof, i)) + 6 + tog
+'   IF pt = i THEN c = (8 * readbit(array(), wof, i)) + 6 + tog
 '   textcolor c, 0
 '   IF i >= 0 THEN
-'    printstr name$(i), 8, (i - top) * 8, dpage
+'    printstr names$(i), 8, (i - top) * 8, dpage
 '   ELSE
 '    IF c = 8 THEN c = 7
 '    textcolor c, 0
 '    printstr "Previous Menu", 8, (i - top) * 8, dpage
 '   END IF
 '  NEXT i
-'  ' printstr STR$(ptr) + STR$(top) + STR$(last), 160, 0, dpage
+'  ' printstr STR$(pt) + STR$(top) + STR$(last), 160, 0, dpage
 '  SWAP vpage, dpage
 '  setvispage vpage
 '  clearpage dpage
@@ -120,25 +120,25 @@ REM $STATIC
 ' END SUB
 
 'This new bitset() will build its own menu of bits, and thus hide blank bitsets
-SUB bitset (array(), wof, last, name$())
+SUB bitset (array(), wof, last, names$())
 
 '---DIM AND INIT---
-ptr = -1
+pt = -1
 top = -1
 
 dim menu$(-1 to last), bits(-1 to last), count
 
-ptr = 0
+pt = 0
 FOR i = 0 to last
- IF name$(i) <> "" THEN
-  menu$(ptr) = name$(i)
-  bits(ptr) = i
-  ptr = ptr + 1
+ IF names$(i) <> "" THEN
+  menu$(pt) = names$(i)
+  bits(pt) = i
+  pt = pt + 1
  END IF
 NEXT
 
-count = ptr
-ptr = -1
+count = pt
+pt = -1
 
 '---MAIN LOOP---
 setkeys
@@ -147,17 +147,17 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(ptr, top, -1, count-1, 24)
- IF ptr >= 0 THEN
-  IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, bits(ptr), 0
-  IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, bits(ptr), 1
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN setbit array(), wof, bits(ptr), readbit(array(), wof, bits(ptr)) XOR 1
+ dummy = usemenu(pt, top, -1, count-1, 24)
+ IF pt >= 0 THEN
+  IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, bits(pt), 0
+  IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, bits(pt), 1
+  IF keyval(57) > 1 OR keyval(28) > 1 THEN setbit array(), wof, bits(pt), readbit(array(), wof, bits(pt)) XOR 1
  ELSE
   IF keyval(28) > 1 OR keyval(57) > 1 THEN EXIT DO
  END IF
  FOR i = top TO small(top + 24, count-1)
   c = 8 - readbit(array(), wof, bits(i))
-  IF ptr = i THEN c = (8 * readbit(array(), wof, bits(i))) + 6 + tog
+  IF pt = i THEN c = (8 * readbit(array(), wof, bits(i))) + 6 + tog
   textcolor c, 0
   IF i >= 0 THEN
    printstr menu$(i), 8, (i - top) * 8, dpage
@@ -167,7 +167,7 @@ DO
    printstr "Previous Menu", 8, (i - top) * 8, dpage
   END IF
  NEXT i
- ' printstr STR$(ptr) + STR$(top) + STR$(last), 160, 0, dpage
+ ' printstr STR$(pt) + STR$(top) + STR$(last), 160, 0, dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -436,10 +436,10 @@ clearpage 0
 clearpage 1
 
 IF general(56) < 1 THEN general(56) = 1
-ptr = 2
+pt = 2
 csr = 0
 menu$(0) = "Previous Menu"
-tagname$ = lmnemonic$(ptr)
+tagname$ = lmnemonic$(pt)
 
 setkeys
 DO
@@ -450,22 +450,22 @@ DO
  dummy = usemenu(csr, 0, 0, 2, 24)
  IF csr = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN EXIT DO
  IF csr = 1 THEN
-  oldptr = ptr
-  IF intgrabber(ptr, 0, small(general(56) + 1, 999), 75, 77) THEN
-   IF ptr > general(56) THEN general(56) = ptr
+  oldptr = pt
+  IF intgrabber(pt, 0, small(general(56) + 1, 999), 75, 77) THEN
+   IF pt > general(56) THEN general(56) = pt
    smnemonic tagname$, oldptr
-   tagname$ = lmnemonic$(ptr)
+   tagname$ = lmnemonic$(pt)
   END IF
  END IF
  IF csr = 2 THEN
   strgrabber tagname$, 20
   IF keyval(28) > 1 THEN
-   smnemonic tagname$, ptr
-   ptr = small(ptr + 1, 999)
-   tagname$ = lmnemonic$(ptr)
+   smnemonic tagname$, pt
+   pt = small(pt + 1, 999)
+   tagname$ = lmnemonic$(pt)
   END IF
  END IF
- menu$(1) = "Tag" + STR$(ptr)
+ menu$(1) = "Tag" + STR$(pt)
  menu$(2) = "Name:" + tagname$
  
  standardmenu menu$(), 2, 22, csr, 0, 0, 0, dpage, 0
@@ -475,7 +475,7 @@ DO
  clearpage dpage
  dowait
 LOOP
-smnemonic tagname$, ptr
+smnemonic tagname$, pt
 
 END SUB
 
