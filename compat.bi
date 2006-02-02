@@ -49,3 +49,5 @@ declare sub dummyclear (arg1%=0, arg2%=0, arg3%=0)
 declare sub togglewindowed()
 declare sub storecommandline()
 declare function getcommandline() as string
+DECLARE FUNCTION canplay (file$)
+DECLARE SUB playsongnum (songnum%)

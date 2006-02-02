@@ -1716,7 +1716,6 @@ IF general(95) = 4 THEN
 END IF
 
 IF NOT isfile(workingdir$ + "\archinym.lmp" + CHR$(0)) THEN
- debug "Archinym not found"
  '--create archinym information lump
  fh = FREEFILE
  OPEN workingdir$ + "\archinym.lmp" FOR OUTPUT AS #fh
@@ -1726,7 +1725,6 @@ IF NOT isfile(workingdir$ + "\archinym.lmp" + CHR$(0)) THEN
 END IF
 
 IF NOT isfile(game$ + ".veh" + CHR$(0)) THEN
- debug game$ + ".veh not found"
  '--make sure vehicle lump is present
  IF isfile("ohrrpgce.new" + CHR$(0)) THEN
   IF unlumpone("ohrrpgce.new", "ohrrpgce.veh", game$ + ".veh") THEN

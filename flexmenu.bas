@@ -3,6 +3,8 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
+DEFINT A-Z
+'$DYNAMIC
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
 DECLARE SUB clearallpages ()
 DECLARE SUB writeattackdata (array%(), index%)
@@ -11,8 +13,6 @@ DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
 DECLARE SUB setactivemenu (workmenu%(), newmenu%(), pt%, top%, size%)
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
-DEFINT A-Z
-'$DYNAMIC
 DECLARE FUNCTION readenemyname$ (index%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE FUNCTION readitemname$ (index%)

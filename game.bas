@@ -298,7 +298,7 @@ defaultc
 autorungame = 0
 a$ = cline$
 IF MID$(a$, 2, 1) <> ":" THEN a$ = sCurdir$ + a$
-IF ucase(RIGHT$(a$, 4)) = ".RPG" AND isfile(a$ + CHR$(0)) THEN
+IF UCASE$(RIGHT$(a$, 4)) = ".RPG" AND isfile(a$ + CHR$(0)) THEN
  sourcerpg$ = a$
  autorungame = 1
 ELSE

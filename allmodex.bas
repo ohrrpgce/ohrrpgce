@@ -1520,6 +1520,7 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 	dim lname as string
 	dim i as integer
 	dim bufr as ubyte ptr
+	dim nowildcards as integer = 0
 	
 	lf = freefile
 	open lump$ for binary access read as #lf
@@ -1532,6 +1533,13 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 	if bufr = null then 
 		close #lf
 		exit sub
+	end if
+	
+	'should make browsing a bit faster
+	if len(fmask$) > 0 then
+		if instr(fmask$, "*") = 0 and instr(fmask$, "?") = 0 then
+			nowildcards = -1
+		end if
 	end if
 	
 	get #lf, , dat	'read first byte
@@ -1567,7 +1575,7 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 				open path$ + lname for binary access write as #of
 				if err > 0 then
 					'debug "Could not open file " + path$ + lname
-					exit sub
+					exit while
 				end if
 				
 				'copy the data
@@ -1584,6 +1592,9 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 				wend
 				
 				close #of
+				
+				'early out if we're only looking for one file
+				if nowildcards then exit while
 			else
 				'skip to next name
 				i = seek(lf)
