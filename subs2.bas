@@ -61,6 +61,8 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE FUNCTION maplumpname$ (map, oldext$)
+DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
+DECLARE FUNCTION validmusicfile(file$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -73,10 +75,11 @@ FUNCTION browse$ (special, default$, fmask$, tmp$)
 browse$ = ""
 
 'special=0   no preview
-'special=1   BAM
+'special=1   just BAM
 'special=2   16 color BMP
 'special=3   background
 'special=4   master palette
+'special=5   any supported music (currently *.BAM and *.MID)  (fmask$ is ignored)
 mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
 
@@ -127,13 +130,8 @@ DO
   SELECT CASE special
    CASE 1
     stopsong
-    IF treec(treeptr) = 3 THEN
-     bamfh = FREEFILE
-     OPEN nowdir$ + tree$(treeptr) FOR BINARY AS #bamfh
-     a$ = "    "
-     GET #bamfh, 1, a$
-     CLOSE #bamfh
-     IF a$ = "CBMF" THEN
+    IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
+     IF validmusicfile(nowdir$ + tree$(treeptr)) THEN
       loadsong nowdir$ + tree$(treeptr) + CHR$(0)
      ELSE
       alert$ = tree$(treeptr) + " is not a valid BAM file"
@@ -159,12 +157,24 @@ DO
        alert$ = "Not a valid MAS file"
      END SELECT
     END IF
+   CASE 5
+    stopsong
+    IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
+     IF validmusicfile(nowdir$ + tree$(treeptr)) THEN
+      '-- NOTE TO SIMON: when you get to this, wrap this in a compat file, QB: as it is, FB: without the IF
+      IF canplay(tree$(treeptr)) THEN
+       loadsong nowdir$ + tree$(treeptr) + CHR$(0)
+      END IF
+     ELSE
+      alert$ = tree$(treeptr) + " is not a valid music file"
+     END IF
+    END IF
   END SELECT
  END IF
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   alert$ = ""
   changed = 1
-  IF special = 1 THEN stopsong
+  IF special = 1 OR special = 5 THEN stopsong
   SELECT CASE treec(treeptr)
    CASE 0, 1
     nowdir$ = LEFT$(tree$(0), 3)
@@ -244,48 +254,16 @@ ELSE
  CLOSE #fh
  safekill tmp$ + "hrbrowse.tmp"
  '---FIND ALL FILES IN FILEMASK---
- findfiles nowdir$ + fmask$ + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
- fh = FREEFILE
- OPEN tmp$ + "hrbrowse.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh) OR treesize >= 255
-  treesize = treesize + 1
-  treec(treesize) = 3
-  INPUT #fh, tree$(treesize)
-  tree$(treesize) = LCASE$(tree$(treesize))
-  '---4-bit BMP browsing
-  IF special = 2 THEN
-   IF bmpinfo(nowdir$ + tree$(treesize) + CHR$(0), bmpd()) THEN
-    IF bmpd(0) <> 4 OR bmpd(1) > 320 OR bmpd(2) > 200 THEN
-     treec(treesize) = 6
-    END IF
-   ELSE
-    treesize = treesize - 1
-   END IF
-  END IF
-  '---320x200x24bit BMP files
-  IF special = 3 THEN
-   IF bmpinfo(nowdir$ + tree$(treesize) + CHR$(0), bmpd()) THEN
-    IF bmpd(0) <> 24 OR bmpd(1) <> 320 OR bmpd(2) <> 200 THEN
-     treec(treesize) = 6
-    END IF
-   ELSE
-    treesize = treesize - 1
-   END IF
-  END IF
-  '--master palettes
-  IF special = 4 THEN
-   masfh = FREEFILE
-   OPEN nowdir$ + tree$(treesize) FOR BINARY AS #masfh
-   a$ = "       "
-   GET #masfh, 1, a$
-   CLOSE #masfh
-   IF a$ <> mashead$ AND a$ <> paledithead$ THEN
-    treec(treesize) = 6
-   END IF
-  END IF
- LOOP
- CLOSE #fh
- safekill tmp$ + "hrbrowse.tmp"
+ IF special = 5 THEN
+  '--disregard fmask$. one call per extension
+  findfiles nowdir$ + "*.bam" + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
+  GOSUB addmatchs
+  findfiles nowdir$ + "*.mid" + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
+  GOSUB addmatchs
+ ELSE
+  findfiles nowdir$ + fmask$ + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
+  GOSUB addmatchs
+ END IF
 END IF
 
 '--get longnames for display
@@ -338,6 +316,57 @@ widest = 0
 FOR i = 0 TO treesize
  IF LEN(tree$(i)) > widest THEN widest = LEN(tree$(i))
 NEXT i
+
+RETURN
+
+addmatchs:
+fh = FREEFILE
+OPEN tmp$ + "hrbrowse.tmp" FOR INPUT AS #fh
+DO UNTIL EOF(fh) OR treesize >= 255
+ treesize = treesize + 1
+ treec(treesize) = 3
+ INPUT #fh, tree$(treesize)
+ tree$(treesize) = LCASE$(tree$(treesize))
+ '---music files
+ IF special = 1 OR special = 5 THEN
+  IF validmusicfile(nowdir$ + tree$(treesize)) = 0 THEN
+   treec(treesize) = 6
+  END IF
+ END IF
+ '---4-bit BMP browsing
+ IF special = 2 THEN
+  IF bmpinfo(nowdir$ + tree$(treesize) + CHR$(0), bmpd()) THEN
+   IF bmpd(0) <> 4 OR bmpd(1) > 320 OR bmpd(2) > 200 THEN
+    treec(treesize) = 6
+   END IF
+  ELSE
+   treesize = treesize - 1
+  END IF
+ END IF
+ '---320x200x24bit BMP files
+ IF special = 3 THEN
+  IF bmpinfo(nowdir$ + tree$(treesize) + CHR$(0), bmpd()) THEN
+   IF bmpd(0) <> 24 OR bmpd(1) <> 320 OR bmpd(2) <> 200 THEN
+    treec(treesize) = 6
+   END IF
+  ELSE
+   treesize = treesize - 1
+  END IF
+ END IF
+ '--master palettes  (why isn't this up there?)
+ IF special = 4 THEN
+  masfh = FREEFILE
+  OPEN nowdir$ + tree$(treesize) FOR BINARY AS #masfh
+  a$ = "       "
+  GET #masfh, 1, a$
+  CLOSE #masfh
+  IF a$ <> mashead$ AND a$ <> paledithead$ THEN
+   treec(treesize) = 6
+  END IF
+ END IF
+LOOP
+CLOSE #fh
+safekill tmp$ + "hrbrowse.tmp"
 
 RETURN
 
@@ -1445,13 +1474,7 @@ RETURN
 
 itemar:
 item$ = ""
-IF cond(18) <> 0 THEN
- setpicstuf a(), 200, -1
- loadset game$ + ".itm" + CHR$(0), ABS(cond(18)) - 1, 0
- FOR i = 1 TO small(a(0), 15)
-  item$ = item$ + CHR$(a(i))
- NEXT i
-END IF
+IF cond(18) <> 0 THEN item$ = itemstr$(ABS(cond(18)), 0, 0)
 RETURN
 
 picktext:
@@ -1723,191 +1746,23 @@ END IF
 
 END FUNCTION
 
-SUB vehicles
-
-DIM menu$(20), veh(39), min(39), max(39), offset(39), vehbit$(15), tiletype$(8)
-
-pt = 0: csr = 0
-
-vehbit$(0) = "Pass through walls"
-vehbit$(1) = "Pass through NPCs"
-vehbit$(2) = "Enable NPC activation"
-vehbit$(3) = "Enable door use"
-vehbit$(4) = "Do not hide leader"
-vehbit$(5) = "Do not hide party"
-vehbit$(6) = "Dismount one space ahead"
-vehbit$(7) = "Pass walls while dismounting"
-vehbit$(8) = "Disable flying shadow"
-
-tiletype$(0) = "default"
-tiletype$(1) = "A"
-tiletype$(2) = "B"
-tiletype$(3) = "A and B"
-tiletype$(4) = "A or B"
-tiletype$(5) = "not A"
-tiletype$(6) = "not B"
-tiletype$(7) = "neither A nor B"
-tiletype$(8) = "everywhere"
-
-min(3) = 0: max(3) = 5: offset(3) = 8             'speed
-FOR i = 0 TO 3
- min(5 + i) = 0: max(5 + i) = 8: offset(5 + i) = 17 + i
-NEXT i
-min(9) = -1: max(9) = 255: offset(9) = 11 'battles
-min(10) = -2: max(10) = general(43): offset(10) = 12 'use button
-min(11) = -2: max(11) = general(43): offset(11) = 13 'menu button
-min(12) = -999: max(12) = 999: offset(12) = 14 'tag
-min(13) = general(43) * -1: max(13) = general(39): offset(13) = 15'mount
-min(14) = general(43) * -1: max(14) = general(39): offset(14) = 16'dismount
-min(15) = 0: max(15) = 99: offset(15) = 21'dismount
-
-GOSUB loadveh
-GOSUB vehmenu
-
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(csr, top, 0, 15, 22)
- SELECT CASE csr
-  CASE 0
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
-    EXIT DO
-   END IF
-  CASE 1
-   IF pt = general(55) AND keyval(77) > 1 THEN
-    GOSUB saveveh
-    pt = bound(pt + 1, 0, 32767)
-    IF needaddset(pt, general(55), "vehicle") THEN
-     FOR i = 0 TO 39
-      veh(i) = 0
-     NEXT i
-     vehname$ = ""
-     GOSUB vehmenu
-    END IF
-   END IF
-   newptr = pt
-   IF intgrabber(newptr, 0, general(55), 75, 77) THEN
-    GOSUB saveveh
-    pt = newptr
-    GOSUB loadveh
-    GOSUB vehmenu
-   END IF
-  CASE 2
-   oldname$ = vehname$
-   strgrabber vehname$, 15
-   IF oldname$ <> vehname$ THEN GOSUB vehmenu
-  CASE 3, 5 TO 15
-   IF intgrabber(veh(offset(csr)), min(csr), max(csr), 75, 77) THEN
-    GOSUB vehmenu
-   END IF
-  CASE 4
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
-    editbitset veh(), 9, 8, vehbit$()
-   END IF
- END SELECT
- standardmenu menu$(), 15, 15, csr, top, 0, 0, dpage, 0
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-GOSUB saveveh
-EXIT SUB
-
-vehmenu:
-menu$(0) = "Previous Menu"
-menu$(1) = "Vehicle" + STR$(pt)
-menu$(2) = "Name: " + vehname$
-
-IF veh(offset(3)) = 3 THEN tmp$ = " 10" ELSE tmp$ = STR$(veh(8))
-menu$(3) = "Speed:" + tmp$
-
-menu$(4) = "Vehicle Bitsets..." '9,10
-
-menu$(5) = "Override walls: "
-menu$(6) = "Blocked by: "
-menu$(7) = "Mount from: "
-menu$(8) = "Dismount to: "
-FOR i = 0 TO 3
- menu$(5 + i) = menu$(5 + i) + tiletype$(bound(veh(offset(5 + i)), 0, 8))
-NEXT i
-
-SELECT CASE veh(offset(9))
- CASE -1
-  tmp$ = "disabled"
- CASE 0
-  tmp$ = "enabled"
- CASE ELSE
-  tmp$ = "formation set" + STR$(veh(offset(9)))
+FUNCTION validmusicfile (file$)
+'-- actually, doesn't need to be a music file, but only multi-filetype imported data right now
+ext$ = UCASE$(RIGHT$(file$, 4))
+SELECT CASE ext$
+ CASE ".BAM"
+  a$ = "    "
+  realhd$ = "CBMF"
+ CASE ".MID"
+  a$ = "    "
+  realhd$ = "MThd"
 END SELECT
-menu$(9) = "Random Battles: " + tmp$ '11
-
-FOR i = 0 TO 1
- SELECT CASE veh(offset(10 + i))
-  CASE -2
-   tmp$ = "disabled"
-  CASE -1
-   tmp$ = "menu"
-  CASE 0
-   tmp$ = "dismount"
-  CASE ELSE
-   tmp$ = "script " + scriptname$(ABS(veh(offset(10 + i))), "plotscr.lst")
- END SELECT
- IF i = 0 THEN menu$(10 + i) = "Use button: " + tmp$'12
- IF i = 1 THEN menu$(10 + i) = "Menu button: " + tmp$'13
-NEXT i
-
-SELECT CASE ABS(veh(offset(12)))
- CASE 0
-  tmp$ = " (DISABLED)"
- CASE 1
-  tmp$ = " (RESERVED TAG)"
- CASE ELSE
-  tmp$ = " (" + lmnemonic$(ABS(veh(offset(12)))) + ")"  '14
-END SELECT
-menu$(12) = "If riding Tag" + STR$(ABS(veh(offset(12)))) + "=" + onoroff$(veh(offset(12))) + tmp$
-
-SELECT CASE veh(offset(13))
- CASE 0
-  tmp$ = "[script/textbox]"
- CASE IS < 0
-  tmp$ = "run script " + scriptname$(ABS(veh(offset(13))), "plotscr.lst")
- CASE IS > 0
-  tmp$ = "text box" + STR$(veh(offset(13)))
-END SELECT
-menu$(13) = "On Mount: " + tmp$
-
-SELECT CASE veh(offset(14))
- CASE 0
-  tmp$ = "[script/textbox]"
- CASE IS < 0
-  tmp$ = "run script " + scriptname$(ABS(veh(offset(14))), "plotscr.lst")
- CASE IS > 0
-  tmp$ = "text box" + STR$(veh(offset(14)))
-END SELECT
-menu$(14) = "On Dismount: " + tmp$
-
-menu$(15) = "Elevation:" + STR$(veh(offset(15))) + " pixels"
-RETURN
-
-loadveh:
-setpicstuf veh(), 80, -1
-loadset game$ + ".veh" + CHR$(0), pt, 0
-vehname$ = STRING$(bound(veh(0) AND 255, 0, 15), 0)
-array2str veh(), 1, vehname$
-RETURN
-
-saveveh:
-veh(0) = bound(LEN(vehname$), 0, 15)
-str2array vehname$, veh(), 1
-setpicstuf veh(), 80, -1
-storeset game$ + ".veh" + CHR$(0), pt, 0
-RETURN
-
-END SUB
+musfh = FREEFILE
+OPEN file$ FOR BINARY AS #musfh
+GET #musfh, 1, a$
+CLOSE #musfh
+IF a$ = realhd$ THEN validmusicfile = 1 ELSE validmusicfile = 0
+END FUNCTION
 
 SUB verifyrpg
 

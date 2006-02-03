@@ -28,6 +28,7 @@ DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION tagstring$ (tag%, zero$, one$, negone$)
 DECLARE FUNCTION bytes2int% (lowbyte%, highbyte%)
 
+DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB setbinsize (id%, size%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION readattackname$ (index%)
@@ -86,13 +87,12 @@ DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
-DECLARE SUB textage (song$())
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (master%(), font())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
-DECLARE FUNCTION getbinsize% (id%)
+DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -1174,8 +1174,9 @@ FOR i = 0 TO size
     nowmenu$(i) = nowmenu$(i) + " " + readattackname$(datablock(menuoff(nowdat(i))) - 1)
    END IF
   CASE 8 '--item number
-   nowmenu$(i) = nowmenu$(i) + STR$(datablock(menuoff(nowdat(i))))
-   nowmenu$(i) = nowmenu$(i) + " " + readitemname$(datablock(menuoff(nowdat(i))))
+   'nowmenu$(i) = nowmenu$(i) + STR$(datablock(menuoff(nowdat(i))))
+   'nowmenu$(i) = nowmenu$(i) + " " + readitemname$(datablock(menuoff(nowdat(i))))
+   nowmenu$(i) = nowmenu$(i) + itemstr(datablock(menuoff(nowdat(i))), 0, 1)
   CASE 9 '--enemy number
    IF datablock(menuoff(nowdat(i))) <= 0 THEN
     nowmenu$(i) = nowmenu$(i) + " None"

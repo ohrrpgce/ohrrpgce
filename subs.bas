@@ -57,12 +57,12 @@ DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
-DECLARE SUB textage (song$())
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (master%(), font%())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
+DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -1128,7 +1128,7 @@ min(4) = 0: max(4) = 32767
 min(5) = -1: max(5) = 99
 min(6) = 0: max(6) = 254
 min(7) = 0: max(7) = 16
-GOSUB itstrh
+it$ = itemstr(a(22), 0, 1)
 setkeys
 DO
  GOSUB genheromenu
@@ -1144,7 +1144,7 @@ DO
    CASE 0 TO 6
     IF intgrabber(a(16 + bctr), min(bctr), max(bctr), 75, 77) THEN
      IF bctr >= 1 OR bctr <= 4 THEN GOSUB heropics
-     IF bctr = 6 THEN GOSUB itstrh
+     IF bctr = 6 THEN it$ = itemstr$(a(22), 0, 1)
     END IF
    CASE 7
     dummy = intgrabber(a(296), min(bctr), max(bctr), 75, 77)
@@ -1390,14 +1390,14 @@ loadset game$ + ".pt4" + CHR$(0), a(19), 16
 getpal16 pal16(), 1, a(20)
 RETURN
 
-itstrh:
-setpicstuf buffer(), 200, -1
-loadset game$ + ".itm" + CHR$(0), a(22), 0
-it$ = ""
-FOR o = 1 TO small(buffer(0), 20)
- IF buffer(o) < 256 AND buffer(o) > -1 THEN it$ = it$ + CHR$(buffer(o)) ELSE it$ = ""
-NEXT o
-RETURN
+' itstrh:
+' setpicstuf buffer(), 200, -1
+' loadset game$ + ".itm" + CHR$(0), a(22), 0
+' it$ = ""
+' FOR o = 1 TO small(buffer(0), 20)
+'  IF buffer(o) < 256 AND buffer(o) > -1 THEN it$ = it$ + CHR$(buffer(o)) ELSE it$ = ""
+' NEXT o
+' RETURN
 
 '0-318,636 bytes
 '0       name length
@@ -1726,7 +1726,7 @@ LOOP
 itatkname: 'n is the offset
 temp$ = "NOTHING"
 IF a(n) <= 0 THEN RETURN
-temp$ = readattackname$(a(n) - 1)
+temp$ = STR$(a(n) - 1) + " " + readattackname$(a(n) - 1)
 RETURN
 
 litemname:
@@ -1810,6 +1810,21 @@ RETURN
 '77      is equiped by hero in active party
 
 END SUB
+
+FUNCTION itemstr$ (it%, hidden%, offbyone%)
+ 'it - the item number
+ 'hidden - whether to *not* prefix the item number
+ 'offbyone - whether it is the item number (1), or the itemnumber + 1 (0)
+ IF it = 0 AND offbyone = 0 THEN itemstr$ = " NONE": EXIT FUNCTION
+ IF offbyone THEN itn = it ELSE itn = it - 1
+
+ setpicstuf buffer(), 200, -1
+ loadset game$ + ".itm" + CHR$(0), itn, 0
+ re$ = ""
+ re$ = readbadbinstring$(buffer(), 0, 8, 0)
+ IF hidden = 0 THEN re$ = STR$(itn) + " " + re$
+ itemstr$ = re$
+END FUNCTION
 
 FUNCTION large (n1, n2)
 large = n1
@@ -1897,7 +1912,7 @@ getpal16 pal16(), i, npc(i * 15 + 1)
 RETURN
 
 npcstats:
-GOSUB itstr
+it$ = itemstr(npc(cur * 15 + 6), 0, 0)
 GOSUB frstline
 setkeys
 DO
@@ -1915,7 +1930,7 @@ DO
  IF (csr >= 1 AND csr < 11) OR csr > 11 THEN
   IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr), 75, 77) THEN
    IF csr = 1 THEN getpal16 pal16(), cur, npc(cur * 15 + 1)
-   IF csr = 6 THEN GOSUB itstr
+   IF csr = 6 THEN it$ = itemstr(npc(cur * 15 + 6), 0, 0)
    IF csr = 4 THEN GOSUB frstline
   END IF
  END IF
@@ -1945,7 +1960,7 @@ DO
    CASE 5
     temp$ = info$(npc(cur * 15 + i), 1)
    CASE 6
-    temp$ = " " + it$
+    temp$ = it$
    CASE 7
     temp$ = push$(npc(cur * 15 + i))
    CASE 8
@@ -2007,17 +2022,17 @@ npc(cur * 15 + 11) = general(105) + 1
 setbit general(), 106, general(105), 1
 RETURN
 
-itstr:
-it$ = "NONE"
-IF npc(cur * 15 + 6) = 0 THEN RETURN
-setpicstuf buffer(), 200, -1
-loadset game$ + ".itm" + CHR$(0), npc(cur * 15 + 6) - 1, 0
-it$ = ""
-FOR o = 1 TO small(buffer(0), 16)
- IF buffer(o) > 255 OR buffer(o) < 0 THEN buffer(o) = 0
- it$ = it$ + CHR$(buffer(o))
-NEXT o
-RETURN
+' itstr:
+' it$ = "NONE"
+' IF npc(cur * 15 + 6) = 0 THEN RETURN
+' setpicstuf buffer(), 200, -1
+' loadset game$ + ".itm" + CHR$(0), npc(cur * 15 + 6) - 1, 0
+' it$ = ""
+' FOR o = 1 TO small(buffer(0), 16)
+'  IF buffer(o) > 255 OR buffer(o) < 0 THEN buffer(o) = 0
+'  it$ = it$ + CHR$(buffer(o))
+' NEXT o
+' RETURN
 
 frstline:
 x$ = ""

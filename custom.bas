@@ -84,6 +84,8 @@ DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION maplumpname$ (map, oldext$)
+DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
+DECLARE FUNCTION inputfilename$ (query$, ext$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -330,7 +332,7 @@ DO
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF csr = 0 THEN
    'IF game$ = "" THEN GOTO finis
-   GOSUB gamestr
+   game$ = inputfilename$("Filename of New Game?", ".rpg")
    IF game$ = "" GOTO nomakegame
    textcolor 6, 0
    printstr "Please Wait...", 0, 40, vpage
@@ -387,32 +389,6 @@ nomakegame:
 
  standardmenu rpg$(), L, 22, csr, top, 0, 0, dpage, 0
 
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-
-gamestr:
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN game$ = "": RETURN
- strgrabber game$, 8
- fixfilename game$
- IF keyval(28) > 1 THEN
-  FOR i = 2 TO L
-   IF UCASE$(rpg$(i)) = UCASE$(game$) AND game$ <> "" THEN alert$ = game$ + " already exists": alert = 30: game$ = "": EXIT FOR
-  NEXT i
-  IF game$ <> "" THEN RETURN
- END IF
- textcolor 15, 0
- printstr "Filename of New Game?", 160 - LEN("Filename of New Game?") * 4, 20, dpage
- IF alert > 0 THEN printstr alert$, 160 - LEN(alert$) * 4, 40, dpage: alert = alert - 1
- textcolor 14 + tog, 1
- printstr game$, 160 - LEN(game$) * 4, 30, dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -1039,7 +1015,7 @@ RETURN
 
 savefont:
 'DEF SEG = VARSEG(font(0)): BSAVE game$ + ".fnt", VARPTR(font(0)), 2048
-xbsave game$ + ".fnt", general(), 2048
+xbsave game$ + ".fnt", font(), 2048
 RETURN
 
 copychar:
@@ -1410,13 +1386,14 @@ RETURN
 
 setdefault:
 IF b(17) = 0 THEN
- setpicstuf buffer(), 200, -1
- loadset game$ + ".itm" + CHR$(0), b(18), 0
- thing$ = readbadbinstring$(buffer(), 0, 8, 0)
+'  setpicstuf buffer(), 200, -1
+'  loadset game$ + ".itm" + CHR$(0), b(18), 0
+'  thing$ = readbadbinstring$(buffer(), 0, 8, 0)
  'thing$ = ""
  'FOR o = 1 TO small(buffer(0), 10)
  ' IF buffer(o) < 256 AND buffer(o) > -1 THEN thing$ = thing$ + CHR$(buffer(o)) ELSE thing$ = ""
  'NEXT o
+ thing$ = itemstr$(b(18),1,1)
  b(24) = buffer(46)
  b(27) = INT(buffer(46) / 2)
 END IF
@@ -1495,21 +1472,8 @@ storeset game$ + ".stf" + CHR$(0), pt * 50 + thing, 0
 RETURN
 
 itstrsh:
-IF b(25) = 0 THEN
- it$ = "-NONE-"
-ELSE
- setpicstuf buffer(), 200, -1
- loadset game$ + ".itm" + CHR$(0), b(25) - 1, 0
- it$ = readbadbinstring$(buffer(), 0, 8, 0)
-END IF
-IF b(28) = 0 THEN trit$ = "-NONE-": RETURN
-setpicstuf buffer(), 200, -1
-loadset game$ + ".itm" + CHR$(0), b(28) - 1, 0
-trit$ = readbadbinstring$(buffer(), 0, 8, 0)
-'trit$ = ""
-'FOR o = 1 TO small(buffer(0), 10)
-' IF buffer(o) < 256 AND buffer(o) > -1 THEN trit$ = trit$ + CHR$(buffer(o)) ELSE trit$ = ""
-'NEXT o
+it$ = itemstr$(b(25),0,0)
+trit$ = itemstr$(b(28),0,0)
 RETURN
 
 'shopdata
@@ -1610,7 +1574,6 @@ IF general(95) = 1 THEN
     IF readmapblock(tx, ty) = 158 THEN setmapblock tx, ty, 206
    NEXT ty
   NEXT tx
-  '**** BSAVE ****
   'DEF SEG = VARSEG(buffer(0)): BSAVE maplumpname$(i, "t"), VARPTR(buffer(0)), buffer(0) * buffer(1) + 4
   xbsave maplumpname$(i, "t"), buffer(), buffer(0) * buffer(1) + 4
  NEXT i
