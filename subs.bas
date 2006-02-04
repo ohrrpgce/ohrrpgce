@@ -1411,23 +1411,6 @@ RETURN
 ' NEXT o
 ' RETURN
 
-'0-318,636 bytes
-'0       name length
-'1-16    name content
-'17      pic
-'18      pal
-'19      walkabout pic
-'20      walkabout pal
-'21      base level
-'22      default weapon
-'23-46   stats
-'47-238  spell lists
-'240-242 bitsets
-'243-286 spell list names
-'288-291 spell menu types
-'292-295 hero tags
-'296     max rename length
-
 END SUB
 
 SUB herotags (a())
@@ -1468,10 +1451,6 @@ DO
 LOOP
 EXIT SUB
 
-'292     have hero tag
-'293     is alive tag
-'294     is leader tag
-'295     is in active party tag
 END SUB
 
 FUNCTION intgrabber (n, min, max, less, more)
