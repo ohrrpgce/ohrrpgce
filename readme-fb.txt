@@ -1,13 +1,15 @@
 -----------------------------------------------------------
 FBOHR - OHRRPGCE FreeBasic version
 
-2005-10-18 - Aristotle
+2006-02-04 - Chomsky/Camus - Fixes and optimisations. 
+		Added MIDI import.
 2006-01-23 - Berkeley/Bentham - Many fixes, new graphics
 		systems. Allegro version. First version
 		of Custom.
+2005-10-18 - Aristotle
 -----------------------------------------------------------
 
-This is the first release of the Windows version of Custom.
+This is a test release of the Windows version of Custom.
 Think of it as a beta. Please do not risk important files.
 Take backups regularly.
 
@@ -28,20 +30,17 @@ bentham: gamea.exe, customa.exe + alleg40.dll
 
 DIFFERENCES
 
-bentham (Allegro): 
+camus (Allegro): 
 - 640x400 double resolution
 - ALT-ENTER doesn't work at all in Custom, and only in-game
   in game.
 - Starts full-screen by default.
 
-berkeley (SDL):
+chomsky (SDL):
 - Pause_Music doesn't seem to work, meaning that the songs 
   continue to play when you move off them in Import Music,
   until another tune plays or the Import menu is exited.
 - Starts windowed by default.
-
-Double-res can be added to berkeley, and ALT-ENTER can be 
-improved in bentham, depending on how things go.
 
 FEATURES
 
