@@ -2017,6 +2017,7 @@ i:= random(1,1000)
 $1="i = "
 append number(1,i) #"i = 1"
 trace(1) # writes "TRACE: i = 1" to G_DEBUG.TXT</example>
+		</command>
 	</section>
 	<section title="Predefined Constants">
 		<command id="numericconstants">
