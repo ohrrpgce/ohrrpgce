@@ -181,15 +181,23 @@ FUNCTION canplay (file$)
 END FUNCTION
 
 SUB playsongnum (songnum%)
-	'will need changing
-	DIM songbase$, songfile$
-	songbase$ = workingdir$ + "\song" + LTRIM$(STR$(songnum))
-	songfile$ = ""
-	IF songnum > 99 THEN
-		IF isfile(songbase$ + ".bam" + CHR$(0)) THEN songfile$ = songbase$ + ".bam"
-	ELSE
-		IF isfile(game$ + "." + LTRIM$(STR$(songnum)) + CHR$(0)) THEN songfile$ = game$ + "." + LTRIM$(STR$(songnum))
-	END IF
-	IF isfile(songfile$ + ".mid" + CHR$(0)) THEN songfile$ = songbase$ + ".mid"
-	IF songfile$ <> "" THEN loadsong songfile$ + CHR$(0)
+	DIM as string songbase, songfile, numtext
+	
+	numtext = LTRIM$(STR$(songnum))
+	songbase = workingdir$ + "\song" + numtext
+	songfile = ""
+	if isfile(songbase + ".mid") then
+		'is there a midi?
+		songfile = songbase + ".mid"
+	else
+		'no, get bam name
+		IF isfile(songbase + ".bam") THEN
+			songfile = songbase + ".bam"
+		ELSE
+			IF isfile(game$ + "." + numtext) THEN 
+				songfile = game$ + "." + numtext
+			end if
+		END IF
+	end if
+	IF songfile <> "" THEN loadsong songfile
 END SUB
