@@ -1,0 +1,7 @@
+Linking Allegro Statically
+--------------------------
+
+The library path seems a bit odd, so you need to copy libdxguid.a 
+over the version in FreeBasic\libs\win32 (rename it first, in case
+you need it later). You can also copy liballeg_s.a into there, and
+allegro.bi over the version in FreeBasic\inc.
