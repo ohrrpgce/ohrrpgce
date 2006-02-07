@@ -14,7 +14,6 @@ DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB safekill (f$)
 DECLARE SUB touchfile (f$)
 DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$)
-DECLARE SUB romfontchar (font%(), char%)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION readenemyname$ (index%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
@@ -1151,24 +1150,6 @@ NEXT i
 readpassword$ = p$
 
 END FUNCTION
-
-SUB romfontchar (font(), char)
-
-'regs.ax = &H1130
-'regs.bx = &H300
-'CALL interruptx(&H10, regs, regs)
-'off9 = regs.bx: seg9 = regs.es
-'DEF SEG = regs.es
-''FOR i = 1 TO 255
-'FOR j = 0 TO 7
-' b = PEEK(regs.bp + (8 * char) + j)
-' FOR k = 0 TO 7
-'  setbit font(), char * 4, (7 - k) * 8 + j, (b AND 2 ^ k)
-' NEXT k
-'NEXT j
-''NEXT i
-
-END SUB
 
 SUB safekill (f$)
 IF isfile(f$ + CHR$(0)) THEN KILL f$
