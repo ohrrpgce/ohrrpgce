@@ -65,6 +65,7 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE SUB fadein (force%)
+DECLARE SUB checkTagCond(t,check,tag,tagand) 'in bmod.bas
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -80,6 +81,7 @@ END FUNCTION
 
 SUB buystuff (id, shoptype, storebuf(), stock(), stat())
 DIM b(1600), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walks(15), hpal(8)
+recordsize = 32
 
 getnames sname$()
 buytype$(0, 0) = readglobalstring$(85, "Trade for", 20) + " "
@@ -102,12 +104,12 @@ walks(12) = 2
 walks(13) = 3
 walks(14) = 3
 
-setpicstuf b(), 3200, -1
+setpicstuf b(), recordsize * 100, -1
 loadset game$ + ".stf" + CHR$(0), id, 0
 FOR o = 0 TO storebuf(16)
  stuf$(o) = ""
- FOR i = 1 TO small(b(o * 32 + 0), 16)
-  IF b(o * 32 + i) >= 0 AND b(o * 32 + i) < 256 THEN stuf$(o) = stuf$(o) + CHR$(b(o * 32 + i))
+ FOR i = 1 TO small(b(o * recordsize + 0), 16)
+  IF b(o * recordsize + i) >= 0 AND b(o * recordsize + i) < 256 THEN stuf$(o) = stuf$(o) + CHR$(b(o * recordsize + i))
  NEXT i
 NEXT o
 
@@ -158,23 +160,23 @@ DO
  IF carray(4) > 1 THEN '---PRESS ENTER---------------------
   IF readbit(emask(), 0, pt) = 0 THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
    IF stock(id, pt) > 1 THEN stock(id, pt) = stock(id, pt) - 1
-   IF b(pt * 32 + 22) THEN setbit tag(), 0, ABS(b(pt * 32 + 22)), SGN(SGN(b(pt * 32 + 22)) + 1)
-   gold& = gold& - b(pt * 32 + 24)
-   IF b(pt * 32 + 25) > 0 THEN '---TRADE IN ITEM----------
-    delitem b(pt * 32 + 25)
+   IF b(pt * recordsize + 22) THEN setbit tag(), 0, ABS(b(pt * recordsize + 22)), SGN(SGN(b(pt * recordsize + 22)) + 1)
+   gold& = gold& - b(pt * recordsize + 24)
+   IF b(pt * recordsize + 25) > 0 THEN '---TRADE IN ITEM----------
+    delitem b(pt * recordsize + 25)
    END IF '-------END TRADE IN ITEM----------------------------
-   IF b(pt * 32 + 17) = 0 THEN '---BUY ITEM-------------------
-    getitem b(pt * 32 + 18) + 1
+   IF b(pt * recordsize + 17) = 0 THEN '---BUY ITEM-------------------
+    getitem b(pt * recordsize + 18) + 1
     acol = 4
     alert = 10
     alert$ = purchased$ + " " + stuf$(pt)
    END IF '-------END IF ITEM-------------------------------------
-   IF b(pt * 32 + 17) = 1 THEN '---HIRE HERO------------------
-    'getitem b(pt * 32 + 18) + 1
+   IF b(pt * recordsize + 17) = 1 THEN '---HIRE HERO------------------
+    'getitem b(pt * recordsize + 18) + 1
     FOR i = 37 TO 0 STEP -1
      IF hero(i) = 0 THEN slot = i
     NEXT i
-    addhero b(pt * 32 + 18) + 1, slot, stat()
+    addhero b(pt * recordsize + 18) + 1, slot, stat()
     acol = 4
     alert = 10
     alert$ = stuf$(pt) + " " + joined$
@@ -264,23 +266,23 @@ price$ = ""
 eqinfo$ = ""
 info1$ = ""
 info2$ = ""
-IF b(pt * 32 + 24) > 0 THEN price$ = RIGHT$(STR$(b(pt * 32 + 24)), LEN(STR$(b(pt * 32 + 24))) - 1) + " " + sname$(32)
-IF b(pt * 32 + 25) > 0 THEN
+IF b(pt * recordsize + 24) > 0 THEN price$ = RIGHT$(STR$(b(pt * recordsize + 24)), LEN(STR$(b(pt * recordsize + 24))) - 1) + " " + sname$(32)
+IF b(pt * recordsize + 25) > 0 THEN
  IF price$ = "" THEN
   price$ = buytype$(0, shoptype)
  ELSE
   price$ = price$ + " " + anda$
  END IF
- price$ = price$ + readitemname$(b(pt * 32 + 25) - 1)
+ price$ = price$ + readitemname$(b(pt * recordsize + 25) - 1)
  'setpicstuf buffer(), 200, -1
- 'loadset game$ + ".itm" + CHR$(0), b(pt * 32 + 25) - 1, 0
+ 'loadset game$ + ".itm" + CHR$(0), b(pt * recordsize + 25) - 1, 0
  'FOR o = 1 TO buffer(0)
  ' price$ = price$ + CHR$(small(large(buffer(o), 0), 255))
  'NEXT o
 END IF
-IF b(pt * 32 + 17) = 0 THEN
+IF b(pt * recordsize + 17) = 0 THEN
  setpicstuf buffer(), 200, -1
- loadset game$ + ".itm" + CHR$(0), b(pt * 32 + 18), 0
+ loadset game$ + ".itm" + CHR$(0), b(pt * recordsize + 18), 0
  IF buffer(49) = 1 THEN eqinfo$ = eqprefix$ + " " + wepslot$
  IF buffer(49) > 1 THEN eqinfo$ = eqprefix$ + " " + sname$(23 + buffer(49))
  info1$ = readbadbinstring$(buffer(), 9, 40, 0)
@@ -299,10 +301,10 @@ IF b(pt * 32 + 17) = 0 THEN
   info1$ = LEFT$(info1$, 18)
  END IF
 END IF
-IF b(pt * 32 + 17) = 1 THEN
+IF b(pt * recordsize + 17) = 1 THEN
  'hire
  setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0" + CHR$(0), b(pt * 32 + 18), 0
+ loadset game$ + ".dt0" + CHR$(0), b(pt * recordsize + 18), 0
  setpicstuf wbuf(), 200, -1
  loadset game$ + ".itm" + CHR$(0), buffer(22), 0
  IF buffer(21) < 0 THEN buffer(21) = averagelev(stat())
@@ -329,19 +331,19 @@ NEXT i
 FOR i = 0 TO storebuf(16)
  '--for each shop-thing
  IF stock(id, i) = 1 THEN setbit vmask(), 0, i, 1
- IF b(i * 32 + 17) = (shoptype XOR 1) THEN setbit vmask(), 0, i, 1
- IF NOT istag(b(i * 32 + 20), -1) THEN setbit vmask(), 0, i, 1
- IF b(i * 32 + 24) > gold& THEN setbit emask(), 0, i, 1
- IF b(i * 32 + 25) > 0 THEN
+ IF b(i * recordsize + 17) = (shoptype XOR 1) THEN setbit vmask(), 0, i, 1
+ IF NOT istag(b(i * recordsize + 20), -1) THEN setbit vmask(), 0, i, 1
+ IF b(i * recordsize + 24) > gold& THEN setbit emask(), 0, i, 1
+ IF b(i * recordsize + 25) > 0 THEN
   setbit emask(), 0, i, 1
   FOR o = 0 TO 199
    lb = (item(o) AND 255)
    hb = INT(item(o) / 256)
-   IF b(i * 32 + 25) = lb AND hb > 0 AND b(i * 32 + 24) <= gold& THEN setbit emask(), 0, i, 0
+   IF b(i * recordsize + 25) = lb AND hb > 0 AND b(i * recordsize + 24) <= gold& THEN setbit emask(), 0, i, 0
   NEXT o
  END IF
  '---PREVENT PARTY OVERFLOW
- IF b(i * 32 + 17) = 1 AND eslot = 0 THEN setbit emask(), 0, i, 1
+ IF b(i * recordsize + 17) = 1 AND eslot = 0 THEN setbit emask(), 0, i, 1
  IF readbit(vmask(), 0, i) = 0 THEN total = total + 1
 NEXT i
 RETURN
@@ -351,7 +353,7 @@ FOR i = 0 TO storebuf(16)
  '--for each shop-stuff
  IF stock(id, i) = 0 THEN
   '--if unloaded, reload stock
-  stock(id, i) = b(i * 32 + 19)
+  stock(id, i) = b(i * recordsize + 19)
   '--zero means unloaded, 1 means no-stock, 2+n means 1+n in stock
   IF stock(id, i) > -1 THEN stock(id, i) = stock(id, i) + 1
  END IF
@@ -1182,6 +1184,10 @@ ELSE
  END IF
 END IF
 
+'--TODO: Must add the attack-tag conditional stuff. Except, this sub doesn't use
+'        the full attack data set, so I can't access the data. I also don't
+'        know enough about it to make it use the whole thing...
+
 END SUB
 
 SUB patcharray (array(), n$, max)
@@ -1541,6 +1547,7 @@ END SUB
 
 SUB sellstuff (id, storebuf(), stock(), stat())
 DIM b(1600), sname$(40), permask(15), price(200)
+recordsize = 32
 
 getnames sname$()
 
@@ -1551,7 +1558,7 @@ anda$ = readglobalstring$(81, "and a", 10)
 worthnothing$ = readglobalstring$(82, "Worth Nothing", 20)
 sold$ = readglobalstring$(84, "Sold", 10)
 
-setpicstuf b(), 3200, -1
+setpicstuf b(), recordsize * 100, -1
 loadset game$ + ".stf" + CHR$(0), id, 0
 GOSUB selstock
 
@@ -1605,12 +1612,12 @@ hb = INT(item(ic) / 256)
 IF lb > 0 THEN
  IF price(ic) > 0 THEN info$ = worth$ + STR$(price(ic)) + " " + sname$(32)
  FOR i = 0 TO storebuf(16)
-  IF b(i * 32 + 17) = 0 AND b(i * 32 + 18) = lb - 1 THEN
-   IF b(i * 32 + 28) > 0 THEN
+  IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = lb - 1 THEN
+   IF b(i * recordsize + 28) > 0 THEN
     IF info$ = "" THEN info$ = tradefor$ + " " ELSE info$ = info$ + " " + anda$ + " "
-    info$ = info$ + readitemname$(b(i * 32 + 28) - 1)
+    info$ = info$ + readitemname$(b(i * recordsize + 28) - 1)
     'setpicstuf buffer(), 200, -1
-    'loadset game$ + ".itm" + CHR$(0), b(i * 32 + 28) - 1, 0
+    'loadset game$ + ".itm" + CHR$(0), b(i * recordsize + 28) - 1, 0
     'FOR o = 1 TO buffer(0)
     ' info$ = info$ + CHR$(small(large(buffer(o), 0), 255))
     'NEXT o
@@ -1631,15 +1638,15 @@ IF carray(4) > 1 AND readbit(permask(), 0, ic) = 0 AND item(ic) > 0 THEN
  IF gold& < 0 THEN gold& = 0
  'CHECK FOR SPECIAL CASES---------
  FOR i = 0 TO storebuf(16)
-  IF b(i * 32 + 17) = 0 AND b(i * 32 + 18) = lb - 1 THEN
+  IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = lb - 1 THEN
    'SET SELL BIT---
-   IF b(i * 32 + 23) <> 0 THEN setbit tag(), 0, ABS(b(i * 32 + 23)), SGN(SGN(b(i * 32 + 23)) + 1)
+   IF b(i * recordsize + 23) <> 0 THEN setbit tag(), 0, ABS(b(i * recordsize + 23)), SGN(SGN(b(i * recordsize + 23)) + 1)
    'ADD TRADED ITEM-----------
-   IF b(i * 32 + 28) > 0 THEN getitem b(i * 32 + 28)
+   IF b(i * recordsize + 28) > 0 THEN getitem b(i * recordsize + 28)
    'INCREMENT STOCK-------
-   IF b(i * 32 + 26) > 0 THEN
-    IF b(i * 32 + 26) = 1 THEN stock(id, i) = -1
-    IF b(i * 32 + 26) = 2 AND stock(id, i) > 0 THEN stock(id, i) = stock(id, i) + 1
+   IF b(i * recordsize + 26) > 0 THEN
+    IF b(i * recordsize + 26) = 1 THEN stock(id, i) = -1
+    IF b(i * recordsize + 26) = 2 AND stock(id, i) > 0 THEN stock(id, i) = stock(id, i) + 1
    END IF
   END IF
  NEXT i
@@ -1674,11 +1681,11 @@ FOR i = 0 TO 199
   IF buffer(73) = 2 THEN setbit permask(), 0, i, 1
   price(i) = INT(buffer(46) * .5)
   FOR o = 0 TO storebuf(16)
-   IF b(o * 32 + 18) = lb - 1 THEN
-    IF ABS(b(o * 32 + 21)) > 0 THEN IF readbit(tag(), 0, ABS(b(o * 32 + 21))) <> SGN(SGN(b(o * 32 + 21)) + 1) THEN setbit permask(), 0, i, 1
-    IF b(o * 32 + 17) = 0 THEN
-     price(i) = b(o * 32 + 27)
-     IF b(o * 32 + 26) = 3 THEN setbit permask(), 0, i, 1
+   IF b(o * recordsize + 18) = lb - 1 THEN
+    IF ABS(b(o * recordsize + 21)) > 0 THEN IF readbit(tag(), 0, ABS(b(o * recordsize + 21))) <> SGN(SGN(b(o * recordsize + 21)) + 1) THEN setbit permask(), 0, i, 1
+    IF b(o * recordsize + 17) = 0 THEN
+     price(i) = b(o * recordsize + 27)
+     IF b(o * recordsize + 26) = 3 THEN setbit permask(), 0, i, 1
     END IF
    END IF
   NEXT o
@@ -1688,7 +1695,7 @@ RETURN
 
 selstock:
 FOR i = 0 TO storebuf(16)
- IF stock(id, i) = 0 THEN stock(id, i) = b(i * 32 + 19): IF stock(id, i) > -1 THEN stock(id, i) = stock(id, i) + 1
+ IF stock(id, i) = 0 THEN stock(id, i) = b(i * recordsize + 19): IF stock(id, i) > -1 THEN stock(id, i) = stock(id, i) + 1
 NEXT i
 RETURN
 

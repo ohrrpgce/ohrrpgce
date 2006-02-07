@@ -10,6 +10,7 @@ DECLARE SUB exitprogram (needfade%)
 DECLARE SUB quitcleanup ()
 DECLARE FUNCTION focuscost% (cost%, focus%)
 DECLARE FUNCTION safesubtract% (number%, minus%)
+DECLARE FUNCTION safemultiply% (number%, by!)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
 DECLARE FUNCTION atkallowed% (atkid%, attacker%, spclass%, lmplev%, stat%())
 DECLARE FUNCTION trytheft% (who%, targ%, atk%(), es%())
@@ -54,11 +55,13 @@ DECLARE SUB addhero (who%, slot%, stat%())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
+DECLARE FUNCTION rangel% (n&, r%)
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
+DECLARE FUNCTION bound% (n%, lowest%, highest%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -99,6 +102,12 @@ END IF
 '--load attack data
 setpicstuf buffer(), 80, -1
 loadset game$ + ".dt6" + CHR$(0), atkid, 0
+
+'--check for mutedness
+IF readbit(buffer(),65,0) = 1 AND stat(attacker, 0, 15) < stat(attacker, 1, 15) THEN
+ atkallowed = 0
+ EXIT FUNCTION
+END IF
 
 '--check for sufficient mp
 IF stat(attacker, 0, 1) - focuscost(buffer(8), stat(attacker, 0, 10)) < 0 THEN
@@ -658,6 +667,8 @@ FUNCTION inflict (w, t, stat(), x(), y(), wid(), hei(), harm$(), hc(), hx(), hy(
 
 DIM tbits(4)
 
+dim h&
+
 'failure by default
 inflict = 0
 
@@ -699,6 +710,23 @@ IF atk(5) <> 4 THEN
   EXIT FUNCTION
  END IF
  
+ IF readbit(atk(),65,1) = 1 AND stat(t,0,12) < stat(t,1,12) THEN
+  harm$(t) = readglobalstring$(121, "fail", 20)
+  EXIT FUNCTION
+ END IF
+ IF readbit(atk(),65,2) = 1 AND stat(t,0,13) < stat(t,1,13) THEN
+  harm$(t) = readglobalstring$(121, "fail", 20)
+  EXIT FUNCTION
+ END IF
+ IF readbit(atk(),65,3) = 1 AND stat(t,0,14) <> stat(t,1,14) THEN
+  harm$(t) = readglobalstring$(121, "fail", 20)
+  EXIT FUNCTION
+ END IF
+ IF readbit(atk(),65,4) = 1 AND stat(t,0,15) <> stat(t,1,15) THEN
+  harm$(t) = readglobalstring$(121, "fail", 20)
+  EXIT FUNCTION
+ END IF
+ 
  'attack and defence base
  a = stat(w, 0, 2): d = stat(t, 0, 4)
  SELECT CASE atk(7)
@@ -736,17 +764,17 @@ IF atk(5) <> 4 THEN
  END IF
  
  'calc harm
- h = (a * am!) - (d * dm!)
+ h& = (a * am!) - (d * dm!)
  
  'elementals
  FOR i = 0 TO 7
   IF readbit(atk(), 20, 5 + i) = 1 THEN
-   IF readbit(tbits(), 0, 0 + i) = 1 THEN h = h * 2   'weakness
-   IF readbit(tbits(), 0, 8 + i) = 1 THEN h = h * .12 'resistance
+   IF readbit(tbits(), 0, 0 + i) = 1 THEN h& = h& * 2   'weakness
+   IF readbit(tbits(), 0, 8 + i) = 1 THEN h& = h& * .12 'resistance
    IF readbit(tbits(), 0, 16 + i) = 1 THEN cure = 1   'absorb
   END IF
   IF readbit(atk(), 20, 13 + i) = 1 THEN
-   IF t >= 4 AND readbit(tbits(), 0, 24 + i) = 1 THEN h = h * 1.8
+   IF t >= 4 AND readbit(tbits(), 0, 24 + i) = 1 THEN h& = h& * 1.8
   END IF
   IF readbit(atk(), 20, 21 + i) = 1 THEN
    IF readbit(tbits(), 0, 8 + i) = 1 THEN
@@ -763,20 +791,20 @@ IF atk(5) <> 4 THEN
  NEXT i
  
  'extra damage
- h = h + (h / 100) * atk(11)
+ h& = h& + (h& / 100) * atk(11)
  
  'randomize
- IF readbit(atk(), 20, 61) = 0 THEN h = range(h, 20)
+ IF readbit(atk(), 20, 61) = 0 THEN h& = rangel(h&, 20)
  
  'spread damage
- IF readbit(atk(), 20, 1) = 1 THEN h = h / (tcount + 1)
+ IF readbit(atk(), 20, 1) = 1 THEN h& = h& / (tcount + 1)
  
  'cap out
- h = large(h, 1 - readbit(atk(), 20, 62))
+ IF readbit(atk(), 20, 62) = 0 AND h& <= 0 THEN h& = 1
  
- IF readbit(atk(), 20, 0) = 1 THEN h = ABS(h) * -1 'cure bit
- IF readbit(tbits(), 0, 54) THEN h = ABS(h)        'zombie
- IF cure = 1 THEN h = ABS(h) * -1                  'absorb
+ IF readbit(atk(), 20, 0) = 1 THEN h& = ABS(h&) * -1 'cure bit
+ IF readbit(tbits(), 0, 54) THEN h& = ABS(h&)        'zombie
+ IF cure = 1 THEN h& = ABS(h&) * -1                  'absorb
  
  'backcompat MP-targstat
  IF readbit(atk(), 20, 60) THEN
@@ -790,33 +818,33 @@ IF atk(5) <> 4 THEN
  'pre-calculate percentage damage for display
  SELECT CASE atk(5)
   CASE 5'% of max
-   h = stat(t, 0, targstat) - (stat(t, 1, targstat) + (stat(t, 1, targstat) / 100 * atk(11)))
+   chp& = stat(t, 0, targstat)
+   mhp& = stat(t, 1, targstat)
+   h& = chp& - (mhp& + (atk(11) * mhp& / 100))
   CASE 6'% of cur
-   h = stat(t, 0, targstat) - (stat(t, 0, targstat) + (stat(t, 0, targstat) / 100 * atk(11)))
+   h& = stat(t, 0, targstat) - (stat(t, 0, targstat) + (atk(11) * stat(t, 0, targstat) / 100))
  END SELECT
  
  'inflict
  IF readbit(atk(), 20, 51) = 0 THEN
-  SELECT CASE atk(5)
-   CASE 5'% of max
-    stat(t, 0, targstat) = stat(t, 1, targstat) + (stat(t, 1, targstat) / 100 * atk(11))
-   CASE 6'% of cur
-    stat(t, 0, targstat) = stat(t, 0, targstat) + (stat(t, 0, targstat) / 100 * atk(11))
-   CASE ELSE'normal
-    stat(t, 0, targstat) = safesubtract(stat(t, 0, targstat), h)
-    IF readbit(atk(), 20, 2) THEN
-     '--drain
-     IF readbit(atk(), 20, 56) = 0 THEN
-      harm$(w) = RIGHT$(STR$(h), LEN(STR$(h)) - 1)
-      IF h > 0 THEN harm$(w) = "+" + harm$(w)
-     END IF
-     hc(w) = 7
-     hc(w + 12) = 12 'pink
-     hx(w) = x(w) + (wid(w) * .5)
-     hy(w) = y(w) + (hei(w) * .5)
-     stat(w, 0, targstat) = stat(w, 0, targstat) + h
-    END IF
-  END SELECT
+  IF gen(genDamageCap) > 0 THEN
+   IF h& > gen(genDamageCap) THEN h& = gen(genDamageCap)
+   IF h& < -gen(genDamageCap) THEN h& = -gen(genDamageCap)
+  END IF
+  h = h&
+  stat(t, 0, targstat) = safesubtract(stat(t, 0, targstat), h)
+  IF readbit(atk(), 20, 2) THEN
+   '--drain
+   IF readbit(atk(), 20, 56) = 0 THEN
+    harm$(w) = RIGHT$(STR$(h), LEN(STR$(h)) - 1)
+    IF h > 0 THEN harm$(w) = "+" + harm$(w)
+   END IF
+   hc(w) = 7
+   hc(w + 12) = 12 'pink
+   hx(w) = x(w) + (wid(w) * .5)
+   hy(w) = y(w) + (hei(w) * .5)
+   stat(w, 0, targstat) = stat(w, 0, targstat) + h
+  END IF
  END IF
  
  'enforce bounds
@@ -829,9 +857,9 @@ IF atk(5) <> 4 THEN
  
  'set damage display
  IF readbit(atk(), 20, 56) = 0 THEN
-  harm$(t) = RIGHT$(STR$(h), LEN(STR$(h)) - 1)
+  harm$(t) = RIGHT$(STR$(h&), LEN(STR$(h&)) - 1)
   '--if cure, show + sign
-  IF h < 0 THEN harm$(t) = "+" + harm$(t)
+  IF h& < 0 THEN harm$(t) = "+" + harm$(t)
  END IF
  
  'remember revenge data
@@ -940,7 +968,7 @@ IF size THEN
  IF isfile(workingdir$ + "\attack.bin" + CHR$(0)) THEN
   setpicstuf buffer(), size, -1
   loadset workingdir$ + "\attack.bin" + CHR$(0), index, 0
-  FOR i = 0 TO 59
+  FOR i = 0 TO size / 2 - 1
    array(40 + i) = buffer(i)
   NEXT i
  END IF
@@ -975,6 +1003,16 @@ IF longresult& > 32767 THEN longresult& = 32767
 IF longresult& < -32768 THEN longresult& = -32768
 result = longresult&
 safesubtract = result
+END FUNCTION
+
+FUNCTION safemultiply (number, by!)
+longnumber& = number
+longby! = by!
+longresult& = longnumber& * longby!
+IF longresult& > 32767 THEN longresult& = 32767
+IF longresult& < -32768 THEN longresult& = -32768
+result = longresult&
+safemultiply = result
 END FUNCTION
 
 SUB setbatcap (cap$, captime, capdelay)

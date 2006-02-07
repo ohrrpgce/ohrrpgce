@@ -73,6 +73,8 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
+DECLARE FUNCTION checkNoRunBit (stat%(), ebits%(), v%())
+DECLARE SUB checkTagCond (t, check, tag, tagand)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -136,8 +138,9 @@ FOR i = 0 TO 11
  prtimer(i, 1) = INT(RND * 2000)
 NEXT i
 laststun! = TIMER
-IF gen(61) <= 0 THEN gen(61) = 161
-IF gen(62) <= 0 THEN gen(62) = 159
+IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
+IF gen(genStun) <= 0 THEN gen(genStun) = 159
+IF gen(genMute) <= 0 THEN gen(genMute) = 163
 
 clearpage 0
 clearpage 1
@@ -156,13 +159,13 @@ DO
  control
  flash = loopvar(flash, 0, 14, 1)
  '--background animation hack
- if a(34)>0 then
+ IF a(34) > 0 THEN
   bgspeed = loopvar(bgspeed,0,a(35),1)
-  if bgspeed=0 then 
+  IF bgspeed=0 THEN 
    curbg = loopvar(curbg, a(32),a(32) + a(34),1)
    loadpage game$ + ".mxs" + CHR$(0), curbg, 2
-  end if
- end if
+  END IF
+ END IF
 
  IF readbit(gen(), 101, 8) = 0 THEN
   '--debug keys
@@ -464,7 +467,7 @@ NEXT i
 tcount = -1: pdir = 0: conmp = 1
 IF who >= 4 THEN pdir = 1
 ltarg(who) = 0
-'CANNOT HIT INVISABLE FOES
+'CANNOT HIT INVISIBLE FOES
 FOR i = 0 TO 11
  IF t(who, i) > -1 THEN
   IF v(t(who, i)) = 0 AND (atk(3) <> 4 AND atk(3) <> 10) THEN
@@ -987,18 +990,40 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    'DEBUG debug "~ waitforall"
   CASE 10 'inflict(targ)
    targ = popw
+   'set tag, if there is one
+   checkTagCond atk(60), 1, atk(59), atk(61)
+   checkTagCond atk(63), 1, atk(62), atk(64)
    'DEBUG debug "~ inflict on " + STR$(targ) + " by " + str$(who)
    IF inflict(who, targ, stat(), x(), y(), w(), h(), harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
     '--attack succeeded
-        IF readbit(atk(), 20, 50) = 1 THEN
-         es(targ - 4, 56) = 0
-         es(targ - 4, 57) = 0
-         es(targ - 4, 59) = 0
-         es(targ - 4, 61) = 0
-        END IF
+    IF readbit(atk(), 20, 50) = 1 THEN
+     es(targ - 4, 56) = 0
+     es(targ - 4, 57) = 0
+     es(targ - 4, 59) = 0
+     es(targ - 4, 61) = 0
+    END IF
+	IF readbit(atk(), 20, 63) = 1 THEN
+	 'force heroes to run away
+	 IF checkNoRunBit(stat(), ebits(), v()) THEN
+	  alert$ = cannotrun$
+	  alert = 10
+	 ELSE
+	  away = 1
+	 END IF
+	END IF
+	checkTagCond atk(60), 2, atk(59), atk(61)
+	checkTagCond atk(63), 2, atk(62), atk(64)
+	IF stat(targ, 0, 0) = 0 THEN
+	 checkTagCond atk(60), 4, atk(59), atk(61)
+	 checkTagCond atk(63), 4, atk(62), atk(64)
+	END IF
+	
     IF trytheft(who, targ, atk(), es()) THEN
      GOSUB checkitemusability
     END IF
+   ELSE
+	checkTagCond atk(60), 3, atk(59), atk(61)
+	checkTagCond atk(63), 3, atk(62), atk(64)
    END IF
    tdwho = targ
    GOSUB triggerfade
@@ -1190,7 +1215,7 @@ IF stat(deadguy, 0, 0) = 0 THEN
  ready(deadguy) = 0
  godo(deadguy) = 0
  d(deadguy) = 0
- '--reset poison/regen/stun
+ '--reset poison/regen/stun/mute
  FOR j = 12 TO 17
   '--am I certain that these all should be reset?
   stat(deadguy, 0, j) = stat(deadguy, 1, j)
@@ -1218,7 +1243,7 @@ IF stat(deadguy, 0, 0) = 0 THEN
     END IF '---END RARE ITEM-------------
    END IF '----END GET ITEMS----------------
   END IF
-  a((deadguy - 4) * 4) = 0
+  'a((deadguy - 4) * 4) = 0 ' fixing spawning bug
  END IF'------------END PLUNDER-------------------
  IF noifdead = 0 THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
   tcount = tcount - 1
@@ -1639,11 +1664,15 @@ IF vdance = 0 THEN 'only display interface till you win
    edgeprint LTRIM$(STR$(stat(i, 0, 0))) + "/" + LTRIM$(STR$(stat(i, 1, 0))), 136, 5 + i * 10, col, dpage
    'poison indicator
    IF (stat(i, 1, 12) - stat(i, 0, 12)) > 0 THEN
-   edgeprint CHR$(gen(61)), 209, 5 + i * 10, col, dpage
+    edgeprint CHR$(gen(genPoison)), 209, 5 + i * 10, col, dpage
    END IF
    'stun indicator
    IF (stat(i, 1, 14) - stat(i, 0, 14)) > 0 THEN
-   edgeprint CHR$(gen(62)), 217, 5 + i * 10, col, dpage
+    edgeprint CHR$(gen(genStun)), 217, 5 + i * 10, col, dpage
+   END IF
+   'mute indicator
+   IF (stat(i, 1, 15) - stat(i, 0, 15)) > 0 THEN
+    edgeprint CHR$(gen(genMute)), 217, 5 + i * 10, col, dpage
    END IF
   END IF
  NEXT i
@@ -1694,7 +1723,7 @@ IF vdance = 0 THEN 'only display interface till you win
    NEXT i
   END IF
  END IF
- IF you >= 0 AND ptarg = 0 THEN edgeprint CHR$(24), x(you) + (w(you) / 2) - 4, y(you) - 5 + (tog * 2), 14 + tog, dpage
+ IF you >= 0 AND ptarg = 0 AND readbit(gen(), genBits, 14) = 0 THEN edgeprint CHR$(24), x(you) + (w(you) / 2) - 4, y(you) - 5 + (tog * 2), 14 + tog, dpage
 END IF'--end if vdance=0
 RETURN
 
@@ -1738,10 +1767,11 @@ FOR i = 0 TO 11
  
 NEXT i
 
-'--decrement stun
+'--decrement stun and mute
 
 IF TIMER > laststun! + 1 THEN
  FOR i = 0 TO 11
+  stat(i, 0, 15) = small(stat(i, 0, 15) + 1, stat(i, 1, 15))
   stat(i, 0, 14) = small(stat(i, 0, 14) + 1, stat(i, 1, 14))
   IF stat(i, 0, 14) < stat(i, 1, 14) THEN
    ready(i) = 0
@@ -1786,6 +1816,7 @@ FOR i = 0 TO 11
     x(i) = x(i) - 10: d(i) = 1
    END IF
    die(i) = die(i) - 1
+   IF die(i) = 0 THEN a(i * 4) = 0 'moved from way above
   END IF
   IF i < 4 THEN of(i) = 7
  END IF
@@ -1847,9 +1878,11 @@ IF flee > 0 AND flee < 4 THEN
  END IF
 END IF
 IF flee = 4 THEN
- FOR i = 4 TO 11
-  IF stat(i, 0, 0) > 0 AND v(i) = 1 AND readbit(ebits(), (i - 4) * 5, 57) = 1 THEN flee = 0: alert$ = cannotrun$: alert = 10
- NEXT i
+ IF checkNoRunBit(stat(), ebits(), v()) THEN
+  flee = 0
+  alert$ = cannotrun$
+  alert = 10
+ END IF
 END IF
 IF flee > 4 THEN
  FOR i = 0 TO 3
@@ -2105,11 +2138,26 @@ RETURN
 '12=poison
 '13=regen
 '14=stun
-'15=limit
+'15=limit (?)
 '16=unused
 '17=unused
 
 END FUNCTION
+
+FUNCTION checkNoRunBit (stat(), ebits(), v())
+ checkNoRunBit = 0
+ FOR i = 4 TO 11
+  IF stat(i, 0, 0) > 0 AND v(i) = 1 AND readbit(ebits(), (i - 4) * 5, 57) = 1 THEN checkNoRunBit = 1
+ NEXT i
+END FUNCTION
+
+SUB checkTagCond (t, check, tg, tagand)
+ 't - type, check = curtype, tg - the tag to be set, tagand - the tag to check
+ IF t = check THEN
+  IF tagand <> 0 AND readbit(tag(), 0, ABS(tagand)) <> SGN(SGN(tagand) + 1) THEN EXIT SUB
+  setbit tag(), 0, ABS(tg), SGN(SGN(tg) + 1) 'Set the original damned tag!
+ END IF
+END SUB
 
 FUNCTION focuscost (cost, focus)
 IF focus > 0 THEN
@@ -2164,6 +2212,11 @@ IF harm < 0 THEN
  harm$(targ) = "+" + RIGHT$(STR$(harm), LEN(STR$(harm)) - 1)
 ELSE
  harm$(targ) = LTRIM$(STR$(harm))
+END IF
+IF readbit(gen(), genBits, 15) = 1 THEN
+ harm = small(harm, 9999)
+ELSE
+ harm = small(harm, 32767)
 END IF
 stat(targ, 0, 0) = bound(stat(targ, 0, 0) - harm, 0, stat(targ, 1, 0))
 END SUB

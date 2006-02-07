@@ -157,11 +157,6 @@ aquiretempdir
 'DEBUG debug "write command-line to temp file "+tmpdir$ + "ohrcline.tmp"
 
 storecommandline
-' '---WRITE COMMAND-LINE ARGS TO A TEMP FILE---
-' fh = FREEFILE
-' OPEN tmpdir$ + "ohrcline.tmp" FOR OUTPUT AS #fh
-' WRITE #fh, COMMAND$
-' CLOSE #fh
 
 'DEBUG debug "Thestart"
 thestart:
@@ -220,11 +215,6 @@ OPEN workingdir$ + "\lockfile.tmp" FOR BINARY AS #lockfile
 'DEBUG debug "re-aquire command-line"
 
 cline$ = getcommandline
-' '---RELOAD COMMAND LINE FROM TEMP FILE---
-' fh = FREEFILE
-' OPEN tmpdir$ + "ohrcline.tmp" FOR INPUT AS #fh
-' INPUT #fh, cline$
-' CLOSE #fh
 IF LCASE$(cline$) <> "/keyonly" AND LCASE$(cline$) <> "-keyonly" THEN
  FOR i = 0 TO 1
   gotj(i) = readjoy(joy(), i)
@@ -1493,10 +1483,12 @@ SELECT CASE gmap(5) '--outer edge wrapping
   setoutside gmap(6)
 END SELECT
 sayer = -1
-IF gmap(1) = 0 THEN
- stopsong
-ELSE
- wrappedsong gmap(1) - 1
+IF readbit(gen(), 44, suspendambientmusic) = 0 THEN
+ IF gmap(1) = 0 THEN
+  stopsong
+ ELSE
+  wrappedsong gmap(1) - 1
+ END IF
 END IF
 evalherotag stat()
 evalitemtag
@@ -2150,20 +2142,15 @@ SELECT CASE scrat(nowscript, curkind)
     scriptout$ = LTRIM$(STR$(retvals(0)))
    CASE 78'--alter NPC
     IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
+     IF retvals(0) < 0 THEN retvals(0) = (npcl(npcref + 600) - 1)
      IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
       npcs(retvals(0) * 15 + retvals(1)) = retvals(2)
-     ELSE
-      npcref = getnpcref(retvals(0), 0)
-      IF npcref >= 0 THEN
-       id = (npcl(npcref + 600) - 1)
-       npcs(id * 15 + retvals(1)) = retvals(2)
+      IF retvals(1) = 0 THEN
+       setpicstuf buffer(), 1600, 2
+       loadset game$ + ".pt4" + CHR$(0), retvals(2), 20 + (5 * retvals(0))
       END IF
+      IF retvals(1) = 1 THEN getpal16 pal16(), 4 + retvals(0), retvals(2)
      END IF
-     IF retvals(1) = 0 THEN
-      setpicstuf buffer(), 1600, 2
-      loadset game$ + ".pt4" + CHR$(0), retvals(2), 20 + (5 * retvals(0))
-     END IF
-     IF retvals(1) = 1 THEN getpal16 pal16(), 4 + retvals(0), retvals(2)
     END IF
    CASE 79'--show no value
     scriptout$ = ""

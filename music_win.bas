@@ -222,13 +222,27 @@ end sub
 Function EventHandlerWndProc(ByVal hWnd As HWND, ByVal Message As uInteger, ByVal wParam As WPARAM, ByVal lParam As LPARAM) As LRESULT
     Select Case Message
         Case MM_MCINOTIFY
-       		debug "Are we ever getting here?"
+        	'seems very unreliable - only works with the debug statement?!!
+      		debug "Are we ever getting here?"
         	if wParam and MCI_NOTIFY_SUCCESSFUL <> 0 then
         		'play again
 				mciSendCommand(music_song->wDeviceID, MCI_SEEK, MCI_SEEK_TO_START or MCI_WAIT, music_song)
 				mciSendCommand(music_song->wDeviceID, MCI_PLAY, MCI_NOTIFY, music_song)
 				music_paused = 0
         	end if
+        Case WM_DESTROY
+        	'doesn't seem to fire when mode switched
+        	debug "Destroy event"
+   			if FB_Win32.Wnd <> orig_wnd and FB_Win32.Wnd <> null then
+	   			dim oldproc as WNDPROC
+   				oldproc = GfxLibWndProc
+	   			'Latch our event handler
+				GfxLibWndProc = GetWindowLong(FB_Win32.Wnd, GWL_WNDPROC)
+				SetWindowLong FB_Win32.Wnd, GWL_WNDPROC, @EventHandlerWndProc
+				orig_wnd = FB_Win32.Wnd
+				'call the old handler and exit
+				return oldproc(hWnd, Message, wParam, lParam)
+			end if
     End Select
    
     ' So window can do other neat stuff like not freeze

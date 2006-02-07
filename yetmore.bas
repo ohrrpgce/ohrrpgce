@@ -5,6 +5,8 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+DECLARE FUNCTION str2int% (stri$)
+DECLARE FUNCTION str2lng& (stri$)
 DECLARE SUB setScriptArg (arg%, value%)
 DECLARE FUNCTION cropPlotStr% (s$)
 DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, mapwide%, maphigh%, wrapmode%)
@@ -240,7 +242,7 @@ DO WHILE start < LEN(text$)
  act$ = MID$(text$, embedbegin + 2, 1)
  arg$ = MID$(text$, embedbegin + 3, large(embedend - (embedbegin + 3), 0))
  '--convert the arg to a number
- arg = VAL(arg$)
+ arg = str2int(arg$)
  '--discourage bad arg values (not perfect)
  IF NOT (arg = 0 AND arg$ <> STRING$(LEN(arg$), "0")) THEN
   IF arg >= 0 THEN '--only permit postive args
@@ -601,12 +603,12 @@ saybit(0) = buffer(174)
 FOR j = 0 TO 6
  sayenh(j) = buffer(193 + j)
 NEXT j
-'-- update backdrop if neccisary
+'-- update backdrop if necessary
 IF sayenh(4) > 0 THEN
  gen(58) = sayenh(4)
  correctbackdrop
 END IF
-'-- change music if neccisary
+'-- change music if necessary
 IF sayenh(5) > 0 THEN wrappedsong sayenh(5) - 1
 
 showsay = 8
@@ -1292,6 +1294,11 @@ SELECT CASE id
   scriptret = scroll(0)
  CASE 181'--mapheight
   scriptret = scroll(1)
+ CASE 187'--getmusicvolume
+  scriptret = fmvol * 17
+ CASE 188'--setmusicvolume
+  fmvol = bound(retvals(0), 0, 255) \ 16
+  setfmvol fmvol
  CASE 200'--system hour
   scriptret = INT(TIMER / 3600)
  CASE 201'--system minute
@@ -1332,7 +1339,7 @@ SELECT CASE id
   IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > gen(genMaxAttack) THEN
    scriptret = 0
   ELSE
-   plotstring$(retvals(0)) = readatkname$(retvals(1))
+   plotstring$(retvals(0)) = readatkname$(retvals(1) + 1)
    scriptret = 1
   END IF
  CASE 209'--get global string(str,glo)
@@ -1419,11 +1426,11 @@ SELECT CASE id
    scriptret = plotstrY(retvals(0))
   END IF
  CASE 226'--system day
-  scriptret = VAL(MID$(DATE$, 1, 2))
+  scriptret = str2int(MID$(DATE$, 1, 2))
  CASE 227'--system month
-  scriptret = VAL(MID$(DATE$, 4, 2))
+  scriptret = str2int(MID$(DATE$, 4, 2))
  CASE 228'--system year
-  scriptret = VAL(MID$(DATE$, 7, 4))
+  scriptret = str2int(MID$(DATE$, 7, 4))
  CASE 229'--string compare
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
    scriptret = (plotstring$(retvals(0)) = plotstring$(retvals(1)))
@@ -1441,6 +1448,8 @@ SELECT CASE id
   OPEN game$ + ".dt1" FOR BINARY AS #f
   PUT #f, (CLNG(bound(retvals(0), 0, gen(genMaxEnemy))) * CLNG(320)) + (bound(retvals(1), 0, 159) * 2) + 1, temp16
   CLOSE #f
+ CASE 232'--trace
+   debug "TRACE: " + plotstring$(bound(retvals(0),0,31))
 END SELECT
 
 EXIT SUB
