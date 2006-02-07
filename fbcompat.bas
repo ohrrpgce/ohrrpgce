@@ -7,9 +7,15 @@ option explicit
 
 #include compat.bi
 #include allmodex.bi
-#include gglobals.bi
 #include fontdata.bi
+#include gfx.bi
 
+'Can do this in FB but not in QB - need another solution
+common shared workingdir$, version$, game$
+
+dim shared seg as integer ptr
+'bit of a waste, just stores the rpg name from the command line
+dim shared storecmd as string
 
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION small% (n1%, n2%)
@@ -57,19 +63,117 @@ SUB xbload (f$, array(), e$)
 
 END SUB
 
+SUB xbsave (f$, array%(), bsize%)
+
+	DIM ff%, byt as UByte, seg AS uShort, offset AS Short, length AS Short
+	dim ilength as integer
+	dim i as integer
+
+	seg = &h9999
+	offset = 0
+	ilength = (bsize \ 2) - 1
+	length = bsize	'bsize is in bytes
+	byt = 253
+	
+	'copy array to shorts
+	DIM buf(ilength) as short
+	for i = 0 to small(ilength, ubound(array))
+		buf(i) = array(i)
+	next		
+	
+	ff = FreeFile
+	OPEN f$ FOR BINARY AS #ff
+	PUT #ff, , byt				'Magic number
+	PUT #ff, , seg				'segment - obsolete
+	PUT #ff, , offset			'offset - obsolete
+	PUT #ff, , length			'size in bytes
+	
+	PUT #ff,, buf()
+	CLOSE #ff
+		
+END SUB
+
 SUB crashexplain()
 	PRINT "Please report this exact error message to ohrrpgce@HamsterRepublic.com"
 	PRINT "Be sure to describe in detail what you were doing when it happened"
 	PRINT
 	PRINT version$
 	PRINT "Memory Info:"; FRE(0)
-#ifndef __FB_LINUX__
-	PRINT "Executable: "; progdir$ + exename$ + ".EXE"
-#else
-	PRINT "Executable: "; progdir$ + exename$
-#endif	
-	PRINT "RPG file: "; sourcerpg$
+	PRINT "Executable: "; exepath + command(0)
+'	PRINT "RPG file: "; sourcerpg$
 END SUB
+
+'replacements for def seg and peek, use seg shared ptr 
+'assumes def seg will always be used to point to an integer and
+'that integers are only holding 2 bytes of data
+sub defseg(byref var as integer)
+	seg = @var
+end sub
+
+function xpeek(byval idx as integer) as integer
+	dim as ubyte bval
+	dim as integer hilow
+	
+	hilow = idx mod 2
+	idx = idx \ 2
+	
+	if hilow = 0 then
+		bval = seg[idx] and &hff
+	else
+		bval = (seg[idx] and &hff00) shr 8
+	end if
+	xpeek = bval
+end function
+
+sub xpoke(byval idx as integer, byval v as integer)
+	dim as integer bval
+	dim as integer hilow
+	dim as integer newval
+	
+	hilow = idx mod 2
+	idx = idx \ 2
+	
+	bval = v and &hff
+	if hilow = 0 then
+		newval = seg[idx] and &hff00
+		seg[idx] = newval or bval
+	else
+		newval = seg[idx] and &hff
+		seg[idx] = newval or (bval shl 8)
+	end if
+end sub
+
+sub togglewindowed()
+	gfx_togglewindowed
+end sub
+
+sub storecommandline
+'a thinly veiled excuse to get some commandline stuff into FB
+	dim i as integer = 1
+	dim temp as string
+	
+	while command(i) <> ""
+		temp = left$(command(i), 1)
+		'/ should not be a flag under linux
+		if temp = "-" or temp = "/" then
+			'option
+			temp = mid$(command(i), 2)
+			if temp = "w" or temp = "windowed" then
+				gfx_setwindowed(1)
+			elseif temp = "f" or temp = "fullscreen" then
+				gfx_setwindowed(0)
+			end if
+		else
+			'only keep one non-flag argument, hopefully the file
+			storecmd = command(i)
+		end if
+		i = i + 1
+	wend
+end sub
+
+function getcommandline() as string
+	getcommandline = storecmd
+end function
 
 FUNCTION canplay (file$)
 	'dummy, you should be able to play anything passed in (unless this sub finds uses elsewhere)
@@ -77,15 +181,44 @@ FUNCTION canplay (file$)
 END FUNCTION
 
 SUB playsongnum (songnum%)
-	'will need changing
-	DIM songbase$, songfile$
-	songbase$ = workingdir$ + "\song" + LTRIM$(STR$(songnum))
-	songfile$ = ""
-	IF songnum > 99 THEN
-		IF isfile(songbase$ + ".bam" + CHR$(0)) THEN songfile$ = songbase$ + ".bam"
-	ELSE
-		IF isfile(game$ + "." + LTRIM$(STR$(songnum)) + CHR$(0)) THEN songfile$ = game$ + "." + LTRIM$(STR$(songnum))
-	END IF
-	IF isfile(songfile$ + ".mid" + CHR$(0)) THEN songfile$ = songbase$ + ".mid"
-	IF songfile$ <> "" THEN loadsong songfile$ + CHR$(0)
+	DIM as string songbase, songfile, numtext
+	
+	numtext = LTRIM$(STR$(songnum))
+	songbase = workingdir$ + "\song" + numtext
+	songfile = ""
+	if isfile(songbase + ".mid") then
+		'is there a midi?
+		songfile = songbase + ".mid"
+	else
+		'no, get bam name
+		IF isfile(songbase + ".bam") THEN
+			songfile = songbase + ".bam"
+		ELSE
+			IF isfile(game$ + "." + numtext) THEN 
+				songfile = game$ + "." + numtext
+			end if
+		END IF
+	end if
+	IF songfile <> "" THEN loadsong songfile
 END SUB
+
+SUB romfontchar (font(), char)
+'should I implement this using the default font? potentially useful
+'i suppose
+
+'regs.ax = &H1130
+'regs.bx = &H300
+'CALL interruptx(&H10, regs, regs)
+'off9 = regs.bx: seg9 = regs.es
+'DEF SEG = regs.es
+''FOR i = 1 TO 255
+'FOR j = 0 TO 7
+' b = PEEK(regs.bp + (8 * char) + j)
+' FOR k = 0 TO 7
+'  setbit font(), char * 4, (7 - k) * 8 + j, (b AND 2 ^ k)
+' NEXT k
+'NEXT j
+''NEXT i
+
+END SUB
+

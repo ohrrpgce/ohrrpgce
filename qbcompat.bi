@@ -5,10 +5,16 @@
 
 '' QuickBasic version
 
-DECLARE SUB getdefaultfont (font() as integer)
+DECLARE SUB getdefaultfont (font() AS INTEGER)
 DECLARE SUB xbload (f$, array%(), e$)
-''only used in game.bas, maybe don't declare here?
 DECLARE SUB crashexplain ()
 DECLARE SUB fbdim (v%)
 DECLARE SUB playsongnum (songnum%)
 DECLARE FUNCTION canplay (file$)
+DECLARE SUB defseg (vbl AS INTEGER)
+DECLARE SUB xbsave (f$, array%(), bsize%)
+DECLARE SUB togglewindowed ()
+DECLARE SUB storecommandline ()
+DECLARE FUNCTION getcommandline$ ()
+DECLARE SUB romfontchar (font%(), char%)
+
