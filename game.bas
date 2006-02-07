@@ -157,11 +157,7 @@ aquiretempdir
 
 'DEBUG debug "write command-line to temp file "+tmpdir$ + "ohrcline.tmp"
 
-'---WRITE COMMAND-LINE ARGS TO A TEMP FILE---
-fh = FREEFILE
-OPEN tmpdir$ + "ohrcline.tmp" FOR OUTPUT AS #fh
-WRITE #fh, COMMAND$
-CLOSE #fh
+storecommandline
 
 'DEBUG debug "Thestart"
 thestart:
@@ -222,11 +218,7 @@ OPEN workingdir$ + "\lockfile.tmp" FOR BINARY AS #lockfile
 
 'DEBUG debug "re-aquire command-line"
 
-'---RELOAD COMMAND LINE FROM TEMP FILE---
-fh = FREEFILE
-OPEN tmpdir$ + "ohrcline.tmp" FOR INPUT AS #fh
-INPUT #fh, cline$
-CLOSE #fh
+cline$ = getcommandline
 IF LCASE$(cline$) <> "/keyonly" AND LCASE$(cline$) <> "-keyonly" THEN
  FOR i = 0 TO 1
   gotj(i) = readjoy(joy(), i)

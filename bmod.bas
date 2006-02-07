@@ -1683,6 +1683,7 @@ IF vdance = 0 THEN 'only display interface till you win
    IF (stat(i, 1, 14) - stat(i, 0, 14)) > 0 THEN
     edgeprint CHR$(gen(genStun)), 217, 5 + i * 10, col, dpage
    END IF
+   'mute indicator
    IF (stat(i, 1, 15) - stat(i, 0, 15)) > 0 THEN
     edgeprint CHR$(gen(genMute)), 217, 5 + i * 10, col, dpage
    END IF
