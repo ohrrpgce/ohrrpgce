@@ -5,6 +5,8 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+DECLARE FUNCTION str2int% (stri$)
+DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
 DECLARE FUNCTION isonscreen% (x%, y%)
 DECLARE FUNCTION framewalkabout% (x%, y%, framex%, framey%, mapwide%, maphigh%, wrapmode%)
@@ -411,6 +413,44 @@ FOR i = 0 TO 31
 NEXT i
 
 END SUB
+
+FUNCTION str2int (stri$)
+
+n = 0
+s$ = LTRIM$(stri$)
+sign = 1
+
+FOR i = 1 TO LEN(s$)
+ c$ = MID$(s$, i, 1)
+ IF c$ = "-" AND i = 1 THEN sign = -1
+ c = ASC(c$) - 48
+ IF c >= 0 AND c <= 9 THEN
+  n = n * 10 + (c * sign)
+ END IF
+NEXT i
+
+str2int = n
+
+END FUNCTION
+
+FUNCTION str2lng& (stri$)
+
+n& = 0
+s$ = LTRIM$(stri$)
+sign = 1
+
+FOR i = 1 TO LEN(s$)
+ c$ = MID$(s$, i, 1)
+ IF c$ = "-" AND i = 1 THEN sign = -1
+ c = ASC(c$) - 48
+ IF c >= 0 AND c <= 9 THEN
+  n& = n& * 10 + (c * sign)
+ END IF
+NEXT i
+
+str2lng& = n&
+
+END FUNCTION
 
 SUB strgrabber (s$, maxl)
 STATIC clip$
