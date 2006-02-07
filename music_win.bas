@@ -7,14 +7,17 @@
 
 option explicit
 
-#include music.bi
+#include "music.bi"
 #include "windows.bi"
 #include "win\mmsystem.bi"
+#include "externs.bi"
 
 'extern
 declare sub debug(s$)
 declare sub bam2mid(infile as string, outfile as string)
 declare function isfile(n$) as integer
+
+Declare Function EventHandlerWndProc(ByVal hWnd As HWND, ByVal Message As uInteger, ByVal wParam As WPARAM, ByVal lParam As LPARAM) As LRESULT
 
 dim shared music_on as integer = 0
 dim shared music_vol as integer
@@ -30,10 +33,17 @@ type delitem
 end type
 
 dim shared delhead as delitem ptr = null
+dim shared GfxLibWndProc as WNDPROC
+dim shared orig_wnd as HWND
 
 sub music_init()	
-	'doesn't seem to be needed
-	music_on = 1
+	if music_on = 0 then
+		'Latch our event handler
+		GfxLibWndProc = GetWindowLong(FB_Win32.Wnd, GWL_WNDPROC)
+		SetWindowLong FB_Win32.Wnd, GWL_WNDPROC, @EventHandlerWndProc
+		orig_wnd = FB_Win32.Wnd
+		music_on = 1
+	end if
 end sub
 
 sub music_close()
@@ -69,6 +79,12 @@ sub music_close()
 				deallocate dlast 'deallocate delitem
 			wend
 			delhead = null
+		end if
+		
+		'detach event handler (put the old one back)
+		'could be dangerous if the window has changed, better check handle
+		if FB_Win32.Wnd = orig_wnd then
+			SetWindowLong FB_Win32.Wnd, GWL_WNDPROC, GfxLibWndProc
 		end if
 	end if
 end sub
@@ -122,6 +138,9 @@ sub music_play(songname as string, fmt as music_format)
 		' Specify the MIDI file we wish operated upon (ie, played) 
 		music_song->lpstrElementName = @songname[0]
 
+		' Set the window handle for notify
+		music_song->dwCallback = MAKELONG(orig_wnd, 0)
+		
 		'open the device		
 		errcode = mciSendCommand(0, MCI_OPEN, MCI_WAIT or MCI_OPEN_ELEMENT or MCI_OPEN_TYPE or MCI_OPEN_TYPE_ID, music_song)
 		if (errcode <> 0) then
@@ -133,7 +152,7 @@ sub music_play(songname as string, fmt as music_format)
 		end if
 		
 		'play it
-		mciSendCommand(music_song->wDeviceID, MCI_PLAY, 0, music_song)
+		mciSendCommand(music_song->wDeviceID, MCI_PLAY, MCI_NOTIFY, music_song)
 		music_paused = 0
 
 		if orig_vol = -1 then
@@ -164,7 +183,7 @@ end sub
 sub music_resume()
 	if music_on = 1 then
 		if music_song > 0 then
-			mciSendCommand(music_song->wDeviceID, MCI_RESUME, 0, music_song)
+			mciSendCommand(music_song->wDeviceID, MCI_RESUME, MCI_NOTIFY, music_song)
 ' 			Mix_ResumeMusic
 			music_paused = 0
 		end if
@@ -200,3 +219,18 @@ sub music_fade(targetvol as integer)
 	next	
 end sub
 
+Function EventHandlerWndProc(ByVal hWnd As HWND, ByVal Message As uInteger, ByVal wParam As WPARAM, ByVal lParam As LPARAM) As LRESULT
+    Select Case Message
+        Case MM_MCINOTIFY
+       		debug "Are we ever getting here?"
+        	if wParam and MCI_NOTIFY_SUCCESSFUL <> 0 then
+        		'play again
+				mciSendCommand(music_song->wDeviceID, MCI_SEEK, MCI_SEEK_TO_START or MCI_WAIT, music_song)
+				mciSendCommand(music_song->wDeviceID, MCI_PLAY, MCI_NOTIFY, music_song)
+				music_paused = 0
+        	end if
+    End Select
+   
+    ' So window can do other neat stuff like not freeze
+    Return GfxLibWndProc(hWnd, Message, wParam, lParam)
+End Function
