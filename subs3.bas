@@ -6,6 +6,8 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
+DECLARE FUNCTION str2lng& (stri$)
+DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION filenum$ (n%)
@@ -60,6 +62,8 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE SUB smnemonic (tagname$, index%)
+DECLARE SUB setbinsize (id%, size%)
+DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION inputfilename$ (query$, ext$)
 
@@ -70,11 +74,69 @@ DECLARE FUNCTION inputfilename$ (query$, ext$)
 '$INCLUDE: 'const.bi'
 
 REM $STATIC
+' SUB editbitset (array(), wof, last, names$())
+
+' '---DIM AND INIT---
+' pt = -1
+' top = -1
+
+' '---MAIN LOOP---
+' setkeys
+' DO
+'  setwait timing(), 80
+'  setkeys
+'  tog = tog XOR 1
+'  IF keyval(1) > 1 THEN EXIT DO
+'  dummy = usemenu(pt, top, -1, last, 24)
+'  IF pt >= 0 THEN
+'   IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, pt, 0
+'   IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, pt, 1
+'   IF keyval(57) > 1 OR keyval(28) > 1 THEN setbit array(), wof, pt, readbit(array(), wof, pt) XOR 1
+'  ELSE
+'   IF keyval(28) > 1 OR keyval(57) > 1 THEN EXIT DO
+'  END IF
+'  FOR i = top TO small(top + 24, last)
+'   c = 8 - readbit(array(), wof, i)
+'   IF pt = i THEN c = (8 * readbit(array(), wof, i)) + 6 + tog
+'   textcolor c, 0
+'   IF i >= 0 THEN
+'    printstr names$(i), 8, (i - top) * 8, dpage
+'   ELSE
+'    IF c = 8 THEN c = 7
+'    textcolor c, 0
+'    printstr "Previous Menu", 8, (i - top) * 8, dpage
+'   END IF
+'  NEXT i
+'  ' printstr STR$(pt) + STR$(top) + STR$(last), 160, 0, dpage
+'  SWAP vpage, dpage
+'  setvispage vpage
+'  clearpage dpage
+'  dowait
+' LOOP
+' '---TERMINATE---
+
+' END SUB
+
+'This new bitset() will build its own menu of bits, and thus hide blank bitsets
 SUB editbitset (array(), wof, last, names$())
 
 '---DIM AND INIT---
 pt = -1
 top = -1
+
+dim menu$(-1 to last), bits(-1 to last), count
+
+pt = 0
+FOR i = 0 to last
+ IF names$(i) <> "" THEN
+  menu$(pt) = names$(i)
+  bits(pt) = i
+  pt = pt + 1
+ END IF
+NEXT
+
+count = pt
+pt = -1
 
 '---MAIN LOOP---
 setkeys
@@ -83,20 +145,20 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(pt, top, -1, last, 24)
+ dummy = usemenu(pt, top, -1, count-1, 24)
  IF pt >= 0 THEN
-  IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, pt, 0
-  IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, pt, 1
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN setbit array(), wof, pt, readbit(array(), wof, pt) XOR 1
+  IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, bits(pt), 0
+  IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, bits(pt), 1
+  IF keyval(57) > 1 OR keyval(28) > 1 THEN setbit array(), wof, bits(pt), readbit(array(), wof, bits(pt)) XOR 1
  ELSE
   IF keyval(28) > 1 OR keyval(57) > 1 THEN EXIT DO
  END IF
- FOR i = top TO small(top + 24, last)
-  c = 8 - readbit(array(), wof, i)
-  IF pt = i THEN c = (8 * readbit(array(), wof, i)) + 6 + tog
+ FOR i = top TO small(top + 24, count-1)
+  c = 8 - readbit(array(), wof, bits(i))
+  IF pt = i THEN c = (8 * readbit(array(), wof, bits(i))) + 6 + tog
   textcolor c, 0
   IF i >= 0 THEN
-   printstr names$(i), 8, (i - top) * 8, dpage
+   printstr menu$(i), 8, (i - top) * 8, dpage
   ELSE
    IF c = 8 THEN c = 7
    textcolor c, 0
@@ -287,7 +349,7 @@ ELSE
    IF LEN(a$) = 0 THEN EXIT DO
   LOOP
   IF LEN(b$) > 9 THEN b$ = "0"
-  n = VAL(b$)
+  n = str2int(b$)
   n = n + 1
   outf$ = a$ + LTRIM$(STR$(n))
  END IF
@@ -327,6 +389,44 @@ FOR i = 1 TO LEN(s$)
 NEXT i
 
 rotascii$ = temp$
+
+END FUNCTION
+
+FUNCTION str2int (stri$)
+
+n = 0
+s$ = LTRIM$(stri$)
+sign = 1
+
+FOR i = 1 TO LEN(s$)
+ c$ = MID$(s$, i, 1)
+ IF c$ = "-" AND i = 1 THEN sign = -1
+ c = ASC(c$) - 48
+ IF c >= 0 AND c <= 9 THEN
+  n = n * 10 + (c * sign)
+ END IF
+NEXT i
+
+str2int = n
+
+END FUNCTION
+
+FUNCTION str2lng& (stri$)
+
+n& = 0
+s$ = LTRIM$(stri$)
+sign = 1
+
+FOR i = 1 TO LEN(s$)
+ c$ = MID$(s$, i, 1)
+ IF c$ = "-" AND i = 1 THEN sign = -1
+ c = ASC(c$) - 48
+ IF c >= 0 AND c <= 9 THEN
+  n& = n& * 10 + (c * sign)
+ END IF
+NEXT i
+
+str2lng& = n&
 
 END FUNCTION
 
@@ -388,7 +488,6 @@ touchfile workingdir$ + "\__danger.tmp"
 PRINT "fatal error:"
 PRINT e$
 
-'KILL workingdir$ + "\*.*"
 'borrowed this code from game.bas cos wildcard didn't work
 findfiles workingdir$ + "\*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
 fh = FREEFILE
@@ -419,22 +518,25 @@ END IF
 
 touchfile "unlump1.tmp\nothing.tmp"
 
-'KILL "unlump1.tmp\*.*"
- 'borrowed this code from game.bas cos wildcard didn't work
- findfiles "unlump1.tmp\*.*" + chr$(0), 0, "unlist.tmp" + CHR$(0), buffer()
- fh = FREEFILE
- OPEN "unlist.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh)
-  INPUT #fh, filename$
-  filename$ = UCASE$(filename$)
-  KILL "unlump1.tmp\" + filename$
- LOOP
- CLOSE #fh
- KILL "unlist.tmp"
+'borrowed this code from game.bas cos wildcard didn't work
+findfiles "unlump1.tmp\*.*" + chr$(0), 0, "unlist.tmp" + CHR$(0), buffer()
+fh = FREEFILE
+OPEN "unlist.tmp" FOR INPUT AS #fh
+DO UNTIL EOF(fh)
+ INPUT #fh, filename$
+ filename$ = UCASE$(filename$)
+ KILL "unlump1.tmp\" + filename$
+LOOP
+CLOSE #fh
+KILL "unlist.tmp"
 
 RMDIR "unlump1.tmp"
 
 END FUNCTION
+
+SUB updaterecordlength (lumpf$, bindex)
+'don't want this yet
+END SUB
 
 SUB writeglobalstring (index, s$, maxlen)
 

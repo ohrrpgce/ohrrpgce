@@ -19,6 +19,7 @@ DECLARE FUNCTION readenemyname$ (index%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE FUNCTION readitemname$ (index%)
 DECLARE SUB setbinsize (id%, size%)
+DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
@@ -77,12 +78,14 @@ DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE SUB textage (song$())
+DECLARE SUB editmenus ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (master%(), font())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION maplumpname$ (map, oldext$)
+DECLARE SUB updaterecordlength (lumpf$, bindex%)
 DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
 DECLARE FUNCTION inputfilename$ (query$, ext$)
 
@@ -163,7 +166,6 @@ IF NOT isfile(game$ + ".mas" + CHR$(0)) THEN copyfile "ohrrpgce.mas" + CHR$(0), 
 xbload game$ + ".mas", master(), "Master palette not found"
 setpal master()
 IF NOT isfile(game$ + ".fnt" + CHR$(0)) THEN copyfile "ohrrpgce.fnt" + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
-'DEF SEG = VARSEG(font(0)): BLOAD game$ + ".fnt", VARPTR(font(0))
 xbload game$ + ".fnt", font(), "Font not loaded"
 '--loadgen, upgrade, resave
 xbload game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
@@ -202,7 +204,7 @@ DO:
     IF pt = 7 THEN shopdata
     IF pt = 8 THEN formation song$()
     IF pt = 9 THEN textage song$()
-    'if pt = 10 then editmenus
+    if pt = 10 then editmenus
     IF pt = 11 THEN vehicles
     IF pt = 12 THEN tagnames
     IF pt = 13 THEN importsong song$(), master()
@@ -231,7 +233,6 @@ DO:
     END IF
   END SELECT
   '--always resave the .GEN lump after any menu
-  'DEF SEG = VARSEG(general(0)): BSAVE game$ + ".gen", VARPTR(general(0)), 1000
   xbsave game$ + ".gen", general(), 1000
  END IF
 
@@ -364,7 +365,7 @@ DO
      b$ = ""
     END IF
     copyfile workingdir$ + "\ohrrpgce" + a$ + CHR$(0), workingdir$ + "\" + b$ + a$ + CHR$(0), buffer()
-    kill workingdir$ + "\ohrrpgce" + a$
+    KILL workingdir$ + "\ohrrpgce" + a$
    LOOP
    CLOSE #fh
    'moved into loop above
@@ -467,7 +468,6 @@ OPEN workingdir$ + "\lockfile.tmp" FOR BINARY AS #lockfile
 RETURN
 
 relump:
-'DEF SEG = VARSEG(general(0)): BSAVE game$ + ".gen", VARPTR(general(0)), 1000
 xbsave game$ + ".gen", general(), 1000
 GOSUB ssongstr
 rpg$(0) = "Continue editing"
@@ -582,10 +582,7 @@ IF LEN(unsafefile$) THEN
  PRINT unsafefile$
  GOSUB cleanupfiles
 END IF
-PRINT "Please report this exact error message to ohrrpgce@HamsterRepublic.com"
-PRINT
-PRINT "Version:"; version$
-PRINT "Memory Info:"; FRE(0) 'SETMEM(0); FRE(-1); FRE(-2); FRE(0)
+crashexplain
 PRINT "Game:"; gamedir$ + "\" + gamefile$ + ".RPG"
 '--crash and print the error
 ON ERROR GOTO 0
@@ -614,7 +611,7 @@ cleanupfiles:
 CLOSE #lockfile
 IF nocleanup = 0 THEN
  touchfile workingdir$ + "\kill.tmp"
- 'borrowed this code from game.bas cos wildcard didn't work
+ 'borrowed this code from game.bas cos wildcard didn't work in FB
  findfiles workingdir$ + "\*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
@@ -1007,13 +1004,11 @@ GOSUB savefont
 EXIT SUB
 
 loadfont:
-'DEF SEG = VARSEG(font(0)): BLOAD game$ + ".fnt", VARPTR(font(0))
 xbload game$ + ".fnt", font(), "Can't load font"
 setfont font()
 RETURN
 
 savefont:
-'DEF SEG = VARSEG(font(0)): BSAVE game$ + ".fnt", VARPTR(font(0)), 2048
 xbsave game$ + ".fnt", font(), 2048
 RETURN
 
@@ -1212,7 +1207,7 @@ DO
    GOSUB sshopset
    pt = pt + 1
    IF needaddset(pt, general(97), "Shop") THEN
-    FOR i = 0 TO 19: a(i) = 0: NEXT i
+    flusharray a(), 19, 0
     setpicstuf a(), 40, -1
     storeset game$ + ".sho" + CHR$(0), pt, 0
    END IF
@@ -1313,7 +1308,7 @@ DO
    GOSUB sstuf
    thing = thing + 1
    IF needaddset(thing, a(16), "Shop Thing") THEN
-    FOR i = 0 TO 31: b(i) = 0: NEXT i
+    flusharray b(), 31, 0
     setpicstuf b(), 64, -1
     storeset game$ + ".stf" + CHR$(0), pt * 50 + thing, 0
    END IF
@@ -1457,14 +1452,6 @@ it$ = itemstr$(b(25),0,0)
 trit$ = itemstr$(b(28),0,0)
 RETURN
 
-'shopdata
-
-'0    shop name length
-'1-15 shop name
-'16   stuff count
-'17   bitsets
-'18   inn price
-'19   inn script
 END SUB
 
 SUB smnemonic (tagname$, index)
@@ -1509,7 +1496,7 @@ IF general(95) = 1 THEN
  clearpage vpage
  printstr "Updating Door Format...", 0, 0, vpage
  FOR o = 0 TO 19
-  IF isfile(game$ + ".dor" + CHR$(0)) THEN XBLOAD game$ + ".dor", buffer(), "No doors"
+  IF isfile(game$ + ".dor" + CHR$(0)) THEN xbload game$ + ".dor", buffer(), "No doors"
   FOR i = 0 TO 299
    buffer(i) = buffer(o * 300 + i)
   NEXT i
@@ -1518,7 +1505,6 @@ IF general(95) = 1 THEN
  NEXT o
  printstr "Enforcing default font", 0, 16, vpage
  copyfile "ohrrpgce.fnt" + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
- 'DEF SEG = VARSEG(font(0)): BLOAD game$ + ".fnt", VARPTR(font(0))
  xbload game$ + ".fnt", font(), "Font not loaded"
  setfont font()
  printstr "Making AniMaptiles Backward Compatable", 0, 16, vpage
@@ -1547,7 +1533,6 @@ IF general(95) = 1 THEN
  NEXT i
  FOR i = 0 TO general(0)
   printstr " map" + STR$(i), 16, 24 + i * 8, vpage
-  'DEF SEG = VARSEG(buffer(0)): BLOAD maplumpname$(i, "t"), VARPTR(buffer(0))
   XBLOAD maplumpname$(i, "t"), buffer(), "Map not loaded"
   setmapdata buffer(), buffer(), 0, 0
   FOR tx = 0 TO buffer(0)
@@ -1555,7 +1540,6 @@ IF general(95) = 1 THEN
     IF readmapblock(tx, ty) = 158 THEN setmapblock tx, ty, 206
    NEXT ty
   NEXT tx
-  'DEF SEG = VARSEG(buffer(0)): BSAVE maplumpname$(i, "t"), VARPTR(buffer(0)), buffer(0) * buffer(1) + 4
   xbsave maplumpname$(i, "t"), buffer(), buffer(0) * buffer(1) + 4
  NEXT i
 END IF

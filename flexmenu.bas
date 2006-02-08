@@ -16,10 +16,9 @@ DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE FUNCTION readenemyname$ (index%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE FUNCTION readitemname$ (index%)
-
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
-DECLARE SUB updateflexmenu (nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
+DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
 DECLARE SUB writebinstring (savestr$, array%(), offset%, maxlen%)
 DECLARE SUB writebadbinstring (savestr$, array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION gethighbyte% (n%)
@@ -27,7 +26,6 @@ DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION tagstring$ (tag%, zero$, one$, negone$)
 DECLARE FUNCTION bytes2int% (lowbyte%, highbyte%)
-
 DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB setbinsize (id%, size%)
 DECLARE SUB flusharray (array%(), size%, value%)
@@ -146,8 +144,8 @@ FOR i = 0 TO 3
  atkbit$(i + 45) = "Cannot target hero slot" + STR$(i)
 NEXT i
 
-atkbit$(49) = "Ignore hero's extra hits"
-atkbit$(50) = "No Reward from target"
+atkbit$(49) = "Ignore attacker's extra hits"
+atkbit$(50) = "Erase rewards (Enemy target only)"
 atkbit$(51) = "Show damage without inflicting"
 atkbit$(52) = "Store Target"
 atkbit$(53) = "Delete Stored Target"
@@ -659,7 +657,7 @@ DO
  
  dummy = usemenu(pt, top, 0, size, 22)
  
- IF workmenu(pt) = AtkChooseAct THEN
+ IF workmenu(pt) = AtkChooseAct OR keyval(56) > 0 THEN
   lastindex = recindex
   IF keyval(77) > 1 AND recindex = general(34) AND recindex < 32767 THEN
    '--attempt to add a new set
@@ -716,13 +714,20 @@ DO
   END SELECT
  END IF
  
- IF editflexmenu(workmenu(pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
-  GOSUB AtkUpdateMenu
+ IF keyval(56) = 0 THEN 'not pressing ALT
+  IF editflexmenu(workmenu(pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
+   GOSUB AtkUpdateMenu
+  END IF
  END IF
  
  GOSUB AtkPreviewSub
  
  standardmenu dispmenu$(), size, 22, pt, top, 0, 0, dpage, 0
+ IF keyval(56) > 0 THEN 'holding ALT
+   tmp$ = readbadbinstring$(recbuf(), AtkDatName, 10, 1) + STR$(recindex)
+   textcolor 15, 1
+   printstr tmp$, 320 - LEN(tmp$) * 8, 0, dpage
+ END IF
  
  SWAP vpage, dpage
  setvispage vpage
@@ -757,7 +762,7 @@ enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
 caption$(AtkCapDamageEq + 5) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " =" + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
 caption$(AtkCapDamageEq + 6) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " =" + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Current"
 
-updateflexmenu dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
+updateflexmenu pt, dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
 
 '--load the picture and palette
 setpicstuf buffer(), 3750, 2
@@ -1087,7 +1092,7 @@ SUB testflexmenu
 ''-------
 'mode = 0
 '
-'updateflexmenu showmenu$(), thismenu(), size(mode), menu$(), menutype(), menuoff(), menulimits(), dat(), caption$(), max(), recindex
+'updateflexmenu pt, showmenu$(), thismenu(), size(mode), menu$(), menutype(), menuoff(), menulimits(), dat(), caption$(), max(), recindex
 '
 'setkeys
 'DO
@@ -1099,7 +1104,7 @@ SUB testflexmenu
 '  dummy = usemenu(pt(mode), top(mode), 0, size(mode), 22)
 '
 '  IF editflexmenu(thismenu(pt(mode)), menutype(), menuoff(), menulimits(), dat(), min(), max()) THEN
-'    updateflexmenu showmenu$(), thismenu(), size(mode), menu$(), menutype(), menuoff(), menulimits(), dat(), caption$(), max(), recindex
+'    updateflexmenu pt, showmenu$(), thismenu(), size(mode), menu$(), menutype(), menuoff(), menulimits(), dat(), caption$(), max(), recindex
 '  END IF
 '
 '  standardmenu showmenu$(), size(mode), 22, pt(mode), top(mode), 0, 0, dpage, 0
@@ -1116,7 +1121,7 @@ SUB testflexmenu
 '
 END SUB
 
-SUB updateflexmenu (nowmenu$(), nowdat(), size, menu$(), menutype(), menuoff(), menulimits(), datablock(), caption$(), maxtable(), recindex)
+SUB updateflexmenu (mpointer, nowmenu$(), nowdat(), size, menu$(), menutype(), menuoff(), menulimits(), datablock(), caption$(), maxtable(), recindex)
 
 '--generates a nowmenu subset from generic menu data
 
@@ -1198,6 +1203,9 @@ FOR i = 0 TO size
     nowmenu$(i) = nowmenu$(i) + " " + caption$(capnum + ABS(datablock(menuoff(nowdat(i)))))
    END IF
  END SELECT
+ IF mpointer = i THEN
+   nowmenu$(i) = RIGHT$(nowmenu$(i), 40)
+ END IF
 NEXT i
 
 END SUB
