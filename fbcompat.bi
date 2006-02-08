@@ -15,6 +15,7 @@ option nokeyword clear
 option nokeyword str
 #define str$(x) xstr$((x))
 #define fbdim dim as short
+#define varseg varptr
 option nokeyword peek
 #define peek(x) xpeek(x)
 option nokeyword poke
@@ -36,7 +37,7 @@ declare function xstr$ overload (x as integer)
 declare function xstr$ (x as single)
 declare function xstr$ (x as double)
 
-declare sub defseg(byref var as integer)
+declare sub defseg(var as integer ptr)
 declare function xpeek (byval idx as integer) as integer
 declare sub xpoke(byval idx as integer, byval v as integer)
 

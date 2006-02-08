@@ -31,7 +31,7 @@ SUB crashexplain
 END SUB
 
 SUB defseg (vbl AS INTEGER)
-	DEF SEG = VARSEG(vbl)
+	DEF SEG = vbl
 END SUB
 
 SUB fbdim (v%)
