@@ -14,7 +14,6 @@ DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB safekill (f$)
 DECLARE SUB touchfile (f$)
 DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$)
-DECLARE SUB romfontchar (font%(), char%)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION readenemyname$ (index%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
@@ -34,7 +33,6 @@ DECLARE SUB fixorder (f$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE SUB vehicles ()
 DECLARE SUB verifyrpg ()
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION getmapname$ (m%)
 DECLARE FUNCTION numbertail$ (s$)
@@ -61,9 +59,9 @@ DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, you
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npc%(), npcstat%(), song$(), npc$(), unpc%(), lnpc%())
-DECLARE SUB npcdef (npc%(), pt%, npc$(), unpc%(), lnpc%())
-DECLARE SUB bitset (array%(), wof%, last%, name$())
+DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npcn%(), npcstat%(), song$(), npc$(), unpc%(), lnpc%())
+DECLARE SUB npcdef (npcn%(), pt%, npc$(), unpc%(), lnpc%())
+DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, file$, master%(), font%())
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB shopdata ()
@@ -91,6 +89,7 @@ DECLARE SUB updaterecordlength (lumpf$, bindex%)
 DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
 DECLARE FUNCTION inputfilename$ (query$, ext$)
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
@@ -108,6 +107,9 @@ workingdir$ = "working.tmp"
 'version ID
 '$INCLUDE: 'cver.txt'
 IF COMMAND$ = "/V" THEN PRINT version$: SYSTEM
+'only included for the windowed/fullscreen stuff
+storecommandline
+gamedir$ = getcommandline 'does nothing, but needs to tidy up
 
 sCurdir$ = STRING$(pathlength, 0)
 getstring sCurdir$
@@ -119,7 +121,7 @@ CHDIR gamedir$
 setdrive ASC(UCASE$(LEFT$(gamedir$, 1))) - 65
 
 DIM font(1024), master(767), buffer(16384), timing(4), joy(4), scroll(16002), pass(16002), emap(16002)
-DIM menu$(22), option$(10), general(360), npc$(15), unpc(15), lnpc(15), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npc(1500), npcstat(1500), song$(-1 TO 100), spriteclip(1600)
+DIM menu$(22), general(360), npc$(15), unpc(15), lnpc(15), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), song$(-1 TO 100), spriteclip(1600)
 
 '--DIM binsize arrays
 '$INCLUDE: 'binsize.bi'
@@ -164,14 +166,14 @@ verifyrpg
 safekill workingdir$ + "\__danger.tmp"
 
 IF NOT isfile(game$ + ".mas" + CHR$(0)) THEN copyfile "ohrrpgce.mas" + CHR$(0), game$ + ".mas" + CHR$(0), buffer()
-DEF SEG = VARSEG(master(0)): BLOAD game$ + ".mas", VARPTR(master(0))
+xbload game$ + ".mas", master(), "Master palette not found"
 setpal master()
 IF NOT isfile(game$ + ".fnt" + CHR$(0)) THEN copyfile "ohrrpgce.fnt" + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
-DEF SEG = VARSEG(font(0)): BLOAD game$ + ".fnt", VARPTR(font(0))
+xbload game$ + ".fnt", font(), "Font not loaded"
 '--loadgen, upgrade, resave
 xbload game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
 upgrade font()
-DEF SEG = VARSEG(general(0)): BSAVE game$ + ".gen", VARPTR(general(0)), 1000
+xbsave game$ + ".gen", general(), 1000
 GOSUB lsongstr
 setfont font()
 needf = 1
@@ -196,7 +198,7 @@ DO:
   SELECT CASE menumode
    CASE 0'--normal mode
     IF pt = 0 THEN pt = 0: menumode = 1: GOSUB setgraphicmenu
-    IF pt = 1 THEN mapmaker font(), master(), scroll(), pass(), emap(), doors(), link(), npc(), npcstat(), song$(), npc$(), unpc(), lnpc()
+    IF pt = 1 THEN mapmaker font(), master(), scroll(), pass(), emap(), doors(), link(), npcn(), npcstat(), song$(), npc$(), unpc(), lnpc()
     IF pt = 2 THEN statname
     IF pt = 3 THEN herodata
     IF pt = 4 THEN enemydata
@@ -234,7 +236,7 @@ DO:
     END IF
   END SELECT
   '--always resave the .GEN lump after any menu
-  DEF SEG = VARSEG(general(0)): BSAVE game$ + ".gen", VARPTR(general(0)), 1000
+  xbsave game$ + ".gen", general(), 1000
  END IF
 
  standardmenu menu$(), mainmax, 22, pt, 0, 0, 0, dpage, 0
@@ -366,9 +368,11 @@ DO
      b$ = ""
     END IF
     copyfile workingdir$ + "\ohrrpgce" + a$ + CHR$(0), workingdir$ + "\" + b$ + a$ + CHR$(0), buffer()
+    KILL workingdir$ + "\ohrrpgce" + a$
    LOOP
    CLOSE #fh
-   KILL workingdir$ + "\ohrrpgce.*"
+   ' moved into loop above
+'    KILL workingdir$ + "\ohrrpgce.*"
    '--create archinym information lump
    fh = FREEFILE
    OPEN workingdir$ + "\archinym.lmp" FOR OUTPUT AS #fh
@@ -467,7 +471,7 @@ OPEN workingdir$ + "\lockfile.tmp" FOR BINARY AS #lockfile
 RETURN
 
 relump:
-DEF SEG = VARSEG(general(0)): BSAVE game$ + ".gen", VARPTR(general(0)), 1000
+xbsave game$ + ".gen", general(), 1000
 GOSUB ssongstr
 rpg$(0) = "Continue editing"
 rpg$(1) = "Save changes and continue editing"
@@ -532,7 +536,11 @@ DO
  tog = tog XOR 1
  IF keyval(28) > 1 THEN
   '--check password
-  IF pas$ = rpas$ THEN RETURN ELSE GOTO finis
+  IF pas$ = rpas$ THEN 
+   RETURN 
+  ELSE 
+   GOTO finis
+  END IF
  END IF
  strgrabber pas$, 17
  textcolor 15, 0
@@ -577,10 +585,7 @@ IF LEN(unsafefile$) THEN
  PRINT unsafefile$
  GOSUB cleanupfiles
 END IF
-PRINT "Please report this exact error message to ohrrpgce@HamsterRepublic.com"
-PRINT
-PRINT "Version:"; version$
-PRINT "Memory Info:"; SETMEM(0); FRE(-1); FRE(-2); FRE(0)
+crashexplain
 PRINT "Game:"; gamedir$ + "\" + gamefile$ + ".RPG"
 '--crash and print the error
 ON ERROR GOTO 0
@@ -595,6 +600,7 @@ printstr "your work! You never know when an", 0, 8, 0
 printstr "unknown bug or a hard-drive crash or", 0, 16, 0
 printstr "a little brother might delete your", 0, 24, 0
 printstr "files!", 0, 32, 0
+setvispage 0 'force a refresh
 w = getkey
 GOSUB shutoff
 'closefile
@@ -608,7 +614,17 @@ cleanupfiles:
 CLOSE #lockfile
 IF nocleanup = 0 THEN
  touchfile workingdir$ + "\kill.tmp"
- KILL workingdir$ + "\*.*"
+ 'borrowed this code from game.bas cos wildcard didn't work in FB
+ findfiles workingdir$ + "\*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
+ fh = FREEFILE
+ OPEN "filelist.tmp" FOR INPUT AS #fh
+ DO UNTIL EOF(fh)
+  INPUT #fh, filename$
+  filename$ = UCASE$(filename$)
+  KILL workingdir$ + "\" + filename$
+ LOOP
+ CLOSE #fh
+ KILL "filelist.tmp"
  RMDIR workingdir$
 END IF
 safekill "rpg.lst"
@@ -700,12 +716,12 @@ DATA "Standing","Stepping","Attack A","Attack B","Cast/Use","Hurt","Weak","Dead"
 DATA "Enemy (facing right)"
 DATA "Frame 1","Frame 2"
 DATA "First Frame","Middle Frame","Last Frame"
-DATA Picture,Palette,Move Type,Move Speed,Display Text,When Activated,"Give Item:",Pushability,Activation,Appear if Tag,Appear if Tag,Usable,"Run Script: ", Script Argument,"Vehicle: "
+DATA "Picture","Palette","Move Type","Move Speed","Display Text","When Activated","Give Item:","Pushability","Activation","Appear if Tag","Appear if Tag","Usable","Run Script: ","Script Argument","Vehicle: "
 DATA 119,32767,7,5,-1,2,255,7,2,999,999,1,0,32767,0
 DATA 0,0,0,0,0,0,0,0,0,-999,-999,0,0,-32767,0
 
-DATA 1,2,3,4,5,6,7,8,9,0,-,=,"","",q,w,e,r,t,y,u,i,o,p,[,],"","",a,s,d,f,g,h,j,k,l,";","'",`,"",\,z,x,c,v,b,n,m,",",".","/"
-DATA !,@,#,$,%,^,&,*,(,),_,+,"","",Q,W,E,R,T,Y,U,I,O,P,{,},"","",A,S,D,F,G,H,J,K,L,":"," ",~,"",|,Z,X,C,V,B,N,M,"<",">","?"
+DATA "1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/"
+DATA "!","@","#","$","%","^","&","*","(",")","_","+","","","Q","W","E","R","T","Y","U","I","O","P","{","}","","","A","S","D","F","G","H","J","K","L",":"," ","~","","|","Z","X","C","V","B","N","M","<",">","?"
 DATA "‚","ƒ","„","…","†","‡","ˆ","‰","Š","‹","Œ","","","","Ž","","","‘","’","“","”","•","–","—","˜","™","","","š","›","œ","","ž","Ÿ"," ","¡","¢","£","¤","¥","","¦","§","¨","©","ª","«","¬","­","®","¯","°"
 DATA "±","²","³","´","µ","¶","·","¸","¹","º","»","¼","","","½","¾","¿","À","Á","Â","Ã","Ä","Å","Æ","Ç","È","","","É","Ê","Ë","Ì","Í","Î","Ï","Ð","Ñ","Ò","Ó","Ô","","Õ","Ö","×","Ø","Ù","Ú","Û","Ü","Ý","Þ","ß"
 
@@ -991,12 +1007,12 @@ GOSUB savefont
 EXIT SUB
 
 loadfont:
-DEF SEG = VARSEG(font(0)): BLOAD game$ + ".fnt", VARPTR(font(0))
+xbload game$ + ".fnt", font(), "Can't load font"
 setfont font()
 RETURN
 
 savefont:
-DEF SEG = VARSEG(font(0)): BSAVE game$ + ".fnt", VARPTR(font(0)), 2048
+xbsave game$ + ".fnt", font(), 2048
 RETURN
 
 copychar:
@@ -1133,32 +1149,14 @@ readpassword$ = p$
 
 END FUNCTION
 
-SUB romfontchar (font(), char)
-
-regs.ax = &H1130
-regs.bx = &H300
-CALL interruptx(&H10, regs, regs)
-off9 = regs.bx: seg9 = regs.es
-DEF SEG = regs.es
-'FOR i = 1 TO 255
-FOR j = 0 TO 7
- b = PEEK(regs.bp + (8 * char) + j)
- FOR k = 0 TO 7
-  setbit font(), char * 4, (7 - k) * 8 + j, (b AND 2 ^ k)
- NEXT k
-NEXT j
-'NEXT i
-
-END SUB
-
 SUB safekill (f$)
 IF isfile(f$ + CHR$(0)) THEN KILL f$
 END SUB
 
 SUB shopdata
-DIM name$(32), a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16)
+DIM names$(32), a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16)
 
-max = 32: pt = 0: it$ = "-NONE-"
+maxcount = 32: pt = 0: it$ = "-NONE-"
 sbit$(0) = "Buy"
 sbit$(1) = "Sell"
 sbit$(2) = "Hire"
@@ -1193,7 +1191,7 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-getnames name$(), max
+getnames names$(), maxcount
 
 GOSUB lshopset
 GOSUB menugen
@@ -1226,7 +1224,7 @@ DO
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 3 AND havestuf THEN GOSUB shopstuf: GOSUB sstuf
-  IF csr = 4 THEN bitset a(), 17, 7, sbit$(): GOSUB menuup
+  IF csr = 4 THEN editbitset a(), 17, 7, sbit$(): GOSUB menuup
  END IF
  IF csr = 5 THEN
   IF intgrabber(a(18), 0, 32767, 75, 77) THEN GOSUB menuup
@@ -1415,7 +1413,7 @@ smenu$(9) = "Sell Set Tag" + STR$(ABS(b(23))) + " =" + STR$(SGN(SGN(b(23)) + 1))
 IF b(23) = 1 THEN smenu$(9) = smenu$(9) + "[Unalterable]"
 IF b(23) = -1 THEN smenu$(9) = smenu$(9) + "[Unalterable]"
 IF b(23) = 0 THEN smenu$(9) = "[No Tag Set]"
-smenu$(10) = name$(32) + " Price:" + STR$(b(24))
+smenu$(10) = names$(32) + " Price:" + STR$(b(24))
 smenu$(11) = "Must Trade:" + it$
 IF b(17) = 0 THEN
  smenu$(12) = "Sell type: " + stf$(bound(b(26), 0, 3) + 3)
@@ -1501,7 +1499,7 @@ IF general(95) = 1 THEN
  clearpage vpage
  printstr "Updating Door Format...", 0, 0, vpage
  FOR o = 0 TO 19
-  IF isfile(game$ + ".dor" + CHR$(0)) THEN DEF SEG = VARSEG(buffer(0)): BLOAD game$ + ".dor", VARPTR(buffer(0))
+  IF isfile(game$ + ".dor" + CHR$(0)) THEN xbload game$ + ".dor", buffer(), "No doors"
   FOR i = 0 TO 299
    buffer(i) = buffer(o * 300 + i)
   NEXT i
@@ -1510,7 +1508,7 @@ IF general(95) = 1 THEN
  NEXT o
  printstr "Enforcing default font", 0, 16, vpage
  copyfile "ohrrpgce.fnt" + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
- DEF SEG = VARSEG(font(0)): BLOAD game$ + ".fnt", VARPTR(font(0))
+ xbload game$ + ".fnt", font(), "Font not loaded"
  setfont font()
  printstr "Making AniMaptiles Backward Compatable", 0, 16, vpage
  FOR i = 0 TO 39
@@ -1538,14 +1536,14 @@ IF general(95) = 1 THEN
  NEXT i
  FOR i = 0 TO general(0)
   printstr " map" + STR$(i), 16, 24 + i * 8, vpage
-  DEF SEG = VARSEG(buffer(0)): BLOAD maplumpname$(i, "t"), VARPTR(buffer(0))
+  XBLOAD maplumpname$(i, "t"), buffer(), "Map not loaded"
   setmapdata buffer(), buffer(), 0, 0
   FOR tx = 0 TO buffer(0)
    FOR ty = 0 TO buffer(1)
     IF readmapblock(tx, ty) = 158 THEN setmapblock tx, ty, 206
    NEXT ty
   NEXT tx
-  DEF SEG = VARSEG(buffer(0)): BSAVE maplumpname$(i, "t"), VARPTR(buffer(0)), buffer(0) * buffer(1) + 4
+  xbsave maplumpname$(i, "t"), buffer(), buffer(0) * buffer(1) + 4
  NEXT i
 END IF
 '---VERSION 3---

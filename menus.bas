@@ -11,11 +11,10 @@ DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION filenum$ (n%)
-DECLARE SUB writeconstant (filehandle%, num%, name$, unique$(), prefix$)
+DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
 DECLARE SUB safekill (f$)
 DECLARE SUB touchfile (f$)
-DECLARE SUB romfontchar (font%(), char%)
-DECLARE SUB standardmenu (menu$(), size%, vis%, ptr%, top%, x%, y%, page%, edge%)
+DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION readitemname$ (index%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
@@ -23,7 +22,6 @@ DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION getShortName$ (filename$)
 DECLARE FUNCTION getLongName$ (filename$)
 DECLARE SUB textfatalerror (e$)
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
@@ -35,11 +33,11 @@ DECLARE FUNCTION loadname$ (length%, offset%)
 DECLARE SUB exportnames (gamedir$, song$())
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
-DECLARE FUNCTION needaddset (ptr%, check%, what$)
+DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$)
-DECLARE SUB cycletile (cycle%(), tastuf%(), ptr%(), skip%())
+DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
+DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE FUNCTION onoroff$ (n%)
@@ -47,8 +45,7 @@ DECLARE FUNCTION intstr$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB bitset (array%(), wof%, last%, name$())
-DECLARE FUNCTION usemenu (ptr%, top%, first%, last%, size%)
+DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE SUB formation (song$())
 DECLARE SUB enemydata ()
@@ -74,6 +71,7 @@ DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filesize$ (file$)
 DECLARE FUNCTION inputfilename$ (query$, ext$)
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
@@ -85,13 +83,13 @@ SUB editmenus
 'DIM menu$(20), veh(39), min(39), max(39), offset(39), vehbit$(15), tiletype$(8)
 
 CONST MenuDatSize = 187
-DIM menu$(20),min(20),max(20), bit$(-1 to 32), menuname$
+DIM menu$(20),min(20),max(20), bitname$(-1 to 32), menuname$
 
-DIM menudat(MenuDatSize - 1), ptr, csr
+DIM menudat(MenuDatSize - 1), pt, csr
 
-ptr = 0: csr = 0
+pt = 0: csr = 0
 
-bit$(0) = "Background is Fuzzy"
+bitname$(0) = "Background is Fuzzy"
 
 
 ' min(3) = 0: max(3) = 5: offset(3) = 8             'speed
@@ -122,10 +120,10 @@ DO
     EXIT DO
    END IF
   CASE 1
-   IF ptr = general(genMaxMenu) AND keyval(77) > 1 THEN
+   IF pt = general(genMaxMenu) AND keyval(77) > 1 THEN
     GOSUB savedat
-    ptr = bound(ptr + 1, 0, 255)
-    IF needaddset(ptr, general(genMaxMenu), "menu") THEN
+    pt = bound(pt + 1, 0, 255)
+    IF needaddset(pt, general(genMaxMenu), "menu") THEN
      FOR i = 0 TO MenuDatSize - 1
       menudat(i) = 0
      NEXT i
@@ -133,10 +131,10 @@ DO
      GOSUB menu
     END IF
    END IF
-   newptr = ptr
+   newptr = pt
    IF intgrabber(newptr, 0, general(genMaxMenu), 75, 77) THEN
     GOSUB savedat
-    ptr = newptr
+    pt = newptr
     GOSUB loaddat
     GOSUB menu
    END IF
@@ -150,7 +148,7 @@ DO
 '    END IF
   CASE 4
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
-   bitset menudat(), 13, 32, bit$()
+    editbitset menudat(), 13, 32, bitname$()
    END IF
  END SELECT
  standardmenu menu$(), 15, 15, csr, top, 0, 0, dpage, 0
@@ -164,7 +162,7 @@ EXIT SUB
 
 menu:
 menu$(0) = "Previous Menu"
-menu$(1) = "Menu" + STR$(ptr)
+menu$(1) = "Menu" + STR$(pt)
 menu$(2) = "Name: " + vehname$
 
 ' IF veh(offset(3)) = 3 THEN tmp$ = " 10" ELSE tmp$ = STR$(veh(8))
@@ -236,11 +234,11 @@ menu$(2) = "Name: " + vehname$
 ' menu$(14) = "On Dismount: " + tmp$
 
 ' menu$(15) = "Elevation:" + STR$(veh(offset(15))) + " pixels"
-' RETURN
+RETURN
 
 loaddat:
 setpicstuf menudat(), MenuDatSize*2, -1
-loadset "menus.dat" + CHR$(0), ptr, 0
+loadset "menus.dat" + CHR$(0), pt, 0
 menuname$ = STRING$(bound(menudat(0) AND 255, 0, 15), 0)
 array2str menudat(), 1, menuname$
 RETURN
@@ -249,7 +247,7 @@ savedat:
 ' veh(0) = bound(LEN(vehname$), 0, 5)
 ' str2array vehname$, veh(), 1
 ' setpicstuf veh(), 80, -1
-' storeset "menus.dat" + CHR$(0), ptr, 0
+' storeset "menus.dat" + CHR$(0), pt, 0
 RETURN
 
 END SUB
@@ -258,7 +256,7 @@ SUB vehicles
 
 DIM menu$(20), veh(39), min(39), max(39), offset(39), vehbit$(15), tiletype$(8)
 
-ptr = 0: csr = 0
+pt = 0: csr = 0
 
 vehbit$(0) = "Pass through walls"
 vehbit$(1) = "Pass through NPCs"
@@ -308,10 +306,10 @@ DO
     EXIT DO
    END IF
   CASE 1
-   IF ptr = general(55) AND keyval(77) > 1 THEN
+   IF pt = general(55) AND keyval(77) > 1 THEN
     GOSUB saveveh
-    ptr = bound(ptr + 1, 0, 32767)
-    IF needaddset(ptr, general(55), "vehicle") THEN
+    pt = bound(pt + 1, 0, 32767)
+    IF needaddset(pt, general(55), "vehicle") THEN
      FOR i = 0 TO 39
       veh(i) = 0
      NEXT i
@@ -319,10 +317,10 @@ DO
      GOSUB vehmenu
     END IF
    END IF
-   newptr = ptr
+   newptr = pt
    IF intgrabber(newptr, 0, general(55), 75, 77) THEN
     GOSUB saveveh
-    ptr = newptr
+    pt = newptr
     GOSUB loadveh
     GOSUB vehmenu
    END IF
@@ -336,7 +334,7 @@ DO
    END IF
   CASE 4
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
-    bitset veh(), 9, 8, vehbit$()
+    editbitset veh(), 9, 8, vehbit$()
    END IF
  END SELECT
  standardmenu menu$(), 15, 15, csr, top, 0, 0, dpage, 0
@@ -350,7 +348,7 @@ EXIT SUB
 
 vehmenu:
 menu$(0) = "Previous Menu"
-menu$(1) = "Vehicle" + STR$(ptr)
+menu$(1) = "Vehicle" + STR$(pt)
 menu$(2) = "Name: " + vehname$
 
 IF veh(offset(3)) = 3 THEN tmp$ = " 10" ELSE tmp$ = STR$(veh(8))
@@ -426,7 +424,7 @@ RETURN
 
 loadveh:
 setpicstuf veh(), 80, -1
-loadset game$ + ".veh" + CHR$(0), ptr, 0
+loadset game$ + ".veh" + CHR$(0), pt, 0
 vehname$ = STRING$(bound(veh(0) AND 255, 0, 15), 0)
 array2str veh(), 1, vehname$
 RETURN
@@ -435,14 +433,14 @@ saveveh:
 veh(0) = bound(LEN(vehname$), 0, 15)
 str2array vehname$, veh(), 1
 setpicstuf veh(), 80, -1
-storeset game$ + ".veh" + CHR$(0), ptr, 0
+storeset game$ + ".veh" + CHR$(0), pt, 0
 RETURN
 
 END SUB
 
 SUB gendata (song$(), master())
 STATIC default$
-DIM m$(19), max(19), bit$(15), subm$(4), scriptgenof(4)
+DIM m$(19), max(19), bitname$(15), subm$(4), scriptgenof(4)
 IF general(genPoison) <= 0 THEN general(genPoison) = 161
 IF general(genStun) <= 0 THEN general(genStun) = 159
 IF general(genMute) <= 0 THEN general(genMute) = 163
@@ -479,22 +477,22 @@ DO
  IF (keyval(28) > 1 OR keyval(57) > 1) THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 1 THEN
-   bit$(0) = "Pause on Battle Sub-menus"
-   bit$(1) = "Enable Caterpillar Party"
-   bit$(2) = "Don't Restore HP on Levelup"
-   bit$(3) = "Don't Restore MP on Levelup"
-   bit$(4) = "Inns Don't Revive Dead Heroes"
-   bit$(5) = "Hero Swapping Always Available"
-   bit$(6) = "Hide Ready-meter in Battle"
-   bit$(7) = "Hide Health-meter in Battle"
-   bit$(8) = "Disable Debugging Keys"
-   bit$(9) = "Simulate Old Levelup Bug"
-   bit$(10) = "Permit double-triggering of scripts"
-   bit$(11) = "Skip title screen"
-   bit$(12) = "Skip load screen"
-   bit$(13) = "Pause on All Battle Menus"
-   bit$(14) = "Disable Hero's Battle Cursor"
-   bitset general(), 101, 15, bit$()
+   bitname$(0) = "Pause on Battle Sub-menus"
+   bitname$(1) = "Enable Caterpillar Party"
+   bitname$(2) = "Don't Restore HP on Levelup"
+   bitname$(3) = "Don't Restore MP on Levelup"
+   bitname$(4) = "Inns Don't Revive Dead Heroes"
+   bitname$(5) = "Hero Swapping Always Available"
+   bitname$(6) = "Hide Ready-meter in Battle"
+   bitname$(7) = "Hide Health-meter in Battle"
+   bitname$(8) = "Disable Debugging Keys"
+   bitname$(9) = "Simulate Old Levelup Bug"
+   bitname$(10) = "Permit double-triggering of scripts"
+   bitname$(11) = "Skip title screen"
+   bitname$(12) = "Skip load screen"
+   bitname$(13) = "Pause on All Battle Menus"
+   bitname$(14) = "Disable Hero's Battle Cursor"
+   editbitset general(), 101, 15, bitname$()
   END IF
   IF csr = 9 THEN GOSUB ttlbrowse
   IF csr = 10 THEN GOSUB renrpg
@@ -823,13 +821,6 @@ RETURN
 
 END SUB
 
-'NOTE TO SIMON: delete this:
-FUNCTION canplay(file$)
-	canplay = 0
-	ext$ = LCASE$(MID$(file$, INSTR(file$, ".")))
-	IF ext$ = ".bam" THEN canplay = 1
-END FUNCTION
-
 SUB importsong (song$(), master())
 STATIC default$
 DIM music(16384)
@@ -883,7 +874,7 @@ DO
  END IF
  IF (keyval(28) > 1 OR keyval(57) > 1) THEN
   IF csr = 0 THEN EXIT DO
-  IF csr = 3 THEN GOSUB importsong
+  IF csr = 3 THEN GOSUB importsongfile
   IF csr = 4 AND songfile$ <> "" THEN GOSUB exportsong
   IF csr = 5 AND songfile$ <> "" THEN  'delete song
    safekill songfile$
@@ -960,7 +951,7 @@ END IF
 '-- add author, length, etc, info here
 RETURN
 
-importsong:
+importsongfile:
 stopsong
 'sourcesong$ = browse$(1, default$, "*.bam", "")
 sourcesong$ = browse$(5, default$, "", "")

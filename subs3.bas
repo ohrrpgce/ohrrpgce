@@ -14,7 +14,6 @@ DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
 DECLARE SUB safekill (f$)
 DECLARE SUB touchfile (f$)
-DECLARE SUB romfontchar (font%(), char%)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION readitemname$ (index%)
 DECLARE FUNCTION readattackname$ (index%)
@@ -23,7 +22,6 @@ DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION getShortName$ (filename$)
 DECLARE FUNCTION getLongName$ (filename$)
 DECLARE SUB textfatalerror (e$)
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
@@ -47,8 +45,7 @@ DECLARE FUNCTION intstr$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB bitset (array%(), wof%, last%, names$())
-DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
+DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE SUB formation (song$())
 DECLARE SUB enemydata ()
@@ -70,13 +67,14 @@ DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION inputfilename$ (query$, ext$)
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'
 
 REM $STATIC
-' SUB bitset (array(), wof, last, names$())
+' SUB editbitset (array(), wof, last, names$())
 
 ' '---DIM AND INIT---
 ' pt = -1
@@ -120,7 +118,7 @@ REM $STATIC
 ' END SUB
 
 'This new bitset() will build its own menu of bits, and thus hide blank bitsets
-SUB bitset (array(), wof, last, names$())
+SUB editbitset (array(), wof, last, names$())
 
 '---DIM AND INIT---
 pt = -1
@@ -184,9 +182,10 @@ IF n > highest THEN bound = highest
 END FUNCTION
 
 SUB debug (s$)
-OPEN "c_debug.txt" FOR APPEND AS #3
-PRINT #3, s$
-CLOSE #3
+ff = freefile
+OPEN "c_debug.txt" FOR APPEND AS #ff
+PRINT #ff, s$
+CLOSE #ff
 END SUB
 
 SUB drawmini (high, wide, cursor(), page, tastuf())
@@ -207,27 +206,27 @@ NEXT i
 END SUB
 
 FUNCTION exclude$ (s$, x$)
-out$ = ""
+outf$ = ""
 FOR i = 1 TO LEN(s$)
  ok = -1
  FOR j = 1 TO LEN(x$)
   IF MID$(s$, i, 1) = MID$(x$, j, 1) THEN ok = 0
  NEXT j
- IF ok THEN out$ = out$ + MID$(s$, i, 1)
+ IF ok THEN outf$ = outf$ + MID$(s$, i, 1)
 NEXT i
-exclude$ = out$
+exclude$ = outf$
 END FUNCTION
 
 FUNCTION exclusive$ (s$, x$)
-out$ = ""
+outf$ = ""
 FOR i = 1 TO LEN(s$)
  ok = 0
  FOR j = 1 TO LEN(x$)
   IF MID$(s$, i, 1) = MID$(x$, j, 1) THEN ok = 1
  NEXT j
- IF ok THEN out$ = out$ + MID$(s$, i, 1)
+ IF ok THEN outf$ = outf$ + MID$(s$, i, 1)
 NEXT i
-exclusive$ = out$
+exclusive$ = outf$
 END FUNCTION
 
 FUNCTION filesize$ (file$)
@@ -239,10 +238,11 @@ IF isfile(file$ + CHR$(0)) THEN
  CLOSE #ff
 
  units$ = " B"
+ split = 0
  IF size > 1024 THEN split = 1 : units$ = " KB"
  IF size > 1048576 THEN split = 1 : size = size / 1024 : units$ = " MB"
  fsize$ = intstr$(size)
- IF split THEN
+ IF split <> 0 THEN
   size = size / 102.4
   fsize$ = intstr$(size \ 10)
   IF size < 1000 THEN fsize$ = fsize$ + "." + intstr$(size MOD 10)
@@ -335,11 +335,11 @@ FUNCTION numbertail$ (s$)
 DIM n AS LONG
 
 IF s$ = "" THEN
- out$ = "BLANK"
+ outf$ = "BLANK"
 ELSE
  a = ASC(RIGHT$(s$, 1))
  IF a < 48 OR a > 57 THEN
-  out$ = s$ + "2"
+  outf$ = s$ + "2"
  ELSE
   a$ = s$
   b$ = ""
@@ -351,11 +351,11 @@ ELSE
   IF LEN(b$) > 9 THEN b$ = "0"
   n = str2int(b$)
   n = n + 1
-  out$ = a$ + LTRIM$(STR$(n))
+  outf$ = a$ + LTRIM$(STR$(n))
  END IF
 END IF
 
-numbertail$ = out$
+numbertail$ = outf$
 
 END FUNCTION
 
@@ -488,7 +488,17 @@ touchfile workingdir$ + "\__danger.tmp"
 PRINT "fatal error:"
 PRINT e$
 
-KILL workingdir$ + "\*.*"
+'borrowed this code from game.bas cos wildcard didn't work
+findfiles workingdir$ + "\*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
+fh = FREEFILE
+OPEN "filelist.tmp" FOR INPUT AS #fh
+DO UNTIL EOF(fh)
+INPUT #fh, filename$
+filename$ = UCASE$(filename$)
+KILL workingdir$ + "\" + filename$
+LOOP
+CLOSE #fh
+KILL "filelist.tmp"
 RMDIR workingdir$
 
 SYSTEM
@@ -508,7 +518,18 @@ END IF
 
 touchfile "unlump1.tmp\nothing.tmp"
 
-KILL "unlump1.tmp\*.*"
+'borrowed this code from game.bas cos wildcard didn't work
+findfiles "unlump1.tmp\*.*" + chr$(0), 0, "unlist.tmp" + CHR$(0), buffer()
+fh = FREEFILE
+OPEN "unlist.tmp" FOR INPUT AS #fh
+DO UNTIL EOF(fh)
+ INPUT #fh, filename$
+ filename$ = UCASE$(filename$)
+ KILL "unlump1.tmp\" + filename$
+LOOP
+CLOSE #fh
+KILL "unlist.tmp"
+
 RMDIR "unlump1.tmp"
 
 END FUNCTION
@@ -560,30 +581,3 @@ PUT #fh, 2 + index * 11, a$
 CLOSE #fh
 
 END SUB
-
-SUB xbload (f$, array(), e$)
-
-IF isfile(f$ + CHR$(0)) THEN
- handle = FREEFILE
- OPEN f$ FOR BINARY AS #handle
- bytes = LOF(handle)
- CLOSE #handle
- IF bytes THEN
-  OPEN f$ FOR BINARY AS #handle
-  a$ = " "
-  GET #handle, 1, a$
-  CLOSE #handle
-  IF a$ = CHR$(253) THEN
-   DEF SEG = VARSEG(array(0)): BLOAD f$, VARPTR(array(0))
-  ELSE
-   fatalerror e$ + "(unbloadable)"
-  END IF
- ELSE
-  fatalerror e$ + "(zero byte)"
- END IF
-ELSE
- fatalerror e$
-END IF
-
-END SUB
-

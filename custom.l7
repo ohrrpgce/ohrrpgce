@@ -6,6 +6,7 @@ subs3.obj +
 mapsubs.obj +
 flexmenu.obj +
 menus.obj +
+compat.obj +
 ,
 custom.exe,
 ,
