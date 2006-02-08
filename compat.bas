@@ -106,8 +106,8 @@ END SUB
 'replacements for def seg and peek, use seg shared ptr 
 'assumes def seg will always be used to point to an integer and
 'that integers are only holding 2 bytes of data
-sub defseg(byref var as integer)
-	seg = @var
+sub defseg(var as integer ptr)
+	seg = var
 end sub
 
 function xpeek(byval idx as integer) as integer
