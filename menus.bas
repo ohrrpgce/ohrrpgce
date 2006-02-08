@@ -6,8 +6,8 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
-' DECLARE FUNCTION str2lng& (stri$)
-' DECLARE FUNCTION str2int% (stri$)
+DECLARE FUNCTION str2lng& (stri$)
+DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION filenum$ (n%)
@@ -78,179 +78,179 @@ DECLARE FUNCTION inputfilename$ (query$, ext$)
 '$INCLUDE: 'const.bi'
 
 REM $STATIC
-' SUB editmenus
+SUB editmenus
 
-' 'DIM menu$(20), veh(39), min(39), max(39), offset(39), vehbit$(15), tiletype$(8)
+'DIM menu$(20), veh(39), min(39), max(39), offset(39), vehbit$(15), tiletype$(8)
 
-' CONST MenuDatSize = 187
-' DIM menu$(20),min(20),max(20), bit$(-1 to 32), menuname$
+CONST MenuDatSize = 187
+DIM menu$(20),min(20),max(20), bitname$(-1 to 32), menuname$
 
-' DIM menudat(MenuDatSize - 1), pt, csr
+DIM menudat(MenuDatSize - 1), pt, csr
 
-' pt = 0: csr = 0
+pt = 0: csr = 0
 
-' bit$(0) = "Background is Fuzzy"
+bitname$(0) = "Background is Fuzzy"
 
 
-' ' min(3) = 0: max(3) = 5: offset(3) = 8             'speed
-' ' FOR i = 0 TO 3
-' '  min(5 + i) = 0: max(5 + i) = 8: offset(5 + i) = 17 + i
-' ' NEXT i
-' ' min(9) = -1: max(9) = 255: offset(9) = 11 'battles
-' ' min(10) = -2: max(10) = general(43): offset(10) = 12 'use button
-' ' min(11) = -2: max(11) = general(43): offset(11) = 13 'menu button
-' ' min(12) = -999: max(12) = 999: offset(12) = 14 'tag
-' ' min(13) = general(43) * -1: max(13) = general(39): offset(13) = 15'mount
-' ' min(14) = general(43) * -1: max(14) = general(39): offset(14) = 16'dismount
-' ' min(15) = 0: max(15) = 99: offset(15) = 21'dismount
+' min(3) = 0: max(3) = 5: offset(3) = 8             'speed
+' FOR i = 0 TO 3
+'  min(5 + i) = 0: max(5 + i) = 8: offset(5 + i) = 17 + i
+' NEXT i
+' min(9) = -1: max(9) = 255: offset(9) = 11 'battles
+' min(10) = -2: max(10) = general(43): offset(10) = 12 'use button
+' min(11) = -2: max(11) = general(43): offset(11) = 13 'menu button
+' min(12) = -999: max(12) = 999: offset(12) = 14 'tag
+' min(13) = general(43) * -1: max(13) = general(39): offset(13) = 15'mount
+' min(14) = general(43) * -1: max(14) = general(39): offset(14) = 16'dismount
+' min(15) = 0: max(15) = 99: offset(15) = 21'dismount
 
-' GOSUB loaddat
-' GOSUB menu
+GOSUB loaddat
+GOSUB menu
 
-' setkeys
-' DO
-'  setwait timing(), 100
-'  setkeys
-'  tog = tog XOR 1
-'  IF keyval(1) > 1 THEN EXIT DO
-'  dummy = usemenu(csr, top, 0, 15, 22)
-'  SELECT CASE csr
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN EXIT DO
+ dummy = usemenu(csr, top, 0, 15, 22)
+ SELECT CASE csr
+  CASE 0
+   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+    EXIT DO
+   END IF
+  CASE 1
+   IF pt = general(genMaxMenu) AND keyval(77) > 1 THEN
+    GOSUB savedat
+    pt = bound(pt + 1, 0, 255)
+    IF needaddset(pt, general(genMaxMenu), "menu") THEN
+     FOR i = 0 TO MenuDatSize - 1
+      menudat(i) = 0
+     NEXT i
+     menuname$ = ""
+     GOSUB menu
+    END IF
+   END IF
+   newptr = pt
+   IF intgrabber(newptr, 0, general(genMaxMenu), 75, 77) THEN
+    GOSUB savedat
+    pt = newptr
+    GOSUB loaddat
+    GOSUB menu
+   END IF
+  CASE 2
+   oldname$ = menuname$
+   strgrabber menuname$, 15
+   IF oldname$ <> menuname$ THEN GOSUB menu
+'   CASE 3, 5 TO 15
+'    IF intgrabber(veh(offset(csr)), min(csr), max(csr), 75, 77) THEN
+'     GOSUB vehmenu
+'    END IF
+  CASE 4
+   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   editbitset menudat(), 13, 32, bitname$()
+   END IF
+ END SELECT
+ standardmenu menu$(), 15, 15, csr, top, 0, 0, dpage, 0
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
+' GOSUB saveveh
+EXIT SUB
+
+menu:
+menu$(0) = "Previous Menu"
+menu$(1) = "Menu" + STR$(pt)
+menu$(2) = "Name: " + vehname$
+
+' IF veh(offset(3)) = 3 THEN tmp$ = " 10" ELSE tmp$ = STR$(veh(8))
+' menu$(3) = "Speed:" + tmp$
+
+' menu$(4) = "Vehicle Bitsets..." '9,10
+
+' menu$(5) = "Override walls: "
+' menu$(6) = "Blocked by: "
+' menu$(7) = "Mount from: "
+' menu$(8) = "Dismount to: "
+' FOR i = 0 TO 3
+'  menu$(5 + i) = menu$(5 + i) + tiletype$(bound(veh(offset(5 + i)), 0, 8))
+' NEXT i
+
+' SELECT CASE veh(offset(9))
+'  CASE -1
+'   tmp$ = "disabled"
+'  CASE 0
+'   tmp$ = "enabled"
+'  CASE ELSE
+'   tmp$ = "formation set" + STR$(veh(offset(9)))
+' END SELECT
+' menu$(9) = "Random Battles: " + tmp$ '11
+
+' FOR i = 0 TO 1
+'  SELECT CASE veh(offset(10 + i))
+'   CASE -2
+'    tmp$ = "disabled"
+'   CASE -1
+'    tmp$ = "menu"
 '   CASE 0
-'    IF keyval(57) > 1 OR keyval(28) > 1 THEN
-'     EXIT DO
-'    END IF
-'   CASE 1
-'    IF pt = general(genMaxMenu) AND keyval(77) > 1 THEN
-'     GOSUB savedat
-'     pt = bound(pt + 1, 0, 255)
-'     IF needaddset(pt, general(genMaxMenu), "menu") THEN
-'      FOR i = 0 TO MenuDatSize - 1
-'       menudat(i) = 0
-'      NEXT i
-'      menuname$ = ""
-'      GOSUB menu
-'     END IF
-'    END IF
-'    newptr = pt
-'    IF intgrabber(newptr, 0, general(genMaxMenu), 75, 77) THEN
-'     GOSUB savedat
-'     pt = newptr
-'     GOSUB loaddat
-'     GOSUB menu
-'    END IF
-'   CASE 2
-'    oldname$ = menuname$
-'    strgrabber menuname$, 15
-'    IF oldname$ <> menuname$ THEN GOSUB menu
-' '   CASE 3, 5 TO 15
-' '    IF intgrabber(veh(offset(csr)), min(csr), max(csr), 75, 77) THEN
-' '     GOSUB vehmenu
-' '    END IF
-'   CASE 4
-'    IF keyval(57) > 1 OR keyval(28) > 1 THEN
-'    bitset menudat(), 13, 32, bit$()
-'    END IF
+'    tmp$ = "dismount"
+'   CASE ELSE
+'    tmp$ = "script " + scriptname$(ABS(veh(offset(10 + i))), "plotscr.lst")
 '  END SELECT
-'  standardmenu menu$(), 15, 15, csr, top, 0, 0, dpage, 0
-'  SWAP vpage, dpage
-'  setvispage vpage
-'  clearpage dpage
-'  dowait
-' LOOP
-' ' GOSUB saveveh
-' EXIT SUB
+'  IF i = 0 THEN menu$(10 + i) = "Use button: " + tmp$'12
+'  IF i = 1 THEN menu$(10 + i) = "Menu button: " + tmp$'13
+' NEXT i
 
-' menu:
-' menu$(0) = "Previous Menu"
-' menu$(1) = "Menu" + STR$(pt)
-' menu$(2) = "Name: " + vehname$
+' SELECT CASE ABS(veh(offset(12)))
+'  CASE 0
+'   tmp$ = " (DISABLED)"
+'  CASE 1
+'   tmp$ = " (RESERVED TAG)"
+'  CASE ELSE
+'   tmp$ = " (" + lmnemonic$(ABS(veh(offset(12)))) + ")"  '14
+' END SELECT
+' menu$(12) = "If riding Tag" + STR$(ABS(veh(offset(12)))) + "=" + onoroff$(veh(offset(12))) + tmp$
 
-' ' IF veh(offset(3)) = 3 THEN tmp$ = " 10" ELSE tmp$ = STR$(veh(8))
-' ' menu$(3) = "Speed:" + tmp$
+' SELECT CASE veh(offset(13))
+'  CASE 0
+'   tmp$ = "[script/textbox]"
+'  CASE IS < 0
+'   tmp$ = "run script " + scriptname$(ABS(veh(offset(13))), "plotscr.lst")
+'  CASE IS > 0
+'   tmp$ = "text box" + STR$(veh(offset(13)))
+' END SELECT
+' menu$(13) = "On Mount: " + tmp$
 
-' ' menu$(4) = "Vehicle Bitsets..." '9,10
+' SELECT CASE veh(offset(14))
+'  CASE 0
+'   tmp$ = "[script/textbox]"
+'  CASE IS < 0
+'   tmp$ = "run script " + scriptname$(ABS(veh(offset(14))), "plotscr.lst")
+'  CASE IS > 0
+'   tmp$ = "text box" + STR$(veh(offset(14)))
+' END SELECT
+' menu$(14) = "On Dismount: " + tmp$
 
-' ' menu$(5) = "Override walls: "
-' ' menu$(6) = "Blocked by: "
-' ' menu$(7) = "Mount from: "
-' ' menu$(8) = "Dismount to: "
-' ' FOR i = 0 TO 3
-' '  menu$(5 + i) = menu$(5 + i) + tiletype$(bound(veh(offset(5 + i)), 0, 8))
-' ' NEXT i
+' menu$(15) = "Elevation:" + STR$(veh(offset(15))) + " pixels"
+RETURN
 
-' ' SELECT CASE veh(offset(9))
-' '  CASE -1
-' '   tmp$ = "disabled"
-' '  CASE 0
-' '   tmp$ = "enabled"
-' '  CASE ELSE
-' '   tmp$ = "formation set" + STR$(veh(offset(9)))
-' ' END SELECT
-' ' menu$(9) = "Random Battles: " + tmp$ '11
+loaddat:
+setpicstuf menudat(), MenuDatSize*2, -1
+loadset "menus.dat" + CHR$(0), pt, 0
+menuname$ = STRING$(bound(menudat(0) AND 255, 0, 15), 0)
+array2str menudat(), 1, menuname$
+RETURN
 
-' ' FOR i = 0 TO 1
-' '  SELECT CASE veh(offset(10 + i))
-' '   CASE -2
-' '    tmp$ = "disabled"
-' '   CASE -1
-' '    tmp$ = "menu"
-' '   CASE 0
-' '    tmp$ = "dismount"
-' '   CASE ELSE
-' '    tmp$ = "script " + scriptname$(ABS(veh(offset(10 + i))), "plotscr.lst")
-' '  END SELECT
-' '  IF i = 0 THEN menu$(10 + i) = "Use button: " + tmp$'12
-' '  IF i = 1 THEN menu$(10 + i) = "Menu button: " + tmp$'13
-' ' NEXT i
+savedat:
+' veh(0) = bound(LEN(vehname$), 0, 5)
+' str2array vehname$, veh(), 1
+' setpicstuf veh(), 80, -1
+' storeset "menus.dat" + CHR$(0), pt, 0
+RETURN
 
-' ' SELECT CASE ABS(veh(offset(12)))
-' '  CASE 0
-' '   tmp$ = " (DISABLED)"
-' '  CASE 1
-' '   tmp$ = " (RESERVED TAG)"
-' '  CASE ELSE
-' '   tmp$ = " (" + lmnemonic$(ABS(veh(offset(12)))) + ")"  '14
-' ' END SELECT
-' ' menu$(12) = "If riding Tag" + STR$(ABS(veh(offset(12)))) + "=" + onoroff$(veh(offset(12))) + tmp$
-
-' ' SELECT CASE veh(offset(13))
-' '  CASE 0
-' '   tmp$ = "[script/textbox]"
-' '  CASE IS < 0
-' '   tmp$ = "run script " + scriptname$(ABS(veh(offset(13))), "plotscr.lst")
-' '  CASE IS > 0
-' '   tmp$ = "text box" + STR$(veh(offset(13)))
-' ' END SELECT
-' ' menu$(13) = "On Mount: " + tmp$
-
-' ' SELECT CASE veh(offset(14))
-' '  CASE 0
-' '   tmp$ = "[script/textbox]"
-' '  CASE IS < 0
-' '   tmp$ = "run script " + scriptname$(ABS(veh(offset(14))), "plotscr.lst")
-' '  CASE IS > 0
-' '   tmp$ = "text box" + STR$(veh(offset(14)))
-' ' END SELECT
-' ' menu$(14) = "On Dismount: " + tmp$
-
-' ' menu$(15) = "Elevation:" + STR$(veh(offset(15))) + " pixels"
-' ' RETURN
-
-' loaddat:
-' setpicstuf menudat(), MenuDatSize*2, -1
-' loadset "menus.dat" + CHR$(0), pt, 0
-' menuname$ = STRING$(bound(menudat(0) AND 255, 0, 15), 0)
-' array2str menudat(), 1, menuname$
-' RETURN
-
-' savedat:
-' ' veh(0) = bound(LEN(vehname$), 0, 5)
-' ' str2array vehname$, veh(), 1
-' ' setpicstuf veh(), 80, -1
-' ' storeset "menus.dat" + CHR$(0), pt, 0
-' RETURN
-
-' END SUB
+END SUB
 
 SUB vehicles
 
@@ -441,8 +441,9 @@ END SUB
 SUB gendata (song$(), master())
 STATIC default$
 DIM m$(18), max(18), bitname$(15), subm$(4), scriptgenof(4)
-IF general(61) <= 0 THEN general(61) = 161
-IF general(62) <= 0 THEN general(62) = 159
+IF general(genPoison) <= 0 THEN general(genPoison) = 161
+IF general(genStun) <= 0 THEN general(genStun) = 159
+IF general(genMute) <= 0 THEN general(genMute) = 163
 last = 17
 m$(0) = "Return to Main Menu"
 m$(1) = "Preference Bitsets..."
@@ -460,8 +461,8 @@ max(6) = 100
 max(7) = 100
 max(8) = 0
 max(11) = 32000
-max(16) = 255
-max(17) = 255
+max(16) = 255 'poison
+max(17) = 255 'stun
 GOSUB loadpass
 GOSUB genstr
 setkeys
@@ -498,14 +499,21 @@ DO
  IF csr = 16 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
-  general(61) = ASC(d$)
+  general(genPoison) = ASC(d$)
    GOSUB genstr
   END IF
  END IF
  IF csr = 17 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
-  general(62) = ASC(d$)
+  general(genStun) = ASC(d$)
+   GOSUB genstr
+  END IF
+ END IF
+ IF csr = 18 THEN
+  d$ = charpicker$
+  IF d$ <> "" THEN
+  general(genMute) = ASC(d$)
    GOSUB genstr
   END IF
  END IF
@@ -529,10 +537,16 @@ DO
   GOSUB genstr
  END IF
  IF csr = 16 THEN
-  IF intgrabber(general(61), 32, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(general(genPoison), 32, max(csr), 75, 77) THEN GOSUB genstr
  END IF
  IF csr = 17 THEN
-  IF intgrabber(general(62), 32, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(general(genStun), 32, max(csr), 75, 77) THEN GOSUB genstr
+ END IF
+ IF csr = 18 THEN
+  IF intgrabber(general(genMute), 32, max(csr), 75, 77) THEN GOSUB genstr
+ END IF
+ IF csr = 19 THEN
+  IF intgrabber(general(genDamageCap), 0, max(csr), 75, 77) THEN GOSUB genstr
  END IF
 
  standardmenu m$(), last, 22, csr, 0, 0, 0, dpage, 0

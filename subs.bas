@@ -6,6 +6,8 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
+DECLARE FUNCTION str2lng& (stri$)
+DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
@@ -19,7 +21,7 @@ DECLARE FUNCTION readitemname$ (index%)
 DECLARE SUB clearallpages ()
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
-DECLARE SUB updateflexmenu (nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
+DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
 DECLARE SUB setactivemenu (workmenu%(), newmenu%(), pt%, top%, size%)
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE SUB testflexmenu ()
@@ -167,7 +169,7 @@ FOR i = 0 TO 7
  ebit$(24 + i) = "Is " + names$(9 + i)
 NEXT i
 FOR i = 32 TO 53
- ebit$(i) = "(placeholder" + STR$(i) + ")"
+ ebit$(i) = "" 'preferable to be blank, so we can hide it
 NEXT i
 ebit$(54) = "Harmed by Cure"
 ebit$(55) = "MP Idiot"
@@ -558,7 +560,7 @@ DO
  
  dummy = usemenu(pt, top, 0, size, 22)
  
- IF workmenu(pt) = EnMenuChooseAct THEN
+ IF workmenu(pt) = EnMenuChooseAct OR keyval(56) > 0 THEN
   lastindex = recindex
   IF keyval(77) > 1 AND recindex = general(36) AND recindex < 32767 THEN
    '--attempt to add a new set
@@ -615,13 +617,20 @@ DO
   END SELECT
  END IF
  
- IF editflexmenu(workmenu(pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
-  GOSUB EnUpdateMenu
+ IF keyval(56) = 0 THEN 'not holding ALT
+  IF editflexmenu(workmenu(pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
+   GOSUB EnUpdateMenu
+  END IF
  END IF
  
  GOSUB EnPreviewSub
  
  standardmenu dispmenu$(), size, 22, pt, top, 0, 0, dpage, 0
+ IF keyval(56) > 0 THEN 'holding ALT
+  tmp$ = readbadbinstring$(recbuf(), EnDatName, 15, 0) + STR$(recindex)
+  textcolor 15, 1
+  printstr tmp$, 320 - LEN(tmp$) * 8, 0, dpage
+ END IF
  
  SWAP vpage, dpage
  setvispage vpage
@@ -649,7 +658,7 @@ max(EnLimPic) = general(27 + bound(recbuf(EnDatPicSize), 0, 2))
 '--re-enforce bounds, as they might have just changed
 enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
 
-updateflexmenu dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
+updateflexmenu pt, dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
 
 '--load the picture and palette
 setpicstuf buffer(), (previewsize(recbuf(EnDatPicSize)) ^ 2) / 2, 2
@@ -959,14 +968,16 @@ IF isfile(workingdir$ + "\binsize.bin" + CHR$(0)) THEN
  fbdim recordsize
  fh = FREEFILE
  OPEN workingdir$ + "\binsize.bin" FOR BINARY AS #fh
- GET #fh, 1 + id * 2, recordsize
+ IF LOF(fh) < 2 * id + 2 THEN
+  getbinsize = 0
+ ELSE
+  GET #fh, 1 + id * 2, recordsize
+  getbinsize = recordsize
+ END IF
  CLOSE #fh
- getbinsize = recordsize
 ELSE
  getbinsize = 0
 END IF
-
-'0  ATTACK.BIN
 
 END FUNCTION
 
@@ -1399,23 +1410,6 @@ RETURN
 ' NEXT o
 ' RETURN
 
-'0-318,636 bytes
-'0       name length
-'1-16    name content
-'17      pic
-'18      pal
-'19      walkabout pic
-'20      walkabout pal
-'21      base level
-'22      default weapon
-'23-46   stats
-'47-238  spell lists
-'240-242 bitsets
-'243-286 spell list names
-'288-291 spell menu types
-'292-295 hero tags
-'296     max rename length
-
 END SUB
 
 SUB herotags (a())
@@ -1456,10 +1450,6 @@ DO
 LOOP
 EXIT SUB
 
-'292     have hero tag
-'293     is alive tag
-'294     is leader tag
-'295     is in active party tag
 END SUB
 
 FUNCTION intgrabber (n, min, max, less, more)
@@ -1481,7 +1471,7 @@ ELSE
  IF min < 0 THEN
   IF keyval(12) > 1 OR keyval(13) > 1 OR keyval(74) > 1 OR keyval(78) > 1 THEN s = s * -1
  END IF
- capper& = INT(VAL(n$))
+ capper& = str2lng&(n$)
  IF capper& > 32767 THEN capper& = 32767
  IF capper& < -32767 THEN capper& = -32767
  n = capper&
@@ -2071,14 +2061,14 @@ flusharray array(), 99, 0
 setpicstuf array(), 80, -1
 loadset game$ + ".dt6" + CHR$(0), index, 0
 
-'--load the rest from the attack.bin lump (120 bytes)
+'--load the rest from the attack.bin lump
 size = getbinsize(0)
 
 IF size THEN
  IF isfile(workingdir$ + "\attack.bin" + CHR$(0)) THEN
   setpicstuf buffer(), size, -1
   loadset workingdir$ + "\attack.bin" + CHR$(0), index, 0
-  FOR i = 0 TO 59
+  FOR i = 0 TO size / 2 - 1
    array(40 + i) = buffer(i)
   NEXT i
  END IF
@@ -2161,6 +2151,75 @@ FUNCTION small (n1, n2)
 small = n1
 IF n2 < n1 THEN small = n2
 END FUNCTION
+
+SUB stredit (s$, maxl)
+STATIC clip$
+
+'--copy support
+IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN clip$ = s$
+
+'--paste support
+IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN s$ = LEFT$(clip$, maxl)
+
+'--insert cursor movement
+IF keyval(29) = 0 THEN 'not CTRL
+ IF keyval(75) > 1 THEN insert = large(0, insert - 1)
+ IF keyval(77) > 1 THEN insert = small(LEN(s$), insert + 1)
+ELSE 'CTRL
+ IF keyval(75) > 1 THEN insert = 0
+ IF keyval(77) > 1 THEN insert = LEN(s$)
+END IF
+
+IF insert < 0 THEN insert = LEN(s$)
+insert = bound(insert, 0, LEN(s$))
+
+pre$ = LEFT$(s$, insert)
+post$ = RIGHT$(s$, LEN(s$) - insert)
+
+'--BACKSPACE support
+IF keyval(14) > 1 AND LEN(pre$) > 0 THEN
+ pre$ = LEFT$(pre$, LEN(pre$) - 1)
+ insert = large(0, insert - 1)
+END IF
+
+'--DEL support
+IF keyval(83) > 1 AND LEN(post$) > 0 THEN post$ = RIGHT$(post$, LEN(post$) - 1)
+
+'--SHIFT support
+shift = 0
+IF keyval(54) > 0 OR keyval(42) > 0 THEN shift = 1
+
+'--ALT support
+IF keyval(56) THEN shift = shift + 2
+
+'--adding chars
+IF LEN(pre$) + LEN(post$) < maxl THEN
+ L = LEN(pre$)
+ IF keyval(57) > 1 THEN
+  IF keyval(29) = 0 THEN
+   '--SPACE support
+   pre$ = pre$ + " "
+  ELSE
+   '--charlist support
+   pre$ = pre$ + charpicker$
+  END IF
+ ELSE
+  IF keyval(29) = 0 THEN
+   '--all other keys
+   FOR i = 2 TO 53
+    IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
+     pre$ = pre$ + CHR$(keyv(i, shift))
+     EXIT FOR
+    END IF
+   NEXT i
+  END IF
+ END IF
+ IF LEN(pre$) > L THEN insert = insert + 1
+END IF
+
+s$ = pre$ + post$
+
+END SUB
 
 SUB strgrabber (s$, maxl)
 STATIC clip$

@@ -6,6 +6,9 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
+DECLARE SUB stredit (s$, maxl%)
+DECLARE FUNCTION str2lng& (stri$)
+DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION filenum$ (n%)
@@ -584,8 +587,7 @@ IF w = 1 THEN
  PRINT "fatal error:"
  PRINT e$
  
- 'KILL workingdir$ + "\*.*"
- 'borrowed this code from game.bas cos wildcard didn't work
+ 'borrowed this code from game.bas cos wildcard didn't work in FB
  findfiles workingdir$ + "\*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
@@ -826,11 +828,11 @@ DO
  LINE INPUT #fptr, names$
  LINE INPUT #fptr, num$
  LINE INPUT #fptr, argc$
- FOR i = 1 TO VAL(argc$)
+ FOR i = 1 TO str2int(argc$)
   LINE INPUT #fptr, dummy$
  NEXT i
  names$ = LEFT$(names$, 36)
- buffer(0) = VAL(num$)
+ buffer(0) = str2int(num$)
  buffer(1) = LEN(names$)
  str2array names$, buffer(), 4
  storeset workingdir$ + "\plotscr.lst" + CHR$(0), general(40), 0
@@ -1401,8 +1403,8 @@ n = 15: GOSUB txttag
 menu$(16) = " instantly use door" + STR$(cond(16))
 n = 17: GOSUB txttag
 IF cond(18) = 0 THEN menu$(18) = " do not add/remove items"
-IF cond(18) > 0 THEN menu$(18) = " add one " + item$
-IF cond(18) < 0 THEN menu$(18) = " remove one " + item$
+IF cond(18) > 0 THEN menu$(18) = " add one" + item$
+IF cond(18) < 0 THEN menu$(18) = " remove one" + item$
 RETURN
 
 txttag:
@@ -1478,23 +1480,27 @@ RETURN
 
 picktext:
 y = 0
+insert = -1
 setkeys
 DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETURN
- 'IF keyval(72) > 1 AND y > 0 THEN y = y - 1
  IF keyval(28) > 1 AND y < 7 THEN y = y + 1
- dummy = usemenu(y, 0, 0, 7, 24)
+ IF usemenu(y, 0, 0, 7, 24) THEN insert = -1
  IF y <= 7 AND y >= 0 THEN
-  strgrabber x$(y), 38
+  stredit x$(y), 38
  END IF
  rectangle 4, 4, 312, 88, 15, dpage
  rectangle 5, 5, 310, 86, 243, dpage
  FOR i = 0 TO 7
   textcolor 7, 0
-  IF y = i THEN textcolor 10 + (tog * 5), 1 + tog
+  IF y = i THEN
+   textcolor 15, 2 + tog
+   printstr " ", 8 + insert * 8, 8 + i * 10, dpage
+   textcolor 15 - tog, 0
+  END IF
   printstr x$(i), 8, 8 + i * 10, dpage
  NEXT i
  textcolor 10, 0
@@ -1711,7 +1717,7 @@ IF isfile(f$ + CHR$(0)) THEN
   GET #handle, 1, a$
   CLOSE #handle
   IF a$ = CHR$(253) THEN
-   xBLOAD f$, array(0), "Load failed" 'not sure about this
+   xBLOAD f$, array(), "Load failed" 'not sure about this
   ELSE
    textfatalerror e$ + "(unbloadable)"
   END IF

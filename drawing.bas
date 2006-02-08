@@ -60,6 +60,7 @@ DECLARE SUB maptile (master%(), font())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
+DECLARE SUB safekill (f$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -1377,7 +1378,6 @@ tool$(3) = "Fill": icon$(3) = "F":     shortk(3) = 33: cursor(3) = 3
 tool$(4) = "Oval": icon$(4) = "O":     shortk(4) = 24: cursor(4) = 2
 tool$(5) = "Air ": icon$(5) = "A":     shortk(5) = 30: cursor(5) = 3
 
-'DEF SEG = VARSEG(nulpal(0))
 defseg(nulpal(0))
 FOR i = 0 TO 15
  POKE i, i
@@ -1490,7 +1490,6 @@ DO
  clearpage dpage
  dowait
 LOOP
-
 offset = changepal(offset, offset, workpal(), 0)
 GOSUB savealluc
 clearpage 0
@@ -1617,8 +1616,7 @@ IF keyval(56) > 0 AND keyval(47) > 1 THEN
  END IF
 END IF
 IF keyval(56) > 0 AND col > 0 THEN
-' DEF SEG = VARSEG(workpal(0))
- defseg(workpal(0))  
+ defseg(workpal(0))
  IF keyval(72) > 0 AND PEEK(col) > 15 THEN POKE col, PEEK(col) - 16
  IF keyval(80) > 0 AND PEEK(col) < 240 THEN POKE col, PEEK(col) + 16
  IF keyval(75) > 0 AND PEEK(col) > 0 THEN POKE col, PEEK(col) - 1
@@ -1840,7 +1838,6 @@ NEXT i
 '--swap the transparent palette entry to 0
 IF pcsr = 0 THEN
  getbmppal srcbmp$ + CHR$(0), master(), workpal(), 0
-' DEF SEG = VARSEG(workpal(0))
  defseg(workpal(0))
  'swap black with the transparent color
  POKE temp, PEEK(0)
@@ -1918,7 +1915,6 @@ getsprite placer(), 0, 239, 119, xw, yw, dpage
 RETURN
 
 spritescreen:
-'DEF SEG = VARSEG(workpal(0))
 defseg(workpal(0))
 rectangle 247 + ((PEEK(col) - (INT(PEEK(col) / 16) * 16)) * 4), 0 + (INT(PEEK(col) / 16) * 6), 5, 7, 15, dpage
 FOR i = 0 TO 15
@@ -1934,12 +1930,11 @@ textcolor 15, 0
 printstr LEFT$(" Pal", 4 - (LEN(STR$(offset)) - 3)) + STR$(offset), 248, 100, dpage
 rectangle 247 + (col * 4), 110, 5, 7, 15, dpage
 FOR i = 0 TO 15
-  rectangle 248 + (i * 4), 111, 3, 5, PEEK(i), dpage
+ rectangle 248 + (i * 4), 111, 3, 5, PEEK(i), dpage
 NEXT
 IF zoom = 4 THEN hugesprite placer(), workpal(), 0, 4, 1, dpage
 IF zoom = 2 THEN bigsprite placer(), workpal(), 0, 4, 1, dpage
 IF box = 1 THEN
- 'DEF SEG = VARSEG(workpal(0))
  defseg(workpal(0))
  rectangle 4 + small(x, bx) * zoom, 1 + small(y, by) * zoom, (ABS(x - bx) + 1) * zoom, (ABS(y - by) + 1) * zoom, PEEK(col), dpage
  rectangle 4 + bx * zoom, 1 + by * zoom, zoom, zoom, tog * 15, dpage
@@ -1947,25 +1942,21 @@ END IF
 rectangle 4 + (x * zoom), 1 + (y * zoom), zoom, zoom, tog * 15, dpage
 drawsprite placer(), 0, workpal(), 0, 239, 119, dpage
 IF box = 1 THEN
- 'DEF SEG = VARSEG(workpal(0))
  defseg(workpal(0))
  rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, PEEK(col), dpage
  rectangle 239 + bx, 119 + by, 1, 1, tog * 15, dpage
 END IF
 IF drl = 1 THEN
-' DEF SEG = VARSEG(workpal(0))
  defseg(workpal(0))
  drawline 239 + x, 119 + y, 239 + bx, 119 + by, PEEK(col), dpage
  drawline 5 + (x * zoom), 2 + (y * zoom), 5 + (bx * zoom), 2 + (by * zoom), PEEK(col), dpage
 END IF
 IF ovalstep > 0 THEN
-' DEF SEG = VARSEG(workpal(0))
  defseg(workpal(0))
  ellipse 239 + bx, 119 + by, radius, PEEK(col), dpage, squishx, squishy
  ellipse 5 + (bx * zoom), 2 + (by * zoom), radius * zoom, PEEK(col), dpage, squishx, squishy
 END IF
 IF tool = 5 THEN
-' DEF SEG = VARSEG(workpal(0))
  defseg(workpal(0))
  ellipse 239 + x, 119 + y, airsize / 2, PEEK(col), dpage, 0, 0
  ellipse 5 + (x * zoom), 2 + (y * zoom), (airsize / 2) * zoom, PEEK(col), dpage, 0, 0
