@@ -67,6 +67,7 @@ DECLARE SUB snapshot ()
 DECLARE SUB fadein (force%)
 DECLARE SUB checkTagCond(t,check,tag,tagand) 'in bmod.bas
 DECLARE FUNCTION getbinsize% (id%)
+DECLARE SUB readattackdata (array%(), index%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -206,7 +207,7 @@ DO
   LOOP
   GOSUB curinfo
  END IF '---------END TRY BUY THING--------
- 
+
  centerbox 80, 94, 150, 168, 1, dpage
  centerbox 240, 94, 150, 168, 1, dpage
  '-----RIGHT PANEL------------------------------------------
@@ -520,7 +521,7 @@ DO
    END IF
   END IF
  END IF
- 
+
  '--display
  edgeprint names$(pt), 84 - LEN(names$(pt)) * 4, 12, 15, dpage
  FOR i = 0 TO 11
@@ -1084,7 +1085,7 @@ END SUB
 
 SUB oobcure (w, t, atk, spred, stat())
 DIM st(13, 1)
-
+dim h, h&
 '--average stats for item-triggered spells
 IF w = -1 THEN
  j = 0
@@ -1109,9 +1110,12 @@ ELSE
 END IF
 
 'load attack data
-setpicstuf buffer(), 80, -1
-loadset game$ + ".dt6" + CHR$(0), atk, 0
+'setpicstuf buffer(), 80, -1
+'loadset game$ + ".dt6" + CHR$(0), atk, 0
+readattackdata buffer(), atk
+
 targstat = buffer(18)
+
 
 'defence base
 a = st(2, 0): d = st(4, 0)
@@ -1134,24 +1138,24 @@ IF readbit(buffer(), 20, 57) = 1 THEN
 END IF
 
 'calc harm
-h = (a * am!) - (d * dm!)
+h& = (a * am!) - (d * dm!)
 
 'no elemental support
 
 'extra damage
-h = h + (h / 100) * buffer(11)
+h& = h& + (h& / 100) * buffer(11)
 
 'randomize
-IF readbit(buffer(), 20, 61) = 0 THEN h = range(h, 20)
+IF readbit(buffer(), 20, 61) = 0 THEN h& = rangelong(h&, 20)
 
 'spread damage
-IF readbit(buffer(), 20, 1) = 1 THEN h = h / (spred + 1)
+IF readbit(buffer(), 20, 1) = 1 THEN h& = h& / (spred + 1)
 
 'cap out
-h = large(h, 1 - readbit(buffer(), 20, 62))
+IF NOT readbit(buffer(), 20, 62) AND h& <= 0 THEN h& = 1
 
 'cure bit
-IF readbit(buffer(), 20, 0) = 1 THEN h = ABS(h) * -1
+IF readbit(buffer(), 20, 0) = 1 THEN h& = ABS(h&) * -1
 
 'backcompat MP-targstat
 IF readbit(buffer(), 20, 60) THEN
@@ -1159,17 +1163,19 @@ IF readbit(buffer(), 20, 60) THEN
 END IF
 
 SELECT CASE buffer(5)
- CASE 5'% of max
-  stat(t, 0, targstat) = stat(t, 1, targstat) + (stat(t, 1, targstat) / 100 * buffer(11))
- CASE 6'% of cur
-  stat(t, 0, targstat) = stat(t, 0, targstat) + (stat(t, 0, targstat) / 100 * buffer(11))
- CASE ELSE'normal
-  stat(t, 0, targstat) = stat(t, 0, targstat) - h
-  IF readbit(buffer(), 20, 2) AND w >= 0 THEN
-   'drain
-   stat(w, 0, targstat) = stat(w, 0, targstat) + h
-  END IF
-END SELECT
+  CASE 5'% of max
+   chp& = stat(t, 0, targstat)
+   mhp& = stat(t, 1, targstat)
+   h& = chp& - (mhp& + (buffer(11) * mhp& / 100))
+  CASE 6'% of cur
+   h& = stat(t, 0, targstat) - (stat(t, 0, targstat) + (buffer(11) * stat(t, 0, targstat) / 100))
+ END SELECT
+
+IF h& > 32767 THEN h& = 32767
+IF h& < -32768 THEN h& = -32768
+h = h&
+
+stat(t, 0, targstat) = stat(t, 0, targstat) - h
 
 'bounds
 stat(t, 0, targstat) = large(stat(t, 0, targstat), 0)
@@ -1770,7 +1776,7 @@ DO
    END IF
   NEXT i
  END IF
- 
+
  SWAP vpage, dpage
  setvispage vpage
  copypage 3, dpage
@@ -1834,22 +1840,22 @@ FOR o = 0 TO 5
   menu$(last) = ""
   mtype(last) = mtype(o)
   spid(last) = spid(o)
-  
+
   '--load herodata
   setpicstuf buffer(), 636, -1
   loadset game$ + ".dt0" + CHR$(0), hero(pt) - 1, 0
-  
+
   '--get menu index
   mi(last) = (bmenu(pt, o) + 1) * -1
-  
+
   '--read menu name
   menu$(last) = readbadbinstring$(buffer(), 243 + mi(last) * 11, 10, 0)
-  
+
   '--old crappy code for reading menu name
   'FOR j = 244 + temp * 11 TO 243 + temp * 11 + buffer(243 + temp * 11)
   ' menu$(last) = menu$(last) + CHR$(buffer(j))
   'NEXT j
-  
+
   '--if non-null...
   IF menu$(last) <> "" THEN
    '--right-pad the name
@@ -2023,7 +2029,7 @@ DO
  IF carray(3) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: GOSUB nextstat
  IF carray(0) > 1 THEN top = large(top - 1, 0)
  IF carray(1) > 1 THEN top = small(top + 1, large(0, lastinfo - 11))
- 
+
  SELECT CASE mode
   CASE 0
    centerbox 84, 120, 140, 120, 4, dpage
@@ -2031,12 +2037,12 @@ DO
   CASE 1, 2
    centerbox 160, 120, 292, 120, 4, dpage
  END SELECT
- 
+
  edgeprint names$(pt), 160 - LEN(names$(pt)) * 4, 20, 15, dpage
  edgeprint sname$(34) + STR$(stat(pt, 0, 12)), 160 - LEN(sname$(34) + STR$(stat(pt, 0, 12))) * 4, 30, 15, dpage
  temp$ = LTRIM$(STR$(exlev&(pt, 1) - exlev&(pt, 0))) + " " + sname$(33) + " " + readglobalstring$(47, "for next", 10) + " " + sname$(34)
  edgeprint temp$, 160 - LEN(temp$) * 4, 40, 15, dpage
- 
+
  SELECT CASE mode
   CASE 0
    '--show stats
@@ -2044,12 +2050,12 @@ DO
     edgeprint sname$(sno(i)), 20, 62 + i * 10, 15, dpage
     edgeprint STR$(stat(pt, 0, i + 2)), 148 - LEN(STR$(stat(pt, 0, i + 2))) * 8, 62 + i * 10, 15, dpage
    NEXT i
-   
+
    'current/max HP
    edgeprint sname$(0), 236 - LEN(sname$(0)) * 4, 65, 15, dpage
    edgeprint RIGHT$(STR$(stat(pt, 0, 0)), LEN(STR$(stat(pt, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(pt, 1, 0)), LEN(STR$(stat(pt, 1, 0))) - 1), 236 - LEN(RIGHT$(STR$(stat(pt, 0, 0)), LEN(STR$(stat(pt, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(pt, 0, 0)),  _
 LEN(STR$(stat(pt, 0, 0))) - 1)) * 4, 75, 15, dpage
-   
+
    '--MP and level MP
    FOR i = 0 TO 5
     IF mtype(i) = 0 THEN
@@ -2073,16 +2079,16 @@ LEN(STR$(stat(pt, 0, 0))) - 1)) * 4, 75, 15, dpage
      edgeprint temp$, 236 - LEN(temp$) * 4, 145, 15, dpage
     END IF
    NEXT i
-   
+
    '--gold
    edgeprint LTRIM$(STR$(gold&)) + " " + sname$(32), 236 - LEN(LTRIM$(STR$(gold&)) + " " + sname$(32)) * 4, 167, 14, dpage
   CASE 1
-   
+
    '--show elementals
    FOR i = 0 TO 10
     IF top + i <= 25 THEN edgeprint info$(top + i), 20, 62 + i * 10, 15, dpage
    NEXT i
-   
+
   CASE 2
    '--tigger rename
    IF readbit(thishbits(), 0, 25) THEN
@@ -2090,9 +2096,9 @@ LEN(STR$(stat(pt, 0, 0))) - 1)) * 4, 75, 15, dpage
     renamehero pt
     mode = 0
    END IF
-   
+
  END SELECT
- 
+
  SWAP vpage, dpage
  setvispage vpage
  copypage 3, dpage

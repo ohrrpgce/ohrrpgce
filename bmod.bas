@@ -163,7 +163,7 @@ DO
  playtimer
  control
  flash = loopvar(flash, 0, 14, 1)
- 
+
  '--background animation hack
  IF a(34) > 0 THEN
   bgspeed = loopvar(bgspeed, 0, a(35), 1)
@@ -339,20 +339,20 @@ END IF
 
 'if a valid ai set is available, use it
 IF countai(ai, them, es()) > 0 THEN
- 
+
  'pick a random attack
  lim = 0
  DO
   godo(them) = es(them - 4, 92 + (ai * 5) + INT(RND * 5))
  LOOP UNTIL godo(them) > 0
- 
+
  'load the data for this attack
  setpicstuf atktemp(), 80, -1
  loadset game$ + ".dt6" + CHR$(0), godo(them) - 1, 0
- 
+
  'get the delay to wait for this attack
  delay(them) = atktemp(16)
- 
+
  IF atktemp(4) = 1 OR (atktemp(4) = 2 AND INT(RND * 100) < 33) THEN
   'spread attack
   eaispread them, atktemp(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
@@ -1030,7 +1030,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
 	 checkTagCond atk(60), 4, atk(59), atk(61)
 	 checkTagCond atk(63), 4, atk(62), atk(64)
 	END IF
-	
+
     IF trytheft(who, targ, atk(), es()) THEN
      GOSUB checkitemusability
     END IF
@@ -1411,7 +1411,7 @@ IF carray(4) > 1 THEN
   flusharray carray(), 7, 0
   RETURN
  END IF
- 
+
  '--can-I-use-it? checking
  IF spel(sptr) > -1 THEN
   '--list-entry is non-empty
@@ -1545,57 +1545,57 @@ noifdead = 0
 ltarg(you) = 0
 
 SELECT CASE buffer(3)
- 
+
  CASE 0 'enemy
   FOR i = 4 TO 11: tmask(i) = v(i): NEXT i
-  
+
  CASE 1 'ally
   FOR i = 0 TO 3: tmask(i) = v(i): NEXT i
-  
+
  CASE 2 'self
   tmask(you) = 1
-  
+
  CASE 3 'all
   FOR i = 0 TO 11: tmask(i) = v(i): NEXT i: tptr = 4
-  
+
  CASE 4 'ally-including-dead
   noifdead = 1
   FOR i = 0 TO 3
    IF hero(i) > 0 THEN tmask(i) = 1
   NEXT i
-  
+
  CASE 5 'ally-not-self
   FOR i = 0 TO 3
    tmask(i) = v(i)
   NEXT i
   tmask(you) = 0
-  
+
  CASE 6 'revenge-one
   IF revenge(you) >= 0 THEN
    tmask(revenge(you)) = v(revenge(you))
   END IF
-  
+
  CASE 7 'revenge-all
   FOR i = 0 TO 11
    tmask(i) = (readbit(revengemask(), you, i) AND v(i))
   NEXT i
-  
+
  CASE 8 'previous
   FOR i = 0 TO 11
    tmask(i) = (readbit(targmem(), you, i) AND v(i))
   NEXT i
-  
+
  CASE 9 'stored
   FOR i = 0 TO 11
    tmask(i) = (readbit(targmem(), you + 12, i) AND v(i))
   NEXT i
-  
+
  CASE 10 'dead-ally (hero only)
   noifdead = 1
   FOR i = 0 TO 3
    IF hero(i) > 0 AND stat(i, 0, 0) = 0 THEN tmask(i) = 1
   NEXT i
-  
+
 END SELECT
 
 'enforce attack's disabled target slots
@@ -1750,10 +1750,10 @@ IF away = 1 THEN RETURN
 IF (mset > 0 AND readbit(gen(), genBits, 0)) OR (mset >= 0 AND you >= 0 AND readbit(gen(), genBits, 13)) THEN RETURN
 
 FOR i = 0 TO 11
- 
+
  'delays for attacks already selected
  IF you <> i THEN delay(i) = large(delay(i) - 1, 0)
- 
+
  '--poison/regen
  FOR poisreg = 0 TO 1
   dif = stat(i, 1, 12 + poisreg) - stat(i, 0, 12 + poisreg)
@@ -1774,14 +1774,14 @@ FOR i = 0 TO 11
    END IF
   END IF
  NEXT poisreg
- 
+
  '--if not doing anything, not dying, not ready, and not stunned
  IF godo(i) = 0 AND die(i) = 0 AND ready(i) = 0 AND stat(i, 0, 14) = stat(i, 1, 14) THEN
   '--increment ctr by speed
   ctr(i) = small(1000, ctr(i) + stat(i, 0, 8))
   IF ctr(i) = 1000 AND wf = 0 THEN ready(i) = 1
  END IF
- 
+
 NEXT i
 
 '--decrement stun and mute
@@ -2216,11 +2216,9 @@ IF harm < 0 THEN
 ELSE
  harm$(targ) = LTRIM$(STR$(harm))
 END IF
-IF readbit(gen(), genBits, 15) = 1 THEN
- harm = small(harm, 9999)
-ELSE
- harm = small(harm, 32767)
-END IF
+
+if gen(genDamageCap) > 0 THEN harm = small(harm, gen(genDamageCap))
+
 stat(targ, 0, 0) = bound(stat(targ, 0, 0) - harm, 0, stat(targ, 1, 0))
 END SUB
 
