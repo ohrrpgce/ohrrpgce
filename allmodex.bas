@@ -2338,10 +2338,8 @@ SUB loadbmp (f$, BYVAL x, BYVAL y, buf(), BYVAL p)
 		exit sub
 	end if
 	
-	'skip palette
-	for i = 0 to 15
-		get #bf, , col
-	next
+	'use header offset to get to data
+	seek #bf, header.bfOffBits + 1
 	
 	sbase = spage(p) + (y * 320) + x
 
