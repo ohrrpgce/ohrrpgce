@@ -204,7 +204,7 @@ DO:
     IF pt = 7 THEN shopdata
     IF pt = 8 THEN formation song$()
     IF pt = 9 THEN textage song$()
-    if pt = 10 then editmenus
+    'if pt = 10 then editmenus
     IF pt = 11 THEN vehicles
     IF pt = 12 THEN tagnames
     IF pt = 13 THEN importsong song$(), master()
