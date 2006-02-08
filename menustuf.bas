@@ -59,6 +59,7 @@ DECLARE SUB addhero (who%, slot%, stat%())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
+DECLARE FUNCTION rangel& (n&, r%)
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
@@ -1146,7 +1147,7 @@ h2& = (a * am!) - (d * dm!)
 h2& = h2& + (h2& / 100) * buffer(11)
 
 'randomize
-IF readbit(buffer(), 20, 61) = 0 THEN h2& = rangelong(h2&, 20)
+IF readbit(buffer(), 20, 61) = 0 THEN h2& = rangel(h2&, 20)
 
 'spread damage
 IF readbit(buffer(), 20, 1) = 1 THEN h2& = h2& / (spred + 1)
