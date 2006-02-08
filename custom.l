@@ -9,7 +9,7 @@ menus.obj +
 compat.obj +
 nocom.obj +
 ,
-custom.exe,
+customqb.exe,
 ,
 allmodex.lib +
 bcom45.lib +
