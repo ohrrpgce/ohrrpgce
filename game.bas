@@ -6,6 +6,8 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
+DECLARE SUB verquit ()
+DECLARE SUB keyboardsetup ()
 DECLARE SUB cathero ()
 DECLARE SUB setScriptArg (arg%, value%)
 DECLARE SUB showplotstrings ()
@@ -259,17 +261,7 @@ setfont font()
 'DEBUG debug "switch on keyhandler"
 keyhandleron
 
-RESTORE keyconst
-keyconst:
-FOR o = 0 TO 1
- FOR i = 2 TO 53
-  READ temp$
-  IF temp$ <> "" THEN keyv(i, o) = ASC(temp$) ELSE keyv(i, o) = 0
- NEXT i
-NEXT o
-keyv(40, 1) = 34
-DATA "1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/"
-DATA "!","@","#","$","%","^","&","*","(",")","_","+","","","Q","W","E","R","T","Y","U","I","O","P","{","}","","","A","S","D","F","G","H","J","K","L",":"," ","~","","|","Z","X","C","V","B","N","M","<",">","?"
+keyboardsetup
 
 textcolor 15, 0
 FOR i = 0 TO 31
@@ -777,7 +769,7 @@ DO
   IF mi(pt) = 8 THEN
    heroswap readbit(gen(), 101, 5), stat()
   END IF
-  IF mi(pt) = 0 THEN GOSUB verquit
+  IF mi(pt) = 0 THEN verquit
   '---After all sub-menus are done, re-evaluate the hero/item tags
   '---that way if you revive a hero, kill a hero swap out... whatever
   evalherotag stat()
@@ -799,43 +791,6 @@ setkeys
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
 fatal = checkfordeath(stat())
 RETURN
-
-verquit:
-copypage dpage, vpage
-quitprompt$ = readglobalstring$(55, "Quit Playing?", 20)
-quityes$ = readglobalstring$(57, "Yes", 10)
-quitno$ = readglobalstring$(58, "No", 10)
-dd = 2
-ptr2 = 0
-setkeys
-DO
- setwait timing(), speedcontrol
- setkeys
- tog = tog XOR 1
- playtimer
- control
- wtog(0) = loopvar(wtog(0), 0, 3, 1)
- IF carray(5) > 1 THEN abortg = 0: setkeys: FOR i = 0 TO 7: carray(i) = 0: NEXT i: RETURN
- IF (carray(4) > 1 AND ABS(ptr2) > 20) OR ABS(ptr2) > 50 THEN
-  IF ptr2 < 0 THEN abortg = 1: fadeout 0, 0, 0, 0
-  setkeys
-  FOR i = 0 TO 7: carray(i) = 0: NEXT i
-  RETURN
- END IF
- IF carray(2) > 0 THEN ptr2 = ptr2 - 5: dd = 3
- IF carray(3) > 0 THEN ptr2 = ptr2 + 5: dd = 1
- centerbox 160, 95, 200, 42, 15, dpage
- loadsprite buffer(), 0, 200 * ((dd * 2) + INT(wtog(0) / 2)), 0 * 5, 20, 20, 2
- drawsprite buffer(), 0, pal16(), 0, 150 + (ptr2), 90, dpage
- edgeprint quitprompt$, xstring(quitprompt$, 160), 80, 15, dpage
- col = 7: IF ptr2 < -20 THEN col = 10 + tog * 5
- edgeprint quityes$, 70, 96, col, dpage
- col = 7: IF ptr2 > 20 THEN col = 10 + tog * 5
- edgeprint quitno$, 256 - LEN(quitno$) * 8, 96, col, dpage
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
 
 usething:
 IF auto = 0 THEN
