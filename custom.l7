@@ -8,7 +8,7 @@ flexmenu.obj +
 menus.obj +
 compat.obj +
 ,
-custom.exe,
+customqb.exe,
 ,
 allmodex.lib +
 
