@@ -5,6 +5,7 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+DECLARE SUB quitcleanup ()
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
@@ -495,5 +496,83 @@ SUB checklumpmod
   unlumpfile sourcerpg$ + CHR$(0), "*.DT1", workingdir$ + "\", buffer()
   setbit lumpmod(),0,0,0
  END IF
+
+END SUB
+
+SUB correctbackdrop
+
+IF gen(58) THEN
+ '--restore text box backdrop
+ loadpage game$ + ".mxs" + CHR$(0), gen(58) - 1, 3
+ EXIT SUB
+END IF
+
+IF gen(50) THEN
+ '--restore script backdrop
+ loadpage game$ + ".mxs" + CHR$(0), gen(50) - 1, 3
+ EXIT SUB
+END IF
+
+loadpage game$ + ".til" + CHR$(0), gmap(0), 3
+
+END SUB
+
+SUB cleanuptemp
+KILL workingdir$ + "\lockfile.tmp"
+'KILL workingdir$ + "\*.*"
+findfiles workingdir$ + "\*.*" + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
+fh = FREEFILE
+OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
+DO UNTIL EOF(fh)
+ INPUT #fh, filename$
+ filename$ = UCASE$(filename$)
+ IF LEFT$(filename$, 3) = "VDM" AND RIGHT$(filename$, 4) = ".TMP" THEN
+  '-- mysterious locked file, leave it alone
+ ELSE
+  '-- delte file
+ END IF
+ KILL workingdir$ + "\" + filename$
+LOOP
+CLOSE #fh
+KILL tmpdir$ + "filelist.tmp"
+
+END SUB
+
+FUNCTION checkfordeath (stat())
+checkfordeath = 0' --default alive
+
+o = 0
+FOR i = 0 TO 3 '--for each slot
+ IF hero(i) > 0 THEN '--if hero exists
+  o = o + 1
+  IF stat(i, 0, 0) <= 0 AND stat(i, 1, 0) > 0 THEN o = o - 1
+ END IF
+NEXT i
+IF o = 0 THEN checkfordeath = 1
+
+END FUNCTION
+
+SUB aheadxy (x, y, direction, distance)
+'--alters the input X and Y, moving them "ahead" by distance in direction
+
+IF direction = 0 THEN y = y - distance
+IF direction = 1 THEN x = x + distance
+IF direction = 2 THEN y = y + distance
+IF direction = 3 THEN x = x - distance
+
+END SUB
+
+SUB exitprogram (needfade)
+
+'DEBUG debug "Exiting Program"
+'DEBUG debug "fade music"
+fademusic 0
+'DEBUG debug "fade screen"
+IF needfade THEN fadeout 0, 0, 0, -1
+quitcleanup
+'DEBUG debug "Restore Old Graphics Mode"
+restoremode
+'DEBUG debug "Terminate NOW (boom!)"
+SYSTEM
 
 END SUB
