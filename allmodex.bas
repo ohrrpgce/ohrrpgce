@@ -1950,10 +1950,10 @@ SUB readmouse (mbuf() as integer)
 	lastx = mx
 	lasty = my
 	
-	'mc = mouseclicked, only set (to 1) if this is a new click
+	'mc = mouseclicked, only set (to 1) if this is a new left-click
 	'faking the effect of dos int33h cmd 5
 	mc = 0
-	if lastb = 0 and mb > 0 then mc = 1
+	if lastb = 0 and mb = 1 then mc = 1
 	lastb = mb
 	
 	mbuf(0) = mx
