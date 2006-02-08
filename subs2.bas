@@ -15,7 +15,6 @@ DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
 DECLARE SUB safekill (f$)
 DECLARE SUB touchfile (f$)
-DECLARE SUB romfontchar (font%(), char%)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION readitemname$ (index%)
 DECLARE FUNCTION readattackname$ (index%)
@@ -24,7 +23,6 @@ DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION getShortName$ (filename$)
 DECLARE FUNCTION getLongName$ (filename$)
 DECLARE SUB textfatalerror (e$)
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
@@ -48,8 +46,7 @@ DECLARE FUNCTION intstr$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB bitset (array%(), wof%, last%, names$())
-DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
+DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE SUB formation (song$())
 DECLARE SUB enemydata ()
@@ -69,8 +66,7 @@ DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION validmusicfile(file$)
 
-DECLARE FUNCTION canplay (file$) '-- duplicate, NOTE TO SIMON: delete
-
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
@@ -486,7 +482,7 @@ stat$(9) = names$(7)
 stat$(10) = names$(31)
 stat$(11) = names$(4)
 
-out$ = gamedir$ + "\" + RIGHT$(game$, LEN(game$) - 12) + ".hsi"
+outf$ = gamedir$ + "\" + RIGHT$(game$, LEN(game$) - 12) + ".hsi"
 
 clearpage 0
 clearpage 1
@@ -494,10 +490,10 @@ setvispage 0
 textcolor 15, 0
 pl = 0
 printstr "exporting HamsterSpeak Definitions to:", 0, pl * 8, 0: pl = pl + 1
-printstr out$, 0, pl * 8, 0: pl = pl + 1
+printstr outf$, 0, pl * 8, 0: pl = pl + 1
 
 fh = FREEFILE
-OPEN out$ FOR OUTPUT AS #fh
+OPEN outf$ FOR OUTPUT AS #fh
 PRINT #fh, "# HamsterSpeak constant definitions for " + RIGHT$(game$, LEN(game$) - 12)
 PRINT #fh, ""
 PRINT #fh, "define constant, begin"
@@ -591,7 +587,17 @@ IF w = 1 THEN
  PRINT "fatal error:"
  PRINT e$
  
- KILL workingdir$ + "\*.*"
+ 'borrowed this code from game.bas cos wildcard didn't work in FB
+ findfiles workingdir$ + "\*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
+ fh = FREEFILE
+ OPEN "filelist.tmp" FOR INPUT AS #fh
+ DO UNTIL EOF(fh)
+  INPUT #fh, filename$
+  filename$ = UCASE$(filename$)
+  KILL workingdir$ + "\" + filename$
+ LOOP
+ CLOSE #fh
+ KILL "filelist.tmp"
  RMDIR workingdir$
  
  SYSTEM
@@ -1711,7 +1717,7 @@ IF isfile(f$ + CHR$(0)) THEN
   GET #handle, 1, a$
   CLOSE #handle
   IF a$ = CHR$(253) THEN
-   DEF SEG = VARSEG(array(0)): BLOAD f$, VARPTR(array(0))
+   xBLOAD f$, array(), "Load failed" 'not sure about this
   ELSE
    textfatalerror e$ + "(unbloadable)"
   END IF

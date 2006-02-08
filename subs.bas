@@ -21,7 +21,7 @@ DECLARE FUNCTION readitemname$ (index%)
 DECLARE SUB clearallpages ()
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
-DECLARE SUB updateflexmenu (pointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
+DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
 DECLARE SUB setactivemenu (workmenu%(), newmenu%(), pt%, top%, size%)
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE SUB testflexmenu ()
@@ -37,7 +37,6 @@ DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
@@ -52,8 +51,7 @@ DECLARE FUNCTION intstr$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB bitset (array%(), wof%, last%, name$())
-DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
+DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE SUB formation (song$())
 DECLARE SUB enemydata ()
@@ -68,6 +66,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
@@ -140,11 +139,11 @@ END SUB
 SUB enemydata
 
 '--stat names
-DIM name$(32), nof(11), elemtype$(2)
+DIM names$(32), nof(11), elemtype$(2)
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
-getnames name$(), 32
+getnames names$(), 32
 '--name offsets
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
 
@@ -164,10 +163,10 @@ rectangle 220, 100, 80, 80, 8, 3
 DIM ebit$(61)
 
 FOR i = 0 TO 7
- ebit$(0 + i) = elemtype$(0) + " " + name$(17 + i)
- ebit$(8 + i) = elemtype$(1) + " " + name$(17 + i)
- ebit$(16 + i) = elemtype$(2) + " " + name$(17 + i)
- ebit$(24 + i) = "Is " + name$(9 + i)
+ ebit$(0 + i) = elemtype$(0) + " " + names$(17 + i)
+ ebit$(8 + i) = elemtype$(1) + " " + names$(17 + i)
+ ebit$(16 + i) = elemtype$(2) + " " + names$(17 + i)
+ ebit$(24 + i) = "Is " + names$(9 + i)
 NEXT i
 FOR i = 32 TO 53
  ebit$(i) = "" 'preferable to be blank, so we can hide it
@@ -368,7 +367,7 @@ menulimits(EnMenuRareItemP) = EnLimPercent
 
 CONST EnMenuStat = 18' to 29
 FOR i = 0 TO 11
- menu$(EnMenuStat + i) = name$(nof(i)) + ":"
+ menu$(EnMenuStat + i) = names$(nof(i)) + ":"
  menutype(EnMenuStat + i) = 0
  menuoff(EnMenuStat + i) = EnDatStat + i
  menulimits(EnMenuStat + i) = EnLimStat + i
@@ -400,7 +399,7 @@ menulimits(EnMenuSpawnNEHit) = EnLimSpawn
 
 CONST EnMenuSpawnElement = 34' to 41
 FOR i = 0 TO 7
- menu$(EnMenuSpawnElement + i) = "on " + name$(17 + i) + " Hit:"
+ menu$(EnMenuSpawnElement + i) = "on " + names$(17 + i) + " Hit:"
  menutype(EnMenuSpawnElement + i) = 9
  menuoff(EnMenuSpawnElement + i) = EnDatSpawnElement + i
  menulimits(EnMenuSpawnElement + i) = EnLimSpawn
@@ -614,7 +613,7 @@ DO
     recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), 1, 0, 0, previewsize(recbuf(EnDatPicSize)), previewsize(recbuf(EnDatPicSize)), 2)
     GOSUB EnUpdateMenu
    CASE EnMenuBitsetAct
-    bitset recbuf(), EnDatBitset, 61, ebit$()
+    editbitset recbuf(), EnDatBitset, 61, ebit$()
   END SELECT
  END IF
  
@@ -967,13 +966,14 @@ END SUB
 FUNCTION getbinsize (id)
 
 IF isfile(workingdir$ + "\binsize.bin" + CHR$(0)) THEN
+ fbdim recordsize
  fh = FREEFILE
  OPEN workingdir$ + "\binsize.bin" FOR BINARY AS #fh
  IF LOF(fh) < 2 * id + 2 THEN
   getbinsize = defbinsize(id)
  ELSE
-  GET #fh, 1 + id * 2, recordsize%
-  getbinsize = recordsize%
+  GET #fh, 1 + id * 2, recordsize
+  getbinsize = recordsize
  END IF
  CLOSE #fh
 ELSE
@@ -983,23 +983,23 @@ END IF
 END FUNCTION
 
 SUB herodata
-DIM name$(100), a(318), menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), option$(10), hbit$(-1 TO 25), hmenu$(4), pal16(16), elemtype$(2)
-wd = 1: max = 32
+DIM names$(100), a(318), menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 25), hmenu$(4), pal16(16), elemtype$(2)
+wd = 1: hmax = 32
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
 clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-getnames name$(), max
+getnames names$(), hmax
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
 
 csr = 1
 FOR i = 0 TO 7
- hbit$(i) = elemtype$(0) + " " + name$(17 + i)
- hbit$(i + 8) = elemtype$(1) + " " + name$(17 + i)
- hbit$(i + 16) = elemtype$(2) + " " + name$(17 + i)
+ hbit$(i) = elemtype$(0) + " " + names$(17 + i)
+ hbit$(i + 8) = elemtype$(1) + " " + names$(17 + i)
+ hbit$(i + 16) = elemtype$(2) + " " + names$(17 + i)
 NEXT i
 hbit$(24) = "Rename when added to party"
 hbit$(25) = "Permit renaming on status screen"
@@ -1032,7 +1032,7 @@ DO
   IF csr = 4 THEN GOSUB levstats
   IF csr = 5 THEN GOSUB speltypes '--spell list contents
   IF csr = 6 THEN GOSUB heromenu '--spell list names
-  IF csr = 7 THEN bitset a(), 240, 25, hbit$()
+  IF csr = 7 THEN editbitset a(), 240, 25, hbit$()
   IF csr = 8 THEN herotags a()
  END IF
  IF csr = 1 THEN
@@ -1102,10 +1102,10 @@ FOR i = 0 TO 3
  IF a(288 + i) > 10 OR a(288 + i) < 0 THEN a(288 + i) = 0
 NEXT i
 bctr = -1
-option$(0) = "Spells (MP Based)"
-option$(1) = "Spells (FF1 Style)"
-option$(2) = "Random Effects"
-option$(3) = "Item Consuming (not implemented)"
+opt$(0) = "Spells (MP Based)"
+opt$(1) = "Spells (FF1 Style)"
+opt$(2) = "Random Effects"
+opt$(3) = "Item Consuming (not implemented)"
 setkeys
 DO
  setwait timing(), 100
@@ -1122,7 +1122,7 @@ DO
  printstr "Previous Menu", 0, 0, dpage
  FOR i = 0 TO 3
   textcolor 7, 0: IF bctr = i THEN textcolor 14 + tog, 0
-  printstr "Type" + STR$(i) + " Spells:" + option$(a(288 + i)), 0, 8 + i * 8, dpage
+  printstr "Type" + STR$(i) + " Spells:" + opt$(a(288 + i)), 0, 8 + i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1292,7 +1292,7 @@ DO
    GOSUB setsticky
   END IF
  END IF
- textcolor 10, 0: printstr UCASE$(option$(a(288 + temp))), 300 - LEN(option$(a(288 + temp))) * 8, 0, dpage
+ textcolor 10, 0: printstr UCASE$(opt$(a(288 + temp))), 300 - LEN(opt$(a(288 + temp))) * 8, 0, dpage
  textcolor 7, 0: IF bctr = 0 THEN textcolor 14 + tog, 0
  printstr "Previous Menu", 0, 0, dpage
  FOR i = 1 TO 24
@@ -1334,7 +1334,7 @@ RETURN
 graph:
 o = INT((bctr - 1) / 2)
 textcolor 7, 0
-printstr name$(nof(o)), 310 - LEN(name$(nof(o))) * 8, 180, dpage
+printstr names$(nof(o)), 310 - LEN(names$(nof(o))) * 8, 180, dpage
 FOR i = 0 TO 99 STEP 4
  ii = (.8 * i / 50) * i * ((a(24 + o * 2) - a(23 + o * 2)) / 100) + a(23 + o * 2)
  ii = large(ii, 0)
@@ -1345,8 +1345,8 @@ RETURN
 
 smi:
 FOR i = 0 TO 11
- bmenu$(i * 2 + 1) = name$(nof(i)) + STR$(a(i * 2 + 23))
- bmenu$(i * 2 + 2) = name$(nof(i)) + STR$(a(i * 2 + 24))
+ bmenu$(i * 2 + 1) = names$(nof(i)) + STR$(a(i * 2 + 23))
+ bmenu$(i * 2 + 2) = names$(nof(i)) + STR$(a(i * 2 + 24))
 NEXT i
 RETURN
 
@@ -1493,14 +1493,14 @@ END IF
 END FUNCTION
 
 SUB itemdata
-DIM name$(100), a(99), menu$(18), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), item$(-1 TO 255), eqst$(5), max(18), sbmax(11), workpal(8), elemtype$(2)
-max = 32
+DIM names$(100), a(99), menu$(18), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), item$(-1 TO 255), eqst$(5), max(18), sbmax(11), workpal(8), elemtype$(2)
+imax = 32
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
 clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-getnames name$(), max
+getnames names$(), imax
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
@@ -1508,7 +1508,7 @@ elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
 eqst$(0) = "NEVER EQUIPPED"
 eqst$(1) = "Weapon"
 FOR i = 0 TO 3
- eqst$(i + 2) = name$(25 + i)
+ eqst$(i + 2) = names$(25 + i)
 NEXT i
 FOR i = 0 TO 1
  sbmax(i) = 9999
@@ -1706,7 +1706,7 @@ DO
  FOR i = 0 TO 11
   textcolor 7, 0
   IF ptr2 = i THEN textcolor 14 + tog, 0
-  printstr name$(nof(i)) + " Bonus:" + STR$(a(54 + i)), 0, 8 + i * 8, dpage
+  printstr names$(nof(i)) + " Bonus:" + STR$(a(54 + i)), 0, 8 + i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1744,11 +1744,11 @@ RETURN
 
 ibitset:
 FOR i = 0 TO 7
- ibit$(i) = elemtype$(0) + " " + name$(17 + i)
- ibit$(i + 8) = elemtype$(1) + " " + name$(17 + i)
- ibit$(i + 16) = elemtype$(2) + " " + name$(17 + i)
+ ibit$(i) = elemtype$(0) + " " + names$(17 + i)
+ ibit$(i + 8) = elemtype$(1) + " " + names$(17 + i)
+ ibit$(i + 16) = elemtype$(2) + " " + names$(17 + i)
 NEXT i
-bitset a(), 70, 23, ibit$()
+editbitset a(), 70, 23, ibit$()
 RETURN
 
 equipbit:
@@ -1758,7 +1758,7 @@ FOR i = 0 TO 59
  ibit$(i) = readbadbinstring$(buffer(), 0, 16, 0)
  ibit$(i) = "Equipable by " + ibit$(i)
 NEXT i
-bitset a(), 66, 59, ibit$()
+editbitset a(), 66, 59, ibit$()
 RETURN
 
 'SHOP STUFF
@@ -2023,7 +2023,6 @@ RETURN
 '  IF buffer(o) > 255 OR buffer(o) < 0 THEN buffer(o) = 0
 '  it$ = it$ + CHR$(buffer(o))
 ' NEXT o
-' it$ = STR$(npc(cur * 15 + 6)) + " " + it$
 ' RETURN
 
 frstline:
@@ -2140,10 +2139,11 @@ readshopname$ = readbadgenericname$(shopnum, game$ + ".sho", 40, 0, 15, 0)
 END FUNCTION
 
 SUB setbinsize (id, size)
-
+fbdim size16
+size16 = size
 fh = FREEFILE
 OPEN workingdir$ + "\binsize.bin" FOR BINARY AS #fh
-PUT #fh, 1 + id * 2, size
+PUT #fh, 1 + id * 2, size16
 CLOSE #fh
 
 END SUB

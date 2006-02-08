@@ -18,7 +18,7 @@ DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE FUNCTION readitemname$ (index%)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
-DECLARE SUB updateflexmenu (pointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
+DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
 DECLARE SUB writebinstring (savestr$, array%(), offset%, maxlen%)
 DECLARE SUB writebadbinstring (savestr$, array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION gethighbyte% (n%)
@@ -41,7 +41,6 @@ DECLARE SUB fixorder (f$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE SUB vehicles ()
 DECLARE SUB verifyrpg ()
-DECLARE SUB xbload (f$, array%(), e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION getmapname$ (m%)
 DECLARE FUNCTION numbertail$ (s$)
@@ -70,7 +69,7 @@ DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
 DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npc%(), npcstat%(), song$(), npc$(), unpc%(), lnpc%())
 DECLARE SUB npcdef (npc%(), pt%, npc$(), unpc%(), lnpc%())
-DECLARE SUB bitset (array%(), wof%, last%, name$())
+DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, file$, master%(), font%())
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB shopdata ()
@@ -91,14 +90,9 @@ DECLARE SUB maptile (master%(), font())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
-
-DECLARE FUNCTION bound% (n%, lowest%, highest%)
-DECLARE FUNCTION onoroff$ (n%)
-DECLARE FUNCTION lmnemonic$ (index%)
-DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
-DECLARE SUB strgrabber (s$, maxl%)
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 
+'$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
@@ -822,7 +816,7 @@ DO
     FOR i = 0 TO 7
      buffer(4 + i) = recbuf(AtkDatBitsets2 + i)
     NEXT i
-    bitset buffer(), 0, UBOUND(atkbit$), atkbit$()
+    editbitset buffer(), 0, UBOUND(atkbit$), atkbit$()
     'split the buffer to the two bitset blocks
     FOR i = 0 TO 3
      recbuf(AtkDatBitsets + i) = buffer(i)
@@ -1240,7 +1234,7 @@ SUB testflexmenu
 '
 END SUB
 
-SUB updateflexmenu (pointer, nowmenu$(), nowdat(), size, menu$(), menutype(), menuoff(), menulimits(), datablock(), caption$(), maxtable(), recindex)
+SUB updateflexmenu (mpointer, nowmenu$(), nowdat(), size, menu$(), menutype(), menuoff(), menulimits(), datablock(), caption$(), maxtable(), recindex)
 
 '--generates a nowmenu subset from generic menu data
 
@@ -1322,7 +1316,7 @@ FOR i = 0 TO size
     nowmenu$(i) = nowmenu$(i) + " " + caption$(capnum + ABS(datablock(menuoff(nowdat(i)))))
    END IF
  END SELECT
- IF pointer = i THEN
+ IF mpointer = i THEN
    nowmenu$(i) = RIGHT$(nowmenu$(i), 40)
  END IF
 NEXT i
