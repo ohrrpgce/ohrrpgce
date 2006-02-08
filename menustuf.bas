@@ -1085,7 +1085,7 @@ END SUB
 
 SUB oobcure (w, t, atk, spred, stat())
 DIM st(13, 1)
-dim h, h&
+dim h, h2&
 '--average stats for item-triggered spells
 IF w = -1 THEN
  j = 0
@@ -1138,24 +1138,24 @@ IF readbit(buffer(), 20, 57) = 1 THEN
 END IF
 
 'calc harm
-h& = (a * am!) - (d * dm!)
+h2& = (a * am!) - (d * dm!)
 
 'no elemental support
 
 'extra damage
-h& = h& + (h& / 100) * buffer(11)
+h2& = h2& + (h2& / 100) * buffer(11)
 
 'randomize
-IF readbit(buffer(), 20, 61) = 0 THEN h& = rangelong(h&, 20)
+IF readbit(buffer(), 20, 61) = 0 THEN h2& = rangelong(h2&, 20)
 
 'spread damage
-IF readbit(buffer(), 20, 1) = 1 THEN h& = h& / (spred + 1)
+IF readbit(buffer(), 20, 1) = 1 THEN h2& = h2& / (spred + 1)
 
 'cap out
-IF NOT readbit(buffer(), 20, 62) AND h& <= 0 THEN h& = 1
+IF NOT readbit(buffer(), 20, 62) AND h2& <= 0 THEN h2& = 1
 
 'cure bit
-IF readbit(buffer(), 20, 0) = 1 THEN h& = ABS(h&) * -1
+IF readbit(buffer(), 20, 0) = 1 THEN h2& = ABS(h2&) * -1
 
 'backcompat MP-targstat
 IF readbit(buffer(), 20, 60) THEN
@@ -1166,14 +1166,14 @@ SELECT CASE buffer(5)
   CASE 5'% of max
    chp& = stat(t, 0, targstat)
    mhp& = stat(t, 1, targstat)
-   h& = chp& - (mhp& + (buffer(11) * mhp& / 100))
+   h2& = chp& - (mhp& + (buffer(11) * mhp& / 100))
   CASE 6'% of cur
-   h& = stat(t, 0, targstat) - (stat(t, 0, targstat) + (buffer(11) * stat(t, 0, targstat) / 100))
+   h2& = stat(t, 0, targstat) - (stat(t, 0, targstat) + (buffer(11) * stat(t, 0, targstat) / 100))
  END SELECT
 
-IF h& > 32767 THEN h& = 32767
-IF h& < -32768 THEN h& = -32768
-h = h&
+IF h2& > 32767 THEN h2& = 32767
+IF h2& < -32768 THEN h2& = -32768
+h = h2&
 
 stat(t, 0, targstat) = stat(t, 0, targstat) - h
 
