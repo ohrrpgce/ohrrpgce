@@ -314,7 +314,7 @@ DO
  printstr query$, 160 - LEN(query$) * 4, 20, dpage
  IF alert > 0 THEN printstr alert$, 160 - LEN(alert$) * 4, 40, dpage: alert = alert - 1
  textcolor 14 + tog, 1
- printstr file$, 160 - LEN(game$) * 4, 30, dpage
+ printstr file$, 160 - LEN(file$) * 4, 30, dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage

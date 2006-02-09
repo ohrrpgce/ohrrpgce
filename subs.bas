@@ -883,7 +883,7 @@ DO
   menu$(4) = CHR$(27) + "formation" + STR$(pt) + CHR$(26)
   menu$(5) = "Backdrop screen:" + STR$(a(32))
   menu$(6) = "Battle Music:"
-  IF a(33) = 0 THEN menu$(6) = menu$(6) + " -none-" ELSE menu$(6) = menu$(6) + STR$(a(33)) + " " + song$(a(33) - 1)
+  IF a(33) = 0 THEN menu$(6) = menu$(6) + " -none-" ELSE menu$(6) = menu$(6) + STR$(a(33)-1) + " " + song$(a(33) - 1)
   menu$(7) = "*Unused*:" + STR$(a(34))
   FOR i = 0 TO 4
    col = 7: IF csr2 + 5 = i THEN col = 14 + tog
@@ -924,6 +924,7 @@ clearformation:
 FOR i = 0 TO 40
  a(i) = 0
 NEXT i
+a(33) = general(4)
 setpicstuf a(), 80, -1
 storeset game$ + ".for" + CHR$(0), pt, 0
 RETURN
@@ -937,7 +938,6 @@ loadform:
 setpicstuf a(), 80, -1
 loadset game$ + ".for" + CHR$(0), pt, 0
 loadpage game$ + ".mxs" + CHR$(0), a(32), 2
-IF a(33) = 0 THEN a(33) = general(4)
 RETURN
 
 formpics:
