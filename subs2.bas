@@ -492,6 +492,10 @@ textcolor 15, 0
 pl = 0
 printstr "exporting HamsterSpeak Definitions to:", 0, pl * 8, 0: pl = pl + 1
 printstr outf$, 0, pl * 8, 0: pl = pl + 1
+'Need to call this quite a lot to refresh the screen for FB. Bit of a
+'compromise between showing the process and slowing things down, since
+'it will copy the page data every time.
+setvispage 0
 
 fh = FREEFILE
 OPEN outf$ FOR OUTPUT AS #fh
@@ -510,6 +514,7 @@ a = isunique("", u$(), 1)
 FOR i = 0 TO 100
  writeconstant fh, i, song$(i), u$(), "song"
 NEXT i
+setvispage 0
 
 printstr "hero names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
@@ -524,6 +529,7 @@ a = isunique("", u$(), 1)
 FOR i = 0 TO 255
  writeconstant fh, i, readitemname$(i), u$(), "item"
 NEXT i
+setvispage 0
 
 printstr "stat names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
@@ -537,6 +543,7 @@ writeconstant fh, 1, "Weapon", u$(), "slot"
 FOR i = 0 TO 3
  writeconstant fh, i + 2, names$(25 + i), u$(), "slot"
 NEXT i
+setvispage 0
 
 printstr "map names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
@@ -549,6 +556,7 @@ a = isunique("", u$(), 1)
 FOR i = 0 TO general(34)
  writeconstant fh, i + 1, readattackname$(i), u$(), "atk"
 NEXT i
+setvispage 0
 
 printstr "shop names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
@@ -560,6 +568,7 @@ PRINT #fh, "end"
 CLOSE #fh
 
 printstr "done", 0, pl * 8, 0: pl = pl + 1
+setvispage 0
 w = getkey
 
 END SUB
@@ -800,6 +809,7 @@ DO
       printstr "ends in .HS and hoped it would work?", 0, texty * 8, vpage: texty = texty + 1
       printstr "Use HSPEAK.EXE to create real .HS files", 0, texty * 8, vpage: texty = texty + 1
      END IF
+     setvispage vpage 'force refresh for FB
      w = getkey
     END IF
   END SELECT
@@ -843,6 +853,7 @@ DO
   textx = 0
   texty = texty + 1
   IF texty > 23 THEN
+   setvispage vpage 'force refresh
    clearpage vpage
    texty = 0
   END IF
