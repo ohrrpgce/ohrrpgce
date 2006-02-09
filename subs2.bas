@@ -61,6 +61,7 @@ DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
+DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
@@ -1548,21 +1549,31 @@ DO
    IF keyval(75) > 1 OR keyval(77) > 1 THEN setbit buffer(), 174, 1 + i, (readbit(buffer(), 174, 1 + i) XOR 1)
   END IF
  NEXT i
- FOR i = 0 TO 5
+ FOR i = 0 TO 3
   IF gcsr = 1 + i THEN
    IF intgrabber(buffer(193 + i), min(i), max(i), 75, 77) THEN GOSUB refresh
+  END IF
+ NEXT i
+ FOR i = 4 TO 5
+  IF gcsr = 1 + i THEN
+   IF zintgrabber(buffer(193 + i), min(i), max(i), 75, 77) THEN GOSUB refresh
   END IF
  NEXT i
  GOSUB previewbox
  FOR i = 0 TO 9
   col = 7: IF i = gcsr THEN col = 14 + tog
   temp$ = menu$(i)
-  IF i > 0 AND i < 7 THEN
+  IF i > 0 AND i <= 4 THEN
    temp$ = temp$ + STR$(buffer(192 + i))
-   IF i = 6 THEN
-    IF buffer(192 + i) THEN
+  END IF
+  IF i >= 5 AND i <= 6 THEN '-- backdrop and songs have "none" as an option
+   IF buffer(192 + i) THEN
+    temp$ = menu$(i) + STR$(buffer(192 + i) - 1)
+    IF i = 6 THEN
      temp$ = temp$ + " " + song$(buffer(192 + i) - 1)
     END IF
+   ELSE
+    temp$ = menu$(i) + " NONE"
    END IF
   END IF
   IF i > 6 AND i < 9 THEN
@@ -1588,9 +1599,9 @@ min(2) = 0
 max(2) = 255
 min(3) = 0
 max(3) = 14
-min(4) = 0
+min(4) = -1
 max(4) = general(100)
-min(5) = 0
+min(5) = -1
 max(5) = 100
 IF buffer(197) > 0 THEN
  setdiskpages buf(), 200, 0
