@@ -95,21 +95,21 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN charpicker$ = "": EXIT DO
- 
+
  IF keyval(72) > 1 THEN pt = large(pt - linesize, 0)
  IF keyval(80) > 1 THEN pt = small(pt + linesize, last)
  IF keyval(75) > 1 THEN pt = large(pt - 1, 0)
  IF keyval(77) > 1 THEN pt = small(pt + 1, last)
- 
+
  IF keyval(28) > 1 OR keyval(57) > 1 THEN charpicker$ = CHR$(f(pt)): EXIT DO
- 
+
  FOR i = 0 TO last
   textcolor 7, 8
   IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor 7, 1
   IF pt = i THEN textcolor 14 + tog, 0
   printstr CHR$(f(i)), xoff + (i MOD linesize) * 9, yoff + (i \ linesize) * 9, dpage
  NEXT i
- 
+
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -552,14 +552,14 @@ DO
    EXIT DO
   END IF
  END IF
- 
+
  '--CTRL+BACKSPACE
  IF keyval(29) > 0 AND keyval(14) THEN
   cropafter recindex, general(36), 0, game$ + ".dt1", 320, 1
  END IF
- 
+
  dummy = usemenu(pt, top, 0, size, 22)
- 
+
  IF workmenu(pt) = EnMenuChooseAct OR keyval(56) > 0 THEN
   lastindex = recindex
   IF keyval(77) > 1 AND recindex = general(36) AND recindex < 32767 THEN
@@ -580,7 +580,7 @@ DO
    END IF
   END IF
  END IF
- 
+
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
   SELECT CASE workmenu(pt)
    CASE EnMenuBackAct
@@ -616,22 +616,22 @@ DO
     editbitset recbuf(), EnDatBitset, 61, ebit$()
   END SELECT
  END IF
- 
+
  IF keyval(56) = 0 THEN 'not holding ALT
   IF editflexmenu(workmenu(pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
    GOSUB EnUpdateMenu
   END IF
  END IF
- 
+
  GOSUB EnPreviewSub
- 
+
  standardmenu dispmenu$(), size, 22, pt, top, 0, 0, dpage, 0
  IF keyval(56) > 0 THEN 'holding ALT
   tmp$ = readbadbinstring$(recbuf(), EnDatName, 15, 0) + STR$(recindex)
   textcolor 15, 1
   printstr tmp$, 320 - LEN(tmp$) * 8, 0, dpage
  END IF
- 
+
  SWAP vpage, dpage
  setvispage vpage
  copypage 3, dpage
@@ -726,9 +726,9 @@ DO
   IF csr = 1 THEN GOSUB editform
   IF csr = 2 THEN GOSUB formsets
  END IF
- 
+
  standardmenu menu$(), 2, 22, csr, 0, 0, 0, dpage, 0
- 
+
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -781,9 +781,9 @@ DO
   bmenu$(i) = "Formation" + STR$(c(i - 2) - 1)
   IF c(i - 2) = 0 THEN bmenu$(i) = "Empty"
  NEXT i
- 
+
  standardmenu bmenu$(), 22, 22, bcsr, 0, 0, 0, dpage, 1
- 
+
  SWAP vpage, dpage
  setvispage vpage
  IF bcsr > 2 AND pt >= 0 THEN
@@ -825,6 +825,7 @@ pt = 0: csr2 = -6: csr3 = 0
 GOSUB loadform
 GOSUB formpics
 setkeys
+
 DO
  setwait timing(), 90
  setkeys
@@ -883,6 +884,7 @@ DO
   menu$(4) = CHR$(27) + "formation" + STR$(pt) + CHR$(26)
   menu$(5) = "Backdrop screen:" + STR$(a(32))
   menu$(6) = "Battle Music:"
+  IF a(33) = 0 THEN menu$(6) = menu$(6) + " -none-" ELSE menu$(6) = menu$(6) + STR$(a(33) - 1) + " " + song$(a(33) - 1)
   menu$(7) = "Backdrop Frames:"
   IF a(34) = 0 THEN menu$(7) = menu$(7) + " no animation" ELSE menu$(7) = menu$(7) + STR$(a(34) + 1)
   menu$(8) = "Backdrop Speed:" + STR$(a(35))
@@ -925,6 +927,7 @@ clearformation:
 FOR i = 0 TO 40
  a(i) = 0
 NEXT i
+a(33) = general(4)
 setpicstuf a(), 80, -1
 storeset game$ + ".for" + CHR$(0), pt, 0
 RETURN
@@ -938,7 +941,6 @@ loadform:
 setpicstuf a(), 80, -1
 loadset game$ + ".for" + CHR$(0), pt, 0
 loadpage game$ + ".mxs" + CHR$(0), a(32), 2
-IF a(33) = 0 THEN a(33) = general(4)
 RETURN
 
 formpics:
@@ -1055,9 +1057,9 @@ DO
   strgrabber nam$, 16
   menu$(2) = "Name:" + nam$
  END IF
- 
+
  standardmenu menu$(), 8, 22, csr, 0, 0, 0, dpage, 0
- 
+
  GOSUB heropreview
  SWAP vpage, dpage
  setvispage vpage
@@ -1088,9 +1090,9 @@ DO
  bmenu$(2) = "Spell List 2:" + hmenu$(1)
  bmenu$(3) = "Spell List 3:" + hmenu$(2)
  bmenu$(4) = "Spell List 4:" + hmenu$(3)
- 
+
  standardmenu bmenu$(), 4, 22, bctr, 0, 0, 0, dpage, 0
- 
+
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -1170,9 +1172,9 @@ DO
    GOSUB heropics
   END IF
  END IF
- 
+
  standardmenu bmenu$(), 7, 22, bctr, 0, 8, 0, dpage, 0
- 
+
  GOSUB heropreview
  SWAP vpage, dpage
  setvispage vpage
@@ -2243,7 +2245,7 @@ IF keyval(56) THEN shift = shift + 2
 
 '--adding chars
 IF LEN(s$) < maxl THEN
- 
+
  IF keyval(57) > 1 THEN
   IF keyval(29) = 0 THEN
    '--SPACE support
@@ -2263,7 +2265,7 @@ IF LEN(s$) < maxl THEN
    NEXT i
   END IF
  END IF
- 
+
 END IF
 
 END SUB
