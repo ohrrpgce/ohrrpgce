@@ -360,6 +360,9 @@ FOR i = 0 TO 3
  area(12 + i, 2) = 8
  area(12 + i, 3) = 8
 NEXT i
+'Prev and Next buttons on cut tile page. These overlap the palette
+'on the tile edit page (area 1 above), which makes it hard to select
+'some colours on the bottom row.
 area(10, 0) = 8
 area(10, 1) = 190
 area(10, 2) = 32

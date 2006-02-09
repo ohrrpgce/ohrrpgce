@@ -1,6 +1,8 @@
 -----------------------------------------------------------
 FBOHR - OHRRPGCE FreeBasic version
 
+2006-02-09 - Descartes/Derrida - Small fixes. Allegro
+		version no longer needs DLL.
 2006-02-04 - Chomsky/Camus - Fixes and optimisations. 
 		Added MIDI import.
 2006-01-23 - Berkeley/Bentham - Many fixes, new graphics
@@ -25,18 +27,17 @@ supported due to licensing incompatibilities.
 I have named the executables differently for each version,
 so that they can all go into the same folder if desired.
 
-berkeley: game.exe, custom.exe + sdl.dll, sdl_mixer.dll
-bentham: gamea.exe, customa.exe + alleg40.dll
+descartes: game.exe, custom.exe + sdl.dll, sdl_mixer.dll
+derrida: gamea.exe, customa.exe
 
 DIFFERENCES
 
-camus (Allegro): 
-- 640x400 double resolution
+derrida (Allegro): 
 - ALT-ENTER doesn't work at all in Custom, and only in-game
   in game.
 - Starts full-screen by default.
 
-chomsky (SDL):
+descartes (SDL):
 - Pause_Music doesn't seem to work, meaning that the songs 
   continue to play when you move off them in Import Music,
   until another tune plays or the Import menu is exited.
