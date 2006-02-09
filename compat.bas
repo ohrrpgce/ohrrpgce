@@ -94,6 +94,7 @@ SUB xbsave (f$, array%(), bsize%)
 END SUB
 
 SUB crashexplain()
+'This uses PRINT, which won't work in non-standard libs (ie allegro)
 	PRINT "Please report this exact error message to ohrrpgce@HamsterRepublic.com"
 	PRINT "Be sure to describe in detail what you were doing when it happened"
 	PRINT
