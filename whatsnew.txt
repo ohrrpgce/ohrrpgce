@@ -76,7 +76,9 @@ WHAT IS NEW?
       use (previously undocumented) "read enemy data" and "write enemy
       data" instead (you can use the same constants)
 
-    * Fixed bug 13: "No math overflow checking in battle" [Mike Caron]
+    * Fixed bug 13: "No math overflow checking in battle"
+      And bug 66: "Absorb-damage type attacks cannot drain a percent"
+      [Mike Caron]
 
     * Worked around bug 78: "Using Custom under DosBox dosen't allow for
       browsing certain areas." by avoiding the use of VAL() which is
