@@ -1539,10 +1539,16 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 	while not eof(lf)
 		'get lump name
 		lname = ""
-		while not eof(lf) and dat <> 0
+		i = 0
+		while not eof(lf) and dat <> 0 and i < 64
 			lname = lname + chr$(dat)
 			get #lf, , dat
+			i += 1
 		wend
+		if i > 50 then 'corrupt file, really if i > 12
+			debug "corrupt lump file: lump name too long"
+			exit while
+		end if
 		'debug "lump name " + lname
 		
 		if not eof(lf) then
@@ -1615,6 +1621,7 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 	dim lpath as string
 	dim bufr as ubyte ptr
 	dim csize as integer
+	dim as integer i, t, textsize(1)
 
 	lpath = rtrim(path$)
 	
@@ -1628,6 +1635,7 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 	open lump$ for binary access write as #lf
 	if err <> 0 then
 		'debug "Could not open file " + lump$
+		close #fl
 		exit sub
 	end if
 	
@@ -1635,15 +1643,28 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 	
 	'get file to lump
 	do until eof(fl) 
-		line input #fl, lname
-		if lname = "-END OF LIST-" then
-			exit do
+		input #fl, lname
+		
+		'validate that lumpname is 8.3 or ignore the file
+		textsize(0) = 0
+		textsize(1) = 0
+		t = 0
+		for i = 1 to len(lname) - 1
+			if lname[i] = asc(".") then t = 1
+			textsize(t) += 1
+		next
+		'note extension includes the "." so can be 4 chars
+		if textsize(0) > 8 or textsize(1) > 4 then 
+			debug "name too long: " + lname
+			debug " name = " + str(textsize(0)) + ", ext = " + str(textsize(1))
+			continue do
 		end if
+		
 		'write lump name (seems to need to be upper-case, at least 
 		'for any files opened with unlumpone in the QB version)
 		put #lf, , ucase(lname)
-		'dat = 0
-		'put #lf, , dat
+		dat = 0
+		put #lf, , dat
 		
 		tl = freefile
 		open lpath + lname for binary access read as #tl
