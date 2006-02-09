@@ -12,6 +12,7 @@ echo Packaging binary distribution of CUSTOM
 cp -p game.exe tmp
 cp -p game-qb.exe tmp
 cp -p custom.exe tmp
+cp -p customqb.exe tmp
 cp -p hspeak.exe tmp
 cp -p unlump.exe tmp
 cp -p ohrrpgce.mas tmp
