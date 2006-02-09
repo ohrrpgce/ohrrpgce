@@ -82,11 +82,13 @@ WHAT IS NEW?
       browsing certain areas." by avoiding the use of VAL() which is
       buggy in some versions of DosBox and QEMU [James Paige]
 
-    * Fixed bug 98: "plotscript commands that alter enemys [sic] persist after
-      quitting" [Mike Caron]
+    * Fixed bug 98: "plotscript commands that alter enemys [sic] persist
+      after quitting" [Mike Caron]
 
     * You can now no longer import invalid BAM music even though a
       warning is given [Ralph Versteegen]
+
+    * Using formation sets 100+ no longer crashes game [Ralph Versteegen]
 
   * New Plotscripting Commands
 
