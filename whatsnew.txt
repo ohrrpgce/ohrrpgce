@@ -1,10 +1,12 @@
 WHAT IS NEW?
 
-??? ?? 2006 [serendipity]
+Feb ?? 2006 [serendipity]
 
   * New Features
 
     * !!! Native Windows port of GAME.EXE [Simon Bradley] !!!
+
+    * !!! Native Windows port of CUSTOM.EXE [Simon Bradley] !!!
 
     * You can copy and paste different sized sprites across the sprite
       editors, and while you are drawing a sprite you now paste and
