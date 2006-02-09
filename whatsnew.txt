@@ -92,6 +92,9 @@ WHAT IS NEW?
 
     * Using formation sets 100+ no longer crashes game [Ralph Versteegen]
 
+    * Fixed bug 24 : "Numbering is wrong for backdrops and songs in the 
+      text-box appearance editor" [Ralph Versteegen]
+
   * New Plotscripting Commands
 
     * "cancel map name display" [James Paige]
