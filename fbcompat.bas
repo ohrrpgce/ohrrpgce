@@ -223,11 +223,10 @@ SUB romfontchar (font(), char)
 END SUB
 
 SUB makedir (dirname$)
+MKDIR dirname$
 #ifdef __FB_LINUX__
  ' work around broken file permissions in dirs created by linux version
  ' MKDIR creates with mode 644, should create with mode 755
- SHELL "mkdir " + dirname$
-#else
- MKDIR dirname$
+ SHELL "chmod +x " + dirname$
 #endif
 END SUB
