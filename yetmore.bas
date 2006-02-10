@@ -543,19 +543,19 @@ SUB initgame
 '--back compat game$
 a$ = ""
 i = 0
-DO UNTIL LEFT$(a$, 1) = "\"
+DO UNTIL LEFT$(a$, 1) = SLASH
  i = i + 1
  a$ = RIGHT$(sourcerpg$, i)
 LOOP
 a$ = LEFT$(a$, LEN(a$) - 4)
 game$ = workingdir$ + a$
 '--set game$ according to the archinym
-IF isfile(workingdir$ + "\archinym.lmp" + CHR$(0)) THEN
+IF isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
  fh = FREEFILE
- OPEN workingdir$ + "\archinym.lmp" FOR INPUT AS #fh
+ OPEN workingdir$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
  LINE INPUT #fh, a$
  CLOSE #fh
- IF LEN(a$) <= 8 THEN game$ = workingdir$ + "\" + a$
+ IF LEN(a$) <= 8 THEN game$ = workingdir$ + SLASH + a$
 END IF
 END SUB
 
@@ -815,9 +815,9 @@ keyhandleroff
 releasestack
 '--working files
 'DEBUG debug "Touch killfile"
-touchfile workingdir$ + "\kill.tmp"
+touchfile workingdir$ + SLASH + "kill.tmp"
 'DEBUG debug "Kill working files"
-KILL workingdir$ + "\*.*"
+KILL workingdir$ + SLASH + "*.*"
 'DEBUG debug "Remove working directory"
 RMDIR workingdir$
 'DEBUG debug "Kill stored command-line"
@@ -1326,7 +1326,7 @@ SELECT CASE id
    END IF
   END IF
  CASE 176'--runscriptbyid
-  IF isfile(workingdir$ + "\" + LTRIM$(STR$(retvals(0))) + ".hsx" + CHR$(0)) THEN
+  IF isfile(workingdir$ + SLASH + LTRIM$(STR$(retvals(0))) + ".hsx" + CHR$(0)) THEN
    rsr = runscript(retvals(0), nowscript + 1, 0, "indirect")
    IF rsr = 1 THEN
     '--fill heap with return values
