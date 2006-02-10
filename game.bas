@@ -195,7 +195,7 @@ exename$ = STRING$(exenamelength, 0): getstring exename$
 DO WHILE INSTR(exename$, SLASH)
  exename$ = RIGHT$(exename$, LEN(exename$) - INSTR(exename$, SLASH))
 LOOP
-exename$ = UCASE$(LEFT$(exename$, LEN(exename$) - 4))
+exename$ = LEFT$(exename$, LEN(exename$) - 4)
 aquiretempdir
 workingdir$ = tmpdir$ + "playing.tmp"
 
@@ -284,13 +284,13 @@ defaultc
 autorungame = 0
 a$ = cline$
 IF MID$(a$, 2, 1) <> ":" THEN a$ = sCurdir$ + a$
-IF UCASE$(RIGHT$(a$, 4)) = ".RPG" AND isfile(a$ + CHR$(0)) THEN
+IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$ + CHR$(0)) THEN
  sourcerpg$ = a$
  autorungame = 1
 ELSE
  IF exename$ <> "GAME" THEN
-  IF isfile(progdir$ + exename$ + ".RPG" + CHR$(0)) THEN
-   sourcerpg$ = progdir$ + exename$ + ".RPG"
+  IF isfile(progdir$ + exename$ + ".rpg" + CHR$(0)) THEN
+   sourcerpg$ = progdir$ + exename$ + ".rpg"
    autorungame = 1
   END IF
  END IF

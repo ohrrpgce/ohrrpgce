@@ -495,7 +495,7 @@ END SUB
 
 SUB checklumpmod
  IF readbit(lumpmod(),0,0) THEN
-  unlumpfile sourcerpg$ + CHR$(0), "*.DT1", workingdir$ + SLASH, buffer()
+  unlumpfile sourcerpg$ + CHR$(0), "*.dt1", workingdir$ + SLASH, buffer()
   setbit lumpmod(),0,0,0
  END IF
 
@@ -526,8 +526,8 @@ fh = FREEFILE
 OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
 DO UNTIL EOF(fh)
  INPUT #fh, filename$
- filename$ = UCASE$(filename$)
- IF LEFT$(filename$, 3) = "VDM" AND RIGHT$(filename$, 4) = ".TMP" THEN
+ filename$ = LCASE$(filename$)
+ IF LEFT$(filename$, 3) = "vdm" AND RIGHT$(filename$, 4) = ".tmp" THEN
   '-- mysterious locked file, leave it alone
  ELSE
   '-- delte file

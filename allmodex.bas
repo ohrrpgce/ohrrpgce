@@ -1565,7 +1565,7 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 				dim csize as integer
 				
 				of = freefile
-				open path$ + lname for binary access write as #of
+				open path$ + lcase$(lname) for binary access write as #of
 				if err > 0 then
 					'debug "Could not open file " + path$ + lname
 					exit while

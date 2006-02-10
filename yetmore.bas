@@ -1716,7 +1716,7 @@ END IF
 END SUB
 
 SUB templockexplain
-PRINT "Either " + exename$ + ".EXE is already running in the background, or it"
+PRINT "Either " + exename$ + " is already running in the background, or it"
 PRINT "terminated incorrectly last time it was run, and was unable to clean up"
 PRINT "its temporary files. The operating system is denying access to the"
 PRINT "files in " + workingdir$
