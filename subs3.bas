@@ -494,7 +494,6 @@ fh = FREEFILE
 OPEN "filelist.tmp" FOR INPUT AS #fh
 DO UNTIL EOF(fh)
 INPUT #fh, filename$
-filename$ = UCASE$(filename$)
 KILL workingdir$ + SLASH + filename$
 LOOP
 CLOSE #fh
@@ -524,7 +523,6 @@ fh = FREEFILE
 OPEN "unlist.tmp" FOR INPUT AS #fh
 DO UNTIL EOF(fh)
  INPUT #fh, filename$
- filename$ = UCASE$(filename$)
  KILL "unlump1.tmp" + SLASH + filename$
 LOOP
 CLOSE #fh

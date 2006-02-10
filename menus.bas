@@ -769,7 +769,7 @@ DO
  strgrabber pas$, 17
  textcolor 7, 0
  printstr "You can require a password for this", 0, 0, dpage
- printstr "game to be opened in CUSTOM.EXE", 0, 8, dpage
+ printstr "game to be opened in " + CUSTOMEXE, 0, 8, dpage
  printstr "This does not encrypt your file, and", 0, 16, dpage
  printstr "should only be considered weak security", 0, 24, dpage
  printstr "PASSWORD", 30, 64, dpage

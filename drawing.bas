@@ -286,7 +286,7 @@ SUB loadpasdefaults (array(), tilesetnum)
 flusharray array(), 160, 0
 '--load defaults from tile set defaults file
 setpicstuf array(), 322, -1
-loadset workingdir$ + SLASH + "defpass.BIN" + CHR$(0), tilesetnum, 0
+loadset workingdir$ + SLASH + "defpass.bin" + CHR$(0), tilesetnum, 0
 '--enforce magic number and filesize
 IF array(160) <> 4444 THEN
  flusharray array(), 160, 0
@@ -440,7 +440,7 @@ savepasdefaults:
 defaults(160) = 4444
 '--write defaults into tile set defaults file
 setpicstuf defaults(), 322, -1
-storeset workingdir$ + SLASH + "defpass.BIN" + CHR$(0), pagenum, 0
+storeset workingdir$ + SLASH + "defpass.bin" + CHR$(0), pagenum, 0
 RETURN
 
 tilemode:

@@ -376,8 +376,7 @@ ELSE
   treec(treesize) = 2
   about$(treesize) = "Subdirectory"
   INPUT #fh, tree$(treesize)
-  tree$(treesize) = UCASE$(tree$(treesize))
-  IF tree$(treesize) = "." OR tree$(treesize) = ".." OR RIGHT$(tree$(treesize), 4) = ".TMP" THEN treesize = treesize - 1
+  IF tree$(treesize) = "." OR tree$(treesize) = ".." OR RIGHT$(tree$(treesize), 4) = ".tmp" THEN treesize = treesize - 1
   IF tree$(treesize) = "" THEN treesize = treesize - 1
   GOSUB drawmeter
  LOOP
@@ -502,7 +501,6 @@ FOR i = 0 TO drivetotal - 1
    OPEN tmpdir$ + "hrbrowse.tmp" FOR INPUT AS #fh
    IF LOF(fh) THEN
     INPUT #fh, a$
-    a$ = UCASE$(a$)
     b$ = ""
     FOR j = 1 TO LEN(a$)
      IF MID$(a$, j, 1) <> "." THEN b$ = b$ + MID$(a$, j, 1)
@@ -889,7 +887,7 @@ SUB fatalerror (e$)
 setvispage 0
 centerbox 160, 100, 300, 180, 3, 0
 edgeprint e$, xstring(e$, 160), 20, 15, 0
-edgeprint "Press ESC to cleanly close GAME.EXE", 15, 40, 7, 0
+edgeprint "Press ESC to cleanly close the program", 15, 40, 7, 0
 edgeprint "or any other key to ignore the", 15, 50, 7, 0
 edgeprint "error and try to continue playing.", 15, 60, 7, 0
 

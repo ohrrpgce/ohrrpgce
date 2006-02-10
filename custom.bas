@@ -129,8 +129,8 @@ DIM menu$(22), general(360), npc$(15), unpc(15), lnpc(15), keyv(55, 3), doors(30
 GOSUB listmake
 
 RANDOMIZE TIMER
-textxbload "ohrrpgce.mas", master(), "default master palette OHRRPGCE.MAS is missing"
-textxbload "ohrrpgce.fnt", font(), "default font OHRRPGCE.FNT is missing"
+textxbload "ohrrpgce.mas", master(), "default master palette ohrrpgce.mas is missing"
+textxbload "ohrrpgce.fnt", font(), "default font ohrrpgce.fnt is missing"
 setmodex
 ON ERROR GOTO modeXerr
 setpal master()
@@ -320,7 +320,7 @@ IF oldcrash = 1 THEN
  clearpage 0
  setvispage 0
  textcolor 15, 0
- printstr "Run CUSTOM.EXE again.", 0, 0, 0
+ printstr "Run " + CUSTOMEXE + " again.", 0, 0, 0
  w = getkey
  GOTO finis
 END IF
@@ -411,18 +411,18 @@ DO
     printstr "Data is corrupt, not safe to relump", 0, 100, vpage
     w = getkey
    ELSE '---END UNSAFE
-    printstr "Saving as " + a$ + ".BAK", 0, 180, vpage
+    printstr "Saving as " + a$ + ".bak", 0, 180, vpage
     printstr "LUMPING DATA: please wait...", 0, 190, vpage
     '--re-lump recovered files as BAK file
     filetolump$ = a$ + ".bak"
     GOSUB dolumpfiles
     clearpage vpage
     printstr "the recovered data has been saved.", 0, 0, vpage
-    printstr "if CUSTOM.EXE crashed last time you", 0, 8, vpage
+    printstr "if " + CUSTOMEXE + " crashed last time you", 0, 8, vpage
     printstr "ran it and you lost work, you may", 0, 16, vpage
     printstr "be able to recover it. Make a backup", 0, 24, vpage
-    printstr "copy of " + a$ + ".RPG and then rename", 0, 32, vpage
-    printstr a$ + ".BAK to " + a$ + ".RPG", 0, 40, vpage
+    printstr "copy of " + a$ + ".rpg and then rename", 0, 32, vpage
+    printstr a$ + ".bak to " + a$ + ".rpg", 0, 40, vpage
     printstr "If you have questions, ask", 0, 56, vpage
     printstr "ohrrpgce-crash@HamsterRepublic.com", 0, 64, vpage
     w = getkey
@@ -434,9 +434,9 @@ DO
  END IF
  textcolor 9, 0
  printstr a$ + " was found unlumped", 0, 0, dpage
- printstr "This may mean that CUSTOM.EXE crashed", 0, 40, dpage
+ printstr "This may mean that " + CUSTOMEXE + " crashed", 0, 40, dpage
  printstr "last time you used it, or it may mean", 0, 48, dpage
- printstr "that another copy of CUSTOM.EXE is", 0, 56, dpage
+ printstr "that another copy of " + CUSTOMEXE + " is", 0, 56, dpage
  printstr "already running in the background.", 0, 64, dpage
 
  standardmenu rpg$(), 2, 2, temp, 0, 0, 8, dpage, 0
@@ -567,7 +567,7 @@ DIM scroll(16002), pass(16002), emap(16002)
 RETURN
 
 tempDirErr:
-PRINT "Either CUSTOM.EXE is already running in the background, or it"
+PRINT "Either " + CUSTOMEXE + " is already running in the background, or it"
 PRINT "terminated incorrectly last time it was run, and was unable to clean up"
 PRINT "its temporary files. The operating system is denying access to the"
 PRINT "files in " + workingdir$
@@ -584,7 +584,7 @@ IF LEN(unsafefile$) THEN
  GOSUB cleanupfiles
 END IF
 crashexplain
-PRINT "Game:"; gamedir$ + SLASH + gamefile$ + ".RPG"
+PRINT "Game:"; gamedir$ + SLASH + gamefile$ + ".rpg"
 '--crash and print the error
 ON ERROR GOTO 0
 
@@ -618,7 +618,6 @@ IF nocleanup = 0 THEN
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
   INPUT #fh, filename$
-  filename$ = UCASE$(filename$)
   KILL workingdir$ + SLASH + filename$
  LOOP
  CLOSE #fh
@@ -840,7 +839,7 @@ OPEN f$ FOR OUTPUT AS #ofh
 ifh = FREEFILE
 OPEN "fixorder.tmp" FOR INPUT AS #ifh
 
-'--first output the ARCHINYM.LMP and BROWSE.TXT files
+'--first output the archinym.lmp and browse.txt files
 WHILE NOT EOF(ifh)
  LINE INPUT #ifh, a$
  b$ = LCASE$(a$)
@@ -1685,8 +1684,8 @@ IF NOT isfile(workingdir$ + SLASH + "attack.bin" + CHR$(0)) THEN
 END IF
 
 '--check variable record size lumps and reoutput them if records have been extended
-updaterecordlength workingdir$ + SLASH + "ATTACK.BIN", 0
-updaterecordlength game$ + ".STF", 1
+updaterecordlength workingdir$ + SLASH + "attack.bin", 0
+updaterecordlength game$ + ".stf", 1
 
 '--update to new (3rd) password format
 IF general(5) < 256 THEN

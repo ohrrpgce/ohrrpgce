@@ -82,7 +82,7 @@ browse$ = ""
 'special=2   16 color BMP
 'special=3   background
 'special=4   master palette
-'special=5   any supported music (currently *.BAM and *.MID)  (fmask$ is ignored)
+'special=5   any supported music (currently *.bam and *.mid)  (fmask$ is ignored)
 mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
 
@@ -251,8 +251,7 @@ ELSE
   treesize = treesize + 1
   treec(treesize) = 2
   INPUT #fh, tree$(treesize)
-  tree$(treesize) = UCASE$(tree$(treesize))
-  IF tree$(treesize) = "." OR tree$(treesize) = ".." OR RIGHT$(tree$(treesize), 4) = ".TMP" THEN treesize = treesize - 1
+  IF tree$(treesize) = "." OR tree$(treesize) = ".." OR RIGHT$(tree$(treesize), 4) = ".tmp" THEN treesize = treesize - 1
  LOOP
  CLOSE #fh
  safekill tmp$ + "hrbrowse.tmp"
@@ -581,7 +580,7 @@ FOR i = 0 TO 1
  clearpage i
  printstr e$, 0, 0, i
  printstr "an error has occured. Press ESC to", 0, 16, i
- printstr "close CUSTOM.EXE or press any other", 0, 24, i
+ printstr "close " + CUSTOMEXE + " or press any other", 0, 24, i
  printstr "key to try to continue. If the", 0, 32, i
  printstr "error keeps happening, send e-mail to", 0, 40, i
  printstr "ohrrpgce-crash@HamsterRepublic.com", 0, 48, i
@@ -603,7 +602,6 @@ IF w = 1 THEN
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
   INPUT #fh, filename$
-  filename$ = UCASE$(filename$)
   KILL workingdir$ + SLASH + filename$
  LOOP
  CLOSE #fh
@@ -773,8 +771,8 @@ DIM menu$(5)
 
 menumax = 2
 menu$(0) = "Previous Menu"
-menu$(1) = "export names for scripts (.HSI)"
-menu$(2) = "import compiled plotscripts (.HS)"
+menu$(1) = "export names for scripts (.hsi)"
+menu$(2) = "import compiled plotscripts (.hs)"
 
 setkeys
 DO
@@ -802,12 +800,12 @@ DO
      ELSE
       texty = 0
       printstr f$, 0, texty * 8, vpage: texty = texty + 1
-      printstr "is not really a compiled .HS file.", 0, texty * 8, vpage: texty = texty + 1
+      printstr "is not really a compiled .hs file.", 0, texty * 8, vpage: texty = texty + 1
       printstr "Did you create it by compiling a", 0, texty * 8, vpage: texty = texty + 1
-      printstr "script file with HSPEAK.EXE, or did", 0, texty * 8, vpage: texty = texty + 1
+      printstr "script file with hspeak.exe, or did", 0, texty * 8, vpage: texty = texty + 1
       printstr "you just give your script a name that", 0, texty * 8, vpage: texty = texty + 1
-      printstr "ends in .HS and hoped it would work?", 0, texty * 8, vpage: texty = texty + 1
-      printstr "Use HSPEAK.EXE to create real .HS files", 0, texty * 8, vpage: texty = texty + 1
+      printstr "ends in .hs and hoped it would work?", 0, texty * 8, vpage: texty = texty + 1
+      printstr "Use hspeak.exe to create real .hs files", 0, texty * 8, vpage: texty = texty + 1
      END IF
      setvispage vpage 'force refresh for FB
      w = getkey
@@ -1775,12 +1773,12 @@ END FUNCTION
 
 FUNCTION validmusicfile (file$)
 '-- actually, doesn't need to be a music file, but only multi-filetype imported data right now
-ext$ = UCASE$(RIGHT$(file$, 4))
+ext$ = LCASE$(RIGHT$(file$, 4))
 SELECT CASE ext$
- CASE ".BAM"
+ CASE ".bam"
   a$ = "    "
   realhd$ = "CBMF"
- CASE ".MID"
+ CASE ".mid"
   a$ = "    "
   realhd$ = "MThd"
 END SELECT

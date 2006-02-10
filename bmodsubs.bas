@@ -597,9 +597,6 @@ ELSE
  getbinsize = defbinsize(id)
 END IF
 
-'0  ATTACK.BIN
-'1 .STF
-
 END FUNCTION
 
 SUB heroanim (who, atk(), x(), y(), w(), h(), t())

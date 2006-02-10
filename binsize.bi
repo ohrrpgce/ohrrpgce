@@ -1,8 +1,8 @@
-'OHRRPGCE - Extendable recordsize arrays for use with BINSIZE.BIN
+'OHRRPGCE - Extendable recordsize arrays for use with binsize.bin
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 
 'GAME and CUSTOM share this file to keep everything in one place
-'See BINSIZE.BIN documentation page on the wiki for more info
+'See binsize.bin documentation page on the wiki for more info
 
 DIM defbinsize(1), curbinsize(1)
 

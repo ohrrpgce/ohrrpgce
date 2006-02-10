@@ -26,7 +26,7 @@ SUB crashexplain
 	PRINT
 	PRINT version$
 	PRINT "Memory Info:"; SETMEM(0); FRE(-1); FRE(-2); FRE(0)
-	PRINT "Executable: "; progdir$ + exename$ + ".EXE"
+	PRINT "Executable: "; progdir$ + exename$ + ".exe"
 	PRINT "RPG file: "; sourcerpg$
 END SUB
 

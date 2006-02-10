@@ -19,3 +19,4 @@ DECLARE FUNCTION getcommandline$ ()
 DECLARE SUB romfontchar (font%(), char%)
 
 CONST SLASH = "\"
+CONST CUSTOMEXE = "CUSTOMQB.EXE"
