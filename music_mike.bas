@@ -19,6 +19,26 @@ option explicit
 #include "win/mmsystem.bi"
 #undef MIDIEVENT
 #undef createevent
+#undef lockfile
+
+
+#IFDEF IS_GAME
+TYPE Regtype
+ ax AS INTEGER
+ bx AS INTEGER
+ cx AS INTEGER
+ dx AS INTEGER
+ bp AS INTEGER
+ si AS INTEGER
+ di AS INTEGER
+ flags AS INTEGER
+ ds AS INTEGER
+ es AS INTEGER
+END TYPE
+#include gglobals.bi
+#ENDIF
+
+
 
 
 
@@ -64,7 +84,8 @@ End Type
 declare sub debug(s$)
 declare sub bam2mid(infile as string, outfile as string)
 declare function isfile(n$) as integer
-
+DECLARE FUNCTION readbit (b(), BYVAL w, BYVAL b)
+DECLARE SUB setbit (b(), BYVAL w, BYVAL b, BYVAL v)
 
 
 DECLARE Function GetVLQ(Byval track as MidiTrack ptr,ByRef p as integer) as integer
@@ -452,13 +473,15 @@ Sub ConvertToRelative(head as MidiEvent ptr)
 
  	Loop
 	curevent = head
+	'debug "Event times:"
  	Do while curevent
 
 		curevent->time = curevent->tmp
+	'	debug "->" + str(curevent->tmp)
  		curevent = curevent->next
 
  	Loop
-
+	'debug "End of event times"
 end Sub
 
 
@@ -500,7 +523,6 @@ end sub
 
 Sub AddJumpToEnd(head as MidiEvent ptr)
 	'traverse the tree - ugh
-	exit sub
 	dim curevent as midievent ptr
 	curevent = head
 	do
@@ -511,7 +533,7 @@ Sub AddJumpToEnd(head as MidiEvent ptr)
 		end if
 	loop
 
-	curevent->next = CreateEvent(&HF0,0,0,0)
+	curevent->next = CreateEvent(&H0,0,0,0)
 	if not curevent->next then exit sub
 
 	curevent = curevent->next
@@ -611,14 +633,14 @@ sub music_play(songname as string, fmt as music_format)
 		'stop current song
 		if music_song <> 0 then
 			music_playing = 0
-			debug "waiting for music thread..."
+			'debug "waiting for music thread..."
 			if playback_thread then threadWait playback_thread: playback_Thread = 0
-			debug "done"
+			'debug "done"
 			resetmidi
 			'Mix_FreeMusic(music_song)
-			debug "Freeing existing song"
+			'debug "Freeing existing song"
 			FreeMidiEventList(music_song)
-			debug "done"
+			'debug "done"
 			music_song = 0
 			music_paused = 0
 		end if
@@ -629,6 +651,9 @@ sub music_play(songname as string, fmt as music_format)
 			debug "Could not load song " + songname
 			exit sub
 		end if
+
+		converttorelative music_song
+		addJumpToEnd music_song
 
 		'Mix_HookMusic(@sysex_callback,NULL)
 		sysex_cb = @sysex_callback
@@ -709,6 +734,13 @@ end sub
 
 Sub PlayBackThread(dummy as integer)
 dim curtime as integer, curevent as MIDIEvent ptr, starttime as double, delta as double, tempo as integer, delay as double
+dim played as integer
+dim labels(15) as midievent ptr, jumpcount(15) as integer
+labels(0) = music_song
+for curtime = 0 to 15
+	jumpcount(15) = -1
+next
+
 tempo = 500000 'assume 120 bmp
 
 curevent = music_song
@@ -724,22 +756,88 @@ do while music_playing
 	'print cint(curevent->time) - curtime
 	if music_playing = 0 then exit sub
 
+	windowtitle str(curtime) + " " + str(curevent->time)
+
 	if cint(curevent->time) - curtime > 0 then
 		goto skipevents
 	end if
 
-
+	played = 0
 	do
 		if not curevent then exit do
 		if cint(curevent->time) - curtime > 0 then exit do
-		if music_playing = 0 then exit sub
 		curtime = 0
+		if music_playing = 0 then exit sub
+		'curtime = 0
 		select case curevent->status
-		case &H80 to &HF0 'reg-oo-lar event
+		case &HB0 to &HBF 'controller
+			if curevent->data(0) = &H6F then 'rpg maker loop point
+				labels(0) = curevent
+			else
+				shortMidi curevent->status,curevent->data(0),curevent->data(1)
+			end if
+		case &H80 to &HEF 'reg-oo-lar event
 			shortMidi curevent->status,curevent->data(0),curevent->data(1)
-		case &HF0 'Sysex
-			if sysex_cb then
-				sysex_cb(curevent->extraData, curevent->extralen)
+		case &H0, &HF0 'Sysex
+			'if sysex_cb then
+			'	sysex_cb(curevent->extraData, curevent->extralen)
+			'end if
+			debug("Sysex")
+			'first, check the id
+			dim sysex_id as uinteger, p as integer
+			p = 0
+			sysex_id = *cptr(uinteger ptr, curevent->extradata + p)
+			sysex_id = BE_LONG(sysex_id)
+			debug str(sysex_id) + " " + str(SIG_ID("O","H","R","m"))
+			if sysex_id = SIG_ID("O","H","R","m") then
+			p += 4
+sysex:
+				debug "Music code: " + hex(curevent->extradata[p])
+				select case curevent->extradata[p]
+				case &H0 'stop
+					music_playing = 0
+					exit sub
+				case &H1 'set label (should be removed to an initial scan)
+					p += 1
+					labels(curevent->extradata[p]) = curevent
+				case &H2 'jump
+					p += 1
+					curevent = labels(curevent->extradata[p])
+				case &H3 'limited jump
+					p +=1
+					if labels(curevent->extradata[p+1]) then
+						if jumpcount(curevent->extradata[p]) = -1 then
+							'new jump
+							jumpcount(curevent->extradata[p]) = curevent->extradata[p+2] - 1
+							curevent = labels(curevent->extradata[p+1])
+						elseif labels(curevent->extradata[p]) = 0 then
+							'end of jump
+							jumpcount(curevent->extradata[p]) = -1
+						elseif labels(curevent->extradata[p]) > 0 then
+							'middle of jump
+							jumpcount(curevent->extradata[p]) -= 1
+							curevent = labels(curevent->extradata[p+1])
+						else
+							'invalid???
+							jumpcount(curevent->extradata[p]) = -1
+						end if
+					end if
+				case &H4 'chorus
+				case &H5 'return
+				#IFNDEF IS_CUSTOM
+				case &H6 'unset tag
+					p +=1
+					debug "Unset tag # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
+					setbit tag(), 0, BE_SHORT(*Cptr(short ptr, curevent->extradata + p)), 0
+				case &H7 'set tag
+					p +=1
+					debug "Set tag # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
+					setbit tag(), 0, BE_SHORT(*Cptr(short ptr, curevent->extradata + p)), 1
+				case &H8 'set variable
+				case &H9 'variable ++
+				case &HA 'variable --
+				#ENDIF
+				end select
 			end if
 		case &HFF
 			dim metatype as integer
@@ -756,6 +854,8 @@ do while music_playing
 			case else
 				'print "Unknown event (" + hex(metatype) + ")"
 			end select
+		case else
+			debug("Unknown status: " + hex(curevent->status))
 		end select
 		curevent = curevent->next
 	loop while music_playing
@@ -765,9 +865,9 @@ skipevents:
 	if music_playing = 0 then exit sub
 
 	if not curevent then
-		curevent = music_song
-		curtime = 0
-		starttime = timer
+		music_playing = 0
+
+		exit sub
 	end if
 
 	do
@@ -780,9 +880,9 @@ loop
 exit sub
 
 updateDelay:
-debug "old delay:" + str(delay)
+'debug "old delay:" + str(delay)
 delay = tempo / division / 1050000
-debug "new delay:" + str(delay)
+'debug "new delay:" + str(delay)
 return
 End Sub
 
