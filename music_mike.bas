@@ -736,7 +736,7 @@ end sub
 Sub PlayBackThread(dummy as integer)
 dim curtime as integer, curevent as MIDIEvent ptr, starttime as double, delta as double, tempo as integer, delay as double
 dim played as integer
-dim labels(15) as midievent ptr, jumpcount(15) as integer
+dim labels(15) as midievent ptr, jumpcount(15) as integer, choruswas as MIDIEvent ptr
 labels(0) = music_song
 for curtime = 0 to 15
 	jumpcount(15) = -1
@@ -826,7 +826,16 @@ sysex:
 						end if
 					end if
 				case &H4 'chorus
+					p+=1
+					if not choruswas then
+						choruswas = curevent
+						curevent = labels(curevent->extradata[p])
+					end if
 				case &H5 'return
+					if choruswas then
+						curevent = choruswas
+						choruswas = 0
+					end if
 				#IFNDEF IS_CUSTOM
 				case &H6 'unset tag
 					p +=1
