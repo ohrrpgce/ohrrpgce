@@ -732,7 +732,7 @@ ELSE
  a$ = STRING$(length, 0)
  getstring a$
  FOR i = LEN(a$) TO 1 STEP -1
-  IF MID$(a$, i, 1) = "\" OR MID$(a$, i, 1) = ":" THEN EXIT FOR
+  IF MID$(a$, i, 1) = SLASH OR MID$(a$, i, 1) = ":" THEN EXIT FOR
   IF MID$(a$, i, 1) <> CHR$(0) THEN
    result$ = MID$(a$, i, 1) + result$
   END IF
@@ -745,7 +745,7 @@ END IF
 IF failed THEN
  '--failed, return input (minus path)
  FOR i = LEN(filename$) TO 1 STEP -1
-  IF MID$(filename$, i, 1) = "\" OR MID$(filename$, i, 1) = ":" THEN EXIT FOR
+  IF MID$(filename$, i, 1) = SLASH OR MID$(filename$, i, 1) = ":" THEN EXIT FOR
   result$ = MID$(filename$, i, 1) + result$
  NEXT i
 END IF
@@ -1081,7 +1081,7 @@ END SUB
 SUB loadtemppage (page)
 '--reads a previously stored page from a temporary file
 setdiskpages buffer(), 200, 0
-loadpage workingdir$ + "\temppage.tmp" + CHR$(0), 0, page
+loadpage workingdir$ + SLASH + "temppage.tmp" + CHR$(0), 0, page
 END SUB
 
 SUB oobcure (w, t, atk, spred, stat())
@@ -1551,7 +1551,7 @@ END FUNCTION
 SUB savetemppage (page)
 '--writes a page into a temp file for situations where we need more pages than we have
 setdiskpages buffer(), 200, 0
-storepage workingdir$ + "\temppage.tmp" + CHR$(0), 0, page
+storepage workingdir$ + SLASH + "temppage.tmp" + CHR$(0), 0, page
 END SUB
 
 SUB sellstuff (id, storebuf(), stock(), stat())
@@ -1792,7 +1792,7 @@ FOR i = 0 TO 23
   spel(i) = spell(pt, spid(csr), i) - 1
   'flusharray buffer(), 39 + curbinsize(0) / 2
   setpicstuf buffer(), getbinsize(0),-1
-  loadset workingdir$ + "\attack.bin" + CHR$(0), spel(i), 0
+  loadset workingdir$ + SLASH + "attack.bin" + CHR$(0), spel(i), 0
   FOR j = getbinsize(0) / 2 - 1 TO 0 STEP -1
    buffer(40 + j) = buffer(j)
   NEXT j

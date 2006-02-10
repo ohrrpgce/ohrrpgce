@@ -277,7 +277,7 @@ ELSE
  a$ = STRING$(length, 0)
  getstring a$
  FOR i = LEN(a$) TO 1 STEP -1
-  IF MID$(a$, i, 1) = "\" OR MID$(a$, i, 1) = ":" THEN EXIT FOR
+  IF MID$(a$, i, 1) = SLASH OR MID$(a$, i, 1) = ":" THEN EXIT FOR
   IF MID$(a$, i, 1) <> CHR$(0) THEN
    result$ = MID$(a$, i, 1) + result$
   END IF
@@ -290,7 +290,7 @@ END IF
 IF failed THEN
  '--failed, return input (minus path)
  FOR i = LEN(filename$) TO 1 STEP -1
-  IF MID$(filename$, i, 1) = "\" OR MID$(filename$, i, 1) = ":" THEN EXIT FOR
+  IF MID$(filename$, i, 1) = SLASH OR MID$(filename$, i, 1) = ":" THEN EXIT FOR
   result$ = MID$(filename$, i, 1) + result$
  NEXT i
 END IF
@@ -483,19 +483,19 @@ SUB textfatalerror (e$)
 
 debug "fatal error:" + e$
 
-touchfile workingdir$ + "\__danger.tmp"
+touchfile workingdir$ + SLASH + "__danger.tmp"
 
 PRINT "fatal error:"
 PRINT e$
 
 'borrowed this code from game.bas cos wildcard didn't work
-findfiles workingdir$ + "\*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
+findfiles workingdir$ + SLASH + "*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
 fh = FREEFILE
 OPEN "filelist.tmp" FOR INPUT AS #fh
 DO UNTIL EOF(fh)
 INPUT #fh, filename$
 filename$ = UCASE$(filename$)
-KILL workingdir$ + "\" + filename$
+KILL workingdir$ + SLASH + filename$
 LOOP
 CLOSE #fh
 KILL "filelist.tmp"
@@ -509,23 +509,23 @@ FUNCTION unlumpone (lumpfile$, onelump$, asfile$)
 unlumpone = 0
 
 IF NOT isdir("unlump1.tmp" + CHR$(0)) THEN MKDIR "unlump1.tmp"
-CALL unlump(lumpfile$ + CHR$(0), "unlump1.tmp\", buffer())
+CALL unlump(lumpfile$ + CHR$(0), "unlump1.tmp" + SLASH, buffer())
 
-IF isfile("unlump1.tmp\" + onelump$ + CHR$(0)) THEN
- copyfile "unlump1.tmp\" + onelump$ + CHR$(0), asfile$ + CHR$(0), buffer()
+IF isfile("unlump1.tmp" + SLASH + onelump$ + CHR$(0)) THEN
+ copyfile "unlump1.tmp" +SLASH + onelump$ + CHR$(0), asfile$ + CHR$(0), buffer()
  unlumpone = -1
 END IF
 
-touchfile "unlump1.tmp\nothing.tmp"
+touchfile "unlump1.tmp" + SLASH + "nothing.tmp"
 
 'borrowed this code from game.bas cos wildcard didn't work
-findfiles "unlump1.tmp\*.*" + chr$(0), 0, "unlist.tmp" + CHR$(0), buffer()
+findfiles "unlump1.tmp" + SLASH + "*.*" + chr$(0), 0, "unlist.tmp" + CHR$(0), buffer()
 fh = FREEFILE
 OPEN "unlist.tmp" FOR INPUT AS #fh
 DO UNTIL EOF(fh)
  INPUT #fh, filename$
  filename$ = UCASE$(filename$)
- KILL "unlump1.tmp\" + filename$
+ KILL "unlump1.tmp" + SLASH + filename$
 LOOP
 CLOSE #fh
 KILL "unlist.tmp"
@@ -538,7 +538,7 @@ SUB updaterecordlength (lumpf$, bindex)
 IF getbinsize(bindex) < curbinsize(bindex) THEN
  printstr "Upgrading " + lumpf$ + " to new record size...", 0, 10, vpage
 
- tempf$ = workingdir$ + "\" + "resize.tmp"
+ tempf$ = workingdir$ + SLASH + "resize.tmp"
 
  oldsize = getbinsize(bindex)
  newsize = curbinsize(bindex)

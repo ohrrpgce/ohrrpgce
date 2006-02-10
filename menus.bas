@@ -627,12 +627,12 @@ ELSE
  readscatter pas$, general(94), 200
  pas$ = rotascii(pas$, general(93) * -1)
 END IF
-IF isfile(workingdir$ + "\browse.txt" + CHR$(0)) THEN
+IF isfile(workingdir$ + SLASH + "browse.txt" + CHR$(0)) THEN
  setpicstuf buffer(), 40, -1
- loadset workingdir$ + "\browse.txt" + CHR$(0), 0, 0
+ loadset workingdir$ + SLASH + "browse.txt" + CHR$(0), 0, 0
  longname$ = STRING$(bound(buffer(0), 0, 38), " ")
  array2str buffer(), 2, longname$
- loadset workingdir$ + "\browse.txt" + CHR$(0), 1, 0
+ loadset workingdir$ + SLASH + "browse.txt" + CHR$(0), 1, 0
  aboutline$ = STRING$(bound(buffer(0), 0, 38), " ")
  array2str buffer(), 2, aboutline$
 END IF
@@ -653,10 +653,10 @@ writescatter oldpas$, general(94), 200
 setpicstuf buffer(), 40, -1
 buffer(0) = bound(LEN(longname$), 0, 38)
 str2array longname$, buffer(), 2
-storeset workingdir$ + "\browse.txt" + CHR$(0), 0, 0
+storeset workingdir$ + SLASH + "browse.txt" + CHR$(0), 0, 0
 buffer(0) = bound(LEN(aboutline$), 0, 38)
 str2array aboutline$, buffer(), 2
-storeset workingdir$ + "\browse.txt" + CHR$(0), 1, 0
+storeset workingdir$ + SLASH + "browse.txt" + CHR$(0), 1, 0
 RETURN
 
 renrpg:
@@ -675,7 +675,7 @@ DO
    IF NOT isfile(newgame$ + ".rpg" + CHR$(0)) THEN
     textcolor 10, 0
     printstr "Finding files...", 0, 30, vpage
-    findfiles workingdir$ + "\" + oldgame$ + ".*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
+    findfiles workingdir$ + SLASH + oldgame$ + ".*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
     fh = FREEFILE
     OPEN "temp.lst" FOR APPEND AS #fh
     WRITE #fh, "-END OF LIST-"
@@ -689,24 +689,24 @@ DO
      INPUT #fh, temp$
      IF temp$ = "-END OF LIST-" THEN EXIT DO
      printstr " " + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)) + " ", 0, 50, vpage
-     copyfile workingdir$ + "\" + temp$ + CHR$(0), workingdir$ + "\" + newgame$ + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)) + CHR$(0), buffer()
-     KILL workingdir$ + "\" + temp$
+     copyfile workingdir$ + SLASH + temp$ + CHR$(0), workingdir$ + SLASH + newgame$ + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)) + CHR$(0), buffer()
+     KILL workingdir$ + SLASH + temp$
     LOOP
     CLOSE #fh
     KILL "temp.lst"
     '--update archinym information lump
     fh = FREEFILE
-    IF isfile(workingdir$ + "\archinym.lmp" + CHR$(0)) THEN
-     OPEN workingdir$ + "\archinym.lmp" FOR INPUT AS #fh
+    IF isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
+     OPEN workingdir$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
      LINE INPUT #fh, oldversion$
      LINE INPUT #fh, oldversion$
      CLOSE #fh
     END IF
-    OPEN workingdir$ + "\archinym.lmp" FOR OUTPUT AS #fh
+    OPEN workingdir$ + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
     PRINT #fh, newgame$
     PRINT #fh, oldversion$
     CLOSE #fh
-    game$ = workingdir$ + "\" + newgame$
+    game$ = workingdir$ + SLASH + newgame$
    ELSE '---IN CASE FILE EXISTS
     edgeprint newgame$ + " Already Exists. Cannot Rename.", 0, 30, 15, vpage
     w = getkey
@@ -909,7 +909,7 @@ getinfo:
 stopsong
 
 '-- first job: find the song's name
-temp$ = workingdir$ + "\song" + intstr$(snum)
+temp$ = workingdir$ + SLASH + "song" + intstr$(snum)
 songfile$ = ""
 songtype$ = "NO FILE"
 '-- BAM special case and least desirable, so check first and override
@@ -962,7 +962,7 @@ IF sourcesong$ <> "" THEN
  IF LCASE$(RIGHT$(sourcesong$, 4)) = ".bam" AND snum <= 99 THEN
   songfile$ = game$ + "." + intstr$(snum)
  ELSE
-  songfile$ = workingdir$ + "\song" + intstr$(snum) + MID$(sourcesong$, INSTR(sourcesong$, "."))
+  songfile$ = workingdir$ + SLASH + "song" + intstr$(snum) + MID$(sourcesong$, INSTR(sourcesong$, "."))
  END IF
  copyfile sourcesong$ + CHR$(0), songfile$ + CHR$(0), buffer()
  a$ = getLongName$(sourcesong$)

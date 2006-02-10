@@ -358,7 +358,7 @@ FUNCTION maplumpname$ (map, oldext$)
  IF map < 100 THEN
   maplumpname$ = game$ + "." + oldext$ + RIGHT$("0" + LTRIM$(STR$(map)), 2)
  ELSE
-  maplumpname$ = workingdir$ + "\" + LTRIM$(STR$(map)) + "." + oldext$
+  maplumpname$ = workingdir$ + SLASH + LTRIM$(STR$(map)) + "." + oldext$
  END IF
 END FUNCTION
 
@@ -495,7 +495,7 @@ END SUB
 
 SUB checklumpmod
  IF readbit(lumpmod(),0,0) THEN
-  unlumpfile sourcerpg$ + CHR$(0), "*.DT1", workingdir$ + "\", buffer()
+  unlumpfile sourcerpg$ + CHR$(0), "*.DT1", workingdir$ + SLASH, buffer()
   setbit lumpmod(),0,0,0
  END IF
 
@@ -520,9 +520,8 @@ loadpage game$ + ".til" + CHR$(0), gmap(0), 3
 END SUB
 
 SUB cleanuptemp
-KILL workingdir$ + "\lockfile.tmp"
-'KILL workingdir$ + "\*.*"
-findfiles workingdir$ + "\*.*" + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
+KILL workingdir$ + SLASH + "lockfile.tmp"
+findfiles workingdir$ + SLASH + "*.*" + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
 fh = FREEFILE
 OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
 DO UNTIL EOF(fh)
@@ -533,7 +532,7 @@ DO UNTIL EOF(fh)
  ELSE
   '-- delte file
  END IF
- KILL workingdir$ + "\" + filename$
+ KILL workingdir$ + SLASH + filename$
 LOOP
 CLOSE #fh
 KILL tmpdir$ + "filelist.tmp"

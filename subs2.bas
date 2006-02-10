@@ -109,7 +109,7 @@ FOR i = 0 TO 25
 NEXT i
 
 remember$ = STRING$(pathlength, 0): getstring remember$
-IF RIGHT$(remember$, 1) <> "\" THEN remember$ = remember$ + "\"
+IF RIGHT$(remember$, 1) <> SLASH THEN remember$ = remember$ + SLASH
 IF default$ = "" THEN
  nowdir$ = remember$
 ELSE
@@ -186,7 +186,7 @@ DO
     NEXT i
     GOSUB context
    CASE 2
-    nowdir$ = nowdir$ + tree$(treeptr) + "\"
+    nowdir$ = nowdir$ + tree$(treeptr) + SLASH
     GOSUB context
    CASE 3
     browse$ = nowdir$ + tree$(treeptr)
@@ -228,7 +228,7 @@ ELSE
  a = ASC(LEFT$(nowdir$, 1)) - 64
  FOR i = 0 TO drivetotal - 1
   'IF a = drive(i) THEN tree$(treesize) = drive$(i)
-  IF a = drive(i) THEN tree$(treesize) = CHR$(64 + drive(i)) + ":\"
+  IF a = drive(i) THEN tree$(treesize) = CHR$(64 + drive(i)) + ":" + SLASH
  NEXT i
  treec(treesize) = 0
  a$ = RIGHT$(nowdir$, LEN(nowdir$) - 3)
@@ -236,7 +236,7 @@ ELSE
  DO UNTIL a$ = "" OR treesize >= 255
   b$ = b$ + LEFT$(a$, 1)
   a$ = RIGHT$(a$, LEN(a$) - 1)
-  IF RIGHT$(b$, 1) = "\" THEN
+  IF RIGHT$(b$, 1) = SLASH THEN
    treesize = treesize + 1
    tree$(treesize) = b$
    treec(treesize) = 1
@@ -399,7 +399,7 @@ IF bytes >= 0 THEN
  setpicstuf buffer(), bytes, -1
  FOR i = 0 TO index
   loadset lump$ + CHR$(0), i, 0
-  storeset workingdir$ + "\_cropped.tmp" + CHR$(0), i, 0
+  storeset workingdir$ + SLASH + "_cropped.tmp" + CHR$(0), i, 0
  NEXT i
  IF flushafter THEN
   'FOR i = 0 TO INT(bytes / 2) + 1
@@ -407,7 +407,7 @@ IF bytes >= 0 THEN
   'NEXT i
   flusharray buffer(), INT(bytes / 2) + 1, 0
   FOR i = index + 1 TO limit
-   storeset workingdir$ + "\_cropped.tmp" + CHR$(0), i, 0
+   storeset workingdir$ + SLASH + "_cropped.tmp" + CHR$(0), i, 0
   NEXT i
  ELSE
   limit = index
@@ -417,14 +417,14 @@ ELSE '--use pages instead of sets
  setdiskpages buffer(), 200, 0
  FOR i = 0 TO index
   loadpage lump$ + CHR$(0), i, flushafter
-  storepage workingdir$ + "\_cropped.tmp" + CHR$(0), i, flushafter
+  storepage workingdir$ + SLASH + "_cropped.tmp" + CHR$(0), i, flushafter
  NEXT i
  limit = index
  
 END IF'--separate setpicstuf and setdiskpages
 
-copyfile workingdir$ + "\_cropped.tmp" + CHR$(0), lump$ + CHR$(0), buffer()
-safekill workingdir$ + "\_cropped.tmp"
+copyfile workingdir$ + SLASH + "_cropped.tmp" + CHR$(0), lump$ + CHR$(0), buffer()
+safekill workingdir$ + SLASH + "_cropped.tmp"
 
 END SUB
 
@@ -483,7 +483,7 @@ stat$(9) = names$(7)
 stat$(10) = names$(31)
 stat$(11) = names$(4)
 
-outf$ = gamedir$ + "\" + RIGHT$(game$, LEN(game$) - 12) + ".hsi"
+outf$ = gamedir$ + SLASH + RIGHT$(game$, LEN(game$) - 12) + ".hsi"
 
 clearpage 0
 clearpage 1
@@ -592,19 +592,19 @@ w = getkey
 IF w = 1 THEN
  restoremode
  
- touchfile workingdir$ + "\__danger.tmp"
+ touchfile workingdir$ + SLASH + "__danger.tmp"
  
  PRINT "fatal error:"
  PRINT e$
  
  'borrowed this code from game.bas cos wildcard didn't work in FB
- findfiles workingdir$ + "\*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
+ findfiles workingdir$ + SLASH + "*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
   INPUT #fh, filename$
   filename$ = UCASE$(filename$)
-  KILL workingdir$ + "\" + filename$
+  KILL workingdir$ + SLASH + filename$
  LOOP
  CLOSE #fh
  KILL "filelist.tmp"
@@ -682,14 +682,14 @@ length = -1
 IF length = -1 THEN
  '--failed, return input (minus path)
  FOR i = LEN(filename$) TO 1 STEP -1
-  IF MID$(filename$, i, 1) = "\" OR MID$(filename$, i, 1) = ":" THEN EXIT FOR
+  IF MID$(filename$, i, 1) = SLASH OR MID$(filename$, i, 1) = ":" THEN EXIT FOR
   result$ = MID$(filename$, i, 1) + result$
  NEXT i
 ELSE
  a$ = STRING$(length, 0)
  getstring a$
  FOR i = LEN(a$) TO 1 STEP -1
-  IF MID$(a$, i, 1) = "\" OR MID$(a$, i, 1) = ":" THEN EXIT FOR
+  IF MID$(a$, i, 1) = SLASH OR MID$(a$, i, 1) = ":" THEN EXIT FOR
   result$ = MID$(a$, i, 1) + result$
  NEXT i
 END IF
@@ -827,9 +827,9 @@ EXIT SUB
 maknamlst:
 textcolor 7, 0
 textx = 0: texty = 0
-dummy = unlumpone(game$ + ".hsp", "scripts.txt", workingdir$ + "\scripts.txt")
+dummy = unlumpone(game$ + ".hsp", "scripts.txt", workingdir$ + SLASH + "scripts.txt")
 fptr = FREEFILE
-OPEN workingdir$ + "\scripts.txt" FOR INPUT AS #fptr
+OPEN workingdir$ + SLASH + "scripts.txt" FOR INPUT AS #fptr
 setpicstuf buffer(), 40, -1
 general(40) = 0
 general(43) = 0
@@ -846,7 +846,7 @@ DO
  buffer(0) = str2int(num$)
  buffer(1) = LEN(names$)
  str2array names$, buffer(), 4
- storeset workingdir$ + "\plotscr.lst" + CHR$(0), general(40), 0
+ storeset workingdir$ + SLASH + "plotscr.lst" + CHR$(0), general(40), 0
  general(40) = general(40) + 1
  IF buffer(0) > general(43) AND buffer(0) < 16384 THEN general(43) = buffer(0)
  IF textx + LEN(names$) + 1 >= 40 THEN
@@ -865,7 +865,7 @@ DO
  END IF
 LOOP
 CLOSE #fptr
-safekill workingdir$ + "\scripts.txt"
+safekill workingdir$ + SLASH + "scripts.txt"
 RETURN
 
 END SUB
@@ -875,7 +875,7 @@ a$ = LTRIM$(STR$(num))
 IF num THEN
  setpicstuf buffer(), 40, -1
  FOR i = 0 TO general(40) - 1
-  loadset workingdir$ + "\" + f$ + CHR$(0), i, 0
+  loadset workingdir$ + SLASH + f$ + CHR$(0), i, 0
   IF buffer(0) = num THEN
    a$ = STRING$(small(large(buffer(1), 0), 38), " ")
    array2str buffer(), 4, a$

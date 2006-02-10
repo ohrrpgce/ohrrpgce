@@ -1208,6 +1208,6 @@ FUNCTION maplumpname$(map, oldext$)
  IF map < 100 THEN
   maplumpname$ = game$ + "." + oldext$ + filenum$(map)
  ELSE
-  maplumpname$ = workingdir$ + "\" + LTRIM$(STR$(map)) + "." + oldext$
+  maplumpname$ = workingdir$ + SLASH + LTRIM$(STR$(map)) + "." + oldext$
  END IF
 END FUNCTION
