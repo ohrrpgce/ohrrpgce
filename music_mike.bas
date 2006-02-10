@@ -21,6 +21,7 @@ option explicit
 #undef createevent
 #undef lockfile
 
+#DEFINE ESCAPE_SEQUENCE Exit Sub
 
 #IFDEF IS_GAME
 TYPE Regtype
@@ -754,20 +755,22 @@ do while music_playing
 	curtime += delta / delay
 	starttime = timer
 	'print cint(curevent->time) - curtime
-	if music_playing = 0 then exit sub
+	if music_playing = 0 then ESCAPE_SEQUENCE
 
-	windowtitle str(curtime) + " " + str(curevent->time)
+	'windowtitle str(curtime) + " " + str(curevent->time)
 
 	if cint(curevent->time) - curtime > 0 then
 		goto skipevents
 	end if
 
-	played = 0
+	played = curtime
 	do
 		if not curevent then exit do
-		if cint(curevent->time) - curtime > 0 then exit do
+		played -= curevent->time
+		if played < 0 then exit do
+
 		curtime = 0
-		if music_playing = 0 then exit sub
+		if music_playing = 0 then ESCAPE_SEQUENCE
 		'curtime = 0
 		select case curevent->status
 		case &HB0 to &HBF 'controller
@@ -796,7 +799,7 @@ sysex:
 				select case curevent->extradata[p]
 				case &H0 'stop
 					music_playing = 0
-					exit sub
+					ESCAPE_SEQUENCE
 				case &H1 'set label (should be removed to an initial scan)
 					p += 1
 					labels(curevent->extradata[p]) = curevent
@@ -834,8 +837,17 @@ sysex:
 					debug "Set tag # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
 					setbit tag(), 0, BE_SHORT(*Cptr(short ptr, curevent->extradata + p)), 1
 				case &H8 'set variable
+					p+=1
+					debug "Set variable # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + " to " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)))
+					global(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) = BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2))
 				case &H9 'variable ++
+					p+=1
+					debug "Increment variable # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + " by " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)))
+					global(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) += BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2))
 				case &HA 'variable --
+					p+=1
+					debug "Decrement variable # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + " by " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)))
+					global(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) -= BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2))
 				#ENDIF
 				end select
 			end if
@@ -862,22 +874,22 @@ sysex:
 	curtime = 0
 skipevents:
 
-	if music_playing = 0 then exit sub
+	if music_playing = 0 then ESCAPE_SEQUENCE
 
 	if not curevent then
 		music_playing = 0
 
-		exit sub
+		ESCAPE_SEQUENCE
 	end if
 
 	do
 		sleep 10,1
-		if music_playing = 0 then exit sub
+		if music_playing = 0 then ESCAPE_SEQUENCE
 	loop while music_paused
 
 loop
 
-exit sub
+ESCAPE_SEQUENCE
 
 updateDelay:
 'debug "old delay:" + str(delay)
