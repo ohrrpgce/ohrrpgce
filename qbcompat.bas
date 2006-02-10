@@ -122,3 +122,6 @@ SUB xbsave (f$, array%(), bsize%)
 	BSAVE f$, VARPTR(array(0)), bsize
 END SUB
 
+SUB makedir (dirname$)
+    MKDIR dirname$
+END SUB

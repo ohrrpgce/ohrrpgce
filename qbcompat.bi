@@ -17,6 +17,7 @@ DECLARE SUB togglewindowed ()
 DECLARE SUB storecommandline ()
 DECLARE FUNCTION getcommandline$ ()
 DECLARE SUB romfontchar (font%(), char%)
+DECLARE SUB makedir (dirname$)
 
 CONST SLASH = "\"
 CONST CUSTOMEXE = "CUSTOMQB.EXE"

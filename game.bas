@@ -210,7 +210,7 @@ IF isdir(workingdir$ + CHR$(0)) THEN
  cleanuptemp
  ON ERROR GOTO 0
 ELSE
- MKDIR workingdir$
+ makedir workingdir$
 END IF
 
 '--open a lockfile in the working directory to notify other instances

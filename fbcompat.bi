@@ -54,3 +54,4 @@ declare function getcommandline() as string
 DECLARE FUNCTION canplay (file$)
 DECLARE SUB playsongnum (songnum%)
 DECLARE SUB romfontchar (font%(), char%)
+DECLARE SUB makedir (dirname$)
