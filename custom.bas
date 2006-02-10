@@ -455,7 +455,7 @@ WRITE #fh, "-END-"
 CLOSE #fh
 
 IF NOT isdir(workingdir$ + CHR$(0)) THEN
- MKDIR workingdir$
+ makedir workingdir$
 ELSE
  ON ERROR GOTO tempDirErr
  safekill (workingdir$ + SLASH + "lockfile.tmp")

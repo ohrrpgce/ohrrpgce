@@ -507,7 +507,7 @@ END SUB
 FUNCTION unlumpone (lumpfile$, onelump$, asfile$)
 unlumpone = 0
 
-IF NOT isdir("unlump1.tmp" + CHR$(0)) THEN MKDIR "unlump1.tmp"
+IF NOT isdir("unlump1.tmp" + CHR$(0)) THEN makedir "unlump1.tmp"
 CALL unlump(lumpfile$ + CHR$(0), "unlump1.tmp" + SLASH, buffer())
 
 IF isfile("unlump1.tmp" + SLASH + onelump$ + CHR$(0)) THEN
