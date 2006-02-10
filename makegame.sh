@@ -1,3 +1,4 @@
+#!/bin/sh
 cp --reply=yes fbcompat.bi compat.bi
 cp --reply=yes fbcompat.bas compat.bas
 ./verprint
