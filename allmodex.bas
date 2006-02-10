@@ -1540,7 +1540,7 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 		'get lump name
 		lname = ""
 		while not eof(lf) and dat <> 0
-			lname = lname + chr$(dat)
+			lname = lcase$(lname + chr$(dat))
 			get #lf, , dat
 		wend
 		'debug "lump name " + lname
@@ -1559,7 +1559,7 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 			'debug "lump size " + str$(size)
 					
 			'do we want this file?	
-			if matchmask(ucase$(lname), ucase$(fmask$)) then
+			if matchmask(lcase$(lname), lcase$(fmask$)) then
 				'write yon file
 				dim of as integer
 				dim csize as integer
