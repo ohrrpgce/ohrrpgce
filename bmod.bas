@@ -403,7 +403,7 @@ IF carray(4) > 1 THEN
    IF spell(you, sptype, i) > 0 THEN
     spel(i) = spell(you, sptype, i) - 1
     setpicstuf atktemp(), getbinsize(0), -1
-    loadset workingdir$ + "\attack.bin" + CHR$(0), spel(i), 0
+    loadset workingdir$ + SLASH + "attack.bin" + CHR$(0), spel(i), 0
     FOR j = getbinsize(0) / 2 - 1 TO 0 STEP -1
      atktemp(40 + j) = atktemp(j)
     NEXT j

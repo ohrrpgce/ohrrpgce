@@ -188,12 +188,12 @@ DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 13), retvals
 
 '---GET CURRENT DIR, PROG DIRECTORY and WORK dir---
 sCurdir$ = STRING$(pathlength, 0): getstring sCurdir$
-IF RIGHT$(sCurdir$, 1) <> "\" THEN sCurdir$ = sCurdir$ + "\"
+IF RIGHT$(sCurdir$, 1) <> SLASH THEN sCurdir$ = sCurdir$ + SLASH
 progdir$ = STRING$(rpathlength, 0): getstring progdir$
-IF RIGHT$(progdir$, 1) <> "\" THEN progdir$ = progdir$ + "\"
+IF RIGHT$(progdir$, 1) <> SLASH THEN progdir$ = progdir$ + SLASH
 exename$ = STRING$(exenamelength, 0): getstring exename$
-DO WHILE INSTR(exename$, "\")
- exename$ = RIGHT$(exename$, LEN(exename$) - INSTR(exename$, "\"))
+DO WHILE INSTR(exename$, SLASH)
+ exename$ = RIGHT$(exename$, LEN(exename$) - INSTR(exename$, SLASH))
 LOOP
 exename$ = UCASE$(LEFT$(exename$, LEN(exename$) - 4))
 aquiretempdir
@@ -204,7 +204,7 @@ workingdir$ = tmpdir$ + "playing.tmp"
 '---If workingdir$ does not already exist, it must be created---
 IF isdir(workingdir$ + CHR$(0)) THEN
  'DEBUG debug workingdir$+" already exists"
- touchfile workingdir$ + "\delete.tmp"
+ touchfile workingdir$ + SLASH + "delete.tmp"
  'DEBUG debug "erasing "+workingdir$+"\*.*"
  ON ERROR GOTO tempDirErr
  cleanuptemp
@@ -216,7 +216,7 @@ END IF
 '--open a lockfile in the working directory to notify other instances
 '--of GAME.EXE that it is taken.
 lockfile = FREEFILE
-OPEN workingdir$ + "\lockfile.tmp" FOR BINARY AS #lockfile
+OPEN workingdir$ + SLASH + "lockfile.tmp" FOR BINARY AS #lockfile
 
 'DEBUG debug "re-aquire command-line"
 
@@ -312,9 +312,9 @@ setvispage vpage 'refresh
 
 '---GAME SELECTED, PREPARING TO PLAY---
 DIM lumpbuf(16383)
-unlump sourcerpg$ + CHR$(0), workingdir$ + "\", lumpbuf()
+unlump sourcerpg$ + CHR$(0), workingdir$ + SLASH, lumpbuf()
 initgame '--set game$
-unlump game$ + ".hsp" + CHR$(0), workingdir$ + "\", lumpbuf()
+unlump game$ + ".hsp" + CHR$(0), workingdir$ + SLASH, lumpbuf()
 ERASE lumpbuf
 
 'DEBUG debug "dim big stuff *after* unlumping"
@@ -353,7 +353,7 @@ nowscript = -1
 nextscroff = 0
 depth = 0
 releasestack
-setupstack astack(), 1024, workingdir$ + "\stack.tmp" + CHR$(0)
+setupstack astack(), 1024, workingdir$ + SLASH + "stack.tmp" + CHR$(0)
 
 temp = -1
 IF readbit(gen(), genBits, 11) = 0 THEN
@@ -554,7 +554,7 @@ DO
   nowscript = -1
   nextscroff = 0
   releasestack
-  setupstack astack(), 1024, workingdir$ + "\stack.tmp" + CHR$(0)
+  setupstack astack(), 1024, workingdir$ + SLASH + "stack.tmp" + CHR$(0)
   fademusic 0
   stopsong
   fadeout 0, 0, 0, -1

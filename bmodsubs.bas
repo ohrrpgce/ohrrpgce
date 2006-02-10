@@ -583,9 +583,9 @@ END SUB
 FUNCTION getbinsize (id)
 fbdim recordsize
 
-IF isfile(workingdir$ + "\binsize.bin" + CHR$(0)) THEN
+IF isfile(workingdir$ + SLASH + "binsize.bin" + CHR$(0)) THEN
  fh = FREEFILE
- OPEN workingdir$ + "\binsize.bin" FOR BINARY AS #fh
+ OPEN workingdir$ + SLASH + "binsize.bin" FOR BINARY AS #fh
  IF LOF(fh) < id * 2 + 2 THEN
   getbinsize = defbinsize(id)
  ELSE
@@ -970,9 +970,9 @@ loadset game$ + ".dt6" + CHR$(0), index, 0
 size = getbinsize(0)
 
 IF size THEN
- IF isfile(workingdir$ + "\attack.bin" + CHR$(0)) THEN
+ IF isfile(workingdir$ + SLASH + "attack.bin" + CHR$(0)) THEN
   setpicstuf buffer(), size, -1
-  loadset workingdir$ + "\attack.bin" + CHR$(0), index, 0
+  loadset workingdir$ + SLASH + "attack.bin" + CHR$(0), index, 0
   FOR i = 0 TO size / 2 - 1
    array(40 + i) = buffer(i)
   NEXT i

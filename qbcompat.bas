@@ -71,7 +71,7 @@ END SUB
 
 SUB playsongnum (songnum%)
 	IF songnum > 99 THEN
-		songfile$ = workingdir$ + "\song" + LTRIM$(STR$(songnum)) + ".bam"
+		songfile$ = workingdir$ + SLASH + "song" + LTRIM$(STR$(songnum)) + ".bam"
 	ELSE
 		songfile$ = game$ + "." + LTRIM$(STR$(songnum))
 	END IF

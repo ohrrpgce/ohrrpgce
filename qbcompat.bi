@@ -18,3 +18,4 @@ DECLARE SUB storecommandline ()
 DECLARE FUNCTION getcommandline$ ()
 DECLARE SUB romfontchar (font%(), char%)
 
+CONST SLASH = "\"

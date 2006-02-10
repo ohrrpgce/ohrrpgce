@@ -184,7 +184,7 @@ SUB playsongnum (songnum%)
 	DIM as string songbase, songfile, numtext
 	
 	numtext = LTRIM$(STR$(songnum))
-	songbase = workingdir$ + "\song" + numtext
+	songbase = workingdir$ + SLASH + "song" + numtext
 	songfile = ""
 	if isfile(songbase + ".mid") then
 		'is there a midi?

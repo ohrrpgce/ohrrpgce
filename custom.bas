@@ -113,10 +113,10 @@ gamedir$ = getcommandline 'does nothing, but needs to tidy up
 
 sCurdir$ = STRING$(pathlength, 0)
 getstring sCurdir$
-IF RIGHT$(sCurdir$, 1) = "\" AND LEN(sCurdir$) > 3 THEN sCurdir$ = LEFT$(sCurdir$, LEN(sCurdir$) - 1)
+IF RIGHT$(sCurdir$, 1) = SLASH AND LEN(sCurdir$) > 3 THEN sCurdir$ = LEFT$(sCurdir$, LEN(sCurdir$) - 1)
 gamedir$ = STRING$(rpathlength, 0)
 getstring gamedir$
-IF RIGHT$(gamedir$, 1) = "\" AND LEN(gamedir$) > 3 THEN gamedir$ = LEFT$(gamedir$, LEN(gamedir$) - 1)
+IF RIGHT$(gamedir$, 1) = SLASH AND LEN(gamedir$) > 3 THEN gamedir$ = LEFT$(gamedir$, LEN(gamedir$) - 1)
 CHDIR gamedir$
 setdrive ASC(UCASE$(LEFT$(gamedir$, 1))) - 65
 
@@ -153,17 +153,17 @@ setvispage 0
 textcolor 15, 0
 printstr "UNLUMPING DATA: please wait.", 0, 0, 0
 
-touchfile workingdir$ + "\__danger.tmp"
+touchfile workingdir$ + SLASH + "__danger.tmp"
 
 ERASE scroll, pass, emap
 DIM lumpbuf(16383)
-unlump gamefile$ + ".rpg" + CHR$(0), workingdir$ + "\", lumpbuf()
+unlump gamefile$ + ".rpg" + CHR$(0), workingdir$ + SLASH, lumpbuf()
 ERASE lumpbuf
 DIM scroll(16002), pass(16002), emap(16002)
 
-game$ = workingdir$ + "\" + game$
+game$ = workingdir$ + SLASH + game$
 verifyrpg
-safekill workingdir$ + "\__danger.tmp"
+safekill workingdir$ + SLASH + "__danger.tmp"
 
 IF NOT isfile(game$ + ".mas" + CHR$(0)) THEN copyfile "ohrrpgce.mas" + CHR$(0), game$ + ".mas" + CHR$(0), buffer()
 xbload game$ + ".mas", master(), "Master palette not found"
@@ -307,7 +307,7 @@ IF oldcrash = 1 THEN
  rpg$(0) = "RECOVER IT"
  rpg$(1) = "ERASE IT"
  rpg$(2) = "DO NOTHING"
- findfiles workingdir$ + "\*.gen" + CHR$(0), 0, "crash.lst" + CHR$(0), buffer()
+ findfiles workingdir$ + SLASH + "*.gen" + CHR$(0), 0, "crash.lst" + CHR$(0), buffer()
  fh = FREEFILE
  OPEN "crash.lst" FOR INPUT AS #fh
  DO WHILE NOT EOF(fh)
@@ -351,10 +351,10 @@ DO
    printstr "Unlumping", 0, 60, vpage
    ERASE scroll, pass, emap
    DIM lumpbuf(16383)
-   unlump game$ + ".rpg" + CHR$(0), workingdir$ + "\", lumpbuf()
+   unlump game$ + ".rpg" + CHR$(0), workingdir$ + SLASH, lumpbuf()
    ERASE lumpbuf
    DIM scroll(16002), pass(16002), emap(16002)
-   findfiles workingdir$ + "\ohrrpgce.*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
+   findfiles workingdir$ + SLASH + "ohrrpgce.*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
    printstr "Translumping", 0, 70, vpage
    fh = FREEFILE
    OPEN "temp.lst" FOR INPUT AS #fh
@@ -367,15 +367,13 @@ DO
     ELSE
      b$ = ""
     END IF
-    copyfile workingdir$ + "\ohrrpgce" + a$ + CHR$(0), workingdir$ + "\" + b$ + a$ + CHR$(0), buffer()
-    KILL workingdir$ + "\ohrrpgce" + a$
+    copyfile workingdir$ + SLASH + "ohrrpgce" + a$ + CHR$(0), workingdir$ + SLASH + b$ + a$ + CHR$(0), buffer()
+    KILL workingdir$ + SLASH + "ohrrpgce" + a$
    LOOP
    CLOSE #fh
-   ' moved into loop above
-'    KILL workingdir$ + "\ohrrpgce.*"
    '--create archinym information lump
    fh = FREEFILE
-   OPEN workingdir$ + "\archinym.lmp" FOR OUTPUT AS #fh
+   OPEN workingdir$ + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
    PRINT #fh, game$
    PRINT #fh, version$
    CLOSE #fh
@@ -408,7 +406,7 @@ DO
  dummy = usemenu(temp, 0, 0, 2, 2)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF temp = 0 THEN
-   IF isfile(workingdir$ + "\__danger.tmp" + CHR$(0)) THEN
+   IF isfile(workingdir$ + SLASH + "__danger.tmp" + CHR$(0)) THEN
     textcolor 14, 4
     printstr "Data is corrupt, not safe to relump", 0, 100, vpage
     w = getkey
@@ -460,14 +458,14 @@ IF NOT isdir(workingdir$ + CHR$(0)) THEN
  MKDIR workingdir$
 ELSE
  ON ERROR GOTO tempDirErr
- safekill (workingdir$ + "\lockfile.tmp")
+ safekill (workingdir$ + SLASH + "lockfile.tmp")
  ON ERROR GOTO 0
  oldcrash = 1
 END IF
 '--open a lockfile to notify other instances of custom that the working
 '--dir is in use
 lockfile = FREEFILE
-OPEN workingdir$ + "\lockfile.tmp" FOR BINARY AS #lockfile
+OPEN workingdir$ + SLASH + "lockfile.tmp" FOR BINARY AS #lockfile
 RETURN
 
 relump:
@@ -502,17 +500,17 @@ GOSUB dolumpfiles
 RETURN
 
 checkpass:
-unlumpfile gamefile$ + ".rpg" + CHR$(0), "archinym.lmp", workingdir$ + "\", buffer()
+unlumpfile gamefile$ + ".rpg" + CHR$(0), "archinym.lmp", workingdir$ + SLASH, buffer()
 '--set game$ according to the archinym
-IF isfile(workingdir$ + "\archinym.lmp" + CHR$(0)) THEN
+IF isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
  fh = FREEFILE
- OPEN workingdir$ + "\archinym.lmp" FOR INPUT AS #fh
+ OPEN workingdir$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
  LINE INPUT #fh, a$
  CLOSE #fh
  IF LEN(a$) <= 8 THEN game$ = a$
 END IF
-unlumpfile gamefile$ + ".rpg" + CHR$(0), game$ + ".gen", workingdir$ + "\", buffer()
-xbload workingdir$ + "\" + game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
+unlumpfile gamefile$ + ".rpg" + CHR$(0), game$ + ".gen", workingdir$ + SLASH, buffer()
+xbload workingdir$ + SLASH + game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
 '----load password-----
 IF general(5) >= 256 THEN
  '--new format password
@@ -556,13 +554,13 @@ LOOP
 
 dolumpfiles:
 '--build the list of files to lump
-findfiles workingdir$ + "\*.*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
+findfiles workingdir$ + SLASH + "*.*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
 fixorder "temp.lst"
 '---KILL BUFFERS, LUMP, REDEFINE BUFFERS---
 ERASE scroll, pass, emap
 DIM lumpbuf(16383)
 unsafefile$ = "RPG lumping failed!"
-lumpfiles "temp.lst" + CHR$(0), filetolump$ + CHR$(0), workingdir$ + "\", lumpbuf()
+lumpfiles "temp.lst" + CHR$(0), filetolump$ + CHR$(0), workingdir$ + SLASH, lumpbuf()
 unsafefile$ = ""
 ERASE lumpbuf
 DIM scroll(16002), pass(16002), emap(16002)
@@ -586,7 +584,7 @@ IF LEN(unsafefile$) THEN
  GOSUB cleanupfiles
 END IF
 crashexplain
-PRINT "Game:"; gamedir$ + "\" + gamefile$ + ".RPG"
+PRINT "Game:"; gamedir$ + SLASH + gamefile$ + ".RPG"
 '--crash and print the error
 ON ERROR GOTO 0
 
@@ -613,15 +611,15 @@ SYSTEM
 cleanupfiles:
 CLOSE #lockfile
 IF nocleanup = 0 THEN
- touchfile workingdir$ + "\kill.tmp"
+ touchfile workingdir$ + SLASH + "kill.tmp"
  'borrowed this code from game.bas cos wildcard didn't work in FB
- findfiles workingdir$ + "\*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
+ findfiles workingdir$ + SLASH + "*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
   INPUT #fh, filename$
   filename$ = UCASE$(filename$)
-  KILL workingdir$ + "\" + filename$
+  KILL workingdir$ + SLASH + filename$
  LOOP
  CLOSE #fh
  KILL "filelist.tmp"
@@ -1075,13 +1073,13 @@ DO
 
  IF keyval(28) > 1 THEN
   GOSUB savefont
-  copyfile game$ + ".fnt" + CHR$(0), gamedir$ + "\" + newfont$ + ".ohf" + CHR$(0), buffer()
+  copyfile game$ + ".fnt" + CHR$(0), gamedir$ + SLASH + newfont$ + ".ohf" + CHR$(0), buffer()
   EXIT DO
  END IF
 
  textcolor 7, 0
  printstr "Input a filename to save to", 0, 0, dpage
- printstr "[" + gamedir$ + "\" + newfont$ + ".ohf]", 0, 8, dpage
+ printstr "[" + gamedir$ + SLASH + newfont$ + ".ohf]", 0, 8, dpage
  textcolor 14 + tog, 1
  printstr newfont$, 0, 16, dpage
 
@@ -1646,11 +1644,11 @@ IF general(95) = 4 THEN
  NEXT j
 END IF
 
-IF NOT isfile(workingdir$ + "\archinym.lmp" + CHR$(0)) THEN
+IF NOT isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
  '--create archinym information lump
  fh = FREEFILE
- OPEN workingdir$ + "\archinym.lmp" FOR OUTPUT AS #fh
- PRINT #fh, RIGHT$(game$, LEN(game$) - LEN(workingdir$ + "\"))
+ OPEN workingdir$ + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
+ PRINT #fh, RIGHT$(game$, LEN(game$) - LEN(workingdir$ + SLASH))
  PRINT #fh, version$ + "(previous)"
  CLOSE #fh
 END IF
@@ -1664,14 +1662,14 @@ IF NOT isfile(game$ + ".veh" + CHR$(0)) THEN
  END IF
 END IF
 
-IF NOT isfile(workingdir$ + "\attack.bin" + CHR$(0)) THEN
+IF NOT isfile(workingdir$ + SLASH + "attack.bin" + CHR$(0)) THEN
  clearpage vpage
  printstr "Init extended attack data...", 0, 0, vpage
  flusharray buffer(), curbinsize(0) / 2, 0
  setbinsize 0, curbinsize(0)
  setpicstuf buffer(), curbinsize(0), -1
  FOR i = 0 TO general(34)
-  storeset workingdir$ + "\attack.bin" + CHR$(0), i, 0
+  storeset workingdir$ + SLASH + "attack.bin" + CHR$(0), i, 0
  NEXT i
 
  '--and while we are at it, clear the old death-string from enemies
@@ -1687,7 +1685,7 @@ IF NOT isfile(workingdir$ + "\attack.bin" + CHR$(0)) THEN
 END IF
 
 '--check variable record size lumps and reoutput them if records have been extended
-updaterecordlength workingdir$ + "\ATTACK.BIN", 0
+updaterecordlength workingdir$ + SLASH + "ATTACK.BIN", 0
 updaterecordlength game$ + ".STF", 1
 
 '--update to new (3rd) password format

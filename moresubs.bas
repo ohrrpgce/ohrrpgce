@@ -203,7 +203,7 @@ IF NOT isdir(tmpdir$ + CHR$(0)) THEN
  'DEBUG debug "Invalid temp dir. fall back to " + tmpdir$
 END IF
 
-IF RIGHT$(tmpdir$, 1) <> "\" THEN tmpdir$ = tmpdir$ + "\"
+IF RIGHT$(tmpdir$, 1) <> SLASH THEN tmpdir$ = tmpdir$ + SLASH
 
 END SUB
 
@@ -257,7 +257,7 @@ drive(26) = 15
 
 'GOSUB vlabels
 remember$ = STRING$(pathlength, 0): getstring remember$
-IF RIGHT$(remember$, 1) <> "\" THEN remember$ = remember$ + "\"
+IF RIGHT$(remember$, 1) <> SLASH THEN remember$ = remember$ + SLASH
 nowdir$ = remember$
 
 GOSUB context
@@ -288,7 +288,7 @@ DO
     NEXT i
     GOSUB context
    CASE 2
-    nowdir$ = nowdir$ + tree$(treeptr) + "\"
+    nowdir$ = nowdir$ + tree$(treeptr) + SLASH
     GOSUB context
    CASE 3
     browse$ = nowdir$ + true$(treeptr)
@@ -347,7 +347,7 @@ ELSE
  FOR i = 0 TO drivetotal - 1
   'IF a = drive(i) THEN tree$(treesize) = drive$(i)
   IF a = drive(i) THEN
-   tree$(treesize) = CHR$(64 + drive(i)) + ":\"
+   tree$(treesize) = CHR$(64 + drive(i)) + ":" + SLASH
    GOSUB drawmeter
   END IF
  NEXT i
@@ -358,7 +358,7 @@ ELSE
  DO UNTIL a$ = ""
   b$ = b$ + LEFT$(a$, 1)
   a$ = RIGHT$(a$, LEN(a$) - 1)
-  IF RIGHT$(b$, 1) = "\" THEN
+  IF RIGHT$(b$, 1) = SLASH THEN
    treesize = small(treesize + 1, limit)
    tree$(treesize) = b$
    treec(treesize) = 1
@@ -494,10 +494,10 @@ RETURN
 vlabels:
 FOR i = 0 TO drivetotal - 1
  IF isremovable(drive(i)) = 0 THEN
-  drive$(i) = CHR$(64 + drive(i)) + ":\ (removable)"
+  drive$(i) = CHR$(64 + drive(i)) + ":" + SLASH + " (removable)"
  ELSE '--not removable--
   IF hasmedia(drive(i)) THEN
-   findfiles CHR$(64 + drive(i)) + ":\*.*" + CHR$(0), 8, tmpdir$ + "hrbrowse.tmp" + CHR$(0), buffer()
+   findfiles CHR$(64 + drive(i)) + ":" + SLASH + "*.*" + CHR$(0), 8, tmpdir$ + "hrbrowse.tmp" + CHR$(0), buffer()
    fh = FREEFILE
    OPEN tmpdir$ + "hrbrowse.tmp" FOR INPUT AS #fh
    IF LOF(fh) THEN
@@ -507,12 +507,12 @@ FOR i = 0 TO drivetotal - 1
     FOR j = 1 TO LEN(a$)
      IF MID$(a$, j, 1) <> "." THEN b$ = b$ + MID$(a$, j, 1)
     NEXT j
-    drive$(i) = CHR$(64 + drive(i)) + ":\ (" + b$ + ")"
+    drive$(i) = CHR$(64 + drive(i)) + ":" + SLASH + " (" + b$ + ")"
    END IF
    CLOSE #fh
    safekill tmpdir$ + "hrbrowse.tmp"
   ELSE '--no media--
-   drive$(i) = CHR$(64 + drive(i)) + ":\ (not ready)"
+   drive$(i) = CHR$(64 + drive(i)) + ":" + SLASH + " (not ready)"
   END IF'--check media--
  END IF'--check removable--
 NEXT i
@@ -1814,11 +1814,11 @@ IF loadinstead <> -1 THEN
  END IF
 ELSE
  '--load the script from file
- IF isfile(workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" + CHR$(0)) THEN
+ IF isfile(workingdir$ + SLASH + LTRIM$(STR$(n)) + ".hsx" + CHR$(0)) THEN
   fbdim temp
 	
   f = FREEFILE
-  OPEN workingdir$ + "\" + LTRIM$(STR$(n)) + ".hsx" FOR BINARY AS #f
+  OPEN workingdir$ + SLASH + LTRIM$(STR$(n)) + ".hsx" FOR BINARY AS #f
   GET #f, 1, temp
   skip = temp
   GET #f, 3, temp
@@ -2339,7 +2339,7 @@ SUB snapshot
 pre$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4)
 
 a$ = pre$
-WHILE LEN(a$) > 0 AND RIGHT$(a$, 1) <> "\"
+WHILE LEN(a$) > 0 AND RIGHT$(a$, 1) <> SLASH
  a$ = LEFT$(a$, LEN(a$) - 1)
 WEND
 

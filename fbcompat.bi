@@ -25,9 +25,9 @@ option nokeyword poke
 #endif
 
 #ifdef __FB_LINUX__
-#define PATH_SEP "/"
+#define SLASH "/"
 #else
-#define PATH_SEP "\"
+#define SLASH "\"
 #endif
 
 ' keyword(?) in QB

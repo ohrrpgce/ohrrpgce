@@ -746,7 +746,7 @@ DO
   '--in the second file
   IF recindex = general(34) THEN
    '--delete the end of attack.bin without the need to prompt
-   cropafter recindex, general(34), 0, workingdir$ + "\attack.bin", getbinsize(0), 0
+   cropafter recindex, general(34), 0, workingdir$ + SLASH + "attack.bin", getbinsize(0), 0
   END IF
  END IF
  
