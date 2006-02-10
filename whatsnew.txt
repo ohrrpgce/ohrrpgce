@@ -122,6 +122,9 @@ Feb ?? 2006 [serendipity]
     * Unified item-name editor data (all item slots are formatted the same now)
       [Mike Caron]
     * New MIDI driver [Mike Caron]
+    * Native Linux port partially working (games are playable, but
+      Browsing is broken and full-screen causes problems) [Simon Bradley,
+      James Paige]
 
 October 03 2005 [rusalka]
 
