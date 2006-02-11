@@ -1,5 +1,5 @@
 ''
-'' music_sdl.bas - External music functions implemented in SDL.
+'' music_native.bas - External music functions implemented natively.
 ''
 '' part of OHRRPGCE - see elsewhere for license details
 ''
@@ -16,13 +16,15 @@ option explicit
 
 #include "crt.bi"
 #IFDEF __FB_LINUX__
+'???
 #ELSE
 #include "windows.bi"
 #include "win/mmsystem.bi"
-#ENDIF
 #undef MIDIEVENT
 #undef createevent
 #undef lockfile
+#ENDIF
+
 
 #DEFINE ESCAPE_SEQUENCE Exit Sub
 
@@ -855,6 +857,7 @@ sysex:
 						choruswas = 0
 					end if
 				#IFNDEF IS_CUSTOM
+				#IF FALSE
 				case &H6 'unset tag
 					p +=1
 					debug "Unset tag # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
@@ -875,6 +878,7 @@ sysex:
 					p+=1
 					debug "Decrement variable # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + " by " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)))
 					global(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) -= BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2))
+				#ENDIF
 				case &H10 'if tag
 					debug "If Tag # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
 					if readbit (tag(), 0, BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) then
