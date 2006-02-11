@@ -15,8 +15,11 @@ option explicit
 
 
 #include "crt.bi"
+#IFDEF __FB_LINUX__
+#ELSE
 #include "windows.bi"
 #include "win/mmsystem.bi"
+#ENDIF
 #undef MIDIEVENT
 #undef createevent
 #undef lockfile
@@ -499,20 +502,35 @@ sub FreeMidiEventList(head as MidiEvent ptr)
  	loop
 end sub
 
+#IFDEF __FB_LINUX__
+dim shared midi_handle as FILE ptr
+#ELSE
 dim shared midi_handle as HMIDIOUT
-
+#ENDIF
 function openMidi() as integer
-	return midiOutOpen (@midi_handle,-1,0,0,0)
+        #IFDEF __FB_LINUX__
+        midi_handle = fopen("/dev/sequencer","w")
+        return midi_handle = NULL
+        #ELSE
+        return midiOutOpen (@midi_handle,-1,0,0,0)
+        #ENDIF
 end function
 
 function closeMidi() as integer
-	return midiOutClose (midi_handle)
+        #IFDEF __FB_LINUX__
+        return fclose(midi_handle)
+        #ELSE
+        return midiOutClose (midi_handle)
+        #ENDIF
 end function
 
 function shortMidi(event as UByte, a as UByte, b as UByte) as integer
-	return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8 + b SHL 16)
+        #IFDEF __FB_LINUX__
+        return putc(event, midi_handle) OR putc(a, midi_handle) OR putc(b, midi_handle)
+        #ELSE
+        return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8 + b SHL 16)
+        #ENDIF
 end function
-
 Sub ResetMidi
 	dim n as UByte, c as UByte
 	for c = 0 to 15

@@ -1707,11 +1707,17 @@ SUB getstring (p$)
 end SUB
 
 FUNCTION drivelist (d() as integer) as integer
-	'faked, needs work (not linux compatible, either, but later, later)
+        #IFDEF __FB_LINUX__
+        ' on Linux there is only one drive, the root /
+        d(0) = -1
+        drivelist = 1
+        #ELSE
+	'faked, needs work
 	d(0) = 3
 	d(1) = 4 
 	d(2) = 5
 	drivelist = 3
+        #ENDIF
 end FUNCTION
 
 FUNCTION rpathlength () as integer
