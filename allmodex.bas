@@ -1539,10 +1539,18 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 	while not eof(lf)
 		'get lump name
 		lname = ""
-		while not eof(lf) and dat <> 0
-			lname = lcase$(lname + chr$(dat))
+		i = 0
+		while not eof(lf) and dat <> 0 and i < 64
+			lname = lname + chr$(dat)
 			get #lf, , dat
+			i += 1
 		wend
+		if i > 50 then 'corrupt file, really if i > 12
+			debug "corrupt lump file: lump name too long"
+			exit while
+		end if
+		'force to lower-case
+		lname = lcase(lname)
 		'debug "lump name " + lname
 		
 		if not eof(lf) then
@@ -1559,13 +1567,13 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 			'debug "lump size " + str$(size)
 					
 			'do we want this file?	
-			if matchmask(lcase$(lname), lcase$(fmask$)) then
+			if matchmask(lname, lcase$(fmask$)) then
 				'write yon file
 				dim of as integer
 				dim csize as integer
 				
 				of = freefile
-				open path$ + lcase$(lname) for binary access write as #of
+				open path$ + lname for binary access write as #of
 				if err > 0 then
 					'debug "Could not open file " + path$ + lname
 					exit while
@@ -1615,6 +1623,7 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 	dim lpath as string
 	dim bufr as ubyte ptr
 	dim csize as integer
+	dim as integer i, t, textsize(1)
 
 	lpath = rtrim(path$)
 	
@@ -1628,6 +1637,7 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 	open lump$ for binary access write as #lf
 	if err <> 0 then
 		'debug "Could not open file " + lump$
+		close #fl
 		exit sub
 	end if
 	
@@ -1635,15 +1645,28 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 	
 	'get file to lump
 	do until eof(fl) 
-		line input #fl, lname
-		if lname = "-END OF LIST-" then
-			exit do
+		input #fl, lname
+		
+		'validate that lumpname is 8.3 or ignore the file
+		textsize(0) = 0
+		textsize(1) = 0
+		t = 0
+		for i = 1 to len(lname) - 1
+			if lname[i] = asc(".") then t = 1
+			textsize(t) += 1
+		next
+		'note extension includes the "." so can be 4 chars
+		if textsize(0) > 8 or textsize(1) > 4 then 
+			debug "name too long: " + lname
+			debug " name = " + str(textsize(0)) + ", ext = " + str(textsize(1))
+			continue do
 		end if
+		
 		'write lump name (seems to need to be upper-case, at least 
 		'for any files opened with unlumpone in the QB version)
 		put #lf, , ucase(lname)
-		'dat = 0
-		'put #lf, , dat
+		dat = 0
+		put #lf, , dat
 		
 		tl = freefile
 		open lpath + lname for binary access read as #tl
@@ -1707,17 +1730,17 @@ SUB getstring (p$)
 end SUB
 
 FUNCTION drivelist (d() as integer) as integer
-        #IFDEF __FB_LINUX__
-        ' on Linux there is only one drive, the root /
-        d(0) = -1
-        drivelist = 1
-        #ELSE
+#ifdef __FB_LINUX__
+	' on Linux there is only one drive, the root /
+	d(0) = -1
+	drivelist = 1
+#else
 	'faked, needs work
 	d(0) = 3
 	d(1) = 4 
 	d(2) = 5
 	drivelist = 3
-        #ENDIF
+#endif
 end FUNCTION
 
 FUNCTION rpathlength () as integer
@@ -1867,8 +1890,9 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
 		'otherwise save it ourselves
 		dim header as BITMAPFILEHEADER
 		dim info as BITMAPINFOHEADER
+		dim argb as RGBQUAD
 
-		dim as integer of, w, h, i, bfSize, biSizeImage, bfOffBits, biClrUsed, pitch, argb
+		dim as integer of, w, h, i, bfSize, biSizeImage, bfOffBits, biClrUsed, pitch
 		dim as ubyte ptr s
 	
 		w = 320
@@ -1909,13 +1933,11 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
 		put #of, , header
 		put #of, , info
 				
-		for i = 0 to 255
-			'note: values are multiplied by 4 which is shr 2
-			'combined with the other rearrangements BGR->RGB
-			argb = (intpal(i) and &hff0000) shl 14
-			argb = argb or ((intpal(i) and &hff00) shr 2)
-			argb = argb or ((intpal(i) and &hff) shl 14)
-			put #of, , argb 'I'm sure this is wrong, but let's try
+		for i = 0 to 765 step 3
+			argb.rgbRed = maspal(i) * 4
+			argb.rgbGreen = maspal(i+1) * 4
+			argb.rgbBlue = maspal(i+2) * 4
+			put #of, , argb
 		next
 	
 		s += (h - 1) * pitch
