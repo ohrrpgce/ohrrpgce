@@ -1882,8 +1882,9 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
 		'otherwise save it ourselves
 		dim header as BITMAPFILEHEADER
 		dim info as BITMAPINFOHEADER
+		dim argb as RGBQUAD
 
-		dim as integer of, w, h, i, bfSize, biSizeImage, bfOffBits, biClrUsed, pitch, argb
+		dim as integer of, w, h, i, bfSize, biSizeImage, bfOffBits, biClrUsed, pitch
 		dim as ubyte ptr s
 	
 		w = 320
@@ -1924,13 +1925,11 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
 		put #of, , header
 		put #of, , info
 				
-		for i = 0 to 255
-			'note: values are multiplied by 4 which is shr 2
-			'combined with the other rearrangements BGR->RGB
-			argb = (intpal(i) and &hff0000) shl 14
-			argb = argb or ((intpal(i) and &hff00) shr 2)
-			argb = argb or ((intpal(i) and &hff) shl 14)
-			put #of, , argb 'I'm sure this is wrong, but let's try
+		for i = 0 to 765 step 3
+			argb.rgbRed = maspal(i) * 4
+			argb.rgbGreen = maspal(i+1) * 4
+			argb.rgbBlue = maspal(i+2) * 4
+			put #of, , argb
 		next
 	
 		s += (h - 1) * pitch
