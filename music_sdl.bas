@@ -65,9 +65,12 @@ end sub
 
 sub music_close()
 	if music_on = 1 then
-		if orig_vol > -1 then
+		if orig_vol > 0 then
 			'restore original volume
 			Mix_VolumeMusic(orig_vol)
+		else
+			'arbitrary medium value
+			Mix_VolumeMusic(64)
 		end if
 		
 		if music_song <> 0 then
@@ -150,6 +153,7 @@ sub music_play(songname as string, fmt as music_format)
 		Mix_PlayMusic(music_song, -1)			
 		music_paused = 0
 
+		'not really working when songs are being faded in.
 		if orig_vol = -1 then
 			orig_vol = Mix_VolumeMusic(-1)
 		end if
