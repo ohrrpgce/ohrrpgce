@@ -57,6 +57,7 @@ DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), s
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB shopdata ()
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
+DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE SUB importsong (song$(), master())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
@@ -324,23 +325,23 @@ gd$(13) = "Instead-of-Battle Script:"
 gd$(14) = "Each-Step Script:"
 gd$(15) = "On-Keypress Script:"
 gd$(16) = "Walkabout Layering:"
-gdmax(0) = general(33):  gdmin(0) = 0
-gdmax(1) = 100:          gdmin(1) = 0
-gdmax(2) = 1:            gdmin(2) = 0
-gdmax(3) = 1:            gdmin(3) = 0
-gdmax(4) = 255:          gdmin(4) = 0
-gdmax(5) = 2:            gdmin(5) = 0
-gdmax(6) = 255:          gdmin(6) = 0
-gdmax(7) = general(43):  gdmin(7) = 0
-gdmax(8) = 32767:        gdmin(8) = -32767
-gdmax(9) = 32767:        gdmin(9) = -32767
-gdmax(10) = 255:         gdmin(10) = 0
-gdmax(11) = 20:          gdmin(11) = -20
-gdmax(12) = general(43): gdmin(12) = 0
-gdmax(13) = general(43): gdmin(13) = 0
-gdmax(14) = general(43): gdmin(14) = 0
-gdmax(15) = general(43): gdmin(15) = 0
-gdmax(16) = 1:           gdmin(16) = 0
+gdmax(0) = general(genMaxTile):            gdmin(0) = 0
+gdmax(1) = general(genMaxSong):            gdmin(1) = 0
+gdmax(2) = 1:                              gdmin(2) = 0
+gdmax(3) = 1:                              gdmin(3) = 0
+gdmax(4) = 255:                            gdmin(4) = 0
+gdmax(5) = 2:                              gdmin(5) = 0
+gdmax(6) = 255:                            gdmin(6) = 0
+gdmax(7) = general(genMaxRegularScript):   gdmin(7) = 0
+gdmax(8) = 32767:                          gdmin(8) = -32767
+gdmax(9) = 32767:                          gdmin(9) = -32767
+gdmax(10) = 255:                           gdmin(10) = 0
+gdmax(11) = 20:                            gdmin(11) = -20
+gdmax(12) = general(genMaxRegularScript):  gdmin(12) = 0
+gdmax(13) = general(genMaxRegularScript):  gdmin(13) = 0
+gdmax(14) = general(genMaxRegularScript):  gdmin(14) = 0
+gdmax(15) = general(genMaxRegularScript):  gdmin(15) = 0
+gdmax(16) = 1:                             gdmin(16) = 0
 
 gmapscrof(0) = 7
 gmapscrof(1) = 12
@@ -363,7 +364,8 @@ DO
  IF gd = -1 THEN
   IF keyval(57) > 1 OR keyval(28) > 1 THEN RETURN
  END IF
- IF gd > -1 THEN
+ IF gd = 1 THEN dummy = zintgrabber(gmap(gd), gdmin(gd) - 1, gdmax(gd), 75, 77) 'song is optional
+ IF gd > 1 OR gd = 0 THEN
   IF intgrabber(gmap(gd), gdmin(gd), gdmax(gd), 75, 77) THEN
    GOSUB setgmapscriptstr
   END IF

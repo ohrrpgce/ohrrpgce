@@ -60,6 +60,7 @@ DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
+DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB editmenus ()
@@ -455,10 +456,10 @@ m$(15) = "Import New Master Palette..."
 max(1) = 1
 max(2) = 320
 max(3) = 200
-max(4) = general(0)
-max(5) = 100
-max(6) = 100
-max(7) = 100
+max(4) = general(genMaxMap)
+max(5) = general(genMaxSong)
+max(6) = general(genMaxSong)
+max(7) = general(genMaxSong)
 max(8) = 0
 max(11) = 32000
 max(16) = 255 'poison
@@ -526,7 +527,7 @@ DO
   IF intgrabber(general(100 + csr), 0, max(csr), 75, 77) THEN GOSUB genstr
  END IF
  IF csr > 4 AND csr < 8 THEN
-  IF intgrabber(general(csr - 3), 0, max(csr), 75, 77) THEN GOSUB genstr
+  IF zintgrabber(general(csr - 3), -1, max(csr), 75, 77) THEN GOSUB genstr
  END IF
  IF csr = 11 THEN
   IF intgrabber(general(96), 0, max(csr), 75, 77) THEN GOSUB genstr
@@ -838,7 +839,6 @@ menu$(5) = "Delete Song"
 
 csr = 1
 snum = 0
-lastsong = 99
 GOSUB getinfo
 
 setkeys
@@ -855,7 +855,7 @@ DO
  ELSE
   '-- check for switching song
   oldsong = snum
-  IF intgrabber(snum, 0, lastsong, 51, 52) THEN
+  IF intgrabber(snum, 0, general(genMaxSong), 51, 52) THEN
    song$(oldsong) = sname$
    GOSUB getinfo
   END IF
@@ -867,8 +867,7 @@ DO
   IF keyval(77) > 1 AND snum < 32767 THEN
    song$(snum) = sname$
    snum = snum + 1
-   'following commented out until 100+ songs supported
-   'IF needaddset(snum, lastsong, "song") THEN song$(snum) = ""
+   IF needaddset(snum, general(genMaxSong), "song") THEN REDIM song$(snum): song$(snum) = ""
    GOSUB getinfo
   END IF
  END IF
@@ -934,7 +933,7 @@ END IF
 
 sname$ = song$(snum)
 
-menu$(1) = "<- Song " + intstr$(snum) + " of " + intstr$(lastsong) + " ->"
+menu$(1) = "<- Song " + intstr$(snum) + " of " + intstr$(general(genMaxSong)) + " ->"
 IF songfile$ <> "" THEN menu$(2) = "Name: " + sname$ ELSE menu$(2) = "-Unused-"
 menu$(7) = ""
 menu$(8) = "Type: " + songtype$ 

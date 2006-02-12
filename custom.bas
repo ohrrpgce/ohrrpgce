@@ -122,7 +122,8 @@ CHDIR gamedir$
 setdrive ASC(UCASE$(LEFT$(gamedir$, 1))) - 65
 
 DIM font(1024), master(767), buffer(16384), timing(4), joy(4), scroll(16002), pass(16002), emap(16002)
-DIM menu$(22), general(360), npc$(15), unpc(15), lnpc(15), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), song$(-1 TO 100), spriteclip(1600)
+DIM menu$(22), general(360), npc$(15), unpc(15), lnpc(15), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600), song$(0)
+'song$ REDIMed in lsongstr
 
 '--DIM binsize arrays
 '$INCLUDE: 'binsize.bi'
@@ -143,7 +144,7 @@ GOSUB readstuff
 'voices = resetdsp
 'setitup game$+".cbv" + CHR$(0),noise(), buffer(), 2
 
-dpage = 1: vpage = 0: Rate = 160: game$ = "": song$(-1) = "Return to Main Menu"
+dpage = 1: vpage = 0: Rate = 160: game$ = ""
 GOSUB chooserpg
 gamefile$ = game$
 
@@ -696,13 +697,15 @@ RETURN
 ssongstr:
 fh = FREEFILE
 OPEN game$ + ".sng" FOR OUTPUT AS #fh
-FOR i = 0 TO 99
+FOR i = 0 TO general(genMaxSong)
  WRITE #fh, song$(i)
 NEXT i
 CLOSE #fh
 RETURN
 
 lsongstr:
+IF general(genMaxSong) = 0 THEN general(genMaxSong) = 99: trimsongs = 1
+REDIM song$(general(genMaxSong))
 fh = FREEFILE
 OPEN game$ + ".sng" FOR BINARY AS #fh
 temp& = LOF(fh)
@@ -710,9 +713,19 @@ CLOSE #fh
 IF temp& = 0 THEN RETURN
 fh = FREEFILE
 OPEN game$ + ".sng" FOR INPUT AS #fh
-FOR i = 0 TO 99
+FOR i = 0 TO general(genMaxSong)
  INPUT #fh, song$(i)
 NEXT i
+IF trimsongs THEN
+ FOR i = 99 TO 1 STEP -1
+  '-- check for midis as well 'cause some people might use a WIP custom or whatnot
+  IF song$(i) = "" AND isfile(game$ + "." + LTRIM$(STR$(i)) + CHR$(0)) = 0 AND isfile(workingdir$ + SLASH + "song" + LTRIM$(STR$(i)) + ".mid" + CHR$(0)) = 0 THEN
+   general(genMaxSong) = i - 1
+  ELSE
+   EXIT FOR
+  END IF
+ NEXT
+END IF
 CLOSE #fh
 RETURN
 
@@ -1181,9 +1194,11 @@ NEXT i
 min(10) = -32767
 max(10) = 32767
 max(11) = 255
+min(11) = -1
 min(13) = -32767
 max(13) = 32767
 max(14) = 255
+min(14) = -1
 stf$(0) = "Item"
 stf$(1) = "Hero"
 stf$(2) = "Script"
@@ -1335,10 +1350,13 @@ DO
    '--not a hero
    min(12) = 0: max(12) = 3
   END IF
-  IF intgrabber(b(17 + tcsr - 3), min(tcsr), max(tcsr), 75, 77) THEN
-   IF tcsr = 3 OR tcsr = 4 THEN GOSUB othertype: GOSUB setdefault
-   IF tcsr = 11 OR tcsr = 14 THEN GOSUB itstrsh
-   IF (b(26) < 0 OR b(26) > 3) AND b(17) <> 1 THEN b(26) = 0
+  IF tcsr = 11 OR tcsr = 14 THEN
+   IF zintgrabber(b(17 + tcsr - 3), min(tcsr), max(tcsr), 75, 77) THEN GOSUB itstrsh
+  ELSE
+   IF intgrabber(b(17 + tcsr - 3), min(tcsr), max(tcsr), 75, 77) THEN
+    IF tcsr = 3 OR tcsr = 4 THEN GOSUB othertype: GOSUB setdefault
+    IF (b(26) < 0 OR b(26) > 3) AND b(17) <> 1 THEN b(26) = 0
+   END IF
   END IF
  END IF
  GOSUB othertype

@@ -579,3 +579,84 @@ PUT #fh, 2 + index * 11, a$
 CLOSE #fh
 
 END SUB
+
+FUNCTION xintgrabber (n, pmin, pmax, nmin, nmax, less, more)
+'--a little bit of documentation required:
+'--like zintgrabber, but for cases where positive values mean one thing, negatives
+'--another, and 0 means none.
+
+'nmin and nmax should be negative or 0. nmax should be less than nmin
+'nmax can be 0 for no negative range
+'nmin - nmax is the range of negative values 
+'eg. nmin = -1 nmax = -100: negatives indicate a number between 1 and 100
+'pmin - pmax is position range, eg. 2 - 50
+
+old = n
+temp = n
+
+'depending on n, align sequence to match displayed
+
+IF old > 0 THEN
+ temp = temp + pmin - 1
+END IF
+
+IF old < 0 THEN
+ temp = temp + nmin + 1
+END IF
+
+'IF old = 0 THEN
+'END IF
+
+
+dummy = intgrabber(temp, nmax, pmax, less, more)
+
+IF keyval(12) > 1 OR keyval(13) > 1 OR keyval(74) > 1 OR keyval(78) > 1 THEN negated = 1
+
+
+IF old > 0 THEN
+ IF temp >= pmin AND temp <= pmax THEN
+  temp = temp - pmin + 1
+ ELSE
+  IF (temp >= 0 AND temp < pmin) OR (temp = -1 AND negated = 0) THEN
+   'you've hit backspace or left or something
+   temp = 0
+  ELSE
+   'you've hit minus or went off the far boundary
+   temp = temp - nmin - 1
+   'check the inverted value is in the other set
+   IF temp > 0 THEN temp = 0
+  END IF
+ END IF
+END IF
+
+IF old < 0 THEN
+ IF temp >= nmax AND temp <= nmin THEN
+  temp = temp - nmin - 1
+ ELSE
+  IF (temp <= 0 AND temp > nmin) OR (temp = 1 AND negated = 0) THEN 
+   temp = 0
+  ELSE
+   temp = temp - pmin + 1
+   IF temp < 0 THEN temp = 0
+  END IF
+ END IF
+END IF
+
+IF old = 0 THEN
+ IF temp < 0 THEN temp = -1 'must have pressed left
+ IF temp > 0 THEN
+  IF temp < pmin OR keyval(more) > 1 THEN temp = 1 ELSE temp = temp - pmin + 1
+ END IF
+END IF
+
+'backspace? goto none
+IF temp = SGN(temp) AND keyval(14) > 1 THEN temp = 0
+
+n = temp
+IF old = n THEN
+ xintgrabber = 0
+ELSE
+ xintgrabber = 1
+END IF
+
+END FUNCTION

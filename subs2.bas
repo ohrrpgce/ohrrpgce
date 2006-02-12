@@ -62,6 +62,7 @@ DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
+DECLARE FUNCTION xintgrabber% (n%, pmin%, pmax%, nmin%, nmax%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
@@ -510,7 +511,7 @@ NEXT i
 
 printstr "song names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
-FOR i = 0 TO 100
+FOR i = 0 TO general(genMaxSong)
  writeconstant fh, i, song$(i), u$(), "song"
 NEXT i
 setvispage 0
@@ -1335,7 +1336,7 @@ DO
   IF ct(order(cur)) = 3 THEN dummy = intgrabber(cond(order(cur)), -99, 99, 75, 77)
   IF ct(order(cur)) = 4 THEN dummy = intgrabber(cond(order(cur)), -32000, 32000, 75, 77)
   IF ct(order(cur)) = 5 THEN dummy = intgrabber(cond(order(cur)), 0, 199, 75, 77)
-  IF ct(order(cur)) = 6 THEN dummy = intgrabber(cond(order(cur)), -255, 255, 75, 77)
+  IF ct(order(cur)) = 6 THEN dummy = xintgrabber(cond(order(cur)), 0, 255, 0, -255, 75, 77)
   IF ct(order(cur)) = 7 THEN dummy = intgrabber(cond(order(cur)), general(43) * -1, general(39), 75, 77)
   IF order(cur) = 10 OR order(cur) = 19 OR order(cur) = 20 THEN IF temp <> cond(order(cur)) THEN GOSUB heroar
   IF order(cur) = 8 THEN IF temp <> cond(order(cur)) THEN GOSUB shopar
@@ -1610,9 +1611,9 @@ max(2) = 255
 min(3) = 0
 max(3) = 14
 min(4) = -1
-max(4) = general(100)
+max(4) = general(genMaxBackdrop) - 1
 min(5) = -1
-max(5) = 100
+max(5) = general(genMaxSong)
 IF buffer(197) > 0 THEN
  setdiskpages buf(), 200, 0
  loadpage game$ + ".mxs" + CHR$(0), buffer(197) - 1, 2
