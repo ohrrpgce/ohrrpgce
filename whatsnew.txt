@@ -136,12 +136,12 @@ Feb ?? 2006 [serendipity]
   * Stuff only Developers Will Notice
 
     * More attack bitsets [Mike Caron]
-    * Unified item-name editor data (all item slots are formatted the same now)
-      [Mike Caron]
+    * Unified item-name editor data (all item slots are formatted the
+      same now) [Mike Caron]
     * New MIDI driver [Mike Caron]
-    * Native Linux port partially working (games are playable, but
-      Browsing is broken in custom and full-screen causes problems)
-      [Simon Bradley, James Paige]
+    * Native Linux port mostly working (games are playable and editable,
+      Browsing still has some problems, espeically in music importing,
+      and full-screen causes problems) [Simon Bradley, James Paige]
     * .SNG lump replaced with binary expandable songdata.bin [Ralph Versteegen]
 
 October 03 2005 [rusalka]

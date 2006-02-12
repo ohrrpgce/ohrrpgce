@@ -228,12 +228,17 @@ treesize = 0
 IF nowdir$ = "" THEN
 ELSE
  a = ASC(LEFT$(nowdir$, 1)) - 64
- FOR i = 0 TO drivetotal - 1
-  'IF a = drive(i) THEN tree$(treesize) = drive$(i)
-  IF a = drive(i) THEN tree$(treesize) = CHR$(64 + drive(i)) + ":" + SLASH
- NEXT i
- treec(treesize) = 0
- a$ = RIGHT$(nowdir$, LEN(nowdir$) - 3)
+ a$ = nowdir$
+ IF LINUX THEN
+  treesize = -1
+ ELSE
+  FOR i = 0 TO drivetotal - 1
+   'IF a = drive(i) THEN tree$(treesize) = drive$(i)
+   IF a = drive(i) THEN tree$(treesize) = CHR$(64 + drive(i)) + ":" + SLASH
+  NEXT i
+  treec(treesize) = 0
+  a$ = RIGHT$(a$, LEN(a$) - 3)
+ END IF 
  b$ = ""
  DO UNTIL a$ = "" OR treesize >= 255
   b$ = b$ + LEFT$(a$, 1)
