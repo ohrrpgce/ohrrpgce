@@ -61,6 +61,9 @@ Feb ?? 2006 [serendipity]
       * OHR Music Code style (http://gilgamesh.hamsterrepublic.com/wiki/
       ohrrpgce/index.php/Music_Code for more details)
       [Mike Caron]
+      
+    * Unlumped RPGs can now be played by Game (start game like this:
+      game foldername)
 
   * Bug Fixes
 
