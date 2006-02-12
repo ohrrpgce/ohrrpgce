@@ -1549,6 +1549,8 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 			debug "corrupt lump file: lump name too long"
 			exit while
 		end if
+		'force to lower-case
+		lname = lcase(lname)
 		'debug "lump name " + lname
 		
 		if not eof(lf) then
@@ -1565,7 +1567,7 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 			'debug "lump size " + str$(size)
 					
 			'do we want this file?	
-			if matchmask(ucase$(lname), ucase$(fmask$)) then
+			if matchmask(lname, lcase$(fmask$)) then
 				'write yon file
 				dim of as integer
 				dim csize as integer
@@ -1728,11 +1730,17 @@ SUB getstring (p$)
 end SUB
 
 FUNCTION drivelist (d() as integer) as integer
-	'faked, needs work (not linux compatible, either, but later, later)
+#ifdef __FB_LINUX__
+	' on Linux there is only one drive, the root /
+	d(0) = -1
+	drivelist = 1
+#else
+	'faked, needs work
 	d(0) = 3
 	d(1) = 4 
 	d(2) = 5
 	drivelist = 3
+#endif
 end FUNCTION
 
 FUNCTION rpathlength () as integer
