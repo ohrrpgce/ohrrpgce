@@ -206,7 +206,7 @@ workingdir$ = tmpdir$ + "playing.tmp"
 IF isdir(workingdir$ + CHR$(0)) THEN
  'DEBUG debug workingdir$+" already exists"
  touchfile workingdir$ + SLASH + "delete.tmp"
- 'DEBUG debug "erasing "+workingdir$+"\*.*"
+ 'DEBUG debug "erasing "+workingdir$+"\"+ALLFILES
  ON ERROR GOTO tempDirErr
  cleanuptemp
  ON ERROR GOTO 0

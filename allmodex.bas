@@ -1485,6 +1485,37 @@ SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 end SUB
 
 SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
+	fmask$ = TRIM(fmask$)
+	outfile$ = TRIM(outfile$)
+#ifdef __FB_LINUX__
+        'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR$
+	DIM grep$
+	grep$ = "-v '/$'"
+	IF attrib = 16 THEN grep$ = "'/$'"
+	DIM i%
+	FOR i = LEN(fmask$) TO 1 STEP -1
+		IF MID$(fmask$, i, 1) = " " THEN fmask$ = LEFT$(fmask$, i - 1) + "\ " + RIGHT$(fmask$, LEN(fmask$) - i)
+	NEXT i
+	debug fmask$
+	SHELL "ls -d1p " + fmask$ + "|grep "+ grep$ + ">" + outfile$ + ".tmp"
+	DIM AS INTEGER f1, f2
+	f1 = FreeFile
+	OPEN outfile$ + ".tmp" FOR INPUT AS #f1
+	f2 = FreeFile
+	OPEN outfile$ FOR OUTPUT AS #f2
+	DIM s$
+	DO UNTIL EOF(f1)
+		LINE INPUT #f1, s$
+		IF RIGHT$(s$, 1) = "/" THEN s$ = LEFT$(s$, LEN(s$) - 1)
+		DO WHILE INSTR(s$, "/")
+			s$ = RIGHT$(s$, LEN(s$) - INSTR(s$, "/"))
+		LOOP
+		PRINT #f2, s$
+	LOOP
+	CLOSE #f1
+	CLOSE #f2
+	KILL outfile$ + ".tmp"
+#else
 	if attrib = 0 then attrib = 255 xor 16
 	dim ff%
 	ff = FreeFile
@@ -1500,6 +1531,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 		a$ = DIR$("", attrib)
 	LOOP
 	CLOSE #ff
+#endif
 END SUB
 
 SUB unlump (lump$, ulpath$, buffer() as integer)

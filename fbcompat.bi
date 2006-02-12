@@ -25,11 +25,15 @@ option nokeyword poke
 #endif
 
 #ifdef __FB_LINUX__
+#define LINUX -1
 #define SLASH "/"
 #define CUSTOMEXE "ohrrpgce-custom"
+#define ALLFILES "*"
 #else
+#define LINUX 0
 #define SLASH "\"
 #define CUSTOMEXE "CUSTOM.EXE"
+#define ALLFILES "*.*"
 #endif
 
 ' keyword(?) in QB

@@ -821,8 +821,6 @@ releasestack
 touchfile workingdir$ + SLASH + "kill.tmp"
 'DEBUG debug "Kill working files"
 
-''KILL workingdir$ + SLASH + "*.*"
-'nono!
 cleanuptemp
 
 'DEBUG debug "Remove working directory"

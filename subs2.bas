@@ -244,7 +244,7 @@ ELSE
   END IF
  LOOP
  '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
- findfiles nowdir$ + "*.*" + CHR$(0), 16, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
+ findfiles nowdir$ + ALLFILES + CHR$(0), 16, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
  fh = FREEFILE
  OPEN tmp$ + "hrbrowse.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh) OR treesize >= 255
@@ -598,7 +598,7 @@ IF w = 1 THEN
  PRINT e$
  
  'borrowed this code from game.bas cos wildcard didn't work in FB
- findfiles workingdir$ + SLASH + "*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
+ findfiles workingdir$ + SLASH + ALLFILES + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
