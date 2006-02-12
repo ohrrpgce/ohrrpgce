@@ -1,6 +1,9 @@
 -----------------------------------------------------------
 FBOHR - OHRRPGCE FreeBasic version
 
+2006-02-11 - Euclid/Epicurus - Fix screenshot. Fix SDL
+		volume reset. Update screen to show error
+		messages. Handle errors better in (un)lump.
 2006-02-09 - Descartes/Derrida - Small fixes. Allegro
 		version no longer needs DLL.
 2006-02-04 - Chomsky/Camus - Fixes and optimisations. 
