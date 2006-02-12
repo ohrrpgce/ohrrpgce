@@ -144,6 +144,7 @@ DECLARE SUB setusermenu (menu$(), mt%, mi%())
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB expcommands (id%, stat%())
 DECLARE SUB checklumpmod ()
+DECLARE SUB makebackups
 
 '---INCLUDE FILES---
 '$INCLUDE: 'compat.bi'
@@ -212,11 +213,6 @@ IF isdir(workingdir$ + CHR$(0)) THEN
 ELSE
  makedir workingdir$
 END IF
-
-'--open a lockfile in the working directory to notify other instances
-'--of GAME.EXE that it is taken.
-lockfile = FREEFILE
-OPEN workingdir$ + SLASH + "lockfile.tmp" FOR BINARY AS #lockfile
 
 'DEBUG debug "re-aquire command-line"
 
@@ -287,6 +283,14 @@ IF MID$(a$, 2, 1) <> ":" THEN a$ = sCurdir$ + a$
 IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$ + CHR$(0)) THEN
  sourcerpg$ = a$
  autorungame = 1
+ELSEIF isdir(a$ + CHR$(0)) THEN 'perhaps it's an unlumped folder?
+'check for essentials
+ IF isfile(a$ + SLASH + "ARCHINYM.LMP" + CHR$(0)) THEN 'ok, accept it
+  autorungame = 1
+  usepreunlump = 1
+  sourcerpg$ = a$
+  workingdir$ = a$
+ END IF
 ELSE
  IF exename$ <> "GAME" THEN
   IF isfile(progdir$ + exename$ + ".rpg" + CHR$(0)) THEN
@@ -299,7 +303,13 @@ IF autorungame = 0 THEN
  'DEBUG debug "browse for RPG"
  sourcerpg$ = browse$("*.rpg", 1, 2)
 END IF
-IF sourcerpg$ = "" THEN exitprogram 0
+IF sourcerpg$ = "" AND NOT usepreunlump = 1 THEN exitprogram 0
+
+'--open a lockfile in the working directory to notify other instances
+'--of GAME.EXE that it is taken.
+lockfile = FREEFILE
+OPEN workingdir$ + SLASH + "lockfile.tmp" FOR BINARY AS #lockfile
+
 
 IF autorungame = 0 THEN
  rectangle 4, 3, 312, 14, 9, vpage
@@ -312,8 +322,14 @@ setvispage vpage 'refresh
 
 '---GAME SELECTED, PREPARING TO PLAY---
 DIM lumpbuf(16383)
-unlump sourcerpg$ + CHR$(0), workingdir$ + SLASH, lumpbuf()
+IF usepreunlump = 0 THEN 
+ unlump sourcerpg$ + CHR$(0), workingdir$ + SLASH, lumpbuf()
+END IF
+
 initgame '--set game$
+
+makebackups 'make a few backup lumps
+
 unlump game$ + ".hsp" + CHR$(0), workingdir$ + SLASH, lumpbuf()
 ERASE lumpbuf
 
