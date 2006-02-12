@@ -32,7 +32,7 @@ Feb ?? 2006 [serendipity]
     * Spell Descriptions! (set in Attacks->Appearance) [Mike Caron]
 
     * Mute status affliction (and a bitset to make a spell mutable)
-     [Mike Caron]
+      [Mike Caron]
 
     * New attack bitsets:
       Fail if target is [poisoned/regened/stunned/muted]
@@ -47,10 +47,11 @@ Feb ?? 2006 [serendipity]
       edit anywhere in the line of text without needing to delete the
       end of the line. [James Paige]
 
-    * New Import Music... menu. This means:
+    * New Import Music menu. This means:
+      * The 100 song limit is gone
       * You can import .MIDs as well as .BAMs (and as we support more
         music formats, you will be able to import them too.) You can
-        only play midis in the FB build.
+        only play midis in FB GAME + CUSTOM.
       * Export and delete songs
       Until QBOHR is dropped, you can have a BAM fallback version of
       any MIDI file you import. Just import a MIDI over top of a BAM.
@@ -103,8 +104,11 @@ Feb ?? 2006 [serendipity]
 
     * Using formation sets 100+ no longer crashes game [Ralph Versteegen]
 
-    * Fixed bug 24 : "Numbering is wrong for backdrops and songs in the
+    * Fixed bug 24: "Numbering is wrong for backdrops and songs in the
       text-box appearance editor" [Ralph Versteegen]
+
+    * Fixed bugs in numerous menu items where typing in a number entered
+      incorrectly [Ralph Versteegen]
 
   * New Plotscripting Commands
 

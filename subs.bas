@@ -34,6 +34,7 @@ DECLARE FUNCTION readattackname$ (index%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
+DECLARE FUNCTION xintgrabber% (n%, pmin%, pmax%, nmin%, nmax%, less%, more%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
@@ -817,14 +818,17 @@ loadset game$ + ".efs" + CHR$(0), gptr, 0
 RETURN
 
 editform:
-max(1) = general(100) - 1
-max(2) = 100
-max(3) = 49
+'--???  well, you see..
+max(1) = general(genMaxBackdrop) - 1   'genMaxBackdrop is number of backdrops, but is necessary
+max(2) = general(genMaxSong) + 1   'genMaxSongs is number of last song, but is optional
+max(3) = 50
 max(4) = 1000
 pt = 0: csr2 = -6: csr3 = 0
 GOSUB loadform
 GOSUB formpics
 setkeys
+
+menu$(3) = "Previous Menu"
 
 DO
  setwait timing(), 90
@@ -849,8 +853,14 @@ DO
    IF csr2 = -6 THEN GOSUB saveform: RETURN
    IF csr2 >= 0 THEN IF a(csr2 * 4 + 0) > 0 THEN csr3 = 1
   END IF
-  IF csr2 > -6 AND csr2 < 0 THEN
+  IF (csr2 >= -5 AND csr2 <= -4) OR (csr2 >= -1 AND csr2 < 0) THEN
    IF intgrabber(a(36 + csr2), 0, max(csr2 + 5), 75, 77) THEN GOSUB saveform: GOSUB loadform
+  END IF
+  IF csr2 = -3 THEN
+   IF zintgrabber(a(36 + csr2), -1, max(csr2 + 5), 75, 77) THEN GOSUB saveform: GOSUB loadform
+  END IF
+  IF csr2 = -2 THEN
+   IF xintgrabber(a(36 + csr2), 2, max(csr2 + 5), 0, 0, 75, 77) THEN GOSUB saveform: GOSUB loadform
   END IF
   IF csr2 = -5 THEN '---SELECT A DIFFERENT FORMATION
    remptr = pt
@@ -1616,24 +1626,24 @@ DO
    GOSUB itemmenu
   END IF
  END IF
- IF pt >= 3 AND pt <= 10 THEN
-  min = 0: IF pt = 8 THEN min = general(39) * -1
-  IF intgrabber(a(46 + (pt - 3)), min, max(pt), 75, 77) THEN GOSUB itemmenu
- END IF
- IF pt = 11 THEN
-  IF intgrabber(a(73), 0, 2, 75, 77) THEN GOSUB itemmenu
- END IF
- IF pt >= 12 AND pt <= 15 THEN
-  IF intgrabber(a(74 + (pt - 12)), 0, max(pt), 75, 77) THEN GOSUB itemmenu
- END IF
- IF pt = 1 THEN
-  strgrabber item$(csr), 8
-  menu$(1) = "Name:" + item$(csr)
- END IF
- IF pt = 2 THEN
-  strgrabber info$, 34
-  menu$(2) = "Info:" + info$
- END IF
+ SELECT CASE pt
+  CASE 1
+   strgrabber item$(csr), 8
+   menu$(1) = "Name:" + item$(csr)
+  CASE 2
+   strgrabber info$, 34
+   menu$(2) = "Info:" + info$
+  CASE 3, 6, 9, 10
+   IF intgrabber(a(46 + (pt - 3)), 0, max(pt), 75, 77) THEN GOSUB itemmenu
+  CASE 4, 5, 7
+   IF zintgrabber(a(46 + (pt - 3)), -1, max(pt), 75, 77) THEN GOSUB itemmenu
+  CASE 8
+   IF xintgrabber(a(46 + (pt - 3)), 0, max(pt), -1, general(39) * -1, 75, 77) THEN GOSUB itemmenu
+  CASE 11
+   IF intgrabber(a(73), 0, 2, 75, 77) THEN GOSUB itemmenu
+  CASE 12 TO 15
+   IF intgrabber(a(74 + (pt - 12)), 0, max(pt), 75, 77) THEN GOSUB itemmenu
+ END SELECT
  FOR i = 0 TO 18
   textcolor 7, 0
   IF pt = i THEN textcolor 14 + tog, 0
