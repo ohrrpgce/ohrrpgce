@@ -1886,6 +1886,7 @@ RETURN
 
 '---DO THE ACTUAL EFFECTS OF MATH AND FUNCTIONS----
 sfunctions:
+scriptret = 0
 SELECT CASE scrat(nowscript, curkind)
  '---MATH----------------------------------------------------------------------
  CASE tymath
