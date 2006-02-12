@@ -489,7 +489,7 @@ PRINT "fatal error:"
 PRINT e$
 
 'borrowed this code from game.bas cos wildcard didn't work
-findfiles workingdir$ + SLASH + "*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
+findfiles workingdir$ + SLASH + ALLFILES + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
 fh = FREEFILE
 OPEN "filelist.tmp" FOR INPUT AS #fh
 DO UNTIL EOF(fh)
@@ -518,7 +518,7 @@ END IF
 touchfile "unlump1.tmp" + SLASH + "nothing.tmp"
 
 'borrowed this code from game.bas cos wildcard didn't work
-findfiles "unlump1.tmp" + SLASH + "*.*" + chr$(0), 0, "unlist.tmp" + CHR$(0), buffer()
+findfiles "unlump1.tmp" + SLASH + ALLFILES + chr$(0), 0, "unlist.tmp" + CHR$(0), buffer()
 fh = FREEFILE
 OPEN "unlist.tmp" FOR INPUT AS #fh
 DO UNTIL EOF(fh)

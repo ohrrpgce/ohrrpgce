@@ -343,17 +343,22 @@ ELSE
  GOSUB drawmeter
  'tree$(treesize) = "[ROOT]"
  'treec(treesize) = 4
- a = ASC(LEFT$(nowdir$, 1)) - 64
- FOR i = 0 TO drivetotal - 1
-  'IF a = drive(i) THEN tree$(treesize) = drive$(i)
-  IF a = drive(i) THEN
-   tree$(treesize) = CHR$(64 + drive(i)) + ":" + SLASH
-   GOSUB drawmeter
-  END IF
- NEXT i
- treec(treesize) = 0
- about$(treesize) = "Drive"
- a$ = RIGHT$(nowdir$, LEN(nowdir$) - 3)
+ a$ = nowdir$
+ IF LINUX THEN
+  treesize = -1
+ ELSE ' Windows and DOS
+  a = ASC(LEFT$(nowdir$, 1)) - 64
+  FOR i = 0 TO drivetotal - 1
+   'IF a = drive(i) THEN tree$(treesize) = drive$(i)
+   IF a = drive(i) THEN
+    tree$(treesize) = CHR$(64 + drive(i)) + ":" + SLASH
+    GOSUB drawmeter
+   END IF
+  NEXT i
+  treec(treesize) = 0
+  about$(treesize) = "Drive"
+  a$ = RIGHT$(a$, LEN(a$) - 3)
+ END IF
  b$ = ""
  DO UNTIL a$ = ""
   b$ = b$ + LEFT$(a$, 1)
@@ -368,7 +373,7 @@ ELSE
   END IF
  LOOP
  '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
- findfiles nowdir$ + "*.*" + CHR$(0), 16, tmpdir$ + "hrbrowse.tmp" + CHR$(0), buffer()
+ findfiles nowdir$ + ALLFILES + CHR$(0), 16, tmpdir$ + "hrbrowse.tmp" + CHR$(0), buffer()
  fh = FREEFILE
  OPEN tmpdir$ + "hrbrowse.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
@@ -496,7 +501,7 @@ FOR i = 0 TO drivetotal - 1
   drive$(i) = CHR$(64 + drive(i)) + ":" + SLASH + " (removable)"
  ELSE '--not removable--
   IF hasmedia(drive(i)) THEN
-   findfiles CHR$(64 + drive(i)) + ":" + SLASH + "*.*" + CHR$(0), 8, tmpdir$ + "hrbrowse.tmp" + CHR$(0), buffer()
+   findfiles CHR$(64 + drive(i)) + ":" + SLASH + ALLFILES + CHR$(0), 8, tmpdir$ + "hrbrowse.tmp" + CHR$(0), buffer()
    fh = FREEFILE
    OPEN tmpdir$ + "hrbrowse.tmp" FOR INPUT AS #fh
    IF LOF(fh) THEN

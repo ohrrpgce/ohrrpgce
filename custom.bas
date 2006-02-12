@@ -563,7 +563,7 @@ LOOP
 
 dolumpfiles:
 '--build the list of files to lump
-findfiles workingdir$ + SLASH + "*.*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
+findfiles workingdir$ + SLASH + ALLFILES + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
 fixorder "temp.lst"
 '---KILL BUFFERS, LUMP, REDEFINE BUFFERS---
 ERASE scroll, pass, emap
@@ -622,7 +622,7 @@ CLOSE #lockfile
 IF nocleanup = 0 THEN
  touchfile workingdir$ + SLASH + "kill.tmp"
  'borrowed this code from game.bas cos wildcard didn't work in FB
- findfiles workingdir$ + SLASH + "*.*" + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
+ findfiles workingdir$ + SLASH + ALLFILES + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)

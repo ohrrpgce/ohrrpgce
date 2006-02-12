@@ -530,7 +530,7 @@ END SUB
 SUB cleanuptemp
  KILL workingdir$ + SLASH + "lockfile.tmp"
  IF usepreunlump = 0 THEN
-  findfiles workingdir$ + SLASH + "*.*" + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
+  findfiles workingdir$ + SLASH + ALLFILES + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
  ELSE
   'if this is an already-unlumped rpg, we can't just go and delete everything! Shock!
   'plotscripts

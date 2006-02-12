@@ -126,8 +126,8 @@ Feb ?? 2006 [serendipity]
       [Mike Caron]
     * New MIDI driver [Mike Caron]
     * Native Linux port partially working (games are playable, but
-      Browsing is broken and full-screen causes problems) [Simon Bradley,
-      James Paige]
+      Browsing is broken in custom and full-screen causes problems)
+      [Simon Bradley, James Paige]
 
 October 03 2005 [rusalka]
 
