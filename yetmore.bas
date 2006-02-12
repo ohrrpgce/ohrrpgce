@@ -558,6 +558,7 @@ IF isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
  OPEN workingdir$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
  LINE INPUT #fh, a$
  CLOSE #fh
+ a$ = LCASE$(a$)
  IF LEN(a$) <= 8 THEN game$ = workingdir$ + SLASH + a$
 END IF
 END SUB
