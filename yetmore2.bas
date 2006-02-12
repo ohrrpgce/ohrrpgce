@@ -590,7 +590,8 @@ loadpage game$ + ".til" + CHR$(0), gmap(0), 3
 END SUB
 
 SUB cleanuptemp
- KILL workingdir$ + SLASH + "lockfile.tmp"
+ 'we don't have a lockfile if we never got past the browse screen!
+ IF lockfile THEN KILL workingdir$ + SLASH + "lockfile.tmp"
  IF usepreunlump = 0 THEN
   findfiles workingdir$ + SLASH + ALLFILES + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
  ELSE

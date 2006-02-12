@@ -811,7 +811,7 @@ SUB quitcleanup
 'DEBUG debug "Close foemap handle"
 CLOSE #foemaph
 'DEBUG debug "Close lockfile"
-CLOSE #lockfile
+IF lockfile THEN CLOSE #lockfile
 '--keyboard
 'DEBUG debug "Shut off keyhandler"
 keyhandleroff
