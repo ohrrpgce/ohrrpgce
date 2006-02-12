@@ -103,6 +103,7 @@ DECLARE FUNCTION exptolevel& (level%)
 DECLARE SUB updatestatslevelup (i%, exstat%(), stat%(), allowforget%)
 DECLARE SUB giveheroexperience (i%, exstat%(), exper&)
 DECLARE FUNCTION liveherocount% (stat%())
+DECLARE SUB cleanuptemp ()
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -543,12 +544,14 @@ SUB initgame
 '--back compat game$
 a$ = ""
 i = 0
+IF usepreunlump = 0 THEN
 DO UNTIL LEFT$(a$, 1) = SLASH
  i = i + 1
  a$ = RIGHT$(sourcerpg$, i)
 LOOP
 a$ = LEFT$(a$, LEN(a$) - 4)
 game$ = workingdir$ + a$
+END IF
 '--set game$ according to the archinym
 IF isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
  fh = FREEFILE
@@ -817,9 +820,13 @@ releasestack
 'DEBUG debug "Touch killfile"
 touchfile workingdir$ + SLASH + "kill.tmp"
 'DEBUG debug "Kill working files"
-KILL workingdir$ + SLASH + "*.*"
+
+''KILL workingdir$ + SLASH + "*.*"
+'nono!
+cleanuptemp
+
 'DEBUG debug "Remove working directory"
-RMDIR workingdir$
+IF usepreunlump = 0 THEN RMDIR workingdir$
 'DEBUG debug "Kill stored command-line"
 safekill tmpdir$ + "ohrcline.tmp"
 '--reset audio

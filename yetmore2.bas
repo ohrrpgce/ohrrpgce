@@ -495,10 +495,18 @@ END SUB
 
 SUB checklumpmod
  IF readbit(lumpmod(),0,0) THEN
-  unlumpfile sourcerpg$ + CHR$(0), "*.dt1", workingdir$ + SLASH, buffer()
+  'unlumpfile sourcerpg$ + CHR$(0), "*.dt1", workingdir$ + SLASH, buffer()
+  copyfile workingdir$ + SLASH + "dt1.old" + CHR$(0), game$ + ".dt1" + CHR$(0), buffer()
   setbit lumpmod(),0,0,0
  END IF
 
+END SUB
+
+SUB makebackups
+ 'what is this for? Since some lumps can be modified at run time, we need to keep a
+ 'backup copy, so that we can restore it later. Duh.
+ copyfile game$ + ".dt1" + CHR$(0), workingdir$ + SLASH + "dt1.old" + CHR$(0), buffer()
+ 'if you add lump-modding commands, you better well add them here >:(
 END SUB
 
 SUB correctbackdrop
@@ -520,23 +528,33 @@ loadpage game$ + ".til" + CHR$(0), gmap(0), 3
 END SUB
 
 SUB cleanuptemp
-KILL workingdir$ + SLASH + "lockfile.tmp"
-findfiles workingdir$ + SLASH + "*.*" + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
-fh = FREEFILE
-OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
-DO UNTIL EOF(fh)
- INPUT #fh, filename$
- filename$ = LCASE$(filename$)
- IF LEFT$(filename$, 3) = "vdm" AND RIGHT$(filename$, 4) = ".tmp" THEN
-  '-- mysterious locked file, leave it alone
+ KILL workingdir$ + SLASH + "lockfile.tmp"
+ IF usepreunlump = 0 THEN
+  findfiles workingdir$ + SLASH + "*.*" + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
  ELSE
-  '-- delte file
+  'if this is an already-unlumped rpg, we can't just go and delete everything! Shock!
+  'plotscripts
+  findfiles workingdir$ + SLASH + "*.hsx" + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
+  'generic temporary files
+  findfiles workingdir$ + SLASH + "*.tmp" + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
+  'lump backups
+  findfiles workingdir$ + SLASH + "*.old" + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
  END IF
- KILL workingdir$ + SLASH + filename$
-LOOP
-CLOSE #fh
-KILL tmpdir$ + "filelist.tmp"
-
+ fh = FREEFILE
+  OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
+  DO UNTIL EOF(fh)
+   INPUT #fh, filename$
+   filename$ = LCASE$(filename$)
+   IF LEFT$(filename$, 3) = "vdm" AND RIGHT$(filename$, 4) = ".tmp" THEN
+    '-- mysterious locked file, leave it alone
+   ELSE
+    '-- delte file
+   END IF
+   KILL workingdir$ + SLASH + filename$
+  LOOP
+  CLOSE #fh
+  
+  KILL tmpdir$ + "filelist.tmp"
 END SUB
 
 FUNCTION checkfordeath (stat())
