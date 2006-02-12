@@ -1187,6 +1187,11 @@ end</example>
 			<shortname>string Y</shortname>
 			<description>returns the vertical Y position of the top left corner of string #<p>ID</p></description>
 		</command>
+		<command id="getsongname">
+			<cannon>get song name (ID, song)</cannon>
+			<shortname>get song name</shortname>
+			<description>Gets the name of song #<p>song</p> and puts it in string #<p>ID</p>.</description>
+		</command>
 	</section>
 	<section title="Misc Functions">
 		<command id="random">

@@ -30,7 +30,7 @@ DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION isunique% (s$, u$(), r%)
 DECLARE FUNCTION loadname$ (length%, offset%)
-DECLARE SUB exportnames (gamedir$, song$())
+DECLARE SUB exportnames (gamedir$)
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE FUNCTION needaddset (pt%, check%, what$)
@@ -47,13 +47,13 @@ DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
-DECLARE SUB formation (song$())
+DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
-DECLARE SUB textage (song$())
+DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (master%(), font%())
 DECLARE FUNCTION small% (n1%, n2%)
@@ -71,6 +71,8 @@ DECLARE SUB readscatter (s$, lhold%, start%)
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filesize$ (file$)
 DECLARE FUNCTION inputfilename$ (query$, ext$)
+DECLARE FUNCTION getsongname$ (num%)
+DECLARE SUB writebinstring (savestr$, array%(), offset%, maxlen%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -439,7 +441,7 @@ RETURN
 
 END SUB
 
-SUB gendata (song$(), master())
+SUB gendata (master())
 STATIC default$
 DIM m$(19), max(19), bitname$(15), subm$(4), scriptgenof(4)
 IF general(genPoison) <= 0 THEN general(genPoison) = 161
@@ -573,11 +575,11 @@ m$(2) = "Starting X" + STR$(general(102))
 m$(3) = "Starting Y" + STR$(general(103))
 m$(4) = "Starting Map" + STR$(general(104))
 m$(5) = "Title Music:"
-IF general(2) = 0 THEN m$(5) = m$(5) + " -none-" ELSE m$(5) = m$(5) + STR$(general(2) - 1) + " " + song$(general(2) - 1)
+IF general(2) = 0 THEN m$(5) = m$(5) + " -none-" ELSE m$(5) = m$(5) + STR$(general(2) - 1) + " " + getsongname$(general(2) - 1)
 m$(6) = "Battle Victory Music:"
-IF general(3) = 0 THEN m$(6) = m$(6) + " -none-" ELSE m$(6) = m$(6) + STR$(general(3) - 1) + " " + song$(general(3) - 1)
+IF general(3) = 0 THEN m$(6) = m$(6) + " -none-" ELSE m$(6) = m$(6) + STR$(general(3) - 1) + " " + getsongname$(general(3) - 1)
 m$(7) = "Default Battle Music:"
-IF general(4) = 0 THEN m$(7) = m$(7) + " -none-" ELSE m$(7) = m$(7) + STR$(general(4) - 1) + " " + song$(general(4) - 1)
+IF general(4) = 0 THEN m$(7) = m$(7) + " -none-" ELSE m$(7) = m$(7) + STR$(general(4) - 1) + " " + getsongname$(general(4) - 1)
 m$(11) = "Starting Money:" + STR$(general(96))
 m$(13) = "Long Name:" + longname$
 m$(14) = "About Line:" + aboutline$
@@ -822,7 +824,7 @@ RETURN
 
 END SUB
 
-SUB importsong (song$(), master())
+SUB importsong (master())
 STATIC default$
 DIM music(16384)
 setupmusic music()
@@ -854,20 +856,21 @@ DO
   menu$(2) = "Name: " + sname$
  ELSE
   '-- check for switching song
-  oldsong = snum
-  IF intgrabber(snum, 0, general(genMaxSong), 51, 52) THEN
-   song$(oldsong) = sname$
+  newsong = snum
+  IF intgrabber(newsong, 0, general(genMaxSong), 51, 52) THEN
+   GOSUB ssongdata
+   snum = newsong
    GOSUB getinfo
   END IF
   IF keyval(75) > 1 AND snum > 0 THEN
-   song$(snum) = sname$
+   GOSUB ssongdata
    snum = snum - 1
    GOSUB getinfo
   END IF
   IF keyval(77) > 1 AND snum < 32767 THEN
-   song$(snum) = sname$
+   GOSUB ssongdata
    snum = snum + 1
-   IF needaddset(snum, general(genMaxSong), "song") THEN REDIM song$(snum): song$(snum) = ""
+   IF needaddset(snum, general(genMaxSong), "song") THEN sname$ = ""
    GOSUB getinfo
   END IF
  END IF
@@ -894,7 +897,7 @@ DO
  copypage 2, dpage
  dowait
 LOOP
-song$(snum) = sname$
+GOSUB ssongdata
 clearpage 0
 clearpage 1
 clearpage 2
@@ -921,6 +924,8 @@ bamfile$ = songfile$
 IF isfile(temp$ + ".mid" + CHR$(0)) THEN ext$ = ".mid" : songfile$ = temp$ + ext$ : songtype$ = "MIDI Music (MID)"
 '--add more formats here
 
+sname$ = getsongname$(snum)
+
 IF songfile$ <> "" THEN '--song exists
  IF canplay(songfile$) THEN
   loadsong songfile$ + CHR$(0)
@@ -928,10 +933,8 @@ IF songfile$ <> "" THEN '--song exists
   IF bamfile$ <> "" THEN loadsong bamfile$ + CHR$(0)
  END IF
 ELSE
- song$(snum) = ""
+ sname$ = ""
 END IF
-
-sname$ = song$(snum)
 
 menu$(1) = "<- Song " + intstr$(snum) + " of " + intstr$(general(genMaxSong)) + " ->"
 IF songfile$ <> "" THEN menu$(2) = "Name: " + sname$ ELSE menu$(2) = "-Unused-"
@@ -966,7 +969,8 @@ IF sourcesong$ <> "" THEN
  copyfile sourcesong$ + CHR$(0), songfile$ + CHR$(0), buffer()
  a$ = getLongName$(sourcesong$)
  a$ = MID$(a$, 1, INSTR(a$, ".") - 1)
- song$(snum) = a$
+ sname$ = a$
+ GOSUB ssongdata
 END IF
 GOSUB getinfo
 RETURN
@@ -984,6 +988,13 @@ END IF
 outfile$ = inputfilename$(query$, ext$)
 IF outfile$ = "" THEN RETURN
 copyfile songfile$ + CHR$(0), outfile$ + ext$ + CHR$(0), buffer()
+RETURN
+
+ssongdata:
+flusharray buffer(), curbinsize(2) / 2, 0
+setpicstuf buffer(), curbinsize(2), -1
+writebinstring sname$, buffer(), 0, 30
+storeset workingdir$ + SLASH + "songdata.bin" + CHR$(0), snum, 0
 RETURN
 
 END SUB

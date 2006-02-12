@@ -54,7 +54,7 @@ DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
-DECLARE SUB formation (song$())
+DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
@@ -66,6 +66,7 @@ DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
+DECLARE FUNCTION getsongname$ (num%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -704,7 +705,7 @@ RETURN
 '-----------------------------------------------------------------------
 END SUB
 
-SUB formation (song$())
+SUB formation
 DIM a(40), b(160), c(24), s(7), w(7), menu$(10), ename$(7), max(10), z(7), bmenu$(22), pal16(64)
 clearpage 0
 clearpage 1
@@ -894,7 +895,7 @@ DO
   menu$(4) = CHR$(27) + "formation" + STR$(pt) + CHR$(26)
   menu$(5) = "Backdrop screen:" + STR$(a(32))
   menu$(6) = "Battle Music:"
-  IF a(33) = 0 THEN menu$(6) = menu$(6) + " -none-" ELSE menu$(6) = menu$(6) + STR$(a(33) - 1) + " " + song$(a(33) - 1)
+  IF a(33) = 0 THEN menu$(6) = menu$(6) + " -none-" ELSE menu$(6) = menu$(6) + STR$(a(33) - 1) + " " + getsongname$(a(33) - 1)
   menu$(7) = "Backdrop Frames:"
   IF a(34) = 0 THEN menu$(7) = menu$(7) + " no animation" ELSE menu$(7) = menu$(7) + STR$(a(34) + 1)
   menu$(8) = "Backdrop Speed:" + STR$(a(35))

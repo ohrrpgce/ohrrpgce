@@ -109,6 +109,7 @@ DECLARE SUB defaultc ()
 DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB cathero ()
+DECLARE FUNCTION getsongname$ (num%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -294,6 +295,13 @@ END IF
 framewalkabout = yesdraw
 END FUNCTION
 
+FUNCTION getsongname$ (num)
+DIM songd(curbinsize(2) / 2)
+setpicstuf songd(), curbinsize(2), -1
+loadset workingdir$ + SLASH + "songdata.bin" + CHR$(0), num, 0
+getsongname$ = readbinstring$ (songd(), 0, 30)
+END FUNCTION
+
 SUB initgamedefaults
 
 lastsaveslot = 0
@@ -364,6 +372,60 @@ END FUNCTION
 
 SUB safekill (f$)
 IF isfile(f$ + CHR$(0)) THEN KILL f$
+END SUB
+
+SUB setmapxy (cameramode)
+SELECT CASE gen(cameramode)
+ CASE herocam
+  mapx = catx(gen(cameraArg)) - 150
+  mapy = caty(gen(cameraArg)) - 90
+  GOSUB limitcamera
+ CASE npccam
+  mapx = npcl(gen(cameraArg)) - 150
+  mapy = npcl(gen(cameraArg) + 300) - 90
+  GOSUB limitcamera
+ CASE pancam ' 1=dir, 2=dist, 3=step
+  IF gen(cameraArg2) > 0 THEN
+   SELECT CASE gen(cameraArg)
+    CASE 0'north
+     mapy = mapy - gen(cameraArg3)
+    CASE 1'east
+     mapx = mapx + gen(cameraArg3)
+    CASE 2'south
+     mapy = mapy + gen(cameraArg3)
+    CASE 3'west
+     mapx = mapx - gen(cameraArg3)
+   END SELECT
+   gen(cameraArg2) = gen(cameraArg2) - 1
+   IF gen(cameraArg2) = 0 THEN gen(cameramode) = stopcam
+  END IF
+ CASE focuscam
+  IF mapx < gen(cameraArg) THEN
+   mapx = mapx + gen(cameraArg3)
+  ELSE
+   IF mapx > gen(cameraArg) THEN mapx = mapx - gen(cameraArg3)
+  END IF
+  IF mapy < gen(cameraArg2) THEN
+   mapy = mapy + gen(cameraArg4)
+  ELSE
+   IF mapy > gen(cameraArg2) THEN mapy = mapy - gen(cameraArg4)
+  END IF
+  IF mapx < gen(cameraArg) + gen(cameraArg3) AND mapx > gen(cameraArg) - gen(cameraArg3) AND ABS(gen(cameraArg3)) > 1 THEN gen(cameraArg3) = gen(cameraArg3) - 1
+  IF mapy < gen(cameraArg2) + gen(cameraArg4) AND mapy > gen(cameraArg2) - gen(cameraArg4) AND ABS(gen(cameraArg4)) > 1 THEN gen(cameraArg4) = gen(cameraArg4) - 1
+  IF mapx = gen(cameraArg) THEN gen(cameraArg3) = 0
+  IF mapy = gen(cameraArg2) THEN gen(cameraArg4) = 0
+  IF gen(cameraArg3) = 0 AND gen(cameraArg4) = 0 THEN gen(cameramode) = stopcam
+  IF mapx <> bound(mapx, -320, scroll(0) * 20) OR mapy <> bound(mapy, -200, scroll(1) * 20) THEN gen(cameramode) = stopcam
+END SELECT
+EXIT SUB
+
+limitcamera:
+IF gmap(5) = 0 THEN
+ mapx = bound(mapx, 0, scroll(0) * 20 - 320)
+ mapy = bound(mapy, 0, scroll(1) * 20 - 200)
+END IF
+RETURN
+
 END SUB
 
 SUB setScriptArg (arg, value)

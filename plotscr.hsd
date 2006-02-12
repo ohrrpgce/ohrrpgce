@@ -206,16 +206,16 @@ define function, begin
 207,get map name,2,0,0	    # (string, map) - puts the name of map(map) in string(string)
 208,get attack name,2,0,0   # (string, attack) - puts the name of attack(attack) in string(string)
 209,get global string,2,0,0 # (string, global) - puts the global string (global) in string(string)
-210,showstring,1,0 		#shows string on the bottom(stringID)
-211,clearstring,1,0		#deletes the data from string(stringID)
-212,appendascii,2,0,0		#adds ascii to string(stringID,ascii)
-213,appendnumber,2,0,0		#adds number to string(stringID,number)
-214,copystring,2,0,0		#copies string from one to another(sourceID,destinationID)
-215,concatenatestrings,2,0,0	#adds two strings(sourceID,destinationID)
-216,stringlength,1,0		#returns the length of string(stringID)
-217,deletechar,2,0,1		#deletes character from string(stringID,position)
-218,replacechar,3,0,1,0		#replaces character in the specified string(stringID,position,ascii)
-219,asciifromstring,2,0,1	#returns the ascii in the string(ascii number)(stringID,position)
+210,showstring,1,0            #shows string on the bottom(stringID)
+211,clearstring,1,0           #deletes the data from string(stringID)
+212,appendascii,2,0,0         #adds ascii to string(stringID,ascii)
+213,appendnumber,2,0,0        #adds number to string(stringID,number)
+214,copystring,2,0,0          #copies string from one to another(sourceID,destinationID)
+215,concatenatestrings,2,0,0  #adds two strings(sourceID,destinationID)
+216,stringlength,1,0          #returns the length of string(stringID)
+217,deletechar,2,0,1          #deletes character from string(stringID,position)
+218,replacechar,3,0,1,0       #replaces character in the specified string(stringID,position,ascii)
+219,asciifromstring,2,0,1     #returns the ascii in the string(ascii number)(stringID,position)
 220,positionstring,3,0,0,0    #move a string to a position on the screen(stringID,x,y)
 221,setstringbit,3,0,0,0      #set a string bit, such as: visibility, style(stringID,bit,value)
 222,getstringbit,2,0,0        #return a string bit, such as: visibility, style(stringID,bit)
@@ -225,10 +225,11 @@ define function, begin
 226,systemday,0               #returns system day
 227,systemmonth,0             #returns system month
 228,systemyear,0              #returns system year
-229,stringcompare,2,0,0		#returns whether two strings are the same(stringID1, stringID2)
+229,stringcompare,2,0,0	      #returns whether two strings are the same(stringID1, stringID2)
 230,readenemydata,2,0,0       #reads enemy data(enemy,dataposition)
 231,writeenemydata,3,0,0,0    #writes enemy data(enemy,dataposition,value)
-232,trace,1,0				#writes the provided string to G_DEBUG.txt
+232,trace,1,0                 #writes the provided string to G_DEBUG.txt
+233,getsongname,2,0,0         #get song name and store in string
 end
 
 #--------------------------------------------------------------------------

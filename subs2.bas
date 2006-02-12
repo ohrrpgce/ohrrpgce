@@ -31,7 +31,7 @@ DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION isunique% (s$, u$(), r%)
 DECLARE FUNCTION loadname$ (length%, offset%)
-DECLARE SUB exportnames (gamedir$, song$())
+DECLARE SUB exportnames (gamedir$)
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE FUNCTION needaddset (pt%, check%, what$)
@@ -48,13 +48,13 @@ DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
-DECLARE SUB formation (song$())
+DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
-DECLARE SUB textage (song$())
+DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (master%(), font%())
 DECLARE FUNCTION small% (n1%, n2%)
@@ -67,6 +67,7 @@ DECLARE SUB strgrabber (s$, maxl%)
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION validmusicfile(file$)
+DECLARE FUNCTION getsongname$ (num%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -464,7 +465,7 @@ NEXT i
 
 END SUB
 
-SUB exportnames (gamedir$, song$())
+SUB exportnames (gamedir$)
 
 DIM u$(1024), names$(32), stat$(11)
 max = 32
@@ -512,7 +513,7 @@ NEXT i
 printstr "song names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
 FOR i = 0 TO general(genMaxSong)
- writeconstant fh, i, song$(i), u$(), "song"
+ writeconstant fh, i, getsongname$(i), u$(), "song"
 NEXT i
 setvispage 0
 
@@ -767,7 +768,7 @@ ELSE
 END IF
 END FUNCTION
 
-SUB scriptman (gamedir$, song$())
+SUB scriptman (gamedir$)
 STATIC defaultdir$
 DIM menu$(5)
 
@@ -788,7 +789,7 @@ DO
    CASE 0
     EXIT DO
    CASE 1
-    exportnames gamedir$, song$()
+    exportnames gamedir$
    CASE 2
     f$ = browse(0, defaultdir$, "*.hs", "")
     IF f$ <> "" THEN
@@ -1160,7 +1161,7 @@ clearpage 1
 
 END FUNCTION
 
-SUB textage (song$())
+SUB textage
 DIM m$(10), x$(8), cond(21), ct(-1 TO 21), menu$(21), a(318), order(21), grey(21), choice$(1), max(8), min(8), buf(16384), h$(2), tagmn$
 pt = 1
 
@@ -1581,7 +1582,7 @@ DO
    IF buffer(192 + i) THEN
     temp$ = menu$(i) + STR$(buffer(192 + i) - 1)
     IF i = 6 THEN
-     temp$ = temp$ + " " + song$(buffer(192 + i) - 1)
+     temp$ = temp$ + " " + getsongname$(buffer(192 + i) - 1)
     END IF
    ELSE
     temp$ = menu$(i) + " NONE"
