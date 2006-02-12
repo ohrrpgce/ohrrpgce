@@ -110,6 +110,9 @@ Feb ?? 2006 [serendipity]
     * Fixed bugs in numerous menu items where typing in a number entered
       incorrectly [Ralph Versteegen]
 
+    * Fixed bug 109: "Passing NPC references to alternpc crashes GAME"
+      [Yuriy]
+
   * New Plotscripting Commands
 
     * "cancel map name display" [James Paige]
