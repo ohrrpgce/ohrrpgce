@@ -372,8 +372,6 @@ DO
     KILL workingdir$ + "\ohrrpgce" + a$
    LOOP
    CLOSE #fh
-   'moved into loop above
-   'KILL workingdir$ + "\ohrrpgce.*"
    '--create archinym information lump
    fh = FREEFILE
    OPEN workingdir$ + "\archinym.lmp" FOR OUTPUT AS #fh
@@ -418,6 +416,7 @@ DO
    ELSE '---END UNSAFE
     printstr "Saving as " + a$ + ".BAK", 0, 180, vpage
     printstr "LUMPING DATA: please wait...", 0, 190, vpage
+    setvispage vpage 'refresh
     '--re-lump recovered files as BAK file
     filetolump$ = a$ + ".bak"
     GOSUB dolumpfiles
