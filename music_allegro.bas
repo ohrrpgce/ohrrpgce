@@ -83,7 +83,7 @@ sub music_play(songname as string, fmt as music_format)
 		
 		if fmt = FORMAT_BAM then
 			dim midname as string
-			midname = songname + ".mid"
+			midname = songname + ".bmd"
 			'check if already converted
 			if isfile(midname) = 0 then
 				bam2mid(songname, midname)
@@ -105,8 +105,9 @@ sub music_play(songname as string, fmt as music_format)
 				ditem->fname = allocate(len(midname) + 1)
 				*(ditem->fname) = midname 'set zstring
 			end if
-			songname = songname + ".mid"
-			fmt = FORMAT_MIDI		end if
+			songname = midname
+			fmt = FORMAT_MIDI
+		end if
 
 		'stop current song
 		if music_song <> 0 then
