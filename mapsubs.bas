@@ -854,6 +854,7 @@ clearpage vpage
 setmapdata map(), pass(), 20, 0
 drawmini high, wide, cursor(), vpage, tastuf()
 printstr "Press Any Key", 0, 180, vpage
+setvispage vpage
 w = getkey
 RETURN
 
