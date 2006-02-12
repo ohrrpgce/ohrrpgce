@@ -285,7 +285,7 @@ IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$ + CHR$(0)) THEN
  autorungame = 1
 ELSEIF isdir(a$ + CHR$(0)) THEN 'perhaps it's an unlumped folder?
 'check for essentials
- IF isfile(a$ + SLASH + "ARCHINYM.LMP" + CHR$(0)) THEN 'ok, accept it
+ IF isfile(a$ + SLASH + "archinym.lmp" + CHR$(0)) THEN 'ok, accept it
   autorungame = 1
   usepreunlump = 1
   sourcerpg$ = a$
