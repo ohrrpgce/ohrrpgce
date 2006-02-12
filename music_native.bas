@@ -614,18 +614,34 @@ sub music_close()
 		music_playing = 0
 		music_paused = 0
 		music_on = 0
+
+		if delhead <> null then
+			'delete temp files
+			dim ditem as delitem ptr
+			dim dlast as delitem ptr
+			
+			ditem = delhead
+			while ditem <> null
+				if isfile(*(ditem->fname)) then
+					kill *(ditem->fname)
+				end if
+				deallocate ditem->fname 'deallocate string
+				dlast = ditem
+				ditem = ditem->nextitem
+				deallocate dlast 'deallocate delitem
+			wend
+			delhead = null
+		end if
 	end if
 end sub
 
 sub music_play(songname as string, fmt as music_format)
-'would be nice if we had a routine that took the number as a param
-'instead of the name, maybe abstract one into compat.bas?
 	if music_on = 1 then
 		songname = rtrim$(songname)	'lose any added nulls
 
 		if fmt = FORMAT_BAM then
 			dim midname as string
-			midname = songname + ".mid"
+			midname = songname + ".bmd"
 			'check if already converted
 			if isfile(midname) = 0 then
 				bam2mid(songname, midname)
@@ -647,7 +663,7 @@ sub music_play(songname as string, fmt as music_format)
 				ditem->fname = allocate(len(midname) + 1)
 				*(ditem->fname) = midname 'set zstring
 			end if
-			songname = songname + ".mid"
+			songname = midname
 			fmt = FORMAT_MIDI
 		end if
 
