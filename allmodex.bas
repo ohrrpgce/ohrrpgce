@@ -1494,8 +1494,14 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 	IF attrib = 16 THEN grep$ = "'/$'"
 	DIM i%
 	FOR i = LEN(fmask$) TO 1 STEP -1
-		IF MID$(fmask$, i, 1) = " " THEN fmask$ = LEFT$(fmask$, i - 1) + "\ " + RIGHT$(fmask$, LEN(fmask$) - i)
+		IF MID$(fmask$, i, 1) = CHR$(34) THEN fmask$ = LEFT$(fmask$, i - 1) + "\" + CHR$(34) + RIGHT$(fmask$, LEN(fmask$) - i)
 	NEXT i
+	i = INSTR(fmask$, "*")
+	IF i THEN
+		fmask$ = CHR$(34) + LEFT$(fmask$, i - 1) + CHR$(34) + RIGHT$(fmask$, LEN(fmask$) - i + 1)
+	ELSE
+		fmask$ = CHR$(34) + fmask$ + CHR$(34)
+	END IF
 	debug fmask$
 	SHELL "ls -d1p " + fmask$ + "|grep "+ grep$ + ">" + outfile$ + ".tmp"
 	DIM AS INTEGER f1, f2
