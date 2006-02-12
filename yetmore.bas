@@ -104,6 +104,7 @@ DECLARE SUB updatestatslevelup (i%, exstat%(), stat%(), allowforget%)
 DECLARE SUB giveheroexperience (i%, exstat%(), exper&)
 DECLARE FUNCTION liveherocount% (stat%())
 DECLARE SUB cleanuptemp ()
+DECLARE FUNCTION getsongname$ (num%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -1503,7 +1504,9 @@ SELECT CASE id
   CLOSE #f
   setbit lumpmod(),0,0,1
  CASE 232'--trace
-   debug "TRACE: " + plotstring$(bound(retvals(0),0,31))
+  debug "TRACE: " + plotstring$(bound(retvals(0),0,31))
+ CASE 233'--get song name
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 THEN plotstring$(retvals(0)) = getsongname$(retvals(1))
 END SELECT
 
 EXIT SUB

@@ -113,6 +113,9 @@ Feb ?? 2006 [serendipity]
     * Fixed bug 109: "Passing NPC references to alternpc crashes GAME"
       [Yuriy]
 
+    * Fixed bug 136: "Use of quotes in BAM import list causes weirdness"
+      by scrapping .SNG storage scheme [Ralph Versteegen]
+
   * New Plotscripting Commands
 
     * "cancel map name display" [James Paige]
@@ -125,6 +128,7 @@ Feb ?? 2006 [serendipity]
     * "get damage cap", "set damage cap" [Mike Caron]
     * "get music volume", "set music volume" [Ralph Versteegen]
     * "trace" [Mike Caron]
+    * "get song name" [Ralph Versteegen]
 
   * Stuff only Developers Will Notice
 
@@ -135,6 +139,7 @@ Feb ?? 2006 [serendipity]
     * Native Linux port partially working (games are playable, but
       Browsing is broken in custom and full-screen causes problems)
       [Simon Bradley, James Paige]
+    * .SNG lump replaced with binary expandable songdata.bin [Ralph Versteegen]
 
 October 03 2005 [rusalka]
 

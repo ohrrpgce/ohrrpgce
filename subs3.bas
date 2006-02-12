@@ -30,7 +30,7 @@ DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION isunique% (s$, u$(), r%)
 DECLARE FUNCTION loadname$ (length%, offset%)
-DECLARE SUB exportnames (gamedir$, song$())
+DECLARE SUB exportnames (gamedir$)
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE FUNCTION needaddset (pt%, check%, what$)
@@ -47,13 +47,13 @@ DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
-DECLARE SUB formation (song$())
+DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
-DECLARE SUB textage (song$())
+DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (master%(), font%())
 DECLARE FUNCTION small% (n1%, n2%)
@@ -66,6 +66,7 @@ DECLARE SUB setbinsize (id%, size%)
 DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION inputfilename$ (query$, ext$)
+DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -295,6 +296,13 @@ IF failed THEN
  NEXT i
 END IF
 getLongName$ = result$
+END FUNCTION
+
+FUNCTION getsongname$ (num)
+DIM songd(curbinsize(2) / 2)
+setpicstuf songd(), curbinsize(2), -1
+loadset workingdir$ + SLASH + "songdata.bin" + CHR$(0), num, 0
+getsongname$ = readbinstring$ (songd(), 0, 30)
 END FUNCTION
 
 FUNCTION inputfilename$ (query$, ext$)

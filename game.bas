@@ -145,6 +145,7 @@ DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB expcommands (id%, stat%())
 DECLARE SUB checklumpmod ()
 DECLARE SUB makebackups
+DECLARE SUB setmapxy (cameramode%)
 
 '---INCLUDE FILES---
 '$INCLUDE: 'compat.bi'
@@ -950,7 +951,7 @@ IF istag(saytag(15), 0) THEN
   IF temp > 0 THEN foep = large(foep - foef(temp - 1), 0)
   setmapdata scroll(), pass(), 0, 0
  END IF
- GOSUB setmapxy
+ setmapxy cameramode
 END IF
 '---JUMP TO NEXT TEXT BOX--------
 IF istag(saytag(11), 0) THEN
@@ -1132,59 +1133,7 @@ IF (xgo(0) = 0 OR movdivis(xgo(0))) AND (ygo(0) = 0 OR movdivis(ygo(0))) AND (di
  END IF
 END IF
 ERASE didgo
-GOSUB setmapxy
-RETURN
-
-setmapxy:
-SELECT CASE gen(cameramode)
- CASE herocam
-  mapx = catx(gen(cameraArg)) - 150
-  mapy = caty(gen(cameraArg)) - 90
-  GOSUB limitcamera
- CASE npccam
-  mapx = npcl(gen(cameraArg)) - 150
-  mapy = npcl(gen(cameraArg) + 300) - 90
-  GOSUB limitcamera
- CASE pancam ' 1=dir, 2=dist, 3=step
-  IF gen(cameraArg2) > 0 THEN
-   SELECT CASE gen(cameraArg)
-    CASE 0'north
-     mapy = mapy - gen(cameraArg3)
-    CASE 1'east
-     mapx = mapx + gen(cameraArg3)
-    CASE 2'south
-     mapy = mapy + gen(cameraArg3)
-    CASE 3'west
-     mapx = mapx - gen(cameraArg3)
-   END SELECT
-   gen(cameraArg2) = gen(cameraArg2) - 1
-   IF gen(cameraArg2) = 0 THEN gen(cameramode) = stopcam
-  END IF
- CASE focuscam
-  IF mapx < gen(cameraArg) THEN
-   mapx = mapx + gen(cameraArg3)
-  ELSE
-   IF mapx > gen(cameraArg) THEN mapx = mapx - gen(cameraArg3)
-  END IF
-  IF mapy < gen(cameraArg2) THEN
-   mapy = mapy + gen(cameraArg4)
-  ELSE
-   IF mapy > gen(cameraArg2) THEN mapy = mapy - gen(cameraArg4)
-  END IF
-  IF mapx < gen(cameraArg) + gen(cameraArg3) AND mapx > gen(cameraArg) - gen(cameraArg3) AND ABS(gen(cameraArg3)) > 1 THEN gen(cameraArg3) = gen(cameraArg3) - 1
-  IF mapy < gen(cameraArg2) + gen(cameraArg4) AND mapy > gen(cameraArg2) - gen(cameraArg4) AND ABS(gen(cameraArg4)) > 1 THEN gen(cameraArg4) = gen(cameraArg4) - 1
-  IF mapx = gen(cameraArg) THEN gen(cameraArg3) = 0
-  IF mapy = gen(cameraArg2) THEN gen(cameraArg4) = 0
-  IF gen(cameraArg3) = 0 AND gen(cameraArg4) = 0 THEN gen(cameramode) = stopcam
-  IF mapx <> bound(mapx, -320, scroll(0) * 20) OR mapy <> bound(mapy, -200, scroll(1) * 20) THEN gen(cameramode) = stopcam
-END SELECT
-RETURN
-
-limitcamera:
-IF gmap(5) = 0 THEN
- mapx = bound(mapx, 0, scroll(0) * 20 - 320)
- mapy = bound(mapy, 0, scroll(1) * 20 - 200)
-END IF
+setmapxy cameramode
 RETURN
 
 movenpc:
@@ -1687,7 +1636,7 @@ IF wantdoor > 0 THEN
   IF temp > 0 THEN foep = large(foep - foef(temp - 1), 0)
   setmapdata scroll(), pass(), 0, 0
  END IF
- GOSUB setmapxy
+ setmapxy cameramode
 END IF
 IF wantbattle > 0 THEN
  fatal = 0

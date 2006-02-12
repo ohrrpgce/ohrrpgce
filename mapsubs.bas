@@ -28,7 +28,7 @@ DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION getmapname$ (m%)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-DECLARE SUB scriptman (gamedir$, song$())
+DECLARE SUB scriptman (gamedir$)
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB writescatter (s$, lhold%, array%(), start%)
@@ -50,7 +50,7 @@ DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, you
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npc%(), npcstat%(), song$(), npc$(), unpc%(), lnpc%())
+DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npc%(), npcstat%(), npc$(), unpc%(), lnpc%())
 DECLARE SUB npcdef (npc%(), pt%, npc$(), unpc%(), lnpc%())
 DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, file$, master%(), font%())
@@ -59,23 +59,24 @@ DECLARE SUB shopdata ()
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
-DECLARE SUB importsong (song$(), master())
+DECLARE SUB importsong (master())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
-DECLARE SUB gendata (song$())
+DECLARE SUB gendata ()
 DECLARE SUB itemdata ()
-DECLARE SUB formation (song$())
+DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata (atkdat$(), atklim%())
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
-DECLARE SUB textage (song$())
+DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (master%(), font())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION maplumpname$(map, oldext$)
+DECLARE FUNCTION getsongname$ (num%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -152,7 +153,7 @@ IF pic >= 160 THEN pic = (pic - 160) + tastuf(0)
 animadjust = pic
 END FUNCTION
 
-SUB mapmaker (font(), master(), map(), pass(), emap(), doors(), link(), npc(), npcstat(), song$(), npc$(), unpc(), lnpc())
+SUB mapmaker (font(), master(), map(), pass(), emap(), doors(), link(), npc(), npcstat(), npc$(), unpc(), lnpc())
 DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 5), topmenu$(24), gmap(20), gd$(-1 TO 20), gdmax(20), gdmin(20), destdoor(300), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
 defaults(160), pal16(288), gmapscr$(5), gmapscrof(5)
 
@@ -377,7 +378,7 @@ DO
    CASE 0, 9
     xtemp$ = STR$(gmap(i))
    CASE 1
-    IF gmap(1) = 0 THEN xtemp$ = " -none-" ELSE xtemp$ = STR$(gmap(1) - 1) + " " + song$(gmap(1) - 1)
+    IF gmap(1) = 0 THEN xtemp$ = " -none-" ELSE xtemp$ = STR$(gmap(1) - 1) + " " + getsongname$(gmap(1) - 1)
    CASE 2, 3
     IF gmap(i) = 0 THEN xtemp$ = " NO" ELSE xtemp$ = " YES"
    CASE 4

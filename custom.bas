@@ -37,7 +37,7 @@ DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION getmapname$ (m%)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-DECLARE SUB scriptman (gamedir$, song$())
+DECLARE SUB scriptman (gamedir$)
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB writescatter (s$, lhold%, start%)
@@ -59,7 +59,7 @@ DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, you
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npcn%(), npcstat%(), song$(), npc$(), unpc%(), lnpc%())
+DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npcn%(), npcstat%(), npc$(), unpc%(), lnpc%())
 DECLARE SUB npcdef (npcn%(), pt%, npc$(), unpc%(), lnpc%())
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, file$, master%(), font%())
@@ -67,17 +67,17 @@ DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB shopdata ()
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
-DECLARE SUB importsong (song$(), master())
+DECLARE SUB importsong (master())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
-DECLARE SUB gendata (song$(), master%())
+DECLARE SUB gendata (master%())
 DECLARE SUB itemdata ()
-DECLARE SUB formation (song$())
+DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
-DECLARE SUB textage (song$())
+DECLARE SUB textage ()
 DECLARE SUB editmenus ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (master%(), font())
@@ -88,6 +88,7 @@ DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB updaterecordlength (lumpf$, bindex%)
 DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
 DECLARE FUNCTION inputfilename$ (query$, ext$)
+DECLARE SUB writebinstring (savestr$, array%(), offset%, maxlen%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -122,8 +123,7 @@ CHDIR gamedir$
 setdrive ASC(UCASE$(LEFT$(gamedir$, 1))) - 65
 
 DIM font(1024), master(767), buffer(16384), timing(4), joy(4), scroll(16002), pass(16002), emap(16002)
-DIM menu$(22), general(360), npc$(15), unpc(15), lnpc(15), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600), song$(0)
-'song$ REDIMed in lsongstr
+DIM menu$(22), general(360), npc$(15), unpc(15), lnpc(15), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600)
 
 '--DIM binsize arrays
 '$INCLUDE: 'binsize.bi'
@@ -176,7 +176,6 @@ xbload game$ + ".fnt", font(), "Font not loaded"
 xbload game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
 upgrade font()
 xbsave game$ + ".gen", general(), 1000
-GOSUB lsongstr
 setfont font()
 needf = 1
 
@@ -200,22 +199,22 @@ DO:
   SELECT CASE menumode
    CASE 0'--normal mode
     IF pt = 0 THEN pt = 0: menumode = 1: GOSUB setgraphicmenu
-    IF pt = 1 THEN mapmaker font(), master(), scroll(), pass(), emap(), doors(), link(), npcn(), npcstat(), song$(), npc$(), unpc(), lnpc()
+    IF pt = 1 THEN mapmaker font(), master(), scroll(), pass(), emap(), doors(), link(), npcn(), npcstat(), npc$(), unpc(), lnpc()
     IF pt = 2 THEN statname
     IF pt = 3 THEN herodata
     IF pt = 4 THEN enemydata
     IF pt = 5 THEN attackdata
     IF pt = 6 THEN itemdata
     IF pt = 7 THEN shopdata
-    IF pt = 8 THEN formation song$()
-    IF pt = 9 THEN textage song$()
+    IF pt = 8 THEN formation
+    IF pt = 9 THEN textage
     if pt = 10 then editmenus
     IF pt = 11 THEN vehicles
     IF pt = 12 THEN tagnames
-    IF pt = 13 THEN importsong song$(), master()
+    IF pt = 13 THEN importsong master()
     IF pt = 14 THEN fontedit font(), gamedir$
-    IF pt = 15 THEN gendata song$(), master()
-    IF pt = 16 THEN scriptman gamedir$, song$()
+    IF pt = 15 THEN gendata master()
+    IF pt = 16 THEN scriptman gamedir$
     IF pt = 17 THEN
      GOSUB relump
      IF quitnow > 1 THEN GOTO finis
@@ -479,7 +478,6 @@ RETURN
 
 relump:
 xbsave game$ + ".gen", general(), 1000
-GOSUB ssongstr
 rpg$(0) = "Continue editing"
 rpg$(1) = "Save changes and continue editing"
 rpg$(2) = "Save changes and quit"
@@ -692,41 +690,6 @@ keyv(40, 1) = 34
 '  READ atklim(i, o)
 ' NEXT i
 'NEXT o
-RETURN
-
-ssongstr:
-fh = FREEFILE
-OPEN game$ + ".sng" FOR OUTPUT AS #fh
-FOR i = 0 TO general(genMaxSong)
- WRITE #fh, song$(i)
-NEXT i
-CLOSE #fh
-RETURN
-
-lsongstr:
-IF general(genMaxSong) = 0 THEN general(genMaxSong) = 99: trimsongs = 1
-REDIM song$(general(genMaxSong))
-fh = FREEFILE
-OPEN game$ + ".sng" FOR BINARY AS #fh
-temp& = LOF(fh)
-CLOSE #fh
-IF temp& = 0 THEN RETURN
-fh = FREEFILE
-OPEN game$ + ".sng" FOR INPUT AS #fh
-FOR i = 0 TO general(genMaxSong)
- INPUT #fh, song$(i)
-NEXT i
-IF trimsongs THEN
- FOR i = 99 TO 1 STEP -1
-  '-- check for midis as well 'cause some people might use a WIP custom or whatnot
-  IF song$(i) = "" AND isfile(game$ + "." + LTRIM$(STR$(i)) + CHR$(0)) = 0 AND isfile(workingdir$ + SLASH + "song" + LTRIM$(STR$(i)) + ".mid" + CHR$(0)) = 0 THEN
-   general(genMaxSong) = i - 1
-  ELSE
-   EXIT FOR
-  END IF
- NEXT
-END IF
-CLOSE #fh
 RETURN
 
 menuitems:
@@ -1720,9 +1683,46 @@ IF NOT isfile(workingdir$ + SLASH + "attack.bin" + CHR$(0)) THEN
  NEXT i
 END IF
 
+IF NOT isfile(workingdir$ + SLASH + "songdata.bin" + CHR$(0)) THEN
+ printstr "Upgrading Song Name format...", 0, 0, vpage
+ setvispage vpage 'refresh
+ DIM song$(99)
+ fh = FREEFILE
+ OPEN game$ + ".sng" FOR BINARY AS #fh
+ temp& = LOF(fh)
+ CLOSE #fh
+ IF temp& > 0 THEN
+  fh = FREEFILE
+  OPEN game$ + ".sng" FOR INPUT AS #fh
+  FOR i = 0 TO 99
+   INPUT #fh, song$(i)
+  NEXT i
+  CLOSE #fh
+ END IF
+ 
+ FOR i = 99 TO 1 STEP -1
+  '-- check for midis as well 'cause some people might use a WIP custom or whatnot
+  IF song$(i) = "" AND isfile(game$ + "." + LTRIM$(STR$(i)) + CHR$(0)) = 0 AND isfile(workingdir$ + SLASH + "song" + LTRIM$(STR$(i)) + ".mid" + CHR$(0)) = 0 THEN
+   general(genMaxSong) = i - 1
+  ELSE
+   EXIT FOR
+  END IF
+ NEXT
+
+ flusharray buffer(), curbinsize(2) / 2, 0
+ setbinsize 2, curbinsize(2)
+ setpicstuf buffer(), curbinsize(2), -1
+ FOR i = 0 TO general(genMaxSong)
+  writebinstring song$(i), buffer(), 0, 30
+  storeset workingdir$ + SLASH + "songdata.bin" + CHR$(0), i, 0
+ NEXT
+ ERASE song$
+END IF
+
 '--check variable record size lumps and reoutput them if records have been extended
 updaterecordlength workingdir$ + SLASH + "attack.bin", 0
 updaterecordlength game$ + ".stf", 1
+updaterecordlength workingdir$ + SLASH + "songdata.bin", 2
 
 '--update to new (3rd) password format
 IF general(5) < 256 THEN
