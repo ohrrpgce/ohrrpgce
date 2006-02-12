@@ -1659,6 +1659,13 @@ IF NOT isfile(game$ + ".veh" + CHR$(0)) THEN
  END IF
 END IF
 
+'--make sure binsize.bin is full. why are we doing this? as lumps are upgraded
+'--and binsize is extended, records in binsize which are meant to default
+'--because they don't exist take on the value 0 instead
+FOR i = 0 TO sizebinsize
+ setbinsize i, curbinsize(i)
+NEXT
+
 IF NOT isfile(workingdir$ + SLASH + "attack.bin" + CHR$(0)) THEN
  clearpage vpage
  printstr "Init extended attack data...", 0, 0, vpage
@@ -1720,6 +1727,7 @@ IF NOT isfile(workingdir$ + SLASH + "songdata.bin" + CHR$(0)) THEN
 END IF
 
 '--check variable record size lumps and reoutput them if records have been extended
+'--all of the files below should exist, be non zero length and have non zero record size by this point
 updaterecordlength workingdir$ + SLASH + "attack.bin", 0
 updaterecordlength game$ + ".stf", 1
 updaterecordlength workingdir$ + SLASH + "songdata.bin", 2
