@@ -145,7 +145,7 @@ DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB expcommands (id%, stat%())
 DECLARE SUB checklumpmod ()
 DECLARE SUB makebackups
-DECLARE SUB setmapxy (cameramode%)
+DECLARE SUB setmapxy ()
 
 '---INCLUDE FILES---
 '$INCLUDE: 'compat.bi'
@@ -951,7 +951,7 @@ IF istag(saytag(15), 0) THEN
   IF temp > 0 THEN foep = large(foep - foef(temp - 1), 0)
   setmapdata scroll(), pass(), 0, 0
  END IF
- setmapxy cameramode
+ setmapxy
 END IF
 '---JUMP TO NEXT TEXT BOX--------
 IF istag(saytag(11), 0) THEN
@@ -1133,7 +1133,7 @@ IF (xgo(0) = 0 OR movdivis(xgo(0))) AND (ygo(0) = 0 OR movdivis(ygo(0))) AND (di
  END IF
 END IF
 ERASE didgo
-setmapxy cameramode
+setmapxy
 RETURN
 
 movenpc:
@@ -1636,7 +1636,7 @@ IF wantdoor > 0 THEN
   IF temp > 0 THEN foep = large(foep - foef(temp - 1), 0)
   setmapdata scroll(), pass(), 0, 0
  END IF
- setmapxy cameramode
+ setmapxy
 END IF
 IF wantbattle > 0 THEN
  fatal = 0
