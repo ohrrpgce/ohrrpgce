@@ -66,6 +66,9 @@ Feb ?? 2006 [serendipity]
     * Unlumped RPGs can now be played by Game (start game like this:
       game foldername)
 
+    * Midi versions of many of the public domain pieces in the Import 
+      folder have been added as alternatives [FyreWulff]
+
   * Bug Fixes
 
     * Fixed bug 107: "An MP~ stat over 66 makes all spells free"
