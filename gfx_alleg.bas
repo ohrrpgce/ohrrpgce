@@ -9,6 +9,8 @@ option explicit
 #include "allegro.bi"
 #include "gfx.bi"
 
+declare sub debug(s$)
+
 dim shared init_gfx as integer = 0
 dim shared screenbuf as BITMAP ptr = null
 
@@ -168,7 +170,8 @@ sub io_setmouse(byval x as integer, byval y as integer)
 end sub
 
 sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-	set_mouse_range(xmin * 2, ymin * 2 + offset, xmax * 2 + 1, ymax * 2 + 1 + offset)
+'doesn't seem to work fullscreen, no idea why not. Height of mouse cursor?
+' 	set_mouse_range(xmin * 2, ymin * 2 + offset, xmax * 2 + 1, ymax * 2 + 1 + offset)
 end sub
 
 function io_readjoy(joybuf() as integer, byval joynum as integer) as integer

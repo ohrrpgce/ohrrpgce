@@ -106,6 +106,7 @@ workingdir$ = "working.tmp"
 
 'version ID
 '$INCLUDE: 'cver.txt'
+'PRINT isn't going to work in FB Allegro
 IF COMMAND$ = "/V" THEN PRINT version$: SYSTEM
 'only included for the windowed/fullscreen stuff
 storecommandline
@@ -321,6 +322,7 @@ IF oldcrash = 1 THEN
  setvispage 0
  textcolor 15, 0
  printstr "Run " + CUSTOMEXE + " again.", 0, 0, 0
+ setvispage 0 'refresh
  w = getkey
  GOTO finis
 END IF
@@ -349,6 +351,7 @@ DO
    END IF
    copyfile "ohrrpgce.new" + CHR$(0), game$ + ".rpg" + CHR$(0), buffer()
    printstr "Unlumping", 0, 60, vpage
+   setvispage vpage 'refresh
    ERASE scroll, pass, emap
    DIM lumpbuf(16383)
    unlump game$ + ".rpg" + CHR$(0), workingdir$ + SLASH, lumpbuf()
@@ -356,6 +359,7 @@ DO
    DIM scroll(16002), pass(16002), emap(16002)
    findfiles workingdir$ + SLASH + "ohrrpgce.*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
    printstr "Translumping", 0, 70, vpage
+   setvispage vpage 'refresh
    fh = FREEFILE
    OPEN "temp.lst" FOR INPUT AS #fh
    DO WHILE NOT EOF(fh)
@@ -378,6 +382,7 @@ DO
    PRINT #fh, version$
    CLOSE #fh
    printstr "Finalumping", 0, 80, vpage
+   setvispage vpage 'refresh
    '--re-lump files as NEW rpg file
    filetolump$ = game$ + ".rpg"
    GOSUB dolumpfiles
@@ -409,10 +414,12 @@ DO
    IF isfile(workingdir$ + SLASH + "__danger.tmp" + CHR$(0)) THEN
     textcolor 14, 4
     printstr "Data is corrupt, not safe to relump", 0, 100, vpage
+    setvispage vpage 'refresh
     w = getkey
    ELSE '---END UNSAFE
     printstr "Saving as " + a$ + ".bak", 0, 180, vpage
     printstr "LUMPING DATA: please wait...", 0, 190, vpage
+    setvispage vpage 'refresh
     '--re-lump recovered files as BAK file
     filetolump$ = a$ + ".bak"
     GOSUB dolumpfiles
@@ -425,6 +432,7 @@ DO
     printstr a$ + ".bak to " + a$ + ".rpg", 0, 40, vpage
     printstr "If you have questions, ask", 0, 56, vpage
     printstr "ohrrpgce-crash@HamsterRepublic.com", 0, 64, vpage
+    setvispage vpage 'refresh
     w = getkey
     RETURN
    END IF '---END RELUMP
@@ -492,6 +500,7 @@ clearpage 0
 setvispage 0
 textcolor 15, 0
 printstr "LUMPING DATA: please wait.", 0, 0, 0
+setvispage 0 'refresh
 '--verify that maps are not corrupt--
 verifyrpg
 '--lump data to SAVE rpg file
@@ -1483,6 +1492,7 @@ IF general(95) = 0 THEN
  general(95) = 1
  clearpage vpage
  printstr "Flushing New Text Data...", 0, 0, vpage
+ setvispage vpage 'refresh
  setpicstuf buffer(), 400, -1
  FOR o = 0 TO 999
   loadset game$ + ".say" + CHR$(0), o, 0
@@ -1495,6 +1505,7 @@ IF general(95) = 1 THEN
  general(95) = 2
  clearpage vpage
  printstr "Updating Door Format...", 0, 0, vpage
+ setvispage vpage 'refresh
  FOR o = 0 TO 19
   IF isfile(game$ + ".dor" + CHR$(0)) THEN xbload game$ + ".dor", buffer(), "No doors"
   FOR i = 0 TO 299
@@ -1504,10 +1515,12 @@ IF general(95) = 1 THEN
   storeset game$ + ".dox" + CHR$(0), o, 0
  NEXT o
  printstr "Enforcing default font", 0, 16, vpage
+ setvispage vpage 'refresh
  copyfile "ohrrpgce.fnt" + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
  xbload game$ + ".fnt", font(), "Font not loaded"
  setfont font()
  printstr "Making AniMaptiles Backward Compatable", 0, 16, vpage
+ setvispage vpage 'refresh
  FOR i = 0 TO 39
   buffer(i) = 0
  NEXT i
@@ -1568,6 +1581,7 @@ IF general(95) = 2 THEN
   general(4 + i) = loopvar(temp, 0, 255, general(98))
  NEXT i
  printstr "Data Scaling Shtuff...", 0, 0, vpage
+ setvispage vpage 'refresh
  general(26) = 40
  general(27) = 149
  general(28) = 79
@@ -1588,6 +1602,7 @@ IF general(95) = 3 THEN
  general(95) = 4
  clearpage vpage
  printstr "Clearing New Attack Bitsets...", 0, 0, vpage
+ setvispage vpage 'refresh
  setpicstuf buffer(), 80, -1
  FOR o = 0 TO general(34)
   loadset game$ + ".dt6" + CHR$(0), o, 0
@@ -1610,6 +1625,7 @@ IF general(95) = 4 THEN
  general(95) = 5
  clearpage vpage
  printstr "Upgrading 16-color Palette Format...", 0, 0, vpage
+ setvispage vpage 'refresh
  setpicstuf pal16(), 16, -1
  xbload game$ + ".pal", buffer(), "16-color palletes missing from " + game$
  KILL game$ + ".pal"
@@ -1627,6 +1643,7 @@ IF general(95) = 4 THEN
   IF foundpal THEN EXIT FOR
  NEXT j
  printstr "Last used palette is" + STR$(last), 0, 8, vpage
+ setvispage vpage 'refresh
  '--write header
  pal16(0) = 4444
  pal16(1) = last
@@ -1664,6 +1681,7 @@ END IF
 IF NOT isfile(workingdir$ + SLASH + "attack.bin" + CHR$(0)) THEN
  clearpage vpage
  printstr "Init extended attack data...", 0, 0, vpage
+ setvispage vpage 'refresh
  flusharray buffer(), curbinsize(0) / 2, 0
  setbinsize 0, curbinsize(0)
  setpicstuf buffer(), curbinsize(0), -1
@@ -1673,6 +1691,7 @@ IF NOT isfile(workingdir$ + SLASH + "attack.bin" + CHR$(0)) THEN
 
  '--and while we are at it, clear the old death-string from enemies
  printstr "Re-init recycled enemy data...", 0, 10, vpage
+ setvispage vpage 'refresh
  setpicstuf buffer(), 320, -1
  FOR i = 0 TO general(36)
   loadset game$ + ".dt1" + CHR$(0), i, 0

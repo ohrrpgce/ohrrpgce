@@ -585,6 +585,7 @@ FOR i = 0 TO 1
  printstr "error keeps happening, send e-mail to", 0, 40, i
  printstr "ohrrpgce-crash@HamsterRepublic.com", 0, 48, i
 NEXT i
+setvispage vpage 'refresh
 
 w = getkey
 
