@@ -619,7 +619,7 @@ sub music_close()
 			'delete temp files
 			dim ditem as delitem ptr
 			dim dlast as delitem ptr
-			
+
 			ditem = delhead
 			while ditem <> null
 				if isfile(*(ditem->fname)) then
@@ -987,9 +987,7 @@ loop
 ESCAPE_SEQUENCE
 
 updateDelay:
-'debug "old delay:" + str(delay)
-delay = tempo / division / 1050000
-'debug "new delay:" + str(delay)
+delay = tempo / 24000000
 return
 End Sub
 
