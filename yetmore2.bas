@@ -374,7 +374,7 @@ SUB safekill (f$)
 IF isfile(f$ + CHR$(0)) THEN KILL f$
 END SUB
 
-SUB setmapxy ()
+SUB setmapxy
 SELECT CASE gen(cameramode)
  CASE herocam
   mapx = catx(gen(cameraArg)) - 150
