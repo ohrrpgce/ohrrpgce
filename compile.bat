@@ -1,6 +1,8 @@
 @echo off
-copy /y qbcompat.bi compat.bi
-copy /y qbcompat.bas compat.bas
+DEL compat.bi
+DEL compat.bas
+copy qbcompat.bi compat.bi
+copy qbcompat.bas compat.bas
 verprint
 verprint > compile.out
 IF '%1%'=='c' GOTO nogame
