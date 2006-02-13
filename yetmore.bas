@@ -105,6 +105,7 @@ DECLARE SUB giveheroexperience (i%, exstat%(), exper&)
 DECLARE FUNCTION liveherocount% (stat%())
 DECLARE SUB cleanuptemp ()
 DECLARE FUNCTION getsongname$ (num%)
+DECLARE FUNCTION getdisplayname$ (default$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -562,6 +563,8 @@ IF isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
  a$ = LCASE$(a$)
  IF LEN(a$) <= 8 THEN game$ = workingdir$ + SLASH + a$
 END IF
+displayname$ = getdisplayname$(sourcerpg$)
+windowtitle displayname$
 END SUB
 
 SUB interpolatecat
