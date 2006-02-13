@@ -165,6 +165,7 @@ storecommandline
 
 'DEBUG debug "Thestart"
 thestart:
+windowtitle "O.H.R.RPG.C.E"
 'DEBUG debug "set stack size"
 CLEAR , , 2800
 

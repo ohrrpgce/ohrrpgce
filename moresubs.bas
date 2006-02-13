@@ -400,7 +400,6 @@ ELSE
   IF true$(treesize) = "" THEN
    treesize = treesize - 1
   ELSE
-  debug STR$(timeout + 15) + STR$(TIMER)
    IF timeout + 15 > TIMER THEN
     unlumpfile nowdir$ + true$(treesize) + CHR$(0), "browse.txt", tmpdir$, buffer()
     IF isfile(tmpdir$ + "browse.txt" + CHR$(0)) THEN
@@ -2475,3 +2474,16 @@ FUNCTION xstring (s$, x)
 xstring = small(large(x - LEN(s$) * 4, 0), 319 - LEN(s$) * 8)
 END FUNCTION
 
+FUNCTION getdisplayname$ (default$)
+ '--Get game's display name
+ f$ = workingdir$ + SLASH + "browse.txt"
+ IF isfile(f$ + CHR$(0)) THEN
+  setpicstuf buffer(), 40, -1
+  loadset f$ + CHR$(0), 0, 0
+  s$ = STRING$(bound(buffer(0), 0, 38), " ")
+  array2str buffer(), 2, s$
+  getdisplayname$ = s$
+ ELSE
+  getdisplayname$ = default$
+ END IF
+END FUNCTION

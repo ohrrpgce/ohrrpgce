@@ -125,3 +125,7 @@ END SUB
 SUB makedir (dirname$)
     MKDIR dirname$
 END SUB
+
+SUB windowtitle (title AS STRING)
+    'does nothing in QB version
+END SUB
