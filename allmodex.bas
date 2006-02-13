@@ -24,7 +24,7 @@ type ohrsprite
 	image as ubyte ptr
 	mask as ubyte ptr
 end type
-	
+
 type node 	'only used for floodfill
 	x as integer
 	y as integer
@@ -60,7 +60,7 @@ dim shared vispage as integer
 dim shared wrkpage as integer
 dim shared spage(0 to 3) as ubyte ptr
 
-dim shared bptr as integer ptr	' buffer 
+dim shared bptr as integer ptr	' buffer
 dim shared bsize as integer
 dim shared bpage as integer
 
@@ -103,37 +103,37 @@ dim shared tbuf as ohrsprite ptr = null
 sub setmodex()
 	dim i as integer
 
-	'initialise software gfx	
+	'initialise software gfx
 	for i = 0 to 3
 		spage(i) = allocate(320 * 200)
 	next
 	setclip
 
-	gfx_init	
+	gfx_init
 	vispage = 0
 	wrkpage = 0
-	
+
 	'init vars
 	for i = 0 to 255
 		keybd(i) = 0
  		keysteps(i) = -1
 	next
 	stacksize = -1
-	
+
 	io_init
 	mouserect(0,319,0,199)
 end sub
 
-sub restoremode() 
+sub restoremode()
 	dim i as integer
-	
+
 	gfx_close
-	
+
 	'clear up software gfx
 	for i = 0 to 3
 		deallocate(spage(i))
 	next
-	
+
 	'clean up tile buffer
 	if tbuf <> null then
 		'mask should always be null, but no harm in future-proofing
@@ -148,7 +148,7 @@ end sub
 SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer)
 	dim i as integer
 
-	'inefficient, could be improved with memcpy	
+	'inefficient, could be improved with memcpy
 	for i = 0 to (320 * 200) - 1
 		spage(page2)[i] = spage(page1)[i]
 	next
@@ -159,8 +159,8 @@ end sub
 
 SUB clearpage (BYVAL page as integer)
 	dim i as integer
-	
-	'inefficient, could be improved with memcpy	
+
+	'inefficient, could be improved with memcpy
 	for i = 0 to (320 * 200) - 1
 		spage(page)[i] = 0
 	next
@@ -169,21 +169,21 @@ end SUB
 
 SUB setvispage (BYVAL page as integer)
 	gfx_showpage(spage(page))
-	
+
 	vispage = page
 end SUB
 
 sub setpal(pal() as integer)
 	dim p as integer
 	dim i as integer
-	
+
 	p = 0 ' is it actually base 0?
 	for i = 0 to 255
 		intpal(i) = pal(p) or (pal(p+1) shl 8) or (pal(p+2) shl 16)
 		p = p + 3
 	next i
-	
-	gfx_setpal(intpal())	
+
+	gfx_setpal(intpal())
 end sub
 
 SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
@@ -191,9 +191,9 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 	dim j as integer
 	dim hue as integer
 	dim count as integer = 0
-	
+
 	'palette get using pal 'intpal holds current palette
-	
+
 	'max of 64-1 steps
 	for i = 0 to 62
 		for j = 0 to 255
@@ -228,7 +228,7 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 			end if
 			intpal(j) = intpal(j) or (hue shl 16)
 		next
-		if count = 1 then 
+		if count = 1 then
 			gfx_setpal(intpal())
 			count = 0
 		end if
@@ -237,8 +237,8 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 	next
 
 	'I don't think the palette was getting set on the final pass
-	'so add this little check	
-	if count = 1 then 
+	'so add this little check
+	if count = 1 then
 		gfx_setpal(intpal())
 	end if
 end SUB
@@ -249,7 +249,7 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 	dim hue as integer
 	dim p as integer	'index to passed palette, which has separate r, g, b
 	dim count as integer = 0
-	
+
 	'max of 64-1 steps
 	for i = 0 to 62
 		p = 0
@@ -288,7 +288,7 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 			intpal(j) = intpal(j) or (hue shl 16)
 			p = p + 1
 		next
-		if count = 1 then 
+		if count = 1 then
 			gfx_setpal(intpal())
 			count = 0
 		end if
@@ -296,7 +296,7 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 		sleep 10 'how long?
 	next
 
-	if count = 1 then 
+	if count = 1 then
 		gfx_setpal(intpal())
 	end if
 end SUB
@@ -331,14 +331,14 @@ END FUNCTION
 SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, BYVAL mp as integer ptr)
 	dim index as integer
 	dim hilow as integer
-	
+
 	index = (map_x * y) + x	'raw byte offset
 	hilow = index mod 2		'which byte in word
 	index = index shr 1 	'divide by 2
-	
+
 	if hilow > 0 then
 		'delete original value
-		mp[index] = mp[index] and &hff 
+		mp[index] = mp[index] and &hff
 		'set new value
 		mp[index] = mp[index] or ((v and &hff) shl 8)
 	else
@@ -354,24 +354,24 @@ FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, BYVAL mp as integer 
 	dim block as integer
 	dim index as integer
 	dim hilow as integer
-	
+
 	index = (map_x * y) + x	'raw byte offset
 	hilow = index mod 2		'which byte in word
 	index = index shr 1 	'divide by 2
-	
+
 	if hilow > 0 then
 		block = (mp[index] and &hff00) shr 8
 	else
 		block = mp[index] and &hff
 	end if
-	
+
 	readblock = block
 end FUNCTION
 
 SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer)
 	dim sptr as ubyte ptr
 	dim plane as integer
-		
+
 	dim ypos as integer
 	dim xpos as integer
 	dim xstart as integer
@@ -386,23 +386,23 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 	dim tpage as integer
 	'this is static to allow optimised reuse
 	static lasttile as integer
-		
+
 	if wrkpage <> p then
 		wrkpage = p
 	end if
 
 	'set viewport to allow for top and bottom bars
-	setclip(0, maptop, 319, maptop + maplines - 1) 
-	
+	setclip(0, maptop, 319, maptop + maplines - 1)
+
 	'copied from the asm
-	ypos = y \ 20	
+	ypos = y \ 20
 	calc = y mod 20
 	if calc < 0 then  	'adjust for negative coords
 		calc = calc + 20
 		ypos = ypos - 1
 	end if
 	yoff = -calc
-	
+
 	xpos = x \ 20
 	calc = x mod 20
 	if calc < 0 then
@@ -412,7 +412,7 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 	xoff = -calc
 	xstart = xpos
 
-	if tbuf = null then		
+	if tbuf = null then
 		'create tile buffer
 		tbuf = callocate(sizeof(ohrsprite))
 		tbuf->w = 20
@@ -422,11 +422,11 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 	end if
 	'force it to be cleared for each redraw
 	lasttile = -1
-	
+
 	tpage = 3
-	
+
 	'screen is 16 * 10 tiles, which means we need to draw 17x11
-	'to allow for partial tiles	
+	'to allow for partial tiles
 	ty = yoff
 	while ty < 200
 		tx = xoff
@@ -451,19 +451,19 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 					'have to toggle the work page, not sure that's efficient
 					grabrect(3, tpx, tpy, 20, 20, tbuf->image)
 				end if
-									
+
 				'draw it on the map
 				drawohr(*tbuf, tx, ty)
 				lasttile = todraw
 			end if
-			
+
 			tx = tx + 20
 			xpos = xpos + 1
 		wend
 		ty = ty + 20
 		ypos = ypos + 1
 	wend
-		
+
 	'reset viewport
 	setclip
 end SUB
@@ -504,15 +504,15 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	dim pix as integer
 	dim mask as integer
 	dim row as integer
-	
+
 	if wrkpage <> page then
 		wrkpage = page
 	end if
-	
+
 	sw = pic(picoff)
 	sh = pic(picoff+1)
 	picoff = picoff + 2
-	
+
 	'create sprite
 	hspr.w = sw
 	hspr.h = sh
@@ -520,7 +520,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	hspr.mask = allocate(sw * sh)
 	dspr = hspr.image
 	dmsk = hspr.mask
-	
+
 	'now do the pixels
 	'pixels are in columns, so this might not be the best way to do it
 	'maybe just drawing straight to the screen would be easier
@@ -538,7 +538,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 				spix = pic(picoff) and &h0f
 				picoff = picoff + 1
 		end select
-		if spix = 0 then 
+		if spix = 0 then
 			pix = 0					' transparent (hope 0 is never valid)
 			mask = &hff
 		else
@@ -566,7 +566,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 		nib = nib + 1
 		nib = nib and 3	'= mod 4, but possibly more efficient
 	next
-	
+
 	'now draw the image
 	drawohr(hspr,x,y, scale)
 	deallocate(hspr.image)
@@ -588,16 +588,16 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	dim pix as integer
 	dim mask as integer
 	dim row as integer
-	
+
 	if wrkpage <> page then
 		screenset page
 		wrkpage = page
 	end if
-	
+
 	sw = pic(picoff)
 	sh = pic(picoff+1)
 	picoff = picoff + 2
-	
+
 	'create sprite
 	hspr.w = sw
 	hspr.h = sh
@@ -607,7 +607,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	dmsk = hspr.mask
 	dspr = dspr + sw - 1 'jump to last column
 	dmsk = dmsk + sw - 1 'jump to last column
-	
+
 	'now do the pixels
 	'pixels are in columns, so this might not be the best way to do it
 	'maybe just drawing straight to the screen would be easier
@@ -625,7 +625,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 				spix = pic(picoff) and &h0f
 				picoff = picoff + 1
 		end select
-		if spix = 0 then 
+		if spix = 0 then
 			pix = 0					' transparent (hope 0 is never valid)
 			mask = &hff
 		else
@@ -653,7 +653,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 		nib = nib + 1
 		nib = nib and 3	'= mod 4, but possibly more efficient
 	next
-	
+
 	'now draw the image
 	drawohr(hspr,x,y)
 	deallocate(hspr.image)
@@ -661,7 +661,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 end SUB
 
 SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer)
-'I'm guessing this is the opposite of loadsprite, ie store raw sprite data in screen p 
+'I'm guessing this is the opposite of loadsprite, ie store raw sprite data in screen p
 'starting at x, y. The offsets here do actually seem to be in words, not bytes.
 	dim i as integer
 	dim p as integer
@@ -674,16 +674,16 @@ SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BY
 	if wrkpage <> page then
 		wrkpage = page
 	end if
-	
+
 	p = picoff
 	h = pic(p)
 	w = pic(p + 1)
 	p = p + 2
 	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
-	
+
 	sptr = spage(page)
 	sptr = sptr + (320 * y) + x
-	
+
 	'copy to passed int buffer, with 2 bytes per int as usual
 	toggle = 0
 	for i = 0 to sbytes - 1
@@ -697,7 +697,7 @@ SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BY
 		end if
 		sptr = sptr + 1
 	next
-	
+
 end SUB
 
 SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL page as integer)
@@ -713,18 +713,18 @@ SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, B
 	if wrkpage <> page then
 		wrkpage = page
 	end if
-	
+
 	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
-	
+
 	sptr = spage(page)
 	sptr = sptr + (320 * y) + x
-	
+
 	'copy to passed int buffer, with 2 bytes per int as usual
 	toggle = 0
 	p = picoff
 	pic(p) = w			'these are 4byte ints, not compat w. orig.
 	pic(p+1) = h
-	p = p + 2	
+	p = p + 2
 	for i = 0 to sbytes - 1
 		temp = *sptr
 		if toggle = 0 then
@@ -737,7 +737,7 @@ SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, B
 		end if
 		sptr = sptr + 1
 	next
-	
+
 end SUB
 
 SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL page)
@@ -747,13 +747,13 @@ SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL pa
 	dim p as integer = 0
 	dim as integer sw, sh
 
-	'store width and height	
+	'store width and height
 	p = picoff
 	pic(p) = w
 	p += 1
 	pic(p) = h
 	p += 1
-	
+
 	'find start of image
 	sbase = spage(page)
 	sbase = sbase + (y * 320) + x
@@ -778,7 +778,7 @@ SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL pa
 		next
 		sbase = sbase + 1 'next col
 	next
-	
+
 END SUB
 
 SUB interruptx (intnum as integer,inreg AS RegType, outreg AS RegType) 'not required
@@ -799,7 +799,7 @@ end FUNCTION
 FUNCTION getkey () as integer
 	dim i as integer, key as integer
 	while inkey$ <> "": wend
-	
+
 	key = 0
 
 	do
@@ -813,7 +813,7 @@ FUNCTION getkey () as integer
 		next
 		sleep 50
 	loop while key = 0
-	
+
 	getkey = key
 end FUNCTION
 
@@ -821,28 +821,28 @@ SUB setkeys ()
 'Quite nasty. Moved all this functionality from keyval() because this
 'is where it seems to happen in the original.
 'I have rewritten this to use steps (frames based on the 55ms DOS timer)
-'rather than raw time. It makes the maths a bit simpler. The way the 
+'rather than raw time. It makes the maths a bit simpler. The way the
 'rest of the code is structured means we need to emulate the original
 'functionality of clearing the event until a repeat fires. I do this
 'by stalling for 3 steps on a new keypress and 1 step on a repeat.
 '1 step means the event will fire once per step, but won't fire many
-'times in one frame (which is a problem, setkeys() is often called 
+'times in one frame (which is a problem, setkeys() is often called
 'more than once per frame, particularly when new screens are brought
 'up). - sb 2006-01-27
 'Actual key state goes in keybd array for retrieval via keyval().
 	dim a as integer
-	
+
 	'special - never time out modifier keys
 	keysteps(SC_CONTROL) = -1
 	keysteps(SC_LSHIFT) = -1
 	keysteps(SC_RSHIFT) = -1
 	keysteps(SC_ALT) = -1
-	
+
 	'set key state for every key
 	'highest scancode in fbgfx.bi is &h79, no point overdoing it
-	for a = 0 to &h80 
+	for a = 0 to &h80
 		if io_keypressed(a) <> 0 then
-			if keysteps(a) > 0 then 
+			if keysteps(a) > 0 then
 				keybd(a) = 0
 			else
 				'ok to fire a key event
@@ -859,7 +859,7 @@ SUB setkeys ()
 			keysteps(a) = -1 '-1 means it's a new press next time
 		end if
 	next
-	
+
 end SUB
 
 SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
@@ -867,44 +867,44 @@ SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL 
 		wrkpage = p
 	end if
 
-	'wrap if x is too high	
+	'wrap if x is too high
 	if x >= 320 then
 		y = y + (x \ 320)
 		x = x mod 320
 	end if
 
-	spage(p)[y*320 + x] = c	
-	
+	spage(p)[y*320 + x] = c
+
 end SUB
 
 FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) as integer
 	if wrkpage <> p then
 		wrkpage = p
 	end if
-	
-	'wrap if x is too high	
+
+	'wrap if x is too high
 	if x >= 320 then
 		y = y + (x \ 320)
 		x = x mod 320
 	end if
-	
+
 	readpixel = spage(p)[y*320 + x]
 end FUNCTION
 
 SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
 	dim sptr as ubyte ptr
 	dim i as integer
-	
+
 	if wrkpage <> p then
 		wrkpage = p
 	end if
-	
+
 	'clip
 	if x + w > clipr then w = (clipr - x) + 1
 	if y + h > clipb then h = (clipb - y) + 1
 	if x < clipl then x = clipl
-	if y < clipt then y = clipt	
-	
+	if y < clipt then y = clipt
+
 	'draw
 	sptr = spage(p) + (y*320) + x
 	while h > 0
@@ -915,14 +915,14 @@ SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 		sptr += 320
 	wend
 '	line (x, y) - (x+w-1, y+h-1), c, BF
-	
+
 end SUB
 
 SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
 	dim sptr as ubyte ptr
 	dim i as integer
 	dim tog as integer 'pattern toggle
-	
+
 	if wrkpage <> p then
 		wrkpage = p
 	end if
@@ -931,8 +931,8 @@ SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 	if x + w > clipr then w = (clipr - x) + 1
 	if y + h > clipb then h = (clipb - y) + 1
 	if x < clipl then x = clipl
-	if y < clipt then y = clipt	
-	
+	if y < clipt then y = clipt
+
 	'draw
 	sptr = spage(p) + (y*320) + x
 	while h > 0
@@ -948,37 +948,37 @@ SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 		h -= 1
 		sptr += 320
 	wend
-	
+
 end SUB
 
 SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYVAL y2 as integer, BYVAL c as integer, BYVAL p as integer)
 'uses Bresenham's run-length slice algorithm
-  	dim as integer xdiff,ydiff 
+  	dim as integer xdiff,ydiff
   	dim as integer xdirection 	'direction of X travel from top to bottom point (1 or -1)
   	dim as integer minlength  	'minimum length of a line strip
   	dim as integer startLength 	'length of start strip (approx half 'minLength' to balance line)
   	dim as integer runLength  	'current run-length to be used (minLength or minLength+1)
   	dim as integer endLength   	'length of end of line strip (usually same as startLength)
-  	
+
   	dim as integer instep		'xdirection or 320 (inner loop)
 	dim as integer outstep		'xdirection or 320 (outer loop)
 	dim as integer shortaxis	'outer loop control
 	dim as integer longaxis
-	
+
   	dim as integer errorterm   	'when to draw an extra pixel
   	dim as integer erroradd 		'add to errorTerm for each strip drawn
   	dim as integer errorsub 		'subtract from errorterm when triggered
 
   	dim as integer i,j
   	dim sptr as ubyte ptr
-  
+
 'Macro to simplify code
 #define DRAW_SLICE(a) for i=0 to a-1: *sptr = c: sptr += instep: next
 
 	if wrkpage <> p then
 		wrkpage = p
 	end if
-	
+
   	if (y1>y2) then
   		'swap ends, we only draw downwards
     	i=y1: y1=y2: y2=i
@@ -991,7 +991,7 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
   	xdiff=x2-x1
   	ydiff=y2-y1
 
-  	if (xDiff<0) then 
+  	if (xDiff<0) then
   		'right to left
     	xdiff=-xdiff
     	xdirection=-1
@@ -1024,19 +1024,19 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
   	if xdiff > ydiff then
   		longaxis = xdiff
     	shortaxis = ydiff
-    	
+
     	instep = xdirection
     	outstep = 320
   	else
 		'other way round, draw vertical slices
 		longaxis = ydiff
 		shortaxis = xdiff
-		
+
 		instep = 320
 		outstep = xdirection
 	end if
 
-	'calculate stuff    	
+	'calculate stuff
     minlength = longaxis \ shortaxis
 	erroradd = (longaxis mod shortaxis) * 2
 	errorsub = shortaxis * 2
@@ -1058,7 +1058,7 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 		end if
 	end if
 
-	'draw the start strip 
+	'draw the start strip
 	DRAW_SLICE(startlength)
 	sptr += outstep
 
@@ -1089,19 +1089,19 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 	dim as integer w, e		'x coords west and east
 	dim i as integer
 	dim tnode as node ptr = null
-	
+
 	if wrkpage <> page then
 		wrkpage = page
 	end if
-	
+
 	tcol = readpixel(x, y, page)	'get target colour
-	
+
 	queue = allocate(sizeof(node))
 	queue->x = x
 	queue->y = y
 	queue->nextnode = null
 	tail = queue
-	
+
 	do
 		if readpixel(queue->x, queue->y, page) = tcol then
 			putpixel(queue->x, queue->y, c, page) 'change color
@@ -1141,15 +1141,15 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 				end if
 			next
 		end if
-		
+
 		'advance queue pointer, and delete behind us
 		tnode = queue
 		queue = queue->nextnode
 		deallocate(tnode)
-		
+
 	loop while queue <> null
 	'should only exit when queue has caught up with tail
-	
+
 end SUB
 
 SUB storepage (fil$, BYVAL i as integer, BYVAL p as integer)
@@ -1161,40 +1161,40 @@ SUB storepage (fil$, BYVAL i as integer, BYVAL p as integer)
 	dim sptr as ubyte ptr
 	dim scrnbase as ubyte ptr
 	dim plane as integer
-	
+
 	if wrkpage <> p then
 		wrkpage = p
 	end if
-	
+
 	f = freefile
 	open fil$ for binary access read write as #f
 	if err > 0 then
 		'debug "Couldn't open " + fil$
 		exit sub
 	end if
-	
+
 	'skip to index
 	seek #f, (i*64000) + 1 'will this work with write access?
-	
+
 	screenlock
-	
+
 	'modex format, 4 planes
 	scrnbase = spage(p)
 	for plane = 0 to 3
 		sptr = scrnbase + plane
-		
+
 		for idx = 0 to (16000 - 1) '1/4 of a screenfull
 			ub = *sptr
 			put #f, , ub
 			sptr = sptr + 4
 		next
 	next
-	
-	close #f		
+
+	close #f
 end SUB
 
 SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
-'loads a whole page from a file 
+'loads a whole page from a file
 	dim f as integer
 	dim idx as integer
 	dim bi as integer
@@ -1202,35 +1202,35 @@ SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
 	dim sptr as ubyte ptr
 	dim scrnbase as ubyte ptr
 	dim plane as integer
-	
+
 	if wrkpage <> p then
 		wrkpage = p
 	end if
-	
+
 	f = freefile
 	open fil$ for binary access read as #f
 	if err > 0 then
 		'debug "Couldn't open " + fil$
 		exit sub
 	end if
-	
+
 	'skip to index
 	seek #f, (i*64000) + 1
-	
+
 	'modex format, 4 planes
 	scrnbase = spage(p)
 	for plane = 0 to 3
 		sptr = scrnbase + plane
-		
+
 		for idx = 0 to (16000 - 1) '1/4 of a screenfull
 			get #f, , ub
 			*sptr = ub
 			sptr = sptr + 4
 		next
 	next
-	
+
 	close #f
-	
+
 end SUB
 
 SUB setdiskpages (buf() as integer, BYVAL h as integer, BYVAL l as integer)
@@ -1241,28 +1241,28 @@ SUB setdiskpages (buf() as integer, BYVAL h as integer, BYVAL l as integer)
 end SUB
 
 SUB setwait (b() as integer, BYVAL t as integer)
-'t is a value in milliseconds which, in the original, is used to set the event 
-'frequency and is also used to set the wait time, but the resolution of the 
+'t is a value in milliseconds which, in the original, is used to set the event
+'frequency and is also used to set the wait time, but the resolution of the
 'dos timer means that the latter is always truncated to the last multiple of
 '55 milliseconds.
 	dim millis as integer
 	dim secs as double
 	millis = (t \ 55) * 55
-	
+
 	secs = millis / 1000
 	waittime = timer + secs
 end SUB
 
 SUB dowait ()
 'wait until alarm time set in setwait()
-'In freebasic, sleep is in 1000ths, and a value of less than 100 will not 
+'In freebasic, sleep is in 1000ths, and a value of less than 100 will not
 'be exited by a keypress, so sleep for 5ms until timer > waittime.
 	dim i as integer
 	do while timer <= waittime
 		sleep 5 'is this worth it?
 	loop
 	for i = 0 to &h80
-		if keysteps(i) > 0 then 
+		if keysteps(i) > 0 then
 			keysteps(i) -= 1
 		end if
 	next
@@ -1280,11 +1280,11 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 	dim bval as integer
 	dim tbyte as ubyte
 	dim fstep as integer
-	
+
 	if wrkpage <> p then
 		wrkpage = p
 	end if
-	
+
 	'is it actually faster to use a direct buffer write, or would pset be
 	'sufficiently quick?
 	col = x
@@ -1292,7 +1292,7 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 	for ch = 0 to len(s$) - 1
 		'find fontdata index, bearing in mind that the data is stored
 		'2-bytes at a time in 4-byte integers, due to QB->FB quirks,
-		'and fontdata itself is a byte pointer. Because there are 
+		'and fontdata itself is a byte pointer. Because there are
 		'always 8 bytes per character, we will always use exactly 4
 		'ints, or 16 bytes, making the initial calc pretty simple.
 		fi = (s$[ch] * 16)
@@ -1334,7 +1334,7 @@ SUB textcolor (BYVAL f as integer, BYVAL b as integer)
 	textbg = b
 end SUB
 
-SUB setfont (f() as integer) 
+SUB setfont (f() as integer)
 	fontdata = cast(ubyte ptr, @f(0))
 end SUB
 
@@ -1342,7 +1342,7 @@ SUB setbit (bb() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as 
 	dim mask as uinteger
 	dim woff as integer
 	dim wb as integer
-		
+
 	woff = w + (b \ 16)
 	wb = b mod 16
 
@@ -1364,12 +1364,12 @@ FUNCTION readbit (bb() as integer, BYVAL w as integer, BYVAL b as integer)  as i
 	dim mask as uinteger
 	dim woff as integer
 	dim wb as integer
-	
+
 	woff = w + (b \ 16)
 	wb = b mod 16
-	
+
 	mask = 1 shl wb
-	
+
 	if (bb(woff) and mask) then
 		readbit = 1
 	else
@@ -1385,14 +1385,14 @@ SUB storeset (fil$, BYVAL i as integer, BYVAL l as integer)
 	dim ub as ubyte
 	dim toggle as integer
 	dim sptr as ubyte ptr
-	
+
 	f = freefile
 	open fil$ for binary access read write as #f
 	if err > 0 then
 		'debug "Couldn't open " + fil$
 		exit sub
 	end if
-	
+
 	seek #f, (i*bsize) + 1 'does this work properly with write?
 	'this is a horrible hack to get 2 bytes per integer, even though
 	'they are 4 bytes long in FB
@@ -1418,9 +1418,9 @@ SUB storeset (fil$, BYVAL i as integer, BYVAL l as integer)
 			put #f, , ub
 		next
 	end if
-			
+
 	close #f
-	
+
 end SUB
 
 SUB loadset (fil$, BYVAL i as integer, BYVAL l as integer)
@@ -1431,14 +1431,14 @@ SUB loadset (fil$, BYVAL i as integer, BYVAL l as integer)
 	dim ub as ubyte
 	dim toggle as integer
 	dim sptr as ubyte ptr
-	
+
 	f = freefile
 	open fil$ for binary access read as #f
 	if err > 0 then
 		'debug "Couldn't open " + fil$
 		exit sub
 	end if
-	
+
 	seek #f, (i*bsize) + 1
 	'this is a horrible hack to get 2 bytes per integer, even though
 	'they are 4 bytes long in FB
@@ -1468,7 +1468,7 @@ SUB loadset (fil$, BYVAL i as integer, BYVAL l as integer)
 			end if
 		next
 	end if
-			
+
 	close #f
 end SUB
 
@@ -1478,7 +1478,7 @@ SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 			wrkpage = p
 		end if
 	end if
-	
+
 	bptr = @buf(0) 'doesn't really work well with FB
 	bsize = b
 	bpage = p
@@ -1527,7 +1527,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 	OPEN outfile$ FOR APPEND as #ff 'changed this to append, for efficiency elsewhere
 	dim a$
 	a$ = DIR$(fmask$, attrib)
-	if a$ = "" then 
+	if a$ = "" then
 		close #ff
 		exit sub
 	end if
@@ -1551,27 +1551,27 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 	dim i as integer
 	dim bufr as ubyte ptr
 	dim nowildcards as integer = 0
-	
+
 	lf = freefile
 	open lump$ for binary access read as #lf
 	if err > 0 then
 		'debug "Could not open file " + lump$
 		exit sub
 	end if
-	
+
 	bufr = allocate(16383)
-	if bufr = null then 
+	if bufr = null then
 		close #lf
 		exit sub
 	end if
-	
+
 	'should make browsing a bit faster
 	if len(fmask$) > 0 then
 		if instr(fmask$, "*") = 0 and instr(fmask$, "?") = 0 then
 			nowildcards = -1
 		end if
 	end if
-	
+
 	get #lf, , dat	'read first byte
 	while not eof(lf)
 		'get lump name
@@ -1589,10 +1589,10 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 		'force to lower-case
 		lname = lcase(lname)
 		'debug "lump name " + lname
-		
+
 		if not eof(lf) then
 			'get lump size - byte order = 3,4,1,2 I think
-			get #lf, , dat	
+			get #lf, , dat
 			size = (dat shl 16)
 			get #lf, , dat
 			size = size or (dat shl 24)
@@ -1600,22 +1600,22 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 			size = size or dat
 			get #lf, , dat
 			size = size or (dat shl 8)
-			
+
 			'debug "lump size " + str$(size)
-					
-			'do we want this file?	
+
+			'do we want this file?
 			if matchmask(lname, lcase$(fmask$)) then
 				'write yon file
 				dim of as integer
 				dim csize as integer
-				
+
 				of = freefile
 				open path$ + lname for binary access write as #of
 				if err > 0 then
 					'debug "Could not open file " + path$ + lname
 					exit while
 				end if
-				
+
 				'copy the data
 				while size > 0
 					if size > 16383 then
@@ -1628,9 +1628,9 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 					fput of, , bufr, csize
 					size = size - csize
 				wend
-				
+
 				close #of
-				
+
 				'early out if we're only looking for one file
 				if nowildcards then exit while
 			else
@@ -1639,16 +1639,16 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 				i = i + size
 				seek #lf, i
 			end if
-			
+
 			if not eof(lf) then
 				get #lf, , dat
 			end if
 		end if
 	wend
-	
+
 	deallocate bufr
 	close #lf
-	
+
 end SUB
 
 SUB lumpfiles (listf$, lump$, path$, buffer())
@@ -1663,13 +1663,13 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 	dim as integer i, t, textsize(1)
 
 	lpath = rtrim(path$)
-	
+
 	fl = freefile
 	open listf$ for input as #fl
 	if err <> 0 then
 		exit sub
 	end if
-	
+
 	lf = freefile
 	open lump$ for binary access write as #lf
 	if err <> 0 then
@@ -1677,13 +1677,13 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 		close #fl
 		exit sub
 	end if
-	
+
 	bufr = allocate(16000)
-	
+
 	'get file to lump
-	do until eof(fl) 
+	do until eof(fl)
 		input #fl, lname
-		
+
 		'validate that lumpname is 8.3 or ignore the file
 		textsize(0) = 0
 		textsize(1) = 0
@@ -1693,25 +1693,25 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 			textsize(t) += 1
 		next
 		'note extension includes the "." so can be 4 chars
-		if textsize(0) > 8 or textsize(1) > 4 then 
+		if textsize(0) > 8 or textsize(1) > 4 then
 			debug "name too long: " + lname
 			debug " name = " + str(textsize(0)) + ", ext = " + str(textsize(1))
 			continue do
 		end if
-		
-		'write lump name (seems to need to be upper-case, at least 
+
+		'write lump name (seems to need to be upper-case, at least
 		'for any files opened with unlumpone in the QB version)
 		put #lf, , ucase(lname)
 		dat = 0
 		put #lf, , dat
-		
+
 		tl = freefile
 		open lpath + lname for binary access read as #tl
 		if err <> 0 then
 			'debug "failed to open " + lpath + lname
 			continue do
 		end if
-		
+
 		'write lump size - byte order = 3,4,1,2 I think
 		size = lof(tl)
 		dat = (size and &hff0000) shr 16
@@ -1722,8 +1722,8 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 		put #lf, , dat
 		dat = (size and &hff00) shr 8
 		put #lf, , dat
-		
-		'write lump	
+
+		'write lump
 		while size > 0
 			if size > 16000 then
 				csize = 16000
@@ -1738,10 +1738,10 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 
 		close #tl
 	loop
-	
+
 	close #lf
 	close #fl
-	
+
 	deallocate bufr
 END SUB
 
@@ -1774,7 +1774,7 @@ FUNCTION drivelist (d() as integer) as integer
 #else
 	'faked, needs work
 	d(0) = 3
-	d(1) = 4 
+	d(1) = 4
 	d(2) = 5
 	drivelist = 3
 #endif
@@ -1832,7 +1832,7 @@ SUB loadsong (f$)
 	dim ext as string
 	dim songname as string
 	dim songtype as MUSIC_FORMAT
-	
+
 	songname = rtrim(f$) 'lose null
 	songtype = FORMAT_BAM
 	ext = lcase(right(songname, 4))
@@ -1844,7 +1844,7 @@ SUB loadsong (f$)
 		'going to need to change ext to support .it or .xm
 		songtype = FORMAT_MOD
 	end if
-		
+
 	music_play(songname, songtype)
 end SUB
 
@@ -1877,16 +1877,16 @@ SUB copyfile (s$, d$, buf() as integer)
 	if err <> 0 then
 		exit sub
 	end if
-	
+
 	fo = freefile
 	open d$ for binary access write as #fo
 	if err <> 0 then
 		close #fi
 		exit sub
 	end if
-	
+
 	size = lof(fi)
-	
+
 	if size < 16000 then
 		bufr = allocate(size)
 		'copy a chunk of file
@@ -1894,8 +1894,8 @@ SUB copyfile (s$, d$, buf() as integer)
 		fput(fo, , bufr, size)
 	else
 		bufr = allocate(16000)
-		
-		'write lump	
+
+		'write lump
 		while size > 0
 			if size > 16000 then
 				csize = 16000
@@ -1912,16 +1912,16 @@ SUB copyfile (s$, d$, buf() as integer)
 	deallocate bufr
 	close #fi
 	close #fo
-	
+
 end SUB
 
 SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
 'Not sure whether this should be in here or in gfx. Possibly both?
 '	bsave f$, 0
 	dim fname as string
-	
+
 	fname = rtrim$(f$)
-	
+
 	'try external first
 	if gfx_screenshot(fname, p) = 0 then
 		'otherwise save it ourselves
@@ -1931,7 +1931,7 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
 
 		dim as integer of, w, h, i, bfSize, biSizeImage, bfOffBits, biClrUsed, pitch
 		dim as ubyte ptr s
-	
+
 		w = 320
 		h = 200
 		s = spage(p)
@@ -1941,13 +1941,13 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
 		bfOffBits = 54 + 1024
 		bfSize = bfOffBits + biSizeImage
 		biClrUsed = 256
-	
+
 		header.bfType = 19778
 		header.bfSize = bfSize
 		header.bfReserved1 = 0
 		header.bfReserved2 = 0
 		header.bfOffBits = bfOffBits
-		
+
 		info.biSize = 40
 		info.biWidth = w
 		info.biHeight = h
@@ -1959,7 +1959,7 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
 		info.biYPelsPerMeter = &hB12
 		info.biClrUsed = biClrUsed
 		info.biClrImportant = biClrUsed
-		
+
 		of = freefile
 		open fname for binary access write as #of
 		if err > 0 then
@@ -1969,21 +1969,21 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
 
 		put #of, , header
 		put #of, , info
-				
+
 		for i = 0 to 765 step 3
 			argb.rgbRed = maspal(i) * 4
 			argb.rgbGreen = maspal(i+1) * 4
 			argb.rgbBlue = maspal(i+2) * 4
 			put #of, , argb
 		next
-	
+
 		s += (h - 1) * pitch
 		while h > 0
 			fput(of, , s, pitch)
 			s -= pitch
 			h -= 1
 		wend
-	
+
 		close #of
 	end if
 end SUB
@@ -2003,7 +2003,7 @@ SUB readmouse (mbuf() as integer)
 	static lastx as integer = 0
 	static lasty as integer = 0
 	static lastb as integer = 0
-	
+
 	io_getmouse(mx, my, mw, mb)
 	if (mx = -1) then mx = lastx
 	if (my = -1) then my = lasty
@@ -2011,16 +2011,16 @@ SUB readmouse (mbuf() as integer)
 	if (mx < mouse_xmin) then mx = mouse_xmin
 	if (my > mouse_ymax) then my = mouse_ymax
 	if (my < mouse_ymin) then my = mouse_ymin
-	
+
 	lastx = mx
 	lasty = my
-	
+
 	'mc = mouseclicked, only set (to 1) if this is a new left-click
 	'faking the effect of dos int33h cmd 5
 	mc = 0
 	if lastb = 0 and mb = 1 then mc = 1
 	lastb = mb
-	
+
 	mbuf(0) = mx
 	mbuf(1) = my
 	mbuf(2) = mb
@@ -2052,27 +2052,26 @@ FUNCTION readjoy (joybuf() as integer, BYVAL jnum as integer) as integer
 '  down motion when joybuf(0) > joybuf(10)
 '  left motion when joybuf(1) < joybuf(11)
 '  right motion when joybuf(1) > joybuf(12)
-	io_readjoy(joybuf(), jnum)
-	readjoy = 0
+	readjoy = io_readjoy(joybuf(), jnum)
 end FUNCTION
 
 SUB array2str (arr() AS integer, BYVAL o AS integer, s$)
 'String s$ is already filled out with spaces to the requisite size
 'o is the offset in bytes from the start of the buffer
-'the buffer will be packed 2 bytes to an int, for compatibility, even 
+'the buffer will be packed 2 bytes to an int, for compatibility, even
 'though FB ints are 4 bytes long  ** leave like this? not really wise
 	DIM i AS Integer
 	dim bi as integer
 	dim bp as integer ptr
 	dim toggle as integer
-	
+
 	bp = @arr(0)
 	bi = o \ 2 'offset is in bytes
 	toggle = o mod 2
-	
+
 	for i = 0 to len(s$) - 1
 		if toggle = 0 then
-			s$[i] = bp[bi] and &hff 
+			s$[i] = bp[bi] and &hff
 			toggle = 1
 		else
 			s$[i] = (bp[bi] and &hff00) shr 8
@@ -2089,11 +2088,11 @@ SUB str2array (s$, arr() as integer, BYVAL o as integer)
 	dim bi as integer
 	dim bp as integer ptr
 	dim toggle as integer
-	
+
 	bp = @arr(0)
 	bi = o \ 2 'offset is in bytes
 	toggle = o mod 2
-	
+
 	'debug "String is " + str$(len(s$)) + " chars"
 	for i = 0 to len(s$) - 1
 		if toggle = 0 then
@@ -2114,7 +2113,7 @@ end SUB
 SUB setupstack (buffer() as integer, BYVAL size as integer, file$)
 'Currently, stack is always 1024, and blocks of 512 are written out to file$
 'whenever it gets too big. Likewise, the passed is never used for anything else.
-'For simlpicity, I've decided to allocate a larger stack in memory and ignore 
+'For simlpicity, I've decided to allocate a larger stack in memory and ignore
 'the parameters.
 	stacktop = allocate(32768) '32k
 	if (stacktop = 0) then
@@ -2143,7 +2142,7 @@ end SUB
 
 FUNCTION popw () as integer
 	dim pw as integer
-	
+
 	if (stackptr > stacktop) then
 		stackptr = stackptr - 1
 		pw = *stackptr shl 8
@@ -2157,8 +2156,8 @@ FUNCTION popw () as integer
 		pw = 0
 		'debug "underflow"
 	end if
-	
-	popw = pw	
+
+	popw = pw
 end FUNCTION
 
 SUB releasestack ()
@@ -2177,13 +2176,13 @@ function matchmask(match as string, mask as string) as integer
 	dim i as integer
 	dim m as integer
 	dim si as integer, sm as integer
-	
+
 	'special cases
-	if mask = "" then 
+	if mask = "" then
 		matchmask = 1
 		exit function
 	end if
-	
+
 	i = 0
 	m = 0
 	while (i < len(match)) and (m < len(mask)) and (mask[m] <> asc("*"))
@@ -2194,12 +2193,12 @@ function matchmask(match as string, mask as string) as integer
 		i = i+1
 		m = m+1
 	wend
-	
+
 	if (m >= len(mask)) and (i < len(match)) then
 		matchmask = 0
 		exit function
 	end if
-	
+
 	while i < len(match)
 		if m >= len(mask) then
 			'run out of mask with string left over, rewind
@@ -2224,7 +2223,7 @@ function matchmask(match as string, mask as string) as integer
 					m = m + 1
 					i = i + 1
 				else
-					'mismatch, rewind to last * positions, inc i and try again		
+					'mismatch, rewind to last * positions, inc i and try again
 					m = sm
 					i = si + 1
 					si = i
@@ -2232,17 +2231,17 @@ function matchmask(match as string, mask as string) as integer
 			end if
 		end if
 	wend
- 
+
   	while (m < len(mask)) and (mask[m] = asc("*"))
   		m = m + 1
   	wend
-  	
+
   	if m < len(mask) then
 		matchmask = 0
 	else
 		matchmask = 1
 	end if
-	
+
 end function
 
 function calcblock(byval x as integer, byval y as integer, byval t as integer) as integer
@@ -2250,7 +2249,7 @@ function calcblock(byval x as integer, byval y as integer, byval t as integer) a
 	dim block as integer
 	dim tptr as integer ptr
 	dim over as integer
-	
+
 	'check bounds
 	if bordertile = -1 then
 		'wrap
@@ -2267,7 +2266,7 @@ function calcblock(byval x as integer, byval y as integer, byval t as integer) a
 			x = x - map_x
 		wend
 	else
-		if (y < 0) or (y >= map_y) then 
+		if (y < 0) or (y >= map_y) then
 			calcblock = bordertile
 			exit function
 		end if
@@ -2276,13 +2275,13 @@ function calcblock(byval x as integer, byval y as integer, byval t as integer) a
 			exit function
 		end if
 	end if
-	
+
 	block = readmapblock(x, y)
-	
+
 	'check overlay (??)
 	'I think it should work like this:
 	'if overlay (t) is 0, then ignore the overlay flag
-	'if it's 1, return -1 and don't draw overhead tiles (this is 
+	'if it's 1, return -1 and don't draw overhead tiles (this is
 	'actually not working, but doesn't matter too much)
 	'if it's 130 then return the tile id
 	if t > 0 then
@@ -2292,7 +2291,7 @@ function calcblock(byval x as integer, byval y as integer, byval t as integer) a
 			block = -1
 		end if
 	end if
-	
+
 	calcblock = block
 end function
 
@@ -2313,9 +2312,9 @@ SUB bitmap2page (temp(), bmp$, BYVAL p)
 	dim as ubyte ptr sptr, sbase
 	dim ub as ubyte
 	dim pad as integer
-	
+
 	fname = rtrim$(bmp$)
-	
+
 	bf = freefile
 	open fname for binary access read as #bf
 	if err > 0 then
@@ -2329,20 +2328,20 @@ SUB bitmap2page (temp(), bmp$, BYVAL p)
 		close #bf
 		exit sub
 	end if
-	
+
 	get #bf, , info
 
 	if info.biBitCount <> 24 then
 		close #bf
 		exit sub
 	end if
-	
+
 	sbase = spage(p)
 
-	'data lines are padded to 32-bit boundaries	
+	'data lines are padded to 32-bit boundaries
 	pad = 4 - ((info.biWidth * 3) mod 4)
 	if pad = 4 then	pad = 0
-	
+
 	'crop images larger than screen
 	maxw = info.biWidth - 1
 	if maxw > 319 then
@@ -2350,7 +2349,7 @@ SUB bitmap2page (temp(), bmp$, BYVAL p)
 		pad = pad + ((info.biWidth - 320) * 3)
 	end if
 	maxh = info.biHeight - 1
-	if maxh > 199 then 
+	if maxh > 199 then
 		maxh = 199
 	end if
 
@@ -2360,7 +2359,7 @@ SUB bitmap2page (temp(), bmp$, BYVAL p)
 				'read the data
 				get #bf, , pix
 			next
-		else	
+		else
 			sptr = sbase + (h * 320)
 			for w = 0 to maxw
 				'read the data
@@ -2369,13 +2368,13 @@ SUB bitmap2page (temp(), bmp$, BYVAL p)
 				sptr += 1
 			next
 		end if
-		
+
 		'padding to dword boundary, plus excess pixels
 		for w = 0 to pad-1
 			get #bf, , ub
 		next
 	next
-	
+
 	close #bf
 END SUB
 
@@ -2390,9 +2389,9 @@ SUB loadbmp (f$, BYVAL x, BYVAL y, buf(), BYVAL p)
 	dim sbase as ubyte ptr
 	dim i as integer
 	dim col as RGBQUAD
-	
+
 	fname = rtrim$(f$)
-	
+
 	bf = freefile
 	open fname for binary access read as #bf
 	if err > 0 then
@@ -2406,17 +2405,17 @@ SUB loadbmp (f$, BYVAL x, BYVAL y, buf(), BYVAL p)
 		close #bf
 		exit sub
 	end if
-	
+
 	get #bf, , info
 
 	if info.biBitCount <> 4 then
 		close #bf
 		exit sub
 	end if
-	
+
 	'use header offset to get to data
 	seek #bf, header.bfOffBits + 1
-	
+
 	sbase = spage(p) + (y * 320) + x
 
 	'crop images larger than screen
@@ -2431,7 +2430,7 @@ SUB loadbmp (f$, BYVAL x, BYVAL y, buf(), BYVAL p)
 	elseif info.biCompression = BI_RLE4 then
 		loadbmprle4(bf, info.biWidth, info.biHeight, maxw, maxh, sbase)
 	end if
-	
+
 	close #bf
 END SUB
 
@@ -2444,10 +2443,10 @@ SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byva
 	dim bcount as integer
 	dim as integer w, h
 	dim sptr as ubyte ptr
-	
+
 	linelen = (iw + 1) \ 2 	'num of bytes
 	linelen = ((linelen + 3) \ 4) * 4 	'nearest dword bound
-	
+
 	for h = ih - 1 to 0 step -1
 		bcount = 0
 		toggle = 0
@@ -2462,7 +2461,7 @@ SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byva
 					toggle = 0
 				end if
 			next
-		else	
+		else
 			sptr = sbase + (h * 320)
 			for w = 0 to maxw
 				if toggle = 0 then
@@ -2480,7 +2479,7 @@ SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byva
 				end if
 			next
 		end if
-		
+
 		'padding to dword boundary, plus excess pixels
 		while bcount < linelen
 			get #bf, , ub
@@ -2501,7 +2500,7 @@ SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, b
 
 	w = 0
 	h = ih -1
-	
+
 	'read bytes until we're done
 	while not eof(bf)
 		'get command byte
@@ -2545,7 +2544,7 @@ SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, b
 				get #bf, , pix	'2 colours
 				v1 = (pix and &hf0) shr 4
 				v2 = pix and &h0f
-				
+
 				toggle = 0
 				for i = 1 to ub
 					if toggle = 0 then
@@ -2563,7 +2562,7 @@ SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, b
 				next
 		end select
 	wend
-	
+
 end sub
 
 SUB getbmppal (f$, mpal(), pal(), BYVAL o)
@@ -2578,9 +2577,9 @@ SUB getbmppal (f$, mpal(), pal(), BYVAL o)
 	dim i as integer
 	dim p as integer
 	dim toggle as integer
-	
+
 	fname = rtrim$(f$)
-	
+
 	bf = freefile
 	open fname for binary access read as #bf
 	if err > 0 then
@@ -2594,7 +2593,7 @@ SUB getbmppal (f$, mpal(), pal(), BYVAL o)
 		close #bf
 		exit sub
 	end if
-	
+
 	get #bf, , info
 
 	if info.biBitCount <> 4 then
@@ -2602,7 +2601,7 @@ SUB getbmppal (f$, mpal(), pal(), BYVAL o)
 		exit sub
 	end if
 
-	'read and translate the 16 colour entries	
+	'read and translate the 16 colour entries
 	p = o
 	toggle = p mod 2
 	for i = 0 to 15
@@ -2617,7 +2616,7 @@ SUB getbmppal (f$, mpal(), pal(), BYVAL o)
 			p += 1
 		end if
 	next
-	
+
 	close #bf
 END SUB
 
@@ -2626,9 +2625,9 @@ FUNCTION bmpinfo (f$, dat())
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim bf as integer
-	
+
 	fname = rtrim$(f$)
-	
+
 	bf = freefile
 	open fname for binary access read as #bf
 	if err > 0 then
@@ -2644,21 +2643,21 @@ FUNCTION bmpinfo (f$, dat())
 		close #bf
 		exit function
 	end if
-	
+
 	get #bf, , info
 
-	'only these 4 fields are returned by the asm	
+	'only these 4 fields are returned by the asm
 	dat(0) = info.biBitCount
 	dat(1) = info.biWidth
 	dat(2) = info.biHeight
 	'seems to be a gap here, or all 4 bytes of height are returned
 	'but I doubt this will be relevant anyway
-	dat(3) = 0				
+	dat(3) = 0
 	dat(4) = info.biCompression
 	'code doesn't actually seem to use anything higher than 2 anway
-			
+
 	close #bf
-	
+
 	bmpinfo = -1
 END FUNCTION
 
@@ -2666,7 +2665,7 @@ function nearcolor(pal() as integer, byval red as ubyte, byval green as ubyte, b
 'figure out nearest palette colour
 'supplied pal() is r,g,b
 	dim as integer i, diff, col, best, save, rdif, bdif, gdif
-	
+
 	best = 1000
 	save = 0
 	for col = 0 to 255
@@ -2681,12 +2680,12 @@ function nearcolor(pal() as integer, byval red as ubyte, byval green as ubyte, b
 			save = col
 			exit for
 		end if
-		if diff < best then 
+		if diff < best then
 			save = col
 			best = diff
 		end if
 	next
-	
+
 	nearcolor = save
 end function
 
@@ -2729,12 +2728,12 @@ sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer
 	dim sptr as ubyte ptr
 	dim as integer tx, ty
 	dim as integer i, j, pix, spix
-	
+
 	'assume wrkpage
 	sptr = spage(wrkpage)
-	
+
 	if scale = 0 then scale = 1
-	
+
 	'checking the clip region should really be outside the loop,
 	'I think, but we'll see how this works
 	ty = y
@@ -2762,21 +2761,21 @@ sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer
 		next
 		ty += 1
 	next
-	
+
 end sub
 
 sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr)
 'ibuf should be pre-allocated
 	dim sptr as ubyte ptr
 	dim as integer i, j, px, py
-	
+
 	if ibuf = null then exit sub
-	
+
 	sptr = spage(page)
-	
+
 	py = y
 	for i = 0 to h-1
-		px = x 
+		px = x
 		for j = 0 to w-1
 			'ignore clip rect, but check screen bounds
 			if not (px < 0 or px > 319 or py < 0 or py > 199) then
@@ -2788,5 +2787,5 @@ sub grabrect(page as integer, x as integer, y as integer, w as integer, h as int
 		next
 		py += 1
 	next
-	
+
 end sub
