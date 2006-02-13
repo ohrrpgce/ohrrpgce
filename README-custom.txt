@@ -1,11 +1,11 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Editor             (October 03 2005 rusalka)
+ O.H.R.RPG.C.E Editor        (February ?? 2006 serendipity)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
 ---
 
-To get started, read http://HamsterRepublic.com/ohrrpgce/wiki.php
+To get started, read http://HamsterRepublic.com/ohrrpgce/
 
 ---
 
@@ -26,19 +26,14 @@ know where to get the source code. No other files are needed for
 people to play your RPG files
 
 If you have questions, read the FAQ at
-http://HamsterRepublic.com/ohrrpgce/wiki.php
+http://HamsterRepublic.com/ohrrpgce/faq.php
 
 ---
 
 Report bugs at: http://HamsterRepublic.com/ohrrpgce/buglist.php
 
 ---
-MUSIC UTILITIES
-
-The programs NOTATE.EXE and MIDI2BAM have been provided for you in your 
-IMPORT directory. you can use them to create your own .BAM files 
-(Bob's Adlib Music) for use in your RPG. NOTATE.TXT and MIDI2BAM.TXT 
-contain instructions on how to use the utilities
+MUSIC
 
 A small assortment of Public-Domain music has also been included for you to
 use for free if you do not want to compose your own music. Please read
@@ -47,6 +42,6 @@ MUSIC.TXT for more info on the songs.
 ---
 Spiffy, Spiffy! Enjoy the editor.
 
-                                            James `SPAM Man' Paige
+                                            James Paige
                                             Hamster Republic Productions
                                             http://HamsterRepublic.com/

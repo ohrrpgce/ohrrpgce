@@ -22,8 +22,6 @@ copy sample\npc_tag.rpg tmp
 copy sample\pstutor.rpg tmp
 copy plotscr.hsd tmp
 copy scancode.hsi tmp
-copy game.ico tmp
-copy custom.ico tmp
 
 del distrib\custom.zip
 
