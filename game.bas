@@ -315,7 +315,6 @@ IF sourcerpg$ = "" AND NOT usepreunlump = 1 THEN exitprogram 0
 lockfile = FREEFILE
 OPEN workingdir$ + SLASH + "lockfile.tmp" FOR BINARY AS #lockfile
 
-
 IF autorungame = 0 THEN
  rectangle 4, 3, 312, 14, 9, vpage
  rectangle 5, 4, 310, 12, 1, vpage
@@ -912,9 +911,7 @@ END IF
 IF istag(saytag(5), 0) THEN
  fatal = 0
  ERASE scroll, pass
- debug "before text box battle"
  wonbattle = battle(saytag(6), fatal, stat())
- debug "after text box battle"
  afterbat = 1
  GOSUB preparemap: foep = range(100, 60): needf = 1
 END IF
@@ -1645,9 +1642,7 @@ END IF
 IF wantbattle > 0 THEN
  fatal = 0
  ERASE scroll, pass
- debug "before script battle"
  wonbattle = battle(wantbattle - 1, fatal, stat())
- debug "after script battle"
  scriptret = wonbattle
  wantbattle = 0
  afterbat = 1
