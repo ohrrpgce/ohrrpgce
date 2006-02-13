@@ -728,67 +728,7 @@ DATA "±","²","³","´","µ","¶","·","¸","¹","º","»","¼","","","½","¾","¿","À","Á","
 'dowait
 'LOOP
 
-'---DOCUMENTATION OF GENERAL DATA---
-'* denotes obsolete fields
-'0        number of maps
-'1-20    *tilesetassignments
-'1        title screen
-'2        title music
-'3        victory music
-'4        default battle music
-'5-25    *passcode
-'26       max hero graphics 40
-'27       max small enemy graphics 149
-'28       max med enemy graphics 79
-'29       max large graphics 29
-'30       max npc graphics 119
-'31       max weapon graphics 149
-'32       max attack graphics 99
-'33       max tilesets 14
-'34       max attack definitions 200
-'35       max hero definitions 59
-'36       max enemy definitions 500
-'37       max formations 1000
-'38       max palettes 99
-'39       max text boxes 999
-'40       total available plotscripts
-'41       new-game plotscript
-'42       game-over plotscript
-'43       highest numbered plotscript
-'44       suspendstuff bits
-'45       cameramode
-'46       cameraarg1
-'47       cameraarg2
-'48       cameraarg3
-'49       cameraarg4
-'50       script backdrop
-'51       days of play
-'52       hours of play
-'53       minutes of play
-'54       seconds of play
-'55       max vehicle types
-'56       last named tag
-'57       load-game plotscript
-'58       text box backdrop
-'60       Joystick calibration disabler
-'61       poison indicator
-'62       stun indicator
-'93       new passcode offset
-'94       new passcode length
-'95       RPG file format version ID
-'96       starting gold
-'97       last shop
-'98      *old passcode offset
-'99      *old passcode length
-'100      last screen
-'101      general bitsets
-'102      starting X
-'103      starting Y
-'104      starting Map
-'105      one-time-NPC indexer
-'106-170  one-time-NPC placeholders
-'199      start of password scattertable
-'200-359  password mess
+'---For documentation of general data see http://hamsterrepublic.com/ohrrpgce/index.php/GEN.html
 
 REM $STATIC
 FUNCTION filenum$ (n)
@@ -1469,8 +1409,8 @@ SUB upgrade (font())
 
 DIM pal16(8)
 
-IF general(95) = 0 THEN
- general(95) = 1
+IF general(genVersion) = 0 THEN
+ general(genVersion) = 1
  clearpage vpage
  printstr "Flushing New Text Data...", 0, 0, vpage
  setvispage vpage 'refresh
@@ -1482,8 +1422,8 @@ IF general(95) = 0 THEN
   storeset game$ + ".say" + CHR$(0), o, 0
  NEXT o
 END IF
-IF general(95) = 1 THEN
- general(95) = 2
+IF general(genVersion) = 1 THEN
+ general(genVersion) = 2
  clearpage vpage
  printstr "Updating Door Format...", 0, 0, vpage
  setvispage vpage 'refresh
@@ -1538,8 +1478,8 @@ IF general(95) = 1 THEN
  NEXT i
 END IF
 '---VERSION 3---
-IF general(95) = 2 THEN
- general(95) = 3
+IF general(genVersion) = 2 THEN
+ general(genVersion) = 3
  clearpage vpage
  '-get old-old password
  rpas$ = ""
@@ -1579,8 +1519,8 @@ IF general(95) = 2 THEN
  general(39) = 999
 END IF
 '--VERSION 4--
-IF general(95) = 3 THEN
- general(95) = 4
+IF general(genVersion) = 3 THEN
+ general(genVersion) = 4
  clearpage vpage
  printstr "Clearing New Attack Bitsets...", 0, 0, vpage
  setvispage vpage 'refresh
@@ -1602,8 +1542,8 @@ IF general(95) = 3 THEN
  setbit general(), 101, 7, 0 'no hide health meter
 END IF
 '--VERSION 5--
-IF general(95) = 4 THEN
- general(95) = 5
+IF general(genVersion) = 4 THEN
+ general(genVersion) = 5
  clearpage vpage
  printstr "Upgrading 16-color Palette Format...", 0, 0, vpage
  setvispage vpage 'refresh
@@ -1640,6 +1580,11 @@ IF general(95) = 4 THEN
   storeset game$ + ".pal" + CHR$(0), 1 + j, 0
  NEXT j
 END IF
+'--VERSION 6--
+IF general(genVersion) = 5 THEN
+ 'Shop stuff and song name formats changed, MIDI music added
+ general(genVersion) = 6
+END IF 
 
 IF NOT isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
  '--create archinym information lump
