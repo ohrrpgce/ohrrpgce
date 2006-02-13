@@ -8,7 +8,6 @@ copy game.exe tmp
 copy ohrrpgce.fnt tmp
 copy README-game.txt tmp
 copy LICENSE-binary.txt tmp
-copy game.ico tmp
 
 del distrib\ohrrpgce_play.zip
 
