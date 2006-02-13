@@ -770,8 +770,8 @@ end sub
 
 
 Sub PlayBackThread(dummy as integer)
-dim curtime as integer, curevent as MIDIEvent ptr, starttime as double, delta as double, tempo as integer, delay as double
-dim played as integer
+dim curtime as double, curevent as MIDIEvent ptr, starttime as double, delta as double, tempo as integer, delay as double
+dim played as integer, carry as double
 dim labels(15) as midievent ptr, jumpcount(15) as integer, choruswas as MIDIEvent ptr
 labels(0) = music_song
 for curtime = 0 to 15
@@ -786,16 +786,19 @@ gosub updateDelay
 
 starttime = timer
 do while music_playing
-	delta = timer - starttime
 
+	delta = timer - starttime + carry
 	curtime += delta / delay
+
+	'carry = delta mod delay
+
 	starttime = timer
 	'print cint(curevent->time) - curtime
 	if music_playing = 0 then ESCAPE_SEQUENCE
 
 	'windowtitle str(curtime) + " " + str(curevent->time)
 
-	if cint(curevent->time) - curtime > 0 then
+	if cint(curevent->time) - int(curtime) > 0 then
 		goto skipevents
 	end if
 
@@ -978,7 +981,7 @@ skipevents:
 	end if
 
 	do
-		sleep 10,1
+		sleep 1,1
 		if music_playing = 0 then ESCAPE_SEQUENCE
 	loop while music_paused
 
@@ -987,7 +990,9 @@ loop
 ESCAPE_SEQUENCE
 
 updateDelay:
-delay = tempo / 24000000
+delay = tempo / division
+delay /= 1000000
+windowtitle str$(delay) + " " + str$(tempo) + " " + str$(division)
 return
 End Sub
 
