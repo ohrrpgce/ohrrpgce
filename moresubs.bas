@@ -329,7 +329,8 @@ LOOP
 EXIT FUNCTION
 
 context:
-timeout! = TIMER
+DIM timeout AS DOUBLE
+timeout = TIMER
 rectangle 5, 176, 310, 12, 1, vpage
 meter = 0
 treesize = 0
@@ -399,7 +400,8 @@ ELSE
   IF true$(treesize) = "" THEN
    treesize = treesize - 1
   ELSE
-   IF timeout! + 15 > TIMER THEN
+  debug STR$(timeout + 15) + STR$(TIMER)
+   IF timeout + 15 > TIMER THEN
     unlumpfile nowdir$ + true$(treesize) + CHR$(0), "browse.txt", tmpdir$, buffer()
     IF isfile(tmpdir$ + "browse.txt" + CHR$(0)) THEN
      setpicstuf buffer(), 40, -1

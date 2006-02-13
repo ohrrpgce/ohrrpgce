@@ -96,6 +96,7 @@ DIM a(40), atktemp(40 + curbinsize(0) / 2), atk(40 + curbinsize(0) / 2), st(3, 3
 1, 17), ready(11), batname$(11), menu$(3, 5), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
+DIM laststun AS DOUBLE
 
 mpname$ = readglobalstring(1, "MP", 10)
 goldname$ = readglobalstring(32, "Gold", 10)
@@ -142,7 +143,7 @@ FOR i = 0 TO 11
  prtimer(i, 0) = INT(RND * 2000)
  prtimer(i, 1) = INT(RND * 2000)
 NEXT i
-laststun! = TIMER
+laststun = TIMER
 IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
 IF gen(genStun) <= 0 THEN gen(genStun) = 159
 IF gen(genMute) <= 0 THEN gen(genMute) = 163
@@ -1786,7 +1787,7 @@ NEXT i
 
 '--decrement stun and mute
 
-IF TIMER > laststun! + 1 THEN
+IF TIMER > laststun + 1 THEN
  FOR i = 0 TO 11
   stat(i, 0, 15) = small(stat(i, 0, 15) + 1, stat(i, 1, 15))
   stat(i, 0, 14) = small(stat(i, 0, 14) + 1, stat(i, 1, 14))
@@ -1797,7 +1798,7 @@ IF TIMER > laststun! + 1 THEN
    IF them = i THEN them = -1
   END IF
  NEXT i
- laststun! = TIMER
+ laststun = TIMER
 END IF
 
 RETURN
