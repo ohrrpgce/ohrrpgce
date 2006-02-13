@@ -2040,7 +2040,18 @@ SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)
 end sub
 
 FUNCTION readjoy (joybuf() as integer, BYVAL jnum as integer) as integer
-'would be easy if I knew what was going where in the buffer
+'Return 0 if joystick is not present, or -1 (true) if joystick is present
+'jnum is the joystick to read (QB implementation supports 0 and 1)
+'joybuf(0) = Analog X axis
+'joybuf(1) = Analog Y axis
+'joybuf(2) = button 1: 0=pressed nonzero=not pressed
+'joybuf(3) = button 2: 0=pressed nonzero=not pressed
+'Other values in joybuf() should be preserved.
+'If X and Y axis are not analog,
+'  upward motion when joybuf(0) < joybuf(9)
+'  down motion when joybuf(0) > joybuf(10)
+'  left motion when joybuf(1) < joybuf(11)
+'  right motion when joybuf(1) > joybuf(12)
 	io_readjoy(joybuf(), jnum)
 	readjoy = 0
 end FUNCTION
