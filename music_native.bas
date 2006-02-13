@@ -26,7 +26,7 @@ option explicit
 #ENDIF
 
 
-#DEFINE ESCAPE_SEQUENCE Exit Sub
+#DEFINE ESCAPE_SEQUENCE Goto endOfSong
 
 #IFDEF IS_GAME
 TYPE Regtype
@@ -987,12 +987,16 @@ skipevents:
 
 loop
 
-ESCAPE_SEQUENCE
+
+endOfSong:
+
+resetMidi
+
+exit sub
 
 updateDelay:
 delay = tempo / division
 delay /= 1000000
-windowtitle str$(delay) + " " + str$(tempo) + " " + str$(division)
 return
 End Sub
 
