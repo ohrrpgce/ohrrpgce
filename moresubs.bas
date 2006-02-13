@@ -1734,16 +1734,17 @@ NEXT i
 END SUB
 
 SUB rpgversion (v)
-current = 5
-'last added new 16 color palette format
+current = 6
+'last added midi music, change shop stuff and song name formats
 
-IF v = current THEN EXIT SUB
+IF v >= 5 AND v <= current THEN EXIT SUB
 needf = 1
 clearpage 0
 clearpage 1
 setvispage 0
 centerbox 160, 100, 240, 100, 3, 0
-IF v < current THEN
+IF v < 5 THEN
+ ' Versions older than 5 do not support graceful backwards compatability
  edgeprint "Obsolete RPG File", 52, 70, 14, 0
  textcolor 7, 0
  printstr "this game was created with", 52, 82, 0
@@ -1752,6 +1753,7 @@ IF v < current THEN
  printstr "as intended.", 52, 106, 0
 END IF
 IF v > current THEN
+ 'Versions newer than current cannot support graceful forward compatability
  edgeprint "Unsupported RPG File", 52, 70, 15, 0
  textcolor 7, 0
  printstr "this game has features", 52, 82, 0

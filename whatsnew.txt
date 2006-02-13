@@ -143,6 +143,9 @@ Feb ?? 2006 [serendipity]
       Browsing still has some problems, espeically in music importing,
       and full-screen causes problems) [Simon Bradley, James Paige]
     * .SNG lump replaced with binary expandable songdata.bin [Ralph Versteegen]
+    * Incremented RPG file version to 6. (Game only shows backwards
+      compatability warnings when loading files in version 4 or older)
+      [James Paige]
 
 October 03 2005 [rusalka]
 

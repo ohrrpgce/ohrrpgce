@@ -351,7 +351,7 @@ FOR i = 0 TO 104
  gen(i) = buffer(i)
 NEXT i
 
-rpgversion gen(95)
+rpgversion gen(genVersion)
 
 setfont font()
 setpicstuf buffer(), 50, -1
