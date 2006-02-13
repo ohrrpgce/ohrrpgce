@@ -302,7 +302,11 @@ ELSE
 END IF
 IF autorungame = 0 THEN
  'DEBUG debug "browse for RPG"
- sourcerpg$ = browse$("*.rpg", 1, 2)
+ IF LINUX THEN
+  sourcerpg$ = browse$("*.[Rr][Pp][Gg]", 1, 2)
+ ELSE
+  sourcerpg$ = browse$("*.rpg", 1, 2)
+ END IF 
 END IF
 IF sourcerpg$ = "" AND NOT usepreunlump = 1 THEN exitprogram 0
 
