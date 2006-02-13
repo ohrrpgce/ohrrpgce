@@ -783,10 +783,10 @@ playtime$ = s$
 END FUNCTION
 
 SUB playtimer
-STATIC n!
+STATIC n AS DOUBLE
 
-IF TIMER >= n! + 1 OR n! - TIMER > 3600 THEN
- n! = INT(TIMER)
+IF TIMER >= n + 1 OR n - TIMER > 3600 THEN
+ n = INT(TIMER)
  gen(54) = gen(54) + 1
  WHILE gen(54) >= 60
   gen(54) = gen(54) - 60
