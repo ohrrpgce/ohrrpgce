@@ -395,7 +395,7 @@ ELSE
   treesize = small(treesize + 1, limit)
   treec(treesize) = 3
   INPUT #fh, true$(treesize)
-  true$(treesize) = LCASE$(true$(treesize))
+  true$(treesize) = true$(treesize)
   IF true$(treesize) = "" THEN
    treesize = treesize - 1
   ELSE
