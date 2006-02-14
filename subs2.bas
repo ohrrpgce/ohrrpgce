@@ -335,7 +335,6 @@ DO UNTIL EOF(fh) OR treesize >= 255
  treesize = treesize + 1
  treec(treesize) = 3
  INPUT #fh, tree$(treesize)
- tree$(treesize) = LCASE$(tree$(treesize))
  '---music files
  IF special = 1 OR special = 5 THEN
   IF validmusicfile(nowdir$ + tree$(treesize)) = 0 THEN
