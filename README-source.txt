@@ -5,10 +5,13 @@ code :)
 -----------------------------------------------------------------------------
 http://HamsterRepublic.com/ohrrpgce/source.php for more information 
 -----------------------------------------------------------------------------
-REQUIREMENT: Quickbasic version 4.5 or 7.1  (4.5 is preferred)
-  The only way to compile the source code into an EXE file you can actually
-  run is to use Microsoft Quickbasic. How do you get it? ... Well, I
-  hate to say this, but unless you purchased a copy back in 1989, your only
+WINDOWS/LINUX: Requires FreeBasic verion 0.15b (or newer)
+  Download FreeBasic from http://freebasic.net/
+
+DOS (16-BIT): Requires Quickbasic version 4.5 or 7.1  (4.5 is preferred)
+  Older Versions of the OHRRPGCE required QuickBasic. Quickbasic is being
+  phased out, but is currently still supported. How do you get it? ... Well,
+  I hate to say this, but unless you purchased a copy back in 1989, your only
   hope is to pirate a copy. Quickbasic 4.5 is not hard to find on abandonware
   websites. Search around, and you should be able to find it easily. I was
   tempted to just include a pirate copy of it along with the OHRRPGCE
@@ -20,13 +23,18 @@ REQUIREMENT: Quickbasic version 4.5 or 7.1  (4.5 is preferred)
   hella way too big.
 -----------------------------------------------------------------------------
 INSTRUCTIONS
-  Install the OHRRPGCE source code into C:\OHRRPGCE\
-  Install Quickbasic 4.5 into C:\QB45\
-  If you want to install to a different location you should edit env-set.bat
-  If you install Quickbasic 7.1 instead you will need to edit env-set.bat
-  If you are using Windows, run the "OHRRPGCE Hacking" shortcut.
-  If you are using real DOS, run env-set.bat
-  Type "compile" to compile the source code into EXE files
+  (Windows/Linux)
+    Unpack the source code to a new folder
+    Install FreeBasic
+    Run makegame.bat to compile the game player
+    Run makeedit.bat to compile the game editor
+  (DOS)
+    Install the OHRRPGCE source code into C:\OHRRPGCE\
+    Install QuickBasic in C:\QB45\
+    If you want to install to a different location you should edit env-set.bat
+    If you install Quickbasic 7.1 instead you will need to edit env-set.bat
+    If you are using real DOS, run env-set.bat
+    Run compile.bat to compile the player and editor
 -----------------------------------------------------------------------------
 MAKING IMPROVEMENTS
   There are still lots of bugs that need to be fixed. For a list of known
@@ -47,10 +55,10 @@ WHAT IF YOU WANT TO BREAK COMPATABILITY?
   LICENSE.txt
 -----------------------------------------------------------------------------
 APOLOGY
-  The OHRRPGCE's Source code is ugly. UGLY! Messy! Poorly planned! I most
-  sincerely apologize for this fact, and I protest that I am not really the
-  terribly incompetent programmer that you might assume I am just by reading
-  this code.
+  Most of the OHRRPGCE's Source code is ugly. UGLY! Messy! Poorly planned! I
+  most sincerely apologize for this fact, and I protest that I am not really
+  the terribly incompetent programmer that you might assume I am just by
+  reading this code.
 
   When I first started programming the OHRRPGCE back in late 1996, I was
   ignorant of many important programming concepts. The most noticeable of
@@ -91,9 +99,17 @@ APOLOGY
   wealth of things that could easily be re-written properly... except that
   they work well enough now, who has the time and motivation to fix them?
 
+  After releasing the source code under the GPL, it turns out that several
+  people did in fact have time and motivation to improve the code. Although
+  bad code still abounds, it is getting better.
+
   Well, I hope that doesn't discourage you too much. Play around with the
   code, have fun, and if you make any improvements that you would like me
   to merge back into the official version, submit patches to me at
   http://HamsterRepublic.com/bugzilla/
 -----------------------------------------------------------------------------
 James Paige - Bob@HamsterRepublic.com - http://HamsterRepublic.com/ohrrpgce/
+-----------------------------------------------------------------------------
+Do you want to keep up with the latest development progress? Subscribe to
+the Developer's Mailing list:
+http://lists.motherhamster.org/listinfo.cgi/ohrrpgce-motherhamster.org
