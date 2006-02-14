@@ -1,12 +1,5 @@
-The following OHRRPGCE Source files are free software
+The Source Code of the O.H.R.RPG.C.E is free software
 under the terms of the GNU General Public License:
-
-BMOD.BAS        BMODSUBS.BAS    CUSTOM.BAS      DRAWING.BAS     FLEXMENU.BAS
-GAME.BAS        IRONHOOF.BAS    MAPSUBS.BAS     MENUSTUF.BAS    MORESUBS.BAS
-RPGFIX.BAS      SUBS.BAS        SUBS2.BAS       UNLUMP.BAS      VERPRINT.BAS
-YETMORE.BAS     BGLOBALS.BI     CGLOBALS.BI     GGLOBALS.BI     SGLOBALS.BI
-SCRCONST.BI     HSPEAK.EX       INDEXER.EX      LUMPFIX.EX      HSSPIFFY.E
-SUBS3.BAS       CONST.BI
 
 ------------------------------------------------------------------------------
 
