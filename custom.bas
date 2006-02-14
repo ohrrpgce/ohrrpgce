@@ -297,7 +297,7 @@ rpg$(0) = "CREATE NEW GAME"
 rpg$(1) = "EXIT PROGRAM"
 DO
  IF L >= 255 THEN EXIT DO
- INPUT #fh, temp$
+ LINE INPUT #fh, temp$
  IF temp$ = "-END-" THEN EXIT DO
  rpg$(L) = LEFT$(temp$, LEN(temp$) - 4)
  L = L + 1
@@ -313,7 +313,7 @@ IF oldcrash = 1 THEN
  fh = FREEFILE
  OPEN "crash.lst" FOR INPUT AS #fh
  DO WHILE NOT EOF(fh)
-  INPUT #fh, a$
+  LINE INPUT #fh, a$
   a$ = LEFT$(a$, LEN(a$) - 4)
   GOSUB cleanup
  LOOP
@@ -365,7 +365,7 @@ DO
    OPEN "temp.lst" FOR INPUT AS #fh
    DO WHILE NOT EOF(fh)
     a$ = ""
-    INPUT #fh, a$
+    LINE INPUT #fh, a$
     IF LEFT$(LCASE$(a$), 8) = "ohrrpgce" THEN
      a$ = RIGHT$(a$, LEN(a$) - 8)
      b$ = game$
@@ -460,7 +460,7 @@ listmake:
 CALL findfiles("*.rpg" + CHR$(0), 0, "rpg.lst" + CHR$(0), buffer())
 fh = FREEFILE
 OPEN "rpg.lst" FOR APPEND AS #fh LEN = 25
-WRITE #fh, "-END-"
+PRINT #fh, "-END-"
 CLOSE #fh
 
 IF NOT isdir(workingdir$ + CHR$(0)) THEN
@@ -627,7 +627,7 @@ IF nocleanup = 0 THEN
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
-  INPUT #fh, filename$
+  LINE INPUT #fh, filename$
   KILL workingdir$ + SLASH + filename$
  LOOP
  CLOSE #fh
