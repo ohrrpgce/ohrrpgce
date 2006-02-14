@@ -147,7 +147,7 @@ GOSUB readstuff
 dpage = 1: vpage = 0: Rate = 160: game$ = ""
 GOSUB chooserpg
 gamefile$ = game$
-windowtitle "OHRRPGCE - " + gamefile$
+setwindowtitle "OHRRPGCE - " + gamefile$
 
 GOSUB checkpass
 

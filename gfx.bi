@@ -7,6 +7,7 @@ declare sub gfx_setpal(pal() as integer) 'set colour palette
 declare function gfx_screenshot(fname as string, byval page as integer) as integer
 declare sub gfx_setwindowed(byval iswindow as integer)
 declare sub gfx_togglewindowed()
+declare sub gfx_windowtitle(title as string)
 
 declare sub io_init()
 declare function io_keypressed(byval scancode as integer) as integer
