@@ -43,7 +43,7 @@ FUNCTION getcommandline$
 	fh = FREEFILE
 '       OPEN tmpdir$ + "ohrcline.tmp" FOR INPUT AS #fh
 	OPEN "ohrcline.tmp" FOR INPUT AS #fh
-	INPUT #fh, cline$
+	LINE INPUT #fh, cline$
 	CLOSE #fh
 	getcommandline = cline$
 END FUNCTION
@@ -95,13 +95,13 @@ SUB romfontchar (font%(), char%)
 END SUB
 
 SUB storecommandline
-'why does this use a file? wouldn't it be cheaper to store a string?
+'The command line must be written to a file so it can be re-read after the CLEAR statement nukes it
 	'---WRITE COMMAND-LINE ARGS TO A TEMP FILE---
 	fh = FREEFILE
 	'No access to tmpdir here, use current dir for now
 '       OPEN tmpdir$ + "ohrcline.tmp" FOR OUTPUT AS #fh
 	OPEN "ohrcline.tmp" FOR OUTPUT AS #fh
-	WRITE #fh, COMMAND$
+	PRINT #fh, COMMAND$
 	CLOSE #fh
 END SUB
 

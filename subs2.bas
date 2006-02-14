@@ -257,7 +257,7 @@ ELSE
  DO UNTIL EOF(fh) OR treesize >= 255
   treesize = treesize + 1
   treec(treesize) = 2
-  INPUT #fh, tree$(treesize)
+  LINE INPUT #fh, tree$(treesize)
   IF tree$(treesize) = "." OR tree$(treesize) = ".." OR RIGHT$(tree$(treesize), 4) = ".tmp" THEN treesize = treesize - 1
  LOOP
  CLOSE #fh
@@ -334,7 +334,7 @@ OPEN tmp$ + "hrbrowse.tmp" FOR INPUT AS #fh
 DO UNTIL EOF(fh) OR treesize >= 255
  treesize = treesize + 1
  treec(treesize) = 3
- INPUT #fh, tree$(treesize)
+ LINE INPUT #fh, tree$(treesize)
  '---music files
  IF special = 1 OR special = 5 THEN
   IF validmusicfile(nowdir$ + tree$(treesize)) = 0 THEN
@@ -608,7 +608,7 @@ IF w = 1 THEN
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
-  INPUT #fh, filename$
+  LINE INPUT #fh, filename$
   KILL workingdir$ + SLASH + filename$
  LOOP
  CLOSE #fh

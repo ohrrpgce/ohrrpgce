@@ -501,7 +501,7 @@ findfiles workingdir$ + SLASH + ALLFILES + chr$(0), 0, "filelist.tmp" + CHR$(0),
 fh = FREEFILE
 OPEN "filelist.tmp" FOR INPUT AS #fh
 DO UNTIL EOF(fh)
-INPUT #fh, filename$
+LINE INPUT #fh, filename$
 KILL workingdir$ + SLASH + filename$
 LOOP
 CLOSE #fh
@@ -530,7 +530,7 @@ findfiles "unlump1.tmp" + SLASH + ALLFILES + chr$(0), 0, "unlist.tmp" + CHR$(0),
 fh = FREEFILE
 OPEN "unlist.tmp" FOR INPUT AS #fh
 DO UNTIL EOF(fh)
- INPUT #fh, filename$
+ LINE INPUT #fh, filename$
  KILL "unlump1.tmp" + SLASH + filename$
 LOOP
 CLOSE #fh

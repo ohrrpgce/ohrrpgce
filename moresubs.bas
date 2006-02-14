@@ -381,7 +381,7 @@ ELSE
   treesize = small(treesize + 1, limit)
   treec(treesize) = 2
   about$(treesize) = "Subdirectory"
-  INPUT #fh, tree$(treesize)
+  LINE INPUT #fh, tree$(treesize)
   IF tree$(treesize) = "." OR tree$(treesize) = ".." OR RIGHT$(tree$(treesize), 4) = ".tmp" THEN treesize = treesize - 1
   IF tree$(treesize) = "" THEN treesize = treesize - 1
   GOSUB drawmeter
@@ -395,7 +395,7 @@ ELSE
  DO UNTIL EOF(fh)
   treesize = small(treesize + 1, limit)
   treec(treesize) = 3
-  INPUT #fh, true$(treesize)
+  LINE INPUT #fh, true$(treesize)
   true$(treesize) = true$(treesize)
   IF true$(treesize) = "" THEN
    treesize = treesize - 1
@@ -506,7 +506,7 @@ FOR i = 0 TO drivetotal - 1
    fh = FREEFILE
    OPEN tmpdir$ + "hrbrowse.tmp" FOR INPUT AS #fh
    IF LOF(fh) THEN
-    INPUT #fh, a$
+    LINE INPUT #fh, a$
     b$ = ""
     FOR j = 1 TO LEN(a$)
      IF MID$(a$, j, 1) <> "." THEN b$ = b$ + MID$(a$, j, 1)

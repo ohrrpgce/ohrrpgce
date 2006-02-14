@@ -681,7 +681,7 @@ DO
     findfiles workingdir$ + SLASH + oldgame$ + ".*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
     fh = FREEFILE
     OPEN "temp.lst" FOR APPEND AS #fh
-    WRITE #fh, "-END OF LIST-"
+    PRINT #fh, "-END OF LIST-"
     CLOSE #fh
     fh = FREEFILE
     OPEN "temp.lst" FOR INPUT AS #fh
@@ -689,7 +689,7 @@ DO
     printstr "Renaming Lumps...", 0, 40, vpage
     textcolor 15, 2
     DO
-     INPUT #fh, temp$
+     LINE INPUT #fh, temp$
      IF temp$ = "-END OF LIST-" THEN EXIT DO
      printstr " " + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)) + " ", 0, 50, vpage
      copyfile workingdir$ + SLASH + temp$ + CHR$(0), workingdir$ + SLASH + newgame$ + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)) + CHR$(0), buffer()

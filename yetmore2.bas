@@ -606,7 +606,7 @@ SUB cleanuptemp
  fh = FREEFILE
   OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
   DO UNTIL EOF(fh)
-   INPUT #fh, filename$
+   LINE INPUT #fh, filename$
    filename$ = LCASE$(filename$)
    IF LEFT$(filename$, 3) = "vdm" AND RIGHT$(filename$, 4) = ".tmp" THEN
     '-- mysterious locked file, leave it alone
