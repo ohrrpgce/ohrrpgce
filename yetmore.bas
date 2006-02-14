@@ -564,7 +564,7 @@ IF isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
  IF LEN(a$) <= 8 THEN game$ = workingdir$ + SLASH + a$
 END IF
 displayname$ = getdisplayname$(sourcerpg$)
-windowtitle displayname$
+setwindowtitle displayname$
 END SUB
 
 SUB interpolatecat

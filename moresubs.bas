@@ -1765,6 +1765,7 @@ IF v > current THEN
  printstr "http://HamsterRepublic.com", 52, 122, 0
 END IF
 fadein -1
+setvispage 0
 w = getkey
 fadeout 0, 0, 0, -1
 END SUB
@@ -2482,8 +2483,10 @@ FUNCTION getdisplayname$ (default$)
   loadset f$ + CHR$(0), 0, 0
   s$ = STRING$(bound(buffer(0), 0, 38), " ")
   array2str buffer(), 2, s$
-  getdisplayname$ = s$
- ELSE
-  getdisplayname$ = default$
+  IF LEN(s$) > 0 THEN
+  	getdisplayname$ = s$
+  	EXIT FUNCTION
+  END IF
  END IF
+ getdisplayname$ = default$
 END FUNCTION

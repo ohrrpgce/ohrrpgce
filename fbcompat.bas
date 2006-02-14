@@ -230,3 +230,7 @@ MKDIR dirname$
  SHELL "chmod +x " + dirname$
 #endif
 END SUB
+
+SUB setwindowtitle (title as string)
+	gfx_windowtitle title
+END SUB

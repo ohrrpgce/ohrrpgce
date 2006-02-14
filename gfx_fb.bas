@@ -85,6 +85,14 @@ sub gfx_togglewindowed()
 	end if
 end sub
 
+sub gfx_windowtitle(title as string)
+	if len(title) = 0 then
+		windowtitle ""
+	else
+		windowtitle title
+	end if
+end sub
+
 '------------- IO Functions --------------
 sub io_init
 	setmouse(0, 0, 0) 'hide mouse

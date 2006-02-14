@@ -126,6 +126,6 @@ SUB makedir (dirname$)
     MKDIR dirname$
 END SUB
 
-SUB windowtitle (title AS STRING)
+SUB setwindowtitle (title AS STRING)
     'does nothing in QB version
 END SUB

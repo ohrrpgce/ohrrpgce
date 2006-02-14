@@ -136,6 +136,10 @@ sub gfx_togglewindowed()
 	end if
 end sub
 
+sub gfx_windowtitle(title as string)
+	set_window_title(strptr(title))	
+end sub
+
 '------------- IO Functions --------------
 sub io_init
 ' 	'mostly handled above
