@@ -147,15 +147,20 @@ sub togglewindowed()
 	gfx_togglewindowed
 end sub
 
-sub storecommandline
+sub storecommandline(temppath as string)
 'a thinly veiled excuse to get some commandline stuff into FB
+'temppath is ignored in the FB version
 	dim i as integer = 1
 	dim temp as string
 	
 	while command(i) <> ""
 		temp = left$(command(i), 1)
 		'/ should not be a flag under linux
+#ifdef __FB_LINUX__
+		if temp = "-" then
+#else
 		if temp = "-" or temp = "/" then
+#endif
 			'option
 			temp = mid$(command(i), 2)
 			if temp = "w" or temp = "windowed" then
@@ -171,7 +176,7 @@ sub storecommandline
 	wend
 end sub
 
-function getcommandline() as string
+function getcommandline(temppath as string) as string
 	getcommandline = storecmd
 end function
 
