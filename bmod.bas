@@ -53,7 +53,7 @@ DECLARE SUB debug (s$)
 DECLARE SUB control ()
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
-DECLARE SUB getitem (getit%)
+DECLARE SUB getitem (getit%, num%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
 DECLARE SUB spells (pt%, stat%())
 DECLARE SUB status (pt%, stat%())
@@ -2103,9 +2103,7 @@ IF found$ = "" THEN
  '--get the item name
  found$ = readitemname$(found(fptr, 0))
  '--actually aquire the item
- FOR i = 1 TO found(fptr, 1)
-  getitem found(fptr, 0) + 1
- NEXT i
+ getitem found(fptr, 0) + 1, found(fptr, 1)
 END IF
 '--if the present item is gotten, show the caption
 IF found(fptr, 1) = 1 THEN

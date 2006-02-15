@@ -31,7 +31,7 @@ DECLARE SUB playtimer ()
 DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION istag% (num%, zero%)
 DECLARE SUB evalherotag (stat%())
-DECLARE SUB delitem (it%)
+DECLARE SUB delitem (it%, num%)
 DECLARE SUB getmapname (mapname$, m%)
 DECLARE FUNCTION consumeitem% (index%)
 DECLARE SUB evalitemtag ()
@@ -44,7 +44,7 @@ DECLARE SUB control ()
 DECLARE FUNCTION picksave% (load%)
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
-DECLARE SUB getitem (getit%)
+DECLARE SUB getitem (getit%, num%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
 DECLARE SUB spells (pt%, stat%())
 DECLARE SUB status (pt%, stat%())
@@ -69,6 +69,7 @@ DECLARE SUB fadein (force%)
 DECLARE SUB checkTagCond(t,check,tag,tagand) 'in bmod.bas
 DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB readattackdata (array%(), index%)
+DECLARE FUNCTION countitem% (it%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -84,7 +85,7 @@ IF n > highest THEN bound = highest
 END FUNCTION
 
 SUB buystuff (id, shoptype, storebuf(), stock(), stat())
-DIM b(curbinsize(1) * 25), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walks(15), hpal(8)
+DIM b(curbinsize(1) * 25), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walks(15), hpal(8), tradestf(3, 1)
 recordsize = getbinsize(1) / 2 ' get size in INTs
 
 getnames sname$()
@@ -97,6 +98,7 @@ purchased$ = readglobalstring$(93, "Purchased", 20)
 joined$ = readglobalstring$(95, "Joined!", 20)
 instock$ = readglobalstring$(97, "in stock", 20)
 anda$ = readglobalstring$(81, "and a", 10)
+andsome$ = readglobalstring$(153, "and", 10)
 eqprefix$ = readglobalstring$(99, "Equip:", 10)
 noroom$ = readglobalstring$(100, "No Room in Party", 20)
 
@@ -166,17 +168,21 @@ DO
    IF stock(id, pt) > 1 THEN stock(id, pt) = stock(id, pt) - 1
    IF b(pt * recordsize + 22) THEN setbit tag(), 0, ABS(b(pt * recordsize + 22)), SGN(SGN(b(pt * recordsize + 22)) + 1)
    gold& = gold& - b(pt * recordsize + 24)
-   IF b(pt * recordsize + 25) > 0 THEN '---TRADE IN ITEM----------
-    delitem b(pt * recordsize + 25)
+   IF tradingitems THEN '---TRADE IN ITEMS----------
+    FOR i = 0 TO 3
+     IF tradestf(i, 0) > -1 THEN
+      delitem tradestf(i, 0) + 1, tradestf(i, 1)
+     END IF
+    NEXT
    END IF '-------END TRADE IN ITEM----------------------------
    IF b(pt * recordsize + 17) = 0 THEN '---BUY ITEM-------------------
-    getitem b(pt * recordsize + 18) + 1
+    getitem b(pt * recordsize + 18) + 1, 1
     acol = 4
     alert = 10
     alert$ = purchased$ + " " + stuf$(pt)
    END IF '-------END IF ITEM-------------------------------------
    IF b(pt * recordsize + 17) = 1 THEN '---HIRE HERO------------------
-    'getitem b(pt * recordsize + 18) + 1
+    'getitem b(pt * recordsize + 18) + 1, 1
     FOR i = 37 TO 0 STEP -1
      IF hero(i) = 0 THEN slot = i
     NEXT i
@@ -246,8 +252,9 @@ DO
   END IF
  NEXT i
  IF price$ <> "" THEN
-  centerbox 160, 190, LEN(price$) * 8 + 8, 12, 1, dpage
-  edgeprint price$, xstring(price$, 160), 185, 15, dpage
+  centerbox 160, 186, LEN(price$) * 8 + 8, 12 + xtralines * 10, 1, dpage
+  edgeprint price$, xstring(price$, 160), 182 - xtralines * 5, 15, dpage
+  IF xtralines >= 1 THEN edgeprint p2$, xstring(p2$, 160), 187, 15, dpage
  END IF
  IF alert THEN
   alert = alert - 1
@@ -265,24 +272,49 @@ vishero stat()
 EXIT SUB
 
 curinfo:
+tradingitems = 0
+xtralines = 0
 showhero = -1
 price$ = ""
+price2$ = ""
 eqinfo$ = ""
 info1$ = ""
 info2$ = ""
-IF b(pt * recordsize + 24) > 0 THEN price$ = RIGHT$(STR$(b(pt * recordsize + 24)), LEN(STR$(b(pt * recordsize + 24))) - 1) + " " + sname$(32)
-IF b(pt * recordsize + 25) > 0 THEN
- IF price$ = "" THEN
-  price$ = buytype$(0, shoptype)
- ELSE
-  price$ = price$ + " " + anda$
+IF b(pt * recordsize + 24) > 0 THEN price$ = LTRIM$(STR$(b(pt * recordsize + 24))) + " " + sname$(32)
+'--load must trade in item types+amounts
+temp = pt
+GOSUB loadtrades
+FOR i = 0 TO 3 
+ IF tradestf(i, 0) > -1 THEN
+  tradingitems = 1
+  IF price$ = "" THEN
+   price$ = buytype$(0, shoptype)
+  ELSE
+   IF tradestf(i, 1) = 1 THEN
+    price$ = price$ + " " + anda$ + " "
+   ELSE
+    price$ = price$ + " " + andsome$ + " "
+   END IF
+  END IF
+  IF tradestf(i, 1) = 1 THEN
+   price$ = price$ + readitemname$(tradestf(i, 0))
+  ELSE
+   price$ = price$ + LTRIM$(STR$(tradestf(i, 1))) + " " + readitemname$(tradestf(i, 0))
+  END IF
+  'setpicstuf buffer(), 200, -1
+  'loadset game$ + ".itm" + CHR$(0), b(pt * recordsize + 25) - 1, 0
+  'FOR o = 1 TO buffer(0)
+  ' price$ = price$ + CHR$(small(large(buffer(o), 0), 255))
+  'NEXT o
  END IF
- price$ = price$ + readitemname$(b(pt * recordsize + 25) - 1)
- 'setpicstuf buffer(), 200, -1
- 'loadset game$ + ".itm" + CHR$(0), b(pt * recordsize + 25) - 1, 0
- 'FOR o = 1 TO buffer(0)
- ' price$ = price$ + CHR$(small(large(buffer(o), 0), 255))
- 'NEXT o
+NEXT
+IF LEN(price$) > 38 THEN
+ '--have to split in 2! ARGH
+ i = 38
+ WHILE i > 19 AND MID$(price$, i, 1) <> " ": i = i - 1: WEND
+ p2$ = MID$(price$, i + 1)
+ price$ = LEFT$(price$, i - 1)
+ xtralines = 1
 END IF
 IF b(pt * recordsize + 17) = 0 THEN
  setpicstuf buffer(), 200, -1
@@ -338,14 +370,13 @@ FOR i = 0 TO storebuf(16)
  IF b(i * recordsize + 17) = (shoptype XOR 1) THEN setbit vmask(), 0, i, 1
  IF NOT istag(b(i * recordsize + 20), -1) THEN setbit vmask(), 0, i, 1
  IF b(i * recordsize + 24) > gold& THEN setbit emask(), 0, i, 1
- IF b(i * recordsize + 25) > 0 THEN
-  setbit emask(), 0, i, 1
-  FOR o = 0 TO 199
-   lb = (item(o) AND 255)
-   hb = INT(item(o) / 256)
-   IF b(i * recordsize + 25) = lb AND hb > 0 AND b(i * recordsize + 24) <= gold& THEN setbit emask(), 0, i, 0
-  NEXT o
- END IF
+ temp = i
+ GOSUB loadtrades
+ FOR j = 0 TO 3
+  IF tradestf(j, 0) > -1 THEN 
+   IF countitem(tradestf(j, 0) + 1) < tradestf(j, 1) THEN setbit emask(), 0, i, 1
+  END IF
+ NEXT
  '---PREVENT PARTY OVERFLOW
  IF b(i * recordsize + 17) = 1 AND eslot = 0 THEN setbit emask(), 0, i, 1
  IF readbit(vmask(), 0, i) = 0 THEN total = total + 1
@@ -362,6 +393,15 @@ FOR i = 0 TO storebuf(16)
   IF stock(id, i) > -1 THEN stock(id, i) = stock(id, i) + 1
  END IF
 NEXT i
+RETURN
+
+loadtrades:
+tradestf(0, 0) = b(temp * recordsize + 25) - 1
+tradestf(0, 1) = b(temp * recordsize + 30) + 1
+FOR k = 1 TO 3
+ tradestf(k, 0) = b(temp * recordsize + k * 2 + 29) - 1
+ tradestf(k, 1) = b(temp * recordsize + k * 2 + 30) + 1
+NEXT
 RETURN
 
 END SUB
@@ -418,7 +458,7 @@ eqstuf(who, where) = toequip
 IF toequip = defwep AND where = 0 THEN
 ELSE
  '--delete the item from inventory
- delitem toequip
+ delitem toequip, 1
 END IF
 
 END SUB
@@ -688,23 +728,36 @@ NEXT i
 RETURN
 END SUB
 
-SUB getitem (getit)
+SUB getitem (getit, num)
 
 i = 0
 DO
  lb = (item(i) AND 255)
- hb = INT(item(i) / 256)
- IF getit = lb AND hb < 99 THEN
-  item(i) = lb + ((hb + 1) * 256)
-  itstr i
-  EXIT SUB
+ hb = (item(i) \ 256)
+ room = 99 - hb
+ IF getit = lb AND room > 0 THEN
+  IF room < num THEN
+   item(i) = lb + (99 * 256)
+   itstr i
+   num = num - room
+  ELSE
+   item(i) = lb + ((hb + num) * 256)
+   itstr i
+   EXIT SUB
+  END IF
  END IF
  i = i + 1
-LOOP UNTIL i > 197
+LOOP UNTIL i > 197  'anybody know what is going on here?
 i = 0
 DO
  lb = (item(i) AND 255)
- IF lb = 0 THEN item(i) = getit + 256: itstr i: EXIT SUB
+ IF lb = 0 THEN
+  lb = small(num, 99)
+  num = num - lb
+  item(i) = getit + (lb * 256)
+  itstr i
+  IF num = 0 THEN EXIT SUB
+ END IF
  i = i + 1
 LOOP UNTIL i > 199
 getit = 0
@@ -1564,6 +1617,7 @@ cannotsell$ = readglobalstring$(75, "CANNOT SELL", 20)
 worth$ = readglobalstring$(77, "Worth", 20)
 tradefor$ = readglobalstring$(79, "Trade for", 20)
 anda$ = readglobalstring$(81, "and a", 10)
+andsome$ = readglobalstring$(153, "and", 10)
 worthnothing$ = readglobalstring$(82, "Worth Nothing", 20)
 sold$ = readglobalstring$(84, "Sold", 10)
 
@@ -1623,7 +1677,16 @@ IF lb > 0 THEN
  FOR i = 0 TO storebuf(16)
   IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = lb - 1 THEN
    IF b(i * recordsize + 28) > 0 THEN
-    IF info$ = "" THEN info$ = tradefor$ + " " ELSE info$ = info$ + " " + anda$ + " "
+    IF info$ = "" THEN
+     info$ = tradefor$ + " " 
+    ELSE
+     IF b(i * recordsize + 29) > 0 THEN 
+      info$ = info$ + " " + andsome$ + " "
+     ELSE
+      info$ = info$ + " " + anda$ + " "
+     END IF
+    END IF
+    IF b(i * recordsize + 29) > 0 THEN info$ = info$ + LTRIM$(STR$(b(i * recordsize + 29) + 1)) + " "
     info$ = info$ + readitemname$(b(i * recordsize + 28) - 1)
     'setpicstuf buffer(), 200, -1
     'loadset game$ + ".itm" + CHR$(0), b(i * recordsize + 28) - 1, 0
@@ -1651,7 +1714,7 @@ IF carray(4) > 1 AND readbit(permask(), 0, ic) = 0 AND item(ic) > 0 THEN
    'SET SELL BIT---
    IF b(i * recordsize + 23) <> 0 THEN setbit tag(), 0, ABS(b(i * recordsize + 23)), SGN(SGN(b(i * recordsize + 23)) + 1)
    'ADD TRADED ITEM-----------
-   IF b(i * recordsize + 28) > 0 THEN getitem b(i * recordsize + 28)
+   IF b(i * recordsize + 28) > 0 THEN getitem b(i * recordsize + 28), b(i * recordsize + 29) + 1
    'INCREMENT STOCK-------
    IF b(i * recordsize + 26) > 0 THEN
     IF b(i * recordsize + 26) = 1 THEN stock(id, i) = -1
@@ -2195,7 +2258,7 @@ NEXT i
 '--return item to inventory (if not the default weapon)
 IF where = 0 AND eqstuf(who, where) = defwep THEN
 ELSE
- getitem eqstuf(who, where)
+ getitem eqstuf(who, where), 1
 END IF
 
 '--blank out equipment

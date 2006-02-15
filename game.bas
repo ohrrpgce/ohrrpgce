@@ -67,7 +67,7 @@ DECLARE SUB arslhero (saytag%(), stat%())
 DECLARE SUB forceparty (stat%())
 DECLARE SUB doequip (toequip%, who%, where%, defwep%, stat%())
 DECLARE SUB scriptdump (s$)
-DECLARE SUB getitem (getit%)
+DECLARE SUB getitem (getit%, num%)
 DECLARE SUB doihavebits ()
 DECLARE SUB npcplot ()
 DECLARE SUB vishero (stat%())
@@ -117,7 +117,7 @@ DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock())
 DECLARE SUB loadgame (slot%, map%, foep%, stat%(), stock())
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
-DECLARE SUB delitem (it%)
+DECLARE SUB delitem (it%, num%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
 DECLARE SUB spells (pt%, stat%())
 DECLARE SUB status (pt%, stat%())
@@ -832,7 +832,7 @@ IF sayer >= 0 THEN
  '--Step-on NPCs cannot be used
  IF auto = 0 AND npcs((npcl(sayer + 600) - 1) * 15 + 8) = 2 THEN RETURN
  getit = npcs((npcl(sayer + 600) - 1) * 15 + 6)
- IF getit THEN getitem getit
+ IF getit THEN getitem getit, 1
  '---DIRECTION CHANGING-----------------------
  IF npcs((npcl(sayer + 600) - 1) * 15 + 5) < 2 THEN
   recalld = npcl(sayer + 900)
@@ -918,8 +918,8 @@ IF istag(saytag(5), 0) THEN
 END IF
 '---GAIN/LOSE ITEM--------
 IF istag(saytag(17), 0) THEN
- IF saytag(18) > 0 THEN getitem saytag(18)
- IF saytag(18) < 0 THEN delitem ABS(saytag(18))
+ IF saytag(18) > 0 THEN getitem saytag(18), 1
+ IF saytag(18) < 0 THEN delitem ABS(saytag(18)), 1
 END IF
 '---SHOP/INN/SAVE/ETC------------
 IF istag(saytag(7), 0) THEN

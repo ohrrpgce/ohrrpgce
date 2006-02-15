@@ -32,7 +32,7 @@ DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE SUB wrappedsong (songnumber%)
 DECLARE SUB flusharray (array%(), size%, value%)
-DECLARE SUB delitem (it%)
+DECLARE SUB delitem (it%, num%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION getnpcref% (seekid%, offset%)
 DECLARE SUB suspendresume (id%)
@@ -75,7 +75,7 @@ DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
-DECLARE SUB getitem (getit%)
+DECLARE SUB getitem (getit%, num%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
 DECLARE SUB spells (pt%, stat%())
 DECLARE SUB status (pt%, stat%())
@@ -1072,13 +1072,13 @@ SELECT CASE id
  CASE 12'--check tag
   scriptret = ABS(istag(retvals(0), 0))
  CASE 17'--get item
-  FOR i = 1 TO retvals(1)
-   getitem retvals(0) + 1
-  NEXT i
+  IF retvals(1) >= 1 THEN
+   getitem retvals(0) + 1, retvals(1)
+  END IF
  CASE 18'--delete item
-  FOR i = 1 TO retvals(1)
-   delitem retvals(0) + 1
-  NEXT i
+  IF retvals(1) >= 1 THEN
+   delitem retvals(0) + 1, retvals(1)
+  END IF
  CASE 19'--leader
   FOR i = 0 TO 3
    IF hero(0) > 0 THEN scriptret = hero(0) - 1: EXIT FOR
