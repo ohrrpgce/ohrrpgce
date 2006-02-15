@@ -59,7 +59,7 @@ DECLARE SUB control ()
 DECLARE FUNCTION picksave% (load%)
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
-DECLARE SUB getitem (getit%)
+DECLARE SUB getitem (getit%, num%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
 DECLARE SUB spells (pt%, stat%())
 DECLARE SUB status (pt%, stat%())
@@ -696,15 +696,22 @@ PRINT #fh, s$
 CLOSE #fh
 END SUB
 
-SUB delitem (it)
+SUB delitem (it, num)
 FOR o = 0 TO 199
  lb = (item(o) AND 255)
  hb = INT(item(o) / 256)
  IF it = lb AND hb > 0 THEN
-  hb = hb - 1: IF hb = 0 THEN lb = 0
+  IF hb <= num THEN
+   num = num - hb
+   hb = 0
+   lb = 0
+  ELSE
+   hb = hb - num
+   num = 0
+  END IF
   item(o) = lb + (hb * 256)
   itstr o
-  EXIT FOR
+  IF num = 0 THEN EXIT FOR
  END IF
 NEXT o
 END SUB

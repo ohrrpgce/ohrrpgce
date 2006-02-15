@@ -40,7 +40,7 @@ DECLARE SUB calibrate ()
 DECLARE SUB control ()
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
-DECLARE SUB getitem (getit%)
+DECLARE SUB getitem (getit%, num%)
 DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
 DECLARE SUB spells (pt%, stat%())
 DECLARE SUB status (pt%, stat%())
@@ -130,12 +130,12 @@ END FUNCTION
 FUNCTION checktheftchance (item, itemP, rareitem, rareitemP)
 IF RND * 100 < itemP THEN
  '--success!
- getitem item + 1
+ getitem item + 1, 1
  checktheftchance = item + 1
 ELSE
  IF RND * 100 < rareitemP THEN
   '--rare success!
-  getitem rareitem + 1
+  getitem rareitem + 1, 1
   checktheftchance = rareitem + 1
  ELSE
   checktheftchance = 0

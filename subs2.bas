@@ -915,8 +915,8 @@ NEXT i
 END SUB
 
 SUB statname
-DIM stat$(115), names$(115), maxlen(115)
-max = 115
+DIM stat$(116), names$(116), maxlen(116)
+max = 116
 clearpage 0
 clearpage 1
 
@@ -1039,6 +1039,7 @@ names$(112) = "You have (# gold)":      stat$(112) = readglobalstring$(145, "You
 names$(113) = "CANNOT RUN!":            stat$(113) = readglobalstring$(147, "CANNOT RUN!", 20)
 names$(114) = "Level up for (hero)":    stat$(114) = readglobalstring$(149, "Level up for", 20)
 names$(115) = "(#) levels for (hero)":  stat$(115) = readglobalstring$(151, "levels for", 20)
+names$(116) = "($) and (number) (item)":stat$(116) = readglobalstring$(153, "and", 10)
 
 'names$() = "":      stat$() = readglobalstring$(, "", 10)
 

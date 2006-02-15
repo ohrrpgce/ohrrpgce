@@ -1078,7 +1078,7 @@ IF isfile(f$ + CHR$(0)) THEN KILL f$
 END SUB
 
 SUB shopdata
-DIM names$(32), a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16)
+DIM names$(32), a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
 
 maxcount = 32: pt = 0: it$ = "-NONE-"
 sbit$(0) = "Buy"
@@ -1098,12 +1098,25 @@ FOR i = 6 TO 9
 NEXT i
 min(10) = -32767
 max(10) = 32767
-max(11) = 255
-min(11) = -1
-min(13) = -32767
-max(13) = 32767
-max(14) = 255
-min(14) = -1
+'max(11) = 255
+'min(11) = -1
+'min(13) = -32767
+'max(13) = 32767
+'max(14) = 255
+'min(14) = -1
+FOR i = 11 TO 17 STEP 2
+ max(i) = 255
+ min(i) = -1
+ max(i + 1) = 99
+ min(i + 1) = 1
+NEXT
+
+min(20) = -32767
+max(20) = 32767
+max(21) = 255
+min(21) = -1
+max(22) = 99
+min(22) = 1
 stf$(0) = "Item"
 stf$(1) = "Hero"
 stf$(2) = "Script"
@@ -1220,6 +1233,7 @@ tcsr = 0
 last = 2
 GOSUB lstuf
 GOSUB othertype
+GOSUB itstrsh
 GOSUB stufmenu
 setkeys
 DO
@@ -1249,20 +1263,35 @@ DO
  IF tcsr > 2 THEN
   IF b(17) = 1 THEN
    '--using a hero
-   min(12) = -1
-   max(12) = 99
+   min(19) = -1
+   max(19) = 99
   ELSE
    '--not a hero
-   min(12) = 0: max(12) = 3
+   min(19) = 0: max(19) = 3
   END IF
-  IF tcsr = 11 OR tcsr = 14 THEN
-   IF zintgrabber(b(17 + tcsr - 3), min(tcsr), max(tcsr), 75, 77) THEN GOSUB itstrsh
-  ELSE
-   IF intgrabber(b(17 + tcsr - 3), min(tcsr), max(tcsr), 75, 77) THEN
-    IF tcsr = 3 OR tcsr = 4 THEN GOSUB othertype: GOSUB setdefault
+  SELECT CASE tcsr
+   CASE 11 '--must trade in item 1 type
+    IF zintgrabber(b(25), min(tcsr), max(tcsr), 75, 77) THEN GOSUB itstrsh
+   CASE 13, 15, 17 '--must trade in item 2+ types
+    IF zintgrabber(b(18 + tcsr), min(tcsr), max(tcsr), 75, 77) THEN GOSUB itstrsh
+   CASE 12, 14, 16, 18 '--trade in item amounts
+    b(18 + tcsr) = b(18 + tcsr) + 1
+    dummy = intgrabber(b(18 + tcsr), min(tcsr), max(tcsr), 75, 77)
+    b(18 + tcsr) = b(18 + tcsr) - 1
+   CASE 19, 20 '--sell type, price
+    dummy = intgrabber(b(7 + tcsr), min(tcsr), max(tcsr), 75, 77)
     IF (b(26) < 0 OR b(26) > 3) AND b(17) <> 1 THEN b(26) = 0
-   END IF
-  END IF
+   CASE 21 '--trade in for
+    IF zintgrabber(b(7 + tcsr), min(tcsr), max(tcsr), 75, 77) THEN GOSUB itstrsh
+   CASE 22 '--trade in for amount
+    b(7 + tcsr) = b(7 + tcsr) + 1
+    dummy = intgrabber(b(7 + tcsr), min(tcsr), max(tcsr), 75, 77)
+    b(7 + tcsr) = b(7 + tcsr) - 1
+   CASE ELSE
+    IF intgrabber(b(17 + tcsr - 3), min(tcsr), max(tcsr), 75, 77) THEN
+     IF tcsr = 3 OR tcsr = 4 THEN GOSUB othertype: GOSUB setdefault
+    END IF
+  END SELECT
  END IF
  GOSUB othertype
  GOSUB stufmenu
@@ -1278,18 +1307,18 @@ LOOP
 othertype:
 SELECT CASE b(17)
  CASE 0
-  last = 14
+  last = 22
   max(4) = 254: IF b(18) > 255 THEN b(18) = 0
-  max(12) = 3
+  max(19) = 3
  CASE 1
-  last = 12
+  last = 19
   max(4) = 59: IF b(18) > 59 THEN b(18) = 0
-  max(12) = 99
+  max(19) = 99
  CASE 2
-  last = 11
+  last = 18
   max(4) = 999
 END SELECT
-GOSUB itstrsh
+'GOSUB itstrsh
 RETURN
 
 setdefault:
@@ -1343,19 +1372,27 @@ IF b(23) = 1 THEN smenu$(9) = smenu$(9) + "[Unalterable]"
 IF b(23) = -1 THEN smenu$(9) = smenu$(9) + "[Unalterable]"
 IF b(23) = 0 THEN smenu$(9) = "[No Tag Set]"
 smenu$(10) = names$(32) + " Price:" + STR$(b(24))
-smenu$(11) = "Must Trade:" + it$
+smenu$(11) = "Must Trade in" + STR$(b(30) + 1) + " of:" + tradestf$(0)
+smenu$(12) = " (Change Amount)" 
+smenu$(13) = "Must Trade in" + STR$(b(32) + 1) + " of:" + tradestf$(1)
+smenu$(14) = " (Change Amount)" 
+smenu$(15) = "Must Trade in" + STR$(b(34) + 1) + " of:" + tradestf$(2)
+smenu$(16) = " (Change Amount)" 
+smenu$(17) = "Must Trade in" + STR$(b(36) + 1) + " of:" + tradestf$(3)
+smenu$(18) = " (Change Amount)" 
 IF b(17) = 0 THEN
- smenu$(12) = "Sell type: " + stf$(bound(b(26), 0, 3) + 3)
- smenu$(13) = "Sell Price:" + STR$(b(27))
- smenu$(14) = "Trade In For: " + trit$
-END IF
-IF b(17) = 1 THEN
- smenu$(12) = "Experience Level:" + STR$(b(26))
+ smenu$(19) = "Sell type: " + stf$(bound(b(26), 0, 3) + 3)
+ smenu$(20) = "Sell Price:" + STR$(b(27))
+ smenu$(21) = "Trade in for" + STR$(b(29) + 1) + " of:" + trit$
+ smenu$(22) = " (Change Amount)"
+ELSE
+ smenu$(19) = "Experience Level:" + STR$(b(26))
 END IF
 '--mutate menu for item/hero
 RETURN
 
 lstuf:
+flusharray b(), curbinsize(1) / 2, 0
 setpicstuf b(), getbinsize(1), -1
 loadset game$ + ".stf" + CHR$(0), pt * 50 + thing, 0
 thing$ = readbadbinstring$(b(), 0, 16, 0)
@@ -1367,7 +1404,12 @@ thing$ = readbadbinstring$(b(), 0, 16, 0)
 IF b(17) < 0 OR b(17) > 2 THEN b(17) = 0
 IF b(19) < -1 THEN b(19) = 0
 IF (b(26) < 0 OR b(26) > 3) AND b(17) <> 1 THEN b(26) = 0
-GOSUB menuup
+'--WIP Serendipity custom builds didn't flush shop records when upgrading properly
+FOR i = 32 TO 42
+ b(i) = large(b(i), 0)
+NEXT
+'--didn't see what this is for
+'GOSUB menuup
 RETURN
 
 sstuf:
@@ -1380,7 +1422,10 @@ storeset game$ + ".stf" + CHR$(0), pt * 50 + thing, 0
 RETURN
 
 itstrsh:
-it$ = itemstr$(b(25),0,0)
+tradestf$(0) = itemstr$(b(25),0,0)
+tradestf$(1) = itemstr$(b(31),0,0)
+tradestf$(2) = itemstr$(b(33),0,0)
+tradestf$(3) = itemstr$(b(35),0,0)
 trit$ = itemstr$(b(28),0,0)
 RETURN
 
@@ -1610,7 +1655,7 @@ END IF
 '--and binsize is extended, records in binsize which are meant to default
 '--because they don't exist take on the value 0 instead
 FOR i = 0 TO sizebinsize
- setbinsize i, curbinsize(i)
+ setbinsize i, getbinsize(i)
 NEXT
 
 IF NOT isfile(workingdir$ + SLASH + "attack.bin" + CHR$(0)) THEN
