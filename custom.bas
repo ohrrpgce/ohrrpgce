@@ -110,8 +110,7 @@ workingdir$ = "working.tmp"
 'PRINT isn't going to work in FB Allegro
 IF COMMAND$ = "/V" THEN PRINT version$: SYSTEM
 'only included for the windowed/fullscreen stuff
-storecommandline
-gamedir$ = getcommandline 'does nothing, but needs to tidy up
+storecommandline ""
 
 sCurdir$ = STRING$(pathlength, 0)
 getstring sCurdir$

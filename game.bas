@@ -161,7 +161,7 @@ aquiretempdir
 
 'DEBUG debug "write command-line to temp file "+tmpdir$ + "ohrcline.tmp"
 
-storecommandline
+storecommandline tmpdir$
 
 'DEBUG debug "Thestart"
 thestart:
@@ -218,7 +218,7 @@ END IF
 
 'DEBUG debug "re-aquire command-line"
 
-cline$ = getcommandline
+cline$ = getcommandline(tmpdir$)
 IF LCASE$(cline$) <> "/keyonly" AND LCASE$(cline$) <> "-keyonly" THEN
  FOR i = 0 TO 1
   gotj(i) = readjoy(joy(), i)

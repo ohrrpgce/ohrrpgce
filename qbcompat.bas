@@ -38,11 +38,15 @@ SUB fbdim (v%)
 'dummy sub for compatibility
 END SUB
 
-FUNCTION getcommandline$
+FUNCTION getcommandline$ (temppath AS STRING)
+	'ignore if we're in Custom
+	IF LEN(temppath) = 0 THEN 
+		getcommandline$ = ""
+		EXIT FUNCTION
+	END IF
 	'---RELOAD COMMAND LINE FROM TEMP FILE---
 	fh = FREEFILE
-'       OPEN tmpdir$ + "ohrcline.tmp" FOR INPUT AS #fh
-	OPEN "ohrcline.tmp" FOR INPUT AS #fh
+	OPEN temppath + "ohrcline.tmp" FOR INPUT AS #fh
 	LINE INPUT #fh, cline$
 	CLOSE #fh
 	getcommandline = cline$
@@ -94,13 +98,14 @@ SUB romfontchar (font%(), char%)
 	'NEXT i
 END SUB
 
-SUB storecommandline
+SUB storecommandline (temppath AS STRING)
 'The command line must be written to a file so it can be re-read after the CLEAR statement nukes it
+	'don't bother storing it if we're in Custom (no path). Note that this 
+	'also means blank paths won't work in Game.
+	IF LEN(temppath) = 0 THEN EXIT SUB
 	'---WRITE COMMAND-LINE ARGS TO A TEMP FILE---
 	fh = FREEFILE
-	'No access to tmpdir here, use current dir for now
-'       OPEN tmpdir$ + "ohrcline.tmp" FOR OUTPUT AS #fh
-	OPEN "ohrcline.tmp" FOR OUTPUT AS #fh
+	OPEN temppath + "ohrcline.tmp" FOR OUTPUT AS #fh
 	PRINT #fh, COMMAND$
 	CLOSE #fh
 END SUB
