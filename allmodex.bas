@@ -1323,6 +1323,7 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 				end if
 			end if
 			col = col + 1
+			if col >= 320 THEN exit SUB
 			fi = fi + fstep
 			fstep = iif(fstep = 1, 3, 1) 'uneven steps due to 2->4 byte thunk
 		next
