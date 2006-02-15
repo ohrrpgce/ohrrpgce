@@ -14,7 +14,6 @@ cp -p game-qb.exe tmp
 cp -p ohrrpgce.fnt tmp
 cp -p README-game.txt tmp
 cp -p LICENSE-binary.txt tmp
-cp -p game.ico tmp
 
 echo Erasing old distribution zip file
 rm distrib/ohrrpgce_play.zip

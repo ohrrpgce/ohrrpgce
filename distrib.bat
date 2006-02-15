@@ -1,3 +1,4 @@
+REM Only works in Windows 98. Windows XP loses long file names for some reason
 cd %OHRRPGCE%
 
 del tmp\*.???

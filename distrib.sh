@@ -27,8 +27,6 @@ cp -p sample/npc_tag.rpg tmp
 cp -p sample/pstutor.rpg tmp
 cp -p plotscr.hsd tmp
 cp -p scancode.hsi tmp
-cp -p game.ico tmp
-cp -p custom.ico tmp
 
 echo Erasing old distribution zip file
 rm distrib/custom.zip
