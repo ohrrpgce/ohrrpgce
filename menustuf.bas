@@ -1140,10 +1140,10 @@ END SUB
 
 SUB oobcure (w, t, atk, spred, stat())
 
-DIM st(13, 1), attack(0)
+DIM st(13, 1)
 dim atksize
 atksize = 39 + curbinsize(0) / 2
-redim attack(atksize)
+dim attack(atksize)
 dim h, h2&
 '--average stats for item-triggered spells
 IF w = -1 THEN
