@@ -116,6 +116,8 @@ battlecaptime = 0
 battlecapdelay = 0
 battlecaption$ = ""
 
+curbg = a(32)
+
 fademusic 0
 fadeout 60, 60, 60, 0
 stopsong
