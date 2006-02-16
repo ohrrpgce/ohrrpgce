@@ -617,7 +617,7 @@ m$(18) = "Mute Indicator " + STR$(general(genMute)) + " " + CHR$(general(genMute
 m$(19) = "Damage Cap:"
 if general(genDamageCap) = 0 THEN m$(19) = m$(19) + " None" ELSE m$(19) = m$(19) + STR$(general(genDamageCap))
 FOR i = 0 to 11
- m$(20 + i) = trim$(stat$(i)) + " Cap:"
+ m$(20 + i) = stat$(i) + " Cap:"
  if general(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + " None" ELSE m$(20 + i) = m$(20 + i) + STR$(general(genStatCap + i))
 NEXT
 RETURN
