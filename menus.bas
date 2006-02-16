@@ -443,8 +443,7 @@ END SUB
 
 SUB gendata (master())
 STATIC default$
-'CONST maxMenu = 31
-CONST maxMenu = 19
+CONST maxMenu = 31
 DIM m$(maxMenu), max(maxMenu), bitname$(15), subm$(4), scriptgenof(4)
 DIM names$(32), stat$(11), menutop
 getnames names$(), 32
@@ -485,14 +484,14 @@ max(16) = 255 'poison
 max(17) = 255 'stun
 max(18) = 255 'mute
 max(19) = 32767
-'FOR i = 20 to 21 'shut up
-' max(i) = 9999 'HP + MP
-'NEXT
-'FOR i = 22 to 29
-' max(i) = 999 'Regular stats
-'NEXT
-'max(30) = 100 'MP~
-'max(31) = 20  'Extra Hits
+FOR i = 20 to 21 'shut up
+ max(i) = 9999 'HP + MP
+NEXT
+FOR i = 22 to 29
+ max(i) = 999 'Regular stats
+NEXT
+max(30) = 100 'MP~
+max(31) = 20  'Extra Hits
 
 GOSUB loadpass
 GOSUB genstr
@@ -617,10 +616,10 @@ m$(17) = "Stun Indicator " + STR$(general(62)) + " " + CHR$(general(62))
 m$(18) = "Mute Indicator " + STR$(general(genMute)) + " " + CHR$(general(genMute))
 m$(19) = "Damage Cap:"
 if general(genDamageCap) = 0 THEN m$(19) = m$(19) + " None" ELSE m$(19) = m$(19) + STR$(general(genDamageCap))
-'FOR i = 0 to 11
-' m$(20 + i) = stat$(i) + " Cap:"
-' if general(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + " None" ELSE m$(20 + i) = m$(20 + i) + STR$(general(genStatCap + i))
-'NEXT
+FOR i = 0 to 11
+ m$(20 + i) = stat$(i) + " Cap:"
+ if general(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + " None" ELSE m$(20 + i) = m$(20 + i) + STR$(general(genStatCap + i))
+NEXT
 RETURN
 
 ttlbrowse:
