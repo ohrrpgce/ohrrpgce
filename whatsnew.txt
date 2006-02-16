@@ -17,7 +17,8 @@ Feb 16 2006 [serendipity+]
   * Emergency fix to a bug which deletes all song names when 99th song 
     slot was in use [Ralph Versteegen]
   * Fixed a bug in battle background animation [Mike Caron]
-  * Fixed a hidden bug in running unumped RPGs
+  * Fixed a hidden bug in running unumped RPGs [Mike Caron]
+  * Fixed OoB spells [Mike Caron]
 
 Feb 15 2006 [serendipity]
 
