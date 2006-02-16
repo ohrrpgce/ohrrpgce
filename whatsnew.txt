@@ -1,5 +1,15 @@
 WHAT IS NEW?
 
+Mar ?? 2006 [tirgoviste]
+  * New Features
+    * Stat caps [Mike Caron]
+
+  * Bug Fixes
+
+  * New Plotscripting Commands
+
+  * Stuff only Developers Will Notice
+
 Feb 15 2006 [serendipity]
 
   * New Features
@@ -62,16 +72,16 @@ Feb 15 2006 [serendipity]
       * OHR Music Code style (http://gilgamesh.hamsterrepublic.com/wiki/
       ohrrpgce/index.php/Music_Code for more details)
       [Mike Caron]
-      
+
     * Unlumped RPGs can now be played by Game (start game like this:
       game foldername)
 
-    * Midi versions of many of the public domain pieces in the Import 
+    * Midi versions of many of the public domain pieces in the Import
       folder have been added as alternatives [FyreWulff]
 
     * You can specify upto 4 different items required to trade for an
       item in a shop, and can set the amount required of each. Also can
-      set amount of items you recieve for trading in at a shop. 
+      set amount of items you recieve for trading in at a shop.
       [Ralph Versteegen]
 
   * Bug Fixes

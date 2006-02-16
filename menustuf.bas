@@ -284,7 +284,7 @@ IF b(pt * recordsize + 24) > 0 THEN price$ = LTRIM$(STR$(b(pt * recordsize + 24)
 '--load must trade in item types+amounts
 temp = pt
 GOSUB loadtrades
-FOR i = 0 TO 3 
+FOR i = 0 TO 3
  IF tradestf(i, 0) > -1 THEN
   tradingitems = 1
   IF price$ = "" THEN
@@ -373,7 +373,7 @@ FOR i = 0 TO storebuf(16)
  temp = i
  GOSUB loadtrades
  FOR j = 0 TO 3
-  IF tradestf(j, 0) > -1 THEN 
+  IF tradestf(j, 0) > -1 THEN
    IF countitem(tradestf(j, 0) + 1) < tradestf(j, 1) THEN setbit emask(), 0, i, 1
   END IF
  NEXT
@@ -442,6 +442,7 @@ FOR i = 0 TO 11
  stat(who, 1, i) = stat(who, 1, i) + buffer(54 + i)
  IF i > 1 THEN stat(who, 0, i) = stat(who, 1, i)
  stat(who, 0, i) = small(stat(who, 0, i), stat(who, 1, i))
+ IF gen(genStatCap + i) > 0 THEN stat(who, 0, i) = small(stat(who, 0, i),gen(genStatCap + i))
 NEXT i
 
 '--special handling for weapons
@@ -1678,9 +1679,9 @@ IF lb > 0 THEN
   IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = lb - 1 THEN
    IF b(i * recordsize + 28) > 0 THEN
     IF info$ = "" THEN
-     info$ = tradefor$ + " " 
+     info$ = tradefor$ + " "
     ELSE
-     IF b(i * recordsize + 29) > 0 THEN 
+     IF b(i * recordsize + 29) > 0 THEN
       info$ = info$ + " " + andsome$ + " "
      ELSE
       info$ = info$ + " " + anda$ + " "
