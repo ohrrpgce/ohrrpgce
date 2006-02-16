@@ -10,6 +10,11 @@ Mar ?? 2006 [tirgoviste]
 
   * Stuff only Developers Will Notice
 
+Feb 1? 2006 [serendipity+]
+
+  * Emergency update to fix bug 138 (out-of-control file growth when
+    creating a new RPG file)
+
 Feb 15 2006 [serendipity]
 
   * New Features

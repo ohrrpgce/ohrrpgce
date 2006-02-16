@@ -1548,6 +1548,7 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 	dim lf as integer
 	dim dat as ubyte
 	dim size as integer
+	dim maxsize as integer
 	dim lname as string
 	dim i as integer
 	dim bufr as ubyte ptr
@@ -1559,6 +1560,7 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 		'debug "Could not open file " + lump$
 		exit sub
 	end if
+	maxsize = LOF(lf)
 
 	bufr = allocate(16383)
 	if bufr = null then
@@ -1601,6 +1603,10 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 			size = size or dat
 			get #lf, , dat
 			size = size or (dat shl 8)
+			if size > maxsize then
+				debug "corrupt lump size" + str$(size) + " exceeds source size" + str$(maxsize)
+				size = maxsize
+			end if
 
 			'debug "lump size " + str$(size)
 
