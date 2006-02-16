@@ -485,14 +485,14 @@ max(16) = 255 'poison
 max(17) = 255 'stun
 max(18) = 255 'mute
 max(19) = 32767
-FOR i = 20 to 21 'shut up
- max(i) = 9999 'HP + MP
-NEXT
-FOR i = 22 to 29
- max(i) = 999 'Regular stats
-NEXT
-max(30) = 100 'MP~
-max(31) = 20  'Extra Hits
+'FOR i = 20 to 21 'shut up
+' max(i) = 9999 'HP + MP
+'NEXT
+'FOR i = 22 to 29
+' max(i) = 999 'Regular stats
+'NEXT
+'max(30) = 100 'MP~
+'max(31) = 20  'Extra Hits
 
 GOSUB loadpass
 GOSUB genstr
