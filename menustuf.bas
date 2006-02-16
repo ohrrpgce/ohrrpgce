@@ -731,36 +731,41 @@ END SUB
 
 SUB getitem (getit, num)
 
+numitems = num
+
 i = 0
-DO
+DO 
+ ' Loop through all inventory slots looking for a slot that already
+ ' contains the item we are adding. If found increment that slot
  lb = (item(i) AND 255)
  hb = (item(i) \ 256)
  room = 99 - hb
  IF getit = lb AND room > 0 THEN
-  IF room < num THEN
+  IF room < numitems THEN
    item(i) = lb + (99 * 256)
    itstr i
-   num = num - room
+   numitems = numitems - room
   ELSE
-   item(i) = lb + ((hb + num) * 256)
+   item(i) = lb + ((hb + numitems) * 256)
    itstr i
    EXIT SUB
   END IF
  END IF
  i = i + 1
-LOOP UNTIL i > 197  'anybody know what is going on here?
+LOOP UNTIL i > 197
 i = 0
 DO
+ 'loop through each inventory slot looking for an empty slot to populate 
  lb = (item(i) AND 255)
  IF lb = 0 THEN
-  lb = small(num, 99)
-  num = num - lb
+  lb = small(numitems, 99)
+  numitems = numitems - lb
   item(i) = getit + (lb * 256)
   itstr i
-  IF num = 0 THEN EXIT SUB
+  IF numitems = 0 THEN EXIT SUB
  END IF
  i = i + 1
-LOOP UNTIL i > 199
+LOOP UNTIL i > 199' not sure why this is 199 and we use 197 above.
 getit = 0
 EXIT SUB
 
