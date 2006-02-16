@@ -1139,7 +1139,7 @@ loadpage workingdir$ + SLASH + "temppage.tmp" + CHR$(0), 0, page
 END SUB
 
 SUB oobcure (w, t, atk, spred, stat())
-DIM st(13, 1)
+DIM st(13, 1), attack(39 + curbinsize(0) / 2)
 dim h, h2&
 '--average stats for item-triggered spells
 IF w = -1 THEN
@@ -1167,28 +1167,33 @@ END IF
 'load attack data
 'setpicstuf buffer(), 80, -1
 'loadset game$ + ".dt6" + CHR$(0), atk, 0
-readattackdata buffer(), atk
+readattackdata attack(), atk
 
-targstat = buffer(18)
+targstat = attack(18)
 
+'attack + defense base
+a = st(2, 0)
+IF attack(58) <> 0 THEN
+ d = st(attack(58)-1, 0) 
+ELSE
+ IF targstat = 6 THEN d = st(7,0) ELSE d = st(4,0)
+END IF
 
-'defence base
-a = st(2, 0): d = st(4, 0)
-IF buffer(7) = 1 THEN a = st(6, 0): d = st(7, 0)
-IF buffer(7) = 2 THEN a = st(0, 0)
-IF buffer(7) = 3 THEN a = (st(0, 1) - st(0, 0))
-IF buffer(7) = 4 THEN a = INT(RND * 999)
-IF buffer(7) = 5 THEN a = 100
-IF buffer(7) >= 6 THEN a = st(buffer(7) - 6, 0)
+IF attack(7) = 1 THEN a = st(6, 0) ': d = st(7, 0)
+IF attack(7) = 2 THEN a = st(0, 0)
+IF attack(7) = 3 THEN a = (st(0, 1) - st(0, 0))
+IF attack(7) = 4 THEN a = INT(RND * 999)
+IF attack(7) = 5 THEN a = 100
+IF attack(7) >= 6 THEN a = st(attack(7) - 6, 0)
 
 'calc defence
 am! = 1: dm! = .5
-IF buffer(5) = 1 THEN am! = .8: dm! = .1
-IF buffer(5) = 2 THEN am! = 1.3: dm! = 1
-IF buffer(5) = 3 THEN am! = 1: dm! = 0
+IF attack(5) = 1 THEN am! = .8: dm! = .1
+IF attack(5) = 2 THEN am! = 1.3: dm! = 1
+IF attack(5) = 3 THEN am! = 1: dm! = 0
 
 'resetting
-IF readbit(buffer(), 20, 57) = 1 THEN
+IF readbit(attack(), 20, 57) = 1 THEN
  stat(t, 0, targstat) = stat(t, 1, targstat)
 END IF
 
@@ -1198,33 +1203,33 @@ h2& = (a * am!) - (d * dm!)
 'no elemental support
 
 'extra damage
-h2& = h2& + (h2& / 100) * buffer(11)
+h2& = h2& + (h2& / 100) * attack(11)
 
 'randomize
-IF readbit(buffer(), 20, 61) = 0 THEN h2& = rangel(h2&, 20)
+IF readbit(attack(), 20, 61) = 0 THEN h2& = rangel(h2&, 20)
 
 'spread damage
-IF readbit(buffer(), 20, 1) = 1 THEN h2& = h2& / (spred + 1)
+IF readbit(attack(), 20, 1) = 1 THEN h2& = h2& / (spred + 1)
 
 'cap out
-IF NOT readbit(buffer(), 20, 62) AND h2& <= 0 THEN h2& = 1
+IF readbit(attack(), 20, 62) = 0 AND h2& <= 0 THEN h2& = 1
 
 'cure bit
-IF readbit(buffer(), 20, 0) = 1 THEN h2& = ABS(h2&) * -1
+IF readbit(attack(), 20, 0) = 1 THEN h2& = ABS(h2&) * -1
 
 'backcompat MP-targstat
-IF readbit(buffer(), 20, 60) THEN
+IF readbit(attack(), 20, 60) THEN
  IF targstat = 0 THEN targstat = 1
 END IF
 
-SELECT CASE buffer(5)
-  CASE 5'% of max
-   chp& = stat(t, 0, targstat)
-   mhp& = stat(t, 1, targstat)
-   h2& = chp& - (mhp& + (buffer(11) * mhp& / 100))
-  CASE 6'% of cur
-   h2& = stat(t, 0, targstat) - (stat(t, 0, targstat) + (buffer(11) * stat(t, 0, targstat) / 100))
- END SELECT
+SELECT CASE attack(5)
+ CASE 5'% of max
+  chp& = stat(t, 0, targstat)
+  mhp& = stat(t, 1, targstat)
+  h2& = chp& - (mhp& + (attack(11) * mhp& / 100))
+ CASE 6'% of cur
+  h2& = stat(t, 0, targstat) - (stat(t, 0, targstat) + (attack(11) * stat(t, 0, targstat) / 100))
+END SELECT
 
 IF h2& > 32767 THEN h2& = 32767
 IF h2& < -32768 THEN h2& = -32768
@@ -1236,7 +1241,7 @@ stat(t, 0, targstat) = stat(t, 0, targstat) - h
 stat(t, 0, targstat) = large(stat(t, 0, targstat), 0)
 IF w >= 0 THEN stat(w, 0, targstat) = large(stat(w, 0, targstat), 0)
 'bitset 58 allows cure to exceed maximum
-IF readbit(buffer(), 20, 58) = 0 THEN
+IF readbit(attack(), 20, 58) = 0 THEN
  stat(t, 0, targstat) = small(stat(t, 0, targstat), stat(t, 1, targstat))
  IF w >= 0 THEN stat(w, 0, targstat) = small(stat(w, 0, targstat), stat(w, 1, targstat))
 ELSE
