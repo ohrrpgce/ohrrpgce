@@ -1508,7 +1508,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 	f1 = FreeFile
 	OPEN outfile$ + ".tmp" FOR INPUT AS #f1
 	f2 = FreeFile
-	OPEN outfile$ FOR APPEND AS #f2
+	OPEN outfile$ FOR OUTPUT AS #f2
 	DIM s$
 	DO UNTIL EOF(f1)
 		LINE INPUT #f1, s$
