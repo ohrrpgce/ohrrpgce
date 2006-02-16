@@ -1593,6 +1593,11 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 		lname = lcase(lname)
 		'debug "lump name " + lname
 
+		if instr(lname, "\") or instr(lname, "/") then
+			debug "unsafe lump name " + str$(lname)
+			exit while
+		end if
+
 		if not eof(lf) then
 			'get lump size - byte order = 3,4,1,2 I think
 			get #lf, , dat
@@ -1605,7 +1610,7 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 			size = size or (dat shl 8)
 			if size > maxsize then
 				debug "corrupt lump size" + str$(size) + " exceeds source size" + str$(maxsize)
-				size = maxsize
+				exit while
 			end if
 
 			'debug "lump size " + str$(size)
