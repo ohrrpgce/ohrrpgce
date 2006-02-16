@@ -10,12 +10,13 @@ Mar ?? 2006 [tirgoviste]
 
   * Stuff only Developers Will Notice
 
-Feb 1? 2006 [serendipity+]
+Feb 16 2006 [serendipity+]
 
   * Emergency update to fix bug 138 (out-of-control file growth when
-    creating a new RPG file)
+    creating a new RPG file) [Simon Bradley, James Paige]
   * Emergency fix to a bug which deletes all song names when 99th song 
-    slot was in use
+    slot was in use [Ralph Versteegen]
+  * Fixed a bug in battle background animation [Mike Caron]
 
 Feb 15 2006 [serendipity]
 

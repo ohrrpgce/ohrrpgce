@@ -1525,7 +1525,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 	if attrib = 0 then attrib = 255 xor 16
 	dim ff%
 	ff = FreeFile
-	OPEN outfile$ FOR APPEND as #ff 'changed this to append, for efficiency elsewhere
+	OPEN outfile$ FOR WRITE as #ff
 	dim a$
 	a$ = DIR$(fmask$, attrib)
 	if a$ = "" then
