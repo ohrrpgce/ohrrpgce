@@ -443,7 +443,8 @@ END SUB
 
 SUB gendata (master())
 STATIC default$
-CONST maxMenu = 31
+'CONST maxMenu = 31
+CONST maxMenu = 19
 DIM m$(maxMenu), max(maxMenu), bitname$(15), subm$(4), scriptgenof(4)
 DIM names$(32), stat$(11), menutop
 getnames names$(), 32
@@ -615,11 +616,11 @@ m$(16) = "Poison Indicator " + STR$(general(61)) + " " + CHR$(general(61))
 m$(17) = "Stun Indicator " + STR$(general(62)) + " " + CHR$(general(62))
 m$(18) = "Mute Indicator " + STR$(general(genMute)) + " " + CHR$(general(genMute))
 m$(19) = "Damage Cap:"
-if general(genDamageCap) = 0 THEN m$(19) = m$(19) + " None" ELSE m$(19) = m$(19) + STR$(general(genDamageCap))
-FOR i = 0 to 11
- m$(20 + i) = stat$(i) + " Cap:"
- if general(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + " None" ELSE m$(20 + i) = m$(20 + i) + STR$(general(genStatCap + i))
-NEXT
+'if general(genDamageCap) = 0 THEN m$(19) = m$(19) + " None" ELSE m$(19) = m$(19) + STR$(general(genDamageCap))
+'FOR i = 0 to 11
+' m$(20 + i) = stat$(i) + " Cap:"
+' if general(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + " None" ELSE m$(20 + i) = m$(20 + i) + STR$(general(genStatCap + i))
+'NEXT
 RETURN
 
 ttlbrowse:
