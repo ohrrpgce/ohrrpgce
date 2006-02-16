@@ -1507,7 +1507,7 @@ END FUNCTION
 
 FUNCTION rangel (n&, r)
 a = (n& / 100) * r
-rangel = n + INT(RND * (a * 2)) - a
+rangel = n& + INT(RND * (a * 2)) - a
 END FUNCTION
 
 SUB readjoysettings
