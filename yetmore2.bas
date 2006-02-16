@@ -606,7 +606,7 @@ SUB cleanuptemp
   OPEN tmpdir$ + "filelist.tmp" FOR OUTPUT as #fh
   fh2 = FREEFILE
   FOR i = 1 to 3
-   OPEN tmpdir$ + "filelis" + xstr$(i) + ".tmp" FOR INPUT AS #FH
+   OPEN tmpdir$ + "filelis" + str$(i) + ".tmp" FOR INPUT AS #FH
    DO UNTIL EOF(fh2)
    	LINE INPUT #fh2,tmp$
    	PRINT #fh, tmp$
