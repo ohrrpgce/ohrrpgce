@@ -19,6 +19,7 @@ Feb 16 2006 [serendipity+]
   * Fixed a bug in battle background animation [Mike Caron]
   * Fixed a hidden bug in running unumped RPGs [Mike Caron]
   * Fixed OoB spells [Mike Caron]
+  * Fixed broken item-rewards display in battles
 
 Feb 15 2006 [serendipity]
 
