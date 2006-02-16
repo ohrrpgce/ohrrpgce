@@ -375,6 +375,7 @@ DO
     KILL workingdir$ + SLASH + "ohrrpgce" + a$
    LOOP
    CLOSE #fh
+   safekill "temp.lst"
    '--create archinym information lump
    fh = FREEFILE
    OPEN workingdir$ + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
@@ -456,6 +457,7 @@ DO
 LOOP
 
 listmake:
+safekill "rpg.lst"
 CALL findfiles("*.rpg" + CHR$(0), 0, "rpg.lst" + CHR$(0), buffer())
 fh = FREEFILE
 OPEN "rpg.lst" FOR APPEND AS #fh LEN = 25
@@ -570,6 +572,7 @@ ERASE scroll, pass, emap
 DIM lumpbuf(16383)
 unsafefile$ = "RPG lumping failed!"
 lumpfiles "temp.lst" + CHR$(0), filetolump$ + CHR$(0), workingdir$ + SLASH, lumpbuf()
+safekill "temp.lst"
 unsafefile$ = ""
 ERASE lumpbuf
 DIM scroll(16002), pass(16002), emap(16002)

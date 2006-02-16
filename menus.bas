@@ -729,7 +729,7 @@ DO
      KILL workingdir$ + SLASH + temp$
     LOOP
     CLOSE #fh
-    KILL "temp.lst"
+    safekill "temp.lst"
     '--update archinym information lump
     fh = FREEFILE
     IF isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
