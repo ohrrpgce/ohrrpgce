@@ -597,11 +597,24 @@ SUB cleanuptemp
  ELSE
   'if this is an already-unlumped rpg, we can't just go and delete everything! Shock!
   'plotscripts
-  findfiles workingdir$ + SLASH + "*.hsx" + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
+  findfiles workingdir$ + SLASH + "*.hsx" + CHR$(0), 0, tmpdir$ + "filelis1.tmp" + CHR$(0), buffer()
   'generic temporary files
-  findfiles workingdir$ + SLASH + "*.tmp" + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
+  findfiles workingdir$ + SLASH + "*.tmp" + CHR$(0), 0, tmpdir$ + "filelis2.tmp" + CHR$(0), buffer()
   'lump backups
-  findfiles workingdir$ + SLASH + "*.old" + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
+  findfiles workingdir$ + SLASH + "*.old" + CHR$(0), 0, tmpdir$ + "filelis3.tmp" + CHR$(0), buffer()
+  fh = FREEFILE
+  OPEN tmpdir$ + "filelist.tmp" FOR OUTPUT as #fh
+  fh2 = FREEFILE
+  FOR i = 1 to 3
+   OPEN tmpdir$ + "filelis" + xstr$(i) + ".tmp" FOR INPUT AS #FH
+   DO UNTIL EOF(fh2)
+   	LINE INPUT #fh2,tmp$
+   	PRINT #fh, tmp$
+   LOOP
+   CLOSE #fh2
+  NEXT
+  CLOSE #fh
+ 
  END IF
  fh = FREEFILE
   OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
