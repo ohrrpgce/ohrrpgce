@@ -1183,22 +1183,18 @@ ELSE
  IF targstat = 6 THEN d = st(7,0) ELSE d = st(4,0)
 END IF
 
-
-
 IF attack(7) = 1 THEN a = st(6, 0) ': d = st(7, 0)
 IF attack(7) = 2 THEN a = st(0, 0)
 IF attack(7) = 3 THEN a = (st(0, 1) - st(0, 0))
 IF attack(7) = 4 THEN a = INT(RND * 999)
 IF attack(7) = 5 THEN a = 100
 IF attack(7) >= 6 THEN a = st(attack(7) - 6, 0)
-debug "a =" + str$(a) + ", d =" + str$(d)
 
 'calc defence
 am! = 1: dm! = .5
 IF attack(5) = 1 THEN am! = .8: dm! = .1
 IF attack(5) = 2 THEN am! = 1.3: dm! = 1
 IF attack(5) = 3 THEN am! = 1: dm! = 0
-debug "am =" + str$(am!) + ", dm =" + str$(dm!)
 
 'resetting
 IF readbit(attack(), 20, 57) = 1 THEN
@@ -1207,28 +1203,22 @@ END IF
 
 'calc harm
 h2& = (a * am!) - (d * dm!)
-debug "h2& =" + str$(h2&)
 'no elemental support
 
 'extra damage
 h2& = h2& + (h2& / 100) * attack(11)
-debug "h2& =" + str$(h2&)
 
 'randomize
 IF readbit(attack(), 20, 61) = 0 THEN h2& = rangel(h2&, 20)
-debug "h2& =" + str$(h2&)
 
 'spread damage
 IF readbit(attack(), 20, 1) = 1 THEN h2& = h2& / (spred + 1)
-debug "h2& =" + str$(h2&)
 
 'cap out
 IF readbit(attack(), 20, 62) = 0 AND h2& <= 0 THEN h2& = 1
-debug "h2& =" + str$(h2&)
 
 'cure bit
 IF readbit(attack(), 20, 0) = 1 THEN h2& = ABS(h2&) * -1
-debug "h2& =" + str$(h2&)
 
 'backcompat MP-targstat
 IF readbit(attack(), 20, 60) THEN
