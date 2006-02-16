@@ -14,6 +14,8 @@ Feb 1? 2006 [serendipity+]
 
   * Emergency update to fix bug 138 (out-of-control file growth when
     creating a new RPG file)
+  * Emergency fix to a bug which deletes all song names when 99th song 
+    slot was in use
 
 Feb 15 2006 [serendipity]
 

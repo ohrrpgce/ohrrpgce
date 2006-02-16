@@ -1700,9 +1700,8 @@ IF NOT isfile(workingdir$ + SLASH + "songdata.bin" + CHR$(0)) THEN
  
  FOR i = 99 TO 1 STEP -1
   '-- check for midis as well 'cause some people might use a WIP custom or whatnot
-  IF song$(i) = "" AND isfile(game$ + "." + LTRIM$(STR$(i)) + CHR$(0)) = 0 AND isfile(workingdir$ + SLASH + "song" + LTRIM$(STR$(i)) + ".mid" + CHR$(0)) = 0 THEN
-   general(genMaxSong) = i - 1
-  ELSE
+  IF song$(i) <> "" OR isfile(game$ + "." + LTRIM$(STR$(i)) + CHR$(0)) OR isfile(workingdir$ + SLASH + "song" + LTRIM$(STR$(i)) + ".mid" + CHR$(0)) THEN
+   general(genMaxSong) = i
    EXIT FOR
   END IF
  NEXT
