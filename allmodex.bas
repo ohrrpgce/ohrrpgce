@@ -1694,13 +1694,14 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 
 	'get file to lump
 	do until eof(fl)
-		input #fl, lname
-
+		line input #fl, lname
+		lname = rtrim(lname) 'remove trailing null
+		
 		'validate that lumpname is 8.3 or ignore the file
 		textsize(0) = 0
 		textsize(1) = 0
 		t = 0
-		for i = 1 to len(lname) - 1
+		for i = 0 to len(lname)-1
 			if lname[i] = asc(".") then t = 1
 			textsize(t) += 1
 		next
@@ -1711,18 +1712,18 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 			continue do
 		end if
 
-		'write lump name (seems to need to be upper-case, at least
-		'for any files opened with unlumpone in the QB version)
-		put #lf, , ucase(lname)
-		dat = 0
-		put #lf, , dat
-
 		tl = freefile
 		open lpath + lname for binary access read as #tl
 		if err <> 0 then
 			'debug "failed to open " + lpath + lname
 			continue do
 		end if
+
+		'write lump name (seems to need to be upper-case, at least
+		'for any files opened with unlumpone in the QB version)
+		put #lf, , ucase(lname)
+		dat = 0
+		put #lf, , dat
 
 		'write lump size - byte order = 3,4,1,2 I think
 		size = lof(tl)
