@@ -12,6 +12,7 @@ echo Packaging binary distribution of CUSTOM
 cp -p ohrrpgce.mas tmp
 cp -p ohrrpgce.fnt tmp
 cp -p ohrrpgce.new tmp
+cp -p README-game.txt tmp
 cp -p README-custom.txt tmp
 cp -p LICENSE.txt tmp
 cp -p LICENSE-binary.txt tmp
@@ -51,6 +52,7 @@ cp -p ohrrpgce-custom tmp
 echo Including import
 mkdir tmp/import
 cp -p import/* tmp/import
+cp -p docs/* tmp/import
 
 echo tarring and bzip2ing distribution
 mv tmp ohrrpgce

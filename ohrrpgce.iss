@@ -51,6 +51,7 @@ Source: "sample\pstutor.rpg"; DestDir: "{app}"; Flags: ignoreversion
 Source: "plotscr.hsd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "scancode.hsi"; DestDir: "{app}"; Flags: ignoreversion
 Source: "import\*"; DestDir: "{app}\import\"; Flags: ignoreversion
+Source: "docs\*"; DestDir: "{app}\docs\"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
