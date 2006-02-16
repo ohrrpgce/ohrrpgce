@@ -443,11 +443,27 @@ END SUB
 
 SUB gendata (master())
 STATIC default$
-DIM m$(19), max(19), bitname$(15), subm$(4), scriptgenof(4)
+CONST maxMenu = 31
+DIM m$(maxMenu), max(maxMenu), bitname$(15), subm$(4), scriptgenof(4)
+DIM names$(32), stat$(11), menutop
+getnames names$(), 32
+stat$(0) = names$(0)
+stat$(1) = names$(1)
+stat$(2) = names$(2)
+stat$(3) = names$(3)
+stat$(4) = names$(5)
+stat$(5) = names$(6)
+stat$(6) = names$(29)
+stat$(7) = names$(30)
+stat$(8) = names$(8)
+stat$(9) = names$(7)
+stat$(10) = names$(31)
+stat$(11) = names$(4)
+
 IF general(genPoison) <= 0 THEN general(genPoison) = 161
 IF general(genStun) <= 0 THEN general(genStun) = 159
 IF general(genMute) <= 0 THEN general(genMute) = 163
-last = 19
+last = maxMenu
 m$(0) = "Return to Main Menu"
 m$(1) = "Preference Bitsets..."
 m$(8) = "Password For Editing..."
@@ -468,6 +484,15 @@ max(16) = 255 'poison
 max(17) = 255 'stun
 max(18) = 255 'mute
 max(19) = 32767
+FOR i = 20 to 21 'shut up
+ max(i) = 9999 'HP + MP
+NEXT
+FOR i = 22 to 29
+ max(i) = 999 'Regular stats
+NEXT
+max(30) = 100 'MP~
+max(31) = 20  'Extra Hits
+
 GOSUB loadpass
 GOSUB genstr
 setkeys
@@ -476,7 +501,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(csr, 0, 0, last, 24)
+ dummy = usemenu(csr, menutop, 0, last, 22)
  IF (keyval(28) > 1 OR keyval(57) > 1) THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 1 THEN
@@ -554,9 +579,12 @@ DO
  IF csr = 19 THEN
   IF intgrabber(general(genDamageCap), 0, max(csr), 75, 77) THEN GOSUB genstr
  END IF
+ IF csr >= 20 AND csr <= 31 THEN
+  IF intgrabber(general(genStatCap + (csr - 20)), 0, max(csr), 75, 77) THEN GOSUB genstr
+ END IF
 
- standardmenu m$(), last, 22, csr, 0, 0, 0, dpage, 0
- 
+ standardmenu m$(), last, 22, csr, menutop, 0, 0, dpage, 0
+
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -588,6 +616,10 @@ m$(17) = "Stun Indicator " + STR$(general(62)) + " " + CHR$(general(62))
 m$(18) = "Mute Indicator " + STR$(general(genMute)) + " " + CHR$(general(genMute))
 m$(19) = "Damage Cap:"
 if general(genDamageCap) = 0 THEN m$(19) = m$(19) + " None" ELSE m$(19) = m$(19) + STR$(general(genDamageCap))
+FOR i = 0 to 11
+ m$(20 + i) = trim$(stat$(i)) + " Cap:"
+ if general(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + " None" ELSE m$(20 + i) = m$(20 + i) + STR$(general(genStatCap + i))
+NEXT
 RETURN
 
 ttlbrowse:
@@ -851,7 +883,7 @@ DO
 
  dummy = usemenu(csr, 0, 0, optionsbottom, 22)
 
- IF csr = 2 AND songfile$ <> "" THEN 
+ IF csr = 2 AND songfile$ <> "" THEN
   strgrabber sname$, 30
   menu$(2) = "Name: " + sname$
  ELSE
@@ -880,7 +912,7 @@ DO
   IF csr = 4 AND songfile$ <> "" THEN GOSUB exportsong
   IF csr = 5 AND songfile$ <> "" THEN  'delete song
    safekill songfile$
-   safekill bamfile$ 
+   safekill bamfile$
    GOSUB getinfo
   END IF
   IF csr = 6 THEN  'delete BAM fallback
@@ -917,7 +949,7 @@ songtype$ = "NO FILE"
 '-- BAM special case and least desirable, so check first and override
 IF snum > 99 THEN
  IF isfile(temp$ + ".bam" + CHR$(0)) THEN ext$ = ".bam" : songfile$ = temp$ + ext$ : songtype$ = "Bob's Adlib Music (BAM)"
-ELSE 
+ELSE
  IF isfile(game$ + "." + intstr$(snum) + CHR$(0)) THEN ext$ = ".bam" : songfile$ = game$ + "." + intstr$(snum) : songtype$ = "Bob's Adlib Music (BAM)"
 END IF
 bamfile$ = songfile$
@@ -939,7 +971,7 @@ END IF
 menu$(1) = "<- Song " + intstr$(snum) + " of " + intstr$(general(genMaxSong)) + " ->"
 IF songfile$ <> "" THEN menu$(2) = "Name: " + sname$ ELSE menu$(2) = "-Unused-"
 menu$(7) = ""
-menu$(8) = "Type: " + songtype$ 
+menu$(8) = "Type: " + songtype$
 menu$(9) = "Filesize: " + filesize$(songfile$)
 IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
  menu$(10) = "BAM fallback exists. Filesize: " + filesize$(bamfile$)

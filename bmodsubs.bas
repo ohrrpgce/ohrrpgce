@@ -690,7 +690,7 @@ NEXT i
 
 'no damage
 IF atk(5) <> 4 THEN
- 
+
  'init
  cure = 0
  harm$(t) = ""
@@ -699,7 +699,7 @@ IF atk(5) <> 4 THEN
  hx(t) = x(t) + (wid(t) * .5)
  hy(t) = y(t) + (hei(t) * .5)
  targstat = atk(18)
- 
+
  'accuracy
  a = stat(w, 0, 3): d = stat(t, 0, 5): dm! = .25
  IF atk(6) = 1 THEN dm! = .5
@@ -710,7 +710,7 @@ IF atk(5) <> 4 THEN
   harm$(t) = readglobalstring$(120, "miss", 20)
   EXIT FUNCTION
  END IF
- 
+
  IF readbit(atk(),65,1) = 1 AND stat(t,0,12) < stat(t,1,12) THEN
   harm$(t) = readglobalstring$(121, "fail", 20)
   EXIT FUNCTION
@@ -727,7 +727,7 @@ IF atk(5) <> 4 THEN
   harm$(t) = readglobalstring$(121, "fail", 20)
   EXIT FUNCTION
  END IF
- 
+
  'attack and defence base
  a = stat(w, 0, 2): d = stat(t, 0, 4)
  SELECT CASE atk(7)
@@ -750,24 +750,24 @@ IF atk(5) <> 4 THEN
   CASE 20
    a = revengeharm(t)
  END SELECT
- 
+
  '--defense base
  IF atk(58) > 0 THEN d = stat(t, 0, atk(58) - 1)
- 
+
  'calc defense
  am! = 1: dm! = .5                    'atk-def*.5
  IF atk(5) = 1 THEN am! = .8: dm! = .1 'atk*.8-def*.5
  IF atk(5) = 2 THEN am! = 1.3: dm! = 1 'atk-1.3-def
  IF atk(5) = 3 THEN am! = 1: dm! = 0   'atk
- 
+
  'resetting
  IF readbit(atk(), 20, 57) = 1 THEN
   stat(t, 0, targstat) = stat(t, 1, targstat)
  END IF
- 
+
  'calc harm
  h& = (a * am!) - (d * dm!)
- 
+
  'elementals
  FOR i = 0 TO 7
   IF readbit(atk(), 20, 5 + i) = 1 THEN
@@ -791,32 +791,32 @@ IF atk(5) <> 4 THEN
    END IF
   END IF
  NEXT i
- 
+
  'extra damage
  h& = h& + (h& / 100) * atk(11)
- 
+
  'randomize
  IF readbit(atk(), 20, 61) = 0 THEN h& = rangel(h&,20)
- 
+
  'spread damage
  IF readbit(atk(), 20, 1) = 1 THEN h& = h& / (tcount + 1)
- 
+
  'cap out
  IF readbit(atk(), 20, 62) = 0 AND h& <= 0 THEN h& = 1
- 
+
  IF readbit(atk(), 20, 0) = 1 THEN h& = ABS(h&) * -1 'cure bit
  IF readbit(tbits(), 0, 54) THEN h& = ABS(h&)        'zombie
  IF cure = 1 THEN h& = ABS(h&) * -1                  'absorb
- 
+
  'backcompat MP-targstat
  IF readbit(atk(), 20, 60) THEN
   IF targstat = 0 THEN targstat = 1
  END IF
- 
+
  'remember target stat
  remtargstat = stat(t, 0, targstat)
  rematkrstat = stat(w, 0, targstat)
- 
+
  'pre-calculate percentage damage for display
  SELECT CASE atk(5)
   CASE 5'% of max
@@ -848,7 +848,7 @@ IF atk(5) <> 4 THEN
    stat(w, 0, targstat) = stat(w, 0, targstat) + h
   END IF
  END IF
- 
+
  'enforce bounds
  stat(t, 0, targstat) = large(stat(t, 0, targstat), 0)
  stat(w, 0, targstat) = large(stat(w, 0, targstat), 0)
@@ -856,14 +856,14 @@ IF atk(5) <> 4 THEN
   stat(t, 0, targstat) = small(stat(t, 0, targstat), large(stat(t, 1, targstat), remtargstat))
   stat(w, 0, targstat) = small(stat(w, 0, targstat), large(stat(w, 1, targstat), rematkrstat))
  END IF
- 
+
  'set damage display
  IF readbit(atk(), 20, 56) = 0 THEN
   harm$(t) = RIGHT$(STR$(h), LEN(STR$(h)) - 1)
   '--if cure, show + sign
   IF h < 0 THEN harm$(t) = "+" + harm$(t)
  END IF
- 
+
  'remember revenge data
  IF remtargstat > stat(t, 0, targstat) THEN
   setbit revengemask(), t, w, 1
@@ -871,7 +871,7 @@ IF atk(5) <> 4 THEN
   revengeharm(t) = remtargstat - stat(t, 0, targstat)
   repeatharm(w) = remtargstat - stat(t, 0, targstat)
  END IF
- 
+
 END IF 'skips to here if no damage
 'debug(readbadbinstring$(atk(), 24, 10, 1) + " - " + str$(targstat))
 'name
@@ -1146,10 +1146,11 @@ IF exstat(i, 1, 12) THEN
  'load hero's data
  setpicstuf buffer(), 636, -1
  loadset game$ + ".dt0" + CHR$(0), hero(i) - 1, 0
- 
+
  'update stats
  FOR o = 0 TO 11
   exstat(i, 1, o) = exstat(i, 1, o) + (atlevel(exstat(i, 0, 12), buffer(23 + o * 2), buffer(24 + o * 2)) - atlevel(exstat(i, 0, 12) - exstat(i, 1, 12), buffer(23 + o * 2), buffer(24 + o * 2)))
+
   'simulate levelup bug
   IF readbit(gen(), 101, 9) = 1 THEN
    setpicstuf buffer(), 200, -1
@@ -1159,6 +1160,8 @@ IF exstat(i, 1, 12) THEN
      exstat(i, 1, o) = exstat(i, 1, o) + buffer(54 + o)
     END IF
    NEXT j
+   'do stat caps
+   IF gen(genStatCap + o) > 0 THEN exstat(i, 0, o) = small(exstat(i, 0, o),gen(genStatCap + o))
    setpicstuf buffer(), 636, -1
    loadset game$ + ".dt0" + CHR$(0), hero(i) - 1, 0
   END IF
@@ -1180,12 +1183,12 @@ IF exstat(i, 1, 12) THEN
   NEXT o
   resetlmp i, exstat(i, 0, 12)
  END IF
- 
+
  'make current stats match max stats
  FOR o = 2 TO 11
   exstat(i, 0, o) = exstat(i, 1, o)
  NEXT o
- 
+
  'learn spells
  FOR j = 0 TO 3
   FOR o = 0 TO 23
@@ -1202,7 +1205,7 @@ IF exstat(i, 1, 12) THEN
    END IF
   NEXT o
  NEXT j
- 
+
 END IF
 
 END SUB
