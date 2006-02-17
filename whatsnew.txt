@@ -5,6 +5,10 @@ Mar ?? 2006 [tirgoviste]
     * Stat caps [Mike Caron]
 
   * Bug Fixes
+    * Pausing the music will probably cause "stuck notes" (i.e. notes that never
+      get turned off) if any notes are playing at the time [Mike Caron]
+    * Browsing for a replacement song, and canelling deleted the existing song.
+      [Mike Caron]
 
   * New Plotscripting Commands
 
