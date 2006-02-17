@@ -535,11 +535,15 @@ function shortMidi(event as UByte, a as UByte, b as UByte) as integer
 end function
 Sub ResetMidi
 	dim n as UByte, c as UByte
+	debug "RESET!"
 	for c = 0 to 15
 		for n = 0 to 127
-			shortMidi(8 SHL 4 + c,n,0)
+			shortMidi(&H80 + c,n,0) 'turn off all notes
 		next
+		shortMidi(&HB0 + c,121,0) 'controller reset
 	next
+	
+	
 end sub
 
 Sub AddJumpToEnd(head as MidiEvent ptr)
@@ -617,6 +621,7 @@ sub music_close()
 		music_playing = 0
 		music_paused = 0
 		music_on = 0
+		if playback_thread then threadWait playback_thread: playback_Thread = 0
 
 		if delhead <> null then
 			'delete temp files
@@ -774,7 +779,7 @@ end sub
 
 Sub PlayBackThread(dummy as integer)
 dim curtime as double, curevent as MIDIEvent ptr, starttime as double, delta as double, tempo as integer, delay as double
-dim played as integer, carry as double
+dim played as integer, carry as double, pauseflag as integer
 dim labels(15) as midievent ptr, jumpcount(15) as integer, choruswas as MIDIEvent ptr
 labels(0) = music_song
 for curtime = 0 to 15
@@ -835,7 +840,7 @@ do while music_playing
 			p = 0
 			sysex_id = *cptr(uinteger ptr, curevent->extradata + p)
 			sysex_id = BE_LONG(sysex_id)
-			debug str(sysex_id) + " " + str(SIG_ID("O","H","R","m"))
+			'debug str(sysex_id) + " " + str(SIG_ID("O","H","R","m"))
 			if sysex_id = SIG_ID("O","H","R","m") then
 			p += 4
 sysex:
@@ -985,18 +990,24 @@ skipevents:
 		ESCAPE_SEQUENCE
 	end if
 
+	if music_playing = 0 then ESCAPE_SEQUENCE
 	do
-		sleep 1,1
+		sleep 5,1
 		if music_playing = 0 then ESCAPE_SEQUENCE
+		if music_paused <> 0 AND pauseflag = 0 then
+			'debug "detecting pause, reseting"
+			resetMidi ' kill stuck notes
+			pauseflag = 1
+		end if
 	loop while music_paused
-
+	pauseflag = 0
 loop
 
 
 endOfSong:
-
+'debug "End of Song!"
 resetMidi
-
+playback_thread = 0
 exit sub
 
 updateDelay:
