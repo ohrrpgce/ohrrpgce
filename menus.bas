@@ -989,6 +989,10 @@ importsongfile:
 stopsong
 'sourcesong$ = browse$(1, default$, "*.bam", "")
 sourcesong$ = browse$(5, default$, "", "")
+IF sourcesong$ = "" THEN
+ GOSUB getinfo 'to play the song again
+ RETURN
+END IF
 '--remove song file (except BAM, we can leave those as fallback for QB version)
 IF songfile$ <> bamfile$ THEN safekill songfile$
 

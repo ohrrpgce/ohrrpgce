@@ -535,7 +535,7 @@ function shortMidi(event as UByte, a as UByte, b as UByte) as integer
 end function
 Sub ResetMidi
 	dim n as UByte, c as UByte
-	debug "RESET!"
+	'debug "RESET!"
 	for c = 0 to 15
 		for n = 0 to 127
 			shortMidi(&H80 + c,n,0) 'turn off all notes
