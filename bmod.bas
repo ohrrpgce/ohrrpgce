@@ -1212,7 +1212,7 @@ deadguycount = 0
 FOR deadguy = 4 TO 11
  GOSUB ifdead
 NEXT deadguy
-IF deadguycount = 8 THEN dead = 1
+IF deadguycount >= 8 THEN dead = 1
 deadguycount = 0
 FOR deadguy = 0 TO 3
  GOSUB ifdead
@@ -1224,9 +1224,10 @@ ifdead:
 IF deadguy >= 4 THEN
  IF stat(deadguy, 0, 0) > 0 AND readbit(ebits(), (deadguy - 4) * 5, 61) = 1 THEN deadguycount = deadguycount + 1
 END IF
-IF stat(deadguy, 0, 0) = 0 THEN
+IF stat(deadguy, 0, 0) = 0 THEN deadguycount = deadguycount + 1
+
+IF stat(deadguy, 0, 0) = 0 AND a((deadguy - 4) * 4) > 0 THEN
  '--deadguy is really dead
- deadguycount = deadguycount + 1
  v(deadguy) = 0
  ready(deadguy) = 0
  godo(deadguy) = 0
@@ -1836,7 +1837,7 @@ FOR i = 0 TO 11
     x(i) = x(i) - 10: d(i) = 1
    END IF
    die(i) = die(i) - 1
-   IF die(i) = 0 THEN a(i * 4) = 0 'moved from way above
+   IF die(i) = 0 THEN a((i-4) * 4) = 0 'moved from way above
   END IF
   IF i < 4 THEN of(i) = 7
  END IF
