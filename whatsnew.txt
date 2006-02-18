@@ -10,6 +10,8 @@ Mar ?? 2006 [tirgoviste]
     * Browsing for a replacement song, and canelling deleted the existing song.
       [Mike Caron]
     * Rewards in battle are rewarded multiple times. [Mike Caron]
+    * Linux: specifying a file on the command line now works even if the file
+      is in a different directory.
 
   * New Plotscripting Commands
 

@@ -281,7 +281,9 @@ defaultc
 'DEBUG debug "enable autorunning"
 autorungame = 0
 a$ = cline$
-IF MID$(a$, 2, 1) <> ":" THEN a$ = sCurdir$ + a$
+IF NOT linux THEN
+  IF MID$(a$, 2, 1) <> ":" THEN a$ = sCurdir$ + a$
+END IF  
 IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$ + CHR$(0)) THEN
  sourcerpg$ = a$
  autorungame = 1
