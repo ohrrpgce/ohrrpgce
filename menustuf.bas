@@ -442,7 +442,10 @@ FOR i = 0 TO 11
  stat(who, 1, i) = stat(who, 1, i) + buffer(54 + i)
  IF i > 1 THEN stat(who, 0, i) = stat(who, 1, i)
  stat(who, 0, i) = small(stat(who, 0, i), stat(who, 1, i))
- IF gen(genStatCap + i) > 0 THEN stat(who, 0, i) = small(stat(who, 0, i),gen(genStatCap + i))
+ IF gen(genStatCap + i) > 0 THEN
+ 	stat(who, 0, i) = small(stat(who, 0, i),gen(genStatCap + i))
+ 	stat(who, 1, i) = small(stat(who, 1, i),gen(genStatCap + i))
+ END IF
 NEXT i
 
 '--special handling for weapons
@@ -571,7 +574,11 @@ DO
   col = 7
   IF stb(i) < 0 THEN col = 8
   IF stb(i) > 0 THEN col = 14 + tog
-  temp$ = STR$(stat(pt, 1, i) + stb(i))
+  IF gen(genStatCap + i) > 0 THEN
+   temp$ = STR$(small(stat(pt, 1, i) + stb(i), gen(genStatCap + i)))
+  ELSE
+   temp$ = STR$(stat(pt, 1, i) + stb(i))
+  END IF
   edgeprint temp$, 148 - LEN(temp$) * 8, 42 + i * 10, col, dpage
  NEXT i
  IF mset = 0 THEN
@@ -659,6 +666,10 @@ IF eqstuf(pt, csr) > 0 THEN
   stb(i) = stb(i) - buffer(54 + i)
  NEXT i
 END IF
+
+FOR i = 0 to 11
+ IF gen(genStatCap + i) > 0 THEN stb(i) = small(stb(i), gen(genStatCap + i))
+NEXT i
 
 RETURN
 
