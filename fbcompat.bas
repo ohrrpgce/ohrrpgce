@@ -239,3 +239,21 @@ END SUB
 SUB setwindowtitle (title as string)
 	gfx_windowtitle title
 END SUB
+
+FUNCTION ReadShort(fh as integer,p as long) as short
+	DIM ret as short
+	IF p = -1 THEN
+		GET #fh,,ret
+	ELSEIF p >= 0 THEN
+		GET #fh,p,ret
+	END IF
+	return ret
+END FUNCTION
+
+Sub WriteShort(fh as integer,p as long, v as integer)
+	IF p = -1 THEN
+		PUT #fh,,cshort(v)
+	ELSEIF p >= 0 THEN
+		PUT #fh,p,cshort(v)
+	END IF
+END SUB

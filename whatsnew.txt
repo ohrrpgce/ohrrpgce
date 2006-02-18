@@ -14,6 +14,7 @@ Mar ?? 2006 [tirgoviste]
       is in a different directory.
 
   * New Plotscripting Commands
+    * get/set formation song [Mike Caron]
 
   * Stuff only Developers Will Notice
 

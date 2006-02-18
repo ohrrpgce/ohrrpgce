@@ -195,7 +195,8 @@ define function, begin
 186,spellslearnt,2,0,0      # number spells and spell ids hero learnt at last battle/giveexperience command.
 187,getmusicvolume,0        # music volume on a scale of 0-255 regardless of implementation
 188,setmusicvolume,1,128    # set music volume on a scale of 0-255
-
+189,getformationsong,1,0	# returns the song associated with a given formation
+190,setformationsong,2,0,0	# sets the song associated with a given formation
 200,system hour,0
 201,system minute,0
 202,system second,0

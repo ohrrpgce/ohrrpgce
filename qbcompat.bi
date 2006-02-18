@@ -19,6 +19,8 @@ DECLARE FUNCTION getcommandline$ (temppath AS STRING)
 DECLARE SUB romfontchar (font%(), char%)
 DECLARE SUB makedir (dirname$)
 DECLARE SUB setwindowtitle (title AS STRING)
+DECLARE FUNCTION ReadShort(fh as integer,p as long) as integer
+DECLARE Sub WriteShort(fh as integer,p as long, v as integer)
 
 CONST SLASH = "\"
 CONST CUSTOMEXE = "CUSTOMQB.EXE"

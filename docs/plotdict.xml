@@ -115,7 +115,7 @@ have to do it manually, but you MUST do it. Remember: 1 indent = 1 tab.
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript lastmodified="January 20, 2006">
+<plotscript lastmodified="February 18, 2006">
 	<section title="Declarations">
 		<command id="definescript">
 			<cannon>define script (id,name,arguments)</cannon>
@@ -1450,6 +1450,22 @@ end</example>
 			<description>Lets you set items of an enemy's data. Enemyid is the number of enemy, data is a predefined constant for the data you want to change. Value is the new value given to that setting. Use the same constants as are given at <ref>readenemydata</ref>.<lb/>Note: Enemy data changes are temporary. They are not saved in the save game.</description>
 			<seealso>
 				<ref>readenemydata</ref>
+			</seealso>
+		</command>
+		<command id="getformationsong">
+			<cannon>get formation song (formation)</cannon>
+			<shortname>get formation song</shortname>
+			<description>Returns the song associated with <p>formation</p>. If there is none, it will return 0, otherwise it will return the song number + 1. If there is an error (such as <p>formation</p> not existing), it will return -1.</description>
+			<seealso>
+				<ref>setformationsong</ref>
+			</seealso>
+		</command>
+		<command id="setformationsong">
+			<cannon>set formation song (formation, song)</cannon>
+			<shortname>set formation song</shortname>
+			<description>Sets an enemy formation to use <p>song</p> as its music. Use 0 for none, or the song number + 1 for a song.<lb/>Note: Formation data changes are temporary. They are not saved in the save game.</description>
+			<seealso>
+				<ref>getformationsong</ref>
 			</seealso>
 		</command>
 		<command id="herolevelled">
