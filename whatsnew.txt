@@ -3,6 +3,7 @@ WHAT IS NEW?
 Mar ?? 2006 [tirgoviste]
   * New Features
     * Stat caps [Mike Caron]
+    * "% based attacks damage instead of set" attack bitset [Mike Caron]
 
   * Bug Fixes
     * Pausing the music will probably cause "stuck notes" (i.e. notes that never
@@ -11,7 +12,7 @@ Mar ?? 2006 [tirgoviste]
       [Mike Caron]
     * Rewards in battle are rewarded multiple times. [Mike Caron]
     * Linux: specifying a file on the command line now works even if the file
-      is in a different directory.
+      is in a different directory. [Who??]
 
   * New Plotscripting Commands
     * get/set formation song [Mike Caron]

@@ -818,15 +818,23 @@ IF atk(5) <> 4 THEN
  rematkrstat = stat(w, 0, targstat)
 
  'pre-calculate percentage damage for display
- SELECT CASE atk(5)
-  CASE 5'% of max
-   chp& = stat(t, 0, targstat)
-   mhp& = stat(t, 1, targstat)
-   h& = chp& - (mhp& + (atk(11) * mhp& / 100))
-  CASE 6'% of cur
-   h& = stat(t, 0, targstat) - (stat(t, 0, targstat) + (atk(11) * stat(t, 0, targstat) / 100))
- END SELECT
-
+ chp& = stat(t, 0, targstat)
+ mhp& = stat(t, 1, targstat)
+ IF readbit(atk(), 65, 5) = 1 THEN
+  SELECT CASE atk(5)
+   CASE 5'% of max   
+    h& = mhp& + (atk(11) * mhp& / 100)
+   CASE 6'% of cur
+    h& = chp& + (atk(11) * chp& / 100)
+  END SELECT
+ ELSE
+  SELECT CASE atk(5) 
+   CASE 5'% of max
+    h& = chp& - (mhp& + (atk(11) * mhp& / 100))
+   CASE 6'% of cur
+    h& = chp& - (chp& + (atk(11) * chp& / 100))
+  END SELECT
+ END IF
  'inflict
  IF readbit(atk(), 20, 51) = 0 THEN
   IF gen(genDamageCap) > 0 THEN

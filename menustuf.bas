@@ -1241,15 +1241,23 @@ IF readbit(attack(), 20, 60) THEN
  IF targstat = 0 THEN targstat = 1
 END IF
 
-SELECT CASE attack(5)
- CASE 5'% of max
-  chp& = stat(t, 0, targstat)
-  mhp& = stat(t, 1, targstat)
-  h2& = chp& - (mhp& + (attack(11) * mhp& / 100))
- CASE 6'% of cur
-  h2& = stat(t, 0, targstat) - (stat(t, 0, targstat) + (attack(11) * stat(t, 0, targstat) / 100))
-END SELECT
-
+ chp& = stat(t, 0, targstat)
+ mhp& = stat(t, 1, targstat)
+ IF readbit(attack(), 65, 5) = 1 THEN
+  SELECT CASE attack(5)
+   CASE 5'% of max   
+    h2& = mhp& + (attack(11) * mhp& / 100)
+   CASE 6'% of cur
+    h2& = chp& + (attack(11) * chp& / 100)
+  END SELECT
+ ELSE
+  SELECT CASE attack(5) 
+   CASE 5'% of max
+    h2& = chp& - (mhp& + (attack(11) * mhp& / 100))
+   CASE 6'% of cur
+    h2& = chp& - (chp& + (attack(11) * chp& / 100))
+  END SELECT
+ END IF
 IF h2& > 32767 THEN h2& = 32767
 IF h2& < -32768 THEN h2& = -32768
 h = h2&

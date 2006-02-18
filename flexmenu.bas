@@ -122,7 +122,7 @@ rectangle 260, 140, 50, 50, 8, 3
 '----------------------------------------------------------
 '--bitsets
 
-DIM atkbit$(-1 TO 68)
+DIM atkbit$(-1 TO 128)
 
 atkbit$(0) = "Cure Instead of Harm"
 atkbit$(1) = "Divide Spread Damage"
@@ -164,6 +164,9 @@ atkbit$(65) = "Fail if target is poisoned"
 atkbit$(66) = "Fail if target is regened"
 atkbit$(67) = "Fail if target is stunned"
 atkbit$(68) = "Fail if target is muted"
+atkbit$(69) = "% based attacks damage instead of set"
+'             ^---------------------------------------^
+'               the amount of room you have (39 chars)
 
 '--191 attack bits allowed in menu.
 '--Data is split, See AtkDatBits and AtkDatBits2 for offsets
