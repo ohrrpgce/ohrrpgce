@@ -1371,7 +1371,7 @@ SELECT CASE id
   IF retvals(0) >= 0 AND retvals(0) < gen(genMaxFormation) AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxSong) THEN
    OPEN game$ + ".FOR" FOR BINARY AS #fh
    'GET #fh,clng(retvals(0)) * 80 + 66,scriptret
-   WriteShort(fh,clng(retvals(0)) * 80 + 65,retvals(1))
+   WriteShort fh,clng(retvals(0)) * 80 + 65,retvals(1)
    setbit lumpmod(),0,1,1
    CLOSE #fh
   ELSE

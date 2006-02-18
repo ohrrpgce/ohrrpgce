@@ -135,7 +135,7 @@ SUB setwindowtitle (title AS STRING)
     'does nothing in QB version
 END SUB
 
-FUNCTION ReadShort(fh as integer,p as long) as integer
+FUNCTION ReadShort(fh as integer,p as long)
 	DIM ret as integer
 	IF p = -1 THEN
 		GET #fh,,ret
@@ -151,4 +151,4 @@ Sub WriteShort(fh as integer,p as long, v as integer)
 	ELSEIF p >= 0 THEN
 		PUT #fh,p,v
 	END IF
-END FUNCTION
+END SUB
