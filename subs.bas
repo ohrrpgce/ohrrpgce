@@ -1007,6 +1007,7 @@ getnames names$(), hmax
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
+frame = -1
 
 csr = 1
 FOR i = 0 TO 7
@@ -1153,17 +1154,23 @@ min(4) = 0: max(4) = 32767
 min(5) = -1: max(5) = 99
 min(6) = 0: max(6) = 254
 min(7) = 0: max(7) = 16
+min(8) = -100:max(8) = 100
+min(9) = -100:max(9) = 100
 it$ = itemstr(a(22), 0, 1)
 setkeys
+frame = 0
 DO
  GOSUB genheromenu
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
  GOSUB movesmall
- IF keyval(1) > 1 THEN RETURN
- dummy = usemenu(bctr, 0, 0, 7, 24)
- IF (keyval(28) > 1 OR keyval(57) > 1) AND bctr = 0 THEN RETURN
+ IF keyval(1) > 1 THEN frame = -1: RETURN
+ IF (keyval(52) > 1 AND frame = 0) OR (keyval(51) > 1 AND frame = 1) THEN
+  frame = frame xor 1
+ END IF
+ dummy = usemenu(bctr, 0, 0, 9, 24)
+ IF (keyval(28) > 1 OR keyval(57) > 1) AND bctr = 0 THEN frame = -1: RETURN
  IF bctr > 0 THEN
   SELECT CASE bctr
    CASE 0 TO 6
@@ -1173,6 +1180,10 @@ DO
     END IF
    CASE 7
     dummy = intgrabber(a(296), min(bctr), max(bctr), 75, 77)
+   CASE 8
+    dummy = intgrabber(a(297 + frame * 2), min(bctr), max(bctr), 75, 77)
+   CASE 9
+    dummy = intgrabber(a(298 + frame * 2), min(bctr), max(bctr), 75, 77)
   END SELECT
   IF (bctr = 2 OR bctr = 4) AND (keyval(28) > 1 OR keyval(57) > 1) THEN
    IF bctr = 2 THEN
@@ -1184,7 +1195,7 @@ DO
   END IF
  END IF
 
- standardmenu bmenu$(), 7, 22, bctr, 0, 8, 0, dpage, 0
+ standardmenu bmenu$(), 9, 22, bctr, 0, 8, 0, dpage, 0
 
  GOSUB heropreview
  SWAP vpage, dpage
@@ -1194,10 +1205,24 @@ DO
 LOOP
 
 heropreview:
-loadsprite buffer(), 0, 640 * tog, 0, 32, 40, 2
+IF frame <> -1 THEN
+ loadsprite buffer(), 0, 640 * (frame + 2), 0, 32, 40, 2
+ELSE
+ loadsprite buffer(), 0, 640 * tog, 0, 32, 40, 2
+END IF
 drawsprite buffer(), 0, pal16(), 0, 250, 25, dpage
 loadsprite buffer(), 0, (wd * 400) + (200 * tog), 16, 20, 20, 2
 drawsprite buffer(), 0, pal16(), 16, 230 + wx, 5 + wy, dpage
+IF readbit(general(),101,15) = 1 AND frame <> -1 THEN
+ drawline 248 + a(297 + frame * 2),25 + a(298 + frame * 2),249 + a(297 + frame * 2), 25 + a(298 + frame * 2),14 + tog,dpage
+ drawline 250 + a(297 + frame * 2),23 + a(298 + frame * 2),250 + a(297 + frame * 2), 24 + a(298 + frame * 2),14 + tog,dpage
+ drawline 251 + a(297 + frame * 2),25 + a(298 + frame * 2),252 + a(297 + frame * 2), 25 + a(298 + frame * 2),14 + tog,dpage
+ drawline 250 + a(297 + frame * 2),26 + a(298 + frame * 2),250 + a(297 + frame * 2), 27 + a(298 + frame * 2),14 + tog,dpage
+END IF
+IF frame = 1 THEN printstr "<",256,18,dpage
+IF frame <> -1 THEN printstr xSTR$(frame),256,18,dpage
+IF frame = 0 THEN printstr ">",272,18,dpage
+
 RETURN
 
 genheromenu:
@@ -1214,6 +1239,8 @@ IF a(296) THEN
 ELSE
  bmenu$(7) = bmenu$(7) + " default"
 END IF
+bmenu$(8) = "Hand X:" + STR$(a(297 + frame * 2))
+bmenu$(9) = "Hand Y:" + STR$(a(298 + frame * 2))
 RETURN
 
 levstats:
@@ -1506,7 +1533,7 @@ END IF
 END FUNCTION
 
 SUB itemdata
-DIM names$(100), a(99), menu$(18), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), item$(-1 TO 255), eqst$(5), max(18), sbmax(11), workpal(8), elemtype$(2)
+DIM names$(100), a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), item$(-1 TO 255), eqst$(5), max(18), sbmax(11), workpal(8), elemtype$(2), frame
 imax = 32
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
 clearpage 0
@@ -1582,9 +1609,9 @@ loadset game$ + ".itm" + CHR$(0), csr, 0
 info$ = readbadbinstring$(a(), 9, 35, 0)
 
 menu$(0) = "Back to Item Menu"
-menu$(16) = "Stat Bonuses..."
-menu$(17) = "Equipment Bits..."
-menu$(18) = "Who Can Equip?..."
+menu$(18) = "Stat Bonuses..."
+menu$(19) = "Equipment Bits..."
+menu$(20) = "Who Can Equip?..."
 max(3) = 32767
 max(4) = general(34) + 1
 max(5) = general(34) + 1
@@ -1613,13 +1640,16 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETURN
- dummy = usemenu(pt, 0, 0, 18, 24)
+ IF (keyval(51) > 1 AND frame = 0) OR (keyval(52) > 1 AND frame = 1) THEN
+  frame = frame xor 1
+ END IF
+ dummy = usemenu(pt, 0, 0, 20, 24)
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
   IF pt = 0 THEN RETURN
   IF a(49) > 0 THEN
-   IF pt = 16 THEN GOSUB statbon: GOSUB itemmenu
-   IF pt = 17 THEN GOSUB ibitset: GOSUB itemmenu
-   IF pt = 18 THEN GOSUB equipbit: GOSUB itemmenu
+   IF pt = 18 THEN GOSUB statbon: GOSUB itemmenu
+   IF pt = 19 THEN GOSUB ibitset: GOSUB itemmenu
+   IF pt = 20 THEN GOSUB equipbit: GOSUB itemmenu
   END IF
   IF pt = 10 THEN '--palette picker
    a(46 + (pt - 3)) = pal16browse(a(46 + (pt - 3)), 2, 0, 0, 24, 24, 2)
@@ -1644,19 +1674,30 @@ DO
    IF intgrabber(a(73), 0, 2, 75, 77) THEN GOSUB itemmenu
   CASE 12 TO 15
    IF intgrabber(a(74 + (pt - 12)), 0, max(pt), 75, 77) THEN GOSUB itemmenu
+  CASE 16, 17
+   IF intgrabber(a(78 + (pt - 16) + frame * 2 ), -100, 100,75,77) THEN GOSUB itemmenu
  END SELECT
- FOR i = 0 TO 18
+ FOR i = 0 TO 20
   textcolor 7, 0
   IF pt = i THEN textcolor 14 + tog, 0
-  IF i >= 16 AND a(49) = 0 THEN
+  IF (i >= 18 AND a(49) = 0) OR ((i = 16 OR i = 17) AND (readbit(general(),101,15) = 0 OR a(49) <> 1)) THEN
    textcolor 8, 0
    IF pt = i THEN textcolor 6 + tog, 0
   END IF
   printstr menu$(i), 0, i * 8, dpage
  NEXT i
  IF a(49) = 1 THEN
-  loadsprite buffer(), 0, 288, 0, 24, 24, 2
+  loadsprite buffer(), 0, (1-frame) * 288, 0, 24, 24, 2
   drawsprite buffer(), 0, workpal(), 0, 280, 160, dpage
+  IF frame = 0 THEN printstr "<",280,152,dpage
+  printstr xSTR$(1 - frame),281,152,dpage
+  IF frame = 1 THEN printstr ">",296,152,dpage
+  IF readbit(general(),101,15) = 1 THEN
+   drawline 278 + a(78 + frame * 2),160 + a(79 + frame * 2),279 + a(78 + frame * 2), 160 + a(79 + frame * 2),14 + tog,dpage
+   drawline 280 + a(78 + frame * 2),158 + a(79 + frame * 2),280 + a(78 + frame * 2), 159 + a(79 + frame * 2),14 + tog,dpage
+   drawline 281 + a(78 + frame * 2),160 + a(79 + frame * 2),282 + a(78 + frame * 2), 160 + a(79 + frame * 2),14 + tog,dpage
+   drawline 280 + a(78 + frame * 2),161 + a(79 + frame * 2),280 + a(78 + frame * 2), 162 + a(79 + frame * 2),14 + tog,dpage
+  END IF
  END IF
  SWAP vpage, dpage
  setvispage vpage
@@ -1691,7 +1732,10 @@ menu$(12) = "own item TAG" + STR$(a(74)) + " " + lmnemonic(a(74))
 menu$(13) = "is in inventory TAG" + STR$(a(75)) + " " + lmnemonic(a(75))
 menu$(14) = "is equipped TAG" + STR$(a(76)) + " " + lmnemonic(a(76))
 menu$(15) = "eqpt by active hero TAG" + STR$(a(77)) + " " + lmnemonic(a(77))
+menu$(16) = "Handle X:" + STR$(a(78 + frame * 2))
+menu$(17) = "Handle Y:" + STR$(a(79 + frame * 2))
 IF pt = 9 OR pt = 10 THEN
+ 'oldframe = frame
  setpicstuf buffer(), 576, 2
  loadset game$ + ".pt5" + CHR$(0), a(52), 0
  getpal16 workpal(), 0, a(53)
