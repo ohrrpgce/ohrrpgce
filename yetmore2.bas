@@ -556,10 +556,13 @@ CLOSE #fh
 END SUB
 
 SUB checklumpmod
- IF readbit(lumpmod(),0,0) THEN
-  'unlumpfile sourcerpg$ + CHR$(0), "*.dt1", workingdir$ + SLASH, buffer()
+ IF readbit(lumpmod(),0,0) THEN 'enemy data
   copyfile workingdir$ + SLASH + "dt1.old" + CHR$(0), game$ + ".dt1" + CHR$(0), buffer()
   setbit lumpmod(),0,0,0
+ END IF
+ IF readbit(lumpmod(),0,0) THEN 'formation data
+  copyfile workingdir$ + SLASH + "for.old" + CHR$(0), game$ + ".for" + CHR$(0), buffer()
+  setbit lumpmod(),0,1,0
  END IF
 
 END SUB
@@ -567,7 +570,10 @@ END SUB
 SUB makebackups
  'what is this for? Since some lumps can be modified at run time, we need to keep a
  'backup copy, so that we can restore it later. Duh.
+ 'enemy data
  copyfile game$ + ".dt1" + CHR$(0), workingdir$ + SLASH + "dt1.old" + CHR$(0), buffer()
+ 'formation data
+ copyfile game$ + ".for" + CHR$(0), workingdir$ + SLASH + "for.old" + CHR$(0), buffer()
  'if you add lump-modding commands, you better well add them here >:(
 END SUB
 
