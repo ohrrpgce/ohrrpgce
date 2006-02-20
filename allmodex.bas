@@ -1096,6 +1096,9 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 
 	tcol = readpixel(x, y, page)	'get target colour
 
+	'prevent infinite loop if you fill with the same colour
+	if tcol = c then exit sub
+	
 	queue = allocate(sizeof(node))
 	queue->x = x
 	queue->y = y
