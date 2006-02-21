@@ -105,7 +105,7 @@ sub setmodex()
 
 	'initialise software gfx
 	for i = 0 to 3
-		spage(i) = allocate(320 * 200)
+		spage(i) = callocate(320 * 200)
 	next
 	setclip
 
@@ -843,7 +843,7 @@ SUB setkeys ()
 	for a = 0 to &h80
 		if io_keypressed(a) <> 0 then
 			if keysteps(a) > 0 then
-				keybd(a) = 0
+				keybd(a) = 1
 			else
 				'ok to fire a key event
 				if keysteps(a) = -1 then
