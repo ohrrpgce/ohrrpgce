@@ -834,7 +834,6 @@ SUB setkeys ()
 	keysteps(SC_CONTROL) = -1
 	keysteps(SC_LSHIFT) = -1
 	keysteps(SC_RSHIFT) = -1
-	keysteps(SC_ALT) = -1
 
 	'set key state for every key
 	'highest scancode in fbgfx.bi is &h79, no point overdoing it
