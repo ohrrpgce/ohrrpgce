@@ -1845,13 +1845,13 @@ NEXT i
 RETURN
 
 sprite:
-FOR i = 0 TO 24
+FOR i = 0 TO 24 'set zbuf to 0 through 24
  zbuf(i) = i
 NEXT i
-FOR i = 0 TO 23
+FOR i = 0 TO 23 'sort the sprites by y + height
  temp = 200
  FOR o = 24 TO i STEP -1
-  IF y(zbuf(o)) + h(zbuf(o)) < temp THEN temp = y(zbuf(o)) + h(zbuf(o)): j = o
+  IF y(zbuf(o)) + h(zbuf(o)) <= temp THEN temp = y(zbuf(o)) + h(zbuf(o)): j = o
  NEXT o
  SWAP zbuf(j), zbuf(i)
 NEXT i

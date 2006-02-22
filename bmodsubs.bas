@@ -599,37 +599,94 @@ END IF
 
 END FUNCTION
 
-SUB heroanim (who, atk(), x(), y(), w(), h(), t())
+Function GetWeaponPos(w,f,isY)'or x?
+ dim fh
+ IF w >= 0 THEN
+  fh = FREEFILE
+  OPEN game$ + ".ITM" FOR BINARY AS #fh
+  'debug "weapon" + str$(w) + " offset: " + str$(w * 200 + 157 + f * 4 + isY * 2)
+  GetWeaponPos = ReadShort(fh,w * 200 + 157 + f * 4 + isY * 2)
+  CLOSE #FH
+ END IF
+End Function
 
+Function GetHeroPos(h,f,isY)'or x?
+ dim fh
+ fh = FREEFILE
+ OPEN game$ + ".DT0" FOR BINARY AS #fh
+ 'debug "hero offset: " + str$(h * 636 + 595 + f * 4 + isY * 2)
+ GetHeroPos = ReadShort(fh,h * 636 + 595 + f * 4 + isY * 2)
+ CLOSE #FH
+End Function
+
+SUB SpritePos(who, x, y, d)
+ pushw 3: pushw who: pushw x: pushw y: pushw d
+END SUB
+
+SUB ShowSprite(who)
+ pushw 5: pushw who
+END SUB
+
+SUB HideSprite(who)
+ pushw 6: pushw who
+END SUB
+
+SUB SetFrame(who, what)
+ pushw 7: pushw who: pushw what
+END SUB
+
+SUB WaitFor(length)
+ pushw 13: pushw length
+END SUB
+
+
+SUB heroanim (who, atk(), x(), y(), w(), h(), t())
+hx = 0:hy = 0:wx = 0: wy = 0
 IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN
- pushw 7: pushw who: pushw 0
- pushw 13: pushw 3
- IF atk(14) <> 1 AND atk(14) <> 7 THEN
-  pushw 7: pushw who: pushw 2
-  IF atk(14) <> 2 THEN
-   pushw 3: pushw 24: pushw x(who) + 4: pushw y(who): pushw 0
+ SetFrame who, 0
+ WaitFor 3 'wait 3 ticks
+ IF atk(14) <> 1 AND atk(14) <> 7 THEN 'if it's not cast or standing cast
+  SetFrame who, 2
+  IF readbit(general(),101,15) = 1 THEN
+   hx = GetHeroPos(hero(who)-1,0,0)
+   hy = GetHeroPos(hero(who)-1,0,1)
+   wx = GetWeaponPos(eqstuf(who,0)-1,0,0)
+   wy = GetWeaponPos(eqstuf(who,0)-1,0,1)
   END IF
-  yt = (h(t(who, 0)) - h(who)) + 2
-  IF atk(14) = 2 THEN
-   pushw 3: pushw 24: pushw x(t(who, 0)) + w(t(who, 0)) + 24: pushw y(t(who, 0)) + yt: pushw 0
+  dx = hx - wx
+  dy = hy - wy
+  IF atk(14) <> 2 THEN 'if it's not dash in
+   SpritePos 24, x(who) + dx + 4, y(who) + dy, 0
   END IF
-  pushw 7: pushw 24: pushw 0
-  pushw 5: pushw 24
+  yt = (h(t(who, 0)) - h(who)) + 2 'yt...?
+  IF atk(14) = 2 THEN 'if it IS dash in
+   SpritePos 24, x(t(who, 0)) + w(t(who, 0)) + 24 + dx, y(t(who, 0)) + yt + dy, 0 'set position, again
+  END IF
+  SetFrame 24, 0
+  ShowSprite 24
  END IF
- IF atk(14) = 1 OR atk(14) = 7 THEN
-  pushw 7: pushw who: pushw 4
+ IF atk(14) = 1 OR atk(14) = 7 THEN 'if it's cast or standing cast
+  SetFrame who, 4
  END IF
- pushw 13: pushw 3
- IF atk(14) <> 1 AND atk(14) <> 7 THEN
-  pushw 7: pushw who: pushw 3
-  IF atk(14) <> 2 THEN
-   pushw 3: pushw 24: pushw x(who) - 40: pushw y(who): pushw 0
+ WaitFor 3 'wait 3
+ IF atk(14) <> 1 AND atk(14) <> 7 THEN 'if it's not cast or standing cast
+  SetFrame who, 3
+  IF atk(14) <> 2 THEN 'if it's not dash in
+   IF readbit(general(),101,15) = 1 THEN
+    hx = GetHeroPos(hero(who)-1,1,0)
+    hy = GetHeroPos(hero(who)-1,1,1)
+    wx = GetWeaponPos(eqstuf(who,0)-1,1,0)
+    wy = GetWeaponPos(eqstuf(who,0)-1,1,1)
+   END IF
+   dx = hx - wx
+   dy = hy - wy
+   SpritePos 24, x(who) + dx - 44, y(who) + dy, 0
   END IF
-  yt = (h(t(who, 0)) - h(who)) + 2
-  IF atk(14) = 2 THEN
-   pushw 3: pushw 24: pushw x(t(who, 0)) + w(t(who, 0)) - 20: pushw y(t(who, 0)) + yt: pushw 0
+  yt = (h(t(who, 0)) - h(who)) + 2 '???
+  IF atk(14) = 2 THEN 'if it is dash in
+   SpritePos 24, x(t(who, 0)) + w(t(who, 0)) + dx - 20, y(t(who, 0)) + dy + yt, 0
   END IF
-  pushw 7: pushw 24: pushw 1
+  SetFrame who, 1
  END IF
 END IF
 IF atk(14) = 3 THEN

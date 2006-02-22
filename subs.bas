@@ -1641,7 +1641,8 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETURN
  IF (keyval(51) > 1 AND frame = 0) OR (keyval(52) > 1 AND frame = 1) THEN
-  frame = frame xor 1
+  frame = frame XOR 1
+  GOSUB itemmenu
  END IF
  dummy = usemenu(pt, 0, 0, 20, 24)
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
@@ -1675,7 +1676,7 @@ DO
   CASE 12 TO 15
    IF intgrabber(a(74 + (pt - 12)), 0, max(pt), 75, 77) THEN GOSUB itemmenu
   CASE 16, 17
-   IF intgrabber(a(78 + (pt - 16) + frame * 2 ), -100, 100,75,77) THEN GOSUB itemmenu
+   IF intgrabber(a(78 + (pt - 16) + frame * 2), -100, 100,75,77) THEN GOSUB itemmenu
  END SELECT
  FOR i = 0 TO 20
   textcolor 7, 0
