@@ -798,15 +798,13 @@ end FUNCTION
 
 FUNCTION getkey () as integer
 	dim i as integer, key as integer
-	while inkey$ <> "": wend
-
 	key = 0
 
-	do
-		'I think this wants a scancode, and the only way I can see is to check
-		'them all
+    setkeys
+    do
+        setkeys
 		for i=0 to &h80
-			if io_keypressed(i) then
+			if keyval(i) > 1 then
 				key = i
 				exit for
 			end if
