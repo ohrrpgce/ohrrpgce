@@ -47,9 +47,9 @@ function shortMidi(event as UByte, a as UByte, b as UByte) as integer
 	packet(1) = event
 	fwrite(@packet(0),1,4,midi_handle)
 	packet(1) = a
-	fwrite(@packet(0),1,4,midi_handle) SHL 8
+	fwrite(@packet(0),1,4,midi_handle)
 	packet(1) = b
-	fwrite(@packet(0),1,4,midi_handle) SHL 16
+	fwrite(@packet(0),1,4,midi_handle)
     return 0
     #ELSE
     return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8 + b SHL 16)
