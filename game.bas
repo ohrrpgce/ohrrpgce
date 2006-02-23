@@ -2097,18 +2097,9 @@ SELECT CASE scrat(nowscript, curkind)
     stat(bound(retvals(0), 0, 40), bound(retvals(3), 0, 1), bound(retvals(1), 0, 13)) = retvals(2)
    CASE 86'--advance text box
     GOSUB nextsay
-   CASE 87'--set hero position
-    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-     FOR i = 0 TO 4
-      catx(small(retvals(0) * 5 + i, 15)) = retvals(1) * 20
-      caty(small(retvals(0) * 5 + i, 15)) = retvals(2) * 20
-     NEXT i
-    END IF
    CASE 89'--swap by position
     doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40), stat()
     vishero stat()
-   CASE 96'--set hero Z
-    catz(bound(retvals(0), 0, 3) * 5) = retvals(1)
    CASE 97'--read map block
     setmapdata scroll(), pass(), 0, 0
     scriptret = readmapblock(bound(retvals(0), 0, scroll(0)), bound(retvals(1), 0, scroll(1)))
@@ -2127,14 +2118,6 @@ SELECT CASE scrat(nowscript, curkind)
     END IF
    CASE 110 TO 113
     alterhero scrat(nowscript, curvalue), stat()
-   CASE 116'--hero is walking
-    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-     IF (xgo(retvals(0)) OR ygo(retvals(0))) THEN
-      scriptret = 1
-     ELSE
-      scriptret = 0
-     END IF
-    END IF
    CASE 144'--load tileset
     IF retvals(0) >= 0 THEN
      o = retvals(0)
@@ -2192,18 +2175,6 @@ SELECT CASE scrat(nowscript, curkind)
      IF checksaveslot(retvals(0)) = 3 THEN
       wantloadgame = retvals(0)
       scrat(nowscript, scrstate) = stwait
-     END IF
-    END IF
-   CASE 182'--read NPC
-    IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
-     IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
-      scriptret = npcs(retvals(0) * 15 + retvals(1))
-     ELSE
-      npcref = getnpcref(retvals(0), 0)
-      IF npcref >= 0 THEN
-       id = (npcl(npcref + 600) - 1)
-       scriptret = npcs(id * 15 + retvals(1))
-      END IF
      END IF
     END IF
    CASE 183 TO 186

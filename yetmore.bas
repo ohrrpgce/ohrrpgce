@@ -1176,6 +1176,13 @@ SELECT CASE id
   setbit gen(), 44, suspendboxadvance, 1
  CASE 85'--resume box advance
   setbit gen(), 44, suspendboxadvance, 0
+ CASE 87'--set hero position
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   FOR i = 0 TO 4
+    catx(small(retvals(0) * 5 + i, 15)) = retvals(1) * 20
+    caty(small(retvals(0) * 5 + i, 15)) = retvals(2) * 20
+   NEXT i
+  END IF
  CASE 90'--find hero
   scriptret = findhero(retvals(0) + 1, 0, 40, 1)
  CASE 91'--check equipment
@@ -1192,6 +1199,8 @@ SELECT CASE id
   scriptret = gen(53)
  CASE 95'--resume NPC walls
   setbit gen(), 44, suspendnpcwalls, 0
+ CASE 96'--set hero Z
+  catz(bound(retvals(0), 0, 3) * 5) = retvals(1)
  CASE 103'--reset palette
   xbload game$ + ".mas", master(), "master palette missing from " + game$
  CASE 104'--tweak palette
@@ -1221,6 +1230,14 @@ SELECT CASE id
    global(retvals(0)) = retvals(1)
   ELSE
    scripterr "Cannot write global" + STR$(retvals(0)) + ". out of range"
+  END IF
+ CASE 116'--hero is walking
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   IF (xgo(retvals(0)) OR ygo(retvals(0))) THEN
+    scriptret = 1
+   ELSE
+    scriptret = 0
+   END IF
   END IF
  CASE 127'--teach spell
   scriptret = trylearn(bound(retvals(0), 0, 40), retvals(1), retvals(2))
@@ -1676,6 +1693,18 @@ SELECT CASE id
    END IF
   NEXT i
   IF retvals(2) = -1 THEN scriptret = found
+ CASE 182'--read NPC
+  IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
+   IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
+    scriptret = npcs(retvals(0) * 15 + retvals(1))
+   ELSE
+    npcref = getnpcref(retvals(0), 0)
+    IF npcref >= 0 THEN
+     id = (npcl(npcref + 600) - 1)
+     scriptret = npcs(id * 15 + retvals(1))
+    END IF
+   END IF
+  END IF
 
 END SELECT
 
