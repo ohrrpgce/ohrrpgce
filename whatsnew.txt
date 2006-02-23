@@ -4,6 +4,7 @@ Mar ?? 2006 [tirgoviste]
   * New Features
     * Stat caps [Mike Caron]
     * "% based attacks damage instead of set" attack bitset [Mike Caron]
+    * Precise weapon placement [Mike Caron]
 
   * Bug Fixes
     * Pausing the music will probably cause "stuck notes" (i.e. notes that never
@@ -14,7 +15,6 @@ Mar ?? 2006 [tirgoviste]
     * Linux: specifying a file on the command line now works even if the file
       is in a different directory. [Who??]
     * Windows: bug 140 keyboard handling quirks [Simon Bradley, James Paige]
-
 
   * New Plotscripting Commands
     * get/set formation song [Mike Caron]
