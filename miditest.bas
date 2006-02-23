@@ -19,7 +19,7 @@ dim shared midi_handle as HMIDIOUT
 #ENDIF
 function openMidi() as integer
     #IFDEF __FB_LINUX__
-    midi_handle = fopen("/dev/midi","w")
+    midi_handle = fopen("/dev/sequencer","w")
     return midi_handle = NULL
     #ELSE
     'dim moc as MIDIOUTCAPS
@@ -40,8 +40,16 @@ function closeMidi() as integer
 end function
 
 function shortMidi(event as UByte, a as UByte, b as UByte) as integer
-    #IFDEF __FB_LINUX__
-    return putc(event, midi_handle) OR putc(a, midi_handle) OR putc(b, midi_handle)
+	#IFDEF __FB_LINUX__
+	DIM packet(3) as UByte
+	packet(0) = 5
+	packet(1) = event
+	fwrite(@packet(0),1,4,midi_handle)
+	packet(1) = a
+	fwrite(@packet(0),1,4,midi_handle) SHL 8
+	packet(1) = b
+	fwrite(@packet(0),1,4,midi_handle) SHL 16
+    return 0
     #ELSE
     return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8 + b SHL 16)
     #ENDIF
