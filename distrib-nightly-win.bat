@@ -7,8 +7,42 @@ REM attention to changes to it.
 
 cd c:\nightly\ohrrpgce
 svn update
-call makegame
-call makeedit
+del game*.exe
+del custom*.exe
+
+call makegame-gfx-music fb2 native
+call makeedit-gfx-music fb2 native
+move game.exe game-fb2-native.exe
+move custom.exe custom-fb2-native.exe
+
+call makegame-gfx-music fb2 sdl
+call makeedit-gfx-music fb2 sdl
+move game.exe game-fb2-sdl.exe
+move custom.exe custom-fb2-sdl.exe
+
+call makegame-gfx-music fb2 allegro
+call makeedit-gfx-music fb2 allegro
+move game.exe game-fb2-allegro.exe
+move custom.exe custom-fb2-allegro.exe
+
+call makegame-gfx-music alleg native
+call makeedit-gfx-music alleg native
+move game.exe game-alleg-native.exe
+move custom.exe custom-alleg-native.exe
+
+call makegame-gfx-music alleg sdl
+call makeedit-gfx-music alleg sdl
+move game.exe game-alleg-sdl.exe
+move custom.exe custom-alleg-sdl.exe
+
+call makegame-gfx-music alleg allegro
+call makeedit-gfx-music alleg allegro
+move game.exe game-alleg-allegro.exe
+move custom.exe custom-alleg-allegro.exe
+
+call env-set.bat
+call compile.bat
+
 del distrib\ohrrpgce-binary-win-nightly.zip
-support\pkzip distrib\ohrrpgce-binary-win-nightly.zip game.exe custom.exe whatsnew.txt LICENSE-binary.txt SDL.dll SDL_mixer.dll
+support\pkzip distrib\ohrrpgce-binary-win-nightly.zip game*.exe custom*.exe whatsnew.txt LICENSE-binary.txt SDL.dll SDL_mixer.dll alleg40.dll
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-binary-win-nightly.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/archive/
