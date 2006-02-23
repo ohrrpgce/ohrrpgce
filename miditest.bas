@@ -27,6 +27,7 @@ function openMidi() as integer
     'debug "Midi port supports Volume changes:" + str$(moc.dwSupport AND MIDICAPS_VOLUME)
     
     return midiOutOpen (@midi_handle,MIDI_MAPPER,0,0,0)
+    
     #ENDIF
 end function
 
@@ -49,17 +50,17 @@ end function
 print "(after each step, press a key)"
 
 print "Open midi"
-openMidi
+print openMidi
 sleep
 
 print "Note on"
-shortMidi(90,80,127)
+print shortMidi(&H90,&H40,100)
 sleep
 
 print "Note off"
-shortMidi(80,80,0)
+print shortMidi(&H80,&H40,0)
 sleep
 
 print "Close midi"
-closeMidi
+print closeMidi
 sleep
