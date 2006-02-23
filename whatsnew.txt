@@ -15,6 +15,7 @@ Mar ?? 2006 [tirgoviste]
     * Linux: specifying a file on the command line now works even if the file
       is in a different directory. [Who??]
     * Windows: bug 140 keyboard handling quirks [Simon Bradley, James Paige]
+    * music_native now supports volume [Mike Caron]
 
   * New Plotscripting Commands
     * get/set formation song [Mike Caron]

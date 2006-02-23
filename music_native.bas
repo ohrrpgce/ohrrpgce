@@ -510,29 +510,63 @@ dim shared midi_handle as FILE ptr
 dim shared midi_handle as HMIDIOUT
 #ENDIF
 function openMidi() as integer
-        #IFDEF __FB_LINUX__
-        midi_handle = fopen("/dev/sequencer","w")
-        return midi_handle = NULL
-        #ELSE
-        return midiOutOpen (@midi_handle,-1,0,0,0)
-        #ENDIF
+    #IFDEF __FB_LINUX__
+    midi_handle = fopen("/dev/sequencer","w")
+    return midi_handle = NULL
+    #ELSE
+    'dim moc as MIDIOUTCAPS
+    'midiOutGetDevCaps MIDI_MAPPER, @moc, len(MIDIOUTCAPS)
+    'debug "Midi port supports Volume changes:" + str$(moc.dwSupport AND MIDICAPS_VOLUME)
+    
+    return midiOutOpen (@midi_handle,MIDI_MAPPER,0,0,0)
+    #ENDIF
 end function
 
 function closeMidi() as integer
-        #IFDEF __FB_LINUX__
-        return fclose(midi_handle)
-        #ELSE
-        return midiOutClose (midi_handle)
-        #ENDIF
+    #IFDEF __FB_LINUX__
+    return fclose(midi_handle)
+    #ELSE
+    return midiOutClose (midi_handle)
+    #ENDIF
 end function
 
 function shortMidi(event as UByte, a as UByte, b as UByte) as integer
-        #IFDEF __FB_LINUX__
-        return putc(event, midi_handle) OR putc(a, midi_handle) OR putc(b, midi_handle)
-        #ELSE
-        return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8 + b SHL 16)
-        #ENDIF
+    #IFDEF __FB_LINUX__
+    return putc(event, midi_handle) OR putc(a, midi_handle) OR putc(b, midi_handle)
+    #ELSE
+    return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8 + b SHL 16)
+    #ENDIF
 end function
+
+function getVolMidi() as integer
+	dim vol as integer, ret as integer
+	#IFDEF __FB_LINUX__
+    return 0 '???
+    #ELSE
+    ret = midiOutGetVolume(midi_handle, @vol)
+    
+    vol = int((vol AND &HFFFF + vol SHR 16) / 2) 'average the left and right channel volumes.
+    vol = vol SHR 12 'we only care about the most significant digit
+    return vol
+    #ENDIF
+end function
+
+sub setVolMidi(v as integer)
+	dim vol as integer, ret as integer
+	#IFDEF __FB_LINUX__
+    '???
+    #ELSE
+    vol = v
+    vol = vol + vol shl 4 + vol shl 8 + vol shl 12
+    vol += vol shl 16 'set left and right volumes
+    'debug "vol = " + HEX$(vol)
+    ret = midiOutSetVolume (midi_handle, vol)
+    'debug "returned = " + HEX$(ret)
+    #ENDIF
+end sub
+
+
+
 Sub ResetMidi
 	dim n as UByte, c as UByte
 	'debug "RESET!"
@@ -747,17 +781,12 @@ end sub
 sub music_setvolume(vol as integer)
 	music_vol = vol
 	if music_on = 1 then
-' 		if music_vol = 0 then
-' 			Mix_VolumeMusic(0)
-' 		else
-' 			'add a small adjustment because 15 doesn't go into 128
-' 			Mix_VolumeMusic((music_vol * 8) + 8)
-' 		end if
+		setvolmidi vol
 	end if
 end sub
 
 function music_getvolume() as integer
-	music_getvolume = music_vol
+	music_getvolume = getvolmidi
 end function
 
 sub music_fade(targetvol as integer)
