@@ -3,7 +3,7 @@ option explicit
 
 #include "crt.bi"
 #IFDEF __FB_LINUX__
-'???
+#include "soundcard.bi"
 #ELSE
 #include "windows.bi"
 #include "win/mmsystem.bi"
@@ -19,8 +19,7 @@ dim shared midi_handle as HMIDIOUT
 #ENDIF
 function openMidi() as integer
     #IFDEF __FB_LINUX__
-    midi_handle = fopen("/dev/sequencer","wb")
-    setbuf midi_handle, 0
+    midi_handle = open("/dev/sequencer",O_WRONLY)
     return midi_handle = NULL
     #ELSE
     'dim moc as MIDIOUTCAPS
@@ -43,14 +42,13 @@ end function
 function shortMidi(event as UByte, a as UByte, b as UByte) as integer
 	#IFDEF __FB_LINUX__
 	DIM packet(3) as UByte
-	packet(0) = 5
+	packet(0) = SEQ_MIDIPUTC
 	packet(1) = event
-	fwrite(@packet(0),1,4,midi_handle)
+	write(midi_handle,@packet(0),4)
 	packet(1) = a
-	fwrite(@packet(0),1,4,midi_handle)
+	write(midi_handle,@packet(0),4)
 	packet(1) = b
-	fwrite(@packet(0),1,4,midi_handle)
-	fflush(midi_handle)
+	write(midi_handle,@packet(0),4)
     return 0
     #ELSE
     return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8 + b SHL 16)
