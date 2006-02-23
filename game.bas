@@ -167,7 +167,7 @@ storecommandline tmpdir$
 thestart:
 setwindowtitle "O.H.R.RPG.C.E"
 'DEBUG debug "set stack size"
-CLEAR , , 2800
+CLEAR , , 2900
 
 storekeyhandler
 
