@@ -19,7 +19,7 @@ dim shared midi_handle as HMIDIOUT
 #ENDIF
 function openMidi() as integer
     #IFDEF __FB_LINUX__
-    midi_handle = fopen("/dev/sequencer","w")
+    midi_handle = fopen("/dev/sequencer","wb")
     return midi_handle = NULL
     #ELSE
     'dim moc as MIDIOUTCAPS
