@@ -686,7 +686,7 @@ IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN
   IF atk(14) = 2 THEN 'if it is dash in
    SpritePos 24, x(t(who, 0)) + w(t(who, 0)) + dx - 20, y(t(who, 0)) + dy + yt, 0
   END IF
-  SetFrame who, 1
+  SetFrame 24, 1
  END IF
 END IF
 IF atk(14) = 3 THEN
