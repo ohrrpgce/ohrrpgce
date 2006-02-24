@@ -12,7 +12,7 @@ DECLARE FUNCTION focuscost% (cost%, focus%)
 DECLARE FUNCTION safesubtract% (number%, minus%)
 DECLARE FUNCTION safemultiply% (number%, by!)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
-DECLARE FUNCTION atkallowed% (atkid%, attacker%, spclass%, lmplev%, stat%())
+DECLARE FUNCTION atkallowed% (atkid%, attacker%, spclass%, lmplev%, stat%(), atkbuf%())
 DECLARE FUNCTION trytheft% (who%, targ%, atk%(), es%())
 DECLARE FUNCTION readitemname$ (itemnum%)
 DECLARE SUB setbatcap (cap$, captime%, capdelay%)
@@ -87,7 +87,7 @@ END IF
 
 END SUB
 
-FUNCTION atkallowed (atkid, attacker, spclass, lmplev, stat())
+FUNCTION atkallowed (atkid, attacker, spclass, lmplev, stat(), atkbuf())
 '--atkid    = attack ID number
 '--attacker = hero or enemy who is attacking
 '--spclass  = 0 for normal attacks, 1 for level-MP spells
@@ -100,16 +100,16 @@ IF atkid < 0 THEN
 END IF
 
 '--load attack data
-readattackdata buffer(), atkid
+readattackdata atkbuf(), atkid
 
 '--check for mutedness
-IF readbit(buffer(),65,0) = 1 AND stat(attacker, 0, 15) < stat(attacker, 1, 15) THEN
+IF readbit(atkbuf(),65,0) = 1 AND stat(attacker, 0, 15) < stat(attacker, 1, 15) THEN
  atkallowed = 0
  EXIT FUNCTION
 END IF
 
 '--check for sufficient mp
-IF stat(attacker, 0, 1) - focuscost(buffer(8), stat(attacker, 0, 10)) < 0 THEN
+IF stat(attacker, 0, 1) - focuscost(atkbuf(8), stat(attacker, 0, 10)) < 0 THEN
  atkallowed = 0
  EXIT FUNCTION
 END IF
@@ -1032,9 +1032,11 @@ SUB readattackdata (array(), index)
 
 flusharray array(), 39 + curbinsize(0) / 2, 0
 
+'--load 40 elements from the .dt6 lump
 setpicstuf array(), 80, -1
 loadset game$ + ".dt6" + CHR$(0), index, 0
 
+'--load the rest from the attack.bin lump
 size = getbinsize(0)
 
 IF size THEN
@@ -1312,3 +1314,8 @@ FOR i = 0 TO 3
 NEXT i
 END SUB
 
+FUNCTION dimbinsize% (id%)
+ 'curbinsize is size supported by current version of engine
+ 'getbinsize is size of data in RPG file
+ dimbinsize% = large(curbinsize(id%), getbinsize(id%)) / 2
+END FUNCTION

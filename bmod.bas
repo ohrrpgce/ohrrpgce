@@ -13,7 +13,7 @@ DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE SUB fadein (force%)
 DECLARE SUB fadeout (red%, green%, blue%, force%)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
-DECLARE FUNCTION atkallowed% (atkid%, attacker%, spclass%, lmplev%, stat%())
+DECLARE FUNCTION atkallowed% (atkid%, attacker%, spclass%, lmplev%, stat%(), atkbuf%())
 DECLARE SUB herobattlebits (bitbuf%(), who%)
 DECLARE SUB quickinflict (harm%, targ%, hc%(), hx%(), hy%(), x%(), y%(), w%(), h%(), harm$(), stat%())
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
@@ -78,6 +78,7 @@ DECLARE SUB checkTagCond (t, check, tag, tagand)
 DECLARE FUNCTION exptolevel& (level%)
 DECLARE SUB giveheroexperience (i%, exstat%(), exper&)
 DECLARE FUNCTION getbinsize% (id%)
+DECLARE FUNCTION dimbinsize% (id%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -92,7 +93,7 @@ FUNCTION battle (form, fatal, exstat())
 bstackstart = stackpos
 
 battle = 1
-DIM a(40), atktemp(40 + curbinsize(0) / 2), atk(40 + curbinsize(0) / 2), st(3, 318), es(7, 160), x(24), y(24), z(24), d(24), zbuf(24), xm(24), ym(24), zm(24), mvx(24), mvy(24), mvz(24), v(24), p(24), w(24), h(24), of(24), ext$(7), ctr(11), stat(11,  _
+DIM a(40), atktemp(40 + dimbinsize(0)), atk(40 + dimbinsize(0)), st(3, 318), es(7, 160), x(24), y(24), z(24), d(24), zbuf(24), xm(24), ym(24), zm(24), mvx(24), mvy(24), mvz(24), v(24), p(24), w(24), h(24), of(24), ext$(7), ctr(11), stat(11,  _
 1, 17), ready(11), batname$(11), menu$(3, 5), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
@@ -422,7 +423,7 @@ IF carray(4) > 1 THEN
      '--level MP
      cost$(i) = "Level" + STR$(INT(i / 3) + 1) + ":  " + STR$(lmp(you, INT(i / 3)))
     END IF
-    IF atkallowed(spel(i), you, st(you, 288 + sptype), INT(i / 3), stat()) THEN
+    IF atkallowed(spel(i), you, st(you, 288 + sptype), INT(i / 3), stat(), atktemp()) THEN
      setbit spelmask(), 0, i, 1
     END IF
    END IF
@@ -1419,7 +1420,7 @@ IF carray(4) > 1 THEN
  '--can-I-use-it? checking
  IF spel(sptr) > -1 THEN
   '--list-entry is non-empty
-  IF atkallowed(spel(sptr), you, st(you, 288 + sptype), INT(sptr / 3), stat()) THEN
+  IF atkallowed(spel(sptr), you, st(you, 288 + sptype), INT(sptr / 3), stat(), atktemp()) THEN
    '--attack is allowed
    '--if lmp then set lmp consume flag
    IF st(you, 288 + sptype) = 1 THEN conlmp(you) = INT(sptr / 3) + 1

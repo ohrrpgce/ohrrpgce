@@ -16,6 +16,9 @@ Mar ?? 2006 [tirgoviste]
       is in a different directory. [Who??]
     * Windows: bug 140 keyboard handling quirks [Simon Bradley, James Paige]
     * music_native now supports volume [Mike Caron]
+    * fixed bug 143 and bug 150 which disabled some spells you should have
+      been able to use, and permitted usage of some spells that should have
+      been disabled [James Paige]
 
   * New Plotscripting Commands
     * get/set formation song [Mike Caron]
