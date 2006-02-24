@@ -20,11 +20,6 @@ call makeedit-gfx-music fb2 sdl
 move game.exe game-fb2-sdl.exe
 move custom.exe custom-fb2-sdl.exe
 
-call makegame-gfx-music fb2 allegro
-call makeedit-gfx-music fb2 allegro
-move game.exe game-fb2-allegro.exe
-move custom.exe custom-fb2-allegro.exe
-
 call makegame-gfx-music alleg native
 call makeedit-gfx-music alleg native
 move game.exe game-alleg-native.exe
@@ -41,8 +36,10 @@ move game.exe game-alleg-allegro.exe
 move custom.exe custom-alleg-allegro.exe
 
 call env-set.bat
+SET OHRRPGCE=C:\NIGHTLY\OHRRPGCE
 call compile.bat
 
 del distrib\ohrrpgce-binary-win-nightly.zip
-support\pkzip distrib\ohrrpgce-binary-win-nightly.zip game*.exe custom*.exe whatsnew.txt LICENSE-binary.txt SDL.dll SDL_mixer.dll alleg40.dll
+support\pkzip distrib\ohrrpgce-binary-win-nightly.zip game*.exe custom*.exe
+support\pkzip distrib\ohrrpgce-binary-win-nightly.zip whatsnew.txt LICENSE-binary.txt SDL.dll SDL_mixer.dll alleg40.dll
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-binary-win-nightly.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/archive/
