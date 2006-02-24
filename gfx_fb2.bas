@@ -10,7 +10,7 @@ option explicit
 #include gfx.bi
 
 dim shared offset as integer = 0
-dim shared windowed as integer = 1
+dim shared windowed as integer = 0
 dim shared init_gfx as integer = 0
 
 declare sub debug(s$)
