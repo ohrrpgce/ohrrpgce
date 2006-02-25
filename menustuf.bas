@@ -70,6 +70,7 @@ DECLARE SUB checkTagCond(t,check,tag,tagand) 'in bmod.bas
 DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB readattackdata (array%(), index%)
 DECLARE FUNCTION countitem% (it%)
+DECLARE FUNCTION dimbinsize% (id%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -85,7 +86,7 @@ IF n > highest THEN bound = highest
 END FUNCTION
 
 SUB buystuff (id, shoptype, storebuf(), stock(), stat())
-DIM b(curbinsize(1) * 25), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walks(15), hpal(8), tradestf(3, 1)
+DIM b(dimbinsize(1) * 25), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walks(15), hpal(8), tradestf(3, 1)
 recordsize = getbinsize(1) / 2 ' get size in INTs
 
 getnames sname$()
