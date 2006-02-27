@@ -483,11 +483,11 @@ SUB drawsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 end sub
 
 SUB bigsprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
-	drawspritex(pic(), 0, pal(), 0, x, y, page, 2)
+	drawspritex(pic(), 0, pal(), p, x, y, page, 2)
 END SUB
 
 SUB hugesprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
-	drawspritex(pic(), 0, pal(), 0, x, y, page, 4)
+	drawspritex(pic(), 0, pal(), p, x, y, page, 4)
 END SUB
 
 SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer)
