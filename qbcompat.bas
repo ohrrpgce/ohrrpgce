@@ -116,6 +116,14 @@ END SUB
 
 SUB xbload (f$, array(), e$)
 	IF isfile(f$ + CHR$(0)) THEN
+        'this unfortunate hack is needed to work around differences
+        'in the behaviour of FreeBasic BSAVE
+        fh = FREEFILE
+        OPEN f$ FOR BINARY AS #fh
+        temp$ = CHR$(0)
+        PUT #fh, 1 + LOF(fh), temp$
+        CLOSE #fh
+        'bload the file into the array
 		DEF SEG = VARSEG(array(0)): BLOAD f$, VARPTR(array(0))
 	ELSE
 		fatalerror e$
