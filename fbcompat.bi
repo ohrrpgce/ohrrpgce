@@ -48,6 +48,7 @@ declare function xpeek (byval idx as integer) as integer
 declare sub xpoke(byval idx as integer, byval v as integer)
 
 DECLARE SUB getdefaultfont (font() as integer)
+DECLARE SUB xbloadmap (f$, array%(), e$)
 DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB xbsave (f$, array%(), bsize%)
 DECLARE SUB crashexplain ()

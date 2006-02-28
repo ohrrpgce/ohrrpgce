@@ -910,9 +910,12 @@ a$ = CHR$(0)
 
 o = 12 + (y * wide) + x
 
-GET #fh, o, a$
-
-readfoemap = ASC(a$)
+IF o <= LOF(fh) THEN
+ GET #fh, o, a$
+ readfoemap = ASC(a$)
+ELSE
+ readfoemap = 0
+END IF
 
 END FUNCTION
 

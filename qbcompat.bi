@@ -6,6 +6,7 @@
 '' QuickBasic version
 
 DECLARE SUB getdefaultfont (font() AS INTEGER)
+DECLARE SUB xbloadmap (f$, array%(), e$)
 DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB crashexplain ()
 DECLARE SUB fbdim (v%)

@@ -31,6 +31,11 @@ SUB getdefaultfont(font() as integer)
 	next
 END SUB
 
+SUB xbloadmap (f$, array%(), e$)
+'Just a wrapper in FreeBasic, needed to cater for a bug in QB
+	xbload f$, array(), e$
+END SUB
+
 SUB xbload (f$, array(), e$)
 
 	IF isfile(f$) THEN

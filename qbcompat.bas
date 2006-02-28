@@ -114,6 +114,24 @@ SUB togglewindowed
 'Dummy sub
 END SUB
 
+SUB xbloadmap (f$, array(), e$)
+'Just a wrapper in FreeBasic, needed to cater for a bug in QB
+	IF isfile(f$ + CHR$(0)) THEN
+		'Freebasic might have written files too short by 1 byte
+		'we need to check the size, stored in bytes 6 & 7.
+		fh = FREEFILE
+        OPEN f$ FOR BINARY AS #fh
+        GET #fh, 6, fsize
+        IF fsize > LOF(fh) - 7 THEN
+        	'if it's short, write an extra byte to the file
+        	temp$ = CHR$(0)
+        	PUT #fh, 1 + LOF(fh), temp$
+        END IF
+        CLOSE #fh
+		xbload f$, array(), e$
+	END IF
+END SUB
+
 SUB xbload (f$, array(), e$)
 	IF isfile(f$ + CHR$(0)) THEN
 		DEF SEG = VARSEG(array(0)): BLOAD f$, VARPTR(array(0))

@@ -1357,8 +1357,8 @@ FOR i = 0 TO 1
  cycptr(i) = 0
  cycskip(i) = 0
 NEXT i
-xbload maplumpname$(map, "t"), scroll(), "Oh no! Map" + LTRIM$(STR$(map)) + " tilemap is missing"
-xbload maplumpname$(map, "p"), pass(), "Oh no! Map" + LTRIM$(STR$(map)) + " passabilitymap is missing"
+xbloadmap maplumpname$(map, "t"), scroll(), "Oh no! Map" + LTRIM$(STR$(map)) + " tilemap is missing"
+xbloadmap maplumpname$(map, "p"), pass(), "Oh no! Map" + LTRIM$(STR$(map)) + " passabilitymap is missing"
 IF isfile(maplumpname$(map, "e") + CHR$(0)) THEN
  CLOSE #foemaph
  foemaph = FREEFILE

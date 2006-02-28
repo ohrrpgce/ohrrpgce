@@ -979,9 +979,9 @@ FOR i = 0 TO 1
  cycptr(i) = 0
  cycskip(i) = 0
 NEXT i
-xbload maplumpname$(pt, "t"), map(), "tilemap lump is missing!"
-xbload maplumpname$(pt, "p"), pass(), "passmap lump is missing!"
-xbload maplumpname$(pt, "e"), emap(), "foemap lump is missing!"
+xbloadmap maplumpname$(pt, "t"), map(), "tilemap lump is missing!"
+xbloadmap maplumpname$(pt, "p"), pass(), "passmap lump is missing!"
+xbloadmap maplumpname$(pt, "e"), emap(), "foemap lump is missing!"
 xbload maplumpname$(pt, "l"), npc(), "npclocation lump is missing!"
 xbload maplumpname$(pt, "n"), npcstat(), "npcstat lump is missing!"
 xbload maplumpname$(pt, "d"), link(), "doorlink lump is missing!"
@@ -1156,7 +1156,7 @@ END IF
 '-----------------EXIT DOOR
 setpicstuf destdoor(), 600, -1
 loadset game$ + ".dox" + CHR$(0), link(cur + (2 * 200)), 0
-xbload maplumpname$(link(cur + (2 * 200)), "t"), map(), "Could not find map" + filenum$(link(cur + (2 * 200)))
+xbloadmap maplumpname$(link(cur + (2 * 200)), "t"), map(), "Could not find map" + filenum$(link(cur + (2 * 200)))
 setpicstuf buffer(), 40, -1
 loadset game$ + ".map" + CHR$(0), link(cur + (2 * 200)), 0
 loadpage game$ + ".til" + CHR$(0), buffer(0), 3
@@ -1175,7 +1175,7 @@ IF destdoor(link(cur + (1 * 200)) + 200) = 1 THEN
 END IF
 '-----------------RESET DATA
 loadpage game$ + ".til" + CHR$(0), gmap(0), 3
-xbload maplumpname$(pt, "t"), map(), "Tilemap lump disappeared!"
+xbloadmap maplumpname$(pt, "t"), map(), "Tilemap lump disappeared!"
 RETURN
 
 '----
