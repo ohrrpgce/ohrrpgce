@@ -68,15 +68,15 @@ SUB xbsave (f$, array%(), bsize%)
 	DIM ff%, byt as UByte, seg AS uShort, offset AS Short, length AS Short
 	dim ilength as integer
 	dim i as integer
+	dim needbyte as integer
 
 	seg = &h9999
 	offset = 0
-	'If bsize is 100 we need 50 ints (dim 49), if 101 we need 51 (dim 50)
-	'so add 1 before dividing. Also note that we are writing an array of
-	'shorts, where QB always has byte accuracy. If we write 51 ints for
-	'101 bytes, we actually write 102 bytes of data. I don't think the 
-	'extra byte is important, though, QB seems to ignore it.
-	ilength = ((bsize + 1) \ 2) - 1
+	'Because we're working with a short array, but the data is in bytes
+	'we need to check if there's an odd size, and therefore a spare byte
+	'we'll need to add at the end.
+	ilength = (bsize \ 2) - 1	'will lose an odd byte in the division
+	needbyte = bsize mod 2		'write an extra byte at the end?
 	length = bsize	'bsize is in bytes
 	byt = 253
 	
@@ -94,6 +94,11 @@ SUB xbsave (f$, array%(), bsize%)
 	PUT #ff, , length			'size in bytes
 	
 	PUT #ff,, buf()
+	if needbyte = 1 then
+		i = small(ilength + 1, ubound(array)) 'don't overflow
+		byt = array(i) and &hff
+		put #ff, , byt
+	end if
 	CLOSE #ff
 		
 END SUB
