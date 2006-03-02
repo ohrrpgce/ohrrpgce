@@ -2327,7 +2327,7 @@ END FUNCTION
 SUB loadshopstuf (array(), id)
 ol = getbinsize(1) / 2 'old size on disk
 nw = curbinsize(1) / 2 'new size in memory
-flusharray array(), nw, 0
+flusharray array(), nw * 50, 0
 'load shop data from STF lump
 setpicstuf buffer(), ol * 2 * 50, -1
 loadset game$ + ".stf" + CHR$(0), id, 0
