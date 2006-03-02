@@ -19,6 +19,8 @@ Mar ?? 2006 [tirgoviste]
     * fixed bug 143 and bug 150 which disabled some spells you should have
       been able to use, and permitted usage of some spells that should have
       been disabled [James Paige]
+    * fixed bug 151 which was causing shops in non-upgraded RPG files to
+      expect random trade-in items for all purchases [James Paige]
 
   * New Plotscripting Commands
     * get/set formation song [Mike Caron]

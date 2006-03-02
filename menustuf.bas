@@ -71,6 +71,8 @@ DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB readattackdata (array%(), index%)
 DECLARE FUNCTION countitem% (it%)
 DECLARE FUNCTION dimbinsize% (id%)
+DECLARE SUB loadshopstuf (array%(), id%)
+DECLARE SUB flusharray (array%(), size%, value%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -87,7 +89,7 @@ END FUNCTION
 
 SUB buystuff (id, shoptype, storebuf(), stock(), stat())
 DIM b(dimbinsize(1) * 50), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walks(15), hpal(8), tradestf(3, 1)
-recordsize = getbinsize(1) / 2 ' get size in INTs
+recordsize = curbinsize(1) / 2 ' get size in INTs
 
 getnames sname$()
 buytype$(0, 0) = readglobalstring$(85, "Trade for", 20) + " "
@@ -111,8 +113,7 @@ walks(12) = 2
 walks(13) = 3
 walks(14) = 3
 
-setpicstuf b(), recordsize * 100, -1
-loadset game$ + ".stf" + CHR$(0), id, 0
+loadshopstuf b(), id
 FOR o = 0 TO storebuf(16)
  stuf$(o) = ""
  FOR i = 1 TO small(b(o * recordsize + 0), 16)
@@ -1643,7 +1644,7 @@ END SUB
 
 SUB sellstuff (id, storebuf(), stock(), stat())
 DIM b(dimbinsize(1) * 50), sname$(40), permask(15), price(200)
-recordsize = getbinsize(1) / 2 ' get size in INTs
+recordsize = curbinsize(1) / 2 ' get size in INTs
 
 getnames sname$()
 
@@ -1655,8 +1656,7 @@ andsome$ = readglobalstring$(153, "and", 10)
 worthnothing$ = readglobalstring$(82, "Worth Nothing", 20)
 sold$ = readglobalstring$(84, "Sold", 10)
 
-setpicstuf b(), recordsize * 100, -1
-loadset game$ + ".stf" + CHR$(0), id, 0
+loadshopstuf b(), id
 GOSUB selstock
 
 ic = 0: top = 0
@@ -2324,3 +2324,17 @@ END IF
 
 END FUNCTION
 
+SUB loadshopstuf (array(), id)
+ol = getbinsize(1) / 2 'old size on disk
+nw = curbinsize(1) / 2 'new size in memory
+flusharray array(), nw, 0
+'load shop data from STF lump
+setpicstuf buffer(), ol * 2 * 50, -1
+loadset game$ + ".stf" + CHR$(0), id, 0
+'in case shop data has been resized, scale records to new size
+FOR i = 0 TO ol - 1
+ FOR o = 0 to 49
+  array(o * nw + i) = buffer(o * ol + i)
+ NEXT o
+NEXT i
+END SUB
