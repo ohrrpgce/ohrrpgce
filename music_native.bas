@@ -103,7 +103,21 @@ Declare sub FreeMidiEventList(head as MidiEvent ptr)
 DECLARE Sub PlayBackThread(dummy as integer)
 
 DECLARE sub sysex_callback (byval as UByte ptr, byval as Uinteger)
-' /* Get Variable Length Quantity */
+
+
+dim shared music_on as integer = 0
+dim shared music_vol as integer
+dim shared music_paused as integer
+dim shared music_playing as integer
+dim shared music_song as MIDIEvent ptr = NULL
+dim shared orig_vol as integer = -1
+dim shared sysex_cb as sub(byval as UByte ptr, byval as Uinteger)
+dim shared playback_thread as integer
+
+'for playback
+dim shared division as integer
+
+
 
 Function GetVLQ(Byval track as MidiTrack ptr,ByRef p as integer) as integer
 	dim l as integer = 0
@@ -135,7 +149,7 @@ Function CreateEvent(t as UInteger, e as UByte, a as UByte, b as UByte) as MIDIE
 		newEvent->data(0) = a
 		newEvent->data(1) = b
 	else
-		print "Error creating new event"
+		'print "Error creating new event"
 	end if
 
 	return newEvent
@@ -145,6 +159,7 @@ Function ReadByte(d as UByte ptr, p as integer) as UByte
 	ReadByte = d[p]
 	p += 1
 End Function
+
 ' /* Convert a single midi track to a list of MIDIEvents */
 
 Function MidiTracktoStream(track as Miditrack ptr) as MidiEvent ptr
@@ -175,9 +190,9 @@ Function MidiTracktoStream(track as Miditrack ptr) as MidiEvent ptr
 		atime += GetVLQ(track, currentPos)
 
 
-		event = ReadByte(track->data,currentpos)
+		event = track->data[currentpos]  'ReadByte(track->data,currentpos)
 
-		'currentPos += 1
+		currentPos += 1
 
 '
 ' 		/* Handle SysEx seperatly */
@@ -186,8 +201,8 @@ Function MidiTracktoStream(track as Miditrack ptr) as MidiEvent ptr
 
 			if event = &HFF then
 
-				t = ReadByte(track->data,currentpos)
-				'currentPos += 1
+				t = track->data[currentpos]  'ReadByte(track->data,currentpos)
+				currentPos += 1
 				if t = &H2f then
 
 					exit do
@@ -229,13 +244,13 @@ Function MidiTracktoStream(track as Miditrack ptr) as MidiEvent ptr
 				lastchan = a AND &HF
 				laststatus = (a shr 4) AND &HF
 ' 				/* Read the next byte which should always be a data byte */
-				a = readbyte(track->data,currentPos) AND &H7F
-				'currentPos += 1
+				a = track->data[currentpos] AND &H7F 'readbyte(track->data,currentPos) AND &H7F
+				currentPos += 1
 			end if
 
 			if (laststatus >= &H8 AND laststatus <= &HB) OR laststatus = &HE then
-				b = readbyte(track->data,currentPos) AND &H7F
-				'currentPos += 1
+				b = track->data[currentpos] AND &H7F 'readbyte(track->data,currentPos) AND &H7F
+				currentPos += 1
 				currentEvent->next = CreateEvent(atime, (laststatus shl 4) + lastchan, a, b)
 				currentEvent = currentEvent->next
 				if not currentEvent then
@@ -378,7 +393,7 @@ function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
 '     /* Allocate tracks */
 	mididata->track = cptr(MIDITrack ptr, calloc(1, len(MIDITrack) * mididata->nTracks))
 	if not mididata->track then
-		print "error allocating tracks"
+		'print "error allocating tracks"
 		goto bail
 	end if
 
@@ -397,7 +412,7 @@ function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
  		mididata->track[i].len = size
  		mididata->track[i].data = malloc(size)
  		if (not mididata->track[i].data) then
- 			print "error loading track"
+ 			'print "error loading track"
  			goto bail
 		end if
  		fread(mididata->track[i].data, 1, size, fp)
@@ -406,7 +421,7 @@ function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
 	return 1
 
 bail:
-	print "I/O Error"
+	'print "I/O Error"
 	while i >= 0
  		if mididata->track[i].data then	free mididata->track[i].data
  		i -= 1
@@ -493,15 +508,20 @@ end Sub
 
 sub FreeMidiEventList(head as MidiEvent ptr)
  	dim as MIDIEvent ptr cur, n
-
+	on error goto error_handle
  	cur = head
 
  	do while cur
  		n = cur->next
- 		if cur->extraData then free (cur->extraData)
-		free (cur)
+ 		if cur->extraData then free cur->extraData
+		free cur
  		cur = n
  	loop
+ 	exit sub
+ 	
+ 	error_handle:
+ 	debug "Error #" + str$(err)
+ 	exit sub
 end sub
 
 #IFDEF __FB_LINUX__
@@ -575,6 +595,7 @@ Sub ResetMidi
 			shortMidi(&H80 + c,n,0) 'turn off all notes
 		next
 		shortMidi(&HB0 + c,121,0) 'controller reset
+		if not music_paused then shortMidi(&HC0 + c,0,0) 'reset instruments
 	next
 	
 	
@@ -615,23 +636,6 @@ End Sub
 
 
 
-'declare sub sysex_callback cdecl(byval as any ptr, byval as UByte ptr, byval as integer)
-
-dim shared music_on as integer = 0
-'dim shared music_song as FMOD_SOUND ptr = 0 'integer = 0
-'dim shared fmod as FMOD_SYSTEM ptr
-'dim shared fmod_channel as FMOD_CHANNEL ptr = 0
-dim shared music_vol as integer
-dim shared music_paused as integer
-dim shared music_playing as integer
-dim shared music_song as MIDIEvent ptr = NULL
-dim shared orig_vol as integer = -1
-dim shared sysex_cb as sub(byval as UByte ptr, byval as Uinteger)
-dim shared playback_thread as integer
-
-'for playback
-dim shared division as integer
-
 'The music module needs to manage a list of temporary files to
 'delete when closed, mainly for custom, so they don't get lumped
 type delitem
@@ -651,12 +655,16 @@ end sub
 
 sub music_close()
 	if music_on = 1 then
-		CloseMidi
 		music_playing = 0
 		music_paused = 0
 		music_on = 0
+		
 		if playback_thread then threadWait playback_thread: playback_Thread = 0
-
+		
+		FreeMidiEventList(music_song)
+		music_song = 0
+		
+		CloseMidi
 		if delhead <> null then
 			'delete temp files
 			dim ditem as delitem ptr
@@ -715,8 +723,6 @@ sub music_play(songname as string, fmt as music_format)
 			'debug "waiting for music thread..."
 			if playback_thread then threadWait playback_thread: playback_Thread = 0
 			'debug "done"
-			resetmidi
-			'Mix_FreeMusic(music_song)
 			'debug "Freeing existing song"
 			FreeMidiEventList(music_song)
 			'debug "done"
@@ -742,19 +748,6 @@ sub music_play(songname as string, fmt as music_format)
 		music_playing = 1
 		playback_thread = threadcreate(@PlayBackThread,0)
 
-		'if orig_vol = -1 then
-		'	orig_vol = Mix_VolumeMusic(-1)
-		'end if
-
-		'dim realvol as single
-		'realvol = music_vol / 15
-		'FMOD_Channel_SetVolume(fmod_channel, realvol)
-		'if music_vol = 0 then
-		'	Mix_VolumeMusic(0)
-		'else
-		'	'add a small adjustment because 15 doesn't go into 128
-		'	Mix_VolumeMusic((music_vol * 8) + 8)
-		'end if
 	end if
 end sub
 
@@ -839,15 +832,11 @@ do while music_playing
 	else
 		delta = timer - starttime + carry
 	end if
-	curtime += delta / delay
-
-	'carry = delta mod delay
+	curtime += delta * delay
 
 	starttime = timer
-	'print cint(curevent->time) - curtime
 	if music_playing = 0 then ESCAPE_SEQUENCE
 
-	'windowtitle str(curtime) + " " + str(curevent->time)
 
 	if cint(curevent->time) - int(curtime) > 0 then
 		goto skipevents
@@ -861,7 +850,7 @@ do while music_playing
 
 		if music_playing = 0 then ESCAPE_SEQUENCE
 		'curtime = 0
-		select case curevent->status
+		select case as const curevent->status
 		case &HB0 to &HBF 'controller
 			if curevent->data(0) = &H6F then 'rpg maker loop point
 				labels(0) = curevent
@@ -885,7 +874,7 @@ do while music_playing
 			p += 4
 sysex:
 				'debug "Music code: " + hex(curevent->extradata[p])
-				select case curevent->extradata[p]
+				select case as const curevent->extradata[p]
 				case &H0 'stop
 					music_playing = 0
 					ESCAPE_SEQUENCE
@@ -1062,6 +1051,7 @@ exit sub
 updateDelay:
 delay = tempo / division
 delay /= 1000000
+delay = 1 / delay
 return
 End Sub
 
