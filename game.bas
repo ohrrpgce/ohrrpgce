@@ -165,7 +165,6 @@ storecommandline tmpdir$
 
 'DEBUG debug "Thestart"
 thestart:
-setwindowtitle "O.H.R.RPG.C.E"
 'DEBUG debug "set stack size"
 CLEAR , , 2900
 
@@ -246,6 +245,7 @@ getdefaultfont font()
 
 'DEBUG debug "set mode-X"
 setmodex
+setwindowtitle "O.H.R.RPG.C.E"
 
 'DEBUG debug "init error-handler"
 ON ERROR GOTO modeXerr
