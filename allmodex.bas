@@ -504,15 +504,18 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	dim pix as integer
 	dim mask as integer
 	dim row as integer
-
+	debug "enter drawspritex"
+	
 	if wrkpage <> page then
 		wrkpage = page
 	end if
 
 	sw = pic(picoff)
 	sh = pic(picoff+1)
+	debug "gathering sprite width/height (" + str$(sw) + "," + str$(sh) + ")"
 	picoff = picoff + 2
 
+	debug "creating sprite"
 	'create sprite
 	hspr.w = sw
 	hspr.h = sh
@@ -521,6 +524,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	dspr = hspr.image
 	dmsk = hspr.mask
 
+	debug "begin setting pixels..."
 	'now do the pixels
 	'pixels are in columns, so this might not be the best way to do it
 	'maybe just drawing straight to the screen would be easier
@@ -543,7 +547,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 			mask = &hff
 		else
 			'palettes are interleaved like everything else
-			pix = pal((po + spix) \ 2)	' get color from palette
+			pix = pal(int((po + spix) / 2))	' get color from palette
 			if (po + spix) mod 2 = 1 then
 				pix = (pix and &hff00) shr 8
 			else
@@ -566,9 +570,12 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 		nib = nib + 1
 		nib = nib and 3	'= mod 4, but possibly more efficient
 	next
-
+	debug "done setting pixels"
 	'now draw the image
+	debug "drawing image"
 	drawohr(hspr,x,y, scale)
+	
+	debug "cleaning up"
 	deallocate(hspr.image)
 	deallocate(hspr.mask)
 end SUB
@@ -1759,15 +1766,7 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 END SUB
 
 FUNCTION isfile (n$) as integer
-	dim f as integer
-	f = freefile
-	open n$ for input as #f
-	if err > 0 then
-		isfile = 0
-	else
-		close #f
-		isfile = 1
-	end if
+	return dir$(n$) <> ""
 END FUNCTION
 
 FUNCTION pathlength () as integer
