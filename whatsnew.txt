@@ -5,6 +5,8 @@ Mar ?? 2006 [tirgoviste]
     * Stat caps [Mike Caron]
     * "% based attacks damage instead of set" attack bitset [Mike Caron]
     * Precise weapon placement [Mike Caron]
+    * NPC Placement Editor now shows the copy number of NPCs (the bottom number)
+      [Mike Caron]
 
   * Bug Fixes
     * Pausing the music will probably cause "stuck notes" (i.e. notes that never
@@ -13,7 +15,7 @@ Mar ?? 2006 [tirgoviste]
       [Mike Caron]
     * Rewards in battle are rewarded multiple times. [Mike Caron]
     * Linux: specifying a file on the command line now works even if the file
-      is in a different directory. [Who??]
+      is in a different directory. [Anonymous]
     * Windows: bug 140 keyboard handling quirks [Simon Bradley, James Paige]
     * music_native now supports volume [Mike Caron]
     * fixed bug 143 and bug 150 which disabled some spells you should have

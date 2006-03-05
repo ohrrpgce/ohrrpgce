@@ -574,6 +574,7 @@ DO
    END IF
    '---NPCMODE------
   CASE 3
+   
    IF keyval(83) > 1 THEN
     FOR i = 0 TO 299
      IF npc(i + 600) > 0 THEN
@@ -688,6 +689,10 @@ DO
  
  '--npc display--
  IF editmode = 3 THEN
+  DIM npcnum(35)
+  FOR i = 0 to 35
+   npcnum(i) = 0
+  NEXT
   walk = walk + 1: IF walk > 3 THEN walk = 0
   FOR i = 0 TO 299
    IF npc(i + 600) > 0 THEN
@@ -697,7 +702,10 @@ DO
      textcolor 14 + tog, 0
      xtemp$ = intstr$(npc(i + 600) - 1)
      printstr xtemp$, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy + 8, dpage
+     xtemp$ = intstr$(npcnum(npc(i + 600)-1))
+     printstr xtemp$, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy + 16, dpage
     END IF
+    npcnum(npc(i + 600) - 1) = npcnum(npc(i + 600) - 1) + 1
    END IF
   NEXT
  END IF
