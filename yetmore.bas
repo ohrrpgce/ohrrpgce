@@ -1381,7 +1381,7 @@ SELECT CASE id
   IF retvals(0) >= 0 AND retvals(0) < gen(genMaxFormation) THEN
    OPEN game$ + ".FOR" FOR BINARY AS #fh
    'GET #fh,clng(retvals(0)) * 80 + 66,scriptret
-   scriptret = readshort(fh,clng(retvals(0)) * 80 + 65)
+   scriptret = readshort(fh,clng(retvals(0)) * 80 + 67)
    CLOSE #fh
   ELSE
    scriptret = -1
