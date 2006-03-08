@@ -520,7 +520,6 @@ DO
    bitname$(12) = "Skip load screen"
    bitname$(13) = "Pause on All Battle Menus"
    bitname$(14) = "Disable Hero's Battle Cursor"
-   bitname$(15) = "Use Weapon/Hero Handle Alignment"
    editbitset general(), 101, 15, bitname$()
   END IF
   IF csr = 9 THEN GOSUB ttlbrowse
