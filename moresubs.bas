@@ -2083,6 +2083,7 @@ SELECT CASE errormode
    centerbox 160, 20, 310, 30, 3, i
    printstr "Script Error!", 108, 10, i
    printstr e$, 160 - 4 * LEN(e$), 20, i
+   setvispage i
   NEXT i
   w = getkey
  CASE 2'--write error to file
