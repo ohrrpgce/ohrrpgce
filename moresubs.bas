@@ -2077,14 +2077,12 @@ errormode = 1
 SELECT CASE errormode
  CASE 1'--show error on screen
   textcolor 15, 0
-  FOR i = 0 TO 1
-   clearpage i
-   setpal master()
-   centerbox 160, 20, 310, 30, 3, i
-   printstr "Script Error!", 108, 10, i
-   printstr e$, 160 - 4 * LEN(e$), 20, i
-   setvispage i
-  NEXT i
+  clearpage vpage
+  setpal master()
+  centerbox 160, 20, 310, 30, 3, vpage
+  printstr "Script Error!", 108, 10, vpage
+  printstr e$, 160 - 4 * LEN(e$), 20, vpage
+  setvispage vpage
   w = getkey
  CASE 2'--write error to file
   debug e$
