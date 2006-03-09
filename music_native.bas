@@ -691,7 +691,16 @@ sub music_play(songname as string, fmt as music_format)
 
 		if fmt = FORMAT_BAM then
 			dim midname as string
-			midname = songname + ".bmd"
+			dim as integer bf, flen
+			'get length of input file
+			bf = freefile
+			open songname for binary access read as #bf
+			flen = lof(bf)
+			close #bf
+			'use last 3 hex digits of length as a kind of hash, 
+			'to verify that the .bmd does belong to this file
+			flen = flen and &h0fff
+			midname = songname + "-" + lcase(hex(flen)) + ".bmd"
 			'check if already converted
 			if isfile(midname) = 0 then
 				bam2mid(songname, midname)
