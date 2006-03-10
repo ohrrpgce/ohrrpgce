@@ -1213,12 +1213,10 @@ END IF
 drawsprite buffer(), 0, pal16(), 0, 250, 25, dpage
 loadsprite buffer(), 0, (wd * 400) + (200 * tog), 16, 20, 20, 2
 drawsprite buffer(), 0, pal16(), 16, 230 + wx, 5 + wy, dpage
-IF readbit(general(),101,15) = 1 AND frame <> -1 THEN
  drawline 248 + a(297 + frame * 2),25 + a(298 + frame * 2),249 + a(297 + frame * 2), 25 + a(298 + frame * 2),14 + tog,dpage
  drawline 250 + a(297 + frame * 2),23 + a(298 + frame * 2),250 + a(297 + frame * 2), 24 + a(298 + frame * 2),14 + tog,dpage
  drawline 251 + a(297 + frame * 2),25 + a(298 + frame * 2),252 + a(297 + frame * 2), 25 + a(298 + frame * 2),14 + tog,dpage
  drawline 250 + a(297 + frame * 2),26 + a(298 + frame * 2),250 + a(297 + frame * 2), 27 + a(298 + frame * 2),14 + tog,dpage
-END IF
 IF frame = 1 THEN printstr "<",256,18,dpage
 IF frame <> -1 THEN printstr xSTR$(frame),256,18,dpage
 IF frame = 0 THEN printstr ">",272,18,dpage
@@ -1693,12 +1691,10 @@ DO
   IF frame = 0 THEN printstr "<",280,152,dpage
   printstr xSTR$(1 - frame),281,152,dpage
   IF frame = 1 THEN printstr ">",296,152,dpage
-  IF readbit(general(),101,15) = 1 THEN
    drawline 278 + a(78 + frame * 2),160 + a(79 + frame * 2),279 + a(78 + frame * 2), 160 + a(79 + frame * 2),14 + tog,dpage
    drawline 280 + a(78 + frame * 2),158 + a(79 + frame * 2),280 + a(78 + frame * 2), 159 + a(79 + frame * 2),14 + tog,dpage
    drawline 281 + a(78 + frame * 2),160 + a(79 + frame * 2),282 + a(78 + frame * 2), 160 + a(79 + frame * 2),14 + tog,dpage
    drawline 280 + a(78 + frame * 2),161 + a(79 + frame * 2),280 + a(78 + frame * 2), 162 + a(79 + frame * 2),14 + tog,dpage
-  END IF
  END IF
  SWAP vpage, dpage
  setvispage vpage
