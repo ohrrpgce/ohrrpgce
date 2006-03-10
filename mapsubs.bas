@@ -155,7 +155,7 @@ END FUNCTION
 
 SUB mapmaker (font(), master(), map(), pass(), emap(), doors(), link(), npc(), npcstat(), npc$(), unpc(), lnpc())
 DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 5), topmenu$(24), gmap(20), gd$(-1 TO 20), gdmax(20), gdmin(20), destdoor(300), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
-defaults(160), pal16(288), gmapscr$(5), gmapscrof(5)
+defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
 
 textcolor 15, 0
 
@@ -689,7 +689,6 @@ DO
  
  '--npc display--
  IF editmode = 3 THEN
-  DIM npcnum(35)
   FOR i = 0 to 35
    npcnum(i) = 0
   NEXT
@@ -701,9 +700,9 @@ DO
      drawsprite cursor(), 0, pal16(), 16 * (npc(i + 600) - 1), npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy, dpage
      textcolor 14 + tog, 0
      xtemp$ = intstr$(npc(i + 600) - 1)
-     printstr xtemp$, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy + 8, dpage
+     printstr xtemp$, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy + 3, dpage
      xtemp$ = intstr$(npcnum(npc(i + 600)-1))
-     printstr xtemp$, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy + 16, dpage
+     printstr xtemp$, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy + 12, dpage
     END IF
     npcnum(npc(i + 600) - 1) = npcnum(npc(i + 600) - 1) + 1
    END IF
