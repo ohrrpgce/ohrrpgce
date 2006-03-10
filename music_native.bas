@@ -15,6 +15,11 @@ option explicit
 
 
 #include "crt.bi"
+
+'uncomment this to try allegro
+'#DEFINE USE_ALLEGRO
+
+#IFNDEF USE_ALLEGRO
 #IFDEF __FB_LINUX__
 '???
 #ELSE
@@ -23,6 +28,9 @@ option explicit
 #undef MIDIEVENT
 #undef createevent
 #undef lockfile
+#ENDIF
+#ELSE
+#include "allegro.bi"
 #ENDIF
 
 
@@ -76,7 +84,7 @@ Type MIDIEvent
 End Type
 
 '/* Some macros that help us stay endianess-independant */
-#if false
+#IF FALSE
 #define BE_SHORT(x) (x)
 #define BE_LONG(x) (x)
 #else
@@ -526,12 +534,16 @@ sub FreeMidiEventList(head as MidiEvent ptr)
  	exit sub
 end sub
 
+#IFNDEF USE_ALLEGRO
 #IFDEF __FB_LINUX__
 dim shared midi_handle as FILE ptr
 #ELSE
 dim shared midi_handle as HMIDIOUT
 #ENDIF
+#ENDIF
+
 function openMidi() as integer
+	#IFNDEF USE_ALLEGRO
     #IFDEF __FB_LINUX__
     midi_handle = fopen("/dev/sequencer","w")
     return midi_handle = NULL
@@ -542,26 +554,52 @@ function openMidi() as integer
     
     return midiOutOpen (@midi_handle,MIDI_MAPPER,0,0,0)
     #ENDIF
+    #ELSE
+    'see if allegro's been initialized
+    if not allegro_id then
+    	allegro_init
+    end if
+    
+    install_sound(-1,-1,"")
+    load_midi_patches
+    #ENDIF
 end function
 
 function closeMidi() as integer
+	#IFNDEF USE_ALLEGRO
     #IFDEF __FB_LINUX__
     return fclose(midi_handle)
     #ELSE
     return midiOutClose (midi_handle)
     #ENDIF
+    #ELSE
+    
+    remove_sound
+    #ENDIF
 end function
 
 function shortMidi(event as UByte, a as UByte, b as UByte) as integer
+	#IFNDEF USE_ALLEGRO
     #IFDEF __FB_LINUX__
     return putc(event, midi_handle) OR putc(a, midi_handle) OR putc(b, midi_handle)
     #ELSE
     return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8 + b SHL 16)
     #ENDIF
+    
+    #ELSE
+
+    dim d(0 to 2) as UByte
+    d(0) = event
+    d(1) = a
+    d(2) = b
+    midi_out @d(0), 3
+    
+    #ENDIF   
 end function
 
 function getVolMidi() as integer
 	dim vol as integer, ret as integer
+	#IFNDEF USE_ALLEGRO
 	#IFDEF __FB_LINUX__
     return 0 '???
     #ELSE
@@ -570,10 +608,17 @@ function getVolMidi() as integer
     vol = vol SHR 12 'we only care about the most significant digit
     return vol
     #ENDIF
+        
+    #ELSE
+    'hmm, does allegro have a way to read the volume?
+    return 8
+    #ENDIF
 end function
 
 sub setVolMidi(v as integer)
 	dim vol as integer, ret as integer
+	
+	#IFNDEF USE_ALLEGRO
 	#IFDEF __FB_LINUX__
     '???
     #ELSE
@@ -583,6 +628,10 @@ sub setVolMidi(v as integer)
     'debug "vol = " + HEX$(vol)
     ret = midiOutSetVolume (midi_handle, vol)
     
+    #ENDIF
+    
+    #ELSE
+    set_volume 128, int(v * 16 + (v \ 4)) 'don't care, midi volume
     #ENDIF
 end sub
 
