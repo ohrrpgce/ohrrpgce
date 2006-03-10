@@ -1075,6 +1075,7 @@ ELSE
     tmp$ = names$(wptr) + " " + readglobalstring$(124, "learned", 10) + " " + readatkname$(atk)
     centerbox 160, 100, small(LEN(tmp$) * 8 + 16, 320), 24, 1, vpage
     edgeprint tmp$, large(xstring(tmp$, 160), 0), 95, 15, vpage
+    setvispage vpage
     dummy = getkey
    END IF
   END IF
