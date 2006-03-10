@@ -101,6 +101,7 @@ DECLARE function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integ
 DECLARE function CreateMIDIEventList(midifile as string, division as short ptr) as MIDIEvent ptr
 Declare sub FreeMidiEventList(head as MidiEvent ptr)
 DECLARE Sub PlayBackThread(dummy as integer)
+DECLARE sub fade_daemon(byval targetvol as integer)
 
 DECLARE sub sysex_callback (byval as UByte ptr, byval as Uinteger)
 
@@ -113,6 +114,7 @@ dim shared music_song as MIDIEvent ptr = NULL
 dim shared orig_vol as integer = -1
 dim shared sysex_cb as sub(byval as UByte ptr, byval as Uinteger)
 dim shared playback_thread as integer
+dim shared fade_thread as integer
 
 'for playback
 dim shared division as integer
@@ -534,8 +536,8 @@ function openMidi() as integer
     midi_handle = fopen("/dev/sequencer","w")
     return midi_handle = NULL
     #ELSE
-    'dim moc as MIDIOUTCAPS
-    'midiOutGetDevCaps MIDI_MAPPER, @moc, len(MIDIOUTCAPS)
+    dim moc as MIDIOUTCAPS
+    midiOutGetDevCaps MIDI_MAPPER, @moc, len(MIDIOUTCAPS)
     'debug "Midi port supports Volume changes:" + str$(moc.dwSupport AND MIDICAPS_VOLUME)
     
     return midiOutOpen (@midi_handle,MIDI_MAPPER,0,0,0)
@@ -564,7 +566,6 @@ function getVolMidi() as integer
     return 0 '???
     #ELSE
     ret = midiOutGetVolume(midi_handle, @vol)
-    
     vol = int((vol AND &HFFFF + vol SHR 16) / 2) 'average the left and right channel volumes.
     vol = vol SHR 12 'we only care about the most significant digit
     return vol
@@ -581,7 +582,7 @@ sub setVolMidi(v as integer)
     vol += vol shl 16 'set left and right volumes
     'debug "vol = " + HEX$(vol)
     ret = midiOutSetVolume (midi_handle, vol)
-    'debug "returned = " + HEX$(ret)
+    
     #ENDIF
 end sub
 
@@ -658,6 +659,10 @@ sub music_close()
 		music_playing = 0
 		music_paused = 0
 		music_on = 0
+		
+		if fade_thread then
+			threadwait fade_thread
+		end if
 		
 		if playback_thread then threadWait playback_thread: playback_Thread = 0
 		
@@ -792,16 +797,32 @@ function music_getvolume() as integer
 end function
 
 sub music_fade(targetvol as integer)
-'Unlike the original version, this will pause everything else while it
-'fades, so make sure it doesn't take too long
+''Unlike the original version, this will pause everything else while it
+''fades, so make sure it doesn't take too long
+
+'lies, now it fades with a thread
+	dim I as integer
+
+	'if music_vol > targetvol then vstep = -1
+	'for i = music_vol to targetvol step vstep
+	'	music_setvolume(i)
+	'	sleep 10
+	'next
+	if fade_thread then
+		threadwait fade_thread
+	end if
+	fade_thread = threadcreate (@fade_daemon,targetvol)
+end sub
+
+sub fade_daemon(byval targetvol as integer)
 	dim vstep as integer = 1
 	dim i as integer
-
 	if music_vol > targetvol then vstep = -1
 	for i = music_vol to targetvol step vstep
 		music_setvolume(i)
 		sleep 10
 	next
+	fade_thread = 0
 end sub
 
 
@@ -854,7 +875,7 @@ do while music_playing
 	played = curtime
 	do
 		if not curevent then exit do
-		if (int(curtime) - curevent->time) < 0 then exit do
+		if (int(curtime) - curevent->time) < 0 then curtime = 0 : exit do
 		curtime -= curevent->time
 
 		if music_playing = 0 then ESCAPE_SEQUENCE
@@ -1043,8 +1064,8 @@ skipevents:
 		if music_playing = 0 then ESCAPE_SEQUENCE
 		if music_paused <> 0 AND pauseflag = 0 then
 			'debug "detecting pause, reseting"
-			resetMidi ' kill stuck notes
 			pauseflag = 1
+			resetMidi ' kill stuck notes
 		end if
 	loop while music_paused
 	pauseflag = 0
