@@ -13,6 +13,7 @@ declare sub music_close()
 declare sub music_play(songname as string, fmt as music_format=FORMAT_BAM)
 declare sub music_pause()
 declare sub music_resume()
+declare sub music_stop()
 
 declare sub music_setvolume(vol as integer)
 declare function music_getvolume() as integer

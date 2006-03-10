@@ -8,6 +8,7 @@ declare function gfx_screenshot(fname as string, byval page as integer) as integ
 declare sub gfx_setwindowed(byval iswindow as integer)
 declare sub gfx_togglewindowed()
 declare sub gfx_windowtitle(title as string)
+declare sub gfx_setoption(opt as string, byval value as integer = -1)
 
 declare sub io_init()
 declare function io_keypressed(byval scancode as integer) as integer

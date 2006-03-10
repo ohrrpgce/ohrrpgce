@@ -107,6 +107,11 @@ sub gfx_windowtitle(title as string)
 	end if
 end sub
 
+sub gfx_setoption(opt as string, byval value as integer = -1)
+'handle command-line options in a generic way, so that they
+'can be ignored or supported as the library permits.
+end sub
+
 '------------- IO Functions --------------
 sub io_init
 	setmouse(0, 0, 0) 'hide mouse

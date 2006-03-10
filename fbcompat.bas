@@ -167,6 +167,8 @@ sub storecommandline(temppath as string)
 'temppath is ignored in the FB version
 	dim i as integer = 1
 	dim temp as string
+	dim vtemp as string
+	dim arg as integer
 	
 	while command(i) <> ""
 		temp = left$(command(i), 1)
@@ -182,6 +184,26 @@ sub storecommandline(temppath as string)
 				gfx_setwindowed(1)
 			elseif temp = "f" or temp = "fullscreen" then
 				gfx_setwindowed(0)
+			else
+				'get next argument and check it is numeric
+				i = i + 1
+				vtemp = command(i)
+				if len(vtemp) > 0 then
+					if asc(vtemp, 1) >= &h30 and asc(vtemp, 1) <= &h39 then
+						'first char is numeric, assume we're okay
+						arg = valint(vtemp)
+						if temp = "z" or temp = "zoom" then
+							gfx_setoption("zoom", arg) ' 1 or 2
+						elseif temp = "b" or temp = "border" then
+							gfx_setoption("border", arg) ' 0 or 1
+						elseif temp = "d" or temp = "depth" then
+							gfx_setoption("depth", arg) ' 8, 24 or 32
+						end if
+					else
+						'ignore this parameter and set i back
+						i = i - 1
+					end if
+				end if
 			end if
 		else
 			'only keep one non-flag argument, hopefully the file

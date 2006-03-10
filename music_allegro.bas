@@ -160,6 +160,10 @@ sub music_resume()
 	end if
 end sub
 
+sub music_stop()
+	music_pause()
+end sub
+
 sub music_setvolume(vol as integer)
 	music_vol = vol
 	if music_on = 1 then
