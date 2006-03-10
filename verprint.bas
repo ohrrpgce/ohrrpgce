@@ -11,7 +11,7 @@ DEFINT A-Z
 OPEN "codename.txt" FOR INPUT AS #1
 INPUT #1, codename$
 CLOSE #1
-codename$ = LEFT$(codename$, 11)
+codename$ = LEFT$(codename$, 14)
 
 PRINT "Version ID " + datetag$
 PRINT "Codename " + codename$
