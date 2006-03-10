@@ -1222,12 +1222,19 @@ IF deadguycount = 4 THEN dead = 2
 RETURN
 
 ifdead:
+deadguyhp = stat(deadguy, 0, 0)
 IF deadguy >= 4 THEN
- IF stat(deadguy, 0, 0) > 0 AND readbit(ebits(), (deadguy - 4) * 5, 61) = 1 THEN deadguycount = deadguycount + 1
+ isenemy = 1
+ enemynum = deadguy - 4
+ formslotused = a((deadguy - 4) * 4)
+ IF stat(deadguy, 0, 0) > 0 AND readbit(ebits(), enemynum * 5, 61) = 1 THEN deadguycount = deadguycount + 1
+ELSE
+ isenemy = 0
+ enemynum = -1
+ formslotused = -1
 END IF
-IF stat(deadguy, 0, 0) = 0 THEN deadguycount = deadguycount + 1
-
-IF stat(deadguy, 0, 0) = 0 AND a((deadguy - 4) * 4) > 0 THEN
+IF deadguyhp = 0 THEN deadguycount = deadguycount + 1
+IF deadguyhp = 0 and formslotused <> 0 THEN
  '--deadguy is really dead
  v(deadguy) = 0
  ready(deadguy) = 0
@@ -1235,33 +1242,33 @@ IF stat(deadguy, 0, 0) = 0 AND a((deadguy - 4) * 4) > 0 THEN
  d(deadguy) = 0
  '--reset poison/regen/stun/mute
  FOR j = 12 TO 17
-  '--am I certain that these all should be reset?
   stat(deadguy, 0, j) = stat(deadguy, 1, j)
  NEXT j
+ '-- if it is a dead hero's turn, cancel menu
  IF you = deadguy THEN you = -1: mset = 0
+ '-- if it is a dead enemy's turn, cancel ai
  IF them = deadguy THEN them = -1
- GOSUB spawnally
- IF deadguy >= 4 THEN '------PLUNDER AND EXPERIENCE AND ITEMS------
-  IF a((deadguy - 4) * 4) > 0 THEN
-   plunder& = plunder& + es(deadguy - 4, 56)
+ IF isenemy THEN '------PLUNDER AND EXPERIENCE AND ITEMS------
+  GOSUB spawnally
+  IF formslotused > 0 THEN
+   plunder& = plunder& + es(enemynum, 56)
    IF plunder& > 1000000000 THEN plunder& = 1000000000
-   exper& = exper& + es(deadguy - 4, 57)
+   exper& = exper& + es(enemynum, 57)
    IF exper& > 1000000 THEN exper& = 1000000
-   IF INT(RND * 100) < es(deadguy - 4, 59) THEN '---GET ITEMS FROM FOES-----
+   IF INT(RND * 100) < es(enemynum, 59) THEN '---GET ITEMS FROM FOES-----
     FOR j = 0 TO 16
-     IF found(j, 1) = 0 THEN found(j, 0) = es(deadguy - 4, 58): found(j, 1) = 1: EXIT FOR
-     IF found(j, 0) = es(deadguy - 4, 58) THEN found(j, 1) = found(j, 1) + 1: EXIT FOR
+     IF found(j, 1) = 0 THEN found(j, 0) = es(enemynum, 58): found(j, 1) = 1: EXIT FOR
+     IF found(j, 0) = es(enemynum, 58) THEN found(j, 1) = found(j, 1) + 1: EXIT FOR
     NEXT j
    ELSE '------END NORMAL ITEM---------------
-    IF INT(RND * 100) < es(deadguy - 4, 61) THEN
+    IF INT(RND * 100) < es(enemynum, 61) THEN
      FOR j = 0 TO 16
-      IF found(j, 1) = 0 THEN found(j, 0) = es(deadguy - 4, 60): found(j, 1) = 1: EXIT FOR
-      IF found(j, 0) = es(deadguy - 4, 60) THEN found(j, 1) = found(j, 1) + 1: EXIT FOR
+      IF found(j, 1) = 0 THEN found(j, 0) = es(enemynum, 60): found(j, 1) = 1: EXIT FOR
+      IF found(j, 0) = es(enemynum, 60) THEN found(j, 1) = found(j, 1) + 1: EXIT FOR
      NEXT j
     END IF '---END RARE ITEM-------------
    END IF '----END GET ITEMS----------------
   END IF
-  'a((deadguy - 4) * 4) = 0 ' fixing spawning bug
  END IF'------------END PLUNDER-------------------
  IF noifdead = 0 THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
   tcount = tcount - 1

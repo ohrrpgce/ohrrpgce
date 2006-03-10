@@ -4,8 +4,8 @@
 
 [Setup]
 AppName=Wandering Hamster
-AppVerName=Wandering Hamster (rusalka) 2005xxxx
-VersionInfoVersion=2005.xx.xx.0
+AppVerName=Wandering Hamster (serendipity+) 20060217
+VersionInfoVersion=2006.02.17.0
 AppPublisher=Hamster Republic Productions
 AppPublisherURL=http://HamsterRepublic.com/ohrrpgce/
 AppSupportURL=http://HamsterRepublic.com/ohrrpgce/docs.php
@@ -17,7 +17,7 @@ DisableProgramGroupPage=yes
 AllowNoIcons=yes
 AllowUNCPath=no
 LicenseFile=LICENSE-binary.txt
-InfoAfterFile=readme-wander.txt
+InfoAfterFile=misc\readme-wander.txt
 OutputBaseFilename=wandering-hamster
 Compression=bzip
 SolidCompression=yes
@@ -33,9 +33,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"
 [Files]
 Source: "wander.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "wander.rpg"; DestDir: "{app}"; Flags: ignoreversion
-Source: "wander.hss"; DestDir: "{app}"; Flags: ignoreversion
-Source: "wander.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "readme-wander.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "misc\wanderp.hss"; DestDir: "{app}"; Flags: ignoreversion
+Source: "misc\wander.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "misc\readme-wander.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE-binary.txt"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
