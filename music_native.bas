@@ -39,7 +39,7 @@ option explicit
 #ELSE
 	#include once "windows.bi"
 	#undef createevent
-	'#undef lockfile '?
+	#undef lockfile '?
 	#IFNDEF USE_ALLEGRO
 		#include once "win/mmsystem.bi"
 		#undef MIDIEvent
