@@ -1280,18 +1280,26 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 	dim tbyte as ubyte
 	dim fstep as integer
 	dim maxrow as integer
+	dim minrow as integer
 
 	if wrkpage <> p then
 		wrkpage = p
 	end if
 
+	'check bounds
+	if y < -7 or y > 199 then exit sub
+	if x > 319 then exit sub
+	
 	'only draw rows that are on the screen
 	maxrow = 199 - y
 	if maxrow > 7 then 
 		maxrow = 7
 	end if
-	'NB - there is no equivalent minrow as yet, that would be more 
-	'difficult to handle in the drawing loop below.
+	minrow = 0
+	if y < 0 then
+		minrow = -y
+		y = 0
+	end if
 	
 	'is it actually faster to use a direct buffer write, or would pset be
 	'sufficiently quick?
@@ -1307,27 +1315,29 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 		'fi = s$[ch] * 8	'index to fontdata
 		fstep = 1 'used because our indexing is messed up, see above
 		for cc = 0 to 7
-			si = (y * 320) + col
-			if (fontdata[fi] > 0) then
-				tbyte = 1
-				for pix = 0 to maxrow
-					bval = fontdata[fi] and tbyte
-					if bval > 0 then
-						pscr[si] = textfg
-					else
-						if textbg > 0 then
-							pscr[si] = textbg
+			if col >= 0 then
+				si = (y * 320) + col
+				if (fontdata[fi] > 0) then
+					tbyte = 1 shl minrow
+					for pix = minrow to maxrow
+						bval = fontdata[fi] and tbyte
+						if bval > 0 then
+							pscr[si] = textfg
+						else
+							if textbg > 0 then
+								pscr[si] = textbg
+							end if
 						end if
-					end if
-					si = si + 320
-					tbyte = tbyte shl 1
-				next
-			else
-				if textbg > 0 then
-					for pix = 0 to maxrow
-						pscr[si] = textbg
 						si = si + 320
+						tbyte = tbyte shl 1
 					next
+				else
+					if textbg > 0 then
+						for pix = 0 to maxrow
+							pscr[si] = textbg
+							si = si + 320
+						next
+					end if
 				end if
 			end if
 			col = col + 1
