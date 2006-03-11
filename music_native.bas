@@ -20,33 +20,35 @@ option explicit
 '#DEFINE USE_ALLEGRO
 
 #IFDEF USE_ALLEGRO
-#include "allegro.bi"
-#undef default_palette
-#undef bitmap
-#undef fixed
-#undef arc
-#undef ellipse
-#undef floodfill
-#undef getpixel
-#undef setpixel
-#undef polygon
-#undef textout
-
+	#include "allegro.bi"
+	#undef default_palette
+	#undef bitmap
+	#undef fixed
+	#undef arc
+	#undef ellipse
+	#undef floodfill
+	#undef getpixel
+	#undef setpixel
+	#undef polygon
+	#undef textout
 #ENDIF
 
 '#IFNDEF USE_ALLEGRO
 #IFDEF __FB_LINUX__
-'???
+	'???
 #ELSE
-#include once "windows.bi"
-'Declare Function GetDesktopWindow Alias "GetDesktopWindow" () As Integer
-
-#include "externs.bi"
-#undef createevent
-
-'void win_set_window(HWND wnd);
-DECLARE SUB win_set_window CDECL ALIAS "win_set_window" (BYVAL wnd as HWND)
-DECLARE FUNCTION win_get_window CDECL ALIAS "win_get_window"() as HWND
+	#include once "windows.bi"
+	#undef createevent
+	
+	#IFNDEF USE_ALLEGRO
+		#include once "win/mmsystem.bi"
+		#undef MIDIEvent
+	#ELSE
+		#include "externs.bi"
+		DECLARE SUB win_set_window CDECL ALIAS "win_set_window" (BYVAL wnd as HWND)
+		DECLARE FUNCTION win_get_window CDECL ALIAS "win_get_window"() as HWND
+	#ENDIF
+	
 #ENDIF
 
 '#ENDIF
@@ -129,8 +131,6 @@ Declare sub FreeMidiEventList(head as MidiEvent ptr)
 DECLARE Sub PlayBackThread(dummy as integer)
 DECLARE sub fade_daemon(byval targetvol as integer)
 
-DECLARE sub sysex_callback (byval as UByte ptr, byval as Uinteger)
-
 
 dim shared music_on as integer = 0
 dim shared music_vol as integer
@@ -138,7 +138,6 @@ dim shared music_paused as integer
 dim shared music_playing as integer
 dim shared music_song as MIDIEvent ptr = NULL
 dim shared orig_vol as integer = -1
-dim shared sysex_cb as sub(byval as UByte ptr, byval as Uinteger)
 dim shared playback_thread as integer
 dim shared fade_thread as integer
 dim shared inited_once as integer = 0
@@ -204,9 +203,6 @@ Function MidiTracktoStream(track as Miditrack ptr) as MidiEvent ptr
 	Dim as MidiEvent ptr head, currentEvent
 	head = CreateEvent(0,0,0,0)
 	currentEvent = head
-
-	'print head
-
 
 
 	do while not e
@@ -291,7 +287,7 @@ Function MidiTracktoStream(track as Miditrack ptr) as MidiEvent ptr
 
 			if (laststatus >= &HC AND laststatus <= &HD) then
 				a = a AND &H7F
-				currentEvent->next = CreateEvent(atime, (laststatus shl 4) + lastchan, a, 0)
+				currentEvent->next = CreateEvent(atime, (laststatus shl 4) + lastchan, a, CUByte(-1))
 				currentEvent = currentEvent->next
 				if not currentEvent then
 					FreeMidiEventList(head)
@@ -319,13 +315,7 @@ end function
 '  *  To do so, first convert the tracks seperatly, then interweave the resulting
 '  *  MIDIEvent-Lists to one big list.
 '  */
-' static MIDIEvent *MIDItoStream(MIDIFile *mididata)
-' {
 function MiditoStream(midiData as midifile ptr) as midievent ptr
-' 	MIDIEvent **track;
-' 	MIDIEvent *head = CreateEvent(0,0,0,0);	/* dummy event to make handling the list easier */
-' 	MIDIEvent *currentEvent = head;
-' 	int trackID;
 	dim as midievent ptr ptr track
 	dim as midievent ptr head, currentEvent
 	head = CreateEvent(0,0,0,0)
@@ -384,7 +374,6 @@ function MiditoStream(midiData as midifile ptr) as midievent ptr
  	return currentEvent
 end function
 
-' static int ReadMIDIFile(MIDIFile *mididata, FILE *fp)
 function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
 
 	dim i as integer
@@ -422,7 +411,6 @@ function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
 '     /* Allocate tracks */
 	mididata->track = cptr(MIDITrack ptr, calloc(1, len(MIDITrack) * mididata->nTracks))
 	if not mididata->track then
-		'print "error allocating tracks"
 		goto bail
 	end if
 
@@ -441,7 +429,6 @@ function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
  		mididata->track[i].len = size
  		mididata->track[i].data = malloc(size)
  		if (not mididata->track[i].data) then
- 			'print "error loading track"
  			goto bail
 		end if
  		fread(mididata->track[i].data, 1, size, fp)
@@ -450,7 +437,6 @@ function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
 	return 1
 
 bail:
-	'print "I/O Error"
 	while i >= 0
  		if mididata->track[i].data then	free mididata->track[i].data
  		i -= 1
@@ -459,7 +445,6 @@ bail:
  	return 0
 end function
 
-' MIDIEvent *CreateMIDIEventList(char *midifile, Uint16 *division)
 function CreateMIDIEventList(midifile as string, division as short ptr) as MIDIEvent ptr
  	dim as FILE ptr fp
  	dim as MIDIFile ptr mididata
@@ -494,7 +479,6 @@ function CreateMIDIEventList(midifile as string, division as short ptr) as MIDIE
 
  	eventList = MIDItoStream(mididata)
 
-' 	for(trackID = 0; trackID < mididata->nTracks; trackID++)
 	for trackID = 0 to mididata->nTracks
  		if mididata->track[trackID].data then free(mididata->track[trackID].data)
 	next
@@ -515,23 +499,17 @@ Sub ConvertToRelative(head as MidiEvent ptr)
 
 		curevent->tmp = curevent->time - lastevent->time
 
-		'print curevent->tmp
-		'sleep 10
-
  		lastevent = curevent
  		curevent = curevent->next
 
  	Loop
 	curevent = head
-	'debug "Event times:"
  	Do while curevent
 
 		curevent->time = curevent->tmp
-	'	debug "->" + str(curevent->tmp)
  		curevent = curevent->next
 
  	Loop
-	'debug "End of event times"
 end Sub
 
 
@@ -554,19 +532,16 @@ sub FreeMidiEventList(head as MidiEvent ptr)
 end sub
 
 #IFNDEF USE_ALLEGRO
-#IFDEF __FB_LINUX__
-dim shared midi_handle as FILE ptr
-#ELSE
+#IFNDEF __FB_LINUX__
 dim shared midi_handle as HMIDIOUT
 #ENDIF
 #ENDIF
 
+dim shared midibuffer as UByte ptr, midibufferlen as integer, midibufferused as integer
+
 function openMidi() as integer
 	#IFNDEF USE_ALLEGRO
-    #IFDEF __FB_LINUX__
-    midi_handle = fopen("/dev/sequencer","w")
-    return midi_handle = NULL
-    #ELSE
+    #IFNDEF __FB_LINUX__
     dim moc as MIDIOUTCAPS
     midiOutGetDevCaps MIDI_MAPPER, @moc, len(MIDIOUTCAPS)
     'debug "Midi port supports Volume changes:" + str$(moc.dwSupport AND MIDICAPS_VOLUME)
@@ -585,28 +560,42 @@ function openMidi() as integer
     
     install_sound(-1,-1,"")
     load_midi_patches
+    
+    midibuffer = Allocate(60)
+	midibufferlen = 60 '20 events, roughly
+	midibufferused = 0
     #ENDIF
 end function
 
 function closeMidi() as integer
 	#IFNDEF USE_ALLEGRO
-    #IFDEF __FB_LINUX__
-    return fclose(midi_handle)
-    #ELSE
+    #IFNDEF __FB_LINUX__
     return midiOutClose (midi_handle)
     #ENDIF
     #ELSE
     
     remove_sound
+    deallocate(midibuffer)
+    midibufferused = 0
+    midibufferlen = 0
     #ENDIF
 end function
 
+'emit a single event to the device
 function shortMidi(event as UByte, a as UByte, b as UByte) as integer
 	#IFNDEF USE_ALLEGRO
     #IFDEF __FB_LINUX__
-    return putc(event, midi_handle) OR putc(a, midi_handle) OR putc(b, midi_handle)
+    if b = 255 then '-1
+    	return putc(event, midi_handle) OR putc(a, midi_handle)
+    ELSE
+    	return putc(event, midi_handle) OR putc(a, midi_handle) OR putc(b, midi_handle)
+    END IF
     #ELSE
-    return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8 + b SHL 16)
+    if b = 255 then '-1
+    	return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8)
+    else
+    	return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8 + b SHL 16)
+    end if
     #ENDIF
     
     #ELSE
@@ -615,7 +604,27 @@ function shortMidi(event as UByte, a as UByte, b as UByte) as integer
     d(0) = event
     d(1) = a
     d(2) = b
-    midi_out @d(0), 3
+    if b = 255 then
+    	midi_out @d(0), 2
+    else
+    	midi_out @d(0), 3
+    end if
+    
+    #ENDIF   
+end function
+
+'emit a stream of bytes to the device
+function longMidi(dat as UByte ptr, l as integer) as integer
+	#IFNDEF USE_ALLEGRO
+    #IFDEF __FB_LINUX__
+    '???
+    #ELSE
+    '??? - api doesn't support streaming?
+    #ENDIF
+    
+    #ELSE
+    
+    midi_out dat, l
     
     #ENDIF   
 end function
@@ -640,17 +649,12 @@ end function
 
 sub setVolMidi(v as integer)
 	dim vol as integer, ret as integer
-	
 	#IFNDEF USE_ALLEGRO
-	#IFDEF __FB_LINUX__
-    '???
-    #ELSE
+	#IFNDEF __FB_LINUX__
     vol = v
     vol = vol + vol shl 4 + vol shl 8 + vol shl 12
     vol += vol shl 16 'set left and right volumes
-    'debug "vol = " + HEX$(vol)
     ret = midiOutSetVolume (midi_handle, vol)
-    
     #ENDIF
     
     #ELSE
@@ -658,19 +662,81 @@ sub setVolMidi(v as integer)
     #ENDIF
 end sub
 
+Sub BufferEvent(event as UByte, a as Byte = -1, b as Byte = -1) 'pass -1 to a and b to ignore them
+
+#IFDEF USE_ALLEGRO
+	dim goingtouse as integer, tmpbuf(2) as UByte, i as integer
+	
+	if midibuffer = NULL then
+		midibuffer = Allocate(60)
+		midibufferlen = 60 '20 events, roughly
+		midibufferused = 0
+	end if
+	
+	tmpbuf(0) = event: goingtouse = 1
+	if a <> -1 then tmpbuf(1) = a: goingtouse = 2
+	if b <> -1 then tmpbuf(2) = b: goingtouse = 3
+	'debug "buffering event of " + Str$(goingtouse) + " bytes"
+	do while midibufferlen - midibufferused < goingtouse
+		dim newbuf as UByte ptr
+		'debug "Reallocating buffer from " + str(midibufferlen) + " to " + str(midibufferlen * 2)
+		newbuf = Reallocate(midibuffer, midibufferlen * 2)
+		if newbuf = NULL then
+			debug "FAILED TO REALLOCATE MIDI BUFFER, DROPPING EVENTS"
+			'ehh... problem. The only thing we can do it toss the extra events...
+			exit sub
+		end if
+		midibufferlen *= 2
+		midibuffer = newbuf 'in case it moved
+	loop
+	
+	'memcpy @tmpbuf(0), midibuffer + midibufferused, goingtouse
+	for i = 0 to goingtouse - 1
+		midibuffer[midibufferused +  i] = tmpbuf(i)
+	next
+	
+	
+	midibufferused += goingtouse	
+	
+#ELSE ' well, maybe the buffer is possible with the API. I dunno. TODO: check later
+	shortMidi event, a, b
+#ENDIF
+
+End Sub
+
+
+
+Sub FlushMidiBuffer()
+#IFNDEF USE_ALLEGRO
+	exit sub 'nothing to do, as midi events are unbuffered
+#ELSE
+	If midibuffer = NULL then
+		exit sub 'no buffer? buh?
+	end if
+	
+	#IFDEF USE_ALLEGRO 
+	load_midi_patches
+	#ENDIF
+	longMidi midibuffer, midibufferused
+	midibufferused = 0
+	'should I null the buffer? ehh, let's see how it runs without
+#ENDIF
+End Sub
 
 
 Sub ResetMidi
 	dim n as UByte, c as UByte
-	'debug "RESET!"
+	flushmidibuffer
+	
 	for c = 0 to 15
 		for n = 0 to 127
-			shortMidi(&H80 + c,n,0) 'turn off all notes
+			BufferEvent(&H80 + c,n,0) 'turn off all notes
 		next
-		shortMidi(&HB0 + c,121,0) 'controller reset
-		if not music_paused then shortMidi(&HC0 + c,0,0) 'reset instruments
+		
+		BufferEvent(&HB0 + c,121,-1) 'controller reset
+		if not music_paused then bufferevent(&HC0 + c,0,0) 'reset instruments
+		flushmidibuffer ' too keep the buffer from growing /too/ big
 	next
-	
 	
 end sub
 
@@ -701,9 +767,6 @@ Sub AddJumpToEnd(head as MidiEvent ptr)
 	curevent->extralen = ubound(jumpdat) + 1
 	curevent->extradata = malloc(curevent->extralen)
 	memcpy curEvent->extraData, @(jumpdat(0)),curevent->extralen
-
-	'head->time += 3
-	'newHead = createEvent(&
 
 End Sub
 
@@ -806,30 +869,21 @@ sub music_play(songname as string, fmt as music_format)
 		'stop current song
 		if music_song <> 0 then
 			music_playing = 0
-			'debug "waiting for music thread..."
 			if playback_thread then threadWait playback_thread: playback_Thread = 0
-			'debug "done"
-			'debug "Freeing existing song"
 			FreeMidiEventList(music_song)
-			'debug "done"
 			music_song = 0
 			music_paused = 0
 		end if
 
-		'music_song = Mix_LoadMUS(songname)
 		music_song = CreateMidiEventList(songname,@division)
 		if music_song = 0 then
-			debug "Could not load song " + songname
+			'debug "Could not load song " + songname
 			exit sub
 		end if
 
 		converttorelative music_song
 		addJumpToEnd music_song
 
-		'Mix_HookMusic(@sysex_callback,NULL)
-		sysex_cb = @sysex_callback
-
-		'Mix_PlayMusic(music_song, -1)
 		music_paused = 0
 		music_playing = 1
 		playback_thread = threadcreate(@PlayBackThread,0)
@@ -841,7 +895,6 @@ sub music_pause()
 	if music_on = 1 then
 		if music_song > 0 then
 			if music_paused = 0 then
-				'Mix_PauseMusic	'doesn't seem to work
 				music_paused = 1
 			end if
 		end if
@@ -851,7 +904,6 @@ end sub
 sub music_resume()
 	if music_on = 1 then
 		if music_song > 0 then
-			'Mix_ResumeMusic
 			music_paused = 0
 		end if
 	end if
@@ -879,11 +931,6 @@ sub music_fade(targetvol as integer)
 'lies, now it fades with a thread
 	dim I as integer
 
-	'if music_vol > targetvol then vstep = -1
-	'for i = music_vol to targetvol step vstep
-	'	music_setvolume(i)
-	'	sleep 10
-	'next
 	if fade_thread then
 		threadwait fade_thread
 	end if
@@ -936,7 +983,7 @@ do while music_playing
 	if starttime = -1 then
 		delta = 0
 	else
-		delta = timer - starttime + carry
+		delta = timer - starttime '+ carry
 	end if
 	curtime += delta * delay
 
@@ -955,29 +1002,33 @@ do while music_playing
 		curtime -= curevent->time
 
 		if music_playing = 0 then ESCAPE_SEQUENCE
-		'curtime = 0
 		select case as const curevent->status
 		case &HB0 to &HBF 'controller
 			if curevent->data(0) = &H6F then 'rpg maker loop point
 				labels(0) = curevent
 			else
-				shortMidi curevent->status,curevent->data(0),curevent->data(1)
+				'shortMidi curevent->status,curevent->data(0),curevent->data(1)
+				BufferEvent curevent->status,CByte(curevent->data(0)),CByte(curevent->data(1))
 			end if
-		case &H80 to &HEF 'reg-oo-lar event
-			shortMidi curevent->status,curevent->data(0),curevent->data(1)
+		case &H80 to &H8F, &H90 to &H9F 'note on/off
+			BufferEvent curevent->status,curevent->data(0),curevent->data(1)
+		case &HA0 to &HAF 'pressure
+			BufferEvent curevent->status,curevent->data(0),curevent->data(1)
+		case &HC0 to &HCF 'program change
+			BufferEvent curevent->status,curevent->data(0),-1
+		case &HD0 to &HDF 'channel pressure
+			BufferEvent curevent->status,curevent->data(0),-1
+		case &HE0 to &HEF 'pitch bend
+			BufferEvent curevent->status,curevent->data(0),curevent->data(1)
 		case &H0, &HF0 'Sysex
-			'if sysex_cb then
-			'	sysex_cb(curevent->extraData, curevent->extralen)
-			'end if
-			'debug("Sysex")
 			'first, check the id
 			dim sysex_id as uinteger, p as integer
 			p = 0
 			sysex_id = *cptr(uinteger ptr, curevent->extradata + p)
 			sysex_id = BE_LONG(sysex_id)
-			'debug str(sysex_id) + " " + str(SIG_ID("O","H","R","m"))
 			if sysex_id = SIG_ID("O","H","R","m") then
 			p += 4
+			FlushMidiBuffer ' in case we loop
 sysex:
 				'debug "Music code: " + hex(curevent->extradata[p])
 				select case as const curevent->extradata[p]
@@ -1106,26 +1157,19 @@ sysex:
 		case &HFF
 			dim metatype as integer
 			metatype = curevent->data(0)
-			select case metatype
-			case &H51
+			if metatype = &H51 then
 				tempo = curevent->extradata[0] SHL 16 + curevent->extradata[1] SHL 8 + curevent->extradata[2]
-
 				gosub updateDelay
-				'print "New tempo: ", tempo
-				'sleep
-			case &H7F, &H5, &H3, &H20, &H58, &H59
-				'ignore
-			case else
-				'print "Unknown event (" + hex(metatype) + ")"
-			end select
+			end if
 		case else
 			debug("Unknown status: " + hex(curevent->status))
 		end select
 		curevent = curevent->next
 	loop while music_playing
 	curtime = 0
+	FlushMidiBuffer
 skipevents:
-
+	
 	if music_playing = 0 then ESCAPE_SEQUENCE
 
 	if not curevent then
@@ -1136,10 +1180,9 @@ skipevents:
 
 	if music_playing = 0 then ESCAPE_SEQUENCE
 	do
-		sleep 5,1
+		sleep 1,1
 		if music_playing = 0 then ESCAPE_SEQUENCE
 		if music_paused <> 0 AND pauseflag = 0 then
-			'debug "detecting pause, reseting"
 			pauseflag = 1
 			resetMidi ' kill stuck notes
 		end if
@@ -1149,30 +1192,11 @@ loop
 
 
 endOfSong:
-'debug "End of Song!"
 resetMidi
 playback_thread = 0
 exit sub
 
 updateDelay:
-delay = tempo / division
-delay /= 1000000
-delay = 1 / delay
+delay = division / tempo * 1000000
 return
 End Sub
-
-
-
-
-sub sysex_callback (byval d as UByte ptr, byval l as Uinteger)
-	'debug str(l) + "|" + str(d[1])
-	'dim i as integer, s as string
-	'for i = 0 to 32
-	'	s += hex(d[i]) + " "
-	'next
-	'debug s
-
-	debug("sysex")
-
-end sub
-
