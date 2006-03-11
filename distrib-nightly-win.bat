@@ -10,6 +10,16 @@ svn update
 del game*.exe
 del custom*.exe
 
+call makegame-gfx-music fb native
+call makeedit-gfx-music fb native
+move game.exe game-fb-native.exe
+move custom.exe custom-fb-native.exe
+
+call makegame-gfx-music fb sdl
+call makeedit-gfx-music fb sdl
+move game.exe game-fb-sdl.exe
+move custom.exe custom-fb-sdl.exe
+
 call makegame-gfx-music fb2 native
 call makeedit-gfx-music fb2 native
 move game.exe game-fb2-native.exe
@@ -41,5 +51,5 @@ call compile.bat
 
 del distrib\ohrrpgce-binary-win-nightly.zip
 support\pkzip distrib\ohrrpgce-binary-win-nightly.zip game*.exe custom*.exe
-support\pkzip distrib\ohrrpgce-binary-win-nightly.zip whatsnew.txt LICENSE-binary.txt SDL.dll SDL_mixer.dll alleg40.dll
+support\pkzip distrib\ohrrpgce-binary-win-nightly.zip whatsnew.txt *-binary.txt *-nightly.txt SDL.dll SDL_mixer.dll alleg40.dll
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-binary-win-nightly.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/archive/
