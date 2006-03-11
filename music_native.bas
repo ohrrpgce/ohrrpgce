@@ -19,37 +19,19 @@ option explicit
 'uncomment this to try allegro
 '#DEFINE USE_ALLEGRO
 
-#IFDEF USE_ALLEGRO
-#include "allegro.bi"
-#undef default_palette
-#undef bitmap
-#undef fixed
-#undef arc
-#undef ellipse
-#undef floodfill
-#undef getpixel
-#undef setpixel
-#undef polygon
-#undef textout
-
-#ENDIF
-
-'#IFNDEF USE_ALLEGRO
+#IFNDEF USE_ALLEGRO
 #IFDEF __FB_LINUX__
 '???
 #ELSE
-#include once "windows.bi"
-'Declare Function GetDesktopWindow Alias "GetDesktopWindow" () As Integer
-
-#include "externs.bi"
+#include "windows.bi"
+#include "win/mmsystem.bi"
+#undef MIDIEVENT
 #undef createevent
-
-'void win_set_window(HWND wnd);
-DECLARE SUB win_set_window CDECL ALIAS "win_set_window" (BYVAL wnd as HWND)
-DECLARE FUNCTION win_get_window CDECL ALIAS "win_get_window"() as HWND
+#undef lockfile
 #ENDIF
-
-'#ENDIF
+#ELSE
+#include "allegro.bi"
+#ENDIF
 
 
 #DEFINE ESCAPE_SEQUENCE Goto endOfSong
@@ -141,7 +123,6 @@ dim shared orig_vol as integer = -1
 dim shared sysex_cb as sub(byval as UByte ptr, byval as Uinteger)
 dim shared playback_thread as integer
 dim shared fade_thread as integer
-dim shared inited_once as integer = 0
 
 'for playback
 dim shared division as integer
@@ -575,12 +556,8 @@ function openMidi() as integer
     #ENDIF
     #ELSE
     'see if allegro's been initialized
-    if not inited_once then
-    
-    	win_set_window FB_Win32.Wnd
+    if not allegro_id then
     	allegro_init
-    	
-    	inited_once = 1
     end if
     
     install_sound(-1,-1,"")
@@ -654,7 +631,7 @@ sub setVolMidi(v as integer)
     #ENDIF
     
     #ELSE
-    set_volume -1, int(v * 16 + (v \ 4)) 'don't care, midi volume
+    set_volume 128, int(v * 16 + (v \ 4)) 'don't care, midi volume
     #ENDIF
 end sub
 
