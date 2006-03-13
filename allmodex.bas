@@ -1333,7 +1333,7 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 					next
 				else
 					if textbg > 0 then
-						for pix = 0 to maxrow
+						for pix = minrow to maxrow
 							pscr[si] = textbg
 							si = si + 320
 						next
@@ -2122,7 +2122,7 @@ SUB str2array (s$, arr() as integer, BYVAL o as integer)
 			bp[bi] = s$[i] and &hff
 			toggle = 1
 		else
-			bp[bi] = bp[bi] or (s$[i] shl 8)
+			bp[bi] = (bp[bi] and &hff) or (s$[i] shl 8)
 			'check sign
 			if (bp[bi] and &h8000) > 0 then
 				bp[bi] = bp[bi] or &hffff0000 'make -ve
