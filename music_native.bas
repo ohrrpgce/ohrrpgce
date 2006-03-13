@@ -1192,6 +1192,7 @@ loop
 
 
 endOfSong:
+music_paused = 0
 resetMidi
 playback_thread = 0
 exit sub
