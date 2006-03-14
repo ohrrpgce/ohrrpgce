@@ -360,10 +360,10 @@ DO
  setwait timing(), 120
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN EXIT DO
  dummy = usemenu(gd, 0, -1, gmapmax, 24)
  IF gd = -1 THEN
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN RETURN
+  IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
  END IF
  IF gd = 1 THEN dummy = zintgrabber(gmap(gd), gdmin(gd) - 1, gdmax(gd), 75, 77) 'song is optional
  IF gd > 1 OR gd = 0 THEN
@@ -446,6 +446,9 @@ DO
  clearpage dpage
  dowait
 LOOP
+
+loadpasdefaults defaults(), gmap(0)
+RETURN
 
 setgmapscriptstr:
 FOR i = 0 TO 4
