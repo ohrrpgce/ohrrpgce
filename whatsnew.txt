@@ -4,7 +4,8 @@ Mar 15 2006 [tirgoviste]
   * New Features
     * Stat caps [Mike Caron]
     * "% based attacks damage instead of set" attack bitset [Mike Caron]
-    * Precise weapon placement [Mike Caron]
+    * Precise weapon placement. (use . and , to choose which
+      frame to edit) [Mike Caron]
     * NPC Placement Editor now shows the copy number of NPCs (the bottom number)
       [Mike Caron]
 
