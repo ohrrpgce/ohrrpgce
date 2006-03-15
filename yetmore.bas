@@ -9,7 +9,7 @@ DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE SUB setScriptArg (arg%, value%)
 DECLARE FUNCTION cropPlotStr% (s$)
-DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, mapwide%, maphigh%, wrapmode%)
+DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%)
 DECLARE SUB aheadxy (x%, y%, direction%, distance%)
 DECLARE SUB wrapxy (x%, y%, wide%, high%)
 DECLARE SUB loadSayToBuffer (say%)
@@ -520,26 +520,6 @@ IF slot >= 0 AND slot <= 3 THEN
 END IF
 herobyrank = result
 END FUNCTION
-
-SUB herowrappass (whoi, x, y, xgo(), ygo(), mapwide, maphigh, wrapmode)
-
-DIM pd(3)
-
-tilex = x: tiley = y
-p = readmapblock(tilex, tiley)
-
-FOR i = 0 TO 3
- tilex = x: tiley = y
- wrapaheadxy tilex, tiley, i, 1, mapwide, maphigh, wrapmode
- pd(i) = readmapblock(tilex, tiley)
-NEXT i
-
-IF ygo(whoi) > 0 AND movdivis(ygo(whoi)) AND ((p AND 1) = 1 OR (pd(0) AND 4) = 4 OR (veh(0) AND vehpass(veh(18), pd(0), 0))) THEN ygo(whoi) = 0
-IF ygo(whoi) < 0 AND movdivis(ygo(whoi)) AND ((p AND 4) = 4 OR (pd(2) AND 1) = 1 OR (veh(0) AND vehpass(veh(18), pd(2), 0))) THEN ygo(whoi) = 0
-IF xgo(whoi) > 0 AND movdivis(xgo(whoi)) AND ((p AND 8) = 8 OR (pd(3) AND 2) = 2 OR (veh(0) AND vehpass(veh(18), pd(3), 0))) THEN xgo(whoi) = 0
-IF xgo(whoi) < 0 AND movdivis(xgo(whoi)) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (veh(0) AND vehpass(veh(18), pd(1), 0))) THEN xgo(whoi) = 0
-
-END SUB
 
 SUB initgame
 
@@ -2038,16 +2018,63 @@ FOR i = o TO 3
 NEXT i
 END SUB
 
-SUB wrapaheadxy (x, y, direction, distance, mapwide, maphigh, wrapmode)
+SUB wrapaheadxy (x, y, direction, distance)
 'alters X and Y ahead by distance in direction, wrapping if neccisary
 
 aheadxy x, y, direction, distance
 
-IF wrapmode THEN
- wrapxy x, y, mapwide, maphigh
+IF gmap(5) THEN
+ wrapxy x, y, scroll(0), scroll(1)
 END IF
 
 END SUB
+
+FUNCTION wrappass (x, y, xgo, ygo, isveh)
+' returns true if blocked by terrain
+DIM pd(3)
+
+wrappass = 0
+
+tilex = x: tiley = y
+p = readmapblock(tilex, tiley)
+
+FOR i = 0 TO 3
+ tilex = x: tiley = y
+ wrapaheadxy tilex, tiley, i, 1
+ pd(i) = readmapblock(tilex, tiley)
+NEXT i
+
+IF ygo > 0 AND movdivis(ygo) AND ((p AND 1) = 1 OR (pd(0) AND 4) = 4 OR (isveh AND vehpass(veh(18), pd(0), 0))) THEN ygo = 0: wrappass = 1
+IF ygo < 0 AND movdivis(ygo) AND ((p AND 4) = 4 OR (pd(2) AND 1) = 1 OR (isveh AND vehpass(veh(18), pd(0), 0))) THEN ygo = 0: wrappass = 1
+IF xgo > 0 AND movdivis(xgo) AND ((p AND 8) = 8 OR (pd(3) AND 2) = 2 OR (isveh AND vehpass(veh(18), pd(0), 0))) THEN xgo = 0: wrappass = 1
+IF xgo < 0 AND movdivis(xgo) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (isveh AND vehpass(veh(18), pd(0), 0))) THEN xgo = 0: wrappass = 1
+
+END FUNCTION
+
+
+FUNCTION wrapcollision (x_a, y_a, xgo_a, ygo_a, x_b, y_b, xgo_b, ygo_b)
+ x1 = (x_a - bound(xgo_a, -20, 20)) \ 20
+ x2 = (x_b - bound(xgo_b, -20, 20)) \ 20
+ y1 = (y_a - bound(ygo_a, -20, 20)) \ 20
+ y2 = (y_b - bound(ygo_b, -20, 20)) \ 20
+
+ IF gmap(5) THEN
+  wrapcollision = (x1 - x2) MOD scroll(0) = 0 AND (y1 - y2) MOD scroll(1) = 0
+ ELSE
+  wrapcollision = x1 = x2 AND y1 = y2
+ END IF
+
+END FUNCTION
+
+FUNCTION wraptouch (x1, y1, x2, y2)
+ 'whether 2 walkabouts fit on a 2x2 square
+ wraptouch = 0
+ IF gmap(5) THEN
+  IF ABS((x1 - x2) MOD (scroll(0) * 20 - 20)) <= 20 AND ABS((y1 - y2) MOD (scroll(1) * 20 - 20)) <= 20 THEN wraptouch = 1
+ ELSE
+  IF ABS(x1 - x2) <= 20 AND ABS(y1 - y2) <= 20 THEN wraptouch = 1
+ END IF
+END FUNCTION
 
 SUB wrappedsong (songnumber)
 

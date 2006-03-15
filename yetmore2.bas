@@ -158,6 +158,25 @@ END IF
 
 END SUB
 
+FUNCTION cropmovement (x, y, xgo, ygo)
+ 'crops movement at edge of map, or wraps
+ 'returns true if ran into wall at edge
+ cropmovement = 0
+ IF gmap(5) = 1 THEN
+  '--wrap walking
+  IF x < 0 THEN x = x + scroll(0) * 20
+  IF x >= scroll(0) * 20 THEN x = x - scroll(0) * 20
+  IF y < 0 THEN y = y + scroll(1) * 20
+  IF y >= scroll(1) * 20 THEN y = y - scroll(1) * 20
+ ELSE
+  '--crop walking
+  IF x < 0 THEN x = 0: xgo = 0: cropmovement = 1
+  IF x > (scroll(0) - 1) * 20 THEN x = (scroll(0) - 1) * 20: xgo = 0: cropmovement = 1
+  IF y < 0 THEN y = 0: ygo = 0: cropmovement = 1
+  IF y > (scroll(1) - 1) * 20 THEN y = (scroll(1) - 1) * 20: ygo = 0: cropmovement = 1
+ END IF
+END FUNCTION
+
 SUB defaultc
  RESTORE 101
  FOR i = 0 TO 12
@@ -171,6 +190,25 @@ SUB defaultc
 ctrldata:
 
 
+END SUB
+
+SUB drawnpcs
+ FOR i = 0 TO 299 '-- for each NPC instance
+  IF npcl(i + 600) > 0 THEN '-- if visible
+   o = npcl(i + 600) - 1
+   z = 0
+   IF framewalkabout(npcl(i + 0), npcl(i + 300) + gmap(11), drawnpcX, drawnpcY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+    IF veh(0) AND veh(5) = i THEN z = catz(0) '--special vehicle magic
+    IF z AND readbit(veh(), 9, 8) = 0 THEN '--shadow
+     rectangle npcl(i + 0) - mapx + 6, npcl(i + 300) - mapy + gmap(11) + 13, 8, 5, 0, dpage
+     rectangle npcl(i + 0) - mapx + 5, npcl(i + 300) - mapy + gmap(11) + 14, 10, 3, 0, dpage
+    END IF
+    loadsprite buffer(), 0, (400 * npcl(i + 900)) + (200 * INT(npcl(i + 1200) / 2)), 20 + (5 * o), 20, 20, 2
+    drawsprite buffer(), 0, pal16(), (4 + o) * 16, drawnpcX, drawnpcY - z, dpage
+    'edgeprint LTRIM$(STR$(i)), drawnpcX, drawnpcY + gmap(11) - z, 15, dpage
+   END IF
+  END IF
+ NEXT i
 END SUB
 
 SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)

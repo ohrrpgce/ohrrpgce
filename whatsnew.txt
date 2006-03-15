@@ -11,7 +11,7 @@ Mar ?? 2006 [tirgoviste]
   * Bug Fixes
     * Pausing the music will probably cause "stuck notes" (i.e. notes that never
       get turned off) if any notes are playing at the time [Mike Caron]
-    * Browsing for a replacement song, and canelling deleted the existing song.
+    * Browsing for a replacement song, and cancelling deleted the existing song.
       [Mike Caron]
     * Rewards in battle are rewarded multiple times. [Mike Caron]
     * Linux: specifying a file on the command line now works even if the file
@@ -25,11 +25,18 @@ Mar ?? 2006 [tirgoviste]
       expect random trade-in items for all purchases [James Paige]
     * fixed bug that prevented the name of a spell learned from an item from
       being displayed [James Paige]
+    * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
+      hero at the opposite edge" and bug 27: "NPCs cannot walk across the edges of a 
+      wraparound map" (consider that a feature if you want) 
+      And bug where couldn't activate touch activation npc over map edge 
+      And bug where avoid and chase NPCs did so badly near wraparound map edge
+      [Ralph Versteegen]
 
   * New Plotscripting Commands
     * get/set formation song [Mike Caron]
 
   * Stuff only Developers Will Notice
+    * Some rewritten map wrapping code [Ralph Versteegen]
 
 Feb 16 2006 [serendipity+]
 
