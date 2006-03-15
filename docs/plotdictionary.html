@@ -58,12 +58,23 @@
 					/*.param {
 						color: yellow;
 					}*/
+					
+					.seealso {
+						display: inline;
+						margin:0;
+						padding:0;
+					}
+					
+					.seealso li {
+						display: inline;
+						
+					}
 
 				</style>
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<p>This is a listing of all the plotscripting commands implemented as of October 3, 2005.</p>
+<p>This is a listing of all the plotscripting commands implemented as of February 18, 2006.</p>
 <p>In addition to reading this document, I also recommend you check out Plotscripting Tutorial and the HamsterSpeak Specification</p>
 <hr>
 <h2>Commands by Category</h2>
@@ -170,6 +181,9 @@
 		
 		<a href="#about-keyconstants">cancel key</a><br>
 	
+		<a href="#about-cancelmapnamedisplay">cancel map name display</a><br>
+		
+	
 		<a href="#about-canlearnspell">can learn spell (hero,attack)</a><br>
 		
 	
@@ -227,7 +241,7 @@
 		<a href="#about-decrement">decrement (variable,amount)</a><br>
 		
 	
-		<a href="#about-defaulttile">defaulttile</a><br>
+		<a href="#about-defaulttile">default tile</a><br>
 		
 	
 		<a href="#about-defineconstant">define constant (number,name)</a><br>
@@ -344,6 +358,12 @@
 		<a href="#about-getattackname">get attack name (ID, attack)</a><br>
 		
 	
+		<a href="#about-getcount">get count</a><br>
+		
+	
+		<a href="#about-getdamagecap">get damage cap</a><br>
+		
+	
 		<a href="#about-getdeathscript">get death script</a><br>
 		
 	
@@ -359,13 +379,13 @@
 		<a href="#about-getenemyname">get enemy name (enemyid, stringid)</a><br>
 		
 	
-		<a href="#about-getenemyrewards">get enemy rewards (enemyid, reward)</a><br>
-		
-	
 		<a href="#about-getenemystat">get enemy stat(enemy, stat)</a><br>
 		
 	
 		<a href="#about-getfootoffset">get foot offset</a><br>
+		
+	
+		<a href="#about-getformationsong">get formation song (formation)</a><br>
 		
 	
 		<a href="#about-getglobalstring">get global string (ID, global)</a><br>
@@ -410,10 +430,19 @@
 		<a href="#about-getmoney">get money (amount)</a><br>
 		
 	
+		<a href="#about-getmusicvolume">get music volume</a><br>
+		
+	
 		<a href="#about-getnpcid">get NPC ID (reference)</a><br>
 		
 	
 		<a href="#about-getonkeypressscript">get on keypress script</a><br>
+		
+	
+		<a href="#about-getsongname">get song name (ID, song)</a><br>
+		
+	
+		<a href="#about-giveexperience">give experience (hero,amount)</a><br>
 		
 	
 		<a href="#about-globalstostring">globals to string(ID, starting global, length)</a><br>
@@ -444,6 +473,9 @@
 		
 	
 		<a href="#about-heroiswalking">hero is walking (who)</a><br>
+		
+	
+		<a href="#about-herolevelled">hero levelled (who)</a><br>
 		
 	
 		<a href="#about-heropixelx">hero pixel X (who)</a><br>
@@ -602,9 +634,6 @@
 		<a href="#about-npccopycount">NPC copy count (ID)</a><br>
 		
 	
-		<a href="#about-npccount">NPC count</a><br>
-		
-	
 		<a href="#about-npcdirection">NPC direction (who)</a><br>
 		
 	
@@ -653,6 +682,9 @@
 		<a href="#about-pancamera">pan camera (direction,distance,pixelstep)</a><br>
 		
 	
+		<a href="#about-party">party</a><br>
+		
+	
 		<a href="#about-paymoney">pay money (amount)</a><br>
 		
 	
@@ -686,10 +718,16 @@
 		<a href="#about-readcolor">read color (index,element)</a><br>
 		
 	
+		<a href="#about-readenemydata">read enemy data (enemyid, data)</a><br>
+		
+	
 		<a href="#about-readglobal">read global (id)</a><br>
 		
 	
 		<a href="#about-readmapblock">read map block (x,y)</a><br>
+		
+	
+		<a href="#about-readnpc">read NPC (who,NPCstat)</a><br>
 		
 	
 		<a href="#about-readpassblock">read pass block (x,y)</a><br>
@@ -722,6 +760,9 @@
 		<a href="#about-resumeherowalls">resume hero walls</a><br>
 		
 	
+		<a href="#about-resumemapmusic">resume map music</a><br>
+		
+	
 		<a href="#about-resumenpcs">resume NPCs</a><br>
 		
 	
@@ -741,7 +782,7 @@
 		
 	
 		
-		<a href="#about-resumerandomenemies">resume random enemies</a><br>
+		<a href="#about-resumerandomenemies">resume random enemys</a><br>
 	
 		<a href="#about-return">return(value)</a><br>
 		
@@ -773,6 +814,9 @@
 		<a href="#about-script">script, name, argumentnames (statements)</a><br>
 		
 	
+		<a href="#about-secondsofplay">seconds of play</a><br>
+		
+	
 		<a href="#about-setambientmusic">set ambient music (song)</a><br>
 		
 	
@@ -780,6 +824,12 @@
 		
 	
 		<a href="#about-setcaterpillarmode">set caterpillar mode (state)</a><br>
+		
+	
+		<a href="#about-setdamagecap">set damage cap (cap)</a><br>
+		
+	
+		<a href="#about-setdaysofplay">set days of play (days)</a><br>
 		
 	
 		<a href="#about-setdeathscript">set death script (id)</a><br>
@@ -800,13 +850,13 @@
 		<a href="#about-setenemyname">set enemy name (enemyid, stringid)</a><br>
 		
 	
-		<a href="#about-setenemyrewards">set enemy rewards (enemyid, reward, value)</a><br>
-		
-	
 		<a href="#about-setenemystat">set enemy stat(enemy, stat, value)</a><br>
 		
 	
 		<a href="#about-setfootoffset">set foot offset (offset)</a><br>
+		
+	
+		<a href="#about-setformationsong">set formation song (formation, song)</a><br>
 		
 	
 		<a href="#about-setfullheroswapmode">set full hero swap mode (state)</a><br>
@@ -822,6 +872,9 @@
 		
 	
 		<a href="#about-setheroframe">set hero frame(who, frame)</a><br>
+		
+	
+		<a href="#about-setherolevel">set hero level (who, level, forgetspells)</a><br>
 		
 	
 		<a href="#about-setheroname">set hero name (ID, hero)</a><br>
@@ -845,6 +898,9 @@
 		<a href="#about-setheroz">set hero z (who, z)</a><br>
 		
 	
+		<a href="#about-sethoursofplay">set hours of play (hours)</a><br>
+		
+	
 		<a href="#about-setinnnorevivemode">set inn no revive mode (state)</a><br>
 		
 	
@@ -855,6 +911,12 @@
 		
 	
 		<a href="#about-setmapedgemode">set map edge mode (mode, default tile)</a><br>
+		
+	
+		<a href="#about-setminutesofplay">set minutes of play (min)</a><br>
+		
+	
+		<a href="#about-setmusicvolume">set music volume (volume)</a><br>
 		
 	
 		<a href="#about-setnohpleveluprestore">set no HP level up restore (state)</a><br>
@@ -876,6 +938,9 @@
 		
 	
 		<a href="#about-setonkeypressscript">set on keypress script (id)</a><br>
+		
+	
+		<a href="#about-setsecondssofplay">set seconds of play (sec)</a><br>
 		
 	
 		<a href="#about-settag">set tag (tag,value)</a><br>
@@ -923,6 +988,9 @@
 		
 		<a href="#about-tileconstants">south wall</a><br>
 	
+		<a href="#about-spellslearnt">spells learnt (hero,number)</a><br>
+		
+	
 		<a href="#about-spellsmenu">spells menu (who)</a><br>
 		
 	
@@ -965,6 +1033,9 @@
 		<a href="#about-suspendherowalls">suspend hero walls</a><br>
 		
 	
+		<a href="#about-suspendmapmusic">suspend map music</a><br>
+		
+	
 		<a href="#about-suspendnpcs">suspend NPCs</a><br>
 		
 	
@@ -984,7 +1055,7 @@
 		
 	
 		
-		<a href="#about-suspendrandomenemies">suspend random enemies</a><br>
+		<a href="#about-suspendrandomenemies">suspend random enemys</a><br>
 	
 		<a href="#about-swapbyname">swap by name (name,name)</a><br>
 		
@@ -1026,6 +1097,9 @@
 		<a href="#about-numericconstants">three</a><br>
 	
 		<a href="#about-tileconstants">Tile Constants</a><br>
+		
+	
+		<a href="#about-trace">trace (string)</a><br>
 		
 	
 		
@@ -1127,6 +1201,9 @@
 		<a href="#about-writecolor">write color (index,element,value)</a><br>
 		
 	
+		<a href="#about-writeenemydata">write enemy data (enemyid, data, value)</a><br>
+		
+	
 		<a href="#about-writeglobal">write global (id,value)</a><br>
 		
 	
@@ -1219,7 +1296,7 @@ include, mygame.hsi # constants particular to my game</pre>
 		
 		<hr>
 	
-		<a name="Wait%20Commands"></a>
+		<a name="Wait Commands"></a>
 		
 		<font color="#f06060" size="4">Wait Commands</font>
 		<p></p>
@@ -1291,7 +1368,7 @@ wait for all # wait until everything is done</pre>
 		
 		<hr>
 	
-		<a name="Suspend%20and%20Resume"></a>
+		<a name="Suspend and Resume"></a>
 		
 		<font color="#f06060" size="4">Suspend and Resume</font>
 		<p></p>
@@ -1454,14 +1531,14 @@ resume random enemies # back to normal</pre>
 		<p>
 		<tt>
 		
-				<b><font color="yellow">suspend random enemies</font></b><br>
+				<b><font color="yellow">suspend random enemys</font></b><br>
 				See <a href="#about-suspendrandomenemies">suspend random enemies</a>
 			</tt></p>
 		<a name="about-resumerandomenemys"></a>
 		<p>
 		<tt>
 		
-				<b><font color="yellow">resume random enemies</font></b><br>
+				<b><font color="yellow">resume random enemys</font></b><br>
 				See <a href="#about-resumerandomenemies">resume random enemies</a>
 			</tt></p>
 		<a name="about-suspendboxadvance"></a>
@@ -1504,10 +1581,45 @@ resume box advance # go back to normal</pre>
 			
 			
 		</tt></p>
+		<a name="about-suspendmapmusic"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">suspend map music</font></b><br>
+			Causes ambient music not to automatically play when you enter a map. Does not affect the currently playing music, or the map's ambient music. Use when playing thematic music during a scene that involves changing maps.
+			<pre># begin scene
+play song(song:Happy Times)
+show textbox (117)
+wait for textbox
+# goto another map without triggering music
+fade screen out
+wait
+suspend map music
+use door(3)
+fade screen in
+# continue scene
+show textbox (118)
+wait for textbox
+# return to normal music behaviour and play the ambient music
+resume map music
+play song (get ambient music)</pre>
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-setambientmusic" class="ref">set ambient music</a>, </li>
+<li><a href="#about-getambientmusic" class="ref">get ambient music</a></li>
+</ul>
+		</tt></p>
+		<a name="about-resumemapmusic"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">resume map music</font></b><br>
+			Causes ambient music to automatically start playing when you enter a map again after a <a href="#about-suspendmapmusic" class="ref">resume map music</a> command.
+			
+			
+		</tt></p>
 		
 		<hr>
 	
-		<a name="Moving%20Heros"></a>
+		<a name="Moving Heros"></a>
 		
 		<font color="#f06060" size="4">Moving Heros</font>
 		<p></p>
@@ -1621,7 +1733,7 @@ resume player # ok, done</pre>
 		
 		<hr>
 	
-		<a name="Moving%20NPCs"></a>
+		<a name="Moving NPCs"></a>
 		
 		<font color="#f06060" size="4">Moving NPCs</font>
 		<p></p>
@@ -1659,31 +1771,29 @@ script,ref example,begin
   wait(2)
 
 end</pre>
-			<br>See also: 
-				<a href="#about-npcatspot" class="ref">NPC at spot</a>
-				<a href="#about-npcatpixel" class="ref">NPC at pixel</a>
-				<a href="#about-createnpc" class="ref">create NPC</a>
-			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-npcatspot" class="ref">NPC at spot</a>, </li>
+<li>
+<a href="#about-npcatpixel" class="ref">NPC at pixel</a>, </li>
+<li><a href="#about-createnpc" class="ref">create NPC</a></li>
+</ul>
 		</tt></p>
 		<a name="about-npcatspot"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">NPC at spot (x,y,number)</font></b><br>
-			This command returns a reference to the NPC at the given X and Y coordinate on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom most NPC, which is number 0). You can also pass the constant <a href="#about-npccount" class="ref">NPC count</a> for the third argument to return the total number of npcs on that tile.
+			This command returns a reference to the NPC at the given X and Y coordinate on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom most NPC, which is number 0). You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile.
 			
-			<br>See also: 
-				<a href="#about-npcreference" class="ref">NPC reference</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-npcreference" class="ref">NPC reference</a></li></ul>
 		</tt></p>
 		<a name="about-npcatpixel"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">NPC at pixel (x,y,number)</font></b><br>
-			This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). You can also pass the constant <a href="#about-npccount" class="ref">NPC count</a> for the third argument to return the total number of npcs on that tile.
+			This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile.
 			
-			<br>See also: 
-				<a href="#about-npcreference" class="ref">NPC reference</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-npcreference" class="ref">NPC reference</a></li></ul>
 		</tt></p>
 		<a name="about-walknpc"></a>
 		<p>
@@ -1826,7 +1936,7 @@ end</pre>
 		
 		<hr>
 	
-		<a name="Moving%20the%20Camera"></a>
+		<a name="Moving the Camera"></a>
 		
 		<font color="#f06060" size="4">Moving the Camera</font>
 		<p></p>
@@ -1874,7 +1984,7 @@ end</pre>
 		
 		<hr>
 	
-		<a name="Text%20Boxes"></a>
+		<a name="Text Boxes"></a>
 		
 		<font color="#f06060" size="4">Text Boxes</font>
 		<p></p>
@@ -1903,7 +2013,7 @@ resume box advance # go back to normal</pre>
 		
 		<hr>
 	
-		<a name="Triggering%20and%20Showing%20Stuff"></a>
+		<a name="Triggering and Showing Stuff"></a>
 		
 		<font color="#f06060" size="4">Triggering and Showing Stuff</font>
 		<p></p>
@@ -1945,6 +2055,14 @@ resume box advance # go back to normal</pre>
 		<tt>
 		<b><font color="yellow">show no value</font></b><br>
 			Gets rid of the number in the bottom left corner of the screen after a <a href="#about-showvalue" class="ref">show value</a> command.
+			
+			
+		</tt></p>
+		<a name="about-cancelmapnamedisplay"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">cancel map name display</font></b><br>
+			If the map name is being displayed, this command makes it disappear. For example, this may be useful if you want the map name to appear when you enter a map normally, but not when you jump to the map for a plotscripted cutscene.
 			
 			
 		</tt></p>
@@ -2018,9 +2136,7 @@ resume box advance # go back to normal</pre>
 		<b><font color="yellow">save menu (reallysave)</font></b><br>
 			Takes you directly to the save menu. Will return a number 1-4 indicating the slot the player saved in, or <a href="#about-booleanconstants" class="ref">false</a> if the player did not save. You can optionally pass an argument of <a href="#about-booleanconstants" class="ref">false</a> to make the menu display without actually saving
 			
-			<br>See also: 
-				<a href="#about-autosave" class="ref">autosave</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-autosave" class="ref">autosave</a></li></ul>
 		</tt></p>
 		<a name="about-ordermenu"></a>
 		<p>
@@ -2041,7 +2157,7 @@ resume box advance # go back to normal</pre>
 		
 		<hr>
 	
-		<a name="Adding%20and%20Removing"></a>
+		<a name="Adding and Removing"></a>
 		
 		<font color="#f06060" size="4">Adding and Removing</font>
 		<p></p>
@@ -2203,6 +2319,14 @@ end</pre>
 			
 			
 		</tt></p>
+		<a name="about-giveexperience"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">give experience (hero,amount)</font></b><br>
+			Gives (or removes, but you can't drop level) experience to either a hero by position in party (use result returned by <a href="#about-findhero" class="ref">find hero</a> command) or the whole active party, if the constant <a href="#about-party" class="ref">party</a> is passed as first argument. If you give experience to the whole party, then it will be split amongst live heroes as it is in battle. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <a href="#about-herolevelled" class="ref">hero levelled</a> and <a href="#about-spellslearnt" class="ref">spells learnt</a> for dealing with this.
+			
+			
+		</tt></p>
 		
 		<hr>
 	
@@ -2249,9 +2373,7 @@ end</pre>
 		<b><font color="yellow">set ambient music (song)</font></b><br>
 			Plays a song and sets it as the map's ambient music, that is the song that is played after a textbox with 'restore music' set. The effect goes away if you change maps or fight a battle. Calling set ambient music with no argument stops the music and disables the ambient music.
 			
-			<br>See also: 
-				<a href="#about-playsong" class="ref">play song</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-playsong" class="ref">play song</a></li></ul>
 		</tt></p>
 		<a name="about-getambientmusic"></a>
 		<p>
@@ -2259,8 +2381,22 @@ end</pre>
 		<b><font color="yellow">get ambient music</font></b><br>
 			Returns the song number of the map's ambient music.
 			
-			<br>See also: 
-				<a href="#about-currentsong" class="ref">current song</a>
+			<br><br>See also: <ul class="seealso"><li><a href="#about-currentsong" class="ref">current song</a></li></ul>
+		</tt></p>
+		<a name="about-setmusicvolume"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set music volume (volume)</font></b><br>
+			Sets the volume at which music is played, volume being a number on the scale of 0 to 255, 0 being silent, 255 loudest. If you want to manipulate the sound (e.g. fading out the music) you should take note of the original vulume that the player has set and return to this. By default volume is not maximum, so you should not hardcode fades to begin at volume 255. NOTE: the actual resolution at which the volume is set is not necessarily 1/255th of full volume but depends on your implementation. Currently vanilla OHR uses only 0-15 internally, so 240-255 all translate to the same volume.
+			
+			
+		</tt></p>
+		<a name="about-getmusicvolume"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get music volume</font></b><br>
+			Returns the volume at which music is played, on a scale of 0 to 15, 0 being silent, 255 loudest.
+			
 			
 		</tt></p>
 		<a name="about-fadescreenout"></a>
@@ -2330,7 +2466,7 @@ end</pre>
 		
 		<hr>
 	
-		<a name="Hero's%20Spells"></a>
+		<a name="Hero's Spells"></a>
 		
 		<font color="#f06060" size="4">Hero's Spells</font>
 		<p></p>
@@ -2383,10 +2519,32 @@ end</pre>
 			
 			
 		</tt></p>
+		<a name="about-spellslearnt"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">spells learnt (hero,number)</font></b><br>
+			Used to return the id numbers of spells the hero learnt from the last battle or <a href="#about-giveexperience" class="ref">give experience</a> or <a href="#about-setherolevel" class="ref">set hero level</a> command. (Returns only the spells learnt from the very last battle or <a href="#about-giveexperience" class="ref">give experience</a>/<a href="#about-setherolevel" class="ref">set hero level</a> command). If the second argument is <a href="#about-getcount" class="ref">get count</a> then the number of spells that the hero learnt is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learnt:
+			<pre>define script (autonumber, print learnt spells, 1, 0)
+# the following script uses strings 0, 1, 2 for its use (will be overwritten)
+script, print learnt spells, who, begin
+  variable(i)
+  get hero name (1, who) # construct the static part of the text in string 1
+  $1+" learnt spell "
+  for (i, 0, spells learnt (who, get count) -- 1) do (
+    get attack name (2, spells learnt (who, i))  # get the i-th spell learnt
+    0 $= 1  # copy the static part to the displayed string
+    0 $+ 2  # combine with the spell name
+    show string at (0, 160, 100)
+    wait for keypress (anykey)
+  )
+  hide string (0)
+end</pre>
+			
+		</tt></p>
 		
 		<hr>
 	
-		<a name="Mouse%20Functions"></a>
+		<a name="Mouse Functions"></a>
 		
 		<font color="#f06060" size="4">Mouse Functions</font>
 		<p></p>
@@ -2459,7 +2617,7 @@ end</pre>
 		
 		<hr>
 	
-		<a name="String%20Functions"></a>
+		<a name="String Functions"></a>
 		
 		<font color="#f06060" size="4">String Functions</font>
 		<p>When refering to a position in a string, <span class="param">position</span> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!<br>Also note that a string cannot exceed 40 characters. If it does, it will be truncated to 40 characters.</p>
@@ -2470,12 +2628,15 @@ end</pre>
 		<b><font color="yellow">show string (ID)</font></b><br>
 			Displays string #ID on the screen, as with the <a href="#about-showvalue" class="ref">show value</a> command. Use <a href="#about-shownovalue" class="ref">show no value</a> to remove the string from the screen. Note that this command displays the value of the string at the moment the command was run. Later changes to the value of the string will not appear unless you run show string again. If you need real-time display of changes to a string, use <a href="#about-showstringat" class="ref">show string at</a> or <a href="#about-centerstringat" class="ref">center string at</a> instead.
 			
-			<br>See also: 
-				<a href="#about-showvalue" class="ref">show value</a>
-				<a href="#about-shownovalue" class="ref">show no value</a>
-                                <a href="#about-showstringat" class="ref">show string at</a>
-                                <a href="#about-centerstringat" class="ref">center string at</a>
-			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-showvalue" class="ref">show value</a>, </li>
+<li>
+<a href="#about-shownovalue" class="ref">show no value</a>, </li>
+<li>
+<a href="#about-showstringat" class="ref">show string at</a>, </li>
+<li><a href="#about-centerstringat" class="ref">center string at</a></li>
+</ul>
 		</tt></p>
 		<a name="about-clearstring"></a>
 		<p>
@@ -2491,7 +2652,7 @@ end</pre>
 		<b><font color="yellow">append ascii (ID, char)</font></b><br>
 			Appends the character with ascii code 'ascii' to the string with ID #ID. Remember: Numbers are 48 - 57, uppercase letters are 65 - 90, lowercase letters are 97 - 122.
 			
-			<br>See also: <a href="#about-appendnumber" class="ref">append number</a>
+			<br><br>See also: <ul class="seealso"><li><a href="#about-appendnumber" class="ref">append number</a></li></ul>
 		</tt></p>
 		<a name="about-appendnumber"></a>
 		<p>
@@ -2499,7 +2660,7 @@ end</pre>
 		<b><font color="yellow">append number (ID, number)</font></b><br>
 			Appends the textual representation of <span class="param">number</span> to the string with ID #<span class="param">ID</span>. For example, append number(1,65) will append "65", not "A".
 			
-			<br>See also: <a href="#about-appendnumber" class="ref">append number</a>
+			<br><br>See also: <ul class="seealso"><li><a href="#about-appendnumber" class="ref">append number</a></li></ul>
 		</tt></p>
 		<a name="about-copystring"></a>
 		<p>
@@ -2547,7 +2708,7 @@ end</pre>
 		<b><font color="yellow">string to globals (ID, starting global, length)</font></b><br>
 			This command will fill global variables (starting with #<span class="param">starting global</span>), up to <span class="param">length</span> globals, with the ascii values of the characters in string #<span class="param">ID</span>. Don"t ask us why you would want to, but I"m sure there"s a use (encryption?)
 			
-			<br>See also: <a href="#about-globalstostring" class="ref">globals to string</a>
+			<br><br>See also: <ul class="seealso"><li><a href="#about-globalstostring" class="ref">globals to string</a></li></ul>
 		</tt></p>
 		<a name="about-globalstostring"></a>
 		<p>
@@ -2555,7 +2716,7 @@ end</pre>
 		<b><font color="yellow">globals to string(ID, starting global, length)</font></b><br>
 			This command is the opposite of <a href="#about-stringtoglobals" class="ref">string to globals</a>. It will build a new string in slot #<span class="param">ID</span>, using the ascii values from the global variables #<span class="param">starting global</span> and <span class="param">length</span> globals thereafter. If a global has a value greater than 255, the value will be ignored.
 			
-			<br>See also: <a href="#about-stringtoglobals" class="ref">string to globals</a>
+			<br><br>See also: <ul class="seealso"><li><a href="#about-stringtoglobals" class="ref">string to globals</a></li></ul>
 		</tt></p>
 		<a name="about-getheroname"></a>
 		<p>
@@ -2677,10 +2838,18 @@ end</pre>
 			
 			
 		</tt></p>
+		<a name="about-getsongname"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get song name (ID, song)</font></b><br>
+			Gets the name of song #<span class="param">song</span> and puts it in string #<span class="param">ID</span>.
+			
+			
+		</tt></p>
 		
 		<hr>
 	
-		<a name="Misc%20Functions"></a>
+		<a name="Misc Functions"></a>
 		
 		<font color="#f06060" size="4">Misc Functions</font>
 		<p></p>
@@ -2801,7 +2970,15 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">days of play</font></b><br>
-			returns the number of days that the game has been played
+			Returns the number of days that the game has been played
+			
+			
+		</tt></p>
+		<a name="about-setdaysofplay"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set days of play (days)</font></b><br>
+			Sets the number of days that the game has been "played" to <span class="param">days</span>, as long as <span class="param">days</span> is greater than 0. Useful if there are times that shouldn't count towards the play time, or for penalizing bad players &gt;:)
 			
 			
 		</tt></p>
@@ -2809,7 +2986,15 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">hours of play</font></b><br>
-			returns the number of hours that the game has been played, 0 to 23
+			Returns the number of hours that the game has been played, 0 to 23
+			
+			
+		</tt></p>
+		<a name="about-sethoursofplay"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set hours of play (hours)</font></b><br>
+			Sets the number of hours that the game has been "played" to <span class="param">hours</span>, as long as <span class="param">hours</span> is within the 0-23 range.
 			
 			
 		</tt></p>
@@ -2818,6 +3003,30 @@ end</pre>
 		<tt>
 		<b><font color="yellow">minutes of play</font></b><br>
 			returns the number of minutes that the game has been played, 0 to 59
+			
+			
+		</tt></p>
+		<a name="about-setminutesofplay"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set minutes of play (min)</font></b><br>
+			Sets the number of minutes that the game has been "played" to <span class="param">min</span>, as long as <span class="param">min</span> is within the 0-59 range.
+			
+			
+		</tt></p>
+		<a name="about-secondsofplay"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">seconds of play</font></b><br>
+			returns the number of seconds that the game has been played, 0 to 59
+			
+			
+		</tt></p>
+		<a name="about-setsecondssofplay"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set seconds of play (sec)</font></b><br>
+			Sets the number of seconds that the game has been "played" to <span class="param">sec</span>, as long as <span class="param">sec</span> is within the 0-59 range.
 			
 			
 		</tt></p>
@@ -3027,10 +3236,11 @@ end</pre>
 		<b><font color="yellow">last save slot</font></b><br>
 			Returns the last save slot saved in, or <a href="#about-booleanconstants" class="ref">false</a> if the game has not been saved yet.
 			
-			<br>See also: 
-				<a href="#about-saveinslot" class="ref">save in slot</a>
-				<a href="#about-savemenu" class="ref">save menu</a>
-			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-saveinslot" class="ref">save in slot</a>, </li>
+<li><a href="#about-savemenu" class="ref">save menu</a></li>
+</ul>
 		</tt></p>
 		<a name="about-saveslotused"></a>
 		<p>
@@ -3046,11 +3256,13 @@ end</pre>
 		<b><font color="yellow">get enemy stat(enemy, stat)</font></b><br>
 			Returns the selected stat from the selected enemy. The first argument is the number of the enemy whose stats you want to check. The second argument is the name of the stat that you want to check. The names of the stats are also defined in your HSI file in the form stat:name. 
 			
-			<br>See also: 
-				<a href="#about-setenemystat" class="ref">set enemy stat</a>
-				<a href="#about-getherostat" class="ref">get hero stat</a>
-				<a href="#about-setherostat" class="ref">set hero stat</a>
-			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-setenemystat" class="ref">set enemy stat</a>, </li>
+<li>
+<a href="#about-getherostat" class="ref">get hero stat</a>, </li>
+<li><a href="#about-setherostat" class="ref">set hero stat</a></li>
+</ul>
 		</tt></p>
 		<a name="about-setenemystat"></a>
 		<p>
@@ -3058,11 +3270,13 @@ end</pre>
 		<b><font color="yellow">set enemy stat(enemy, stat, value)</font></b><br>
 			Sets the selected stat of the selected enemy to the value you supply. The first argument is the number of the enemy whose stats you want to set. The second argument is the name of the stat that you want to set. The names of the stats are also defined in your HSI file in the form stat:name. The third is the new value of the stat. <br>Note: Enemy stat changes are temporary. They are not saved in the save game.
 			
-			<br>See also: 
-				<a href="#about-getenemystat" class="ref">get enemy stat</a>
-				<a href="#about-getherostat" class="ref">get hero stat</a>
-				<a href="#about-setherostat" class="ref">set hero stat</a>
-			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-getenemystat" class="ref">get enemy stat</a>, </li>
+<li>
+<a href="#about-getherostat" class="ref">get hero stat</a>, </li>
+<li><a href="#about-setherostat" class="ref">set hero stat</a></li>
+</ul>
 		</tt></p>
 		<a name="about-getenemyname"></a>
 		<p>
@@ -3070,9 +3284,7 @@ end</pre>
 		<b><font color="yellow">get enemy name (enemyid, stringid)</font></b><br>
 			Lets you use the enemy name in a string.  The first argument is the number of the enemy you want to get the name from, second argument is the number of the string that you want to store the name of the enemy.
 			
-			<br>See also: 
-				<a href="#about-setenemyname" class="ref">set enemy name</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-setenemyname" class="ref">set enemy name</a></li></ul>
 		</tt></p>
 		<a name="about-setenemyname"></a>
 		<p>
@@ -3080,35 +3292,31 @@ end</pre>
 		<b><font color="yellow">set enemy name (enemyid, stringid)</font></b><br>
 			Lets you set the enemy name from a string, the string length cannot be more then 16 characters, if it is more then 16 the name will be truncated.  The first argument is the number of the enemy's name you want to change, second argument is the number of the string that you supply the name of the enemy from. <br>Note: Enemy name changes are temporary. They are not saved in the save game.
 			
-			<br>See also: 
-				<a href="#about-getenemyname" class="ref">get enemy name</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-getenemyname" class="ref">get enemy name</a></li></ul>
 		</tt></p>
 		<a name="about-getenemyappearance"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">get enemy appearance (enemyid, appearance)</font></b><br>
-			Returns the appearace of the enemy. Enemyid, is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size. Use enemy:picture to return enemy's picture, enemy:picturesize returns the size of the enemy.
+			Returns data on the appearance of a enemy. Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size. You can use the following constants for appearance: <li>enemy:picture</li>
+<li>enemy:palette</li>
+<li>enemy:picturesize</li> <br>You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large
 			
-			<br>See also: 
-				<a href="#about-setenemyappearance" class="ref">set enemy appearance</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-setenemyappearance" class="ref">set enemy appearance</a></li></ul>
 		</tt></p>
 		<a name="about-setenemyappearance"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">set enemy appearance (enemyid, appearance,value)</font></b><br>
-			Lets you set the enemy's appearance.  Enemyid is the number of the enemy's appearance that you want to change, appearance is either picture, palette, or size. Value can is the new number that you want to assign, use constants enemysize:small, enemysize:medium, or enemysize:large, when changing picture size, when changing palette use the palette number, etc... <br>Note: Enemy appearance changes are temporary. They are not saved in the save game.
+			Lets you change an enemy's appearance.  Enemyid is the number of the enemy's appearance that you want to change, appearance is one of the constants given in <a href="#about-getenemyappearance" class="ref">get enemy appearance</a>. Value can is the new number that you want to assign, constants enemysize:small, enemysize:medium, or enemysize:large when changing picture size, or palette number when changing palette. <br>Note: Enemy appearance changes are temporary. They are not saved in the save game.
 			
-			<br>See also: 
-				<a href="#about-getenemyappearance" class="ref">get enemy appearance</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-getenemyappearance" class="ref">get enemy appearance</a></li></ul>
 		</tt></p>
-		<a name="about-getenemyrewards"></a>
+		<a name="about-readenemydata"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">get enemy rewards (enemyid, reward)</font></b><br>
-			Returns the enemy's reward values. Enemyid is the number of enemy, reward is the number of the reward you want returned. Use the following constants<li>enemy:gold</li>
+		<b><font color="yellow">read enemy data (enemyid, data)</font></b><br>
+			Returns the enemy's reward values. Enemyid is the number of enemy, data is a predefined constant defining the data you want returned. Use the following constants:<li>enemy:gold</li>
 <li>enemy:experience</li>
 <li>enemy:item</li>
 <li>enemy:itempercent</li>
@@ -3120,34 +3328,50 @@ end</pre>
 <li>stealablerareitem</li>
 <li>stealablerareitemchance</li>
 			
-			<br>See also: 
-				<a href="#about-setenemyrewards" class="ref">set enemy rewards</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-writeenemydata" class="ref">write enemy data</a></li></ul>
 		</tt></p>
-		<a name="about-setenemyrewards"></a>
+		<a name="about-writeenemydata"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">set enemy rewards (enemyid, reward, value)</font></b><br>
-			Lets you set enemy's rewards as well as stealible items. Enemyid is the number of enemy, reward is the number of the reward you want returned. Value is the number you want to set on reward. Use the following constants<li>enemy:gold</li>
-<li>enemy:experience</li>
-<li>enemy:item(0 to 255)</li>
-<li>enemy:itempercent(0 to 100)</li>
-<li>enemy:rareitem(0 to 255)</li>
-<li>enemy:rareitempercent(0 to 100)</li>
-<li>stealability(isnotstealable,stealableonce,stealableinfinity)</li>
-<li>stealableitem(0 to 255)</li>
-<li>stealableitemchance(0 to 100)</li>
-<li>stealablerareitem(0 to 255)</li>
-<li>stealablerareitemchance(0 to 100)</li> <br>Note: Enemy stat rewards are temporary. They are not saved in the save game.
+		<b><font color="yellow">write enemy data (enemyid, data, value)</font></b><br>
+			Lets you set items of an enemy's data. Enemyid is the number of enemy, data is a predefined constant for the data you want to change. Value is the new value given to that setting. Use the same constants as are given at <a href="#about-readenemydata" class="ref">read enemy data</a>.<br>Note: Enemy data changes are temporary. They are not saved in the save game.
 			
-			<br>See also: 
-				<a href="#about-getenemyrewards" class="ref">get enemy rewards</a>
+			<br><br>See also: <ul class="seealso"><li><a href="#about-readenemydata" class="ref">read enemy data</a></li></ul>
+		</tt></p>
+		<a name="about-getformationsong"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get formation song (formation)</font></b><br>
+			Returns the song associated with <span class="param">formation</span>. If there is none, it will return 0, otherwise it will return the song number + 1. If there is an error (such as <span class="param">formation</span> not existing), it will return -1.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-setformationsong" class="ref">set formation song</a></li></ul>
+		</tt></p>
+		<a name="about-setformationsong"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set formation song (formation, song)</font></b><br>
+			Sets an enemy formation to use <span class="param">song</span> as its music. Use 0 for none, or the song number + 1 for a song.<br>Note: Formation data changes are temporary. They are not saved in the save game.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-getformationsong" class="ref">get formation song</a></li></ul>
+		</tt></p>
+		<a name="about-herolevelled"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">hero levelled (who)</font></b><br>
+			Returns the number of levels the specified hero (use result from <a href="#about-findhero" class="ref">find hero</a>) gained from only the very last battle or <a href="#about-giveexperience" class="ref">give experience</a> command - levels gained from previous battles or commands is not recorded. In other words, does not return true or false, but can be be used in an if statement like:
+			<pre>give experience (party, 50)
+if (herolevelled (find hero (hero: Bob))) then (
+  $31="Bob gained "
+  append number(31, hero levelled (find hero (hero: Bob)))
+  $31+" levels!"
+  show textbox (233) # ${S31} :show string 31
+)</pre>
 			
 		</tt></p>
 		
 		<hr>
 	
-		<a name="Tweaking%20Maps"></a>
+		<a name="Tweaking Maps"></a>
 		
 		<font color="#f06060" size="4">Tweaking Maps</font>
 		<p></p>
@@ -3199,14 +3423,12 @@ write pass block(15,3,pass)
 		<b><font color="yellow">load tileset (set)</font></b><br>
 			Loads a different tileset for the currently displaying map. The argument is the ID number of the tileset to load. To restore the map's default tileset, use load tileset with no arguments.
 			
-			<br>See also: 
-				<a href="#about-getmaptileset" class="ref">get map tileset</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-getmaptileset" class="ref">get map tileset</a></li></ul>
 		</tt></p>
 		
 		<hr>
 	
-		<a name="Working%20with%20Tags"></a>
+		<a name="Working with Tags"></a>
 		
 		<font color="#f06060" size="4">Working with Tags</font>
 		<p></p>
@@ -3230,7 +3452,7 @@ write pass block(15,3,pass)
 		
 		<hr>
 	
-		<a name="Working%20with%20Variables"></a>
+		<a name="Working with Variables"></a>
 		
 		<font color="#f06060" size="4">Working with Variables</font>
 		<p></p>
@@ -3262,7 +3484,7 @@ write pass block(15,3,pass)
 		
 		<hr>
 	
-		<a name="Math,%20Comparison,%20and%20Logic%20Operators"></a>
+		<a name="Math, Comparison, and Logic Operators"></a>
 		
 		<font color="#f06060" size="4">Math, Comparison, and Logic Operators</font>
 		<p>Pre-December 1999 versions of HamsterSpeak used a different syntax for math. For more information, see the HamsterSpeak Specification</p>
@@ -3390,7 +3612,7 @@ write pass block(15,3,pass)
 		
 		<hr>
 	
-		<a name="Flow%20Control"></a>
+		<a name="Flow Control"></a>
 		
 		<font color="#f06060" size="4">Flow Control</font>
 		<p></p>
@@ -3451,10 +3673,11 @@ end</pre>
 		<b><font color="yellow">do</font></b><br>
 			
 			
-			<br>See also: 
-				<a href="#about-while" class="ref">while</a>
-				<a href="#about-for" class="ref">for</a>
-			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-while" class="ref">while</a>, </li>
+<li><a href="#about-for" class="ref">for</a></li>
+</ul>
 		</tt></p>
 		<a name="about-for"></a>
 		<p>
@@ -3475,7 +3698,7 @@ end</pre>
 		
 		<hr>
 	
-		<a name="Advanced%20Commands"></a>
+		<a name="Advanced Commands"></a>
 		
 		<font color="#f06060" size="4">Advanced Commands</font>
 		<p></p>
@@ -3568,6 +3791,14 @@ script,change NPC,who,picture,palette,begin
   Alter NPC(who,NPCstat:picture,picture)
   Alter NPC(who,NPCstat:palette,palette)
 end</pre>
+			
+		</tt></p>
+		<a name="about-readnpc"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">read NPC (who,NPCstat)</font></b><br>
+			Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <a href="#about-alternpc" class="ref">alter NPC</a>
+			
 			
 		</tt></p>
 		<a name="about-setdeathscript"></a>
@@ -3694,7 +3925,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set map edge mode (mode, default tile)</font></b><br>
-			Sets the behaviour at the edge of the map. Use the constants <a href="#about-crop" class="ref">crop</a>, <a href="#about-wrap" class="ref">wrap</a> and <a href="#about-defaulttile" class="ref">defaulttile</a>. When the behaviour is default tile, you should give a second argument specifying which tile should be displayed off the boundaries of the map, otherwise ignore the second argument. The effect goes away if you change maps or fight a battle.
+			Sets the behaviour at the edge of the map. Use the constants <a href="#about-crop" class="ref">crop</a>, <a href="#about-wrap" class="ref">wrap</a> and <a href="#about-defaulttile" class="ref">default tile</a>. When the behaviour is default tile, you should give a second argument specifying which tile should be displayed off the boundaries of the map, otherwise ignore the second argument. The effect goes away if you change maps or fight a battle.
 			
 			
 		</tt></p>
@@ -3702,7 +3933,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get map edge mode</font></b><br>
-			Returns the map's edge mode. Use the constants <a href="#about-crop" class="ref">crop</a>, <a href="#about-wrap" class="ref">wrap</a> and <a href="#about-defaulttile" class="ref">defaulttile</a> to compare with the value returned.
+			Returns the map's edge mode. Use the constants <a href="#about-crop" class="ref">crop</a>, <a href="#about-wrap" class="ref">wrap</a> and <a href="#about-defaulttile" class="ref">default tile</a> to compare with the value returned.
 			
 			
 		</tt></p>
@@ -3712,9 +3943,7 @@ end</pre>
 		<b><font color="yellow">find hero (who)</font></b><br>
 			Searches through your party to see if the specified hero is there, and returns the position where the hero was found, or -1 if the hero was not found. Use the names defined in your HSI file in the format hero:name. Not only does this tell you if a hero is in your party, but you can also use it to tell whether or not the hero is in your active party. find hero will return 0,1,2 or 3 if the hero is in the active party, but it will return a number 4 or higher if the hero is in the reserve.
 			
-			<br>See also: 
-				<a href="#about-rankincaterpillar" class="ref">rank in caterpillar</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-rankincaterpillar" class="ref">rank in caterpillar</a></li></ul>
 		</tt></p>
 		<a name="about-herobyslot"></a>
 		<p>
@@ -3730,9 +3959,7 @@ end</pre>
 		<b><font color="yellow">rank in caterpillar (who)</font></b><br>
 			Searches through your active party to see if the specified hero is there, and returns the position int the walkabout caterpillar where the hero was found, or -1 if the hero was not found. Use the names defined in your HSI file in the format hero:name. This is particularaly useful if you need to use a command like walk hero but you are not sure which position the hero is in.
 			
-			<br>See also: 
-				<a href="#about-findhero" class="ref">find hero</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-findhero" class="ref">find hero</a></li></ul>
 		</tt></p>
 		<a name="about-herobyrank"></a>
 		<p>
@@ -3748,11 +3975,13 @@ end</pre>
 		<b><font color="yellow">get hero stat (who,stat,type)</font></b><br>
 			A function that returns one of a hero's stats. The first argument is the position of the hero you want to check in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is the name of the stat that you want to check. The names of the stats are also define in your HSI file in the form stat:name. The third argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a>. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed.
 			
-			<br>See also: 
-				<a href="#about-setherostat" class="ref">set hero stat</a>
-				<a href="#about-setenemystat" class="ref">set enemy stat</a>
-				<a href="#about-getenemystat" class="ref">get enemy stat</a>
-			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-setherostat" class="ref">set hero stat</a>, </li>
+<li>
+<a href="#about-setenemystat" class="ref">set enemy stat</a>, </li>
+<li><a href="#about-getenemystat" class="ref">get enemy stat</a></li>
+</ul>
 		</tt></p>
 		<a name="about-setherostat"></a>
 		<p>
@@ -3760,11 +3989,13 @@ end</pre>
 		<b><font color="yellow">set hero stat (who,stat,value,type)</font></b><br>
 			A command that changes one of a hero's stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also define in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a>. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed.
 			
-			<br>See also: 
-				<a href="#about-getherostat" class="ref">get hero stat</a>
-				<a href="#about-setenemystat" class="ref">set enemy stat</a>
-				<a href="#about-getenemystat" class="ref">get enemy stat</a>
-			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-getherostat" class="ref">get hero stat</a>, </li>
+<li>
+<a href="#about-setenemystat" class="ref">set enemy stat</a>, </li>
+<li><a href="#about-getenemystat" class="ref">get enemy stat</a></li>
+</ul>
 		</tt></p>
 		<a name="about-getherolevel"></a>
 		<p>
@@ -3774,15 +4005,21 @@ end</pre>
 			
 			
 		</tt></p>
+		<a name="about-setherolevel"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set hero level (who, level, forgetspells)</font></b><br>
+			A command that sets a hero's current level. The first argument is the position of the hero you want to change in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. You can specify any hero in the active or reserve party and any (positive) level. Unlike old workarounds, this command teachs the hero any spells they would have learnt by that level and correctly sets the experience to next levelup (experience gained to the current next level is lost). You can also decrease the hero's level, which will cause spells to be forgotten, unless the optional 3rd argument (defaulting to true) is set as false.
+			
+			
+		</tt></p>
 		<a name="about-readglobal"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">read global (id)</font></b><br>
 			A function that returns the value of a global variable using its ID number instead of its name. Why would you want to do a silly thing like that? Because it allows you to simulate simple fake arrays, in the old C-pointer style.
 			
-			<br>See also: 
-				<a href="#about-writeglobal" class="ref">write global</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-writeglobal" class="ref">write global</a></li></ul>
 		</tt></p>
 		<a name="about-writeglobal"></a>
 		<p>
@@ -3790,9 +4027,7 @@ end</pre>
 		<b><font color="yellow">write global (id,value)</font></b><br>
 			A function that writes a value into a global variable using its ID number instead of its name. Why would you want to do a silly thing like that? Because it allows you to simulate simple fake arrays, in the old C-pointer style
 			
-			<br>See also: 
-				<a href="#about-readglobal" class="ref">read global</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-readglobal" class="ref">read global</a></li></ul>
 		</tt></p>
 		<a name="about-setbattlewaitmode"></a>
 		<p>
@@ -3872,9 +4107,7 @@ end</pre>
 		<b><font color="yellow">allow minimap (setting)</font></b><br>
 			Sets whether the Map option appears in the menu. Give no argument or <a href="#about-booleanconstants" class="ref">true</a> to enable, or <a href="#about-booleanconstants" class="ref">false</a> to disable. The effect goes away if you change maps or fight a battle.
 			
-			<br>See also: 
-				<a href="#about-showminimap" class="ref">show mini map</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-showminimap" class="ref">show mini map</a></li></ul>
 		</tt></p>
 		<a name="about-allowsaveanywhere"></a>
 		<p>
@@ -3882,9 +4115,7 @@ end</pre>
 		<b><font color="yellow">allow save anywhere (setting)</font></b><br>
 			Sets whether the Save option appears in the menu. Give no argument or <a href="#about-booleanconstants" class="ref">true</a> to enable, or <a href="#about-booleanconstants" class="ref">false</a> to disable. The effect goes away if you change maps or fight a battle.
 			
-			<br>See also: 
-				<a href="#about-savemenu" class="ref">save menu</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-savemenu" class="ref">save menu</a></li></ul>
 		</tt></p>
 		<a name="about-autosave"></a>
 		<p>
@@ -3892,9 +4123,7 @@ end</pre>
 		<b><font color="yellow">autosave</font></b><br>
 			Transparently saves the game to the last save slot used, or if the game has not been saved yet, calls <a href="#about-savemenu" class="ref">save menu</a>. Returns the number of the last save slot, or if the user cancelled the save menu, returns false
 			
-			<br>See also: 
-				<a href="#about-lastsaveslot" class="ref">last save slot</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-lastsaveslot" class="ref">last save slot</a></li></ul>
 		</tt></p>
 		<a name="about-saveinslot"></a>
 		<p>
@@ -3918,9 +4147,7 @@ end</pre>
 		<b><font color="yellow">delete save (slot)</font></b><br>
 			Deletes a saved game. The save will no longer be visible on the load game menu or loadable with <a href="#about-loadfromslot" class="ref">load from slot</a>. However, <a href="#about-importglobals" class="ref">import globals</a> can still be used to read globals out of the slot.
 			
-			<br>See also: 
-				<a href="#about-saveinslot" class="ref">save in slot</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-saveinslot" class="ref">save in slot</a></li></ul>
 		</tt></p>
 		<a name="about-importglobals"></a>
 		<p>
@@ -3951,9 +4178,7 @@ script, check game finished, begin
   )
   wait for textbox
 end</pre>
-			<br>See also: 
-				<a href="#about-readglobal" class="ref">read global</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-readglobal" class="ref">read global</a></li></ul>
 		</tt></p>
 		<a name="about-exportglobals"></a>
 		<p>
@@ -3961,9 +4186,7 @@ end</pre>
 		<b><font color="yellow">export globals (slot, first, last)</font></b><br>
 			Writes a range of globals to a saved game, overwriting the saved games globals. "First" and "Last" are the id numbers of the globals at the beginning and end of the range. First defaults to 0, and Last defaults to 1024. Therefore, if you pass no range, all the globals will be written.
 			
-			<br>See also: 
-				<a href="#about-writeglobal" class="ref">write global</a>
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-writeglobal" class="ref">write global</a></li></ul>
 		</tt></p>
 		<a name="about-runscriptbyid"></a>
 		<p>
@@ -3980,10 +4203,38 @@ script,sum,a,b,c,begin
 end</pre>
 			
 		</tt></p>
+		<a name="about-getdamagecap"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get damage cap</font></b><br>
+			Returns the current damage cap, or 0 if none
+			
+			
+		</tt></p>
+		<a name="about-setdamagecap"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set damage cap (cap)</font></b><br>
+			Sets the current damage cap to <span class="param">cap</span>. Use 0 for no cap.
+			
+			
+		</tt></p>
+		<a name="about-trace"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">trace (string)</font></b><br>
+			Writes string #<span class="param">string</span> to "G_DEBUG.TXT".
+			<pre>variable(i)
+i:= random(1,1000)
+$1="i = "
+append number(1,i) #"i = 1"
+trace(1) # writes "TRACE: i = 1" to G_DEBUG.TXT</pre>
+			
+		</tt></p>
 		
 		<hr>
 	
-		<a name="Predefined%20Constants"></a>
+		<a name="Predefined Constants"></a>
 		
 		<font color="#f06060" size="4">Predefined Constants</font>
 		<p></p>
@@ -4344,11 +4595,11 @@ end</pre>
 				<b><font color="yellow">right button</font></b><br>
 				See <a href="#about-mouseconstants">Mouse Constants</a>
 			</tt></p>
-		<a name="about-npccount"></a>
+		<a name="about-getcount"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">NPC count</font></b><br>
-			When passed to <a href="#about-npcatpixel" class="ref">NPC at pixel</a> or <a href="#about-npcatspot" class="ref">NPC at spot</a>, they return the number of NPCs at that spot.
+		<b><font color="yellow">get count</font></b><br>
+			When passed to <a href="#about-npcatpixel" class="ref">NPC at pixel</a> or <a href="#about-npcatspot" class="ref">NPC at spot</a>, they return the number of NPCs at that spot. With <a href="#about-spellslearnt" class="ref">spells learnt</a> returns the number of spells a hero learnt.
 			
 			
 		</tt></p>
@@ -4435,14 +4686,22 @@ end</pre>
 		<a name="about-defaulttile"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">defaulttile</font></b><br>
+		<b><font color="yellow">default tile</font></b><br>
 			A constant used in <a href="#about-setmapedgemode" class="ref">set map edge mode</a> which makes the edges of the map impassible and displays a specified tile everywhere off the edge of the map.
+			
+			
+		</tt></p>
+		<a name="about-party"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">party</font></b><br>
+			Pass as first argument to <a href="#about-giveexperience" class="ref">give experience</a> to divide the experience between all the live heroes in the battle (active) party.
 			
 			
 		</tt></p>
 		
 		<hr>
-	<p>Stats: There are 344 commands in this file, of which 51 are only references to other commands.</p>
+	<p>Stats: There are 366 commands in this file, of which 51 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
