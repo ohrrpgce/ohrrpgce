@@ -17,8 +17,8 @@ DECLARE SUB quitcleanup ()
 DECLARE SUB keyhandleroff ()
 DECLARE SUB keyhandleron ()
 DECLARE SUB storekeyhandler ()
-DECLARE FUNCTION wrappass (x%, y%, xgo%, ygo%, isveh%)
-DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%)
+DECLARE SUB herowrappass (whoi%, x%, y%, xgo%(), ygo%(), mapwide%, maphigh%, wrapmode%)
+DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, mapwide%, maphigh%, wrapmode%)
 DECLARE SUB aheadxy (x%, y%, direction%, distance%)
 DECLARE SUB wrapxy (x%, y%, wide%, high%)
 DECLARE FUNCTION framewalkabout% (x%, y%, framex%, framey%, mapwide%, maphigh%, wrapmode%)
@@ -146,10 +146,6 @@ DECLARE SUB expcommands (id%, stat%())
 DECLARE SUB checklumpmod ()
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
-DECLARE SUB drawnpcs ()
-DECLARE FUNCTION wrapcollision (xa%, ya%, xgoa%, ygoa%, xb%, yb%, xgob%, ygob%)
-DECLARE FUNCTION cropmovement (x%, y%, xgo%, ygo%)
-DECLARE FUNCTION wraptouch (x1%, y1%, x2%, y2%)
 
 '---INCLUDE FILES---
 '$INCLUDE: 'compat.bi'
@@ -689,9 +685,9 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
  'DEBUG debug "draw npcs and heroes"
  IF gmap(16) = 1 THEN
   cathero
-  drawnpcs
+  GOSUB drawnpc
  ELSE
-  drawnpcs
+  GOSUB drawnpc
   cathero
  END IF
  'DEBUG debug "drawoverhead"
@@ -823,7 +819,7 @@ usething:
 IF auto = 0 THEN
  ux = catx(0)
  uy = caty(0)
- wrapaheadxy ux, uy, catd(0), 20
+ wrapaheadxy ux, uy, catd(0), 20, scroll(0) * 20, scroll(1) * 20, gmap(5)
 END IF
 IF auto <> 2 THEN 'find the NPC to trigger the hard way
  sayer = -1
@@ -831,9 +827,7 @@ IF auto <> 2 THEN 'find the NPC to trigger the hard way
  DO
   j = j + 1
   IF j > 299 THEN RETURN
- 'note: new code checks to within 20 pixels
- 'LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
- LOOP UNTIL wraptouch(npcl(j), npcl(j + 300), ux, uy) AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
+ LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
  sayer = j
 END IF
 IF sayer >= 0 THEN
@@ -1006,31 +1000,30 @@ FOR whoi = 0 TO 3
   IF readbit(gen(), 44, suspendherowalls) = 0 AND veh(6) = 0 THEN
    '--this only happens if herowalls is on
    '--wrapping passability
-   wrappass(thisherotilex, thisherotiley, xgo(whoi), ygo(whoi), veh(0))
+   herowrappass whoi, thisherotilex, thisherotiley, xgo(), ygo(), scroll(0), scroll(1), gmap(5)
   END IF
   IF readbit(gen(), 44, suspendobstruction) = 0 AND veh(6) = 0 THEN
    '--this only happens if obstruction is on
    FOR i = 0 TO 299
     IF npcl(i + 600) > 0 THEN '---NPC EXISTS---
      IF npcs((npcl(i + 600) - 1) * 15 + 8) < 2 THEN '---NPC IS AN OBSTRUCTION---
-      IF wrapcollision (npcl(i + 0), npcl(i + 300), npcl(i + 1500), npcl(i + 1800), catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi)) THEN
+      IF INT((npcl(i + 0) - bound(npcl(i + 1500), -20, 20)) / 20) = INT((catx(whoi * 5) - bound(xgo(whoi), -20, 20)) / 20) AND INT((npcl(i + 300) - bound(npcl(i + 1800), -20, 20)) / 20) = INT((caty(whoi * 5) - bound(ygo(whoi), -20, 20)) / 20) THEN
        xgo(whoi) = 0: ygo(whoi) = 0
        id = (npcl(i + 600) - 1)
-       '--push the NPC
        IF npcs(id * 15 + 7) > 0 AND npcl(i + 1500) = 0 AND npcl(i + 1800) = 0 THEN
-        temp = npcs(id * 15 + 7)
-        IF catd(whoi) = 0 AND (temp = 1 OR temp = 2 OR temp = 4) THEN npcl(i + 1800) = 20
-        IF catd(whoi) = 2 AND (temp = 1 OR temp = 2 OR temp = 6) THEN npcl(i + 1800) = -20
-        IF catd(whoi) = 3 AND (temp = 1 OR temp = 3 OR temp = 7) THEN npcl(i + 1500) = 20
-        IF catd(whoi) = 1 AND (temp = 1 OR temp = 3 OR temp = 5) THEN npcl(i + 1500) = -20
+	temp = npcs(id * 15 + 7)
+	IF catd(whoi) = 0 THEN IF (temp = 1 OR temp = 2 OR temp = 4) THEN npcl(i + 1800) = 20
+	IF catd(whoi) = 2 THEN IF (temp = 1 OR temp = 2 OR temp = 6) THEN npcl(i + 1800) = -20
+	IF catd(whoi) = 3 THEN IF (temp = 1 OR temp = 3 OR temp = 7) THEN npcl(i + 1500) = 20
+	IF catd(whoi) = 1 THEN IF (temp = 1 OR temp = 3 OR temp = 5) THEN npcl(i + 1500) = -20
        END IF
        IF npcs(id * 15 + 8) = 1 AND whoi = 0 THEN
-        IF wraptouch(npcl(i + 0), npcl(i + 300), catx(0), caty(0)) THEN
-         ux = npcl(i + 0)
-         uy = npcl(i + 300)
-         auto = 1
-         GOSUB usething
-        END IF
+	IF ABS(npcl(i + 0) - catx(0)) <= 20 AND ABS(npcl(i + 300) - caty(0)) <= 20 THEN
+	 ux = npcl(i + 0)
+	 uy = npcl(i + 300)
+	 auto = 1
+	 GOSUB usething
+	END IF
        END IF '---autoactivate
       END IF ' ---NPC IS IN THE WAY
      END IF ' ---NPC IS AN OBSTRUCTION
@@ -1076,7 +1069,7 @@ FOR whoi = 0 TO 3
   '--Stuff that should only happen when you finish moving
   IF didgo(o) = 1 AND xgo(o) = 0 AND ygo(o) = 0 THEN
    '---check for harm tile
-   p = readmapblock(catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
+   p = readmapblock(INT(catx(whoi * 5) / 20), INT(caty(whoi * 5) / 20))
    IF (p AND 64) THEN
     o = -1
     FOR i = 0 TO whoi
@@ -1092,10 +1085,22 @@ FOR whoi = 0 TO 3
    END IF
   END IF
  END IF
- cropmovement(catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi))
+ IF gmap(5) = 1 THEN
+  '--wrap walking
+  IF catx(whoi * 5) < 0 THEN catx(whoi * 5) = catx(whoi * 5) + scroll(0) * 20
+  IF catx(whoi * 5) >= scroll(0) * 20 THEN catx(whoi * 5) = catx(whoi * 5) - scroll(0) * 20
+  IF caty(whoi * 5) < 0 THEN caty(whoi * 5) = caty(whoi * 5) + scroll(1) * 20
+  IF caty(whoi * 5) >= scroll(1) * 20 THEN caty(whoi * 5) = caty(whoi * 5) - scroll(1) * 20
+ ELSE
+  '--crop walking
+  IF catx(whoi * 5) < 0 THEN catx(whoi * 5) = 0: xgo(whoi) = 0
+  IF catx(whoi * 5) > (scroll(0) - 1) * 20 THEN catx(whoi * 5) = (scroll(0) - 1) * 20: xgo(whoi) = 0
+  IF caty(whoi * 5) < 0 THEN caty(whoi * 5) = 0: ygo(whoi) = 0
+  IF caty(whoi * 5) > (scroll(1) - 1) * 20 THEN caty(whoi * 5) = (scroll(1) - 1) * 20: ygo(whoi) = 0
+ END IF
 NEXT whoi
 '--only the leader may activate NPCs
-IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR ng = 1) THEN
+IF (xgo(0) = 0 OR movdivis(xgo(0))) AND (ygo(0) = 0 OR movdivis(ygo(0))) AND (didgo(0) = 1 OR ng = 1) THEN
  '--finished a step
  ng = 0
  IF readbit(gen(), 44, suspendobstruction) = 0 THEN
@@ -1117,7 +1122,7 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR ng = 1) THEN
  END IF
  GOSUB opendoor
  IF needf = 0 THEN
-  temp = readfoemap(catx(0) \ 20, caty(0) \ 20, scroll(0), scroll(1), foemaph)
+  temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
   IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
   IF temp > 0 THEN foep = large(foep - foef(temp - 1), 0)
   setmapdata scroll(), pass(), 0, 0
@@ -1155,7 +1160,7 @@ FOR o = 0 TO 299
      'RANDOM WANDER---
      IF npcs(id * 15 + 2) = 1 THEN
       rand = 25
-      IF wraptouch(npcl(o + 0), npcl(o + 300), catx(0), caty(0)) THEN rand = 5
+      IF ABS(npcl(o + 0) - catx(0)) <= 20 AND ABS(npcl(o + 300) - caty(0)) <= 20 THEN rand = 5
       IF INT(RND * 100) < rand THEN
        temp = INT(RND * 4)
        npcl(o + 900) = temp
@@ -1179,15 +1184,11 @@ FOR o = 0 TO 299
        IF INT(RND * 100) < 50 THEN
 	IF caty(0) < npcl(o + 300) THEN temp = 0
 	IF caty(0) > npcl(o + 300) THEN temp = 2
-        IF gmap(5) = 1 AND caty(0) - scroll(1) * 10 > npcl(o + 300) THEN temp = 0
-        IF gmap(5) = 1 AND caty(0) + scroll(1) * 10 < npcl(o + 300) THEN temp = 2
 	IF caty(0) = npcl(o + 300) THEN temp = INT(RND * 4)
        ELSE
-        IF catx(0) < npcl(o + 0) THEN temp = 3
-        IF catx(0) > npcl(o + 0) THEN temp = 1
-        IF gmap(5) = 1 AND catx(0) - scroll(0) * 10 > npcl(o + 0) THEN temp = 3
-        IF gmap(5) = 1 AND catx(0) + scroll(0) * 10 < npcl(o + 0) THEN temp = 1
-        IF catx(0) = npcl(o + 0) THEN temp = INT(RND * 4)
+	IF catx(0) < npcl(o + 0) THEN temp = 3
+	IF catx(0) > npcl(o + 0) THEN temp = 1
+	IF catx(0) = npcl(o + 0) THEN temp = INT(RND * 4)
        END IF
        IF npcs(id * 15 + 2) = 7 THEN temp = loopvar(temp, 0, 3, 2)
        npcl(o + 900) = temp
@@ -1211,18 +1212,22 @@ npcl(o + 1200) = loopvar(npcl(o + 1200), 0, 3, 1)
 IF movdivis(npcl(o + 1500)) OR movdivis(npcl(o + 1800)) THEN
  IF readbit(gen(), 44, suspendnpcwalls) = 0 THEN
   '--this only happens if NPC walls on
-  IF wrappass(npcl(o + 0) \ 20, npcl(o + 300) \ 20, npcl(o + 1500), npcl(o + 1800), 0) THEN
-   npcl(o + 1500) = 0
-   npcl(o + 1800) = 0
-   GOSUB hitwall
-   GOTO nogo
-  END IF
+  p = readmapblock(INT(npcl(o + 0) / 20), INT(npcl(o + 300) / 20))
+  pu = readmapblock(INT(npcl(o + 0) / 20), INT(npcl(o + 300) / 20) - 1)
+  pr = readmapblock(INT(npcl(o + 0) / 20) + 1, INT(npcl(o + 300) / 20))
+  pd = readmapblock(INT(npcl(o + 0) / 20), INT(npcl(o + 300) / 20) + 1)
+  pl = readmapblock(INT(npcl(o + 0) / 20) - 1, INT(npcl(o + 300) / 20))
+  IF npcl(o + 1800) > 0 AND movdivis(npcl(o + 1800)) AND ((p AND 1) = 1 OR (pu AND 4) = 4) THEN npcl(o + 1800) = 0: GOSUB hitwall: GOTO nogo
+  IF npcl(o + 1800) < 0 AND movdivis(npcl(o + 1800)) AND ((p AND 4) = 4 OR (pd AND 1) = 1) THEN npcl(o + 1800) = 0: GOSUB hitwall: GOTO nogo
+  IF npcl(o + 1500) > 0 AND movdivis(npcl(o + 1500)) AND ((p AND 8) = 8 OR (pl AND 2) = 2) THEN npcl(o + 1500) = 0: GOSUB hitwall: GOTO nogo
+  IF npcl(o + 1500) < 0 AND movdivis(npcl(o + 1500)) AND ((p AND 2) = 2 OR (pr AND 8) = 8) THEN npcl(o + 1500) = 0: GOSUB hitwall: GOTO nogo
  END IF
  IF readbit(gen(), 44, suspendobstruction) = 0 THEN
   '--this only happens if obstruction is on
   FOR i = 0 TO 299
    IF npcl(i + 600) > 0 AND o <> i THEN
-    IF wrapcollision (npcl(i + 0), npcl(i + 300), npcl(i + 1500), npcl(i + 1800), npcl(o + 0), npcl(o + 300), npcl(o + 1500), npcl(o + 1800)) THEN
+    IF INT((npcl(i + 0) - bound(npcl(i + 1500), -20, 20)) / 20) = INT((npcl(o + 0) - bound(npcl(o + 1500), -20, 20)) / 20) AND INT((npcl(i + 300) - bound(npcl(i + 1800), -20, 20)) / 20) = INT((npcl(o + 300) - bound(npcl(o + 1800), -20, 20)) / 20)  _
+THEN
      npcl(o + 1500) = 0
      npcl(o + 1800) = 0
      GOSUB hitwall
@@ -1233,12 +1238,12 @@ IF movdivis(npcl(o + 1500)) OR movdivis(npcl(o + 1800)) THEN
   '---CHECK THAT NPC IS OBSTRUCTABLE-----
   IF npcl(o + 600) > 0 THEN
    IF npcs((npcl(o + 600) - 1) * 15 + 8) < 2 THEN
-    IF wrapcollision (npcl(o + 0), npcl(o + 300), npcl(o + 1500), npcl(o + 1800), catx(0), caty(0), xgo(0), ygo(0)) THEN
+    IF INT((catx(0) - bound(xgo(0), -20, 20)) / 20) = INT((npcl(o + 0) - bound(npcl(o + 1500), -20, 20)) / 20) AND INT((caty(0) - bound(ygo(0), -20, 20)) / 20) = INT((npcl(o + 300) - bound(npcl(o + 1800), -20, 20)) / 20) THEN
      npcl(o + 1500) = 0
      npcl(o + 1800) = 0
-     '--a 0-3 tick delay before pacing enemies bounce off hero
      IF npcl(o + 1200) = 3 THEN GOSUB hitwall: GOTO nogo
     END IF
+    IF INT((catx(0) = npcl(o + 0) - bound(npcl(o + 1500), -20, 20)) / 20) AND INT((caty(0) = npcl(o + 300) - bound(npcl(o + 1800), -20, 20)) / 20) THEN npcl(o + 1500) = 0: npcl(o + 1800) = 0
    END IF
   END IF
  END IF
@@ -1254,10 +1259,13 @@ ELSE
  npcl(o + 1500) = 0
  npcl(o + 1800) = 0
 END IF
-IF cropmovement(npcl(o + 0), npcl(o + 300), npcl(o + 1500), npcl(o + 1800)) THEN GOSUB hitwall
+IF npcl(o + 0) < 0 THEN npcl(o + 0) = 0: npcl(o + 1500) = 0: GOSUB hitwall
+IF npcl(o + 0) > (scroll(0) - 1) * 20 THEN npcl(o + 0) = (scroll(0) - 1) * 20: npcl(o + 1500) = 0: GOSUB hitwall
+IF npcl(o + 300) < 0 THEN npcl(o + 300) = 0: npcl(o + 1800) = 0: GOSUB hitwall
+IF npcl(o + 300) > (scroll(1) - 1) * 20 THEN npcl(o + 300) = (scroll(1) - 1) * 20: npcl(o + 1800) = 0: GOSUB hitwall
 nogo:
 IF npcs(id * 15 + 8) = 1 AND showsay = 0 THEN
- IF wraptouch(npcl(o + 0), npcl(o + 300), catx(0), caty(0)) THEN
+ IF ABS(npcl(o + 0) - catx(0)) <= 20 AND ABS(npcl(o + 300) - caty(0)) <= 20 THEN
   ux = npcl(o + 0)
   uy = npcl(o + 300)
   auto = 1
@@ -1271,6 +1279,26 @@ IF npcs(id * 15 + 2) = 2 THEN npcl(o + 900) = loopvar(npcl(o + 900), 0, 3, 2)
 IF npcs(id * 15 + 2) = 3 THEN npcl(o + 900) = loopvar(npcl(o + 900), 0, 3, 1)
 IF npcs(id * 15 + 2) = 4 THEN npcl(o + 900) = loopvar(npcl(o + 900), 0, 3, -1)
 IF npcs(id * 15 + 2) = 5 THEN npcl(o + 900) = INT(RND * 4)
+RETURN
+
+
+drawnpc:
+FOR i = 0 TO 299 '-- for each NPC instance
+ IF npcl(i + 600) > 0 THEN '-- if visible
+  o = npcl(i + 600) - 1
+  z = 0
+  IF framewalkabout(npcl(i + 0), npcl(i + 300) + gmap(11), drawnpcX, drawnpcY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+   IF veh(0) AND veh(5) = i THEN z = catz(0) '--special vehicle magic
+   IF z AND readbit(veh(), 9, 8) = 0 THEN '--shadow
+    rectangle npcl(i + 0) - mapx + 6, npcl(i + 300) - mapy + gmap(11) + 13, 8, 5, 0, dpage
+    rectangle npcl(i + 0) - mapx + 5, npcl(i + 300) - mapy + gmap(11) + 14, 10, 3, 0, dpage
+   END IF
+   loadsprite buffer(), 0, (400 * npcl(i + 900)) + (200 * INT(npcl(i + 1200) / 2)), 20 + (5 * o), 20, 20, 2
+   drawsprite buffer(), 0, pal16(), (4 + o) * 16, drawnpcX, drawnpcY - z, dpage
+   'edgeprint LTRIM$(STR$(i)), drawnpcX, drawnpcY + gmap(11) - z, 15, dpage
+  END IF
+ END IF
+NEXT i
 RETURN
 
 opendoor:
