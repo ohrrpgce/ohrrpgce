@@ -147,7 +147,7 @@ DECLARE SUB checklumpmod ()
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
 DECLARE SUB drawnpcs ()
-DECLARE FUNCTION wrapcollision (x_a%, y_a%, xgo_a%, ygo_a%, x_b%, y_b%, xgo_b%, ygo_b%)
+DECLARE FUNCTION wrapcollision (xa%, ya%, xgoa%, ygoa%, xb%, yb%, xgob%, ygob%)
 DECLARE FUNCTION cropmovement (x%, y%, xgo%, ygo%)
 DECLARE FUNCTION wraptouch (x1%, y1%, x2%, y2%)
 

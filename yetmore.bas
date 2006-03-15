@@ -2052,11 +2052,11 @@ IF xgo < 0 AND movdivis(xgo) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (isveh A
 END FUNCTION
 
 
-FUNCTION wrapcollision (x_a, y_a, xgo_a, ygo_a, x_b, y_b, xgo_b, ygo_b)
- x1 = (x_a - bound(xgo_a, -20, 20)) \ 20
- x2 = (x_b - bound(xgo_b, -20, 20)) \ 20
- y1 = (y_a - bound(ygo_a, -20, 20)) \ 20
- y2 = (y_b - bound(ygo_b, -20, 20)) \ 20
+FUNCTION wrapcollision (xa, ya, xgoa, ygoa, xb, yb, xgob, ygob)
+ x1 = (xa - bound(xgoa, -20, 20)) \ 20
+ x2 = (xb - bound(xgob, -20, 20)) \ 20
+ y1 = (ya - bound(ygoa, -20, 20)) \ 20
+ y2 = (yb - bound(ygob, -20, 20)) \ 20
 
  IF gmap(5) THEN
   wrapcollision = (x1 - x2) MOD scroll(0) = 0 AND (y1 - y2) MOD scroll(1) = 0
