@@ -1047,6 +1047,8 @@ SUB scriptmisc (id)
 
 SELECT CASE id
 
+ CASE 0'--noop
+  scripterr "encountered clean noop"
  CASE 1'--Wait (cycles)
   IF retvals(0) > 0 THEN
    GOSUB setwaitstate
@@ -1057,7 +1059,6 @@ SELECT CASE id
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    GOSUB setwaitstate
   END IF
-
  CASE 4'--wait for NPC
   IF retvals(0) >= -300 AND retvals(0) <= 35 THEN
    GOSUB setwaitstate
@@ -1072,8 +1073,31 @@ SELECT CASE id
   setbit gen(), 44, suspendplayer, 0
  CASE 9'--wait for key
   GOSUB setwaitstate
+ CASE 10'--walk hero
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   SELECT CASE retvals(1)
+    CASE 0'--north
+     catd(retvals(0) * 5) = 0
+     ygo(retvals(0)) = retvals(2) * 20
+    CASE 1'--east
+     catd(retvals(0) * 5) = 1
+     xgo(retvals(0)) = (retvals(2) * 20) * -1
+    CASE 2'--south
+     catd(retvals(0) * 5) = 2
+     ygo(retvals(0)) = (retvals(2) * 20) * -1
+    CASE 3'--west
+     catd(retvals(0) * 5) = 3
+     xgo(retvals(0)) = retvals(2) * 20
+   END SELECT
+  END IF
  CASE 12'--check tag
   scriptret = ABS(istag(retvals(0), 0))
+ CASE 13'--set tag
+  IF retvals(0) > 1 THEN
+   setbit tag(), 0, retvals(0), retvals(1)
+   'reinitnpc 1,  map
+   npcplot
+  END IF
  CASE 17'--get item
   IF retvals(1) >= 1 THEN
    getitem retvals(0) + 1, retvals(1)
