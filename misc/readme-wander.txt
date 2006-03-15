@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- Wandering Hamster O.H.R.RPG.C.E Demo        (??? ?? 2006)
+ Wandering Hamster O.H.R.RPG.C.E Demo       (March 15 2006)
 ------------------------------------------------------------
 
 This is a Work-in-Progress demo of Wandering Hamster. This version
@@ -9,6 +9,7 @@ contains roughly three hours of playing time
 
 NEW IN THIS RELEASE
 
+  * Native Windows version with installer!
   * Fixed bug that prevented dismounting the Myrmidon suit
   * Fixed bug that prevented James from talking to you in the
     throne room

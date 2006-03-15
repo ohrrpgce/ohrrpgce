@@ -5,7 +5,7 @@ code :)
 -----------------------------------------------------------------------------
 http://HamsterRepublic.com/ohrrpgce/source.php for more information 
 -----------------------------------------------------------------------------
-WINDOWS/LINUX: Requires FreeBasic verion 0.15b (or newer)
+WINDOWS/LINUX: Requires FreeBasic verion 0.15b
   Download FreeBasic from http://freebasic.net/
 
 DOS (16-BIT): Requires Quickbasic version 4.5 or 7.1  (4.5 is preferred)
