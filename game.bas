@@ -1870,33 +1870,8 @@ SELECT CASE scrat(nowscript, curkind)
   'the only commands that belong at the top level are the ones that need
   'access to main-module top-level global variables or GOSUBs
   SELECT CASE scrat(nowscript, curvalue)
-   CASE 0'--noop
-    scripterr "encountered clean noop"
-   CASE 10'--walk hero
-    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-     SELECT CASE retvals(1)
-      CASE 0'--north
-       catd(retvals(0) * 5) = 0
-       ygo(retvals(0)) = retvals(2) * 20
-      CASE 1'--east
-       catd(retvals(0) * 5) = 1
-       xgo(retvals(0)) = (retvals(2) * 20) * -1
-      CASE 2'--south
-       catd(retvals(0) * 5) = 2
-       ygo(retvals(0)) = (retvals(2) * 20) * -1
-      CASE 3'--west
-       catd(retvals(0) * 5) = 3
-       xgo(retvals(0)) = retvals(2) * 20
-     END SELECT
-    END IF
    CASE 11'--Show Text Box (box)
     wantbox = retvals(0)
-   CASE 13'--set tag
-    IF retvals(0) > 1 THEN
-     setbit tag(), 0, retvals(0), retvals(1)
-     'reinitnpc 1,  map
-     npcplot
-    END IF
    CASE 15'--use door
     wantdoor = retvals(0) + 1
     scrat(nowscript, curwaitarg) = 0

@@ -1,10 +1,11 @@
 WHAT IS NEW?
 
-Mar ?? 2006 [tirgoviste]
+Mar 15 2006 [tirgoviste]
   * New Features
     * Stat caps [Mike Caron]
     * "% based attacks damage instead of set" attack bitset [Mike Caron]
-    * Precise weapon placement [Mike Caron]
+    * Precise weapon placement. (use . and , to choose which
+      frame to edit) [Mike Caron]
     * NPC Placement Editor now shows the copy number of NPCs (the bottom number)
       [Mike Caron]
 
@@ -15,7 +16,7 @@ Mar ?? 2006 [tirgoviste]
       [Mike Caron]
     * Rewards in battle are rewarded multiple times. [Mike Caron]
     * Linux: specifying a file on the command line now works even if the file
-      is in a different directory. [Anonymous]
+      is in a different directory. [James Paige]
     * Windows: bug 140 keyboard handling quirks [Simon Bradley, James Paige]
     * music_native now supports volume [Mike Caron]
     * fixed bug 143 and bug 150 which disabled some spells you should have
