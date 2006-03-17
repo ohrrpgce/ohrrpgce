@@ -35,7 +35,6 @@ option explicit
 	#undef lockfile '?
 	#IFNDEF USE_ALLEGRO
 		#include once "win/mmsystem.bi"
-		#undef MIDIEvent
 	#ELSE
 		#include "externs.bi"
 		DECLARE SUB win_set_window CDECL ALIAS "win_set_window" (BYVAL wnd as HWND)
@@ -71,6 +70,12 @@ END TYPE
 
 #include music.bi
 
+#IFNDEF USE_ALLEGRO
+#IFNDEF __FB_LINUX__
+dim shared midi_handle as HMIDIOUT
+#ENDIF
+#ENDIF
+
 
 
 'extern
@@ -88,7 +93,7 @@ dim shared music_on as integer = 0
 dim shared music_vol as integer
 dim shared music_paused as integer
 dim shared music_playing as integer
-dim shared music_song as MIDIEvent ptr = NULL
+dim shared music_song as MIDI_EVENT ptr = NULL
 dim shared orig_vol as integer = -1
 dim shared playback_thread as integer
 dim shared fade_thread as integer
@@ -123,7 +128,7 @@ function openMidi() as integer
     install_sound(-1,-1,"")
     load_midi_patches
     
-    midibuffer = OAllocate(60)
+    midibuffer = Allocate(60)
 	midibufferlen = 60 '20 events, roughly
 	midibufferused = 0
     #ENDIF
@@ -230,7 +235,7 @@ Sub BufferEvent(event as UByte, a as Byte = -1, b as Byte = -1) 'pass -1 to a an
 	dim goingtouse as integer, tmpbuf(2) as UByte, i as integer
 	
 	if midibuffer = NULL then
-		midibuffer = OAllocate(60)
+		midibuffer = Allocate(60)
 		midibufferlen = 60 '20 events, roughly
 		midibufferused = 0
 	end if
@@ -302,9 +307,9 @@ Sub ResetMidi
 	
 end sub
 
-Sub AddJumpToEnd(head as MidiEvent ptr)
+Sub AddJumpToEnd(head as MIDI_EVENT ptr)
 	'traverse the tree - ugh
-	dim curevent as midievent ptr', newhead as midievent ptr
+	dim curevent as MIDI_EVENT ptr', newhead as MIDI_EVENT ptr
 	curevent = head
 	do
 		if curevent->next then
@@ -327,7 +332,7 @@ Sub AddJumpToEnd(head as MidiEvent ptr)
 	jumpdat(4) = &H02
 	jumpdat(5) = &H0
 	curevent->extralen = ubound(jumpdat) + 1
-	curevent->extradata = OAllocate(curevent->extralen)
+	curevent->extradata = Allocate(curevent->extralen)
 	memcpy curEvent->extraData, @(jumpdat(0)),curevent->extralen
 
 End Sub
@@ -409,19 +414,19 @@ sub music_play(songname as string, fmt as music_format)
 				'add to list of temp files
 				dim ditem as delitem ptr
 				if delhead = null then
-					delhead = OAllocate(sizeof(delitem))
+					delhead = Allocate(sizeof(delitem))
 					ditem = delhead
 				else
 					ditem = delhead
 					while ditem->nextitem <> null
 						ditem = ditem->nextitem
 					wend
-					ditem->nextitem = OAllocate(sizeof(delitem))
+					ditem->nextitem = Allocate(sizeof(delitem))
 					ditem = ditem->nextitem
 				end if
 				ditem->nextitem = null
-				'OAllocate space for zstring
-				ditem->fname = OAllocate(len(midname) + 1)
+				'Allocate space for zstring
+				ditem->fname = Allocate(len(midname) + 1)
 				*(ditem->fname) = midname 'set zstring
 			end if
 			songname = midname
@@ -512,7 +517,7 @@ end sub
 
 
 
-Sub dumpdata(m as midiEvent ptr)
+Sub dumpdata(m as MIDI_EVENT ptr)
 	dim d$, i as integer
 	
 	for i = 0 to m->extralen - 1
@@ -526,12 +531,12 @@ end sub
 
 
 Sub PlayBackThread(dummy as integer)
-dim curtime as double, curevent as MIDIEvent ptr, starttime as double, delta as double, tempo as integer, delay as double
+dim curtime as double, curevent as MIDI_EVENT ptr, starttime as double, delta as double, tempo as integer, delay as double
 dim played as integer, carry as double, pauseflag as integer
-dim labels(15) as midievent ptr, jumpcount(15) as integer, choruswas as MIDIEvent ptr
+dim labels(15) as MIDI_EVENT ptr, jumpcount(15) as integer, choruswas as MIDI_EVENT ptr
 labels(0) = music_song
 for curtime = 0 to 15
-	jumpcount(15) = -1
+	jumpcount(curtime) = -1
 next
 
 tempo = 500000 'assume 120 bmp

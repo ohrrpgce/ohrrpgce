@@ -23,7 +23,7 @@ Type MidiFile
 End Type
 
 
-Type MIDIEvent
+Type MIDI_EVENT
 	time as UInteger
 	status as UByte
 	data(1) as UByte
@@ -31,7 +31,7 @@ Type MIDIEvent
 	extraData as UByte ptr
 	tmp as Uinteger
 
-	next as MIDIEvent ptr
+	next as MIDI_EVENT ptr
 
 End Type
 
@@ -47,11 +47,11 @@ End Type
 #define SIG_ID(a,b,c,d) (asc(a) shl 24 + asc(b) shl 16 + asc(c) shl 8 + asc(d) shl 0)
 
 DECLARE Function GetVLQ(Byval track as MidiTrack ptr,ByRef p as integer) as integer
-DECLARE Function CreateEvent(t as UInteger, e as UByte, a as UByte, b as UByte) as MIDIEvent ptr
-DECLARE Function MidiTracktoStream(track as Miditrack ptr) as MidiEvent ptr
+DECLARE Function CreateEvent(t as UInteger, e as UByte, a as UByte, b as UByte) as MIDI_EVENT ptr
+DECLARE Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 DECLARE function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
-DECLARE function CreateMIDIEventList(midifile as string, division as short ptr) as MIDIEvent ptr
-Declare sub FreeMidiEventList(head as MidiEvent ptr)
+DECLARE function CreateMIDIEventList(midifile as string, division as short ptr) as MIDI_EVENT ptr
+Declare sub FreeMidiEventList(head as MIDI_EVENT ptr)
 
 'in fbcompat.bas
 DECLARE Function OAllocate(Byval as integer) as Any Ptr
@@ -78,12 +78,12 @@ Function GetVLQ(Byval track as MidiTrack ptr,ByRef p as integer) as integer
 
 end function
 
-' /* Create a single MIDIEvent */
+' /* Create a single MIDI_EVENT */
 
-Function CreateEvent(t as UInteger, e as UByte, a as UByte, b as UByte) as MIDIEvent ptr
-	dim newEvent as MidiEvent ptr
+Function CreateEvent(t as UInteger, e as UByte, a as UByte, b as UByte) as MIDI_EVENT ptr
+	dim newEvent as MIDI_EVENT ptr
 
-	newEvent = OCAllocate(len(MidiEvent))
+	newEvent = OCAllocate(len(MIDI_EVENT))
 
 	if newEvent then
 		newEvent->time = t
@@ -102,9 +102,9 @@ Function ReadByte(d as UByte ptr, p as integer) as UByte
 	p += 1
 End Function
 
-' /* Convert a single midi track to a list of MIDIEvents */
+' /* Convert a single midi track to a list of MIDI_EVENTs */
 
-Function MidiTracktoStream(track as Miditrack ptr) as MidiEvent ptr
+Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 	dim atime as UInteger
 	dim length as UInteger
 	dim as UByte event, t, a, b
@@ -114,7 +114,7 @@ Function MidiTracktoStream(track as Miditrack ptr) as MidiEvent ptr
 	dim as integer e
 
 
-	Dim as MidiEvent ptr head, currentEvent
+	Dim as MIDI_EVENT ptr head, currentEvent
 	head = CreateEvent(0,0,0,0)
 	currentEvent = head
 
@@ -227,13 +227,13 @@ end function
 
 
 ' /*
-'  *  Convert a midi song, consisting of up to 32 tracks, to a list of MIDIEvents.
+'  *  Convert a midi song, consisting of up to 32 tracks, to a list of MIDI_EVENTs.
 '  *  To do so, first convert the tracks seperatly, then interweave the resulting
-'  *  MIDIEvent-Lists to one big list.
+'  *  MIDI_EVENT-Lists to one big list.
 '  */
-function MiditoStream(midiData as midifile ptr) as midievent ptr
-	dim as midievent ptr ptr track
-	dim as midievent ptr head, currentEvent
+function MiditoStream(midiData as midifile ptr) as MIDI_EVENT ptr
+	dim as MIDI_EVENT ptr ptr track
+	dim as MIDI_EVENT ptr head, currentEvent
 	head = CreateEvent(0,0,0,0)
 	currentEvent = head
 	dim trackID as integer
@@ -243,12 +243,12 @@ function MiditoStream(midiData as midifile ptr) as midievent ptr
 	if not head then return 0
 '
 
-	track = cptr(MIDIEvent ptr ptr,OCAllocate(len(MidiEvent ptr) * mididata->nTracks))
+	track = cptr(MIDI_EVENT ptr ptr,OCAllocate(len(MIDI_EVENT ptr) * mididata->nTracks))
 
 	if not track then return 0
 
 
-' 	/* First, convert all tracks to MIDIEvent lists */
+' 	/* First, convert all tracks to MIDI_EVENT lists */
 	for trackID = 0 to mididata->nTracks - 1
 		track[trackID] = MIDITrackToStream(@mididata->track[trackID])
 	next
@@ -361,10 +361,10 @@ bail:
  	return 0
 end function
 
-function CreateMIDIEventList(midifile as string, division as short ptr) as MIDIEvent ptr
+function CreateMIDIEventList(midifile as string, division as short ptr) as MIDI_EVENT ptr
  	dim as FILE ptr fp
  	dim as MIDIFile ptr mididata
- 	dim as MIDIEvent ptr eventList
+ 	dim as MIDI_EVENT ptr eventList
  	dim as integer trackID
 
  	mididata = OCAllocate(len(MIDIFile))
@@ -404,8 +404,8 @@ function CreateMIDIEventList(midifile as string, division as short ptr) as MIDIE
     return eventList
 end function
 
-Sub ConvertToRelative(head as MidiEvent ptr)
- 	dim lasttime as uinteger, curevent as MidiEvent ptr, lastevent as MidiEvent ptr
+Sub ConvertToRelative(head as MIDI_EVENT ptr)
+ 	dim lasttime as uinteger, curevent as MIDI_EVENT ptr, lastevent as MIDI_EVENT ptr
 
 	lastevent = head
 	lastevent->tmp = lastevent->time
@@ -429,8 +429,8 @@ Sub ConvertToRelative(head as MidiEvent ptr)
 end Sub
 
 
-sub FreeMidiEventList(head as MidiEvent ptr)
- 	dim as MIDIEvent ptr cur, n
+sub FreeMidiEventList(head as MIDI_EVENT ptr)
+ 	dim as MIDI_EVENT ptr cur, n
 	on error goto error_handle
  	cur = head
 
@@ -447,8 +447,3 @@ sub FreeMidiEventList(head as MidiEvent ptr)
  	exit sub
 end sub
 
-#IFNDEF USE_ALLEGRO
-#IFNDEF __FB_LINUX__
-dim shared midi_handle as HMIDIOUT
-#ENDIF
-#ENDIF
