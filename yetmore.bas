@@ -9,7 +9,7 @@ DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE SUB setScriptArg (arg%, value%)
 DECLARE FUNCTION cropPlotStr% (s$)
-DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%)
+DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, unitsize%)
 DECLARE SUB aheadxy (x%, y%, direction%, distance%)
 DECLARE SUB wrapxy (x%, y%, wide%, high%)
 DECLARE SUB loadSayToBuffer (say%)
@@ -2042,13 +2042,14 @@ FOR i = o TO 3
 NEXT i
 END SUB
 
-SUB wrapaheadxy (x, y, direction, distance)
+SUB wrapaheadxy (x, y, direction, distance, unitsize)
 'alters X and Y ahead by distance in direction, wrapping if neccisary
+'unitsize is 1 for pixels, 20 for tiles
 
 aheadxy x, y, direction, distance
 
 IF gmap(5) THEN
- wrapxy x, y, scroll(0), scroll(1)
+ wrapxy x, y, scroll(0) * unitsize, scroll(1) * unitsize
 END IF
 
 END SUB
@@ -2064,37 +2065,37 @@ p = readmapblock(tilex, tiley)
 
 FOR i = 0 TO 3
  tilex = x: tiley = y
- wrapaheadxy tilex, tiley, i, 1
+ wrapaheadxy tilex, tiley, i, 1, 1
  pd(i) = readmapblock(tilex, tiley)
 NEXT i
 
 IF ygo > 0 AND movdivis(ygo) AND ((p AND 1) = 1 OR (pd(0) AND 4) = 4 OR (isveh AND vehpass(veh(18), pd(0), 0))) THEN ygo = 0: wrappass = 1
-IF ygo < 0 AND movdivis(ygo) AND ((p AND 4) = 4 OR (pd(2) AND 1) = 1 OR (isveh AND vehpass(veh(18), pd(0), 0))) THEN ygo = 0: wrappass = 1
-IF xgo > 0 AND movdivis(xgo) AND ((p AND 8) = 8 OR (pd(3) AND 2) = 2 OR (isveh AND vehpass(veh(18), pd(0), 0))) THEN xgo = 0: wrappass = 1
-IF xgo < 0 AND movdivis(xgo) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (isveh AND vehpass(veh(18), pd(0), 0))) THEN xgo = 0: wrappass = 1
+IF ygo < 0 AND movdivis(ygo) AND ((p AND 4) = 4 OR (pd(2) AND 1) = 1 OR (isveh AND vehpass(veh(18), pd(2), 0))) THEN ygo = 0: wrappass = 1
+IF xgo > 0 AND movdivis(xgo) AND ((p AND 8) = 8 OR (pd(3) AND 2) = 2 OR (isveh AND vehpass(veh(18), pd(3), 0))) THEN xgo = 0: wrappass = 1
+IF xgo < 0 AND movdivis(xgo) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (isveh AND vehpass(veh(18), pd(1), 0))) THEN xgo = 0: wrappass = 1
 
 END FUNCTION
 
 
-FUNCTION wrapcollision (x_a, y_a, xgo_a, ygo_a, x_b, y_b, xgo_b, ygo_b)
- x1 = (x_a - bound(xgo_a, -20, 20)) \ 20
- x2 = (x_b - bound(xgo_b, -20, 20)) \ 20
- y1 = (y_a - bound(ygo_a, -20, 20)) \ 20
- y2 = (y_b - bound(ygo_b, -20, 20)) \ 20
+FUNCTION wrapcollision (xa, ya, xgoa, ygoa, xb, yb, xgob, ygob)
+ x1 = (xa - bound(xgoa, -20, 20)) \ 20
+ x2 = (xb - bound(xgob, -20, 20)) \ 20
+ y1 = (ya - bound(ygoa, -20, 20)) \ 20
+ y2 = (yb - bound(ygob, -20, 20)) \ 20
 
  IF gmap(5) THEN
   wrapcollision = (x1 - x2) MOD scroll(0) = 0 AND (y1 - y2) MOD scroll(1) = 0
  ELSE
-  wrapcollision = x1 = x2 AND y1 = y2
+  wrapcollision = (x1 = x2) AND (y1 = y2)
  END IF
 
 END FUNCTION
 
-FUNCTION wraptouch (x1, y1, x2, y2)
- 'whether 2 walkabouts fit on a 2x2 square
+FUNCTION wraptouch (x1, y1, x2, y2, distance)
+ 'whether 2 walkabouts are within distance pixels horizontally + vertically
  wraptouch = 0
  IF gmap(5) THEN
-  IF ABS((x1 - x2) MOD (scroll(0) * 20 - 20)) <= 20 AND ABS((y1 - y2) MOD (scroll(1) * 20 - 20)) <= 20 THEN wraptouch = 1
+  IF ABS((x1 - x2) MOD (scroll(0) * 20 - distance)) <= distance AND ABS((y1 - y2) MOD (scroll(1) * 20 - distance)) <= distance THEN wraptouch = 1
  ELSE
   IF ABS(x1 - x2) <= 20 AND ABS(y1 - y2) <= 20 THEN wraptouch = 1
  END IF

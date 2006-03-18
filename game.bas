@@ -18,7 +18,7 @@ DECLARE SUB keyhandleroff ()
 DECLARE SUB keyhandleron ()
 DECLARE SUB storekeyhandler ()
 DECLARE FUNCTION wrappass (x%, y%, xgo%, ygo%, isveh%)
-DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%)
+DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, unitsize%)
 DECLARE SUB aheadxy (x%, y%, direction%, distance%)
 DECLARE SUB wrapxy (x%, y%, wide%, high%)
 DECLARE FUNCTION framewalkabout% (x%, y%, framex%, framey%, mapwide%, maphigh%, wrapmode%)
@@ -147,9 +147,9 @@ DECLARE SUB checklumpmod ()
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
 DECLARE SUB drawnpcs ()
-DECLARE FUNCTION wrapcollision (x_a%, y_a%, xgo_a%, ygo_a%, x_b%, y_b%, xgo_b%, ygo_b%)
+DECLARE FUNCTION wrapcollision (xa%, ya%, xgoa%, ygoa%, xb%, yb%, xgob%, ygob%)
 DECLARE FUNCTION cropmovement (x%, y%, xgo%, ygo%)
-DECLARE FUNCTION wraptouch (x1%, y1%, x2%, y2%)
+DECLARE FUNCTION wraptouch (x1%, y1%, x2%, y2%, distance%)
 
 '---INCLUDE FILES---
 '$INCLUDE: 'compat.bi'
@@ -823,7 +823,7 @@ usething:
 IF auto = 0 THEN
  ux = catx(0)
  uy = caty(0)
- wrapaheadxy ux, uy, catd(0), 20
+ wrapaheadxy ux, uy, catd(0), 20, 20
 END IF
 IF auto <> 2 THEN 'find the NPC to trigger the hard way
  sayer = -1
@@ -831,9 +831,9 @@ IF auto <> 2 THEN 'find the NPC to trigger the hard way
  DO
   j = j + 1
   IF j > 299 THEN RETURN
- 'note: new code checks to within 20 pixels
+ 'would <= 19 do?
  'LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
- LOOP UNTIL wraptouch(npcl(j), npcl(j + 300), ux, uy) AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
+ LOOP UNTIL wraptouch(npcl(j), npcl(j + 300), ux, uy, 15) AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
  sayer = j
 END IF
 IF sayer >= 0 THEN
@@ -864,7 +864,7 @@ IF sayer >= 0 THEN
   setpicstuf buffer(), 80, -1
   loadset game$ + ".veh" + CHR$(0), vehuse - 1, 0
   setmapdata pass(), pass(), 0, 0
-  IF vehpass(buffer(19), readmapblock(INT(catx(0) / 20), INT(caty(0) / 20)), -1) THEN
+  IF vehpass(buffer(19), readmapblock(catx(0) \ 20, caty(0) \ 20), -1) THEN
    '--check mounting permissions first
    FOR i = 0 TO 7: veh(i) = 0: NEXT i
    FOR i = 8 TO 21: veh(i) = buffer(i): NEXT i
@@ -1006,7 +1006,7 @@ FOR whoi = 0 TO 3
   IF readbit(gen(), 44, suspendherowalls) = 0 AND veh(6) = 0 THEN
    '--this only happens if herowalls is on
    '--wrapping passability
-   wrappass(thisherotilex, thisherotiley, xgo(whoi), ygo(whoi), veh(0))
+   dummy = wrappass(thisherotilex, thisherotiley, xgo(whoi), ygo(whoi), veh(0))
   END IF
   IF readbit(gen(), 44, suspendobstruction) = 0 AND veh(6) = 0 THEN
    '--this only happens if obstruction is on
@@ -1025,7 +1025,7 @@ FOR whoi = 0 TO 3
         IF catd(whoi) = 1 AND (temp = 1 OR temp = 3 OR temp = 5) THEN npcl(i + 1500) = -20
        END IF
        IF npcs(id * 15 + 8) = 1 AND whoi = 0 THEN
-        IF wraptouch(npcl(i + 0), npcl(i + 300), catx(0), caty(0)) THEN
+        IF wraptouch(npcl(i + 0), npcl(i + 300), catx(0), caty(0), 20) THEN
          ux = npcl(i + 0)
          uy = npcl(i + 300)
          auto = 1
@@ -1092,7 +1092,7 @@ FOR whoi = 0 TO 3
    END IF
   END IF
  END IF
- cropmovement(catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi))
+ dummy = cropmovement(catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi))
 NEXT whoi
 '--only the leader may activate NPCs
 IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR ng = 1) THEN
@@ -1155,7 +1155,7 @@ FOR o = 0 TO 299
      'RANDOM WANDER---
      IF npcs(id * 15 + 2) = 1 THEN
       rand = 25
-      IF wraptouch(npcl(o + 0), npcl(o + 300), catx(0), caty(0)) THEN rand = 5
+      IF wraptouch(npcl(o + 0), npcl(o + 300), catx(0), caty(0), 20) THEN rand = 5
       IF INT(RND * 100) < rand THEN
        temp = INT(RND * 4)
        npcl(o + 900) = temp
@@ -1257,7 +1257,7 @@ END IF
 IF cropmovement(npcl(o + 0), npcl(o + 300), npcl(o + 1500), npcl(o + 1800)) THEN GOSUB hitwall
 nogo:
 IF npcs(id * 15 + 8) = 1 AND showsay = 0 THEN
- IF wraptouch(npcl(o + 0), npcl(o + 300), catx(0), caty(0)) THEN
+ IF wraptouch(npcl(o + 0), npcl(o + 300), catx(0), caty(0), 20) THEN
   ux = npcl(o + 0)
   uy = npcl(o + 300)
   auto = 1
