@@ -142,7 +142,7 @@ function closeMidi() as integer
     #ELSE
     
     remove_sound
-    ODeallocate(midibuffer)
+    Deallocate(midibuffer)
     midibufferused = 0
     midibufferlen = 0
     #ENDIF
@@ -382,10 +382,10 @@ sub music_close()
 				if isfile(*(ditem->fname)) then
 					kill *(ditem->fname)
 				end if
-				ODeallocate ditem->fname 'deallocate string
+				Deallocate ditem->fname 'deallocate string
 				dlast = ditem
 				ditem = ditem->nextitem
-				ODeallocate dlast 'deallocate delitem
+				Deallocate dlast 'deallocate delitem
 			wend
 			delhead = null
 		end if

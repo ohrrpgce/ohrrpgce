@@ -54,10 +54,6 @@ DECLARE function CreateMIDIEventList(midifile as string, division as short ptr) 
 Declare sub FreeMidiEventList(head as MIDI_EVENT ptr)
 
 'in fbcompat.bas
-DECLARE Function OAllocate(Byval as integer) as Any Ptr
-DECLARE Function OCAllocate(Byval as integer) as Any Ptr
-DECLARE Sub ODeallocate(Byval as Any Ptr)
-DECLARE Function OReallocate(Byval as Any Ptr, Byval as integer) as Any Ptr
 declare sub debug(s$)
 
 
@@ -83,7 +79,7 @@ end function
 Function CreateEvent(t as UInteger, e as UByte, a as UByte, b as UByte) as MIDI_EVENT ptr
 	dim newEvent as MIDI_EVENT ptr
 
-	newEvent = OCAllocate(len(MIDI_EVENT))
+	newEvent = CAllocate(len(MIDI_EVENT))
 
 	if newEvent then
 		newEvent->time = t
@@ -169,7 +165,7 @@ Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 
  			if length then
  				currentEvent->extraLen = length
- 				currentEvent->extraData = OAllocate(length)
+ 				currentEvent->extraData = Allocate(length)
  				memcpy currentEvent->extraData, @(track->data[currentPos]),length
 				currentPos += length
 			end if
@@ -217,7 +213,7 @@ Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 	loop
 
 	currentEvent = head->next
-	ODeallocate head
+	Deallocate head
 
 	return currentEvent
 
@@ -243,7 +239,7 @@ function MiditoStream(midiData as midifile ptr) as MIDI_EVENT ptr
 	if not head then return 0
 '
 
-	track = cptr(MIDI_EVENT ptr ptr,OCAllocate(len(MIDI_EVENT ptr) * mididata->nTracks))
+	track = cptr(MIDI_EVENT ptr ptr,CAllocate(len(MIDI_EVENT ptr) * mididata->nTracks))
 
 	if not track then return 0
 
@@ -285,8 +281,8 @@ function MiditoStream(midiData as midifile ptr) as MIDI_EVENT ptr
  	currentEvent->next = 0
 
  	currentEvent = head->next
-    ODeallocate track
- 	ODeallocate head	'/* release the dummy head event */
+    Deallocate track
+ 	Deallocate head	'/* release the dummy head event */
  	return currentEvent
 end function
 
@@ -325,7 +321,7 @@ function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
 
 
 '     /* Allocate tracks */
-	mididata->track = cptr(MIDITrack ptr, OCAllocate(len(MIDITrack) * mididata->nTracks))
+	mididata->track = cptr(MIDITrack ptr, CAllocate(len(MIDITrack) * mididata->nTracks))
 	if not mididata->track then
 		goto bail
 	end if
@@ -343,7 +339,7 @@ function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
  		size = BE_LONG(size)
 
  		mididata->track[i].len = size
- 		mididata->track[i].data = OAllocate(size)
+ 		mididata->track[i].data = Allocate(size)
  		if (not mididata->track[i].data) then
  			goto bail
 		end if
@@ -354,7 +350,7 @@ function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
 
 bail:
 	while i >= 0
- 		if mididata->track[i].data then	ODeallocate mididata->track[i].data
+ 		if mididata->track[i].data then	Deallocate mididata->track[i].data
  		i -= 1
 	wend
 
@@ -367,7 +363,7 @@ function CreateMIDIEventList(midifile as string, division as short ptr) as MIDI_
  	dim as MIDI_EVENT ptr eventList
  	dim as integer trackID
 
- 	mididata = OCAllocate(len(MIDIFile))
+ 	mididata = CAllocate(len(MIDIFile))
  	if not mididata then
 
  		return 0
@@ -379,14 +375,14 @@ function CreateMIDIEventList(midifile as string, division as short ptr) as MIDI_
 
 ' 		/* Read in the data */
  		if  not ReadMIDIFile(mididata, fp) then
- 			ODeallocate(mididata)
+ 			Deallocate(mididata)
  			fclose(fp)
  			return 0
 		end if
  		fclose(fp)
  	else
 
- 		ODeallocate(mididata)
+ 		Deallocate(mididata)
  		return 0
 	end if
 
@@ -396,10 +392,10 @@ function CreateMIDIEventList(midifile as string, division as short ptr) as MIDI_
  	eventList = MIDItoStream(mididata)
 
 	for trackID = 0 to mididata->nTracks
- 		if mididata->track[trackID].data then ODeallocate(mididata->track[trackID].data)
+ 		if mididata->track[trackID].data then Deallocate(mididata->track[trackID].data)
 	next
- 	ODeallocate(mididata->track)
-    ODeallocate(mididata)
+ 	Deallocate(mididata->track)
+    Deallocate(mididata)
 
     return eventList
 end function
@@ -436,8 +432,8 @@ sub FreeMidiEventList(head as MIDI_EVENT ptr)
 
  	do while cur
  		n = cur->next
- 		if cur->extraData then ODeallocate cur->extraData
-		ODeallocate cur
+ 		if cur->extraData then Deallocate cur->extraData
+		Deallocate cur
  		cur = n
  	loop
  	exit sub
