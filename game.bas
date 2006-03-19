@@ -1560,14 +1560,14 @@ IF nowscript >= 0 THEN
      ELSE
       FOR i = 0 TO 5
        IF carray(i) > 1 THEN
-	scriptret = csetup(i)
-	scrat(nowscript, scrstate) = streturn
+        scriptret = csetup(i)
+        scrat(nowscript, scrstate) = streturn
        END IF
       NEXT i
       FOR i = 1 TO 127
        IF keyval(i) > 1 THEN
-	scriptret = i
-	scrat(nowscript, scrstate) = streturn
+        scriptret = i
+        scrat(nowscript, scrstate) = streturn
        END IF
       NEXT i
      END IF
@@ -1894,10 +1894,6 @@ SELECT CASE scrat(nowscript, curkind)
      i = retvals(0)
      unequip i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat(), 0
      doequip bound(retvals(2), 0, 255) + 1, i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat()
-    END IF
-   CASE 25'--set hero frame
-    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-     wtog(retvals(0)) = bound(retvals(1), 0, 1) * 2
     END IF
    CASE 32'--show backdrop
     gen(50) = bound(retvals(0) + 1, 0, gen(100))

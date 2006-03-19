@@ -1102,6 +1102,10 @@ SELECT CASE id
   ELSE
    scriptret = 0
   END IF
+ CASE 25'--set hero frame
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   wtog(retvals(0)) = bound(retvals(1), 0, 1) * 2
+  END IF
  CASE 27'--suspend overlay
   setbit gen(), 44, suspendoverlay, 1
  CASE 28'--play song
@@ -1401,6 +1405,10 @@ SELECT CASE id
   ELSE
    scriptret = -1
   END IF
+ CASE 191'--hero frame
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   scriptret = wtog(retvals(0)) \ 2
+  END IF
  CASE 200'--system hour
   scriptret = INT(TIMER / 3600)
  CASE 201'--system minute
@@ -1451,7 +1459,6 @@ SELECT CASE id
    plotstring$(retvals(0)) = readglobalstring$(retvals(1), "", 255)
    scriptret = 1
   END IF
-
  CASE 211'--clear string
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN plotstring$(retvals(0)) = ""
  CASE 212'--append ascii
@@ -1712,6 +1719,9 @@ SELECT CASE id
     END IF
    END IF
   END IF
+ CASE 192'--NPC frame
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN scriptret = npcl(npcref + 1200) \ 2
 
 END SELECT
 

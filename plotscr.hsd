@@ -197,6 +197,8 @@ define function, begin
 188,setmusicvolume,1,128    # set music volume on a scale of 0-255
 189,getformationsong,1,0	# returns the song associated with a given formation
 190,setformationsong,2,0,0	# sets the song associated with a given formation
+191,heroframe,1,0           # get hero walkabout frame
+192,npcframe,1,0            # get npc walkabout frame
 200,system hour,0
 201,system minute,0
 202,system second,0

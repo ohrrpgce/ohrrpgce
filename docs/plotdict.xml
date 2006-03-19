@@ -401,15 +401,18 @@ walk hero(me,up,3) # move him up 3 tiles
 resume player # ok, done</example>
 		</command>
 		<command id="setherodirection">
-			<cannon>set hero direction(who, direction)</cannon>
+			<cannon>set hero direction (who, direction)</cannon>
 			<shortname>set hero direction</shortname>
 			<description>Makes the specified hero face in the specified direction. The following constants are avaialable for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>.</description>
-			<example>set hero direction(me,right) # face right</example>
+			<example>set hero direction (me,right) # face right</example>
 		</command>
 		<command id="setheroframe">
-			<cannon>set hero frame(who, frame)</cannon>
+			<cannon>set hero frame (who, frame)</cannon>
 			<shortname>set hero frame</shortname>
 			<description>Sets the walking frame of the specified hero to 0 or 1.</description>
+            <seealso>
+                <ref>heroframe</ref>
+            </seealso>
 		</command>
 		<command id="setheroposition">
 			<cannon>set hero position (who, x, y)</cannon>
@@ -531,6 +534,9 @@ end</example>
 			<cannon>set NPC frame (who,frame)</cannon>
 			<shortname>set NPC frame</shortname>
 			<description>Sets the walking frame of the specified NPC to 0 or 1. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will change.</description>
+            <seealso>
+                <ref>npcframe</ref>
+            </seealso>
 		</command>
 		<command id="setnpcposition">
 			<cannon>set NPC position (who,X,Y)</cannon>
@@ -1231,13 +1237,23 @@ end</example>
 		</command>
 		<command id="herodirection">
 			<cannon>hero direction (who)</cannon>
-			<shortname>hero direction (who)</shortname>
+			<shortname>hero direction</shortname>
 			<description>Returns the specified hero&apos;s direction.</description>
+        </command>
+		<command id="heroframe">
+			<cannon>hero frame (who)</cannon>
+			<shortname>hero frame</shortname>
+			<description>Returns the walking frame (0 or 1) of the specified hero.</description>
 		</command>
 		<command id="npcdirection">
 			<cannon>NPC direction (who)</cannon>
-			<shortname>NPC direction (who)</shortname>
+			<shortname>NPC direction</shortname>
 			<description>Returns the specified NPC&apos;s direction.</description>
+        </command>
+		<command id="npcframe">
+			<cannon>NPC frame (who)</cannon>
+			<shortname>NPC frame</shortname>
+			<description>Returns the walking frame (0 or 1) of the specified NPC.</description>
 		</command>
 		<command id="roominactiveparty">
 			<cannon>room in active party</cannon>

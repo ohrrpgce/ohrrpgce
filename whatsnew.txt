@@ -12,6 +12,7 @@ WHAT IS NEW?
       [Ralph Versteegen]
 
   * New Plotscripting Commands
+    * "hero frame", "NPC frame" [Ralph Versteegen]
 
   * Stuff only Developers Will Notice
     * Some rewritten map wrapping code [Ralph Versteegen]
