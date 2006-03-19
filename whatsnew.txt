@@ -10,6 +10,8 @@ WHAT IS NEW?
       And bug where couldn't activate touch activation NPCs over map edge 
       And bug where avoid and chase NPCs did not do so properly on a wraparound map
       [Ralph Versteegen]
+    * Bug 176: "Some files appear as subdirectories in Windows browsers" 
+      [Ralph Versteegen]
 
   * New Plotscripting Commands
     * "hero frame", "NPC frame" [Ralph Versteegen]

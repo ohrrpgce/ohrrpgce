@@ -1504,6 +1504,7 @@ SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 end SUB
 
 SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
+    ' attrib 0: all files 'cept folders, attrib 16: folders only
 	fmask$ = TRIM(fmask$)
 	outfile$ = TRIM(outfile$)
 #ifdef __FB_LINUX__
@@ -1540,21 +1541,42 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 	CLOSE #f2
 	KILL outfile$ + ".tmp"
 #else
+    DIM a$, i%, folder$
 	if attrib = 0 then attrib = 255 xor 16
-	dim ff%
-	ff = FreeFile
-	OPEN outfile$ FOR OUTPUT AS #ff
-	dim a$
+
+	FOR i = LEN(fmask$) TO 1 STEP -1
+        IF MID$(fmask$, i, 1) = "\" THEN folder$ = MID$(fmask$, 1, i): EXIT FOR
+    NEXT
+
+	dim tempf%, realf%
+	tempf = FreeFile
+	OPEN outfile$ + ".tmp" FOR OUTPUT AS #tempf
 	a$ = DIR$(fmask$, attrib)
 	if a$ = "" then
-		close #ff
+		close #tempf
 		exit sub
 	end if
 	DO UNTIL a$ = ""
-		PRINT #ff,a$
+		PRINT #tempf, a$
 		a$ = DIR$("", attrib)
 	LOOP
-	CLOSE #ff
+	CLOSE #tempf
+    OPEN outfile$ + ".tmp" FOR INPUT AS #tempf
+    realf = FREEFILE
+    OPEN outfile$ FOR OUTPUT AS #realf
+    DO UNTIL EOF(tempf)
+        LINE INPUT #tempf, a$
+        IF attrib = 16 THEN
+            'alright, we want directories, but DIR$ is too broken to give them to us
+            'files with attribute 0 appear in the list, so single those out
+            IF DIR$(folder$ + a$, 255 xor 16) = "" THEN PRINT #realf, a$
+        ELSE
+            PRINT #realf, a$
+        END IF
+    LOOP
+    CLOSE #tempf
+    CLOSE #realf
+    KILL outfile$ + ".tmp"
 #endif
 END SUB
 
@@ -1777,7 +1799,9 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 END SUB
 
 FUNCTION isfile (n$) as integer
-	return dir$(n$) <> ""
+    ' I'm assuming we don't count directories as files
+	'return dir$(n$) <> ""
+    return dir$(n$, 255 xor 16) <> ""
 END FUNCTION
 
 FUNCTION pathlength () as integer
