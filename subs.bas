@@ -1213,13 +1213,15 @@ END IF
 drawsprite buffer(), 0, pal16(), 0, 250, 25, dpage
 loadsprite buffer(), 0, (wd * 400) + (200 * tog), 16, 20, 20, 2
 drawsprite buffer(), 0, pal16(), 16, 230 + wx, 5 + wy, dpage
+IF frame <> -1 THEN
  drawline 248 + a(297 + frame * 2),25 + a(298 + frame * 2),249 + a(297 + frame * 2), 25 + a(298 + frame * 2),14 + tog,dpage
  drawline 250 + a(297 + frame * 2),23 + a(298 + frame * 2),250 + a(297 + frame * 2), 24 + a(298 + frame * 2),14 + tog,dpage
  drawline 251 + a(297 + frame * 2),25 + a(298 + frame * 2),252 + a(297 + frame * 2), 25 + a(298 + frame * 2),14 + tog,dpage
  drawline 250 + a(297 + frame * 2),26 + a(298 + frame * 2),250 + a(297 + frame * 2), 27 + a(298 + frame * 2),14 + tog,dpage
-IF frame = 1 THEN printstr "<",256,18,dpage
-IF frame <> -1 THEN printstr xSTR$(frame),256,18,dpage
-IF frame = 0 THEN printstr ">",272,18,dpage
+ IF frame = 1 THEN printstr "<",256,18,dpage
+ IF frame <> -1 THEN printstr xSTR$(frame),256,18,dpage
+ IF frame = 0 THEN printstr ">",272,18,dpage
+END IF
 
 RETURN
 
@@ -1679,7 +1681,7 @@ DO
  FOR i = 0 TO 20
   textcolor 7, 0
   IF pt = i THEN textcolor 14 + tog, 0
-  IF (i >= 18 AND a(49) = 0) OR ((i = 16 OR i = 17) AND (readbit(general(),101,15) = 0 OR a(49) <> 1)) THEN
+  IF (i >= 18 AND a(49) = 0) OR ((i = 16 OR i = 17) AND a(49) <> 1) THEN
    textcolor 8, 0
    IF pt = i THEN textcolor 6 + tog, 0
   END IF
@@ -1688,6 +1690,7 @@ DO
  IF a(49) = 1 THEN
   loadsprite buffer(), 0, (1-frame) * 288, 0, 24, 24, 2
   drawsprite buffer(), 0, workpal(), 0, 280, 160, dpage
+  textcolor 8, 0
   IF frame = 0 THEN printstr "<",280,152,dpage
   printstr xSTR$(1 - frame),281,152,dpage
   IF frame = 1 THEN printstr ">",296,152,dpage
@@ -1729,8 +1732,15 @@ menu$(12) = "own item TAG" + STR$(a(74)) + " " + lmnemonic(a(74))
 menu$(13) = "is in inventory TAG" + STR$(a(75)) + " " + lmnemonic(a(75))
 menu$(14) = "is equipped TAG" + STR$(a(76)) + " " + lmnemonic(a(76))
 menu$(15) = "eqpt by active hero TAG" + STR$(a(77)) + " " + lmnemonic(a(77))
-menu$(16) = "Handle X:" + STR$(a(78 + frame * 2))
-menu$(17) = "Handle Y:" + STR$(a(79 + frame * 2))
+menu$(16) = "Handle X:"
+menu$(17) = "Handle Y:"
+IF a(49) = 1 THEN
+ menu$(16) = menu$(16) + STR$(a(78 + frame * 2))
+ menu$(17) = menu$(17) + STR$(a(79 + frame * 2))
+ELSE
+ menu$(16) = menu$(16) + "N/A"
+ menu$(17) = menu$(17) + "N/A"
+END IF
 IF pt = 9 OR pt = 10 THEN
  'oldframe = frame
  setpicstuf buffer(), 576, 2
