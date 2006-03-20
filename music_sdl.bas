@@ -178,14 +178,16 @@ sub music_play(songname as string, fmt as music_format)
 end sub
 
 sub music_pause()
-	if music_on = 1 then
-		if music_song > 0 then
-			if music_paused = 0 then
-				Mix_PauseMusic	'doesn't seem to work
-				music_paused = 1
-			end if
-		end if
-	end if
+	'Pause is broken in SDL_Mixer, so just stop.
+	music_stop
+' 	if music_on = 1 then
+' 		if music_song > 0 then
+' 			if music_paused = 0 then
+' 				Mix_PauseMusic	'doesn't seem to work
+' 				music_paused = 1
+' 			end if
+' 		end if
+' 	end if
 end sub
 
 sub music_resume()
@@ -198,7 +200,11 @@ sub music_resume()
 end sub
 
 sub music_stop()
-	music_pause()
+	if music_on = 1 then
+		if music_song > 0 then
+			Mix_HaltMusic
+		end if
+	end if
 end sub
 
 sub music_setvolume(vol as integer)
