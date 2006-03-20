@@ -1690,7 +1690,7 @@ DO
  IF a(49) = 1 THEN
   loadsprite buffer(), 0, (1-frame) * 288, 0, 24, 24, 2
   drawsprite buffer(), 0, workpal(), 0, 280, 160, dpage
-  textcolor 8, 0
+  textcolor 7, 0
   IF frame = 0 THEN printstr "<",280,152,dpage
   printstr xSTR$(1 - frame),281,152,dpage
   IF frame = 1 THEN printstr ">",296,152,dpage
