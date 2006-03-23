@@ -2354,6 +2354,7 @@ SUB bitmap2page (temp(), bmp$, BYVAL p)
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim pix as RGBTRIPLE
+	dim pix8 as UByte
 	dim bf as integer
 	dim as integer w, h, maxw, maxh
 	dim as ubyte ptr sptr, sbase
@@ -2378,49 +2379,89 @@ SUB bitmap2page (temp(), bmp$, BYVAL p)
 
 	get #bf, , info
 
-	if info.biBitCount <> 24 then
+	if info.biBitCount <> 24 AND info.biBitCount <> 8 then
 		close #bf
 		exit sub
 	end if
 
 	sbase = spage(p)
 
-	'data lines are padded to 32-bit boundaries
-	pad = 4 - ((info.biWidth * 3) mod 4)
-	if pad = 4 then	pad = 0
+	
+	'navigate to the beginning of the bitmap data
+	seek #bf, header.bfOffBits + 1
 
-	'crop images larger than screen
-	maxw = info.biWidth - 1
-	if maxw > 319 then
-		maxw = 319
-		pad = pad + ((info.biWidth - 320) * 3)
-	end if
-	maxh = info.biHeight - 1
-	if maxh > 199 then
-		maxh = 199
-	end if
-
-	for h = info.biHeight - 1 to 0 step -1
-		if h > maxh then
-			for w = 0 to maxw
-				'read the data
-				get #bf, , pix
-			next
-		else
-			sptr = sbase + (h * 320)
-			for w = 0 to maxw
-				'read the data
-				get #bf, , pix
-				*sptr = nearcolor(temp(), pix.rgbtRed, pix.rgbtGreen, pix.rgbtBlue)
-				sptr += 1
-			next
+	
+	IF info.biBitCount = 24 THEN	
+		'data lines are padded to 32-bit boundaries
+		pad = 4 - ((info.biWidth * 3) mod 4)
+		if pad = 4 then	pad = 0
+		'crop images larger than screen
+		maxw = info.biWidth - 1
+		if maxw > 319 then
+			maxw = 319
+			pad = pad + ((info.biWidth - 320) * 3)
 		end if
-
-		'padding to dword boundary, plus excess pixels
-		for w = 0 to pad-1
-			get #bf, , ub
+		maxh = info.biHeight - 1
+		if maxh > 199 then
+			maxh = 199
+		end if
+		for h = info.biHeight - 1 to 0 step -1
+			if h > maxh then
+				for w = 0 to maxw
+					'read the data
+					get #bf, , pix
+				next
+			else
+				sptr = sbase + (h * 320)
+				for w = 0 to maxw
+					'read the data
+					get #bf, , pix
+					*sptr = nearcolor(temp(), pix.rgbtRed, pix.rgbtGreen, pix.rgbtBlue)
+					sptr += 1
+				next
+			end if
+	
+			'padding to dword boundary, plus excess pixels
+			for w = 0 to pad-1
+				get #bf, , ub
+			next
 		next
-	next
+	ELSEIF info.biBitCount = 8 THEN
+		'data lines are padded to 32-bit boundaries
+		pad = 4 - (info.biWidth mod 4)
+		if pad = 4 then	pad = 0
+		'crop images larger than screen
+		maxw = info.biWidth - 1
+		if maxw > 319 then
+			maxw = 319
+			pad = pad + ((info.biWidth - 320) * 3)
+		end if
+		maxh = info.biHeight - 1
+		if maxh > 199 then
+			maxh = 199
+		end if
+		for h = info.biHeight - 1 to 0 step -1
+			if h > maxh then
+				for w = 0 to maxw
+					'read the data
+					get #bf, , pix
+				next
+			else
+				sptr = sbase + (h * 320)
+				for w = 0 to maxw
+					'read the data
+					get #bf, , pix8 'assume they know what they're doing
+					*sptr = pix8
+					sptr += 1
+				next
+			end if
+	
+			'padding to dword boundary, plus excess pixels
+			for w = 0 to pad-1
+				get #bf, , ub
+			next
+		next
+	END IF
 
 	close #bf
 END SUB

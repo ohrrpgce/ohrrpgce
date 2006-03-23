@@ -35,6 +35,7 @@ option nokeyword poke
 #define CUSTOMEXE "CUSTOM.EXE"
 #define ALLFILES "*.*"
 #endif
+#define ISDOS 0
 
 ' keyword(?) in QB
 ' had to change reg params to any because type not declared yet

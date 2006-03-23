@@ -351,11 +351,17 @@ DO UNTIL EOF(fh) OR treesize >= 255
    treesize = treesize - 1
   END IF
  END IF
- '---320x200x24bit BMP files
+ '---320x200x24/8bit BMP files
  IF special = 3 THEN
   IF bmpinfo(nowdir$ + tree$(treesize) + CHR$(0), bmpd()) THEN
-   IF bmpd(0) <> 24 OR bmpd(1) <> 320 OR bmpd(2) <> 200 THEN
+   IF ISDOS = 1 THEN
+    IF bmpd(0) <> 24 OR bmpd(1) <> 320 OR bmpd(2) <> 200 then
+     treec(treesize) = 6
+    END IF
+   ELSE
+    IF (bmpd(0) <> 24 AND bmpd(0) <> 8) OR bmpd(1) <> 320 OR bmpd(2) <> 200 THEN
     treec(treesize) = 6
+    END IF
    END IF
   ELSE
    treesize = treesize - 1
