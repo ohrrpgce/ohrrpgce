@@ -2,13 +2,18 @@ WHAT IS NEW?
 
 ??? ?? 2006 [ubersetzung]
   * New Features
+    * 8-bit bitmaps can now be imported as backdrops and tilesets (pre-index
+      your tilesets using Photoshop, etc. to use this. YOU MUST INDEX THEM WITH
+      THE MASTER PALETTE, custom won't re-map the colours). 8-bit bitmaps are
+      rejected by customqb.
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
-      hero at the opposite edge" and bug 27: "NPCs cannot walk across the edges of a 
-      wraparound map" (consider that a feature if you want) 
+      hero at the opposite edge" and bug 27: "NPCs cannot walk across the edges
+      of a wraparound map" (consider that a feature if you want) 
       And bug where couldn't activate touch activation NPCs over map edge 
-      And bug where avoid and chase NPCs did not do so properly on a wraparound map
+      And bug where avoid and chase NPCs did not do so properly on a wraparound
+      map
       [Ralph Versteegen]
     * Bug 176: "Some files appear as subdirectories in Windows browsers" 
       [Ralph Versteegen]
