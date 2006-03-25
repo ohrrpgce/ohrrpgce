@@ -50,7 +50,6 @@ sub gfx_showpage(byval raw as ubyte ptr)
 	dim rptr as ubyte ptr
 	dim as integer w, h, i, j
 	
-	screensync
 	screenlock
 	if depth = 8 then
 		dim sptr as ubyte ptr

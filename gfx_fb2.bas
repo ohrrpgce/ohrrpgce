@@ -41,7 +41,6 @@ sub gfx_showpage(byval raw as ubyte ptr)
 	dim rptr as ubyte ptr
 	dim as integer w, h, i
 	
-	screensync
 	screenlock
 	sptr = screenptr
 	for h = 0 to 200 - 1
