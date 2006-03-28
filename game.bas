@@ -150,6 +150,7 @@ DECLARE SUB drawnpcs ()
 DECLARE FUNCTION wrapcollision (xa%, ya%, xgoa%, ygoa%, xb%, yb%, xgob%, ygob%)
 DECLARE FUNCTION cropmovement (x%, y%, xgo%, ygo%)
 DECLARE FUNCTION wraptouch (x1%, y1%, x2%, y2%, distance%)
+DECLARE SUB getui (f$)
 
 '---INCLUDE FILES---
 '$INCLUDE: 'compat.bi'
@@ -157,6 +158,7 @@ DECLARE FUNCTION wraptouch (x1%, y1%, x2%, y2%, distance%)
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
+'$INCLUDE: 'uigame.bi'
 
 'DEBUG debug "started debug session "+date$+" "+time$
 
@@ -184,6 +186,7 @@ DIM item(-3 TO 199), item$(-3 TO 199), eqstuf(40, 4), gmap(20), csetup(20), carr
 tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 3), learnmask(29)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1), lumpmod(0)
 DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 13), retvals(32), plotstring$(31), plotstrX(31), plotstrY(31), plotstrCol(31), plotstrBGCol(31), plotstrBits(31)
+DIM uilook(uiColors)
 '--stuff we used to DIM here, but have defered to later
 'DIM scroll(16002), pass(16002)
 
@@ -246,6 +249,8 @@ NEXT i
 'DEBUG debug "load font"
 
 getdefaultfont font()
+'get default ui colours
+getui ""
 
 'DEBUG debug "set mode-X"
 setmodex
@@ -265,9 +270,9 @@ keyhandleron
 
 keyboardsetup
 
-textcolor 15, 0
+textcolor uilook(uiText), 0
 FOR i = 0 TO 31
- plotstrCol(i) = 15
+ plotstrCol(i) = uilook(uiText)
 NEXT i
 
 'DEBUG debug "init sound"
@@ -327,7 +332,7 @@ IF autorungame = 0 THEN
  rectangle 5, 4, 310, 12, 1, vpage
 END IF
 
-edgeprint "Loading...", xstring("Loading...", 160), 6, 15, vpage
+edgeprint "Loading...", xstring("Loading...", 160), 6, uilook(uiText), vpage
 setvispage vpage 'refresh
 'DEBUG debug "unlumping "+sourcerpg$
 
@@ -358,6 +363,9 @@ FOR i = 0 TO 104
 NEXT i
 
 rpgversion gen(genVersion)
+
+'Get UI colours
+getui workingdir$ + SLASH + "uilook.bin"
 
 setfont font()
 setpicstuf buffer(), 50, -1
@@ -704,7 +712,7 @@ END IF '---END BACKDROP DISPLAY---
 IF showsay > 0 THEN drawsay saybit(), sayenh(), say$(), showsay, choose$(), choosep
 'DEBUG debug "map name"
 IF showmapname > 0 AND gmap(4) >= showmapname THEN
- showmapname = showmapname - 1: edgeprint mapname$, xstring(mapname$, 160), 180, 15, dpage
+ showmapname = showmapname - 1: edgeprint mapname$, xstring(mapname$, 160), 180, uilook(uiText), dpage
 ELSE
  showmapname = 0
 END IF
@@ -715,7 +723,7 @@ END IF
 '  fpstimer! = TIMER
 '  framecount = 0
 'END IF
-edgeprint scriptout$, 0, 190, 15, dpage
+edgeprint scriptout$, 0, 190, uilook(uiText), dpage
 showplotstrings
 IF showtags > 0 THEN tagdisplay
 IF scrwatch THEN scriptwatcher dpage
@@ -804,9 +812,9 @@ DO
  END IF
  centerfuz 160, 100, 120, (mt + 2) * 10, 1, dpage
  FOR i = 0 TO mt
-  col = 7
+  col = uilook(uiMenuItem)
   IF mi(i) = 7 AND fmvol THEN centerbox 160, 110 - ((mt + 2) * 10) * .5 + (i * 10), fmvol * 6, 10, 1, dpage
-  IF pt = i THEN col = 14 + tog
+  IF pt = i THEN col = uilook(uiSelectedItem + tog)
   edgeprint menu$(mi(i)), xstring(menu$(mi(i)), 160), 106 - ((mt + 2) * 10) * .5 + (i * 10), col, dpage
  NEXT i
  SWAP vpage, dpage

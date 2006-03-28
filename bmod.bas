@@ -84,6 +84,7 @@ DECLARE FUNCTION dimbinsize% (id%)
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
+'$INCLUDE: 'uigame.bi'
 '$INCLUDE: 'binsize.bi'
 
 REM $STATIC
@@ -258,7 +259,7 @@ DO
  IF alert > 0 THEN
   alert = alert - 1
   centerfuz 160, 190, 100, 16, 3, dpage
-  edgeprint alert$, 160 - LEN(alert$) * 4, 185, 14 + tog, dpage
+  edgeprint alert$, 160 - LEN(alert$) * 4, 185, uilook(uiSelectedItem + tog), dpage
  END IF
  SWAP vpage, dpage
  setvispage vpage
@@ -302,8 +303,8 @@ clearpage 3
 EXIT FUNCTION '---------------------------------------------------------------
 
 pgame:
-fuzzyrect 0, 0, 320, 200, 19, vpage
-edgeprint pause$, xstring(pause$, 160), 95, 15, vpage
+fuzzyrect 0, 0, 320, 200, uilook(uiTextBox), vpage
+edgeprint pause$, xstring(pause$, 160), 95, uilook(uiText), vpage
 '--wait for a key
 wk = getkey
 RETURN
@@ -1659,12 +1660,12 @@ IF vdance = 0 THEN 'only display interface till you win
   IF hero(i) > 0 THEN
    IF readbit(gen(), 101, 6) = 0 THEN
     '--speed meter--
-    col = 18: IF ready(i) = 1 THEN col = 21
+    col = uilook(uiTimeBar): IF ready(i) = 1 THEN col = uilook(uiTimeBarFull)
     centerfuz 66, 9 + i * 10, 131, 10, 1, dpage
     IF stat(i, 0, 0) > 0 THEN
      j = ctr(i) / 7.7
      IF delay(i) > 0 OR godo(i) > 0 OR (anim >= 0 AND who = i) THEN
-      col = 18
+      col = uilook(uiTimeBar)
       j = 130
      END IF
      rectangle 2, 5 + i * 10, j, 9, col, dpage
@@ -1672,18 +1673,18 @@ IF vdance = 0 THEN 'only display interface till you win
    END IF
    IF readbit(gen(), 101, 7) = 0 THEN
     '--hp-meter--
-    col = 35
+    col = uiLook(uiHealthBar)
     IF lifemeter(i) < INT((87 / large(stat(i, 1, 0), 1)) * stat(i, 0, 0)) THEN lifemeter(i) = lifemeter(i) + 1
     IF lifemeter(i) > INT((87 / large(stat(i, 1, 0), 1)) * stat(i, 0, 0)) THEN lifemeter(i) = lifemeter(i) - 1
     IF lifemeter(i) > 87 THEN
      lifemeter(i) = 87
-     col = 35 + tog * 2
+     col = uiLook(uiHealthBar + tog)
     END IF
     centerfuz 180, 9 + i * 10, 88, 10, 1, dpage
     rectangle 137, 5 + i * 10, lifemeter(i), 9, col, dpage
    END IF
    '--name--
-   col = 7: IF i = you THEN col = 14 + tog
+   col = uilook(uiMenuItem): IF i = you THEN col = uilook(uiSelectedItem + tog)
    edgeprint batname$(i), 128 - LEN(batname$(i)) * 8, 5 + i * 10, col, dpage
    '--hp--
    edgeprint LTRIM$(STR$(stat(i, 0, 0))) + "/" + LTRIM$(STR$(stat(i, 1, 0))), 136, 5 + i * 10, col, dpage
@@ -1707,29 +1708,29 @@ IF vdance = 0 THEN 'only display interface till you win
    battlecapdelay = battlecapdelay - 1
   ELSE
    centerbox 160, 186, 310, 14, 1, dpage
-   edgeprint battlecaption$, xstring(battlecaption$, 160), 182, 15, dpage
+   edgeprint battlecaption$, xstring(battlecaption$, 160), 182, uilook(uiText), dpage
   END IF
  END IF
  IF you >= 0 THEN
   centerbox 268, 5 + (4 * (mend(you) + 2)), 88, 8 * (mend(you) + 2), 1, dpage
   FOR i = 0 TO mend(you)
-   textcolor 7, 0
-   IF pt = i THEN textcolor 14 + tog, 1
+   textcolor uilook(uiMenuItem), 0
+   IF pt = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
    printstr menu$(you, i), 228, 9 + i * 8, dpage
   NEXT i
   IF mset = 1 THEN '--draw spell menu
    centerbox 148, 55, 280, 100, 1, dpage
-   rectangle 8, 82, 281, 1, 25, dpage
-   rectangle 8, 93, 281, 1, 25, dpage
+   rectangle 8, 82, 281, 1, uilook(uiTextBox + 1), dpage
+   rectangle 8, 93, 281, 1, uilook(uiTextBox + 1), dpage
    FOR i = 0 TO 23
-    textcolor 8 - readbit(spelmask(), 0, i), 0
-    IF sptr = i THEN textcolor 7 + (7 * readbit(spelmask(), 0, i)) + tog, 1
+    textcolor uilook(uiDisabledItem - readbit(spelmask(), 0, i)), 0
+    IF sptr = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(spelmask(), 0, i)) + tog), uilook(uiHighlight)
     printstr spel$(i), 16 + (((i / 3) - INT(i / 3)) * 3) * 88, 8 + INT(i / 3) * 8, dpage
    NEXT i
-   textcolor 7, 0
-   IF sptr = 24 THEN textcolor 14 + tog, 1
+   textcolor uilook(uiMenuItem), 0
+   IF sptr = 24 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
    printstr cancelspell$, 16, 96, dpage
-   textcolor 10, 0
+   textcolor uilook(uiDescription), 0
    IF sptr < 24 THEN
     printstr speld$(sptr), 16, 84, dpage
     printstr cost$(sptr), 280 - LEN(cost$(sptr)) * 8, 96, dpage
@@ -1738,21 +1739,21 @@ IF vdance = 0 THEN 'only display interface till you win
   IF mset = 2 THEN
    centerbox 160, 45, 304, 80, 1, dpage
    FOR i = itop TO itop + 26
-    textcolor 8 - readbit(iuse(), 0, i), 0
-    IF iptr = i THEN textcolor 14 + tog, 1 + (readbit(iuse(), 0, i) * tog)
+    textcolor uilook(uiDisabledItem - readbit(iuse(), 0, i)), 0
+    IF iptr = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(iuse(), 0, i)) + tog), uilook(uiHighlight)
     printstr item$(i), 20 + 96 * (((i / 3) - INT(i / 3)) * 3), 8 + 8 * INT((i - itop) / 3), dpage
    NEXT i
   END IF
   IF ptarg > 0 THEN
    FOR i = 0 TO 11
     IF targs(i) = 1 OR tptr = i THEN
-     edgeprint CHR$(24), x(i) + (w(i) / 2) - 4, y(i) - 6, 160 + flash, dpage
-     edgeprint batname$(i), xstring(batname$(i), x(i) + (w(i) / 2)), y(i) - 16, 14 + tog, dpage
+     edgeprint CHR$(24), x(i) + (w(i) / 2) - 4, y(i) - 6, uilook(uiSelectedItem + tog), dpage
+     edgeprint batname$(i), xstring(batname$(i), x(i) + (w(i) / 2)), y(i) - 16, uilook(uiSelectedItem + tog), dpage
     END IF
    NEXT i
   END IF
  END IF
- IF you >= 0 AND ptarg = 0 AND readbit(gen(), genBits, 14) = 0 THEN edgeprint CHR$(24), x(you) + (w(you) / 2) - 4, y(you) - 5 + (tog * 2), 14 + tog, dpage
+ IF you >= 0 AND ptarg = 0 AND readbit(gen(), genBits, 14) = 0 THEN edgeprint CHR$(24), x(you) + (w(you) / 2) - 4, y(you) - 5 + (tog * 2), uilook(uiSelectedItem + tog), dpage
 END IF'--end if vdance=0
 RETURN
 
@@ -1889,7 +1890,7 @@ RETURN
 
 seestuff:
 FOR i = 0 TO 11
- c = 12: IF i < 4 THEN c = 10
+ c = 12: IF i < 4 THEN c = uilook(uiDescription)
  rectangle 0, 80 + (i * 10), ctr(i) / 10, 4, c, dpage
  IF i >= 4 THEN edgeprint STR$(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
  edgeprint STR$(v(i)) + ":v" + STR$(delay(i)) + ":dly" + STR$(tmask(i)) + ":tm", 20, 80 + i * 10, c, dpage
@@ -2067,7 +2068,7 @@ IF vdance = 3 THEN
    'setbit learnmask(), 0, learna * 96 + learnb * 24 + learnc, 0
    nextbit = 1
   END IF
-  edgeprint found$, xstring(found$, 160), 22, 15, dpage
+  edgeprint found$, xstring(found$, 160), 22, uilook(uiText), dpage
  END IF
 END IF
 IF vdance = 2 THEN
@@ -2079,11 +2080,11 @@ IF vdance = 2 THEN
   SELECT CASE exstat(i, 1, 12)
    CASE 1
     temp$ = level1up$ + " " + batname$(i)
-    edgeprint temp$, xstring(temp$, 160), 12 + i * 10, 15, dpage
+    edgeprint temp$, xstring(temp$, 160), 12 + i * 10, uilook(uiText), dpage
     o = 1
    CASE IS > 1
     temp$ = LTRIM$(STR$(exstat(i, 1, 12))) + " " + levelXup$ + " " + batname$(i)
-    edgeprint temp$, xstring(temp$, 160), 12 + i * 10, 15, dpage
+    edgeprint temp$, xstring(temp$, 160), 12 + i * 10, uilook(uiText), dpage
     o = 1
   END SELECT
  NEXT i
@@ -2097,11 +2098,11 @@ IF vdance = 1 THEN
  IF plunder& > 0 OR exper& > 0 THEN drawbox = 1: centerfuz 160, 30, 280, 50, 1, dpage
  IF plunder& > 0 THEN
   temp$ = goldcap$ + STR$(plunder&) + " " + goldname$ + "!"
-  edgeprint temp$, xstring(temp$, 160), 16, 15, dpage
+  edgeprint temp$, xstring(temp$, 160), 16, uilook(uiText), dpage
  END IF
  IF exper& > 0 THEN
   temp$ = expcap$ + STR$(exper&) + " " + expname$ + "!"
-  edgeprint temp$, xstring(temp$, 160), 28, 15, dpage
+  edgeprint temp$, xstring(temp$, 160), 28, uilook(uiText), dpage
  END IF
 END IF
 RETURN
@@ -2123,7 +2124,7 @@ ELSE
  temp$ = foundpcap$ + STR$(found(fptr, 1)) + " " + found$
 END IF
 IF LEN(temp$) THEN centerfuz 160, 30, 280, 50, 1, dpage
-edgeprint temp$, xstring(temp$, 160), 22, 15, dpage
+edgeprint temp$, xstring(temp$, 160), 22, uilook(uiText), dpage
 '--check for a keypress
 IF carray(4) > 1 OR carray(5) > 1 THEN
  IF found(fptr, 1) = 0 THEN

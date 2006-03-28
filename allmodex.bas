@@ -78,6 +78,7 @@ dim shared anim2 as integer
 dim shared waittime as double
 dim shared keybd(0 to 255) as integer
 dim shared keysteps(0 to 255) as integer
+dim shared waitset as integer
 
 dim shared stacktop as ubyte ptr
 dim shared stackptr as ubyte ptr
@@ -830,11 +831,6 @@ SUB setkeys ()
 'Actual key state goes in keybd array for retrieval via keyval().
 	dim a as integer
 
-	'special - never time out modifier keys
-	keysteps(SC_CONTROL) = -1
-	keysteps(SC_LSHIFT) = -1
-	keysteps(SC_RSHIFT) = -1
-
 	'set key state for every key
 	'highest scancode in fbgfx.bi is &h79, no point overdoing it
 	for a = 0 to &h80
@@ -1251,6 +1247,7 @@ SUB setwait (b() as integer, BYVAL t as integer)
 
 	secs = millis / 1000
 	waittime = timer + secs
+	waitset = 1
 end SUB
 
 SUB dowait ()
@@ -1261,11 +1258,16 @@ SUB dowait ()
 	do while timer <= waittime
 		sleep 5 'is this worth it?
 	loop
-	for i = 0 to &h80
-		if keysteps(i) > 0 then
-			keysteps(i) -= 1
-		end if
-	next
+	if waitset = 1 then
+		for i = 0 to &h80
+			if keysteps(i) > 0 then
+				keysteps(i) -= 1
+			end if
+		next
+		waitset = 0
+	else
+		debug "dowait called without setwait"
+	end if
 end SUB
 
 SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)

@@ -110,12 +110,14 @@ DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB cathero ()
 DECLARE FUNCTION getsongname$ (num%)
+DECLARE SUB getui (f$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
+'$INCLUDE: 'uigame.bi'
 101
 DATA 72,80,75,77,57,28,29,1,56,1,15,36,51
 DATA 150,650,150,650
@@ -200,8 +202,9 @@ SUB drawnpcs
    IF framewalkabout(npcl(i + 0), npcl(i + 300) + gmap(11), drawnpcX, drawnpcY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
     IF veh(0) AND veh(5) = i THEN z = catz(0) '--special vehicle magic
     IF z AND readbit(veh(), 9, 8) = 0 THEN '--shadow
-     rectangle npcl(i + 0) - mapx + 6, npcl(i + 300) - mapy + gmap(11) + 13, 8, 5, 0, dpage
-     rectangle npcl(i + 0) - mapx + 5, npcl(i + 300) - mapy + gmap(11) + 14, 10, 3, 0, dpage
+     'Note: shadow is drawn in uiOutline colour, which might not really be appropriate
+     rectangle npcl(i + 0) - mapx + 6, npcl(i + 300) - mapy + gmap(11) + 13, 8, 5, uilook(uiOutline), dpage
+     rectangle npcl(i + 0) - mapx + 5, npcl(i + 300) - mapy + gmap(11) + 14, 10, 3, uilook(uiOutline), dpage
     END IF
     loadsprite buffer(), 0, (400 * npcl(i + 900)) + (200 * INT(npcl(i + 1200) / 2)), 20 + (5 * o), 20, 20, 2
     drawsprite buffer(), 0, pal16(), (4 + o) * 16, drawnpcX, drawnpcY - z, dpage
@@ -757,13 +760,32 @@ SUB verquit
   centerbox 160, 95, 200, 42, 15, dpage
   loadsprite buffer(), 0, 200 * ((dd * 2) + INT(wtog(0) / 2)), 0 * 5, 20, 20, 2
   drawsprite buffer(), 0, pal16(), 0, 150 + (ptr2), 90, dpage
-  edgeprint quitprompt$, xstring(quitprompt$, 160), 80, 15, dpage
-  col = 7: IF ptr2 < -20 THEN col = 10 + tog * 5
+  edgeprint quitprompt$, xstring(quitprompt$, 160), 80, uilook(uiText), dpage
+  col = uilook(uiMenuItem): IF ptr2 < -20 THEN col = uilook(uiSelectedItem + tog) '10 + tog * 5
   edgeprint quityes$, 70, 96, col, dpage
-  col = 7: IF ptr2 > 20 THEN col = 10 + tog * 5
+  col = uilook(uiMenuItem): IF ptr2 > 20 THEN col = uilook(uiSelectedItem + tog) '10 + tog * 5
   edgeprint quitno$, 256 - LEN(quitno$) * 8, 96, col, dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
  LOOP
 END SUB 
+
+SUB getui (f$)
+'load ui colors from data lump
+'(lump not finalised, just set defaults for now)
+
+RESTORE defaultui
+FOR i=0 TO uiColors
+ READ col%
+ uilook(i) = col%
+NEXT
+
+'The QB editor moves this data to the top, but QB still compiles fine
+'with it here.
+defaultui:
+DATA 0,7,8,14,15,6,7,1,2,18,21,35,37,15,240,10,14
+DATA 18,28,34,44,50,60,66,76,82,92,98,108,114,124,130,140
+DATA 146,156,162,172,178,188,194,204,210,220,226,236,242,252 
+
+END SUB

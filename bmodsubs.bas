@@ -67,6 +67,7 @@ DECLARE FUNCTION bound% (n%, lowest%, highest%)
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
+'$INCLUDE: 'uigame.bi'
 
 REM $STATIC
 SUB advance (who, atk(), x(), y(), w(), h(), t())
@@ -1150,7 +1151,7 @@ targetmaskcount = n
 END FUNCTION
 
 SUB traceshow (s$)
-textcolor 15, 240
+textcolor uilook(uiText), uilook(uiOutline)
 s$ = s$ + STRING$(40 - LEN(s$), " ")
 printstr s$, 0, 191, 0
 printstr s$, 0, 191, 1

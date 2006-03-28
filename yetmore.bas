@@ -112,6 +112,7 @@ DECLARE FUNCTION getdisplayname$ (default$)
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
+'$INCLUDE: 'uigame.bi'
 
 REM $STATIC
 SUB alterhero (id, stat())
@@ -1729,19 +1730,20 @@ END SUB
 
 SUB scriptwatcher (page)
 
-rectangle 0, 0, 320, 4, 0, page
-rectangle 0, 0, (320 / 4096) * nextscroff, 2, 9, page
-rectangle 0, 2, (320 / 2048) * scrat(nowscript + 1, scrheap), 2, 12, page
+'Note: the colours here are fairly arbitrary
+rectangle 0, 0, 320, 4, uilook(uiBackground), page
+rectangle 0, 0, (320 / 4096) * nextscroff, 2, uilook(uiSelectedItem), page
+rectangle 0, 2, (320 / 2048) * scrat(nowscript + 1, scrheap), 2, uilook(uiSelectedItem + 1), page
 
-edgeprint " #     ID    Rtval CmdKn CmdID State", 0, 192, 15, page
+edgeprint " #     ID    Rtval CmdKn CmdID State", 0, 192, uilook(uiText), page
 ol = 184
 FOR i = large(nowscript - 23, 0) TO nowscript
- edgeprint STR$(i), 0, ol, 15, page
- edgeprint STR$(scrat(i, scrid)), 48, ol, 15, page
- edgeprint STR$(scrat(i, scrret)), 96, ol, 15, page
- edgeprint STR$(scrat(i, curkind)), 144, ol, 15, page
- edgeprint STR$(scrat(i, curvalue)), 192, ol, 15, page
- edgeprint STR$(scrat(i, scrstate)), 240, ol, 15, page
+ edgeprint STR$(i), 0, ol, uilook(uiText), page
+ edgeprint STR$(scrat(i, scrid)), 48, ol, uilook(uiText), page
+ edgeprint STR$(scrat(i, scrret)), 96, ol, uilook(uiText), page
+ edgeprint STR$(scrat(i, curkind)), 144, ol, uilook(uiText), page
+ edgeprint STR$(scrat(i, curvalue)), 192, ol, uilook(uiText), page
+ edgeprint STR$(scrat(i, scrstate)), 240, ol, uilook(uiText), page
  ol = ol - 8
 NEXT i
 END SUB
@@ -2048,7 +2050,7 @@ FOR i = 0 TO 3
 NEXT i
 FOR i = o TO 3
  '--black out unused heros
- rectangle 0, i * 5, 320, 5, 0, 2
+ rectangle 0, i * 5, 320, 5, uilook(uiBackground), 2
 NEXT i
 END SUB
 

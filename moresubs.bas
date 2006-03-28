@@ -97,6 +97,7 @@ DECLARE FUNCTION exptolevel& (level%)
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
+'$INCLUDE: 'uigame.bi'
 
 REM $STATIC
 SUB addhero (who, slot, stat())
@@ -303,13 +304,13 @@ DO
  END IF
  rectangle 4, 3, 312, 14, 9, dpage
  rectangle 5, 4, 310, 12, 1, dpage
- edgeprint nowdir$, 8, 6, 15, dpage
+ edgeprint nowdir$, 8, 6, uilook(uiText), dpage
  rectangle 0, 190, 320, 10, 8, dpage
  rectangle 4, 175, 312, 14, 9, dpage
  rectangle 5, 176, 310, 12, 1, dpage
- edgeprint about$(treeptr), 8, 178, 15, dpage
- edgeprint version$, 8, 190, 7, dpage
- textcolor 15, 0
+ edgeprint about$(treeptr), 8, 178, uilook(uiText), dpage
+ edgeprint version$, 8, 190, uilook(uiMenuItem), dpage
+ textcolor uilook(uiText), 0
  printstr ">", 0, 20 + (treeptr - treetop) * 9, dpage
  FOR i = treetop TO small(treetop + 16, treesize)
   textcolor catfg(treec(i)), catbg(treec(i))
@@ -608,12 +609,12 @@ DO
   centerbox 160 + (joy(0) - midx) * .1, 100 + (joy(1) - midy) * .1, 10, 10, 15, dpage
  END IF
  IF state > 0 AND state < 5 THEN
-  edgeprint "This way!", tx - 36, ty - 5, 10, dpage
+  edgeprint "This way!", tx - 36, ty - 5, uilook(uiDescription), dpage
  END IF
- edgeprint "Calibrate Joystick", 88, 8, 15, dpage
- edgeprint state$, 160 - 4 * LEN(state$), 174, 14 + tog, dpage
+ edgeprint "Calibrate Joystick", 88, 8, uilook(uiText), dpage
+ edgeprint state$, 160 - 4 * LEN(state$), 174, uilook(uiSelectedItem + tog), dpage
  jpos$ = "X=" + LTRIM$(STR$(joy(0))) + " Y=" + LTRIM$(STR$(joy(1)))
- edgeprint jpos$, 160 - 4 * LEN(jpos$), 184, 14 + tog, dpage
+ edgeprint jpos$, 160 - 4 * LEN(jpos$), 184, uilook(uiSelectedItem + tog), dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -782,7 +783,7 @@ IF readbit(saybit(), 0, 1) = 0 THEN
   centerbox 160, 48 + (sayenh(0) * 4) - (sayenh(1) * 2), 312, 88 - (sayenh(1) * 4), sayenh(3) + 1, dpage
  END IF '---TO FUZZ OR NOT TO FUZZ?-----
 END IF
-col = 15: IF sayenh(2) > 0 THEN col = sayenh(2)
+col = uilook(uiText): IF sayenh(2) > 0 THEN col = sayenh(2)
 FOR i = 0 TO 8 - showsay
  edgeprint say$(i), 7, (8 + i * 10) + (sayenh(0) * 4), col, dpage
 NEXT i
@@ -792,14 +793,14 @@ IF readbit(saybit(), 0, 0) THEN
  IF tempy > 160 THEN tempy = 20
  centerbox 160, tempy + 12, 10 + large(LEN(choose$(0)) * 8, LEN(choose$(1)) * 8), 24, sayenh(3) + 1, dpage
  FOR i = 0 TO 1
-  col = 7: IF choosep = i THEN col = 14 + tog
+  col = uilook(uiMenuItem): IF choosep = i THEN col = uilook(uiSelectedItem + tog)
   edgeprint choose$(i), xstring(choose$(i), 160), tempy + 2 + (i * 10), col, dpage
  NEXT i
 END IF
 END SUB
 
 SUB edgeprint (s$, x, y, c, p)
-textcolor 240, 0
+textcolor uilook(uiOutline), 0
 printstr s$, x, y + 1, p
 printstr s$, x + 1, y, p
 printstr s$, x + 2, y + 1, p
@@ -899,10 +900,10 @@ SUB fatalerror (e$)
 
 setvispage 0
 centerbox 160, 100, 300, 180, 3, 0
-edgeprint e$, xstring(e$, 160), 20, 15, 0
-edgeprint "Press ESC to cleanly close the program", 15, 40, 7, 0
-edgeprint "or any other key to ignore the", 15, 50, 7, 0
-edgeprint "error and try to continue playing.", 15, 60, 7, 0
+edgeprint e$, xstring(e$, 160), 20, uilook(uiText), 0
+edgeprint "Press ESC to cleanly close the program", 15, 40, uilook(uiMenuItem), 0
+edgeprint "or any other key to ignore the", 15, 50, uilook(uiMenuItem), 0
+edgeprint "error and try to continue playing.", 15, 60, uilook(uiMenuItem), 0
 
 w = getkey
 
@@ -1068,32 +1069,33 @@ showswapmenu:
 centerbox 160, 66, 130, 38, 1, dpage
 o = 0
 FOR i = 0 TO 3
- IF i = swapme OR hero(i) > 0 THEN rectangle 105 + (30 * i), 60, 20, 20, 17, dpage
+ IF i = swapme OR hero(i) > 0 THEN rectangle 105 + (30 * i), 60, 20, 20, uilook(uiTextBox), dpage
  IF hero(i) THEN
   loadsprite buffer(), 0, 200 * 4, o * 5, 20, 20, 2
   drawsprite buffer(), 0, pal16(), o * 16, 105 + (30 * i), 60 + (i = swapme) * 6, dpage
   o = o + 1
  END IF
 NEXT i
-IF ecsr < 0 THEN edgeprint CHR$(24), 111 + 30 * acsr, 52, 14 + tog, dpage
+IF ecsr < 0 THEN edgeprint CHR$(24), 111 + 30 * acsr, 52, uilook(uiSelectedItem + tog), dpage
 IF iAll THEN
  centerbox 160, 100 + small(high, 8) * 5, wide * 8 + 16, small(high, 8) * 10 + 10, 1, dpage
  FOR i = top TO small(top + 7, la)
-  c = 7
-  IF swapme = i + 4 THEN c = 6
+  'Some of the colours are a bit bizarre, here, especially the time bar stuff below
+  c = uilook(uiMenuItem)
+  IF swapme = i + 4 THEN c = uilook(uiDisabledSelection) '6
   IF ecsr = i THEN
-   c = 14 + tog
-   IF swapme = i + 4 THEN c = 6 + 8 * tog
+   c = uilook(uiSelectedItem + tog)
+   IF swapme = i + 4 THEN c = uilook(uiDisabledSelection + tog) '6 + 8 * tog
   END IF
   IF swapme > -1 AND swapme < 4 THEN
-   IF (numhero < 2 AND i = la) OR readbit(hmask(), 0, acsr) THEN c = 8 + ((ecsr = i) * tog)
+   IF (numhero < 2 AND i = la) OR readbit(hmask(), 0, acsr) THEN c = uilook(uiTimeBar + ((ecsr = i) * tog)) '8 + ((ecsr = i) * tog)
   END IF
   edgeprint swname$(i), xstring(swname$(i), 160), 100 + (i - top) * 10, c, dpage
  NEXT i
 END IF
 IF LEN(info$) THEN
  centerbox 160, 44, (LEN(info$) + 2) * 8, 14, 1, dpage
- edgeprint info$, xstring(info$, 160), 39, 15, dpage
+ edgeprint info$, xstring(info$, 160), 39, uilook(uiText), dpage
 END IF
 RETURN
 
@@ -1435,7 +1437,7 @@ DO
   EXIT SUB
  END IF
  i = i + 1: LOOP UNTIL i > 88
- rectangle 160 - (scroll(0) * .5) + (x / 20), 100 - (scroll(1) * .5) + (y / 20), 1, 1, 15 + (tog * 5), dpage
+ rectangle 160 - (scroll(0) * .5) + (x / 20), 100 - (scroll(1) * .5) + (y / 20), 1, 1, uilook(uiSelectedItem + tog), dpage '15 + (tog * 5), dpage
  copypage dpage, vpage
  dowait
 LOOP
@@ -1488,8 +1490,8 @@ DO
    o = o + 1
   END IF
  NEXT i
- edgeprint CHR$(25), 106 + w * 30, 90, 14 + tog, dpage
- edgeprint w$, xstring(w$, 160), 80, 15, dpage
+ edgeprint CHR$(25), 106 + w * 30, 90, uilook(uiSelectedItem + tog), dpage
+ edgeprint w$, xstring(w$, 160), 80, uilook(uiText), dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -1616,10 +1618,10 @@ DO
  IF carray(4) > 1 AND keyval(57) = 0 THEN EXIT DO
  IF carray(5) > 1 THEN names$(who) = remember$
  strgrabber names$(who), limit
- edgeprint prompt$, xstring(prompt$, 160), 90, 15, dpage
- textcolor 1, 1
+ edgeprint prompt$, xstring(prompt$, 160), 90, uilook(uiText), dpage
+ textcolor uilook(uiHighlight), uiLook(uiHighlight)
  printstr spacer$, xstring(spacer$, 161), 101, dpage
- edgeprint names$(who), xstring(names$(who), 160), 100, 7, dpage
+ edgeprint names$(who), xstring(names$(who), 160), 100, uilook(uiMenuItem), dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -1753,8 +1755,8 @@ setvispage 0
 centerbox 160, 100, 240, 100, 3, 0
 IF v < 5 THEN
  ' Versions older than 5 do not support graceful backwards compatability
- edgeprint "Obsolete RPG File", 52, 70, 14, 0
- textcolor 7, 0
+ edgeprint "Obsolete RPG File", 52, 70, uilook(uiSelectedItem), 0
+ textcolor uilook(uiMenuItem), 0
  printstr "this game was created with", 52, 82, 0
  printstr "an obsolete version of the", 52, 90, 0
  printstr "OHRRPGCE. It may not run", 52, 98, 0
@@ -1762,8 +1764,8 @@ IF v < 5 THEN
 END IF
 IF v > current THEN
  'Versions newer than current cannot support graceful forward compatability
- edgeprint "Unsupported RPG File", 52, 70, 15, 0
- textcolor 7, 0
+ edgeprint "Unsupported RPG File", 52, 70, uilook(uiText), 0
+ textcolor uilook(uiMenuItem), 0
  printstr "this game has features", 52, 82, 0
  printstr "that are not supported in", 52, 90, 0
  printstr "this version of the", 52, 98, 0
@@ -2076,7 +2078,7 @@ errormode = 1
 
 SELECT CASE errormode
  CASE 1'--show error on screen
-  textcolor 15, 0
+  textcolor uilook(uiText), 0
   clearpage vpage
   setpal master()
   centerbox 160, 20, 310, 30, 3, vpage
@@ -2248,9 +2250,9 @@ DO
  h = (last + 2) * 10
  centerbox 160, 104 + (h * .5), 96, h, 1, dpage
  centerbox 160, 90, LEN(sn$) * 8 + 8, 16, 1, dpage
- edgeprint sn$, xstring(sn$, 160), 85, 15, dpage
+ edgeprint sn$, xstring(sn$, 160), 85, uilook(uiText), dpage
  FOR i = 0 TO last
-  c = 7: IF pt = i THEN c = 14 + tog
+  c = uilook(uiMenuItem): IF pt = i THEN c = uilook(uiSelectedItem + tog)
   edgeprint menu$(i), xstring(menu$(i), 160), 109 + i * 10, c, dpage
  NEXT i
  SWAP vpage, dpage
@@ -2319,17 +2321,17 @@ DO
  END IF
  FOR i = 0 TO 3
   IF hero(i) > 0 THEN
-   col = 15
+   col = uilook(uiText)
    edgeprint names$(i), 128 - LEN(names$(i)) * 8, 5 + i * 10, col, dpage
    edgeprint RIGHT$(STR$(stat(i, 0, 0)), LEN(STR$(stat(i, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(i, 1, 0)), LEN(STR$(stat(i, 1, 0))) - 1), 136, 5 + i * 10, col, dpage
   END IF
  NEXT i
  centerfuz 160, 90, 200, 60, 1, dpage
- rectangle 130, 92, 60, 22, 20, dpage
- edgeprint inncost$ + STR$(price) + " " + sname$(32), 160 - LEN(inncost$ + STR$(price) + " " + sname$(32)) * 4, 70, 15, dpage
- edgeprint youhave$ + STR$(gold&) + " " + sname$(32), 160 - LEN(youhave$ + STR$(gold&) + " " + sname$(32)) * 4, 80, 15, dpage
+ rectangle 130, 92, 60, 22, uilook(uiHighlight), dpage 'orig colour 20
+ edgeprint inncost$ + STR$(price) + " " + sname$(32), 160 - LEN(inncost$ + STR$(price) + " " + sname$(32)) * 4, 70, uilook(uiText), dpage
+ edgeprint youhave$ + STR$(gold&) + " " + sname$(32), 160 - LEN(youhave$ + STR$(gold&) + " " + sname$(32)) * 4, 80, uilook(uiText), dpage
  FOR i = 0 TO 1
-  col = 7: IF inn = i THEN col = 14 + tog
+  col = uilook(uiMenuItem): IF inn = i THEN col = uilook(uiSelectedItem + tog)
   edgeprint menu$(i), 160 - LEN(menu$(i)) * 4, 94 + i * 8, col, dpage
  NEXT i
  SWAP vpage, dpage
@@ -2406,7 +2408,7 @@ END IF
 top = bound(top, pt - 4, pt)
 
 setpicstuf buf(), 42, -1
-fuzzyrect 0, 0, 208, 50, 240, dpage
+fuzzyrect 0, 0, 208, 50, uilook(uiOutline), dpage
 FOR i = top TO top + 4
  temp$ = STR$(i) + " "
  buf(0) = 0
@@ -2419,9 +2421,11 @@ FOR i = top TO top + 4
     temp$ = temp$ + CHR$(large(small(buf(j), 255), 0))
    NEXT j
  END SELECT
- c = 8 + (-7 * istag(i, 0))
+ c = uilook(uiDisabledItem)
+ IF istag(i, 0) THEN c = uilook(uiHighlight) 'hmm
+ 'c = 8 + (-7 * istag(i, 0))
  edgeprint temp$, 8, (i - top) * 10, c, dpage
- IF i = pt THEN edgeprint "->", 0, (i - top) * 10, 15, dpage
+ IF i = pt THEN edgeprint "->", 0, (i - top) * 10, uilook(uiText), dpage
 NEXT i
 
 END SUB
