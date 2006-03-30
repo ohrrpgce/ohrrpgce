@@ -13,7 +13,9 @@
 ---------------------------------------------------------------------------
 
 --Changelog
-
+--2H 2006-03-29 Display better help and wait for keypress when run
+--              by double-clicking the icon. Added -k command line
+--              option to skip waiting for keypress
 --2G 2005-10-03 Additional operators $+ and $= by TeeEmCee
 --              Mention GPL in help text
 --2F 2005-07-24 Strings implemented by TeeEmCee:
@@ -49,7 +51,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=2
-constant COMPILER_SUB_VERSION='G'
+constant COMPILER_SUB_VERSION='H'
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -215,6 +217,16 @@ end procedure
 
 ---------------------------------------------------------------------------
 
+procedure opt_wait_for_key()
+  integer key
+  if not find('k',optlist) then
+    color_print("[Press Any Key]",{})
+    key=timeless_wait_key()
+  end if
+end procedure
+
+---------------------------------------------------------------------------
+
 function html_char_convert(sequence s)
   sequence buffer
   sequence result
@@ -329,6 +341,7 @@ procedure simple_error(sequence s)
   if end_anchor_kludge then
     error_file_print("</a>\n<hr>\n")
   end if
+  opt_wait_for_key()
   abort(1)
 end procedure
 
@@ -343,10 +356,13 @@ procedure check_arg_count(sequence args)
     color_print("   -c colors will be disabled\n",{})
     color_print("   -d dump debug report to hs_debug.txt\n",{})
     color_print("   -f fast mode. disables some optimization\n",{})
+    color_print("   -k do not wait for a keypress when finished\n",{})
     color_print("   -w suppress minor warnings\n",{})
     color_print("   -y overwrite the destination file without asking\n",{})
     color_print("   -z write error messages to hs_error.htm\n",{})
     wrap_print("\nFor more info about Hamsterspeak visit "&COLBWHI&"http://HamsterRepublic.com/ohrrpgce"&COLWHI&"\n",{})
+    wrap_print("\nThis is a command-line program. You should either run it from the command-line (DOS prompt) or you should drag and drop your script file onto it.\n",{})
+    opt_wait_for_key()
     abort(0)
   end if
 end procedure
@@ -2307,4 +2323,4 @@ dump_debug_report()
 write_output_file()
 
 color_print("done (%g seconds)\n",{time()-start_time})
-
+opt_wait_for_key()

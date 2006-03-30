@@ -6,14 +6,18 @@ WHAT IS NEW?
       your tilesets using Photoshop, etc. to use this. YOU MUST INDEX THEM WITH
       THE MASTER PALETTE, custom won't re-map the colours). 8-bit bitmaps are
       rejected by customqb.
+    * Hspeak.exe now waits for a keypress when finished, which should avoid
+      a lot of confusion for new plotscripters who are unfamiliar with
+      command-line tools. Also added -k option to supress this new
+      behaviour [James Paige]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
-      hero at the opposite edge" and bug 27: "NPCs cannot walk across the edges
-      of a wraparound map" (consider that a feature if you want) 
+      hero at the opposite edge" and bug 27: "NPCs cannot walk across the
+      edges of a wraparound map" (consider that a feature if you want) 
       And bug where couldn't activate touch activation NPCs over map edge 
-      And bug where avoid and chase NPCs did not do so properly on a wraparound
-      map
+      And bug where avoid and chase NPCs did not do so properly on a
+      wraparound map
       [Ralph Versteegen]
     * Bug 176: "Some files appear as subdirectories in Windows browsers" 
       [Ralph Versteegen]
@@ -30,8 +34,8 @@ Mar 15 2006 [tirgoviste]
     * "% based attacks damage instead of set" attack bitset [Mike Caron]
     * Precise weapon placement. (use . and , to choose which
       frame to edit) [Mike Caron]
-    * NPC Placement Editor now shows the copy number of NPCs (the bottom number)
-      [Mike Caron]
+    * NPC Placement Editor now shows the copy number of NPCs (the bottom
+      number) [Mike Caron]
 
   * Bug Fixes
     * Pausing the music will probably cause "stuck notes" (i.e. notes that never
