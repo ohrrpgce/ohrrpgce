@@ -5,10 +5,27 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+
+'User-defined types
+TYPE TileEditState
+ tilex as INTEGER
+ tiley as INTEGER
+ gotmouse as INTEGER
+ drawcursor as INTEGER
+ tool as INTEGER
+ curcolor as INTEGER
+ hidemouse as INTEGER
+ airsize as INTEGER
+ mist as INTEGER
+ undo as INTEGER
+ allowundo as INTEGER
+END TYPE
+
 'basic subs and functions
-DECLARE SUB refreshtileedit (mover%(), bx%, by%, undoptr%)
-DECLARE SUB writeundoblock (mover%(), bx%, by%, undoptr%, allowundo%)
-DECLARE SUB readundoblock (mover%(), bx%, by%, undoptr%)
+DECLARE SUB editmaptile (ts AS TileEditState, mover%(), mouse%(), area%(), shortk%(), cursor%(), icon$(), tool$())
+DECLARE SUB refreshtileedit (mover%(), state AS TileEditState)
+DECLARE SUB writeundoblock (mover%(), state AS TileEditState)
+DECLARE SUB readundoblock (mover%(), state AS TileEditState)
 DECLARE FUNCTION charpicker$ ()
 DECLARE SUB writepassword (p$)
 DECLARE FUNCTION readpassword$ ()
@@ -562,6 +579,7 @@ NEXT i
 RETURN
 
 tiling:
+DIM tstate AS TileEditState
 loadpage mapfile$, pagenum, 3
 'pick block to draw/import/default
 setkeys
@@ -599,7 +617,28 @@ DO
  by = INT(bnum / 16)
  IF keyval(28) > 1 OR keyval(57) OR mouse(3) > 0 THEN
   setkeys
-  IF tmode = 0 THEN GOSUB drawit
+  IF tmode = 0 THEN
+   ' Fear not, this ugly transposition to and from the tstate object is temporary
+   tstate.tilex = bx
+   tstate.tiley = by
+   tstate.gotmouse = gotm
+   tstate.drawcursor = dcsr
+   tstate.tool = tool
+   tstate.curcolor = cc
+   tstate.hidemouse = hideptr
+   tstate.airsize = airsize
+   tstate.mist = mist
+   editmaptile tstate, mover(), mouse(), area(), shortk(), cursor(), icon$(), tool$()
+   bx = tstate.tilex = bx
+   by = tstate.tiley = by
+   gotm = tstate.gotmouse
+   dcsr = tstate.drawcursor
+   tool = tstate.tool
+   cc = tstate.curcolor
+   hideptr = tstate.hidemouse
+   airsize = tstate.airsize
+   mist = tstate.mist
+  END IF
   IF tmode = 1 THEN GOSUB tilecut
   IF tmode = 2 THEN
    editbitset defaults(), bnum, 7, bitmenu$()
@@ -631,330 +670,6 @@ DO
  setvispage vpage
  dowait
 LOOP
-
-'draw large block
-drawit:
-justpainted = 0
-undoptr = 0
-allowundo = 0
-clearpage 2
-FOR i = 0 TO 5
- rectangle 279, 9 + (i * 21), 22, 22, 7, 2
- rectangle 280, 10 + (i * 21), 20, 20, 0, 2
-NEXT i
-refreshtileedit mover(), bx, by, undoptr
-textcolor 7, 0
-printstr ">", 270, 16 + (undoptr * 21), 2
-FOR i = 0 TO 31
- FOR j = 0 TO 7
-  rectangle i * 10, j * 4 + 160, 10, 4, j * 32 + i, 2
- NEXT j
-NEXT i
-'---EDIT BLOCK---
-IF gotm THEN
- omx = mouse(0): omy = mouse(1)
- movemouse remx, remy
-END IF
-delay = 3
-setkeys
-DO
- setwait timing(), 120
- setkeys
- IF gotm THEN
-  readmouse mouse()
-  zcsr = 0
-  zone = mouseover(mouse(), zox, zoy, zcsr, area())
- END IF
- tog = tog XOR 1
- delay = large(delay - 1, 0)
- justpainted = large(justpainted - 1, 0)
- IF keyval(1) > 1 THEN
-  IF hold THEN
-   hold = 0
-  ELSE
-   IF gotm THEN
-    remx = mouse(0): remy = mouse(1)
-    movemouse omx, omy
-   END IF
-   RETURN
-  END IF
- END IF
- IF keyval(75) > 0 AND keyval(56) = 0 THEN IF x > 0 THEN x = x - 1: IF zone = 1 THEN mouse(0) = mouse(0) - 10: movemouse mouse(0), mouse(1)
- IF keyval(77) > 0 AND keyval(56) = 0 THEN IF x < 19 THEN x = x + 1: IF zone = 1 THEN mouse(0) = mouse(0) + 10: movemouse mouse(0), mouse(1)
- IF keyval(72) > 0 AND keyval(56) = 0 THEN IF y > 0 THEN y = y - 1: IF zone = 1 THEN mouse(1) = mouse(1) - 8: movemouse mouse(0), mouse(1)
- IF keyval(80) > 0 AND keyval(56) = 0 THEN IF y < 19 THEN y = y + 1: IF zone = 1 THEN mouse(1) = mouse(1) + 8: movemouse mouse(0), mouse(1)
- '---KEYBOARD SHORTCUTS FOR TOOLS------------
- FOR i = 0 TO 5
-  IF keyval(shortk(i)) > 1 THEN tool = i: hold = 0: dcsr = cursor(i) + 1
- NEXT i
- '----------
- IF keyval(51) > 1 OR (keyval(56) > 0 AND keyval(75) > 0) THEN IF cc > 0 THEN cc = cc - 1
- IF keyval(52) > 1 OR (keyval(56) > 0 AND keyval(77) > 0) THEN IF cc < 255 THEN cc = cc + 1
- IF keyval(56) > 0 AND keyval(72) > 0 THEN IF cc > 31 THEN cc = cc - 32
- IF keyval(56) > 0 AND keyval(80) > 0 THEN IF cc < 224 THEN cc = cc + 32
- IF keyval(41) > 1 THEN hideptr = hideptr XOR 1
- IF keyval(29) > 0 AND keyval(44) > 1 AND allowundo THEN
-  undoptr = loopvar(undoptr, 0, 5, -1)
-  readundoblock mover(), bx, by, undoptr
- END IF
- IF keyval(57) > 0 THEN GOSUB clicktile
- IF keyval(28) > 1 THEN cc = readpixel(bx * 20 + x, by * 20 + y, 3)
- IF keyval(58) > 0 THEN GOSUB scrolltile
- IF gotm THEN
-  IF zone = 1 THEN
-   x = INT(zox / 10)
-   y = INT(zoy / 8)
-   IF mouse(2) = 2 THEN cc = readpixel(bx * 20 + x, by * 20 + y, 3)
-   IF mouse(2) = 1 THEN GOSUB clicktile
-  END IF
-  IF zone = 2 THEN
-   IF mouse(2) > 0 AND mouse(3) = 1 THEN cc = (INT(zoy / 4) * 32) + INT(zox / 10)
-  END IF
-  IF zone >= 3 AND zone <= 8 AND mouse(3) = 1 THEN
-   tool = zone - 3
-   dcsr = cursor(tool) + 1
-   hold = 0
-  END IF
-  IF zone >= 13 AND zone <= 16 AND mouse(3) = 1 THEN GOSUB fliptile
-  '--mouse over undo
-  IF mouse(0) >= 280 AND mouse(0) < 300 THEN
-   FOR i = 0 TO 5
-    IF mouse(1) >= (10 + (i * 21)) AND mouse(1) < (30 + (i * 21)) THEN
-     IF mouse(3) = 1 AND allowundo THEN
-      undoptr = i
-      readundoblock mover(), bx, by, undoptr
-     END IF
-    END IF
-   NEXT i
-  END IF
- END IF
- IF tool = 5 THEN '--adjust airbrush
-  IF mouse(3) = 1 OR mouse(2) = 1 THEN
-   IF zone = 17 THEN airsize = large(airsize - 1, 1)
-   IF zone = 19 THEN airsize = small(airsize + 1, 30)
-   IF zone = 18 THEN mist = large(mist - 1, 1)
-   IF zone = 20 THEN mist = small(mist + 1, 99)
-  END IF
-  IF keyval(12) > 1 OR keyval(74) > 1 THEN
-   IF keyval(29) > 0 THEN
-    mist = large(mist - 1, 1)
-   ELSE
-    airsize = large(airsize - 1, 1)
-   END IF
-  END IF
-  IF keyval(13) > 1 OR keyval(78) > 1 THEN
-   IF keyval(29) > 0 THEN
-    mist = small(mist + 1, 99)
-   ELSE
-    airsize = small(airsize + 1, 80)
-   END IF
-  END IF
- END IF
- IF keyval(14) > 1 OR keyval(26) > 1 OR keyval(27) > 1 THEN GOSUB fliptile
- cy = INT(cc / 32)
- cx = cc AND 31
- IF c < 15 THEN c = c + 1 ELSE c = 1
- rectangle cx * 10 + 4, cy * 4 + 162, 3, 1, c, dpage
- rectangle 60 + x * 10, y * 8, 10, 8, readpixel(bx * 20 + x, by * 20 + y, 3), dpage
- rectangle x * 10 + 64, y * 8 + 3, 3, 2, c, dpage
- IF tool = 5 THEN
-  ellipse 64 + x * 10, 3 + y * 8, (airsize * 9) / 2, cc, dpage, 0, 0
- END IF
- SELECT CASE hold
-  CASE 1
-   rectangle 60 + small(x, hox) * 10, small(y, hoy) * 8, (ABS(x - hox) + 1) * 10, (ABS(y - hoy) + 1) * 8, cc, dpage
-  CASE 2
-   drawline 65 + x * 10, 4 + y * 8, 65 + hox * 10, 4 + hoy * 8, cc, dpage
-  CASE 3
-   radius = large(ABS(hox - x), ABS(hoy - y)) * 9
-   ellipse 65 + hox * 10, 4 + hoy * 8, radius, cc, dpage, 0, 0
- END SELECT
- textcolor 15, 1
- printstr tool$(tool), 8, 8, dpage
- printstr "Tool", 8, 16, dpage
- printstr "Undo", 274, 1, dpage
- FOR i = 0 TO 5
-  t1 = 7: t2 = 8
-  IF tool = i THEN t1 = 15: t2 = 7
-  IF zone - 3 = i THEN t2 = 6
-  textcolor t1, t2
-  printstr icon$(i), 4 + i * 9, 32, dpage
- NEXT i
- FOR i = 0 TO 3
-  textcolor 7, 8: IF zone = 13 + i THEN textcolor 15, 6
-  printstr CHR$(7 + i), 4 + i * 9, 42, dpage
- NEXT i
- IF tool = 5 THEN
-  textcolor 7, 0
-  printstr "SIZE", 12, 52, dpage
-  printstr STR$(airsize), 12, 60, dpage
-  printstr "MIST", 12, 68, dpage
-  printstr STR$(mist), 12, 76, dpage
-  textcolor 7, 8: IF zone = 17 THEN textcolor 15, 6
-  printstr CHR$(27), 12, 60, dpage
-  textcolor 7, 8: IF zone = 18 THEN textcolor 15, 6
-  printstr CHR$(27), 12, 76, dpage
-  textcolor 7, 8: IF zone = 19 THEN textcolor 15, 6
-  printstr CHR$(26), 36, 60, dpage
-  textcolor 7, 8: IF zone = 20 THEN textcolor 15, 6
-  printstr CHR$(26), 36, 76, dpage
- END IF
- IF gotm THEN
-  c = zcsr
-  IF c = -1 THEN
-   c = dcsr
-   IF hideptr THEN c = -2
-  END IF
-  textcolor 10 + tog * 5, 0
-  printstr CHR$(2 + c), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
- END IF
- SWAP dpage, vpage
- setvispage vpage
- copypage 2, dpage
- dowait
-LOOP
-
-clicktile:
-IF delay > 0 THEN RETURN
-SELECT CASE tool
- CASE 0'---DRAW
-  IF justpainted = 0 THEN writeundoblock mover(), bx, by, undoptr, allowundo
-  justpainted = 3
-  putpixel 280 + x, 10 + (undoptr * 21) + y, cc, 2
-  rectangle bx * 20 + x, by * 20 + y, 1, 1, cc, 3: rectangle 60 + x * 10, y * 8, 10, 8, cc, 2
- CASE 1'---BOX
-  IF mouse(3) > 0 OR keyval(57) > 1 THEN
-   IF hold = 1 THEN
-    writeundoblock mover(), bx, by, undoptr, allowundo
-    rectangle small(bx * 20 + x, bx * 20 + hox), small(by * 20 + y, by * 20 + hoy), ABS(x - hox) + 1, ABS(y - hoy) + 1, cc, 3
-    refreshtileedit mover(), bx, by, undoptr
-    hold = 0
-   ELSE
-    hold = 1
-    hox = x
-    hoy = y
-   END IF
-  END IF
- CASE 2'---LINE
-  IF mouse(3) > 0 OR keyval(57) > 1 THEN
-   IF hold = 2 THEN
-    writeundoblock mover(), bx, by, undoptr, allowundo
-    drawline bx * 20 + x, by * 20 + y, bx * 20 + hox, by * 20 + hoy, cc, 3
-    refreshtileedit mover(), bx, by, undoptr
-    hold = 0
-   ELSE
-    hold = 2
-    hox = x
-    hoy = y
-   END IF
-  END IF
- CASE 3'---FILL
-  IF mouse(3) > 0 OR keyval(57) > 1 THEN
-   writeundoblock mover(), bx, by, undoptr, allowundo
-   rectangle 0, 0, 22, 22, 15, dpage
-   FOR i = 0 TO 19
-    FOR j = 0 TO 19
-     rectangle 1 + i, 1 + j, 1, 1, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
-    NEXT j
-   NEXT i
-   paintat 1 + x, 1 + y, cc, dpage, buffer(), 16384
-   FOR i = 0 TO 19
-    FOR j = 0 TO 19
-     rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(1 + i, 1 + j, dpage), 3
-    NEXT j
-   NEXT i
-   refreshtileedit mover(), bx, by, undoptr
-   rectangle 0, 0, 22, 22, 0, dpage
-  END IF
- CASE 4'---OVAL
-  IF mouse(3) > 0 OR keyval(57) > 1 THEN
-   IF hold = 3 THEN
-    writeundoblock mover(), bx, by, undoptr, allowundo
-    radius = large(ABS(hox - x), ABS(hoy - y))
-    rectangle 0, 0, 22, 22, 15, dpage
-    FOR i = 0 TO 19
-     FOR j = 0 TO 19
-      rectangle 1 + i, 1 + j, 1, 1, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
-     NEXT j
-    NEXT i
-    ellipse 1 + hox, 1 + hoy, radius, cc, dpage, 0, 0
-    FOR i = 0 TO 19
-     FOR j = 0 TO 19
-      rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(1 + i, 1 + j, dpage), 3
-     NEXT j
-    NEXT i
-    refreshtileedit mover(), bx, by, undoptr
-    hold = 0
-   ELSE
-    hold = 3
-    hox = x
-    hoy = y
-   END IF
-  END IF
- CASE 5'---AIR
-  IF justpainted = 0 THEN writeundoblock mover(), bx, by, undoptr, allowundo
-  justpainted = 3
-  rectangle 19, 119, 22, 22, 15, dpage
-  FOR i = 0 TO 19
-   FOR j = 0 TO 19
-    rectangle 20 + i, 120 + j, 1, 1, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
-   NEXT j
-  NEXT i
-  airbrush 20 + x, 120 + y, airsize, mist, cc, dpage
-  FOR i = 0 TO 19
-   FOR j = 0 TO 19
-    rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(20 + i, 120 + j, dpage), 3
-   NEXT j
-  NEXT i
-  refreshtileedit mover(), bx, by, undoptr
-END SELECT
-RETURN
-
-scrolltile:
-rectangle 0, 0, 20, 20, 0, dpage
-shiftx = 0: shifty = 0
-IF keyval(72) > 0 THEN shifty = -1
-IF keyval(80) > 0 THEN shifty = 1
-IF keyval(75) > 0 THEN shiftx = -1
-IF keyval(77) > 0 THEN shiftx = 1
-FOR i = 0 TO 19
- FOR j = 0 TO 19
-  tempx = (i + shiftx + 20) MOD 20
-  tempy = (j + shifty + 20) MOD 20
-  rectangle tempx, tempy, 1, 1, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
- NEXT j
-NEXT i
-FOR i = 0 TO 19
- FOR j = 0 TO 19
-  rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(i, j, dpage), 3
- NEXT j
-NEXT i
-refreshtileedit mover(), bx, by, undoptr
-rectangle 0, 0, 20, 20, 0, dpage
-RETURN
-
-fliptile:
-writeundoblock mover(), bx, by, undoptr, allowundo
-rectangle 0, 0, 20, 20, 0, dpage
-flipx = 0: flipy = 0
-IF (zone = 13 OR zone = 16) OR keyval(26) > 1 OR (keyval(14) > 1 AND keyval(29) = 0) THEN flipx = 19
-IF zone = 14 OR zone = 15 OR keyval(27) > 1 OR (keyval(14) > 1 AND keyval(29) > 0) THEN flipy = 19
-FOR i = 0 TO 19
- FOR j = 0 TO 19
-  tempx = ABS(i - flipx)
-  tempy = ABS(j - flipy)
-  IF (zone = 15 OR zone = 16) OR (keyval(26) > 1 OR keyval(27) > 1) THEN SWAP tempx, tempy
-  rectangle tempx, tempy, 1, 1, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
- NEXT j
-NEXT i
-FOR i = 0 TO 19
- FOR j = 0 TO 19
-  rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(i, j, dpage), 3
- NEXT j
-NEXT i
-refreshtileedit mover(), bx, by, undoptr
-rectangle 0, 0, 20, 20, 0, dpage
-RETURN
 
 tilecut:
 IF gotm THEN
@@ -2161,31 +1876,357 @@ RETURN
 
 END SUB
 
-SUB refreshtileedit (mover(), bx, by, undoptr)
-copymapblock mover(), bx * 20, by * 20, 3, 280, 10 + (undoptr * 21), 2
+SUB refreshtileedit (mover(), state AS TileEditState)
+copymapblock mover(), state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
 rectangle 59, 0, 202, 161, 15, 2
 FOR i = 0 TO 19
  FOR j = 0 TO 19
-  rectangle 60 + i * 10, j * 8, 10, 8, readpixel(bx * 20 + i, by * 20 + j, 3), 2
+  rectangle 60 + i * 10, j * 8, 10, 8, readpixel(state.tilex * 20 + i, state.tiley * 20 + j, 3), 2
  NEXT j
 NEXT i
 END SUB
 
-SUB writeundoblock (mover(), bx, by, undoptr, allowundo)
-rectangle 270, 16 + (undoptr * 21), 8, 8, 0, 2
-undoptr = loopvar(undoptr, 0, 5, 1)
-copymapblock mover(), bx * 20, by * 20, 3, 280, 10 + (undoptr * 21), 2
+SUB writeundoblock (mover(), state AS TileEditState)
+rectangle 270, 16 + (state.undo * 21), 8, 8, 0, 2
+state.undo = loopvar(state.undo, 0, 5, 1)
+copymapblock mover(), state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
 textcolor 7, 0
-printstr ">", 270, 16 + (undoptr * 21), 2
-allowundo = 1
+printstr ">", 270, 16 + (state.undo * 21), 2
+state.allowundo = 1
 END SUB
 
-SUB readundoblock (mover(), bx, by, undoptr)
+SUB readundoblock (mover(), state AS TileEditState)
 FOR j = 0 TO 5
  rectangle 270, 16 + (j * 21), 8, 8, 0, 2
 NEXT j
-copymapblock mover(), 280, 10 + (undoptr * 21), 2, bx * 20, by * 20, 3
+copymapblock mover(), 280, 10 + (state.undo * 21), 2, state.tilex * 20, state.tiley * 20, 3
 textcolor 7, 0
-printstr ">", 270, 16 + (undoptr * 21), 2
-refreshtileedit mover(), bx, by, undoptr
+printstr ">", 270, 16 + (state.undo * 21), 2
+refreshtileedit mover(), state
+END SUB
+
+SUB editmaptile (ts AS TileEditState, mover(), mouse(), area(), shortk(), cursor(), icon$(), tool$())
+justpainted = 0
+ts.undo = 0
+ts.allowundo = 0
+clearpage 2
+FOR i = 0 TO 5
+ rectangle 279, 9 + (i * 21), 22, 22, 7, 2
+ rectangle 280, 10 + (i * 21), 20, 20, 0, 2
+NEXT i
+refreshtileedit mover(), ts
+textcolor 7, 0
+printstr ">", 270, 16 + (ts.undo * 21), 2
+FOR i = 0 TO 31
+ FOR j = 0 TO 7
+  rectangle i * 10, j * 4 + 160, 10, 4, j * 32 + i, 2
+ NEXT j
+NEXT i
+'---EDIT BLOCK---
+IF ts.gotmouse THEN
+ omx = mouse(0): omy = mouse(1)
+ movemouse remx, remy
+END IF
+delay = 3
+setkeys
+DO
+ setwait timing(), 120
+ setkeys
+ IF ts.gotmouse THEN
+  readmouse mouse()
+  zcsr = 0
+  zone = mouseover(mouse(), zox, zoy, zcsr, area())
+ END IF
+ tog = tog XOR 1
+ delay = large(delay - 1, 0)
+ justpainted = large(justpainted - 1, 0)
+ IF keyval(1) > 1 THEN
+  IF hold THEN
+   hold = 0
+  ELSE
+   IF ts.gotmouse THEN
+    remx = mouse(0): remy = mouse(1)
+    movemouse omx, omy
+   END IF
+   EXIT SUB
+  END IF
+ END IF
+ IF keyval(75) > 0 AND keyval(56) = 0 THEN IF x > 0 THEN x = x - 1: IF zone = 1 THEN mouse(0) = mouse(0) - 10: movemouse mouse(0), mouse(1)
+ IF keyval(77) > 0 AND keyval(56) = 0 THEN IF x < 19 THEN x = x + 1: IF zone = 1 THEN mouse(0) = mouse(0) + 10: movemouse mouse(0), mouse(1)
+ IF keyval(72) > 0 AND keyval(56) = 0 THEN IF y > 0 THEN y = y - 1: IF zone = 1 THEN mouse(1) = mouse(1) - 8: movemouse mouse(0), mouse(1)
+ IF keyval(80) > 0 AND keyval(56) = 0 THEN IF y < 19 THEN y = y + 1: IF zone = 1 THEN mouse(1) = mouse(1) + 8: movemouse mouse(0), mouse(1)
+ '---KEYBOARD SHORTCUTS FOR TOOLS------------
+ FOR i = 0 TO 5
+  IF keyval(shortk(i)) > 1 THEN ts.tool = i: hold = 0: ts.drawcursor = cursor(i) + 1
+ NEXT i
+ '----------
+ IF keyval(51) > 1 OR (keyval(56) > 0 AND keyval(75) > 0) THEN ts.curcolor = large(ts.curcolor - 1, 0)
+ IF keyval(52) > 1 OR (keyval(56) > 0 AND keyval(77) > 0) THEN ts.curcolor = small(ts.curcolor + 1, 255)
+ IF keyval(56) > 0 AND keyval(72) > 0 THEN IF ts.curcolor > 31 THEN ts.curcolor = ts.curcolor - 32
+ IF keyval(56) > 0 AND keyval(80) > 0 THEN IF ts.curcolor < 224 THEN ts.curcolor = ts.curcolor + 32
+ IF keyval(41) > 1 THEN ts.hidemouse = ts.hidemouse XOR 1
+ IF keyval(29) > 0 AND keyval(44) > 1 AND ts.allowundo THEN
+  ts.undo = loopvar(ts.undo, 0, 5, -1)
+  readundoblock mover(), ts
+ END IF
+ IF keyval(57) > 0 THEN GOSUB clicktile
+ IF keyval(28) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + x, ts.tiley * 20 + y, 3)
+ IF keyval(58) > 0 THEN GOSUB scrolltile
+ IF ts.gotmouse THEN
+  IF zone = 1 THEN
+   x = INT(zox / 10)
+   y = INT(zoy / 8)
+   IF mouse(2) = 2 THEN ts.curcolor = readpixel(ts.tilex * 20 + x, ts.tiley * 20 + y, 3)
+   IF mouse(2) = 1 THEN GOSUB clicktile
+  END IF
+  IF zone = 2 THEN
+   IF mouse(2) > 0 AND mouse(3) = 1 THEN ts.curcolor = (INT(zoy / 4) * 32) + INT(zox / 10)
+  END IF
+  IF zone >= 3 AND zone <= 8 AND mouse(3) = 1 THEN
+   ts.tool = zone - 3
+   ts.drawcursor = cursor(tool) + 1
+   hold = 0
+  END IF
+  IF zone >= 13 AND zone <= 16 AND mouse(3) = 1 THEN GOSUB fliptile
+  '--mouse over undo
+  IF mouse(0) >= 280 AND mouse(0) < 300 THEN
+   FOR i = 0 TO 5
+    IF mouse(1) >= (10 + (i * 21)) AND mouse(1) < (30 + (i * 21)) THEN
+     IF mouse(3) = 1 AND ts.allowundo THEN
+      ts.undo = i
+      readundoblock mover(), ts
+     END IF
+    END IF
+   NEXT i
+  END IF
+ END IF
+ IF ts.tool = 5 THEN '--adjust airbrush
+  IF mouse(3) = 1 OR mouse(2) = 1 THEN
+   IF zone = 17 THEN ts.airsize = large(ts.airsize - 1, 1)
+   IF zone = 19 THEN ts.airsize = small(ts.airsize + 1, 30)
+   IF zone = 18 THEN ts.mist = large(ts.mist - 1, 1)
+   IF zone = 20 THEN ts.mist = small(ts.mist + 1, 99)
+  END IF
+  IF keyval(12) > 1 OR keyval(74) > 1 THEN
+   IF keyval(29) > 0 THEN
+    ts.mist = large(ts.mist - 1, 1)
+   ELSE
+    ts.airsize = large(ts.airsize - 1, 1)
+   END IF
+  END IF
+  IF keyval(13) > 1 OR keyval(78) > 1 THEN
+   IF keyval(29) > 0 THEN
+    ts.mist = small(ts.mist + 1, 99)
+   ELSE
+    ts.airsize = small(ts.airsize + 1, 80)
+   END IF
+  END IF
+ END IF
+ IF keyval(14) > 1 OR keyval(26) > 1 OR keyval(27) > 1 THEN GOSUB fliptile
+ cy = INT(ts.curcolor / 32)
+ cx = ts.curcolor AND 31
+ IF c < 15 THEN c = c + 1 ELSE c = 1
+ rectangle cx * 10 + 4, cy * 4 + 162, 3, 1, c, dpage
+ rectangle 60 + x * 10, y * 8, 10, 8, readpixel(ts.tilex * 20 + x, ts.tiley * 20 + y, 3), dpage
+ rectangle x * 10 + 64, y * 8 + 3, 3, 2, c, dpage
+ IF ts.tool = 5 THEN
+  ellipse 64 + x * 10, 3 + y * 8, (ts.airsize * 9) / 2, ts.curcolor, dpage, 0, 0
+ END IF
+ SELECT CASE hold
+  CASE 1
+   rectangle 60 + small(x, hox) * 10, small(y, hoy) * 8, (ABS(x - hox) + 1) * 10, (ABS(y - hoy) + 1) * 8, ts.curcolor, dpage
+  CASE 2
+   drawline 65 + x * 10, 4 + y * 8, 65 + hox * 10, 4 + hoy * 8, ts.curcolor, dpage
+  CASE 3
+   radius = large(ABS(hox - x), ABS(hoy - y)) * 9
+   ellipse 65 + hox * 10, 4 + hoy * 8, radius, ts.curcolor, dpage, 0, 0
+ END SELECT
+ textcolor 15, 1
+ printstr tool$(ts.tool), 8, 8, dpage
+ printstr "Tool", 8, 16, dpage
+ printstr "Undo", 274, 1, dpage
+ FOR i = 0 TO 5
+  t1 = 7: t2 = 8
+  IF ts.tool = i THEN t1 = 15: t2 = 7
+  IF zone - 3 = i THEN t2 = 6
+  textcolor t1, t2
+  printstr icon$(i), 4 + i * 9, 32, dpage
+ NEXT i
+ FOR i = 0 TO 3
+  textcolor 7, 8: IF zone = 13 + i THEN textcolor 15, 6
+  printstr CHR$(7 + i), 4 + i * 9, 42, dpage
+ NEXT i
+ IF ts.tool = 5 THEN
+  textcolor 7, 0
+  printstr "SIZE", 12, 52, dpage
+  printstr STR$(ts.airsize), 12, 60, dpage
+  printstr "MIST", 12, 68, dpage
+  printstr STR$(ts.mist), 12, 76, dpage
+  textcolor 7, 8: IF zone = 17 THEN textcolor 15, 6
+  printstr CHR$(27), 12, 60, dpage
+  textcolor 7, 8: IF zone = 18 THEN textcolor 15, 6
+  printstr CHR$(27), 12, 76, dpage
+  textcolor 7, 8: IF zone = 19 THEN textcolor 15, 6
+  printstr CHR$(26), 36, 60, dpage
+  textcolor 7, 8: IF zone = 20 THEN textcolor 15, 6
+  printstr CHR$(26), 36, 76, dpage
+ END IF
+ IF ts.gotmouse THEN
+  c = zcsr
+  IF c = -1 THEN
+   c = ts.drawcursor
+   IF ts.hidemouse THEN c = -2
+  END IF
+  textcolor 10 + tog * 5, 0
+  printstr CHR$(2 + c), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
+ END IF
+ SWAP dpage, vpage
+ setvispage vpage
+ copypage 2, dpage
+ dowait
+LOOP
+
+clicktile:
+IF delay > 0 THEN RETURN
+SELECT CASE ts.tool
+ CASE 0'---DRAW
+  IF justpainted = 0 THEN writeundoblock mover(), ts
+  justpainted = 3
+  putpixel 280 + x, 10 + (ts.undo * 21) + y, ts.curcolor, 2
+  rectangle ts.tilex * 20 + x, ts.tiley * 20 + y, 1, 1, ts.curcolor, 3
+  rectangle 60 + x * 10, y * 8, 10, 8, ts.curcolor, 2
+ CASE 1'---BOX
+  IF mouse(3) > 0 OR keyval(57) > 1 THEN
+   IF hold = 1 THEN
+    writeundoblock mover(), ts
+    rectangle small(ts.tilex * 20 + x, ts.tilex * 20 + hox), small(ts.tiley * 20 + y, ts.tiley * 20 + hoy), ABS(x - hox) + 1, ABS(y - hoy) + 1, ts.curcolor, 3
+    refreshtileedit mover(), ts
+    hold = 0
+   ELSE
+    hold = 1
+    hox = x
+    hoy = y
+   END IF
+  END IF
+ CASE 2'---LINE
+  IF mouse(3) > 0 OR keyval(57) > 1 THEN
+   IF hold = 2 THEN
+    writeundoblock mover(), ts
+    drawline ts.tilex * 20 + x, ts.tiley * 20 + y, ts.tilex * 20 + hox, ts.tiley * 20 + hoy, ts.curcolor, 3
+    refreshtileedit mover(), ts
+    hold = 0
+   ELSE
+    hold = 2
+    hox = x
+    hoy = y
+   END IF
+  END IF
+ CASE 3'---FILL
+  IF mouse(3) > 0 OR keyval(57) > 1 THEN
+   writeundoblock mover(), ts
+   rectangle 0, 0, 22, 22, 15, dpage
+   FOR i = 0 TO 19
+    FOR j = 0 TO 19
+     rectangle 1 + i, 1 + j, 1, 1, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
+    NEXT j
+   NEXT i
+   paintat 1 + x, 1 + y, ts.curcolor, dpage, buffer(), 16384
+   FOR i = 0 TO 19
+    FOR j = 0 TO 19
+     rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, readpixel(1 + i, 1 + j, dpage), 3
+    NEXT j
+   NEXT i
+   refreshtileedit mover(), ts
+   rectangle 0, 0, 22, 22, 0, dpage
+  END IF
+ CASE 4'---OVAL
+  IF mouse(3) > 0 OR keyval(57) > 1 THEN
+   IF hold = 3 THEN
+    writeundoblock mover(), ts
+    radius = large(ABS(hox - x), ABS(hoy - y))
+    rectangle 0, 0, 22, 22, 15, dpage
+    FOR i = 0 TO 19
+     FOR j = 0 TO 19
+      rectangle 1 + i, 1 + j, 1, 1, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
+     NEXT j
+    NEXT i
+    ellipse 1 + hox, 1 + hoy, radius, ts.curcolor, dpage, 0, 0
+    FOR i = 0 TO 19
+     FOR j = 0 TO 19
+      rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, readpixel(1 + i, 1 + j, dpage), 3
+     NEXT j
+    NEXT i
+    refreshtileedit mover(), ts
+    hold = 0
+   ELSE
+    hold = 3
+    hox = x
+    hoy = y
+   END IF
+  END IF
+ CASE 5'---AIR
+  IF justpainted = 0 THEN writeundoblock mover(), ts
+  justpainted = 3
+  rectangle 19, 119, 22, 22, 15, dpage
+  FOR i = 0 TO 19
+   FOR j = 0 TO 19
+    rectangle 20 + i, 120 + j, 1, 1, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
+   NEXT j
+  NEXT i
+  airbrush 20 + x, 120 + y, ts.airsize, ts.mist, ts.curcolor, dpage
+  FOR i = 0 TO 19
+   FOR j = 0 TO 19
+    rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, readpixel(20 + i, 120 + j, dpage), 3
+   NEXT j
+  NEXT i
+  refreshtileedit mover(), ts
+END SELECT
+RETURN
+
+scrolltile:
+rectangle 0, 0, 20, 20, 0, dpage
+shiftx = 0: shifty = 0
+IF keyval(72) > 0 THEN shifty = -1
+IF keyval(80) > 0 THEN shifty = 1
+IF keyval(75) > 0 THEN shiftx = -1
+IF keyval(77) > 0 THEN shiftx = 1
+FOR i = 0 TO 19
+ FOR j = 0 TO 19
+  tempx = (i + shiftx + 20) MOD 20
+  tempy = (j + shifty + 20) MOD 20
+  rectangle tempx, tempy, 1, 1, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
+ NEXT j
+NEXT i
+FOR i = 0 TO 19
+ FOR j = 0 TO 19
+  rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, readpixel(i, j, dpage), 3
+ NEXT j
+NEXT i
+refreshtileedit mover(), ts
+rectangle 0, 0, 20, 20, 0, dpage
+RETURN
+
+fliptile:
+writeundoblock mover(), ts
+rectangle 0, 0, 20, 20, 0, dpage
+flipx = 0: flipy = 0
+IF (zone = 13 OR zone = 16) OR keyval(26) > 1 OR (keyval(14) > 1 AND keyval(29) = 0) THEN flipx = 19
+IF zone = 14 OR zone = 15 OR keyval(27) > 1 OR (keyval(14) > 1 AND keyval(29) > 0) THEN flipy = 19
+FOR i = 0 TO 19
+ FOR j = 0 TO 19
+  tempx = ABS(i - flipx)
+  tempy = ABS(j - flipy)
+  IF (zone = 15 OR zone = 16) OR (keyval(26) > 1 OR keyval(27) > 1) THEN SWAP tempx, tempy
+  rectangle tempx, tempy, 1, 1, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
+ NEXT j
+NEXT i
+FOR i = 0 TO 19
+ FOR j = 0 TO 19
+  rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, readpixel(i, j, dpage), 3
+ NEXT j
+NEXT i
+refreshtileedit mover(), ts
+rectangle 0, 0, 20, 20, 0, dpage
+RETURN
+
 END SUB
