@@ -6,6 +6,9 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
+DECLARE SUB refreshtileedit (mover%(), bx%, by%, undoptr%)
+DECLARE SUB writeundoblock (mover%(), bx%, by%, undoptr%, allowundo%)
+DECLARE SUB readundoblock (mover%(), bx%, by%, undoptr%)
 DECLARE FUNCTION charpicker$ ()
 DECLARE SUB writepassword (p$)
 DECLARE FUNCTION readpassword$ ()
@@ -639,7 +642,7 @@ FOR i = 0 TO 5
  rectangle 279, 9 + (i * 21), 22, 22, 7, 2
  rectangle 280, 10 + (i * 21), 20, 20, 0, 2
 NEXT i
-GOSUB refreshbig
+refreshtileedit mover(), bx, by, undoptr
 textcolor 7, 0
 printstr ">", 270, 16 + (undoptr * 21), 2
 FOR i = 0 TO 31
@@ -648,7 +651,6 @@ FOR i = 0 TO 31
  NEXT j
 NEXT i
 '---EDIT BLOCK---
-edit:
 IF gotm THEN
  omx = mouse(0): omy = mouse(1)
  movemouse remx, remy
@@ -693,7 +695,7 @@ DO
  IF keyval(41) > 1 THEN hideptr = hideptr XOR 1
  IF keyval(29) > 0 AND keyval(44) > 1 AND allowundo THEN
   undoptr = loopvar(undoptr, 0, 5, -1)
-  GOSUB readundoblock
+  readundoblock mover(), bx, by, undoptr
  END IF
  IF keyval(57) > 0 THEN GOSUB clicktile
  IF keyval(28) > 1 THEN cc = readpixel(bx * 20 + x, by * 20 + y, 3)
@@ -720,7 +722,7 @@ DO
     IF mouse(1) >= (10 + (i * 21)) AND mouse(1) < (30 + (i * 21)) THEN
      IF mouse(3) = 1 AND allowundo THEN
       undoptr = i
-      GOSUB readundoblock
+      readundoblock mover(), bx, by, undoptr
      END IF
     END IF
    NEXT i
@@ -816,16 +818,16 @@ clicktile:
 IF delay > 0 THEN RETURN
 SELECT CASE tool
  CASE 0'---DRAW
-  IF justpainted = 0 THEN GOSUB writeundoblock
+  IF justpainted = 0 THEN writeundoblock mover(), bx, by, undoptr, allowundo
   justpainted = 3
   putpixel 280 + x, 10 + (undoptr * 21) + y, cc, 2
   rectangle bx * 20 + x, by * 20 + y, 1, 1, cc, 3: rectangle 60 + x * 10, y * 8, 10, 8, cc, 2
  CASE 1'---BOX
   IF mouse(3) > 0 OR keyval(57) > 1 THEN
    IF hold = 1 THEN
-    GOSUB writeundoblock
+    writeundoblock mover(), bx, by, undoptr, allowundo
     rectangle small(bx * 20 + x, bx * 20 + hox), small(by * 20 + y, by * 20 + hoy), ABS(x - hox) + 1, ABS(y - hoy) + 1, cc, 3
-    GOSUB refreshbig
+    refreshtileedit mover(), bx, by, undoptr
     hold = 0
    ELSE
     hold = 1
@@ -836,9 +838,9 @@ SELECT CASE tool
  CASE 2'---LINE
   IF mouse(3) > 0 OR keyval(57) > 1 THEN
    IF hold = 2 THEN
-    GOSUB writeundoblock
+    writeundoblock mover(), bx, by, undoptr, allowundo
     drawline bx * 20 + x, by * 20 + y, bx * 20 + hox, by * 20 + hoy, cc, 3
-    GOSUB refreshbig
+    refreshtileedit mover(), bx, by, undoptr
     hold = 0
    ELSE
     hold = 2
@@ -848,7 +850,7 @@ SELECT CASE tool
   END IF
  CASE 3'---FILL
   IF mouse(3) > 0 OR keyval(57) > 1 THEN
-   GOSUB writeundoblock
+   writeundoblock mover(), bx, by, undoptr, allowundo
    rectangle 0, 0, 22, 22, 15, dpage
    FOR i = 0 TO 19
     FOR j = 0 TO 19
@@ -861,13 +863,13 @@ SELECT CASE tool
      rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(1 + i, 1 + j, dpage), 3
     NEXT j
    NEXT i
-   GOSUB refreshbig
+   refreshtileedit mover(), bx, by, undoptr
    rectangle 0, 0, 22, 22, 0, dpage
   END IF
  CASE 4'---OVAL
   IF mouse(3) > 0 OR keyval(57) > 1 THEN
    IF hold = 3 THEN
-    GOSUB writeundoblock
+    writeundoblock mover(), bx, by, undoptr, allowundo
     radius = large(ABS(hox - x), ABS(hoy - y))
     rectangle 0, 0, 22, 22, 15, dpage
     FOR i = 0 TO 19
@@ -881,7 +883,7 @@ SELECT CASE tool
       rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(1 + i, 1 + j, dpage), 3
      NEXT j
     NEXT i
-    GOSUB refreshbig
+    refreshtileedit mover(), bx, by, undoptr
     hold = 0
    ELSE
     hold = 3
@@ -890,7 +892,7 @@ SELECT CASE tool
    END IF
   END IF
  CASE 5'---AIR
-  IF justpainted = 0 THEN GOSUB writeundoblock
+  IF justpainted = 0 THEN writeundoblock mover(), bx, by, undoptr, allowundo
   justpainted = 3
   rectangle 19, 119, 22, 22, 15, dpage
   FOR i = 0 TO 19
@@ -904,7 +906,7 @@ SELECT CASE tool
     rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(20 + i, 120 + j, dpage), 3
    NEXT j
   NEXT i
-  GOSUB refreshbig
+  refreshtileedit mover(), bx, by, undoptr
 END SELECT
 RETURN
 
@@ -927,41 +929,12 @@ FOR i = 0 TO 19
   rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(i, j, dpage), 3
  NEXT j
 NEXT i
-GOSUB refreshbig
+refreshtileedit mover(), bx, by, undoptr
 rectangle 0, 0, 20, 20, 0, dpage
 RETURN
 
-refreshbig:
-copymapblock mover(), bx * 20, by * 20, 3, 280, 10 + (undoptr * 21), 2
-rectangle 59, 0, 202, 161, 15, 2
-FOR i = 0 TO 19
- FOR j = 0 TO 19
-  rectangle 60 + i * 10, j * 8, 10, 8, readpixel(bx * 20 + i, by * 20 + j, 3), 2
- NEXT j
-NEXT i
-RETURN
-
-writeundoblock:
-rectangle 270, 16 + (undoptr * 21), 8, 8, 0, 2
-undoptr = loopvar(undoptr, 0, 5, 1)
-copymapblock mover(), bx * 20, by * 20, 3, 280, 10 + (undoptr * 21), 2
-textcolor 7, 0
-printstr ">", 270, 16 + (undoptr * 21), 2
-allowundo = 1
-RETURN
-
-readundoblock:
-FOR j = 0 TO 5
- rectangle 270, 16 + (j * 21), 8, 8, 0, 2
-NEXT j
-copymapblock mover(), 280, 10 + (undoptr * 21), 2, bx * 20, by * 20, 3
-textcolor 7, 0
-printstr ">", 270, 16 + (undoptr * 21), 2
-GOSUB refreshbig
-RETURN
-
 fliptile:
-GOSUB writeundoblock
+writeundoblock mover(), bx, by, undoptr, allowundo
 rectangle 0, 0, 20, 20, 0, dpage
 flipx = 0: flipy = 0
 IF (zone = 13 OR zone = 16) OR keyval(26) > 1 OR (keyval(14) > 1 AND keyval(29) = 0) THEN flipx = 19
@@ -979,7 +952,7 @@ FOR i = 0 TO 19
   rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(i, j, dpage), 3
  NEXT j
 NEXT i
-GOSUB refreshbig
+refreshtileedit mover(), bx, by, undoptr
 rectangle 0, 0, 20, 20, 0, dpage
 RETURN
 
@@ -2188,3 +2161,31 @@ RETURN
 
 END SUB
 
+SUB refreshtileedit (mover(), bx, by, undoptr)
+copymapblock mover(), bx * 20, by * 20, 3, 280, 10 + (undoptr * 21), 2
+rectangle 59, 0, 202, 161, 15, 2
+FOR i = 0 TO 19
+ FOR j = 0 TO 19
+  rectangle 60 + i * 10, j * 8, 10, 8, readpixel(bx * 20 + i, by * 20 + j, 3), 2
+ NEXT j
+NEXT i
+END SUB
+
+SUB writeundoblock (mover(), bx, by, undoptr, allowundo)
+rectangle 270, 16 + (undoptr * 21), 8, 8, 0, 2
+undoptr = loopvar(undoptr, 0, 5, 1)
+copymapblock mover(), bx * 20, by * 20, 3, 280, 10 + (undoptr * 21), 2
+textcolor 7, 0
+printstr ">", 270, 16 + (undoptr * 21), 2
+allowundo = 1
+END SUB
+
+SUB readundoblock (mover(), bx, by, undoptr)
+FOR j = 0 TO 5
+ rectangle 270, 16 + (j * 21), 8, 8, 0, 2
+NEXT j
+copymapblock mover(), 280, 10 + (undoptr * 21), 2, bx * 20, by * 20, 3
+textcolor 7, 0
+printstr ">", 270, 16 + (undoptr * 21), 2
+refreshtileedit mover(), bx, by, undoptr
+END SUB
