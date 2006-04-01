@@ -1495,12 +1495,12 @@ SELECT CASE id
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    scriptret = wtog(retvals(0)) \ 2
   END IF
- CASE 200'--system hour
-  scriptret = INT(TIMER / 3600)
+ CASE 200'--system hour (time$ is always hh:mm:ss)
+  scriptret = str2int(MID$(TIME$, 1, 2))
  CASE 201'--system minute
-  scriptret = INT(TIMER / 60) MOD 60
+  scriptret = str2int(MID$(TIME$, 4, 2))
  CASE 202'--system second
-  scriptret = TIMER MOD 60
+  scriptret = str2int(MID$(TIME$, 7, 2))
  CASE 203'--current song
   scriptret = presentsong
  CASE 204'--get hero name(str,her)
@@ -1620,10 +1620,10 @@ SELECT CASE id
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
    scriptret = plotstrY(retvals(0))
   END IF
- CASE 226'--system day
-  scriptret = str2int(MID$(DATE$, 1, 2))
- CASE 227'--system month
+ CASE 226'--system day (date$ is always mm-dd-yyyy)
   scriptret = str2int(MID$(DATE$, 4, 2))
+ CASE 227'--system month
+  scriptret = str2int(MID$(DATE$, 1, 2))
  CASE 228'--system year
   scriptret = str2int(MID$(DATE$, 7, 4))
  CASE 229'--string compare
