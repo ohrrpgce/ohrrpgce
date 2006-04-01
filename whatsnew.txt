@@ -21,6 +21,9 @@ WHAT IS NEW?
       [Ralph Versteegen]
     * Bug 176: "Some files appear as subdirectories in Windows browsers" 
       [Ralph Versteegen]
+    * Fixed an ancient bug in both the Sprite editor and the MapTile editor
+      which caused the keyboard control to lag whenever the mouse cursor
+      was over the drawing area.
 
   * New Plotscripting Commands
     * "hero frame", "NPC frame" [Ralph Versteegen]

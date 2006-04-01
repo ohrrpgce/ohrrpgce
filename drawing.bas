@@ -1048,25 +1048,26 @@ IF mouse(3) = 1 AND zone = 3 AND col > 0 THEN
  POKE col, INT(INT(zoy / 6) * 16) + INT(zox / 4)
 END IF
 IF keyval(56) = 0 THEN
- IF keyval(72) > 0 THEN
-  y = large(0, y - 1)
-  IF zone = 1 THEN mouse(1) = mouse(1) - zoom: movemouse mouse(0), mouse(1)
-  IF zone = 14 THEN mouse(1) = mouse(1) - 1: movemouse mouse(0), mouse(1)
- END IF
- IF keyval(80) > 0 THEN
-  y = small(yw - 1, y + 1)
-  IF zone = 1 THEN mouse(1) = mouse(1) + zoom: movemouse mouse(0), mouse(1)
-  IF zone = 14 THEN mouse(1) = mouse(1) + 1: movemouse mouse(0), mouse(1)
- END IF
- IF keyval(75) > 0 THEN
-  x = large(0, x - 1)
-  IF zone = 1 THEN mouse(0) = mouse(0) - zoom: movemouse mouse(0), mouse(1)
-  IF zone = 14 THEN mouse(0) = mouse(0) - 1: movemouse mouse(0), mouse(1)
- END IF
- IF keyval(77) > 0 THEN
-  x = small(xw - 1, x + 1)
-  IF zone = 1 THEN mouse(0) = mouse(0) + zoom: movemouse mouse(0), mouse(1)
-  IF zone = 14 THEN mouse(0) = mouse(0) + 1: movemouse mouse(0), mouse(1)
+ fixmouse = 0
+ IF keyval(72) > 0 THEN y = large(0, y - 1): fixmouse = 1
+ IF keyval(80) > 0 THEN y = small(yw - 1, y + 1): fixmouse = 1
+ IF keyval(75) > 0 THEN x = large(0, x - 1): fixmouse = 1
+ IF keyval(77) > 0 THEN x = small(xw - 1, x + 1): fixmouse = 1
+ IF fixmouse THEN
+  IF zone = 1 THEN
+   zox = x * zoom + INT(zoom / 2)
+   zoy = y * zoom + INT(zoom / 2)
+   mouse(0) = area(0,0) + zox 
+   mouse(1) = area(0,1) + zoy
+   movemouse mouse(0), mouse(1)
+  END IF 
+  IF zone = 14 THEN
+   zox = x
+   zoy = y
+   mouse(0) = area(13,0) + zox 
+   mouse(1) = area(13,1) + zoy
+   movemouse mouse(0), mouse(1)
+  END IF
  END IF
 END IF
 IF zone = 1 THEN
@@ -1846,10 +1847,20 @@ DO
    EXIT DO
   END IF
  END IF
- IF keyval(75) > 0 AND keyval(56) = 0 THEN IF ts.x > 0 THEN ts.x = ts.x - 1: IF ts.zone = 1 THEN mouse(0) = mouse(0) - 10: movemouse mouse(0), mouse(1)
- IF keyval(77) > 0 AND keyval(56) = 0 THEN IF ts.x < 19 THEN ts.x = ts.x + 1: IF ts.zone = 1 THEN mouse(0) = mouse(0) + 10: movemouse mouse(0), mouse(1)
- IF keyval(72) > 0 AND keyval(56) = 0 THEN IF ts.y > 0 THEN ts.y = ts.y - 1: IF ts.zone = 1 THEN mouse(1) = mouse(1) - 8: movemouse mouse(0), mouse(1)
- IF keyval(80) > 0 AND keyval(56) = 0 THEN IF ts.y < 19 THEN ts.y = ts.y + 1: IF ts.zone = 1 THEN mouse(1) = mouse(1) + 8: movemouse mouse(0), mouse(1)
+ IF keyval(56) = 0 THEN
+  fixmouse = 0
+  IF keyval(75) > 0 THEN ts.x = large(ts.x - 1, 0): fixmouse = 1
+  IF keyval(77) > 0 THEN ts.x = small(ts.x + 1, 19): fixmouse = 1
+  IF keyval(72) > 0 THEN ts.y = large(ts.y - 1, 0): fixmouse = 1
+  IF keyval(80) > 0 THEN ts.y = small(ts.y + 1, 19): fixmouse = 1
+  IF fixmouse THEN
+   zox = ts.x * 10 + 5
+   zoy = ts.y * 8 + 4
+   mouse(0) = area(0,0) + zox
+   mouse(1) = area(0,1) + zoy
+   movemouse mouse(0), mouse(1)
+  END IF
+ END IF 
  '---KEYBOARD SHORTCUTS FOR TOOLS------------
  FOR i = 0 TO 5
   IF keyval(shortk(i)) > 1 THEN ts.tool = i: ts.hold = 0: ts.drawcursor = cursor(i) + 1
