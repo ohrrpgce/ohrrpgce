@@ -26,16 +26,24 @@ TYPE TileEditState
  hold as INTEGER
  hox as INTEGER
  hoy as INTEGER
+ cutfrom as INTEGER
+ canpaste as INTEGER
+ delay as INTEGER
 END TYPE
 
 'basic subs and functions
-DECLARE SUB editmaptile (ts AS TileEditState, mover%(), mouse%(), area%(), shortk%(), cursor%(), icon$(), tool$())
+DECLARE SUB picktiletoedit (tmode%, pagenum%, mapfile$)
+DECLARE SUB editmaptile (ts AS TileEditState, mover%(), mouse%(), area%(), shortk%(), cursor%(), icon$(), toolname$())
+DECLARE SUB tilecut (ts AS TileEditState, mouse%(), area%())
 DECLARE SUB refreshtileedit (mover%(), state AS TileEditState)
 DECLARE SUB writeundoblock (mover%(), state AS TileEditState)
 DECLARE SUB readundoblock (mover%(), state AS TileEditState)
 DECLARE SUB fliptile (mover%(), ts AS TileEditState)
 DECLARE SUB scrolltile (mover%(), ts AS TileEditState)
 DECLARE SUB clicktile (mover%(), ts AS TileEditState, mouseclick%)
+DECLARE SUB tilecopy (cutnpaste%(), ts AS TileEditState)
+DECLARE SUB tilepaste (cutnpaste%(), ts AS TileEditState)
+DECLARE SUB tiletranspaste (cutnpaste%(), ts AS TileEditState)
 DECLARE FUNCTION charpicker$ ()
 DECLARE SUB writepassword (p$)
 DECLARE FUNCTION readpassword$ ()
@@ -51,6 +59,7 @@ DECLARE SUB storepal16 (array%(), aoffset%, foffset%)
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE SUB smnemonic (tagname$, index%)
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
+DECLARE SUB savepasdefaults (array%(), tilesetnum%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, dpage%, edge%)
 DECLARE FUNCTION scriptname$ (num%, f$)
@@ -323,103 +332,29 @@ IF array(160) <> 4444 THEN
 END IF
 END SUB
 
+SUB savepasdefaults (array(), tilesetnum)
+'--set magic number
+array(160) = 4444
+'--write defaults into tile set defaults file
+setpicstuf array(), 322, -1
+storeset workingdir$ + SLASH + "defpass.bin" + CHR$(0), tilesetnum, 0
+END SUB
+
+
 SUB loadtanim (n, tastuf())
 setpicstuf tastuf(), 80, -1
 loadset game$ + ".tap" + CHR$(0), n, 0
 END SUB
 
 SUB maptile (master(), font())
-DIM mover(10), cutnpaste(19, 19), mouse(4), area(20, 4), tool$(5), menu$(10), tastuf(40), icon$(5), shortk(5), cursor(5), defaults(160), bitmenu$(10), pastogkey(7)
-
-bitmenu$(0) = "Impassable to the North"
-bitmenu$(1) = "Impassable to the East"
-bitmenu$(2) = "Impassable to the South"
-bitmenu$(3) = "Impassable to the West"
-bitmenu$(4) = "A-type vehicle Tile"
-bitmenu$(5) = "B-type vehicle Tile"
-bitmenu$(6) = "Harm Tile"
-bitmenu$(7) = "Overhead Tile"
-
-pastogkey(0) = 72
-pastogkey(1) = 77
-pastogkey(2) = 80
-pastogkey(3) = 75
-pastogkey(4) = 30
-pastogkey(5) = 48
-pastogkey(6) = 35
-pastogkey(7) = 24
+DIM menu$(10), tastuf(40)
 
 setdiskpages buffer(), 200, 0
 
-gotm = setmouse(mouse())
-
 mapfile$ = game$ + ".til" + CHR$(0)
-canpaste = 0
-dcsr = 1
-airsize = 5
-mist = 10
-tool$(0) = "Draw": icon$(0) = CHR$(3): shortk(0) = 32: cursor(0) = 0
-tool$(1) = "Box ": icon$(1) = CHR$(4): shortk(1) = 48: cursor(1) = 1
-tool$(2) = "Line": icon$(2) = CHR$(5): shortk(2) = 38: cursor(2) = 2
-tool$(3) = "Fill": icon$(3) = "F":     shortk(3) = 33: cursor(3) = 3
-tool$(4) = "Oval": icon$(4) = "O":     shortk(4) = 24: cursor(4) = 2
-tool$(5) = "Air ": icon$(5) = "A":     shortk(5) = 30: cursor(5) = 3
-area(0, 0) = 60
-area(0, 1) = 0
-area(0, 2) = 200
-area(0, 3) = 160
-area(0, 4) = -1
-area(1, 0) = 0
-area(1, 1) = 160
-area(1, 2) = 320
-area(1, 3) = 32
-FOR i = 0 TO 5
- area(2 + i, 0) = 4 + i * 9
- area(2 + i, 1) = 32
- area(2 + i, 2) = 8
- area(2 + i, 3) = 8
-NEXT i
-FOR i = 0 TO 3
- area(12 + i, 0) = 4 + i * 9
- area(12 + i, 1) = 42
- area(12 + i, 2) = 8
- area(12 + i, 3) = 8
-NEXT i
-area(10, 0) = 8
-area(10, 1) = 190
-area(10, 2) = 32
-area(10, 3) = 10
-area(11, 0) = 280
-area(11, 1) = 190
-area(11, 2) = 32
-area(11, 3) = 10
-'LESS AIRBRUSH AREA
-area(16, 0) = 12
-area(16, 1) = 60
-area(16, 2) = 8
-area(16, 3) = 8
-area(16, 4) = 0
-'LESS AIRBRUSH MIST
-area(17, 0) = 12
-area(17, 1) = 76
-area(17, 2) = 8
-area(17, 3) = 8
-area(17, 4) = 0
-'MORE AIRBRUSH AREA
-area(18, 0) = 36
-area(18, 1) = 60
-area(18, 2) = 8
-area(18, 3) = 8
-area(18, 4) = 0
-'MORE AIRBRUSH MIST
-area(19, 0) = 36
-area(19, 1) = 76
-area(19, 2) = 8
-area(19, 3) = 8
-area(19, 4) = 0
 
-bnum = 0: c = 17
-tmode = 0: cutfrom = 0
+bnum = 0
+tmode = 0
 pagenum = -1
 top = -1
 
@@ -465,37 +400,27 @@ clearpage 1
 clearpage 0
 EXIT SUB
 
-savepasdefaults:
-'--set magic number
-defaults(160) = 4444
-'--write defaults into tile set defaults file
-setpicstuf defaults(), 322, -1
-storeset workingdir$ + SLASH + "defpass.bin" + CHR$(0), pagenum, 0
-RETURN
-
 tilemode:
-loadpasdefaults defaults(), pagenum
 GOSUB tilemodemenu
 setkeys
 DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN tmode = 0: GOSUB savepasdefaults: RETURN
+ IF keyval(1) > 1 THEN tmode = 0: RETURN
  'IF keyval(72) > 1 THEN tmode = loopvar(tmode, 0, 4, -1)
  'IF keyval(80) > 1 THEN tmode = loopvar(tmode, 0, 4, 1)
  dummy = usemenu(tmode, 0, 0, 4, 24)
  IF keyval(57) OR keyval(28) > 1 THEN
   SELECT CASE tmode
    CASE 0, 1, 2
-    GOSUB tiling
+    picktiletoedit tmode, pagenum, mapfile$
    CASE 3
     GOSUB tileanim
     setkeys
     GOSUB tilemodemenu
    CASE 4
     tmode = 0
-    GOSUB savepasdefaults
     RETURN
   END SELECT
  END IF
@@ -585,202 +510,6 @@ FOR i = 0 TO 159
   fuzzyrect x * 20, y * 20, 20, 20, 15, dpage
  END IF
  x = x + 1: IF x > 15 THEN x = 0: y = y + 1
-NEXT i
-RETURN
-
-tiling:
-DIM tstate AS TileEditState
-loadpage mapfile$, pagenum, 3
-'pick block to draw/import/default
-setkeys
-DO
- setwait timing(), 120
- setkeys
- copypage 3, dpage
- IF gotm THEN
-  readmouse mouse()
- END IF
- IF keyval(1) > 1 THEN storepage mapfile$, pagenum, 3: RETURN
- IF tmode <> 2 OR keyval(29) = 0 THEN
-  IF keyval(75) > 0 THEN IF bnum > 0 THEN bnum = bnum - 1: IF gotm THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
-  IF keyval(77) > 0 THEN IF bnum < 159 THEN bnum = bnum + 1: IF gotm THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
-  IF keyval(72) > 0 THEN IF bnum > 15 THEN bnum = bnum - 16: IF gotm THEN mouse(1) = mouse(1) - 20: movemouse mouse(0), mouse(1)
-  IF keyval(80) > 0 THEN IF bnum < 144 THEN bnum = bnum + 16: IF gotm THEN mouse(1) = mouse(1) + 20: movemouse mouse(0), mouse(1)
- END IF
- IF gotm THEN
-  bnum = INT(mouse(1) / 20) * 16 + INT(mouse(0) / 20)
- END IF
- IF tmode = 2 THEN
-  '--pass mode shortcuts
-  FOR i = 0 TO 7
-   IF keyval(29) > 0 OR i > 3 THEN
-    IF keyval(pastogkey(i)) > 1 THEN
-     setbit defaults(), bnum, i, readbit(defaults(), bnum, i) XOR 1
-    END IF
-   END IF
-  NEXT i
- END IF
- IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN GOSUB copy
- IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN GOSUB paste
- IF (keyval(29) > 0 AND keyval(20) > 1) THEN GOSUB transpaste
- bx = bnum AND 15
- by = INT(bnum / 16)
- IF keyval(28) > 1 OR keyval(57) OR mouse(3) > 0 THEN
-  setkeys
-  IF tmode = 0 THEN
-   ' Fear not, this ugly transposition to and from the tstate object is temporary
-   tstate.tilex = bx
-   tstate.tiley = by
-   tstate.gotmouse = gotm
-   tstate.drawcursor = dcsr
-   tstate.tool = tool
-   tstate.curcolor = cc
-   tstate.hidemouse = hideptr
-   tstate.airsize = airsize
-   tstate.mist = mist
-   editmaptile tstate, mover(), mouse(), area(), shortk(), cursor(), icon$(), tool$()
-   bx = tstate.tilex = bx
-   by = tstate.tiley = by
-   gotm = tstate.gotmouse
-   dcsr = tstate.drawcursor
-   tool = tstate.tool
-   cc = tstate.curcolor
-   hideptr = tstate.hidemouse
-   airsize = tstate.airsize
-   mist = tstate.mist
-  END IF
-  IF tmode = 1 THEN GOSUB tilecut
-  IF tmode = 2 THEN
-   editbitset defaults(), bnum, 7, bitmenu$()
-  END IF
- END IF
- IF c < 30 THEN c = c + 1 ELSE c = 17
- tog = tog XOR 1
- IF tmode = 2 THEN
-  FOR o = 0 TO 9
-   FOR i = 0 TO 15
-    IF (defaults(i + o * 16) AND 1) THEN rectangle i * 20, o * 20, 20, 3, 7 + tog, dpage
-    IF (defaults(i + o * 16) AND 2) THEN rectangle i * 20 + 17, o * 20, 3, 20, 7 + tog, dpage
-    IF (defaults(i + o * 16) AND 4) THEN rectangle i * 20, o * 20 + 17, 20, 3, 7 + tog, dpage
-    IF (defaults(i + o * 16) AND 8) THEN rectangle i * 20, o * 20, 3, 20, 7 + tog, dpage
-    textcolor 14 + tog, 0
-    IF (defaults(i + o * 16) AND 16) THEN printstr "A", i * 20, o * 20, dpage
-    IF (defaults(i + o * 16) AND 32) THEN printstr "B", i * 20 + 10, o * 20, dpage
-    IF (defaults(i + o * 16) AND 64) THEN printstr "H", i * 20, o * 20 + 10, dpage
-    IF (defaults(i + o * 16) AND 128) THEN printstr "O", i * 20 + 10, o * 20 + 10, dpage
-   NEXT i
-  NEXT o
- END IF
- rectangle bx * 20 + 7, by * 20 + 7, 6, 6, c, dpage
- IF gotm THEN
-  textcolor 10 + tog * 5, 0
-  printstr CHR$(2), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
- END IF
- SWAP dpage, vpage
- setvispage vpage
- dowait
-LOOP
-
-tilecut:
-IF gotm THEN
- omx = mouse(0): omy = mouse(1)
- movemouse remx, remy
-END IF
-delay = 3
-clearpage 2
-loadpage game$ + ".mxs" + CHR$(0), cutfrom, 2
-setkeys
-DO
- setwait timing(), 120
- setkeys
- tog = tog XOR 1
- delay = large(delay - 1, 0)
- IF gotm THEN
-  readmouse mouse()
-  zcsr = 0
-  zone = mouseover(mouse(), zox, zoy, zcsr, area())
-  cutx = small(mouse(0), 300)
-  cuty = small(mouse(1), 180)
- END IF
- IF keyval(1) > 1 THEN
-  IF gotm THEN
-   remx = mouse(0): remy = mouse(1)
-   movemouse omx, omy
-  END IF
-  RETURN
- END IF
- inc = 1: IF keyval(56) > 0 THEN inc = 20
- IF keyval(72) > 0 THEN cuty = large(cuty - inc, 0): IF gotm THEN movemouse cutx, cuty
- IF keyval(80) > 0 THEN cuty = small(cuty + inc, 180): IF gotm THEN movemouse cutx, cuty
- IF keyval(75) > 0 THEN cutx = large(cutx - inc, 0): IF gotm THEN movemouse cutx, cuty
- IF keyval(77) > 0 THEN cutx = small(cutx + inc, 300): IF gotm THEN movemouse cutx, cuty
- IF keyval(57) > 1 OR keyval(28) > 0 OR (mouse(3) > 0 AND zone < 11) THEN
-  IF delay = 0 THEN
-   setkeys
-   FOR i = 0 TO 19
-    FOR j = 0 TO 19
-     rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(cutx + i, cuty + j, 2), 3
-    NEXT j
-   NEXT i
-   IF gotm THEN
-    remx = mouse(0): remy = mouse(1)
-    movemouse omx, omy
-   END IF
-   RETURN
-  END IF
- END IF
- '---PICK BACKGROUND PAGE------
- temp = cutfrom
- dummy = intgrabber(cutfrom, 0, general(100) - 1, 51, 52)
- IF zone = 11 AND mouse(3) > 0 THEN cutfrom = loopvar(cutfrom, 0, general(100) - 1, -1)
- IF zone = 12 AND mouse(3) > 0 THEN cutfrom = loopvar(cutfrom, 0, general(100) - 1, 1)
- IF temp <> cutfrom THEN loadpage game$ + ".mxs" + CHR$(0), cutfrom, 2
- '----
- drawline cutx, cuty, cutx + 19, cuty, 10 + tog * 5, dpage
- drawline cutx, cuty, cutx, cuty + 19, 10 + tog * 5, dpage
- drawline cutx + 19, cuty + 19, cutx + 19, cuty, 10 + tog * 5, dpage
- drawline cutx + 19, cuty + 19, cutx, cuty + 19, 10 + tog * 5, dpage
- textcolor 7 + tog, 1
- IF zone = 11 THEN textcolor 14 + tog, 3
- printstr "Prev", 8, 190, dpage
- textcolor 7 + tog, 1
- IF zone = 12 THEN textcolor 14 + tog, 3
- printstr "Next", 280, 190, dpage
- textcolor 15, 1
- printstr STR$(cutfrom) + " ", 160 - LEN(STR$(cutfrom) + " ") * 4, 190, dpage
- IF gotm THEN
-  textcolor 10 + tog * 5, 0
-  printstr CHR$(2), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
- END IF
- SWAP dpage, vpage
- setvispage vpage
- copypage 2, dpage
- dowait
-LOOP
-
-copy:
-FOR i = 0 TO 19
- FOR j = 0 TO 19
-  cutnpaste(i, j) = readpixel(bx * 20 + i, by * 20 + j, 3)
- NEXT j
-NEXT i
-canpaste = 1
-RETURN
-
-paste:
-IF canpaste = 0 THEN RETURN
-FOR i = 0 TO 19
- FOR j = 0 TO 19
-  rectangle bx * 20 + i, by * 20 + j, 1, 1, cutnpaste(i, j), 3
-NEXT j: NEXT i
-RETURN
-
-transpaste:
-IF canpaste = 0 THEN RETURN
-FOR i = 0 TO 19
- FOR j = 0 TO 19
-  IF cutnpaste(i, j) THEN rectangle bx * 20 + i, by * 20 + j, 1, 1, cutnpaste(i, j), 3
- NEXT j
 NEXT i
 RETURN
 
@@ -1886,6 +1615,170 @@ RETURN
 
 END SUB
 
+SUB picktiletoedit (tmode, pagenum, mapfile$)
+DIM ts AS TileEditState, mover(12), mouse(4), cutnpaste(19, 19), area(20, 4), toolname$(5), icon$(5), shortk(5), cursor(5)
+ts.gotmouse = setmouse(mouse())
+ts.canpaste = 0
+ts.drawcursor = 1
+ts.airsize = 5
+ts.mist = 10
+toolname$(0) = "Draw": icon$(0) = CHR$(3): shortk(0) = 32: cursor(0) = 0
+toolname$(1) = "Box ": icon$(1) = CHR$(4): shortk(1) = 48: cursor(1) = 1
+toolname$(2) = "Line": icon$(2) = CHR$(5): shortk(2) = 38: cursor(2) = 2
+toolname$(3) = "Fill": icon$(3) = "F":     shortk(3) = 33: cursor(3) = 3
+toolname$(4) = "Oval": icon$(4) = "O":     shortk(4) = 24: cursor(4) = 2
+toolname$(5) = "Air ": icon$(5) = "A":     shortk(5) = 30: cursor(5) = 3
+area(0, 0) = 60
+area(0, 1) = 0
+area(0, 2) = 200
+area(0, 3) = 160
+area(0, 4) = -1
+area(1, 0) = 0
+area(1, 1) = 160
+area(1, 2) = 320
+area(1, 3) = 32
+FOR i = 0 TO 5
+ area(2 + i, 0) = 4 + i * 9
+ area(2 + i, 1) = 32
+ area(2 + i, 2) = 8
+ area(2 + i, 3) = 8
+NEXT i
+FOR i = 0 TO 3
+ area(12 + i, 0) = 4 + i * 9
+ area(12 + i, 1) = 42
+ area(12 + i, 2) = 8
+ area(12 + i, 3) = 8
+NEXT i
+area(10, 0) = 8
+area(10, 1) = 190
+area(10, 2) = 32
+area(10, 3) = 10
+area(11, 0) = 280
+area(11, 1) = 190
+area(11, 2) = 32
+area(11, 3) = 10
+'LESS AIRBRUSH AREA
+area(16, 0) = 12
+area(16, 1) = 60
+area(16, 2) = 8
+area(16, 3) = 8
+area(16, 4) = 0
+'LESS AIRBRUSH MIST
+area(17, 0) = 12
+area(17, 1) = 76
+area(17, 2) = 8
+area(17, 3) = 8
+area(17, 4) = 0
+'MORE AIRBRUSH AREA
+area(18, 0) = 36
+area(18, 1) = 60
+area(18, 2) = 8
+area(18, 3) = 8
+area(18, 4) = 0
+'MORE AIRBRUSH MIST
+area(19, 0) = 36
+area(19, 1) = 76
+area(19, 2) = 8
+area(19, 3) = 8
+area(19, 4) = 0
+DIM pastogkey(7), defaults(160), bitmenu$(10)
+IF tmode = 2 THEN
+ pastogkey(0) = 72
+ pastogkey(1) = 77
+ pastogkey(2) = 80
+ pastogkey(3) = 75
+ pastogkey(4) = 30
+ pastogkey(5) = 48
+ pastogkey(6) = 35
+ pastogkey(7) = 24
+ loadpasdefaults defaults(), pagenum
+ bitmenu$(0) = "Impassable to the North"
+ bitmenu$(1) = "Impassable to the East"
+ bitmenu$(2) = "Impassable to the South"
+ bitmenu$(3) = "Impassable to the West"
+ bitmenu$(4) = "A-type vehicle Tile"
+ bitmenu$(5) = "B-type vehicle Tile"
+ bitmenu$(6) = "Harm Tile"
+ bitmenu$(7) = "Overhead Tile"
+END IF    
+
+loadpage mapfile$, pagenum, 3
+'pick block to draw/import/default
+setkeys
+DO
+ setwait timing(), 120
+ setkeys
+ copypage 3, dpage
+ IF ts.gotmouse THEN
+  readmouse mouse()
+ END IF
+ IF keyval(1) > 1 THEN storepage mapfile$, pagenum, 3: EXIT DO
+ IF tmode <> 2 OR keyval(29) = 0 THEN
+  IF keyval(75) > 0 THEN IF bnum > 0 THEN bnum = bnum - 1: IF ts.gotmouse THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
+  IF keyval(77) > 0 THEN IF bnum < 159 THEN bnum = bnum + 1: IF ts.gotmouse THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
+  IF keyval(72) > 0 THEN IF bnum > 15 THEN bnum = bnum - 16: IF ts.gotmouse THEN mouse(1) = mouse(1) - 20: movemouse mouse(0), mouse(1)
+  IF keyval(80) > 0 THEN IF bnum < 144 THEN bnum = bnum + 16: IF ts.gotmouse THEN mouse(1) = mouse(1) + 20: movemouse mouse(0), mouse(1)
+ END IF
+ IF ts.gotmouse THEN
+  bnum = INT(mouse(1) / 20) * 16 + INT(mouse(0) / 20)
+ END IF
+ IF tmode = 2 THEN
+  '--pass mode shortcuts
+  FOR i = 0 TO 7
+   IF keyval(29) > 0 OR i > 3 THEN
+    IF keyval(pastogkey(i)) > 1 THEN
+     setbit defaults(), bnum, i, readbit(defaults(), bnum, i) XOR 1
+    END IF
+   END IF
+  NEXT i
+ END IF
+ IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN tilecopy cutnpaste(), ts
+ IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN tilepaste cutnpaste(), ts
+ IF (keyval(29) > 0 AND keyval(20) > 1) THEN tiletranspaste cutnpaste(), ts
+ ts.tilex = bnum AND 15
+ ts.tiley = INT(bnum / 16)
+ IF keyval(28) > 1 OR keyval(57) OR mouse(3) > 0 THEN
+  setkeys
+  IF tmode = 0 THEN
+   editmaptile ts, mover(), mouse(), area(), shortk(), cursor(), icon$(), toolname$()
+  END IF
+  IF tmode = 1 THEN
+   tilecut ts, mouse(), area()
+  END IF 
+  IF tmode = 2 THEN
+   editbitset defaults(), bnum, 7, bitmenu$()
+  END IF
+ END IF
+ tog = tog XOR 1
+ IF tmode = 2 THEN
+  FOR o = 0 TO 9
+   FOR i = 0 TO 15
+    IF (defaults(i + o * 16) AND 1) THEN rectangle i * 20, o * 20, 20, 3, 7 + tog, dpage
+    IF (defaults(i + o * 16) AND 2) THEN rectangle i * 20 + 17, o * 20, 3, 20, 7 + tog, dpage
+    IF (defaults(i + o * 16) AND 4) THEN rectangle i * 20, o * 20 + 17, 20, 3, 7 + tog, dpage
+    IF (defaults(i + o * 16) AND 8) THEN rectangle i * 20, o * 20, 3, 20, 7 + tog, dpage
+    textcolor 14 + tog, 0
+    IF (defaults(i + o * 16) AND 16) THEN printstr "A", i * 20, o * 20, dpage
+    IF (defaults(i + o * 16) AND 32) THEN printstr "B", i * 20 + 10, o * 20, dpage
+    IF (defaults(i + o * 16) AND 64) THEN printstr "H", i * 20, o * 20 + 10, dpage
+    IF (defaults(i + o * 16) AND 128) THEN printstr "O", i * 20 + 10, o * 20 + 10, dpage
+   NEXT i
+  NEXT o
+ END IF
+ rectangle ts.tilex * 20 + 7, ts.tiley * 20 + 7, 6, 6, tog * 15, dpage
+ IF ts.gotmouse THEN
+  textcolor 10 + tog * 5, 0
+  printstr CHR$(2), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
+ END IF
+ SWAP dpage, vpage
+ setvispage vpage
+ dowait
+LOOP
+IF tmode = 2 THEN
+ savepasdefaults defaults(), pagenum
+END IF
+END SUB
+
 SUB refreshtileedit (mover(), state AS TileEditState)
 copymapblock mover(), state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
 rectangle 59, 0, 202, 161, 15, 2
@@ -1915,10 +1808,11 @@ printstr ">", 270, 16 + (state.undo * 21), 2
 refreshtileedit mover(), state
 END SUB
 
-SUB editmaptile (ts AS TileEditState, mover(), mouse(), area(), shortk(), cursor(), icon$(), tool$())
+SUB editmaptile (ts AS TileEditState, mover(), mouse(), area(), shortk(), cursor(), icon$(), toolname$())
 ts.justpainted = 0
 ts.undo = 0
 ts.allowundo = 0
+ts.delay = 3
 clearpage 2
 FOR i = 0 TO 5
  rectangle 279, 9 + (i * 21), 22, 22, 7, 2
@@ -1933,11 +1827,6 @@ FOR i = 0 TO 31
  NEXT j
 NEXT i
 '---EDIT BLOCK---
-IF ts.gotmouse THEN
- omx = mouse(0): omy = mouse(1)
- movemouse remx, remy
-END IF
-delay = 3
 setkeys
 DO
  setwait timing(), 120
@@ -1948,17 +1837,13 @@ DO
   ts.zone = mouseover(mouse(), zox, zoy, zcsr, area())
  END IF
  tog = tog XOR 1
- delay = large(delay - 1, 0)
+ ts.delay = large(ts.delay - 1, 0)
  ts.justpainted = large(ts.justpainted - 1, 0)
  IF keyval(1) > 1 THEN
   IF ts.hold THEN
    ts.hold = 0
   ELSE
-   IF ts.gotmouse THEN
-    remx = mouse(0): remy = mouse(1)
-    movemouse omx, omy
-   END IF
-   EXIT SUB
+   EXIT DO
   END IF
  END IF
  IF keyval(75) > 0 AND keyval(56) = 0 THEN IF ts.x > 0 THEN ts.x = ts.x - 1: IF ts.zone = 1 THEN mouse(0) = mouse(0) - 10: movemouse mouse(0), mouse(1)
@@ -1994,7 +1879,7 @@ DO
   CASE 3 TO 8
    IF mouse(3) = 1 THEN
     ts.tool = ts.zone - 3
-    ts.drawcursor = cursor(tool) + 1
+    ts.drawcursor = cursor(ts.tool) + 1
     ts.hold = 0
    END IF
   CASE 13 TO 16
@@ -2053,7 +1938,7 @@ DO
    ellipse 65 + ts.hox * 10, 4 + ts.hoy * 8, radius, ts.curcolor, dpage, 0, 0
  END SELECT
  textcolor 15, 1
- printstr tool$(ts.tool), 8, 8, dpage
+ printstr toolname$(ts.tool), 8, 8, dpage
  printstr "Tool", 8, 16, dpage
  printstr "Undo", 274, 1, dpage
  FOR i = 0 TO 5
@@ -2096,10 +1981,13 @@ DO
  copypage 2, dpage
  dowait
 LOOP
+IF ts.gotmouse THEN
+ movemouse ts.tilex * 20 + 10, ts.tiley * 20 + 10
+END IF
 END SUB
 
 SUB clicktile (mover(), ts AS TileEditState, mouseclick)
-IF delay > 0 THEN EXIT SUB
+IF ts.delay > 0 THEN EXIT SUB
 SELECT CASE ts.tool
  CASE 0'---DRAW
   IF ts.justpainted = 0 THEN writeundoblock mover(), ts
@@ -2239,4 +2127,106 @@ FOR i = 0 TO 19
 NEXT i
 refreshtileedit mover(), ts
 rectangle 0, 0, 20, 20, 0, dpage
+END SUB
+
+SUB tilecut (ts AS TileEditState, mouse(), area())
+IF ts.gotmouse THEN
+ movemouse ts.x, ts.y
+END IF
+ts.delay = 3
+clearpage 2
+loadpage game$ + ".mxs" + CHR$(0), ts.cutfrom, 2
+setkeys
+DO
+ setwait timing(), 120
+ setkeys
+ tog = tog XOR 1
+ ts.delay = large(ts.delay - 1, 0)
+ IF ts.gotmouse THEN
+  readmouse mouse()
+  zcsr = 0
+  ts.zone = mouseover(mouse(), zox, zoy, zcsr, area())
+  ts.x = small(mouse(0), 300)
+  ts.y = small(mouse(1), 180)
+ END IF
+ IF keyval(1) > 1 THEN
+  EXIT DO
+ END IF
+ inc = 1: IF keyval(56) > 0 THEN inc = 20
+ IF keyval(72) > 0 THEN ts.y = large(ts.y - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
+ IF keyval(80) > 0 THEN ts.y = small(ts.y + inc, 180): IF ts.gotmouse THEN movemouse ts.x, ts.y
+ IF keyval(75) > 0 THEN ts.x = large(ts.x - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
+ IF keyval(77) > 0 THEN ts.x = small(ts.x + inc, 300): IF ts.gotmouse THEN movemouse ts.x, ts.y
+ IF keyval(57) > 1 OR keyval(28) > 0 OR (mouse(3) > 0 AND ts.zone < 11) THEN
+  IF ts.delay = 0 THEN
+   setkeys
+   FOR i = 0 TO 19
+    FOR j = 0 TO 19
+     rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, readpixel(ts.x + i, ts.y + j, 2), 3
+    NEXT j
+   NEXT i
+   EXIT DO
+  END IF
+ END IF
+ '---PICK BACKGROUND PAGE------
+ oldcut = ts.cutfrom
+ dummy = intgrabber(ts.cutfrom, 0, general(genMaxBackdrop) - 1, 51, 52)
+ IF ts.zone = 11 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, general(genMaxBackdrop) - 1, -1)
+ IF ts.zone = 12 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, general(genMaxBackdrop) - 1, 1)
+ IF oldcut <> ts.cutfrom THEN loadpage game$ + ".mxs" + CHR$(0), ts.cutfrom, 2
+ '----
+ drawline ts.x, ts.y, ts.x + 19, ts.y, 10 + tog * 5, dpage
+ drawline ts.x, ts.y, ts.x, ts.y + 19, 10 + tog * 5, dpage
+ drawline ts.x + 19, ts.y + 19, ts.x + 19, ts.y, 10 + tog * 5, dpage
+ drawline ts.x + 19, ts.y + 19, ts.x, ts.y + 19, 10 + tog * 5, dpage
+ textcolor 7 + tog, 1
+ IF ts.zone = 11 THEN textcolor 14 + tog, 3
+ printstr "Prev", 8, 190, dpage
+ textcolor 7 + tog, 1
+ IF ts.zone = 12 THEN textcolor 14 + tog, 3
+ printstr "Next", 280, 190, dpage
+ textcolor 15, 1
+ temp$ = STR$(ts.cutfrom) + " "
+ printstr temp$, 160 - LEN(temp$) * 4, 190, dpage
+ IF ts.gotmouse THEN
+  textcolor 10 + tog * 5, 0
+  printstr CHR$(2), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
+ END IF
+ SWAP dpage, vpage
+ setvispage vpage
+ copypage 2, dpage
+ dowait
+LOOP
+IF ts.gotmouse THEN
+ movemouse ts.tilex * 20 + 10, ts.tiley * 20 + 10
+END IF
+END SUB
+
+SUB tilecopy (cutnpaste(), ts AS TileEditState)
+FOR i = 0 TO 19
+ FOR j = 0 TO 19
+  cutnpaste(i, j) = readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3)
+ NEXT j
+NEXT i
+ts.canpaste = 1
+END SUB
+
+SUB tilepaste (cutnpaste(), ts AS TileEditState)
+IF ts.canpaste THEN
+ FOR i = 0 TO 19
+  FOR j = 0 TO 19
+   rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, cutnpaste(i, j), 3
+  NEXT j
+ NEXT i
+END IF 
+END SUB
+
+SUB tiletranspaste (cutnpaste(), ts AS TileEditState)
+IF ts.canpaste THEN
+ FOR i = 0 TO 19
+  FOR j = 0 TO 19
+   IF cutnpaste(i, j) THEN rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, cutnpaste(i, j), 3
+  NEXT j
+ NEXT i
+END IF 
 END SUB
