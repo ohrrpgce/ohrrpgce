@@ -50,15 +50,15 @@ DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE SUB wrappedsong (songnumber%)
 DECLARE SUB scriptmisc (id%)
 DECLARE SUB scriptcam (id%)
+DECLARE SUB scriptnpc (id%)
+DECLARE SUB scriptstat (id%, stat%())
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
-DECLARE SUB scriptnpc (id%)
 DECLARE FUNCTION getnpcref% (seekid%, offset%)
 DECLARE SUB suspendresume (id%)
 DECLARE SUB scriptwatcher (page%)
 DECLARE SUB onkeyscript (scriptnum%)
 DECLARE SUB waitcommands (id%)
-DECLARE SUB alterhero (id%, stat%())
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE SUB scriptpalette (id%)
 DECLARE SUB greyscalepal ()
@@ -71,6 +71,7 @@ DECLARE SUB getitem (getit%, num%)
 DECLARE SUB doihavebits ()
 DECLARE SUB npcplot ()
 DECLARE SUB vishero (stat%())
+DECLARE SUB reloadnpc (stat%())
 DECLARE FUNCTION vehpass% (n%, tile%, default%)
 DECLARE SUB initgame ()
 DECLARE FUNCTION readfoemap% (x%, y%, wide%, high%, fh%)
@@ -142,7 +143,6 @@ DECLARE SUB defaultc ()
 DECLARE SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
 DECLARE SUB setusermenu (menu$(), mt%, mi%())
 DECLARE FUNCTION maplumpname$ (map, oldext$)
-DECLARE SUB expcommands (id%, stat%())
 DECLARE SUB checklumpmod ()
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
@@ -151,6 +151,7 @@ DECLARE FUNCTION wrapcollision (xa%, ya%, xgoa%, ygoa%, xb%, yb%, xgob%, ygob%)
 DECLARE FUNCTION cropmovement (x%, y%, xgo%, ygo%)
 DECLARE FUNCTION wraptouch (x1%, y1%, x2%, y2%, distance%)
 DECLARE SUB getui (f$)
+DECLARE FUNCTION titlescr% ()
 
 '---INCLUDE FILES---
 '$INCLUDE: 'compat.bi'
@@ -392,7 +393,7 @@ setupstack astack(), 1024, workingdir$ + SLASH + "stack.tmp" + CHR$(0)
 
 temp = -1
 IF readbit(gen(), genBits, 11) = 0 THEN
- GOSUB titlescr
+ IF titlescr = 0 THEN GOTO resetg
  IF readbit(gen(), genBits, 12) = 0 THEN temp = picksave(1)
 ELSE
  IF readbit(gen(), genBits, 12) = 0 THEN
@@ -792,7 +793,7 @@ DO
   IF mi(pt) = 6 THEN
    temp = picksave(0)
    IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
-   GOSUB reloadnpc
+   reloadnpc stat()
   END IF
   IF mi(pt) = 5 THEN
    w = onwho(readglobalstring$(108, "Equip Whom?", 20), 0)
@@ -942,7 +943,7 @@ IF istag(saytag(7), 0) THEN
  copypage vpage, 3
  IF saytag(8) > 0 THEN
   shop saytag(8) - 1, needf, stock(), stat(), map, foep, mx, my, tastuf()
-  GOSUB reloadnpc
+  reloadnpc stat()
  END IF
  inn = 0
  IF saytag(8) < 0 THEN
@@ -1383,7 +1384,7 @@ IF veh(0) AND samemap THEN
  herospeed(0) = veh(8)
  IF herospeed(0) = 3 THEN herospeed(0) = 10
 END IF
-GOSUB reloadnpc
+reloadnpc stat()
 FOR i = 0 TO 35
  IF npcs(i * 15 + 3) = 3 THEN npcs(i * 15 + 3) = 10
 NEXT i
@@ -1424,59 +1425,6 @@ afterbat = 0
 samemap = 0
 afterload = 0
 'DEBUG debug "end of preparemap"
-RETURN
-
-reloadnpc:
-vishero stat()
-FOR i = 0 TO 35
- setpicstuf buffer(), 1600, 2
- loadset game$ + ".pt4" + CHR$(0), npcs(i * 15 + 0), 20 + (5 * i)
- getpal16 pal16(), 4 + i, npcs(i * 15 + 1)
-NEXT i
-RETURN
-
-titlescr:
-clearpage 3
-loadpage game$ + ".mxs" + CHR$(0), gen(1), 3
-needf = 2
-IF gen(2) > 0 THEN wrappedsong gen(2) - 1
-fademusic fmvol
-setkeys
-DO
- setwait timing(), speedcontrol
- setkeys
- control
- IF carray(5) > 1 THEN GOTO resetg
- IF carray(4) > 1 OR carray(5) > 1 THEN EXIT DO
- FOR i = 2 TO 88
-  IF keyval(i) > 1 THEN
-   EXIT DO
-  END IF
- NEXT i
- FOR i = 0 TO 1
-  gotj(i) = readjoy(joy(), i)
-  IF gotj(i) THEN
-   IF joy(2) = 0 OR joy(3) = 0 THEN
-    joy(2) = -1: joy(3) = -1
-    readjoysettings
-    joy(2) = -1: joy(3) = -1
-    EXIT DO
-   ELSE
-    gotj(i) = 0
-   END IF
-  END IF
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- copypage 3, dpage
- IF needf = 1 THEN
-  needf = 0
-  fademusic fmvol
-  fadein -1
- END IF
- IF needf > 1 THEN needf = needf - 1
- dowait
-LOOP
 RETURN
 
 resetg:
@@ -1921,21 +1869,9 @@ SELECT CASE scrat(nowscript, curkind)
    CASE 37'--use shop
     IF retvals(0) >= 0 THEN
      shop retvals(0), needf, stock(), stat(), map, foep, mx, my, tastuf()
-     GOSUB reloadnpc
+     reloadnpc stat()
      vishero stat()
      loadpage game$ + ".til" + CHR$(0), gmap(0), 3
-    END IF
-   CASE 43'--hero x
-    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-     scriptret = catx(retvals(0) * 5) \ 20
-    END IF
-   CASE 44'--hero y
-    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-     scriptret = caty(retvals(0) * 5) \ 20
-    END IF
-   CASE 53'--set hero direction
-    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-     catd(retvals(0) * 5) = ABS(retvals(1)) MOD 4
     END IF
    CASE 55'--get default weapon
     IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
@@ -1963,9 +1899,6 @@ SELECT CASE scrat(nowscript, curkind)
       doequip newdfw, retvals(0), 0, newdfw, stat()
      END IF
     END IF
-   CASE 58, 119'--resume caterpillar
-    setbit gen(), 44, suspendcatapillar, 0
-    interpolatecat
    CASE 61'--teleport to map
     map = bound(retvals(0), 0, gen(0))
     FOR i = 0 TO 3
@@ -1978,46 +1911,6 @@ SELECT CASE scrat(nowscript, curkind)
    CASE 63, 169'--resume random enemies
     setbit gen(), 44, suspendrandomenemies, 0
     foep = range(100, 60)
-   CASE 64'--get hero stat
-    scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(2), 0, 1), bound(retvals(1), 0, 13))
-   CASE 66'--add hero
-    IF retvals(0) >= 0 THEN
-     FOR i = 37 TO 0 STEP -1
-      IF hero(i) = 0 THEN slot = i
-     NEXT i
-     addhero retvals(0) + 1, slot, stat()
-     vishero stat()
-    END IF
-   CASE 67'--delete hero
-    IF howmanyh(0, 40) > 1 THEN
-     i = findhero(bound(retvals(0), 0, 59) + 1, 0, 40, 1)
-     IF i > -1 THEN hero(i) = 0
-     IF howmanyh(0, 3) = 0 THEN forceparty stat()
-     vishero stat()
-    END IF
-   CASE 68'--swap out hero
-    i = findhero(retvals(0) + 1, 0, 40, 1)
-    IF i > -1 THEN
-     FOR o = 40 TO 4 STEP -1
-      IF hero(o) = 0 THEN
-       doswap i, o, stat()
-       IF howmanyh(0, 3) = 0 THEN forceparty stat()
-       vishero stat()
-       EXIT FOR
-      END IF
-     NEXT o
-    END IF
-   CASE 69'--swap in hero
-    i = findhero(retvals(0) + 1, 40, 0, -1)
-    IF i > -1 THEN
-     FOR o = 0 TO 3
-      IF hero(o) = 0 THEN
-       doswap i, o, stat()
-       vishero stat()
-       EXIT FOR
-      END IF
-     NEXT o
-    END IF
    CASE 73'--game over
     abortg = 1
     scrat(nowscript, curwaitarg) = 0
@@ -2040,17 +1933,8 @@ SELECT CASE scrat(nowscript, curkind)
     scriptout$ = ""
    CASE 80'--current map
     scriptret = map
-   CASE 81'--set hero speed
-    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-     herospeed(retvals(0)) = bound(retvals(1), 0, 20)
-    END IF
-   CASE 83'--set hero stat
-    stat(bound(retvals(0), 0, 40), bound(retvals(3), 0, 1), bound(retvals(1), 0, 13)) = retvals(2)
    CASE 86'--advance text box
     GOSUB nextsay
-   CASE 89'--swap by position
-    doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40), stat()
-    vishero stat()
    CASE 97'--read map block
     setmapdata scroll(), pass(), 0, 0
     scriptret = readmapblock(bound(retvals(0), 0, scroll(0)), bound(retvals(1), 0, scroll(1)))
@@ -2063,12 +1947,6 @@ SELECT CASE scrat(nowscript, curkind)
    CASE 100'--write pass block
     setmapdata pass(), pass(), 0, 0
     setmapblock bound(retvals(0), 0, pass(0)), bound(retvals(1), 0, pass(1)), bound(retvals(2), 0, 255)
-   CASE 102'--hero direction
-    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-     scriptret = catd(retvals(0) * 5)
-    END IF
-   CASE 110 TO 113
-    alterhero scrat(nowscript, curvalue), stat()
    CASE 144'--load tileset
     IF retvals(0) >= 0 THEN
      o = retvals(0)
@@ -2082,39 +1960,17 @@ SELECT CASE scrat(nowscript, curkind)
      cycptr(i) = 0
      cycskip(i) = 0
     NEXT i
-   CASE 150'--status screen
-    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-     IF hero(retvals(0)) > 0 THEN
-      status retvals(0), stat()
-     END IF
-    END IF
    CASE 151'--show mini map
     minimap mx, my, catx(0), caty(0), tastuf()
-   CASE 152'--spells menu
-    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-     IF hero(retvals(0)) > 0 THEN
-      spells retvals(0), stat()
-     END IF
-    END IF
    CASE 153'--items menu
     wantbox = items(stat())
-   CASE 154'--equip menu
-    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-     IF hero(retvals(0)) > 0 THEN
-      equip retvals(0), stat()
-     END IF
-    END IF
    CASE 155, 170'--save menu
     'ID 155 is a backcompat hack
     scriptret = picksave(0) + 1
     IF scriptret > 0 AND (retvals(0) OR scrat(nowscript, curvalue) = 155) THEN
      savegame scriptret - 1, map, foep, stat(), stock()
     END IF
-    GOSUB reloadnpc
-   CASE 157'--order menu
-    heroswap 0, stat()
-   CASE 158'--team menu
-    heroswap 1, stat()
+    reloadnpc stat()
    CASE 166'--save in slot
     IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
      savegame retvals(0) - 1, map, foep, stat(), stock()
@@ -2128,8 +1984,6 @@ SELECT CASE scrat(nowscript, curkind)
       scrat(nowscript, scrstate) = stwait
      END IF
     END IF
-   CASE 183 TO 186
-    expcommands scrat(nowscript, curvalue), stat()
    CASE 210'--show string
     IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
      scriptout$ = plotstring$(retvals(0))
@@ -2138,6 +1992,7 @@ SELECT CASE scrat(nowscript, curkind)
     scriptnpc scrat(nowscript, curvalue)
     scriptmisc scrat(nowscript, curvalue)
     scriptadvanced scrat(nowscript, curvalue)
+    scriptstat scrat(nowscript, curvalue), stat()
     '---------
   END SELECT
 END SELECT

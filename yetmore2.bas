@@ -111,6 +111,7 @@ DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB cathero ()
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE SUB getui (f$)
+DECLARE SUB readjoysettings ()
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -788,4 +789,61 @@ DATA 0,7,8,14,15,6,7,1,2,18,21,35,37,15,240,10,14
 DATA 18,28,34,44,50,60,66,76,82,92,98,108,114,124,130,140
 DATA 146,156,162,172,178,188,194,204,210,220,226,236,242,252 
 
+END SUB
+
+FUNCTION titlescr 
+titlescr = -1 ' default return true for success
+clearpage 3
+loadpage game$ + ".mxs" + CHR$(0), gen(genTitle), 3
+needf = 2
+IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
+fademusic fmvol
+setkeys
+DO
+ setwait timing(), speedcontrol
+ setkeys
+ control
+ IF carray(5) > 1 THEN
+  titlescr = 0 ' return false for cancel
+  EXIT DO
+ END IF
+ IF carray(4) > 1 OR carray(5) > 1 THEN EXIT DO
+ FOR i = 2 TO 88
+  IF keyval(i) > 1 THEN
+   EXIT DO
+  END IF
+ NEXT i
+ FOR i = 0 TO 1
+  gotj(i) = readjoy(joy(), i)
+  IF gotj(i) THEN
+   IF joy(2) = 0 OR joy(3) = 0 THEN
+    joy(2) = -1: joy(3) = -1
+    readjoysettings
+    joy(2) = -1: joy(3) = -1
+    EXIT DO
+   ELSE
+    gotj(i) = 0
+   END IF
+  END IF
+ NEXT i
+ SWAP vpage, dpage
+ setvispage vpage
+ copypage 3, dpage
+ IF needf = 1 THEN
+  needf = 0
+  fademusic fmvol
+  fadein -1
+ END IF
+ IF needf > 1 THEN needf = needf - 1
+ dowait
+LOOP
+END FUNCTION
+
+SUB reloadnpc (stat())
+vishero stat()
+FOR i = 0 TO 35
+ setpicstuf buffer(), 1600, 2
+ loadset game$ + ".pt4" + CHR$(0), npcs(i * 15 + 0), 20 + (5 * i)
+ getpal16 pal16(), 4 + i, npcs(i * 15 + 1)
+NEXT i
 END SUB
