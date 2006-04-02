@@ -391,7 +391,7 @@ function CreateMIDIEventList(midifile as string, division as short ptr) as MIDI_
 
  	eventList = MIDItoStream(mididata)
 
-	for trackID = 0 to mididata->nTracks
+	for trackID = 0 to mididata->nTracks - 1
  		if mididata->track[trackID].data then Deallocate(mididata->track[trackID].data)
 	next
  	Deallocate(mididata->track)
