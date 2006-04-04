@@ -1320,6 +1320,21 @@ end</example>
 			<shortname>set seconds of play</shortname>
 			<description>Sets the number of seconds that the game has been "played" to <p>sec</p>, as long as <p>sec</p> is within the 0-59 range.</description>
 		</command>
+		<command id="systemyear">
+			<cannon>system year</cannon>
+			<shortname>system year</shortname>
+			<description>Returns the current real-world year</description>
+		</command>
+		<command id="systemmonth">
+			<cannon>system month</cannon>
+			<shortname>system month</shortname>
+			<description>Returns the current real-world month, 1 to 12</description>
+		</command>
+		<command id="systemday">
+			<cannon>system day</cannon>
+			<shortname>system day</shortname>
+			<description>Returns the current real-world day, 1 to 31</description>
+		</command>
 		<command id="systemhour">
 			<cannon>system hour</cannon>
 			<shortname>system hour</shortname>
