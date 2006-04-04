@@ -1826,6 +1826,7 @@ IF loadinstead <> -1 THEN
  ELSE
   scrat(index, scrsize) = 0
   scrat(index, scroff) = scrat(loadinstead, scroff)
+  scrat(index, scrvars) = scrat(loadinstead, scrvars)
   scrat(index, scrargs) = scrat(loadinstead, scrargs)
  END IF
 ELSE
@@ -1838,7 +1839,13 @@ ELSE
   GET #f, 1, temp
   skip = temp
   GET #f, 3, temp
-  scrat(index, scrargs) = temp
+  scrat(index, scrvars) = temp
+  IF skip >= 6 THEN
+   GET #f, 5, temp
+   scrat(index, scrargs) = temp
+  ELSE
+   scrat(index, scrargs) = 999
+  END IF
   
   IF nextscroff + (LOF(f) - skip) / 2 > 4096 THEN
    scripterr "Script buffer overflow"
@@ -1871,7 +1878,7 @@ ELSE
  END IF
 END IF
 
-scrat(index + 1, scrheap) = scrat(index, scrheap) + (scrat(index, scrargs) + 1)
+scrat(index + 1, scrheap) = scrat(index, scrheap) + (scrat(index, scrvars) + 1)
 
 IF scrat(index + 1, scrheap) > 2048 THEN
  scripterr "Script heap overflow"
@@ -1880,7 +1887,7 @@ IF scrat(index + 1, scrheap) > 2048 THEN
  EXIT FUNCTION
 END IF
 
-FOR i = 1 TO scrat(index, scrargs)
+FOR i = 1 TO scrat(index, scrvars)
  heap(scrat(index, scrheap) + (i - 1)) = 0
 NEXT i
 

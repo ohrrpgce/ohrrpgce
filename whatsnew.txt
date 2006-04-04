@@ -17,13 +17,14 @@ WHAT IS NEW?
       edges of a wraparound map" (consider that a feature if you want) 
       And bug where couldn't activate touch activation NPCs over map edge 
       And bug where avoid and chase NPCs did not do so properly on a
-      wraparound map
-      [Ralph Versteegen]
+      wraparound map [Ralph Versteegen]
     * Bug 176: "Some files appear as subdirectories in Windows browsers" 
       [Ralph Versteegen]
     * Fixed an ancient bug in both the Sprite editor and the MapTile editor
       which caused the keyboard control to lag whenever the mouse cursor
       was over the drawing area.
+    * Really fixed the "script arguments overflow into local variables" bug.
+      You need to recompile your scripts to get this fix
 
   * New Plotscripting Commands
     * "hero frame", "NPC frame" [Ralph Versteegen]

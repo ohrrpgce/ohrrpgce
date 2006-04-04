@@ -13,6 +13,9 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--2I 2006-04-04 Extended HSX header to include number of arguments
+--              to a script, to really fix arguments-overflow-into
+--              -locals bug
 --2H 2006-03-29 Display better help and wait for keypress when run
 --              by double-clicking the icon. Added -k command line
 --              option to skip waiting for keypress
@@ -51,7 +54,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=2
-constant COMPILER_SUB_VERSION='H'
+constant COMPILER_SUB_VERSION='I'
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -117,7 +120,7 @@ constant KIND_LONGNAMES={"number"
                         }
 constant TREE_TRUNK=1
 constant TREE_BRANCHES=2
-constant CODE_START_BYTE_OFFSET=4
+constant CODE_START_BYTE_OFFSET=6
 
 ---------------------------------------------------------------------------
 --globals--               --initializations--
@@ -1976,14 +1979,18 @@ end function
 
 ---------------------------------------------------------------------------
 
-function binary_compile(sequence tree,sequence vars)
+function binary_compile(integer id,sequence tree,sequence vars)
   sequence result
+  integer at
   --binary data is all in 16-bit signed words.
   --the first word is the zero-rooted byte-offset of the first executable code byte
   --in retrospect, word-offset would have been more appropriate, since everything is word-alinged, but hey! gotta be backwards compatable!
   result=output_word(CODE_START_BYTE_OFFSET)
   --the second word is the number of local variables
   result&=output_word(length(vars))
+  --the third word is the number of arguments the script takes (also in SCRIPTS.TXT)
+  at=find(id,column(script_list,PAIR_NUM))
+  result&=output_word(length(script_list[at][FUNC_ARGS]))
   --what follows is command data in the format [kindID,Value,argcount,argpointerlist]
   --numbers and variables have no argcount or argpointerlist
   --an argpointer is the zero-rooted word-offset of the argument relative
@@ -2208,7 +2215,7 @@ procedure compile_a_script(integer id,sequence name_data,sequence arg_data,seque
     script_tree=sanity_check(script_tree,local_vars,"")
     warn_unused_locals(local_vars)
   end if
-  binary=binary_compile(script_tree,local_vars)
+  binary=binary_compile(id,script_tree,local_vars)
   all_scripts=append(all_scripts,{
      id                   --id
     ,name_data[CMD_TEXT]  --name
@@ -2273,7 +2280,7 @@ function generate_scripts_dot_txt()
   for i=1 to length(script_list) do
     result&=sprintf("%s\r\n%d\r\n%d\r\n",{script_list[i][PAIR_NAME],script_list[i][PAIR_NUM],length(script_list[i][FUNC_ARGS])})
     for j=1 to length(script_list[i][FUNC_ARGS]) do
-      result&=sprintf("%d\r\n",{j})
+      result&=sprintf("%d\r\n",{script_list[i][FUNC_ARGS][j]})
     end for
   end for
   return(result)
