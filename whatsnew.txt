@@ -25,6 +25,8 @@ WHAT IS NEW?
       was over the drawing area.
     * Really fixed the "script arguments overflow into local variables" bug.
       You need to recompile your scripts to get this fix
+    * Fixed bug 163, a random crash in the music import screen.
+      [Simon, Mike]
 
   * New Plotscripting Commands
     * "hero frame", "NPC frame" [Ralph Versteegen]
