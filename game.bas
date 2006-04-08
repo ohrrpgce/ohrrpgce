@@ -1641,11 +1641,6 @@ DO
 	  '--if a while statement finishes normally (argn is 2) then it repeats.
 	  dummy = popw
 	  scrat(nowscript, curargn) = 0
-	 CASE 3
-	  '--if it is broken, argn will be three, and execution will continue as normal
-	  pushw 9999 '--while must pad the stack becuase it autodiscards the return value of it's conditional
-	  pushw 9998
-	  GOSUB dumpandreturn
 	 CASE ELSE
 	  scripterr "while fell out of bounds, landed on" + STR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
 	END SELECT
@@ -1656,9 +1651,6 @@ DO
 	  dummy = popw
 	  GOSUB incrementflow
 	  scrat(nowscript, curargn) = 4
-	 CASE 6
-	  '--return
-	  GOSUB dumpandreturn
 	 CASE ELSE
 	  scripterr "for fell out of bounds, landed on" + STR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
 	END SELECT
@@ -1707,7 +1699,8 @@ DO
 	  '--if-then-else needs one extra thing on the stack to account for the option that didnt get used.
 	  pushw 0
 	 CASE 2
-	  scrat(nowscript, curargn) = 3 '---done
+          '--finished then but not at end of argument list: skip else
+          GOSUB dumpandreturn
 	 CASE ELSE
 	  scripterr "if statement overstepped bounds"
 	END SELECT
@@ -1721,7 +1714,9 @@ DO
 	  IF r THEN
 	   scrat(nowscript, scrstate) = stdoarg'---call do block
 	  ELSE
-	   scrat(nowscript, curargn) = 3
+           'break while: no args to pop
+	   scriptret = 0
+           scrat(nowscript, scrstate) = streturn'---return
 	  END IF
 	 CASE ELSE
 	  scripterr "while statement has jumped the curb"
@@ -1734,24 +1729,18 @@ DO
 	 '--argn 3 is step
 	 '--argn 4 is do block
 	 '--argn 5 is repeat (normal termination)
-	 '--argn 6 is break (failed limit check)
-	 CASE 0
-	  '--get var
-	  scrat(nowscript, scrstate) = stdoarg
-	  pushw 0
-	 CASE 1, 3
-	  '--get start, and later step
+	 CASE 0, 1, 3
+	  '--get var, start, and later step
 	  scrat(nowscript, scrstate) = stdoarg
 	 CASE 2
-	  '--set variable to start val
+	  '--set variable to start val before getting end
 	  tmpstart = popw
 	  tmpvar = popw
 	  pushw tmpvar
 	  pushw tmpstart
 
-	  '--update for counter (is this right for globals?)
+	  '--update for counter
 	  writescriptvar tmpvar, tmpstart
-	  '---???    global(tmpvar) = tmpstart - tmpstep
 
 	  '---now get end value
 	  scrat(nowscript, scrstate) = stdoarg
@@ -1760,14 +1749,16 @@ DO
 	  tmpend = popw
 	  tmpstart = popw
 	  tmpvar = popw
-	  pushw tmpvar
-	  pushw tmpstart
-	  pushw tmpend
-	  pushw tmpstep
 	  tmpnow = readscriptvar(tmpvar)
 	  IF (tmpnow > tmpend AND tmpstep > 0) OR (tmpnow < tmpend AND tmpstep < 0) THEN
-	   scrat(nowscript, curargn) = 6
+           '--breakout
+	   scriptret = 0
+           scrat(nowscript, scrstate) = streturn'---return
 	  ELSE
+	   pushw tmpvar
+	   pushw tmpstart
+	   pushw tmpend
+	   pushw tmpstep
 	   scrat(nowscript, scrstate) = stdoarg'---execute the do block
 	  END IF
 	 CASE ELSE
@@ -1997,7 +1988,3 @@ SELECT CASE scrat(nowscript, curkind)
   END SELECT
 END SELECT
 RETURN
-
-REM $STATIC
-
-

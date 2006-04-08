@@ -119,9 +119,6 @@ DECLARE SUB readjoysettings ()
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
 '$INCLUDE: 'uigame.bi'
-101
-DATA 72,80,75,77,57,28,29,1,56,1,15,36,51
-DATA 150,650,150,650
 
 REM $STATIC
 SUB cathero
@@ -181,7 +178,7 @@ FUNCTION cropmovement (x, y, xgo, ygo)
 END FUNCTION
 
 SUB defaultc
- RESTORE 101
+ RESTORE ctrldata
  FOR i = 0 TO 12
   READ csetup(i)
  NEXT i
@@ -191,7 +188,8 @@ SUB defaultc
  EXIT SUB
 
 ctrldata:
-
+DATA 72,80,75,77,57,28,29,1,56,1,15,36,51
+DATA 150,650,150,650
 
 END SUB
 
