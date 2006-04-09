@@ -45,6 +45,10 @@ CONST flowthen = 5
 CONST flowelse = 6
 CONST flowfor = 7
 CONST flowwhile = 10
+CONST flowbreak = 11
+CONST flowcontinue = 12
+CONST flowexit = 13
+CONST flowexitreturn = 14
 '--SUSPEND--
 CONST suspendnpcs = 0
 CONST suspendplayer = 1

@@ -1878,6 +1878,41 @@ ELSE
 END IF
 END SUB
 
+SUB unwindtodo (levels)
+'unwinds the stack until the specified number of dos have been stripped
+'leaves the interpreter as if the last do block had successfully finished
+'this means repeat in the case of for and while loops
+'note: we assume the calling command has popped its args
+
+WHILE levels > 0
+ scrat(nowscript, scrdepth) = scrat(nowscript, scrdepth) - 1
+ IF scrat(nowscript, scrdepth) < 0 THEN
+  scrat(nowscript, scrstate) = stdone
+  EXIT SUB
+ END IF
+
+ scrat(nowscript, curargn) = popw
+ scrat(nowscript, curargc) = popw
+ scrat(nowscript, curvalue) = popw
+ scrat(nowscript, curkind) = popw
+ scrat(nowscript, scrptr) = popw
+
+ IF scrat(nowscript, curkind) = tyflow AND scrat(nowscript, curvalue) = flowdo THEN
+  levels = levels - 1
+  'first pop do's evaluated arguments before stopping
+ END IF
+
+ 'pop arguments
+ FOR i = 1 TO scrat(nowscript, curargn)
+  dummy = popw
+ NEXT  
+WEND
+'return to normality
+subreturn
+
+END SUB
+
+
 SUB templockexplain
 PRINT "Either " + exename$ + " is already running in the background, or it"
 PRINT "terminated incorrectly last time it was run, and was unable to clean up"

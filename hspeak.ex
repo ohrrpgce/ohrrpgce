@@ -1,4 +1,4 @@
--- HamsterSpeak Compiler v.2E
+-- HamsterSpeak Compiler v.2J
 
 --(C) Copyright 2002 James Paige and Hamster Republic Productions
 -- Please read LICENSE.txt for GPL License details and disclaimer of liability
@@ -13,6 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--2J 2006-04-10 Added break, continue, exitscript, exitreturning
+--              flow statements. Also fixed some return bugs - TMC
 --2I 2006-04-04 Extended HSX header to include number of arguments
 --              to a script, to really fix arguments-overflow-into
 --              -locals bug
@@ -54,7 +56,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=2
-constant COMPILER_SUB_VERSION='I'
+constant COMPILER_SUB_VERSION='J'
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -152,6 +154,10 @@ sequence flow_list        flow_list={
                              ,{6,"else"}
                              ,{7,"for"}
                              ,{10,"while"}
+                             ,{11,"break"}
+                             ,{12,"continue"}
+                             ,{13,"exitscript"}
+                             ,{14,"exitreturning"}
                           }
 sequence math_list        math_list={
                               {0,"random",{0,1}}
@@ -457,7 +463,10 @@ procedure init()
           ,{"cfor"          ,RESERVE_UNIMPLEMENTED}
           ,{"foreach"       ,RESERVE_UNIMPLEMENTED}
           ,{"while"         ,RESERVE_FLOW}
-          ,{"break"         ,RESERVE_UNIMPLEMENTED}
+          ,{"break"         ,RESERVE_FLOW}
+          ,{"continue"      ,RESERVE_FLOW}
+          ,{"exitscript"    ,RESERVE_FLOW}
+          ,{"exitreturning" ,RESERVE_FLOW}
         })--end mass_insert   
   for i=1 to length(math_list) do
     reserved=alpha_tree_insert(reserved,math_list[i][PAIR_NAME],RESERVE_BUILTIN)
@@ -1496,8 +1505,8 @@ function get_script_cmd(integer ptr,sequence data,sequence vars)
         after=get_cmd_depth(ptr,data,1)
         ptr=after[1]   --this is a hack, because we cannot say {n,n}=func()
         after=after[2]
-      elsif kind=KIND_SCRIPT or kind=KIND_FUNCTION then
-        --has no args, but thats okay
+      elsif kind=KIND_SCRIPT or kind=KIND_FUNCTION or kind=KIND_FLOW then
+        --has no args, but thats okay (check later)
       else  
         --has no args, but requires them!
         src_error(sprintf(
@@ -1588,7 +1597,7 @@ end function
 
 ---------------------------------------------------------------------------
 
---parse the script tree and make if absorb then and else, for and while absorb do
+--parse the script tree and make if absorb then and else, for and while absorb do, check arg(count)s of flow statements
 function normalize_flow_control(sequence tree,sequence vars)
   integer ptr
   sequence s
@@ -1708,7 +1717,33 @@ function normalize_flow_control(sequence tree,sequence vars)
         end if
       else  
         src_error(sprintf(COLYEL&"for"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),line)
-      end if    
+      end if
+    elsif compare("return",s)=0 or compare("exitreturning",s)=0 then
+      if length(tree[ptr][TREE_BRANCHES])>1 then
+        src_error(sprintf(
+                      COLYEL&s&COLRED&" statement has %d arguments. It should have only one."
+                      ,{length(tree[ptr][TREE_BRANCHES])}
+                    ),line)
+      elsif length(tree[ptr][TREE_BRANCHES])=0 then
+        src_error(sprintf(COLYEL&s&COLRED&" statement has no argument. It should have one. Prehaps you meant to use "&COLYEL&"exit script"&COLRED,{}),line)
+      end if
+    elsif compare("break",s)=0 or compare("continue",s)=0 then
+      if length(tree[ptr][TREE_BRANCHES])>1 then
+        src_error(sprintf(
+                      COLYEL&s&COLRED&" statement has %d arguments. It should have no more than one."
+                      ,{length(tree[ptr][TREE_BRANCHES])}
+                    ),line)
+      elsif length(tree[ptr][TREE_BRANCHES])=0 then
+        --append default value
+        tree[ptr][TREE_BRANCHES]={{{"1",tree[ptr][TREE_TRUNK][CMD_LINE]},{}}}
+      end if
+    elsif compare("exitscript",s)=0 then
+      if length(tree[ptr][TREE_BRANCHES])>0 then
+        src_error(sprintf(
+                      COLYEL&s&COLRED&" statement has %d arguments. It should have none. Prehaps you meant to use "&COLYEL&"exit returning"&COLRED
+                      ,{length(tree[ptr][TREE_BRANCHES])}
+                    ),line)
+      end if
     end if
     tree[ptr][TREE_BRANCHES]=normalize_flow_control(tree[ptr][TREE_BRANCHES],vars)
     ptr+=1
@@ -2062,7 +2097,7 @@ function sanity_check(sequence tree,sequence vars,sequence parent)
         src_warn(sprintf("Expected script, function, or flow control, but found local variable "&COLYEL&"%s"&COLRED&". It will do nothing here."
                  ,{vars[id][CMD_TEXT]}),tree[i][TREE_TRUNK][CMD_LINE])
       elsif kind=KIND_MATH and id<=15 then
-        src_warn(sprintf("built-in function "&COLYEL&"%s"&COLRED&" is returning a value that isnt being discarded"
+        src_warn(sprintf("built-in function "&COLYEL&"%s"&COLRED&" is returning a value that is being discarded"
                  ,{s}),tree[i][TREE_TRUNK][CMD_LINE])
       end if
     end if

@@ -80,6 +80,7 @@ DECLARE FUNCTION functiondone% ()
 DECLARE FUNCTION functionread% ()
 DECLARE SUB subreturn ()
 DECLARE SUB subdoarg ()
+DECLARE SUB unwindtodo (levels%)
 DECLARE SUB resetgame (map%, foep%, stat%(), stock%(), showsay%, scriptout$, sayenh%())
 DECLARE FUNCTION countitem% (it%)
 DECLARE SUB scriptmath ()
@@ -1640,6 +1641,7 @@ DO
 	 CASE 2
 	  '--if a while statement finishes normally (argn is 2) then it repeats.
 	  dummy = popw
+          dummy = popw
 	  scrat(nowscript, curargn) = 0
 	 CASE ELSE
 	  scripterr "while fell out of bounds, landed on" + STR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
@@ -1656,8 +1658,26 @@ DO
 	END SELECT
        CASE flowreturn
 	scrat(nowscript, scrret) = popw
-	scriptret = 0
 	scrat(nowscript, scrstate) = streturn'---return
+       CASE flowbreak
+        r = popw
+        unwindtodo(r)
+        '--for and while need to be broken
+        IF scrat(nowscript, curkind) = tyflow AND (scrat(nowscript, curvalue) = flowfor OR scrat(nowscript, curvalue) = flowwhile) THEN
+         GOSUB dumpandreturn
+        END IF
+       CASE flowcontinue
+        r = popw
+        unwindtodo(r)
+        IF NOT (scrat(nowscript, curkind) = tyflow AND (scrat(nowscript, curvalue) = flowfor OR scrat(nowscript, curvalue) = flowwhile)) THEN
+         '--if this do isn't a for's or while's, then just repeat it
+         scrat(nowscript, curargn) = scrat(nowscript, curargn) - 1
+        END IF
+       CASE flowexit
+        unwindtodo(9999)
+       CASE flowexitreturn
+        scrat(nowscript, scrret) = popw
+        unwindtodo(9999) 
        CASE ELSE
 	'--do, then, etc... terminate normally
 	scriptret = -1
@@ -1694,10 +1714,10 @@ DO
 	   scrat(nowscript, scrstate) = stdoarg'---call then block
 	  ELSE
 	   scrat(nowscript, curargn) = 2
+	   '--if-else needs one extra thing on the stack to account for the then that didnt get used.
+	   pushw 0
 	   scrat(nowscript, scrstate) = stdoarg'---call else block
 	  END IF
-	  '--if-then-else needs one extra thing on the stack to account for the option that didnt get used.
-	  pushw 0
 	 CASE 2
           '--finished then but not at end of argument list: skip else
           GOSUB dumpandreturn
@@ -1710,11 +1730,12 @@ DO
 	  scrat(nowscript, scrstate) = stdoarg'---call condition
 	 CASE 1
 	  r = popw
-	  'pushw r
 	  IF r THEN
 	   scrat(nowscript, scrstate) = stdoarg'---call do block
+           '--number of words on stack should equal argn (for simplicity when unwinding stack)
+           pushw 0
 	  ELSE
-           'break while: no args to pop
+           '--break while: no args to pop
 	   scriptret = 0
            scrat(nowscript, scrstate) = streturn'---return
 	  END IF
@@ -1798,7 +1819,7 @@ writescriptvar tmpvar, readscriptvar(tmpvar) + tmpstep
 RETURN
 
 dumpandreturn:
-FOR i = scrat(nowscript, curargc) - 1 TO 0 STEP -1
+FOR i = scrat(nowscript, curargn) - 1 TO 0 STEP -1
  dummy = popw
 NEXT i
 scriptret = 0

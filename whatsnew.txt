@@ -10,6 +10,8 @@ WHAT IS NEW?
       a lot of confusion for new plotscripters who are unfamiliar with
       command-line tools. Also added -k option to supress this new
       behaviour [James Paige]
+    * New HamsterSpeak flow control commands: break, continue, exit script,
+      exit returning. See the HS Definition for details
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
