@@ -1,0 +1,43 @@
+#!/bin/sh
+# This script downloads the "Spamwords" and "Not Evil" pages from the OHRRPGCE wiki
+#
+# Note that it depends on pcregrep, which is  not usually installed by default
+# on a typical GNU/Linux box.
+
+SPAMWORDSFILE="/var/www/wiki/blacklist.spamwords.txt"
+SPAMWORDSURL="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/index.php/Spamwords"
+SPAMWORDSSANE="this is a list of spammy keywords"
+
+NOTEVILFILE="/var/www/wiki/not.evil.txt"
+NOTEVILURL="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/index.php/Not_evil"
+NOTEVILSANE="This is a list of wiki contributors"
+
+wget -O - --quiet ${SPAMWORDSURL} \
+ | pcregrep -M "(?s)<pre>.*</pre>" \
+ | pcregrep -v "</?pre>" \
+ > "${SPAMWORDSFILE}".new
+
+SANITY=`grep "${SPAMWORDSSANE}" "${SPAMWORDSFILE}".new`
+
+if [ "$SANITY" ] ; then
+  mv "${SPAMWORDSFILE}".new "${SPAMWORDSFILE}"
+else
+  echo "ERROR: spamwords sanity check failed!"
+  cat "${SPAMWORDSFILE}".new
+  rm "${SPAMWORDSFILE}".new
+fi
+
+wget -O - --quiet ${NOTEVILURL} \
+ | pcregrep -M "(?s)<pre>.*</pre>" \
+ | pcregrep -v "</?pre>" \
+ > "${NOTEVILFILE}".new
+
+SANITY=`grep "${NOTEVILSANE}" "${NOTEVILFILE}".new`
+
+if [ "$SANITY" ] ; then
+  mv "${NOTEVILFILE}".new "${NOTEVILFILE}"
+else
+  echo "ERROR: not evil sanity check failed!"
+  cat "${NOTEVILFILE}".new
+  rm "${NOTEVILFILE}".new
+fi

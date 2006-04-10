@@ -1,0 +1,7 @@
+#!/bin/sh
+# Downloads a copy of the Chongqed.org blacklist of known wiki spammers.
+# Angelfire is excluded because of a false positive with OHF Paradise
+
+wget --quiet -O - http://blacklist.chongqed.org \
+  | grep -v "angelfire" \
+  > /var/www/wiki/blacklist.chongqed.org.txt

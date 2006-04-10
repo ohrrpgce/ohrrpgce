@@ -1,0 +1,8 @@
+SHELL=/bin/sh
+MAILTO=Bob-cron@HamsterRepublic.com
+
+# Run at 1:00am on Sundays
+00 1    * * 7   /path/to/script/download-blacklist.chongqed.org
+
+# Run once an hour, on the half-hour
+30 *    * * *   /path/to/script/wiki-spamwords
