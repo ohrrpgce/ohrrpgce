@@ -11,8 +11,8 @@
 //
 ///////////////////////////////////////////////////////////////////////
 
-//$basePath = '/var/www/wiki/ohrrpgce/wiki/';
-$basePath = '/home/finalfan/public_html/ohr/wiki/';
+$basePath = '/var/www/wiki/ohrrpgce/wiki/';
+//$basePath = '/home/finalfan/public_html/ohr/wiki/';
 
 $spamNOTEVIL   = $basePath . '../not.evil.txt';
 $spamCHONGQED  = $basePath . '../blacklist.chongqed.org.txt';
@@ -82,18 +82,18 @@ function spamCallBack($title, $body, $section){
 
   if($do_filter){
 	
-	//Create a diff, for better filtering  
-	$old_page = new Article($title);
-	$old = $old_page->fetchContent();
-	$diff = getDiff($old,$body);
-	$diff = implode("\n",$diff);
-	$old_page = NULL;
-	  
+    //Create a diff, for better filtering  
+    $old_page = new Article($title);
+    $old = $old_page->fetchContent();
+    $diff = getDiff($old,$body);
+    $diff = implode("\n",$diff);
+    unset($old_page);
+
     // special handling if there are any external links
     if(preg_match('/https?:\/\//', $diff)){
       // check the chonqed blocklist for spammer urls.
       // the blacklist is downloaded to a text file by a nightly cron job
-      $block = checkBlackList($spamCHONGQED,'chonqed',$diff,$reason);
+      $block = checkBlackList($spamCHONGQED,'chongqed',$diff,$reason);
     }
     if (!$block){
       // check the spammy keyword list
@@ -157,7 +157,7 @@ function spamCallBack($title, $body, $section){
 * Returns false on error
 */
 function getDiff($old, $new) {
-  $hash = md5(rand(1,1000000));
+  $hash = md5(mt_rand(1,1000000));
   $o = fopen($oldfile = "/tmp/$hash.wiki.old","w");
   $n = fopen($newfile = "/tmp/$hash.wiki.new","w");
   
