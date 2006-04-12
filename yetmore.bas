@@ -325,7 +325,7 @@ SELECT CASE id
    NEXT o
   END IF
  CASE 83'--set hero stat
-  stat(bound(retvals(0), 0, 40), bound(retvals(3), 0, 1), bound(retvals(1), 0, 13)) = retvals(2)
+  stat(bound(retvals(0), 0, 40), bound(retvals(3), 0, 1), bound(retvals(1), 0, 13)) = small(gen(genStatCap + bound(retvals(1), 0, 13)), retvals(2))
  CASE 89'--swap by position
   doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40), stat()
   vishero stat()
