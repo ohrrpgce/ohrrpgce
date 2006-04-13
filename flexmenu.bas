@@ -91,6 +91,7 @@ DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
+DECLARE FUNCTION isStringField(mnu%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -755,7 +756,7 @@ DO
  
  dummy = usemenu(pt, top, 0, size, 22)
  
- IF workmenu(pt) = AtkChooseAct OR keyval(56) > 0 THEN
+ IF workmenu(pt) = AtkChooseAct OR (keyval(56) > 0 and NOT isStringField(menutype(workmenu(pt)))) THEN
   lastindex = recindex
   IF keyval(77) > 1 AND recindex = general(34) AND recindex < 32767 THEN
    '--attempt to add a new set
@@ -830,7 +831,7 @@ DO
   END SELECT
  END IF
 
- IF keyval(56) = 0 THEN 'not pressing ALT
+ IF keyval(56) = 0 or isStringField(menutype(workmenu(pt))) THEN 'not pressing ALT, or not allowed to
   IF editflexmenu(workmenu(pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
    GOSUB AtkUpdateMenu
   END IF
@@ -1366,3 +1367,6 @@ NEXT i
 
 END SUB
 
+FUNCTION isStringField(mnu)
+  isStringField = mnu = 3 OR mnu = 4 OR mnu = 6
+END FUNCTION
