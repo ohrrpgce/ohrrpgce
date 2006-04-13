@@ -579,6 +579,19 @@ script,resume map music, begin
  write general(44,read general(44),and,32255)
 end
 
+define script(autonumber,get hero stat cap,1,0)
+script, get hero stat cap, stat, begin
+ read general(65+stat)
+end
+
+define script(autonumber,set capped hero stat,4,0,0,0,0)
+script,set capped hero stat,who,stat,cur or max,value,begin
+ variable(cap)
+ cap := get hero stat cap(stat)
+ if(cap>>0, and, cap<<value) then(value:=cap)
+ set hero stat(who,stat,cur or max,value)
+end
+
 #--------------------------------------------------------------------------
 # read/write gmap wrappers
 
