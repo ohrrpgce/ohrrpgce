@@ -740,6 +740,15 @@ wait for text box # wait until the player continues</example>
 			<description>Takes you directly to the save menu. Will return a number 1-4 indicating the slot the player saved in, or <ref>false</ref> if the player did not save. You can optionally pass an argument of <ref>false</ref> to make the menu display without actually saving</description>
 			<seealso>
 				<ref>autosave</ref>
+				<ref>saveinslot</ref>
+			</seealso>
+		</command>
+		<command id="loadmenu">
+			<cannon>load menu (reallyload)</cannon>
+			<shortname>load menu</shortname>
+			<description>Displays the load game menu. The player can load a game or select New Game or Exit/Cancel. If the player picks New Game then the calling script continues, otherwise the current game is terminated and either quits to the titlescreen (if there is one) or a game is loaded. You can optionally pass an argument of <ref>false</ref> to make the menu display without actually loading or quiting. If you do this, you'll need to interpret the return value to find out which option the player selected: positive values are save slot numbers, 0 means New Game and -1 is Quit.</description>
+			<seealso>
+				<ref>loadfromslot</ref>
 			</seealso>
 		</command>
 		<command id="ordermenu">

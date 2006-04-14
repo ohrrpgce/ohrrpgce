@@ -649,10 +649,10 @@ DO
   END IF
  END IF
  GOSUB displayall
- IF fatal = 1 OR abortg = 1 THEN
+ IF fatal = 1 OR abortg > 0 THEN
   resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
   'if skip loadmenu and title bits set, quit
-  IF readbit(gen(), genBits, 11) AND readbit(gen(), genBits, 12) THEN GOTO resetg ELSE GOTO beginplay
+  IF readbit(gen(), genBits, 11) AND (readbit(gen(), genBits, 12) OR abortg = 2) THEN GOTO resetg ELSE GOTO beginplay
  END IF
  'DEBUG debug "swap video pages"
  SWAP vpage, dpage
@@ -758,7 +758,7 @@ DO
  playtimer
  control
  GOSUB displayall
- IF carray(5) > 1 OR abortg = 1 THEN
+ IF carray(5) > 1 OR abortg > 0 THEN
   EXIT DO
  END IF
  IF carray(0) > 1 THEN pt = loopvar(pt, 0, mt, -1)
@@ -1534,7 +1534,7 @@ IF nowscript >= 0 THEN
      IF showsay = 0 OR readbit(gen(), 44, suspendboxadvance) = 1 THEN
       scrat(nowscript, scrstate) = streturn
      END IF
-    CASE 73'--game over
+    CASE 73, 234'--game over, quit from loadmenu
     CASE ELSE
      scripterr "illegal wait substate" + STR$(scrat(nowscript, curvalue))
      scrat(nowscript, scrstate) = streturn
@@ -1925,7 +1925,6 @@ SELECT CASE scrat(nowscript, curkind)
     foep = range(100, 60)
    CASE 73'--game over
     abortg = 1
-    scrat(nowscript, curwaitarg) = 0
     scrat(nowscript, scrstate) = stwait
    CASE 77'--show value
     scriptout$ = LTRIM$(STR$(retvals(0)))
@@ -1999,6 +1998,19 @@ SELECT CASE scrat(nowscript, curkind)
    CASE 210'--show string
     IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
      scriptout$ = plotstring$(retvals(0))
+    END IF
+   CASE 234'--load menu
+    scriptret = picksave(1) + 1
+    reloadnpc stat()
+    IF retvals(0) THEN
+     IF scriptret = -1 THEN
+      abortg = 2  'don't go straight back to loadmenu!
+      scrat(nowscript, scrstate) = stwait
+      fadeout 0, 0, 0, 0
+     ELSEIF scriptret > 0 THEN
+      wantloadgame = scriptret
+      scrat(nowscript, scrstate) = stwait
+     END IF
     END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript, curvalue)

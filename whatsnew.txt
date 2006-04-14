@@ -33,6 +33,7 @@ WHAT IS NEW?
   * New Plotscripting Commands
     * "hero frame", "NPC frame" [Ralph Versteegen]
     * "get hero stat cap", "set capped hero stat"
+    * "load menu"
 
   * Stuff only Developers Will Notice
     * Some rewritten map wrapping code [Ralph Versteegen]

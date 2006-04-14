@@ -233,6 +233,7 @@ define function, begin
 231,writeenemydata,3,0,0,0    #writes enemy data(enemy,dataposition,value)
 232,trace,1,0                 #writes the provided string to G_DEBUG.txt
 233,getsongname,2,0,0         #get song name and store in string
+234,loadmenu,1,-1             #show loadmenu (really load/quit?)
 end
 
 #--------------------------------------------------------------------------

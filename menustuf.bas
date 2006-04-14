@@ -1354,10 +1354,10 @@ FUNCTION picksave (loading)
 DIM full(3), herosname$(3), mapname$(3), svtime$(3), lev$(3), id(3, 3), tstat(3, 1, 16), pic(3, 3), confirm$(1), menu$(1)
 
 '--if loading is 2, that means fade the screen in, and loadmenu
+'--loading 2 uses page 3 as background and overwrites it. loading 0+1 use dpage and preserve page 3. All wipe page 2
 '--terribly sorry for the dirtyness
 needf = 0
 IF loading = 2 THEN
- loading = 1
  needf = 2
 END IF
 
@@ -1378,14 +1378,12 @@ ELSE
 END IF
 
 '--draw buttons, save current display
-IF loading THEN
- centerbox 50, 10, 80, 12, 15, 3
- centerbox 270, 10, 80, 12, 15, 3
-ELSE
+IF loading < 2 THEN
  savetemppage 3
  copypage dpage, 3
- centerbox 50, 10, 80, 12, 15, 3
 END IF
+centerbox 50, 10, 80, 12, 15, 3
+IF loading THEN centerbox 270, 10, 80, 12, 15, 3
 
 FOR i = 0 TO 3
  centerbox 160, 40 + i * 44, 310, 42, 15, 3
@@ -1471,7 +1469,11 @@ IF loading THEN
  FOR i = 0 TO 3
   IF full(i) = 1 THEN nofull = 1
  NEXT i
- IF nofull = 0 THEN picksave = -1: clearpage 2: EXIT FUNCTION
+ IF nofull = 0 THEN 
+  IF loading = 2 THEN clearpage 2 ELSE loadtemppage 3
+  picksave = -1
+  EXIT FUNCTION
+ END IF
 END IF
 
 
@@ -1530,7 +1532,7 @@ DO
  IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
-IF loading THEN
+IF loading = 2 THEN
  clearpage 2
 ELSE
  loadtemppage 3
