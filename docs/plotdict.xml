@@ -1893,6 +1893,23 @@ end</example>
 				<ref>getenemystat</ref>
 			</seealso>
 		</command>
+		<command id="setcappedherostat">
+			<cannon>set capped hero stat (who,stat,value,type)</cannon>
+			<shortname>set capped hero stat</shortname>
+			<description>A command that changes one of a hero&apos;s stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also define in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave the last argument blank, <ref>currentstat</ref> will be assumed. Unlike <ref>setherostat</ref>, this command is not allowed to exceed the stat caps.</description>
+			<seealso>
+				<ref>setherostat</ref>
+				<ref>getherostatcap</ref>
+			</seealso>
+		</command>
+		<command id="getherostatcap">
+			<cannon>get hero stat cap (stat)</cannon>
+			<shortname>get hero stat cap</shortname>
+			<description>A function that returns the maximum allowed value for a hero stat. The argument is the stat you want to check, either as a number or using the stat:name constants defined in your HSI file. If the return value is 0 or false there is no stat cap for that stat.</description>
+			<seealso>
+				<ref>setcappedherostat</ref>
+			</seealso>
+		</command>
 		<command id="getherolevel">
 			<cannon>get hero level (who)</cannon>
 			<shortname>get hero level</shortname>
