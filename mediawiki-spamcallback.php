@@ -11,13 +11,13 @@
 //
 ///////////////////////////////////////////////////////////////////////
 
-$basePath = '/var/www/wiki/ohrrpgce/wiki/';
-//$basePath = '/home/finalfan/public_html/ohr/wiki/';
+$basePath = '/var/www/wiki/';
+//$basePath = '/home/finalfan/public_html/ohr/';
 
-$spamNOTEVIL   = $basePath . '../not.evil.txt';
-$spamCHONGQED  = $basePath . '../blacklist.chongqed.org.txt';
-$spamSPAMWORDS = $basePath . '../blacklist.spamwords.txt';
-$spamLOG       = $basePath . 'spammer.log';
+$spamNOTEVIL   = $basePath . 'not.evil.txt';
+$spamCHONGQED  = $basePath . 'blacklist.chongqed.org.txt';
+$spamSPAMWORDS = $basePath . 'blacklist.spamwords.txt';
+$spamLOG       = $basePath . 'ohrrpgce/spammer.log';
 
 ///////////////////////////////////////////////////////////////////////
 function checkBlackList($filename,$name,$body,&$reason){
