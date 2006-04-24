@@ -72,7 +72,7 @@ define function, begin
 61,teleporttomap,3,0,0,0    # teleport to map (map,x,y)
 62,suspendrandomenemys,0    # misspelled alias for backcompat
 63,resumerandomenemys,0     # misspelled alias for backcompat
-64,getherostat,3,0,0,1      # returns a hero's stat (who,stat,cur/max)
+64,getherostat,3,0,0,0      # returns a hero's stat (who,stat,cur/max)
 65,resumeoverlay,0          # turns overhead tiles back on
 66,addhero,1,0              # adds a hero to the party
 67,deletehero,1,0           # deletes a hero from the party
