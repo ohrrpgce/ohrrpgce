@@ -1236,7 +1236,7 @@ DO
  IF keyval(75) > 0 THEN gx = large(gx - (1 + (keyval(56) * 8)), 1)
  IF keyval(77) > 0 THEN gx = small(gx + (1 + (keyval(56) * 8)), edjx)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
- rectangle gx, gy, 1, 1, 15 + tog, dpage
+ putpixel gx, gy, 15 + tog, dpage
  edgeprint "Pick Background Color", 0, 190, 7, dpage
  SWAP vpage, dpage
  setvispage vpage
@@ -1250,10 +1250,10 @@ temp = readpixel(gx, gy, 2)
 FOR i = 1 TO edjx
  FOR o = 1 TO edjy
   IF readpixel(i, o, 2) = temp THEN
-   rectangle i, o, 1, 1, 0, 2
+   putpixel i, o, 0, 2
   ELSE
    IF readpixel(i, o, 2) = 0 THEN
-    rectangle i, o, 1, 1, temp, 2
+    putpixel i, o, temp, 2
    END IF
   END IF
  NEXT o
@@ -1307,7 +1307,7 @@ putdot:
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 IF oldx = -1 AND oldy = -1 THEN
  GOSUB writeundospr
- rectangle 239 + x, 119 + y, 1, 1, col, dpage
+ putpixel 239 + x, 119 + y, col, dpage
 ELSE
  drawline 239 + x, 119 + y, 239 + oldx, 119 + oldy, col, dpage
 END IF
@@ -1367,7 +1367,7 @@ drawsprite placer(), 0, workpal(), 0, 239, 119, dpage
 IF box = 1 THEN
  defseg(varseg(workpal(0)))
  rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, PEEK(col), dpage
- rectangle 239 + bx, 119 + by, 1, 1, tog * 15, dpage
+ putpixel 239 + bx, 119 + by, tog * 15, dpage
 END IF
 IF drl = 1 THEN
  defseg(varseg(workpal(0)))
@@ -1384,7 +1384,7 @@ IF tool = 5 THEN
  ellipse 239 + x, 119 + y, airsize / 2, PEEK(col), dpage, 0, 0
  ellipse 5 + (x * zoom), 2 + (y * zoom), (airsize / 2) * zoom, PEEK(col), dpage, 0, 0
 END IF
-rectangle 239 + x, 119 + y, 1, 1, tog * 15, dpage
+putpixel 239 + x, 119 + y, tog * 15, dpage
 textcolor 7, 0
 printstr info$(num), 0, 182, dpage
 printstr "Tool:" + tool$(tool), 0, 190, dpage
@@ -2035,16 +2035,16 @@ SELECT CASE ts.tool
  CASE 3'---FILL
   IF mouseclick > 0 OR keyval(57) > 1 THEN
    writeundoblock mover(), ts
-   rectangle 0, 0, 22, 22, 15, dpage
+   rectangle 0, 0, 22, 22, ts.curcolor, dpage
    FOR i = 0 TO 19
     FOR j = 0 TO 19
-     rectangle 1 + i, 1 + j, 1, 1, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
+     putpixel 1 + i, 1 + j, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
     NEXT j
    NEXT i
    paintat 1 + ts.x, 1 + ts.y, ts.curcolor, dpage, buffer(), 16384
    FOR i = 0 TO 19
     FOR j = 0 TO 19
-     rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, readpixel(1 + i, 1 + j, dpage), 3
+     putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(1 + i, 1 + j, dpage), 3
     NEXT j
    NEXT i
    refreshtileedit mover(), ts
@@ -2058,16 +2058,17 @@ SELECT CASE ts.tool
     rectangle 0, 0, 22, 22, 15, dpage
     FOR i = 0 TO 19
      FOR j = 0 TO 19
-      rectangle 1 + i, 1 + j, 1, 1, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
+      putpixel 1 + i, 1 + j, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
      NEXT j
     NEXT i
     ellipse 1 + ts.hox, 1 + ts.hoy, radius, ts.curcolor, dpage, 0, 0
     FOR i = 0 TO 19
      FOR j = 0 TO 19
-      rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, readpixel(1 + i, 1 + j, dpage), 3
+      putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(1 + i, 1 + j, dpage), 3
      NEXT j
     NEXT i
     refreshtileedit mover(), ts
+    rectangle 0, 0, 22, 22, 0, dpage
     ts.hold = 0
    ELSE
     ts.hold = 3
@@ -2081,13 +2082,13 @@ SELECT CASE ts.tool
   rectangle 19, 119, 22, 22, 15, dpage
   FOR i = 0 TO 19
    FOR j = 0 TO 19
-    rectangle 20 + i, 120 + j, 1, 1, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
+    putpixel 20 + i, 120 + j, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
    NEXT j
   NEXT i
   airbrush 20 + ts.x, 120 + ts.y, ts.airsize, ts.mist, ts.curcolor, dpage
   FOR i = 0 TO 19
    FOR j = 0 TO 19
-    rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, readpixel(20 + i, 120 + j, dpage), 3
+    putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(20 + i, 120 + j, dpage), 3
    NEXT j
   NEXT i
   refreshtileedit mover(), ts
@@ -2105,12 +2106,12 @@ FOR i = 0 TO 19
  FOR j = 0 TO 19
   tempx = (i + shiftx + 20) MOD 20
   tempy = (j + shifty + 20) MOD 20
-  rectangle tempx, tempy, 1, 1, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
+  putpixel tempx, tempy, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
  NEXT j
 NEXT i
 FOR i = 0 TO 19
  FOR j = 0 TO 19
-  rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, readpixel(i, j, dpage), 3
+  putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(i, j, dpage), 3
  NEXT j
 NEXT i
 refreshtileedit mover(), ts
@@ -2128,12 +2129,12 @@ FOR i = 0 TO 19
   tempx = ABS(i - flipx)
   tempy = ABS(j - flipy)
   IF (ts.zone = 15 OR ts.zone = 16) OR (keyval(26) > 1 OR keyval(27) > 1) THEN SWAP tempx, tempy
-  rectangle tempx, tempy, 1, 1, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
+  putpixel tempx, tempy, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
  NEXT j
 NEXT i
 FOR i = 0 TO 19
  FOR j = 0 TO 19
-  rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, readpixel(i, j, dpage), 3
+  putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(i, j, dpage), 3
  NEXT j
 NEXT i
 refreshtileedit mover(), ts
@@ -2173,7 +2174,7 @@ DO
    setkeys
    FOR i = 0 TO 19
     FOR j = 0 TO 19
-     rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, readpixel(ts.x + i, ts.y + j, 2), 3
+     putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(ts.x + i, ts.y + j, 2), 3
     NEXT j
    NEXT i
    EXIT DO
@@ -2226,7 +2227,7 @@ SUB tilepaste (cutnpaste(), ts AS TileEditState)
 IF ts.canpaste THEN
  FOR i = 0 TO 19
   FOR j = 0 TO 19
-   rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, cutnpaste(i, j), 3
+   putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, cutnpaste(i, j), 3
   NEXT j
  NEXT i
 END IF 
@@ -2236,7 +2237,7 @@ SUB tiletranspaste (cutnpaste(), ts AS TileEditState)
 IF ts.canpaste THEN
  FOR i = 0 TO 19
   FOR j = 0 TO 19
-   IF cutnpaste(i, j) THEN rectangle ts.tilex * 20 + i, ts.tiley * 20 + j, 1, 1, cutnpaste(i, j), 3
+   IF cutnpaste(i, j) THEN putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, cutnpaste(i, j), 3
   NEXT j
  NEXT i
 END IF 
