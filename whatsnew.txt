@@ -5,13 +5,13 @@ WHAT IS NEW?
     * 8-bit bitmaps can now be imported as backdrops and tilesets (pre-index
       your tilesets using Photoshop, etc. to use this. YOU MUST INDEX THEM WITH
       THE MASTER PALETTE, custom won't re-map the colours). 8-bit bitmaps are
-      rejected by customqb.
+      rejected by customqb. [Mike Caron]
     * Hspeak.exe now waits for a keypress when finished, which should avoid
       a lot of confusion for new plotscripters who are unfamiliar with
       command-line tools. Also added -k option to supress this new
       behaviour [James Paige]
     * New HamsterSpeak flow control commands: break, continue, exit script,
-      exit returning. See the HS Definition for details
+      exit returning. See the HS Definition for details [Ralph Versteegen]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
@@ -24,18 +24,19 @@ WHAT IS NEW?
       [Ralph Versteegen]
     * Fixed an ancient bug in both the Sprite editor and the MapTile editor
       which caused the keyboard control to lag whenever the mouse cursor
-      was over the drawing area.
+      was over the drawing area. [Ralph Versteegen]
     * Bug where filling in colour 15 (white) on edge of a tile filled in all
-      colour 15 pixels on the edge.
+      colour 15 pixels on the edge. [Ralph Versteegen]
     * Really fixed the "script arguments overflow into local variables" bug.
-      You need to recompile your scripts to get this fix
-    * Fixed bug 163, a random crash in the music import screen.
-      [Simon, Mike]
-
+      You need to recompile your scripts to get this fix [Ralph Versteegen]
+    * Fixed bug 163, a random crash in the music import screen. [Simon, Mike]
+      
   * New Plotscripting Commands
     * "hero frame", "NPC frame" [Ralph Versteegen]
     * "get hero stat cap", "set capped hero stat"
     * "load menu"
+    * "set [days/hours/minutes/seconds] of play", "get seconds of play" [Mike
+      Caron]
 
   * Stuff only Developers Will Notice
     * Some rewritten map wrapping code [Ralph Versteegen]
