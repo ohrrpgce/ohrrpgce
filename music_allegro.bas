@@ -14,7 +14,7 @@ option explicit
 
 'extern
 declare sub debug(s$)
-declare sub bam2mid(infile as string, outfile as string)
+declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 declare function isfile(n$) as integer
 
 dim shared music_on as integer = 0
@@ -95,7 +95,7 @@ sub music_play(songname as string, fmt as music_format)
 			midname = songname + "-" + lcase(hex(flen)) + ".bmd"
 			'check if already converted
 			if isfile(midname) = 0 then
-				bam2mid(songname, midname)
+				bam2mid(songname, midname,0)
 				'add to list of temp files
 				dim ditem as delitem ptr
 				if delhead = null then
