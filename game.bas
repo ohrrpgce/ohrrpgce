@@ -841,9 +841,30 @@ IF auto <> 2 THEN 'find the NPC to trigger the hard way
  DO
   j = j + 1
   IF j > 299 THEN RETURN
- 'would <= 19 do?
- 'LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
- LOOP UNTIL wraptouch(npcl(j), npcl(j + 300), ux, uy, 15) AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
+  'would <= 19 do?
+  'LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
+  IF npcl(j+600) <> 0 AND (j <> veh(5) OR veh(0) = 0) THEN 'A
+   dim nx,ny,nd
+   nx = npcl(j)
+   ny = npcl(j+300)
+   nd = npcl(j+900)
+   IF (nx = ux AND ny = uy) THEN 'not moving NPCs
+    EXIT DO
+   ELSEIF nx MOD 20 <> 0 XOR ny mod 20 <> 0 THEN 'they're moving (i.e. misaligned)
+    'ok, what if they finished moving?
+    IF nx MOD 20 THEN
+     wrapaheadxy nx, ny, nd,20 - nx MOD 20,20
+    ELSE
+     wrapaheadxy nx, ny, nd,20 - ny MOD 20,20
+    END IF
+    IF (nx = ux AND ny = uy) THEN '(fake) not moving NPCs
+     EXIT DO
+    END IF
+   END IF
+  END IF
+ LOOP
+ 
+ 'UNTIL wraptouch(npcl(j), npcl(j + 300), ux, uy, 15) AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
  sayer = j
 END IF
 IF sayer >= 0 THEN
