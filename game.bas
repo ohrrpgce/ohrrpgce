@@ -835,37 +835,38 @@ IF auto = 0 THEN
  uy = caty(0)
  wrapaheadxy ux, uy, catd(0), 20, 20
 END IF
-IF auto <> 2 THEN 'find the NPC to trigger the hard way
- sayer = -1
- j = -1
- DO
-  j = j + 1
-  IF j > 299 THEN RETURN
-  'would <= 19 do?
-  'LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
-  IF npcl(j+600) <> 0 AND (j <> veh(5) OR veh(0) = 0) THEN 'A
-   dim nx,ny,nd
-   nx = npcl(j)
-   ny = npcl(j+300)
-   nd = npcl(j+900)
-   IF (nx = ux AND ny = uy) THEN 'not moving NPCs
-    EXIT DO
-   ELSEIF nx MOD 20 <> 0 XOR ny mod 20 <> 0 THEN 'they're moving (i.e. misaligned)
-    'ok, what if they finished moving?
-    IF nx MOD 20 THEN
-     wrapaheadxy nx, ny, nd,20 - nx MOD 20,20
-    ELSE
-     wrapaheadxy nx, ny, nd,20 - ny MOD 20,20
+IF sayer < 0 THEN
+  IF auto <> 2 THEN 'find the NPC to trigger the hard way
+   sayer = -1
+   j = -1
+   DO
+    j = j + 1
+    IF j > 299 THEN RETURN
+    'would <= 19 do?
+    'LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
+    IF npcl(j+600) <> 0 AND (j <> veh(5) OR veh(0) = 0) THEN 'A
+     dim nx,ny,nd
+     nx = npcl(j)
+     ny = npcl(j+300)
+     nd = npcl(j+900)
+     IF (nx = ux AND ny = uy) THEN 'not moving NPCs
+      EXIT DO
+     ELSEIF nx MOD 20 <> 0 XOR ny mod 20 <> 0 THEN 'they're moving (i.e. misaligned)
+      'ok, what if they finished moving?
+      IF nx MOD 20 THEN
+       wrapaheadxy nx, ny, nd,20 - nx MOD 20,20
+      ELSE
+       wrapaheadxy nx, ny, nd,20 - ny MOD 20,20
+      END IF
+      IF (nx = ux AND ny = uy) THEN '(fake) not moving NPCs
+       EXIT DO
+      END IF
+     END IF
     END IF
-    IF (nx = ux AND ny = uy) THEN '(fake) not moving NPCs
-     EXIT DO
-    END IF
-   END IF
+   LOOP
+   'UNTIL wraptouch(npcl(j), npcl(j + 300), ux, uy, 15) AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
+   sayer = j
   END IF
- LOOP
- 
- 'UNTIL wraptouch(npcl(j), npcl(j + 300), ux, uy, 15) AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
- sayer = j
 END IF
 IF sayer >= 0 THEN
  '--Step-on NPCs cannot be used
@@ -921,6 +922,7 @@ IF sayer >= 0 THEN
   npcplot
  END IF
 END IF
+sayer = -1
 RETURN
 
 nextsay:
@@ -1060,6 +1062,7 @@ FOR whoi = 0 TO 3
          ux = npcl(i + 0)
          uy = npcl(i + 300)
          auto = 1
+         sayer=i
          GOSUB usething
         END IF
        END IF '---autoactivate
@@ -1139,6 +1142,7 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR ng = 1) THEN
        ux = npcl(i + 0)
        uy = npcl(i + 300)
        auto = 1
+       sayer = i
        GOSUB usething
       END IF'---YOU ARE ON NPC---
      END IF ' ---NPC IS PASSABLE---
@@ -1292,6 +1296,7 @@ IF npcs(id * 15 + 8) = 1 AND showsay = 0 THEN
   ux = npcl(o + 0)
   uy = npcl(o + 300)
   auto = 1
+  sayer = o
   GOSUB usething
  END IF
 END IF
