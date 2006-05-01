@@ -1384,7 +1384,6 @@ function what_kind_and_id(sequence command,sequence local_vars)
     id=string_to_object(s,{})
   elsif length(s) and s[1] = '@' then
     kind=KIND_REFERENCE
-    simple_warn(sprintf("what_kind_and_id: found reference %s", {s}))
     id=0 -- ID always resolves to 0 for references here, since it is too early to know all
          -- script IDs. The real work is done in binary_compile_recurse
   elsif find(s,column(local_vars,CMD_TEXT)) then
@@ -1424,7 +1423,6 @@ function what_kind(sequence command,sequence local_vars, integer look_for_operat
     kind=KIND_NUMBER
   elsif length(s) and s[1] = '@' then
     kind=KIND_REFERENCE
-    simple_warn(sprintf("what_kind: found reference %s", {s}))
   elsif find(s,column(local_vars,CMD_TEXT)) then
     kind=KIND_LOCAL
   elsif length(s)=0 then
@@ -1977,7 +1975,6 @@ function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
       result&=output_word(KIND_NUMBER)
       id=global_list[PAIR_NUM][at]
       result&=output_word(id)
-      simple_warn(sprintf("binary_compile_recurse: @%s resolved to global %d",{str_temp,id}))
     else
       --is it a script?
       at=find(str_temp,column(script_list,PAIR_NAME))
@@ -1986,7 +1983,6 @@ function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
         result&=output_word(KIND_NUMBER)
         id=script_list[at][PAIR_NUM]
         result&=output_word(id)
-        simple_warn(sprintf("binary_compile_recurse: @%s resolved to script %d",{str_temp,id}))
       else
         src_error(sprintf("reference "&COLYEL&"@%s"&COLRED&" could not be resolved",{str_temp}),tree[TREE_TRUNK][CMD_LINE])
       end if
