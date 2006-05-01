@@ -29,6 +29,7 @@ define script(23,readspelltest,none)
 define script(24,canlearnspelltest,none)
 define script(25,heropositiontest,none)
 define script(26,scriptmenutest,none)
+define script(27,referencetest,none)
 
 # globals 0 to 4 are used
 global variable (1024,highval)
@@ -111,6 +112,7 @@ end
 #-----------------------------------------------------------------------
 
 script,random battle,form,set,begin
+  show value(set)
   show value(form)
   wait for key(any key)
   greyscale palette
@@ -338,4 +340,11 @@ script, script menu test, begin
     save in slot (slot)
   )
   wait(2) # make sure exit-keypress will not be re-read
+end
+
+#-----------------------------------------------------------------------
+
+script, reference test, begin
+  run script by ID(@empty onkey) # empty onkey
+  show value(read global(@highval)) # highval
 end

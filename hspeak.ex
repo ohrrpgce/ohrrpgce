@@ -1,4 +1,4 @@
--- HamsterSpeak Compiler v.2J
+-- HamsterSpeak Compiler v.2K
 
 --(C) Copyright 2002 James Paige and Hamster Republic Productions
 -- Please read LICENSE.txt for GPL License details and disclaimer of liability
@@ -13,6 +13,10 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--2K 2006-05-01 Added @scriptname and @globalvariable syntax to
+--              return script or global ID number at compile-time
+--              not run-time (for use with "run script by ID" and
+--              "read global" and "write global")
 --2J 2006-04-10 Added break, continue, exitscript, exitreturning
 --              flow statements. Also fixed some return bugs - TMC
 --2I 2006-04-04 Extended HSX header to include number of arguments
@@ -56,7 +60,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=2
-constant COMPILER_SUB_VERSION='J'
+constant COMPILER_SUB_VERSION='K'
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -106,7 +110,7 @@ constant KIND_LOCAL=4
 constant KIND_MATH=5
 constant KIND_FUNCTION=6
 constant KIND_SCRIPT=7
---constant KIND_VAR_REF=8
+constant KIND_REFERENCE=8 --converted to KIND_NUMBER in compiled script
 constant KIND_OPERATOR=9 --never appears in compiled script
 constant KIND_PARENS=10 --never appears in compiled script
 constant KIND_LONGNAMES={"number"
@@ -116,7 +120,7 @@ constant KIND_LONGNAMES={"number"
                         ,"built-in function"
                         ,"hard-coded function"
                         ,"script"
-                        ,"variable reference"
+                        ,"reference"
                         ,"untranslated operator"
                         ,"order-of-operations-enforcing parenthesis"
                         }
@@ -1367,16 +1371,22 @@ end function
 
 ---------------------------------------------------------------------------
 
---identify the kind and id of a text command. DOes not support untranslaed operators or floaty parethesis
+--identify the kind and id of a text command. Does not support untranslaed operators or floaty parethesis
 function what_kind_and_id(sequence command,sequence local_vars)
   integer kind,id
   integer keyword
   sequence s
+  sequence str_temp
   s=command[CMD_TEXT]
   keyword=alpha_tree_data(reserved,s,0)
   if string_is_an_integer(s) then
     kind=KIND_NUMBER
     id=string_to_object(s,{})
+  elsif length(s) and s[1] = '@' then
+    kind=KIND_REFERENCE
+    simple_warn(sprintf("what_kind_and_id: found reference %s", {s}))
+    id=0 -- ID always resolves to 0 for references here, since it is too early to know all
+         -- script IDs. The real work is done in binary_compile_recurse
   elsif find(s,column(local_vars,CMD_TEXT)) then
     kind=KIND_LOCAL
     id=find(s,column(local_vars,CMD_TEXT))
@@ -1412,6 +1422,9 @@ function what_kind(sequence command,sequence local_vars, integer look_for_operat
   keyword=alpha_tree_data(reserved,s,0)
   if string_is_an_integer(s) then
     kind=KIND_NUMBER
+  elsif length(s) and s[1] = '@' then
+    kind=KIND_REFERENCE
+    simple_warn(sprintf("what_kind: found reference %s", {s}))
   elsif find(s,column(local_vars,CMD_TEXT)) then
     kind=KIND_LOCAL
   elsif length(s)=0 then
@@ -1945,7 +1958,7 @@ function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
   integer at
   sequence s
   integer offset
-  sequence value_temp
+  sequence value_temp, str_temp
   object sub_result
   sequence done_code_plus_result
   result={}
@@ -1955,6 +1968,29 @@ function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
     value_temp=value(s)
     result&=output_word(kind)
     result&=output_word(force_16_bit(value_temp[2],tree[TREE_TRUNK][CMD_LINE]))
+  elsif kind=KIND_REFERENCE then
+    str_temp = s[2..length(s)]
+    --is it a global variable?
+    at=find(str_temp,global_list[PAIR_NAME])
+    if at then
+      --yes, it is a global, compile to global ID
+      result&=output_word(KIND_NUMBER)
+      id=global_list[PAIR_NUM][at]
+      result&=output_word(id)
+      simple_warn(sprintf("binary_compile_recurse: @%s resolved to global %d",{str_temp,id}))
+    else
+      --is it a script?
+      at=find(str_temp,column(script_list,PAIR_NAME))
+      if at then
+        --yes, it is a script. Compile to a script ID
+        result&=output_word(KIND_NUMBER)
+        id=script_list[at][PAIR_NUM]
+        result&=output_word(id)
+        simple_warn(sprintf("binary_compile_recurse: @%s resolved to script %d",{str_temp,id}))
+      else
+        src_error(sprintf("reference "&COLYEL&"@%s"&COLRED&" could not be resolved",{str_temp}),tree[TREE_TRUNK][CMD_LINE])
+      end if
+    end if
   elsif kind=KIND_GLOBAL then
     at=find(s,global_list[PAIR_NAME])
     result&=output_word(kind)

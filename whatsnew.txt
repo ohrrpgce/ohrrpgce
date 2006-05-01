@@ -12,6 +12,9 @@ WHAT IS NEW?
       behaviour [James Paige]
     * New HamsterSpeak flow control commands: break, continue, exit script,
       exit returning. See the HS Definition for details [Ralph Versteegen]
+    * New HamsterSpeak reference syntax. A script name or global variable
+      name preceded by an @ symbol will compile to the ID number of that
+      script or global. [James Paige]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
