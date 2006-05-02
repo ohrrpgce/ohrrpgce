@@ -183,12 +183,13 @@ storekeyhandler
 'DEBUG debug "dim (almost) everything"
 
 DIM font(1024), master(767), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
-DIM door(206), gen(104), npcl(2100), npcs(1500), saytag(21), tag(127), hero(40), stat(40, 1, 16), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), menu$(20), exlev&(40, 1), names$(40), mi(10), gotj(2), veh(21)
+DIM door(206), gen(104), npcs(1500), saytag(21), tag(127), hero(40), stat(40, 1, 16), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), menu$(20), exlev&(40, 1), names$(40), mi(10), gotj(2), veh(21)
 DIM item(-3 TO 199), item$(-3 TO 199), eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3),  _
 tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 3), learnmask(29)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1), lumpmod(0)
 DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 14), retvals(32), plotstring$(31), plotstrX(31), plotstrY(31), plotstrCol(31), plotstrBGCol(31), plotstrBits(31)
 DIM uilook(uiColors)
+DIM npc(300) as NPCInst
 '--stuff we used to DIM here, but have defered to later
 'DIM scroll(16002), pass(16002)
 
@@ -462,9 +463,11 @@ DO
    LOOP
   END IF
  END IF
+ 'debug "before nextsay:"
  IF carray(4) > 1 AND showsay = 1 AND readbit(gen(), 44, suspendboxadvance) = 0 THEN
   GOSUB nextsay
  END IF
+ 'debug "after nextsay:"
  IF veh(0) THEN
   'DEBUG debug "evaluate vehicles"
   setmapdata pass(), pass(), 0, 0
@@ -844,11 +847,11 @@ IF sayer < 0 THEN
     IF j > 299 THEN RETURN
     'would <= 19 do?
     'LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
-    IF npcl(j+600) <> 0 AND (j <> veh(5) OR veh(0) = 0) THEN 'A
+    IF npc(j).id <> 0 AND (j <> veh(5) OR veh(0) = 0) THEN 'A
      dim nx,ny,nd
-     nx = npcl(j)
-     ny = npcl(j+300)
-     nd = npcl(j+900)
+     nx = npc(j).x
+     ny = npc(j).y
+     nd = npc(j).id
      IF (nx = ux AND ny = uy) THEN 'not moving NPCs
       EXIT DO
      ELSEIF nx MOD 20 <> 0 XOR ny mod 20 <> 0 THEN 'they're moving (i.e. misaligned)
@@ -870,28 +873,28 @@ IF sayer < 0 THEN
 END IF
 IF sayer >= 0 THEN
  '--Step-on NPCs cannot be used
- IF auto = 0 AND npcs((npcl(sayer + 600) - 1) * 15 + 8) = 2 THEN RETURN
- getit = npcs((npcl(sayer + 600) - 1) * 15 + 6)
+ IF auto = 0 AND npcs((npc(sayer).id - 1) * 15 + 8) = 2 THEN RETURN
+ getit = npcs((npc(sayer).id - 1) * 15 + 6)
  IF getit THEN getitem getit, 1
  '---DIRECTION CHANGING-----------------------
- IF npcs((npcl(sayer + 600) - 1) * 15 + 5) < 2 THEN
-  recalld = npcl(sayer + 900)
-  npcl(sayer + 900) = catd(0)
-  npcl(sayer + 900) = loopvar(npcl(sayer + 900), 0, 3, 1): npcl(sayer + 900) = loopvar(npcl(sayer + 900), 0, 3, 1)
+ IF npcs((npc(sayer).id - 1) * 15 + 5) < 2 THEN
+  recalld = npc(sayer).dir
+  npc(sayer).dir = catd(0)
+  npc(sayer).dir = loopvar(npc(sayer).dir, 0, 3, 1): npc(sayer).dir = loopvar(npc(sayer).dir, 0, 3, 1)
  END IF
- IF npcs((npcl(sayer + 600) - 1) * 15 + 11) > 0 THEN
+ IF npcs((npc(sayer).id - 1) * 15 + 11) > 0 THEN
   '--One-time-use tag
-  setbit tag(), 0, 1000 + npcs((npcl(sayer + 600) - 1) * 15 + 11), 1
+  setbit tag(), 0, 1000 + npcs((npc(sayer).id - 1) * 15 + 11), 1
  END IF
- IF npcs((npcl(sayer + 600) - 1) * 15 + 12) > 0 THEN
+ IF npcs((npc(sayer).id - 1) * 15 + 12) > 0 THEN
   '--summon a script directly from an NPC
-  rsr = runscript(npcs((npcl(sayer + 600) - 1) * 15 + 12), nowscript + 1, -1, "NPC")
+  rsr = runscript(npcs((npc(sayer).id - 1) * 15 + 12), nowscript + 1, -1, "NPC")
   IF rsr = 1 THEN
-   setScriptArg 0, npcs((npcl(sayer + 600) - 1) * 15 + 13)
+   setScriptArg 0, npcs((npc(sayer).id - 1) * 15 + 13)
    setScriptArg 1, (sayer + 1) * -1 'reference
   END IF
  END IF
- vehuse = npcs((npcl(sayer + 600) - 1) * 15 + 14)
+ vehuse = npcs((npc(sayer).id - 1) * 15 + 14)
  IF vehuse THEN '---activate a vehicle---
   setpicstuf buffer(), 80, -1
   loadset game$ + ".veh" + CHR$(0), vehuse - 1, 0
@@ -908,7 +911,7 @@ IF sayer >= 0 THEN
    IF veh(14) > 1 THEN setbit tag(), 0, veh(14), 1
   END IF
  END IF
- say = npcs((npcl(sayer + 600) - 1) * 15 + 4)
+ say = npcs((npc(sayer).id - 1) * 15 + 4)
  SELECT CASE say
   CASE 0
    sayer = -1
@@ -1012,9 +1015,11 @@ evalitemtag
 'reinitnpc 1, map
 vishero stat()
 npcplot
-IF sayer >= 0 AND npcl(sayer + 600) > 0 THEN
- IF npcs((npcl(sayer + 600) - 1) * 15 + 5) = 1 THEN
-  npcl(sayer + 900) = recalld
+IF sayer >= 0 THEN
+ IF npc(sayer).id > 0 THEN
+  IF npcs((npc(sayer).id - 1) * 15 + 5) = 1 THEN
+   npc(sayer).dir = recalld
+  END IF
  END IF
 END IF
 IF sayenh(4) > 0 THEN
@@ -1044,23 +1049,23 @@ FOR whoi = 0 TO 3
   IF readbit(gen(), 44, suspendobstruction) = 0 AND veh(6) = 0 THEN
    '--this only happens if obstruction is on
    FOR i = 0 TO 299
-    IF npcl(i + 600) > 0 THEN '---NPC EXISTS---
-     IF npcs((npcl(i + 600) - 1) * 15 + 8) < 2 THEN '---NPC IS AN OBSTRUCTION---
-      IF wrapcollision (npcl(i + 0), npcl(i + 300), npcl(i + 1500), npcl(i + 1800), catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi)) THEN
+    IF npc(i).id > 0 THEN '---NPC EXISTS---
+     IF npcs((npc(i).id - 1) * 15 + 8) < 2 THEN '---NPC IS AN OBSTRUCTION---
+      IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi)) THEN
        xgo(whoi) = 0: ygo(whoi) = 0
-       id = (npcl(i + 600) - 1)
+       id = (npc(i).id - 1)
        '--push the NPC
-       IF npcs(id * 15 + 7) > 0 AND npcl(i + 1500) = 0 AND npcl(i + 1800) = 0 THEN
+       IF npcs(id * 15 + 7) > 0 AND npc(i).xgo = 0 AND npc(i).ygo = 0 THEN
         temp = npcs(id * 15 + 7)
-        IF catd(whoi) = 0 AND (temp = 1 OR temp = 2 OR temp = 4) THEN npcl(i + 1800) = 20
-        IF catd(whoi) = 2 AND (temp = 1 OR temp = 2 OR temp = 6) THEN npcl(i + 1800) = -20
-        IF catd(whoi) = 3 AND (temp = 1 OR temp = 3 OR temp = 7) THEN npcl(i + 1500) = 20
-        IF catd(whoi) = 1 AND (temp = 1 OR temp = 3 OR temp = 5) THEN npcl(i + 1500) = -20
+        IF catd(whoi) = 0 AND (temp = 1 OR temp = 2 OR temp = 4) THEN npc(i).ygo = 20
+        IF catd(whoi) = 2 AND (temp = 1 OR temp = 2 OR temp = 6) THEN npc(i).ygo = -20
+        IF catd(whoi) = 3 AND (temp = 1 OR temp = 3 OR temp = 7) THEN npc(i).xgo = 20
+        IF catd(whoi) = 1 AND (temp = 1 OR temp = 3 OR temp = 5) THEN npc(i).xgo = -20
        END IF
        IF npcs(id * 15 + 8) = 1 AND whoi = 0 THEN
-        IF wraptouch(npcl(i + 0), npcl(i + 300), catx(0), caty(0), 20) THEN
-         ux = npcl(i + 0)
-         uy = npcl(i + 300)
+        IF wraptouch(npc(i).x, npc(i).y, catx(0), caty(0), 20) THEN
+         ux = npc(i).x
+         uy = npc(i).y
          auto = 1
          sayer=i
          GOSUB usething
@@ -1135,12 +1140,12 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR ng = 1) THEN
  IF readbit(gen(), 44, suspendobstruction) = 0 THEN
   '--this only happens if obstruction is on
   FOR i = 0 TO 299
-   IF npcl(i + 600) > 0 THEN '---NPC EXISTS---
+   IF npc(i).id > 0 THEN '---NPC EXISTS---
     IF veh(0) = 0 OR (readbit(veh(), 9, 2) AND veh(5) <> i) THEN
-     IF npcs((npcl(i + 600) - 1) * 15 + 8) = 2 THEN '---NPC IS PASSABLE---
-      IF npcl(i + 0) = catx(0) AND npcl(i + 300) = caty(0) THEN '---YOU ARE ON NPC---
-       ux = npcl(i + 0)
-       uy = npcl(i + 300)
+     IF npcs((npc(i).id - 1) * 15 + 8) = 2 THEN '---NPC IS PASSABLE---
+      IF npc(i).x = catx(0) AND npc(i).y = caty(0) THEN '---YOU ARE ON NPC---
+       ux = npc(i).x
+       uy = npc(i).y
        auto = 1
        sayer = i
        GOSUB usething
@@ -1172,83 +1177,83 @@ RETURN
 
 movenpc:
 FOR o = 0 TO 299
- IF npcl(o + 600) > 0 THEN
-  id = (npcl(o + 600) - 1)
+ IF npc(o).id > 0 THEN
+  id = (npc(o).id - 1)
   '--if this is the active vehicle
   IF veh(0) AND veh(5) = o THEN
    '-- if we are not scrambling clearing or aheading
    IF readbit(veh(), 6, 0) = 0 AND readbit(veh(), 6, 4) = 0 AND readbit(veh(), 6, 5) = 0 THEN
     '--match vehicle to main hero
-    npcl(o + 0) = catx(0)
-    npcl(o + 300) = caty(0)
-    npcl(o + 900) = catd(0)
-    npcl(o + 1200) = wtog(0)
+    npc(o).x = catx(0)
+    npc(o).y = caty(0)
+    npc(o).dir = catd(0)
+    npc(o).frame = wtog(0)
    END IF
   ELSE
    IF npcs(id * 15 + 2) > 0 AND npcs(id * 15 + 3) > 0 AND sayer <> o AND readbit(gen(), 44, suspendnpcs) = 0 THEN
-    IF npcl(o + 1500) = 0 AND npcl(o + 1800) = 0 THEN
+    IF npc(o).xgo = 0 AND npc(o).ygo = 0 THEN
      'RANDOM WANDER---
      IF npcs(id * 15 + 2) = 1 THEN
       rand = 25
-      IF wraptouch(npcl(o + 0), npcl(o + 300), catx(0), caty(0), 20) THEN rand = 5
+      IF wraptouch(npc(o).x, npc(o).y, catx(0), caty(0), 20) THEN rand = 5
       IF INT(RND * 100) < rand THEN
        temp = INT(RND * 4)
-       npcl(o + 900) = temp
-       IF temp = 0 THEN npcl(o + 1800) = 20
-       IF temp = 2 THEN npcl(o + 1800) = -20
-       IF temp = 3 THEN npcl(o + 1500) = 20
-       IF temp = 1 THEN npcl(o + 1500) = -20
+       npc(o).dir = temp
+       IF temp = 0 THEN npc(o).ygo = 20
+       IF temp = 2 THEN npc(o).ygo = -20
+       IF temp = 3 THEN npc(o).xgo = 20
+       IF temp = 1 THEN npc(o).xgo = -20
       END IF
      END IF '---RANDOM WANDER
      'ASSORTED PACING---
      IF npcs(id * 15 + 2) > 1 AND npcs(id * 15 + 2) < 6 THEN
-      IF npcl(o + 900) = 0 THEN npcl(o + 1800) = 20
-      IF npcl(o + 900) = 2 THEN npcl(o + 1800) = -20
-      IF npcl(o + 900) = 3 THEN npcl(o + 1500) = 20
-      IF npcl(o + 900) = 1 THEN npcl(o + 1500) = -20
+      IF npc(o).dir = 0 THEN npc(o).ygo = 20
+      IF npc(o).dir = 2 THEN npc(o).ygo = -20
+      IF npc(o).dir = 3 THEN npc(o).xgo = 20
+      IF npc(o).dir = 1 THEN npc(o).xgo = -20
      END IF '---ASSORTED PACING
      'CHASE/FLEE---
      IF npcs(id * 15 + 2) > 5 AND npcs(id * 15 + 2) < 8 THEN
       rand = 100
       IF INT(RND * 100) < rand THEN
        IF INT(RND * 100) < 50 THEN
-	IF caty(0) < npcl(o + 300) THEN temp = 0
-	IF caty(0) > npcl(o + 300) THEN temp = 2
-        IF gmap(5) = 1 AND caty(0) - scroll(1) * 10 > npcl(o + 300) THEN temp = 0
-        IF gmap(5) = 1 AND caty(0) + scroll(1) * 10 < npcl(o + 300) THEN temp = 2
-	IF caty(0) = npcl(o + 300) THEN temp = INT(RND * 4)
+	IF caty(0) < npc(o).y THEN temp = 0
+	IF caty(0) > npc(o).y THEN temp = 2
+        IF gmap(5) = 1 AND caty(0) - scroll(1) * 10 > npc(o).y THEN temp = 0
+        IF gmap(5) = 1 AND caty(0) + scroll(1) * 10 < npc(o).y THEN temp = 2
+	IF caty(0) = npc(o).y THEN temp = INT(RND * 4)
        ELSE
-        IF catx(0) < npcl(o + 0) THEN temp = 3
-        IF catx(0) > npcl(o + 0) THEN temp = 1
-        IF gmap(5) = 1 AND catx(0) - scroll(0) * 10 > npcl(o + 0) THEN temp = 3
-        IF gmap(5) = 1 AND catx(0) + scroll(0) * 10 < npcl(o + 0) THEN temp = 1
-        IF catx(0) = npcl(o + 0) THEN temp = INT(RND * 4)
+        IF catx(0) < npc(o).x THEN temp = 3
+        IF catx(0) > npc(o).x THEN temp = 1
+        IF gmap(5) = 1 AND catx(0) - scroll(0) * 10 > npc(o).x THEN temp = 3
+        IF gmap(5) = 1 AND catx(0) + scroll(0) * 10 < npc(o).x THEN temp = 1
+        IF catx(0) = npc(o).x THEN temp = INT(RND * 4)
        END IF
        IF npcs(id * 15 + 2) = 7 THEN temp = loopvar(temp, 0, 3, 2)
-       npcl(o + 900) = temp
-       IF temp = 0 THEN npcl(o + 1800) = 20
-       IF temp = 2 THEN npcl(o + 1800) = -20
-       IF temp = 3 THEN npcl(o + 1500) = 20
-       IF temp = 1 THEN npcl(o + 1500) = -20
+       npc(o).dir = temp
+       IF temp = 0 THEN npc(o).ygo = 20
+       IF temp = 2 THEN npc(o).ygo = -20
+       IF temp = 3 THEN npc(o).xgo = 20
+       IF temp = 1 THEN npc(o).xgo = -20
       END IF
      END IF '---CHASE/FLEE
     END IF
    END IF
   END IF
-  IF npcl(o + 1500) <> 0 OR npcl(o + 1800) <> 0 THEN GOSUB movenpcgo
+  IF npc(o).xgo <> 0 OR npc(o).ygo <> 0 THEN GOSUB movenpcgo
  END IF
 NEXT o
 RETURN
 
 movenpcgo:
 setmapdata pass(), pass(), 0, 0
-npcl(o + 1200) = loopvar(npcl(o + 1200), 0, 3, 1)
-IF movdivis(npcl(o + 1500)) OR movdivis(npcl(o + 1800)) THEN
+npc(o).frame = loopvar(npc(o).frame, 0, 3, 1)
+IF movdivis(npc(o).xgo) OR movdivis(npc(o).ygo) THEN
  IF readbit(gen(), 44, suspendnpcwalls) = 0 THEN
   '--this only happens if NPC walls on
-  IF wrappass(npcl(o + 0) \ 20, npcl(o + 300) \ 20, npcl(o + 1500), npcl(o + 1800), 0) THEN
-   npcl(o + 1500) = 0
-   npcl(o + 1800) = 0
+  IF wrappass(npc(o).x \ 20, npc(o).y \ 20, npc(o).xgo, npc(o).ygo, 0) THEN
+   npc(o).xgo = 0
+   npc(o).ygo = 0
    GOSUB hitwall
    GOTO nogo
   END IF
@@ -1256,23 +1261,23 @@ IF movdivis(npcl(o + 1500)) OR movdivis(npcl(o + 1800)) THEN
  IF readbit(gen(), 44, suspendobstruction) = 0 THEN
   '--this only happens if obstruction is on
   FOR i = 0 TO 299
-   IF npcl(i + 600) > 0 AND o <> i THEN
-    IF wrapcollision (npcl(i + 0), npcl(i + 300), npcl(i + 1500), npcl(i + 1800), npcl(o + 0), npcl(o + 300), npcl(o + 1500), npcl(o + 1800)) THEN
-     npcl(o + 1500) = 0
-     npcl(o + 1800) = 0
+   IF npc(i).id > 0 AND o <> i THEN
+    IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN
+     npc(o).xgo = 0
+     npc(o).ygo = 0
      GOSUB hitwall
      GOTO nogo
     END IF
    END IF
   NEXT i
   '---CHECK THAT NPC IS OBSTRUCTABLE-----
-  IF npcl(o + 600) > 0 THEN
-   IF npcs((npcl(o + 600) - 1) * 15 + 8) < 2 THEN
-    IF wrapcollision (npcl(o + 0), npcl(o + 300), npcl(o + 1500), npcl(o + 1800), catx(0), caty(0), xgo(0), ygo(0)) THEN
-     npcl(o + 1500) = 0
-     npcl(o + 1800) = 0
+  IF npc(o).id > 0 THEN
+   IF npcs((npc(o).id - 1) * 15 + 8) < 2 THEN
+    IF wrapcollision (npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo, catx(0), caty(0), xgo(0), ygo(0)) THEN
+     npc(o).xgo = 0
+     npc(o).ygo = 0
      '--a 0-3 tick delay before pacing enemies bounce off hero
-     IF npcl(o + 1200) = 3 THEN GOSUB hitwall: GOTO nogo
+     IF npc(o).frame = 3 THEN GOSUB hitwall: GOTO nogo
     END IF
    END IF
   END IF
@@ -1280,21 +1285,21 @@ IF movdivis(npcl(o + 1500)) OR movdivis(npcl(o + 1800)) THEN
 END IF
 IF npcs(id * 15 + 3) THEN
  '--change x,y and decrement wantgo by speed
- IF npcl(o + 1500) > 0 THEN npcl(o + 1500) = npcl(o + 1500) - npcs(id * 15 + 3): npcl(o + 0) = npcl(o + 0) - npcs(id * 15 + 3)
- IF npcl(o + 1500) < 0 THEN npcl(o + 1500) = npcl(o + 1500) + npcs(id * 15 + 3): npcl(o + 0) = npcl(o + 0) + npcs(id * 15 + 3)
- IF npcl(o + 1800) > 0 THEN npcl(o + 1800) = npcl(o + 1800) - npcs(id * 15 + 3): npcl(o + 300) = npcl(o + 300) - npcs(id * 15 + 3)
- IF npcl(o + 1800) < 0 THEN npcl(o + 1800) = npcl(o + 1800) + npcs(id * 15 + 3): npcl(o + 300) = npcl(o + 300) + npcs(id * 15 + 3)
+ IF npc(o).xgo > 0 THEN npc(o).xgo = npc(o).xgo - npcs(id * 15 + 3): npc(o).x = npc(o).x - npcs(id * 15 + 3)
+ IF npc(o).xgo < 0 THEN npc(o).xgo = npc(o).xgo + npcs(id * 15 + 3): npc(o).x = npc(o).x + npcs(id * 15 + 3)
+ IF npc(o).ygo > 0 THEN npc(o).ygo = npc(o).ygo - npcs(id * 15 + 3): npc(o).y = npc(o).y - npcs(id * 15 + 3)
+ IF npc(o).ygo < 0 THEN npc(o).ygo = npc(o).ygo + npcs(id * 15 + 3): npc(o).y = npc(o).y + npcs(id * 15 + 3)
 ELSE
  '--no speed, kill wantgo
- npcl(o + 1500) = 0
- npcl(o + 1800) = 0
+ npc(o).xgo = 0
+ npc(o).ygo = 0
 END IF
-IF cropmovement(npcl(o + 0), npcl(o + 300), npcl(o + 1500), npcl(o + 1800)) THEN GOSUB hitwall
+IF cropmovement(npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN GOSUB hitwall
 nogo:
 IF npcs(id * 15 + 8) = 1 AND showsay = 0 THEN
- IF wraptouch(npcl(o + 0), npcl(o + 300), catx(0), caty(0), 20) THEN
-  ux = npcl(o + 0)
-  uy = npcl(o + 300)
+ IF wraptouch(npc(o).x, npc(o).y, catx(0), caty(0), 20) THEN
+  ux = npc(o).x
+  uy = npc(o).y
   auto = 1
   sayer = o
   GOSUB usething
@@ -1303,10 +1308,10 @@ END IF
 RETURN
 
 hitwall:
-IF npcs(id * 15 + 2) = 2 THEN npcl(o + 900) = loopvar(npcl(o + 900), 0, 3, 2)
-IF npcs(id * 15 + 2) = 3 THEN npcl(o + 900) = loopvar(npcl(o + 900), 0, 3, 1)
-IF npcs(id * 15 + 2) = 4 THEN npcl(o + 900) = loopvar(npcl(o + 900), 0, 3, -1)
-IF npcs(id * 15 + 2) = 5 THEN npcl(o + 900) = INT(RND * 4)
+IF npcs(id * 15 + 2) = 2 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, 2)
+IF npcs(id * 15 + 2) = 3 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, 1)
+IF npcs(id * 15 + 2) = 4 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, -1)
+IF npcs(id * 15 + 2) = 5 THEN npc(o).dir = INT(RND * 4)
 RETURN
 
 opendoor:
@@ -1377,13 +1382,14 @@ END IF
 loaddoor map, door()
 IF afterbat = 0 THEN
  showmapname = gmap(4)
- xbload maplumpname$(map, "l"), npcl(), "Oh no! Map" + LTRIM$(STR$(map)) + " NPC locations are missing"
+ 'xbload maplumpname$(map, "l"), npcl(), "Oh no! Map" + LTRIM$(STR$(map)) + " NPC locations are missing"
+ LoadNPCL maplumpname$(map, "l"), npc(), 300
  xbload maplumpname$(map, "n"), npcs(), "Oh no! Map" + LTRIM$(STR$(map)) + " NPC definitions are missing"
  FOR i = 0 TO 299
-  npcl(i + 0) = npcl(i + 0) * 20            'x
-  npcl(i + 300) = (npcl(i + 300) - 1) * 20  'y
-  npcl(i + 1500) = 0                        'xgo
-  npcl(i + 1800) = 0                        'ygo
+  npc(i).x = npc(i).x * 20        
+  npc(i).y = (npc(i).y - 1) * 20 
+  npc(i).xgo = 0                  
+  npc(i).ygo = 0                  
  NEXT
 END IF
 npcplot
@@ -1508,7 +1514,7 @@ IF nowscript >= 0 THEN
      NEXT i
      IF readbit(gen(), 44, suspendnpcs) = 1 THEN
       FOR i = 0 TO 299
-       IF npcl(i + 1500) <> 0 OR npcl(i + 1800) <> 0 THEN n = 1
+       IF npc(i).xgo <> 0 OR npc(i).ygo <> 0 THEN n = 1
        EXIT FOR
       NEXT i
      END IF
@@ -1528,7 +1534,7 @@ IF nowscript >= 0 THEN
     CASE 4'--wait for NPC
      npcref = getnpcref(scrat(nowscript, curwaitarg), 0)
      IF npcref >= 0 THEN
-      IF npcl(npcref + 1500) = 0 AND npcl(npcref + 1800) = 0 THEN
+      IF npc(npcref).xgo = 0 AND npc(npcref).ygo = 0 THEN
        scrat(nowscript, scrstate) = streturn
       END IF
      ELSE
@@ -1956,7 +1962,7 @@ SELECT CASE scrat(nowscript, curkind)
     scriptout$ = LTRIM$(STR$(retvals(0)))
    CASE 78'--alter NPC
     IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
-     IF retvals(0) < 0 THEN retvals(0) = (npcl(npcref + 600) - 1)
+     IF retvals(0) < 0 THEN retvals(0) = (npc(npcref).id - 1)
      IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
       npcs(retvals(0) * 15 + retvals(1)) = retvals(2)
       IF retvals(1) = 0 THEN

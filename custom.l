@@ -7,6 +7,7 @@ mapsubs.obj +
 flexmenu.obj +
 menus.obj +
 compat.obj +
+loading.obj +
 nocom.obj +
 ,
 customqb.exe,

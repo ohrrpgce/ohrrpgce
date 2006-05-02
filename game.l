@@ -6,6 +6,7 @@ moresubs.obj +
 yetmore.obj +
 yetmore2.obj +
 compat.obj +
+loading.obj +
 nocom.obj +
 ,
 game-qb.exe,

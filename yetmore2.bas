@@ -195,17 +195,17 @@ END SUB
 
 SUB drawnpcs
  FOR i = 0 TO 299 '-- for each NPC instance
-  IF npcl(i + 600) > 0 THEN '-- if visible
-   o = npcl(i + 600) - 1
+  IF npc(i).id > 0 THEN '-- if visible
+   o = npc(i).id - 1
    z = 0
-   IF framewalkabout(npcl(i + 0), npcl(i + 300) + gmap(11), drawnpcX, drawnpcY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+   IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawnpcX, drawnpcY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
     IF veh(0) AND veh(5) = i THEN z = catz(0) '--special vehicle magic
     IF z AND readbit(veh(), 9, 8) = 0 THEN '--shadow
      'Note: shadow is drawn in uiOutline colour, which might not really be appropriate
-     rectangle npcl(i + 0) - mapx + 6, npcl(i + 300) - mapy + gmap(11) + 13, 8, 5, uilook(uiOutline), dpage
-     rectangle npcl(i + 0) - mapx + 5, npcl(i + 300) - mapy + gmap(11) + 14, 10, 3, uilook(uiOutline), dpage
+     rectangle npc(i).x - mapx + 6, npc(i).y - mapy + gmap(11) + 13, 8, 5, uilook(uiOutline), dpage
+     rectangle npc(i).x - mapx + 5, npc(i).y - mapy + gmap(11) + 14, 10, 3, uilook(uiOutline), dpage
     END IF
-    loadsprite buffer(), 0, (400 * npcl(i + 900)) + (200 * INT(npcl(i + 1200) / 2)), 20 + (5 * o), 20, 20, 2
+    loadsprite buffer(), 0, (400 * npc(i).dir) + (200 * INT(npc(i).frame / 2)), 20 + (5 * o), 20, 20, 2
     drawsprite buffer(), 0, pal16(), (4 + o) * 16, drawnpcX, drawnpcY - z, dpage
     'edgeprint LTRIM$(STR$(i)), drawnpcX, drawnpcY + gmap(11) - z, 15, dpage
    END IF
@@ -421,8 +421,8 @@ SELECT CASE gen(cameramode)
   mapy = caty(gen(cameraArg)) - 90
   GOSUB limitcamera
  CASE npccam
-  mapx = npcl(gen(cameraArg)) - 150
-  mapy = npcl(gen(cameraArg) + 300) - 90
+  mapx = npc(gen(cameraArg)).x - 150
+  mapy = npc(gen(cameraArg)).y - 90
   GOSUB limitcamera
  CASE pancam ' 1=dir, 2=dist, 3=step
   IF gen(cameraArg2) > 0 THEN

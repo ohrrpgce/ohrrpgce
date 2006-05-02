@@ -1224,9 +1224,9 @@ FOR i = 0 TO 500
  END SELECT
  z = z + 1
 NEXT i
-FOR i = 0 TO 2100
- npcl(i) = buffer(z): z = z + 1
-NEXT i
+
+DeserNPCL npc(),z,buffer(),300
+
 FOR i = 0 TO 126
  tag(i) = buffer(z): z = z + 1
 NEXT i
@@ -1567,25 +1567,29 @@ END FUNCTION
 
 SUB reinitnpc (remember, map)
 IF remember THEN
- FOR i = 0 TO 299
-  buffer(i + 0) = npcl(i + 0)
-  buffer(i + 300) = npcl(i + 300)
-  buffer(i + 600) = npcl(i + 600)
-  buffer(i + 900) = npcl(i + 900)
-  buffer(i + 1500) = npcl(i + 1500)
-  buffer(i + 1800) = npcl(i + 1800)
- NEXT i
+'  FOR i = 0 TO 299
+'   buffer(i + 0) = npc(i + 0).x
+'   buffer(i + 300) = npc(i + 300).y
+'   buffer(i + 600) = npc(i + 600).id
+'   buffer(i + 900) = npc(i + 900).dir
+'   buffer(i + 1500) = npc(i + 1500)
+'   buffer(i + 1800) = npc(i + 1800)
+'  NEXT i
+ 
+ SerNPCL npc(),0,buffer(),300
 END IF
-xbload maplumpname$(map, "l"), npcl(), "Oh No! Map" + LTRIM$(STR$(map)) + " NPC locations are missing"
+'xbload maplumpname$(map, "l"), npcl(), "Oh No! Map" + LTRIM$(STR$(map)) + " NPC locations are missing"
+LoadNPCL maplumpname$(map, "l"), npc(), 300
 IF remember THEN
- FOR i = 0 TO 299
-  npcl(i + 0) = buffer(i + 0)
-  npcl(i + 300) = buffer(i + 300)
-  npcl(i + 600) = buffer(i + 600)
-  npcl(i + 900) = buffer(i + 900)
-  npcl(i + 1500) = buffer(i + 1500)
-  npcl(i + 1800) = buffer(i + 1800)
- NEXT i
+'  FOR i = 0 TO 299
+'   npcl(i + 0) = buffer(i + 0)
+'   npcl(i + 300) = buffer(i + 300)
+'   npcl(i + 600) = buffer(i + 600)
+'   npcl(i + 900) = buffer(i + 900)
+'   npcl(i + 1500) = buffer(i + 1500)
+'   npcl(i + 1800) = buffer(i + 1800)
+'  NEXT i
+ DeserNPCL npc(),0,buffer(), 300
 END IF
 END SUB
 
@@ -1650,7 +1654,8 @@ scriptout$ = ""
 '--return gen to defaults
 xbload game$ + ".gen", gen(), "General data is missing from " + game$
 
-flusharray npcl(), 2100, 0
+'flusharray npcl(), 2100, 0
+CleanNPCL npc(),300
 flusharray tag(), 126, 0
 flusharray hero(), 40, 0
 FOR i = 0 TO 40
@@ -1938,9 +1943,10 @@ FOR i = 0 TO 500
  END IF
  z = z + 1
 NEXT i
-FOR i = 0 TO 2100
- buffer(z) = npcl(i): z = z + 1
-NEXT i
+' FOR i = 0 TO 2100
+'  buffer(z) = npcl(i): z = z + 1
+' NEXT i
+SerNPCL npc(), z, buffer(), 300
 FOR i = 0 TO 126
  buffer(z) = tag(i): z = z + 1
 NEXT i

@@ -517,7 +517,7 @@ SELECT CASE seekid
  CASE 0 TO 35 'ID
   found = 0
   FOR i = 0 TO 299
-   IF npcl(i + 600) - 1 = seekid THEN
+   IF npc(i).id - 1 = seekid THEN
     IF found = offset THEN
      getnpcref = i
      EXIT FUNCTION
@@ -729,19 +729,19 @@ END SUB
 
 SUB npcplot
 FOR i = 0 TO 299
- curnpc = ABS(npcl(i + 600)) - 1
+ curnpc = ABS(npc(i).id) - 1
 
- IF npcl(i + 600) < 0 THEN
+ IF npc(i).id < 0 THEN
   '--check reappearance tags for existing but hidden NPCs
   IF istag(npcs(curnpc * 15 + 9), 1) AND istag(npcs(curnpc * 15 + 10), 1) AND istag(1000 + npcs(curnpc * 15 + 11), 0) = 0 THEN
-   npcl(i + 600) = ABS(npcl(i + 600))
+   npc(i).id = ABS(npc(i).id)
   END IF
  END IF
 
- IF npcl(i + 600) > 0 THEN
+ IF npc(i).id > 0 THEN
   '--check removal tags for existing visible NPCs
   IF istag(npcs(curnpc * 15 + 9), 1) = 0 OR istag(npcs(curnpc * 15 + 10), 1) = 0 OR istag(1000 + npcs(curnpc * 15 + 11), 0) THEN
-   npcl(i + 600) = npcl(i + 600) * -1
+   npc(i).id = npc(i).id * -1
   END IF
   'IF readbit(tag(), 0, ABS(npcs(curnpc * 15 + 9))) <> SGN(SGN(npcs(curnpc * 15 + 9)) + 1) AND npcs(curnpc * 15 + 9) <> 0 THEN
   '  npcl(i + 600) = npcl(i + 600) * -1
@@ -979,8 +979,8 @@ SELECT CASE id
  CASE 136'--putnpc
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
-   npcl(npcref) = retvals(1)
-   npcl(npcref + 300) = retvals(2)
+   npc(npcref).x = retvals(1)
+   npc(npcref).y = retvals(2)
   END IF
  CASE 137'--putcamera
   gen(cameramode) = stopcam
@@ -997,12 +997,12 @@ SELECT CASE id
  CASE 140'--npcpixelx
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
-   scriptret = npcl(npcref)
+   scriptret = npc(npcref).x
   END IF
  CASE 141'--npcpixely
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
-   scriptret = npcl(npcref + 300)
+   scriptret = npc(npcref).y
   END IF
  CASE 142'--camerapixelx
   scriptret = mapx
@@ -1664,51 +1664,51 @@ SELECT CASE id
 
  CASE 26'--set NPC frame
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN npcl(npcref + 1200) = bound(retvals(1), 0, 1) * 2
+  IF npcref >= 0 THEN npc(npcref).frame = bound(retvals(1), 0, 1) * 2
  CASE 39'--camera follows NPC
   gen(cameramode) = npccam
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN gen(cameraArg) = npcref
  CASE 45'--NPC x
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN scriptret = npcl(npcref) / 20
+  IF npcref >= 0 THEN scriptret = npc(npcref).x / 20
  CASE 46'--NPC y
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN scriptret = npcl(npcref + 300) / 20
+  IF npcref >= 0 THEN scriptret = npc(npcref).y / 20
  CASE 52'--walk NPC
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    SELECT CASE retvals(1)
     CASE 0'--north
-     npcl(npcref + 900) = 0
-     npcl(npcref + 1800) = retvals(2) * 20
+     npc(npcref).dir = 0
+     npc(npcref).ygo = retvals(2) * 20
     CASE 1'--east
-     npcl(npcref + 900) = 1
-     npcl(npcref + 1500) = (retvals(2) * 20) * -1
+     npc(npcref).dir = 1
+     npc(npcref).xgo = (retvals(2) * 20) * -1
     CASE 2'--south
-     npcl(npcref + 900) = 2
-     npcl(npcref + 1800) = (retvals(2) * 20) * -1
+     npc(npcref).dir = 2
+     npc(npcref).ygo = (retvals(2) * 20) * -1
     CASE 3'--west
-     npcl(npcref + 900) = 3
-     npcl(npcref + 1500) = retvals(2) * 20
+     npc(npcref).dir = 3
+     npc(npcref).xgo = retvals(2) * 20
    END SELECT
   END IF
  CASE 54'--set NPC direction
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN npcl(npcref + 900) = ABS(retvals(1)) MOD 4
+  IF npcref >= 0 THEN npc(npcref).dir = ABS(retvals(1)) MOD 4
  CASE 88'--set NPC position
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
-   npcl(npcref + 0) = retvals(1) * 20
-   npcl(npcref + 300) = retvals(2) * 20
+   npc(npcref).x = retvals(1) * 20
+   npc(npcref).y = retvals(2) * 20
   END IF
  CASE 101'--NPC direction
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN scriptret = npcl(npcref + 900)
+  IF npcref >= 0 THEN scriptret = npc(npcref).dir
  CASE 117, 177'--NPC is walking
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
-   IF npcl(npcref + 1500) = 0 AND npcl(npcref + 1800) = 0 THEN
+   IF npc(npcref).xgo = 0 AND npc(npcref).ygo = 0 THEN
     scriptret = 0
    ELSE
     scriptret = 1
@@ -1720,7 +1720,7 @@ SELECT CASE id
   IF retvals(0) >= 0 AND retvals(0) < 36 THEN
    found = 0
    FOR i = 0 TO 299
-    IF npcl(i + 600) - 1 = retvals(0) THEN
+    IF npc(i).id - 1 = retvals(0) THEN
      IF found = retvals(1) THEN
       scriptret = (i + 1) * -1
       EXIT FOR
@@ -1733,7 +1733,7 @@ SELECT CASE id
   scriptret = 0
   found = 0
   FOR i = 0 TO 299
-   IF npcl(i) / 20 = retvals(0) AND npcl(i + 300) / 20 = retvals(1) AND npcl(i + 600) > 0 THEN
+   IF npc(i).x / 20 = retvals(0) AND npc(i).y / 20 = retvals(1) and npc(i).id > 0 THEN
     IF found = retvals(2) THEN
      scriptret = (i + 1) * -1
      EXIT FOR
@@ -1745,7 +1745,7 @@ SELECT CASE id
  CASE 122'--get NPC ID
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
-   scriptret = npcl(npcref + 600) - 1
+   scriptret = npc(npcref).id - 1
   ELSE
    scriptret = -1
   END IF
@@ -1753,25 +1753,25 @@ SELECT CASE id
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
    FOR i = 0 TO 299
-    IF npcl(i + 600) - 1 = retvals(0) THEN
+    IF npc(i).id - 1 = retvals(0) THEN
      scriptret = scriptret + 1
     END IF
    NEXT i
   END IF
  CASE 124'--change NPC ID
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= 35 THEN npcl(npcref + 600) = retvals(1) + 1
+  IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= 35 THEN npc(npcref).id = retvals(1) + 1
  CASE 125'--create NPC
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
    FOR i = 299 TO 0 STEP -1
-    IF npcl(i + 600) <= 0 THEN
-     npcl(i + 600) = retvals(0) + 1
-     npcl(i) = retvals(1) * 20
-     npcl(i + 300) = retvals(2) * 20
-     npcl(i + 900) = ABS(retvals(3)) MOD 4
-     npcl(i + 1500) = 0 'xgo
-     npcl(i + 1800) = 0 'ygo
+    IF npc(i).id <= 0 THEN
+     npc(i).id = retvals(0) + 1
+     npc(i).x = retvals(1) * 20
+     npc(i).y = retvals(2) * 20
+     npc(i).dir = ABS(retvals(3)) MOD 4
+     npc(i).xgo = 0
+     npc(i).ygo = 0
      scriptret = (i + 1) * -1
      EXIT FOR
     END IF
@@ -1779,12 +1779,12 @@ SELECT CASE id
   END IF
  CASE 126 '--destroy NPC
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN npcl(npcref + 600) = 0
+  IF npcref >= 0 THEN npc(npcref).id = 0
  CASE 165'--NPC at pixel
   scriptret = 0
   found = 0
   FOR i = 0 TO 299
-   IF npcl(i + 600) > 0 AND npcl(i) <= retvals(0) AND npcl(i) > (retvals(0) - 20) AND npcl(i + 300) <= retvals(1) AND npcl(i + 300) > (retvals(1) - 20) THEN
+   IF npc(i).id > 0 AND npc(i).x <= retvals(0) AND npc(i).x > (retvals(0) - 20) AND npc(i).y <= retvals(1) AND npc(i).y > (retvals(1) - 20) THEN
     IF found = retvals(2) THEN
      scriptret = (i + 1) * -1
      EXIT FOR
@@ -1800,14 +1800,14 @@ SELECT CASE id
    ELSE
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
-     id = (npcl(npcref + 600) - 1)
+     id = (npc(npcref).id - 1)
      scriptret = npcs(id * 15 + retvals(1))
     END IF
    END IF
   END IF
  CASE 192'--NPC frame
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN scriptret = npcl(npcref + 1200) \ 2
+  IF npcref >= 0 THEN scriptret = npc(npcref).frame \ 2
 
 END SELECT
 
@@ -1938,10 +1938,10 @@ STATIC aheadx, aheady
 result = 0
 IF readbit(veh(), 6, 0) THEN '--scramble-----------------------
  '--part of the vehicle automount where heros scramble--
- IF npcl(veh(5) + 1500) = 0 AND npcl(veh(5) + 1800) = 0 THEN
+ IF npc(veh(5)).xgo = 0 AND npc(veh(5)).ygo = 0 THEN
   '--npc must stop before we mount
-  targx = npcl(veh(5) + 0)
-  targy = npcl(veh(5) + 300)
+  targx = npc(veh(5)).x
+  targy = npc(veh(5)).y
   untrigbit = 0
   GOSUB vehscramble
  END IF
@@ -2019,8 +2019,8 @@ IF readbit(veh(), 6, 4) THEN '--clear
  END IF
  herospeed(0) = veh(7)
  IF herospeed(0) = 3 THEN herospeed(0) = 10
- npcl(veh(5) + 1500) = 0
- npcl(veh(5) + 1800) = 0
+ npc(veh(5)).xgo = 0
+ npc(veh(5)).ygo = 0
  '--clear vehicle
  FOR i = 0 TO 21
   veh(i) = 0

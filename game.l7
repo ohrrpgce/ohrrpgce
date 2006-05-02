@@ -5,6 +5,7 @@ menustuf.obj +
 moresubs.obj +
 yetmore.obj +
 yetmore2.obj +
+loading.obj +
 compat.obj +
 ,
 game-qb.exe,
