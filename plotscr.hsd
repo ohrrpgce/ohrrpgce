@@ -129,7 +129,7 @@ define function, begin
 118,suspendcaterpillar,0    # other heros stop following the leader, and can be manipulated separately.
 119,resumecaterpillar,0     # turns catapillar party back on
 120,NPCreference,2,0,0      # get an NPC reference by ID number
-121,NPCatspot,3,0,0,0       # get NPC reference by X,Y
+121,NPCatspot,3,0,0,-1      # get NPC reference by X,Y
 122,getNPCID,1,0            # get the ID number of an NPC reference
 123,NPCcopycount,1,0        # find out how many copys of an NPC ID are on the map
 124,changeNPCID,2,0,0       # given an NPC reference, changes its ID
@@ -199,6 +199,8 @@ define function, begin
 190,setformationsong,2,0,0	# sets the song associated with a given formation
 191,heroframe,1,0           # get hero walkabout frame
 192,npcframe,1,0            # get npc walkabout frame
+193,npcextra,2,0,1          # get npc extra data (ref, 1 or 2)
+194,setnpcextra,3,0,1,0     # set npc extra data (ref, 1 or 2,what)
 200,system hour,0
 201,system minute,0
 202,system second,0
@@ -942,4 +944,6 @@ define constant, begin
 1, Wrap
 2, Defaulttile
 -1,party
+1, extra 1
+2, extra 2
 end

@@ -1808,7 +1808,24 @@ SELECT CASE id
  CASE 192'--NPC frame
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN scriptret = npc(npcref).frame \ 2
-
+ CASE 193'--NPC extra
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN
+   IF retvals(1) MOD 2 = 1 THEN '1
+    scriptret = npc(npcref).extra1
+   ELSEIF retvals(1) MOD 2 = 0 THEN '2
+    scriptret = npc(npcref).extra2
+   END IF
+  END IF
+ CASE 194'--set NPC extra
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN
+   IF retvals(1) MOD 2 = 1 THEN '1
+    npc(npcref).extra1 = retvals(2)
+   ELSEIF retvals(1) MOD 2 = 0 THEN '2
+    npc(npcref).extra2 = retvals(2)
+   END IF
+  END IF
 END SELECT
 
 END SUB

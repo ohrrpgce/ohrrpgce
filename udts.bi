@@ -1,20 +1,14 @@
 TYPE NPCInst
-  x as integer
-  y as integer
-  xgo as integer
-  ygo as integer
-  id as integer
-  dir as integer
-  frame as integer
+  x as integer      'npcl+0   
+  y as integer      'npcl+300 
+  xgo as integer    'npcl+1500
+  ygo as integer    'npcl+1800
+  id as integer     'npcl+600 
+  dir as integer    'npcl+900 
+  frame as integer  'npcl+1200
+  extra1 as integer
+  extra2 as integer
 END TYPE
-
-'npcl+0
-'npcl+300
-'npcl+1500
-'npcl+1800
-'npcl+600
-'npcl+900
-'npcl+1200
 
 'Loading subs
 DECLARE SUB LoadNPCL(file as string,dat() as NPCInst, num as integer)

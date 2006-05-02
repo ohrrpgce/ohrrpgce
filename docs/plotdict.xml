@@ -1264,6 +1264,22 @@ end</example>
 			<shortname>NPC frame</shortname>
 			<description>Returns the walking frame (0 or 1) of the specified NPC.</description>
 		</command>
+		<command id="npcextra">
+			<cannon>NPC extra (who,which)</cannon>
+			<shortname>NPC extra</shortname>
+			<description>Returns the npc instance-specific extra data field requested in <p>which</p>. You may use the constants <ref>extra 1</ref> and <ref>extra 2</ref> to refer to them. If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
+			<seealso>
+		    <ref>setnpcextra</ref>	
+		  </seealso>
+		</command>
+		<command id="setnpcextra">
+			<cannon>set NPC extra (who,which, value)</cannon>
+			<shortname>set NPC extra</shortname>
+			<description>Sets the npc instance-specific extra data field requested in <p>which</p>. You may use the constants <ref>extra 1</ref> and <ref>extra 2</ref> to refer to them.  If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
+			<seealso>
+		    <ref>npcextra</ref>	
+		  </seealso>
+		</command>
 		<command id="roominactiveparty">
 			<cannon>room in active party</cannon>
 			<shortname>room in active party</shortname>

@@ -40,6 +40,7 @@ WHAT IS NEW?
     * "load menu"
     * "set [days/hours/minutes/seconds] of play", "get seconds of play" [Mike
       Caron]
+    * "npc extra", "set npc extra" [Mike Caron]
 
   * Stuff only Developers Will Notice
     * Some rewritten map wrapping code [Ralph Versteegen]
