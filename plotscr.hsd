@@ -129,7 +129,7 @@ define function, begin
 118,suspendcaterpillar,0    # other heros stop following the leader, and can be manipulated separately.
 119,resumecaterpillar,0     # turns catapillar party back on
 120,NPCreference,2,0,0      # get an NPC reference by ID number
-121,NPCatspot,3,0,0,-1      # get NPC reference by X,Y
+121,NPCatspot,3,0,0,0       # get NPC reference by X,Y
 122,getNPCID,1,0            # get the ID number of an NPC reference
 123,NPCcopycount,1,0        # find out how many copys of an NPC ID are on the map
 124,changeNPCID,2,0,0       # given an NPC reference, changes its ID

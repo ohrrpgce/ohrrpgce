@@ -1049,36 +1049,37 @@ END SELECT
 END SUB
 
 SUB scriptdump (s$)
-'
-'DIM statestr$(6)
-'statestr$(0) = "none"
-'statestr$(1) = "wait"
-'statestr$(2) = "read"
-'statestr$(3) = "return"
-'statestr$(4) = "next"
-'statestr$(5) = "doarg"
-'statestr$(6) = "done"
-'
-'IF scrat(nowscript, scrdepth) >= 0 THEN
-'  indent$ = STRING$(scrat(nowscript, scrdepth), " ")
-'ELSE
-'  indent$ = STRING$(ABS(scrat(nowscript, scrdepth)), "<")
-'END IF
-'
-'SELECT CASE scrat(nowscript, scrstate)
-' CASE 0 TO 6
-'   state$ = " " + statestr$(scrat(nowscript, scrstate))
-' CASE ELSE
-'   state$ = STR$(scrat(nowscript, scrstate))
-'END SELECT
-'
-'debug indent$ + "[" + s$ + "]"
-'debug indent$ + "script =" + STR$(nowscript)
-'debug indent$ + "ptr    =" + STR$(scrat(nowscript, scrptr))
-'debug indent$ + "state  =" + state$
-'debug indent$ + "kind   =" + STR$(scrat(nowscript, curkind))
-'debug indent$ + "value  =" + STR$(scrat(nowscript, curvalue))
-'debug indent$ + "argc   =" + STR$(scrat(nowscript, curargc))
+
+DIM statestr$(6)
+statestr$(0) = "none"
+statestr$(1) = "wait"
+statestr$(2) = "read"
+statestr$(3) = "return"
+statestr$(4) = "next"
+statestr$(5) = "doarg"
+statestr$(6) = "done"
+
+IF scrat(nowscript, scrdepth) >= 0 THEN
+  indent$ = STRING$(scrat(nowscript, scrdepth), " ")
+ELSE
+  indent$ = STRING$(ABS(scrat(nowscript, scrdepth)), "<")
+END IF
+
+SELECT CASE scrat(nowscript, scrstate)
+ CASE 0 TO 6
+   state$ = " " + statestr$(scrat(nowscript, scrstate))
+ CASE ELSE
+   state$ = STR$(scrat(nowscript, scrstate))
+END SELECT
+
+debug indent$ + "[" + s$ + "]"
+debug indent$ + "script =" + STR$(nowscript)
+debug indent$ + "ptr    =" + STR$(scrat(nowscript, scrptr))
+debug indent$ + "state  =" + state$
+debug indent$ + "kind   =" + STR$(scrat(nowscript, curkind))
+debug indent$ + "value  =" + STR$(scrat(nowscript, curvalue))
+debug indent$ + "argn   =" + STR$(scrat(nowscript, curargn))
+debug indent$ + "argc   =" + STR$(scrat(nowscript, curargc))
 
 END SUB
 
