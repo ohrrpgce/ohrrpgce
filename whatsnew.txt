@@ -1,5 +1,10 @@
 WHAT IS NEW?
 
+??? ?? 2006 [hasta-la-qb]
+  * Bug Fixes
+    * Bug 179: keyispressed did not always return true, being very noticable
+      when two conditions used in an if statement [Ralph Versteegen]
+
 Mar 15 2006 [tirgoviste]
   * New Features
     * Stat caps [Mike Caron]
