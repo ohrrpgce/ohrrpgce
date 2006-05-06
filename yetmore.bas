@@ -1179,7 +1179,7 @@ SELECT CASE id
  CASE 29'--stop song
   stopsong
  CASE 30'--key is pressed
-  scriptret = keyval(retvals(0))
+  IF (keyval(retvals(0))) THEN scriptret = 1 ELSE scriptret = 0
  CASE 31'--rank in caterpillar
   scriptret = rankincaterpillar(retvals(0))
  CASE 38'--camera follows hero

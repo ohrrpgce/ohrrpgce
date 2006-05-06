@@ -845,7 +845,7 @@ SUB setkeys ()
 				else
 					keysteps(a) = 1
 				end if
-				keybd(a) = 2
+				keybd(a) = 3
 			end if
 		else
 			keybd(a) = 0 'not pressed

@@ -33,6 +33,8 @@ WHAT IS NEW?
     * Really fixed the "script arguments overflow into local variables" bug.
       You need to recompile your scripts to get this fix [Ralph Versteegen]
     * Fixed bug 163, a random crash in the music import screen. [Simon, Mike]
+    * Bug 179: keyispressed did not always return true, being very noticable
+      when two conditions used in an if statement [Ralph Versteegen]
       
   * New Plotscripting Commands
     * "hero frame", "NPC frame" [Ralph Versteegen]
