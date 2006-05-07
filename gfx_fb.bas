@@ -263,8 +263,8 @@ function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
 	end if
 	
 	'otherwise...
-	joybuf(0) = int(x * 10000) 'x is between -1 and 1
-	joybuf(1) = int(y * 10000) 'ditto
+	joybuf(0) = int(x * 100) 'x is between -1 and 1
+	joybuf(1) = int(y * 100) 'ditto
 	joybuf(2) = (button AND 1) = 0 '0 = pressed, not 0 = unpressed (why???)
 	joybuf(3) = (button AND 2) = 0 'ditto
 	
