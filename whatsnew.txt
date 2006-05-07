@@ -35,6 +35,7 @@ WHAT IS NEW?
     * Fixed bug 163, a random crash in the music import screen. [Simon, Mike]
     * Bug 179: keyispressed did not always return true, being very noticable
       when two conditions used in an if statement [Ralph Versteegen]
+    * Joystick didn't work at all in the Windows version [Mike]
       
   * New Plotscripting Commands
     * "hero frame", "NPC frame" [Ralph Versteegen]
