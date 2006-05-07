@@ -153,6 +153,19 @@ sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as int
 end sub
 
 function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
-	'don't know
-	io_readjoy = 0
+	
+	dim x as single,y as single,button as integer
+	
+	if getjoystick(joynum,button,x,y) then 'returns 1 on failure
+	  return 0
+	end if
+	
+	'otherwise...
+	joybuf(0) = int(x * 10000) 'x is between -1 and 1
+	joybuf(1) = int(y * 10000) 'ditto
+	joybuf(2) = (button AND 1) = 0 '0 = pressed, not 0 = unpressed (why???)
+	joybuf(3) = (button AND 2) = 0 'ditto
+	
+	return 1
+	
 end function
