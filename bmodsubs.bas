@@ -856,7 +856,9 @@ IF atk(5) <> 4 THEN
  IF readbit(atk(), 20, 1) = 1 THEN h& = h& / (tcount + 1)
 
  'cap out
- IF readbit(atk(), 20, 62) = 0 AND h& <= 0 THEN h& = 1
+ IF h& <= 0 THEN
+  IF readbit(atk(), 20, 62) = 0 THEN h& = 1 ELSE h& = 0
+ END IF
 
  IF readbit(atk(), 20, 0) = 1 THEN h& = ABS(h&) * -1 'cure bit
  IF readbit(tbits(), 0, 54) THEN h& = ABS(h&)        'zombie
