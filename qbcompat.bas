@@ -56,6 +56,8 @@ SUB getdefaultfont (font() AS INTEGER)
 	IF isfile(progdir$ + "ohrrpgce.fnt" + CHR$(0)) THEN
 		DEF SEG = VARSEG(font(0)): BLOAD progdir$ + "ohrrpgce.fnt", VARPTR(font(0))
 	ELSE
+		DIM regs AS Regtype
+		
 		'--load the ROM font
 		regs.ax = &H1130
 		regs.bx = &H300
@@ -83,6 +85,8 @@ SUB playsongnum (songnum%)
 END SUB
 
 SUB romfontchar (font%(), char%)
+	DIM regs AS Regtype
+	
 	regs.ax = &H1130
 	regs.bx = &H300
 	CALL interruptx(&H10, regs, regs)
