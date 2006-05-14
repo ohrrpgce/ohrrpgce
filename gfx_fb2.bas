@@ -140,8 +140,14 @@ end function
 sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
 	dim as integer dmx, dmy
 	getmouse(dmx, dmy, mwheel, mbuttons)
-	mx = dmx \ 2
-	my = (dmy \ 2) - offset
+	if dmx < 0 then
+		'outside screen
+		mx = -1
+		my = -1
+	else
+		mx = dmx \ 2
+		my = (dmy \ 2) - offset
+	end if
 end sub
 
 sub io_setmouse(byval x as integer, byval y as integer)

@@ -2054,15 +2054,20 @@ SUB readmouse (mbuf() as integer)
 	static lastb as integer = 0
 
 	io_getmouse(mx, my, mw, mb)
-	if (mx = -1) then mx = lastx
-	if (my = -1) then my = lasty
+	if (mx < 0) then 
+		mx = lastx
+	else
+		lastx = mx
+	end if
+	if (my < 0) then 
+		my = lasty
+	else
+		lasty = my
+	end if
 	if (mx > mouse_xmax) then mx = mouse_xmax
 	if (mx < mouse_xmin) then mx = mouse_xmin
 	if (my > mouse_ymax) then my = mouse_ymax
 	if (my < mouse_ymin) then my = mouse_ymin
-
-	lastx = mx
-	lasty = my
 
 	'mc = mouseclicked, only set (to 1) if this is a new left-click
 	'faking the effect of dos int33h cmd 5
