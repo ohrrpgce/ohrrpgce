@@ -507,7 +507,7 @@ end</example>
 		<command id="npcatspot">
 			<cannon>NPC at spot (x,y,number)</cannon>
 			<shortname>NPC at spot</shortname>
-			<description>This command returns a reference to the NPC at the given X and Y coordinate on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom most NPC, which is number 0). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile.</description>
+			<description>This command returns a reference to the NPC at the given X and Y coordinate on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom most NPC, which is number 0). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile. Note that an NPC's tile is the tile its top left corner is on.</description>
 			<seealso>
 				<ref>npcreference</ref>
 			</seealso>
@@ -1227,23 +1227,29 @@ end</example>
 		<command id="herox">
 			<cannon>hero X (who)</cannon>
 			<shortname>hero X</shortname>
-			<description>returns the specified hero&apos;s X position in tiles.</description>
+			<description>Returns the specified hero&apos;s X position in tiles. Note that a hero's tile is the tile its top left corner is on.</description>
 		</command>
 		<command id="heroy">
 			<cannon>hero Y (who)</cannon>
 			<shortname>hero Y</shortname>
-			<description>returns the specified hero&apos;s Y position in tiles.</description>
+			<description>Returns the specified hero&apos;s Y position in tiles. Note that a hero's tile is the tile its top left corner is on.</description>
 		</command>
 		<command id="npcx">
 			<cannon>NPC X (who)</cannon>
 			<shortname>NPC X</shortname>
-			<description>returns the specified NPC&apos;s X position in tiles.</description>
-		</command>
+			<description>Returns the specified NPC&apos;s X position in tiles. Note that an NPC's tile is the tile its top left corner is on.</description>
+			<seealso>
+		        <ref>npcatspot</ref>	
+            </seealso>
+        </command>
 		<command id="npcy">
 			<cannon>NPC Y (who)</cannon>
 			<shortname>NPC Y</shortname>
-			<description>returns the specified NPC&apos;s Y position in tiles.</description>
-		</command>
+			<description>Returns the specified NPC&apos;s Y position in tiles. Note that an NPC's tile is the tile its top left corner is on.</description>
+			<seealso>
+		        <ref>npcatspot</ref>	
+            </seealso>
+        </command>
 		<command id="herodirection">
 			<cannon>hero direction (who)</cannon>
 			<shortname>hero direction</shortname>
@@ -1269,8 +1275,8 @@ end</example>
 			<shortname>NPC extra</shortname>
 			<description>Returns the npc instance-specific extra data field requested in <p>which</p>. You may use the constants <ref>extra 1</ref> and <ref>extra 2</ref> to refer to them. If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
 			<seealso>
-		    <ref>setnpcextra</ref>	
-		  </seealso>
+		        <ref>setnpcextra</ref>	
+            </seealso>
 		</command>
 		<command id="setnpcextra">
 			<cannon>set NPC extra (who,which, value)</cannon>
@@ -1328,7 +1334,7 @@ end</example>
 		<command id="minutesofplay">
 			<cannon>minutes of play</cannon>
 			<shortname>minutes of play</shortname>
-			<description>returns the number of minutes that the game has been played, 0 to 59</description>
+			<description>Returns the number of minutes that the game has been played, 0 to 59</description>
 		</command>
 		<command id="setminutesofplay">
 			<cannon>set minutes of play (min)</cannon>
@@ -1338,7 +1344,7 @@ end</example>
 		<command id="secondsofplay">
 			<cannon>seconds of play</cannon>
 			<shortname>seconds of play</shortname>
-			<description>returns the number of seconds that the game has been played, 0 to 59</description>
+			<description>Returns the number of seconds that the game has been played, 0 to 59</description>
 		</command>
 		<command id="setsecondssofplay">
 			<cannon>set seconds of play (sec)</cannon>

@@ -1672,10 +1672,10 @@ SELECT CASE id
   IF npcref >= 0 THEN gen(cameraArg) = npcref
  CASE 45'--NPC x
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN scriptret = npc(npcref).x / 20
+  IF npcref >= 0 THEN scriptret = npc(npcref).x \ 20
  CASE 46'--NPC y
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN scriptret = npc(npcref).y / 20
+  IF npcref >= 0 THEN scriptret = npc(npcref).y \ 20
  CASE 52'--walk NPC
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
@@ -1734,7 +1734,7 @@ SELECT CASE id
   scriptret = 0
   found = 0
   FOR i = 0 TO 299
-   IF npc(i).x / 20 = retvals(0) AND npc(i).y / 20 = retvals(1) and npc(i).id > 0 THEN
+   IF npc(i).x \ 20 = retvals(0) AND npc(i).y \ 20 = retvals(1) and npc(i).id > 0 THEN
     IF found = retvals(2) THEN
      scriptret = (i + 1) * -1
      EXIT FOR

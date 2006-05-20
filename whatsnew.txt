@@ -36,6 +36,8 @@ WHAT IS NEW?
     * Bug 179: keyispressed did not always return true, being very noticable
       when two conditions used in an if statement [Ralph Versteegen]
     * Joystick didn't work at all in the Windows version [Mike]
+    * "NPC X","NPC Y" and "NPC at spot" behaviour has been corrected: an
+      NPC's position is now the tile its top left corner stands on [Ralph]
       
   * New Plotscripting Commands
     * "hero frame", "NPC frame" [Ralph Versteegen]
