@@ -25,6 +25,7 @@ call callbc.bat mapsubs
 call callbc.bat flexmenu
 call callbc.bat menus
 :nocust
+call callbc.bat loading
 support\pkunzip.exe -o support\nocom.zip nocom.obj > NUL
 support\pkunzip.exe -o support\freelink.zip freelink.exe > NUL
 IF '%1%'=='c' GOTO nogame2
