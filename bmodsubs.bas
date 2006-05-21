@@ -647,12 +647,10 @@ IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN
  WaitFor 3 'wait 3 ticks
  IF atk(14) <> 1 AND atk(14) <> 7 THEN 'if it's not cast or standing cast
   SetFrame who, 2
-  IF readbit(gen(),101,15) = 1 THEN
-   hx = GetHeroPos(hero(who)-1,0,0)
-   hy = GetHeroPos(hero(who)-1,0,1)
-   wx = GetWeaponPos(eqstuf(who,0)-1,0,0)
-   wy = GetWeaponPos(eqstuf(who,0)-1,0,1)
-  END IF
+  hx = GetHeroPos(hero(who)-1,0,0)
+  hy = GetHeroPos(hero(who)-1,0,1)
+  wx = GetWeaponPos(eqstuf(who,0)-1,0,0)
+  wy = GetWeaponPos(eqstuf(who,0)-1,0,1)
   dx = hx - wx
   dy = hy - wy
   IF atk(14) <> 2 THEN 'if it's not dash in
@@ -672,12 +670,10 @@ IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN
  IF atk(14) <> 1 AND atk(14) <> 7 THEN 'if it's not cast or standing cast
   SetFrame who, 3
   IF atk(14) <> 2 THEN 'if it's not dash in
-   IF readbit(gen(),101,15) = 1 THEN
-    hx = GetHeroPos(hero(who)-1,1,0)
-    hy = GetHeroPos(hero(who)-1,1,1)
-    wx = GetWeaponPos(eqstuf(who,0)-1,1,0)
-    wy = GetWeaponPos(eqstuf(who,0)-1,1,1)
-   END IF
+   hx = GetHeroPos(hero(who)-1,1,0)
+   hy = GetHeroPos(hero(who)-1,1,1)
+   wx = GetWeaponPos(eqstuf(who,0)-1,1,0)
+   wy = GetWeaponPos(eqstuf(who,0)-1,1,1)
    dx = hx - wx
    dy = hy - wy
    SpritePos 24, x(who) + dx - 44, y(who) + dy, 0
@@ -859,7 +855,9 @@ IF atk(5) <> 4 THEN
  IF readbit(atk(), 20, 1) = 1 THEN h& = h& / (tcount + 1)
 
  'cap out
- IF readbit(atk(), 20, 62) = 0 AND h& <= 0 THEN h& = 1
+ IF h& <= 0 THEN
+  IF readbit(atk(), 20, 62) = 0 THEN h& = 1 ELSE h& = 0
+ END IF
 
  IF readbit(atk(), 20, 0) = 1 THEN h& = ABS(h&) * -1 'cure bit
  IF readbit(tbits(), 0, 54) THEN h& = ABS(h&)        'zombie

@@ -39,7 +39,7 @@ define function, begin
 27,suspendoverlay,0         # turns off overhead tiles
 28,playsong,1,0             # play song(#)
 29,stopsong,0               # stop the music
-30,keyispressed,1,0         # check key by scancode
+30,keyval,1,0               # check key by scancode - returns value from keyval array
 31,rankincaterpillar,1,0    # finds the heros position in the caterpillar
 32,showbackdrop,1,0         # showbackdrop (#)
 33,showmap,0                # cancels a showbackdrop
@@ -72,7 +72,7 @@ define function, begin
 61,teleporttomap,3,0,0,0    # teleport to map (map,x,y)
 62,suspendrandomenemys,0    # misspelled alias for backcompat
 63,resumerandomenemys,0     # misspelled alias for backcompat
-64,getherostat,3,0,0,1      # returns a hero's stat (who,stat,cur/max)
+64,getherostat,3,0,0,0      # returns a hero's stat (who,stat,cur/max)
 65,resumeoverlay,0          # turns overhead tiles back on
 66,addhero,1,0              # adds a hero to the party
 67,deletehero,1,0           # deletes a hero from the party
@@ -231,6 +231,8 @@ define function, begin
 231,writeenemydata,3,0,0,0    #writes enemy data(enemy,dataposition,value)
 232,trace,1,0                 #writes the provided string to G_DEBUG.txt
 233,getsongname,2,0,0         #get song name and store in string
+#234 loadmenu not supported
+235,keyispressed,1,0          #check key by scancode, returns a bool
 end
 
 #--------------------------------------------------------------------------

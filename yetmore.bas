@@ -106,6 +106,7 @@ DECLARE FUNCTION liveherocount% (stat%())
 DECLARE SUB cleanuptemp ()
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION getdisplayname$ (default$)
+DECLARE SUB interpolatecat ()
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -114,35 +115,6 @@ DECLARE FUNCTION getdisplayname$ (default$)
 '$INCLUDE: 'scrconst.bi'
 
 REM $STATIC
-SUB alterhero (id, stat())
-
-SELECT CASE id
- CASE 110'--set hero picture
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   i = bound(retvals(0), 0, 40)
-   j = bound(retvals(2), 0, 1)
-   stat(i, j, 14) = bound(retvals(1), 0, gen(26 + (j * 4)))
-   IF i < 4 THEN
-    vishero stat()
-   END IF
-  END IF
- CASE 111'--set hero palette
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   i = bound(retvals(0), 0, 40)
-   j = bound(retvals(2), 0, 1)
-   stat(i, j, 15) = bound(retvals(1), -1, 32767)
-   IF i < 4 THEN
-    vishero stat()
-   END IF
-  END IF
- CASE 112'--get hero picture
-  scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(1), 0, 1), 14)
- CASE 113'--get hero palette
-  scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(1), 0, 1), 15)
-END SELECT
-
-END SUB
-
 SUB arslhero (saytag(), stat())
 '---ADD/REMOVE/SWAP/LOCK
 '---ADD---
@@ -304,11 +276,102 @@ IF limit > 0 THEN
 END IF
 END SUB
 
-SUB expcommands (id, stat())
+SUB scriptstat (id, stat())
+'contains an assortment of scripting commands that
+'depend on access to the hero stat array stat()
 STATIC spellmaskhero
 DIM dummystats(40, 1, 1) 'just need HP and MP
 
 SELECT CASE id
+ CASE 64'--get hero stat
+  scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(2), 0, 1), bound(retvals(1), 0, 13))
+ CASE 66'--add hero
+  IF retvals(0) >= 0 THEN
+   FOR i = 37 TO 0 STEP -1
+    IF hero(i) = 0 THEN slot = i
+   NEXT i
+   addhero retvals(0) + 1, slot, stat()
+   vishero stat()
+  END IF
+ CASE 67'--delete hero
+  IF howmanyh(0, 40) > 1 THEN
+   i = findhero(bound(retvals(0), 0, 59) + 1, 0, 40, 1)
+   IF i > -1 THEN hero(i) = 0
+   IF howmanyh(0, 3) = 0 THEN forceparty stat()
+   vishero stat()
+  END IF
+ CASE 68'--swap out hero
+  i = findhero(retvals(0) + 1, 0, 40, 1)
+  IF i > -1 THEN
+   FOR o = 40 TO 4 STEP -1
+    IF hero(o) = 0 THEN
+     doswap i, o, stat()
+     IF howmanyh(0, 3) = 0 THEN forceparty stat()
+     vishero stat()
+     EXIT FOR
+    END IF
+   NEXT o
+  END IF
+ CASE 69'--swap in hero
+  i = findhero(retvals(0) + 1, 40, 0, -1)
+  IF i > -1 THEN
+   FOR o = 0 TO 3
+    IF hero(o) = 0 THEN
+     doswap i, o, stat()
+     vishero stat()
+     EXIT FOR
+    END IF
+   NEXT o
+  END IF
+ CASE 83'--set hero stat
+  stat(bound(retvals(0), 0, 40), bound(retvals(3), 0, 1), bound(retvals(1), 0, 13)) = retvals(2)
+ CASE 89'--swap by position
+  doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40), stat()
+  vishero stat()
+ CASE 110'--set hero picture
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   i = bound(retvals(0), 0, 40)
+   j = bound(retvals(2), 0, 1)
+   stat(i, j, 14) = bound(retvals(1), 0, gen(26 + (j * 4)))
+   IF i < 4 THEN
+    vishero stat()
+   END IF
+  END IF
+ CASE 111'--set hero palette
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   i = bound(retvals(0), 0, 40)
+   j = bound(retvals(2), 0, 1)
+   stat(i, j, 15) = bound(retvals(1), -1, 32767)
+   IF i < 4 THEN
+    vishero stat()
+   END IF
+  END IF
+ CASE 112'--get hero picture
+  scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(1), 0, 1), 14)
+ CASE 113'--get hero palette
+  scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(1), 0, 1), 15)
+ CASE 150'--status screen
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   IF hero(retvals(0)) > 0 THEN
+    status retvals(0), stat()
+   END IF
+  END IF
+ CASE 152'--spells menu
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   IF hero(retvals(0)) > 0 THEN
+    spells retvals(0), stat()
+   END IF
+  END IF
+ CASE 154'--equip menu
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   IF hero(retvals(0)) > 0 THEN
+    equip retvals(0), stat()
+   END IF
+  END IF
+ CASE 157'--order menu
+  heroswap 0, stat()
+ CASE 158'--team menu
+  heroswap 1, stat()
  CASE 183'--setherolevel (who, what, allow forgetting spells)
   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
    spellmaskhero = retvals(0)  'used for spells learnt
@@ -1129,7 +1192,7 @@ SELECT CASE id
   wrappedsong retvals(0)
  CASE 29'--stop song
   stopsong
- CASE 30'--key is pressed
+ CASE 30'--keyval
   IF (keyval(retvals(0))) THEN scriptret = 1 ELSE scriptret = 0
  CASE 31'--rank in caterpillar
   scriptret = rankincaterpillar(retvals(0))
@@ -1149,6 +1212,14 @@ SELECT CASE id
   gen(cameraArg4) = ABS(retvals(2))
  CASE 42'--wait for camera
   GOSUB setwaitstate
+ CASE 43'--hero x
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   scriptret = catx(retvals(0) * 5) \ 20
+  END IF
+ CASE 44'--hero y
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   scriptret = caty(retvals(0) * 5) \ 20
+  END IF
  CASE 47'--suspend obstruction
   setbit gen(), 44, suspendobstruction, 1
  CASE 48'--resume obstruction
@@ -1159,9 +1230,15 @@ SELECT CASE id
   setbit gen(), 44, suspendnpcwalls, 1
  CASE 51'--resume hero walls
   setbit gen(), 44, suspendherowalls, 0
+ CASE 53'--set hero direction
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   catd(retvals(0) * 5) = ABS(retvals(1)) MOD 4
+  END IF
  CASE 57, 118'--suspend caterpillar
   setbit gen(), 44, suspendcatapillar, 1
-  '--resume caterpillar is not here! it works different!
+ CASE 58, 119'--resume caterpillar
+  setbit gen(), 44, suspendcatapillar, 0
+  interpolatecat
  CASE 59'--wait for text box
   IF readbit(gen(), 44, suspendboxadvance) = 0 THEN
    GOSUB setwaitstate
@@ -1197,6 +1274,10 @@ SELECT CASE id
   fadeout bound(retvals(0), 0, 63), bound(retvals(1), 0, 63), bound(retvals(2), 0, 63), -1
  CASE 76'--fade screen in
   fadein -1
+ CASE 81'--set hero speed
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   herospeed(retvals(0)) = bound(retvals(1), 0, 20)
+  END IF
  CASE 82'--inventory
   scriptret = countitem(retvals(0) + 1)
  CASE 84'--suspend box advance
@@ -1228,6 +1309,10 @@ SELECT CASE id
   setbit gen(), 44, suspendnpcwalls, 0
  CASE 96'--set hero Z
   catz(bound(retvals(0), 0, 3) * 5) = retvals(1)
+ CASE 102'--hero direction
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   scriptret = catd(retvals(0) * 5)
+  END IF
  CASE 103'--reset palette
   xbload game$ + ".mas", master(), "master palette missing from " + game$
  CASE 104'--tweak palette
@@ -1547,10 +1632,10 @@ SELECT CASE id
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
    scriptret = plotstrY(retvals(0))
   END IF
- CASE 226'--system day
-  scriptret = str2int(MID$(DATE$, 1, 2))
- CASE 227'--system month
+ CASE 226'--system day (date$ is always mm-dd-yyyy)
   scriptret = str2int(MID$(DATE$, 4, 2))
+ CASE 227'--system month
+  scriptret = str2int(MID$(DATE$, 1, 2))
  CASE 228'--system year
   scriptret = str2int(MID$(DATE$, 7, 4))
  CASE 229'--string compare
@@ -1572,6 +1657,8 @@ SELECT CASE id
   debug "TRACE: " + plotstring$(bound(retvals(0),0,31))
  CASE 233'--get song name
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 THEN plotstring$(retvals(0)) = getsongname$(retvals(1))
+ CASE 235'--key is pressed
+  IF keyval(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
 END SELECT
 
 EXIT SUB
@@ -1598,10 +1685,10 @@ SELECT CASE id
   IF npcref >= 0 THEN gen(cameraArg) = npcref
  CASE 45'--NPC x
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN scriptret = npcl(npcref) / 20
+  IF npcref >= 0 THEN scriptret = npcl(npcref) \ 20
  CASE 46'--NPC y
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN scriptret = npcl(npcref + 300) / 20
+  IF npcref >= 0 THEN scriptret = npcl(npcref + 300) \ 20
  CASE 52'--walk NPC
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
@@ -1660,7 +1747,7 @@ SELECT CASE id
   scriptret = 0
   found = 0
   FOR i = 0 TO 299
-   IF npcl(i) / 20 = retvals(0) AND npcl(i + 300) / 20 = retvals(1) AND npcl(i + 600) > 0 THEN
+   IF npcl(i) \ 20 = retvals(0) AND npcl(i + 300) \ 20 = retvals(1) AND npcl(i + 600) > 0 THEN
     IF found = retvals(2) THEN
      scriptret = (i + 1) * -1
      EXIT FOR

@@ -1,9 +1,27 @@
 WHAT IS NEW?
 
 ??? ?? 2006 [hasta-la-qb]
+  * New Features
+    * Hspeak.exe now waits for a keypress when finished, which should avoid
+      a lot of confusion for new plotscripters who are unfamiliar with
+      command-line tools. Also added -k option to supress this new
+      behaviour [James Paige]
+
   * Bug Fixes
-    * Bug 179: keyispressed did not always return true, being very noticable
-      when two conditions used in an if statement [Ralph Versteegen]
+    * Fixed an ancient bug in both the Sprite editor and the MapTile editor
+      which caused the keyboard control to lag whenever the mouse cursor
+      was over the drawing area. [James Paige]
+    * Bug where filling in colour 15 (white) on edge of a tile filled in all
+      colour 15 pixels on the edge. [Ralph Versteegen]
+    * Bug 179: "Use of two keyispressed conditions in an if statement causes
+      massive weirdness" - "keyispressed" command has been changed so that it
+      now only returns a bool. It may help to recompile your scripts. If you
+      want the old behaviour, use the new "keyval" command [Ralph]
+    * "NPC X","NPC Y" and "NPC at spot" behaviour has been corrected: an
+      NPC's position is now the tile its top left corner stands on [Ralph]
+
+  * New Plotscripting Commands
+    * "keyval"
 
 Mar 15 2006 [tirgoviste]
   * New Features

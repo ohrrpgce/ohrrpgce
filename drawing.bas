@@ -677,10 +677,20 @@ DO
    RETURN
   END IF
  END IF
- IF keyval(75) > 0 AND keyval(56) = 0 THEN IF x > 0 THEN x = x - 1: IF zone = 1 THEN mouse(0) = mouse(0) - 10: movemouse mouse(0), mouse(1)
- IF keyval(77) > 0 AND keyval(56) = 0 THEN IF x < 19 THEN x = x + 1: IF zone = 1 THEN mouse(0) = mouse(0) + 10: movemouse mouse(0), mouse(1)
- IF keyval(72) > 0 AND keyval(56) = 0 THEN IF y > 0 THEN y = y - 1: IF zone = 1 THEN mouse(1) = mouse(1) - 8: movemouse mouse(0), mouse(1)
- IF keyval(80) > 0 AND keyval(56) = 0 THEN IF y < 19 THEN y = y + 1: IF zone = 1 THEN mouse(1) = mouse(1) + 8: movemouse mouse(0), mouse(1)
+ IF keyval(56) = 0 THEN
+  fixmouse = 0
+  IF keyval(75) > 0 THEN x = large(x - 1, 0): fixmouse = 1
+  IF keyval(77) > 0 THEN x = small(x + 1, 19): fixmouse = 1
+  IF keyval(72) > 0 THEN y = large(y - 1, 0): fixmouse = 1
+  IF keyval(80) > 0 THEN y = small(y + 1, 19): fixmouse = 1
+  IF fixmouse THEN
+   zox = x * 10 + 5
+   zoy = y * 8 + 4
+   mouse(0) = area(0,0) + zox
+   mouse(1) = area(0,1) + zoy
+   movemouse mouse(0), mouse(1)
+  END IF
+ END IF 
  '---KEYBOARD SHORTCUTS FOR TOOLS------------
  FOR i = 0 TO 5
   IF keyval(shortk(i)) > 1 THEN tool = i: hold = 0: dcsr = cursor(i) + 1
@@ -819,7 +829,7 @@ SELECT CASE tool
   IF justpainted = 0 THEN GOSUB writeundoblock
   justpainted = 3
   putpixel 280 + x, 10 + (undoptr * 21) + y, cc, 2
-  rectangle bx * 20 + x, by * 20 + y, 1, 1, cc, 3: rectangle 60 + x * 10, y * 8, 10, 8, cc, 2
+  putpixel bx * 20 + x, by * 20 + y, cc, 3: rectangle 60 + x * 10, y * 8, 10, 8, cc, 2
  CASE 1'---BOX
   IF mouse(3) > 0 OR keyval(57) > 1 THEN
    IF hold = 1 THEN
@@ -849,16 +859,16 @@ SELECT CASE tool
  CASE 3'---FILL
   IF mouse(3) > 0 OR keyval(57) > 1 THEN
    GOSUB writeundoblock
-   rectangle 0, 0, 22, 22, 15, dpage
+   rectangle 0, 0, 22, 22, cc, dpage
    FOR i = 0 TO 19
     FOR j = 0 TO 19
-     rectangle 1 + i, 1 + j, 1, 1, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
+     putpixel 1 + i, 1 + j, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
     NEXT j
    NEXT i
    paintat 1 + x, 1 + y, cc, dpage, buffer(), 16384
    FOR i = 0 TO 19
     FOR j = 0 TO 19
-     rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(1 + i, 1 + j, dpage), 3
+     putpixel bx * 20 + i, by * 20 + j, readpixel(1 + i, 1 + j, dpage), 3
     NEXT j
    NEXT i
    GOSUB refreshbig
@@ -872,16 +882,17 @@ SELECT CASE tool
     rectangle 0, 0, 22, 22, 15, dpage
     FOR i = 0 TO 19
      FOR j = 0 TO 19
-      rectangle 1 + i, 1 + j, 1, 1, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
+      putpixel 1 + i, 1 + j, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
      NEXT j
     NEXT i
     ellipse 1 + hox, 1 + hoy, radius, cc, dpage, 0, 0
     FOR i = 0 TO 19
      FOR j = 0 TO 19
-      rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(1 + i, 1 + j, dpage), 3
+      putpixel bx * 20 + i, by * 20 + j, readpixel(1 + i, 1 + j, dpage), 3
      NEXT j
     NEXT i
     GOSUB refreshbig
+    rectangle 0, 0, 22, 22, 0, dpage
     hold = 0
    ELSE
     hold = 3
@@ -895,13 +906,13 @@ SELECT CASE tool
   rectangle 19, 119, 22, 22, 15, dpage
   FOR i = 0 TO 19
    FOR j = 0 TO 19
-    rectangle 20 + i, 120 + j, 1, 1, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
+    putpixel 20 + i, 120 + j, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
    NEXT j
   NEXT i
   airbrush 20 + x, 120 + y, airsize, mist, cc, dpage
   FOR i = 0 TO 19
    FOR j = 0 TO 19
-    rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(20 + i, 120 + j, dpage), 3
+    putpixel bx * 20 + i, by * 20 + j, readpixel(20 + i, 120 + j, dpage), 3
    NEXT j
   NEXT i
   GOSUB refreshbig
@@ -919,12 +930,12 @@ FOR i = 0 TO 19
  FOR j = 0 TO 19
   tempx = (i + shiftx + 20) MOD 20
   tempy = (j + shifty + 20) MOD 20
-  rectangle tempx, tempy, 1, 1, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
+  putpixel tempx, tempy, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
  NEXT j
 NEXT i
 FOR i = 0 TO 19
  FOR j = 0 TO 19
-  rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(i, j, dpage), 3
+  putpixel bx * 20 + i, by * 20 + j, readpixel(i, j, dpage), 3
  NEXT j
 NEXT i
 GOSUB refreshbig
@@ -971,12 +982,12 @@ FOR i = 0 TO 19
   tempx = ABS(i - flipx)
   tempy = ABS(j - flipy)
   IF (zone = 15 OR zone = 16) OR (keyval(26) > 1 OR keyval(27) > 1) THEN SWAP tempx, tempy
-  rectangle tempx, tempy, 1, 1, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
+  putpixel tempx, tempy, readpixel(bx * 20 + i, by * 20 + j, 3), dpage
  NEXT j
 NEXT i
 FOR i = 0 TO 19
  FOR j = 0 TO 19
-  rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(i, j, dpage), 3
+  putpixel bx * 20 + i, by * 20 + j, readpixel(i, j, dpage), 3
  NEXT j
 NEXT i
 GOSUB refreshbig
@@ -1021,7 +1032,7 @@ DO
    setkeys
    FOR i = 0 TO 19
     FOR j = 0 TO 19
-     rectangle bx * 20 + i, by * 20 + j, 1, 1, readpixel(cutx + i, cuty + j, 2), 3
+     putpixel bx * 20 + i, by * 20 + j, readpixel(cutx + i, cuty + j, 2), 3
     NEXT j
    NEXT i
    IF gotm THEN
@@ -1073,7 +1084,7 @@ paste:
 IF canpaste = 0 THEN RETURN
 FOR i = 0 TO 19
  FOR j = 0 TO 19
-  rectangle bx * 20 + i, by * 20 + j, 1, 1, cutnpaste(i, j), 3
+  putpixel bx * 20 + i, by * 20 + j, cutnpaste(i, j), 3
 NEXT j: NEXT i
 RETURN
 
@@ -1081,7 +1092,7 @@ transpaste:
 IF canpaste = 0 THEN RETURN
 FOR i = 0 TO 19
  FOR j = 0 TO 19
-  IF cutnpaste(i, j) THEN rectangle bx * 20 + i, by * 20 + j, 1, 1, cutnpaste(i, j), 3
+  IF cutnpaste(i, j) THEN putpixel bx * 20 + i, by * 20 + j, cutnpaste(i, j), 3
  NEXT j
 NEXT i
 RETURN
@@ -1621,25 +1632,26 @@ IF mouse(3) = 1 AND zone = 3 AND col > 0 THEN
  POKE col, INT(INT(zoy / 6) * 16) + INT(zox / 4)
 END IF
 IF keyval(56) = 0 THEN
- IF keyval(72) > 0 THEN
-  y = large(0, y - 1)
-  IF zone = 1 THEN mouse(1) = mouse(1) - zoom: movemouse mouse(0), mouse(1)
-  IF zone = 14 THEN mouse(1) = mouse(1) - 1: movemouse mouse(0), mouse(1)
- END IF
- IF keyval(80) > 0 THEN
-  y = small(yw - 1, y + 1)
-  IF zone = 1 THEN mouse(1) = mouse(1) + zoom: movemouse mouse(0), mouse(1)
-  IF zone = 14 THEN mouse(1) = mouse(1) + 1: movemouse mouse(0), mouse(1)
- END IF
- IF keyval(75) > 0 THEN
-  x = large(0, x - 1)
-  IF zone = 1 THEN mouse(0) = mouse(0) - zoom: movemouse mouse(0), mouse(1)
-  IF zone = 14 THEN mouse(0) = mouse(0) - 1: movemouse mouse(0), mouse(1)
- END IF
- IF keyval(77) > 0 THEN
-  x = small(xw - 1, x + 1)
-  IF zone = 1 THEN mouse(0) = mouse(0) + zoom: movemouse mouse(0), mouse(1)
-  IF zone = 14 THEN mouse(0) = mouse(0) + 1: movemouse mouse(0), mouse(1)
+ fixmouse = 0
+ IF keyval(72) > 0 THEN y = large(0, y - 1): fixmouse = 1
+ IF keyval(80) > 0 THEN y = small(yw - 1, y + 1): fixmouse = 1
+ IF keyval(75) > 0 THEN x = large(0, x - 1): fixmouse = 1
+ IF keyval(77) > 0 THEN x = small(xw - 1, x + 1): fixmouse = 1
+ IF fixmouse THEN
+  IF zone = 1 THEN
+   zox = x * zoom + INT(zoom / 2)
+   zoy = y * zoom + INT(zoom / 2)
+   mouse(0) = area(0,0) + zox 
+   mouse(1) = area(0,1) + zoy
+   movemouse mouse(0), mouse(1)
+  END IF 
+  IF zone = 14 THEN
+   zox = x
+   zoy = y
+   mouse(0) = area(13,0) + zox 
+   mouse(1) = area(13,1) + zoy
+   movemouse mouse(0), mouse(1)
+  END IF
  END IF
 END IF
 IF zone = 1 THEN
@@ -1808,7 +1820,7 @@ DO
  IF keyval(75) > 0 THEN gx = large(gx - (1 + (keyval(56) * 8)), 1)
  IF keyval(77) > 0 THEN gx = small(gx + (1 + (keyval(56) * 8)), edjx)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
- rectangle gx, gy, 1, 1, 15 + tog, dpage
+ putpixel gx, gy, 15 + tog, dpage
  edgeprint "Pick Background Color", 0, 190, 7, dpage
  SWAP vpage, dpage
  setvispage vpage
@@ -1822,10 +1834,10 @@ temp = readpixel(gx, gy, 2)
 FOR i = 1 TO edjx
  FOR o = 1 TO edjy
   IF readpixel(i, o, 2) = temp THEN
-   rectangle i, o, 1, 1, 0, 2
+   putpixel i, o, 0, 2
   ELSE
    IF readpixel(i, o, 2) = 0 THEN
-    rectangle i, o, 1, 1, temp, 2
+    putpixel i, o, temp, 2
    END IF
   END IF
  NEXT o
@@ -1879,7 +1891,7 @@ putdot:
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 IF oldx = -1 AND oldy = -1 THEN
  GOSUB writeundospr
- rectangle 239 + x, 119 + y, 1, 1, col, dpage
+ putpixel 239 + x, 119 + y, col, dpage
 ELSE
  drawline 239 + x, 119 + y, 239 + oldx, 119 + oldy, col, dpage
 END IF
@@ -1939,7 +1951,7 @@ drawsprite placer(), 0, workpal(), 0, 239, 119, dpage
 IF box = 1 THEN
  defseg(varseg(workpal(0)))
  rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, PEEK(col), dpage
- rectangle 239 + bx, 119 + by, 1, 1, tog * 15, dpage
+ putpixel 239 + bx, 119 + by, tog * 15, dpage
 END IF
 IF drl = 1 THEN
  defseg(varseg(workpal(0)))
@@ -1956,7 +1968,7 @@ IF tool = 5 THEN
  ellipse 239 + x, 119 + y, airsize / 2, PEEK(col), dpage, 0, 0
  ellipse 5 + (x * zoom), 2 + (y * zoom), (airsize / 2) * zoom, PEEK(col), dpage, 0, 0
 END IF
-rectangle 239 + x, 119 + y, 1, 1, tog * 15, dpage
+putpixel 239 + x, 119 + y, tog * 15, dpage
 textcolor 7, 0
 printstr info$(num), 0, 182, dpage
 printstr "Tool:" + tool$(tool), 0, 190, dpage
