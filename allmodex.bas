@@ -2072,8 +2072,13 @@ SUB readmouse (mbuf() as integer)
 	'mc = mouseclicked, only set (to 1) if this is a new left-click
 	'faking the effect of dos int33h cmd 5
 	mc = 0
-	if lastb = 0 and mb = 1 then mc = 1
-	lastb = mb
+	if (mb < 0) then
+		'off screen, preserve last button state
+		mb = lastb
+	else
+		if lastb = 0 and mb = 1 then mc = 1
+		lastb = mb
+	end if
 
 	mbuf(0) = mx
 	mbuf(1) = my
