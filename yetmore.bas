@@ -1178,7 +1178,7 @@ SELECT CASE id
   wrappedsong retvals(0)
  CASE 29'--stop song
   stopsong
- CASE 30'--key is pressed
+ CASE 30'--keyval
   scriptret = keyval(retvals(0))
  CASE 31'--rank in caterpillar
   scriptret = rankincaterpillar(retvals(0))
@@ -1646,6 +1646,8 @@ SELECT CASE id
   debug "TRACE: " + plotstring$(bound(retvals(0),0,31))
  CASE 233'--get song name
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 THEN plotstring$(retvals(0)) = getsongname$(retvals(1))
+ CASE 235'--key is pressed
+  IF keyval(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
 END SELECT
 
 EXIT SUB
