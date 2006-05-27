@@ -841,7 +841,7 @@ SUB setkeys ()
 				'ok to fire a key event
 				if keysteps(a) = -1 then
 					'this is a new keypress
-					keysteps(a) = 3
+					keysteps(a) = 7
 				else
 					keysteps(a) = 1
 				end if
