@@ -957,6 +957,69 @@ end</example>
 			<shortname>write color</shortname>
 			<description>Writes a color value into the master palette. The first argument is the index in the palette to write to, 0 to 255. The second argument is the color value to write, red, green, or blue. You can use 0,1, and 2, or you can use the predefined constants <ref>colorred</ref>, <ref>colorgreen</ref>, and <ref>colorblue</ref>. The third argument is the color value to write. It can be in the range of 0 to 63. Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref> The counterpart to this is <ref>readcolor</ref>. Changes to the master palette last as long as you are playing, but are not stored in saved-games. If you need to make master-palette changes persist in saved-games you will have to use the on-load plotscript trigger.</description>
 		</command>
+	  <command id="loadsound">
+	    <cannon>load sound (slot,sfx)</cannon>
+	    <shortname>load sound</shortname>
+	    <description>Loads sound effect <p>sfx</p> into sound effect #<p>slot</p>. A sound effect must be loaded before it can be played. It can be unloaded, thus freeing the slot, with <ref>freesound</ref>. If -1 is specified for <p>slot</p>, a free slot will be automatically picked for you. The slot number is returned regardless.<lb/>
+	    If you try to load into a slot that already has a sound effect, the old sound effect will be stopped (if it&apos;s playing) and unloaded first. If you use an auto slot (-1), no sound effects will be unloaded, and if there are no more available slots, -1 will be returned.
+	    </description>
+	    <seealso>
+	      <ref>freesound</ref>
+	      <ref>playsound</ref>
+	    </seealso>
+	  </command>
+	  <command id="freesound">
+	    <cannon>free sound (slot)</cannon>
+	    <shortname>free sound</shortname>
+	    <description>Unloads and frees a sound effect slot. Not really necessary unless you use the autonumbering feature, or if you have very large sounds. <p>slot</p> is the slot to free.</description>
+	    <seealso>
+	      <ref>loadsound</ref>
+	    </seealso>
+	  </command>
+	  <command id="playsound">
+	    <cannon>play sound (slot,loop,preempt)</cannon>
+	    <shortname>play sound</shortname>
+	    <description>Plays or resumes a loaded sound effect slot. Pass <ref>true</ref> to <p>loop</p> if you want the sound effect to start over when it plays instead of stopping. Pass <ref>true</ref> to <p>preempt</p> if you want to automatically stop the sound before playing it. If <p>preempt</p> is <ref>false</ref>, and the slot is already playing, this command will do nothing.<lb/>Remember: <p>slot</p> is a sound effect slot (loaded with <ref>loadsound</ref>), not a sound effect number (eg, sfx:coin).</description>
+	    <seealso>
+	      <ref>stopsound</ref>
+	      <ref>loadsound</ref>
+	    </seealso>
+	  </command>
+	  <command id="stopsound">
+	    <cannon>stop sound (slot)</cannon>
+	    <shortname>stop sound</shortname>
+	    <description>Stops a sound effect slot. If the slot is empty or not playing, nothing will happen.</description>
+	    <seealso>
+	      <ref>playsound</ref>
+	      <ref>freesound</ref>
+	    </seealso>
+	  </command>
+	  <command id="pausesound">
+	    <cannon>pause sound (slot)</cannon>
+	    <shortname>pause sound</shortname>
+	    <description>Temporarily stops a sound effect slot. It can be resumed with <ref>playsound</ref>, wherein it will continue from whence it left off.</description>
+	    <seealso>
+	      <ref>playsound</ref>
+	    </seealso>
+	  </command>
+	  <command id="soundisplaying">
+	    <cannon>sound is playing (slot)</cannon>
+	    <shortname>sound is playing</shortname>
+	    <description>Checks to see whether a sound slot is playing or not. Useful for synchronization, etc. </description>
+	    <seealso>
+	      <ref>playsound</ref>
+	      <ref>stopsound</ref>
+	    </seealso>
+	  </command>
+	  <command id="soundslots">
+	    <cannon>sound slots</cannon>
+	    <shortname>sound slots</shortname>
+	    <description>Returns the number of available slots, in total. 99% of the time, this returns 8, but this number may be limited by different hardware.</description>
+	    <seealso>
+	      <ref>loadsound</ref>
+	      <ref>freesound</ref>
+	    </seealso>
+	  </command>
 	</section>
 	<section title="Hero&apos;s Spells">
 		<command id="teachspell">
@@ -1283,7 +1346,7 @@ end</example>
 		<command id="npcextra">
 			<cannon>NPC extra (who,which)</cannon>
 			<shortname>NPC extra</shortname>
-			<description>Returns the npc instance-specific extra data field requested in <p>which</p>. You may use the constants <ref>extra 1</ref> and <ref>extra 2</ref> to refer to them. If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
+			<description>Returns the npc instance-specific extra data field requested in <p>which</p>. You may use the constants <ref>extra1</ref> and <ref>extra2</ref> to refer to them. If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
 			<seealso>
 		        <ref>setnpcextra</ref>	
             </seealso>
@@ -1291,7 +1354,7 @@ end</example>
 		<command id="setnpcextra">
 			<cannon>set NPC extra (who,which, value)</cannon>
 			<shortname>set NPC extra</shortname>
-			<description>Sets the npc instance-specific extra data field requested in <p>which</p>. You may use the constants <ref>extra 1</ref> and <ref>extra 2</ref> to refer to them.  If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
+			<description>Sets the npc instance-specific extra data field requested in <p>which</p>. You may use the constants <ref>extra1</ref> and <ref>extra2</ref> to refer to them.  If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
 			<seealso>
 		    <ref>npcextra</ref>	
 		  </seealso>
