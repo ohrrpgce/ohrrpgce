@@ -91,7 +91,7 @@ define function, begin
 80,currentmap,0             # returns the number of the current map
 81,setherospeed,2,0,4       # changes a heros walking speed
 82,inventory,1,0            # returns the count of a given item
-83,setherostat,4,0,0,1,0    # alters a hero's stats (who,stat,cur/max,value)
+83,setherostat,4,0,0,1,0    # alters a hero's stats (who,stat,value,cur/max)
 84,suspendboxadvance,0      # prevents user from advancing text boxes
 85,resumeboxadvance,0       # reverses suspendboxadvance
 86,advancetextbox,0         # as if the user had pressed a key

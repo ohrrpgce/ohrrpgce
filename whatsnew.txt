@@ -8,6 +8,9 @@ WHAT IS NEW?
       behaviour [James Paige]
 
   * Bug Fixes
+    * Fixed bug 163, a random crash in the music import screen. [Simon, Mike]
+    * Bug 176: "Some files appear as subdirectories in Windows browsers" 
+      [Ralph Versteegen]
     * Fixed an ancient bug in both the Sprite editor and the MapTile editor
       which caused the keyboard control to lag whenever the mouse cursor
       was over the drawing area. [James Paige]
@@ -22,7 +25,8 @@ WHAT IS NEW?
 
   * New Plotscripting Commands
     * "keyval"
-    * Existing commands we forgot to mention at the time: "last ascii",       "string compare"
+    * Existing commands we forgot to mention at the time: "last ascii",
+      "string compare"
 
 Mar 15 2006 [tirgoviste]
   * New Features
