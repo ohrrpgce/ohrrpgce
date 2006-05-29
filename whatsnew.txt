@@ -50,6 +50,9 @@ WHAT IS NEW?
     * "npc extra", "set npc extra" [Mike Caron]
     * "keyval"
 
+    * Existing commands we forgot to mention at the time: "last ascii", 
+      "string compare"
+
   * Stuff only Developers Will Notice
     * Some rewritten map wrapping code [Ralph Versteegen]
     * Reformatted NPC data with UDTs
