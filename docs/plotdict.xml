@@ -1050,7 +1050,7 @@ end</example>
 		<command id="showstring">
 			<cannon>show string (ID)</cannon>
 			<shortname>show string</shortname>
-			<description>Displays string #ID on the screen, as with the <ref>showvalue</ref> command. Use <ref>shownovalue</ref> to remove the string from the screen. Note that this command displays the value of the string at the moment the command was run. Later changes to the value of the string will not appear unless you run show string again. If you need real-time display of changes to a string, use <ref>showstringat</ref> or <ref>centerstringat</ref> instead.</description>
+			<description>Displays string #ID in the bottom left corner of the screen, as with the <ref>showvalue</ref> command. Use <ref>shownovalue</ref> to remove the string from the screen. Note that this command displays the value of the string at the moment the command was run. Later changes to the value of the string will not appear unless you run show string again. If you need real-time display of changes to a string, use <ref>showstringat</ref> or <ref>centerstringat</ref> instead.</description>
 			<seealso>
 				<ref>showvalue</ref>
 				<ref>shownovalue</ref>
@@ -1089,7 +1089,12 @@ end</example>
 			<cannon>string length (ID)</cannon>
 			<shortname>string length</shortname>
 			<description>Returns the length of string #<p>ID</p>.</description>
-		</command>
+        </command>
+		<command id="stringcompare">
+			<cannon>string compare (ID1, ID2)</cannon>
+			<shortname>string command</shortname>
+            <description>Returns true if the two strings #<p>ID1</p> and #<p>ID2</p> are identical, case sensitive.</description>
+ 		</command>
 		<command id="replacechar">
 			<cannon>replace char (ID, position, char)</cannon>
 			<shortname>replace char</shortname>
@@ -1099,7 +1104,12 @@ end</example>
 			<cannon>delete char (ID, position)</cannon>
 			<shortname>delete char</shortname>
 			<description>This deletes the character at <p>postion</p> in string #<p>ID</p>, causing all the following characters to move over a slot.</description>
-		</command>
+        </command>
+		<command id="asciifromstring">
+			<cannon>ascii from string (ID, position)</cannon>
+			<shortname>ascii from string</shortname>
+			<description>Returns the ascii code of the character at <p>position</p> in string #<p>ID</p>.</description>
+ 		</command>
 		<command id="stringtoglobals">
 			<cannon>string to globals (ID, starting global, length)</cannon>
 			<shortname>string to globals</shortname>
@@ -1165,12 +1175,12 @@ end</example>
 		<command id="stringstyle">
 			<cannon>string style (ID, style)</cannon>
 			<shortname>string style</shortname>
-			<description>Changes the appearance of a string previously displayed with <ref>showstringat</ref> or <ref>centerstringat</ref>. Choice of <p>style</p> is string:outline and string:flat</description>
+			<description>Changes the appearance of a string previously displayed with <ref>showstringat</ref> or <ref>centerstringat</ref>. Choice of <p>style</p> is string:outline and string:flat. string:outline is the style of string you are familiar with in textboxes: they are outlined with colour 0 (black). string:flat have not outline but can have a solid background of any colour behind the string.</description>
 		</command>
 		<command id="stringcolor">
 			<cannon>string color (ID, foreground color, background color)</cannon>
 			<shortname>string color</shortname>
-			<description>Changes the color of a string previously displayed with <ref>showstringat</ref> or <ref>centerstringat</ref>. Use 0 for transparent, and 1 to 255 for each different color in the palette. If you ommit <p>background color</p>, the background will be transparent.</description>
+			<description>Changes the color of a string previously displayed with <ref>showstringat</ref> or <ref>centerstringat</ref>. Foreground color is the colour of the text itself. Background color has no meaning for style:outline strings (the outline is always black). For style:flat strings, it is the color of the solid background if 1 to 255, or causes no background if 0. If you ommit <p>background color</p>, the background will be transparent.</description>
 		</command>
 		<command id="positionstring">
 			<cannon>positionstring (ID, x, y)</cannon>
@@ -1180,12 +1190,12 @@ end</example>
 		<command id="stringx">
 			<cannon>string X (ID)</cannon>
 			<shortname>string X</shortname>
-			<description>returns the horizontal X position of the top left corner of string #<p>ID</p></description>
+			<description>Returns the horizontal X position of the top left corner of string #<p>ID</p></description>
 		</command>
 		<command id="stringy">
 			<cannon>string Y (ID)</cannon>
 			<shortname>string Y</shortname>
-			<description>returns the vertical Y position of the top left corner of string #<p>ID</p></description>
+			<description>Returns the vertical Y position of the top left corner of string #<p>ID</p></description>
 		</command>
 		<command id="getsongname">
 			<cannon>get song name (ID, song)</cannon>
@@ -1353,7 +1363,12 @@ end</example>
 			<cannon>keyval (scancode)</cannon>
 			<shortname>keyval (scancode)</shortname>
             <description>Returns a bitmask for the state of the specified key. The argument is a scancode, see <ref>keyispressed</ref>. The first (least significant) bit is whether the key was depressed at the beginning of the current tick. The second bit is whether the key was pushed down by the player since the start of the previous tick (or when the key starts to repeatedly trigger after being held down for a while). It can therefore return 0, 1, 2 or 3: <lb/><lb/>0 = not pressed<lb/>1 = key held down since last tick, but is not a new press<lb/>2 = the player pressed the key and released it, all in the same tick<lb/>3 = new keypress (or typematic repeat)<lb/><lb/>Note: just like <ref>keyispressed</ref>, this command does not return real time data, but the situation at the beginning of the current game tick.</description>
-		</command>
+        </command>
+		<command id="lastascii">
+			<cannon>last ascii</cannon>
+			<shortname>last ascii</shortname>
+			<description>Returns the ascii code of any currently pressed key. If more than one key corresponding to an ascii character is being pressed, then only one can be returned.</description>
+ 		</command>
 		<command id="heropixelx">
 			<cannon>hero pixel X (who)</cannon>
 			<shortname>hero pixel X (who)</shortname>

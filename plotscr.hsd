@@ -515,55 +515,55 @@ script,set load script,ID,begin
   write general(57,ID)
 end
 
-define script(autonumber,set battle wait mode,1,0)
+define script(autonumber,set battle wait mode,1,1)
 script,set battle wait mode,bit,begin
   if(bit) then(bit:=1)
   write general(101,(read general(101),and,32766)+bit)
 end
 
-define script(autonumber,set caterpillar mode,1,0)
+define script(autonumber,set caterpillar mode,1,1)
 script,set caterpillar mode,bit,begin
   if(bit) then(bit:=2)
   write general(101,(read general(101),and,32765)+bit)
 end
 
-define script(autonumber,set no HP level up restore,1,0)
+define script(autonumber,set no HP level up restore,1,1)
 script,set no HP level up restore,bit,begin
   if(bit) then(bit:=4)
   write general(101,(read general(101),and,32763)+bit)
 end
 
-define script(autonumber,set no MP level up restore,1,0)
+define script(autonumber,set no MP level up restore,1,1)
 script,set no MP level up restore,bit,begin
   if(bit) then(bit:=8)
   write general(101,(read general(101),and,32759)+bit)
 end
 
-define script(autonumber,set inn no revive mode,1,0)
+define script(autonumber,set inn no revive mode,1,1)
 script,set inn no revive mode,bit,begin
   if(bit) then(bit:=16)
   write general(101,(read general(101),and,32751)+bit)
 end
 
-define script(autonumber,set full hero swap mode,1,0)
+define script(autonumber,set full hero swap mode,1,1)
 script,set full hero swap mode,bit,begin
   if(bit) then(bit:=32)
   write general(101,(read general(101),and,32735)+bit)
 end
 
-define script(autonumber,hide battle ready meter,1,0)
+define script(autonumber,hide battle ready meter,1,1)
 script,hide battle ready meter,bit,begin
   if(bit) then(bit:=64)
   write general(101,(read general(101),and,32703)+bit)
 end
 
-define script(autonumber,hide battle health meter,1,0)
+define script(autonumber,hide battle health meter,1,1)
 script,hide battle health meter,bit,begin
   if(bit) then(bit:=128)
   write general(101,(read general(101),and,32639)+bit)
 end
 
-define script(autonumber,set debug keys disable,1,0)
+define script(autonumber,set debug keys disable,1,1)
 script,set debug keys disable,bit,begin
   if(bit) then(bit:=256)
   write general(101,(read general(101),and,32511)+bit)
@@ -674,7 +674,7 @@ script,set on keypress script,ID,begin
   write gmap(15,ID)
 end
 
-define script(autonumber,draw npcs above heroes,1,0)
+define script(autonumber,draw npcs above heroes,1,1)
 script,draw npcs above heroes,setting,begin
   write gmap(16,setting)
 end

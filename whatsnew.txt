@@ -22,6 +22,7 @@ WHAT IS NEW?
 
   * New Plotscripting Commands
     * "keyval"
+    * Existing commands we forgot to mention at the time: "last ascii",       "string compare"
 
 Mar 15 2006 [tirgoviste]
   * New Features
