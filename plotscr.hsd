@@ -255,7 +255,7 @@ autonumber,centerstringat,3,0,0,0   #positions a string on the screen and makes 
 autonumber,hidestring,1,0           #makes a visible string invisible(stringID)
 autonumber,stringstyle,2,0,0        #changes a string's style: outline,flat(stringID,style)
 autonumber,lastascii,0			#returns the ascii code of the key being held down
-autonumber,inputstring,3,0,0,0	#allows the player to input a string. Returns false on ESC. (string,max len,use cur)
+autonumber,inputstring,6,1,40,0,1,160,110	#allows the player to input a string. Returns false on ESC. (string,max len,use cur)
 end
 
 script,walkherotoX,who,n,begin
@@ -432,12 +432,14 @@ script, last ascii, begin
 
 end
 
-script, input string, str, max len, useexist, begin
+script, input string, str, max len, useexist, center, positionx, positiony , begin
 	variable(done, key,count)
-	if(useexist==false) then (clear string(str))
-	count := string length(str)
+        if(useexist==false) then (clear string(str))
 	while(done == false) do, begin
-		center string at(str,160,110)
+	count := string length(str)
+              if(center==1)then(
+		center string at(str,positionx,positiony)
+		)else(show string at(str,positionx,positiony))
 		wait for key
 		if(key is pressed(28)) then (done := true, return(true)) else, begin
 			if(key is pressed(14)) then (delete char(str,string length(str)))

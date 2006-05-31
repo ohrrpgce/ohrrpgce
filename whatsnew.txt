@@ -2,12 +2,15 @@ WHAT IS NEW?
 
 ??? ?? 2006 [hasta-la-qb]
   * New Features
+    * Input string gets 3 new arguments, center, positionx, positiony.
+      It also behaves a little different now.(Yuriy)
     * Hspeak.exe now waits for a keypress when finished, which should avoid
       a lot of confusion for new plotscripters who are unfamiliar with
       command-line tools. Also added -k option to supress this new
       behaviour [James Paige]
-
   * Bug Fixes
+    * Fixed bug in inputstring, now if you press delete it actually deletes 
+      the character, after which you can type in a new character.(Yuriy)
     * Fixed bug 163, a random crash in the music import screen. [Simon, Mike]
     * Bug 176: "Some files appear as subdirectories in Windows browsers" 
       [Ralph Versteegen]
@@ -26,7 +29,7 @@ WHAT IS NEW?
   * New Plotscripting Commands
     * "keyval"
     * Existing commands we forgot to mention at the time: "last ascii",
-      "string compare"
+      "string compare", "asciifromstring"
 
 Mar 15 2006 [tirgoviste]
   * New Features
