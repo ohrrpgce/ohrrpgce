@@ -201,6 +201,11 @@ define function, begin
 192,npcframe,1,0            # get npc walkabout frame
 193,npcextra,2,0,1          # get npc extra data (ref, 1 or 2)
 194,setnpcextra,3,0,1,0     # set npc extra data (ref, 1 or 2,what)
+195,loadsound,2,0,0         # loads a sound into a slot(slot, sfx)
+196,freesound,1,1           # frees an sfx slot(slot) #not strictly necessary, but...
+197,playsound,3,1,0,0       # plays an sfx slot(slot, loop?, preempt?)
+198,pausesound,1,1          # pauses an sfx slot(slot) (stop, but don't rewind)
+199,stopsound,1,1           # stops an sfx slot(slot)  (stop, and rewind)
 200,system hour,0
 201,system minute,0
 202,system second,0
@@ -237,6 +242,8 @@ define function, begin
 233,getsongname,2,0,0         #get song name and store in string
 234,loadmenu,1,-1             #show loadmenu (really load/quit?)
 235,keyispressed,1,0          #check key by scancode, returns a bool
+236,soundisplaying,1,1        #checks to see if a slot is playing (slot)
+237,soundslots,0              #returns the number of slots available
 end
 
 #--------------------------------------------------------------------------
@@ -258,8 +265,8 @@ autonumber,showstringat,3,0,0,0     #positions a string on the screen and makes 
 autonumber,centerstringat,3,0,0,0   #positions a string on the screen and makes it visible(stringID,x,y)
 autonumber,hidestring,1,0           #makes a visible string invisible(stringID)
 autonumber,stringstyle,2,0,0        #changes a string's style: outline,flat(stringID,style)
-autonumber,lastascii,0			#returns the ascii code of the key being held down
-autonumber,inputstring,3,0,0,0	#allows the player to input a string. Returns false on ESC. (string,max len,use cur)
+autonumber,lastascii,0			        #returns the ascii code of the key being held down
+autonumber,inputstring,6,0,0,0,-1,160,110#allows the player to input a string. Returns false on ESC. (string,max len,use cur, center,x,y)
 end
 
 script,walkherotoX,who,n,begin
@@ -437,12 +444,16 @@ end
 
 script, input string, str, max len, useexist, center, positionx, positiony , begin
 	variable(done, key,count)
-        if(useexist==false) then (clear string(str))
+  if(useexist==false) then (clear string(str))
+  if(center<>-1) then, begin
+    if(center==1)then, begin
+		  center string at(str,positionx,positiony)
+		end, else, begin
+		  show string at(str,positionx,positiony)
+		end
+  end
 	while(done == false) do, begin
-	count := string length(str)
-              if(center==1)then(
-		center string at(str,positionx,positiony)
-		)else(show string at(str,positionx,positiony))
+	  count := string length(str)
 		wait for key
 		if(key is pressed(28)) then (done := true, return(true)) else, begin
 			if(key is pressed(14)) then (delete char(str,string length(str)))
