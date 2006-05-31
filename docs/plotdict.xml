@@ -1231,9 +1231,9 @@ end</example>
 			<description>This command will take the name of global string #<p>global</p> and stick it in string #<p>ID</p>, overwriting its contents. Global strings include every text string in the game, such as prompts and messages. See a the Global String Editor in CUSTOM for a list of all of them. Due to the way global strings are stored internally, not all values of #<p>global</p> will produce valid results. <!-- need a table of them here? ot at least on the wiki? --></description>
 		</command>
 		<command id="inputstring">
-			<cannon>input string (ID, use current)</cannon>
+			<cannon>input string (ID, maxlength, use current, center, positionx, positiony)</cannon>
 			<shortname>input string</shortname>
-			<description>Allows the player to type in a string. Returns false if they press ESC to cancel.</description>
+			<description>Allows the player to type in a string. Returns false if they press ESC to cancel. <p>ID</p> is the string you want to use, default is string #1. <p>maxlen</p> is the length of input, if left blank the limit will be the limit of the string, which is 40. <p>use current</p> is whether you want to add to the existing string, or clear the string before typing. Default is clear the string before typing, valid arguments are <ref>true</ref> or <ref>false</ref>. <p>center</p> centers the string input at position x/y. If left blank the default will be to center the string. Valid arguments are <ref>true</ref> or <ref>false</ref>. <p>positionx</p> and <p>positiony</p> is where you want to show the string while you type it. The default values are 160,110.</description>
 		</command>
 		<command id="showstringat">
 			<cannon>show string at (ID, x, y)</cannon>

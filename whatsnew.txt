@@ -2,6 +2,8 @@ WHAT IS NEW?
 
 ??? ?? 2006 [ubersetzung]
   * New Features
+    * Input string gets 3 new arguments, center, positionx, positiony.
+      (Yuriy)
     * 8-bit bitmaps can now be imported as backdrops and tilesets (pre-index
       your tilesets using Photoshop, etc. to use this. YOU MUST INDEX THEM WITH
       THE MASTER PALETTE, custom won't re-map the colours). 8-bit bitmaps are
@@ -17,6 +19,8 @@ WHAT IS NEW?
       script or global. [James Paige]
 
   * Bug Fixes
+    * Fixed bug in inputstring, now if you press delete it actually deletes 
+      the character, after which you can type in a new character.(Yuriy)
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
       hero at the opposite edge" and bug 27: "NPCs cannot walk across the
       edges of a wraparound map" (consider that a feature if you want) 
