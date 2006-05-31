@@ -1153,19 +1153,19 @@ end</example>
 			<description>This command will take the name of global string #<p>global</p> and stick it in string #<p>ID</p>, overwriting its contents. Global strings include every text string in the game, such as prompts and messages. See a the Global String Editor in CUSTOM for a list of all of them. Due to the way global strings are stored internally, not all values of #<p>global</p> will produce valid results. <!-- need a table of them here? ot at least on the wiki? --></description>
 		</command>
 		<command id="inputstring">
-			<cannon>input string (ID, maxlength, use current, center, positionx, positiony)</cannon>
+			<cannon>input string (ID, maxlength, use current, center, position x, position y)</cannon>
 			<shortname>input string</shortname>
-			<description>Allows the player to type in a string. Returns false if they press ESC to cancel. <p>ID</p> is the string you want to use, default is string #1. <p>maxlen</p> is the length of input, if left blank the limit will be the limit of the string, which is 40. <p>use current</p> is whether you want to add to the existing string, or clear the string before typing. Default is clear the string before typing, valid arguments are <ref>true</ref> or <ref>false</ref>. <p>center</p> centers the string input at position x/y. If left blank the default will be to center the string. Valid arguments are <ref>true</ref> or <ref>false</ref>. <p>positionx</p> and <p>positiony</p> is where you want to show the string while you type it. The default values are 160,110.</description>
+			<description>Allows the player to type in a string. Returns false if they press ESC to cancel. <p>ID</p> is the string you want to use, default is string #1. <p>maxlen</p> is the length of input, if left blank the limit will be the limit of the string, which is 40. <p>use current</p> is whether you want to add to the existing string, or clear the string before typing. Default is clear the string before typing, valid arguments are <ref>true</ref> or <ref>false</ref>. <p>center</p> centers the string input at position x/y. If left blank the string will use its current positioning. Otherwise, valid arguments are <ref>true</ref> or <ref>false</ref>. <p>position x</p> and <p>position y</p> are optional, and are the position at which the string will be shown as it is being typed. The default values are 160,110.</description>
 		</command>
 		<command id="showstringat">
 			<cannon>show string at (ID, x, y)</cannon>
 			<shortname>show string at</shortname>
-			<description>Displays string #<p>ID</p> on the screen, positioning its top left corner at the given <p>x</p>,<p>y</p> coordinates. Unlike <ref>showstring</ref>, changes to the string will be displayed in real-time.</description>
+			<description>Displays string #<p>ID</p> on the screen, positioning its top left corner at the given (<p>x</p>,<p>y</p>) coordinates. Unlike <ref>showstring</ref>, changes to the string will be displayed in real-time.</description>
 		</command>
 		<command id="centerstringat">
 			<cannon>center string at (ID, x, y)</cannon>
 			<shortname>center string at</shortname>
-			<description>Displays string #<p>ID</p> on the screen, Centering it at the given <p>x</p>,<p>y</p> coordinates. Unlike <ref>showstring</ref>, changes to the string will be displayed in real-time.</description>
+			<description>Displays string #<p>ID</p> on the screen, positioning its top-middle at the given (<p>x</p>,<p>y</p>) coordinates. Unlike <ref>showstring</ref>, changes to the string will be displayed in real-time.</description>
 		</command>
 		<command id="hidestring">
 			<cannon>hide string (ID)</cannon>
