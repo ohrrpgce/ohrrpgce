@@ -265,8 +265,8 @@ autonumber,showstringat,3,0,0,0     #positions a string on the screen and makes 
 autonumber,centerstringat,3,0,0,0   #positions a string on the screen and makes it visible(stringID,x,y)
 autonumber,hidestring,1,0           #makes a visible string invisible(stringID)
 autonumber,stringstyle,2,0,0        #changes a string's style: outline,flat(stringID,style)
-autonumber,lastascii,0			        #returns the ascii code of the key being held down
-autonumber,inputstring,6,0,40,0,-1,160,110#allows the player to input a string. Returns false on ESC. (string,max len,use cur, center,x,y)
+autonumber,lastascii,0              #returns the ascii code of the key being held down
+autonumber,inputstring,6,0,40,0,-1,160,110  #allows the player to input a string. Returns false on ESC. (string,max len,use cur,center,x,y)
 end
 
 script,walkherotoX,who,n,begin
@@ -442,29 +442,32 @@ script, last ascii, begin
 
 end
 
-script, input string, str, max len, useexist, center, positionx, positiony , begin
-	variable(done, key,count)
-  if(useexist==false) then (clear string(str))
-  if(center<>-1) then, begin
-    if(center==1)then, begin
-		  center string at(str,positionx,positiony)
-		end, else, begin
-		  show string at(str,positionx,positiony)
-		end
+script, input string, str, max len, useexist, center, positionx, positiony, begin
+  variable(done, key, show)
+  if(useexist) else(clear string(str))
+  while(string length(str)>>maxlen) do(delete char(str,string length(str)))
+  show:=getstringbit(str,0)==0
+  if(center==0) then(show string at(str,positionx,positiony)) else(
+    if(center==1,or,show) then(
+      center string at(str,positionx,positiony)
+    )
+  )
+  while(done == false) do, begin
+    if(center==1,or,(show,and,center<>0)) then(center string at(str,positionx,positiony))
+    wait for key
+    if(key is pressed(28)) then(done:=true, return(true)) else(
+      if(key is pressed(14)) then(delete char(str,string length(str)))
+      key:=last ascii
+      if(key, and, string length(str)<<max len) then(append ascii(str,key)) else(
+        while(key is pressed(1)) do, begin
+          done:=true
+          return(false)
+          if(read general(44),and,2) else(suspendplayer, wait, resumeplayer)
+        end
+      )
+    )
   end
-	while(done == false) do, begin
-	  count := string length(str)
-		wait for key
-		if(key is pressed(28)) then (done := true, return(true)) else, begin
-			if(key is pressed(14)) then (delete char(str,string length(str)))
-			if(key is pressed(1)) then (done:=true,return(false)) else, begin
-				key := last ascii
-				if(last ascii, and, count << max len) then(append ascii(str,key), count += 1, show value(max len -- count))
-			end
-		end
-	end
-	show no value
-	hide string
+  if(show) then(hide string)
 end
 
 #--------------------------------------------------------------------------
@@ -473,9 +476,9 @@ end
 define script(autonumber,getenemyname,2,0,0)
 script,getenemyname,enemyID,stringID,begin
 variable(t)
-   for (t,1,readenemydata(enemyID,0))do(
-     appendascii(stringID,readenemydata(enemyid,t))
-   end
+  for (t,1,readenemydata(enemyID,0))do(
+    appendascii(stringID,readenemydata(enemyid,t))
+  end
 end
 
 define script(autonumber,getenemystat,2,0,0)
