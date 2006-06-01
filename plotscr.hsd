@@ -266,7 +266,7 @@ autonumber,centerstringat,3,0,0,0   #positions a string on the screen and makes 
 autonumber,hidestring,1,0           #makes a visible string invisible(stringID)
 autonumber,stringstyle,2,0,0        #changes a string's style: outline,flat(stringID,style)
 autonumber,lastascii,0			        #returns the ascii code of the key being held down
-autonumber,inputstring,6,0,0,0,-1,160,110#allows the player to input a string. Returns false on ESC. (string,max len,use cur, center,x,y)
+autonumber,inputstring,6,0,40,0,-1,160,110#allows the player to input a string. Returns false on ESC. (string,max len,use cur, center,x,y)
 end
 
 script,walkherotoX,who,n,begin
