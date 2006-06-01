@@ -9,8 +9,8 @@ WHAT IS NEW?
       command-line tools. Also added -k option to supress this new
       behaviour [James Paige]
   * Bug Fixes
-    * Fixed bug in inputstring, now if you press delete it actually deletes 
-      the character, after which you can type in a new character.(Yuriy)
+    * Fixed a few bugs in inputstring, including backspace not working,
+      missing length checking and ESC popping up the menu [Yuriy, Ralph]
     * Fixed bug 163, a random crash in the music import screen. [Simon, Mike]
     * Bug 176: "Some files appear as subdirectories in Windows browsers" 
       [Ralph Versteegen]
@@ -28,8 +28,7 @@ WHAT IS NEW?
 
   * New Plotscripting Commands
     * "keyval"
-    * Existing commands we forgot to mention at the time: "last ascii",
-      "string compare", "asciifromstring"
+    * An existing command we forgot to mention in whatsnew: "string compare"
 
 Mar 15 2006 [tirgoviste]
   * New Features
