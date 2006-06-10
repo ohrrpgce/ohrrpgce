@@ -68,6 +68,7 @@ DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION validmusicfile(file$)
 DECLARE FUNCTION getsongname$ (num%)
+DECLARE FUNCTION getsfxname$ (num)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -85,6 +86,7 @@ browse$ = ""
 'special=3   background
 'special=4   master palette
 'special=5   any supported music (currently *.bam and *.mid)  (fmask$ is ignored)
+'special=6   any supported SFX (currently *.wav) (fmask$ is ignored)
 mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
 
@@ -172,6 +174,16 @@ DO
       END IF
      ELSE
       alert$ = tree$(treeptr) + " is not a valid music file"
+     END IF
+    END IF
+   CASE 6
+    stopsfx 0
+    IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
+     IF isawav(nowdir$ + tree$(treeptr)) THEN
+      loadsfx 0, nowdir$ + tree$(treeptr)
+      playsfx 0,0
+     ELSE
+      alert$ = tree$(treeptr) + " is not a valid sound effect"
      END IF
     END IF
   END SELECT
@@ -269,6 +281,10 @@ ELSE
   GOSUB addmatchs
   findfiles nowdir$ + "*.mid" + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
   GOSUB addmatchs
+ ELSEIF special = 6 THEN
+  '--disregard fmask$. one call per extension
+  findfiles nowdir$ + "*.wav" + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
+  GOSUB addmatchs
  ELSE
   findfiles nowdir$ + fmask$ + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
   GOSUB addmatchs
@@ -338,6 +354,11 @@ DO UNTIL EOF(fh) OR treesize >= 255
  '---music files
  IF special = 1 OR special = 5 THEN
   IF validmusicfile(nowdir$ + tree$(treesize)) = 0 THEN
+   treec(treesize) = 6
+  END IF
+ END IF
+ IF special = 6 THEN
+  IF isawav(nowdir$ + tree$(treesize)) = 0 THEN
    treec(treesize) = 6
   END IF
  END IF
@@ -524,6 +545,13 @@ printstr "song names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
 FOR i = 0 TO general(genMaxSong)
  writeconstant fh, i, getsongname$(i), u$(), "song"
+NEXT i
+setvispage 0
+
+printstr "sound effect names", 0, pl * 8, 0: pl = pl + 1
+a = isunique("", u$(), 1)
+FOR i = 0 TO general(genMaxSFX)
+ writeconstant fh, i, getsfxname$(i), u$(), "sfx"
 NEXT i
 setvispage 0
 

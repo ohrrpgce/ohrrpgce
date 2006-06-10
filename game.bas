@@ -280,6 +280,8 @@ NEXT i
 
 'DEBUG debug "init sound"
 setupmusic music()
+
+setupsound
 'resetfm
 'setfmvol 7
 fmvol = getfmvol
@@ -1466,6 +1468,7 @@ fademusic 0
 fadeout 0, 0, 0, -1
 keyhandleroff
 closemusic
+closesound
 'closefile
 setfmvol fmvol
 restoremode

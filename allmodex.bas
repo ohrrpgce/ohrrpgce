@@ -2889,3 +2889,71 @@ sub grabrect(page as integer, x as integer, y as integer, w as integer, h as int
 	next
 
 end sub
+
+
+
+#DEFINE ID(a,b,c,d) asc(a) SHL 0 + asc(b) SHL 8 + asc(c) SHL 16 + asc(d) SHL 24
+function isawav(fi$) as integer
+  if not isfile(fi$) then return 0 'duhhhhhh
+  
+  dim _RIFF as integer = ID("R","I","F","F") 'these are the "signatures" of a
+  dim _WAVE as integer = ID("W","A","V","E") 'wave file. RIFF is the format,
+  dim _fmt_ as integer = ID("f","m","t"," ") 'WAVE is the type, and fmt_ and
+  dim _data as integer = ID("d","a","t","a") 'data are the chunks
+  
+  dim chnk_ID as integer
+  dim chnk_size as integer
+  dim f as integer = freefile
+  open fi$ for binary as #f
+  
+  get #f,,chnk_ID
+  if chnk_ID <> _RIFF then return 0 'not even a RIFF file
+  
+  get #f,,chnk_size 'don't care
+  
+  get #f,,chnk_ID
+  
+  if chnk_ID <> _WAVE then return 0 'not a WAVE file, pffft
+  
+  'is this good enough? meh, sure.
+  close #f
+  return 1
+  
+end function
+
+
+SUB setupsound ()
+	sound_init
+end SUB
+
+SUB closesound ()
+ 	sound_close
+end SUB
+
+SUB loadsfx (byref slot, f$) '0-foo, or -1 for auto
+	slot = sound_load(slot, f$)
+end SUB
+
+SUB freesfx (byval slot)
+	sound_free(slot)
+end SUB
+
+SUB playsfx (BYVAL slot, BYVAL l)
+  sound_play(slot,l)
+end sub
+
+SUB stopsfx (BYVAL slot)
+  sound_stop (slot)
+end sub
+
+SUB pausesfx (BYVAL slot)
+  sound_pause(slot)
+end sub
+
+Function sfxisplaying(BYVAL slot)
+  return sound_playing(slot)
+end Function
+
+function sfxslots() as integer
+  return sound_slots
+end function

@@ -107,6 +107,7 @@ DECLARE SUB cleanuptemp ()
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB interpolatecat ()
+DECLARE FUNCTION soundfile$ (sfxnum%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -1496,6 +1497,40 @@ SELECT CASE id
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    scriptret = wtog(retvals(0)) \ 2
   END IF
+ CASE 195'--load sound
+  IF retvals(0) >= 0 AND retvals(0) <= sfxslots THEN
+   sfx$ = soundfile(retvals(1))
+   slot = retvals(0) - 1
+   IF sfx$ <> "" THEN
+    loadsfx slot,sfx$
+   END IF
+   scriptret = slot + 1
+  END IF
+ CASE 196'--free sound
+  IF retvals(0) >= 1 AND retvals(0) <= sfxslots THEN
+   slot = retvals(0) - 1
+   freesfx slot
+   scriptret = -1
+  END IF
+ CASE 197'--play sound
+  IF retvals(0) >= 1 AND retvals(0) <= sfxslots THEN
+   slot = retvals(0) - 1
+   if retvals(2) then stopsfx slot
+   playsfx slot, retvals(1)
+   scriptret = -1
+  END IF
+ CASE 198'--pause sound
+  IF retvals(0) >= 1 AND retvals(0) <= sfxslots THEN
+   slot = retvals(0) - 1
+   pausesfx slot
+   scriptret = -1
+  END IF
+ CASE 199'--stop sound
+  IF retvals(0) >= 1 AND retvals(0) <= sfxslots THEN
+   slot = retvals(0) - 1
+   stopsfx slot
+   scriptret = -1
+  END IF
  CASE 200'--system hour (time$ is always hh:mm:ss)
   scriptret = str2int(MID$(TIME$, 1, 2))
  CASE 201'--system minute
@@ -1648,6 +1683,13 @@ SELECT CASE id
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 THEN plotstring$(retvals(0)) = getsongname$(retvals(1))
  CASE 235'--key is pressed
   IF keyval(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
+ CASE 236'--sound is playing
+  IF retvals(0) >= 1 AND retvals(0) <= sfxslots THEN
+   slot = retvals(0) - 1
+   scriptret = sfxisplaying(slot)
+  END IF
+ CASE 237'--sound slots
+  scriptret = sfxslots
 END SELECT
 
 EXIT SUB

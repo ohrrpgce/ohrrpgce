@@ -68,6 +68,7 @@ DECLARE SUB shopdata ()
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE SUB importsong (master())
+DECLARE SUB importsfx (master())
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE SUB gendata (master%())
 DECLARE SUB itemdata ()
@@ -212,10 +213,11 @@ DO:
     IF pt = 10 THEN vehicles
     IF pt = 11 THEN tagnames
     IF pt = 12 THEN importsong master()
-    IF pt = 13 THEN fontedit font(), gamedir$
-    IF pt = 14 THEN gendata master()
-    IF pt = 15 THEN scriptman gamedir$
-    IF pt = 16 THEN
+    IF pt = 13 THEN importsfx master()
+    IF pt = 14 THEN fontedit font(), gamedir$
+    IF pt = 15 THEN gendata master()
+    IF pt = 16 THEN scriptman gamedir$
+    IF pt = 17 THEN
      GOSUB relump
      IF quitnow > 1 THEN GOTO finis
     END IF
@@ -252,7 +254,7 @@ DO:
 LOOP
 
 setmainmenu:
-mainmax = 16
+mainmax = 17
 menu$(0) = "Edit Graphics"
 menu$(1) = "Edit Map Data"
 menu$(2) = "Edit Global Text Strings"
@@ -267,10 +269,11 @@ menu$(9) = "Edit Text Boxes"
 menu$(10) = "Edit Vehicles"
 menu$(11) = "Edit Tag Names"
 menu$(12) = "Import Music"
-menu$(13) = "Edit Font"
-menu$(14) = "Edit General Game Data"
-menu$(15) = "Script Management"
-menu$(16) = "Quit Editing"
+menu$(13) = "Import Sound Effects"
+menu$(14) = "Edit Font"
+menu$(15) = "Edit General Game Data"
+menu$(16) = "Script Management"
+menu$(17) = "Quit Editing"
 RETURN
 
 setgraphicmenu:

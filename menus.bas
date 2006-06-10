@@ -72,6 +72,7 @@ DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filesize$ (file$)
 DECLARE FUNCTION inputfilename$ (query$, ext$)
 DECLARE FUNCTION getsongname$ (num%)
+DECLARE FUNCTION getsfxname$ (num%)
 DECLARE SUB writebinstring (savestr$, array%(), offset%, maxlen%)
 
 '$INCLUDE: 'compat.bi'
@@ -1031,6 +1032,160 @@ flusharray buffer(), curbinsize(2) / 2, 0
 setpicstuf buffer(), curbinsize(2), -1
 writebinstring sname$, buffer(), 0, 30
 storeset workingdir$ + SLASH + "songdata.bin" + CHR$(0), snum, 0
+RETURN
+
+END SUB
+
+
+SUB importsfx (master())
+STATIC default$
+setupsound
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+DIM menu$(10), submenu$(2), optionsbottom
+optionsbottom = 6
+menu$(0) = "Previous Menu"
+menu$(3) = "Import Wave..."
+menu$(4) = "Export Wave..."
+menu$(5) = "Delete Wave"
+menu$(6) = "Play Wave"
+
+csr = 1
+snum = 0
+GOSUB getinfo
+
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ IF keyval(1) > 1 THEN EXIT DO
+
+ dummy = usemenu(csr, 0, 0, optionsbottom, 22)
+
+ IF csr = 2 AND sfxfile$ <> "" THEN
+  strgrabber sname$, 30
+  menu$(2) = "Name: " + sname$
+ ELSE
+  '-- check for switching sfx
+  newsfx = snum
+  IF intgrabber(newsfx, 0, general(genMaxSFX), 51, 52) THEN
+   GOSUB ssfxdata
+   snum = newsfx
+   GOSUB getinfo
+  END IF
+  IF keyval(75) > 1 AND snum > 0 THEN
+   GOSUB ssfxdata
+   snum = snum - 1
+   GOSUB getinfo
+  END IF
+  IF keyval(77) > 1 AND snum < 32767 THEN
+   GOSUB ssfxdata
+   snum = snum + 1
+   IF needaddset(snum, general(genMaxSFX), "sfx") THEN sname$ = ""
+   GOSUB getinfo
+  END IF
+ END IF
+ IF (keyval(28) > 1 OR keyval(57) > 1) THEN
+  SELECT CASE csr 
+  CASE 0
+    EXIT DO
+  CASE 3
+    GOSUB importsfxfile
+  CASE 4
+    IF sfxfile$ <> "" THEN GOSUB exportsfx
+  CASE 5
+    IF sfxfile$ <> "" THEN  'delete sfx
+      safekill sfxfile$
+      GOSUB getinfo
+    END IF
+  CASE ELSE
+    IF sfxfile$ <> "" THEN 'play sfx
+      playsfx 0,0
+    END IF
+  END SELECT
+ END IF
+ 
+
+  
+  
+
+ standardmenu menu$(), 10, 22, csr, 0, 0, 0, dpage, 0
+
+ SWAP vpage, dpage
+ setvispage vpage
+ copypage 2, dpage
+ dowait
+LOOP
+GOSUB ssfxdata
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+closesound
+
+EXIT SUB
+
+getinfo:
+stopsfx 0
+'-- first job: find the sfx's name
+temp$ = workingdir$ + SLASH + "sfx" + intstr$(snum)
+sfxfile$ = ""
+sfxtype$ = "NO FILE"
+
+IF isfile(temp$ + ".wav" + CHR$(0)) THEN ext$ = ".wav" : sfxfile$ = temp$ + ext$ : sfxtype$ = "Waveform (WAV)"
+'--add more formats here
+
+sname$ = getsfxname$(snum)
+
+loadsfx 0, sfxfile$
+
+IF sfxfile$ = "" THEN '--sfx doesn't exist
+ sname$ = ""
+END IF
+
+menu$(1) = "<- SFX " + intstr$(snum) + " of " + intstr$(general(genMaxSFX)) + " ->"
+IF sfxfile$ <> "" THEN menu$(2) = "Name: " + sname$ ELSE menu$(2) = "-Unused-"
+menu$(7) = ""
+menu$(8) = "Type: " + sfxtype$
+menu$(9) = "Filesize: " + filesize$(sfxfile$)
+
+'-- add author, length, etc, info here
+RETURN
+
+importsfxfile:
+
+sourcesfx$ = browse$(6, default$, "", "")
+IF sourcesfx$ = "" THEN
+ RETURN
+END IF
+
+safekill sfxfile$
+
+IF sourcesfx$ <> "" THEN
+ sfxfile$ = workingdir$ + SLASH + "sfx" + intstr$(snum) + MID$(sourcesfx$, INSTR(sourcesfx$, "."))
+ copyfile sourcesfx$ + CHR$(0), sfxfile$ + CHR$(0), buffer()
+ a$ = getLongName$(sourcesfx$)
+ a$ = MID$(a$, 1, INSTR(a$, ".") - 1)
+ sname$ = a$
+ GOSUB ssfxdata
+END IF
+GOSUB getinfo
+RETURN
+
+exportsfx:
+query$ = "Name of file to export to?"
+outfile$ = inputfilename$(query$, ext$)
+IF outfile$ = "" THEN RETURN
+copyfile sfxfile$ + CHR$(0), outfile$ + ext$ + CHR$(0), buffer()
+RETURN
+
+ssfxdata:
+flusharray buffer(), curbinsize(3) / 2, 0
+setpicstuf buffer(), curbinsize(3), -1
+writebinstring sname$, buffer(), 0, 30
+storeset workingdir$ + SLASH + "sfxdata.bin" + CHR$(0), snum, 0
 RETURN
 
 END SUB

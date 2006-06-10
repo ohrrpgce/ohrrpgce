@@ -45,7 +45,7 @@ sub music_init()
 		' device, so we set them up beforehand
 		audio_rate = MIX_DEFAULT_FREQUENCY
 		audio_format = MIX_DEFAULT_FORMAT
-		audio_channels = 2
+		audio_channels = 4
 		audio_buffers = 4096
 		
 		SDL_Init(SDL_INIT_VIDEO or SDL_INIT_AUDIO)
@@ -234,5 +234,167 @@ sub music_fade(targetvol as integer)
 		music_setvolume(i)
 		sleep 10
 	next	
+end sub
+
+
+DECLARE sub SDL_done_playing(byval channel as integer)
+
+TYPE sound_effect
+  used as integer 'whether this slot is free
+  
+  paused as integer
+  playing as integer
+  
+  pause_pos as integer
+  
+  buf as Mix_Chunk ptr
+  
+  chan as integer
+  
+END TYPE
+
+dim shared sfx_slots(7) as sound_effect
+
+
+dim shared sound_inited as integer 'must be non-zero for anything but _init to work
+
+sub sound_init
+  'if this were called twice, the world would end.
+  if sound_inited then exit sub
+  
+  'anything that might be initialized here is done in music_init
+  'but, I must do it here too
+  
+  Mix_channelFinished(@SDL_done_playing)
+  music_init
+  sound_inited = 1
+end sub
+
+sub sound_close
+  'trying to free something that's already freed... bad!
+  if not sound_inited then exit sub
+  
+  dim i as integer
+  
+  for i = 0 to 7
+    with sfx_slots(i)
+      if .used then
+        Mix_FreeChunk(.buf)
+        .paused = 0
+        .playing = 0
+        .used = 0
+        .buf = 0
+      end if
+    end with
+  next
+  
+  
+  
+  sound_inited = 0
+end sub
+
+function sound_load(byval slot as integer, f as string) as integer
+  'slot is the sfx_slots element to use, or -1 to automatically pick one
+  'f is the file.
+  dim i as integer
+  
+  if slot = -1 then
+    for i = 0 to ubound(sfx_slots)
+    
+      if not sfx_slots(i).used then
+        slot = i
+        exit for
+      end if
+    next
+    
+    if slot = ubound(sfx_slots) + 1 then return -1 'no free slots...
+  end if
+  
+  with sfx_slots(slot)
+    if .used then
+      sound_free(slot)
+    end if
+    
+    .used = 1
+    .buf = Mix_LoadWAV(f)
+    
+    if .buf = NULL then return -1
+  end with
+  
+  return slot 'yup, that's all
+  
+end function
+
+sub sound_free(byval slot as integer)
+  with sfx_slots(slot)
+    if .used then
+      .used = 0
+      .playing = 0
+      .paused = 0
+      mix_freechunk(.buf)
+    end if
+  end with
+end sub
+
+
+sub sound_play(byval slot as integer, byval l as integer)
+  with sfx_slots(slot)
+    if not .used then exit sub
+    if .playing and not .paused then exit sub
+    if not .buf then exit sub
+    
+    if .paused then
+      Mix_Resume(.chan)
+      .paused = 0
+    else
+      .chan = mix_playchannel(-1,.buf,&HFFFFFFF) 'stupid no-"infinite" repeat
+      .playing = 1
+    end if
+    
+  end with
+end sub
+
+sub sound_pause(byval slot as integer)
+  with sfx_slots(slot)
+    if not .used then exit sub
+    if not .playing then exit sub
+    if .paused then exit sub
+    
+    .paused = 1
+    Mix_Pause(.chan)
+  end with
+end sub
+
+sub sound_stop(byval slot as integer)
+  with sfx_slots(slot)
+    if not .used then exit sub
+    if not .playing then exit sub
+    
+    .playing = 0
+    .paused = 0
+    
+    Mix_HaltChannel(.chan)
+  end with
+end sub
+
+function sound_playing(byval slot as integer) as integer
+  with sfx_slots(slot)
+    if not .used then return 0
+    
+    return .playing
+    
+  end with
+end function
+
+function sound_slots as integer
+  return ubound(sfx_slots)
+end function
+
+sub SDL_done_playing(byval channel as integer)
+  dim i as integer
+  
+  for i = 0 to ubound(sfx_slots)
+    if sfx_slots(i).chan = channel then sfx_slots(i).playing = 0
+  next
 end sub
 

@@ -17,6 +17,7 @@ WHAT IS NEW?
     * New HamsterSpeak reference syntax. A script name or global variable
       name preceded by an @ symbol will compile to the ID number of that
       script or global. [James Paige]
+    * Sound effects. [Mike Caron]
 
   * Bug Fixes
     * Fixed a few bugs in inputstring, including backspace not working,
@@ -53,12 +54,14 @@ WHAT IS NEW?
       Caron]
     * "npc extra", "set npc extra" [Mike Caron]
     * "keyval"
+    * "load sound", "free sound", "play sound", "stop sound", "pause sound"
+      [Mike Caron]
 
     * An existing command we forgot to mention in the whatsnew: "string compare"
 
   * Stuff only Developers Will Notice
     * Some rewritten map wrapping code [Ralph Versteegen]
-    * Reformatted NPC data with UDTs
+    * Reformatted NPC data with UDTs [Mike Caron]
 
 Mar 15 2006 [tirgoviste]
   * New Features

@@ -174,3 +174,16 @@ Sub WriteShort(fh as integer,p as long, v as integer)
 		PUT #fh,p,v
 	END IF
 END SUB
+
+'-->Stubs for unsupported Allmodex functions<--
+Sub setupsound ():end sub
+SUB closesound ():end sub
+SUB loadsfx (BYREF slot,f$):end sub
+SUB freesfx (BYVAL slot):end sub
+SUB playsfx (BYVAL slot, BYVAL l):end sub
+SUB stopsfx (BYVAL slot):end sub
+SUB pausesfx (BYVAL slot):end sub
+SUB isawav (f$):end sub
+FUNCTION sfxisplaying (BYVAL slot):end function
+FUNCTION sfxslots():end function
+'-->end stub<--

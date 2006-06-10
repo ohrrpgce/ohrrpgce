@@ -33,12 +33,12 @@ option explicit
 	#include once "windows.bi"
 	#undef createevent
 	#undef lockfile '?
+	#include "externs.bi"
 	#IFNDEF USE_ALLEGRO
 		#include once "win/mmsystem.bi"
-	#ELSE
-		#include "externs.bi"
-		DECLARE SUB win_set_window CDECL ALIAS "win_set_window" (BYVAL wnd as HWND)
-		DECLARE FUNCTION win_get_window CDECL ALIAS "win_get_window"() as HWND
+  #ELSE
+	  DECLARE SUB win_set_window CDECL ALIAS "win_set_window" (BYVAL wnd as HWND)
+    DECLARE FUNCTION win_get_window CDECL ALIAS "win_get_window"() as HWND
 	#ENDIF
 	
 #ENDIF
@@ -88,6 +88,8 @@ DECLARE SUB setbit (b(), BYVAL w, BYVAL b, BYVAL v)
 
 DECLARE Sub PlayBackThread(dummy as integer)
 DECLARE sub fade_daemon(byval targetvol as integer)
+
+
 
 dim shared music_on as integer = 0
 dim shared music_vol as integer
@@ -524,7 +526,7 @@ Sub dumpdata(m as MIDI_EVENT ptr)
 		d$ += hex$(m->extradata[i]) + " "
 	next
 	
-	debug d$
+	'debug d$
 	
 end sub
 
@@ -768,3 +770,327 @@ updateDelay:
 delay = division / tempo * 1000000
 return
 End Sub
+
+
+
+#include "win/dsound.bi"
+DECLARE sub loadWaveFileToBuffer(fi as string, buf as LPDIRECTSOUNDBUFFER ptr)
+DECLARE function isPlaying(slot as integer) as integer
+
+TYPE sound_effect
+  used as integer 'whether this slot is free
+  
+  paused as integer
+  
+  buf as LPDIRECTSOUNDBUFFER
+  
+END TYPE
+
+dim shared sfx_slots(7) as sound_effect
+
+'=== WARNING: The following code uses COM. COM is a compiler independant way of
+'    doing OOP in Windows. It is also a pain for non-OOP languages, but unlike
+'    regular OOP, this is workable. Unfortunately, COM is the only way to access
+'    DirectX.
+
+dim shared sound_inited as integer 'must be non-zero for anything but _init to work
+dim shared ds8 as LPDIRECTSOUND8 'DirectSound8 object
+
+
+sub sound_init
+  dim res as HRESULT
+  'if this were called twice, the world would end.
+  if sound_inited then exit sub
+  'debug "sound_init"
+  'create DirectSound
+  res = DirectSoundCreate8(NULL,@ds8,NULL)
+  if res <> DS_OK then
+    'hell
+    debug "could not start up direct sound: " + hex(res)
+    exit sub
+  end if
+  
+  'debug "ds8 = 0x" + hex(cint(ds8))
+  
+  'next, set the co-op level
+  'games use the "priority" level
+  res = IDirectSound_SetCooperativeLevel(ds8,FB_win32.wnd,DSSCL_PRIORITY)
+  if res <> DS_OK then
+    'bugger
+    debug "priority level failed: " + hex(res)
+    exit sub
+  end if
+
+  
+  'at this point, we're basically done
+  
+end sub
+
+sub sound_close
+  'trying to free something that's already freed... bad!
+  if not sound_inited then exit sub
+  
+  IDirectSound_Release(ds8)
+  ds8 = null
+  
+  dim i as integer
+  for i = 0 to ubound(sfx_slots)
+    with sfx_slots(i)
+      .used = 0
+      .paused = 0
+      .buf =  NULL 'directsound frees this for us
+    end with
+  next
+  
+  sound_inited = 0
+end sub
+
+function sound_load(byval slot as integer, f as string) as integer
+  'slot is the sfx_slots element to use, or -1 to automatically pick one
+  'f is the file.
+  dim i as integer
+  
+  if f = "" then return -1
+  
+  if slot = -1 then
+    for i = 0 to ubound(sfx_slots)
+    
+      if not sfx_slots(i).used then
+        slot = i
+        exit for
+      end if
+    next
+    
+    if slot = ubound(sfx_slots) + 1 then return -1 'no free slots...
+  end if
+  
+  with sfx_slots(slot)
+    if .used then
+      sound_free(slot)
+    end if
+    
+    loadWaveFileToBuffer(f,@.buf)
+    
+    if .buf = NULL then return -1
+    .used = 1
+  end with
+  
+  return slot 'yup, that's all
+  
+end function
+
+sub sound_free(byval slot as integer)
+  with sfx_slots(slot)
+    if sound_playing(slot) then sound_stop(slot)
+    if .used then
+      .used = 0
+      IDirectSoundBuffer_Release(.buf)
+    end if
+  end with
+end sub
+
+
+sub sound_play(byval slot as integer, byval l as integer)
+  with sfx_slots(slot)
+    if not .used then exit sub
+    if sound_playing(slot) and not .paused then exit sub
+    if not .buf then exit sub
+    
+    if l then l = DSBPLAY_LOOPING
+    
+    .paused = 0
+
+    IDirectSoundBuffer_Play(.buf, 0, 0, l)
+  end with
+end sub
+
+sub sound_pause(byval slot as integer)
+  with sfx_slots(slot)
+    if not .used then exit sub
+    if not sound_playing(slot) then exit sub
+    if .paused then exit sub
+    
+    .paused = 1
+    IDirectSoundBuffer_Stop(.buf)
+  end with
+end sub
+
+sub sound_stop(byval slot as integer)
+  with sfx_slots(slot)
+    if not .used then exit sub
+    if not sound_playing(slot) then exit sub
+    
+    .paused = 0
+    
+    IDirectSoundBuffer_Stop(.buf)
+    IDirectSoundBuffer_SetCurrentPosition(.buf,0)
+  end with
+end sub
+
+function sound_playing(byval slot as integer) as integer
+  dim stat as integer
+  
+  with sfx_slots(slot)
+    if not .used then return 0
+    
+    IDirectSoundBuffer8_GetStatus(.buf,@stat)
+    
+    if stat AND DSBSTATUS_PLAYING then return 1 ELSE return 0
+  end with
+end function
+
+function sound_slots as integer
+  return ubound(sfx_slots)
+end function
+
+#DEFINE ID(a,b,c,d) asc(a) SHL 0 + asc(b) SHL 8 + asc(c) SHL 16 + asc(d) SHL 24
+
+sub loadWaveFileToBuffer(fi as string, buf as LPDIRECTSOUNDBUFFER ptr)
+  'dim RIFF as integer = asc("R") SHL 0 + asc("I") SHL 8 + asc("F") SHL 16 + asc("F") SHL 24
+  dim _RIFF as integer = ID("R","I","F","F")
+  dim _WAVE as integer = ID("W","A","V","E")
+  dim _fmt_ as integer = ID("f","m","t"," ")
+  dim _data as integer = ID("d","a","t","a")
+  
+  'debug "_RIFF = " + hex(_RIFF)
+  'debug "_WAVE = " + hex(_WAVE)
+  'debug "_fmt_ = " + hex(_fmt_)
+  'debug "_data = " + hex(_data)
+  
+  dim chnk_ID as integer
+  dim chnk_size as integer
+  
+  dim fmt as WAVEFORMATEX, fmt_len as integer
+  dim dat as ubyte ptr, dat_len as integer
+  
+  dim f as integer = Freefile
+  
+  'debug "LoadWaveFile"
+  
+  'ok. here we go
+  
+  open fi for binary as #f
+  
+  get #f,,chnk_ID 'file format
+  
+  if chnk_ID <> _RIFF then
+    'not a RIFF, thus not a wave.
+    debug "not a RIFF"
+    close f
+    exit sub
+  end if
+  
+  get #f,,chnk_size 'don't particularly care, but whatever
+  
+  get #f,,chnk_ID
+  
+  if chnk_ID <> _WAVE then
+    'not a wave file...
+    debug "not a Wave"
+    close f
+    exit sub
+  end if
+  
+  'ok, now we need to start moving through the chunks
+  do until eof(f)
+    '$DYNAMIC
+    dim buff(0) as UByte, i as integer
+    get #f,,chnk_ID
+    get #f,,chnk_size
+    if chnk_size MOD 2 then
+      redim buff(chnk_size) 'odd size = rounded up
+    else
+      redim buff(chnk_size-1)     'even size = as is
+    end if
+    
+    get #f,,buff()
+    
+    'debug "found chnk_ID of " + hex(chnk_ID)
+    
+    select case chnk_ID
+    case _fmt_ 'wave format
+      'debug "detected as format"
+      fmt_len = chnk_size
+      'fmt = Allocate(fmt_len)
+      'for i = 0 to chnk_size
+      '  fmt[i] = buff(i)
+      'next
+      
+      memcpy(@fmt,@buff(0),len(WAVEFORMATEX))
+    case _data 'actual data
+      'debug "detected as data"
+      dat_len = chnk_size
+      dat = Allocate(dat_len)
+      'for i = 0 to chnk_size
+      '  dat[i] = buff(i)
+      'next
+      memcpy(dat,@buff(0),dat_len)
+    case else
+      'yawn
+      'debug "buh, something else?"
+    end select
+  loop
+  close f
+  
+  
+  if fmt_len = 0 or dat_len = 0 then
+    'uh... no fmt_ or data?
+    debug "fake Wave!"
+    exit sub
+  end if
+  
+  
+  'now, to copy the data to the direct sound buffer!
+  
+  'er... need to create it first.
+  
+  'debug "preparing buffer data"
+  dim bd as DSBUFFERDESC
+  bd.dwSize = len(DSBUFFERDESC)
+  bd.dwFlags = DSBCAPS_CTRLPAN OR DSBCAPS_CTRLVOLUME OR DSBCAPS_CTRLFREQUENCY
+  bd.dwBufferBytes = dat_len
+  
+  bd.lpwfxFormat = @fmt
+  
+  'debug "ds8 = 0x" + hex(cint(ds8))
+  
+  if IDirectSound8_CreateSoundBuffer(ds8,@bd,buf,NULL) <> DS_OK then
+    'uh... fuck.
+    debug "Could not create buffer"
+    buf = null
+    exit sub
+  end if
+  
+  dim cursor as UByte ptr, cursor_count as integer
+  
+  'NOW we can copy data to it.
+  'debug "locking buffer"
+  'first, lock the buffer and get a pointer
+  if IDirectSoundBuffer8_Lock(*buf, 0, 0, @cursor, @cursor_count, NULL, NULL, DSBLOCK_ENTIREBUFFER) <> DS_OK then
+    'oh hell.
+    'what to do?
+    debug "could not lock buffer for some reason"
+    IDirectSoundBuffer8_Release(*buf)
+    buf = null
+    exit sub
+  end if
+  
+  'debug "copying waveform"
+  'next, copy der data
+  if cursor_count >= dat_len then
+    cursor_count = dat_len
+  end if
+  memcpy(cursor, dat, dat_len)
+  
+  'debug "unlocking buffer"
+  'finally, unlock
+  IDirectSoundBuffer8_Unlock(*buf,cursor,cursor_count,NULL,NULL)
+  
+  'and... that's a wrap!
+  
+  '... I hope
+    
+  
+  
+end sub
+

@@ -305,6 +305,13 @@ loadset workingdir$ + SLASH + "songdata.bin" + CHR$(0), num, 0
 getsongname$ = readbinstring$ (songd(), 0, 30)
 END FUNCTION
 
+FUNCTION getsfxname$ (num)
+DIM sfxd(curbinsize(2) / 2)
+setpicstuf sfxd(), curbinsize(3), -1
+loadset workingdir$ + SLASH + "sfxdata.bin" + CHR$(0), num, 0
+getsfxname$ = readbinstring$ (sfxd(), 0, 30)
+END FUNCTION
+
 FUNCTION inputfilename$ (query$, ext$)
 setkeys
 DO

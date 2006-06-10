@@ -6,6 +6,8 @@
 '$include: 'udts.bi'
 '$include: 'compat.bi'
 
+option explicit
+
 DECLARE SUB debug (s$)
 
 
@@ -34,7 +36,7 @@ SUB LoadNPCL(file as string,dat() as NPCInst, num as integer)
 END SUB
 
 SUB SerNPCL(npc() as NPCInst, z, buffer(), num as integer)
-  DIM i
+  DIM i as integer
   FOR i = 0 to num - 1
     buffer(z) = npc(i).x: z = z + 1
   NEXT
@@ -59,7 +61,7 @@ SUB SerNPCL(npc() as NPCInst, z, buffer(), num as integer)
 END SUB
 
 SUB DeserNPCL(npc() as NPCInst, z, buffer(), num as integer)
-  DIM i
+  DIM i as integer
   FOR i = 0 to num - 1
     npc(i).x = buffer(z): z = z + 1
   NEXT
@@ -84,7 +86,7 @@ SUB DeserNPCL(npc() as NPCInst, z, buffer(), num as integer)
 END SUB
 
 SUB CleanNPCL(dat() as NPCInst, num as integer)
-  DIM i
+  DIM i as integer
   FOR i = 0 to num - 1
     dat(i).x = 0
     dat(i).y = 0
