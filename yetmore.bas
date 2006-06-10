@@ -1965,9 +1965,15 @@ WHILE levels > 0
  END IF
 
  'pop arguments
- FOR i = 1 TO scrat(nowscript, curargn)
-  dummy = popw
- NEXT  
+ IF scrat(nowscript, curkind) = tyflow AND scrat(nowscript, curvalue) = flowswitch THEN
+  'unlike all other flow, switch stack usage != argn
+  dummy = popw 'state
+  dummy = popw 'matching value
+ ELSE
+  FOR i = 1 TO scrat(nowscript, curargn)
+   dummy = popw
+  NEXT
+ END IF
 WEND
 'return to normality
 subreturn

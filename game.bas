@@ -1704,15 +1704,28 @@ DO
        CASE flowcontinue
         r = popw
         unwindtodo(r)
-        IF NOT (scrat(nowscript, curkind) = tyflow AND (scrat(nowscript, curvalue) = flowfor OR scrat(nowscript, curvalue) = flowwhile)) THEN
-         '--if this do isn't a for's or while's, then just repeat it
+        IF scrat(nowscript, curkind) = tyflow AND scrat(nowscript, curvalue) = flowswitch THEN
+         '--set state to 2
+         dummy = popw
+         dummy = popw
+         pushw 2
+         pushw 9999
+        ELSEIF NOT (scrat(nowscript, curkind) = tyflow AND (scrat(nowscript, curvalue) = flowfor OR scrat(nowscript, curvalue) = flowwhile)) THEN
+         '--if this do isn't a for's or while's, then just repeat it, discarding the returned value
+         dummy = popw
          scrat(nowscript, curargn) = scrat(nowscript, curargn) - 1
         END IF
        CASE flowexit
         unwindtodo(9999)
        CASE flowexitreturn
         scrat(nowscript, scrret) = popw
-        unwindtodo(9999) 
+        unwindtodo(9999)
+       CASE flowswitch
+        tmpcase = popw
+        tmpstate = popw
+        tmpvar = popw
+        scriptret = 0
+        scrat(nowscript, scrstate) = streturn
        CASE ELSE
 	'--do, then, etc... terminate normally
 	scriptret = -1
@@ -1820,6 +1833,56 @@ DO
 	 CASE ELSE
 	  scripterr "for statement is being difficult"
 	END SELECT
+       CASE flowswitch
+        IF scrat(nowscript, curargn) = 0 THEN
+         '--get expression to match
+         scrat(nowscript, scrstate) = stdoarg
+        ELSEIF scrat(nowscript, curargn) = 1 THEN
+         '--set up state - push a 0: not fallen in
+         '--assume first statement is a case, run it
+         pushw 0
+         scrat(nowscript, scrstate) = stdoarg
+        ELSE
+         tmpcase = popw
+         tmpstate = popw
+         doseek = 0 ' whether or not to search argument list for something to execute
+         IF tmpstate = 0 THEN
+          '--not fallen in
+          tmpvar = popw
+          IF tmpcase = tmpvar THEN
+           tmpstate = 1
+          END IF
+          pushw tmpvar
+          doseek = 1 '---search for a case
+         ELSEIF tmpstate = 2 THEN
+          '--continue encountered, fall back in
+          tmpstate = 1
+          doseek = 1
+         ELSE
+          '--after successfully running a do block, pop off matching value and exit
+          tmpvar = popw
+          scriptret = 0
+          scrat(nowscript, scrstate) = streturn'---return
+         END IF
+
+         WHILE doseek
+          tmpkind = script(scrat(nowscript, scroff) + script(scrat(nowscript, scroff) + scrat(nowscript, scrptr) + 3 + scrat(nowscript, curargn)))
+
+          IF (tmpstate = 1 AND tmpkind = tyflow) OR (tmpstate = 0 AND (tmpkind <> tyflow OR scrat(nowscript, curargn) = scrat(nowscript, curargc) - 1)) THEN
+           '--fall into a do, execute a case, or run default (last arg)
+           scrat(nowscript, scrstate) = stdoarg
+           pushw tmpstate
+           EXIT WHILE
+          END IF
+          IF scrat(nowscript, curargn) >= scrat(nowscript, curargc) THEN
+           tmpvar = popw
+           scriptret = 0
+           scrat(nowscript, scrstate) = streturn'---return
+           EXIT WHILE
+          END IF
+          scrat(nowscript, curargn) = scrat(nowscript, curargn) + 1
+         WEND
+        END IF
        CASE ELSE
 	scrat(nowscript, scrstate) = stdoarg'---call argument
       END SELECT

@@ -2213,7 +2213,7 @@ FUNCTION popw () as integer
 		end if
 	else
 		pw = 0
-		'debug "underflow"
+		debug "underflow"
 	end if
 
 	popw = pw

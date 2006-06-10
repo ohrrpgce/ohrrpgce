@@ -49,6 +49,7 @@ CONST flowbreak = 11
 CONST flowcontinue = 12
 CONST flowexit = 13
 CONST flowexitreturn = 14
+CONST flowswitch = 15
 '--SUSPEND--
 CONST suspendnpcs = 0
 CONST suspendplayer = 1

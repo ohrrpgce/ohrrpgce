@@ -7,12 +7,13 @@
 -- the O.H.R.RPG.C.E. For more info, visit http://HamsterRepublic.com
 
 -- This code is written in Euphoria 2.2. You can get the public-domain
--- version from http://RapidEuphoria.com . I also highly reccomend
+-- version from http://RapidEuphoria.com . I also highly recommend
 -- David Cuny's EE editor which you can download from the same site.
 
 ---------------------------------------------------------------------------
 
 --Changelog
+--2L 2006-05-13 Added switch statement (+ case keyword)
 --2K 2006-05-01 Added @scriptname and @globalvariable syntax to
 --              return script or global ID number at compile-time
 --              not run-time (for use with "run script by ID" and
@@ -60,7 +61,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=2
-constant COMPILER_SUB_VERSION='K'
+constant COMPILER_SUB_VERSION='L'
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -162,6 +163,8 @@ sequence flow_list        flow_list={
                              ,{12,"continue"}
                              ,{13,"exitscript"}
                              ,{14,"exitreturning"}
+                             ,{15,"switch"}
+                             ,{16,"case"}  --never appears in compiled script
                           }
 sequence math_list        math_list={
                               {0,"random",{0,1}}
@@ -471,6 +474,8 @@ procedure init()
           ,{"continue"      ,RESERVE_FLOW}
           ,{"exitscript"    ,RESERVE_FLOW}
           ,{"exitreturning" ,RESERVE_FLOW}
+          ,{"switch"        ,RESERVE_FLOW}
+          ,{"case"          ,RESERVE_FLOW}
         })--end mass_insert   
   for i=1 to length(math_list) do
     reserved=alpha_tree_insert(reserved,math_list[i][PAIR_NAME],RESERVE_BUILTIN)
@@ -1755,6 +1760,56 @@ function normalize_flow_control(sequence tree,sequence vars)
                       ,{length(tree[ptr][TREE_BRANCHES])}
                     ),line)
       end if
+    elsif compare("switch",s)=0 then
+      if length(tree[ptr][TREE_BRANCHES])>1 then
+        src_error(sprintf(
+                      COLYEL&s&COLRED&" statement has %d expressions. It should have only one."
+                      ,{length(tree[ptr][TREE_BRANCHES])}
+                    ),line)
+      elsif length(tree[ptr][TREE_BRANCHES])=0 then
+        src_error(sprintf(
+                      COLYEL&s&COLRED&" statement has no expression to match! Write "&COLYEL&"switch (expression) do (...)"&COLRED
+                      ,{length(tree[ptr][TREE_BRANCHES])}
+                    ),line)
+      end if
+      if ptr<length(tree) then
+        --there is room
+        if compare("do",tree[ptr+1][TREE_TRUNK][CMD_TEXT])=0 then
+          --found do, move its arguments to switch, behind the expression
+          for j=1 to length(tree[ptr+1][TREE_BRANCHES]) do
+            line=tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_LINE]
+            if j=1 and compare("case",tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT]) then
+              src_error(sprintf(COLYEL&"switch() do("&COLRED&" should be followed with a "&COLYEL&"case"&COLRED&", not with "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT]}),line)
+            end if
+            if compare("else",tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT])=0 then
+              if j=length(tree[ptr+1][TREE_BRANCHES]) then
+                --convert the else to a do
+                tree[ptr][TREE_BRANCHES]=append(tree[ptr][TREE_BRANCHES],{{"do",line},tree[ptr+1][TREE_BRANCHES][j][TREE_BRANCHES]})
+              else
+                src_error(sprintf(COLYEL&"else"&COLRED&" should be last statement inside a "&COLYEL&"switch"&COLRED&" block",{}),line)
+              end if
+            elsif compare("case",tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT])=0 then
+              --expand case
+              tree[ptr][TREE_BRANCHES]=tree[ptr][TREE_BRANCHES]&tree[ptr+1][TREE_BRANCHES][j][TREE_BRANCHES]
+            elsif compare("do",tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT])=0 then
+              tree[ptr][TREE_BRANCHES]=append(tree[ptr][TREE_BRANCHES],tree[ptr+1][TREE_BRANCHES][j])
+              if j=length(tree[ptr+1][TREE_BRANCHES]) then
+                --insert a dummy do default block since else has been left out
+                tree[ptr][TREE_BRANCHES]=append(tree[ptr][TREE_BRANCHES],{{"do",line},{}})
+              end if
+            else
+              src_error(sprintf("Expected "&COLYEL&"case do"&COLRED&" or "&COLYEL&"else"&COLRED&", but found "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT]}),line)
+            end if
+          end for
+          tree=delete_element(tree,ptr+1)
+        else
+          src_error(sprintf(COLYEL&"switch"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),line)
+        end if
+      else  
+        src_error(sprintf(COLYEL&"switch"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),line)
+      end if
+    elsif compare("case",s)=0 then
+      src_error(sprintf(COLYEL&"case"&COLRED&" is not allowed outside of "&COLYEL&"switch"&COLRED,{}),line)
     end if
     tree[ptr][TREE_BRANCHES]=normalize_flow_control(tree[ptr][TREE_BRANCHES],vars)
     ptr+=1

@@ -13,7 +13,8 @@ WHAT IS NEW?
       command-line tools. Also added -k option to supress this new
       behaviour [James Paige]
     * New HamsterSpeak flow control commands: break, continue, exit script,
-      exit returning. See the HS Definition for details [Ralph Versteegen]
+      exit returning, switch (and case). See the HS Definition for details
+      [Ralph Versteegen]
     * New HamsterSpeak reference syntax. A script name or global variable
       name preceded by an @ symbol will compile to the ID number of that
       script or global. [James Paige]
