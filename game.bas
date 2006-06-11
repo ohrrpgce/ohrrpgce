@@ -2028,7 +2028,7 @@ SELECT CASE scrat(nowscript, curkind)
     scriptout$ = LTRIM$(STR$(retvals(0)))
    CASE 78'--alter NPC
     IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
-     IF retvals(0) < 0 THEN retvals(0) = (npc(npcref).id - 1)
+     IF retvals(0) < 0 THEN retvals(0) = (npc(retvals(0)).id - 1)
      IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
       npcs(retvals(0) * 15 + retvals(1)) = retvals(2)
       IF retvals(1) = 0 THEN
