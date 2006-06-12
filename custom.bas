@@ -97,7 +97,7 @@ DECLARE SUB writebinstring (savestr$, array%(), offset%, maxlen%)
 '$INCLUDE: 'const.bi'
 
 '--make stack bigger
-CLEAR , , 2100
+CLEAR , , 2300
 
 DIM SHARED regs AS Regtype
 regs.ax = &H3509: CALL interruptx(&H21, regs, regs)
