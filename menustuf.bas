@@ -167,7 +167,7 @@ DO
  IF carray(5) > 1 THEN EXIT DO
  IF carray(4) > 1 THEN '---PRESS ENTER---------------------
   IF readbit(emask(), 0, pt) = 0 THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
-   IF stock(id, pt) > 1 THEN stock(id, pt) = stock(id, pt) - 1
+   IF stock(pt) > 1 THEN stock(pt) = stock(pt) - 1
    IF b(pt * recordsize + 22) THEN setbit tag(), 0, ABS(b(pt * recordsize + 22)), SGN(SGN(b(pt * recordsize + 22)) + 1)
    gold& = gold& - b(pt * recordsize + 24)
    IF tradingitems THEN '---TRADE IN ITEMS----------
@@ -227,8 +227,8 @@ DO
  IF info1$ <> "" THEN edgeprint info1$, xstring(info1$, 240), 30 + o * 10, 8, dpage: o = o + 1
  IF info2$ <> "" THEN edgeprint info2$, xstring(info2$, 240), 30 + o * 10, 8, dpage: o = o + 1
  IF eqinfo$ <> "" THEN edgeprint eqinfo$, xstring(eqinfo$, 240), 30 + o * 10, 7, dpage: o = o + 1
- IF stock(id, pt) > 1 THEN
-  edgeprint STR$(stock(id, pt) - 1) + " " + instock$ + " ", xstring(STR$(stock(id, pt) - 1) + " in stock ", 240), 30 + o * 10, 7, dpage: o = o + 1
+ IF stock(pt) > 1 THEN
+  edgeprint STR$(stock(pt) - 1) + " " + instock$ + " ", xstring(STR$(stock(pt) - 1) + " in stock ", 240), 30 + o * 10, 7, dpage: o = o + 1
  END IF
  IF showhero > -1 THEN
   centerbox 240, 130, 36, 44, 4, dpage
@@ -368,7 +368,7 @@ FOR i = 0 TO 3
 NEXT i
 FOR i = 0 TO storebuf(16)
  '--for each shop-thing
- IF stock(id, i) = 1 THEN setbit vmask(), 0, i, 1
+ IF stock(i) = 1 THEN setbit vmask(), 0, i, 1
  IF b(i * recordsize + 17) = (shoptype XOR 1) THEN setbit vmask(), 0, i, 1
  IF NOT istag(b(i * recordsize + 20), -1) THEN setbit vmask(), 0, i, 1
  IF b(i * recordsize + 24) > gold& THEN setbit emask(), 0, i, 1
@@ -388,11 +388,11 @@ RETURN
 setstock:
 FOR i = 0 TO storebuf(16)
  '--for each shop-stuff
- IF stock(id, i) = 0 THEN
+ IF stock(i) = 0 THEN
   '--if unloaded, reload stock
-  stock(id, i) = b(i * recordsize + 19)
+  stock(i) = b(i * recordsize + 19)
   '--zero means unloaded, 1 means no-stock, 2+n means 1+n in stock
-  IF stock(id, i) > -1 THEN stock(id, i) = stock(id, i) + 1
+  IF stock(i) > -1 THEN stock(i) = stock(i) + 1
  END IF
 NEXT i
 RETURN
@@ -1752,8 +1752,8 @@ IF carray(4) > 1 AND readbit(permask(), 0, ic) = 0 AND item(ic) > 0 THEN
    IF b(i * recordsize + 28) > 0 THEN getitem b(i * recordsize + 28), b(i * recordsize + 29) + 1
    'INCREMENT STOCK-------
    IF b(i * recordsize + 26) > 0 THEN
-    IF b(i * recordsize + 26) = 1 THEN stock(id, i) = -1
-    IF b(i * recordsize + 26) = 2 AND stock(id, i) > 0 THEN stock(id, i) = stock(id, i) + 1
+    IF b(i * recordsize + 26) = 1 THEN stock(i) = -1
+    IF b(i * recordsize + 26) = 2 AND stock(i) > 0 THEN stock(i) = stock(i) + 1
    END IF
   END IF
  NEXT i
@@ -1802,7 +1802,7 @@ RETURN
 
 selstock:
 FOR i = 0 TO storebuf(16)
- IF stock(id, i) = 0 THEN stock(id, i) = b(i * recordsize + 19): IF stock(id, i) > -1 THEN stock(id, i) = stock(id, i) + 1
+ IF stock(i) = 0 THEN stock(i) = b(i * recordsize + 19): IF stock(i) > -1 THEN stock(i) = stock(i) + 1
 NEXT i
 RETURN
 

@@ -41,7 +41,7 @@ DECLARE FUNCTION onwho% (w$, alone)
 DECLARE SUB minimap (mx%, my%, x%, y%, tastuf%())
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
-DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
+DECLARE SUB savegame (slot%, map%, foep%, stat%())
 DECLARE FUNCTION runscript% (n%, index%, newcall%, er$)
 DECLARE SUB scripterr (e$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
@@ -1187,7 +1187,7 @@ ELSE
 END IF
 END SUB
 
-SUB loadgame (slot, map, foep, stat(), stock())
+SUB loadgame (slot, map, foep, stat())
 
 '--return gen to defaults
 xbload game$ + ".gen", gen(), "General data is missing from " + game$
@@ -1305,11 +1305,20 @@ loadset sg$ + CHR$(0), slot * 2 + 1, 0
 
 z = 0
 
+fbdim tmpshort
+safekill workingdir$ + SLASH + "stock.tmp"
+stockf = FREEFILE
+OPEN workingdir$ + SLASH + "stock.tmp" FOR BINARY AS #stockf
+
 FOR i = 0 TO 99
  FOR o = 0 TO 49
-  stock(i, o) = buffer(z): z = z + 1
+  tmpshort = buffer(z)
+  PUT #stockf, , tmpshort
+  z = z + 1
  NEXT o
 NEXT i
+CLOSE #stockf
+
 FOR i = 0 TO 3
  hmask(i) = buffer(z): z = z + 1
 NEXT i
@@ -1633,7 +1642,7 @@ END IF
 
 END SUB
 
-SUB resetgame (map, foep, stat(), stock(), showsay, scriptout$, sayenh())
+SUB resetgame (map, foep, stat(), showsay, scriptout$, sayenh())
 map = 0
 catx(0) = 0
 caty(y) = 0
@@ -1697,11 +1706,8 @@ NEXT i
 
 'RECORD 2 (applies only to saves)
 
-FOR i = 0 TO 99
- FOR o = 0 TO 49
-  stock(i, o) = 0
- NEXT o
-NEXT i
+safekill workingdir$ + SLASH + "stock.tmp"
+
 flusharray hmask(), 3, 0
 flusharray global(), 1024, 0
 FOR i = 0 TO 128
@@ -1894,7 +1900,7 @@ nowscript = nowscript + 1
 
 END FUNCTION
 
-SUB savegame (slot, map, foep, stat(), stock())
+SUB savegame (slot, map, foep, stat())
 
 '--FLUSH BUFFER---
 FOR i = 0 TO 16000
@@ -2020,11 +2026,17 @@ NEXT i
 
 z = 0
 
+fbdim tempvar
+stockf = FREEFILE
+OPEN workingdir$ + SLASH + "stock.tmp" FOR BINARY AS #stockf
+
 FOR i = 0 TO 99
  FOR o = 0 TO 49
-  buffer(z) = stock(i, o): z = z + 1
+  GET #stockf, , tempvar
+  buffer(z) = tempvar: z = z + 1
  NEXT o
 NEXT i
+CLOSE #stockf
 FOR i = 0 TO 3
  buffer(z) = hmask(i): z = z + 1
 NEXT i
@@ -2160,9 +2172,9 @@ END IF
 
 END FUNCTION
 
-SUB shop (id, needf, stock(), stat(), map, foep, mx, my, tastuf())
+SUB shop (id, needf, stat(), map, foep, mx, my, tastuf())
 
-DIM storebuf(40), menu$(10), menuid(10)
+DIM storebuf(39), menu$(10), menuid(10), stock(49)
 
 FOR i = 0 TO 7
  menuid(i) = i
@@ -2220,7 +2232,7 @@ DO
   END IF
   IF menuid(pt) = 5 THEN '--SAVE
    temp = picksave(0)
-   IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
+   IF temp >= 0 THEN savegame temp, map, foep, stat()
    vishero stat()
   END IF
   IF menuid(pt) = 3 THEN '--INN
@@ -2242,7 +2254,7 @@ DO
     END IF
    END IF
   END IF
-  IF autopick THEN EXIT SUB
+  IF autopick THEN EXIT DO
   GOSUB repaintback
  END IF
  h = (last + 2) * 10
@@ -2261,6 +2273,8 @@ DO
  dowait
 LOOP
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
+setpicstuf stock(), 50, -1
+storeset workingdir$ + SLASH + "stock.tmp" + CHR$(0), id, 0
 EXIT SUB
 
 repaintback:
@@ -2273,6 +2287,8 @@ RETURN
 initshop:
 setpicstuf storebuf(), 40, -1
 loadset game$ + ".sho" + CHR$(0), id, 0
+setpicstuf stock(), 50, -1
+loadset workingdir$ + SLASH + "stock.tmp" + CHR$(0), id, 0
 sn$ = readbadbinstring$(storebuf(), 0, 15, 0)
 o = 0: last = -1
 FOR i = 0 TO 7

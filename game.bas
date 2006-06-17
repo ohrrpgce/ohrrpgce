@@ -80,7 +80,7 @@ DECLARE FUNCTION functiondone% ()
 DECLARE FUNCTION functionread% ()
 DECLARE SUB subreturn ()
 DECLARE SUB subdoarg ()
-DECLARE SUB resetgame (map%, foep%, stat%(), stock%(), showsay%, scriptout$, sayenh%())
+DECLARE SUB resetgame (map%, foep%, stat%(), showsay%, scriptout$, sayenh%())
 DECLARE FUNCTION countitem% (it%)
 DECLARE SUB scriptmath ()
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
@@ -107,15 +107,15 @@ DECLARE SUB heroswap (iAll%, stat%())
 DECLARE SUB patcharray (array%(), n$, max%)
 DECLARE SUB debug (s$)
 DECLARE SUB drawsay (saybit%(), sayenh%(), say$(), showsay%, choose$(), choosep%)
-DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, mx%, my%, tastuf%())
+DECLARE SUB shop (id%, needf%, stat%(), map%, foep%, mx%, my%, tastuf%())
 DECLARE SUB minimap (mx%, my%, x%, y%, tastuf%())
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB itstr (i%)
 DECLARE SUB control ()
 DECLARE FUNCTION picksave% (load%)
-DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock())
-DECLARE SUB loadgame (slot%, map%, foep%, stat%(), stock())
+DECLARE SUB savegame (slot%, map%, foep%, stat%())
+DECLARE SUB loadgame (slot%, map%, foep%, stat%())
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB delitem (it%, num%)
@@ -177,7 +177,7 @@ storekeyhandler
 
 DIM font(1024), master(767), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
 DIM door(206), gen(104), npcl(2100), npcs(1500), saytag(21), tag(127), hero(40), stat(40, 1, 16), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), menu$(20), exlev&(40, 1), names$(40), mi(10), gotj(2), veh(21)
-DIM item(-3 TO 199), item$(-3 TO 199), eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3),  _
+DIM item(-3 TO 199), item$(-3 TO 199), eqstuf(40, 4), gmap(20), csetup(20), carray(20), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3),  _
 tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 3), learnmask(29)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1), lumpmod(0)
 DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 13), retvals(32), plotstring$(31), plotstrX(31), plotstrY(31), plotstrCol(31), plotstrBGCol(31), plotstrBits(31)
@@ -512,7 +512,7 @@ DO
    IF keyval(59) > 1 AND showsay = 0 THEN minimap mx, my, catx(0), caty(0), tastuf()
   END IF
   IF keyval(60) > 1 AND showsay = 0 THEN
-   savegame 32, map, foep, stat(), stock()
+   savegame 32, map, foep, stat()
   END IF
   IF keyval(61) > 1 AND showsay = 0 THEN
    wantloadgame = 33
@@ -573,7 +573,7 @@ DO
   'DEBUG debug "loading game slot" + STR$(wantloadgame - 1)
   temp = wantloadgame - 1
   wantloadgame = 0
-  resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
+  resetgame map, foep, stat(), showsay, scriptout$, sayenh()
   initgamedefaults
   nowscript = -1
   nextscroff = 0
@@ -637,7 +637,7 @@ DO
  END IF
  GOSUB displayall
  IF fatal = 1 OR abortg = 1 THEN
-  resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
+  resetgame map, foep, stat(), showsay, scriptout$, sayenh()
   'if skip loadmenu and title bits set, quit
   IF readbit(gen(), genBits, 11) AND readbit(gen(), genBits, 12) THEN GOTO resetg ELSE GOTO beginplay
  END IF
@@ -658,7 +658,7 @@ DO
 LOOP
 
 doloadgame:
-loadgame temp, map, foep, stat(), stock()
+loadgame temp, map, foep, stat()
 afterload = -1
 IF gen(57) > 0 THEN
  rsr = runscript(gen(57), nowscript + 1, -1, "loadgame")
@@ -780,7 +780,7 @@ DO
   END IF
   IF mi(pt) = 6 THEN
    temp = picksave(0)
-   IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
+   IF temp >= 0 THEN savegame temp, map, foep, stat()
    reloadnpc stat()
   END IF
   IF mi(pt) = 5 THEN
@@ -928,7 +928,7 @@ END IF
 IF istag(saytag(7), 0) THEN
  copypage vpage, 3
  IF saytag(8) > 0 THEN
-  shop saytag(8) - 1, needf, stock(), stat(), map, foep, mx, my, tastuf()
+  shop saytag(8) - 1, needf, stat(), map, foep, mx, my, tastuf()
   reloadnpc stat()
  END IF
  inn = 0
@@ -1883,7 +1883,7 @@ SELECT CASE scrat(nowscript, curkind)
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 THEN
-     shop retvals(0), needf, stock(), stat(), map, foep, mx, my, tastuf()
+     shop retvals(0), needf, stat(), map, foep, mx, my, tastuf()
      reloadnpc stat()
      vishero stat()
      loadpage game$ + ".til" + CHR$(0), gmap(0), 3
@@ -1983,12 +1983,12 @@ SELECT CASE scrat(nowscript, curkind)
     'ID 155 is a backcompat hack
     scriptret = picksave(0) + 1
     IF scriptret > 0 AND (retvals(0) OR scrat(nowscript, curvalue) = 155) THEN
-     savegame scriptret - 1, map, foep, stat(), stock()
+     savegame scriptret - 1, map, foep, stat()
     END IF
     reloadnpc stat()
    CASE 166'--save in slot
     IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
-     savegame retvals(0) - 1, map, foep, stat(), stock()
+     savegame retvals(0) - 1, map, foep, stat()
     END IF
    CASE 167'--last save slot
     scriptret = lastsaveslot
