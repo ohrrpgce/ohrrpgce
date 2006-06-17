@@ -9,7 +9,7 @@ WHAT IS NEW?
       command-line tools. Also added -k option to supress this new
       behaviour [James Paige]
     * Memory usage of the QB build has been trimmed a little. Requirement
-      for game-qb.exe is now 556kb [Ralph Versteegen]
+      for game-qb.exe is now 552kb [Ralph Versteegen]
 
   * Bug Fixes
     * Fixed a few bugs in inputstring, including backspace not working,

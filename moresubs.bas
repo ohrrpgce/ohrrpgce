@@ -2174,7 +2174,11 @@ END FUNCTION
 
 SUB shop (id, needf, stat(), map, foep, mx, my, tastuf())
 
-DIM storebuf(39), menu$(10), menuid(10), stock(49)
+'free some memory
+xbsave workingdir$ + SLASH + "script.tmp", script(), 4096
+ERASE script
+
+DIM storebuf(19), menu$(10), menuid(10), stock(49)
 
 FOR i = 0 TO 7
  menuid(i) = i
@@ -2273,8 +2277,11 @@ DO
  dowait
 LOOP
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
-setpicstuf stock(), 50, -1
+setpicstuf stock(), 100, -1
 storeset workingdir$ + SLASH + "stock.tmp" + CHR$(0), id, 0
+
+DIM script(4096)
+xbload workingdir$ + SLASH + "script.tmp", script(), "program bug"
 EXIT SUB
 
 repaintback:
@@ -2287,7 +2294,7 @@ RETURN
 initshop:
 setpicstuf storebuf(), 40, -1
 loadset game$ + ".sho" + CHR$(0), id, 0
-setpicstuf stock(), 50, -1
+setpicstuf stock(), 100, -1
 loadset workingdir$ + SLASH + "stock.tmp" + CHR$(0), id, 0
 sn$ = readbadbinstring$(storebuf(), 0, 15, 0)
 o = 0: last = -1
