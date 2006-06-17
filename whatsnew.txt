@@ -25,6 +25,7 @@ WHAT IS NEW?
       want the old behaviour, use the new "keyval" command [Ralph]
     * "NPC X","NPC Y" and "NPC at spot" behaviour has been corrected: an
       NPC's position is now the tile its top left corner stands on [Ralph]
+    * Bug 43: "OHR randomly locks up on the hour" [Ralph]
 
   * New Plotscripting Commands
     * "keyval"

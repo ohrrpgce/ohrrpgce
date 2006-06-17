@@ -38,8 +38,11 @@ CodeSeg
 
 cseg	dw ?
 coff	dw ?
-time 	dw ?
+timechk	dw ?
+time	dw ?
 step 	dw 2
+
+
 
 Proc    SetWait         ; var(), number of 1/1024 seconds
 			;    8        6
@@ -71,6 +74,8 @@ Proc    SetWait         ; var(), number of 1/1024 seconds
 	add ax,[cs:step]
 	add ax,[es:06ch]
 	mov [cs:time],ax
+	mov ax,[es:06ch]
+	mov [cs:timechk],ax
 	pop di es bp
 	retf 4
 endp    SetWait
@@ -86,6 +91,8 @@ proc	Dowait
 	mov ds,ax
 motime:
 	mov ax,[ds:06ch]
+	cmp ax,[cs:timechk]
+	jl done
 	cmp ax,[cs:time]
 	jnb clock
 	mov ax,[es:di]
