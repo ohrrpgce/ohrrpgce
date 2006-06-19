@@ -1894,10 +1894,50 @@ IF a < min THEN a = a + ((max - min) + 1): loopvar = a: EXIT FUNCTION
 loopvar = a
 END FUNCTION
 
-SUB npcdef (npc(), pt, npc$(), unpc(), lnpc())
-DIM mtype$(10), push$(7), stepi(5), info$(5, 1), pal16(288)
+SUB npcdef (npc(), pt)
+DIM npc$(15), unpc(15), lnpc(15), mtype$(10), push$(7), stepi(5), info$(5, 1), pal16(288)
+
 clearpage 0: clearpage 1
 setvispage vpage
+
+npc$(0) = "Picture"
+npc$(1) = "Palette"
+npc$(2) = "Move Type"
+npc$(3) = "Move Speed"
+npc$(4) = "Display Text"
+npc$(5) = "When Activated"
+npc$(6) = "Give Item:"
+npc$(7) = "Pushability"
+npc$(8) = "Activation"
+npc$(9) = "Appear if Tag"
+npc$(10) = "Appear if Tag"
+npc$(11) = "Usable"
+npc$(12) = "Run Script: "
+npc$(13) = "Script Argument"
+npc$(14) = "Vehicle: "
+
+unpc(0) = 119
+unpc(1) = 32767
+unpc(2) = 8
+unpc(3) = 5
+unpc(4) = -1
+unpc(5) = 2
+unpc(6) = 255
+unpc(7) = 7
+unpc(8) = 2
+unpc(9) = 999
+unpc(10) = 999
+unpc(11) = 1
+unpc(12) = 0
+unpc(13) = 32767
+unpc(14) = 0
+FOR i = 0 TO 14
+ lnpc(i) = 0
+NEXT i
+lnpc(9) = -999
+lnpc(10) = -999
+lnpc(13) = -32767
+
 unpc(4) = general(39)'max text boxes
 unpc(12) = general(43)'max scripts
 unpc(14) = general(55) + 1'max vehicles
@@ -1909,6 +1949,7 @@ mtype$(4) = "Left Turns"
 mtype$(5) = "Random Turns"
 mtype$(6) = "Chase You"
 mtype$(7) = "Avoid You"
+mtype$(8) = "Walk In Place"
 push$(0) = " Off"
 push$(1) = " Full"
 push$(2) = " Vertical"
@@ -1975,10 +2016,8 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF npc(cur * 15 + 2) = 1 THEN walk = walk + 1: IF walk > 3 THEN walk = 0
+ IF npc(cur * 15 + 2) > 0 THEN walk = walk + 1: IF walk > 3 THEN walk = 0
  IF keyval(1) > 1 THEN RETURN
- 'IF keyval(72) > 1 AND csr > -1 THEN csr = csr - 1
- 'IF keyval(80) > 1 AND csr < 14 THEN csr = csr + 1
  dummy = usemenu(csr, 0, -1, 14, 24)
  IF csr = 11 THEN
   IF keyval(75) > 1 OR keyval(77) > 1 OR keyval(57) > 1 OR keyval(28) > 1 THEN GOSUB onetimetog

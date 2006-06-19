@@ -59,8 +59,8 @@ DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, you
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npcn%(), npcstat%(), npc$(), unpc%(), lnpc%())
-DECLARE SUB npcdef (npcn%(), pt%, npc$(), unpc%(), lnpc%())
+DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npcn%(), npcstat%())
+DECLARE SUB npcdef (npcn%(), pt%)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, file$, master%(), font%())
 DECLARE FUNCTION needaddset (pt%, check%, what$)
@@ -123,7 +123,7 @@ CHDIR gamedir$
 setdrive ASC(UCASE$(LEFT$(gamedir$, 1))) - 65
 
 DIM font(1024), master(767), buffer(16384), timing(4), joy(4), scroll(16002), pass(16002), emap(16002)
-DIM menu$(22), general(360), npc$(15), unpc(15), lnpc(15), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600)
+DIM menu$(22), general(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600)
 
 '--DIM binsize arrays
 '$INCLUDE: 'binsize.bi'
@@ -200,7 +200,7 @@ DO:
   SELECT CASE menumode
    CASE 0'--normal mode
     IF pt = 0 THEN pt = 0: menumode = 1: GOSUB setgraphicmenu
-    IF pt = 1 THEN mapmaker font(), master(), scroll(), pass(), emap(), doors(), link(), npcn(), npcstat(), npc$(), unpc(), lnpc()
+    IF pt = 1 THEN mapmaker font(), master(), scroll(), pass(), emap(), doors(), link(), npcn(), npcstat()
     IF pt = 2 THEN statname
     IF pt = 3 THEN herodata
     IF pt = 4 THEN enemydata
@@ -670,15 +670,6 @@ NEXT i
 FOR i = 0 TO 2
  READ ainfo$(i)
 NEXT i
-FOR i = 0 TO 14
- READ npc$(i)
-NEXT i
-FOR i = 0 TO 14
- READ unpc(i)
-NEXT i
-FOR i = 0 TO 14
- READ lnpc(i)
-NEXT i
 
 FOR o = 0 TO 3
  FOR i = 2 TO 53
@@ -689,14 +680,6 @@ NEXT o
 
 keyv(40, 1) = 34
 
-'FOR i = 0 TO 20
-'READ atkdat$(i)
-'NEXT i
-'FOR o = 0 TO 1
-' FOR i = 0 TO 18
-'  READ atklim(i, o)
-' NEXT i
-'NEXT o
 RETURN
 
 menuitems:
@@ -705,9 +688,6 @@ DATA "Standing","Stepping","Attack A","Attack B","Cast/Use","Hurt","Weak","Dead"
 DATA "Enemy (facing right)"
 DATA "Frame 1","Frame 2"
 DATA "First Frame","Middle Frame","Last Frame"
-DATA "Picture","Palette","Move Type","Move Speed","Display Text","When Activated","Give Item:","Pushability","Activation","Appear if Tag","Appear if Tag","Usable","Run Script: ","Script Argument","Vehicle: "
-DATA 119,32767,7,5,-1,2,255,7,2,999,999,1,0,32767,0
-DATA 0,0,0,0,0,0,0,0,0,-999,-999,0,0,-32767,0
 
 DATA "1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/"
 DATA "!","@","#","$","%","^","&","*","(",")","_","+","","","Q","W","E","R","T","Y","U","I","O","P","{","}","","","A","S","D","F","G","H","J","K","L",":"," ","~","","|","Z","X","C","V","B","N","M","<",">","?"

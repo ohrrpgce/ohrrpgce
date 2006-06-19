@@ -2,8 +2,9 @@ WHAT IS NEW?
 
 ??? ?? 2006 [ubersetzung]
   * New Features
+    * New NPC movement type: Walk In Place [James Paige]
     * Input string gets 3 new arguments, center, positionx, positiony.
-      (Yuriy)
+      [Yuriy]
     * 8-bit bitmaps can now be imported as backdrops and tilesets (pre-index
       your tilesets using Photoshop, etc. to use this. YOU MUST INDEX THEM WITH
       THE MASTER PALETTE, custom won't re-map the colours). 8-bit bitmaps are

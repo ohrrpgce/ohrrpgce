@@ -1192,10 +1192,12 @@ FOR o = 0 TO 299
     npc(o).frame = wtog(0)
    END IF
   ELSE
-   IF npcs(id * 15 + 2) > 0 AND npcs(id * 15 + 3) > 0 AND sayer <> o AND readbit(gen(), 44, suspendnpcs) = 0 THEN
+   movetype = npcs(id * 15 + 2)
+   speedset = npcs(id * 15 + 3)
+   IF movetype > 0 AND (speedset > 0 OR movetype = 8) AND sayer <> o AND readbit(gen(), 44, suspendnpcs) = 0 THEN
     IF npc(o).xgo = 0 AND npc(o).ygo = 0 THEN
      'RANDOM WANDER---
-     IF npcs(id * 15 + 2) = 1 THEN
+     IF movetype = 1 THEN
       rand = 25
       IF wraptouch(npc(o).x, npc(o).y, catx(0), caty(0), 20) THEN rand = 5
       IF INT(RND * 100) < rand THEN
@@ -1208,14 +1210,14 @@ FOR o = 0 TO 299
       END IF
      END IF '---RANDOM WANDER
      'ASSORTED PACING---
-     IF npcs(id * 15 + 2) > 1 AND npcs(id * 15 + 2) < 6 THEN
+     IF movetype > 1 AND movetype < 6 THEN
       IF npc(o).dir = 0 THEN npc(o).ygo = 20
       IF npc(o).dir = 2 THEN npc(o).ygo = -20
       IF npc(o).dir = 3 THEN npc(o).xgo = 20
       IF npc(o).dir = 1 THEN npc(o).xgo = -20
      END IF '---ASSORTED PACING
      'CHASE/FLEE---
-     IF npcs(id * 15 + 2) > 5 AND npcs(id * 15 + 2) < 8 THEN
+     IF movetype > 5 AND movetype < 8 THEN
       rand = 100
       IF INT(RND * 100) < rand THEN
        IF INT(RND * 100) < 50 THEN
@@ -1231,7 +1233,7 @@ FOR o = 0 TO 299
         IF gmap(5) = 1 AND catx(0) + scroll(0) * 10 < npc(o).x THEN temp = 1
         IF catx(0) = npc(o).x THEN temp = INT(RND * 4)
        END IF
-       IF npcs(id * 15 + 2) = 7 THEN temp = loopvar(temp, 0, 3, 2)
+       IF movetype = 7 THEN temp = loopvar(temp, 0, 3, 2)
        npc(o).dir = temp
        IF temp = 0 THEN npc(o).ygo = 20
        IF temp = 2 THEN npc(o).ygo = -20
@@ -1239,6 +1241,10 @@ FOR o = 0 TO 299
        IF temp = 1 THEN npc(o).xgo = -20
       END IF
      END IF '---CHASE/FLEE
+     'WALK IN PLACE---
+     IF movetype = 8 THEN
+      npc(o).frame = loopvar(npc(o).frame, 0, 3, 1) 
+     END IF '---WALK IN PLACE
     END IF
    END IF
   END IF

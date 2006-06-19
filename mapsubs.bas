@@ -50,8 +50,8 @@ DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, you
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npc%(), npcstat%(), npc$(), unpc%(), lnpc%())
-DECLARE SUB npcdef (npc%(), pt%, npc$(), unpc%(), lnpc%())
+DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npc%(), npcstat%())
+DECLARE SUB npcdef (npc%(), pt%)
 DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, file$, master%(), font%())
 DECLARE FUNCTION needaddset (pt%, check%, what$)
@@ -153,7 +153,7 @@ IF pic >= 160 THEN pic = (pic - 160) + tastuf(0)
 animadjust = pic
 END FUNCTION
 
-SUB mapmaker (font(), master(), map(), pass(), emap(), doors(), link(), npc(), npcstat(), npc$(), unpc(), lnpc())
+SUB mapmaker (font(), master(), map(), pass(), emap(), doors(), link(), npc(), npcstat())
 DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 5), topmenu$(24), gmap(20), gd$(-1 TO 20), gdmax(20), gdmin(20), destdoor(300), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
 defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
 
@@ -267,7 +267,7 @@ DO
   IF csr = 0 THEN GOSUB savemap: RETURN
   IF csr = 1 THEN GOSUB sizemap
   IF csr = 2 THEN
-   npcdef npcstat(), pt, npc$(), unpc(), lnpc()
+   npcdef npcstat(), pt
    'xbload game$ + ".n" + filenum$(pt), npcstat(), "NPCstat lump has dissapeared!"
   END IF
   IF csr = 3 THEN
