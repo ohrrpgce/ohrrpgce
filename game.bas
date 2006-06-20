@@ -853,7 +853,7 @@ IF sayer < 0 THEN
      dim nx,ny,nd
      nx = npc(j).x
      ny = npc(j).y
-     nd = npc(j).id
+     nd = npc(j).dir
      IF (nx = ux AND ny = uy) THEN 'not moving NPCs
       EXIT DO
      ELSEIF nx MOD 20 <> 0 XOR ny mod 20 <> 0 THEN 'they're moving (i.e. misaligned)
@@ -927,7 +927,6 @@ IF sayer >= 0 THEN
   npcplot
  END IF
 END IF
-sayer = -1
 RETURN
 
 nextsay:
@@ -1069,7 +1068,7 @@ FOR whoi = 0 TO 3
          ux = npc(i).x
          uy = npc(i).y
          auto = 1
-         sayer=i
+         sayer = i
          GOSUB usething
         END IF
        END IF '---autoactivate
