@@ -1691,13 +1691,9 @@ SELECT CASE id
  CASE 237'--sound slots
   scriptret = sfxslots
  CASE 238'--Search string
-  IF retvals(0)>=1 AND retvals(0)<=40 AND retvals(1)>=0 AND retvals(1)<=31 AND retvals(2)>=0 AND retvals(2)<=31 THEN
-  scriptret = instr(retvals(2),plotstring$(retvals(0)),plotstring$(retvals(1)))
-  END IF
+  scriptret = instr(bound(retvals(2),1,40),plotstring$(bound(retvals(0),0,31)),plotstring$(bound(retvals(1),0,31)))
  CASE 239'--Trim String
-  IF retvals(0)>=0 AND retvals(0)<=31 AND retvals(1)>=1 AND retvals(1)<=40 AND retvals(2)>=1 AND retvals(2)<=40 THEN
-  plotstring$(retvals(0))= MID$(plotstring$(retvals(0)),retvals(1),retvals(2))
-  END IF
+  plotstring$(bound(retvals(0),0,31))= MID$(plotstring$(bound(retvals(0),0,31),bound(retvals(1),1,40),bound(retvals(2),1,40))
 END SELECT
 
 EXIT SUB
