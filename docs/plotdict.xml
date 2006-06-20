@@ -1281,7 +1281,7 @@ end</example>
 			<description>Gets the name of song #<p>song</p> and puts it in string #<p>ID</p>.</description>
 		</command>
 		<command id="searchstring">
-		    <cannon>search string (start, ID1, ID2)</cannon>
+		    <cannon>search string (ID1, ID2, start)</cannon>
 		    <shortname>search string</shortname>
 		    <description>Searches the string for a specified string, returns the position at which the string was found. <p>start</p> is the position at which you want to start looking, default is 1. <p>ID1</p> is the the string you want to search, <p>ID2</p> is the string expression you want to find. Returns <ref>false</ref> if the string wasn't found</description>
 		</command>

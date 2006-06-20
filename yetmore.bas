@@ -1692,7 +1692,7 @@ SELECT CASE id
   scriptret = sfxslots
  CASE 238'--Search string
   IF retvals(0)>=1 AND retvals(0)<=40 AND retvals(1)>=0 AND retvals(1)<=31 AND retvals(2)>=0 AND retvals(2)<=31 THEN
-  scriptret = instr(retvals(0),plotstring$(retvals(1)),plotstring$(retvals(2)))
+  scriptret = instr(retvals(2),plotstring$(retvals(0)),plotstring$(retvals(1)))
   END IF
  CASE 239'--Trim String
   IF retvals(0)>=0 AND retvals(0)<=31 AND retvals(1)>=1 AND retvals(1)<=40 AND retvals(2)>=1 AND retvals(2)<=40 THEN
