@@ -245,7 +245,7 @@ define function, begin
 236,soundisplaying,1,1        #checks to see if a slot is playing (slot)
 237,soundslots,0              #returns the number of slots available
 238,searchstring,3,0,0,1      #Search string, (ID1,ID2,start)
-239,trimstring,3,0,1,1        #Trims the specified string, (ID, start,length
+239,trimstring,3,0,-1,1       #Trims the specified string, (ID, start,length
 end
 
 #--------------------------------------------------------------------------

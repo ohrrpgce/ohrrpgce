@@ -1288,7 +1288,7 @@ end</example>
 		<command id="trimstring">
 		    <cannon>trim string (ID, start, length)</cannon>
 		    <shortname>trim string</shortname>
-		    <description>Cuts the string to the specified length. <p>ID</p> is the string you want to be cut. <p>start</p> is the position at which you want to start cutting, anything to the left of this number will be deleted in a string. <p>length</p> is the size of the string you want to preserve, anything to the right of this number will be deleted in a string.</description>
+		    <description>Cuts the string to the specified length, OR removes blank space from the beginning and ends of the string. <p>ID</p> is the string you want to be cut. If you wish to cut <p>ID</p> to a certain length, you must specify <p>start</p> and <p>length</p>. <p>start</p> is the position at which you want to start cutting, anything to the left of this number will be deleted in a string. <p>length</p> is the size of the string you want to preserve, anything to the right of this number will be deleted in a string. If you leave these parameters blank, it will trim whitespace from the beginning and ends of <p>ID</p>.</description>
 		</command>
 	</section>
 	<section title="Misc Functions">
