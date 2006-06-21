@@ -1695,10 +1695,11 @@ SELECT CASE id
  CASE 239'--Trim String
   retvals(0) = bound(retvals(0),0,31)
   if retvals(1) <> -1 then retvals(1) = bound(retvals(1),1,40)
-  retvals(2) = bound(retvals(2),1,40)
   if retvals(2) = -1 then
-   plotstring$(retvals(0)) = trim$(plotstring$(retvals(0)))
+    retvals(2) = bound(retvals(2),1,40)
+    plotstring$(retvals(0)) = trim$(plotstring$(retvals(0)))
   else
+   retvals(2) = bound(retvals(2),1,40) 
    plotstring$(retvals(0)) = MID$(plotstring$(retvals(0)),retvals(1),retvals(2))
   end if
 END SELECT
