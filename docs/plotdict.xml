@@ -1290,6 +1290,12 @@ end</example>
 		    <shortname>trim string</shortname>
 		    <description>Cuts the string to the specified length, OR removes blank space from the beginning and ends of the string. <p>ID</p> is the string you want to be cut. If you wish to cut <p>ID</p> to a certain length, you must specify <p>start</p> and <p>length</p>. <p>start</p> is the position at which you want to start cutting, anything to the left of this number will be deleted in a string. <p>length</p> is the size of the string you want to preserve, anything to the right of this number will be deleted in a string. If you leave these parameters blank, it will trim whitespace from the beginning and ends of <p>ID</p>.</description>
 		</command>
+		<command id="stringfromtextbox">
+		    <cannon>string from textbox (ID, textbox, line)</cannon>
+		    <shortname>string from textbox</shortname>
+		    <description>Loads text from the <p>line</p> in a <p>textbox</p> into a string <p>ID</p>. The command automatically erases white spaces from the begining of the string and end of the string. Valid numbers for <p>line</p> are 0-7.</description>
+		</command>
+
 	</section>
 	<section title="Misc Functions">
 		<command id="random">

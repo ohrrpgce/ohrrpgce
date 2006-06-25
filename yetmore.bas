@@ -1697,10 +1697,18 @@ SELECT CASE id
   if retvals(1) <> -1 then retvals(1) = bound(retvals(1),1,40)
   retvals(2) = bound(retvals(2),1,40)
   if retvals(1) = -1 then
-    plotstring$(retvals(0)) = trim$(plotstring$(retvals(0)))
+   plotstring$(retvals(0)) = trim$(plotstring$(retvals(0)))
   else
    plotstring$(retvals(0)) = MID$(plotstring$(retvals(0)),retvals(1),retvals(2))
   end if
+  Case 240'-- String From Textbox
+  retvals(0) = bound(retvals(0),0,31)
+  retvals(1) = bound(retvals(1),0,gen(39))
+  retvals(2) = bound(retvals(2),0,7)
+  loadsaytobuffer retvals(1) 
+  plotstring$(retvals(0)) = string$(38,0)
+  array2str buffer() , retvals(2) * 38 , plotstring$(retvals(0))
+  plotstring$(retvals(0)) = trim$(plotstring$(retvals(0)))
 END SELECT
 
 EXIT SUB
@@ -1881,7 +1889,7 @@ SELECT CASE id
    ELSEIF retvals(1) MOD 2 = 0 THEN '2
     npc(npcref).extra2 = retvals(2)
    END IF
- 
+ END IF
 END SELECT
 
 END SUB

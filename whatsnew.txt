@@ -49,6 +49,7 @@ WHAT IS NEW?
       NPC's position is now the tile its top left corner stands on [Ralph]
       
   * New Plotscripting Commands
+    * "string from textbox" [Yuriy]
     * "hero frame", "NPC frame" [Ralph Versteegen]
     * "get hero stat cap", "set capped hero stat"
     * "load menu"
