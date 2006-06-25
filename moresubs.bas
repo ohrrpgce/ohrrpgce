@@ -1877,7 +1877,7 @@ ELSE
   '--if any higher scripts have been overwritten, invalidate them
   FOR i = index + 1 TO 127
    IF scrat(i, scrid) = 0 THEN EXIT FOR
-   IF nextscroff > scrat(i, scroff) THEN scrat(i, scrid) = 0 ELSE EXIT FOR
+   IF nextscroff > scrat(i, scroff) THEN scrat(i, scrid) = -1 ELSE EXIT FOR
   NEXT i
  ELSE
   scripterr "failed to unlump " + LTRIM$(STR$(n)) + ".hsx"
