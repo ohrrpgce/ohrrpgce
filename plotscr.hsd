@@ -245,8 +245,11 @@ define function, begin
 236,soundisplaying,1,1        #checks to see if a slot is playing (slot)
 237,soundslots,0              #returns the number of slots available
 238,searchstring,3,0,0,1      #Search string, (ID1,ID2,start)
-239,trimstring,3,0,-1,1       #Trims the specified string, (ID, start,length
-240,stringfromtextbox,3,0,0,0 #loads string with whatever line in whatever textbox you specify
+239,trimstring,3,0,-1,1       #Trims the specified string, (ID, start,length)
+240,stringfromtextbox,4,0,0,0,0 #loads string with whatever line in whatever textbox you specify
+241,expandstring,1,0          #expand ${Hxx}, etc in a string(ID)
+#24x,getnpcraw,2,0,0           #raw npc data(who,which)
+#24x,setnpcraw,3,0,0,0         #raw npc data(who,which,val)
 end
 
 #--------------------------------------------------------------------------

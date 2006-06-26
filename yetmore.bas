@@ -1705,12 +1705,17 @@ SELECT CASE id
   retvals(0) = bound(retvals(0),0,31)
   retvals(1) = bound(retvals(1),0,gen(genMaxTextbox))
   retvals(2) = bound(retvals(2),0,7)
+  retvals(3) = (retvals(3) = 0)
   
   loadsaytobuffer retvals(1)
   plotstring$(retvals(0)) = string$(38,0)
   array2str buffer() , retvals(2) * 38 , plotstring$(retvals(0))
-  embedtext plotstring$(retvals(0)), 38
+  if retvals(3) then embedtext plotstring$(retvals(0)), 40 'this is 40, not 38, because strings can be up to 40 chars long
   plotstring$(retvals(0)) = trim$(plotstring$(retvals(0)))
+ CASE 241'-- expand string(id)
+  retvals(0) = bound(retvals(0),0,31)
+  embedtext plotstring$(retvals(0)), 40 'same here
+  
 END SELECT
 
 EXIT SUB
@@ -1892,15 +1897,15 @@ SELECT CASE id
     npc(npcref).extra2 = retvals(2)
    END IF
   END IF
- CASE 241'--get NPC raw
-  npcref = getnpcref(retvals(0), 0)
-  s = bound(retvals(1),0,8)
-  'scriptret = npc(npcref).rawdat(s)
-  scriptret = CPtr(integer ptr,@npc(npcref))[s]
- CASE 242'--set NPC raw
-  npcref = getnpcref(retvals(0), 0)
-  s = bound(retvals(1),0,8)
-  CPtr(integer ptr,@npc(npcref))[s] = retvals(2)
+'  CASE 241'--get NPC raw
+'   npcref = getnpcref(retvals(0), 0)
+'   s = bound(retvals(1),0,8)
+'   'scriptret = npc(npcref).rawdat(s)
+'   scriptret = CPtr(integer ptr,@npc(npcref))[s]
+'  CASE 242'--set NPC raw
+'   npcref = getnpcref(retvals(0), 0)
+'   s = bound(retvals(1),0,8)
+'   CPtr(integer ptr,@npc(npcref))[s] = retvals(2)
  
 END SELECT
 
