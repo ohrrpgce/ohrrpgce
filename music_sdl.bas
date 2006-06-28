@@ -347,7 +347,8 @@ sub sound_play(byval slot as integer, byval l as integer)
       Mix_Resume(.chan)
       .paused = 0
     else
-      .chan = mix_playchannel(-1,.buf,&HFFFFFFF) 'stupid no-"infinite" repeat
+      if l then l = &HFFFFFFF 'stupid no-"infinite" repeat
+      .chan = mix_playchannel(-1,.buf,l)
       .playing = 1
     end if
     
