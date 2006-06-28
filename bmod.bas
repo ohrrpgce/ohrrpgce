@@ -79,6 +79,7 @@ DECLARE FUNCTION exptolevel& (level%)
 DECLARE SUB giveheroexperience (i%, exstat%(), exper&)
 DECLARE FUNCTION getbinsize% (id%)
 DECLARE FUNCTION dimbinsize% (id%)
+DECLARE SUB delitem (it%, num%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -369,6 +370,9 @@ END IF
 
 'fail if MP is inadequate
 IF stat(them, 0, 1) - atktemp(8) < 0 THEN godo(them) = 0
+
+'currently, item requirements are disregarded. should they be? Maybe they should
+'come out of theft items?
 
 'MP-idiot loses its turn
 IF godo(them) = 0 THEN
@@ -1050,9 +1054,22 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     v(targ) = 1: die(targ) = 0
    END IF
    IF targ >= 4 THEN GOSUB sponhit
-   IF atk(8) > 0 AND conmp = 1 THEN
-    '--if the attack costs MP, and we actually want to consume MP
-    stat(who, 0, 1) = large(stat(who, 0, 1) - focuscost(atk(8), stat(who, 0, 10)), 0)
+   IF conmp = 1 THEN
+    '--if the attack costs MP, we want to actually consume MP
+    IF  atk(8) > 0 THEN stat(who, 0, 1) = large(stat(who, 0, 1) - focuscost(atk(8), stat(who, 0, 10)), 0)
+
+    '--if the attack consumes items, we want to consume those too
+    FOR i = 0 to 2
+      IF atk(93 + i * 2) > 0 THEN 'this slot is used
+        IF atk(94 + i * 2) > 0 THEN 'remove items
+          delitem(atk(93 + i * 2), atk(94 + i * 2))
+        ELSEIF atk(94 + i * 2) < 0 THEN 'add items
+          getitem(atk(93 + i * 2), abs(atk(94 + i * 2)))
+        'ELSE 'uh...
+        END IF
+      END IF
+    NEXT i
+    
     '--set the flag to prevent re-consuming MP
     conmp = 0
    END IF

@@ -62,6 +62,8 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
+DECLARE SUB delitem (it%, num%)
+DECLARE FUNCTION countitem% (it%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -122,6 +124,17 @@ IF spclass = 1 THEN
   EXIT FUNCTION
  END IF
 END IF
+
+'--check for sufficient items
+FOR i = 0 to 2
+  IF atkbuf(93 + i * 2) > 0 THEN 'this slot is used
+    IF countitem(atkbuf(93 + i * 2)) < atkbuf(94 + i * 2) THEN
+      'yes, this still works for adding items.
+      atkallowed = 0
+      EXIT FUNCTION
+    END IF
+  END IF
+NEXT i
 
 '--succeed
 atkallowed = -1
@@ -782,7 +795,7 @@ IF atk(5) <> 4 THEN
   EXIT FUNCTION
  END IF
 
- 'attack and defence base
+ 'attack and defense base
  a = stat(w, 0, 2): d = stat(t, 0, 4)
  SELECT CASE atk(7)
   CASE 1

@@ -207,12 +207,16 @@ CONST AtkDatTag2 = 62
 CONST AtkDatTagIf2 = 63
 CONST AtkDatTagAnd2 = 64
 CONST AtkDatBitsets2 = 65' to 72
-CONST AtkDatDescription = 73'to 91
+CONST AtkDatDescription = 73'to 92
+CONST AtkDatItem = 93', 95, 97
+CONST AtkDatItemCost = 94', 96, 98
+
+
 
 '----------------------------------------------------------
 capindex = 0
 DIM caption$(120)
-DIM max(25), min(25)
+DIM max(27), min(27)
 
 'Limit(0) is not used
 
@@ -420,11 +424,19 @@ CONST AtkLimTagAnd = 25
 max(AtkLimTag) = 1000
 min(AtkLimTag) = -1000
 
-'next limit is 26 (remember to update the dim)
+CONST AtkLimItem = 26
+max(AtkLimItem) = 255
+min(AtkLimItem) = 0
+
+CONST AtkLimItemO = 27
+max(AtkLimItemO) = 256
+min(AtkLimItemO) = 0
+
+'next limit is 28 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 39
+CONST MnuItems = 45
 DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -649,7 +661,43 @@ menutype(AtkDescription) = 3
 menuoff(AtkDescription) = AtkDatDescription
 menulimits(AtkDescription) = AtkLimStr38
 
-'Next menu item is 40 (remember to update the dims)
+CONST AtkItem1 = 40
+menu$(AtkItem1) = "Item 1:"
+menutype(AtkItem1) = 10
+menuoff(AtkItem1) = AtkDatItem
+menulimits(AtkItem1) = AtkLimItem
+
+CONST AtkItemCost1 = 41
+menu$(AtkItemCost1) = "  Cost:"
+menutype(AtkItemCost1) = 0
+menuoff(AtkItemCost1) = AtkDatItemCost
+menulimits(AtkItemCost1) = AtkLimInt
+
+CONST AtkItem2 = 42
+menu$(AtkItem2) = "Item 2:"
+menutype(AtkItem2) = 10
+menuoff(AtkItem2) = AtkDatItem + 2
+menulimits(AtkItem2) = AtkLimItem
+
+CONST AtkItemCost2 = 43
+menu$(AtkItemCost2) = "  Cost:"
+menutype(AtkItemCost2) = 0
+menuoff(AtkItemCost2) = AtkDatItemCost + 2
+menulimits(AtkItemCost2) = AtkLimInt
+
+CONST AtkItem3 = 44
+menu$(AtkItem3) = "Item 3:"
+menutype(AtkItem3) = 10
+menuoff(AtkItem3) = AtkDatItem + 4
+menulimits(AtkItem3) = AtkLimItem
+
+CONST AtkItemCost3 = 45
+menu$(AtkItemCost3) = "  Cost:"
+menutype(AtkItemCost3) = 0
+menuoff(AtkItemCost3) = AtkDatItemCost + 4
+menulimits(AtkItemCost3) = AtkLimInt
+
+'Next menu item is 46 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
@@ -696,11 +744,17 @@ targMenu(0) = AtkBackAct
 targMenu(1) = AtkTargClass
 targMenu(2) = AtkTargSetting
 
-DIM costMenu(3)
+DIM costMenu(9)
 costMenu(0) = AtkBackAct
 costMenu(1) = AtkMPCost
 costMenu(2) = AtkHPCost
 costMenu(3) = AtkMoneyCost
+costMenu(4) = AtkItem1
+costMenu(5) = AtkItemCost1
+costMenu(6) = AtkItem2
+costMenu(7) = AtkItemCost2
+costMenu(8) = AtkItem3
+costMenu(9) = AtkItemCost3
 
 DIM chainMenu(2)
 chainMenu(0) = AtkBackAct
@@ -966,6 +1020,7 @@ FUNCTION editflexmenu (nowindex, menutype(), menuoff(), menulimits(), datablock(
 '           6=extra badly stored string(by word with gap)
 '           7=attack number (offset!)
 '           8=item number (not offset)
+'           10=item number (offset!)
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -982,7 +1037,7 @@ changed = 0
 SELECT CASE menutype(nowindex)
  CASE 0, 8, 1000 TO 3999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)), 75, 77)
- CASE 7, 9 'offset integers
+ CASE 7, 9, 10 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1, 75, 77)
  CASE 2' set tag
   changed = intgrabber(datablock(menuoff(nowindex)), -999, 999, 75, 77)
@@ -1296,8 +1351,6 @@ FOR i = 0 TO size
     nowmenu$(i) = nowmenu$(i) + " " + readattackname$(datablock(menuoff(nowdat(i))) - 1)
    END IF
   CASE 8 '--item number
-   'nowmenu$(i) = nowmenu$(i) + STR$(datablock(menuoff(nowdat(i))))
-   'nowmenu$(i) = nowmenu$(i) + " " + readitemname$(datablock(menuoff(nowdat(i))))
    nowmenu$(i) = nowmenu$(i) + itemstr(datablock(menuoff(nowdat(i))), 0, 1)
   CASE 9 '--enemy number
    IF datablock(menuoff(nowdat(i))) <= 0 THEN
@@ -1306,6 +1359,12 @@ FOR i = 0 TO size
     nowmenu$(i) = nowmenu$(i) + STR$(datablock(menuoff(nowdat(i))) - 1)
     nowmenu$(i) = nowmenu$(i) + " " + readenemyname$(datablock(menuoff(nowdat(i))) - 1)
    END IF
+  CASE 10 '--item number, offset
+    IF datablock(menuoff(nowdat(i))) <= 0 THEN
+      nowmenu$(i) = nowmenu$(i) + " None"
+    ELSE
+      nowmenu$(i) = nowmenu$(i) + itemstr(datablock(menuoff(nowdat(i))) - 1, 0, 1)
+    END IF
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
    nowmenu$(i) = nowmenu$(i) + STR$(datablock(menuoff(nowdat(i)))) + " " + caption$(capnum + datablock(menuoff(nowdat(i))))

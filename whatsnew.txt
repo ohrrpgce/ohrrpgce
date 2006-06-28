@@ -20,6 +20,7 @@ WHAT IS NEW?
       name preceded by an @ symbol will compile to the ID number of that
       script or global. [James Paige]
     * Sound effects. [Mike Caron]
+    * Attacks can now consume or give items (up to three at once!) [Mike Caron]
 
   * Bug Fixes
     * Fixed a few bugs in inputstring, including backspace not working,
