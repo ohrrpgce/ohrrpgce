@@ -1137,11 +1137,10 @@ sfxtype$ = "NO FILE"
 IF isfile(temp$ + ".wav" + CHR$(0)) THEN ext$ = ".wav" : sfxfile$ = temp$ + ext$ : sfxtype$ = "Waveform (WAV)"
 '--add more formats here
 
-sname$ = getsfxname$(snum)
-
-loadsfx 0, sfxfile$
-
-IF sfxfile$ = "" THEN '--sfx doesn't exist
+if sfxfile$ <> "" then
+ sname$ = getsfxname$(snum)
+ loadsfx 0, sfxfile$
+ELSE '--sfx doesn't exist
  sname$ = ""
 END IF
 
