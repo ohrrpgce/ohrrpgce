@@ -48,6 +48,7 @@ WHAT IS NEW?
     * Joystick didn't work at all in the Windows version [Mike]
     * "NPC X","NPC Y" and "NPC at spot" behaviour has been corrected: an
       NPC's position is now the tile its top left corner stands on [Ralph]
+    * Fixed bug in "read NPC" which blew up your computer [Ralph]
       
   * New Plotscripting Commands
     * "string from textbox" [Yuriy]
