@@ -1093,7 +1093,7 @@ SUB scriptmisc (id)
 'any main-module level local variables or GOSUBs, and therefore
 'can be moved out here to save memory
 
-SELECT CASE id
+SELECT CASE AS CONST id
 
  CASE 0'--noop
   scripterr "encountered clean noop"
@@ -1740,6 +1740,31 @@ SELECT CASE id
  CASE 241'-- expand string(id)
   retvals(0) = bound(retvals(0),0,31)
   embedtext plotstring$(retvals(0)), 40 'same here
+ CASE 242'-- joystick button
+  retvals(0) = bound(retvals(0)-1,0,15)
+  retvals(1) = bound(retvals(1),0,3)
+  
+  IF io_readjoysane(retvals(1),b,0,0) THEN
+   scriptret = (b SHR retvals(0)) AND 1
+  ELSE
+   scriptret = 0
+  END IF
+ CASE 243'-- joystick axis
+  retvals(0) = bound(retvals(0),0,1)
+  retvals(2) = bound(retvals(2),0,3)
+  
+  IF io_readjoysane(retvals(2),0,xaxis,yaxis) THEN
+   IF retvals(0) = 0 THEN'x axis
+    'debug "x" + str$(xaxis)
+    scriptret = int((xaxis / 100) * retvals(1)) 'normally, xaxis * 100
+   ELSEIF retvals(0) = 1 THEN 'y axis
+    'debug "y" + str$(yaxis)
+    scriptret = int((yaxis / 100) * retvals(1)) 'normally, yaxis * 100
+   END IF
+  ELSE
+   'debug "joystick failed"
+   scriptret = 0
+  END IF
   
 END SELECT
 

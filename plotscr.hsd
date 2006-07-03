@@ -248,8 +248,10 @@ define function, begin
 239,trimstring,3,0,-1,1       #Trims the specified string, (ID, start,length)
 240,stringfromtextbox,4,0,0,0,0 #loads string with whatever line in whatever textbox you specify
 241,expandstring,1,0          #expand ${Hxx}, etc in a string(ID)
-#24x,getnpcraw,2,0,0           #raw npc data(who,which)
-#24x,setnpcraw,3,0,0,0         #raw npc data(who,which,val)
+242,joystickbutton,2,0,0      #returns whether a given button is pressed (button, joystick)
+243,joystickaxis,3,0,100,0    #returns the axis position (axis,multiplier,joystick)
+#24x,getnpcraw,2,0,0          #raw npc data(who,which)
+#24x,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
 
 #--------------------------------------------------------------------------
@@ -968,4 +970,6 @@ define constant, begin
 -1,party
 1, extra 1
 2, extra 2
+0, x axis
+1, y axis
 end

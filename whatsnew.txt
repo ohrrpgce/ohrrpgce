@@ -66,6 +66,7 @@ WHAT IS NEW?
     * "load sound", "free sound", "play sound", "stop sound", "pause sound"
       [Mike Caron]
     * "search string", "trim string"[Yuriy]
+    * "joystick button" and "joystick axis" [Mike Caron]
     * An existing command we forgot to mention in the whatsnew: "string compare"
 
   * Stuff only Developers Will Notice

@@ -115,7 +115,7 @@ have to do it manually, but you MUST do it. Remember: 1 indent = 1 tab.
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript lastmodified="February 18, 2006">
+<plotscript lastmodified="July 3, 2006">
 	<section title="Declarations">
 		<command id="definescript">
 			<cannon>define script (id,name,arguments)</cannon>
@@ -1506,6 +1506,16 @@ end</example>
 			<shortname>last ascii</shortname>
 			<description>Returns the ascii code of any currently pressed key. If more than one key corresponding to an ascii character is being pressed, then only one can be returned.</description>
 		</command>
+		<command id="joystickbutton">
+		  <cannon>joystick button (button,joystick)</cannon>
+		  <shortname>joystick button</shortname>
+		  <description>Returns <ref>true</ref> or <ref>false</ref> depending on whether button #<p>button</p> on joystick #<p>joystick</p> is pressed. <p>button</p> can be from 1-16 (assuming the joystick has that many buttons), and <p>joystick</p> can be from 0-3. Most of the time, you will want to use joystick #0, so that is what <p>joystick</p> defaults to.</description>
+		</command>
+		<command id="joystickaxis">
+		  <cannon>joystick axis (axis,multiplier,joystick)</cannon>
+		  <shortname>joystick axis</shortname>
+		  <description>Returns the position of the joystick along the X or Y axis on joystick #<p>joystick</p>. <p>axis</p> can be one of the constants <ref>xaxis</ref> or <ref>yaxis</ref>. <p>multiplier</p> is slightly complicated: The position of the joystick is actually a decimal between -1 and 1. Since plotscripting can't handle decimals, this position must be multiplied and rounded off until it is within plotscripting's capabilities. By default, it is 100 (so it will return -100 - 100). <p>joystick</p> can be from 0-3. Most of the time, you will want to use joystick #0, so that is what <p>joystick</p> defaults to.</description>
+		</command>
 		<command id="heropixelx">
 			<cannon>hero pixel X (who)</cannon>
 			<shortname>hero pixel X (who)</shortname>
@@ -2509,6 +2519,16 @@ trace(1) # writes "TRACE: i = 1" to G_DEBUG.TXT</example>
 			<cannon>party</cannon>
 			<shortname>party</shortname>
 			<description>Pass as first argument to <ref>giveexperience</ref> to divide the experience between all the live heroes in the battle (active) party.</description>
+		</command>
+		<command id="xaxis">
+		  <cannon>x axis</cannon>
+		  <shortname>x axis</shortname>
+		  <description>Pass to <ref>joystickaxis</ref> to specify the X axis (left and right).</description>
+		</command>
+		<command id="yaxis">
+		  <cannon>y axis</cannon>
+		  <shortname>y axis</shortname>
+		  <description>Pass to <ref>joystickaxis</ref> to specify the Y axis (up and down).</description>
 		</command>
 	</section>
 </plotscript>
