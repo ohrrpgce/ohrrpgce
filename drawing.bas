@@ -1044,7 +1044,7 @@ IF keyval(56) > 0 AND col > 0 THEN
  IF keyval(75) > 0 AND PEEK(col) > 0 THEN POKE col, PEEK(col) - 1
  IF keyval(77) > 0 AND PEEK(col) < 255 THEN POKE col, PEEK(col) + 1
 END IF
-IF mouse(3) = 1 AND zone = 3 AND col > 0 THEN
+IF mouse(3) = 1 AND zone = 3 THEN 'AND col > 0 THEN
  POKE col, INT(INT(zoy / 6) * 16) + INT(zox / 4)
 END IF
 IF keyval(56) = 0 THEN
@@ -1355,15 +1355,15 @@ rectangle 247 + (col * 4), 110, 5, 7, 15, dpage
 FOR i = 0 TO 15
  rectangle 248 + (i * 4), 111, 3, 5, PEEK(i), dpage
 NEXT
-IF zoom = 4 THEN hugesprite placer(), workpal(), 0, 4, 1, dpage
-IF zoom = 2 THEN bigsprite placer(), workpal(), 0, 4, 1, dpage
+IF zoom = 4 THEN hugesprite placer(), workpal(), 0, 4, 1, dpage, 0
+IF zoom = 2 THEN bigsprite placer(), workpal(), 0, 4, 1, dpage, 0
 IF box = 1 THEN
  defseg(varseg(workpal(0)))
  rectangle 4 + small(x, bx) * zoom, 1 + small(y, by) * zoom, (ABS(x - bx) + 1) * zoom, (ABS(y - by) + 1) * zoom, PEEK(col), dpage
  rectangle 4 + bx * zoom, 1 + by * zoom, zoom, zoom, tog * 15, dpage
 END IF
 rectangle 4 + (x * zoom), 1 + (y * zoom), zoom, zoom, tog * 15, dpage
-drawsprite placer(), 0, workpal(), 0, 239, 119, dpage
+drawsprite placer(), 0, workpal(), 0, 239, 119, dpage, 0
 IF box = 1 THEN
  defseg(varseg(workpal(0)))
  rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, PEEK(col), dpage

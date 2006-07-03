@@ -21,7 +21,9 @@ WHAT IS NEW?
       script or global. [James Paige]
     * Sound effects. [Mike Caron]
     * Attacks can now consume or give items (up to three at once!) [Mike Caron]
-
+    * "Transparent" colour in sprite editor can now be chosen (only affects the
+      sprite editor, so you can distinguish "transparent" from "black") [Mike]
+      
   * Bug Fixes
     * Fixed a few bugs in inputstring, including backspace not working,
       missing length checking and ESC popping up the menu [Yuriy, Ralph]

@@ -32,7 +32,7 @@ type node 	'only used for floodfill
 end type
 
 'add page? or assume workpage? (all pages for clip?)
-declare SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer=1)
+declare SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer=1, BYVAL trans as integer = -1)
 declare sub setclip(l as integer=0, t as integer=0, r as integer=319, b as integer=199)
 declare sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer=1)
 declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr)
@@ -478,20 +478,20 @@ SUB setoutside (BYVAL defaulttile as integer)
 	bordertile = defaulttile
 end SUB
 
-SUB drawsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer)
+SUB drawsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans = -1)
 'draw sprite from pic(picoff) onto page using pal() starting at po
-	drawspritex(pic(), picoff, pal(), po, x, y, page, 1)
+	drawspritex(pic(), picoff, pal(), po, x, y, page, 1, trans)
 end sub
 
-SUB bigsprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
-	drawspritex(pic(), 0, pal(), p, x, y, page, 2)
+SUB bigsprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page, BYVAL trans = -1)
+	drawspritex(pic(), 0, pal(), p, x, y, page, 2, trans)
 END SUB
 
-SUB hugesprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page)
-	drawspritex(pic(), 0, pal(), p, x, y, page, 4)
+SUB hugesprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page, BYVAL trans = -1)
+	drawspritex(pic(), 0, pal(), p, x, y, page, 4, trans)
 END SUB
 
-SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer)
+SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer, byval trans as integer = -1)
 'draw sprite scaled, used for drawsprite(x1), bigsprite(x2) and hugesprite(x4)
 	dim sw as integer
 	dim sh as integer
@@ -528,7 +528,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	nib = 0
 	row = 0
 	for i = 0 to (sw * sh) - 1
-		select case nib			' 2 bytes = 4 nibbles in each int
+		select case as const nib 			' 2 bytes = 4 nibbles in each int
 			case 0
 				spix = (pic(picoff) and &hf000) shr 12
 			case 1
@@ -539,7 +539,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 				spix = pic(picoff) and &h0f
 				picoff = picoff + 1
 		end select
-		if spix = 0 then
+		if spix = 0 and trans then
 			pix = 0					' transparent (hope 0 is never valid)
 			mask = &hff
 		else
@@ -574,7 +574,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	deallocate(hspr.mask)
 end SUB
 
-SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer)
+SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans = -1)
 'I think this just draws the sprite mirrored
 'are the coords top left or top right, though?
 	dim sw as integer
@@ -626,7 +626,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 				spix = pic(picoff) and &h0f
 				picoff = picoff + 1
 		end select
-		if spix = 0 then
+		if spix = 0 and trans then
 			pix = 0					' transparent (hope 0 is never valid)
 			mask = &hff
 		else
@@ -2174,7 +2174,7 @@ SUB setupstack (buffer() as integer, BYVAL size as integer, file$)
 'whenever it gets too big. Likewise, the passed is never used for anything else.
 'For simlpicity, I've decided to allocate a larger stack in memory and ignore
 'the parameters.
-	stacktop = allocate(32768) '32k
+	stacktop = allocate(32768 * 4) '32k
 	if (stacktop = 0) then
 		'oh dear
 		debug "Not enough memory for stack"
