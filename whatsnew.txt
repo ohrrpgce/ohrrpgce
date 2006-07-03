@@ -23,6 +23,8 @@ WHAT IS NEW?
     * Attacks can now consume or give items (up to three at once!) [Mike Caron]
     * "Transparent" colour in sprite editor can now be chosen (only affects the
       sprite editor, so you can distinguish "transparent" from "black") [Mike]
+    * New functionality for the key is pressed() command, pertaining to
+      joysticks [Mike Caron]
       
   * Bug Fixes
     * Fixed a few bugs in inputstring, including backspace not working,

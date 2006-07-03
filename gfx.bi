@@ -17,3 +17,4 @@ declare sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbutton
 declare sub io_setmouse(byval x as integer, byval y as integer)
 declare sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 declare function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
+declare function io_readjoysane(byval as integer, byref as integer, byref as integer, byref as integer) as integer

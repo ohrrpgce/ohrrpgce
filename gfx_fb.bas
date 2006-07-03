@@ -13,7 +13,7 @@ option explicit
 #define BORDER 20
 
 dim shared offset as integer = 0
-dim shared windowed as integer = 0
+dim shared windowed as integer = 1
 dim shared init_gfx as integer = 0
 'defaults are 2x zoom and 640x400 in 8-bit (mode 17)
 dim shared zoom as integer = 2
@@ -275,5 +275,17 @@ function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
 	joybuf(3) = (button AND 2) = 0 'ditto
 	
 	return 1
+	
+end function
+
+function io_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
+	dim as single xa, ya
+	if getjoystick(joynum,button,xa,ya) then 'returns 1 on failure
+	  return 0
+  else
+    x = int(xa * 100)
+    y = int(ya * 100)
+    return 1
+	end if
 	
 end function

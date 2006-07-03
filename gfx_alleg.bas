@@ -189,3 +189,10 @@ function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
 	'don't know
 	io_readjoy = 0
 end function
+
+function io_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
+
+  'don't know either
+	return 0
+	
+end function

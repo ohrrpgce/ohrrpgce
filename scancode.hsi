@@ -122,4 +122,27 @@ define constant,begin
 91,key:LEFT WIN LOGO
 92,key:RIGHT WIN LOGO
 93,key:CONTEXT
+
+#keys >= 128 are NOT scan codes, per se, but for other devices (mouse, joystick)
+128,joy:button 1
+129,joy:button 2
+130,joy:button 3
+131,joy:button 4
+132,joy:button 5
+133,joy:button 6
+134,joy:button 7
+135,joy:button 8
+136,joy:button 9
+137,joy:button 10
+138,joy:button 11
+139,joy:button 12
+140,joy:button 13
+141,joy:button 14
+142,joy:button 15
+143,joy:button 16
+144,joy:x left
+145,joy:x right
+146,joy:y up
+147,joy:y down
+
 end

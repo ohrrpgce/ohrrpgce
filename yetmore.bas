@@ -115,6 +115,7 @@ DECLARE FUNCTION soundfile$ (sfxnum%)
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
 '$INCLUDE: 'uigame.bi'
+'$INCLUDE: 'gfx.bi'
 
 REM $STATIC
 SUB arslhero (saytag(), stat())
@@ -881,6 +882,7 @@ safekill tmpdir$ + "ohrcline.tmp"
 'closefile
 'DEBUG debug "Unload BAM player"
 closemusic
+closesound
 'DEBUG debug "Restore original FM volume"
 setfmvol fmvol
 
@@ -1682,7 +1684,30 @@ SELECT CASE id
  CASE 233'--get song name
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 THEN plotstring$(retvals(0)) = getsongname$(retvals(1))
  CASE 235'--key is pressed
-  IF keyval(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
+  SELECT CASE AS CONST retvals(0)
+  CASE 1 TO 127 'keyboard
+   IF keyval(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
+  CASE 128 TO 147 'joystick
+   dim b as integer, xaxis as integer, yaxis as integer '0 >= x and y, >= 100
+   IF io_readjoysane(bound(retvals(1),0,3),b,xaxis,yaxis) THEN
+    IF retvals(0) >= 128 AND retvals(0) <= 143 THEN
+     scriptret = (b SHR (retvals(0) - 128)) AND 1
+    ELSEIF retvals(0) = 144 THEN 'x left
+     'debug str$(xaxis)
+     scriptret = abs(xaxis <= -50) 'true = -1...
+    ELSEIF retvals(0) = 145 THEN 'x right
+     scriptret = abs(xaxis >= 50)
+    ELSEIF retvals(0) = 146 THEN 'y up
+     scriptret = abs(yaxis <= -50)
+    ELSEIF retvals(0) = 147 THEN 'y down
+     scriptret = abs(yaxis >= 50)
+    END IF
+   ELSE
+    scriptret = 0
+   END IF
+  CASE ELSE
+   scriptret = 0
+  END SELECT
  CASE 236'--sound is playing
   IF retvals(0) >= 1 AND retvals(0) <= sfxslots THEN
    slot = retvals(0) - 1

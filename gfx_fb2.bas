@@ -175,3 +175,15 @@ function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
 	return 1
 	
 end function
+
+function io_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
+	dim as single xa, ya
+	if getjoystick(joynum,button,xa,ya) then 'returns 1 on failure
+	  return 0
+  else
+    x = int(xa * 100)
+    y = int(ya * 100)
+    return 1
+	end if
+	
+end function
