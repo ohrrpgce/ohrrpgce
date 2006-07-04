@@ -31,6 +31,7 @@ WHAT IS NEW?
     * Bug 43: "OHR randomly locks up on the hour" [Ralph]
     * Fixed a bug in "alter NPC" and "set hero speed" that caused the
       wrong NPC to be changed if used with an NPC reference [James Paige]
+    * Bug 174: "Quick keypresses and mouse clicks lost in FB port" [Ralph]
 
   * New Plotscripting Commands
     * "keyval"

@@ -55,6 +55,8 @@ declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as i
 declare sub debug(s$)
 declare sub fatalerror(e$)
 
+declare sub pollingthread()
+
 dim shared path as string
 dim shared vispage as integer
 dim shared wrkpage as integer
@@ -76,8 +78,14 @@ dim shared anim1 as integer
 dim shared anim2 as integer
 
 dim shared waittime as double
-dim shared keybd(0 to 255) as integer
-dim shared keysteps(0 to 255) as integer
+
+dim shared keybd(0 to 255) as integer  'keyval array
+dim shared keybdstate(127) as integer  '"real"time array
+dim shared keysteps(127) as integer
+
+dim shared keybdmutex as integer  'controls access to keybdstate(), mouseflags and mouselastflags
+dim shared keybdthread as integer   'id of the polling thread
+dim shared endpollthread as integer  'signal the polling thread to quit
 
 dim shared stacktop as ubyte ptr
 dim shared stackptr as ubyte ptr
@@ -87,6 +95,8 @@ dim shared mouse_xmin as integer
 dim shared mouse_xmax as integer
 dim shared mouse_ymin as integer
 dim shared mouse_ymax as integer
+dim shared mouseflags as integer
+dim shared mouselastflags as integer
 
 dim shared textfg as integer
 dim shared textbg as integer
@@ -113,12 +123,19 @@ sub setmodex()
 	vispage = 0
 	wrkpage = 0
 
-	'init vars
-	for i = 0 to 255
-		keybd(i) = 0
- 		keysteps(i) = -1
-	next
+ 	'init vars
+	for i = 0 to 127
+ 		keybd(i) = 0
+		keybdstate(i) = 0
+  		keysteps(i) = -1
+ 	next
 	stacksize = -1
+	endpollthread = 0
+	mouselastflags = 0
+	mouseflags = 0
+ 
+	keybdmutex = mutexcreate
+	keybdthread = threadcreate (@pollingthread)
 
 	io_init
 	mouserect(0,319,0,199)
@@ -128,6 +145,10 @@ sub restoremode()
 	dim i as integer
 
 	gfx_close
+	'clean up io stuff
+	endpollthread = 1
+	threadwait keybdthread
+	mutexdestroy keybdmutex
 
 	'clear up software gfx
 	for i = 0 to 3
@@ -800,13 +821,14 @@ FUNCTION getkey () as integer
 	dim i as integer, key as integer
 	key = 0
 
-    setkeys
-    do
-        setkeys
-		for i=0 to &h80
-			if keyval(i) > 1 then
-				key = i
-				exit for
+	setkeys
+	do
+		setkeys
+		'keybd(0) may contain garbage (but in assembly, keyval(0) contains last key pressed)
+		for i=1 to &h7f
+ 			if keyval(i) > 1 then
+ 				key = i
+				exit do
 			end if
 		next
 		sleep 50
@@ -827,37 +849,62 @@ SUB setkeys ()
 'times in one frame (which is a problem, setkeys() is often called
 'more than once per frame, particularly when new screens are brought
 'up). - sb 2006-01-27
+
 'Actual key state goes in keybd array for retrieval via keyval().
+
+'In the asm version, setkeys copies over the real key state array
+'(which is built using an interrupt handler) to the state array used
+'by keyval and then reduces new key presses to held keys, all of
+'which now happens in the backend, which may rely on a polling thread 
+'or keyboard event callback as needed. - tmc
 	dim a as integer
-
-	'special - never time out modifier keys
-	keysteps(SC_CONTROL) = -1
-	keysteps(SC_LSHIFT) = -1
-	keysteps(SC_RSHIFT) = -1
-
-	'set key state for every key
-	'highest scancode in fbgfx.bi is &h79, no point overdoing it
-	for a = 0 to &h80
-		if io_keypressed(a) <> 0 then
-			if keysteps(a) > 0 then
-				keybd(a) = 1
-			else
-				'ok to fire a key event
-				if keysteps(a) = -1 then
-					'this is a new keypress
-					keysteps(a) = 7
-				else
-					keysteps(a) = 1
-				end if
-				keybd(a) = 3
-			end if
-		else
-			keybd(a) = 0 'not pressed
-			keysteps(a) = -1 '-1 means it's a new press next time
+	mutexlock keybdmutex
+	for a = 0 to &h7f
+		keybd(a) = keybdstate(a)
+		if keysteps(a) > 0 then
+			keysteps(a) -= 1
 		end if
+		keybdstate(a) = keybdstate(a) and 1
 	next
-
+	mutexunlock keybdmutex
 end SUB
+
+sub pollingthread
+	dim as integer a, dummy, buttons
+
+	while endpollthread = 0
+		mutexlock keybdmutex
+
+		io_updatekeys keybdstate()
+		'set key state for every key
+		'highest scancode in fbgfx.bi is &h79, no point overdoing it
+		for a = 0 to &h7f
+			if keybdstate(a) and 4 then
+				'decide whether to fire a new key event, otherwise the keystate is preserved as 1
+				if keysteps(a) <= 0 then
+					if keysteps(a) = -1 then
+						'this is a new keypress
+						keysteps(a) = 7
+					else
+						keysteps(a) = 1
+					end if
+					keybdstate(a) = 3
+				else
+					keybdstate(a) = keybdstate(a) and 3 
+				end if
+			else
+				keybdstate(a) = keybdstate(a) and 2 'no longer pressed, but was seen
+				keysteps(a) = -1 '-1 means it's a new press next time
+			end if
+		next
+		io_getmouse dummy, dummy, dummy, buttons
+		mouseflags = mouseflags or (buttons and not mouselastflags)
+		mouselastflags = buttons
+		mutexunlock keybdmutex
+
+		sleep 25
+	wend
+end sub
 
 SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
 	if wrkpage <> p then
@@ -1261,11 +1308,6 @@ SUB dowait ()
 	do while timer <= waittime
 		sleep 5 'is this worth it?
 	loop
-	for i = 0 to &h80
-		if keysteps(i) > 0 then
-			keysteps(i) -= 1
-		end if
-	next
 end SUB
 
 SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
@@ -2049,7 +2091,6 @@ SUB readmouse (mbuf() as integer)
 	dim as integer mx, my, mw, mb, mc
 	static lastx as integer = 0
 	static lasty as integer = 0
-	static lastb as integer = 0
 
 	io_getmouse(mx, my, mw, mb)
 	if (mx < 0) then 
@@ -2067,20 +2108,21 @@ SUB readmouse (mbuf() as integer)
 	if (my > mouse_ymax) then my = mouse_ymax
 	if (my < mouse_ymin) then my = mouse_ymin
 
-	'mc = mouseclicked, only set (to 1) if this is a new left-click
-	'faking the effect of dos int33h cmd 5
-	mc = 0
+	mutexlock keybdmutex   'is this necessary?
+	mc = mouseflags or (mb and not mouselastflags)
+	mouselastflags = mb
+	mouseflags = 0
+
 	if (mb < 0) then
 		'off screen, preserve last button state
-		mb = lastb
-	else
-		if lastb = 0 and mb = 1 then mc = 1
-		lastb = mb
+		mb = mouselastflags
+		mc = 0
 	end if
+	mutexunlock keybdmutex
 
 	mbuf(0) = mx
 	mbuf(1) = my
-	mbuf(2) = mb
+	mbuf(2) = mb or mc
 	mbuf(3) = mc
 end SUB
 

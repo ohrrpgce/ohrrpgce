@@ -8,6 +8,7 @@ option explicit
 
 #include "allegro.bi"
 #include "gfx.bi"
+#include "scancodes.bi"
 
 declare sub debug(s$)
 
@@ -19,7 +20,7 @@ dim shared offset as integer = 0
 dim shared windowed as integer = 0
 dim shared alpal(255) as RGB
 
-'Scancodes are different, need a translation
+'Translate an OHR scancode to an Allegro one
 dim shared keytrans(0 to 127) as integer => { _
 	0, KEY_ESC, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, _
 	KEY_7, KEY_8, KEY_9, KEY_0, KEY_MINUS, KEY_EQUALS, KEY_BACKSPACE, KEY_TAB, _
@@ -37,6 +38,26 @@ dim shared keytrans(0 to 127) as integer => { _
 	0, 0, 0, 0, 0, 0, 0, 0, _
 	0, 0, 0, 0, 0, 0, 0, 0, _
 	0, 0, 0, 0, 0, KEY_LWIN, KEY_RWIN, KEY_MENU _
+}
+
+'Translate an allegro scancode into a normal one
+dim shared scantrans(0 to 127) as integer => { _
+	0, scA, scB, scC, scD, scE, scF, scG, _
+	scH, scI, scJ, scK, scL, scM, scN, scO, _
+	scP, scQ, scR, scS, scT, scU, scV, scW, _
+	scX, scY, scZ, sc0, sc1, sc2, sc3, sc4, _
+	sc5, sc6, sc7, sc8, sc9, scNumpad0, scNumpad1, scNumpad2, _
+	scNumpad3, scNumpad4, scNumpad5, scNumpad6, scNumpad7, scNumpad8, scNumpad9, scF1, _
+	scF2, scF3, scF4, scF5, scF6, scF7, scF8, scF9, _
+	scF10, scF11, scF12, scEsc, scTilde, scMinus, scEquals, scBackspace, _
+	scTab, scLeftBrace, scRightBrace, scEnter, scColon, scQuote, scBackslash, 0, _
+	scComma, scPeriod, scSlash, scSpace, scInsert, scDelete, scHome, scEnd, _
+	scPageup, scPagedown, scLeft, scRight, scUp, scDown, scSlash, scNumpadAsterix, _
+	scMinus, scPlus, scPeriod, scEnter, 0, 0, 0, 0, _
+	0, 0, 0, scAtSign, scCircumflex, 0, 0, scLeftShift, _
+	scRightShift, scCtrl, scCtrl, scAlt, scAlt, scLeftWinLogo, scRightWinLogo, scContext, _
+	scScrollLock, scNumlock, scCapslock, 0, 0, 0, 0, 0, _
+	0, 0, 0, 0, 0, 0, 0, 0 _
 }
 
 'Note, init is called before the browser is shown, and close is
@@ -156,8 +177,17 @@ sub io_init
 ' 	end if
 end sub
 
-function io_keypressed(byval scancode as integer)
-	io_keypressed = key(keytrans(scancode))
+sub io_updatekeys(keybd() as integer)
+	dim a as integer
+	for a = 0 to &h7f
+		if key(a) then
+			keybd(scantrans(a)) = keybd(scantrans(a)) or 4
+		end if
+	next
+end sub
+
+function io_keypressed(byval sccode as integer)
+	io_keypressed = key(keytrans(sccode))
 end function
 
 function io_enablemouse() as integer
