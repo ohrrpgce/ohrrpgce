@@ -53,6 +53,7 @@ WHAT IS NEW?
     * "NPC X","NPC Y" and "NPC at spot" behaviour has been corrected: an
       NPC's position is now the tile its top left corner stands on [Ralph]
     * Fixed bug in "read NPC" which blew up your computer [Ralph]
+    * Bug 174: "Quick keypresses and mouse clicks lost in FB port" [Ralph]
       
   * New Plotscripting Commands
     * "string from textbox" [Yuriy]

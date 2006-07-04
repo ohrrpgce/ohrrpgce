@@ -117,6 +117,15 @@ sub io_init
 	setmouse(0, 0, 0) 'hide mouse
 end sub
 
+sub io_updatekeys(keybd() as integer)
+	dim as integer a
+	for a = 0 to &h7f
+		if multikey(a) then
+			keybd(a) = keybd(a) or 4
+		end if
+	next
+end sub
+
 function io_keypressed(byval scancode as integer)
 'the contract of this function is basically the same as multikey
 'in this case it's just a wrapper, but multikey only works with
