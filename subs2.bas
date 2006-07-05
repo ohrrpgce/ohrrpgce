@@ -1534,6 +1534,7 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
+ dowait
 LOOP
 
 groovybox:
