@@ -1,4 +1,4 @@
--- HamsterSpeak Compiler v.2K
+-- HamsterSpeak Compiler v.2M
 
 --(C) Copyright 2002 James Paige and Hamster Republic Productions
 -- Please read LICENSE.txt for GPL License details and disclaimer of liability
@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--2M 2006-07-06 Set exit code on warnings
 --2L 2006-05-13 Added switch statement (+ case keyword)
 --2K 2006-05-01 Added @scriptname and @globalvariable syntax to
 --              return script or global ID number at compile-time
@@ -61,7 +62,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=2
-constant COMPILER_SUB_VERSION='L'
+constant COMPILER_SUB_VERSION='M'
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -195,7 +196,7 @@ sequence used_globals     used_globals={}
 sequence used_locals      used_locals={}
 integer fast_mode         fast_mode=false
 integer end_anchor_kludge end_anchor_kludge=false
-
+integer was_warnings      was_warnings=false
 ---------------------------------------------------------------------------
 
 --time spent waiting for a user-keypress shouldnt count
@@ -340,6 +341,7 @@ procedure simple_warn(sequence s)
     end if
     wrap_print(COLRED&"WARNING: %s"&COLWHI&"\n",{s})
     error_file_print(sprintf("<font color=\"#FF0000\">WARNING: %s</font>",{html_char_convert(s)}))
+    was_warnings = true
   end if
 end procedure
 
@@ -2453,3 +2455,6 @@ write_output_file()
 
 color_print("done (%g seconds)\n",{time()-start_time})
 opt_wait_for_key()
+if was_warnings = true then
+  abort(2)
+end if

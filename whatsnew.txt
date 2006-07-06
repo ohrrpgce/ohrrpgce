@@ -73,6 +73,7 @@ WHAT IS NEW?
   * Stuff only Developers Will Notice
     * Some rewritten map wrapping code [Ralph Versteegen]
     * Reformatted NPC data with UDTs [Mike Caron]
+    * Hspeak's exit code is 2 if there were warnings [Mike Caron]
 
 Mar 15 2006 [tirgoviste]
   * New Features
