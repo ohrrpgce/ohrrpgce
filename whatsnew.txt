@@ -54,7 +54,9 @@ WHAT IS NEW?
       NPC's position is now the tile its top left corner stands on [Ralph]
     * Fixed bug in "read NPC" which blew up your computer [Ralph]
     * Bug 174: "Quick keypresses and mouse clicks lost in FB port" [Ralph]
-      
+    * Bug 68: Added days, hours, minutes to Global text Strings menu
+      for displaying playtime on the Save/Load screens [James]
+
   * New Plotscripting Commands
     * "string from textbox" [Yuriy]
     * "hero frame", "NPC frame" [Ralph Versteegen]

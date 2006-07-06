@@ -808,23 +808,23 @@ s$ = ""
 
 SELECT CASE d
  CASE 1
-  s$ = s$ + LTRIM$(STR$(d)) + " day "
+  s$ = s$ + LTRIM$(STR$(d)) + " " + readglobalstring$(154, "day", 10) + " "
  CASE IS > 1
-  s$ = s$ + LTRIM$(STR$(d)) + " days "
+  s$ = s$ + LTRIM$(STR$(d)) + " " + readglobalstring$(155, "days", 10) + " "
 END SELECT
 
 SELECT CASE h
  CASE 1
-  s$ = s$ + LTRIM$(STR$(h)) + " hour "
+  s$ = s$ + LTRIM$(STR$(h)) + " " + readglobalstring$(156, "hour", 10) + " "
  CASE IS > 1
-  s$ = s$ + LTRIM$(STR$(h)) + " hours "
+  s$ = s$ + LTRIM$(STR$(h)) + " " + readglobalstring$(157, "hours", 10) + " "
 END SELECT
 
 SELECT CASE m
  CASE 1
-  s$ = s$ + LTRIM$(STR$(m)) + " minute"
+  s$ = s$ + LTRIM$(STR$(m)) + " " + readglobalstring$(158, "minute", 10) + " "
  CASE IS > 1
-  s$ = s$ + LTRIM$(STR$(m)) + " minutes"
+  s$ = s$ + LTRIM$(STR$(m)) + " " + readglobalstring$(159, "minutes", 10) + " "
 END SELECT
 
 playtime$ = s$
