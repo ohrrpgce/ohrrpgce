@@ -32,6 +32,8 @@ WHAT IS NEW?
     * Fixed a bug in "alter NPC" and "set NPC speed" that caused the
       wrong NPC to be changed if used with an NPC reference [James Paige]
     * Bug 174: "Quick keypresses and mouse clicks lost in FB port" [Ralph]
+    * Fixed a bug in "read NPC" and another bug which were causing script
+      interpreter errors like "clean noop" [Ralph Versteegen]
     * Fixed script interpreter to return "1" for true in comparison operators
       instead of -1 (for consistancy elsewhere) [Mike]
       

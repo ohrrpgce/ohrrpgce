@@ -1814,8 +1814,7 @@ SELECT CASE id
    ELSE
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
-     id = (npcl(npcref + 600) - 1)
-     scriptret = npcs(id * 15 + retvals(1))
+     scriptret = npcs((npcl(npcref + 600) - 1) * 15 + retvals(1))
     END IF
    END IF
   END IF
