@@ -1790,8 +1790,8 @@ write pass block(15,3,pass)
 			<description>Checks to see if the first number is less than the second number. If it is, it returns true, otherwise it returns false. This can also be written as less than(number,number)</description>
 		</command>
 		<command id="greaterthan">
-			<cannon>number >> number</cannon>
-			<shortname>>></shortname>
+			<cannon>number &gt;&gt; number</cannon>
+			<shortname>&gt;&gt;</shortname>
 			<description>Checks to see if the first number is greater than the second number. If it is, it returns true, otherwise it returns false. This can also be written as greater than(number,number)</description>
 		</command>
 		<command id="lessthanorequalto">
@@ -1801,23 +1801,41 @@ write pass block(15,3,pass)
 		</command>
 		<command id="greaterthanorequalto">
 			<cannon>number >= number</cannon>
-			<shortname>>=</shortname>
+			<shortname>&gt;=</shortname>
 			<description>Checks to see if the first number is greater than or equal to the second number. If it is, it returns true, otherwise it returns false. This can also be written as greater than or equal to(number,number)</description>
 		</command>
 		<command id="and">
 			<cannon>value,and,value</cannon>
 			<shortname>and</shortname>
-			<description>Returns true if both of the values are true (non-zero). If either of them is false, and returns false.</description>
+			<description>Returns the bitwise AND of both values. In other words, for each bit in each value, they are compared to see if they are both "1". If they are, the result bit is set to 1. Otherwise, it's set to 0.</description>
+			<seealso><ref>logicaland</ref></seealso>
 		</command>
 		<command id="or">
 			<cannon>value,or,value</cannon>
 			<shortname>or</shortname>
-			<description>Returns true if at least one of the values are true (non-zero). Only if both of them are false does or return false.</description>
+			<description>Returns the bitwise OR of both values. In other words, for each bit in each value, they are compared to see if either bit is "1". If one is, the result bit is set to 1. Otherwise, it's set to 0.</description>
+			<seealso><ref>logicalor</ref></seealso>
 		</command>
 		<command id="xor">
 			<cannon>value,xor,value</cannon>
 			<shortname>xor</shortname>
-			<description>Returns true if one, but not both of the values are true (non-zero). If both of them are true, or both of them are false, xor returns false.</description>
+			<description>Returns the bitwise AND of both values. In other words, for each bit in each value, they are compared to see if either (but not both!) bit is "1". If ONE is, the result bit is set to 1. Otherwise, it's set to 0.</description>
+			<seealso><ref>logicalxor</ref></seealso>
+		</command>
+	  <command id="logicaland">
+			<cannon>value && value</cannon>
+			<shortname>&&</shortname>
+			<description>Returns true if both of the values are true (non-zero). If either of them is false, and returns false.</description>
+		</command>
+		<command id="logicalor">
+			<cannon>value || value</cannon>
+			<shortname>||</shortname>
+			<description>Returns true if at least one of the values are true (non-zero). Only if both of them are false does or return false.</description>
+		</command>
+		<command id="logicalxor">
+			<cannon>value ^^ value</cannon>
+			<shortname>^^</shortname>
+			<description>Returns true if one, but not both of the values are true (non-zero). If both of them are true, or both of them are false, ^^ returns false.</description>
 		</command>
 	</section>
 	<section title="Flow Control">
