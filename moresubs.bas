@@ -2157,6 +2157,12 @@ SELECT CASE scrat(nowscript, curvalue)
   writescriptvar retvals(0), readscriptvar(retvals(0)) + retvals(1)
  CASE 18'decrement
   writescriptvar retvals(0), readscriptvar(retvals(0)) - retvals(1)
+ CASE 19'not
+  IF retvals(0) = 0 THEN
+   scriptret = 1
+  ELSE 
+   scriptret = 0
+  END IF
  CASE ELSE
   scripterr "unsupported math"
 END SELECT

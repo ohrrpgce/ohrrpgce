@@ -25,7 +25,7 @@ WHAT IS NEW?
       sprite editor, so you can distinguish "transparent" from "black") [Mike]
     * New functionality for the key is pressed() command, pertaining to
       joysticks [Mike Caron]
-      
+
   * Bug Fixes
     * Fixed a few bugs in inputstring, including backspace not working,
       missing length checking and ESC popping up the menu [Yuriy, Ralph]
@@ -60,7 +60,7 @@ WHAT IS NEW?
     * Fixed script interpreter to return "1" for true in comparison operators
       instead of -1 (for consistancy elsewhere) [Mike]
 
-        * New Plotscripting Commands
+  * New Plotscripting Commands
     * "string from textbox" [Yuriy]
     * "hero frame", "NPC frame" [Ralph Versteegen]
     * "get hero stat cap", "set capped hero stat"
@@ -74,6 +74,7 @@ WHAT IS NEW?
     * "search string", "trim string"[Yuriy]
     * "joystick button" and "joystick axis" [Mike Caron]
     * An existing command we forgot to mention in the whatsnew: "string compare"
+    * new built-in logic command not() [James]
 
   * Stuff only Developers Will Notice
     * Some rewritten map wrapping code [Ralph Versteegen]

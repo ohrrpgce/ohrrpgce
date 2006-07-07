@@ -1,4 +1,4 @@
--- HamsterSpeak Compiler v.2M
+-- HamsterSpeak Compiler v.2N
 
 --(C) Copyright 2002 James Paige and Hamster Republic Productions
 -- Please read LICENSE.txt for GPL License details and disclaimer of liability
@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--2N 2006-07-07 Added not() logic function
 --2M 2006-07-06 Set exit code on warnings
 --2L 2006-05-13 Added switch statement (+ case keyword)
 --2K 2006-05-01 Added @scriptname and @globalvariable syntax to
@@ -62,7 +63,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=2
-constant COMPILER_SUB_VERSION='M'
+constant COMPILER_SUB_VERSION='N'
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -187,6 +188,7 @@ sequence math_list        math_list={
                              ,{16,"setvariable",{0,0}} 
                              ,{17,"increment",{0,1}} 
                              ,{18,"decrement",{0,1}} 
+                             ,{19,"not",{0}} 
                           }
 sequence all_scripts      all_scripts={}                        
 sequence current_script   current_script=""
@@ -1896,11 +1898,11 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
     --add defaults if not enough args are present
     if kind=KIND_MATH then
       --special processing for math
-      if list[at][PAIR_NUM]<16 then
+      if list[at][PAIR_NUM]<16 or list[at][PAIR_NUM]=19 then
         --math shouldnt have defaults
         src_error(sprintf(
-          "math function "&COLYEL&"%s"&COLRED&" has %d arguments it should always have 2"
-          ,{tree[TREE_TRUNK][CMD_TEXT],length(tree[TREE_BRANCHES])}
+          "math function "&COLYEL&"%s"&COLRED&" has %d arguments it should always have %d"
+          ,{tree[TREE_TRUNK][CMD_TEXT],length(tree[TREE_BRANCHES]),length(math_list[list[at][PAIR_NUM]][3])}
         ),tree[TREE_TRUNK][CMD_LINE])
       else
         --variable stuff can have a defaults
@@ -1938,7 +1940,7 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
     end if
   end if
     --this is as good a time as any to make sure that var maipulation functions point to real variables
-    if kind=KIND_MATH and list[at][PAIR_NUM]>=16 then
+    if kind=KIND_MATH and list[at][PAIR_NUM]>=16 and list[at][PAIR_NUM]<19 then
       argkind=what_kind(tree[TREE_BRANCHES][1][TREE_TRUNK],vars,false)
       if argkind=KIND_LOCAL then
         --its local. translate it to a numeric reference
@@ -2458,3 +2460,4 @@ opt_wait_for_key()
 if was_warnings = true then
   abort(2)
 end if
+

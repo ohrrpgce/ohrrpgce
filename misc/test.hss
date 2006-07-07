@@ -139,6 +139,17 @@ script,key trigger,begin
      then (resume overlay,show text box(15))
   if (key is pressed(key:N))
      then (rename hero by slot(pick hero))
+  show string at(5,50,10)
+  show string at(6,50,58)
+  show string at(7,50,66)
+  if (not(hero direction(me)==north))
+    then($5="not north")
+    else($5="north")
+  clear string(6)
+  append number(6,hero direction(me))
+  clear string(7)
+  append number(7,not(hero direction(me)==north))
+
 end
 
 #-----------------------------------------------------------------------
