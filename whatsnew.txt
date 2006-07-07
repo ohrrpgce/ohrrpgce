@@ -52,7 +52,8 @@ WHAT IS NEW?
     * Joystick didn't work at all in the Windows version [Mike]
     * "NPC X","NPC Y" and "NPC at spot" behaviour has been corrected: an
       NPC's position is now the tile its top left corner stands on [Ralph]
-    * Fixed bug in "read NPC" which blew up your computer [Ralph]
+    * Fixed a bug in "read NPC" and another bug which blew up your computer
+      and/or were causing script interpreter errors like "clean noop" [Ralph]
     * Bug 174: "Quick keypresses and mouse clicks lost in FB port" [Ralph]
     * Bug 68: Added days, hours, minutes to Global text Strings menu
       for displaying playtime on the Save/Load screens [James]
