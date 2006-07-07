@@ -1,4 +1,4 @@
--- HamsterSpeak Compiler v.2N
+-- HamsterSpeak Compiler v.2Na
 
 --(C) Copyright 2002 James Paige and Hamster Republic Productions
 -- Please read LICENSE.txt for GPL License details and disclaimer of liability
@@ -64,7 +64,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=2
-constant COMPILER_SUB_VERSION='O'
+constant COMPILER_SUB_VERSION="Na"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -190,9 +190,9 @@ sequence math_list        math_list={
                              ,{17,"increment",{0,1}} 
                              ,{18,"decrement",{0,1}} 
                              ,{19,"not",{0}} 
-                             ,{20,"logand",{0,1}} 
-                             ,{21,"logor",{0,1}} 
-                             ,{22,"logxor",{0,1}} 
+                             ,{20,"logand",{0,0}} 
+                             ,{21,"logor",{0,0}} 
+                             ,{22,"logxor",{0,0}} 
                           }
 sequence all_scripts      all_scripts={}                        
 sequence current_script   current_script=""
@@ -374,7 +374,7 @@ end procedure
 --prints out the copyright info, usage info, and command-line options
 procedure check_arg_count(sequence args)
   if length(args)=2 then
-    wrap_print("HamsterSpeak semicompiler v%d%s (C)%s James Paige, Hamster Republic Productions\n",{COMPILER_VERSION,COMPILER_SUB_VERSION,COPYRIGHT_DATE})
+    wrap_print("HamsterSpeak semicompiler v%d%s (C)%s James Paige&Hamster Republic Productions\n",{COMPILER_VERSION,COMPILER_SUB_VERSION,COPYRIGHT_DATE})
     wrap_print("Please read LICENSE.txt for GPL License details and disclaimer of liability",{})
     wrap_print(COLYEL&"%s [-cdefwy] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
     color_print("   -c colors will be disabled\n",{})
@@ -1902,7 +1902,7 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
     --add defaults if not enough args are present
     if kind=KIND_MATH then
       --special processing for math
-      if list[at][PAIR_NUM]<16 or list[at][PAIR_NUM]=19 then
+      if list[at][PAIR_NUM]<16 or list[at][PAIR_NUM]>=19 then
         --math shouldnt have defaults
         src_error(sprintf(
           "math function "&COLYEL&"%s"&COLRED&" has %d arguments it should always have %d"
@@ -2191,7 +2191,7 @@ function sanity_check(sequence tree,sequence vars,sequence parent)
       elsif kind=KIND_LOCAL then
         src_warn(sprintf("Expected script, function, or flow control, but found local variable "&COLYEL&"%s"&COLRED&". It will do nothing here."
                  ,{vars[id][CMD_TEXT]}),tree[i][TREE_TRUNK][CMD_LINE])
-      elsif kind=KIND_MATH and id<=15 then
+      elsif kind=KIND_MATH and (id<=15 or id>=19) then
         src_warn(sprintf("built-in function "&COLYEL&"%s"&COLRED&" is returning a value that is being discarded"
                  ,{s}),tree[i][TREE_TRUNK][CMD_LINE])
       end if
