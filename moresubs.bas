@@ -2135,17 +2135,17 @@ SELECT CASE scrat(nowscript, curvalue)
  CASE 9'and
   scriptret = retvals(0) AND retvals(1)
  CASE 10'equal
-  scriptret = (retvals(0) = retvals(1))
+  scriptret = (retvals(0) = retvals(1)) * -1
  CASE 11'not equal
-  scriptret = (retvals(0) <> retvals(1))
+  scriptret = (retvals(0) <> retvals(1)) * -1
  CASE 12'less than
-  scriptret = (retvals(0) < retvals(1))
+  scriptret = (retvals(0) < retvals(1)) * -1
  CASE 13'greater than
-  scriptret = (retvals(0) > retvals(1))
+  scriptret = (retvals(0) > retvals(1)) * -1
  CASE 14'less than or equal to
-  scriptret = (retvals(0) <= retvals(1))
+  scriptret = (retvals(0) <= retvals(1)) * -1
  CASE 15'greater than or equal to
-  scriptret = (retvals(0) >= retvals(1))
+  scriptret = (retvals(0) >= retvals(1)) * -1
  CASE 16'set variable
   writescriptvar retvals(0), retvals(1)
  CASE 17'increment

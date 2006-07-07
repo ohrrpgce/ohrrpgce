@@ -32,7 +32,9 @@ WHAT IS NEW?
     * Fixed a bug in "alter NPC" and "set NPC speed" that caused the
       wrong NPC to be changed if used with an NPC reference [James Paige]
     * Bug 174: "Quick keypresses and mouse clicks lost in FB port" [Ralph]
-
+    * Fixed script interpreter to return "1" for true in comparison operators
+      instead of -1 (for consistancy elsewhere) [Mike]
+      
   * New Plotscripting Commands
     * "keyval"
     * An existing command we forgot to mention in whatsnew: "string compare"
