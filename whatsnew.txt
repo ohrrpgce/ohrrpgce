@@ -75,6 +75,10 @@ WHAT IS NEW?
     * "joystick button" and "joystick axis" [Mike Caron]
     * An existing command we forgot to mention in the whatsnew: "string compare"
     * new built-in logic command not() [James]
+    * new math operators "&&", "||", "^^" (and, or and xor respectively). These
+      are logical operators, as opposed to the bitwise "and", "or" and "xor"
+      operators. [Mike]
+
 
   * Stuff only Developers Will Notice
     * Some rewritten map wrapping code [Ralph Versteegen]

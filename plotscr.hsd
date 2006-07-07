@@ -845,6 +845,9 @@ define operator,begin
 60,xor,xor
 60,and,and
 60,or, or
+60 ^^ logxor
+60 && logand
+60 || logor
 70 :=  setvariable
 70 +=  increment
 70 -=  decrement

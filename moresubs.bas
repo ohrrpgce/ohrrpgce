@@ -2163,6 +2163,12 @@ SELECT CASE scrat(nowscript, curvalue)
   ELSE 
    scriptret = 0
   END IF
+ CASE 20'&&
+  IF retvals(0) <> 0 AND retvals(1) <> 0 THEN scriptret = 1 ELSE scriptret = 0
+ CASE 21'||
+  IF retvals(0) <> 0 OR retvals(1) <> 0 THEN scriptret = 1 ELSE scriptret = 0
+ CASE 22'||
+  IF retvals(0) <> 0 XOR retvals(1) <> 0 THEN scriptret = 1 ELSE scriptret = 0
  CASE ELSE
   scripterr "unsupported math"
 END SELECT
