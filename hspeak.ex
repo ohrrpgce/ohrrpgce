@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--2Na 2006-07-07 Minor update to add new logical operators
 --2N 2006-07-07 Added not() logic function
 --2M 2006-07-06 Set exit code on warnings
 --2L 2006-05-13 Added switch statement (+ case keyword)
@@ -63,7 +64,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=2
-constant COMPILER_SUB_VERSION='N'
+constant COMPILER_SUB_VERSION='O'
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -189,6 +190,9 @@ sequence math_list        math_list={
                              ,{17,"increment",{0,1}} 
                              ,{18,"decrement",{0,1}} 
                              ,{19,"not",{0}} 
+                             ,{20,"logand",{0,1}} 
+                             ,{21,"logor",{0,1}} 
+                             ,{22,"logxor",{0,1}} 
                           }
 sequence all_scripts      all_scripts={}                        
 sequence current_script   current_script=""
@@ -671,7 +675,7 @@ function smush_line(sequence s)
   s=substring_replace(s,"(",",begin,")
   s=substring_replace(s,")",",end,")
   masked=s
-  sep={"+=","-=","$+","$=","+","--","/","*","^^","^","==","<>",">>","<<","<=",">=",":=","&&","||"}
+  sep={"+=","-=","$+","$=","+","--","/","*","^^","^","==","<>",">>","<<","<=",">=",":=","&&","||","^^"}
   for i=1 to length(sep) do
     at=match(sep[i],masked)
     start=1
