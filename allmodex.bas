@@ -936,6 +936,28 @@ FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) 
 	readpixel = spage(p)[y*320 + x]
 end FUNCTION
 
+SUB hollowrectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
+	dim sptr as ubyte ptr
+	dim i as integer
+
+	if wrkpage <> p then
+		wrkpage = p
+	end if
+
+	'clip
+	if x + w > clipr then w = (clipr - x) + 1
+	if y + h > clipb then h = (clipb - y) + 1
+	if x < clipl then x = clipl
+	if y < clipt then y = clipt
+
+	'draw
+	drawline(x,y,x+w-1,y,c,p)
+	drawline(x,y+h-1,x+w-1,y+h-1,c,p)
+	drawline(x,y,x,y+h-1,c,p)
+	drawline(x+w-1,y,x+w-1,y+h-1,c,p)
+
+end SUB
+
 SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
 	dim sptr as ubyte ptr
 	dim i as integer
