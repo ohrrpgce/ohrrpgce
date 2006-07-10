@@ -1,6 +1,10 @@
 WHAT IS NEW?
 
-??? ?? 2006 [hasta-la-qb]
+July 09 2006 [hasta-la-qb]
+  * This is the final version to support a real DOS version (GAME-QB and
+    CUSTOMQB) You should be using the Windows or Linux versions already
+    anyway.
+
   * New Features
     * Input string gets 3 new arguments, center, positionx, positiony.
       It also behaves a little different now.(Yuriy)

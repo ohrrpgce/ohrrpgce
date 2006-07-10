@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Game Player       (March 15 2006 Tirgoviste)
+ O.H.R.RPG.C.E Game Player       (July 09 2006 Hasta-la-qb)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
