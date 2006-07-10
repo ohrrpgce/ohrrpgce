@@ -105,7 +105,7 @@ DECLARE SUB pushw (BYVAL word)
 DECLARE FUNCTION popw ()
 DECLARE SUB releasestack ()
 DECLARE FUNCTION stackpos ()
-
+DECLARE SUB drawbox(BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL c, BYVAL p)
 DECLARE FUNCTION isawav(fi$)
 
 DECLARE SUB setupsound ()
