@@ -3,16 +3,10 @@ WHAT IS NEW?
 ??? ?? 2006 [ubersetzung]
   * New Features
     * New NPC movement type: Walk In Place [James Paige]
-    * Input string gets 3 new arguments, center, positionx, positiony.
-      [Yuriy]
     * 8-bit bitmaps can now be imported as backdrops and tilesets (pre-index
       your tilesets using Photoshop, etc. to use this. YOU MUST INDEX THEM WITH
       THE MASTER PALETTE, custom won't re-map the colours). 8-bit bitmaps are
       rejected by customqb. [Mike Caron]
-    * Hspeak.exe now waits for a keypress when finished, which should avoid
-      a lot of confusion for new plotscripters who are unfamiliar with
-      command-line tools. Also added -k option to supress this new
-      behaviour [James Paige]
     * New HamsterSpeak flow control commands: break, continue, exit script,
       exit returning, switch (and case). See the HS Definition for details
       [Ralph Versteegen]
@@ -27,38 +21,17 @@ WHAT IS NEW?
       joysticks [Mike Caron]
 
   * Bug Fixes
-    * Fixed a few bugs in inputstring, including backspace not working,
-      missing length checking and ESC popping up the menu [Yuriy, Ralph]
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
       hero at the opposite edge" and bug 27: "NPCs cannot walk across the
       edges of a wraparound map" (consider that a feature if you want) 
       And bug where couldn't activate touch activation NPCs over map edge 
       And bug where avoid and chase NPCs did not know about wraparound maps
       [Ralph Versteegen]
-    * Bug 176: "Some files appear as subdirectories in Windows browsers" 
-      [Ralph Versteegen]
-    * Fixed an ancient bug in both the Sprite editor and the MapTile editor
-      which caused the keyboard control to lag whenever the mouse cursor
-      was over the drawing area. [James Paige]
-    * Bug where filling in colour 15 (white) on edge of a tile filled in all
-      colour 15 pixels on the edge. [Ralph Versteegen]
     * Really fixed the "script arguments overflow into local variables" bug.
       You need to recompile your scripts to get this fix [Ralph Versteegen]
-    * Fixed bug 163, a random crash in the music import screen. [Simon, Mike]
-    * Bug 179: "Use of two keyispressed conditions in an if statement causes
-      massive weirdness" - "keyispressed" command has been changed so that it
-      now only returns a bool. It may help to recompile your scripts. If you
-      want the old behaviour, use the new "keyval" command [Ralph]
     * Joystick didn't work at all in the Windows version [Mike]
-    * "NPC X","NPC Y" and "NPC at spot" behaviour has been corrected: an
-      NPC's position is now the tile its top left corner stands on [Ralph]
-    * Fixed a bug in "read NPC" and another bug which blew up your computer
-      and/or were causing script interpreter errors like "clean noop" [Ralph]
-    * Bug 174: "Quick keypresses and mouse clicks lost in FB port" [Ralph]
     * Bug 68: Added days, hours, minutes to Global text Strings menu
       for displaying playtime on the Save/Load screens [James]
-    * Fixed script interpreter to return "1" for true in comparison operators
-      instead of -1 (for consistancy elsewhere) [Mike]
 
   * New Plotscripting Commands
     * "string from textbox" [Yuriy]
@@ -68,22 +41,64 @@ WHAT IS NEW?
     * "set [days/hours/minutes/seconds] of play", "get seconds of play" [Mike
       Caron]
     * "npc extra", "set npc extra" [Mike Caron]
-    * "keyval"
     * "load sound", "free sound", "play sound", "stop sound", "pause sound"
       [Mike Caron]
     * "search string", "trim string"[Yuriy]
     * "joystick button" and "joystick axis" [Mike Caron]
-    * An existing command we forgot to mention in the whatsnew: "string compare"
     * new built-in logic command not() [James]
     * new math operators "&&", "||", "^^" (and, or and xor respectively). These
       are logical operators, as opposed to the bitwise "and", "or" and "xor"
       operators. [Mike]
 
-
   * Stuff only Developers Will Notice
     * Some rewritten map wrapping code [Ralph Versteegen]
     * Reformatted NPC data with UDTs [Mike Caron]
     * Hspeak's exit code is 2 if there were warnings [Mike Caron]
+
+July 09 2006 [hasta-la-qb]
+  * This is the final version to support a real DOS version (GAME-QB and
+    CUSTOMQB) You should be using the Windows or Linux versions already
+    anyway.
+
+  * New Features
+    * Input string gets 3 new arguments, center, positionx, positiony.
+      It also behaves a little different now.(Yuriy)
+    * Hspeak.exe now waits for a keypress when finished, which should avoid
+      a lot of confusion for new plotscripters who are unfamiliar with
+      command-line tools. Also added -k option to supress this new
+      behaviour [James Paige]
+    * Memory usage of the QB build has been trimmed a little. Requirement
+      for game-qb.exe is now 552kb [Ralph Versteegen]
+
+  * Bug Fixes
+    * Fixed a few bugs in inputstring, including backspace not working,
+      missing length checking and ESC popping up the menu [Yuriy, Ralph]
+    * Fixed bug 163, a random crash in the music import screen. [Simon, Mike]
+    * Bug 176: "Some files appear as subdirectories in Windows browsers" 
+      [Ralph Versteegen]
+    * Fixed an ancient bug in both the Sprite editor and the MapTile editor
+      which caused the keyboard control to lag whenever the mouse cursor
+      was over the drawing area. [James Paige]
+    * Bug where filling in colour 15 (white) on edge of a tile filled in all
+      colour 15 pixels on the edge. [Ralph Versteegen]
+    * Bug 179: "Use of two keyispressed conditions in an if statement causes
+      massive weirdness" - "keyispressed" command has been changed so that it
+      now only returns a bool. It may help to recompile your scripts. If you
+      want the old behaviour, use the new "keyval" command [Ralph]
+    * "NPC X","NPC Y" and "NPC at spot" behaviour has been corrected: an
+      NPC's position is now the tile its top left corner stands on [Ralph]
+    * Bug 43: "OHR randomly locks up on the hour" [Ralph]
+    * Fixed a bug in "alter NPC" and "set NPC speed" that caused the
+      wrong NPC to be changed if used with an NPC reference [James Paige]
+    * Bug 174: "Quick keypresses and mouse clicks lost in FB port" [Ralph]
+    * Fixed a bug in "read NPC" and another bug which were causing script
+      interpreter errors like "clean noop" [Ralph Versteegen]
+    * Fixed script interpreter to return "1" for true in comparison operators
+      instead of -1 (for consistancy elsewhere) [Mike]
+      
+  * New Plotscripting Commands
+    * "keyval"
+    * An existing command we forgot to mention in whatsnew: "string compare"
 
 Mar 15 2006 [tirgoviste]
   * New Features
