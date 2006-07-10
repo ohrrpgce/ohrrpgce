@@ -27,21 +27,6 @@ if [ ${UPDATE} -eq 1 ] ; then
   exit
 fi
 
-echo removing old nightly binaries...
-rm ../ohrrpgce-binary-nightly.zip
-
-echo building dos binaries...
-dosemu -dumb -input "cd ohrrpgce\renv-set\rcompile\rexitemu\r" > /dev/null
-rm ?ver.txt compat.b*
-BINARIES=`svn status | tr -s " "| cut -d " " -f 2-`
-
-echo zipping up binaries...
-zip -q ../ohrrpgce-binary-nightly.zip ${BINARIES} LICENSE-binary.txt whatsnew.txt
-rm ${BINARIES}
-
-cd ..
-ls -l ohrrpgce-binary-nightly.zip
-
 echo removing old nightly source snapshot...
 rm ohrrpgce-source-nightly.zip
 
@@ -50,8 +35,7 @@ zip -q -r ohrrpgce-source-nightly.zip ./ohrrpgce
 ls -l ohrrpgce-source-nightly.zip
 
 echo uploading new nightly snapshot
-scp -p ohrrpgce-source-nightly.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/archive/
-scp -p ohrrpgce-binary-nightly.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/archive/
+scp -p ohrrpgce-source-nightly.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
 
 echo uploading plotscripting docs
 scp -p ohrrpgce/docs/plotdict.xml spam@brionne.cyberverse.com:web/html/ohrrpgce/docs/
