@@ -3,7 +3,7 @@ GFX=${1}
 MUSIC=${2}
 
 if [ -z "${GFX}" ] ; then
-  GFX=fb2
+  GFX=fb
 fi
 
 if [ -z "${MUSIC}" ] ; then
