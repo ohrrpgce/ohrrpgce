@@ -1823,8 +1823,8 @@ write pass block(15,3,pass)
 			<seealso><ref>logicalxor</ref></seealso>
 		</command>
 	  <command id="logicaland">
-			<cannon>value && value</cannon>
-			<shortname>&&</shortname>
+			<cannon>value &amp;&amp; value</cannon>
+			<shortname>&amp;&amp;</shortname>
 			<description>Returns true if both of the values are true (non-zero). If either of them is false, and returns false.</description>
 		</command>
 		<command id="logicalor">
