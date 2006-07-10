@@ -51,8 +51,9 @@ cp -p ohrrpgce-game tmp
 cp -p ohrrpgce-custom tmp
 echo Including import
 mkdir tmp/import
+mkdir tmp/docs
 cp -p import/* tmp/import
-cp -p docs/* tmp/import
+cp -p docs/* tmp/docs
 
 echo tarring and bzip2ing distribution
 mv tmp ohrrpgce
