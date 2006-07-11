@@ -1441,6 +1441,7 @@ SUB upgrade (font())
 
 DIM pal16(8)
 
+
 IF general(genVersion) = 0 THEN
  general(genVersion) = 1
  clearpage vpage
@@ -1615,8 +1616,10 @@ END IF
 '--VERSION 6--
 IF general(genVersion) = 5 THEN
  'Shop stuff and song name formats changed, MIDI music added
+ 'Sub version info also added
  general(genVersion) = 6
 END IF 
+
 
 IF NOT isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
  '--create archinym information lump
@@ -1702,11 +1705,32 @@ IF NOT isfile(workingdir$ + SLASH + "songdata.bin" + CHR$(0)) THEN
  ERASE song$
 END IF
 
+
+
 '--check variable record size lumps and reoutput them if records have been extended
 '--all of the files below should exist, be non zero length and have non zero record size by this point
 updaterecordlength workingdir$ + SLASH + "attack.bin", 0
 updaterecordlength game$ + ".stf", 1
 updaterecordlength workingdir$ + SLASH + "songdata.bin", 2
+
+IF general(genVersion) = 6 AND general(genVersionRevision) <= 1 THEN
+  general(genVersionRevision) = 2
+  fh = freefile
+  OPEN workingdir$ + SLASH + "attack.bin" FOR BINARY AS #FH
+  REDIM dat(curbinsize(0)/2 - 1) AS SHORT
+  p = 1
+  FOR i = 0 to general(genMaxAttack)
+    
+    GET #fh,p,dat()
+    FOR y = 53 TO 59
+      dat(y) = 0
+    NEXT
+    
+    PUT #fh,p,dat()
+    p+=curbinsize(0)
+  NEXT
+  CLOSE #fh
+END IF
 
 '--update to new (3rd) password format
 IF general(5) < 256 THEN
