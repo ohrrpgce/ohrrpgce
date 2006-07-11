@@ -19,8 +19,6 @@ DECLARE FUNCTION readitemname$ (index%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
-DECLARE FUNCTION getShortName$ (filename$)
-DECLARE FUNCTION getLongName$ (filename$)
 DECLARE SUB textfatalerror (e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
@@ -74,6 +72,7 @@ DECLARE FUNCTION inputfilename$ (query$, ext$)
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION getsfxname$ (num%)
 DECLARE SUB writebinstring (savestr$, array%(), offset%, maxlen%)
+DECLARE FUNCTION trimpath$ (filename$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -1004,7 +1003,7 @@ IF sourcesong$ <> "" THEN
   songfile$ = workingdir$ + SLASH + "song" + intstr$(snum) + MID$(sourcesong$, INSTR(sourcesong$, "."))
  END IF
  copyfile sourcesong$ + CHR$(0), songfile$ + CHR$(0), buffer()
- a$ = getLongName$(sourcesong$)
+ a$ = trimpath$(sourcesong$)
  a$ = MID$(a$, 1, INSTR(a$, ".") - 1)
  sname$ = a$
  GOSUB ssongdata
@@ -1165,7 +1164,7 @@ safekill sfxfile$
 IF sourcesfx$ <> "" THEN
  sfxfile$ = workingdir$ + SLASH + "sfx" + intstr$(snum) + MID$(sourcesfx$, INSTR(sourcesfx$, "."))
  copyfile sourcesfx$ + CHR$(0), sfxfile$ + CHR$(0), buffer()
- a$ = getLongName$(sourcesfx$)
+ a$ = trimpath$(sourcesfx$)
  a$ = MID$(a$, 1, INSTR(a$, ".") - 1)
  sname$ = a$
  GOSUB ssfxdata

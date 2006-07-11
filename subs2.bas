@@ -20,8 +20,6 @@ DECLARE FUNCTION readitemname$ (index%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
-DECLARE FUNCTION getShortName$ (filename$)
-DECLARE FUNCTION getLongName$ (filename$)
 DECLARE SUB textfatalerror (e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
@@ -31,7 +29,7 @@ DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION isunique% (s$, u$(), r%)
 DECLARE FUNCTION loadname$ (length%, offset%)
-DECLARE SUB exportnames (gamedir$)
+DECLARE SUB exportnames ()
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE FUNCTION needaddset (pt%, check%, what$)
@@ -112,8 +110,7 @@ FOR i = 0 TO 25
  WEND
 NEXT i
 
-remember$ = STRING$(pathlength, 0): getstring remember$
-IF RIGHT$(remember$, 1) <> SLASH THEN remember$ = remember$ + SLASH
+remember$ = curdir$
 IF default$ = "" THEN
  nowdir$ = remember$
 ELSE
@@ -291,15 +288,13 @@ ELSE
  END IF
 END IF
 
-'--get longnames for display
-FOR i = 0 TO treesize
- SELECT CASE treec(i)
-  CASE 2, 3, 6
-   display$(i) = getLongName$(nowdir$ + tree$(i))
-  CASE ELSE
-   display$(i) = tree$(i)
- END SELECT
-NEXT i
+'--build display (work in progress)
+'FOR i = 0 TO treesize
+' SELECT CASE treec(i)
+'  CASE 2, 3, 6
+
+display$(i) = tree$(i)
+
 
 '--alphabetize
 FOR o = treesize TO 2 STEP -1
@@ -496,7 +491,7 @@ NEXT i
 
 END SUB
 
-SUB exportnames (gamedir$)
+SUB exportnames
 
 DIM u$(1024), names$(32), stat$(11)
 max = 32
@@ -515,7 +510,7 @@ stat$(9) = names$(7)
 stat$(10) = names$(31)
 stat$(11) = names$(4)
 
-outf$ = gamedir$ + SLASH + RIGHT$(game$, LEN(game$) - 12) + ".hsi"
+outf$ = exepath$ + SLASH + RIGHT$(game$, LEN(game$) - 12) + ".hsi"
 
 clearpage 0
 clearpage 1
@@ -710,31 +705,6 @@ END IF
 
 END SUB
 
-FUNCTION getShortName$ (filename$)
-'--given a long filename, returns its short name.
-'  it will always return the filename only, without the path
-'  even though it can accept a fully qualified filename as input
-
-result$ = ""
-'length = ShortNameLength(filename$ + CHR$(0))
-length = -1
-IF length = -1 THEN
- '--failed, return input (minus path)
- FOR i = LEN(filename$) TO 1 STEP -1
-  IF MID$(filename$, i, 1) = SLASH OR MID$(filename$, i, 1) = ":" THEN EXIT FOR
-  result$ = MID$(filename$, i, 1) + result$
- NEXT i
-ELSE
- a$ = STRING$(length, 0)
- getstring a$
- FOR i = LEN(a$) TO 1 STEP -1
-  IF MID$(a$, i, 1) = SLASH OR MID$(a$, i, 1) = ":" THEN EXIT FOR
-  result$ = MID$(a$, i, 1) + result$
- NEXT i
-END IF
-getShortName$ = result$
-END FUNCTION
-
 FUNCTION heroname$ (num, cond(), a())
 h$ = ""
 IF cond(num) THEN
@@ -806,7 +776,7 @@ ELSE
 END IF
 END FUNCTION
 
-SUB scriptman (gamedir$)
+SUB scriptman ()
 STATIC defaultdir$
 DIM menu$(5)
 
@@ -827,7 +797,7 @@ DO
    CASE 0
     EXIT DO
    CASE 1
-    exportnames gamedir$
+    exportnames
    CASE 2
     f$ = browse(0, defaultdir$, "*.hs", "")
     IF f$ <> "" THEN

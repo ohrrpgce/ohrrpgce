@@ -19,8 +19,6 @@ DECLARE FUNCTION readitemname$ (index%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
-DECLARE FUNCTION getShortName$ (filename$)
-DECLARE FUNCTION getLongName$ (filename$)
 DECLARE SUB textfatalerror (e$)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION scriptname$ (num%, f$)
@@ -259,44 +257,6 @@ FOR i = 0 TO size
  array(i) = value
 NEXT i
 END SUB
-
-FUNCTION getLongName$ (filename$)
-'--given a filename, returns its longname.
-'  it will always return the filename only, without the path
-'  even though it can accept a fully qualified filename as input
-
-'--has a bug that prevents it from returning files that are longer
-'  than 260 chars including pathname
-
-failed = 0
-result$ = ""
-length = LongNameLength(filename$ + CHR$(0))
-IF length = -1 THEN
- '--failed to get any name at all
- failed = -1
-ELSE
- a$ = STRING$(length, 0)
- getstring a$
- FOR i = LEN(a$) TO 1 STEP -1
-  IF MID$(a$, i, 1) = SLASH OR MID$(a$, i, 1) = ":" THEN EXIT FOR
-  IF MID$(a$, i, 1) <> CHR$(0) THEN
-   result$ = MID$(a$, i, 1) + result$
-  END IF
- NEXT i
- IF result$ = "" THEN
-  '--never return a null result!
-  failed = -1
- END IF
-END IF
-IF failed THEN
- '--failed, return input (minus path)
- FOR i = LEN(filename$) TO 1 STEP -1
-  IF MID$(filename$, i, 1) = SLASH OR MID$(filename$, i, 1) = ":" THEN EXIT FOR
-  result$ = MID$(filename$, i, 1) + result$
- NEXT i
-END IF
-getLongName$ = result$
-END FUNCTION
 
 FUNCTION getsongname$ (num)
 DIM songd(curbinsize(2) / 2)

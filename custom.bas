@@ -37,12 +37,12 @@ DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION getmapname$ (m%)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-DECLARE SUB scriptman (gamedir$)
+DECLARE SUB scriptman ()
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB writescatter (s$, lhold%, start%)
 DECLARE SUB readscatter (s$, lhold%, start%)
-DECLARE SUB fontedit (font%(), gamedir$)
+DECLARE SUB fontedit (font%())
 DECLARE SUB savetanim (n%, tastuf%())
 DECLARE SUB loadtanim (n%, tastuf%())
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
@@ -115,14 +115,9 @@ IF COMMAND$ = "/V" THEN PRINT version$: SYSTEM
 'only included for the windowed/fullscreen stuff
 storecommandline ""
 
-sCurdir$ = STRING$(pathlength, 0)
-getstring sCurdir$
-IF RIGHT$(sCurdir$, 1) = SLASH AND LEN(sCurdir$) > 3 THEN sCurdir$ = LEFT$(sCurdir$, LEN(sCurdir$) - 1)
-gamedir$ = STRING$(rpathlength, 0)
-getstring gamedir$
-IF RIGHT$(gamedir$, 1) = SLASH AND LEN(gamedir$) > 3 THEN gamedir$ = LEFT$(gamedir$, LEN(gamedir$) - 1)
-CHDIR gamedir$
-setdrive ASC(UCASE$(LEFT$(gamedir$, 1))) - 65
+sCurdir$ = curdir$
+CHDIR exepath$
+setdrive ASC(UCASE$(LEFT$(exepath$, 1))) - 65
 
 DIM font(1024), master(767), buffer(16384), timing(4), joy(4), scroll(16002), pass(16002), emap(16002)
 DIM menu$(22), general(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600), uilook(uiColors)
@@ -218,9 +213,9 @@ DO:
     IF pt = 11 THEN tagnames
     IF pt = 12 THEN importsong master()
     IF pt = 13 THEN importsfx master()
-    IF pt = 14 THEN fontedit font(), gamedir$
+    IF pt = 14 THEN fontedit font()
     IF pt = 15 THEN gendata master()
-    IF pt = 16 THEN scriptman gamedir$
+    IF pt = 16 THEN scriptman
     IF pt = 17 THEN
      GOSUB relump
      IF quitnow > 1 THEN GOTO finis
@@ -603,7 +598,7 @@ IF LEN(unsafefile$) THEN
  GOSUB cleanupfiles
 END IF
 crashexplain
-PRINT "Game:"; gamedir$ + SLASH + gamefile$ + ".rpg"
+PRINT "Game:"; exepath$ + SLASH + gamefile$ + ".rpg"
 '--crash and print the error
 ON ERROR GOTO 0
 
@@ -795,7 +790,7 @@ safekill "fixorder.tmp"
 
 END SUB
 
-SUB fontedit (font(), gamedir$)
+SUB fontedit (font())
 
 STATIC default$
 
@@ -988,13 +983,13 @@ DO
 
  IF keyval(28) > 1 THEN
   GOSUB savefont
-  copyfile game$ + ".fnt" + CHR$(0), gamedir$ + SLASH + newfont$ + ".ohf" + CHR$(0), buffer()
+  copyfile game$ + ".fnt" + CHR$(0), exepath$ + SLASH + newfont$ + ".ohf" + CHR$(0), buffer()
   EXIT DO
  END IF
 
  textcolor 7, 0
  printstr "Input a filename to save to", 0, 0, dpage
- printstr "[" + gamedir$ + SLASH + newfont$ + ".ohf]", 0, 8, dpage
+ printstr "[" + exepath$ + SLASH + newfont$ + ".ohf]", 0, 8, dpage
  textcolor 14 + tog, 1
  printstr newfont$, 0, 16, dpage
 

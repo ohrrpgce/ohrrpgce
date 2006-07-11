@@ -27,7 +27,6 @@ DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
-DECLARE SUB getLongName (filename$, outfile$)
 DECLARE SUB vishero (stat%())
 DECLARE SUB sellstuff (id%, storebuf%(), stock%(), stat%())
 DECLARE SUB buystuff (id%, shoptype%, storebuf%(), stock%(), stat%())
@@ -196,11 +195,11 @@ END SUB
 SUB aquiretempdir
 
 '--use program dir for temp dir
-tmpdir$ = STRING$(envlength("TEMP"), 0): getstring tmpdir$
+tmpdir$ = environ$("TEMP")
 'DEBUG debug "aquired temp dir "+tmpdir$
-IF NOT isdir(tmpdir$ + CHR$(0)) THEN
+IF NOT isdir(tmpdir$) THEN
  '--fall back to working dir if all else fails
- tmpdir$ = STRING$(rpathlength, 0): getstring tmpdir$
+ tmpdir$ = exepath$
  'DEBUG debug "Invalid temp dir. fall back to " + tmpdir$
 END IF
 
@@ -257,8 +256,7 @@ drivetotal = drivelist(drive())
 drive(26) = 15
 
 'GOSUB vlabels
-remember$ = STRING$(pathlength, 0): getstring remember$
-IF RIGHT$(remember$, 1) <> SLASH THEN remember$ = remember$ + SLASH
+remember$ = curdir$
 nowdir$ = remember$
 
 GOSUB context
@@ -428,15 +426,7 @@ ELSE
  safekill tmpdir$ + "hrbrowse.tmp"
 END IF
 
-'--get longnames for display
-FOR i = 0 TO treesize
- SELECT CASE treec(i)
-  CASE 2, 3, 6
-   IF tree$(i) = true$(i) THEN
-    getLongName nowdir$ + tree$(i), tree$(i)
-   END IF
- END SELECT
-NEXT i
+'--set display (in progress)
 
 '--alphabetize
 meter = 0

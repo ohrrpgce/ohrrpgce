@@ -22,7 +22,6 @@ DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
-DECLARE SUB getLongName (filename$, outfile$)
 DECLARE SUB vishero (stat%())
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE SUB doequip (toequip%, who%, where%, defwep%, stat%())
@@ -787,44 +786,6 @@ EXIT SUB
 
 RETURN
 
-END SUB
-
-SUB getLongName (filename$, outfile$)
-'--given a filename, returns its longname.
-'  it will always return the filename only, without the path
-'  even though it can accept a fully qualified filename as input
-
-'--has a bug that prevents it from returning files that are longer
-'  than 260 chars including pathname
-
-failed = 0
-result$ = ""
-length = LongNameLength(filename$ + CHR$(0))
-IF length = -1 THEN
- '--failed to get any name at all
- failed = -1
-ELSE
- a$ = STRING$(length, 0)
- getstring a$
- FOR i = LEN(a$) TO 1 STEP -1
-  IF MID$(a$, i, 1) = SLASH OR MID$(a$, i, 1) = ":" THEN EXIT FOR
-  IF MID$(a$, i, 1) <> CHR$(0) THEN
-   result$ = MID$(a$, i, 1) + result$
-  END IF
- NEXT i
- IF result$ = "" THEN
-  '--never return a null result!
-  failed = -1
- END IF
-END IF
-IF failed THEN
- '--failed, return input (minus path)
- FOR i = LEN(filename$) TO 1 STEP -1
-  IF MID$(filename$, i, 1) = SLASH OR MID$(filename$, i, 1) = ":" THEN EXIT FOR
-  result$ = MID$(filename$, i, 1) + result$
- NEXT i
-END IF
-outfile$ = result$
 END SUB
 
 FUNCTION getOOBtarg (gamma, wptr, index, stat(), ondead(), onlive())

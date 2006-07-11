@@ -57,7 +57,6 @@ declare sub fatalerror(e$)
 
 declare sub pollingthread()
 
-dim shared path as string
 dim shared vispage as integer
 dim shared wrkpage as integer
 dim shared spage(0 to 3) as ubyte ptr
@@ -1923,15 +1922,6 @@ FUNCTION isfile (n$) as integer
     return dir$(n$, 255 xor 16) <> ""
 END FUNCTION
 
-FUNCTION pathlength () as integer
-	path = curdir$
-	pathlength = len(path)
-end FUNCTION
-
-SUB getstring (p$)
-	p$ = path
-end SUB
-
 FUNCTION drivelist (d() as integer) as integer
 #ifdef __FB_LINUX__
 	' on Linux there is only one drive, the root /
@@ -1946,23 +1936,8 @@ FUNCTION drivelist (d() as integer) as integer
 #endif
 end FUNCTION
 
-FUNCTION rpathlength () as integer
-	path = exepath
-    rpathlength = len(path)
-end FUNCTION
-
-FUNCTION exenamelength () as integer
-	path = command$(0)
-	exenamelength = len(path)
-end FUNCTION
-
 SUB setdrive (BYVAL n as integer)
 end SUB
-
-FUNCTION envlength (e$) as integer
-	path = environ$(e$)
-	envlength = len(path)
-end FUNCTION
 
 FUNCTION isdir (sDir$) as integer
 	isdir = NOT (dir$(sDir$, 16) = "")
@@ -1978,11 +1953,6 @@ END FUNCTION
 
 FUNCTION hasmedia (BYVAL d as integer) as integer
 	hasmedia = 0
-end FUNCTION
-
-FUNCTION LongNameLength (filename$) as integer
-	path = filename$
-	longnamelength = len(path)
 end FUNCTION
 
 SUB setupmusic (mbuf() as integer)
