@@ -938,23 +938,71 @@ end FUNCTION
 
 SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
 	dim sptr as ubyte ptr
-	dim i as integer
+	dim i as unsigned integer
+    dim j as integer, temp, tw
 
 	if wrkpage <> p then
 		wrkpage = p
 	end if
 
+    if w < 0 then x = x + w + 1: w = -w
+    if h < 0 then y = y + h + 1: h = -h
+
 	'clip
 	if x + w > clipr then w = (clipr - x) + 1
 	if y + h > clipb then h = (clipb - y) + 1
-	if x < clipl then x = clipl
-	if y < clipt then y = clipt
+	if x < clipl then w -= (clipl - x) : x = clipl
+	if y < clipt then h -= (clipt - y) : y = clipt
 
 	'draw
-	drawline(x,y,x+w-1,y,c,p)
-	drawline(x,y+h-1,x+w-1,y+h-1,c,p)
-	drawline(x,y,x,y+h-1,c,p)
-	drawline(x+w-1,y,x+w-1,y+h-1,c,p)
+    j = 321 - w
+    i = c shl 24 or c shl 16 or c shl 8 or c 
+
+	sptr = spage(p) + (y*320) + x
+
+    if h >= 1 then
+        'draw the top
+        temp = w
+        while temp and 3
+            *sptr = c
+            sptr += 1
+            temp -= 1
+        wend
+        while temp
+            *(cast(unsigned integer ptr, sptr)) = i
+            sptr += 4
+            temp -= 4
+        wend
+    end if
+    sptr -= 1
+    if h >= 3 then
+        'draw the sides
+        temp = h - 2
+        w -= 1
+        while temp
+            sptr += j
+            *sptr = c
+            sptr += w
+            *sptr = c
+            temp -= 1
+        wend
+        w += 1
+    end if
+    if h >= 2 then
+        'draw the bottom
+        sptr += j
+
+        while w and 3
+            *sptr = c
+            sptr += 1
+            w -= 1
+        wend
+        while w
+            *cast(unsigned integer ptr, sptr) = i
+            sptr += 4
+            w -= 4
+        wend
+    end if
 
 end SUB
 
