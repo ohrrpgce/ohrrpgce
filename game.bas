@@ -160,7 +160,7 @@ DECLARE FUNCTION titlescr% ()
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
-'$INCLUDE: 'uigame.bi'
+'$INCLUDE: 'uiconst.bi'
 
 'DEBUG debug "started debug session "+date$+" "+time$
 

@@ -114,7 +114,7 @@ DECLARE FUNCTION soundfile$ (sfxnum%)
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
-'$INCLUDE: 'uigame.bi'
+'$INCLUDE: 'uiconst.bi'
 '$INCLUDE: 'gfx.bi'
 
 REM $STATIC

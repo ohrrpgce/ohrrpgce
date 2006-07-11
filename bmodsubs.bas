@@ -69,7 +69,7 @@ DECLARE FUNCTION countitem% (it%)
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
-'$INCLUDE: 'uigame.bi'
+'$INCLUDE: 'uiconst.bi'
 
 REM $STATIC
 SUB advance (who, atk(), x(), y(), w(), h(), t())

@@ -97,7 +97,7 @@ DECLARE FUNCTION exptolevel& (level%)
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
-'$INCLUDE: 'uigame.bi'
+'$INCLUDE: 'uiconst.bi'
 
 REM $STATIC
 SUB addhero (who, slot, stat())

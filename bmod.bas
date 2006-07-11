@@ -85,7 +85,7 @@ DECLARE SUB delitem (it%, num%)
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
-'$INCLUDE: 'uigame.bi'
+'$INCLUDE: 'uiconst.bi'
 '$INCLUDE: 'binsize.bi'
 
 REM $STATIC

@@ -90,12 +90,14 @@ DECLARE SUB updaterecordlength (lumpf$, bindex%)
 DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
 DECLARE FUNCTION inputfilename$ (query$, ext$)
 DECLARE SUB writebinstring (savestr$, array%(), offset%, maxlen%)
+DECLARE SUB getui(f$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'
+'$INCLUDE: 'uiconst.bi'
 
 '--make stack bigger
 CLEAR , , 2100
@@ -123,7 +125,7 @@ CHDIR gamedir$
 setdrive ASC(UCASE$(LEFT$(gamedir$, 1))) - 65
 
 DIM font(1024), master(767), buffer(16384), timing(4), joy(4), scroll(16002), pass(16002), emap(16002)
-DIM menu$(22), general(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600)
+DIM menu$(22), general(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600), uilook(uiColors)
 
 '--DIM binsize arrays
 '$INCLUDE: 'binsize.bi'
@@ -133,6 +135,7 @@ GOSUB listmake
 RANDOMIZE TIMER
 textxbload "ohrrpgce.mas", master(), "default master palette ohrrpgce.mas is missing"
 textxbload "ohrrpgce.fnt", font(), "default font ohrrpgce.fnt is missing"
+getui ""
 setmodex
 ON ERROR GOTO modeXerr
 setpal master()
@@ -171,6 +174,7 @@ safekill workingdir$ + SLASH + "__danger.tmp"
 IF NOT isfile(game$ + ".mas" + CHR$(0)) THEN copyfile "ohrrpgce.mas" + CHR$(0), game$ + ".mas" + CHR$(0), buffer()
 xbload game$ + ".mas", master(), "Master palette not found"
 setpal master()
+getui workingdir$ + SLASH + "uilook.bin"
 IF NOT isfile(game$ + ".fnt" + CHR$(0)) THEN copyfile "ohrrpgce.fnt" + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
 xbload game$ + ".fnt", font(), "Font not loaded"
 '--loadgen, upgrade, resave
