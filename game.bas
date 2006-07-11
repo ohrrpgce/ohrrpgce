@@ -198,16 +198,7 @@ DIM npc(300) as NPCInst
 
 'DEBUG debug "setup directories"
 
-'---GET CURRENT DIR, PROG DIRECTORY and WORK dir---
-sCurdir$ = STRING$(pathlength, 0): getstring sCurdir$
-IF RIGHT$(sCurdir$, 1) <> SLASH THEN sCurdir$ = sCurdir$ + SLASH
-progdir$ = STRING$(rpathlength, 0): getstring progdir$
-IF RIGHT$(progdir$, 1) <> SLASH THEN progdir$ = progdir$ + SLASH
-exename$ = STRING$(exenamelength, 0): getstring exename$
-DO WHILE INSTR(exename$, SLASH)
- exename$ = RIGHT$(exename$, LEN(exename$) - INSTR(exename$, SLASH))
-LOOP
-exename$ = LEFT$(exename$, LEN(exename$) - 4)
+'---GET WORK dir---
 aquiretempdir
 workingdir$ = tmpdir$ + "playing.tmp"
 
@@ -296,7 +287,7 @@ defaultc
 autorungame = 0
 a$ = cline$
 IF NOT linux THEN
-  IF MID$(a$, 2, 1) <> ":" THEN a$ = sCurdir$ + a$
+  IF MID$(a$, 2, 1) <> ":" THEN a$ = curdir$ + a$
 END IF  
 IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$ + CHR$(0)) THEN
  sourcerpg$ = a$
@@ -310,9 +301,9 @@ ELSEIF isdir(a$ + CHR$(0)) THEN 'perhaps it's an unlumped folder?
   workingdir$ = a$
  END IF
 ELSE
- IF exename$ <> "GAME" THEN
-  IF isfile(progdir$ + exename$ + ".rpg" + CHR$(0)) THEN
-   sourcerpg$ = progdir$ + exename$ + ".rpg"
+ IF command$(0) <> "GAME" THEN
+  IF isfile(exepath$ + command$(0) + ".rpg" + CHR$(0)) THEN
+   sourcerpg$ = exepath$ + command$(0) + ".rpg"
    autorungame = 1
   END IF
  END IF

@@ -29,7 +29,7 @@ DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION isunique% (s$, u$(), r%)
 DECLARE FUNCTION loadname$ (length%, offset%)
-DECLARE SUB exportnames ()
+DECLARE SUB exportnames (gamedir$)
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE FUNCTION needaddset (pt%, check%, what$)
@@ -110,7 +110,7 @@ FOR i = 0 TO 25
  WEND
 NEXT i
 
-remember$ = curdir$
+remember$ = curdir$ + SLASH
 IF default$ = "" THEN
  nowdir$ = remember$
 ELSE
@@ -289,11 +289,9 @@ ELSE
 END IF
 
 '--build display (work in progress)
-'FOR i = 0 TO treesize
-' SELECT CASE treec(i)
-'  CASE 2, 3, 6
-
-display$(i) = tree$(i)
+FOR i = 0 TO treesize
+ display$(i) = tree$(i)
+NEXT
 
 
 '--alphabetize
@@ -491,7 +489,7 @@ NEXT i
 
 END SUB
 
-SUB exportnames
+SUB exportnames (gamedir$)
 
 DIM u$(1024), names$(32), stat$(11)
 max = 32
@@ -510,7 +508,7 @@ stat$(9) = names$(7)
 stat$(10) = names$(31)
 stat$(11) = names$(4)
 
-outf$ = exepath$ + SLASH + RIGHT$(game$, LEN(game$) - 12) + ".hsi"
+outf$ = gamedir$ + SLASH + RIGHT$(game$, LEN(game$) - 12) + ".hsi"
 
 clearpage 0
 clearpage 1
@@ -776,7 +774,7 @@ ELSE
 END IF
 END FUNCTION
 
-SUB scriptman ()
+SUB scriptman (gamedir$)
 STATIC defaultdir$
 DIM menu$(5)
 
@@ -797,7 +795,7 @@ DO
    CASE 0
     EXIT DO
    CASE 1
-    exportnames
+    exportnames gamedir$
    CASE 2
     f$ = browse(0, defaultdir$, "*.hs", "")
     IF f$ <> "" THEN

@@ -256,7 +256,7 @@ drivetotal = drivelist(drive())
 drive(26) = 15
 
 'GOSUB vlabels
-remember$ = curdir$
+remember$ = curdir$ + SLASH
 nowdir$ = remember$
 
 GOSUB context
