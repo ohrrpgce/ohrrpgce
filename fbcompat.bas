@@ -294,3 +294,23 @@ Sub WriteShort(fh as integer,p as long, v as integer)
 		PUT #fh,p,cshort(v)
 	END IF
 END SUB
+
+FUNCTION getfixbit(bit AS INTEGER)
+	DIM f$
+	f$ = workingdir$ + SLASH + "fixbits.bin"
+	IF NOT isfile(f$) THEN RETURN 0
+	DIM bits(1) as SHORT
+	setpicstuf bits(), 2, -1
+	loadset f$, 0, 0
+	RETURN readbit(bits(), 0, bit)
+END FUNCTION
+
+SUB setfixbit(bit AS INTEGER, bitval AS INTEGER)
+	DIM f$
+	f$ = workingdir$ + SLASH + "fixbits.bin"
+	DIM bits(1) as SHORT
+	setpicstuf bits(), 2, -1
+	loadset f$, 0, 0
+	setbit bits(), 0, bit, bitval
+	storeset f$, 0, 0
+END SUB
