@@ -2869,6 +2869,14 @@ function xstr$(x as integer)
 	end if
 end function
 
+function xstr$(x as short)
+	if x >= 0 then
+		xstr$ = " " + str$(x)
+	else
+		xstr$ = str$(x)
+	end if
+end function
+
 function xstr$(x as single)
 	if x >= 0 then
 		xstr$ = " " + str$(x)
