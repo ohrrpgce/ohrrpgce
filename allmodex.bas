@@ -1946,9 +1946,6 @@ FUNCTION drivelist (d() as integer) as integer
 #endif
 end FUNCTION
 
-SUB setdrive (BYVAL n as integer)
-end SUB
-
 FUNCTION isdir (sDir$) as integer
 	isdir = NOT (dir$(sDir$, 16) = "")
 END FUNCTION

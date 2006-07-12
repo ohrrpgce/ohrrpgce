@@ -112,7 +112,6 @@ commandlineargs
 
 gamedir$ = exepath$
 CHDIR gamedir$
-setdrive ASC(UCASE$(LEFT$(gamedir$, 1))) - 65
 
 DIM font(1024), master(767), buffer(16384), timing(4), joy(4), scroll(16002), pass(16002), emap(16002)
 DIM menu$(22), general(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600), uilook(uiColors)
@@ -612,7 +611,6 @@ w = getkey
 GOSUB shutoff
 'closefile
 CHDIR curdir$
-'setdrive ASC(UCASE$(LEFT$(curdir$, 1))) - 64
 restoremode
 SYSTEM
 
