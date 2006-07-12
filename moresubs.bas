@@ -227,294 +227,6 @@ IF count > 0 THEN average = average / count
 averagelev = average
 END FUNCTION
 
-FUNCTION browse$ (fmask$, needf, bpage%)
-browse$ = ""
-
-DIM drive(26), drive$(26), tree$(255), treec(255), true$(255), about$(255), catfg(6), catbg(6)
-
-IF needf = 1 THEN
- FOR i = 0 TO 767
-  buffer(i) = 0
- NEXT i
- buffer(24) = 5
- buffer(25) = 5
- buffer(26) = 5
- setpal buffer()
-END IF
-
-limit = 255
-
-catfg(0) = 9: catbg(0) = 8    'drives
-catfg(1) = 9: catbg(1) = 8    'directories
-catfg(2) = 9: catbg(2) = 0    'subdirectories
-catfg(3) = 7: catbg(3) = 0    'files
-catfg(4) = 11: catbg(4) = 8   'root
-catfg(5) = 10: catbg(5) = 8   'special
-catfg(6) = 8: catbg(6) = 0   'bad
-
-drivetotal = drivelist(drive())
-drive(26) = 15
-
-'GOSUB vlabels
-remember$ = curdir$ + SLASH
-nowdir$ = remember$
-
-GOSUB context
-
-treeptr = 0
-treetop = 0
-
-setkeys
-DO
- setwait timing(), speedcontrol
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(treeptr, treetop, 0, treesize, 16)
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  SELECT CASE treec(treeptr)
-   CASE 0
-    IF hasmedia(ASC(LEFT$(tree$(treeptr), 1)) - 64) THEN
-     nowdir$ = LEFT$(tree$(treeptr), 3)
-     GOSUB context
-    END IF
-   CASE 1
-    'nowdir$ = LEFT$(tree$(1), 3)
-    nowdir$ = LEFT$(tree$(0), 3)
-    'FOR i = 2 TO treeptr
-    FOR i = 1 TO treeptr
-     nowdir$ = nowdir$ + tree$(i)
-    NEXT i
-    GOSUB context
-   CASE 2
-    nowdir$ = nowdir$ + tree$(treeptr) + SLASH
-    GOSUB context
-   CASE 3
-    browse$ = nowdir$ + true$(treeptr)
-    EXIT FUNCTION
-   CASE 4
-    nowdir$ = ""
-    GOSUB context
-    FOR i = 0 TO drivetotal - 1
-     IF drive(i) = 3 THEN treeptr = i
-    NEXT i
-  END SELECT
- END IF
- rectangle 4, 3, 312, 14, 9, dpage
- rectangle 5, 4, 310, 12, 1, dpage
- edgeprint nowdir$, 8, 6, uilook(uiText), dpage
- rectangle 0, 190, 320, 10, 8, dpage
- rectangle 4, 175, 312, 14, 9, dpage
- rectangle 5, 176, 310, 12, 1, dpage
- edgeprint about$(treeptr), 8, 178, uilook(uiText), dpage
- edgeprint version$, 8, 190, uilook(uiMenuItem), dpage
- textcolor uilook(uiText), 0
- printstr ">", 0, 20 + (treeptr - treetop) * 9, dpage
- FOR i = treetop TO small(treetop + 16, treesize)
-  textcolor catfg(treec(i)), catbg(treec(i))
-  a$ = tree$(i)
-  DO WHILE LEN(a$) < 38 AND catbg(treec(i)) > 0
-   a$ = a$ + " "
-  LOOP
-  printstr a$, 10, 20 + (i - treetop) * 9, dpage
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- copypage 2, dpage
- IF needf = 1 THEN fadein -1: needf = 0: setkeys
- IF needf > 1 THEN needf = needf - 1
- dowait
-LOOP
-EXIT FUNCTION
-
-context:
-DIM timeout AS DOUBLE
-timeout = TIMER
-rectangle 5, 176, 310, 12, 1, vpage
-meter = 0
-treesize = 0
-IF nowdir$ = "" THEN
- ' FOR i = 0 TO drivetotal - 1
- '  tree$(i) = drive$(i)
- '  treec(i) = 0
- ' NEXT i
- ' treesize = drivetotal - 1
-ELSE
- GOSUB drawmeter
- 'tree$(treesize) = "[ROOT]"
- 'treec(treesize) = 4
- a$ = nowdir$
- IF LINUX THEN
-  treesize = -1
- ELSE ' Windows and DOS
-  a = ASC(LEFT$(nowdir$, 1)) - 64
-  FOR i = 0 TO drivetotal - 1
-   'IF a = drive(i) THEN tree$(treesize) = drive$(i)
-   IF a = drive(i) THEN
-    tree$(treesize) = CHR$(64 + drive(i)) + ":" + SLASH
-    GOSUB drawmeter
-   END IF
-  NEXT i
-  treec(treesize) = 0
-  about$(treesize) = "Drive"
-  a$ = RIGHT$(a$, LEN(a$) - 3)
- END IF
- b$ = ""
- DO UNTIL a$ = ""
-  b$ = b$ + LEFT$(a$, 1)
-  a$ = RIGHT$(a$, LEN(a$) - 1)
-  IF RIGHT$(b$, 1) = SLASH THEN
-   treesize = small(treesize + 1, limit)
-   tree$(treesize) = b$
-   treec(treesize) = 1
-   about$(treesize) = "Directory"
-   b$ = ""
-   GOSUB drawmeter
-  END IF
- LOOP
- '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
- findfiles nowdir$ + ALLFILES + CHR$(0), 16, tmpdir$ + "hrbrowse.tmp" + CHR$(0), buffer()
- fh = FREEFILE
- OPEN tmpdir$ + "hrbrowse.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh)
-  treesize = small(treesize + 1, limit)
-  treec(treesize) = 2
-  about$(treesize) = "Subdirectory"
-  LINE INPUT #fh, tree$(treesize)
-  IF tree$(treesize) = "." OR tree$(treesize) = ".." OR RIGHT$(tree$(treesize), 4) = ".tmp" THEN treesize = treesize - 1
-  IF tree$(treesize) = "" THEN treesize = treesize - 1
-  GOSUB drawmeter
- LOOP
- CLOSE #fh
- safekill tmpdir$ + "hrbrowse.tmp"
- '---FIND ALL FILES IN FILEMASK---
- findfiles nowdir$ + fmask$ + CHR$(0), 0, tmpdir$ + "hrbrowse.tmp" + CHR$(0), buffer()
- fh = FREEFILE
- OPEN tmpdir$ + "hrbrowse.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh)
-  treesize = small(treesize + 1, limit)
-  treec(treesize) = 3
-  LINE INPUT #fh, true$(treesize)
-  true$(treesize) = true$(treesize)
-  IF true$(treesize) = "" THEN
-   treesize = treesize - 1
-  ELSE
-   IF timeout + 15 > TIMER THEN
-    unlumpfile nowdir$ + true$(treesize) + CHR$(0), "browse.txt", tmpdir$, buffer()
-    IF isfile(tmpdir$ + "browse.txt" + CHR$(0)) THEN
-     setpicstuf buffer(), 40, -1
-     loadset tmpdir$ + "browse.txt" + CHR$(0), 0, 0
-     tree$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
-     array2str buffer(), 2, tree$(treesize)
-     loadset tmpdir$ + "browse.txt" + CHR$(0), 1, 0
-     about$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
-     array2str buffer(), 2, about$(treesize)
-     safekill tmpdir$ + "browse.txt"
-     IF LEN(tree$(treesize)) = 0 THEN tree$(treesize) = true$(treesize)
-    ELSE
-     tree$(treesize) = true$(treesize)
-     about$(treesize) = ""
-    END IF
-   ELSE
-    tree$(treesize) = true$(treesize)
-    about$(treesize) = ""
-   END IF
-  END IF
-  GOSUB drawmeter
- LOOP
- CLOSE #fh
- safekill tmpdir$ + "hrbrowse.tmp"
-END IF
-
-'--set display (in progress)
-
-'--alphabetize
-meter = 0
-FOR o = treesize TO 2 STEP -1
- FOR i = 1 TO o
-  IF (treec(i) = 2 OR treec(i) = 3 OR treec(i) = 6) AND (treec(i - 1) = 2 OR treec(i - 1) = 3 OR treec(i - 1) = 6) THEN
-   IF ASC(LCASE$(LEFT$(tree$(i), 1))) < ASC(LCASE$(LEFT$(tree$(i - 1), 1))) THEN
-    SWAP tree$(i), tree$(i - 1)
-    SWAP treec(i), treec(i - 1)
-    SWAP true$(i), true$(i - 1)
-    SWAP about$(i), about$(i - 1)
-   END IF
-  END IF
- NEXT i
- GOSUB drawmeter2
-NEXT o
-
-'--sort by type
-meter = 0
-FOR o = treesize TO 2 STEP -1
- FOR i = 1 TO o
-  IF (treec(i) = 2 OR treec(i) = 3 OR treec(i) = 6) AND (treec(i - 1) = 2 OR treec(i - 1) = 3 OR treec(i - 1) = 6) THEN
-   IF treec(i) < treec(i - 1) THEN
-    SWAP tree$(i), tree$(i - 1)
-    SWAP treec(i), treec(i - 1)
-    SWAP true$(i), true$(i - 1)
-    SWAP about$(i), about$(i - 1)
-   END IF
-  END IF
- NEXT i
- GOSUB drawmeter2
-NEXT o
-
-'--set cursor
-IF treeptr > treesize THEN treeptr = 0: treetop = 0
-FOR i = 1 TO treesize
- IF treec(i) = 1 OR treec(i) = 0 THEN treeptr = i
-NEXT i
-FOR i = treesize TO 2 STEP -1
- IF treec(i) = 3 THEN treeptr = i
-NEXT i
-treetop = bound(treetop, treeptr - 19, treeptr)
-
-widest = 0
-FOR i = 0 TO treesize
- IF LEN(tree$(i)) > widest THEN widest = LEN(tree$(i))
-NEXT i
-
-RETURN
-
-drawmeter:
-meter = meter + 1: rectangle 5 + meter, 177, 2, 5, 9, vpage
-setvispage vpage 'refresh
-RETURN
-
-drawmeter2:
-meter = meter + 1: rectangle 5 + meter, 186, 2, 2, 9, vpage
-setvispage vpage 'refresh
-RETURN
-
-vlabels:
-FOR i = 0 TO drivetotal - 1
- IF isremovable(drive(i)) = 0 THEN
-  drive$(i) = CHR$(64 + drive(i)) + ":" + SLASH + " (removable)"
- ELSE '--not removable--
-  IF hasmedia(drive(i)) THEN
-   findfiles CHR$(64 + drive(i)) + ":" + SLASH + ALLFILES + CHR$(0), 8, tmpdir$ + "hrbrowse.tmp" + CHR$(0), buffer()
-   fh = FREEFILE
-   OPEN tmpdir$ + "hrbrowse.tmp" FOR INPUT AS #fh
-   IF LOF(fh) THEN
-    LINE INPUT #fh, a$
-    b$ = ""
-    FOR j = 1 TO LEN(a$)
-     IF MID$(a$, j, 1) <> "." THEN b$ = b$ + MID$(a$, j, 1)
-    NEXT j
-    drive$(i) = CHR$(64 + drive(i)) + ":" + SLASH + " (" + b$ + ")"
-   END IF
-   CLOSE #fh
-   safekill tmpdir$ + "hrbrowse.tmp"
-  ELSE '--no media--
-   drive$(i) = CHR$(64 + drive(i)) + ":" + SLASH + " (not ready)"
-  END IF'--check media--
- END IF'--check removable--
-NEXT i
-RETURN
-
-END FUNCTION
-
 SUB calibrate
 
 state = 0
@@ -789,16 +501,6 @@ IF readbit(saybit(), 0, 0) THEN
 END IF
 END SUB
 
-SUB edgeprint (s$, x, y, c, p)
-textcolor uilook(uiOutline), 0
-printstr s$, x, y + 1, p
-printstr s$, x + 1, y, p
-printstr s$, x + 2, y + 1, p
-printstr s$, x + 1, y + 2, p
-textcolor c, 0
-printstr s$, x + 1, y + 1, p
-END SUB
-
 SUB evalherotag (stat())
 
 leader = -1
@@ -874,16 +576,6 @@ NEXT j
 'itembits(n,2)      is equiped tag
 'itembits(n,3)      is equiped by hero in active party
 
-END SUB
-
-SUB fadein (force)
-fadestate = 1
-fadetopal master(), buffer()
-END SUB
-
-SUB fadeout (red, green, blue, force)
-fadestate = 0
-fadeto buffer(), red, green, blue
 END SUB
 
 SUB fatalerror (e$)
@@ -1158,11 +850,6 @@ IF num = -1 THEN istag = -1
 IF num = 0 THEN istag = zero
 END FUNCTION
 
-FUNCTION large (n1, n2)
-large = n1
-IF n2 > n1 THEN large = n2
-END FUNCTION
-
 SUB loaddoor (map, door())
 '--clobbers buffer!
 IF gen(95) < 2 THEN
@@ -1380,13 +1067,6 @@ setpicstuf tastuf(), 80, -1
 loadset game$ + ".tap" + CHR$(0), n, 0
 END SUB
 
-FUNCTION loopvar (var, min, max, inc)
-a = var + inc
-IF a > max THEN a = a - ((max - min) + 1): loopvar = a: EXIT FUNCTION
-IF a < min THEN a = a + ((max - min) + 1): loopvar = a: EXIT FUNCTION
-loopvar = a
-END FUNCTION
-
 SUB minimap (mx, my, x, y, tastuf())
 
 'loadpage game$ + ".til" + CHR$(0), gmap(0), 3
@@ -1505,10 +1185,10 @@ END FUNCTION
 
 SUB readjoysettings
 
-IF isfile(progdir$ + "joyset.ini" + CHR$(0)) THEN
+IF isfile(exepath$ + SLASH + "joyset.ini" + CHR$(0)) THEN
  '--use joyset.ini
  fh = FREEFILE
- OPEN progdir$ + "joyset.ini" FOR INPUT AS #fh
+ OPEN exepath$ + SLASH + "joyset.ini" FOR INPUT AS #fh
  safety = 0
  DO WHILE NOT EOF(fh) AND safety < 100
   LINE INPUT #fh, a$
@@ -2362,11 +2042,6 @@ loadtemppage 3
 
 END FUNCTION
 
-FUNCTION small (n1, n2)
-small = n1
-IF n2 < n1 THEN small = n2
-END FUNCTION
-
 SUB snapshot
 pre$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4)
 
@@ -2474,7 +2149,7 @@ END FUNCTION
 
 SUB writejoysettings
 fh = FREEFILE
-OPEN progdir$ + "joyset.ini" FOR OUTPUT AS #fh
+OPEN exepath$ + SLASH + "joyset.ini" FOR OUTPUT AS #fh
 PRINT #fh, "#Joystick/gamepad configuration"
 PRINT #fh, "UPTHRESH=" + LTRIM$(STR$(joy(9)))
 PRINT #fh, "DOWNTHRESH=" + LTRIM$(STR$(joy(10)))

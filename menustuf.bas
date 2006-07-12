@@ -81,12 +81,6 @@ DECLARE SUB flusharray (array%(), size%, value%)
 '$INCLUDE: 'binsize.bi'
 
 REM $STATIC
-FUNCTION bound (n, lowest, highest)
-bound = n
-IF n < lowest THEN bound = lowest
-IF n > highest THEN bound = highest
-END FUNCTION
-
 SUB buystuff (id, shoptype, storebuf(), stock(), stat())
 DIM b(dimbinsize(1) * 50), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walks(15), hpal(8), tradestf(3, 1)
 recordsize = curbinsize(1) / 2 ' get size in INTs
@@ -2276,25 +2270,6 @@ IF where = 0 AND resetdw THEN
 END IF
 
 END SUB
-
-FUNCTION usemenu (pt, top, first, last, size)
-
-oldptr = pt
-oldtop = top
-
-IF keyval(72) > 1 THEN pt = large(pt - 1, first)
-IF keyval(80) > 1 THEN pt = small(pt + 1, last)
-IF keyval(73) > 1 THEN pt = large(pt - size, first)
-IF keyval(81) > 1 THEN pt = small(pt + size, last)
-top = bound(top, pt - size, pt)
-
-IF olptr = pt AND oldtop = top THEN
- usemenu = 0
-ELSE
- usemenu = 1
-END IF
-
-END FUNCTION
 
 SUB loadshopstuf (array(), id)
 ol = getbinsize(1) / 2 'old size on disk

@@ -33,14 +33,13 @@ DECLARE SUB exportnames (gamedir$)
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE FUNCTION needaddset (pt%, check%, what$)
-DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$)
+DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$, needf = 0)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE FUNCTION onoroff$ (n%)
-DECLARE FUNCTION intstr$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
@@ -54,7 +53,7 @@ DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
-DECLARE SUB maptile (master%(), font%())
+DECLARE SUB maptile (font%())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
@@ -64,7 +63,6 @@ DECLARE FUNCTION xintgrabber% (n%, pmin%, pmax%, nmin%, nmax%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
-DECLARE FUNCTION validmusicfile(file$)
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION getsfxname$ (num)
 
@@ -75,331 +73,6 @@ DECLARE FUNCTION getsfxname$ (num)
 '$INCLUDE: 'const.bi'
 
 REM $STATIC
-FUNCTION browse$ (special, default$, fmask$, tmp$)
-browse$ = ""
-
-'special=0   no preview
-'special=1   just BAM
-'special=2   16 color BMP
-'special=3   background
-'special=4   master palette
-'special=5   any supported music (currently *.bam and *.mid)  (fmask$ is ignored)
-'special=6   any supported SFX (currently *.wav) (fmask$ is ignored)
-mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
-paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
-
-DIM drive(26), drive$(26), tree$(255), display$(255), treec(255), catfg(6), catbg(6), bmpd(40)
-
-catfg(0) = 9: catbg(0) = 8    'drives
-catfg(1) = 9: catbg(1) = 8    'directories
-catfg(2) = 9: catbg(2) = 0    'subdirectories
-catfg(3) = 7: catbg(3) = 0    'files
-catfg(4) = 11: catbg(4) = 8   'root
-catfg(5) = 10: catbg(5) = 8   'special
-catfg(6) = 8: catbg(5) = 0    'disabled
-
-drivetotal = drivelist(drive())
-drive(26) = 15
-'---FOR NOW, IGNORE FLOPPIES---
-FOR i = 0 TO 25
- WHILE drive(i) = 1 OR drive(i) = 2
-  FOR j = i TO 25
-   drive(j) = drive(j + 1)
-  NEXT j
-  drivetotal = drivetotal - 1
- WEND
-NEXT i
-
-remember$ = curdir$ + SLASH
-IF default$ = "" THEN
- nowdir$ = remember$
-ELSE
- nowdir$ = default$
-END IF
-
-GOSUB context
-
-treeptr = 0
-treetop = 0
-
-setkeys
-DO
- setwait timing(), 80
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
- IF usemenu(treeptr, treetop, 0, treesize, 17) OR changed THEN
-  alert$ = ""
-  changed = 0
-  SELECT CASE special
-   CASE 1
-    stopsong
-    IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
-     IF validmusicfile(nowdir$ + tree$(treeptr)) THEN
-      loadsong nowdir$ + tree$(treeptr) + CHR$(0)
-     ELSE
-      alert$ = tree$(treeptr) + " is not a valid BAM file"
-     END IF
-    END IF
-   CASE 2, 3
-    IF bmpinfo(nowdir$ + tree$(treeptr) + CHR$(0), bmpd()) THEN
-     alert$ = intstr$(bmpd(1)) + "*" + intstr$(bmpd(2)) + " pixels, " + intstr$(bmpd(0)) + "-bit color"
-    END IF
-   CASE 4
-    IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
-     masfh = FREEFILE
-     OPEN nowdir$ + tree$(treeptr) FOR BINARY AS #masfh
-     a$ = "       "
-     GET #masfh, 1, a$
-     CLOSE #masfh
-     SELECT CASE a$
-      CASE mashead$
-       alert$ = "MAS format"
-      CASE paledithead$
-       alert$ = "MAS format (PalEdit)"
-      CASE ELSE
-       alert$ = "Not a valid MAS file"
-     END SELECT
-    END IF
-   CASE 5
-    stopsong
-    IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
-     IF validmusicfile(nowdir$ + tree$(treeptr)) THEN
-      '-- NOTE TO SIMON: when you get to this, wrap this in a compat file, QB: as it is, FB: without the IF
-      IF canplay(tree$(treeptr)) THEN
-       loadsong nowdir$ + tree$(treeptr) + CHR$(0)
-      END IF
-     ELSE
-      alert$ = tree$(treeptr) + " is not a valid music file"
-     END IF
-    END IF
-   CASE 6
-    stopsfx 0
-    IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
-     IF isawav(nowdir$ + tree$(treeptr)) THEN
-      loadsfx 0, nowdir$ + tree$(treeptr)
-      playsfx 0,0
-     ELSE
-      alert$ = tree$(treeptr) + " is not a valid sound effect"
-     END IF
-    END IF
-  END SELECT
- END IF
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  alert$ = ""
-  changed = 1
-  IF special = 1 OR special = 5 THEN stopsong
-  SELECT CASE treec(treeptr)
-   CASE 0, 1
-    nowdir$ = LEFT$(tree$(0), 3)
-    FOR i = 1 TO treeptr
-     nowdir$ = nowdir$ + tree$(i)
-    NEXT i
-    GOSUB context
-   CASE 2
-    nowdir$ = nowdir$ + tree$(treeptr) + SLASH
-    GOSUB context
-   CASE 3
-    browse$ = nowdir$ + tree$(treeptr)
-    EXIT DO
-   CASE 4
-    nowdir$ = ""
-    GOSUB context
-    FOR i = 0 TO drivetotal - 1
-     IF drive(i) = 3 THEN treeptr = i
-    NEXT i
-  END SELECT
- END IF
- rectangle 4, 4, 312, 14, 1, dpage
- edgeprint nowdir$, 8, 6, 15, dpage
- rectangle 4, 184, 312, 14, 1, dpage
- edgeprint alert$, 8, 186, 15, dpage
- textcolor 15, 0
- printstr ">", 0, 20 + (treeptr - treetop) * 9, dpage
- FOR i = treetop TO small(treetop + 17, treesize)
-  textcolor catfg(treec(i)), catbg(treec(i))
-  a$ = display$(i)
-  DO WHILE LEN(a$) < 38 AND catbg(treec(i)) > 0
-   a$ = a$ + " "
-  LOOP
-  printstr a$, 10, 20 + (i - treetop) * 9, dpage
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-default$ = nowdir$
-EXIT FUNCTION
-
-context:
-treesize = 0
-IF nowdir$ = "" THEN
-ELSE
- a = ASC(LEFT$(nowdir$, 1)) - 64
- a$ = nowdir$
- IF LINUX THEN
-  treesize = -1
- ELSE
-  FOR i = 0 TO drivetotal - 1
-   'IF a = drive(i) THEN tree$(treesize) = drive$(i)
-   IF a = drive(i) THEN tree$(treesize) = CHR$(64 + drive(i)) + ":" + SLASH
-  NEXT i
-  treec(treesize) = 0
-  a$ = RIGHT$(a$, LEN(a$) - 3)
- END IF 
- b$ = ""
- DO UNTIL a$ = "" OR treesize >= 255
-  b$ = b$ + LEFT$(a$, 1)
-  a$ = RIGHT$(a$, LEN(a$) - 1)
-  IF RIGHT$(b$, 1) = SLASH THEN
-   treesize = treesize + 1
-   tree$(treesize) = b$
-   treec(treesize) = 1
-   b$ = ""
-  END IF
- LOOP
- '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
- findfiles nowdir$ + ALLFILES + CHR$(0), 16, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
- fh = FREEFILE
- OPEN tmp$ + "hrbrowse.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh) OR treesize >= 255
-  treesize = treesize + 1
-  treec(treesize) = 2
-  LINE INPUT #fh, tree$(treesize)
-  IF tree$(treesize) = "." OR tree$(treesize) = ".." OR RIGHT$(tree$(treesize), 4) = ".tmp" THEN treesize = treesize - 1
- LOOP
- CLOSE #fh
- safekill tmp$ + "hrbrowse.tmp"
- '---FIND ALL FILES IN FILEMASK---
- IF special = 5 THEN
-  '--disregard fmask$. one call per extension
-  findfiles nowdir$ + "*.bam" + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
-  GOSUB addmatchs
-  findfiles nowdir$ + "*.mid" + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
-  GOSUB addmatchs
- ELSEIF special = 6 THEN
-  '--disregard fmask$. one call per extension
-  findfiles nowdir$ + "*.wav" + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
-  GOSUB addmatchs
- ELSE
-  findfiles nowdir$ + fmask$ + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
-  GOSUB addmatchs
- END IF
-END IF
-
-'--build display (work in progress)
-FOR i = 0 TO treesize
- display$(i) = tree$(i)
-NEXT
-
-
-'--alphabetize
-FOR o = treesize TO 2 STEP -1
- FOR i = 1 TO o
-  IF (treec(i) = 2 OR treec(i) = 3 OR treec(i) = 6) AND (treec(i - 1) = 2 OR treec(i - 1) = 3 OR treec(i - 1) = 6) THEN
-   IF ASC(LCASE$(LEFT$(display$(i), 1))) < ASC(LCASE$(LEFT$(display$(i - 1), 1))) THEN
-    SWAP display$(i), display$(i - 1)
-    SWAP tree$(i), tree$(i - 1)
-    SWAP treec(i), treec(i - 1)
-   END IF
-  END IF
- NEXT i
-NEXT o
-
-'--sort by type
-FOR o = treesize TO 2 STEP -1
- FOR i = 1 TO o
-  IF (treec(i) = 2 OR treec(i) = 3 OR treec(i) = 6) AND (treec(i - 1) = 2 OR treec(i - 1) = 3 OR treec(i - 1) = 6) THEN
-   IF treec(i) < treec(i - 1) THEN
-    SWAP display$(i), display$(i - 1)
-    SWAP tree$(i), tree$(i - 1)
-    SWAP treec(i), treec(i - 1)
-   END IF
-  END IF
- NEXT i
-NEXT o
-
-'--set cursor
-IF treeptr > treesize THEN treeptr = 0: treetop = 0
-FOR i = 1 TO treesize
- IF treec(i) = 1 OR treec(i) = 0 THEN treeptr = i
-NEXT i
-FOR i = treesize TO 2 STEP -1
- IF treec(i) = 3 THEN treeptr = i
-NEXT i
-treetop = bound(treetop, treeptr - 19, treeptr)
-
-widest = 0
-FOR i = 0 TO treesize
- IF LEN(tree$(i)) > widest THEN widest = LEN(tree$(i))
-NEXT i
-
-RETURN
-
-addmatchs:
-fh = FREEFILE
-OPEN tmp$ + "hrbrowse.tmp" FOR INPUT AS #fh
-DO UNTIL EOF(fh) OR treesize >= 255
- treesize = treesize + 1
- treec(treesize) = 3
- LINE INPUT #fh, tree$(treesize)
- '---music files
- IF special = 1 OR special = 5 THEN
-  IF validmusicfile(nowdir$ + tree$(treesize)) = 0 THEN
-   treec(treesize) = 6
-  END IF
- END IF
- IF special = 6 THEN
-  IF isawav(nowdir$ + tree$(treesize)) = 0 THEN
-   treec(treesize) = 6
-  END IF
- END IF
- '---4-bit BMP browsing
- IF special = 2 THEN
-  IF bmpinfo(nowdir$ + tree$(treesize) + CHR$(0), bmpd()) THEN
-   IF bmpd(0) <> 4 OR bmpd(1) > 320 OR bmpd(2) > 200 THEN
-    treec(treesize) = 6
-   END IF
-  ELSE
-   treesize = treesize - 1
-  END IF
- END IF
- '---320x200x24/8bit BMP files
- IF special = 3 THEN
-  IF bmpinfo(nowdir$ + tree$(treesize) + CHR$(0), bmpd()) THEN
-   IF ISDOS = 1 THEN
-    IF bmpd(0) <> 24 OR bmpd(1) <> 320 OR bmpd(2) <> 200 then
-     treec(treesize) = 6
-    END IF
-   ELSE
-    IF (bmpd(0) <> 24 AND bmpd(0) <> 8) OR bmpd(1) <> 320 OR bmpd(2) <> 200 THEN
-    treec(treesize) = 6
-    END IF
-   END IF
-  ELSE
-   treesize = treesize - 1
-  END IF
- END IF
- '--master palettes  (why isn't this up there?)
- IF special = 4 THEN
-  masfh = FREEFILE
-  OPEN nowdir$ + tree$(treesize) FOR BINARY AS #masfh
-  a$ = "       "
-  GET #masfh, 1, a$
-  CLOSE #masfh
-  IF a$ <> mashead$ AND a$ <> paledithead$ THEN
-   treec(treesize) = 6
-  END IF
- END IF
-LOOP
-CLOSE #fh
-safekill tmp$ + "hrbrowse.tmp"
-
-RETURN
-
-END FUNCTION
-
 SUB cropafter (index, limit, flushafter, lump$, bytes, prompt)
 
 'if bytes is negative, then pages are used. flushafter becomes the working page number
@@ -1767,45 +1440,6 @@ ELSE
 END IF
 
 END SUB
-
-FUNCTION usemenu (pt, top, first, last, size)
-
-oldptr = pt
-oldtop = top
-
-IF keyval(72) > 1 THEN pt = loopvar(pt, first, last, -1) 'UP
-IF keyval(80) > 1 THEN pt = loopvar(pt, first, last, 1)  'DOWN
-IF keyval(73) > 1 THEN pt = large(pt - size, first)      'PGUP
-IF keyval(81) > 1 THEN pt = small(pt + size, last)       'PGDN
-IF keyval(71) > 1 THEN pt = first                         'HOME
-IF keyval(79) > 1 THEN pt = last                          'END
-top = bound(top, pt - size, pt)
-
-IF oldptr = pt AND oldtop = top THEN
- usemenu = 0
-ELSE
- usemenu = 1
-END IF
-
-END FUNCTION
-
-FUNCTION validmusicfile (file$)
-'-- actually, doesn't need to be a music file, but only multi-filetype imported data right now
-ext$ = LCASE$(RIGHT$(file$, 4))
-SELECT CASE ext$
- CASE ".bam"
-  a$ = "    "
-  realhd$ = "CBMF"
- CASE ".mid"
-  a$ = "    "
-  realhd$ = "MThd"
-END SELECT
-musfh = FREEFILE
-OPEN file$ FOR BINARY AS #musfh
-GET #musfh, 1, a$
-CLOSE #musfh
-IF a$ = realhd$ THEN validmusicfile = 1 ELSE validmusicfile = 0
-END FUNCTION
 
 SUB verifyrpg
 

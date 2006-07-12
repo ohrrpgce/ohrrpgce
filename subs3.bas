@@ -39,7 +39,6 @@ DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE FUNCTION onoroff$ (n%)
-DECLARE FUNCTION intstr$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
@@ -53,7 +52,7 @@ DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
-DECLARE SUB maptile (master%(), font%())
+DECLARE SUB maptile (font%())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
@@ -174,12 +173,6 @@ LOOP
 
 END SUB
 
-FUNCTION bound (n, lowest, highest)
-bound = n
-IF n < lowest THEN bound = lowest
-IF n > highest THEN bound = highest
-END FUNCTION
-
 SUB debug (s$)
 ff = freefile
 OPEN "c_debug.txt" FOR APPEND AS #ff
@@ -295,14 +288,6 @@ DO
  clearpage dpage
  dowait
 LOOP
-END FUNCTION
-
-FUNCTION intstr$ (n)
-IF n < 0 THEN
- intstr$ = STR$(n)
-ELSE
- intstr$ = RIGHT$(STR$(n), LEN(STR$(n)) - 1)
-END IF
 END FUNCTION
 
 FUNCTION numbertail$ (s$)

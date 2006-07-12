@@ -32,14 +32,13 @@ DECLARE SUB exportnames (gamedir$)
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE FUNCTION needaddset (pt%, check%, what$)
-DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$)
+DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$, needf = 0)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE FUNCTION onoroff$ (n%)
-DECLARE FUNCTION intstr$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
@@ -53,7 +52,7 @@ DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
-DECLARE SUB maptile (master%(), font%())
+DECLARE SUB maptile (font%())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
@@ -441,7 +440,7 @@ RETURN
 
 END SUB
 
-SUB gendata (master())
+SUB gendata ()
 STATIC default$
 CONST maxMenu = 31
 DIM m$(maxMenu), max(maxMenu), bitname$(15), subm$(4), scriptgenof(4)
@@ -856,7 +855,7 @@ RETURN
 
 END SUB
 
-SUB importsong (master())
+SUB importsong ()
 STATIC default$
 DIM music(16384)
 setupmusic music()
@@ -959,11 +958,7 @@ IF isfile(temp$ + ".mid" + CHR$(0)) THEN ext$ = ".mid" : songfile$ = temp$ + ext
 sname$ = getsongname$(snum)
 
 IF songfile$ <> "" THEN '--song exists
- IF canplay(songfile$) THEN
-  loadsong songfile$ + CHR$(0)
- ELSE
-  IF bamfile$ <> "" THEN loadsong bamfile$ + CHR$(0)
- END IF
+ loadsong songfile$ + CHR$(0)
 ELSE
  sname$ = ""
 END IF
@@ -1036,7 +1031,7 @@ RETURN
 END SUB
 
 
-SUB importsfx (master())
+SUB importsfx ()
 STATIC default$
 setupsound
 clearpage 0

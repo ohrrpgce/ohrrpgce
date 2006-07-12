@@ -1371,6 +1371,16 @@ SUB setwait (b() as integer, BYVAL t as integer)
 	waitset = 1
 end SUB
 
+SUB setwait (BYVAL t as integer)
+	dim millis as integer
+	dim secs as double
+	millis = (t \ 55) * 55
+
+	secs = millis / 1000
+	waittime = timer + secs
+	waitset = 1
+end SUB
+
 SUB dowait ()
 'wait until alarm time set in setwait()
 'In freebasic, sleep is in 1000ths, and a value of less than 100 will not
@@ -2909,6 +2919,10 @@ function xstr$(x as double)
 	else
 		xstr$ = str$(x)
 	end if
+end function
+
+function intstr$(x as integer)
+    intstr$ = str$(x)
 end function
 
 '-------------- Software GFX mode routines -----------------

@@ -96,7 +96,7 @@ DECLARE SUB evalitemtag ()
 DECLARE SUB evalherotag (stat%())
 DECLARE SUB tagdisplay ()
 DECLARE SUB rpgversion (v%)
-DECLARE FUNCTION browse$ (fmask$, needf%, bpage%)
+DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$, needf = 0)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB loadtanim (n%, tastuf%())
 DECLARE SUB loaddoor (map%, door%())
@@ -153,6 +153,7 @@ DECLARE FUNCTION cropmovement (x%, y%, xgo%, ygo%)
 DECLARE FUNCTION wraptouch (x1%, y1%, x2%, y2%, distance%)
 DECLARE SUB getui (f$)
 DECLARE FUNCTION titlescr% ()
+DECLARE FUNCTION trimpath$ (filename$)
 
 '---INCLUDE FILES---
 '$INCLUDE: 'compat.bi'
@@ -198,9 +199,10 @@ DIM npc(300) as NPCInst
 
 'DEBUG debug "setup directories"
 
-'---GET WORK dir---
+'---Get work dir and exe name---
 aquiretempdir
 workingdir$ = tmpdir$ + "playing.tmp"
+exename$ = trimpath$(MID$(command$(0), 1, INSTR(command$(0), ".")))
 
 'DEBUG debug "create working.tmp"
 
@@ -301,9 +303,9 @@ ELSEIF isdir(a$ + CHR$(0)) THEN 'perhaps it's an unlumped folder?
   workingdir$ = a$
  END IF
 ELSE
- IF command$(0) <> "GAME" THEN
-  IF isfile(exepath$ + command$(0) + ".rpg" + CHR$(0)) THEN
-   sourcerpg$ = exepath$ + command$(0) + ".rpg"
+ IF LCASE$(exename$) <> "game" THEN
+  IF isfile(exepath$ + SLASH + exename$ + ".rpg") THEN
+   sourcerpg$ = exepath$ + SLASH + exename$ + ".rpg"
    autorungame = 1
   END IF
  END IF
@@ -311,9 +313,9 @@ END IF
 IF autorungame = 0 THEN
  'DEBUG debug "browse for RPG"
  IF LINUX THEN
-  sourcerpg$ = browse$("*.[Rr][Pp][Gg]", 1, 2)
+  sourcerpg$ = browse$(7, "", "*.[Rr][Pp][Gg]", tmpdir$, 1)
  ELSE
-  sourcerpg$ = browse$("*.rpg", 1, 2)
+  sourcerpg$ = browse$(7, "", "*.rpg", tmpdir$, 1)
  END IF 
 END IF
 IF sourcerpg$ = "" AND NOT usepreunlump = 1 THEN exitprogram 0

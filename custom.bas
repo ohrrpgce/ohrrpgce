@@ -13,7 +13,7 @@ DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB safekill (f$)
 DECLARE SUB touchfile (f$)
-DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$)
+DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$, needf = 0)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION readenemyname$ (index%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
@@ -24,7 +24,7 @@ DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
-DECLARE SUB importbmp (f$, cap$, count%, master%())
+DECLARE SUB importbmp (f$, cap$, count%)
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE SUB upgrade (font%())
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
@@ -51,7 +51,6 @@ DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE FUNCTION onoroff$ (n%)
-DECLARE FUNCTION intstr$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE SUB smnemonic (tagname$, index%)
 DECLARE SUB tagnames ()
@@ -59,18 +58,18 @@ DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, you
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
-DECLARE SUB mapmaker (font%(), master%(), map%(), pass%(), emap%(), doors%(), link%(), npcn%(), npcstat%())
+DECLARE SUB mapmaker (font%(), map%(), pass%(), emap%(), doors%(), link%(), npcn%(), npcstat%())
 DECLARE SUB npcdef (npcn%(), pt%)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
-DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, file$, master%(), font%())
+DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, file$, font%())
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB shopdata ()
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
-DECLARE SUB importsong (master())
-DECLARE SUB importsfx (master())
+DECLARE SUB importsong ()
+DECLARE SUB importsfx ()
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
-DECLARE SUB gendata (master%())
+DECLARE SUB gendata ()
 DECLARE SUB itemdata ()
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
@@ -81,7 +80,7 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE SUB editmenus ()
 DECLARE FUNCTION sublist% (num%, s$())
-DECLARE SUB maptile (master%(), font())
+DECLARE SUB maptile (font())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
@@ -199,7 +198,7 @@ DO:
   SELECT CASE menumode
    CASE 0'--normal mode
     IF pt = 0 THEN pt = 0: menumode = 1: GOSUB setgraphicmenu
-    IF pt = 1 THEN mapmaker font(), master(), scroll(), pass(), emap(), doors(), link(), npcn(), npcstat()
+    IF pt = 1 THEN mapmaker font(), scroll(), pass(), emap(), doors(), link(), npcn(), npcstat()
     IF pt = 2 THEN statname
     IF pt = 3 THEN herodata
     IF pt = 4 THEN enemydata
@@ -211,10 +210,10 @@ DO:
     'if pt = 10 then editmenus
     IF pt = 10 THEN vehicles
     IF pt = 11 THEN tagnames
-    IF pt = 12 THEN importsong master()
-    IF pt = 13 THEN importsfx master()
+    IF pt = 12 THEN importsong
+    IF pt = 13 THEN importsfx
     IF pt = 14 THEN fontedit font(), gamedir$
-    IF pt = 15 THEN gendata master()
+    IF pt = 15 THEN gendata
     IF pt = 16 THEN scriptman gamedir$
     IF pt = 17 THEN
      GOSUB relump
@@ -222,18 +221,18 @@ DO:
     END IF
    CASE 1'--graphics mode
     IF pt = 0 THEN pt = 0: menumode = 0: GOSUB setmainmenu
-    IF pt = 1 THEN maptile master(), font()
-    IF pt = 2 THEN sprite 20, 20, general(30), 8, 5, 0, 7, winfo$(), 200, 4, ".pt4", master(), font()
-    IF pt = 3 THEN sprite 32, 40, general(26), 8, 16, 0, 3, hinfo$(), 640, 4, ".pt0", master(), font()
-    IF pt = 4 THEN sprite 34, 34, general(27), 1, 2, 0, 4, einfo$(), 578, 4, ".pt1", master(), font()
-    IF pt = 5 THEN sprite 50, 50, general(28), 1, 4, 1, 2, einfo$(), 1250, 2, ".pt2", master(), font()
-    IF pt = 6 THEN sprite 80, 80, general(29), 1, 10, 2, 1, einfo$(), 3200, 2, ".pt3", master(), font()
-    IF pt = 7 THEN sprite 50, 50, general(32), 3, 12, 0, 2, ainfo$(), 1250, 2, ".pt6", master(), font()
-    IF pt = 8 THEN sprite 24, 24, general(31), 2, 2, 0, 5, xinfo$(), 288, 4, ".pt5", master(), font()
-    IF pt = 9 THEN importbmp ".mxs", "screen", general(100), master()
+    IF pt = 1 THEN maptile font()
+    IF pt = 2 THEN sprite 20, 20, general(30), 8, 5, 0, 7, winfo$(), 200, 4, ".pt4", font()
+    IF pt = 3 THEN sprite 32, 40, general(26), 8, 16, 0, 3, hinfo$(), 640, 4, ".pt0", font()
+    IF pt = 4 THEN sprite 34, 34, general(27), 1, 2, 0, 4, einfo$(), 578, 4, ".pt1", font()
+    IF pt = 5 THEN sprite 50, 50, general(28), 1, 4, 1, 2, einfo$(), 1250, 2, ".pt2", font()
+    IF pt = 6 THEN sprite 80, 80, general(29), 1, 10, 2, 1, einfo$(), 3200, 2, ".pt3", font()
+    IF pt = 7 THEN sprite 50, 50, general(32), 3, 12, 0, 2, ainfo$(), 1250, 2, ".pt6", font()
+    IF pt = 8 THEN sprite 24, 24, general(31), 2, 2, 0, 5, xinfo$(), 288, 4, ".pt5", font()
+    IF pt = 9 THEN importbmp ".mxs", "screen", general(100)
     IF pt = 10 THEN
      general(33) = general(33) + 1
-     importbmp ".til", "tileset", general(33), master()
+     importbmp ".til", "tileset", general(33)
      general(33) = general(33) - 1
     END IF
   END SELECT
@@ -1056,10 +1055,6 @@ NEXT i
 readpassword$ = p$
 
 END FUNCTION
-
-SUB safekill (f$)
-IF isfile(f$ + CHR$(0)) THEN KILL f$
-END SUB
 
 SUB shopdata
 DIM names$(32), a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)

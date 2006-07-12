@@ -69,7 +69,7 @@ DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB writescatter (s$, lhold%, start%)
 DECLARE SUB readscatter (s$, lhold%, start%)
-DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$)
+DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$, needf = 0)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
@@ -77,7 +77,6 @@ DECLARE FUNCTION onoroff$ (n%)
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE SUB debug (s$)
 DECLARE SUB setanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION intstr$ (n%)
 DECLARE SUB loadtanim (n%, tastuf%())
 DECLARE SUB savetanim (n%, tastuf%())
 DECLARE FUNCTION lmnemonic$ (index%)
@@ -94,7 +93,7 @@ DECLARE SUB attackdata (atkdat$(), atklim%())
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE FUNCTION sublist% (num%, s$())
-DECLARE SUB maptile (master%(), font())
+DECLARE SUB maptile (font())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
@@ -190,7 +189,7 @@ LOOP
 
 END SUB
 
-SUB importbmp (f$, cap$, count, master())
+SUB importbmp (f$, cap$, count)
 STATIC default$
 DIM menu$(10), pmask(767)
 
@@ -345,7 +344,7 @@ setpicstuf tastuf(), 80, -1
 loadset game$ + ".tap" + CHR$(0), n, 0
 END SUB
 
-SUB maptile (master(), font())
+SUB maptile (font())
 DIM menu$(10), tastuf(40)
 
 setdiskpages buffer(), 200, 0
@@ -778,7 +777,7 @@ NEXT i
 
 END SUB
 
-SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, file$, master(), font())
+SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, file$, font())
 STATIC default$, clippedpal, clippedw, clippedh, paste
 DIM nulpal(8), placer(1602), pclip(8), menu$(255), pmenu$(3), bmpd(40), mouse(4), area(20, 4), tool$(5), icon$(5), shortk(5), cursor(5), workpal(8)
 

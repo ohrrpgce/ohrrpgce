@@ -44,6 +44,7 @@ declare function xstr$ overload (x as integer)
 declare function xstr$ (x as short)
 declare function xstr$ (x as single)
 declare function xstr$ (x as double)
+declare function intstr$ (x as integer)
 
 declare sub defseg(var as integer ptr)
 declare function xpeek (byval idx as integer) as integer
@@ -58,7 +59,7 @@ declare sub dummyclear (arg1%=0, arg2%=0, arg3%=0)
 declare sub togglewindowed()
 declare sub storecommandline(temppath as string)
 declare function getcommandline(temppath as string) as string
-DECLARE FUNCTION canplay (file$)
+DECLARE FUNCTION validmusicfile (file$)
 DECLARE SUB playsongnum (songnum%)
 DECLARE SUB romfontchar (font%(), char%)
 DECLARE SUB makedir (dirname$)

@@ -2065,7 +2065,6 @@ subreturn
 
 END SUB
 
-
 SUB templockexplain
 PRINT "Either " + exename$ + " is already running in the background, or it"
 PRINT "terminated incorrectly last time it was run, and was unable to clean up"

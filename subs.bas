@@ -48,7 +48,6 @@ DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE FUNCTION onoroff$ (n%)
-DECLARE FUNCTION intstr$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB debug (s$)
@@ -61,7 +60,7 @@ DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE FUNCTION sublist% (num%, s$())
-DECLARE SUB maptile (master%(), font%())
+DECLARE SUB maptile (font%())
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION large% (n1%, n2%)
 DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
@@ -127,16 +126,6 @@ FOR i = 0 TO 3
  clearpage i
 NEXT i
 
-END SUB
-
-SUB edgeprint (s$, x, y, c, p)
-textcolor 240, 0
-printstr s$, x, y + 1, p
-printstr s$, x + 1, y, p
-printstr s$, x + 2, y + 1, p
-printstr s$, x + 1, y + 2, p
-textcolor c, 0
-printstr s$, x + 1, y + 1, p
 END SUB
 
 SUB enemydata
@@ -1882,18 +1871,6 @@ FUNCTION itemstr$ (it%, hidden%, offbyone%)
  itemstr$ = re$
 END FUNCTION
 
-FUNCTION large (n1, n2)
-large = n1
-IF n2 > n1 THEN large = n2
-END FUNCTION
-
-FUNCTION loopvar (var, min, max, inc)
-a = var + inc
-IF a > max THEN a = a - ((max - min) + 1): loopvar = a: EXIT FUNCTION
-IF a < min THEN a = a + ((max - min) + 1): loopvar = a: EXIT FUNCTION
-loopvar = a
-END FUNCTION
-
 SUB npcdef (npc(), pt)
 DIM npc$(15), unpc(15), lnpc(15), mtype$(10), push$(7), stepi(5), info$(5, 1), pal16(288)
 
@@ -2251,11 +2228,6 @@ PUT #fh, 1 + id * 2, size16
 CLOSE #fh
 
 END SUB
-
-FUNCTION small (n1, n2)
-small = n1
-IF n2 < n1 THEN small = n2
-END FUNCTION
 
 SUB stredit (s$, maxl)
 STATIC clip$

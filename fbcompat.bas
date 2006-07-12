@@ -217,11 +217,6 @@ function getcommandline(temppath as string) as string
 	getcommandline = storecmd
 end function
 
-FUNCTION canplay (file$)
-	'dummy, you should be able to play anything passed in (unless this sub finds uses elsewhere)
-	canplay = 1
-END FUNCTION
-
 SUB playsongnum (songnum%)
 	DIM as string songbase, songfile, numtext
 	
@@ -243,6 +238,25 @@ SUB playsongnum (songnum%)
 	end if
 	IF songfile <> "" THEN loadsong songfile
 END SUB
+
+FUNCTION validmusicfile (file$)
+'-- actually, doesn't need to be a music file, but only multi-filetype imported data right now
+	DIM ext$, a$, realhd$, musfh
+	ext$ = LCASE$(RIGHT$(file$, 4))
+	SELECT CASE ext$
+	CASE ".bam"
+		a$ = "    "
+		realhd$ = "CBMF"
+	CASE ".mid"
+		a$ = "    "
+		realhd$ = "MThd"
+	END SELECT
+	musfh = FREEFILE
+	OPEN file$ FOR BINARY AS #musfh
+	GET #musfh, 1, a$
+	CLOSE #musfh
+	IF a$ = realhd$ THEN validmusicfile = 1 ELSE validmusicfile = 0
+END FUNCTION
 
 SUB romfontchar (font(), char)
 'should I implement this using the default font? potentially useful
