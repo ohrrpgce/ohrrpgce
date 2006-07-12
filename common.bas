@@ -18,6 +18,7 @@ DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE SUB safekill (f$)
 DECLARE FUNCTION small% (n1%, n2%)
 DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
+DECLARE FUNCTION debug (s$)
 
 COMMON SHARED uilook(), vpage, dpage, buffer(), version$, fadestate, master()
 
@@ -527,10 +528,20 @@ END FUNCTION
 
 FUNCTION trimpath$ (filename$)
 'return the filename without path
+IF NOT INSTR(filename$,SLASH) THEN RETURN filename$
 FOR i = LEN(filename$) TO 1 STEP -1
  IF MID$(filename$, i, 1) = SLASH THEN i += 1 : EXIT FOR
 NEXT
-trimpath$ = MID$(filename$, i)
+RETURN MID$(filename$, i)
+END FUNCTION
+
+FUNCTION trimextension$ (filename$)
+'return the filename without extension
+IF NOT INSTR(filename$,".") THEN RETURN filename$
+FOR i = LEN(filename$) TO 1 STEP -1
+ IF MID$(filename$, i, 1) = "." THEN i -= 1 : EXIT FOR
+NEXT
+RETURN MID$(filename$, 1, i)
 END FUNCTION
 
 FUNCTION usemenu (pt, top, first, last, size)

@@ -154,6 +154,7 @@ DECLARE FUNCTION wraptouch (x1%, y1%, x2%, y2%, distance%)
 DECLARE SUB getui (f$)
 DECLARE FUNCTION titlescr% ()
 DECLARE FUNCTION trimpath$ (filename$)
+DECLARE FUNCTION trimextension$ (filename$)
 
 '---INCLUDE FILES---
 '$INCLUDE: 'compat.bi'
@@ -202,7 +203,7 @@ DIM npc(300) as NPCInst
 '---Get work dir and exe name---
 aquiretempdir
 workingdir$ = tmpdir$ + "playing.tmp"
-exename$ = trimpath$(MID$(command$(0), 1, INSTR(command$(0), ".")))
+exename$ = trimextension$(trimpath$(command$(0)))
 
 'DEBUG debug "create working.tmp"
 
@@ -304,8 +305,8 @@ ELSEIF isdir(a$ + CHR$(0)) THEN 'perhaps it's an unlumped folder?
  END IF
 ELSE
  IF LCASE$(exename$) <> "game" THEN
-  IF isfile(exepath$ + SLASH + exename$ + ".rpg") THEN
-   sourcerpg$ = exepath$ + SLASH + exename$ + ".rpg"
+  IF isfile(exepath + SLASH + exename$ + ".rpg") THEN
+   sourcerpg$ = exepath + SLASH + exename$ + ".rpg"
    autorungame = 1
   END IF
  END IF
