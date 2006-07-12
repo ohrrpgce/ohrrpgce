@@ -10,8 +10,6 @@ option nokeyword setmouse
 
 #ifndef DEMACRO
 #ifndef DONESTR
-option nokeyword clear
-#define CLEAR dummyclear
 option nokeyword str
 #define str$(x) xstr$((x))
 #define fbdim dim as short
@@ -55,7 +53,6 @@ DECLARE SUB xbloadmap (f$, array%(), e$)
 DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB xbsave (f$, array%(), bsize%)
 DECLARE SUB crashexplain ()
-declare sub dummyclear (arg1%=0, arg2%=0, arg3%=0)
 declare sub togglewindowed()
 declare sub commandlineargs()
 declare function getcommandline() as string

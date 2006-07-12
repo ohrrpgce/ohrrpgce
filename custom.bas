@@ -613,7 +613,6 @@ GOSUB shutoff
 'closefile
 CHDIR curdir$
 'setdrive ASC(UCASE$(LEFT$(curdir$, 1))) - 64
-CLEAR
 restoremode
 SYSTEM
 
