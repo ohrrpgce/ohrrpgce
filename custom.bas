@@ -98,9 +98,6 @@ DECLARE SUB getui(f$)
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'uiconst.bi'
 
-'--make stack bigger
-CLEAR , , 2100
-
 DIM SHARED regs AS Regtype
 regs.ax = &H3509: CALL interruptx(&H21, regs, regs)
 off9 = regs.bx: seg9 = regs.es

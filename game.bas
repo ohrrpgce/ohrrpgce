@@ -175,8 +175,6 @@ storecommandline tmpdir$
 
 'DEBUG debug "Thestart"
 thestart:
-'DEBUG debug "set stack size"
-CLEAR , , 2900
 
 storekeyhandler
 
