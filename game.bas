@@ -168,10 +168,7 @@ DECLARE FUNCTION trimextension$ (filename$)
 
 '---GET TEMP DIR---
 aquiretempdir
-
-'DEBUG debug "write command-line to temp file "+tmpdir$ + "ohrcline.tmp"
-
-storecommandline tmpdir$
+commandlineargs
 
 'DEBUG debug "Thestart"
 thestart:
@@ -201,7 +198,7 @@ DIM npc(300) as NPCInst
 '---Get work dir and exe name---
 aquiretempdir
 workingdir$ = tmpdir$ + "playing.tmp"
-exename$ = trimextension$(trimpath$(command$(0)))
+exename$ = trimextension$(trimpath$(getcommandline))
 
 'DEBUG debug "create working.tmp"
 
@@ -217,14 +214,10 @@ ELSE
  makedir workingdir$
 END IF
 
-'DEBUG debug "re-aquire command-line"
-
-cline$ = getcommandline(tmpdir$)
-IF LCASE$(cline$) <> "/keyonly" AND LCASE$(cline$) <> "-keyonly" THEN
- FOR i = 0 TO 1
-  gotj(i) = readjoy(joy(), i)
- NEXT i
-END IF
+'-- Init joysticks
+FOR i = 0 TO 1
+ gotj(i) = readjoy(joy(), i)
+NEXT i
 
 dpage = 1: vpage = 0
 speedcontrol = 80
@@ -286,16 +279,16 @@ defaultc
 '---ALSO CHECKS FOR GAME.EXE RENAMING
 'DEBUG debug "enable autorunning"
 autorungame = 0
-a$ = cline$
+a$ = getcommandline
 IF NOT linux THEN
-  IF MID$(a$, 2, 1) <> ":" THEN a$ = curdir$ + a$
-END IF  
-IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$ + CHR$(0)) THEN
+  IF MID$(a$, 2, 1) <> ":" THEN a$ = curdir$ + SLASH + a$
+END IF
+IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$) THEN
  sourcerpg$ = a$
  autorungame = 1
-ELSEIF isdir(a$ + CHR$(0)) THEN 'perhaps it's an unlumped folder?
+ELSEIF isdir(a$) THEN 'perhaps it's an unlumped folder?
 'check for essentials
- IF isfile(a$ + SLASH + "archinym.lmp" + CHR$(0)) THEN 'ok, accept it
+ IF isfile(a$ + SLASH + "archinym.lmp") THEN 'ok, accept it
   autorungame = 1
   usepreunlump = 1
   sourcerpg$ = a$

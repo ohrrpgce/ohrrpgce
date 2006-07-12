@@ -51,6 +51,8 @@ WHAT IS NEW?
       operators. [Mike]
 
   * Stuff only Developers Will Notice
+    * Removal of some QuickBasic-specific code
+    * New common.bas for code shared by game and custom
     * Some rewritten map wrapping code [Ralph Versteegen]
     * Reformatted NPC data with UDTs [Mike Caron]
     * Hspeak's exit code is 2 if there were warnings [Mike Caron]

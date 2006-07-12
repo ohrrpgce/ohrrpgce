@@ -162,7 +162,7 @@ sub togglewindowed()
 	gfx_togglewindowed
 end sub
 
-sub storecommandline(temppath as string)
+sub commandlineargs()
 'a thinly veiled excuse to get some commandline stuff into FB
 'temppath is ignored in the FB version
 	dim i as integer = 1
@@ -213,7 +213,7 @@ sub storecommandline(temppath as string)
 	wend
 end sub
 
-function getcommandline(temppath as string) as string
+function getcommandline() as string
 	getcommandline = storecmd
 end function
 

@@ -57,8 +57,8 @@ DECLARE SUB xbsave (f$, array%(), bsize%)
 DECLARE SUB crashexplain ()
 declare sub dummyclear (arg1%=0, arg2%=0, arg3%=0)
 declare sub togglewindowed()
-declare sub storecommandline(temppath as string)
-declare function getcommandline(temppath as string) as string
+declare sub commandlineargs()
+declare function getcommandline() as string
 DECLARE FUNCTION validmusicfile (file$)
 DECLARE SUB playsongnum (songnum%)
 DECLARE SUB romfontchar (font%(), char%)

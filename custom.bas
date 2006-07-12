@@ -108,8 +108,7 @@ workingdir$ = "working.tmp"
 '$INCLUDE: 'cver.txt'
 'PRINT isn't going to work in FB Allegro
 IF COMMAND$ = "/V" THEN PRINT version$: SYSTEM
-'only included for the windowed/fullscreen stuff
-storecommandline ""
+commandlineargs
 
 gamedir$ = exepath$
 CHDIR gamedir$

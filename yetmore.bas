@@ -876,8 +876,6 @@ cleanuptemp
 
 'DEBUG debug "Remove working directory"
 IF usepreunlump = 0 THEN RMDIR workingdir$
-'DEBUG debug "Kill stored command-line"
-safekill tmpdir$ + "ohrcline.tmp"
 '--reset audio
 'closefile
 'DEBUG debug "Unload BAM player"
