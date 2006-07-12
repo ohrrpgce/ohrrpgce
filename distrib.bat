@@ -25,10 +25,8 @@ copy scancode.hsi tmp
 del distrib\custom.zip
 
 cd tmp
-..\support\pkzip ..\distrib\custom.zip *.*
+..\support\zip ..\distrib\custom.zip *.*
 cd ..
-support\pkzip distrib\custom.zip import
-support\pkzip -P -r distrib\custom.zip import\*.*
-support\pkzip distrib\custom.zip docs
-support\pkzip -P -r distrib\custom.zip docs\*.*
+support\zip -r distrib\custom.zip import
+support\zip -r distrib\custom.zip docs
 

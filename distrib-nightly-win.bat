@@ -43,13 +43,13 @@ pscp -i C:\progra~1\putty\id_rsa.ppk docs\plotdict.xml spam@brionne.cyberverse.c
 
 del distrib\hspeak-dos-nightly.zip
 call bind -clear_routines hspeak.ex
-support\pkzip distrib\hspeak-dos-nightly.zip hspeak.exe hspeak.ex LICENSE.txt
+support\zip distrib\hspeak-dos-nightly.zip hspeak.exe hspeak.ex LICENSE.txt
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\hspeak-dos-nightly.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
 
 copy hspeak.ex hspeak.exw
 del distrib\hspeak-win-nightly.zip
 call bindw -clear_routines hspeak.exw
-support\pkzip distrib\hspeak-win-nightly.zip hspeak.exe hspeak.exw LICENSE.txt
+support\zip distrib\hspeak-win-nightly.zip hspeak.exe hspeak.exw LICENSE.txt
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\hspeak-win-nightly.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
 del hspeak.exw
 

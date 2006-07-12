@@ -4,14 +4,14 @@ IF NOT EXIST music_%2.bas GOTO failed
 echo Now uploading the OHR with %1 graphics module, and %2 music module
 
 del distrib\ohrrpgce-wip-%1-%2.zip
-support\pkzip distrib\ohrrpgce-wip-%1-%2.zip game.exe custom.exe > NUL
-support\pkzip distrib\ohrrpgce-wip-%1-%2.zip whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd > NUL
+support\zip -q distrib\ohrrpgce-wip-%1-%2.zip game.exe custom.exe
+support\zip -q distrib\ohrrpgce-wip-%1-%2.zip whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd
 
 IF NOT EXIST distrib\ohrrpgce-wip-%1-%2.zip GOTO failed
 
 mkdir sanity
 cd sanity
-..\support\pkunzip ..\distrib\ohrrpgce-wip-%1-%2.zip > NUL
+..\support\unzip -qq ..\distrib\ohrrpgce-wip-%1-%2.zip
 cd ..
 IF NOT EXIST sanity\game.exe GOTO sanityfailed
 IF NOT EXIST sanity\custom.exe GOTO sanityfailed
@@ -21,15 +21,15 @@ del sanity\*.hsd
 rmdir sanity
 
 IF NOT %1==alleg GOTO skipgfxalleg
-support\pkzip distrib\ohrrpgce-wip-%1-%2.zip alleg40.dll > NUL
+support\zip -q distrib\ohrrpgce-wip-%1-%2.zip alleg40.dll
 :skipgfxalleg
 
 IF NOT %2==allegro GOTO skipmusalleg
-support\pkzip distrib\ohrrpgce-wip-%1-%2.zip alleg40.dll > NUL
+support\zip -q distrib\ohrrpgce-wip-%1-%2.zip alleg40.dll
 :skipmusalleg
 
 IF NOT %2==sdl GOTO skipmussdl
-support\pkzip distrib\ohrrpgce-wip-%1-%2.zip SDL.dll SDL_mixer.dll > NUL
+support\zip -q distrib\ohrrpgce-wip-%1-%2.zip SDL.dll SDL_mixer.dll
 :skipmussdl
 
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-wip-%1-%2.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/

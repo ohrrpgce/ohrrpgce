@@ -13,5 +13,5 @@ copy LICENSE-binary.txt tmp
 del distrib\ohrrpgce_play.zip
 
 cd tmp
-..\support\pkzip ..\distrib\ohrrpgce_play.zip *.*
+..\support\zip ..\distrib\ohrrpgce_play.zip *
 cd ..
