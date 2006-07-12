@@ -6,9 +6,7 @@ del tmp\*.???
 ECHO Packaging binary distribution of CUSTOM
 
 copy game.exe tmp
-copy game-qb.exe tmp
 copy custom.exe tmp
-copy customqb.exe tmp
 copy hspeak.exe tmp
 copy unlump.exe tmp
 copy ohrrpgce.mas tmp
