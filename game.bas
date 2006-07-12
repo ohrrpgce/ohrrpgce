@@ -198,7 +198,8 @@ DIM npc(300) as NPCInst
 '---Get work dir and exe name---
 aquiretempdir
 workingdir$ = tmpdir$ + "playing.tmp"
-exename$ = trimextension$(trimpath$(getcommandline))
+exename$ = trimextension$(trimpath$(COMMAND$(0)))
+
 
 'DEBUG debug "create working.tmp"
 
@@ -286,8 +287,8 @@ END IF
 IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$) THEN
  sourcerpg$ = a$
  autorungame = 1
-ELSEIF isdir(a$) THEN 'perhaps it's an unlumped folder?
-'check for essentials
+ELSEIF LEN(a$) AND isdir(a$) THEN 'perhaps it's an unlumped folder?
+ 'check for essentials
  IF isfile(a$ + SLASH + "archinym.lmp") THEN 'ok, accept it
   autorungame = 1
   usepreunlump = 1
