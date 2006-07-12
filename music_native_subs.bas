@@ -53,7 +53,6 @@ DECLARE function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integ
 DECLARE function CreateMIDIEventList(midifile as string, division as short ptr) as MIDI_EVENT ptr
 Declare sub FreeMidiEventList(head as MIDI_EVENT ptr)
 
-'in fbcompat.bas
 declare sub debug(s$)
 
 
