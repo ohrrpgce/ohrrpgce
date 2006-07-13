@@ -9,12 +9,6 @@
 '$INCLUDE: 'uiconst.bi'
 '$INCLUDE: 'common.bi'
 
-FUNCTION bound (n, lowest, highest)
-bound = n
-IF n < lowest THEN bound = lowest
-IF n > highest THEN bound = highest
-END FUNCTION
-
 FUNCTION browse$ (special, default$, fmask$, tmp$, needf)
 browse$ = ""
 
@@ -421,33 +415,6 @@ IF ranalready THEN
 END IF
 RETURN
 
-'this block is never called
-vlabels:
-FOR i = 0 TO drivetotal - 1
- IF isremovable(drive(i)) = 0 THEN
-  drive$(i) = CHR$(64 + drive(i)) + ":" + SLASH + " (removable)"
- ELSE '--not removable--
-  IF hasmedia(drive(i)) THEN
-   findfiles CHR$(64 + drive(i)) + ":" + SLASH + ALLFILES + CHR$(0), 8, tmpdir$ + "hrbrowse.tmp" + CHR$(0), buffer()
-   fh = FREEFILE
-   OPEN tmpdir$ + "hrbrowse.tmp" FOR INPUT AS #fh
-   IF LOF(fh) THEN
-    LINE INPUT #fh, a$
-    b$ = ""
-    FOR j = 1 TO LEN(a$)
-     IF MID$(a$, j, 1) <> "." THEN b$ = b$ + MID$(a$, j, 1)
-    NEXT j
-    drive$(i) = CHR$(64 + drive(i)) + ":" + SLASH + " (" + b$ + ")"
-   END IF
-   CLOSE #fh
-   safekill tmpdir$ + "hrbrowse.tmp"
-  ELSE '--no media--
-   drive$(i) = CHR$(64 + drive(i)) + ":" + SLASH + " (not ready)"
-  END IF'--check media--
- END IF'--check removable--
-NEXT i
-RETURN
-
 END FUNCTION
 
 SUB edgeprint (s$, x, y, c, p)
@@ -490,44 +457,9 @@ DATA 146,156,162,172,178,188,194,204,210,220,226,236,242,252
 
 END SUB
 
-FUNCTION large (n1, n2)
-large = n1
-IF n2 > n1 THEN large = n2
-END FUNCTION
-
-FUNCTION loopvar (var, min, max, inc)
-a = var + inc
-IF a > max THEN a = a - ((max - min) + 1): loopvar = a: EXIT FUNCTION
-IF a < min THEN a = a + ((max - min) + 1): loopvar = a: EXIT FUNCTION
-loopvar = a
-END FUNCTION
-
 SUB safekill (f$)
 IF isfile(f$ + CHR$(0)) THEN KILL f$
 END SUB
-
-FUNCTION small (n1, n2)
-small = n1
-IF n2 < n1 THEN small = n2
-END FUNCTION
-
-FUNCTION trimpath$ (filename$)
-'return the filename without path
-IF NOT INSTR(filename$,SLASH) THEN RETURN filename$
-FOR i = LEN(filename$) TO 1 STEP -1
- IF MID$(filename$, i, 1) = SLASH THEN i += 1 : EXIT FOR
-NEXT
-RETURN MID$(filename$, i)
-END FUNCTION
-
-FUNCTION trimextension$ (filename$)
-'return the filename without extension
-IF NOT INSTR(filename$,".") THEN RETURN filename$
-FOR i = LEN(filename$) TO 1 STEP -1
- IF MID$(filename$, i, 1) = "." THEN i -= 1 : EXIT FOR
-NEXT
-RETURN MID$(filename$, 1, i)
-END FUNCTION
 
 FUNCTION usemenu (pt, top, first, last, size)
 

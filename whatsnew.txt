@@ -53,6 +53,8 @@ WHAT IS NEW?
   * Stuff only Developers Will Notice
     * Removal of some QuickBasic-specific code
     * New common.bas for code shared by game and custom
+    * New util.bas for code that does not depend on any other part
+      of the OHR
     * Some rewritten map wrapping code [Ralph Versteegen]
     * Reformatted NPC data with UDTs [Mike Caron]
     * Hspeak's exit code is 2 if there were warnings [Mike Caron]
