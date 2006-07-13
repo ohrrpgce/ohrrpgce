@@ -32,6 +32,7 @@ WHAT IS NEW?
     * Joystick didn't work at all in the Windows version [Mike]
     * Bug 68: Added days, hours, minutes to Global text Strings menu
       for displaying playtime on the Save/Load screens [James]
+    * Fixed missing harm tile flash [James]
 
   * New Plotscripting Commands
     * "string from textbox" [Yuriy]

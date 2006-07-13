@@ -1099,7 +1099,10 @@ FOR whoi = 0 TO 3
     NEXT i
     IF o < 4 THEN
      stat(o, 0, 0) = bound(stat(o, 0, 0) - gmap(9), 0, stat(o, 1, 0))
-     IF gmap(10) THEN rectangle 0, 0, 320, 200, gmap(10), vpage
+     IF gmap(10) THEN
+      rectangle 0, 0, 320, 200, gmap(10), vpage
+      setvispage vpage
+     END IF 
     END IF
     '--check for death
     fatal = checkfordeath(stat())
