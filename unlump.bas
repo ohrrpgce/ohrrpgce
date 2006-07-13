@@ -3,8 +3,8 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-' This utility is semi-obsolete, and could easily be replaced with a
-' Euphoria version based on the unlumping code in hsspiffy.e
+' To compile:
+'        fbc unlump.bas util.bas
 '
 '$DYNAMIC
 DEFINT A-Z
@@ -17,11 +17,9 @@ DECLARE SUB forcewd (wd$)
 DECLARE FUNCTION getcurdir$ ()
 DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB readscatter (s$, lhold%, array%(), start%)
-DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE FUNCTION rotascii$ (s$, o%)
-DECLARE FUNCTION small% (n1%, n2%)
-DECLARE FUNCTION large% (n1%, n2%)
-DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
+'DECLARE FUNCTION readpassword$ ()
+
 'assembly subs and functions
 DECLARE SUB setwait (b(), BYVAL t)
 DECLARE SUB dowait ()
@@ -44,6 +42,8 @@ DECLARE FUNCTION isremovable (BYVAL d)
 DECLARE FUNCTION isvirtual (BYVAL d)
 DECLARE FUNCTION hasmedia (BYVAL d)
 
+'$INCLUDE: 'util.bi'
+
 CONST true = -1
 CONST false = 0
 
@@ -61,26 +61,31 @@ IF COMMAND$ = "" THEN
  PRINT "A utility to extract the contents of an RPG file to a directory"
  PRINT "so that advanced users can hack the delicious morsels inside."
  PRINT "If a password is required, you will be prompted to enter it."
+ PRINT ""
+ PRINT "Windows users can drag-and-drop their RPG file onto this program"
+ PRINT "to unlump it."
+ PRINT ""
+ PRINT "[Press a Key]"
+ dummy$ = readkey$()
  fatalerror ""
 END IF
 
-lump$ = LTRIM$(RTRIM$(LEFT$(COMMAND$, INSTR(COMMAND$, " "))))
-dest$ = LTRIM$(RTRIM$(RIGHT$(COMMAND$, LEN(COMMAND$) - INSTR(COMMAND$, " "))))
-IF lump$ = "" THEN lump$ = dest$: dest$ = ""
+lump$ = COMMAND$(1)
+dest$ = COMMAND$(2)
 IF dest$ = "" THEN
- dest$ = LEFT$(lump$, LEN(lump$) - (LEN(rightafter(lump$, ".")) + 1))
+ dest$ = trimextension$(lump$) + ".rpgdir"
  IF LEN(rightafter(lump$, ".")) > 3 OR dest$ = "" THEN fatalerror "please specify an output directory"
 END IF
 
-IF NOT isfile(lump$ + CHR$(0)) THEN fatalerror "lump file `" + lump$ + "' was not found"
+IF NOT isfile(lump$) THEN fatalerror "lump file `" + lump$ + "' was not found"
 
 game$ = rightafter(lump$, "\")
 IF game$ = "" THEN game$ = lump$
 IF INSTR(game$, ".") THEN game$ = LEFT$(game$, INSTR(game$, ".") - 1)
 
-IF isfile(dest$ + CHR$(0)) THEN fatalerror "destination directory `" + dest$ + "' already exists as a file"
+IF isfile(dest$) THEN fatalerror "destination directory `" + dest$ + "' already exists as a file"
 
-IF isdir(dest$ + CHR$(0)) THEN
+IF isdir(dest$) THEN
  PRINT "destination directory `" + dest$ + "' already exists. use it anyway? (y/n)"
  w$ = readkey
  IF w$ <> "Y" AND w$ <> "y" THEN SYSTEM
@@ -88,12 +93,12 @@ ELSE
  MKDIR dest$
 END IF
 
-IF NOT isdir(dest$ + CHR$(0)) THEN fatalerror "unable to create destination directory `" + dest$ + "'"
+IF NOT isdir(dest$) THEN fatalerror "unable to create destination directory `" + dest$ + "'"
 
-unlumpfile lump$ + CHR$(0), "archinym.lmp", dest$ + "\", buffer()
+unlumpfile lump$, "archinym.lmp", dest$ + "\", buffer()
 
 '--set game$ according to the archinym
-IF isfile(dest$ + "\archinym.lmp" + CHR$(0)) THEN
+IF isfile(dest$ + "\archinym.lmp") THEN
  fh = FREEFILE
  OPEN dest$ + "\archinym.lmp" FOR INPUT AS #fh
  LINE INPUT #fh, a$
@@ -103,7 +108,7 @@ IF isfile(dest$ + "\archinym.lmp" + CHR$(0)) THEN
  END IF
 END IF
 
-unlumpfile lump$ + CHR$(0), game$ + ".gen", dest$ + "\", buffer()
+unlumpfile lump$, game$ + ".gen", dest$ + "\", buffer()
 
 xbload dest$ + "\" + game$ + ".gen", buffer(), "unable to open general data"
 
@@ -114,10 +119,15 @@ passokay = true
 IF buffer(94) > -1 THEN
  passokay = false
  '----load password-----
+ 'Note that this is still using the old 2nd-style password format, not the
+ 'newer simpler 3rd-style password format. This is okay for now, since
+ 'CUSTOM writes both 2nd and 3rd style passwords, but supporting 3rd-style
+ 'here also would be desireable
  readscatter rpas$, buffer(94), buffer(), 200
  rpas$ = rotascii(rpas$, buffer(93) * -1)
  'PRINT rpas$
  '-----get inputed password-----
+ print "Password Required"
  pas$ = ""
  DO
   w$ = readkey$
@@ -136,79 +146,14 @@ END IF
 
 IF passokay THEN
  REDIM buffer(32767)
- unlump lump$ + CHR$(0), dest$ + "\", buffer()
+ unlump lump$, dest$ + "\", buffer()
 END IF
 
 forcewd olddir$
 
 SYSTEM
 
-'---DOCUMENTATION OF GENERAL DATA---
-'* denotes obsolete fields
-'0        number of maps
-'1-20    *tilesetassignments
-'1        title screen
-'2        title music
-'3        victory music
-'4        default battle music
-'5-25    *passcode
-'26       max hero graphics 40
-'27       max small enemy graphics 149
-'28       max med enemy graphics 79
-'29       max large graphics 29
-'30       max npc graphics 119
-'31       max weapon graphics 149
-'32       max attack graphics 99
-'33       max tilesets 14
-'34       max attack definitions 200
-'35       max hero definitions 59
-'36       max enemy definitions 500
-'37       max formations 1000
-'38       max palettes 99
-'39       max text boxes 999
-'40       total available plotscripts
-'41       new-game plotscript
-'42       game-over plotscript
-'43       highest numbered plotscript
-'44       suspendstuff bits
-'45       cameramode
-'46       cameraarg1
-'47       cameraarg2
-'48       cameraarg3
-'49       cameraarg4
-'50       script backdrop
-'51       days of play
-'52       hours of play
-'53       minutes of play
-'54       seconds of play
-'55       max vehicle types
-
-'93       new passcode offset
-'94       new passcode length
-'95       RPG file format version ID
-'96       starting gold
-'97       last shop
-'98      *old passcode offset
-'99      *old passcode length
-'100      last screen
-'101      general bitsets
-'102      starting X
-'103      starting Y
-'104      starting Map
-'105      one-time-NPC indexer
-'106-170  one-time-NPC placeholders
-'199      start of password scattertable
-'200-359  password mess
-
 REM $STATIC
-FUNCTION bound (num, min, max)
-
-bound = num
-IF num < min THEN bound = min
-IF num > max THEN bound = max
-
-END FUNCTION
-
 FUNCTION editstr$ (stri$, key$, cur, max, number)
 
 pre$ = LEFT$(stri$, cur)
@@ -255,19 +200,6 @@ FUNCTION getcurdir$
 
 getcurdir$ = curdir
 
-END FUNCTION
-
-
-FUNCTION large (n1, n2)
-large = n1
-IF n2 > n1 THEN large = n2
-END FUNCTION
-
-FUNCTION loopvar (var, min, max, inc)
-a = var + inc
-IF a > max THEN a = a - ((max - min) + 1): loopvar = a: EXIT FUNCTION
-IF a < min THEN a = a + ((max - min) + 1): loopvar = a: EXIT FUNCTION
-loopvar = a
 END FUNCTION
 
 FUNCTION readkey$
@@ -319,11 +251,6 @@ NEXT i
 
 rotascii$ = temp$
 
-END FUNCTION
-
-FUNCTION small (n1, n2)
-small = n1
-IF n2 < n1 THEN small = n2
 END FUNCTION
 
 SUB xbload (f$, array(), e$)
@@ -632,3 +559,24 @@ end SUB
 SUB unlump (lump$, ulpath$, buffer() as integer)
 	unlumpfile(lump$, "", ulpath$, buffer())
 end SUB
+
+'FUNCTION readpassword$
+'
+''--read a 17-byte string from GEN at word offset 7
+''--(Note that array2str uses the byte offset not the word offset)
+'s$ = STRING$(17, 0)
+'array2str general(), 14, s$
+'
+''--reverse ascii rotation / weak obfuscation
+'s$ = rotascii(s$, general(6) * -1)
+'
+''-- discard ascii chars lower than 32
+'p$ = ""
+'FOR i = 1 TO 17
+' c$ = MID$(s$, i, 1)
+' IF ASC(c$) >= 32 THEN p$ = p$ + c$
+'NEXT i
+'
+'readpassword$ = p$
+'
+'END FUNCTION

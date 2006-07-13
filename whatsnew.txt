@@ -50,6 +50,12 @@ WHAT IS NEW?
       are logical operators, as opposed to the bitwise "and", "or" and "xor"
       operators. [Mike]
 
+  * Unlump.exe
+    * Ported to FreeBasic [Mike Caron]
+    * Output directory defaults to gamename.rpgdir [James]
+    * When run without arguments, tells windows users to
+      drag-and-drop [James]
+
   * Stuff only Developers Will Notice
     * Removal of some QuickBasic-specific code
     * New common.bas for code shared by game and custom
