@@ -202,6 +202,13 @@ IF treec(treeptr) = 2 THEN alert$ = "Subdirectory"
 RETURN
 
 context:
+'erase old list
+FOR i = 0 TO limit
+ tree$(i) = ""
+ display$(i) = ""
+ about$(i) = ""
+ treec(i) = 0
+NEXT i
 'for progress meter
 IF ranalready THEN rectangle 5, 32 + viewsize * 9, 310, 12, 1, vpage
 meter = 0
@@ -229,6 +236,16 @@ ELSE
   b$ = b$ + LEFT$(a$, 1)
   a$ = RIGHT$(a$, LEN(a$) - 1)
   IF RIGHT$(b$, 1) = SLASH THEN
+   #IFNDEF __FB_LINUX__
+    'Special handling of My Documents in Windows
+    IF b$ = "My Documents\" OR b$ = "MYDOCU~1\" THEN
+     FOR i = treesize to 1 STEP -1
+      b$ = tree$(i) + b$
+     NEXT i
+     treesize = 0
+     display$(1) = "My Documents\"
+    END IF
+   #ENDIF 
    treesize = treesize + 1
    tree$(treesize) = b$
    treec(treesize) = 1
@@ -237,7 +254,7 @@ ELSE
   END IF
  LOOP
  '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
- findfiles nowdir$ + ALLFILES + CHR$(0), 16, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
+ findfiles nowdir$ + ALLFILES, 16, tmp$ + "hrbrowse.tmp", buffer()
  fh = FREEFILE
  OPEN tmp$ + "hrbrowse.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh) OR treesize >= limit
@@ -268,7 +285,7 @@ END IF
 
 '--set display
 FOR i = 0 TO treesize
- IF NOT (special = 7 AND (treec(i) = 3 OR treec(i) = 6)) THEN
+ IF LEN(display$(i)) = 0 THEN
   display$(i) = tree$(i)
  END IF
 NEXT
