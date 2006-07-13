@@ -15,7 +15,6 @@ DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION rightafter$ (s$, d$)
 DECLARE SUB forcewd (wd$)
 DECLARE FUNCTION getcurdir$ ()
-DECLARE FUNCTION getrundir$ ()
 DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB readscatter (s$, lhold%, array%(), start%)
 DECLARE FUNCTION bound% (n%, lowest%, highest%)
@@ -36,11 +35,9 @@ DECLARE SUB unlumpfile (lump$, fmask$, path$, buf())
 DECLARE SUB array2str (arr(), BYVAL o, s$)
 DECLARE SUB str2array (s$, arr(), BYVAL o)
 DECLARE SUB getstring (path$)
-DECLARE FUNCTION pathlength ()
 DECLARE FUNCTION rpathlength ()
 DECLARE FUNCTION envlength (e$)
 DECLARE FUNCTION drivelist (drbuf())
-DECLARE SUB setdrive (BYVAL drive)
 DECLARE FUNCTION isfile (n$)
 DECLARE FUNCTION isdir (dir$)
 DECLARE FUNCTION isremovable (BYVAL d)
@@ -52,8 +49,8 @@ CONST false = 0
 
 DIM buffer(16383)
 
+
 olddir$ = getcurdir
-forcewd getrundir
 
 IF COMMAND$ = "" THEN
  PRINT "O.H.R.RPG.C.E. game unlumping utility"
@@ -133,7 +130,7 @@ IF buffer(94) > -1 THEN
   LOCATE , 1: FOR i = 1 TO LEN(pas$): PRINT " "; : NEXT i
   pas$ = editstr(pas$, w$, cur, 17, false)
   LOCATE , 1: FOR i = 1 TO LEN(pas$): PRINT "*"; : NEXT i
-  dowait
+  sleep 80,1
  LOOP
 END IF
 
@@ -251,29 +248,15 @@ END SUB
 SUB forcewd (wd$)
 
 CHDIR wd$
-setdrive ASC(UCASE$(LEFT$(wd$, 1))) - 65
 
 END SUB
 
 FUNCTION getcurdir$
 
-sCurdir$ = STRING$(pathlength, 0)
-getstring sCurdir$
-IF RIGHT$(sCurdir$, 1) = "\" AND LEN(sCurdir$) > 3 THEN sCurdir$ = LEFT$(sCurdir$, LEN(sCurdir$) - 1)
-
-getcurdir$ = sCurdir$
+getcurdir$ = curdir
 
 END FUNCTION
 
-FUNCTION getrundir$
-
-rundir$ = STRING$(rpathlength, 0)
-getstring rundir$
-IF RIGHT$(rundir$, 1) = "\" AND LEN(rundir$) > 3 THEN rundir$ = LEFT$(rundir$, LEN(rundir$) - 1)
-
-getrundir$ = rundir$
-
-END FUNCTION
 
 FUNCTION large (n1, n2)
 large = n1
@@ -345,19 +328,307 @@ END FUNCTION
 
 SUB xbload (f$, array(), e$)
 
-IF isfile(f$ + CHR$(0)) THEN
- handle = FREEFILE
- OPEN f$ FOR BINARY AS #handle
- bytes = LOF(handle)
- CLOSE #handle
- IF bytes THEN
-  DEF SEG = VARSEG(array(0)): BLOAD f$, VARPTR(array(0))
- ELSE
-  fatalerror e$ + "(zero byte)"
- END IF
-ELSE
- fatalerror e$
-END IF
+	IF isfile(f$) THEN
+		DIM ff%, byt as UByte, seg AS Short, offset AS Short, length AS Short
+		dim ilength as integer
+		dim i as integer
+
+		ff = FreeFile
+		OPEN f$ FOR BINARY AS #ff
+		GET #ff,, byt 'Magic number, always 253
+		IF byt <> 253 THEN fatalerror e$
+		GET #ff,, seg 'Segment, no use anymore
+		GET #ff,, offset 'Offset into the array, not used now
+		GET #ff,, length 'Length
+		'length is in bytes, so divide by 2, and subtract 1 because 0-based
+		ilength = (length / 2) - 1
+		
+		dim buf(ilength) as short
+		
+		GET #ff,, buf()
+		CLOSE #ff
+
+		for i = 0 to small(ilength, ubound(array))
+			array(i) = buf(i)	
+		next i
+		
+		ELSE
+		fatalerror e$
+	END IF
 
 END SUB
 
+FUNCTION readbit (bb() as integer, BYVAL w as integer, BYVAL b as integer)  as integer
+	dim mask as uinteger
+	dim woff as integer
+	dim wb as integer
+
+	woff = w + (b \ 16)
+	wb = b mod 16
+
+	mask = 1 shl wb
+
+	if (bb(woff) and mask) then
+		readbit = 1
+	else
+		readbit = 0
+	end if
+end FUNCTION
+
+SUB setbit (bb() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as integer)
+	dim mask as uinteger
+	dim woff as integer
+	dim wb as integer
+
+	woff = w + (b \ 16)
+	wb = b mod 16
+
+	if woff > ubound(bb) then
+		exit sub
+	end if
+
+	mask = 1 shl wb
+	if v = 1 then
+		bb(woff) = bb(woff) or mask
+	else
+		mask = not mask
+		bb(woff) = bb(woff) and mask
+	end if
+end SUB
+
+SUB array2str (arr() AS integer, BYVAL o AS integer, s$)
+'String s$ is already filled out with spaces to the requisite size
+'o is the offset in bytes from the start of the buffer
+'the buffer will be packed 2 bytes to an int, for compatibility, even
+'though FB ints are 4 bytes long  ** leave like this? not really wise
+	DIM i AS Integer
+	dim bi as integer
+	dim bp as integer ptr
+	dim toggle as integer
+
+	bp = @arr(0)
+	bi = o \ 2 'offset is in bytes
+	toggle = o mod 2
+
+	for i = 0 to len(s$) - 1
+		if toggle = 0 then
+			s$[i] = bp[bi] and &hff
+			toggle = 1
+		else
+			s$[i] = (bp[bi] and &hff00) shr 8
+			toggle = 0
+			bi = bi + 1
+		end if
+	next
+
+END SUB
+
+FUNCTION isfile (n$) as integer
+    ' I'm assuming we don't count directories as files
+	'return dir$(n$) <> ""
+    return dir$(n$, 255 xor 16) <> ""
+END FUNCTION
+
+FUNCTION isdir (sDir$) as integer
+	isdir = NOT (dir$(sDir$, 16) = "")
+END FUNCTION
+
+
+function matchmask(match as string, mask as string) as integer
+	dim i as integer
+	dim m as integer
+	dim si as integer, sm as integer
+
+	'special cases
+	if mask = "" then
+		matchmask = 1
+		exit function
+	end if
+
+	i = 0
+	m = 0
+	while (i < len(match)) and (m < len(mask)) and (mask[m] <> asc("*"))
+		if (match[i] <> mask[m]) and (mask[m] <> asc("?")) then
+			matchmask = 0
+			exit function
+		end if
+		i = i+1
+		m = m+1
+	wend
+
+	if (m >= len(mask)) and (i < len(match)) then
+		matchmask = 0
+		exit function
+	end if
+
+	while i < len(match)
+		if m >= len(mask) then
+			'run out of mask with string left over, rewind
+			i = si + 1 ' si will always be set by now because of *
+			si = i
+			m = sm
+		else
+			if mask[m] = asc("*") then
+				m = m + 1
+				if m >= len(mask) then
+					'* eats the rest of the string
+					matchmask = 1
+					exit function
+				end if
+				i = i + 1
+				'store the positions in case we need to rewind
+				sm = m
+				si = i
+			else
+				if (mask[m] = match[i]) or (mask[m] = asc("?")) then
+					'ok, next
+					m = m + 1
+					i = i + 1
+				else
+					'mismatch, rewind to last * positions, inc i and try again
+					m = sm
+					i = si + 1
+					si = i
+				end if
+			end if
+		end if
+	wend
+
+  	while (m < len(mask)) and (mask[m] = asc("*"))
+  		m = m + 1
+  	wend
+
+  	if m < len(mask) then
+		matchmask = 0
+	else
+		matchmask = 1
+	end if
+
+end function
+
+SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
+	dim lf as integer
+	dim dat as ubyte
+	dim size as integer
+	dim maxsize as integer
+	dim lname as string
+	dim i as integer
+	dim bufr as ubyte ptr
+	dim nowildcards as integer = 0
+
+	lf = freefile
+	open lump$ for binary access read as #lf
+	if err > 0 then
+		'debug "Could not open file " + lump$
+		exit sub
+	end if
+	maxsize = LOF(lf)
+
+	bufr = allocate(16383)
+	if bufr = null then
+		close #lf
+		exit sub
+	end if
+
+	'should make browsing a bit faster
+	if len(fmask$) > 0 then
+		if instr(fmask$, "*") = 0 and instr(fmask$, "?") = 0 then
+			nowildcards = -1
+		end if
+	end if
+
+	get #lf, , dat	'read first byte
+	while not eof(lf)
+		'get lump name
+		lname = ""
+		i = 0
+		while not eof(lf) and dat <> 0 and i < 64
+			lname = lname + chr$(dat)
+			get #lf, , dat
+			i += 1
+		wend
+		if i > 50 then 'corrupt file, really if i > 12
+			'debug "corrupt lump file: lump name too long"
+			exit while
+		end if
+		'force to lower-case
+		lname = lcase(lname)
+		'debug "lump name " + lname
+
+		if instr(lname, "\") or instr(lname, "/") then
+			'debug "unsafe lump name " + str$(lname)
+			exit while
+		end if
+
+		if not eof(lf) then
+			'get lump size - byte order = 3,4,1,2 I think
+			get #lf, , dat
+			size = (dat shl 16)
+			get #lf, , dat
+			size = size or (dat shl 24)
+			get #lf, , dat
+			size = size or dat
+			get #lf, , dat
+			size = size or (dat shl 8)
+			if size > maxsize then
+				'debug "corrupt lump size" + str$(size) + " exceeds source size" + str$(maxsize)
+				exit while
+			end if
+
+			'debug "lump size " + str$(size)
+
+			'do we want this file?
+			if matchmask(lname, lcase$(fmask$)) then
+				'write yon file
+				dim of as integer
+				dim csize as integer
+				dim osize as integer
+				
+				osize = size
+
+				of = freefile
+				open path$ + lname for binary access write as #of
+				if err > 0 then
+					'debug "Could not open file " + path$ + lname
+					exit while
+				end if
+
+				'copy the data
+				do while size > 0
+					if size > 16383 then
+						csize = 16383
+					else
+						csize = size
+					end if
+					'copy a chunk of file
+					get #lf, , *bufr, csize
+					put #of, , *bufr, csize
+					size -= csize
+					if size > osize then size = 0
+				loop
+
+				close #of
+
+				'early out if we're only looking for one file
+				if nowildcards then exit while
+			else
+				'skip to next name
+				i = seek(lf)
+				i = i + size
+				seek #lf, i
+			end if
+
+			if not eof(lf) then
+				get #lf, , dat
+			end if
+		end if
+	wend
+
+	deallocate bufr
+	close #lf
+
+end SUB
+
+SUB unlump (lump$, ulpath$, buffer() as integer)
+	unlumpfile(lump$, "", ulpath$, buffer())
+end SUB
