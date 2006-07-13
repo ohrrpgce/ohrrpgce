@@ -8,9 +8,6 @@
 
 '$INCLUDE: 'uiconst.bi'
 '$INCLUDE: 'common.bi'
-COMMON SHARED uilook(), vpage, dpage, buffer(), version$, fadestate, master()
-
-
 
 FUNCTION bound (n, lowest, highest)
 bound = n
