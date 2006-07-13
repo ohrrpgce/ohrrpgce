@@ -7,6 +7,8 @@
 '$INCLUDE: 'allmodex.bi'
 
 '$INCLUDE: 'uiconst.bi'
+'$INCLUDE: 'common.bi'
+COMMON SHARED uilook(), vpage, dpage, buffer(), version$, fadestate, master()
 
 
 
@@ -549,4 +551,17 @@ ELSE
  usemenu = 1
 END IF
 
+END FUNCTION
+
+FUNCTION soundfile$ (sfxnum%)
+	DIM as string sfxbase
+	
+	sfxbase = workingdir$ + SLASH + "sfx" + LTRIM$(STR$(sfxnum%))
+	soundfile = ""
+	if isfile(sfxbase + ".wav") then
+		'is there a wave?
+		soundfile = sfxbase + ".wav"
+	else
+		'other formats? not right now
+	end if
 END FUNCTION
