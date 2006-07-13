@@ -27,7 +27,6 @@ DECLARE SUB readattackdata (array%(), index%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE SUB smartarrowmask (inrange%(), pt%, d%, axis%(), tmask%())
-DECLARE SUB debug (s$)
 DECLARE FUNCTION targetmaskcount% (tmask%())
 DECLARE FUNCTION randomally% (who%)
 DECLARE FUNCTION randomfoe% (who%)
@@ -52,21 +51,17 @@ DECLARE SUB loadfoe (i%, formdata%(), es%(), x%(), y%(), p%(), v%(), w%(), h%(),
 DECLARE FUNCTION inflict (w%, t%, stat%(), x%(), y%(), wid%(), hei%(), harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())
 DECLARE FUNCTION battle (form%, fatal%, exstat%())
 DECLARE SUB addhero (who%, slot%, stat%())
-DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
 DECLARE FUNCTION rangel% (n&, r%)
-DECLARE FUNCTION small% (n1%, n2%)
-DECLARE FUNCTION large% (n1%, n2%)
-DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
-DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE SUB delitem (it%, num%)
 DECLARE FUNCTION countitem% (it%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
+'$INCLUDE: 'common.bi' 
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'uiconst.bi'

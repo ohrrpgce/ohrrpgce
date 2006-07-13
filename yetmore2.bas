@@ -5,6 +5,7 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+'basic subs and functions
 DECLARE SUB verquit ()
 DECLARE SUB playtimer ()
 DECLARE SUB quitcleanup ()
@@ -19,7 +20,6 @@ DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, mapwide%, maphigh%, wrap
 DECLARE SUB aheadxy (x%, y%, direction%, distance%)
 DECLARE SUB wrapxy (x%, y%, wide%, high%)
 DECLARE SUB loadSayToBuffer (say%)
-DECLARE SUB safekill (f$)
 DECLARE SUB touchfile (f$)
 DECLARE SUB keyhandleroff ()
 DECLARE FUNCTION partybyrank% (slot%)
@@ -27,9 +27,6 @@ DECLARE FUNCTION herobyrank% (slot%)
 DECLARE FUNCTION rankincaterpillar% (heroid%)
 DECLARE SUB embedtext (text$, limit%)
 DECLARE SUB renamehero (who%)
-DECLARE SUB fadeout (red%, green%, blue%, force%)
-DECLARE SUB fadein (force%)
-'basic subs and functions
 DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%)
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
 DECLARE SUB correctbackdrop ()
@@ -73,10 +70,6 @@ DECLARE FUNCTION findhero% (who%, f%, l%, d%)
 DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE FUNCTION consumeitem% (index%)
 DECLARE FUNCTION istag% (num%, zero%)
-DECLARE FUNCTION bound% (n%, lowest%, highest%)
-DECLARE FUNCTION usemenu% (pt%, top%, first%, last%, size%)
-DECLARE SUB debug (s$)
-DECLARE FUNCTION browse$ (fmask$, needf%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
 DECLARE SUB equip (pt%, stat%())
@@ -93,12 +86,8 @@ DECLARE SUB loadfoe (i%, formdata%(), es%(), x%(), y%(), p%(), v%(), w%(), h%(),
 DECLARE FUNCTION inflict (w%, t%, stat%(), x%(), y%(), w%(), h%(), harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%())
 DECLARE FUNCTION battle (form%, fatal%, exstat%())
 DECLARE SUB addhero (who%, slot%, stat%())
-DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
-DECLARE FUNCTION small% (n1%, n2%)
-DECLARE FUNCTION large% (n1%, n2%)
-DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
@@ -110,11 +99,11 @@ DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB cathero ()
 DECLARE FUNCTION getsongname$ (num%)
-DECLARE SUB getui (f$)
 DECLARE SUB readjoysettings ()
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
+'$INCLUDE: 'common.bi' 
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'

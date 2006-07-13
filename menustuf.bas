@@ -34,9 +34,6 @@ DECLARE SUB delitem (it%, num%)
 DECLARE SUB getmapname (mapname$, m%)
 DECLARE FUNCTION consumeitem% (index%)
 DECLARE SUB evalitemtag ()
-DECLARE FUNCTION bound% (n%, lowest%, highest%)
-DECLARE FUNCTION usemenu% (pt%, top%, first%, last%, size%)
-DECLARE SUB debug (s$)
 DECLARE SUB intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB itstr (i%)
 DECLARE SUB control ()
@@ -55,16 +52,11 @@ DECLARE SUB loadfoe (i%, formdata%(), es%(), x%(), y%(), p%(), v%(), w%(), h%(),
 DECLARE FUNCTION inflict (w%, t%, stat%(), x%(), y%(), w%(), h%(), harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%())
 DECLARE FUNCTION battle (form%, fatal%, exstat%())
 DECLARE SUB addhero (who%, slot%, stat%())
-DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
 DECLARE FUNCTION rangel& (n&, r%)
-DECLARE FUNCTION small% (n1%, n2%)
-DECLARE FUNCTION large% (n1%, n2%)
-DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
-DECLARE SUB fadein (force%)
 DECLARE SUB checkTagCond(t,check,tag,tagand) 'in bmod.bas
 DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB readattackdata (array%(), index%)
@@ -75,6 +67,7 @@ DECLARE SUB flusharray (array%(), size%, value%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
+'$INCLUDE: 'common.bi' 
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'uiconst.bi'

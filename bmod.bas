@@ -10,13 +10,10 @@ DECLARE SUB exitprogram (needfade%)
 DECLARE SUB quitcleanup ()
 DECLARE FUNCTION focuscost% (cost%, focus%)
 DECLARE SUB flusharray (array%(), size%, value%)
-DECLARE SUB fadein (force%)
-DECLARE SUB fadeout (red%, green%, blue%, force%)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
 DECLARE FUNCTION atkallowed% (atkid%, attacker%, spclass%, lmplev%, stat%(), atkbuf%())
 DECLARE SUB herobattlebits (bitbuf%(), who%)
 DECLARE SUB quickinflict (harm%, targ%, hc%(), hx%(), hy%(), x%(), y%(), w%(), h%(), harm$(), stat%())
-DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE SUB advance (who%, atk%(), x%(), y%(), w%(), h%(), t%())
 DECLARE SUB heroanim (who%, atk%(), x%(), y%(), w%(), h%(), t%())
 DECLARE SUB retreat (who%, atk%(), x%(), y%(), w%(), h%(), t%())
@@ -49,7 +46,6 @@ DECLARE FUNCTION countai% (ai%, them%, es%())
 DECLARE FUNCTION enemycount% (v%(), stat%())
 DECLARE SUB writestats (exstat%(), stat%())
 DECLARE SUB playtimer ()
-DECLARE SUB debug (s$)
 DECLARE SUB control ()
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
@@ -65,12 +61,8 @@ DECLARE SUB loadfoe (i%, formdata%(), es%(), x%(), y%(), p%(), v%(), w%(), h%(),
 DECLARE FUNCTION inflict (w%, t%, stat%(), x%(), y%(), w%(), h%(), harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())
 DECLARE FUNCTION battle (form%, fatal%, exstat%())
 DECLARE SUB addhero (who%, slot%, stat%())
-DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
-DECLARE FUNCTION small% (n1%, n2%)
-DECLARE FUNCTION large% (n1%, n2%)
-DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checkNoRunBit (stat%(), ebits%(), v%())
@@ -83,6 +75,7 @@ DECLARE SUB delitem (it%, num%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
+'$INCLUDE: 'common.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'uiconst.bi'

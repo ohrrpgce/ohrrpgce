@@ -44,15 +44,11 @@ DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE SUB herotags (a%())
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
-DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE FUNCTION onoroff$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
-DECLARE SUB debug (s$)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
-DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
@@ -61,15 +57,13 @@ DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
-DECLARE FUNCTION small% (n1%, n2%)
-DECLARE FUNCTION large% (n1%, n2%)
-DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION isStringField(mnu%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
+'$INCLUDE: 'common.bi' 
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'

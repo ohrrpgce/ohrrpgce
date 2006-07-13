@@ -3,15 +3,15 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
+'$DYNAMIC
+DEFINT A-Z
+'basic subs and functions
 DECLARE FUNCTION rangel% (n&, r%)
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE SUB innRestore (stat%())
 DECLARE SUB renamehero (who%)
 DECLARE SUB strgrabber (s$, maxl%)
-DECLARE SUB fadein (force%)
-DECLARE SUB fadeout (red%, green%, blue%, force%)
-DECLARE SUB safekill (f$)
 DECLARE SUB loadtemppage (page%)
 DECLARE SUB savetemppage (page%)
 DECLARE SUB calibrate ()
@@ -19,9 +19,6 @@ DECLARE FUNCTION settingstring% (searchee$, setting$, result$)
 DECLARE SUB writejoysettings ()
 DECLARE SUB writescriptvar (id%, newval%)
 DECLARE FUNCTION readscriptvar% (id%)
-'$DYNAMIC
-DEFINT A-Z
-'basic subs and functions
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
@@ -49,10 +46,6 @@ DECLARE FUNCTION findhero% (who%, f%, l%, d%)
 DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE FUNCTION consumeitem% (index%)
 DECLARE FUNCTION istag% (num%, zero%)
-DECLARE FUNCTION bound% (n%, lowest%, highest%)
-DECLARE FUNCTION usemenu% (pt%, top%, first%, last%, size%)
-DECLARE SUB debug (s$)
-DECLARE FUNCTION browse$ (fmask$, needf%, bpage%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE SUB control ()
 DECLARE FUNCTION picksave% (load%)
@@ -70,29 +63,16 @@ DECLARE SUB loadfoe (i%, formdata%(), es%(), x%(), y%(), p%(), v%(), w%(), h%(),
 DECLARE FUNCTION inflict (w%, t%, stat%(), x%(), y%(), w%(), h%(), harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%())
 DECLARE FUNCTION battle (form%, fatal%, exstat%())
 DECLARE SUB addhero (who%, slot%, stat%())
-DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
-DECLARE FUNCTION small% (n1%, n2%)
-DECLARE FUNCTION large% (n1%, n2%)
-DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE FUNCTION exptolevel& (level%)
 
-'--CD playing (not compiled in yet)
-'DECLARE FUNCTION drivelist (l())
-'DECLARE FUNCTION getupc (BYVAL dnum, upc$)
-'DECLARE FUNCTION audioinfo (BYVAL dnum, track&())
-'DECLARE SUB playaudio (BYVAL dnum, BYVAL ad&, BYVAL ln&)
-'DECLARE SUB stopcd (BYVAL dnum)
-'DECLARE FUNCTION playinfo (BYVAL dnum, cd())
-'DECLARE FUNCTION getCDvol ()
-'DECLARE SUB setcdvol (BYVAL v)
-
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
+'$INCLUDE: 'common.bi' 
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
@@ -390,13 +370,6 @@ FOR i = 0 TO 1
  END IF
 NEXT i
 
-END SUB
-
-SUB debug (s$)
-fh = FREEFILE
-OPEN "g_debug.txt" FOR APPEND AS #fh
-PRINT #fh, s$
-CLOSE #fh
 END SUB
 
 SUB delitem (it, num)

@@ -12,7 +12,6 @@ DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
-DECLARE SUB safekill (f$)
 DECLARE SUB touchfile (f$)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION readitemname$ (index%)
@@ -32,18 +31,13 @@ DECLARE SUB exportnames (gamedir$)
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE FUNCTION needaddset (pt%, check%, what$)
-DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
-DECLARE FUNCTION bound% (n%, lowest%, highest%)
 DECLARE FUNCTION onoroff$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
-DECLARE SUB debug (s$)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
-DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
@@ -53,9 +47,6 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
-DECLARE FUNCTION small% (n1%, n2%)
-DECLARE FUNCTION large% (n1%, n2%)
-DECLARE FUNCTION loopvar% (var%, min%, max%, inc%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE SUB smnemonic (tagname$, index%)
@@ -67,6 +58,7 @@ DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
+'$INCLUDE: 'common.bi' 
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'
@@ -171,13 +163,6 @@ DO
 LOOP
 '---TERMINATE---
 
-END SUB
-
-SUB debug (s$)
-ff = freefile
-OPEN "c_debug.txt" FOR APPEND AS #ff
-PRINT #ff, s$
-CLOSE #ff
 END SUB
 
 SUB drawmini (high, wide, cursor(), page, tastuf())

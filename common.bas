@@ -562,3 +562,16 @@ FUNCTION soundfile$ (sfxnum%)
 		'other formats? not right now
 	end if
 END FUNCTION
+
+SUB debug (s$)
+ DIM filename$
+ #IFDEF IS_GAME
+   filename$ = "g_debug.txt"
+ #ELSE
+   filename$ = "c_debug.txt"
+ #ENDIF
+ fh = FREEFILE
+ OPEN filename$ FOR APPEND AS #fh
+ PRINT #fh, s$
+ CLOSE #fh
+END SUB
