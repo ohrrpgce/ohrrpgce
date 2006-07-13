@@ -593,10 +593,12 @@ SUB initgame
 a$ = ""
 i = 0
 IF usepreunlump = 0 THEN
-DO UNTIL LEFT$(a$, 1) = SLASH
- i = i + 1
- a$ = RIGHT$(sourcerpg$, i)
-LOOP
+IF INSTR(a$, SLASH) > 0 THEN
+ DO UNTIL LEFT$(a$, 1) = SLASH
+  i = i + 1
+  a$ = RIGHT$(sourcerpg$, i)
+ LOOP
+END IF
 a$ = LEFT$(a$, LEN(a$) - 4)
 game$ = workingdir$ + a$
 END IF
