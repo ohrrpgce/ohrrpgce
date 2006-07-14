@@ -306,22 +306,3 @@ Sub WriteShort(fh as integer,p as long, v as integer)
 	END IF
 END SUB
 
-FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
-	DIM f$
-	f$ = workingdir$ + SLASH + "fixbits.bin"
-	IF NOT isfile(f$) THEN RETURN 0
-	DIM bits(1) as INTEGER
-	setpicstuf bits(), 2, -1
-	loadset f$, 0, 0
-	RETURN readbit(bits(), 0, bitnum)
-END FUNCTION
-
-SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
-	DIM f$
-	f$ = workingdir$ + SLASH + "fixbits.bin"
-	DIM bits(1) as INTEGER
-	setpicstuf bits(), 2, -1
-	loadset f$, 0, 0
-	setbit bits(), 0, bitnum, bitval
-	storeset f$, 0, 0
-END SUB

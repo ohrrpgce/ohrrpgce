@@ -14,6 +14,9 @@ DECLARE SUB debug (s$)
 DECLARE FUNCTION soundfile$ (sfxnum%)
 DECLARE SUB getui(f$)
 DECLARE SUB safekill (f$)
-
+DECLARE FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
+DECLARE SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
+ 
 COMMON SHARED uilook(), vpage, dpage, buffer(), version$, fadestate, master()
+
 

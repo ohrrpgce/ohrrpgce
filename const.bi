@@ -62,3 +62,6 @@ CONST genStartMap = 104         'starting Map
 CONST genOneTimeNPC = 105       'one-time-NPC indexer
 CONST genMaxMenu = 171          'max menus in menus.dat
 CONST genMaxSong = 172          'last song number
+
+'---Format fix bits
+CONST fixAttackitems = 0        'zero out attack data for item cost (ammunition)

@@ -80,6 +80,9 @@ DECLARE SUB updaterecordlength (lumpf$, bindex%)
 DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
 DECLARE FUNCTION inputfilename$ (query$, ext$)
 DECLARE SUB writebinstring (savestr$, array%(), offset%, maxlen%)
+DECLARE FUNCTION newRPGfile (template$, newrpg$)
+DECLARE SUB dolumpfiles (filetolump$)
+DECLARE FUNCTION readarchinym$ ()
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -129,7 +132,7 @@ GOSUB readstuff
 
 dpage = 1: vpage = 0: Rate = 160: game$ = ""
 GOSUB chooserpg
-gamefile$ = game$
+gamefile$ = game$ + ".rpg"
 setwindowtitle "OHRRPGCE - " + gamefile$
 
 GOSUB checkpass
@@ -143,7 +146,7 @@ touchfile workingdir$ + SLASH + "__danger.tmp"
 
 ERASE scroll, pass, emap
 DIM lumpbuf(16383)
-unlump gamefile$ + ".rpg" + CHR$(0), workingdir$ + SLASH, lumpbuf()
+unlump gamefile$, workingdir$ + SLASH, lumpbuf()
 ERASE lumpbuf
 DIM scroll(16002), pass(16002), emap(16002)
 
@@ -323,62 +326,13 @@ DO
  dummy = usemenu(csr, top, 0, L, 20)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF csr = 0 THEN
-   'IF game$ = "" THEN GOTO finis
    game$ = inputfilename$("Filename of New Game?", ".rpg")
-   IF game$ = "" GOTO nomakegame
-   textcolor 6, 0
-   printstr "Please Wait...", 0, 40, vpage
-   printstr "Creating RPG File", 0, 50, vpage
-   IF NOT isfile("ohrrpgce.new" + CHR$(0)) THEN
-    'er...
-    printstr "Error: ohrrpgce.new not found", 0, 60, vpage
-    printstr "Press Enter to quit", 0, 70, vpage
-    w = getkey
-    GOTO finis
-   END IF
-   copyfile "ohrrpgce.new" + CHR$(0), game$ + ".rpg" + CHR$(0), buffer()
-   printstr "Unlumping", 0, 60, vpage
-   setvispage vpage 'refresh
-   ERASE scroll, pass, emap
-   DIM lumpbuf(16383)
-   unlump game$ + ".rpg" + CHR$(0), workingdir$ + SLASH, lumpbuf()
-   ERASE lumpbuf
-   DIM scroll(16002), pass(16002), emap(16002)
-   findfiles workingdir$ + SLASH + "ohrrpgce.*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
-   printstr "Translumping", 0, 70, vpage
-   setvispage vpage 'refresh
-   fh = FREEFILE
-   OPEN "temp.lst" FOR INPUT AS #fh
-   DO WHILE NOT EOF(fh)
-    a$ = ""
-    LINE INPUT #fh, a$
-    IF LEFT$(LCASE$(a$), 8) = "ohrrpgce" THEN
-     a$ = RIGHT$(a$, LEN(a$) - 8)
-     b$ = game$
-    ELSE
-     b$ = ""
-    END IF
-    copyfile workingdir$ + SLASH + "ohrrpgce" + a$ + CHR$(0), workingdir$ + SLASH + b$ + a$ + CHR$(0), buffer()
-    KILL workingdir$ + SLASH + "ohrrpgce" + a$
-   LOOP
-   CLOSE #fh
-   safekill "temp.lst"
-   '--create archinym information lump
-   fh = FREEFILE
-   OPEN workingdir$ + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
-   PRINT #fh, game$
-   PRINT #fh, version$
-   CLOSE #fh
-   printstr "Finalumping", 0, 80, vpage
-   setvispage vpage 'refresh
-   '--re-lump files as NEW rpg file
-   filetolump$ = game$ + ".rpg"
-   GOSUB dolumpfiles
+   IF NOT newRPGfile("ohrrpgce.new", game$ + ".rpg") THEN GOTO finis
    RETURN
   END IF
   IF csr = 1 THEN GOTO finis
-  game$ = rpg$(csr): RETURN
-nomakegame:
+  game$ = rpg$(csr)
+  RETURN
  END IF
 
  standardmenu rpg$(), L, 22, csr, top, 0, 0, dpage, 0
@@ -409,8 +363,7 @@ DO
     printstr "LUMPING DATA: please wait...", 0, 190, vpage
     setvispage vpage 'refresh
     '--re-lump recovered files as BAK file
-    filetolump$ = a$ + ".bak"
-    GOSUB dolumpfiles
+    dolumpfiles a$ + ".bak"
     clearpage vpage
     printstr "the recovered data has been saved.", 0, 0, vpage
     printstr "if " + CUSTOMEXE + " crashed last time you", 0, 8, vpage
@@ -492,22 +445,15 @@ setvispage 0 'refresh
 '--verify that maps are not corrupt--
 verifyrpg
 '--lump data to SAVE rpg file
-filetolump$ = RIGHT$(game$, LEN(game$) - 12) + ".rpg"
-GOSUB dolumpfiles
+debug game$
+dolumpfiles gamefile$
 RETURN
 
 checkpass:
-unlumpfile gamefile$ + ".rpg" + CHR$(0), "archinym.lmp", workingdir$ + SLASH, buffer()
+unlumpfile gamefile$, "archinym.lmp", workingdir$ + SLASH, buffer()
 '--set game$ according to the archinym
-IF isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
- fh = FREEFILE
- OPEN workingdir$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
- LINE INPUT #fh, a$
- CLOSE #fh
- a$ = LCASE$(a$)
- IF LEN(a$) <= 8 THEN game$ = a$
-END IF
-unlumpfile gamefile$ + ".rpg" + CHR$(0), game$ + ".gen", workingdir$ + SLASH, buffer()
+game$ = readarchinym()
+unlumpfile gamefile$, game$ + ".gen", workingdir$ + SLASH, buffer()
 xbload workingdir$ + SLASH + game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
 '----load password-----
 IF general(5) >= 256 THEN
@@ -550,21 +496,6 @@ DO
  dowait
 LOOP
 
-dolumpfiles:
-'--build the list of files to lump
-findfiles workingdir$ + SLASH + ALLFILES + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
-fixorder "temp.lst"
-'---KILL BUFFERS, LUMP, REDEFINE BUFFERS---
-ERASE scroll, pass, emap
-DIM lumpbuf(16383)
-unsafefile$ = "RPG lumping failed!"
-lumpfiles "temp.lst" + CHR$(0), filetolump$ + CHR$(0), workingdir$ + SLASH, lumpbuf()
-safekill "temp.lst"
-unsafefile$ = ""
-ERASE lumpbuf
-DIM scroll(16002), pass(16002), emap(16002)
-RETURN
-
 tempDirErr:
 PRINT "Either " + CUSTOMEXE + " is already running in the background, or it"
 PRINT "terminated incorrectly last time it was run, and was unable to clean up"
@@ -583,7 +514,7 @@ IF LEN(unsafefile$) THEN
  GOSUB cleanupfiles
 END IF
 crashexplain
-PRINT "Game:"; gamedir$ + SLASH + gamefile$ + ".rpg"
+PRINT "Game:"; gamedir$ + SLASH + gamefile$
 '--crash and print the error
 ON ERROR GOTO 0
 
@@ -1691,8 +1622,8 @@ updaterecordlength workingdir$ + SLASH + "attack.bin", 0
 updaterecordlength game$ + ".stf", 1
 updaterecordlength workingdir$ + SLASH + "songdata.bin", 2
 
-IF general(genVersion) = 6 AND general(genVersionRevision) <= 1 THEN
-  general(genVersionRevision) = 2
+IF general(genVersion) = 6 AND NOT getfixbit(fixAttackitems) THEN
+  setfixbit(fixAttackitems, 1)
   fh = freefile
   OPEN workingdir$ + SLASH + "attack.bin" FOR BINARY AS #FH
   REDIM dat(curbinsize(0)/2 - 1) AS SHORT
@@ -1750,3 +1681,60 @@ str2array p$, general(), 14
 
 END SUB
 
+FUNCTION newRPGfile (template$, newrpg$)
+ newRPGfile = 0 ' default return value 0 means failure
+ IF newrpg$ = "" THEN EXIT FUNCTION
+ textcolor 6, 0
+ printstr "Please Wait...", 0, 40, vpage
+ printstr "Creating RPG File", 0, 50, vpage
+ IF NOT isfile(template$) THEN
+  printstr "Error: " + template$ + " not found", 0, 60, vpage
+  printstr "Press Enter to quit", 0, 70, vpage
+  w = getkey
+  EXIT FUNCTION
+ END IF
+ copyfile template$, newrpg$, buffer()
+ printstr "Unlumping", 0, 60, vpage
+ setvispage vpage 'refresh
+ DIM lumpbuf(16383)
+ unlump newrpg$, workingdir$ + SLASH, lumpbuf()
+ ERASE lumpbuf
+ '--create archinym information lump
+ fh = FREEFILE
+ OPEN workingdir$ + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
+ PRINT #fh, "ohrrpgce"
+ PRINT #fh, version$
+ CLOSE #fh
+ printstr "Finalumping", 0, 80, vpage
+ setvispage vpage 'refresh
+ '--re-lump files as NEW rpg file
+ dolumpfiles newrpg$
+ newRPGfile = -1 'return true for success
+END FUNCTION
+
+SUB dolumpfiles (filetolump$)
+'--build the list of files to lump
+findfiles workingdir$ + SLASH + ALLFILES, 0, "temp.lst", buffer()
+fixorder "temp.lst"
+'---KILL BUFFERS, LUMP, REDEFINE BUFFERS---
+DIM lumpbuf(16383)
+unsafefile$ = "RPG lumping failed!"
+lumpfiles "temp.lst", filetolump$, workingdir$ + SLASH, lumpbuf()
+safekill "temp.lst"
+unsafefile$ = ""
+ERASE lumpbuf
+END SUB
+
+FUNCTION readarchinym$ ()
+ IF isfile(workingdir$ + SLASH + "archinym.lmp") THEN
+  fh = FREEFILE
+  OPEN workingdir$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
+  LINE INPUT #fh, a$
+  CLOSE #fh
+  a$ = LCASE$(a$)
+  readarchinym$ = a$
+ ELSE
+  ' for backwards compatability with ancient games that lack archinym.lmp
+  readarchinym$ = game$
+ END IF 
+END FUNCTION

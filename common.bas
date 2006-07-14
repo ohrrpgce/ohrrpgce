@@ -500,16 +500,16 @@ END IF
 END FUNCTION
 
 FUNCTION soundfile$ (sfxnum%)
-	DIM as string sfxbase
-	
-	sfxbase = workingdir$ + SLASH + "sfx" + LTRIM$(STR$(sfxnum%))
-	soundfile = ""
-	if isfile(sfxbase + ".wav") then
-		'is there a wave?
-		soundfile = sfxbase + ".wav"
-	else
-		'other formats? not right now
-	end if
+ DIM as string sfxbase
+
+ sfxbase = workingdir$ + SLASH + "sfx" + LTRIM$(STR$(sfxnum%))
+ soundfile = ""
+ if isfile(sfxbase + ".wav") then
+  'is there a wave?
+  soundfile = sfxbase + ".wav"
+ else
+  'other formats? not right now
+ end if
 END FUNCTION
 
 SUB debug (s$)
@@ -523,4 +523,26 @@ SUB debug (s$)
  OPEN filename$ FOR APPEND AS #fh
  PRINT #fh, s$
  CLOSE #fh
+END SUB
+
+FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
+ DIM f$
+ f$ = workingdir$ + SLASH + "fixbits.bin"
+ IF NOT isfile(f$) THEN RETURN 0
+ DIM bits(1) as INTEGER
+ setpicstuf bits(), 2, -1
+ loadset f$, 0, 0
+ RETURN readbit(bits(), 0, bitnum)
+END FUNCTION
+
+SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
+ DIM f$
+ f$ = workingdir$ + SLASH + "fixbits.bin"
+ DIM bits(1) as INTEGER
+ setpicstuf bits(), 2, -1
+ IF isfile(f$) THEN
+  loadset f$, 0, 0
+ END IF 
+ setbit bits(), 0, bitnum, bitval
+ storeset f$, 0, 0
 END SUB
