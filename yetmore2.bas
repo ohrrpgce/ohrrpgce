@@ -196,7 +196,7 @@ SUB drawnpcs
     END IF
     loadsprite buffer(), 0, (400 * npc(i).dir) + (200 * INT(npc(i).frame / 2)), 20 + (5 * o), 20, 20, 2
     drawsprite buffer(), 0, pal16(), (4 + o) * 16, drawnpcX, drawnpcY - z, dpage
-    'edgeprint LTRIM$(STR$(i)), drawnpcX, drawnpcY + gmap(11) - z, 15, dpage
+    'edgeprint STR$(i), drawnpcX, drawnpcY + gmap(11) - z, 15, dpage
    END IF
   END IF
  NEXT i
@@ -393,9 +393,9 @@ END FUNCTION
 
 FUNCTION maplumpname$ (map, oldext$)
  IF map < 100 THEN
-  maplumpname$ = game$ + "." + oldext$ + RIGHT$("0" + LTRIM$(STR$(map)), 2)
+  maplumpname$ = game$ + "." + oldext$ + RIGHT$("0" + STR$(map), 2)
  ELSE
-  maplumpname$ = workingdir$ + SLASH + LTRIM$(STR$(map)) + "." + oldext$
+  maplumpname$ = workingdir$ + SLASH + STR$(map) + "." + oldext$
  END IF
 END FUNCTION
 
@@ -637,7 +637,7 @@ SUB cleanuptemp
   OPEN tmpdir$ + "filelist.tmp" FOR OUTPUT as #fh
   fh2 = FREEFILE
   FOR i = 1 to 3
-   OPEN tmpdir$ + "filelis" + str$(i) + ".tmp" FOR INPUT AS #FH
+   OPEN tmpdir$ + "filelis" + XSTR$(i) + ".tmp" FOR INPUT AS #FH
    DO UNTIL EOF(fh2)
    	LINE INPUT #fh2,tmp$
    	PRINT #fh, tmp$

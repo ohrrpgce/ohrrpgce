@@ -155,10 +155,10 @@ EXIT SUB
 
 menu:
 menu$(0) = "Previous Menu"
-menu$(1) = "Menu" + STR$(pt)
+menu$(1) = "Menu" + XSTR$(pt)
 menu$(2) = "Name: " + vehname$
 
-' IF veh(offset(3)) = 3 THEN tmp$ = " 10" ELSE tmp$ = STR$(veh(8))
+' IF veh(offset(3)) = 3 THEN tmp$ = " 10" ELSE tmp$ = XSTR$(veh(8))
 ' menu$(3) = "Speed:" + tmp$
 
 ' menu$(4) = "Vehicle Bitsets..." '9,10
@@ -177,7 +177,7 @@ menu$(2) = "Name: " + vehname$
 '  CASE 0
 '   tmp$ = "enabled"
 '  CASE ELSE
-'   tmp$ = "formation set" + STR$(veh(offset(9)))
+'   tmp$ = "formation set" + XSTR$(veh(offset(9)))
 ' END SELECT
 ' menu$(9) = "Random Battles: " + tmp$ '11
 
@@ -204,7 +204,7 @@ menu$(2) = "Name: " + vehname$
 '  CASE ELSE
 '   tmp$ = " (" + lmnemonic$(ABS(veh(offset(12)))) + ")"  '14
 ' END SELECT
-' menu$(12) = "If riding Tag" + STR$(ABS(veh(offset(12)))) + "=" + onoroff$(veh(offset(12))) + tmp$
+' menu$(12) = "If riding Tag" + XSTR$(ABS(veh(offset(12)))) + "=" + onoroff$(veh(offset(12))) + tmp$
 
 ' SELECT CASE veh(offset(13))
 '  CASE 0
@@ -212,7 +212,7 @@ menu$(2) = "Name: " + vehname$
 '  CASE IS < 0
 '   tmp$ = "run script " + scriptname$(ABS(veh(offset(13))), "plotscr.lst")
 '  CASE IS > 0
-'   tmp$ = "text box" + STR$(veh(offset(13)))
+'   tmp$ = "text box" + XSTR$(veh(offset(13)))
 ' END SELECT
 ' menu$(13) = "On Mount: " + tmp$
 
@@ -222,11 +222,11 @@ menu$(2) = "Name: " + vehname$
 '  CASE IS < 0
 '   tmp$ = "run script " + scriptname$(ABS(veh(offset(14))), "plotscr.lst")
 '  CASE IS > 0
-'   tmp$ = "text box" + STR$(veh(offset(14)))
+'   tmp$ = "text box" + XSTR$(veh(offset(14)))
 ' END SELECT
 ' menu$(14) = "On Dismount: " + tmp$
 
-' menu$(15) = "Elevation:" + STR$(veh(offset(15))) + " pixels"
+' menu$(15) = "Elevation:" + XSTR$(veh(offset(15))) + " pixels"
 RETURN
 
 loaddat:
@@ -341,10 +341,10 @@ EXIT SUB
 
 vehmenu:
 menu$(0) = "Previous Menu"
-menu$(1) = "Vehicle" + STR$(pt)
+menu$(1) = "Vehicle" + XSTR$(pt)
 menu$(2) = "Name: " + vehname$
 
-IF veh(offset(3)) = 3 THEN tmp$ = " 10" ELSE tmp$ = STR$(veh(8))
+IF veh(offset(3)) = 3 THEN tmp$ = " 10" ELSE tmp$ = XSTR$(veh(8))
 menu$(3) = "Speed:" + tmp$
 
 menu$(4) = "Vehicle Bitsets..." '9,10
@@ -363,7 +363,7 @@ SELECT CASE veh(offset(9))
  CASE 0
   tmp$ = "enabled"
  CASE ELSE
-  tmp$ = "formation set" + STR$(veh(offset(9)))
+  tmp$ = "formation set" + XSTR$(veh(offset(9)))
 END SELECT
 menu$(9) = "Random Battles: " + tmp$ '11
 
@@ -390,7 +390,7 @@ SELECT CASE ABS(veh(offset(12)))
  CASE ELSE
   tmp$ = " (" + lmnemonic$(ABS(veh(offset(12)))) + ")"  '14
 END SELECT
-menu$(12) = "If riding Tag" + STR$(ABS(veh(offset(12)))) + "=" + onoroff$(veh(offset(12))) + tmp$
+menu$(12) = "If riding Tag" + XSTR$(ABS(veh(offset(12)))) + "=" + onoroff$(veh(offset(12))) + tmp$
 
 SELECT CASE veh(offset(13))
  CASE 0
@@ -398,7 +398,7 @@ SELECT CASE veh(offset(13))
  CASE IS < 0
   tmp$ = "run script " + scriptname$(ABS(veh(offset(13))), "plotscr.lst")
  CASE IS > 0
-  tmp$ = "text box" + STR$(veh(offset(13)))
+  tmp$ = "text box" + XSTR$(veh(offset(13)))
 END SELECT
 menu$(13) = "On Mount: " + tmp$
 
@@ -408,11 +408,11 @@ SELECT CASE veh(offset(14))
  CASE IS < 0
   tmp$ = "run script " + scriptname$(ABS(veh(offset(14))), "plotscr.lst")
  CASE IS > 0
-  tmp$ = "text box" + STR$(veh(offset(14)))
+  tmp$ = "text box" + XSTR$(veh(offset(14)))
 END SELECT
 menu$(14) = "On Dismount: " + tmp$
 
-menu$(15) = "Elevation:" + STR$(veh(offset(15))) + " pixels"
+menu$(15) = "Elevation:" + XSTR$(veh(offset(15))) + " pixels"
 RETURN
 
 loadveh:
@@ -589,26 +589,26 @@ EXIT SUB
 
 genstr:
 'IF general(101) = 0 THEN m$(1) = "Active Menu Mode" ELSE m$(1) = "Wait Menu Mode"
-m$(2) = "Starting X" + STR$(general(102))
-m$(3) = "Starting Y" + STR$(general(103))
-m$(4) = "Starting Map" + STR$(general(104))
+m$(2) = "Starting X" + XSTR$(general(102))
+m$(3) = "Starting Y" + XSTR$(general(103))
+m$(4) = "Starting Map" + XSTR$(general(104))
 m$(5) = "Title Music:"
-IF general(2) = 0 THEN m$(5) = m$(5) + " -none-" ELSE m$(5) = m$(5) + STR$(general(2) - 1) + " " + getsongname$(general(2) - 1)
+IF general(2) = 0 THEN m$(5) = m$(5) + " -none-" ELSE m$(5) = m$(5) + XSTR$(general(2) - 1) + " " + getsongname$(general(2) - 1)
 m$(6) = "Battle Victory Music:"
-IF general(3) = 0 THEN m$(6) = m$(6) + " -none-" ELSE m$(6) = m$(6) + STR$(general(3) - 1) + " " + getsongname$(general(3) - 1)
+IF general(3) = 0 THEN m$(6) = m$(6) + " -none-" ELSE m$(6) = m$(6) + XSTR$(general(3) - 1) + " " + getsongname$(general(3) - 1)
 m$(7) = "Default Battle Music:"
-IF general(4) = 0 THEN m$(7) = m$(7) + " -none-" ELSE m$(7) = m$(7) + STR$(general(4) - 1) + " " + getsongname$(general(4) - 1)
-m$(11) = "Starting Money:" + STR$(general(96))
+IF general(4) = 0 THEN m$(7) = m$(7) + " -none-" ELSE m$(7) = m$(7) + XSTR$(general(4) - 1) + " " + getsongname$(general(4) - 1)
+m$(11) = "Starting Money:" + XSTR$(general(96))
 m$(13) = "Long Name:" + longname$
 m$(14) = "About Line:" + aboutline$
-m$(16) = "Poison Indicator " + STR$(general(61)) + " " + CHR$(general(61))
-m$(17) = "Stun Indicator " + STR$(general(62)) + " " + CHR$(general(62))
-m$(18) = "Mute Indicator " + STR$(general(genMute)) + " " + CHR$(general(genMute))
+m$(16) = "Poison Indicator " + XSTR$(general(61)) + " " + CHR$(general(61))
+m$(17) = "Stun Indicator " + XSTR$(general(62)) + " " + CHR$(general(62))
+m$(18) = "Mute Indicator " + XSTR$(general(genMute)) + " " + CHR$(general(genMute))
 m$(19) = "Damage Cap:"
-if general(genDamageCap) = 0 THEN m$(19) = m$(19) + " None" ELSE m$(19) = m$(19) + STR$(general(genDamageCap))
+if general(genDamageCap) = 0 THEN m$(19) = m$(19) + " None" ELSE m$(19) = m$(19) + XSTR$(general(genDamageCap))
 FOR i = 0 to 11
  m$(20 + i) = stat$(i) + " Cap:"
- if general(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + " None" ELSE m$(20 + i) = m$(20 + i) + STR$(general(genStatCap + i))
+ if general(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + " None" ELSE m$(20 + i) = m$(20 + i) + XSTR$(general(genStatCap + i))
 NEXT
 RETURN
 
@@ -933,14 +933,14 @@ getinfo:
 stopsong
 
 '-- first job: find the song's name
-temp$ = workingdir$ + SLASH + "song" + intstr$(snum)
+temp$ = workingdir$ + SLASH + "song" + STR$(snum)
 songfile$ = ""
 songtype$ = "NO FILE"
 '-- BAM special case and least desirable, so check first and override
 IF snum > 99 THEN
  IF isfile(temp$ + ".bam" + CHR$(0)) THEN ext$ = ".bam" : songfile$ = temp$ + ext$ : songtype$ = "Bob's Adlib Music (BAM)"
 ELSE
- IF isfile(game$ + "." + intstr$(snum) + CHR$(0)) THEN ext$ = ".bam" : songfile$ = game$ + "." + intstr$(snum) : songtype$ = "Bob's Adlib Music (BAM)"
+ IF isfile(game$ + "." + STR$(snum) + CHR$(0)) THEN ext$ = ".bam" : songfile$ = game$ + "." + STR$(snum) : songtype$ = "Bob's Adlib Music (BAM)"
 END IF
 bamfile$ = songfile$
 IF isfile(temp$ + ".mid" + CHR$(0)) THEN ext$ = ".mid" : songfile$ = temp$ + ext$ : songtype$ = "MIDI Music (MID)"
@@ -954,7 +954,7 @@ ELSE
  sname$ = ""
 END IF
 
-menu$(1) = "<- Song " + intstr$(snum) + " of " + intstr$(general(genMaxSong)) + " ->"
+menu$(1) = "<- Song " + STR$(snum) + " of " + STR$(general(genMaxSong)) + " ->"
 IF songfile$ <> "" THEN menu$(2) = "Name: " + sname$ ELSE menu$(2) = "-Unused-"
 menu$(7) = ""
 menu$(8) = "Type: " + songtype$
@@ -984,9 +984,9 @@ IF songfile$ <> bamfile$ THEN safekill songfile$
 
 IF sourcesong$ <> "" THEN
  IF LCASE$(RIGHT$(sourcesong$, 4)) = ".bam" AND snum <= 99 THEN
-  songfile$ = game$ + "." + intstr$(snum)
+  songfile$ = game$ + "." + STR$(snum)
  ELSE
-  songfile$ = workingdir$ + SLASH + "song" + intstr$(snum) + MID$(sourcesong$, INSTR(sourcesong$, "."))
+  songfile$ = workingdir$ + SLASH + "song" + STR$(snum) + MID$(sourcesong$, INSTR(sourcesong$, "."))
  END IF
  copyfile sourcesong$ + CHR$(0), songfile$ + CHR$(0), buffer()
  a$ = trimpath$(sourcesong$)
@@ -1115,7 +1115,7 @@ EXIT SUB
 getinfo:
 stopsfx 0
 '-- first job: find the sfx's name
-temp$ = workingdir$ + SLASH + "sfx" + intstr$(snum)
+temp$ = workingdir$ + SLASH + "sfx" + STR$(snum)
 sfxfile$ = ""
 sfxtype$ = "NO FILE"
 
@@ -1129,7 +1129,7 @@ ELSE '--sfx doesn't exist
  sname$ = ""
 END IF
 
-menu$(1) = "<- SFX " + intstr$(snum) + " of " + intstr$(general(genMaxSFX)) + " ->"
+menu$(1) = "<- SFX " + STR$(snum) + " of " + STR$(general(genMaxSFX)) + " ->"
 IF sfxfile$ <> "" THEN menu$(2) = "Name: " + sname$ ELSE menu$(2) = "-Unused-"
 menu$(7) = ""
 menu$(8) = "Type: " + sfxtype$
@@ -1148,7 +1148,7 @@ END IF
 safekill sfxfile$
 
 IF sourcesfx$ <> "" THEN
- sfxfile$ = workingdir$ + SLASH + "sfx" + intstr$(snum) + MID$(sourcesfx$, INSTR(sourcesfx$, "."))
+ sfxfile$ = workingdir$ + SLASH + "sfx" + STR$(snum) + MID$(sourcesfx$, INSTR(sourcesfx$, "."))
  copyfile sourcesfx$ + CHR$(0), sfxfile$ + CHR$(0), buffer()
  a$ = trimpath$(sourcesfx$)
  a$ = MID$(a$, 1, INSTR(a$, ".") - 1)

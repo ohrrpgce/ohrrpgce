@@ -247,7 +247,7 @@ DO WHILE start < LEN(text$)
      '--defaults blank if out-of-range
      insert$ = ""
      IF arg >= 0 AND arg <= 1024 THEN
-      insert$ = LTRIM$(STR$(global(arg)))
+      insert$ = STR$(global(arg))
      END IF
     CASE "S": '--string variable by ID
      insert$ = ""
@@ -479,7 +479,7 @@ SELECT CASE scrat(nowscript, curkind)
  CASE tymath, tyfunct, tyscript, tyflow
   scrat(nowscript, scrstate) = stnext '---function
  CASE ELSE
-  scripterr "Illegal statement type" + STR$(scrat(nowscript, curkind))
+  scripterr "Illegal statement type" + XSTR$(scrat(nowscript, curkind))
 END SELECT
 END FUNCTION
 
@@ -799,23 +799,23 @@ s$ = ""
 
 SELECT CASE d
  CASE 1
-  s$ = s$ + LTRIM$(STR$(d)) + " " + readglobalstring$(154, "day", 10) + " "
+  s$ = s$ + STR$(d) + " " + readglobalstring$(154, "day", 10) + " "
  CASE IS > 1
-  s$ = s$ + LTRIM$(STR$(d)) + " " + readglobalstring$(155, "days", 10) + " "
+  s$ = s$ + STR$(d) + " " + readglobalstring$(155, "days", 10) + " "
 END SELECT
 
 SELECT CASE h
  CASE 1
-  s$ = s$ + LTRIM$(STR$(h)) + " " + readglobalstring$(156, "hour", 10) + " "
+  s$ = s$ + STR$(h) + " " + readglobalstring$(156, "hour", 10) + " "
  CASE IS > 1
-  s$ = s$ + LTRIM$(STR$(h)) + " " + readglobalstring$(157, "hours", 10) + " "
+  s$ = s$ + STR$(h) + " " + readglobalstring$(157, "hours", 10) + " "
 END SELECT
 
 SELECT CASE m
  CASE 1
-  s$ = s$ + LTRIM$(STR$(m)) + " " + readglobalstring$(158, "minute", 10) + " "
+  s$ = s$ + STR$(m) + " " + readglobalstring$(158, "minute", 10) + " "
  CASE IS > 1
-  s$ = s$ + LTRIM$(STR$(m)) + " " + readglobalstring$(159, "minutes", 10) + " "
+  s$ = s$ + STR$(m) + " " + readglobalstring$(159, "minutes", 10) + " "
 END SELECT
 
 playtime$ = s$
@@ -1061,17 +1061,17 @@ SELECT CASE scrat(nowscript, scrstate)
  CASE 0 TO 6
    state$ = " " + statestr$(scrat(nowscript, scrstate))
  CASE ELSE
-   state$ = STR$(scrat(nowscript, scrstate))
+   state$ = XSTR$(scrat(nowscript, scrstate))
 END SELECT
 
 debug indent$ + "[" + s$ + "]"
-debug indent$ + "script =" + STR$(nowscript)
-debug indent$ + "ptr    =" + STR$(scrat(nowscript, scrptr))
+debug indent$ + "script =" + XSTR$(nowscript)
+debug indent$ + "ptr    =" + XSTR$(scrat(nowscript, scrptr))
 debug indent$ + "state  =" + state$
-debug indent$ + "kind   =" + STR$(scrat(nowscript, curkind))
-debug indent$ + "value  =" + STR$(scrat(nowscript, curvalue))
-debug indent$ + "argn   =" + STR$(scrat(nowscript, curargn))
-debug indent$ + "argc   =" + STR$(scrat(nowscript, curargc))
+debug indent$ + "kind   =" + XSTR$(scrat(nowscript, curkind))
+debug indent$ + "value  =" + XSTR$(scrat(nowscript, curvalue))
+debug indent$ + "argn   =" + XSTR$(scrat(nowscript, curargn))
+debug indent$ + "argc   =" + XSTR$(scrat(nowscript, curargc))
 
 END SUB
 
@@ -1166,7 +1166,7 @@ SELECT CASE AS CONST id
  CASE 27'--suspend overlay
   setbit gen(), 44, suspendoverlay, 1
  CASE 28'--play song
-  'loadsong game$ + "." + LTRIM$(STR$(retvals(0))) + CHR$(0)
+  'loadsong game$ + "." + STR$(retvals(0)) + CHR$(0)
   wrappedsong retvals(0)
  CASE 29'--stop song
   stopsong
@@ -1313,13 +1313,13 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 AND retvals(0) <= 1024 THEN
    scriptret = global(retvals(0))
   ELSE
-   scripterr "Cannot read global" + STR$(retvals(0)) + ". out of range"
+   scripterr "Cannot read global" + XSTR$(retvals(0)) + ". out of range"
   END IF
  CASE 115'--write global
   IF retvals(0) >= 0 AND retvals(0) <= 1024 THEN
    global(retvals(0)) = retvals(1)
   ELSE
-   scripterr "Cannot write global" + STR$(retvals(0)) + ". out of range"
+   scripterr "Cannot write global" + XSTR$(retvals(0)) + ". out of range"
   END IF
  CASE 116'--hero is walking
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
@@ -1443,7 +1443,7 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 176'--runscriptbyid
-  IF isfile(workingdir$ + SLASH + LTRIM$(STR$(retvals(0))) + ".hsx" + CHR$(0)) THEN
+  IF isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsx" + CHR$(0)) THEN
    rsr = runscript(retvals(0), nowscript + 1, 0, "indirect")
    IF rsr = 1 THEN
     '--fill heap with return values
@@ -1583,7 +1583,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 213'--append number
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
-   plotstring$(retvals(0)) = plotstring$(retvals(0)) + LTRIM$(STR$(retvals(1)))
+   plotstring$(retvals(0)) = plotstring$(retvals(0)) + STR$(retvals(1))
    scriptret = cropPlotStr(plotstring$(retvals(0)))
   END IF
  CASE 214'--copy string
@@ -1682,7 +1682,7 @@ SELECT CASE AS CONST id
     IF retvals(0) >= 128 AND retvals(0) <= 143 THEN
      scriptret = (b SHR (retvals(0) - 128)) AND 1
     ELSEIF retvals(0) = 144 THEN 'x left
-     'debug str$(xaxis)
+     'debug XSTR$(xaxis)
      scriptret = abs(xaxis <= -50) 'true = -1...
     ELSEIF retvals(0) = 145 THEN 'x right
      scriptret = abs(xaxis >= 50)
@@ -1744,10 +1744,10 @@ SELECT CASE AS CONST id
   
   IF io_readjoysane(retvals(2),0,xaxis,yaxis) THEN
    IF retvals(0) = 0 THEN'x axis
-    'debug "x" + str$(xaxis)
+    'debug "x" + XSTR$(xaxis)
     scriptret = int((xaxis / 100) * retvals(1)) 'normally, xaxis * 100
    ELSEIF retvals(0) = 1 THEN 'y axis
-    'debug "y" + str$(yaxis)
+    'debug "y" + XSTR$(yaxis)
     scriptret = int((yaxis / 100) * retvals(1)) 'normally, yaxis * 100
    END IF
   ELSE
@@ -1959,12 +1959,12 @@ rectangle 0, 2, (320 / 2048) * scrat(nowscript + 1, scrheap), 2, uilook(uiSelect
 edgeprint " #     ID    Rtval CmdKn CmdID State", 0, 192, uilook(uiText), page
 ol = 184
 FOR i = large(nowscript - 23, 0) TO nowscript
- edgeprint STR$(i), 0, ol, uilook(uiText), page
- edgeprint STR$(scrat(i, scrid)), 48, ol, uilook(uiText), page
- edgeprint STR$(scrat(i, scrret)), 96, ol, uilook(uiText), page
- edgeprint STR$(scrat(i, curkind)), 144, ol, uilook(uiText), page
- edgeprint STR$(scrat(i, curvalue)), 192, ol, uilook(uiText), page
- edgeprint STR$(scrat(i, scrstate)), 240, ol, uilook(uiText), page
+ edgeprint XSTR$(i), 0, ol, uilook(uiText), page
+ edgeprint XSTR$(scrat(i, scrid)), 48, ol, uilook(uiText), page
+ edgeprint XSTR$(scrat(i, scrret)), 96, ol, uilook(uiText), page
+ edgeprint XSTR$(scrat(i, curkind)), 144, ol, uilook(uiText), page
+ edgeprint XSTR$(scrat(i, curvalue)), 192, ol, uilook(uiText), page
+ edgeprint XSTR$(scrat(i, scrstate)), 240, ol, uilook(uiText), page
  ol = ol - 8
 NEXT i
 END SUB

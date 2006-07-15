@@ -132,7 +132,7 @@ EXIT FUNCTION
 addmaphowmenu:
 temp$(0) = "Cancel"
 temp$(1) = "New Blank Map"
-temp$(2) = "Copy of map" + STR$(maptocopy) + " " + getmapname$(maptocopy)
+temp$(2) = "Copy of map" + XSTR$(maptocopy) + " " + getmapname$(maptocopy)
 RETURN
 
 END FUNCTION
@@ -369,13 +369,13 @@ DO
   xtemp$ = ""
   SELECT CASE i
    CASE 0, 9
-    xtemp$ = STR$(gmap(i))
+    xtemp$ = XSTR$(gmap(i))
    CASE 1
-    IF gmap(1) = 0 THEN xtemp$ = " -none-" ELSE xtemp$ = STR$(gmap(1) - 1) + " " + getsongname$(gmap(1) - 1)
+    IF gmap(1) = 0 THEN xtemp$ = " -none-" ELSE xtemp$ = XSTR$(gmap(1) - 1) + " " + getsongname$(gmap(1) - 1)
    CASE 2, 3
     IF gmap(i) = 0 THEN xtemp$ = " NO" ELSE xtemp$ = " YES"
    CASE 4
-    IF gmap(i) = 0 THEN xtemp$ = " NO" ELSE xtemp$ = STR$(gmap(i)) + " ticks"
+    IF gmap(i) = 0 THEN xtemp$ = " NO" ELSE xtemp$ = XSTR$(gmap(i)) + " ticks"
    CASE 5
     SELECT CASE gmap(i)
      CASE 0
@@ -387,7 +387,7 @@ DO
     END SELECT
    CASE 6
     IF gmap(5) = 2 THEN
-     xtemp$ = STR$(gmap(i))
+     xtemp$ = XSTR$(gmap(i))
     ELSE
      xtemp$ = " N/A"
     END IF
@@ -398,22 +398,22 @@ DO
     IF gmap(7) = 0 THEN
      xtemp$ = " N/A"
     ELSE
-     xtemp$ = STR$(gmap(i))
+     xtemp$ = XSTR$(gmap(i))
     END IF
    CASE 10
     IF gmap(i) = 0 THEN
      xtemp$ = " none"
     ELSE
-     xtemp$ = STR$(gmap(i))
+     xtemp$ = XSTR$(gmap(i))
     END IF
    CASE 11
     SELECT CASE gmap(i)
      CASE 0
       xtemp$ = " none"
      CASE IS < 0
-      xtemp$ = " up" + STR$(ABS(gmap(i))) + " pixels"
+      xtemp$ = " up" + XSTR$(ABS(gmap(i))) + " pixels"
      CASE IS > 0
-      xtemp$ = " down" + STR$(gmap(i)) + " pixels"
+      xtemp$ = " down" + XSTR$(gmap(i)) + " pixels"
     END SELECT
    CASE 16
     IF gmap(i) = 1 THEN
@@ -678,7 +678,7 @@ DO
   FOR i = 0 TO 99
    IF doors(i) >= INT(mapx / 20) AND doors(i) < INT(mapx / 20) + 16 AND doors(i + 100) > INT(mapy / 20) AND doors(i + 100) <= INT(mapy / 20) + 9 AND doors(i + 200) = 1 THEN
     rectangle doors(i) * 20 - mapx, doors(i + 100) * 20 - mapy, 20, 20, 15 - tog, dpage
-    printstr intstr$(i), doors(i) * 20 - mapx + 10 - (4 * (LEN(STR$(i)) - 1)), doors(i + 100) * 20 - mapy + 6, dpage
+    printstr STR$(i), doors(i) * 20 - mapx + 10 - (4 * LEN(STR$(i))), doors(i + 100) * 20 - mapy + 6, dpage
    END IF
   NEXT
  END IF
@@ -695,9 +695,9 @@ DO
      loadsprite cursor(), 0, 400 * npc(i + 900) + (200 * INT(walk / 2)), 5 * (npc(i + 600) - 1), 20, 20, 2
      drawsprite cursor(), 0, pal16(), 16 * (npc(i + 600) - 1), npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy, dpage
      textcolor 14 + tog, 0
-     xtemp$ = intstr$(npc(i + 600) - 1)
+     xtemp$ = STR$(npc(i + 600) - 1)
      printstr xtemp$, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy + 3, dpage
-     xtemp$ = intstr$(npcnum(npc(i + 600)-1))
+     xtemp$ = STR$(npcnum(npc(i + 600)-1))
      printstr xtemp$, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy + 12, dpage
     END IF
     npcnum(npc(i + 600) - 1) = npcnum(npc(i + 600) - 1) + 1
@@ -719,7 +719,7 @@ DO
   loadsprite cursor(), 0, (walk * 400), nptr * 5, 20, 20, 2
   drawsprite cursor(), 0, pal16(), 16 * nptr, (x * 20) - mapx, (y * 20) - mapy + 20, dpage
   textcolor 14 + tog, 0
-  xtemp$ = intstr$(nptr)
+  xtemp$ = STR$(nptr)
   printstr xtemp$, (x * 20) - mapx, (y * 20) - mapy + 28, dpage
  END IF
  
@@ -730,13 +730,13 @@ DO
   FOR i = 0 TO 14
    FOR o = 0 TO 8
     temp = readmapblock(INT(mapx / 20) + i, INT(mapy / 20) + o)
-    IF temp > 0 THEN printstr intstr$(temp), i * 20 - ((temp < 10) * 5), o * 20 + 26, dpage
+    IF temp > 0 THEN printstr STR$(temp), i * 20 - ((temp < 10) * 5), o * 20 + 26, dpage
    NEXT o
   NEXT i
  END IF
  
  textcolor 14 + tog, 0
- printstr "X" + STR$(x) + "   Y" + STR$(y), 0, 192, dpage
+ printstr "X" + XSTR$(x) + "   Y" + XSTR$(y), 0, 192, dpage
  setmapdata map(), pass(), 20, 0
  rectangle 300, 0, 20, 200, 0, dpage
  rectangle 0, 19, 320, 1, 15, dpage
@@ -747,7 +747,7 @@ DO
  END IF
  textcolor 15, 0
  printstr mode$(editmode), 0, 24, dpage
- IF editmode = 4 THEN textcolor 15, 1: printstr "Formation Set:" + STR$(foe), 0, 16, dpage
+ IF editmode = 4 THEN textcolor 15, 1: printstr "Formation Set:" + XSTR$(foe), 0, 16, dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -807,9 +807,9 @@ DO
    tw& = tempw
   WEND
  END IF
- edgeprint "width" + STR$(wide) + CHR$(26) + intstr$(tempw), 1, 1, 7, dpage
- edgeprint "height" + STR$(high) + CHR$(26) + intstr$(temph), 1, 11, 7, dpage
- edgeprint "area" + STR$(wide * high) + CHR$(26) + intstr$(temph * tempw), 1, 21, 7, dpage
+ edgeprint "width" + XSTR$(wide) + CHR$(26) + STR$(tempw), 1, 1, 7, dpage
+ edgeprint "height" + XSTR$(high) + CHR$(26) + STR$(temph), 1, 11, 7, dpage
+ edgeprint "area" + XSTR$(wide * high) + CHR$(26) + STR$(temph * tempw), 1, 21, 7, dpage
  rectangle tempx, tempy, tempw, 1, 14 + tog, dpage
  rectangle tempx, tempy, 1, temph, 14 + tog, dpage
  rectangle tempx, tempy + temph, tempw, 1, 14 + tog, dpage
@@ -1006,9 +1006,9 @@ IF map(0) <> pass(0) OR map(0) <> emap(0) OR map(1) <> pass(1) OR map(1) <> emap
  j = j + 1
  printstr "this map seems to be corrupted", 0, j * 8, vpage: j = j + 1
  j = j + 1
- printstr " TileMap" + STR$(map(0)) + "*" + LTRIM$(STR$(map(1))) + " tiles", 0, j * 8, vpage: j = j + 1
- printstr " WallMap" + STR$(pass(0)) + "*" + LTRIM$(STR$(pass(1))) + " tiles", 0, j * 8, vpage: j = j + 1
- printstr " FoeMap" + STR$(emap(0)) + "*" + LTRIM$(STR$(emap(1))) + " tiles", 0, j * 8, vpage: j = j + 1
+ printstr " TileMap" + XSTR$(map(0)) + "*" + STR$(map(1)) + " tiles", 0, j * 8, vpage: j = j + 1
+ printstr " WallMap" + XSTR$(pass(0)) + "*" + STR$(pass(1)) + " tiles", 0, j * 8, vpage: j = j + 1
+ printstr " FoeMap" + XSTR$(emap(0)) + "*" + STR$(emap(1)) + " tiles", 0, j * 8, vpage: j = j + 1
  j = j + 1
  printstr "What is the correct size?", 0, j * 8, vpage: j = j + 1
  DO
@@ -1019,7 +1019,7 @@ IF map(0) <> pass(0) OR map(0) <> emap(0) OR map(1) <> pass(1) OR map(1) <> emap
    setkeys
    IF keyval(1) > 1 OR keyval(28) > 1 THEN EXIT DO
    dummy = intgrabber(wide, 0, 9999, 75, 77)
-   printstr "Width:" + STR$(wide) + "   ", 0, j * 8, vpage
+   printstr "Width:" + XSTR$(wide) + "   ", 0, j * 8, vpage
    dowait
   LOOP
   j = j + 1
@@ -1029,7 +1029,7 @@ IF map(0) <> pass(0) OR map(0) <> emap(0) OR map(1) <> pass(1) OR map(1) <> emap
    setkeys
    IF keyval(1) > 1 OR keyval(28) > 1 THEN EXIT DO
    dummy = intgrabber(high, 0, 9999, 75, 77)
-   printstr "Height:" + STR$(high) + "    ", 0, j * 8, vpage
+   printstr "Height:" + XSTR$(high) + "    ", 0, j * 8, vpage
    dowait
   LOOP
   textcolor 15, 0
@@ -1075,11 +1075,11 @@ DO
  FOR i = ttop TO ttop + 10
   textcolor 7, 0
   IF cur = i THEN textcolor 14 + tog, 0
-  a$ = "Door" + STR$(link(i)) + " leads to door" + STR$(link(i + 200)) + " on map" + STR$(link(i + 400))
+  a$ = "Door" + XSTR$(link(i)) + " leads to door" + XSTR$(link(i + 200)) + " on map" + XSTR$(link(i + 400))
   printstr a$, 0, 2 + (i - ttop) * 16, dpage
-  a$ = "  only if tag" + STR$(ABS(link(i + 600))) + " =" + STR$(SGN(SGN(link(i + 600)) + 1)) + " and tag" + STR$(ABS(link(i + 800))) + " =" + STR$(SGN(SGN(link(i + 800)) + 1))
-  IF link(i + 600) = 0 AND link(i + 800) <> 0 THEN a$ = "  only if tag" + STR$(ABS(link(i + 800))) + " =" + STR$(SGN(SGN(link(i + 800)) + 1))
-  IF link(i + 600) <> 0 AND link(i + 800) = 0 THEN a$ = "  only if tag" + STR$(ABS(link(i + 600))) + " =" + STR$(SGN(SGN(link(i + 600)) + 1))
+  a$ = "  only if tag" + XSTR$(ABS(link(i + 600))) + " =" + XSTR$(SGN(SGN(link(i + 600)) + 1)) + " and tag" + XSTR$(ABS(link(i + 800))) + " =" + XSTR$(SGN(SGN(link(i + 800)) + 1))
+  IF link(i + 600) = 0 AND link(i + 800) <> 0 THEN a$ = "  only if tag" + XSTR$(ABS(link(i + 800))) + " =" + XSTR$(SGN(SGN(link(i + 800)) + 1))
+  IF link(i + 600) <> 0 AND link(i + 800) = 0 THEN a$ = "  only if tag" + XSTR$(ABS(link(i + 600))) + " =" + XSTR$(SGN(SGN(link(i + 600)) + 1))
   IF link(i + 600) = 0 AND link(i + 800) = 0 THEN a$ = "  all the time"
   printstr a$, 0, 10 + (i - ttop) * 16, dpage
  NEXT i
@@ -1121,10 +1121,10 @@ DO
  rectangle 0, 100, 320, 2, 1 + tog, dpage
  FOR i = -1 TO 4
   xtemp$ = ""
-  IF i >= 0 AND i <= 2 THEN xtemp$ = STR$(link(cur + (i * 200)))
+  IF i >= 0 AND i <= 2 THEN xtemp$ = XSTR$(link(cur + (i * 200)))
   IF i > 2 THEN
    IF link(cur + (i * 200)) THEN
-    xtemp$ = STR$(ABS(link(cur + (i * 200)))) + " = " + onoroff$(link(cur + (i * 200))) + " (" + lmnemonic$(ABS(link(cur + (i * 200)))) + ")"
+    xtemp$ = XSTR$(ABS(link(cur + (i * 200)))) + " = " + onoroff$(link(cur + (i * 200))) + " (" + lmnemonic$(ABS(link(cur + (i * 200)))) + ")"
    ELSE
     xtemp$ = " 0 [N/A]"
    END IF
@@ -1153,7 +1153,7 @@ IF doors(link(cur + (0 * 200)) + 200) = 1 THEN
  rectangle doors(link(cur + (0 * 200))) * 20 - dmx, doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 20, 20, 20, 240, 2
  rectangle 1 + doors(link(cur + (0 * 200))) * 20 - dmx, 1 + doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 20, 18, 18, 7, 2
  textcolor 240, 0
- xtemp$ = STR$(link(cur + (0 * 200)))
+ xtemp$ = XSTR$(link(cur + (0 * 200)))
  printstr RIGHT$(xtemp$, LEN(xtemp$) - 1), doors(link(cur + (0 * 200))) * 20 - dmx + 10 - (4 * LEN(xtemp$)), doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 14, 2
 END IF
 '-----------------EXIT DOOR
@@ -1173,7 +1173,7 @@ IF destdoor(link(cur + (1 * 200)) + 200) = 1 THEN
  rectangle destdoor(link(cur + (1 * 200))) * 20 - dmx, destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 80, 20, 20, 240, 2
  rectangle 1 + destdoor(link(cur + (1 * 200))) * 20 - dmx, 1 + destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 80, 18, 18, 7, 2
  textcolor 240, 0
- xtemp$ = STR$(link(cur + (1 * 200)))
+ xtemp$ = XSTR$(link(cur + (1 * 200)))
  printstr RIGHT$(xtemp$, LEN(xtemp$) - 1), destdoor(link(cur + (1 * 200))) * 20 - dmx + 10 - (4 * LEN(xtemp$)), destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 86, 2
 END IF
 '-----------------RESET DATA
@@ -1215,6 +1215,6 @@ FUNCTION maplumpname$(map, oldext$)
  IF map < 100 THEN
   maplumpname$ = game$ + "." + oldext$ + filenum$(map)
  ELSE
-  maplumpname$ = workingdir$ + SLASH + LTRIM$(STR$(map)) + "." + oldext$
+  maplumpname$ = workingdir$ + SLASH + STR$(map) + "." + oldext$
  END IF
 END FUNCTION

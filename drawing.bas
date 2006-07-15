@@ -191,7 +191,7 @@ clearpage 1
 clearpage 2
 clearpage 3
 menu$(0) = "Return to Main Menu"
-menu$(1) = CHR$(27) + "Browse" + STR$(pt) + CHR$(26)
+menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
 menu$(2) = "Replace current " + cap$
 menu$(3) = "Append a new " + cap$
 menu$(4) = "Disable palette colors"
@@ -212,7 +212,7 @@ DO
  dummy = usemenu(csr, 0, 0, 4, 24)
  IF csr = 1 THEN
   IF intgrabber(pt, 0, count - 1, 75, 77) THEN
-   menu$(1) = CHR$(27) + "Browse" + STR$(pt) + CHR$(26)
+   menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
    GOSUB showpage
   END IF
  END IF
@@ -376,7 +376,7 @@ DO
   IF i < 0 THEN
    printstr "Return to Main Menu", 10, 8 + (i - top) * 8, dpage
   ELSE
-   printstr "Tile Set" + STR$(i), 10, 8 + (i - top) * 8, dpage
+   printstr "Tile Set" + XSTR$(i), 10, 8 + (i - top) * 8, dpage
   END IF
  NEXT i
  SWAP vpage, dpage
@@ -471,8 +471,8 @@ DO
  dowait
 LOOP
 utamenu:
-menu$(1) = CHR$(27) + "Animation set" + STR$(taset) + CHR$(26)
-menu$(4) = "Disable if Tag#" + intstr$(ABS(tastuf(1 + 20 * taset))) + "=" + onoroff$(tastuf(1 + 20 * taset)) + " (" + lmnemonic(ABS(tastuf(1 + 20 * taset))) + ")"
+menu$(1) = CHR$(27) + "Animation set" + XSTR$(taset) + CHR$(26)
+menu$(4) = "Disable if Tag#" + str$(ABS(tastuf(1 + 20 * taset))) + "=" + onoroff$(tastuf(1 + 20 * taset)) + " (" + lmnemonic(ABS(tastuf(1 + 20 * taset))) + ")"
 RETURN
 
 setanimrange:
@@ -571,8 +571,8 @@ DO
   IF top + i = curpal THEN textcolor 14 + tog, 0
   SELECT CASE top + i
    CASE IS >= 0
-    printstr LTRIM$(STR$(top + i)), 4, 5 + i * 20, dpage
-    o = LEN(STR$(top + i)) * 8
+    printstr STR$(top + i), 4, 5 + i * 20, dpage
+    o = LEN(XSTR$(top + i)) * 8
     IF top + i = curpal THEN
      rectangle o - 1, 1 + i * 20, 114, 18, 7, dpage
      rectangle o, 2 + i * 20, 112, 16, 0, dpage
@@ -597,7 +597,7 @@ DO
   END SELECT
  NEXT i
  IF curpal >= 0 THEN '--write current pic on top
-  o = LEN(STR$(curpal)) * 8
+  o = LEN(XSTR$(curpal)) * 8
   FOR k = 0 TO usepic - 1
    loadsprite buffer(), 0, picx + k * (picw * pich \ 2), picy, picw, pich, picpage
    drawsprite buffer(), 0, pal16(), (curpal - top) * 16, o + 120 + (k * picw), (curpal - top) * 20 - (pich \ 2 - 10), dpage
@@ -710,7 +710,7 @@ FOR i = 0 TO 8
  b = tastuf((11 + i) + 20 * taset)
  menu$(i + 1) = stuff$(a)
  IF a = 0 THEN EXIT FOR
- IF a > 0 AND a < 6 THEN menu$(i + 1) = menu$(i + 1) + STR$(b)
+ IF a > 0 AND a < 6 THEN menu$(i + 1) = menu$(i + 1) + XSTR$(b)
  IF a = 6 THEN menu$(i + 1) = menu$(i + 1) + lmnemonic(b)
 NEXT i
 IF i = 8 THEN menu$(10) = "end of animation"
@@ -719,11 +719,11 @@ menu$(11) = "Value="
 this = tastuf(11 + bound(pt - 1, 0, 8) + 20 * taset)
 SELECT CASE tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)
  CASE 1 TO 4
-  menu$(11) = menu$(11) + intstr$(this) + " Tiles"
+  menu$(11) = menu$(11) + STR$(this) + " Tiles"
  CASE 5
-  menu$(11) = menu$(11) + intstr$(this) + " Ticks"
+  menu$(11) = menu$(11) + STR$(this) + " Ticks"
  CASE 6
-  menu$(11) = menu$(11) + "Tag#" + intstr$(ABS(this)) + "=" + onoroff$(this) + " " + lmnemonic(ABS(this))
+  menu$(11) = menu$(11) + "Tag#" + STR$(ABS(this)) + "=" + onoroff$(this) + " " + lmnemonic(ABS(this))
  CASE ELSE
   menu$(11) = menu$(11) + "N/A"
 END SELECT
@@ -894,8 +894,8 @@ DO
  END IF
  GOSUB choose
  textcolor 7, 0
- printstr "Palette" + STR$(offset), 320 - (LEN("Palette" + STR$(offset)) * 8), 0, dpage
- printstr "Set" + STR$(pt), 320 - (LEN("Set" + STR$(pt)) * 8), 8, dpage
+ printstr "Palette" + XSTR$(offset), 320 - (LEN("Palette" + XSTR$(offset)) * 8), 0, dpage
+ printstr "Set" + XSTR$(pt), 320 - (LEN("Set" + XSTR$(pt)) * 8), 8, dpage
  printstr info$(num), 320 - (LEN(info$(num)) * 8), 16, dpage
  SWAP vpage, dpage
  setvispage vpage
@@ -1340,7 +1340,7 @@ printstr CHR$(27), 248, 100, dpage
 textcolor 15, 8: IF zone = 6 THEN textcolor 15, 6
 printstr CHR$(26), 304, 100, dpage
 textcolor 15, 0
-printstr LEFT$(" Pal", 4 - (LEN(STR$(offset)) - 3)) + STR$(offset), 248, 100, dpage
+printstr LEFT$(" Pal", 4 - (LEN(XSTR$(offset)) - 3)) + XSTR$(offset), 248, 100, dpage
 rectangle 247 + (col * 4), 110, 5, 7, 15, dpage
 FOR i = 0 TO 15
  rectangle 248 + (i * 4), 111, 3, 5, PEEK(i), dpage
@@ -1393,8 +1393,8 @@ textcolor 0 + (7 * SGN(undodepth)), 8: IF zone = 20 AND undodepth > 0 THEN textc
 printstr "UNDO", 170, 182, dpage
 IF tool = 5 THEN
  textcolor 7, 0
- printstr "SIZE" + LTRIM$(STR$(airsize)), 218, 182, dpage
- printstr "MIST" + LTRIM$(STR$(mist)), 218, 190, dpage
+ printstr "SIZE" + STR$(airsize), 218, 182, dpage
+ printstr "MIST" + STR$(mist), 218, 190, dpage
  textcolor 7, 8: IF zone = 15 THEN textcolor 15, 6
  printstr CHR$(27), 210, 182, dpage
  textcolor 7, 8: IF zone = 16 THEN textcolor 15, 6
@@ -1956,9 +1956,9 @@ DO
  IF ts.tool = 5 THEN
   textcolor 7, 0
   printstr "SIZE", 12, 52, dpage
-  printstr STR$(ts.airsize), 12, 60, dpage
+  printstr XSTR$(ts.airsize), 12, 60, dpage
   printstr "MIST", 12, 68, dpage
-  printstr STR$(ts.mist), 12, 76, dpage
+  printstr XSTR$(ts.mist), 12, 76, dpage
   textcolor 7, 8: IF ts.zone = 17 THEN textcolor 15, 6
   printstr CHR$(27), 12, 60, dpage
   textcolor 7, 8: IF ts.zone = 18 THEN textcolor 15, 6
@@ -2188,7 +2188,7 @@ DO
  IF ts.zone = 12 THEN textcolor 14 + tog, 3
  printstr "Next", 280, 190, dpage
  textcolor 15, 1
- temp$ = STR$(ts.cutfrom) + " "
+ temp$ = XSTR$(ts.cutfrom) + " "
  printstr temp$, 160 - LEN(temp$) * 4, 190, dpage
  IF ts.gotmouse THEN
   textcolor 10 + tog * 5, 0

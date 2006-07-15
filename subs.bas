@@ -613,7 +613,7 @@ DO
 
  standardmenu dispmenu$(), size, 22, pt, top, 0, 0, dpage, 0
  IF keyval(56) > 0 THEN 'holding ALT
-  tmp$ = readbadbinstring$(recbuf(), EnDatName, 15, 0) + STR$(recindex)
+  tmp$ = readbadbinstring$(recbuf(), EnDatName, 15, 0) + XSTR$(recindex)
   textcolor 15, 1
   printstr tmp$, 320 - LEN(tmp$) * 8, 0, dpage
  END IF
@@ -648,7 +648,7 @@ updateflexmenu pt, dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff()
 
 '--load the picture and palette
 setpicstuf buffer(), (previewsize(recbuf(EnDatPicSize)) ^ 2) / 2, 2
-loadset game$ + ".pt" + LTRIM$(STR$(1 + recbuf(EnDatPicSize))) + CHR$(0), recbuf(EnDatPic), 0
+loadset game$ + ".pt" + STR$(1 + recbuf(EnDatPicSize)) + CHR$(0), recbuf(EnDatPic), 0
 getpal16 workpal(), 0, recbuf(EnDatPal)
 
 RETURN
@@ -761,10 +761,10 @@ DO
    GOSUB formsprite
   END IF
  END IF
- bmenu$(1) = CHR$(27) + "Formation Set" + STR$(gptr + 1) + CHR$(26)
- bmenu$(2) = "Battle Frequency:" + STR$(c(0))
+ bmenu$(1) = CHR$(27) + "Formation Set" + XSTR$(gptr + 1) + CHR$(26)
+ bmenu$(2) = "Battle Frequency:" + XSTR$(c(0))
  FOR i = 3 TO 22
-  bmenu$(i) = "Formation" + STR$(c(i - 2) - 1)
+  bmenu$(i) = "Formation" + XSTR$(c(i - 2) - 1)
   IF c(i - 2) = 0 THEN bmenu$(i) = "Empty"
  NEXT i
 
@@ -876,13 +876,13 @@ DO
   rectangle 240 + i * 8, 75 + i * 22, 32, 40, 18 + i * 2, dpage
  NEXT i
  IF csr3 = 0 THEN
-  menu$(4) = CHR$(27) + "formation" + STR$(pt) + CHR$(26)
-  menu$(5) = "Backdrop screen:" + STR$(a(32))
+  menu$(4) = CHR$(27) + "formation" + XSTR$(pt) + CHR$(26)
+  menu$(5) = "Backdrop screen:" + XSTR$(a(32))
   menu$(6) = "Battle Music:"
-  IF a(33) = 0 THEN menu$(6) = menu$(6) + " -none-" ELSE menu$(6) = menu$(6) + STR$(a(33) - 1) + " " + getsongname$(a(33) - 1)
+  IF a(33) = 0 THEN menu$(6) = menu$(6) + " -none-" ELSE menu$(6) = menu$(6) + XSTR$(a(33) - 1) + " " + getsongname$(a(33) - 1)
   menu$(7) = "Backdrop Frames:"
-  IF a(34) = 0 THEN menu$(7) = menu$(7) + " no animation" ELSE menu$(7) = menu$(7) + STR$(a(34) + 1)
-  menu$(8) = "Backdrop Speed:" + STR$(a(35))
+  IF a(34) = 0 THEN menu$(7) = menu$(7) + " no animation" ELSE menu$(7) = menu$(7) + XSTR$(a(34) + 1)
+  menu$(8) = "Backdrop Speed:" + XSTR$(a(35))
   FOR i = 0 TO 5
    col = 7: IF csr2 + 6 = i THEN col = 14 + tog
    edgeprint menu$(i + 3), 1, 1 + (i * 10), col, dpage
@@ -944,7 +944,7 @@ FOR i = 0 TO 7
  IF a(i * 4 + 0) > 0 THEN
   setpicstuf b(), 320, -1
   loadset game$ + ".dt1" + CHR$(0), a(i * 4 + 0) - 1, 0
-  ename$(i) = LTRIM$(STR$(a(i * 4 + 0) - 1)) + ":"
+  ename$(i) = STR$(a(i * 4 + 0) - 1) + ":"
   FOR o = 1 TO b(0)
    ename$(i) = ename$(i) + CHR$(b(o))
   NEXT o
@@ -1003,7 +1003,7 @@ hbit$(24) = "Rename when added to party"
 hbit$(25) = "Permit renaming on status screen"
 
 menu$(0) = "Return to Main Menu"
-menu$(1) = CHR$(27) + "Pick Hero" + STR$(pt) + CHR$(26)
+menu$(1) = CHR$(27) + "Pick Hero" + XSTR$(pt) + CHR$(26)
 menu$(2) = "Name:"
 menu$(3) = "Appearance and Misc..."
 menu$(4) = "Edit Stats..."
@@ -1120,7 +1120,7 @@ DO
  printstr "Previous Menu", 0, 0, dpage
  FOR i = 0 TO 3
   textcolor 7, 0: IF bctr = i THEN textcolor 14 + tog, 0
-  printstr "Type" + STR$(i) + " Spells:" + opt$(a(288 + i)), 0, 8 + i * 8, dpage
+  printstr "Type" + XSTR$(i) + " Spells:" + opt$(a(288 + i)), 0, 8 + i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1203,28 +1203,28 @@ IF frame <> -1 THEN
  drawline 251 + a(297 + frame * 2),25 + a(298 + frame * 2),252 + a(297 + frame * 2), 25 + a(298 + frame * 2),14 + tog,dpage
  drawline 250 + a(297 + frame * 2),26 + a(298 + frame * 2),250 + a(297 + frame * 2), 27 + a(298 + frame * 2),14 + tog,dpage
  IF frame = 1 THEN printstr "<",256,18,dpage
- IF frame <> -1 THEN printstr xSTR$(frame),256,18,dpage
+ IF frame <> -1 THEN printstr XSTR$(frame),256,18,dpage
  IF frame = 0 THEN printstr ">",272,18,dpage
 END IF
 
 RETURN
 
 genheromenu:
-bmenu$(1) = "Battle Picture:" + STR$(a(17))
-bmenu$(2) = "Battle Palette:" + STR$(a(18))
-bmenu$(3) = "Walkabout Picture:" + STR$(a(19))
-bmenu$(4) = "Walkabout Palette:" + STR$(a(20))
-bmenu$(5) = "Base Level:" + STR$(a(21))
+bmenu$(1) = "Battle Picture:" + XSTR$(a(17))
+bmenu$(2) = "Battle Palette:" + XSTR$(a(18))
+bmenu$(3) = "Walkabout Picture:" + XSTR$(a(19))
+bmenu$(4) = "Walkabout Palette:" + XSTR$(a(20))
+bmenu$(5) = "Base Level:" + XSTR$(a(21))
 IF a(21) < 0 THEN bmenu$(5) = "Base Level: Party Average"
 bmenu$(6) = "Default Weapon:" + it$
 bmenu$(7) = "Max Name Length:"
 IF a(296) THEN
- bmenu$(7) = bmenu$(7) + STR$(a(296))
+ bmenu$(7) = bmenu$(7) + XSTR$(a(296))
 ELSE
  bmenu$(7) = bmenu$(7) + " default"
 END IF
-bmenu$(8) = "Hand X:" + STR$(a(297 + frame * 2))
-bmenu$(9) = "Hand Y:" + STR$(a(298 + frame * 2))
+bmenu$(8) = "Hand X:" + XSTR$(a(297 + frame * 2))
+bmenu$(9) = "Hand Y:" + XSTR$(a(298 + frame * 2))
 RETURN
 
 levstats:
@@ -1324,7 +1324,7 @@ DO
   temp1$ = attack$(i)
   IF a(offset + (i - 1) * 2) > 0 THEN
    IF a(offset + (i - 1) * 2 + 1) = 0 THEN temp2$ = "Learned from Item"
-   IF a(offset + (i - 1) * 2 + 1) > 0 THEN temp2$ = "Learned at Level" + STR$(a(offset + (i - 1) * 2 + 1) - 1)
+   IF a(offset + (i - 1) * 2 + 1) > 0 THEN temp2$ = "Learned at Level" + XSTR$(a(offset + (i - 1) * 2 + 1) - 1)
   ELSE
    temp2$ = ""
   END IF
@@ -1351,7 +1351,7 @@ RETURN
 
 gosubatkname:
 IF a(offset + (o - 1) * 2) = 0 THEN attack$(o) = "EMPTY": RETURN
-attack$(o) = LTRIM$(STR$(a(offset + (o - 1) * 2) - 1)) + ":"
+attack$(o) = STR$(a(offset + (o - 1) * 2) - 1) + ":"
 attack$(o) = attack$(o) + readattackname$(a(offset + (o - 1) * 2) - 1)
 RETURN
 
@@ -1369,8 +1369,8 @@ RETURN
 
 smi:
 FOR i = 0 TO 11
- bmenu$(i * 2 + 1) = names$(nof(i)) + STR$(a(i * 2 + 23))
- bmenu$(i * 2 + 2) = names$(nof(i)) + STR$(a(i * 2 + 24))
+ bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(a(i * 2 + 23))
+ bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(a(i * 2 + 24))
 NEXT i
 RETURN
 
@@ -1413,7 +1413,7 @@ FOR i = 0 TO 3
  hmenu$(i) = readbadbinstring$(a(), 243 + i * 11, 10, 0)
 NEXT i
 menu$(2) = "Name:" + nam$
-menu$(1) = CHR$(27) + "Pick Hero" + STR$(pt) + CHR$(26)
+menu$(1) = CHR$(27) + "Pick Hero" + XSTR$(pt) + CHR$(26)
 GOSUB heropics
 RETURN
 
@@ -1462,7 +1462,7 @@ DO
  FOR i = 0 TO 4
   a$ = ""
   IF i > 0 THEN
-   a$ = STR$(a(291 + i)) + " (" + lmnemonic(a(291 + i)) + ")"
+   a$ = XSTR$(a(291 + i)) + " (" + lmnemonic(a(291 + i)) + ")"
   END IF
   textcolor 7, 0
   IF pt = i THEN textcolor 14 + tog, 0
@@ -1487,10 +1487,10 @@ ELSEIF keyval(less) > 1 THEN
  n = loopvar(n, min, max, -1)
 ELSE
  s = SGN(n)
- n$ = intstr$(ABS(n))
+ n$ = STR$(ABS(n))
  IF keyval(14) > 1 AND LEN(n$) > 0 THEN n$ = LEFT$(n$, LEN(n$) - 1)
  FOR i = 1 TO 9
-  IF keyval(i + 1) > 1 THEN n$ = n$ + intstr$(i)
+  IF keyval(i + 1) > 1 THEN n$ = n$ + STR$(i)
  NEXT i
  IF keyval(11) > 1 THEN n$ = n$ + "0"
  IF min < 0 THEN
@@ -1571,7 +1571,7 @@ DO
   IF i <= 254 THEN
    textcolor 7, 0
    IF i = csr THEN textcolor 14 + tog, 0
-   temp$ = STR$(i) + " " + item$(i)
+   temp$ = XSTR$(i) + " " + item$(i)
    IF i < 0 THEN temp$ = "Return to Main Menu"
    printstr temp$, 0, (i - top) * 8, dpage
   END IF
@@ -1676,7 +1676,7 @@ DO
   drawsprite buffer(), 0, workpal(), 0, 280, 160, dpage
   textcolor 7, 0
   IF frame = 0 THEN printstr "<",280,152,dpage
-  printstr xSTR$(1 - frame),281,152,dpage
+  printstr XSTR$(1 - frame),281,152,dpage
   IF frame = 1 THEN printstr ">",296,152,dpage
    drawline 278 + a(78 + frame * 2),160 + a(79 + frame * 2),279 + a(78 + frame * 2), 160 + a(79 + frame * 2),14 + tog,dpage
    drawline 280 + a(78 + frame * 2),158 + a(79 + frame * 2),280 + a(78 + frame * 2), 159 + a(79 + frame * 2),14 + tog,dpage
@@ -1692,7 +1692,7 @@ LOOP
 itemmenu:
 menu$(1) = "Name:" + item$(csr)
 menu$(2) = "Info:" + info$
-menu$(3) = "Value" + STR$(a(46))
+menu$(3) = "Value" + XSTR$(a(46))
 n = 47: GOSUB itatkname
 menu$(4) = "When used in battle- " + temp$
 n = 48: GOSUB itatkname
@@ -1704,23 +1704,23 @@ IF a(51) >= 0 THEN
  n = 51: GOSUB itatkname
  menu$(8) = "When used out of battle- " + temp$
 ELSE
- menu$(8) = "When used out of battle- Text" + STR$(ABS(a(51)))
+ menu$(8) = "When used out of battle- Text" + XSTR$(ABS(a(51)))
 END IF
-menu$(9) = "Weapon Picture" + STR$(a(52))
-menu$(10) = "Weapon Palette" + STR$(a(53))
+menu$(9) = "Weapon Picture" + XSTR$(a(52))
+menu$(10) = "Weapon Palette" + XSTR$(a(53))
 IF a(49) <> 1 THEN menu$(9) = "Weapon Picture N/A": menu$(10) = "Weapon Palette N/A"
 menu$(11) = "Unlimited Use"
 IF a(73) = 1 THEN menu$(11) = "Consumed By Use"
 IF a(73) = 2 THEN menu$(11) = "Cannot be Sold/Dropped"
-menu$(12) = "own item TAG" + STR$(a(74)) + " " + lmnemonic(a(74))
-menu$(13) = "is in inventory TAG" + STR$(a(75)) + " " + lmnemonic(a(75))
-menu$(14) = "is equipped TAG" + STR$(a(76)) + " " + lmnemonic(a(76))
-menu$(15) = "eqpt by active hero TAG" + STR$(a(77)) + " " + lmnemonic(a(77))
+menu$(12) = "own item TAG" + XSTR$(a(74)) + " " + lmnemonic(a(74))
+menu$(13) = "is in inventory TAG" + XSTR$(a(75)) + " " + lmnemonic(a(75))
+menu$(14) = "is equipped TAG" + XSTR$(a(76)) + " " + lmnemonic(a(76))
+menu$(15) = "eqpt by active hero TAG" + XSTR$(a(77)) + " " + lmnemonic(a(77))
 menu$(16) = "Handle X:"
 menu$(17) = "Handle Y:"
 IF a(49) = 1 THEN
- menu$(16) = menu$(16) + STR$(a(78 + frame * 2))
- menu$(17) = menu$(17) + STR$(a(79 + frame * 2))
+ menu$(16) = menu$(16) + XSTR$(a(78 + frame * 2))
+ menu$(17) = menu$(17) + XSTR$(a(79 + frame * 2))
 ELSE
  menu$(16) = menu$(16) + "N/A"
  menu$(17) = menu$(17) + "N/A"
@@ -1754,7 +1754,7 @@ DO
  FOR i = 0 TO 11
   textcolor 7, 0
   IF ptr2 = i THEN textcolor 14 + tog, 0
-  printstr names$(nof(i)) + " Bonus:" + STR$(a(54 + i)), 0, 8 + i * 8, dpage
+  printstr names$(nof(i)) + " Bonus:" + XSTR$(a(54 + i)), 0, 8 + i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1765,7 +1765,7 @@ LOOP
 itatkname: 'n is the offset
 temp$ = "NOTHING"
 IF a(n) <= 0 THEN RETURN
-temp$ = STR$(a(n) - 1) + " " + readattackname$(a(n) - 1)
+temp$ = XSTR$(a(n) - 1) + " " + readattackname$(a(n) - 1)
 RETURN
 
 litemname:
@@ -1861,7 +1861,7 @@ FUNCTION itemstr$ (it%, hidden%, offbyone%)
  loadset game$ + ".itm" + CHR$(0), itn, 0
  re$ = ""
  re$ = readbadbinstring$(buffer(), 0, 8, 0)
- IF hidden = 0 THEN re$ = STR$(itn) + " " + re$
+ IF hidden = 0 THEN re$ = XSTR$(itn) + " " + re$
  itemstr$ = re$
 END FUNCTION
 
@@ -1959,7 +1959,7 @@ DO
  FOR i = top TO top + 7
   textcolor 7, 0
   IF cur = i THEN textcolor 14 + tog, 0
-  printstr STR$(i), 0, ((i - top) * 25), dpage
+  printstr XSTR$(i), 0, ((i - top) * 25), dpage
   loadsprite buffer(), 0, 800, 5 * i, 20, 20, 2
   drawsprite buffer(), 0, pal16(), 16 * i, 32, ((i - top) * 25), dpage
  NEXT
@@ -2017,12 +2017,12 @@ DO
  FOR i = 0 TO 14
   textcolor 7, 0
   IF csr = i THEN textcolor 14 + tog, 0
-  temp$ = STR$(npc(cur * 15 + i))
+  temp$ = XSTR$(npc(cur * 15 + i))
   SELECT CASE i
    CASE 2
     temp$ = " = " + mtype$(npc(cur * 15 + i))
    CASE 3
-    temp$ = STR$(stepi(npc(cur * 15 + i)))
+    temp$ = XSTR$(stepi(npc(cur * 15 + i)))
    CASE 5
     temp$ = info$(npc(cur * 15 + i), 1)
    CASE 6
@@ -2033,12 +2033,12 @@ DO
     temp$ = info$(npc(cur * 15 + i), 0)
    CASE 9, 10
     IF npc(cur * 15 + i) THEN
-     temp$ = STR$(ABS(npc(cur * 15 + i))) + " = " + onoroff$(npc(cur * 15 + i)) + " (" + lmnemonic$(ABS(npc(cur * 15 + i))) + ")"
+     temp$ = XSTR$(ABS(npc(cur * 15 + i))) + " = " + onoroff$(npc(cur * 15 + i)) + " (" + lmnemonic$(ABS(npc(cur * 15 + i))) + ")"
     ELSE
      temp$ = " 0 (N/A)"
     END IF
    CASE 11
-    IF npc(cur * 15 + i) THEN temp$ = " Only Once (tag" + STR$(1000 + npc(cur * 15 + i)) + ")" ELSE temp$ = " Repeatedly"
+    IF npc(cur * 15 + i) THEN temp$ = " Only Once (tag" + XSTR$(1000 + npc(cur * 15 + i)) + ")" ELSE temp$ = " Repeatedly"
    CASE 12 'script
     temp$ = scriptname$(npc(cur * 15 + i), "plotscr.lst")
    CASE 13 'script arg
@@ -2059,9 +2059,9 @@ DO
  rectangle 10, 140, 20, 20, 7, dpage
  loadsprite buffer(), 0, 800 + (200 * INT(walk / 2)), 5 * cur, 20, 20, 2
  drawsprite buffer(), 0, pal16(), 16 * cur, 10, 140, dpage
- a$ = "Appears if tag" + STR$(ABS(npc(cur * 15 + 9))) + " = " + onoroff$(npc(cur * 15 + 9)) + " and tag" + STR$(ABS(npc(cur * 15 + 10))) + " = " + onoroff$(npc(cur * 15 + 10))
- IF npc(cur * 15 + 9) <> 0 AND npc(cur * 15 + 10) = 0 THEN a$ = "Appears if tag" + STR$(ABS(npc(cur * 15 + 9))) + " = " + onoroff$(npc(cur * 15 + 9))
- IF npc(cur * 15 + 9) = 0 AND npc(cur * 15 + 10) <> 0 THEN a$ = "Appears if tag" + STR$(ABS(npc(cur * 15 + 10))) + " = " + onoroff$(npc(cur * 15 + 10))
+ a$ = "Appears if tag" + XSTR$(ABS(npc(cur * 15 + 9))) + " = " + onoroff$(npc(cur * 15 + 9)) + " and tag" + XSTR$(ABS(npc(cur * 15 + 10))) + " = " + onoroff$(npc(cur * 15 + 10))
+ IF npc(cur * 15 + 9) <> 0 AND npc(cur * 15 + 10) = 0 THEN a$ = "Appears if tag" + XSTR$(ABS(npc(cur * 15 + 9))) + " = " + onoroff$(npc(cur * 15 + 9))
+ IF npc(cur * 15 + 9) = 0 AND npc(cur * 15 + 10) <> 0 THEN a$ = "Appears if tag" + XSTR$(ABS(npc(cur * 15 + 10))) + " = " + onoroff$(npc(cur * 15 + 10))
  IF npc(cur * 15 + 9) = 0 AND npc(cur * 15 + 10) = 0 THEN a$ = "Appears all the time"
  textcolor 15, 0
  printstr a$, 0, 190, dpage

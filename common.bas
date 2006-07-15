@@ -156,7 +156,7 @@ SELECT CASE special
   END IF
  CASE 2, 3
   IF bmpinfo(nowdir$ + tree$(treeptr) + CHR$(0), bmpd()) THEN
-   alert$ = intstr$(bmpd(1)) + "*" + intstr$(bmpd(2)) + " pixels, " + intstr$(bmpd(0)) + "-bit color"
+   alert$ = STR$(bmpd(1)) + "*" + STR$(bmpd(2)) + " pixels, " + STR$(bmpd(0)) + "-bit color"
   END IF
  CASE 4
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
@@ -502,7 +502,7 @@ END FUNCTION
 FUNCTION soundfile$ (sfxnum%)
  DIM as string sfxbase
 
- sfxbase = workingdir$ + SLASH + "sfx" + LTRIM$(STR$(sfxnum%))
+ sfxbase = workingdir$ + SLASH + "sfx" + STR$(sfxnum%)
  soundfile = ""
  if isfile(sfxbase + ".wav") then
   'is there a wave?

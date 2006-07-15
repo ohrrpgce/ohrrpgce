@@ -381,7 +381,7 @@ ELSE
   temp = picksave(2)
  END IF
 END IF
-'DEBUG debug "picked save slot"+str$(temp)
+'DEBUG debug "picked save slot"+XSTR$(temp)
 fademusic 0
 stopsong
 fadeout 0, 0, 0, -1
@@ -557,12 +557,12 @@ DO
   IF keyval(68) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1)
   IF keyval(87) > 1 THEN ghost = ghost XOR 1
   IF keyval(29) > 0 THEN
-   IF keyval(74) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = STR$(speedcontrol)
-   IF keyval(78) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = STR$(speedcontrol)
+   IF keyval(74) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = XSTR$(speedcontrol)
+   IF keyval(78) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = XSTR$(speedcontrol)
   END IF
  END IF
  IF wantloadgame > 0 THEN
-  'DEBUG debug "loading game slot" + STR$(wantloadgame - 1)
+  'DEBUG debug "loading game slot" + XSTR$(wantloadgame - 1)
   temp = wantloadgame - 1
   wantloadgame = 0
   resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
@@ -637,7 +637,7 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  'DEBUG debug "fade in"
- 'DEBUG debug "needf"+str$(needf)
+ 'DEBUG debug "needf"+XSTR$(needf)
  IF needf = 1 AND fatal = 0 THEN
   needf = 0
   fademusic fmvol
@@ -700,7 +700,7 @@ END IF
 '--FPS
 'framecount = framecount + 1
 'IF fpstimer! + 1 < TIMER THEN
-'  scriptout$ = "FPS" + STR$(framecount)
+'  scriptout$ = "FPS" + XSTR$(framecount)
 '  fpstimer! = TIMER
 '  framecount = 0
 'END IF
@@ -1315,7 +1315,7 @@ thrudoor:
 samemap = 0
 oldmap = map
 '--load link data into buffer() -- Take care not to clobber it!
-xbload maplumpname$(map, "d"), buffer(), "Oh no! Map" + LTRIM$(STR$(map)) + " doorlinks missing"
+xbload maplumpname$(map, "d"), buffer(), "Oh no! Map" + STR$(map) + " doorlinks missing"
 FOR o = 0 TO 199
  IF doori = buffer(o) THEN
   'PLOT CHECKING FOR DOORS
@@ -1354,21 +1354,21 @@ FOR i = 0 TO 1
  cycptr(i) = 0
  cycskip(i) = 0
 NEXT i
-xbloadmap maplumpname$(map, "t"), scroll(), "Oh no! Map" + LTRIM$(STR$(map)) + " tilemap is missing"
-xbloadmap maplumpname$(map, "p"), pass(), "Oh no! Map" + LTRIM$(STR$(map)) + " passabilitymap is missing"
+xbloadmap maplumpname$(map, "t"), scroll(), "Oh no! Map" + STR$(map) + " tilemap is missing"
+xbloadmap maplumpname$(map, "p"), pass(), "Oh no! Map" + STR$(map) + " passabilitymap is missing"
 IF isfile(maplumpname$(map, "e") + CHR$(0)) THEN
  CLOSE #foemaph
  foemaph = FREEFILE
  OPEN maplumpname$(map, "e") FOR BINARY AS #foemaph
 ELSE
- fatalerror "Oh no! Map" + LTRIM$(STR$(map)) + " foemap is missing"
+ fatalerror "Oh no! Map" + STR$(map) + " foemap is missing"
 END IF
 loaddoor map, door()
 IF afterbat = 0 THEN
  showmapname = gmap(4)
- 'xbload maplumpname$(map, "l"), npcl(), "Oh no! Map" + LTRIM$(STR$(map)) + " NPC locations are missing"
+ 'xbload maplumpname$(map, "l"), npcl(), "Oh no! Map" + STR$(map) + " NPC locations are missing"
  LoadNPCL maplumpname$(map, "l"), npc(), 300
- xbload maplumpname$(map, "n"), npcs(), "Oh no! Map" + LTRIM$(STR$(map)) + " NPC definitions are missing"
+ xbload maplumpname$(map, "n"), npcs(), "Oh no! Map" + STR$(map) + " NPC definitions are missing"
  FOR i = 0 TO 299
   npc(i).x = npc(i).x * 20        
   npc(i).y = (npc(i).y - 1) * 20 
@@ -1481,7 +1481,7 @@ IF nowscript >= 0 THEN
    scripterr "illegally suspended script"
    scrat(nowscript, scrstate) = ABS(scrat(nowscript, scrstate))
   CASE stnone
-   scripterr "script" + STR$(nowscript) + " became stateless"
+   scripterr "script" + XSTR$(nowscript) + " became stateless"
   CASE stwait
    '--evaluate wait conditions
    SELECT CASE scrat(nowscript, curvalue)
@@ -1509,7 +1509,7 @@ IF nowscript >= 0 THEN
      END IF
     CASE 3'--wait for hero
      IF scrat(nowscript, curwaitarg) < 0 OR scrat(nowscript, curwaitarg) > 3 THEN
-      scripterr "waiting for nonexistant hero" + STR$(scrat(nowscript, curwaitarg))
+      scripterr "waiting for nonexistant hero" + XSTR$(scrat(nowscript, curwaitarg))
       scrat(nowscript, scrstate) = streturn
      ELSE
       IF xgo(scrat(nowscript, curwaitarg)) = 0 AND ygo(scrat(nowscript, curwaitarg)) = 0 THEN
@@ -1553,7 +1553,7 @@ IF nowscript >= 0 THEN
      END IF
     CASE 73, 234'--game over, quit from loadmenu
     CASE ELSE
-     scripterr "illegal wait substate" + STR$(scrat(nowscript, curvalue))
+     scripterr "illegal wait substate" + XSTR$(scrat(nowscript, curvalue))
      scrat(nowscript, scrstate) = streturn
    END SELECT
    IF scrat(nowscript, scrstate) = streturn THEN
@@ -1641,7 +1641,7 @@ DO
     '--scriptret would be set here, pushed at return
     SELECT CASE scrat(nowscript, curkind)
      CASE tystop
-      scripterr "stnext encountered noop" + STR$(scrat(nowscript, curvalue)) + " at" + STR$(scrat(nowscript, scrptr)) + " in" + STR$(nowscript): nowscript = -1: EXIT DO
+      scripterr "stnext encountered noop" + XSTR$(scrat(nowscript, curvalue)) + " at" + XSTR$(scrat(nowscript, scrptr)) + " in" + XSTR$(nowscript): nowscript = -1: EXIT DO
      CASE tymath, tyfunct
       '--complete math and functions, nice and easy.
       FOR i = scrat(nowscript, curargc) - 1 TO 0 STEP -1
@@ -1661,7 +1661,7 @@ DO
           dummy = popw
 	  scrat(nowscript, curargn) = 0
 	 CASE ELSE
-	  scripterr "while fell out of bounds, landed on" + STR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
+	  scripterr "while fell out of bounds, landed on" + XSTR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
 	END SELECT
        CASE flowfor'--repeat or terminate for
 	SELECT CASE scrat(nowscript, curargn)
@@ -1671,7 +1671,7 @@ DO
 	  GOSUB incrementflow
 	  scrat(nowscript, curargn) = 4
 	 CASE ELSE
-	  scripterr "for fell out of bounds, landed on" + STR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
+	  scripterr "for fell out of bounds, landed on" + XSTR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
 	END SELECT
        CASE flowreturn
 	scrat(nowscript, scrret) = popw
@@ -1726,7 +1726,7 @@ DO
        scrat(nowscript, scrstate) = streturn'---return
       END IF
      CASE ELSE
-      scripterr "illegal kind" + STR$(scrat(nowscript, curkind)) + STR$(scrat(nowscript, curvalue)) + " in stnext": nowscript = -1: EXIT DO
+      scripterr "illegal kind" + XSTR$(scrat(nowscript, curkind)) + XSTR$(scrat(nowscript, curvalue)) + " in stnext": nowscript = -1: EXIT DO
     END SELECT
    ELSE
     '--flow control is special, for all else, do next arg
@@ -2007,7 +2007,7 @@ SELECT CASE scrat(nowscript, curkind)
     abortg = 1
     scrat(nowscript, scrstate) = stwait
    CASE 77'--show value
-    scriptout$ = LTRIM$(STR$(retvals(0)))
+    scriptout$ = STR$(retvals(0))
    CASE 78'--alter NPC
     IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
      IF retvals(0) < 0 THEN retvals(0) = (npc(abs(retvals(0) + 1)).id - 1)

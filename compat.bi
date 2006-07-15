@@ -10,8 +10,6 @@ option nokeyword setmouse
 
 #ifndef DEMACRO
 #ifndef DONESTR
-option nokeyword str
-#define str$(x) xstr$((x))
 #define fbdim dim as short
 #define varseg varptr
 option nokeyword peek

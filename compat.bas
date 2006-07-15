@@ -217,7 +217,7 @@ end function
 SUB playsongnum (songnum%)
 	DIM as string songbase, songfile, numtext
 	
-	numtext = LTRIM$(STR$(songnum))
+	numtext = STR$(songnum)
 	songbase = workingdir$ + SLASH + "song" + numtext
 	songfile = ""
 	if isfile(songbase + ".mid") then

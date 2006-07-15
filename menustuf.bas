@@ -207,15 +207,15 @@ DO
  centerbox 80, 94, 150, 168, 1, dpage
  centerbox 240, 94, 150, 168, 1, dpage
  '-----RIGHT PANEL------------------------------------------
- centerbox 240, 20, LEN(STR$(gold&) + " " + sname$(32)) * 8 + 8, 12, 4, dpage
- edgeprint STR$(gold&) + " " + sname$(32), xstring(STR$(gold&) + " " + sname$(32) + " ", 240), 15, uilook(uiText), dpage
+ centerbox 240, 20, LEN(XSTR$(gold&) + " " + sname$(32)) * 8 + 8, 12, 4, dpage
+ edgeprint XSTR$(gold&) + " " + sname$(32), xstring(XSTR$(gold&) + " " + sname$(32) + " ", 240), 15, uilook(uiText), dpage
  o = 0
  edgeprint stuf$(pt), xstring(stuf$(pt), 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
  IF info1$ <> "" THEN edgeprint info1$, xstring(info1$, 240), 30 + o * 10, uilook(uiDisabledItem), dpage: o = o + 1
  IF info2$ <> "" THEN edgeprint info2$, xstring(info2$, 240), 30 + o * 10, uilook(uiDisabledItem), dpage: o = o + 1
  IF eqinfo$ <> "" THEN edgeprint eqinfo$, xstring(eqinfo$, 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
  IF stock(id, pt) > 1 THEN
-  edgeprint STR$(stock(id, pt) - 1) + " " + instock$ + " ", xstring(STR$(stock(id, pt) - 1) + " in stock ", 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
+  edgeprint XSTR$(stock(id, pt) - 1) + " " + instock$ + " ", xstring(XSTR$(stock(id, pt) - 1) + " in stock ", 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
  END IF
  IF showhero > -1 THEN
   centerbox 240, 130, 36, 44, 4, dpage
@@ -269,7 +269,7 @@ price2$ = ""
 eqinfo$ = ""
 info1$ = ""
 info2$ = ""
-IF b(pt * recordsize + 24) > 0 THEN price$ = LTRIM$(STR$(b(pt * recordsize + 24))) + " " + sname$(32)
+IF b(pt * recordsize + 24) > 0 THEN price$ = STR$(b(pt * recordsize + 24)) + " " + sname$(32)
 '--load must trade in item types+amounts
 temp = pt
 GOSUB loadtrades
@@ -288,7 +288,7 @@ FOR i = 0 TO 3
   IF tradestf(i, 1) = 1 THEN
    price$ = price$ + readitemname$(tradestf(i, 0))
   ELSE
-   price$ = price$ + LTRIM$(STR$(tradestf(i, 1))) + " " + readitemname$(tradestf(i, 0))
+   price$ = price$ + STR$(tradestf(i, 1)) + " " + readitemname$(tradestf(i, 0))
   END IF
   'setpicstuf buffer(), 200, -1
   'loadset game$ + ".itm" + CHR$(0), b(pt * recordsize + 25) - 1, 0
@@ -333,7 +333,7 @@ IF b(pt * recordsize + 17) = 1 THEN
  setpicstuf wbuf(), 200, -1
  loadset game$ + ".itm" + CHR$(0), buffer(22), 0
  IF buffer(21) < 0 THEN buffer(21) = averagelev(stat())
- temp$ = STR$(atlevel(buffer(21), buffer(23 + 0 * 2), buffer(24 + 0 * 2)) + wbuf(54 + 0))
+ temp$ = XSTR$(atlevel(buffer(21), buffer(23 + 0 * 2), buffer(24 + 0 * 2)) + wbuf(54 + 0))
  eqinfo$ = RIGHT$(temp$, LEN(temp$) - 1) + " " + sname$(0)
  showhero = buffer(17)
  getpal16 hpal(), 0, buffer(18)
@@ -566,9 +566,9 @@ DO
   IF stb(i) < 0 THEN col = uilook(uiDisabledItem)
   IF stb(i) > 0 THEN col = uilook(uiSelectedItem + tog)
   IF gen(genStatCap + i) > 0 THEN
-   temp$ = STR$(small(stat(pt, 1, i) + stb(i), gen(genStatCap + i)))
+   temp$ = XSTR$(small(stat(pt, 1, i) + stb(i), gen(genStatCap + i)))
   ELSE
-   temp$ = STR$(stat(pt, 1, i) + stb(i))
+   temp$ = XSTR$(stat(pt, 1, i) + stb(i))
   END IF
   edgeprint temp$, 148 - LEN(temp$) * 8, 42 + i * 10, col, dpage
  NEXT i
@@ -861,7 +861,7 @@ DO
     loadsprite buffer(), 0, 200 * ((2 * 2) + wt), o * 5, 20, 20, 2
     drawsprite buffer(), 0, pal16(), o * 16, 89, 8 + i * 20, dpage
     col = uilook(uiMenuItem): IF i = wptr THEN col = uilook(uiSelectedItem + tog)
-    temp$ = RIGHT$(STR$(stat(i, 0, 0)), LEN(STR$(stat(i, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(i, 1, 0)), LEN(STR$(stat(i, 1, 0))) - 1)
+    temp$ = STR$(ABS(stat(i, 0, 0))) + "/" + STR$(ABS(stat(i, 1, 0)))
     edgeprint temp$, 119, 16 + i * 20, col, dpage
     o = o + 1
    END IF
@@ -1098,7 +1098,7 @@ item$(i) = ""
 lb = (item(i) AND 255)
 hb = INT(item(i) / 256)
 item$(i) = readitemname$(lb - 1)
-item$(i) = rpad$(item$(i), " ", 8) + CHR$(1) + RIGHT$(STR$(hb), 2)
+item$(i) = rpad$(item$(i), " ", 8) + CHR$(1) + RIGHT$(XSTR$(hb), 2)
 
 END SUB
 
@@ -1272,8 +1272,8 @@ DO
    IF keyval(hexk(i)) > 1 THEN setbit array(), pt, i, readbit(array(), pt, i) XOR 1
   NEXT i
  END IF
- num$(0) = n$ + "(" + RIGHT$(STR$(pt), LEN(STR$(pt)) - 1) + ")"
- num$(1) = "value =" + STR$(array(pt))
+ num$(0) = n$ + "(" + STR$(ABS(pt)) + ")"
+ num$(1) = "value =" + XSTR$(array(pt))
  num$(2) = ""
  FOR i = 0 TO 15
   IF readbit(array(), pt, i) THEN
@@ -1369,7 +1369,7 @@ FOR i = 0 TO 3
      k = buffer(11259 + (o * 17) + j)
      IF k > 0 AND k < 255 THEN herosname$(i) = herosname$(i) + CHR$(k)
     NEXT j
-    lev$(i) = readglobalstring$(43, "Level", 10) + STR$(tstat(o, 0, 12))
+    lev$(i) = readglobalstring$(43, "Level", 10) + XSTR$(tstat(o, 0, 12))
    END IF
   NEXT o
   '--load second record
@@ -1640,7 +1640,7 @@ DO
  NEXT i
  centerfuz 160, 180, 312, 20, 4, dpage
  edgeprint info$, xstring(info$, 160), 175, uilook(uiText), dpage
- edgeprint STR$(gold&) + " " + sname$(32), 310 - LEN(STR$(gold&) + " " + sname$(32)) * 8, 1, uilook(uiGold), dpage
+ edgeprint XSTR$(gold&) + " " + sname$(32), 310 - LEN(XSTR$(gold&) + " " + sname$(32)) * 8, 1, uilook(uiGold), dpage
  IF alert THEN
   alert = alert - 1
   centerbox 160, 178, LEN(alert$) * 8 + 8, 12, 4, dpage
@@ -1661,7 +1661,7 @@ IF readbit(permask(), 0, ic) = 1 THEN info$ = cannotsell$: RETURN
 lb = (item(ic) AND 255)
 hb = INT(item(ic) / 256)
 IF lb > 0 THEN
- IF price(ic) > 0 THEN info$ = worth$ + STR$(price(ic)) + " " + sname$(32)
+ IF price(ic) > 0 THEN info$ = worth$ + XSTR$(price(ic)) + " " + sname$(32)
  FOR i = 0 TO storebuf(16)
   IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = lb - 1 THEN
    IF b(i * recordsize + 28) > 0 THEN
@@ -1674,7 +1674,7 @@ IF lb > 0 THEN
       info$ = info$ + " " + anda$ + " "
      END IF
     END IF
-    IF b(i * recordsize + 29) > 0 THEN info$ = info$ + LTRIM$(STR$(b(i * recordsize + 29) + 1)) + " "
+    IF b(i * recordsize + 29) > 0 THEN info$ = info$ + STR$(b(i * recordsize + 29) + 1) + " "
     info$ = info$ + readitemname$(b(i * recordsize + 28) - 1)
     'setpicstuf buffer(), 200, -1
     'loadset game$ + ".itm" + CHR$(0), b(i * recordsize + 28) - 1, 0
@@ -1826,7 +1826,7 @@ DO
     wt = 0: IF wptr = i THEN wt = INT(wtogl / 2)
     loadsprite buffer(), 0, 200 * ((2 * 2) + wt), o * 5, 20, 20, 2
     drawsprite buffer(), 0, pal16(), o * 16, 125, 8 + i * 20, dpage
-    temp$ = RIGHT$(STR$(stat(i, 0, 0)), LEN(STR$(stat(i, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(i, 1, 0)), LEN(STR$(stat(i, 1, 0))) - 1)
+    temp$ = STR$(ABS(stat(i, 0, 0))) + "/" + STR$(ABS(stat(i, 1, 0)))
     col = uilook(uiMenuItem): IF i = wptr THEN col = uilook(uiSelectedItem + tog)
     edgeprint temp$, 155, 16 + i * 20, col, dpage
     o = o + 1
@@ -1868,9 +1868,9 @@ FOR i = 0 TO 23
   IF stat(pt, 0, 0) = 0 THEN canuse(i) = 0
   spel$(i) = readbadbinstring$(buffer(), 24, 10, 1)
   speld$(i) = readbinstring$(buffer(),73,38)
-  'debug "i = " + str$(i) + ", spel(sptr) = " + str$(spel(sptr))
-  IF mtype(csr) = 0 THEN cost$(i) = STR$(cost) + " " + sname$(1) + " " + RIGHT$(STR$(stat(pt, 0, 1)), LEN(STR$(stat(pt, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(pt, 1, 1)), LEN(STR$(stat(pt, 1, 1))) - 1)
-  IF mtype(csr) = 1 THEN cost$(i) = readglobalstring$(43, "Level", 10) + STR$(INT(i / 3) + 1) + ":  " + STR$(lmp(pt, INT(i / 3)))
+  'debug "i = " + XSTR$(i) + ", spel(sptr) = " + XSTR$(spel(sptr))
+  IF mtype(csr) = 0 THEN cost$(i) = XSTR$(cost) + " " + sname$(1) + " " + STR$(ABS(stat(pt, 0, 1))) + "/" + STR$(ABS(stat(pt, 1, 1)))
+  IF mtype(csr) = 1 THEN cost$(i) = readglobalstring$(43, "Level", 10) + XSTR$(INT(i / 3) + 1) + ":  " + XSTR$(lmp(pt, INT(i / 3)))
  END IF
  WHILE LEN(spel$(i)) < 10: spel$(i) = spel$(i) + " ": WEND
 NEXT i
@@ -2096,8 +2096,8 @@ DO
  END SELECT
 
  edgeprint names$(pt), 160 - LEN(names$(pt)) * 4, 20, uilook(uiText), dpage
- edgeprint sname$(34) + STR$(stat(pt, 0, 12)), 160 - LEN(sname$(34) + STR$(stat(pt, 0, 12))) * 4, 30, uilook(uiText), dpage
- temp$ = LTRIM$(STR$(exlev&(pt, 1) - exlev&(pt, 0))) + " " + sname$(33) + " " + readglobalstring$(47, "for next", 10) + " " + sname$(34)
+ edgeprint sname$(34) + XSTR$(stat(pt, 0, 12)), 160 - LEN(sname$(34) + STR$(stat(pt, 0, 12))) * 4, 30, uilook(uiText), dpage
+ temp$ = STR$(exlev&(pt, 1) - exlev&(pt, 0)) + " " + sname$(33) + " " + readglobalstring$(47, "for next", 10) + " " + sname$(34)
  edgeprint temp$, 160 - LEN(temp$) * 4, 40, uilook(uiText), dpage
 
  SELECT CASE mode
@@ -2105,32 +2105,33 @@ DO
    '--show stats
    FOR i = 0 TO 9
     edgeprint sname$(sno(i)), 20, 62 + i * 10, uilook(uiText), dpage
-    edgeprint STR$(stat(pt, 0, i + 2)), 148 - LEN(STR$(stat(pt, 0, i + 2))) * 8, 62 + i * 10, uilook(uiText), dpage
+    temp$ = XSTR$(stat(pt, 0, i + 2))
+    edgeprint temp$, 148 - LEN(temp$) * 8, 62 + i * 10, uilook(uiText), dpage
    NEXT i
 
    'current/max HP
    edgeprint sname$(0), 236 - LEN(sname$(0)) * 4, 65, uilook(uiText), dpage
-   edgeprint RIGHT$(STR$(stat(pt, 0, 0)), LEN(STR$(stat(pt, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(pt, 1, 0)), LEN(STR$(stat(pt, 1, 0))) - 1), 236 - LEN(RIGHT$(STR$(stat(pt, 0, 0)), LEN(STR$(stat(pt, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(pt, 0, 0)),  _
-LEN(STR$(stat(pt, 0, 0))) - 1)) * 4, 75, uilook(uiText), dpage
+   temp$ = STR$(ABS(stat(pt, 0, 0))) + "/" + STR$(ABS(stat(pt, 1, 0)))
+   edgeprint temp$, 236 - LEN(temp$) * 4, 75, uilook(uiText), dpage
 
    '--MP and level MP
    FOR i = 0 TO 5
     IF mtype(i) = 0 THEN
      edgeprint sname$(1), 236 - LEN(sname$(1)) * 4, 95, uilook(uiText), dpage
-     edgeprint RIGHT$(STR$(stat(pt, 0, 1)), LEN(STR$(stat(pt, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(pt, 1, 1)), LEN(STR$(stat(pt, 1, 1))) - 1), 236 - LEN(RIGHT$(STR$(stat(pt, 0, 1)), LEN(STR$(stat(pt, 0, 1))) - 1) + "/" + RIGHT$(STR$(stat(pt, 0, 1)) _
-, LEN(STR$(stat(pt, 0, 1))) - 1)) * 4, 105, uilook(uiText), dpage
+     temp$ = STR$(ABS(stat(pt, 0, 1))) + "/" + STR$(ABS(stat(pt, 1, 1)))
+     edgeprint temp$, 236 - LEN(temp$) * 4, 105, uilook(uiText), dpage
     END IF
     IF mtype(i) = 1 THEN
      edgeprint sname$(34) + " " + sname$(1), 236 - LEN(sname$(34) + " " + sname$(1)) * 4, 125, uilook(uiText), dpage
      temp$ = ""
      FOR o = 0 TO 3
-      temp$ = temp$ + RIGHT$(STR$(lmp(pt, o)), LEN(STR$(lmp(pt, o))) - 1) + "/"
+      temp$ = temp$ + STR$(ABS(lmp(pt, o))) + "/"
      NEXT o
      temp$ = LEFT$(temp$, LEN(temp$) - 1)
      edgeprint temp$, 236 - LEN(temp$) * 4, 135, uilook(uiText), dpage
      temp$ = ""
      FOR o = 4 TO 7
-      temp$ = temp$ + RIGHT$(STR$(lmp(pt, o)), LEN(STR$(lmp(pt, o))) - 1) + "/"
+      temp$ = temp$ + STR$(ABS(lmp(pt, o))) + "/"
      NEXT o
      temp$ = LEFT$(temp$, LEN(temp$) - 1)
      edgeprint temp$, 236 - LEN(temp$) * 4, 145, uilook(uiText), dpage
@@ -2138,7 +2139,7 @@ LEN(STR$(stat(pt, 0, 0))) - 1)) * 4, 75, uilook(uiText), dpage
    NEXT i
 
    '--gold
-   edgeprint LTRIM$(STR$(gold&)) + " " + sname$(32), 236 - LEN(LTRIM$(STR$(gold&)) + " " + sname$(32)) * 4, 167, uilook(uiGold), dpage
+   edgeprint STR$(gold&) + " " + sname$(32), 236 - LEN(STR$(gold&) + " " + sname$(32)) * 4, 167, uilook(uiGold), dpage
   CASE 1
 
    '--show elementals

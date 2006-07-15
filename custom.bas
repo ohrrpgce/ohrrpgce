@@ -633,9 +633,9 @@ DATA "±","²","³","´","µ","¶","·","¸","¹","º","»","¼","","","½","¾","¿","À","Á","
 REM $STATIC
 FUNCTION filenum$ (n)
  IF n < 100 THEN
-  filenum$ = RIGHT$("00" + LTRIM$(STR$(n)), 2)
+  filenum$ = RIGHT$("00" + STR$(n), 2)
  ELSE
-  filenum$ = LTRIM$(STR$(n))
+  filenum$ = STR$(n)
  END IF
 END FUNCTION
 
@@ -807,7 +807,7 @@ DO
    NEXT i
    IF mode = 1 THEN rectangle xoff + x * 20, yoff + y * 20, 20, 20, 2 + 8 * readbit(font(), 0, (f(pt) * 8 + x) * 8 + y), dpage
    textcolor 15, 0
-   printstr "ASCII" + STR$(f(pt)), 20, 190, dpage
+   printstr "ASCII" + XSTR$(f(pt)), 20, 190, dpage
    IF f(pt) < 32 THEN
     printstr "RESERVED", 120, 190, dpage
    ELSE
@@ -1113,9 +1113,9 @@ storeset game$ + ".sho" + CHR$(0), pt, 0
 RETURN
 
 menuup:
-menu$(1) = CHR$(27) + " Shop" + STR$(pt) + " of" + STR$(general(97)) + CHR$(26)
+menu$(1) = CHR$(27) + " Shop" + XSTR$(pt) + " of" + XSTR$(general(97)) + CHR$(26)
 menu$(2) = "Name:" + sn$
-menu$(5) = "Inn Price:" + STR$(a(18))
+menu$(5) = "Inn Price:" + XSTR$(a(18))
 IF readbit(a(), 17, 3) = 0 THEN menu$(5) = "Inn Price: N/A"
 menu$(6) = "Inn Script: " + scriptname$(a(19), "plotscr.lst")
 IF readbit(a(), 17, 0) OR readbit(a(), 17, 1) OR readbit(a(), 17, 2) THEN havestuf = 1 ELSE havestuf = 0
@@ -1240,47 +1240,47 @@ IF b(17) = 2 THEN thing$ = "Unsupported"
 RETURN
 
 stufmenu:
-smenu$(1) = CHR$(27) + "Shop Thing" + STR$(thing) + " of" + STR$(a(16)) + CHR$(26)
+smenu$(1) = CHR$(27) + "Shop Thing" + XSTR$(thing) + " of" + XSTR$(a(16)) + CHR$(26)
 smenu$(2) = "Name: " + thing$
-smenu$(3) = "Type:" + STR$(b(17)) + "-" + stf$(bound(b(17), 0, 2))
-smenu$(4) = "Number:" + STR$(b(18)) + " " + nit$
+smenu$(3) = "Type:" + XSTR$(b(17)) + "-" + stf$(bound(b(17), 0, 2))
+smenu$(4) = "Number:" + XSTR$(b(18)) + " " + nit$
 IF b(19) > 0 THEN
- smenu$(5) = "In Stock:" + STR$(b(19))
+ smenu$(5) = "In Stock:" + XSTR$(b(19))
 ELSE
  smenu$(5) = stf$(8 + bound(b(19), -1, 0))
 END IF
-smenu$(6) = "Buy Require Tag" + STR$(ABS(b(20))) + " =" + STR$(SGN(SGN(b(20)) + 1)) + " (" + lmnemonic$(ABS(b(20))) + ")"
+smenu$(6) = "Buy Require Tag" + XSTR$(ABS(b(20))) + " =" + XSTR$(SGN(SGN(b(20)) + 1)) + " (" + lmnemonic$(ABS(b(20))) + ")"
 IF b(20) = 1 THEN smenu$(6) = smenu$(6) + "[Never]"
 IF b(20) = -1 THEN smenu$(6) = smenu$(6) + "[Always]"
 IF b(20) = 0 THEN smenu$(6) = "[No Tag Check]"
-smenu$(7) = "Sell Require Tag" + STR$(ABS(b(21))) + " =" + STR$(SGN(SGN(b(21)) + 1)) + " (" + lmnemonic$(ABS(b(21))) + ")"
+smenu$(7) = "Sell Require Tag" + XSTR$(ABS(b(21))) + " =" + XSTR$(SGN(SGN(b(21)) + 1)) + " (" + lmnemonic$(ABS(b(21))) + ")"
 IF b(21) = 1 THEN smenu$(7) = smenu$(7) + "[Never]"
 IF b(21) = -1 THEN smenu$(7) = smenu$(7) + "[Always]"
 IF b(21) = 0 THEN smenu$(7) = "[No Tag Check]"
-smenu$(8) = "Buy Set Tag" + STR$(ABS(b(22))) + " =" + STR$(SGN(SGN(b(22)) + 1)) + " (" + lmnemonic$(ABS(b(22))) + ")"
+smenu$(8) = "Buy Set Tag" + XSTR$(ABS(b(22))) + " =" + XSTR$(SGN(SGN(b(22)) + 1)) + " (" + lmnemonic$(ABS(b(22))) + ")"
 IF b(22) = 1 THEN smenu$(8) = smenu$(8) + "[Unalterable]"
 IF b(22) = -1 THEN smenu$(8) = smenu$(8) + "[Unalterable]"
 IF b(22) = 0 THEN smenu$(8) = "[No Tag Set]"
-smenu$(9) = "Sell Set Tag" + STR$(ABS(b(23))) + " =" + STR$(SGN(SGN(b(23)) + 1)) + " (" + lmnemonic$(ABS(b(23))) + ")"
+smenu$(9) = "Sell Set Tag" + XSTR$(ABS(b(23))) + " =" + XSTR$(SGN(SGN(b(23)) + 1)) + " (" + lmnemonic$(ABS(b(23))) + ")"
 IF b(23) = 1 THEN smenu$(9) = smenu$(9) + "[Unalterable]"
 IF b(23) = -1 THEN smenu$(9) = smenu$(9) + "[Unalterable]"
 IF b(23) = 0 THEN smenu$(9) = "[No Tag Set]"
-smenu$(10) = names$(32) + " Price:" + STR$(b(24))
-smenu$(11) = "Must Trade in" + STR$(b(30) + 1) + " of:" + tradestf$(0)
+smenu$(10) = names$(32) + " Price:" + XSTR$(b(24))
+smenu$(11) = "Must Trade in" + XSTR$(b(30) + 1) + " of:" + tradestf$(0)
 smenu$(12) = " (Change Amount)" 
-smenu$(13) = "Must Trade in" + STR$(b(32) + 1) + " of:" + tradestf$(1)
+smenu$(13) = "Must Trade in" + XSTR$(b(32) + 1) + " of:" + tradestf$(1)
 smenu$(14) = " (Change Amount)" 
-smenu$(15) = "Must Trade in" + STR$(b(34) + 1) + " of:" + tradestf$(2)
+smenu$(15) = "Must Trade in" + XSTR$(b(34) + 1) + " of:" + tradestf$(2)
 smenu$(16) = " (Change Amount)" 
-smenu$(17) = "Must Trade in" + STR$(b(36) + 1) + " of:" + tradestf$(3)
+smenu$(17) = "Must Trade in" + XSTR$(b(36) + 1) + " of:" + tradestf$(3)
 smenu$(18) = " (Change Amount)" 
 IF b(17) = 0 THEN
  smenu$(19) = "Sell type: " + stf$(bound(b(26), 0, 3) + 3)
- smenu$(20) = "Sell Price:" + STR$(b(27))
- smenu$(21) = "Trade in for" + STR$(b(29) + 1) + " of:" + trit$
+ smenu$(20) = "Sell Price:" + XSTR$(b(27))
+ smenu$(21) = "Trade in for" + XSTR$(b(29) + 1) + " of:" + trit$
  smenu$(22) = " (Change Amount)"
 ELSE
- smenu$(19) = "Experience Level:" + STR$(b(26))
+ smenu$(19) = "Experience Level:" + XSTR$(b(26))
 END IF
 '--mutate menu for item/hero
 RETURN
@@ -1408,7 +1408,7 @@ IF general(genVersion) = 1 THEN
   savetanim n, buffer()
  NEXT i
  FOR i = 0 TO general(0)
-  printstr " map" + STR$(i), 16, 24 + i * 8, vpage
+  printstr " map" + XSTR$(i), 16, 24 + i * 8, vpage
   XBLOAD maplumpname$(i, "t"), buffer(), "Map not loaded"
   setmapdata buffer(), buffer(), 0, 0
   FOR tx = 0 TO buffer(0)
@@ -1505,7 +1505,7 @@ IF general(genVersion) = 4 THEN
   NEXT i
   IF foundpal THEN EXIT FOR
  NEXT j
- printstr "Last used palette is" + STR$(last), 0, 8, vpage
+ printstr "Last used palette is" + XSTR$(last), 0, 8, vpage
  setvispage vpage 'refresh
  '--write header
  pal16(0) = 4444
@@ -1598,7 +1598,7 @@ IF NOT isfile(workingdir$ + SLASH + "songdata.bin" + CHR$(0)) THEN
  
  FOR i = 99 TO 1 STEP -1
   '-- check for midis as well 'cause some people might use a WIP custom or whatnot
-  IF song$(i) <> "" OR isfile(game$ + "." + LTRIM$(STR$(i)) + CHR$(0)) OR isfile(workingdir$ + SLASH + "song" + LTRIM$(STR$(i)) + ".mid" + CHR$(0)) THEN
+  IF song$(i) <> "" OR isfile(game$ + "." + STR$(i)) OR isfile(workingdir$ + SLASH + "song" + STR$(i) + ".mid") THEN
    general(genMaxSong) = i
    EXIT FOR
   END IF
@@ -1609,7 +1609,7 @@ IF NOT isfile(workingdir$ + SLASH + "songdata.bin" + CHR$(0)) THEN
  setpicstuf buffer(), curbinsize(2), -1
  FOR i = 0 TO general(genMaxSong)
   writebinstring song$(i), buffer(), 0, 30
-  storeset workingdir$ + SLASH + "songdata.bin" + CHR$(0), i, 0
+  storeset workingdir$ + SLASH + "songdata.bin", i, 0
  NEXT
  ERASE song$
 END IF

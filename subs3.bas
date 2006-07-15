@@ -97,7 +97,7 @@ REM $STATIC
 '    printstr "Previous Menu", 8, (i - top) * 8, dpage
 '   END IF
 '  NEXT i
-'  ' printstr STR$(pt) + STR$(top) + STR$(last), 160, 0, dpage
+'  ' printstr XSTR$(pt) + XSTR$(top) + XSTR$(last), 160, 0, dpage
 '  SWAP vpage, dpage
 '  setvispage vpage
 '  clearpage dpage
@@ -155,7 +155,7 @@ DO
    printstr "Previous Menu", 8, (i - top) * 8, dpage
   END IF
  NEXT i
- ' printstr STR$(pt) + STR$(top) + STR$(last), 160, 0, dpage
+ ' printstr XSTR$(pt) + XSTR$(top) + XSTR$(last), 160, 0, dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -218,11 +218,11 @@ IF isfile(file$ + CHR$(0)) THEN
  split = 0
  IF size > 1024 THEN split = 1 : units$ = " KB"
  IF size > 1048576 THEN split = 1 : size = size / 1024 : units$ = " MB"
- fsize$ = intstr$(size)
+ fsize$ = STR$(size)
  IF split <> 0 THEN
   size = size / 102.4
-  fsize$ = intstr$(size \ 10)
-  IF size < 1000 THEN fsize$ = fsize$ + "." + intstr$(size MOD 10)
+  fsize$ = STR$(size \ 10)
+  IF size < 1000 THEN fsize$ = fsize$ + "." + STR$(size MOD 10)
  END IF
  filesize$ = fsize$ + units$
 ELSE
@@ -296,7 +296,7 @@ ELSE
   IF LEN(b$) > 9 THEN b$ = "0"
   n = str2int(b$)
   n = n + 1
-  outf$ = a$ + LTRIM$(STR$(n))
+  outf$ = a$ + STR$(n)
  END IF
 END IF
 
@@ -410,7 +410,7 @@ DO
    tagname$ = lmnemonic$(pt)
   END IF
  END IF
- menu$(1) = "Tag" + STR$(pt)
+ menu$(1) = "Tag" + XSTR$(pt)
  menu$(2) = "Name:" + tagname$
 
  standardmenu menu$(), 2, 22, csr, 0, 0, 0, dpage, 0

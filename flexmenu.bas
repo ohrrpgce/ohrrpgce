@@ -95,7 +95,7 @@ DECLARE FUNCTION isStringField(mnu%)
 REM $STATIC
 SUB addcaption (caption$(), indexer, cap$)
 IF indexer > UBOUND(caption$) THEN
- fatalerror "caption$(" + LTRIM$(STR$(indexer)) + ") overflow on " + cap$
+ fatalerror "caption$(" + STR$(indexer) + ") overflow on " + cap$
 ELSE
  caption$(indexer) = cap$
  indexer = indexer + 1
@@ -132,10 +132,10 @@ FOR i = 0 TO 7
 NEXT i
 
 FOR i = 0 TO 7
- atkbit$(i + 37) = "Cannot target enemy slot" + STR$(i)
+ atkbit$(i + 37) = "Cannot target enemy slot" + XSTR$(i)
 NEXT i
 FOR i = 0 TO 3
- atkbit$(i + 45) = "Cannot target hero slot" + STR$(i)
+ atkbit$(i + 45) = "Cannot target hero slot" + XSTR$(i)
 NEXT i
 
 atkbit$(49) = "Ignore attacker's extra hits"
@@ -888,7 +888,7 @@ DO
  
  standardmenu dispmenu$(), size, 22, pt, top, 0, 0, dpage, 0
  IF keyval(56) > 0 THEN 'holding ALT
-   tmp$ = readbadbinstring$(recbuf(), AtkDatName, 10, 1) + STR$(recindex)
+   tmp$ = readbadbinstring$(recbuf(), AtkDatName, 10, 1) + XSTR$(recindex)
    textcolor 15, 1
    printstr tmp$, 320 - LEN(tmp$) * 8, 0, dpage
  END IF
@@ -923,8 +923,8 @@ enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
 ''caption$(AtkCapDamageEq + 3) = "Pure Damage: " + caption$(AtkCapBaseAtk + recbuf(AtkDatBaseAtk))
 
 '--percentage damage shows target stat
-caption$(AtkCapDamageEq + 5) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " =" + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
-caption$(AtkCapDamageEq + 6) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " =" + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Current"
+caption$(AtkCapDamageEq + 5) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " =" + XSTR$(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
+caption$(AtkCapDamageEq + 6) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " =" + XSTR$(100 + recbuf(AtkDatExtraDamage)) + "% of Current"
 
 updateflexmenu pt, dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
 
@@ -1153,7 +1153,7 @@ SELECT CASE tag
  CASE -1
   result$ = negone$
  CASE ELSE
-  result$ = LTRIM$(STR$(ABS(tag))) + "=" + onoroff$(tag) + " (" + lmnemonic$(ABS(tag)) + ")"
+  result$ = STR$(ABS(tag)) + "=" + onoroff$(tag) + " (" + lmnemonic$(ABS(tag)) + ")"
 END SELECT
 
 tagstring$ = result$
@@ -1275,7 +1275,7 @@ SUB testflexmenu
 '  standardmenu showmenu$(), size(mode), 22, pt(mode), top(mode), 0, 0, dpage, 0
 '
 '  FOR i = 0 TO 19
-'    printstr STR$(dat(i)), i * 20, 180, dpage
+'    printstr XSTR$(dat(i)), i * 20, 180, dpage
 '  NEXT i
 '
 '  SWAP vpage, dpage
@@ -1322,7 +1322,7 @@ FOR i = 0 TO size
  nowmenu$(i) = menu$(nowdat(i))
  SELECT CASE menutype(nowdat(i))
   CASE 0 '--int
-   nowmenu$(i) = nowmenu$(i) + STR$(datablock(menuoff(nowdat(i))))
+   nowmenu$(i) = nowmenu$(i) + XSTR$(datablock(menuoff(nowdat(i))))
   CASE 2 '--set tag
    nowmenu$(i) = nowmenu$(i) + " " + tagstring(datablock(menuoff(nowdat(i))), "NONE", "(Tag 1 cannot be changed)", "(Tag 1 cannot be changed)")
   CASE 3 '--goodstring
@@ -1332,7 +1332,7 @@ FOR i = 0 TO size
    maxl = maxtable(menulimits(nowdat(i)))
    nowmenu$(i) = nowmenu$(i) + readbadbinstring$(datablock(), menuoff(nowdat(i)), maxl, 0)
   CASE 5 '--record index
-   nowmenu$(i) = CHR$(27) + nowmenu$(i) + STR$(recindex) + CHR$(26)
+   nowmenu$(i) = CHR$(27) + nowmenu$(i) + XSTR$(recindex) + CHR$(26)
   CASE 6 '--extrabadstring
    maxl = maxtable(menulimits(nowdat(i)))
    nowmenu$(i) = nowmenu$(i) + readbadbinstring$(datablock(), menuoff(nowdat(i)), maxl, 1)
@@ -1340,7 +1340,7 @@ FOR i = 0 TO size
    IF datablock(menuoff(nowdat(i))) <= 0 THEN
     nowmenu$(i) = nowmenu$(i) + " None"
    ELSE
-    nowmenu$(i) = nowmenu$(i) + STR$(datablock(menuoff(nowdat(i))) - 1)
+    nowmenu$(i) = nowmenu$(i) + XSTR$(datablock(menuoff(nowdat(i))) - 1)
     nowmenu$(i) = nowmenu$(i) + " " + readattackname$(datablock(menuoff(nowdat(i))) - 1)
    END IF
   CASE 8 '--item number
@@ -1349,7 +1349,7 @@ FOR i = 0 TO size
    IF datablock(menuoff(nowdat(i))) <= 0 THEN
     nowmenu$(i) = nowmenu$(i) + " None"
    ELSE
-    nowmenu$(i) = nowmenu$(i) + STR$(datablock(menuoff(nowdat(i))) - 1)
+    nowmenu$(i) = nowmenu$(i) + XSTR$(datablock(menuoff(nowdat(i))) - 1)
     nowmenu$(i) = nowmenu$(i) + " " + readenemyname$(datablock(menuoff(nowdat(i))) - 1)
    END IF
   CASE 10 '--item number, offset
@@ -1360,14 +1360,14 @@ FOR i = 0 TO size
     END IF
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
-   nowmenu$(i) = nowmenu$(i) + STR$(datablock(menuoff(nowdat(i)))) + " " + caption$(capnum + datablock(menuoff(nowdat(i))))
+   nowmenu$(i) = nowmenu$(i) + XSTR$(datablock(menuoff(nowdat(i)))) + " " + caption$(capnum + datablock(menuoff(nowdat(i))))
   CASE 2000 TO 2999 '--caption-only int
    capnum = menutype(nowdat(i)) - 2000
    nowmenu$(i) = nowmenu$(i) + " " + caption$(capnum + datablock(menuoff(nowdat(i))))
   CASE 3000 TO 3999 '--multistate
    capnum = menutype(nowdat(i)) - 3000
    IF datablock(menuoff(nowdat(i))) > 0 THEN
-    nowmenu$(i) = nowmenu$(i) + STR$(datablock(menuoff(nowdat(i)))) + " " + caption$(capnum - 1)
+    nowmenu$(i) = nowmenu$(i) + XSTR$(datablock(menuoff(nowdat(i)))) + " " + caption$(capnum - 1)
    ELSE
     nowmenu$(i) = nowmenu$(i) + " " + caption$(capnum + ABS(datablock(menuoff(nowdat(i)))))
    END IF

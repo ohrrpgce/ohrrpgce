@@ -219,8 +219,8 @@ FOR i = 0 TO 1
 NEXT i
 IF gotj(i) = 0 THEN RETURN
 
-'edgeprint STR$(i) + STR$(gotj(i)) + STR$(joy(0)) + STR$(joy(1)) + STR$(joy(2)) + STR$(joy(3)) + STR$(carray(4)) + STR$(carray(5)), 0, 170, 14, 0
-'edgeprint STR$(i) + STR$(gotj(i)) + STR$(joy(0)) + STR$(joy(1)) + STR$(joy(2)) + STR$(joy(3)) + STR$(carray(4)) + STR$(carray(5)), 0, 170, 14, 1
+'edgeprint XSTR$(i) + XSTR$(gotj(i)) + XSTR$(joy(0)) + XSTR$(joy(1)) + XSTR$(joy(2)) + XSTR$(joy(3)) + XSTR$(carray(4)) + XSTR$(carray(5)), 0, 170, 14, 0
+'edgeprint XSTR$(i) + XSTR$(gotj(i)) + XSTR$(joy(0)) + XSTR$(joy(1)) + XSTR$(joy(2)) + XSTR$(joy(3)) + XSTR$(carray(4)) + XSTR$(carray(5)), 0, 170, 14, 1
 
 IF joy(1) < joy(9) THEN
  carray(0) = 3
@@ -247,8 +247,8 @@ IF joy(0) > joy(12) THEN
  IF carray(13) = 1 THEN carray(3) = 2
 END IF
 '--Joystick buttons!
-'edgeprint STR$(joyuse) + STR$(joymenu) + STR$(joy(13)) + STR$(joy(14)), 0, 190, 15, 0
-'edgeprint STR$(joyuse) + STR$(joymenu) + STR$(joy(13)) + STR$(joy(14)), 0, 190, 15, 1
+'edgeprint XSTR$(joyuse) + XSTR$(joymenu) + XSTR$(joy(13)) + XSTR$(joy(14)), 0, 190, 15, 0
+'edgeprint XSTR$(joyuse) + XSTR$(joymenu) + XSTR$(joy(13)) + XSTR$(joy(14)), 0, 190, 15, 1
 SELECT CASE joyuse
  CASE 0
   'IF joy(joy(13)) = 0 THEN joyuse = 1
@@ -613,7 +613,7 @@ Function GetWeaponPos(w,f,isY)'or x?
  IF w >= 0 THEN
   fh = FREEFILE
   OPEN game$ + ".ITM" FOR BINARY AS #fh
-  'debug "weapon" + str$(w) + " offset: " + str$(w * 200 + 157 + f * 4 + isY * 2)
+  'debug "weapon" + XSTR$(w) + " offset: " + XSTR$(w * 200 + 157 + f * 4 + isY * 2)
   GetWeaponPos = ReadShort(fh,w * 200 + 157 + f * 4 + isY * 2)
   CLOSE #FH
  END IF
@@ -623,7 +623,7 @@ Function GetHeroPos(h,f,isY)'or x?
  dim fh
  fh = FREEFILE
  OPEN game$ + ".DT0" FOR BINARY AS #fh
- 'debug "hero offset: " + str$(h * 636 + 595 + f * 4 + isY * 2)
+ 'debug "hero offset: " + XSTR$(h * 636 + 595 + f * 4 + isY * 2)
  GetHeroPos = ReadShort(fh,h * 636 + 595 + f * 4 + isY * 2)
  CLOSE #FH
 End Function
@@ -910,7 +910,7 @@ IF atk(5) <> 4 THEN
   IF readbit(atk(), 20, 2) THEN
    '--drain
    IF readbit(atk(), 20, 56) = 0 THEN
-    harm$(w) = RIGHT$(STR$(h), LEN(STR$(h)) - 1)
+    harm$(w) = STR$(ABS(h))
     IF h > 0 THEN harm$(w) = "+" + harm$(w)
    END IF
    hc(w) = 7
@@ -937,7 +937,7 @@ IF atk(5) <> 4 THEN
 
  'set damage display
  IF readbit(atk(), 20, 56) = 0 THEN
-  harm$(t) = RIGHT$(STR$(h), LEN(STR$(h)) - 1)
+  harm$(t) = STR$(ABS(h))
   '--if cure, show + sign
   IF h < 0 THEN harm$(t) = "+" + harm$(t)
  END IF
@@ -951,7 +951,7 @@ IF atk(5) <> 4 THEN
  END IF
 
 END IF 'skips to here if no damage
-'debug(readbadbinstring$(atk(), 24, 10, 1) + " - " + str$(targstat))
+'debug(readbadbinstring$(atk(), 24, 10, 1) + " - " + XSTR$(targstat))
 'name
 IF readbit(atk(), 20, 55) = 1 THEN
  IF LEN(harm$(t)) > 0 THEN harm$(t) = harm$(t) + " "

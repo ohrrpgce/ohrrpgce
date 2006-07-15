@@ -470,7 +470,7 @@ DO
      IF buffer(0) = 21320 AND buffer(1) = 0 THEN
       copyfile f$ + CHR$(0), game$ + ".hsp" + CHR$(0), buffer()
       GOSUB maknamlst
-      edgeprint "imported" + STR$(viscount) + " scripts", 0, 180, 15, vpage
+      edgeprint "imported" + XSTR$(viscount) + " scripts", 0, 180, 15, vpage
      ELSE
       texty = 0
       printstr f$, 0, texty * 8, vpage: texty = texty + 1
@@ -543,7 +543,7 @@ RETURN
 END SUB
 
 FUNCTION scriptname$ (num, f$)
-a$ = LTRIM$(STR$(num))
+a$ = STR$(num)
 IF num THEN
  setpicstuf buffer(), 40, -1
  FOR i = 0 TO general(40) - 1
@@ -613,11 +613,11 @@ names$(6) = "Dodge Rate"
 names$(7) = "Counter Rate"
 names$(8) = "Speed"
 FOR i = 1 TO 8
- names$(8 + i) = "Enemy Type" + STR$(i)
- names$(16 + i) = "Elemental" + STR$(i)
+ names$(8 + i) = "Enemy Type" + XSTR$(i)
+ names$(16 + i) = "Elemental" + XSTR$(i)
 NEXT i
 FOR i = 1 TO 4
- names$(24 + i) = "Armor" + STR$(i)
+ names$(24 + i) = "Armor" + XSTR$(i)
 NEXT i
 names$(29) = "Spell Skill"
 names$(30) = "Spell Block"
@@ -953,7 +953,7 @@ DO
  END IF
  textcolor 7, 0
  IF csr = 1 THEN textcolor 14 + tog, 0
- printstr STR$(pt), 64, 8, dpage
+ printstr XSTR$(pt), 64, 8, dpage
  m$(7) = "Text Search:" + search$
  
  standardmenu m$(), 7, 7, csr, 0, 0, 0, dpage, 0
@@ -980,13 +980,13 @@ SELECT CASE cond(11)
   m$(6) = "Next: None Selected"
  CASE -1
   IF cond(12) >= 0 THEN
-   m$(6) = "Next: Box" + STR$(cond(12))
+   m$(6) = "Next: Box" + XSTR$(cond(12))
   ELSE
    m$(6) = "Next: script " + scriptname$(ABS(cond(12)), "plotscr.lst")
   END IF
  CASE ELSE
   IF cond(12) >= 0 THEN
-   m$(6) = "Next: Box" + STR$(cond(12)) + " (conditional)"
+   m$(6) = "Next: Box" + XSTR$(cond(12)) + " (conditional)"
   ELSE
    m$(6) = "Next: script " + scriptname$(ABS(cond(12)), "plotscr.lst") + " (conditional)"
   END IF
@@ -1052,18 +1052,18 @@ SELECT CASE cond(1)
  CASE IS < 0
   menu$(1) = " run " + scriptname$(cond(1) * -1, "plotscr.lst") + " instead"
  CASE IS > 0
-  menu$(1) = " jump to text box" + STR$(cond(1)) + " instead"
+  menu$(1) = " jump to text box" + XSTR$(cond(1)) + " instead"
 END SELECT
 n = 2: GOSUB txttag
 FOR i = 3 TO 4
- menu$(i) = " set tag" + STR$(ABS(cond(i))) + " = " + onoroff$(cond(i)) + " (" + lmnemonic$(ABS(cond(i))) + ")"
+ menu$(i) = " set tag" + XSTR$(ABS(cond(i))) + " = " + onoroff$(cond(i)) + " (" + lmnemonic$(ABS(cond(i))) + ")"
  IF ABS(cond(i)) <= 1 THEN menu$(i) = LEFT$(menu$(i), LEN(menu$(i)) - 2) + "[unchangeable]"
 NEXT i
 n = 5: GOSUB txttag
-menu$(6) = " fight enemy formation" + STR$(cond(6))
+menu$(6) = " fight enemy formation" + XSTR$(cond(6))
 n = 7: GOSUB txttag
-IF cond(8) > 0 THEN menu$(8) = " go to shop" + STR$(cond(8)) + " " + shop$
-IF cond(8) < 0 THEN menu$(8) = " go to an Inn that costs" + STR$(ABS(cond(8))) + "$"
+IF cond(8) > 0 THEN menu$(8) = " go to shop" + XSTR$(cond(8)) + " " + shop$
+IF cond(8) < 0 THEN menu$(8) = " go to an Inn that costs" + XSTR$(ABS(cond(8))) + "$"
 IF cond(8) = 0 THEN menu$(8) = " restore Hp and Mp [select shop here]"
 n = 9: GOSUB txttag
 IF cond(10) = 0 THEN menu$(10) = " do not add/remove heros"
@@ -1082,16 +1082,16 @@ SELECT CASE cond(12)
  CASE IS < 0
   menu$(12) = " run " + scriptname$(cond(12) * -1, "plotscr.lst") + " next"
  CASE IS > 0
-  menu$(12) = " jump to text box" + STR$(cond(12)) + " next"
+  menu$(12) = " jump to text box" + XSTR$(cond(12)) + " next"
 END SELECT
 n = 13: GOSUB txttag
 IF cond(14) < 0 THEN
- menu$(14) = " lose" + STR$(ABS(cond(14))) + "$"
+ menu$(14) = " lose" + XSTR$(ABS(cond(14))) + "$"
 ELSE
- menu$(14) = " gain" + STR$(ABS(cond(14))) + "$"
+ menu$(14) = " gain" + XSTR$(ABS(cond(14))) + "$"
 END IF
 n = 15: GOSUB txttag
-menu$(16) = " instantly use door" + STR$(cond(16))
+menu$(16) = " instantly use door" + XSTR$(cond(16))
 n = 17: GOSUB txttag
 IF cond(18) = 0 THEN menu$(18) = " do not add/remove items"
 IF cond(18) > 0 THEN menu$(18) = " add one" + item$
@@ -1099,7 +1099,7 @@ IF cond(18) < 0 THEN menu$(18) = " remove one" + item$
 RETURN
 
 txttag:
-menu$(n) = "If tag" + STR$(ABS(cond(n))) + " = " + onoroff$(cond(n)) + " (" + lmnemonic$(ABS(cond(n))) + ")"
+menu$(n) = "If tag" + XSTR$(ABS(cond(n))) + " = " + onoroff$(cond(n)) + " (" + lmnemonic$(ABS(cond(n))) + ")"
 IF cond(n) = 0 THEN menu$(n) = "Never do the following"
 IF cond(n) = 1 THEN menu$(n) = LEFT$(menu$(n), LEN(menu$(n)) - 2) + "[Never]"
 IF cond(n) = -1 THEN menu$(n) = "Always do the following"
@@ -1138,9 +1138,9 @@ LOOP
 tcmenu:
 IF readbit(buffer(), 174, 0) THEN menu$(1) = "Choice = Enabled" ELSE menu$(1) = "Choice = Disabled"
 FOR i = 0 TO 1
- menu$(2 + (i * 2)) = "Option" + STR$(i) + " text:" + choice$(i)
+ menu$(2 + (i * 2)) = "Option" + XSTR$(i) + " text:" + choice$(i)
  IF buffer(182 + (i * 9)) THEN
-  menu$(3 + (i * 2)) = "Set tag" + STR$(ABS(buffer(182 + (i * 9)))) + " = " + onoroff$(buffer(182 + (i * 9))) + " (" + lmnemonic$(ABS(buffer(182 + (i * 9)))) + ")"
+  menu$(3 + (i * 2)) = "Set tag" + XSTR$(ABS(buffer(182 + (i * 9)))) + " = " + onoroff$(buffer(182 + (i * 9))) + " (" + lmnemonic$(ABS(buffer(182 + (i * 9)))) + ")"
  ELSE
   menu$(3 + (i * 2)) = "Set tag 0 (none)"
  END IF
@@ -1197,7 +1197,7 @@ DO
  textcolor 10, 0
  printstr "-", 0, 8 + y * 10, dpage
  textcolor 15, 0
- printstr "Text Box" + STR$(pt), 0, 100, dpage
+ printstr "Text Box" + XSTR$(pt), 0, 100, dpage
  printstr "${C0} = Leader's name", 0, 120, dpage
  printstr "${C#} = Hero name at caterpillar slot #", 0, 128, dpage
  printstr "${P#} = Hero name at party slot #", 0, 136, dpage
@@ -1255,11 +1255,11 @@ DO
   col = 7: IF i = gcsr THEN col = 14 + tog
   temp$ = menu$(i)
   IF i > 0 AND i <= 4 THEN
-   temp$ = temp$ + STR$(buffer(192 + i))
+   temp$ = temp$ + XSTR$(buffer(192 + i))
   END IF
   IF i >= 5 AND i <= 6 THEN '-- backdrop and songs have "none" as an option
    IF buffer(192 + i) THEN
-    temp$ = menu$(i) + STR$(buffer(192 + i) - 1)
+    temp$ = menu$(i) + XSTR$(buffer(192 + i) - 1)
     IF i = 6 THEN
      temp$ = temp$ + " " + getsongname$(buffer(192 + i) - 1)
     END IF
@@ -1452,7 +1452,7 @@ SUB writeconstant (filehandle, num, names$, unique$(), prefix$)
 a$ = exclusive(names$, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _'~")
 WHILE NOT isunique(a$, unique$(), 0): a$ = numbertail(a$): WEND
 IF a$ <> "" THEN
- a$ = LTRIM$(STR$(num)) + "," + prefix$ + ":" + a$
+ a$ = STR$(num) + "," + prefix$ + ":" + a$
  PRINT #filehandle, a$
 END IF
 END SUB

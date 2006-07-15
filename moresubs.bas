@@ -295,7 +295,7 @@ DO
  END IF
  edgeprint "Calibrate Joystick", 88, 8, uilook(uiText), dpage
  edgeprint state$, 160 - 4 * LEN(state$), 174, uilook(uiSelectedItem + tog), dpage
- jpos$ = "X=" + LTRIM$(STR$(joy(0))) + " Y=" + LTRIM$(STR$(joy(1)))
+ jpos$ = "X=" + STR$(joy(0)) + " Y=" + STR$(joy(1))
  edgeprint jpos$, 160 - 4 * LEN(jpos$), 184, uilook(uiSelectedItem + tog), dpage
  SWAP vpage, dpage
  setvispage vpage
@@ -311,7 +311,7 @@ consumeitem = 0
 lb = (item(index) AND 255)
 hb = INT(item(index) / 256) - 1
 item(index) = lb + (hb * 256)
-item$(index) = LEFT$(item$(index), 9) + RIGHT$(STR$(hb), 2)
+item$(index) = LEFT$(item$(index), 9) + RIGHT$(XSTR$(hb), 2)
 IF hb = 0 THEN item(index) = 0: item$(index) = "           ": consumeitem = -1
 END FUNCTION
 
@@ -798,10 +798,10 @@ STATIC clip
 IF keyval(more) > 1 THEN n = loopvar(n, min, max, 1): EXIT SUB
 IF keyval(less) > 1 THEN n = loopvar(n, min, max, -1): EXIT SUB
 s = SGN(n)
-n$ = RIGHT$(STR$(n), LEN(STR$(n)) - 1)
+n$ = STR$(ABS(n))
 IF keyval(14) > 1 AND LEN(n$) > 0 THEN n$ = LEFT$(n$, LEN(n$) - 1)
 FOR i = 1 TO 9
- IF keyval(i + 1) > 1 THEN n$ = n$ + RIGHT$(STR$(i), LEN(STR$(i)) - 1)
+ IF keyval(i + 1) > 1 THEN n$ = n$ + STR$(ABS(i))
 NEXT i
 IF keyval(11) > 1 THEN n$ = n$ + "0"
 IF min < 0 THEN IF keyval(12) > 1 OR keyval(13) > 1 OR keyval(74) > 1 OR keyval(78) > 1 THEN s = s * -1
@@ -1204,7 +1204,7 @@ SELECT CASE id
  CASE 0 TO 1024 'global variable
   readscriptvar = global(id)
  CASE ELSE
-  scripterr "Cannot read global" + STR$(id) + ". out of range"
+  scripterr "Cannot read global" + XSTR$(id) + ". out of range"
 END SELECT
 
 END FUNCTION
@@ -1222,7 +1222,7 @@ IF remember THEN
  
  SerNPCL npc(),0,buffer(),300
 END IF
-'xbload maplumpname$(map, "l"), npcl(), "Oh No! Map" + LTRIM$(STR$(map)) + " NPC locations are missing"
+'xbload maplumpname$(map, "l"), npcl(), "Oh No! Map" + STR$(map) + " NPC locations are missing"
 LoadNPCL maplumpname$(map, "l"), npc(), 300
 IF remember THEN
 '  FOR i = 0 TO 299
@@ -1434,14 +1434,14 @@ runscript = 1 ' --sucess by default...
 IF index > 127 THEN
  scripterr "interpreter overloaded"
  runscript = 0 '--error
- scripterr "failed to load " + er$ + " script" + STR$(n)
+ scripterr "failed to load " + er$ + " script" + XSTR$(n)
  EXIT FUNCTION
 END IF
 
 IF newcall AND index > 0 THEN
  IF n = scrat(index - 1, scrid) AND readbit(gen(), 101, 10) = 0 THEN
   'fail quietly
-  '--scripterr "script" + STR$(n) + " is already running"
+  '--scripterr "script" + XSTR$(n) + " is already running"
   runscript = 2 '--quiet failure
   EXIT FUNCTION
  END IF
@@ -1480,11 +1480,11 @@ IF loadinstead <> -1 THEN
  END IF
 ELSE
  '--load the script from file
- IF isfile(workingdir$ + SLASH + LTRIM$(STR$(n)) + ".hsx" + CHR$(0)) THEN
+ IF isfile(workingdir$ + SLASH + STR$(n) + ".hsx" + CHR$(0)) THEN
   fbdim temp
 	
   f = FREEFILE
-  OPEN workingdir$ + SLASH + LTRIM$(STR$(n)) + ".hsx" FOR BINARY AS #f
+  OPEN workingdir$ + SLASH + STR$(n) + ".hsx" FOR BINARY AS #f
   GET #f, 1, temp
   skip = temp
   GET #f, 3, temp
@@ -1500,7 +1500,7 @@ ELSE
    scripterr "Script buffer overflow"
    CLOSE #f
    runscript = 0'--error
-   scripterr "failed to load " + er$ + " script" + STR$(n)
+   scripterr "failed to load " + er$ + " script" + XSTR$(n)
    EXIT FUNCTION
   END IF
   scrat(index, scroff) = nextscroff
@@ -1523,7 +1523,7 @@ ELSE
    IF nextscroff > scrat(i, scroff) THEN scrat(i, scrid) = -1 ELSE EXIT FOR
   NEXT i
  ELSE
-  scripterr "failed to unlump " + LTRIM$(STR$(n)) + ".hsx"
+  scripterr "failed to unlump " + STR$(n) + ".hsx"
  END IF
 END IF
 
@@ -1532,7 +1532,7 @@ scrat(index + 1, scrheap) = scrat(index, scrheap) + (scrat(index, scrvars) + 1)
 IF scrat(index + 1, scrheap) > 2048 THEN
  scripterr "Script heap overflow"
  runscript = 0'--error
- scripterr "failed to load " + er$ + " script" + STR$(n)
+ scripterr "failed to load " + er$ + " script" + XSTR$(n)
  EXIT FUNCTION
 END IF
 
@@ -1569,7 +1569,7 @@ buffer(6) = 0    'was leader
 buffer(7) = mapx
 buffer(8) = mapy
 
-temp$ = STR$(gold&)
+temp$ = XSTR$(gold&)
 FOR i = 0 TO 24
  IF i < LEN(temp$) THEN
   IF MID$(temp$, i + 1, 1) <> "" THEN buffer(i + 9) = ASC(MID$(temp$, i + 1, 1))
@@ -1629,7 +1629,7 @@ FOR i = 0 TO 40
 NEXT i
 FOR i = 0 TO 40
  FOR o = 0 TO 1
-  temp$ = STR$(exlev&(i, o))
+  temp$ = XSTR$(exlev&(i, o))
   FOR j = 0 TO 25
    IF j < LEN(temp$) THEN
     IF MID$(temp$, j + 1, 1) <> "" THEN buffer(z) = ASC(MID$(temp$, j + 1, 1))
@@ -1993,13 +1993,13 @@ DO
   IF hero(i) > 0 THEN
    col = uilook(uiText)
    edgeprint names$(i), 128 - LEN(names$(i)) * 8, 5 + i * 10, col, dpage
-   edgeprint RIGHT$(STR$(stat(i, 0, 0)), LEN(STR$(stat(i, 0, 0))) - 1) + "/" + RIGHT$(STR$(stat(i, 1, 0)), LEN(STR$(stat(i, 1, 0))) - 1), 136, 5 + i * 10, col, dpage
+   edgeprint STR$(ABS(stat(i, 0, 0))) + "/" + STR$(ABS(stat(i, 1, 0))), 136, 5 + i * 10, col, dpage
   END IF
  NEXT i
  centerfuz 160, 90, 200, 60, 1, dpage
  rectangle 130, 92, 60, 22, uilook(uiHighlight), dpage 'orig colour 20
- edgeprint inncost$ + STR$(price) + " " + sname$(32), 160 - LEN(inncost$ + STR$(price) + " " + sname$(32)) * 4, 70, uilook(uiText), dpage
- edgeprint youhave$ + STR$(gold&) + " " + sname$(32), 160 - LEN(youhave$ + STR$(gold&) + " " + sname$(32)) * 4, 80, uilook(uiText), dpage
+ edgeprint inncost$ + XSTR$(price) + " " + sname$(32), 160 - LEN(inncost$ + XSTR$(price) + " " + sname$(32)) * 4, 70, uilook(uiText), dpage
+ edgeprint youhave$ + XSTR$(gold&) + " " + sname$(32), 160 - LEN(youhave$ + XSTR$(gold&) + " " + sname$(32)) * 4, 80, uilook(uiText), dpage
  FOR i = 0 TO 1
   col = uilook(uiMenuItem): IF inn = i THEN col = uilook(uiSelectedItem + tog)
   edgeprint menu$(i), 160 - LEN(menu$(i)) * 4, 94 + i * 8, col, dpage
@@ -2028,8 +2028,7 @@ pre$ = LEFT$(pre$, LEN(a$) + 6)
 n = 0
 
 DO
- n$ = RIGHT$(STR$(n), LEN(STR$(n)) - 1)
- shot$ = pre$ + n$ + ".bmp"
+ shot$ = pre$ + STR$(ABS(n)) + ".bmp"
  IF isfile(shot$ + CHR$(0)) = 0 THEN EXIT DO
  n = n + 1
 LOOP UNTIL n > 99
@@ -2075,7 +2074,7 @@ top = bound(top, pt - 4, pt)
 setpicstuf buf(), 42, -1
 fuzzyrect 0, 0, 208, 50, uilook(uiOutline), dpage
 FOR i = top TO top + 4
- temp$ = STR$(i) + " "
+ temp$ = XSTR$(i) + " "
  buf(0) = 0
  SELECT CASE i
   CASE 0, 1
@@ -2124,12 +2123,12 @@ SUB writejoysettings
 fh = FREEFILE
 OPEN exepath$ + SLASH + "joyset.ini" FOR OUTPUT AS #fh
 PRINT #fh, "#Joystick/gamepad configuration"
-PRINT #fh, "UPTHRESH=" + LTRIM$(STR$(joy(9)))
-PRINT #fh, "DOWNTHRESH=" + LTRIM$(STR$(joy(10)))
-PRINT #fh, "LEFTTHRESH=" + LTRIM$(STR$(joy(11)))
-PRINT #fh, "RIGHTTHRESH=" + LTRIM$(STR$(joy(12)))
-PRINT #fh, "USEBUTTON=" + LTRIM$(STR$(joy(13) - 2))
-PRINT #fh, "MENUBUTTON=" + LTRIM$(STR$(joy(14 - 2)))
+PRINT #fh, "UPTHRESH=" + STR$(joy(9))
+PRINT #fh, "DOWNTHRESH=" + STR$(joy(10))
+PRINT #fh, "LEFTTHRESH=" + STR$(joy(11))
+PRINT #fh, "RIGHTTHRESH=" + STR$(joy(12))
+PRINT #fh, "USEBUTTON=" + STR$(joy(13) - 2)
+PRINT #fh, "MENUBUTTON=" + STR$(joy(14 - 2))
 CLOSE #fh
 END SUB
 
@@ -2141,7 +2140,7 @@ SELECT CASE id
  CASE 0 TO 1024 'global variable
   global(id) = newval
  CASE ELSE
-  scripterr "Cannot write global" + STR$(id) + ". out of range"
+  scripterr "Cannot write global" + XSTR$(id) + ". out of range"
 END SELECT
 
 END SUB

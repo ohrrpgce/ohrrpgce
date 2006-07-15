@@ -282,7 +282,7 @@ END IF
 IF (stackpos - bstackstart) \ 2 < 0 THEN
  '--and underflow is bad. it means that whatever script was on
  '--the top of the stack has been corrupted.
- fatalerror "bstack underflow" + STR$(stackpos) + STR$(bstackstart)
+ fatalerror "bstack underflow" + XSTR$(stackpos) + XSTR$(bstackstart)
 END IF
 
 fademusic 0
@@ -415,11 +415,11 @@ IF carray(4) > 1 THEN
     speld$(i) = readbinstring$(atktemp(), 73, 38)
     IF st(you, 288 + sptype) = 0 THEN
      '--regular MP
-     cost$(i) = STR$(focuscost(atktemp(8), stat(you, 0, 10))) + " " + mpname$ + " " + LTRIM$(STR$(stat(you, 0, 1))) + "/" + LTRIM$(STR$(stat(you, 1, 1)))
+     cost$(i) = XSTR$(focuscost(atktemp(8), stat(you, 0, 10))) + " " + mpname$ + " " + STR$(stat(you, 0, 1)) + "/" + STR$(stat(you, 1, 1))
     END IF
     IF st(you, 288 + sptype) = 1 THEN
      '--level MP
-     cost$(i) = "Level" + STR$(INT(i / 3) + 1) + ":  " + STR$(lmp(you, INT(i / 3)))
+     cost$(i) = "Level" + XSTR$(INT(i / 3) + 1) + ":  " + XSTR$(lmp(you, INT(i / 3)))
     END IF
     IF atkallowed(spel(i), you, st(you, 288 + sptype), INT(i / 3), stat(), atktemp()) THEN
      setbit spelmask(), 0, i, 1
@@ -916,7 +916,7 @@ IF atk(37) AND atk(36) >= 0 THEN
    battlecaptime = atk(36) + atk(57)
  END SELECT
 END IF
-'DEBUG debug "stackpos =" + STR$((stackpos - bstackstart) \ 2)
+'DEBUG debug "stackpos =" + XSTR$((stackpos - bstackstart) \ 2)
 invertstack
 '--aset indicates that animation is set and that we should proceed to "action"
 aset = 1
@@ -965,30 +965,30 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    ym(ww) = popw
    mvx(ww) = popw
    mvy(ww) = popw
-   'DEBUG debug "~ setmovement" + STR$(w) + STR$(xm(w)) + STR$(ym(w)) + STR$(mvx(w)) + STR$(mvy(w))
+   'DEBUG debug "~ setmovement" + XSTR$(w) + XSTR$(xm(w)) + XSTR$(ym(w)) + XSTR$(mvx(w)) + XSTR$(mvy(w))
   CASE 3 'setposition(who,x,y,d)
    ww = popw
    x(ww) = popw
    y(ww) = popw
    d(ww) = popw
-   'DEBUG debug "~ setposition" + STR$(w) + STR$(x(w)) + STR$(y(w)) + STR$(d(w))
+   'DEBUG debug "~ setposition" + XSTR$(w) + XSTR$(x(w)) + XSTR$(y(w)) + XSTR$(d(w))
   CASE 4 '???()
    '--undefined
    'DEBUG debug "~ undefined4"
   CASE 5 'appear(who)
    ww = popw
    v(ww) = 1
-   'DEBUG debug "~ appear" + STR$(w)
+   'DEBUG debug "~ appear" + XSTR$(w)
   CASE 6 'disappear(who)
    ww = popw
    v(ww) = 0
-   'DEBUG debug "~ disappear" + STR$(w)
+   'DEBUG debug "~ disappear" + XSTR$(w)
   CASE 7 'setframe(who,frame)
    ww = popw
    fr = popw
    IF ww < 4 THEN walk(ww) = 0: of(ww) = fr
    IF ww > 23 THEN of(ww) = fr '--is this right?
-   'DEBUG debug "~ setframe" + STR$(w) + STR$(fr)
+   'DEBUG debug "~ setframe" + XSTR$(w) + XSTR$(fr)
   CASE 8 'relmovement(who,n,n,n,n)
    ww = popw
    tmp1 = popw
@@ -999,7 +999,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    mvy(ww) = (tmp2 - y(ww)) / tmp4
    xm(ww) = tmp3
    ym(ww) = tmp4
-   'DEBUG debug "~ relmovement" + STR$(w) + STR$(tmp1) + STR$(tmp2) + STR$(tmp3) + STR$(tmp4)
+   'DEBUG debug "~ relmovement" + XSTR$(w) + XSTR$(tmp1) + XSTR$(tmp2) + XSTR$(tmp3) + XSTR$(tmp4)
   CASE 9 'waitforall()
    wf = -1
    'DEBUG debug "~ waitforall"
@@ -1008,7 +1008,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    'set tag, if there is one
    checkTagCond atk(60), 1, atk(59), atk(61)
    checkTagCond atk(63), 1, atk(62), atk(64)
-   'DEBUG debug "~ inflict on " + STR$(targ) + " by " + str$(who)
+   'DEBUG debug "~ inflict on " + XSTR$(targ) + " by " + XSTR$(who)
    IF inflict(who, targ, stat(), x(), y(), w(), h(), harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
     '--attack succeeded
 	IF readbit(atk(), 20, 50) = 1 THEN
@@ -1073,7 +1073,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     hx(who) = x(who) + (w(who) * .5)
     hy(who) = y(who) + (h(who) * .5)
     temp = large(range(atk(9), 50), 1)
-    harm$(who) = RIGHT$(STR$(temp), LEN(STR$(temp)) - 1)
+    harm$(who) = STR$(ABS(temp))
     stat(who, 0, 0) = large(stat(who, 0, 0) - temp, 0)
     IF stat(who, 0, 0) <= 0 THEN
      tdwho = who
@@ -1087,7 +1087,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     hy(who) = y(who) + (h(who) * .5)
     temp = large(range(ABS(atk(10)), 50), 1)
     temp = temp * SGN(atk(10))
-    harm$(who) = RIGHT$(STR$(temp), LEN(STR$(temp)) - 1) + "$"
+    harm$(who) = STR$(ABS(temp)) + "$"
     IF atk(10) < 0 THEN harm$(who) = "+" + harm$(who)
     gold& = gold& - temp
     IF gold& > 1000000000 THEN gold& = 1000000000
@@ -1112,30 +1112,30 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
   CASE 11 'setz(who,z)
    ww = popw
    z(ww) = popw
-   'DEBUG debug "~ setz" + STR$(w) + STR$(z(w))
+   'DEBUG debug "~ setz" + XSTR$(w) + XSTR$(z(w))
   CASE 12 '???(n,n,n,n,n)
    'unimplemented
    'DEBUG debug "~ unimplemented12"
   CASE 13 'waitfor(ticks)
    wf = popw
-   'DEBUG debug "~ waitfor" + STR$(wf)
+   'DEBUG debug "~ waitfor" + XSTR$(wf)
   CASE 14 'walktoggle(who)
    ww = popw
    of(ww) = 0
    IF ww < 4 THEN walk(ww) = walk(ww) XOR 1
-   'DEBUG debug "~ walktoggle" + STR$(ww)
+   'DEBUG debug "~ walktoggle" + XSTR$(ww)
   CASE 15 'zmovement(who,zm,zstep)
    ww = popw
    zm(ww) = popw
    mvz(ww) = popw
-   'DEBUG debug "~ zmovement" + STR$(w) + STR$(zm(w)) + STR$(mvz(w))
+   'DEBUG debug "~ zmovement" + XSTR$(w) + XSTR$(zm(w)) + XSTR$(mvz(w))
  END SELECT
 LOOP UNTIL wf <> 0 OR anim = -1
 
 IF anim = -1 THEN
  GOSUB afterdone
  '--clean up stack
- 'DEBUG debug "discarding" + STR$((stackpos - bstackstart) \ 2) + " from stack"
+ 'DEBUG debug "discarding" + XSTR$((stackpos - bstackstart) \ 2) + " from stack"
  WHILE stackpos > bstackstart: dummy = popw: WEND
  '-------Spawn a Chained Attack--------
  IF atk(12) > 0 AND INT(RND * 100) < atk(13) AND stat(who, 0, 0) > 0 THEN
@@ -1659,7 +1659,7 @@ lb = (item(icons(who)) AND 255)
 hb = INT(item(icons(who)) / 256)
 hb = large(hb - 1, 0)
 item(icons(who)) = lb + (hb * 256)
-item$(icons(who)) = LEFT$(item$(icons(who)), 9) + RIGHT$(STR$(hb), 2)
+item$(icons(who)) = LEFT$(item$(icons(who)), 9) + RIGHT$(XSTR$(hb), 2)
 IF hb = 0 THEN item(icons(who)) = 0: item$(icons(who)) = "           ": setbit iuse(), 0, icons(who), 0
 icons(who) = -1
 RETURN
@@ -1697,7 +1697,7 @@ IF vdance = 0 THEN 'only display interface till you win
    col = uilook(uiMenuItem): IF i = you THEN col = uilook(uiSelectedItem + tog)
    edgeprint batname$(i), 128 - LEN(batname$(i)) * 8, 5 + i * 10, col, dpage
    '--hp--
-   edgeprint LTRIM$(STR$(stat(i, 0, 0))) + "/" + LTRIM$(STR$(stat(i, 1, 0))), 136, 5 + i * 10, col, dpage
+   edgeprint STR$(stat(i, 0, 0)) + "/" + STR$(stat(i, 1, 0)), 136, 5 + i * 10, col, dpage
    'poison indicator
    IF (stat(i, 1, 12) - stat(i, 0, 12)) > 0 THEN
     edgeprint CHR$(gen(genPoison)), 209, 5 + i * 10, col, dpage
@@ -1902,8 +1902,8 @@ seestuff:
 FOR i = 0 TO 11
  c = 12: IF i < 4 THEN c = uilook(uiDescription)
  rectangle 0, 80 + (i * 10), ctr(i) / 10, 4, c, dpage
- IF i >= 4 THEN edgeprint STR$(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
- edgeprint STR$(v(i)) + ":v" + STR$(delay(i)) + ":dly" + STR$(tmask(i)) + ":tm", 20, 80 + i * 10, c, dpage
+ IF i >= 4 THEN edgeprint XSTR$(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
+ edgeprint XSTR$(v(i)) + ":v" + XSTR$(delay(i)) + ":dly" + XSTR$(tmask(i)) + ":tm", 20, 80 + i * 10, c, dpage
 NEXT i
 RETURN
 
@@ -2093,7 +2093,7 @@ IF vdance = 2 THEN
     edgeprint temp$, xstring(temp$, 160), 12 + i * 10, uilook(uiText), dpage
     o = 1
    CASE IS > 1
-    temp$ = LTRIM$(STR$(exstat(i, 1, 12))) + " " + levelXup$ + " " + batname$(i)
+    temp$ = STR$(exstat(i, 1, 12)) + " " + levelXup$ + " " + batname$(i)
     edgeprint temp$, xstring(temp$, 160), 12 + i * 10, uilook(uiText), dpage
     o = 1
   END SELECT
@@ -2107,11 +2107,11 @@ IF vdance = 1 THEN
  END IF
  IF plunder& > 0 OR exper& > 0 THEN drawvicbox = 1: centerfuz 160, 30, 280, 50, 1, dpage
  IF plunder& > 0 THEN
-  temp$ = goldcap$ + STR$(plunder&) + " " + goldname$ + "!"
+  temp$ = goldcap$ + XSTR$(plunder&) + " " + goldname$ + "!"
   edgeprint temp$, xstring(temp$, 160), 16, uilook(uiText), dpage
  END IF
  IF exper& > 0 THEN
-  temp$ = expcap$ + STR$(exper&) + " " + expname$ + "!"
+  temp$ = expcap$ + XSTR$(exper&) + " " + expname$ + "!"
   edgeprint temp$, xstring(temp$, 160), 28, uilook(uiText), dpage
  END IF
 END IF
@@ -2131,7 +2131,7 @@ END IF
 IF found(fptr, 1) = 1 THEN
  temp$ = foundcap$ + " " + found$
 ELSE
- temp$ = foundpcap$ + STR$(found(fptr, 1)) + " " + found$
+ temp$ = foundpcap$ + XSTR$(found(fptr, 1)) + " " + found$
 END IF
 IF LEN(temp$) THEN centerfuz 160, 30, 280, 50, 1, dpage
 edgeprint temp$, xstring(temp$, 160), 22, uilook(uiText), dpage
@@ -2233,9 +2233,9 @@ hc(targ) = 7
 hx(targ) = x(targ) + (w(targ) * .5)
 hy(targ) = y(targ) + (h(targ) * .5)
 IF harm < 0 THEN
- harm$(targ) = "+" + RIGHT$(STR$(harm), LEN(STR$(harm)) - 1)
+ harm$(targ) = "+" + STR$(ABS(harm))
 ELSE
- harm$(targ) = LTRIM$(STR$(harm))
+ harm$(targ) = STR$(harm)
 END IF
 
 if gen(genDamageCap) > 0 THEN harm = small(harm, gen(genDamageCap))
