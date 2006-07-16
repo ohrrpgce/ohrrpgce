@@ -24,14 +24,14 @@ mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
 
 limit = 255
-DIM drive(26), drive$(26), tree$(limit), display$(limit), about$(limit), treec(limit), catfg(6), catbg(6), bmpd(40)
+DIM drive$(26), tree$(limit), display$(limit), about$(limit), treec(limit), catfg(6), catbg(6), bmpd(40)
 'about$() is only used for special 7
 
-catfg(0) = 9: catbg(0) = 8    'drives
+catfg(0) = 7: catbg(0) = 1    'selectable drives (none on unix systems)
 catfg(1) = 9: catbg(1) = 8    'directories
 catfg(2) = 9: catbg(2) = 0    'subdirectories
 catfg(3) = 7: catbg(3) = 0    'files
-catfg(4) = 11: catbg(4) = 8   'root
+catfg(4) = 9: catbg(4) = 8   'root of current drive
 catfg(5) = 10: catbg(5) = 8   'special
 catfg(6) = 8: catbg(5) = 0    'disabled
 
@@ -45,17 +45,7 @@ IF needf = 1 THEN
  setpal buffer()
 END IF
 
-drivetotal = drivelist(drive())
-drive(26) = 15
-'---FOR NOW, IGNORE FLOPPIES---
-FOR i = 0 TO 25
- WHILE drive(i) = 1 OR drive(i) = 2
-  FOR j = i TO 25
-   drive(j) = drive(j + 1)
-  NEXT j
-  drivetotal = drivetotal - 1
- WEND
-NEXT i
+drivetotal = drivelist(drive$())
 
 remember$ = curdir$ + SLASH
 IF default$ = "" THEN
@@ -66,10 +56,10 @@ END IF
 
 If special = 7 THEN viewsize = 16 ELSE viewsize = 17
 
-GOSUB context
-
 treeptr = 0
 treetop = 0
+
+GOSUB context
 
 changed = 1
 
@@ -89,14 +79,22 @@ DO
   changed = 1
   IF special = 1 OR special = 5 THEN stopsong
   SELECT CASE treec(treeptr)
-'   CASE 0
-'    IF hasmedia(ASC(LEFT$(tree$(treeptr), 1)) - 64) THEN
-'     nowdir$ = LEFT$(tree$(treeptr), 3)
-'     GOSUB context
-'    END IF
-   CASE 0, 1
-    nowdir$ = LEFT$(tree$(0), 3)
-    FOR i = 1 TO treeptr
+   CASE 0
+    'this could take a while...
+    rectangle 5, 32 + viewsize * 9, 310, 12, 1, vpage
+    edgeprint "Reading...", 8, 34 + viewsize * 9, uilook(uiText), vpage
+    setvispage vpage
+    IF hasmedia(tree$(treeptr)) THEN
+     nowdir$ = tree$(treeptr)
+     'display$(treeptr) = tree$(treeptr) + " <" + drivelabel$(tree$(treeptr)) + ">"
+     GOSUB context
+    ELSE
+     alert$ = "No media"
+     changed = 0
+    END IF
+   CASE 1, 4
+    nowdir$ = ""
+    FOR i = drivetotal TO treeptr
      nowdir$ = nowdir$ + tree$(i)
     NEXT i
     GOSUB context
@@ -106,12 +104,6 @@ DO
    CASE 3
     browse$ = nowdir$ + tree$(treeptr)
     EXIT DO
-   CASE 4
-    nowdir$ = ""
-    GOSUB context
-    FOR i = 0 TO drivetotal - 1
-     IF drive(i) = 3 THEN treeptr = i
-    NEXT i
   END SELECT
  END IF
  rectangle 5, 4, 310, 12, 1, dpage
@@ -199,6 +191,7 @@ END SELECT
 IF treec(treeptr) = 0 THEN alert$ = "Drive"
 IF treec(treeptr) = 1 THEN alert$ = "Directory"
 IF treec(treeptr) = 2 THEN alert$ = "Subdirectory"
+IF treec(treeptr) = 4 THEN alert$ = "Root"
 RETURN
 
 context:
@@ -217,35 +210,61 @@ IF nowdir$ = "" THEN
 ELSE
  GOSUB drawmeter
  a$ = nowdir$
+ '--Drive list
  IF LINUX THEN
-  treesize = -1
+  treesize = 0
  ELSE
-  a = ASC(LEFT$(nowdir$, 1)) - 64
   FOR i = 0 TO drivetotal - 1
-   'IF a = drive(i) THEN tree$(treesize) = drive$(i)
-   IF a = drive(i) THEN
-    tree$(treesize) = CHR$(64 + drive(i)) + ":" + SLASH
+   tree$(treesize) = drive$(i)
+   treec(treesize) = 0
+   IF isremovable(drive$(i)) THEN
+    display$(treesize) = drive$(i) + " (removable)"
+   ELSE
+    IF hasmedia(drive$(i)) THEN
+     display$(treesize) = drive$(i) + " <" + drivelabel$(drive$(i)) + ">"
+    ELSE
+     display$(treesize) = drive$(i) + " (not ready)"
+    END IF
     GOSUB drawmeter
    END IF
+   treesize += 1
   NEXT i
-  treec(treesize) = 0
-  a$ = RIGHT$(a$, LEN(a$) - 3)
+  'could add My Documents to drives list here
  END IF 
+ '--Current drive
+ tree$(treesize) = MID$(a$, 1, INSTR(a$, SLASH))
+#IFNDEF __FB_LINUX__
+ IF hasmedia(tree$(treesize)) = 0 THEN
+  'Somebody pulled out the disk
+  changed = 0
+  alert$ = "Disk not readable"
+  treesize -= 1
+  treeptr = 0
+  treetop = 0
+  nowdir$ = ""
+  RETURN
+ END IF
+#ENDIF
+ a$ = MID$(a$, INSTR$(a$, SLASH) + 1)
+ treec(treesize) = 4
+ tmpname$ = drivelabel$(tree$(treesize))
+ IF LEN(tmpname$) THEN display$(treesize) = tree$(treesize) + " <" + tmpname$ + ">"
+ '--Directories
  b$ = ""
  DO UNTIL a$ = "" OR treesize >= limit
   b$ = b$ + LEFT$(a$, 1)
   a$ = RIGHT$(a$, LEN(a$) - 1)
   IF RIGHT$(b$, 1) = SLASH THEN
-   #IFNDEF __FB_LINUX__
-    'Special handling of My Documents in Windows
-    IF b$ = "My Documents\" OR b$ = "MYDOCU~1\" THEN
-     FOR i = treesize to 1 STEP -1
-      b$ = tree$(i) + b$
-     NEXT i
-     treesize = 0
-     display$(1) = "My Documents\"
-    END IF
-   #ENDIF 
+#IFNDEF __FB_LINUX__
+   'Special handling of My Documents in Windows
+   IF b$ = "My Documents\" OR b$ = "MYDOCU~1\" THEN
+    FOR i = treesize to drivetotal STEP -1
+     b$ = tree$(i) + b$
+    NEXT i
+    treesize = drivetotal - 1
+    display$(treesize + 1) = "My Documents\"
+   END IF
+#ENDIF 
    treesize = treesize + 1
    tree$(treesize) = b$
    treec(treesize) = 1
@@ -269,16 +288,16 @@ ELSE
  '---FIND ALL FILES IN FILEMASK---
  IF special = 5 THEN
   '--disregard fmask$. one call per extension
-  findfiles nowdir$ + "*.bam" + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
+  findfiles nowdir$ + "*.bam", 0, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
-  findfiles nowdir$ + "*.mid" + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
+  findfiles nowdir$ + "*.mid", 0, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
  ELSEIF special = 6 THEN
   '--disregard fmask$. one call per extension
-  findfiles nowdir$ + "*.wav" + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
+  findfiles nowdir$ + "*.wav", 0, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
  ELSE
-  findfiles nowdir$ + fmask$ + CHR$(0), 0, tmp$ + "hrbrowse.tmp" + CHR$(0), buffer()
+  findfiles nowdir$ + fmask$, 0, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
  END IF
 END IF
@@ -293,8 +312,8 @@ NEXT
 meter = 0
 
 '--alphabetize
-FOR o = treesize TO 2 STEP -1
- FOR i = 1 TO o
+FOR o = treesize TO drivetotal + 1 STEP -1
+ FOR i = drivetotal TO o
   IF (treec(i) = 2 OR treec(i) = 3 OR treec(i) = 6) AND (treec(i - 1) = 2 OR treec(i - 1) = 3 OR treec(i - 1) = 6) THEN
    IF ASC(LCASE$(LEFT$(display$(i), 1))) < ASC(LCASE$(LEFT$(display$(i - 1), 1))) THEN
     SWAP display$(i), display$(i - 1)
@@ -308,8 +327,8 @@ FOR o = treesize TO 2 STEP -1
 NEXT o
 
 '--sort by type
-FOR o = treesize TO 2 STEP -1
- FOR i = 1 TO o
+FOR o = treesize TO drivetotal + 1 STEP -1
+ FOR i = drivetotal TO o
   IF (treec(i) = 2 OR treec(i) = 3 OR treec(i) = 6) AND (treec(i - 1) = 2 OR treec(i - 1) = 3 OR treec(i - 1) = 6) THEN
    IF treec(i) < treec(i - 1) THEN
     SWAP display$(i), display$(i - 1)
@@ -323,11 +342,12 @@ FOR o = treesize TO 2 STEP -1
 NEXT o
 
 '--set cursor
-IF treeptr > treesize THEN treeptr = 0: treetop = 0
-FOR i = 1 TO treesize
- IF treec(i) = 1 OR treec(i) = 0 THEN treeptr = i
+treeptr = 0
+treetop = 0
+FOR i = drivetotal TO treesize
+ IF treec(i) = 1 OR treec(i) = 4 THEN treeptr = i
 NEXT i
-FOR i = treesize TO 2 STEP -1
+FOR i = treesize TO 1 STEP -1
  IF treec(i) = 3 THEN treeptr = i
 NEXT i
 treetop = bound(treetop, treeptr - (viewsize + 2), treeptr)

@@ -2,6 +2,19 @@
 '' GPL and stuff. See LICENSE.txt.
 '
 #define DEMACRO
+
+#ifdef __FB_WIN32__
+'# include "windows.bi"
+'it was too awful (collision-wise) to include all of windows.bi
+# undef point
+# define _X86_
+# include "win/windef.bi"
+# include "win/winbase.bi"
+# undef max
+# undef getcommandline
+# undef copyfile
+#endif
+
 #include "compat.bi"
 #include "allmodex.bi"
 #include "gfx.bi"
@@ -1932,34 +1945,59 @@ FUNCTION isfile (n$) as integer
     return dir$(n$, 255 xor 16) <> ""
 END FUNCTION
 
-FUNCTION drivelist (d() as integer) as integer
-#ifdef __FB_LINUX__
-	' on Linux there is only one drive, the root /
-	d(0) = -1
-	drivelist = 1
-#else
-	'faked, needs work
-	d(0) = 3
-	d(1) = 4
-	d(2) = 5
-	drivelist = 3
-#endif
-end FUNCTION
-
 FUNCTION isdir (sDir$) as integer
 	isdir = NOT (dir$(sDir$, 16) = "")
 END FUNCTION
 
-FUNCTION isremovable (BYVAL d) as integer
-	isremovable = 0
+FUNCTION drivelist (drives$()) as integer
+#ifdef __FB_LINUX__
+	' on Linux there is only one drive, the root /
+	drivelist = 0
+#else
+	dim drivebuf as zstring * 1000
+	dim drivebptr as zstring ptr
+	dim as integer zslen, i
+
+	zslen = GetLogicalDriveStrings(999, drivebuf)
+
+	drivebptr = @drivebuf
+	while drivebptr < @drivebuf + zslen
+		drives$(i) = *drivebptr
+		drivebptr += len(drives$(i)) + 1
+		i += 1
+	wend
+
+	drivelist = i
+#endif
 end FUNCTION
 
-FUNCTION isvirtual (BYVAL d)
-	isvirtual = 0
+FUNCTION drivelabel (drive$) as string
+#ifdef __FB_WIN32__
+	dim tmpname as zstring * 256
+	if not GetVolumeInformation(drive$, tmpname, 255, NULL, NULL, NULL, NULL, 0) then
+		drivelabel = "<not ready>"
+	else
+		drivelabel = tmpname
+	end if
+#else
+	drivelabel = ""
+#endif
 END FUNCTION
 
-FUNCTION hasmedia (BYVAL d as integer) as integer
+FUNCTION isremovable (drive$) as integer
+#ifdef __FB_WIN32__
+	isremovable = GetDriveType(drive$) = DRIVE_REMOVABLE
+#else
+	isremovable = 0
+#endif
+end FUNCTION
+
+FUNCTION hasmedia (drive$) as integer
+#ifdef __FB_WIN32__
+	hasmedia = GetVolumeInformation(drive$, NULL, 0, NULL, NULL, NULL, NULL, 0)
+#else
 	hasmedia = 0
+#endif
 end FUNCTION
 
 SUB setupmusic (mbuf() as integer)

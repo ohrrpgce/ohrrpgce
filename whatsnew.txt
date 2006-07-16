@@ -19,6 +19,8 @@ WHAT IS NEW?
       sprite editor, so you can distinguish "transparent" from "black") [Mike]
     * New functionality for the key is pressed() command, pertaining to
       joysticks [Mike Caron]
+    * Browse menu (game + custom) now shows a drivelist under windows and lets
+      you browse to root [Ralph Versteegen]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
@@ -33,6 +35,7 @@ WHAT IS NEW?
     * Bug 68: Added days, hours, minutes to Global text Strings menu
       for displaying playtime on the Save/Load screens [James]
     * Fixed missing harm tile flash [James]
+    * Bug 155: "File browsing error: changing drives" [Ralph]
 
   * New Plotscripting Commands
     * "string from textbox" [Yuriy]
