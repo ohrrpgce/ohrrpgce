@@ -3,6 +3,7 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 
+'$INCLUDE: 'const.bi'
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 
@@ -26,6 +27,8 @@ paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) +
 limit = 255
 DIM drive$(26), tree$(limit), display$(limit), about$(limit), treec(limit), catfg(6), catbg(6), bmpd(40)
 'about$() is only used for special 7
+
+showHidden = 0
 
 catfg(0) = 7: catbg(0) = 1    'selectable drives (none on unix systems)
 catfg(1) = 9: catbg(1) = 8    'directories
@@ -105,6 +108,10 @@ DO
     browse$ = nowdir$ + tree$(treeptr)
     EXIT DO
   END SELECT
+ END IF
+ IF keyval(35) > 1 THEN ' H for hidden
+  showHidden = showHidden XOR attribHidden
+  GOSUB context
  END IF
  rectangle 5, 4, 310, 12, 1, dpage
  drawbox 4, 3, 312, 14, 9, dpage
@@ -273,7 +280,7 @@ ELSE
   END IF
  LOOP
  '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
- findfiles nowdir$ + ALLFILES, 16, tmp$ + "hrbrowse.tmp", buffer()
+ findfiles nowdir$ + ALLFILES, attribDirectory OR attribSystem OR attribReadOnly OR showHidden, tmp$ + "hrbrowse.tmp", buffer()
  fh = FREEFILE
  OPEN tmp$ + "hrbrowse.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh) OR treesize >= limit
@@ -286,18 +293,19 @@ ELSE
  CLOSE #fh
  safekill tmp$ + "hrbrowse.tmp"
  '---FIND ALL FILES IN FILEMASK---
+ attrib = attribAlmostAll OR showHidden
  IF special = 5 THEN
   '--disregard fmask$. one call per extension
-  findfiles nowdir$ + "*.bam", 0, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + "*.bam", attrib, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
-  findfiles nowdir$ + "*.mid", 0, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + "*.mid", attrib, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
  ELSEIF special = 6 THEN
   '--disregard fmask$. one call per extension
-  findfiles nowdir$ + "*.wav", 0, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + "*.wav", attrib, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
  ELSE
-  findfiles nowdir$ + fmask$, 0, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + fmask$, attrib, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
  END IF
 END IF

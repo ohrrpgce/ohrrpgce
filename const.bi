@@ -3,6 +3,15 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
+'---DOS directory attributes
+CONST attribReadOnly = 1
+CONST attribHidden = 2
+CONST attribSystem = 4
+CONST attribDirectory = 16
+CONST attribArchive = 32
+CONST attribReserved = 192 '64 OR 128
+CONST attribAlmostAll = 237 ' All except directory and hidden
+
 '---GENERAL GAME DATA (.GEN) constants---
 CONST genMaxMap = 0             'number of maps
 CONST genTitle = 1              'titile screen backdrop

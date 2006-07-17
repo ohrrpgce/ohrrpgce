@@ -21,6 +21,7 @@ WHAT IS NEW?
       joysticks [Mike Caron]
     * Browse menu (game + custom) now shows a drivelist under windows and lets
       you browse to root [Ralph Versteegen]
+    * Press H while browsing to display hidden files and folders [James Paige]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
@@ -36,6 +37,7 @@ WHAT IS NEW?
       for displaying playtime on the Save/Load screens [James]
     * Fixed missing harm tile flash [James]
     * Bug 155: "File browsing error: changing drives" [Ralph]
+    * Read-only and system folders are now browseable. [James Paige]
 
   * New Plotscripting Commands
     * "string from textbox" [Yuriy]
