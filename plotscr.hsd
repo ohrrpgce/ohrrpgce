@@ -250,6 +250,7 @@ define function, begin
 241,expandstring,1,0          #expand ${Hxx}, etc in a string(ID)
 242,joystickbutton,2,0,0      #returns whether a given button is pressed (button, joystick)
 243,joystickaxis,3,0,100,0    #returns the axis position (axis,multiplier,joystick)
+244,waitforscancode,1,0       #waits for a specific scancode
 #24x,getnpcraw,2,0,0          #raw npc data(who,which)
 #24x,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end

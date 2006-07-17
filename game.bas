@@ -1540,6 +1540,10 @@ IF nowscript >= 0 THEN
        END IF
       NEXT i
      END IF
+    CASE 244'--wait for scancode
+     IF keyval(scrat(nowscript, curwaitarg)) > 1 THEN
+      scrat(nowscript, scrstate) = streturn
+     END IF
     CASE 42'--wait for camera
      IF gen(cameramode) <> pancam AND gen(cameramode) <> focuscam THEN scrat(nowscript, scrstate) = streturn
     CASE 59'--wait for text box

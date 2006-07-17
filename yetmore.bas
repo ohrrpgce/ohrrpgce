@@ -1736,7 +1736,8 @@ SELECT CASE AS CONST id
    'debug "joystick failed"
    scriptret = 0
   END IF
-  
+ CASE 244'--wait for scancode
+  GOSUB setwaitstate
 END SELECT
 
 EXIT SUB

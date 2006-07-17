@@ -57,6 +57,7 @@ WHAT IS NEW?
     * new math operators "&&", "||", "^^" (and, or and xor respectively). These
       are logical operators, as opposed to the bitwise "and", "or" and "xor"
       operators. [Mike]
+    * "wait for scancode" [Mike Caron]
 
   * Unlump.exe
     * Ported to FreeBasic [Mike Caron]

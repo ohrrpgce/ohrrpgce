@@ -200,6 +200,13 @@ wait for hero (me) # wait until he stops</example>
 			<example>show text box(623) # "press cancel!"
 wait for key(cancel key)</example>
 		</command>
+		<command id="waitforscancode">
+			<cannon>wait for scancode (key)</cannon>
+			<shortname>wait for scancode</shortname>
+			<description>Waits for the player to press a specific key. You can use any of the constants from <ref>keyispressed</ref> to specify the key. Note that you must <ref>include</ref> scancode.hsi to use these constants.</description>
+			<example>show text box(624) # "press P!"
+wait for scancode(key:P)</example>
+		</command>
 		<command id="waitfornpc">
 			<cannon>wait for NPC (who)</cannon>
 			<shortname>wait for NPC</shortname>
