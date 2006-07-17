@@ -299,22 +299,22 @@ ELSE
  attrib = attribAlmostAll OR showHidden
  IF special = 5 THEN
   '--disregard fmask$. one call per extension
-  findfiles nowdir$ + "*.bam", attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.bam"), attrib, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
-  findfiles nowdir$ + "*.mid", attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.mid"), attrib, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
  ELSEIF special = 6 THEN
   '--disregard fmask$. one call per extension
-  findfiles nowdir$ + "*.wav", attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.wav"), attrib, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
  ELSEIF special = 7 THEN
   'Call once for RPG files once for rpgdirs
-  findfiles nowdir$ + fmask$, attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$(fmask$), attrib, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
-  findfiles nowdir$ + "*.rpgdir", attribDirectory + attribReadOnly + attribSystem + showHidden, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.rpgdir"), attribDirectory + attribReadOnly + attribSystem + showHidden, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
  ELSE
-  findfiles nowdir$ + fmask$, attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$(fmask$), attrib, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
  END IF
 END IF

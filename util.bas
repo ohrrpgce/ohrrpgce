@@ -50,3 +50,24 @@ NEXT
 RETURN MID$(filename$, 1, i)
 END FUNCTION
 
+FUNCTION anycase$ (filename$)
+ 'make a filename case-insensitive
+#IFDEF __FB__LINUX__
+ DIM ascii AS INTEGER
+ result$ = ""
+ FOR i = 1 TO LEN(filename$)
+  ascii = ASC(MID$(filename$, i, 1))
+  IF ascii >= 65 AND ascii <= 90 THEN
+   result$ = result$ + "[" + CHR$(ascii) + CHR$(ascii + 32) + "]"
+  ELSEIF ascii >= 97 AND ascii <= 122 THEN
+   result$ = result$ + "[" + CHR$(ascii - 32) + CHR$(ascii) + "]"
+  ELSE
+   result$ = result$ + CHR$(ascii)
+  END IF
+ NEXT i
+ RETURN result$
+#ELSE
+ 'Windows filenames are always case-insenstitive
+ RETURN filename$
+#ENDIF
+END FUNCTION
