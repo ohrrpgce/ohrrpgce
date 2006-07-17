@@ -440,7 +440,6 @@ setvispage 0 'refresh
 '--verify that maps are not corrupt--
 verifyrpg
 '--lump data to SAVE rpg file
-debug game$
 dolumpfiles gamefile$
 RETURN
 
@@ -1605,7 +1604,22 @@ updaterecordlength workingdir$ + SLASH + "attack.bin", 0
 updaterecordlength game$ + ".stf", 1
 updaterecordlength workingdir$ + SLASH + "songdata.bin", 2
 
-IF general(genVersion) = 6 AND NOT getfixbit(fixAttackitems) THEN
+'--update to new (3rd) password format
+IF general(5) < 256 THEN
+ general(5) = 256
+ IF general(94) = -1 THEN
+  '--no password, write a blank one
+  pas$ = ""
+ ELSE
+  '--read the old scattertable
+  readscatter pas$, general(94), 200
+  pas$ = rotascii(pas$, general(93) * -1)
+ END IF
+ writepassword pas$
+END IF
+
+'Zero out new attack item cost (ammunition) data
+IF NOT getfixbit(fixAttackitems) THEN
   setfixbit(fixAttackitems, 1)
   fh = freefile
   OPEN workingdir$ + SLASH + "attack.bin" FOR BINARY AS #FH
@@ -1622,20 +1636,6 @@ IF general(genVersion) = 6 AND NOT getfixbit(fixAttackitems) THEN
     p+=curbinsize(0)
   NEXT
   CLOSE #fh
-END IF
-
-'--update to new (3rd) password format
-IF general(5) < 256 THEN
- general(5) = 256
- IF general(94) = -1 THEN
-  '--no password, write a blank one
-  pas$ = ""
- ELSE
-  '--read the old scattertable
-  readscatter pas$, general(94), 200
-  pas$ = rotascii(pas$, general(93) * -1)
- END IF
- writepassword pas$
 END IF
 
 'wow! this is quite a big and ugly routine!

@@ -17,6 +17,13 @@ DECLARE SUB safekill (f$)
 DECLARE FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
 DECLARE SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
  
-COMMON SHARED uilook(), vpage, dpage, buffer(), version$, fadestate, master()
+'Global variables
+COMMON SHARED uilook()
+COMMON SHARED vpage, dpage
+COMMON SHARED buffer()
+COMMON SHARED version$
+COMMON SHARED fadestate
+COMMON SHARED master()
+COMMON SHARED workingdir$
 
 
