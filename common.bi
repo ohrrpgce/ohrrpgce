@@ -16,7 +16,8 @@ DECLARE SUB getui(f$)
 DECLARE SUB safekill (f$)
 DECLARE FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
 DECLARE SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
- 
+DECLARE FUNCTION aquiretempdir$ ()
+
 'Global variables
 COMMON SHARED uilook()
 COMMON SHARED vpage, dpage
@@ -25,5 +26,4 @@ COMMON SHARED version$
 COMMON SHARED fadestate
 COMMON SHARED master()
 COMMON SHARED workingdir$
-
 

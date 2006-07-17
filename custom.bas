@@ -109,8 +109,6 @@ DIM menu$(22), general(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einf
 '--DIM binsize arrays
 '$INCLUDE: 'binsize.bi'
 
-GOSUB listmake
-
 RANDOMIZE TIMER
 textxbload "ohrrpgce.mas", master(), "default master palette ohrrpgce.mas is missing"
 textxbload "ohrrpgce.fnt", font(), "default font ohrrpgce.fnt is missing"
@@ -122,12 +120,10 @@ setfont font()
 setdiskpages buffer(), 200, 0
 textcolor 15, 0
 GOSUB readstuff
-'voices = resetdsp
-'setitup game$+".cbv",noise(), buffer(), 2
 
 dpage = 1: vpage = 0: Rate = 160: game$ = ""
+GOSUB makeworkingdir
 GOSUB chooserpg
-gamefile$ = game$ + ".rpg"
 setwindowtitle "OHRRPGCE - " + gamefile$
 
 GOSUB checkpass
@@ -139,12 +135,27 @@ printstr "UNLUMPING DATA: please wait.", 0, 0, 0
 
 touchfile workingdir$ + SLASH + "__danger.tmp"
 
-ERASE scroll, pass, emap
-DIM lumpbuf(16383)
-unlump gamefile$, workingdir$ + SLASH, lumpbuf()
-ERASE lumpbuf
-DIM scroll(16002), pass(16002), emap(16002)
-
+debug gamefile$
+IF isdir(gamefile$) THEN
+ 'work on an unlumped RPG file
+ debug workingdir$
+ findfiles gamefile$ + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
+ fh = FREEFILE
+ OPEN "filelist.tmp" FOR INPUT AS #fh
+ DO UNTIL EOF(fh)
+  LINE INPUT #fh, filename$
+  copyfile gamefile$ + SLASH + filename$, workingdir$ + SLASH + filename$, buffer()
+ LOOP
+ CLOSE #fh
+ KILL "filelist.tmp"
+ELSE 
+ ERASE scroll, pass, emap
+ DIM lumpbuf(16383)
+ unlump gamefile$, workingdir$ + SLASH, lumpbuf()
+ ERASE lumpbuf
+ DIM scroll(16002), pass(16002), emap(16002)
+END IF
+debug game$
 game$ = workingdir$ + SLASH + game$
 verifyrpg
 safekill workingdir$ + SLASH + "__danger.tmp"
@@ -276,41 +287,10 @@ RETURN
 chooserpg:
 fh = FREEFILE
 OPEN "rpg.lst" FOR INPUT AS #fh
-L = 2: csr = 2: top = 0
+last = 2: csr = 1: top = 0
 rpg$(0) = "CREATE NEW GAME"
-rpg$(1) = "EXIT PROGRAM"
-DO
- IF L >= 255 THEN EXIT DO
- LINE INPUT #fh, temp$
- IF temp$ = "-END-" THEN EXIT DO
- rpg$(L) = LEFT$(temp$, LEN(temp$) - 4)
- L = L + 1
-LOOP
-CLOSE #fh
-L = L - 1
-
-IF oldcrash = 1 THEN
- rpg$(0) = "RECOVER IT"
- rpg$(1) = "ERASE IT"
- rpg$(2) = "DO NOTHING"
- findfiles workingdir$ + SLASH + "*.gen" + CHR$(0), 0, "crash.lst" + CHR$(0), buffer()
- fh = FREEFILE
- OPEN "crash.lst" FOR INPUT AS #fh
- DO WHILE NOT EOF(fh)
-  LINE INPUT #fh, a$
-  a$ = LEFT$(a$, LEN(a$) - 4)
-  GOSUB cleanup
- LOOP
- CLOSE #fh
- safekill "crash.lst"
- clearpage 0
- setvispage 0
- textcolor 15, 0
- printstr "Run " + CUSTOMEXE + " again.", 0, 0, 0
- setvispage 0 'refresh
- w = getkey
- GOTO finis
-END IF
+rpg$(1) = "LOAD EXISTING GAME"
+rpg$(2) = "EXIT PROGRAM"
 
 setkeys
 DO
@@ -318,28 +298,42 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN GOTO finis
- dummy = usemenu(csr, top, 0, L, 20)
+ dummy = usemenu(csr, top, 0, last, 20)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF csr = 0 THEN
    game$ = inputfilename$("Filename of New Game?", ".rpg")
    IF NOT newRPGfile("ohrrpgce.new", game$ + ".rpg") THEN GOTO finis
-   RETURN
+   gamefile$ = game$ + ".rpg"
+   EXIT DO
+  ELSEIF csr = 1 THEN
+   gamefile$ = browse$(7, "", "*.rpg", aquiretempdir$, 1)
+   game$ = trimextension$(trimpath$(gamefile$))
+   EXIT DO
+  ELSEIF csr = 2 THEN
+   GOTO finis
   END IF
-  IF csr = 1 THEN GOTO finis
-  game$ = rpg$(csr)
-  RETURN
  END IF
 
- standardmenu rpg$(), L, 22, csr, top, 0, 0, dpage, 0
+ standardmenu rpg$(), last, 22, csr, top, 0, 0, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
  dowait
 LOOP
+RETURN
 
 cleanup:
+rpg$(0) = "RECOVER IT"
+rpg$(1) = "ERASE IT"
+rpg$(2) = "DO NOTHING"
 temp = 0
+a$ = "recovered"
+i = 0
+DO WHILE isfile("recovered" + STR$(i) + ".bak")
+ i = i + 1
+LOOP
+a$ = a$ + STR$(i)
 setkeys
 DO
  setwait timing(), 100
@@ -364,8 +358,8 @@ DO
     printstr "if " + CUSTOMEXE + " crashed last time you", 0, 8, vpage
     printstr "ran it and you lost work, you may", 0, 16, vpage
     printstr "be able to recover it. Make a backup", 0, 24, vpage
-    printstr "copy of " + a$ + ".rpg and then rename", 0, 32, vpage
-    printstr a$ + ".bak to " + a$ + ".rpg", 0, 40, vpage
+    printstr "copy of your RPG and then rename", 0, 32, vpage
+    printstr a$ + ".bak to gamename.rpg", 0, 40, vpage
     printstr "If you have questions, ask", 0, 56, vpage
     printstr "ohrrpgce-crash@HamsterRepublic.com", 0, 64, vpage
     setvispage vpage 'refresh
@@ -377,7 +371,7 @@ DO
   IF temp = 2 THEN nocleanup = 1: RETURN
  END IF
  textcolor 9, 0
- printstr a$ + " was found unlumped", 0, 0, dpage
+ printstr "A game was found unlumped", 0, 0, dpage
  printstr "This may mean that " + CUSTOMEXE + " crashed", 0, 40, dpage
  printstr "last time you used it, or it may mean", 0, 48, dpage
  printstr "that another copy of " + CUSTOMEXE + " is", 0, 56, dpage
@@ -389,23 +383,25 @@ DO
  setvispage vpage
  clearpage dpage
  dowait
-LOOP
+LOOP'a$
 
-listmake:
-safekill "rpg.lst"
-CALL findfiles("*.rpg", 0, "rpg.lst", buffer())
-fh = FREEFILE
-OPEN "rpg.lst" FOR APPEND AS #fh LEN = 25
-PRINT #fh, "-END-"
-CLOSE #fh
-
+makeworkingdir:
 IF NOT isdir(workingdir$) THEN
  makedir workingdir$
 ELSE
+ 'check for locked working directory
  ON ERROR GOTO tempDirErr
  safekill (workingdir$ + SLASH + "lockfile.tmp")
  ON ERROR GOTO 0
- oldcrash = 1
+ 'Recover from an old crash
+ GOSUB cleanup
+ clearpage 0
+ setvispage 0
+ textcolor 15, 0
+ printstr "Run " + CUSTOMEXE + " again.", 0, 0, 0
+ setvispage 0 'refresh
+ w = getkey
+ GOTO finis
 END IF
 '--open a lockfile to notify other instances of custom that the working
 '--dir is in use
@@ -1718,6 +1714,7 @@ FUNCTION readarchinym$ ()
   readarchinym$ = a$
  ELSE
   ' for backwards compatability with ancient games that lack archinym.lmp
-  readarchinym$ = game$
+  debug workingdir$ + SLASH + "archinym.lmp" + " unreadable, using " + LCASE$(trimpath$(game$)) + "instead"
+  readarchinym$ = LCASE$(trimpath$(game$))
  END IF 
 END FUNCTION

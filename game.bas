@@ -30,7 +30,6 @@ DECLARE FUNCTION checkfordeath (stat())
 DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
 DECLARE SUB correctbackdrop ()
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
-DECLARE SUB aquiretempdir ()
 DECLARE FUNCTION isonscreen% (x%, y%)
 DECLARE SUB readjoysettings ()
 DECLARE FUNCTION settingstring% (searchee$, setting$, result$)
@@ -152,7 +151,7 @@ DECLARE FUNCTION titlescr% ()
 'DEBUG debug "started debug session "+date$+" "+time$
 
 '---GET TEMP DIR---
-aquiretempdir
+tmpdir$ = aquiretempdir$
 commandlineargs
 
 'DEBUG debug "Thestart"
@@ -179,7 +178,7 @@ DIM npc(300) as NPCInst
 'DEBUG debug "setup directories"
 
 '---Get work dir and exe name---
-aquiretempdir
+tmpdir$ = aquiretempdir$
 workingdir$ = tmpdir$ + "playing.tmp"
 exename$ = trimextension$(trimpath$(COMMAND$(0)))
 

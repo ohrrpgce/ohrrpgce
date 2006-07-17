@@ -172,21 +172,6 @@ END IF
 
 END SUB
 
-SUB aquiretempdir
-
-'--use program dir for temp dir
-tmpdir$ = environ$("TEMP")
-'DEBUG debug "aquired temp dir "+tmpdir$
-IF NOT isdir(tmpdir$) THEN
- '--fall back to working dir if all else fails
- tmpdir$ = exepath$
- 'DEBUG debug "Invalid temp dir. fall back to " + tmpdir$
-END IF
-
-IF RIGHT$(tmpdir$, 1) <> SLASH THEN tmpdir$ = tmpdir$ + SLASH
-
-END SUB
-
 FUNCTION atlevel (now, a0, a99)
 
 'CLS : a = 80: b = 8500: PRINT : FOR i = 0 TO 99 STEP 5: PRINT i; " "; atlevel(i, a, b): LINE (640, i)-(640 - atlevel(i, a, b) / 100, i), 4: NEXT i

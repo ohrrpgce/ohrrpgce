@@ -589,3 +589,14 @@ SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
  setbit bits(), 0, bitnum, bitval
  storeset f$, 0, 0
 END SUB
+
+FUNCTION aquiretempdir$ ()
+t$ = environ$("TEMP")
+IF NOT isdir(t$) THEN t$ = environ("TMP")
+IF NOT isdir(t$) THEN
+ '--fall back to working dir if all else fails
+ t$ = exepath$
+END IF
+IF RIGHT$(t$, 1) <> SLASH THEN t$ = t$ + SLASH
+RETURN t$
+END FUNCTION

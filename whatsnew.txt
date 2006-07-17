@@ -24,6 +24,8 @@ WHAT IS NEW?
     * Press H while browsing to display hidden files and folders [James Paige]
     * Browse menu displays unlumped RPG files if the folder is named
       with a .rpgdir extension [James Paige]
+    * You can choose an RPG to edit in custom with the same browse menu
+      that you useto pick an RPG to play in game. [James Paige]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
