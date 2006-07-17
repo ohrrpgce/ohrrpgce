@@ -930,7 +930,7 @@ updateflexmenu pt, dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff()
 
 '--load the picture and palette
 setpicstuf buffer(), 3750, 2
-loadset game$ + ".pt6" + CHR$(0), recbuf(AtkDatPic), 0
+loadset game$ + ".pt6", recbuf(AtkDatPic), 0
 getpal16 workpal(), 0, recbuf(AtkDatPal)
 
 RETURN

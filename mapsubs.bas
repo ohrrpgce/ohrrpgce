@@ -265,7 +265,7 @@ DO
   END IF
   IF csr = 3 THEN
    GOSUB gmapdata
-   loadpage game$ + ".til" + CHR$(0), gmap(0), 3
+   loadpage game$ + ".til", gmap(0), 3
   END IF
   IF csr = 4 THEN GOSUB delmap
   IF csr = 5 THEN GOSUB linkdoor
@@ -454,7 +454,7 @@ clearpage 2
 '--load NPC graphics--
 FOR i = 0 TO 35
  setpicstuf buffer(), 1600, 2
- loadset game$ + ".pt4" + CHR$(0), npcstat(i * 15 + 0), 5 * i
+ loadset game$ + ".pt4", npcstat(i * 15 + 0), 5 * i
  getpal16 pal16(), i, npcstat(i * 15 + 1)
 NEXT i
 defpass = 1
@@ -897,7 +897,7 @@ IF yesno = 1 THEN
  xBSAVE maplumpname$(pt, "d"), link(), 2000
  xBSAVE maplumpname$(pt, "l"), npc(), 3000
  setpicstuf doors(), 600, -1
- storeset game$ + ".dox" + CHR$(0), pt, 0
+ storeset game$ + ".dox", pt, 0
 END IF
 '--reset scroll position
 wide = map(0): high = map(1)
@@ -947,16 +947,16 @@ xBSAVE maplumpname$(general(0), "d"), link(), 2000
 xBSAVE maplumpname$(general(0), "n"), npcstat(), 3000
 xBSAVE maplumpname$(general(0), "l"), npc(), 3000
 setpicstuf doors(), 600, -1
-storeset game$ + ".dox" + CHR$(0), general(0), 0
+storeset game$ + ".dox", general(0), 0
 '--setup map name
 buffer(0) = 0
 setpicstuf buffer(), 80, -1
-storeset game$ + ".mn" + CHR$(0), general(0), 0
+storeset game$ + ".mn", general(0), 0
 RETURN
 
 savemap:
 setpicstuf gmap(), 40, -1
-storeset game$ + ".map" + CHR$(0), pt, 0
+storeset game$ + ".map", pt, 0
 xBSAVE maplumpname$(pt, "t"), map(), map(0) * map(1) + 4
 xBSAVE maplumpname$(pt, "p"), pass(), pass(0) * pass(1) + 4
 xBSAVE maplumpname$(pt, "e"), emap(), emap(0) * emap(1) + 4
@@ -964,18 +964,18 @@ xBSAVE maplumpname$(pt, "l"), npc(), 3000
 xBSAVE maplumpname$(pt, "d"), link(), 2000
 xBSAVE maplumpname$(pt, "n"), npcstat(), 3000
 setpicstuf doors(), 600, -1
-storeset game$ + ".dox" + CHR$(0), pt, 0
+storeset game$ + ".dox", pt, 0
 '--save map name
 buffer(0) = LEN(mapname$)
 str2array LEFT$(mapname$, 39), buffer(), 1
 setpicstuf buffer(), 80, -1
-storeset game$ + ".mn" + CHR$(0), pt, 0
+storeset game$ + ".mn", pt, 0
 RETURN
 
 loadmap:
 setpicstuf gmap(), 40, -1
-loadset game$ + ".map" + CHR$(0), pt, 0
-loadpage game$ + ".til" + CHR$(0), gmap(0), 3
+loadset game$ + ".map", pt, 0
+loadpage game$ + ".til", gmap(0), 3
 loadtanim gmap(0), tastuf()
 FOR i = 0 TO 1
  cycle(i) = 0
@@ -989,7 +989,7 @@ xbload maplumpname$(pt, "l"), npc(), "npclocation lump is missing!"
 xbload maplumpname$(pt, "n"), npcstat(), "npcstat lump is missing!"
 xbload maplumpname$(pt, "d"), link(), "doorlink lump is missing!"
 setpicstuf doors(), 600, -1
-loadset game$ + ".dox" + CHR$(0), pt, 0
+loadset game$ + ".dox", pt, 0
 wide = map(0): high = map(1)
 mapname$ = getmapname$(pt)
 loadpasdefaults defaults(), gmap(0)
@@ -1158,11 +1158,11 @@ IF doors(link(cur + (0 * 200)) + 200) = 1 THEN
 END IF
 '-----------------EXIT DOOR
 setpicstuf destdoor(), 600, -1
-loadset game$ + ".dox" + CHR$(0), link(cur + (2 * 200)), 0
+loadset game$ + ".dox", link(cur + (2 * 200)), 0
 xbloadmap maplumpname$(link(cur + (2 * 200)), "t"), map(), "Could not find map" + filenum$(link(cur + (2 * 200)))
 setpicstuf buffer(), 40, -1
-loadset game$ + ".map" + CHR$(0), link(cur + (2 * 200)), 0
-loadpage game$ + ".til" + CHR$(0), buffer(0), 3
+loadset game$ + ".map", link(cur + (2 * 200)), 0
+loadpage game$ + ".til", buffer(0), 3
 setmapdata map(), pass(), 101, 0
 IF destdoor(link(cur + (1 * 200)) + 200) = 1 THEN
  dmx = destdoor(link(cur + (1 * 200))) * 20 - 150
@@ -1177,7 +1177,7 @@ IF destdoor(link(cur + (1 * 200)) + 200) = 1 THEN
  printstr RIGHT$(xtemp$, LEN(xtemp$) - 1), destdoor(link(cur + (1 * 200))) * 20 - dmx + 10 - (4 * LEN(xtemp$)), destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 86, 2
 END IF
 '-----------------RESET DATA
-loadpage game$ + ".til" + CHR$(0), gmap(0), 3
+loadpage game$ + ".til", gmap(0), 3
 xbloadmap maplumpname$(pt, "t"), map(), "Tilemap lump disappeared!"
 RETURN
 

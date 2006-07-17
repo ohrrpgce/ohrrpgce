@@ -592,7 +592,7 @@ END SUB
 FUNCTION getbinsize (id)
 fbdim recordsize
 
-IF isfile(workingdir$ + SLASH + "binsize.bin" + CHR$(0)) THEN
+IF isfile(workingdir$ + SLASH + "binsize.bin") THEN
  fh = FREEFILE
  OPEN workingdir$ + SLASH + "binsize.bin" FOR BINARY AS #fh
  IF LOF(fh) < id * 2 + 2 THEN
@@ -974,7 +974,7 @@ END FUNCTION
 SUB loadfoe (i, formdata(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$())
 setpicstuf buffer(), 320, -1
 IF formdata(i * 4) > 0 THEN
- loadset game$ + ".dt1" + CHR$(0), formdata(i * 4) - 1, 0
+ loadset game$ + ".dt1", formdata(i * 4) - 1, 0
  FOR o = 0 TO 160
   es(i, o) = buffer(o)
  NEXT o
@@ -1004,7 +1004,7 @@ IF formdata(i * 4) > 0 THEN
 END IF
 IF v(4 + i) = 1 THEN
  setpicstuf buffer(), (w(4 + i) * h(4 + i)) * .5, 3
- loadset game$ + ext$(i) + CHR$(0), es(i, 53), 64 + i * 10
+ loadset game$ + ext$(i), es(i, 53), 64 + i * 10
  FOR o = 0 TO 11
   stat(4 + i, 0, o) = es(i, 62 + o)
   stat(4 + i, 1, o) = es(i, 62 + o)
@@ -1041,15 +1041,15 @@ flusharray array(), 39 + curbinsize(0) / 2, 0
 
 '--load 40 elements from the .dt6 lump
 setpicstuf array(), 80, -1
-loadset game$ + ".dt6" + CHR$(0), index, 0
+loadset game$ + ".dt6", index, 0
 
 '--load the rest from the attack.bin lump
 size = getbinsize(0)
 
 IF size THEN
- IF isfile(workingdir$ + SLASH + "attack.bin" + CHR$(0)) THEN
+ IF isfile(workingdir$ + SLASH + "attack.bin") THEN
   setpicstuf buffer(), size, -1
-  loadset workingdir$ + SLASH + "attack.bin" + CHR$(0), index, 0
+  loadset workingdir$ + SLASH + "attack.bin", index, 0
   FOR i = 0 TO size / 2 - 1
    array(40 + i) = buffer(i)
   NEXT i
@@ -1225,7 +1225,7 @@ IF exstat(i, 1, 12) THEN
 
  'load hero's data
  setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0" + CHR$(0), hero(i) - 1, 0
+ loadset game$ + ".dt0", hero(i) - 1, 0
 
  'update stats
  FOR o = 0 TO 11
@@ -1236,14 +1236,14 @@ IF exstat(i, 1, 12) THEN
    setpicstuf buffer(), 200, -1
    FOR j = 0 TO 4
     IF eqstuf(i, j) > 0 THEN
-     loadset game$ + ".itm" + CHR$(0), eqstuf(i, j) - 1, 0
+     loadset game$ + ".itm", eqstuf(i, j) - 1, 0
      exstat(i, 1, o) = exstat(i, 1, o) + buffer(54 + o)
     END IF
    NEXT j
    'do stat caps
    IF gen(genStatCap + o) > 0 THEN exstat(i, 0, o) = small(exstat(i, 0, o),gen(genStatCap + o))
    setpicstuf buffer(), 636, -1
-   loadset game$ + ".dt0" + CHR$(0), hero(i) - 1, 0
+   loadset game$ + ".dt0", hero(i) - 1, 0
   END IF
  NEXT o
 

@@ -815,17 +815,6 @@ SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL pa
 
 END SUB
 
-SUB interruptx (intnum as integer,inreg AS RegType, outreg AS RegType) 'not required
-end SUB
-
-FUNCTION Keyseg () as integer	'not required
-	keyseg = 0
-end FUNCTION
-
-FUNCTION keyoff () as integer	'not required
-	keyoff = 0
-end FUNCTION
-
 FUNCTION keyval (BYVAL a as integer) as integer
 	keyval = keybd(a)
 end FUNCTION
@@ -1646,8 +1635,6 @@ end SUB
 
 SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
     ' attrib 0: all files 'cept folders, attrib 16: folders only
-	fmask$ = TRIM(fmask$)
-	outfile$ = TRIM(outfile$)
 #ifdef __FB_LINUX__
         'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR$
 	DIM grep$
@@ -1850,12 +1837,9 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 	dim dat as ubyte
 	dim size as integer
 	dim lname as string
-	dim lpath as string
 	dim bufr as ubyte ptr
 	dim csize as integer
 	dim as integer i, t, textsize(1)
-
-	lpath = rtrim(path$)
 
 	fl = freefile
 	open listf$ for input as #fl
@@ -1876,7 +1860,6 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 	'get file to lump
 	do until eof(fl)
 		line input #fl, lname
-		lname = rtrim(lname) 'remove trailing null
 		
 		'validate that lumpname is 8.3 or ignore the file
 		textsize(0) = 0
@@ -1894,9 +1877,9 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 		end if
 
 		tl = freefile
-		open lpath + lname for binary access read as #tl
+		open path$ + lname for binary access read as #tl
 		if err <> 0 then
-			'debug "failed to open " + lpath + lname
+			'debug "failed to open " + path$ + lname
 			continue do
 		end if
 
@@ -2014,7 +1997,7 @@ SUB loadsong (f$)
 	dim songname as string
 	dim songtype as MUSIC_FORMAT
 
-	songname = rtrim(f$) 'lose null
+	songname = f$
 	songtype = FORMAT_BAM
 	ext = lcase(right(songname, 4))
 	if ext = ".mid" then
@@ -2099,12 +2082,9 @@ end SUB
 SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
 'Not sure whether this should be in here or in gfx. Possibly both?
 '	bsave f$, 0
-	dim fname as string
-
-	fname = rtrim$(f$)
 
 	'try external first
-	if gfx_screenshot(fname, p) = 0 then
+	if gfx_screenshot(f$, p) = 0 then
 		'otherwise save it ourselves
 		dim header as BITMAPFILEHEADER
 		dim info as BITMAPINFOHEADER
@@ -2142,9 +2122,9 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
 		info.biClrImportant = biClrUsed
 
 		of = freefile
-		open fname for binary access write as #of
+		open f$ for binary access write as #of
 		if err > 0 then
-			'debug "Couldn't open " + fname
+			'debug "Couldn't open " + f$
 			exit sub
 		end if
 
@@ -2494,7 +2474,6 @@ SUB bitmap2page (temp(), bmp$, BYVAL p)
 'loads the 24-bit bitmap bmp$ into page p with palette temp()
 'I'm pretty sure this is only ever called with 320x200 pics, but I
 'have tried to generalise it to cope with any size.
-	dim fname as string
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim pix as RGBTRIPLE
@@ -2505,12 +2484,10 @@ SUB bitmap2page (temp(), bmp$, BYVAL p)
 	dim ub as ubyte
 	dim pad as integer
 
-	fname = rtrim$(bmp$)
-
 	bf = freefile
-	open fname for binary access read as #bf
+	open bmp$ for binary access read as #bf
 	if err > 0 then
-		'debug "Couldn't open " + fname
+		'debug "Couldn't open " + bmp$
 		exit sub
 	end if
 
@@ -2613,7 +2590,6 @@ END SUB
 SUB loadbmp (f$, BYVAL x, BYVAL y, buf(), BYVAL p)
 'loads the 4-bit bitmap f$ into page p at x, y
 'sets palette to match file???
-	dim fname as string
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim bf as integer
@@ -2622,12 +2598,10 @@ SUB loadbmp (f$, BYVAL x, BYVAL y, buf(), BYVAL p)
 	dim i as integer
 	dim col as RGBQUAD
 
-	fname = rtrim$(f$)
-
 	bf = freefile
-	open fname for binary access read as #bf
+	open f$ for binary access read as #bf
 	if err > 0 then
-		'debug "Couldn't open " + fname
+		'debug "Couldn't open " + f$
 		exit sub
 	end if
 
@@ -2800,7 +2774,6 @@ end sub
 SUB getbmppal (f$, mpal(), pal(), BYVAL o)
 'gets the nearest-match palette pal() starting at offset o, from file f$
 'according to the master palette mpal()
-	dim fname as string
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim col as RGBQUAD
@@ -2810,12 +2783,10 @@ SUB getbmppal (f$, mpal(), pal(), BYVAL o)
 	dim p as integer
 	dim toggle as integer
 
-	fname = rtrim$(f$)
-
 	bf = freefile
-	open fname for binary access read as #bf
+	open f$ for binary access read as #bf
 	if err > 0 then
-		'debug "Couldn't open " + fname
+		'debug "Couldn't open " + f$
 		exit sub
 	end if
 
@@ -2853,17 +2824,14 @@ SUB getbmppal (f$, mpal(), pal(), BYVAL o)
 END SUB
 
 FUNCTION bmpinfo (f$, dat())
-	dim fname as string
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim bf as integer
 
-	fname = rtrim$(f$)
-
 	bf = freefile
-	open fname for binary access read as #bf
+	open f$ for binary access read as #bf
 	if err > 0 then
-		'debug "Couldn't open " + fname
+		'debug "Couldn't open " + f$
 		bmpinfo = 0
 		exit function
 	end if

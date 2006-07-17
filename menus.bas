@@ -231,7 +231,7 @@ RETURN
 
 loaddat:
 setpicstuf menudat(), MenuDatSize*2, -1
-loadset "menus.dat" + CHR$(0), pt, 0
+loadset "menus.dat", pt, 0
 menuname$ = STRING$(bound(menudat(0) AND 255, 0, 15), 0)
 array2str menudat(), 1, menuname$
 RETURN
@@ -240,7 +240,7 @@ savedat:
 ' veh(0) = bound(LEN(vehname$), 0, 5)
 ' str2array vehname$, veh(), 1
 ' setpicstuf veh(), 80, -1
-' storeset "menus.dat" + CHR$(0), pt, 0
+' storeset "menus.dat", pt, 0
 RETURN
 
 END SUB
@@ -417,7 +417,7 @@ RETURN
 
 loadveh:
 setpicstuf veh(), 80, -1
-loadset game$ + ".veh" + CHR$(0), pt, 0
+loadset game$ + ".veh", pt, 0
 vehname$ = STRING$(bound(veh(0) AND 255, 0, 15), 0)
 array2str veh(), 1, vehname$
 RETURN
@@ -426,7 +426,7 @@ saveveh:
 veh(0) = bound(LEN(vehname$), 0, 15)
 str2array vehname$, veh(), 1
 setpicstuf veh(), 80, -1
-storeset game$ + ".veh" + CHR$(0), pt, 0
+storeset game$ + ".veh", pt, 0
 RETURN
 
 END SUB
@@ -640,7 +640,7 @@ DO
 LOOP
 
 gshowpage:
-loadpage game$ + ".mxs" + CHR$(0), general(1), 2
+loadpage game$ + ".mxs", general(1), 2
 RETURN
 
 loadpass:
@@ -652,12 +652,12 @@ ELSE
  readscatter pas$, general(94), 200
  pas$ = rotascii(pas$, general(93) * -1)
 END IF
-IF isfile(workingdir$ + SLASH + "browse.txt" + CHR$(0)) THEN
+IF isfile(workingdir$ + SLASH + "browse.txt") THEN
  setpicstuf buffer(), 40, -1
- loadset workingdir$ + SLASH + "browse.txt" + CHR$(0), 0, 0
+ loadset workingdir$ + SLASH + "browse.txt", 0, 0
  longname$ = STRING$(bound(buffer(0), 0, 38), " ")
  array2str buffer(), 2, longname$
- loadset workingdir$ + SLASH + "browse.txt" + CHR$(0), 1, 0
+ loadset workingdir$ + SLASH + "browse.txt", 1, 0
  aboutline$ = STRING$(bound(buffer(0), 0, 38), " ")
  array2str buffer(), 2, aboutline$
 END IF
@@ -678,10 +678,10 @@ writescatter oldpas$, general(94), 200
 setpicstuf buffer(), 40, -1
 buffer(0) = bound(LEN(longname$), 0, 38)
 str2array longname$, buffer(), 2
-storeset workingdir$ + SLASH + "browse.txt" + CHR$(0), 0, 0
+storeset workingdir$ + SLASH + "browse.txt", 0, 0
 buffer(0) = bound(LEN(aboutline$), 0, 38)
 str2array aboutline$, buffer(), 2
-storeset workingdir$ + SLASH + "browse.txt" + CHR$(0), 1, 0
+storeset workingdir$ + SLASH + "browse.txt", 1, 0
 RETURN
 
 renrpg:
@@ -697,10 +697,10 @@ DO
  fixfilename newgame$
  IF keyval(28) > 1 THEN
   IF oldgame$ <> newgame$ AND newgame$ <> "" THEN
-   IF NOT isfile(newgame$ + ".rpg" + CHR$(0)) THEN
+   IF NOT isfile(newgame$ + ".rpg") THEN
     textcolor 10, 0
     printstr "Finding files...", 0, 30, vpage
-    findfiles workingdir$ + SLASH + oldgame$ + ".*" + CHR$(0), 0, "temp.lst" + CHR$(0), buffer()
+    findfiles workingdir$ + SLASH + oldgame$ + ".*", 0, "temp.lst", buffer()
     fh = FREEFILE
     OPEN "temp.lst" FOR APPEND AS #fh
     PRINT #fh, "-END OF LIST-"
@@ -714,14 +714,14 @@ DO
      LINE INPUT #fh, temp$
      IF temp$ = "-END OF LIST-" THEN EXIT DO
      printstr " " + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)) + " ", 0, 50, vpage
-     copyfile workingdir$ + SLASH + temp$ + CHR$(0), workingdir$ + SLASH + newgame$ + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)) + CHR$(0), buffer()
+     copyfile workingdir$ + SLASH + temp$, workingdir$ + SLASH + newgame$ + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)), buffer()
      KILL workingdir$ + SLASH + temp$
     LOOP
     CLOSE #fh
     safekill "temp.lst"
     '--update archinym information lump
     fh = FREEFILE
-    IF isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
+    IF isfile(workingdir$ + SLASH + "archinym.lmp") THEN
      OPEN workingdir$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
      LINE INPUT #fh, oldversion$
      LINE INPUT #fh, oldversion$
@@ -828,7 +828,7 @@ w = getkey
 f$ = browse$(4, default$, "*.mas", "")
 IF f$ <> "" THEN
  '--copy the new palette in
- copyfile f$ + CHR$(0), game$ + ".mas" + CHR$(0), buffer()
+ copyfile f$, game$ + ".mas", buffer()
  '--patch the header in case it is a corrupt PalEdit header.
  masfh = FREEFILE
  OPEN game$ + ".mas" FOR BINARY AS #masfh
@@ -938,18 +938,18 @@ songfile$ = ""
 songtype$ = "NO FILE"
 '-- BAM special case and least desirable, so check first and override
 IF snum > 99 THEN
- IF isfile(temp$ + ".bam" + CHR$(0)) THEN ext$ = ".bam" : songfile$ = temp$ + ext$ : songtype$ = "Bob's Adlib Music (BAM)"
+ IF isfile(temp$ + ".bam") THEN ext$ = ".bam" : songfile$ = temp$ + ext$ : songtype$ = "Bob's Adlib Music (BAM)"
 ELSE
- IF isfile(game$ + "." + STR$(snum) + CHR$(0)) THEN ext$ = ".bam" : songfile$ = game$ + "." + STR$(snum) : songtype$ = "Bob's Adlib Music (BAM)"
+ IF isfile(game$ + "." + STR$(snum)) THEN ext$ = ".bam" : songfile$ = game$ + "." + STR$(snum) : songtype$ = "Bob's Adlib Music (BAM)"
 END IF
 bamfile$ = songfile$
-IF isfile(temp$ + ".mid" + CHR$(0)) THEN ext$ = ".mid" : songfile$ = temp$ + ext$ : songtype$ = "MIDI Music (MID)"
+IF isfile(temp$ + ".mid") THEN ext$ = ".mid" : songfile$ = temp$ + ext$ : songtype$ = "MIDI Music (MID)"
 '--add more formats here
 
 sname$ = getsongname$(snum)
 
 IF songfile$ <> "" THEN '--song exists
- loadsong songfile$ + CHR$(0)
+ loadsong songfile$
 ELSE
  sname$ = ""
 END IF
@@ -988,7 +988,7 @@ IF sourcesong$ <> "" THEN
  ELSE
   songfile$ = workingdir$ + SLASH + "song" + STR$(snum) + MID$(sourcesong$, INSTR(sourcesong$, "."))
  END IF
- copyfile sourcesong$ + CHR$(0), songfile$ + CHR$(0), buffer()
+ copyfile sourcesong$, songfile$, buffer()
  a$ = trimpath$(sourcesong$)
  a$ = MID$(a$, 1, INSTR(a$, ".") - 1)
  sname$ = a$
@@ -1009,14 +1009,14 @@ IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
 END IF
 outfile$ = inputfilename$(query$, ext$)
 IF outfile$ = "" THEN RETURN
-copyfile songfile$ + CHR$(0), outfile$ + ext$ + CHR$(0), buffer()
+copyfile songfile$, outfile$ + ext$, buffer()
 RETURN
 
 ssongdata:
 flusharray buffer(), curbinsize(2) / 2, 0
 setpicstuf buffer(), curbinsize(2), -1
 writebinstring sname$, buffer(), 0, 30
-storeset workingdir$ + SLASH + "songdata.bin" + CHR$(0), snum, 0
+storeset workingdir$ + SLASH + "songdata.bin", snum, 0
 RETURN
 
 END SUB
@@ -1119,7 +1119,7 @@ temp$ = workingdir$ + SLASH + "sfx" + STR$(snum)
 sfxfile$ = ""
 sfxtype$ = "NO FILE"
 
-IF isfile(temp$ + ".wav" + CHR$(0)) THEN ext$ = ".wav" : sfxfile$ = temp$ + ext$ : sfxtype$ = "Waveform (WAV)"
+IF isfile(temp$ + ".wav") THEN ext$ = ".wav" : sfxfile$ = temp$ + ext$ : sfxtype$ = "Waveform (WAV)"
 '--add more formats here
 
 if sfxfile$ <> "" then
@@ -1149,7 +1149,7 @@ safekill sfxfile$
 
 IF sourcesfx$ <> "" THEN
  sfxfile$ = workingdir$ + SLASH + "sfx" + STR$(snum) + MID$(sourcesfx$, INSTR(sourcesfx$, "."))
- copyfile sourcesfx$ + CHR$(0), sfxfile$ + CHR$(0), buffer()
+ copyfile sourcesfx$, sfxfile$, buffer()
  a$ = trimpath$(sourcesfx$)
  a$ = MID$(a$, 1, INSTR(a$, ".") - 1)
  sname$ = a$
@@ -1162,14 +1162,14 @@ exportsfx:
 query$ = "Name of file to export to?"
 outfile$ = inputfilename$(query$, ext$)
 IF outfile$ = "" THEN RETURN
-copyfile sfxfile$ + CHR$(0), outfile$ + ext$ + CHR$(0), buffer()
+copyfile sfxfile$, outfile$ + ext$, buffer()
 RETURN
 
 ssfxdata:
 flusharray buffer(), curbinsize(3) / 2, 0
 setpicstuf buffer(), curbinsize(3), -1
 writebinstring sname$, buffer(), 0, 30
-storeset workingdir$ + SLASH + "sfxdata.bin" + CHR$(0), snum, 0
+storeset workingdir$ + SLASH + "sfxdata.bin", snum, 0
 RETURN
 
 END SUB

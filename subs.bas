@@ -648,7 +648,7 @@ updateflexmenu pt, dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff()
 
 '--load the picture and palette
 setpicstuf buffer(), (previewsize(recbuf(EnDatPicSize)) ^ 2) / 2, 2
-loadset game$ + ".pt" + STR$(1 + recbuf(EnDatPicSize)) + CHR$(0), recbuf(EnDatPic), 0
+loadset game$ + ".pt" + STR$(1 + recbuf(EnDatPicSize)), recbuf(EnDatPic), 0
 getpal16 workpal(), 0, recbuf(EnDatPal)
 
 RETURN
@@ -682,7 +682,7 @@ RETURN
 
 EnLoadSub:
 setpicstuf recbuf(), 320, -1
-loadset game$ + ".dt1" + CHR$(0), recindex, 0
+loadset game$ + ".dt1", recindex, 0
 GOSUB EnUpdateMenu
 RETURN
 
@@ -794,12 +794,12 @@ RETURN
 
 savefset:
 setpicstuf c(), 50, -1
-storeset game$ + ".efs" + CHR$(0), gptr, 0
+storeset game$ + ".efs", gptr, 0
 RETURN
 
 loadfset:
 setpicstuf c(), 50, -1
-loadset game$ + ".efs" + CHR$(0), gptr, 0
+loadset game$ + ".efs", gptr, 0
 RETURN
 
 editform:
@@ -924,18 +924,18 @@ FOR i = 0 TO 40
 NEXT i
 a(33) = general(4)
 setpicstuf a(), 80, -1
-storeset game$ + ".for" + CHR$(0), pt, 0
+storeset game$ + ".for", pt, 0
 RETURN
 
 saveform:
 setpicstuf a(), 80, -1
-storeset game$ + ".for" + CHR$(0), pt, 0
+storeset game$ + ".for", pt, 0
 RETURN
 
 loadform:
 setpicstuf a(), 80, -1
-loadset game$ + ".for" + CHR$(0), pt, 0
-loadpage game$ + ".mxs" + CHR$(0), a(32), 2
+loadset game$ + ".for", pt, 0
+loadpage game$ + ".mxs", a(32), 2
 RETURN
 
 formpics:
@@ -943,7 +943,7 @@ FOR i = 0 TO 7
  ename$(i) = "-EMPTY-"
  IF a(i * 4 + 0) > 0 THEN
   setpicstuf b(), 320, -1
-  loadset game$ + ".dt1" + CHR$(0), a(i * 4 + 0) - 1, 0
+  loadset game$ + ".dt1", a(i * 4 + 0) - 1, 0
   ename$(i) = STR$(a(i * 4 + 0) - 1) + ":"
   FOR o = 1 TO b(0)
    ename$(i) = ename$(i) + CHR$(b(o))
@@ -953,7 +953,7 @@ FOR i = 0 TO 7
   IF b(55) = 1 THEN s(i) = 1250: w(i) = 50: f$ = ".pt2"
   IF b(55) = 2 THEN s(i) = 3200: w(i) = 80: f$ = ".pt3"
   setpicstuf buffer(), s(i), 3
-  loadset game$ + f$ + CHR$(0), b(53), i * 10
+  loadset game$ + f$, b(53), i * 10
  END IF
 NEXT i
 RETURN
@@ -962,7 +962,7 @@ END SUB
 
 FUNCTION getbinsize (id)
 
-IF isfile(workingdir$ + SLASH + "binsize.bin" + CHR$(0)) THEN
+IF isfile(workingdir$ + SLASH + "binsize.bin") THEN
  fbdim recordsize
  fh = FREEFILE
  OPEN workingdir$ + SLASH + "binsize.bin" FOR BINARY AS #fh
@@ -1387,7 +1387,7 @@ FOR i = 0 TO 318
  a(i) = 0
 NEXT i
 setpicstuf a(), 636, -1
-storeset game$ + ".dt0" + CHR$(0), pt, 0
+storeset game$ + ".dt0", pt, 0
 RETURN
 
 lasthero:
@@ -1402,12 +1402,12 @@ FOR i = 0 TO 3
  NEXT o
 NEXT i
 setpicstuf a(), 636, -1
-storeset game$ + ".dt0" + CHR$(0), pt, 0
+storeset game$ + ".dt0", pt, 0
 RETURN
 
 thishero:
 setpicstuf a(), 636, -1
-loadset game$ + ".dt0" + CHR$(0), pt, 0
+loadset game$ + ".dt0", pt, 0
 nam$ = readbadbinstring$(a(), 0, 16, 0)
 FOR i = 0 TO 3
  hmenu$(i) = readbadbinstring$(a(), 243 + i * 11, 10, 0)
@@ -1419,16 +1419,16 @@ RETURN
 
 heropics:
 setpicstuf buffer(), 5120, 2
-loadset game$ + ".pt0" + CHR$(0), a(17), 0
+loadset game$ + ".pt0", a(17), 0
 getpal16 pal16(), 0, a(18)
 setpicstuf buffer(), 1600, 2
-loadset game$ + ".pt4" + CHR$(0), a(19), 16
+loadset game$ + ".pt4", a(19), 16
 getpal16 pal16(), 1, a(20)
 RETURN
 
 ' itstrh:
 ' setpicstuf buffer(), 200, -1
-' loadset game$ + ".itm" + CHR$(0), a(22), 0
+' loadset game$ + ".itm", a(22), 0
 ' it$ = ""
 ' FOR o = 1 TO small(buffer(0), 20)
 '  IF buffer(o) < 256 AND buffer(o) > -1 THEN it$ = it$ + CHR$(buffer(o)) ELSE it$ = ""
@@ -1563,7 +1563,7 @@ DO
   IF csr <= 254 THEN
    GOSUB edititem
    setpicstuf a(), 200, -1
-   storeset game$ + ".itm" + CHR$(0), csr, 0
+   storeset game$ + ".itm", csr, 0
    i = csr: GOSUB sitemname
   END IF
  END IF
@@ -1589,7 +1589,7 @@ EXIT SUB
 
 edititem:
 setpicstuf a(), 200, -1
-loadset game$ + ".itm" + CHR$(0), csr, 0
+loadset game$ + ".itm", csr, 0
 info$ = readbadbinstring$(a(), 9, 35, 0)
 
 menu$(0) = "Back to Item Menu"
@@ -1611,11 +1611,11 @@ max(14) = 999
 max(15) = 999
 
 setpicstuf a(), 200, -1
-loadset game$ + ".itm" + CHR$(0), csr, 0
+loadset game$ + ".itm", csr, 0
 GOSUB itemmenu
 
 setpicstuf buffer(), 576, 2
-loadset game$ + ".pt5" + CHR$(0), a(52), 0
+loadset game$ + ".pt5", a(52), 0
 getpal16 workpal(), 0, a(53)
 
 setkeys
@@ -1728,7 +1728,7 @@ END IF
 IF pt = 9 OR pt = 10 THEN
  'oldframe = frame
  setpicstuf buffer(), 576, 2
- loadset game$ + ".pt5" + CHR$(0), a(52), 0
+ loadset game$ + ".pt5", a(52), 0
  getpal16 workpal(), 0, a(53)
 END IF
 RETURN
@@ -1771,14 +1771,14 @@ RETURN
 litemname:
 setpicstuf a(), 200, -1
 FOR i = 0 TO 254
- loadset game$ + ".itm" + CHR$(0), i, 0
+ loadset game$ + ".itm", i, 0
  item$(i) = readbadbinstring$(a(), 0, 8, 0)
 NEXT i
 RETURN
 
 sitemname:
 setpicstuf a(), 200, -1
-loadset game$ + ".itm" + CHR$(0), i, 0
+loadset game$ + ".itm", i, 0
 a(0) = LEN(item$(i))
 FOR o = 1 TO a(0)
  a(o) = ASC(MID$(item$(i), o, 1))
@@ -1787,7 +1787,7 @@ a(9) = LEN(info$)
 FOR o = 10 TO 9 + a(9)
  a(o) = ASC(MID$(info$, o - 9, 1))
 NEXT o
-storeset game$ + ".itm" + CHR$(0), i, 0
+storeset game$ + ".itm", i, 0
 RETURN
 
 ibitset:
@@ -1802,7 +1802,7 @@ RETURN
 equipbit:
 FOR i = 0 TO 59
  setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0" + CHR$(0), i, 0
+ loadset game$ + ".dt0", i, 0
  ibit$(i) = readbadbinstring$(buffer(), 0, 16, 0)
  ibit$(i) = "Equipable by " + ibit$(i)
 NEXT i
@@ -1858,7 +1858,7 @@ FUNCTION itemstr$ (it%, hidden%, offbyone%)
  IF offbyone THEN itn = it ELSE itn = it - 1
 
  setpicstuf buffer(), 200, -1
- loadset game$ + ".itm" + CHR$(0), itn, 0
+ loadset game$ + ".itm", itn, 0
  re$ = ""
  re$ = readbadbinstring$(buffer(), 0, 8, 0)
  IF hidden = 0 THEN re$ = XSTR$(itn) + " " + re$
@@ -1975,7 +1975,7 @@ EXIT SUB
 
 loadnpcpic:
 setpicstuf buffer(), 1600, 2
-loadset game$ + ".pt4" + CHR$(0), npc(i * 15 + 0), 5 * i
+loadset game$ + ".pt4", npc(i * 15 + 0), 5 * i
 getpal16 pal16(), i, npc(i * 15 + 1)
 RETURN
 
@@ -2048,7 +2048,7 @@ DO
      temp$ = "No"
     ELSE
      setpicstuf buffer(), 80, -1
-     loadset game$ + ".veh" + CHR$(0), npc(cur * 15 + 14) - 1, 0
+     loadset game$ + ".veh", npc(cur * 15 + 14) - 1, 0
      temp$ = STRING$(bound(buffer(0) AND 255, 0, 15), 0)
      array2str buffer(), 1, temp$
     END IF
@@ -2092,7 +2092,7 @@ RETURN
 ' it$ = " NONE"
 ' IF npc(cur * 15 + 6) = 0 THEN RETURN
 ' setpicstuf buffer(), 200, -1
-' loadset game$ + ".itm" + CHR$(0), npc(cur * 15 + 6) - 1, 0
+' loadset game$ + ".itm", npc(cur * 15 + 6) - 1, 0
 ' it$ = ""
 ' FOR o = 1 TO small(buffer(0), 16)
 '  IF buffer(o) > 255 OR buffer(o) < 0 THEN buffer(o) = 0
@@ -2105,7 +2105,7 @@ x$ = ""
 IF npc(cur * 15 + 4) = 0 THEN RETURN
 x$ = STRING$(38, 0)
 setpicstuf buffer(), 400, -1
-loadset game$ + ".say" + CHR$(0), npc(cur * 15 + 4), 0
+loadset game$ + ".say", npc(cur * 15 + 4), 0
 array2str buffer(), 0, x$
 RETURN
 
@@ -2135,15 +2135,15 @@ flusharray array(), 39 + curbinsize(0) / 2, 0
 
 '--load 40 elements from the .dt6 lump
 setpicstuf array(), 80, -1
-loadset game$ + ".dt6" + CHR$(0), index, 0
+loadset game$ + ".dt6", index, 0
 
 '--load the rest from the attack.bin lump
 size = getbinsize(0)
 
 IF size THEN
- IF isfile(workingdir$ + SLASH + "attack.bin" + CHR$(0)) THEN
+ IF isfile(workingdir$ + SLASH + "attack.bin") THEN
   setpicstuf buffer(), size, -1
-  loadset workingdir$ + SLASH + "attack.bin" + CHR$(0), index, 0
+  loadset workingdir$ + SLASH + "attack.bin", index, 0
   FOR i = 0 TO size / 2 - 1
    array(40 + i) = buffer(i)
   NEXT i
@@ -2168,7 +2168,7 @@ result$ = ""
 
 IF index >= 0 THEN
  setpicstuf buffer(), recsize, -1
- loadset filename$ + CHR$(0), index, 0
+ loadset filename$, index, 0
  result$ = readbadbinstring$(buffer(), offset, size, skip)
 END IF
 
@@ -2341,20 +2341,20 @@ END SUB
 SUB writeattackdata (array(), index)
 
 setpicstuf array(), 80, -1
-storeset game$ + ".dt6" + CHR$(0), index, 0
+storeset game$ + ".dt6", index, 0
 
 FOR i = 0 TO 59
  buffer(i) = array(40 + i)
 NEXT i
 
 setpicstuf buffer(), curbinsize(0), -1
-storeset workingdir$ + SLASH + "attack.bin" + CHR$(0), index, 0
+storeset workingdir$ + SLASH + "attack.bin", index, 0
 
 END SUB
 
 SUB writeenemydata (buf(), index)
 setpicstuf buf(), 320, -1
-storeset game$ + ".dt1" + CHR$(0), index, 0
+storeset game$ + ".dt1", index, 0
 END SUB
 
 SUB writescatter (s$, lhold, start)

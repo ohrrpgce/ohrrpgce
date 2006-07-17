@@ -141,13 +141,13 @@ SELECT CASE special
   stopsong
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
    IF validmusicfile(nowdir$ + tree$(treeptr)) THEN
-    loadsong nowdir$ + tree$(treeptr) + CHR$(0)
+    loadsong nowdir$ + tree$(treeptr)
    ELSE
     alert$ = tree$(treeptr) + " is not a valid BAM file"
    END IF
   END IF
  CASE 2, 3
-  IF bmpinfo(nowdir$ + tree$(treeptr) + CHR$(0), bmpd()) THEN
+  IF bmpinfo(nowdir$ + tree$(treeptr), bmpd()) THEN
    alert$ = STR$(bmpd(1)) + "*" + STR$(bmpd(2)) + " pixels, " + STR$(bmpd(0)) + "-bit color"
   END IF
  CASE 4
@@ -170,7 +170,7 @@ SELECT CASE special
   stopsong
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
    IF validmusicfile(nowdir$ + tree$(treeptr)) THEN
-    loadsong nowdir$ + tree$(treeptr) + CHR$(0)
+    loadsong nowdir$ + tree$(treeptr)
    ELSE
     alert$ = tree$(treeptr) + " is not a valid music file"
    END IF
@@ -377,7 +377,7 @@ DO UNTIL EOF(fh) OR treesize >= limit
  END IF
  '---4-bit BMP browsing
  IF special = 2 THEN
-  IF bmpinfo(nowdir$ + tree$(treesize) + CHR$(0), bmpd()) THEN
+  IF bmpinfo(nowdir$ + tree$(treesize), bmpd()) THEN
    IF bmpd(0) <> 4 OR bmpd(1) > 320 OR bmpd(2) > 200 THEN
     treec(treesize) = 6
    END IF
@@ -387,7 +387,7 @@ DO UNTIL EOF(fh) OR treesize >= limit
  END IF
  '---320x200x24/8bit BMP files
  IF special = 3 THEN
-  IF bmpinfo(nowdir$ + tree$(treesize) + CHR$(0), bmpd()) THEN
+  IF bmpinfo(nowdir$ + tree$(treesize), bmpd()) THEN
    IF ISDOS = 1 THEN
     IF bmpd(0) <> 24 OR bmpd(1) <> 320 OR bmpd(2) <> 200 then
      treec(treesize) = 6
@@ -495,7 +495,7 @@ DATA 146,156,162,172,178,188,194,204,210,220,226,236,242,252
 END SUB
 
 SUB safekill (f$)
-IF isfile(f$ + CHR$(0)) THEN KILL f$
+IF isfile(f$) THEN KILL f$
 END SUB
 
 FUNCTION usemenu (pt, top, first, last, size)

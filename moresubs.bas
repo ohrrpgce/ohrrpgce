@@ -84,11 +84,11 @@ DIM wbuf(100), thishbits(4)
 
 '--load hero's data
 setpicstuf buffer(), 636, -1
-loadset game$ + ".dt0" + CHR$(0), who - 1, 0
+loadset game$ + ".dt0", who - 1, 0
 
 '--load data of hero's default weapon
 setpicstuf wbuf(), 200, -1
-loadset game$ + ".itm" + CHR$(0), buffer(22), 0
+loadset game$ + ".itm", buffer(22), 0
 
 '--do average level enforcement
 IF buffer(21) < 0 THEN buffer(21) = averagelev(stat())
@@ -589,14 +589,14 @@ END FUNCTION
 
 SUB getmapname (mapname$, m)
 setpicstuf buffer(), 80, -1
-loadset game$ + ".mn" + CHR$(0), m, 0
+loadset game$ + ".mn", m, 0
 a$ = STRING$(small((buffer(0) AND 255), 39), " ")
 array2str buffer(), 1, a$
 mapname$ = a$
 END SUB
 
 SUB getnames (stat$())
-IF isfile(game$ + ".stt" + CHR$(0)) THEN
+IF isfile(game$ + ".stt") THEN
  fh = FREEFILE
  OPEN game$ + ".stt" FOR BINARY AS #fh
  max = 32
@@ -830,7 +830,7 @@ IF gen(95) < 2 THEN
 ELSE
  '--THE RIGHT WAY--
  setpicstuf buffer(), 600, -1
- loadset game$ + ".dox" + CHR$(0), map, 0
+ loadset game$ + ".dox", map, 0
  FOR i = 0 TO 99
   door(i) = buffer(i)
   door(100 + i) = buffer(100 + i)
@@ -846,7 +846,7 @@ xbload game$ + ".gen", gen(), "General data is missing from " + game$
 
 sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
 setpicstuf buffer(), 30000, -1
-loadset sg$ + CHR$(0), slot * 2, 0
+loadset sg$, slot * 2, 0
 
 version = buffer(0)
 IF version < 2 OR version > 3 THEN EXIT SUB
@@ -954,7 +954,7 @@ NEXT i
 'RECORD 2
 
 setpicstuf buffer(), 30000, -1
-loadset sg$ + CHR$(0), slot * 2 + 1, 0
+loadset sg$, slot * 2 + 1, 0
 
 z = 0
 
@@ -1005,7 +1005,7 @@ IF picpalmagicnum <> 4444 THEN
  FOR sl = 0 TO 40
   IF hero(sl) > 0 THEN
    setpicstuf buffer(), 636, -1
-   loadset game$ + ".dt0" + CHR$(0), hero(sl) - 1, 0
+   loadset game$ + ".dt0", hero(sl) - 1, 0
    stat(sl, 0, 14) = buffer(17)'bat pic
    stat(sl, 0, 15) = buffer(18)'bat pal
    stat(sl, 1, 14) = buffer(19)'walk pic
@@ -1020,7 +1020,7 @@ IF nativebitmagicnum <> 4444 THEN
  FOR sl = 0 TO 40
   IF hero(sl) > 0 THEN
    setpicstuf buffer(), 636, -1
-   loadset game$ + ".dt0" + CHR$(0), hero(sl) - 1, 0
+   loadset game$ + ".dt0", hero(sl) - 1, 0
    FOR i = 0 TO 4
     nativehbits(sl, i) = buffer(240 + i)
    NEXT i
@@ -1037,12 +1037,12 @@ END SUB
 
 SUB loadtanim (n, tastuf())
 setpicstuf tastuf(), 80, -1
-loadset game$ + ".tap" + CHR$(0), n, 0
+loadset game$ + ".tap", n, 0
 END SUB
 
 SUB minimap (mx, my, x, y, tastuf())
 
-'loadpage game$ + ".til" + CHR$(0), gmap(0), 3
+'loadpage game$ + ".til", gmap(0), 3
 centerfuz 160, 100, 304, 184, 1, vpage
 centerbox 159, 99, scroll(0) + 3, scroll(1) + 3, 15, vpage
 setmapdata scroll(), buffer(), 0, 0
@@ -1158,7 +1158,7 @@ END FUNCTION
 
 SUB readjoysettings
 
-IF isfile(exepath$ + SLASH + "joyset.ini" + CHR$(0)) THEN
+IF isfile(exepath$ + SLASH + "joyset.ini") THEN
  '--use joyset.ini
  fh = FREEFILE
  OPEN exepath$ + SLASH + "joyset.ini" FOR INPUT AS #fh
@@ -1240,7 +1240,7 @@ END SUB
 SUB renamehero (who)
 
 setpicstuf buffer(), 636, -1
-loadset game$ + ".dt0" + CHR$(0), hero(who) - 1, 0
+loadset game$ + ".dt0", hero(who) - 1, 0
 limit = buffer(296)
 IF limit = 0 THEN limit = 16
 
@@ -1480,7 +1480,7 @@ IF loadinstead <> -1 THEN
  END IF
 ELSE
  '--load the script from file
- IF isfile(workingdir$ + SLASH + STR$(n) + ".hsx" + CHR$(0)) THEN
+ IF isfile(workingdir$ + SLASH + STR$(n) + ".hsx") THEN
   fbdim temp
 	
   f = FREEFILE
@@ -1669,7 +1669,7 @@ NEXT i
 
 setpicstuf buffer(), 30000, -1
 sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
-storeset sg$ + CHR$(0), slot * 2, 0
+storeset sg$, slot * 2, 0
 
 '---RECORD 2
 
@@ -1720,7 +1720,7 @@ NEXT i
 
 setpicstuf buffer(), 30000, -1
 sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
-storeset sg$ + CHR$(0), slot * 2 + 1, 0
+storeset sg$, slot * 2 + 1, 0
 
 
 'ALL THE STUFF THAT MUST BE SAVED
@@ -1878,7 +1878,7 @@ DO
    buystuff id, 1, storebuf(), stock(), stat()
   END IF
   IF menuid(pt) = 6 THEN '--MAP
-   loadpage game$ + ".til" + CHR$(0), gmap(0), 3
+   loadpage game$ + ".til", gmap(0), 3
    minimap mx, my, catx(0), caty(0), tastuf()
   END IF
   IF menuid(pt) = 7 THEN '--TEAM
@@ -1936,7 +1936,7 @@ FOR t = 4 TO 5: carray(t) = 0: NEXT t
 EXIT SUB
 
 repaintback:
-loadpage game$ + ".til" + CHR$(0), gmap(0), 3
+loadpage game$ + ".til", gmap(0), 3
 setmapdata scroll(), buffer(), 0, 0
 drawmap mapx, mapy, 0, dpage
 copypage dpage, 3
@@ -1944,7 +1944,7 @@ RETURN
 
 initshop:
 setpicstuf storebuf(), 40, -1
-loadset game$ + ".sho" + CHR$(0), id, 0
+loadset game$ + ".sho", id, 0
 sn$ = readbadbinstring$(storebuf(), 0, 15, 0)
 o = 0: last = -1
 FOR i = 0 TO 7
@@ -2029,13 +2029,13 @@ n = 0
 
 DO
  shot$ = pre$ + STR$(ABS(n)) + ".bmp"
- IF isfile(shot$ + CHR$(0)) = 0 THEN EXIT DO
+ IF isfile(shot$) = 0 THEN EXIT DO
  n = n + 1
 LOOP UNTIL n > 99
 
-screenshot shot$ + CHR$(0), vpage, master(), buffer()
+screenshot shot$, vpage, master(), buffer()
 
-IF isfile(shot$ + CHR$(0)) THEN
+IF isfile(shot$) THEN
  fh = FREEFILE
  OPEN shot$ FOR BINARY AS #fh
  a$ = CHR$(0)
@@ -2080,7 +2080,7 @@ FOR i = top TO top + 4
   CASE 0, 1
    temp$ = temp$ + " Reserved Tag"
   CASE IS > 1
-   loadset game$ + ".tmn" + CHR$(0), i, 0
+   loadset game$ + ".tmn", i, 0
    FOR j = 1 TO small(buf(0), 20)
     temp$ = temp$ + CHR$(large(small(buf(j), 255), 0))
    NEXT j
@@ -2107,10 +2107,10 @@ END SUB
 FUNCTION unlumpone (lumpfile$, onelump$, asfile$)
 unlumpone = 0
 
-unlumpfile lumpfile$ + CHR$(0), onelump$, tmpdir$, buffer()
+unlumpfile lumpfile$, onelump$, tmpdir$, buffer()
 
-IF isfile(tmpdir$ + onelump$ + CHR$(0)) THEN
- copyfile tmpdir$ + onelump$ + CHR$(0), asfile$ + CHR$(0), buffer()
+IF isfile(tmpdir$ + onelump$) THEN
+ copyfile tmpdir$ + onelump$, asfile$, buffer()
  KILL tmpdir$ + onelump$
  unlumpone = -1
 END IF
@@ -2152,9 +2152,9 @@ END FUNCTION
 FUNCTION getdisplayname$ (default$)
  '--Get game's display name
  f$ = workingdir$ + SLASH + "browse.txt"
- IF isfile(f$ + CHR$(0)) THEN
+ IF isfile(f$) THEN
   setpicstuf buffer(), 40, -1
-  loadset f$ + CHR$(0), 0, 0
+  loadset f$, 0, 0
   s$ = STRING$(bound(buffer(0), 0, 38), " ")
   array2str buffer(), 2, s$
   IF LEN(s$) > 0 THEN

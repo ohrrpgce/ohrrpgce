@@ -1,17 +1,4 @@
-'Library header - bare QBasic version
-'--register type used for direct assembly language calls
-TYPE Regtype
- ax AS INTEGER
- bx AS INTEGER
- cx AS INTEGER
- dx AS INTEGER
- bp AS INTEGER
- si AS INTEGER
- di AS INTEGER
- flags AS INTEGER
- ds AS INTEGER
- es AS INTEGER
-END TYPE
+'Allmodex FreeBasic Library header
 
 'Library routines
 DECLARE SUB setmodex ()
@@ -37,9 +24,6 @@ DECLARE SUB stosprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL page)
 DECLARE SUB loadsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL page)
 DECLARE SUB bigsprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page, BYVAL trans = -1)
 DECLARE SUB hugesprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page, BYVAL trans = -1)
-'DECLARE SUB INTERRUPTX (intnum AS INTEGER,inreg AS RegTypeX, outreg AS RegTypeX)
-DECLARE FUNCTION Keyseg ()
-DECLARE FUNCTION keyoff ()
 DECLARE FUNCTION keyval (BYVAL a)
 DECLARE FUNCTION getkey ()
 DECLARE SUB setkeys ()
@@ -71,7 +55,7 @@ DECLARE SUB unlumpfile (lump$, fmask$, path$, buf())
 DECLARE FUNCTION isfile (n$)
 DECLARE FUNCTION isdir (sDir$)
 DECLARE FUNCTION drivelist (d$())
-DECLARE FUNCTION drivelabel (drive$) as string
+DECLARE FUNCTION drivelabel$ (drive$)
 DECLARE FUNCTION isremovable (drive$)
 DECLARE FUNCTION hasmedia (drive$)
 DECLARE SUB setupmusic (mbuf())

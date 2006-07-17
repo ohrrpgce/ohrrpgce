@@ -168,7 +168,7 @@ DO
   bgspeed = loopvar(bgspeed, 0, a(35), 1)
   IF bgspeed = 0 THEN
    curbg = loopvar(curbg, a(32), a(32) + a(34), 1)
-   loadpage game$ + ".mxs" + CHR$(0), curbg, 2
+   loadpage game$ + ".mxs", curbg, 2
   END IF
  END IF
 
@@ -347,7 +347,7 @@ IF countai(ai, them, es()) > 0 THEN
 
  'load the data for this attack
  setpicstuf atktemp(), 80, -1
- loadset game$ + ".dt6" + CHR$(0), godo(them) - 1, 0
+ loadset game$ + ".dt6", godo(them) - 1, 0
 
  'get the delay to wait for this attack
  delay(them) = atktemp(16)
@@ -386,7 +386,7 @@ IF carray(4) > 1 THEN
  IF bmenu(you, pt) > 0 THEN 'simple attack
   godo(you) = bmenu(you, pt)
   setpicstuf buffer(), 80, -1
-  loadset game$ + ".dt6" + CHR$(0), godo(you) - 1, 0
+  loadset game$ + ".dt6", godo(you) - 1, 0
   delay(you) = large(buffer(16), 1)
   ptarg = 1
   flusharray carray(), 7, 0
@@ -405,12 +405,12 @@ IF carray(4) > 1 THEN
    IF spell(you, sptype, i) > 0 THEN
     spel(i) = spell(you, sptype, i) - 1
     setpicstuf atktemp(), getbinsize(0), -1
-    loadset workingdir$ + SLASH + "attack.bin" + CHR$(0), spel(i), 0
+    loadset workingdir$ + SLASH + "attack.bin", spel(i), 0
     FOR j = getbinsize(0) / 2 - 1 TO 0 STEP -1
      atktemp(40 + j) = atktemp(j)
     NEXT j
     setpicstuf atktemp(), 80, -1
-    loadset game$ + ".dt6" + CHR$(0), spel(i), 0
+    loadset game$ + ".dt6", spel(i), 0
     spel$(i) = readbadbinstring$(atktemp(), 24, 10, 1)
     speld$(i) = readbinstring$(atktemp(), 73, 38)
     IF st(you, 288 + sptype) = 0 THEN
@@ -448,7 +448,7 @@ IF carray(4) > 1 THEN
   NEXT i
   godo(you) = spel(rptr) + 1
   setpicstuf buffer(), 80, -1
-  loadset game$ + ".dt6" + CHR$(0), godo(you) - 1, 0
+  loadset game$ + ".dt6", godo(you) - 1, 0
   delay(you) = large(buffer(16), 1)
   ptarg = 1
   flusharray carray(), 7, 0
@@ -470,7 +470,7 @@ END IF
 readattackdata atk(), anim
 '--load picture
 setpicstuf buffer(), 3750, 3
-loadset game$ + ".pt6" + CHR$(0), atk(0), 144
+loadset game$ + ".pt6", atk(0), 144
 '--load palette
 getpal16 pal16(), 53, atk(1)
 FOR i = 12 TO 23
@@ -514,7 +514,7 @@ targmem(who) = 0
 'DEBUG debug "begin script construction"
 IF who < 4 THEN
  setpicstuf buffer(), 576, 3
- loadset game$ + ".pt5" + CHR$(0), exstat(who, 0, 13), 156
+ loadset game$ + ".pt5" , exstat(who, 0, 13), 156
  p(24) = 52
  getpal16 pal16(), 52, exstat(who, 1, 13)
 END IF
@@ -1141,7 +1141,7 @@ IF anim = -1 THEN
  IF atk(12) > 0 AND INT(RND * 100) < atk(13) AND stat(who, 0, 0) > 0 THEN
   wf = 0: aset = 0
   setpicstuf buffer(), 80, -1
-  loadset game$ + ".dt6" + CHR$(0), atk(12) - 1, 0
+  loadset game$ + ".dt6", atk(12) - 1, 0
   IF buffer(16) > 0 THEN
    godo(who) = atk(12)
    delay(who) = buffer(16)
@@ -1291,7 +1291,7 @@ IF deadguyhp = 0 and formslotused <> 0 THEN
    IF t(j, 0) = -1 AND who <> j AND godo(j) > 0 THEN
     'godo(j) = 0: ready(j) = 1: delay(j) = 0
     setpicstuf buffer(), 80, -1
-    loadset game$ + ".dt6" + CHR$(0), godo(j) - 1, 0
+    loadset game$ + ".dt6", godo(j) - 1, 0
     IF buffer(4) = 1 OR (buffer(4) = 2 AND INT(RND * 100) < 33) THEN
      eaispread j, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
     ELSE
@@ -1395,11 +1395,11 @@ IF carray(4) > 1 THEN
  IF readbit(iuse(), 0, iptr) = 1 THEN
   lb = (item(iptr) AND 255)
   setpicstuf buffer(), 200, -1
-  loadset game$ + ".itm" + CHR$(0), lb - 1, 0
+  loadset game$ + ".itm", lb - 1, 0
   icons(you) = -1: IF buffer(73) = 1 THEN icons(you) = iptr
   temp = buffer(47)
   setpicstuf buffer(), 80, -1
-  loadset game$ + ".dt6" + CHR$(0), temp - 1, 0
+  loadset game$ + ".dt6", temp - 1, 0
   godo(you) = temp
   delay(you) = large(buffer(16), 1)
   ptarg = 1
@@ -1444,7 +1444,7 @@ IF carray(4) > 1 THEN
    IF st(you, 288 + sptype) = 1 THEN conlmp(you) = INT(sptr / 3) + 1
    '--load atk data (for delay)
    setpicstuf atktemp(), 80, -1
-   loadset game$ + ".dt6" + CHR$(0), spel(sptr), 0
+   loadset game$ + ".dt6", spel(sptr), 0
    '--queue attack
    godo(you) = spel(sptr) + 1
    delay(you) = large(atktemp(16), 1)
@@ -1562,7 +1562,7 @@ NEXT i
 
 'load attack
 setpicstuf buffer(), 80, -1
-loadset game$ + ".dt6" + CHR$(0), godo(you) - 1, 0
+loadset game$ + ".dt6", godo(you) - 1, 0
 
 noifdead = 0
 ltarg(you) = 0
@@ -1945,12 +1945,12 @@ RETURN
 
 loadall:
 setpicstuf a(), 80, -1
-loadset game$ + ".for" + CHR$(0), form, 0
+loadset game$ + ".for", form, 0
 IF a(33) > 0 THEN wrappedsong a(33) - 1
 setpicstuf buffer(), 636, -1
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
-  loadset game$ + ".dt0" + CHR$(0), hero(i) - 1, 0
+  loadset game$ + ".dt0", hero(i) - 1, 0
   FOR o = 0 TO 317
    st(i, o) = buffer(o)
   NEXT o
@@ -1965,7 +1965,7 @@ NEXT i
 FOR i = 0 TO 3
  setpicstuf buffer(), 5120, 3
  IF hero(i) > 0 THEN
-  loadset game$ + ".pt0" + CHR$(0), exstat(i, 0, 14), i * 16
+  loadset game$ + ".pt0", exstat(i, 0, 14), i * 16
   getpal16 pal16(), 40 + i, exstat(i, 0, 15)
   FOR o = 0 TO 11
    stat(i, 0, o) = exstat(i, 0, o)
@@ -1977,7 +1977,7 @@ FOR i = 0 TO 3
    menu$(i, o) = ""
    IF bmenu(i, o) > 0 THEN
     setpicstuf atk(), 80, -1
-    loadset game$ + ".dt6" + CHR$(0), bmenu(i, o) - 1, 0
+    loadset game$ + ".dt6", bmenu(i, o) - 1, 0
     menu$(i, o) = readbadbinstring$(atk(), 24, 10, 1)
    END IF
    IF bmenu(i, o) < 0 AND bmenu(i, o) > -5 THEN
@@ -2003,7 +2003,7 @@ FOR i = 12 TO 23
  h(i) = 50
 NEXT i
 setdiskpages buffer(), 200, 0
-loadpage game$ + ".mxs" + CHR$(0), a(32), 2
+loadpage game$ + ".mxs", a(32), 2
 FOR i = 0 TO 3
  IF stat(i, 0, 0) < stat(i, 1, 0) / 5 AND vdance = 0 THEN of(i) = 6
  IF hero(i) > 0 AND stat(i, 0, 0) = 0 THEN die(i) = 1
@@ -2067,7 +2067,7 @@ IF vdance = 3 THEN
   IF vdance = 3 THEN
    found$ = batname$(learna) + learned$
    setpicstuf buffer(), 80, -1
-   loadset game$ + ".dt6" + CHR$(0), spell(learna, learnb, learnc) - 1, 0
+   loadset game$ + ".dt6", spell(learna, learnb, learnc) - 1, 0
    found$ = found$ + readbadbinstring$(buffer(), 24, 10, 1)
    showlearn = 1
    drawvicbox = 1
@@ -2152,7 +2152,7 @@ FOR i = 0 TO 199
  setpicstuf buffer(), 200, -1
  lb = (item(i) AND 255)
  IF lb > 0 THEN
-  loadset game$ + ".itm" + CHR$(0), lb - 1, 0
+  loadset game$ + ".itm", lb - 1, 0
   IF buffer(47) > 0 THEN setbit iuse(), 0, i, 1
  END IF
 NEXT i
@@ -2203,7 +2203,7 @@ setpicstuf buffer(), 200, -1
 '--equipment bits
 FOR j = 0 TO 4
  IF eqstuf(who, j) > 0 THEN
-  loadset game$ + ".itm" + CHR$(0), eqstuf(who, j) - 1, 0
+  loadset game$ + ".itm", eqstuf(who, j) - 1, 0
   FOR i = 0 TO 4
    bitbuf(who, i) = (bitbuf(who, i) OR buffer(70 + i))
   NEXT i

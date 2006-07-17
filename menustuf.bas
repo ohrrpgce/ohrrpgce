@@ -291,7 +291,7 @@ FOR i = 0 TO 3
    price$ = price$ + STR$(tradestf(i, 1)) + " " + readitemname$(tradestf(i, 0))
   END IF
   'setpicstuf buffer(), 200, -1
-  'loadset game$ + ".itm" + CHR$(0), b(pt * recordsize + 25) - 1, 0
+  'loadset game$ + ".itm", b(pt * recordsize + 25) - 1, 0
   'FOR o = 1 TO buffer(0)
   ' price$ = price$ + CHR$(small(large(buffer(o), 0), 255))
   'NEXT o
@@ -307,7 +307,7 @@ IF LEN(price$) > 38 THEN
 END IF
 IF b(pt * recordsize + 17) = 0 THEN
  setpicstuf buffer(), 200, -1
- loadset game$ + ".itm" + CHR$(0), b(pt * recordsize + 18), 0
+ loadset game$ + ".itm", b(pt * recordsize + 18), 0
  IF buffer(49) = 1 THEN eqinfo$ = eqprefix$ + " " + wepslot$
  IF buffer(49) > 1 THEN eqinfo$ = eqprefix$ + " " + sname$(23 + buffer(49))
  info1$ = readbadbinstring$(buffer(), 9, 40, 0)
@@ -329,16 +329,16 @@ END IF
 IF b(pt * recordsize + 17) = 1 THEN
  'hire
  setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0" + CHR$(0), b(pt * recordsize + 18), 0
+ loadset game$ + ".dt0", b(pt * recordsize + 18), 0
  setpicstuf wbuf(), 200, -1
- loadset game$ + ".itm" + CHR$(0), buffer(22), 0
+ loadset game$ + ".itm", buffer(22), 0
  IF buffer(21) < 0 THEN buffer(21) = averagelev(stat())
  temp$ = XSTR$(atlevel(buffer(21), buffer(23 + 0 * 2), buffer(24 + 0 * 2)) + wbuf(54 + 0))
  eqinfo$ = RIGHT$(temp$, LEN(temp$) - 1) + " " + sname$(0)
  showhero = buffer(17)
  getpal16 hpal(), 0, buffer(18)
  setpicstuf buffer(), 5120, 2
- loadset game$ + ".pt0" + CHR$(0), showhero, 0
+ loadset game$ + ".pt0", showhero, 0
  IF eslot = 0 THEN info1$ = noroom$
 END IF
 RETURN
@@ -425,7 +425,7 @@ SUB doequip (toequip, who, where, defwep, stat())
 
 '--load the item data for this equipment
 setpicstuf buffer(), 200, -1
-loadset game$ + ".itm" + CHR$(0), toequip - 1, 0
+loadset game$ + ".itm", toequip - 1, 0
 
 '--apply the stat bonuses
 FOR i = 0 TO 11
@@ -645,14 +645,14 @@ IF lb = -1 THEN
   stb(i) = 0
  NEXT i
 ELSE
- loadset game$ + ".itm" + CHR$(0), lb - 1, 0
+ loadset game$ + ".itm", lb - 1, 0
  FOR i = 0 TO 11
   stb(i) = buffer(54 + i)
  NEXT i
 END IF
 
 IF eqstuf(pt, csr) > 0 THEN
- loadset game$ + ".itm" + CHR$(0), eqstuf(pt, csr) - 1, 0
+ loadset game$ + ".itm", eqstuf(pt, csr) - 1, 0
  FOR i = 0 TO 11
   stb(i) = stb(i) - buffer(54 + i)
  NEXT i
@@ -680,7 +680,7 @@ RETURN
 
 setupeq:
 'setpicstuf buffer(), 636, -1
-'loadset game$ + ".dt0" + CHR$(0), hero(pt) - 1, 0
+'loadset game$ + ".dt0", hero(pt) - 1, 0
 dw = stat(pt, 0, 16)
 dw$ = rpad(readitemname$(dw - 1), " ", 11)
 
@@ -697,7 +697,7 @@ FOR i = 0 TO 197
  lb = (item(i) AND 255)
  IF lb > 0 THEN
   '--load item data
-  loadset game$ + ".itm" + CHR$(0), lb - 1, 0
+  loadset game$ + ".itm", lb - 1, 0
   IF buffer(49) > 0 THEN
    '--if this item is equipable
    IF readbit(buffer(), 66, hero(pt) - 1) THEN
@@ -805,13 +805,13 @@ FOR i = 0 TO 199
  setpicstuf buffer(), 200, -1
  lb = (item(i) AND 255)
  IF lb > 0 THEN
-  loadset game$ + ".itm" + CHR$(0), lb - 1, 0
+  loadset game$ + ".itm", lb - 1, 0
   IF buffer(73) = 2 THEN setbit permask(), 0, 3 + i, 1
   IF buffer(51) > 0 OR buffer(50) > 0 THEN
    setbit iuse(), 0, 3 + i, 1
    temp = buffer(51) - 1
    setpicstuf buffer(), 80, -1
-   loadset game$ + ".dt6" + CHR$(0), temp, 0
+   loadset game$ + ".dt6", temp, 0
    IF buffer(3) = 4 OR buffer(3) = 10 THEN setbit ondead(), 0, 3 + i, 1
    IF buffer(3) = 10 THEN setbit onlive(), 0, 3 + i, 0
   END IF
@@ -889,7 +889,7 @@ lb = (item(ic) AND 255)
 hb = INT(item(ic) / 256)
 setpicstuf buffer(), 200, -1
 IF lb > 0 THEN
- loadset game$ + ".itm" + CHR$(0), lb - 1, 0
+ loadset game$ + ".itm", lb - 1, 0
  FOR o = 10 TO 9 + buffer(9)
   info$ = info$ + CHR$(buffer(o))
  NEXT o
@@ -936,7 +936,7 @@ IF pick = 0 THEN
     '--if the usability bit is off, or you dont have any of the item, exit
     IF readbit(iuse(), 0, 3 + ic) = 0 OR lb = 0 THEN RETURN
     setpicstuf a(), 200, -1
-    loadset game$ + ".itm" + CHR$(0), lb - 1, 0
+    loadset game$ + ".itm", lb - 1, 0
     IF a(50) > 0 THEN '--learn a spell
      tclass = 1
      ttype = 0
@@ -950,7 +950,7 @@ IF pick = 0 THEN
     END IF
     IF a(51) > 0 THEN '--attack/oobcure
      setpicstuf buffer(), 80, -1
-     loadset game$ + ".dt6" + CHR$(0), a(51) - 1, 0
+     loadset game$ + ".dt6", a(51) - 1, 0
      tclass = buffer(3)
      ttype = buffer(4)
      IF tclass = 0 THEN RETURN
@@ -1014,7 +1014,7 @@ ELSE
   hb = INT(item(ic) / 256)
   'DO ACTUAL EFFECT
   setpicstuf buffer(), 200, -1
-  loadset game$ + ".itm" + CHR$(0), lb - 1, 0
+  loadset game$ + ".itm", lb - 1, 0
   'if can teach a spell
   didlearn = 0
   IF buffer(50) > 0 THEN
@@ -1031,7 +1031,7 @@ ELSE
    END IF
   END IF
   setpicstuf buffer(), 200, -1
-  loadset game$ + ".itm" + CHR$(0), lb - 1, 0
+  loadset game$ + ".itm", lb - 1, 0
   '--do (cure) attack outside of battle
   didcure = 0
   IF buffer(51) > 0 THEN
@@ -1105,7 +1105,7 @@ END SUB
 SUB loadtemppage (page)
 '--reads a previously stored page from a temporary file
 setdiskpages buffer(), 200, 0
-loadpage workingdir$ + SLASH + "temppage.tmp" + CHR$(0), 0, page
+loadpage workingdir$ + SLASH + "temppage.tmp", 0, page
 END SUB
 
 SUB oobcure (w, t, atk, spred, stat())
@@ -1140,7 +1140,7 @@ END IF
 
 'load attack data
 'setpicstuf buffer(), 80, -1
-'loadset game$ + ".dt6" + CHR$(0), atk, 0
+'loadset game$ + ".dt6", atk, 0
 readattackdata attack(), atk
 
 targstat = attack(18)
@@ -1337,7 +1337,7 @@ FOR i = 0 TO 3
  centerbox 160, 40 + i * 44, 310, 42, 15, 3
  sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
  setpicstuf buffer(), 30000, -1
- loadset sg$ + CHR$(0), i * 2, 0
+ loadset sg$, i * 2, 0
  IF buffer(0) = 3 THEN 'current version number
   full(i) = 1
   '--get map number
@@ -1373,7 +1373,7 @@ FOR i = 0 TO 3
    END IF
   NEXT o
   '--load second record
-  loadset sg$ + CHR$(0), i * 2 + 1, 0
+  loadset sg$, i * 2 + 1, 0
   '--get picture and palette info
   z = 6060
   picpalmagic = buffer(z): z = z + 1
@@ -1395,12 +1395,12 @@ FOR i = 0 TO 3
     ELSE
      '--backcompat
      setpicstuf buffer(), 636, -1
-     loadset game$ + ".dt0" + CHR$(0), id(i, o) - 1, 0
+     loadset game$ + ".dt0", id(i, o) - 1, 0
      pic(i, o) = buffer(17)
      getpal16 pal16(), 40 + (i * 4) + o, buffer(18)
     END IF
     setpicstuf buffer(), 5120, 2
-    loadset game$ + ".pt0" + CHR$(0), pic(i, o), 0
+    loadset game$ + ".pt0", pic(i, o), 0
     loadsprite buffer(), 0, 0, 0, 32, 40, 2
     stosprite buffer(), 0, 0, 16 + (i * 16) + (o * 4), 2
     loadsprite buffer(), 0, 0, 2, 32, 40, 2
@@ -1554,7 +1554,7 @@ END FUNCTION
 
 FUNCTION readatkname$ (id)
 setpicstuf buffer(), 80, -1
-loadset game$ + ".dt6" + CHR$(0), id - 1, 0
+loadset game$ + ".dt6", id - 1, 0
 readatkname$ = readbadbinstring$(buffer(), 24, 10, 1)
 END FUNCTION
 
@@ -1580,7 +1580,7 @@ END FUNCTION
 
 FUNCTION readitemname$ (itemnum)
 setpicstuf buffer(), 200, -1
-loadset game$ + ".itm" + CHR$(0), itemnum, 0
+loadset game$ + ".itm", itemnum, 0
 readitemname$ = readbadbinstring$(buffer(), 0, 8, 0)
 END FUNCTION
 
@@ -1593,7 +1593,7 @@ END FUNCTION
 SUB savetemppage (page)
 '--writes a page into a temp file for situations where we need more pages than we have
 setdiskpages buffer(), 200, 0
-storepage workingdir$ + SLASH + "temppage.tmp" + CHR$(0), 0, page
+storepage workingdir$ + SLASH + "temppage.tmp", 0, page
 END SUB
 
 SUB sellstuff (id, storebuf(), stock(), stat())
@@ -1677,7 +1677,7 @@ IF lb > 0 THEN
     IF b(i * recordsize + 29) > 0 THEN info$ = info$ + STR$(b(i * recordsize + 29) + 1) + " "
     info$ = info$ + readitemname$(b(i * recordsize + 28) - 1)
     'setpicstuf buffer(), 200, -1
-    'loadset game$ + ".itm" + CHR$(0), b(i * recordsize + 28) - 1, 0
+    'loadset game$ + ".itm", b(i * recordsize + 28) - 1, 0
     'FOR o = 1 TO buffer(0)
     ' info$ = info$ + CHR$(small(large(buffer(o), 0), 255))
     'NEXT o
@@ -1737,7 +1737,7 @@ FOR i = 0 TO 199
  setpicstuf buffer(), 200, -1
  lb = (item(i) AND 255)
  IF lb > 0 THEN
-  loadset game$ + ".itm" + CHR$(0), lb - 1, 0
+  loadset game$ + ".itm", lb - 1, 0
   IF buffer(73) = 2 THEN setbit permask(), 0, i, 1
   price(i) = INT(buffer(46) * .5)
   FOR o = 0 TO storebuf(16)
@@ -1848,12 +1848,12 @@ FOR i = 0 TO 23
   spel(i) = spell(pt, spid(csr), i) - 1
   'flusharray buffer(), 39 + curbinsize(0) / 2
   setpicstuf buffer(), getbinsize(0),-1
-  loadset workingdir$ + SLASH + "attack.bin" + CHR$(0), spel(i), 0
+  loadset workingdir$ + SLASH + "attack.bin", spel(i), 0
   FOR j = getbinsize(0) / 2 - 1 TO 0 STEP -1
    buffer(40 + j) = buffer(j)
   NEXT j
   setpicstuf buffer(), 80, -1
-  loadset game$ + ".dt6" + CHR$(0), spel(i), 0
+  loadset game$ + ".dt6", spel(i), 0
   IF readbit(buffer(), 20, 59) = 1 AND buffer(3) > 0 THEN
    canuse(i) = buffer(3)
    targt(i) = buffer(4)
@@ -1883,7 +1883,7 @@ FOR i = 0 TO 5
  mtype(i) = -1
  '--load hero data
  setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0" + CHR$(0), hero(pt) - 1, 0
+ loadset game$ + ".dt0", hero(pt) - 1, 0
  '--if it is a menu...
  IF bmenu(pt, i) < 0 AND bmenu(pt, i) > -10 THEN
   '--set spell-menu-id and menu-type
@@ -1900,7 +1900,7 @@ FOR o = 0 TO 5
 
   '--load herodata
   setpicstuf buffer(), 636, -1
-  loadset game$ + ".dt0" + CHR$(0), hero(pt) - 1, 0
+  loadset game$ + ".dt0", hero(pt) - 1, 0
 
   '--get menu index
   mi(last) = (bmenu(pt, o) + 1) * -1
@@ -2006,12 +2006,12 @@ ELSE
   IF mtype(csr) = 0 THEN
 '   flusharray buffer(), 39 + curbinsize(0) / 2
 '   setpicstuf buffer(), getbinsize(0),-1
-'   loadset "attack.bin" + CHR$(0), spel(sptr), 0
+'   loadset "attack.bin", spel(sptr), 0
 '   FOR i = getbinsize(0) / 2 - 1 TO 0 STEP -1
 '    buffer(40 + i) = buffer(i)
 '   NEXT i
    setpicstuf buffer(), 80, -1
-   loadset game$ + ".dt6" + CHR$(0), spel(sptr), 0
+   loadset game$ + ".dt6", spel(sptr), 0
    cost = focuscost(buffer(8), stat(pt, 0, 10))
    IF cost > stat(pt, 0, 1) THEN pick = 0: RETURN
    stat(pt, 0, 1) = small(large(stat(pt, 0, 1) - cost, 0), stat(pt, 1, 1))
@@ -2166,7 +2166,7 @@ LOOP
 nextstat: '--loads the hero who's ID is held in pt
 '--load the hero data lump only to get the spell list types
 setpicstuf buffer(), 636, -1
-loadset game$ + ".dt0" + CHR$(0), hero(pt) - 1, 0
+loadset game$ + ".dt0", hero(pt) - 1, 0
 
 FOR i = 0 TO 5
  mtype(i) = -1
@@ -2211,7 +2211,7 @@ result = 0
 
 '--pre-populate buffer() with the hero's data.
 setpicstuf buffer(), 636, -1
-loadset game$ + ".dt0" + CHR$(0), hero(who) - 1, 0
+loadset game$ + ".dt0", hero(who) - 1, 0
 
 '--for each spell list
 FOR j = 0 TO 3
@@ -2238,7 +2238,7 @@ IF eqstuf(who, where) = 0 THEN EXIT SUB
 
 '--load the item data for the thing we are unequiping
 setpicstuf buffer(), 200, -1
-loadset game$ + ".itm" + CHR$(0), eqstuf(who, where) - 1, 0
+loadset game$ + ".itm", eqstuf(who, where) - 1, 0
 
 '--remove stat bonuses
 FOR i = 0 TO 11
@@ -2271,7 +2271,7 @@ nw = curbinsize(1) / 2 'new size in memory
 flusharray array(), nw * 50, 0
 'load shop data from STF lump
 setpicstuf buffer(), ol * 2 * 50, -1
-loadset game$ + ".stf" + CHR$(0), id, 0
+loadset game$ + ".stf", id, 0
 'in case shop data has been resized, scale records to new size
 FOR i = 0 TO ol - 1
  FOR o = 0 to 49

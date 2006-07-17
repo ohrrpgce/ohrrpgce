@@ -327,7 +327,7 @@ END FUNCTION
 FUNCTION getsongname$ (num)
 DIM songd(curbinsize(2) / 2)
 setpicstuf songd(), curbinsize(2), -1
-loadset workingdir$ + SLASH + "songdata.bin" + CHR$(0), num, 0
+loadset workingdir$ + SLASH + "songdata.bin", num, 0
 getsongname$ = readbinstring$ (songd(), 0, 30)
 END FUNCTION
 
@@ -582,11 +582,11 @@ END SUB
 
 SUB checklumpmod
  IF readbit(lumpmod(),0,0) THEN 'enemy data
-  copyfile workingdir$ + SLASH + "dt1.old" + CHR$(0), game$ + ".dt1" + CHR$(0), buffer()
+  copyfile workingdir$ + SLASH + "dt1.old", game$ + ".dt1", buffer()
   setbit lumpmod(),0,0,0
  END IF
  IF readbit(lumpmod(),0,0) THEN 'formation data
-  copyfile workingdir$ + SLASH + "for.old" + CHR$(0), game$ + ".for" + CHR$(0), buffer()
+  copyfile workingdir$ + SLASH + "for.old", game$ + ".for", buffer()
   setbit lumpmod(),0,1,0
  END IF
 
@@ -596,9 +596,9 @@ SUB makebackups
  'what is this for? Since some lumps can be modified at run time, we need to keep a
  'backup copy, so that we can restore it later. Duh.
  'enemy data
- copyfile game$ + ".dt1" + CHR$(0), workingdir$ + SLASH + "dt1.old" + CHR$(0), buffer()
+ copyfile game$ + ".dt1", workingdir$ + SLASH + "dt1.old", buffer()
  'formation data
- copyfile game$ + ".for" + CHR$(0), workingdir$ + SLASH + "for.old" + CHR$(0), buffer()
+ copyfile game$ + ".for", workingdir$ + SLASH + "for.old", buffer()
  'if you add lump-modding commands, you better well add them here >:(
 END SUB
 
@@ -606,17 +606,17 @@ SUB correctbackdrop
 
 IF gen(58) THEN
  '--restore text box backdrop
- loadpage game$ + ".mxs" + CHR$(0), gen(58) - 1, 3
+ loadpage game$ + ".mxs", gen(58) - 1, 3
  EXIT SUB
 END IF
 
 IF gen(50) THEN
  '--restore script backdrop
- loadpage game$ + ".mxs" + CHR$(0), gen(50) - 1, 3
+ loadpage game$ + ".mxs", gen(50) - 1, 3
  EXIT SUB
 END IF
 
-loadpage game$ + ".til" + CHR$(0), gmap(0), 3
+loadpage game$ + ".til", gmap(0), 3
 
 END SUB
 
@@ -624,15 +624,15 @@ SUB cleanuptemp
  'we don't have a lockfile if we never got past the browse screen!
  IF lockfile THEN KILL workingdir$ + SLASH + "lockfile.tmp"
  IF usepreunlump = 0 THEN
-  findfiles workingdir$ + SLASH + ALLFILES + CHR$(0), 0, tmpdir$ + "filelist.tmp" + CHR$(0), buffer()
+  findfiles workingdir$ + SLASH + ALLFILES, 0, tmpdir$ + "filelist.tmp", buffer()
  ELSE
   'if this is an already-unlumped rpg, we can't just go and delete everything! Shock!
   'plotscripts
-  findfiles workingdir$ + SLASH + "*.hsx" + CHR$(0), 0, tmpdir$ + "filelis1.tmp" + CHR$(0), buffer()
+  findfiles workingdir$ + SLASH + "*.hsx", 0, tmpdir$ + "filelis1.tmp", buffer()
   'generic temporary files
-  findfiles workingdir$ + SLASH + "*.tmp" + CHR$(0), 0, tmpdir$ + "filelis2.tmp" + CHR$(0), buffer()
+  findfiles workingdir$ + SLASH + "*.tmp", 0, tmpdir$ + "filelis2.tmp", buffer()
   'lump backups
-  findfiles workingdir$ + SLASH + "*.old" + CHR$(0), 0, tmpdir$ + "filelis3.tmp" + CHR$(0), buffer()
+  findfiles workingdir$ + SLASH + "*.old", 0, tmpdir$ + "filelis3.tmp", buffer()
   fh = FREEFILE
   OPEN tmpdir$ + "filelist.tmp" FOR OUTPUT as #fh
   fh2 = FREEFILE
@@ -758,7 +758,7 @@ END SUB
 FUNCTION titlescr 
 titlescr = -1 ' default return true for success
 clearpage 3
-loadpage game$ + ".mxs" + CHR$(0), gen(genTitle), 3
+loadpage game$ + ".mxs", gen(genTitle), 3
 needf = 2
 IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
 fademusic fmvol
@@ -807,7 +807,7 @@ SUB reloadnpc (stat())
 vishero stat()
 FOR i = 0 TO 35
  setpicstuf buffer(), 1600, 2
- loadset game$ + ".pt4" + CHR$(0), npcs(i * 15 + 0), 20 + (5 * i)
+ loadset game$ + ".pt4", npcs(i * 15 + 0), 20 + (5 * i)
  getpal16 pal16(), 4 + i, npcs(i * 15 + 1)
 NEXT i
 END SUB

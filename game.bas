@@ -14,9 +14,6 @@ DECLARE SUB showplotstrings ()
 DECLARE SUB innRestore (stat%())
 DECLARE SUB exitprogram (needfade%)
 DECLARE SUB quitcleanup ()
-DECLARE SUB keyhandleroff ()
-DECLARE SUB keyhandleron ()
-DECLARE SUB storekeyhandler ()
 DECLARE FUNCTION wrappass (x%, y%, xgo%, ygo%, isveh%)
 DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, unitsize%)
 DECLARE SUB aheadxy (x%, y%, direction%, distance%)
@@ -161,8 +158,6 @@ commandlineargs
 'DEBUG debug "Thestart"
 thestart:
 
-storekeyhandler
-
 '$INCLUDE: 'gver.txt'
 
 'DEBUG debug "dim (almost) everything"
@@ -192,7 +187,7 @@ exename$ = trimextension$(trimpath$(COMMAND$(0)))
 'DEBUG debug "create working.tmp"
 
 '---If workingdir$ does not already exist, it must be created---
-IF isdir(workingdir$ + CHR$(0)) THEN
+IF isdir(workingdir$) THEN
  'DEBUG debug workingdir$+" already exists"
  touchfile workingdir$ + SLASH + "delete.tmp"
  'DEBUG debug "erasing "+workingdir$+"\"+ALLFILES
@@ -241,9 +236,6 @@ setdiskpages buffer(), 200, 0
 
 'DEBUG debug "apply font"
 setfont font()
-
-'DEBUG debug "switch on keyhandler"
-keyhandleron
 
 keyboardsetup
 
@@ -318,14 +310,14 @@ setvispage vpage 'refresh
 '---GAME SELECTED, PREPARING TO PLAY---
 DIM lumpbuf(16383)
 IF usepreunlump = 0 THEN 
- unlump sourcerpg$ + CHR$(0), workingdir$ + SLASH, lumpbuf()
+ unlump sourcerpg$, workingdir$ + SLASH, lumpbuf()
 END IF
 
 initgame '--set game$
 
 makebackups 'make a few backup lumps
 
-unlump game$ + ".hsp" + CHR$(0), workingdir$ + SLASH, lumpbuf()
+unlump game$ + ".hsp", workingdir$ + SLASH, lumpbuf()
 ERASE lumpbuf
 
 'DEBUG debug "dim big stuff *after* unlumping"
@@ -349,7 +341,7 @@ getui workingdir$ + SLASH + "uilook.bin"
 setfont font()
 setpicstuf buffer(), 50, -1
 FOR i = 0 TO 254
- loadset game$ + ".efs" + CHR$(0), i, 0
+ loadset game$ + ".efs", i, 0
  foef(i) = buffer(0)
 NEXT i
 j = 0
@@ -367,7 +359,7 @@ nowscript = -1
 nextscroff = 0
 depth = 0
 releasestack
-setupstack astack(), 1024, workingdir$ + SLASH + "stack.tmp" + CHR$(0)
+setupstack astack(), 1024, workingdir$ + SLASH + "stack.tmp"
 
 temp = -1
 IF readbit(gen(), genBits, 11) = 0 THEN
@@ -570,7 +562,7 @@ DO
   nowscript = -1
   nextscroff = 0
   releasestack
-  setupstack astack(), 1024, workingdir$ + SLASH + "stack.tmp" + CHR$(0)
+  setupstack astack(), 1024, workingdir$ + SLASH + "stack.tmp"
   fademusic 0
   stopsong
   fadeout 0, 0, 0, -1
@@ -585,7 +577,7 @@ DO
   IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
   IF temp > 0 THEN
    setpicstuf buffer(), 50, -1
-   loadset game$ + ".efs" + CHR$(0), temp - 1, 0
+   loadset game$ + ".efs", temp - 1, 0
    FOR i = 0 TO INT(RND * range(19, 27))
     foenext = loopvar(foenext, 0, 19, 1)
     breakout = 0
@@ -873,7 +865,7 @@ IF sayer >= 0 THEN
  vehuse = npcs((npc(sayer).id - 1) * 15 + 14)
  IF vehuse THEN '---activate a vehicle---
   setpicstuf buffer(), 80, -1
-  loadset game$ + ".veh" + CHR$(0), vehuse - 1, 0
+  loadset game$ + ".veh", vehuse - 1, 0
   setmapdata pass(), pass(), 0, 0
   IF vehpass(buffer(19), readmapblock(catx(0) \ 20, caty(0) \ 20), -1) THEN
    '--check mounting permissions first
@@ -958,7 +950,7 @@ IF istag(saytag(7), 0) THEN
   innRestore stat()
  END IF
  vishero stat()
- loadpage game$ + ".til" + CHR$(0), gmap(0), 3
+ loadpage game$ + ".til", gmap(0), 3
 END IF
 '---ADD/REMOVE/SWAP/LOCK HERO-----------------
 IF istag(saytag(9), 0) THEN arslhero saytag(), stat()
@@ -1346,7 +1338,7 @@ preparemap:
 '--[!] here I should only DIM what is needed, chu ne?
 DIM scroll(16002), pass(16002)
 setpicstuf gmap(), 40, -1
-loadset game$ + ".map" + CHR$(0), map, 0
+loadset game$ + ".map", map, 0
 getmapname mapname$, map
 loadtanim gmap(0), tastuf()
 FOR i = 0 TO 1
@@ -1356,7 +1348,7 @@ FOR i = 0 TO 1
 NEXT i
 xbloadmap maplumpname$(map, "t"), scroll(), "Oh no! Map" + STR$(map) + " tilemap is missing"
 xbloadmap maplumpname$(map, "p"), pass(), "Oh no! Map" + STR$(map) + " passabilitymap is missing"
-IF isfile(maplumpname$(map, "e") + CHR$(0)) THEN
+IF isfile(maplumpname$(map, "e")) THEN
  CLOSE #foemaph
  foemaph = FREEFILE
  OPEN maplumpname$(map, "e") FOR BINARY AS #foemaph
@@ -1448,7 +1440,6 @@ resetg:
 IF autorungame THEN exitprogram (NOT abortg)
 fademusic 0
 fadeout 0, 0, 0, -1
-keyhandleroff
 closemusic
 closesound
 'closefile
@@ -1963,7 +1954,7 @@ SELECT CASE scrat(nowscript, curkind)
      shop retvals(0), needf, stock(), stat(), map, foep, mx, my, tastuf()
      reloadnpc stat()
      vishero stat()
-     loadpage game$ + ".til" + CHR$(0), gmap(0), 3
+     loadpage game$ + ".til", gmap(0), 3
     END IF
    CASE 55'--get default weapon
     IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
@@ -2015,7 +2006,7 @@ SELECT CASE scrat(nowscript, curkind)
       npcs(retvals(0) * 15 + retvals(1)) = retvals(2)
       IF retvals(1) = 0 THEN
        setpicstuf buffer(), 1600, 2
-       loadset game$ + ".pt4" + CHR$(0), retvals(2), 20 + (5 * retvals(0))
+       loadset game$ + ".pt4", retvals(2), 20 + (5 * retvals(0))
       END IF
       IF retvals(1) = 1 THEN getpal16 pal16(), 4 + retvals(0), retvals(2)
      END IF
@@ -2044,7 +2035,7 @@ SELECT CASE scrat(nowscript, curkind)
     ELSE
      o = gmap(0)
     END IF
-    loadpage game$ + ".til" + CHR$(0), o, 3
+    loadpage game$ + ".til", o, 3
     loadtanim o, tastuf()
     FOR i = 0 TO 1
      cycle(i) = 0

@@ -88,8 +88,8 @@ END IF
 IF bytes >= 0 THEN
  setpicstuf buffer(), bytes, -1
  FOR i = 0 TO index
-  loadset lump$ + CHR$(0), i, 0
-  storeset workingdir$ + SLASH + "_cropped.tmp" + CHR$(0), i, 0
+  loadset lump$, i, 0
+  storeset workingdir$ + SLASH + "_cropped.tmp", i, 0
  NEXT i
  IF flushafter THEN
   'FOR i = 0 TO INT(bytes / 2) + 1
@@ -97,7 +97,7 @@ IF bytes >= 0 THEN
   'NEXT i
   flusharray buffer(), INT(bytes / 2) + 1, 0
   FOR i = index + 1 TO limit
-   storeset workingdir$ + SLASH + "_cropped.tmp" + CHR$(0), i, 0
+   storeset workingdir$ + SLASH + "_cropped.tmp", i, 0
   NEXT i
  ELSE
   limit = index
@@ -106,14 +106,14 @@ IF bytes >= 0 THEN
 ELSE '--use pages instead of sets
  setdiskpages buffer(), 200, 0
  FOR i = 0 TO index
-  loadpage lump$ + CHR$(0), i, flushafter
-  storepage workingdir$ + SLASH + "_cropped.tmp" + CHR$(0), i, flushafter
+  loadpage lump$, i, flushafter
+  storepage workingdir$ + SLASH + "_cropped.tmp", i, flushafter
  NEXT i
  limit = index
  
 END IF'--separate setpicstuf and setdiskpages
 
-copyfile workingdir$ + SLASH + "_cropped.tmp" + CHR$(0), lump$ + CHR$(0), buffer()
+copyfile workingdir$ + SLASH + "_cropped.tmp", lump$, buffer()
 safekill workingdir$ + SLASH + "_cropped.tmp"
 
 END SUB
@@ -217,7 +217,7 @@ printstr "hero names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
 FOR i = 0 TO general(35)
  setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0" + CHR$(0), i, 0
+ loadset game$ + ".dt0", i, 0
  writeconstant fh, i, loadname(0, 1), u$(), "hero"
 NEXT i
 
@@ -296,7 +296,7 @@ IF w = 1 THEN
  PRINT e$
  
  'borrowed this code from game.bas cos wildcard didn't work in FB
- findfiles workingdir$ + SLASH + ALLFILES + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
+ findfiles workingdir$ + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
@@ -314,7 +314,7 @@ END SUB
 
 FUNCTION getmapname$ (m)
 setpicstuf buffer(), 80, -1
-loadset game$ + ".mn" + CHR$(0), m, 0
+loadset game$ + ".mn", m, 0
 a$ = STRING$(small((buffer(0) AND 255), 39), " ")
 array2str buffer(), 1, a$
 getmapname$ = a$
@@ -346,7 +346,7 @@ SUB getpal16 (array(), aoffset, foffset)
 
 
 setpicstuf buffer(), 16, -1
-loadset game$ + ".pal" + CHR$(0), 0, 0
+loadset game$ + ".pal", 0, 0
 
 IF buffer(0) <> 4444 THEN
  fatalerror "16-color palette file may be corrupt."
@@ -355,7 +355,7 @@ END IF
 
 IF buffer(1) >= foffset AND foffset >= 0 THEN '--check in-range
  'palette is available
- loadset game$ + ".pal" + CHR$(0), 1 + foffset, 0
+ loadset game$ + ".pal", 1 + foffset, 0
  FOR i = 0 TO 7
   array(aoffset * 8 + i) = buffer(i)
  NEXT i
@@ -372,7 +372,7 @@ FUNCTION heroname$ (num, cond(), a())
 h$ = ""
 IF cond(num) THEN
  setpicstuf a(), 636, -1
- loadset game$ + ".dt0" + CHR$(0), ABS(cond(num)) - 1, 0
+ loadset game$ + ".dt0", ABS(cond(num)) - 1, 0
  FOR i = 1 TO 0 + a(0)
   h$ = h$ + CHR$(a(i))
  NEXT i
@@ -410,7 +410,7 @@ setpicstuf buf(), 42, -1
 IF index = 0 THEN lmenmonic$ = "NULL": EXIT FUNCTION
 IF index = 1 THEN lmenmonic$ = "CONSTANT": EXIT FUNCTION
 
-loadset game$ + ".tmn" + CHR$(0), index, 0
+loadset game$ + ".tmn", index, 0
 
 temp$ = ""
 FOR i = 1 TO small(buf(0), 20)
@@ -465,10 +465,10 @@ DO
     f$ = browse(0, defaultdir$, "*.hs", "")
     IF f$ <> "" THEN
      setpicstuf buffer(), 7, -1
-     loadset f$ + CHR$(0), 0, 0
+     loadset f$, 0, 0
      clearpage vpage
      IF buffer(0) = 21320 AND buffer(1) = 0 THEN
-      copyfile f$ + CHR$(0), game$ + ".hsp" + CHR$(0), buffer()
+      copyfile f$, game$ + ".hsp", buffer()
       GOSUB maknamlst
       edgeprint "imported" + XSTR$(viscount) + " scripts", 0, 180, 15, vpage
      ELSE
@@ -518,7 +518,7 @@ DO
  buffer(0) = str2int(num$)
  buffer(1) = LEN(names$)
  str2array names$, buffer(), 4
- storeset workingdir$ + SLASH + "plotscr.lst" + CHR$(0), general(40), 0
+ storeset workingdir$ + SLASH + "plotscr.lst", general(40), 0
  general(40) = general(40) + 1
  IF buffer(0) > general(43) AND buffer(0) < 16384 THEN general(43) = buffer(0)
  IF textx + LEN(names$) + 1 >= 40 THEN
@@ -547,7 +547,7 @@ a$ = STR$(num)
 IF num THEN
  setpicstuf buffer(), 40, -1
  FOR i = 0 TO general(40) - 1
-  loadset workingdir$ + SLASH + f$ + CHR$(0), i, 0
+  loadset workingdir$ + SLASH + f$, i, 0
   IF buffer(0) = num THEN
    a$ = STRING$(small(large(buffer(1), 0), 38), " ")
    array2str buffer(), 4, a$
@@ -774,12 +774,12 @@ END SUB
 SUB storepal16 (array(), aoffset, foffset)
 
 setpicstuf buffer(), 16, -1
-loadset game$ + ".pal" + CHR$(0), 0, 0
+loadset game$ + ".pal", 0, 0
 
 IF buffer(0) <> 4444 THEN
  fatalerror "16-color palette file may be corrupt."
  buffer(0) = 4444
- storeset game$ + ".pal" + CHR$(0), 0, 0
+ storeset game$ + ".pal", 0, 0
 END IF
 
 last = buffer(1)
@@ -790,12 +790,12 @@ IF foffset > last THEN
   FOR j = 0 TO 7
    buffer(j) = 0
   NEXT j
-  storeset game$ + ".pal" + CHR$(0), 1 + i, 0
+  storeset game$ + ".pal", 1 + i, 0
  NEXT i
  '--update header
  buffer(0) = 4444
  buffer(1) = foffset
- storeset game$ + ".pal" + CHR$(0), 0, 0
+ storeset game$ + ".pal", 0, 0
 END IF
 
 IF foffset >= 0 THEN '--never write a negative file offset
@@ -804,7 +804,7 @@ IF foffset >= 0 THEN '--never write a negative file offset
   buffer(i) = array(aoffset * 8 + i)
  NEXT i
  'write palette
- storeset game$ + ".pal" + CHR$(0), 1 + foffset, 0
+ storeset game$ + ".pal", 1 + foffset, 0
 END IF
 
 END SUB
@@ -1157,7 +1157,7 @@ shopar:
 shop$ = ""
 IF cond(8) > 0 THEN
  setpicstuf a(), 40, -1
- loadset game$ + ".sho" + CHR$(0), cond(8) - 1, 0
+ loadset game$ + ".sho", cond(8) - 1, 0
  FOR i = 1 TO small(a(0), 15)
   shop$ = shop$ + CHR$(a(i))
  NEXT i
@@ -1297,7 +1297,7 @@ min(5) = -1
 max(5) = general(genMaxSong)
 IF buffer(197) > 0 THEN
  setdiskpages buf(), 200, 0
- loadpage game$ + ".mxs" + CHR$(0), buffer(197) - 1, 2
+ loadpage game$ + ".mxs", buffer(197) - 1, 2
 END IF
 RETURN
 
@@ -1314,7 +1314,7 @@ RETURN
 
 loadlines:
 setpicstuf buffer(), 400, -1
-loadset game$ + ".say" + CHR$(0), pt, 0
+loadset game$ + ".say", pt, 0
 temp$ = STRING$(42, 0)
 array2str buffer(), 305, temp$
 str2array temp$, cond(), 0
@@ -1355,13 +1355,13 @@ FOR i = 0 TO 1
  WHILE LEN(choice$(i)) < 15: choice$(i) = choice$(i) + CHR$(0): WEND
  str2array choice$(i), buffer(), 349 + (i * 18)
 NEXT i
-storeset game$ + ".say" + CHR$(0), pt, 0
+storeset game$ + ".say", pt, 0
 RETURN
 
 clearlines:
 '--this inits a new text box, and copies in values from text box 0 for defaults
 setpicstuf buffer(), 400, -1
-loadset game$ + ".say" + CHR$(0), 0, 0
+loadset game$ + ".say", 0, 0
 FOR i = 0 TO 199
  SELECT CASE i
   CASE 174, 193, 195, 196
@@ -1370,7 +1370,7 @@ FOR i = 0 TO 199
    buffer(i) = 0
  END SELECT
 NEXT i
-storeset game$ + ".say" + CHR$(0), pt, 0
+storeset game$ + ".say", pt, 0
 RETURN
 
 seektextbox:
@@ -1385,7 +1385,7 @@ DO
   w = getkey
   EXIT DO
  END IF
- loadset game$ + ".say" + CHR$(0), pt, 0
+ loadset game$ + ".say", pt, 0
  foundstr = 0
  FOR i = 0 TO 7
   tmp$ = STRING$(38, 0)
@@ -1409,7 +1409,7 @@ END SUB
 
 SUB textxbload (f$, array(), e$)
 
-IF isfile(f$ + CHR$(0)) THEN
+IF isfile(f$) THEN
  handle = FREEFILE
  OPEN f$ FOR BINARY AS #handle
  bytes = LOF(handle)
@@ -1438,12 +1438,12 @@ SUB verifyrpg
 xbload game$ + ".gen", buffer(), "General data is missing!"
 
 FOR i = 0 TO buffer(0)
- IF NOT isfile(maplumpname$(i, "t") + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " tilemap is missing!"
- IF NOT isfile(maplumpname$(i, "p") + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " passmap is missing!"
- IF NOT isfile(maplumpname$(i, "e") + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " foemap is missing!"
- IF NOT isfile(maplumpname$(i, "l") + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " NPClocations are missing!"
- IF NOT isfile(maplumpname$(i, "n") + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " NPCdefinitions are missing!"
- IF NOT isfile(maplumpname$(i, "d") + CHR$(0)) THEN fatalerror "map" + filenum$(i) + " doorlinks are missing!"
+ IF NOT isfile(maplumpname$(i, "t")) THEN fatalerror "map" + filenum$(i) + " tilemap is missing!"
+ IF NOT isfile(maplumpname$(i, "p")) THEN fatalerror "map" + filenum$(i) + " passmap is missing!"
+ IF NOT isfile(maplumpname$(i, "e")) THEN fatalerror "map" + filenum$(i) + " foemap is missing!"
+ IF NOT isfile(maplumpname$(i, "l")) THEN fatalerror "map" + filenum$(i) + " NPClocations are missing!"
+ IF NOT isfile(maplumpname$(i, "n")) THEN fatalerror "map" + filenum$(i) + " NPCdefinitions are missing!"
+ IF NOT isfile(maplumpname$(i, "d")) THEN fatalerror "map" + filenum$(i) + " doorlinks are missing!"
 NEXT
 END SUB
 

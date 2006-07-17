@@ -298,15 +298,15 @@ RETURN
 bimport:
 clearpage 3
 setvispage 3
-IF at < count THEN loadpage game$ + f$ + CHR$(0), at, 3
-bitmap2page pmask(), srcbmp$ + CHR$(0), 3
-storepage game$ + f$ + CHR$(0), at, 3
+IF at < count THEN loadpage game$ + f$, at, 3
+bitmap2page pmask(), srcbmp$, 3
+storepage game$ + f$, at, 3
 GOSUB resetpal
 RETURN
 
 showpage:
 setdiskpages buffer(), 200, 0
-loadpage game$ + f$ + CHR$(0), pt, 2
+loadpage game$ + f$, pt, 2
 RETURN
 
 END SUB
@@ -315,7 +315,7 @@ SUB loadpasdefaults (array(), tilesetnum)
 flusharray array(), 160, 0
 '--load defaults from tile set defaults file
 setpicstuf array(), 322, -1
-loadset workingdir$ + SLASH + "defpass.bin" + CHR$(0), tilesetnum, 0
+loadset workingdir$ + SLASH + "defpass.bin", tilesetnum, 0
 '--enforce magic number and filesize
 IF array(160) <> 4444 THEN
  flusharray array(), 160, 0
@@ -327,13 +327,13 @@ SUB savepasdefaults (array(), tilesetnum)
 array(160) = 4444
 '--write defaults into tile set defaults file
 setpicstuf array(), 322, -1
-storeset workingdir$ + SLASH + "defpass.bin" + CHR$(0), tilesetnum, 0
+storeset workingdir$ + SLASH + "defpass.bin", tilesetnum, 0
 END SUB
 
 
 SUB loadtanim (n, tastuf())
 setpicstuf tastuf(), 80, -1
-loadset game$ + ".tap" + CHR$(0), n, 0
+loadset game$ + ".tap", n, 0
 END SUB
 
 SUB maptile (font())
@@ -341,7 +341,7 @@ DIM menu$(10), tastuf(40)
 
 setdiskpages buffer(), 200, 0
 
-mapfile$ = game$ + ".til" + CHR$(0)
+mapfile$ = game$ + ".til"
 
 bnum = 0
 tmode = 0
@@ -534,11 +534,11 @@ top = curpal - 1
 
 '--get last pal
 setpicstuf buffer(), 16, -1
-loadset game$ + ".pal" + CHR$(0), 0, 0
+loadset game$ + ".pal", 0, 0
 lastpal = buffer(1)
 o = 0
 FOR i = lastpal TO 0 STEP -1
- loadset game$ + ".pal" + CHR$(0), 1 + i, 0
+ loadset game$ + ".pal", 1 + i, 0
  FOR j = 0 TO 7
   IF buffer(j) <> 0 THEN o = 1: EXIT FOR
  NEXT j
@@ -622,7 +622,7 @@ END FUNCTION
 
 SUB savetanim (n, tastuf())
 setpicstuf tastuf(), 80, -1
-storeset game$ + ".tap" + CHR$(0), n, 0
+storeset game$ + ".tap", n, 0
 END SUB
 
 SUB setanimpattern (tastuf(), taset)
@@ -847,7 +847,7 @@ DO
    FOR i = 0 TO (size * perset) / 2
     buffer(i) = 0
    NEXT i
-   storeset game$ + file$ + CHR$(0), pt, 0
+   storeset game$ + file$, pt, 0
   END IF
   IF pt > top + atatime THEN
    j = top: GOSUB savewuc
@@ -1206,13 +1206,13 @@ LOOP
 clearpage dpage
 clearpage 2
 
-loadbmp srcbmp$ + CHR$(0), 1, 1, buffer(), 2
+loadbmp srcbmp$, 1, 1, buffer(), 2
 
 '---------------------
 'PICK BACKGROUND COLOR
 gx = 1
 gy = 1
-temp = bmpinfo(srcbmp$ + CHR$(0), bmpd())
+temp = bmpinfo(srcbmp$, bmpd())
 edjx = small(320, bmpd(1))
 edjy = small(200, bmpd(2))
 setkeys
@@ -1250,7 +1250,7 @@ FOR i = 1 TO edjx
 NEXT i
 '--swap the transparent palette entry to 0
 IF pcsr = 0 THEN
- getbmppal srcbmp$ + CHR$(0), master(), workpal(), 0
+ getbmppal srcbmp$, master(), workpal(), 0
  defseg(varseg(workpal(0)))
  'swap black with the transparent color
  POKE temp, PEEK(0)
@@ -1521,7 +1521,7 @@ IF j <= sets THEN
   loadsprite placer(), 0, size * o, soff * (j - top), xw, yw, 3
   stosprite placer(), 0, size * o, 0, 2
  NEXT o
- storeset game$ + file$ + CHR$(0), large(j, 0), 0
+ storeset game$ + file$, large(j, 0), 0
 END IF
 RETURN
 
@@ -1532,7 +1532,7 @@ RETURN
 loadwuc:
 IF j <= sets THEN
  setpicstuf buffer(), size * perset, 2
- loadset game$ + file$ + CHR$(0), large(j, 0), 0
+ loadset game$ + file$, large(j, 0), 0
  FOR o = 0 TO (perset - 1)
   loadsprite placer(), 0, size * o, 0, xw, yw, 2
   stosprite placer(), 0, size * o, soff * (j - top), 3
@@ -2137,7 +2137,7 @@ IF ts.gotmouse THEN
 END IF
 ts.delay = 3
 clearpage 2
-loadpage game$ + ".mxs" + CHR$(0), ts.cutfrom, 2
+loadpage game$ + ".mxs", ts.cutfrom, 2
 setkeys
 DO
  setwait timing(), 120
@@ -2175,7 +2175,7 @@ DO
  dummy = intgrabber(ts.cutfrom, 0, general(genMaxBackdrop) - 1, 51, 52)
  IF ts.zone = 11 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, general(genMaxBackdrop) - 1, -1)
  IF ts.zone = 12 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, general(genMaxBackdrop) - 1, 1)
- IF oldcut <> ts.cutfrom THEN loadpage game$ + ".mxs" + CHR$(0), ts.cutfrom, 2
+ IF oldcut <> ts.cutfrom THEN loadpage game$ + ".mxs", ts.cutfrom, 2
  '----
  drawline ts.x, ts.y, ts.x + 19, ts.y, 10 + tog * 5, dpage
  drawline ts.x, ts.y, ts.x, ts.y + 19, 10 + tog * 5, dpage

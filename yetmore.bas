@@ -15,7 +15,6 @@ DECLARE SUB aheadxy (x%, y%, direction%, distance%)
 DECLARE SUB wrapxy (x%, y%, wide%, high%)
 DECLARE SUB loadSayToBuffer (say%)
 DECLARE SUB touchfile (f$)
-DECLARE SUB keyhandleroff ()
 DECLARE FUNCTION partybyrank% (slot%)
 DECLARE FUNCTION herobyrank% (slot%)
 DECLARE FUNCTION rankincaterpillar% (heroid%)
@@ -181,7 +180,7 @@ END FUNCTION
 SUB doihavebits
 setpicstuf buffer(), 636, -1
 FOR i = 0 TO large(gen(35), 59)
- loadset game$ + ".dt0" + CHR$(0), i, 0
+ loadset game$ + ".dt0", i, 0
  herobits(i, 0) = buffer(292)    'have hero tag
  herobits(i, 1) = buffer(293)    'is alive tag
  herobits(i, 2) = buffer(294)    'is leader tag
@@ -189,7 +188,7 @@ FOR i = 0 TO large(gen(35), 59)
 NEXT i
 setpicstuf buffer(), 200, -1
 FOR i = 0 TO 255
- loadset game$ + ".itm" + CHR$(0), i, 0
+ loadset game$ + ".itm", i, 0
  itembits(i, 0) = buffer(74)   'when have tag
  itembits(i, 1) = buffer(75)   'is in inventory
  itembits(i, 2) = buffer(76)   'is equiped tag
@@ -526,12 +525,12 @@ END FUNCTION
 SUB getpal16 (array(), aoffset, foffset)
 
 setpicstuf buffer(), 16, -1
-loadset game$ + ".pal" + CHR$(0), 0, 0
+loadset game$ + ".pal", 0, 0
 
 IF buffer(0) = 4444 THEN '--check magic number
  IF buffer(1) >= foffset AND foffset >= 0 THEN
   'palette is available
-  loadset game$ + ".pal" + CHR$(0), 1 + foffset, 0
+  loadset game$ + ".pal", 1 + foffset, 0
   FOR i = 0 TO 7
    array(aoffset * 8 + i) = buffer(i)
   NEXT i
@@ -592,7 +591,7 @@ a$ = LEFT$(a$, LEN(a$) - 4)
 game$ = workingdir$ + a$
 END IF
 '--set game$ according to the archinym
-IF isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
+IF isfile(workingdir$ + SLASH + "archinym.lmp") THEN
  fh = FREEFILE
  OPEN workingdir$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
  LINE INPUT #fh, a$
@@ -613,20 +612,6 @@ FOR o = 0 TO 10 STEP 5
   catd(i) = catd(o)
  NEXT i
 NEXT o
-END SUB
-
-SUB keyhandleroff
-
-regs.ax = &H2509: regs.ds = seg9: regs.dx = off9
-CALL interruptx(&H21, regs, regs)
-
-END SUB
-
-SUB keyhandleron
-
-regs.ax = &H2509: regs.ds = Keyseg: regs.dx = keyoff
-CALL interruptx(&H21, regs, regs)
-
 END SUB
 
 SUB loadsay (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh())
@@ -715,7 +700,7 @@ IF say > gen(39) THEN ' It's 39!
  str2array "Invalid textbox" + STRING$(385, 0), buffer(), 0
 ELSE
  setpicstuf buffer(), 400, -1
- loadset game$ + ".say" + CHR$(0), say, 0
+ loadset game$ + ".say", say, 0
 END IF
 
 END SUB
@@ -852,9 +837,6 @@ SUB quitcleanup
 CLOSE #foemaph
 'DEBUG debug "Close lockfile"
 IF lockfile THEN CLOSE #lockfile
-'--keyboard
-'DEBUG debug "Shut off keyhandler"
-keyhandleroff
 '--script stack
 'DEBUG debug "Release script stack"
 releasestack
@@ -1166,7 +1148,7 @@ SELECT CASE AS CONST id
  CASE 27'--suspend overlay
   setbit gen(), 44, suspendoverlay, 1
  CASE 28'--play song
-  'loadsong game$ + "." + STR$(retvals(0)) + CHR$(0)
+  'loadsong game$ + "." + STR$(retvals(0))
   wrappedsong retvals(0)
  CASE 29'--stop song
   stopsong
@@ -1223,7 +1205,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 60'--equip where
   setpicstuf buffer(), 200, -1
-  loadset game$ + ".itm" + CHR$(0), bound(retvals(1), 0, 255), 0
+  loadset game$ + ".itm", bound(retvals(1), 0, 255), 0
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    i = hero(retvals(0)) - 1
@@ -1370,7 +1352,7 @@ SELECT CASE AS CONST id
   retvals(0) = bound(retvals(0), 0, 40)
   IF retvals(1) > 0 THEN
    setpicstuf buffer(), 636, -1
-   loadset game$ + ".dt0" + CHR$(0), hero(retvals(0)) - 1, 0
+   loadset game$ + ".dt0", hero(retvals(0)) - 1, 0
    FOR i = 0 TO 3
     FOR j = 0 TO 23
      IF spell(retvals(0), i, j) = 0 THEN
@@ -1405,7 +1387,7 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
    sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
    setpicstuf buffer(), 30000, -1
-   loadset sg$ + CHR$(0), retvals(0) * 2 - 1, 0
+   loadset sg$, retvals(0) * 2 - 1, 0
    IF retvals(1) = -1 THEN 'importglobals(slot)
     retvals(1) = 0
     retvals(2) = 1024
@@ -1424,11 +1406,11 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 AND retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
    setpicstuf buffer(), 30000, -1
    sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
-   loadset sg$ + CHR$(0), retvals(0) * 2 - 1, 0
+   loadset sg$, retvals(0) * 2 - 1, 0
    FOR i = retvals(1) TO retvals(2)
     buffer(i + 5013) = global(i)
    NEXT i
-   storeset sg$ + CHR$(0), retvals(0) * 2 - 1, 0
+   storeset sg$, retvals(0) * 2 - 1, 0
   END IF
  CASE 175'--deletesave
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
@@ -1443,7 +1425,7 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 176'--runscriptbyid
-  IF isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsx" + CHR$(0)) THEN
+  IF isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsx") THEN
    rsr = runscript(retvals(0), nowscript + 1, 0, "indirect")
    IF rsr = 1 THEN
     '--fill heap with return values
@@ -1977,14 +1959,6 @@ gen(cameraArg3) = 5
 
 END SUB
 
-SUB storekeyhandler
-
-'DEBUG debug "store original keyhandler"
-regs.ax = &H3509: CALL interruptx(&H21, regs, regs)
-off9 = regs.bx: seg9 = regs.es
-
-END SUB
-
 SUB subdoarg
 scrat(nowscript, scrdepth) = scrat(nowscript, scrdepth) + 1
 pushw scrat(nowscript, scrptr)
@@ -2305,7 +2279,7 @@ FOR i = 0 TO 3
  IF hero(i) > 0 THEN
   getpal16 pal16(), o, stat(i, 1, 15)
   setpicstuf buffer(), 1600, 2
-  loadset game$ + ".pt4" + CHR$(0), stat(i, 1, 14), 5 * o
+  loadset game$ + ".pt4", stat(i, 1, 14), 5 * o
   o = o + 1
  END IF
 NEXT i

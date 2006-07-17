@@ -10,7 +10,6 @@ option explicit
 #include fontdata.bi
 #include gfx.bi
 
-'Can do this in FB but not in QB - need another solution
 common shared workingdir$, version$, game$
 
 dim shared seg as integer ptr

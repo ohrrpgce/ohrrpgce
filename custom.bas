@@ -92,10 +92,6 @@ DECLARE FUNCTION readarchinym$ ()
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'uiconst.bi'
 
-DIM SHARED regs AS Regtype
-regs.ax = &H3509: CALL interruptx(&H21, regs, regs)
-off9 = regs.bx: seg9 = regs.es
-
 workingdir$ = "working.tmp"
 
 'version ID
@@ -124,11 +120,10 @@ ON ERROR GOTO modeXerr
 setpal master()
 setfont font()
 setdiskpages buffer(), 200, 0
-GOSUB switchon
 textcolor 15, 0
 GOSUB readstuff
 'voices = resetdsp
-'setitup game$+".cbv" + CHR$(0),noise(), buffer(), 2
+'setitup game$+".cbv",noise(), buffer(), 2
 
 dpage = 1: vpage = 0: Rate = 160: game$ = ""
 GOSUB chooserpg
@@ -154,11 +149,11 @@ game$ = workingdir$ + SLASH + game$
 verifyrpg
 safekill workingdir$ + SLASH + "__danger.tmp"
 
-IF NOT isfile(game$ + ".mas" + CHR$(0)) THEN copyfile "ohrrpgce.mas" + CHR$(0), game$ + ".mas" + CHR$(0), buffer()
+IF NOT isfile(game$ + ".mas") THEN copyfile "ohrrpgce.mas", game$ + ".mas", buffer()
 xbload game$ + ".mas", master(), "Master palette not found"
 setpal master()
 getui workingdir$ + SLASH + "uilook.bin"
-IF NOT isfile(game$ + ".fnt" + CHR$(0)) THEN copyfile "ohrrpgce.fnt" + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
+IF NOT isfile(game$ + ".fnt") THEN copyfile "ohrrpgce.fnt", game$ + ".fnt", buffer()
 xbload game$ + ".fnt", font(), "Font not loaded"
 '--loadgen, upgrade, resave
 xbload game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
@@ -353,7 +348,7 @@ DO
  dummy = usemenu(temp, 0, 0, 2, 2)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF temp = 0 THEN
-   IF isfile(workingdir$ + SLASH + "__danger.tmp" + CHR$(0)) THEN
+   IF isfile(workingdir$ + SLASH + "__danger.tmp") THEN
     textcolor 14, 4
     printstr "Data is corrupt, not safe to relump", 0, 100, vpage
     setvispage vpage 'refresh
@@ -398,13 +393,13 @@ LOOP
 
 listmake:
 safekill "rpg.lst"
-CALL findfiles("*.rpg" + CHR$(0), 0, "rpg.lst" + CHR$(0), buffer())
+CALL findfiles("*.rpg", 0, "rpg.lst", buffer())
 fh = FREEFILE
 OPEN "rpg.lst" FOR APPEND AS #fh LEN = 25
 PRINT #fh, "-END-"
 CLOSE #fh
 
-IF NOT isdir(workingdir$ + CHR$(0)) THEN
+IF NOT isdir(workingdir$) THEN
  makedir workingdir$
 ELSE
  ON ERROR GOTO tempDirErr
@@ -507,7 +502,6 @@ ON ERROR GOTO 0
 SYSTEM
 
 modeXerr:
-GOSUB shutoff
 restoremode
 IF LEN(unsafefile$) THEN
  PRINT unsafefile$
@@ -530,7 +524,6 @@ printstr "a little brother might delete your", 0, 24, 0
 printstr "files!", 0, 32, 0
 setvispage 0 'force a refresh
 w = getkey
-GOSUB shutoff
 'closefile
 CHDIR curdir$
 restoremode
@@ -541,7 +534,7 @@ CLOSE #lockfile
 IF nocleanup = 0 THEN
  touchfile workingdir$ + SLASH + "kill.tmp"
  'borrowed this code from game.bas cos wildcard didn't work in FB
- findfiles workingdir$ + SLASH + ALLFILES + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
+ findfiles workingdir$ + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
@@ -554,16 +547,6 @@ IF nocleanup = 0 THEN
 END IF
 safekill "rpg.lst"
 safekill "temp.lst"
-RETURN
-
-switchon:
-regs.ax = &H2509: regs.ds = Keyseg: regs.dx = keyoff
-CALL interruptx(&H21, regs, regs)
-RETURN
-
-shutoff:
-regs.ax = &H2509: regs.ds = seg9: regs.dx = off9
-CALL interruptx(&H21, regs, regs)
 RETURN
 
 readstuff:
@@ -656,7 +639,7 @@ END SUB
 
 SUB fixorder (f$)
 
-copyfile f$ + CHR$(0), "fixorder.tmp" + CHR$(0), buffer()
+copyfile f$, "fixorder.tmp", buffer()
 
 ofh = FREEFILE
 OPEN f$ FOR OUTPUT AS #ofh
@@ -669,7 +652,7 @@ WHILE NOT EOF(ifh)
  LINE INPUT #ifh, a$
  b$ = LCASE$(a$)
  IF b$ = "archinym.lmp" OR b$ = "browse.txt" THEN
-  PRINT #ofh, a$ + CHR$(0)
+  PRINT #ofh, a$
  END IF
 WEND
 
@@ -692,7 +675,7 @@ WHILE NOT EOF(ifh)
      '--do nothing
     CASE ELSE
      '--output all other names
-     PRINT #ofh, a$ + CHR$(0)
+     PRINT #ofh, a$
    END SELECT
  END SELECT
 WEND
@@ -852,7 +835,7 @@ RETURN
 importfont:
 newfont$ = browse$(0, default$, "*.ohf", "")
 IF newfont$ <> "" THEN
- copyfile newfont$ + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
+ copyfile newfont$, game$ + ".fnt", buffer()
 
  '--never overwrite 0 thru 31
  FOR i = 0 TO 2047
@@ -897,7 +880,7 @@ DO
 
  IF keyval(28) > 1 THEN
   GOSUB savefont
-  copyfile game$ + ".fnt" + CHR$(0), gamedir$ + SLASH + newfont$ + ".ohf" + CHR$(0), buffer()
+  copyfile game$ + ".fnt", gamedir$ + SLASH + newfont$ + ".ohf", buffer()
   EXIT DO
  END IF
 
@@ -1045,7 +1028,7 @@ DO
    IF needaddset(pt, general(97), "Shop") THEN
     flusharray a(), 19, 0
     setpicstuf a(), 40, -1
-    storeset game$ + ".sho" + CHR$(0), pt, 0
+    storeset game$ + ".sho", pt, 0
    END IF
    GOSUB lshopset
   END IF
@@ -1094,7 +1077,7 @@ RETURN
 
 lshopset:
 setpicstuf a(), 40, -1
-loadset game$ + ".sho" + CHR$(0), pt, 0
+loadset game$ + ".sho", pt, 0
 sn$ = ""
 FOR i = 1 TO small(a(0), 15)
  sn$ = sn$ + CHR$(a(i))
@@ -1109,7 +1092,7 @@ FOR i = 1 TO small(a(0), 15)
  a(i) = ASC(MID$(sn$, i, 1))
 NEXT i
 setpicstuf a(), 40, -1
-storeset game$ + ".sho" + CHR$(0), pt, 0
+storeset game$ + ".sho", pt, 0
 RETURN
 
 menuup:
@@ -1147,7 +1130,7 @@ DO
    IF needaddset(thing, a(16), "Shop Thing") THEN
     flusharray b(), getbinsize(1) / 2 - 1, 0
     setpicstuf b(), getbinsize(1), -1
-    storeset game$ + ".stf" + CHR$(0), pt * 50 + thing, 0
+    storeset game$ + ".stf", pt * 50 + thing, 0
    END IF
    GOSUB lstuf
    GOSUB itstrsh
@@ -1218,7 +1201,7 @@ RETURN
 setdefault:
 IF b(17) = 0 THEN
 '  setpicstuf buffer(), 200, -1
-'  loadset game$ + ".itm" + CHR$(0), b(18), 0
+'  loadset game$ + ".itm", b(18), 0
 '  thing$ = readbadbinstring$(buffer(), 0, 8, 0)
  'thing$ = ""
  'FOR o = 1 TO small(buffer(0), 10)
@@ -1231,7 +1214,7 @@ END IF
 IF b(17) = 1 THEN
  thing$ = ""
  setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0" + CHR$(0), b(18), 0
+ loadset game$ + ".dt0", b(18), 0
  FOR i = 1 TO small(buffer(0), 16)
   thing$ = thing$ + CHR$(buffer(i))
  NEXT i
@@ -1288,7 +1271,7 @@ RETURN
 lstuf:
 flusharray b(), curbinsize(1) / 2, 0
 setpicstuf b(), getbinsize(1), -1
-loadset game$ + ".stf" + CHR$(0), pt * 50 + thing, 0
+loadset game$ + ".stf", pt * 50 + thing, 0
 thing$ = readbadbinstring$(b(), 0, 16, 0)
 'thing$ = ""
 'FOR i = 1 TO bound(b(0), 0, 16)
@@ -1312,7 +1295,7 @@ FOR i = 1 TO small(b(0), 16)
  b(i) = ASC(MID$(thing$, i, 1))
 NEXT i
 setpicstuf b(), getbinsize(1), -1
-storeset game$ + ".stf" + CHR$(0), pt * 50 + thing, 0
+storeset game$ + ".stf", pt * 50 + thing, 0
 RETURN
 
 itstrsh:
@@ -1334,7 +1317,7 @@ FOR i = 1 TO small(buf(0), 20)
  buf(i) = ASC(MID$(tagname$, i, 1))
 NEXT i
 
-storeset game$ + ".tmn" + CHR$(0), index, 0
+storeset game$ + ".tmn", index, 0
 
 END SUB
 
@@ -1358,10 +1341,10 @@ IF general(genVersion) = 0 THEN
  setvispage vpage 'refresh
  setpicstuf buffer(), 400, -1
  FOR o = 0 TO 999
-  loadset game$ + ".say" + CHR$(0), o, 0
+  loadset game$ + ".say", o, 0
   temp$ = STRING$(68, 0)
   str2array temp$, buffer(), 331
-  storeset game$ + ".say" + CHR$(0), o, 0
+  storeset game$ + ".say", o, 0
  NEXT o
 END IF
 IF general(genVersion) = 1 THEN
@@ -1370,16 +1353,16 @@ IF general(genVersion) = 1 THEN
  printstr "Updating Door Format...", 0, 0, vpage
  setvispage vpage 'refresh
  FOR o = 0 TO 19
-  IF isfile(game$ + ".dor" + CHR$(0)) THEN xbload game$ + ".dor", buffer(), "No doors"
+  IF isfile(game$ + ".dor") THEN xbload game$ + ".dor", buffer(), "No doors"
   FOR i = 0 TO 299
    buffer(i) = buffer(o * 300 + i)
   NEXT i
   setpicstuf buffer(), 600, -1
-  storeset game$ + ".dox" + CHR$(0), o, 0
+  storeset game$ + ".dox", o, 0
  NEXT o
  printstr "Enforcing default font", 0, 16, vpage
  setvispage vpage 'refresh
- copyfile "ohrrpgce.fnt" + CHR$(0), game$ + ".fnt" + CHR$(0), buffer()
+ copyfile "ohrrpgce.fnt", game$ + ".fnt", buffer()
  xbload game$ + ".fnt", font(), "Font not loaded"
  setfont font()
  printstr "Making AniMaptiles Backward Compatable", 0, 16, vpage
@@ -1468,7 +1451,7 @@ IF general(genVersion) = 3 THEN
  setvispage vpage 'refresh
  setpicstuf buffer(), 80, -1
  FOR o = 0 TO general(34)
-  loadset game$ + ".dt6" + CHR$(0), o, 0
+  loadset game$ + ".dt6", o, 0
   buffer(18) = 0
   IF readbit(buffer(), 20, 60) THEN buffer(18) = 1
   setbit buffer(), 20, 2, 0
@@ -1478,7 +1461,7 @@ IF general(genVersion) = 3 THEN
   FOR i = 60 TO 63
    setbit buffer(), 20, i, 0
   NEXT i
-  storeset game$ + ".dt6" + CHR$(0), o, 0
+  storeset game$ + ".dt6", o, 0
  NEXT o
  setbit general(), 101, 6, 0 'no hide readymeter
  setbit general(), 101, 7, 0 'no hide health meter
@@ -1513,13 +1496,13 @@ IF general(genVersion) = 4 THEN
  FOR i = 2 TO 7
   pal16(i) = 0
  NEXT i
- storeset game$ + ".pal" + CHR$(0), 0, 0
+ storeset game$ + ".pal", 0, 0
  '--convert palettes
  FOR j = 0 TO last
   FOR i = 0 TO 7
    pal16(i) = buffer(j * 8 + i)
   NEXT i
-  storeset game$ + ".pal" + CHR$(0), 1 + j, 0
+  storeset game$ + ".pal", 1 + j, 0
  NEXT j
 END IF
 '--VERSION 6--
@@ -1530,7 +1513,7 @@ IF general(genVersion) = 5 THEN
 END IF 
 
 
-IF NOT isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
+IF NOT isfile(workingdir$ + SLASH + "archinym.lmp") THEN
  '--create archinym information lump
  fh = FREEFILE
  OPEN workingdir$ + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
@@ -1539,9 +1522,9 @@ IF NOT isfile(workingdir$ + SLASH + "archinym.lmp" + CHR$(0)) THEN
  CLOSE #fh
 END IF
 
-IF NOT isfile(game$ + ".veh" + CHR$(0)) THEN
+IF NOT isfile(game$ + ".veh") THEN
  '--make sure vehicle lump is present
- IF isfile("ohrrpgce.new" + CHR$(0)) THEN
+ IF isfile("ohrrpgce.new") THEN
   IF unlumpone("ohrrpgce.new", "ohrrpgce.veh", game$ + ".veh") THEN
    general(55) = 2
   END IF
@@ -1555,7 +1538,7 @@ FOR i = 0 TO sizebinsize
  setbinsize i, getbinsize(i)
 NEXT
 
-IF NOT isfile(workingdir$ + SLASH + "attack.bin" + CHR$(0)) THEN
+IF NOT isfile(workingdir$ + SLASH + "attack.bin") THEN
  clearpage vpage
  printstr "Init extended attack data...", 0, 0, vpage
  setvispage vpage 'refresh
@@ -1563,7 +1546,7 @@ IF NOT isfile(workingdir$ + SLASH + "attack.bin" + CHR$(0)) THEN
  setbinsize 0, curbinsize(0)
  setpicstuf buffer(), curbinsize(0), -1
  FOR i = 0 TO general(34)
-  storeset workingdir$ + SLASH + "attack.bin" + CHR$(0), i, 0
+  storeset workingdir$ + SLASH + "attack.bin", i, 0
  NEXT i
 
  '--and while we are at it, clear the old death-string from enemies
@@ -1571,15 +1554,15 @@ IF NOT isfile(workingdir$ + SLASH + "attack.bin" + CHR$(0)) THEN
  setvispage vpage 'refresh
  setpicstuf buffer(), 320, -1
  FOR i = 0 TO general(36)
-  loadset game$ + ".dt1" + CHR$(0), i, 0
+  loadset game$ + ".dt1", i, 0
   FOR j = 17 TO 52
    buffer(j) = 0
   NEXT j
-  storeset game$ + ".dt1" + CHR$(0), i, 0
+  storeset game$ + ".dt1", i, 0
  NEXT i
 END IF
 
-IF NOT isfile(workingdir$ + SLASH + "songdata.bin" + CHR$(0)) THEN
+IF NOT isfile(workingdir$ + SLASH + "songdata.bin") THEN
  printstr "Upgrading Song Name format...", 0, 0, vpage
  setvispage vpage 'refresh
  DIM song$(99)

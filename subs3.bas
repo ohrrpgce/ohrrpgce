@@ -208,7 +208,7 @@ END FUNCTION
 
 FUNCTION filesize$ (file$)
 'returns size of a file in formatted string
-IF isfile(file$ + CHR$(0)) THEN
+IF isfile(file$) THEN
  ff = FREEFILE
  OPEN file$ FOR BINARY AS #ff
  size = LOF(ff)
@@ -239,14 +239,14 @@ END SUB
 FUNCTION getsongname$ (num)
 DIM songd(curbinsize(2) / 2)
 setpicstuf songd(), curbinsize(2), -1
-loadset workingdir$ + SLASH + "songdata.bin" + CHR$(0), num, 0
+loadset workingdir$ + SLASH + "songdata.bin", num, 0
 getsongname$ = readbinstring$ (songd(), 0, 30)
 END FUNCTION
 
 FUNCTION getsfxname$ (num)
 DIM sfxd(curbinsize(2) / 2)
 setpicstuf sfxd(), curbinsize(3), -1
-loadset workingdir$ + SLASH + "sfxdata.bin" + CHR$(0), num, 0
+loadset workingdir$ + SLASH + "sfxdata.bin", num, 0
 getsfxname$ = readbinstring$ (sfxd(), 0, 30)
 END FUNCTION
 
@@ -260,7 +260,7 @@ DO
  strgrabber file$, 8
  fixfilename file$
  IF keyval(28) > 1 THEN
-  IF isfile(file$ + ext$ + CHR$(0)) AND file$ <> "" THEN alert$ = file$ + ext$ + " already exists": alert = 30: file$ = ""
+  IF isfile(file$ + ext$) AND file$ <> "" THEN alert$ = file$ + ext$ + " already exists": alert = 30: file$ = ""
   IF file$ <> "" THEN inputfilename$ = file$: EXIT DO
  END IF
  textcolor 15, 0
@@ -434,7 +434,7 @@ PRINT "fatal error:"
 PRINT e$
 
 'borrowed this code from game.bas cos wildcard didn't work
-findfiles workingdir$ + SLASH + ALLFILES + chr$(0), 0, "filelist.tmp" + CHR$(0), buffer()
+findfiles workingdir$ + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
 fh = FREEFILE
 OPEN "filelist.tmp" FOR INPUT AS #fh
 DO UNTIL EOF(fh)
@@ -452,18 +452,18 @@ END SUB
 FUNCTION unlumpone (lumpfile$, onelump$, asfile$)
 unlumpone = 0
 
-IF NOT isdir("unlump1.tmp" + CHR$(0)) THEN makedir "unlump1.tmp"
-CALL unlump(lumpfile$ + CHR$(0), "unlump1.tmp" + SLASH, buffer())
+IF NOT isdir("unlump1.tmp") THEN makedir "unlump1.tmp"
+CALL unlump(lumpfile$, "unlump1.tmp" + SLASH, buffer())
 
-IF isfile("unlump1.tmp" + SLASH + onelump$ + CHR$(0)) THEN
- copyfile "unlump1.tmp" +SLASH + onelump$ + CHR$(0), asfile$ + CHR$(0), buffer()
+IF isfile("unlump1.tmp" + SLASH + onelump$) THEN
+ copyfile "unlump1.tmp" +SLASH + onelump$, asfile$, buffer()
  unlumpone = -1
 END IF
 
 touchfile "unlump1.tmp" + SLASH + "nothing.tmp"
 
 'borrowed this code from game.bas cos wildcard didn't work
-findfiles "unlump1.tmp" + SLASH + ALLFILES + chr$(0), 0, "unlist.tmp" + CHR$(0), buffer()
+findfiles "unlump1.tmp" + SLASH + ALLFILES, 0, "unlist.tmp", buffer()
 fh = FREEFILE
 OPEN "unlist.tmp" FOR INPUT AS #fh
 DO UNTIL EOF(fh)
@@ -493,14 +493,14 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
  records = LOF(ff) / oldsize
  CLOSE #ff
 
- copyfile lumpf$ + CHR$(0), tempf$ + CHR$(0), buffer()
+ copyfile lumpf$, tempf$, buffer()
  KILL lumpf$
 
  FOR i = 0 TO records - 1
   setpicstuf buffer(), oldsize, -1
-  loadset tempf$ + CHR$(0), i, 0
+  loadset tempf$, i, 0
   setpicstuf buffer(), newsize, -1
-  storeset lumpf$ + CHR$(0), i, 0
+  storeset lumpf$, i, 0
  NEXT
 
  KILL tempf$

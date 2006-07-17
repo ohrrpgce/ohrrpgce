@@ -12,9 +12,6 @@ exlev&(), gold&, herobits%(), itembits%(), fmvol, hmask(), speedcontrol, deferpa
 lastsaveslot, plotstring$(), plotstrX(), plotstrY(), plotstrCol(), plotstrBGCol(), plotstrBits(), npcs(), wtog(), catermask(), framex, framey, gmap(), scroll(), exename$, defbinsize(), curbinsize(), lumpmod(), abortg, usepreunlump%, _
 npc() as NPCInst
 
-'Only used for ASM keyhandler
-COMMON SHARED regs AS Regtype, off9, seg9
-
 'Script globals
 COMMON SHARED script(), heap(), astack(), scrat(), retvals(), nowscript, scriptret, nextscroff
 
