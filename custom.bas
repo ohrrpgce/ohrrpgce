@@ -97,7 +97,7 @@ workingdir$ = "working.tmp"
 'version ID
 '$INCLUDE: 'cver.txt'
 'PRINT isn't going to work in FB Allegro
-IF COMMAND$ = "/V" THEN PRINT version$: SYSTEM
+IF (LCASE$(COMMAND$) = "/v" AND NOT LINUX) OR LCASE$(COMMAND$) = "-v" THEN PRINT version$: SYSTEM
 commandlineargs
 
 gamedir$ = exepath$
@@ -123,7 +123,13 @@ GOSUB readstuff
 
 dpage = 1: vpage = 0: Rate = 160: game$ = ""
 GOSUB makeworkingdir
-GOSUB chooserpg
+cmdline$ = getcommandline
+IF cmdline$ <> "" AND (isfile(cmdline$) OR isdir(cmdline$)) THEN
+ gamefile$ = cmdline$
+ game$ = trimextension$(trimpath$(gamefile$))
+ELSE
+ GOSUB chooserpg
+END IF
 setwindowtitle "OHRRPGCE - " + gamefile$
 
 GOSUB checkpass
