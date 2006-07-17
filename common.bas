@@ -288,6 +288,9 @@ ELSE
   treec(treesize) = 2
   LINE INPUT #fh, tree$(treesize)
   IF tree$(treesize) = "." OR tree$(treesize) = ".." OR RIGHT$(tree$(treesize), 4) = ".tmp" THEN treesize = treesize - 1
+  IF special = 7 THEN ' Special handling in RPG mode
+   IF right$(tree$(treesize),7) = ".rpgdir" THEN treesize = treesize -1
+  END IF
   GOSUB drawmeter
  LOOP
  CLOSE #fh
@@ -303,6 +306,12 @@ ELSE
  ELSEIF special = 6 THEN
   '--disregard fmask$. one call per extension
   findfiles nowdir$ + "*.wav", attrib, tmp$ + "hrbrowse.tmp", buffer()
+  GOSUB addmatchs
+ ELSEIF special = 7 THEN
+  'Call once for RPG files once for rpgdirs
+  findfiles nowdir$ + fmask$, attrib, tmp$ + "hrbrowse.tmp", buffer()
+  GOSUB addmatchs
+  findfiles nowdir$ + "*.rpgdir", attribDirectory + attribReadOnly + attribSystem + showHidden, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
  ELSE
   findfiles nowdir$ + fmask$, attrib, tmp$ + "hrbrowse.tmp", buffer()
@@ -422,7 +431,13 @@ DO UNTIL EOF(fh) OR treesize >= limit
  END IF
  '--RPG files
  IF special = 7 THEN
-  unlumpfile nowdir$ + tree$(treesize), "browse.txt", tmp$, buffer()
+  IF isdir(nowdir$ + tree$(treesize)) THEN
+   'unlumped RPGDIR folders
+   copyfile nowdir$ + tree$(treesize) + SLASH + "browse.txt", tmp$ + "browse.txt", buffer()
+  ELSE
+   'lumped RPG files
+   unlumpfile nowdir$ + tree$(treesize), "browse.txt", tmp$, buffer()
+  END IF 
   IF isfile(tmp$ + "browse.txt") THEN
    setpicstuf buffer(), 40, -1
    loadset tmp$ + "browse.txt", 0, 0
@@ -433,7 +448,7 @@ DO UNTIL EOF(fh) OR treesize >= limit
    array2str buffer(), 2, about$(treesize)
    safekill tmp$ + "browse.txt"
    IF LEN(display$(treesize)) = 0 THEN display$(treesize) = tree$(treesize)
-  ELSE
+  ELSE 
    about$(treesize) = ""
    display$(treesize) = tree$(treesize)
   END IF

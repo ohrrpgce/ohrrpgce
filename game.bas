@@ -290,8 +290,12 @@ IF autorungame = 0 THEN
  ELSE
   sourcerpg$ = browse$(7, "", "*.rpg", tmpdir$, 1)
  END IF 
+ IF sourcerpg$ = "" THEN exitprogram 0
+ IF isdir(sourcerpg$) THEN
+  usepreunlump = 1
+  workingdir$ = sourcerpg$
+ END IF 
 END IF
-IF sourcerpg$ = "" AND NOT usepreunlump = 1 THEN exitprogram 0
 
 '--open a lockfile in the working directory to notify other instances
 '--of GAME.EXE that it is taken.

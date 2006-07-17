@@ -79,6 +79,9 @@ END IF
 
 IF NOT isfile(lump$) THEN fatalerror "lump file `" + lump$ + "' was not found"
 
+PRINT "From " + lump$ + " to " + dest$
+
+
 game$ = rightafter(lump$, "\")
 IF game$ = "" THEN game$ = lump$
 IF INSTR(game$, ".") THEN game$ = LEFT$(game$, INSTR(game$, ".") - 1)
@@ -109,7 +112,6 @@ IF isfile(dest$ + "\archinym.lmp") THEN
 END IF
 
 unlumpfile lump$, game$ + ".gen", dest$ + "\", buffer()
-
 xbload dest$ + "\" + game$ + ".gen", buffer(), "unable to open general data"
 
 KILL dest$ + "\" + game$ + ".gen"
