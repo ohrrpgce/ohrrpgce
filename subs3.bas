@@ -257,9 +257,10 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN inputfilename$ = "": EXIT DO
- strgrabber file$, 8
+ strgrabber file$, 40
  fixfilename file$
  IF keyval(28) > 1 THEN
+  file$ = TRIM$(file$)
   IF isfile(file$ + ext$) AND file$ <> "" THEN alert$ = file$ + ext$ + " already exists": alert = 30: file$ = ""
   IF file$ <> "" THEN inputfilename$ = file$: EXIT DO
  END IF

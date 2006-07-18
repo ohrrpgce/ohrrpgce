@@ -27,6 +27,8 @@ WHAT IS NEW?
     * You can choose an RPG to edit in custom with the same browse menu
       that you useto pick an RPG to play in game. [James Paige]
     * Custom can edit and save unlumped RPG files [James Paige]
+    * Full Long file name support (You can create RPG files with long file
+      names, even including spaces)
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the

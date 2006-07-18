@@ -305,9 +305,11 @@ DO
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF csr = 0 THEN
    game$ = inputfilename$("Filename of New Game?", ".rpg")
-   IF NOT newRPGfile("ohrrpgce.new", game$ + ".rpg") THEN GOTO finis
-   gamefile$ = game$ + ".rpg"
-   EXIT DO
+   IF game$ <> "" THEN
+     IF NOT newRPGfile("ohrrpgce.new", game$ + ".rpg") THEN GOTO finis
+     gamefile$ = game$ + ".rpg"
+     EXIT DO
+   END IF
   ELSEIF csr = 1 THEN
    gamefile$ = browse$(7, "", "*.rpg", aquiretempdir$, 0)
    game$ = trimextension$(trimpath$(gamefile$))
@@ -626,9 +628,7 @@ FOR i = 1 TO LEN(s$)
  char$ = MID$(s$, i, 1)
  ascii = ASC(char$)
  SELECT CASE ascii
-  CASE 32
-   result$ = result$ + "_"
-  CASE 48 TO 57, 65 TO 90, 97 TO 122, 95, 126, 45
+  CASE 32, 48 TO 57, 65 TO 90, 97 TO 122, 95, 126, 45
    result$ = result$ + char$
  END SELECT
 NEXT
