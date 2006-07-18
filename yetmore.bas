@@ -578,17 +578,9 @@ END FUNCTION
 SUB initgame
 
 '--back compat game$
-a$ = ""
 i = 0
 IF usepreunlump = 0 THEN
-IF INSTR(a$, SLASH) > 0 THEN
- DO UNTIL LEFT$(a$, 1) = SLASH
-  i = i + 1
-  a$ = RIGHT$(sourcerpg$, i)
- LOOP
-END IF
-a$ = LEFT$(a$, LEN(a$) - 4)
-game$ = workingdir$ + a$
+ game$ = workingdir$ + SLASH + trimextension$(trimpath$(sourcerpg$))
 END IF
 '--set game$ according to the archinym
 IF isfile(workingdir$ + SLASH + "archinym.lmp") THEN
