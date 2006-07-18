@@ -42,6 +42,8 @@ WHAT IS NEW?
     * Fixed missing harm tile flash [James]
     * Bug 155: "File browsing error: changing drives" [Ralph]
     * Read-only and system folders are now browseable. [James Paige]
+    * Fixed catastrophic freezing on some computers for gfx_fb and gfx_fb2
+      backends [Ralph Versteegen]
 
   * New Plotscripting Commands
     * "string from textbox" [Yuriy]
