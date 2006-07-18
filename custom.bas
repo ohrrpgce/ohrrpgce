@@ -144,7 +144,6 @@ touchfile workingdir$ + SLASH + "__danger.tmp"
 debug gamefile$
 IF isdir(gamefile$) THEN
  'work on an unlumped RPG file
- debug workingdir$
  findfiles gamefile$ + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
@@ -161,7 +160,6 @@ ELSE
  ERASE lumpbuf
  DIM scroll(16002), pass(16002), emap(16002)
 END IF
-debug game$
 game$ = workingdir$ + SLASH + game$
 verifyrpg
 safekill workingdir$ + SLASH + "__danger.tmp"
@@ -446,10 +444,10 @@ dolumpfiles gamefile$
 RETURN
 
 checkpass:
-unlumpfile gamefile$, "archinym.lmp", workingdir$ + SLASH, buffer()
+copylump gamefile$, "archinym.lmp", workingdir$
 '--set game$ according to the archinym
 game$ = readarchinym()
-unlumpfile gamefile$, game$ + ".gen", workingdir$ + SLASH, buffer()
+copylump gamefile$, game$ + ".gen", workingdir$
 xbload workingdir$ + SLASH + game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
 '----load password-----
 IF general(5) >= 256 THEN
@@ -1701,13 +1699,28 @@ SUB dolumpfiles (filetolump$)
 '--build the list of files to lump
 findfiles workingdir$ + SLASH + ALLFILES, 0, "temp.lst", buffer()
 fixorder "temp.lst"
-'---KILL BUFFERS, LUMP, REDEFINE BUFFERS---
-DIM lumpbuf(16383)
-unsafefile$ = "RPG lumping failed!"
-lumpfiles "temp.lst", filetolump$, workingdir$ + SLASH, lumpbuf()
-safekill "temp.lst"
-unsafefile$ = ""
-ERASE lumpbuf
+IF isdir(filetolump$) THEN
+ '---copy changed files back to source rpgdir---
+ fh = FREEFILE
+ OPEN "temp.lst" FOR INPUT AS #fh
+ unsafefile$ = "RPG lump copy failed!"
+ DO UNTIL EOF(fh)
+  LINE INPUT #fh, filename$
+  safekill filetolump$ + SLASH + filename$
+  copyfile workingdir$ + SLASH + filename$, filetolump$ + SLASH + filename$, buffer()
+ LOOP
+ CLOSE #fh
+ safekill "temp.lst"
+ unsafefile$ = ""
+ELSE
+ '---relump data into lumpfile package---
+ DIM lumpbuf(16383)
+ unsafefile$ = "RPG lumping failed!"
+ lumpfiles "temp.lst", filetolump$, workingdir$ + SLASH, lumpbuf()
+ safekill "temp.lst"
+ unsafefile$ = ""
+ ERASE lumpbuf
+END IF
 END SUB
 
 FUNCTION readarchinym$ ()
@@ -1720,7 +1733,7 @@ FUNCTION readarchinym$ ()
   readarchinym$ = a$
  ELSE
   ' for backwards compatability with ancient games that lack archinym.lmp
-  debug workingdir$ + SLASH + "archinym.lmp" + " unreadable, using " + LCASE$(trimpath$(game$)) + "instead"
+  debug workingdir$ + SLASH + "archinym.lmp" + " unreadable, using " + LCASE$(trimpath$(game$)) + " instead"
   readarchinym$ = LCASE$(trimpath$(game$))
  END IF 
 END FUNCTION

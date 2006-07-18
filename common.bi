@@ -17,6 +17,7 @@ DECLARE SUB safekill (f$)
 DECLARE FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
 DECLARE SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
 DECLARE FUNCTION aquiretempdir$ ()
+DECLARE SUB copylump(package$, lump$, dest$)
 
 'Global variables
 COMMON SHARED uilook()

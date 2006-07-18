@@ -26,6 +26,7 @@ WHAT IS NEW?
       with a .rpgdir extension [James Paige]
     * You can choose an RPG to edit in custom with the same browse menu
       that you useto pick an RPG to play in game. [James Paige]
+    * Custom can edit and save unlumped RPG files [James Paige]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the

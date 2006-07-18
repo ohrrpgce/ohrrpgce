@@ -600,3 +600,14 @@ END IF
 IF RIGHT$(t$, 1) <> SLASH THEN t$ = t$ + SLASH
 RETURN t$
 END FUNCTION
+
+SUB copylump(package$, lump$, dest$)
+IF isdir(package$) THEN
+ 'unlumped folder
+ copyfile package$ + SLASH + lump$, dest$ + SLASH + lump$, buffer()
+ELSE
+ 'lumpfile
+ unlumpfile package$, lump$, dest$ + SLASH, buffer()
+END IF
+ 
+END SUB
