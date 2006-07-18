@@ -609,5 +609,22 @@ ELSE
  'lumpfile
  unlumpfile package$, lump$, dest$ + SLASH, buffer()
 END IF
- 
+END SUB
+
+SUB centerbox (x, y, w, h, c, p)
+tbc = uiTextBox + (2 * (c - 1))
+rectangle x - INT(w * .5), y - INT(h * .5), w, h, uilook(tbc), p
+rectangle x - INT(w * .5), y - INT(h * .5), w, 1, uilook(tbc + 1), p
+rectangle x - INT(w * .5), y + (h - INT(h * .5)), w, 1, uilook(tbc + 1), p
+rectangle x - INT(w * .5), y - INT(h * .5), 1, h, uilook(tbc + 1), p
+rectangle x + (w - INT(w * .5)), y - INT(h * .5), 1, h + 1, uilook(tbc + 1), p
+END SUB
+
+SUB centerfuz (x, y, w, h, c, p)
+tbc = uiTextBox + (2 * (c - 1))
+fuzzyrect x - INT(w * .5), y - INT(h * .5), w, h, uilook(tbc), p
+rectangle x - INT(w * .5), y - INT(h * .5), w, 1, uilook(tbc + 1), p
+rectangle x - INT(w * .5), y + (h - INT(h * .5)), w, 1, uilook(tbc + 1), p
+rectangle x - INT(w * .5), y - INT(h * .5), 1, h, uilook(tbc + 1), p
+rectangle x + (w - INT(w * .5)), y - INT(h * .5), 1, h + 1, uilook(tbc + 1), p
 END SUB

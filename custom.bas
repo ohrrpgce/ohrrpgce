@@ -121,13 +121,25 @@ setdiskpages buffer(), 200, 0
 textcolor 15, 0
 GOSUB readstuff
 
-dpage = 1: vpage = 0: Rate = 160: game$ = ""
+dpage = 1: vpage = 0: Rate = 160
+game$ = ""
+gamefile$ = ""
+
 GOSUB makeworkingdir
 cmdline$ = getcommandline
-IF cmdline$ <> "" AND (isfile(cmdline$) OR isdir(cmdline$)) THEN
- gamefile$ = cmdline$
- game$ = trimextension$(trimpath$(gamefile$))
-ELSE
+IF cmdline$ <> "" THEN
+ IF isfile(cmdline$) OR isdir(cmdline$) THEN 
+  gamefile$ = cmdline$
+  game$ = trimextension$(trimpath$(gamefile$))
+ ELSE
+  centerbox 160, 40, 300, 50, 3, 0
+  edgeprint "File not found:", 15, 30, uilook(uiText), 0
+  edgeprint RIGHT$(cmdline$,35), 15, 40, uilook(uiText), 0
+  setvispage 0
+  w = getkey
+ END IF
+END IF
+IF game$ = "" THEN
  GOSUB chooserpg
 END IF
 setwindowtitle "OHRRPGCE - " + gamefile$

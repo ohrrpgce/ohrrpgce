@@ -45,8 +45,6 @@ DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
 DECLARE SUB spells (pt%, stat%())
 DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
-DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
-DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
 DECLARE SUB resetlmp (slot%, lev%)
 DECLARE SUB loadfoe (i%, formdata%(), es%(), x%(), y%(), p%(), v%(), w%(), h%(), ext$(), bits%(), stat%(), ebits%(), batname$())
 DECLARE FUNCTION inflict (w%, t%, stat%(), x%(), y%(), w%(), h%(), harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%())
@@ -393,24 +391,6 @@ FOR k = 1 TO 3
 NEXT
 RETURN
 
-END SUB
-
-SUB centerbox (x, y, w, h, c, p)
-tbc = uiTextBox + (2 * (c - 1))
-rectangle x - INT(w * .5), y - INT(h * .5), w, h, uilook(tbc), p
-rectangle x - INT(w * .5), y - INT(h * .5), w, 1, uilook(tbc + 1), p
-rectangle x - INT(w * .5), y + (h - INT(h * .5)), w, 1, uilook(tbc + 1), p
-rectangle x - INT(w * .5), y - INT(h * .5), 1, h, uilook(tbc + 1), p
-rectangle x + (w - INT(w * .5)), y - INT(h * .5), 1, h + 1, uilook(tbc + 1), p
-END SUB
-
-SUB centerfuz (x, y, w, h, c, p)
-tbc = uiTextBox + (2 * (c - 1))
-fuzzyrect x - INT(w * .5), y - INT(h * .5), w, h, uilook(tbc), p
-rectangle x - INT(w * .5), y - INT(h * .5), w, 1, uilook(tbc + 1), p
-rectangle x - INT(w * .5), y + (h - INT(h * .5)), w, 1, uilook(tbc + 1), p
-rectangle x - INT(w * .5), y - INT(h * .5), 1, h, uilook(tbc + 1), p
-rectangle x + (w - INT(w * .5)), y - INT(h * .5), 1, h + 1, uilook(tbc + 1), p
 END SUB
 
 FUNCTION chkOOBtarg (wptr, index, stat(), ondead(), onlive())

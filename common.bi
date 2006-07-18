@@ -18,6 +18,8 @@ DECLARE FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
 DECLARE SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
 DECLARE FUNCTION aquiretempdir$ ()
 DECLARE SUB copylump(package$, lump$, dest$)
+DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
+DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
 
 'Global variables
 COMMON SHARED uilook()
