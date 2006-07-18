@@ -829,7 +829,7 @@ SUB loadgame (slot, map, foep, stat(), stock())
 '--return gen to defaults
 xbload game$ + ".gen", gen(), "General data is missing from " + game$
 
-sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
+sg$ = trimextension(sourcerpg$) + ".sav"
 setpicstuf buffer(), 30000, -1
 loadset sg$, slot * 2, 0
 
@@ -1653,7 +1653,7 @@ FOR i = 0 TO 40
 NEXT i
 
 setpicstuf buffer(), 30000, -1
-sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
+sg$ = trimextension$(sourcerpg$) + ".sav"
 storeset sg$, slot * 2, 0
 
 '---RECORD 2
@@ -1704,7 +1704,7 @@ NEXT i
 ' z = 6513 here
 
 setpicstuf buffer(), 30000, -1
-sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
+sg$ = trimextension$(sourcerpg$) + ".sav"
 storeset sg$, slot * 2 + 1, 0
 
 

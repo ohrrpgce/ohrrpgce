@@ -141,7 +141,6 @@ printstr "UNLUMPING DATA: please wait.", 0, 0, 0
 
 touchfile workingdir$ + SLASH + "__danger.tmp"
 
-debug gamefile$
 IF isdir(gamefile$) THEN
  'work on an unlumped RPG file
  findfiles gamefile$ + SLASH + ALLFILES, 0, "filelist.tmp", buffer()

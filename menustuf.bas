@@ -1335,7 +1335,7 @@ IF loading THEN centerbox 270, 10, 80, 12, 15, 3
 
 FOR i = 0 TO 3
  centerbox 160, 40 + i * 44, 310, 42, 15, 3
- sg$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4) + ".sav"
+ sg$ = trimextension$(sourcerpg$) + ".sav"
  setpicstuf buffer(), 30000, -1
  loadset sg$, i * 2, 0
  IF buffer(0) = 3 THEN 'current version number
