@@ -2001,22 +2001,14 @@ loadtemppage 3
 END FUNCTION
 
 SUB snapshot
-pre$ = LEFT$(sourcerpg$, LEN(sourcerpg$) - 4)
-
-a$ = pre$
-WHILE LEN(a$) > 0 AND RIGHT$(a$, 1) <> SLASH
- a$ = LEFT$(a$, LEN(a$) - 1)
-WEND
-
-pre$ = LEFT$(pre$, LEN(a$) + 6)
+pre$ = trimextension$(sourcerpg$)
 
 n = 0
-
 DO
  shot$ = pre$ + STR$(ABS(n)) + ".bmp"
  IF isfile(shot$) = 0 THEN EXIT DO
  n = n + 1
-LOOP UNTIL n > 99
+LOOP UNTIL n > 999
 
 screenshot shot$, vpage, master(), buffer()
 
