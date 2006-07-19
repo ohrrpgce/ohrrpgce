@@ -99,7 +99,7 @@ DECLARE SUB heroswap (iAll%, stat%())
 DECLARE SUB patcharray (array%(), n$, max%)
 DECLARE SUB drawsay (saybit%(), sayenh%(), say$(), showsay%, choose$(), choosep%)
 DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, mx%, my%, tastuf%())
-DECLARE SUB minimap (mx%, my%, x%, y%, tastuf%())
+DECLARE SUB minimap (x%, y%, tastuf%())
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB itstr (i%)
@@ -490,7 +490,7 @@ DO
     ygo(0) = 0
    END IF
   ELSE
-   IF keyval(59) > 1 AND showsay = 0 THEN minimap mx, my, catx(0), caty(0), tastuf()
+   IF keyval(59) > 1 AND showsay = 0 THEN minimap catx(0), caty(0), tastuf()
   END IF
   IF keyval(60) > 1 AND showsay = 0 THEN
    savegame 32, map, foep, stat(), stock()
@@ -770,7 +770,7 @@ DO
     equip w, stat()
    END IF
   END IF
-  IF mi(pt) = 2 THEN minimap mx, my, catx(0), caty(0), tastuf()
+  IF mi(pt) = 2 THEN minimap catx(0), caty(0), tastuf()
   IF mi(pt) = 8 THEN
    heroswap readbit(gen(), 101, 5), stat()
   END IF
@@ -2044,7 +2044,7 @@ SELECT CASE scrat(nowscript, curkind)
      cycskip(i) = 0
     NEXT i
    CASE 151'--show mini map
-    minimap mx, my, catx(0), caty(0), tastuf()
+    minimap catx(0), caty(0), tastuf()
    CASE 153'--items menu
     wantbox = items(stat())
    CASE 155, 170'--save menu

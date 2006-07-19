@@ -29,6 +29,7 @@ WHAT IS NEW?
     * Custom can edit and save unlumped RPG files [James Paige]
     * Full Long file name support (You can create RPG files with long file
       names, even including spaces)
+    * Minimap now zooms in closer on smaller maps [James Paige]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the

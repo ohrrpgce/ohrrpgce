@@ -34,7 +34,7 @@ DECLARE FUNCTION countitem% (it%)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
-DECLARE SUB minimap (mx%, my%, x%, y%, tastuf%())
+DECLARE SUB minimap (x%, y%, tastuf%())
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
@@ -1023,13 +1023,18 @@ setpicstuf tastuf(), 80, -1
 loadset game$ + ".tap", n, 0
 END SUB
 
-SUB minimap (mx, my, x, y, tastuf())
+SUB minimap (x, y, tastuf())
 
 centerfuz 160, 100, 304, 184, 1, vpage
 centerbox 159, 99, scroll(0) + 3, scroll(1) + 3, 15, vpage
 setmapdata scroll(), buffer(), 0, 0
-topcorner = 160 - INT(scroll(0) * .5)
-leftcorner = 100 - INT(scroll(1) * .5)
+zoom = 1
+IF scroll(0) < 160 AND scroll(1) < 100 THEN zoom = 2
+IF scroll(0) < 106 AND scroll(1) < 66 THEN zoom = 3
+IF scroll(0) < 80 AND scroll(1) < 50 THEN zoom = 4
+IF scroll(0) < 64 AND scroll(1) < 40 THEN zoom = 5
+topcorner = 160 - INT(scroll(0) * .5) * zoom
+leftcorner = 100 - INT(scroll(1) * .5) * zoom
 FOR i = 0 TO scroll(1) - 1
  FOR o = 0 TO scroll(0) - 1
   block = readmapblock(o, i)
@@ -1038,8 +1043,14 @@ FOR i = 0 TO scroll(1) - 1
   IF block > 159 THEN block = (block - 159) + tastuf(0)
   mx = block - (INT(block / 16) * 16)
   my = INT(block / 16)
-  pixel = readpixel(INT(RND * 7) + 7 + (mx * 20), INT(RND * 7) + 7 + (my * 20), 3)
-  putpixel topcorner + o, leftcorner + i, pixel, vpage
+  '--larger minimap for smaller maps
+  FOR zx = 0 to zoom - 1
+   FOR zy = 0 to zoom - 1
+    subtile = 20 \ zoom 
+    pixel = readpixel((mx*20) + (zx*subtile) + INT(RND*subtile), (my*20) + (zy*subtile) + INT(RND*subtile), 3)
+    putpixel topcorner + o * zoom + zx, leftcorner + i * zoom + zy, pixel, vpage
+   NEXT zy
+  NEXT zx
  NEXT
 NEXT
 copypage vpage, dpage
@@ -1054,7 +1065,7 @@ DO
  FOR i = 1 TO 99
   IF keyval(i) > 1 THEN EXIT DO
  NEXT i
- putpixel topcorner + (x / 20), leftcorner + (y / 20), uilook(uiSelectedItem) * tog, dpage
+ rectangle topcorner + (x / 20) * zoom, leftcorner + (y / 20) * zoom, zoom, zoom, uilook(uiSelectedItem) * tog, dpage
  copypage dpage, vpage
  setvispage vpage
  dowait
@@ -1855,7 +1866,7 @@ DO
   END IF
   IF menuid(pt) = 6 THEN '--MAP
    loadpage game$ + ".til", gmap(0), 3
-   minimap mx, my, catx(0), caty(0), tastuf()
+   minimap catx(0), caty(0), tastuf()
   END IF
   IF menuid(pt) = 7 THEN '--TEAM
    heroswap 1, stat()
