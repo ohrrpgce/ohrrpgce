@@ -1640,7 +1640,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
         'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR$
 	DIM grep$
 	grep$ = "-v '/$'"
-	IF attrib = 16 THEN grep$ = "'/$'"
+	IF attrib AND 16 THEN grep$ = "'/$'"
 	DIM i%
 	FOR i = LEN(fmask$) TO 1 STEP -1
 		IF MID$(fmask$, i, 1) = CHR$(34) THEN fmask$ = LEFT$(fmask$, i - 1) + "\" + CHR$(34) + RIGHT$(fmask$, LEN(fmask$) - i)
