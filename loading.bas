@@ -104,24 +104,24 @@ SUB SerInventory(invent() as InventSlot, z, buf())
   z += 3 ' disregard some jibba jabba
   FOR i = 0 to inventoryMax
     IF invent(i).used THEN
-      buf(z) = (invent(i).num AND 255) shl 8 + (invent(i).id AND 255 + 1)
+      buf(z) = (invent(i).num AND 255) shl 8 OR ((invent(i).id + 1) AND 255)
     ELSE
       buf(z) = 0
     END IF
     z += 1
   NEXT
   z += 2  'slots 198 and 199 not useable
-  z += 3
+  z += 3 * 12
   FOR i = 0 to inventoryMax
     IF invent(i).used = 0 THEN invent(i).text = SPACE$(11)
     'unfortunately, this isn't exactly the badbinstring format
     FOR j = 0 TO 11
      'actually max length is 11, last byte always wasted
-      IF j < LEN(invent(i).text) THEN buf(z) = invent(i).text[j] ELSE buf(z) = 256
+      IF j < LEN(invent(i).text) THEN buf(z) = invent(i).text[j] ELSE buf(z) = 0
       z += 1
     NEXT
   NEXT
-  z += 2
+  z += 2 * 12
 END SUB
 
 SUB DeserInventory(invent() as InventSlot, z, buf())
@@ -130,21 +130,20 @@ SUB DeserInventory(invent() as InventSlot, z, buf())
   FOR i = 0 TO inventoryMax
     invent(i).num = buf(z) shr 8
     invent(i).id = (buf(z) and 255) - 1
-    IF invent(i).id >= 0 THEN invent(i).used = 1
+    invent(i).used = invent(i).id >= 0
     z += 1
   NEXT
   z += 2
-  z += 3
+  z += 3 * 12
   FOR i = 0 TO inventoryMax
     temp = ""
     FOR j = 0 TO 11
-      IF buf(z) >= 0 AND buf(z) <= 255 THEN temp = temp + CHR$(buf(z))
+      IF buf(z) > 0 AND buf(z) <= 255 THEN temp = temp + CHR$(buf(z))
       z += 1
     NEXT j
     invent(i).text = temp$
-    z += 1
   NEXT
-  z += 2
+  z += 2 * 12
 END SUB
 
 SUB CleanInventory(invent() as InventSlot)

@@ -220,14 +220,16 @@ sub setpal(pal() as integer)
 		p = p + 3
 	next i
 
+	mutexlock keybdmutex
 	gfx_setpal(intpal())
+	mutexunlock keybdmutex
 end sub
 
 SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
 	dim i as integer
 	dim j as integer
 	dim hue as integer
-	dim count as integer = 0
+	dim count as integer = 1
 
 	'palette get using pal 'intpal holds current palette
 
@@ -266,18 +268,16 @@ SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, 
 			intpal(j) = intpal(j) or (hue shl 16)
 		next
 		if count = 1 then
+			mutexlock keybdmutex
 			gfx_setpal(intpal())
+			mutexunlock keybdmutex
 			count = 0
 		end if
 		count = count + 1
 		sleep 10 'how long?
 	next
 
-	'I don't think the palette was getting set on the final pass
-	'so add this little check
-	if count = 1 then
-		gfx_setpal(intpal())
-	end if
+	'Make sure the palette gets set on the final pass
 end SUB
 
 SUB fadetopal (pal() as integer, palbuff() as integer)
@@ -285,7 +285,7 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 	dim j as integer
 	dim hue as integer
 	dim p as integer	'index to passed palette, which has separate r, g, b
-	dim count as integer = 0
+	dim count as integer = 1
 
 	'max of 64-1 steps
 	for i = 0 to 62
@@ -326,16 +326,14 @@ SUB fadetopal (pal() as integer, palbuff() as integer)
 			p = p + 1
 		next
 		if count = 1 then
+			mutexlock keybdmutex
 			gfx_setpal(intpal())
+			mutexunlock keybdmutex
 			count = 0
 		end if
 		count = count + 1
 		sleep 10 'how long?
 	next
-
-	if count = 1 then
-		gfx_setpal(intpal())
-	end if
 end SUB
 
 SUB setmapdata (array() as integer, pas() as integer, BYVAL t as integer, BYVAL b as integer)

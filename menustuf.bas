@@ -761,18 +761,19 @@ SUB itemmenuswap (invent() AS InventSlot, iuse(), permask(), i, o)
 'this sub called from items()
 SWAP invent(i).id, invent(o).id
 SWAP invent(i).num, invent(o).num
-SWAP invent(i).used, invent(o).used
 SWAP invent(i).text, invent(o).text
+temp = invent(i).used
+invent(i).used = invent(o).used
+invent(o).used = temp
+
 t1 = readbit(iuse(), 0, 3 + i)
 t2 = readbit(iuse(), 0, 3 + o)
-SWAP t1, t2
-setbit iuse(), 0, 3 + i, t1
-setbit iuse(), 0, 3 + o, t2
+setbit iuse(), 0, 3 + i, t2
+setbit iuse(), 0, 3 + o, t1
 t1 = readbit(permask(), 0, 3 + i)
 t2 = readbit(permask(), 0, 3 + o)
-SWAP t1, t2
-setbit permask(), 0, 3 + i, t1
-setbit permask(), 0, 3 + o, t2
+setbit permask(), 0, 3 + i, t2
+setbit permask(), 0, 3 + o, t1
 END SUB
 
 FUNCTION items (stat())
@@ -841,7 +842,7 @@ DO
   ELSE
    display$ = special$(i)
   END IF
-  printstr display$, 20 + 96 * (i MOD 3), 12 + 8 * ((i - top) \ 3), dpage
+  printstr display$, 20 + 96 * ((i + 3) MOD 3), 12 + 8 * ((i - top) \ 3), dpage
  NEXT i
  centerfuz 160, 180, 312, 20, 4, dpage
  edgeprint info$, xstring(info$, 160), 175, uilook(uiText), dpage
