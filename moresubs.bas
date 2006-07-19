@@ -1028,15 +1028,18 @@ SUB minimap (mx, my, x, y, tastuf())
 centerfuz 160, 100, 304, 184, 1, vpage
 centerbox 159, 99, scroll(0) + 3, scroll(1) + 3, 15, vpage
 setmapdata scroll(), buffer(), 0, 0
+topcorner = 160 - INT(scroll(0) * .5)
+leftcorner = 100 - INT(scroll(1) * .5)
 FOR i = 0 TO scroll(1) - 1
  FOR o = 0 TO scroll(0) - 1
   block = readmapblock(o, i)
+  'ignore tile animation
   IF block > 207 THEN block = (block - 207) + tastuf(20)
   IF block > 159 THEN block = (block - 159) + tastuf(0)
   mx = block - (INT(block / 16) * 16)
   my = INT(block / 16)
-  loadsprite buffer(), 0, INT(RND * 7) + 7 + (mx * 20), INT(RND * 7) + 7 + (my * 20), 1, 1, 3
-  stosprite buffer(), 0, 160 - INT(scroll(0) * .5) + o, 100 - INT(scroll(1) * .5) + i, vpage
+  pixel = readpixel(INT(RND * 7) + 7 + (mx * 20), INT(RND * 7) + 7 + (my * 20), 3)
+  putpixel topcorner + o, leftcorner + i, pixel, vpage
  NEXT
 NEXT
 copypage vpage, dpage
@@ -1051,8 +1054,9 @@ DO
  FOR i = 1 TO 99
   IF keyval(i) > 1 THEN EXIT DO
  NEXT i
- rectangle 160 - (scroll(0) * .5) + (x / 20), 100 - (scroll(1) * .5) + (y / 20), 1, 1, uilook(uiSelectedItem + tog), dpage '15 + (tog * 5), dpage
+ putpixel topcorner + (x / 20), leftcorner + (y / 20), uilook(uiSelectedItem) * tog, dpage
  copypage dpage, vpage
+ setvispage vpage
  dowait
 LOOP
 setkeys
