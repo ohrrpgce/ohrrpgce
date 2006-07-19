@@ -19,13 +19,7 @@ DECLARE FUNCTION readitemname$ (index%)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
 DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
-DECLARE SUB writebinstring (savestr$, array%(), offset%, maxlen%)
-DECLARE SUB writebadbinstring (savestr$, array%(), offset%, maxlen%, skipword%)
-DECLARE FUNCTION gethighbyte% (n%)
-DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
-DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION tagstring$ (tag%, zero$, one$, negone$)
-DECLARE FUNCTION bytes2int% (lowbyte%, highbyte%)
 DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB setbinsize (id%, size%)
 DECLARE SUB flusharray (array%(), size%, value%)
@@ -983,22 +977,6 @@ RETURN
 
 END SUB
 
-FUNCTION bytes2int (lowbyte, highbyte)
-'--this routine is a neccisary hack because of quickbasic's stupid
-'--signed-variables-only problem
-
-DIM buf(1)
-
-buf(0) = lowbyte
-buf(1) = highbyte
-
-FOR i = 0 TO 7
- setbit buf(), 0, 8 + i, readbit(buf(), 1, i)
-NEXT i
-
-bytes2int = buf(0)
-END FUNCTION
-
 FUNCTION editflexmenu (nowindex, menutype(), menuoff(), menulimits(), datablock(), mintable(), maxtable())
 '--returns true if data has changed, false it not
 
@@ -1072,67 +1050,6 @@ FOR i = 0 TO UBOUND(menuoff)
 NEXT i
 
 END SUB
-
-FUNCTION gethighbyte (n)
-DIM buf(1)
-
-buf(0) = 0
-buf(1) = n
-
-FOR i = 0 TO 7
- setbit buf(), 0, i, readbit(buf(), 1, 8 + i)
-NEXT i
-
-gethighbyte = buf(0)
-
-END FUNCTION
-
-FUNCTION readbadbinstring$ (array(), offset, maxlen, skipword)
-result$ = ""
-strlen = bound(array(offset), 0, maxlen)
-
-FOR i = 1 TO strlen
- '--read and int
- n = array(offset + skipword + i)
- '--if the int is a char use it.
- IF n >= 0 AND n <= 255 THEN
-  '--take the low byte
-  n = (n AND &HFF)
-  '--use it
-  result$ = result$ + CHR$(n)
- END IF
-NEXT i
-
-readbadbinstring$ = result$
-END FUNCTION
-
-FUNCTION readbinstring$ (array(), offset, maxlen)
-
-result$ = ""
-strlen = bound(array(offset), 0, maxlen)
-
-i = 1
-DO WHILE LEN(result$) < strlen
- '--get an int
- n = array(offset + i)
- i = i + 1
- 
- '--break apart the int
- lowbyte = (n AND &HFF)
- highbyte = gethighbyte(n)
- 
- '--append the lowbyte as a char
- result$ = result$ + CHR$(lowbyte)
- 
- '--if we still care about the highbyte, append it as a char too
- IF LEN(result$) < strlen THEN
-  result$ = result$ + CHR$(highbyte)
- END IF
- 
-LOOP
-
-readbinstring$ = result$
-END FUNCTION
 
 SUB setactivemenu (workmenu(), newmenu(), pt, top, size)
 FOR i = 0 TO UBOUND(newmenu)
@@ -1375,46 +1292,6 @@ FOR i = 0 TO size
  IF mpointer = i THEN
    nowmenu$(i) = RIGHT$(nowmenu$(i), 40)
  END IF
-NEXT i
-
-END SUB
-
-SUB writebadbinstring (savestr$, array(), offset, maxlen, skipword)
-
-'--write current length
-array(offset) = LEN(savestr$)
-
-FOR i = 1 TO LEN(savestr$)
- array(offset + skipword + i) = ASC(MID$(savestr$, i, 1))
-NEXT i
-
-FOR i = LEN(savestr$) + 1 TO maxlen
- array(offset + skipword + i) = 0
-NEXT i
-
-END SUB
-
-SUB writebinstring (savestr$, array(), offset, maxlen)
-s$ = savestr$
-
-'--pad s$ to the right length
-DO WHILE LEN(s$) < maxlen
- s$ = s$ + CHR$(0)
-LOOP
-
-'--if it is an odd number
-IF (LEN(s$) AND 1) THEN
- s$ = s$ + CHR$(0)
-END IF
-
-'--write length (current not max)
-array(offset) = LEN(savestr$)
-
-FOR i = 1 TO LEN(s$) \ 2
- lowbyte = ASC(MID$(s$, ((i - 1) * 2) + 1, 1))
- highbyte = ASC(MID$(s$, ((i - 1) * 2) + 2, 1))
- n = bytes2int(lowbyte, highbyte)
- array(offset + i) = n
 NEXT i
 
 END SUB

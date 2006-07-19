@@ -26,8 +26,6 @@ DECLARE FUNCTION readitemname$ (itemnum%)
 DECLARE FUNCTION trytheft (who%, targ%, atk%(), es%())
 DECLARE SUB setbatcap (cap$, captime%, capdelay%)
 DECLARE FUNCTION gethighbyte% (n%)
-DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
-DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE SUB wrappedsong (songnumber%)
 DECLARE SUB readattackdata (array%(), index%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
@@ -70,6 +68,7 @@ DECLARE SUB giveheroexperience (i%, exstat%(), exper&)
 DECLARE FUNCTION getbinsize% (id%)
 DECLARE FUNCTION dimbinsize% (id%)
 DECLARE SUB delitem (it%, num%)
+DECLARE FUNCTION consumeitem% (index%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -459,7 +458,7 @@ RETURN
 atkscript: '---------------------------------------------------------------
 '--check for item consumption
 IF icons(who) >= 0 THEN
- IF INT(item(icons(who)) / 256) = 0 THEN
+ IF inventory(icons(who)).used = 0 THEN
   '--abort if item is gone
   anim = -1: RETURN
  END IF
@@ -1065,7 +1064,10 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     conmp = 0
    END IF
    IF conlmp(who) > 0 THEN lmp(who, conlmp(who) - 1) = lmp(who, conlmp(who) - 1) - 1: conlmp(who) = 0
-   IF icons(who) >= 0 THEN GOSUB iconsume
+   IF icons(who) >= 0 THEN 
+    IF consumeitem(icons(who)) THEN setbit iuse(), 0, icons(who), 0
+    icons(who) = -1
+   END IF
    IF atk(9) <> 0 THEN
     hc(who) = 7
     hx(who) = x(who) + (w(who) * .5)
@@ -1368,7 +1370,7 @@ IF carray(5) > 1 THEN
  icons(you) = -1 '--is this right?
 END IF
 IF carray(0) > 1 AND iptr > 2 THEN iptr = iptr - 3
-IF carray(1) > 1 AND iptr < 195 THEN iptr = iptr + 3
+IF carray(1) > 1 AND iptr <= inventoryMax - 3 THEN iptr = iptr + 3
 IF keyval(73) > 1 THEN
  iptr = iptr - 27: itop = itop - 27
  IF itop < 0 THEN itop = 0
@@ -1377,12 +1379,12 @@ END IF
 IF keyval(81) > 1 THEN
  iptr = iptr + 27: itop = itop + 27
  IF itop > 171 THEN itop = 171
- WHILE iptr > 197: iptr = iptr - 3: WEND
+ WHILE iptr > inventoryMax: iptr = iptr - 3: WEND
 END IF
 IF carray(2) > 1 AND iptr > 0 THEN
  iptr = iptr - 1
 END IF
-IF carray(3) > 1 AND iptr < 197 THEN
+IF carray(3) > 1 AND iptr < inventoryMax THEN
  iptr = iptr + 1
 END IF
 '--scroll when past top or bottom
@@ -1391,9 +1393,8 @@ IF iptr > itop + 26 THEN itop = itop + 3
 
 IF carray(4) > 1 THEN
  IF readbit(iuse(), 0, iptr) = 1 THEN
-  lb = (item(iptr) AND 255)
   setpicstuf buffer(), 200, -1
-  loadset game$ + ".itm", lb - 1, 0
+  loadset game$ + ".itm", inventory(iptr).id, 0
   icons(you) = -1: IF buffer(73) = 1 THEN icons(you) = iptr
   temp = buffer(47)
   setpicstuf buffer(), 80, -1
@@ -1652,16 +1653,6 @@ IF buffer(4) = 4 THEN ran = 2
 ptarg = 2
 RETURN
 
-iconsume: '-----------------------------------------------------------------
-lb = (item(icons(who)) AND 255)
-hb = INT(item(icons(who)) / 256)
-hb = large(hb - 1, 0)
-item(icons(who)) = lb + (hb * 256)
-item$(icons(who)) = LEFT$(item$(icons(who)), 9) + RIGHT$(XSTR$(hb), 2)
-IF hb = 0 THEN item(icons(who)) = 0: item$(icons(who)) = "           ": setbit iuse(), 0, icons(who), 0
-icons(who) = -1
-RETURN
-
 display:
 IF vdance = 0 THEN 'only display interface till you win
  FOR i = 0 TO 3
@@ -1749,7 +1740,7 @@ IF vdance = 0 THEN 'only display interface till you win
    FOR i = itop TO itop + 26
     textcolor uilook(uiDisabledItem - readbit(iuse(), 0, i)), 0
     IF iptr = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(iuse(), 0, i)) + tog), uilook(uiHighlight)
-    printstr item$(i), 20 + 96 * (((i / 3) - INT(i / 3)) * 3), 8 + 8 * INT((i - itop) / 3), dpage
+    printstr inventory(i).text, 20 + 96 * (i MOD 3), 8 + 8 * ((i - itop) \ 3), dpage
    NEXT i
   END IF
   IF ptarg > 0 THEN
@@ -2146,11 +2137,10 @@ END IF
 RETURN
 
 checkitemusability:
-FOR i = 0 TO 199
+FOR i = 0 TO inventoryMax
  setpicstuf buffer(), 200, -1
- lb = (item(i) AND 255)
- IF lb > 0 THEN
-  loadset game$ + ".itm", lb - 1, 0
+ IF inventory(i).used THEN
+  loadset game$ + ".itm", inventory(i).id, 0
   IF buffer(47) > 0 THEN setbit iuse(), 0, i, 1
  END IF
 NEXT i

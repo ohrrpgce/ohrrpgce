@@ -31,8 +31,6 @@ DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%)
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
 DECLARE SUB correctbackdrop ()
 DECLARE FUNCTION gethighbyte% (n%)
-DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
-DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE SUB wrappedsong (songnumber%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE SUB delitem (it%, num%)
@@ -333,14 +331,7 @@ SUB initgamedefaults
 lastsaveslot = 0
 
 '--items
-item$(-3) = readglobalstring$(35, "DONE", 10)
-item$(-2) = readglobalstring$(36, "AUTOSORT", 10)
-item$(-1) = readglobalstring$(37, "TRASH", 10)
-FOR i = -3 TO -1
- item(i) = 1
- item$(i) = rpad$(item$(i), " ", 11)
-NEXT i
-FOR i = 0 TO 199: item$(i) = "           ": NEXT i
+CleanInventory inventory()
 
 '--money
 gold& = gen(96)

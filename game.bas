@@ -38,8 +38,6 @@ DECLARE SUB setdebugpan ()
 DECLARE SUB writescriptvar (id%, newval%)
 DECLARE FUNCTION readscriptvar% (id%)
 DECLARE FUNCTION gethighbyte% (n%)
-DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
-DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE SUB wrappedsong (songnumber%)
 DECLARE SUB scriptmisc (id%)
 DECLARE SUB scriptcam (id%)
@@ -161,11 +159,12 @@ thestart:
 
 DIM font(1024), master(767), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
 DIM door(206), gen(104), npcs(1500), saytag(21), tag(127), hero(40), stat(40, 1, 16), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), menu$(20), exlev&(40, 1), names$(40), mi(10), gotj(2), veh(21)
-DIM item(-3 TO 199), item$(-3 TO 199), eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3),  _
+DIM eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3),  _
 tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 3), learnmask(29)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1), lumpmod(0)
 DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 14), retvals(32), plotstring$(31), plotstrX(31), plotstrY(31), plotstrCol(31), plotstrBGCol(31), plotstrBits(31)
 DIM uilook(uiColors)
+DIM inventory(inventoryMax) as InventSlot
 DIM npc(300) as NPCInst
 '--stuff we used to DIM here, but have defered to later
 'DIM scroll(16002), pass(16002)

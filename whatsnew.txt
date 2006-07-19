@@ -81,6 +81,7 @@ WHAT IS NEW?
     * Some rewritten map wrapping code [Ralph Versteegen]
     * Reformatted NPC data with UDTs [Mike Caron]
     * Hspeak's exit code is 2 if there were warnings [Mike Caron]
+    * Rewritten item code and data using UDTs [Ralph Versteegen]
 
 July 09 2006 [hasta-la-qb]
   * This is the final version to support a real DOS version (GAME-QB and

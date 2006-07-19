@@ -24,8 +24,6 @@ DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%)
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
 DECLARE SUB correctbackdrop ()
 DECLARE FUNCTION gethighbyte% (n%)
-DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
-DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE SUB wrappedsong (songnumber%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE SUB delitem (it%, num%)
@@ -858,57 +856,6 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 rankincaterpillar = result
-END FUNCTION
-
-FUNCTION readbadbinstring$ (array(), offset, maxlen, skipword)
-
-result$ = ""
-strlen = bound(array(offset), 0, maxlen)
-
-FOR i = 1 TO strlen
- '--read and int
- n = array(offset + skipword + i)
- '--if the int is a char use it.
- IF n >= 0 AND n <= 255 THEN
-  '--take the low byte
-  n = (n AND &HFF)
-  '--use it
-  result$ = result$ + CHR$(n)
- END IF
-NEXT i
-
-readbadbinstring$ = result$
-
-END FUNCTION
-
-FUNCTION readbinstring$ (array(), offset, maxlen)
-
-result$ = ""
-strlen = bound(array(offset), 0, maxlen)
-
-i = 1
-DO WHILE LEN(result$) < strlen
- '--get an int
- n = array(offset + i)
- i = i + 1
-
- '--break apart the int
- lowbyte = (n AND &HFF)
- highbyte = gethighbyte(n)
-
- '--append the lowbyte as a char
- result$ = result$ + CHR$(lowbyte)
-
- '--if we still care about the highbyte, append it as a char too
- IF LEN(result$) < strlen THEN
-  result$ = result$ + CHR$(highbyte)
- END IF
-
-LOOP
-
-readbinstring$ = result$
-
-
 END FUNCTION
 
 FUNCTION readfoemap (x, y, wide, high, fh)

@@ -20,8 +20,6 @@ DECLARE SUB writejoysettings ()
 DECLARE SUB writescriptvar (id%, newval%)
 DECLARE FUNCTION readscriptvar% (id%)
 DECLARE FUNCTION gethighbyte% (n%)
-DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
-DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB vishero (stat%())
@@ -291,23 +289,22 @@ END SUB
 FUNCTION consumeitem (index)
 '--subtracts one of an item at a location. If the item is depleted, returns true. If there are some of the item left, it returns false
 consumeitem = 0
-lb = (item(index) AND 255)
-hb = INT(item(index) / 256) - 1
-item(index) = lb + (hb * 256)
-item$(index) = LEFT$(item$(index), 9) + RIGHT$(XSTR$(hb), 2)
-IF hb = 0 THEN item(index) = 0: item$(index) = "           ": consumeitem = -1
+inventory(index).num -= 1
+IF inventory(index).num <= 0 THEN
+ inventory(index).used = 0
+ consumeitem = -1
+END IF
+itstr index
 END FUNCTION
 
 FUNCTION countitem (it)
-c = 0
-FOR o = 0 TO 199
- lb = (item(o) AND 255)
- hb = INT(item(o) / 256)
- IF it = lb AND hb > 0 THEN
-  c = c + hb
+total = 0
+FOR o = 0 TO inventoryMax
+ IF inventory(o).used AND it - 1 = inventory(o).id THEN
+  total += inventory(o).num
  END IF
 NEXT o
-countitem = c
+countitem = total
 END FUNCTION
 
 SUB cycletile (cycle(), tastuf(), pt(), skip())
@@ -355,22 +352,18 @@ NEXT i
 
 END SUB
 
-SUB delitem (it, num)
-FOR o = 0 TO 199
- lb = (item(o) AND 255)
- hb = INT(item(o) / 256)
- IF it = lb AND hb > 0 THEN
-  IF hb <= num THEN
-   num = num - hb
-   hb = 0
-   lb = 0
+SUB delitem (it, amount)
+FOR o = 0 TO inventoryMax
+ IF inventory(o).used AND it - 1 = inventory(o).id THEN
+  IF inventory(o).num <= amount THEN
+   amount -= inventory(o).num
+   inventory(o).used = 0
   ELSE
-   hb = hb - num
-   num = 0
+   inventory(o).num -= amount
+   amount = 0
   END IF
-  item(o) = lb + (hb * 256)
   itstr o
-  IF num = 0 THEN EXIT FOR
+  IF amount = 0 THEN EXIT FOR
  END IF
 NEXT o
 END SUB
@@ -507,10 +500,10 @@ FOR i = 0 TO 255
 NEXT i
 
 'search inventory slots
-FOR j = 0 TO 199
+FOR j = 0 TO inventoryMax
  'get item ID
- id = (item(j) AND 255) - 1
- IF id >= 0 THEN 'there is an item in this slot
+ id = inventory(j).id
+ IF inventory(j).used THEN 'there is an item in this slot
   IF itembits(id, 0) > 1 THEN setbit tag(), 0, itembits(id, 0), 1 'you have it
   IF itembits(id, 1) > 1 THEN setbit tag(), 0, itembits(id, 1), 1 'it is in your inventory
  END IF
@@ -916,18 +909,9 @@ FOR i = 0 TO 40
  NEXT j
  names$(i) = temp$
 NEXT i
-FOR i = -3 TO 199
- item(i) = buffer(z): z = z + 1
-NEXT i
-FOR i = -3 TO 199
- temp$ = ""
- FOR j = 0 TO 11
-  IF buffer(z) < 0 OR buffer(z) > 255 THEN buffer(z) = 0
-  IF buffer(z) > 0 THEN temp$ = temp$ + CHR$(buffer(z))
-  z = z + 1
- NEXT j
- item$(i) = temp$
-NEXT i
+
+DeserInventory inventory(), z, buffer()
+
 FOR i = 0 TO 40
  FOR o = 0 TO 4
   eqstuf(i, o) = buffer(z): z = z + 1
@@ -1321,12 +1305,7 @@ NEXT i
 FOR i = 0 TO 40
  names$(i) = ""
 NEXT i
-FOR i = -3 TO 199
- item(i) = 0
-NEXT i
-FOR i = -3 TO 199
- item$(i) = ""
-NEXT i
+CleanInventory(inventory())
 FOR i = 0 TO 40
  FOR o = 0 TO 4
   eqstuf(i, o) = 0
@@ -1636,18 +1615,7 @@ FOR i = 0 TO 40
   z = z + 1
  NEXT j
 NEXT i
-FOR i = -3 TO 199
- buffer(z) = item(i): z = z + 1
-NEXT i
-FOR i = -3 TO 199
- temp$ = item$(i)
- FOR j = 0 TO 11
-  IF j < LEN(temp$) THEN
-   IF MID$(temp$, j + 1, 1) <> "" THEN buffer(z) = ASC(MID$(temp$, j + 1, 1))
-  END IF
-  z = z + 1
- NEXT j
-NEXT i
+SerInventory inventory(), z, buffer()
 FOR i = 0 TO 40
  FOR o = 0 TO 4
   buffer(z) = eqstuf(i, o): z = z + 1

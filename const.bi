@@ -74,3 +74,6 @@ CONST genMaxSong = 172          'last song number
 
 '---Format fix bits
 CONST fixAttackitems = 0        'zero out attack data for item cost (ammunition)
+
+'---Sizes (replaceable with variables when suitable)
+CONST inventoryMax = 197	'last inventory slot num (3 doesn't divide into 200)

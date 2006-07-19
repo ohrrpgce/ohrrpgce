@@ -12,11 +12,8 @@ DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION charpicker$ ()
-DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
-DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE SUB writeenemydata (buf%(), index%)
 DECLARE FUNCTION readenemyname$ (index%)
-DECLARE FUNCTION readbadgenericname$ (index%, filename$, recsize%, offset%, size%, skip%)
 DECLARE FUNCTION readitemname$ (index%)
 DECLARE SUB clearallpages ()
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
@@ -2157,22 +2154,6 @@ FUNCTION readattackname$ (index)
 '--clobbers buffer!!!
 
 readattackname$ = readbadgenericname$(index, game$ + ".dt6", 80, 24, 10, 1)
-
-END FUNCTION
-
-FUNCTION readbadgenericname$ (index, filename$, recsize, offset, size, skip)
-
-'--clobbers buffer!
-
-result$ = ""
-
-IF index >= 0 THEN
- setpicstuf buffer(), recsize, -1
- loadset filename$, index, 0
- result$ = readbadbinstring$(buffer(), offset, size, skip)
-END IF
-
-readbadgenericname = result$
 
 END FUNCTION
 

@@ -18,8 +18,6 @@ DECLARE SUB loadtemppage (page%)
 DECLARE SUB savetemppage (page%)
 DECLARE FUNCTION readitemname$ (itemnum%)
 DECLARE FUNCTION gethighbyte% (n%)
-DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
-DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB vishero (stat%())
@@ -532,7 +530,7 @@ DO
     GOSUB EquBacktomenuSub
    ELSE
     '--normal equip
-    ie = (item(eq(csr2)) AND 255)
+    ie = inventory(eq(csr2)).id + 1
     GOSUB newequip
    END IF
   END IF
@@ -589,7 +587,7 @@ DO
      EXIT FOR
     END IF
    ELSE
-    printstr item$(eq(i)), 192, 28 + (i - top) * 8, dpage
+    printstr inventory(eq(i)).text, 192, 28 + (i - top) * 8, dpage
    END IF
   NEXT i
  END IF
@@ -616,7 +614,7 @@ IF csr2 = toff(csr) + tlim(csr) + 1 THEN
  END IF
 ELSE
  '--equip
- lb = (item(eq(csr2)) AND 255)
+ lb = inventory(eq(csr2)).id + 1
 END IF
 
 IF lb = -1 THEN
@@ -673,11 +671,10 @@ FOR i = 0 TO 4
 NEXT i
 o = 0
 setpicstuf buffer(), 200, -1
-FOR i = 0 TO 197
- lb = (item(i) AND 255)
- IF lb > 0 THEN
+FOR i = 0 TO inventoryMax
+ IF inventory(i).used THEN
   '--load item data
-  loadset game$ + ".itm", lb - 1, 0
+  loadset game$ + ".itm", inventory(i).id, 0
   IF buffer(49) > 0 THEN
    '--if this item is equipable
    IF readbit(buffer(), 66, hero(pt) - 1) THEN
@@ -715,44 +712,34 @@ SUB getitem (getit, num)
 
 numitems = num
 
-i = 0
-DO 
+FOR i = 0 TO inventoryMax
  ' Loop through all inventory slots looking for a slot that already
  ' contains the item we are adding. If found increment that slot
- lb = (item(i) AND 255)
- hb = (item(i) \ 256)
- room = 99 - hb
- IF getit = lb AND room > 0 THEN
+ room = 99 - inventory(i).num
+ IF inventory(i).used AND getit - 1 = inventory(i).id AND room > 0 THEN
   IF room < numitems THEN
-   item(i) = lb + (99 * 256)
+   inventory(i).num = 99
    itstr i
-   numitems = numitems - room
+   numitems -= room
   ELSE
-   item(i) = lb + ((hb + numitems) * 256)
+   inventory(i).num += numitems
    itstr i
    EXIT SUB
   END IF
  END IF
- i = i + 1
-LOOP UNTIL i > 197
-i = 0
-DO
+NEXT
+FOR i = 0 TO inventoryMax
  'loop through each inventory slot looking for an empty slot to populate 
- lb = (item(i) AND 255)
- IF lb = 0 THEN
-  lb = small(numitems, 99)
-  numitems = numitems - lb
-  item(i) = getit + (lb * 256)
+ IF inventory(i).used = 0 THEN
+  inventory(i).used = 1
+  inventory(i).id = getit - 1
+  inventory(i).num = small(numitems, 99)
+  numitems -= inventory(i).num
   itstr i
   IF numitems = 0 THEN EXIT SUB
  END IF
- i = i + 1
-LOOP UNTIL i > 199' not sure why this is 199 and we use 197 above.
+NEXT
 getit = 0
-EXIT SUB
-
-RETURN
-
 END SUB
 
 FUNCTION getOOBtarg (gamma, wptr, index, stat(), ondead(), onlive())
@@ -770,8 +757,31 @@ DO WHILE chkOOBtarg(wptr, index, stat(), ondead(), onlive()) = 0
 LOOP
 END FUNCTION
 
+SUB itemmenuswap (invent() AS InventSlot, iuse(), permask(), i, o)
+'this sub called from items()
+SWAP invent(i).id, invent(o).id
+SWAP invent(i).num, invent(o).num
+SWAP invent(i).used, invent(o).used
+SWAP invent(i).text, invent(o).text
+t1 = readbit(iuse(), 0, 3 + i)
+t2 = readbit(iuse(), 0, 3 + o)
+SWAP t1, t2
+setbit iuse(), 0, 3 + i, t1
+setbit iuse(), 0, 3 + o, t2
+t1 = readbit(permask(), 0, 3 + i)
+t2 = readbit(permask(), 0, 3 + o)
+SWAP t1, t2
+setbit permask(), 0, 3 + i, t1
+setbit permask(), 0, 3 + o, t2
+END SUB
+
 FUNCTION items (stat())
-DIM a(100), iuse(15), ondead(15), onlive(15), permask(15)
+DIM a(100), iuse(15), ondead(15), onlive(15), permask(15), special$(-3 TO -1)
+'bit 0 of iuse, permask, onlive, ondead correspond to item -3
+
+special$(-3) = rpad$(readglobalstring$(35, "DONE", 10), " ", 11)
+special$(-2) = rpad$(readglobalstring$(36, "AUTOSORT", 10), " ", 11)
+special$(-1) = rpad$(readglobalstring$(37, "TRASH", 10), " ", 11)
 
 savetemppage 3
 copypage dpage, 3
@@ -779,13 +789,12 @@ copypage dpage, 3
 FOR i = 0 TO 2
  setbit iuse(), 0, i, 1
 NEXT i
-FOR i = 0 TO 199
+FOR i = 0 TO inventoryMax
  setbit ondead(), 0, 3 + i, 0
  setbit onlive(), 0, 3 + i, 1
  setpicstuf buffer(), 200, -1
- lb = (item(i) AND 255)
- IF lb > 0 THEN
-  loadset game$ + ".itm", lb - 1, 0
+ IF inventory(i).used THEN
+  loadset game$ + ".itm", inventory(i).id, 0
   IF buffer(73) = 2 THEN setbit permask(), 0, 3 + i, 1
   IF buffer(51) > 0 OR buffer(50) > 0 THEN
    setbit iuse(), 0, 3 + i, 1
@@ -827,7 +836,12 @@ DO
    textcolor uilook(uiMenuItem), uilook(uiHighlight + tog)
    IF ic = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight + tog)
   END IF
-  printstr item$(i), 20 + 96 * (((i / 3) - INT(i / 3)) * 3), 12 + 8 * INT((i - top) / 3), dpage
+  IF i >= 0 THEN
+   display$ = inventory(i).text
+  ELSE
+   display$ = special$(i)
+  END IF
+  printstr display$, 20 + 96 * (i MOD 3), 12 + 8 * ((i - top) \ 3), dpage
  NEXT i
  centerfuz 160, 180, 312, 20, 4, dpage
  edgeprint info$, xstring(info$, 160), 175, uilook(uiText), dpage
@@ -859,21 +873,17 @@ EXIT FUNCTION
 infostr:
 info$ = ""
 IF sel >= 0 AND ic = -1 THEN
- IF item(sel) > 0 THEN
-  info$ = readglobalstring$(41, "Discard", 10) + " " + item$(sel)
+ IF inventory(sel).used THEN
+  info$ = readglobalstring$(41, "Discard", 10) + " " + inventory(sel).text
   IF readbit(permask(), 0, 3 + sel) THEN info$ = readglobalstring$(42, "Cannot", 10) + " " + info$ + "!"
  END IF
 END IF
-IF item(ic) = 0 OR ic < 0 THEN RETURN
-lb = (item(ic) AND 255)
-hb = INT(item(ic) / 256)
+IF ic < 0 OR inventory(ic).used = 0 THEN RETURN
 setpicstuf buffer(), 200, -1
-IF lb > 0 THEN
- loadset game$ + ".itm", lb - 1, 0
- FOR o = 10 TO 9 + buffer(9)
-  info$ = info$ + CHR$(buffer(o))
- NEXT o
-END IF
+loadset game$ + ".itm", inventory(ic).id, 0
+FOR o = 10 TO 9 + buffer(9)
+ info$ = info$ + CHR$(buffer(o))
+NEXT o
 RETURN
 
 itcontrol:
@@ -888,35 +898,29 @@ IF pick = 0 THEN
   IF ic = -3 THEN quit = 1
   '--sort
   IF ic = -2 THEN GOSUB autosort
-  '--try to thow item away
-  IF ic = -1 AND sel > -4 AND readbit(permask(), 0, 3 + sel) = 0 THEN item$(sel) = "           ": item(sel) = 0: setbit iuse(), 0, 3 + sel, 0: sel = -4: GOSUB infostr: RETURN
+  IF ic = -1 AND sel >= 0 AND readbit(permask(), 0, 3 + sel) = 0 THEN
+   '--try to thow item away
+   inventory(sel).text = SPACE$(11)
+   inventory(sel).used = 0
+   setbit iuse(), 0, 3 + sel, 0
+   sel = -4
+   GOSUB infostr
+   RETURN
+  END IF
   IF sel >= 0 THEN
    IF ic >= 0 AND ic <> sel THEN
     '--swap the selected item and the item under the cursor
-    SWAP item(ic), item(sel)
-    SWAP item$(ic), item$(sel)
-    t1 = readbit(iuse(), 0, 3 + ic)
-    t2 = readbit(iuse(), 0, 3 + sel)
-    SWAP t1, t2
-    setbit iuse(), 0, 3 + ic, t1
-    setbit iuse(), 0, 3 + sel, t2
-    t1 = readbit(permask(), 0, 3 + ic)
-    t2 = readbit(permask(), 0, 3 + sel)
-    SWAP t1, t2
-    setbit permask(), 0, 3 + ic, t1
-    setbit permask(), 0, 3 + sel, t2
+    itemmenuswap inventory(), iuse(), permask(), ic, sel
     sel = -4
     RETURN
    END IF
    IF ic >= 0 AND sel = ic THEN
     '--try to use the current item
     sel = -4
-    lb = (item(ic) AND 255)
-    hb = INT(item(ic) / 256)
     '--if the usability bit is off, or you dont have any of the item, exit
-    IF readbit(iuse(), 0, 3 + ic) = 0 OR lb = 0 THEN RETURN
+    IF readbit(iuse(), 0, 3 + ic) = 0 OR inventory(ic).used = 0 THEN RETURN
     setpicstuf a(), 200, -1
-    loadset game$ + ".itm", lb - 1, 0
+    loadset game$ + ".itm", inventory(ic).id, 0
     IF a(50) > 0 THEN '--learn a spell
      tclass = 1
      ttype = 0
@@ -950,7 +954,7 @@ IF pick = 0 THEN
   IF sel < -3 AND ic >= 0 THEN sel = ic: RETURN
  END IF
  IF carray(0) > 1 AND ic >= 0 THEN ic = ic - 3: GOSUB infostr: IF ic < top THEN top = top - 3
- IF carray(1) > 1 AND ic < 195 THEN ic = ic + 3: GOSUB infostr: IF ic > top + 62 THEN top = top + 3
+ IF carray(1) > 1 AND ic <= inventoryMax - 3 THEN ic = ic + 3: GOSUB infostr: IF ic > top + 62 THEN top = top + 3
  IF carray(2) > 1 THEN
   IF (ic MOD 3) = 0 THEN
    ic = ic + 2
@@ -963,13 +967,13 @@ IF pick = 0 THEN
   IF ((ic + 3) MOD 3) = 2 THEN ' the +3 adjust for the first negative row
    ic = ic - 2
   ELSE
-   IF ic < 197 THEN ic = ic + 1
+   IF ic < inventoryMax THEN ic = ic + 1
   END IF
   GOSUB infostr
  END IF
 ELSE
- info$ = item$(ic)
  IF carray(5) > 1 THEN pick = 0: GOSUB infostr: RETURN
+ info$ = inventory(ic).text
  IF spred = 0 THEN
   IF carray(0) > 1 THEN
    dummy = getOOBtarg(-1, wptr, 3 + ic, stat(), ondead(), onlive())
@@ -990,11 +994,9 @@ ELSE
   END IF
  END IF
  IF carray(4) > 1 THEN
-  lb = (item(ic) AND 255)
-  hb = INT(item(ic) / 256)
   'DO ACTUAL EFFECT
   setpicstuf buffer(), 200, -1
-  loadset game$ + ".itm", lb - 1, 0
+  loadset game$ + ".itm", inventory(ic).id, 0
   'if can teach a spell
   didlearn = 0
   IF buffer(50) > 0 THEN
@@ -1010,8 +1012,9 @@ ELSE
     dummy = getkey
    END IF
   END IF
+  '(do we need to reload?)
   setpicstuf buffer(), 200, -1
-  loadset game$ + ".itm", lb - 1, 0
+  loadset game$ + ".itm", inventory(ic).id, 0
   '--do (cure) attack outside of battle
   didcure = 0
   IF buffer(51) > 0 THEN
@@ -1027,7 +1030,7 @@ ELSE
   END IF 'buffer(51) > 0
   IF buffer(73) = 1 AND (didcure OR didlearn = 1) THEN
    IF consumeitem(ic) THEN
-    setbit iuse(), 0, 3 + ic, 0: info$ = "": pick = 0: GOSUB infostr
+    setbit iuse(), 0, 3 + ic, 0: pick = 0: GOSUB infostr
    END IF
   END IF
  END IF ' SPACE or ENTER
@@ -1035,51 +1038,33 @@ END IF
 RETURN
 
 autosort:
-FOR i = 0 TO 196
- FOR o = i + 1 TO 197
-  IF item(i) = 0 AND item(o) <> 0 THEN
-   GOSUB swapitem
+FOR i = 0 TO inventoryMax - 1
+ FOR o = i + 1 TO inventoryMax
+  IF inventory(i).used = 0 AND inventory(o).used THEN
+   itemmenuswap inventory(), iuse(), permask(), i, o
    EXIT FOR
   END IF
  NEXT o
 NEXT i
-FOR i = 0 TO 196
- FOR o = i + 1 TO 197
+FOR i = 0 TO inventoryMax - 1
+ FOR o = i + 1 TO inventoryMax
   IF readbit(iuse(), 0, 3 + i) = 0 AND readbit(iuse(), 0, 3 + o) = 1 THEN
-   GOSUB swapitem
+   itemmenuswap inventory(), iuse(), permask(), i, o
    EXIT FOR
   END IF
  NEXT o
 NEXT i
-RETURN
-
-swapitem:
-SWAP item(i), item(o)
-SWAP item$(i), item$(o)
-t1 = readbit(iuse(), 0, 3 + i)
-t2 = readbit(iuse(), 0, 3 + o)
-SWAP t1, t2
-setbit iuse(), 0, 3 + i, t1
-setbit iuse(), 0, 3 + o, t2
-t1 = readbit(permask(), 0, 3 + i)
-t2 = readbit(permask(), 0, 3 + o)
-SWAP t1, t2
-setbit permask(), 0, 3 + i, t1
-setbit permask(), 0, 3 + o, t2
 RETURN
 
 END FUNCTION
 
 SUB itstr (i)
-
-item$(i) = "           "
-IF item(i) = 0 THEN EXIT SUB
-item$(i) = ""
-lb = (item(i) AND 255)
-hb = INT(item(i) / 256)
-item$(i) = readitemname$(lb - 1)
-item$(i) = rpad$(item$(i), " ", 8) + CHR$(1) + RIGHT$(XSTR$(hb), 2)
-
+IF inventory(i).used = 0 THEN
+ inventory(i).text = SPACE$(11)
+ELSE
+ inventory(i).text = readitemname$(inventory(i).id)
+ inventory(i).text = rpad$(inventory(i).text, " ", 8) + CHR$(1) + RIGHT$(XSTR$(inventory(i).num), 2)
+END IF
 END SUB
 
 SUB loadtemppage (page)
@@ -1616,7 +1601,7 @@ DO
    textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2)
    IF readbit(permask(), 0, i) THEN textcolor uilook(uiGold), uilook(uiHighlight2)
   END IF
-  printstr item$(i), 20 + 96 * (((i / 3) - INT(i / 3)) * 3), 12 + 8 * INT((i - top) / 3), dpage
+  printstr inventory(i).text, 20 + 96 * (i MOD 3), 12 + 8 * ((i - top) \ 3), dpage
  NEXT i
  centerfuz 160, 180, 312, 20, 4, dpage
  edgeprint info$, xstring(info$, 160), 175, uilook(uiText), dpage
@@ -1636,49 +1621,42 @@ EXIT SUB
 
 sellinfostr:
 info$ = ""
-IF item(ic) = 0 THEN RETURN
+IF inventory(ic).used = 0 THEN RETURN
 IF readbit(permask(), 0, ic) = 1 THEN info$ = cannotsell$: RETURN
-lb = (item(ic) AND 255)
-hb = INT(item(ic) / 256)
-IF lb > 0 THEN
- IF price(ic) > 0 THEN info$ = worth$ + XSTR$(price(ic)) + " " + sname$(32)
- FOR i = 0 TO storebuf(16)
-  IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = lb - 1 THEN
-   IF b(i * recordsize + 28) > 0 THEN
-    IF info$ = "" THEN
-     info$ = tradefor$ + " "
+IF price(ic) > 0 THEN info$ = worth$ + XSTR$(price(ic)) + " " + sname$(32)
+FOR i = 0 TO storebuf(16)
+ IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
+  IF b(i * recordsize + 28) > 0 THEN
+   IF info$ = "" THEN
+    info$ = tradefor$ + " "
+   ELSE
+    IF b(i * recordsize + 29) > 0 THEN
+     info$ = info$ + " " + andsome$ + " "
     ELSE
-     IF b(i * recordsize + 29) > 0 THEN
-      info$ = info$ + " " + andsome$ + " "
-     ELSE
-      info$ = info$ + " " + anda$ + " "
-     END IF
+     info$ = info$ + " " + anda$ + " "
     END IF
-    IF b(i * recordsize + 29) > 0 THEN info$ = info$ + STR$(b(i * recordsize + 29) + 1) + " "
-    info$ = info$ + readitemname$(b(i * recordsize + 28) - 1)
-    'setpicstuf buffer(), 200, -1
-    'loadset game$ + ".itm", b(i * recordsize + 28) - 1, 0
-    'FOR o = 1 TO buffer(0)
-    ' info$ = info$ + CHR$(small(large(buffer(o), 0), 255))
-    'NEXT o
    END IF
+   IF b(i * recordsize + 29) > 0 THEN info$ = info$ + STR$(b(i * recordsize + 29) + 1) + " "
+   info$ = info$ + readitemname$(b(i * recordsize + 28) - 1)
   END IF
- NEXT i
- IF info$ = "" THEN info$ = worthnothing$
-END IF
+ END IF
+NEXT i
+IF info$ = "" THEN info$ = worthnothing$
 RETURN
 
 keysell:
 IF carray(5) > 1 THEN quit = 1
-IF carray(4) > 1 AND readbit(permask(), 0, ic) = 0 AND item(ic) > 0 THEN
- alert = 10: alert$ = sold$ + " " + LEFT$(item$(ic), 8): WHILE RIGHT$(item$(ic), 1) = " ": item$(ic) = LEFT$(item$(ic), LEN(item$(ic)) - 1): WEND
+IF carray(4) > 1 AND readbit(permask(), 0, ic) = 0 AND inventory(ic).used THEN
+ alert = 10
+ alert$ = sold$ + " " + LEFT$(inventory(ic).text, 8)
+ 'inventory(ic).text = RTRIM$(inventory(ic).text)   '??? There's an itstr(ic) right down there
  'INCREMENT GOLD-----------
  gold& = gold& + price(ic)
  IF gold& > 2000000000 THEN gold& = 2000000000
  IF gold& < 0 THEN gold& = 0
  'CHECK FOR SPECIAL CASES---------
  FOR i = 0 TO storebuf(16)
-  IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = lb - 1 THEN
+  IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
    'SET SELL BIT---
    IF b(i * recordsize + 23) <> 0 THEN setbit tag(), 0, ABS(b(i * recordsize + 23)), SGN(SGN(b(i * recordsize + 23)) + 1)
    'ADD TRADED ITEM-----------
@@ -1691,11 +1669,7 @@ IF carray(4) > 1 AND readbit(permask(), 0, ic) = 0 AND item(ic) > 0 THEN
   END IF
  NEXT i
  'DECREMENT ITEM-----------
- lb = (item(ic) AND 255)
- hb = INT(item(ic) / 256)
- hb = hb - 1: IF hb = 0 THEN lb = 0
- item(ic) = lb + (hb * 256)
- itstr ic
+ dummy = consumeitem(ic)
  'UPDATE ITEM POSESSION TAGS--------
  evalitemtag
  'REFRESH DISPLAY--------
@@ -1703,25 +1677,24 @@ IF carray(4) > 1 AND readbit(permask(), 0, ic) = 0 AND item(ic) > 0 THEN
  GOSUB sellinfostr
 END IF
 IF carray(0) > 1 AND ic >= 3 THEN ic = ic - 3: GOSUB sellinfostr: IF ic < top THEN top = top - 3
-IF carray(1) > 1 AND ic < 195 THEN ic = ic + 3: GOSUB sellinfostr: IF ic > top + 62 THEN top = top + 3
+IF carray(1) > 1 AND ic <= inventoryMax - 3 THEN ic = ic + 3: GOSUB sellinfostr: IF ic > top + 62 THEN top = top + 3
 IF carray(2) > 1 THEN
- IF ((ic / 3) - INT(ic / 3)) * 3 > 0 THEN ic = ic - 1: GOSUB sellinfostr ELSE ic = ic + 2: GOSUB sellinfostr
+ IF ic MOD 3 > 0 THEN ic = ic - 1: GOSUB sellinfostr ELSE ic = ic + 2: GOSUB sellinfostr
 END IF
 IF carray(3) > 1 THEN
- IF ((ic / 3) - INT(ic / 3)) * 3 < 2 THEN ic = ic + 1: GOSUB sellinfostr ELSE ic = ic - 2: GOSUB sellinfostr
+ IF ic MOD 3 < 2 THEN ic = ic + 1: GOSUB sellinfostr ELSE ic = ic - 2: GOSUB sellinfostr
 END IF
 RETURN
 
 refreshs:
-FOR i = 0 TO 199
+FOR i = 0 TO inventoryMax
  setpicstuf buffer(), 200, -1
- lb = (item(i) AND 255)
- IF lb > 0 THEN
-  loadset game$ + ".itm", lb - 1, 0
+ IF inventory(i).used THEN
+  loadset game$ + ".itm", inventory(i).id, 0
   IF buffer(73) = 2 THEN setbit permask(), 0, i, 1
   price(i) = INT(buffer(46) * .5)
   FOR o = 0 TO storebuf(16)
-   IF b(o * recordsize + 18) = lb - 1 THEN
+   IF b(o * recordsize + 18) = inventory(i).id THEN
     IF ABS(b(o * recordsize + 21)) > 0 THEN IF readbit(tag(), 0, ABS(b(o * recordsize + 21))) <> SGN(SGN(b(o * recordsize + 21)) + 1) THEN setbit permask(), 0, i, 1
     IF b(o * recordsize + 17) = 0 THEN
      price(i) = b(o * recordsize + 27)

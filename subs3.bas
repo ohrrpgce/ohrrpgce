@@ -54,7 +54,6 @@ DECLARE SUB setbinsize (id%, size%)
 DECLARE FUNCTION getbinsize% (id%)
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION inputfilename$ (query$, ext$)
-DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'

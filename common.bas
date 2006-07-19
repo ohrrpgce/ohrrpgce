@@ -628,3 +628,99 @@ rectangle x - INT(w * .5), y + (h - INT(h * .5)), w, 1, uilook(tbc + 1), p
 rectangle x - INT(w * .5), y - INT(h * .5), 1, h, uilook(tbc + 1), p
 rectangle x + (w - INT(w * .5)), y - INT(h * .5), 1, h + 1, uilook(tbc + 1), p
 END SUB
+
+FUNCTION readbinstring$ (array(), offset, maxlen)
+
+result$ = ""
+strlen = bound(array(offset), 0, maxlen)
+
+i = 1
+DO WHILE LEN(result$) < strlen
+ '--get an int
+ n = array(offset + i)
+ i = i + 1
+ 
+ '--append the lowbyte as a char
+ result$ = result$ + CHR$(n AND &HFF)
+ 
+ '--if we still care about the highbyte, append it as a char too
+ IF LEN(result$) < strlen THEN
+  result$ = result$ + CHR$((n SHR 8) AND &HFF)
+ END IF
+ 
+LOOP
+
+readbinstring$ = result$
+END FUNCTION
+
+SUB writebinstring (savestr$, array(), offset, maxlen)
+s$ = savestr$
+
+'--pad s$ to the right length
+DO WHILE LEN(s$) < maxlen
+ s$ = s$ + CHR$(0)
+LOOP
+
+'--if it is an odd number
+IF (LEN(s$) AND 1) THEN
+ s$ = s$ + CHR$(0)
+END IF
+
+'--write length (current not max)
+array(offset) = LEN(savestr$)
+
+FOR i = 1 TO LEN(s$) \ 2
+ array(offset + i) = s$[2 * i - 2] OR (s$[2 * i - 1] SHL 8)
+NEXT
+
+END SUB
+
+FUNCTION readbadbinstring$ (array(), offset, maxlen, skipword)
+result$ = ""
+strlen = bound(array(offset), 0, maxlen)
+
+FOR i = 1 TO strlen
+ '--read and int
+ n = array(offset + skipword + i)
+ '--if the int is a char use it.
+ IF n >= 0 AND n <= 255 THEN
+  '--take the low byte
+  n = (n AND &HFF)
+  '--use it
+  result$ = result$ + CHR$(n)
+ END IF
+NEXT i
+
+readbadbinstring$ = result$
+END FUNCTION
+
+SUB writebadbinstring (savestr$, array(), offset, maxlen, skipword)
+
+'--write current length
+array(offset) = LEN(savestr$)
+
+FOR i = 1 TO LEN(savestr$)
+ array(offset + skipword + i) = savestr$[i - 1]
+NEXT i
+
+FOR i = LEN(savestr$) + 1 TO maxlen
+ array(offset + skipword + i) = 0
+NEXT i
+
+END SUB
+
+FUNCTION readbadgenericname$ (index, filename$, recsize, offset, size, skip)
+
+'--clobbers buffer!
+
+result$ = ""
+
+IF index >= 0 THEN
+ setpicstuf buffer(), recsize, -1
+ loadset filename$, index, 0
+ result$ = readbadbinstring$(buffer(), offset, size, skip)
+END IF
+
+readbadgenericname = result$
+
+END FUNCTION

@@ -61,7 +61,6 @@ DECLARE FUNCTION filesize$ (file$)
 DECLARE FUNCTION inputfilename$ (query$, ext$)
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION getsfxname$ (num%)
-DECLARE SUB writebinstring (savestr$, array%(), offset%, maxlen%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
