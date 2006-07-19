@@ -1025,18 +1025,11 @@ END SUB
 
 SUB minimap (mx, my, x, y, tastuf())
 
-'loadpage game$ + ".til", gmap(0), 3
 centerfuz 160, 100, 304, 184, 1, vpage
 centerbox 159, 99, scroll(0) + 3, scroll(1) + 3, 15, vpage
 setmapdata scroll(), buffer(), 0, 0
-abort = 0
-setkeys
 FOR i = 0 TO scroll(1) - 1
- setkeys
- playtimer
- control
  FOR o = 0 TO scroll(0) - 1
-  IF carray(5) > 1 OR carray(4) > 1 THEN abort = 1
   block = readmapblock(o, i)
   IF block > 207 THEN block = (block - 207) + tastuf(20)
   IF block > 159 THEN block = (block - 159) + tastuf(0)
@@ -1044,11 +1037,8 @@ FOR i = 0 TO scroll(1) - 1
   my = INT(block / 16)
   loadsprite buffer(), 0, INT(RND * 7) + 7 + (mx * 20), INT(RND * 7) + 7 + (my * 20), 1, 1, 3
   stosprite buffer(), 0, 160 - INT(scroll(0) * .5) + o, 100 - INT(scroll(1) * .5) + i, vpage
-  IF abort = 1 THEN EXIT FOR
  NEXT
- IF abort = 1 THEN EXIT FOR
 NEXT
-IF abort = 1 THEN setkeys: FOR i = 0 TO 7: carray(i) = 0: NEXT i: EXIT SUB
 copypage vpage, dpage
 setkeys
 DO
@@ -1057,17 +1047,16 @@ DO
  tog = tog XOR 1
  playtimer
  control
- i = 1: DO
- IF keyval(i) > 1 OR carray(4) > 1 OR carray(5) > 1 THEN
-  setkeys
-  FOR i = 0 TO 7: carray(i) = 0: NEXT i
-  EXIT SUB
- END IF
- i = i + 1: LOOP UNTIL i > 88
+ IF carray(4) > 1 OR carray(5) > 1 THEN EXIT DO
+ FOR i = 1 TO 99
+  IF keyval(i) > 1 THEN EXIT DO
+ NEXT i
  rectangle 160 - (scroll(0) * .5) + (x / 20), 100 - (scroll(1) * .5) + (y / 20), 1, 1, uilook(uiSelectedItem + tog), dpage '15 + (tog * 5), dpage
  copypage dpage, vpage
  dowait
 LOOP
+setkeys
+FOR i = 0 TO 7: carray(i) = 0: NEXT i
 END SUB
 
 FUNCTION movdivis (xygo)
