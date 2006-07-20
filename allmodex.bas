@@ -1930,7 +1930,22 @@ FUNCTION isfile (n$) as integer
 END FUNCTION
 
 FUNCTION isdir (sDir$) as integer
+#IFDEF __FB_LINUX__
+	'Special hack for broken Linux dir$() behavior
+	isdir = 0
+	SHELL "if [ -d """ + sDir$ + """ ] ; then echo dir ; fi > isdirhack.tmp"
+	DIM AS INTEGER fh
+	fh = FREEFILE
+	OPEN "isdirhack.tmp" FOR INPUT AS #fh
+	DIM s$
+	LINE INPUT #fh, s$
+	IF TRIM$(s$) = "dir" THEN isdir = -1
+	CLOSE #fh
+	KILL "isdirhack.tmp"
+#ELSE
+	'Windows just uses dir
 	isdir = NOT (dir$(sDir$, 16) = "")
+#ENDIF
 END FUNCTION
 
 FUNCTION drivelist (drives$()) as integer
