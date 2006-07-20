@@ -173,8 +173,8 @@ SUB control
 STATIC joyuse, joymenu
 
 'Quick abort
-IF keyval(73) > 0 AND keyval(81) > 0 THEN
- IF keyval(1) > 1 THEN exitprogram 0
+IF keyval(-1) OR (keyval(73) > 0 AND keyval(81) > 0 AND keyval(1) > 1) THEN
+ exitprogram 0
 END IF
 
 'alt-enter toggle windowed

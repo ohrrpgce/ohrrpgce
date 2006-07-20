@@ -92,7 +92,7 @@ dim shared anim2 as integer
 dim shared waittime as double
 dim shared waitset as integer
 
-dim shared keybd(0 to 255) as integer  'keyval array
+dim shared keybd(-1 to 255) as integer  'keyval array
 dim shared keybdstate(127) as integer  '"real"time array
 dim shared keysteps(127) as integer
 
@@ -869,6 +869,14 @@ SUB setkeys ()
 		end if
 		keybdstate(a) = keybdstate(a) and 1
 	next
+	'Check to see if the operating system has received a request
+	'to close the window (clicking the X) and set the magic keyboard
+	'index -1 if so.
+	IF INKEY$ = CHR$(255) + "k" THEN
+		keybd(-1) = 1
+	ELSE
+		keybd(-1) = 0
+	END IF
 	mutexunlock keybdmutex
 end SUB
 

@@ -48,6 +48,8 @@ WHAT IS NEW?
     * Read-only and system folders are now browseable. [James Paige]
     * Fixed catastrophic freezing on some computers for gfx_fb and gfx_fb2
       backends [Ralph Versteegen]
+    * While playing games in windows mode, the [X] in the top right corner
+      that closes the window actually works now [James Paige]
 
   * New Plotscripting Commands
     * "string from textbox" [Yuriy]
@@ -82,6 +84,8 @@ WHAT IS NEW?
     * Reformatted NPC data with UDTs [Mike Caron]
     * Hspeak's exit code is 2 if there were warnings [Mike Caron]
     * Rewritten item code and data using UDTs [Ralph Versteegen]
+    * Use keyval(-1) to detect when the OS has requested the program
+      to exit
 
 July 09 2006 [hasta-la-qb]
   * This is the final version to support a real DOS version (GAME-QB and
