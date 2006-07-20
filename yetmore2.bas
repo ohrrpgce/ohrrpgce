@@ -613,13 +613,13 @@ SUB cleanuptemp
  IF lockfile THEN KILL workingdir$ + SLASH + "lockfile.tmp"
  findfiles workingdir$ + SLASH + ALLFILES, 0, tmpdir$ + "filelist.tmp", buffer()
  fh = FREEFILE
-  OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
-  DO UNTIL EOF(fh)
-   LINE INPUT #fh, filename$
-   KILL workingdir$ + SLASH + filename$
-  LOOP
-  CLOSE #fh
-  KILL tmpdir$ + "filelist.tmp"
+ OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
+ DO UNTIL EOF(fh)
+  LINE INPUT #fh, filename$
+  KILL workingdir$ + SLASH + filename$
+ LOOP
+ CLOSE #fh
+ KILL tmpdir$ + "filelist.tmp"
 END SUB
 
 FUNCTION checkfordeath (stat())
