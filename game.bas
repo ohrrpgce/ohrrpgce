@@ -268,6 +268,8 @@ ELSEIF LEN(a$) AND isdir(a$) THEN 'perhaps it's an unlumped folder?
  IF isfile(a$ + SLASH + "archinym.lmp") THEN 'ok, accept it
   autorungame = 1
   usepreunlump = 1
+  sourcerpg$ = a$
+  workingdir$ = a$
  END IF
 ELSE
  IF LCASE$(exename$) <> "game" THEN
@@ -283,6 +285,7 @@ IF autorungame = 0 THEN
  IF sourcerpg$ = "" THEN exitprogram 0
  IF isdir(sourcerpg$) THEN
   usepreunlump = 1
+  workingdir$ = sourcerpg$
  END IF 
 END IF
 
@@ -304,17 +307,6 @@ setvispage vpage 'refresh
 DIM lumpbuf(16383)
 IF usepreunlump = 0 THEN 
  unlump sourcerpg$, workingdir$ + SLASH, lumpbuf()
-ELSE
- 'play an unlumped RPG file
- findfiles sourcerpg$ + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
- fh = FREEFILE
- OPEN "filelist.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh)
-  LINE INPUT #fh, filename$
-  copyfile sourcerpg$ + SLASH + filename$, workingdir$ + SLASH + filename$, buffer()
- LOOP
- CLOSE #fh
- KILL "filelist.tmp"
 END IF
 
 initgame '--set game$

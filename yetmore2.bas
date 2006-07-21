@@ -611,15 +611,45 @@ END SUB
 SUB cleanuptemp
  'we don't have a lockfile if we never got past the browse screen!
  IF lockfile THEN KILL workingdir$ + SLASH + "lockfile.tmp"
- findfiles workingdir$ + SLASH + ALLFILES, 0, tmpdir$ + "filelist.tmp", buffer()
+ IF usepreunlump = 0 THEN
+  findfiles workingdir$ + SLASH + ALLFILES, 0, tmpdir$ + "filelist.tmp", buffer()
+ ELSE
+  'if this is an already-unlumped rpg, we can't just go and delete everything! Shock!
+  'plotscripts
+  findfiles workingdir$ + SLASH + "*.hsx", 0, tmpdir$ + "filelis1.tmp", buffer()
+  'generic temporary files
+  findfiles workingdir$ + SLASH + "*.tmp", 0, tmpdir$ + "filelis2.tmp", buffer()
+  'lump backups
+  findfiles workingdir$ + SLASH + "*.old", 0, tmpdir$ + "filelis3.tmp", buffer()
+  fh = FREEFILE
+  OPEN tmpdir$ + "filelist.tmp" FOR OUTPUT as #fh
+  fh2 = FREEFILE
+  FOR i = 1 to 3
+   OPEN tmpdir$ + "filelis" + XSTR$(i) + ".tmp" FOR INPUT AS #FH
+   DO UNTIL EOF(fh2)
+   	LINE INPUT #fh2,tmp$
+   	PRINT #fh, tmp$
+   LOOP
+   CLOSE #fh2
+  NEXT
+  CLOSE #fh
+ 
+ END IF
  fh = FREEFILE
- OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh)
-  LINE INPUT #fh, filename$
-  KILL workingdir$ + SLASH + filename$
- LOOP
- CLOSE #fh
- KILL tmpdir$ + "filelist.tmp"
+  OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
+  DO UNTIL EOF(fh)
+   LINE INPUT #fh, filename$
+   filename$ = LCASE$(filename$)
+   IF LEFT$(filename$, 3) = "vdm" AND RIGHT$(filename$, 4) = ".tmp" THEN
+    '-- mysterious locked file, leave it alone
+   ELSE
+    '-- delte file
+   END IF
+   KILL workingdir$ + SLASH + filename$
+  LOOP
+  CLOSE #fh
+  
+  KILL tmpdir$ + "filelist.tmp"
 END SUB
 
 FUNCTION checkfordeath (stat())

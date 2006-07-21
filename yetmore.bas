@@ -835,7 +835,7 @@ touchfile workingdir$ + SLASH + "kill.tmp"
 cleanuptemp
 
 'DEBUG debug "Remove working directory"
-RMDIR workingdir$
+IF usepreunlump = 0 THEN RMDIR workingdir$
 '--reset audio
 'closefile
 'DEBUG debug "Unload BAM player"
