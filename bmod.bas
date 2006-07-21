@@ -1934,7 +1934,7 @@ RETURN
 
 loadall:
 setpicstuf a(), 80, -1
-loadset game$ + ".for", form, 0
+loadset workingdir$ + SLASH + "for.tmp", form, 0
 IF a(33) > 0 THEN wrappedsong a(33) - 1
 setpicstuf buffer(), 636, -1
 FOR i = 0 TO 3

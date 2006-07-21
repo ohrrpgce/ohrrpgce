@@ -568,25 +568,13 @@ CLOSE #fh
 
 END SUB
 
-SUB checklumpmod
- IF readbit(lumpmod(),0,0) THEN 'enemy data
-  copyfile workingdir$ + SLASH + "dt1.old", game$ + ".dt1", buffer()
-  setbit lumpmod(),0,0,0
- END IF
- IF readbit(lumpmod(),0,0) THEN 'formation data
-  copyfile workingdir$ + SLASH + "for.old", game$ + ".for", buffer()
-  setbit lumpmod(),0,1,0
- END IF
-
-END SUB
-
 SUB makebackups
  'what is this for? Since some lumps can be modified at run time, we need to keep a
- 'backup copy, so that we can restore it later. Duh.
+ 'backup copy, and then only edit the copy. The original is never used directly.
  'enemy data
- copyfile game$ + ".dt1", workingdir$ + SLASH + "dt1.old", buffer()
+ copyfile game$ + ".dt1", workingdir$ + SLASH + "dt1.tmp", buffer()
  'formation data
- copyfile game$ + ".for", workingdir$ + SLASH + "for.old", buffer()
+ copyfile game$ + ".for", workingdir$ + SLASH + "for.tmp", buffer()
  'if you add lump-modding commands, you better well add them here >:(
 END SUB
 
@@ -609,7 +597,6 @@ loadpage game$ + ".til", gmap(0), 3
 END SUB
 
 SUB cleanuptemp
-debug "cleanuptemp"
  'we don't have a lockfile if we never got past the browse screen!
  IF lockfile THEN KILL workingdir$ + SLASH + "lockfile.tmp"
  findfiles workingdir$ + SLASH + ALLFILES, 0, tmpdir$ + "filelist.tmp", buffer()
@@ -624,7 +611,7 @@ debug "cleanuptemp"
    ELSE
     'but for preunlumped games only delete specific files
     ext$ = RIGHT$(filename$,4)
-    IF ext$ = ".tmp" OR ext$ = ".old" OR ext$ = ".hsx" OR filename$ = "scripts.txt" or filename$ = "hs" THEN
+    IF ext$ = ".tmp" OR ext$ = ".hsx" OR filename$ = "scripts.txt" or filename$ = "hs" THEN
      KILL workingdir$ + SLASH + filename$
     END IF
    END IF

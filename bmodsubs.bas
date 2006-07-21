@@ -970,7 +970,7 @@ END FUNCTION
 SUB loadfoe (i, formdata(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$())
 setpicstuf buffer(), 320, -1
 IF formdata(i * 4) > 0 THEN
- loadset game$ + ".dt1", formdata(i * 4) - 1, 0
+ loadset workingdir$ + SLASH + "dt1.tmp", formdata(i * 4) - 1, 0
  FOR o = 0 TO 160
   es(i, o) = buffer(o)
  NEXT o

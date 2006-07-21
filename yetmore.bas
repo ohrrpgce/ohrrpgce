@@ -1397,7 +1397,6 @@ SELECT CASE AS CONST id
    OPEN game$ + ".FOR" FOR BINARY AS #fh
    'GET #fh,clng(retvals(0)) * 80 + 66,scriptret
    WriteShort fh,clng(retvals(0)) * 80 + 65,retvals(1)
-   setbit lumpmod(),0,1,1
    CLOSE #fh
   ELSE
    scriptret = -1
@@ -1577,15 +1576,14 @@ SELECT CASE AS CONST id
   END IF
  CASE 230'--read enemy data
   f = FREEFILE
-  OPEN game$ + ".dt1" FOR BINARY AS #f
+  OPEN workingdir$ + SLASH + "dt1.tmp" FOR BINARY AS #f
   scriptret = ReadShort(f, (CLNG(bound(retvals(0), 0, gen(genMaxEnemy))) * CLNG(320)) + (bound(retvals(1), 0, 159) * 2) + 1)
   CLOSE #f
  CASE 231'--write enemy data
   f = FREEFILE
-  OPEN game$ + ".dt1" FOR BINARY AS #f
+  OPEN workingdir$ + SLASH + "dt1.tmp" FOR BINARY AS #f
   Writeshort f, (CLNG(bound(retvals(0), 0, gen(genMaxEnemy))) * CLNG(320)) + (bound(retvals(1), 0, 159) * 2) + 1, retvals(2)
   CLOSE #f
-  setbit lumpmod(),0,0,1
  CASE 232'--trace
   debug "TRACE: " + plotstring$(bound(retvals(0),0,31))
  CASE 233'--get song name

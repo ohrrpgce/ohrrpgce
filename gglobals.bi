@@ -9,7 +9,7 @@
 'Misc game globals
 COMMON SHARED game$, sourcerpg$, gen(), tag(), timing(), global(), carray(), csetup(), gotj(), joy(), veh(), hero(), pal16(), names$(), eqstuf(), lmp(), bmenu(), spell(),  _
 exlev&(), gold&, herobits%(), itembits%(), fmvol, hmask(), speedcontrol, deferpaint, tmpdir$, nativehbits(), catx(), caty(), catz(), catd(), herospeed(), xgo(), ygo(), mapx, mapy, presentsong, keyv(), foemaph, lockfile,  _
-lastsaveslot, plotstring$(), plotstrX(), plotstrY(), plotstrCol(), plotstrBGCol(), plotstrBits(), npcs(), wtog(), catermask(), framex, framey, gmap(), scroll(), exename$, defbinsize(), curbinsize(), lumpmod(), abortg, usepreunlump%
+lastsaveslot, plotstring$(), plotstrX(), plotstrY(), plotstrCol(), plotstrBGCol(), plotstrBits(), npcs(), wtog(), catermask(), framex, framey, gmap(), scroll(), exename$, defbinsize(), curbinsize(), abortg, usepreunlump%
 COMMON SHARED npc() as NPCInst
 COMMON SHARED inventory() as InventSlot
 
