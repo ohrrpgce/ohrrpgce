@@ -3,5 +3,13 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-COMMON SHARED game$, unsafefile$, timing(), keyv(), general(), spriteclip(), curbinsize(), defbinsize(), insert
+COMMON SHARED game$
+COMMON SHARED unsafefile$
+COMMON SHARED timing()
+COMMON SHARED keyv()
+COMMON SHARED general()
+COMMON SHARED spriteclip()
+COMMON SHARED curbinsize()
+COMMON SHARED defbinsize()
+COMMON SHARED insert
 
