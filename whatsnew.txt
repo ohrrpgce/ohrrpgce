@@ -50,6 +50,9 @@ WHAT IS NEW?
       backends [Ralph Versteegen]
     * While playing games in windows mode, the [X] in the top right corner
       that closes the window actually works now [James Paige]
+    * Fixed bug 11, which caused the hero to moonwalk backwards around
+      the map if you dismounted certain types of vehicles at the edge of
+      the map. [James Paige]
 
   * New Plotscripting Commands
     * "string from textbox" [Yuriy]

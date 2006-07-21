@@ -20,7 +20,7 @@ DECLARE FUNCTION herobyrank% (slot%)
 DECLARE FUNCTION rankincaterpillar% (heroid%)
 DECLARE SUB embedtext (text$, limit%)
 DECLARE SUB renamehero (who%)
-DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%)
+DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%)
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
 DECLARE SUB correctbackdrop ()
 DECLARE FUNCTION gethighbyte% (n%)
@@ -1982,7 +1982,7 @@ FOR i = bound(retvals(3), 0, 255) TO bound(retvals(4), 0, 255)
 NEXT i
 END SUB
 
-FUNCTION vehiclestuff (disx, disy, foep)
+FUNCTION vehiclestuff (disx, disy, foep, vehedge)
 STATIC aheadx, aheady
 
 result = 0
@@ -2036,7 +2036,7 @@ IF readbit(veh(), 6, 3) THEN '--dismount---------------
    catd(i) = catd(0)
    catz(i) = 0
   NEXT i
-  IF readbit(veh(), 9, 6) = 1 THEN
+  IF readbit(veh(), 9, 6) = 1 THEN ' Dismount-ahead is true
    setbit veh(), 6, 5, 1'--ahead
    aheadx = disx * 20
    aheady = disy * 20
@@ -2124,23 +2124,28 @@ FOR i = 0 TO 3
  IF hero(i) <= 0 THEN
   tmp = tmp + 1
  ELSE
-  IF ABS(catx(i * 5) - targx) < large(herospeed(i), 4) THEN
-   catx(i * 5) = targx
+  scramx = catx(i * 5)
+  scramy = caty(i * 5)
+  IF ABS(scramx - targx) < large(herospeed(i), 4) THEN
+   scramx = targx
    xgo(i) = 0
    ygo(i) = 0
   END IF
-  IF ABS(caty(i * 5) - targy) < large(herospeed(i), 4) THEN
-   caty(i * 5) = targy
+  IF ABS(scramy - targy) < large(herospeed(i), 4) THEN
+   scramy = targy
    xgo(i) = 0
    ygo(i) = 0
   END IF
-  IF ABS(targx - catx(i * 5)) > 0 AND xgo(i) = 0 THEN
-   xgo(i) = 20 * SGN(catx(i * 5) - targx)
+  IF ABS(targx - scramx) > 0 AND xgo(i) = 0 THEN
+   xgo(i) = 20 * SGN(scramx - targx)
   END IF
-  IF ABS(targy - caty(i * 5)) > 0 AND ygo(i) = 0 THEN
-   ygo(i) = 20 * SGN(caty(i * 5) - targy)
+  IF ABS(targy - scramy) > 0 AND ygo(i) = 0 THEN
+   ygo(i) = 20 * SGN(scramy - targy)
   END IF
-  IF catx(i * 5) - targx = 0 AND caty(i * 5) - targy = 0 THEN tmp = tmp + 1
+  IF vehedge THEN xgo(i) = xgo(i) * -1 : ygo(i) = ygo(i) * -1
+  IF scramx - targx = 0 AND scramy - targy = 0 THEN tmp = tmp + 1
+  catx(i * 5) = scramx
+  caty(i * 5) = scramy
  END IF
 NEXT i
 IF tmp = 4 THEN

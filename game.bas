@@ -24,7 +24,7 @@ DECLARE SUB templockexplain ()
 DECLARE SUB cleanuptemp ()
 DECLARE FUNCTION getfilelist% (wildcard$)
 DECLARE SUB scriptadvanced (id%)
-DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%)
+DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%)
 DECLARE SUB touchfile (f$)
 DECLARE FUNCTION checkfordeath (stat())
 DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
@@ -436,24 +436,25 @@ DO
   setmapdata pass(), pass(), 0, 0
   pasx = INT(catx(0) / 20)
   pasy = INT(caty(0) / 20)
+  vehedge = 0
   IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) THEN
    '--dismount-ahead is true, dismount-passwalls is true
    SELECT CASE catd(0)
     CASE 0
      pasy = pasy - 1
-     IF pasy < 0 THEN pasy = (scroll(1) - 1)
+     IF pasy < 0 THEN pasy = (scroll(1) - 1) : vehedge = 1
     CASE 1
      pasx = pasx + 1
-     IF pasx > (scroll(0) - 1) THEN pasx = 0
+     IF pasx > (scroll(0) - 1) THEN pasx = 0 : vehedge = 1
     CASE 2
      pasy = pasy + 1
-     IF pasy > (scroll(1) - 1) THEN pasy = 0
+     IF pasy > (scroll(1) - 1) THEN pasy = 0 : vehedge = 1
     CASE 3
      pasx = pasx - 1
-     IF pasx < 0 THEN pasx = (scroll(0) - 1)
+     IF pasx < 0 THEN pasx = (scroll(0) - 1) : vehedge = 1
    END SELECT
   END IF
-  tmp = vehiclestuff(pasx, pasy, foep)
+  tmp = vehiclestuff(pasx, pasy, foep, vehedge)
   SELECT CASE tmp
    CASE IS < 0
     rsr = runscript(ABS(tmp), nowscript + 1, -1, "vehicle")
