@@ -811,7 +811,7 @@ IF sayer < 0 THEN
     IF j > 299 THEN RETURN
     'would <= 19 do?
     'LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
-    IF npc(j).id <> 0 AND (j <> veh(5) OR veh(0) = 0) THEN 'A
+    IF npc(j).id > 0 AND (j <> veh(5) OR veh(0) = 0) THEN 'A
      dim nx,ny,nd
      nx = npc(j).x
      ny = npc(j).y
