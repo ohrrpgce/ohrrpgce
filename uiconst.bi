@@ -2,7 +2,7 @@
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
-CONST uiColors = 46				'last color entry (for Game)
+CONST uiColors = 47				'last color entry (for Game)
 
 CONST uiBackground = 0          'background colour
 CONST uiMenuItem = 1			'normal menu item
@@ -19,4 +19,5 @@ CONST uiText = 13				'Default text colour
 CONST uiOutline = 14			'Text outline colour
 CONST uiDescription = 15		'Spell description
 CONST uiGold = 16				'Total cash
-CONST uiTextBox = 17			'Text box styles, 15 * (bg & border)
+CONST uiShadow = 17				'Vehicle shadow
+CONST uiTextBox = 18			'Text box styles, 15 * (bg & border)

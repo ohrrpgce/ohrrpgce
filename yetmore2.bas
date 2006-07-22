@@ -184,9 +184,8 @@ SUB drawnpcs
    IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawnpcX, drawnpcY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
     IF veh(0) AND veh(5) = i THEN z = catz(0) '--special vehicle magic
     IF z AND readbit(veh(), 9, 8) = 0 THEN '--shadow
-     'Note: shadow is drawn in uiOutline colour, which might not really be appropriate
-     rectangle npc(i).x - mapx + 6, npc(i).y - mapy + gmap(11) + 13, 8, 5, uilook(uiOutline), dpage
-     rectangle npc(i).x - mapx + 5, npc(i).y - mapy + gmap(11) + 14, 10, 3, uilook(uiOutline), dpage
+     rectangle npc(i).x - mapx + 6, npc(i).y - mapy + gmap(11) + 13, 8, 5, uilook(uiShadow), dpage
+     rectangle npc(i).x - mapx + 5, npc(i).y - mapy + gmap(11) + 14, 10, 3, uilook(uiShadow), dpage
     END IF
     loadsprite buffer(), 0, (400 * npc(i).dir) + (200 * INT(npc(i).frame / 2)), 20 + (5 * o), 20, 20, 2
     drawsprite buffer(), 0, pal16(), (4 + o) * 16, drawnpcX, drawnpcY - z, dpage
