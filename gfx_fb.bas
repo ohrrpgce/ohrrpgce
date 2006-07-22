@@ -33,11 +33,11 @@ declare sub debug(s$)
 sub gfx_init
 	if init_gfx = 0 then
 		if windowed = 0 then
-			screen screenmode, depth, 1, 1
+			screen screenmode, depth, 2, 1
 		else
-			screen screenmode, depth,1
+			screen screenmode, depth,2
 		end if
-		screenset 0, 0
+		screenset 1, 0
 		init_gfx = 1
 	end if
 end sub
@@ -95,6 +95,7 @@ sub gfx_showpage(byval raw as ubyte ptr)
 		next
 	end if
 	screenunlock
+	flip
 	
 end sub
 
