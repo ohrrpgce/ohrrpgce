@@ -238,7 +238,7 @@ sub music_fade(targetvol as integer)
 end sub
 
 
-DECLARE sub SDL_done_playing(byval channel as integer)
+DECLARE sub SDL_done_playing cdecl(byval channel as integer)
 
 TYPE sound_effect
   used as integer 'whether this slot is free
@@ -266,7 +266,7 @@ sub sound_init
   'anything that might be initialized here is done in music_init
   'but, I must do it here too
    music_init
-  'Mix_channelFinished(@SDL_done_playing)
+  Mix_channelFinished(@SDL_done_playing)
   sound_inited = 1
 end sub
 
@@ -351,7 +351,7 @@ sub sound_play(byval slot as integer, byval l as integer)
       .chan = mix_playchannel(-1,.buf,l)
       .playing = 1
     end if
-    
+
   end with
 end sub
 
@@ -391,9 +391,9 @@ function sound_slots as integer
   return ubound(sfx_slots)
 end function
 
-sub SDL_done_playing(byval channel as integer)
+sub SDL_done_playing cdecl(byval channel as integer)
   dim i as integer
-  
+
   for i = 0 to ubound(sfx_slots)
     if sfx_slots(i).chan = channel then sfx_slots(i).playing = 0
   next
