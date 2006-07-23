@@ -82,6 +82,7 @@ WHAT IS NEW?
       drag-and-drop [James]
 
   * Stuff only Developers Will Notice
+    * FreeBASIC 0.16b and newer support [Ralph]
     * Removal of some QuickBasic-specific code
     * New common.bas for code shared by game and custom
     * New util.bas for code that does not depend on any other part

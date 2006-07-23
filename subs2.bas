@@ -538,7 +538,7 @@ DO
 LOOP
 CLOSE #fptr
 safekill workingdir$ + SLASH + "scripts.txt"
-RETURN
+RETRACE
 
 END SUB
 
@@ -748,7 +748,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 OR keyval(28) > 1 OR keyval(72) > 1 OR keyval(80) > 1 THEN RETURN
+ IF keyval(1) > 1 OR keyval(28) > 1 OR keyval(72) > 1 OR keyval(80) > 1 THEN RETRACE
  strgrabber stat$(pt), maxlen(pt)
  
  FOR i = top TO top + 22
@@ -758,7 +758,9 @@ DO
   xpos = 232
   IF i = pt THEN
    textcolor 15, 1
-   xpos = 312 - (8 * LEN(stat$(i)))
+   'FB0.16b throws up if you put these together, WHY??
+   tempstr$ = stat$(i)
+   xpos = 312 - (8 *  LEN(tempstr$))
   END IF
   printstr stat$(i), xpos, (i - top) * 8, dpage
  NEXT i
@@ -926,7 +928,11 @@ DO
     SWAP pt, remptr
     GOSUB loadlines
    END IF
-   IF keyval(75) > 1 AND pt > 0 THEN GOSUB savelines: pt = pt - 1: GOSUB loadlines
+   IF keyval(75) > 1 AND pt > 0 THEN
+    GOSUB savelines
+    pt = pt - 1
+    GOSUB loadlines
+   END IF
    IF keyval(77) > 1 AND pt < 32767 THEN
     GOSUB savelines
     pt = pt + 1
@@ -937,7 +943,10 @@ DO
  IF (keyval(28) > 1 OR keyval(57) > 1) THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 2 THEN GOSUB picktext
-  IF csr = 3 THEN GOSUB conditions: GOSUB nextboxline
+  IF csr = 3 THEN
+   GOSUB conditions
+   GOSUB nextboxline
+  END IF
   IF csr = 4 THEN GOSUB tchoice
   IF csr = 5 THEN GOSUB groovybox
   IF csr = 6 AND cond(12) > 0 THEN
@@ -991,7 +1000,7 @@ SELECT CASE cond(11)
    m$(6) = "Next: script " + scriptname$(ABS(cond(12)), "plotscr.lst") + " (conditional)"
   END IF
 END SELECT
-RETURN
+RETRACE
 
 conditions:
 cur = 0
@@ -1003,8 +1012,8 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
- IF (keyval(57) > 1 OR keyval(28) > 1) AND cur = -1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
+ IF (keyval(57) > 1 OR keyval(28) > 1) AND cur = -1 THEN RETRACE
  dummy = usemenu(cur, 0, -1, 20, 24)
  IF keyval(83) > 1 AND cur > -1 THEN cond(order(cur)) = 0
  IF cur >= 0 THEN
@@ -1096,14 +1105,14 @@ n = 17: GOSUB txttag
 IF cond(18) = 0 THEN menu$(18) = " do not add/remove items"
 IF cond(18) > 0 THEN menu$(18) = " add one" + item$
 IF cond(18) < 0 THEN menu$(18) = " remove one" + item$
-RETURN
+RETRACE
 
 txttag:
 menu$(n) = "If tag" + XSTR$(ABS(cond(n))) + " = " + onoroff$(cond(n)) + " (" + lmnemonic$(ABS(cond(n))) + ")"
 IF cond(n) = 0 THEN menu$(n) = "Never do the following"
 IF cond(n) = 1 THEN menu$(n) = LEFT$(menu$(n), LEN(menu$(n)) - 2) + "[Never]"
 IF cond(n) = -1 THEN menu$(n) = "Always do the following"
-RETURN
+RETRACE
 
 tchoice:
 menu$(0) = "Go Back"
@@ -1112,10 +1121,10 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
  dummy = usemenu(tcur, 0, 0, 5, 24)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  IF tcur = 0 THEN RETURN
+  IF tcur = 0 THEN RETRACE
   IF tcur = 1 THEN setbit buffer(), 174, 0, (readbit(buffer(), 174, 0) XOR 1)
  END IF
  IF tcur = 1 THEN
@@ -1145,13 +1154,13 @@ FOR i = 0 TO 1
   menu$(3 + (i * 2)) = "Set tag 0 (none)"
  END IF
 NEXT i
-RETURN
+RETRACE
 
 heroar:
 h$(0) = heroname$(10, cond(), a())
 h$(1) = heroname$(19, cond(), a())
 h$(2) = heroname$(20, cond(), a())
-RETURN
+RETRACE
 
 shopar:
 shop$ = ""
@@ -1162,12 +1171,12 @@ IF cond(8) > 0 THEN
   shop$ = shop$ + CHR$(a(i))
  NEXT i
 END IF
-RETURN
+RETRACE
 
 itemar:
 item$ = ""
 IF cond(18) <> 0 THEN item$ = itemstr$(ABS(cond(18)), 0, 0)
-RETURN
+RETRACE
 
 picktext:
 y = 0
@@ -1177,7 +1186,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
  IF keyval(28) > 1 AND y < 7 THEN y = y + 1
  IF usemenu(y, 0, 0, 7, 24) THEN insert = -1
  IF y <= 7 AND y >= 0 THEN
@@ -1227,10 +1236,10 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
  dummy = usemenu(gcsr, 0, 0, 9, 24)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  IF gcsr = 0 THEN RETURN
+  IF gcsr = 0 THEN RETRACE
   FOR i = 0 TO 2
    IF gcsr = 7 + i THEN setbit buffer(), 174, 1 + i, (readbit(buffer(), 174, 1 + i) XOR 1)
   NEXT i
@@ -1299,7 +1308,7 @@ IF buffer(197) > 0 THEN
  setdiskpages buf(), 200, 0
  loadpage game$ + ".mxs", buffer(197) - 1, 2
 END IF
-RETURN
+RETRACE
 
 previewbox:
 IF readbit(buffer(), 174, 1) = 0 THEN
@@ -1310,7 +1319,7 @@ FOR i = 0 TO 7
  col = 15: IF buffer(195) > 0 THEN col = buffer(195)
  edgeprint x$(i), 8, 8 + (buffer(193) * 4) + i * 10, col, dpage
 NEXT i
-RETURN
+RETRACE
 
 loadlines:
 setpicstuf buffer(), 400, -1
@@ -1340,7 +1349,7 @@ FOR i = 0 TO 1
 NEXT i
 GOSUB nextboxline
 search$ = ""
-RETURN
+RETRACE
 
 savelines:
 setpicstuf buffer(), 400, -1
@@ -1356,7 +1365,7 @@ FOR i = 0 TO 1
  str2array choice$(i), buffer(), 349 + (i * 18)
 NEXT i
 storeset game$ + ".say", pt, 0
-RETURN
+RETRACE
 
 clearlines:
 '--this inits a new text box, and copies in values from text box 0 for defaults
@@ -1371,7 +1380,7 @@ FOR i = 0 TO 199
  END SELECT
 NEXT i
 storeset game$ + ".say", pt, 0
-RETURN
+RETRACE
 
 seektextbox:
 setpicstuf buffer(), 400, -1
@@ -1397,7 +1406,7 @@ DO
  pt = pt + 1
 LOOP
 
-RETURN
+RETRACE
 
 '--text box record (byte offsets! not words!)
 '0-303   lines

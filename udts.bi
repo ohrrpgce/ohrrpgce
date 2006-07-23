@@ -11,12 +11,12 @@ TYPE NPCInst
 END TYPE
 
 TYPE InventSlot
-  used : 1 as byte	'use this to check if empty, not num!
-  text as string	'text field which shows up in inventory, blank if empty
+  used : 1 as integer	'use this to check if empty, not num!
 
   'following fields should not be used if used = 0
   id as integer		'absolute, not +1!! 
   num as integer
+  text as string	'text field which shows up in inventory, blank if empty
 END TYPE
 
 'Loading subs

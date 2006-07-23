@@ -103,6 +103,9 @@ CHDIR gamedir$
 
 DIM font(1024), master(767), buffer(16384), timing(4), joy(4), scroll(16002), pass(16002), emap(16002)
 DIM menu$(22), general(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600), uilook(uiColors)
+'more global variables
+DIM game$, unsafefile$, insert
+DIM vpage, dpage, fadestate, workingdir$, version$ 
 
 '--DIM binsize arrays
 '$INCLUDE: 'binsize.bi'
@@ -280,7 +283,7 @@ menu$(14) = "Edit Font"
 menu$(15) = "Edit General Game Data"
 menu$(16) = "Script Management"
 menu$(17) = "Quit Editing"
-RETURN
+RETRACE
 
 setgraphicmenu:
 mainmax = 10
@@ -295,7 +298,7 @@ menu$(7) = "Draw Attacks"
 menu$(8) = "Draw Weapons"
 menu$(9) = "Import Screens"
 menu$(10) = "Import Full Maptile Sets"
-RETURN
+RETRACE
 
 chooserpg:
 fh = FREEFILE
@@ -336,7 +339,7 @@ DO
  clearpage dpage
  dowait
 LOOP
-RETURN
+RETRACE
 
 cleanup:
 rpg$(0) = "RECOVER IT"
@@ -379,11 +382,11 @@ DO
     printstr "ohrrpgce-crash@HamsterRepublic.com", 0, 64, vpage
     setvispage vpage 'refresh
     w = getkey
-    RETURN
+    RETRACE
    END IF '---END RELUMP
   END IF
-  IF temp = 1 THEN RETURN
-  IF temp = 2 THEN nocleanup = 1: RETURN
+  IF temp = 1 THEN RETRACE
+  IF temp = 2 THEN nocleanup = 1: RETRACE
  END IF
  textcolor 9, 0
  printstr "A game was found unlumped", 0, 0, dpage
@@ -422,7 +425,7 @@ END IF
 '--dir is in use
 lockfile = FREEFILE
 OPEN workingdir$ + SLASH + "lockfile.tmp" FOR BINARY AS #lockfile
-RETURN
+RETRACE
 
 relump:
 xbsave game$ + ".gen", general(), 1000
@@ -440,7 +443,7 @@ IF quitnow = 3 THEN
  IF sublist(1, rpg$()) <= 0 THEN quitnow = 0
 END IF
 setkeys
-RETURN
+RETRACE
 
 dorelump:
 clearpage 0
@@ -452,7 +455,7 @@ setvispage 0 'refresh
 verifyrpg
 '--lump data to SAVE rpg file
 dolumpfiles gamefile$
-RETURN
+RETRACE
 
 checkpass:
 copylump gamefile$, "archinym.lmp", workingdir$
@@ -466,12 +469,12 @@ IF general(5) >= 256 THEN
  rpas$ = readpassword$
 ELSE
  '--old scattertable format
- IF general(94) = -1 THEN RETURN 'this is stupid
+ IF general(94) = -1 THEN RETRACE 'this is stupid
  readscatter rpas$, general(94), 200
  rpas$ = rotascii(rpas$, general(93) * -1)
 END IF
 '--if password is unset, do not prompt
-IF rpas$ = "" THEN RETURN
+IF rpas$ = "" THEN RETRACE
 '-----get inputed password-----
 pas$ = ""
 clearpage 0
@@ -484,7 +487,7 @@ DO
  IF keyval(28) > 1 THEN
   '--check password
   IF pas$ = rpas$ THEN 
-   RETURN 
+   RETRACE 
   ELSE 
    GOTO finis
   END IF
@@ -557,7 +560,7 @@ IF nocleanup = 0 THEN
 END IF
 safekill "rpg.lst"
 safekill "temp.lst"
-RETURN
+RETRACE
 
 readstuff:
 RESTORE menuitems
@@ -586,7 +589,7 @@ NEXT o
 
 keyv(40, 1) = 34
 
-RETURN
+RETRACE
 
 menuitems:
 DATA "Up A","Up B","Right A","Right B","Down A","Down B","Left A","Left B"
@@ -822,23 +825,23 @@ EXIT SUB
 loadfont:
 xbload game$ + ".fnt", font(), "Can't load font"
 setfont font()
-RETURN
+RETRACE
 
 savefont:
 xbsave game$ + ".fnt", font(), 2048
-RETURN
+RETRACE
 
 copychar:
 FOR i = 0 TO 63
  setbit copybuf(), 0, i, readbit(font(), 0, f(pt) * 64 + i)
 NEXT i
-RETURN
+RETRACE
 
 pastechar:
 FOR i = 0 TO 63
  setbit font(), 0, f(pt) * 64 + i, readbit(copybuf(), 0, i)
 NEXT i
-RETURN
+RETRACE
 
 importfont:
 newfont$ = browse$(0, default$, "*.ohf", "")
@@ -858,7 +861,7 @@ IF newfont$ <> "" THEN
  menuptr = 1
  mode = 0
 END IF
-RETURN
+RETRACE
 
 exportfont:
 setkeys
@@ -903,7 +906,7 @@ DO
  clearpage dpage
  dowait
 LOOP
-RETURN
+RETRACE
 
 END SUB
 
@@ -1029,7 +1032,11 @@ DO
  IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, general(97), 0, game$ + ".sho", 40, 1: GOSUB menugen
  dummy = usemenu(csr, 0, 0, li, 24)
  IF csr = 1 THEN
-  IF keyval(75) > 1 AND pt > 0 THEN GOSUB sshopset: pt = pt - 1: GOSUB lshopset
+  IF keyval(75) > 1 AND pt > 0 THEN
+   GOSUB sshopset
+   pt = pt - 1
+   GOSUB lshopset
+  END IF
   IF keyval(77) > 1 AND pt < 32767 THEN
    GOSUB sshopset
    pt = pt + 1
@@ -1047,7 +1054,10 @@ DO
  END IF
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
   IF csr = 0 THEN EXIT DO
-  IF csr = 3 AND havestuf THEN GOSUB shopstuf: GOSUB sstuf
+  IF csr = 3 AND havestuf THEN
+   GOSUB shopstuf
+   GOSUB sstuf
+  END IF
   IF csr = 4 THEN editbitset a(), 17, 7, sbit$(): GOSUB menuup
  END IF
  IF csr = 5 THEN
@@ -1081,7 +1091,7 @@ menu$(0) = "Return to Main Menu"
 menu$(3) = "Edit Available Stuff..."
 menu$(4) = "Edit Shop Bitsets..."
 GOSUB menuup
-RETURN
+RETRACE
 
 lshopset:
 setpicstuf a(), 40, -1
@@ -1091,7 +1101,7 @@ FOR i = 1 TO small(a(0), 15)
  sn$ = sn$ + CHR$(a(i))
 NEXT i
 GOSUB menuup
-RETURN
+RETRACE
 
 sshopset:
 a(16) = small(a(16), 49)
@@ -1101,7 +1111,7 @@ FOR i = 1 TO small(a(0), 15)
 NEXT i
 setpicstuf a(), 40, -1
 storeset game$ + ".sho", pt, 0
-RETURN
+RETRACE
 
 menuup:
 menu$(1) = CHR$(27) + " Shop" + XSTR$(pt) + " of" + XSTR$(general(97)) + CHR$(26)
@@ -1110,7 +1120,7 @@ menu$(5) = "Inn Price:" + XSTR$(a(18))
 IF readbit(a(), 17, 3) = 0 THEN menu$(5) = "Inn Price: N/A"
 menu$(6) = "Inn Script: " + scriptname$(a(19), "plotscr.lst")
 IF readbit(a(), 17, 0) OR readbit(a(), 17, 1) OR readbit(a(), 17, 2) THEN havestuf = 1 ELSE havestuf = 0
-RETURN
+RETRACE
 
 shopstuf:
 thing = 0
@@ -1125,13 +1135,18 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
- IF tcsr = 0 THEN IF keyval(57) > 1 OR keyval(28) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
+ IF tcsr = 0 THEN IF keyval(57) > 1 OR keyval(28) > 1 THEN RETRACE
  'IF keyval(72) > 1 THEN tcsr = large(0, tcsr - 1)
  'IF keyval(80) > 1 THEN tcsr = small(last, tcsr + 1)
  dummy = usemenu(tcsr, 0, 0, last, 24)
  IF tcsr = 1 THEN
-  IF keyval(75) > 1 AND thing > 0 THEN GOSUB sstuf: thing = thing - 1: GOSUB lstuf: GOSUB itstrsh
+  IF keyval(75) > 1 AND thing > 0 THEN 
+   GOSUB sstuf
+   thing = thing - 1
+   GOSUB lstuf
+   GOSUB itstrsh
+  END IF
   IF keyval(77) > 1 AND thing < 49 THEN
    GOSUB sstuf
    thing = thing + 1
@@ -1174,7 +1189,10 @@ DO
     b(7 + tcsr) = b(7 + tcsr) - 1
    CASE ELSE
     IF intgrabber(b(17 + tcsr - 3), min(tcsr), max(tcsr), 75, 77) THEN
-     IF tcsr = 3 OR tcsr = 4 THEN GOSUB othertype: GOSUB setdefault
+     IF tcsr = 3 OR tcsr = 4 THEN
+      GOSUB othertype
+      GOSUB setdefault
+     END IF
     END IF
   END SELECT
  END IF
@@ -1204,7 +1222,7 @@ SELECT CASE b(17)
   max(4) = 999
 END SELECT
 'GOSUB itstrsh
-RETURN
+RETRACE
 
 setdefault:
 IF b(17) = 0 THEN
@@ -1228,7 +1246,7 @@ IF b(17) = 1 THEN
  NEXT i
 END IF
 IF b(17) = 2 THEN thing$ = "Unsupported"
-RETURN
+RETRACE
 
 stufmenu:
 smenu$(1) = CHR$(27) + "Shop Thing" + XSTR$(thing) + " of" + XSTR$(a(16)) + CHR$(26)
@@ -1274,7 +1292,7 @@ ELSE
  smenu$(19) = "Experience Level:" + XSTR$(b(26))
 END IF
 '--mutate menu for item/hero
-RETURN
+RETRACE
 
 lstuf:
 flusharray b(), curbinsize(1) / 2, 0
@@ -1295,7 +1313,7 @@ FOR i = 32 TO 42
 NEXT
 '--didn't see what this is for
 'GOSUB menuup
-RETURN
+RETRACE
 
 sstuf:
 b(0) = LEN(thing$)
@@ -1304,7 +1322,7 @@ FOR i = 1 TO small(b(0), 16)
 NEXT i
 setpicstuf b(), getbinsize(1), -1
 storeset game$ + ".stf", pt * 50 + thing, 0
-RETURN
+RETRACE
 
 itstrsh:
 tradestf$(0) = itemstr$(b(25),0,0)
@@ -1312,7 +1330,7 @@ tradestf$(1) = itemstr$(b(31),0,0)
 tradestf$(2) = itemstr$(b(33),0,0)
 tradestf$(3) = itemstr$(b(35),0,0)
 trit$ = itemstr$(b(28),0,0)
-RETURN
+RETRACE
 
 END SUB
 

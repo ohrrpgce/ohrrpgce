@@ -226,21 +226,21 @@ menu$(2) = "Name: " + vehname$
 ' menu$(14) = "On Dismount: " + tmp$
 
 ' menu$(15) = "Elevation:" + XSTR$(veh(offset(15))) + " pixels"
-RETURN
+RETRACE
 
 loaddat:
 setpicstuf menudat(), MenuDatSize*2, -1
 loadset "menus.dat", pt, 0
 menuname$ = STRING$(bound(menudat(0) AND 255, 0, 15), 0)
 array2str menudat(), 1, menuname$
-RETURN
+RETRACE
 
 savedat:
 ' veh(0) = bound(LEN(vehname$), 0, 5)
 ' str2array vehname$, veh(), 1
 ' setpicstuf veh(), 80, -1
 ' storeset "menus.dat", pt, 0
-RETURN
+RETRACE
 
 END SUB
 
@@ -412,21 +412,21 @@ END SELECT
 menu$(14) = "On Dismount: " + tmp$
 
 menu$(15) = "Elevation:" + XSTR$(veh(offset(15))) + " pixels"
-RETURN
+RETRACE
 
 loadveh:
 setpicstuf veh(), 80, -1
 loadset game$ + ".veh", pt, 0
 vehname$ = STRING$(bound(veh(0) AND 255, 0, 15), 0)
 array2str veh(), 1, vehname$
-RETURN
+RETRACE
 
 saveveh:
 veh(0) = bound(LEN(vehname$), 0, 15)
 str2array vehname$, veh(), 1
 setpicstuf veh(), 80, -1
 storeset game$ + ".veh", pt, 0
-RETURN
+RETRACE
 
 END SUB
 
@@ -609,7 +609,7 @@ FOR i = 0 to 11
  m$(20 + i) = stat$(i) + " Cap:"
  if general(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + " None" ELSE m$(20 + i) = m$(20 + i) + XSTR$(general(genStatCap + i))
 NEXT
-RETURN
+RETRACE
 
 ttlbrowse:
 setdiskpages buffer(), 200, 0
@@ -619,14 +619,14 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
  IF keyval(72) > 1 AND gcsr = 1 THEN gcsr = 0
  IF keyval(80) > 1 AND gcsr = 0 THEN gcsr = 1
  IF gcsr = 1 THEN
   IF intgrabber(general(1), 0, general(100) - 1, 75, 77) THEN GOSUB gshowpage
  END IF
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  IF gcsr = 0 THEN RETURN
+  IF gcsr = 0 THEN RETRACE
  END IF
  col = 7: IF gcsr = 0 THEN col = 14 + tog
  edgeprint "Go Back", 1, 1, col, dpage
@@ -640,7 +640,7 @@ LOOP
 
 gshowpage:
 loadpage game$ + ".mxs", general(1), 2
-RETURN
+RETRACE
 
 loadpass:
 IF general(5) >= 256 THEN
@@ -660,7 +660,7 @@ IF isfile(workingdir$ + SLASH + "browse.txt") THEN
  aboutline$ = STRING$(bound(buffer(0), 0, 38), " ")
  array2str buffer(), 2, aboutline$
 END IF
-RETURN
+RETRACE
 
 savepass:
 
@@ -681,7 +681,7 @@ storeset workingdir$ + SLASH + "browse.txt", 0, 0
 buffer(0) = bound(LEN(aboutline$), 0, 38)
 str2array aboutline$, buffer(), 2
 storeset workingdir$ + SLASH + "browse.txt", 1, 0
-RETURN
+RETRACE
 
 renrpg:
 oldgame$ = RIGHT$(game$, LEN(game$) - 12)
@@ -691,7 +691,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
  strgrabber newgame$, 8
  fixfilename newgame$
  IF keyval(28) > 1 THEN
@@ -736,7 +736,7 @@ DO
     w = getkey
    END IF '---END IF OKAY TO COPY
   END IF '---END IF VALID NEW ENTRY
-  RETURN
+  RETRACE
  END IF
  textcolor 7, 0
  printstr "Current Name: " + oldgame$, 0, 0, dpage
@@ -761,7 +761,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
  dummy = usemenu(subcsr, 0, 0, 3, 24)
  SELECT CASE subcsr
   CASE 0
@@ -781,7 +781,7 @@ DO
  clearpage dpage
  dowait
 LOOP
-RETURN
+RETRACE
 
 inputpasw:
 setkeys
@@ -808,13 +808,13 @@ DO
  clearpage dpage
  dowait
 LOOP
-RETURN
+RETRACE
 
 setspecialplotstr:
 subm$(1) = "new-game script: " + scriptname$(general(41), "plotscr.lst")
 subm$(2) = "game-over script: " + scriptname$(general(42), "plotscr.lst")
 subm$(3) = "load-game script: " + scriptname$(general(57), "plotscr.lst")
-RETURN
+RETRACE
 
 importmaspal:
 
@@ -841,7 +841,7 @@ IF f$ <> "" THEN
  setpal master()
 END IF
 
-RETURN
+RETRACE
 
 END SUB
 
@@ -968,7 +968,7 @@ ELSE
  optionsbottom = 5
 END IF
 '-- add author, length, etc, info here
-RETURN
+RETRACE
 
 importsongfile:
 stopsong
@@ -976,7 +976,7 @@ stopsong
 sourcesong$ = browse$(5, default$, "", "")
 IF sourcesong$ = "" THEN
  GOSUB getinfo 'to play the song again
- RETURN
+ RETRACE
 END IF
 '--remove song file (except BAM, we can leave those as fallback for QB version)
 IF songfile$ <> bamfile$ THEN safekill songfile$
@@ -994,7 +994,7 @@ IF sourcesong$ <> "" THEN
  GOSUB ssongdata
 END IF
 GOSUB getinfo
-RETURN
+RETRACE
 
 exportsong:
 query$ = "Name of file to export to?"
@@ -1004,19 +1004,19 @@ IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
  submenu$(2) = "Cancel"
  choice = sublist(2, submenu$())
  IF choice = 1 THEN ext$ = ".bam" : songfile$ = bamfile$
- IF choice = 2 THEN RETURN
+ IF choice = 2 THEN RETRACE
 END IF
 outfile$ = inputfilename$(query$, ext$)
-IF outfile$ = "" THEN RETURN
+IF outfile$ = "" THEN RETRACE
 copyfile songfile$, outfile$ + ext$, buffer()
-RETURN
+RETRACE
 
 ssongdata:
 flusharray buffer(), curbinsize(2) / 2, 0
 setpicstuf buffer(), curbinsize(2), -1
 writebinstring sname$, buffer(), 0, 30
 storeset workingdir$ + SLASH + "songdata.bin", snum, 0
-RETURN
+RETRACE
 
 END SUB
 
@@ -1135,13 +1135,13 @@ menu$(8) = "Type: " + sfxtype$
 menu$(9) = "Filesize: " + filesize$(sfxfile$)
 
 '-- add author, length, etc, info here
-RETURN
+RETRACE
 
 importsfxfile:
 
 sourcesfx$ = browse$(6, default$, "", "")
 IF sourcesfx$ = "" THEN
- RETURN
+ RETRACE
 END IF
 
 safekill sfxfile$
@@ -1155,20 +1155,20 @@ IF sourcesfx$ <> "" THEN
  GOSUB ssfxdata
 END IF
 GOSUB getinfo
-RETURN
+RETRACE
 
 exportsfx:
 query$ = "Name of file to export to?"
 outfile$ = inputfilename$(query$, ext$)
-IF outfile$ = "" THEN RETURN
+IF outfile$ = "" THEN RETRACE
 copyfile sfxfile$, outfile$ + ext$, buffer()
-RETURN
+RETRACE
 
 ssfxdata:
 flusharray buffer(), curbinsize(3) / 2, 0
 setpicstuf buffer(), curbinsize(3), -1
 writebinstring sname$, buffer(), 0, 30
 storeset workingdir$ + SLASH + "sfxdata.bin", snum, 0
-RETURN
+RETRACE
 
 END SUB

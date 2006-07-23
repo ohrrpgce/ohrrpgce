@@ -5,12 +5,17 @@
 '
 option explicit
 
-#include compat.bi
-#include allmodex.bi
-#include fontdata.bi
-#include gfx.bi
+#include "compat.bi"
+#include "allmodex.bi"
+#include "fontdata.bi"
+#include "gfx.bi"
 
-common shared workingdir$, version$, game$
+extern workingdir$, version$, game$
+
+'Gosub workaround
+option dynamic
+dim shared gosubbuf(31) as crt_jmp_buf
+dim shared gosubptr as integer = 0
 
 dim shared seg as integer ptr
 'stores the rpg name from the command line without any command-line arguments

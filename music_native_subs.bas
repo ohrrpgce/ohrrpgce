@@ -65,7 +65,7 @@ Function GetVLQ(Byval track as MidiTrack ptr,ByRef p as integer) as integer
 
 		p += 1
 		l += (c AND &H7F)
-		if not (c AND &H80) then
+		if (c AND &H80) = 0 then
 			return l
 		end if
 		l = l shl 7
@@ -114,7 +114,7 @@ Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 	currentEvent = head
 
 
-	do while not e
+	do while e = 0
 
 		if currentPos >= track->len then
 
@@ -187,7 +187,7 @@ Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 				currentPos += 1
 				currentEvent->next = CreateEvent(atime, (laststatus shl 4) + lastchan, a, b)
 				currentEvent = currentEvent->next
-				if not currentEvent then
+				if currentEvent = 0 then
 					FreeMidiEventList(head)
 					return 0
 				end if
@@ -198,7 +198,7 @@ Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 				a = a AND &H7F
 				currentEvent->next = CreateEvent(atime, (laststatus shl 4) + lastchan, a, CUByte(-1))
 				currentEvent = currentEvent->next
-				if not currentEvent then
+				if currentEvent = 0 then
 					FreeMidiEventList(head)
 					return 0
 				end if
@@ -235,12 +235,12 @@ function MiditoStream(midiData as midifile ptr) as MIDI_EVENT ptr
 
 
 
-	if not head then return 0
+	if head = 0 then return 0
 '
 
 	track = cptr(MIDI_EVENT ptr ptr,CAllocate(len(MIDI_EVENT ptr) * mididata->nTracks))
 
-	if not track then return 0
+	if track = 0 then return 0
 
 
 ' 	/* First, convert all tracks to MIDI_EVENT lists */
@@ -294,8 +294,8 @@ function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
 	dim tracks as ushort
 	dim division as ushort
 
- 	if not mididata then return 0
- 	if not fp then return 0
+ 	if mididata = 0 then return 0
+ 	if fp = 0 then return 0
 
 ' 	/* Make sure this is really a MIDI file */
  	fread(@ID, 1, 4, fp)
@@ -321,7 +321,7 @@ function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
 
 '     /* Allocate tracks */
 	mididata->track = cptr(MIDITrack ptr, CAllocate(len(MIDITrack) * mididata->nTracks))
-	if not mididata->track then
+	if mididata->track = 0 then
 		goto bail
 	end if
 
@@ -339,7 +339,7 @@ function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
 
  		mididata->track[i].len = size
  		mididata->track[i].data = Allocate(size)
- 		if (not mididata->track[i].data) then
+ 		if mididata->track[i].data = 0 then
  			goto bail
 		end if
  		fread(mididata->track[i].data, 1, size, fp)
@@ -363,7 +363,7 @@ function CreateMIDIEventList(midifile as string, division as short ptr) as MIDI_
  	dim as integer trackID
 
  	mididata = CAllocate(len(MIDIFile))
- 	if not mididata then
+ 	if mididata = 0 then
 
  		return 0
  	end if
@@ -373,7 +373,7 @@ function CreateMIDIEventList(midifile as string, division as short ptr) as MIDI_
  	if fp <> 0 then
 
 ' 		/* Read in the data */
- 		if  not ReadMIDIFile(mididata, fp) then
+ 		if ReadMIDIFile(mididata, fp) = 0 then
  			Deallocate(mididata)
  			fclose(fp)
  			return 0

@@ -6,7 +6,7 @@
 
 option explicit
 
-#include music.bi
+#include "music.bi"
 #include "allegro.bi"
 
 'this should be in allegro.bi but isn't

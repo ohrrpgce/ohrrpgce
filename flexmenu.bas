@@ -927,7 +927,7 @@ setpicstuf buffer(), 3750, 2
 loadset game$ + ".pt6", recbuf(AtkDatPic), 0
 getpal16 workpal(), 0, recbuf(AtkDatPal)
 
-RETURN
+RETRACE
 
 '-----------------------------------------------------------------------
 
@@ -943,7 +943,7 @@ END IF
 
 loadsprite buffer(), 0, 1250 * ABS(anim1), 0, 50, 50, 2
 drawsprite buffer(), 0, workpal(), 0, 260, 140, dpage
-RETURN
+RETRACE
 
 '-----------------------------------------------------------------------
 
@@ -953,7 +953,7 @@ menudepth = 0
 pt = lastptr
 top = lasttop
 GOSUB AtkUpdateMenu
-RETURN
+RETRACE
 
 '-----------------------------------------------------------------------
 
@@ -961,14 +961,14 @@ AtkPushPtrSub:
 lastptr = pt
 lasttop = top
 menudepth = 1
-RETURN
+RETRACE
 
 '-----------------------------------------------------------------------
 
 AtkLoadSub:
 readattackdata recbuf(), recindex
 GOSUB AtkUpdateMenu
-RETURN
+RETRACE
 
 '-----------------------------------------------------------------------
 'DATA Picture,Palette,"Animation:","Target Class:","Target Setting:",Damage,Aim,"Base Stat:","","",Money Cost,"Extra Damage%","Chain to:",Chain%,"Attacker Motion:","Attack Motion:",Delay,Number of Hits,"Target Stat:",Edit Bitsets...,"Name="

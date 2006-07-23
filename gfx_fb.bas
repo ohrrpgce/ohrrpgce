@@ -7,7 +7,7 @@
 
 option explicit
 
-#include gfx.bi
+#include "gfx.bi"
 
 'border required to fit standard 4:3 screen at zoom 1
 #define BORDER 20

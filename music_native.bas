@@ -7,7 +7,10 @@
 option explicit
 
 
-#include "crt.bi"
+'#include "crt.bi"
+
+'glup
+#include "compat.bi"
 
 'uncomment this to try allegro
 '#DEFINE USE_ALLEGRO
@@ -30,6 +33,7 @@ option explicit
 #IFDEF __FB_LINUX__
 	'???
 #ELSE
+	#undef getcommandline
 	#include once "windows.bi"
 	#undef createevent
 	#undef lockfile '?
@@ -61,14 +65,14 @@ TYPE Regtype
  ds AS INTEGER
  es AS INTEGER
 END TYPE
-#include gglobals.bi
+#include "gglobals.bi"
 #ENDIF
 
 
-#include music_native_subs.bas
+#include "music_native_subs.bas"
 
 
-#include music.bi
+#include "music.bi"
 
 #IFNDEF USE_ALLEGRO
 #IFNDEF __FB_LINUX__
@@ -119,7 +123,7 @@ function openMidi() as integer
     #ENDIF
     #ELSE
     'see if allegro's been initialized
-    if not inited_once then
+    if inited_once = 0 then
     
     	win_set_window FB_Win32.Wnd
     	allegro_init
@@ -195,7 +199,8 @@ function longMidi(dat as UByte ptr, l as integer) as integer
     
     midi_out dat, l
     
-    #ENDIF   
+    #ENDIF  
+    longMidi = 0
 end function
 
 function getVolMidi() as integer
@@ -303,7 +308,7 @@ Sub ResetMidi
 		next
 		
 		BufferEvent(&HB0 + c,121,-1) 'controller reset
-		if not music_paused then bufferevent(&HC0 + c,0,0) 'reset instruments
+		if music_paused = 0 then bufferevent(&HC0 + c,0,0) 'reset instruments
 		flushmidibuffer ' too keep the buffer from growing /too/ big
 	next
 	
@@ -322,7 +327,7 @@ Sub AddJumpToEnd(head as MIDI_EVENT ptr)
 	loop
 
 	curevent->next = CreateEvent(&H0,0,0,0)
-	if not curevent->next then exit sub
+	if curevent->next = 0 then exit sub
 
 	curevent = curevent->next
 
@@ -566,7 +571,7 @@ do while music_playing
 
 	played = curtime
 	do
-		if not curevent then exit do
+		if curevent = 0 then exit do
 		if (int(curtime) - curevent->time) < 0 then curtime = 0 : exit do
 		curtime -= curevent->time
 
@@ -631,7 +636,7 @@ sysex:
 					end if
 				case &H4 'chorus
 					p+=1
-					if not choruswas then
+					if choruswas = 0 then
 						choruswas = curevent
 						curevent = labels(curevent->extradata[p])
 					end if
@@ -695,7 +700,7 @@ sysex:
 				case &H20 'if !tag
 					p+=1
 					'debug "If Tag # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
-					if not readbit (tag(), 0, BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) then
+					if readbit (tag(), 0, BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) = 0 then
 						p += 2
 						goto sysex
 					end if
@@ -741,7 +746,7 @@ skipevents:
 	
 	if music_playing = 0 then ESCAPE_SEQUENCE
 
-	if not curevent then
+	if curevent = 0 then
 		music_playing = 0
 
 		ESCAPE_SEQUENCE
@@ -768,7 +773,7 @@ exit sub
 
 updateDelay:
 delay = division / tempo * 1000000
-return
+RETRACE
 End Sub
 
 
@@ -828,7 +833,7 @@ end sub
 
 sub sound_close
   'trying to free something that's already freed... bad!
-  if not sound_inited then exit sub
+  if sound_inited = 0 then exit sub
   
   IDirectSound_Release(ds8)
   ds8 = null
@@ -855,7 +860,7 @@ function sound_load(byval slot as integer, f as string) as integer
   if slot = -1 then
     for i = 0 to ubound(sfx_slots)
     
-      if not sfx_slots(i).used then
+      if sfx_slots(i).used = 0 then
         slot = i
         exit for
       end if
@@ -892,9 +897,9 @@ end sub
 
 sub sound_play(byval slot as integer, byval l as integer)
   with sfx_slots(slot)
-    if not .used then exit sub
-    if sound_playing(slot) and not .paused then exit sub
-    if not .buf then exit sub
+    if .used = 0 then exit sub
+    if sound_playing(slot) and .paused = 0 then exit sub
+    if .buf = 0 then exit sub
     
     if l then l = DSBPLAY_LOOPING
     
@@ -906,8 +911,8 @@ end sub
 
 sub sound_pause(byval slot as integer)
   with sfx_slots(slot)
-    if not .used then exit sub
-    if not sound_playing(slot) then exit sub
+    if .used = 0 then exit sub
+    if sound_playing(slot) = 0 then exit sub
     if .paused then exit sub
     
     .paused = 1
@@ -917,8 +922,8 @@ end sub
 
 sub sound_stop(byval slot as integer)
   with sfx_slots(slot)
-    if not .used then exit sub
-    if not sound_playing(slot) then exit sub
+    if .used = 0 then exit sub
+    if sound_playing(slot) = 0 then exit sub
     
     .paused = 0
     
@@ -931,7 +936,7 @@ function sound_playing(byval slot as integer) as integer
   dim stat as integer
   
   with sfx_slots(slot)
-    if not .used then return 0
+    if .used = 0 then return 0
     
     IDirectSoundBuffer8_GetStatus(.buf,@stat)
     

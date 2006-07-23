@@ -27,11 +27,12 @@ DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
 
 'Global variables
-COMMON SHARED uilook()
-COMMON SHARED vpage, dpage
-COMMON SHARED buffer()
-COMMON SHARED version$
-COMMON SHARED fadestate
-COMMON SHARED master()
-COMMON SHARED workingdir$
+EXTERN uilook()
+EXTERN vpage, dpage
+EXTERN buffer()
+EXTERN version$
+EXTERN fadestate
+EXTERN master()
+EXTERN workingdir$
+EXTERN curbinsize(), defbinsize()
 

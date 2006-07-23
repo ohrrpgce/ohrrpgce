@@ -260,9 +260,9 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN setpal master(): RETURN
+ IF keyval(1) > 1 THEN setpal master(): RETRACE
  IF csr2 = 0 THEN
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN setpal master(): RETURN
+  IF keyval(57) > 1 OR keyval(28) > 1 THEN setpal master(): RETRACE
   IF keyval(80) > 1 THEN csr2 = 1: cy = -1
  END IF
  IF csr2 = 1 THEN
@@ -293,7 +293,7 @@ LOOP
 
 resetpal:
 xbload game$ + ".mas", pmask(), "internal master palette missing!"
-RETURN
+RETRACE
 
 bimport:
 clearpage 3
@@ -302,12 +302,12 @@ IF at < count THEN loadpage game$ + f$, at, 3
 bitmap2page pmask(), srcbmp$, 3
 storepage game$ + f$, at, 3
 GOSUB resetpal
-RETURN
+RETRACE
 
 showpage:
 setdiskpages buffer(), 200, 0
 loadpage game$ + f$, pt, 2
-RETURN
+RETRACE
 
 END SUB
 
@@ -397,7 +397,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN tmode = 0: RETURN
+ IF keyval(1) > 1 THEN tmode = 0: RETRACE
  'IF keyval(72) > 1 THEN tmode = loopvar(tmode, 0, 4, -1)
  'IF keyval(80) > 1 THEN tmode = loopvar(tmode, 0, 4, 1)
  dummy = usemenu(tmode, 0, 0, 4, 24)
@@ -411,7 +411,7 @@ DO
     GOSUB tilemodemenu
    CASE 4
     tmode = 0
-    RETURN
+    RETRACE
   END SELECT
  END IF
  FOR i = 0 TO 4
@@ -430,7 +430,7 @@ menu$(1) = "Cut Tiles"
 menu$(2) = "Set Default Passability"
 menu$(3) = "Define Tile Animation"
 menu$(4) = "Cancel"
-RETURN
+RETRACE
 
 tileanim:
 taset = 0
@@ -445,7 +445,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN savetanim pagenum, tastuf(): RETURN
+ IF keyval(1) > 1 THEN savetanim pagenum, tastuf(): RETRACE
  IF usemenu(taptr, dummy, 0, 5, 5) THEN GOSUB utamenu
  IF taptr = 1 THEN
   IF intgrabber(taset, 0, 1, 75, 77) THEN GOSUB utamenu
@@ -454,7 +454,7 @@ DO
   IF intgrabber(tastuf(1 + 20 * taset), -999, 999, 75, 77) THEN GOSUB utamenu
  END IF
  IF keyval(57) OR keyval(28) > 1 THEN
-  IF taptr = 0 THEN savetanim pagenum, tastuf(): RETURN
+  IF taptr = 0 THEN savetanim pagenum, tastuf(): RETRACE
   IF taptr = 2 THEN GOSUB setanimrange
   IF taptr = 3 THEN setanimpattern tastuf(), taset
   IF taptr = 5 THEN testanimpattern tastuf(), taset
@@ -473,7 +473,7 @@ LOOP
 utamenu:
 menu$(1) = CHR$(27) + "Animation set" + XSTR$(taset) + CHR$(26)
 menu$(4) = "Disable if Tag#" + str$(ABS(tastuf(1 + 20 * taset))) + "=" + onoroff$(tastuf(1 + 20 * taset)) + " (" + lmnemonic(ABS(tastuf(1 + 20 * taset))) + ")"
-RETURN
+RETRACE
 
 setanimrange:
 setkeys
@@ -481,7 +481,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 OR keyval(28) > 1 OR keyval(57) > 1 THEN RETURN
+ IF keyval(1) > 1 OR keyval(28) > 1 OR keyval(57) > 1 THEN RETRACE
  IF keyval(72) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 16, 0)
  IF keyval(80) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 16, 112)
  IF keyval(75) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 1, 0)
@@ -501,7 +501,7 @@ FOR i = 0 TO 159
  END IF
  x = x + 1: IF x > 15 THEN x = 0: y = y + 1
 NEXT i
-RETURN
+RETRACE
 
 END SUB
 
@@ -616,7 +616,7 @@ onscreenpals:
 FOR i = 0 TO 9
  getpal16 pal16(), i, top + i
 NEXT i
-RETURN
+RETRACE
 
 END FUNCTION
 
@@ -727,7 +727,7 @@ SELECT CASE tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)
  CASE ELSE
   menu$(11) = menu$(11) + "N/A"
 END SELECT
-RETURN
+RETRACE
 
 forcebounds:
 FOR i = 0 TO 8
@@ -735,7 +735,7 @@ FOR i = 0 TO 8
  tastuf(2 + j) = bound(tastuf(2 + j), 0, 7)
  tastuf(11 + j) = bound(tastuf(11 + j), llim(tastuf(2 + j)), ulim(tastuf(2 + j)))
 NEXT i
-RETURN
+RETRACE
 
 END SUB
 
@@ -902,6 +902,7 @@ DO
  clearpage dpage
  dowait
 LOOP
+debug "exitted"
 offset = changepal(offset, offset, workpal(), 0)
 GOSUB savealluc
 clearpage 0
@@ -920,7 +921,7 @@ FOR i = top TO small(top + atatime, sets)
   drawsprite placer(), 0, workpal(), 0, 5 + (o * (xw + 1)), 1 + ((i - top) * (yw + 5)), dpage
  NEXT o
 NEXT i
-RETURN
+RETRACE
 
 spriteage:
 undodepth = 0
@@ -941,7 +942,10 @@ DO
   IF box OR drl OR ovalstep THEN
    GOSUB resettool
   ELSE
-   stosprite placer(), 0, num * size, soff * (pt - top), 3: GOSUB resettool: RETURN
+   debug "hear you"
+   stosprite placer(), 0, num * size, soff * (pt - top), 3
+   GOSUB resettool
+   RETRACE
   END IF
  END IF
  GOSUB sprctrl
@@ -959,7 +963,7 @@ resettool:
 box = 0
 drl = 0
 ovalstep = 0
-RETURN
+RETRACE
 
 sprctrl:
 IF mouse(2) = 0 THEN
@@ -1152,7 +1156,7 @@ IF keyval(58) > 0 THEN
  IF keyval(77) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 240, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
 END IF
 IF keyval(23) > 1 OR (zone = 13 AND mouse(3) > 0) THEN GOSUB import16
-RETURN
+RETRACE
 
 spedbak:
 clearpage 2
@@ -1166,11 +1170,11 @@ area(0, 2) = xw * zoom
 area(0, 3) = yw * zoom
 area(13, 2) = xw
 area(13, 3) = yw
-RETURN
+RETRACE
 
 import16:
 srcbmp$ = browse$(2, default$, "*.bmp", "")
-IF srcbmp$ = "" THEN RETURN
+IF srcbmp$ = "" THEN RETRACE
 '--------------------
 'DECIDE ABOUT PALETTE
 pcsr = 0
@@ -1179,7 +1183,7 @@ DO
  setwait timing(), 110
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
  IF keyval(75) > 1 OR keyval(26) > 1 THEN
   offset = changepal(offset, offset - 1, workpal(), 0)
  END IF
@@ -1188,7 +1192,7 @@ DO
  END IF
  dummy = usemenu(pcsr, 0, 0, 2, 24)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  IF pcsr = 2 THEN RETURN
+  IF pcsr = 2 THEN RETRACE
   EXIT DO
  END IF
  GOSUB spritescreen
@@ -1220,7 +1224,11 @@ DO
  setwait timing(), 110
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOSUB spedbak: RETURN '--Cancel
+ IF keyval(1) > 1 THEN 
+ '--Cancel
+  GOSUB spedbak
+  RETRACE
+ END IF
  IF keyval(72) > 0 THEN gy = large(gy - (1 + (keyval(56) * 8)), 1)
  IF keyval(80) > 0 THEN gy = small(gy + (1 + (keyval(56) * 8)), edjy)
  IF keyval(75) > 0 THEN gx = large(gx - (1 + (keyval(56) * 8)), 1)
@@ -1259,7 +1267,7 @@ END IF
 '--read the sprite
 getsprite placer(), 0, 1, 1, xw, yw, 2
 GOSUB spedbak
-RETURN
+RETRACE
 
 floodfill:
 GOSUB writeundospr
@@ -1268,7 +1276,7 @@ rectangle 239, 119, xw, yw, 0, dpage
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 paintat 239 + x, 119 + y, col, dpage, buffer(), 16384
 getsprite placer(), 0, 239, 119, xw, yw, dpage
-RETURN
+RETRACE
 
 sprayspot:
 IF oldx = -1 AND oldy = -1 THEN GOSUB writeundospr
@@ -1277,13 +1285,13 @@ airbrush 239 + x, 119 + y, airsize, mist, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
 oldx = x
 oldy = y
-RETURN
+RETRACE
 
 writeundospr:
 stosprite placer(), 0, undoptr * size, 100, 3
 undoptr = loopvar(undoptr, 0, undomax, 1)
 undodepth = small(undodepth + 1, undomax + 1)
-RETURN
+RETRACE
 
 readundospr:
 IF undodepth > 0 THEN
@@ -1291,7 +1299,7 @@ IF undodepth > 0 THEN
  undoptr = loopvar(undoptr, 0, undomax, -1)
  loadsprite placer(), 0, undoptr * size, 100, xw, yw, 3
 END IF
-RETURN
+RETRACE
 
 putdot:
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
@@ -1304,28 +1312,28 @@ END IF
 getsprite placer(), 0, 239, 119, xw, yw, dpage
 oldx = x
 oldy = y
-RETURN
+RETRACE
 
 drawoval:
 GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 ellipse 239 + bx, 119 + by, radius, col, dpage, squishx, squishy
 getsprite placer(), 0, 239, 119, xw, yw, dpage
-RETURN
+RETRACE
 
 drawsquare:
 GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
-RETURN
+RETRACE
 
 straitline:
 GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 drawline 239 + x, 119 + y, 239 + bx, 119 + by, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
-RETURN
+RETRACE
 
 spritescreen:
 defseg(varseg(workpal(0)))
@@ -1412,7 +1420,7 @@ IF gotm THEN
  textcolor 10 + tog * 5, 0
  printstr CHR$(2 + c), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
 END IF
-RETURN
+RETRACE
 
 initmarea:
 '0 x
@@ -1508,11 +1516,13 @@ area(19, 1) = 182
 area(19, 2) = 32
 area(19, 3) = 8
 area(19, 4) = 0
-RETURN
+RETRACE
 
 savealluc:
-FOR j = top TO top + atatime: GOSUB savewuc: NEXT j
-RETURN
+FOR j = top TO top + atatime
+ GOSUB savewuc
+NEXT j
+RETRACE
 
 savewuc:
 IF j <= sets THEN
@@ -1523,11 +1533,13 @@ IF j <= sets THEN
  NEXT o
  storeset game$ + file$, large(j, 0), 0
 END IF
-RETURN
+RETRACE
 
 loadalluc:
-FOR j = top TO top + atatime: GOSUB loadwuc: NEXT j
-RETURN
+FOR j = top TO top + atatime
+ GOSUB loadwuc
+NEXT j
+RETRACE
 
 loadwuc:
 IF j <= sets THEN
@@ -1538,7 +1550,7 @@ IF j <= sets THEN
   stosprite placer(), 0, size * o, soff * (j - top), 3
  NEXT o
 END IF
-RETURN
+RETRACE
 
 END SUB
 
@@ -1602,7 +1614,7 @@ FOR i = 0 TO 8
  x = i - y * 3
  setmapblock x, y, 160 + (taset * 48) + csr
 NEXT i
-RETURN
+RETRACE
 
 END SUB
 

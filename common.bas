@@ -199,7 +199,7 @@ IF treec(treeptr) = 0 THEN alert$ = "Drive"
 IF treec(treeptr) = 1 THEN alert$ = "Directory"
 IF treec(treeptr) = 2 THEN alert$ = "Subdirectory"
 IF treec(treeptr) = 4 THEN alert$ = "Root"
-RETURN
+RETRACE
 
 context:
 'erase old list
@@ -249,7 +249,7 @@ ELSE
   treeptr = 0
   treetop = 0
   nowdir$ = ""
-  RETURN
+  RETRACE
  END IF
 #ENDIF
  a$ = MID$(a$, INSTR$(a$, SLASH) + 1)
@@ -372,7 +372,7 @@ treetop = bound(treetop, treeptr - (viewsize + 2), treeptr)
 '--don't display progress bar overtop of previous menu
 ranalready = 1
 
-RETURN
+RETRACE
 
 addmatchs:
 fh = FREEFILE
@@ -459,21 +459,21 @@ LOOP
 CLOSE #fh
 safekill tmp$ + "hrbrowse.tmp"
 
-RETURN
+RETRACE
 
 drawmeter:
 IF ranalready THEN
  meter = small(meter + 1, 308): rectangle 5 + meter, 33 + viewsize * 9, 2, 5, 9, vpage
  setvispage vpage 'refresh
 END IF
-RETURN
+RETRACE
 
 drawmeter2:
 IF ranalready THEN
  meter = small(meter + 1, 308): rectangle 5 + meter, 41 + viewsize * 9, 2, 2, 9, vpage
  setvispage vpage 'refresh
 END IF
-RETURN
+RETRACE
 
 END FUNCTION
 

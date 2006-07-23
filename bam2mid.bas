@@ -10,7 +10,7 @@
 
 option explicit
 
-#include banks.bi
+#include "banks.bi"
 
 #define VELOCITY 		96
 

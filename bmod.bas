@@ -76,10 +76,14 @@ DECLARE FUNCTION consumeitem% (index%)
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'uiconst.bi'
-'$INCLUDE: 'binsize.bi'
+
+'these are the battle global variables
+DIM battlecaption$, battlecaptime, battlecapdelay, bstackstart, learnmask(29)
 
 REM $STATIC
 FUNCTION battle (form, fatal, exstat())
+
+REMEMBERSTATE
 
 '--prepare stack
 bstackstart = stackpos
@@ -291,6 +295,7 @@ clearpage 1
 clearpage 2
 clearpage 3
 
+RETRIEVESTATE
 EXIT FUNCTION '---------------------------------------------------------------
 
 pgame:
@@ -298,7 +303,7 @@ fuzzyrect 0, 0, 320, 200, uilook(uiTextBox), vpage
 edgeprint pause$, xstring(pause$, 160), 95, uilook(uiText), vpage
 '--wait for a key
 wk = getkey
-RETURN
+RETRACE
 
 enemyai: '-------------------------------------------------------------------
 ai = 0
@@ -366,17 +371,17 @@ IF stat(them, 0, 1) - atktemp(8) < 0 THEN godo(them) = 0
 
 'MP-idiot loses its turn
 IF godo(them) = 0 THEN
- IF readbit(ebits(), (them - 4) * 5, 55) = 0 THEN them = -1: RETURN
+ IF readbit(ebits(), (them - 4) * 5, 55) = 0 THEN them = -1: RETRACE
 END IF
 
 'ready for next
 ready(them) = 0: ctr(them) = 0: them = -1
 
-RETURN
+RETRACE
 
 
 heromenu: '-----------------------------------------------------------------
-IF carray(5) > 1 THEN yn = you: you = -1: RETURN
+IF carray(5) > 1 THEN yn = you: you = -1: RETRACE
 IF carray(0) > 1 THEN pt = pt - 1: IF pt < 0 THEN pt = mend(you)
 IF carray(1) > 1 THEN pt = pt + 1: IF pt > mend(you) THEN pt = 0
 IF carray(4) > 1 THEN
@@ -387,7 +392,7 @@ IF carray(4) > 1 THEN
   delay(you) = large(buffer(16), 1)
   ptarg = 1
   flusharray carray(), 7, 0
-  RETURN
+  RETRACE
  END IF
  IF bmenu(you, pt) < 0 AND bmenu(you, pt) >= -4 AND st(you, 288 + (bmenu(you, pt) + 1) * -1) < 2 THEN
   '--init spell menu
@@ -434,7 +439,7 @@ IF carray(4) > 1 THEN
     spel(i) = spell(you, sptype, i) - 1: last = i
    END IF
   NEXT i
-  IF last = -1 THEN RETURN
+  IF last = -1 THEN RETRACE
   rptr = INT(RND * 24)
   FOR i = 0 TO INT(RND * last + 1)
    ol = 0
@@ -449,18 +454,18 @@ IF carray(4) > 1 THEN
   delay(you) = large(buffer(16), 1)
   ptarg = 1
   flusharray carray(), 7, 0
-  RETURN
+  RETRACE
  END IF
  IF bmenu(you, pt) = -10 THEN mset = 2: iptr = 0: itop = 0
 END IF
-RETURN
+RETRACE
 
 atkscript: '---------------------------------------------------------------
 '--check for item consumption
 IF icons(who) >= 0 THEN
  IF inventory(icons(who)).used = 0 THEN
   '--abort if item is gone
-  anim = -1: RETURN
+  anim = -1: RETRACE
  END IF
 END IF
 '--load attack
@@ -504,7 +509,7 @@ FOR i = 0 TO 7
  IF readbit(atk(), 20, 5 + i) = 1 THEN atktype(i + 1) = 1: atktype(0) = 0
 NEXT i
 'ABORT IF TARGETLESS
-IF tcount = -1 THEN anim = -1: RETURN
+IF tcount = -1 THEN anim = -1: RETRACE
 'Kill Target history
 targmem(who) = 0
 ' BIG CRAZY SCRIPT CONSTRUCTION
@@ -917,16 +922,16 @@ END IF
 invertstack
 '--aset indicates that animation is set and that we should proceed to "action"
 aset = 1
-RETURN
+RETRACE
 
 action:
-IF wf > 0 THEN wf = wf - 1: IF wf > 0 THEN RETURN
+IF wf > 0 THEN wf = wf - 1: IF wf > 0 THEN RETRACE
 IF wf = -1 THEN
  wf = 0
  FOR i = 0 TO 23
   IF xm(i) <> 0 OR ym(i) <> 0 OR zm(i) <> 0 THEN wf = -1
  NEXT i
- IF wf = -1 THEN RETURN
+ IF wf = -1 THEN RETRACE
 END IF
 wf = 0
 
@@ -1163,7 +1168,7 @@ IF anim = -1 THEN
   END IF
  END IF
 END IF
-RETURN
+RETRACE
 
 afterdone:
 '--hide the caption when the animation is done
@@ -1174,7 +1179,7 @@ IF atk(36) = 0 THEN
 END IF
 GOSUB dieWOboss
 GOSUB fulldeathcheck
-RETURN
+RETRACE
 
 dieWOboss:
 bosses = 0
@@ -1204,7 +1209,7 @@ IF bosses = 0 THEN
   END IF
  NEXT j
 END IF
-RETURN
+RETRACE
 
 triggerfade:
 IF stat(tdwho, 0, 0) = 0 THEN
@@ -1217,7 +1222,7 @@ IF stat(tdwho, 0, 0) = 0 THEN
   END IF
  END IF
 END IF
-RETURN
+RETRACE
 
 fulldeathcheck:
 deadguycount = 0
@@ -1230,7 +1235,7 @@ FOR deadguy = 0 TO 3
  GOSUB ifdead
 NEXT deadguy
 IF deadguycount = 4 THEN dead = 2
-RETURN
+RETRACE
 
 ifdead:
 deadguyhp = stat(deadguy, 0, 0)
@@ -1303,12 +1308,12 @@ IF deadguyhp = 0 and formslotused <> 0 THEN
   NEXT j
   IF tptr = deadguy THEN
    WHILE tmask(tptr) = 0
-    tptr = tptr + 1: IF tptr > 11 THEN ptarg = 0: RETURN
+    tptr = tptr + 1: IF tptr > 11 THEN ptarg = 0: RETRACE
    WEND
   END IF
  END IF  '----END ONLY WHEN NOIFDEAD = 0
 END IF  '----END (deadguy) IS DEAD
-RETURN
+RETRACE
 
 sponhit:
 FOR i = 0 TO 8
@@ -1326,7 +1331,7 @@ FOR i = 0 TO 8
   EXIT FOR
  END IF
 NEXT i
-RETURN
+RETRACE
 
 spawnally:
 IF deadguy >= 4 THEN
@@ -1361,7 +1366,7 @@ IF deadguy >= 4 THEN
   es(deadguy - 4, 79) = 0
  END IF
 END IF
-RETURN
+RETRACE
 
 itemmenu:
 IF carray(5) > 1 THEN
@@ -1406,7 +1411,7 @@ IF carray(4) > 1 THEN
   flusharray carray(), 7, 0
  END IF
 END IF
-RETURN
+RETRACE
 
 spellmenu:
 IF carray(5) > 1 THEN '--cancel
@@ -1431,7 +1436,7 @@ IF carray(4) > 1 THEN
   '--used cancel
   mset = 0
   flusharray carray(), 7, 0
-  RETURN
+  RETRACE
  END IF
 
  '--can-I-use-it? checking
@@ -1453,7 +1458,7 @@ IF carray(4) > 1 THEN
   END IF
  END IF
 END IF
-RETURN
+RETRACE
 
 picktarg: '-----------------------------------------------------------
 
@@ -1462,7 +1467,7 @@ IF carray(5) > 1 THEN
  godo(you) = 0
  ptarg = 0
  flusharray carray(), 7, 0
- RETURN
+ RETRACE
 END IF
 
 IF ptarg = 1 THEN GOSUB setuptarg
@@ -1479,11 +1484,11 @@ IF ptarg = 3 THEN
  firstt(you) = tptr + 1
  you = -1
  ptarg = 0
- RETURN
+ RETRACE
 END IF
 
 IF targetmaskcount(tmask()) = 0 THEN
- RETURN
+ RETRACE
 END IF
 
 'random target
@@ -1506,7 +1511,7 @@ IF ran = 2 THEN
   tptr = firstt(you) - 1
  END IF
  GOSUB gottarg
- RETURN
+ RETRACE
 END IF
 IF spred = 2 AND (carray(2) > 1 OR carray(3) > 1) THEN
  FOR i = 0 TO 11
@@ -1530,7 +1535,7 @@ IF aim = 1 AND spred < 2 THEN
  END IF
 END IF
 IF carray(4) > 1 THEN GOSUB gottarg
-RETURN
+RETRACE
 
 gottarg: '-----------------------------------------------------------------
 targs(tptr) = 1
@@ -1547,7 +1552,7 @@ firstt(you) = tptr + 1
 you = -1
 ptarg = 0
 noifdead = 0
-RETURN
+RETRACE
 
 setuptarg: '--identify valid targets (heroes only)
 
@@ -1635,13 +1640,13 @@ NEXT i
 
 'fail if there are no targets
 WHILE tmask(tptr) = 0
- tptr = tptr + 1: IF tptr > 11 THEN ptarg = 0: RETURN
+ tptr = tptr + 1: IF tptr > 11 THEN ptarg = 0: RETRACE
 WEND
 
 'autoattack
 IF readbit(buffer(), 20, 54) THEN
  ptarg = 3
- RETURN
+ RETRACE
 END IF
 
 IF buffer(4) = 0 THEN aim = 1
@@ -1651,7 +1656,7 @@ IF buffer(4) = 3 THEN ran = 1
 IF buffer(4) = 4 THEN ran = 2
 'ready to choose targ from targset
 ptarg = 2
-RETURN
+RETRACE
 
 display:
 IF vdance = 0 THEN 'only display interface till you win
@@ -1754,12 +1759,12 @@ IF vdance = 0 THEN 'only display interface till you win
  END IF
  IF you >= 0 AND ptarg = 0 AND readbit(gen(), genBits, 14) = 0 THEN edgeprint CHR$(24), x(you) + (w(you) / 2) - 4, y(you) - 5 + (tog * 2), uilook(uiSelectedItem + tog), dpage
 END IF'--end if vdance=0
-RETURN
+RETRACE
 
 meters:
-IF away = 1 THEN RETURN
+IF away = 1 THEN RETRACE
 '--if a menu is up, and pause-on-menus is ON then no time passes
-IF (mset > 0 AND readbit(gen(), genBits, 0)) OR (mset >= 0 AND you >= 0 AND readbit(gen(), genBits, 13)) THEN RETURN
+IF (mset > 0 AND readbit(gen(), genBits, 0)) OR (mset >= 0 AND you >= 0 AND readbit(gen(), genBits, 13)) THEN RETRACE
 
 FOR i = 0 TO 11
 
@@ -1812,7 +1817,7 @@ IF TIMER > laststun + 1 THEN
  laststun = TIMER
 END IF
 
-RETURN
+RETRACE
 
 animate:
 FOR i = 0 TO 3
@@ -1850,7 +1855,7 @@ FOR i = 0 TO 11
   IF i < 4 THEN of(i) = 7
  END IF
 NEXT i
-RETURN
+RETRACE
 
 sprite:
 FOR i = 0 TO 24 'set zbuf to 0 through 24
@@ -1885,7 +1890,7 @@ FOR i = 0 TO 11
   IF hc(i) = 0 THEN hc(i + 12) = 15
  END IF
 NEXT i
-RETURN
+RETRACE
 
 seestuff:
 FOR i = 0 TO 11
@@ -1894,7 +1899,7 @@ FOR i = 0 TO 11
  IF i >= 4 THEN edgeprint XSTR$(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
  edgeprint XSTR$(v(i)) + ":v" + XSTR$(delay(i)) + ":dly" + XSTR$(tmask(i)) + ":tm", 20, 80 + i * 10, c, dpage
 NEXT i
-RETURN
+RETRACE
 
 tryrun:
 IF flee > 0 AND flee < 4 THEN
@@ -1930,7 +1935,7 @@ IF flee > 4 THEN
  NEXT i
  IF RND * temp < flee THEN away = 1: flee = 2: FOR i = 0 TO 3: ctr(i) = 0: ready(i) = 0: NEXT i
 END IF
-RETURN
+RETRACE
 
 loadall:
 setpicstuf a(), 80, -1
@@ -2018,7 +2023,7 @@ IF bos = 0 THEN
  NEXT deadguy
  IF deadguycount = 8 THEN dead = 1
 END IF
-RETURN
+RETRACE
 
 victory: '------------------------------------------------------------------
 IF gen(3) > 0 THEN wrappedsong gen(3) - 1
@@ -2030,7 +2035,7 @@ FOR i = 0 TO 3
  updatestatslevelup i, exstat(), stat(), 0
 NEXT i
 vdance = 1
-RETURN
+RETRACE
 
 vicdance:
 IF drawvicbox THEN centerfuz 160, 30, 280, 50, 1, dpage
@@ -2104,13 +2109,13 @@ IF vdance = 1 THEN
   edgeprint temp$, xstring(temp$, 160), 28, uilook(uiText), dpage
  END IF
 END IF
-RETURN
+RETRACE
 
 vicfind:
 '--check to see if we are currently displaying a gotten item
 IF found$ = "" THEN
  '--if not, check to see if there are any more gotten items to display
- IF found(fptr, 1) = 0 THEN vdance = -1: RETURN
+ IF found(fptr, 1) = 0 THEN vdance = -1: RETRACE
  '--get the item name
  found$ = readitemname$(found(fptr, 0))
  '--actually aquire the item
@@ -2134,7 +2139,7 @@ IF carray(4) > 1 OR carray(5) > 1 THEN
   fptr = fptr + 1: found$ = ""
  END IF
 END IF
-RETURN
+RETRACE
 
 checkitemusability:
 FOR i = 0 TO inventoryMax
@@ -2144,7 +2149,7 @@ FOR i = 0 TO inventoryMax
   IF buffer(47) > 0 THEN setbit iuse(), 0, i, 1
  END IF
 NEXT i
-RETURN
+RETRACE
 
 'afflictions
 '12=poison

@@ -1679,7 +1679,7 @@ EXIT SUB
 setwaitstate:
 scrat(nowscript, curwaitarg) = retvals(0)
 scrat(nowscript, scrstate) = stwait
-RETURN
+RETRACE
 
 END SUB
 
@@ -2167,7 +2167,7 @@ IF tmp = 4 THEN
  IF untrigbit = 5 THEN setbit veh(), 6, 4, 1'--clear
  IF veh(21) THEN setbit veh(), 6, 1, 1'--rise
 END IF
-RETURN
+RETRACE
 
 END FUNCTION
 

@@ -6,7 +6,7 @@
 
 option explicit
 
-#include music.bi
+#include "music.bi"
 #include "SDL\SDL.bi"
 #include "SDL\SDL_mixer.bi"
 

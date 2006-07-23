@@ -7,92 +7,91 @@
 '$INCLUDE: 'udts.bi'
 
 'Misc game globals
-COMMON SHARED game$
-COMMON SHARED sourcerpg$
-COMMON SHARED tmpdir$
-COMMON SHARED exename$
-COMMON SHARED timing()
-COMMON SHARED pal16()
-COMMON SHARED names$()
-COMMON SHARED fmvol
-COMMON SHARED speedcontrol
-COMMON SHARED deferpaint
-COMMON SHARED presentsong
-COMMON SHARED foemaph
-COMMON SHARED lockfile
-COMMON SHARED lastsaveslot
-COMMON SHARED defbinsize()
-COMMON SHARED curbinsize()
-COMMON SHARED abortg
-COMMON SHARED usepreunlump%
+EXTERN game$
+EXTERN sourcerpg$
+EXTERN tmpdir$
+EXTERN exename$
+EXTERN timing()
+EXTERN pal16()
+EXTERN names$()
+EXTERN fmvol
+EXTERN speedcontrol
+EXTERN deferpaint
+EXTERN presentsong
+EXTERN foemaph
+EXTERN lockfile
+EXTERN lastsaveslot
+EXTERN abortg
+EXTERN usepreunlump%
+EXTERN lumpmod()
 
 'Input handling globals
-COMMON SHARED carray(), csetup()
-COMMON SHARED gotj(), joy()
-COMMON SHARED keyv()
+EXTERN carray(), csetup()
+EXTERN gotj(), joy()
+EXTERN keyv()
 
 'Game state globals
-COMMON SHARED gen()
-COMMON SHARED tag()
-COMMON SHARED global()
+EXTERN gen()
+EXTERN tag()
+EXTERN global()
 
 'Vehicle globals
-COMMON SHARED veh()
+EXTERN veh()
 
 'Hero globals
-COMMON SHARED hero()
-COMMON SHARED eqstuf()
-COMMON SHARED lmp()
-COMMON SHARED bmenu()
-COMMON SHARED spell()
-COMMON SHARED exlev&()
-COMMON SHARED herobits%()
-COMMON SHARED itembits%()
-COMMON SHARED hmask()
-COMMON SHARED gold&
-COMMON SHARED nativehbits()
+EXTERN hero()
+EXTERN eqstuf()
+EXTERN lmp()
+EXTERN bmenu()
+EXTERN spell()
+EXTERN exlev&()
+EXTERN herobits%()
+EXTERN itembits%()
+EXTERN hmask()
+EXTERN gold&
+EXTERN nativehbits()
 
 'Map state globals
-COMMON SHARED gmap()
-COMMON SHARED scroll()
-COMMON SHARED mapx, mapy
-COMMON SHARED framex
-COMMON SHARED framey
+EXTERN gmap()
+EXTERN scroll()
+EXTERN mapx, mapy
+EXTERN framex
+EXTERN framey
 
 'Hero walkabout globals
-COMMON SHARED catx(), caty(), catz(), catd()
-COMMON SHARED herospeed()
-COMMON SHARED xgo(), ygo()
-COMMON SHARED wtog()
-COMMON SHARED catermask()
+EXTERN catx(), caty(), catz(), catd()
+EXTERN herospeed()
+EXTERN xgo(), ygo()
+EXTERN wtog()
+EXTERN catermask()
 
 'NPC globals
-COMMON SHARED npcs()
-COMMON SHARED npc() as NPCInst
+EXTERN npcs()
+EXTERN npc() as NPCInst
 
 'Item globals
-COMMON SHARED inventory() as InventSlot
+EXTERN inventory() as InventSlot
 
 'Script globals
-COMMON SHARED script()
-COMMON SHARED heap()
-COMMON SHARED astack()
-COMMON SHARED scrat()
-COMMON SHARED retvals()
-COMMON SHARED nowscript
-COMMON SHARED scriptret
-COMMON SHARED nextscroff
+EXTERN script()
+EXTERN heap()
+EXTERN astack()
+EXTERN scrat()
+EXTERN retvals()
+EXTERN nowscript
+EXTERN scriptret
+EXTERN nextscroff
 
 'Script string globals
-COMMON SHARED plotstring$()
-COMMON SHARED plotstrX(), plotstrY()
-COMMON SHARED plotstrCol()
-COMMON SHARED plotstrBGCol()
-COMMON SHARED plotstrBits()
+EXTERN plotstring$()
+EXTERN plotstrX(), plotstrY()
+EXTERN plotstrCol()
+EXTERN plotstrBGCol()
+EXTERN plotstrBits()
 
 'Battle globals
-COMMON SHARED battlecaption$
-COMMON SHARED battlecaptime
-COMMON SHARED battlecapdelay
-COMMON SHARED bstackstart
-COMMON SHARED learnmask()
+EXTERN battlecaption$
+EXTERN battlecaptime
+EXTERN battlecapdelay
+EXTERN bstackstart
+EXTERN learnmask()

@@ -7,7 +7,7 @@
 
 option explicit
 
-#include gfx.bi
+#include "gfx.bi"
 
 dim shared offset as integer = 0
 dim shared windowed as integer = 0

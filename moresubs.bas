@@ -693,7 +693,7 @@ refreshemenu:
 IF ecsr < top THEN top = large(ecsr, 0)
 IF ecsr > top + 7 THEN top = ecsr - 7
 IF hero(acsr) AND ecsr < 0 THEN info$ = names$(acsr) ELSE info$ = ""
-RETURN
+RETRACE
 
 '---DRAWS SWAP MENU AND CURRENT SELECTION----
 showswapmenu:
@@ -728,7 +728,7 @@ IF LEN(info$) THEN
  centerbox 160, 44, (LEN(info$) + 2) * 8, 14, 1, dpage
  edgeprint info$, xstring(info$, 160), 39, uilook(uiText), dpage
 END IF
-RETURN
+RETRACE
 
 '---MAPS OUT ONLY VALID SWAPABLE HEROS PLUS A BLANK-----
 resetswap:
@@ -758,7 +758,7 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 IF hero(acsr) AND ecsr < 0 THEN info$ = names$(acsr) ELSE info$ = ""
-RETURN
+RETRACE
 END SUB
 
 FUNCTION howmanyh (f, l)
@@ -1895,7 +1895,7 @@ loadpage game$ + ".til", gmap(0), 3
 setmapdata scroll(), buffer(), 0, 0
 drawmap mapx, mapy, 0, dpage
 copypage dpage, 3
-RETURN
+RETRACE
 
 initshop:
 setpicstuf storebuf(), 40, -1
@@ -1910,7 +1910,7 @@ FOR i = 0 TO 7
   o = o + 1
  END IF
 NEXT i
-RETURN
+RETRACE
 END SUB
 
 FUNCTION shoption (inn, price, needf, stat())

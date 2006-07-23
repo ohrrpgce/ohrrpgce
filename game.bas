@@ -145,6 +145,9 @@ DECLARE FUNCTION titlescr% ()
 
 'DEBUG debug "started debug session "+date$+" "+time$
 
+REMEMBERSTATE
+
+
 '---GET TEMP DIR---
 tmpdir$ = aquiretempdir$
 commandlineargs
@@ -159,12 +162,17 @@ thestart:
 DIM font(1024), master(767), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
 DIM door(206), gen(104), npcs(1500), saytag(21), tag(127), hero(40), stat(40, 1, 16), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), menu$(20), exlev&(40, 1), names$(40), mi(10), gotj(2), veh(21)
 DIM eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3),  _
-tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 3), learnmask(29)
+tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
 DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 14), retvals(32), plotstring$(31), plotstrX(31), plotstrY(31), plotstrCol(31), plotstrBGCol(31), plotstrBits(31)
 DIM uilook(uiColors)
 DIM inventory(inventoryMax) as InventSlot
 DIM npc(300) as NPCInst
+DIM didgo(0 TO 3)
+'all global variables have to be dimmed to be used with EXTERN
+DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, tmpdir$, usepreunlump, lockfile, gold, lastsaveslot, abortg, exename$, sourcerpg$, foemaph, presentsong, framex, framey, game$, workingdir$, version$ 
+DIM nowscript, scriptret, nextscroff
+
 '--stuff we used to DIM here, but have defered to later
 'DIM scroll(16002), pass(16002)
 
@@ -590,7 +598,8 @@ DO
     ERASE scroll, pass
     wonbattle = battle(batform, fatal, stat())
     afterbat = 1
-    GOSUB preparemap: needf = 2
+    GOSUB preparemap
+    needf = 2
    ELSE
     rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle")
     IF rsr = 1 THEN
@@ -649,7 +658,7 @@ IF gen(57) > 0 THEN
  END IF
 END IF
 samemap = -1
-RETURN
+RETRACE
 
 displayall:
 'DEBUG debug "display"
@@ -696,7 +705,7 @@ edgeprint scriptout$, 0, 190, uilook(uiText), dpage
 showplotstrings
 IF showtags > 0 THEN tagdisplay
 IF scrwatch THEN scriptwatcher dpage
-RETURN
+RETRACE
 
 usermenu:
 setusermenu menu$(), mt, mi()
@@ -794,7 +803,7 @@ LOOP
 setkeys
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
 fatal = checkfordeath(stat())
-RETURN
+RETRACE
 
 usething:
 IF auto = 0 THEN
@@ -808,7 +817,7 @@ IF sayer < 0 THEN
    j = -1
    DO
     j = j + 1
-    IF j > 299 THEN RETURN
+    IF j > 299 THEN RETRACE
     'would <= 19 do?
     'LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
     IF npc(j).id > 0 AND (j <> veh(5) OR veh(0) = 0) THEN 'A
@@ -837,7 +846,7 @@ IF sayer < 0 THEN
 END IF
 IF sayer >= 0 THEN
  '--Step-on NPCs cannot be used
- IF auto = 0 AND npcs((npc(sayer).id - 1) * 15 + 8) = 2 THEN RETURN
+ IF auto = 0 AND npcs((npc(sayer).id - 1) * 15 + 8) = 2 THEN RETRACE
  getit = npcs((npc(sayer).id - 1) * 15 + 6)
  IF getit THEN getitem getit, 1
  '---DIRECTION CHANGING-----------------------
@@ -889,7 +898,7 @@ IF sayer >= 0 THEN
   npcplot
  END IF
 END IF
-RETURN
+RETRACE
 
 nextsay:
 IF sayenh(4) > 0 THEN
@@ -921,7 +930,9 @@ IF istag(saytag(5), 0) THEN
  ERASE scroll, pass
  wonbattle = battle(saytag(6), fatal, stat())
  afterbat = 1
- GOSUB preparemap: foep = range(100, 60): needf = 1
+ GOSUB preparemap
+ foep = range(100, 60)
+ needf = 1
 END IF
 '---GAIN/LOSE ITEM--------
 IF istag(saytag(17), 0) THEN
@@ -969,7 +980,7 @@ IF istag(saytag(11), 0) THEN
  ELSE
   say = saytag(12)
   loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
-  RETURN
+  RETRACE
  END IF
 END IF
 evalherotag stat()
@@ -996,7 +1007,7 @@ showsay = 0
 sayer = -1
 setkeys
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
-RETURN
+RETRACE
 
 movement:
 FOR whoi = 0 TO 3
@@ -1058,7 +1069,6 @@ ELSE
   IF xgo(whoi) OR ygo(whoi) THEN wtog(whoi) = loopvar(wtog(whoi), 0, 3, 1)
  NEXT whoi
 END IF
-DIM didgo(0 TO 3) AS INTEGER
 FOR whoi = 0 TO 3
  didgo(whoi) = 0
  IF xgo(whoi) OR ygo(whoi) THEN
@@ -1137,9 +1147,8 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR ng = 1) THEN
   END IF
  END IF
 END IF
-ERASE didgo
 setmapxy
-RETURN
+RETRACE
 
 movenpc:
 FOR o = 0 TO 299
@@ -1215,7 +1224,7 @@ FOR o = 0 TO 299
   IF npc(o).xgo <> 0 OR npc(o).ygo <> 0 THEN GOSUB movenpcgo
  END IF
 NEXT o
-RETURN
+RETRACE
 
 movenpcgo:
 setmapdata pass(), pass(), 0, 0
@@ -1249,7 +1258,10 @@ IF movdivis(npc(o).xgo) OR movdivis(npc(o).ygo) THEN
      npc(o).xgo = 0
      npc(o).ygo = 0
      '--a 0-3 tick delay before pacing enemies bounce off hero
-     IF npc(o).frame = 3 THEN GOSUB hitwall: GOTO nogo
+     IF npc(o).frame = 3 THEN
+      GOSUB hitwall
+      GOTO nogo
+     END IF
     END IF
    END IF
   END IF
@@ -1277,17 +1289,17 @@ IF npcs(id * 15 + 8) = 1 AND showsay = 0 THEN
   GOSUB usething
  END IF
 END IF
-RETURN
+RETRACE
 
 hitwall:
 IF npcs(id * 15 + 2) = 2 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, 2)
 IF npcs(id * 15 + 2) = 3 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, 1)
 IF npcs(id * 15 + 2) = 4 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, -1)
 IF npcs(id * 15 + 2) = 5 THEN npc(o).dir = INT(RND * 4)
-RETURN
+RETRACE
 
 opendoor:
-IF veh(0) AND readbit(veh(), 9, 3) = 0 AND dforce = 0 THEN RETURN
+IF veh(0) AND readbit(veh(), 9, 3) = 0 AND dforce = 0 THEN RETRACE
 FOR doori = 0 TO 99
  IF readbit(door(), 200, doori) THEN
   IF (door(doori) = INT(catx(0) / 20) AND door(doori + 100) = INT(caty(0) / 20) + 1) OR dforce - 1 = doori THEN
@@ -1297,7 +1309,7 @@ FOR doori = 0 TO 99
   END IF
  END IF
 NEXT doori
-RETURN
+RETRACE
 
 thrudoor:
 samemap = 0
@@ -1327,7 +1339,7 @@ FOR o = 0 TO 199
   END IF
  END IF
 NEXT o
-RETURN
+RETRACE
 
 preparemap:
 'DEBUG debug "in preparemap"
@@ -1430,7 +1442,7 @@ afterbat = 0
 samemap = 0
 afterload = 0
 'DEBUG debug "end of preparemap"
-RETURN
+RETRACE
 
 resetg:
 IF autorungame THEN exitprogram (NOT abortg)
@@ -1441,6 +1453,7 @@ closesound
 'closefile
 setfmvol fmvol
 restoremode
+RETRIEVESTATE
 GOTO thestart
 
 tempDirErr:
@@ -1604,7 +1617,7 @@ IF wantusenpc > 0 THEN
  auto = 2
  GOSUB usething
 END IF
-RETURN
+RETRACE
 
 interpretloop:
 DO
@@ -1875,7 +1888,7 @@ DO
    END SELECT
  END SELECT
 LOOP
-RETURN
+RETRACE
 
 incrementflow:
 tmpstep = popw
@@ -1887,7 +1900,7 @@ pushw tmpstart
 pushw tmpend
 pushw tmpstep
 writescriptvar tmpvar, readscriptvar(tmpvar) + tmpstep
-RETURN
+RETRACE
 
 dumpandreturn:
 FOR i = scrat(nowscript, curargn) - 1 TO 0 STEP -1
@@ -1895,7 +1908,7 @@ FOR i = scrat(nowscript, curargn) - 1 TO 0 STEP -1
 NEXT i
 scriptret = 0
 scrat(nowscript, scrstate) = streturn'---return
-RETURN
+RETRACE
 
 '---DO THE ACTUAL EFFECTS OF MATH AND FUNCTIONS----
 sfunctions:
@@ -2091,4 +2104,4 @@ SELECT CASE scrat(nowscript, curkind)
     '---------
   END SELECT
 END SELECT
-RETURN
+RETRACE

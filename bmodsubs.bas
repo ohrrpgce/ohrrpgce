@@ -207,13 +207,13 @@ IF gen(60) = 0 AND keyval(29) > 0 AND keyval(csetup(11)) > 1 THEN
  NEXT i
 END IF
 carray(8) = keyval(csetup(12)): carray(15) = carray(15) - 1
-RETURN
+RETRACE
 
 joystick:
 FOR i = 0 TO 1
  IF gotj(i) THEN gotj(i) = readjoy(joy(), i): EXIT FOR
 NEXT i
-IF gotj(i) = 0 THEN RETURN
+IF gotj(i) = 0 THEN RETRACE
 
 'edgeprint XSTR$(i) + XSTR$(gotj(i)) + XSTR$(joy(0)) + XSTR$(joy(1)) + XSTR$(joy(2)) + XSTR$(joy(3)) + XSTR$(carray(4)) + XSTR$(carray(5)), 0, 170, 14, 0
 'edgeprint XSTR$(i) + XSTR$(gotj(i)) + XSTR$(joy(0)) + XSTR$(joy(1)) + XSTR$(joy(2)) + XSTR$(joy(3)) + XSTR$(carray(4)) + XSTR$(carray(5)), 0, 170, 14, 1
@@ -275,7 +275,7 @@ END SELECT
 FOR i = 0 TO 3
  carray(10 + i) = carray(i)
 NEXT i
-RETURN
+RETRACE
 
 END SUB
 

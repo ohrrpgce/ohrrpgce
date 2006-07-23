@@ -18,6 +18,31 @@ option nokeyword poke
 #define poke xpoke
 #define DONESTR
 #endif
+
+'included only for $inclib?
+#include "crt.bi"
+'#include "crt/setjmp.bi"
+' setjmp.bi is incorrect
+type crt_jmp_buf:dummy(63) as byte:end type
+#ifdef __FB_WIN32__
+declare function setjmp cdecl alias "_setjmp" (byval as any ptr) as integer
+#else
+declare function setjmp cdecl alias "setjmp" (byval as any ptr) as integer
+#endif
+declare sub longjmp cdecl alias "longjmp" (byval as any ptr, byval as integer)
+#undef rand
+#undef abort
+#undef bound
+#undef strlen
+
+extern gosubbuf() as crt_jmp_buf
+extern gosubptr as integer
+option nokeyword gosub
+#define gosub if setjmp(@gosubbuf(gosubptr)) then gosubptr-=1 else gosubptr+=1:goto
+#define retrace longjmp(@gosubbuf(gosubptr-1),1)
+#define retrievestate gosubptr=localgosubptr
+#define rememberstate localgosubptr=gosubptr
+
 #endif
 
 #ifdef __FB_LINUX__

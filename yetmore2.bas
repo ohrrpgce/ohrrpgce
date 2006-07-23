@@ -435,7 +435,7 @@ IF gmap(5) = 0 THEN
  mapx = bound(mapx, 0, scroll(0) * 20 - 320)
  mapy = bound(mapy, 0, scroll(1) * 20 - 200)
 END IF
-RETURN
+RETRACE
 
 END SUB
 

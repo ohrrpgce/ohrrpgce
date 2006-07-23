@@ -648,14 +648,14 @@ setpicstuf buffer(), (previewsize(recbuf(EnDatPicSize)) ^ 2) / 2, 2
 loadset game$ + ".pt" + STR$(1 + recbuf(EnDatPicSize)), recbuf(EnDatPic), 0
 getpal16 workpal(), 0, recbuf(EnDatPal)
 
-RETURN
+RETRACE
 
 '-----------------------------------------------------------------------
 
 EnPreviewSub:
 loadsprite buffer(), 0, 0, 0, previewsize(recbuf(EnDatPicSize)), previewsize(recbuf(EnDatPicSize)), 2
 wardsprite buffer(), 0, workpal(), 0, 260 - previewsize(recbuf(EnDatPicSize)) / 2, 180 - previewsize(recbuf(EnDatPicSize)), dpage
-RETURN
+RETRACE
 
 '-----------------------------------------------------------------------
 
@@ -665,7 +665,7 @@ menudepth = 0
 pt = lastptr
 top = lasttop
 GOSUB EnUpdateMenu
-RETURN
+RETRACE
 
 '-----------------------------------------------------------------------
 
@@ -673,7 +673,7 @@ EnPushPtrSub:
 lastptr = pt
 lasttop = top
 menudepth = 1
-RETURN
+RETRACE
 
 '-----------------------------------------------------------------------
 
@@ -681,7 +681,7 @@ EnLoadSub:
 setpicstuf recbuf(), 320, -1
 loadset game$ + ".dt1", recindex, 0
 GOSUB EnUpdateMenu
-RETURN
+RETRACE
 
 '-----------------------------------------------------------------------
 END SUB
@@ -731,7 +731,10 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOSUB savefset: RETURN
+ IF keyval(1) > 1 THEN 
+  GOSUB savefset
+  RETRACE
+ END IF
  'IF keyval(72) > 1 THEN
  '  bcsr = large(bcsr - 1, 0)
  '  GOSUB lpreviewform
@@ -742,11 +745,22 @@ DO
  'END IF
  IF usemenu(bcsr, 0, 0, 22, 24) THEN GOSUB lpreviewform
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
-  IF bcsr = 0 THEN GOSUB savefset: RETURN
+  IF bcsr = 0 THEN
+   GOSUB savefset
+   RETRACE
+  END IF
  END IF
  IF bcsr = 1 THEN
-  IF keyval(75) > 1 THEN GOSUB savefset: gptr = large(gptr - 1, 0): GOSUB loadfset
-  IF keyval(77) > 1 THEN GOSUB savefset: gptr = small(gptr + 1, 255): GOSUB loadfset
+  IF keyval(75) > 1 THEN
+   GOSUB savefset
+   gptr = large(gptr - 1, 0)
+   GOSUB loadfset
+  END IF
+  IF keyval(77) > 1 THEN
+   GOSUB savefset
+   gptr = small(gptr + 1, 255)
+   GOSUB loadfset
+  END IF
  END IF
  IF bcsr = 2 THEN dummy = intgrabber(c(0), 0, 99, 75, 77)
  IF bcsr > 2 THEN
@@ -787,17 +801,17 @@ IF bcsr > 2 THEN
   GOSUB formpics
  END IF
 END IF
-RETURN
+RETRACE
 
 savefset:
 setpicstuf c(), 50, -1
 storeset game$ + ".efs", gptr, 0
-RETURN
+RETRACE
 
 loadfset:
 setpicstuf c(), 50, -1
 loadset game$ + ".efs", gptr, 0
-RETURN
+RETRACE
 
 editform:
 '--???  well, you see..
@@ -828,21 +842,36 @@ DO
  END IF
  IF csr3 = 0 THEN
   '--menu mode
-  IF keyval(1) > 1 THEN GOSUB saveform: RETURN
+  IF keyval(1) > 1 THEN
+   GOSUB saveform
+   RETRACE
+  END IF
   IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, general(37), 0, game$ + ".for", 80, 1
   dummy = usemenu(csr2, -6, -6, 7, 25)
   IF keyval(57) > 1 OR keyval(28) > 1 THEN
-   IF csr2 = -6 THEN GOSUB saveform: RETURN
+   IF csr2 = -6 THEN
+    GOSUB saveform
+    RETRACE
+   END IF
    IF csr2 >= 0 THEN IF a(csr2 * 4 + 0) > 0 THEN csr3 = 1
   END IF
   IF (csr2 >= -5 AND csr2 <= -4) OR (csr2 >= -1 AND csr2 < 0) THEN
-   IF intgrabber(a(36 + csr2), 0, max(csr2 + 5), 75, 77) THEN GOSUB saveform: GOSUB loadform
+   IF intgrabber(a(36 + csr2), 0, max(csr2 + 5), 75, 77) THEN
+    GOSUB saveform
+    GOSUB loadform
+   END IF
   END IF
   IF csr2 = -3 THEN
-   IF zintgrabber(a(36 + csr2), -1, max(csr2 + 5), 75, 77) THEN GOSUB saveform: GOSUB loadform
+   IF zintgrabber(a(36 + csr2), -1, max(csr2 + 5), 75, 77) THEN
+    GOSUB saveform
+    GOSUB loadform
+   END IF
   END IF
   IF csr2 = -2 THEN
-   IF xintgrabber(a(36 + csr2), 2, max(csr2 + 5), 0, 0, 75, 77) THEN GOSUB saveform: GOSUB loadform
+   IF xintgrabber(a(36 + csr2), 2, max(csr2 + 5), 0, 0, 75, 77) THEN
+    GOSUB saveform
+    GOSUB loadform
+   END IF
   END IF
   IF csr2 = -5 THEN '---SELECT A DIFFERENT FORMATION
    remptr = pt
@@ -853,7 +882,12 @@ DO
     GOSUB loadform
     GOSUB formpics
    END IF
-   IF keyval(75) > 1 AND pt > 0 THEN GOSUB saveform: pt = large(pt - 1, 0): GOSUB loadform: GOSUB formpics
+   IF keyval(75) > 1 AND pt > 0 THEN
+    GOSUB saveform
+    pt = large(pt - 1, 0)
+    GOSUB loadform
+    GOSUB formpics
+   END IF
    IF keyval(77) > 1 AND pt < 32767 THEN
     GOSUB saveform
     pt = pt + 1
@@ -913,7 +947,7 @@ FOR i = 0 TO 7
   IF csr2 = z(i) THEN textcolor 176 + ABS(flash), 0: printstr CHR$(25), a(z(i) * 4 + 1) + (w(z(i)) * .5) - 4, a(z(i) * 4 + 2), dpage
  END IF
 NEXT i
-RETURN
+RETRACE
 
 clearformation:
 FOR i = 0 TO 40
@@ -922,18 +956,18 @@ NEXT i
 a(33) = general(4)
 setpicstuf a(), 80, -1
 storeset game$ + ".for", pt, 0
-RETURN
+RETRACE
 
 saveform:
 setpicstuf a(), 80, -1
 storeset game$ + ".for", pt, 0
-RETURN
+RETRACE
 
 loadform:
 setpicstuf a(), 80, -1
 loadset game$ + ".for", pt, 0
 loadpage game$ + ".mxs", a(32), 2
-RETURN
+RETRACE
 
 formpics:
 FOR i = 0 TO 7
@@ -953,7 +987,7 @@ FOR i = 0 TO 7
   loadset game$ + f$, b(53), i * 10
  END IF
 NEXT i
-RETURN
+RETRACE
 
 END SUB
 
@@ -1038,7 +1072,11 @@ DO
    SWAP pt, remptr
    GOSUB thishero
   END IF
-  IF keyval(75) > 1 AND pt > 0 THEN GOSUB lasthero: pt = pt - 1: GOSUB thishero
+  IF keyval(75) > 1 AND pt > 0 THEN
+   GOSUB lasthero
+   pt = pt - 1
+   GOSUB thishero
+  END IF
   IF keyval(77) > 1 AND pt < 59 THEN
    GOSUB lasthero
    pt = pt + 1
@@ -1073,8 +1111,8 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
- IF (keyval(57) > 1 OR keyval(28) > 1) AND bctr = 0 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
+ IF (keyval(57) > 1 OR keyval(28) > 1) AND bctr = 0 THEN RETRACE
  dummy = usemenu(bctr, 0, 0, 4, 24)
  IF bctr > 0 THEN
   strgrabber hmenu$(bctr - 1), 10
@@ -1106,12 +1144,16 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
  dummy = usemenu(bctr, -1, -1, 3, 24)
  IF bctr >= 0 THEN dummy = intgrabber(a(288 + bctr), 0, 2, 75, 77)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  IF bctr = -1 THEN RETURN
-  IF bctr >= 0 AND bctr < 4 THEN temp = bctr: GOSUB spells: bctr = temp
+  IF bctr = -1 THEN RETRACE
+  IF bctr >= 0 AND bctr < 4 THEN
+   temp = bctr
+   GOSUB spells
+   bctr = temp
+  END IF
  END IF
  textcolor 7, 0: IF bctr = -1 THEN textcolor 14 + tog, 0
  printstr "Previous Menu", 0, 0, dpage
@@ -1146,12 +1188,12 @@ DO
  setkeys
  tog = tog XOR 1
  GOSUB movesmall
- IF keyval(1) > 1 THEN frame = -1: RETURN
+ IF keyval(1) > 1 THEN frame = -1: RETRACE
  IF (keyval(52) > 1 AND frame = 0) OR (keyval(51) > 1 AND frame = 1) THEN
   frame = frame xor 1
  END IF
  dummy = usemenu(bctr, 0, 0, 9, 24)
- IF (keyval(28) > 1 OR keyval(57) > 1) AND bctr = 0 THEN frame = -1: RETURN
+ IF (keyval(28) > 1 OR keyval(57) > 1) AND bctr = 0 THEN frame = -1: RETRACE
  IF bctr > 0 THEN
   SELECT CASE bctr
    CASE 0 TO 6
@@ -1204,7 +1246,7 @@ IF frame <> -1 THEN
  IF frame = 0 THEN printstr ">",272,18,dpage
 END IF
 
-RETURN
+RETRACE
 
 genheromenu:
 bmenu$(1) = "Battle Picture:" + XSTR$(a(17))
@@ -1222,7 +1264,7 @@ ELSE
 END IF
 bmenu$(8) = "Hand X:" + XSTR$(a(297 + frame * 2))
 bmenu$(9) = "Hand Y:" + XSTR$(a(298 + frame * 2))
-RETURN
+RETRACE
 
 levstats:
 bctr = 0
@@ -1237,13 +1279,13 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
  IF keyval(72) > 1 THEN bctr = large(bctr - 2, 0)
  IF keyval(80) > 1 AND bctr > 0 THEN bctr = small(bctr + 2, 24)
  IF keyval(80) > 1 AND bctr = 0 THEN bctr = bctr + 1
  IF keyval(75) > 1 AND bctr > 0 THEN bctr = bctr - 1
  IF keyval(77) > 1 AND bctr < 24 THEN bctr = bctr + 1
- IF (keyval(28) > 1 OR keyval(57) > 1) AND bctr = 0 THEN RETURN
+ IF (keyval(28) > 1 OR keyval(57) > 1) AND bctr = 0 THEN RETRACE
  IF bctr > 0 THEN
   IF intgrabber(a(22 + bctr), min(bctr), max(bctr), 51, 52) THEN GOSUB smi
  END IF
@@ -1285,7 +1327,7 @@ DO
  IF sticky THEN
   IF keyval(1) > 1 THEN sticky = 0: GOSUB setsticky
  ELSE
-  IF keyval(1) > 1 THEN RETURN
+  IF keyval(1) > 1 THEN RETRACE
   IF usemenu(bctr, 0, 0, 24, 24) THEN
    IF a(offset + (bctr - 1) * 2) = 0 THEN colcsr = 0
   END IF
@@ -1306,7 +1348,7 @@ DO
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF bctr = 0 THEN
    '--exit menu
-   RETURN
+   RETRACE
   ELSE
    '--sticky-typing mode
    sticky = sticky XOR 1
@@ -1344,13 +1386,13 @@ ELSE
  leftkey = 51
  rightkey = 52
 END IF
-RETURN
+RETRACE
 
 gosubatkname:
-IF a(offset + (o - 1) * 2) = 0 THEN attack$(o) = "EMPTY": RETURN
+IF a(offset + (o - 1) * 2) = 0 THEN attack$(o) = "EMPTY": RETRACE
 attack$(o) = STR$(a(offset + (o - 1) * 2) - 1) + ":"
 attack$(o) = attack$(o) + readattackname$(a(offset + (o - 1) * 2) - 1)
-RETURN
+RETRACE
 
 graph:
 o = INT((bctr - 1) / 2)
@@ -1362,14 +1404,14 @@ FOR i = 0 TO 99 STEP 4
  j = (ii) * (100 / max(bctr))
  rectangle 290 + (i / 4), 176 - j, 1, j + 1, 7, dpage
 NEXT i
-RETURN
+RETRACE
 
 smi:
 FOR i = 0 TO 11
  bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(a(i * 2 + 23))
  bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(a(i * 2 + 24))
 NEXT i
-RETURN
+RETRACE
 
 movesmall:
 wc = wc + 1: IF wc >= 15 THEN wc = 0: wd = wd + 1: IF wd > 3 THEN wd = 0
@@ -1377,7 +1419,7 @@ IF wd = 0 THEN wy = wy - 4
 IF wd = 1 THEN wx = wx + 4
 IF wd = 2 THEN wy = wy + 4
 IF wd = 3 THEN wx = wx - 4
-RETURN
+RETRACE
 
 clearhero:
 FOR i = 0 TO 318
@@ -1385,7 +1427,7 @@ FOR i = 0 TO 318
 NEXT i
 setpicstuf a(), 636, -1
 storeset game$ + ".dt0", pt, 0
-RETURN
+RETRACE
 
 lasthero:
 a(0) = LEN(nam$)
@@ -1400,7 +1442,7 @@ FOR i = 0 TO 3
 NEXT i
 setpicstuf a(), 636, -1
 storeset game$ + ".dt0", pt, 0
-RETURN
+RETRACE
 
 thishero:
 setpicstuf a(), 636, -1
@@ -1412,7 +1454,7 @@ NEXT i
 menu$(2) = "Name:" + nam$
 menu$(1) = CHR$(27) + "Pick Hero" + XSTR$(pt) + CHR$(26)
 GOSUB heropics
-RETURN
+RETRACE
 
 heropics:
 setpicstuf buffer(), 5120, 2
@@ -1421,7 +1463,7 @@ getpal16 pal16(), 0, a(18)
 setpicstuf buffer(), 1600, 2
 loadset game$ + ".pt4", a(19), 16
 getpal16 pal16(), 1, a(20)
-RETURN
+RETRACE
 
 ' itstrh:
 ' setpicstuf buffer(), 200, -1
@@ -1430,7 +1472,7 @@ RETURN
 ' FOR o = 1 TO small(buffer(0), 20)
 '  IF buffer(o) < 256 AND buffer(o) > -1 THEN it$ = it$ + CHR$(buffer(o)) ELSE it$ = ""
 ' NEXT o
-' RETURN
+' RETRACE
 
 END SUB
 
@@ -1620,18 +1662,27 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
  IF (keyval(51) > 1 AND frame = 0) OR (keyval(52) > 1 AND frame = 1) THEN
   frame = frame XOR 1
   GOSUB itemmenu
  END IF
  dummy = usemenu(pt, 0, 0, 20, 24)
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
-  IF pt = 0 THEN RETURN
+  IF pt = 0 THEN RETRACE
   IF a(49) > 0 THEN
-   IF pt = 18 THEN GOSUB statbon: GOSUB itemmenu
-   IF pt = 19 THEN GOSUB ibitset: GOSUB itemmenu
-   IF pt = 20 THEN GOSUB equipbit: GOSUB itemmenu
+   IF pt = 18 THEN
+    GOSUB statbon
+    GOSUB itemmenu
+   END IF
+   IF pt = 19 THEN
+    GOSUB ibitset
+    GOSUB itemmenu
+   END IF
+   IF pt = 20 THEN
+    GOSUB equipbit
+    GOSUB itemmenu
+   END IF
   END IF
   IF pt = 10 THEN '--palette picker
    a(46 + (pt - 3)) = pal16browse(a(46 + (pt - 3)), 2, 0, 0, 24, 24, 2)
@@ -1728,7 +1779,7 @@ IF pt = 9 OR pt = 10 THEN
  loadset game$ + ".pt5", a(52), 0
  getpal16 workpal(), 0, a(53)
 END IF
-RETURN
+RETRACE
 
 statbon:
 ptr2 = 0
@@ -1737,10 +1788,10 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
  dummy = usemenu(ptr2, 0, -1, 11, 24)
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
-  IF ptr2 = -1 THEN RETURN
+  IF ptr2 = -1 THEN RETRACE
  END IF
  IF ptr2 >= 0 THEN
   dummy = intgrabber(a(54 + ptr2), sbmax(ptr2) * -1, sbmax(ptr2), 75, 77)
@@ -1761,9 +1812,9 @@ LOOP
 
 itatkname: 'n is the offset
 temp$ = "NOTHING"
-IF a(n) <= 0 THEN RETURN
+IF a(n) <= 0 THEN RETRACE
 temp$ = XSTR$(a(n) - 1) + " " + readattackname$(a(n) - 1)
-RETURN
+RETRACE
 
 litemname:
 setpicstuf a(), 200, -1
@@ -1771,7 +1822,7 @@ FOR i = 0 TO 254
  loadset game$ + ".itm", i, 0
  item$(i) = readbadbinstring$(a(), 0, 8, 0)
 NEXT i
-RETURN
+RETRACE
 
 sitemname:
 setpicstuf a(), 200, -1
@@ -1785,7 +1836,7 @@ FOR o = 10 TO 9 + a(9)
  a(o) = ASC(MID$(info$, o - 9, 1))
 NEXT o
 storeset game$ + ".itm", i, 0
-RETURN
+RETRACE
 
 ibitset:
 FOR i = 0 TO 7
@@ -1794,7 +1845,7 @@ FOR i = 0 TO 7
  ibit$(i + 16) = elemtype$(2) + " " + names$(17 + i)
 NEXT i
 editbitset a(), 70, 23, ibit$()
-RETURN
+RETRACE
 
 equipbit:
 FOR i = 0 TO 59
@@ -1804,7 +1855,7 @@ FOR i = 0 TO 59
  ibit$(i) = "Equipable by " + ibit$(i)
 NEXT i
 editbitset a(), 66, 59, ibit$()
-RETURN
+RETRACE
 
 'SHOP STUFF
 '0       Name length
@@ -1974,7 +2025,7 @@ loadnpcpic:
 setpicstuf buffer(), 1600, 2
 loadset game$ + ".pt4", npc(i * 15 + 0), 5 * i
 getpal16 pal16(), i, npc(i * 15 + 1)
-RETURN
+RETRACE
 
 npcstats:
 it$ = itemstr(npc(cur * 15 + 6), 0, 0)
@@ -1985,7 +2036,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF npc(cur * 15 + 2) > 0 THEN walk = walk + 1: IF walk > 3 THEN walk = 0
- IF keyval(1) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
  dummy = usemenu(csr, 0, -1, 14, 24)
  IF csr = 11 THEN
   IF keyval(75) > 1 OR keyval(77) > 1 OR keyval(57) > 1 OR keyval(28) > 1 THEN GOSUB onetimetog
@@ -2007,7 +2058,7 @@ DO
    GOSUB loadnpcpic
   END IF
  END IF
- IF (keyval(57) > 1 OR keyval(28) > 1) AND csr = -1 THEN RETURN
+ IF (keyval(57) > 1 OR keyval(28) > 1) AND csr = -1 THEN RETRACE
  textcolor 7, 0
  IF csr = -1 THEN textcolor 14 + tog, 0
  printstr "Previous Menu", 0, 0, dpage
@@ -2073,21 +2124,21 @@ LOOP
 onetimetog:
 IF npc(cur * 15 + 11) > 0 THEN
  setbit general(), 106, npc(cur * 15 + 11) - 1, 0
- npc(cur * 15 + 11) = 0: RETURN
+ npc(cur * 15 + 11) = 0: RETRACE
 END IF
 
 i = 0
 DO
  general(105) = loopvar(general(105), 0, 999, 1)
- i = i + 1: IF i > 1000 THEN RETURN
+ i = i + 1: IF i > 1000 THEN RETRACE
 LOOP UNTIL readbit(general(), 106, general(105)) = 0
 npc(cur * 15 + 11) = general(105) + 1
 setbit general(), 106, general(105), 1
-RETURN
+RETRACE
 
 ' itstr:
 ' it$ = " NONE"
-' IF npc(cur * 15 + 6) = 0 THEN RETURN
+' IF npc(cur * 15 + 6) = 0 THEN RETRACE
 ' setpicstuf buffer(), 200, -1
 ' loadset game$ + ".itm", npc(cur * 15 + 6) - 1, 0
 ' it$ = ""
@@ -2095,16 +2146,16 @@ RETURN
 '  IF buffer(o) > 255 OR buffer(o) < 0 THEN buffer(o) = 0
 '  it$ = it$ + CHR$(buffer(o))
 ' NEXT o
-' RETURN
+' RETRACE
 
 frstline:
 x$ = ""
-IF npc(cur * 15 + 4) = 0 THEN RETURN
+IF npc(cur * 15 + 4) = 0 THEN RETRACE
 x$ = STRING$(38, 0)
 setpicstuf buffer(), 400, -1
 loadset game$ + ".say", npc(cur * 15 + 4), 0
 array2str buffer(), 0, x$
-RETURN
+RETRACE
 
 'npc(i * 15 + 0) = picture
 'npc(i * 15 + 1) = palette

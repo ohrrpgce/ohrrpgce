@@ -67,7 +67,6 @@ DECLARE SUB flusharray (array%(), size%, value%)
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'uiconst.bi'
-'$INCLUDE: 'binsize.bi'
 
 REM $STATIC
 SUB buystuff (id, shoptype, storebuf(), stock(), stat())
@@ -337,7 +336,7 @@ IF b(pt * recordsize + 17) = 1 THEN
  loadset game$ + ".pt0", showhero, 0
  IF eslot = 0 THEN info1$ = noroom$
 END IF
-RETURN
+RETRACE
 
 stufmask:
 total = 0
@@ -366,7 +365,7 @@ FOR i = 0 TO storebuf(16)
  IF b(i * recordsize + 17) = 1 AND eslot = 0 THEN setbit emask(), 0, i, 1
  IF readbit(vmask(), 0, i) = 0 THEN total = total + 1
 NEXT i
-RETURN
+RETRACE
 
 setstock:
 FOR i = 0 TO storebuf(16)
@@ -378,7 +377,7 @@ FOR i = 0 TO storebuf(16)
   IF stock(id, i) > -1 THEN stock(id, i) = stock(id, i) + 1
  END IF
 NEXT i
-RETURN
+RETRACE
 
 loadtrades:
 tradestf(0, 0) = b(temp * recordsize + 25) - 1
@@ -387,12 +386,12 @@ FOR k = 1 TO 3
  tradestf(k, 0) = b(temp * recordsize + k * 2 + 29) - 1
  tradestf(k, 1) = b(temp * recordsize + k * 2 + 30) + 1
 NEXT
-RETURN
+RETRACE
 
 END SUB
 
 FUNCTION chkOOBtarg (wptr, index, stat(), ondead(), onlive())
-'return true if valid, false if not valid
+'RETRACE true if valid, false if not valid
 chkOOBtarg = -1
 IF hero(wptr) = 0 OR (stat(wptr, 0, 0) = 0 AND readbit(ondead(), 0, index) = 0) OR (stat(wptr, 0, 0) > 0 AND readbit(onlive(), 0, index) = 0) THEN
  chkOOBtarg = 0
@@ -521,8 +520,16 @@ DO
  ELSE
   '--change equip menu
   IF carray(5) > 1 THEN mset = 0: FOR i = 0 TO 11: stb(i) = 0: NEXT i
-  IF carray(0) > 1 THEN csr2 = large(csr2 - 1, toff(csr)): GOSUB stbonus: IF csr2 < top THEN top = top - 1
-  IF carray(1) > 1 THEN csr2 = small(csr2 + 1, toff(csr) + tlim(csr) + 1): GOSUB stbonus: IF csr2 > top + 17 THEN top = top + 1
+  IF carray(0) > 1 THEN
+   csr2 = large(csr2 - 1, toff(csr))
+   GOSUB stbonus
+   IF csr2 < top THEN top = top - 1
+  END IF
+  IF carray(1) > 1 THEN
+   csr2 = small(csr2 + 1, toff(csr) + tlim(csr) + 1)
+   GOSUB stbonus
+   IF csr2 > top + 17 THEN top = top + 1
+  END IF
   IF carray(4) > 1 THEN
    IF csr2 = toff(csr) + tlim(csr) + 1 THEN
     '--unequip
@@ -640,13 +647,13 @@ FOR i = 0 to 11
  IF gen(genStatCap + i) > 0 THEN stb(i) = small(stb(i), gen(genStatCap + i))
 NEXT i
 
-RETURN
+RETRACE
 
 newequip:
 unequip pt, csr, dw, stat(), 0
 doequip ie, pt, csr, dw, stat()
 GOSUB EquBacktomenuSub
-RETURN
+RETRACE
 
 EquBacktomenuSub:
 mset = 0
@@ -654,7 +661,7 @@ FOR i = 0 TO 11
  stb(i) = 0
 NEXT i
 GOSUB setupeq
-RETURN
+RETRACE
 
 setupeq:
 'setpicstuf buffer(), 636, -1
@@ -705,7 +712,7 @@ FOR i = 0 TO toff(4) + tlim(4)
  eq(i) = (eq(i) AND 255)
 NEXT i
 
-RETURN
+RETRACE
 END SUB
 
 SUB getitem (getit, num)
@@ -783,6 +790,8 @@ DIM a(100), iuse(15), ondead(15), onlive(15), permask(15), special$(-3 TO -1)
 special$(-3) = rpad$(readglobalstring$(35, "DONE", 10), " ", 11)
 special$(-2) = rpad$(readglobalstring$(36, "AUTOSORT", 10), " ", 11)
 special$(-1) = rpad$(readglobalstring$(37, "TRASH", 10), " ", 11)
+
+REMEMBERSTATE
 
 savetemppage 3
 copypage dpage, 3
@@ -879,13 +888,13 @@ IF sel >= 0 AND ic = -1 THEN
   IF readbit(permask(), 0, 3 + sel) THEN info$ = readglobalstring$(42, "Cannot", 10) + " " + info$ + "!"
  END IF
 END IF
-IF ic < 0 OR inventory(ic).used = 0 THEN RETURN
+IF ic < 0 OR inventory(ic).used = 0 THEN RETRACE
 setpicstuf buffer(), 200, -1
 loadset game$ + ".itm", inventory(ic).id, 0
 FOR o = 10 TO 9 + buffer(9)
  info$ = info$ + CHR$(buffer(o))
 NEXT o
-RETURN
+RETRACE
 
 itcontrol:
 '--keyboard checking and associated actions for the item menu
@@ -906,20 +915,20 @@ IF pick = 0 THEN
    setbit iuse(), 0, 3 + sel, 0
    sel = -4
    GOSUB infostr
-   RETURN
+   RETRACE
   END IF
   IF sel >= 0 THEN
    IF ic >= 0 AND ic <> sel THEN
     '--swap the selected item and the item under the cursor
     itemmenuswap inventory(), iuse(), permask(), ic, sel
     sel = -4
-    RETURN
+    RETRACE
    END IF
    IF ic >= 0 AND sel = ic THEN
     '--try to use the current item
     sel = -4
     '--if the usability bit is off, or you dont have any of the item, exit
-    IF readbit(iuse(), 0, 3 + ic) = 0 OR inventory(ic).used = 0 THEN RETURN
+    IF readbit(iuse(), 0, 3 + ic) = 0 OR inventory(ic).used = 0 THEN RETRACE
     setpicstuf a(), 200, -1
     loadset game$ + ".itm", inventory(ic).id, 0
     IF a(50) > 0 THEN '--learn a spell
@@ -931,31 +940,40 @@ IF pick = 0 THEN
       wptr = loopvar(wptr, 0, 3, 1)
      WEND
      spred = 0
-     RETURN
+     RETRACE
     END IF
     IF a(51) > 0 THEN '--attack/oobcure
      setpicstuf buffer(), 80, -1
      loadset game$ + ".dt6", a(51) - 1, 0
      tclass = buffer(3)
      ttype = buffer(4)
-     IF tclass = 0 THEN RETURN
+     IF tclass = 0 THEN RETRACE
      wptr = 0
      pick = 1
      spred = 0
-     RETURN
+     RETRACE
     END IF
     IF a(51) < 0 THEN '--trigger a text box
      IF buffer(73) = 1 THEN dummy = consumeitem(ic)
      items = a(51) * -1
      loadtemppage 3
+     RETRIEVESTATE
      EXIT FUNCTION
     END IF
    END IF
   END IF
-  IF sel < -3 AND ic >= 0 THEN sel = ic: RETURN
+  IF sel < -3 AND ic >= 0 THEN sel = ic: RETRACE
  END IF
- IF carray(0) > 1 AND ic >= 0 THEN ic = ic - 3: GOSUB infostr: IF ic < top THEN top = top - 3
- IF carray(1) > 1 AND ic <= inventoryMax - 3 THEN ic = ic + 3: GOSUB infostr: IF ic > top + 62 THEN top = top + 3
+ IF carray(0) > 1 AND ic >= 0 THEN
+  ic = ic - 3
+  GOSUB infostr
+  IF ic < top THEN top = top - 3
+ END IF
+ IF carray(1) > 1 AND ic <= inventoryMax - 3 THEN
+  ic = ic + 3
+  GOSUB infostr
+  IF ic > top + 62 THEN top = top + 3
+ END IF
  IF carray(2) > 1 THEN
   IF (ic MOD 3) = 0 THEN
    ic = ic + 2
@@ -973,7 +991,11 @@ IF pick = 0 THEN
   GOSUB infostr
  END IF
 ELSE
- IF carray(5) > 1 THEN pick = 0: GOSUB infostr: RETURN
+ IF carray(5) > 1 THEN
+  pick = 0
+  GOSUB infostr
+  RETRACE
+ END IF
  info$ = inventory(ic).text
  IF spred = 0 THEN
   IF carray(0) > 1 THEN
@@ -1036,7 +1058,7 @@ ELSE
   END IF
  END IF ' SPACE or ENTER
 END IF
-RETURN
+RETRACE
 
 autosort:
 FOR i = 0 TO inventoryMax - 1
@@ -1055,7 +1077,7 @@ FOR i = 0 TO inventoryMax - 1
   END IF
  NEXT o
 NEXT i
-RETURN
+RETRACE
 
 END FUNCTION
 
@@ -1463,9 +1485,9 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF carray(5) > 1 THEN allow = 0: RETURN
+ IF carray(5) > 1 THEN allow = 0: RETRACE
  IF carray(0) > 1 OR carray(1) > 1 THEN allow = allow XOR 1
- IF carray(4) > 1 THEN RETURN
+ IF carray(4) > 1 THEN RETRACE
  GOSUB drawmenu
  centerbox 160, 14 + (44 * cursor), 40 + (LEN(replacedat$) * 8) + menuwidth, 22, 3, dpage
  edgeprint replacedat$, 200 - (LEN(replacedat$) * 8), 9 + (44 * cursor), uilook(uiText), dpage
@@ -1514,7 +1536,7 @@ IF loading THEN
  col = uilook(uiMenuItem): IF cursor = -2 THEN col = uilook(uiSelectedItem + tog)
  edgeprint menu$(1), xstring(menu$(1), 270), 5, col, dpage
 END IF
-RETURN
+RETRACE
 
 END FUNCTION
 
@@ -1622,8 +1644,8 @@ EXIT SUB
 
 sellinfostr:
 info$ = ""
-IF inventory(ic).used = 0 THEN RETURN
-IF readbit(permask(), 0, ic) = 1 THEN info$ = cannotsell$: RETURN
+IF inventory(ic).used = 0 THEN RETRACE
+IF readbit(permask(), 0, ic) = 1 THEN info$ = cannotsell$: RETRACE
 IF price(ic) > 0 THEN info$ = worth$ + XSTR$(price(ic)) + " " + sname$(32)
 FOR i = 0 TO storebuf(16)
  IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
@@ -1643,7 +1665,7 @@ FOR i = 0 TO storebuf(16)
  END IF
 NEXT i
 IF info$ = "" THEN info$ = worthnothing$
-RETURN
+RETRACE
 
 keysell:
 IF carray(5) > 1 THEN quit = 1
@@ -1677,15 +1699,23 @@ IF carray(4) > 1 AND readbit(permask(), 0, ic) = 0 AND inventory(ic).used THEN
  GOSUB refreshs
  GOSUB sellinfostr
 END IF
-IF carray(0) > 1 AND ic >= 3 THEN ic = ic - 3: GOSUB sellinfostr: IF ic < top THEN top = top - 3
-IF carray(1) > 1 AND ic <= inventoryMax - 3 THEN ic = ic + 3: GOSUB sellinfostr: IF ic > top + 62 THEN top = top + 3
+IF carray(0) > 1 AND ic >= 3 THEN
+ ic = ic - 3
+ GOSUB sellinfostr
+ IF ic < top THEN top = top - 3
+END IF
+IF carray(1) > 1 AND ic <= inventoryMax - 3 THEN
+ ic = ic + 3
+ GOSUB sellinfostr
+ IF ic > top + 62 THEN top = top + 3
+END IF
 IF carray(2) > 1 THEN
  IF ic MOD 3 > 0 THEN ic = ic - 1: GOSUB sellinfostr ELSE ic = ic + 2: GOSUB sellinfostr
 END IF
 IF carray(3) > 1 THEN
  IF ic MOD 3 < 2 THEN ic = ic + 1: GOSUB sellinfostr ELSE ic = ic - 2: GOSUB sellinfostr
 END IF
-RETURN
+RETRACE
 
 refreshs:
 FOR i = 0 TO inventoryMax
@@ -1705,17 +1735,19 @@ FOR i = 0 TO inventoryMax
   NEXT o
  END IF
 NEXT i
-RETURN
+RETRACE
 
 selstock:
 FOR i = 0 TO storebuf(16)
  IF stock(id, i) = 0 THEN stock(id, i) = b(i * recordsize + 19): IF stock(id, i) > -1 THEN stock(id, i) = stock(id, i) + 1
 NEXT i
-RETURN
+RETRACE
 
 END SUB
 
 SUB spells (pt, stat())
+REMEMBERSTATE
+
 DIM sname$(40), menu$(4), mi(4), mtype(5), spel$(24), speld$(24), cost$(24), spel(24), canuse(24), targt(24), spid(5), ondead(2), onlive(2)
 getnames sname$()
 
@@ -1795,7 +1827,7 @@ DO
 LOOP
 
 curspellist:
-IF mtype(csr) < 0 THEN RETURN
+IF mtype(csr) < 0 THEN RETRACE
 FOR i = 0 TO 23
  spel$(i) = "": speld$(i) = "": cost$(i) = "": spel(i) = -1: canuse(i) = 0: targt(i) = 0
  IF spell(pt, spid(csr), i) > 0 THEN
@@ -1828,7 +1860,7 @@ FOR i = 0 TO 23
  END IF
  WHILE LEN(spel$(i)) < 10: spel$(i) = spel$(i) + " ": WEND
 NEXT i
-RETURN
+RETRACE
 
 splname:
 FOR i = 0 TO 5
@@ -1882,7 +1914,7 @@ mi(last) = -1
 mtype(last) = -1
 IF csr > last THEN csr = last
 GOSUB curspellist
-RETURN
+RETRACE
 
 scontrol:
 IF pick = 0 THEN
@@ -1891,6 +1923,7 @@ IF pick = 0 THEN
    setkeys
    FOR i = 0 TO 7: carray(i) = 0: NEXT i
    loadtemppage 3
+   RETRIEVESTATE
    EXIT SUB
   END IF
   IF carray(2) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: GOSUB splname
@@ -1902,6 +1935,7 @@ IF pick = 0 THEN
     setkeys
     FOR i = 0 TO 7: carray(i) = 0: NEXT i
     loadtemppage 3
+    RETRIEVESTATE
     EXIT SUB
    END IF
    mset = 1: sptr = 0
@@ -1967,11 +2001,11 @@ ELSE
    setpicstuf buffer(), 80, -1
    loadset game$ + ".dt6", spel(sptr), 0
    cost = focuscost(buffer(8), stat(pt, 0, 10))
-   IF cost > stat(pt, 0, 1) THEN pick = 0: RETURN
+   IF cost > stat(pt, 0, 1) THEN pick = 0: RETRACE
    stat(pt, 0, 1) = small(large(stat(pt, 0, 1) - cost, 0), stat(pt, 1, 1))
   END IF
   IF mtype(csr) = 1 THEN
-   IF lmp(pt, INT(sptr / 3)) = 0 THEN pick = 0: RETURN
+   IF lmp(pt, INT(sptr / 3)) = 0 THEN pick = 0: RETRACE
    lmp(pt, INT(sptr / 3)) = lmp(pt, INT(sptr / 3)) - 1
   END IF
   'DO ACTUAL EFFECT
@@ -1986,7 +2020,7 @@ ELSE
   GOSUB curspellist
  END IF
 END IF
-RETURN
+RETRACE
 
 END SUB
 
@@ -2150,7 +2184,7 @@ IF lastinfo = 0 THEN info$(lastinfo) = readglobalstring$(130, "No Elemental Effe
 FOR i = lastinfo TO 25
  info$(i) = ""
 NEXT i
-RETURN
+RETRACE
 
 END SUB
 

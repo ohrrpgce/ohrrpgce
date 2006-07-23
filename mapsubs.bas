@@ -133,7 +133,7 @@ addmaphowmenu:
 temp$(0) = "Cancel"
 temp$(1) = "New Blank Map"
 temp$(2) = "Copy of map" + XSTR$(maptocopy) + " " + getmapname$(maptocopy)
-RETURN
+RETRACE
 
 END FUNCTION
 
@@ -200,7 +200,10 @@ DO
    pt = pt + 1
    GOSUB maketopmenu
   END IF
-  IF pt = general(0) + 2 THEN GOSUB addmap: GOSUB maketopmenu
+  IF pt = general(0) + 2 THEN
+   GOSUB addmap
+   GOSUB maketopmenu
+  END IF
  END IF
  tog = tog XOR 1
  FOR i = 0 TO 24
@@ -232,7 +235,7 @@ FOR i = 0 TO 24
    topmenu$(i) = ""
  END SELECT
 NEXT i
-RETURN
+RETRACE
 
 whattodo:
 x = 0: y = 0: mapx = 0: mapy = 0
@@ -254,10 +257,16 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOSUB savemap: RETURN
+ IF keyval(1) > 1 THEN
+  GOSUB savemap
+  RETRACE
+ END IF
  dummy = usemenu(csr, 0, 0, 12, 24)
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
-  IF csr = 0 THEN GOSUB savemap: RETURN
+  IF csr = 0 THEN
+   GOSUB savemap
+   RETRACE
+  END IF
   IF csr = 1 THEN GOSUB sizemap
   IF csr = 2 THEN
    npcdef npcstat(), pt
@@ -441,13 +450,13 @@ DO
 LOOP
 
 loadpasdefaults defaults(), gmap(0)
-RETURN
+RETRACE
 
 setgmapscriptstr:
 FOR i = 0 TO 4
  gmapscr$(i) = scriptname$(gmap(gmapscrof(i)), "plotscr.lst")
 NEXT i
-RETURN
+RETRACE
 
 mapping:
 clearpage 2
@@ -478,7 +487,7 @@ DO
  IF keyval(63) > 1 THEN
   editmode = 4
  END IF
- IF keyval(1) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
  IF keyval(15) > 1 THEN tiny = tiny XOR 1
  SELECT CASE editmode
   '---TILEMODE------
@@ -759,7 +768,7 @@ setkeys
 DO
  setwait timing(), 120
  setkeys
- IF keyval(28) > 1 OR keyval(1) > 1 THEN menu = pic: RETURN
+ IF keyval(28) > 1 OR keyval(1) > 1 THEN menu = pic: RETRACE
  IF keyval(72) > 0 AND by > 0 THEN by = by - 1: pic = pic - 16
  IF keyval(80) > 0 AND by < 9 THEN by = by + 1: pic = pic + 16
  IF keyval(75) > 0 AND bx > 0 THEN bx = bx - 1: pic = pic - 1
@@ -784,8 +793,11 @@ setkeys
 DO
  setwait timing(), 100
  setkeys
- IF keyval(1) > 1 THEN RETURN
- IF keyval(28) > 1 THEN GOSUB dosizemap: RETURN
+ IF keyval(1) > 1 THEN RETRACE
+ IF keyval(28) > 1 THEN
+  GOSUB dosizemap
+  RETRACE
+ END IF
  IF keyval(29) THEN
   IF keyval(72) > 0 THEN tempy = tempy - (1 + (keyval(56) * 8)): tempy = large(tempy, 0)
   IF keyval(80) > 0 THEN tempy = tempy + (1 + (keyval(56) * 8)): tempy = small(tempy, high - temph)
@@ -850,7 +862,7 @@ FOR i = 0 TO 299
  END IF
 NEXT i
 GOSUB verifymap
-RETURN
+RETRACE
 
 minimap:
 clearpage vpage
@@ -859,7 +871,7 @@ drawmini high, wide, cursor(), vpage, tastuf()
 printstr "Press Any Key", 0, 180, vpage
 setvispage vpage
 w = getkey
-RETURN
+RETRACE
 
 delmap:
 setvispage vpage
@@ -902,7 +914,7 @@ END IF
 '--reset scroll position
 wide = map(0): high = map(1)
 x = 0: y = 0: mapx = 0: mapy = 0
-RETURN
+RETRACE
 
 addmap:
 how = addmaphow
@@ -911,7 +923,7 @@ how = addmaphow
 '-- >=0 =Copy
 IF how = -1 THEN GOSUB newblankmap
 IF how >= 0 THEN GOSUB copymap
-RETURN
+RETRACE
 
 copymap:
 '--increment map count
@@ -922,7 +934,7 @@ GOSUB loadmap
 '-- save the new map
 pt = general(0)
 GOSUB savemap
-RETURN
+RETRACE
 
 newblankmap:
 '--increment map count
@@ -952,7 +964,7 @@ storeset game$ + ".dox", general(0), 0
 buffer(0) = 0
 setpicstuf buffer(), 80, -1
 storeset game$ + ".mn", general(0), 0
-RETURN
+RETRACE
 
 savemap:
 setpicstuf gmap(), 40, -1
@@ -970,7 +982,7 @@ buffer(0) = LEN(mapname$)
 str2array LEFT$(mapname$, 39), buffer(), 1
 setpicstuf buffer(), 80, -1
 storeset game$ + ".mn", pt, 0
-RETURN
+RETRACE
 
 loadmap:
 setpicstuf gmap(), 40, -1
@@ -994,7 +1006,7 @@ wide = map(0): high = map(1)
 mapname$ = getmapname$(pt)
 loadpasdefaults defaults(), gmap(0)
 GOSUB verifymap
-RETURN
+RETRACE
 
 verifymap:
 IF map(0) <> pass(0) OR map(0) <> emap(0) OR map(1) <> pass(1) OR map(1) <> emap(1) THEN
@@ -1045,14 +1057,14 @@ IF map(0) <> pass(0) OR map(0) <> emap(0) OR map(1) <> pass(1) OR map(1) <> emap
  printstr "ohrrpgce@HamsterRepublic.com", 0, j * 8, vpage: j = j + 1
  w = getkey
 END IF
-RETURN
+RETRACE
 
 loadmenu:
 setmapdata menubar(), pass(), 180, 0
 FOR i = 0 TO 159
  setmapblock i, 0, i
 NEXT
-RETURN
+RETRACE
 
 linkdoor:
 GOSUB savemap
@@ -1067,7 +1079,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN xBSAVE maplumpname$(pt, "d"), link(), 2000: RETURN
+ IF keyval(1) > 1 THEN xBSAVE maplumpname$(pt, "d"), link(), 2000: RETRACE
  'IF keyval(72) > 1 AND cur > 0 THEN cur = cur - 1: IF cur < ttop THEN ttop = ttop - 1
  'IF keyval(80) > 1 AND cur < 199 THEN cur = cur + 1: IF cur > ttop + 10 THEN ttop = ttop + 1
  dummy = usemenu(cur, ttop, 0, 199, 10)
@@ -1109,14 +1121,14 @@ DO
   sdwait = sdwait - 1
   IF sdwait = 0 THEN GOSUB showldoor
  END IF
- IF keyval(1) > 1 THEN RETURN
+ IF keyval(1) > 1 THEN RETRACE
  'IF keyval(72) > 1 THEN cur2 = cur2 - 1: IF cur2 < -1 THEN cur2 = 4
  'IF keyval(80) > 1 THEN cur2 = cur2 + 1: IF cur2 > 4 THEN cur2 = -1
  dummy = usemenu(cur2, 0, -1, 4, 24)
  IF cur2 >= 0 THEN
   IF intgrabber(link(cur + (cur2 * 200)), llim(cur2), ulim(cur2), 75, 77) THEN sdwait = 3: outmap$ = getmapname$(link(cur + 400))
  ELSE
-  IF keyval(28) > 1 OR keyval(57) > 1 THEN RETURN
+  IF keyval(28) > 1 OR keyval(57) > 1 THEN RETRACE
  END IF
  rectangle 0, 100, 320, 2, 1 + tog, dpage
  FOR i = -1 TO 4
@@ -1179,7 +1191,7 @@ END IF
 '-----------------RESET DATA
 loadpage game$ + ".til", gmap(0), 3
 xbloadmap maplumpname$(pt, "t"), map(), "Tilemap lump disappeared!"
-RETURN
+RETRACE
 
 '----
 'gmap(20)

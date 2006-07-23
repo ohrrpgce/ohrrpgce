@@ -250,6 +250,7 @@ getsfxname$ = readbinstring$ (sfxd(), 0, 30)
 END FUNCTION
 
 FUNCTION inputfilename$ (query$, ext$)
+dim file$   'CRT name clash
 setkeys
 DO
  setwait timing(), 100
