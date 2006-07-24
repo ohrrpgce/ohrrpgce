@@ -28,7 +28,6 @@ EXTERN lumpmod()
 'Input handling globals
 EXTERN carray(), csetup()
 EXTERN gotj(), joy()
-EXTERN keyv()
 
 'Game state globals
 EXTERN gen()

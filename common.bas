@@ -109,9 +109,24 @@ DO
     EXIT DO
   END SELECT
  END IF
- IF keyval(35) > 1 THEN ' H for hidden
-  showHidden = showHidden XOR attribHidden
-  GOSUB context
+ IF keyval(29) THEN
+  'Ctrl + H for hidden
+  IF keyval(35) > 1 THEN
+   showHidden = showHidden XOR attribHidden
+   GOSUB context
+  END IF
+ ELSE
+  'find by letter
+  FOR i = 2 TO 53
+   IF keyval(i) > 1 AND keyv(i, 0) > 0 THEN
+    FOR j = 1 TO treesize
+     mappedj = (j + treeptr) MOD (treesize + 1)
+     tempstr$ = LCASE$(display$(mappedj))
+     IF (treec(mappedj) = 2 OR treec(mappedj) = 3) AND tempstr$[0] = keyv(i, 0) THEN treeptr = mappedj: EXIT FOR
+    NEXT
+    EXIT FOR
+   END IF
+  NEXT i
  END IF
  rectangle 5, 4, 310, 12, 1, dpage
  drawbox 4, 3, 312, 14, 9, dpage

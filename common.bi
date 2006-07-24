@@ -35,4 +35,5 @@ EXTERN fadestate
 EXTERN master()
 EXTERN workingdir$
 EXTERN curbinsize(), defbinsize()
+EXTERN keyv()
 
