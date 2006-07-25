@@ -93,6 +93,8 @@ DIM a(40), atktemp(40 + dimbinsize(0)), atk(40 + dimbinsize(0)), st(3, 318), es(
 1, 17), ready(11), batname$(11), menu$(3, 5), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
+
+
 DIM laststun AS DOUBLE
 
 mpname$ = readglobalstring(1, "MP", 10)
@@ -172,7 +174,7 @@ DO
    loadpage game$ + ".mxs", curbg, 2
   END IF
  END IF
-
+ 
  IF readbit(gen(), 101, 8) = 0 THEN
   '--debug keys
   IF keyval(62) > 1 THEN away = 11 ' Instant-cheater-running
@@ -470,6 +472,8 @@ IF icons(who) >= 0 THEN
 END IF
 '--load attack
 readattackdata atk(), anim
+'--queue sound effect
+'debug "sound effect is" + str(atk(99)-1)
 '--load picture
 setpicstuf buffer(), 3750, 3
 loadset game$ + ".pt6", atk(0), 144
@@ -506,7 +510,7 @@ NEXT i
 atktype(0) = 1
 FOR i = 0 TO 7
  atktype(i + 1) = 0
- IF readbit(atk(), 20, 5 + i) = 1 THEN atktype(i + 1) = 1: atktype(0) = 0
+ IF readbit(atk(), 20, 5 + i) = -1 THEN atktype(i + 1) = 1: atktype(0) = 0
 NEXT i
 'ABORT IF TARGETLESS
 IF tcount = -1 THEN anim = -1: RETRACE
@@ -593,7 +597,7 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
    IF readbit(atk(), 20, 0) = 0 THEN
     pushw 7: pushw t(who, i): pushw 5
    END IF
-   IF readbit(atk(), 20, 0) = 1 THEN
+   IF readbit(atk(), 20, 0) = -1 THEN
     pushw 7: pushw t(who, i): pushw 2
    END IF
   NEXT i
@@ -636,7 +640,7 @@ IF atk(15) = 7 THEN
    IF readbit(atk(), 20, 0) = 0 THEN
     pushw 7: pushw t(who, i): pushw 5
    END IF
-   IF readbit(atk(), 20, 0) = 1 THEN
+   IF readbit(atk(), 20, 0) = -1 THEN
     pushw 7: pushw t(who, i): pushw 2
    END IF
    pushw 13: pushw 3
@@ -1013,13 +1017,13 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    'DEBUG debug "~ inflict on " + XSTR$(targ) + " by " + XSTR$(who)
    IF inflict(who, targ, stat(), x(), y(), w(), h(), harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
     '--attack succeeded
-	IF readbit(atk(), 20, 50) = 1 THEN
+	IF readbit(atk(), 20, 50) = -1 THEN
 	 es(targ - 4, 56) = 0
 	 es(targ - 4, 57) = 0
 	 es(targ - 4, 59) = 0
 	 es(targ - 4, 61) = 0
 	END IF
-	IF readbit(atk(), 20, 63) = 1 THEN
+	IF readbit(atk(), 20, 63) = -1 THEN
 	 'force heroes to run away
 	 IF checkNoRunBit(stat(), ebits(), v()) THEN
 	  alert$ = cannotrun$
@@ -1186,7 +1190,7 @@ bosses = 0
 '--count bosses
 FOR j = 4 TO 11
  '--is it a boss?
- IF readbit(ebits(), (j - 4) * 5, 56) = 1 THEN
+ IF readbit(ebits(), (j - 4) * 5, 56) = -1 THEN
   '-- is it alive?
   IF stat(j, 0, 0) > 0 THEN
    bosses = bosses + 1
@@ -1198,7 +1202,7 @@ IF bosses = 0 THEN
  '--for each foe...
  FOR j = 4 TO 11
   '--should it die without a boss?
-  IF readbit(ebits(), (j - 4) * 5, 58) = 1 THEN
+  IF readbit(ebits(), (j - 4) * 5, 58) = -1 THEN
    '-- is it still alive?
    IF stat(j, 0, 0) > 0 THEN
     '--trigger death fade
@@ -1216,7 +1220,7 @@ IF stat(tdwho, 0, 0) = 0 THEN
  die(tdwho) = w(tdwho) * .5
  IF tdwho >= 4 THEN
   '--flee as alternative to death
-  IF readbit(ebits(), (tdwho - 4) * 5, 59) = 1 THEN
+  IF readbit(ebits(), (tdwho - 4) * 5, 59) = -1 THEN
    eflee(tdwho) = 1
    die(tdwho) = (w(tdwho) + x(tdwho)) / 10
   END IF
@@ -1243,7 +1247,7 @@ IF deadguy >= 4 THEN
  isenemy = 1
  enemynum = deadguy - 4
  formslotused = a((deadguy - 4) * 4)
- IF stat(deadguy, 0, 0) > 0 AND readbit(ebits(), enemynum * 5, 61) = 1 THEN deadguycount = deadguycount + 1
+ IF stat(deadguy, 0, 0) > 0 AND readbit(ebits(), enemynum * 5, 61) = -1 THEN deadguycount = deadguycount + 1
 ELSE
  isenemy = 0
  enemynum = -1
@@ -1397,7 +1401,7 @@ IF iptr < itop THEN itop = itop - 3
 IF iptr > itop + 26 THEN itop = itop + 3
 
 IF carray(4) > 1 THEN
- IF readbit(iuse(), 0, iptr) = 1 THEN
+ IF readbit(iuse(), 0, iptr) = -1 THEN
   setpicstuf buffer(), 200, -1
   loadset game$ + ".itm", inventory(iptr).id, 0
   icons(you) = -1: IF buffer(73) = 1 THEN icons(you) = iptr
@@ -1635,7 +1639,7 @@ NEXT i
 
 'enforce untargetability by heros
 FOR i = 4 TO 11
- IF readbit(ebits(), (i - 4) * 5, 61) = 1 THEN tmask(i) = 0
+ IF readbit(ebits(), (i - 4) * 5, 61) = -1 THEN tmask(i) = 0
 NEXT i
 
 'fail if there are no targets
@@ -2007,11 +2011,11 @@ w(24) = 24
 h(24) = 24
 bos = 0
 FOR i = 4 TO 11
- IF readbit(ebits(), (i - 4) * 5, 56) = 1 THEN bos = 1
+ IF readbit(ebits(), (i - 4) * 5, 56) = -1 THEN bos = 1
 NEXT i
 IF bos = 0 THEN
  FOR i = 4 TO 11
-  IF readbit(ebits(), (i - 4) * 5, 58) = 1 THEN
+  IF readbit(ebits(), (i - 4) * 5, 58) = -1 THEN
    tdwho = i
    stat(tdwho, 0, 0) = 0
    GOSUB triggerfade
@@ -2164,7 +2168,7 @@ END FUNCTION
 FUNCTION checkNoRunBit (stat(), ebits(), v())
  checkNoRunBit = 0
  FOR i = 4 TO 11
-  IF stat(i, 0, 0) > 0 AND v(i) = 1 AND readbit(ebits(), (i - 4) * 5, 57) = 1 THEN checkNoRunBit = 1
+  IF stat(i, 0, 0) > 0 AND v(i) = 1 AND readbit(ebits(), (i - 4) * 5, 57) = -1 THEN checkNoRunBit = 1
  NEXT i
 END FUNCTION
 
