@@ -1731,8 +1731,8 @@ IF vdance = 0 THEN 'only display interface till you win
    rectangle 8, 82, 281, 1, uilook(uiTextBox + 1), dpage
    rectangle 8, 93, 281, 1, uilook(uiTextBox + 1), dpage
    FOR i = 0 TO 23
-    textcolor uilook(uiDisabledItem - readbit(spelmask(), 0, i)), 0
-    IF sptr = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(spelmask(), 0, i)) + tog), uilook(uiHighlight)
+    textcolor uilook(uiDisabledItem + readbit(spelmask(), 0, i)), 0
+    IF sptr = i THEN textcolor uilook(uiSelectedDisabled + (2 * readbit(spelmask(), 0, i)) + tog), uilook(uiHighlight)
     printstr spel$(i), 16 + (((i / 3) - INT(i / 3)) * 3) * 88, 8 + INT(i / 3) * 8, dpage
    NEXT i
    textcolor uilook(uiMenuItem), 0
@@ -1747,8 +1747,8 @@ IF vdance = 0 THEN 'only display interface till you win
   IF mset = 2 THEN
    centerbox 160, 45, 304, 80, 1, dpage
    FOR i = itop TO itop + 26
-    textcolor uilook(uiDisabledItem - readbit(iuse(), 0, i)), 0
-    IF iptr = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(iuse(), 0, i)) + tog), uilook(uiHighlight)
+    textcolor uilook(uiDisabledItem + readbit(iuse(), 0, i)), 0
+    IF iptr = i THEN textcolor uilook(uiSelectedDisabled + (2 * readbit(iuse(), 0, i)) + tog), uilook(uiHighlight)
     printstr inventory(i).text, 20 + 96 * (i MOD 3), 8 + 8 * ((i - itop) \ 3), dpage
    NEXT i
   END IF
