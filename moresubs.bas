@@ -793,15 +793,10 @@ n = small(max, n)
 END SUB
 
 FUNCTION istag (num, zero)
-IF num = 0 THEN RETURN zero 'why go through all that just to return defaults?
-IF num = 1 THEN RETURN 0
-IF num = -1 THEN RETURN -1
-
-ret = readbit(tag(), 0, ABS(num)) 'raw bit: 0 or -1
-
-IF num > 0 AND ret <> 0 THEN RETURN -1
-IF num < 0 AND ret = 0 THEN RETURN -1
-RETURN 0
+istag = (readbit(tag(), 0, ABS(num)) = SGN(SGN(num) + 1))
+IF num = 1 THEN istag = 0
+IF num = -1 THEN istag = -1
+IF num = 0 THEN istag = zero
 END FUNCTION
 
 SUB loaddoor (map, door())

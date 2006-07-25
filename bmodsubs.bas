@@ -97,7 +97,7 @@ END IF
 readattackdata atkbuf(), atkid
 
 '--check for mutedness
-IF readbit(atkbuf(),65,0) = -1 AND stat(attacker, 0, 15) < stat(attacker, 1, 15) THEN
+IF readbit(atkbuf(),65,0) = 1 AND stat(attacker, 0, 15) < stat(attacker, 1, 15) THEN
  atkallowed = 0
  EXIT FUNCTION
 END IF
@@ -769,19 +769,19 @@ IF atk(5) <> 4 THEN
   EXIT FUNCTION
  END IF
 
- IF readbit(atk(),65,1) = -1 AND stat(t,0,12) < stat(t,1,12) THEN
+ IF readbit(atk(),65,1) = 1 AND stat(t,0,12) < stat(t,1,12) THEN
   harm$(t) = readglobalstring$(121, "fail", 20)
   EXIT FUNCTION
  END IF
- IF readbit(atk(),65,2) = -1 AND stat(t,0,13) < stat(t,1,13) THEN
+ IF readbit(atk(),65,2) = 1 AND stat(t,0,13) < stat(t,1,13) THEN
   harm$(t) = readglobalstring$(121, "fail", 20)
   EXIT FUNCTION
  END IF
- IF readbit(atk(),65,3) = -1 AND stat(t,0,14) <> stat(t,1,14) THEN
+ IF readbit(atk(),65,3) = 1 AND stat(t,0,14) <> stat(t,1,14) THEN
   harm$(t) = readglobalstring$(121, "fail", 20)
   EXIT FUNCTION
  END IF
- IF readbit(atk(),65,4) = -1 AND stat(t,0,15) <> stat(t,1,15) THEN
+ IF readbit(atk(),65,4) = 1 AND stat(t,0,15) <> stat(t,1,15) THEN
   harm$(t) = readglobalstring$(121, "fail", 20)
   EXIT FUNCTION
  END IF
@@ -819,7 +819,7 @@ IF atk(5) <> 4 THEN
  IF atk(5) = 3 THEN am! = 1: dm! = 0   'atk
 
  'resetting
- IF readbit(atk(), 20, 57) = -1 THEN
+ IF readbit(atk(), 20, 57) = 1 THEN
   stat(t, 0, targstat) = stat(t, 1, targstat)
  END IF
 
@@ -828,22 +828,22 @@ IF atk(5) <> 4 THEN
 
  'elementals
  FOR i = 0 TO 7
-  IF readbit(atk(), 20, 5 + i) = -1 THEN
-   IF readbit(tbits(), 0, 0 + i) = -1 THEN h& = h& * 2   'weakness
-   IF readbit(tbits(), 0, 8 + i) = -1 THEN h& = h& * .12 'resistance
-   IF readbit(tbits(), 0, 16 + i) = -1 THEN cure = 1   'absorb
+  IF readbit(atk(), 20, 5 + i) = 1 THEN
+   IF readbit(tbits(), 0, 0 + i) = 1 THEN h& = h& * 2   'weakness
+   IF readbit(tbits(), 0, 8 + i) = 1 THEN h& = h& * .12 'resistance
+   IF readbit(tbits(), 0, 16 + i) = 1 THEN cure = 1   'absorb
   END IF
-  IF readbit(atk(), 20, 13 + i) = -1 THEN
-   IF t >= 4 AND readbit(tbits(), 0, 24 + i) = -1 THEN h& = h& * 1.8
+  IF readbit(atk(), 20, 13 + i) = 1 THEN
+   IF t >= 4 AND readbit(tbits(), 0, 24 + i) = 1 THEN h& = h& * 1.8
   END IF
-  IF readbit(atk(), 20, 21 + i) = -1 THEN
-   IF readbit(tbits(), 0, 8 + i) = -1 THEN
+  IF readbit(atk(), 20, 21 + i) = 1 THEN
+   IF readbit(tbits(), 0, 8 + i) = 1 THEN
     harm$(t) = readglobalstring$(122, "fail", 20)
     EXIT FUNCTION
    END IF
   END IF
-  IF readbit(atk(), 20, 29 + i) = -1 THEN
-   IF t >= 4 AND readbit(tbits(), 0, 24 + i) = -1 THEN
+  IF readbit(atk(), 20, 29 + i) = 1 THEN
+   IF t >= 4 AND readbit(tbits(), 0, 24 + i) = 1 THEN
     harm$(t) = readglobalstring$(122, "fail", 20)
     EXIT FUNCTION
    END IF
@@ -857,14 +857,14 @@ IF atk(5) <> 4 THEN
  IF readbit(atk(), 20, 61) = 0 THEN h& = rangel(h&,20)
 
  'spread damage
- IF readbit(atk(), 20, 1) = -1 THEN h& = h& / (tcount + 1)
+ IF readbit(atk(), 20, 1) = 1 THEN h& = h& / (tcount + 1)
 
  'cap out
  IF h& <= 0 THEN
   IF readbit(atk(), 20, 62) = 0 THEN h& = 1 ELSE h& = 0
  END IF
 
- IF readbit(atk(), 20, 0) = -1 THEN h& = ABS(h&) * -1 'cure bit
+ IF readbit(atk(), 20, 0) = 1 THEN h& = ABS(h&) * -1 'cure bit
  IF readbit(tbits(), 0, 54) THEN h& = ABS(h&)        'zombie
  IF cure = 1 THEN h& = ABS(h&) * -1                  'absorb
 
@@ -880,7 +880,7 @@ IF atk(5) <> 4 THEN
  'pre-calculate percentage damage for display
  chp& = stat(t, 0, targstat)
  mhp& = stat(t, 1, targstat)
- IF readbit(atk(), 65, 5) = -1 THEN
+ IF readbit(atk(), 65, 5) = 1 THEN
   SELECT CASE atk(5)
    CASE 5'% of max   
     h& = mhp& + (atk(11) * mhp& / 100)
@@ -949,7 +949,7 @@ IF atk(5) <> 4 THEN
 END IF 'skips to here if no damage
 'debug(readbadbinstring$(atk(), 24, 10, 1) + " - " + XSTR$(targstat))
 'name
-IF readbit(atk(), 20, 55) = -1 THEN
+IF readbit(atk(), 20, 55) = 1 THEN
  IF LEN(harm$(t)) > 0 THEN harm$(t) = harm$(t) + " "
  harm$(t) = harm$(t) + readbadbinstring$(atk(), 24, 10, 1)
 END IF
@@ -1228,7 +1228,7 @@ IF exstat(i, 1, 12) THEN
   exstat(i, 1, o) = exstat(i, 1, o) + (atlevel(exstat(i, 0, 12), buffer(23 + o * 2), buffer(24 + o * 2)) - atlevel(exstat(i, 0, 12) - exstat(i, 1, 12), buffer(23 + o * 2), buffer(24 + o * 2)))
 
   'simulate levelup bug
-  IF readbit(gen(), 101, 9) = -1 THEN
+  IF readbit(gen(), 101, 9) = 1 THEN
    setpicstuf buffer(), 200, -1
    FOR j = 0 TO 4
     IF eqstuf(i, j) > 0 THEN

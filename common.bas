@@ -739,3 +739,11 @@ END IF
 readbadgenericname = result$
 
 END FUNCTION
+
+FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTEGER
+ IF readbit (bb(), w, b) THEN
+  RETURN -1
+ ELSE
+  RETURN 0
+ END IF
+END FUNCTION

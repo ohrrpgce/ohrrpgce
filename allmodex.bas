@@ -1529,7 +1529,7 @@ FUNCTION readbit (bb() as integer, BYVAL w as integer, BYVAL b as integer)  as i
 	mask = 1 shl wb
 
 	if (bb(woff) and mask) then
-		readbit = -1
+		readbit = 1
 	else
 		readbit = 0
 	end if

@@ -185,11 +185,11 @@ DO
    alert$ = buytype$(1, shoptype) + stuf$(pt)
   END IF '--------END BUY THING------------
   GOSUB stufmask
-  DO WHILE readbit(vmask(), 0, pt) = -1
+  DO WHILE readbit(vmask(), 0, pt) = 1
    pt = pt - 1
    IF pt < 0 THEN
     pt = 0
-    DO WHILE readbit(vmask(), 0, pt) = -1
+    DO WHILE readbit(vmask(), 0, pt) = 1
      pt = pt + 1
      IF pt > storebuf(16) THEN EXIT SUB
     LOOP
@@ -391,13 +391,11 @@ RETRACE
 END SUB
 
 FUNCTION chkOOBtarg (wptr, index, stat(), ondead(), onlive())
- 'RETRACE true if valid, false if not valid
- chkOOBtarg = -1
- IF hero(wptr) = 0 OR _
-    (stat(wptr, 0, 0) = 0 AND readbit(ondead(), 0, index) = 0) OR _
-    (stat(wptr, 0, 0) > 0 AND readbit(onlive(), 0, index) = 0) THEN
-  chkOOBtarg = 0
- END IF
+'RETRACE true if valid, false if not valid
+chkOOBtarg = -1
+IF hero(wptr) = 0 OR (stat(wptr, 0, 0) = 0 AND readbit(ondead(), 0, index) = 0) OR (stat(wptr, 0, 0) > 0 AND readbit(onlive(), 0, index) = 0) THEN
+ chkOOBtarg = 0
+END IF
 END FUNCTION
 
 SUB doequip (toequip, who, where, defwep, stat())
@@ -740,7 +738,7 @@ NEXT
 FOR i = 0 TO inventoryMax
  'loop through each inventory slot looking for an empty slot to populate 
  IF inventory(i).used = 0 THEN
-  inventory(i).used = -1
+  inventory(i).used = 1
   inventory(i).id = getit - 1
   inventory(i).num = small(numitems, 99)
   numitems -= inventory(i).num
@@ -837,11 +835,11 @@ DO
  IF quit THEN EXIT DO
  FOR i = top TO top + 62
   textcolor uilook(uiDisabledItem), 0
-  IF readbit(iuse(), 0, 3 + i) = -1 THEN textcolor uilook(uiMenuItem), 0
+  IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSelectedDisabled), 0
   IF ic = i THEN
    textcolor uilook(uiMenuItem), uilook(uiHighlight2)
-   IF readbit(iuse(), 0, 3 + i) = -1 THEN textcolor uilook(uiText), uilook(uiHighlight2)
+   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiText), uilook(uiHighlight2)
    IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiGold), uilook(uiHighlight2)
   END IF
   IF sel = i THEN
@@ -903,11 +901,11 @@ itcontrol:
 IF pick = 0 THEN
  IF carray(5) > 1 THEN
   '--deselect currently selected item
-  IF sel > -1 THEN sel = -4 ELSE quit = -1
+  IF sel > -1 THEN sel = -4 ELSE quit = 1
  END IF
  IF carray(4) > 1 THEN
   '--exit
-  IF ic = -3 THEN quit = -1
+  IF ic = -3 THEN quit = 1
   '--sort
   IF ic = -2 THEN GOSUB autosort
   IF ic = -1 AND sel >= 0 AND readbit(permask(), 0, 3 + sel) = 0 THEN
@@ -956,7 +954,7 @@ IF pick = 0 THEN
      RETRACE
     END IF
     IF a(51) < 0 THEN '--trigger a text box
-     IF buffer(73) <> 0 THEN dummy = consumeitem(ic)
+     IF buffer(73) = 1 THEN dummy = consumeitem(ic)
      items = a(51) * -1
      loadtemppage 3
      RETRIEVESTATE
@@ -1029,7 +1027,7 @@ ELSE
    '--trylearn
    didlearn = trylearn(wptr, atk, 0)
    '--announce learn
-   IF didlearn <> 0 THEN
+   IF didlearn = 1 THEN
     tmp$ = names$(wptr) + " " + readglobalstring$(124, "learned", 10) + " " + readatkname$(atk)
     centerbox 160, 100, small(LEN(tmp$) * 8 + 16, 320), 24, 1, vpage
     edgeprint tmp$, large(xstring(tmp$, 160), 0), 95, uilook(uiText), vpage
@@ -1045,21 +1043,15 @@ ELSE
   IF buffer(51) > 0 THEN
    atk = buffer(51) - 1
    IF spred = 0 THEN
-    IF chkOOBtarg(wptr, 3 + ic, stat(), ondead(), onlive()) THEN
-      oobcure -1, wptr, atk, spred, stat()
-      didcure = -1
-    end if
+    IF chkOOBtarg(wptr, 3 + ic, stat(), ondead(), onlive()) THEN oobcure -1, wptr, atk, spred, stat(): didcure = -1
    ELSE
     FOR i = 0 TO 3
      ' IF hero(i) > 0 AND (stat(i, 0, 0) > 0 OR readbit(ondead(), 0, 3 + ic)) THEN oobcure -1, i, atk, spred, stat()
-     IF chkOOBtarg(i, 3 + ic, stat(), ondead(), onlive()) THEN
-      oobcure -1, i, atk, spred, stat()
-      didcure = -1
-     END IF
+     IF chkOOBtarg(i, 3 + ic, stat(), ondead(), onlive()) THEN oobcure -1, i, atk, spred, stat(): didcure = -1
     NEXT i
    END IF
   END IF 'buffer(51) > 0
-  IF buffer(73) <> 0 AND (didcure OR didlearn) THEN
+  IF buffer(73) = 1 AND (didcure OR didlearn = 1) THEN
    IF consumeitem(ic) THEN
     setbit iuse(), 0, 3 + ic, 0: pick = 0: GOSUB infostr
    END IF
@@ -1079,7 +1071,7 @@ FOR i = 0 TO inventoryMax - 1
 NEXT i
 FOR i = 0 TO inventoryMax - 1
  FOR o = i + 1 TO inventoryMax
-  IF readbit(iuse(), 0, 3 + i) = 0 AND readbit(iuse(), 0, 3 + o) = -1 THEN
+  IF readbit(iuse(), 0, 3 + i) = 0 AND readbit(iuse(), 0, 3 + o) = 1 THEN
    itemmenuswap inventory(), iuse(), permask(), i, o
    EXIT FOR
   END IF
@@ -1163,7 +1155,7 @@ IF attack(5) = 2 THEN am! = 1.3: dm! = 1
 IF attack(5) = 3 THEN am! = 1: dm! = 0
 
 'resetting
-IF readbit(attack(), 20, 57) = -1 THEN
+IF readbit(attack(), 20, 57) = 1 THEN
  stat(t, 0, targstat) = stat(t, 1, targstat)
 END IF
 
@@ -1178,23 +1170,22 @@ h2& = h2& + (h2& / 100) * attack(11)
 IF readbit(attack(), 20, 61) = 0 THEN h2& = rangel(h2&, 20)
 
 'spread damage
-IF readbit(attack(), 20, 1) = -1 THEN h2& = h2& / (spred + 1)
+IF readbit(attack(), 20, 1) = 1 THEN h2& = h2& / (spred + 1)
 
 'cap out
 IF readbit(attack(), 20, 62) = 0 AND h2& <= 0 THEN h2& = 1
 
 'cure bit
-IF readbit(attack(), 20, 0) = -1 THEN h2& = ABS(h2&) * -1
+IF readbit(attack(), 20, 0) = 1 THEN h2& = ABS(h2&) * -1
 
 'backcompat MP-targstat
 IF readbit(attack(), 20, 60) THEN
  IF targstat = 0 THEN targstat = 1
 END IF
 
-
  chp& = stat(t, 0, targstat)
  mhp& = stat(t, 1, targstat)
- IF readbit(attack(), 65, 5) = -1 THEN
+ IF readbit(attack(), 65, 5) = 1 THEN
   SELECT CASE attack(5)
    CASE 5'% of max   
     h2& = mhp& + (attack(11) * mhp& / 100)
@@ -1209,16 +1200,11 @@ END IF
     h2& = chp& - (chp& + (attack(11) * chp& / 100))
   END SELECT
  END IF
- 
-
 IF h2& > 32767 THEN h2& = 32767
 IF h2& < -32768 THEN h2& = -32768
-
-
 h = h2&
 
-
-stat(t, 0, targstat) -= h
+stat(t, 0, targstat) = stat(t, 0, targstat) - h
 
 'bounds
 stat(t, 0, targstat) = large(stat(t, 0, targstat), 0)
@@ -1659,7 +1645,7 @@ EXIT SUB
 sellinfostr:
 info$ = ""
 IF inventory(ic).used = 0 THEN RETRACE
-IF readbit(permask(), 0, ic) = -1 THEN info$ = cannotsell$: RETRACE
+IF readbit(permask(), 0, ic) = 1 THEN info$ = cannotsell$: RETRACE
 IF price(ic) > 0 THEN info$ = worth$ + XSTR$(price(ic)) + " " + sname$(32)
 FOR i = 0 TO storebuf(16)
  IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
@@ -1854,7 +1840,7 @@ FOR i = 0 TO 23
   NEXT j
   setpicstuf buffer(), 80, -1
   loadset game$ + ".dt6", spel(i), 0
-  IF readbit(buffer(), 20, 59) = -1 AND buffer(3) > 0 THEN
+  IF readbit(buffer(), 20, 59) = 1 AND buffer(3) > 0 THEN
    canuse(i) = buffer(3)
    targt(i) = buffer(4)
    setbit ondead(), 0, i, 0
