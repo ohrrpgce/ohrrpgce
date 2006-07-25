@@ -185,11 +185,11 @@ DO
    alert$ = buytype$(1, shoptype) + stuf$(pt)
   END IF '--------END BUY THING------------
   GOSUB stufmask
-  DO WHILE readbit(vmask(), 0, pt) = 1
+  DO WHILE readbit(vmask(), 0, pt) = -1
    pt = pt - 1
    IF pt < 0 THEN
     pt = 0
-    DO WHILE readbit(vmask(), 0, pt) = 1
+    DO WHILE readbit(vmask(), 0, pt) = -1
      pt = pt + 1
      IF pt > storebuf(16) THEN EXIT SUB
     LOOP
@@ -394,8 +394,8 @@ FUNCTION chkOOBtarg (wptr, index, stat(), ondead(), onlive())
  'RETRACE true if valid, false if not valid
  chkOOBtarg = -1
  IF hero(wptr) = 0 OR _
-    (stat(wptr, 0, 0) = 0 AND readbit(ondead(), 0, index) = -1) OR _
-    (stat(wptr, 0, 0) > 0 AND readbit(onlive(), 0, index) = -1) THEN
+    (stat(wptr, 0, 0) = 0 AND readbit(ondead(), 0, index) = 0) OR _
+    (stat(wptr, 0, 0) > 0 AND readbit(onlive(), 0, index) = 0) THEN
   chkOOBtarg = 0
  END IF
 END FUNCTION
@@ -1079,7 +1079,7 @@ FOR i = 0 TO inventoryMax - 1
 NEXT i
 FOR i = 0 TO inventoryMax - 1
  FOR o = i + 1 TO inventoryMax
-  IF readbit(iuse(), 0, 3 + i) = 0 AND readbit(iuse(), 0, 3 + o) = 1 THEN
+  IF readbit(iuse(), 0, 3 + i) = 0 AND readbit(iuse(), 0, 3 + o) = -1 THEN
    itemmenuswap inventory(), iuse(), permask(), i, o
    EXIT FOR
   END IF
@@ -1163,7 +1163,7 @@ IF attack(5) = 2 THEN am! = 1.3: dm! = 1
 IF attack(5) = 3 THEN am! = 1: dm! = 0
 
 'resetting
-IF readbit(attack(), 20, 57) = 1 THEN
+IF readbit(attack(), 20, 57) = -1 THEN
  stat(t, 0, targstat) = stat(t, 1, targstat)
 END IF
 
@@ -1178,22 +1178,23 @@ h2& = h2& + (h2& / 100) * attack(11)
 IF readbit(attack(), 20, 61) = 0 THEN h2& = rangel(h2&, 20)
 
 'spread damage
-IF readbit(attack(), 20, 1) = 1 THEN h2& = h2& / (spred + 1)
+IF readbit(attack(), 20, 1) = -1 THEN h2& = h2& / (spred + 1)
 
 'cap out
 IF readbit(attack(), 20, 62) = 0 AND h2& <= 0 THEN h2& = 1
 
 'cure bit
-IF readbit(attack(), 20, 0) = 1 THEN h2& = ABS(h2&) * -1
+IF readbit(attack(), 20, 0) = -1 THEN h2& = ABS(h2&) * -1
 
 'backcompat MP-targstat
 IF readbit(attack(), 20, 60) THEN
  IF targstat = 0 THEN targstat = 1
 END IF
 
+
  chp& = stat(t, 0, targstat)
  mhp& = stat(t, 1, targstat)
- IF readbit(attack(), 65, 5) = 1 THEN
+ IF readbit(attack(), 65, 5) = -1 THEN
   SELECT CASE attack(5)
    CASE 5'% of max   
     h2& = mhp& + (attack(11) * mhp& / 100)
@@ -1208,11 +1209,16 @@ END IF
     h2& = chp& - (chp& + (attack(11) * chp& / 100))
   END SELECT
  END IF
+ 
+
 IF h2& > 32767 THEN h2& = 32767
 IF h2& < -32768 THEN h2& = -32768
+
+
 h = h2&
 
-stat(t, 0, targstat) = stat(t, 0, targstat) - h
+
+stat(t, 0, targstat) -= h
 
 'bounds
 stat(t, 0, targstat) = large(stat(t, 0, targstat), 0)
@@ -1653,7 +1659,7 @@ EXIT SUB
 sellinfostr:
 info$ = ""
 IF inventory(ic).used = 0 THEN RETRACE
-IF readbit(permask(), 0, ic) = 1 THEN info$ = cannotsell$: RETRACE
+IF readbit(permask(), 0, ic) = -1 THEN info$ = cannotsell$: RETRACE
 IF price(ic) > 0 THEN info$ = worth$ + XSTR$(price(ic)) + " " + sname$(32)
 FOR i = 0 TO storebuf(16)
  IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
@@ -1848,7 +1854,7 @@ FOR i = 0 TO 23
   NEXT j
   setpicstuf buffer(), 80, -1
   loadset game$ + ".dt6", spel(i), 0
-  IF readbit(buffer(), 20, 59) = 1 AND buffer(3) > 0 THEN
+  IF readbit(buffer(), 20, 59) = -1 AND buffer(3) > 0 THEN
    canuse(i) = buffer(3)
    targt(i) = buffer(4)
    setbit ondead(), 0, i, 0
