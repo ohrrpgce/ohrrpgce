@@ -835,11 +835,11 @@ DO
  IF quit THEN EXIT DO
  FOR i = top TO top + 62
   textcolor uilook(uiDisabledItem), 0
-  IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
+  IF readbit(iuse(), 0, 3 + i) = -1 THEN textcolor uilook(uiMenuItem), 0
   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSelectedDisabled), 0
   IF ic = i THEN
    textcolor uilook(uiMenuItem), uilook(uiHighlight2)
-   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiText), uilook(uiHighlight2)
+   IF readbit(iuse(), 0, 3 + i) = -1 THEN textcolor uilook(uiText), uilook(uiHighlight2)
    IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiGold), uilook(uiHighlight2)
   END IF
   IF sel = i THEN
