@@ -272,7 +272,7 @@ end sub
 
 sub sound_close
   'trying to free something that's already freed... bad!
-  if not sound_inited then exit sub
+  if sound_inited = 0 then exit sub
   
   dim i as integer
 
@@ -301,7 +301,7 @@ function sound_load(byval slot as integer, f as string) as integer
   if slot = -1 then
     for i = 0 to ubound(sfx_slots)
     
-      if not sfx_slots(i).used then
+      if sfx_slots(i).used = 0 then
         slot = i
         exit for
       end if
@@ -339,9 +339,9 @@ end sub
 
 sub sound_play(byval slot as integer, byval l as integer)
   with sfx_slots(slot)
-    if not .used then exit sub
+    if .used = 0 then exit sub
     if (.playing<>0) and (.paused=0) then exit sub
-    if not .buf then exit sub
+    if .buf = 0 then exit sub
     
     if .paused then
       Mix_Resume(.chan)
@@ -357,8 +357,8 @@ end sub
 
 sub sound_pause(byval slot as integer)
   with sfx_slots(slot)
-    if not .used then exit sub
-    if not .playing then exit sub
+    if .used = 0 then exit sub
+    if .playing = 0 then exit sub
     if .paused then exit sub
     
     .paused = 1
@@ -368,8 +368,8 @@ end sub
 
 sub sound_stop(byval slot as integer)
   with sfx_slots(slot)
-    if not .used then exit sub
-    if not .playing then exit sub
+    if .used = 0 then exit sub
+    if .playing = 0 then exit sub
     
     .playing = 0
     .paused = 0
@@ -380,7 +380,7 @@ end sub
 
 function sound_playing(byval slot as integer) as integer
   with sfx_slots(slot)
-    if not .used then return 0
+    if .used = 0 then return 0
     
     return .playing
     

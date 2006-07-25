@@ -1377,7 +1377,7 @@ IF afterbat = 0 THEN
  NEXT
 END IF
 npcplot
-IF afterbat = 0 AND NOT samemap THEN
+IF afterbat = 0 AND samemap = 0 THEN
  forcedismount choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
 END IF
 IF afterbat = 0 AND afterload = 0 THEN

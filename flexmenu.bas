@@ -1297,5 +1297,6 @@ NEXT i
 END SUB
 
 FUNCTION isStringField(mnu)
-  isStringField = mnu = 3 OR mnu = 4 OR mnu = 6
+  IF mnu = 3 OR mnu = 4 OR mnu = 6 THEN RETURN -1
+  RETURN 0
 END FUNCTION

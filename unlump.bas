@@ -170,7 +170,7 @@ SELECT CASE key$
   IF LEN(post$) > 0 THEN post$ = RIGHT$(post$, LEN(post$) - 1)
  CASE ELSE
   IF LEN(key$) > 0 THEN
-   IF (ASC(key$) >= 32 AND ASC(key$) < 127 AND key$ <> "," AND key$ <> "~" AND NOT number) OR (ASC(key$) >= 48 AND ASC(key$) <= 57 AND number) THEN
+   IF (ASC(key$) >= 32 AND ASC(key$) < 127 AND key$ <> "," AND key$ <> "~" AND number = 0) OR (ASC(key$) >= 48 AND ASC(key$) <= 57 AND number) THEN
     IF LEN(post$) = 0 AND LEN(pre$) < max THEN post$ = " "
     IF LEN(post$) > 0 THEN
      MID$(post$, 1, 1) = key$

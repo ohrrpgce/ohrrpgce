@@ -1646,7 +1646,7 @@ IF general(5) < 256 THEN
 END IF
 
 'Zero out new attack item cost (ammunition) data
-IF NOT getfixbit(fixAttackitems) THEN
+IF getfixbit(fixAttackitems) = 0 THEN
   setfixbit(fixAttackitems, 1)
   fh = freefile
   OPEN workingdir$ + SLASH + "attack.bin" FOR BINARY AS #FH
