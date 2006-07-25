@@ -103,11 +103,7 @@ sub gfx_showpage(byval raw as ubyte ptr)
 	
 	for y = 0 to 199
 		for x = 0 to 319
-#if __FB_VERSION__ <= "0.16"
-			_putpixel(screenbuf, x, y, *raw)
-#else
 			putpixel8(screenbuf, x, y, *raw)
-#endif
 			raw += 1
 		next
 	next
