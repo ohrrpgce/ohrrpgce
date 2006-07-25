@@ -1027,8 +1027,10 @@ SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 	'clip
 	if x + w > clipr then w = (clipr - x) + 1
 	if y + h > clipb then h = (clipb - y) + 1
-	if x < clipl then x = clipl
-	if y < clipt then y = clipt
+	if x < clipl then w = w - ABS(x - clipl) : x = clipl + 1
+	if y < clipt then h = h - ABS(y - clipt) : y = clipt + 1
+
+	if w <= 0 or h <= 0 then exit sub  
 
 	'draw
 	sptr = spage(p) + (y*320) + x
