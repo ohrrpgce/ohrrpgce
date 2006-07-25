@@ -828,12 +828,20 @@ IF sayer < 0 THEN
      IF (nx = ux AND ny = uy) THEN 'not moving NPCs
       EXIT DO
      ELSEIF nx MOD 20 <> 0 XOR ny mod 20 <> 0 THEN 'they're moving (i.e. misaligned)
-      'ok, what if they finished moving?
-      IF nx MOD 20 THEN
-       wrapaheadxy nx, ny, nd,20 - nx MOD 20,20
-      ELSE
-       wrapaheadxy nx, ny, nd,20 - ny MOD 20,20
+      IF npc(j).ygo > 0 THEN ' up
+       wrapaheadxy nx, ny, 0, ABS(npc(j).ygo), 20
       END IF
+      IF npc(j).xgo < 0 THEN ' right
+       wrapaheadxy nx, ny, 1, ABS(npc(j).xgo), 20
+      END IF
+      IF npc(j).ygo < 0 THEN ' down
+       wrapaheadxy nx, ny, 2, ABS(npc(j).ygo), 20
+      END IF
+      IF npc(j).xgo > 0 THEN ' left
+       wrapaheadxy nx, ny, 3, ABS(npc(j).xgo), 20
+      END IF
+      '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
+      'rectangle nx - mapx, ny - mapy, 20,20, 1, vpage : setvispage vpage 
       IF (nx = ux AND ny = uy) THEN '(fake) not moving NPCs
        EXIT DO
       END IF
