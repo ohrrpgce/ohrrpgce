@@ -391,11 +391,13 @@ RETRACE
 END SUB
 
 FUNCTION chkOOBtarg (wptr, index, stat(), ondead(), onlive())
-'RETRACE true if valid, false if not valid
-chkOOBtarg = -1
-IF hero(wptr) = 0 OR (stat(wptr, 0, 0) = 0 AND readbit(ondead(), 0, index) = 0) OR (stat(wptr, 0, 0) > 0 AND readbit(onlive(), 0, index) = 0) THEN
- chkOOBtarg = 0
-END IF
+ 'RETRACE true if valid, false if not valid
+ chkOOBtarg = -1
+ IF hero(wptr) = 0 OR _
+    (stat(wptr, 0, 0) = 0 AND readbit(ondead(), 0, index) = -1) OR _
+    (stat(wptr, 0, 0) > 0 AND readbit(onlive(), 0, index) = -1) THEN
+  chkOOBtarg = 0
+ END IF
 END FUNCTION
 
 SUB doequip (toequip, who, where, defwep, stat())
@@ -738,7 +740,7 @@ NEXT
 FOR i = 0 TO inventoryMax
  'loop through each inventory slot looking for an empty slot to populate 
  IF inventory(i).used = 0 THEN
-  inventory(i).used = 1
+  inventory(i).used = -1
   inventory(i).id = getit - 1
   inventory(i).num = small(numitems, 99)
   numitems -= inventory(i).num
@@ -901,11 +903,11 @@ itcontrol:
 IF pick = 0 THEN
  IF carray(5) > 1 THEN
   '--deselect currently selected item
-  IF sel > -1 THEN sel = -4 ELSE quit = 1
+  IF sel > -1 THEN sel = -4 ELSE quit = -1
  END IF
  IF carray(4) > 1 THEN
   '--exit
-  IF ic = -3 THEN quit = 1
+  IF ic = -3 THEN quit = -1
   '--sort
   IF ic = -2 THEN GOSUB autosort
   IF ic = -1 AND sel >= 0 AND readbit(permask(), 0, 3 + sel) = 0 THEN
@@ -954,7 +956,7 @@ IF pick = 0 THEN
      RETRACE
     END IF
     IF a(51) < 0 THEN '--trigger a text box
-     IF buffer(73) = 1 THEN dummy = consumeitem(ic)
+     IF buffer(73) <> 0 THEN dummy = consumeitem(ic)
      items = a(51) * -1
      loadtemppage 3
      RETRIEVESTATE
@@ -1027,7 +1029,7 @@ ELSE
    '--trylearn
    didlearn = trylearn(wptr, atk, 0)
    '--announce learn
-   IF didlearn = 1 THEN
+   IF didlearn <> 0 THEN
     tmp$ = names$(wptr) + " " + readglobalstring$(124, "learned", 10) + " " + readatkname$(atk)
     centerbox 160, 100, small(LEN(tmp$) * 8 + 16, 320), 24, 1, vpage
     edgeprint tmp$, large(xstring(tmp$, 160), 0), 95, uilook(uiText), vpage
@@ -1043,15 +1045,21 @@ ELSE
   IF buffer(51) > 0 THEN
    atk = buffer(51) - 1
    IF spred = 0 THEN
-    IF chkOOBtarg(wptr, 3 + ic, stat(), ondead(), onlive()) THEN oobcure -1, wptr, atk, spred, stat(): didcure = -1
+    IF chkOOBtarg(wptr, 3 + ic, stat(), ondead(), onlive()) THEN
+      oobcure -1, wptr, atk, spred, stat()
+      didcure = -1
+    end if
    ELSE
     FOR i = 0 TO 3
      ' IF hero(i) > 0 AND (stat(i, 0, 0) > 0 OR readbit(ondead(), 0, 3 + ic)) THEN oobcure -1, i, atk, spred, stat()
-     IF chkOOBtarg(i, 3 + ic, stat(), ondead(), onlive()) THEN oobcure -1, i, atk, spred, stat(): didcure = -1
+     IF chkOOBtarg(i, 3 + ic, stat(), ondead(), onlive()) THEN
+      oobcure -1, i, atk, spred, stat()
+      didcure = -1
+     END IF
     NEXT i
    END IF
   END IF 'buffer(51) > 0
-  IF buffer(73) = 1 AND (didcure OR didlearn = 1) THEN
+  IF buffer(73) <> 0 AND (didcure OR didlearn) THEN
    IF consumeitem(ic) THEN
     setbit iuse(), 0, 3 + ic, 0: pick = 0: GOSUB infostr
    END IF
