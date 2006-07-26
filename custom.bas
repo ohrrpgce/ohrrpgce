@@ -34,7 +34,7 @@ DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION getmapname$ (m%)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-DECLARE SUB scriptman (gamedir$)
+DECLARE SUB scriptman ()
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB writescatter (s$, lhold%, start%)
@@ -104,7 +104,7 @@ CHDIR gamedir$
 DIM font(1024), master(767), buffer(16384), timing(4), joy(4), scroll(16002), pass(16002), emap(16002)
 DIM menu$(22), general(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600), uilook(uiColors)
 'more global variables
-DIM game$, unsafefile$, insert
+DIM game$, gamefile$, unsafefile$, insert
 DIM vpage, dpage, fadestate, workingdir$, version$ 
 
 '--DIM binsize arrays
@@ -225,7 +225,7 @@ DO:
     IF pt = 13 THEN importsfx
     IF pt = 14 THEN fontedit font(), gamedir$
     IF pt = 15 THEN gendata
-    IF pt = 16 THEN scriptman gamedir$
+    IF pt = 16 THEN scriptman
     IF pt = 17 THEN
      GOSUB relump
      IF quitnow > 1 THEN GOTO finis

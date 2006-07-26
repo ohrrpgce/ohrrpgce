@@ -4,6 +4,7 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 EXTERN game$
+EXTERN gamefile$
 EXTERN unsafefile$
 EXTERN timing()
 EXTERN general()

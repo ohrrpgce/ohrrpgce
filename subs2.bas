@@ -28,7 +28,7 @@ DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION isunique% (s$, u$(), r%)
 DECLARE FUNCTION loadname$ (length%, offset%)
-DECLARE SUB exportnames (gamedir$)
+DECLARE SUB exportnames ()
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE FUNCTION needaddset (pt%, check%, what$)
@@ -154,7 +154,7 @@ NEXT i
 
 END SUB
 
-SUB exportnames (gamedir$)
+SUB exportnames ()
 
 DIM u$(1024), names$(32), stat$(11)
 max = 32
@@ -173,7 +173,7 @@ stat$(9) = names$(7)
 stat$(10) = names$(31)
 stat$(11) = names$(4)
 
-outf$ = gamedir$ + SLASH + RIGHT$(game$, LEN(game$) - 12) + ".hsi"
+outf$ = trimextension$(gamefile$) + ".hsi"
 
 clearpage 0
 clearpage 1
@@ -181,7 +181,7 @@ setvispage 0
 textcolor 15, 0
 pl = 0
 printstr "exporting HamsterSpeak Definitions to:", 0, pl * 8, 0: pl = pl + 1
-printstr outf$, 0, pl * 8, 0: pl = pl + 1
+printstr RIGHT$(outf$, 40), 0, pl * 8, 0: pl = pl + 1
 'Need to call this quite a lot to refresh the screen for FB. Bit of a
 'compromise between showing the process and slowing things down, since
 'it will copy the page data every time.
@@ -439,7 +439,7 @@ ELSE
 END IF
 END FUNCTION
 
-SUB scriptman (gamedir$)
+SUB scriptman ()
 STATIC defaultdir$
 DIM menu$(5)
 
@@ -460,7 +460,7 @@ DO
    CASE 0
     EXIT DO
    CASE 1
-    exportnames gamedir$
+    exportnames
    CASE 2
     f$ = browse(0, defaultdir$, "*.hs", "")
     IF f$ <> "" THEN
