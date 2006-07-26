@@ -828,6 +828,7 @@ IF sayer < 0 THEN
      IF (nx = ux AND ny = uy) THEN 'not moving NPCs
       EXIT DO
      ELSEIF nx MOD 20 <> 0 XOR ny mod 20 <> 0 THEN 'they're moving (i.e. misaligned)
+      '--first check the tile the NPC is stepping into
       IF npc(j).ygo > 0 THEN ' up
        wrapaheadxy nx, ny, 0, ABS(npc(j).ygo), 20
       END IF
@@ -842,7 +843,15 @@ IF sayer < 0 THEN
       END IF
       '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
       'rectangle nx - mapx, ny - mapy, 20,20, 1, vpage : setvispage vpage 
-      IF (nx = ux AND ny = uy) THEN '(fake) not moving NPCs
+      IF (nx = ux AND ny = uy) THEN 'check for activation
+       EXIT DO
+      END IF
+      '--also check the tile the NPC is leaving
+      nx = nx + SGN(npc(j).xgo) * 20
+      ny = ny + SGN(npc(j).ygo) * 20
+      '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
+      'rectangle nx - mapx, ny - mapy, 20,20, 4, vpage : setvispage vpage 
+      IF (nx = ux AND ny = uy) THEN 'check for activation
        EXIT DO
       END IF
      END IF
