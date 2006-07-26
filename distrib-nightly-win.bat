@@ -45,15 +45,8 @@ call makeutil.bat
 support\zip distrib\ohrrpgce-util.zip unlump.exe relump.exe LICENSE-binary.txt
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-util.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
 
-del distrib\hspeak-dos-nightly.zip
-call bind -clear_routines hspeak.ex
-support\zip distrib\hspeak-dos-nightly.zip hspeak.exe hspeak.ex LICENSE.txt
-pscp -i C:\progra~1\putty\id_rsa.ppk distrib\hspeak-dos-nightly.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
-
-copy hspeak.ex hspeak.exw
 del distrib\hspeak-win-nightly.zip
 call bindw -clear_routines hspeak.exw
-support\zip distrib\hspeak-win-nightly.zip hspeak.exe hspeak.exw LICENSE.txt
+support\zip distrib\hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e LICENSE.txt
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\hspeak-win-nightly.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
-del hspeak.exw
 
