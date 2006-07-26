@@ -852,6 +852,9 @@ IF sayer < 0 THEN
       '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
       'rectangle nx - mapx, ny - mapy, 20,20, 4, vpage : setvispage vpage 
       IF (nx = ux AND ny = uy) THEN 'check for activation
+       '--if activating an NPC that has just walked past us, cause it to back up
+       npc(j).xgo = SGN(npc(j).xgo * -1) * (20 - ABS(npc(j).xgo))
+       npc(j).ygo = SGN(npc(j).ygo * -1) * (20 - ABS(npc(j).ygo))
        EXIT DO
       END IF
      END IF
