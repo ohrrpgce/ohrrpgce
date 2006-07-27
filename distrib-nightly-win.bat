@@ -42,6 +42,7 @@ Echo upload plotdict.xml
 pscp -i C:\progra~1\putty\id_rsa.ppk docs\plotdict.xml spam@brionne.cyberverse.com:web/html/ohrrpgce/docs/
 
 call makeutil.bat
+del distrib\ohrrpgce-util.zip
 support\zip distrib\ohrrpgce-util.zip unlump.exe relump.exe LICENSE-binary.txt
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-util.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
 
