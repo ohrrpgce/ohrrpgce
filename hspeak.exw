@@ -376,11 +376,13 @@ procedure check_arg_count(sequence args)
   if length(args)=2 then
     wrap_print("HamsterSpeak semicompiler v%d%s (C)%s James Paige&Hamster Republic Productions\n",{COMPILER_VERSION,COMPILER_SUB_VERSION,COPYRIGHT_DATE})
     wrap_print("Please read LICENSE.txt for GPL License details and disclaimer of liability",{})
-    wrap_print(COLYEL&"%s [-cdefwy] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
+    wrap_print(COLYEL&"%s [-cdefksawy] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
     color_print("   -c colors will be disabled\n",{})
     color_print("   -d dump debug report to hs_debug.txt\n",{})
     color_print("   -f fast mode. disables some optimization\n",{})
     color_print("   -k do not wait for a keypress when finished\n",{})
+    color_print("   -s print the name of each script as it is compiled\n",{})
+    color_print("     -a same as -s, but including autonumbered scripts\n",{})
     color_print("   -w suppress minor warnings\n",{})
     color_print("   -y overwrite the destination file without asking\n",{})
     color_print("   -z write error messages to hs_error.htm\n",{})
@@ -2406,12 +2408,23 @@ end procedure
 
 function generate_scripts_dot_txt()
   sequence result
+  integer print_scripts
   result=""
+  print_scripts = 0
+  if find('a',optlist) then
+    print_scripts = 2
+  elsif find('s',optlist) then
+    print_scripts = 1
+  end if
+  
   for i=1 to length(script_list) do
     result&=sprintf("%s\r\n%d\r\n%d\r\n",{script_list[i][PAIR_NAME],script_list[i][PAIR_NUM],length(script_list[i][FUNC_ARGS])})
     for j=1 to length(script_list[i][FUNC_ARGS]) do
       result&=sprintf("%d\r\n",{script_list[i][FUNC_ARGS][j]})
     end for
+    if print_scripts and ((script_list[i][PAIR_NUM]<autonumber_id and print_scripts=1) or (print_scripts=2)) then
+      wrap_print("%s\r\n",{script_list[i][PAIR_NAME]})
+    end if
   end for
   return(result)
 end function
