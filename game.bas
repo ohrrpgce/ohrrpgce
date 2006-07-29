@@ -866,7 +866,7 @@ IF sayer < 0 THEN
 END IF
 IF sayer >= 0 THEN
  '--Step-on NPCs cannot be used
- IF auto = 0 AND npcs((npc(sayer).id - 1) * 15 + 8) = 2 THEN RETRACE
+ IF auto = 0 AND npcs((npc(sayer).id - 1) * 15 + 8) = 2 THEN sayer = -1 : RETRACE
  getit = npcs((npc(sayer).id - 1) * 15 + 6)
  IF getit THEN getitem getit, 1
  '---DIRECTION CHANGING-----------------------
