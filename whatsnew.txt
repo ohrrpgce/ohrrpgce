@@ -63,6 +63,8 @@ WHAT IS NEW?
     * Fixed bug 200, script errors and strange random behaviour when
       activating the place were an already-activated one-time-usable
       NPC was standing [James Paige]
+    * Fixed bug 210, HP and Gold costs are deducted more than once, and are
+      randomized [Mike Caron]
 
   * New Plotscripting Commands
     * "string from textbox" [Yuriy]
