@@ -1052,6 +1052,28 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    IF conmp = 1 THEN
     '--if the attack costs MP, we want to actually consume MP
     IF  atk(8) > 0 THEN stat(who, 0, 1) = large(stat(who, 0, 1) - focuscost(atk(8), stat(who, 0, 10)), 0)
+    
+    '--ditto for HP
+    IF atk(9) > 0 THEN
+      stat(who, 0, 0) = large(stat(who, 0, 0) - atk(9), 0)
+      hc(who) = 7
+      hx(who) = x(who) + (w(who) * .5)
+      hy(who) = y(who) + (h(who) * .5)
+      harm$(who) = STR$(atk(9))
+    END IF
+    
+    '--ditto for money
+    IF atk(10) > 0 THEN
+      gold& = large(gold& - atk(10), 0)
+      hc(who) = 7
+      hx(who) = x(who) + (w(who) * .5)
+      hy(who) = y(who) + (h(who) * .5)
+      harm$(who) = STR$(atk(10)) + "$"
+      IF atk(10) < 0 THEN harm$(who) += "+"
+      IF gold& > 1000000000 THEN gold& = 1000000000
+      IF gold& < 0 THEN gold& = 0
+
+    END IF
 
     '--if the attack consumes items, we want to consume those too
     FOR i = 0 to 2
@@ -1072,31 +1094,6 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    IF icons(who) >= 0 THEN 
     IF consumeitem(icons(who)) THEN setbit iuse(), 0, icons(who), 0
     icons(who) = -1
-   END IF
-   IF atk(9) <> 0 THEN
-    hc(who) = 7
-    hx(who) = x(who) + (w(who) * .5)
-    hy(who) = y(who) + (h(who) * .5)
-    temp = large(range(atk(9), 50), 1)
-    harm$(who) = STR$(ABS(temp))
-    stat(who, 0, 0) = large(stat(who, 0, 0) - temp, 0)
-    IF stat(who, 0, 0) <= 0 THEN
-     tdwho = who
-     stat(tdwho, 0, 0) = 0
-     GOSUB triggerfade
-    END IF
-   END IF
-   IF atk(10) <> 0 THEN
-    hc(who) = 7
-    hx(who) = x(who) + (w(who) * .5)
-    hy(who) = y(who) + (h(who) * .5)
-    temp = large(range(ABS(atk(10)), 50), 1)
-    temp = temp * SGN(atk(10))
-    harm$(who) = STR$(ABS(temp)) + "$"
-    IF atk(10) < 0 THEN harm$(who) = "+" + harm$(who)
-    gold& = gold& - temp
-    IF gold& > 1000000000 THEN gold& = 1000000000
-    IF gold& < 0 THEN gold& = 0
    END IF
    o = 0
    FOR i = 0 TO 3
