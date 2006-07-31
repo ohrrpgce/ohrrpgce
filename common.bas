@@ -341,36 +341,40 @@ FOR i = 0 TO treesize
  END IF
 NEXT
 
-meter = 0
+sortstart = 0
+FOR k = 0 TO treesize
+ IF treec(k) = 2 OR treec(k) = 3 OR treec(k) = 6 THEN sortstart = k: EXIT FOR
+NEXT
 
 '--alphabetize
-FOR o = treesize TO drivetotal + 1 STEP -1
- FOR i = drivetotal TO o
-  IF (treec(i) = 2 OR treec(i) = 3 OR treec(i) = 6) AND (treec(i - 1) = 2 OR treec(i - 1) = 3 OR treec(i - 1) = 6) THEN
-   IF ASC(LCASE$(LEFT$(display$(i), 1))) < ASC(LCASE$(LEFT$(display$(i - 1), 1))) THEN
-    SWAP display$(i), display$(i - 1)
-    SWAP about$(i), about$(i - 1)
-    SWAP tree$(i), tree$(i - 1)
-    SWAP treec(i), treec(i - 1)
+FOR i = sortstart TO treesize - 1
+ FOR j = treesize TO i + 1 STEP -1
+  FOR k = 0 TO small(LEN(display$(i)), LEN(display$(j)))
+   chara = tolower(display$(i)[k])
+   charb = tolower(display$(j)[k])
+   IF chara < charb THEN
+    EXIT FOR
+   ELSEIF chara > charb THEN
+    SWAP display$(i), display$(j)
+    SWAP about$(i), about$(j)
+    SWAP tree$(i), tree$(j)
+    SWAP treec(i), treec(j)
+    EXIT FOR
    END IF
-  END IF
+  NEXT
  NEXT i
- GOSUB drawmeter2
 NEXT o
 
 '--sort by type
-FOR o = treesize TO drivetotal + 1 STEP -1
- FOR i = drivetotal TO o
-  IF (treec(i) = 2 OR treec(i) = 3 OR treec(i) = 6) AND (treec(i - 1) = 2 OR treec(i - 1) = 3 OR treec(i - 1) = 6) THEN
-   IF treec(i) < treec(i - 1) THEN
-    SWAP display$(i), display$(i - 1)
-    SWAP about$(i), about$(i - 1)
-    SWAP tree$(i), tree$(i - 1)
-    SWAP treec(i), treec(i - 1)
-   END IF
+FOR o = treesize TO sortstart + 2 STEP -1
+ FOR i = sortstart + 1 TO o
+  IF treec(i) < treec(i - 1) THEN
+   SWAP display$(i), display$(i - 1)
+   SWAP about$(i), about$(i - 1)
+   SWAP tree$(i), tree$(i - 1)
+   SWAP treec(i), treec(i - 1)
   END IF
  NEXT i
- GOSUB drawmeter2
 NEXT o
 
 '--set cursor
@@ -479,13 +483,6 @@ RETRACE
 drawmeter:
 IF ranalready THEN
  meter = small(meter + 1, 308): rectangle 5 + meter, 33 + viewsize * 9, 2, 5, 9, vpage
- setvispage vpage 'refresh
-END IF
-RETRACE
-
-drawmeter2:
-IF ranalready THEN
- meter = small(meter + 1, 308): rectangle 5 + meter, 41 + viewsize * 9, 2, 2, 9, vpage
  setvispage vpage 'refresh
 END IF
 RETRACE
