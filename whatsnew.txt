@@ -1,5 +1,10 @@
 WHAT IS NEW?
 
+
+August ?? 2006 [hasta-la-qb+]
+
+  * Fixed bug 220: "Hero plotscripting commands broken"
+
 July 09 2006 [hasta-la-qb]
   * This is the final version to support a real DOS version (GAME-QB and
     CUSTOMQB) You should be using the Windows or Linux versions already

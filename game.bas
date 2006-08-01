@@ -2007,6 +2007,7 @@ SELECT CASE scrat(nowscript, curkind)
     scriptnpc scrat(nowscript, curvalue)
     scriptmisc scrat(nowscript, curvalue)
     scriptadvanced scrat(nowscript, curvalue)
+    scriptstat scrat(nowscript, curvalue), stat()
     '---------
   END SELECT
 END SELECT
