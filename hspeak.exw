@@ -376,7 +376,7 @@ procedure check_arg_count(sequence args)
   if length(args)=2 then
     wrap_print("HamsterSpeak semicompiler v%d%s (C)%s James Paige&Hamster Republic Productions\n",{COMPILER_VERSION,COMPILER_SUB_VERSION,COPYRIGHT_DATE})
     wrap_print("Please read LICENSE.txt for GPL License details and disclaimer of liability",{})
-    wrap_print(COLYEL&"%s [-cdefksawy] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
+    wrap_print(COLYEL&"%s [-cdfksawyz] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
     color_print("   -c colors will be disabled\n",{})
     color_print("   -d dump debug report to hs_debug.txt\n",{})
     color_print("   -f fast mode. disables some optimization\n",{})
