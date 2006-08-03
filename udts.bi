@@ -1,3 +1,21 @@
+TYPE NPCType
+  picture as integer     '+0
+  palette as integer     '+1
+  movetype as integer    '+2
+  speed as integer       '+3  real speed, not value in .d
+  textbox as integer     '+4
+  facetype as integer    '+5
+  item as integer        '+6
+  pushtype as integer    '+7
+  activation as integer  '+8
+  tag1 as integer        '+9   appear only if
+  tag2 as integer        '+10  appear only if 2
+  usetag as integer      '+11
+  script as integer      '+12
+  scriptarg as integer   '+13
+  vechicle as integer    '+14
+END TYPE
+
 TYPE NPCInst
   x as integer      'npcl+0   
   y as integer      'npcl+300 
@@ -20,6 +38,7 @@ TYPE InventSlot
 END TYPE
 
 'Loading subs
+DECLARE SUB LoadNPCD(file as string, dat() as NPCType)
 DECLARE SUB LoadNPCL(file as string, dat() as NPCInst, num as integer)
 
 'Serialization
@@ -31,5 +50,6 @@ DECLARE SUB DeserNPCL(dat() as NPCInst, z, buf(), num as integer)
 DECLARE SUB DeserInventory(invent() as InventSlot, z, buf())
 
 'Cleaning
+DECLARE SUB CleanNPCD(dat() as NPCType)
 DECLARE SUB CleanNPCL(dat() as NPCInst, num as integer)
 DECLARE SUB CleanInventory(invent() as InventSlot)

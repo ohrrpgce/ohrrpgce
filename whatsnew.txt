@@ -97,9 +97,9 @@ WHAT IS NEW?
     * New util.bas for code that does not depend on any other part
       of the OHR
     * Some rewritten map wrapping code [Ralph Versteegen]
-    * Reformatted NPC data with UDTs [Mike Caron]
+    * Internal data formats for NPCs and inventory rewritten with UDTs
+      [Ralph, Mike]
     * Hspeak's exit code is 2 if there were warnings [Mike Caron]
-    * Rewritten item code and data using UDTs [Ralph Versteegen]
     * Use keyval(-1) to detect when the OS has requested the program
       to exit
 

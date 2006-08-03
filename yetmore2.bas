@@ -762,7 +762,7 @@ SUB reloadnpc (stat())
 vishero stat()
 FOR i = 0 TO 35
  setpicstuf buffer(), 1600, 2
- loadset game$ + ".pt4", npcs(i * 15 + 0), 20 + (5 * i)
- getpal16 pal16(), 4 + i, npcs(i * 15 + 1)
+ loadset game$ + ".pt4", npcs(i).picture, 20 + (5 * i)
+ getpal16 pal16(), 4 + i, npcs(i).palette
 NEXT i
 END SUB

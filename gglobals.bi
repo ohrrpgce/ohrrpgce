@@ -65,7 +65,7 @@ EXTERN wtog()
 EXTERN catermask()
 
 'NPC globals
-EXTERN npcs()
+EXTERN npcs() as NPCType
 EXTERN npc() as NPCInst
 
 'Item globals

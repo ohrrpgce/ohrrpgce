@@ -160,13 +160,14 @@ thestart:
 'DEBUG debug "dim (almost) everything"
 
 DIM font(1024), master(767), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
-DIM door(206), gen(104), npcs(1500), saytag(21), tag(127), hero(40), stat(40, 1, 16), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), menu$(20), exlev&(40, 1), names$(40), mi(10), gotj(2), veh(21)
+DIM door(206), gen(104), saytag(21), tag(127), hero(40), stat(40, 1, 16), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), menu$(20), exlev&(40, 1), names$(40), mi(10), gotj(2), veh(21)
 DIM eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3),  _
 tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
 DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 14), retvals(32), plotstring$(31), plotstrX(31), plotstrY(31), plotstrCol(31), plotstrBGCol(31), plotstrBits(31)
 DIM uilook(uiColors)
 DIM inventory(inventoryMax) as InventSlot
+DIM npcs(npcdMax) as NPCType
 DIM npc(300) as NPCInst
 DIM didgo(0 TO 3)
 'all global variables have to be dimmed to be used with EXTERN
@@ -866,28 +867,28 @@ IF sayer < 0 THEN
 END IF
 IF sayer >= 0 THEN
  '--Step-on NPCs cannot be used
- IF auto = 0 AND npcs((npc(sayer).id - 1) * 15 + 8) = 2 THEN sayer = -1 : RETRACE
- getit = npcs((npc(sayer).id - 1) * 15 + 6)
+ IF auto = 0 AND npcs(npc(sayer).id - 1).activation = 2 THEN sayer = -1 : RETRACE
+ getit = npcs(npc(sayer).id - 1).item
  IF getit THEN getitem getit, 1
  '---DIRECTION CHANGING-----------------------
- IF npcs((npc(sayer).id - 1) * 15 + 5) < 2 THEN
+ IF npcs(npc(sayer).id - 1).facetype < 2 THEN
   recalld = npc(sayer).dir
   npc(sayer).dir = catd(0)
   npc(sayer).dir = loopvar(npc(sayer).dir, 0, 3, 1): npc(sayer).dir = loopvar(npc(sayer).dir, 0, 3, 1)
  END IF
- IF npcs((npc(sayer).id - 1) * 15 + 11) > 0 THEN
+ IF npcs(npc(sayer).id - 1).usetag > 0 THEN
   '--One-time-use tag
-  setbit tag(), 0, 1000 + npcs((npc(sayer).id - 1) * 15 + 11), 1
+  setbit tag(), 0, 1000 + npcs(npc(sayer).id - 1).usetag, 1
  END IF
- IF npcs((npc(sayer).id - 1) * 15 + 12) > 0 THEN
+ IF npcs(npc(sayer).id - 1).script > 0 THEN
   '--summon a script directly from an NPC
-  rsr = runscript(npcs((npc(sayer).id - 1) * 15 + 12), nowscript + 1, -1, "NPC")
+  rsr = runscript(npcs(npc(sayer).id - 1).script, nowscript + 1, -1, "NPC")
   IF rsr = 1 THEN
-   setScriptArg 0, npcs((npc(sayer).id - 1) * 15 + 13)
+   setScriptArg 0, npcs(npc(sayer).id - 1).scriptarg
    setScriptArg 1, (sayer + 1) * -1 'reference
   END IF
  END IF
- vehuse = npcs((npc(sayer).id - 1) * 15 + 14)
+ vehuse = npcs(npc(sayer).id - 1).vechicle
  IF vehuse THEN '---activate a vehicle---
   setpicstuf buffer(), 80, -1
   loadset game$ + ".veh", vehuse - 1, 0
@@ -904,7 +905,7 @@ IF sayer >= 0 THEN
    IF veh(14) > 1 THEN setbit tag(), 0, veh(14), 1
   END IF
  END IF
- say = npcs((npc(sayer).id - 1) * 15 + 4)
+ say = npcs(npc(sayer).id - 1).textbox
  SELECT CASE say
   CASE 0
    sayer = -1
@@ -1011,7 +1012,7 @@ vishero stat()
 npcplot
 IF sayer >= 0 THEN
  IF npc(sayer).id > 0 THEN
-  IF npcs((npc(sayer).id - 1) * 15 + 5) = 1 THEN
+  IF npcs(npc(sayer).id - 1).facetype = 1 THEN
    npc(sayer).dir = recalld
   END IF
  END IF
@@ -1044,19 +1045,19 @@ FOR whoi = 0 TO 3
    '--this only happens if obstruction is on
    FOR i = 0 TO 299
     IF npc(i).id > 0 THEN '---NPC EXISTS---
-     IF npcs((npc(i).id - 1) * 15 + 8) < 2 THEN '---NPC IS AN OBSTRUCTION---
+     IF npcs(npc(i).id - 1).activation < 2 THEN '---NPC IS AN OBSTRUCTION---
       IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi)) THEN
        xgo(whoi) = 0: ygo(whoi) = 0
        id = (npc(i).id - 1)
        '--push the NPC
-       IF npcs(id * 15 + 7) > 0 AND npc(i).xgo = 0 AND npc(i).ygo = 0 THEN
-        temp = npcs(id * 15 + 7)
+       IF npcs(id).picture > 0 AND npc(i).xgo = 0 AND npc(i).ygo = 0 THEN
+        temp = npcs(id).picture
         IF catd(whoi) = 0 AND (temp = 1 OR temp = 2 OR temp = 4) THEN npc(i).ygo = 20
         IF catd(whoi) = 2 AND (temp = 1 OR temp = 2 OR temp = 6) THEN npc(i).ygo = -20
         IF catd(whoi) = 3 AND (temp = 1 OR temp = 3 OR temp = 7) THEN npc(i).xgo = 20
         IF catd(whoi) = 1 AND (temp = 1 OR temp = 3 OR temp = 5) THEN npc(i).xgo = -20
        END IF
-       IF npcs(id * 15 + 8) = 1 AND whoi = 0 THEN
+       IF npcs(id).activation = 1 AND whoi = 0 THEN
         IF wraptouch(npc(i).x, npc(i).y, catx(0), caty(0), 20) THEN
          ux = npc(i).x
          uy = npc(i).y
@@ -1138,7 +1139,7 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR ng = 1) THEN
   FOR i = 0 TO 299
    IF npc(i).id > 0 THEN '---NPC EXISTS---
     IF veh(0) = 0 OR (readbit(veh(), 9, 2) AND veh(5) <> i) THEN
-     IF npcs((npc(i).id - 1) * 15 + 8) = 2 THEN '---NPC IS PASSABLE---
+     IF npcs(npc(i).id - 1).activation = 2 THEN '---NPC IS PASSABLE---
       IF npc(i).x = catx(0) AND npc(i).y = caty(0) THEN '---YOU ARE ON NPC---
        ux = npc(i).x
        uy = npc(i).y
@@ -1185,8 +1186,8 @@ FOR o = 0 TO 299
     npc(o).frame = wtog(0)
    END IF
   ELSE
-   movetype = npcs(id * 15 + 2)
-   speedset = npcs(id * 15 + 3)
+   movetype = npcs(id).movetype
+   speedset = npcs(id).speed
    IF movetype > 0 AND (speedset > 0 OR movetype = 8) AND sayer <> o AND readbit(gen(), 44, suspendnpcs) = 0 THEN
     IF npc(o).xgo = 0 AND npc(o).ygo = 0 THEN
      'RANDOM WANDER---
@@ -1273,7 +1274,7 @@ IF movdivis(npc(o).xgo) OR movdivis(npc(o).ygo) THEN
   NEXT i
   '---CHECK THAT NPC IS OBSTRUCTABLE-----
   IF npc(o).id > 0 THEN
-   IF npcs((npc(o).id - 1) * 15 + 8) < 2 THEN
+   IF npcs(npc(o).id - 1).activation < 2 THEN
     IF wrapcollision (npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo, catx(0), caty(0), xgo(0), ygo(0)) THEN
      npc(o).xgo = 0
      npc(o).ygo = 0
@@ -1287,12 +1288,12 @@ IF movdivis(npc(o).xgo) OR movdivis(npc(o).ygo) THEN
   END IF
  END IF
 END IF
-IF npcs(id * 15 + 3) THEN
+IF npcs(id).speed THEN
  '--change x,y and decrement wantgo by speed
- IF npc(o).xgo > 0 THEN npc(o).xgo = npc(o).xgo - npcs(id * 15 + 3): npc(o).x = npc(o).x - npcs(id * 15 + 3)
- IF npc(o).xgo < 0 THEN npc(o).xgo = npc(o).xgo + npcs(id * 15 + 3): npc(o).x = npc(o).x + npcs(id * 15 + 3)
- IF npc(o).ygo > 0 THEN npc(o).ygo = npc(o).ygo - npcs(id * 15 + 3): npc(o).y = npc(o).y - npcs(id * 15 + 3)
- IF npc(o).ygo < 0 THEN npc(o).ygo = npc(o).ygo + npcs(id * 15 + 3): npc(o).y = npc(o).y + npcs(id * 15 + 3)
+ IF npc(o).xgo > 0 THEN npc(o).xgo = npc(o).xgo - npcs(id).speed: npc(o).x = npc(o).x - npcs(id).speed
+ IF npc(o).xgo < 0 THEN npc(o).xgo = npc(o).xgo + npcs(id).speed: npc(o).x = npc(o).x + npcs(id).speed
+ IF npc(o).ygo > 0 THEN npc(o).ygo = npc(o).ygo - npcs(id).speed: npc(o).y = npc(o).y - npcs(id).speed
+ IF npc(o).ygo < 0 THEN npc(o).ygo = npc(o).ygo + npcs(id).speed: npc(o).y = npc(o).y + npcs(id).speed
 ELSE
  '--no speed, kill wantgo
  npc(o).xgo = 0
@@ -1300,7 +1301,7 @@ ELSE
 END IF
 IF cropmovement(npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN GOSUB hitwall
 nogo:
-IF npcs(id * 15 + 8) = 1 AND showsay = 0 THEN
+IF npcs(id).activation = 1 AND showsay = 0 THEN
  IF wraptouch(npc(o).x, npc(o).y, catx(0), caty(0), 20) THEN
   ux = npc(o).x
   uy = npc(o).y
@@ -1312,10 +1313,10 @@ END IF
 RETRACE
 
 hitwall:
-IF npcs(id * 15 + 2) = 2 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, 2)
-IF npcs(id * 15 + 2) = 3 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, 1)
-IF npcs(id * 15 + 2) = 4 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, -1)
-IF npcs(id * 15 + 2) = 5 THEN npc(o).dir = INT(RND * 4)
+IF npcs(id).movetype = 2 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, 2)
+IF npcs(id).movetype = 3 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, 1)
+IF npcs(id).movetype = 4 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, -1)
+IF npcs(id).movetype = 5 THEN npc(o).dir = INT(RND * 4)
 RETRACE
 
 opendoor:
@@ -1388,7 +1389,8 @@ IF afterbat = 0 THEN
  showmapname = gmap(4)
  'xbload maplumpname$(map, "l"), npcl(), "Oh no! Map" + STR$(map) + " NPC locations are missing"
  LoadNPCL maplumpname$(map, "l"), npc(), 300
- xbload maplumpname$(map, "n"), npcs(), "Oh no! Map" + STR$(map) + " NPC definitions are missing"
+ 'xbload maplumpname$(map, "n"), npcs(), "Oh no! Map" + STR$(map) + " NPC definitions are missing"
+ LoadNPCD maplumpname$(map, "n"), npcs()
  FOR i = 0 TO 299
   npc(i).x = npc(i).x * 20        
   npc(i).y = (npc(i).y - 1) * 20 
@@ -1422,9 +1424,6 @@ IF veh(0) AND samemap THEN
  IF herospeed(0) = 3 THEN herospeed(0) = 10
 END IF
 reloadnpc stat()
-FOR i = 0 TO 35
- IF npcs(i * 15 + 3) = 3 THEN npcs(i * 15 + 3) = 10
-NEXT i
 correctbackdrop
 SELECT CASE gmap(5) '--outer edge wrapping
  CASE 0, 1'--crop edges or wrap
@@ -2036,7 +2035,7 @@ SELECT CASE scrat(nowscript, curkind)
     IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
      IF retvals(0) < 0 THEN retvals(0) = (npc(abs(retvals(0) + 1)).id - 1)
      IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
-      npcs(retvals(0) * 15 + retvals(1)) = retvals(2)
+      (@npcs(retvals(0)).picture)[retvals(1)] = retvals(2)
       IF retvals(1) = 0 THEN
        setpicstuf buffer(), 1600, 2
        loadset game$ + ".pt4", retvals(2), 20 + (5 * retvals(0))

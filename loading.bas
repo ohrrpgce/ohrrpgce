@@ -12,6 +12,39 @@ option explicit
 DECLARE SUB debug (s$)
 
 
+SUB LoadNPCD(file as string, dat() as NPCType)
+  DIM i AS INTEGER, j AS INTEGER, f AS INTEGER, memptr AS INTEGER PTR
+  f = FREEFILE
+  OPEN file FOR BINARY AS #f
+  SEEK #f, 8
+
+  FOR i = 0 TO npcdMax
+    memptr = @dat(i).picture
+    FOR j = 0 TO 14
+      *memptr = ReadShort(f, -1)
+      memptr += 1
+    NEXT
+  NEXT
+
+  CLOSE #f
+
+  FOR i = 0 TO npcdMax
+    IF dat(i).speed = 3 THEN dat(i).speed = 10
+  NEXT i
+END SUB
+
+SUB CleanNPCD(dat() as NPCType)
+  DIM i AS INTEGER, j AS INTEGER, memptr AS INTEGER PTR
+
+  FOR i = 0 TO npcdMax
+    memptr = @dat(i).picture
+    FOR j = 0 TO 14
+      *memptr = 0
+      memptr += 1
+    NEXT
+  NEXT
+END SUB
+
 SUB LoadNPCL(file as string,dat() as NPCInst, num as integer)
   DIM i AS INTEGER, f AS INTEGER
   REDIM dat(num - 1) as NPCInst

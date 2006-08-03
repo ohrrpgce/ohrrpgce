@@ -698,14 +698,14 @@ FOR i = 0 TO 299
 
  IF npc(i).id < 0 THEN
   '--check reappearance tags for existing but hidden NPCs
-  IF istag(npcs(curnpc * 15 + 9), 1) AND istag(npcs(curnpc * 15 + 10), 1) AND istag(1000 + npcs(curnpc * 15 + 11), 0) = 0 THEN
+  IF istag(npcs(curnpc).tag1, 1) AND istag(npcs(curnpc).tag2, 1) AND istag(1000 + npcs(curnpc).usetag, 0) = 0 THEN
    npc(i).id = ABS(npc(i).id)
   END IF
  END IF
 
  IF npc(i).id > 0 THEN
   '--check removal tags for existing visible NPCs
-  IF istag(npcs(curnpc * 15 + 9), 1) = 0 OR istag(npcs(curnpc * 15 + 10), 1) = 0 OR istag(1000 + npcs(curnpc * 15 + 11), 0) THEN
+  IF istag(npcs(curnpc).tag1, 1) = 0 OR istag(npcs(curnpc).tag2, 1) = 0 OR istag(1000 + npcs(curnpc).usetag, 0) THEN
    npc(i).id = npc(i).id * -1
   END IF
   'IF readbit(tag(), 0, ABS(npcs(curnpc * 15 + 9))) <> SGN(SGN(npcs(curnpc * 15 + 9)) + 1) AND npcs(curnpc * 15 + 9) <> 0 THEN
@@ -1823,11 +1823,11 @@ SELECT CASE id
  CASE 182'--read NPC
   IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
    IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
-    scriptret = npcs(retvals(0) * 15 + retvals(1))
+    scriptret = (@npcs(retvals(0)).picture)[retvals(1)]
    ELSE
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
-     scriptret = npcs((npc(npcref).id - 1) * 15 + retvals(1))
+     scriptret = (@npcs(npc(npcref).id - 1).picture)[retvals(1)]
     END IF
    END IF
   END IF
