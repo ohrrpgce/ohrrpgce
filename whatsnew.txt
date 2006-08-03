@@ -1,7 +1,9 @@
 WHAT IS NEW?
 
+August 03 2006 [hasta-la-qb+]
 
-August ?? 2006 [hasta-la-qb+]
+  * Okay, we lied. The last update wasn't nearly stable enough to
+    be the final DOS version.
 
   * Fixed bug 220: "Hero plotscripting commands broken" [Ralph Versteegen]
   * Backported Ralph Versteegen's thread safety fixes [James Paige]
