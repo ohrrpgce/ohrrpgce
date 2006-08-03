@@ -115,7 +115,7 @@ have to do it manually, but you MUST do it. Remember: 1 indent = 1 tab.
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript lastmodified="?? ??, 2006  hasta-la-qb version">
+<plotscript lastmodified="August 03, 2006 hasta-la-qb version">
 	<section title="Declarations">
 		<command id="definescript">
 			<cannon>define script (id,name,arguments)</cannon>

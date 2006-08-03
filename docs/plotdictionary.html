@@ -74,7 +74,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<p>This is a listing of all the plotscripting commands implemented as of February 18, 2006.</p>
+<p>This is a listing of all the plotscripting commands implemented as of August 03, 2006 hasta-la-qb version.</p>
 <p>In addition to reading this document, I also recommend you check out Plotscripting Tutorial and the HamsterSpeak Specification</p>
 <hr>
 <h2>Commands by Category</h2>
@@ -152,6 +152,9 @@
 		
 	
 		<a href="#about-appendnumber">append number (ID, number)</a><br>
+		
+	
+		<a href="#about-asciifromstring">ascii from string (ID, position)</a><br>
 		
 	
 		<a href="#about-autonumber">autonumber</a><br>
@@ -517,7 +520,7 @@
 		<a href="#about-initmouse">init mouse</a><br>
 		
 	
-		<a href="#about-inputstring">input string (ID, use current)</a><br>
+		<a href="#about-inputstring">input string (ID, maxlength, use current, center, position x, position y)</a><br>
 		
 	
 		<a href="#about-insidebattle">inside battle</a><br>
@@ -535,7 +538,13 @@
 		<a href="#about-keyispressed">key is pressed (scancode)</a><br>
 		
 	
+		<a href="#about-keyval">keyval (scancode)</a><br>
+		
+	
 		<a href="#about-knowsspell">knows spell (hero,attack)</a><br>
+		
+	
+		<a href="#about-lastascii">last ascii</a><br>
 		
 	
 		<a href="#about-lastsaveslot">last save slot</a><br>
@@ -1003,6 +1012,9 @@
 		<a href="#about-stringcolor">string color (ID, foreground color, background color)</a><br>
 		
 	
+		<a href="#about-stringcompare">string compare (ID1, ID2)</a><br>
+		
+	
 		<a href="#about-stringlength">string length (ID)</a><br>
 		
 	
@@ -1069,13 +1081,22 @@
 		<a href="#about-swapouthero">swap out hero (who)</a><br>
 		
 	
+		<a href="#about-systemday">system day</a><br>
+		
+	
 		<a href="#about-systemhour">system hour</a><br>
 		
 	
 		<a href="#about-systemminute">system minute</a><br>
 		
 	
+		<a href="#about-systemmonth">system month</a><br>
+		
+	
 		<a href="#about-systemsecond">system second</a><br>
+		
+	
+		<a href="#about-systemyear">system year</a><br>
 		
 	
 		<a href="#about-teachspell">teach spell (hero,attack)</a><br>
@@ -1305,9 +1326,9 @@ include, mygame.hsi # constants particular to my game</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">wait (ticks)</font></b><br>
-			Makes the script wait for the specified number of ticks. I havent timed how many ticks there are in a second, but I would guess roughly 15. If you leave out the argument, it will wait for one tick.
+			Makes the script wait for the specified number of ticks. There are roughly 18 ticks to a second, but this can vary under some conditions. If you leave out the argument, it will wait for one tick.
 			<pre>show text box(2) # Show a text box
-wait(45) # Wait about 3 seconds
+wait(50) # Wait about 3 seconds
 advance text box # "hit spacebar"</pre>
 			
 		</tt></p>
@@ -1783,7 +1804,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">NPC at spot (x,y,number)</font></b><br>
-			This command returns a reference to the NPC at the given X and Y coordinate on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom most NPC, which is number 0). You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile.
+			This command returns a reference to the NPC at the given X and Y coordinate on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom most NPC, which is number 0). You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile. Note that an NPC's tile is the tile its top left corner is on.
 			
 			<br><br>See also: <ul class="seealso"><li><a href="#about-npcreference" class="ref">NPC reference</a></li></ul>
 		</tt></p>
@@ -2626,7 +2647,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">show string (ID)</font></b><br>
-			Displays string #ID on the screen, as with the <a href="#about-showvalue" class="ref">show value</a> command. Use <a href="#about-shownovalue" class="ref">show no value</a> to remove the string from the screen. Note that this command displays the value of the string at the moment the command was run. Later changes to the value of the string will not appear unless you run show string again. If you need real-time display of changes to a string, use <a href="#about-showstringat" class="ref">show string at</a> or <a href="#about-centerstringat" class="ref">center string at</a> instead.
+			Displays string #ID in the bottom left corner of the screen, as with the <a href="#about-showvalue" class="ref">show value</a> command. Use <a href="#about-shownovalue" class="ref">show no value</a> to remove the string from the screen. Note that this command displays the value of the string at the moment the command was run. Later changes to the value of the string will not appear unless you run show string again. If you need real-time display of changes to a string, use <a href="#about-showstringat" class="ref">show string at</a> or <a href="#about-centerstringat" class="ref">center string at</a> instead.
 			
 			<br><br>See also: <ul class="seealso">
 <li>
@@ -2686,6 +2707,14 @@ end</pre>
 			
 			
 		</tt></p>
+		<a name="about-stringcompare"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">string compare (ID1, ID2)</font></b><br>
+			Returns true if the two strings #<span class="param">ID1</span> and #<span class="param">ID2</span> are identical, case sensitive.
+			
+			
+		</tt></p>
 		<a name="about-replacechar"></a>
 		<p>
 		<tt>
@@ -2699,6 +2728,14 @@ end</pre>
 		<tt>
 		<b><font color="yellow">delete char (ID, position)</font></b><br>
 			This deletes the character at <span class="param">postion</span> in string #<span class="param">ID</span>, causing all the following characters to move over a slot.
+			
+			
+		</tt></p>
+		<a name="about-asciifromstring"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">ascii from string (ID, position)</font></b><br>
+			Returns the ascii code of the character at <span class="param">position</span> in string #<span class="param">ID</span>.
 			
 			
 		</tt></p>
@@ -2769,8 +2806,8 @@ end</pre>
 		<a name="about-inputstring"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">input string (ID, use current)</font></b><br>
-			Allows the player to type in a string. Returns false if they press ESC to cancel.
+		<b><font color="yellow">input string (ID, maxlength, use current, center, position x, position y)</font></b><br>
+			Allows the player to type in a string. Returns false if they press ESC to cancel. All arguments are optional: <span class="param">ID</span> is the string you want to use, default is string #1. <span class="param">maxlen</span> is the length of input, if left blank the limit will be the limit of the string, which is 40. <span class="param">use current</span> is whether you want to add to the existing string, or clear the string before typing. Default is clear the string before typing, valid arguments are <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a>. <span class="param">center</span> centers the string input at position x/y. If left blank the string will use its current positioning. Otherwise, valid arguments are <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a>. If the string is not visible, then it will automatically be placed onscreen (centered if not specified) and hidden when done. <span class="param">position x</span> and <span class="param">position y</span> are optional, and are the position at which the string will be shown as it is being typed. The default values are 160,110.
 			
 			
 		</tt></p>
@@ -2778,7 +2815,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">show string at (ID, x, y)</font></b><br>
-			Displays string #<span class="param">ID</span> on the screen, positioning its top left corner at the given <span class="param">x</span>,<span class="param">y</span> coordinates. Unlike <a href="#about-showstring" class="ref">show string</a>, changes to the string will be displayed in real-time.
+			Displays string #<span class="param">ID</span> on the screen, positioning its top left corner at the given (<span class="param">x</span>,<span class="param">y</span>) coordinates. Unlike <a href="#about-showstring" class="ref">show string</a>, changes to the string will be displayed in real-time.
 			
 			
 		</tt></p>
@@ -2786,7 +2823,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">center string at (ID, x, y)</font></b><br>
-			Displays string #<span class="param">ID</span> on the screen, Centering it at the given <span class="param">x</span>,<span class="param">y</span> coordinates. Unlike <a href="#about-showstring" class="ref">show string</a>, changes to the string will be displayed in real-time.
+			Displays string #<span class="param">ID</span> on the screen, positioning its top-middle at the given (<span class="param">x</span>,<span class="param">y</span>) coordinates. Unlike <a href="#about-showstring" class="ref">show string</a>, changes to the string will be displayed in real-time.
 			
 			
 		</tt></p>
@@ -2802,7 +2839,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">string style (ID, style)</font></b><br>
-			Changes the appearance of a string previously displayed with <a href="#about-showstringat" class="ref">show string at</a> or <a href="#about-centerstringat" class="ref">center string at</a>. Choice of <span class="param">style</span> is string:outline and string:flat
+			Changes the appearance of a string previously displayed with <a href="#about-showstringat" class="ref">show string at</a> or <a href="#about-centerstringat" class="ref">center string at</a>. Choice of <span class="param">style</span> is string:outline and string:flat. string:outline is the style of string you are familiar with in textboxes: they are outlined with colour 0 (black). string:flat have not outline but can have a solid background of any colour behind the string.
 			
 			
 		</tt></p>
@@ -2810,7 +2847,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">string color (ID, foreground color, background color)</font></b><br>
-			Changes the color of a string previously displayed with <a href="#about-showstringat" class="ref">show string at</a> or <a href="#about-centerstringat" class="ref">center string at</a>. Use 0 for transparent, and 1 to 255 for each different color in the palette. If you ommit <span class="param">background color</span>, the background will be transparent.
+			Changes the color of a string previously displayed with <a href="#about-showstringat" class="ref">show string at</a> or <a href="#about-centerstringat" class="ref">center string at</a>. Foreground color is the colour of the text itself. Background color has no meaning for style:outline strings (the outline is always black). For style:flat strings, it is the color of the solid background if 1 to 255, or causes no background if 0. If you ommit <span class="param">background color</span>, the background will be transparent.
 			
 			
 		</tt></p>
@@ -2826,7 +2863,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">string X (ID)</font></b><br>
-			returns the horizontal X position of the top left corner of string #<span class="param">ID</span>
+			Returns the horizontal X position of the top left corner of string #<span class="param">ID</span>
 			
 			
 		</tt></p>
@@ -2834,7 +2871,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">string Y (ID)</font></b><br>
-			returns the vertical Y position of the top left corner of string #<span class="param">ID</span>
+			Returns the vertical Y position of the top left corner of string #<span class="param">ID</span>
 			
 			
 		</tt></p>
@@ -2882,7 +2919,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">hero X (who)</font></b><br>
-			returns the specified hero's X position in tiles.
+			Returns the specified hero's X position in tiles. Note that a hero's tile is the tile its top left corner is on.
 			
 			
 		</tt></p>
@@ -2890,7 +2927,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">hero Y (who)</font></b><br>
-			returns the specified hero's Y position in tiles.
+			Returns the specified hero's Y position in tiles. Note that a hero's tile is the tile its top left corner is on.
 			
 			
 		</tt></p>
@@ -2898,17 +2935,17 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">NPC X (who)</font></b><br>
-			returns the specified NPC's X position in tiles.
+			Returns the specified NPC's X position in tiles. Note that an NPC's tile is the tile its top left corner is on.
 			
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-npcatspot" class="ref">NPC at spot</a></li></ul>
 		</tt></p>
 		<a name="about-npcy"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">NPC Y (who)</font></b><br>
-			returns the specified NPC's Y position in tiles.
+			Returns the specified NPC's Y position in tiles. Note that an NPC's tile is the tile its top left corner is on.
 			
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-npcatspot" class="ref">NPC at spot</a></li></ul>
 		</tt></p>
 		<a name="about-herodirection"></a>
 		<p>
@@ -3002,7 +3039,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">minutes of play</font></b><br>
-			returns the number of minutes that the game has been played, 0 to 59
+			Returns the number of minutes that the game has been played, 0 to 59
 			
 			
 		</tt></p>
@@ -3018,7 +3055,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">seconds of play</font></b><br>
-			returns the number of seconds that the game has been played, 0 to 59
+			Returns the number of seconds that the game has been played, 0 to 59
 			
 			
 		</tt></p>
@@ -3027,6 +3064,30 @@ end</pre>
 		<tt>
 		<b><font color="yellow">set seconds of play (sec)</font></b><br>
 			Sets the number of seconds that the game has been "played" to <span class="param">sec</span>, as long as <span class="param">sec</span> is within the 0-59 range.
+			
+			
+		</tt></p>
+		<a name="about-systemyear"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">system year</font></b><br>
+			Returns the current real-world year
+			
+			
+		</tt></p>
+		<a name="about-systemmonth"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">system month</font></b><br>
+			Returns the current real-world month, 1 to 12
+			
+			
+		</tt></p>
+		<a name="about-systemday"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">system day</font></b><br>
+			Returns the current real-world day, 1 to 31
 			
 			
 		</tt></p>
@@ -3058,8 +3119,8 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">key is pressed (scancode)</font></b><br>
-			Returns <a href="#about-booleanconstants" class="ref">true</a> if the keyboard key with the specified scancode is being pressed, or <a href="#about-booleanconstants" class="ref">false</a> if it is not. The argument is a scancode, NOT the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, etc used with <a href="#about-waitforkey" class="ref">wait for key</a>. I have provided an extra include file, SCANCODE.HSI that you can use to define friendly names for all the scancodes.<br>
-<ul>
+			Returns <a href="#about-booleanconstants" class="ref">true</a> if the keyboard key with the specified scancode is being pressed (either held down or pressed since last tick), or <a href="#about-booleanconstants" class="ref">false</a> if it is not. The argument is a scancode, NOT the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, etc used with <a href="#about-waitforkey" class="ref">wait for key</a>. I have provided an extra include file, SCANCODE.HSI that you can use to define friendly names for all the scancodes.<br>
+                <ul>
 <li>00</li>
 <li>01 ESC</li>
 <li>02 1</li>
@@ -3154,7 +3215,23 @@ end</pre>
 <li>91 L WIN LOGO</li>
 <li>92 R WIN LOGO</li>
 <li>93 CONTEXT</li>
-</ul>
+</ul>Note: you can NOT wait for the player to press a key by continually polling <span class="param">key is pressed</span> unless you stick a <a href="#about-wait" class="ref">wait</a> in your do loop. That's because <span class="param">key is pressed</span> does not return real time data, but the state of the keyboard at the beginning of the current game tick.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-keyval" class="ref">keyval (scancode)</a></li></ul>
+		</tt></p>
+		<a name="about-keyval"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">keyval (scancode)</font></b><br>
+			Returns a bitmask for the state of the specified key. The argument is a scancode, see <a href="#about-keyispressed" class="ref">key is pressed (scancode)</a>. The first (least significant) bit is whether the key was depressed at the beginning of the current tick. The second bit is whether the key was pushed down by the player since the start of the previous tick (or when the key starts to repeatedly trigger after being held down for a while). It can therefore return 0, 1, 2 or 3: <br><br>0 = not pressed<br>1 = key held down since last tick, but is not a new press<br>2 = the player pressed the key and released it, all in the same tick<br>3 = new keypress (or typematic repeat)<br><br>Note: just like <a href="#about-keyispressed" class="ref">key is pressed (scancode)</a>, this command does not return real time data, but the situation at the beginning of the current game tick.
+			
+			
+		</tt></p>
+		<a name="about-lastascii"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">last ascii</font></b><br>
+			Returns the ascii code of any currently pressed key. If more than one key corresponding to an ascii character is being pressed, then only one can be returned.
 			
 			
 		</tt></p>
@@ -4701,7 +4778,7 @@ trace(1) # writes "TRACE: i = 1" to G_DEBUG.TXT</pre>
 		</tt></p>
 		
 		<hr>
-	<p>Stats: There are 366 commands in this file, of which 51 are only references to other commands.</p>
+	<p>Stats: There are 373 commands in this file, of which 51 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
