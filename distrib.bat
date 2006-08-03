@@ -78,7 +78,6 @@ cd ..
 support\zip -q -r distrib\custom.zip import
 support\zip -q -r distrib\custom.zip docs
 
-ECHO Sanity-test results...
 del tmpdist\*.???
 cd tmpdist
 ..\support\unzip -q ..\distrib\custom.zip custom.exe
@@ -97,12 +96,12 @@ cd tmpdist
 ..\support\zip -q -r ..\distrib\ohrrpgce_play.zip *.*
 cd ..
 
-ECHO Sanity-test results...
 del tmpdist\*.???
 cd tmpdist
 ..\support\unzip -q ..\distrib\ohrrpgce_play.zip game.exe
 cd ..
 IF NOT EXIST tmpdist\game.exe GOTO SANITYFAIL
+del tmpdist\game.exe
 
 REM ------------------------------------------
 ECHO Packaging ohrrpgce-win-installer.exe ...
@@ -110,7 +109,7 @@ ECHO Packaging ohrrpgce-win-installer.exe ...
 IF NOT EXIST distrib\ohrrpgce-win-installer.exe GOTO SANITYFAIL
 
 REM ------------------------------------------
-ECHO Package source snapshot zip ...
+ECHO Packaging source snapshot zip ...
 IF NOT EXIST %SVN% GOTO NOSVN
 IF NOT EXIST support\grep.exe GOTO NOSUPPORT
 IF NOT EXIST support\sed.exe GOTO NOSUPPORT

@@ -45,7 +45,7 @@ a$ = "@ECHO OFF"
 PRINT #1, a$
 a$ = "SET OHRVERCODE=" + codename$
 PRINT #1, a$
-a$ = "SET OHRVERDATE=" + datetag$
+a$ = "SET OHRVERDATE=" + MID$(datetag$, 1, 4) + "-" + MID$(datetag$, 5, 2) + "-" + MID$(datetag$, 7, 2)
 PRINT #1, a$
 
 CLOSE #1
