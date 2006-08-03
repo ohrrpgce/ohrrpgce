@@ -1,10 +1,10 @@
-'OHRRPGCE UNLUMP - RPG File unlumping utility
-'(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
+'OHRRPGCE RELUMP - RPG File relumping utility
+'(C) Copyright 2006 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 ' To compile:
-'        fbc unlump.bas util.bas
+'        fbc relump.bas util.bas
 '
 '$DYNAMIC
 DEFINT A-Z
@@ -18,7 +18,7 @@ DECLARE FUNCTION getcurdir$ ()
 DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB readscatter (s$, lhold%, array%(), start%)
 DECLARE FUNCTION rotascii$ (s$, o%)
-'DECLARE FUNCTION readpassword$ ()
+DECLARE SUB fixorder (f$)
 
 'assembly subs and functions
 DECLARE SUB setwait (b(), BYVAL t)
@@ -28,8 +28,6 @@ DECLARE FUNCTION readbit (b(), BYVAL w, BYVAL b)
 DECLARE SUB copyfile (s$, d$, buf())
 DECLARE SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 DECLARE SUB lumpfiles (listf$, lump$, path$, buffer())
-DECLARE SUB unlump (lump$, ulpath$, buffer())
-DECLARE SUB unlumpfile (lump$, fmask$, path$, buf())
 DECLARE SUB array2str (arr(), BYVAL o, s$)
 DECLARE SUB str2array (s$, arr(), BYVAL o)
 DECLARE SUB getstring (path$)
@@ -42,79 +40,81 @@ DECLARE FUNCTION isremovable (BYVAL d)
 DECLARE FUNCTION isvirtual (BYVAL d)
 DECLARE FUNCTION hasmedia (BYVAL d)
 
+'slight hackery to get more versatile read function
+declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
+declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
+
+
 '$INCLUDE: 'util.bi'
 
 CONST true = -1
 CONST false = 0
+#IFDEF __FB_LINUX__
+ CONST SLASH = "/"
+ CONST ALLFILES = "*"
+#ELSE
+ CONST SLASH = "\"
+ CONST ALLFILES = "*.*"
+#ENDIF
 
-DIM buffer(16383)
-
+COMMON SHARED buffer() AS INTEGER
+DIM buffer(32767) AS INTEGER
 
 olddir$ = getcurdir
 
 IF COMMAND$ = "" THEN
- PRINT "O.H.R.RPG.C.E. game unlumping utility"
+ PRINT "O.H.R.RPG.C.E. game relumping utility"
  PRINT ""
  PRINT "syntax:"
- PRINT "unlump filename.rpg directory"
+ PRINT "relump folder filename.rpg"
  PRINT ""
- PRINT "A utility to extract the contents of an RPG file to a directory"
- PRINT "so that advanced users can hack the delicious morsels inside."
+ PRINT "A utility to package the contents of an RPG folder back into"
+ PRINT "a RPG format lumpfile."
  PRINT "If a password is required, you will be prompted to enter it."
  PRINT ""
- PRINT "Windows users can drag-and-drop their RPG file onto this program"
- PRINT "to unlump it."
+ PRINT "Windows users can drag-and-drop their rpgdir file onto this program"
+ PRINT "to relump it."
  PRINT ""
  PRINT "[Press a Key]"
  dummy$ = readkey$()
  fatalerror ""
 END IF
 
-lump$ = COMMAND$(1)
+src$ = COMMAND$(1)
 dest$ = COMMAND$(2)
 IF dest$ = "" THEN
- dest$ = trimextension$(lump$) + ".rpgdir"
- IF LEN(rightafter(lump$, ".")) > 3 OR dest$ = "" THEN fatalerror "please specify an output directory"
+ dest$ = trimextension$(src$) + ".rpg"
+ IF dest$ = "" THEN fatalerror "please specify an output folder"
 END IF
 
-IF NOT isfile(lump$) THEN fatalerror "lump file `" + lump$ + "' was not found"
+IF isfile(src$) THEN fatalerror src$ + "' is a file, not a folder"
+IF NOT isdir(src$) THEN fatalerror "rpgdir folder `" + src$ + "' was not found"
 
-PRINT "From " + lump$ + " to " + dest$
+PRINT "From " + src$ + " to " + dest$
 
-
-game$ = rightafter(lump$, "\")
-IF game$ = "" THEN game$ = lump$
-IF INSTR(game$, ".") THEN game$ = LEFT$(game$, INSTR(game$, ".") - 1)
-
-IF isfile(dest$) THEN fatalerror "destination directory `" + dest$ + "' already exists as a file"
-
-IF isdir(dest$) THEN
- PRINT "destination directory `" + dest$ + "' already exists. use it anyway? (y/n)"
+IF isfile(dest$) THEN
+ PRINT "destination file " + dest$ + " already exists. Replace it? (y/n)"
  w$ = readkey
  IF w$ <> "Y" AND w$ <> "y" THEN SYSTEM
-ELSE
- MKDIR dest$
 END IF
 
-IF NOT isdir(dest$) THEN fatalerror "unable to create destination directory `" + dest$ + "'"
-
-unlumpfile lump$, "archinym.lmp", dest$ + "\", buffer()
+IF isdir(dest$) THEN fatalerror "destination file " + dest$ + " already exists as a folder."
 
 '--set game$ according to the archinym
-IF isfile(dest$ + "\archinym.lmp") THEN
+IF isfile(src$ + SLASH + "archinym.lmp") THEN
  fh = FREEFILE
- OPEN dest$ + "\archinym.lmp" FOR INPUT AS #fh
+ OPEN src$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
  LINE INPUT #fh, a$
  CLOSE #fh
  IF LEN(a$) <= 8 THEN
   game$ = a$
  END IF
+ELSE
+ PRINT "WARNING: " + src$ + SLASH + "archinym.lmp is missing."
+ game$ ="ohrrpgce"
 END IF
 
-unlumpfile lump$, game$ + ".gen", dest$ + "\", buffer()
-xbload dest$ + "\" + game$ + ".gen", buffer(), "unable to open general data"
-
-KILL dest$ + "\" + game$ + ".gen"
+xbload src$ + SLASH + game$ + ".gen", buffer(), "unable to open general data"
 
 passokay = true
 
@@ -147,11 +147,13 @@ IF buffer(94) > -1 THEN
 END IF
 
 IF passokay THEN
- REDIM buffer(32767)
- unlump lump$, dest$ + "\", buffer()
+ '--build the list of files to lump
+ findfiles src$ + SLASH + ALLFILES, 0, "temp.lst", buffer()
+ fixorder "temp.lst"
+ '---relump data into lumpfile package---
+ lumpfiles "temp.lst", dest$, src$ + SLASH, buffer()
+ KILL "temp.lst"
 END IF
-
-forcewd olddir$
 
 SYSTEM
 
@@ -435,150 +437,262 @@ function matchmask(match as string, mask as string) as integer
 
 end function
 
-SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
-	dim lf as integer
-	dim dat as ubyte
-	dim size as integer
-	dim maxsize as integer
-	dim lname as string
-	dim i as integer
+SUB fixorder (f$)
+copyfile f$, "fixorder.tmp", buffer()
+
+ofh = FREEFILE
+OPEN f$ FOR OUTPUT AS #ofh
+
+ifh = FREEFILE
+OPEN "fixorder.tmp" FOR INPUT AS #ifh
+
+'--first output the archinym.lmp and browse.txt files
+WHILE NOT EOF(ifh)
+ LINE INPUT #ifh, a$
+ b$ = LCASE$(a$)
+ IF b$ = "archinym.lmp" OR b$ = "browse.txt" THEN
+  PRINT #ofh, a$
+ END IF
+WEND
+
+'--close and re-open
+CLOSE #ifh
+OPEN "fixorder.tmp" FOR INPUT AS #ifh
+
+'--output the other files, excluding illegal files
+WHILE NOT EOF(ifh)
+ LINE INPUT #ifh, a$
+ b$ = LCASE$(a$)
+ SELECT CASE b$
+  CASE "archinym.lmp", "browse.txt", "scripts.txt", "hs"
+   '--do nothing
+  CASE ELSE
+   '--check extenstion
+   c$ = RIGHT$(b$, 4)
+   SELECT CASE c$
+    CASE ".tmp", ".hsx"
+     '--do nothing
+    CASE ELSE
+     '--output all other names
+     PRINT #ofh, a$
+   END SELECT
+ END SELECT
+WEND
+CLOSE #ifh
+CLOSE #ofh
+KILL "fixorder.tmp"
+END SUB
+
+SUB copyfile (s$, d$, buf() as integer)
 	dim bufr as ubyte ptr
-	dim nowildcards as integer = 0
+	dim as integer fi, fo, size, csize
 
-	lf = freefile
-	open lump$ for binary access read as #lf
-	if err > 0 then
-		'debug "Could not open file " + lump$
-		exit sub
-	end if
-	maxsize = LOF(lf)
-
-	bufr = allocate(16383)
-	if bufr = null then
-		close #lf
+	fi = freefile
+	open s$ for binary access read as #fi
+	if err <> 0 then
 		exit sub
 	end if
 
-	'should make browsing a bit faster
-	if len(fmask$) > 0 then
-		if instr(fmask$, "*") = 0 and instr(fmask$, "?") = 0 then
-			nowildcards = -1
-		end if
+	fo = freefile
+	open d$ for binary access write as #fo
+	if err <> 0 then
+		close #fi
+		exit sub
 	end if
 
-	get #lf, , dat	'read first byte
-	while not eof(lf)
-		'get lump name
-		lname = ""
-		i = 0
-		while not eof(lf) and dat <> 0 and i < 64
-			lname = lname + chr$(dat)
-			get #lf, , dat
-			i += 1
-		wend
-		if i > 50 then 'corrupt file, really if i > 12
-			'debug "corrupt lump file: lump name too long"
-			exit while
-		end if
-		'force to lower-case
-		lname = lcase(lname)
-		'debug "lump name " + lname
+	size = lof(fi)
 
-		if instr(lname, "\") or instr(lname, "/") then
-			'debug "unsafe lump name " + str$(lname)
-			exit while
-		end if
+	if size < 16000 then
+		bufr = allocate(size)
+		'copy a chunk of file
+		fget(fi, , bufr, size)
+		fput(fo, , bufr, size)
+	else
+		bufr = allocate(16000)
 
-		if not eof(lf) then
-			'get lump size - byte order = 3,4,1,2 I think
-			get #lf, , dat
-			size = (dat shl 16)
-			get #lf, , dat
-			size = size or (dat shl 24)
-			get #lf, , dat
-			size = size or dat
-			get #lf, , dat
-			size = size or (dat shl 8)
-			if size > maxsize then
-				'debug "corrupt lump size" + str$(size) + " exceeds source size" + str$(maxsize)
-				exit while
-			end if
-
-			'debug "lump size " + str$(size)
-
-			'do we want this file?
-			if matchmask(lname, lcase$(fmask$)) then
-				'write yon file
-				dim of as integer
-				dim csize as integer
-				dim osize as integer
-				
-				osize = size
-
-				of = freefile
-				open path$ + lname for binary access write as #of
-				if err > 0 then
-					'debug "Could not open file " + path$ + lname
-					exit while
-				end if
-
-				'copy the data
-				do while size > 0
-					if size > 16383 then
-						csize = 16383
-					else
-						csize = size
-					end if
-					'copy a chunk of file
-					get #lf, , *bufr, csize
-					put #of, , *bufr, csize
-					size -= csize
-					if size > osize then size = 0
-				loop
-
-				close #of
-
-				'early out if we're only looking for one file
-				if nowildcards then exit while
+		'write lump
+		while size > 0
+			if size > 16000 then
+				csize = 16000
 			else
-				'skip to next name
-				i = seek(lf)
-				i = i + size
-				seek #lf, i
+				csize = size
 			end if
-
-			if not eof(lf) then
-				get #lf, , dat
-			end if
-		end if
-	wend
+			'copy a chunk of file
+			fget(fi, , bufr, csize)
+			fput(fo, , bufr, csize)
+			size = size - csize
+		wend
+	end if
 
 	deallocate bufr
+	close #fi
+	close #fo
+
+end SUB
+
+SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
+    ' attrib 0: all files 'cept folders, attrib 16: folders only
+#ifdef __FB_LINUX__
+        'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR$
+	DIM grep$
+	grep$ = "-v '/$'"
+	IF attrib AND 16 THEN grep$ = "'/$'"
+	DIM i%
+	FOR i = LEN(fmask$) TO 1 STEP -1
+		IF MID$(fmask$, i, 1) = CHR$(34) THEN fmask$ = LEFT$(fmask$, i - 1) + "\" + CHR$(34) + RIGHT$(fmask$, LEN(fmask$) - i)
+	NEXT i
+	i = INSTR(fmask$, "*")
+	IF i THEN
+		fmask$ = CHR$(34) + LEFT$(fmask$, i - 1) + CHR$(34) + RIGHT$(fmask$, LEN(fmask$) - i + 1)
+	ELSE
+		fmask$ = CHR$(34) + fmask$ + CHR$(34)
+	END IF
+	SHELL "ls -d1p " + fmask$ + "|grep "+ grep$ + ">" + outfile$ + ".tmp"
+	DIM AS INTEGER f1, f2
+	f1 = FreeFile
+	OPEN outfile$ + ".tmp" FOR INPUT AS #f1
+	f2 = FreeFile
+	OPEN outfile$ FOR OUTPUT AS #f2
+	DIM s$
+	DO UNTIL EOF(f1)
+		LINE INPUT #f1, s$
+		IF RIGHT$(s$, 1) = "/" THEN s$ = LEFT$(s$, LEN(s$) - 1)
+		DO WHILE INSTR(s$, "/")
+			s$ = RIGHT$(s$, LEN(s$) - INSTR(s$, "/"))
+		LOOP
+		PRINT #f2, s$
+	LOOP
+	CLOSE #f1
+	CLOSE #f2
+	KILL outfile$ + ".tmp"
+#else
+    DIM a$, i%, folder$
+	if attrib = 0 then attrib = 255 xor 16
+
+	FOR i = LEN(fmask$) TO 1 STEP -1
+        IF MID$(fmask$, i, 1) = "\" THEN folder$ = MID$(fmask$, 1, i): EXIT FOR
+    NEXT
+
+	dim tempf%, realf%
+	tempf = FreeFile
+	OPEN outfile$ + ".tmp" FOR OUTPUT AS #tempf
+	a$ = DIR$(fmask$, attrib)
+	if a$ = "" then
+		close #tempf
+		exit sub
+	end if
+	DO UNTIL a$ = ""
+		PRINT #tempf, a$
+		a$ = DIR$("", attrib)
+	LOOP
+	CLOSE #tempf
+    OPEN outfile$ + ".tmp" FOR INPUT AS #tempf
+    realf = FREEFILE
+    OPEN outfile$ FOR OUTPUT AS #realf
+    DO UNTIL EOF(tempf)
+        LINE INPUT #tempf, a$
+        IF attrib = 16 THEN
+            'alright, we want directories, but DIR$ is too broken to give them to us
+            'files with attribute 0 appear in the list, so single those out
+            IF DIR$(folder$ + a$, 255 xor 16) = "" THEN PRINT #realf, a$
+        ELSE
+            PRINT #realf, a$
+        END IF
+    LOOP
+    CLOSE #tempf
+    CLOSE #realf
+    KILL outfile$ + ".tmp"
+#endif
+END SUB
+
+SUB lumpfiles (listf$, lump$, path$, buffer())
+	dim as integer lf, fl, tl	'lumpfile, filelist, tolump
+
+	dim dat as ubyte
+	dim size as integer
+	dim lname as string
+	dim bufr as ubyte ptr
+	dim csize as integer
+	dim as integer i, t, textsize(1)
+
+	fl = freefile
+	open listf$ for input as #fl
+	if err <> 0 then
+		PRINT "Filed to open listfile " + listf$
+		exit sub
+	end if
+
+	lf = freefile
+	open lump$ for binary access write as #lf
+	if err <> 0 then
+		PRINT "Could not open file " + lump$
+		close #fl
+		exit sub
+	end if
+
+	bufr = allocate(16000)
+
+	'get file to lump
+	do until eof(fl)
+		line input #fl, lname
+		
+		'validate that lumpname is 8.3 or ignore the file
+		textsize(0) = 0
+		textsize(1) = 0
+		t = 0
+		for i = 0 to len(lname)-1
+			if lname[i] = asc(".") then t = 1
+			textsize(t) += 1
+		next
+		'note extension includes the "." so can be 4 chars
+		if textsize(0) > 8 or textsize(1) > 4 then
+			PRINT "name too long: " + lname
+			PRINT " name = " + str(textsize(0)) + ", ext = " + str(textsize(1))
+			continue do
+		end if
+
+		tl = freefile
+		open path$ + lname for binary access read as #tl
+		if err <> 0 then
+			PRINT "failed to open " + path$ + lname
+			continue do
+		end if
+
+		'write lump name (seems to need to be upper-case, at least
+		'for any files opened with unlumpone in the QB version)
+		put #lf, , ucase(lname)
+		dat = 0
+		put #lf, , dat
+
+		'write lump size - byte order = 3,4,1,2 I think
+		size = lof(tl)
+		dat = (size and &hff0000) shr 16
+		put #lf, , dat
+		dat = (size and &hff000000) shr 24
+		put #lf, , dat
+		dat = size and &hff
+		put #lf, , dat
+		dat = (size and &hff00) shr 8
+		put #lf, , dat
+
+		'write lump
+		while size > 0
+			if size > 16000 then
+				csize = 16000
+			else
+				csize = size
+			end if
+			'copy a chunk of file
+			fget(tl, , bufr, csize)
+			fput(lf, , bufr, csize)
+			size = size - csize
+		wend
+
+		close #tl
+	loop
+
 	close #lf
+	close #fl
 
-end SUB
-
-SUB unlump (lump$, ulpath$, buffer() as integer)
-	unlumpfile(lump$, "", ulpath$, buffer())
-end SUB
-
-'FUNCTION readpassword$
-'
-''--read a 17-byte string from GEN at word offset 7
-''--(Note that array2str uses the byte offset not the word offset)
-'s$ = STRING$(17, 0)
-'array2str general(), 14, s$
-'
-''--reverse ascii rotation / weak obfuscation
-'s$ = rotascii(s$, general(6) * -1)
-'
-''-- discard ascii chars lower than 32
-'p$ = ""
-'FOR i = 1 TO 17
-' c$ = MID$(s$, i, 1)
-' IF ASC(c$) >= 32 THEN p$ = p$ + c$
-'NEXT i
-'
-'readpassword$ = p$
-'
-'END FUNCTION
+	deallocate bufr
+END SUB
