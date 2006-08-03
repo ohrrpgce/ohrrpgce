@@ -39,6 +39,17 @@ PRINT #1, a$
 
 CLOSE #1
 
+OPEN "distver.bat" FOR OUTPUT AS #1
+
+a$ = "@ECHO OFF"
+PRINT #1, a$
+a$ = "SET OHRVERCODE=" + codename$
+PRINT #1, a$
+a$ = "SET OHRVERDATE=" + datetag$
+PRINT #1, a$
+
+CLOSE #1
+
 REM $STATIC
 FUNCTION datetag$
 datetag$ = MID$(DATE$, 7, 4) + MID$(DATE$, 1, 2) + MID$(DATE$, 4, 2)

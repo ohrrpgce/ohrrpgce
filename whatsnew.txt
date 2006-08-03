@@ -5,6 +5,7 @@ August ?? 2006 [hasta-la-qb+]
 
   * Fixed bug 220: "Hero plotscripting commands broken" [Ralph Versteegen]
   * Backported Ralph Versteegen's thread safety fixes [James Paige]
+  * Backported unlump.exe and relump.exe [James Paige]
 
 July 09 2006 [hasta-la-qb]
   * This is the final version to support a real DOS version (GAME-QB and
