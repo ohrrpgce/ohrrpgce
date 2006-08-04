@@ -11,18 +11,15 @@ option explicit
 
 DECLARE SUB debug (s$)
 
-
 SUB LoadNPCD(file as string, dat() as NPCType)
-  DIM i AS INTEGER, j AS INTEGER, f AS INTEGER, memptr AS INTEGER PTR
+  DIM i AS INTEGER, j AS INTEGER, f AS INTEGER
   f = FREEFILE
   OPEN file FOR BINARY AS #f
   SEEK #f, 8
 
   FOR i = 0 TO npcdMax
-    memptr = @dat(i).picture
     FOR j = 0 TO 14
-      *memptr = ReadShort(f, -1)
-      memptr += 1
+      SetNPCD(dat(i), j, ReadShort(f, -1))
     NEXT
   NEXT
 
@@ -33,14 +30,28 @@ SUB LoadNPCD(file as string, dat() as NPCType)
   NEXT i
 END SUB
 
+SUB SetNPCD(npcd AS NPCType, offset AS INTEGER, value AS INTEGER)
+  IF offset >= 0 and offset <= 14 THEN
+    (@npcd.picture)[offset] = value
+  ELSE
+    debug "Attempt to write NPC data out-of-range. offset=" + STR$(offset) + " value=" + STR$(value)
+  END IF
+END SUB
+
+FUNCTION GetNPCD(npcd AS NPCType, offset AS INTEGER) AS INTEGER
+  IF offset >= 0 and offset <= 14 THEN
+    RETURN (@npcd.picture)[offset]
+  ELSE
+    debug "Attempt to read NPC data out-of-range. offset=" + STR$(offset)
+  END IF
+END FUNCTION
+
 SUB CleanNPCD(dat() as NPCType)
-  DIM i AS INTEGER, j AS INTEGER, memptr AS INTEGER PTR
+  DIM i AS INTEGER, j AS INTEGER
 
   FOR i = 0 TO npcdMax
-    memptr = @dat(i).picture
     FOR j = 0 TO 14
-      *memptr = 0
-      memptr += 1
+      SetNPCD(dat(i), j, 0)
     NEXT
   NEXT
 END SUB

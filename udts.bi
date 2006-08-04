@@ -41,6 +41,12 @@ END TYPE
 DECLARE SUB LoadNPCD(file as string, dat() as NPCType)
 DECLARE SUB LoadNPCL(file as string, dat() as NPCInst, num as integer)
 
+'Integer offset access write wrappers
+DECLARE SUB SetNPCD(npcd AS NPCType, offset AS INTEGER, value AS INTEGER)
+
+'Integer offset access read wrappers
+DECLARE FUNCTION GetNPCD(npcd AS NPCType, offset AS INTEGER) AS INTEGER
+
 'Serialization
 DECLARE SUB SerNPCL(dat() as NPCInst, z, buf(), num as integer)
 DECLARE SUB SerInventory(invent() as InventSlot, z, buf())

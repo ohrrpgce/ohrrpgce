@@ -2035,7 +2035,7 @@ SELECT CASE scrat(nowscript, curkind)
     IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
      IF retvals(0) < 0 THEN retvals(0) = (npc(abs(retvals(0) + 1)).id - 1)
      IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
-      (@npcs(retvals(0)).picture)[retvals(1)] = retvals(2)
+      SetNPCD(npcs(retvals(0)), retvals(1), retvals(2))
       IF retvals(1) = 0 THEN
        setpicstuf buffer(), 1600, 2
        loadset game$ + ".pt4", retvals(2), 20 + (5 * retvals(0))
