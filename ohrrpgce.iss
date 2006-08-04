@@ -27,15 +27,14 @@ Name: "eng"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"
-Name: "associate"; Description: "{cm:AssocFileExtension,GAME.EXE,RPG}"
+Name: "associate"; Description: "{cm:AssocFileExtension,the OHRRPGCE,RPG}"
 
 [Files]
 Source: "game.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "custom.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "game-qb.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "customqb.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "hspeak.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "unlump.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "relump.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "ohrrpgce.fnt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "ohrrpgce.mas"; DestDir: "{app}"; Flags: ignoreversion
 Source: "ohrrpgce.new"; DestDir: "{app}"; Flags: ignoreversion
@@ -45,9 +44,7 @@ Source: "README-custom.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE-binary.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "whatsnew.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "sample\sample.rpg"; DestDir: "{app}"; Flags: ignoreversion
-Source: "sample\npc_tag.rpg"; DestDir: "{app}"; Flags: ignoreversion
-Source: "sample\pstutor.rpg"; DestDir: "{app}"; Flags: ignoreversion
+;Source: "viking.rpg"; DestDir: "{app}"; Flags: ignoreversion
 Source: "plotscr.hsd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "scancode.hsi"; DestDir: "{app}"; Flags: ignoreversion
 Source: "import\*"; DestDir: "{app}\import\"; Flags: ignoreversion
@@ -66,8 +63,9 @@ Name: "{group}\Download RPG Games"; Filename: "http://HamsterRepublic.com/ohrrpg
 [Registry]
 Root: HKCR; Subkey: ".rpg"; ValueType: string; ValueName: ""; ValueData: "OHRRPGCE_Game"; Flags: uninsdeletevalue; Tasks: associate
 Root: HKCR; Subkey: "OHRRPGCE_Game"; ValueType: string; ValueName: ""; ValueData: "OHRRPGCE Game"; Flags: uninsdeletekey; Tasks: associate
-Root: HKCR; Subkey: "OHRRPGCE_Game\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\game.ico"; Tasks: associate
-Root: HKCR; Subkey: "OHRRPGCE_Game\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\game.exe"" %1"; Tasks: associate
+Root: HKCR; Subkey: "OHRRPGCE_Game\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\game.ico"; Flags: uninsdeletekey; Tasks: associate
+Root: HKCR; Subkey: "OHRRPGCE_Game\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\game.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: associate
+Root: HKCR; Subkey: "OHRRPGCE_Game\shell\edit\command"; ValueType: string; ValueName: ""; ValueData: """{app}\custom.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: associate
 
 [Run]
 

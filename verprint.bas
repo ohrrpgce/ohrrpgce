@@ -11,7 +11,7 @@ DEFINT A-Z
 OPEN "codename.txt" FOR INPUT AS #1
 INPUT #1, codename$
 CLOSE #1
-codename$ = LEFT$(codename$, 14)
+codename$ = LEFT$(codename$, 15)
 
 PRINT "Version ID " + datetag$
 PRINT "Codename " + codename$
@@ -35,6 +35,17 @@ OPEN "iver.txt" FOR OUTPUT AS #1
 a$ = "AppVerName=" + "OHRRPGCE (" + codename$ + ") " + datetag$
 PRINT #1, a$
 a$ = "VersionInfoVersion=" + MID$(datetag$, 1, 4) + "." + MID$(datetag$, 5, 2) + "." + MID$(datetag$, 7, 2) + ".0"
+PRINT #1, a$
+
+CLOSE #1
+
+OPEN "distver.bat" FOR OUTPUT AS #1
+
+a$ = "@ECHO OFF"
+PRINT #1, a$
+a$ = "SET OHRVERCODE=" + codename$
+PRINT #1, a$
+a$ = "SET OHRVERDATE=" + MID$(datetag$, 1, 4) + "-" + MID$(datetag$, 5, 2) + "-" + MID$(datetag$, 7, 2)
 PRINT #1, a$
 
 CLOSE #1
