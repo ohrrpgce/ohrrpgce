@@ -201,8 +201,9 @@ SELECT CASE special
   stopsfx 0
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
    IF isawav(nowdir$ + tree$(treeptr)) THEN
-    loadsfx 0, nowdir$ + tree$(treeptr)
-    playsfx 0,0
+    'TODO: Add alternate sound playing routines to replace this
+    'loadsfx 0, nowdir$ + tree$(treeptr)
+    'playsfx 0,0
    ELSE
     alert$ = tree$(treeptr) + " is not a valid sound effect"
    END IF

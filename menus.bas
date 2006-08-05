@@ -848,6 +848,7 @@ SUB importsong ()
 STATIC default$
 DIM music(16384)
 setupmusic music()
+setupsound
 setfmvol getfmvol
 clearpage 0
 clearpage 1

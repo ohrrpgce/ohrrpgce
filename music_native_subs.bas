@@ -53,7 +53,6 @@ DECLARE function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integ
 DECLARE function CreateMIDIEventList(midifile as string, division as short ptr) as MIDI_EVENT ptr
 Declare sub FreeMidiEventList(head as MIDI_EVENT ptr)
 
-declare sub debug(s$)
 
 
 Function GetVLQ(Byval track as MidiTrack ptr,ByRef p as integer) as integer
@@ -196,7 +195,7 @@ Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 
 			if (laststatus >= &HC AND laststatus <= &HD) then
 				a = a AND &H7F
-				currentEvent->next = CreateEvent(atime, (laststatus shl 4) + lastchan, a, CUByte(-1))
+				currentEvent->next = CreateEvent(atime, (laststatus shl 4) + lastchan, a, &HFF)
 				currentEvent = currentEvent->next
 				if currentEvent = 0 then
 					FreeMidiEventList(head)

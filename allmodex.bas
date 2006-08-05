@@ -3068,30 +3068,18 @@ SUB closesound ()
  	sound_close
 end SUB
 
-SUB loadsfx (byref slot, f$) '0-foo, or -1 for auto
-	slot = sound_load(slot, f$)
-end SUB
-
-SUB freesfx (byval slot)
-	sound_free(slot)
-end SUB
-
-SUB playsfx (BYVAL slot, BYVAL l)
-  sound_play(slot,l)
+SUB playsfx (BYVAL num, BYVAL l)
+  sound_play(num,l)
 end sub
 
-SUB stopsfx (BYVAL slot)
-  sound_stop (slot)
+SUB stopsfx (BYVAL num)
+  sound_stop (num)
 end sub
 
-SUB pausesfx (BYVAL slot)
-  sound_pause(slot)
+SUB pausesfx (BYVAL num)
+  sound_pause(num)
 end sub
 
-Function sfxisplaying(BYVAL slot)
-  return sound_playing(slot)
+Function sfxisplaying(BYVAL num)
+  return sound_playing(num)
 end Function
-
-function sfxslots() as integer
-  return sound_slots
-end function

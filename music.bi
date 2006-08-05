@@ -23,12 +23,8 @@ declare sub music_fade(targetvol as integer)
 declare sub sound_init()	
 declare sub sound_close()
 
-declare sub sound_play(byval slot as integer, byval l as integer)
-declare sub sound_pause(byval slot as integer)
-declare sub sound_stop(byval slot as integer)
+declare sub sound_play(byval num as integer, byval l as integer)
+declare sub sound_pause(byval num as integer)
+declare sub sound_stop(byval num as integer)
 
 declare function sound_playing(byval slot as integer) as integer
-declare function sound_slots() as integer
-
-declare function sound_load(byval slot as integer, f as string) as integer
-declare sub sound_free(byval slot as integer)

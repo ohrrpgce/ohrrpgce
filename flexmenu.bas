@@ -77,6 +77,7 @@ DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION isStringField(mnu%)
+DECLARE FUNCTION getsfxname$ (num%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -196,7 +197,9 @@ CONST AtkDatBitsets2 = 65' to 72
 CONST AtkDatDescription = 73'to 92
 CONST AtkDatItem = 93', 95, 97
 CONST AtkDatItemCost = 94', 96, 98
+CONST AtkDatSoundEffect = 99
 
+'anything past this requires expanding the data
 
 
 '----------------------------------------------------------
@@ -414,15 +417,15 @@ CONST AtkLimItem = 26
 max(AtkLimItem) = 255
 min(AtkLimItem) = 0
 
-CONST AtkLimItemO = 27
-max(AtkLimItemO) = 256
-min(AtkLimItemO) = 0
+CONST AtkLimSfx = 27
+max(AtkLimSfx) = general(genMaxSFX) + 1
+min(AtkLimSfx) = 0
 
 'next limit is 28 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 45
+CONST MnuItems = 46
 DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -683,7 +686,13 @@ menutype(AtkItemCost3) = 0
 menuoff(AtkItemCost3) = AtkDatItemCost + 4
 menulimits(AtkItemCost3) = AtkLimInt
 
-'Next menu item is 46 (remember to update the dims)
+CONST AtkSoundEffect = 46
+menu$(AtkSoundEffect) = "Sound Effect:"
+menutype(AtkSoundEffect) = 11
+menuoff(AtkSoundEffect) = AtkDatSoundEffect
+menulimits(AtkSoundEffect) = AtkLimSFX
+
+'Next menu item is 47 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
@@ -703,7 +712,7 @@ mainMenu(8) = AtkChainAct
 mainMenu(9) = AtkBitAct
 mainMenu(10) = AtkTagAct
 
-DIM appearMenu(8)
+DIM appearMenu(9)
 appearMenu(0) = AtkBackAct
 appearMenu(1) = AtkPic
 appearMenu(2) = AtkPal
@@ -713,6 +722,7 @@ appearMenu(5) = AtkAnimAttacker
 appearMenu(6) = AtkCapTime
 appearMenu(7) = AtkCaptDelay
 appearMenu(8) = AtkDescription
+appearMenu(9) = AtkSoundEffect
 
 DIM dmgMenu(8)
 dmgMenu(0) = AtkBackAct
@@ -1007,7 +1017,7 @@ changed = 0
 SELECT CASE menutype(nowindex)
  CASE 0, 8, 1000 TO 3999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)), 75, 77)
- CASE 7, 9, 10 'offset integers
+ CASE 7, 9 TO 11 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1, 75, 77)
  CASE 2' set tag
   changed = intgrabber(datablock(menuoff(nowindex)), -999, 999, 75, 77)
@@ -1273,6 +1283,12 @@ FOR i = 0 TO size
       nowmenu$(i) = nowmenu$(i) + " None"
     ELSE
       nowmenu$(i) = nowmenu$(i) + itemstr(datablock(menuoff(nowdat(i))) - 1, 0, 1)
+    END IF
+  CASE 11 '--sound effect number, offset
+    IF datablock(menuoff(nowdat(i))) <= 0 THEN
+      nowmenu$(i) = nowmenu$(i) + " None"
+    ELSE
+      nowmenu$(i) = nowmenu$(i) + str$(datablock(menuoff(nowdat(i))) - 1 ) + " (" + getsfxname(datablock(menuoff(nowdat(i))) - 1) + ")"
     END IF
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000

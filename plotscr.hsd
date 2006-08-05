@@ -201,11 +201,11 @@ define function, begin
 192,npcframe,1,0            # get npc walkabout frame
 193,npcextra,2,0,1          # get npc extra data (ref, 1 or 2)
 194,setnpcextra,3,0,1,0     # set npc extra data (ref, 1 or 2,what)
-195,loadsound,2,0,0         # loads a sound into a slot(slot, sfx)
-196,freesound,1,1           # frees an sfx slot(slot) #not strictly necessary, but...
-197,playsound,3,1,0,0       # plays an sfx slot(slot, loop?, preempt?)
-198,pausesound,1,1          # pauses an sfx slot(slot) (stop, but don't rewind)
-199,stopsound,1,1           # stops an sfx slot(slot)  (stop, and rewind)
+#195,loadsound,2,0,0         # loads a sound into a slot(slot, sfx) #DO NOT USE
+#196,freesound,1,1           # frees an sfx slot(slot) #DO NOT USE
+197,playsound,3,1,0,0       # plays an sfx (num, loop?, preempt?)
+198,pausesound,1,1          # pauses an sfx (num) (stop, but don't rewind)
+199,stopsound,1,1           # stops an sfx (num)  (stop, and rewind)
 200,system hour,0
 201,system minute,0
 202,system second,0

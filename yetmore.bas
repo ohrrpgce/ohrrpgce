@@ -1405,38 +1405,35 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    scriptret = wtog(retvals(0)) \ 2
   END IF
- CASE 195'--load sound
-  IF retvals(0) >= 0 AND retvals(0) <= sfxslots THEN
-   sfx$ = soundfile(retvals(1))
-   slot = retvals(0) - 1
-   IF sfx$ <> "" THEN
-    loadsfx slot,sfx$
-   END IF
-   scriptret = slot + 1
-  END IF
- CASE 196'--free sound
-  IF retvals(0) >= 1 AND retvals(0) <= sfxslots THEN
-   slot = retvals(0) - 1
-   freesfx slot
-   scriptret = -1
-  END IF
+'  CASE 195'--load sound
+'   IF retvals(0) >= 0 AND retvals(0) <= sfxslots THEN
+'    sfx$ = soundfile(retvals(1))
+'    slot = retvals(0) - 1
+'    IF sfx$ <> "" THEN
+'     loadsfx slot,sfx$
+'    END IF
+'    scriptret = slot + 1
+'   END IF
+'  CASE 196'--free sound
+'   IF retvals(0) >= 1 AND retvals(0) <= sfxslots THEN
+'    slot = retvals(0) - 1
+'    freesfx slot
+'    scriptret = -1
+'   END IF
  CASE 197'--play sound
-  IF retvals(0) >= 1 AND retvals(0) <= sfxslots THEN
-   slot = retvals(0) - 1
-   if retvals(2) then stopsfx slot
-   playsfx slot, retvals(1)
+  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxSFX) THEN
+   if retvals(2) then stopsfx retvals(0)
+   playsfx retvals(0), retvals(1)
    scriptret = -1
   END IF
  CASE 198'--pause sound
-  IF retvals(0) >= 1 AND retvals(0) <= sfxslots THEN
-   slot = retvals(0) - 1
-   pausesfx slot
+  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxSFX) THEN
+   pausesfx retvals(0)
    scriptret = -1
   END IF
  CASE 199'--stop sound
-  IF retvals(0) >= 1 AND retvals(0) <= sfxslots THEN
-   slot = retvals(0) - 1
-   stopsfx slot
+  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxSFX) THEN
+   stopsfx retvals(0)
    scriptret = -1
   END IF
  CASE 200'--system hour (time$ is always hh:mm:ss)
