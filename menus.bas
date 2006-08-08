@@ -1086,7 +1086,7 @@ DO
     END IF
   CASE ELSE
     IF sfxfile$ <> "" THEN 'play sfx
-      playsfx 0,0
+      playsfx snum, 0
     END IF
   END SELECT
  END IF
@@ -1122,8 +1122,7 @@ IF isfile(temp$ + ".wav") THEN ext$ = ".wav" : sfxfile$ = temp$ + ext$ : sfxtype
 '--add more formats here
 
 if sfxfile$ <> "" then
- sname$ = getsfxname$(snum)
- loadsfx 0, sfxfile$
+ playsfx snum, 0
 ELSE '--sfx doesn't exist
  sname$ = ""
 END IF

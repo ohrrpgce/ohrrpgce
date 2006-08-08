@@ -802,7 +802,7 @@ Declare Sub UnloadSound(byval slot as integer)
 
 TYPE SoundEffect
   used as integer 'sentinel, not 0 = this entry contains valid data
-  ID as integer 'OHR sound effect
+  effectID as integer 'OHR sound effect
   buf as LPDIRECTSOUNDBUFFER 'DirectSound sound buffer
   playing as integer
   paused as integer
@@ -990,7 +990,7 @@ end function
 Function SoundSlot(byval num as integer) as integer
   dim i as integer
   for i = 0 to SoundPoolSize - 1
-    if SoundPool[i].used AND SoundPool[i].ID = num AND SoundPool[i].buf <> NULL then
+    if SoundPool[i].used AND SoundPool[i].effectID = num AND SoundPool[i].buf <> NULL then
       return i
     end if
   next
@@ -1051,7 +1051,7 @@ Function LoadSound(byval num as integer) as integer
   with SoundPool[i]
     .used = -1
     .buf = derbuffer
-    .ID = num
+    .effectID = num
     .playing = 0
     .paused = 0
   end with
