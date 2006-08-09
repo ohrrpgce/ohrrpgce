@@ -1415,9 +1415,9 @@ IF afterbat = 0 THEN
   loadmap_npcd map
   loadmap_npcl map
  END IF
-ELSE
- reloadnpc stat()
 END IF
+'load NPC graphics
+reloadnpc stat()
 'Evaluate whether NPCs should appear or disappear based on tags
 npcplot
 
@@ -2000,7 +2000,6 @@ SELECT CASE scrat(nowscript, curkind)
     IF retvals(0) >= 0 THEN
      shop retvals(0), needf, stock(), stat(), map, foep, mx, my, tastuf()
      reloadnpc stat()
-     vishero stat()
      loadpage game$ + ".til", gmap(0), 3
     END IF
    CASE 55'--get default weapon
@@ -2181,7 +2180,6 @@ END SUB
 
 SUB loadmap_npcd(mapnum)
  LoadNPCD maplumpname$(mapnum, "n"), npcs()
- reloadnpc stat()
 END SUB
 
 SUB loadmap_tilemap(mapnum)
