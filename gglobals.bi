@@ -23,7 +23,6 @@ EXTERN lockfile
 EXTERN lastsaveslot
 EXTERN abortg
 EXTERN usepreunlump%
-EXTERN lumpmod()
 
 'Input handling globals
 EXTERN carray(), csetup()
@@ -53,6 +52,7 @@ EXTERN nativehbits()
 'Map state globals
 EXTERN gmap()
 EXTERN scroll()
+EXTERN pass()
 EXTERN mapx, mapy
 EXTERN framex
 EXTERN framey

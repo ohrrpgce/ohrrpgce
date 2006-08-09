@@ -94,6 +94,7 @@ DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB cathero ()
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE SUB readjoysettings ()
+DECLARE SUB loadmaplumps (mapnum%, loadmask%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -760,9 +761,144 @@ END FUNCTION
 
 SUB reloadnpc (stat())
 vishero stat()
-FOR i = 0 TO 35
+FOR i = 0 TO npcdMax
  setpicstuf buffer(), 1600, 2
  loadset game$ + ".pt4", npcs(i).picture, 20 + (5 * i)
  getpal16 pal16(), 4 + i, npcs(i).palette
 NEXT i
+END SUB
+
+SUB savemapstate (filebase$, savemask = 255)
+fh = FREEFILE
+IF savemask AND 1 THEN
+ 'gmap
+ OPEN filebase$ + "_map.tmp" FOR BINARY AS #fh
+ PUT #fh, , gmap()
+ CLOSE #fh
+END IF
+IF savemask AND 2 THEN
+ 'npcl
+ OPEN filebase$ + "_l.tmp" FOR BINARY AS #fh
+ PUT #fh, , npc()
+ CLOSE #fh
+END IF
+IF savemask AND 4 THEN
+ 'npcd
+ OPEN filebase$ + "_n.tmp" FOR BINARY AS #fh
+ PUT #fh, , npcs()
+ CLOSE #fh
+END IF
+IF savemask AND 8 THEN
+ 'tilemap
+ xbsave filebase$ + "_t.tmp", scroll(), scroll(0) * scroll(1) + 4
+END IF
+IF savemask AND 16 THEN
+ 'passmap
+ xbsave filebase$ + "_p.tmp", pass(), pass(0) * pass(1) + 4
+END IF
+END SUB
+
+SUB loadmapstate (filebase$, mapnum, loadmask, dontfallback = 0)
+DIM AS SHORT mapsize(1), propersize(1)
+reloadbits = 0
+fh = FREEFILE
+
+IF loadmask AND 24 THEN
+ 'sticking npcs off the map is probably a bad thing too, but can't check for it
+ OPEN maplumpname$(mapnum, "t") FOR BINARY AS #fh
+ GET #fh, 8, propersize()
+ CLOSE #fh
+END IF
+
+IF loadmask AND 1 THEN
+ 'gmap
+ IF NOT isfile(filebase$ + "_map.tmp") THEN
+  reloadbits = reloadbits OR 1
+ ELSE
+  OPEN filebase$ + "_map.tmp" FOR BINARY AS #fh
+  GET #fh, , gmap()
+  CLOSE #fh
+ END IF
+END IF
+IF loadmask AND 2 THEN
+ 'npcl
+ IF NOT isfile(filebase$ + "_l.tmp") THEN
+  reloadbits = reloadbits OR 2
+ ELSE
+  OPEN filebase$ + "_l.tmp" FOR BINARY AS #fh
+  GET #fh, , npc()
+  CLOSE #fh
+ END IF
+END IF
+IF loadmask AND 4 THEN
+ 'npcd
+ IF NOT isfile(filebase$ + "_n.tmp") THEN
+  reloadbits = reloadbits OR 4
+ ELSE
+  OPEN filebase$ + "_n.tmp" FOR BINARY AS #fh
+  GET #fh, , npcs()
+  CLOSE #fh
+ END IF
+END IF
+IF loadmask AND 8 THEN
+ 'tilemap
+ IF NOT isfile(filebase$ + "_t.tmp") THEN
+  reloadbits = reloadbits OR 8
+ ELSE
+  OPEN filebase$ + "_t.tmp" FOR BINARY AS #fh
+  GET #fh, 8, mapsize()
+  CLOSE #fh
+  IF mapsize(0) = propersize(0) AND mapsize(1) = propersize(1) THEN
+   xbload filebase$ + "_t.tmp", scroll(), "Temporary tilemap is corrupt!"
+  ELSE
+   reloadbits = reloadbits OR 8
+  END IF
+ END IF
+END IF
+IF loadmask AND 16 THEN
+ 'passmap
+ IF NOT isfile(filebase$ + "_p.tmp") THEN
+  reloadbits = reloadbits OR 16
+ ELSE
+  OPEN filebase$ + "_p.tmp" FOR BINARY AS #fh
+  GET #fh, 8, mapsize()
+  CLOSE #fh
+  IF mapsize(0) = propersize(0) AND mapsize(1) = propersize(1) THEN
+   xbload filebase$ + "_p.tmp", pass(), "Temporary passmap is corrupt!"
+  ELSE
+   reloadbits = reloadbits OR 8
+  END IF
+ END IF
+END IF
+
+'reload default data for current map if no temp
+IF reloadbits AND dontfallback = 0 THEN
+ loadmaplumps mapnum, reloadbits
+END IF
+END SUB
+
+SUB deletemapstate (filebase$, killmask)
+IF killmask AND 1 THEN safekill filebase$ + "_map.tmp"
+IF killmask AND 2 THEN safekill filebase$ + "_l.tmp"
+IF killmask AND 4 THEN safekill filebase$ + "_n.tmp"
+IF killmask AND 8 THEN safekill filebase$ + "_t.tmp"
+IF killmask AND 16 THEN safekill filebase$ + "_p.tmp"
+END SUB
+
+SUB deletetemps
+'similiar to cleanuptemp, except only deletes game-state temporary files
+
+ findfiles workingdir$ + SLASH + ALLFILES, 0, tmpdir$ + "filelist.tmp", buffer()
+ fh = FREEFILE
+ OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
+ DO UNTIL EOF(fh)
+  LINE INPUT #fh, filename$
+  filename$ = LCASE$(filename$)
+  IF RIGHT$(filename$,4) = ".tmp" AND (LEFT$(filename$,3) = "map" OR LEFT$(filename$,5) = "state") THEN
+   KILL workingdir$ + SLASH + filename$
+  END IF
+ LOOP
+ CLOSE #fh
+  
+ KILL tmpdir$ + "filelist.tmp"
 END SUB

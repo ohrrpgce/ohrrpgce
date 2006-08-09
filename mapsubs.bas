@@ -307,7 +307,7 @@ DO
 LOOP
 
 gmapdata:
-gmapmax = 16
+gmapmax = 18
 gd = 0
 gd$(-1) = "Previous Menu"
 gd$(0) = "Map Tileset:"
@@ -327,6 +327,8 @@ gd$(13) = "Instead-of-Battle Script:"
 gd$(14) = "Each-Step Script:"
 gd$(15) = "On-Keypress Script:"
 gd$(16) = "Walkabout Layering:"
+gd$(17) = "NPC Data:"
+gd$(18) = "Tile Data:"
 gdmax(0) = general(genMaxTile):            gdmin(0) = 0
 gdmax(1) = general(genMaxSong):            gdmin(1) = 0
 gdmax(2) = 1:                              gdmin(2) = 0
@@ -344,6 +346,8 @@ gdmax(13) = general(genMaxRegularScript):  gdmin(13) = 0
 gdmax(14) = general(genMaxRegularScript):  gdmin(14) = 0
 gdmax(15) = general(genMaxRegularScript):  gdmin(15) = 0
 gdmax(16) = 1:                             gdmin(16) = 0
+gdmax(17) = 2:                             gdmin(16) = 0
+gdmax(18) = 2:                             gdmin(16) = 0
 
 gmapscrof(0) = 7
 gmapscrof(1) = 12
@@ -429,6 +433,15 @@ DO
     ELSE
      xtemp$ = " Heroes over NPCs"
     END IF
+   CASE 17, 18
+    SELECT CASE gmap(i)
+     CASE 0
+      xtemp$ = " Don't save state when leaving"
+     CASE 1
+      xtemp$ = " Remember state when leaving"
+     CASE 2
+      xtemp$ = " Always load afresh from RPG"
+    END SELECT
   END SELECT
   textcolor 7, 0
   IF i = gd THEN textcolor 14 + tog, 0
@@ -993,9 +1006,9 @@ FOR i = 0 TO 1
  cycptr(i) = 0
  cycskip(i) = 0
 NEXT i
-xbloadmap maplumpname$(pt, "t"), map(), "tilemap lump is missing!"
-xbloadmap maplumpname$(pt, "p"), pass(), "passmap lump is missing!"
-xbloadmap maplumpname$(pt, "e"), emap(), "foemap lump is missing!"
+xbload maplumpname$(pt, "t"), map(), "tilemap lump is missing!"
+xbload maplumpname$(pt, "p"), pass(), "passmap lump is missing!"
+xbload maplumpname$(pt, "e"), emap(), "foemap lump is missing!"
 xbload maplumpname$(pt, "l"), npc(), "npclocation lump is missing!"
 xbload maplumpname$(pt, "n"), npcstat(), "npcstat lump is missing!"
 xbload maplumpname$(pt, "d"), link(), "doorlink lump is missing!"
@@ -1170,7 +1183,7 @@ END IF
 '-----------------EXIT DOOR
 setpicstuf destdoor(), 600, -1
 loadset game$ + ".dox", link(cur + (2 * 200)), 0
-xbloadmap maplumpname$(link(cur + (2 * 200)), "t"), map(), "Could not find map" + filenum$(link(cur + (2 * 200)))
+xbload maplumpname$(link(cur + (2 * 200)), "t"), map(), "Could not find map" + filenum$(link(cur + (2 * 200)))
 setpicstuf buffer(), 40, -1
 loadset game$ + ".map", link(cur + (2 * 200)), 0
 loadpage game$ + ".til", buffer(0), 3
@@ -1189,7 +1202,7 @@ IF destdoor(link(cur + (1 * 200)) + 200) = 1 THEN
 END IF
 '-----------------RESET DATA
 loadpage game$ + ".til", gmap(0), 3
-xbloadmap maplumpname$(pt, "t"), map(), "Tilemap lump disappeared!"
+xbload maplumpname$(pt, "t"), map(), "Tilemap lump disappeared!"
 RETRACE
 
 '----

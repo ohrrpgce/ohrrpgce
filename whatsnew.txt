@@ -37,6 +37,9 @@ WHAT IS NEW?
       NPC to step back closer to you, preventing the ugly situation
       where you are talking to an NPC who is standing a full tile
       away [James Paige]
+    * Maps can be set to remember their state when you leave them, or to load
+      from state files saved with savemapstate. You can set separate loading 
+      options for NPC and tile data. [Ralph Versteegen]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
@@ -83,6 +86,8 @@ WHAT IS NEW?
       are logical operators, as opposed to the bitwise "and", "or" and "xor"
       operators. [Mike]
     * "wait for scancode" [Mike Caron]
+    * "save map state", "load map state", "reset map state", "delete map state"
+      [Ralph Versteegen]
 
   * Unlump.exe
     * Ported to FreeBasic [Mike Caron]

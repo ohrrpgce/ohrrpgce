@@ -499,7 +499,7 @@ SELECT CASE seekid
   getnpcref = (seekid + 1) * -1
   EXIT FUNCTION
 
- CASE 0 TO 35 'ID
+ CASE 0 TO npcdMax 'ID
   found = 0
   FOR i = 0 TO 299
    IF npc(i).id - 1 = seekid THEN
@@ -1015,7 +1015,7 @@ SELECT CASE AS CONST id
    GOSUB setwaitstate
   END IF
  CASE 4'--wait for NPC
-  IF retvals(0) >= -300 AND retvals(0) <= 35 THEN
+  IF retvals(0) >= -300 AND retvals(0) <= npcdMax THEN
    GOSUB setwaitstate
   END IF
  CASE 5'--suspend npcs
@@ -1050,7 +1050,6 @@ SELECT CASE AS CONST id
  CASE 13'--set tag
   IF retvals(0) > 1 THEN
    setbit tag(), 0, retvals(0), retvals(1)
-   'reinitnpc 1,  map
    npcplot
   END IF
  CASE 17'--get item
@@ -1775,7 +1774,7 @@ SELECT CASE id
   END IF
  CASE 123'--NPC copy count
   scriptret = 0
-  IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= npcdMax THEN
    FOR i = 0 TO 299
     IF npc(i).id - 1 = retvals(0) THEN
      scriptret = scriptret + 1
@@ -1784,10 +1783,10 @@ SELECT CASE id
   END IF
  CASE 124'--change NPC ID
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= 35 THEN npc(npcref).id = retvals(1) + 1
+  IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= npcdMax THEN npc(npcref).id = retvals(1) + 1
  CASE 125'--create NPC
   scriptret = 0
-  IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= npcdMax THEN
    FOR i = 299 TO 0 STEP -1
     IF npc(i).id <= 0 THEN
      npc(i).id = retvals(0) + 1
@@ -1819,7 +1818,7 @@ SELECT CASE id
   IF retvals(2) = -1 THEN scriptret = found
  CASE 182'--read NPC
   IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
-   IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
+   IF retvals(0) >= 0 AND retvals(0) <= npcdMax THEN
     scriptret = GetNPCD(npcs(retvals(0)), retvals(1))
    ELSE
     npcref = getnpcref(retvals(0), 0)
@@ -1849,16 +1848,15 @@ SELECT CASE id
     npc(npcref).extra2 = retvals(2)
    END IF
   END IF
-'  CASE 241'--get NPC raw
+'  CASE ???'--get NPC raw
 '   npcref = getnpcref(retvals(0), 0)
 '   s = bound(retvals(1),0,8)
 '   'scriptret = npc(npcref).rawdat(s)
 '   scriptret = CPtr(integer ptr,@npc(npcref))[s]
-'  CASE 242'--set NPC raw
+'  CASE ???'--set NPC raw
 '   npcref = getnpcref(retvals(0), 0)
 '   s = bound(retvals(1),0,8)
 '   CPtr(integer ptr,@npc(npcref))[s] = retvals(2)
- 
 END SELECT
 
 END SUB

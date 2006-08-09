@@ -30,6 +30,7 @@ define script(24,canlearnspelltest,none)
 define script(25,heropositiontest,none)
 define script(26,scriptmenutest,none)
 define script(27,referencetest,none)
+define script(28,mapchangerkeylistener,none)
 
 # globals 0 to 4 are used
 global variable (1024,highval)
@@ -359,3 +360,34 @@ script, reference test, begin
   run script by ID(@empty onkey) # empty onkey
   show value(read global(@highval)) # highval
 end
+
+#-----------------------------------------------------------------------
+
+#not used anywhere
+script, map changer key listener, begin
+  if (key is pressed(key:s)) then (
+    write map block (hero x, hero y, read map block (hero x, hero y) xor, 3)
+  )
+  if (key is pressed(key:a)) then (
+    save map state
+  )
+  if (key is pressed(key:g)) then (
+    save map state (mapstate:mapsettings)
+  )
+  if (key is pressed(key:minus)) then (
+    save map state(mapstate:npcs, 3)
+  )
+  if (key is pressed(key:plus)) then (
+    load map state(mapstate:all, 3)
+  )
+  if (key is pressed(key:l)) then (
+    load map state
+  )
+  if (key is pressed(key:r)) then (
+    reset map state
+  )
+  if (key is pressed(key:d)) then (
+    reset map state (mapstate:all, true)
+  )
+end
+

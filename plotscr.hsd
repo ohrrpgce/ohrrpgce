@@ -251,6 +251,11 @@ define function, begin
 242,joystickbutton,2,0,0      #returns whether a given button is pressed (button, joystick)
 243,joystickaxis,3,0,100,0    #returns the axis position (axis,multiplier,joystick)
 244,waitforscancode,1,0       #waits for a specific scancode
+245,savemapstate,2,255,255    #save map data to a temp file (savebits, customid)
+246,loadmapstate,2,255,255    #load map data from a temp file (loadbits, customid)
+247,resetmapstate,1,255       #reload original map data (loadbits)
+248,deletemapstate,1,255      #delete temp map state files (deletebits)
+
 #24x,getnpcraw,2,0,0          #raw npc data(who,which)
 #24x,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
@@ -976,4 +981,13 @@ define constant, begin
 2, extra 2
 0, x axis
 1, y axis
+1,mapstate:mapsettings
+2,mapstate:npclocations
+4,mapstate:npcdefinitions
+8,mapstate:tilemap
+16,mapstate:passmap
+#32,mapstate:foemap
+6,mapstate:npcs
+24,mapstate:tiles
+255,mapstate:all
 end

@@ -65,6 +65,7 @@ DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE FUNCTION exptolevel& (level%)
+DECLARE SUB deletetemps ()
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -1185,34 +1186,6 @@ END SELECT
 
 END FUNCTION
 
-SUB reinitnpc (remember, map)
-IF remember THEN
-'  FOR i = 0 TO 299
-'   buffer(i + 0) = npc(i + 0).x
-'   buffer(i + 300) = npc(i + 300).y
-'   buffer(i + 600) = npc(i + 600).id
-'   buffer(i + 900) = npc(i + 900).dir
-'   buffer(i + 1500) = npc(i + 1500)
-'   buffer(i + 1800) = npc(i + 1800)
-'  NEXT i
- 
- SerNPCL npc(),0,buffer(),300
-END IF
-'xbload maplumpname$(map, "l"), npcl(), "Oh No! Map" + STR$(map) + " NPC locations are missing"
-LoadNPCL maplumpname$(map, "l"), npc(), 300
-IF remember THEN
-'  FOR i = 0 TO 299
-'   npcl(i + 0) = buffer(i + 0)
-'   npcl(i + 300) = buffer(i + 300)
-'   npcl(i + 600) = buffer(i + 600)
-'   npcl(i + 900) = buffer(i + 900)
-'   npcl(i + 1500) = buffer(i + 1500)
-'   npcl(i + 1800) = buffer(i + 1800)
-'  NEXT i
- DeserNPCL npc(),0,buffer(), 300
-END IF
-END SUB
-
 SUB renamehero (who)
 
 setpicstuf buffer(), 636, -1
@@ -1344,6 +1317,9 @@ FOR i = 0 TO 31
 NEXT i
 
 xbload game$ + ".mas", master(), "master palette missing from " + game$
+
+'delete temp files that are part of the game state
+deletetemps
 
 'ALL THE STUFF THAT MUST BE RESET
 'map,foep,gold&,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev&(40,1),names$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)

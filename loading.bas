@@ -56,17 +56,17 @@ SUB CleanNPCD(dat() as NPCType)
   NEXT
 END SUB
 
-SUB LoadNPCL(file as string,dat() as NPCInst, num as integer)
+SUB LoadNPCL(file as string, dat() as NPCInst, num as integer)
   DIM i AS INTEGER, f AS INTEGER
   REDIM dat(num - 1) as NPCInst
   f = FREEFILE
   OPEN file FOR BINARY AS #f
   seek #f,8
   FOR i = 0 to num - 1
-    dat(i).x = ReadShort(f,-1)
+    dat(i).x = ReadShort(f,-1) * 20
   NEXT
   FOR i = 0 to num - 1
-    dat(i).y = ReadShort(f,-1)
+    dat(i).y = (ReadShort(f,-1) - 1) * 20
   NEXT
   FOR i = 0 to num - 1
     dat(i).id = ReadShort(f,-1)
@@ -76,6 +76,10 @@ SUB LoadNPCL(file as string,dat() as NPCInst, num as integer)
   NEXT
   FOR i = 0 to num - 1
     dat(i).frame = ReadShort(f,-1)
+  NEXT
+  FOR i = 0 TO num - 1
+    dat(i).xgo = 0
+    dat(i).ygo = 0
   NEXT
   CLOSE #f
 END SUB

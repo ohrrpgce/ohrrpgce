@@ -89,7 +89,6 @@ DECLARE SUB rpgversion (v%)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB loadtanim (n%, tastuf%())
 DECLARE SUB loaddoor (map%, door%())
-DECLARE SUB reinitnpc (remember%, map%)
 DECLARE FUNCTION findhero% (who%, f%, l%, d%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE FUNCTION howmanyh% (f%, l%)
@@ -133,6 +132,11 @@ DECLARE FUNCTION wrapcollision (xa%, ya%, xgoa%, ygoa%, xb%, yb%, xgob%, ygob%)
 DECLARE FUNCTION cropmovement (x%, y%, xgo%, ygo%)
 DECLARE FUNCTION wraptouch (x1%, y1%, x2%, y2%, distance%)
 DECLARE FUNCTION titlescr% ()
+DECLARE SUB loadmaplumps (mapnum%, loadmask%)
+DECLARE SUB savemapstate (filebase$, savemask%)
+DECLARE SUB loadmapstate (filebase$, mapnum%, loadmask%, dontfallback% = 0)
+DECLARE SUB deletemapstate (filebase$, killmask%)
+DECLARE SUB deletetemps ()
 
 '---INCLUDE FILES---
 '$INCLUDE: 'compat.bi'
@@ -159,23 +163,25 @@ thestart:
 
 'DEBUG debug "dim (almost) everything"
 
+'Mixed global and module variables
 DIM font(1024), master(767), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
-DIM door(206), gen(104), saytag(21), tag(127), hero(40), stat(40, 1, 16), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), menu$(20), exlev&(40, 1), names$(40), mi(10), gotj(2), veh(21)
-DIM eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3),  _
-tastuf(40), cycle(1), cycptr(1), cycskip(1), herobits(59, 3), itembits(255, 3)
+DIM door(206), gen(104), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), menu$(20), exlev&(40, 1), names$(40), mi(10), gotj(2), veh(21)
+DIM eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
 DIM script(4096), heap(2048), global(1024), astack(512), scrat(128, 14), retvals(32), plotstring$(31), plotstrX(31), plotstrY(31), plotstrCol(31), plotstrBGCol(31), plotstrBits(31)
+
+'shared module variables
+DIM SHARED cycle(1), cycptr(1), cycskip(1), tastuf(40), stat(40, 1, 16)
+
+'global variables
+DIM scroll(16002), pass(16002)
 DIM uilook(uiColors)
 DIM inventory(inventoryMax) as InventSlot
 DIM npcs(npcdMax) as NPCType
 DIM npc(300) as NPCInst
 DIM didgo(0 TO 3)
-'all global variables have to be dimmed to be used with EXTERN
 DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, tmpdir$, usepreunlump, lockfile, gold, lastsaveslot, abortg, exename$, sourcerpg$, foemaph, presentsong, framex, framey, game$, workingdir$, version$ 
 DIM nowscript, scriptret, nextscroff
-
-'--stuff we used to DIM here, but have defered to later
-'DIM scroll(16002), pass(16002)
 
 'DEBUG debug "dim binsize arrays"
 '$INCLUDE: 'binsize.bi'
@@ -325,7 +331,6 @@ unlump game$ + ".hsp", workingdir$ + SLASH, lumpbuf()
 ERASE lumpbuf
 
 'DEBUG debug "dim big stuff *after* unlumping"
-DIM scroll(16002), pass(16002)
 
 fadeout 0, 0, 0, -1
 needf = 1
@@ -356,6 +361,7 @@ initgamedefaults
 fatal = 0: abortg = 0
 foep = range(100, 60)
 map = gen(104)
+lastmap = -1
 
 makebackups 'make a few backup lumps
 
@@ -392,7 +398,7 @@ ELSE
   rsr = runscript(gen(41), nowscript + 1, -1, "newgame")
  END IF
 END IF
-ERASE scroll, pass
+
 GOSUB preparemap
 doihavebits
 evalherotag stat()
@@ -572,8 +578,8 @@ DO
   stopsong
   fadeout 0, 0, 0, -1
   needf = 1: ng = 1
+  lastmap = -1
   GOSUB doloadgame
-  ERASE scroll, pass
   GOSUB preparemap
  END IF
  'DEBUG debug "random enemies"
@@ -596,7 +602,6 @@ DO
    IF gmap(13) <= 0 THEN
     '--normal battle
     fatal = 0
-    ERASE scroll, pass
     wonbattle = battle(batform, fatal, stat())
     afterbat = 1
     GOSUB preparemap
@@ -915,7 +920,6 @@ IF sayer >= 0 THEN
  evalherotag stat()
  evalitemtag
  IF say = 0 THEN
-  'reinitnpc 1, map
   npcplot
  END IF
 END IF
@@ -948,7 +952,6 @@ END IF
 '---SPAWN BATTLE--------
 IF istag(saytag(5), 0) THEN
  fatal = 0
- ERASE scroll, pass
  wonbattle = battle(saytag(6), fatal, stat())
  afterbat = 1
  GOSUB preparemap
@@ -1007,7 +1010,6 @@ END IF
 evalherotag stat()
 evalitemtag
 '---DONE EVALUATING CONDITIONALS--------
-'reinitnpc 1, map
 vishero stat()
 npcplot
 IF sayer >= 0 THEN
@@ -1351,7 +1353,6 @@ FOR o = 0 TO 199
    caty(0) = (door(destdoor + 100) - 1) * 20
    fadeout 0, 0, 0, 0
    needf = 2
-   ERASE scroll, pass
    afterbat = 0
    IF oldmap = map THEN samemap = -1
    GOSUB preparemap
@@ -1364,19 +1365,40 @@ RETRACE
 
 preparemap:
 'DEBUG debug "in preparemap"
-'--[!] here I should only DIM what is needed, chu ne?
-DIM scroll(16002), pass(16002)
-setpicstuf gmap(), 40, -1
-loadset game$ + ".map", map, 0
+'save data from old map
+IF lastmap > -1 THEN
+ savemapstate workingdir$ + SLASH + "map" + STR$(lastmap), (gmap(17) = 1 AND 6) OR (gmap(18) = 1 AND 24)
+END IF
+lastmap = map
+
+'load gmap
+loadmapstate workingdir$ + SLASH + "map" + STR$(map), map, 1
+
 getmapname mapname$, map
-loadtanim gmap(0), tastuf()
-FOR i = 0 TO 1
- cycle(i) = 0
- cycptr(i) = 0
- cycskip(i) = 0
-NEXT i
-xbloadmap maplumpname$(map, "t"), scroll(), "Oh no! Map" + STR$(map) + " tilemap is missing"
-xbloadmap maplumpname$(map, "p"), pass(), "Oh no! Map" + STR$(map) + " passabilitymap is missing"
+
+IF gmap(18) < 2 THEN
+ loadmapstate workingdir$ + SLASH + "map" + STR$(map), map, 24
+ELSE
+ 'xbload maplumpname$(map, "t"), scroll(), "Oh no! Map " + STR$(map) + " tilemap is missing"
+ 'xbload maplumpname$(map, "p"), pass(), "Oh no! Map " + STR$(map) + " passabilitymap is missing"
+ loadmaplumps map, 24
+END IF
+
+IF afterbat = 0 THEN
+ showmapname = gmap(4)
+ 'LoadNPCL maplumpname$(map, "l"), npc(), 300
+ 'LoadNPCD maplumpname$(map, "n"), npcs()
+ IF gmap(17) < 2 THEN
+  loadmapstate workingdir$ + SLASH + "map" + STR$(map), map, 6
+ ELSE
+  loadmaplumps map, 6
+ END IF
+ELSE
+ 'this is normally done in loadmaplumps
+ reloadnpc stat()
+ npcplot
+END IF
+
 IF isfile(maplumpname$(map, "e")) THEN
  CLOSE #foemaph
  foemaph = FREEFILE
@@ -1385,20 +1407,7 @@ ELSE
  fatalerror "Oh no! Map" + STR$(map) + " foemap is missing"
 END IF
 loaddoor map, door()
-IF afterbat = 0 THEN
- showmapname = gmap(4)
- 'xbload maplumpname$(map, "l"), npcl(), "Oh no! Map" + STR$(map) + " NPC locations are missing"
- LoadNPCL maplumpname$(map, "l"), npc(), 300
- 'xbload maplumpname$(map, "n"), npcs(), "Oh no! Map" + STR$(map) + " NPC definitions are missing"
- LoadNPCD maplumpname$(map, "n"), npcs()
- FOR i = 0 TO 299
-  npc(i).x = npc(i).x * 20        
-  npc(i).y = (npc(i).y - 1) * 20 
-  npc(i).xgo = 0                  
-  npc(i).ygo = 0                  
- NEXT
-END IF
-npcplot
+
 IF afterbat = 0 AND samemap = 0 THEN
  forcedismount choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
 END IF
@@ -1423,22 +1432,8 @@ IF veh(0) AND samemap THEN
  herospeed(0) = veh(8)
  IF herospeed(0) = 3 THEN herospeed(0) = 10
 END IF
-reloadnpc stat()
-correctbackdrop
-SELECT CASE gmap(5) '--outer edge wrapping
- CASE 0, 1'--crop edges or wrap
-  setoutside -1
- CASE 2
-  setoutside gmap(6)
-END SELECT
 sayer = -1
-IF readbit(gen(), 44, suspendambientmusic) = 0 THEN
- IF gmap(1) = 0 THEN
-  stopsong
- ELSE
-  wrappedsong gmap(1) - 1
- END IF
-END IF
+
 evalherotag stat()
 evalitemtag
 IF afterbat = 0 THEN
@@ -1613,7 +1608,6 @@ IF wantdoor > 0 THEN
 END IF
 IF wantbattle > 0 THEN
  fatal = 0
- ERASE scroll, pass
  wonbattle = battle(wantbattle - 1, fatal, stat())
  scriptret = wonbattle
  wantbattle = 0
@@ -1625,7 +1619,6 @@ IF wantbattle > 0 THEN
 END IF
 IF wantteleport > 0 THEN
  wantteleport = 0
- ERASE scroll, pass
  afterbat = 0
  GOSUB preparemap
  foep = range(100, 60)
@@ -2034,7 +2027,7 @@ SELECT CASE scrat(nowscript, curkind)
    CASE 78'--alter NPC
     IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
      IF retvals(0) < 0 THEN retvals(0) = (npc(abs(retvals(0) + 1)).id - 1)
-     IF retvals(0) >= 0 AND retvals(0) <= 35 THEN
+     IF retvals(0) >= 0 AND retvals(0) <= npcdMax THEN
       SetNPCD(npcs(retvals(0)), retvals(1), retvals(2))
       IF retvals(1) = 0 THEN
        setpicstuf buffer(), 1600, 2
@@ -2115,6 +2108,21 @@ SELECT CASE scrat(nowscript, curkind)
       scrat(nowscript, scrstate) = stwait
      END IF
     END IF
+   CASE 245'--save map state
+    statefile$ = workingdir$ + SLASH
+    IF retvals(1) > -1 THEN statefile$ += "state" + STR$(bound(retvals(1), 0, 31)) ELSE statefile$ += "map" + STR$(map)
+    savemapstate statefile$, retvals(0)
+   CASE 246'--load map state
+    statefile$ = workingdir$ + SLASH
+    IF retvals(1) > -1 THEN 
+     loadmapstate statefile$ + "state" + STR$(bound(retvals(1), 0, 31)), map, retvals(0), -1
+    ELSE 
+     loadmapstate statefile$ + "map" + STR$(map), map, retvals(0)
+    END IF
+   CASE 247'--reset map state
+    loadmaplumps map, retvals(0)
+   CASE 248'--delete map state
+    deletemapstate workingdir$ + SLASH + "map" + STR$(map), retvals(0)
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript, curvalue)
     scriptmisc scrat(nowscript, curvalue)
@@ -2124,3 +2132,46 @@ SELECT CASE scrat(nowscript, curkind)
   END SELECT
 END SELECT
 RETRACE
+
+SUB loadmaplumps (mapnum, loadmask)
+ 'loads some, but not all the lumps needed for each map
+ IF loadmask AND 1 THEN
+  'gmap
+  setpicstuf gmap(), 40, -1
+  loadset game$ + ".map", mapnum, 0
+  loadpage game$ + ".til", gmap(0), 3
+  loadtanim gmap(0), tastuf()
+  FOR i = 0 TO 1
+   cycle(i) = 0
+   cycptr(i) = 0
+   cycskip(i) = 0
+  NEXT i
+  correctbackdrop
+  SELECT CASE gmap(5) '--outer edge wrapping
+   CASE 0, 1'--crop edges or wrap
+    setoutside -1
+   CASE 2
+    setoutside gmap(6)
+  END SELECT
+ END IF
+ IF loadmask AND 2 THEN
+  'npcl
+  LoadNPCL maplumpname$(mapnum, "l"), npc(), 300
+ END IF
+ IF loadmask AND 4 THEN
+  'npcd
+  LoadNPCD maplumpname$(mapnum, "n"), npcs()
+  reloadnpc stat()
+ END IF
+ IF loadmask AND 8 THEN
+  'tilemap
+  xbload maplumpname$(mapnum, "t"), scroll(), "Oh no! Map " + STR$(mapnum) + " tilemap is missing"
+ END IF
+ IF loadmask AND 16 THEN
+  'passmap
+  xbload maplumpname$(mapnum, "p"), pass(), "Oh no! Map " + STR$(mapnum) + " passabilitymap is missing"
+ END IF
+ IF loadmask AND (2 OR 4) THEN
+  npcplot
+ END IF
+END SUB

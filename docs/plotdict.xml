@@ -2242,6 +2242,55 @@ $1="i = "
 append number(1,i) #"i = 1"
 trace(1) # writes "TRACE: i = 1" to G_DEBUG.TXT</example>
 		</command>
+		<command id="savemapstate">
+			<cannon>save map state (whichdata, customid)</cannon>
+			<shortname>save map state</shortname>
+            <description>Saves the state of the current map to a temporary file which will be loaded (unless the map is set to ignore that particular data) when you reenter the current map, in the same way as a map set to save (remember) NPC or tile data: the saved state will be used instead of the map data in the RPG file. Both arguments are optional and are only for advanced uses.<lb/> Map state is not saved in saved games, and the temporary files will be deleted when you load or start a new a game!<lb/><p>whichdata</p> is an <ref>or</ref>'d combination of the following constants, which specify exactly what you want to save:<lb/><ul><li>mapstate:all = mapstate:mapsettings, or, mapstate:npcs, or, mapstate:tiles</li><li>mapstate:npcs = mapstate:npclocations, or, mapstate:npcdefinitions</li><li>mapstate:tiles = mapstate:tilemap, or, mapstate:passmap</li><li>mapstate:mapsettings</li><li>mapstate:npclocations</li><li>mapstate:npcdefinitions</li><li>mapstate:tilemap</li><li>mapstate:passmap</li></ul>The default is mapstate:all. <lb/>If <p>customid</p> is passed, it is used to save the state in a separate state file with an id number of <p>customid</p> which can only be loaded with <ref>loadmapstate</ref>. There are 32 available slots for use: 0 - 31.<lb/>Note that mapstate:mapsettings (also saved by mapstate:all) is special in that if you save it, it will always be loaded when the map is loaded regardless of settings. It saves all the settings found in the General Map Settings menu like the tileset, ambient music, footoffset, map trigger scripts, and so forth.</description>
+            <example>define script (1, generic menu screen, none)
+script, generic menu screen, begin
+  variable (remember map, remember x, remember y)
+  remember map := current map
+  remember x := hero x
+  remember y := hero y
+  # we want NPCs and things to stay in the same place after we come back from the menu
+  save map state
+  
+  fade screen out
+  wait
+  teleport to map (map:generic menu)
+  fade screen in
+  wait
+
+  # menu code here
+  #...
+  #...
+
+  fade screen out
+  wait
+  teleport to map (remember map, remember x, remember y)
+  # assume the map is set to load state only, the default (otherwise, use load map state)
+  fade screen in
+  wait
+
+  # we want the map to go back to resetting whenever you enter/exit it (like normal)
+  delete map state
+end</example>
+		</command>
+		<command id="loadmapstate">
+			<cannon>load map state (whichdata, customid)</cannon>
+			<shortname>load map state</shortname>
+            <description>Load temporary map state data previously saved either by <ref>savemapstate</ref> or when leaving a map set to remember state. The two arguments are optional and for advanced use. <p>whichdata</p> is a set of bits in the <ref>savemapstate</ref> format to determine what exactly to load. The default is mapstate:all. <p>customid</p> is a number between 0 and 31 of a slot in which a custom save was made. Data from a different map can be loaded, but only tile data from a map of the same size! If you attempt to load state data which has not been saved then it will be loaded from the game files instead, unless you are using <p>customid</p>, in which case nothing will be loaded.</description>
+		</command>
+		<command id="resetmapstate">
+			<cannon>reset map state (whichdata)</cannon>
+			<shortname>reset map state</shortname>
+            <description>Reloads original unaltered map data from the RPG file. <p>whichdata</p> is a set of bits in the <ref>savemapstate</ref> format to determine what exactly to load. It is optional and the default is mapstate:all. This does not remove temp state files for the map, so they could still be loaded instead when you next enter the map, use <ref>deletemapstate</ref> to remove them if wanted.</description>
+        </command>
+		<command id="deletemapstate">
+			<cannon>delete map state (whichdata)</cannon>
+			<shortname>delete map state</shortname>
+            <description>Deletes temporary map state files for the current map, so that if the map is set to load NPC or tile data it will load the original data from the game files when it is entered. <p>whichdata</p> is a set of bits in the <ref>savemapstate</ref> format to determine what exactly to delete. The default is mapstate:all.</description>
+		</command>
 	</section>
 	<section title="Predefined Constants">
 		<command id="numericconstants">
