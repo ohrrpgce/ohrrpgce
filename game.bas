@@ -132,6 +132,12 @@ DECLARE FUNCTION wrapcollision (xa%, ya%, xgoa%, ygoa%, xb%, yb%, xgob%, ygob%)
 DECLARE FUNCTION cropmovement (x%, y%, xgo%, ygo%)
 DECLARE FUNCTION wraptouch (x1%, y1%, x2%, y2%, distance%)
 DECLARE FUNCTION titlescr% ()
+DECLARE SUB loadmap_gmap(mapnum%)
+DECLARE SUB loadmap_npc(mapnum%)
+DECLARE SUB loadmap_npcl(mapnum%)
+DECLARE SUB loadmap_npcd(mapnum%)
+DECLARE SUB loadmap_tilemap(mapnum%)
+DECLARE SUB loadmap_passmap(mapnum%)
 DECLARE SUB loadmaplumps (mapnum%, loadmask%)
 DECLARE SUB savemapstate (filebase$, savemask%)
 DECLARE SUB loadmapstate (filebase$, mapnum%, loadmask%, dontfallback% = 0)
@@ -1379,9 +1385,8 @@ getmapname mapname$, map
 IF gmap(18) < 2 THEN
  loadmapstate workingdir$ + SLASH + "map" + STR$(map), map, 24
 ELSE
- 'xbload maplumpname$(map, "t"), scroll(), "Oh no! Map " + STR$(map) + " tilemap is missing"
- 'xbload maplumpname$(map, "p"), pass(), "Oh no! Map " + STR$(map) + " passabilitymap is missing"
- loadmaplumps map, 24
+ loadmap_tilemap map
+ loadmap_passmap map
 END IF
 
 IF afterbat = 0 THEN
@@ -1391,10 +1396,10 @@ IF afterbat = 0 THEN
  IF gmap(17) < 2 THEN
   loadmapstate workingdir$ + SLASH + "map" + STR$(map), map, 6
  ELSE
-  loadmaplumps map, 6
+  loadmap_npc map
  END IF
 ELSE
- 'this is normally done in loadmaplumps
+ 'this is normally done in loadmap_npc
  reloadnpc stat()
  npcplot
 END IF
@@ -2133,43 +2138,64 @@ SELECT CASE scrat(nowscript, curkind)
 END SELECT
 RETRACE
 
+SUB loadmap_gmap(mapnum)
+ setpicstuf gmap(), 40, -1
+ loadset game$ + ".map", mapnum, 0
+ loadpage game$ + ".til", gmap(0), 3
+ loadtanim gmap(0), tastuf()
+ FOR i = 0 TO 1
+  cycle(i) = 0
+  cycptr(i) = 0
+  cycskip(i) = 0
+ NEXT i
+ correctbackdrop
+ SELECT CASE gmap(5) '--outer edge wrapping
+  CASE 0, 1'--crop edges or wrap
+   setoutside -1
+  CASE 2
+   setoutside gmap(6)
+ END SELECT
+END SUB
+
+SUB loadmap_npc(mapnum)
+ loadmap_npcd(mapnum)
+ loadmap_npcl(mapnum)
+ npcplot
+END SUB
+
+SUB loadmap_npcl(mapnum)
+ LoadNPCL maplumpname$(mapnum, "l"), npc(), 300
+END SUB
+
+SUB loadmap_npcd(mapnum)
+ LoadNPCD maplumpname$(mapnum, "n"), npcs()
+ reloadnpc stat()
+END SUB
+
+SUB loadmap_tilemap(mapnum)
+ xbload maplumpname$(mapnum, "t"), scroll(), "Oh no! Map " + STR$(mapnum) + " tilemap is missing"
+END SUB
+
+SUB loadmap_passmap(mapnum)
+ xbload maplumpname$(mapnum, "p"), pass(), "Oh no! Map " + STR$(mapnum) + " passabilitymap is missing"
+END SUB
+
 SUB loadmaplumps (mapnum, loadmask)
  'loads some, but not all the lumps needed for each map
  IF loadmask AND 1 THEN
-  'gmap
-  setpicstuf gmap(), 40, -1
-  loadset game$ + ".map", mapnum, 0
-  loadpage game$ + ".til", gmap(0), 3
-  loadtanim gmap(0), tastuf()
-  FOR i = 0 TO 1
-   cycle(i) = 0
-   cycptr(i) = 0
-   cycskip(i) = 0
-  NEXT i
-  correctbackdrop
-  SELECT CASE gmap(5) '--outer edge wrapping
-   CASE 0, 1'--crop edges or wrap
-    setoutside -1
-   CASE 2
-    setoutside gmap(6)
-  END SELECT
+  loadmap_gmap(mapnum)
  END IF
  IF loadmask AND 2 THEN
-  'npcl
-  LoadNPCL maplumpname$(mapnum, "l"), npc(), 300
+  loadmap_npcl(mapnum)
  END IF
  IF loadmask AND 4 THEN
-  'npcd
-  LoadNPCD maplumpname$(mapnum, "n"), npcs()
-  reloadnpc stat()
+  loadmap_npcd(mapnum)
  END IF
  IF loadmask AND 8 THEN
-  'tilemap
-  xbload maplumpname$(mapnum, "t"), scroll(), "Oh no! Map " + STR$(mapnum) + " tilemap is missing"
+  loadmap_tilemap(mapnum)
  END IF
  IF loadmask AND 16 THEN
-  'passmap
-  xbload maplumpname$(mapnum, "p"), pass(), "Oh no! Map " + STR$(mapnum) + " passabilitymap is missing"
+  loadmap_passmap(mapnum)
  END IF
  IF loadmask AND (2 OR 4) THEN
   npcplot
