@@ -100,7 +100,7 @@ dim shared keybdmutex as integer  'controls access to keybdstate(), mouseflags a
 dim shared keybdthread as integer   'id of the polling thread
 dim shared endpollthread as integer  'signal the polling thread to quit
 
-dim shared stacktop as ubyte ptr
+dim shared stackbottom as ubyte ptr
 dim shared stackptr as ubyte ptr
 dim shared stacksize as integer
 
@@ -2307,48 +2307,39 @@ SUB str2array (s$, arr() as integer, BYVAL o as integer)
 	next
 end SUB
 
-SUB setupstack (buffer() as integer, BYVAL size as integer, file$)
-'Currently, stack is always 1024, and blocks of 512 are written out to file$
-'whenever it gets too big. Likewise, the passed is never used for anything else.
-'For simlpicity, I've decided to allocate a larger stack in memory and ignore
-'the parameters.
-	stacktop = allocate(32768 * 4) '32k
-	if (stacktop = 0) then
+SUB setupstack ()
+	stackbottom = allocate(32768)
+	if (stackbottom = 0) then
 		'oh dear
 		debug "Not enough memory for stack"
 		exit sub
 	end if
-	stackptr = stacktop
+	stackptr = stackbottom
 	stacksize = 32768
 end SUB
 
 SUB pushw (BYVAL word as integer)
-'not sure about the byte order, but it shouldn't matter as long as I undo it
-'the same way.
-'check bounds to stop overflow - currently it will still break since there's
-'no error handling, but at least it won't scribble.
-	if stackptr - stacktop < stacksize - 2 and stackptr >= stacktop then
-		*stackptr = word and &hff
-		stackptr = stackptr + 1
-		*stackptr = (word and &hff00) shr 8
-		stackptr = stackptr + 1
-	else
-		debug "overflow"
+	if stackptr - stackbottom > stacksize - 2 then
+		dim newptr as ubyte ptr
+		newptr = reallocate(stackbottom, stacksize + 32768)
+		if newptr = 0 then
+			debug "stack: out of memory"
+			exit sub
+		end if
+		stacksize += 32768
+		stackptr += newptr - stackbottom
+		stackbottom = newptr
 	end if
+	*cast(short ptr, stackptr) = word
+	stackptr += 2
 end SUB
 
 FUNCTION popw () as integer
-	dim pw as integer
+	dim pw as short
 
-	if (stackptr > stacktop) then
-		stackptr = stackptr - 1
-		pw = *stackptr shl 8
-		stackptr = stackptr - 1
-		pw = pw or (*stackptr)
-		'sign
-		if pw and &h8000 then
-			pw = pw or &hffff0000
-		end if
+	if (stackptr >= stackbottom + 2) then
+		stackptr -= 2
+		pw = *cast(short ptr, stackptr)
 	else
 		pw = 0
 		debug "underflow"
@@ -2357,15 +2348,45 @@ FUNCTION popw () as integer
 	popw = pw
 end FUNCTION
 
+SUB pushdw (BYVAL dword as integer)
+	if stackptr - stackbottom > stacksize - 4 then
+		dim newptr as ubyte ptr
+		newptr = reallocate(stackbottom, stacksize + 32768)
+		if newptr = 0 then
+			debug "stack: out of memory"
+			exit sub
+		end if
+		stacksize += 32768
+		stackptr += newptr - stackbottom
+		stackbottom = newptr
+	end if
+	*cast(integer ptr, stackptr) = dword
+	stackptr += 4
+end SUB
+
+FUNCTION popdw () as integer
+	dim pdw as short
+
+	if (stackptr >= stackbottom - 4) then
+		stackptr -= 4
+		pdw = *cast(integer ptr, stackptr)
+	else
+		pdw = 0
+		debug "underflow"
+	end if
+
+	popdw = pdw
+end FUNCTION
+
 SUB releasestack ()
 	if stacksize > 0 then
-		deallocate stacktop
+		deallocate stackbottom
 		stacksize = -1
 	end if
 end SUB
 
 FUNCTION stackpos () as integer
-	stackpos = stackptr - stacktop
+	stackpos = stackptr - stackbottom
 end FUNCTION
 
 'private functions

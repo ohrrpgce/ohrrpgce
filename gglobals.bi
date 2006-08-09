@@ -74,7 +74,6 @@ EXTERN inventory() as InventSlot
 'Script globals
 EXTERN script()
 EXTERN heap()
-EXTERN astack()
 EXTERN scrat()
 EXTERN retvals()
 EXTERN nowscript
