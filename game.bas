@@ -2183,19 +2183,19 @@ END SUB
 SUB loadmaplumps (mapnum, loadmask)
  'loads some, but not all the lumps needed for each map
  IF loadmask AND 1 THEN
-  loadmap_gmap(mapnum)
+  loadmap_gmap mapnum
  END IF
  IF loadmask AND 2 THEN
-  loadmap_npcl(mapnum)
+  loadmap_npcl mapnum
  END IF
  IF loadmask AND 4 THEN
-  loadmap_npcd(mapnum)
+  loadmap_npcd mapnum
  END IF
  IF loadmask AND 8 THEN
-  loadmap_tilemap(mapnum)
+  loadmap_tilemap mapnum
  END IF
  IF loadmask AND 16 THEN
-  loadmap_passmap(mapnum)
+  loadmap_passmap mapnum
  END IF
  IF loadmask AND (2 OR 4) THEN
   npcplot

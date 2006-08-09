@@ -768,33 +768,52 @@ FOR i = 0 TO npcdMax
 NEXT i
 END SUB
 
-SUB savemapstate (filebase$, savemask = 255)
-fh = FREEFILE
-IF savemask AND 1 THEN
- 'gmap
+SUB savemapstate_gmap(filebase$)
+ fh = FREEFILE
  OPEN filebase$ + "_map.tmp" FOR BINARY AS #fh
  PUT #fh, , gmap()
  CLOSE #fh
-END IF
-IF savemask AND 2 THEN
- 'npcl
+END SUB
+
+SUB savemapstate_npcl(filebase$)
+ fh = FREEFILE
  OPEN filebase$ + "_l.tmp" FOR BINARY AS #fh
  PUT #fh, , npc()
  CLOSE #fh
-END IF
-IF savemask AND 4 THEN
+END SUB
+
+SUB savemapstate_npcs(filebase$)
+ fh = FREEFILE
  'npcd
  OPEN filebase$ + "_n.tmp" FOR BINARY AS #fh
  PUT #fh, , npcs()
  CLOSE #fh
+END SUB
+
+SUB savemapstate_tilemap(filebase$)
+ xbsave filebase$ + "_t.tmp", scroll(), scroll(0) * scroll(1) + 4
+END SUB
+
+SUB savemapstate_passmap(filebase$)
+ xbsave filebase$ + "_p.tmp", pass(), pass(0) * pass(1) + 4
+END SUB
+
+SUB savemapstate (filebase$, savemask = 255)
+fh = FREEFILE
+IF savemask AND 1 THEN
+ savemapstate_gmap filebase$
+END IF
+IF savemask AND 2 THEN
+ savemapstate_npcl filebase$
+END IF
+IF savemask AND 4 THEN
+ savemapstate_npcs filebase$
 END IF
 IF savemask AND 8 THEN
- 'tilemap
- xbsave filebase$ + "_t.tmp", scroll(), scroll(0) * scroll(1) + 4
+ savemapstate_tilemap filebase$
 END IF
 IF savemask AND 16 THEN
- 'passmap
- xbsave filebase$ + "_p.tmp", pass(), pass(0) * pass(1) + 4
+ savemapstate_passmap filebase$
 END IF
 END SUB
 
