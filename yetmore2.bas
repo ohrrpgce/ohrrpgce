@@ -94,6 +94,11 @@ DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB cathero ()
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE SUB readjoysettings ()
+DECLARE SUB loadmap_gmap(mapnum%)
+DECLARE SUB loadmap_npcl(mapnum%)
+DECLARE SUB loadmap_npcd(mapnum%)
+DECLARE SUB loadmap_tilemap(mapnum%)
+DECLARE SUB loadmap_passmap(mapnum%)
 DECLARE SUB loadmaplumps (mapnum%, loadmask%)
 DECLARE FUNCTION mapstatetemp$(mapnum, prefix$)
 DECLARE SUB savemapstate_gmap(mapnum%, prefix$)
@@ -826,52 +831,51 @@ IF savemask AND 16 THEN
 END IF
 END SUB
 
-SUB loadmapstate (filebase$, mapnum, loadmask, dontfallback = 0)
-DIM AS SHORT mapsize(1), propersize(1)
-reloadbits = 0
-fh = FREEFILE
-
-IF loadmask AND 24 THEN
- 'sticking npcs off the map is probably a bad thing too, but can't check for it
- OPEN maplumpname$(mapnum, "t") FOR BINARY AS #fh
- GET #fh, 8, propersize()
- CLOSE #fh
-END IF
-
-IF loadmask AND 1 THEN
- 'gmap
+SUB loadmapstate_gmap (mapnum, prefix$, dontfallback = 0)
+ fh = FREEFILE
+ filebase$ = mapstatetemp$(mapnum, prefix$)
  IF NOT isfile(filebase$ + "_map.tmp") THEN
-  reloadbits = reloadbits OR 1
+  IF dontfallback = 0 THEN loadmap_gmap mapnum
  ELSE
   OPEN filebase$ + "_map.tmp" FOR BINARY AS #fh
   GET #fh, , gmap()
   CLOSE #fh
  END IF
-END IF
-IF loadmask AND 2 THEN
- 'npcl
+END SUB
+
+SUB loadmapstate_npcl (mapnum, prefix$, dontfallback = 0)
+ fh = FREEFILE
+ filebase$ = mapstatetemp$(mapnum, prefix$)
  IF NOT isfile(filebase$ + "_l.tmp") THEN
-  reloadbits = reloadbits OR 2
+  IF dontfallback = 0 THEN loadmap_npcl mapnum
  ELSE
   OPEN filebase$ + "_l.tmp" FOR BINARY AS #fh
   GET #fh, , npc()
   CLOSE #fh
  END IF
-END IF
-IF loadmask AND 4 THEN
- 'npcd
+END SUB
+
+SUB loadmapstate_npcd (mapnum, prefix$, dontfallback = 0)
+ fh = FREEFILE
+ filebase$ = mapstatetemp$(mapnum, prefix$)
  IF NOT isfile(filebase$ + "_n.tmp") THEN
-  reloadbits = reloadbits OR 4
+  IF dontfallback = 0 THEN loadmap_npcd mapnum
  ELSE
   OPEN filebase$ + "_n.tmp" FOR BINARY AS #fh
   GET #fh, , npcs()
   CLOSE #fh
  END IF
-END IF
-IF loadmask AND 8 THEN
- 'tilemap
+END SUB
+
+SUB loadmapstate_tilemap (mapnum, prefix$, dontfallback = 0)
+ DIM AS SHORT mapsize(1), propersize(1)
+ fh = FREEFILE
+ OPEN maplumpname$(mapnum, "t") FOR BINARY AS #fh
+ GET #fh, 8, propersize()
+ CLOSE #fh
+ filebase$ = mapstatetemp$(mapnum, prefix$)
  IF NOT isfile(filebase$ + "_t.tmp") THEN
-  reloadbits = reloadbits OR 8
+  IF dontfallback = 0 THEN loadmap_tilemap mapnum
  ELSE
   OPEN filebase$ + "_t.tmp" FOR BINARY AS #fh
   GET #fh, 8, mapsize()
@@ -879,14 +883,20 @@ IF loadmask AND 8 THEN
   IF mapsize(0) = propersize(0) AND mapsize(1) = propersize(1) THEN
    xbload filebase$ + "_t.tmp", scroll(), "Temporary tilemap is corrupt!"
   ELSE
-   reloadbits = reloadbits OR 8
+   IF dontfallback = 0 THEN loadmap_tilemap mapnum
   END IF
  END IF
-END IF
-IF loadmask AND 16 THEN
- 'passmap
+END SUB
+
+SUB loadmapstate_passmap (mapnum, prefix$, dontfallback = 0)
+ DIM AS SHORT mapsize(1), propersize(1)
+ fh = FREEFILE
+ OPEN maplumpname$(mapnum, "p") FOR BINARY AS #fh
+ GET #fh, 8, propersize()
+ CLOSE #fh
+ filebase$ = mapstatetemp$(mapnum, prefix$)
  IF NOT isfile(filebase$ + "_p.tmp") THEN
-  reloadbits = reloadbits OR 16
+  IF dontfallback = 0 THEN loadmap_passmap mapnum
  ELSE
   OPEN filebase$ + "_p.tmp" FOR BINARY AS #fh
   GET #fh, 8, mapsize()
@@ -894,14 +904,26 @@ IF loadmask AND 16 THEN
   IF mapsize(0) = propersize(0) AND mapsize(1) = propersize(1) THEN
    xbload filebase$ + "_p.tmp", pass(), "Temporary passmap is corrupt!"
   ELSE
-   reloadbits = reloadbits OR 8
+   IF dontfallback = 0 THEN loadmap_passmap mapnum
   END IF
  END IF
-END IF
+END SUB
 
-'reload default data for current map if no temp
-IF reloadbits AND dontfallback = 0 THEN
- loadmaplumps mapnum, reloadbits
+SUB loadmapstate (mapnum, loadmask, prefix$, dontfallback = 0)
+IF loadmask AND 1 THEN
+ loadmapstate_gmap mapnum, prefix$, dontfallback
+END IF
+IF loadmask AND 2 THEN
+ loadmapstate_npcl mapnum, prefix$, dontfallback
+END IF
+IF loadmask AND 4 THEN
+ loadmapstate_npcd mapnum, prefix$, dontfallback
+END IF
+IF loadmask AND 8 THEN
+ loadmapstate_tilemap mapnum, prefix$, dontfallback
+END IF
+IF loadmask AND 16 THEN
+ loadmapstate_passmap mapnum, prefix$, dontfallback
 END IF
 END SUB
 

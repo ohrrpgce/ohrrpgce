@@ -133,7 +133,6 @@ DECLARE FUNCTION cropmovement (x%, y%, xgo%, ygo%)
 DECLARE FUNCTION wraptouch (x1%, y1%, x2%, y2%, distance%)
 DECLARE FUNCTION titlescr% ()
 DECLARE SUB loadmap_gmap(mapnum%)
-DECLARE SUB loadmap_npc(mapnum%)
 DECLARE SUB loadmap_npcl(mapnum%)
 DECLARE SUB loadmap_npcd(mapnum%)
 DECLARE SUB loadmap_tilemap(mapnum%)
@@ -145,7 +144,12 @@ DECLARE SUB savemapstate_npcd(mapnum%, prefix$)
 DECLARE SUB savemapstate_tilemap(mapnum%, prefix$)
 DECLARE SUB savemapstate_passmap(mapnum%, prefix$)
 DECLARE SUB savemapstate (mapnum%, savemask%, prefix$)
-DECLARE SUB loadmapstate (filebase$, mapnum%, loadmask%, dontfallback% = 0)
+DECLARE SUB loadmapstate_gmap (mapnum%, prefix$, dontfallback% = 0)
+DECLARE SUB loadmapstate_npcl (mapnum%, prefix$, dontfallback% = 0)
+DECLARE SUB loadmapstate_npcd (mapnum%, prefix$, dontfallback% = 0)
+DECLARE SUB loadmapstate_tilemap (mapnum%, prefix$, dontfallback% = 0)
+DECLARE SUB loadmapstate_passmap (mapnum%, prefix$, dontfallback% = 0)
+DECLARE SUB loadmapstate (mapnum%, loadmask%, prefix$, dontfallback% = 0)
 DECLARE SUB deletemapstate (filebase$, killmask%)
 DECLARE SUB deletetemps ()
 
@@ -1390,12 +1394,13 @@ END IF
 lastmap = map
 
 'load gmap
-loadmapstate workingdir$ + SLASH + "map" + STR$(map), map, 1
+loadmapstate_gmap map, "map"
 
 getmapname mapname$, map
 
 IF gmap(18) < 2 THEN
- loadmapstate workingdir$ + SLASH + "map" + STR$(map), map, 24
+ loadmapstate_tilemap map, "map"
+ loadmapstate_passmap map, "map"
 ELSE
  loadmap_tilemap map
  loadmap_passmap map
@@ -1403,18 +1408,18 @@ END IF
 
 IF afterbat = 0 THEN
  showmapname = gmap(4)
- 'LoadNPCL maplumpname$(map, "l"), npc(), 300
- 'LoadNPCD maplumpname$(map, "n"), npcs()
  IF gmap(17) < 2 THEN
-  loadmapstate workingdir$ + SLASH + "map" + STR$(map), map, 6
+  loadmapstate_npcd map, "map"
+  loadmapstate_npcl map, "map"
  ELSE
-  loadmap_npc map
+  loadmap_npcd map
+  loadmap_npcl map
  END IF
 ELSE
- 'this is normally done in loadmap_npc
  reloadnpc stat()
- npcplot
 END IF
+'Evaluate whether NPCs should appear or disappear based on tags
+npcplot
 
 IF isfile(maplumpname$(map, "e")) THEN
  CLOSE #foemaph
@@ -2128,15 +2133,14 @@ SELECT CASE scrat(nowscript, curkind)
    CASE 245'--save map state
     IF retvals(1) > -1 AND retvals(1) <= 31 THEN
      savemapstate retvals(1), retvals(0), "state"
-    ELSE
+    ELSEIF retvals(1) = -1 THEN
      savemapstate map, retvals(0), "map"
     END IF
    CASE 246'--load map state
-    statefile$ = workingdir$ + SLASH
-    IF retvals(1) > -1 THEN 
-     loadmapstate statefile$ + "state" + STR$(bound(retvals(1), 0, 31)), map, retvals(0), -1
-    ELSE 
-     loadmapstate statefile$ + "map" + STR$(map), map, retvals(0)
+    IF retvals(1) > -1 AND retvals(1) <= 31 THEN 
+     loadmapstate retvals(1), retvals(0), "state", -1
+    ELSEIF retvals(1) = -1 THEN
+     loadmapstate map, retvals(0), "map"
     END IF
    CASE 247'--reset map state
     loadmaplumps map, retvals(0)
@@ -2169,12 +2173,6 @@ SUB loadmap_gmap(mapnum)
   CASE 2
    setoutside gmap(6)
  END SELECT
-END SUB
-
-SUB loadmap_npc(mapnum)
- loadmap_npcd(mapnum)
- loadmap_npcl(mapnum)
- npcplot
 END SUB
 
 SUB loadmap_npcl(mapnum)
