@@ -95,6 +95,12 @@ DECLARE SUB cathero ()
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE SUB readjoysettings ()
 DECLARE SUB loadmaplumps (mapnum%, loadmask%)
+DECLARE FUNCTION mapstatetemp$(mapnum, prefix$)
+DECLARE SUB savemapstate_gmap(mapnum%, prefix$)
+DECLARE SUB savemapstate_npcl(mapnum%, prefix$)
+DECLARE SUB savemapstate_npcd(mapnum%, prefix$)
+DECLARE SUB savemapstate_tilemap(mapnum%, prefix$)
+DECLARE SUB savemapstate_passmap(mapnum%, prefix$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -768,52 +774,55 @@ FOR i = 0 TO npcdMax
 NEXT i
 END SUB
 
-SUB savemapstate_gmap(filebase$)
+FUNCTION mapstatetemp$(mapnum, prefix$)
+ RETURN workingdir$ + SLASH + prefix$ + STR$(mapnum)
+END FUNCTION
+
+SUB savemapstate_gmap(mapnum, prefix$)
  fh = FREEFILE
- OPEN filebase$ + "_map.tmp" FOR BINARY AS #fh
+ OPEN mapstatetemp$(mapnum, prefix$) + "_map.tmp" FOR BINARY AS #fh
  PUT #fh, , gmap()
  CLOSE #fh
 END SUB
 
-SUB savemapstate_npcl(filebase$)
+SUB savemapstate_npcl(mapnum, prefix$)
  fh = FREEFILE
- OPEN filebase$ + "_l.tmp" FOR BINARY AS #fh
+ OPEN mapstatetemp$(mapnum, prefix$) + "_l.tmp" FOR BINARY AS #fh
  PUT #fh, , npc()
  CLOSE #fh
 END SUB
 
-SUB savemapstate_npcs(filebase$)
+SUB savemapstate_npcd(mapnum, prefix$)
  fh = FREEFILE
- 'npcd
- OPEN filebase$ + "_n.tmp" FOR BINARY AS #fh
+ OPEN mapstatetemp$(mapnum, prefix$) + "_n.tmp" FOR BINARY AS #fh
  PUT #fh, , npcs()
  CLOSE #fh
 END SUB
 
-SUB savemapstate_tilemap(filebase$)
- xbsave filebase$ + "_t.tmp", scroll(), scroll(0) * scroll(1) + 4
+SUB savemapstate_tilemap(mapnum, prefix$)
+ xbsave mapstatetemp$(mapnum, prefix$) + "_t.tmp", scroll(), scroll(0) * scroll(1) + 4
 END SUB
 
-SUB savemapstate_passmap(filebase$)
- xbsave filebase$ + "_p.tmp", pass(), pass(0) * pass(1) + 4
+SUB savemapstate_passmap(mapnum, prefix$)
+ xbsave mapstatetemp$(mapnum, prefix$) + "_p.tmp", pass(), pass(0) * pass(1) + 4
 END SUB
 
-SUB savemapstate (filebase$, savemask = 255)
+SUB savemapstate (mapnum, savemask = 255, prefix$)
 fh = FREEFILE
 IF savemask AND 1 THEN
- savemapstate_gmap filebase$
+ savemapstate_gmap mapnum, prefix$
 END IF
 IF savemask AND 2 THEN
- savemapstate_npcl filebase$
+ savemapstate_npcl mapnum, prefix$
 END IF
 IF savemask AND 4 THEN
- savemapstate_npcs filebase$
+ savemapstate_npcd mapnum, prefix$
 END IF
 IF savemask AND 8 THEN
- savemapstate_tilemap filebase$
+ savemapstate_tilemap mapnum, prefix$
 END IF
 IF savemask AND 16 THEN
- savemapstate_passmap filebase$
+ savemapstate_passmap mapnum, prefix$
 END IF
 END SUB
 

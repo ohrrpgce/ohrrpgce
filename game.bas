@@ -139,7 +139,12 @@ DECLARE SUB loadmap_npcd(mapnum%)
 DECLARE SUB loadmap_tilemap(mapnum%)
 DECLARE SUB loadmap_passmap(mapnum%)
 DECLARE SUB loadmaplumps (mapnum%, loadmask%)
-DECLARE SUB savemapstate (filebase$, savemask%)
+DECLARE SUB savemapstate_gmap(mapnum%, prefix$)
+DECLARE SUB savemapstate_npcl(mapnum%, prefix$)
+DECLARE SUB savemapstate_npcd(mapnum%, prefix$)
+DECLARE SUB savemapstate_tilemap(mapnum%, prefix$)
+DECLARE SUB savemapstate_passmap(mapnum%, prefix$)
+DECLARE SUB savemapstate (mapnum%, savemask%, prefix$)
 DECLARE SUB loadmapstate (filebase$, mapnum%, loadmask%, dontfallback% = 0)
 DECLARE SUB deletemapstate (filebase$, killmask%)
 DECLARE SUB deletetemps ()
@@ -1373,7 +1378,14 @@ preparemap:
 'DEBUG debug "in preparemap"
 'save data from old map
 IF lastmap > -1 THEN
- savemapstate workingdir$ + SLASH + "map" + STR$(lastmap), (gmap(17) = 1 AND 6) OR (gmap(18) = 1 AND 24)
+ IF gmap(17) = 1 THEN
+  savemapstate_npcd lastmap, "map"
+  savemapstate_npcl lastmap, "map"
+ END IF
+ IF gmap(18) = 1 THEN
+  savemapstate_tilemap lastmap, "map"
+  savemapstate_passmap lastmap, "map"
+ END IF
 END IF
 lastmap = map
 
@@ -2114,9 +2126,11 @@ SELECT CASE scrat(nowscript, curkind)
      END IF
     END IF
    CASE 245'--save map state
-    statefile$ = workingdir$ + SLASH
-    IF retvals(1) > -1 THEN statefile$ += "state" + STR$(bound(retvals(1), 0, 31)) ELSE statefile$ += "map" + STR$(map)
-    savemapstate statefile$, retvals(0)
+    IF retvals(1) > -1 AND retvals(1) <= 31 THEN
+     savemapstate retvals(1), retvals(0), "state"
+    ELSE
+     savemapstate map, retvals(0), "map"
+    END IF
    CASE 246'--load map state
     statefile$ = workingdir$ + SLASH
     IF retvals(1) > -1 THEN 
