@@ -1428,7 +1428,7 @@ IF loadinstead <> -1 THEN
 ELSE
  '--load the script from file
  IF isfile(workingdir$ + SLASH + STR$(n) + ".hsx") THEN
-  fbdim temp
+  DIM temp as short
 	
   f = FREEFILE
   OPEN workingdir$ + SLASH + STR$(n) + ".hsx" FOR BINARY AS #f
@@ -1442,6 +1442,20 @@ ELSE
   ELSE
    scrat(index, scrargs) = 999
   END IF
+  IF skip >= 8 THEN
+   GET #f, 7, temp
+   scrformat = temp
+  ELSE
+   scrformat = 0
+  END IF
+
+  IF scrformat > 1 THEN
+   scripterr "script" + XSTR$(n) + " is in an unsupported format"
+   CLOSE #f
+   runscript = 0'--error
+   EXIT FUNCTION
+  END IF
+  IF scrformat = 1 THEN wordsize = 4 ELSE wordsize = 2
   
   IF nextscroff + (LOF(f) - skip) / 2 > 4096 THEN
    scripterr "Script buffer overflow"
@@ -1451,16 +1465,21 @@ ELSE
    EXIT FUNCTION
   END IF
   scrat(index, scroff) = nextscroff
-  scrat(index, scrsize) = (LOF(f) - skip) / 2
+  scrat(index, scrsize) = (LOF(f) - skip) / wordsize
   nextscroff = nextscroff + scrat(index, scrsize)
 
   '--mysterious. why can't I do this?
   'bigstring$ = STRING$(LOF(f) - skip, 0)
   'GET #f, 1 + skip, bigstring$
   'str2array bigstring$, script(), scrat(index, scroff)
-  FOR i = skip TO LOF(f) - 2 STEP 2
-   GET #f, 1 + i, temp
-   script(scrat(index, scroff) + ((i - skip) / 2)) = temp
+
+  FOR i = skip TO LOF(f) - wordsize STEP wordsize
+   IF wordsize = 2 THEN
+    GET #f, 1 + i, temp
+    script(scrat(index, scroff) + ((i - skip) / wordsize)) = temp
+   ELSE
+    GET #f, 1 + i, script(scrat(index, scroff) + ((i - skip) / wordsize))
+   END IF
   NEXT i
   CLOSE #f
 

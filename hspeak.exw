@@ -13,6 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--2O 2006-08-10 HamsterSpeak becomes 32-bit. Also, script format
+--              version added to HSX header. Current is 1
 --2Na 2006-07-07 Minor update to add new logical operators
 --2N 2006-07-07 Added not() logic function
 --2M 2006-07-06 Set exit code on warnings
@@ -57,6 +59,7 @@ without type_check    --for a very small speed boost
 
 include hsspiffy.e --various routines, sequence manipulation - James Paige
 include graphics.e --standard library, needed for color output
+include machine.e  --needed for int_to_bytes
 
 ---------------------------------------------------------------------------
 --constants--
@@ -64,7 +67,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=2
-constant COMPILER_SUB_VERSION="Na"
+constant COMPILER_SUB_VERSION="O"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -130,7 +133,8 @@ constant KIND_LONGNAMES={"number"
                         }
 constant TREE_TRUNK=1
 constant TREE_BRANCHES=2
-constant CODE_START_BYTE_OFFSET=6
+constant CODE_START_BYTE_OFFSET=8
+constant SCRIPT_FORMAT_VERSION=1
 
 ---------------------------------------------------------------------------
 --globals--               --initializations--
@@ -821,12 +825,11 @@ end function
 ---------------------------------------------------------------------------
 
 function try_string_to_number(sequence s)
-  integer result
+  atom result
   result=floor(string_to_object(s[CMD_TEXT],0))
   if not string_is_an_integer(s[CMD_TEXT]) then
     src_error(sprintf("Expected number but found "&COLYEL&"%s"&COLRED,{s[CMD_TEXT]}),s[CMD_LINE])
   end if
-  result=force_16_bit(result,s[CMD_LINE])
   return(result)
 end function
 
@@ -922,7 +925,7 @@ procedure create_global(integer id,sequence name,integer line)
   if at then
     src_error(sprintf("global variable ID "&COLYEL&"%d"&COLRED&" is already defined as "&COLYEL&"%s"&COLRED,{id,global_list[PAIR_NAME][at]}),line)
   else
-    if id>=0 then
+    if id>=0 and id<=1024 then
       global_list[PAIR_NUM]=append(global_list[PAIR_NUM],id)
       global_list[PAIR_NAME]=append(global_list[PAIR_NAME],name)
       global_list[GLB_LINE]=append(global_list[GLB_LINE],line)
@@ -996,7 +999,7 @@ function parse_define_block(sequence block,sequence list,integer func_type)
   integer i
   i=1
   while i<=length(block) do
-    num=try_string_to_number(block[i])
+    num=force_16_bit(try_string_to_number(block[i]),block[i][CMD_LINE])
     if i+1>length(block) then
       src_error(sprintf("expected %s name but define block ended",{RESERVE_NAMES[func_type]}),block[i][CMD_LINE])
     else
@@ -1211,20 +1214,14 @@ end function
 
 ---------------------------------------------------------------------------
 
-function bytepair_to_word(sequence data)
-  integer result
-  result=data[1]+data[2]*#100
-  if result>32767 then
-    --convert negatives
-    result=or_bits(result,#FFFF0000)
+function binstring_to_int(sequence encoded)
+  --bytes_to_int is NOT the opposite of int_to_bytes, it can't handle negative numbers, which int_to_bytes mangles
+  atom temp
+  temp=and_bits(encoded[1],#FF)+and_bits(encoded[2],#FF)*#100+and_bits(encoded[3],#FF)*#10000+and_bits(encoded[4],#FF)*#1000000
+  if and_bits(temp,#80000000) then
+    return(temp-#100000000)
   end if
-  return(result)
-end function
-
----------------------------------------------------------------------------
-
-function get_kind_and_id(sequence data)
-  return({bytepair_to_word(data[1..2]),bytepair_to_word(data[3..4])})
+  return(temp)
 end function
 
 ---------------------------------------------------------------------------
@@ -1236,18 +1233,18 @@ function dump_script_binary(sequence bin,integer offset,integer depth)
   integer argcount
   integer new_offset
   result=""
-  kind_and_id=get_kind_and_id(bin[1+offset*2..1+offset*2+3])
+  kind_and_id={binstring_to_int(bin[offset*4+1..offset*4+4]),binstring_to_int(bin[offset*4+5..offset*4+8])}
   kind=kind_and_id[1]
   result&=sprintf("%s%s",{
      repeat(' ',depth)--indent
     ,name_lookup(kind_and_id)
   })
   if kind=KIND_FLOW or kind=KIND_SCRIPT or kind=KIND_FUNCTION or kind=KIND_MATH then
-    argcount=bytepair_to_word(bin[1+offset*2+4..1+offset*2+5])
+    argcount=binstring_to_int(bin[1+offset*4+8..1+offset*4+11])
     if argcount then
       result&="(\n"
-      for i=1 to argcount do
-        new_offset=bytepair_to_word(bin[1+offset*2+6+(i-1)*2..1+offset*2+6+(i-1)*2+1])
+      for i=0 to argcount-1 do
+        new_offset=binstring_to_int(bin[1+(offset+3+i)*4..1+(offset+3+i)*4+3])
         result&=dump_script_binary(bin,new_offset,depth+2)
       end for
       result&=repeat(' ',depth)&")\n"
@@ -1388,7 +1385,8 @@ end function
 
 --identify the kind and id of a text command. Does not support untranslaed operators or floaty parethesis
 function what_kind_and_id(sequence command,sequence local_vars)
-  integer kind,id
+  integer kind
+  atom id
   integer keyword
   sequence s
   sequence str_temp
@@ -1789,7 +1787,8 @@ function normalize_flow_control(sequence tree,sequence vars)
           for j=1 to length(tree[ptr+1][TREE_BRANCHES]) do
             line=tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_LINE]
             if j=1 and compare("case",tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT]) then
-              src_error(sprintf(COLYEL&"switch() do("&COLRED&" should be followed with a "&COLYEL&"case"&COLRED&", not with "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT]}),line)
+              src_error(sprintf(COLYEL&"switch() do("&COLRED&" should be followed with a "&COLYEL&"case"&COLRED&", not with "&COLYEL&"%s"&COLRED&"."
+                                ,{tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT]}),line)
             end if
             if compare("else",tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT])=0 then
               if j=length(tree[ptr+1][TREE_BRANCHES]) then
@@ -2001,15 +2000,13 @@ end function
 
 ---------------------------------------------------------------------------
 
---looks for a matching block of code that we can refer to instead of rewriting the code
---somewhat time consuming
-function seek_appropriate_reference(sequence result,sequence done_code)
-  for i=1 to length(done_code)-(length(result)-1) by 2 do
-    if compare(result,done_code[i..i+(length(result)-1)])=0 then
-      return((i-1)/2)
-    end if
+function convert_to_bytes(sequence s)
+  sequence result
+  result={}
+  for i=1 to length(s) do
+    result&=int_to_bytes(s[i])
   end for
-  return(-1)
+  return(result)
 end function
 
 ---------------------------------------------------------------------------
@@ -2029,37 +2026,35 @@ function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
   s=tree[TREE_TRUNK][CMD_TEXT]
   if kind=KIND_NUMBER then
     value_temp=value(s)
-    result&=output_word(kind)
-    result&=output_word(force_16_bit(value_temp[2],tree[TREE_TRUNK][CMD_LINE]))
+    result&=kind
+    result&=value_temp[2]
   elsif kind=KIND_REFERENCE then
     str_temp = s[2..length(s)]
     --is it a global variable?
     at=find(str_temp,global_list[PAIR_NAME])
     if at then
       --yes, it is a global, compile to global ID
-      result&=output_word(KIND_NUMBER)
-      id=global_list[PAIR_NUM][at]
-      result&=output_word(id)
+      result&=KIND_NUMBER
+      result&=global_list[PAIR_NUM][at]
     else
       --is it a script?
       at=find(str_temp,column(script_list,PAIR_NAME))
       if at then
         --yes, it is a script. Compile to a script ID
-        result&=output_word(KIND_NUMBER)
-        id=script_list[at][PAIR_NUM]
-        result&=output_word(id)
+        result&=KIND_NUMBER
+        result&=script_list[at][PAIR_NUM]
       else
         src_error(sprintf("reference "&COLYEL&"@%s"&COLRED&" could not be resolved",{str_temp}),tree[TREE_TRUNK][CMD_LINE])
       end if
     end if
   elsif kind=KIND_GLOBAL then
     at=find(s,global_list[PAIR_NAME])
-    result&=output_word(kind)
-    result&=output_word(global_list[PAIR_NUM][at])
+    result&=kind
+    result&=global_list[PAIR_NUM][at]
   elsif kind=KIND_LOCAL then
     at=find(s,column(vars,CMD_TEXT))
-    result&=output_word(kind)
-    result&=output_word(at-1)
+    result&=kind
+    result&=at-1
   elsif kind=KIND_SCRIPT or kind=KIND_FUNCTION or kind=KIND_FLOW or kind=KIND_MATH then
     if kind=KIND_SCRIPT then
       at=find(s,column(script_list,PAIR_NAME))
@@ -2074,17 +2069,17 @@ function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
       at=find(s,column(math_list,PAIR_NAME))
       id=math_list[at][PAIR_NUM]
     end if
-    result&=output_word(kind)
-    result&=output_word(id)
-    result&=output_word(length(tree[TREE_BRANCHES]))
+    result&=kind
+    result&=id
+    result&=length(tree[TREE_BRANCHES])
     for i=1 to length(tree[TREE_BRANCHES]) do
       --add placeholders for each argoffset
-      result&={#FFFFFF,#FFFFFF} --these values are waaaay out if range for a 16-bit number, so it will never be matched by seek_appropriate_reference
+      result&=1234.5678 --this nonsense value will never be matched by seek_appropriate_reference
     end for
     for i=1 to length(tree[TREE_BRANCHES]) do
       --actually evaluate each argument and set the real offsets
       done_code_plus_result=done_code&result --prefabricating this is faster, since we use it twice
-      offset=floor(length(done_code_plus_result)/2)
+      offset=length(done_code_plus_result) --offset is in double words
       sub_result=binary_compile_recurse(tree[TREE_BRANCHES][i],vars,done_code_plus_result)
       if sequence(sub_result) then
         --if new data was added, append it
@@ -2093,16 +2088,16 @@ function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
         --if a matching reference was available use it
         offset=sub_result
       end if
-      result[7+(i-1)*2..8+(i-1)*2]=output_word(offset)
+      result[3+i]=offset
     end for
   else
     src_error(sprintf("Compiler Bug! Illegal kind "&COLYEL&"%d"&COLRED&" for "&COLYEL&"%s"&COLRED,{kind,s}),tree[TREE_TRUNK][CMD_LINE])
   end if
   if not fast_mode then
-    at=seek_appropriate_reference(result,done_code)
-    if at>=0 then
+    at=match(result,done_code)
+    if at>0 then
       --found existing data exactly like this command, so just return a reference to it
-      return(at)
+      return(at-1)
     end if
   end if
   --return the data for this command to be appended
@@ -2114,20 +2109,25 @@ end function
 function binary_compile(integer id,sequence tree,sequence vars)
   sequence result
   integer at
-  --binary data is all in 16-bit signed words.
+  --binary data is in a mix of 16-bit and 32-bit signed words.
+  --the header is 16-bit and the data (script format version 1+) is 32-bit.
+
+  --output header
   --the first word is the zero-rooted byte-offset of the first executable code byte
-  --in retrospect, word-offset would have been more appropriate, since everything is word-alinged, but hey! gotta be backwards compatable!
   result=output_word(CODE_START_BYTE_OFFSET)
   --the second word is the number of local variables
   result&=output_word(length(vars))
   --the third word is the number of arguments the script takes (also in SCRIPTS.TXT)
   at=find(id,column(script_list,PAIR_NUM))
   result&=output_word(length(script_list[at][FUNC_ARGS]))
+  --the fourth word is the format of the command data (presently used to indicate 32-bit encoding)
+  result&=output_word(SCRIPT_FORMAT_VERSION)
+
   --what follows is command data in the format [kindID,Value,argcount,argpointerlist]
   --numbers and variables have no argcount or argpointerlist
   --an argpointer is the zero-rooted word-offset of the argument relative
   --to the start of the executable commands. I realise that this format is
-  --unnecisaraly complicated. I had hoped to get benefits of being able to
+  --unnecessarily complicated. I had hoped to get benefits of being able to
   --store frequently reused commands only once and then just point to them,
   --but in actual practice, it isnt worth the trouble, since the only
   --commands that tend to be redundant are the really short ones.
@@ -2135,7 +2135,7 @@ function binary_compile(integer id,sequence tree,sequence vars)
   if length(tree)!=1 then
     simple_error(sprintf("compiler bug! script tree has %s root nodes",{length(tree)}))
   end if
-  result&=binary_compile_recurse(tree[1],vars,"")
+  result&=convert_to_bytes(binary_compile_recurse(tree[1],vars,""))
   return(result)
 end function
 
@@ -2167,7 +2167,8 @@ end function
 function sanity_check(sequence tree,sequence vars,sequence parent)
   sequence s
   sequence kind_and_id
-  integer kind,id
+  integer kind
+  atom id
   for i=1 to length(tree) do
     s=tree[i][TREE_TRUNK][CMD_TEXT]
     kind_and_id=what_kind_and_id(tree[i][TREE_TRUNK],vars)
@@ -2219,7 +2220,8 @@ end function
 
 function optimized_arg(sequence tree,sequence vars)
   sequence kind_and_id
-  integer kind,id
+  integer kind
+  atom id
   object arg1,arg2
   kind_and_id=what_kind_and_id(tree[TREE_TRUNK],vars)
   kind=kind_and_id[1]

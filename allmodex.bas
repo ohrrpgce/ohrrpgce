@@ -2365,7 +2365,7 @@ SUB pushdw (BYVAL dword as integer)
 end SUB
 
 FUNCTION popdw () as integer
-	dim pdw as short
+	dim pdw as integer
 
 	if (stackptr >= stackbottom - 4) then
 		stackptr -= 4

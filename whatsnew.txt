@@ -40,6 +40,8 @@ WHAT IS NEW?
     * Maps can be set to remember their state when you leave them, or to load
       from state files saved with savemapstate. You can set separate loading 
       options for NPC and tile data. [Ralph Versteegen]
+    * HamsterSpeak is now 32-bit. This means you can use values from
+      -2147483648 to 2147483647 in your scripts [Ralph Versteegen]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the

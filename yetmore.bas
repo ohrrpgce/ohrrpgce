@@ -1891,11 +1891,11 @@ END SUB
 
 SUB subdoarg
 scrat(nowscript, scrdepth) = scrat(nowscript, scrdepth) + 1
-pushw scrat(nowscript, scrptr)
-pushw scrat(nowscript, curkind)
-pushw scrat(nowscript, curvalue)
-pushw scrat(nowscript, curargc)
-pushw scrat(nowscript, curargn)
+pushdw scrat(nowscript, scrptr)
+pushdw scrat(nowscript, curkind)
+pushdw scrat(nowscript, curvalue)
+pushdw scrat(nowscript, curargc)
+pushdw scrat(nowscript, curargn)
 '--set script pointer to new offset
 scrat(nowscript, scrptr) = script(scrat(nowscript, scroff) + scrat(nowscript, scrptr) + 3 + scrat(nowscript, curargn))
 scrat(nowscript, scrstate) = stread '---read new statement
@@ -1906,13 +1906,13 @@ scrat(nowscript, scrdepth) = scrat(nowscript, scrdepth) - 1
 IF scrat(nowscript, scrdepth) < 0 THEN
  scrat(nowscript, scrstate) = stdone
 ELSE
- scrat(nowscript, curargn) = popw
- scrat(nowscript, curargc) = popw
- scrat(nowscript, curvalue) = popw
- scrat(nowscript, curkind) = popw
- scrat(nowscript, scrptr) = popw
+ scrat(nowscript, curargn) = popdw
+ scrat(nowscript, curargc) = popdw
+ scrat(nowscript, curvalue) = popdw
+ scrat(nowscript, curkind) = popdw
+ scrat(nowscript, scrptr) = popdw
  '--push return value
- pushw scriptret
+ pushdw scriptret
  scrat(nowscript, curargn) = scrat(nowscript, curargn) + 1
  scrat(nowscript, scrstate) = stnext'---try next arg
 END IF
@@ -1931,11 +1931,11 @@ WHILE levels > 0
   EXIT SUB
  END IF
 
- scrat(nowscript, curargn) = popw
- scrat(nowscript, curargc) = popw
- scrat(nowscript, curvalue) = popw
- scrat(nowscript, curkind) = popw
- scrat(nowscript, scrptr) = popw
+ scrat(nowscript, curargn) = popdw
+ scrat(nowscript, curargc) = popdw
+ scrat(nowscript, curvalue) = popdw
+ scrat(nowscript, curkind) = popdw
+ scrat(nowscript, scrptr) = popdw
 
  IF scrat(nowscript, curkind) = tyflow AND scrat(nowscript, curvalue) = flowdo THEN
   levels = levels - 1
@@ -1945,11 +1945,11 @@ WHILE levels > 0
  'pop arguments
  IF scrat(nowscript, curkind) = tyflow AND scrat(nowscript, curvalue) = flowswitch THEN
   'unlike all other flow, switch stack usage != argn
-  dummy = popw 'state
-  dummy = popw 'matching value
+  dummy = popdw 'state
+  dummy = popdw 'matching value
  ELSE
   FOR i = 1 TO scrat(nowscript, curargn)
-   dummy = popw
+   dummy = popdw
   NEXT
  END IF
 WEND

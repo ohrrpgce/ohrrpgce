@@ -1683,7 +1683,7 @@ DO
      CASE tymath, tyfunct
       '--complete math and functions, nice and easy.
       FOR i = scrat(nowscript, curargc) - 1 TO 0 STEP -1
-       retvals(i) = popw
+       retvals(i) = popdw
       NEXT i
       GOSUB sfunctions
       '--unless you have switched to wait mode, return
@@ -1695,8 +1695,8 @@ DO
 	SELECT CASE scrat(nowscript, curargn)
 	 CASE 2
 	  '--if a while statement finishes normally (argn is 2) then it repeats.
-	  dummy = popw
-          dummy = popw
+	  dummy = popdw
+      dummy = popdw
 	  scrat(nowscript, curargn) = 0
 	 CASE ELSE
 	  scripterr "while fell out of bounds, landed on" + XSTR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
@@ -1705,45 +1705,45 @@ DO
 	SELECT CASE scrat(nowscript, curargn)
 	 CASE 5
 	  '--normal for termination means repeat
-	  dummy = popw
+	  dummy = popdw
 	  GOSUB incrementflow
 	  scrat(nowscript, curargn) = 4
 	 CASE ELSE
 	  scripterr "for fell out of bounds, landed on" + XSTR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
 	END SELECT
        CASE flowreturn
-	scrat(nowscript, scrret) = popw
+	scrat(nowscript, scrret) = popdw
 	scrat(nowscript, scrstate) = streturn'---return
        CASE flowbreak
-        r = popw
+        r = popdw
         unwindtodo(r)
         '--for and while need to be broken
         IF scrat(nowscript, curkind) = tyflow AND (scrat(nowscript, curvalue) = flowfor OR scrat(nowscript, curvalue) = flowwhile) THEN
          GOSUB dumpandreturn
         END IF
        CASE flowcontinue
-        r = popw
+        r = popdw
         unwindtodo(r)
         IF scrat(nowscript, curkind) = tyflow AND scrat(nowscript, curvalue) = flowswitch THEN
          '--set state to 2
-         dummy = popw
-         dummy = popw
-         pushw 2
-         pushw 9999
+         dummy = popdw
+         dummy = popdw
+         pushdw 2
+         pushdw 9999
         ELSEIF NOT (scrat(nowscript, curkind) = tyflow AND (scrat(nowscript, curvalue) = flowfor OR scrat(nowscript, curvalue) = flowwhile)) THEN
          '--if this do isn't a for's or while's, then just repeat it, discarding the returned value
-         dummy = popw
+         dummy = popdw
          scrat(nowscript, curargn) = scrat(nowscript, curargn) - 1
         END IF
        CASE flowexit
         unwindtodo(9999)
        CASE flowexitreturn
-        scrat(nowscript, scrret) = popw
+        scrat(nowscript, scrret) = popdw
         unwindtodo(9999)
        CASE flowswitch
-        tmpcase = popw
-        tmpstate = popw
-        tmpvar = popw
+        tmpcase = popdw
+        tmpstate = popdw
+        tmpvar = popdw
         scriptret = 0
         scrat(nowscript, scrstate) = streturn
        CASE ELSE
@@ -1757,7 +1757,7 @@ DO
       IF rsr = 1 THEN
        '--fill heap with return values
        FOR i = scrat(nowscript - 1, curargc) - 1 TO 0 STEP -1
-	setScriptArg i, popw
+	setScriptArg i, popdw
        NEXT i
       END IF
       IF rsr = 0 THEN
@@ -1776,14 +1776,14 @@ DO
 	 CASE 0
 	  scrat(nowscript, scrstate) = stdoarg'---call conditional
 	 CASE 1
-	  r = popw
-	  pushw r
+	  r = popdw
+	  pushdw r
 	  IF r THEN
 	   scrat(nowscript, scrstate) = stdoarg'---call then block
 	  ELSE
 	   scrat(nowscript, curargn) = 2
 	   '--if-else needs one extra thing on the stack to account for the then that didnt get used.
-	   pushw 0
+	   pushdw 0
 	   scrat(nowscript, scrstate) = stdoarg'---call else block
 	  END IF
 	 CASE 2
@@ -1797,11 +1797,11 @@ DO
 	 CASE 0
 	  scrat(nowscript, scrstate) = stdoarg'---call condition
 	 CASE 1
-	  r = popw
+	  r = popdw
 	  IF r THEN
 	   scrat(nowscript, scrstate) = stdoarg'---call do block
            '--number of words on stack should equal argn (for simplicity when unwinding stack)
-           pushw 0
+           pushdw 0
 	  ELSE
            '--break while: no args to pop
 	   scriptret = 0
@@ -1823,10 +1823,10 @@ DO
 	  scrat(nowscript, scrstate) = stdoarg
 	 CASE 2
 	  '--set variable to start val before getting end
-	  tmpstart = popw
-	  tmpvar = popw
-	  pushw tmpvar
-	  pushw tmpstart
+	  tmpstart = popdw
+	  tmpvar = popdw
+	  pushdw tmpvar
+	  pushdw tmpstart
 
 	  '--update for counter
 	  writescriptvar tmpvar, tmpstart
@@ -1834,20 +1834,20 @@ DO
 	  '---now get end value
 	  scrat(nowscript, scrstate) = stdoarg
 	 CASE 4
-	  tmpstep = popw
-	  tmpend = popw
-	  tmpstart = popw
-	  tmpvar = popw
+	  tmpstep = popdw
+	  tmpend = popdw
+	  tmpstart = popdw
+	  tmpvar = popdw
 	  tmpnow = readscriptvar(tmpvar)
 	  IF (tmpnow > tmpend AND tmpstep > 0) OR (tmpnow < tmpend AND tmpstep < 0) THEN
            '--breakout
 	   scriptret = 0
            scrat(nowscript, scrstate) = streturn'---return
 	  ELSE
-	   pushw tmpvar
-	   pushw tmpstart
-	   pushw tmpend
-	   pushw tmpstep
+	   pushdw tmpvar
+	   pushdw tmpstart
+	   pushdw tmpend
+	   pushdw tmpstep
 	   scrat(nowscript, scrstate) = stdoarg'---execute the do block
 	  END IF
 	 CASE ELSE
@@ -1860,19 +1860,19 @@ DO
         ELSEIF scrat(nowscript, curargn) = 1 THEN
          '--set up state - push a 0: not fallen in
          '--assume first statement is a case, run it
-         pushw 0
+         pushdw 0
          scrat(nowscript, scrstate) = stdoarg
         ELSE
-         tmpcase = popw
-         tmpstate = popw
+         tmpcase = popdw
+         tmpstate = popdw
          doseek = 0 ' whether or not to search argument list for something to execute
          IF tmpstate = 0 THEN
           '--not fallen in
-          tmpvar = popw
+          tmpvar = popdw
           IF tmpcase = tmpvar THEN
            tmpstate = 1
           END IF
-          pushw tmpvar
+          pushdw tmpvar
           doseek = 1 '---search for a case
          ELSEIF tmpstate = 2 THEN
           '--continue encountered, fall back in
@@ -1880,7 +1880,7 @@ DO
           doseek = 1
          ELSE
           '--after successfully running a do block, pop off matching value and exit
-          tmpvar = popw
+          tmpvar = popdw
           scriptret = 0
           scrat(nowscript, scrstate) = streturn'---return
          END IF
@@ -1891,11 +1891,11 @@ DO
           IF (tmpstate = 1 AND tmpkind = tyflow) OR (tmpstate = 0 AND (tmpkind <> tyflow OR scrat(nowscript, curargn) = scrat(nowscript, curargc) - 1)) THEN
            '--fall into a do, execute a case, or run default (last arg)
            scrat(nowscript, scrstate) = stdoarg
-           pushw tmpstate
+           pushdw tmpstate
            EXIT WHILE
           END IF
           IF scrat(nowscript, curargn) >= scrat(nowscript, curargc) THEN
-           tmpvar = popw
+           tmpvar = popdw
            scriptret = 0
            scrat(nowscript, scrstate) = streturn'---return
            EXIT WHILE
@@ -1925,20 +1925,20 @@ LOOP
 RETRACE
 
 incrementflow:
-tmpstep = popw
-tmpend = popw
-tmpstart = popw
-tmpvar = popw
-pushw tmpvar
-pushw tmpstart
-pushw tmpend
-pushw tmpstep
+tmpstep = popdw
+tmpend = popdw
+tmpstart = popdw
+tmpvar = popdw
+pushdw tmpvar
+pushdw tmpstart
+pushdw tmpend
+pushdw tmpstep
 writescriptvar tmpvar, readscriptvar(tmpvar) + tmpstep
 RETRACE
 
 dumpandreturn:
 FOR i = scrat(nowscript, curargn) - 1 TO 0 STEP -1
- dummy = popw
+ dummy = popdw
 NEXT i
 scriptret = 0
 scrat(nowscript, scrstate) = streturn'---return

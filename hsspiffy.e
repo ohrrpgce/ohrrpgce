@@ -413,12 +413,20 @@ global function alpha_tree_data(sequence tree,sequence string,object default)
   end if
 end function
 
+function long_int(object o)
+  --32-bit ints (Euphoria deals in 31-bit ints)
+  if atom(o) and floor(o)=o and o>=-2147483648 and o<=2147483647 then
+    return(true)
+  end if
+  return(false)
+end function
+
 global function string_is_an_integer(sequence s)
   object o
   o=value(s)
   if o[1]=GET_SUCCESS then
     --translated to object
-    if integer(o[2]) then
+    if long_int(o[2]) then
       --object is an integer
       --if compare(s,sprintf("%d",{o[2]}))=0 then
         --strict checking is disabled because 7 = 007
