@@ -90,6 +90,7 @@ WHAT IS NEW?
     * "wait for scancode" [Mike Caron]
     * "save map state", "load map state", "reset map state", "delete map state"
       [Ralph Versteegen]
+    * "party money", "set money" [Ralph]
 
   * Unlump.exe
     * Ported to FreeBasic [Mike Caron]

@@ -1065,13 +1065,13 @@ SELECT CASE AS CONST id
    IF hero(0) > 0 THEN scriptret = hero(0) - 1: EXIT FOR
   NEXT i
  CASE 20'--get money
-  gold& = gold& + retvals(0)
+  gold = gold + retvals(0)
  CASE 21'--lose money
-  gold& = gold& - retvals(0)
-  IF gold& < 0 THEN gold& = 0
+  gold = gold - retvals(0)
+  IF gold < 0 THEN gold = 0
  CASE 22'--pay money
-  IF gold& - retvals(0) >= 0 THEN
-   gold& = gold& - retvals(0)
+  IF gold - retvals(0) >= 0 THEN
+   gold = gold - retvals(0)
    scriptret = -1
   ELSE
    scriptret = 0
@@ -1668,6 +1668,10 @@ SELECT CASE AS CONST id
   END IF
  CASE 244'--wait for scancode
   GOSUB setwaitstate
+ CASE 249'--party money
+  scriptret = gold
+ CASE 250'--set money
+  IF retvals(0) >= 0 THEN gold = retvals(0)
 END SELECT
 
 EXIT SUB

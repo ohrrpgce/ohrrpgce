@@ -46,7 +46,7 @@ EXTERN exlev&()
 EXTERN herobits%()
 EXTERN itembits%()
 EXTERN hmask()
-EXTERN gold&
+EXTERN gold
 EXTERN nativehbits()
 
 'Map state globals

@@ -255,6 +255,8 @@ define function, begin
 246,loadmapstate,2,255,255    #load map data from a temp file (loadbits, customid)
 247,resetmapstate,1,255       #reload original map data (loadbits)
 248,deletemapstate,1,255      #delete temp map state files (deletebits)
+249,partymoney,0              #retrieves amount of gold
+250,setmoney,1,0              #sets amount of gold
 
 #24x,getnpcraw,2,0,0          #raw npc data(who,which)
 #24x,setnpcraw,3,0,0,0        #raw npc data(who,which,val)

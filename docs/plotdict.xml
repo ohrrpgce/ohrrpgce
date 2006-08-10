@@ -770,7 +770,12 @@ wait for text box # wait until the player continues</example>
 		</command>
 	</section>
 	<section title="Adding and Removing">
-		<command id="getmoney">
+		<command id="partymoney">
+			<cannon>check money</cannon>
+			<shortname>check money</shortname>
+			<description>Returns how much money your party has.</description>
+        </command>
+        <command id="getmoney">
 			<cannon>get money (amount)</cannon>
 			<shortname>get money</shortname>
 			<description>Adds the specified amount to your party&apos;s money</description>
@@ -779,6 +784,11 @@ wait for text box # wait until the player continues</example>
 			<cannon>lose money (amount)</cannon>
 			<shortname>lose money</shortname>
 			<description>Subtracts the specified amount from your party&apos;s money.</description>
+        </command>
+		<command id="setmoney">
+			<cannon>set money (amount)</cannon>
+			<shortname>set money</shortname>
+			<description>Changes the amount of money your party has.</description>
 		</command>
 		<command id="paymoney">
 			<cannon>pay money (amount)</cannon>
