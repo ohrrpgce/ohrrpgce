@@ -1,4 +1,4 @@
--- HamsterSpeak Compiler v.2Na
+-- HamsterSpeak Compiler v.3A
 
 --(C) Copyright 2002 James Paige and Hamster Republic Productions
 -- Please read LICENSE.txt for GPL License details and disclaimer of liability
@@ -13,7 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
---2O 2006-08-10 HamsterSpeak becomes 32-bit. Also, script format
+--3A 2006-08-10 HamsterSpeak becomes 32-bit. Also, script format
 --              version added to HSX header. Current is 1
 --2Na 2006-07-07 Minor update to add new logical operators
 --2N 2006-07-07 Added not() logic function
@@ -66,8 +66,8 @@ include machine.e  --needed for int_to_bytes
 constant false=0
 constant true=1
 
-constant COMPILER_VERSION=2
-constant COMPILER_SUB_VERSION="O"
+constant COMPILER_VERSION=3
+constant COMPILER_SUB_VERSION="A"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
