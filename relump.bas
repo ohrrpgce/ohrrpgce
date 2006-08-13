@@ -470,7 +470,7 @@ WHILE NOT EOF(ifh)
    '--check extenstion
    c$ = RIGHT$(b$, 4)
    SELECT CASE c$
-    CASE ".tmp", ".hsx"
+    CASE ".tmp", ".hsx", ".hsz"
      '--do nothing
     CASE ELSE
      '--output all other names

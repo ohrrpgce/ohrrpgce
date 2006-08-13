@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3B 2006-08-13 HSX lumps renamed to HSZ
 --3A 2006-08-10 HamsterSpeak becomes 32-bit. Also, script format
 --              version added to HSX header. Current is 1
 --2Na 2006-07-07 Minor update to add new logical operators
@@ -67,7 +68,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=3
-constant COMPILER_SUB_VERSION="A"
+constant COMPILER_SUB_VERSION="B"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -2356,7 +2357,7 @@ procedure compile_a_script(integer id,sequence name_data,sequence arg_data,seque
     ,name_data[CMD_LINE]  --source line
     ,script_tree
     ,local_vars
-    ,binary               --compiled data to go into the HSX lumps
+    ,binary               --compiled data to go into the HSZ lumps
   })
 
   current_script=""
@@ -2449,7 +2450,7 @@ procedure write_output_file()
       end if
       --write each script
       for i=1 to length(all_scripts) do
-        if write_lump(fh,sprintf("%d.hsx",{all_scripts[i][1]}),all_scripts[i][6])=false then
+        if write_lump(fh,sprintf("%d.hsz",{all_scripts[i][1]}),all_scripts[i][6])=false then
           simple_error(sprintf("unable to write script "&COLYEL&"%s"&COLRED,{all_scripts[i][2]}))
         end if
       end for

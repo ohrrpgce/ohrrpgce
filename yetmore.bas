@@ -1360,7 +1360,7 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 176'--runscriptbyid
-  IF isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsx") THEN
+  IF isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsx") OR isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsz") THEN
    rsr = runscript(retvals(0), nowscript + 1, 0, "indirect")
    IF rsr = 1 THEN
     '--fill heap with return values

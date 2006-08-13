@@ -621,7 +621,7 @@ SUB cleanuptemp
    ELSE
     'but for preunlumped games only delete specific files
     ext$ = RIGHT$(filename$,4)
-    IF ext$ = ".tmp" OR ext$ = ".hsx" OR ext$ = ".bmd" OR filename$ = "scripts.txt" or filename$ = "hs" THEN
+    IF ext$ = ".tmp" OR ext$ = ".hsx" OR ext$ = ".hsz" OR ext$ = ".bmd" OR filename$ = "scripts.txt" or filename$ = "hs" THEN
      KILL workingdir$ + SLASH + filename$
     END IF
    END IF

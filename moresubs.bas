@@ -1427,11 +1427,17 @@ IF loadinstead <> -1 THEN
  END IF
 ELSE
  '--load the script from file
- IF isfile(workingdir$ + SLASH + STR$(n) + ".hsx") THEN
+ IF isfile(workingdir$ + SLASH + STR$(n) + ".hsz") THEN
+  scriptfile$ = workingdir$ + SLASH + STR$(n) + ".hsz"
+ ELSEIF isfile(workingdir$ + SLASH + STR$(n) + ".hsx") THEN
+  scriptfile$ = workingdir$ + SLASH + STR$(n) + ".hsx"
+ END IF
+
+ IF scriptfile$ <> "" THEN
   DIM temp as short
 	
   f = FREEFILE
-  OPEN workingdir$ + SLASH + STR$(n) + ".hsx" FOR BINARY AS #f
+  OPEN scriptfile$ FOR BINARY AS #f
   GET #f, 1, temp
   skip = temp
   GET #f, 3, temp
@@ -1489,7 +1495,7 @@ ELSE
    IF nextscroff > scrat(i, scroff) THEN scrat(i, scrid) = -1 ELSE EXIT FOR
   NEXT i
  ELSE
-  scripterr "failed to unlump " + STR$(n) + ".hsx"
+  scripterr "failed to unlump " + trimpath$(scriptfile$)
  END IF
 END IF
 
