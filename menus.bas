@@ -862,7 +862,7 @@ menu$(5) = "Delete Song"
 
 csr = 1
 snum = 0
-GOSUB getinfo
+GOSUB getsonginfo
 
 setkeys
 DO
@@ -881,18 +881,18 @@ DO
   IF intgrabber(newsong, 0, general(genMaxSong), 51, 52) THEN
    GOSUB ssongdata
    snum = newsong
-   GOSUB getinfo
+   GOSUB getsonginfo
   END IF
   IF keyval(75) > 1 AND snum > 0 THEN
    GOSUB ssongdata
    snum = snum - 1
-   GOSUB getinfo
+   GOSUB getsonginfo
   END IF
   IF keyval(77) > 1 AND snum < 32767 THEN
    GOSUB ssongdata
    snum = snum + 1
    IF needaddset(snum, general(genMaxSong), "song") THEN sname$ = ""
-   GOSUB getinfo
+   GOSUB getsonginfo
   END IF
  END IF
  IF (keyval(28) > 1 OR keyval(57) > 1) THEN
@@ -902,11 +902,11 @@ DO
   IF csr = 5 AND songfile$ <> "" THEN  'delete song
    safekill songfile$
    safekill bamfile$
-   GOSUB getinfo
+   GOSUB getsonginfo
   END IF
   IF csr = 6 THEN  'delete BAM fallback
    safekill bamfile$
-   GOSUB getinfo
+   GOSUB getsonginfo
    csr = 0
   END IF
  END IF
@@ -928,7 +928,7 @@ closemusic
 
 EXIT SUB
 
-getinfo:
+getsonginfo:
 stopsong
 
 '-- first job: find the song's name
@@ -975,7 +975,7 @@ stopsong
 'sourcesong$ = browse$(1, default$, "*.bam", "")
 sourcesong$ = browse$(5, default$, "", "")
 IF sourcesong$ = "" THEN
- GOSUB getinfo 'to play the song again
+ GOSUB getsonginfo 'to play the song again
  RETRACE
 END IF
 '--remove song file (except BAM, we can leave those as fallback for QB version)
@@ -993,7 +993,7 @@ IF sourcesong$ <> "" THEN
  sname$ = a$
  GOSUB ssongdata
 END IF
-GOSUB getinfo
+GOSUB getsonginfo
 RETRACE
 
 exportsong:
@@ -1038,7 +1038,7 @@ menu$(6) = "Play Wave"
 
 csr = 1
 snum = 0
-GOSUB getinfo
+GOSUB getsfxinfo
 
 setkeys
 DO
@@ -1057,18 +1057,18 @@ DO
   IF intgrabber(newsfx, 0, general(genMaxSFX), 51, 52) THEN
    GOSUB ssfxdata
    snum = newsfx
-   GOSUB getinfo
+   GOSUB getsfxinfo
   END IF
   IF keyval(75) > 1 AND snum > 0 THEN
    GOSUB ssfxdata
    snum = snum - 1
-   GOSUB getinfo
+   GOSUB getsfxinfo
   END IF
   IF keyval(77) > 1 AND snum < 32767 THEN
    GOSUB ssfxdata
    snum = snum + 1
    IF needaddset(snum, general(genMaxSFX), "sfx") THEN sname$ = ""
-   GOSUB getinfo
+   GOSUB getsfxinfo
   END IF
  END IF
  IF (keyval(28) > 1 OR keyval(57) > 1) THEN
@@ -1082,7 +1082,7 @@ DO
   CASE 5
     IF sfxfile$ <> "" THEN  'delete sfx
       safekill sfxfile$
-      GOSUB getinfo
+      GOSUB getsfxinfo
     END IF
   CASE ELSE
     IF sfxfile$ <> "" THEN 'play sfx
@@ -1090,10 +1090,6 @@ DO
     END IF
   END SELECT
  END IF
- 
-
-  
-  
 
  standardmenu menu$(), 10, 22, csr, 0, 0, 0, dpage, 0
 
@@ -1111,18 +1107,24 @@ closesound
 
 EXIT SUB
 
-getinfo:
-stopsfx 0
+getsfxinfo:
 '-- first job: find the sfx's name
 temp$ = workingdir$ + SLASH + "sfx" + STR$(snum)
 sfxfile$ = ""
 sfxtype$ = "NO FILE"
 
-IF isfile(temp$ + ".wav") THEN ext$ = ".wav" : sfxfile$ = temp$ + ext$ : sfxtype$ = "Waveform (WAV)"
+IF isfile(temp$ + ".wav") THEN
+ ext$ = ".wav"
+ sfxfile$ = temp$ + ext$
+ sfxtype$ = "Waveform (WAV)"
+END IF
 '--add more formats here
 
 if sfxfile$ <> "" then
  playsfx snum, 0
+ setpicstuf buffer(), curbinsize(3), -1
+ loadset workingdir$ + SLASH + "sfxdata.bin", snum, 0
+ sname$ = readbinstring(buffer(), 0, 30)
 ELSE '--sfx doesn't exist
  sname$ = ""
 END IF
@@ -1153,7 +1155,7 @@ IF sourcesfx$ <> "" THEN
  sname$ = a$
  GOSUB ssfxdata
 END IF
-GOSUB getinfo
+GOSUB getsfxinfo
 RETRACE
 
 exportsfx:
@@ -1164,6 +1166,7 @@ copyfile sfxfile$, outfile$ + ext$, buffer()
 RETRACE
 
 ssfxdata:
+stopsfx snum
 flusharray buffer(), curbinsize(3) / 2, 0
 setpicstuf buffer(), curbinsize(3), -1
 writebinstring sname$, buffer(), 0, 30
