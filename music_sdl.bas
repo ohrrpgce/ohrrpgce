@@ -18,6 +18,8 @@ declare function soundfile$ (sfxnum%)
 declare sub sound_free(byval slot as integer)
 declare function next_free_slot() as integer
 declare function sound_replay(byval num as integer, byval l as integer) as integer
+declare sub sound_debug(s$, byval sample as integer, byval slot as integer)
+declare sub sound_dump(s$, slot as integer)
 
 dim shared music_on as integer = 0
 dim shared music_vol as integer
@@ -240,13 +242,9 @@ TYPE sound_effect
   pause_pos as integer
   
   buf as Mix_Chunk ptr
-  
-  chan as integer
-  
 END TYPE
 
 dim shared sfx_slots(7) as sound_effect
-
 
 dim shared sound_inited as integer 'must be non-zero for anything but _init to work
 
@@ -281,6 +279,16 @@ sub sound_close
   next
   
   sound_inited = 0
+end sub
+
+sub sound_debug(s$, byval sample as integer, byval slot as integer)
+  debug "ERROR: " + s$ + " (sample=" + STR$(sample) + ", slot=" + STR$(slot) + ")"
+end sub
+
+sub sound_dump(s$, slot as integer)
+  with sfx_slots(slot)
+    debug s$ + " slot=" + STR$(slot) + ",used=" + STR$(.used) + ",playing=" + STR$(.playing) + ",paused=" + STR$(.paused) + ",effectID=" + STR$(.effectID)
+  end with
 end sub
 
 function sound_load(byval slot as integer, f as string) as integer
@@ -341,12 +349,17 @@ function sound_replay(byval num as integer, byval l as integer) as integer
 
   for i = 0 to ubound(sfx_slots)
     with sfx_slots(i)
-      if .used = 0 and .playing = 0 and .effectID = num then
+      if .used <> 0 and .playing = 0 and .effectID = num then
         if .paused then
-          Mix_Resume(.chan)
+          Mix_Resume(i)
           .paused = 0
 	else
-          .chan = mix_playchannel(-1,.buf,l)
+          if mix_playchannel(i,.buf,l) = -1 then
+	    sound_debug "failure to restart sound", num, i
+	    sound_free i
+	    return 0 'failure
+	  end if
+	  .playing = 1
 	end if
         return -1 'success
       end if
@@ -367,45 +380,58 @@ sub sound_play(byval num as integer, byval l as integer)
   slot = next_free_slot()
     
   if slot = -1 then
-   exit sub 'no free slots...
+   sound_debug "no free slots", num, -1
+   exit sub
   end if
 
   sound_load(slot, soundfile(num))
 
   with sfx_slots(slot)
     if .buf = 0 then
-      debug "ERROR: sfx buffer is zero"
+      sound_debug "sfx buffer is zero for sample", num, slot
       exit sub
     end if
     
     if l then l = -1
-    .chan = mix_playchannel(-1,.buf,l)
+    if mix_playchannel(slot,.buf,l) = -1 then
+      sound_debug "failed to load sfx", num, slot
+      exit sub
+    end if
+    .effectID = num
     .playing = 1
 
   end with
 end sub
 
-sub sound_pause(byval slot as integer)
-  with sfx_slots(slot)
-    if .used = 0 then exit sub
-    if .playing = 0 then exit sub
-    if .paused then exit sub
-    
-    .paused = 1
-    Mix_Pause(.chan)
-  end with
+sub sound_pause(byval num as integer)
+  dim i as integer
+  
+  for i = 0 to ubound(sfx_slots)
+    with sfx_slots(i)
+      if .used <> 0 and .effectID = num then
+        if .playing <> 0 and .paused <> 0 then
+          .paused = 1
+          Mix_Pause(i)
+	end if
+      end if
+    end with
+  next i  
 end sub
 
-sub sound_stop(byval slot as integer)
-  with sfx_slots(slot)
-    if .used = 0 then exit sub
-    if .playing = 0 then exit sub
-    
-    .playing = 0
-    .paused = 0
-    
-    Mix_HaltChannel(.chan)
-  end with
+sub sound_stop(byval num as integer)
+  dim i as integer
+
+  for i = 0 to ubound(sfx_slots)
+    with sfx_slots(i)
+      if .used <> 0 and .effectID = num then
+        if .playing <> 0 then
+          .playing = 0
+          .paused = 0
+          Mix_HaltChannel(i)
+	end if  
+      end if	
+    end with
+  next i
 end sub
 
 function sound_playing(byval slot as integer) as integer
@@ -422,10 +448,6 @@ function sound_slots as integer
 end function
 
 sub SDL_done_playing cdecl(byval channel as integer)
-  dim i as integer
-
-  for i = 0 to ubound(sfx_slots)
-    if sfx_slots(i).chan = channel then sfx_slots(i).playing = 0
-  next
+  sfx_slots(channel).playing = 0
 end sub
 
