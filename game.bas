@@ -95,7 +95,7 @@ DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE SUB patcharray (array%(), n$, max%)
 DECLARE SUB drawsay (saybit%(), sayenh%(), say$(), showsay%, choose$(), choosep%)
-DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, mx%, my%, tastuf%())
+DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, tastuf%())
 DECLARE SUB minimap (x%, y%, tastuf%())
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
@@ -123,7 +123,7 @@ DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
 DECLARE SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
-DECLARE SUB setusermenu (menu$(), mt%, mi%())
+DECLARE SUB setusermenu (menu$(), mi%())
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
@@ -180,10 +180,11 @@ thestart:
 
 'Mixed global and module variables
 DIM font(1024), master(767), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
-DIM door(206), gen(104), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), menu$(20), exlev&(40, 1), names$(40), mi(10), gotj(2), veh(21)
+DIM door(206), gen(104), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev&(40, 1), names$(40), gotj(2), veh(21)
 DIM eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
 DIM script(4096), heap(2048), global(1024), scrat(128, 14), retvals(32), plotstring$(31), plotstrX(31), plotstrY(31), plotstrCol(31), plotstrBGCol(31), plotstrBits(31)
+DIM menu$(), mi()
 
 'shared module variables
 DIM SHARED cycle(1), cycptr(1), cycskip(1), tastuf(40), stat(40, 1, 16)
@@ -377,6 +378,8 @@ fatal = 0: abortg = 0
 foep = range(100, 60)
 map = gen(104)
 lastmap = -1
+choosep = 0
+sayer = 0
 
 makebackups 'make a few backup lumps
 
@@ -385,6 +388,13 @@ nextscroff = 0
 depth = 0
 releasestack
 setupstack
+
+wantbox = 0
+wantdoor = 0
+wantbattle = 0
+wantteleport = 0
+wantusenpc = 0
+wantloadgame = 0
 
 temp = -1
 IF readbit(gen(), genBits, 11) = 0 THEN
@@ -729,7 +739,8 @@ IF scrwatch THEN scriptwatcher dpage
 RETRACE
 
 usermenu:
-setusermenu menu$(), mt, mi()
+setusermenu menu$(), mi()
+mt = ubound(menu$)
 IF gmap(2) = 0 THEN
  '--minimap not available
  o = 0
@@ -842,7 +853,6 @@ IF sayer < 0 THEN
     'would <= 19 do?
     'LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
     IF npc(j).id > 0 AND (j <> veh(5) OR veh(0) = 0) THEN 'A
-     dim nx,ny,nd
      nx = npc(j).x
      ny = npc(j).y
      nd = npc(j).dir
@@ -982,7 +992,7 @@ END IF
 IF istag(saytag(7), 0) THEN
  copypage vpage, 3
  IF saytag(8) > 0 THEN
-  shop saytag(8) - 1, needf, stock(), stat(), map, foep, mx, my, tastuf()
+  shop saytag(8) - 1, needf, stock(), stat(), map, foep, tastuf()
   reloadnpc stat()
  END IF
  inn = 0
@@ -1998,7 +2008,7 @@ SELECT CASE scrat(nowscript, curkind)
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 THEN
-     shop retvals(0), needf, stock(), stat(), map, foep, mx, my, tastuf()
+     shop retvals(0), needf, stock(), stat(), map, foep, tastuf()
      reloadnpc stat()
      loadpage game$ + ".til", gmap(0), 3
     END IF

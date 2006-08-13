@@ -151,6 +151,9 @@ defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
 
 textcolor 15, 0
 
+wide = 0: high = 0: nptr = 0: pic = 0
+mapname$ = ""
+
 xtemp$ = ""
 FOR i = 0 TO 15: xtemp$ = xtemp$ + CHR$(i): NEXT i
 str2array xtemp$, cursorpal(), 0
@@ -180,6 +183,7 @@ sampmap(1) = 1
 GOSUB loadmenu
 
 maptop = 0
+pt = 0
 GOSUB maketopmenu
 setkeys
 DO
@@ -238,6 +242,7 @@ RETRACE
 
 whattodo:
 x = 0: y = 0: mapx = 0: mapy = 0
+csr = 0
 list$(0) = "Return to Map Menu"
 list$(1) = "Resize Map..."
 list$(2) = "Edit NPCs..."
@@ -1122,6 +1127,7 @@ menu$(2) = "Exit Map"
 menu$(3) = "Require Tag"
 menu$(4) = "Require Tag"
 cur2 = -1
+sdwait = 0
 outmap$ = getmapname$(link(cur + 400))
 GOSUB showldoor
 setkeys

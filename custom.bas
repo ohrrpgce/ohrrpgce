@@ -189,6 +189,11 @@ xbsave game$ + ".gen", general(), 1000
 setfont font()
 needf = 1
 
+menumode = 0
+pt = 0
+mainmax = 0
+quitnow = 0
+
 setkeys
 GOSUB setmainmenu
 DO:
@@ -912,6 +917,7 @@ END SUB
 
 FUNCTION needaddset (pt, check, what$)
 needaddset = 0
+csr = 0
 IF pt > check THEN
  setkeys
  DO
@@ -968,7 +974,8 @@ END FUNCTION
 SUB shopdata
 DIM names$(32), a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
 
-maxcount = 32: pt = 0: it$ = "-NONE-"
+maxcount = 32: pt = 0: it$ = "-NONE-": sn$ = ""
+havestuf = 0
 sbit$(0) = "Buy"
 sbit$(1) = "Sell"
 sbit$(2) = "Hire"
@@ -1023,6 +1030,7 @@ getnames names$(), maxcount
 GOSUB lshopset
 GOSUB menugen
 li = 6
+csr = 0
 setkeys
 DO
  setwait timing(), 100
@@ -1124,6 +1132,7 @@ RETRACE
 
 shopstuf:
 thing = 0
+thing$ = ""
 tcsr = 0
 last = 2
 GOSUB lstuf

@@ -74,11 +74,11 @@ SUB editmenus
 'DIM menu$(20), veh(39), min(39), max(39), offset(39), vehbit$(15), tiletype$(8)
 
 CONST MenuDatSize = 187
-DIM menu$(20),min(20),max(20), bitname$(-1 to 32), menuname$
+DIM menu$(20),min(20),max(20), bitname$(-1 to 32), menuname$, vehname$
 
-DIM menudat(MenuDatSize - 1), pt, csr
+DIM menudat(MenuDatSize - 1), pt, csr, top
 
-pt = 0: csr = 0
+pt = 0: csr = 0: top = 0
 
 bitname$(0) = "Background is Fuzzy"
 
@@ -247,7 +247,7 @@ SUB vehicles
 
 DIM menu$(20), veh(39), min(39), max(39), offset(39), vehbit$(15), tiletype$(8)
 
-pt = 0: csr = 0
+pt = 0: csr = 0: top = 0
 
 vehbit$(0) = "Pass through walls"
 vehbit$(1) = "Pass through NPCs"
@@ -480,6 +480,10 @@ FOR i = 22 to 29
 NEXT
 max(30) = 100 'MP~
 max(31) = 20  'Extra Hits
+
+aboutline$ = ""
+longname$ = ""
+csr = 0
 
 GOSUB loadpass
 GOSUB genstr
@@ -862,6 +866,10 @@ menu$(5) = "Delete Song"
 
 csr = 1
 snum = 0
+sname$ = ""
+songfile$ = ""
+bamfile$ = ""
+optionsbottom = 0
 GOSUB getsonginfo
 
 setkeys
@@ -1038,6 +1046,8 @@ menu$(6) = "Play Wave"
 
 csr = 1
 snum = 0
+sname$ = ""
+sfxfile$ = ""
 GOSUB getsfxinfo
 
 setkeys

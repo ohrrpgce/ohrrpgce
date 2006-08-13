@@ -61,7 +61,9 @@ If special = 7 THEN viewsize = 16 ELSE viewsize = 17
 
 treeptr = 0
 treetop = 0
+treesize = 0
 
+ranalready = 0
 GOSUB context
 
 changed = 1

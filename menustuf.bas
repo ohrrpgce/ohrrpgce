@@ -103,10 +103,16 @@ FOR o = 0 TO storebuf(16)
  NEXT i
 NEXT o
 
+total = 0
 GOSUB setstock
 GOSUB stufmask
 IF total = 0 THEN EXIT SUB
 
+price$ = "": xtralines = 0: price2$ = ""
+info1$ = "": info2$ = ""
+eqinfo$ = ""
+showhero = 0
+tradingitems = 0
 pt = 0: top = 0
 DO UNTIL readbit(vmask(), 0, pt) = 0
  pt = pt + 1
@@ -238,7 +244,7 @@ DO
  IF price$ <> "" THEN
   centerbox 160, 186, LEN(price$) * 8 + 8, 12 + xtralines * 10, 1, dpage
   edgeprint price$, xstring(price$, 160), 182 - xtralines * 5, uilook(uiText), dpage
-  IF xtralines >= 1 THEN edgeprint p2$, xstring(p2$, 160), 187, uilook(uiText), dpage
+  IF xtralines >= 1 THEN edgeprint price2$, xstring(price2$, 160), 187, uilook(uiText), dpage
  END IF
  IF alert THEN
   alert = alert - 1
@@ -248,12 +254,39 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  copypage 3, dpage
- IF needf = 1 THEN needf = 0: fadetopal master(), buffer(): setkeys
- IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
 vishero stat()
 EXIT SUB
+
+stufmask:
+total = 0
+FOR i = 0 TO 5
+ vmask(i) = 0
+ emask(i) = 0
+NEXT i
+eslot = 4
+FOR i = 0 TO 3
+ eslot = eslot - SGN(hero(i))
+NEXT i
+FOR i = 0 TO storebuf(16)
+ '--for each shop-thing
+ IF stock(id, i) = 1 THEN setbit vmask(), 0, i, 1
+ IF b(i * recordsize + 17) = (shoptype XOR 1) THEN setbit vmask(), 0, i, 1
+ IF NOT istag(b(i * recordsize + 20), -1) THEN setbit vmask(), 0, i, 1
+ IF b(i * recordsize + 24) > gold& THEN setbit emask(), 0, i, 1
+ temp = i
+ GOSUB loadtrades
+ FOR j = 0 TO 3
+  IF tradestf(j, 0) > -1 THEN
+   IF countitem(tradestf(j, 0) + 1) < tradestf(j, 1) THEN setbit emask(), 0, i, 1
+  END IF
+ NEXT
+ '---PREVENT PARTY OVERFLOW
+ IF b(i * recordsize + 17) = 1 AND eslot = 0 THEN setbit emask(), 0, i, 1
+ IF readbit(vmask(), 0, i) = 0 THEN total = total + 1
+NEXT i
+RETRACE
 
 curinfo:
 tradingitems = 0
@@ -296,7 +329,7 @@ IF LEN(price$) > 38 THEN
  '--have to split in 2! ARGH
  i = 38
  WHILE i > 19 AND MID$(price$, i, 1) <> " ": i = i - 1: WEND
- p2$ = MID$(price$, i + 1)
+ price2$ = MID$(price$, i + 1)
  price$ = LEFT$(price$, i - 1)
  xtralines = 1
 END IF
@@ -336,35 +369,6 @@ IF b(pt * recordsize + 17) = 1 THEN
  loadset game$ + ".pt0", showhero, 0
  IF eslot = 0 THEN info1$ = noroom$
 END IF
-RETRACE
-
-stufmask:
-total = 0
-FOR i = 0 TO 5
- vmask(i) = 0
- emask(i) = 0
-NEXT i
-eslot = 4
-FOR i = 0 TO 3
- eslot = eslot - SGN(hero(i))
-NEXT i
-FOR i = 0 TO storebuf(16)
- '--for each shop-thing
- IF stock(id, i) = 1 THEN setbit vmask(), 0, i, 1
- IF b(i * recordsize + 17) = (shoptype XOR 1) THEN setbit vmask(), 0, i, 1
- IF NOT istag(b(i * recordsize + 20), -1) THEN setbit vmask(), 0, i, 1
- IF b(i * recordsize + 24) > gold& THEN setbit emask(), 0, i, 1
- temp = i
- GOSUB loadtrades
- FOR j = 0 TO 3
-  IF tradestf(j, 0) > -1 THEN
-   IF countitem(tradestf(j, 0) + 1) < tradestf(j, 1) THEN setbit emask(), 0, i, 1
-  END IF
- NEXT
- '---PREVENT PARTY OVERFLOW
- IF b(i * recordsize + 17) = 1 AND eslot = 0 THEN setbit emask(), 0, i, 1
- IF readbit(vmask(), 0, i) = 0 THEN total = total + 1
-NEXT i
 RETRACE
 
 setstock:
@@ -468,6 +472,9 @@ sno(10) = 31
 sno(11) = 4
 
 '--initialize
+dw = 0
+dw$ = ""
+mset = 0
 GOSUB setupeq
 
 '--prepare the backdrop
@@ -819,7 +826,8 @@ FOR i = 0 TO inventoryMax
   END IF
  END IF
 NEXT i
-ic = -3: top = -3: sel = -4
+ic = -3: top = -3: sel = -4: wptr = 0: spred = 0: pick = 0
+info$ = ""
 centerbox 160, 92, 304, 176, 1, 3
 
 GOSUB infostr
@@ -1244,6 +1252,7 @@ hexk(12) = 46
 hexk(13) = 32
 hexk(14) = 18
 hexk(15) = 33
+pt = 0
 
 setkeys
 DO
@@ -1602,6 +1611,9 @@ loadshopstuf b(), id
 GOSUB selstock
 
 ic = 0: top = 0
+alert = 0
+alert$ = ""
+info$ = ""
 
 GOSUB refreshs
 
@@ -1756,6 +1768,13 @@ copypage dpage, 3
 
 cancelmenu$ = readglobalstring$(51, "(CANCEL)", 10)
 hasnone$ = readglobalstring$(133, "has no spells", 20)
+
+pick = 0
+spred = 0
+wptr = 0
+last = 0
+sptr = 0
+mset = 0
 
 GOSUB splname
 copypage vpage, 3
@@ -2055,6 +2074,7 @@ NEXT i
 
 mode = 0
 top = 0
+lastinfo = 0
 
 GOSUB nextstat
 copypage vpage, 3

@@ -1644,7 +1644,8 @@ SELECT CASE AS CONST id
  CASE 242'-- joystick button
   retvals(0) = bound(retvals(0)-1,0,15)
   retvals(1) = bound(retvals(1),0,3)
-  
+
+  b = 0
   IF io_readjoysane(retvals(1),b,0,0) THEN
    scriptret = (b SHR retvals(0)) AND 1
   ELSE
@@ -1654,6 +1655,8 @@ SELECT CASE AS CONST id
   retvals(0) = bound(retvals(0),0,1)
   retvals(2) = bound(retvals(2),0,3)
   
+  xaxis = 0
+  yaxis = 0
   IF io_readjoysane(retvals(2),0,xaxis,yaxis) THEN
    IF retvals(0) = 0 THEN'x axis
     'debug "x" + XSTR$(xaxis)

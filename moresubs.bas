@@ -599,6 +599,12 @@ DIM swindex(40), swname$(40)
 
 swapme = -1
 ecsr = -1
+acsr = 0
+top = 0
+la = -1
+numhero = 0
+high = 0
+wide = 0
 
 GOSUB resetswap
 
@@ -714,10 +720,10 @@ IF iAll THEN
  FOR i = top TO small(top + 7, la)
   'Some of the colours are a bit bizarre, here, especially the time bar stuff below
   c = uilook(uiMenuItem)
-  IF swapme = i + 4 THEN c = uilook(uiDisabledSelection) '6
+  IF swapme = i + 4 THEN c = uilook(uiSelectedDisabled) '6
   IF ecsr = i THEN
    c = uilook(uiSelectedItem + tog)
-   IF swapme = i + 4 THEN c = uilook(uiDisabledSelection + tog) '6 + 8 * tog
+   IF swapme = i + 4 THEN c = uilook(uiSelectedDisabled + tog) '6 + 8 * tog
   END IF
   IF swapme > -1 AND swapme < 4 THEN
    IF (numhero < 2 AND i = la) OR readbit(hmask(), 0, acsr) THEN c = uilook(uiTimeBar + ((ecsr = i) * tog)) '8 + ((ecsr = i) * tog)
@@ -1140,6 +1146,7 @@ IF isfile(exepath$ + SLASH + "joyset.ini") THEN
  fh = FREEFILE
  OPEN exepath$ + SLASH + "joyset.ini" FOR INPUT AS #fh
  safety = 0
+ n$ = ""
  DO WHILE NOT EOF(fh) AND safety < 100
   LINE INPUT #fh, a$
   IF settingstring(a$, "UPTHRESH", n$) THEN
@@ -1793,7 +1800,7 @@ END IF
 
 END FUNCTION
 
-SUB shop (id, needf, stock(), stat(), map, foep, mx, my, tastuf())
+SUB shop (id, needf, stock(), stat(), map, foep, tastuf())
 
 DIM storebuf(40), menu$(10), menuid(10)
 
@@ -1810,6 +1817,8 @@ menu$(5) = readglobalstring$(66, "Save", 10)
 menu$(6) = readglobalstring$(68, "Map", 10)
 menu$(7) = readglobalstring$(65, "Team", 10)
 
+sn$ = ""
+last = -1
 GOSUB initshop
 IF last = -1 THEN EXIT SUB
 IF last = 0 THEN autopick = 1
@@ -1907,7 +1916,7 @@ initshop:
 setpicstuf storebuf(), 40, -1
 loadset game$ + ".sho", id, 0
 sn$ = readbadbinstring$(storebuf(), 0, 15, 0)
-o = 0: last = -1
+o = 0
 FOR i = 0 TO 7
  IF readbit(storebuf(), 17, i) THEN
   SWAP menu$(i), menu$(o)

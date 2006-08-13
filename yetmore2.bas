@@ -193,6 +193,8 @@ SUB drawnpcs
   IF npc(i).id > 0 THEN '-- if visible
    o = npc(i).id - 1
    z = 0
+   drawnpcX = 0
+   drawnpcY = 0
    IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawnpcX, drawnpcY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
     IF veh(0) AND veh(5) = i THEN z = catz(0) '--special vehicle magic
     IF z AND readbit(veh(), 9, 8) = 0 THEN '--shadow
@@ -457,8 +459,8 @@ SUB setScriptArg (arg, value)
  END IF
 END SUB
 
-SUB setusermenu (menu$(), mt, mi())
-
+SUB setusermenu (menu$(), mi())
+REDIM menu$(8), mi(8)
 menu$(0) = readglobalstring$(67, "Quit", 10)
 menu$(1) = readglobalstring$(62, "Status", 10)
 menu$(2) = readglobalstring$(68, "Map", 10)
@@ -470,7 +472,6 @@ menu$(7) = readglobalstring$(69, "Volume", 10)
 menu$(8) = readglobalstring$(64, "Order", 10)
 IF readbit(gen(), 101, 5) THEN menu$(8) = readglobalstring$(65, "Team", 10)
 'THIS STUFF WILL CHANGE LATER...yes it will!
-mt = 8
 mi(0) = 4
 mi(1) = 3
 mi(2) = 1

@@ -113,12 +113,16 @@ battlecaptime = 0
 battlecapdelay = 0
 battlecaption$ = ""
 
+alert = 0
+alert$ = ""
+
 curbg = a(32)
 
 fademusic 0
 fadeout 60, 60, 60, 0
 stopsong
 vpage = 0: dpage = 1: needf = 1: anim = -1: you = -1: them = -1: fiptr = 0
+vdance = 0: drawvicbox = 0: aset = 0: wf = 0: noifdead = 0: ptarg = 0
 FOR i = 0 TO 11
  icons(i) = -1
  revenge(i) = -1
@@ -1221,6 +1225,110 @@ IF stat(tdwho, 0, 0) = 0 THEN
 END IF
 RETRACE
 
+setuptarg: '--identify valid targets (heroes only)
+
+'init
+spred = 0: aim = 0: ran = 0: firstt(you) = 0: tptr = 0
+FOR i = 0 TO 11
+ targs(i) = 0
+ tmask(i) = 0
+ t(you, i) = -1
+NEXT i
+
+'load attack
+setpicstuf buffer(), 80, -1
+loadset game$ + ".dt6", godo(you) - 1, 0
+
+noifdead = 0
+ltarg(you) = 0
+
+SELECT CASE buffer(3)
+
+ CASE 0 'enemy
+  FOR i = 4 TO 11: tmask(i) = v(i): NEXT i
+
+ CASE 1 'ally
+  FOR i = 0 TO 3: tmask(i) = v(i): NEXT i
+
+ CASE 2 'self
+  tmask(you) = 1
+
+ CASE 3 'all
+  FOR i = 0 TO 11: tmask(i) = v(i): NEXT i: tptr = 4
+
+ CASE 4 'ally-including-dead
+  noifdead = 1
+  FOR i = 0 TO 3
+   IF hero(i) > 0 THEN tmask(i) = 1
+  NEXT i
+
+ CASE 5 'ally-not-self
+  FOR i = 0 TO 3
+   tmask(i) = v(i)
+  NEXT i
+  tmask(you) = 0
+
+ CASE 6 'revenge-one
+  IF revenge(you) >= 0 THEN
+   tmask(revenge(you)) = v(revenge(you))
+  END IF
+
+ CASE 7 'revenge-all
+  FOR i = 0 TO 11
+   tmask(i) = (readbit(revengemask(), you, i) AND v(i))
+  NEXT i
+
+ CASE 8 'previous
+  FOR i = 0 TO 11
+   tmask(i) = (readbit(targmem(), you, i) AND v(i))
+  NEXT i
+
+ CASE 9 'stored
+  FOR i = 0 TO 11
+   tmask(i) = (readbit(targmem(), you + 12, i) AND v(i))
+  NEXT i
+
+ CASE 10 'dead-ally (hero only)
+  noifdead = 1
+  FOR i = 0 TO 3
+   IF hero(i) > 0 AND stat(i, 0, 0) = 0 THEN tmask(i) = 1
+  NEXT i
+
+END SELECT
+
+'enforce attack's disabled target slots
+FOR i = 0 TO 7
+ IF readbit(buffer(), 20, 37 + i) THEN tmask(4 + i) = 0
+NEXT i
+FOR i = 0 TO 3
+ IF readbit(buffer(), 20, 45 + i) THEN tmask(i) = 0
+NEXT i
+
+'enforce untargetability by heros
+FOR i = 4 TO 11
+ IF readbit(ebits(), (i - 4) * 5, 61) = 1 THEN tmask(i) = 0
+NEXT i
+
+'fail if there are no targets
+WHILE tmask(tptr) = 0
+ tptr = tptr + 1: IF tptr > 11 THEN ptarg = 0: RETRACE
+WEND
+
+'autoattack
+IF readbit(buffer(), 20, 54) THEN
+ ptarg = 3
+ RETRACE
+END IF
+
+IF buffer(4) = 0 THEN aim = 1
+IF buffer(4) = 1 THEN FOR i = 0 TO 11: targs(i) = tmask(i): NEXT i
+IF buffer(4) = 2 THEN aim = 1: spred = 1
+IF buffer(4) = 3 THEN ran = 1
+IF buffer(4) = 4 THEN ran = 2
+'ready to choose targ from targset
+ptarg = 2
+RETRACE
+
 fulldeathcheck:
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -1549,110 +1657,6 @@ firstt(you) = tptr + 1
 you = -1
 ptarg = 0
 noifdead = 0
-RETRACE
-
-setuptarg: '--identify valid targets (heroes only)
-
-'init
-spred = 0: aim = 0: ran = 0: firstt(you) = 0: tptr = 0
-FOR i = 0 TO 11
- targs(i) = 0
- tmask(i) = 0
- t(you, i) = -1
-NEXT i
-
-'load attack
-setpicstuf buffer(), 80, -1
-loadset game$ + ".dt6", godo(you) - 1, 0
-
-noifdead = 0
-ltarg(you) = 0
-
-SELECT CASE buffer(3)
-
- CASE 0 'enemy
-  FOR i = 4 TO 11: tmask(i) = v(i): NEXT i
-
- CASE 1 'ally
-  FOR i = 0 TO 3: tmask(i) = v(i): NEXT i
-
- CASE 2 'self
-  tmask(you) = 1
-
- CASE 3 'all
-  FOR i = 0 TO 11: tmask(i) = v(i): NEXT i: tptr = 4
-
- CASE 4 'ally-including-dead
-  noifdead = 1
-  FOR i = 0 TO 3
-   IF hero(i) > 0 THEN tmask(i) = 1
-  NEXT i
-
- CASE 5 'ally-not-self
-  FOR i = 0 TO 3
-   tmask(i) = v(i)
-  NEXT i
-  tmask(you) = 0
-
- CASE 6 'revenge-one
-  IF revenge(you) >= 0 THEN
-   tmask(revenge(you)) = v(revenge(you))
-  END IF
-
- CASE 7 'revenge-all
-  FOR i = 0 TO 11
-   tmask(i) = (readbit(revengemask(), you, i) AND v(i))
-  NEXT i
-
- CASE 8 'previous
-  FOR i = 0 TO 11
-   tmask(i) = (readbit(targmem(), you, i) AND v(i))
-  NEXT i
-
- CASE 9 'stored
-  FOR i = 0 TO 11
-   tmask(i) = (readbit(targmem(), you + 12, i) AND v(i))
-  NEXT i
-
- CASE 10 'dead-ally (hero only)
-  noifdead = 1
-  FOR i = 0 TO 3
-   IF hero(i) > 0 AND stat(i, 0, 0) = 0 THEN tmask(i) = 1
-  NEXT i
-
-END SELECT
-
-'enforce attack's disabled target slots
-FOR i = 0 TO 7
- IF readbit(buffer(), 20, 37 + i) THEN tmask(4 + i) = 0
-NEXT i
-FOR i = 0 TO 3
- IF readbit(buffer(), 20, 45 + i) THEN tmask(i) = 0
-NEXT i
-
-'enforce untargetability by heros
-FOR i = 4 TO 11
- IF readbit(ebits(), (i - 4) * 5, 61) = 1 THEN tmask(i) = 0
-NEXT i
-
-'fail if there are no targets
-WHILE tmask(tptr) = 0
- tptr = tptr + 1: IF tptr > 11 THEN ptarg = 0: RETRACE
-WEND
-
-'autoattack
-IF readbit(buffer(), 20, 54) THEN
- ptarg = 3
- RETRACE
-END IF
-
-IF buffer(4) = 0 THEN aim = 1
-IF buffer(4) = 1 THEN FOR i = 0 TO 11: targs(i) = tmask(i): NEXT i
-IF buffer(4) = 2 THEN aim = 1: spred = 1
-IF buffer(4) = 3 THEN ran = 1
-IF buffer(4) = 4 THEN ran = 2
-'ready to choose targ from targset
-ptarg = 2
 RETRACE
 
 display:
@@ -2036,106 +2040,104 @@ RETRACE
 
 vicdance:
 IF drawvicbox THEN centerfuz 160, 30, 280, 50, 1, dpage
-IF vdance = 4 THEN
- '--print found items, one at a time
- GOSUB vicfind
-END IF
-IF vdance = 3 THEN
- '--print learned spells, one at a time
- IF showlearn = 0 THEN
-  DO WHILE readbit(learnmask(), 0, learna * 96 + learnb * 24 + learnc) = 0 OR nextbit
-   nextbit = 0 '-- to skip a set bit
-   learnc = learnc + 1
-   IF learnc > 23 THEN learnc = 0: learnb = learnb + 1
-   IF learnb > 3 THEN learnb = 0: learna = learna + 1
-   IF learna > 3 THEN
-    vdance = 4
-    found$ = ""
-    drawvicbox = 0
-    EXIT DO
-   END IF
-  LOOP
-  IF vdance = 3 THEN
-   found$ = batname$(learna) + learned$
-   setpicstuf buffer(), 80, -1
-   loadset game$ + ".dt6", spell(learna, learnb, learnc) - 1, 0
-   found$ = found$ + readbadbinstring$(buffer(), 24, 10, 1)
-   showlearn = 1
-   drawvicbox = 1
+SELECT CASE vdance
+ CASE 1
+  '--print acquired gold and experience
+  IF plunder& > 0 OR exper& > 0 THEN drawvicbox = 1: centerfuz 160, 30, 280, 50, 1, dpage
+  IF plunder& > 0 THEN
+   temp$ = goldcap$ + XSTR$(plunder&) + " " + goldname$ + "!"
+   edgeprint temp$, xstring(temp$, 160), 16, uilook(uiText), dpage
   END IF
- ELSE
-  IF carray(4) > 1 OR carray(5) > 1 THEN
+  IF exper& > 0 THEN
+   temp$ = expcap$ + XSTR$(exper&) + " " + expname$ + "!"
+   edgeprint temp$, xstring(temp$, 160), 28, uilook(uiText), dpage
+  END IF
+  IF carray(4) > 1 OR carray(5) > 1 OR (plunder& = 0 AND exper& = 0) THEN
+   vdance = 2
+  END IF
+ CASE 2
+  '--print levelups
+  o = 0
+  FOR i = 0 TO 3
+   IF o = 0 AND exstat(i, 1, 12) THEN centerfuz 160, 30, 280, 50, 1, dpage: drawvicbox = 1
+   SELECT CASE exstat(i, 1, 12)
+    CASE 1
+     temp$ = level1up$ + " " + batname$(i)
+     edgeprint temp$, xstring(temp$, 160), 12 + i * 10, uilook(uiText), dpage
+     o = 1
+    CASE IS > 1
+     temp$ = STR$(exstat(i, 1, 12)) + " " + levelXup$ + " " + batname$(i)
+     edgeprint temp$, xstring(temp$, 160), 12 + i * 10, uilook(uiText), dpage
+     o = 1
+   END SELECT
+  NEXT i
+  IF o = 0 OR (carray(4) > 1 OR carray(5) > 1) THEN
+   vdance = 3
    showlearn = 0
-   'setbit learnmask(), 0, learna * 96 + learnb * 24 + learnc, 0
-   nextbit = 1
+   learna = 0: learnb = 0: learnc = 0 
   END IF
-  edgeprint found$, xstring(found$, 160), 22, uilook(uiText), dpage
- END IF
-END IF
-IF vdance = 2 THEN
- '--print levelups
- IF carray(4) > 1 OR carray(5) > 1 THEN found$ = "": vdance = 3
- o = 0
- FOR i = 0 TO 3
-  IF o = 0 AND exstat(i, 1, 12) THEN centerfuz 160, 30, 280, 50, 1, dpage
-  SELECT CASE exstat(i, 1, 12)
-   CASE 1
-    temp$ = level1up$ + " " + batname$(i)
-    edgeprint temp$, xstring(temp$, 160), 12 + i * 10, uilook(uiText), dpage
-    o = 1
-   CASE IS > 1
-    temp$ = STR$(exstat(i, 1, 12)) + " " + levelXup$ + " " + batname$(i)
-    edgeprint temp$, xstring(temp$, 160), 12 + i * 10, uilook(uiText), dpage
-    o = 1
-  END SELECT
- NEXT i
- IF o = 0 THEN vdance = 3 ELSE drawvicbox = 1
-END IF
-IF vdance = 1 THEN
- '--print acquired gold and experience
- IF carray(4) > 1 OR carray(5) > 1 OR (plunder& = 0 AND exper& = 0) THEN
-  vdance = 2
- END IF
- IF plunder& > 0 OR exper& > 0 THEN drawvicbox = 1: centerfuz 160, 30, 280, 50, 1, dpage
- IF plunder& > 0 THEN
-  temp$ = goldcap$ + XSTR$(plunder&) + " " + goldname$ + "!"
-  edgeprint temp$, xstring(temp$, 160), 16, uilook(uiText), dpage
- END IF
- IF exper& > 0 THEN
-  temp$ = expcap$ + XSTR$(exper&) + " " + expname$ + "!"
-  edgeprint temp$, xstring(temp$, 160), 28, uilook(uiText), dpage
- END IF
-END IF
-RETRACE
-
-vicfind:
-'--check to see if we are currently displaying a gotten item
-IF found$ = "" THEN
- '--if not, check to see if there are any more gotten items to display
- IF found(fptr, 1) = 0 THEN vdance = -1: RETRACE
- '--get the item name
- found$ = readitemname$(found(fptr, 0))
- '--actually aquire the item
- getitem found(fptr, 0) + 1, found(fptr, 1)
-END IF
-'--if the present item is gotten, show the caption
-IF found(fptr, 1) = 1 THEN
- temp$ = foundcap$ + " " + found$
-ELSE
- temp$ = foundpcap$ + XSTR$(found(fptr, 1)) + " " + found$
-END IF
-IF LEN(temp$) THEN centerfuz 160, 30, 280, 50, 1, dpage
-edgeprint temp$, xstring(temp$, 160), 22, uilook(uiText), dpage
-'--check for a keypress
-IF carray(4) > 1 OR carray(5) > 1 THEN
- IF found(fptr, 1) = 0 THEN
-  '--if there are no further items, exit
-  vdance = -1
- ELSE
-  '--otherwize, increment the findpointer and reset the caption
-  fptr = fptr + 1: found$ = ""
- END IF
-END IF
+ CASE 3
+  '--print learned spells, one at a time
+  IF showlearn = 0 THEN
+   DO WHILE readbit(learnmask(), 0, learna * 96 + learnb * 24 + learnc) = 0 OR nextbit
+    nextbit = 0 '-- to skip a set bit
+    learnc = learnc + 1
+    IF learnc > 23 THEN learnc = 0: learnb = learnb + 1
+    IF learnb > 3 THEN learnb = 0: learna = learna + 1
+    IF learna > 3 THEN
+     vdance = 4
+     found$ = ""
+     fptr = 0
+     drawvicbox = 0
+     EXIT DO
+    END IF
+   LOOP
+   IF vdance = 3 THEN
+    found$ = batname$(learna) + learned$
+    setpicstuf buffer(), 80, -1
+    loadset game$ + ".dt6", spell(learna, learnb, learnc) - 1, 0
+    found$ = found$ + readbadbinstring$(buffer(), 24, 10, 1)
+    showlearn = 1
+    drawvicbox = 1
+   END IF
+  ELSE
+   IF carray(4) > 1 OR carray(5) > 1 THEN
+    showlearn = 0
+    'setbit learnmask(), 0, learna * 96 + learnb * 24 + learnc, 0
+    nextbit = 1
+   END IF
+   edgeprint found$, xstring(found$, 160), 22, uilook(uiText), dpage
+  END IF
+ CASE 4
+  '--print found items, one at a time
+  '--check to see if we are currently displaying a gotten item
+  IF found$ = "" THEN
+   '--if not, check to see if there are any more gotten items to display
+   IF found(fptr, 1) = 0 THEN vdance = -1: RETRACE
+   '--get the item name
+   found$ = readitemname$(found(fptr, 0))
+   '--actually aquire the item
+   getitem found(fptr, 0) + 1, found(fptr, 1)
+  END IF
+  '--if the present item is gotten, show the caption
+  IF found(fptr, 1) = 1 THEN
+   temp$ = foundcap$ + " " + found$
+  ELSE
+   temp$ = foundpcap$ + XSTR$(found(fptr, 1)) + " " + found$
+  END IF
+  IF LEN(temp$) THEN centerfuz 160, 30, 280, 50, 1, dpage
+  edgeprint temp$, xstring(temp$, 160), 22, uilook(uiText), dpage
+  '--check for a keypress
+  IF carray(4) > 1 OR carray(5) > 1 THEN
+   IF found(fptr, 1) = 0 THEN
+    '--if there are no further items, exit
+    vdance = -1
+   ELSE
+    '--otherwize, increment the findpointer and reset the caption
+    fptr = fptr + 1: found$ = ""
+   END IF
+  END IF
+END SELECT
 RETRACE
 
 checkitemusability:
