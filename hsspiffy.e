@@ -413,7 +413,7 @@ global function alpha_tree_data(sequence tree,sequence string,object default)
   end if
 end function
 
-function long_int(object o)
+global function long_int(object o)
   --32-bit ints (Euphoria deals in 31-bit ints)
   if atom(o) and floor(o)=o and o>=-2147483648 and o<=2147483647 then
     return(true)

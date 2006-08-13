@@ -842,7 +842,7 @@ function enforce_constants(sequence s)
   v=alpha_tree_data(constant_list,s,{})
   if length(v) then
     v=v[1]--first element is number (second is line)
-    if integer(v) then
+    if long_int(v) then
       return(sprintf("%d",{v}))
     end if
   end if
@@ -905,7 +905,7 @@ end function
 ---------------------------------------------------------------------------
 
 procedure parse_constant_block(sequence block)
-  integer num
+  atom num
   sequence name
   for i=1 to length(block) by 2 do
     if i+1>length(block) then

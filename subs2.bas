@@ -380,6 +380,70 @@ END IF
 heroname$ = h$
 END FUNCTION
 
+SUB importscripts (f$)
+ setpicstuf buffer(), 7, -1
+ loadset f$, 0, 0
+ clearpage vpage
+ IF buffer(0) = 21320 AND buffer(1) = 0 THEN
+
+  copyfile f$, game$ + ".hsp", buffer()
+  textcolor 7, 0
+  textx = 0: texty = 0
+  dummy = unlumpone(game$ + ".hsp", "scripts.txt", workingdir$ + SLASH + "scripts.txt")
+  fptr = FREEFILE
+  OPEN workingdir$ + SLASH + "scripts.txt" FOR INPUT AS #fptr
+  setpicstuf buffer(), 40, -1
+  general(40) = 0
+  general(43) = 0
+  viscount = 0
+  DO
+   IF EOF(fptr) THEN EXIT DO
+   LINE INPUT #fptr, names$
+   LINE INPUT #fptr, num$
+   LINE INPUT #fptr, argc$
+   FOR i = 1 TO str2int(argc$)
+    LINE INPUT #fptr, dummy$
+   NEXT i
+   names$ = LEFT$(names$, 36)
+   buffer(0) = str2int(num$)
+   buffer(1) = LEN(names$)
+   str2array names$, buffer(), 4
+   storeset workingdir$ + SLASH + "plotscr.lst", general(40), 0
+   general(40) = general(40) + 1
+   IF buffer(0) > general(43) AND buffer(0) < 16384 THEN general(43) = buffer(0)
+   IF textx + LEN(names$) + 1 >= 40 THEN
+    textx = 0
+    texty = texty + 1
+    IF texty > 23 THEN
+     setvispage vpage 'force refresh
+     clearpage vpage
+     texty = 0
+    END IF
+   END IF
+   IF buffer(0) < 16384 THEN
+    viscount = viscount + 1
+    printstr names$ + ",", textx * 8, texty * 8, vpage
+    textx = textx + LEN(names$) + 2
+   END IF
+  LOOP
+  CLOSE #fptr
+  safekill workingdir$ + SLASH + "scripts.txt"
+  edgeprint "imported" + XSTR$(viscount) + " scripts", 0, 180, 15, vpage
+
+ ELSE
+  texty = 0
+  printstr f$, 0, texty * 8, vpage: texty = texty + 1
+  printstr "is not really a compiled .hs file.", 0, texty * 8, vpage: texty = texty + 1
+  printstr "Did you create it by compiling a", 0, texty * 8, vpage: texty = texty + 1
+  printstr "script file with hspeak.exe, or did", 0, texty * 8, vpage: texty = texty + 1
+  printstr "you just give your script a name that", 0, texty * 8, vpage: texty = texty + 1
+  printstr "ends in .hs and hoped it would work?", 0, texty * 8, vpage: texty = texty + 1
+  printstr "Use hspeak.exe to create real .hs files", 0, texty * 8, vpage: texty = texty + 1
+ END IF
+ setvispage vpage 'force refresh for FB
+ w = getkey
+END SUB
+
 FUNCTION isunique (s$, u$(), r)
 STATIC uptr
 
@@ -464,25 +528,7 @@ DO
    CASE 2
     f$ = browse(0, defaultdir$, "*.hs", "")
     IF f$ <> "" THEN
-     setpicstuf buffer(), 7, -1
-     loadset f$, 0, 0
-     clearpage vpage
-     IF buffer(0) = 21320 AND buffer(1) = 0 THEN
-      copyfile f$, game$ + ".hsp", buffer()
-      GOSUB maknamlst
-      edgeprint "imported" + XSTR$(viscount) + " scripts", 0, 180, 15, vpage
-     ELSE
-      texty = 0
-      printstr f$, 0, texty * 8, vpage: texty = texty + 1
-      printstr "is not really a compiled .hs file.", 0, texty * 8, vpage: texty = texty + 1
-      printstr "Did you create it by compiling a", 0, texty * 8, vpage: texty = texty + 1
-      printstr "script file with hspeak.exe, or did", 0, texty * 8, vpage: texty = texty + 1
-      printstr "you just give your script a name that", 0, texty * 8, vpage: texty = texty + 1
-      printstr "ends in .hs and hoped it would work?", 0, texty * 8, vpage: texty = texty + 1
-      printstr "Use hspeak.exe to create real .hs files", 0, texty * 8, vpage: texty = texty + 1
-     END IF
-     setvispage vpage 'force refresh for FB
-     w = getkey
+     importscripts f$
     END IF
   END SELECT
  END IF
@@ -494,52 +540,6 @@ DO
  copypage 3, dpage
  dowait
 LOOP
-EXIT SUB
-
-maknamlst:
-textcolor 7, 0
-textx = 0: texty = 0
-dummy = unlumpone(game$ + ".hsp", "scripts.txt", workingdir$ + SLASH + "scripts.txt")
-fptr = FREEFILE
-OPEN workingdir$ + SLASH + "scripts.txt" FOR INPUT AS #fptr
-setpicstuf buffer(), 40, -1
-general(40) = 0
-general(43) = 0
-viscount = 0
-DO
- IF EOF(fptr) THEN EXIT DO
- LINE INPUT #fptr, names$
- LINE INPUT #fptr, num$
- LINE INPUT #fptr, argc$
- FOR i = 1 TO str2int(argc$)
-  LINE INPUT #fptr, dummy$
- NEXT i
- names$ = LEFT$(names$, 36)
- buffer(0) = str2int(num$)
- buffer(1) = LEN(names$)
- str2array names$, buffer(), 4
- storeset workingdir$ + SLASH + "plotscr.lst", general(40), 0
- general(40) = general(40) + 1
- IF buffer(0) > general(43) AND buffer(0) < 16384 THEN general(43) = buffer(0)
- IF textx + LEN(names$) + 1 >= 40 THEN
-  textx = 0
-  texty = texty + 1
-  IF texty > 23 THEN
-   setvispage vpage 'force refresh
-   clearpage vpage
-   texty = 0
-  END IF
- END IF
- IF buffer(0) < 16384 THEN
-  viscount = viscount + 1
-  printstr names$ + ",", textx * 8, texty * 8, vpage
-  textx = textx + LEN(names$) + 2
- END IF
-LOOP
-CLOSE #fptr
-safekill workingdir$ + SLASH + "scripts.txt"
-RETRACE
-
 END SUB
 
 FUNCTION scriptname$ (num, f$)
