@@ -13,8 +13,6 @@ DECLARE FUNCTION readkey$ ()
 DECLARE FUNCTION editstr$ (stri$, key$, cur%, max%, number%)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION rightafter$ (s$, d$)
-DECLARE SUB forcewd (wd$)
-DECLARE FUNCTION getcurdir$ ()
 DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB readscatter (s$, lhold%, array%(), start%)
 DECLARE FUNCTION rotascii$ (s$, o%)
@@ -30,6 +28,7 @@ DECLARE SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 DECLARE SUB lumpfiles (listf$, lump$, path$, buffer())
 DECLARE SUB unlump (lump$, ulpath$, buffer())
 DECLARE SUB unlumpfile (lump$, fmask$, path$, buf())
+DECLARE FUNCTION islumpfile (lump$, fmask$)
 DECLARE SUB array2str (arr(), BYVAL o, s$)
 DECLARE SUB str2array (s$, arr(), BYVAL o)
 DECLARE SUB getstring (path$)
@@ -49,8 +48,9 @@ CONST false = 0
 
 DIM buffer(16383)
 
+DIM SHARED createddir = false, dest$, olddir$
 
-olddir$ = getcurdir
+olddir$ = curdir
 
 IF COMMAND$ = "" THEN
  PRINT "O.H.R.RPG.C.E. game unlumping utility"
@@ -58,8 +58,9 @@ IF COMMAND$ = "" THEN
  PRINT "syntax:"
  PRINT "unlump filename.rpg directory"
  PRINT ""
- PRINT "A utility to extract the contents of an RPG file to a directory"
- PRINT "so that advanced users can hack the delicious morsels inside."
+ PRINT "A utility to extract the contents of an RPG file or other lumped
+ PRINT "to a directory so that advanced users can hack the delicious"
+ PRINT "morsels inside."
  PRINT "If a password is required, you will be prompted to enter it."
  PRINT ""
  PRINT "Windows users can drag-and-drop their RPG file onto this program"
@@ -72,15 +73,22 @@ END IF
 
 lump$ = COMMAND$(1)
 dest$ = COMMAND$(2)
+
+'check whether it is an RPG file (assume all RPG files contain BROWSE.TXT)
+isrpg = islumpfile(lump$, "browse.txt")
+
 IF dest$ = "" THEN
- dest$ = trimextension$(lump$) + ".rpgdir"
+ IF isrpg THEN
+  dest$ = trimextension$(lump$) + ".rpgdir"
+ ELSE
+  dest$ = trimextension$(lump$) + ".unlmp"
+ END IF
  IF LEN(rightafter(lump$, ".")) > 3 OR dest$ = "" THEN fatalerror "please specify an output directory"
 END IF
 
 IF NOT isfile(lump$) THEN fatalerror "lump file `" + lump$ + "' was not found"
 
 PRINT "From " + lump$ + " to " + dest$
-
 
 game$ = rightafter(lump$, "\")
 IF game$ = "" THEN game$ = lump$
@@ -94,10 +102,17 @@ IF isdir(dest$) THEN
  IF w$ <> "Y" AND w$ <> "y" THEN SYSTEM
 ELSE
  MKDIR dest$
+ createddir = true
 END IF
 
 IF NOT isdir(dest$) THEN fatalerror "unable to create destination directory `" + dest$ + "'"
 
+IF NOT isrpg THEN
+ unlump lump$, dest$ + "\", buffer()
+ CHDIR olddir$
+ SYSTEM
+END IF
+ 
 unlumpfile lump$, "archinym.lmp", dest$ + "\", buffer()
 
 '--set game$ according to the archinym
@@ -109,6 +124,7 @@ IF isfile(dest$ + "\archinym.lmp") THEN
  IF LEN(a$) <= 8 THEN
   game$ = a$
  END IF
+ KILL dest$ + "\archinym.lmp"
 END IF
 
 unlumpfile lump$, game$ + ".gen", dest$ + "\", buffer()
@@ -151,7 +167,7 @@ IF passokay THEN
  unlump lump$, dest$ + "\", buffer()
 END IF
 
-forcewd olddir$
+CHDIR olddir$
 
 SYSTEM
 
@@ -188,21 +204,13 @@ END FUNCTION
 SUB fatalerror (e$)
 
 IF e$ <> "" THEN PRINT "ERROR: " + e$
+
+'RMDIR does not work unless isdir$ is called first. If I tried to figure out why, my brain would explode
+isdir$(dest$)
+IF createddir THEN RMDIR dest$
 SYSTEM
 
 END SUB
-
-SUB forcewd (wd$)
-
-CHDIR wd$
-
-END SUB
-
-FUNCTION getcurdir$
-
-getcurdir$ = curdir
-
-END FUNCTION
 
 FUNCTION readkey$
 
@@ -561,6 +569,80 @@ end SUB
 SUB unlump (lump$, ulpath$, buffer() as integer)
 	unlumpfile(lump$, "", ulpath$, buffer())
 end SUB
+
+FUNCTION islumpfile (lump$, fmask$)
+	dim lf as integer
+	dim dat as ubyte
+	dim size as integer
+	dim maxsize as integer
+	dim lname as string
+	dim i as integer
+
+    islumpfile = 0
+
+	lf = freefile
+	open lump$ for binary access read as #lf
+	if err > 0 then
+		'debug "Could not open file " + lump$
+		exit function
+	end if
+	maxsize = LOF(lf)
+
+    get #lf, , dat	'read first byte
+	while not eof(lf)
+		'get lump name
+		lname = ""
+		i = 0
+		while not eof(lf) and dat <> 0 and i < 64
+			lname = lname + chr$(dat)
+			get #lf, , dat
+			i += 1
+		wend
+		if i > 50 then 'corrupt file, really if i > 12
+			'debug "corrupt lump file: lump name too long"
+			exit while
+		end if
+		'force to lower-case
+		lname = lcase(lname)
+		'debug "lump name " + lname
+
+		if instr(lname, "\") or instr(lname, "/") then
+			'debug "unsafe lump name " + str$(lname)
+			exit while
+		end if
+
+		if not eof(lf) then
+			'get lump size - byte order = 3,4,1,2 I think
+			get #lf, , dat
+			size = (dat shl 16)
+			get #lf, , dat
+			size = size or (dat shl 24)
+			get #lf, , dat
+			size = size or dat
+			get #lf, , dat
+			size = size or (dat shl 8)
+			if size > maxsize then
+				'debug "corrupt lump size" + str$(size) + " exceeds source size" + str$(maxsize)
+				exit while
+			end if
+
+			'do we want this file?
+			if matchmask(lname, lcase$(fmask$)) then
+                islumpfile = -1
+                exit function
+			else
+				'skip to next name
+				seek #lf, seek(lf) + size
+			end if
+
+			if not eof(lf) then
+				get #lf, , dat
+			end if
+		end if
+	wend
+
+	close #lf
+end FUNCTION
 
 'FUNCTION readpassword$
 '

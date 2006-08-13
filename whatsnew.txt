@@ -97,6 +97,7 @@ WHAT IS NEW?
     * Output directory defaults to gamename.rpgdir [James]
     * When run without arguments, tells windows users to
       drag-and-drop [James]
+    * Can be used to unlump other lumped files too; cleans up on error [Ralph]
 
   * Stuff only Developers Will Notice
     * FreeBASIC 0.16b and newer support [Ralph]

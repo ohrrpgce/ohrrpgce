@@ -1842,6 +1842,80 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 
 end SUB
 
+FUNCTION islumpfile (lump$, fmask$)
+	dim lf as integer
+	dim dat as ubyte
+	dim size as integer
+	dim maxsize as integer
+	dim lname as string
+	dim i as integer
+
+    islumpfile = 0
+
+	lf = freefile
+	open lump$ for binary access read as #lf
+	if err > 0 then
+		'debug "Could not open file " + lump$
+		exit function
+	end if
+	maxsize = LOF(lf)
+
+    get #lf, , dat	'read first byte
+	while not eof(lf)
+		'get lump name
+		lname = ""
+		i = 0
+		while not eof(lf) and dat <> 0 and i < 64
+			lname = lname + chr$(dat)
+			get #lf, , dat
+			i += 1
+		wend
+		if i > 50 then 'corrupt file, really if i > 12
+			debug "corrupt lump file: lump name too long"
+			exit while
+		end if
+		'force to lower-case
+		lname = lcase(lname)
+		'debug "lump name " + lname
+
+		if instr(lname, "\") or instr(lname, "/") then
+			debug "unsafe lump name " + str$(lname)
+			exit while
+		end if
+
+		if not eof(lf) then
+			'get lump size - byte order = 3,4,1,2 I think
+			get #lf, , dat
+			size = (dat shl 16)
+			get #lf, , dat
+			size = size or (dat shl 24)
+			get #lf, , dat
+			size = size or dat
+			get #lf, , dat
+			size = size or (dat shl 8)
+			if size > maxsize then
+				debug "corrupt lump size" + str$(size) + " exceeds source size" + str$(maxsize)
+				exit while
+			end if
+
+			'do we want this file?
+			if matchmask(lname, lcase$(fmask$)) then
+                islumpfile = -1
+                exit function
+			else
+				'skip to next name
+				seek #lf, seek(lf) + size
+			end if
+
+			if not eof(lf) then
+				get #lf, , dat
+			end if
+		end if
+	wend
+
+	close #lf
+end FUNCTION
+
 SUB lumpfiles (listf$, lump$, path$, buffer())
 	dim as integer lf, fl, tl	'lumpfile, filelist, tolump
 
