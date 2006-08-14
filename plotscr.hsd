@@ -265,51 +265,31 @@ end
 #--------------------------------------------------------------------------
 # soft coded functions
 
-define script,begin
-autonumber,walkherotoX,2,0,0        # walk hero to X (who,x)
-autonumber,walknpctoX,2,0,0         # walk npc to X (who,x)
-autonumber,walkherotoY,2,0,0        # walk hero to Y (who,y)
-autonumber,walknpctoY,2,0,0         # walk npc to Y (who,y)
-autonumber,setNPCspeed,2,0,4        # set an NPC's walking speed
-autonumber,swapbyname,2,0,0         # make two named heros switch places
-autonumber,getherolevel,1,0         # return hero's current level
-autonumber,renamehero,1,0           # rename a hero (uses hero:name)
-autonumber,autosave,0               # automatically save in the most recent slot
-autonumber,stringtoglobals,3,0,0,0  #converts string to global(stringID,start,length)
-autonumber,globalstostring,3,0,0,0  #builds strings from globals(stringID,start,length)
-autonumber,showstringat,3,0,0,0     #positions a string on the screen and makes it visible(stringID,x,y)
-autonumber,centerstringat,3,0,0,0   #positions a string on the screen and makes it visible(stringID,x,y)
-autonumber,hidestring,1,0           #makes a visible string invisible(stringID)
-autonumber,stringstyle,2,0,0        #changes a string's style: outline,flat(stringID,style)
-autonumber,lastascii,0              #returns the ascii code of the key being held down
-autonumber,inputstring,6,0,40,0,-1,160,110  #allows the player to input a string. Returns false on ESC. (string,max len,use cur,center,x,y)
-end
-
-script,walkherotoX,who,n,begin
+script,walkherotoX,who=0,n=0,begin
 if (n<<heroX(who)) then(walk hero(who,west,heroX(who)--n))
 if (n>>heroX(who)) then(walk hero(who,east,n--heroX(who)))
 end
 
-script,walkherotoY,who,n,begin
+script,walkherotoY,who=0,n=0,begin
 if (n<<heroY(who)) then(walk hero(who,north,heroY(who)--n))
 if (n>>heroY(who)) then(walk hero(who,south,n--heroY(who)))
 end
 
-script,walkNPCtoX,who,n,begin
+script,walkNPCtoX,who=0,n=0,begin
 if (n<<NPCX(who)) then(walk NPC(who,west,NPCX(who)--n))
 if (n>>NPCX(who)) then(walk NPC(who,east,n--NPCX(who)))
 end
 
-script,walkNPCtoY,who,n,begin
+script,walkNPCtoY,who=0,n=0,begin
 if (n<<NPCY(who)) then(walk NPC(who,north,NPCY(who)--n))
 if (n>>NPCY(who)) then(walk NPC(who,south,n--NPCY(who)))
 end
 
-script,setNPCspeed,who,speed,begin
+script,setNPCspeed,who=0,speed=4,begin
 alterNPC(who,NPCstat:movespeed,speed)
 end
 
-script,swapbyname,hero1,hero2,begin
+script,swapbyname,hero1=0,hero2=0,begin
  hero1:=findhero(hero1)
  hero2:=findhero(hero2)
  if (hero1==-1,or,hero2==-1)
@@ -317,7 +297,7 @@ script,swapbyname,hero1,hero2,begin
   else (return(true),swapbyposition(hero1,hero2))
 end
 
-script,renamehero,who,begin
+script,renamehero,who=0,begin
   variable(slot)
   slot:=findhero(who)
   if(slot>=0)
@@ -327,7 +307,7 @@ end
 
 # this exploits an undocumented feature of getherostat. Don't use the
 # same method to set the hero level (use setherolevel instead)
-script,getherolevel,who,begin
+script,getherolevel,who=0,begin
   return(getherostat(who,12,currentstat))
 end
 
@@ -337,7 +317,7 @@ if (lastsaveslot==0)
   else(saveinslot(lastsaveslot),return(lastsaveslot))
 end
 
-script,stringtoglobals,stringID,start,length,begin
+script,stringtoglobals,stringID=0,start=0,length=0,begin
   variable(temp)
   if (stringID>=0,and,stringID<=31) then(
     if (length>=1,and,length<=40) then(
@@ -348,7 +328,7 @@ script,stringtoglobals,stringID,start,length,begin
   )
 end
 
-script,globalstostring,stringID,start,length,begin
+script,globalstostring,stringID=0,start=0,length=0,begin
   variable(temp)
   variable(temp2)
   if (stringID>=0,and,stringID<=31) then(
@@ -362,21 +342,21 @@ script,globalstostring,stringID,start,length,begin
   )
 end
 
-script,showstringat,stringID,x,y,begin
+script,showstringat,stringID=0,x=0,y=0,begin
   setstringbit(stringID,0,1)
   positionstring(stringID,x,y)
 end
 
-script,centerstringat,stringID,x,y,begin
+script,centerstringat,stringID=0,x=0,y=0,begin
   setstringbit(stringID,0,1)
   positionstring(stringID,x--(stringlength(stringID)*4),y)
 end
 
-script,hidestring,stringID,begin
+script,hidestring,stringID=0,begin
   setstringbit(stringID,0,0)
 end
 
-script,stringstyle,stringID,style,begin
+script,stringstyle,stringID=0,style=0,begin
   setstringbit(stringID,1,style)
 end
 
@@ -458,7 +438,7 @@ script, last ascii, begin
 
 end
 
-script, input string, str, max len, useexist, center, positionx, positiony, begin
+script, input string, str=0, max len=40, useexist=0, center=-1, positionx=160, positiony=110, begin
   variable(done, key, show)
   if(useexist) else(clear string(str))
   while(string length(str)>>maxlen) do(delete char(str,string length(str)))
@@ -489,26 +469,22 @@ end
 #--------------------------------------------------------------------------
 #read/write enemy wrappers
 
-define script(autonumber,getenemyname,2,0,0)
-script,getenemyname,enemyID,stringID,begin
+script,getenemyname,enemyID=0,stringID=0,begin
 variable(t)
   for (t,1,readenemydata(enemyID,0))do(
     appendascii(stringID,readenemydata(enemyid,t))
   end
 end
 
-define script(autonumber,getenemystat,2,0,0)
-script,getenemystat,enemyid,stat,begin
+script,getenemystat,enemyid=0,stat=0,begin
   return(readenemydata(enemyid,stat+62))
 end
 
-define script(autonumber,setenemystat,3,0,0,0)
-script,setenemystat,enemyid,stat,value,begin
+script,setenemystat,enemyid=0,stat=0,value=0,begin
   writeenemydata(enemyid,stat+62,value)
 end
 
-define script(autonumber,setenemyname,2,0,0)
-script,setenemyname,enemyid,stringid,begin
+script,setenemyname,enemyid=0,stringid=0,begin
 variable(t,t2)
 if(stringlength(stringid)>=16)then(t2:=16)else(t2:=stringlength(stringid))
  writeenemydata(enemyid,0,t2)
@@ -517,110 +493,91 @@ if(stringlength(stringid)>=16)then(t2:=16)else(t2:=stringlength(stringid))
   )
 end
 
-define script(autonumber,getenemyappearance,2,0,0)
-script,getenemyappearance,enemyid,appearance,begin
+script,getenemyappearance,enemyid=0,appearance=0,begin
   return(readenemydata(enemyid,appearance))
 end
 
-define script(autonumber,setenemyappearance,3,0,0,0)
-script,setenemyappearance,enemyid,appearance,value,begin
+script,setenemyappearance,enemyid=0,appearance=0,value=0,begin
   writeenemydata(enemyid,appearance,value)
 end
 
 #--------------------------------------------------------------------------
 # read/write general wrappers
 
-define script(autonumber,set victory music,1,0)
-script,set victory music,song,begin
+script,set victory music,song=0,begin
   write general(3,song)
 end
 
-define script(autonumber,get death script,none)
 script,get death script,begin
   return(read general(42))
 end
 
-define script(autonumber,get load script,none)
 script,get load script,begin
   return(read general(57))
 end
 
-define script(autonumber,set load script,1,0)
-script,set load script,ID,begin
+script,set load script,ID=0,begin
   write general(57,ID)
 end
 
-define script(autonumber,set battle wait mode,1,1)
-script,set battle wait mode,bit,begin
+script,set battle wait mode,bit=1,begin
   if(bit) then(bit:=1)
   write general(101,(read general(101),and,32766)+bit)
 end
 
-define script(autonumber,set caterpillar mode,1,1)
-script,set caterpillar mode,bit,begin
+script,set caterpillar mode,bit=1,begin
   if(bit) then(bit:=2)
   write general(101,(read general(101),and,32765)+bit)
 end
 
-define script(autonumber,set no HP level up restore,1,1)
-script,set no HP level up restore,bit,begin
+script,set no HP level up restore,bit=1,begin
   if(bit) then(bit:=4)
   write general(101,(read general(101),and,32763)+bit)
 end
 
-define script(autonumber,set no MP level up restore,1,1)
-script,set no MP level up restore,bit,begin
+script,set no MP level up restore,bit=1,begin
   if(bit) then(bit:=8)
   write general(101,(read general(101),and,32759)+bit)
 end
 
-define script(autonumber,set inn no revive mode,1,1)
-script,set inn no revive mode,bit,begin
+script,set inn no revive mode,bit=1,begin
   if(bit) then(bit:=16)
   write general(101,(read general(101),and,32751)+bit)
 end
 
-define script(autonumber,set full hero swap mode,1,1)
-script,set full hero swap mode,bit,begin
+script,set full hero swap mode,bit=1,begin
   if(bit) then(bit:=32)
   write general(101,(read general(101),and,32735)+bit)
 end
 
-define script(autonumber,hide battle ready meter,1,1)
-script,hide battle ready meter,bit,begin
+script,hide battle ready meter,bit=1,begin
   if(bit) then(bit:=64)
   write general(101,(read general(101),and,32703)+bit)
 end
 
-define script(autonumber,hide battle health meter,1,1)
-script,hide battle health meter,bit,begin
+script,hide battle health meter,bit=1,begin
   if(bit) then(bit:=128)
   write general(101,(read general(101),and,32639)+bit)
 end
 
-define script(autonumber,set debug keys disable,1,1)
-script,set debug keys disable,bit,begin
+script,set debug keys disable,bit=1,begin
   if(bit) then(bit:=256)
   write general(101,(read general(101),and,32511)+bit)
 end
 
-define script(autonumber,suspend map music,0)
 script,suspend map music, begin
  write general(44,read general(44),or,512)
 end
 
-define script(autonumber,resume map music,0)
 script,resume map music, begin
  write general(44,read general(44),and,32255)
 end
 
-define script(autonumber,get hero stat cap,1,0)
-script, get hero stat cap, stat, begin
+script, get hero stat cap, stat=0, begin
  read general(65+stat)
 end
 
-define script(autonumber,set capped hero stat,4,0,0,0,0)
-script,set capped hero stat,who,stat,value,cur or max,begin
+script,set capped hero stat,who=0,stat=0,value=0,cur or max=0,begin
  variable(cap)
  cap := get hero stat cap(stat)
  if(cap>>0, and, cap<<value) then(value:=cap)
@@ -630,147 +587,124 @@ end
 #--------------------------------------------------------------------------
 # read/write gmap wrappers
 
-define script(autonumber,get map tileset,0)
 script,get map tileset,begin
   return(read gmap(0))
 end
 
-define script(autonumber,get ambient music,0)
 script, get ambient music, begin
   return (read gmap(1) -- 1)
 end
 
-define script(autonumber,set ambient music,1,-1)
-script, set ambient music, song, begin
+script, set ambient music, song=-1, begin
   write gmap(1,song + 1)
   if (song >= 0) then (play song (song)) else (stop song)
 end
 
-define script(autonumber,allow minimap,1,1)
-script,allow minimap,setting,begin
+script,allow minimap,setting=1,begin
   write gmap(2,setting)
 end
 
-define script(autonumber,allow save anywhere,1,1)
-script,allow save anywhere,setting,begin
+script,allow save anywhere,setting=1,begin
   write gmap(3,setting)
 end
 
-define script(autonumber,cancel map name display,0)
 script,cancel map name display,begin
   write gmap(4,0)
 end
 
-define script(autonumber,set map edge mode,2,0,0) #second argument only used with DefaultTile
-script,set map edge mode,mode,tile,begin
+script,set map edge mode,mode=0,tile=0,begin
   write gmap(5,mode)
   write gmap(6,tile)
 end
 
-define script(autonumber,get map edge mode,0)
 script,get map edge mode,begin
   return(read gmap(5))
 end
 
-define script(autonumber,set harm tile damage,1,0)
-script,set harm tile damage,damage,begin
+script,set harm tile damage,damage=0,begin
   write gmap(9,damage)
 end
 
-define script(autonumber,set harm tile flash,1,0)
-script,set harm tile flash,colour,begin
+script,set harm tile flash,colour=0,begin
   write gmap(10,colour)
 end
 
-define script(autonumber,get footoffset,0)
 script,get footoffset,begin
   return(read gmap(11))
 end
 
-define script(autonumber,set footoffset,1,0)
-script,set footoffset,offset,begin
+script,set footoffset,offset=0,begin
   write gmap(11,offset)
 end
 
-define script(autonumber,get instead of battle script,0)
 script,get instead of battle script,begin
   return (read gmap(13))
 end
 
-define script(autonumber,set instead of battle script,1,0)
-script,set instead of battle script,ID,begin
+script,set instead of battle script,ID=0,begin
   write gmap(13,ID)
 end
 
-define script(autonumber,get each step script,0)
 script,get each step script,begin
   return (read gmap(14))
 end
 
-define script(autonumber,set each step script,1,0)
-script,set each step script,ID,begin
+script,set each step script,ID=0,begin
   write gmap(14,ID)
 end
 
-define script(autonumber,get on keypress script,0)
 script,get on keypress script,begin
   return (read gmap(15))
 end
 
-define script(autonumber,set on keypress script,1,0)
-script,set on keypress script,ID,begin
+script,set on keypress script,ID=0,begin
   write gmap(15,ID)
 end
 
-define script(autonumber,draw npcs above heroes,1,1)
-script,draw npcs above heroes,setting,begin
+script,draw npcs above heroes,setting=1,begin
   write gmap(16,setting)
 end
-define script(autonumber,get damage cap,0)
+
 script,get damage cap,begin
 	return(readgeneral(63))
 end
-define script(autonumber,set damage cap,1,0)
-script,set damage cap,c,begin
+
+script,set damage cap,c=0,begin
 	writegeneral(63,c)
 end
 
 #--------------------------------------------------------------------------
 # new wrappers/re-inventing of the wheel commands
 
-define script, begin
-	autonumber,days of play,0
-	autonumber,hours of play,0
-	autonumber,minutes of play,0
-	autonumber,seconds of play,0
-	autonumber,set days of play,1,0
-	autonumber,set hours of play,1,0
-	autonumber,set minutes of play,1,0
-	autonumber,set seconds of play,1,0
-end
-
 script, days of play, begin
 	return(read general(51))
 end
+
 script, hours of play, begin
 	return(read general(52))
 end
+
 script, minutes  of play, begin
 	return(read general(53))
 end
+
 script, seconds of play, begin
 	return(read general(54))
 end
-script,set days of play,d, begin
+
+script,set days of play,d=0, begin
 	if(d >= 0) then (write general(51,d))
 end
-script,set hours of play,h, begin
+
+script,set hours of play,h=0, begin
 	if(h >= 0, and, h << 24) then (write general(52,h))
 end
-script,set minutes  of play,m, begin
+
+script,set minutes  of play,m=0, begin
 	if(m >= 0, and, m << 60) then (write general(53,m))
 end
-script,set seconds of play,s, begin
+
+script,set seconds of play,s=0, begin
 	if(s >= 0, and, s << 60) then (write general(54,s))
 end
 
@@ -778,20 +712,19 @@ end
 # appendascii wrapper functions
 # $id="..." and $id+"..." are translated to these to functions by HSpeak
 
-define script,begin
-autonumber,setstring,41,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
-autonumber,appendstring,41,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
-end
-
-script,setstring,id,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20
-a21,a22,a23,a24,a25,a26,a27,a28,a29,a30,a31,a32,a33,a34,a35,a36,a37,a38,a39,a40,begin
+script,setstring,id=0,a1=-1,a2=-1,a3=-1,a4=-1,a5=-1,a6=-1,a7=-1,a8=-1,a9=-1,a10=-1
+                      a11=-1,a12=-1,a13=-1,a14=-1,a15=-1,a16=-1,a17=-1,a18=-1,a19=-1,a20=-1
+                      a21=-1,a22=-1,a23=-1,a24=-1,a25=-1,a26=-1,a27=-1,a28=-1,a29=-1,a30=-1
+                      a31=-1,a32=-1,a33=-1,a34=-1,a35=-1,a36=-1,a37=-1,a38=-1,a39=-1,a40=-1,begin
 clearstring(id)
 appendstring(id,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20
 a21,a22,a23,a24,a25,a26,a27,a28,a29,a30,a31,a32,a33,a34,a35,a36,a37,a38,a39,a40)
 end
 
-script,appendstring,id,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20
-a21,a22,a23,a24,a25,a26,a27,a28,a29,a30,a31,a32,a33,a34,a35,a36,a37,a38,a39,a40,begin
+script,appendstring,id=0,a1=-1,a2=-1,a3=-1,a4=-1,a5=-1,a6=-1,a7=-1,a8=-1,a9=-1,a10=-1
+                      a11=-1,a12=-1,a13=-1,a14=-1,a15=-1,a16=-1,a17=-1,a18=-1,a19=-1,a20=-1
+                      a21=-1,a22=-1,a23=-1,a24=-1,a25=-1,a26=-1,a27=-1,a28=-1,a29=-1,a30=-1
+                      a31=-1,a32=-1,a33=-1,a34=-1,a35=-1,a36=-1,a37=-1,a38=-1,a39=-1,a40=-1,begin
 appendascii(id,a1)
 appendascii(id,a2)
 appendascii(id,a3)
