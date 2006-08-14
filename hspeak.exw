@@ -13,6 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3C 2006-08-15 New syntax for giving default script arguments,
+--              and for leaving out definescript
 --3B 2006-08-13 HSX lumps renamed to HSZ
 --3A 2006-08-10 HamsterSpeak becomes 32-bit. Also, script format
 --              version added to HSX header. Current is 1
@@ -68,7 +70,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=3
-constant COMPILER_SUB_VERSION="B"
+constant COMPILER_SUB_VERSION="C"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -111,6 +113,7 @@ constant OPER_LINE=4
 constant FUNC_ARGS=3
 constant FUNC_LINE=4
 constant GLB_LINE=3
+constant NO_DEFAULT={}
 constant KIND_NUMBER=1
 constant KIND_FLOW=2
 constant KIND_GLOBAL=3
@@ -1166,7 +1169,11 @@ procedure dump_script_and_function_info(integer fh,sequence list)
       if j>1 then
         printf(fh,",",{})
       end if
-      printf(fh,"%d",{this[FUNC_ARGS][j]})
+      if equal(this[FUNC_ARGS][j],NO_DEFAULT) then
+        printf(fh,"NONE",{})
+      else
+        printf(fh,"%d",{this[FUNC_ARGS][j]})
+      end if
     end for
     printf(fh,")\n",{})
   end for
@@ -1938,6 +1945,12 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
     else  
       --normal processing for script and function
       for i=length(tree[TREE_BRANCHES])+1 to length(list[at][FUNC_ARGS]) do
+        if equal(list[at][FUNC_ARGS][i],NO_DEFAULT) then
+          src_error(sprintf(
+            "%s "&COLYEL&"%s"&COLRED&" has no default for missing argument %d"
+            ,{KIND_LONGNAMES[kind],tree[TREE_TRUNK][CMD_TEXT],i}
+          ),tree[TREE_TRUNK][CMD_LINE])
+        end if
         tree[TREE_BRANCHES]=append(tree[TREE_BRANCHES],{
            {sprintf("%d",{list[at][FUNC_ARGS][i]}),tree[TREE_TRUNK][CMD_LINE]}
           ,{}
@@ -2365,35 +2378,99 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure compile_each_script()
+function process_arglist(sequence args,sequence script_name)
+  sequence arglist
+  sequence defaults
   integer at
-  sequence count
-  count=repeat(0,length(file_list))
-  color_print("compiling scripts",{})
+  integer using_defaults
+  arglist={}
+  defaults={}
+  using_defaults=false
+
+  for i=1 to length(args) do
+    at=find('=',args[i][CMD_TEXT])
+    if at=1 or at=length(args[i][CMD_TEXT]) then
+      --continue
+      src_error(sprintf("Syntax error in script argument "&COLYEL&"%s"&COLRED&" in script "&COLYEL&"%s"&COLRED,{args[i][CMD_TEXT],script_name}),args[i][CMD_LINE])
+    end if
+    if at>0 then
+      arglist=append(arglist,{try_undefined_string({args[i][CMD_TEXT][1..at-1],args[i][CMD_LINE]},"argument name"),args[i][CMD_LINE]})
+      defaults&=try_string_to_number({args[i][CMD_TEXT][at+1..length(args[i][CMD_TEXT])],args[i][CMD_LINE]})
+      using_defaults=true
+    else
+      if using_defaults=true then
+        --any argument with a default must be followed with arguments with defaults
+        src_error(sprintf("Default value missing for argument "&COLYEL&"%s"&COLRED&" to script "&COLYEL&"%s"&COLRED,{args[i][CMD_TEXT],script_name}),args[i][CMD_LINE])
+      end if
+      arglist=append(arglist,args[i])
+      defaults=append(defaults,NO_DEFAULT)
+    end if
+  end for
+  return({arglist,defaults})
+end function
+
+---------------------------------------------------------------------------
+
+procedure check_script_args()
+  integer at
+  sequence args_and_defaults
+
   for i=1 to length(script_cmd) do
     at=find(script_cmd[i][1][CMD_TEXT],column(script_list,PAIR_NAME))
-    if at then
-      --color_print("%s\n",{script_cmd[i][1][CMD_TEXT]})
+
+    args_and_defaults=process_arglist(script_cmd[i][2],script_cmd[i][1][CMD_TEXT])
+    if not at then
+      --define script optional, add to script list
+      script_list=create_function(script_list,-1,script_cmd[i][1][CMD_TEXT],args_and_defaults[2],RESERVE_SCRIPT,script_cmd[i][1][CMD_LINE])
+    else
       if length(script_cmd[i][2]) != length(script_list[at][FUNC_ARGS]) then
         src_error(
-           sprintf(
-             "script "&COLYEL&"%s"&COLRED&" has %d arguments named, but has %d arguments in its declaration"
-             ,{script_cmd[i][1][CMD_TEXT],length(script_cmd[i][2]),length(script_list[at][FUNC_ARGS])}
-           )
-           ,script_cmd[i][1][CMD_LINE]
+          sprintf(
+            "script "&COLYEL&"%s"&COLRED&" has %d arguments named, but has %d arguments in its declaration"
+            ,{script_cmd[i][1][CMD_TEXT],length(script_cmd[i][2]),length(script_list[at][FUNC_ARGS])}
+          )
+          ,script_cmd[i][1][CMD_LINE]
         )
-      else
-        compile_a_script(
-           script_list[at][PAIR_NUM] --ID
-          ,script_cmd[i][1]          --Name
-          ,script_cmd[i][2]          --argnames
-          ,script_cmd[i][3]          --data
-        )
-        count[source[script_cmd[i][1][CMD_LINE]][SRC_FILE]]+=1
       end if
-    else
-      src_error(sprintf("script "&COLYEL&"%s"&COLRED&" is not defined",{script_cmd[i][1][CMD_TEXT]}),script_cmd[i][1][CMD_LINE])  
+      for j=1 to length(script_list[at][FUNC_ARGS]) do
+        if not equal(args_and_defaults[2][j],NO_DEFAULT) and not equal(args_and_defaults[2][j],script_list[at][FUNC_ARGS][j]) then
+          src_warn(
+            sprintf(
+              "Default value for argument "&COLYEL&"%s"&COLRED&" to script "&COLYEL&"%s"&COLRED&" does not match default given in script definition, %d"
+              ,{script_cmd[i][2][j][CMD_TEXT],script_cmd[i][1][CMD_TEXT],script_list[at][FUNC_ARGS][j]}
+            )
+            ,script_cmd[i][1][CMD_LINE]
+          )
+        end if
+      end for
     end if
+    script_cmd[i][2]=args_and_defaults[1]
+  end for
+end procedure
+
+---------------------------------------------------------------------------
+
+procedure compile_each_script()
+  sequence count
+  integer at
+  count=repeat(0,length(file_list))
+  color_print("compiling scripts",{})
+
+  check_script_args()
+
+  for i=1 to length(script_cmd) do
+    at=find(script_cmd[i][1][CMD_TEXT],column(script_list,PAIR_NAME))
+
+   -- color_print("%s\n",{script_cmd[i][1][CMD_TEXT]})
+
+    compile_a_script(
+      script_list[at][PAIR_NUM] --ID
+      ,script_cmd[i][1]          --Name
+      ,script_cmd[i][2]          --argnames
+      ,script_cmd[i][3]          --data
+    )
+    count[source[script_cmd[i][1][CMD_LINE]][SRC_FILE]]+=1
+
     color_print(".",{})
   end for
   color_print("\n",{})
@@ -2423,7 +2500,11 @@ function generate_scripts_dot_txt()
   for i=1 to length(script_list) do
     result&=sprintf("%s\r\n%d\r\n%d\r\n",{script_list[i][PAIR_NAME],script_list[i][PAIR_NUM],length(script_list[i][FUNC_ARGS])})
     for j=1 to length(script_list[i][FUNC_ARGS]) do
-      result&=sprintf("%d\r\n",{script_list[i][FUNC_ARGS][j]})
+      if equal(script_list[i][FUNC_ARGS][j],NO_DEFAULT) then
+        result&="0\r\n"
+      else
+        result&=sprintf("%d\r\n",{script_list[i][FUNC_ARGS][j]})
+      end if
     end for
     if print_scripts and ((script_list[i][PAIR_NUM]<autonumber_id and print_scripts=1) or (print_scripts=2)) then
       wrap_print("%s\r\n",{script_list[i][PAIR_NAME]})
