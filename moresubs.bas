@@ -1461,6 +1461,13 @@ ELSE
   ELSE
    scrformat = 0
   END IF
+  IF scrformat = 1 THEN wordsize = 4 ELSE wordsize = 2
+  IF skip >= 10 THEN
+   GET #f, 9, temp
+   scrat(index, strtable) = (temp - skip) \ wordsize
+  ELSE
+   scrat(index, strtable) = 0
+  END IF
 
   IF scrformat > 1 THEN
    scripterr "script" + XSTR$(n) + " is in an unsupported format"
@@ -1468,9 +1475,8 @@ ELSE
    runscript = 0'--error
    EXIT FUNCTION
   END IF
-  IF scrformat = 1 THEN wordsize = 4 ELSE wordsize = 2
   
-  IF nextscroff + (LOF(f) - skip) / 2 > 4096 THEN
+  IF nextscroff + (LOF(f) - skip) / wordsize > 4096 THEN
    scripterr "Script buffer overflow"
    CLOSE #f
    runscript = 0'--error

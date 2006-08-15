@@ -724,6 +724,16 @@ NEXT i
 
 END SUB
 
+FUNCTION read32bitstring$ (array(), offset)
+result$ = ""
+word = array(offset + 1)
+FOR i = 1 TO array(offset)
+ result$ += CHR$(word AND 255)
+ IF i MOD 4 = 0 THEN word = array(offset + i \ 4 + 1) ELSE word = word SHR 8
+NEXT
+read32bitstring$ = result$
+END FUNCTION
+
 FUNCTION readbadgenericname$ (index, filename$, recsize, offset, size, skip)
 
 '--clobbers buffer!

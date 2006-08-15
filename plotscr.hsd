@@ -257,6 +257,8 @@ define function, begin
 248,deletemapstate,1,255      #delete temp map state files (deletebits)
 249,partymoney,0              #retrieves amount of gold
 250,setmoney,1,0              #sets amount of gold
+251,setstringfromtable,2,0,0  #string support function
+252,appendstringfromtable,2,0,0 #string support function
 
 #24x,getnpcraw,2,0,0          #raw npc data(who,which)
 #24x,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
@@ -706,65 +708,6 @@ end
 
 script,set seconds of play,s=0, begin
 	if(s >= 0, and, s << 60) then (write general(54,s))
-end
-
-#--------------------------------------------------------------------------
-# appendascii wrapper functions
-# $id="..." and $id+"..." are translated to these to functions by HSpeak
-
-script,setstring,id=0,a1=-1,a2=-1,a3=-1,a4=-1,a5=-1,a6=-1,a7=-1,a8=-1,a9=-1,a10=-1
-                      a11=-1,a12=-1,a13=-1,a14=-1,a15=-1,a16=-1,a17=-1,a18=-1,a19=-1,a20=-1
-                      a21=-1,a22=-1,a23=-1,a24=-1,a25=-1,a26=-1,a27=-1,a28=-1,a29=-1,a30=-1
-                      a31=-1,a32=-1,a33=-1,a34=-1,a35=-1,a36=-1,a37=-1,a38=-1,a39=-1,a40=-1,begin
-clearstring(id)
-appendstring(id,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20
-a21,a22,a23,a24,a25,a26,a27,a28,a29,a30,a31,a32,a33,a34,a35,a36,a37,a38,a39,a40)
-end
-
-script,appendstring,id=0,a1=-1,a2=-1,a3=-1,a4=-1,a5=-1,a6=-1,a7=-1,a8=-1,a9=-1,a10=-1
-                      a11=-1,a12=-1,a13=-1,a14=-1,a15=-1,a16=-1,a17=-1,a18=-1,a19=-1,a20=-1
-                      a21=-1,a22=-1,a23=-1,a24=-1,a25=-1,a26=-1,a27=-1,a28=-1,a29=-1,a30=-1
-                      a31=-1,a32=-1,a33=-1,a34=-1,a35=-1,a36=-1,a37=-1,a38=-1,a39=-1,a40=-1,begin
-appendascii(id,a1)
-appendascii(id,a2)
-appendascii(id,a3)
-appendascii(id,a4)
-appendascii(id,a5)
-appendascii(id,a6)
-appendascii(id,a7)
-appendascii(id,a8)
-appendascii(id,a9)
-appendascii(id,a10)
-appendascii(id,a11)
-appendascii(id,a12)
-appendascii(id,a13)
-appendascii(id,a14)
-appendascii(id,a15)
-appendascii(id,a16)
-appendascii(id,a17)
-appendascii(id,a18)
-appendascii(id,a19)
-appendascii(id,a20)
-appendascii(id,a21)
-appendascii(id,a22)
-appendascii(id,a23)
-appendascii(id,a24)
-appendascii(id,a25)
-appendascii(id,a26)
-appendascii(id,a27)
-appendascii(id,a28)
-appendascii(id,a29)
-appendascii(id,a30)
-appendascii(id,a31)
-appendascii(id,a32)
-appendascii(id,a33)
-appendascii(id,a34)
-appendascii(id,a35)
-appendascii(id,a36)
-appendascii(id,a37)
-appendascii(id,a38)
-appendascii(id,a39)
-appendascii(id,a40)
 end
 
 #--------------------------------------------------------------------------

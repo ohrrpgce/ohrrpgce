@@ -13,6 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3D 2006-08-15 String literal lookup tables added to end of
+--              HSZ lumps replacing setstring + appendstring
 --3C 2006-08-15 New syntax for giving default script arguments,
 --              and for leaving out definescript
 --3B 2006-08-13 HSX lumps renamed to HSZ
@@ -70,7 +72,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=3
-constant COMPILER_SUB_VERSION="C"
+constant COMPILER_SUB_VERSION="D"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -137,7 +139,7 @@ constant KIND_LONGNAMES={"number"
                         }
 constant TREE_TRUNK=1
 constant TREE_BRANCHES=2
-constant CODE_START_BYTE_OFFSET=8
+constant CODE_START_BYTE_OFFSET=10
 constant SCRIPT_FORMAT_VERSION=1
 
 ---------------------------------------------------------------------------
@@ -154,6 +156,7 @@ sequence constant_list    constant_list=alpha_tree_create()
 sequence operator_list    operator_list={}
 sequence function_list    function_list={}
 sequence global_list      global_list={{},{},{}}
+sequence string_list      string_list={}
 sequence script_list      script_list={}
 sequence script_cmd       script_cmd={}
 sequence reserved         reserved=alpha_tree_create()
@@ -208,6 +211,7 @@ integer  colors_enabled   colors_enabled=true
 integer error_file        error_file=false
 sequence used_globals     used_globals={}
 sequence used_locals      used_locals={}
+sequence used_strings     used_strings={}
 integer fast_mode         fast_mode=false
 integer end_anchor_kludge end_anchor_kludge=false
 integer was_warnings      was_warnings=false
@@ -599,6 +603,7 @@ function convert_strings(sequence s)
   integer switch
   sequence output
   sequence result
+  sequence string
   start=1
   result=""
   while start<length(s) do
@@ -617,9 +622,9 @@ function convert_strings(sequence s)
       exit
     end if
     if at!=0 and at<at2 or at2=0 then 
-      output=",setstring("
+      output=",setstringfromtable("
     else
-      output=",appendstring("
+      output=",appendstringfromtable("
       at=at2
     end if
     if at=2 then --no id
@@ -629,6 +634,7 @@ function convert_strings(sequence s)
     output=output&s[stringstart+1..at-1]  --id
     ptr=at+2
     switch=false
+    string=""
     while true do
       if ptr>length(s) then  --did not find a closing " so not a valid string (previous matches presumably a coincidence)
         result=result&s[stringstart..at+1]
@@ -637,22 +643,25 @@ function convert_strings(sequence s)
       end if
       if switch then
         if s[ptr]='"' then
-          output=output&sprintf(",%d",{'"'})
+          string&='"'
         elsif s[ptr]='\\' then
-          output=output&sprintf(",%d",{'\\'})
+          string&='\\'
         else
-          output=output&sprintf(",%d,%d",{'\\',s[ptr]}) --invalid sequence
+          --invalid sequence
+          string&='\\'
+          string&=s[ptr]
         end if
         switch=false
       else
         if s[ptr]='"' then
-          result=result&output&")"
+          string_list=append(string_list,string)
+          result=result&output&sprintf(",@$string%d)",{length(string_list)})
           start=ptr+1
           exit
         elsif s[ptr]='\\' then
           switch=true
         else
-          output=output&sprintf(",%d",{s[ptr]})
+          string&=s[ptr]
         end if
       end if
       ptr+=1
@@ -2025,6 +2034,26 @@ end function
 
 ---------------------------------------------------------------------------
 
+function create_string_table(sequence string_ids)
+  sequence result
+  integer len
+  result={}
+  for i=1 to length(string_ids) do
+    len=length(string_list[string_ids[i]])
+    if len>40 then
+      simple_warn(sprintf(COLBWHI&"%s"&COLRED&"\n String exceeds maximum length of 40 and will be trimmed",{string_list[string_ids[i]]}))
+      string_list[string_ids[i]]=string_list[string_ids[i]][1..40]
+      len=40
+    end if
+    result&=int_to_bytes(len)
+    result&=string_list[string_ids[i]]
+    result&=repeat(0,40-len)
+  end for
+  return(result)
+end function
+
+---------------------------------------------------------------------------
+
 --return value is a sequence when new command data was appended, and an integer when an offset is returned
 function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
   sequence result
@@ -2058,7 +2087,15 @@ function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
         result&=KIND_NUMBER
         result&=script_list[at][PAIR_NUM]
       else
-        src_error(sprintf("reference "&COLYEL&"@%s"&COLRED&" could not be resolved",{str_temp}),tree[TREE_TRUNK][CMD_LINE])
+        --is it a string literal?
+        if equal("$string",str_temp[1..7]) then
+          value_temp=value(str_temp[8..length(str_temp)])
+          result&=KIND_NUMBER
+          result&=length(used_strings)
+          used_strings&=value_temp[2]
+        else
+          src_error(sprintf("reference "&COLYEL&"@%s"&COLRED&" could not be resolved",{str_temp}),tree[TREE_TRUNK][CMD_LINE])
+        end if
       end if
     end if
   elsif kind=KIND_GLOBAL then
@@ -2122,6 +2159,7 @@ end function
 
 function binary_compile(integer id,sequence tree,sequence vars)
   sequence result
+  sequence temp
   integer at
   --binary data is in a mix of 16-bit and 32-bit signed words.
   --the header is 16-bit and the data (script format version 1+) is 32-bit.
@@ -2136,6 +2174,8 @@ function binary_compile(integer id,sequence tree,sequence vars)
   result&=output_word(length(script_list[at][FUNC_ARGS]))
   --the fourth word is the format of the command data (presently used to indicate 32-bit encoding)
   result&=output_word(SCRIPT_FORMAT_VERSION)
+  --the fifth word is pointer to the string literal table (in bytes), we don't know it yet
+  result&=output_word(0)
 
   --what follows is command data in the format [kindID,Value,argcount,argpointerlist]
   --numbers and variables have no argcount or argpointerlist
@@ -2150,6 +2190,12 @@ function binary_compile(integer id,sequence tree,sequence vars)
     simple_error(sprintf("compiler bug! script tree has %s root nodes",{length(tree)}))
   end if
   result&=convert_to_bytes(binary_compile_recurse(tree[1],vars,""))
+  --append with a table of string literals and give its offset
+  temp=create_string_table(used_strings)
+  if length(temp) then
+    result[9..10]=output_word(length(result))
+    result&=temp
+  end if
   return(result)
 end function
 
@@ -2353,6 +2399,7 @@ procedure compile_a_script(integer id,sequence name_data,sequence arg_data,seque
   local_vars=arg_data --start with argument names (so we can check for conflicts)
   local_vars=gather_local_vars(local_vars,script_data)
   used_locals={}
+  used_strings={}
   script_tree=compile_commands(script_data,local_vars)
   script_tree=convert_operators(script_tree)
   script_tree=normalize_flow_control(script_tree,local_vars)

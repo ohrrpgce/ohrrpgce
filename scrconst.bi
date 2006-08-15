@@ -19,6 +19,7 @@ CONST scrid = 11     'id number current script
 CONST curwaitarg = 12'wait state argument
 CONST scrsize = 13   'amount the script takes up in the buffer
 CONST scrargs = 14   'number of arguments
+CONST strtable = 15  'pointer to string table
 '---INTERPRETER STATES---
 'suspended scripts have negative states
 CONST stnone = 0

@@ -42,6 +42,8 @@ WHAT IS NEW?
       options for NPC and tile data. [Ralph Versteegen]
     * HamsterSpeak is now 32-bit. This means you can use values from
       -2147483648 to 2147483647 in your scripts [Ralph Versteegen]
+    * $id="..." and $id+"..." (string literals) rewritten to be speedy and
+      efficient [Ralph]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
