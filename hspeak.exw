@@ -13,7 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
---3D 2006-08-15 String literal lookup tables added to end of
+--3D 2006-08-16 String literal lookup tables added to end of
 --              HSZ lumps replacing setstring + appendstring
 --3C 2006-08-15 New syntax for giving default script arguments,
 --              and for leaving out definescript
@@ -211,7 +211,7 @@ integer  colors_enabled   colors_enabled=true
 integer error_file        error_file=false
 sequence used_globals     used_globals={}
 sequence used_locals      used_locals={}
-sequence used_strings     used_strings={}
+sequence string_table     string_table={}
 integer fast_mode         fast_mode=false
 integer end_anchor_kludge end_anchor_kludge=false
 integer was_warnings      was_warnings=false
@@ -2034,22 +2034,24 @@ end function
 
 ---------------------------------------------------------------------------
 
-function create_string_table(sequence string_ids)
+--add a string to the table for this script, return its offset
+function table_string(integer id)
   sequence result
   integer len
-  result={}
-  for i=1 to length(string_ids) do
-    len=length(string_list[string_ids[i]])
-    if len>40 then
-      simple_warn(sprintf(COLBWHI&"%s"&COLRED&"\n String exceeds maximum length of 40 and will be trimmed",{string_list[string_ids[i]]}))
-      string_list[string_ids[i]]=string_list[string_ids[i]][1..40]
-      len=40
-    end if
-    result&=int_to_bytes(len)
-    result&=string_list[string_ids[i]]
-    result&=repeat(0,40-len)
-  end for
-  return(result)
+  integer offset
+  offset=length(string_table)/4
+  len=length(string_list[id])
+  if len>40 then
+    simple_warn(sprintf(COLBWHI&"%s"&COLRED&"\n String exceeds maximum length of 40 and will be trimmed",{string_list[id]}))
+    string_list[id]=string_list[id][1..40]
+    len=40
+  end if
+  string_table&=int_to_bytes(len)
+  string_table&=string_list[id]
+  if remainder(len,4) then
+    string_table&=repeat(0,4-remainder(len,4))
+  end if
+  return(offset)
 end function
 
 ---------------------------------------------------------------------------
@@ -2091,8 +2093,7 @@ function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
         if equal("$string",str_temp[1..7]) then
           value_temp=value(str_temp[8..length(str_temp)])
           result&=KIND_NUMBER
-          result&=length(used_strings)
-          used_strings&=value_temp[2]
+          result&=table_string(value_temp[2])
         else
           src_error(sprintf("reference "&COLYEL&"@%s"&COLRED&" could not be resolved",{str_temp}),tree[TREE_TRUNK][CMD_LINE])
         end if
@@ -2159,8 +2160,10 @@ end function
 
 function binary_compile(integer id,sequence tree,sequence vars)
   sequence result
-  sequence temp
   integer at
+
+  string_table={}
+
   --binary data is in a mix of 16-bit and 32-bit signed words.
   --the header is 16-bit and the data (script format version 1+) is 32-bit.
 
@@ -2191,10 +2194,9 @@ function binary_compile(integer id,sequence tree,sequence vars)
   end if
   result&=convert_to_bytes(binary_compile_recurse(tree[1],vars,""))
   --append with a table of string literals and give its offset
-  temp=create_string_table(used_strings)
-  if length(temp) then
+  if length(string_table)>0 then
     result[9..10]=output_word(length(result))
-    result&=temp
+    result&=string_table
   end if
   return(result)
 end function
@@ -2399,7 +2401,6 @@ procedure compile_a_script(integer id,sequence name_data,sequence arg_data,seque
   local_vars=arg_data --start with argument names (so we can check for conflicts)
   local_vars=gather_local_vars(local_vars,script_data)
   used_locals={}
-  used_strings={}
   script_tree=compile_commands(script_data,local_vars)
   script_tree=convert_operators(script_tree)
   script_tree=normalize_flow_control(script_tree,local_vars)

@@ -1677,11 +1677,13 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 THEN gold = retvals(0)
  CASE 251'--setstringfromtable
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND scrat(nowscript, strtable) THEN
-   plotstring$(retvals(0)) = read32bitstring$(script(), scrat(nowscript, scroff) + retvals(1) * 11 + scrat(nowscript, strtable))
+   plotstring$(retvals(0)) = read32bitstring$(script(), scrat(nowscript, scroff) + scrat(nowscript, strtable) + retvals(1))
+   cropPlotStr(plotstring$(retvals(0)))
   END IF
  CASE 252'--appendstringfromtable
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND scrat(nowscript, strtable) THEN
-   plotstring$(retvals(0)) += read32bitstring$(script(), scrat(nowscript, scroff) + retvals(1) * 11 + scrat(nowscript, strtable))
+   plotstring$(retvals(0)) += read32bitstring$(script(), scrat(nowscript, scroff) + scrat(nowscript, strtable) + retvals(1))
+   cropPlotStr(plotstring$(retvals(0)))
   END IF
  
 END SELECT
