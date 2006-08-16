@@ -1406,6 +1406,13 @@ lastmap = map
 'load gmap
 loadmapstate_gmap map, "map"
 
+'Play map music
+IF gmap(1) > 0 THEN
+ wrappedsong gmap(1) - 1
+ELSE
+ stopsong
+END IF
+
 getmapname mapname$, map
 
 IF gmap(18) < 2 THEN
