@@ -1077,12 +1077,12 @@ FOR whoi = 0 TO 3
        xgo(whoi) = 0: ygo(whoi) = 0
        id = (npc(i).id - 1)
        '--push the NPC
-       IF npcs(id).picture > 0 AND npc(i).xgo = 0 AND npc(i).ygo = 0 THEN
-        temp = npcs(id).picture
-        IF catd(whoi) = 0 AND (temp = 1 OR temp = 2 OR temp = 4) THEN npc(i).ygo = 20
-        IF catd(whoi) = 2 AND (temp = 1 OR temp = 2 OR temp = 6) THEN npc(i).ygo = -20
-        IF catd(whoi) = 3 AND (temp = 1 OR temp = 3 OR temp = 7) THEN npc(i).xgo = 20
-        IF catd(whoi) = 1 AND (temp = 1 OR temp = 3 OR temp = 5) THEN npc(i).xgo = -20
+       pushtype = npcs(id).pushtype
+       IF pushtype > 0 AND npc(i).xgo = 0 AND npc(i).ygo = 0 THEN
+        IF catd(whoi) = 0 AND (pushtype = 1 OR pushtype = 2 OR pushtype = 4) THEN npc(i).ygo = 20
+        IF catd(whoi) = 2 AND (pushtype = 1 OR pushtype = 2 OR pushtype = 6) THEN npc(i).ygo = -20
+        IF catd(whoi) = 3 AND (pushtype = 1 OR pushtype = 3 OR pushtype = 7) THEN npc(i).xgo = 20
+        IF catd(whoi) = 1 AND (pushtype = 1 OR pushtype = 3 OR pushtype = 5) THEN npc(i).xgo = -20
        END IF
        IF npcs(id).activation = 1 AND whoi = 0 THEN
         IF wraptouch(npc(i).x, npc(i).y, catx(0), caty(0), 20) THEN
