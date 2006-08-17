@@ -107,7 +107,7 @@ SUB airbrush (x, y, d, m, c, p)
 ' mist_amount sets how many pixels to place i put 100 and it ran fast so
 ' it works EXCELLENTLY with a mouse on the DTE =)
 
-DO WHILE count < m
+FOR count = 1 TO m
  x2 = RND * d
  y2 = RND * d
  r = d \ 2
@@ -116,7 +116,7 @@ DO WHILE count < m
  IF ABS((x3 + x2) - x) ^ 2 + ABS((y3 + y2) - y) ^ 2 < r ^ 2 THEN
   putpixel x3 + x2, y3 + y2, c, p
  END IF
-count = count + 1: LOOP
+NEXT
 
 END SUB
 
@@ -155,6 +155,8 @@ SUB ellipse (x, y, radius, c, p, squish1, squish2)
 r = radius
 b = squish1
 b2 = squish2
+lx# = 0
+ly# = 0
 
 IF b = 0 THEN b = 1
 IF b2 = 0 THEN b2 = 1
@@ -184,6 +186,8 @@ END SUB
 SUB importbmp (f$, cap$, count)
 STATIC default$
 DIM menu$(10), pmask(767)
+csr = 0
+pt = 0
 
 IF count = 0 THEN count = 1
 clearpage 0
@@ -347,6 +351,7 @@ bnum = 0
 tmode = 0
 pagenum = -1
 top = -1
+taptr = 0
 
 setkeys
 DO
@@ -446,7 +451,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN savetanim pagenum, tastuf(): RETRACE
- IF usemenu(taptr, dummy, 0, 5, 5) THEN GOSUB utamenu
+ IF usemenu(taptr, 0, 0, 5, 5) THEN GOSUB utamenu
  IF taptr = 1 THEN
   IF intgrabber(taset, 0, 1, 75, 77) THEN GOSUB utamenu
  END IF
@@ -650,7 +655,9 @@ llim(6) = -999
 ulim(6) = 999
 
 GOSUB refreshmenu
-
+pt = 0
+ptr2 = 0
+context = 0
 setkeys
 DO
  setwait timing(), 100
@@ -659,7 +666,7 @@ DO
  SELECT CASE context
   CASE 0 '---PICK A STATEMENT---
    IF keyval(1) > 1 THEN EXIT DO
-   IF usemenu(pt, dummy, 0, 9, 9) THEN GOSUB refreshmenu
+   IF usemenu(pt, 0, 0, 9, 9) THEN GOSUB refreshmenu
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
     IF pt = 0 THEN
      EXIT DO
@@ -775,11 +782,15 @@ DIM nulpal(8), placer(1602), pclip(8), menu$(255), pmenu$(3), bmpd(40), mouse(4)
 
 gotm = setmouse(mouse())
 GOSUB initmarea
+tool = 0
 airsize = 5
 mist = 10
+pt = 0
 icsr = 0
 itop = 0
 dcsr = 1
+x = 0: y = 0
+zox = 0: zoy = 0
 pmenu$(0) = "Overwrite Current Palette"
 pmenu$(1) = "Import Without Palette"
 pmenu$(2) = "Cancel Import"
@@ -923,6 +934,12 @@ FOR i = top TO small(top + atatime, sets)
 NEXT i
 RETRACE
 
+resettool:
+box = 0
+drl = 0
+ovalstep = 0
+RETRACE
+
 spriteage:
 undodepth = 0
 undoptr = 0
@@ -958,12 +975,6 @@ DO
  rectangle 239, 119, xw, yw, 0, dpage
  dowait
 LOOP
-
-resettool:
-box = 0
-drl = 0
-ovalstep = 0
-RETRACE
 
 sprctrl:
 IF mouse(2) = 0 THEN
@@ -1707,6 +1718,7 @@ END IF
 
 loadpage mapfile$, pagenum, 3
 'pick block to draw/import/default
+bnum = 0
 setkeys
 DO
  setwait timing(), 120
@@ -1816,6 +1828,7 @@ ts.justpainted = 0
 ts.undo = 0
 ts.allowundo = 0
 ts.delay = 3
+zox = 0: zoy = 0
 clearpage 2
 FOR i = 0 TO 5
  rectangle 279, 9 + (i * 21), 22, 22, 7, 2
@@ -2159,7 +2172,7 @@ DO
  IF ts.gotmouse THEN
   readmouse mouse()
   zcsr = 0
-  ts.zone = mouseover(mouse(), zox, zoy, zcsr, area())
+  ts.zone = mouseover(mouse(), 0, 0, zcsr, area())
   ts.x = small(mouse(0), 300)
   ts.y = small(mouse(1), 180)
  END IF

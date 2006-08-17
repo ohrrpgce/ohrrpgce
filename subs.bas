@@ -693,6 +693,7 @@ clearpage 1
 clearpage 2
 clearpage 3
 setdiskpages buffer(), 200, 0
+csr = 0: bcsr = 0
 
 menu$(0) = "Return to Main Menu"
 menu$(1) = "Edit Individual Formations..."
@@ -725,7 +726,9 @@ EXIT SUB
 
 formsets:
 bmenu$(0) = "Previous Menu"
+pt = 0
 GOSUB loadfset
+GOSUB lpreviewform
 setkeys
 DO
  setwait timing(), 100
@@ -1012,7 +1015,8 @@ END FUNCTION
 
 SUB herodata
 DIM names$(100), a(318), menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 25), hmenu$(4), pal16(16), elemtype$(2)
-wd = 1: hmax = 32
+wd = 1: wc = 0: wx = 0: wy = 0: hmax = 32
+leftkey = 0: rightkey = 0
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
 clearpage 0
 clearpage 1
@@ -1024,6 +1028,7 @@ elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
 frame = -1
 
+pt = 0
 csr = 1
 FOR i = 0 TO 7
  hbit$(i) = elemtype$(0) + " " + names$(17 + i)
@@ -1042,6 +1047,7 @@ menu$(5) = "Edit Spell Lists..."
 menu$(6) = "Name Spell Lists..."
 menu$(7) = "Bitsets..."
 menu$(8) = "Hero Tags..."
+nam$ = ""
 GOSUB thishero
 
 setkeys
@@ -1485,6 +1491,7 @@ menu$(2) = "is alive TAG"
 menu$(3) = "is leader TAG"
 menu$(4) = "is in party now TAG"
 
+pt = 0
 setkeys
 DO
  setwait timing(), 100
@@ -1584,7 +1591,7 @@ FOR i = 9 TO 10
 NEXT i
 sbmax(11) = 10
 
-csr = 0: top = -1
+csr = 0: top = -1: pt = 0
 GOSUB litemname
 setkeys
 DO
@@ -1991,7 +1998,7 @@ info$(1, 1) = " Face Player"
 info$(2, 1) = " Do Not Face Player"
 unpc(0) = general(30)
 
-npcpick:
+csr = 0
 cur = 0: top = 0
 FOR i = 0 TO 35
  GOSUB loadnpcpic
@@ -2029,6 +2036,7 @@ RETRACE
 
 npcstats:
 it$ = itemstr(npc(cur * 15 + 6), 0, 0)
+x$ = ""
 GOSUB frstline
 setkeys
 DO

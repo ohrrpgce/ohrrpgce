@@ -512,6 +512,7 @@ menu$(0) = "Previous Menu"
 menu$(1) = "export names for scripts (.hsi)"
 menu$(2) = "import compiled plotscripts (.hs)"
 
+pt = 0
 setkeys
 DO
  setwait timing(), 100
@@ -716,6 +717,8 @@ names$(122) = "minutes":                stat$(122) = readglobalstring$(159, "min
 
 'names$() = "":      stat$() = readglobalstring$(, "", 10)
 
+top = 0
+pt = 0
 setkeys
 DO
  setwait timing(), 100
@@ -814,6 +817,7 @@ END SUB
 FUNCTION sublist (num, s$())
 clearpage 0
 clearpage 1
+pt = 0
 
 setkeys
 DO
@@ -829,7 +833,7 @@ DO
   EXIT DO
  END IF
  tog = tog XOR 1
- standardmenu s$(), num, 22, pt, top, 0, 0, dpage, 0
+ standardmenu s$(), num, 22, pt, 0, 0, 0, dpage, 0
  SWAP dpage, vpage
  setvispage vpage
  clearpage dpage
@@ -842,7 +846,7 @@ clearpage 1
 END FUNCTION
 
 SUB textage
-DIM m$(10), x$(8), cond(21), ct(-1 TO 21), menu$(21), a(318), order(21), grey(21), choice$(1), max(8), min(8), buf(16384), h$(2), tagmn$
+DIM m$(10), x$(8), cond(21), ct(-1 TO 21), menu$(21), a(318), order(21), grey(21), choice$(1), max(8), min(8), buf(16384), h$(2), tagmn$, gcsr, tcur
 pt = 1
 
 order(0) = 0:      grey(0) = -1
@@ -895,6 +899,7 @@ m$(5) = "Box Appearance"
 m$(6) = "Next:"
 m$(7) = "Text Search:"
 search$ = ""
+csr = 0
 GOSUB loadlines
 setkeys
 DO
@@ -1053,6 +1058,11 @@ DO
  dowait
 LOOP
 
+itemar:
+item$ = ""
+IF cond(18) <> 0 THEN item$ = itemstr$(ABS(cond(18)), 0, 0)
+RETRACE
+
 textcmenu:
 n = 0: GOSUB txttag
 SELECT CASE cond(1)
@@ -1171,11 +1181,6 @@ IF cond(8) > 0 THEN
   shop$ = shop$ + CHR$(a(i))
  NEXT i
 END IF
-RETRACE
-
-itemar:
-item$ = ""
-IF cond(18) <> 0 THEN item$ = itemstr$(ABS(cond(18)), 0, 0)
 RETRACE
 
 picktext:
