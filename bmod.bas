@@ -89,7 +89,7 @@ REMEMBERSTATE
 bstackstart = stackpos
 
 battle = 1
-DIM a(40), atktemp(40 + dimbinsize(0)), atk(40 + dimbinsize(0)), st(3, 318), es(7, 160), x(24), y(24), z(24), d(24), zbuf(24), xm(24), ym(24), zm(24), mvx(24), mvy(24), mvz(24), v(24), p(24), w(24), h(24), of(24), ext$(7), ctr(11), stat(11,  _
+DIM formdata(40), atktemp(40 + dimbinsize(0)), atk(40 + dimbinsize(0)), st(3, 318), es(7, 160), x(24), y(24), z(24), d(24), zbuf(24), xm(24), ym(24), zm(24), mvx(24), mvy(24), mvz(24), v(24), p(24), w(24), h(24), of(24), ext$(7), ctr(11), stat(11,  _
 1, 17), ready(11), batname$(11), menu$(3, 5), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
@@ -116,7 +116,7 @@ battlecaption$ = ""
 alert = 0
 alert$ = ""
 
-curbg = a(32)
+curbg = formdata(32)
 
 fademusic 0
 fadeout 60, 60, 60, 0
@@ -169,10 +169,10 @@ DO
  flash = loopvar(flash, 0, 14, 1)
 
  '--background animation hack
- IF a(34) > 0 THEN
-  bgspeed = loopvar(bgspeed, 0, a(35), 1)
+ IF formdata(34) > 0 THEN
+  bgspeed = loopvar(bgspeed, 0, formdata(35), 1)
   IF bgspeed = 0 THEN
-   curbg = loopvar(curbg, a(32), a(32) + a(34), 1)
+   curbg = loopvar(curbg, formdata(32), formdata(32) + formdata(34), 1)
    loadpage game$ + ".mxs", curbg, 2
   END IF
  END IF
@@ -323,11 +323,11 @@ IF ai = 2 AND es(them - 4, 81) THEN
  FOR j = 1 TO es(them - 4, 91)
   slot = -1
   FOR k = 7 TO 0 STEP -1
-   IF a(k * 4) = 0 THEN slot = k
+   IF formdata(k * 4) = 0 THEN slot = k
   NEXT k
   IF slot > -1 THEN
-   a(slot * 4) = es(them - 4, 81)
-   loadfoe slot, a(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
+   formdata(slot * 4) = es(them - 4, 81)
+   loadfoe slot, formdata(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
   END IF
  NEXT j
 END IF
@@ -952,16 +952,16 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    NEXT i
    FOR i = 0 TO 7
     IF eflee(4 + i) = 0 THEN
-     x(4 + i) = a(i * 4 + 1)
-     y(4 + i) = a(i * 4 + 2)
+     x(4 + i) = formdata(i * 4 + 1)
+     y(4 + i) = formdata(i * 4 + 2)
     END IF
    NEXT i
    anim = -1
    'DEBUG debug "~ end"
   CASE 1 '???()
    FOR i = 0 TO 3
-    a(i * 4 + 1) = x(4 + i)
-    a(i * 4 + 2) = y(4 + i)
+    formdata(i * 4 + 1) = x(4 + i)
+    formdata(i * 4 + 2) = y(4 + i)
    NEXT i
    anim = -1
    'DEBUG debug "~ 1???"
@@ -1347,7 +1347,7 @@ deadguyhp = stat(deadguy, 0, 0)
 IF deadguy >= 4 THEN
  isenemy = 1
  enemynum = deadguy - 4
- formslotused = a((deadguy - 4) * 4)
+ formslotused = formdata((deadguy - 4) * 4)
  IF stat(deadguy, 0, 0) > 0 AND readbit(ebits(), enemynum * 5, 61) = 1 THEN deadguycount = deadguycount + 1
 ELSE
  isenemy = 0
@@ -1390,6 +1390,8 @@ IF deadguyhp = 0 and formslotused <> 0 THEN
     END IF '---END RARE ITEM-------------
    END IF '----END GET ITEMS----------------
   END IF
+  ' remove dead enemy from formation
+  formdata((deadguy - 4) * 4) = 0
  END IF'------------END PLUNDER-------------------
  IF noifdead = 0 THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
   tcount = tcount - 1
@@ -1426,11 +1428,11 @@ FOR i = 0 TO 8
   FOR j = 1 TO es(targ - 4, 91)
    slot = -1
    FOR k = 7 TO 0 STEP -1
-    IF a(k * 4) = 0 THEN slot = k
+    IF formdata(k * 4) = 0 THEN slot = k
    NEXT k
    IF slot > -1 THEN
-    a(slot * 4) = es(targ - 4, 82 + i)
-    loadfoe slot, a(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
+    formdata(slot * 4) = es(targ - 4, 82 + i)
+    loadfoe slot, formdata(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
    END IF
   NEXT j
   EXIT FOR
@@ -1445,12 +1447,12 @@ IF deadguy >= 4 THEN
   FOR j = 1 TO es(deadguy - 4, 91)
    slot = -1
    FOR k = 7 TO 0 STEP -1
-    IF a(k * 4) = 0 THEN slot = k
+    IF formdata(k * 4) = 0 THEN slot = k
    NEXT k
    IF slot > -1 THEN
-    a(slot * 4) = es(deadguy - 4, 80)
+    formdata(slot * 4) = es(deadguy - 4, 80)
     deadguycount = deadguycount - 1
-    loadfoe slot, a(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
+    loadfoe slot, formdata(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
    END IF
   NEXT j
   es(deadguy - 4, 80) = 0
@@ -1460,12 +1462,12 @@ IF deadguy >= 4 THEN
   FOR j = 1 TO es(deadguy - 4, 91)
    slot = -1
    FOR k = 7 TO 0 STEP -1
-    IF a(k * 4) = 0 THEN slot = k
+    IF formdata(k * 4) = 0 THEN slot = k
    NEXT k
    IF slot > -1 THEN
-    a(slot * 4) = es(deadguy - 4, 79)
+    formdata(slot * 4) = es(deadguy - 4, 79)
     deadguycount = deadguycount - 1
-    loadfoe slot, a(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
+    loadfoe slot, formdata(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
    END IF
   NEXT j
   es(deadguy - 4, 79) = 0
@@ -1851,7 +1853,7 @@ FOR i = 0 TO 11
     x(i) = x(i) - 10: d(i) = 1
    END IF
    die(i) = die(i) - 1
-   IF die(i) = 0 THEN a((i-4) * 4) = 0 'moved from way above
+   IF die(i) = 0 THEN formdata((i-4) * 4) = 0 'moved from way above
   END IF
   IF i < 4 THEN of(i) = 7
  END IF
@@ -1939,9 +1941,9 @@ END IF
 RETRACE
 
 loadall:
-setpicstuf a(), 80, -1
+setpicstuf formdata(), 80, -1
 loadset workingdir$ + SLASH + "for.tmp", form, 0
-IF a(33) > 0 THEN wrappedsong a(33) - 1
+IF formdata(33) > 0 THEN wrappedsong formdata(33) - 1
 setpicstuf buffer(), 636, -1
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
@@ -1987,7 +1989,7 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 FOR i = 0 TO 7
- loadfoe i, a(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
+ loadfoe i, formdata(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
 NEXT i
 FOR i = 0 TO 11
  ctr(i) = INT(RND * 500)
@@ -1998,7 +2000,7 @@ FOR i = 12 TO 23
  h(i) = 50
 NEXT i
 setdiskpages buffer(), 200, 0
-loadpage game$ + ".mxs", a(32), 2
+loadpage game$ + ".mxs", formdata(32), 2
 FOR i = 0 TO 3
  IF stat(i, 0, 0) < stat(i, 1, 0) / 5 AND vdance = 0 THEN of(i) = 6
  IF hero(i) > 0 AND stat(i, 0, 0) = 0 THEN die(i) = 1
