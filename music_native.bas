@@ -795,7 +795,6 @@ end sub
 
 #include "win/dsound.bi"
 DECLARE sub loadWaveFileToBuffer(fi as string, buf as LPDIRECTSOUNDBUFFER ptr)
-DECLARE function isPlaying(slot as integer) as integer
 Declare Function SoundSlot(byval num as integer) as integer
 Declare Function LoadSound(byval num as integer) as integer
 Declare Sub UnloadSound(byval slot as integer)
@@ -804,7 +803,6 @@ TYPE SoundEffect
   used as integer 'sentinel, not 0 = this entry contains valid data
   effectID as integer 'OHR sound effect
   buf as LPDIRECTSOUNDBUFFER 'DirectSound sound buffer
-  playing as integer
   paused as integer
 END TYPE
 
@@ -877,14 +875,6 @@ sub sound_close
   if sound_inited = 0 then exit sub
   'debug "sound_close"
   dim i as integer
-'   for i = 0 to ubound(sfx_slots)
-'     if .playing then sound_stop(num)
-'     with sfx_slots(i)
-'       .used = 0
-'       .paused = 0
-'       .buf =  NULL 'directsound frees this for us
-'     end with
-'   next
 
   IDirectSound_Release(ds8)
   ds8 = null
@@ -904,22 +894,21 @@ sub sound_play(byval num as integer, byval l as integer)
     if slot = -1 then exit sub
   end if
   'slot -= 1
-  
+debug "slot "+str$(slot)  
   with SoundPool[slot]
-    if .playing and not .paused then
-      debug "<<sound_play"
+    if sound_playing(num) <> 0 and not .paused then
+      debug "<<already playing"
       exit sub
     end if
 
     
     if l then l = DSBPLAY_LOOPING
     
-    .playing = -1
     .paused = 0
 
     IDirectSoundBuffer_Play(.buf, 0, 0, l)
   end with
-  debug "<<sound_play"
+  debug "<<done"
 end sub
 
 sub sound_pause(byval num as integer)
@@ -930,7 +919,7 @@ sub sound_pause(byval num as integer)
   'slot -= 1
   
   with SoundPool[slot]
-    if not .playing OR .paused then
+    if sound_playing(num) = 0 OR .paused then
       'debug "<<sound_pause"
       exit sub
     end if
@@ -949,13 +938,12 @@ sub sound_stop(byval num as integer)
   'slot -= 1
   
   with SoundPool[slot]
-    if not .playing then
+    if sound_playing(num) = 0 then
       'debug "<<sound_stop"
       exit sub
     end if
     
     .paused = 0
-    .playing = 0
     
     IDirectSoundBuffer_Stop(.buf)
     IDirectSoundBuffer_SetCurrentPosition(.buf,0)
@@ -972,11 +960,12 @@ function sound_playing(byval num as integer) as integer
   dim stat as integer
   dim slot as integer
   slot = SoundSlot(num)
-  if slot = -1 then exit function
+  if slot = -1 then return 0
   
-    
-  return SoundPool[slot].playing
-    
+  with SoundPool[slot]
+    IDirectSoundBuffer8_GetStatus(.buf,@stat)
+    if stat AND DSBSTATUS_PLAYING then return 1 ELSE return 0
+  end with
   
 end function
 
@@ -1057,7 +1046,6 @@ Function LoadSound(byval num as integer) as integer
     .used = -1
     .buf = derbuffer
     .effectID = num
-    .playing = 0
     .paused = 0
   end with
   
@@ -1069,10 +1057,9 @@ End Function
 'Unloads a sound loaded in a slot. TAKES A SLOT, NOT AN SFX NUMBER!
 Sub UnloadSound(byval slot as integer)
   with SoundPool[slot]
-    if .buf <> NULL then Deallocate .buf
+    if .buf <> NULL then IDirectSoundBuffer_Release(.buf)
     .buf = NULL
     .used = 0
-    .playing = 0
     .paused = 0
     .effectID = 0
   end with
