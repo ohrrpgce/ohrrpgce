@@ -15,7 +15,7 @@ declare sub debug(s$)
 declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 declare function isfile(n$) as integer
 declare function soundfile$ (sfxnum%)
-declare sub sound_free(byval slot as integer)
+declare sub sound_slot_free(byval slot as integer)
 declare function next_free_slot() as integer
 declare function sound_replay(byval num as integer, byval l as integer) as integer
 declare sub sound_debug(s$, byval sample as integer, byval slot as integer)
@@ -298,7 +298,7 @@ function sound_load(byval slot as integer, f as string) as integer
 
   with sfx_slots(slot)
     if .used then
-      sound_free(slot)
+      sound_slot_free(slot)
     end if
 
     .used = 1
@@ -311,7 +311,7 @@ function sound_load(byval slot as integer, f as string) as integer
   
 end function
 
-sub sound_free(byval slot as integer)
+sub sound_slot_free(byval slot as integer)
   with sfx_slots(slot)
     if .used then
       .used = 0
@@ -336,7 +336,7 @@ function next_free_slot() as integer
   'Look for silent slots
   for i = 0 to ubound(sfx_slots)
     if sfx_slots(i).playing = 0 and sfx_slots(i).paused = 0 then
-      sound_free(i)
+      sound_slot_free(i)
       return i
     end if
   next
@@ -353,14 +353,14 @@ function sound_replay(byval num as integer, byval l as integer) as integer
         if .paused then
           Mix_Resume(i)
           .paused = 0
-	else
+        else
           if mix_playchannel(i,.buf,l) = -1 then
-	    sound_debug "failure to restart sound", num, i
-	    sound_free i
-	    return 0 'failure
-	  end if
-	  .playing = 1
-	end if
+            sound_debug "failure to restart sound", num, i
+            sound_slot_free i
+            return 0 'failure
+          end if
+          .playing = 1
+        end if
         return -1 'success
       end if
     end with
@@ -412,10 +412,21 @@ sub sound_pause(byval num as integer)
         if .playing <> 0 and .paused <> 0 then
           .paused = 1
           Mix_Pause(i)
-	end if
+        end if
       end if
     end with
   next i  
+end sub
+
+sub sound_free(byval num as integer)
+  dim i as integer
+  for i = 0 to ubound(sfx_slots)
+    with(sfx_slots(i))
+      if .used <> 0 and .effectID = num then
+        sound_slot_free i
+      end if
+    end with
+  next i
 end sub
 
 sub sound_stop(byval num as integer)
@@ -428,8 +439,8 @@ sub sound_stop(byval num as integer)
           .playing = 0
           .paused = 0
           Mix_HaltChannel(i)
-	end if  
-      end if	
+        end if  
+      end if
     end with
   next i
 end sub

@@ -3175,6 +3175,10 @@ SUB pausesfx (BYVAL num)
   sound_pause(num)
 end sub
 
+SUB freesfx (BYVAL num)
+  sound_free(num)
+end sub
+
 Function sfxisplaying(BYVAL num)
   return sound_playing(num)
 end Function

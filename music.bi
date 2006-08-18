@@ -26,5 +26,6 @@ declare sub sound_close()
 declare sub sound_play(byval num as integer, byval l as integer)
 declare sub sound_pause(byval num as integer)
 declare sub sound_stop(byval num as integer)
+declare sub sound_free(byval num as integer)'only used by custom for the importing interface
 
 declare function sound_playing(byval slot as integer) as integer

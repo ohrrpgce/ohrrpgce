@@ -1094,7 +1094,7 @@ DO
       safekill sfxfile$
       GOSUB getsfxinfo
     END IF
-  CASE ELSE
+  CASE 6
     IF sfxfile$ <> "" THEN 'play sfx
       playsfx snum, 0
     END IF
@@ -1164,6 +1164,7 @@ IF sourcesfx$ <> "" THEN
  a$ = MID$(a$, 1, INSTR(a$, ".") - 1)
  sname$ = a$
  GOSUB ssfxdata
+ freesfx snum
 END IF
 GOSUB getsfxinfo
 RETRACE

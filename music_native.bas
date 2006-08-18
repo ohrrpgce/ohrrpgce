@@ -963,6 +963,11 @@ sub sound_stop(byval num as integer)
   'debug "<<sound_stop"
 end sub
 
+sub sound_free(byval num as integer)
+
+  UnloadSound num
+end sub
+
 function sound_playing(byval num as integer) as integer
   dim stat as integer
   dim slot as integer
@@ -1066,6 +1071,9 @@ Sub UnloadSound(byval slot as integer)
   with SoundPool[slot]
     Deallocate .buf
     .used = 0
+    .playing = 0
+    .paused = 0
+    .effectID = 0
   end with
 End Sub
 
