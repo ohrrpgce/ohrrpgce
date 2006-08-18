@@ -1069,7 +1069,8 @@ End Function
 'Unloads a sound loaded in a slot. TAKES A SLOT, NOT AN SFX NUMBER!
 Sub UnloadSound(byval slot as integer)
   with SoundPool[slot]
-    Deallocate .buf
+    if .buf <> NULL then Deallocate .buf
+    .buf = NULL
     .used = 0
     .playing = 0
     .paused = 0

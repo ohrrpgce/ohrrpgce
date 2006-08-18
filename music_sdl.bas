@@ -318,7 +318,8 @@ sub sound_slot_free(byval slot as integer)
       .effectID = 0
       .playing = 0
       .paused = 0
-      mix_freechunk(.buf)
+      if .buf <> NULL then mix_freechunk(.buf)
+      .buf = NULL
     end if
   end with
 end sub
