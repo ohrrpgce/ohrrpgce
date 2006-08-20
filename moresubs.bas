@@ -1431,6 +1431,7 @@ IF loadinstead <> -1 THEN
   scrat(index, scroff) = scrat(loadinstead, scroff)
   scrat(index, scrvars) = scrat(loadinstead, scrvars)
   scrat(index, scrargs) = scrat(loadinstead, scrargs)
+  scrat(index, strtable) = scrat(loadinstead, strtable)
  END IF
 ELSE
  '--load the script from file
