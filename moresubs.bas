@@ -857,7 +857,9 @@ gold& = str2lng&(temp$)
 z = 34
 FOR i = 0 TO 500
  SELECT CASE i
-  CASE 42, 44 TO 54, 56 TO 92
+  'Only certain gen() values should be read from the saved game.
+  'See http://HamsterRepublic.com/ohrrpgce/index.php/GEN.html
+  CASE 42, 44 TO 54, 57 TO 76
    gen(i) = buffer(z)
  END SELECT
  z = z + 1
