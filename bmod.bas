@@ -116,8 +116,6 @@ battlecaption$ = ""
 alert = 0
 alert$ = ""
 
-curbg = formdata(32)
-
 fademusic 0
 fadeout 60, 60, 60, 0
 stopsong
@@ -1999,8 +1997,9 @@ FOR i = 12 TO 23
  w(i) = 50
  h(i) = 50
 NEXT i
+curbg = formdata(32)
 setdiskpages buffer(), 200, 0
-loadpage game$ + ".mxs", formdata(32), 2
+loadpage game$ + ".mxs", curbg, 2
 FOR i = 0 TO 3
  IF stat(i, 0, 0) < stat(i, 1, 0) / 5 AND vdance = 0 THEN of(i) = 6
  IF hero(i) > 0 AND stat(i, 0, 0) = 0 THEN die(i) = 1
