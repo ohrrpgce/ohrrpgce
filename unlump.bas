@@ -90,9 +90,10 @@ IF NOT isfile(lump$) THEN fatalerror "lump file `" + lump$ + "' was not found"
 
 PRINT "From " + lump$ + " to " + dest$
 
+'--Get old-style game$ (only matters for ancient RPG files that are missing the archinym.lmp)
 game$ = rightafter(lump$, "\")
 IF game$ = "" THEN game$ = lump$
-IF INSTR(game$, ".") THEN game$ = LEFT$(game$, INSTR(game$, ".") - 1)
+IF INSTR(game$, ".") THEN game$ = trimextension$(game$)
 
 IF isfile(dest$) THEN fatalerror "destination directory `" + dest$ + "' already exists as a file"
 

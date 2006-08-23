@@ -50,6 +50,16 @@ NEXT
 RETURN MID$(filename$, 1, i)
 END FUNCTION
 
+FUNCTION justextension$ (filename$)
+'return only the extension (everything after the *last* period)
+FOR i = LEN(filename$) TO 1 STEP -1
+ char$ = MID$(filename$, i, 1)
+ IF char$ = "." THEN RETURN RIGHT$(filename$, LEN(filename$) - i)
+ IF char$ = SLASH THEN RETURN ""
+NEXT
+RETURN ""
+END FUNCTION
+
 FUNCTION anycase$ (filename$)
  'make a filename case-insensitive
 #IFDEF __FB__LINUX__

@@ -993,11 +993,10 @@ IF sourcesong$ <> "" THEN
  IF LCASE$(RIGHT$(sourcesong$, 4)) = ".bam" AND snum <= 99 THEN
   songfile$ = game$ + "." + STR$(snum)
  ELSE
-  songfile$ = workingdir$ + SLASH + "song" + STR$(snum) + MID$(sourcesong$, INSTR(sourcesong$, "."))
+  songfile$ = workingdir$ + SLASH + "song" + STR$(snum) + "." + justextension$(sourcesong$)
  END IF
  copyfile sourcesong$, songfile$, buffer()
- a$ = trimpath$(sourcesong$)
- a$ = MID$(a$, 1, INSTR(a$, ".") - 1)
+ a$ = trimextension$(trimpath$(sourcesong$))
  sname$ = a$
  GOSUB ssongdata
 END IF
@@ -1158,10 +1157,9 @@ END IF
 safekill sfxfile$
 
 IF sourcesfx$ <> "" THEN
- sfxfile$ = workingdir$ + SLASH + "sfx" + STR$(snum) + MID$(sourcesfx$, INSTR(sourcesfx$, "."))
+ sfxfile$ = workingdir$ + SLASH + "sfx" + STR$(snum) + "." + justextension$(sourcesfx$)
  copyfile sourcesfx$, sfxfile$, buffer()
- a$ = trimpath$(sourcesfx$)
- a$ = MID$(a$, 1, INSTR(a$, ".") - 1)
+ a$ = trimextension$(trimpath$(sourcesfx$))
  sname$ = a$
  GOSUB ssfxdata
  freesfx snum
