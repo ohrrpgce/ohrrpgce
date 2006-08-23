@@ -1,0 +1,61 @@
+  BODY {
+    background-color:white;
+    color:black;
+  }
+
+  A {
+    color:blue;
+  }
+
+  A:visited {
+    color:purple;
+  }
+
+  .eo {
+    color:lime;
+  }
+
+  .shaded{
+    background-color:#E0E0E0;
+    padding:8px;
+    border:solid;
+    border-width:1px;
+    border-color:#80A090;
+  }
+  .shaded-alt{
+    background-color:#FFFFC0;
+    padding:8px;
+    border:solid;
+    border-width:1px;
+    border-color:#8090A0;
+  }
+
+  .shaded-email{
+    background-color:#FF9090;
+    padding:8px;
+    border:solid;
+    border-width:1px;
+    border-color:#A08080;
+  }
+
+  .shaded-header{
+    background-color:#B8C0A8;
+    padding:8px;
+    border:solid;
+    border-width:1px;
+    border-color:#E0E0E0;
+  }
+
+  .red-emphasis{
+    color:#FF6060;
+  }
+
+  .img0{
+    float:left;
+    margin:4px 8px;
+  }
+
+  .img1{
+    float:right;
+    margin:4px 8px;
+  }
