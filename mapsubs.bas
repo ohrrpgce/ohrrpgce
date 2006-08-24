@@ -335,7 +335,7 @@ gd$(16) = "Walkabout Layering:"
 gd$(17) = "NPC Data:"
 gd$(18) = "Tile Data:"
 gdmax(0) = general(genMaxTile):            gdmin(0) = 0
-gdmax(1) = general(genMaxSong):            gdmin(1) = 0
+gdmax(1) = general(genMaxSong) + 1:        gdmin(1) = 0
 gdmax(2) = 1:                              gdmin(2) = 0
 gdmax(3) = 1:                              gdmin(3) = 0
 gdmax(4) = 255:                            gdmin(4) = 0
@@ -375,7 +375,7 @@ DO
  IF gd = -1 THEN
   IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
  END IF
- IF gd = 1 THEN dummy = zintgrabber(gmap(gd), gdmin(gd) - 1, gdmax(gd), 75, 77) 'song is optional
+ IF gd = 1 THEN zintgrabber(gmap(gd), gdmin(gd)-1, gdmax(gd)-1, 75, 77) 'song is optional
  IF gd > 1 OR gd = 0 THEN
   IF intgrabber(gmap(gd), gdmin(gd), gdmax(gd), 75, 77) THEN
    GOSUB setgmapscriptstr
@@ -460,6 +460,7 @@ DO
   drawmap 0, -180, 0, dpage
   rectangle 20, 180, 300, 20, 240, dpage
  END IF
+ 
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
