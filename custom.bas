@@ -725,8 +725,8 @@ mode = -1
 menuptr = 0
 top = 0
 
-pt = -1 * linesize
 linesize = 14
+pt = -1 * linesize
 
 setkeys
 DO
@@ -1423,7 +1423,7 @@ IF general(genVersion) = 1 THEN
   buffer(11 + o + 3) = 1
  NEXT i
  FOR i = 0 TO 14
-  savetanim n, buffer()
+  savetanim i, buffer()
  NEXT i
  FOR i = 0 TO general(0)
   printstr " map" + XSTR$(i), 16, 24 + i * 8, vpage

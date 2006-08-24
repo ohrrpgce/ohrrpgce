@@ -313,6 +313,8 @@ a$ = CHR$(0)
 GET #fh, 1 + index * 11, a$
 namelen = 0: IF a$ <> "" THEN namelen = ASC(a$)
 
+i = 0
+
 IF index * 11 + i > LOF(fh) THEN
  result$ = default$
 ELSE

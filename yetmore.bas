@@ -20,7 +20,7 @@ DECLARE FUNCTION herobyrank% (slot%)
 DECLARE FUNCTION rankincaterpillar% (heroid%)
 DECLARE SUB embedtext (text$, limit%)
 DECLARE SUB renamehero (who%)
-DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%)
+DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%, showsay%)
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
 DECLARE SUB correctbackdrop ()
 DECLARE FUNCTION gethighbyte% (n%)
@@ -1995,7 +1995,7 @@ FOR i = bound(retvals(3), 0, 255) TO bound(retvals(4), 0, 255)
 NEXT i
 END SUB
 
-FUNCTION vehiclestuff (disx, disy, foep, vehedge)
+FUNCTION vehiclestuff (disx, disy, foep, vehedge, showsay)
 STATIC aheadx, aheady
 
 result = 0

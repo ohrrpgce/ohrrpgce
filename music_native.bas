@@ -859,7 +859,7 @@ sub sound_init
 '   debug "ds8 = 0x" + hex(cint(ds8))
   
 '   debug "creating buffer (" + hex(ds8) + "," + hex(@bd) + "," + hex(buf) + ")
-  if IDirectSound8_CreateSoundBuffer(ds8,@bd,buf,NULL) <> DS_OK then
+  if IDirectSound8_CreateSoundBuffer(ds8,@bd,@buf,NULL) <> DS_OK then
     exit sub
   end if
 

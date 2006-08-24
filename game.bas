@@ -24,7 +24,7 @@ DECLARE SUB templockexplain ()
 DECLARE SUB cleanuptemp ()
 DECLARE FUNCTION getfilelist% (wildcard$)
 DECLARE SUB scriptadvanced (id%)
-DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%)
+DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%, showsay%)
 DECLARE SUB touchfile (f$)
 DECLARE FUNCTION checkfordeath (stat())
 DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
@@ -494,7 +494,7 @@ DO
      IF pasx < 0 THEN pasx = (scroll(0) - 1) : vehedge = 1
    END SELECT
   END IF
-  tmp = vehiclestuff(pasx, pasy, foep, vehedge)
+  tmp = vehiclestuff(pasx, pasy, foep, vehedge, showsay)
   SELECT CASE tmp
    CASE IS < 0
     rsr = runscript(ABS(tmp), nowscript + 1, -1, "vehicle")

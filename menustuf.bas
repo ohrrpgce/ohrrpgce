@@ -833,10 +833,12 @@ centerbox 160, 92, 304, 176, 1, 3
 GOSUB infostr
 setkeys
 quit = 0
+wtogl = 0
 DO
  setwait timing(), speedcontrol
  setkeys
  tog = tog XOR 1
+ wtogl = loopvar(wtogl, 0, 3, 1)
  playtimer
  control
  GOSUB itcontrol
@@ -1563,7 +1565,7 @@ a$ = CHR$(0)
 GET #fh, 1 + index * 11, a$
 namelen = 0: IF a$ <> "" THEN namelen = ASC(a$)
 
-IF index * 11 + i > LOF(fh) THEN
+IF index * 11 + namelen > LOF(fh) THEN
  result$ = default$
 ELSE
  result$ = STRING$(small(namelen, maxlen), CHR$(0))

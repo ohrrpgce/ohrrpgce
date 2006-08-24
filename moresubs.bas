@@ -445,7 +445,7 @@ IF readbit(saybit(), 0, 0) THEN
  IF tempy > 160 THEN tempy = 20
  centerbox 160, tempy + 12, 10 + large(LEN(choose$(0)) * 8, LEN(choose$(1)) * 8), 24, sayenh(3) + 1, dpage
  FOR i = 0 TO 1
-  col = uilook(uiMenuItem): IF choosep = i THEN col = uilook(uiSelectedItem + tog)
+  col = uilook(uiMenuItem): IF choosep = i THEN col = uilook(uiSelectedItem + 1)
   edgeprint choose$(i), xstring(choose$(i), 160), tempy + 2 + (i * 10), col, dpage
  NEXT i
 END IF
@@ -1244,8 +1244,8 @@ END SUB
 SUB resetgame (map, foep, stat(), stock(), showsay, scriptout$, sayenh())
 map = 0
 catx(0) = 0
-caty(y) = 0
-catd(d) = 0
+caty(0) = 0
+catd(0) = 0
 foep = 0
 'leader = 0
 mapx = 0
