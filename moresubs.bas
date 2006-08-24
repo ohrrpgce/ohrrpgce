@@ -428,6 +428,8 @@ vishero stat()
 END SUB
 
 SUB drawsay (saybit(), sayenh(), say$(), showsay, choose$(), choosep)
+STATIC tog AS INTEGER
+tog = tog XOR 1
 IF readbit(saybit(), 0, 1) = 0 THEN
  IF readbit(saybit(), 0, 2) = 0 THEN
   centerfuz 160, 48 + (sayenh(0) * 4) - (sayenh(1) * 2), 312, 88 - (sayenh(1) * 4), sayenh(3) + 1, dpage
@@ -445,7 +447,7 @@ IF readbit(saybit(), 0, 0) THEN
  IF tempy > 160 THEN tempy = 20
  centerbox 160, tempy + 12, 10 + large(LEN(choose$(0)) * 8, LEN(choose$(1)) * 8), 24, sayenh(3) + 1, dpage
  FOR i = 0 TO 1
-  col = uilook(uiMenuItem): IF choosep = i THEN col = uilook(uiSelectedItem + 1)
+  col = uilook(uiMenuItem): IF choosep = i THEN col = uilook(uiSelectedItem + tog)
   edgeprint choose$(i), xstring(choose$(i), 160), tempy + 2 + (i * 10), col, dpage
  NEXT i
 END IF
