@@ -103,7 +103,11 @@ sub gfx_showpage(byval raw as ubyte ptr)
 	
 	for y = 0 to 199
 		for x = 0 to 319
+		  #IFDEF putpixel8
 			putpixel8(screenbuf, x, y, *raw)
+			#ELSE
+			putpixel(screenbuf, x, y, *raw)
+			#ENDIF
 			raw += 1
 		next
 	next
