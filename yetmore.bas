@@ -30,7 +30,7 @@ DECLARE SUB delitem (it%, num%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION getnpcref% (seekid%, offset%)
 DECLARE SUB suspendresume (id%)
-DECLARE SUB scriptwatcher (page%)
+DECLARE SUB scriptwatcher (mode%)
 DECLARE SUB onkeyscript (scriptnum%)
 DECLARE SUB waitcommands (id%)
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
@@ -90,6 +90,7 @@ DECLARE SUB cleanuptemp ()
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB interpolatecat ()
+DECLARE FUNCTION scriptstate$ ()
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -984,6 +985,7 @@ END SELECT
 
 debug indent$ + "[" + s$ + "]"
 debug indent$ + "script =" + XSTR$(nowscript)
+debug indent$ + "id     =" + XSTR$(scrat(nowscript, scrid))
 debug indent$ + "ptr    =" + XSTR$(scrat(nowscript, scrptr))
 debug indent$ + "state  =" + state$
 debug indent$ + "kind   =" + XSTR$(scrat(nowscript, curkind))
@@ -1879,22 +1881,34 @@ END SELECT
 
 END SUB
 
-SUB scriptwatcher (page)
+SUB scriptwatcher (mode)
 
 'Note: the colours here are fairly arbitrary
-rectangle 0, 0, 320, 4, uilook(uiBackground), page
-rectangle 0, 0, (320 / 4096) * nextscroff, 2, uilook(uiSelectedItem), page
-rectangle 0, 2, (320 / 2048) * scrat(nowscript + 1, scrheap), 2, uilook(uiSelectedItem + 1), page
+rectangle 0, 0, 320, 4, uilook(uiBackground), dpage
+rectangle 0, 0, (320 / 4096) * nextscroff, 2, uilook(uiSelectedItem), dpage
+rectangle 0, 2, (320 / 2048) * scrat(nowscript + 1, scrheap), 2, uilook(uiSelectedItem + 1), dpage
 
-edgeprint " #     ID    Rtval CmdKn CmdID State", 0, 192, uilook(uiText), page
-ol = 184
-FOR i = large(nowscript - 23, 0) TO nowscript
- edgeprint XSTR$(i), 0, ol, uilook(uiText), page
- edgeprint XSTR$(scrat(i, scrid)), 48, ol, uilook(uiText), page
- edgeprint XSTR$(scrat(i, scrret)), 96, ol, uilook(uiText), page
- edgeprint XSTR$(scrat(i, curkind)), 144, ol, uilook(uiText), page
- edgeprint XSTR$(scrat(i, curvalue)), 192, ol, uilook(uiText), page
- edgeprint XSTR$(scrat(i, scrstate)), 240, ol, uilook(uiText), page
+ol = 192
+
+IF mode = 2 THEN
+ decmpl$ = scriptstate$
+ FOR i = 5 TO 0 STEP -1
+  IF LEN(decmpl$) > i * 40 THEN
+   edgeprint MID$(decmpl$, i * 40 + 1), 0, ol, uilook(uiSelectedItem), dpage
+   ol -= 8
+  END IF
+ NEXT
+END IF
+
+edgeprint " #     ID    Rtval CmdKn CmdID State", 0, ol, uilook(uiText), dpage
+ol -= 8
+FOR i = large(nowscript - 21, 0) TO nowscript
+ edgeprint XSTR$(i), 0, ol, uilook(uiText), dpage
+ edgeprint XSTR$(scrat(i, scrid)), 48, ol, uilook(uiText), dpage
+ edgeprint XSTR$(scrat(i, scrret)), 96, ol, uilook(uiText), dpage
+ edgeprint XSTR$(scrat(i, curkind)), 144, ol, uilook(uiText), dpage
+ edgeprint XSTR$(scrat(i, curvalue)), 192, ol, uilook(uiText), dpage
+ edgeprint XSTR$(scrat(i, scrstate)), 240, ol, uilook(uiText), dpage
  ol = ol - 8
 NEXT i
 END SUB
@@ -2319,3 +2333,144 @@ IF x >= wide THEN x = x - wide
 IF y < 0 THEN y = high + y
 IF y >= high THEN y = y - high
 END SUB
+
+SUB readstackcommand (state(), i)
+ i -= 1
+ state(curargn) = readstackdw(i)
+ i -= 1
+ state(curargc) = readstackdw(i)
+ i -= 1
+ state(curvalue) = readstackdw(i)
+ i -= 1
+ state(curkind) = readstackdw(i)
+ i -= 1
+ state(scrptr) = readstackdw(i)
+END SUB
+
+FUNCTION scriptstate$
+ recurse = 0
+ 'recurse 0 = only top script
+ 'recurse 1 = top script plus calling scripts
+ 'recurse 2 = all scripts, including suspended ones
+
+ DIM state(15), flowname$(15), flowtype(15)
+
+ flowtype(0) = 0:	flowname$(0) = "do"
+ flowtype(3) = 1:	flowname$(3) = "return"
+ flowtype(4) = 3:	flowname$(4) = "if"
+ flowtype(5) = 0:	flowname$(5) = "then"
+ flowtype(6) = 0:	flowname$(6) = "else"
+ flowtype(7) = 2:	flowname$(7) = "for"
+ flowtype(10) = 2:	flowname$(10) = "while"
+ flowtype(11) = 1:	flowname$(11) = "break"
+ flowtype(12) = 1:	flowname$(12) = "continue"
+ flowtype(13) = 1:	flowname$(13) = "exit"
+ flowtype(14) = 1:	flowname$(14) = "exitreturn"
+ flowtype(15) = 3:	flowname$(15) = "switch"
+
+ DIM mathname$(22) = {_
+         "random", "exponent", "mod", "divide", "multiply", "subtract"_
+         ,"add", "xor", "or", "and", "equal", "!equal", "<<", ">>"_
+         ,"<=", ">=", "setvar", "inc", "dec", "not", "&&", "||", "^^"_
+ }
+
+ stkbottom = -(stackpos \ 4)
+ stkpos = 0
+
+ 'FOR i = stkbottom TO -1
+ ' dstr$ = dstr$ + xstr$(readstackdw(i))
+ 'NEXT
+ 'debug "stack contents = " + dstr$
+
+ wasscript = nowscript
+
+ FOR i = 0 TO 15: state(i) = scrat(wasscript, i): NEXT
+
+ IF scrat(nowscript, scrstate) = stdoarg THEN GOTO jmpdoarg
+ IF scrat(nowscript, scrstate) = stnext THEN GOTO jmpnext
+
+ DO
+  jmpread:
+  jmpreturn:
+
+   cmd$ = ""
+   hidearg = 0
+  SELECT CASE state(curkind)
+    CASE tynumber
+     outstr$ = STR$(state(curvalue))
+    CASE tyflow
+     cmd$ = flowname$(state(curvalue))
+     IF state(scrdepth) = 0 THEN cmd$ = scriptname$(state(scrid), "plotscr.lst")
+     IF flowtype(state(curvalue)) = 1 THEN hidearg = -1: cmd$ += ":"
+     IF (state(curargc) = state(curargn) + 1) AND flowtype(state(curvalue)) = 2 THEN hidearg = -1: cmd$ += "()"
+     IF state(curvalue) = flowif AND state(curargn) > 0 THEN hidearg = -1
+    CASE tyglobal
+     outstr$ = "global" + STR$(state(curvalue))
+    CASE tylocal
+     outstr$ = "local" + STR$(state(curvalue))
+    CASE tymath
+     cmd$ = mathname$(state(curvalue))
+    CASE tyfunct
+     cmd$ = "cmd" + STR$(state(curvalue))
+    CASE tyscript
+     IF state(curargn) >= state(curargc) THEN
+      'currently executing this script (must have already printed it out)
+      cmd$ = "==>>"
+     ELSE
+      cmd$ = scriptname$(state(curvalue), "plotscr.lst")
+     END IF
+   END SELECT
+   'debug "kind = " + STR$(state(curkind))
+   'debug "cmd$ = " + cmd$
+
+   IF cmd$ <> "" THEN
+    IF state(curargn) < state(curargc) AND hidearg = 0 THEN
+     outstr$ = cmd$ + ":" + LTRIM$(STR$(state(curargn) + 1)) + "/" + LTRIM$(STR$(state(curargc))) + " " + outstr$
+    ELSE
+     outstr$ = cmd$ + " " + outstr$
+    END IF
+   END IF
+
+   'anything left on stack?
+   IF stkpos <= stkbottom THEN EXIT DO
+ 
+   state(scrdepth) -= 1
+
+   IF state(scrdepth) < 0 THEN
+    IF recurse = 0 THEN EXIT DO
+    'load next script
+    wasscript -= 1
+    IF wasscript < 0 THEN EXIT DO
+    FOR i = 0 TO 15: state(i) = scrat(wasscript, i): NEXT
+    IF scrat(wasscript, scrstate) < 0 THEN 
+     IF recurse = 2 THEN
+      'deal with state   (can only be wait?)
+      CONTINUE DO
+     ELSE
+      EXIT DO
+     END IF
+    ELSE
+     CONTINUE DO
+    ' state(scrdepth) -= 1  'returning from a script kind or runscriptbyid command
+    END IF
+   END IF
+
+   readstackcommand state(), stkpos
+
+  jmpnext:
+  jmpdoarg: 
+
+   'ditch arguments
+   IF state(curkind) = tyflow AND state(curvalue) = flowswitch THEN
+    stkpos -= 2
+   ELSE
+    stkpos -= state(curargn)
+   END IF
+
+   IF stkpos < stkbottom THEN scripterr "interpreter state corrupt; stack underflow": EXIT DO
+ LOOP
+ IF stkpos > stkbottom AND wasscript < 0 THEN scripterr "interpreter state corrupt; stack garbage"
+
+ 'debug "finished product: " + outstr$
+ scriptstate$ = TRIM$(outstr$)
+END FUNCTION

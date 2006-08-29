@@ -27,6 +27,7 @@ DECLARE SUB copylump(package$, lump$, dest$)
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
 DECLARE FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTEGER
+DECLARE FUNCTION scriptname$ (num%, f$)
 
 'Global variables
 EXTERN uilook()

@@ -86,6 +86,7 @@ DECLARE SUB pushdw (BYVAL word)
 DECLARE FUNCTION popdw ()
 DECLARE SUB releasestack ()
 DECLARE FUNCTION stackpos ()
+DECLARE FUNCTION readstackdw (BYVAL off)
 DECLARE SUB drawbox(BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL c, BYVAL p)
 DECLARE FUNCTION isawav(fi$)
 

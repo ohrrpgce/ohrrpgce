@@ -757,3 +757,42 @@ FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTE
   RETURN 0
  END IF
 END FUNCTION
+
+FUNCTION scriptname$ (num, f$)
+#ifdef IS_GAME
+ 'remember script names!
+ STATIC cachenum, cacheids(9), cachenames$(9)
+ FOR i = 0 TO cachenum - 1
+  IF cacheids(i) = num THEN RETURN cachenames$(i)
+ NEXT
+#endif
+
+DIM buf(19)
+a$ = STR$(num)
+IF num THEN
+ fh = FREEFILE
+ OPEN workingdir$ + SLASH + f$ FOR BINARY AS #fh
+ numscripts = LOF(fh) \ 40
+ CLOSE fh
+ 'numscripts = FILELEN(workingdir$ + SLASH + f$) \ 40
+ setpicstuf buf(), 40, -1
+ FOR i = 0 TO numscripts - 1
+  loadset workingdir$ + SLASH + f$, i, 0
+  IF buf(0) = num THEN
+   a$ = STRING$(small(large(buf(1), 0), 38), " ")
+   array2str buf(), 4, a$
+   EXIT FOR
+  END IF
+ NEXT i
+ELSE
+ a$ = "[none]"
+END IF
+scriptname$ = a$
+
+#ifdef IS_GAME
+ IF cachenum = 10 THEN cachenum = 0
+ cacheids(cachenum) = num
+ cachenames$(cachenum) = a$
+ cachenum += 1
+#endif
+END FUNCTION

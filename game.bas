@@ -47,7 +47,7 @@ DECLARE FUNCTION rpad$ (s$, pad$, size%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION getnpcref% (seekid%, offset%)
 DECLARE SUB suspendresume (id%)
-DECLARE SUB scriptwatcher (page%)
+DECLARE SUB scriptwatcher (mode%)
 DECLARE SUB onkeyscript (scriptnum%)
 DECLARE SUB waitcommands (id%)
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
@@ -152,6 +152,7 @@ DECLARE SUB loadmapstate_passmap (mapnum%, prefix$, dontfallback% = 0)
 DECLARE SUB loadmapstate (mapnum%, loadmask%, prefix$, dontfallback% = 0)
 DECLARE SUB deletemapstate (filebase$, killmask%)
 DECLARE SUB deletetemps ()
+DECLARE FUNCTION scriptstate$ ()
 
 '---INCLUDE FILES---
 '$INCLUDE: 'compat.bi'
@@ -588,6 +589,7 @@ DO
    IF keyval(74) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = XSTR$(speedcontrol)
    IF keyval(78) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = XSTR$(speedcontrol)
   END IF
+  IF keyval(29) > 0 AND keyval(32) THEN scriptout$ = scriptstate$
  END IF
  IF wantloadgame > 0 THEN
   'DEBUG debug "loading game slot" + XSTR$(wantloadgame - 1)
@@ -735,7 +737,7 @@ END IF
 edgeprint scriptout$, 0, 190, uilook(uiText), dpage
 showplotstrings
 IF showtags > 0 THEN tagdisplay
-IF scrwatch THEN scriptwatcher dpage
+IF scrwatch THEN scriptwatcher scrwatch
 RETRACE
 
 usermenu:
@@ -1527,7 +1529,7 @@ exitprogram 0
 '--this is what we have dimed for scripts
 '--script(4096), heap(2048), global(1024), scrat(128, 14), nowscript
 interpret:
-IF scrwatch THEN scriptwatcher vpage
+IF scrwatch THEN scriptwatcher scrwatch
 IF nowscript >= 0 THEN
  SELECT CASE scrat(nowscript, scrstate)
   CASE IS < stnone
@@ -1672,11 +1674,6 @@ RETRACE
 
 interpretloop:
 DO
- 'scriptdump "interpretloop"
- IF scrwatch = 2 THEN
-  scriptwatcher vpage
-  IF keyval(1) > 1 THEN scrwatch = 0
- END IF
  SELECT CASE scrat(nowscript, scrstate)
   CASE stwait'---begin waiting for something
    EXIT DO

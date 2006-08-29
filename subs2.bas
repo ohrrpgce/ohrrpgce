@@ -21,7 +21,6 @@ DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB textfatalerror (e$)
 DECLARE SUB fatalerror (e$)
-DECLARE FUNCTION scriptname$ (num%, f$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE FUNCTION getmapname$ (m%)
 DECLARE FUNCTION numbertail$ (s$)
@@ -542,24 +541,6 @@ DO
  dowait
 LOOP
 END SUB
-
-FUNCTION scriptname$ (num, f$)
-a$ = STR$(num)
-IF num THEN
- setpicstuf buffer(), 40, -1
- FOR i = 0 TO general(40) - 1
-  loadset workingdir$ + SLASH + f$, i, 0
-  IF buffer(0) = num THEN
-   a$ = STRING$(small(large(buffer(1), 0), 38), " ")
-   array2str buffer(), 4, a$
-   EXIT FOR
-  END IF
- NEXT i
-ELSE
- a$ = "[none]"
-END IF
-scriptname$ = a$
-END FUNCTION
 
 SUB standardmenu (menu$(), size, vis, pt, top, x, y, page, edge)
 STATIC tog
