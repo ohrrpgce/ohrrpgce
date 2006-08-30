@@ -1453,7 +1453,8 @@ ELSE
   GET #f, 1, temp
   skip = temp
   GET #f, 3, temp
-  scrat(index, scrvars) = temp
+  'some HSX files seem to have an illegal negative number of variables
+  scrat(index, scrvars) = large(temp, 0)
   IF skip >= 6 THEN
    GET #f, 5, temp
    scrat(index, scrargs) = temp
