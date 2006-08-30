@@ -711,6 +711,14 @@ script,set seconds of play,s=0, begin
 end
 
 #--------------------------------------------------------------------------
+# script triggers
+
+define trigger,begin
+0, script
+1, plotscript
+end
+
+#--------------------------------------------------------------------------
 # betweenable operators
 
 define operator,begin

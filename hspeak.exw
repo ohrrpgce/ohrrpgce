@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3E 2006-08-30 "define trigger" support
 --3D 2006-08-16 String literal lookup tables added to end of
 --              HSZ lumps replacing setstring + appendstring
 --3C 2006-08-15 New syntax for giving default script arguments,
@@ -72,7 +73,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=3
-constant COMPILER_SUB_VERSION="D"
+constant COMPILER_SUB_VERSION="E"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -153,6 +154,7 @@ sequence file_list        file_list={}
 integer total_lines       total_lines=0
 sequence cmd              cmd={}
 sequence constant_list    constant_list=alpha_tree_create()
+sequence trigger_list     trigger_list={}
 sequence operator_list    operator_list={}
 sequence function_list    function_list={}
 sequence global_list      global_list={{},{},{}}
@@ -475,12 +477,11 @@ procedure init()
   --thing would have been even better, but thats alot of trouble :)
   reserved=alpha_tree_mass_insert(reserved,{
            {"defineconstant",RESERVE_CORE}
-          ,{"defineconstant",RESERVE_CORE}
+          ,{"definetrigger" ,RESERVE_CORE}
           ,{"defineoperator",RESERVE_CORE}
           ,{"globalvariable",RESERVE_CORE}
           ,{"definefunction",RESERVE_CORE}
           ,{"definescript"  ,RESERVE_CORE}
-          ,{"script"        ,RESERVE_CORE}
           ,{"do"            ,RESERVE_FLOW}
           ,{"begin"         ,RESERVE_BEGIN}
           ,{"end"           ,RESERVE_END}
@@ -932,6 +933,22 @@ end procedure
 
 ---------------------------------------------------------------------------
 
+procedure parse_trigger_block(sequence block)
+  integer num
+  sequence name
+  for i=1 to length(block) by 2 do
+    if i+1>length(block) then
+      src_error("expected name but script trigger definition block ended",block[i][CMD_LINE])
+    end if  
+    num=force_16_bit(try_string_to_number(block[i]),block[i][CMD_LINE])
+    name=try_undefined_string(block[i+1],"script trigger name")
+    trigger_list=append(trigger_list,{num,name})
+    reserved=alpha_tree_insert(reserved,name,RESERVE_CORE)
+  end for
+end procedure
+
+---------------------------------------------------------------------------
+
 procedure create_global(integer id,sequence name,integer line)
   integer at
   at=find(id,global_list[PAIR_NUM])
@@ -1043,9 +1060,9 @@ end function
 
 ---------------------------------------------------------------------------
 
-procedure parse_for_constants()
+procedure primary_parse_pass()
   sequence this
-  color_print("parsing constants\n",{})
+  color_print("preliminary pass\n",{})
   get_cmd_pointer=1
   while get_cmd_pointer<=length(cmd) do
     --read a top-level command
@@ -1053,12 +1070,18 @@ procedure parse_for_constants()
     if compare("defineconstant",this[CMD_TEXT])=0 then
       parse_constant_block(get_cmd_block(false))
     end if
+    if compare("definetrigger",this[CMD_TEXT])=0 then
+      parse_trigger_block(get_cmd_block(false))
+    end if
   end while
+  if find("script",column(trigger_list,PAIR_NUM))=0 then
+    trigger_list=append(trigger_list,{0,"script"})
+  end if
 end procedure
 
 ---------------------------------------------------------------------------
 
-procedure parse_script()
+procedure parse_script(sequence trigger)
   sequence name
   sequence arglist
   sequence s
@@ -1111,7 +1134,7 @@ procedure parse_script()
     end if
     this=get_cmd()
   end while
-  script_cmd=append(script_cmd,{name,arglist,s})
+  script_cmd=append(script_cmd,{trigger,name,arglist,s})
   current_script=""
 end procedure
 
@@ -1120,12 +1143,16 @@ end procedure
 procedure parse_top_level()
   sequence this
   sequence ignore
+  sequence triggers
+  triggers=column(trigger_list,PAIR_NAME)
   color_print("parsing top-level\n",{})
   get_cmd_pointer=1
   while get_cmd_pointer<=length(cmd) do
     --read a top-level command
     this=get_cmd()
     if compare("defineconstant",this[CMD_TEXT])=0 then
+      ignore=get_cmd_block(true)
+    elsif compare("definetrigger",this[CMD_TEXT])=0 then
       ignore=get_cmd_block(true)
     elsif compare("globalvariable",this[CMD_TEXT])=0 then
       parse_global_block(get_cmd_block(true))
@@ -1135,8 +1162,8 @@ procedure parse_top_level()
       function_list=parse_define_block(get_cmd_block(true),function_list,RESERVE_FUNCTION)
     elsif compare("definescript",this[CMD_TEXT])=0 then
       script_list=parse_define_block(get_cmd_block(true),script_list,RESERVE_SCRIPT)
-    elsif compare("script",this[CMD_TEXT])=0 then
-      parse_script()
+    elsif find(this[CMD_TEXT],triggers)>0 then
+     parse_script(this)
     else
       if get_cmd_pointer>length(cmd) then
         --file ends while looking for top-level declaration
@@ -1346,21 +1373,27 @@ procedure dump_debug_report()
       printf(fh,"[Script Dumps]\n",{})
       for i=1 to length(all_scripts) do
         printf(fh,"%s %d\tID=%d\t%s\n",{
-           file_list[source[all_scripts[i][3]][SRC_FILE]]
-          ,source[all_scripts[i][3]][SRC_LINE]
+           file_list[source[all_scripts[i][4]][SRC_FILE]]
+          ,source[all_scripts[i][4]][SRC_LINE]
           ,all_scripts[i][1]
-          ,all_scripts[i][2]
+          ,all_scripts[i][3]
         })
-        for j=1 to length(all_scripts[i][5]) do
+        printf(fh,"%s %d\tTrigger=%d\t%s\n",{
+           file_list[source[script_cmd[i][1][CMD_LINE]][SRC_FILE]]
+          ,source[script_cmd[i][1][CMD_LINE]][SRC_LINE]
+          ,all_scripts[i][2]
+          ,script_cmd[i][1][CMD_TEXT]
+        })
+        for j=1 to length(all_scripts[i][6]) do
           printf(fh,"%s %d\tvar=%s\n",{
-             file_list[source[all_scripts[i][5][j][CMD_LINE]][SRC_FILE]]
-            ,source[all_scripts[i][5][j][CMD_LINE]][SRC_LINE]
-            ,all_scripts[i][5][j][CMD_TEXT]
+             file_list[source[all_scripts[i][6][j][CMD_LINE]][SRC_FILE]]
+            ,source[all_scripts[i][6][j][CMD_LINE]][SRC_LINE]
+            ,all_scripts[i][6][j][CMD_TEXT]
           })
         end for
-        printf(fh,"%d bytes compiled\n",{length(all_scripts[i][6])})
---        printf(fh,"%s\n\n",{dump_script_tree(all_scripts[i][4],0)})
-        printf(fh,"%s\n\n",{dump_script_binary(all_scripts[i][6][CODE_START_BYTE_OFFSET+1..length(all_scripts[i][6])],0,0)})
+        printf(fh,"%d bytes compiled\n",{length(all_scripts[i][7])})
+--        printf(fh,"%s\n\n",{dump_script_tree(all_scripts[i][5],0)})
+        printf(fh,"%s\n\n",{dump_script_binary(all_scripts[i][7][CODE_START_BYTE_OFFSET+1..length(all_scripts[i][7])],0,0)})
       end for
       printf(fh,"\n",{})
       -------------------------------------
@@ -2393,10 +2426,12 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure compile_a_script(integer id,sequence name_data,sequence arg_data,sequence script_data)
+procedure compile_a_script(integer id,sequence trigger_data,sequence name_data,sequence arg_data,sequence script_data)
   sequence script_tree
   sequence local_vars
   sequence binary
+  integer trigger
+  trigger=trigger_list[find(trigger_data[CMD_TEXT],column(trigger_list,PAIR_NAME))][PAIR_NUM]
   current_script=name_data[CMD_TEXT]
   local_vars=arg_data --start with argument names (so we can check for conflicts)
   local_vars=gather_local_vars(local_vars,script_data)
@@ -2414,6 +2449,7 @@ procedure compile_a_script(integer id,sequence name_data,sequence arg_data,seque
   binary=binary_compile(id,script_tree,local_vars)
   all_scripts=append(all_scripts,{
      id                   --id
+    ,trigger              --trigger type
     ,name_data[CMD_TEXT]  --name
     ,name_data[CMD_LINE]  --source line
     ,script_tree
@@ -2464,20 +2500,20 @@ procedure check_script_args()
   sequence args_and_defaults
 
   for i=1 to length(script_cmd) do
-    at=find(script_cmd[i][1][CMD_TEXT],column(script_list,PAIR_NAME))
+    at=find(script_cmd[i][2][CMD_TEXT],column(script_list,PAIR_NAME))
 
-    args_and_defaults=process_arglist(script_cmd[i][2],script_cmd[i][1][CMD_TEXT])
+    args_and_defaults=process_arglist(script_cmd[i][3],script_cmd[i][2][CMD_TEXT])
     if not at then
       --define script optional, add to script list
-      script_list=create_function(script_list,-1,script_cmd[i][1][CMD_TEXT],args_and_defaults[2],RESERVE_SCRIPT,script_cmd[i][1][CMD_LINE])
+      script_list=create_function(script_list,-1,script_cmd[i][2][CMD_TEXT],args_and_defaults[2],RESERVE_SCRIPT,script_cmd[i][2][CMD_LINE])
     else
-      if length(script_cmd[i][2]) != length(script_list[at][FUNC_ARGS]) then
+      if length(script_cmd[i][3]) != length(script_list[at][FUNC_ARGS]) then
         src_error(
           sprintf(
             "script "&COLYEL&"%s"&COLRED&" has %d arguments named, but has %d arguments in its declaration"
-            ,{script_cmd[i][1][CMD_TEXT],length(script_cmd[i][2]),length(script_list[at][FUNC_ARGS])}
+            ,{script_cmd[i][2][CMD_TEXT],length(script_cmd[i][3]),length(script_list[at][FUNC_ARGS])}
           )
-          ,script_cmd[i][1][CMD_LINE]
+          ,script_cmd[i][2][CMD_LINE]
         )
       end if
       for j=1 to length(script_list[at][FUNC_ARGS]) do
@@ -2485,14 +2521,14 @@ procedure check_script_args()
           src_warn(
             sprintf(
               "Default value for argument "&COLYEL&"%s"&COLRED&" to script "&COLYEL&"%s"&COLRED&" does not match default given in script definition, %d"
-              ,{script_cmd[i][2][j][CMD_TEXT],script_cmd[i][1][CMD_TEXT],script_list[at][FUNC_ARGS][j]}
+              ,{script_cmd[i][3][j][CMD_TEXT],script_cmd[i][2][CMD_TEXT],script_list[at][FUNC_ARGS][j]}
             )
-            ,script_cmd[i][1][CMD_LINE]
+            ,script_cmd[i][2][CMD_LINE]
           )
         end if
       end for
     end if
-    script_cmd[i][2]=args_and_defaults[1]
+    script_cmd[i][3]=args_and_defaults[1]
   end for
 end procedure
 
@@ -2507,17 +2543,18 @@ procedure compile_each_script()
   check_script_args()
 
   for i=1 to length(script_cmd) do
-    at=find(script_cmd[i][1][CMD_TEXT],column(script_list,PAIR_NAME))
+    at=find(script_cmd[i][2][CMD_TEXT],column(script_list,PAIR_NAME))
 
-   -- color_print("%s\n",{script_cmd[i][1][CMD_TEXT]})
+   -- color_print("%s\n",{script_cmd[i][2][CMD_TEXT]})
 
     compile_a_script(
       script_list[at][PAIR_NUM] --ID
-      ,script_cmd[i][1]          --Name
-      ,script_cmd[i][2]          --argnames
-      ,script_cmd[i][3]          --data
+      ,script_cmd[i][1]          --trigger
+      ,script_cmd[i][2]          --Name
+      ,script_cmd[i][3]          --argnames
+      ,script_cmd[i][4]          --data
     )
-    count[source[script_cmd[i][1][CMD_LINE]][SRC_FILE]]+=1
+    count[source[script_cmd[i][2][CMD_LINE]][SRC_FILE]]+=1
 
     color_print(".",{})
   end for
@@ -2579,8 +2616,8 @@ procedure write_output_file()
       end if
       --write each script
       for i=1 to length(all_scripts) do
-        if write_lump(fh,sprintf("%d.hsz",{all_scripts[i][1]}),all_scripts[i][6])=false then
-          simple_error(sprintf("unable to write script "&COLYEL&"%s"&COLRED,{all_scripts[i][2]}))
+        if write_lump(fh,sprintf("%d.hsz",{all_scripts[i][1]}),all_scripts[i][7])=false then
+          simple_error(sprintf("unable to write script "&COLYEL&"%s"&COLRED,{all_scripts[i][3]}))
         end if
       end for
       close(fh)
@@ -2598,7 +2635,7 @@ init()
 load_source(source_file,"reading")
 show_source_info()
 split_commands()
-parse_for_constants()
+primary_parse_pass()
 parse_top_level()
 compile_each_script()
 dump_debug_report()
