@@ -72,6 +72,7 @@ WHAT IS NEW?
       NPC was standing [James Paige]
     * Fixed bug 210, HP and Gold costs are deducted more than once, and are
       randomized [Mike Caron]
+    * Bug 203, script interpreter crashes
 
   * New Plotscripting Commands
     * "string from textbox" [Yuriy]
