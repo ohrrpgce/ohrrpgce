@@ -36,7 +36,7 @@ catfg(2) = 9: catbg(2) = 0    'subdirectories
 catfg(3) = 7: catbg(3) = 0    'files
 catfg(4) = 9: catbg(4) = 8   'root of current drive
 catfg(5) = 10: catbg(5) = 8   'special
-catfg(6) = 8: catbg(5) = 0    'disabled
+catfg(6) = 8: catbg(6) = 0    'disabled
 
 IF needf = 1 THEN
  FOR i = 0 TO 767
@@ -124,7 +124,7 @@ DO
     FOR j = 1 TO treesize
      mappedj = (j + treeptr) MOD (treesize + 1)
      tempstr$ = LCASE$(display$(mappedj))
-     IF (treec(mappedj) = 2 OR treec(mappedj) = 3) AND tempstr$[0] = keyv(i, 0) THEN treeptr = mappedj: EXIT FOR
+     IF (treec(mappedj) = 1 OR treec(mappedj) = 2 OR treec(mappedj) = 3) AND tempstr$[0] = keyv(i, 0) THEN treeptr = mappedj: EXIT FOR
     NEXT
     EXIT FOR
    END IF
