@@ -170,7 +170,7 @@ REMEMBERSTATE
 
 '---GET TEMP DIR---
 tmpdir$ = aquiretempdir$
-commandlineargs
+processcommandline
 
 'DEBUG debug "Thestart"
 thestart:
@@ -287,22 +287,29 @@ defaultc
 '---ALSO CHECKS FOR GAME.EXE RENAMING
 'DEBUG debug "enable autorunning"
 autorungame = 0
-a$ = getcommandline
-IF NOT linux THEN
+FOR i = 1 TO commandlineargcount
+ a$ = commandlinearg(i)
+
+ IF NOT linux THEN
   IF MID$(a$, 2, 1) <> ":" THEN a$ = curdir$ + SLASH + a$
-END IF
-IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$) THEN
- sourcerpg$ = a$
- autorungame = 1
-ELSEIF LEN(a$) AND isdir(a$) THEN 'perhaps it's an unlumped folder?
- 'check for essentials
- IF isfile(a$ + SLASH + "archinym.lmp") THEN 'ok, accept it
-  autorungame = 1
-  usepreunlump = 1
-  sourcerpg$ = a$
-  workingdir$ = a$
  END IF
-ELSE
+ IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$) THEN
+  sourcerpg$ = a$
+  autorungame = 1
+  EXIT FOR
+ ELSEIF isdir(a$) THEN 'perhaps it's an unlumped folder?
+  'check for essentials
+  IF isfile(a$ + SLASH + "archinym.lmp") THEN 'ok, accept it
+   autorungame = 1
+   usepreunlump = 1
+   sourcerpg$ = a$
+   workingdir$ = a$
+  END IF
+  EXIT FOR
+ END IF
+NEXT
+
+IF autorungame = 0 THEN
  IF LCASE$(exename$) <> "game" THEN
   IF isfile(exepath + SLASH + exename$ + ".rpg") THEN
    sourcerpg$ = exepath + SLASH + exename$ + ".rpg"

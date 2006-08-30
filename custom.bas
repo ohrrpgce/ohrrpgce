@@ -80,6 +80,7 @@ DECLARE FUNCTION inputfilename$ (query$, ext$)
 DECLARE FUNCTION newRPGfile (template$, newrpg$)
 DECLARE SUB dolumpfiles (filetolump$)
 DECLARE FUNCTION readarchinym$ ()
+DECLARE SUB importscripts (f$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -95,7 +96,7 @@ workingdir$ = "working.tmp"
 '$INCLUDE: 'cver.txt'
 'PRINT isn't going to work in FB Allegro
 IF (LCASE$(COMMAND$) = "/v" AND NOT LINUX) OR LCASE$(COMMAND$) = "-v" THEN PRINT version$: SYSTEM
-commandlineargs
+processcommandline
 
 gamedir$ = exepath$
 CHDIR gamedir$
@@ -124,22 +125,32 @@ GOSUB readstuff
 dpage = 1: vpage = 0: Rate = 160
 game$ = ""
 gamefile$ = ""
+hsfile$ = ""
 
 GOSUB makeworkingdir
-cmdline$ = getcommandline
-IF cmdline$ <> "" THEN
- IF isfile(cmdline$) OR isdir(cmdline$) THEN 
-  gamefile$ = cmdline$
-  game$ = trimextension$(trimpath$(gamefile$))
- ELSE
+FOR i = 1 TO commandlineargcount
+ cmdline$ = commandlinearg$(i)
+
+ IF isfile(cmdline$) = 0 AND isdir(cmdline$) = 0 THEN
   centerbox 160, 40, 300, 50, 3, 0
   edgeprint "File not found:", 15, 30, uilook(uiText), 0
   edgeprint RIGHT$(cmdline$,35), 15, 40, uilook(uiText), 0
   setvispage 0
   w = getkey
+  CONTINUE FOR
  END IF
-END IF
+ IF LCASE$(justextension$(cmdline$)) = "hs" AND isfile(cmdline$) THEN
+  hsfile$ = cmdline$
+  CONTINUE FOR
+ END IF
+
+ IF (LCASE$(justextension$(cmdline$)) = "rpg" AND isfile(cmdline$)) OR isdir(cmdline$) THEN
+  gamefile$ = cmdline$
+  game$ = trimextension$(trimpath$(gamefile$))
+ END IF
+NEXT
 IF game$ = "" THEN
+ hsfile$ = ""
  GOSUB chooserpg
 END IF
 setwindowtitle "OHRRPGCE - " + gamefile$
@@ -174,6 +185,8 @@ END IF
 game$ = workingdir$ + SLASH + game$
 verifyrpg
 safekill workingdir$ + SLASH + "__danger.tmp"
+
+IF hsfile$ <> "" THEN GOTO hsimport
 
 IF NOT isfile(game$ + ".mas") THEN copyfile "ohrrpgce.mas", game$ + ".mas", buffer()
 xbload game$ + ".mas", master(), "Master palette not found"
@@ -516,6 +529,17 @@ PRINT "files in " + workingdir$
 PRINT
 PRINT "Error code"; ERR
 ON ERROR GOTO 0
+SYSTEM
+
+hsimport:
+xbload game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
+upgrade font() 'needed?
+importscripts hsfile$
+xbsave game$ + ".gen", general(), 1000
+GOSUB dorelump
+GOSUB cleanupfiles
+CHDIR curdir$
+restoremode
 SYSTEM
 
 modeXerr:

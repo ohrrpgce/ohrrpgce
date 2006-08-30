@@ -19,7 +19,8 @@ dim shared gosubptr as integer = 0
 
 dim shared seg as integer ptr
 'stores the rpg name from the command line without any command-line arguments
-dim shared storecmd as string
+dim shared storecmd(7) as string
+dim shared cmdargs as integer
 
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION small% (n1%, n2%)
@@ -158,13 +159,14 @@ sub togglewindowed()
 	gfx_togglewindowed
 end sub
 
-sub commandlineargs()
+sub processcommandline()
 'a thinly veiled excuse to get some commandline stuff into FB
-'temppath is ignored in the FB version
 	dim i as integer = 1
 	dim temp as string
 	dim vtemp as string
 	dim arg as integer
+
+	cmdargs = 0
 	
 	while command(i) <> ""
 		temp = left$(command(i), 1)
@@ -202,15 +204,22 @@ sub commandlineargs()
 				end if
 			end if
 		else
-			'only keep one non-flag argument, hopefully the file
-			storecmd = command(i)
+			'store non-flag arguments
+			storecmd(cmdargs) = command(i)
+			cmdargs = small(cmdargs + 1, 8)
 		end if
 		i = i + 1
 	wend
 end sub
 
-function getcommandline() as string
-	getcommandline = storecmd
+function commandlineargcount() as integer
+	commandlineargcount = cmdargs
+end function
+
+function commandlinearg(argnum as integer) as string
+	if argnum <= cmdargs then
+		commandlinearg = storecmd(argnum - 1)
+	end if
 end function
 
 SUB playsongnum (songnum%)

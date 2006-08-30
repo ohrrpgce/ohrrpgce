@@ -74,8 +74,9 @@ DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB xbsave (f$, array%(), bsize%)
 DECLARE SUB crashexplain ()
 declare sub togglewindowed()
-declare sub commandlineargs()
-declare function getcommandline() as string
+declare sub processcommandline()
+DECLARE function commandlineargcount() as integer
+DECLARE function commandlinearg(argnum as integer) as string
 DECLARE FUNCTION validmusicfile (file$)
 DECLARE SUB playsongnum (songnum%)
 DECLARE SUB romfontchar (font%(), char%)
