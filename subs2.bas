@@ -5,6 +5,17 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+
+'Types
+
+TYPE triggerset
+ size AS INTEGER
+ tnames AS STRING PTR
+ ids AS INTEGER PTR
+ usedbits AS UNSIGNED INTEGER PTR
+END TYPE
+
+
 'basic subs and functions
 DECLARE SUB stredit (s$, maxl%)
 DECLARE FUNCTION str2lng& (stri$)
@@ -55,6 +66,7 @@ DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION getsfxname$ (num)
+DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -379,7 +391,43 @@ END IF
 heroname$ = h$
 END FUNCTION
 
+SUB addtrigger (scrname$, id, triggers AS TRIGGERSET)
+ WITH triggers
+  FOR i = 0 TO .size - 1
+   IF .tnames$[i] = scrname$ THEN
+    .ids[i] = id
+    .usedbits[i \ 32] = BITSET(.usedbits[i \ 32], i MOD 32)
+    EXIT SUB
+   END IF
+  NEXT
+
+  'add to the end
+  .tnames[.size] = scrname$
+  .ids[.size] = id
+  .usedbits[.size \ 32] = BITSET(.usedbits[.size \ 32], .size MOD 32)
+
+  'expand
+  .size += 1
+  IF .size MOD 32 = 0 THEN
+   allocnum = .size + 32
+   .usedbits = REALLOCATE(.usedbits, allocnum \ 8)  'bits/byte
+   .ids = REALLOCATE(.ids, allocnum * SIZEOF(INTEGER))
+   .tnames = REALLOCATE(.tnames, allocnum * SIZEOF(STRING))
+
+   IF .usedbits = 0 OR .ids = 0 OR .tnames = 0 THEN fatalerror "Could not allocate memory for script importation"
+
+   FOR i = .size TO allocnum - 1
+    .ids[i] = 0
+    .tnames[i] = ""
+   NEXT
+   .usedbits[.size \ 32] = 0
+  END IF
+ END WITH
+END SUB
+
 SUB importscripts (f$)
+ DIM triggers(1 TO 15) AS triggerset, triggercount(15), temp AS SHORT
+
  setpicstuf buffer(), 7, -1
  loadset f$, 0, 0
  clearpage vpage
@@ -388,28 +436,102 @@ SUB importscripts (f$)
   copyfile f$, game$ + ".hsp", buffer()
   textcolor 7, 0
   textx = 0: texty = 0
-  dummy = unlumpone(game$ + ".hsp", "scripts.txt", workingdir$ + SLASH + "scripts.txt")
-  fptr = FREEFILE
-  OPEN workingdir$ + SLASH + "scripts.txt" FOR INPUT AS #fptr
+  IF unlumpone(game$ + ".hsp", "scripts.bin", workingdir$ + SLASH + "scripts.bin") THEN
+   dotbin = -1
+   fptr = FREEFILE
+   OPEN workingdir$ + SLASH + "scripts.bin" FOR INPUT AS #fptr
+   'load header
+   GET #fptr, , temp
+   headersize = temp
+   GET #fptr, , temp
+   recordsize = temp
+   SEEK #fptr, headersize + 1
+  ELSE
+   dotbin = 0
+   dummy = unlumpone(game$ + ".hsp", "scripts.txt", workingdir$ + SLASH + "scripts.txt")
+   fptr = FREEFILE
+   OPEN workingdir$ + SLASH + "scripts.txt" FOR INPUT AS #fptr
+  END IF
+
+  'load in existing trigger tables
+  FOR i = 1 TO 15
+   WITH triggers(i)
+    fh = 0
+    .size = 0
+    fname$ = workingdir$ + SLASH + "lookup" + STR$(i) + ".bin"
+    IF isfile(fname$) THEN
+     fh = FREEFILE
+     OPEN fname$ FOR BINARY AS #fh
+     .size = LOF(fh) \ 40
+     CLOSE fh
+    END IF
+
+    'number of triggers rounded to next multiple of 32 (as triggers get added, allocate space for 32 at a time)
+    allocnum = (.size \ 32) * 32 + 32
+    .ids = CALLOCATE(allocnum, SIZEOF(INTEGER))
+    .tnames = CALLOCATE(allocnum, SIZEOF(STRING))
+    .usedbits = CALLOCATE(allocnum \ 8)
+
+    IF .usedbits = 0 OR .ids = 0 OR .tnames = 0 THEN fatalerror "Could not allocate memory for script importation"
+    FOR j = 0 TO allocnum - 1: .tnames$[j] = "": NEXT
+   
+    IF fh THEN
+     setpicstuf buffer(), 40, -1
+     FOR j = 0 TO .size - 1
+      loadset fname$, j, 0
+      .ids[j] = buffer(0)
+      .tnames$[j] = STRING$(small(buffer(1), 36), 0)
+      array2str buffer(), 4, .tnames$[j]
+     NEXT
+    END IF
+   END WITH
+  NEXT
+
   setpicstuf buffer(), 40, -1
   general(40) = 0
   general(43) = 0
   viscount = 0
   DO
    IF EOF(fptr) THEN EXIT DO
-   LINE INPUT #fptr, names$
-   LINE INPUT #fptr, num$
-   LINE INPUT #fptr, argc$
-   FOR i = 1 TO str2int(argc$)
-    LINE INPUT #fptr, dummy$
-   NEXT i
-   names$ = LEFT$(names$, 36)
-   buffer(0) = str2int(num$)
+   IF dotbin THEN 
+    'read from scripts.bin
+    FOR i = 0 TO recordsize \ 2 - 1
+     GET #fptr, , temp
+     buffer(i) = temp
+    NEXT
+    id = buffer(0)
+    trigger = buffer(1)
+    names$ = STRING$(small(buffer(2), 36), 0)
+    array2str buffer(), 6, names$
+   ELSE
+    'read from scripts.txt
+    LINE INPUT #fptr, names$
+    LINE INPUT #fptr, num$
+    LINE INPUT #fptr, argc$
+    FOR i = 1 TO str2int(argc$)
+     LINE INPUT #fptr, dummy$
+    NEXT i
+    id = str2int(num$)
+    trigger = 0
+    names$ = LEFT$(names$, 36)
+   END IF
+
+   'save to plotscr.lst
+   setpicstuf buffer(), 40, -1
+   buffer(0) = id
    buffer(1) = LEN(names$)
    str2array names$, buffer(), 4
    storeset workingdir$ + SLASH + "plotscr.lst", general(40), 0
    general(40) = general(40) + 1
    IF buffer(0) > general(43) AND buffer(0) < 16384 THEN general(43) = buffer(0)
+
+   'process trigger
+   IF trigger > 0 AND trigger < 16 THEN
+    addtrigger names$, id, triggers(trigger)
+    triggercount(trigger) += 1
+   END IF
+
+   'display progress
    IF textx + LEN(names$) + 1 >= 40 THEN
     textx = 0
     texty = texty + 1
@@ -419,14 +541,33 @@ SUB importscripts (f$)
      texty = 0
     END IF
    END IF
-   IF buffer(0) < 16384 THEN
+   IF buffer(0) < 16384 OR trigger > 0 THEN
     viscount = viscount + 1
     printstr names$ + ",", textx * 8, texty * 8, vpage
     textx = textx + LEN(names$) + 2
    END IF
   LOOP
+
+  'output the updated trigger tables
+  setpicstuf buffer(), 40, -1
+  FOR i = 1 TO 15
+   WITH triggers(i)
+    FOR j = 0 TO .size - 1
+     IF NOT BIT(.usedbits[j \ 32], j MOD 32) THEN .ids[j] = 0
+     buffer(0) = .ids[j]
+     buffer(1) = LEN(.tnames$[j])
+     str2array .tnames$[j], buffer(), 4
+     storeset workingdir$ + SLASH + "lookup" + STR$(i) + ".bin", j, 0
+    NEXT
+
+    DEALLOCATE(.ids)
+    DEALLOCATE(.tnames)
+    DEALLOCATE(.usedbits)
+   END WITH
+  NEXT
+
   CLOSE #fptr
-  safekill workingdir$ + SLASH + "scripts.txt"
+  IF dotbin THEN safekill workingdir$ + SLASH + "scripts.bin" ELSE safekill workingdir$ + SLASH + "scripts.txt"
   edgeprint "imported" + XSTR$(viscount) + " scripts", 0, 180, 15, vpage
 
  ELSE

@@ -1539,7 +1539,7 @@ IF newcall AND index > 0 THEN
  scrat(index - 1, scrstate) = scrat(index - 1, scrstate) * -1
 END IF
 
-'--we are sucessful, so now tis safe to increment this
+'--we are successful, so now its safe to increment this
 nowscript = nowscript + 1
 
 END FUNCTION

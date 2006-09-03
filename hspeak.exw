@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Ea 2006-09-03 Actually export triggers in scripts.bin
 --3E 2006-08-30 "define trigger" support
 --3D 2006-08-16 String literal lookup tables added to end of
 --              HSZ lumps replacing setstring + appendstring
@@ -73,7 +74,7 @@ constant false=0
 constant true=1
 
 constant COMPILER_VERSION=3
-constant COMPILER_SUB_VERSION="E"
+constant COMPILER_SUB_VERSION="Ea"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -2600,6 +2601,30 @@ end function
 
 ---------------------------------------------------------------------------
 
+function generate_scripts_dot_bin()
+  sequence result
+  --header size in bytes
+  result=output_word(4)
+  --record size in bytes
+  result&=output_word(42)
+  
+  for i=1 to length(all_scripts) do
+    result&=output_word(all_scripts[i][1])  --id
+    result&=output_word(all_scripts[i][2])  --trigger type
+    result&=output_word(length(all_scripts[i][3]))
+    for j=1 to 36 do
+      if j<=length(all_scripts[i][3]) then
+        result&=all_scripts[i][3][j]
+      else
+        result&=0
+      end if
+    end for
+  end for
+  return(result)
+end function
+
+---------------------------------------------------------------------------
+
 procedure write_output_file()
   integer fh
   if length(all_scripts) then
@@ -2610,8 +2635,12 @@ procedure write_output_file()
       if write_lump(fh,"HS","HamsterSpeak"&output_word(COMPILER_VERSION))=false then
         simple_error("unable to write header")
       end if
-      --write script index
+      --write script index (old file)
       if write_lump(fh,"scripts.txt",generate_scripts_dot_txt())=false then
+        simple_error("unable to write script index")
+      end if
+      --write script index (new file)
+      if write_lump(fh,"scripts.bin",generate_scripts_dot_bin())=false then
         simple_error("unable to write script index")
       end if
       --write each script
