@@ -463,7 +463,6 @@ SUB importscripts (f$)
      fh = FREEFILE
      OPEN fname$ FOR BINARY AS #fh
      .size = LOF(fh) \ 40
-     CLOSE fh
     END IF
 
     'number of triggers rounded to next multiple of 32 (as triggers get added, allocate space for 32 at a time)
@@ -476,18 +475,16 @@ SUB importscripts (f$)
     FOR j = 0 TO allocnum - 1: .tnames$[j] = "": NEXT
    
     IF fh THEN
-     setpicstuf buffer(), 40, -1
      FOR j = 0 TO .size - 1
-      loadset fname$, j, 0
+      loadrecord buffer(), fh, 40, j
       .ids[j] = buffer(0)
-      .tnames$[j] = STRING$(small(buffer(1), 36), 0)
-      array2str buffer(), 4, .tnames$[j]
+      .tnames$[j] = readbinstring$(buffer(), 1, 36)
      NEXT
+     CLOSE fh
     END IF
    END WITH
   NEXT
 
-  setpicstuf buffer(), 40, -1
   general(40) = 0
   general(43) = 0
   viscount = 0
@@ -495,14 +492,10 @@ SUB importscripts (f$)
    IF EOF(fptr) THEN EXIT DO
    IF dotbin THEN 
     'read from scripts.bin
-    FOR i = 0 TO recordsize \ 2 - 1
-     GET #fptr, , temp
-     buffer(i) = temp
-    NEXT
+    loadrecord buffer(), fptr, recordsize
     id = buffer(0)
     trigger = buffer(1)
-    names$ = STRING$(small(buffer(2), 36), 0)
-    array2str buffer(), 6, names$
+    names$ = readbinstring$(buffer(), 2, 36)
    ELSE
     'read from scripts.txt
     LINE INPUT #fptr, names$
@@ -517,11 +510,9 @@ SUB importscripts (f$)
    END IF
 
    'save to plotscr.lst
-   setpicstuf buffer(), 40, -1
    buffer(0) = id
-   buffer(1) = LEN(names$)
-   str2array names$, buffer(), 4
-   storeset workingdir$ + SLASH + "plotscr.lst", general(40), 0
+   writebinstring names$, buffer(), 1, 36
+   storerecord buffer(), workingdir$ + SLASH + "plotscr.lst", 40, general(40)
    general(40) = general(40) + 1
    IF buffer(0) > general(43) AND buffer(0) < 16384 THEN general(43) = buffer(0)
 
@@ -549,15 +540,13 @@ SUB importscripts (f$)
   LOOP
 
   'output the updated trigger tables
-  setpicstuf buffer(), 40, -1
   FOR i = 1 TO 15
    WITH triggers(i)
     FOR j = 0 TO .size - 1
-     IF NOT BIT(.usedbits[j \ 32], j MOD 32) THEN .ids[j] = 0
+     IF BIT(.usedbits[j \ 32], j MOD 32) = 0 THEN .ids[j] = 0
      buffer(0) = .ids[j]
-     buffer(1) = LEN(.tnames$[j])
-     str2array .tnames$[j], buffer(), 4
-     storeset workingdir$ + SLASH + "lookup" + STR$(i) + ".bin", j, 0
+     writebinstring .tnames$[j], buffer(), 1, 36
+     storerecord buffer(), workingdir$ + SLASH + "lookup" + STR$(i) + ".bin", 40, j
     NEXT
 
     DEALLOCATE(.ids)

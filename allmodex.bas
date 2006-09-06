@@ -1644,6 +1644,83 @@ SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 	bpage = p
 end SUB
 
+SUB loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
+'common sense alternative to loadset, setpicstuf
+'buf() = buffer to load shorts into, starting at buf(0)
+'fh = open file handle
+'recordsize = record size in bytes
+'record = record number, defaults to read from current file position
+	dim idx as integer
+	dim ub as ubyte
+	dim us as ushort
+
+	if record <> -1 then
+		seek #fh, recordsize * record + 1
+	end if
+
+	for idx = 0 to recordsize \ 2 - 1
+		get #fh, , us
+		buf(idx) = us
+	next
+
+	'I'm nearly certain this isn't required
+	if recordsize and 1 then
+		get #fh, , ub
+		buf(recordsize \ 2) = ub
+	end if
+END SUB
+
+SUB loadrecord (buf() as integer, filen$, recordsize as integer, record as integer = -1)
+'wrapper for above
+	dim f as integer
+
+	f = freefile
+	open filen$ for binary access read as #f
+	if err > 0 then
+		'debug "Couldn't open " + filen$
+		exit sub
+	end if
+
+	loadrecord buf(), f, recordsize, record
+	close #f
+END SUB
+
+SUB storerecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
+'same as loadrecord
+	dim idx as integer
+	dim ub as ubyte
+	dim us as ushort
+
+	if record <> -1 then
+		seek #fh, recordsize * record + 1
+	end if
+
+	for idx = 0 to recordsize \ 2 - 1
+        us = buf(idx)
+		put #fh, , us
+	next
+
+	if recordsize and 1 then
+        ub = buf(recordsize \ 2)
+		put #fh, , ub
+	end if
+end SUB
+
+SUB storerecord (buf() as integer, filen$, recordsize as integer, record as integer = -1)
+'wrapper for above
+	dim f as integer
+
+	f = freefile
+	open filen$ for binary access read write as #f
+	if err > 0 then
+		'debug "Couldn't open " + filen$
+		exit sub
+	end if
+
+	storerecord buf(), f, recordsize, record
+	close #f
+END SUB
+
 SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
     ' attrib 0: all files 'cept folders, attrib 16: folders only
 #ifdef __FB_LINUX__
