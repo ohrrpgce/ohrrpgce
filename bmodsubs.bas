@@ -79,17 +79,18 @@ DECLARE SUB anim_walktoggle(who%)
 REM $STATIC
 SUB advance (who, atk(), x(), y(), w(), h(), t())
 
-IF atk(14) < 2 OR (atk(14) > 2 AND atk(14) < 5) THEN
+IF atk(14) < 2 OR (atk(14) > 2 AND atk(14) < 5) THEN ' strike, cast, spin, jump
  anim_walktoggle who
  anim_setmove who, -5, 0, 4, 0
  anim_waitforall
 END IF
-IF atk(14) = 2 THEN
+IF atk(14) = 2 THEN ' Dash in
+ anim_walktoggle who
  yt = (h(t(who, 0)) - h(who)) + 2
  anim_relmove who, x(t(who, 0)) + w(t(who, 0)), y(t(who, 0)) + yt, 6, 6
  anim_waitforall
 END IF
-IF atk(14) = 8 THEN
+IF atk(14) = 8 THEN ' Teleport
  anim_setpos who, x(t(who, 0)) + w(t(who, 0)), y(t(who, 0)) + (h(t(who, 0)) - (h(who))), 0
 END IF
 
