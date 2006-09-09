@@ -13,11 +13,6 @@ DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
 DECLARE FUNCTION atkallowed% (atkid%, attacker%, spclass%, lmplev%, stat%(), atkbuf%())
 DECLARE SUB herobattlebits (bitbuf%(), who%)
-DECLARE SUB quickinflict (harm%, targ%, hc%(), hx%(), hy%(), x%(), y%(), w%(), h%(), harm$(), stat%())
-DECLARE SUB advance (who%, atk%(), x%(), y%(), w%(), h%(), t%())
-DECLARE SUB heroanim (who%, atk%(), x%(), y%(), w%(), h%(), t%())
-DECLARE SUB retreat (who%, atk%(), x%(), y%(), w%(), h%(), t%())
-DECLARE SUB etwitch (who%, atk%(), x%(), y%(), w%(), h%(), t%())
 DECLARE SUB invertstack ()
 DECLARE SUB fatalerror (e$)
 DECLARE SUB updatestatslevelup (i%, exstat%(), stat%(), allowforget)
@@ -30,7 +25,6 @@ DECLARE SUB readattackdata (array%(), index%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE SUB traceshow (s$)
-DECLARE SUB smartarrows (pt%, d%, axis%(), targ%(), tmask%(), spred%)
 DECLARE FUNCTION targetmaskcount% (tmask%())
 DECLARE SUB eaispread (j%, atkdat%(), t%(), stat%(), v%(), ebits%(), revenge%(), revengemask%(), targmem%())
 DECLARE SUB eaifocus (j%, atkdat%(), t%(), stat%(), v%(), ebits%(), revenge%(), revengemask%(), targmem%())
@@ -52,9 +46,6 @@ DECLARE SUB spells (pt%, stat%())
 DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB resetlmp (slot%, lev%)
-DECLARE SUB loadfoe (i%, formdata%(), es%(), x%(), y%(), p%(), v%(), w%(), h%(), ext$(), bits%(), stat%(), ebits%(), batname$())
-DECLARE FUNCTION inflict (w%, t%, stat%(), x%(), y%(), w%(), h%(), harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())
-DECLARE FUNCTION battle (form%, fatal%, exstat%())
 DECLARE SUB addhero (who%, slot%, stat%())
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
@@ -95,6 +86,16 @@ DECLARE FUNCTION is_weapon(who%)
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'uiconst.bi'
 
+DECLARE SUB advance (who%, atk%(), bslot() AS BattleSprite, w%(), h%(), t%())
+DECLARE SUB heroanim (who%, atk%(), bslot() AS BattleSprite, w%(), h%(), t%())
+DECLARE SUB retreat (who%, atk%(), bslot() AS BattleSprite, w%(), h%(), t%())
+DECLARE SUB etwitch (who%, atk%(), bslot() AS BattleSprite, w%(), h%(), t%())
+DECLARE SUB loadfoe (i%, formdata%(), es%(), bslot() AS BattleSprite, p%(), v%(), w%(), h%(), ext$(), bits%(), stat%(), ebits%(), batname$())
+DECLARE FUNCTION inflict (w%, t%, stat%(), bslot() AS BattleSprite, wid%(), hei%(), harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())
+DECLARE SUB quickinflict (harm%, targ%, hc%(), hx%(), hy%(), bslot() AS BattleSprite, w%(), h%(), harm$(), stat%())
+DECLARE FUNCTION battle (form%, fatal%, exstat%())
+DECLARE SUB smartarrows (pt%, d%, axis%, bslot() AS BattleSprite, targ%(), tmask%(), spred%)
+
 'these are the battle global variables
 DIM battlecaption$, battlecaptime, battlecapdelay, bstackstart, learnmask(29)
 
@@ -107,11 +108,12 @@ REMEMBERSTATE
 bstackstart = stackpos
 
 battle = 1
-DIM formdata(40), atktemp(40 + dimbinsize(0)), atk(40 + dimbinsize(0)), st(3, 318), es(7, 160), x(24), y(24), z(24), d(24), zbuf(24), xm(24), ym(24), zm(24), mvx(24), mvy(24), mvz(24), v(24), p(24), w(24), h(24), of(24), ext$(7), ctr(11), stat(11,  _
+DIM formdata(40), atktemp(40 + dimbinsize(0)), atk(40 + dimbinsize(0)), st(3, 318), es(7, 160), d(24), zbuf(24), xm(24), ym(24), zm(24), mvx(24), mvy(24), mvz(24), v(24), p(24), w(24), h(24), of(24), ext$(7), ctr(11), stat(11,  _
 1, 17), ready(11), batname$(11), menu$(3, 5), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
+DIM bslot(24) AS BattleSprite
 
 mpname$ = readglobalstring(1, "MP", 10)
 goldname$ = readglobalstring(32, "Gold", 10)
@@ -343,7 +345,7 @@ IF ai = 2 AND es(them - 4, 81) THEN
   NEXT k
   IF slot > -1 THEN
    formdata(slot * 4) = es(them - 4, 81)
-   loadfoe slot, formdata(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
+   loadfoe slot, formdata(), es(), bslot(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
   END IF
  NEXT j
 END IF
@@ -499,7 +501,7 @@ FOR i = 12 TO 23
  p(i) = 53
  of(i) = 0
  cycle(i) = -1
- z(i) = 0
+ bslot(i).z = 0
 NEXT i
 tcount = -1: pdir = 0: conmp = 1
 IF is_enemy(who) THEN pdir = 1
@@ -544,16 +546,16 @@ numhits = atk(17) + INT(RND * (stat(who, 0, 11) + 1))
 IF readbit(atk(), 20, 49) THEN numhits = atk(17)
 '----------------------------NULL ANIMATION
 IF atk(15) = 10 THEN
- advance who, atk(), x(), y(), w(), h(), t()
+ advance who, atk(), bslot(), w(), h(), t()
  FOR j = 1 TO numhits
-  IF is_hero(who) THEN heroanim who, atk(), x(), y(), w(), h(), t()
-  IF is_enemy(who) THEN etwitch who, atk(), x(), y(), w(), h(), t()
+  IF is_hero(who) THEN heroanim who, atk(), bslot(), w(), h(), t()
+  IF is_enemy(who) THEN etwitch who, atk(), bslot(), w(), h(), t()
   FOR i = 0 TO tcount
    anim_inflict t(who,i)
   NEXT i
   anim_disappear 24
  NEXT j
- retreat who, atk(), x(), y(), w(), h(), t()
+ retreat who, atk(), bslot(), w(), h(), t()
  anim_end
 END IF
 '----------------------------NORMAL, DROP, SPREAD-RING, and SCATTER
@@ -561,22 +563,22 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
  FOR i = 0 TO tcount
   yt = (h(t(who, i)) - 50) + 2
   xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
-  anim_setpos 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt, pdir
+  anim_setpos 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt, pdir
   IF atk(15) = 3 THEN
    anim_setz 12 + i, 180
   END IF
   IF atk(15) = 4 THEN
-   anim_setpos 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt - w(t(who, i)), pdir
+   anim_setpos 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt - w(t(who, i)), pdir
   END IF
  NEXT i
- advance who, atk(), x(), y(), w(), h(), t()
+ advance who, atk(), bslot(), w(), h(), t()
  FOR j = 1 TO numhits
-  IF is_hero(who) THEN heroanim who, atk(), x(), y(), w(), h(), t()
-  IF is_enemy(who) THEN etwitch who, atk(), x(), y(), w(), h(), t()
+  IF is_hero(who) THEN heroanim who, atk(), bslot(), w(), h(), t()
+  IF is_enemy(who) THEN etwitch who, atk(), bslot(), w(), h(), t()
   FOR i = 0 TO tcount
    anim_appear 12 + i
    IF atk(15) = 4 THEN
-    anim_relmove 12 + i, x(t(who, i)) + xt - w(t(who, i)), y(t(who, i)) + yt, 3, 3
+    anim_relmove 12 + i, bslot(t(who, i)).x + xt - w(t(who, i)), bslot(t(who, i)).y + yt, 3, 3
    END IF
    IF atk(15) = 3 THEN
     anim_zmove 12 + i, -10, 20
@@ -593,15 +595,15 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
   anim_disappear 24
   IF atk(15) = 4 THEN
    FOR i = 0 TO tcount
-    anim_relmove 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt + w(t(who, i)), 3, 3
+    anim_relmove 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt + w(t(who, i)), 3, 3
    NEXT i
    anim_waitforall
    FOR i = 0 TO tcount
-    anim_relmove 12 + i, x(t(who, i)) + xt + w(t(who, i)), y(t(who, i)) + yt, 3, 3
+    anim_relmove 12 + i, bslot(t(who, i)).x + xt + w(t(who, i)), bslot(t(who, i)).y + yt, 3, 3
    NEXT i
    anim_waitforall
    FOR i = 0 TO tcount
-    anim_relmove 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt - w(t(who, i)), 3, 3
+    anim_relmove 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt - w(t(who, i)), 3, 3
    NEXT i
    anim_waitforall
   END IF
@@ -627,7 +629,7 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
   NEXT i
   anim_wait 2
  NEXT j
- retreat who, atk(), x(), y(), w(), h(), t()
+ retreat who, atk(), bslot(), w(), h(), t()
  FOR i = 0 TO tcount
   anim_setframe t(who, i), 0
  NEXT i
@@ -635,18 +637,18 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
 END IF
 '----------------------------SEQUENTIAL PROJECTILE
 IF atk(15) = 7 THEN
- advance who, atk(), x(), y(), w(), h(), t()
+ advance who, atk(), bslot(), w(), h(), t()
  FOR j = 1 TO numhits
-  IF is_hero(who) THEN heroanim who, atk(), x(), y(), w(), h(), t()
-  IF is_enemy(who) THEN etwitch who, atk(), x(), y(), w(), h(), t()
+  IF is_hero(who) THEN heroanim who, atk(), bslot(), w(), h(), t()
+  IF is_enemy(who) THEN etwitch who, atk(), bslot(), w(), h(), t()
   temp = 50: IF is_hero(who) THEN temp = -50
   dtemp = 0: IF readbit(atk(), 20, 3) = 0 THEN dtemp = pdir
-  anim_setpos 12, x(who) + temp, y(who), dtemp
+  anim_setpos 12, bslot(who).x + temp, bslot(who).y, dtemp
   anim_appear 12
   FOR i = 0 TO tcount
    yt = (h(t(who, i)) - 50) + 2
    xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
-   anim_relmove 12, x(t(who, i)) + xt, y(t(who, i)) + yt, 5, 5
+   anim_relmove 12, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt, 5, 5
    anim_waitforall
    anim_inflict t(who, i)
    temp = 3: IF is_enemy(t(who, i)) THEN temp = -3
@@ -674,12 +676,12 @@ IF atk(15) = 7 THEN
   anim_waitforall
   anim_disappear 12
  NEXT j
- retreat who, atk(), x(), y(), w(), h(), t()
+ retreat who, atk(), bslot(), w(), h(), t()
  anim_end
 END IF
 '-----------------PROJECTILE, REVERSE PROJECTILE and METEOR
 IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
- advance who, atk(), x(), y(), w(), h(), t()
+ advance who, atk(), bslot(), w(), h(), t()
  FOR j = 1 TO numhits
   FOR i = 0 TO tcount
    temp = 50: IF is_hero(who) THEN temp = -50
@@ -687,10 +689,10 @@ IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
    yt = (h(t(who, i)) - 50) + 2
    xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
    IF atk(15) = 1 THEN
-    anim_setpos 12 + i, x(who) + temp, y(who), dtemp
+    anim_setpos 12 + i, bslot(who).x + temp, bslot(who).y, dtemp
    END IF
    IF atk(15) = 2 THEN
-    anim_setpos 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt, dtemp
+    anim_setpos 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt, dtemp
    END IF
    IF atk(15) = 8 THEN
     IF is_hero(who) THEN
@@ -702,18 +704,18 @@ IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
     anim_setz 12 + i, 180
    END IF
   NEXT i
-  IF is_hero(who) THEN heroanim who, atk(), x(), y(), w(), h(), t()
-  IF is_enemy(who) THEN etwitch who, atk(), x(), y(), w(), h(), t()
+  IF is_hero(who) THEN heroanim who, atk(), bslot(), w(), h(), t()
+  IF is_enemy(who) THEN etwitch who, atk(), bslot(), w(), h(), t()
   FOR i = 0 TO tcount
    anim_appear 12 + i
    temp = 50: IF is_hero(who) THEN temp = -50
    yt = (h(t(who, i)) - 50) + 2
    xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
    IF atk(15) = 1 OR atk(15) = 8 THEN
-    anim_relmove 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt, 6, 6
+    anim_relmove 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt, 6, 6
    END IF
    IF atk(15) = 2 THEN
-    anim_relmove 12 + i, x(who) + temp, y(who), 6, 6
+    anim_relmove 12 + i, bslot(who).x + temp, bslot(who).y, 6, 6
    END IF
    IF atk(15) = 8 THEN
     anim_zmove 12 + i, -6, 30
@@ -741,7 +743,7 @@ IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
   NEXT i
   anim_wait 3
  NEXT j
- retreat who, atk(), x(), y(), w(), h(), t()
+ retreat who, atk(), bslot(), w(), h(), t()
  FOR i = 0 TO tcount
   anim_setframe t(who, i), 0
  NEXT i
@@ -749,25 +751,25 @@ IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
 END IF
 '--------------------------------------DRIVEBY
 IF atk(15) = 9 THEN
- advance who, atk(), x(), y(), w(), h(), t()
+ advance who, atk(), bslot(), w(), h(), t()
  FOR j = 1 TO numhits
   dtemp = 0: IF readbit(atk(), 20, 3) = 0 THEN dtemp = pdir
   FOR i = 0 TO tcount
    yt = (h(t(who, i)) - 50) + 2
    IF is_hero(who) THEN
-    anim_setpos 12 + i, 320, y(t(who, i)) + yt, dtemp
+    anim_setpos 12 + i, 320, bslot(t(who, i)).y + yt, dtemp
    END IF
    IF is_enemy(who) THEN
-    anim_setpos 12 + i, -50, y(t(who, i)) + yt, dtemp
+    anim_setpos 12 + i, -50, bslot(t(who, i)).y + yt, dtemp
    END IF
   NEXT i
-  IF is_hero(who) THEN heroanim who, atk(), x(), y(), w(), h(), t()
-  IF is_enemy(who) THEN etwitch who, atk(), x(), y(), w(), h(), t()
+  IF is_hero(who) THEN heroanim who, atk(), bslot(), w(), h(), t()
+  IF is_enemy(who) THEN etwitch who, atk(), bslot(), w(), h(), t()
   FOR i = 0 TO tcount
    anim_appear 12 + i
    temp = 50: IF is_hero(who) THEN temp = -50
    yt = (h(t(who, i)) - 50) + 2
-   anim_relmove 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt, 8, 8
+   anim_relmove 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt, 8, 8
   NEXT i
   anim_wait 4
   anim_disappear 24
@@ -784,10 +786,10 @@ IF atk(15) = 9 THEN
    END IF
    yt = (h(t(who, i)) - 50) + 2
    IF is_hero(who) THEN
-    anim_relmove 12 + i, -50, y(t(who, i)) + yt, 5, 7
+    anim_relmove 12 + i, -50, bslot(t(who, i)).y + yt, 5, 7
    END IF
    IF is_enemy(who) THEN
-    anim_relmove 12 + i, 320, y(t(who, i)) + yt, 5, 7
+    anim_relmove 12 + i, 320, bslot(t(who, i)).y + yt, 5, 7
    END IF
   NEXT i
   anim_waitforall
@@ -799,7 +801,7 @@ IF atk(15) = 9 THEN
   NEXT i
   anim_wait 3
  NEXT j
- retreat who, atk(), x(), y(), w(), h(), t()
+ retreat who, atk(), bslot(), w(), h(), t()
  FOR i = 0 TO tcount
   anim_setframe t(who, i), 0
  NEXT i
@@ -808,13 +810,13 @@ END IF
 '--------------------------------FOCUSED RING
 IF atk(15) = 4 AND tcount = 0 THEN
  dtemp = 0: IF readbit(atk(), 20, 3) = 0 THEN dtemp = pdir
- advance who, atk(), x(), y(), w(), h(), t()
+ advance who, atk(), bslot(), w(), h(), t()
  FOR j = 1 TO numhits
   i = 0
   yt = (h(t(who, i)) - 50) + 2
   xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
-  tempx = x(t(who, i)) + xt
-  tempy = y(t(who, i)) + yt
+  tempx = bslot(t(who, i)).x + xt
+  tempy = bslot(t(who, i)).y + yt
   anim_setpos 12 + 0, tempx + 0, tempy - 50, dtemp
   anim_setpos 12 + 1, tempx + 30, tempy - 30, dtemp
   anim_setpos 12 + 2, tempx + 50, tempy + 0, dtemp
@@ -823,13 +825,13 @@ IF atk(15) = 4 AND tcount = 0 THEN
   anim_setpos 12 + 5, tempx - 30, tempy + 30, dtemp
   anim_setpos 12 + 6, tempx - 50, tempy - 0, dtemp
   anim_setpos 12 + 7, tempx - 30, tempy - 30, dtemp
-  IF is_hero(who) THEN heroanim who, atk(), x(), y(), w(), h(), t()
-  IF is_enemy(who) THEN etwitch who, atk(), x(), y(), w(), h(), t()
+  IF is_hero(who) THEN heroanim who, atk(), bslot(), w(), h(), t()
+  IF is_enemy(who) THEN etwitch who, atk(), bslot(), w(), h(), t()
   yt = (h(t(who, 0)) - 50) + 2
   xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
   FOR i = 0 TO 7
    anim_appear 12 + i
-   anim_relmove 12 + i, x(t(who, 0)) + xt, y(t(who, 0)) + yt, 4, 4
+   anim_relmove 12 + i, bslot(t(who, 0)).x + xt, bslot(t(who, 0)).y + yt, 4, 4
   NEXT i
   anim_wait 8
   anim_disappear 24
@@ -855,7 +857,7 @@ IF atk(15) = 4 AND tcount = 0 THEN
   NEXT i
   anim_wait 3
  NEXT j
- retreat who, atk(), x(), y(), w(), h(), t()
+ retreat who, atk(), bslot(), w(), h(), t()
  FOR i = 0 TO tcount
   anim_setframe t(who, i), 0
  NEXT i
@@ -863,8 +865,8 @@ IF atk(15) = 4 AND tcount = 0 THEN
 END IF
 '--------------------------------WAVE
 IF atk(15) = 5 THEN
- yt = y(t(who, 0)) + (h(t(who, 0)) - 50) + 2
- advance who, atk(), x(), y(), w(), h(), t()
+ yt = bslot(t(who, 0)).y + (h(t(who, 0)) - 50) + 2
+ advance who, atk(), bslot(), w(), h(), t()
  FOR j = 1 TO numhits
   FOR i = 0 TO 11
    temp = -50: IF is_hero(who) THEN temp = 320
@@ -874,8 +876,8 @@ IF atk(15) = 5 THEN
     anim_setpos 12 + i, temp, yt, pdir
    END IF
   NEXT i
-  IF is_hero(who) THEN heroanim who, atk(), x(), y(), w(), h(), t()
-  IF is_enemy(who) THEN etwitch who, atk(), x(), y(), w(), h(), t()
+  IF is_hero(who) THEN heroanim who, atk(), bslot(), w(), h(), t()
+  IF is_enemy(who) THEN etwitch who, atk(), bslot(), w(), h(), t()
   temp = 24: IF is_hero(who) THEN temp = -24
   FOR i = 0 TO 11
    anim_appear 12 + i
@@ -906,7 +908,7 @@ IF atk(15) = 5 THEN
   NEXT i
   anim_wait 2
  NEXT j
- retreat who, atk(), x(), y(), w(), h(), t()
+ retreat who, atk(), bslot(), w(), h(), t()
  FOR i = 0 TO tcount
   anim_setframe t(who, i), 0
  NEXT i
@@ -958,21 +960,21 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     '--enforce weak picture
     IF stat(i, 0, 0) < stat(i, 1, 0) / 5 AND vdance = 0 THEN of(i) = 6
     '--re-enforce party's X/Y positions...
-    x(i) = (240 + i * 8)
-    y(i) = (82 + i * 20)
+    bslot(i).x = bslot(i).basex
+    bslot(i).y = bslot(i).basey
    NEXT i
    FOR i = 0 TO 7
     IF eflee(4 + i) = 0 THEN
-     x(4 + i) = formdata(i * 4 + 1)
-     y(4 + i) = formdata(i * 4 + 2)
+     bslot(4 + i).x = bslot(4 + i).basex
+     bslot(4 + i).y = bslot(4 + i).basey
     END IF
    NEXT i
    anim = -1
    'DEBUG debug "~ end"
   CASE 1 '???()
    FOR i = 0 TO 3
-    formdata(i * 4 + 1) = x(4 + i)
-    formdata(i * 4 + 2) = y(4 + i)
+    formdata(i * 4 + 1) = bslot(4 + i).x
+    formdata(i * 4 + 2) = bslot(4 + i).y
    NEXT i
    anim = -1
    'DEBUG debug "~ 1???"
@@ -985,8 +987,8 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    'DEBUG debug "~ setmove" + XSTR$(w) + XSTR$(xm(w)) + XSTR$(ym(w)) + XSTR$(mvx(w)) + XSTR$(mvy(w))
   CASE 3 'setpos(who,x,y,d)
    ww = popw
-   x(ww) = popw
-   y(ww) = popw
+   bslot(ww).x = popw
+   bslot(ww).y = popw
    d(ww) = popw
    'DEBUG debug "~ setpos" + XSTR$(w) + XSTR$(x(w)) + XSTR$(y(w)) + XSTR$(d(w))
   CASE 4 '???()
@@ -1012,8 +1014,8 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    tmp2 = popw
    tmp3 = popw
    tmp4 = popw
-   mvx(ww) = (tmp1 - x(ww)) / tmp3
-   mvy(ww) = (tmp2 - y(ww)) / tmp4
+   mvx(ww) = (tmp1 - bslot(ww).x) / tmp3
+   mvy(ww) = (tmp2 - bslot(ww).y) / tmp4
    xm(ww) = tmp3
    ym(ww) = tmp4
    'DEBUG debug "~ relmove" + XSTR$(w) + XSTR$(tmp1) + XSTR$(tmp2) + XSTR$(tmp3) + XSTR$(tmp4)
@@ -1026,7 +1028,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    checkTagCond atk(60), 1, atk(59), atk(61)
    checkTagCond atk(63), 1, atk(62), atk(64)
    'DEBUG debug "~ inflict on " + XSTR$(targ) + " by " + XSTR$(who)
-   IF inflict(who, targ, stat(), x(), y(), w(), h(), harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
+   IF inflict(who, targ, stat(), bslot(), w(), h(), harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
     '--attack succeeded
 	IF readbit(atk(), 20, 50) = 1 THEN
 	 es(targ - 4, 56) = 0
@@ -1072,8 +1074,8 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     IF atk(9) > 0 THEN
       stat(who, 0, 0) = large(stat(who, 0, 0) - atk(9), 0)
       hc(who) = 7
-      hx(who) = x(who) + (w(who) * .5)
-      hy(who) = y(who) + (h(who) * .5)
+      hx(who) = bslot(who).x + (w(who) * .5)
+      hy(who) = bslot(who).y + (h(who) * .5)
       harm$(who) = STR$(atk(9))
     END IF
     
@@ -1081,8 +1083,8 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     IF atk(10) > 0 THEN
       gold& = large(gold& - atk(10), 0)
       hc(who) = 7
-      hx(who) = x(who) + (w(who) * .5)
-      hy(who) = y(who) + (h(who) * .5)
+      hx(who) = bslot(who).x + (w(who) * .5)
+      hy(who) = bslot(who).y + (h(who) * .5)
       harm$(who) = STR$(atk(10)) + "$"
       IF atk(10) < 0 THEN harm$(who) += "+"
       IF gold& > 1000000000 THEN gold& = 1000000000
@@ -1128,7 +1130,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    END IF
   CASE 11 'setz(who,z)
    ww = popw
-   z(ww) = popw
+   bslot(ww).z = popw
    'DEBUG debug "~ setz" + XSTR$(w) + XSTR$(z(w))
   CASE 12 '???(n,n,n,n,n)
    'unimplemented
@@ -1230,7 +1232,7 @@ IF stat(tdwho, 0, 0) = 0 THEN
   '--flee as alternative to death
   IF readbit(ebits(), (tdwho - 4) * 5, 59) = 1 THEN
    eflee(tdwho) = 1
-   die(tdwho) = (w(tdwho) + x(tdwho)) / 10
+   die(tdwho) = (w(tdwho) + bslot(tdwho).x) / 10
   END IF
  END IF
 END IF
@@ -1443,7 +1445,7 @@ FOR i = 0 TO 8
    NEXT k
    IF slot > -1 THEN
     formdata(slot * 4) = es(targ - 4, 82 + i)
-    loadfoe slot, formdata(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
+    loadfoe slot, formdata(), es(), bslot(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
    END IF
   NEXT j
   EXIT FOR
@@ -1463,7 +1465,7 @@ IF is_enemy(deadguy) THEN
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 80)
     deadguycount = deadguycount - 1
-    loadfoe slot, formdata(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
+    loadfoe slot, formdata(), es(), bslot(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
    END IF
   NEXT j
   es(deadguy - 4, 80) = 0
@@ -1478,7 +1480,7 @@ IF is_enemy(deadguy) THEN
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 79)
     deadguycount = deadguycount - 1
-    loadfoe slot, formdata(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
+    loadfoe slot, formdata(), es(), bslot(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
    END IF
   NEXT j
   es(deadguy - 4, 79) = 0
@@ -1640,16 +1642,16 @@ IF spred = 2 AND (carray(2) > 1 OR carray(3) > 1) THEN
 END IF
 IF aim = 1 AND spred < 2 THEN
  IF carray(0) > 1 THEN
-  smartarrows tptr, -1, y(), targs(), tmask(), 0
+  smartarrows tptr, -1, 1, bslot(), targs(), tmask(), 0
  END IF
  IF carray(1) > 1 THEN
-  smartarrows tptr, 1, y(), targs(), tmask(), 0
+  smartarrows tptr, 1, 1, bslot(), targs(), tmask(), 0
  END IF
  IF carray(2) > 1 THEN
-  smartarrows tptr, -1, x(), targs(), tmask(), spred
+  smartarrows tptr, -1, 0, bslot(), targs(), tmask(), spred
  END IF
  IF carray(3) > 1 THEN
-  smartarrows tptr, 1, x(), targs(), tmask(), spred
+  smartarrows tptr, 1, 0, bslot(), targs(), tmask(), spred
  END IF
 END IF
 IF carray(4) > 1 THEN GOSUB gottarg
@@ -1765,13 +1767,13 @@ IF vdance = 0 THEN 'only display interface till you win
   IF ptarg > 0 THEN
    FOR i = 0 TO 11
     IF targs(i) = 1 OR tptr = i THEN
-     edgeprint CHR$(24), x(i) + (w(i) / 2) - 4, y(i) - 6, uilook(uiSelectedItem + tog), dpage
-     edgeprint batname$(i), xstring(batname$(i), x(i) + (w(i) / 2)), y(i) - 16, uilook(uiSelectedItem + tog), dpage
+     edgeprint CHR$(24), bslot(i).x + (w(i) / 2) - 4, bslot(i).y - 6, uilook(uiSelectedItem + tog), dpage
+     edgeprint batname$(i), xstring(batname$(i), bslot(i).x + (w(i) / 2)), bslot(i).y - 16, uilook(uiSelectedItem + tog), dpage
     END IF
    NEXT i
   END IF
  END IF
- IF you >= 0 AND ptarg = 0 AND readbit(gen(), genBits, 14) = 0 THEN edgeprint CHR$(24), x(you) + (w(you) / 2) - 4, y(you) - 5 + (tog * 2), uilook(uiSelectedItem + tog), dpage
+ IF you >= 0 AND ptarg = 0 AND readbit(gen(), genBits, 14) = 0 THEN edgeprint CHR$(24), bslot(you).x + (w(you) / 2) - 4, bslot(you).y - 5 + (tog * 2), uilook(uiSelectedItem + tog), dpage
 END IF'--end if vdance=0
 RETRACE
 
@@ -1797,7 +1799,7 @@ FOR i = 0 TO 11
      harm = harm * -1
     END IF
     harm = range(harm, 20)
-    quickinflict harm, i, hc(), hx(), hy(), x(), y(), w(), h(), harm$(), stat()
+    quickinflict harm, i, hc(), hx(), hy(), bslot(), w(), h(), harm$(), stat()
     tdwho = i
     GOSUB triggerfade
     GOSUB dieWOboss
@@ -1842,9 +1844,9 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 FOR i = 0 TO 23
- IF xm(i) <> 0 THEN x(i) = x(i) + (mvx(i) * SGN(xm(i))): xm(i) = xm(i) - SGN(xm(i))
- IF ym(i) <> 0 THEN y(i) = y(i) + (mvy(i) * SGN(ym(i))): ym(i) = ym(i) - SGN(ym(i))
- IF zm(i) <> 0 THEN z(i) = z(i) + (mvz(i) * SGN(zm(i))): zm(i) = zm(i) - SGN(zm(i))
+ IF xm(i) <> 0 THEN bslot(i).x = bslot(i).x + (mvx(i) * SGN(xm(i))): xm(i) = xm(i) - SGN(xm(i))
+ IF ym(i) <> 0 THEN bslot(i).y = bslot(i).y + (mvy(i) * SGN(ym(i))): ym(i) = ym(i) - SGN(ym(i))
+ IF zm(i) <> 0 THEN bslot(i).z = bslot(i).z + (mvz(i) * SGN(zm(i))): zm(i) = zm(i) - SGN(zm(i))
 NEXT i
 FOR i = 0 TO 11
  IF v(i + 12) = 1 THEN
@@ -1861,7 +1863,7 @@ FOR i = 0 TO 11
      putpixel INT(RND * (h(i) * w(i) * .5)), 64 + 10 * (i - 4), 0, 3
     NEXT ii
    ELSE
-    x(i) = x(i) - 10: d(i) = 1
+    bslot(i).x = bslot(i).x - 10: d(i) = 1
    END IF
    die(i) = die(i) - 1
    IF die(i) = 0 THEN formdata((i-4) * 4) = 0 'moved from way above
@@ -1878,7 +1880,7 @@ NEXT i
 FOR i = 0 TO 23 'sort the sprites by y + height
  temp = 200
  FOR o = 24 TO i STEP -1
-  IF y(zbuf(o)) + h(zbuf(o)) <= temp THEN temp = y(zbuf(o)) + h(zbuf(o)): j = o
+  IF bslot(zbuf(o)).y + h(zbuf(o)) <= temp THEN temp = bslot(zbuf(o)).y + h(zbuf(o)): j = o
  NEXT o
  SWAP zbuf(j), zbuf(i)
 NEXT i
@@ -1890,9 +1892,9 @@ FOR i = 0 TO 24
   IF is_weapon(zbuf(i)) THEN temp = 156
   loadsprite buffer(), 0, of(zbuf(i)) * (w(zbuf(i)) * h(zbuf(i)) * .5), temp, w(zbuf(i)), h(zbuf(i)), 3
   IF d(zbuf(i)) = 0 THEN
-   drawsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, x(zbuf(i)), y(zbuf(i)) - z(zbuf(i)), dpage
+   drawsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
   ELSE
-   wardsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, x(zbuf(i)), y(zbuf(i)) - z(zbuf(i)), dpage
+   wardsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
   END IF
  END IF
 NEXT i
@@ -1962,8 +1964,10 @@ FOR i = 0 TO 3
   FOR o = 0 TO 317
    st(i, o) = buffer(o)
   NEXT o
-  x(i) = (240 + i * 8)
-  y(i) = (82 + i * 20)
+  bslot(i).basex = (240 + i * 8)
+  bslot(i).basey = (82 + i * 20)
+  bslot(i).x = bslot(i).basex
+  bslot(i).y = bslot(i).basey
   w(i) = 32
   h(i) = 40
   p(i) = 40 + i
@@ -2000,7 +2004,7 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 FOR i = 0 TO 7
- loadfoe i, formdata(), es(), x(), y(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
+ loadfoe i, formdata(), es(), bslot(), p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$()
 NEXT i
 FOR i = 0 TO 11
  ctr(i) = INT(RND * 500)
@@ -2233,11 +2237,11 @@ NEXT i
 
 END SUB
 
-SUB quickinflict (harm, targ, hc(), hx(), hy(), x(), y(), w(), h(), harm$(), stat())
+SUB quickinflict (harm, targ, hc(), hx(), hy(), bslot() AS BattleSprite, w(), h(), harm$(), stat())
 '--quick damage infliction to hp. no bells and whistles
 hc(targ) = 7
-hx(targ) = x(targ) + (w(targ) * .5)
-hy(targ) = y(targ) + (h(targ) * .5)
+hx(targ) = bslot(targ).x + (w(targ) * .5)
+hy(targ) = bslot(targ).y + (h(targ) * .5)
 IF harm < 0 THEN
  harm$(targ) = "+" + STR$(ABS(harm))
 ELSE

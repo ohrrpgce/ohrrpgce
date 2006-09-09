@@ -37,6 +37,14 @@ TYPE InventSlot
   text as string	'text field which shows up in inventory, blank if empty
 END TYPE
 
+TYPE BattleSprite
+  x AS INTEGER
+  y AS INTEGER
+  z AS INTEGER
+  basex AS INTEGER
+  basey AS INTEGER
+END TYPE
+
 'Loading subs
 DECLARE SUB LoadNPCD(file as string, dat() as NPCType)
 DECLARE SUB LoadNPCL(file as string, dat() as NPCInst, num as integer)
