@@ -78,8 +78,8 @@ DECLARE FUNCTION is_weapon(who%)
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'uiconst.bi'
 
-DECLARE SUB loadfoe (i%, formdata%(), es%(), bslot() AS BattleSprite, p%(), v%(), w%(), h%(), ext$(), bits%(), stat%(), ebits%(), batname$())
-DECLARE FUNCTION inflict (w%, t%, stat%(), bslot() AS BattleSprite, wid%(), hei%(), harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())
+DECLARE SUB loadfoe (i%, formdata%(), es%(), bslot() AS BattleSprite, p%(), v%(), ext$(), bits%(), stat%(), ebits%(), batname$())
+DECLARE FUNCTION inflict (w%, t%, stat%(), bslot() AS BattleSprite, harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())
 DECLARE SUB smartarrowmask (inrange%(), pt%, d%, axis%, bslot() AS BattleSprite, tmask%())
 
 REM $STATIC
@@ -103,7 +103,7 @@ FUNCTION is_weapon(who)
  RETURN 0
 END FUNCTION
 
-SUB advance (who, atk(), bslot() AS BattleSprite, w(), h(), t())
+SUB advance (who, atk(), bslot() AS BattleSprite, t())
 d = 1 ' Hero
 IF is_enemy(who) THEN d = -1 ' Enemy
 
@@ -115,12 +115,12 @@ IF is_hero(who) THEN
  END IF
 END IF 
 IF atk(14) = 2 THEN ' Dash in
- yt = (h(t(who, 0)) - h(who)) + 2
- anim_relmove who, bslot(t(who, 0)).x + w(t(who, 0)) * d, bslot(t(who, 0)).y + yt, 6, 6
+ yt = (bslot(t(who, 0)).h - bslot(who).h) + 2
+ anim_relmove who, bslot(t(who, 0)).x + bslot(t(who, 0)).w * d, bslot(t(who, 0)).y + yt, 6, 6
  anim_waitforall
 END IF
 IF atk(14) = 8 THEN ' Teleport
- anim_setpos who, bslot(t(who, 0)).x + w(t(who, 0)) * d, bslot(t(who, 0)).y + (h(t(who, 0)) - (h(who))), 0
+ anim_setpos who, bslot(t(who, 0)).x + bslot(t(who, 0)).w * d, bslot(t(who, 0)).y + (bslot(t(who, 0)).h - (bslot(who).h)), 0
 END IF
 
 END SUB
@@ -559,7 +559,7 @@ NEXT i
 enemycount = o
 END FUNCTION
 
-SUB etwitch (who, atk(), bslot() AS BattleSprite, w(), h(), t())
+SUB etwitch (who, atk(), bslot() AS BattleSprite, t())
 
 IF atk(14) < 2 THEN' twitch
  anim_setz who, 2
@@ -567,8 +567,8 @@ IF atk(14) < 2 THEN' twitch
  anim_setz who, 0
 END IF
 IF atk(14) = 2 THEN' dash in
- yt = (h(t(who, 0)) - h(who)) + 2
- anim_relmove who, bslot(t(who, 0)).x - w(who), bslot(t(who, 0)).y + yt, 6, 6
+ yt = (bslot(t(who, 0)).h - bslot(who).h) + 2
+ anim_relmove who, bslot(t(who, 0)).x - bslot(who).w, bslot(t(who, 0)).y + yt, 6, 6
  anim_waitforall
 END IF
 IF atk(14) = 3 THEN' spin
@@ -634,7 +634,7 @@ Function GetHeroPos(h,f,isY)'or x?
  CLOSE #FH
 End Function
 
-SUB heroanim (who, atk(), bslot() AS BattleSprite, w(), h(), t())
+SUB heroanim (who, atk(), bslot() AS BattleSprite, t())
 hx = 0:hy = 0:wx = 0: wy = 0
 IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN ' strike, cast, dash, standing cast, teleport
  anim_setframe who, 0
@@ -650,9 +650,9 @@ IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN ' strike, cast, dash, stand
   IF atk(14) <> 2 THEN 'if it's not dash in
    anim_setpos 24, bslot(who).x + dx + 4, bslot(who).y + dy, 0
   END IF
-  yt = (h(t(who, 0)) - h(who)) + 2 'yt...?
+  yt = (bslot(t(who, 0)).h - bslot(who).h) + 2 'yt...?
   IF atk(14) = 2 THEN 'if it IS dash in
-   anim_setpos 24, bslot(t(who, 0)).x + w(t(who, 0)) + 24 + dx, bslot(t(who, 0)).y + yt + dy, 0 'set position, again
+   anim_setpos 24, bslot(t(who, 0)).x + bslot(t(who, 0)).w + 24 + dx, bslot(t(who, 0)).y + yt + dy, 0 'set position, again
   END IF
   anim_setframe 24, 0
   anim_appear 24
@@ -672,9 +672,9 @@ IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN ' strike, cast, dash, stand
    dy = hy - wy
    anim_setpos 24, bslot(who).x + dx - 44, bslot(who).y + dy, 0
   END IF
-  yt = (h(t(who, 0)) - h(who)) + 2 '???
+  yt = (bslot(t(who, 0)).h - bslot(who).h) + 2 '???
   IF atk(14) = 2 THEN 'if it is dash in
-   anim_setpos 24, bslot(t(who, 0)).x + w(t(who, 0)) + dx - 20, bslot(t(who, 0)).y + dy + yt, 0
+   anim_setpos 24, bslot(t(who, 0)).x + bslot(t(who, 0)).w + dx - 20, bslot(t(who, 0)).y + dy + yt, 0
   END IF
   anim_setframe 24, 1
  END IF
@@ -711,7 +711,7 @@ END IF
 
 END SUB
 
-FUNCTION inflict (w, t, stat(), bslot() AS BattleSprite, wid(), hei(), harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
+FUNCTION inflict (w, t, stat(), bslot() AS BattleSprite, harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
 
 DIM tbits(4)
 
@@ -743,8 +743,8 @@ IF atk(5) <> 4 THEN
  harm$(t) = ""
  'harm$(w) = "" ' this is probably bad! What if they already have a harm$ and we wipe it out?
  hc(t) = 7
- hx(t) = bslot(t).x + (wid(t) * .5)
- hy(t) = bslot(t).y + (hei(t) * .5)
+ hx(t) = bslot(t).x + (bslot(t).w * .5)
+ hy(t) = bslot(t).y + (bslot(t).h * .5)
  targstat = atk(18)
 
  'accuracy
@@ -900,8 +900,8 @@ IF atk(5) <> 4 THEN
    END IF
    hc(w) = 7
    hc(w + 12) = 12 'pink
-   hx(w) = bslot(w).x + (wid(w) * .5)
-   hy(w) = bslot(w).y + (hei(w) * .5)
+   hx(w) = bslot(w).x + (bslot(w).w * .5)
+   hy(w) = bslot(w).y + (bslot(w).h * .5)
    stat(w, 0, targstat) = stat(w, 0, targstat) + h
   END IF
  END IF
@@ -956,7 +956,7 @@ NEXT o
 liveherocount = i
 END FUNCTION
 
-SUB loadfoe (i, formdata(), es(), bslot() AS BattleSprite, p(), v(), w(), h(), ext$(), bits(), stat(), ebits(), batname$())
+SUB loadfoe (i, formdata(), es(), bslot() AS BattleSprite, p(), v(), ext$(), bits(), stat(), ebits(), batname$())
 setpicstuf buffer(), 320, -1
 IF formdata(i * 4) > 0 THEN
  loadset workingdir$ + SLASH + "dt1.tmp", formdata(i * 4) - 1, 0
@@ -975,22 +975,22 @@ IF formdata(i * 4) > 0 THEN
  v(4 + i) = 1
  IF es(i, 55) = 0 THEN
   ext$(i) = ".pt1"
-  w(4 + i) = 34
-  h(4 + i) = 34
+  bslot(4 + i).w = 34
+  bslot(4 + i).h = 34
  END IF
  IF es(i, 55) = 1 THEN
   ext$(i) = ".pt2"
-  w(4 + i) = 50
-  h(4 + i) = 50
+  bslot(4 + i).w = 50
+  bslot(4 + i).h = 50
  END IF
  IF es(i, 55) = 2 THEN
   ext$(i) = ".pt3"
-  w(4 + i) = 80
-  h(4 + i) = 80
+  bslot(4 + i).w = 80
+  bslot(4 + i).h = 80
  END IF
 END IF
 IF v(4 + i) = 1 THEN
- setpicstuf buffer(), (w(4 + i) * h(4 + i)) * .5, 3
+ setpicstuf buffer(), (bslot(4 + i).w * bslot(4 + i).h) * .5, 3
  loadset game$ + ext$(i), es(i, 53), 64 + i * 10
  FOR o = 0 TO 11
   stat(4 + i, 0, o) = es(i, 62 + o)
@@ -1045,7 +1045,7 @@ END IF
 
 END SUB
 
-SUB retreat (who, atk(), bslot() AS BattleSprite, w(), h(), t())
+SUB retreat (who, atk(), bslot() AS BattleSprite, t())
 
 IF is_enemy(who) THEN
  IF atk(14) = 2 OR atk(14) = 5 THEN

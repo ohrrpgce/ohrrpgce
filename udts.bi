@@ -38,11 +38,13 @@ TYPE InventSlot
 END TYPE
 
 TYPE BattleSprite
+  basex AS INTEGER
+  basey AS INTEGER
   x AS INTEGER
   y AS INTEGER
   z AS INTEGER
-  basex AS INTEGER
-  basey AS INTEGER
+  w AS INTEGER
+  h AS INTEGER
 END TYPE
 
 'Loading subs
