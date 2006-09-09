@@ -18,7 +18,6 @@ DECLARE SUB advance (who%, atk%(), x%(), y%(), w%(), h%(), t%())
 DECLARE SUB heroanim (who%, atk%(), x%(), y%(), w%(), h%(), t%())
 DECLARE SUB retreat (who%, atk%(), x%(), y%(), w%(), h%(), t%())
 DECLARE SUB etwitch (who%, atk%(), x%(), y%(), w%(), h%(), t%())
-DECLARE SUB eretreat (who%, atk%(), x%(), y%(), w%(), h%(), t%())
 DECLARE SUB invertstack ()
 DECLARE SUB fatalerror (e$)
 DECLARE SUB updatestatslevelup (i%, exstat%(), stat%(), allowforget)
@@ -83,6 +82,11 @@ DECLARE SUB anim_setmove(who%, xm%, ym%, xstep%, ystep%)
 DECLARE SUB anim_relmove(who%, tox%, toy%, xspeed%, yspeed%)
 DECLARE SUB anim_zmove(who%, zm%, zstep%)
 DECLARE SUB anim_walktoggle(who%)
+
+DECLARE FUNCTION is_hero(who%)
+DECLARE FUNCTION is_enemy(who%)
+DECLARE FUNCTION is_attack(who%)
+DECLARE FUNCTION is_weapon(who%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -498,7 +502,7 @@ FOR i = 12 TO 23
  z(i) = 0
 NEXT i
 tcount = -1: pdir = 0: conmp = 1
-IF who >= 4 THEN pdir = 1
+IF is_enemy(who) THEN pdir = 1
 ltarg(who) = 0
 'CANNOT HIT INVISIBLE FOES
 FOR i = 0 TO 11
@@ -530,7 +534,7 @@ IF tcount = -1 THEN anim = -1: RETRACE
 targmem(who) = 0
 ' BIG CRAZY SCRIPT CONSTRUCTION
 'DEBUG debug "begin script construction"
-IF who < 4 THEN
+IF is_hero(who) THEN
  setpicstuf buffer(), 576, 3
  loadset game$ + ".pt5" , exstat(who, 0, 13), 156
  p(24) = 52
@@ -540,24 +544,23 @@ numhits = atk(17) + INT(RND * (stat(who, 0, 11) + 1))
 IF readbit(atk(), 20, 49) THEN numhits = atk(17)
 '----------------------------NULL ANIMATION
 IF atk(15) = 10 THEN
- IF who < 4 THEN advance who, atk(), x(), y(), w(), h(), t()
+ advance who, atk(), x(), y(), w(), h(), t()
  FOR j = 1 TO numhits
-  IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
-  IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
+  IF is_hero(who) THEN heroanim who, atk(), x(), y(), w(), h(), t()
+  IF is_enemy(who) THEN etwitch who, atk(), x(), y(), w(), h(), t()
   FOR i = 0 TO tcount
    anim_inflict t(who,i)
   NEXT i
   anim_disappear 24
  NEXT j
- IF who < 4 THEN retreat who, atk(), x(), y(), w(), h(), t()
- IF who >= 4 THEN eretreat who, atk(), x(), y(), w(), h(), t()
+ retreat who, atk(), x(), y(), w(), h(), t()
  anim_end
 END IF
 '----------------------------NORMAL, DROP, SPREAD-RING, and SCATTER
 IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THEN
  FOR i = 0 TO tcount
   yt = (h(t(who, i)) - 50) + 2
-  xt = 0: IF t(who, i) = who AND who < 4 AND atk(14) <> 7 THEN xt = -20
+  xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
   anim_setpos 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt, pdir
   IF atk(15) = 3 THEN
    anim_setz 12 + i, 180
@@ -566,10 +569,10 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
    anim_setpos 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt - w(t(who, i)), pdir
   END IF
  NEXT i
- IF who < 4 THEN advance who, atk(), x(), y(), w(), h(), t()
+ advance who, atk(), x(), y(), w(), h(), t()
  FOR j = 1 TO numhits
-  IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
-  IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
+  IF is_hero(who) THEN heroanim who, atk(), x(), y(), w(), h(), t()
+  IF is_enemy(who) THEN etwitch who, atk(), x(), y(), w(), h(), t()
   FOR i = 0 TO tcount
    anim_appear 12 + i
    IF atk(15) = 4 THEN
@@ -604,7 +607,7 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
   END IF
   FOR i = 0 TO tcount
    anim_inflict t(who, i)
-   temp = 3: IF t(who, i) >= 4 THEN temp = -3
+   temp = 3: IF is_enemy(t(who, i)) THEN temp = -3
    anim_setmove t(who, i), temp, 0, 2, 0
    IF readbit(atk(), 20, 0) = 0 THEN
     anim_setframe t(who, i), 5
@@ -618,14 +621,13 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
   END IF
   FOR i = 0 TO tcount
    anim_disappear 12 + i
-   temp = -3: IF t(who, i) >= 4 THEN temp = 3
+   temp = -3: IF is_enemy(t(who, i)) THEN temp = 3
    anim_setmove t(who, i), temp, 0, 2, 0
    anim_setframe t(who, i), 0
   NEXT i
   anim_wait 2
  NEXT j
- IF who < 4 THEN retreat who, atk(), x(), y(), w(), h(), t()
- IF who >= 4 THEN eretreat who, atk(), x(), y(), w(), h(), t()
+ retreat who, atk(), x(), y(), w(), h(), t()
  FOR i = 0 TO tcount
   anim_setframe t(who, i), 0
  NEXT i
@@ -633,21 +635,21 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
 END IF
 '----------------------------SEQUENTIAL PROJECTILE
 IF atk(15) = 7 THEN
- IF who < 4 THEN advance who, atk(), x(), y(), w(), h(), t()
+ advance who, atk(), x(), y(), w(), h(), t()
  FOR j = 1 TO numhits
-  IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
-  IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
-  temp = 50: IF who < 4 THEN temp = -50
+  IF is_hero(who) THEN heroanim who, atk(), x(), y(), w(), h(), t()
+  IF is_enemy(who) THEN etwitch who, atk(), x(), y(), w(), h(), t()
+  temp = 50: IF is_hero(who) THEN temp = -50
   dtemp = 0: IF readbit(atk(), 20, 3) = 0 THEN dtemp = pdir
   anim_setpos 12, x(who) + temp, y(who), dtemp
   anim_appear 12
   FOR i = 0 TO tcount
    yt = (h(t(who, i)) - 50) + 2
-   xt = 0: IF t(who, i) = who AND who < 4 AND atk(14) <> 7 THEN xt = -20
+   xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
    anim_relmove 12, x(t(who, i)) + xt, y(t(who, i)) + yt, 5, 5
    anim_waitforall
    anim_inflict t(who, i)
-   temp = 3: IF t(who, i) >= 4 THEN temp = -3
+   temp = 3: IF is_enemy(t(who, i)) THEN temp = -3
    anim_setmove t(who, i), temp, 0, 2, 0
    IF readbit(atk(), 20, 0) = 0 THEN
     anim_setframe t(who, i), 5
@@ -656,35 +658,34 @@ IF atk(15) = 7 THEN
     anim_setframe t(who, i), 2
    END IF
    anim_wait 3
-   temp = -3: IF t(who, i) >= 4 THEN temp = 3
+   temp = -3: IF is_enemy(t(who, i)) THEN temp = 3
    anim_setmove t(who, i), temp, 0, 2, 0
    anim_setframe t(who, i), 0
    IF i = 0 THEN
     anim_disappear 24
    END IF
   NEXT i
-  IF who < 4 THEN
+  IF is_hero(who) THEN
    anim_relmove 12, -50, 100, 5, 5
   END IF
-  IF who >= 4 THEN
+  IF is_enemy(who) THEN
    anim_relmove 12, 320, 100, 5, 5
   END IF
   anim_waitforall
   anim_disappear 12
  NEXT j
- IF who < 4 THEN retreat who, atk(), x(), y(), w(), h(), t()
- IF who >= 4 THEN eretreat who, atk(), x(), y(), w(), h(), t()
+ retreat who, atk(), x(), y(), w(), h(), t()
  anim_end
 END IF
 '-----------------PROJECTILE, REVERSE PROJECTILE and METEOR
 IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
- IF who < 4 THEN advance who, atk(), x(), y(), w(), h(), t()
+ advance who, atk(), x(), y(), w(), h(), t()
  FOR j = 1 TO numhits
   FOR i = 0 TO tcount
-   temp = 50: IF who < 4 THEN temp = -50
+   temp = 50: IF is_hero(who) THEN temp = -50
    dtemp = 0: IF readbit(atk(), 20, 3) = 0 THEN dtemp = pdir
    yt = (h(t(who, i)) - 50) + 2
-   xt = 0: IF t(who, i) = who AND who < 4 AND atk(14) <> 7 THEN xt = -20
+   xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
    IF atk(15) = 1 THEN
     anim_setpos 12 + i, x(who) + temp, y(who), dtemp
    END IF
@@ -692,22 +693,22 @@ IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
     anim_setpos 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt, dtemp
    END IF
    IF atk(15) = 8 THEN
-    IF who < 4 THEN
+    IF is_hero(who) THEN
      anim_setpos 12 + i, 320, 100, dtemp
     END IF
-    IF who >= 4 THEN
+    IF is_enemy(who) THEN
      anim_setpos 12 + i, -50, 100, dtemp
     END IF
     anim_setz 12 + i, 180
    END IF
   NEXT i
-  IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
-  IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
+  IF is_hero(who) THEN heroanim who, atk(), x(), y(), w(), h(), t()
+  IF is_enemy(who) THEN etwitch who, atk(), x(), y(), w(), h(), t()
   FOR i = 0 TO tcount
    anim_appear 12 + i
-   temp = 50: IF who < 4 THEN temp = -50
+   temp = 50: IF is_hero(who) THEN temp = -50
    yt = (h(t(who, i)) - 50) + 2
-   xt = 0: IF t(who, i) = who AND who < 4 AND atk(14) <> 7 THEN xt = -20
+   xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
    IF atk(15) = 1 OR atk(15) = 8 THEN
     anim_relmove 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt, 6, 6
    END IF
@@ -723,7 +724,7 @@ IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
   anim_setframe who, 0
   FOR i = 0 TO tcount
    anim_inflict t(who, i)
-   temp = 3: IF t(who, i) >= 4 THEN temp = -3
+   temp = 3: IF is_enemy(t(who, i)) THEN temp = -3
    anim_setmove t(who, i), temp, 0, 2, 0
    IF readbit(atk(), 20, 0) = 0 THEN
     anim_setframe t(who, i), 5
@@ -734,14 +735,13 @@ IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
   anim_wait 3
   FOR i = 0 TO tcount
    anim_disappear 12 + i
-   temp = -3: IF t(who, i) >= 4 THEN temp = 3
+   temp = -3: IF is_enemy(t(who, i)) THEN temp = 3
    anim_setmove t(who, i), temp, 0, 2, 0
    anim_setframe t(who, i), 0
   NEXT i
   anim_wait 3
  NEXT j
- IF who < 4 THEN retreat who, atk(), x(), y(), w(), h(), t()
- IF who >= 4 THEN eretreat who, atk(), x(), y(), w(), h(), t()
+ retreat who, atk(), x(), y(), w(), h(), t()
  FOR i = 0 TO tcount
   anim_setframe t(who, i), 0
  NEXT i
@@ -749,23 +749,23 @@ IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
 END IF
 '--------------------------------------DRIVEBY
 IF atk(15) = 9 THEN
- IF who < 4 THEN advance who, atk(), x(), y(), w(), h(), t()
+ advance who, atk(), x(), y(), w(), h(), t()
  FOR j = 1 TO numhits
   dtemp = 0: IF readbit(atk(), 20, 3) = 0 THEN dtemp = pdir
   FOR i = 0 TO tcount
    yt = (h(t(who, i)) - 50) + 2
-   IF who < 4 THEN
+   IF is_hero(who) THEN
     anim_setpos 12 + i, 320, y(t(who, i)) + yt, dtemp
    END IF
-   IF who >= 4 THEN
+   IF is_enemy(who) THEN
     anim_setpos 12 + i, -50, y(t(who, i)) + yt, dtemp
    END IF
   NEXT i
-  IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
-  IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
+  IF is_hero(who) THEN heroanim who, atk(), x(), y(), w(), h(), t()
+  IF is_enemy(who) THEN etwitch who, atk(), x(), y(), w(), h(), t()
   FOR i = 0 TO tcount
    anim_appear 12 + i
-   temp = 50: IF who < 4 THEN temp = -50
+   temp = 50: IF is_hero(who) THEN temp = -50
    yt = (h(t(who, i)) - 50) + 2
    anim_relmove 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt, 8, 8
   NEXT i
@@ -775,7 +775,7 @@ IF atk(15) = 9 THEN
   anim_waitforall
   FOR i = 0 TO tcount
    anim_inflict t(who, i)
-   temp = 3: IF t(who, i) >= 4 THEN temp = -3
+   temp = 3: IF is_enemy(t(who, i)) THEN temp = -3
    anim_setmove t(who, i), temp, 0, 2, 0
    IF readbit(atk(), 20, 0) = 0 THEN
     anim_setframe t(who, i), 5
@@ -783,24 +783,23 @@ IF atk(15) = 9 THEN
     anim_setframe t(who, i), 2
    END IF
    yt = (h(t(who, i)) - 50) + 2
-   IF who < 4 THEN
+   IF is_hero(who) THEN
     anim_relmove 12 + i, -50, y(t(who, i)) + yt, 5, 7
    END IF
-   IF who >= 4 THEN
+   IF is_enemy(who) THEN
     anim_relmove 12 + i, 320, y(t(who, i)) + yt, 5, 7
    END IF
   NEXT i
   anim_waitforall
   FOR i = 0 TO tcount
    anim_disappear 12 + i
-   temp = -3: IF t(who, i) >= 4 THEN temp = 3
+   temp = -3: IF is_enemy(t(who, i)) THEN temp = 3
    anim_setmove t(who, i), temp, 0, 2, 0
    anim_setframe t(who, i), 0
   NEXT i
   anim_wait 3
  NEXT j
- IF who < 4 THEN retreat who, atk(), x(), y(), w(), h(), t()
- IF who >= 4 THEN eretreat who, atk(), x(), y(), w(), h(), t()
+ retreat who, atk(), x(), y(), w(), h(), t()
  FOR i = 0 TO tcount
   anim_setframe t(who, i), 0
  NEXT i
@@ -809,11 +808,11 @@ END IF
 '--------------------------------FOCUSED RING
 IF atk(15) = 4 AND tcount = 0 THEN
  dtemp = 0: IF readbit(atk(), 20, 3) = 0 THEN dtemp = pdir
- IF who < 4 THEN advance who, atk(), x(), y(), w(), h(), t()
+ advance who, atk(), x(), y(), w(), h(), t()
  FOR j = 1 TO numhits
   i = 0
   yt = (h(t(who, i)) - 50) + 2
-  xt = 0: IF t(who, i) = who AND who < 4 AND atk(14) <> 7 THEN xt = -20
+  xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
   tempx = x(t(who, i)) + xt
   tempy = y(t(who, i)) + yt
   anim_setpos 12 + 0, tempx + 0, tempy - 50, dtemp
@@ -824,10 +823,10 @@ IF atk(15) = 4 AND tcount = 0 THEN
   anim_setpos 12 + 5, tempx - 30, tempy + 30, dtemp
   anim_setpos 12 + 6, tempx - 50, tempy - 0, dtemp
   anim_setpos 12 + 7, tempx - 30, tempy - 30, dtemp
-  IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
-  IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
+  IF is_hero(who) THEN heroanim who, atk(), x(), y(), w(), h(), t()
+  IF is_enemy(who) THEN etwitch who, atk(), x(), y(), w(), h(), t()
   yt = (h(t(who, 0)) - 50) + 2
-  xt = 0: IF t(who, i) = who AND who < 4 AND atk(14) <> 7 THEN xt = -20
+  xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
   FOR i = 0 TO 7
    anim_appear 12 + i
    anim_relmove 12 + i, x(t(who, 0)) + xt, y(t(who, 0)) + yt, 4, 4
@@ -837,7 +836,7 @@ IF atk(15) = 4 AND tcount = 0 THEN
   anim_setframe who, 0
   FOR i = 0 TO tcount
    anim_inflict t(who, i)
-   temp = 3: IF t(who, i) >= 4 THEN temp = -3
+   temp = 3: IF is_enemy(t(who, i)) THEN temp = -3
    anim_setmove t(who, i), temp, 0, 2, 0
    IF readbit(atk(), 20, 0) = 0 THEN
     anim_setframe t(who, i), 5
@@ -850,14 +849,13 @@ IF atk(15) = 4 AND tcount = 0 THEN
    anim_disappear 12 + i
   NEXT i
   FOR i = 0 TO tcount
-   temp = -3: IF t(who, i) >= 4 THEN temp = 3
+   temp = -3: IF is_enemy(t(who, i)) THEN temp = 3
    anim_setmove t(who, i), temp, 0, 2, 0
    anim_setframe t(who, i), 0
   NEXT i
   anim_wait 3
  NEXT j
- IF who < 4 THEN retreat who, atk(), x(), y(), w(), h(), t()
- IF who >= 4 THEN eretreat who, atk(), x(), y(), w(), h(), t()
+ retreat who, atk(), x(), y(), w(), h(), t()
  FOR i = 0 TO tcount
   anim_setframe t(who, i), 0
  NEXT i
@@ -866,19 +864,19 @@ END IF
 '--------------------------------WAVE
 IF atk(15) = 5 THEN
  yt = y(t(who, 0)) + (h(t(who, 0)) - 50) + 2
- IF who < 4 THEN advance who, atk(), x(), y(), w(), h(), t()
+ advance who, atk(), x(), y(), w(), h(), t()
  FOR j = 1 TO numhits
   FOR i = 0 TO 11
-   temp = -50: IF who < 4 THEN temp = 320
+   temp = -50: IF is_hero(who) THEN temp = 320
    IF tcount > 0 OR atk(4) = 1 THEN
     anim_setpos 12 + i, temp, i * 15, pdir
    ELSE
     anim_setpos 12 + i, temp, yt, pdir
    END IF
   NEXT i
-  IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
-  IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
-  temp = 24: IF who < 4 THEN temp = -24
+  IF is_hero(who) THEN heroanim who, atk(), x(), y(), w(), h(), t()
+  IF is_enemy(who) THEN etwitch who, atk(), x(), y(), w(), h(), t()
+  temp = 24: IF is_hero(who) THEN temp = -24
   FOR i = 0 TO 11
    anim_appear 12 + i
    anim_setmove 12 + i, temp, 0, 16, 0
@@ -889,7 +887,7 @@ IF atk(15) = 5 THEN
   anim_setframe who, 0
   FOR i = 0 TO tcount
    anim_inflict t(who, i)
-   temp = 3: IF t(who, i) >= 4 THEN temp = -3
+   temp = 3: IF is_enemy(t(who, i)) THEN temp = -3
    anim_setmove t(who, i), temp, 0, 2, 0
    IF readbit(atk(), 20, 0) = 0 THEN
     anim_setframe t(who, i), 5
@@ -902,14 +900,13 @@ IF atk(15) = 5 THEN
    anim_disappear 12 + i
   NEXT i
   FOR i = 0 TO tcount
-   temp = -3: IF t(who, i) >= 4 THEN temp = 3
+   temp = -3: IF is_enemy(t(who, i)) THEN temp = 3
    anim_setmove t(who, i), temp, 0, 2, 0
    anim_setframe t(who, i), 0
   NEXT i
   anim_wait 2
  NEXT j
- IF who < 4 THEN retreat who, atk(), x(), y(), w(), h(), t()
- IF who >= 4 THEN eretreat who, atk(), x(), y(), w(), h(), t()
+ retreat who, atk(), x(), y(), w(), h(), t()
  FOR i = 0 TO tcount
   anim_setframe t(who, i), 0
  NEXT i
@@ -1006,7 +1003,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
   CASE 7 'setframe(who,frame)
    ww = popw
    fr = popw
-   IF ww < 4 THEN walk(ww) = 0: of(ww) = fr
+   IF is_hero(ww) THEN walk(ww) = 0: of(ww) = fr
    IF ww > 23 THEN of(ww) = fr '--is this right?
    'DEBUG debug "~ setframe" + XSTR$(w) + XSTR$(fr)
   CASE 8 'relmove(who,n,n,n,n)
@@ -1066,7 +1063,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     '---REVIVE---
     v(targ) = 1: die(targ) = 0
    END IF
-   IF targ >= 4 THEN GOSUB sponhit
+   IF is_enemy(targ) THEN GOSUB sponhit
    IF conmp = 1 THEN
     '--if the attack costs MP, we want to actually consume MP
     IF  atk(8) > 0 THEN stat(who, 0, 1) = large(stat(who, 0, 1) - focuscost(atk(8), stat(who, 0, 10)), 0)
@@ -1142,7 +1139,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
   CASE 14 'walktoggle(who)
    ww = popw
    of(ww) = 0
-   IF ww < 4 THEN walk(ww) = walk(ww) XOR 1
+   IF is_hero(ww) THEN walk(ww) = walk(ww) XOR 1
    'DEBUG debug "~ walktoggle" + XSTR$(ww)
   CASE 15 'zmove(who,zm,zstep)
    ww = popw
@@ -1229,7 +1226,7 @@ RETRACE
 triggerfade:
 IF stat(tdwho, 0, 0) = 0 THEN
  die(tdwho) = w(tdwho) * .5
- IF tdwho >= 4 THEN
+ IF is_enemy(tdwho) THEN
   '--flee as alternative to death
   IF readbit(ebits(), (tdwho - 4) * 5, 59) = 1 THEN
    eflee(tdwho) = 1
@@ -1358,7 +1355,7 @@ RETRACE
 
 ifdead:
 deadguyhp = stat(deadguy, 0, 0)
-IF deadguy >= 4 THEN
+IF is_enemy(deadguy) THEN
  isenemy = 1
  enemynum = deadguy - 4
  formslotused = formdata((deadguy - 4) * 4)
@@ -1455,7 +1452,7 @@ NEXT i
 RETRACE
 
 spawnally:
-IF deadguy >= 4 THEN
+IF is_enemy(deadguy) THEN
  IF es(deadguy - 4, 80) > 0 AND atktype(0) = 1 THEN
   die(deadguy) = 1
   FOR j = 1 TO es(deadguy - 4, 91)
@@ -1857,7 +1854,7 @@ FOR i = 0 TO 11
  END IF
  IF die(i) > 0 THEN
   'ENEMIES DEATH THROES
-  IF i >= 4 THEN
+  IF is_enemy(i) THEN
    IF eflee(i) = 0 THEN
     'rectangle 2 * die(i) * (h(i) * .5), 64 + 10 * (i - 4), h(i) * .5, 1, 0, 3
     FOR ii = 0 TO w(i) * .5
@@ -1869,7 +1866,7 @@ FOR i = 0 TO 11
    die(i) = die(i) - 1
    IF die(i) = 0 THEN formdata((i-4) * 4) = 0 'moved from way above
   END IF
-  IF i < 4 THEN of(i) = 7
+  IF is_hero(i) THEN of(i) = 7
  END IF
 NEXT i
 RETRACE
@@ -1888,9 +1885,9 @@ NEXT i
 FOR i = 0 TO 24
  IF (v(zbuf(i)) = 1 OR die(zbuf(i)) > 0) THEN
   temp = 64 + (zbuf(i) - 4) * 10
-  IF zbuf(i) < 4 THEN temp = zbuf(i) * 16
-  IF zbuf(i) > 11 THEN temp = 144
-  IF zbuf(i) > 23 THEN temp = 156
+  IF is_hero(zbuf(i)) THEN temp = zbuf(i) * 16
+  IF is_attack(zbuf(i)) THEN temp = 144
+  IF is_weapon(zbuf(i)) THEN temp = 156
   loadsprite buffer(), 0, of(zbuf(i)) * (w(zbuf(i)) * h(zbuf(i)) * .5), temp, w(zbuf(i)), h(zbuf(i)), 3
   IF d(zbuf(i)) = 0 THEN
    drawsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, x(zbuf(i)), y(zbuf(i)) - z(zbuf(i)), dpage
@@ -1911,9 +1908,9 @@ RETRACE
 
 seestuff:
 FOR i = 0 TO 11
- c = 12: IF i < 4 THEN c = uilook(uiDescription)
+ c = 12: IF is_hero(i) THEN c = uilook(uiDescription)
  rectangle 0, 80 + (i * 10), ctr(i) / 10, 4, c, dpage
- IF i >= 4 THEN edgeprint XSTR$(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
+ IF is_enemy(i) THEN edgeprint XSTR$(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
  edgeprint XSTR$(v(i)) + ":v" + XSTR$(delay(i)) + ":dly" + XSTR$(tmask(i)) + ":tm", 20, 80 + i * 10, c, dpage
 NEXT i
 RETRACE

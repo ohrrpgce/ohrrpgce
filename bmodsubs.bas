@@ -69,6 +69,11 @@ DECLARE SUB anim_relmove(who%, tox%, toy%, xspeed%, yspeed%)
 DECLARE SUB anim_zmove(who%, zm%, zstep%)
 DECLARE SUB anim_walktoggle(who%)
 
+DECLARE FUNCTION is_hero(who%)
+DECLARE FUNCTION is_enemy(who%)
+DECLARE FUNCTION is_attack(who%)
+DECLARE FUNCTION is_weapon(who%)
+
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'common.bi' 
@@ -77,21 +82,44 @@ DECLARE SUB anim_walktoggle(who%)
 '$INCLUDE: 'uiconst.bi'
 
 REM $STATIC
-SUB advance (who, atk(), x(), y(), w(), h(), t())
+FUNCTION is_hero(who)
+ IF who >= 0 AND who <= 3 THEN RETURN -1
+ RETURN 0
+END FUNCTION
 
-IF atk(14) < 2 OR (atk(14) > 2 AND atk(14) < 5) THEN ' strike, cast, spin, jump
- anim_walktoggle who
- anim_setmove who, -5, 0, 4, 0
- anim_waitforall
-END IF
+FUNCTION is_enemy(who)
+ IF who >= 4 AND who <= 11 THEN RETURN -1
+ RETURN 0
+END FUNCTION
+
+FUNCTION is_attack(who)
+ IF who >= 12 AND who <= 23 THEN RETURN -1
+ RETURN 0
+END FUNCTION
+
+FUNCTION is_weapon(who)
+ IF who = 24 THEN RETURN -1
+ RETURN 0
+END FUNCTION
+
+SUB advance (who, atk(), x(), y(), w(), h(), t())
+d = 1 ' Hero
+IF is_enemy(who) THEN d = -1 ' Enemy
+
+IF is_hero(who) THEN
+ IF atk(14) < 2 OR (atk(14) > 2 AND atk(14) < 5) THEN ' strike, cast, spin, jump
+  anim_walktoggle who
+  anim_setmove who, -5, 0, 4, 0
+  anim_waitforall
+ END IF
+END IF 
 IF atk(14) = 2 THEN ' Dash in
- anim_walktoggle who
  yt = (h(t(who, 0)) - h(who)) + 2
- anim_relmove who, x(t(who, 0)) + w(t(who, 0)), y(t(who, 0)) + yt, 6, 6
+ anim_relmove who, x(t(who, 0)) + w(t(who, 0)) * d, y(t(who, 0)) + yt, 6, 6
  anim_waitforall
 END IF
 IF atk(14) = 8 THEN ' Teleport
- anim_setpos who, x(t(who, 0)) + w(t(who, 0)), y(t(who, 0)) + (h(t(who, 0)) - (h(who))), 0
+ anim_setpos who, x(t(who, 0)) + w(t(who, 0)) * d, y(t(who, 0)) + (h(t(who, 0)) - (h(who))), 0
 END IF
 
 END SUB
@@ -312,18 +340,6 @@ NEXT ii
 'cancel if no heros are alive
 IF liveherocount(stat()) = 0 THEN EXIT SUB
 
-'fail if no targetable enemies are present
-'ii = 0
-'FOR o = 4 TO 11
-' IF j < 4 THEN
-'  IF stat(o, 0, 0) > 0 AND readbit(ebits(), (o - 4) * 5, 61) = 0 THEN ii = 1
-' END IF
-' IF j >= 4 THEN
-'  IF stat(o, 0, 0) > 0 AND readbit(ebits(), (o - 4) * 5, 60) = 0 THEN ii = 1
-' END IF
-'NEXT o
-'IF ii = 0 THEN exit sub
-
 targetptr = 0
 
 'target random foe
@@ -434,22 +450,10 @@ NEXT ii
 'fail if no heros are present
 IF liveherocount(stat()) = 0 THEN EXIT SUB
 
-'fail if no targetable foes are present
-'ii = 0
-'FOR o = 4 TO 11
-' IF j < 4 THEN
-'  IF stat(o, 0, 0) > 0 AND readbit(ebits(), (o - 4) * 5, 61) = 0 THEN ii = 1
-' END IF
-' IF j >= 4 THEN
-'  IF stat(o, 0, 0) > 0 AND readbit(ebits(), (o - 4) * 5, 60) = 0 THEN ii = 1
-' END IF
-'NEXT o
-'IF ii = 0 THEN exit sub
-
 targetptr = 0
 
 'enemy targets hero
-IF atkdat(3) = 0 AND j >= 4 THEN
+IF atkdat(3) = 0 AND is_enemy(j) THEN
  FOR o = 0 TO 3
   IF visibleandalive(o, stat(), v()) THEN
    t(j, targetptr) = o
@@ -459,9 +463,9 @@ IF atkdat(3) = 0 AND j >= 4 THEN
 END IF
 
 'hero targets enemy
-IF atkdat(3) = 0 AND j < 4 THEN
+IF atkdat(3) = 0 AND is_hero(j) THEN
  FOR o = 4 TO 11
-  IF j < 4 THEN
+  IF is_hero(j) THEN
    IF visibleandalive(o, stat(), v()) AND targetable(j, o, ebits()) THEN
     t(j, targetptr) = o
     targetptr = targetptr + 1
@@ -471,7 +475,7 @@ IF atkdat(3) = 0 AND j < 4 THEN
 END IF
 
 'enemy targets enemy
-IF (atkdat(3) = 1 OR atkdat(3) = 4 OR atkdat(3) = 5) AND j >= 4 THEN
+IF (atkdat(3) = 1 OR atkdat(3) = 4 OR atkdat(3) = 5) AND is_enemy(j) THEN
  FOR o = 4 TO 11
   IF visibleandalive(o, stat(), v()) AND targetable(j, o, ebits()) THEN
    IF atkdat(3) <> 5 OR j <> o THEN
@@ -483,7 +487,7 @@ IF (atkdat(3) = 1 OR atkdat(3) = 4 OR atkdat(3) = 5) AND j >= 4 THEN
 END IF
 
 'hero targets hero
-IF (atkdat(3) = 1 OR atkdat(3) = 4 OR atkdat(3) = 5 OR atkdat(3) = 10) AND j < 4 THEN
+IF (atkdat(3) = 1 OR atkdat(3) = 4 OR atkdat(3) = 5 OR atkdat(3) = 10) AND is_hero(j) THEN
  FOR o = 0 TO 3
   IF visibleandalive(o, stat(), v()) OR (v(o) = 1 AND (atkdat(3) = 4 OR atkdat(3) = 10)) THEN
    IF atkdat(3) <> 5 OR j <> o THEN
@@ -553,16 +557,6 @@ FOR i = 4 TO 11
 NEXT i
 enemycount = o
 END FUNCTION
-
-SUB eretreat (who, atk(), x(), y(), w(), h(), t())
-
-IF atk(14) = 2 OR atk(14) = 5 THEN
- anim_setz who, 0
- anim_relmove who, x(who), y(who), 6, 6
- anim_waitforall
-END IF
-
-END SUB
 
 SUB etwitch (who, atk(), x(), y(), w(), h(), t())
 
@@ -828,7 +822,7 @@ IF atk(5) <> 4 THEN
    IF readbit(tbits(), 0, 16 + i) = 1 THEN cure = 1   'absorb
   END IF
   IF readbit(atk(), 20, 13 + i) = 1 THEN
-   IF t >= 4 AND readbit(tbits(), 0, 24 + i) = 1 THEN h& = h& * 1.8
+   IF is_enemy(t) AND readbit(tbits(), 0, 24 + i) = 1 THEN h& = h& * 1.8
   END IF
   IF readbit(atk(), 20, 21 + i) = 1 THEN
    IF readbit(tbits(), 0, 8 + i) = 1 THEN
@@ -837,7 +831,7 @@ IF atk(5) <> 4 THEN
    END IF
   END IF
   IF readbit(atk(), 20, 29 + i) = 1 THEN
-   IF t >= 4 AND readbit(tbits(), 0, 24 + i) = 1 THEN
+   IF is_enemy(t) AND readbit(tbits(), 0, 24 + i) = 1 THEN
     harm$(t) = readglobalstring$(122, "fail", 20)
     EXIT FUNCTION
    END IF
@@ -1010,7 +1004,7 @@ END IF
 END SUB
 
 FUNCTION randomally (who)
-IF who < 4 THEN
+IF is_hero(who) THEN
  randomally = INT(RND * 4)
 ELSE
  randomally = 4 + INT(RND * 8)
@@ -1018,7 +1012,7 @@ END IF
 END FUNCTION
 
 FUNCTION randomfoe (who)
-IF who >= 4 THEN
+IF is_enemy(who) THEN
  randomfoe = INT(RND * 4)
 ELSE
  randomfoe = 4 + INT(RND * 8)
@@ -1050,23 +1044,34 @@ END SUB
 
 SUB retreat (who, atk(), x(), y(), w(), h(), t())
 
-IF atk(14) < 2 THEN ' strike, cast
- anim_walktoggle who
- anim_setmove who, 5, 0, 4, 0
- anim_waitforall
- anim_setframe who, 0
+IF is_enemy(who) THEN
+ IF atk(14) = 2 OR atk(14) = 5 THEN
+  anim_setz who, 0
+  anim_relmove who, x(who), y(who), 6, 6
+  anim_waitforall
+ END IF
 END IF
-IF atk(14) = 2 OR atk(14) = 5 THEN ' dash, land
- anim_setframe who, 0
- anim_walktoggle who
- anim_setz who, 0
- anim_relmove who, x(who), y(who), 6, 6
- anim_waitforall
- anim_setframe who, 0
+
+IF is_hero(who) THEN
+ IF atk(14) < 2 THEN ' strike, cast
+  anim_walktoggle who
+  anim_setmove who, 5, 0, 4, 0
+  anim_waitforall
+  anim_setframe who, 0
+ END IF
+ IF atk(14) = 2 OR atk(14) = 5 THEN ' dash, land
+  anim_setframe who, 0
+  anim_walktoggle who
+  anim_setz who, 0
+  anim_relmove who, x(who), y(who), 6, 6
+  anim_waitforall
+  anim_setframe who, 0
+ END IF
+ IF atk(14) = 7 THEN
+  anim_setframe who, 0
+ END IF
 END IF
-IF atk(14) = 7 THEN
- anim_setframe who, 0
-END IF
+
 END SUB
 
 FUNCTION safesubtract (number, minus)
@@ -1135,12 +1140,12 @@ END SUB
 
 FUNCTION targetable (attacker, target, ebits())
 targetable = 0
-IF target < 4 THEN
+IF is_hero(target) THEN
  'target is hero
  targetable = 1
 ELSE
  'target is enemy
- IF readbit(ebits(), (target - 4) * 5, 60 + ABS(SGN(attacker < 4))) = 0 THEN targetable = 1
+ IF readbit(ebits(), (target - 4) * 5, 60 + ABS(SGN(is_hero(attacker)))) = 0 THEN targetable = 1
 END IF
 END FUNCTION
 
@@ -1161,7 +1166,7 @@ END SUB
 
 FUNCTION trytheft (who, targ, atk(), es())
 trytheft = 0'--return false by default
-IF who <= 3 AND targ >= 4 THEN
+IF is_hero(who) AND is_enemy(targ) THEN
  '--a hero is attacking an enemy
  IF readbit(atk(), 20, 4) THEN
   '--steal bitset is on for this attack
