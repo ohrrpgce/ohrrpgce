@@ -1063,7 +1063,9 @@ IF atk(14) = 2 OR atk(14) = 5 THEN ' dash, land
  anim_waitforall
  anim_setframe who, 0
 END IF
-
+IF atk(14) = 7 THEN
+ anim_setframe who, 0
+END IF
 END SUB
 
 FUNCTION safesubtract (number, minus)
