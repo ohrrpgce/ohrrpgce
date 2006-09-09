@@ -566,11 +566,6 @@ IF atk(14) < 2 THEN' twitch
  anim_wait 1
  anim_setz who, 0
 END IF
-IF atk(14) = 2 THEN' dash in
- yt = (bslot(t(who, 0)).h - bslot(who).h) + 2
- anim_relmove who, bslot(t(who, 0)).x - bslot(who).w, bslot(t(who, 0)).y + yt, 6, 6
- anim_waitforall
-END IF
 IF atk(14) = 3 THEN' spin
  FOR ii = 0 TO 2
   anim_setpos who, bslot(who).x, bslot(who).y, 1
