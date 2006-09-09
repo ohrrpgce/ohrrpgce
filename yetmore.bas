@@ -52,7 +52,7 @@ DECLARE FUNCTION onwho% (w$, alone)
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
-DECLARE FUNCTION runscript% (n%, index%, newcall%, er$)
+DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
 DECLARE SUB scripterr (e$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE SUB itstr (i%)
@@ -91,6 +91,7 @@ DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB interpolatecat ()
 DECLARE FUNCTION scriptstate$ ()
+DECLARE FUNCTION decodetrigger (trigger%, trigtype%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -639,7 +640,7 @@ NEXT j
 IF istag(saytag(0), 0) THEN
  '--do something else instead
  IF saytag(1) < 0 THEN
-  rsr = runscript(ABS(saytag(1)), nowscript + 1, -1, "instead")
+  rsr = runscript(ABS(saytag(1)), nowscript + 1, -1, "instead", plottrigger)
   sayer = -1
   EXIT SUB
  ELSE
@@ -747,7 +748,7 @@ IF nowscript >= 0 THEN
 END IF
 
 IF doit = 1 THEN
- rsr = runscript(scriptnum, nowscript + 1, -1, "on-key")
+ rsr = runscript(scriptnum, nowscript + 1, -1, "on-key", plottrigger)
 END IF
 
 END SUB
@@ -1362,8 +1363,9 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 176'--runscriptbyid
+  retvals(0) = decodetrigger(retvals(0), plottrigger)  'possible to get ahold of triggers
   IF isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsx") OR isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsz") THEN
-   rsr = runscript(retvals(0), nowscript + 1, 0, "indirect")
+   rsr = runscript(retvals(0), nowscript + 1, 0, "indirect", 0) 
    IF rsr = 1 THEN
     '--fill heap with return values
     FOR i = scrat(nowscript - 1, curargc) - 1 TO 1 STEP -1  'flexible argument number!

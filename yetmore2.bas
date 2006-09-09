@@ -58,7 +58,7 @@ DECLARE FUNCTION onwho% (w$, alone)
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
-DECLARE FUNCTION runscript% (n%, index%, newcall%, er$)
+DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
 DECLARE SUB scripterr (e$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE SUB itstr (i%)
@@ -230,7 +230,7 @@ IF veh(0) THEN
   loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
  END IF
  IF veh(16) < 0 THEN
-  rsr = runscript(ABS(veh(16)), nowscript + 1, -1, "dismount")
+  rsr = runscript(ABS(veh(16)), nowscript + 1, -1, "dismount", plottrigger)
  END IF
  IF veh(14) > 1 THEN setbit tag(), 0, veh(14), 0
  herospeed(0) = veh(7)
@@ -953,3 +953,19 @@ SUB deletetemps
   
  KILL tmpdir$ + "filelist.tmp"
 END SUB
+
+FUNCTION decodetrigger (trigger, trigtype)
+ DIM id AS SHORT
+ debug "decoding " + STR$(trigger) + " type " + STR$(trigtype)
+ decodetrigger = trigger  'default
+ IF trigger >= 16384 THEN
+  fname$ = workingdir$ + SLASH + "lookup" + STR$(trigtype) + ".bin"
+  IF isfile(fname$) THEN
+   fh = FREEFILE
+   OPEN fname$ FOR BINARY AS #fh
+   GET #fh, (trigger - 16384) * 40 + 1, id
+   IF id THEN decodetrigger = id
+   CLOSE fh
+  END IF
+ END IF
+END FUNCTION 

@@ -79,7 +79,7 @@ DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE SUB scripterr (e$)
 DECLARE SUB calibrate ()
-DECLARE FUNCTION runscript% (n%, index%, newcall%, er$)
+DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
 DECLARE SUB getmapname (mapname$, M%)
 DECLARE FUNCTION istag% (num%, zero%)
 DECLARE SUB evalitemtag ()
@@ -428,7 +428,7 @@ ELSE
  clearpage 1
  addhero 1, 0, stat()
  IF gen(41) > 0 THEN
-  rsr = runscript(gen(41), nowscript + 1, -1, "newgame")
+  rsr = runscript(gen(41), nowscript + 1, -1, "newgame", plottrigger)
  END IF
 END IF
 
@@ -505,7 +505,7 @@ DO
   tmp = vehiclestuff(pasx, pasy, foep, vehedge, showsay)
   SELECT CASE tmp
    CASE IS < 0
-    rsr = runscript(ABS(tmp), nowscript + 1, -1, "vehicle")
+    rsr = runscript(ABS(tmp), nowscript + 1, -1, "vehicle", plottrigger)
    CASE 1
     GOSUB usermenu
     evalherotag stat()
@@ -641,7 +641,7 @@ DO
     GOSUB preparemap
     needf = 2
    ELSE
-    rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle")
+    rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle", plottrigger)
     IF rsr = 1 THEN
      setScriptArg 0, batform
      setScriptArg 1, temp
@@ -655,7 +655,7 @@ DO
   '--this is what happens when you die in battle
   showsay = 0
   IF gen(42) > 0 THEN
-   rsr = runscript(gen(42), nowscript + 1, -1, "death")
+   rsr = runscript(gen(42), nowscript + 1, -1, "death", plottrigger)
    IF rsr = 1 THEN
     fatal = 0
     needf = 2
@@ -690,7 +690,7 @@ doloadgame:
 loadgame temp, map, foep, stat(), stock()
 afterload = -1
 IF gen(57) > 0 THEN
- rsr = runscript(gen(57), nowscript + 1, -1, "loadgame")
+ rsr = runscript(gen(57), nowscript + 1, -1, "loadgame", plottrigger)
  IF rsr = 1 THEN
   '--pass save slot as argument
   IF temp = 32 THEN temp = -1 'quickload slot
@@ -921,7 +921,7 @@ IF sayer >= 0 THEN
  END IF
  IF npcs(npc(sayer).id - 1).script > 0 THEN
   '--summon a script directly from an NPC
-  rsr = runscript(npcs(npc(sayer).id - 1).script, nowscript + 1, -1, "NPC")
+  rsr = runscript(npcs(npc(sayer).id - 1).script, nowscript + 1, -1, "NPC", plottrigger)
   IF rsr = 1 THEN
    setScriptArg 0, npcs(npc(sayer).id - 1).scriptarg
    setScriptArg 1, (sayer + 1) * -1 'reference
@@ -1034,7 +1034,7 @@ END IF
 '---JUMP TO NEXT TEXT BOX--------
 IF istag(saytag(11), 0) THEN
  IF saytag(12) < 0 THEN
-  rsr = runscript(ABS(saytag(12)), nowscript + 1, -1, "textbox")
+  rsr = runscript(ABS(saytag(12)), nowscript + 1, -1, "textbox", plottrigger)
  ELSE
   say = saytag(12)
   loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
@@ -1196,7 +1196,7 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR ng = 1) THEN
   setmapdata scroll(), pass(), 0, 0
  END IF
  IF gmap(14) > 0 THEN
-  rsr = runscript(gmap(14), nowscript + 1, -1, "eachstep")
+  rsr = runscript(gmap(14), nowscript + 1, -1, "eachstep", plottrigger)
   IF rsr = 1 THEN
    setScriptArg 0, catx(0) \ 20
    setScriptArg 1, caty(0) \ 20
@@ -1486,14 +1486,14 @@ evalherotag stat()
 evalitemtag
 IF afterbat = 0 THEN
  IF gmap(7) > 0 THEN
-  rsr = runscript(gmap(7), nowscript + 1, -1, "map")
+  rsr = runscript(gmap(7), nowscript + 1, -1, "map", plottrigger)
   IF rsr = 1 THEN
    setScriptArg 0, gmap(8)
   END IF
  END IF
 ELSE
  IF gmap(12) > 0 THEN
-  rsr = runscript(gmap(12), nowscript + 1, -1, "afterbattle")
+  rsr = runscript(gmap(12), nowscript + 1, -1, "afterbattle", plottrigger)
   IF rsr = 1 THEN
    '--afterbattle script gets one arg telling if you won or ran
    setScriptArg 0, wonbattle
@@ -1774,7 +1774,7 @@ DO
       END SELECT
       'scrat(nowscript, scrstate) = streturn'---return
      CASE tyscript
-      rsr = runscript(scrat(nowscript, curvalue), nowscript + 1, 0, "indirect")
+      rsr = runscript(scrat(nowscript, curvalue), nowscript + 1, 0, "indirect", 0)
       IF rsr = 1 THEN
        '--fill heap with return values
        FOR i = scrat(nowscript - 1, curargc) - 1 TO 0 STEP -1

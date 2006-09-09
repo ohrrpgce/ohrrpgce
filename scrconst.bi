@@ -73,4 +73,5 @@ CONST npccam = 1
 CONST pancam = 2
 CONST focuscam = 3
 CONST stopcam = -1
-
+'--SCRIPT TRIGGER TYPES--
+CONST plottrigger = 1

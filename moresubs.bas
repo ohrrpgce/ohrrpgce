@@ -36,7 +36,7 @@ DECLARE SUB minimap (x%, y%, tastuf%())
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
-DECLARE FUNCTION runscript% (n%, index%, newcall%, er$)
+DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
 DECLARE SUB scripterr (e$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE SUB itstr (i%)
@@ -66,6 +66,7 @@ DECLARE SUB snapshot ()
 DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE FUNCTION exptolevel& (level%)
 DECLARE SUB deletetemps ()
+DECLARE FUNCTION decodetrigger (trigger%, trigtype%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -1386,8 +1387,15 @@ w = getkey
 fadeout 0, 0, 0, -1
 END SUB
 
-FUNCTION runscript (n, index, newcall, er$)
-runscript = 1 ' --sucess by default...
+FUNCTION runscript (id, index, newcall, er$, trigger)
+runscript = 1 ' --success by default...
+
+IF trigger <> 0 THEN n = decodetrigger(id, trigger) ELSE n = id
+
+IF n = 0 THEN
+ runscript = 2 '--quiet failure
+ EXIT FUNCTION
+END IF
 
 IF index > 127 THEN
  scripterr "interpreter overloaded"
@@ -1443,6 +1451,12 @@ ELSE
   scriptfile$ = workingdir$ + SLASH + STR$(n) + ".hsz"
  ELSEIF isfile(workingdir$ + SLASH + STR$(n) + ".hsx") THEN
   scriptfile$ = workingdir$ + SLASH + STR$(n) + ".hsx"
+ END IF
+
+ IF NOT isfile(scriptfile$) THEN
+  runscript = 0'--error
+  scripterr "script id " + STR$(n) + " does not exist"
+  EXIT FUNCTION
  END IF
 
  IF scriptfile$ <> "" THEN
@@ -1886,7 +1900,7 @@ DO
     END IF
     IF storebuf(19) > 0 THEN
      '--Run animation for Inn
-     rsr = runscript(storebuf(19), nowscript + 1, -1, "inn")
+     rsr = runscript(storebuf(19), nowscript + 1, -1, "inn", plottrigger)
      IF rsr = 1 THEN
       EXIT DO
      END IF
