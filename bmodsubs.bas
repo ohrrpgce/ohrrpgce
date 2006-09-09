@@ -55,6 +55,20 @@ DECLARE SUB snapshot ()
 DECLARE SUB delitem (it%, num%)
 DECLARE FUNCTION countitem% (it%)
 
+DECLARE SUB anim_end()
+DECLARE SUB anim_wait(ticks%)
+DECLARE SUB anim_waitforall()
+DECLARE SUB anim_inflict(who%)
+DECLARE SUB anim_disappear(who%)
+DECLARE SUB anim_appear(who%)
+DECLARE SUB anim_setframe(who%, frame%)
+DECLARE SUB anim_setpos(who%, x%, y%, d%)
+DECLARE SUB anim_setz(who%, z%)
+DECLARE SUB anim_setmove(who%, xm%, ym%, xstep%, ystep%)
+DECLARE SUB anim_relmove(who%, tox%, toy%, xspeed%, yspeed%)
+DECLARE SUB anim_zmove(who%, zm%, zstep%)
+DECLARE SUB anim_walktoggle(who%)
+
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'common.bi' 
@@ -66,17 +80,17 @@ REM $STATIC
 SUB advance (who, atk(), x(), y(), w(), h(), t())
 
 IF atk(14) < 2 OR (atk(14) > 2 AND atk(14) < 5) THEN
- pushw 14: pushw who
- pushw 2: pushw who: pushw -5: pushw 0: pushw 4: pushw 0
- pushw 9
+ anim_walktoggle who
+ anim_setmove who, -5, 0, 4, 0
+ anim_waitforall
 END IF
 IF atk(14) = 2 THEN
  yt = (h(t(who, 0)) - h(who)) + 2
- pushw 8: pushw who: pushw x(t(who, 0)) + w(t(who, 0)): pushw y(t(who, 0)) + yt: pushw 6: pushw 6
- pushw 9
+ anim_relmove who, x(t(who, 0)) + w(t(who, 0)), y(t(who, 0)) + yt, 6, 6
+ anim_waitforall
 END IF
 IF atk(14) = 8 THEN
- pushw 3: pushw who: pushw x(t(who, 0)) + w(t(who, 0)): pushw y(t(who, 0)) + (h(t(who, 0)) - (h(who))): pushw 0
+ anim_setpos who, x(t(who, 0)) + w(t(who, 0)), y(t(who, 0)) + (h(t(who, 0)) - (h(who))), 0
 END IF
 
 END SUB
@@ -542,45 +556,45 @@ END FUNCTION
 SUB eretreat (who, atk(), x(), y(), w(), h(), t())
 
 IF atk(14) = 2 OR atk(14) = 5 THEN
- pushw 11: pushw who: pushw 0
- pushw 8: pushw who: pushw x(who): pushw y(who): pushw 6: pushw 6
- pushw 9
+ anim_setz who, 0
+ anim_relmove who, x(who), y(who), 6, 6
+ anim_waitforall
 END IF
 
 END SUB
 
 SUB etwitch (who, atk(), x(), y(), w(), h(), t())
 
-IF atk(14) < 2 THEN
- pushw 11: pushw who: pushw 2
- pushw 13: pushw 1
- pushw 11: pushw who: pushw 0
+IF atk(14) < 2 THEN' twitch
+ anim_setz who, 2
+ anim_wait 1
+ anim_setz who, 0
 END IF
-IF atk(14) = 2 THEN
+IF atk(14) = 2 THEN' dash in
  yt = (h(t(who, 0)) - h(who)) + 2
- pushw 8: pushw who: pushw x(t(who, 0)) - w(who): pushw y(t(who, 0)) + yt: pushw 6: pushw 6
- pushw 9
+ anim_relmove who, x(t(who, 0)) - w(who), y(t(who, 0)) + yt, 6, 6
+ anim_waitforall
 END IF
-IF atk(14) = 3 THEN
+IF atk(14) = 3 THEN' spin
  FOR ii = 0 TO 2
-  pushw 3: pushw who: pushw x(who): pushw y(who): pushw 1
-  pushw 13: pushw 1
-  pushw 3: pushw who: pushw x(who): pushw y(who): pushw 0
-  pushw 13: pushw 1
+  anim_setpos who, x(who), y(who), 1
+  anim_wait 1
+  anim_setpos who, x(who), y(who), 0
+  anim_wait 1
  NEXT ii
 END IF
-IF atk(14) = 4 THEN
- pushw 8: pushw who: pushw x(who) + 50: pushw y(who): pushw 7: pushw 7
- pushw 15: pushw who: pushw 10: pushw 20
- pushw 9
- pushw 6: pushw who
+IF atk(14) = 4 THEN' jump
+ anim_relmove who, x(who) + 50, y(who), 7, 7
+ anim_zmove who, 10, 20
+ anim_waitforall
+ anim_disappear who
 END IF
-IF atk(14) = 5 THEN
- pushw 11: pushw who: pushw 200
- pushw 5: pushw who
- pushw 3: pushw who: pushw x(t(who, 0)): pushw y(t(who, 0)): pushw 0
- pushw 15: pushw who: pushw -10: pushw 20
- pushw 9
+IF atk(14) = 5 THEN' drop
+ anim_setz who, 200
+ anim_appear who
+ anim_setpos who, x(t(who, 0)), y(t(who, 0)), 0
+ anim_zmove who, -10, 20
+ anim_waitforall
 END IF
 
 END SUB
@@ -624,34 +638,13 @@ Function GetHeroPos(h,f,isY)'or x?
  CLOSE #FH
 End Function
 
-SUB SpritePos(who, x, y, d)
- pushw 3: pushw who: pushw x: pushw y: pushw d
-END SUB
-
-SUB ShowSprite(who)
- pushw 5: pushw who
-END SUB
-
-SUB HideSprite(who)
- pushw 6: pushw who
-END SUB
-
-SUB SetFrame(who, what)
- pushw 7: pushw who: pushw what
-END SUB
-
-SUB WaitFor(length)
- pushw 13: pushw length
-END SUB
-
-
 SUB heroanim (who, atk(), x(), y(), w(), h(), t())
 hx = 0:hy = 0:wx = 0: wy = 0
-IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN
- SetFrame who, 0
- WaitFor 3 'wait 3 ticks
+IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN ' strike, cast, dash, standing cast, teleport
+ anim_setframe who, 0
+ anim_wait 3 'wait 3 ticks
  IF atk(14) <> 1 AND atk(14) <> 7 THEN 'if it's not cast or standing cast
-  SetFrame who, 2
+  anim_setframe who, 2
    hx = GetHeroPos(hero(who)-1,0,0)
    hy = GetHeroPos(hero(who)-1,0,1)
    wx = GetWeaponPos(eqstuf(who,0)-1,0,0)
@@ -659,21 +652,21 @@ IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN
   dx = hx - wx
   dy = hy - wy
   IF atk(14) <> 2 THEN 'if it's not dash in
-   SpritePos 24, x(who) + dx + 4, y(who) + dy, 0
+   anim_setpos 24, x(who) + dx + 4, y(who) + dy, 0
   END IF
   yt = (h(t(who, 0)) - h(who)) + 2 'yt...?
   IF atk(14) = 2 THEN 'if it IS dash in
-   SpritePos 24, x(t(who, 0)) + w(t(who, 0)) + 24 + dx, y(t(who, 0)) + yt + dy, 0 'set position, again
+   anim_setpos 24, x(t(who, 0)) + w(t(who, 0)) + 24 + dx, y(t(who, 0)) + yt + dy, 0 'set position, again
   END IF
-  SetFrame 24, 0
-  ShowSprite 24
+  anim_setframe 24, 0
+  anim_appear 24
  END IF
  IF atk(14) = 1 OR atk(14) = 7 THEN 'if it's cast or standing cast
-  SetFrame who, 4
+  anim_setframe who, 4
  END IF
- WaitFor 3 'wait 3
+ anim_wait 3
  IF atk(14) <> 1 AND atk(14) <> 7 THEN 'if it's not cast or standing cast
-  SetFrame who, 3
+  anim_setframe who, 3
   IF atk(14) <> 2 THEN 'if it's not dash in
     hx = GetHeroPos(hero(who)-1,1,0)
     hy = GetHeroPos(hero(who)-1,1,1)
@@ -681,43 +674,43 @@ IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN
     wy = GetWeaponPos(eqstuf(who,0)-1,1,1)
    dx = hx - wx
    dy = hy - wy
-   SpritePos 24, x(who) + dx - 44, y(who) + dy, 0
+   anim_setpos 24, x(who) + dx - 44, y(who) + dy, 0
   END IF
   yt = (h(t(who, 0)) - h(who)) + 2 '???
   IF atk(14) = 2 THEN 'if it is dash in
-   SpritePos 24, x(t(who, 0)) + w(t(who, 0)) + dx - 20, y(t(who, 0)) + dy + yt, 0
+   anim_setpos 24, x(t(who, 0)) + w(t(who, 0)) + dx - 20, y(t(who, 0)) + dy + yt, 0
   END IF
-  SetFrame 24, 1
+  anim_setframe 24, 1
  END IF
 END IF
-IF atk(14) = 3 THEN
+IF atk(14) = 3 THEN ' spin
  FOR ii = 0 TO 2
-  pushw 3: pushw who: pushw x(who): pushw y(who): pushw 1
-  pushw 3: pushw 24: pushw x(who) + 40: pushw y(who): pushw 0
-  pushw 7: pushw 24: pushw 0
-  pushw 13: pushw 1
-  pushw 3: pushw who: pushw x(who): pushw y(who): pushw 0
-  pushw 3: pushw 24: pushw x(who) - 40: pushw y(who): pushw 0
-  pushw 7: pushw 24: pushw 1
-  pushw 13: pushw 1
+  anim_setpos who, x(who), y(who), 1
+  anim_setpos 24, x(who) + 40, y(who), 0
+  anim_setframe 24, 0
+  anim_wait 1
+  anim_setpos who, x(who), y(who), 0
+  anim_setpos 24, x(who) - 40, y(who), 0
+  anim_setframe 24, 1
+  anim_wait 1
  NEXT ii
 END IF
-IF atk(14) = 4 THEN
- pushw 7: pushw who: pushw 4
- pushw 8: pushw who: pushw x(who) - 40: pushw y(who): pushw 7: pushw 7
- pushw 15: pushw who: pushw 10: pushw 20
- pushw 9
- pushw 6: pushw who
- pushw 7: pushw who: pushw 0
+IF atk(14) = 4 THEN ' Jump
+ anim_setframe who, 4
+ anim_relmove who, x(who) - 40, y(who), 7, 7
+ anim_zmove who, 10, 20
+ anim_waitforall
+ anim_disappear who
+ anim_setframe who, 0
 END IF
-IF atk(14) = 5 THEN
- pushw 11: pushw who: pushw 200
- pushw 7: pushw who: pushw 2
- pushw 5: pushw who
- pushw 3: pushw who: pushw x(t(who, 0)): pushw y(t(who, 0)): pushw 0
- pushw 15: pushw who: pushw -10: pushw 20
- pushw 9
- pushw 7: pushw who: pushw 5
+IF atk(14) = 5 THEN ' Land
+ anim_setz who, 200
+ anim_setframe who, 2
+ anim_appear who
+ anim_setpos who, x(t(who, 0)), y(t(who, 0)), 0
+ anim_zmove who, -10, 20
+ anim_waitforall
+ anim_setframe who, 5
 END IF
 
 END SUB
@@ -1056,19 +1049,19 @@ END SUB
 
 SUB retreat (who, atk(), x(), y(), w(), h(), t())
 
-IF atk(14) < 2 THEN
- pushw 14: pushw who
- pushw 2: pushw who: pushw 5: pushw 0: pushw 4: pushw 0
- pushw 9
- pushw 7: pushw who: pushw 0
+IF atk(14) < 2 THEN ' strike, cast
+ anim_walktoggle who
+ anim_setmove who, 5, 0, 4, 0
+ anim_waitforall
+ anim_setframe who, 0
 END IF
-IF atk(14) = 2 OR atk(14) = 5 THEN
- pushw 7: pushw who: pushw 0
- pushw 14: pushw who
- pushw 11: pushw who: pushw 0
- pushw 8: pushw who: pushw x(who): pushw y(who): pushw 6: pushw 6
- pushw 9
- pushw 7: pushw who: pushw 0
+IF atk(14) = 2 OR atk(14) = 5 THEN ' dash, land
+ anim_setframe who, 0
+ anim_walktoggle who
+ anim_setz who, 0
+ anim_relmove who, x(who), y(who), 6, 6
+ anim_waitforall
+ anim_setframe who, 0
 END IF
 
 END SUB

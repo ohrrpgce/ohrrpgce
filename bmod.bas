@@ -70,6 +70,20 @@ DECLARE FUNCTION dimbinsize% (id%)
 DECLARE SUB delitem (it%, num%)
 DECLARE FUNCTION consumeitem% (index%)
 
+DECLARE SUB anim_end()
+DECLARE SUB anim_wait(ticks%)
+DECLARE SUB anim_waitforall()
+DECLARE SUB anim_inflict(who%)
+DECLARE SUB anim_disappear(who%)
+DECLARE SUB anim_appear(who%)
+DECLARE SUB anim_setframe(who%, frame%)
+DECLARE SUB anim_setpos(who%, x%, y%, d%)
+DECLARE SUB anim_setz(who%, z%)
+DECLARE SUB anim_setmove(who%, xm%, ym%, xstep%, ystep%)
+DECLARE SUB anim_relmove(who%, tox%, toy%, xspeed%, yspeed%)
+DECLARE SUB anim_zmove(who%, zm%, zstep%)
+DECLARE SUB anim_walktoggle(who%)
+
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
 '$INCLUDE: 'common.bi'
@@ -531,25 +545,25 @@ IF atk(15) = 10 THEN
   IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
   IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
   FOR i = 0 TO tcount
-   pushw 10: pushw t(who, i)
+   anim_inflict t(who,i)
   NEXT i
-  pushw 6: pushw 24
+  anim_disappear 24
  NEXT j
  IF who < 4 THEN retreat who, atk(), x(), y(), w(), h(), t()
  IF who >= 4 THEN eretreat who, atk(), x(), y(), w(), h(), t()
- pushw 0
+ anim_end
 END IF
 '----------------------------NORMAL, DROP, SPREAD-RING, and SCATTER
 IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THEN
  FOR i = 0 TO tcount
   yt = (h(t(who, i)) - 50) + 2
   xt = 0: IF t(who, i) = who AND who < 4 AND atk(14) <> 7 THEN xt = -20
-  pushw 3: pushw 12 + i: pushw x(t(who, i)) + xt: pushw y(t(who, i)) + yt: pushw pdir
+  anim_setpos 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt, pdir
   IF atk(15) = 3 THEN
-   pushw 11: pushw 12 + i: pushw 180
+   anim_setz 12 + i, 180
   END IF
   IF atk(15) = 4 THEN
-   pushw 3: pushw 12 + i: pushw x(t(who, i)) + xt: pushw y(t(who, i)) + yt - w(t(who, i)): pushw pdir
+   anim_setpos 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt - w(t(who, i)), pdir
   END IF
  NEXT i
  IF who < 4 THEN advance who, atk(), x(), y(), w(), h(), t()
@@ -557,65 +571,65 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
   IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
   IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
   FOR i = 0 TO tcount
-   pushw 5: pushw 12 + i
+   anim_appear 12 + i
    IF atk(15) = 4 THEN
-    pushw 8: pushw 12 + i: pushw x(t(who, i)) + xt - w(t(who, i)): pushw y(t(who, i)) + yt: pushw 3: pushw 3
+    anim_relmove 12 + i, x(t(who, i)) + xt - w(t(who, i)), y(t(who, i)) + yt, 3, 3
    END IF
    IF atk(15) = 3 THEN
-    pushw 15: pushw 12 + i: pushw -10: pushw 20
+    anim_zmove 12 + i, -10, 20
    END IF
    IF atk(15) = 6 THEN
-    pushw 8: pushw 12 + i: pushw INT(RND * 270): pushw INT(RND * 150): pushw 6: pushw 6
+    anim_relmove 12 + i, INT(RND * 270), INT(RND * 150), 6, 6
    END IF
   NEXT i
-  pushw 13: pushw 2
+  anim_wait 2
   IF atk(15) = 3 THEN
-   pushw 13: pushw 3
+   anim_wait 3
   END IF
-  pushw 7: pushw who: pushw 0
-  pushw 6: pushw 24
+  anim_setframe who, 0
+  anim_disappear 24
   IF atk(15) = 4 THEN
    FOR i = 0 TO tcount
-    pushw 8: pushw 12 + i: pushw x(t(who, i)) + xt: pushw y(t(who, i)) + yt + w(t(who, i)): pushw 3: pushw 3
+    anim_relmove 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt + w(t(who, i)), 3, 3
    NEXT i
-   pushw 9
+   anim_waitforall
    FOR i = 0 TO tcount
-    pushw 8: pushw 12 + i: pushw x(t(who, i)) + xt + w(t(who, i)): pushw y(t(who, i)) + yt: pushw 3: pushw 3
+    anim_relmove 12 + i, x(t(who, i)) + xt + w(t(who, i)), y(t(who, i)) + yt, 3, 3
    NEXT i
-   pushw 9
+   anim_waitforall
    FOR i = 0 TO tcount
-    pushw 8: pushw 12 + i: pushw x(t(who, i)) + xt: pushw y(t(who, i)) + yt - w(t(who, i)): pushw 3: pushw 3
+    anim_relmove 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt - w(t(who, i)), 3, 3
    NEXT i
-   pushw 9
+   anim_waitforall
   END IF
   FOR i = 0 TO tcount
-   pushw 10: pushw t(who, i)
+   anim_inflict t(who, i)
    temp = 3: IF t(who, i) >= 4 THEN temp = -3
-   pushw 2: pushw t(who, i): pushw temp: pushw 0: pushw 2: pushw 0
+   anim_setmove t(who, i), temp, 0, 2, 0
    IF readbit(atk(), 20, 0) = 0 THEN
-    pushw 7: pushw t(who, i): pushw 5
+    anim_setframe t(who, i), 5
    END IF
    IF readbit(atk(), 20, 0) = 1 THEN
-    pushw 7: pushw t(who, i): pushw 2
+    anim_setframe t(who, i), 2
    END IF
   NEXT i
   IF atk(15) <> 4 THEN
-   pushw 13: pushw 3
+   anim_wait 3
   END IF
   FOR i = 0 TO tcount
-   pushw 6: pushw 12 + i
+   anim_disappear 12 + i
    temp = -3: IF t(who, i) >= 4 THEN temp = 3
-   pushw 2: pushw t(who, i): pushw temp: pushw 0: pushw 2: pushw 0
-   pushw 7: pushw t(who, i): pushw 0
+   anim_setmove t(who, i), temp, 0, 2, 0
+   anim_setframe t(who, i), 0
   NEXT i
-  pushw 13: pushw 2
+  anim_wait 2
  NEXT j
  IF who < 4 THEN retreat who, atk(), x(), y(), w(), h(), t()
  IF who >= 4 THEN eretreat who, atk(), x(), y(), w(), h(), t()
  FOR i = 0 TO tcount
-  pushw 7: pushw t(who, i): pushw 0
+  anim_setframe t(who, i), 0
  NEXT i
- pushw 0
+ anim_end
 END IF
 '----------------------------SEQUENTIAL PROJECTILE
 IF atk(15) = 7 THEN
@@ -625,42 +639,42 @@ IF atk(15) = 7 THEN
   IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
   temp = 50: IF who < 4 THEN temp = -50
   dtemp = 0: IF readbit(atk(), 20, 3) = 0 THEN dtemp = pdir
-  pushw 3: pushw 12: pushw x(who) + temp: pushw y(who): pushw dtemp
-  pushw 5: pushw 12
+  anim_setpos 12, x(who) + temp, y(who), dtemp
+  anim_appear 12
   FOR i = 0 TO tcount
    yt = (h(t(who, i)) - 50) + 2
    xt = 0: IF t(who, i) = who AND who < 4 AND atk(14) <> 7 THEN xt = -20
-   pushw 8: pushw 12: pushw x(t(who, i)) + xt: pushw y(t(who, i)) + yt: pushw 5: pushw 5
-   pushw 9
-   pushw 10: pushw t(who, i)
+   anim_relmove 12, x(t(who, i)) + xt, y(t(who, i)) + yt, 5, 5
+   anim_waitforall
+   anim_inflict t(who, i)
    temp = 3: IF t(who, i) >= 4 THEN temp = -3
-   pushw 2: pushw t(who, i): pushw temp: pushw 0: pushw 2: pushw 0
+   anim_setmove t(who, i), temp, 0, 2, 0
    IF readbit(atk(), 20, 0) = 0 THEN
-    pushw 7: pushw t(who, i): pushw 5
+    anim_setframe t(who, i), 5
    END IF
    IF readbit(atk(), 20, 0) = 1 THEN
-    pushw 7: pushw t(who, i): pushw 2
+    anim_setframe t(who, i), 2
    END IF
-   pushw 13: pushw 3
+   anim_wait 3
    temp = -3: IF t(who, i) >= 4 THEN temp = 3
-   pushw 2: pushw t(who, i): pushw temp: pushw 0: pushw 2: pushw 0
-   pushw 7: pushw t(who, i): pushw 0
+   anim_setmove t(who, i), temp, 0, 2, 0
+   anim_setframe t(who, i), 0
    IF i = 0 THEN
-    pushw 6: pushw 24
+    anim_disappear 24
    END IF
   NEXT i
   IF who < 4 THEN
-   pushw 8: pushw 12: pushw -50: pushw 100: pushw 5: pushw 5
+   anim_relmove 12, -50, 100, 5, 5
   END IF
   IF who >= 4 THEN
-   pushw 8: pushw 12: pushw 320: pushw 100: pushw 5: pushw 5
+   anim_relmove 12, 320, 100, 5, 5
   END IF
-  pushw 9
-  pushw 6: pushw 12
+  anim_waitforall
+  anim_disappear 12
  NEXT j
  IF who < 4 THEN retreat who, atk(), x(), y(), w(), h(), t()
  IF who >= 4 THEN eretreat who, atk(), x(), y(), w(), h(), t()
- pushw 0
+ anim_end
 END IF
 '-----------------PROJECTILE, REVERSE PROJECTILE and METEOR
 IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
@@ -672,66 +686,66 @@ IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
    yt = (h(t(who, i)) - 50) + 2
    xt = 0: IF t(who, i) = who AND who < 4 AND atk(14) <> 7 THEN xt = -20
    IF atk(15) = 1 THEN
-    pushw 3: pushw 12 + i: pushw x(who) + temp: pushw y(who): pushw dtemp
+    anim_setpos 12 + i, x(who) + temp, y(who), dtemp
    END IF
    IF atk(15) = 2 THEN
-    pushw 3: pushw 12 + i: pushw x(t(who, i)) + xt: pushw y(t(who, i)) + yt: pushw dtemp
+    anim_setpos 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt, dtemp
    END IF
    IF atk(15) = 8 THEN
     IF who < 4 THEN
-     pushw 3: pushw 12 + i: pushw 320: pushw 100: pushw dtemp
+     anim_setpos 12 + i, 320, 100, dtemp
     END IF
     IF who >= 4 THEN
-     pushw 3: pushw 12 + i: pushw -50: pushw 100: pushw dtemp
+     anim_setpos 12 + i, -50, 100, dtemp
     END IF
-    pushw 11: pushw 12 + i: pushw 180
+    anim_setz 12 + i, 180
    END IF
   NEXT i
   IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
   IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
   FOR i = 0 TO tcount
-   pushw 5: pushw 12 + i
+   anim_appear 12 + i
    temp = 50: IF who < 4 THEN temp = -50
    yt = (h(t(who, i)) - 50) + 2
    xt = 0: IF t(who, i) = who AND who < 4 AND atk(14) <> 7 THEN xt = -20
    IF atk(15) = 1 OR atk(15) = 8 THEN
-    pushw 8: pushw 12 + i: pushw x(t(who, i)) + xt: pushw y(t(who, i)) + yt: pushw 6: pushw 6
+    anim_relmove 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt, 6, 6
    END IF
    IF atk(15) = 2 THEN
-    pushw 8: pushw 12 + i: pushw x(who) + temp: pushw y(who): pushw 6: pushw 6
+    anim_relmove 12 + i, x(who) + temp, y(who), 6, 6
    END IF
    IF atk(15) = 8 THEN
-    pushw 15: pushw 12 + i: pushw -6: pushw 30
+    anim_zmove 12 + i, -6, 30
    END IF
   NEXT i
-  pushw 13: pushw 8
-  pushw 6: pushw 24
-  pushw 7: pushw who: pushw 0
+  anim_wait 8
+  anim_disappear 24
+  anim_setframe who, 0
   FOR i = 0 TO tcount
-   pushw 10: pushw t(who, i)
+   anim_inflict t(who, i)
    temp = 3: IF t(who, i) >= 4 THEN temp = -3
-   pushw 2: pushw t(who, i): pushw temp: pushw 0: pushw 2: pushw 0
+   anim_setmove t(who, i), temp, 0, 2, 0
    IF readbit(atk(), 20, 0) = 0 THEN
-    pushw 7: pushw t(who, i): pushw 5
+    anim_setframe t(who, i), 5
    ELSE
-    pushw 7: pushw t(who, i): pushw 2
+    anim_setframe t(who, i), 2
    END IF
   NEXT i
-  pushw 13: pushw 3
+  anim_wait 3
   FOR i = 0 TO tcount
-   pushw 6: pushw 12 + i
+   anim_disappear 12 + i
    temp = -3: IF t(who, i) >= 4 THEN temp = 3
-   pushw 2: pushw t(who, i): pushw temp: pushw 0: pushw 2: pushw 0
-   pushw 7: pushw t(who, i): pushw 0
+   anim_setmove t(who, i), temp, 0, 2, 0
+   anim_setframe t(who, i), 0
   NEXT i
-  pushw 13: pushw 3
+  anim_wait 3
  NEXT j
  IF who < 4 THEN retreat who, atk(), x(), y(), w(), h(), t()
  IF who >= 4 THEN eretreat who, atk(), x(), y(), w(), h(), t()
  FOR i = 0 TO tcount
-  pushw 7: pushw t(who, i): pushw 0
+  anim_setframe t(who, i), 0
  NEXT i
- pushw 0
+ anim_end
 END IF
 '--------------------------------------DRIVEBY
 IF atk(15) = 9 THEN
@@ -741,56 +755,56 @@ IF atk(15) = 9 THEN
   FOR i = 0 TO tcount
    yt = (h(t(who, i)) - 50) + 2
    IF who < 4 THEN
-    pushw 3: pushw 12 + i: pushw 320: pushw y(t(who, i)) + yt: pushw dtemp
+    anim_setpos 12 + i, 320, y(t(who, i)) + yt, dtemp
    END IF
    IF who >= 4 THEN
-    pushw 3: pushw 12 + i: pushw -50: pushw y(t(who, i)) + yt: pushw dtemp
+    anim_setpos 12 + i, -50, y(t(who, i)) + yt, dtemp
    END IF
   NEXT i
   IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
   IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
   FOR i = 0 TO tcount
-   pushw 5: pushw 12 + i
+   anim_appear 12 + i
    temp = 50: IF who < 4 THEN temp = -50
    yt = (h(t(who, i)) - 50) + 2
-   pushw 8: pushw 12 + i: pushw x(t(who, i)) + xt: pushw y(t(who, i)) + yt: pushw 8: pushw 8
+   anim_relmove 12 + i, x(t(who, i)) + xt, y(t(who, i)) + yt, 8, 8
   NEXT i
-  pushw 13: pushw 4
-  pushw 6: pushw 24
-  pushw 7: pushw who: pushw 0
-  pushw 9
+  anim_wait 4
+  anim_disappear 24
+  anim_setframe who, 0
+  anim_waitforall
   FOR i = 0 TO tcount
-   pushw 10: pushw t(who, i)
+   anim_inflict t(who, i)
    temp = 3: IF t(who, i) >= 4 THEN temp = -3
-   pushw 2: pushw t(who, i): pushw temp: pushw 0: pushw 2: pushw 0
+   anim_setmove t(who, i), temp, 0, 2, 0
    IF readbit(atk(), 20, 0) = 0 THEN
-    pushw 7: pushw t(who, i): pushw 5
+    anim_setframe t(who, i), 5
    ELSE
-    pushw 7: pushw t(who, i): pushw 2
+    anim_setframe t(who, i), 2
    END IF
    yt = (h(t(who, i)) - 50) + 2
    IF who < 4 THEN
-    pushw 8: pushw 12 + i: pushw -50: pushw y(t(who, i)) + yt: pushw 5: pushw 7
+    anim_relmove 12 + i, -50, y(t(who, i)) + yt, 5, 7
    END IF
    IF who >= 4 THEN
-    pushw 8: pushw 12 + i: pushw 320: pushw y(t(who, i)) + yt: pushw 5: pushw 7
+    anim_relmove 12 + i, 320, y(t(who, i)) + yt, 5, 7
    END IF
   NEXT i
-  pushw 9
+  anim_waitforall
   FOR i = 0 TO tcount
-   pushw 6: pushw 12 + i
+   anim_disappear 12 + i
    temp = -3: IF t(who, i) >= 4 THEN temp = 3
-   pushw 2: pushw t(who, i): pushw temp: pushw 0: pushw 2: pushw 0
-   pushw 7: pushw t(who, i): pushw 0
+   anim_setmove t(who, i), temp, 0, 2, 0
+   anim_setframe t(who, i), 0
   NEXT i
-  pushw 13: pushw 3
+  anim_wait 3
  NEXT j
  IF who < 4 THEN retreat who, atk(), x(), y(), w(), h(), t()
  IF who >= 4 THEN eretreat who, atk(), x(), y(), w(), h(), t()
  FOR i = 0 TO tcount
-  pushw 7: pushw t(who, i): pushw 0
+  anim_setframe t(who, i), 0
  NEXT i
- pushw 0
+ anim_end
 END IF
 '--------------------------------FOCUSED RING
 IF atk(15) = 4 AND tcount = 0 THEN
@@ -800,52 +814,54 @@ IF atk(15) = 4 AND tcount = 0 THEN
   i = 0
   yt = (h(t(who, i)) - 50) + 2
   xt = 0: IF t(who, i) = who AND who < 4 AND atk(14) <> 7 THEN xt = -20
-  pushw 3: pushw 12 + 0: pushw x(t(who, i)) + xt + 0: pushw y(t(who, i)) + yt - 50: pushw dtemp
-  pushw 3: pushw 12 + 1: pushw x(t(who, i)) + xt + 30: pushw y(t(who, i)) + yt - 30: pushw dtemp
-  pushw 3: pushw 12 + 2: pushw x(t(who, i)) + xt + 50: pushw y(t(who, i)) + yt + 0: pushw dtemp
-  pushw 3: pushw 12 + 3: pushw x(t(who, i)) + xt + 30: pushw y(t(who, i)) + yt + 30: pushw dtemp
-  pushw 3: pushw 12 + 4: pushw x(t(who, i)) + xt - 0: pushw y(t(who, i)) + yt + 50: pushw dtemp
-  pushw 3: pushw 12 + 5: pushw x(t(who, i)) + xt - 30: pushw y(t(who, i)) + yt + 30: pushw dtemp
-  pushw 3: pushw 12 + 6: pushw x(t(who, i)) + xt - 50: pushw y(t(who, i)) + yt - 0: pushw dtemp
-  pushw 3: pushw 12 + 7: pushw x(t(who, i)) + xt - 30: pushw y(t(who, i)) + yt - 30: pushw dtemp
+  tempx = x(t(who, i)) + xt
+  tempy = y(t(who, i)) + yt
+  anim_setpos 12 + 0, tempx + 0, tempy - 50, dtemp
+  anim_setpos 12 + 1, tempx + 30, tempy - 30, dtemp
+  anim_setpos 12 + 2, tempx + 50, tempy + 0, dtemp
+  anim_setpos 12 + 3, tempx + 30, tempy + 30, dtemp
+  anim_setpos 12 + 4, tempx - 0, tempy + 50, dtemp
+  anim_setpos 12 + 5, tempx - 30, tempy + 30, dtemp
+  anim_setpos 12 + 6, tempx - 50, tempy - 0, dtemp
+  anim_setpos 12 + 7, tempx - 30, tempy - 30, dtemp
   IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
   IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
   yt = (h(t(who, 0)) - 50) + 2
   xt = 0: IF t(who, i) = who AND who < 4 AND atk(14) <> 7 THEN xt = -20
   FOR i = 0 TO 7
-   pushw 5: pushw 12 + i
-   pushw 8: pushw 12 + i: pushw x(t(who, 0)) + xt: pushw y(t(who, 0)) + yt: pushw 4: pushw 4
+   anim_appear 12 + i
+   anim_relmove 12 + i, x(t(who, 0)) + xt, y(t(who, 0)) + yt, 4, 4
   NEXT i
-  pushw 13: pushw 8
-  pushw 6: pushw 24
-  pushw 7: pushw who: pushw 0
+  anim_wait 8
+  anim_disappear 24
+  anim_setframe who, 0
   FOR i = 0 TO tcount
-   pushw 10: pushw t(who, i)
+   anim_inflict t(who, i)
    temp = 3: IF t(who, i) >= 4 THEN temp = -3
-   pushw 2: pushw t(who, i): pushw temp: pushw 0: pushw 2: pushw 0
+   anim_setmove t(who, i), temp, 0, 2, 0
    IF readbit(atk(), 20, 0) = 0 THEN
-    pushw 7: pushw t(who, i): pushw 5
+    anim_setframe t(who, i), 5
    ELSE
-    pushw 7: pushw t(who, i): pushw 2
+    anim_setframe t(who, i), 2
    END IF
   NEXT i
-  pushw 13: pushw 3
+  anim_wait 3
   FOR i = 0 TO 7
-   pushw 6: pushw 12 + i
+   anim_disappear 12 + i
   NEXT i
   FOR i = 0 TO tcount
    temp = -3: IF t(who, i) >= 4 THEN temp = 3
-   pushw 2: pushw t(who, i): pushw temp: pushw 0: pushw 2: pushw 0
-   pushw 7: pushw t(who, i): pushw 0
+   anim_setmove t(who, i), temp, 0, 2, 0
+   anim_setframe t(who, i), 0
   NEXT i
-  pushw 13: pushw 3
+  anim_wait 3
  NEXT j
  IF who < 4 THEN retreat who, atk(), x(), y(), w(), h(), t()
  IF who >= 4 THEN eretreat who, atk(), x(), y(), w(), h(), t()
  FOR i = 0 TO tcount
-  pushw 7: pushw t(who, i): pushw 0
+  anim_setframe t(who, i), 0
  NEXT i
- pushw 0
+ anim_end
 END IF
 '--------------------------------WAVE
 IF atk(15) = 5 THEN
@@ -855,49 +871,49 @@ IF atk(15) = 5 THEN
   FOR i = 0 TO 11
    temp = -50: IF who < 4 THEN temp = 320
    IF tcount > 0 OR atk(4) = 1 THEN
-    pushw 3: pushw 12 + i: pushw temp: pushw i * 15: pushw pdir
+    anim_setpos 12 + i, temp, i * 15, pdir
    ELSE
-    pushw 3: pushw 12 + i: pushw temp: pushw yt: pushw pdir
+    anim_setpos 12 + i, temp, yt, pdir
    END IF
   NEXT i
   IF who < 4 THEN heroanim who, atk(), x(), y(), w(), h(), t()
   IF who >= 4 THEN etwitch who, atk(), x(), y(), w(), h(), t()
   temp = 24: IF who < 4 THEN temp = -24
   FOR i = 0 TO 11
-   pushw 5: pushw 12 + i
-   pushw 2: pushw 12 + i: pushw temp: pushw 0: pushw 16: pushw 0
-   pushw 13: pushw 1
+   anim_appear 12 + i
+   anim_setmove 12 + i, temp, 0, 16, 0
+   anim_wait 1
   NEXT i
-  pushw 13: pushw 15
-  pushw 6: pushw 24
-  pushw 7: pushw who: pushw 0
+  anim_wait 15
+  anim_disappear 24
+  anim_setframe who, 0
   FOR i = 0 TO tcount
-   pushw 10: pushw t(who, i)
+   anim_inflict t(who, i)
    temp = 3: IF t(who, i) >= 4 THEN temp = -3
-   pushw 2: pushw t(who, i): pushw temp: pushw 0: pushw 2: pushw 0
+   anim_setmove t(who, i), temp, 0, 2, 0
    IF readbit(atk(), 20, 0) = 0 THEN
-    pushw 7: pushw t(who, i): pushw 5
+    anim_setframe t(who, i), 5
    ELSE
-    pushw 7: pushw t(who, i): pushw 2
+    anim_setframe t(who, i), 2
    END IF
   NEXT i
-  pushw 9
+  anim_waitforall
   FOR i = 0 TO 11
-   pushw 6: pushw 12 + i
+   anim_disappear 12 + i
   NEXT i
   FOR i = 0 TO tcount
    temp = -3: IF t(who, i) >= 4 THEN temp = 3
-   pushw 2: pushw t(who, i): pushw temp: pushw 0: pushw 2: pushw 0
-   pushw 7: pushw t(who, i): pushw 0
+   anim_setmove t(who, i), temp, 0, 2, 0
+   anim_setframe t(who, i), 0
   NEXT i
-  pushw 13: pushw 2
+  anim_wait 2
  NEXT j
  IF who < 4 THEN retreat who, atk(), x(), y(), w(), h(), t()
  IF who >= 4 THEN eretreat who, atk(), x(), y(), w(), h(), t()
  FOR i = 0 TO tcount
-  pushw 7: pushw t(who, i): pushw 0
+  anim_setframe t(who, i), 0
  NEXT i
- pushw 0
+ anim_end
 END IF
 '--setup animation pattern
 FOR i = 0 TO 11
@@ -963,19 +979,19 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    NEXT i
    anim = -1
    'DEBUG debug "~ 1???"
-  CASE 2 'setmovement(who,xm,ym,xstep,ystep)
+  CASE 2 'setmove(who,xm,ym,xstep,ystep)
    ww = popw
    xm(ww) = popw
    ym(ww) = popw
    mvx(ww) = popw
    mvy(ww) = popw
-   'DEBUG debug "~ setmovement" + XSTR$(w) + XSTR$(xm(w)) + XSTR$(ym(w)) + XSTR$(mvx(w)) + XSTR$(mvy(w))
-  CASE 3 'setposition(who,x,y,d)
+   'DEBUG debug "~ setmove" + XSTR$(w) + XSTR$(xm(w)) + XSTR$(ym(w)) + XSTR$(mvx(w)) + XSTR$(mvy(w))
+  CASE 3 'setpos(who,x,y,d)
    ww = popw
    x(ww) = popw
    y(ww) = popw
    d(ww) = popw
-   'DEBUG debug "~ setposition" + XSTR$(w) + XSTR$(x(w)) + XSTR$(y(w)) + XSTR$(d(w))
+   'DEBUG debug "~ setpos" + XSTR$(w) + XSTR$(x(w)) + XSTR$(y(w)) + XSTR$(d(w))
   CASE 4 '???()
    '--undefined
    'DEBUG debug "~ undefined4"
@@ -993,7 +1009,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    IF ww < 4 THEN walk(ww) = 0: of(ww) = fr
    IF ww > 23 THEN of(ww) = fr '--is this right?
    'DEBUG debug "~ setframe" + XSTR$(w) + XSTR$(fr)
-  CASE 8 'relmovement(who,n,n,n,n)
+  CASE 8 'relmove(who,n,n,n,n)
    ww = popw
    tmp1 = popw
    tmp2 = popw
@@ -1003,7 +1019,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    mvy(ww) = (tmp2 - y(ww)) / tmp4
    xm(ww) = tmp3
    ym(ww) = tmp4
-   'DEBUG debug "~ relmovement" + XSTR$(w) + XSTR$(tmp1) + XSTR$(tmp2) + XSTR$(tmp3) + XSTR$(tmp4)
+   'DEBUG debug "~ relmove" + XSTR$(w) + XSTR$(tmp1) + XSTR$(tmp2) + XSTR$(tmp3) + XSTR$(tmp4)
   CASE 9 'waitforall()
    wf = -1
    'DEBUG debug "~ waitforall"
@@ -1120,19 +1136,19 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
   CASE 12 '???(n,n,n,n,n)
    'unimplemented
    'DEBUG debug "~ unimplemented12"
-  CASE 13 'waitfor(ticks)
+  CASE 13 'wait(ticks)
    wf = popw
-   'DEBUG debug "~ waitfor" + XSTR$(wf)
+   'DEBUG debug "~ wait" + XSTR$(wf)
   CASE 14 'walktoggle(who)
    ww = popw
    of(ww) = 0
    IF ww < 4 THEN walk(ww) = walk(ww) XOR 1
    'DEBUG debug "~ walktoggle" + XSTR$(ww)
-  CASE 15 'zmovement(who,zm,zstep)
+  CASE 15 'zmove(who,zm,zstep)
    ww = popw
    zm(ww) = popw
    mvz(ww) = popw
-   'DEBUG debug "~ zmovement" + XSTR$(w) + XSTR$(zm(w)) + XSTR$(mvz(w))
+   'DEBUG debug "~ zmovet" + XSTR$(w) + XSTR$(zm(w)) + XSTR$(mvz(w))
  END SELECT
 LOOP UNTIL wf <> 0 OR anim = -1
 
@@ -2236,3 +2252,54 @@ if gen(genDamageCap) > 0 THEN harm = small(harm, gen(genDamageCap))
 stat(targ, 0, 0) = bound(stat(targ, 0, 0) - harm, 0, stat(targ, 1, 0))
 END SUB
 
+SUB anim_end()
+ pushw 0
+END SUB
+
+SUB anim_inflict(who)
+ pushw 10: pushw who
+END SUB
+
+SUB anim_disappear(who)
+ pushw 6: pushw who
+END SUB
+
+SUB anim_setpos(who, x, y, d)
+ pushw 3: pushw who: pushw x: pushw y: pushw d
+END SUB
+
+SUB anim_setz(who, z)
+ pushw 11: pushw who: pushw z
+END SUB
+
+SUB anim_appear(who)
+ pushw 5: pushw who
+END SUB
+
+SUB anim_setmove(who, xm, ym, xstep, ystep)
+ pushw 2: pushw who: pushw xm: pushw ym: pushw xstep: pushw ystep
+END SUB
+
+SUB anim_relmove(who, tox, toy, xspeed, yspeed)
+ pushw 8: pushw who: pushw tox: pushw toy: pushw xspeed: pushw yspeed
+END SUB
+
+SUB anim_zmove(who, zm, zstep)
+ pushw 15: pushw who: pushw zm: pushw zstep
+END SUB
+
+SUB anim_wait(ticks)
+ pushw 13: pushw ticks
+END SUB
+
+SUB anim_setframe(who, frame)
+ pushw 7: pushw who: pushw frame
+END SUB
+
+SUB anim_waitforall()
+ pushw 9
+END SUB
+
+SUB anim_walktoggle(who)
+ pushw 14: pushw who
+END SUB
