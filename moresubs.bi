@@ -31,7 +31,6 @@ declare sub loaddoor (map, door())
 declare sub loadgame (slot, map, foep, stat(), stock())
 declare sub loadtanim (n, tastuf())
 declare sub minimap (x, y, tastuf())
-declare subtile = 20 \ zoom 
 declare function movdivis (xygo)
 declare function onwho (w$, alone)
 declare function range (n, r)

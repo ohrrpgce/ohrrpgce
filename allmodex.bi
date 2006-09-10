@@ -1,5 +1,10 @@
 'Allmodex FreeBasic Library header
 
+#IFNDEF ALLMODEX_BI
+#DEFINE ALLMODEX_BI
+
+#include "compat.bi"
+
 'Library routines
 DECLARE SUB setmodex ()
 DECLARE SUB restoremode ()
@@ -106,3 +111,5 @@ DECLARE FUNCTION sfxisplaying (BYVAL num)
 
 'DECLARE FUNCTION getsoundvol ()
 'DECLARE SUB setsoundvol (BYVAL vol)
+
+#ENDIF

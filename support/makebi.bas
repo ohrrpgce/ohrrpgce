@@ -38,14 +38,14 @@ do until eof(1)
   line input #1, l
   l = lcase(ltrim(l))
   
-  if left(l,1) = "'" or left(l,3) = "rem" then
+  if left(l,1) = "'" or left(l,4) = "rem " then
     ' ignore
-  elseif left(l,7) = "private" then
+  elseif left(l,8) = "private " then
     ' ugh, also ignore
-  elseif left(l,6) = "public" then
-    l = mid(l,7) 'remove the 'public' bit
+  elseif left(l,7) = "public " then
+    l = mid(l,8) 'remove the 'public ' bit
     goto still 'cuz we still want to process this line
-  elseif left(l,3) = "sub" or left(l,8) = "function" then
+  elseif left(l,4) = "sub " or left(l,9) = "function " then
   
   still: 'there is a valid reason for this.
     

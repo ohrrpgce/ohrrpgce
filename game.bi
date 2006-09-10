@@ -7,8 +7,6 @@
 #IFNDEF GAME_BI
 #DEFINE GAME_BI
 
-declare subdoarg
-declare subreturn
 declare sub loadmap_gmap(mapnum)
 declare sub loadmap_npcl(mapnum)
 declare sub loadmap_npcd(mapnum)

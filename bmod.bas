@@ -5,96 +5,22 @@
 '
 '$DYNAMIC
 DEFINT A-Z
-'basic subs and functions
-DECLARE SUB exitprogram (needfade%)
-DECLARE SUB quitcleanup ()
-DECLARE FUNCTION focuscost% (cost%, focus%)
-DECLARE SUB flusharray (array%(), size%, value%)
-DECLARE FUNCTION rpad$ (s$, pad$, size%)
-DECLARE FUNCTION atkallowed% (atkid%, attacker%, spclass%, lmplev%, stat%(), atkbuf%())
-DECLARE SUB herobattlebits (bitbuf%(), who%)
-DECLARE SUB invertstack ()
-DECLARE SUB fatalerror (e$)
-DECLARE SUB updatestatslevelup (i%, exstat%(), stat%(), allowforget)
-DECLARE FUNCTION readitemname$ (itemnum%)
-DECLARE FUNCTION trytheft (who%, targ%, atk%(), es%())
-DECLARE SUB setbatcap (cap$, captime%, capdelay%)
-DECLARE FUNCTION gethighbyte% (n%)
-DECLARE SUB wrappedsong (songnumber%)
-DECLARE SUB readattackdata (array%(), index%)
-DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
-DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
-DECLARE SUB traceshow (s$)
-DECLARE FUNCTION targetmaskcount% (tmask%())
-DECLARE SUB eaispread (j%, atkdat%(), t%(), stat%(), v%(), ebits%(), revenge%(), revengemask%(), targmem%())
-DECLARE SUB eaifocus (j%, atkdat%(), t%(), stat%(), v%(), ebits%(), revenge%(), revengemask%(), targmem%())
-DECLARE FUNCTION randomoposite% (who%)
-DECLARE FUNCTION randomally% (who%)
-DECLARE FUNCTION targetable% (attacker%, target%, ebits%())
-DECLARE FUNCTION visibleandalive% (o%, stat%(), v%())
-DECLARE FUNCTION liveherocount% (stat%())
-DECLARE FUNCTION countai% (ai%, them%, es%())
-DECLARE FUNCTION enemycount% (v%(), stat%())
-DECLARE SUB writestats (exstat%(), stat%())
-DECLARE SUB playtimer ()
-DECLARE SUB control ()
-DECLARE SUB equip (pt%, stat%())
-DECLARE FUNCTION items% (stat%())
-DECLARE SUB getitem (getit%, num%)
-DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (pt%, stat%())
-DECLARE SUB status (pt%, stat%())
-DECLARE SUB getnames (stat$())
-DECLARE SUB resetlmp (slot%, lev%)
-DECLARE SUB addhero (who%, slot%, stat%())
-DECLARE FUNCTION atlevel% (now%, a0%, a99%)
-DECLARE FUNCTION range% (n%, r%)
-DECLARE FUNCTION xstring% (s$, x%)
-DECLARE SUB snapshot ()
-DECLARE FUNCTION checkNoRunBit (stat%(), ebits%(), v%())
-DECLARE SUB checkTagCond (t, check, tag, tagand)
-DECLARE FUNCTION exptolevel& (level%)
-DECLARE SUB giveheroexperience (i%, exstat%(), exper&)
-DECLARE FUNCTION getbinsize% (id%)
-DECLARE FUNCTION dimbinsize% (id%)
-DECLARE SUB delitem (it%, num%)
-DECLARE FUNCTION consumeitem% (index%)
 
-DECLARE SUB anim_end()
-DECLARE SUB anim_wait(ticks%)
-DECLARE SUB anim_waitforall()
-DECLARE SUB anim_inflict(who%)
-DECLARE SUB anim_disappear(who%)
-DECLARE SUB anim_appear(who%)
-DECLARE SUB anim_setframe(who%, frame%)
-DECLARE SUB anim_setpos(who%, x%, y%, d%)
-DECLARE SUB anim_setz(who%, z%)
-DECLARE SUB anim_setmove(who%, xm%, ym%, xstep%, ystep%)
-DECLARE SUB anim_relmove(who%, tox%, toy%, xspeed%, yspeed%)
-DECLARE SUB anim_zmove(who%, zm%, zstep%)
-DECLARE SUB anim_walktoggle(who%)
+'modules
+#include "bmod.bi"
+#include "bmodsubs.bi"
+#include "game.bi"
+#INCLUDE "allmodex.bi"
+#include "menustuf.bi"
+#include "yetmore.bi"
+#include "moresubs.bi"
 
-DECLARE FUNCTION is_hero(who%)
-DECLARE FUNCTION is_enemy(who%)
-DECLARE FUNCTION is_attack(who%)
-DECLARE FUNCTION is_weapon(who%)
-
-'$INCLUDE: 'compat.bi'
-'$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi'
-'$INCLUDE: 'gglobals.bi'
-'$INCLUDE: 'const.bi'
-'$INCLUDE: 'uiconst.bi'
-
-DECLARE SUB advance (who%, atk%(), bslot() AS BattleSprite, t%())
-DECLARE SUB heroanim (who%, atk%(), bslot() AS BattleSprite, t%())
-DECLARE SUB retreat (who%, atk%(), bslot() AS BattleSprite, t%())
-DECLARE SUB etwitch (who%, atk%(), bslot() AS BattleSprite, t%())
-DECLARE SUB loadfoe (i%, formdata%(), es%(), bslot() AS BattleSprite, p%(), v%(), ext$(), bits%(), stat%(), ebits%(), batname$())
-DECLARE FUNCTION inflict (w%, t%, stat%(), bslot() AS BattleSprite, harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())
-DECLARE SUB quickinflict (harm%, targ%, hc%(), hx%(), hy%(), bslot() AS BattleSprite, harm$(), stat%())
-DECLARE FUNCTION battle (form%, fatal%, exstat%())
-DECLARE SUB smartarrows (pt%, d%, axis%, bslot() AS BattleSprite, targ%(), tmask%(), spred%)
+'misc
+#include "common.bi"
+#INCLUDE "compat.bi"
+#INCLUDE "gglobals.bi"
+#INCLUDE "const.bi"
+#INCLUDE "uiconst.bi"
 
 'these are the battle global variables
 DIM battlecaption$, battlecaptime, battlecapdelay, bstackstart, learnmask(29)

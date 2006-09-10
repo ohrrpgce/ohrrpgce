@@ -1,3 +1,6 @@
+#IFNDEF UDTS_BI
+#DEFINE UDTS_BI
+
 TYPE NPCType
   picture as integer     '+0
   palette as integer     '+1
@@ -69,3 +72,5 @@ DECLARE SUB DeserInventory(invent() as InventSlot, z, buf())
 DECLARE SUB CleanNPCD(dat() as NPCType)
 DECLARE SUB CleanNPCL(dat() as NPCInst, num as integer)
 DECLARE SUB CleanInventory(invent() as InventSlot)
+
+#ENDIF

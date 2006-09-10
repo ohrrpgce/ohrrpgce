@@ -7,6 +7,8 @@
 #IFNDEF BMOD_BI
 #DEFINE BMOD_BI
 
+#INCLUDE "udts.bi"
+
 declare function battle (form, fatal, exstat())
 declare function checknorunbit (stat(), ebits(), v())
 declare sub checktagcond (t, check, tg, tagand)

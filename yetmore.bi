@@ -16,11 +16,7 @@ declare sub scriptstat (id, stat())
 declare sub flusharray (array(), size, value)
 declare sub forceparty (stat())
 declare function functiondone
-declare functiondone = 1'--no scripts are running anymore
-declare functiondone = 2'--reactivating a supended script
-declare functiondone = 0'--returning a value to a caller
 declare function functionread
-declare functionread = 0
 declare function gethighbyte (n)
 declare function getnpcref (seekid, offset)
 declare sub getpal16 (array(), aoffset, foffset)
@@ -47,7 +43,6 @@ declare sub setdebugpan
 declare sub subdoarg
 declare sub subreturn
 declare sub unwindtodo (levels)
-declare subreturn
 declare sub templockexplain
 declare sub tweakpalette
 declare function vehiclestuff (disx, disy, foep, vehedge, showsay)
