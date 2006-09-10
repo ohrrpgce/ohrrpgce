@@ -48,6 +48,13 @@ TYPE BattleSprite
   z AS INTEGER
   w AS INTEGER
   h AS INTEGER
+  d AS INTEGER
+  xmov AS INTEGER
+  ymov AS INTEGER
+  zmov AS INTEGER
+  xspeed AS INTEGER
+  yspeed AS INTEGER
+  zspeed AS INTEGER
 END TYPE
 
 'Loading subs

@@ -34,7 +34,7 @@ REMEMBERSTATE
 bstackstart = stackpos
 
 battle = 1
-DIM formdata(40), atktemp(40 + dimbinsize(0)), atk(40 + dimbinsize(0)), st(3, 318), es(7, 160), d(24), zbuf(24), xm(24), ym(24), zm(24), mvx(24), mvy(24), mvz(24), v(24), p(24), of(24), ext$(7), ctr(11), stat(11,  _
+DIM formdata(40), atktemp(40 + dimbinsize(0)), atk(40 + dimbinsize(0)), st(3, 318), es(7, 160), zbuf(24), v(24), p(24), of(24), ext$(7), ctr(11), stat(11,  _
 1, 17), ready(11), batname$(11), menu$(3, 5), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
@@ -136,7 +136,7 @@ DO
   FOR i = 0 TO 3
    '--if alive, animate running away
    IF stat(i, 0, 0) THEN
-    xm(i) = 10 * v(i): mvx(i) = 6: walk(i) = 1: d(i) = v(i)
+    bslot(i).xmov = 10 * v(i): bslot(i).xspeed = 6: walk(i) = 1: bslot(i).d = v(i)
    END IF
   NEXT i
   away = away + 1
@@ -872,7 +872,7 @@ IF wf > 0 THEN wf = wf - 1: IF wf > 0 THEN RETRACE
 IF wf = -1 THEN
  wf = 0
  FOR i = 0 TO 23
-  IF xm(i) <> 0 OR ym(i) <> 0 OR zm(i) <> 0 THEN wf = -1
+  IF bslot(i).xmov <> 0 OR bslot(i).ymov <> 0 OR bslot(i).zmov <> 0 THEN wf = -1
  NEXT i
  IF wf = -1 THEN RETRACE
 END IF
@@ -896,64 +896,53 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     END IF
    NEXT i
    anim = -1
-   'DEBUG debug "~ end"
   CASE 1 '???()
    FOR i = 0 TO 3
     formdata(i * 4 + 1) = bslot(4 + i).x
     formdata(i * 4 + 2) = bslot(4 + i).y
    NEXT i
    anim = -1
-   'DEBUG debug "~ 1???"
   CASE 2 'setmove(who,xm,ym,xstep,ystep)
    ww = popw
-   xm(ww) = popw
-   ym(ww) = popw
-   mvx(ww) = popw
-   mvy(ww) = popw
-   'DEBUG debug "~ setmove" + XSTR$(w) + XSTR$(xm(w)) + XSTR$(ym(w)) + XSTR$(mvx(w)) + XSTR$(mvy(w))
+   bslot(ww).xmov = popw
+   bslot(ww).ymov = popw
+   bslot(ww).xspeed = popw
+   bslot(ww).yspeed = popw
   CASE 3 'setpos(who,x,y,d)
    ww = popw
    bslot(ww).x = popw
    bslot(ww).y = popw
-   d(ww) = popw
-   'DEBUG debug "~ setpos" + XSTR$(w) + XSTR$(x(w)) + XSTR$(y(w)) + XSTR$(d(w))
+   bslot(ww).d = popw
   CASE 4 '???()
    '--undefined
-   'DEBUG debug "~ undefined4"
   CASE 5 'appear(who)
    ww = popw
    v(ww) = 1
-   'DEBUG debug "~ appear" + XSTR$(w)
   CASE 6 'disappear(who)
    ww = popw
    v(ww) = 0
-   'DEBUG debug "~ disappear" + XSTR$(w)
   CASE 7 'setframe(who,frame)
    ww = popw
    fr = popw
    IF is_hero(ww) THEN walk(ww) = 0: of(ww) = fr
    IF ww > 23 THEN of(ww) = fr '--is this right?
-   'DEBUG debug "~ setframe" + XSTR$(w) + XSTR$(fr)
   CASE 8 'relmove(who,n,n,n,n)
    ww = popw
    tmp1 = popw
    tmp2 = popw
    tmp3 = popw
    tmp4 = popw
-   mvx(ww) = (tmp1 - bslot(ww).x) / tmp3
-   mvy(ww) = (tmp2 - bslot(ww).y) / tmp4
-   xm(ww) = tmp3
-   ym(ww) = tmp4
-   'DEBUG debug "~ relmove" + XSTR$(w) + XSTR$(tmp1) + XSTR$(tmp2) + XSTR$(tmp3) + XSTR$(tmp4)
+   bslot(ww).xspeed = (tmp1 - bslot(ww).x) / tmp3
+   bslot(ww).yspeed = (tmp2 - bslot(ww).y) / tmp4
+   bslot(ww).xmov = tmp3
+   bslot(ww).ymov = tmp4
   CASE 9 'waitforall()
    wf = -1
-   'DEBUG debug "~ waitforall"
   CASE 10 'inflict(targ)
    targ = popw
    'set tag, if there is one
    checkTagCond atk(60), 1, atk(59), atk(61)
    checkTagCond atk(63), 1, atk(62), atk(64)
-   'DEBUG debug "~ inflict on " + XSTR$(targ) + " by " + XSTR$(who)
    IF inflict(who, targ, stat(), bslot(), harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
     '--attack succeeded
 	IF readbit(atk(), 20, 50) = 1 THEN
@@ -1057,23 +1046,18 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
   CASE 11 'setz(who,z)
    ww = popw
    bslot(ww).z = popw
-   'DEBUG debug "~ setz" + XSTR$(w) + XSTR$(z(w))
   CASE 12 '???(n,n,n,n,n)
    'unimplemented
-   'DEBUG debug "~ unimplemented12"
   CASE 13 'wait(ticks)
    wf = popw
-   'DEBUG debug "~ wait" + XSTR$(wf)
   CASE 14 'walktoggle(who)
    ww = popw
    of(ww) = 0
    IF is_hero(ww) THEN walk(ww) = walk(ww) XOR 1
-   'DEBUG debug "~ walktoggle" + XSTR$(ww)
   CASE 15 'zmove(who,zm,zstep)
    ww = popw
-   zm(ww) = popw
-   mvz(ww) = popw
-   'DEBUG debug "~ zmovet" + XSTR$(w) + XSTR$(zm(w)) + XSTR$(mvz(w))
+   bslot(ww).zmov = popw
+   bslot(ww).zspeed = popw
  END SELECT
 LOOP UNTIL wf <> 0 OR anim = -1
 
@@ -1299,7 +1283,7 @@ IF deadguyhp = 0 and formslotused <> 0 THEN
  v(deadguy) = 0
  ready(deadguy) = 0
  godo(deadguy) = 0
- d(deadguy) = 0
+ bslot(deadguy).d = 0
  '--reset poison/regen/stun/mute
  FOR j = 12 TO 17
   stat(deadguy, 0, j) = stat(deadguy, 1, j)
@@ -1770,9 +1754,11 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 FOR i = 0 TO 23
- IF xm(i) <> 0 THEN bslot(i).x = bslot(i).x + (mvx(i) * SGN(xm(i))): xm(i) = xm(i) - SGN(xm(i))
- IF ym(i) <> 0 THEN bslot(i).y = bslot(i).y + (mvy(i) * SGN(ym(i))): ym(i) = ym(i) - SGN(ym(i))
- IF zm(i) <> 0 THEN bslot(i).z = bslot(i).z + (mvz(i) * SGN(zm(i))): zm(i) = zm(i) - SGN(zm(i))
+ WITH bslot(i)
+  IF .xmov <> 0 THEN .x = .x + (.xspeed * SGN(.xmov)): .xmov = .xmov - SGN(.xmov)
+  IF .ymov <> 0 THEN .y = .y + (.yspeed * SGN(.ymov)): .ymov = .ymov - SGN(.ymov)
+  IF .zmov <> 0 THEN .z = .z + (.zspeed * SGN(.zmov)): .zmov = .zmov - SGN(.zmov)
+ END WITH
 NEXT i
 FOR i = 0 TO 11
  IF v(i + 12) = 1 THEN
@@ -1789,7 +1775,7 @@ FOR i = 0 TO 11
      putpixel INT(RND * (bslot(i).h * bslot(i).w * .5)), 64 + 10 * (i - 4), 0, 3
     NEXT ii
    ELSE
-    bslot(i).x = bslot(i).x - 10: d(i) = 1
+    bslot(i).x = bslot(i).x - 10: bslot(i).d = 1
    END IF
    die(i) = die(i) - 1
    IF die(i) = 0 THEN formdata((i-4) * 4) = 0 'moved from way above
@@ -1817,7 +1803,7 @@ FOR i = 0 TO 24
   IF is_attack(zbuf(i)) THEN temp = 144
   IF is_weapon(zbuf(i)) THEN temp = 156
   loadsprite buffer(), 0, of(zbuf(i)) * (bslot(zbuf(i)).w * bslot(zbuf(i)).h * .5), temp, bslot(zbuf(i)).w, bslot(zbuf(i)).h, 3
-  IF d(zbuf(i)) = 0 THEN
+  IF bslot(zbuf(i)).d = 0 THEN
    drawsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
   ELSE
    wardsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
@@ -1848,7 +1834,7 @@ IF flee > 0 AND flee < 4 THEN
  IF carray(6) = 0 THEN
   flee = 0
   FOR i = 0 TO 3
-   d(i) = 0
+   bslot(i).d = 0
    walk(i) = 0
   NEXT i
  END IF
@@ -1863,14 +1849,14 @@ END IF
 IF flee > 4 THEN
  FOR i = 0 TO 3
   '--if alive and visible, turn around
-  'IF v(i) AND stat(i, 0, 0) THEN d(i) = 1
-  IF stat(i, 0, 0) THEN d(i) = 1
+  'IF v(i) AND stat(i, 0, 0) THEN bslot(i).d = 1
+  IF stat(i, 0, 0) THEN bslot(i).d = 1
   walk(i) = 1
   godo(i) = 0
   ready(i) = 0
   ctr(i) = large(0, ctr(i) - stat(i, 0, 8) * 2)
  NEXT i
- IF carray(6) = 0 THEN flee = 0: FOR i = 0 TO 3: d(i) = 0: walk(i) = 0: NEXT i
+ IF carray(6) = 0 THEN flee = 0: FOR i = 0 TO 3: bslot(i).d = 0: walk(i) = 0: NEXT i
  temp = 400
  FOR i = 4 TO 11
   temp = temp + stat(i, 0, 8)
