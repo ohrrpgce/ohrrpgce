@@ -28,10 +28,8 @@ DECLARE FUNCTION targetmaskcount% (tmask%())
 DECLARE FUNCTION randomally% (who%)
 DECLARE FUNCTION randomfoe% (who%)
 DECLARE FUNCTION targetable% (attacker%, target%, ebits%())
-DECLARE FUNCTION visibleandalive% (o%, stat%(), v%())
 DECLARE FUNCTION liveherocount% (stat%())
 DECLARE FUNCTION countai% (ai%, them%, es%())
-DECLARE FUNCTION enemycount% (v%(), stat%())
 DECLARE SUB calibrate ()
 DECLARE SUB control ()
 DECLARE SUB equip (pt%, stat%())
@@ -78,9 +76,11 @@ DECLARE FUNCTION is_weapon(who%)
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'uiconst.bi'
 
-DECLARE SUB loadfoe (i%, formdata%(), es%(), bslot() AS BattleSprite, p%(), v%(), ext$(), bits%(), stat%(), ebits%(), batname$())
+DECLARE SUB loadfoe (i%, formdata%(), es%(), bslot() AS BattleSprite, p%(), ext$(), bits%(), stat%(), ebits%(), batname$())
 DECLARE FUNCTION inflict (w%, t%, stat%(), bslot() AS BattleSprite, harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())
 DECLARE SUB smartarrowmask (inrange%(), pt%, d%, axis%, bslot() AS BattleSprite, tmask%())
+DECLARE FUNCTION visibleandalive% (o%, stat%(), bslot() AS BattleSprite)
+DECLARE FUNCTION enemycount% (bslot() AS BattleSprite, stat%())
 
 REM $STATIC
 FUNCTION is_hero(who)
@@ -331,7 +331,7 @@ NEXT i
 countai = o
 END FUNCTION
 
-SUB eaifocus (j, atkdat(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem())
+SUB eaifocus (j, atkdat(), t(), stat(), bslot() AS BattleSprite, ebits(), revenge(), revengemask(), targmem())
 
 'flush the targeting space for this attacker
 FOR ii = 0 TO 11
@@ -352,7 +352,7 @@ IF atkdat(3) = 0 THEN
   t(j, targetptr) = o
   ol = ol + 1
   'if its alive and visable and targetable, target it!
-  IF visibleandalive(o, stat(), v()) AND targetable(j, o, ebits()) THEN EXIT DO
+  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN EXIT DO
  LOOP UNTIL ol > 99 'safety cutoff
 END IF
 
@@ -371,7 +371,7 @@ IF atkdat(3) = 1 OR atkdat(3) = 4 OR atkdat(3) = 5 THEN
   t(j, targetptr) = o
   ol = ol + 1
   'if alive and targetable, target it!
-  IF visibleandalive(o, stat(), v()) AND targetable(j, o, ebits()) THEN EXIT DO
+  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN EXIT DO
  LOOP UNTIL ol > 99 'safety cutoff
 END IF
 
@@ -386,13 +386,13 @@ IF atkdat(3) = 3 THEN
   o = INT(RND * 12)
   t(j, targetptr) = o
   ol = ol + 1
-  IF visibleandalive(o, stat(), v()) AND targetable(j, o, ebits()) THEN EXIT DO
+  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN EXIT DO
  LOOP UNTIL ol > 99 'safety cutoff
 END IF
 
 'revenge one
 IF atkdat(3) = 6 AND revenge(j) >= 0 THEN
- IF visibleandalive(revenge(j), stat(), v()) AND targetable(j, revenge(j), ebits()) THEN
+ IF visibleandalive(revenge(j), stat(), bslot()) AND targetable(j, revenge(j), ebits()) THEN
   t(j, targetptr) = revenge(j)
  END IF
 END IF
@@ -405,7 +405,7 @@ IF atkdat(3) = 7 AND revengemask(j) THEN
   o = INT(RND * 12)
   IF readbit(revengemask(), j, o) THEN
    t(j, targetptr) = o
-   IF visibleandalive(o, stat(), v()) AND targetable(j, o, ebits()) THEN EXIT DO
+   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN EXIT DO
   END IF
   ol = ol + 1
  LOOP UNTIL ol > 99 'safety cutoff
@@ -419,7 +419,7 @@ IF atkdat(3) = 8 AND targmem(j) THEN
   o = INT(RND * 12)
   IF readbit(targmem(), j, o) THEN
    t(j, targetptr) = o
-   IF visibleandalive(o, stat(), v()) AND targetable(j, o, ebits()) THEN EXIT DO
+   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN EXIT DO
   END IF
   ol = ol + 1
  LOOP UNTIL ol > 99 'safety cutoff
@@ -433,7 +433,7 @@ IF atkdat(3) = 9 AND targmem(j + 12) THEN
   o = randomfoe(j)
   IF readbit(targmem(), j + 12, o) THEN
    t(j, targetptr) = o
-   IF visibleandalive(o, stat(), v()) AND targetable(j, o, ebits()) THEN EXIT DO
+   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN EXIT DO
   END IF
   ol = ol + 1
  LOOP UNTIL ol > 99 'safety cutoff
@@ -441,7 +441,7 @@ END IF
 
 END SUB
 
-SUB eaispread (j, atkdat(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem())
+SUB eaispread (j, atkdat(), t(), stat(), bslot() AS BattleSprite, ebits(), revenge(), revengemask(), targmem())
 
 'clear attacker's temporary target area
 FOR ii = 0 TO 11
@@ -456,7 +456,7 @@ targetptr = 0
 'enemy targets hero
 IF atkdat(3) = 0 AND is_enemy(j) THEN
  FOR o = 0 TO 3
-  IF visibleandalive(o, stat(), v()) THEN
+  IF visibleandalive(o, stat(), bslot()) THEN
    t(j, targetptr) = o
    targetptr = targetptr + 1
   END IF
@@ -467,7 +467,7 @@ END IF
 IF atkdat(3) = 0 AND is_hero(j) THEN
  FOR o = 4 TO 11
   IF is_hero(j) THEN
-   IF visibleandalive(o, stat(), v()) AND targetable(j, o, ebits()) THEN
+   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN
     t(j, targetptr) = o
     targetptr = targetptr + 1
    END IF
@@ -478,7 +478,7 @@ END IF
 'enemy targets enemy
 IF (atkdat(3) = 1 OR atkdat(3) = 4 OR atkdat(3) = 5) AND is_enemy(j) THEN
  FOR o = 4 TO 11
-  IF visibleandalive(o, stat(), v()) AND targetable(j, o, ebits()) THEN
+  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN
    IF atkdat(3) <> 5 OR j <> o THEN
     t(j, targetptr) = o
     targetptr = targetptr + 1
@@ -490,7 +490,7 @@ END IF
 'hero targets hero
 IF (atkdat(3) = 1 OR atkdat(3) = 4 OR atkdat(3) = 5 OR atkdat(3) = 10) AND is_hero(j) THEN
  FOR o = 0 TO 3
-  IF visibleandalive(o, stat(), v()) OR (v(o) = 1 AND (atkdat(3) = 4 OR atkdat(3) = 10)) THEN
+  IF visibleandalive(o, stat(), bslot()) OR (bslot(o).vis = 1 AND (atkdat(3) = 4 OR atkdat(3) = 10)) THEN
    IF atkdat(3) <> 5 OR j <> o THEN
     t(j, targetptr) = o
     targetptr = targetptr + 1
@@ -505,7 +505,7 @@ IF atkdat(3) = 2 AND targetable(j, j, ebits()) THEN t(j, 0) = j
 'all
 IF atkdat(3) = 3 THEN
  FOR o = 0 TO 11
-  IF visibleandalive(o, stat(), v()) AND targetable(j, o, ebits()) THEN
+  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN
    t(j, targetptr) = o
    targetptr = targetptr + 1
   END IF
@@ -514,7 +514,7 @@ END IF
 
 'revenge one
 IF atkdat(3) = 6 AND revenge(j) >= 0 THEN
- IF visibleandalive(revenge(j), stat(), v()) AND targetable(j, revenge(j), ebits()) THEN
+ IF visibleandalive(revenge(j), stat(), bslot()) AND targetable(j, revenge(j), ebits()) THEN
   t(j, targetptr) = revenge(j)
  END IF
 END IF
@@ -522,7 +522,7 @@ END IF
 'revengeall
 IF atkdat(3) = 7 THEN
  FOR o = 0 TO 11
-  IF readbit(revengemask(), j, o) AND visibleandalive(o, stat(), v()) AND targetable(j, o, ebits()) THEN
+  IF readbit(revengemask(), j, o) AND visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN
    t(j, targetptr) = o
    targetptr = targetptr + 1
   END IF
@@ -532,7 +532,7 @@ END IF
 'lasttargs
 IF atkdat(3) = 8 THEN
  FOR o = 0 TO 11
-  IF readbit(targmem(), j, o) AND visibleandalive(o, stat(), v()) AND targetable(j, o, ebits()) THEN
+  IF readbit(targmem(), j, o) AND visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN
    t(j, targetptr) = o
    targetptr = targetptr + 1
   END IF
@@ -542,7 +542,7 @@ END IF
 'stored targs
 IF atkdat(3) = 9 THEN
  FOR o = 0 TO 11
-  IF readbit(targmem(), j + 12, o) AND visibleandalive(o, stat(), v()) THEN
+  IF readbit(targmem(), j + 12, o) AND visibleandalive(o, stat(), bslot()) THEN
    t(j, targetptr) = o
    targetptr = targetptr + 1
   END IF
@@ -551,10 +551,10 @@ END IF
 
 END SUB
 
-FUNCTION enemycount (v(), stat())
+FUNCTION enemycount (bslot() AS BattleSprite, stat())
 o = 0
 FOR i = 4 TO 11
- IF v(i) = 1 AND stat(i, 0, 0) > 0 THEN o = o + 1
+ IF bslot(i).vis = 1 AND stat(i, 0, 0) > 0 THEN o = o + 1
 NEXT i
 enemycount = o
 END FUNCTION
@@ -951,7 +951,7 @@ NEXT o
 liveherocount = i
 END FUNCTION
 
-SUB loadfoe (i, formdata(), es(), bslot() AS BattleSprite, p(), v(), ext$(), bits(), stat(), ebits(), batname$())
+SUB loadfoe (i, formdata(), es(), bslot() AS BattleSprite, p(), ext$(), bits(), stat(), ebits(), batname$())
 setpicstuf buffer(), 320, -1
 IF formdata(i * 4) > 0 THEN
  loadset workingdir$ + SLASH + "dt1.tmp", formdata(i * 4) - 1, 0
@@ -961,30 +961,32 @@ IF formdata(i * 4) > 0 THEN
  FOR o = 0 TO 4
   ebits(i * 5 + o) = buffer(74 + o)
  NEXT o
- bslot(4 + i).basex = formdata(i * 4 + 1)
- bslot(4 + i).basey = formdata(i * 4 + 2)
- bslot(4 + i).x = bslot(4 + i).basex
- bslot(4 + i).y = bslot(4 + i).basey
- p(4 + i) = 44 + i
- getpal16 pal16(), 44 + i, es(i, 54)
- v(4 + i) = 1
- IF es(i, 55) = 0 THEN
-  ext$(i) = ".pt1"
-  bslot(4 + i).w = 34
-  bslot(4 + i).h = 34
- END IF
- IF es(i, 55) = 1 THEN
-  ext$(i) = ".pt2"
-  bslot(4 + i).w = 50
-  bslot(4 + i).h = 50
- END IF
- IF es(i, 55) = 2 THEN
-  ext$(i) = ".pt3"
-  bslot(4 + i).w = 80
-  bslot(4 + i).h = 80
- END IF
+ WITH bslot(4 + i)
+  .basex = formdata(i * 4 + 1)
+  .basey = formdata(i * 4 + 2)
+  .x = bslot(4 + i).basex
+  .y = bslot(4 + i).basey
+  p(4 + i) = 44 + i
+  getpal16 pal16(), 44 + i, es(i, 54)
+  .vis = 1
+  IF es(i, 55) = 0 THEN
+   ext$(i) = ".pt1"
+   .w = 34
+   .h = 34
+  END IF
+  IF es(i, 55) = 1 THEN
+   ext$(i) = ".pt2"
+   .w = 50
+   .h = 50
+  END IF
+  IF es(i, 55) = 2 THEN
+   ext$(i) = ".pt3"
+   .w = 80
+   .h = 80
+  END IF
+ END WITH 
 END IF
-IF v(4 + i) = 1 THEN
+IF bslot(4 + i).vis = 1 THEN
  setpicstuf buffer(), (bslot(4 + i).w * bslot(4 + i).h) * .5, 3
  loadset game$ + ext$(i), es(i, 53), 64 + i * 10
  FOR o = 0 TO 11
@@ -1308,8 +1310,8 @@ SUB giveheroexperience (i, exstat(), exper&)
  END IF
 END SUB
 
-FUNCTION visibleandalive (o, stat(), v())
-visibleandalive = (v(o) = 1 AND stat(o, 0, 0) > 0)
+FUNCTION visibleandalive (o, stat(), bslot() AS BattleSprite)
+visibleandalive = (bslot(o).vis = 1 AND stat(o, 0, 0) > 0)
 END FUNCTION
 
 SUB writestats (exstat(), stat())

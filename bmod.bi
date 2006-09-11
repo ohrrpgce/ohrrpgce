@@ -10,7 +10,7 @@
 #INCLUDE "udts.bi"
 
 declare function battle (form, fatal, exstat())
-declare function checknorunbit (stat(), ebits(), v())
+declare function checknorunbit (stat(), ebits(), bslot() as battlesprite)
 declare sub checktagcond (t, check, tg, tagand)
 declare function focuscost (cost, focus)
 declare sub herobattlebits (bitbuf(), who)

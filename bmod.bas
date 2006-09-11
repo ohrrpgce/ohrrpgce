@@ -34,7 +34,7 @@ REMEMBERSTATE
 bstackstart = stackpos
 
 battle = 1
-DIM formdata(40), atktemp(40 + dimbinsize(0)), atk(40 + dimbinsize(0)), st(3, 318), es(7, 160), zbuf(24), v(24), p(24), of(24), ext$(7), ctr(11), stat(11,  _
+DIM formdata(40), atktemp(40 + dimbinsize(0)), atk(40 + dimbinsize(0)), st(3, 318), es(7, 160), zbuf(24),  p(24), of(24), ext$(7), ctr(11), stat(11,  _
 1, 17), ready(11), batname$(11), menu$(3, 5), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
@@ -136,7 +136,14 @@ DO
   FOR i = 0 TO 3
    '--if alive, animate running away
    IF stat(i, 0, 0) THEN
-    bslot(i).xmov = 10 * v(i): bslot(i).xspeed = 6: walk(i) = 1: bslot(i).d = v(i)
+    WITH bslot(i)
+     IF .vis THEN
+      .xmov = 10
+      .xspeed = 6
+      walk(i) = 1
+      .d = 1
+     END IF
+    END WITH
    END IF
   NEXT i
   away = away + 1
@@ -260,7 +267,7 @@ ai = 0
 IF stat(them, 0, 0) < stat(them, 1, 0) / 5 THEN ai = 1
 
 'if enemy count is 1, go into alone mode
-IF enemycount(v(), stat()) = 1 THEN ai = 2
+IF enemycount(bslot(), stat()) = 1 THEN ai = 2
 
 'spawn allys when alone
 IF ai = 2 AND es(them - 4, 81) THEN
@@ -271,7 +278,7 @@ IF ai = 2 AND es(them - 4, 81) THEN
   NEXT k
   IF slot > -1 THEN
    formdata(slot * 4) = es(them - 4, 81)
-   loadfoe slot, formdata(), es(), bslot(), p(), v(), ext$(), bits(), stat(), ebits(), batname$()
+   loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), stat(), ebits(), batname$()
   END IF
  NEXT j
 END IF
@@ -304,10 +311,10 @@ IF countai(ai, them, es()) > 0 THEN
 
  IF atktemp(4) = 1 OR (atktemp(4) = 2 AND INT(RND * 100) < 33) THEN
   'spread attack
-  eaispread them, atktemp(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+  eaispread them, atktemp(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
  ELSE
   'focused attack
-  eaifocus them, atktemp(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+  eaifocus them, atktemp(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
  END IF
 END IF
 
@@ -435,7 +442,7 @@ ltarg(who) = 0
 'CANNOT HIT INVISIBLE FOES
 FOR i = 0 TO 11
  IF t(who, i) > -1 THEN
-  IF v(t(who, i)) = 0 AND (atk(3) <> 4 AND atk(3) <> 10) THEN
+  IF bslot(t(who, i)).vis = 0 AND (atk(3) <> 4 AND atk(3) <> 10) THEN
    t(who, i) = -1
   END IF
  END IF
@@ -917,10 +924,10 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    '--undefined
   CASE 5 'appear(who)
    ww = popw
-   v(ww) = 1
+   bslot(ww).vis = 1
   CASE 6 'disappear(who)
    ww = popw
-   v(ww) = 0
+   bslot(ww).vis = 0
   CASE 7 'setframe(who,frame)
    ww = popw
    fr = popw
@@ -953,7 +960,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
 	END IF
 	IF readbit(atk(), 20, 63) = 1 THEN
 	 'force heroes to run away
-	 IF checkNoRunBit(stat(), ebits(), v()) THEN
+	 IF checkNoRunBit(stat(), ebits(), bslot()) THEN
 	  alert$ = cannotrun$
 	  alert = 10
 	 ELSE
@@ -978,7 +985,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    GOSUB triggerfade
    IF stat(targ, 0, 0) > 0 THEN
     '---REVIVE---
-    v(targ) = 1: die(targ) = 0
+    bslot(targ).vis = 1: die(targ) = 0
    END IF
    IF is_enemy(targ) THEN GOSUB sponhit
    IF conmp = 1 THEN
@@ -1038,9 +1045,9 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    NEXT i
    IF stat(targ, 0, 0) = 0 AND o < 8 AND anim > -1 THEN
     IF atk(4) = 1 OR (atk(4) = 2 AND INT(RND * 100) < 33) THEN
-     eaispread who, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+     eaispread who, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
     ELSE
-     eaifocus who, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+     eaifocus who, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
     END IF
    END IF
   CASE 11 'setz(who,z)
@@ -1084,9 +1091,9 @@ IF anim = -1 THEN
   IF o < 8 THEN
    IF buffer(4) <> atk(4) OR buffer(3) <> atk(3) THEN
     IF buffer(4) = 1 OR (buffer(4) = 2 AND INT(RND * 100) < 33) THEN
-     eaispread who, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+     eaispread who, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
     ELSE
-     eaifocus who, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+     eaifocus who, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
     END IF
    END IF
   END IF
@@ -1168,16 +1175,16 @@ ltarg(you) = 0
 SELECT CASE buffer(3)
 
  CASE 0 'enemy
-  FOR i = 4 TO 11: tmask(i) = v(i): NEXT i
+  FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
 
  CASE 1 'ally
-  FOR i = 0 TO 3: tmask(i) = v(i): NEXT i
+  FOR i = 0 TO 3: tmask(i) = bslot(i).vis: NEXT i
 
  CASE 2 'self
   tmask(you) = 1
 
  CASE 3 'all
-  FOR i = 0 TO 11: tmask(i) = v(i): NEXT i: tptr = 4
+  FOR i = 0 TO 11: tmask(i) = bslot(i).vis: NEXT i: tptr = 4
 
  CASE 4 'ally-including-dead
   noifdead = 1
@@ -1187,28 +1194,28 @@ SELECT CASE buffer(3)
 
  CASE 5 'ally-not-self
   FOR i = 0 TO 3
-   tmask(i) = v(i)
+   tmask(i) = bslot(i).vis
   NEXT i
   tmask(you) = 0
 
  CASE 6 'revenge-one
   IF revenge(you) >= 0 THEN
-   tmask(revenge(you)) = v(revenge(you))
+   tmask(revenge(you)) = bslot(revenge(you)).vis
   END IF
 
  CASE 7 'revenge-all
   FOR i = 0 TO 11
-   tmask(i) = (readbit(revengemask(), you, i) AND v(i))
+   tmask(i) = (readbit(revengemask(), you, i) AND bslot(i).vis)
   NEXT i
 
  CASE 8 'previous
   FOR i = 0 TO 11
-   tmask(i) = (readbit(targmem(), you, i) AND v(i))
+   tmask(i) = (readbit(targmem(), you, i) AND bslot(i).vis)
   NEXT i
 
  CASE 9 'stored
   FOR i = 0 TO 11
-   tmask(i) = (readbit(targmem(), you + 12, i) AND v(i))
+   tmask(i) = (readbit(targmem(), you + 12, i) AND bslot(i).vis)
   NEXT i
 
  CASE 10 'dead-ally (hero only)
@@ -1280,7 +1287,7 @@ END IF
 IF deadguyhp = 0 THEN deadguycount = deadguycount + 1
 IF deadguyhp = 0 and formslotused <> 0 THEN
  '--deadguy is really dead
- v(deadguy) = 0
+ bslot(deadguy).vis = 0
  ready(deadguy) = 0
  godo(deadguy) = 0
  bslot(deadguy).d = 0
@@ -1328,9 +1335,9 @@ IF deadguyhp = 0 and formslotused <> 0 THEN
     setpicstuf buffer(), 80, -1
     loadset game$ + ".dt6", godo(j) - 1, 0
     IF buffer(4) = 1 OR (buffer(4) = 2 AND INT(RND * 100) < 33) THEN
-     eaispread j, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+     eaispread j, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
     ELSE
-     eaifocus j, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+     eaifocus j, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
     END IF
    END IF
    IF tmask(deadguy) = 1 THEN tmask(deadguy) = 0
@@ -1355,7 +1362,7 @@ FOR i = 0 TO 8
    NEXT k
    IF slot > -1 THEN
     formdata(slot * 4) = es(targ - 4, 82 + i)
-    loadfoe slot, formdata(), es(), bslot(), p(), v(), ext$(), bits(), stat(), ebits(), batname$()
+    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), stat(), ebits(), batname$()
    END IF
   NEXT j
   EXIT FOR
@@ -1375,7 +1382,7 @@ IF is_enemy(deadguy) THEN
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 80)
     deadguycount = deadguycount - 1
-    loadfoe slot, formdata(), es(), bslot(), p(), v(), ext$(), bits(), stat(), ebits(), batname$()
+    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), stat(), ebits(), batname$()
    END IF
   NEXT j
   es(deadguy - 4, 80) = 0
@@ -1390,7 +1397,7 @@ IF is_enemy(deadguy) THEN
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 79)
     deadguycount = deadguycount - 1
-    loadfoe slot, formdata(), es(), bslot(), p(), v(), ext$(), bits(), stat(), ebits(), batname$()
+    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), stat(), ebits(), batname$()
    END IF
   NEXT j
   es(deadguy - 4, 79) = 0
@@ -1505,9 +1512,9 @@ IF ptarg = 1 THEN GOSUB setuptarg
 'autotarget
 IF ptarg = 3 THEN
  IF buffer(4) = 1 OR (buffer(4) = 2 AND INT(RND * 100) < 33) THEN
-  eaispread you, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+  eaispread you, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
  ELSE
-  eaifocus you, buffer(), t(), stat(), v(), ebits(), revenge(), revengemask(), targmem()
+  eaifocus you, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
  END IF
  ctr(you) = 0
  ready(you) = 0
@@ -1761,7 +1768,7 @@ FOR i = 0 TO 23
  END WITH
 NEXT i
 FOR i = 0 TO 11
- IF v(i + 12) = 1 THEN
+ IF bslot(i + 12).vis = 1 THEN
   fctr(i) = fctr(i) + 1: IF aframe(i, fctr(i)) = -1 THEN fctr(i) = 0
   of(i + 12) = aframe(i, fctr(i))
   IF atk(2) = 3 THEN of(i + 12) = INT(RND * 3)
@@ -1797,7 +1804,7 @@ FOR i = 0 TO 23 'sort the sprites by y + height
  SWAP zbuf(j), zbuf(i)
 NEXT i
 FOR i = 0 TO 24
- IF (v(zbuf(i)) = 1 OR die(zbuf(i)) > 0) THEN
+ IF (bslot(zbuf(i)).vis = 1 OR die(zbuf(i)) > 0) THEN
   temp = 64 + (zbuf(i) - 4) * 10
   IF is_hero(zbuf(i)) THEN temp = zbuf(i) * 16
   IF is_attack(zbuf(i)) THEN temp = 144
@@ -1825,7 +1832,7 @@ FOR i = 0 TO 11
  c = 12: IF is_hero(i) THEN c = uilook(uiDescription)
  rectangle 0, 80 + (i * 10), ctr(i) / 10, 4, c, dpage
  IF is_enemy(i) THEN edgeprint XSTR$(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
- edgeprint XSTR$(v(i)) + ":v" + XSTR$(delay(i)) + ":dly" + XSTR$(tmask(i)) + ":tm", 20, 80 + i * 10, c, dpage
+ edgeprint XSTR$(bslot(i).vis) + ":v" + XSTR$(delay(i)) + ":dly" + XSTR$(tmask(i)) + ":tm", 20, 80 + i * 10, c, dpage
 NEXT i
 RETRACE
 
@@ -1840,7 +1847,7 @@ IF flee > 0 AND flee < 4 THEN
  END IF
 END IF
 IF flee = 4 THEN
- IF checkNoRunBit(stat(), ebits(), v()) THEN
+ IF checkNoRunBit(stat(), ebits(), bslot()) THEN
   flee = 0
   alert$ = cannotrun$
   alert = 10
@@ -1849,7 +1856,7 @@ END IF
 IF flee > 4 THEN
  FOR i = 0 TO 3
   '--if alive and visible, turn around
-  'IF v(i) AND stat(i, 0, 0) THEN bslot(i).d = 1
+  'IF bslot(i).vis AND stat(i, 0, 0) THEN bslot(i).d = 1
   IF stat(i, 0, 0) THEN bslot(i).d = 1
   walk(i) = 1
   godo(i) = 0
@@ -1876,14 +1883,16 @@ FOR i = 0 TO 3
   FOR o = 0 TO 317
    st(i, o) = buffer(o)
   NEXT o
-  bslot(i).basex = (240 + i * 8)
-  bslot(i).basey = (82 + i * 20)
-  bslot(i).x = bslot(i).basex
-  bslot(i).y = bslot(i).basey
-  bslot(i).w = 32
-  bslot(i).h = 40
-  p(i) = 40 + i
-  v(i) = 1
+  WITH bslot(i)
+   .basex = (240 + i * 8)
+   .basey = (82 + i * 20)
+   .x =  .basex
+   .y =  .basey
+   .w = 32
+   .h = 40
+   p(i) = 40 + i
+   .vis = 1
+  END WITH
  END IF
 NEXT i
 FOR i = 0 TO 3
@@ -1916,7 +1925,7 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 FOR i = 0 TO 7
- loadfoe i, formdata(), es(), bslot(), p(), v(), ext$(), bits(), stat(), ebits(), batname$()
+ loadfoe i, formdata(), es(), bslot(), p(), ext$(), bits(), stat(), ebits(), batname$()
 NEXT i
 FOR i = 0 TO 11
  ctr(i) = INT(RND * 500)
@@ -2090,10 +2099,10 @@ RETRACE
 
 END FUNCTION
 
-FUNCTION checkNoRunBit (stat(), ebits(), v())
+FUNCTION checkNoRunBit (stat(), ebits(), bslot() AS BattleSprite)
  checkNoRunBit = 0
  FOR i = 4 TO 11
-  IF stat(i, 0, 0) > 0 AND v(i) = 1 AND readbit(ebits(), (i - 4) * 5, 57) = 1 THEN checkNoRunBit = 1
+  IF stat(i, 0, 0) > 0 AND bslot(i).vis = 1 AND readbit(ebits(), (i - 4) * 5, 57) = 1 THEN checkNoRunBit = 1
  NEXT i
 END FUNCTION
 
