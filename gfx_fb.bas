@@ -7,6 +7,7 @@
 
 option explicit
 
+#include "fbgfx.bi"
 #include "gfx.bi"
 
 'border required to fit standard 4:3 screen at zoom 1
@@ -15,9 +16,10 @@ option explicit
 dim shared offset as integer = 0
 dim shared windowed as integer = 1
 dim shared init_gfx as integer = 0
-'defaults are 2x zoom and 640x400 in 8-bit (mode 17)
+'defaults are 2x zoom and 640x400 in 8-bit
 dim shared zoom as integer = 2
-dim shared screenmode as integer = 17
+dim shared screenmodex as integer = 640
+dim shared screenmodey as integer = 400
 dim shared bordered as integer = 0
 dim shared depth as integer = 8
 
@@ -32,13 +34,17 @@ declare sub debug(s$)
 'the main loop?
 sub gfx_init
 	if init_gfx = 0 then
-		if windowed = 0 then
-			screen screenmode, depth, 2, 1
-		else
-			screen screenmode, depth,2
-		end if
+    gfx_screenres
 		screenset 1, 0
 		init_gfx = 1
+	end if
+end sub
+
+sub gfx_screenres
+	if windowed = 0 then
+     screenres screenmodex, screenmodey, depth, 1, GFX_FULLSCREEN
+	else
+     screenres screenmodex, screenmodey, depth, 1, GFX_WINDOWED
 	end if
 end sub
 
@@ -134,11 +140,7 @@ sub gfx_setwindowed(byval iswindow as integer)
 	if init_gfx = 1 then
 		dim pal(255) as integer
 		if depth = 8 then palette get using pal
-		if windowed = 0 then
-			screen screenmode, depth, 1, 1
-		else
-			screen screenmode, depth, 1
-		end if
+    gfx_screenres
 		if depth = 8 then palette using pal		
 	end if
 end sub
@@ -173,6 +175,8 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 			'default zoom is 2, 1 is the only other valid value
 			if value = 1 then
 				zoom = 1
+      elseif value = 3 then
+        zoom = 3
 			else
 				zoom = 2
 			end if
@@ -192,22 +196,21 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 		'calculate mode
 		if zoom = 1 then
 			if depth = 8 then
-				if bordered = 1 then
-					screenmode = 14
-				else 
-					screenmode = 13
-				end if
+				screenmodex = 320
+        screenmodey = 200 + (bordered * BORDER * zoom)
 			else
 				'only bordered is supported in 24-bit it seems
 				bordered = 1
-				screenmode = 14
+				screenmodex = 320
+        screenmodey = 240
 			end if
+    elseif zoom = 3 then
+      bordered = 0 ' bordered mode is not supported in 3x zoom
+      screenmodex = 960
+      screenmodey = 600
 		else
-			if bordered = 1 then
-				screenmode = 18
-			else
-				screenmode = 17
-			end if
+			screenmodex = 640
+			screenmodey = 400 + (bordered * BORDER * zoom)
 		end if
 		'calculate offset
 		if bordered = 1 then offset = BORDER * zoom
