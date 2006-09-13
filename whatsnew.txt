@@ -46,6 +46,9 @@ WHAT IS NEW?
     * HSIMPORT is now obsolete, and Custom has taken over its function.
       Specify an RPG file/folder and an HS file on the commandline (or drag-
       and-drop them onto Custom), and the HS file will be imported [Ralph]
+    * Add -z 3 to the command-line to run with a 3x zoomed screen. This
+      Only works when running in a window, not when running fullscreen
+      [James Paige]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
