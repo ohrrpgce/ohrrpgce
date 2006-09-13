@@ -27,7 +27,7 @@ WHAT IS NEW?
     * Browse menu displays unlumped RPG files if the folder is named
       with a .rpgdir extension [James Paige]
     * You can choose an RPG to edit in custom with the same browse menu
-      that you useto pick an RPG to play in game. [James Paige]
+      that you use to pick an RPG to play in game. [James Paige]
     * Custom can edit and save unlumped RPG files [James Paige]
     * Full Long file name support (You can create RPG files with long file
       names, even including spaces)
@@ -74,7 +74,9 @@ WHAT IS NEW?
       NPC was standing [James Paige]
     * Fixed bug 210, HP and Gold costs are deducted more than once, and are
       randomized [Mike Caron]
-    * Bug 203, script interpreter crashes
+    * Fixed bug 203, script interpreter crashes
+    * Fixed bug 226 Battle gets stuck when fighting a single jumping enemy
+      with the "pause on all battle menus" bitset is on
 
   * New Plotscripting Commands
     * "string from textbox" [Yuriy]
@@ -113,6 +115,8 @@ WHAT IS NEW?
     * Some rewritten map wrapping code [Ralph Versteegen]
     * Internal data formats for NPCs and inventory rewritten with UDTs
       [Ralph, Mike]
+    * Internal data formats for battle sprites (heroes, enemies, attacks)
+      rewritten to use UDT's (in-progress) [James Paige]
     * Hspeak's exit code is 2 if there were warnings [Mike Caron]
     * Use keyval(-1) to detect when the OS has requested the program
       to exit

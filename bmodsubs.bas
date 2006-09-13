@@ -27,7 +27,6 @@ DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE FUNCTION targetmaskcount% (tmask%())
 DECLARE FUNCTION randomally% (who%)
 DECLARE FUNCTION randomfoe% (who%)
-DECLARE FUNCTION targetable% (attacker%, target%, ebits%())
 DECLARE FUNCTION liveherocount% (stat%())
 DECLARE FUNCTION countai% (ai%, them%, es%())
 DECLARE SUB calibrate ()
@@ -81,6 +80,8 @@ DECLARE FUNCTION inflict (w%, t%, stat%(), bslot() AS BattleSprite, harm$(), hc%
 DECLARE SUB smartarrowmask (inrange%(), pt%, d%, axis%, bslot() AS BattleSprite, tmask%())
 DECLARE FUNCTION visibleandalive% (o%, stat%(), bslot() AS BattleSprite)
 DECLARE FUNCTION enemycount% (bslot() AS BattleSprite, stat%())
+DECLARE FUNCTION targenemycount% (bslot() AS BattleSprite, stat%())
+DECLARE FUNCTION targetable% (attacker%, target%, ebits%(), bslot() AS BattleSprite)
 
 REM $STATIC
 FUNCTION is_hero(who)
@@ -352,7 +353,7 @@ IF atkdat(3) = 0 THEN
   t(j, targetptr) = o
   ol = ol + 1
   'if its alive and visable and targetable, target it!
-  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN EXIT DO
+  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
  LOOP UNTIL ol > 99 'safety cutoff
 END IF
 
@@ -371,12 +372,12 @@ IF atkdat(3) = 1 OR atkdat(3) = 4 OR atkdat(3) = 5 THEN
   t(j, targetptr) = o
   ol = ol + 1
   'if alive and targetable, target it!
-  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN EXIT DO
+  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
  LOOP UNTIL ol > 99 'safety cutoff
 END IF
 
 'self
-IF atkdat(3) = 2 AND targetable(j, j, ebits()) THEN t(j, targetptr) = j
+IF atkdat(3) = 2 AND targetable(j, j, ebits(), bslot()) THEN t(j, targetptr) = j
 
 'all
 IF atkdat(3) = 3 THEN
@@ -386,13 +387,13 @@ IF atkdat(3) = 3 THEN
   o = INT(RND * 12)
   t(j, targetptr) = o
   ol = ol + 1
-  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN EXIT DO
+  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
  LOOP UNTIL ol > 99 'safety cutoff
 END IF
 
 'revenge one
 IF atkdat(3) = 6 AND revenge(j) >= 0 THEN
- IF visibleandalive(revenge(j), stat(), bslot()) AND targetable(j, revenge(j), ebits()) THEN
+ IF visibleandalive(revenge(j), stat(), bslot()) AND targetable(j, revenge(j), ebits(), bslot()) THEN
   t(j, targetptr) = revenge(j)
  END IF
 END IF
@@ -405,7 +406,7 @@ IF atkdat(3) = 7 AND revengemask(j) THEN
   o = INT(RND * 12)
   IF readbit(revengemask(), j, o) THEN
    t(j, targetptr) = o
-   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN EXIT DO
+   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
   END IF
   ol = ol + 1
  LOOP UNTIL ol > 99 'safety cutoff
@@ -419,7 +420,7 @@ IF atkdat(3) = 8 AND targmem(j) THEN
   o = INT(RND * 12)
   IF readbit(targmem(), j, o) THEN
    t(j, targetptr) = o
-   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN EXIT DO
+   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
   END IF
   ol = ol + 1
  LOOP UNTIL ol > 99 'safety cutoff
@@ -433,7 +434,7 @@ IF atkdat(3) = 9 AND targmem(j + 12) THEN
   o = randomfoe(j)
   IF readbit(targmem(), j + 12, o) THEN
    t(j, targetptr) = o
-   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN EXIT DO
+   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
   END IF
   ol = ol + 1
  LOOP UNTIL ol > 99 'safety cutoff
@@ -467,7 +468,7 @@ END IF
 IF atkdat(3) = 0 AND is_hero(j) THEN
  FOR o = 4 TO 11
   IF is_hero(j) THEN
-   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN
+   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN
     t(j, targetptr) = o
     targetptr = targetptr + 1
    END IF
@@ -478,7 +479,7 @@ END IF
 'enemy targets enemy
 IF (atkdat(3) = 1 OR atkdat(3) = 4 OR atkdat(3) = 5) AND is_enemy(j) THEN
  FOR o = 4 TO 11
-  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN
+  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN
    IF atkdat(3) <> 5 OR j <> o THEN
     t(j, targetptr) = o
     targetptr = targetptr + 1
@@ -500,12 +501,12 @@ IF (atkdat(3) = 1 OR atkdat(3) = 4 OR atkdat(3) = 5 OR atkdat(3) = 10) AND is_he
 END IF
 
 'self
-IF atkdat(3) = 2 AND targetable(j, j, ebits()) THEN t(j, 0) = j
+IF atkdat(3) = 2 AND targetable(j, j, ebits(), bslot()) THEN t(j, 0) = j
 
 'all
 IF atkdat(3) = 3 THEN
  FOR o = 0 TO 11
-  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN
+  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN
    t(j, targetptr) = o
    targetptr = targetptr + 1
   END IF
@@ -514,7 +515,7 @@ END IF
 
 'revenge one
 IF atkdat(3) = 6 AND revenge(j) >= 0 THEN
- IF visibleandalive(revenge(j), stat(), bslot()) AND targetable(j, revenge(j), ebits()) THEN
+ IF visibleandalive(revenge(j), stat(), bslot()) AND targetable(j, revenge(j), ebits(), bslot()) THEN
   t(j, targetptr) = revenge(j)
  END IF
 END IF
@@ -522,7 +523,7 @@ END IF
 'revengeall
 IF atkdat(3) = 7 THEN
  FOR o = 0 TO 11
-  IF readbit(revengemask(), j, o) AND visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN
+  IF readbit(revengemask(), j, o) AND visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN
    t(j, targetptr) = o
    targetptr = targetptr + 1
   END IF
@@ -532,7 +533,7 @@ END IF
 'lasttargs
 IF atkdat(3) = 8 THEN
  FOR o = 0 TO 11
-  IF readbit(targmem(), j, o) AND visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits()) THEN
+  IF readbit(targmem(), j, o) AND visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN
    t(j, targetptr) = o
    targetptr = targetptr + 1
   END IF
@@ -554,9 +555,17 @@ END SUB
 FUNCTION enemycount (bslot() AS BattleSprite, stat())
 o = 0
 FOR i = 4 TO 11
- IF bslot(i).vis = 1 AND stat(i, 0, 0) > 0 THEN o = o + 1
+ IF stat(i, 0, 0) > 0 THEN o = o + 1
 NEXT i
-enemycount = o
+RETURN o
+END FUNCTION
+
+FUNCTION targenemycount (bslot() AS BattleSprite, stat())
+o = 0
+FOR i = 4 TO 11
+ IF stat(i, 0, 0) > 0 AND bslot(i).vis = 1 AND bslot(i).hero_untargetable = 0 THEN o = o + 1
+NEXT i
+RETURN o
 END FUNCTION
 
 SUB etwitch (who, atk(), bslot() AS BattleSprite, t())
@@ -984,6 +993,8 @@ IF formdata(i * 4) > 0 THEN
    .w = 80
    .h = 80
   END IF
+  .hero_untargetable = readbit(ebits(), i * 5, 61)
+  .enemy_untargetable = readbit(ebits(), i * 5, 60)
  END WITH 
 END IF
 IF bslot(4 + i).vis = 1 THEN
@@ -1146,14 +1157,19 @@ ELSE
 END IF
 END SUB
 
-FUNCTION targetable (attacker, target, ebits())
+FUNCTION targetable (attacker, target, ebits(), bslot() AS BattleSprite)
 targetable = 0
 IF is_hero(target) THEN
  'target is hero
  targetable = 1
 ELSE
  'target is enemy
- IF readbit(ebits(), (target - 4) * 5, 60 + ABS(SGN(is_hero(attacker)))) = 0 THEN targetable = 1
+ IF is_hero(attacker) THEN
+  IF bslot(target).hero_untargetable = 0 THEN targetable = 1
+ END IF
+ IF is_enemy(attacker) THEN
+  IF bslot(target).enemy_untargetable = 0 THEN targetable = 1
+ END IF
 END IF
 END FUNCTION
 

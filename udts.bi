@@ -56,6 +56,8 @@ TYPE BattleSprite
   yspeed AS INTEGER
   zspeed AS INTEGER
   vis AS INTEGER
+  hero_untargetable AS INTEGER
+  enemy_untargetable AS INTEGER
 END TYPE
 
 'Loading subs

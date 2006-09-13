@@ -266,8 +266,8 @@ ai = 0
 'if HP is less than 20% go into desperation mode
 IF stat(them, 0, 0) < stat(them, 1, 0) / 5 THEN ai = 1
 
-'if enemy count is 1, go into alone mode
-IF enemycount(bslot(), stat()) = 1 THEN ai = 2
+'if targetable enemy count is 1, go into alone mode
+IF targenemycount(bslot(), stat()) = 1 THEN ai = 2
 
 'spawn allys when alone
 IF ai = 2 AND es(them - 4, 81) THEN
@@ -1236,7 +1236,7 @@ NEXT i
 
 'enforce untargetability by heros
 FOR i = 4 TO 11
- IF readbit(ebits(), (i - 4) * 5, 61) = 1 THEN tmask(i) = 0
+ IF bslot(i).hero_untargetable <> 0 THEN tmask(i) = 0
 NEXT i
 
 'fail if there are no targets
@@ -1278,7 +1278,7 @@ IF is_enemy(deadguy) THEN
  isenemy = 1
  enemynum = deadguy - 4
  formslotused = formdata((deadguy - 4) * 4)
- IF stat(deadguy, 0, 0) > 0 AND readbit(ebits(), enemynum * 5, 61) = 1 THEN deadguycount = deadguycount + 1
+ IF stat(deadguy, 0, 0) > 0 AND bslot(deadguy).enemy_untargetable <> 0 THEN deadguycount = deadguycount + 1
 ELSE
  isenemy = 0
  enemynum = -1
@@ -1696,8 +1696,11 @@ RETRACE
 
 meters:
 IF away = 1 THEN RETRACE
-'--if a menu is up, and pause-on-menus is ON then no time passes
-IF (mset > 0 AND readbit(gen(), genBits, 0)) OR (mset >= 0 AND you >= 0 AND readbit(gen(), genBits, 13)) THEN RETRACE
+'--if a menu is up, and pause-on-menus is ON then no time passes (as long as at least one visible targetable enemy is alive)
+isdeepmenu = (mset > 0 AND readbit(gen(), genBits, 0))
+isbattlemenu = (mset >= 0 AND you >= 0 AND readbit(gen(), genBits, 13))
+isenemytargs = (targenemycount(bslot(), stat()) > 0)
+IF (isdeepmenu OR isbattlemenu) AND isenemytargs THEN RETRACE
 
 FOR i = 0 TO 11
 
