@@ -2402,7 +2402,7 @@ FUNCTION scriptstate$
      outstr$ = STR$(state(curvalue))
     CASE tyflow
      cmd$ = flowname$(state(curvalue))
-     IF state(scrdepth) = 0 THEN cmd$ = scriptname$(state(scrid), "plotscr.lst")
+     IF state(scrdepth) = 0 THEN cmd$ = scriptname$(state(scrid))
      IF flowtype(state(curvalue)) = 1 THEN hidearg = -1: cmd$ += ":"
      IF (state(curargc) = state(curargn) + 1) AND flowtype(state(curvalue)) = 2 THEN hidearg = -1: cmd$ += "()"
      IF state(curvalue) = flowif AND state(curargn) > 0 THEN hidearg = -1
@@ -2419,7 +2419,7 @@ FUNCTION scriptstate$
       'currently executing this script (must have already printed it out)
       cmd$ = "==>>"
      ELSE
-      cmd$ = scriptname$(state(curvalue), "plotscr.lst")
+      cmd$ = scriptname$(state(curvalue))
      END IF
    END SELECT
    'debug "kind = " + STR$(state(curkind))

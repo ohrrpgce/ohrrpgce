@@ -67,6 +67,7 @@ DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE FUNCTION maplumpname$(map, oldext$)
 DECLARE FUNCTION getsongname$ (num%)
+DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -74,6 +75,7 @@ DECLARE FUNCTION getsongname$ (num%)
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'
+'$INCLUDE: 'scrconst.bi'
 
 REM $STATIC
 
@@ -340,15 +342,15 @@ gdmax(3) = 1:                              gdmin(3) = 0
 gdmax(4) = 255:                            gdmin(4) = 0
 gdmax(5) = 2:                              gdmin(5) = 0
 gdmax(6) = 255:                            gdmin(6) = 0
-gdmax(7) = general(genMaxRegularScript):   gdmin(7) = 0
+gdmax(7) = 0:                              gdmin(7) = 0
 gdmax(8) = 32767:                          gdmin(8) = -32767
 gdmax(9) = 32767:                          gdmin(9) = -32767
 gdmax(10) = 255:                           gdmin(10) = 0
 gdmax(11) = 20:                            gdmin(11) = -20
-gdmax(12) = general(genMaxRegularScript):  gdmin(12) = 0
-gdmax(13) = general(genMaxRegularScript):  gdmin(13) = 0
-gdmax(14) = general(genMaxRegularScript):  gdmin(14) = 0
-gdmax(15) = general(genMaxRegularScript):  gdmin(15) = 0
+gdmax(12) = 0:                             gdmin(12) = 0
+gdmax(13) = 0:                             gdmin(13) = 0
+gdmax(14) = 0:                             gdmin(14) = 0
+gdmax(15) = 0:                             gdmin(15) = 0
 gdmax(16) = 1:                             gdmin(16) = 0
 gdmax(17) = 2:                             gdmin(16) = 0
 gdmax(18) = 2:                             gdmin(16) = 0
@@ -363,7 +365,9 @@ IF gmap(16) > 1 THEN gmap(16) = 0
 FOR i = 0 TO gmapmax
  gmap(i) = bound(gmap(i), gdmin(i), gdmax(i))
 NEXT i
-GOSUB setgmapscriptstr
+FOR i = 0 TO 4
+ gmapscr$(i) = scriptname$(gmap(gmapscrof(i)), plottrigger)
+NEXT i
 setkeys
 DO
  setwait timing(), 120
@@ -371,15 +375,19 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
  dummy = usemenu(gd, 0, -1, gmapmax, 24)
- IF gd = -1 THEN
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
- END IF
- IF gd = 1 THEN zintgrabber(gmap(gd), gdmin(gd)-1, gdmax(gd)-1, 75, 77) 'song is optional
- IF gd > 1 OR gd = 0 THEN
-  IF intgrabber(gmap(gd), gdmin(gd), gdmax(gd), 75, 77) THEN
-   GOSUB setgmapscriptstr
-  END IF
- END IF
+ SELECT CASE gd
+  CASE -1
+   IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
+  CASE 1
+   zintgrabber(gmap(gd), gdmin(gd)-1, gdmax(gd)-1, 75, 77) 'song is optional
+  CASE 7, 12 TO 15
+   IF gd = 7 THEN idx = 0 ELSE idx = gd - 11
+   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+    gmapscr$(idx) = scriptbrowse$(gmap(gmapscrof(idx)), plottrigger, "plotscript")  'd$(idx))
+   END IF
+  CASE ELSE
+   dummy = intgrabber(gmap(gd), gdmin(gd), gdmax(gd), 75, 77)
+ END SELECT
  scri = 0
  FOR i = -1 TO gmapmax
   xtemp$ = ""
@@ -467,12 +475,6 @@ DO
 LOOP
 
 loadpasdefaults defaults(), gmap(0)
-RETRACE
-
-setgmapscriptstr:
-FOR i = 0 TO 4
- gmapscr$(i) = scriptname$(gmap(gmapscrof(i)), "plotscr.lst")
-NEXT i
 RETRACE
 
 mapping:

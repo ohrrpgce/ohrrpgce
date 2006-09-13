@@ -81,6 +81,7 @@ DECLARE FUNCTION newRPGfile (template$, newrpg$)
 DECLARE SUB dolumpfiles (filetolump$)
 DECLARE FUNCTION readarchinym$ ()
 DECLARE SUB importscripts (f$)
+DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -89,6 +90,7 @@ DECLARE SUB importscripts (f$)
 
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'uiconst.bi'
+'$INCLUDE: 'scrconst.bi'
 
 workingdir$ = "working.tmp"
 
@@ -1090,12 +1092,12 @@ DO
    GOSUB sstuf
   END IF
   IF csr = 4 THEN editbitset a(), 17, 7, sbit$(): GOSUB menuup
+  IF csr = 6 THEN
+   menu$(6) = "Inn Script: " + scriptbrowse$(a(19), plottrigger, "Inn Plotscript")
+  END IF
  END IF
  IF csr = 5 THEN
   IF intgrabber(a(18), 0, 32767, 75, 77) THEN GOSUB menuup
- END IF
- IF csr = 6 THEN
-  IF intgrabber(a(19), 0, general(43), 75, 77) THEN GOSUB menuup
  END IF
  FOR i = 0 TO li
   c = 7: IF i = csr THEN c = 14 + tog
@@ -1149,7 +1151,7 @@ menu$(1) = CHR$(27) + " Shop" + XSTR$(pt) + " of" + XSTR$(general(97)) + CHR$(26
 menu$(2) = "Name:" + sn$
 menu$(5) = "Inn Price:" + XSTR$(a(18))
 IF readbit(a(), 17, 3) = 0 THEN menu$(5) = "Inn Price: N/A"
-menu$(6) = "Inn Script: " + scriptname$(a(19), "plotscr.lst")
+menu$(6) = "Inn Script: " + scriptname$(a(19), plottrigger)
 IF readbit(a(), 17, 0) OR readbit(a(), 17, 1) OR readbit(a(), 17, 2) THEN havestuf = 1 ELSE havestuf = 0
 RETRACE
 

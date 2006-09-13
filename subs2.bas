@@ -67,6 +67,7 @@ DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION getsfxname$ (num)
 DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
+DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -74,6 +75,7 @@ DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'
+'$INCLUDE: 'scrconst.bi'
 
 REM $STATIC
 SUB cropafter (index, limit, flushafter, lump$, bytes, prompt)
@@ -1029,13 +1031,15 @@ DO
   CASE 7'textsearch
    strgrabber search$, 36
   CASE 6'quickchainer
-   IF intgrabber(cond(12), general(43) * -1, general(39), 75, 77) THEN
-    IF cond(12) = 0 THEN
-     cond(11) = 0
-    ELSE
-     IF cond(11) = 0 THEN cond(11) = -1
+   IF cond(12) >= 0 THEN
+    IF intgrabber(cond(12), 0, general(39), 75, 77) THEN
+     IF cond(12) = 0 THEN
+      cond(11) = 0
+     ELSE
+      IF cond(11) = 0 THEN cond(11) = -1
+     END IF
+     GOSUB nextboxline
     END IF
-    GOSUB nextboxline
    END IF'--modify next
   CASE ELSE '--not using the quick textbox chainer
    IF intgrabber(pt, 0, general(39), 51, 52) THEN
@@ -1069,6 +1073,12 @@ DO
    GOSUB savelines
    pt = cond(12)
    GOSUB loadlines
+  END IF
+  IF csr = 6 AND cond(12) < 0 THEN
+   temptrig = ABS(cond(12))
+   m$(6) = "Next: script " + scriptbrowse$(temptrig, plottrigger, "textbox plotscript")
+   IF cond(11) <> 0 AND cond(11) <> -1 THEN m$(6) += " (conditional)"
+   cond(12) = -temptrig
   END IF
   IF csr = 7 AND keyval(28) > 1 THEN
    GOSUB savelines
@@ -1107,13 +1117,13 @@ SELECT CASE cond(11)
   IF cond(12) >= 0 THEN
    m$(6) = "Next: Box" + XSTR$(cond(12))
   ELSE
-   m$(6) = "Next: script " + scriptname$(ABS(cond(12)), "plotscr.lst")
+   m$(6) = "Next: script " + scriptname$(ABS(cond(12)), plottrigger)
   END IF
  CASE ELSE
   IF cond(12) >= 0 THEN
    m$(6) = "Next: Box" + XSTR$(cond(12)) + " (conditional)"
   ELSE
-   m$(6) = "Next: script " + scriptname$(ABS(cond(12)), "plotscr.lst") + " (conditional)"
+   m$(6) = "Next: script " + scriptname$(ABS(cond(12)), plottrigger) + " (conditional)"
   END IF
 END SELECT
 RETRACE
@@ -1180,7 +1190,7 @@ SELECT CASE cond(1)
  CASE 0
   menu$(1) = " use [text box or script] instead"
  CASE IS < 0
-  menu$(1) = " run " + scriptname$(cond(1) * -1, "plotscr.lst") + " instead"
+  menu$(1) = " run " + scriptname$(cond(1) * -1, plottrigger) + " instead"
  CASE IS > 0
   menu$(1) = " jump to text box" + XSTR$(cond(1)) + " instead"
 END SELECT
@@ -1210,7 +1220,7 @@ SELECT CASE cond(12)
  CASE 0
   menu$(12) = " use [text box or script] next"
  CASE IS < 0
-  menu$(12) = " run " + scriptname$(cond(12) * -1, "plotscr.lst") + " next"
+  menu$(12) = " run " + scriptname$(cond(12) * -1, plottrigger) + " next"
  CASE IS > 0
   menu$(12) = " jump to text box" + XSTR$(cond(12)) + " next"
 END SELECT

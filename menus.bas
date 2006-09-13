@@ -60,6 +60,8 @@ DECLARE FUNCTION inputfilename$ (query$, ext$)
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION getsfxname$ (num%)
 DECLARE FUNCTION charpicker$ ()
+DECLARE SUB generalscriptsmenu ()
+DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -67,6 +69,7 @@ DECLARE FUNCTION charpicker$ ()
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'
+'$INCLUDE: 'scrconst.bi'
 
 REM $STATIC
 SUB editmenus
@@ -374,7 +377,7 @@ FOR i = 0 TO 1
   CASE 0
    tmp$ = "dismount"
   CASE ELSE
-   tmp$ = "script " + scriptname$(ABS(veh(offset(10 + i))), "plotscr.lst")
+   tmp$ = "script " + scriptname$(ABS(veh(offset(10 + i))), plottrigger)
  END SELECT
  IF i = 0 THEN menu$(10 + i) = "Use button: " + tmp$'12
  IF i = 1 THEN menu$(10 + i) = "Menu button: " + tmp$'13
@@ -394,7 +397,7 @@ SELECT CASE veh(offset(13))
  CASE 0
   tmp$ = "[script/textbox]"
  CASE IS < 0
-  tmp$ = "run script " + scriptname$(ABS(veh(offset(13))), "plotscr.lst")
+  tmp$ = "run script " + scriptname$(ABS(veh(offset(13))), plottrigger)
  CASE IS > 0
   tmp$ = "text box" + XSTR$(veh(offset(13)))
 END SELECT
@@ -404,7 +407,7 @@ SELECT CASE veh(offset(14))
  CASE 0
   tmp$ = "[script/textbox]"
  CASE IS < 0
-  tmp$ = "run script " + scriptname$(ABS(veh(offset(14))), "plotscr.lst")
+  tmp$ = "run script " + scriptname$(ABS(veh(offset(14))), plottrigger)
  CASE IS > 0
   tmp$ = "text box" + XSTR$(veh(offset(14)))
 END SELECT
@@ -432,7 +435,7 @@ END SUB
 SUB gendata ()
 STATIC default$
 CONST maxMenu = 31
-DIM m$(maxMenu), max(maxMenu), bitname$(15), subm$(4), scriptgenof(4)
+DIM m$(maxMenu), max(maxMenu), bitname$(15)
 DIM names$(32), stat$(11), menutop
 getnames names$(), 32
 stat$(0) = names$(0)
@@ -516,7 +519,7 @@ DO
   END IF
   IF csr = 9 THEN GOSUB ttlbrowse
   IF csr = 10 THEN GOSUB renrpg
-  IF csr = 12 THEN GOSUB specialplot
+  IF csr = 12 THEN generalscriptsmenu
   IF csr = 15 THEN GOSUB importmaspal
   IF csr = 8 THEN GOSUB inputpasw
  IF csr = 16 THEN
@@ -752,40 +755,6 @@ DO
  dowait
 LOOP
 
-specialplot:
-subcsr = 0
-subm$(0) = "Previous Menu"
-scriptgenof(1) = 41
-scriptgenof(2) = 42
-scriptgenof(3) = 57
-GOSUB setspecialplotstr
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN RETRACE
- dummy = usemenu(subcsr, 0, 0, 3, 24)
- SELECT CASE subcsr
-  CASE 0
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
-  CASE 1 TO 3
-   IF intgrabber(general(scriptgenof(subcsr)), 0, general(43), 75, 77) THEN
-    GOSUB setspecialplotstr
-   END IF
- END SELECT
- FOR i = 0 TO 3
-  col = 7: IF subcsr = i THEN col = 14 + tog
-  textcolor col, 0
-  printstr subm$(i), 0, i * 8, dpage
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-RETRACE
-
 inputpasw:
 setkeys
 DO
@@ -811,12 +780,6 @@ DO
  clearpage dpage
  dowait
 LOOP
-RETRACE
-
-setspecialplotstr:
-subm$(1) = "new-game script: " + scriptname$(general(41), "plotscr.lst")
-subm$(2) = "game-over script: " + scriptname$(general(42), "plotscr.lst")
-subm$(3) = "load-game script: " + scriptname$(general(57), "plotscr.lst")
 RETRACE
 
 importmaspal:
@@ -846,6 +809,45 @@ END IF
 
 RETRACE
 
+END SUB
+
+SUB generalscriptsmenu ()
+DIM menu$(3), scrname$(3)
+DIM scriptgenoff(3) = {0, 41, 42, 57}
+menu$(0) = "Previous Menu"
+menu$(1) = "new-game plotscript"
+menu$(2) = "game-over plotscript"
+menu$(3) = "load-game plotscript"
+scrname$(0) = ""
+FOR i = 1 TO 3
+ scrname$(i) = ": " + scriptname$(general(scriptgenoff(i)), plottrigger)
+NEXT
+
+pt = 0
+menusize = 3
+setkeys
+DO
+ tog = tog XOR 1
+ setwait timing(), 100
+ setkeys
+ IF keyval(1) > 1 THEN EXIT DO
+ dummy = usemenu(pt, 0, 0, menusize, 24)
+ IF keyval(57) > 1 OR keyval(28) > 1 THEN
+  IF pt = 0 THEN
+   EXIT DO
+  ELSE
+   scrname$(pt) = ": " + scriptbrowse$(general(scriptgenoff(pt)), plottrigger, menu$(pt))
+  END IF
+ END IF
+ FOR i = 0 TO menusize
+  IF pt = i THEN textcolor 14 + tog, 0 ELSE textcolor 7, 0
+  printstr menu$(i) + scrname$(i), 0, i * 8, dpage
+ NEXT i
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
 END SUB
 
 SUB importsong ()
@@ -1183,3 +1185,162 @@ storeset workingdir$ + SLASH + "sfxdata.bin", snum, 0
 RETRACE
 
 END SUB
+
+FUNCTION scriptbrowse$ (trigger, triggertype, scrtype$)
+DIM localbuf(20)
+REDIM scriptnames$(0), scriptids(0)
+numberedlast = 0
+
+temp$ = scriptname(trigger, triggertype)
+IF temp$ <> "[none]" AND LEFT$(temp$, 1) = "[" THEN firstscript = 2 ELSE firstscript = 1
+
+IF triggertype = 1 THEN
+ 'plotscripts
+ fh = FREEFILE
+ OPEN workingdir$ + SLASH + "plotscr.lst" FOR BINARY AS #fh
+ 'numberedlast = firstscript + LOF(fh) \ 40 - 1
+ numberedlast = firstscript + general(40) - 1
+
+ REDIM scriptnames$(numberedlast), scriptids(numberedlast)
+
+ i = firstscript
+ FOR j = firstscript TO numberedlast
+  loadrecord localbuf(), fh, 40
+  IF localbuf(0) < 16384 THEN
+   scriptids(i) = localbuf(0)
+   scriptnames$(i) = STR$(localbuf(0)) + " " + readbinstring(localbuf(), 1, 36)
+   i += 1
+  END IF
+ NEXT
+ numberedlast = i - 1
+
+ CLOSE #fh
+END IF 
+
+fh = FREEFILE
+OPEN workingdir$ + SLASH + "lookup" + STR$(triggertype) + ".bin" FOR BINARY AS #fh
+scriptmax = numberedlast + LOF(fh) \ 40
+
+IF scriptmax < firstscript THEN
+ scriptbrowse$ = "[no scripts]"
+ EXIT FUNCTION
+END IF
+
+' 0 to firstscript - 1 are special options (none, current script)
+' firstscript to numberedlast are oldstyle numbered scripts
+' numberedlast + 1 to scriptmax are newstyle trigger scripts
+REDIM PRESERVE scriptnames$(scriptmax), scriptids(scriptmax)
+scriptnames$(0) = "[none]"
+scriptids(0) = 0
+IF firstscript = 2 THEN
+ scriptnames$(1) = temp$
+ scriptids(1) = trigger
+END IF
+
+FOR i = numberedlast + 1 TO scriptmax
+ loadrecord localbuf(), fh, 40
+ scriptids(i) = 16384 + i - (numberedlast + 1)
+ scriptnames$(i) = readbinstring(localbuf(), 1, 36)
+NEXT
+
+CLOSE #fh
+
+'insertion sort numbered scripts by id
+FOR i = firstscript + 1 TO numberedlast
+ FOR j = i - 1 TO firstscript STEP -1
+  IF scriptids(j + 1) < scriptids(j) THEN
+   SWAP scriptids(j + 1), scriptids(j)
+   SWAP scriptnames$(j + 1), scriptnames$(j)
+  ELSE
+   EXIT FOR
+  END IF
+ NEXT
+NEXT
+
+'sort trigger scripts by name
+FOR i = numberedlast + 1 TO scriptmax - 1
+ FOR j = scriptmax TO i + 1 STEP -1
+  FOR k = 0 TO small(LEN(scriptnames$(i)), LEN(scriptnames$(j)))
+   chara = tolower(scriptnames$(i)[k])
+   charb = tolower(scriptnames$(j)[k])
+   IF chara < charb THEN
+    EXIT FOR
+   ELSEIF chara > charb THEN
+    SWAP scriptids(i), scriptids(j)
+    SWAP scriptnames$(i), scriptnames$(j)
+    EXIT FOR
+   END IF
+  NEXT
+ NEXT i
+NEXT o
+
+pt = 0
+IF firstscript = 2 THEN
+ pt = 1
+ELSE
+ FOR i = 1 TO scriptmax
+  IF trigger = scriptids(i) THEN pt = i: EXIT FOR
+ NEXT
+END IF
+top = large(0, small(pt - 10, scriptmax - 21))
+id = scriptids(pt)
+iddisplay = 0
+clearpage 0
+clearpage 1
+setkeys
+DO
+ setwait timing(), 90
+ setkeys
+ IF keyval(1) > 1 THEN
+  scriptbrowse$ = temp$
+  EXIT FUNCTION
+ END IF
+ IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
+ IF scriptids(pt) < 16384 THEN 
+  IF intgrabber(id, 0, 16383, 75, 77) THEN
+   iddisplay = -1
+   FOR i = 0 TO numberedlast
+    IF id = scriptids(i) THEN pt = i
+   NEXT
+  END IF
+ END IF
+ IF usemenu(pt, top, 0, scriptmax, 21) THEN
+  IF scriptids(pt) < 16384 THEN id = scriptids(pt) ELSE id = 0: iddisplay = 0
+ END IF
+ FOR i = 2 TO 53
+  IF keyval(i) > 1 AND keyv(i, 0) > 0 THEN
+   j = pt + 1
+   FOR ctr = numberedlast + 1 TO scriptmax
+    IF j > scriptmax THEN j = numberedlast + 1
+    tempstr$ = LCASE$(scriptnames$(j))
+    IF tempstr$[0] = keyv(i, 0) THEN pt = j: EXIT FOR
+    j += 1
+   NEXT
+   EXIT FOR
+  END IF
+ NEXT i
+
+ textcolor 7, 0
+ printstr "Pick a " + scrtype$, 0, 0, dpage
+ standardmenu scriptnames$(), scriptmax, 21, pt, top, 8, 10, dpage, 0
+ IF iddisplay THEN
+  textcolor 7, 1
+  printstr STR$(id), 8, 190, dpage
+ END IF
+
+ SWAP dpage, vpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
+clearpage 0
+clearpage 1
+
+IF scriptids(pt) < 16384 THEN
+ scriptbrowse$ = MID$(scriptnames$(pt), INSTR(scriptnames$(pt), " ") + 1)
+ELSE
+ scriptbrowse$ = scriptnames$(pt)
+END IF
+trigger = scriptids(pt)
+
+END FUNCTION

@@ -758,7 +758,7 @@ FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTE
  END IF
 END FUNCTION
 
-FUNCTION scriptname$ (num, f$)
+FUNCTION scriptname$ (num, trigger = 0)
 #ifdef IS_GAME
  'remember script names!
  STATIC cachenum, cacheids(9), cachenames$(9)
@@ -768,16 +768,33 @@ FUNCTION scriptname$ (num, f$)
 #endif
 
 DIM buf(19)
-a$ = STR$(num)
+IF num >= 16384 AND trigger > 0 THEN
+ fh = FREEFILE
+ OPEN workingdir$ + SLASH + "lookup" + STR$(trigger) + ".bin" FOR BINARY AS #fh
+ IF (num - 16384) * 40 <= LOF(fh) THEN
+  loadrecord buf(), fh, 40, num - 16384
+  sname$ = readbinstring(buf(), 1, 36)
+  IF buf(0) THEN
+   a$ = sname$
+  ELSE
+   a$ = "[" + sname$ + "]"
+  END IF
+  CLOSE fh
+  GOTO theend
+ END IF
+ CLOSE fh
+END IF
+
+a$ = "[" + STR$(num) + "]"
 IF num THEN
  fh = FREEFILE
- OPEN workingdir$ + SLASH + f$ FOR BINARY AS #fh
+ OPEN workingdir$ + SLASH + "plotscr.lst" FOR BINARY AS #fh
  numscripts = LOF(fh) \ 40
  CLOSE fh
  'numscripts = FILELEN(workingdir$ + SLASH + f$) \ 40
  setpicstuf buf(), 40, -1
  FOR i = 0 TO numscripts - 1
-  loadset workingdir$ + SLASH + f$, i, 0
+  loadset workingdir$ + SLASH + "plotscr.lst", i, 0
   IF buf(0) = num THEN
    a$ = STRING$(small(large(buf(1), 0), 38), " ")
    array2str buf(), 4, a$
@@ -787,8 +804,9 @@ IF num THEN
 ELSE
  a$ = "[none]"
 END IF
-scriptname$ = a$
 
+theend:
+scriptname$ = a$
 #ifdef IS_GAME
  IF cachenum = 10 THEN cachenum = 0
  cacheids(cachenum) = num

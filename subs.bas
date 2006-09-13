@@ -56,6 +56,7 @@ DECLARE SUB maptile (font%())
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION isStringField(mnu%)
+DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -63,6 +64,7 @@ DECLARE FUNCTION isStringField(mnu%)
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'
+'$INCLUDE: 'scrconst.bi'
 
 REM $STATIC
 FUNCTION charpicker$
@@ -2036,6 +2038,7 @@ RETRACE
 npcstats:
 it$ = itemstr(npc(cur * 15 + 6), 0, 0)
 x$ = ""
+scrname$ = scriptname$(npc(cur * 15 + 12), plottrigger)
 GOSUB frstline
 setkeys
 DO
@@ -2045,10 +2048,13 @@ DO
  IF npc(cur * 15 + 2) > 0 THEN walk = walk + 1: IF walk > 3 THEN walk = 0
  IF keyval(1) > 1 THEN RETRACE
  dummy = usemenu(csr, 0, -1, 14, 24)
+ IF csr = 12 THEN
+  IF keyval(28) > 1 OR keyval(57) > 1 THEN scrname$ = scriptbrowse$(npc(cur * 15 + 12), plottrigger, "NPC use plotscript")
+ END IF
  IF csr = 11 THEN
   IF keyval(75) > 1 OR keyval(77) > 1 OR keyval(57) > 1 OR keyval(28) > 1 THEN GOSUB onetimetog
  END IF
- IF (csr >= 1 AND csr < 11) OR csr > 11 THEN
+ IF (csr >= 1 AND csr < 11) OR csr > 12 THEN
   IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr), 75, 77) THEN
    IF csr = 1 THEN getpal16 pal16(), cur, npc(cur * 15 + 1)
    IF csr = 6 THEN it$ = itemstr(npc(cur * 15 + 6), 0, 0)
@@ -2095,7 +2101,7 @@ DO
    CASE 11
     IF npc(cur * 15 + i) THEN temp$ = " Only Once (tag" + XSTR$(1000 + npc(cur * 15 + i)) + ")" ELSE temp$ = " Repeatedly"
    CASE 12 'script
-    temp$ = scriptname$(npc(cur * 15 + i), "plotscr.lst")
+    temp$ = scrname$
    CASE 13 'script arg
     IF npc(cur * 15 + 12) = 0 THEN temp$ = " N/A"
    CASE 14 'vehicle
