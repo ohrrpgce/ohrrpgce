@@ -13,7 +13,7 @@ option explicit
 'border required to fit standard 4:3 screen at zoom 1
 #define BORDER 20
 
-dim shared offset as integer = 0
+dim shared screen_buffer_offset as integer = 0
 dim shared windowed as integer = 1
 dim shared init_gfx as integer = 0
 'defaults are 2x zoom and 640x400 in 8-bit
@@ -60,7 +60,7 @@ sub gfx_showpage(byval raw as ubyte ptr)
 	if depth = 8 then
 		dim sptr as ubyte ptr
 		sptr = screenptr
-		sptr += (offset * 320 * zoom)
+		sptr += (screen_buffer_offset * 320 * zoom)
 		for h = 0 to 200 - 1
 			'repeat row zoom times
 			for i = 0 to zoom - 1
@@ -81,7 +81,7 @@ sub gfx_showpage(byval raw as ubyte ptr)
 		dim xptr as integer ptr
 		dim pixel as integer
 		xptr = screenptr
-		xptr += (offset * 320 * zoom)
+		xptr += (screen_buffer_offset * 320 * zoom)
 		for h = 0 to 200 - 1
 			'repeat row zoom times
 			for i = 0 to zoom - 1
@@ -213,7 +213,7 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 			screenmodey = 400 + (bordered * BORDER * zoom)
 		end if
 		'calculate offset
-		if bordered = 1 then offset = (BORDER / 2) * zoom
+		if bordered = 1 then screen_buffer_offset = (BORDER / 2) * zoom
 	end if
 	
 end sub
@@ -261,12 +261,12 @@ sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as int
 		my = -1
 	else
 		mx = dmx \ zoom
-		my = (dmy \ zoom) - offset
+		my = (dmy \ zoom) - screen_buffer_offset
 	end if
 end sub
 
 sub io_setmouse(byval x as integer, byval y as integer)
-	setmouse(x * zoom, y * zoom + offset)
+	setmouse(x * zoom, y * zoom + screen_buffer_offset)
 end sub
 
 sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
