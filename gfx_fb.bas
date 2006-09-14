@@ -165,7 +165,7 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 'handle command-line options in a generic way, so that they
 'can be ignored or supported as the library permits.
 'This version supports 
-'	zoom (1, 2*, 4), 
+'	zoom (1, 2*, 3), 
 '	depth (8*, 24), 
 '	border (0*, 1)
 'only before gfx has been initialised
@@ -213,7 +213,7 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 			screenmodey = 400 + (bordered * BORDER * zoom)
 		end if
 		'calculate offset
-		if bordered = 1 then offset = BORDER * zoom
+		if bordered = 1 then offset = (BORDER / 2) * zoom
 	end if
 	
 end sub
