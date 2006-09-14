@@ -353,8 +353,8 @@ NEXT
 FOR i = sortstart TO treesize - 1
  FOR j = treesize TO i + 1 STEP -1
   FOR k = 0 TO small(LEN(display$(i)), LEN(display$(j)))
-   chara = tolower(display$(i)[k])
-   charb = tolower(display$(j)[k])
+   chara = ASC(LCASE$(CHR$(display$(i)[k])))
+   charb = ASC(LCASE$(CHR$(display$(j)[k])))
    IF chara < charb THEN
     EXIT FOR
    ELSEIF chara > charb THEN

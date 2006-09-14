@@ -24,7 +24,6 @@ option nokeyword poke
 
 'included only for $inclib?
 #include once "crt.bi"
-#include once "crt/ctype.bi"
 '#include "crt/setjmp.bi"
 ' setjmp.bi is incorrect
 type crt_jmp_buf:dummy(63) as byte:end type
