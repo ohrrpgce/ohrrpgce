@@ -622,7 +622,7 @@ Function GetWeaponPos(w,f,isY)'or x?
  dim fh
  IF w >= 0 THEN
   fh = FREEFILE
-  OPEN game$ + ".ITM" FOR BINARY AS #fh
+  OPEN game$ + ".itm" FOR BINARY AS #fh
   'debug "weapon" + XSTR$(w) + " offset: " + XSTR$(w * 200 + 157 + f * 4 + isY * 2)
   GetWeaponPos = ReadShort(fh,w * 200 + 157 + f * 4 + isY * 2)
   CLOSE #FH
@@ -632,7 +632,7 @@ End Function
 Function GetHeroPos(h,f,isY)'or x?
  dim fh
  fh = FREEFILE
- OPEN game$ + ".DT0" FOR BINARY AS #fh
+ OPEN game$ + ".dt0" FOR BINARY AS #fh
  'debug "hero offset: " + XSTR$(h * 636 + 595 + f * 4 + isY * 2)
  GetHeroPos = ReadShort(fh,h * 636 + 595 + f * 4 + isY * 2)
  CLOSE #FH
