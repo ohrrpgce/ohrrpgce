@@ -117,6 +117,7 @@ IF is_hero(who) THEN
 END IF 
 IF atk(14) = 2 THEN ' Dash in
  yt = (bslot(t(who, 0)).h - bslot(who).h) + 2
+ anim_walktoggle who
  anim_relmove who, bslot(t(who, 0)).x + bslot(t(who, 0)).w * d, bslot(t(who, 0)).y + yt, 6, 6
  anim_waitforall
 END IF
