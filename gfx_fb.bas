@@ -205,15 +205,16 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
         screenmodey = 240
 			end if
     elseif zoom = 3 then
-      bordered = 0 ' bordered mode is not supported in 3x zoom
-      screenmodex = 960
-      screenmodey = 600
+		bordered = 0 ' bordered mode is not supported in 3x zoom
+		screen_buffer_offset = 0
+		screenmodex = 960
+		screenmodey = 600
 		else
 			screenmodex = 640
 			screenmodey = 400 + (bordered * BORDER * zoom)
 		end if
 		'calculate offset
-		if bordered = 1 then screen_buffer_offset = (BORDER / 2) * zoom
+		if bordered = 1 and zoom <> 3 then screen_buffer_offset = (BORDER / 2) * zoom
 	end if
 	
 end sub
