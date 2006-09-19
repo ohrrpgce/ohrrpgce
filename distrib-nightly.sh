@@ -31,13 +31,13 @@ echo removing old nightly source snapshot...
 rm ohrrpgce-source-nightly.zip
 
 echo zipping up new nightly snapshot
-zip -q -r ohrrpgce-source-nightly.zip ./ohrrpgce
+zip -q -r ohrrpgce-source-nightly.zip wip
 ls -l ohrrpgce-source-nightly.zip
 
 echo uploading new nightly snapshot
 scp -p ohrrpgce-source-nightly.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
 
 echo uploading plotscripting docs
-scp -p ohrrpgce/docs/plotdict.xml spam@brionne.cyberverse.com:web/html/ohrrpgce/docs/
-scp -p ohrrpgce/docs/htmlplot.xsl spam@brionne.cyberverse.com:web/html/ohrrpgce/docs/
+scp -p wip/docs/plotdict.xml spam@brionne.cyberverse.com:web/html/ohrrpgce/docs/
+scp -p wip/docs/htmlplot.xsl spam@brionne.cyberverse.com:web/html/ohrrpgce/docs/
 
