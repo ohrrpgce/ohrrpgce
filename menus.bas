@@ -1262,7 +1262,7 @@ FOR i = numberedlast + 1 TO scriptmax - 1
  FOR j = scriptmax TO i + 1 STEP -1
   FOR k = 0 TO small(LEN(scriptnames$(i)), LEN(scriptnames$(j)))
    chara = ASC(LCASE$(CHR$(scriptnames$(i)[k])))
-   charb = ASC(LCASE$(CHR$(scriptnames$(i)[k])))
+   charb = ASC(LCASE$(CHR$(scriptnames$(j)[k])))
    IF chara < charb THEN
     EXIT FOR
    ELSEIF chara > charb THEN

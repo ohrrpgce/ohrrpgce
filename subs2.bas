@@ -441,7 +441,7 @@ SUB importscripts (f$)
   IF unlumpone(game$ + ".hsp", "scripts.bin", workingdir$ + SLASH + "scripts.bin") THEN
    dotbin = -1
    fptr = FREEFILE
-   OPEN workingdir$ + SLASH + "scripts.bin" FOR INPUT AS #fptr
+   OPEN workingdir$ + SLASH + "scripts.bin" FOR BINARY AS #fptr
    'load header
    GET #fptr, , temp
    headersize = temp
@@ -534,7 +534,8 @@ SUB importscripts (f$)
      texty = 0
     END IF
    END IF
-   IF buffer(0) < 16384 OR trigger > 0 THEN
+
+   IF id < 16384 OR trigger > 0 THEN
     viscount = viscount + 1
     printstr names$ + ",", textx * 8, texty * 8, vpage
     textx = textx + LEN(names$) + 2
