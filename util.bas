@@ -62,7 +62,7 @@ END FUNCTION
 
 FUNCTION anycase$ (filename$)
  'make a filename case-insensitive
-#IFDEF __FB__LINUX__
+#IFDEF __FB_LINUX__
  DIM ascii AS INTEGER
  result$ = ""
  FOR i = 1 TO LEN(filename$)
