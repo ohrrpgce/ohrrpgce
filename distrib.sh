@@ -40,6 +40,7 @@ cp -p relump tmp
 echo including hspeak
 cp -p hspeak.exw tmp
 cp -p hsspiffy.e tmp
+cp -p hspeak.sh tmp
 
 echo Including import
 mkdir tmp/import
