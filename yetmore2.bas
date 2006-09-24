@@ -460,7 +460,6 @@ SUB setScriptArg (arg, value)
 END SUB
 
 SUB setusermenu (menu$(), mi())
-REDIM menu$(8), mi(8)
 menu$(0) = readglobalstring$(67, "Quit", 10)
 menu$(1) = readglobalstring$(62, "Status", 10)
 menu$(2) = readglobalstring$(68, "Map", 10)

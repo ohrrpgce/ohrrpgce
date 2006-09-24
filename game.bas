@@ -185,7 +185,7 @@ DIM door(206), gen(104), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40,
 DIM eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
 DIM script(4096), heap(2048), global(1024), scrat(128, 15), retvals(32), plotstring$(31), plotstrX(31), plotstrY(31), plotstrCol(31), plotstrBGCol(31), plotstrBits(31)
-DIM menu$(), mi()
+DIM menu$(8), mi(8)
 
 'shared module variables
 DIM SHARED cycle(1), cycptr(1), cycskip(1), tastuf(40), stat(40, 1, 16)
@@ -701,7 +701,6 @@ samemap = -1
 RETRACE
 
 displayall:
-'DEBUG debug "display"
 IF gen(58) = 0 AND gen(50) = 0 THEN
  '---NORMAL DISPLAY---
  'DEBUG debug "normal display"
