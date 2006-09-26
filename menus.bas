@@ -62,6 +62,7 @@ DECLARE FUNCTION getsfxname$ (num%)
 DECLARE FUNCTION charpicker$ ()
 DECLARE SUB generalscriptsmenu ()
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
+DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -322,7 +323,7 @@ DO
    oldname$ = vehname$
    strgrabber vehname$, 15
    IF oldname$ <> vehname$ THEN GOSUB vehmenu
-  CASE 3, 5 TO 15
+  CASE 3, 5 TO 9, 12, 15
    IF intgrabber(veh(offset(csr)), min(csr), max(csr), 75, 77) THEN
     GOSUB vehmenu
    END IF
@@ -330,6 +331,23 @@ DO
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
     editbitset veh(), 9, 8, vehbit$()
    END IF
+  CASE 10, 11
+   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+    veh(offset(csr)) = large(0, veh(offset(csr)))
+    dummy$ = scriptbrowse$(veh(offset(csr)), plottrigger, "vehicle plotscript")
+    GOSUB vehmenu
+   ELSEIF scrintgrabber(veh(offset(csr)), min(csr), max(csr), 75, 77, 1, plottrigger) THEN
+    GOSUB vehmenu 
+   END IF   
+  CASE 13, 14
+   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+    temptrig = large(0, -veh(offset(csr)))
+    dummy$ = scriptbrowse$(temptrig, plottrigger, "vehicle plotscript")
+    veh(offset(csr)) = -temptrig
+    GOSUB vehmenu
+   ELSEIF scrintgrabber(veh(offset(csr)), min(csr), max(csr), 75, 77, -1, plottrigger) THEN
+    GOSUB vehmenu 
+   END IF   
  END SELECT
  standardmenu menu$(), 15, 15, csr, top, 0, 0, dpage, 0
  SWAP vpage, dpage
@@ -832,12 +850,14 @@ DO
  setkeys
  IF keyval(1) > 1 THEN EXIT DO
  dummy = usemenu(pt, 0, 0, menusize, 24)
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  IF pt = 0 THEN
-   EXIT DO
-  ELSE
+ IF pt = 0 THEN
+  IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
+ ELSE
+  IF keyval(57) > 1 OR keyval(28) > 1 THEN
    scrname$(pt) = ": " + scriptbrowse$(general(scriptgenoff(pt)), plottrigger, menu$(pt))
-  END IF
+  ELSEIF scrintgrabber(general(scriptgenoff(pt)), 0, 0, 75, 77, 1, plottrigger) THEN
+   scrname$(pt) = ": " + scriptname$(general(scriptgenoff(pt)), plottrigger)
+  END IF 
  END IF
  FOR i = 0 TO menusize
   IF pt = i THEN textcolor 14 + tog, 0 ELSE textcolor 7, 0

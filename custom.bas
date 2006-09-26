@@ -82,6 +82,7 @@ DECLARE SUB dolumpfiles (filetolump$)
 DECLARE FUNCTION readarchinym$ ()
 DECLARE SUB importscripts (f$)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
+DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -1098,6 +1099,9 @@ DO
  END IF
  IF csr = 5 THEN
   IF intgrabber(a(18), 0, 32767, 75, 77) THEN GOSUB menuup
+ END IF
+ IF csr = 6 THEN
+  IF scrintgrabber(a(19), 0, 0, 75, 77, 1, plottrigger) THEN GOSUB menuup
  END IF
  FOR i = 0 TO li
   c = 7: IF i = csr THEN c = 14 + tog

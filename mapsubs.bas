@@ -68,6 +68,7 @@ DECLARE SUB maptile (font())
 DECLARE FUNCTION maplumpname$(map, oldext$)
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
+DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -379,11 +380,13 @@ DO
   CASE -1
    IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
   CASE 1
-   zintgrabber(gmap(gd), gdmin(gd)-1, gdmax(gd)-1, 75, 77) 'song is optional
+   zintgrabber(gmap(gd), gdmin(gd) - 1, gdmax(gd) - 1, 75, 77) 'song is optional
   CASE 7, 12 TO 15
    IF gd = 7 THEN idx = 0 ELSE idx = gd - 11
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
-    gmapscr$(idx) = scriptbrowse$(gmap(gmapscrof(idx)), plottrigger, "plotscript")  'd$(idx))
+    gmapscr$(idx) = scriptbrowse$(gmap(gd), plottrigger, "plotscript")
+   ELSEIF scrintgrabber(gmap(gd), 0, 0, 75, 77, 1, plottrigger) THEN
+    gmapscr$(idx) = scriptname$(gmap(gd), plottrigger)
    END IF
   CASE ELSE
    dummy = intgrabber(gmap(gd), gdmin(gd), gdmax(gd), 75, 77)

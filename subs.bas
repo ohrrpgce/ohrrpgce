@@ -57,6 +57,7 @@ DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION isStringField(mnu%)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
+DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -1528,9 +1529,9 @@ FUNCTION intgrabber (n, min, max, less, more)
 STATIC clip
 old = n
 
-IF keyval(more) > 1 THEN
+IF more <> 0 AND keyval(more) > 1 THEN
  n = loopvar(n, min, max, 1)
-ELSEIF keyval(less) > 1 THEN
+ELSEIF less <> 0 AND keyval(less) > 1 THEN
  n = loopvar(n, min, max, -1)
 ELSE
  s = SGN(n)
@@ -1558,7 +1559,7 @@ END IF
 IF old = n THEN
  intgrabber = 0
 ELSE
- intgrabber = 1
+ intgrabber = -1
 END IF
 
 END FUNCTION
@@ -2049,7 +2050,11 @@ DO
  IF keyval(1) > 1 THEN RETRACE
  dummy = usemenu(csr, 0, -1, 14, 24)
  IF csr = 12 THEN
-  IF keyval(28) > 1 OR keyval(57) > 1 THEN scrname$ = scriptbrowse$(npc(cur * 15 + 12), plottrigger, "NPC use plotscript")
+  IF keyval(28) > 1 OR keyval(57) > 1 THEN
+   scrname$ = scriptbrowse$(npc(cur * 15 + 12), plottrigger, "NPC use plotscript")
+  ELSEIF scrintgrabber(npc(cur * 15 + 12), 0, 0, 75, 77, 1, plottrigger) THEN
+   scrname$ = scriptname$(npc(cur * 15 + 12), plottrigger)
+  END IF   
  END IF
  IF csr = 11 THEN
   IF keyval(75) > 1 OR keyval(77) > 1 OR keyval(57) > 1 OR keyval(28) > 1 THEN GOSUB onetimetog

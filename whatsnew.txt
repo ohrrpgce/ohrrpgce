@@ -49,6 +49,20 @@ WHAT IS NEW?
     * Add -z 3 to the command-line to run with a 3x zoomed screen. This
       Only works when running in a window, not when running fullscreen
       [James Paige]
+    * You no longer need to give your scripts ID numbers; definescript is
+      obsolete. Instead, use this syntax to define default values for script
+      arguments:
+
+       script, myscript, required arg, optional arg = 3, begin
+
+      And to declare a script that's selectable in Custom use "plotscript"
+      instead of "script":
+
+       plotscript, introduction, begin
+
+      See the HS Definition or Wiki for details [Ralph Versteegen]
+    * Press enter/space on any field that accepts scripts to enter a script
+      browser where you can enter an id or browse by starting letter [Ralph]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the

@@ -68,6 +68,7 @@ DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION getsfxname$ (num)
 DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
+DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -1032,15 +1033,13 @@ DO
   CASE 7'textsearch
    strgrabber search$, 36
   CASE 6'quickchainer
-   IF cond(12) >= 0 THEN
-    IF intgrabber(cond(12), 0, general(39), 75, 77) THEN
-     IF cond(12) = 0 THEN
-      cond(11) = 0
-     ELSE
-      IF cond(11) = 0 THEN cond(11) = -1
-     END IF
-     GOSUB nextboxline
+   IF scrintgrabber(cond(12), 0, general(39), 75, 77, -1, plottrigger) THEN
+    IF cond(12) = 0 THEN
+     cond(11) = 0
+    ELSE
+     IF cond(11) = 0 THEN cond(11) = -1
     END IF
+    GOSUB nextboxline 
    END IF'--modify next
   CASE ELSE '--not using the quick textbox chainer
    IF intgrabber(pt, 0, general(39), 51, 52) THEN
@@ -1070,16 +1069,17 @@ DO
   END IF
   IF csr = 4 THEN GOSUB tchoice
   IF csr = 5 THEN GOSUB groovybox
-  IF csr = 6 AND cond(12) > 0 THEN
-   GOSUB savelines
-   pt = cond(12)
-   GOSUB loadlines
-  END IF
-  IF csr = 6 AND cond(12) < 0 THEN
-   temptrig = ABS(cond(12))
-   m$(6) = "Next: script " + scriptbrowse$(temptrig, plottrigger, "textbox plotscript")
-   IF cond(11) <> 0 AND cond(11) <> -1 THEN m$(6) += " (conditional)"
-   cond(12) = -temptrig
+  IF csr = 6 THEN
+   IF cond(12) > 0 THEN
+    GOSUB savelines
+    pt = cond(12)
+    GOSUB loadlines
+   ELSE
+    temptrig = ABS(cond(12))
+    m$(6) = "Next: script " + scriptbrowse$(temptrig, plottrigger, "textbox plotscript")
+    IF cond(11) <> 0 AND cond(11) <> -1 THEN m$(6) += " (conditional)"
+    cond(12) = -temptrig
+   END IF
   END IF
   IF csr = 7 AND keyval(28) > 1 THEN
    GOSUB savelines
@@ -1140,7 +1140,14 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
- IF (keyval(57) > 1 OR keyval(28) > 1) AND cur = -1 THEN RETRACE
+ IF (keyval(57) > 1 OR keyval(28) > 1) THEN
+  IF cur = -1 THEN RETRACE
+  IF ct(order(cur)) = 7 THEN
+   temptrig = large(-cond(order(cur)), 0)
+   dummy$ = scriptbrowse$(temptrig, plottrigger, "textbox plotscript")
+   cond(order(cur)) = -temptrig
+  END IF
+ END IF
  dummy = usemenu(cur, 0, -1, 20, 24)
  IF keyval(83) > 1 AND cur > -1 THEN cond(order(cur)) = 0
  IF cur >= 0 THEN
@@ -1152,7 +1159,7 @@ DO
   IF ct(order(cur)) = 4 THEN dummy = intgrabber(cond(order(cur)), -32000, 32000, 75, 77)
   IF ct(order(cur)) = 5 THEN dummy = intgrabber(cond(order(cur)), 0, 199, 75, 77)
   IF ct(order(cur)) = 6 THEN dummy = xintgrabber(cond(order(cur)), 0, 255, 0, -255, 75, 77)
-  IF ct(order(cur)) = 7 THEN dummy = intgrabber(cond(order(cur)), general(43) * -1, general(39), 75, 77)
+  IF ct(order(cur)) = 7 THEN dummy = scrintgrabber(cond(order(cur)), 0, general(39), 75, 77, -1, plottrigger)
   IF order(cur) = 10 OR order(cur) = 19 OR order(cur) = 20 THEN IF temp <> cond(order(cur)) THEN GOSUB heroar
   IF order(cur) = 8 THEN IF temp <> cond(order(cur)) THEN GOSUB shopar
   IF order(cur) = 18 THEN IF temp <> cond(order(cur)) THEN GOSUB itemar
