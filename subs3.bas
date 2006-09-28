@@ -429,19 +429,19 @@ IF seekdir THEN
   temp += seekdir
  END IF
 ELSE
- IF temp >= 0 AND temp < 16384 THEN
+ IF (temp > 0 AND temp < 16384) OR (temp = 0 AND scriptside = 1) THEN
   'if a number is entered, don't seek to the next script, allow "[id]" to display instead
   IF intgrabber(temp, 0, 16383, 0, 0) THEN
    'if temp starts off greater than gen(43) then don't disturb it
    temp = small(temp, general(43))
   END IF
- ELSEIF temp < 0 THEN
+ ELSEIF temp < 0 OR (temp = 0 AND scriptside = -1) THEN
   dummy = intgrabber(temp, min, 0, 0, 0)
- ELSE
-  'delete clears field
-  IF keyval(43) > 1 OR keyval(83) > 1 THEN temp = 0
  END IF
 END IF
+
+IF keyval(83) > 1 THEN temp = 0
+IF keyval(12) > 1 OR keyval(74) > 1 THEN temp = bound(-temp, min, general(43))
 
 temp = temp * SGN(scriptside)
 scrintgrabber = (temp <> n)
