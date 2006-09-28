@@ -973,6 +973,7 @@ ELSE
 END IF
 bamfile$ = songfile$
 IF isfile(temp$ + ".mid") THEN ext$ = ".mid" : songfile$ = temp$ + ext$ : songtype$ = "MIDI Music (MID)"
+IF isfile(temp$ + ".xm") THEN ext$ = ".xm" : songfile$ = temp$ + ext$ : songtype$ = "Extended Module (XM)"
 '--add more formats here
 
 sname$ = getsongname$(snum)

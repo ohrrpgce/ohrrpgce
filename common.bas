@@ -321,6 +321,8 @@ ELSE
   GOSUB addmatchs
   findfiles nowdir$ + anycase$("*.mid"), attrib, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
+  findfiles nowdir$ + anycase$("*.xm"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  GOSUB addmatchs
  ELSEIF special = 6 THEN
   '--disregard fmask$. one call per extension
   findfiles nowdir$ + anycase$("*.wav"), attrib, tmp$ + "hrbrowse.tmp", buffer()

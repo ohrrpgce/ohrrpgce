@@ -26,6 +26,8 @@ dim shared music_vol as integer
 dim shared music_paused as integer
 dim shared music_song as Mix_Music ptr = NULL
 dim shared orig_vol as integer = -1
+dim shared xm_vol as integer = MIX_MAX_VOLUME
+dim shared mod_playing as integer = 0
 
 'The music module needs to manage a list of temporary files to
 'delete when closed, mainly for custom, so they don't get lumped
@@ -81,6 +83,7 @@ sub music_close()
 			Mix_FreeMusic(music_song)
 			music_song = 0
 			music_paused = 0
+			mod_playing = 0
 		end if
 		
 		Mix_CloseAudio
@@ -172,8 +175,18 @@ sub music_play(songname as string, fmt as music_format)
 		if music_vol = 0 then
 			Mix_VolumeMusic(0)
 		else
-			'add a small adjustment because 15 doesn't go into 128
-			Mix_VolumeMusic((music_vol * 8) + 8)
+			if fmt = FORMAT_MOD then
+				Mix_VolumeMusic(xm_vol)
+			else
+				'add a small adjustment because 15 doesn't go into 128
+				Mix_VolumeMusic((music_vol * 8) + 8)
+			end if
+		end if
+		
+		if fmt = FORMAT_MOD then
+			mod_playing = -1
+		else
+			mod_playing = 0
 		end if
 	end if
 end sub
@@ -196,24 +209,37 @@ sub music_stop()
 	if music_on = 1 then
 		if music_song > 0 then
 			Mix_HaltMusic
+			mod_playing = 0
 		end if
 	end if
 end sub
 
 sub music_setvolume(vol as integer)
-	music_vol = vol
-	if music_on = 1 then
-		if music_vol = 0 then
-			Mix_VolumeMusic(0)
-		else
-			'add a small adjustment because 15 doesn't go into 128
-			Mix_VolumeMusic((music_vol * 8) + 8)
+	if mod_playing then
+		'Separate volume for XMs because they're annoying
+		xm_vol = iif(vol=0, 0, (vol * 8) + 8)
+		if music_on = 1 then
+			Mix_VolumeMusic(xm_vol)
+		end if
+	else
+		music_vol = vol
+		if music_on = 1 then
+			if music_vol = 0 then
+				Mix_VolumeMusic(0)
+			else
+				'add a small adjustment because 15 doesn't go into 128
+				Mix_VolumeMusic((music_vol * 8) + 8)
+			end if
 		end if
 	end if
 end sub
 
 function music_getvolume() as integer
-	music_getvolume = music_vol
+	if mod_playing then
+		music_getvolume = xm_vol \ 8
+	else
+		music_getvolume = music_vol
+	end if
 end function
 
 sub music_fade(targetvol as integer)
@@ -221,9 +247,11 @@ sub music_fade(targetvol as integer)
 'fades, so make sure it doesn't take too long
 	dim vstep as integer = 1
 	dim i as integer
+	dim cvol as integer
 	
-	if music_vol > targetvol then vstep = -1
-	for i = music_vol to targetvol step vstep
+	cvol = music_getvolume
+	if cvol > targetvol then vstep = -1
+	for i = cvol to targetvol step vstep
 		music_setvolume(i)
 		sleep 10
 	next	

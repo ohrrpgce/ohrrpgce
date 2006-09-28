@@ -11,6 +11,7 @@
 # include "win/windef.bi"
 # include "win/winbase.bi"
 # undef max
+# undef min
 # undef getcommandline
 # undef copyfile
 #endif
@@ -20,6 +21,7 @@
 #include "gfx.bi"
 #include "music.bi"
 #include "bitmap.bi"
+#include "util.bi"
 
 option explicit
 
@@ -2162,13 +2164,12 @@ SUB loadsong (f$)
 
 	songname = f$
 	songtype = FORMAT_BAM
-	ext = lcase(right(songname, 4))
-	if ext = ".mid" then
+	ext = lcase(justextension(songname))
+	if ext = "mid" then
 		songtype = FORMAT_MIDI
-	elseif ext = ".ogg" then
+	elseif ext = "ogg" then
 		songtype = FORMAT_OGG
-	elseif ext = ".mod" then
-		'going to need to change ext to support .it or .xm
+	elseif ext = "xm" then
 		songtype = FORMAT_MOD
 	end if
 

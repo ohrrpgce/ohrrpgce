@@ -9,6 +9,7 @@ option explicit
 #include "allmodex.bi"
 #include "fontdata.bi"
 #include "gfx.bi"
+#include "util.bi"
 
 extern workingdir$, version$, game$
 
@@ -23,7 +24,6 @@ dim shared storecmd(7) as string
 dim shared cmdargs as integer
 
 DECLARE SUB fatalerror (e$)
-DECLARE FUNCTION small% (n1%, n2%)
 
 SUB getdefaultfont(font() as integer)
 	dim i as integer
@@ -232,14 +232,19 @@ SUB playsongnum (songnum%)
 		'is there a midi?
 		songfile = songbase + ".mid"
 	else
-		'no, get bam name
-		IF isfile(songbase + ".bam") THEN
-			songfile = songbase + ".bam"
-		ELSE
-			IF isfile(game$ + "." + numtext) THEN 
-				songfile = game$ + "." + numtext
-			end if
-		END IF
+		if isfile(songbase + ".xm") then
+			'is there a mod?
+			songfile = songbase + ".xm"
+		else
+			'no, get bam name
+			IF isfile(songbase + ".bam") THEN
+				songfile = songbase + ".bam"
+			ELSE
+				IF isfile(game$ + "." + numtext) THEN 
+					songfile = game$ + "." + numtext
+				end if
+			END IF
+		end if
 	end if
 	IF songfile <> "" THEN loadsong songfile
 END SUB
@@ -247,14 +252,17 @@ END SUB
 FUNCTION validmusicfile (file$)
 '-- actually, doesn't need to be a music file, but only multi-filetype imported data right now
 	DIM ext$, a$, realhd$, musfh
-	ext$ = LCASE$(RIGHT$(file$, 4))
+	ext$ = lcase(justextension(file$))
 	SELECT CASE ext$
-	CASE ".bam"
+	CASE "bam"
 		a$ = "    "
 		realhd$ = "CBMF"
-	CASE ".mid"
+	CASE "mid"
 		a$ = "    "
 		realhd$ = "MThd"
+	CASE "xm"
+		a$ =      "                 "
+		realhd$ = "Extended Module: "
 	END SELECT
 	musfh = FREEFILE
 	OPEN file$ FOR BINARY AS #musfh
