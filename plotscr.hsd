@@ -262,6 +262,8 @@ define function, begin
 253,settileanimationoffset,2,0,0 #get offset from starting tile (animation pattern 0/1, offset)
 254,gettileanimationoffset,1,0 #get offset from starting tile (animation pattern 0/1)
 255,animationstarttile,1,0    #tile number which this tile starts its animation pattern off as (id of a tile)
+256,suspendmapmusic,0         #prevent ambient music from playing on entering a map
+257,resumemapmusic,0          #reverse above
 
 #24x,getnpcraw,2,0,0          #raw npc data(who,which)
 #24x,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
@@ -574,14 +576,6 @@ end
 script,set debug keys disable,bit=1,begin
   if(bit) then(bit:=256)
   write general(101,(read general(101),and,32511)+bit)
-end
-
-script,suspend map music, begin
- write general(44,read general(44),or,512)
-end
-
-script,resume map music, begin
- write general(44,read general(44),and,32255)
 end
 
 script, get hero stat cap, stat=0, begin

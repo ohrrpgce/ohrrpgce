@@ -1415,10 +1415,12 @@ lastmap = map
 loadmapstate_gmap map, "map"
 
 'Play map music
-IF gmap(1) > 0 THEN
- wrappedsong gmap(1) - 1
-ELSE
- stopsong
+IF readbit(gen(), 44, suspendambientmusic) = 0 THEN
+ IF gmap(1) > 0 THEN
+  wrappedsong gmap(1) - 1
+ ELSE
+  stopsong
+ END IF
 END IF
 
 getmapname mapname$, map

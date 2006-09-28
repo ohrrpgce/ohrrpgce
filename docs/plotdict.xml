@@ -911,7 +911,7 @@ end</example>
 		<command id="setambientmusic">
 			<cannon>set ambient music (song)</cannon>
 			<shortname>set ambient music</shortname>
-			<description>Plays a song and sets it as the map's ambient music, that is the song that is played after a textbox with 'restore music' set. The effect goes away if you change maps or fight a battle. Calling set ambient music with no argument stops the music and disables the ambient music.</description>
+			<description>Plays a song and sets it as the map's ambient music, that is the song that is played when you enter the map (if you call <ref>savemapstate</ref> with mapstate:all or mapstate:mapsettings) or after a textbox with 'restore music' set. Unless you save the mapstate, the effect goes away if you change maps or fight a battle. Calling set ambient music with no argument stops the music and disables the ambient music.</description>
 			<seealso>
 				<ref>playsong</ref>
 			</seealso>

@@ -1689,6 +1689,10 @@ SELECT CASE AS CONST id
    plotstring$(retvals(0)) += read32bitstring$(script(), scrat(nowscript, scroff) + scrat(nowscript, strtable) + retvals(1))
    cropPlotStr(plotstring$(retvals(0)))
   END IF
+ CASE 256'--suspendmapmusic
+  setbit gen(), 44, suspendambientmusic, 1
+ CASE 257'--resumemapmusic
+  setbit gen(), 44, suspendambientmusic, 0
  
 END SELECT
 
