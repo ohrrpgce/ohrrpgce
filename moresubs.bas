@@ -319,8 +319,8 @@ FOR i = 0 TO 1
    DO
     SELECT CASE tastuf(2 + 20 * i + pt(i))
      CASE 0
+      IF pt(i) <> 0 THEN cycle(i) = 0
       pt(i) = 0
-      cycle(i) = 0
      CASE 1
       cycle(i) = cycle(i) - tastuf(11 + 20 * i + pt(i)) * 16
       pt(i) = loopvar(pt(i), 0, 8, 1)

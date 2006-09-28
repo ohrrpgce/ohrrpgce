@@ -259,6 +259,9 @@ define function, begin
 250,setmoney,1,0              #sets amount of gold
 251,setstringfromtable,2,0,0  #string support function
 252,appendstringfromtable,2,0,0 #string support function
+253,settileanimationoffset,2,0,0 #get offset from starting tile (animation pattern 0/1, offset)
+254,gettileanimationoffset,1,0 #get offset from starting tile (animation pattern 0/1)
+255,animationstarttile,1,0    #tile number which this tile starts its animation pattern off as (id of a tile)
 
 #24x,getnpcraw,2,0,0          #raw npc data(who,which)
 #24x,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
@@ -466,6 +469,12 @@ script, input string, str=0, max len=40, useexist=0, center=-1, positionx=160, p
     )
   end
   if(show) then(hide string)
+end
+
+script,currentdisplaytile,tile,begin
+  if(tile>=160) then(
+    return(animationstarttile(tile)+gettileanimationoffset((tile--160)/48))
+  ) else(return(tile))
 end
 
 #--------------------------------------------------------------------------

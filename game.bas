@@ -2165,6 +2165,20 @@ SELECT CASE scrat(nowscript, curkind)
     loadmaplumps map, retvals(0)
    CASE 248'--delete map state
     deletemapstate workingdir$ + SLASH + "map" + STR$(map), retvals(0)
+   CASE 253'--settileanimationoffset
+    IF retvals(0) = 0 OR retvals(0) = 1 THEN
+     cycle(retvals(0)) = retvals(1) MOD 160
+    END IF
+   CASE 254'--gettileanimationoffset
+    IF retvals(0) = 0 OR retvals(0) = 1 THEN
+     scriptret = cycle(retvals(0))
+    END IF
+   CASE 255'--animationstarttile
+    IF retvals(0) < 160 THEN
+     scriptret = retvals(0)
+    ELSEIF retvals(0) >= 160 AND retvals(0) < 256 THEN
+     scriptret = tastuf(((retvals(0) - 160) \ 48) * 20) + (retvals(0) - 160) MOD 48
+    END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript, curvalue)
     scriptmisc scrat(nowscript, curvalue)

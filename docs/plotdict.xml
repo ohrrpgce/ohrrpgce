@@ -1664,6 +1664,9 @@ if (herolevelled (find hero (hero: Bob))) then (
 			<cannon>read map block (x,y)</cannon>
 			<shortname>read map block</shortname>
 			<description>Returns the value of a map tile on the current map at the specified X,Y position. Normal map tiles return values from 0-159, animating maptiles from set 1 return 160-207 and animating maptiles from set 2 return 208-255.</description>
+			<seealso>
+				<ref>currentdisplaytile</ref>
+			</seealso>
 		</command>
 		<command id="writemapblock">
 			<cannon>write map block (x,y,value)</cannon>
@@ -1697,6 +1700,19 @@ write pass block(15,3,pass)
 			<description>Loads a different tileset for the currently displaying map. The argument is the ID number of the tileset to load. To restore the map&apos;s default tileset, use load tileset with no arguments.</description>
 			<seealso>
 				<ref>getmaptileset</ref>
+			</seealso>
+		</command>
+		<command id="currentdisplaytile">
+			<cannon>current display tile (tile number)</cannon>
+			<shortname>current display tile</shortname>
+			<description>Returns the tile number from the tileset, in the range 0-159, that a given tile (read with <ref>readmapblock</ref>) is currently displayed as, taking the tile animation patterns into account.</description>
+		</command>
+		<command id="animationstarttile">
+			<cannon>animation start tile (tile number)</cannon>
+			<shortname>animation start tile</shortname>
+			<description>Returns the tile number on the tileset (in the range 0-159) that this tile is displayed as at the start of its animation pattern (offset 0) if it has one, else just returns the tile number. The <p>tile number</p> argument is typically returned from <ref>readmapblock</ref>. In effect, this is what the tile number would be if you had not set the tile as animated in the tilemap editor.</description>
+			<seealso>
+				<ref>currentdisplaytile</ref>
 			</seealso>
 		</command>
 	</section>
@@ -2255,8 +2271,8 @@ trace(1) # writes "TRACE: i = 1" to G_DEBUG.TXT</example>
 		<command id="savemapstate">
 			<cannon>save map state (whichdata, customid)</cannon>
 			<shortname>save map state</shortname>
-            <description>Saves the state of the current map to a temporary file which will be loaded (unless the map is set to ignore that particular data) when you reenter the current map, in the same way as a map set to save (remember) NPC or tile data: the saved state will be used instead of the map data in the RPG file. Both arguments are optional and are only for advanced uses.<lb/> Map state is not saved in saved games, and the temporary files will be deleted when you load or start a new a game!<lb/><p>whichdata</p> is an <ref>or</ref>'d combination of the following constants, which specify exactly what you want to save:<lb/><ul><li>mapstate:all = mapstate:mapsettings, or, mapstate:npcs, or, mapstate:tiles</li><li>mapstate:npcs = mapstate:npclocations, or, mapstate:npcdefinitions</li><li>mapstate:tiles = mapstate:tilemap, or, mapstate:passmap</li><li>mapstate:mapsettings</li><li>mapstate:npclocations</li><li>mapstate:npcdefinitions</li><li>mapstate:tilemap</li><li>mapstate:passmap</li></ul>The default is mapstate:all. <lb/>If <p>customid</p> is passed, it is used to save the state in a separate state file with an id number of <p>customid</p> which can only be loaded with <ref>loadmapstate</ref>. There are 32 available slots for use: 0 - 31.<lb/>Note that mapstate:mapsettings (also saved by mapstate:all) is special in that if you save it, it will always be loaded when the map is loaded regardless of settings. It saves all the settings found in the General Map Settings menu like the tileset, ambient music, footoffset, map trigger scripts, and so forth.</description>
-            <example>define script (1, generic menu screen, none)
+			<description>Saves the state of the current map to a temporary file which will be loaded (unless the map is set to ignore that particular data) when you reenter the current map, in the same way as a map set to save (remember) NPC or tile data: the saved state will be used instead of the map data in the RPG file. Both arguments are optional and are only for advanced uses.<lb/> Map state is not saved in saved games, and the temporary files will be deleted when you load or start a new a game!<lb/><p>whichdata</p> is an <ref>or</ref>'d combination of the following constants, which specify exactly what you want to save:<lb/><ul><li>mapstate:all = mapstate:mapsettings, or, mapstate:npcs, or, mapstate:tiles</li><li>mapstate:npcs = mapstate:npclocations, or, mapstate:npcdefinitions</li><li>mapstate:tiles = mapstate:tilemap, or, mapstate:passmap</li><li>mapstate:mapsettings</li><li>mapstate:npclocations</li><li>mapstate:npcdefinitions</li><li>mapstate:tilemap</li><li>mapstate:passmap</li></ul>The default is mapstate:all. <lb/>If <p>customid</p> is passed, it is used to save the state in a separate state file with an id number of <p>customid</p> which can only be loaded with <ref>loadmapstate</ref>. There are 32 available slots for use: 0 - 31.<lb/>Note that mapstate:mapsettings (also saved by mapstate:all) is special in that if you save it, it will always be loaded when the map is loaded regardless of settings. It saves all the settings found in the General Map Settings menu like the tileset, ambient music, footoffset, map trigger scripts, and so forth.</description>
+			<example>define script (1, generic menu screen, none)
 script, generic menu screen, begin
   variable (remember map, remember x, remember y)
   remember map := current map
@@ -2289,17 +2305,31 @@ end</example>
 		<command id="loadmapstate">
 			<cannon>load map state (whichdata, customid)</cannon>
 			<shortname>load map state</shortname>
-            <description>Load temporary map state data previously saved either by <ref>savemapstate</ref> or when leaving a map set to remember state. The two arguments are optional and for advanced use. <p>whichdata</p> is a set of bits in the <ref>savemapstate</ref> format to determine what exactly to load. The default is mapstate:all. <p>customid</p> is a number between 0 and 31 of a slot in which a custom save was made. Data from a different map can be loaded, but only tile data from a map of the same size! If you attempt to load state data which has not been saved then it will be loaded from the game files instead, unless you are using <p>customid</p>, in which case nothing will be loaded.</description>
+			<description>Load temporary map state data previously saved either by <ref>savemapstate</ref> or when leaving a map set to remember state. The two arguments are optional and for advanced use. <p>whichdata</p> is a set of bits in the <ref>savemapstate</ref> format to determine what exactly to load. The default is mapstate:all. <p>customid</p> is a number between 0 and 31 of a slot in which a custom save was made. Data from a different map can be loaded, but only tile data from a map of the same size! If you attempt to load state data which has not been saved then it will be loaded from the game files instead, unless you are using <p>customid</p>, in which case nothing will be loaded.</description>
 		</command>
 		<command id="resetmapstate">
 			<cannon>reset map state (whichdata)</cannon>
 			<shortname>reset map state</shortname>
-            <description>Reloads original unaltered map data from the RPG file. <p>whichdata</p> is a set of bits in the <ref>savemapstate</ref> format to determine what exactly to load. It is optional and the default is mapstate:all. This does not remove temp state files for the map, so they could still be loaded instead when you next enter the map, use <ref>deletemapstate</ref> to remove them if wanted.</description>
-        </command>
+			<description>Reloads original unaltered map data from the RPG file. <p>whichdata</p> is a set of bits in the <ref>savemapstate</ref> format to determine what exactly to load. It is optional and the default is mapstate:all. This does not remove temp state files for the map, so they could still be loaded instead when you next enter the map, use <ref>deletemapstate</ref> to remove them if wanted.</description>
+		</command>
 		<command id="deletemapstate">
 			<cannon>delete map state (whichdata)</cannon>
 			<shortname>delete map state</shortname>
-            <description>Deletes temporary map state files for the current map, so that if the map is set to load NPC or tile data it will load the original data from the game files when it is entered. <p>whichdata</p> is a set of bits in the <ref>savemapstate</ref> format to determine what exactly to delete. The default is mapstate:all.</description>
+			<description>Deletes temporary map state files for the current map, so that if the map is set to load NPC or tile data it will load the original data from the game files when it is entered. <p>whichdata</p> is a set of bits in the <ref>savemapstate</ref> format to determine what exactly to delete. The default is mapstate:all.</description>
+		</command>
+		<command id="gettileanimationoffset">
+			<cannon>get tile animation offset (animation pattern)</cannon>
+			<shortname>get tile animation offset</shortname>
+			<description>Returns the offset from the starting tile that the <p>animation pattern</p> (either 0 or 1) is currently at. For example, if the pattern has stepped 1 to the right, the offset is 1, if it has moved down 2 and 1 to the left, it is 31 (2 * 16 - 1).</description>
+			<seealso>
+				<ref>readmapblock</ref>
+			<ref>animationstarttile</ref>
+			</seealso>
+		</command>
+		<command id="settileanimationoffset">
+			<cannon>set tile animation offset (animation pattern, offset)</cannon>
+			<shortname>set tile animation offset</shortname>
+			<description>Sets the offset from the starting tile that an <p>animation pattern</p> (either 0 or 1) is currently at. If there is a pattern defined, it will continue to step left, right, up and down from the offset you give it, until the end of the animation is reached, when the offset is reset to 0.</description>
 		</command>
 	</section>
 	<section title="Predefined Constants">
