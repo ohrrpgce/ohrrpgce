@@ -43,12 +43,15 @@ DECLARE FUNCTION hasmedia (BYVAL d)
 
 '$INCLUDE: 'util.bi'
 
-CONST true = -1
+CONST true  =-1
 CONST false = 0
-
+CONST null  = 0
 DIM buffer(16383)
 
 DIM SHARED createddir = false, dest$, olddir$
+
+rpas$ = ""
+cur = 0
 
 olddir$ = curdir
 
