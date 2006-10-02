@@ -1726,7 +1726,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 	ELSE
 		fmask$ = CHR$(34) + fmask$ + CHR$(34)
 	END IF
-	SHELL "ls -d1p " + fmask$ + "|grep "+ grep$ + ">" + outfile$ + ".tmp"
+	SHELL "ls -d1p " + fmask$ + " 2>/dev/null |grep "+ grep$ + ">" + outfile$ + ".tmp 2>&1"
 	DIM AS INTEGER f1, f2
 	f1 = FreeFile
 	OPEN outfile$ + ".tmp" FOR INPUT AS #f1
