@@ -62,6 +62,7 @@ DECLARE SUB anim_setmove(who%, xm%, ym%, xstep%, ystep%)
 DECLARE SUB anim_relmove(who%, tox%, toy%, xspeed%, yspeed%)
 DECLARE SUB anim_zmove(who%, zm%, zstep%)
 DECLARE SUB anim_walktoggle(who%)
+DECLARE SUB anim_sound(which)
 
 DECLARE FUNCTION is_hero(who%)
 DECLARE FUNCTION is_enemy(who%)
@@ -70,7 +71,7 @@ DECLARE FUNCTION is_weapon(who%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi' 
+'$INCLUDE: 'common.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'uiconst.bi'
@@ -114,7 +115,7 @@ IF is_hero(who) THEN
   anim_setmove who, -5, 0, 4, 0
   anim_waitforall
  END IF
-END IF 
+END IF
 IF atk(14) = 2 THEN ' Dash in
  yt = (bslot(t(who, 0)).h - bslot(who).h) + 2
  anim_walktoggle who
@@ -876,13 +877,13 @@ IF atk(5) <> 4 THEN
  mhp& = stat(t, 1, targstat)
  IF readbit(atk(), 65, 5) = 1 THEN
   SELECT CASE atk(5)
-   CASE 5'% of max   
+   CASE 5'% of max
     h& = mhp& + (atk(11) * mhp& / 100)
    CASE 6'% of cur
     h& = chp& + (atk(11) * chp& / 100)
   END SELECT
  ELSE
-  SELECT CASE atk(5) 
+  SELECT CASE atk(5)
    CASE 5'% of max
     h& = chp& - (mhp& + (atk(11) * mhp& / 100))
    CASE 6'% of cur
@@ -918,7 +919,7 @@ IF atk(5) <> 4 THEN
   stat(t, 0, targstat) = small(stat(t, 0, targstat), large(stat(t, 1, targstat), remtargstat))
   stat(w, 0, targstat) = small(stat(w, 0, targstat), large(stat(w, 1, targstat), rematkrstat))
  END IF
- 
+
  'stat cap ' do we want to cap spells...?
 '  IF gen(genStatCap + targstat) > 0 THEN
 '   IF stat(t, 0, targstat) > gen(genStatCap + targstat) THEN stat(t, 0, targstat) = gen(genStatCap + targstat)
@@ -996,7 +997,7 @@ IF formdata(i * 4) > 0 THEN
   END IF
   .hero_untargetable = readbit(ebits(), i * 5, 61)
   .enemy_untargetable = readbit(ebits(), i * 5, 60)
- END WITH 
+ END WITH
 END IF
 IF bslot(4 + i).vis = 1 THEN
  setpicstuf buffer(), (bslot(4 + i).w * bslot(4 + i).h) * .5, 3

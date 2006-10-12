@@ -13,6 +13,7 @@ WHAT IS NEW?
       name preceded by an @ symbol will compile to the ID number of that
       script or global. [James Paige]
     * Sound effects. [Mike Caron]
+    * Sound effect triggers in battle [Mike Caron]
     * Attacks can now consume or give items (up to three at once!) [Mike Caron]
     * "Transparent" colour in sprite editor can now be chosen (only affects the
       sprite editor, so you can distinguish "transparent" from "black") [Mike]
@@ -37,7 +38,7 @@ WHAT IS NEW?
       where you are talking to an NPC who is standing a full tile
       away [James Paige]
     * Maps can be set to remember their state when you leave them, or to load
-      from state files saved with savemapstate. You can set separate loading 
+      from state files saved with savemapstate. You can set separate loading
       options for NPC and tile data. [Ralph Versteegen]
     * HamsterSpeak is now 32-bit. This means you can use values from
       -2147483648 to 2147483647 in your scripts [Ralph Versteegen]
@@ -67,8 +68,8 @@ WHAT IS NEW?
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
       hero at the opposite edge" and bug 27: "NPCs cannot walk across the
-      edges of a wraparound map" (consider that a feature if you want) 
-      And bug where couldn't activate touch activation NPCs over map edge 
+      edges of a wraparound map" (consider that a feature if you want)
+      And bug where couldn't activate touch activation NPCs over map edge
       And bug where avoid and chase NPCs did not know about wraparound maps
       [Ralph Versteegen]
     * Really fixed the "script arguments overflow into local variables" bug.
@@ -159,7 +160,7 @@ July 09 2006 [hasta-la-qb]
     * Fixed a few bugs in inputstring, including backspace not working,
       missing length checking and ESC popping up the menu [Yuriy, Ralph]
     * Fixed bug 163, a random crash in the music import screen. [Simon, Mike]
-    * Bug 176: "Some files appear as subdirectories in Windows browsers" 
+    * Bug 176: "Some files appear as subdirectories in Windows browsers"
       [Ralph Versteegen]
     * Fixed an ancient bug in both the Sprite editor and the MapTile editor
       which caused the keyboard control to lag whenever the mouse cursor
@@ -180,7 +181,7 @@ July 09 2006 [hasta-la-qb]
       interpreter errors like "clean noop" [Ralph Versteegen]
     * Fixed script interpreter to return "1" for true in comparison operators
       instead of -1 (for consistancy elsewhere) [Mike]
-      
+
   * New Plotscripting Commands
     * "keyval"
     * An existing command we forgot to mention in whatsnew: "string compare"
@@ -221,7 +222,7 @@ Feb 16 2006 [serendipity+]
 
   * Emergency update to fix bug 138 (out-of-control file growth when
     creating a new RPG file) [Simon Bradley, James Paige]
-  * Emergency fix to a bug which deletes all song names when 99th song 
+  * Emergency fix to a bug which deletes all song names when 99th song
     slot was in use [Ralph Versteegen]
   * Fixed a bug in battle background animation [Mike Caron]
   * Fixed a hidden bug in running unumped RPGs [Mike Caron]

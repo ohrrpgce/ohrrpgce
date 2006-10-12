@@ -14,6 +14,7 @@ DEFINT A-Z
 #include "menustuf.bi"
 #include "yetmore.bi"
 #include "moresubs.bi"
+#include "music.bi"
 
 'misc
 #include "common.bi"
@@ -480,6 +481,7 @@ IF readbit(atk(), 20, 49) THEN numhits = atk(17)
 '----------------------------NULL ANIMATION
 IF atk(15) = 10 THEN
  advance who, atk(), bslot(), t()
+ if atk(99) > 0  then anim_sound(atk(99) - 1)
  FOR j = 1 TO numhits
   IF is_hero(who) THEN heroanim who, atk(), bslot(), t()
   IF is_enemy(who) THEN etwitch who, atk(), bslot(), t()
@@ -540,6 +542,7 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
    NEXT i
    anim_waitforall
   END IF
+  if atk(99) > 0  then anim_sound(atk(99) - 1)
   FOR i = 0 TO tcount
    anim_inflict t(who, i)
    temp = 3: IF is_enemy(t(who, i)) THEN temp = -3
@@ -578,6 +581,7 @@ IF atk(15) = 7 THEN
   dtemp = 0: IF readbit(atk(), 20, 3) = 0 THEN dtemp = pdir
   anim_setpos 12, bslot(who).x + temp, bslot(who).y, dtemp
   anim_appear 12
+  if atk(99) > 0  then anim_sound(atk(99) - 1)
   FOR i = 0 TO tcount
    yt = (bslot(t(who, i)).h - 50) + 2
    xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
@@ -654,6 +658,7 @@ IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
     anim_zmove 12 + i, -6, 30
    END IF
   NEXT i
+  if atk(99) > 0  then anim_sound(atk(99) - 1)
   anim_wait 8
   anim_disappear 24
   anim_setframe who, 0
@@ -704,6 +709,7 @@ IF atk(15) = 9 THEN
    yt = (bslot(t(who, i)).h - 50) + 2
    anim_relmove 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt, 8, 8
   NEXT i
+  if atk(99) > 0  then anim_sound(atk(99) - 1)
   anim_wait 4
   anim_disappear 24
   anim_setframe who, 0
@@ -766,6 +772,7 @@ IF atk(15) = 4 AND tcount = 0 THEN
    anim_appear 12 + i
    anim_relmove 12 + i, bslot(t(who, 0)).x + xt, bslot(t(who, 0)).y + yt, 4, 4
   NEXT i
+  if atk(99) > 0  then anim_sound(atk(99) - 1)
   anim_wait 8
   anim_disappear 24
   anim_setframe who, 0
@@ -812,6 +819,8 @@ IF atk(15) = 5 THEN
   IF is_hero(who) THEN heroanim who, atk(), bslot(), t()
   IF is_enemy(who) THEN etwitch who, atk(), bslot(), t()
   temp = 24: IF is_hero(who) THEN temp = -24
+  if atk(99) > 0  then anim_sound(atk(99) - 1)
+
   FOR i = 0 TO 11
    anim_appear 12 + i
    anim_setmove 12 + i, temp, 0, 16, 0
@@ -991,7 +1000,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    IF conmp = 1 THEN
     '--if the attack costs MP, we want to actually consume MP
     IF  atk(8) > 0 THEN stat(who, 0, 1) = large(stat(who, 0, 1) - focuscost(atk(8), stat(who, 0, 10)), 0)
-    
+
     '--ditto for HP
     IF atk(9) > 0 THEN
       stat(who, 0, 0) = large(stat(who, 0, 0) - atk(9), 0)
@@ -1000,7 +1009,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
       hy(who) = bslot(who).y + (bslot(who).h * .5)
       harm$(who) = STR$(atk(9))
     END IF
-    
+
     '--ditto for money
     IF atk(10) > 0 THEN
       gold& = large(gold& - atk(10), 0)
@@ -1025,12 +1034,12 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
         END IF
       END IF
     NEXT i
-    
+
     '--set the flag to prevent re-consuming MP
     conmp = 0
    END IF
    IF conlmp(who) > 0 THEN lmp(who, conlmp(who) - 1) = lmp(who, conlmp(who) - 1) - 1: conlmp(who) = 0
-   IF icons(who) >= 0 THEN 
+   IF icons(who) >= 0 THEN
     IF consumeitem(icons(who)) THEN setbit iuse(), 0, icons(who), 0
     icons(who) = -1
    END IF
@@ -1065,6 +1074,8 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    ww = popw
    bslot(ww).zmov = popw
    bslot(ww).zspeed = popw
+  CASE 16 'sound(which)
+   sound_play(popw,0)
  END SELECT
 LOOP UNTIL wf <> 0 OR anim = -1
 
@@ -2016,7 +2027,7 @@ SELECT CASE vdance
   IF o = 0 OR (carray(4) > 1 OR carray(5) > 1) THEN
    vdance = 3
    showlearn = 0
-   learna = 0: learnb = 0: learnc = 0 
+   learna = 0: learnb = 0: learnc = 0
   END IF
  CASE 3
   '--print learned spells, one at a time
@@ -2227,4 +2238,8 @@ END SUB
 
 SUB anim_walktoggle(who)
  pushw 14: pushw who
+END SUB
+
+SUB anim_sound(which)
+ pushw 16: pushw which
 END SUB

@@ -29,5 +29,6 @@ declare sub anim_wait(ticks)
 declare sub anim_setframe(who, frame)
 declare sub anim_waitforall()
 declare sub anim_walktoggle(who)
+declare SUB anim_sound(which)
 
 #ENDIF
