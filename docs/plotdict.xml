@@ -372,7 +372,7 @@ resume box advance # go back to normal</example>
 		</command>
 		<command id="suspendmapmusic">
 			<cannon>suspend map music</cannon>
-			<shortname>resume map music</shortname>
+			<shortname>suspend map music</shortname>
 			<description>Causes ambient music not to automatically play when you enter a map. Does not affect the currently playing music, or the map's ambient music. Use when playing thematic music during a scene that involves changing maps.</description>
 			<example># begin scene
 play song(song:Happy Times)
@@ -1323,7 +1323,7 @@ end</example>
 			<shortname>NPC X</shortname>
 			<description>Returns the specified NPC&apos;s X position in tiles. Note that an NPC's tile is the tile its top left corner is on.</description>
 			<seealso>
-		        <ref>npcatspot</ref>	
+		        <ref>npcatspot</ref>
             </seealso>
         </command>
 		<command id="npcy">
@@ -1331,7 +1331,7 @@ end</example>
 			<shortname>NPC Y</shortname>
 			<description>Returns the specified NPC&apos;s Y position in tiles. Note that an NPC's tile is the tile its top left corner is on.</description>
 			<seealso>
-		        <ref>npcatspot</ref>	
+		        <ref>npcatspot</ref>
             </seealso>
         </command>
 		<command id="herodirection">
@@ -1359,7 +1359,7 @@ end</example>
 			<shortname>NPC extra</shortname>
 			<description>Returns the npc instance-specific extra data field requested in <p>which</p>. You may use the constants <ref>extra1</ref> and <ref>extra2</ref> to refer to them. If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
 			<seealso>
-		        <ref>setnpcextra</ref>	
+		        <ref>setnpcextra</ref>
             </seealso>
 		</command>
 		<command id="setnpcextra">
@@ -1367,7 +1367,7 @@ end</example>
 			<shortname>set NPC extra</shortname>
 			<description>Sets the npc instance-specific extra data field requested in <p>which</p>. You may use the constants <ref>extra1</ref> and <ref>extra2</ref> to refer to them.  If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
 			<seealso>
-		    <ref>npcextra</ref>	
+		    <ref>npcextra</ref>
 		  </seealso>
 		</command>
 		<command id="roominactiveparty">
