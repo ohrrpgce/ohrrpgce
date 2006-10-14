@@ -255,7 +255,7 @@ ELSE
    treesize += 1
   NEXT i
   'could add My Documents to drives list here
- END IF 
+ END IF
  '--Current drive
  tree$(treesize) = MID$(a$, 1, INSTR(a$, SLASH))
 #IFNDEF __FB_LINUX__
@@ -289,7 +289,7 @@ ELSE
     treesize = drivetotal - 1
     display$(treesize + 1) = "My Documents\"
    END IF
-#ENDIF 
+#ENDIF
    treesize = treesize + 1
    tree$(treesize) = b$
    treec(treesize) = 1
@@ -298,7 +298,7 @@ ELSE
   END IF
  LOOP
  '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
- findfiles nowdir$ + ALLFILES, attribDirectory OR attribSystem OR attribReadOnly OR showHidden, tmp$ + "hrbrowse.tmp", buffer()
+ findfiles nowdir$ + ALLFILES, 16, tmp$ + "hrbrowse.tmp", buffer()
  fh = FREEFILE
  OPEN tmp$ + "hrbrowse.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh) OR treesize >= limit
@@ -331,7 +331,7 @@ ELSE
   'Call once for RPG files once for rpgdirs
   findfiles nowdir$ + anycase$(fmask$), attrib, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.rpgdir"), attribDirectory + attribReadOnly + attribSystem + showHidden, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.rpgdir"), 16, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
  ELSE
   findfiles nowdir$ + anycase$(fmask$), attrib, tmp$ + "hrbrowse.tmp", buffer()
@@ -461,7 +461,7 @@ DO UNTIL EOF(fh) OR treesize >= limit
   ELSE
    'lumped RPG files
    unlumpfile nowdir$ + tree$(treesize), "browse.txt", tmp$, buffer()
-  END IF 
+  END IF
   IF isfile(tmp$ + "browse.txt") THEN
    setpicstuf buffer(), 40, -1
    loadset tmp$ + "browse.txt", 0, 0
@@ -472,7 +472,7 @@ DO UNTIL EOF(fh) OR treesize >= limit
    array2str buffer(), 2, about$(treesize)
    safekill tmp$ + "browse.txt"
    IF LEN(display$(treesize)) = 0 THEN display$(treesize) = tree$(treesize)
-  ELSE 
+  ELSE
    about$(treesize) = ""
    display$(treesize) = tree$(treesize)
   END IF
@@ -530,7 +530,7 @@ NEXT
 defaultui:
 DATA 0,7,8,14,15,6,7,1,2,18,21,35,37,15,240,10,14,240
 DATA 18,28,34,44,50,60,66,76,82,92,98,108,114,124,130,140
-DATA 146,156,162,172,178,188,194,204,210,220,226,236,242,252 
+DATA 146,156,162,172,178,188,194,204,210,220,226,236,242,252
 
 END SUB
 
@@ -602,7 +602,7 @@ SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
  setpicstuf bits(), 2, -1
  IF isfile(f$) THEN
   loadset f$, 0, 0
- END IF 
+ END IF
  setbit bits(), 0, bitnum, bitval
  storeset f$, 0, 0
 END SUB
@@ -656,15 +656,15 @@ DO WHILE LEN(result$) < strlen
  '--get an int
  n = array(offset + i)
  i = i + 1
- 
+
  '--append the lowbyte as a char
  result$ = result$ + CHR$(n AND &HFF)
- 
+
  '--if we still care about the highbyte, append it as a char too
  IF LEN(result$) < strlen THEN
   result$ = result$ + CHR$((n SHR 8) AND &HFF)
  END IF
- 
+
 LOOP
 
 readbinstring$ = result$

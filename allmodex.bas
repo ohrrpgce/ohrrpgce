@@ -541,7 +541,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	dim pix as integer
 	dim mask as integer
 	dim row as integer
-	
+
 	if wrkpage <> page then
 		wrkpage = page
 	end if
@@ -605,7 +605,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	next
 	'now draw the image
 	drawohr(hspr,x,y, scale)
-	
+
 	deallocate(hspr.image)
 	deallocate(hspr.mask)
 end SUB
@@ -860,7 +860,7 @@ SUB setkeys ()
 'In the asm version, setkeys copies over the real key state array
 '(which is built using an interrupt handler) to the state array used
 'by keyval and then reduces new key presses to held keys, all of
-'which now happens in the backend, which may rely on a polling thread 
+'which now happens in the backend, which may rely on a polling thread
 'or keyboard event callback as needed. - tmc
 	dim a as integer
 	mutexlock keybdmutex
@@ -903,7 +903,7 @@ sub pollingthread
 					end if
 					keybdstate(a) = 3
 				else
-					keybdstate(a) = keybdstate(a) and 3 
+					keybdstate(a) = keybdstate(a) and 3
 				end if
 			else
 				keybdstate(a) = keybdstate(a) and 2 'no longer pressed, but was seen
@@ -968,7 +968,7 @@ SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h
 
 	'draw
     j = 321 - w
-    i = c shl 24 or c shl 16 or c shl 8 or c 
+    i = c shl 24 or c shl 16 or c shl 8 or c
 
 	sptr = spage(p) + (y*320) + x
 
@@ -1032,7 +1032,7 @@ SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 	if x < clipl then w = w - ABS(x - clipl) : x = clipl + 1
 	if y < clipt then h = h - ABS(y - clipt) : y = clipt + 1
 
-	if w <= 0 or h <= 0 then exit sub  
+	if w <= 0 or h <= 0 then exit sub
 
 	'draw
 	sptr = spage(p) + (y*320) + x
@@ -1227,7 +1227,7 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 
 	'prevent infinite loop if you fill with the same colour
 	if tcol = c then exit sub
-	
+
 	queue = allocate(sizeof(node))
 	queue->x = x
 	queue->y = y
@@ -1432,10 +1432,10 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 	'check bounds
 	if y < -7 or y > 199 then exit sub
 	if x > 319 then exit sub
-	
+
 	'only draw rows that are on the screen
 	maxrow = 199 - y
-	if maxrow > 7 then 
+	if maxrow > 7 then
 		maxrow = 7
 	end if
 	minrow = 0
@@ -1443,7 +1443,7 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 		minrow = -y
 		y = 0
 	end if
-	
+
 	'is it actually faster to use a direct buffer write, or would pset be
 	'sufficiently quick?
 	col = x
@@ -1747,7 +1747,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 #else
     DIM a$, i%, folder$
 	if attrib = 0 then attrib = 255 xor 16
-
+  if attrib = 16 then attrib = 55 '*sigh*
 	FOR i = LEN(fmask$) TO 1 STEP -1
         IF MID$(fmask$, i, 1) = "\" THEN folder$ = MID$(fmask$, 1, i): EXIT FOR
     NEXT
@@ -1762,7 +1762,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 	end if
 	DO UNTIL a$ = ""
 		PRINT #tempf, a$
-		a$ = DIR$("", attrib)
+		a$ = DIR$ '("", attrib)
 	LOOP
 	CLOSE #tempf
     OPEN outfile$ + ".tmp" FOR INPUT AS #tempf
@@ -1770,10 +1770,10 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
     OPEN outfile$ FOR OUTPUT AS #realf
     DO UNTIL EOF(tempf)
         LINE INPUT #tempf, a$
-        IF attrib = 16 THEN
+        IF attrib = 55 THEN
             'alright, we want directories, but DIR$ is too broken to give them to us
             'files with attribute 0 appear in the list, so single those out
-            IF DIR$(folder$ + a$, 255 xor 16) = "" THEN PRINT #realf, a$
+            IF DIR$(folder$ + a$, 55) <> "" AND DIR$(folder$ + a$, 39) = "" THEN PRINT #realf, a$
         ELSE
             PRINT #realf, a$
         END IF
@@ -2010,7 +2010,7 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 	'get file to lump
 	do until eof(fl)
 		line input #fl, lname
-		
+
 		'validate that lumpname is 8.3 or ignore the file
 		textsize(0) = 0
 		textsize(1) = 0
@@ -2074,8 +2074,9 @@ END SUB
 
 FUNCTION isfile (n$) as integer
     ' I'm assuming we don't count directories as files
-	'return dir$(n$) <> ""
-    return dir$(n$, 255 xor 16) <> ""
+	  'return dir$(n$) <> ""
+	  dim ret as integer = dir$(n$, 255 xor 16) <> ""
+	  return ret
 END FUNCTION
 
 FUNCTION isdir (sDir$) as integer
@@ -2093,7 +2094,8 @@ FUNCTION isdir (sDir$) as integer
 	KILL "isdirhack.tmp"
 #ELSE
 	'Windows just uses dir
-	isdir = NOT (dir$(sDir$, 16) = "")
+	dim ret as integer = dir$(sDir$, 55) <> "" AND dir$(sDir$, 39) = ""
+	return ret
 #ENDIF
 END FUNCTION
 
@@ -2329,12 +2331,12 @@ SUB readmouse (mbuf() as integer)
 	static lasty as integer = 0
 
 	io_getmouse(mx, my, mw, mb)
-	if (mx < 0) then 
+	if (mx < 0) then
 		mx = lastx
 	else
 		lastx = mx
 	end if
-	if (my < 0) then 
+	if (my < 0) then
 		my = lasty
 	else
 		lasty = my
@@ -2699,12 +2701,12 @@ SUB bitmap2page (temp(), bmp$, BYVAL p)
 
 	sbase = spage(p)
 
-	
+
 	'navigate to the beginning of the bitmap data
 	seek #bf, header.bfOffBits + 1
 
-	
-	IF info.biBitCount = 24 THEN	
+
+	IF info.biBitCount = 24 THEN
 		'data lines are padded to 32-bit boundaries
 		pad = 4 - ((info.biWidth * 3) mod 4)
 		if pad = 4 then	pad = 0
@@ -2733,7 +2735,7 @@ SUB bitmap2page (temp(), bmp$, BYVAL p)
 					sptr += 1
 				next
 			end if
-	
+
 			'padding to dword boundary, plus excess pixels
 			for w = 0 to pad-1
 				get #bf, , ub
@@ -2768,7 +2770,7 @@ SUB bitmap2page (temp(), bmp$, BYVAL p)
 					sptr += 1
 				next
 			end if
-	
+
 			'padding to dword boundary, plus excess pixels
 			for w = 0 to pad-1
 				get #bf, , ub
@@ -3199,30 +3201,30 @@ end sub
 #DEFINE ID(a,b,c,d) asc(a) SHL 0 + asc(b) SHL 8 + asc(c) SHL 16 + asc(d) SHL 24
 function isawav(fi$) as integer
   if not isfile(fi$) then return 0 'duhhhhhh
-  
+
   dim _RIFF as integer = ID("R","I","F","F") 'these are the "signatures" of a
   dim _WAVE as integer = ID("W","A","V","E") 'wave file. RIFF is the format,
   dim _fmt_ as integer = ID("f","m","t"," ") 'WAVE is the type, and fmt_ and
   dim _data as integer = ID("d","a","t","a") 'data are the chunks
-  
+
   dim chnk_ID as integer
   dim chnk_size as integer
   dim f as integer = freefile
   open fi$ for binary as #f
-  
+
   get #f,,chnk_ID
   if chnk_ID <> _RIFF then return 0 'not even a RIFF file
-  
+
   get #f,,chnk_size 'don't care
-  
+
   get #f,,chnk_ID
-  
+
   if chnk_ID <> _WAVE then return 0 'not a WAVE file, pffft
-  
+
   'is this good enough? meh, sure.
   close #f
   return 1
-  
+
 end function
 
 
