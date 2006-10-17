@@ -32,6 +32,10 @@ IF NOT %2==sdl GOTO skipmussdl
 support\zip -q distrib\ohrrpgce-wip-%1-%2.zip SDL.dll SDL_mixer.dll
 :skipmussdl
 
+IF NOT %2==native GOTO skipmusnative
+support\zip -q distrib\ohrrpgce-wip-%1-%2.zip audiere.dll audwrap.dll
+:skipmusnative
+
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-wip-%1-%2.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
 GOTO finished
 
