@@ -1,4 +1,4 @@
-'' 
+''
 '' gfx_fb.bas - External graphics functions implemented in FB's
 ''				built-in gfxlib. Multi-option version.
 ''
@@ -55,7 +55,7 @@ sub gfx_showpage(byval raw as ubyte ptr)
 'takes a pointer to raw 8-bit data at 320x200
 	dim rptr as ubyte ptr
 	dim as integer w, h, i, j
-	
+
 	screenlock
 	if depth = 8 then
 		dim sptr as ubyte ptr
@@ -102,7 +102,7 @@ sub gfx_showpage(byval raw as ubyte ptr)
 	end if
 	screenunlock
 	flip
-	
+
 end sub
 
 sub gfx_setpal(pal() as integer)
@@ -134,14 +134,14 @@ end function
 sub gfx_setwindowed(byval iswindow as integer)
 	if iswindow <> 0 then iswindow = 1 'only 1 "true" value
 	if iswindow = windowed then exit sub
-	
+
 	windowed = iswindow
-	
+
 	if init_gfx = 1 then
 		dim pal(255) as integer
 		if depth = 8 then palette get using pal
     gfx_screenres
-		if depth = 8 then palette using pal		
+		if depth = 8 then palette using pal
 	end if
 end sub
 
@@ -164,9 +164,9 @@ end sub
 sub gfx_setoption(opt as string, byval value as integer = -1)
 'handle command-line options in a generic way, so that they
 'can be ignored or supported as the library permits.
-'This version supports 
-'	zoom (1, 2*, 3), 
-'	depth (8*, 24), 
+'This version supports
+'	zoom (1, 2*, 3),
+'	depth (8*, 24),
 '	border (0*, 1)
 'only before gfx has been initialised
 
@@ -216,7 +216,7 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 		'calculate offset
 		if bordered = 1 and zoom <> 3 then screen_buffer_offset = (BORDER / 2) * zoom
 	end if
-	
+
 end sub
 
 '------------- IO Functions --------------
@@ -237,7 +237,9 @@ function io_keypressed(byval scancode as integer)
 'the contract of this function is basically the same as multikey
 'in this case it's just a wrapper, but multikey only works with
 'the built-in gfxlib
-	io_keypressed = multikey(scancode)
+  dim ret as integer = multikey(scancode)
+	'debug "key(" & scancode & ") = " & ret
+	return ret
 end function
 
 function io_enablemouse() as integer
@@ -275,21 +277,21 @@ sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as int
 end sub
 
 function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
-	
+
 	dim x as single,y as single,button as integer
-	
+
 	if getjoystick(joynum,button,x,y) then 'returns 1 on failure
 	  return 0
 	end if
-	
+
 	'otherwise...
 	joybuf(0) = int(x * 100) 'x is between -1 and 1
 	joybuf(1) = int(y * 100) 'ditto
 	joybuf(2) = (button AND 1) = 0 '0 = pressed, not 0 = unpressed (why???)
 	joybuf(3) = (button AND 2) = 0 'ditto
-	
+  if abs(joybuf(0)) > 10 then debug "X = " + str(joybuf(0))
 	return 1
-	
+
 end function
 
 function io_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
@@ -299,7 +301,8 @@ function io_readjoysane(byval joynum as integer, byref button as integer, byref 
   else
     x = int(xa * 100)
     y = int(ya * 100)
+    if abs(x) > 10 then debug "X = " + str(x)
     return 1
 	end if
-	
+
 end function

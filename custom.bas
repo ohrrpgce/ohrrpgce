@@ -86,7 +86,7 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi' 
+'$INCLUDE: 'common.bi'
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'
@@ -108,7 +108,7 @@ DIM font(1024), master(767), buffer(16384), timing(4), joy(4), scroll(16002), pa
 DIM menu$(22), general(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600), uilook(uiColors)
 'more global variables
 DIM game$, gamefile$, unsafefile$, insert
-DIM vpage, dpage, fadestate, workingdir$, version$ 
+DIM vpage, dpage, fadestate, workingdir$, version$
 
 '--DIM binsize arrays
 '$INCLUDE: 'binsize.bi'
@@ -178,7 +178,7 @@ IF isdir(gamefile$) THEN
  LOOP
  CLOSE #fh
  KILL "filelist.tmp"
-ELSE 
+ELSE
  ERASE scroll, pass, emap
  DIM lumpbuf(16383)
  unlump gamefile$, workingdir$ + SLASH, lumpbuf()
@@ -506,9 +506,9 @@ DO
  tog = tog XOR 1
  IF keyval(28) > 1 THEN
   '--check password
-  IF pas$ = rpas$ THEN 
-   RETRACE 
-  ELSE 
+  IF pas$ = rpas$ THEN
+   RETRACE
+  ELSE
    GOTO finis
   END IF
  END IF
@@ -552,7 +552,7 @@ IF LEN(unsafefile$) THEN
  GOSUB cleanupfiles
 END IF
 crashexplain
-PRINT "Game:"; gamedir$ + SLASH + gamefile$
+'PRINT "Game: " & gamedir$ & SLASH & gamefile$
 '--crash and print the error
 ON ERROR GOTO 0
 
@@ -571,7 +571,7 @@ w = getkey
 'closefile
 CHDIR curdir$
 restoremode
-SYSTEM
+END
 
 cleanupfiles:
 CLOSE #lockfile
@@ -1179,7 +1179,7 @@ DO
  'IF keyval(80) > 1 THEN tcsr = small(last, tcsr + 1)
  dummy = usemenu(tcsr, 0, 0, last, 24)
  IF tcsr = 1 THEN
-  IF keyval(75) > 1 AND thing > 0 THEN 
+  IF keyval(75) > 1 AND thing > 0 THEN
    GOSUB sstuf
    thing = thing - 1
    GOSUB lstuf
@@ -1314,13 +1314,13 @@ IF b(23) = -1 THEN smenu$(9) = smenu$(9) + "[Unalterable]"
 IF b(23) = 0 THEN smenu$(9) = "[No Tag Set]"
 smenu$(10) = names$(32) + " Price:" + XSTR$(b(24))
 smenu$(11) = "Must Trade in" + XSTR$(b(30) + 1) + " of:" + tradestf$(0)
-smenu$(12) = " (Change Amount)" 
+smenu$(12) = " (Change Amount)"
 smenu$(13) = "Must Trade in" + XSTR$(b(32) + 1) + " of:" + tradestf$(1)
-smenu$(14) = " (Change Amount)" 
+smenu$(14) = " (Change Amount)"
 smenu$(15) = "Must Trade in" + XSTR$(b(34) + 1) + " of:" + tradestf$(2)
-smenu$(16) = " (Change Amount)" 
+smenu$(16) = " (Change Amount)"
 smenu$(17) = "Must Trade in" + XSTR$(b(36) + 1) + " of:" + tradestf$(3)
-smenu$(18) = " (Change Amount)" 
+smenu$(18) = " (Change Amount)"
 IF b(17) = 0 THEN
  smenu$(19) = "Sell type: " + stf$(bound(b(26), 0, 3) + 3)
  smenu$(20) = "Sell Price:" + XSTR$(b(27))
@@ -1574,7 +1574,7 @@ IF general(genVersion) = 5 THEN
  'Shop stuff and song name formats changed, MIDI music added
  'Sub version info also added
  general(genVersion) = 6
-END IF 
+END IF
 
 
 IF NOT isfile(workingdir$ + SLASH + "archinym.lmp") THEN
@@ -1642,7 +1642,7 @@ IF NOT isfile(workingdir$ + SLASH + "songdata.bin") THEN
   NEXT i
   CLOSE #fh
  END IF
- 
+
  FOR i = 99 TO 1 STEP -1
   '-- check for midis as well 'cause some people might use a WIP custom or whatnot
   IF song$(i) <> "" OR isfile(game$ + "." + STR$(i)) OR isfile(workingdir$ + SLASH + "song" + STR$(i) + ".mid") THEN
@@ -1691,12 +1691,12 @@ IF getfixbit(fixAttackitems) = 0 THEN
   REDIM dat(curbinsize(0)/2 - 1) AS SHORT
   p = 1
   FOR i = 0 to general(genMaxAttack)
-    
+
     GET #fh,p,dat()
     FOR y = 53 TO 59
       dat(y) = 0
     NEXT
-    
+
     PUT #fh,p,dat()
     p+=curbinsize(0)
   NEXT
@@ -1800,5 +1800,5 @@ FUNCTION readarchinym$ ()
   ' for backwards compatability with ancient games that lack archinym.lmp
   debug workingdir$ + SLASH + "archinym.lmp" + " unreadable, using " + LCASE$(trimpath$(game$)) + " instead"
   readarchinym$ = LCASE$(trimpath$(game$))
- END IF 
+ END IF
 END FUNCTION

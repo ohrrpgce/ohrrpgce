@@ -55,13 +55,14 @@ DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION getsongname$ (num%)
+DECLARE FUNCTION getsfxname$ (num%)
 DECLARE FUNCTION isStringField(mnu%)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi' 
+'$INCLUDE: 'common.bi'
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'
@@ -689,7 +690,7 @@ RETRACE
 END SUB
 
 SUB formation
-DIM a(40), b(160), c(24), s(7), w(7), menu$(10), ename$(7), max(10), z(7), bmenu$(22), pal16(64)
+DIM a(40), b(160), c(24), s(7), w(7), menu$(10), ename$(7), max(10), min(10), z(7), bmenu$(22), pal16(64)
 clearpage 0
 clearpage 1
 clearpage 2
@@ -736,7 +737,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN 
+ IF keyval(1) > 1 THEN
   GOSUB savefset
   RETRACE
  END IF
@@ -822,6 +823,7 @@ editform:
 '--???  well, you see..
 max(1) = general(genMaxBackdrop) - 1   'genMaxBackdrop is number of backdrops, but is necessary
 max(2) = general(genMaxSong) + 1   'genMaxSongs is number of last song, but is optional
+min(2) = general(genMaxSFX) * -1 - 1
 max(3) = 50
 max(4) = 1000
 pt = 0: csr2 = -6: csr3 = 0
@@ -867,7 +869,7 @@ DO
    END IF
   END IF
   IF csr2 = -3 THEN
-   IF zintgrabber(a(36 + csr2), -1, max(csr2 + 5), 75, 77) THEN
+   IF intgrabber(a(36 + csr2), min(csr2+5), max(csr2 + 5), 75, 77) THEN
     GOSUB saveform
     GOSUB loadform
    END IF
@@ -915,7 +917,13 @@ DO
   menu$(4) = CHR$(27) + "formation" + XSTR$(pt) + CHR$(26)
   menu$(5) = "Backdrop screen:" + XSTR$(a(32))
   menu$(6) = "Battle Music:"
-  IF a(33) = 0 THEN menu$(6) = menu$(6) + " -none-" ELSE menu$(6) = menu$(6) + XSTR$(a(33) - 1) + " " + getsongname$(a(33) - 1)
+  IF a(33) = 0 THEN
+    menu$(6) = menu$(6) + " -none-"
+  ELSEIF a(33) > 0 THEN
+    menu$(6) = menu$(6) + XSTR$(a(33) - 1) + " " + getsongname$(a(33) - 1)
+  ELSEIF a(33) < 0 THEN
+    menu$(6) = menu$(6) + "SFX " + STR(abs(a(33))-1) + " " + getsfxname$(abs(a(33))-1)
+  END IF
   menu$(7) = "Backdrop Frames:"
   IF a(34) = 0 THEN menu$(7) = menu$(7) + " no animation" ELSE menu$(7) = menu$(7) + XSTR$(a(34) + 1)
   menu$(8) = "Backdrop Speed:" + XSTR$(a(35))
@@ -2050,7 +2058,7 @@ DO
    scrname$ = scriptbrowse$(npc(cur * 15 + 12), plottrigger, "NPC use plotscript")
   ELSEIF scrintgrabber(npc(cur * 15 + 12), 0, 0, 75, 77, 1, plottrigger) THEN
    scrname$ = scriptname$(npc(cur * 15 + 12), plottrigger)
-  END IF   
+  END IF
  END IF
  IF csr = 11 THEN
   IF keyval(75) > 1 OR keyval(77) > 1 OR keyval(57) > 1 OR keyval(28) > 1 THEN GOSUB onetimetog

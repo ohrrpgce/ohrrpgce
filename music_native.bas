@@ -45,7 +45,7 @@ option explicit
 	  DECLARE SUB win_set_window CDECL ALIAS "win_set_window" (BYVAL wnd as HWND)
     DECLARE FUNCTION win_get_window CDECL ALIAS "win_get_window"() as HWND
 	#ENDIF
-	
+
 #ENDIF
 
 '#ENDIF
@@ -109,6 +109,7 @@ dim shared playback_thread as integer
 dim shared fade_thread as integer
 dim shared inited_once as integer = 0
 
+dim shared sound_song as integer = -1'if it's not a midi
 'for playback
 dim shared division as short
 
@@ -122,22 +123,22 @@ function openMidi() as integer
     dim moc as MIDIOUTCAPS
     midiOutGetDevCaps MIDI_MAPPER, @moc, len(MIDIOUTCAPS)
     'debug "Midi port supports Volume changes:" + str$(moc.dwSupport AND MIDICAPS_VOLUME)
-    
+
     return midiOutOpen (@midi_handle,MIDI_MAPPER,0,0,0)
     #ENDIF
     #ELSE
     'see if allegro's been initialized
     if inited_once = 0 then
-    
+
     	win_set_window FB_Win32.Wnd
     	allegro_init
-    	
+
     	inited_once = 1
     end if
-    
+
     install_sound(-1,-1,"")
     load_midi_patches
-    
+
     midibuffer = Allocate(60)
 	midibufferlen = 60 '20 events, roughly
 	midibufferused = 0
@@ -150,7 +151,7 @@ function closeMidi() as integer
     return midiOutClose (midi_handle)
     #ENDIF
     #ELSE
-    
+
     remove_sound
     Deallocate(midibuffer)
     midibufferused = 0
@@ -174,7 +175,7 @@ function shortMidi(event as UByte, a as UByte, b as UByte) as integer
     	return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8 + b SHL 16)
     end if
     #ENDIF
-    
+
     #ELSE
 
     dim d(0 to 2) as UByte
@@ -186,8 +187,8 @@ function shortMidi(event as UByte, a as UByte, b as UByte) as integer
     else
     	midi_out @d(0), 3
     end if
-    
-    #ENDIF   
+
+    #ENDIF
 end function
 
 'emit a stream of bytes to the device
@@ -198,12 +199,12 @@ function longMidi(dat as UByte ptr, l as integer) as integer
     #ELSE
     '??? - api doesn't support streaming?
     #ENDIF
-    
+
     #ELSE
-    
+
     midi_out dat, l
-    
-    #ENDIF 
+
+    #ENDIF
     return -1
 end function
 
@@ -220,13 +221,13 @@ Sub BufferEvent(event as UByte, a as Byte = -1, b as Byte = -1) 'pass -1 to a an
 
 #IFDEF USE_ALLEGRO
 	dim goingtouse as integer, tmpbuf(2) as UByte, i as integer
-	
+
 	if midibuffer = NULL then
 		midibuffer = Allocate(60)
 		midibufferlen = 60 '20 events, roughly
 		midibufferused = 0
 	end if
-	
+
 	tmpbuf(0) = event: goingtouse = 1
 	if a <> -1 then tmpbuf(1) = a: goingtouse = 2
 	if b <> -1 then tmpbuf(2) = b: goingtouse = 3
@@ -236,22 +237,22 @@ Sub BufferEvent(event as UByte, a as Byte = -1, b as Byte = -1) 'pass -1 to a an
 		'debug "Reallocating buffer from " + str(midibufferlen) + " to " + str(midibufferlen * 2)
 		newbuf = OReallocate(midibuffer, midibufferlen * 2)
 		if newbuf = NULL then
-			debug "FAILED TO REALLOCATE MIDI BUFFER, DROPPING EVENTS"
+'			debug "FAILED TO REALLOCATE MIDI BUFFER, DROPPING EVENTS"
 			'ehh... problem. The only thing we can do it toss the extra events...
 			exit sub
 		end if
 		midibufferlen *= 2
 		midibuffer = newbuf 'in case it moved
 	loop
-	
+
 	'memcpy @tmpbuf(0), midibuffer + midibufferused, goingtouse
 	for i = 0 to goingtouse - 1
 		midibuffer[midibufferused +  i] = tmpbuf(i)
 	next
-	
-	
-	midibufferused += goingtouse	
-	
+
+
+	midibufferused += goingtouse
+
 #ELSE ' well, maybe the buffer is possible with the API. I dunno. TODO: check later
 	shortMidi event, a, b
 #ENDIF
@@ -267,8 +268,8 @@ Sub FlushMidiBuffer()
 	If midibuffer = NULL then
 		exit sub 'no buffer? buh?
 	end if
-	
-	#IFDEF USE_ALLEGRO 
+
+	#IFDEF USE_ALLEGRO
 	load_midi_patches
 	#ENDIF
 	longMidi midibuffer, midibufferused
@@ -281,17 +282,17 @@ End Sub
 Sub ResetMidi
 	dim n as UByte, c as UByte
 	flushmidibuffer
-	
+
 	for c = 0 to 15
 		for n = 0 to 127
 			BufferEvent(&H80 + c,n,0) 'turn off all notes
 		next
-		
+
 		if not music_paused then BufferEvent(&HB0 + c,121,-1) 'controller reset
 		if music_paused = 0 then bufferevent(&HC0 + c,0,0) 'reset instruments
 		flushmidibuffer ' to keep the buffer from growing /too/ big
 	next
-	
+
 end sub
 
 Sub AddJumpToEnd(head as MIDI_EVENT ptr)
@@ -339,25 +340,28 @@ sub music_init()
 	dim version as uinteger
 	if music_on = 0 then
 		openMidi
-		music_on = 1
+		sound_init
 	end if
+	music_on += 1
 end sub
 
 sub music_close()
-	if music_on = 1 then
+	if music_on > 0 then
 		music_playing = 0
 		music_paused = 0
 		music_on = 0
-		
+
 		if fade_thread then
 			threadwait fade_thread
 		end if
-		
+
 		if playback_thread then threadWait playback_thread: playback_Thread = 0
-		
+
 		FreeMidiEventList(music_song)
 		music_song = 0
-		
+
+		if sound_song >= 0 then sound_stop(sound_song, -1): UnloadSound(sound_song)
+
 		CloseMidi
 		if delhead <> null then
 			'delete temp files
@@ -376,13 +380,14 @@ sub music_close()
 			wend
 			delhead = null
 		end if
+		sound_close
 	end if
 end sub
 
-sub music_play(songname as string, fmt as music_format)
+sub music_play(songname as string, fmt as integer)
 	if music_on = 1 then
 		songname = rtrim$(songname)	'lose any added nulls
-
+    dim ext as string = lcase(justextension(songname))
 		if fmt = FORMAT_BAM then
 			dim midname as string
 			dim as integer bf, flen
@@ -391,7 +396,7 @@ sub music_play(songname as string, fmt as music_format)
 			open songname for binary access read as #bf
 			flen = lof(bf)
 			close #bf
-			'use last 3 hex digits of length as a kind of hash, 
+			'use last 3 hex digits of length as a kind of hash,
 			'to verify that the .bmd does belong to this file
 			flen = flen and &h0fff
 			midname = songname + "-" + lcase(hex(flen)) + ".bmd"
@@ -417,6 +422,7 @@ sub music_play(songname as string, fmt as music_format)
 				*(ditem->fname) = midname 'set zstring
 			end if
 			songname = midname
+			ext = "mid"
 			fmt = FORMAT_MIDI
 		end if
 
@@ -428,20 +434,29 @@ sub music_play(songname as string, fmt as music_format)
 			music_song = 0
 			music_paused = 0
 		end if
-
-		music_song = CreateMidiEventList(songname,@division)
-		if music_song = 0 then
-			'debug "Could not load song " + songname
-			exit sub
+'    debug "sound_song = " & sound_song
+		if sound_song <> -1 then
+		  sound_stop(sound_song, -1)
+		  UnloadSound(sound_song)
 		end if
 
-		converttorelative music_song
-		addJumpToEnd music_song
+		if fmt = FORMAT_MIDI then
+  		music_song = CreateMidiEventList(songname,@division)
+  		if music_song = 0 then
+  			'debug "Could not load song " + songname
+  			exit sub
+  		end if
 
-		music_paused = 0
-		music_playing = 1
-		playback_thread = threadcreate(@PlayBackThread,0)
+  		converttorelative music_song
+  		addJumpToEnd music_song
 
+  		music_paused = 0
+  		music_playing = 1
+  		playback_thread = threadcreate(@PlayBackThread,0)
+    else
+      sound_song = LoadSound(songname)
+      sound_play(sound_song,-1,-1)
+    end if
 	end if
 end sub
 
@@ -452,6 +467,9 @@ sub music_pause()
 				music_paused = 1
 			end if
 		end if
+		if sound_song >= 0 then
+		  sound_pause(sound_song, -1)
+		end if
 	end if
 end sub
 
@@ -460,17 +478,22 @@ sub music_resume()
 		if music_song > 0 then
 			music_paused = 0
 		end if
+		if sound_song >= 0 then
+		  sound_play(sound_song, -1, -1)
+		end if
 	end if
 end sub
 
 sub music_stop()
-	music_pause()
+	if music_song > 0 then music_pause()
+	if sound_song >= 0 then sound_stop(sound_song, -1)
 end sub
 
 sub music_setvolume(vol as integer)
 	music_vol = vol
 	if music_on = 1 then
-		setvolmidi vol
+		if music_song > 0 then setvolmidi vol
+		'need sound setting...
 	end if
 end sub
 
@@ -506,13 +529,13 @@ end sub
 
 Sub dumpdata(m as MIDI_EVENT ptr)
 	dim d$, i as integer
-	
-	for i = 0 to m->extralen - 1
-		d$ += hex$(m->extradata[i]) + " "
-	next
-	
+
+	'for i = 0 to m->extralen - 1
+	'	d$ += hex$(m->extradata[i]) + " "
+	'next
+
 	'debug d$
-	
+
 end sub
 
 
@@ -721,14 +744,14 @@ sysex:
 			  'case &H30 'load sound
 			  '  p += 1
 			  '  debug "load sound(" + str$(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + "," + str$(curevent->extradata[p+2]) + ")"
-			  '  
+			  '
 			  '  sound_load cint(*(curevent->extradata + p + 2)),soundfile$(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
-			  '  
+			  '
 			  '  p += 3
 			  case &H31 'play sound
 			    p += 1
 			    debug "play sound (" + str$(curevent->extradata[p]) + "," + str$(curevent->extradata[p+1]) + ")"
-			    sound_play curevent->extradata[p], curevent->extradata[p + 1] <> 0 
+			    sound_play curevent->extradata[p], curevent->extradata[p + 1] <> 0
 			    p += 2
 			  case &H32 'stop sound
 			    p += 1
@@ -742,7 +765,7 @@ sysex:
 			  '  p += 1
 				end select
 			end if
-			
+
 		case &HFF
 			dim metatype as integer
 			metatype = curevent->data(0)
@@ -751,14 +774,14 @@ sysex:
 				updateDelay delay, tempo
 			end if
 		case else
-			debug("Unknown status: " + hex(curevent->status))
+'			debug("Unknown status: " + hex(curevent->status))
 		end select
 		curevent = curevent->next
 	loop while music_playing
 	curtime = 0
 	FlushMidiBuffer
 skipevents:
-	
+
 	if music_playing = 0 then ESCAPE_SEQUENCE
 
 	if curevent = 0 then
@@ -793,160 +816,103 @@ end sub
 
 
 
-#include "win/dsound.bi"
-DECLARE sub loadWaveFileToBuffer(fi as string, buf as LPDIRECTSOUNDBUFFER ptr)
+#include "audwrap/audwrap.bi"
 Declare Function SoundSlot(byval num as integer) as integer
-Declare Function LoadSound(byval num as integer) as integer
-Declare Sub UnloadSound(byval slot as integer)
 
 TYPE SoundEffect
   used as integer 'sentinel, not 0 = this entry contains valid data
   effectID as integer 'OHR sound effect
-  buf as LPDIRECTSOUNDBUFFER 'DirectSound sound buffer
+  soundID as integer 'Audiere number
   paused as integer
 END TYPE
 
 dim Shared SoundPool as SoundEffect ptr, SoundPoolSize as integer
 
 
-'=== WARNING: The following code uses COM. COM is a compiler independant way of
-'    doing OOP in Windows. It is also a pain for non-OOP languages, but unlike
-'    regular OOP, this is workable. Unfortunately, COM is the only way to access
-'    DirectX.
+
 
 dim shared sound_inited as integer 'must be non-zero for anything but _init to work
-dim shared ds8 as LPDIRECTSOUND8 'DirectSound8 object
-
-dim shared primary_format AS WAVEFORMATEX
 
 sub sound_init
-  dim res as HRESULT
   'if this were called twice, the world would end.
   if sound_inited then exit sub
-  debug "sound_init"
+'  debug "sound_init"
   'create DirectSound
-  res = DirectSoundCreate8(NULL,@ds8,NULL)
-  if res <> DS_OK then
-    'hell
-    
-    debug "could not start up direct sound: " + hex(res)
-    exit sub
-  end if
-  
-    SoundPoolSize = 10
-  SoundPool = CAllocate(10 * len(soundEffect))
 
-  
-  'debug "ds8 = 0x" + hex(cint(ds8))
-  
-  'next, set the co-op level
-  'games use the "priority" level
-  res = IDirectSound_SetCooperativeLevel(ds8,FB_win32.wnd,DSSCL_PRIORITY)
-  if res <> DS_OK then
-    'bugger
-    debug "priority level failed: " + hex(res)
-    exit sub
-  end if
-  
-  'get the format of the primary buffer
-  dim bd as DSBUFFERDESC, buf as LPDIRECTSOUNDBUFFER
-  bd.dwSize = len(DSBUFFERDESC)
-  bd.dwFlags = DSBCAPS_PRIMARYBUFFER
-  bd.dwBufferBytes = 0
-  
-  bd.lpwfxFormat = @primary_format
-  
-'   debug "ds8 = 0x" + hex(cint(ds8))
-  
-'   debug "creating buffer (" + hex(ds8) + "," + hex(@bd) + "," + hex(buf) + ")
-  if IDirectSound8_CreateSoundBuffer(ds8,@bd,@buf,NULL) <> DS_OK then
-    exit sub
+  if AudInit() then
+    exit sub ':(
   end if
 
-  IDirectSoundBuffer_GetFormat(buf,@primary_format, len(primary_format),NULL)
-  
-  
   'at this point, we're basically done
-  
+  sound_inited += 1
 end sub
 
 sub sound_close
   'trying to free something that's already freed... bad!
   if sound_inited = 0 then exit sub
-  'debug "sound_close"
-  dim i as integer
+'  debug "sound_close"
 
-  IDirectSound_Release(ds8)
-  ds8 = null
-  
-  
-  sound_inited = 0
+  AudClose()
+
+  sound_inited -= 1
 end sub
 
 
-sub sound_play(byval num as integer, byval l as integer)
-  debug ">>sound_play(" + trim(str(num)) + ", " + trim(str(l)) + ")"
+sub sound_play(byval num as integer, byval l as integer,  byval s as integer = 0)
+'  debug ">>sound_play(" + trim(str(num)) + ", " + trim(str(l)) + ")"
   dim slot as integer
-  
-  slot = SoundSlot(num)
+
+  if not s then slot = SoundSlot(num) else slot = num
   if slot = -1 then
+'    debug "sound not loaded, loading."
     slot = LoadSound(num)
+'    debug "sound is " & slot
     if slot = -1 then exit sub
   end if
   'slot -= 1
-debug "slot "+str$(slot)  
+'  debug "slot "+str$(slot)
   with SoundPool[slot]
-    if sound_playing(num) <> 0 and not .paused then
-      debug "<<already playing"
+'  debug str(AudIsPlaying(.soundID))
+    if AudIsPlaying(.soundID) <> 0 and .paused = 0 then
+'      debug "<<already playing"
       exit sub
     end if
 
-    
-    if l then l = DSBPLAY_LOOPING
-    
     .paused = 0
-
-    IDirectSoundBuffer_Play(.buf, 0, 0, l)
+    AudSetRepeat(.soundID, l)
+    AudPlay(.soundID)
   end with
-  debug "<<done"
+'  debug "<<done"
 end sub
 
-sub sound_pause(byval num as integer)
+sub sound_pause(byval num as integer,  byval s as integer = 0)
   'debug ">>sound_pause(" + trim(str(slot)) + ")"
   dim slot as integer
-  slot = SoundSlot(num)
+  if not s then slot = SoundSlot(num) else slot = num
   if slot = -1 then exit sub
-  'slot -= 1
-  
+
   with SoundPool[slot]
     if sound_playing(num) = 0 OR .paused then
-      'debug "<<sound_pause"
       exit sub
     end if
-    
+
     .paused = -1
-    IDirectSoundBuffer_Stop(.buf)
+    AudPause(.soundID)
   end with
   'debug "<<sound_pause"
 end sub
 
-sub sound_stop(byval num as integer)
+sub sound_stop(byval num as integer,  byval s as integer = 0)
   'debug ">>sound_stop(" + trim(str(slot)) + ")"
   dim slot as integer
-  slot = SoundSlot(num)
+  if not s then slot = SoundSlot(num) else slot = num
   if slot = -1 then exit sub
-  'slot -= 1
-  
+
   with SoundPool[slot]
-    if sound_playing(num) = 0 then
-      'debug "<<sound_stop"
-      exit sub
-    end if
-    
+
+    AudStop(.soundID)
+
     .paused = 0
-    
-    IDirectSoundBuffer_Stop(.buf)
-    IDirectSoundBuffer_SetCurrentPosition(.buf,0)
   end with
   'debug "<<sound_stop"
 end sub
@@ -956,21 +922,15 @@ sub sound_free(byval num as integer)
   UnloadSound num
 end sub
 
-function sound_playing(byval num as integer) as integer
+function sound_playing(byval num as integer,  byval s as integer = 0) as integer
   dim stat as integer
   dim slot as integer
-  slot = SoundSlot(num)
+  if not s then slot = SoundSlot(num) else slot = num
   if slot = -1 then return 0
-  
-  with SoundPool[slot]
-    IDirectSoundBuffer8_GetStatus(.buf,@stat)
-    if stat AND DSBSTATUS_PLAYING then return 1 ELSE return 0
-  end with
-  
+
+  if AudIsPlaying(SoundPool[slot].soundID) then return 1 ELSE return 0
+
 end function
-
-#DEFINE ID(a,b,c,d) asc(a) SHL 0 + asc(b) SHL 8 + asc(c) SHL 16 + asc(d) SHL 24
-
 
 
 
@@ -979,368 +939,99 @@ end function
 
 
 'Returns the slot+1 in the sound pool which corresponds to the given sound effect
-' if the sound is not loaded, returns 0
+' if the sound is not loaded, returns -1
 
 Function SoundSlot(byval num as integer) as integer
   dim i as integer
   for i = 0 to SoundPoolSize - 1
-    if SoundPool[i].used AND SoundPool[i].effectID = num AND SoundPool[i].buf <> NULL then
+    if SoundPool[i].used AND SoundPool[i].effectID = num AND AudIsValidSound(SoundPool[i].soundID) then
       return i
     end if
   next
-  
+
   return -1
 End Function
 
-'Loads an OHR sound (num) into a slot. Returns the slot+1 number, or 0 if an error
+'Loads an OHR sound (num) into a slot. Returns the slot number, or -1 if an error
 ' ocurrs
-Function LoadSound(byval num as integer) as integer
-  dim ret as integer
-  'the steps
-  ' 0. sanity checks
-  ' 1. allocate space in the sound pool
-  ' 2. load the sound
-  
+Function LoadSound overload(byval num as integer) as integer
   ' 0 - sanity checks
-    
+
   'eh... we don't really need to throw an error if the sound is already loaded...
+  dim ret as integer
   ret = SoundSlot(num)
   if ret >= 0 then return ret
-  
-  
+
+  return LoadSound(soundfile(num), num)
+End Function
+
+Function LoadSound(byval f as string,  byval num as integer = -1) as integer
+  dim ret as integer
+  'the steps
+  ' 1. allocate space in the sound pool
+  ' 2. load the sound
+
   ' 1. make room
-  
+
   dim i as integer
-  
+
   'iterate through the pool
   for i = 0 to SoundPoolSize - 1
       if not SoundPool[i].used then exit for 'if we found a free spot, coo'
   next
-  
+
   'otherwise, i will be left =ing SoundPoolSize
   if i = SoundPoolSize then
     'Grow the sound pool
     dim newpool as SoundEffect ptr
     newpool = Reallocate(SoundPool, SoundPoolSize * 1.1 + 3)
-    
+
     if newpool = NULL then return -1 'crap
-    
+
     SoundPool = newpool 'vw00t
     SoundPoolSize = SoundPoolSize * 1.1 + 3
   end if
-  
+
   'ok, now i points at a valid slot. goody.
-  
+
   ' 2. load the sound
-  
-  dim derbuffer as LPDIRECTSOUNDBUFFER
+
   'TODO: abstract file name to a function or something
-  loadWaveFileToBuffer soundfile(num), @derbuffer
-  
-  
-  
-  if derbuffer = NULL then return 0 'crap
-  
+  'loadWaveFileToBuffer soundfile(num), @derbuffer
+
+  dim fe as string = lcase(right(f,3))
+  dim s as integer
+'  debug f & ": " & fe
+  if fe = "mp3" or fe = "ogg" then 'intended for streaming
+    s = AudLoadSound(f, true)
+  else
+    s = AudLoadSound(f, false)
+  end if
+
+'  debug "slot is " & s
+
+  if s = -1 then return -1 'crap
+
   'if we got this far, yes!
   with SoundPool[i]
     .used = -1
-    .buf = derbuffer
+    .soundID = s
     .effectID = num
-    .paused = 0
   end with
-  
+
   return i
-  
-  
+
+
 End Function
 
 'Unloads a sound loaded in a slot. TAKES A SLOT, NOT AN SFX NUMBER!
 Sub UnloadSound(byval slot as integer)
+  if not SoundPool[slot].used then exit sub
   with SoundPool[slot]
-    if .buf <> NULL then IDirectSoundBuffer_Release(.buf)
-    .buf = NULL
+    if AudIsValidSound(.soundID) then AudUnloadSound(.soundID)
     .used = 0
     .paused = 0
+    .soundID = 0
     .effectID = 0
   end with
 End Sub
-
-' #IFNDEF ACMSTREAMHEADER
-' ' typedef struct { 
-' '     DWORD      cbStruct; 
-' '     DWORD      fdwStatus; 
-' '     DWORD_PTR  dwUser; 
-' '     LPBYTE     pbSrc; 
-' '     DWORD      cbSrcLength; 
-' '     DWORD      cbSrcLengthUsed; 
-' '     DWORD_PTR  dwSrcUser; 
-' '     LPBYTE     pbDst; 
-' '     DWORD      cbDstLength; 
-' '     DWORD      cbDstLengthUsed; 
-' '     DWORD_PTR  dwDstUser; 
-' '     DWORD      dwReservedDriver[10]; 
-' ' } ACMSTREAMHEADER; 
-
-' TYPE ACMSTREAMHEADER
-'   cbStruct            as DWORD    
-'   fdwStatus           as DWORD    
-'   dwUser              as DWORD_PTR
-'   pbSrc               as LPBYTE   
-'   cbSrcLength         as DWORD    
-'   cbSrcLengthUsed     as DWORD    
-'   dwSrcUser           as DWORD_PTR
-'   pbDst               as LPBYTE   
-'   cbDstLength         as DWORD    
-'   cbDstLengthUsed     as DWORD    
-'   dwDstUser           as DWORD_PTR
-'   dwReservedDriver(9) as DWORD    
-' END TYPE
-' #ENDIF
-
-
-sub loadWaveFileToBuffer(fi as string, buf as LPDIRECTSOUNDBUFFER ptr)
-  'dim RIFF as integer = asc("R") SHL 0 + asc("I") SHL 8 + asc("F") SHL 16 + asc("F") SHL 24
-  dim _RIFF as integer = ID("R","I","F","F")
-  dim _WAVE as integer = ID("W","A","V","E")
-  dim _fmt_ as integer = ID("f","m","t"," ")
-  dim _data as integer = ID("d","a","t","a")
-  
-  'debug "_RIFF = " + hex(_RIFF)
-  'debug "_WAVE = " + hex(_WAVE)
-  'debug "_fmt_ = " + hex(_fmt_)
-  'debug "_data = " + hex(_data)
-  
-  'debug ">>load...Buffer(""" + fi + """,0x" + hex(buf) + ")"
-  
-  dim chnk_ID as integer
-  dim chnk_size as integer
-  
-  dim fmt as WAVEFORMATEX, fmt_len as integer
-  dim dat as ubyte ptr, dat_len as integer
-  
-  dim f as integer = Freefile
-  
-  '#IF __FB_VERSION__ <= ".15"
-  '$DYNAMIC
-  dim buff(0) as UByte
-  '#ELSE
-  'dim buff() as UByte
-  '#ENDIF
-  
-  'debug "LoadWaveFile"
-  
-  'ok. here we go
-  
-'   debug "open wave (" + fi + ")"
-  open fi for binary as #f
-  
-'   debug "get format"
-  get #f,,chnk_ID 'file format
-  
-  if chnk_ID <> _RIFF then
-    'not a RIFF, thus not a wave.
-    debug "not a RIFF"
-    close f
-    exit sub
-  end if
-  
-'   debug "get size"
-  get #f,,chnk_size 'don't particularly care, but whatever
-  
-'   debug "get ID"
-  get #f,,chnk_ID
-  
-  if chnk_ID <> _WAVE then
-    'not a wave file...
-    debug "not a Wave"
-    close f
-    exit sub
-  end if
-  
-'   debug "start parsing chunks"
-  'ok, now we need to start moving through the chunks
-  do until eof(f)
-    '$DYNAMIC
-    dim i as integer
-'     debug "load chunk head"
-    get #f,,chnk_ID
-    get #f,,chnk_size
-    if chnk_size MOD 2 then
-      redim buff(chnk_size)   'odd size = rounded up
-    else
-      redim buff(chnk_size-1) 'even size = as is
-    end if
-    
-'     debug "load chunk"
-    get #f,,buff()
-    
-'     debug "found chnk_ID of " + hex(chnk_ID)
-    
-    select case chnk_ID
-    case _fmt_ 'wave format
-      'debug "detected as format"
-      fmt_len = chnk_size
-      'fmt = Allocate(fmt_len)
-      'for i = 0 to chnk_size
-      '  fmt[i] = buff(i)
-      'next
-      
-      memcpy(@fmt,@buff(0),len(WAVEFORMATEX))
-    case _data 'actual data
-      'debug "detected as data"
-      dat_len = chnk_size
-      dat = Allocate(dat_len)
-      'for i = 0 to chnk_size
-      '  dat[i] = buff(i)
-      'next
-      memcpy(dat,@buff(0),dat_len)
-    case else
-      'yawn
-      'debug "buh, something else?"
-    end select
-  loop
-  close f
-  
-'   debug "wave-data sanity check"
-  if fmt_len = 0 or dat_len = 0 then
-    'uh... no fmt_ or data?
-    debug "fake Wave!"
-    exit sub
-  end if
-  
-  
-  'so, we've got the data. But, who knows what format it's in? we need to convert it!
-  
-'   dim acmStream as any ptr, si as integer, he as ACMSTREAMHEADER
-'   si = dat_len
-'   if acmStreamOpen(acmStream,NULL,@fmt,@primary_format, NULL, NULL, NULL, ACM_STREAMOPENF_NONREALTIME) = RES_OK then
-'     acmStreamSize(acmStream,dat_len, @si,ACM_STREAMSIZEF_SOURCE)
-'     
-'     
-'     'now, to copy the data to the direct sound buffer!
-'     
-'     'er... need to create it first.
-'     
-'   '   debug "preparing buffer data"
-'     dim bd as DSBUFFERDESC
-'     bd.dwSize = len(DSBUFFERDESC)
-'     bd.dwFlags = DSBCAPS_CTRLPAN OR DSBCAPS_CTRLVOLUME OR DSBCAPS_CTRLFREQUENCY OR DSBCAPS_LOCDEFER
-'     bd.dwBufferBytes = si
-'     
-'     bd.lpwfxFormat = @fmt
-'     
-'   '   debug "ds8 = 0x" + hex(cint(ds8))
-'     
-'   '   debug "creating buffer (" + hex(ds8) + "," + hex(@bd) + "," + hex(buf) + ")
-'     if IDirectSound8_CreateSoundBuffer(ds8,@bd,buf,NULL) <> DS_OK then
-'       'uh... damn.
-'       debug "Could not create buffer"
-'       acmStreamClose(@acmStream,0)
-'       buf = null
-'       exit sub
-'     end if
-'     
-'     dim cursor as UByte ptr, cursor_count as integer
-'     
-'     'NOW we can copy data to it.
-'   '   debug "locking buffer"
-'     'first, lock the buffer and get a pointer
-'     if IDirectSoundBuffer8_Lock(*buf, 0, 0, @cursor, @cursor_count, NULL, NULL, DSBLOCK_ENTIREBUFFER) <> DS_OK then
-'       'oh hell.
-'       'what to do?
-'       debug "could not lock buffer for some reason"
-'       IDirectSoundBuffer8_Release(*buf)
-'       buf = null
-'       exit sub
-'     end if
-'     
-'   '   debug "copying waveform"
-'   
-'     with he
-'       .cbStruct = len(he)
-'       .fdwStatus = 0
-'       .pbSrc = @buff(0)
-'       .cbSrcLength = dat_len
-'       .pbDst = @cursor
-'       .cbDstLength = si
-'       
-'     end with
-'     
-'     acmStreamPrepareHeader(acmStream, @he, 0)
-'     
-'     acmStreamConvert(acmStream, @he, 0)
-'     
-'     acmStreamUnprepareHeader(acmStream, @he, 0)
-'   
-'     acmStreamClose(acmStream,0)
-'   
-'     'next, copy der data
-'     'if cursor_count >= dat_len then
-'       'cursor_count = dat_len
-'     'end if
-'     'memcpy(cursor, dat, dat_len)
-'     
-'   '   debug "unlocking buffer"
-'     'finally, unlock
-'     IDirectSoundBuffer8_Unlock(*buf,cursor,cursor_count,NULL,NULL)
-'     
-'     'and... that's a wrap!
-
-'   else
-      
-  
-  
-  
-    'now, to copy the data to the direct sound buffer!
-    
-    'er... need to create it first.
-    
-  '   debug "preparing buffer data"
-    dim bd as DSBUFFERDESC
-    bd.dwSize = len(DSBUFFERDESC)
-    bd.dwFlags = DSBCAPS_CTRLPAN OR DSBCAPS_CTRLVOLUME OR DSBCAPS_CTRLFREQUENCY OR DSBCAPS_LOCDEFER
-    bd.dwBufferBytes = dat_len
-    
-    bd.lpwfxFormat = @fmt
-    
-  '   debug "ds8 = 0x" + hex(cint(ds8))
-    
-  '   debug "creating buffer (" + hex(ds8) + "," + hex(@bd) + "," + hex(buf) + ")
-    if IDirectSound8_CreateSoundBuffer(ds8,@bd,buf,NULL) <> DS_OK then
-      'uh... fuck.
-      debug "Could not create buffer"
-      buf = null
-      exit sub
-    end if
-    
-    dim cursor as UByte ptr, cursor_count as integer
-    
-    'NOW we can copy data to it.
-  '   debug "locking buffer"
-    'first, lock the buffer and get a pointer
-    if IDirectSoundBuffer8_Lock(*buf, 0, 0, @cursor, @cursor_count, NULL, NULL, DSBLOCK_ENTIREBUFFER) <> DS_OK then
-      'oh hell.
-      'what to do?
-      debug "could not lock buffer for some reason"
-      IDirectSoundBuffer8_Release(*buf)
-      buf = null
-      exit sub
-    end if
-    
-  '   debug "copying waveform"
-    'next, copy der data
-    if cursor_count >= dat_len then
-      cursor_count = dat_len
-    end if
-    memcpy(cursor, dat, dat_len)
-    
-  '   debug "unlocking buffer"
-    'finally, unlock
-    IDirectSoundBuffer8_Unlock(*buf,cursor,cursor_count,NULL,NULL)
-    
-    'and... that's a wrap!
-'   end if
-  'Deallocate(dat)
-  
-  '... I hope
-end sub

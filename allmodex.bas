@@ -2162,18 +2162,10 @@ SUB loadsong (f$)
 	'check for extension
 	dim ext as string
 	dim songname as string
-	dim songtype as MUSIC_FORMAT
+	dim songtype as integer
 
 	songname = f$
-	songtype = FORMAT_BAM
-	ext = lcase(justextension(songname))
-	if ext = "mid" then
-		songtype = FORMAT_MIDI
-	elseif ext = "ogg" then
-		songtype = FORMAT_OGG
-	elseif ext = "xm" then
-		songtype = FORMAT_MOD
-	end if
+	songtype = getmusictype(f$)
 
 	music_play(songname, songtype)
 end SUB

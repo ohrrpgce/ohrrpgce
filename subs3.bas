@@ -56,7 +56,7 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi' 
+'$INCLUDE: 'common.bi'
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'
@@ -414,7 +414,7 @@ END IF
 
 IF seekdir THEN
  scriptscroll = 0
- IF temp = min AND seekdir = -1 THEN 
+ IF temp = min AND seekdir = -1 THEN
   temp = -1
   scriptscroll = -1
  ELSEIF (temp = 0 AND seekdir = 1) OR temp > 0 THEN
@@ -643,7 +643,7 @@ FUNCTION xintgrabber (n, pmin, pmax, nmin, nmax, less, more)
 
 'nmin and nmax should be negative or 0. nmax should be less than nmin
 'nmax can be 0 for no negative range
-'nmin - nmax is the range of negative values 
+'nmin - nmax is the range of negative values
 'eg. nmin = -1 nmax = -100: negatives indicate a number between 1 and 100
 'pmin - pmax is position range, eg. 2 - 50
 
@@ -689,7 +689,7 @@ IF old < 0 THEN
  IF temp >= nmax AND temp <= nmin THEN
   temp = temp - nmin - 1
  ELSE
-  IF (temp <= 0 AND temp > nmin) OR (temp = 1 AND negated = 0) THEN 
+  IF (temp <= 0 AND temp > nmin) OR (temp = 1 AND negated = 0) THEN
    temp = 0
   ELSE
    temp = temp - pmin + 1

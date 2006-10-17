@@ -157,7 +157,7 @@ DECLARE FUNCTION scriptstate$ ()
 '---INCLUDE FILES---
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi' 
+'$INCLUDE: 'common.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
@@ -197,7 +197,7 @@ DIM inventory(inventoryMax) as InventSlot
 DIM npcs(npcdMax) as NPCType
 DIM npc(300) as NPCInst
 DIM didgo(0 TO 3)
-DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, tmpdir$, usepreunlump, lockfile, gold, lastsaveslot, abortg, exename$, sourcerpg$, foemaph, presentsong, framex, framey, game$, workingdir$, version$ 
+DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, tmpdir$, usepreunlump, lockfile, gold, lastsaveslot, abortg, exename$, sourcerpg$, foemaph, presentsong, framex, framey, game$, workingdir$, version$
 DIM nowscript, scriptret, nextscroff
 
 'DEBUG debug "dim binsize arrays"
@@ -324,7 +324,7 @@ IF autorungame = 0 THEN
  IF isdir(sourcerpg$) THEN
   usepreunlump = 1
   workingdir$ = sourcerpg$
- END IF 
+ END IF
 END IF
 
 '--open a lockfile in the working directory to notify other instances
@@ -343,7 +343,7 @@ setvispage vpage 'refresh
 
 '---GAME SELECTED, PREPARING TO PLAY---
 DIM lumpbuf(16383)
-IF usepreunlump = 0 THEN 
+IF usepreunlump = 0 THEN
  unlump sourcerpg$, workingdir$ + SLASH, lumpbuf()
 END IF
 
@@ -411,6 +411,7 @@ IF readbit(gen(), genBits, 11) = 0 THEN
 ELSE
  IF readbit(gen(), genBits, 12) = 0 THEN
   IF gen(2) > 0 THEN wrappedsong gen(2) - 1
+  IF gen(2) < 0 THEN playsfx abs(gen(2)) - 1, -1
   fademusic fmvol
   clearpage 3
   temp = picksave(2)
@@ -881,7 +882,7 @@ IF sayer < 0 THEN
        wrapaheadxy nx, ny, 3, ABS(npc(j).xgo), 20
       END IF
       '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
-      'rectangle nx - mapx, ny - mapy, 20,20, 1, vpage : setvispage vpage 
+      'rectangle nx - mapx, ny - mapy, 20,20, 1, vpage : setvispage vpage
       IF (nx = ux AND ny = uy) THEN 'check for activation
        EXIT DO
       END IF
@@ -889,7 +890,7 @@ IF sayer < 0 THEN
       nx = nx + SGN(npc(j).xgo) * 20
       ny = ny + SGN(npc(j).ygo) * 20
       '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
-      'rectangle nx - mapx, ny - mapy, 20,20, 4, vpage : setvispage vpage 
+      'rectangle nx - mapx, ny - mapy, 20,20, 4, vpage : setvispage vpage
       IF (nx = ux AND ny = uy) THEN 'check for activation
        '--if activating an NPC that has just walked past us, cause it to back up
        npc(j).xgo = SGN(npc(j).xgo * -1) * (20 - ABS(npc(j).xgo))
@@ -1156,7 +1157,7 @@ FOR whoi = 0 TO 3
      IF gmap(10) THEN
       rectangle 0, 0, 320, 200, gmap(10), vpage
       setvispage vpage
-     END IF 
+     END IF
     END IF
     '--check for death
     fatal = checkfordeath(stat())
@@ -1272,7 +1273,7 @@ FOR o = 0 TO 299
      END IF '---CHASE/FLEE
      'WALK IN PLACE---
      IF movetype = 8 THEN
-      npc(o).frame = loopvar(npc(o).frame, 0, 3, 1) 
+      npc(o).frame = loopvar(npc(o).frame, 0, 3, 1)
      END IF '---WALK IN PLACE
     END IF
    END IF
@@ -2158,7 +2159,7 @@ SELECT CASE scrat(nowscript, curkind)
      savemapstate map, retvals(0), "map"
     END IF
    CASE 246'--load map state
-    IF retvals(1) > -1 AND retvals(1) <= 31 THEN 
+    IF retvals(1) > -1 AND retvals(1) <= 31 THEN
      loadmapstate retvals(1), retvals(0), "state", -1
     ELSEIF retvals(1) = -1 THEN
      loadmapstate map, retvals(0), "map"

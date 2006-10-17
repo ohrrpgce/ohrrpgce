@@ -8,6 +8,8 @@
 #IFNDEF COMPAT_BI
 #DEFINE COMPAT_BI
 
+#include "music.bi"
+
 option nokeyword getkey
 option nokeyword setmouse
 
@@ -79,7 +81,8 @@ declare sub togglewindowed()
 declare sub processcommandline()
 DECLARE function commandlineargcount() as integer
 DECLARE function commandlinearg(argnum as integer) as string
-DECLARE FUNCTION validmusicfile (file$)
+DECLARE FUNCTION validmusicfile (file$, as integer = FORMAT_BAM AND FORMAT_MIDI)
+DECLARE FUNCTION getmusictype (file$)
 DECLARE SUB playsongnum (songnum%)
 DECLARE SUB romfontchar (font%(), char%)
 DECLARE SUB makedir (dirname$)

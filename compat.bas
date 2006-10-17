@@ -10,8 +10,11 @@ option explicit
 #include "fontdata.bi"
 #include "gfx.bi"
 #include "util.bi"
+#include "music.bi"
 
 extern workingdir$, version$, game$
+
+declare SUB debug (s$)
 
 'Gosub workaround
 option dynamic
@@ -27,7 +30,7 @@ DECLARE SUB fatalerror (e$)
 
 SUB getdefaultfont(font() as integer)
 	dim i as integer
-	
+
 	for i = 0 to 1023
 		font(i) = font_data(i)
 	next
@@ -49,16 +52,16 @@ SUB xbload (f$, array(), e$)
 		GET #ff,, length 'Length
 		'length is in bytes, so divide by 2, and subtract 1 because 0-based
 		ilength = (length / 2) - 1
-		
+
 		dim buf(ilength) as short
-		
+
 		GET #ff,, buf()
 		CLOSE #ff
 
 		for i = 0 to small(ilength, ubound(array))
-			array(i) = buf(i)	
+			array(i) = buf(i)
 		next i
-		
+
 		ELSE
 		fatalerror e$
 	END IF
@@ -81,20 +84,20 @@ SUB xbsave (f$, array%(), bsize%)
 	needbyte = bsize mod 2		'write an extra byte at the end?
 	length = bsize	'bsize is in bytes
 	byt = 253
-	
+
 	'copy array to shorts
 	DIM buf(ilength) as short
 	for i = 0 to small(ilength, ubound(array))
 		buf(i) = array(i)
-	next		
-	
+	next
+
 	ff = FreeFile
 	OPEN f$ FOR BINARY ACCESS write AS #ff
 	PUT #ff, , byt				'Magic number
 	PUT #ff, , seg				'segment - obsolete
 	PUT #ff, , offset			'offset - obsolete
 	PUT #ff, , length			'size in bytes
-	
+
 	PUT #ff,, buf()
 	if needbyte = 1 then
 		i = small(ilength + 1, ubound(array)) 'don't overflow
@@ -102,7 +105,7 @@ SUB xbsave (f$, array%(), bsize%)
 		put #ff, , byt
 	end if
 	CLOSE #ff
-		
+
 END SUB
 
 SUB crashexplain()
@@ -115,7 +118,7 @@ SUB crashexplain()
 '	PRINT "RPG file: "; sourcerpg$
 END SUB
 
-'replacements for def seg and peek, use seg shared ptr 
+'replacements for def seg and peek, use seg shared ptr
 'assumes def seg will always be used to point to an integer and
 'that integers are only holding 2 bytes of data
 sub defseg(var as integer ptr)
@@ -125,10 +128,10 @@ end sub
 function xpeek(byval idx as integer) as integer
 	dim as ubyte bval
 	dim as integer hilow
-	
+
 	hilow = idx mod 2
 	idx = idx \ 2
-	
+
 	if hilow = 0 then
 		bval = seg[idx] and &hff
 	else
@@ -141,10 +144,10 @@ sub xpoke(byval idx as integer, byval v as integer)
 	dim as integer bval
 	dim as integer hilow
 	dim as integer newval
-	
+
 	hilow = idx mod 2
 	idx = idx \ 2
-	
+
 	bval = v and &hff
 	if hilow = 0 then
 		newval = seg[idx] and &hff00
@@ -167,7 +170,7 @@ sub processcommandline()
 	dim arg as integer
 
 	cmdargs = 0
-	
+
 	while command(i) <> ""
 		temp = left$(command(i), 1)
 		'/ should not be a flag under linux
@@ -224,51 +227,80 @@ end function
 
 SUB playsongnum (songnum%)
 	DIM as string songbase, songfile, numtext
-	
+
 	numtext = STR$(songnum)
 	songbase = workingdir$ + SLASH + "song" + numtext
-	songfile = ""
-	if isfile(songbase + ".mid") then
-		'is there a midi?
-		songfile = songbase + ".mid"
-	else
-		if isfile(songbase + ".xm") then
-			'is there a mod?
-			songfile = songbase + ".xm"
-		else
-			'no, get bam name
-			IF isfile(songbase + ".bam") THEN
-				songfile = songbase + ".bam"
-			ELSE
-				IF isfile(game$ + "." + numtext) THEN 
-					songfile = game$ + "." + numtext
-				end if
-			END IF
-		end if
-	end if
+	songfile = DIR$(songbase + ".*")
+	if songfile = "" then exit sub
+
 	IF songfile <> "" THEN loadsong songfile
 END SUB
 
-FUNCTION validmusicfile (file$)
-'-- actually, doesn't need to be a music file, but only multi-filetype imported data right now
-	DIM ext$, a$, realhd$, musfh
+FUNCTION getmusictype (file$)
+
+	DIM ext$, chk
 	ext$ = lcase(justextension(file$))
+
+	'special case
+	if str(cint(ext$)) = ext$ then return FORMAT_BAM
+
 	SELECT CASE ext$
 	CASE "bam"
+		chk = FORMAT_BAM
+	CASE "mid"
+		chk = FORMAT_MIDI
+	CASE "xm"
+		chk = FORMAT_XM
+	CASE "it"
+	  chk = FORMAT_IT
+	CASE "wav"
+	  chk = FORMAT_WAV
+	CASE "ogg"
+	  chk = FORMAT_OGG
+	CASE "mp3"
+	  chk = FORMAT_MP3
+	CASE "s3m"
+	  chk = FORMAT_S3M
+	CASE ELSE
+	  debug "unknown format: " & file$ & " - " & ext$
+	END SELECT
+
+  return chk
+END FUNCTION
+
+FUNCTION validmusicfile (file$, types = FORMAT_BAM AND FORMAT_MIDI)
+'-- actually, doesn't need to be a music file, but only multi-filetype imported data right now
+	DIM ext$, a$, realhd$, musfh, v, chk
+	ext$ = lcase(justextension(file$))
+	chk = getmusictype(file$)
+
+	if chk AND types = 0 then return 0
+
+
+	SELECT CASE chk
+	CASE FORMAT_BAM
 		a$ = "    "
 		realhd$ = "CBMF"
-	CASE "mid"
+		v = 1
+	CASE FORMAT_MIDI
 		a$ = "    "
 		realhd$ = "MThd"
-	CASE "xm"
+		v = 1
+	CASE FORMAT_XM
 		a$ =      "                 "
 		realhd$ = "Extended Module: "
+		v = 1
 	END SELECT
-	musfh = FREEFILE
-	OPEN file$ FOR BINARY AS #musfh
-	GET #musfh, 1, a$
-	CLOSE #musfh
-	IF a$ = realhd$ THEN validmusicfile = 1 ELSE validmusicfile = 0
+
+	if v then
+  	musfh = FREEFILE
+  	OPEN file$ FOR BINARY AS #musfh
+	  GET #musfh, 1, a$
+	  CLOSE #musfh
+	  IF a$ <> realhd$ THEN return 0
+	end if
+
+	return 1
 END FUNCTION
 
 SUB romfontchar (font(), char)

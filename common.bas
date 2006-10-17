@@ -10,6 +10,8 @@
 '$INCLUDE: 'uiconst.bi'
 '$INCLUDE: 'common.bi'
 
+'$INCLUDE: 'music.bi'
+
 FUNCTION browse$ (special, default$, fmask$, tmp$, needf)
 browse$ = ""
 
@@ -25,7 +27,7 @@ mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
 
 limit = 255
-DIM drive$(26), tree$(limit), display$(limit), about$(limit), treec(limit), catfg(6), catbg(6), bmpd(40)
+DIM drive$(26), tree$(limit), display$(limit), about$(limit), treec(limit), catfg(6), catbg(6), bmpd(40), f
 'about$() is only used for special 7
 
 showHidden = 0
@@ -157,14 +159,16 @@ DO
  dowait
 LOOP
 default$ = nowdir$
+stopsong:if f >= 0 then sound_stop(f, -1): UnloadSound(f)
 EXIT FUNCTION
 
 hover:
+f = -1
 SELECT CASE special
  CASE 1
   stopsong
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
-   IF validmusicfile(nowdir$ + tree$(treeptr)) THEN
+   IF validmusicfile(nowdir$ + tree$(treeptr), FORMAT_BAM) THEN
     loadsong nowdir$ + tree$(treeptr)
    ELSE
     alert$ = tree$(treeptr) + " is not a valid BAM file"
@@ -193,21 +197,20 @@ SELECT CASE special
  CASE 5
   stopsong
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
-   IF validmusicfile(nowdir$ + tree$(treeptr)) THEN
+   IF validmusicfile(nowdir$ + tree$(treeptr), FORMAT_BAM or FORMAT_MIDI or FORMAT_MP3 or FORMAT_OGG or FORMAT_XM or FORMAT_MOD or FORMAT_S3M) THEN
     loadsong nowdir$ + tree$(treeptr)
    ELSE
     alert$ = tree$(treeptr) + " is not a valid music file"
    END IF
   END IF
  CASE 6
-  stopsfx 0
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
-   IF isawav(nowdir$ + tree$(treeptr)) THEN
-    'TODO: Add alternate sound playing routines to replace this
-    'loadsfx 0, nowdir$ + tree$(treeptr)
-    'playsfx 0,0
+  if f > -1 then UnloadSound(f) : f = -1
+   IF validmusicfile(nowdir$ + tree$(treeptr), FORMAT_MP3 or FORMAT_OGG or FORMAT_XM or FORMAT_MOD or FORMAT_S3M or FORMAT_WAV) THEN
+    f = LoadSound(nowdir$ + tree$(treeptr))
+    sound_play(f, 0, -1)
    ELSE
-    alert$ = tree$(treeptr) + " is not a valid sound effect"
+    alert$ = left(tree$(treeptr), 20) + " is not a valid sound effect"
    END IF
   END IF
  CASE 7
@@ -323,9 +326,29 @@ ELSE
   GOSUB addmatchs
   findfiles nowdir$ + anycase$("*.xm"), attrib, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
+  findfiles nowdir$ + anycase$("*.it"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  GOSUB addmatchs
+  findfiles nowdir$ + anycase$("*.mod"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  GOSUB addmatchs
+  findfiles nowdir$ + anycase$("*.s3m"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  GOSUB addmatchs
+  findfiles nowdir$ + anycase$("*.ogg"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  GOSUB addmatchs
+  findfiles nowdir$ + anycase$("*.mp3"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  GOSUB addmatchs
  ELSEIF special = 6 THEN
   '--disregard fmask$. one call per extension
   findfiles nowdir$ + anycase$("*.wav"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  GOSUB addmatchs
+  findfiles nowdir$ + anycase$("*.xm"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  GOSUB addmatchs
+  findfiles nowdir$ + anycase$("*.it"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  GOSUB addmatchs
+  findfiles nowdir$ + anycase$("*.mod"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  GOSUB addmatchs
+  findfiles nowdir$ + anycase$("*.ogg"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  GOSUB addmatchs
+  findfiles nowdir$ + anycase$("*.mp3"), attrib, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
  ELSEIF special = 7 THEN
   'Call once for RPG files once for rpgdirs
@@ -407,12 +430,12 @@ DO UNTIL EOF(fh) OR treesize >= limit
  LINE INPUT #fh, tree$(treesize)
  '---music files
  IF special = 1 OR special = 5 THEN
-  IF validmusicfile(nowdir$ + tree$(treesize)) = 0 THEN
+  IF validmusicfile(nowdir$ + tree$(treesize), FORMAT_BAM or FORMAT_MIDI or FORMAT_MP3 or FORMAT_OGG or FORMAT_XM or FORMAT_MOD or FORMAT_S3M) = 0 THEN
    treec(treesize) = 6
   END IF
  END IF
  IF special = 6 THEN
-  IF isawav(nowdir$ + tree$(treesize)) = 0 THEN
+  IF validmusicfile(nowdir$ + tree$(treesize), FORMAT_BAM or FORMAT_MP3 or FORMAT_OGG or FORMAT_XM or FORMAT_MOD or FORMAT_S3M) = 0 THEN
    treec(treesize) = 6
   END IF
  END IF

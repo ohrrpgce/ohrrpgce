@@ -22,4 +22,4 @@ FOR i = 0 TO sizebinsize
  READ size%
  curbinsize(i) = size%
 NEXT
-DATA 120, 84, 32, 32
+DATA 120, 84, 32, 34

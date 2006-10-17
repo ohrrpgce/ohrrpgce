@@ -66,7 +66,7 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi' 
+'$INCLUDE: 'common.bi'
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'
@@ -337,8 +337,8 @@ DO
     dummy$ = scriptbrowse$(veh(offset(csr)), plottrigger, "vehicle plotscript")
     GOSUB vehmenu
    ELSEIF scrintgrabber(veh(offset(csr)), min(csr), max(csr), 75, 77, 1, plottrigger) THEN
-    GOSUB vehmenu 
-   END IF   
+    GOSUB vehmenu
+   END IF
   CASE 13, 14
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
     temptrig = large(0, -veh(offset(csr)))
@@ -346,8 +346,8 @@ DO
     veh(offset(csr)) = -temptrig
     GOSUB vehmenu
    ELSEIF scrintgrabber(veh(offset(csr)), min(csr), max(csr), 75, 77, -1, plottrigger) THEN
-    GOSUB vehmenu 
-   END IF   
+    GOSUB vehmenu
+   END IF
  END SELECT
  standardmenu menu$(), 15, 15, csr, top, 0, 0, dpage, 0
  SWAP vpage, dpage
@@ -857,7 +857,7 @@ DO
    scrname$(pt) = ": " + scriptbrowse$(general(scriptgenoff(pt)), plottrigger, menu$(pt))
   ELSEIF scrintgrabber(general(scriptgenoff(pt)), 0, 0, 75, 77, 1, plottrigger) THEN
    scrname$(pt) = ": " + scriptname$(general(scriptgenoff(pt)), plottrigger)
-  END IF 
+  END IF
  END IF
  FOR i = 0 TO menusize
   IF pt = i THEN textcolor 14 + tog, 0 ELSE textcolor 7, 0
@@ -972,8 +972,35 @@ ELSE
  IF isfile(game$ + "." + STR$(snum)) THEN ext$ = ".bam" : songfile$ = game$ + "." + STR$(snum) : songtype$ = "Bob's Adlib Music (BAM)"
 END IF
 bamfile$ = songfile$
-IF isfile(temp$ + ".mid") THEN ext$ = ".mid" : songfile$ = temp$ + ext$ : songtype$ = "MIDI Music (MID)"
-IF isfile(temp$ + ".xm") THEN ext$ = ".xm" : songfile$ = temp$ + ext$ : songtype$ = "Extended Module (XM)"
+IF isfile(temp$ + ".mid") THEN
+  ext$ = ".mid"
+  songfile$ = temp$ + ext$
+  songtype$ = "MIDI Music (MID)"
+ELSEIF isfile(temp$ + ".ogg") THEN
+ ext$ = ".ogg"
+ songfile$ = temp$ + ext$
+ songtype$ = "OGG Vorbis (OGG)"
+ELSEIF isfile(temp$ + ".mp3") THEN
+ ext$ = ".mp3"
+ songfile$ = temp$ + ext$
+ songtype$ = "MPEG Layer III (MP3)"
+ELSEIF isfile(temp$ + ".s3m") THEN
+ ext$ = ".s3m"
+ songfile$ = temp$ + ext$
+ songtype$ = "S3 Module (S3M)" 'fixme
+ELSEIF isfile(temp$ + ".it") THEN
+ ext$ = ".it"
+ songfile$ = temp$ + ext$
+ songtype$ = "Impulse Tracker (IT)"
+ELSEIF isfile(temp$ + ".xm") THEN
+ ext$ = ".xm"
+ songfile$ = temp$ + ext$
+ songtype$ = "Extended Module (XM)"
+ELSEIF isfile(temp$ + ".mod") THEN
+ ext$ = ".mod"
+ songfile$ = temp$ + ext$
+ songtype$ = "Module (MOD)"
+END IF
 '--add more formats here
 
 sname$ = getsongname$(snum)
@@ -1058,13 +1085,14 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-DIM menu$(10), submenu$(2), optionsbottom
-optionsbottom = 6
+DIM menu$(11), submenu$(2), optionsbottom
+optionsbottom = 7
 menu$(0) = "Previous Menu"
 menu$(3) = "Import Wave..."
 menu$(4) = "Export Wave..."
 menu$(5) = "Delete Wave"
 menu$(6) = "Play Wave"
+menu$(7) = "Streaming"
 
 csr = 1
 snum = 0
@@ -1104,7 +1132,7 @@ DO
   END IF
  END IF
  IF (keyval(28) > 1 OR keyval(57) > 1) THEN
-  SELECT CASE csr 
+  SELECT CASE csr
   CASE 0
     EXIT DO
   CASE 3
@@ -1120,7 +1148,11 @@ DO
     IF sfxfile$ <> "" THEN 'play sfx
       playsfx snum, 0
     END IF
+  CASE 7
+
   END SELECT
+
+
  END IF
 
  standardmenu menu$(), 10, 22, csr, 0, 0, 0, dpage, 0
@@ -1149,11 +1181,36 @@ IF isfile(temp$ + ".wav") THEN
  ext$ = ".wav"
  sfxfile$ = temp$ + ext$
  sfxtype$ = "Waveform (WAV)"
+ELSEIF isfile(temp$ + ".ogg") THEN
+ ext$ = ".ogg"
+ sfxfile$ = temp$ + ext$
+ sfxtype$ = "OGG Vorbis (OGG)"
+ELSEIF isfile(temp$ + ".mp3") THEN
+ ext$ = ".mp3"
+ sfxfile$ = temp$ + ext$
+ sfxtype$ = "MPEG Layer III (MP3)"
+ELSEIF isfile(temp$ + ".s3m") THEN 'N/A for sound effects
+ ext$ = ".s3m"
+ sfxfile$ = temp$ + ext$
+ sfxtype$ = "A MOD Format (S3M)" 'fixme
+ELSEIF isfile(temp$ + ".it") THEN
+ ext$ = ".it"
+ sfxfile$ = temp$ + ext$
+ sfxtype$ = "Impulse Tracker (IT)"
+ELSEIF isfile(temp$ + ".xm") THEN
+ ext$ = ".xm"
+ sfxfile$ = temp$ + ext$
+ sfxtype$ = "A MOD format (XM)"
+ELSEIF isfile(temp$ + ".mod") THEN
+ ext$ = ".mod"
+ sfxfile$ = temp$ + ext$
+ sfxtype$ = "Module (MOD)"
 END IF
+
 '--add more formats here
 
 if sfxfile$ <> "" then
- playsfx snum, 0
+ 'playsfx snum, 0
  setpicstuf buffer(), curbinsize(3), -1
  loadset workingdir$ + SLASH + "sfxdata.bin", snum, 0
  sname$ = readbinstring(buffer(), 0, 30)
@@ -1163,16 +1220,16 @@ END IF
 
 menu$(1) = "<- SFX " + STR$(snum) + " of " + STR$(general(genMaxSFX)) + " ->"
 IF sfxfile$ <> "" THEN menu$(2) = "Name: " + sname$ ELSE menu$(2) = "-Unused-"
-menu$(7) = ""
-menu$(8) = "Type: " + sfxtype$
-menu$(9) = "Filesize: " + filesize$(sfxfile$)
+menu$(8) = ""
+menu$(9) = "Type: " + sfxtype$
+menu$(10) = "Filesize: " + filesize$(sfxfile$)
 
 '-- add author, length, etc, info here
 RETRACE
 
 importsfxfile:
 
-sourcesfx$ = browse$(6, default$, "", "")
+sourcesfx$ = browse$(6, "", "", "")
 IF sourcesfx$ = "" THEN
  RETRACE
 END IF
@@ -1236,7 +1293,7 @@ IF triggertype = 1 THEN
  numberedlast = i - 1
 
  CLOSE #fh
-END IF 
+END IF
 
 fh = FREEFILE
 OPEN workingdir$ + SLASH + "lookup" + STR$(triggertype) + ".bin" FOR BINARY AS #fh
@@ -1317,7 +1374,7 @@ DO
   EXIT FUNCTION
  END IF
  IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
- IF scriptids(pt) < 16384 THEN 
+ IF scriptids(pt) < 16384 THEN
   IF intgrabber(id, 0, 16383, 75, 77) THEN
    iddisplay = -1
    FOR i = 0 TO numberedlast

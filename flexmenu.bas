@@ -66,7 +66,6 @@ DECLARE SUB strgrabber (s$, maxl%)
 DECLARE SUB importsong ()
 DECLARE SUB gendata ()
 DECLARE SUB itemdata ()
-DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
@@ -80,7 +79,7 @@ DECLARE FUNCTION getsfxname$ (num%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi' 
+'$INCLUDE: 'common.bi'
 '$INCLUDE: 'cglobals.bi'
 
 '$INCLUDE: 'const.bi'
@@ -791,7 +790,7 @@ DO
    EXIT DO
   END IF
  END IF
- 
+
  '--CTRL+BACKSPACE
  IF keyval(29) > 0 AND keyval(14) THEN
   cropafter recindex, general(34), 0, game$ + ".dt6", 80, 1
@@ -802,9 +801,9 @@ DO
    cropafter recindex, general(34), 0, workingdir$ + SLASH + "attack.bin", getbinsize(0), 0
   END IF
  END IF
- 
+
  dummy = usemenu(pt, top, 0, size, 22)
- 
+
  IF workmenu(pt) = AtkChooseAct OR (keyval(56) > 0 and NOT isStringField(menutype(workmenu(pt)))) THEN
   lastindex = recindex
   IF keyval(77) > 1 AND recindex = general(34) AND recindex < 32767 THEN
@@ -825,7 +824,7 @@ DO
    END IF
   END IF
  END IF
- 
+
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
   SELECT CASE workmenu(pt)
    CASE AtkBackAct
@@ -885,16 +884,16 @@ DO
    GOSUB AtkUpdateMenu
   END IF
  END IF
- 
+
  GOSUB AtkPreviewSub
- 
+
  standardmenu dispmenu$(), size, 22, pt, top, 0, 0, dpage, 0
  IF keyval(56) > 0 THEN 'holding ALT
    tmp$ = readbadbinstring$(recbuf(), AtkDatName, 10, 1) + XSTR$(recindex)
    textcolor 15, 1
    printstr tmp$, 320 - LEN(tmp$) * 8, 0, dpage
  END IF
- 
+
  SWAP vpage, dpage
  setvispage vpage
  copypage 3, dpage
