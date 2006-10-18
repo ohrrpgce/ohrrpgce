@@ -118,7 +118,10 @@ sub gfx_setpal(pal() as integer)
 			r = pal(i) and &hff
 			g = (pal(i) and &hff00) shr 8
 			b = (pal(i) and &hff0000) shr 16
-			truepal(i) = RGB(r * 4, g * 4, b * 4)
+			r = r shl 2 or r shr 4
+			g = g shl 2 or g shr 4
+			b = b shl 2 or b shr 4
+			truepal(i) = RGB(r, g, b)
 		next
 		'This does not update the page "live", like the 8-bit version
 		'so fades aren't working, and there's no way to force an

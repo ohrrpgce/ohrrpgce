@@ -123,9 +123,13 @@ sub gfx_setpal(pal() as integer)
 	dim as integer i
 	
 	for i = 0 to 255
-		alpal(i).r = pal(i) and &hff
-		alpal(i).g = (pal(i) and &hff00) shr 8
-		alpal(i).b = (pal(i) and &hff0000) shr 16
+		dim as integer r, g, b
+		r = pal(i) and &hff
+		g = (pal(i) and &hff00) shr 8
+		b = (pal(i) and &hff0000) shr 16
+		alpal(i).r = r shl 2 or r shr 4
+		alpal(i).g = g shl 2 or g shr 4
+		alpal(i).b = b shl 2 or b shr 4
 	next
 	
 	set_palette(@alpal(0))
