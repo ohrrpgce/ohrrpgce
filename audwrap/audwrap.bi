@@ -1,6 +1,9 @@
 #ifndef __AUDWRAP_BI__
 #define __AUDWRAP_BI__
 
+#libpath "audwrap"
+#inclib "audwrap"
+
 'initing routines
 declare function AudInit cdecl alias "AudInit" () as integer
 declare sub AudClose cdecl alias "AudClose" ()

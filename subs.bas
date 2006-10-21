@@ -823,7 +823,6 @@ editform:
 '--???  well, you see..
 max(1) = general(genMaxBackdrop) - 1   'genMaxBackdrop is number of backdrops, but is necessary
 max(2) = general(genMaxSong) + 1   'genMaxSongs is number of last song, but is optional
-min(2) = general(genMaxSFX) * -1 - 1
 max(3) = 50
 max(4) = 1000
 pt = 0: csr2 = -6: csr3 = 0
@@ -869,7 +868,7 @@ DO
    END IF
   END IF
   IF csr2 = -3 THEN
-   IF intgrabber(a(36 + csr2), min(csr2+5), max(csr2 + 5), 75, 77) THEN
+   IF intgrabber(a(36 + csr2), 0, max(csr2 + 5), 75, 77) THEN
     GOSUB saveform
     GOSUB loadform
    END IF
@@ -921,8 +920,6 @@ DO
     menu$(6) = menu$(6) + " -none-"
   ELSEIF a(33) > 0 THEN
     menu$(6) = menu$(6) + XSTR$(a(33) - 1) + " " + getsongname$(a(33) - 1)
-  ELSEIF a(33) < 0 THEN
-    menu$(6) = menu$(6) + "SFX " + STR(abs(a(33))-1) + " " + getsfxname$(abs(a(33))-1)
   END IF
   menu$(7) = "Backdrop Frames:"
   IF a(34) = 0 THEN menu$(7) = menu$(7) + " no animation" ELSE menu$(7) = menu$(7) + XSTR$(a(34) + 1)

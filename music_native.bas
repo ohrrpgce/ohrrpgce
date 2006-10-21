@@ -337,19 +337,22 @@ end type
 dim shared delhead as delitem ptr = null
 
 sub music_init()
-	dim version as uinteger
-	if music_on = 0 then
-		openMidi
-		sound_init
-	end if
 	music_on += 1
+	'debug "music init = " & music_on
+	if music_on <> 1 then exit sub
+
+	openMidi
+
+	'sound_init()
+
 end sub
 
 sub music_close()
-	if music_on > 0 then
+  music_on -= 1
+  'debug "music close = " & music_on
+	if music_on <> 0 then exit sub
 		music_playing = 0
 		music_paused = 0
-		music_on = 0
 
 		if fade_thread then
 			threadwait fade_thread
@@ -357,10 +360,15 @@ sub music_close()
 
 		if playback_thread then threadWait playback_thread: playback_Thread = 0
 
-		FreeMidiEventList(music_song)
-		music_song = 0
+		if music_song then
+		  FreeMidiEventList(music_song)
+		  music_song = 0
+		end if
 
-		if sound_song >= 0 then sound_stop(sound_song, -1): UnloadSound(sound_song)
+		if sound_song >= 0 then
+		  sound_stop(sound_song, -1)
+		  UnloadSound(sound_song)
+		end if
 
 		CloseMidi
 		if delhead <> null then
@@ -380,12 +388,12 @@ sub music_close()
 			wend
 			delhead = null
 		end if
-		sound_close
-	end if
+
+		'sound_close
 end sub
 
 sub music_play(songname as string, fmt as integer)
-	if music_on = 1 then
+	if music_on then
 		songname = rtrim$(songname)	'lose any added nulls
     dim ext as string = lcase(justextension(songname))
 		if fmt = FORMAT_BAM then
@@ -461,7 +469,7 @@ sub music_play(songname as string, fmt as integer)
 end sub
 
 sub music_pause()
-	if music_on = 1 then
+	if music_on then
 		if music_song > 0 then
 			if music_paused = 0 then
 				music_paused = 1
@@ -474,7 +482,7 @@ sub music_pause()
 end sub
 
 sub music_resume()
-	if music_on = 1 then
+	if music_on then
 		if music_song > 0 then
 			music_paused = 0
 		end if
@@ -491,7 +499,7 @@ end sub
 
 sub music_setvolume(vol as integer)
 	music_vol = vol
-	if music_on = 1 then
+	if music_on then
 		if music_song > 0 then setvolmidi vol
 		'need sound setting...
 	end if
@@ -750,12 +758,12 @@ sysex:
 			  '  p += 3
 			  case &H31 'play sound
 			    p += 1
-			    debug "play sound (" + str$(curevent->extradata[p]) + "," + str$(curevent->extradata[p+1]) + ")"
+			    'debug "play sound (" + str$(curevent->extradata[p]) + "," + str$(curevent->extradata[p+1]) + ")"
 			    sound_play curevent->extradata[p], curevent->extradata[p + 1] <> 0
 			    p += 2
 			  case &H32 'stop sound
 			    p += 1
-			    debug "stop sound (" + str$(curevent->extradata[p]) + ")"
+			    'debug "stop sound (" + str$(curevent->extradata[p]) + ")"
 			    sound_stop curevent->extradata[p]
 			    p += 1
 			  'case &H33 'free sound
@@ -834,27 +842,32 @@ dim Shared SoundPool as SoundEffect ptr, SoundPoolSize as integer
 dim shared sound_inited as integer 'must be non-zero for anything but _init to work
 
 sub sound_init
-  'if this were called twice, the world would end.
-  if sound_inited then exit sub
-'  debug "sound_init"
-  'create DirectSound
+  sound_inited += 1
+  'debug "sound init = " & sound_inited
+
+  if sound_inited <> 1 then exit sub
 
   if AudInit() then
     exit sub ':(
   end if
 
+  'music_init 'for safety (don't worry, they won't recurse (much))
+
   'at this point, we're basically done
-  sound_inited += 1
+
 end sub
 
 sub sound_close
+  sound_inited -= 1
+  'debug "sound close = " & sound_inited
+
   'trying to free something that's already freed... bad!
-  if sound_inited = 0 then exit sub
+  if sound_inited <> 0 then exit sub
 '  debug "sound_close"
 
   AudClose()
 
-  sound_inited -= 1
+  'music_close
 end sub
 
 
@@ -944,9 +957,10 @@ end function
 Function SoundSlot(byval num as integer) as integer
   dim i as integer
   for i = 0 to SoundPoolSize - 1
-    if SoundPool[i].used AND SoundPool[i].effectID = num AND AudIsValidSound(SoundPool[i].soundID) then
-      return i
-    end if
+    with SoundPool[i]
+      'debug "i = " & i & ", used = " & .used & ", effID = " & .effectID & ", sndID = " & .soundID & ", AudIsValid = " & AudIsValidSound(.soundID)
+      if .used AND (.effectID = num OR num <> -1) AND AudIsValidSound(.soundID) then return i
+    end with
   next
 
   return -1
@@ -977,7 +991,7 @@ Function LoadSound(byval f as string,  byval num as integer = -1) as integer
 
   'iterate through the pool
   for i = 0 to SoundPoolSize - 1
-      if not SoundPool[i].used then exit for 'if we found a free spot, coo'
+    if SoundPool[i].used <> -1 then exit for 'if we found a free spot, coo'
   next
 
   'otherwise, i will be left =ing SoundPoolSize

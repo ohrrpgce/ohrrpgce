@@ -2152,10 +2152,12 @@ end FUNCTION
 
 SUB setupmusic (mbuf() as integer)
 	music_init
+	sound_init
 end SUB
 
 SUB closemusic ()
 	music_close
+	sound_close
 end SUB
 
 SUB loadsong (f$)
@@ -3221,11 +3223,13 @@ end function
 
 
 SUB setupsound ()
-	sound_init
+	'sound_init
+	music_init 'it gets inited anyway
 end SUB
 
 SUB closesound ()
- 	sound_close
+ 	'sound_close
+ 	music_close 'ditto
 end SUB
 
 SUB playsfx (BYVAL num, BYVAL l)
@@ -3247,3 +3251,4 @@ end sub
 Function sfxisplaying(BYVAL num)
   return sound_playing(num)
 end Function
+

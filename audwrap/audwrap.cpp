@@ -58,6 +58,7 @@ AUDWRAP_API int AudInit(void) {
 }
 
 AUDWRAP_API void AudClose(void) {
+    for(int i = 0;i < numSounds; i++) sounds[i] = 0;
     delete [] sounds;
 	device = 0;
 }
