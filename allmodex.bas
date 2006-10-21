@@ -2169,7 +2169,8 @@ SUB loadsong (f$)
 	songname = f$
 	songtype = getmusictype(f$)
 
-	music_play(songname, songtype)
+  music_play(songname, songtype)
+
 end SUB
 
 SUB stopsong ()

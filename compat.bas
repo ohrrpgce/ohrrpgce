@@ -233,7 +233,7 @@ SUB playsongnum (songnum%)
 	songfile = DIR$(songbase + ".*")
 	if songfile = "" then exit sub
 
-	IF songfile <> "" THEN loadsong songfile
+	loadsong workingdir$ + SLASH + songfile
 END SUB
 
 FUNCTION getmusictype (file$)

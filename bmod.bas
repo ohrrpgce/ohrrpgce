@@ -1891,7 +1891,6 @@ loadall:
 setpicstuf formdata(), 80, -1
 loadset workingdir$ + SLASH + "for.tmp", form, 0
 IF formdata(33) > 0 THEN wrappedsong formdata(33) - 1
-if formdata(33) < 0 THEN playsfx abs(formdata(33)) - 1, -1
 setpicstuf buffer(), 636, -1
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
