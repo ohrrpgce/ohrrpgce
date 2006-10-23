@@ -1958,7 +1958,7 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
         --math shouldnt have defaults
         src_error(sprintf(
           "math function "&COLYEL&"%s"&COLRED&" has %d arguments it should always have %d"
-          ,{tree[TREE_TRUNK][CMD_TEXT],length(tree[TREE_BRANCHES]),length(math_list[list[at][PAIR_NUM]][3])}
+          ,{tree[TREE_TRUNK][CMD_TEXT],length(tree[TREE_BRANCHES]),length(list[at][FUNC_ARGS])}
         ),tree[TREE_TRUNK][CMD_LINE])
       else
         --variable stuff can have a defaults
