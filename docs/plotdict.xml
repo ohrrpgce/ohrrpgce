@@ -1505,22 +1505,22 @@ end</example>
 		</command>
 		<command id="heropixelx">
 			<cannon>hero pixel X (who)</cannon>
-			<shortname>hero pixel X (who)</shortname>
+			<shortname>hero pixel X</shortname>
 			<description>Returns the hero&apos;s X position on the map in pixels. To find the hero&apos;s position in tiles, use the <ref>herox</ref> function instead.</description>
 		</command>
 		<command id="heropixely">
 			<cannon>hero pixel Y (who)</cannon>
-			<shortname>hero pixel Y(who)</shortname>
+			<shortname>hero pixel Y</shortname>
 			<description>Returns the hero&apos;s Y position on the map in pixels. To find the hero&apos;s position in tiles, use the <ref>heroy</ref> function instead.</description>
 		</command>
 		<command id="npcpixelx">
 			<cannon>NPC pixel X (who)</cannon>
-			<shortname>NPC pixel X (who)</shortname>
+			<shortname>NPC pixel X</shortname>
 			<description>Returns the NPC&apos;s X position on the map in pixels. The argument is an <ref>npcreference</ref> or an NPC ID number. To find the NPC&apos;s position in tiles, use the <ref>npcx</ref> function instead.</description>
 		</command>
 		<command id="npcpixely">
 			<cannon>NPC pixel Y (who)</cannon>
-			<shortname>NPC pixel Y (who)</shortname>
+			<shortname>NPC pixel Y</shortname>
 			<description>Returns the NPC&apos;s Y position on the map in pixels. The argument is an <ref>npcreference</ref> or an NPC ID number. To find the NPC&apos;s position in tiles, use the <ref>npcy</ref> function instead.</description>
 		</command>
 		<command id="camerapixelx">
@@ -1670,7 +1670,7 @@ if (herolevelled (find hero (hero: Bob))) then (
 		</command>
 		<command id="writemapblock">
 			<cannon>write map block (x,y,value)</cannon>
-			<shortname>write map block (x,y,value)</shortname>
+			<shortname>write map block</shortname>
 			<description>Writes a new tile to the specified X,Y position on the current map. This change will only persist until you leave the map or fight a battle.</description>
 		</command>
 		<command id="readpassblock">
@@ -2280,7 +2280,7 @@ script, generic menu screen, begin
   remember y := hero y
   # we want NPCs and things to stay in the same place after we come back from the menu
   save map state
-  
+
   fade screen out
   wait
   teleport to map (map:generic menu)
