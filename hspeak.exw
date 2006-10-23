@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3F 2006-10-23 Two small fixes to some rare bugs causing crashes
 --3Ea 2006-09-03 Actually export triggers in scripts.bin
 --3E 2006-08-30 "define trigger" support
 --3D 2006-08-16 String literal lookup tables added to end of
@@ -1561,8 +1562,8 @@ function get_script_cmd(integer ptr,sequence data,sequence vars)
       after=get_cmd_depth(ptr,data,1)
       ptr=after[1]   --this is a hack, because we cannot say {n,n}=func()
     end if
-    --recursing seems the easyest way to skip a command
-    return(get_script_cmd(ptr,data,vars))
+    --non-command
+    return({ptr,{}})
   end if
 
   if ptr<=length(data) then
@@ -1607,11 +1608,13 @@ function compile_commands(sequence script_data,sequence vars)
     this=get_script_cmd(ptr,script_data,vars)
     ptr=this[1]
     command=this[2]
-    if length(command[2])>0 then
-      --this command has arguments that need parsing
-      command[2]=compile_commands(command[2],vars)
+    if length(command)>0 then
+      if length(command[2])>0 then
+        --this command has arguments that need parsing
+        command[2]=compile_commands(command[2],vars)
+      end if
+      result=append(result,command)
     end if
-    result=append(result,command)
     if ptr>length(script_data) then
       exit --break out of while when there is no more data
     end if
