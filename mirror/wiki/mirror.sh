@@ -24,6 +24,8 @@ httrack --quiet --extended-parsing=YES \
   -"*&printable=*" \
   -"*&wpDestFile=*" \
   -"*oldid=*" \
+  -"*&until=*" \
+  -"*&from=*" \
   +"*/index.php?title=-&action=raw&gen=js" \
   +"*/index.php?title=-&amp;action=raw&amp;gen=css" \
   +"*/index.php?title=MediaWiki:Common.css&*" \
@@ -37,7 +39,6 @@ wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/common/IEFixes.js h
 wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE60Fixes.css http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE60Fixes.css
 wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE70Fixes.css http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE70Fixes.css
 wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/Opera7Fixes.css http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/Opera7Fixes.css
-
 
 rm backblue.gif fade.gif cookies.txt hts-log.txt > /dev/null 2>&1
 rm -R hts-cache > /dev/null 2>&1
@@ -56,6 +57,12 @@ if [ ${SIZE} -lt 5000 ] ; then
   echo "SANITY CHECK FAILED: Mirror too small"
   exit 1
 fi
+
+echo fix index
+rm index.html
+echo "<?php header(\"Location: index.php/Main_Page.html\"); ?>" > index.php
+echo "<?php header(\"Location: gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/index.php/Main_Page.html\"); ?>" > index.php.mirror
+
 
 date "+%Y-%m-%d" > date.txt
 echo ${URL} > url.txt
