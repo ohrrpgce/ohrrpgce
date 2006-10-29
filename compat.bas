@@ -261,6 +261,8 @@ FUNCTION getmusictype (file$)
 	  chk = FORMAT_MP3
 	CASE "s3m"
 	  chk = FORMAT_S3M
+	CASE "mod"
+	  chk = FORMAT_MOD
 	CASE ELSE
 	  debug "unknown format: " & file$ & " - " & ext$
 	END SELECT
@@ -274,8 +276,7 @@ FUNCTION validmusicfile (file$, types = FORMAT_BAM AND FORMAT_MIDI)
 	ext$ = lcase(justextension(file$))
 	chk = getmusictype(file$)
 
-	if chk AND types = 0 then return 0
-
+	if (chk AND types) = 0 then return 0
 
 	SELECT CASE chk
 	CASE FORMAT_BAM

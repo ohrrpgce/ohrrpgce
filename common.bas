@@ -197,7 +197,7 @@ SELECT CASE special
  CASE 5
   stopsong
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
-   IF validmusicfile(nowdir$ + tree$(treeptr), FORMAT_BAM or FORMAT_MIDI or FORMAT_MP3 or FORMAT_OGG or FORMAT_XM or FORMAT_MOD or FORMAT_S3M) THEN
+   IF validmusicfile(nowdir$ + tree$(treeptr), VALID_MUSIC_FORMAT) THEN
     loadsong nowdir$ + tree$(treeptr)
    ELSE
     alert$ = tree$(treeptr) + " is not a valid music file"
@@ -206,7 +206,7 @@ SELECT CASE special
  CASE 6
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
   if f > -1 then UnloadSound(f) : f = -1
-   IF validmusicfile(nowdir$ + tree$(treeptr), FORMAT_MP3 or FORMAT_OGG or FORMAT_XM or FORMAT_MOD or FORMAT_S3M or FORMAT_WAV) THEN
+   IF validmusicfile(nowdir$ + tree$(treeptr), VALID_FX_FORMAT) THEN
     f = LoadSound(nowdir$ + tree$(treeptr))
     sound_play(f, 0, -1)
    ELSE
@@ -340,16 +340,16 @@ ELSE
   '--disregard fmask$. one call per extension
   findfiles nowdir$ + anycase$("*.wav"), attrib, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.xm"), attrib, tmp$ + "hrbrowse.tmp", buffer()
-  GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.it"), attrib, tmp$ + "hrbrowse.tmp", buffer()
-  GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.mod"), attrib, tmp$ + "hrbrowse.tmp", buffer()
-  GOSUB addmatchs
   findfiles nowdir$ + anycase$("*.ogg"), attrib, tmp$ + "hrbrowse.tmp", buffer()
   GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.mp3"), attrib, tmp$ + "hrbrowse.tmp", buffer()
-  GOSUB addmatchs
+'   findfiles nowdir$ + anycase$("*.xm"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+'   GOSUB addmatchs
+'   findfiles nowdir$ + anycase$("*.it"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+'   GOSUB addmatchs
+'   findfiles nowdir$ + anycase$("*.mod"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+'   GOSUB addmatchs
+'   findfiles nowdir$ + anycase$("*.mp3"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+'   GOSUB addmatchs
  ELSEIF special = 7 THEN
   'Call once for RPG files once for rpgdirs
   findfiles nowdir$ + anycase$(fmask$), attrib, tmp$ + "hrbrowse.tmp", buffer()
@@ -430,12 +430,12 @@ DO UNTIL EOF(fh) OR treesize >= limit
  LINE INPUT #fh, tree$(treesize)
  '---music files
  IF special = 1 OR special = 5 THEN
-  IF validmusicfile(nowdir$ + tree$(treesize), FORMAT_BAM or FORMAT_MIDI or FORMAT_MP3 or FORMAT_OGG or FORMAT_XM or FORMAT_MOD or FORMAT_S3M) = 0 THEN
+  IF validmusicfile(nowdir$ + tree$(treesize), VALID_MUSIC_FORMAT) = 0 THEN
    treec(treesize) = 6
   END IF
  END IF
  IF special = 6 THEN
-  IF validmusicfile(nowdir$ + tree$(treesize), FORMAT_BAM or FORMAT_MP3 or FORMAT_OGG or FORMAT_XM or FORMAT_MOD or FORMAT_S3M) = 0 THEN
+  IF validmusicfile(nowdir$ + tree$(treesize), VALID_FX_FORMAT) = 0 THEN
    treec(treesize) = 6
   END IF
  END IF
@@ -583,16 +583,14 @@ END IF
 END FUNCTION
 
 FUNCTION soundfile$ (sfxnum%)
- DIM as string sfxbase
-
- sfxbase = workingdir$ + SLASH + "sfx" + STR$(sfxnum%)
- soundfile = ""
- if isfile(sfxbase + ".wav") then
-  'is there a wave?
-  soundfile = sfxbase + ".wav"
- else
-  'other formats? not right now
- end if
+	DIM as string sfxbase, f
+	sfxbase = workingdir$ + SLASH + "sfx" + STR$(sfxnum%)
+	f = dir(sfxbase & ".*")
+	if f <> "" then
+		return workingdir$ & SLASH & f
+	else
+		return ""
+	end if
 END FUNCTION
 
 SUB debug (s$)

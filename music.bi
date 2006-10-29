@@ -15,6 +15,10 @@ ENUM music_format
 	FORMAT_WAV = 256
 END ENUM
 
+'' FX=WAV or OGG only, Music=all but WAV
+#define VALID_FX_FORMAT 	(FORMAT_WAV or FORMAT_OGG)
+#define VALID_MUSIC_FORMAT 	(FORMAT_BAM or FORMAT_MIDI or FORMAT_MOD or FORMAT_OGG or FORMAT_MP3 or FORMAT_XM or FORMAT_IT or FORMAT_S3M)
+
 declare sub music_init()
 declare sub music_close()
 
@@ -31,15 +35,16 @@ declare sub music_fade(targetvol as integer)
 declare sub sound_init()
 declare sub sound_close()
 
-declare sub sound_play(byval num as integer, byval l as integer,  byval s as integer = 0)
+'parameter s is 0 if num is an OHR sound number, -1 if it's a slot number (returned from loadSound)
+declare sub sound_play(byval num as integer, byval loopcount as integer,  byval s as integer = 0)
 declare sub sound_pause(byval num as integer,  byval s as integer = 0)
 declare sub sound_stop(byval num as integer,  byval s as integer = 0)
 declare sub sound_free(byval num as integer)'only used by custom for the importing interface
 
-declare function sound_playing(byval slot as integer,  byval s as integer = 0) as integer
+declare function sound_playing(byval num as integer,  byval s as integer = 0) as integer
 
 declare function LoadSound overload(byval num as integer) as integer
-declare function LoadSound overload(byval f as string,  byval num as integer = -1) as integer
+declare function LoadSound overload(byval filename as string,  byval num as integer = -1) as integer
 
 declare sub UnloadSound(byval num as integer)
 
