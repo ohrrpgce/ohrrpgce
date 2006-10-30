@@ -36,6 +36,7 @@ type delitem
 end type
 
 dim shared delhead as delitem ptr = null
+dim shared callback_set_up as integer = 0
 
 sub music_init()	
 	dim version as uinteger
@@ -88,6 +89,7 @@ sub music_close()
 		Mix_CloseAudio
 		SDL_Quit
 		music_on = 0
+		callback_set_up = 0 	' For SFX
 		
 		if delhead <> null then
 			'delete temp files
@@ -283,7 +285,10 @@ sub sound_init
   	'anything that might be initialized here is done in music_init
   	'but, I must do it here too
    	music_init
-  	Mix_channelFinished(@SDL_done_playing)
+   	if (callback_set_up = 0) then
+  		Mix_channelFinished(@SDL_done_playing)
+	  	callback_set_up = 1
+  	end if
   	sound_inited = 1
 end sub
 
@@ -454,7 +459,10 @@ function LoadSound overload(byval f as string,  byval num as integer = -1) as in
  	end if
  	size = LOF(ff)
  	close #ff
- 	if size>500000 then return -1
+ 	if size>500000 then 
+ 		debug "Sound effect file too large (>500k): " & f 
+ 		return -1
+ 	end if
 	
 	sfx = Mix_LoadWav(@f[0])
 	

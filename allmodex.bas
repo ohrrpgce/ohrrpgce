@@ -3224,12 +3224,12 @@ end function
 
 
 SUB setupsound ()
-	'sound_init
+	sound_init
 	music_init 'it gets inited anyway
 end SUB
 
 SUB closesound ()
- 	'sound_close
+ 	sound_close
  	music_close 'ditto
 end SUB
 
