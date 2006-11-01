@@ -43,6 +43,16 @@ DECLARE FUNCTION hasmedia (BYVAL d)
 
 '$INCLUDE: 'util.bi'
 
+#ifdef __FB_LINUX__
+#define LINUX -1
+#define SLASH "/"
+#define ALLFILES "*"
+#else
+#define LINUX 0
+#define SLASH "\"
+#define ALLFILES "*.*"
+#endif
+
 CONST true  =-1
 CONST false = 0
 CONST null  = 0
@@ -94,7 +104,7 @@ IF NOT isfile(lump$) THEN fatalerror "lump file `" + lump$ + "' was not found"
 PRINT "From " + lump$ + " to " + dest$
 
 '--Get old-style game$ (only matters for ancient RPG files that are missing the archinym.lmp)
-game$ = rightafter(lump$, "\")
+game$ = rightafter(lump$, SLASH)
 IF game$ = "" THEN game$ = lump$
 IF INSTR(game$, ".") THEN game$ = trimextension$(game$)
 
@@ -105,36 +115,40 @@ IF isdir(dest$) THEN
  w$ = readkey
  IF w$ <> "Y" AND w$ <> "y" THEN SYSTEM
 ELSE
- MKDIR dest$
+ IF LINUX THEN
+   SHELL "mkdir " + dest$
+ ELSE
+   MKDIR dest$
+ END IF
  createddir = true
 END IF
 
 IF NOT isdir(dest$) THEN fatalerror "unable to create destination directory `" + dest$ + "'"
 
 IF NOT isrpg THEN
- unlump lump$, dest$ + "\", buffer()
+ unlump lump$, dest$ + SLASH, buffer()
  CHDIR olddir$
  SYSTEM
 END IF
  
-unlumpfile lump$, "archinym.lmp", dest$ + "\", buffer()
+unlumpfile lump$, "archinym.lmp", dest$ + SLASH, buffer()
 
 '--set game$ according to the archinym
-IF isfile(dest$ + "\archinym.lmp") THEN
+IF isfile(dest$ + SLASH + "archinym.lmp") THEN
  fh = FREEFILE
- OPEN dest$ + "\archinym.lmp" FOR INPUT AS #fh
+ OPEN dest$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
  LINE INPUT #fh, a$
  CLOSE #fh
  IF LEN(a$) <= 8 THEN
   game$ = a$
  END IF
- KILL dest$ + "\archinym.lmp"
+ KILL dest$ + SLASH + "archinym.lmp"
 END IF
 
-unlumpfile lump$, game$ + ".gen", dest$ + "\", buffer()
-xbload dest$ + "\" + game$ + ".gen", buffer(), "unable to open general data"
+unlumpfile lump$, game$ + ".gen", dest$ + SLASH, buffer()
+xbload dest$ + SLASH + game$ + ".gen", buffer(), "unable to open general data"
 
-KILL dest$ + "\" + game$ + ".gen"
+KILL dest$ + SLASH + game$ + ".gen"
 
 passokay = true
 
@@ -168,7 +182,7 @@ END IF
 
 IF passokay THEN
  REDIM buffer(32767)
- unlump lump$, dest$ + "\", buffer()
+ unlump lump$, dest$ + SLASH, buffer()
 END IF
 
 CHDIR olddir$
@@ -371,9 +385,24 @@ FUNCTION isfile (n$) as integer
 END FUNCTION
 
 FUNCTION isdir (sDir$) as integer
-	isdir = NOT (dir$(sDir$, 16) = "")
+#IFDEF __FB_LINUX__
+	'Special hack for broken Linux dir$() behavior
+	isdir = 0
+	SHELL "if [ -d """ + sDir$ + """ ] ; then echo dir ; fi > isdirhack.tmp"
+	DIM AS INTEGER fh
+	fh = FREEFILE
+	OPEN "isdirhack.tmp" FOR INPUT AS #fh
+	DIM s$
+	LINE INPUT #fh, s$
+	IF TRIM$(s$) = "dir" THEN isdir = -1
+	CLOSE #fh
+	KILL "isdirhack.tmp"
+#ELSE
+	'Windows just uses dir
+	dim ret as integer = dir$(sDir$, 55) <> "" AND dir$(sDir$, 39) = ""
+	return ret
+#ENDIF
 END FUNCTION
-
 
 function matchmask(match as string, mask as string) as integer
 	dim i as integer

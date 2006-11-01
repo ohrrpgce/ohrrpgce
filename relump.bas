@@ -44,7 +44,6 @@ DECLARE FUNCTION hasmedia (BYVAL d)
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
 
-
 '$INCLUDE: 'util.bi'
 
 CONST true = -1
@@ -361,9 +360,24 @@ FUNCTION isfile (n$) as integer
 END FUNCTION
 
 FUNCTION isdir (sDir$) as integer
-	isdir = NOT (dir$(sDir$, 16) = "")
+#IFDEF __FB_LINUX__
+	'Special hack for broken Linux dir$() behavior
+	isdir = 0
+	SHELL "if [ -d """ + sDir$ + """ ] ; then echo dir ; fi > isdirhack.tmp"
+	DIM AS INTEGER fh
+	fh = FREEFILE
+	OPEN "isdirhack.tmp" FOR INPUT AS #fh
+	DIM s$
+	LINE INPUT #fh, s$
+	IF TRIM$(s$) = "dir" THEN isdir = -1
+	CLOSE #fh
+	KILL "isdirhack.tmp"
+#ELSE
+	'Windows just uses dir
+	dim ret as integer = dir$(sDir$, 55) <> "" AND dir$(sDir$, 39) = ""
+	return ret
+#ENDIF
 END FUNCTION
-
 
 function matchmask(match as string, mask as string) as integer
 	dim i as integer
@@ -539,7 +553,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 	IF attrib AND 16 THEN grep$ = "'/$'"
 	DIM i%
 	FOR i = LEN(fmask$) TO 1 STEP -1
-		IF MID$(fmask$, i, 1) = CHR$(34) THEN fmask$ = LEFT$(fmask$, i - 1) + "\" + CHR$(34) + RIGHT$(fmask$, LEN(fmask$) - i)
+		IF MID$(fmask$, i, 1) = CHR$(34) THEN fmask$ = LEFT$(fmask$, i - 1) + SLASH + CHR$(34) + RIGHT$(fmask$, LEN(fmask$) - i)
 	NEXT i
 	i = INSTR(fmask$, "*")
 	IF i THEN
@@ -570,7 +584,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 	if attrib = 0 then attrib = 255 xor 16
 
 	FOR i = LEN(fmask$) TO 1 STEP -1
-        IF MID$(fmask$, i, 1) = "\" THEN folder$ = MID$(fmask$, 1, i): EXIT FOR
+        IF MID$(fmask$, i, 1) = SLASH THEN folder$ = MID$(fmask$, 1, i): EXIT FOR
     NEXT
 
 	dim tempf%, realf%
