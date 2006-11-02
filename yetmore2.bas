@@ -109,7 +109,7 @@ DECLARE SUB savemapstate_passmap(mapnum%, prefix$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi' 
+'$INCLUDE: 'common.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
@@ -627,7 +627,7 @@ SUB cleanuptemp
    END IF
   LOOP
   CLOSE #fh
-  
+
   KILL tmpdir$ + "filelist.tmp"
 END SUB
 
@@ -720,9 +720,9 @@ SUB verquit
   setvispage vpage
   dowait
  LOOP
-END SUB 
+END SUB
 
-FUNCTION titlescr 
+FUNCTION titlescr
 titlescr = -1 ' default return true for success
 clearpage 3
 loadpage game$ + ".mxs", gen(genTitle), 3
@@ -949,13 +949,13 @@ SUB deletetemps
   END IF
  LOOP
  CLOSE #fh
-  
+
  KILL tmpdir$ + "filelist.tmp"
 END SUB
 
 FUNCTION decodetrigger (trigger, trigtype)
  DIM id AS SHORT
- debug "decoding " + STR$(trigger) + " type " + STR$(trigtype)
+ 'debug "decoding " + STR$(trigger) + " type " + STR$(trigtype)
  decodetrigger = trigger  'default
  IF trigger >= 16384 THEN
   fname$ = workingdir$ + SLASH + "lookup" + STR$(trigtype) + ".bin"
@@ -967,4 +967,4 @@ FUNCTION decodetrigger (trigger, trigtype)
    CLOSE fh
   END IF
  END IF
-END FUNCTION 
+END FUNCTION
