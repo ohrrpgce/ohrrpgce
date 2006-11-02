@@ -27,7 +27,7 @@ mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
 
 limit = 255
-DIM drive$(26), tree$(limit), display$(limit), about$(limit), treec(limit), catfg(6), catbg(6), bmpd(40), f
+DIM drive$(26), tree$(limit), display$(limit), about$(limit), treec(limit), catfg(6), catbg(6), bmpd(40), f = -1
 'about$() is only used for special 7
 
 showHidden = 0
@@ -163,7 +163,6 @@ stopsong:if f >= 0 then sound_stop(f, -1): UnloadSound(f)
 EXIT FUNCTION
 
 hover:
-f = -1
 SELECT CASE special
  CASE 1
   stopsong
@@ -204,8 +203,12 @@ SELECT CASE special
    END IF
   END IF
  CASE 6
+  if f > -1 then
+    sound_stop(f,-1)
+    UnloadSound(f)
+    f = -1
+  end if
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
-  if f > -1 then UnloadSound(f) : f = -1
    IF validmusicfile(nowdir$ + tree$(treeptr), VALID_FX_FORMAT) THEN
     f = LoadSound(nowdir$ + tree$(treeptr))
     sound_play(f, 0, -1)

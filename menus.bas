@@ -61,6 +61,7 @@ DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION getsfxname$ (num%)
 DECLARE FUNCTION charpicker$ ()
 DECLARE SUB generalscriptsmenu ()
+DECLARE SUB generalsfxmenu ()
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
@@ -452,7 +453,7 @@ END SUB
 
 SUB gendata ()
 STATIC default$
-CONST maxMenu = 31
+CONST maxMenu = 32
 DIM m$(maxMenu), max(maxMenu), bitname$(15)
 DIM names$(32), stat$(11), menutop
 getnames names$(), 32
@@ -475,11 +476,12 @@ IF general(genMute) <= 0 THEN general(genMute) = 163
 last = maxMenu
 m$(0) = "Return to Main Menu"
 m$(1) = "Preference Bitsets..."
-m$(8) = "Password For Editing..."
-m$(9) = "Pick Title Screen..."
-m$(10) = "Rename Game..."
-m$(12) = "Special PlotScripts..."
-m$(15) = "Import New Master Palette..."
+m$(8) = "Special Sound Effects..."
+m$(9) = "Password For Editing..."
+m$(10) = "Pick Title Screen..."
+m$(11) = "Rename Game..."
+m$(13) = "Special PlotScripts..."
+m$(16) = "Import New Master Palette..."
 max(1) = 1
 max(2) = 320
 max(3) = 200
@@ -487,20 +489,20 @@ max(4) = general(genMaxMap)
 max(5) = general(genMaxSong)
 max(6) = general(genMaxSong)
 max(7) = general(genMaxSong)
-max(8) = 0
-max(11) = 32000
-max(16) = 255 'poison
-max(17) = 255 'stun
-max(18) = 255 'mute
-max(19) = 32767
-FOR i = 20 to 21 'shut up
+max(9) = 0
+max(12) = 32000
+max(17) = 255 'poison
+max(18) = 255 'stun
+max(19) = 255 'mute
+max(20) = 32767
+FOR i = 21 to 22 'shut up
  max(i) = 9999 'HP + MP
 NEXT
-FOR i = 22 to 29
+FOR i = 23 to 30
  max(i) = 999 'Regular stats
 NEXT
-max(30) = 100 'MP~
-max(31) = 20  'Extra Hits
+max(31) = 100 'MP~
+max(32) = 20  'Extra Hits
 
 aboutline$ = ""
 longname$ = ""
@@ -513,7 +515,9 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(1) > 1 THEN
+  EXIT DO
+ END IF
  dummy = usemenu(csr, menutop, 0, last, 22)
  IF (keyval(28) > 1 OR keyval(57) > 1) THEN
   IF csr = 0 THEN EXIT DO
@@ -535,26 +539,27 @@ DO
    bitname$(14) = "Disable Hero's Battle Cursor"
    editbitset general(), 101, 15, bitname$()
   END IF
-  IF csr = 9 THEN GOSUB ttlbrowse
-  IF csr = 10 THEN GOSUB renrpg
-  IF csr = 12 THEN generalscriptsmenu
-  IF csr = 15 THEN GOSUB importmaspal
-  IF csr = 8 THEN GOSUB inputpasw
- IF csr = 16 THEN
+  IF csr = 8 THEN generalsfxmenu
+  IF csr = 10 THEN GOSUB ttlbrowse
+  IF csr = 11 THEN GOSUB renrpg
+  IF csr = 13 THEN generalscriptsmenu
+  IF csr = 16 THEN GOSUB importmaspal
+  IF csr = 9 THEN GOSUB inputpasw
+ IF csr = 17 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
   general(genPoison) = ASC(d$)
    GOSUB genstr
   END IF
  END IF
- IF csr = 17 THEN
+ IF csr = 18 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
   general(genStun) = ASC(d$)
    GOSUB genstr
   END IF
  END IF
- IF csr = 18 THEN
+ IF csr = 19 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
   general(genMute) = ASC(d$)
@@ -569,31 +574,31 @@ DO
  IF csr > 4 AND csr < 8 THEN
   IF zintgrabber(general(csr - 3), -1, max(csr), 75, 77) THEN GOSUB genstr
  END IF
- IF csr = 11 THEN
+ IF csr = 12 THEN
   IF intgrabber(general(96), 0, max(csr), 75, 77) THEN GOSUB genstr
  END IF
- IF csr = 13 THEN
+ IF csr = 14 THEN
   strgrabber longname$, 38
   GOSUB genstr
  END IF
- IF csr = 14 THEN
+ IF csr = 15 THEN
   strgrabber aboutline$, 38
   GOSUB genstr
  END IF
- IF csr = 16 THEN
+ IF csr = 17 THEN
   IF intgrabber(general(genPoison), 32, max(csr), 75, 77) THEN GOSUB genstr
  END IF
- IF csr = 17 THEN
+ IF csr = 18 THEN
   IF intgrabber(general(genStun), 32, max(csr), 75, 77) THEN GOSUB genstr
  END IF
- IF csr = 18 THEN
+ IF csr = 19 THEN
   IF intgrabber(general(genMute), 32, max(csr), 75, 77) THEN GOSUB genstr
  END IF
- IF csr = 19 THEN
+ IF csr = 20 THEN
   IF intgrabber(general(genDamageCap), 0, max(csr), 75, 77) THEN GOSUB genstr
  END IF
- IF csr >= 20 AND csr <= 31 THEN
-  IF intgrabber(general(genStatCap + (csr - 20)), 0, max(csr), 75, 77) THEN GOSUB genstr
+ IF csr >= 21 AND csr <= 32 THEN
+  IF intgrabber(general(genStatCap + (csr - 21)), 0, max(csr), 75, 77) THEN GOSUB genstr
  END IF
 
  standardmenu m$(), last, 22, csr, menutop, 0, 0, dpage, 0
@@ -612,26 +617,26 @@ EXIT SUB
 
 genstr:
 'IF general(101) = 0 THEN m$(1) = "Active Menu Mode" ELSE m$(1) = "Wait Menu Mode"
-m$(2) = "Starting X" + XSTR$(general(102))
-m$(3) = "Starting Y" + XSTR$(general(103))
-m$(4) = "Starting Map" + XSTR$(general(104))
-m$(5) = "Title Music:"
-IF general(2) = 0 THEN m$(5) = m$(5) + " -none-" ELSE m$(5) = m$(5) + XSTR$(general(2) - 1) + " " + getsongname$(general(2) - 1)
-m$(6) = "Battle Victory Music:"
-IF general(3) = 0 THEN m$(6) = m$(6) + " -none-" ELSE m$(6) = m$(6) + XSTR$(general(3) - 1) + " " + getsongname$(general(3) - 1)
-m$(7) = "Default Battle Music:"
-IF general(4) = 0 THEN m$(7) = m$(7) + " -none-" ELSE m$(7) = m$(7) + XSTR$(general(4) - 1) + " " + getsongname$(general(4) - 1)
-m$(11) = "Starting Money:" + XSTR$(general(96))
-m$(13) = "Long Name:" + longname$
-m$(14) = "About Line:" + aboutline$
-m$(16) = "Poison Indicator " + XSTR$(general(61)) + " " + CHR$(general(61))
-m$(17) = "Stun Indicator " + XSTR$(general(62)) + " " + CHR$(general(62))
-m$(18) = "Mute Indicator " + XSTR$(general(genMute)) + " " + CHR$(general(genMute))
-m$(19) = "Damage Cap:"
-if general(genDamageCap) = 0 THEN m$(19) = m$(19) + " None" ELSE m$(19) = m$(19) + XSTR$(general(genDamageCap))
+m$(2) = "Starting X: " & general(102)
+m$(3) = "Starting Y: " & general(103)
+m$(4) = "Starting Map: " & general(104)
+m$(5) = "Title Music: "
+IF general(2) = 0 THEN m$(5) = m$(5) & "-none-" ELSE m$(5) = m$(5) & (general(2) - 1) & " " & getsongname$(general(2) - 1)
+m$(6) = "Battle Victory Music: "
+IF general(3) = 0 THEN m$(6) = m$(6) & "-none-" ELSE m$(6) = m$(6) & (general(3) - 1) & " " & getsongname$(general(3) - 1)
+m$(7) = "Default Battle Music: "
+IF general(4) = 0 THEN m$(7) = m$(7) & "-none-" ELSE m$(7) = m$(7) & (general(4) - 1) & " " & getsongname$(general(4) - 1)
+m$(12) = "Starting Money: " & general(96)
+m$(14) = "Long Name:" + longname$
+m$(15) = "About Line:" + aboutline$
+m$(17) = "Poison Indicator: " & general(61) & " " & CHR$(general(61))
+m$(18) = "Stun Indicator: " & general(62) & " " & CHR$(general(62))
+m$(19) = "Mute Indicator: " & general(genMute) & " " & CHR$(general(genMute))
+m$(20) = "Damage Cap: "
+if general(genDamageCap) = 0 THEN m$(20) = m$(20) + "None" ELSE m$(20) = m$(20) & general(genDamageCap)
 FOR i = 0 to 11
- m$(20 + i) = stat$(i) + " Cap:"
- if general(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + " None" ELSE m$(20 + i) = m$(20 + i) + XSTR$(general(genStatCap + i))
+ m$(21 + i) = stat$(i) + " Cap: "
+ if general(genStatCap + i) = 0 THEN m$(21 + i) = m$(21 + i) + "None" ELSE m$(21 + i) = m$(21 + i) & general(genStatCap + i)
 NEXT
 RETRACE
 
@@ -868,6 +873,60 @@ DO
  clearpage dpage
  dowait
 LOOP
+END SUB
+
+SUB generalsfxmenu ()
+  CONST num as integer = 3
+  DIM as string menu(num), snd(num), disp(num)
+  DIM as integer sfxgenoff(1 to num) = {genAcceptSFX, genCancelSFX, genCursorSFX}, menutop
+
+  disp(0) = "Previous Menu" 'don't need menu(0)
+  menu(1) = "Accept Sound: "
+  menu(2) = "Cancel Sound: "
+  menu(3) = "Cursor Sound: "
+
+  FOR i = 1 to num
+    IF general(sfxgenoff(i)) > 0 THEN
+      disp(i) = menu(i) & general(sfxgenoff(i)) & " - " & getsongname(general(sfxgenoff(i)))
+    ELSE
+      disp(i) = menu(i) & "None"
+    END IF
+  NEXT
+  pt = 0
+  menusize = num
+  setkeys
+  DO
+    tog = tog XOR 1
+    setwait timing(), 100
+    setkeys
+    accept = keyval(57) > 1 OR keyval(28) > 1
+    cancel = keyval(1) > 1
+
+    IF cancel THEN EXIT DO
+    usemenu pt, 0, 0, menusize, 24
+
+    SELECT CASE AS CONST pt
+    CASE 0
+      IF accept THEN EXIT DO
+    CASE 1 TO num
+      IF intgrabber(general(sfxgenoff(pt)), 0, general(genMaxSFX)+1, 75, 77) THEN
+        IF general(sfxgenoff(pt)) > 0 THEN
+          disp(pt) = menu(pt) & (general(sfxgenoff(pt))-1) & " " & getsfxname(general(sfxgenoff(pt))-1)
+        ELSE
+          disp(pt) = menu(pt) & "None"
+        END IF
+      END IF
+    END SELECT
+
+    standardmenu disp(), num, 22, pt, menutop, 0, 0, dpage, 0
+
+    'printstr str(general(genMaxSFX)), 0, 100, dpage
+
+    SWAP vpage, dpage
+    setvispage vpage
+    clearpage dpage
+    dowait
+  LOOP
 END SUB
 
 SUB importsong ()
