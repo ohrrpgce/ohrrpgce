@@ -348,6 +348,8 @@ ELSE
 '   GOSUB addmatchs
 '   findfiles nowdir$ + anycase$("*.mod"), attrib, tmp$ + "hrbrowse.tmp"
 '   GOSUB addmatchs
+   findfiles nowdir$ + anycase$("*.ogg"), attrib, tmp$ + "hrbrowse.tmp"
+   GOSUB addmatchs
    findfiles nowdir$ + anycase$("*.mp3"), attrib, tmp$ + "hrbrowse.tmp"
    GOSUB addmatchs
  ELSEIF special = 7 THEN
