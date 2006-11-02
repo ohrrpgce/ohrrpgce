@@ -872,8 +872,7 @@ END SUB
 
 SUB importsong ()
 STATIC default$
-DIM music(16384)
-setupmusic music()
+setupmusic
 setfmvol getfmvol
 clearpage 0
 clearpage 1

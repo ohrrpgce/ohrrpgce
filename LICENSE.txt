@@ -2,7 +2,7 @@ The Source Code of the O.H.R.RPG.C.E is free software
 under the terms of the GNU General Public License:
 
 ------------------------------------------------------------------------------
-
+
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 

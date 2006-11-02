@@ -272,8 +272,7 @@ FOR i = 0 TO 31
 NEXT i
 
 'DEBUG debug "init sound"
-setupmusic music()
-
+setupmusic
 setupsound
 'resetfm
 'setfmvol 7

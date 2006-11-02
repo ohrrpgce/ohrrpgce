@@ -265,6 +265,7 @@ FUNCTION getmusictype (file$)
 	  chk = FORMAT_MOD
 	CASE ELSE
 	  debug "unknown format: " & file$ & " - " & ext$
+	  chk = 0
 	END SELECT
 
   return chk

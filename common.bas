@@ -301,7 +301,7 @@ ELSE
   END IF
  LOOP
  '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
- findfiles nowdir$ + ALLFILES, 16, tmp$ + "hrbrowse.tmp", buffer()
+ findfiles nowdir$ + ALLFILES, 16, tmp$ + "hrbrowse.tmp"
  fh = FREEFILE
  OPEN tmp$ + "hrbrowse.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh) OR treesize >= limit
@@ -320,44 +320,44 @@ ELSE
  attrib = attribAlmostAll OR showHidden
  IF special = 5 THEN
   '--disregard fmask$. one call per extension
-  findfiles nowdir$ + anycase$("*.bam"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.bam"), attrib, tmp$ + "hrbrowse.tmp"
   GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.mid"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.mid"), attrib, tmp$ + "hrbrowse.tmp"
   GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.xm"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.xm"), attrib, tmp$ + "hrbrowse.tmp"
   GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.it"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.it"), attrib, tmp$ + "hrbrowse.tmp"
   GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.mod"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.mod"), attrib, tmp$ + "hrbrowse.tmp"
   GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.s3m"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.s3m"), attrib, tmp$ + "hrbrowse.tmp"
   GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.ogg"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.ogg"), attrib, tmp$ + "hrbrowse.tmp"
   GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.mp3"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.mp3"), attrib, tmp$ + "hrbrowse.tmp"
   GOSUB addmatchs
  ELSEIF special = 6 THEN
   '--disregard fmask$. one call per extension
-  findfiles nowdir$ + anycase$("*.wav"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.wav"), attrib, tmp$ + "hrbrowse.tmp"
   GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.ogg"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.s3m"), attrib, tmp$ + "hrbrowse.tmp"
   GOSUB addmatchs
-'   findfiles nowdir$ + anycase$("*.xm"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+'   findfiles nowdir$ + anycase$("*.xm"), attrib, tmp$ + "hrbrowse.tmp"
 '   GOSUB addmatchs
-'   findfiles nowdir$ + anycase$("*.it"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+'   findfiles nowdir$ + anycase$("*.it"), attrib, tmp$ + "hrbrowse.tmp"
 '   GOSUB addmatchs
-'   findfiles nowdir$ + anycase$("*.mod"), attrib, tmp$ + "hrbrowse.tmp", buffer()
+'   findfiles nowdir$ + anycase$("*.mod"), attrib, tmp$ + "hrbrowse.tmp"
 '   GOSUB addmatchs
-'   findfiles nowdir$ + anycase$("*.mp3"), attrib, tmp$ + "hrbrowse.tmp", buffer()
-'   GOSUB addmatchs
+   findfiles nowdir$ + anycase$("*.mp3"), attrib, tmp$ + "hrbrowse.tmp"
+   GOSUB addmatchs
  ELSEIF special = 7 THEN
   'Call once for RPG files once for rpgdirs
-  findfiles nowdir$ + anycase$(fmask$), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$(fmask$), attrib, tmp$ + "hrbrowse.tmp"
   GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.rpgdir"), 16, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$("*.rpgdir"), 16, tmp$ + "hrbrowse.tmp"
   GOSUB addmatchs
  ELSE
-  findfiles nowdir$ + anycase$(fmask$), attrib, tmp$ + "hrbrowse.tmp", buffer()
+  findfiles nowdir$ + anycase$(fmask$), attrib, tmp$ + "hrbrowse.tmp"
   GOSUB addmatchs
  END IF
 END IF
@@ -483,7 +483,7 @@ DO UNTIL EOF(fh) OR treesize >= limit
    copyfile nowdir$ + tree$(treesize) + SLASH + "browse.txt", tmp$ + "browse.txt", buffer()
   ELSE
    'lumped RPG files
-   unlumpfile nowdir$ + tree$(treesize), "browse.txt", tmp$, buffer()
+   unlumpfile nowdir$ + tree$(treesize), "browse.txt", tmp$
   END IF
   IF isfile(tmp$ + "browse.txt") THEN
    setpicstuf buffer(), 40, -1
@@ -584,6 +584,7 @@ END FUNCTION
 
 FUNCTION soundfile$ (sfxnum%)
 	DIM as string sfxbase, f
+
 	sfxbase = workingdir$ + SLASH + "sfx" + STR$(sfxnum%)
 	f = dir(sfxbase & ".*")
 	if f <> "" then
@@ -645,7 +646,7 @@ IF isdir(package$) THEN
  copyfile package$ + SLASH + lump$, dest$ + SLASH + lump$, buffer()
 ELSE
  'lumpfile
- unlumpfile package$, lump$, dest$ + SLASH, buffer()
+ unlumpfile package$, lump$, dest$ + SLASH
 END IF
 END SUB
 

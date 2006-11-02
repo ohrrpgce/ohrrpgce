@@ -1710,6 +1710,10 @@ SUB storerecord (buf() as integer, filen$, recordsize as integer, record as inte
 END SUB
 
 SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
+  findfiles fmask$, attrib, outfile$
+end sub
+
+SUB findfiles (fmask$, BYVAL attrib, outfile$)
     ' attrib 0: all files 'cept folders, attrib 16: folders only
 #ifdef __FB_LINUX__
         'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR$
@@ -1785,10 +1789,18 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 END SUB
 
 SUB unlump (lump$, ulpath$, buffer() as integer)
-	unlumpfile(lump$, "", ulpath$, buffer())
+	unlumpfile(lump$, "", ulpath$)
+end SUB
+
+SUB unlump (lump$, ulpath$)
+	unlumpfile(lump$, "", ulpath$)
 end SUB
 
 SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
+  unlumpfile(lump$, fmask$, path$)
+end sub
+
+SUB unlumpfile (lump$, fmask$, path$)
 	dim lf as integer
 	dim dat as ubyte
 	dim size as integer
@@ -1982,6 +1994,10 @@ FUNCTION islumpfile (lump$, fmask$)
 end FUNCTION
 
 SUB lumpfiles (listf$, lump$, path$, buffer())
+  lumpfiles(listf$, lump$, path$)
+end sub
+
+SUB lumpfiles (listf$, lump$, path$)
 	dim as integer lf, fl, tl	'lumpfile, filelist, tolump
 
 	dim dat as ubyte
@@ -2150,7 +2166,7 @@ FUNCTION hasmedia (drive$) as integer
 #endif
 end FUNCTION
 
-SUB setupmusic (mbuf() as integer)
+SUB setupmusic
 	music_init
 	sound_init
 end SUB
@@ -3224,13 +3240,11 @@ end function
 
 
 SUB setupsound ()
-	sound_init
-	music_init 'it gets inited anyway
+	setupmusic
 end SUB
 
 SUB closesound ()
- 	sound_close
- 	music_close 'ditto
+ 	closemusic
 end SUB
 
 SUB playsfx (BYVAL num, BYVAL l)

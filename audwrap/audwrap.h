@@ -1,3 +1,10 @@
+/*
+(C) Copyright 2006 Mike Caron
+Please read LICENSE.txt for GPL License details and disclaimer of liability
+See README.txt for code docs. This code (unlike the main source) is clean and
+elegant, so no appologies are necessary.
+*/
+
 // The following ifdef block is the standard way of creating macros which make exporting 
 // from a DLL simpler. All files within this DLL are compiled with the AUDWRAP_EXPORTS
 // symbol defined on the command line. this symbol should not be defined on any project

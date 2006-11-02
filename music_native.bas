@@ -562,13 +562,13 @@ tempo = 500000 'assume 120 bmp
 curevent = music_song
 
 updateDelay delay, tempo
-
+'debug "" & delay
 starttime = -1
 do while music_playing
 	if starttime = -1 then
 		delta = 0
 	else
-		delta = timer - starttime '+ carry
+		delta = timer - starttime  '+ carry
 	end if
 	curtime += delta * delay
 
@@ -583,8 +583,8 @@ do while music_playing
 	played = curtime
 	do
 		if curevent = 0 then exit do
-		if (int(curtime) - curevent->time) < 0 then curtime = 0 : exit do
 		curtime -= curevent->time
+		if curtime < 0 then curtime = 0 : exit do
 
 		if music_playing = 0 then ESCAPE_SEQUENCE
 		select case as const curevent->status
@@ -800,7 +800,7 @@ skipevents:
 
 	if music_playing = 0 then ESCAPE_SEQUENCE
 	do
-		sleep 1,1
+		sleep 10,1
 		if music_playing = 0 then ESCAPE_SEQUENCE
 		if music_paused <> 0 AND pauseflag = 0 then
 			pauseflag = 1
@@ -819,7 +819,7 @@ playback_thread = NULL
 End Sub
 
 Sub UpdateDelay(BYREF delay as double, tempo as integer)
-  delay = division / tempo * 1000000
+  delay = division * 1000000 \ tempo - 1
 end sub
 
 

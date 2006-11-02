@@ -155,9 +155,6 @@
 		<File
 			RelativePath=".\audwrap.bi">
 		</File>
-		<File
-			RelativePath=".\ReadMe.txt">
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
