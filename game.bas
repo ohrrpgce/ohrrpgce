@@ -171,10 +171,13 @@ DECLARE SUB LoadGen
 
 REMEMBERSTATE
 
+'DEBUG debug "randomize timer"
+RANDOMIZE TIMER
 
-'---GET TEMP DIR---
-tmpdir$ = aquiretempdir$
 processcommandline
+
+'---get temp dir---
+tmpdir$ = aquiretempdir$
 
 'DEBUG debug "Thestart"
 thestart:
@@ -203,20 +206,20 @@ DIM npc(300) as NPCInst
 DIM didgo(0 TO 3)
 DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, tmpdir$, usepreunlump, lockfile, gold, lastsaveslot, abortg, exename$, sourcerpg$, foemaph, presentsong, framex, framey, game$, workingdir$, version$
 DIM nowscript, scriptret, nextscroff
+DIM prefsdir$
+DIM savefile$
 
 'DEBUG debug "dim binsize arrays"
 '$INCLUDE: 'binsize.bi'
 
 'DEBUG debug "setup directories"
 
-'---Get work dir and exe name---
-tmpdir$ = aquiretempdir$
+'---get work dir and exe name---
+IF NOT isdir(tmpdir$) THEN makedir tmpdir$
 workingdir$ = tmpdir$ + "playing.tmp"
 exename$ = trimextension$(trimpath$(COMMAND$(0)))
 
-
-'DEBUG debug "create working.tmp"
-
+'DEBUG debug "create playing.tmp"
 '---If workingdir$ does not already exist, it must be created---
 IF isdir(workingdir$) THEN
  'DEBUG debug workingdir$+" already exists"
@@ -240,9 +243,6 @@ presentsong = -1
 gen(60) = 0'--leave joystick calibration enabled
 'fpstimer! = TIMER
 
-'DEBUG debug "randomize timer"
-
-RANDOMIZE TIMER
 FOR i = 1 TO 15
  master(i * 3 + 0) = SGN(i AND 4) * 32 + SGN(i AND 8) * 16
  master(i * 3 + 1) = SGN(i AND 2) * 32 + SGN(i AND 8) * 16
@@ -334,6 +334,25 @@ END IF
 '--of GAME.EXE that it is taken.
 lockfile = FREEFILE
 OPEN workingdir$ + SLASH + "lockfile.tmp" FOR BINARY AS #lockfile
+
+'-- set up prefs dir
+#IFDEF __FB_LINUX__
+'This is important on linux in case you are playing an rpg file installed in /usr/share/games
+prefsdir$ = ENVIRON$("HOME") + SLASH + ".ohrrpgce" + SLASH + trimextension$(trimpath$(sourcerpg$))
+IF NOT isdir(prefsdir$) THEN makedir prefsdir$
+#ELSE
+'This is not used anywhere yet in the Windows version
+prefsdir$ = ENVIRON$("APPDATA") + SLASH + "OHRRPGCE" + SLASH + trimextension$(trimpath$(sourcerpg$))
+#ENDIF
+
+'--set up savegame file
+savefile$ = trimextension$(sourcerpg$) + ".sav"
+#IFDEF __FB_LINUX__
+touchfile savefile$
+IF NOT isfile(savefile$) THEN
+ savefile$ = prefsdir$ + SLASH + trimpath$(savefile$)
+END IF
+#ENDIF
 
 IF autorungame = 0 THEN
  rectangle 4, 3, 312, 14, 9, vpage
@@ -2258,7 +2277,6 @@ SUB loadmaplumps (mapnum, loadmask)
 END SUB
 
 Sub MenuSound(byval s as integer)
-  debug str(s)
   if s then stopsfx s-1:playsfx s-1, 0
 End Sub
 

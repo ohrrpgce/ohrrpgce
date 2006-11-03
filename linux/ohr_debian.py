@@ -49,7 +49,7 @@ def quiet_mkdir(dir):
     pass # ignore dir-already-exists
 
 def run_dpkg(package, ver):
-  os.system("dpkg -b %s %s_%s_i386.deb" % (package, package, ver))
+  os.system("fakeroot dpkg -b %s %s_%s_i386.deb" % (package, package, ver))
 
 def menu_entry(package_name, title, command, append=False, desktop_file_suffix=""):
   mode = "w"

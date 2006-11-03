@@ -11,6 +11,8 @@ EXTERN game$
 EXTERN sourcerpg$
 EXTERN tmpdir$
 EXTERN exename$
+EXTERN prefsdir$ ' currently only used by Linux
+EXTERN savefile$
 EXTERN timing()
 EXTERN pal16()
 EXTERN names$()

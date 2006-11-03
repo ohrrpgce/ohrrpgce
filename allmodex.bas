@@ -1717,7 +1717,8 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$)
     ' attrib 0: all files 'cept folders, attrib 16: folders only
 #ifdef __FB_LINUX__
         'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR$
-	DIM grep$
+	DIM grep$, shellout$
+  shellout$ = "/tmp/ohrrpgce-findfiles-" + STR$(RND * 10000) + ".tmp"
 	grep$ = "-v '/$'"
 	IF attrib AND 16 THEN grep$ = "'/$'"
 	DIM i%
@@ -1730,10 +1731,10 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$)
 	ELSE
 		fmask$ = CHR$(34) + fmask$ + CHR$(34)
 	END IF
-	SHELL "ls -d1p " + fmask$ + " 2>/dev/null |grep "+ grep$ + ">" + outfile$ + ".tmp 2>&1"
+	SHELL "ls -d1p " + fmask$ + " 2>/dev/null |grep "+ grep$ + ">" + shellout$ + " 2>&1"
 	DIM AS INTEGER f1, f2
 	f1 = FreeFile
-	OPEN outfile$ + ".tmp" FOR INPUT AS #f1
+	OPEN shellout$ FOR INPUT AS #f1
 	f2 = FreeFile
 	OPEN outfile$ FOR OUTPUT AS #f2
 	DIM s$
@@ -1747,7 +1748,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$)
 	LOOP
 	CLOSE #f1
 	CLOSE #f2
-	KILL outfile$ + ".tmp"
+	KILL shellout$
 #else
     DIM a$, i%, folder$
 	if attrib = 0 then attrib = 255 xor 16

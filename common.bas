@@ -635,6 +635,8 @@ SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
 END SUB
 
 FUNCTION aquiretempdir$ ()
+#IFNDEF __FB_LINUX__
+'Windows only behavior
 t$ = environ$("TEMP")
 IF NOT isdir(t$) THEN t$ = environ("TMP")
 IF NOT isdir(t$) THEN
@@ -643,6 +645,21 @@ IF NOT isdir(t$) THEN
 END IF
 IF RIGHT$(t$, 1) <> SLASH THEN t$ = t$ + SLASH
 RETURN t$
+#ELSE
+'Linux only behavior
+#IFDEF IS_CUSTOM
+RETURN ""
+#ELSE
+h$ = environ$("HOME")
+o$ = h$ + "/.ohrrpgce"
+IF NOT isdir(o$) THEN makedir(o$)
+d$ = DATE
+t$ = TIME
+tmp$ = o$ + "/" + MID$(d$,7,4) + MID$(d$,1,2) + MID$(d$,4,2) + MID$(t$,1,2) + MID$(t$,4,2) + MID$(t$,7,2) + "." + STR$(INT(RND * 1000)) + ".tmp"
+tmp$ = tmp$ + "/"
+RETURN tmp$
+#ENDIF
+#ENDIF
 END FUNCTION
 
 SUB copylump(package$, lump$, dest$)

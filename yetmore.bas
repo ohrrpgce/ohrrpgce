@@ -161,7 +161,7 @@ END SUB
 
 FUNCTION checksaveslot (slot)
   fbdim checkslot
-  sg$ = trimextension$(sourcerpg$) + ".sav"
+  sg$ = savefile$
   savh = FREEFILE
   OPEN sg$ FOR BINARY AS #savh
   GET #savh, 1 + 60000 * (slot - 1), checkslot
@@ -1323,7 +1323,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 172'--importglobals
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
-   sg$ = trimextension$(sourcerpg$) + ".sav"
+   sg$ = savefile$
    setpicstuf buffer(), 30000, -1
    loadset sg$, retvals(0) * 2 - 1, 0
    IF retvals(1) = -1 THEN 'importglobals(slot)
@@ -1343,7 +1343,7 @@ SELECT CASE AS CONST id
  CASE 173'--exportglobals
   IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 AND retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
    setpicstuf buffer(), 30000, -1
-   sg$ = trimextension$(sourcerpg$) + ".sav"
+   sg$ = savefile$
    loadset sg$, retvals(0) * 2 - 1, 0
    FOR i = retvals(1) TO retvals(2)
     buffer(i + 5013) = global(i)
@@ -1354,7 +1354,7 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
    IF checksaveslot(retvals(0)) THEN
     fbdim savver ' for FB
-    sg$ = trimextension$(sourcerpg$) + ".sav"
+    sg$ = savefile$
     savh = FREEFILE
     OPEN sg$ FOR BINARY AS #savh
     savver = 0

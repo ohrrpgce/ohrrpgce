@@ -67,6 +67,7 @@ DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE FUNCTION exptolevel& (level%)
 DECLARE SUB deletetemps ()
 DECLARE FUNCTION decodetrigger (trigger%, trigtype%)
+DECLARE SUB touchfile (f$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -835,7 +836,7 @@ SUB loadgame (slot, map, foep, stat(), stock())
 '--return gen to defaults
 xbload game$ + ".gen", gen(), "General data is missing from " + game$
 
-sg$ = trimextension(sourcerpg$) + ".sav"
+sg$ = savefile$
 setpicstuf buffer(), 30000, -1
 loadset sg$, slot * 2, 0
 
@@ -1663,7 +1664,7 @@ FOR i = 0 TO 40
 NEXT i
 
 setpicstuf buffer(), 30000, -1
-sg$ = trimextension$(sourcerpg$) + ".sav"
+sg$ = savefile$
 storeset sg$, slot * 2, 0
 
 '---RECORD 2
@@ -1714,7 +1715,7 @@ NEXT i
 ' z = 6513 here
 
 setpicstuf buffer(), 30000, -1
-sg$ = trimextension$(sourcerpg$) + ".sav"
+sg$ = savefile$
 storeset sg$, slot * 2 + 1, 0
 
 
@@ -2021,6 +2022,15 @@ DO
  IF isfile(shot$) = 0 THEN EXIT DO
  n = n + 1
 LOOP UNTIL n > 999
+
+#IFDEF __FB_LINUX__
+touchfile shot$
+IF isfile(shot$) THEN
+  KILL shot$
+ELSE
+  shot$ = prefsdir$ + SLASH + trimpath$(shot$)
+END IF
+#ENDIF
 
 screenshot shot$, vpage, master(), buffer()
 
