@@ -858,12 +858,17 @@ sub sound_init
 end sub
 
 sub sound_close
+  dim i as integer = 0
   sound_inited -= 1
   'debug "sound close = " & sound_inited
 
   'trying to free something that's already freed... bad!
   if sound_inited <> 0 then exit sub
 '  debug "sound_close"
+
+  for i = 0 to SoundPoolSize - 1
+    UnloadSound(i)
+  next
 
   AudClose()
 
@@ -872,22 +877,21 @@ end sub
 
 
 sub sound_play(byval num as integer, byval l as integer,  byval s as integer = 0)
-'  debug ">>sound_play(" + trim(str(num)) + ", " + trim(str(l)) + ")"
+  'debug ">>sound_play(" & num & ", " & l & ")"
   dim slot as integer
 
   if not s then slot = SoundSlot(num) else slot = num
   if slot = -1 then
-'    debug "sound not loaded, loading."
+    'debug "sound not loaded, loading."
     slot = LoadSound(num)
-'    debug "sound is " & slot
-    if slot = -1 then exit sub
+    if slot = -1 then debug "failed": exit sub
   end if
   'slot -= 1
-'  debug "slot "+str$(slot)
+  'debug "slot " & slot
   with SoundPool[slot]
-'  debug str(AudIsPlaying(.soundID))
+  'debug str(AudIsPlaying(.soundID))
     if AudIsPlaying(.soundID) <> 0 and .paused = 0 then
-'      debug "<<already playing"
+      'debug "<<already playing"
       exit sub
     end if
 
@@ -959,7 +963,7 @@ Function SoundSlot(byval num as integer) as integer
   for i = 0 to SoundPoolSize - 1
     with SoundPool[i]
       'debug "i = " & i & ", used = " & .used & ", effID = " & .effectID & ", sndID = " & .soundID & ", AudIsValid = " & AudIsValidSound(.soundID)
-      if .used AND (.effectID = num OR num <> -1) AND AudIsValidSound(.soundID) then return i
+      if .used AND (.effectID = num OR num = -1) AND AudIsValidSound(.soundID) then return i
     end with
   next
 

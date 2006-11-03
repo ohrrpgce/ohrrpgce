@@ -153,6 +153,10 @@ DECLARE SUB loadmapstate (mapnum%, loadmask%, prefix$, dontfallback% = 0)
 DECLARE SUB deletemapstate (filebase$, killmask%)
 DECLARE SUB deletetemps ()
 DECLARE FUNCTION scriptstate$ ()
+DECLARE Sub MenuSound(byval s as integer)
+DECLARE SUB LoadGen
+
+
 
 '---INCLUDE FILES---
 '$INCLUDE: 'compat.bi'
@@ -360,10 +364,8 @@ needf = 1
 
 xbload game$ + ".mas", master(), "master palette missing from " + game$
 xbload game$ + ".fnt", font(), "font missing from " + game$
-xbload game$ + ".gen", buffer(), "general data missing from " + game$
-FOR i = 0 TO 104
- gen(i) = buffer(i)
-NEXT i
+'xbload game$ + ".gen", buffer(), "general data missing from " + game$
+LoadGEN
 
 rpgversion gen(genVersion)
 
@@ -775,10 +777,11 @@ DO
  control
  GOSUB displayall
  IF carray(5) > 1 OR abortg > 0 THEN
+  if abortg = 0 then menusound gen(genCancelSFX)
   EXIT DO
  END IF
- IF carray(0) > 1 THEN pt = loopvar(pt, 0, mt, -1)
- IF carray(1) > 1 THEN pt = loopvar(pt, 0, mt, 1)
+ IF carray(0) > 1 THEN pt = loopvar(pt, 0, mt, -1) : menusound gen(genCursorSFX)
+ IF carray(1) > 1 THEN pt = loopvar(pt, 0, mt, 1) : menusound gen(genCursorSFX)
  IF mi(pt) = 7 THEN
   '--volume control
   IF carray(2) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
@@ -786,6 +789,7 @@ DO
  END IF
  IF carray(4) > 1 THEN
   IF mi(pt) = 4 THEN
+   menusound gen(genAcceptSFX)
    say = items(stat())
    IF say THEN
     '--player has used an item that calls a text box--
@@ -796,33 +800,38 @@ DO
    END IF
   END IF
   IF mi(pt) = 1 THEN
+   menusound gen(genAcceptSFX)
    w = onwho(readglobalstring$(104, "Whose Status?", 20), 0)
    IF w >= 0 THEN
     status w, stat()
    END IF
   END IF
   IF mi(pt) = 3 THEN
+   menusound gen(genAcceptSFX)
    w = onwho(readglobalstring$(106, "Whose Spells?", 20), 0)
    IF w >= 0 THEN
     spells w, stat()
    END IF
   END IF
   IF mi(pt) = 6 THEN
+   menusound gen(genAcceptSFX)
    temp = picksave(0)
    IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
    reloadnpc stat()
   END IF
   IF mi(pt) = 5 THEN
+   menusound gen(genAcceptSFX)
    w = onwho(readglobalstring$(108, "Equip Whom?", 20), 0)
    IF w >= 0 THEN
     equip w, stat()
    END IF
   END IF
-  IF mi(pt) = 2 THEN minimap catx(0), caty(0), tastuf()
+  IF mi(pt) = 2 THEN menusound gen(genAcceptSFX) : minimap catx(0), caty(0), tastuf()
   IF mi(pt) = 8 THEN
+   menusound gen(genAcceptSFX)
    heroswap readbit(gen(), 101, 5), stat()
   END IF
-  IF mi(pt) = 0 THEN verquit
+  IF mi(pt) = 0 THEN menusound gen(genAcceptSFX) : verquit
   '---After all sub-menus are done, re-evaluate the hero/item tags
   '---that way if you revive a hero, kill a hero swap out... whatever
   evalherotag stat()
@@ -2246,4 +2255,35 @@ SUB loadmaplumps (mapnum, loadmask)
  IF loadmask AND (2 OR 4) THEN
   npcplot
  END IF
+END SUB
+
+Sub MenuSound(byval s as integer)
+  debug str(s)
+  if s then stopsfx s-1:playsfx s-1, 0
+End Sub
+
+SUB LoadGen
+  dim as integer genlen, ff
+  dim as short s
+
+  if not isfile(game$ + ".gen") then fatalerror("general data missing from " & game$): exit sub
+
+  genlen = 0
+  ff = freefile
+
+  OPEN game$ + ".gen" FOR BINARY AS #ff
+  SEEK #ff, 8
+
+  DO UNTIL EOF(ff)
+    get #ff, , s
+    buffer(genlen) = s
+    genlen += 1
+  Loop
+  genlen -= 1
+
+  REDIM gen(genlen)
+
+  for i = 0 to genlen
+    gen(i) = buffer(i)
+  next
 END SUB

@@ -37,7 +37,6 @@ DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB formation ()
-DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
@@ -887,7 +886,7 @@ SUB generalsfxmenu ()
 
   FOR i = 1 to num
     IF general(sfxgenoff(i)) > 0 THEN
-      disp(i) = menu(i) & general(sfxgenoff(i)) & " - " & getsongname(general(sfxgenoff(i)))
+      disp(i) = menu(i) & (general(sfxgenoff(i)) - 1) & " " & getsfxname(general(sfxgenoff(i)) - 1)
     ELSE
       disp(i) = menu(i) & "None"
     END IF
@@ -909,7 +908,7 @@ SUB generalsfxmenu ()
     CASE 0
       IF accept THEN EXIT DO
     CASE 1 TO num
-      IF intgrabber(general(sfxgenoff(pt)), 0, general(genMaxSFX)+1, 75, 77) THEN
+      IF zintgrabber(general(sfxgenoff(pt)), -1, general(genMaxSFX), 75, 77) THEN
         IF general(sfxgenoff(pt)) > 0 THEN
           disp(pt) = menu(pt) & (general(sfxgenoff(pt))-1) & " " & getsfxname(general(sfxgenoff(pt))-1)
         ELSE
@@ -920,7 +919,7 @@ SUB generalsfxmenu ()
 
     standardmenu disp(), num, 22, pt, menutop, 0, 0, dpage, 0
 
-    'printstr str(general(genMaxSFX)), 0, 100, dpage
+    printstr str(general(174)), 0, 100, dpage
 
     SWAP vpage, dpage
     setvispage vpage
