@@ -2296,7 +2296,8 @@ SUB LoadGen
     get #ff, , s
     buffer(genlen) = s
     genlen += 1
-  Loop
+    IF genlen >= 199 THEN EXIT DO 'Do not load scattertable.
+  LOOP
   genlen -= 1
 
   REDIM gen(genlen)
