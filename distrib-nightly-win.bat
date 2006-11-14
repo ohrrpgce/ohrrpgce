@@ -7,33 +7,45 @@ REM attention to changes to it.
 
 cd c:\nightly\ohrrpgce
 svn update
+
 del game*.exe
 del custom*.exe
-
 call makegame-gfx-music fb native
 call makeedit-gfx-music fb native
 call nightly-gfx-music fb native
 
+del game*.exe
+del custom*.exe
 call makegame-gfx-music fb sdl
 call makeedit-gfx-music fb sdl
 call nightly-gfx-music fb sdl
 
+del game*.exe
+del custom*.exe
 call makegame-gfx-music fb2 native
 call makeedit-gfx-music fb2 native
 call nightly-gfx-music fb2 native
 
+del game*.exe
+del custom*.exe
 call makegame-gfx-music fb2 sdl
 call makeedit-gfx-music fb2 sdl
 call nightly-gfx-music fb2 sdl
 
+del game*.exe
+del custom*.exe
 call makegame-gfx-music alleg native
 call makeedit-gfx-music alleg native
 call nightly-gfx-music alleg native
 
+del game*.exe
+del custom*.exe
 call makegame-gfx-music alleg sdl
 call makeedit-gfx-music alleg sdl
 call nightly-gfx-music alleg sdl
 
+del game*.exe
+del custom*.exe
 call makegame-gfx-music alleg allegro
 call makeedit-gfx-music alleg allegro
 call nightly-gfx-music alleg allegro

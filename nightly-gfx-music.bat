@@ -1,4 +1,6 @@
 @echo off
+IF NOT EXIST game.exe GOTO failed
+IF NOT EXIST custom.exe GOTO failed
 IF NOT EXIST gfx_%1.bas GOTO failed
 IF NOT EXIST music_%2.bas GOTO failed
 echo Now uploading the OHR with %1 graphics module, and %2 music module
