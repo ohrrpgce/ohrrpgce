@@ -38,6 +38,8 @@ DECLARE SUB loadherodata (array(), index)
 DECLARE SUB saveherodata (array(), index)
 DECLARE SUB loadenemydata (array(), index, altfile = 0)
 DECLARE SUB saveenemydata (array(), index, altfile = 0)
+DECLARE SUB loaditemdata (array(), index)
+DECLARE SUB saveitemdata (array(), index)
 
 'Global variables
 EXTERN uilook()

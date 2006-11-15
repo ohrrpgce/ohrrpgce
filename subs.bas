@@ -1469,15 +1469,6 @@ loadset game$ + ".pt4", a(19), 16
 getpal16 pal16(), 1, a(20)
 RETRACE
 
-' itstrh:
-' setpicstuf buffer(), 200, -1
-' loadset game$ + ".itm", a(22), 0
-' it$ = ""
-' FOR o = 1 TO small(buffer(0), 20)
-'  IF buffer(o) < 256 AND buffer(o) > -1 THEN it$ = it$ + CHR$(buffer(o)) ELSE it$ = ""
-' NEXT o
-' RETRACE
-
 END SUB
 
 SUB herotags (a())
@@ -1602,8 +1593,7 @@ DO
   IF csr = -1 THEN EXIT DO
   IF csr <= 254 THEN
    GOSUB edititem
-   setpicstuf a(), 200, -1
-   storeset game$ + ".itm", csr, 0
+   saveitemdata a(), csr
    i = csr: GOSUB sitemname
   END IF
  END IF
@@ -1628,8 +1618,7 @@ clearpage 3
 EXIT SUB
 
 edititem:
-setpicstuf a(), 200, -1
-loadset game$ + ".itm", csr, 0
+loaditemdata a(), csr
 info$ = readbadbinstring$(a(), 9, 35, 0)
 
 menu$(0) = "Back to Item Menu"
@@ -1650,8 +1639,7 @@ max(13) = 999
 max(14) = 999
 max(15) = 999
 
-setpicstuf a(), 200, -1
-loadset game$ + ".itm", csr, 0
+loaditemdata a(), csr
 GOSUB itemmenu
 
 setpicstuf buffer(), 576, 2
@@ -1818,16 +1806,14 @@ temp$ = XSTR$(a(n) - 1) + " " + readattackname$(a(n) - 1)
 RETRACE
 
 litemname:
-setpicstuf a(), 200, -1
 FOR i = 0 TO 254
- loadset game$ + ".itm", i, 0
+ loaditemdata a(), i
  item$(i) = readbadbinstring$(a(), 0, 8, 0)
 NEXT i
 RETRACE
 
 sitemname:
-setpicstuf a(), 200, -1
-loadset game$ + ".itm", i, 0
+loaditemdata a(), i
 a(0) = LEN(item$(i))
 FOR o = 1 TO a(0)
  a(o) = ASC(MID$(item$(i), o, 1))
@@ -1836,7 +1822,7 @@ a(9) = LEN(info$)
 FOR o = 10 TO 9 + a(9)
  a(o) = ASC(MID$(info$, o - 9, 1))
 NEXT o
-storeset game$ + ".itm", i, 0
+saveitemdata a(), i
 RETRACE
 
 ibitset:
@@ -1905,8 +1891,7 @@ FUNCTION itemstr$ (it%, hidden%, offbyone%)
  IF it = 0 AND offbyone = 0 THEN itemstr$ = " NONE": EXIT FUNCTION
  IF offbyone THEN itn = it ELSE itn = it - 1
 
- setpicstuf buffer(), 200, -1
- loadset game$ + ".itm", itn, 0
+ loaditemdata buffer(), itn
  re$ = ""
  re$ = readbadbinstring$(buffer(), 0, 8, 0)
  IF hidden = 0 THEN re$ = XSTR$(itn) + " " + re$
@@ -2144,18 +2129,6 @@ LOOP UNTIL readbit(gen(), 106, gen(105)) = 0
 npc(cur * 15 + 11) = gen(105) + 1
 setbit gen(), 106, gen(105), 1
 RETRACE
-
-' itstr:
-' it$ = " NONE"
-' IF npc(cur * 15 + 6) = 0 THEN RETRACE
-' setpicstuf buffer(), 200, -1
-' loadset game$ + ".itm", npc(cur * 15 + 6) - 1, 0
-' it$ = ""
-' FOR o = 1 TO small(buffer(0), 16)
-'  IF buffer(o) > 255 OR buffer(o) < 0 THEN buffer(o) = 0
-'  it$ = it$ + CHR$(buffer(o))
-' NEXT o
-' RETRACE
 
 frstline:
 x$ = ""

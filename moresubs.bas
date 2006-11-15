@@ -84,8 +84,7 @@ DIM wbuf(100), thishbits(4)
 loadherodata buffer(), who - 1
 
 '--load data of hero's default weapon
-setpicstuf wbuf(), 200, -1
-loadset game$ + ".itm", buffer(22), 0
+loaditemdata wbuf(), buffer(22)
 
 '--do average level enforcement
 IF buffer(21) < 0 THEN buffer(21) = averagelev(stat())

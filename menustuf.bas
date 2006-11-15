@@ -317,11 +317,6 @@ FOR i = 0 TO 3
   ELSE
    price$ = price$ + STR$(tradestf(i, 1)) + " " + readitemname$(tradestf(i, 0))
   END IF
-  'setpicstuf buffer(), 200, -1
-  'loadset game$ + ".itm", b(pt * recordsize + 25) - 1, 0
-  'FOR o = 1 TO buffer(0)
-  ' price$ = price$ + CHR$(small(large(buffer(o), 0), 255))
-  'NEXT o
  END IF
 NEXT
 IF LEN(price$) > 38 THEN
@@ -333,14 +328,10 @@ IF LEN(price$) > 38 THEN
  xtralines = 1
 END IF
 IF b(pt * recordsize + 17) = 0 THEN
- setpicstuf buffer(), 200, -1
- loadset game$ + ".itm", b(pt * recordsize + 18), 0
+ loaditemdata buffer(), b(pt * recordsize + 18)
  IF buffer(49) = 1 THEN eqinfo$ = eqprefix$ + " " + wepslot$
  IF buffer(49) > 1 THEN eqinfo$ = eqprefix$ + " " + sname$(23 + buffer(49))
  info1$ = readbadbinstring$(buffer(), 9, 40, 0)
- 'FOR i = 1 TO buffer(9)
- ' info1$ = info1$ + CHR$(small(large(buffer(i + 9), 0), 255))
- 'NEXT i
  IF LEN(info1$) > 17 THEN
   FOR o = 18 TO 1 STEP -1
    IF MID$(info1$, o, 1) = " " OR MID$(info1$, o, 1) = "-" OR MID$(info1$, o, 1) = "," OR MID$(info1$, o, 1) = "." THEN EXIT FOR
@@ -356,8 +347,7 @@ END IF
 IF b(pt * recordsize + 17) = 1 THEN
  'hire
  loadherodata buffer(), b(pt * recordsize + 18)
- setpicstuf wbuf(), 200, -1
- loadset game$ + ".itm", buffer(22), 0
+ loaditemdata wbuf(), buffer(22)
  IF buffer(21) < 0 THEN buffer(21) = averagelev(stat())
  temp$ = XSTR$(atlevel(buffer(21), buffer(23 + 0 * 2), buffer(24 + 0 * 2)) + wbuf(54 + 0))
  eqinfo$ = RIGHT$(temp$, LEN(temp$) - 1) + " " + sname$(0)
@@ -403,8 +393,7 @@ END FUNCTION
 SUB doequip (toequip, who, where, defwep, stat())
 
 '--load the item data for this equipment
-setpicstuf buffer(), 200, -1
-loadset game$ + ".itm", toequip - 1, 0
+loaditemdata buffer(), toequip -1
 
 '--apply the stat bonuses
 FOR i = 0 TO 11
@@ -612,8 +601,6 @@ LOOP
 stbonus:
 '--load stat bonuses of currently hovered weapon for display
 
-setpicstuf buffer(), 200, -1
-
 IF csr2 = toff(csr) + tlim(csr) + 1 THEN
  '--unequip
  IF csr = 0 THEN
@@ -635,14 +622,14 @@ IF lb = -1 THEN
   stb(i) = 0
  NEXT i
 ELSE
- loadset game$ + ".itm", lb - 1, 0
+ loaditemdata buffer(), lb - 1
  FOR i = 0 TO 11
   stb(i) = buffer(54 + i)
  NEXT i
 END IF
 
 IF eqstuf(pt, csr) > 0 THEN
- loadset game$ + ".itm", eqstuf(pt, csr) - 1, 0
+ loaditemdata buffer(), eqstuf(pt, csr) - 1
  FOR i = 0 TO 11
   stb(i) = stb(i) - buffer(54 + i)
  NEXT i
@@ -680,11 +667,10 @@ FOR i = 0 TO 4
  END IF
 NEXT i
 o = 0
-setpicstuf buffer(), 200, -1
 FOR i = 0 TO inventoryMax
  IF inventory(i).used THEN
   '--load item data
-  loadset game$ + ".itm", inventory(i).id, 0
+  loaditemdata buffer(), inventory(i).id
   IF buffer(49) > 0 THEN
    '--if this item is equipable
    IF readbit(buffer(), 66, hero(pt) - 1) THEN
@@ -805,9 +791,8 @@ NEXT i
 FOR i = 0 TO inventoryMax
  setbit ondead(), 0, 3 + i, 0
  setbit onlive(), 0, 3 + i, 1
- setpicstuf buffer(), 200, -1
  IF inventory(i).used THEN
-  loadset game$ + ".itm", inventory(i).id, 0
+  loaditemdata buffer(), inventory(i).id
   IF buffer(73) = 2 THEN setbit permask(), 0, 3 + i, 1
   IF buffer(51) > 0 OR buffer(50) > 0 THEN
    setbit iuse(), 0, 3 + i, 1
@@ -895,8 +880,7 @@ IF sel >= 0 AND ic = -1 THEN
  END IF
 END IF
 IF ic < 0 OR inventory(ic).used = 0 THEN RETRACE
-setpicstuf buffer(), 200, -1
-loadset game$ + ".itm", inventory(ic).id, 0
+loaditemdata buffer(), inventory(ic).id
 FOR o = 10 TO 9 + buffer(9)
  info$ = info$ + CHR$(buffer(o))
 NEXT o
@@ -935,8 +919,7 @@ IF pick = 0 THEN
     sel = -4
     '--if the usability bit is off, or you dont have any of the item, exit
     IF readbit(iuse(), 0, 3 + ic) = 0 OR inventory(ic).used = 0 THEN RETRACE
-    setpicstuf a(), 200, -1
-    loadset game$ + ".itm", inventory(ic).id, 0
+    loaditemdata a(), inventory(ic).id
     IF a(50) > 0 THEN '--learn a spell
      tclass = 1
      ttype = 0
@@ -1024,8 +1007,7 @@ ELSE
  END IF
  IF carray(4) > 1 THEN
   'DO ACTUAL EFFECT
-  setpicstuf buffer(), 200, -1
-  loadset game$ + ".itm", inventory(ic).id, 0
+  loaditemdata buffer(), inventory(ic).id
   'if can teach a spell
   didlearn = 0
   IF buffer(50) > 0 THEN
@@ -1042,8 +1024,7 @@ ELSE
    END IF
   END IF
   '(do we need to reload?)
-  setpicstuf buffer(), 200, -1
-  loadset game$ + ".itm", inventory(ic).id, 0
+  loaditemdata buffer(), inventory(ic).id
   '--do (cure) attack outside of battle
   didcure = 0
   IF buffer(51) > 0 THEN
@@ -1573,8 +1554,7 @@ readglobalstring = result$
 END FUNCTION
 
 FUNCTION readitemname$ (itemnum)
-setpicstuf buffer(), 200, -1
-loadset game$ + ".itm", itemnum, 0
+loaditemdata buffer(), itemnum
 readitemname$ = readbadbinstring$(buffer(), 0, 8, 0)
 END FUNCTION
 
@@ -1728,9 +1708,8 @@ RETRACE
 
 refreshs:
 FOR i = 0 TO inventoryMax
- setpicstuf buffer(), 200, -1
  IF inventory(i).used THEN
-  loadset game$ + ".itm", inventory(i).id, 0
+  loaditemdata buffer(), inventory(i).id
   IF buffer(73) = 2 THEN setbit permask(), 0, i, 1
   price(i) = INT(buffer(46) * .5)
   FOR o = 0 TO storebuf(16)
@@ -2237,8 +2216,7 @@ SUB unequip (who, where, defwep, stat(), resetdw)
 IF eqstuf(who, where) = 0 THEN EXIT SUB
 
 '--load the item data for the thing we are unequiping
-setpicstuf buffer(), 200, -1
-loadset game$ + ".itm", eqstuf(who, where) - 1, 0
+loaditemdata buffer(), eqstuf(who, where) - 1
 
 '--remove stat bonuses
 FOR i = 0 TO 11

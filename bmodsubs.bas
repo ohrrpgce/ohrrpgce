@@ -1252,10 +1252,9 @@ IF exstat(i, 1, 12) THEN
 
   'simulate levelup bug
   IF readbit(gen(), 101, 9) = 1 THEN
-   setpicstuf buffer(), 200, -1
    FOR j = 0 TO 4
     IF eqstuf(i, j) > 0 THEN
-     loadset game$ + ".itm", eqstuf(i, j) - 1, 0
+     loaditemdata buffer(), eqstuf(i, j) - 1
      exstat(i, 1, o) = exstat(i, 1, o) + buffer(54 + o)
     END IF
    NEXT j

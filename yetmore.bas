@@ -181,9 +181,8 @@ FOR i = 0 TO large(gen(35), 59)
  herobits(i, 2) = buffer(294)    'is leader tag
  herobits(i, 3) = buffer(295)    'is in active party tag
 NEXT i
-setpicstuf buffer(), 200, -1
 FOR i = 0 TO 255
- loadset game$ + ".itm", i, 0
+ loaditemdata buffer(), i
  itembits(i, 0) = buffer(74)   'when have tag
  itembits(i, 1) = buffer(75)   'is in inventory
  itembits(i, 2) = buffer(76)   'is equiped tag
@@ -1123,8 +1122,7 @@ SELECT CASE AS CONST id
    GOSUB setwaitstate
   END IF
  CASE 60'--equip where
-  setpicstuf buffer(), 200, -1
-  loadset game$ + ".itm", bound(retvals(1), 0, 255), 0
+  loaditemdata buffer(), bound(retvals(1), 0, 255)
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    i = hero(retvals(0)) - 1

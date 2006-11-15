@@ -1258,18 +1258,10 @@ SELECT CASE b(17)
   last = 18
   max(4) = 999
 END SELECT
-'GOSUB itstrsh
 RETRACE
 
 setdefault:
 IF b(17) = 0 THEN
-'  setpicstuf buffer(), 200, -1
-'  loadset game$ + ".itm", b(18), 0
-'  thing$ = readbadbinstring$(buffer(), 0, 8, 0)
- 'thing$ = ""
- 'FOR o = 1 TO small(buffer(0), 10)
- ' IF buffer(o) < 256 AND buffer(o) > -1 THEN thing$ = thing$ + CHR$(buffer(o)) ELSE thing$ = ""
- 'NEXT o
  thing$ = itemstr$(b(18),1,1)
  b(24) = buffer(46)
  b(27) = INT(buffer(46) / 2)

@@ -1447,8 +1447,7 @@ IF iptr > itop + 26 THEN itop = itop + 3
 
 IF carray(4) > 1 THEN
  IF readbit(iuse(), 0, iptr) = 1 THEN
-  setpicstuf buffer(), 200, -1
-  loadset game$ + ".itm", inventory(iptr).id, 0
+  loaditemdata buffer(), inventory(iptr).id
   icons(you) = -1: IF buffer(73) = 1 THEN icons(you) = iptr
   temp = buffer(47)
   setpicstuf buffer(), 80, -1
@@ -2095,9 +2094,8 @@ RETRACE
 
 checkitemusability:
 FOR i = 0 TO inventoryMax
- setpicstuf buffer(), 200, -1
  IF inventory(i).used THEN
-  loadset game$ + ".itm", inventory(i).id, 0
+  loaditemdata buffer(), inventory(i).id
   IF buffer(47) > 0 THEN setbit iuse(), 0, i, 1
  END IF
 NEXT i
@@ -2143,12 +2141,10 @@ FOR i = 0 TO 4
  bitbuf(who, i) = nativehbits(who, i)
 NEXT i
 
-setpicstuf buffer(), 200, -1
-
 '--equipment bits
 FOR j = 0 TO 4
  IF eqstuf(who, j) > 0 THEN
-  loadset game$ + ".itm", eqstuf(who, j) - 1, 0
+  loaditemdata buffer(), eqstuf(who, j) - 1
   FOR i = 0 TO 4
    bitbuf(who, i) = (bitbuf(who, i) OR buffer(70 + i))
   NEXT i

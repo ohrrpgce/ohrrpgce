@@ -916,6 +916,16 @@ SUB guessdefaultpals(fileset, poffset(), sets)
   NEXT i
  CASE 4 'NPCs
  CASE 5 'Weapons
+  REDIM buf(100)
+  FOR i = 0 TO sets
+   FOR j = 0 TO 254
+    loaditemdata buf(), j
+    IF buf(49) = 1 AND buf(52) = i THEN
+     poffset(i) = buf(53)
+     EXIT FOR
+    END IF
+   NEXT j
+  NEXT i
  CASE 6 'Attacks
  CASE ELSE
    debug "Unknown sprite type: " & fileset
@@ -967,3 +977,12 @@ ELSE
 END IF
 savebinrecord (file$, 160, array(), index)
 END SUB
+
+SUB loaditemdata (array(), index)
+loadbinrecord game$ & ".itm", 100, array(), index
+END SUB
+
+SUB saveitemdata (array(), index)
+savebinrecord game$ & ".itm", 100, array(), index
+END SUB
+
