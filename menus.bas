@@ -9,7 +9,6 @@ DEFINT A-Z
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION readshopname$ (shopnum%)
-DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
 DECLARE SUB touchfile (f$)

@@ -860,3 +860,52 @@ scriptname$ = a$
  cachenum += 1
 #endif
 END FUNCTION
+
+SUB loaddefaultpals(fileset, poffset(), sets)
+ DIM v AS SHORT
+ f$ = workingdir$ & SLASH & "defpal" & fileset & ".bin"
+ IF isfile(f$) THEN
+   fh = FREEFILE
+   OPEN f$ FOR BINARY AS #fh
+   FOR i = 0 to sets
+    GET #fh, 1 + i * 2, v
+    poffset(i) = v
+   NEXT i
+   CLOSE #fh
+ ELSE
+   guessdefaultpals fileset, poffset(), sets
+ END IF
+END SUB
+
+SUB savedefaultpals(fileset, poffset(), sets)
+ DIM v AS SHORT
+ f$ = workingdir$ & SLASH & "defpal" & fileset & ".bin"
+ fh = FREEFILE
+ OPEN f$ FOR BINARY AS #fh
+ FOR i = 0 to sets
+  v = poffset(i)
+  PUT #fh, 1 + i * 2, v
+ NEXT i
+ CLOSE #fh
+END SUB
+
+SUB guessdefaultpals(fileset, poffset(), sets)
+ flusharray poffset(), sets, 0
+ f$ = game$ & ".dt" & fileset
+ 'TODO: finish inplementation
+ SELECT CASE fileset
+ CASE 0 'Heroes
+ CASE 1 TO 3 'Enemies
+ CASE 4 'NPCs
+ CASE 5 'Weapons
+ CASE 6 'Attacks
+ CASE ELSE
+   debug "Unknown sprite type: " & fileset
+ END SELECT
+END SUB
+
+SUB flusharray (array(), size, value)
+FOR i = 0 TO size
+ array(i) = value
+NEXT i
+END SUB

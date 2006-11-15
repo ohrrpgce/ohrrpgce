@@ -25,7 +25,6 @@ DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
 DECLARE SUB correctbackdrop ()
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE SUB wrappedsong (songnumber%)
-DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE SUB delitem (it%, num%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION getnpcref% (seekid%, offset%)
@@ -398,12 +397,6 @@ SELECT CASE id
 END SELECT
 END SUB
 
-SUB flusharray (array(), size, value)
-FOR i = 0 TO size
- array(i) = value
-NEXT i
-END SUB
-
 SUB forceparty (stat())
 '---MAKE SURE YOU HAVE AN ACTIVE PARTY---
 fpi = findhero(-1, 0, 40, 1)
@@ -480,18 +473,7 @@ END SELECT
 END FUNCTION
 
 FUNCTION gethighbyte (n)
-
-DIM buf(1)
-
-buf(0) = 0
-buf(1) = n
-
-FOR i = 0 TO 7
- setbit buf(), 0, i, readbit(buf(), 1, 8 + i)
-NEXT i
-
-gethighbyte = buf(0)
-
+RETURN n SHL 8
 END FUNCTION
 
 FUNCTION getnpcref (seekid, offset)

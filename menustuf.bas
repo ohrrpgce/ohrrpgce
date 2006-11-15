@@ -59,7 +59,6 @@ DECLARE SUB readattackdata (array%(), index%)
 DECLARE FUNCTION countitem% (it%)
 DECLARE FUNCTION dimbinsize% (id%)
 DECLARE SUB loadshopstuf (array%(), id%)
-DECLARE SUB flusharray (array%(), size%, value%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'

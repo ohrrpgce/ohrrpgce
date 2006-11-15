@@ -53,13 +53,12 @@ DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB copymapblock (buf%(), sx%, sy%, sp%, dx%, dy%, dp%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
-DECLARE FUNCTION changepal% (oldval%, newval%, workpal%(), aindex%)
+DECLARE SUB changepal (palval%, palchange%, workpal%(), aindex%)
 DECLARE SUB storepal16 (array%(), aoffset%, foffset%)
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE SUB smnemonic (tagname$, index%)
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
 DECLARE SUB savepasdefaults (array%(), tilesetnum%)
-DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, dpage%, edge%)
 DECLARE SUB airbrush (x%, y%, d%, m%, c%, p%)
 DECLARE SUB ellipse (x%, y%, radius%, c%, p%, squish1%, squish2%)
@@ -119,15 +118,13 @@ NEXT
 
 END SUB
 
-FUNCTION changepal (oldval, newval, workpal(), aindex)
+SUB changepal (palval, palchange, workpal(), aindex)
 
-storepal16 workpal(), aindex, oldval
-result = bound(newval, 0, 32767)
-getpal16 workpal(), aindex, result
+storepal16 workpal(), aindex, palval
+palval = bound(palval + palchange, 0, 32767)
+getpal16 workpal(), aindex, palval
 
-changepal = result
-
-END FUNCTION
+END SUB
 
 SUB copymapblock (buf(), sx, sy, sp, dx, dy, dp)
 
@@ -141,10 +138,10 @@ NEXT i
 END SUB
 
 SUB ellipse (x, y, radius, c, p, squish1, squish2)
-'ellipse thankss to Ironhoof (Russel Hamrick)
+'ellipse thanks to Ironhoof (Russel Hamrick)
 
 'works mostly like the normal QB circle but with
-'more usefull features
+'more useful features
 ' ELLIPSE x , y , radius , color , page , vertical pull , horizontal pull
 'the vertical pull & horizontal pull should be in decimals or whole
 'numbers. when both numbers are large it shrinks the circle to fit
@@ -775,9 +772,12 @@ NEXT i
 
 END SUB
 
-SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, file$, font())
+SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, fileset, font())
 STATIC default$, clippedpal, clippedw, clippedh, paste
-DIM nulpal(8), placer(1602), pclip(8), menu$(255), pmenu$(3), bmpd(40), mouse(4), area(20, 4), tool$(5), icon$(5), shortk(5), cursor(5), workpal(8)
+DIM nulpal(8), placer(1602), pclip(8), menu$(255), pmenu$(3), bmpd(40), mouse(4), area(20, 4), tool$(5), icon$(5), shortk(5), cursor(5)
+DIM workpal(8 * sets)
+DIM poffset(sets)
+file$ = ".pt" + STR$(fileset)
 
 gotm = setmouse(mouse())
 GOSUB initmarea
@@ -804,12 +804,8 @@ defseg(varseg(nulpal(0)))
 FOR i = 0 TO 15
  POKE i, i
 NEXT i
-offset = 0
-getpal16 workpal(), 0, offset
-
-FOR j = 0 TO 0 + atatime
- GOSUB loadwuc
-NEXT j
+loaddefaultpals fileset, poffset(), sets
+GOSUB loadalluc
 
 setkeys
 DO
@@ -839,45 +835,37 @@ DO
  IF keyval(72) > 1 THEN
   pt = large(pt - 1, 0)
   IF pt < top THEN
-   j = top + atatime: GOSUB savewuc
+   GOSUB savealluc
    top = pt
-   FOR i = atatime TO 1 STEP -1
-    FOR o = 0 TO perset - 1
-     loadsprite placer(), 0, size * o, soff * (i - 1), xw, yw, 3
-     stosprite placer(), 0, size * o, soff * i, 3
-    NEXT o
-   NEXT i
-   j = pt: GOSUB loadwuc
+   GOSUB loadalluc
   END IF
  END IF
  IF keyval(80) > 1 AND pt < 32767 THEN
   pt = pt + 1
   IF needaddset(pt, sets, "graphics") THEN
+   '--Add a new blank sprite set
    setpicstuf buffer(), size * perset, -1
    FOR i = 0 TO (size * perset) / 2
     buffer(i) = 0
    NEXT i
    storeset game$ + file$, pt, 0
+   '--add a new blank default palette
+   REDIM poffset(sets)
+   poffset(pt) = 0
   END IF
   IF pt > top + atatime THEN
-   j = top: GOSUB savewuc
+   GOSUB savealluc
    top = top + 1
-   FOR i = 0 TO atatime - 1
-    FOR o = 0 TO perset - 1
-     loadsprite placer(), 0, size * o, soff * (i + 1), xw, yw, 3
-     stosprite placer(), 0, size * o, soff * i, 3
-    NEXT o
-   NEXT i
-   j = pt: GOSUB loadwuc
+   GOSUB loadalluc
   END IF
  END IF
  IF keyval(75) > 1 THEN num = large(num - 1, 0)
  IF keyval(77) > 1 THEN num = small(num + 1, perset - 1)
  IF keyval(26) > 1 THEN
-  offset = changepal(offset, offset - 1, workpal(), 0)
+  changepal poffset(pt), -1, workpal(), pt - top
  END IF
  IF keyval(27) > 1 THEN
-  offset = changepal(offset, offset + 1, workpal(), 0)
+  changepal poffset(pt), 1, workpal(), pt - top
  END IF
  IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN 
   loadsprite spriteclip(), 0, num * size, soff * (pt - top), xw, yw, 3
@@ -904,17 +892,21 @@ DO
  END IF
  GOSUB choose
  textcolor 7, 0
- printstr "Palette" + XSTR$(offset), 320 - (LEN("Palette" + XSTR$(offset)) * 8), 0, dpage
- printstr "Set" + XSTR$(pt), 320 - (LEN("Set" + XSTR$(pt)) * 8), 8, dpage
- printstr info$(num), 320 - (LEN(info$(num)) * 8), 16, dpage
+ printstr "Palette" + XSTR$(poffset(pt)), 320 - (LEN("Palette" + XSTR$(poffset(pt))) * 8), 0, dpage
+ defseg(varseg(workpal(0)))
+ FOR i = 0 TO 15
+  rectangle 271 + i * 3, 8, 3, 8, PEEK((pt - top) * 16 + i), dpage
+ NEXT i
+ printstr "Set" + XSTR$(pt), 320 - (LEN("Set" + XSTR$(pt)) * 8), 16, dpage
+ printstr info$(num), 320 - (LEN(info$(num)) * 8), 24, dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
  dowait
 LOOP
-debug "exitted"
-offset = changepal(offset, offset, workpal(), 0)
+changepal poffset(pt), 0, workpal(), pt - top
 GOSUB savealluc
+savedefaultpals fileset, poffset(), sets
 clearpage 0
 clearpage 1
 clearpage 2
@@ -925,10 +917,11 @@ choose:
 rectangle 0, 0, 320, 200, 244, dpage
 rectangle 4 + (num * (xw + 1)), (pt - top) * (yw + 5), xw + 2, yw + 2, 15, dpage
 FOR i = top TO small(top + atatime, sets)
+ picslot = i - top
  FOR o = 0 TO perset - 1
-  rectangle 5 + (o * (xw + 1)), 1 + ((i - top) * (yw + 5)), xw, yw, 0, dpage
-  loadsprite placer(), 0, size * o, soff * (i - top), xw, yw, 3
-  drawsprite placer(), 0, workpal(), 0, 5 + (o * (xw + 1)), 1 + ((i - top) * (yw + 5)), dpage
+  rectangle 5 + (o * (xw + 1)), 1 + (picslot * (yw + 5)), xw, yw, 0, dpage
+  loadsprite placer(), 0, size * o, soff * picslot, xw, yw, 3
+  drawsprite placer(), 0, workpal(), (i - top) * 16, 5 + (o * (xw + 1)), 1 + (picslot * (yw + 5)), dpage
  NEXT o
 NEXT i
 RETRACE
@@ -958,7 +951,6 @@ DO
   IF box OR drl OR ovalstep THEN
    GOSUB resettool
   ELSE
-   debug "hear you"
    stosprite placer(), 0, num * size, soff * (pt - top), 3
    GOSUB resettool
    RETRACE
@@ -988,18 +980,18 @@ IF zone = 2 THEN
  IF mouse(3) > 0 THEN col = small(INT(zox / 4), 15)
 END IF
 IF keyval(26) > 1 OR (zone = 5 AND mouse(3) > 0) THEN
- offset = changepal(offset, offset - 1, workpal(), 0)
+ changepal poffset(pt), -1, workpal(), pt - top
 END IF
 IF keyval(27) > 1 OR (zone = 6 AND mouse(3) > 0) THEN
- offset = changepal(offset, offset + 1, workpal(), 0)
+ changepal poffset(pt), 1, workpal(), pt - top
 END IF
 IF keyval(25) > 1 OR (zone = 19 AND mouse(3) > 0) THEN '--call palette browser
  '--write changes so far
  stosprite placer(), 0, num * size, soff * (pt - top), 3
  '--save current palette
- storepal16 workpal(), 0, offset
- offset = pal16browse(offset, 1, num * size, soff * (pt - top), xw, yw, 3)
- getpal16 workpal(), 0, offset
+ storepal16 workpal(), pt - top, poffset(pt)
+ poffset(pt) = pal16browse(poffset(pt), 1, num * size, soff * (pt - top), xw, yw, 3)
+ getpal16 workpal(), pt - top, poffset(pt)
 END IF
 '--UNDO
 IF (keyval(29) > 0 AND keyval(44) > 1) OR (zone = 20 AND mouse(3) > 0) THEN GOSUB readundospr
@@ -1029,7 +1021,7 @@ END IF
 '--COPY PALETTE (ALT+C)
 IF keyval(56) > 0 AND keyval(46) > 1 THEN
  FOR i = 0 TO 7
-  pclip(i) = workpal(i)
+  pclip(i) = workpal(i + (pt - top) * 8)
  NEXT
  clippedpal = 1
 END IF
@@ -1037,20 +1029,23 @@ END IF
 IF keyval(56) > 0 AND keyval(47) > 1 THEN
  IF clippedpal THEN
   FOR i = 0 TO 8
-   workpal(i) = pclip(i)
+   workpal(i + (pt - top) * 8) = pclip(i)
   NEXT
  END IF
 END IF
+defseg(varseg(workpal(0)))
+curcol = PEEK((pt - top) * 16 + col)
 IF keyval(56) > 0 AND col > 0 THEN
- defseg(varseg(workpal(0)))
- IF keyval(72) > 0 AND PEEK(col) > 15 THEN POKE col, PEEK(col) - 16
- IF keyval(80) > 0 AND PEEK(col) < 240 THEN POKE col, PEEK(col) + 16
- IF keyval(75) > 0 AND PEEK(col) > 0 THEN POKE col, PEEK(col) - 1
- IF keyval(77) > 0 AND PEEK(col) < 255 THEN POKE col, PEEK(col) + 1
+ IF keyval(72) > 0 AND curcol > 15 THEN curcol -= 16
+ IF keyval(80) > 0 AND curcol < 240 THEN curcol += 16
+ IF keyval(75) > 0 AND curcol > 0 THEN curcol -= 1
+ IF keyval(77) > 0 AND curcol < 255 THEN curcol += 1
 END IF
 IF mouse(3) = 1 AND zone = 3 THEN 'AND col > 0 THEN
- POKE col, INT(INT(zoy / 6) * 16) + INT(zox / 4)
+ curcol = INT(INT(zoy / 6) * 16) + INT(zox / 4)
 END IF
+defseg(varseg(workpal(0)))
+POKE (pt - top) * 16 + col, curcol
 IF keyval(56) = 0 THEN
  fixmouse = 0
  IF keyval(72) > 0 THEN y = large(0, y - 1): fixmouse = 1
@@ -1195,10 +1190,10 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
  IF keyval(75) > 1 OR keyval(26) > 1 THEN
-  offset = changepal(offset, offset - 1, workpal(), 0)
+  changepal poffset(pt), -1, workpal(), pt - top
  END IF
  IF keyval(77) > 1 OR keyval(27) > 1 THEN
-  offset = changepal(offset, offset + 1, workpal(), 0)
+  changepal poffset(pt), 1, workpal(), pt - top
  END IF
  dummy = usemenu(pcsr, 0, 0, 2, 24)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
@@ -1268,11 +1263,11 @@ FOR i = 1 TO edjx
 NEXT i
 '--swap the transparent palette entry to 0
 IF pcsr = 0 THEN
- getbmppal srcbmp$, master(), workpal(), 0
+ getbmppal srcbmp$, master(), workpal(), 16 * (pt - top)
  defseg(varseg(workpal(0)))
  'swap black with the transparent color
- POKE temp, PEEK(0)
- POKE 0, 0
+ POKE temp + (pt - top) * 16, PEEK(0) + (pt - top) * 16
+ POKE 0 + (pt - top) * 16, 0
 END IF
 '--read the sprite
 getsprite placer(), 0, 1, 1, xw, yw, 2
@@ -1347,7 +1342,8 @@ RETRACE
 
 spritescreen:
 defseg(varseg(workpal(0)))
-rectangle 247 + ((PEEK(col) - (INT(PEEK(col) / 16) * 16)) * 4), 0 + (INT(PEEK(col) / 16) * 6), 5, 7, 15, dpage
+curcol = col + (pt - top) * 16
+rectangle 247 + ((curcol - (INT(curcol / 16) * 16)) * 4), 0 + (INT(curcol / 16) * 6), 5, 7, 15, dpage
 FOR i = 0 TO 15
  FOR o = 0 TO 15
   rectangle 248 + (i * 4), 1 + (o * 6), 3, 5, o * 16 + i, dpage
@@ -1358,39 +1354,36 @@ printstr CHR$(27), 248, 100, dpage
 textcolor 15, 8: IF zone = 6 THEN textcolor 15, 6
 printstr CHR$(26), 304, 100, dpage
 textcolor 15, 0
-printstr LEFT$(" Pal", 4 - (LEN(XSTR$(offset)) - 3)) + XSTR$(offset), 248, 100, dpage
+printstr LEFT$(" Pal", 4 - (LEN(XSTR$(poffset(pt))) - 3)) + XSTR$(poffset(pt)), 248, 100, dpage
 rectangle 247 + (col * 4), 110, 5, 7, 15, dpage
 FOR i = 0 TO 15
- rectangle 248 + (i * 4), 111, 3, 5, PEEK(i), dpage
+ rectangle 248 + (i * 4), 111, 3, 5, PEEK(i + (pt - top) * 16), dpage
 NEXT
-IF zoom = 4 THEN hugesprite placer(), workpal(), 0, 4, 1, dpage, 0
-IF zoom = 2 THEN bigsprite placer(), workpal(), 0, 4, 1, dpage, 0
+IF zoom = 4 THEN hugesprite placer(), workpal(), (pt - top) * 16, 4, 1, dpage, 0
+IF zoom = 2 THEN bigsprite placer(), workpal(), (pt - top) * 16, 4, 1, dpage, 0
+defseg(varseg(workpal(0)))
+curcol = PEEK(col + (pt - top) * 16)
 IF box = 1 THEN
- defseg(varseg(workpal(0)))
- rectangle 4 + small(x, bx) * zoom, 1 + small(y, by) * zoom, (ABS(x - bx) + 1) * zoom, (ABS(y - by) + 1) * zoom, PEEK(col), dpage
+ rectangle 4 + small(x, bx) * zoom, 1 + small(y, by) * zoom, (ABS(x - bx) + 1) * zoom, (ABS(y - by) + 1) * zoom, curcol, dpage
  rectangle 4 + bx * zoom, 1 + by * zoom, zoom, zoom, tog * 15, dpage
 END IF
 rectangle 4 + (x * zoom), 1 + (y * zoom), zoom, zoom, tog * 15, dpage
-drawsprite placer(), 0, workpal(), 0, 239, 119, dpage, 0
+drawsprite placer(), 0, workpal(), (pt - top) * 16, 239, 119, dpage, 0
 IF box = 1 THEN
- defseg(varseg(workpal(0)))
- rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, PEEK(col), dpage
+ rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, curcol, dpage
  putpixel 239 + bx, 119 + by, tog * 15, dpage
 END IF
 IF drl = 1 THEN
- defseg(varseg(workpal(0)))
- drawline 239 + x, 119 + y, 239 + bx, 119 + by, PEEK(col), dpage
- drawline 5 + (x * zoom), 2 + (y * zoom), 5 + (bx * zoom), 2 + (by * zoom), PEEK(col), dpage
+ drawline 239 + x, 119 + y, 239 + bx, 119 + by, curcol, dpage
+ drawline 5 + (x * zoom), 2 + (y * zoom), 5 + (bx * zoom), 2 + (by * zoom), curcol, dpage
 END IF
 IF ovalstep > 0 THEN
- defseg(varseg(workpal(0)))
- ellipse 239 + bx, 119 + by, radius, PEEK(col), dpage, squishx, squishy
- ellipse 5 + (bx * zoom), 2 + (by * zoom), radius * zoom, PEEK(col), dpage, squishx, squishy
+ ellipse 239 + bx, 119 + by, radius, curcol, dpage, squishx, squishy
+ ellipse 5 + (bx * zoom), 2 + (by * zoom), radius * zoom, curcol, dpage, squishx, squishy
 END IF
 IF tool = 5 THEN
- defseg(varseg(workpal(0)))
- ellipse 239 + x, 119 + y, airsize / 2, PEEK(col), dpage, 0, 0
- ellipse 5 + (x * zoom), 2 + (y * zoom), (airsize / 2) * zoom, PEEK(col), dpage, 0, 0
+ ellipse 239 + x, 119 + y, airsize / 2, curcol, dpage, 0, 0
+ ellipse 5 + (x * zoom), 2 + (y * zoom), (airsize / 2) * zoom, curcol, dpage, 0, 0
 END IF
 putpixel 239 + x, 119 + y, tog * 15, dpage
 textcolor 7, 0
@@ -1552,6 +1545,7 @@ NEXT j
 RETRACE
 
 loadwuc:
+getpal16 workpal(), j - top, poffset(j)
 IF j <= sets THEN
  setpicstuf buffer(), size * perset, 2
  loadset game$ + file$, large(j, 0), 0

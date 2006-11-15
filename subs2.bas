@@ -21,7 +21,6 @@ DECLARE SUB stredit (s$, maxl%)
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION readshopname$ (shopnum%)
-DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
 DECLARE SUB touchfile (f$)
@@ -357,7 +356,6 @@ CLOSE #fh
 END SUB
 
 SUB getpal16 (array(), aoffset, foffset)
-
 
 setpicstuf buffer(), 16, -1
 loadset game$ + ".pal", 0, 0

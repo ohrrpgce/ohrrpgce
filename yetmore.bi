@@ -13,7 +13,6 @@ declare function cropplotstr (s$)
 declare sub doihavebits
 declare sub embedtext (text$, limit)
 declare sub scriptstat (id, stat())
-declare sub flusharray (array(), size, value)
 declare sub forceparty (stat())
 declare function functiondone
 declare function functionread

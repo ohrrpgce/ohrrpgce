@@ -28,6 +28,10 @@ DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
 DECLARE FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTEGER
 DECLARE FUNCTION scriptname$ (num%, trigger% = 0)
+DECLARE SUB loaddefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
+DECLARE SUB savedefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
+DECLARE SUB guessdefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
+DECLARE SUB flusharray (array%(), size%, value%)
 
 'Global variables
 EXTERN uilook()
