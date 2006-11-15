@@ -1245,9 +1245,7 @@ NEXT
 'THIS PART UPDATES STATS FOR A LEVEL UP
 IF exstat(i, 1, 12) THEN
 
- 'load hero's data
- setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0", hero(i) - 1, 0
+ loadherodata buffer(), hero(i) - 1
 
  'update stats
  FOR o = 0 TO 11
@@ -1264,8 +1262,7 @@ IF exstat(i, 1, 12) THEN
    NEXT j
    'do stat caps
    IF gen(genStatCap + o) > 0 THEN exstat(i, 0, o) = small(exstat(i, 0, o),gen(genStatCap + o))
-   setpicstuf buffer(), 636, -1
-   loadset game$ + ".dt0", hero(i) - 1, 0
+   loadherodata buffer(), hero(i) - 1
   END IF
  NEXT o
 

@@ -355,8 +355,7 @@ IF b(pt * recordsize + 17) = 0 THEN
 END IF
 IF b(pt * recordsize + 17) = 1 THEN
  'hire
- setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0", b(pt * recordsize + 18), 0
+ loadherodata buffer(), b(pt * recordsize + 18)
  setpicstuf wbuf(), 200, -1
  loadset game$ + ".itm", buffer(22), 0
  IF buffer(21) < 0 THEN buffer(21) = averagelev(stat())
@@ -670,8 +669,6 @@ GOSUB setupeq
 RETRACE
 
 setupeq:
-'setpicstuf buffer(), 636, -1
-'loadset game$ + ".dt0", hero(pt) - 1, 0
 dw = stat(pt, 0, 16)
 dw$ = rpad(readitemname$(dw - 1), " ", 11)
 
@@ -1392,8 +1389,7 @@ FOR i = 0 TO 3
      getpal16 pal16(), 40 + (i * 4) + o, tstat(o, 0, 15)
     ELSE
      '--backcompat
-     setpicstuf buffer(), 636, -1
-     loadset game$ + ".dt0", id(i, o) - 1, 0
+     loadherodata buffer(), id(i, o) - 1
      pic(i, o) = buffer(17)
      getpal16 pal16(), 40 + (i * 4) + o, buffer(18)
     END IF
@@ -1888,8 +1884,7 @@ FOR i = 0 TO 5
  '--clear menu type
  mtype(i) = -1
  '--load hero data
- setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0", hero(pt) - 1, 0
+ loadherodata buffer(), hero(pt) - 1
  '--if it is a menu...
  IF bmenu(pt, i) < 0 AND bmenu(pt, i) > -10 THEN
   '--set spell-menu-id and menu-type
@@ -1904,9 +1899,7 @@ FOR o = 0 TO 5
   mtype(last) = mtype(o)
   spid(last) = spid(o)
 
-  '--load herodata
-  setpicstuf buffer(), 636, -1
-  loadset game$ + ".dt0", hero(pt) - 1, 0
+  loadherodata buffer(), hero(pt) - 1
 
   '--get menu index
   mi(last) = (bmenu(pt, o) + 1) * -1
@@ -2174,8 +2167,7 @@ LOOP
 
 nextstat: '--loads the hero who's ID is held in pt
 '--load the hero data lump only to get the spell list types
-setpicstuf buffer(), 636, -1
-loadset game$ + ".dt0", hero(pt) - 1, 0
+loadherodata buffer(), hero(pt) - 1
 
 FOR i = 0 TO 5
  mtype(i) = -1
@@ -2219,8 +2211,7 @@ FUNCTION trylearn (who, atk, learntype)
 result = 0
 
 '--pre-populate buffer() with the hero's data.
-setpicstuf buffer(), 636, -1
-loadset game$ + ".dt0", hero(who) - 1, 0
+loadherodata buffer(), hero(who) - 1
 
 '--for each spell list
 FOR j = 0 TO 3

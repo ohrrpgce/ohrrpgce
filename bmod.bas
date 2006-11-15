@@ -1891,10 +1891,9 @@ loadall:
 setpicstuf formdata(), 80, -1
 loadset workingdir$ + SLASH + "for.tmp", form, 0
 IF formdata(33) > 0 THEN wrappedsong formdata(33) - 1
-setpicstuf buffer(), 636, -1
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
-  loadset game$ + ".dt0", hero(i) - 1, 0
+  loadherodata buffer(), hero(i) - 1
   FOR o = 0 TO 317
    st(i, o) = buffer(o)
   NEXT o

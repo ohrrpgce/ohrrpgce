@@ -229,8 +229,7 @@ setvispage 0
 printstr "hero names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
 FOR i = 0 TO gen(35)
- setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0", i, 0
+ loadherodata buffer(), i
  writeconstant fh, i, loadname(0, 1), u$(), "hero"
 NEXT i
 
@@ -383,8 +382,7 @@ END SUB
 FUNCTION heroname$ (num, cond(), a())
 h$ = ""
 IF cond(num) THEN
- setpicstuf a(), 636, -1
- loadset game$ + ".dt0", ABS(cond(num)) - 1, 0
+ loadherodata a(), ABS(cond(num)) - 1
  FOR i = 1 TO 0 + a(0)
   h$ = h$ + CHR$(a(i))
  NEXT i

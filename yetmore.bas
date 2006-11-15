@@ -174,9 +174,8 @@ FUNCTION cropPlotStr (s$)
 END FUNCTION
 
 SUB doihavebits
-setpicstuf buffer(), 636, -1
 FOR i = 0 TO large(gen(35), 59)
- loadset game$ + ".dt0", i, 0
+ loadherodata buffer(), i
  herobits(i, 0) = buffer(292)    'have hero tag
  herobits(i, 1) = buffer(293)    'is alive tag
  herobits(i, 2) = buffer(294)    'is leader tag
@@ -1271,8 +1270,7 @@ SELECT CASE AS CONST id
   scriptret = 0
   retvals(0) = bound(retvals(0), 0, 40)
   IF retvals(1) > 0 THEN
-   setpicstuf buffer(), 636, -1
-   loadset game$ + ".dt0", hero(retvals(0)) - 1, 0
+   loadherodata buffer(), hero(retvals(0)) - 1
    FOR i = 0 TO 3
     FOR j = 0 TO 23
      IF spell(retvals(0), i, j) = 0 THEN

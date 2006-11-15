@@ -81,8 +81,7 @@ SUB addhero (who, slot, stat())
 DIM wbuf(100), thishbits(4)
 
 '--load hero's data
-setpicstuf buffer(), 636, -1
-loadset game$ + ".dt0", who - 1, 0
+loadherodata buffer(), who - 1
 
 '--load data of hero's default weapon
 setpicstuf wbuf(), 200, -1
@@ -988,8 +987,7 @@ IF picpalmagicnum <> 4444 THEN
  '--fix appearance settings
  FOR sl = 0 TO 40
   IF hero(sl) > 0 THEN
-   setpicstuf buffer(), 636, -1
-   loadset game$ + ".dt0", hero(sl) - 1, 0
+   loadherodata buffer(), hero(sl) - 1
    stat(sl, 0, 14) = buffer(17)'bat pic
    stat(sl, 0, 15) = buffer(18)'bat pal
    stat(sl, 1, 14) = buffer(19)'walk pic
@@ -1003,8 +1001,7 @@ IF nativebitmagicnum <> 4444 THEN
  '--fix native hero bits
  FOR sl = 0 TO 40
   IF hero(sl) > 0 THEN
-   setpicstuf buffer(), 636, -1
-   loadset game$ + ".dt0", hero(sl) - 1, 0
+   loadherodata buffer(), hero(sl) - 1
    FOR i = 0 TO 4
     nativehbits(sl, i) = buffer(240 + i)
    NEXT i
@@ -1200,8 +1197,7 @@ END FUNCTION
 
 SUB renamehero (who)
 
-setpicstuf buffer(), 636, -1
-loadset game$ + ".dt0", hero(who) - 1, 0
+loadherodata buffer(), hero(who) - 1
 limit = buffer(296)
 IF limit = 0 THEN limit = 16
 

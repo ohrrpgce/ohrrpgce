@@ -1276,8 +1276,7 @@ IF b(17) = 0 THEN
 END IF
 IF b(17) = 1 THEN
  thing$ = ""
- setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0", b(18), 0
+ loadherodata buffer(), b(18)
  FOR i = 1 TO small(buffer(0), 16)
   thing$ = thing$ + CHR$(buffer(i))
  NEXT i

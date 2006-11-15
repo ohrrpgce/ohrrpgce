@@ -32,6 +32,10 @@ DECLARE SUB loaddefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS I
 DECLARE SUB savedefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
 DECLARE SUB guessdefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
 DECLARE SUB flusharray (array%(), size%, value%)
+DECLARE SUB loadbinrecord (filename$, recsize, array(), index)
+DECLARE SUB savebinrecord (filename$, recsize, array(), index)
+DECLARE SUB loadherodata (array(), index)
+DECLARE SUB saveherodata (array(), index)
 
 'Global variables
 EXTERN uilook()
@@ -43,4 +47,5 @@ EXTERN master()
 EXTERN workingdir$
 EXTERN curbinsize(), defbinsize()
 EXTERN keyv()
-
+EXTERN game$
+EXTERN gen()

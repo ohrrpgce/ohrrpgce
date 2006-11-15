@@ -31,7 +31,6 @@ EXTERN carray(), csetup()
 EXTERN gotj(), joy()
 
 'Game state globals
-EXTERN gen()
 EXTERN tag()
 EXTERN global()
 

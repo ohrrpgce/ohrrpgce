@@ -891,10 +891,18 @@ END SUB
 
 SUB guessdefaultpals(fileset, poffset(), sets)
  flusharray poffset(), sets, 0
- f$ = game$ & ".dt" & fileset
- 'TODO: finish inplementation
  SELECT CASE fileset
  CASE 0 'Heroes
+  DIM buf(318)
+  FOR i = 0 to sets
+   FOR j = 0 TO gen(genMaxHero)
+    loadherodata buf(), j
+    IF buf(17) = i THEN
+     poffset(i) = buf(18)
+     EXIT FOR
+    END IF
+   NEXT j
+  NEXT i
  CASE 1 TO 3 'Enemies
  CASE 4 'NPCs
  CASE 5 'Weapons
@@ -908,4 +916,26 @@ SUB flusharray (array(), size, value)
 FOR i = 0 TO size
  array(i) = value
 NEXT i
+END SUB
+
+SUB loadbinrecord (filename$, recsize, array(), index)
+
+setpicstuf array(), recsize * 2, -1
+loadset filename$, index, 0
+for i = 0 to recsize
+ s$ = s$ & "," & array(i)
+next i
+END SUB
+
+SUB savebinrecord (filename$, recsize, array(), index)
+setpicstuf array(), recsize * 2, -1
+storeset filename$, index, 0
+END SUB
+
+SUB loadherodata (array(), index)
+loadbinrecord (game$ & ".dt0", 318, array(), index)
+END SUB
+
+SUB saveherodata (array(), index)
+savebinrecord (game$ & ".dt0", 318, array(), index)
 END SUB

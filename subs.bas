@@ -1434,11 +1434,8 @@ IF wd = 3 THEN wx = wx - 4
 RETRACE
 
 clearhero:
-FOR i = 0 TO 318
- a(i) = 0
-NEXT i
-setpicstuf a(), 636, -1
-storeset game$ + ".dt0", pt, 0
+flusharray a(), 318, 0
+saveherodata a(), pt
 RETRACE
 
 lasthero:
@@ -1452,13 +1449,11 @@ FOR i = 0 TO 3
   a(243 + (i * 11) + o) = ASC(MID$(hmenu$(i), o, 1))
  NEXT o
 NEXT i
-setpicstuf a(), 636, -1
-storeset game$ + ".dt0", pt, 0
+saveherodata a(), pt
 RETRACE
 
 thishero:
-setpicstuf a(), 636, -1
-loadset game$ + ".dt0", pt, 0
+loadherodata a(), pt
 nam$ = readbadbinstring$(a(), 0, 16, 0)
 FOR i = 0 TO 3
  hmenu$(i) = readbadbinstring$(a(), 243 + i * 11, 10, 0)
@@ -1858,8 +1853,7 @@ RETRACE
 
 equipbit:
 FOR i = 0 TO 59
- setpicstuf buffer(), 636, -1
- loadset game$ + ".dt0", i, 0
+ loadherodata buffer(), i
  ibit$(i) = readbadbinstring$(buffer(), 0, 16, 0)
  ibit$(i) = "Equipable by " + ibit$(i)
 NEXT i
