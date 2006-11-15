@@ -12,7 +12,6 @@ DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION charpicker$ ()
-DECLARE SUB writeenemydata (buf%(), index%)
 DECLARE FUNCTION readenemyname$ (index%)
 DECLARE FUNCTION readitemname$ (index%)
 DECLARE SUB clearallpages ()
@@ -550,7 +549,7 @@ DO
   IF keyval(77) > 1 AND recindex = gen(36) AND recindex < 32767 THEN
    '--attempt to add a new set
    '--save current
-   writeenemydata recbuf(), lastindex
+   saveenemydata recbuf(), lastindex
    '--increment
    recindex = recindex + 1
    '--make sure we really have permission to increment
@@ -560,7 +559,7 @@ DO
    END IF
   ELSE
    IF intgrabber(recindex, 0, gen(36), 75, 77) THEN
-    writeenemydata recbuf(), lastindex
+    saveenemydata recbuf(), lastindex
     GOSUB EnLoadSub
    END IF
   END IF
@@ -624,7 +623,7 @@ DO
 LOOP
 
 '--save what we were last working on
-writeenemydata recbuf(), recindex
+saveenemydata recbuf(), recindex
 
 clearallpages
 
@@ -680,8 +679,7 @@ RETRACE
 '-----------------------------------------------------------------------
 
 EnLoadSub:
-setpicstuf recbuf(), 320, -1
-loadset game$ + ".dt1", recindex, 0
+loadenemydata recbuf(), recindex
 GOSUB EnUpdateMenu
 RETRACE
 
@@ -982,8 +980,7 @@ formpics:
 FOR i = 0 TO 7
  ename$(i) = "-EMPTY-"
  IF a(i * 4 + 0) > 0 THEN
-  setpicstuf b(), 320, -1
-  loadset game$ + ".dt1", a(i * 4 + 0) - 1, 0
+  loadenemydata b(), a(i * 4 + 0) - 1
   ename$(i) = STR$(a(i * 4 + 0) - 1) + ":"
   FOR o = 1 TO b(0)
    ename$(i) = ename$(i) + CHR$(b(o))
@@ -2394,11 +2391,6 @@ NEXT i
 setpicstuf buffer(), curbinsize(0), -1
 storeset workingdir$ + SLASH + "attack.bin", index, 0
 
-END SUB
-
-SUB writeenemydata (buf(), index)
-setpicstuf buf(), 320, -1
-storeset game$ + ".dt1", index, 0
 END SUB
 
 SUB writescatter (s$, lhold, start)

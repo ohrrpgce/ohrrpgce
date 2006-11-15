@@ -893,8 +893,8 @@ SUB guessdefaultpals(fileset, poffset(), sets)
  flusharray poffset(), sets, 0
  SELECT CASE fileset
  CASE 0 'Heroes
-  DIM buf(318)
-  FOR i = 0 to sets
+  REDIM buf(318)
+  FOR i = 0 TO sets
    FOR j = 0 TO gen(genMaxHero)
     loadherodata buf(), j
     IF buf(17) = i THEN
@@ -904,6 +904,16 @@ SUB guessdefaultpals(fileset, poffset(), sets)
    NEXT j
   NEXT i
  CASE 1 TO 3 'Enemies
+  REDIM buf(160)
+  FOR i = 0 TO sets
+   FOR j = 0 TO gen(genMaxEnemy)
+    loadenemydata buf(), j
+    IF buf(53) = i AND buf(55) + 1 = fileset THEN
+     poffset(i) = buf(54)
+     EXIT FOR
+    END IF
+   NEXT j
+  NEXT i
  CASE 4 'NPCs
  CASE 5 'Weapons
  CASE 6 'Attacks
@@ -938,4 +948,22 @@ END SUB
 
 SUB saveherodata (array(), index)
 savebinrecord (game$ & ".dt0", 318, array(), index)
+END SUB
+
+SUB loadenemydata (array(), index, altfile = 0)
+IF altfile THEN
+ file$ = workingdir$ + SLASH + "dt1.tmp"
+ELSE
+ file$ = game$ & ".dt1"
+END IF
+loadbinrecord (file$, 160, array(), index)
+END SUB
+
+SUB saveenemydata (array(), index, altfile = 0)
+IF altfile THEN
+ file$ = workingdir$ + SLASH + "dt1.tmp"
+ELSE
+ file$ = game$ & ".dt1"
+END IF
+savebinrecord (file$, 160, array(), index)
 END SUB

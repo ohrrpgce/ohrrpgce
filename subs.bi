@@ -28,7 +28,6 @@ declare sub setbinsize (id, size)
 declare sub stredit (s$, maxl)
 declare sub strgrabber (s$, maxl)
 declare sub writeattackdata (array(), index)
-declare sub writeenemydata (buf(), index)
 declare sub writescatter (s$, lhold, start)
 declare function zintgrabber (n, min, max, less, more)
 

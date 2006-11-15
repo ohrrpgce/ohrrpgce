@@ -1614,13 +1614,12 @@ IF NOT isfile(workingdir$ + SLASH + "attack.bin") THEN
  '--and while we are at it, clear the old death-string from enemies
  printstr "Re-init recycled enemy data...", 0, 10, vpage
  setvispage vpage 'refresh
- setpicstuf buffer(), 320, -1
  FOR i = 0 TO gen(36)
-  loadset game$ + ".dt1", i, 0
+  loadenemydata buffer(), i
   FOR j = 17 TO 52
    buffer(j) = 0
   NEXT j
-  storeset game$ + ".dt1", i, 0
+  saveenemydata buffer(), i
  NEXT i
 END IF
 

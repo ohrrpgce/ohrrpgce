@@ -36,6 +36,8 @@ DECLARE SUB loadbinrecord (filename$, recsize, array(), index)
 DECLARE SUB savebinrecord (filename$, recsize, array(), index)
 DECLARE SUB loadherodata (array(), index)
 DECLARE SUB saveherodata (array(), index)
+DECLARE SUB loadenemydata (array(), index, altfile = 0)
+DECLARE SUB saveenemydata (array(), index, altfile = 0)
 
 'Global variables
 EXTERN uilook()
