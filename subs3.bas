@@ -337,7 +337,7 @@ SUB seekscript (temp, seekdir, triggertype)
 'temp = -1 means scroll to last script
 'returns 0 when scrolled past first script, -1 when went past last
 
- DIM buf(19), plotids(general(43))
+ DIM buf(19), plotids(gen(43))
  recordsloaded = 0
  screxists = 0
 
@@ -348,11 +348,11 @@ SUB seekscript (temp, seekdir, triggertype)
 
  DO
   temp += seekdir
-  IF temp > general(43) AND temp < 16384 THEN
+  IF temp > gen(43) AND temp < 16384 THEN
    IF seekdir > 0 THEN
     temp = 16384
    ELSEIF triggertype = plottrigger THEN
-    temp = general(43)
+    temp = gen(43)
    ELSE
     temp = 0
    END IF
@@ -367,11 +367,11 @@ SUB seekscript (temp, seekdir, triggertype)
    IF plotids(temp) THEN
     screxists = -1
    ELSE
-    WHILE recordsloaded < general(40)
+    WHILE recordsloaded < gen(40)
      loadrecord buf(), workingdir$ + SLASH + "plotscr.lst", 40, recordsloaded
      recordsloaded += 1
      IF buf(0) = temp THEN screxists = -1: EXIT WHILE
-     IF buf(0) <= general(43) THEN plotids(buf(0)) = -1
+     IF buf(0) <= gen(43) THEN plotids(buf(0)) = -1
     WEND
    END IF
   END IF
@@ -426,7 +426,7 @@ ELSE
   'if a number is entered, don't seek to the next script, allow "[id]" to display instead
   IF intgrabber(temp, 0, 16383, 0, 0) THEN
    'if temp starts off greater than gen(43) then don't disturb it
-   temp = small(temp, general(43))
+   temp = small(temp, gen(43))
   END IF
  ELSEIF temp < 0 OR (temp = 0 AND scriptside = -1) THEN
   dummy = intgrabber(temp, min, 0, 0, 0)
@@ -434,7 +434,7 @@ ELSE
 END IF
 
 IF keyval(83) > 1 THEN temp = 0
-IF keyval(12) > 1 OR keyval(74) > 1 THEN temp = bound(-temp, min, general(43))
+IF keyval(12) > 1 OR keyval(74) > 1 THEN temp = bound(-temp, min, gen(43))
 
 temp = temp * SGN(scriptside)
 scrintgrabber = (temp <> n)
@@ -484,7 +484,7 @@ DIM menu$(2)
 clearpage 0
 clearpage 1
 
-IF general(56) < 1 THEN general(56) = 1
+IF gen(56) < 1 THEN gen(56) = 1
 pt = 2
 csr = 0
 menu$(0) = "Previous Menu"
@@ -500,8 +500,8 @@ DO
  IF csr = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN EXIT DO
  IF csr = 1 THEN
   oldptr = pt
-  IF intgrabber(pt, 0, small(general(56) + 1, 999), 75, 77) THEN
-   IF pt > general(56) THEN general(56) = pt
+  IF intgrabber(pt, 0, small(gen(56) + 1, 999), 75, 77) THEN
+   IF pt > gen(56) THEN gen(56) = pt
    smnemonic tagname$, oldptr
    tagname$ = lmnemonic$(pt)
   END IF

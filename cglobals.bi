@@ -7,7 +7,7 @@ EXTERN game$
 EXTERN gamefile$
 EXTERN unsafefile$
 EXTERN timing()
-EXTERN general()
+EXTERN gen()
 EXTERN spriteclip()
 EXTERN insert
 

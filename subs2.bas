@@ -214,21 +214,21 @@ NEXT i
 
 printstr "song names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
-FOR i = 0 TO general(genMaxSong)
+FOR i = 0 TO gen(genMaxSong)
  writeconstant fh, i, getsongname$(i), u$(), "song"
 NEXT i
 setvispage 0
 
 printstr "sound effect names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
-FOR i = 0 TO general(genMaxSFX)
+FOR i = 0 TO gen(genMaxSFX)
  writeconstant fh, i, getsfxname$(i), u$(), "sfx"
 NEXT i
 setvispage 0
 
 printstr "hero names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
-FOR i = 0 TO general(35)
+FOR i = 0 TO gen(35)
  setpicstuf buffer(), 636, -1
  loadset game$ + ".dt0", i, 0
  writeconstant fh, i, loadname(0, 1), u$(), "hero"
@@ -257,20 +257,20 @@ setvispage 0
 
 printstr "map names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
-FOR i = 0 TO general(0)
+FOR i = 0 TO gen(0)
  writeconstant fh, i, getmapname$(i), u$(), "map"
 NEXT i
 
 printstr "attack names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
-FOR i = 0 TO general(34)
+FOR i = 0 TO gen(34)
  writeconstant fh, i + 1, readattackname$(i), u$(), "atk"
 NEXT i
 setvispage 0
 
 printstr "shop names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
-FOR i = 0 TO general(97)
+FOR i = 0 TO gen(97)
  writeconstant fh, i, readshopname$(i), u$(), "shop"
 NEXT i
 
@@ -486,8 +486,8 @@ SUB importscripts (f$)
    END WITH
   NEXT
 
-  general(40) = 0
-  general(43) = 0
+  gen(40) = 0
+  gen(43) = 0
   viscount = 0
   DO
    IF EOF(fptr) THEN EXIT DO
@@ -513,9 +513,9 @@ SUB importscripts (f$)
    'save to plotscr.lst
    buffer(0) = id
    writebinstring names$, buffer(), 1, 36
-   storerecord buffer(), workingdir$ + SLASH + "plotscr.lst", 40, general(40)
-   general(40) = general(40) + 1
-   IF buffer(0) > general(43) AND buffer(0) < 16384 THEN general(43) = buffer(0)
+   storerecord buffer(), workingdir$ + SLASH + "plotscr.lst", 40, gen(40)
+   gen(40) = gen(40) + 1
+   IF buffer(0) > gen(43) AND buffer(0) < 16384 THEN gen(43) = buffer(0)
 
    'process trigger
    IF trigger > 0 AND trigger < 16 THEN
@@ -1022,7 +1022,7 @@ DO
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) THEN
   GOSUB savelines
-  cropafter pt, general(39), 0, game$ + ".say", 400, 1
+  cropafter pt, gen(39), 0, game$ + ".say", 400, 1
   GOSUB loadlines
  END IF
  dummy = usemenu(csr, 0, 0, 7, 24)
@@ -1031,7 +1031,7 @@ DO
   CASE 7'textsearch
    strgrabber search$, 36
   CASE 6'quickchainer
-   IF scrintgrabber(cond(12), 0, general(39), 75, 77, -1, plottrigger) THEN
+   IF scrintgrabber(cond(12), 0, gen(39), 75, 77, -1, plottrigger) THEN
     IF cond(12) = 0 THEN
      cond(11) = 0
     ELSE
@@ -1040,7 +1040,7 @@ DO
     GOSUB nextboxline 
    END IF'--modify next
   CASE ELSE '--not using the quick textbox chainer
-   IF intgrabber(pt, 0, general(39), 51, 52) THEN
+   IF intgrabber(pt, 0, gen(39), 51, 52) THEN
     SWAP pt, remptr
     GOSUB savelines
     SWAP pt, remptr
@@ -1054,7 +1054,7 @@ DO
    IF keyval(77) > 1 AND pt < 32767 THEN
     GOSUB savelines
     pt = pt + 1
-    IF needaddset(pt, general(39), "text box") THEN GOSUB clearlines
+    IF needaddset(pt, gen(39), "text box") THEN GOSUB clearlines
     GOSUB loadlines
    END IF'--next/add text box
  END SELECT
@@ -1151,13 +1151,13 @@ DO
  IF cur >= 0 THEN
   temp = cond(order(cur))
   IF ct(order(cur)) = 0 THEN dummy = intgrabber(cond(order(cur)), -999, 999, 75, 77)
-  IF ct(order(cur)) = 1 THEN dummy = intgrabber(cond(order(cur)), 0, general(37), 75, 77)
-  IF ct(order(cur)) = 2 THEN dummy = intgrabber(cond(order(cur)), -32000, general(97) + 1, 75, 77)
+  IF ct(order(cur)) = 1 THEN dummy = intgrabber(cond(order(cur)), 0, gen(37), 75, 77)
+  IF ct(order(cur)) = 2 THEN dummy = intgrabber(cond(order(cur)), -32000, gen(97) + 1, 75, 77)
   IF ct(order(cur)) = 3 THEN dummy = intgrabber(cond(order(cur)), -99, 99, 75, 77)
   IF ct(order(cur)) = 4 THEN dummy = intgrabber(cond(order(cur)), -32000, 32000, 75, 77)
   IF ct(order(cur)) = 5 THEN dummy = intgrabber(cond(order(cur)), 0, 199, 75, 77)
   IF ct(order(cur)) = 6 THEN dummy = xintgrabber(cond(order(cur)), 0, 255, 0, -255, 75, 77)
-  IF ct(order(cur)) = 7 THEN dummy = scrintgrabber(cond(order(cur)), 0, general(39), 75, 77, -1, plottrigger)
+  IF ct(order(cur)) = 7 THEN dummy = scrintgrabber(cond(order(cur)), 0, gen(39), 75, 77, -1, plottrigger)
   IF order(cur) = 10 OR order(cur) = 19 OR order(cur) = 20 THEN IF temp <> cond(order(cur)) THEN GOSUB heroar
   IF order(cur) = 8 THEN IF temp <> cond(order(cur)) THEN GOSUB shopar
   IF order(cur) = 18 THEN IF temp <> cond(order(cur)) THEN GOSUB itemar
@@ -1433,9 +1433,9 @@ max(2) = 255
 min(3) = 0
 max(3) = 14
 min(4) = -1
-max(4) = general(genMaxBackdrop) - 1
+max(4) = gen(genMaxBackdrop) - 1
 min(5) = -1
-max(5) = general(genMaxSong)
+max(5) = gen(genMaxSong)
 IF buffer(197) > 0 THEN
  setdiskpages buf(), 200, 0
  loadpage game$ + ".mxs", buffer(197) - 1, 2
@@ -1461,13 +1461,13 @@ array2str buffer(), 305, temp$
 str2array temp$, cond(), 0
 FOR i = 0 TO 21
  IF ct(i) = 0 THEN cond(i) = bound(cond(i), -999, 999)
- IF ct(i) = 1 THEN cond(i) = bound(cond(i), 0, general(37))
+ IF ct(i) = 1 THEN cond(i) = bound(cond(i), 0, gen(37))
  IF ct(i) = 2 THEN cond(i) = bound(cond(i), -32000, 99)
  IF ct(i) = 3 THEN cond(i) = bound(cond(i), -99, 99)
  IF ct(i) = 4 THEN cond(i) = bound(cond(i), -32000, 32000)
  IF ct(i) = 5 THEN cond(i) = bound(cond(i), 0, 199)
  IF ct(i) = 6 THEN cond(i) = bound(cond(i), -255, 255)
- IF ct(i) = 7 THEN cond(i) = bound(cond(i), general(43) * -1, general(39))
+ IF ct(i) = 7 THEN cond(i) = bound(cond(i), gen(43) * -1, gen(39))
 NEXT i
 FOR i = 0 TO 7
  x$(i) = STRING$(38, 0)
@@ -1519,7 +1519,7 @@ setpicstuf buffer(), 400, -1
 remptr = pt
 pt = pt + 1
 DO
- IF pt > general(39) THEN pt = 0
+ IF pt > gen(39) THEN pt = 0
  IF pt = remptr THEN
   rectangle 115, 90, 100, 20, 1, vpage
   edgeprint "Not found.", 120, 95, 15, vpage

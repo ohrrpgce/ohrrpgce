@@ -104,7 +104,7 @@ gamedir$ = exepath$
 CHDIR gamedir$
 
 DIM font(1024), master(767), buffer(16384), timing(4), joy(4), scroll(16002), pass(16002), emap(16002)
-DIM menu$(22), general(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600), uilook(uiColors)
+DIM menu$(22), gen(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600), uilook(uiColors)
 'more global variables
 DIM game$, gamefile$, unsafefile$, insert
 DIM vpage, dpage, fadestate, workingdir$, version$
@@ -197,9 +197,9 @@ getui workingdir$ + SLASH + "uilook.bin"
 IF NOT isfile(game$ + ".fnt") THEN copyfile "ohrrpgce.fnt", game$ + ".fnt", buffer()
 xbload game$ + ".fnt", font(), "Font not loaded"
 '--loadgen, upgrade, resave
-xbload game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
+xbload game$ + ".gen", gen(), "general data is missing, RPG file corruption is likely"
 upgrade font()
-xbsave game$ + ".gen", general(), 1000
+xbsave game$ + ".gen", gen(), 1000
 setfont font()
 needf = 1
 
@@ -252,22 +252,22 @@ DO:
    CASE 1'--graphics mode
     IF pt = 0 THEN pt = 0: menumode = 0: GOSUB setmainmenu
     IF pt = 1 THEN maptile font()
-    IF pt = 2 THEN sprite 20, 20, general(30), 8, 5, 0, 7, winfo$(), 200, 4, 4, font()
-    IF pt = 3 THEN sprite 32, 40, general(26), 8, 16, 0, 3, hinfo$(), 640, 4, 0, font()
-    IF pt = 4 THEN sprite 34, 34, general(27), 1, 2, 0, 4, einfo$(), 578, 4, 1, font()
-    IF pt = 5 THEN sprite 50, 50, general(28), 1, 4, 1, 2, einfo$(), 1250, 2, 2, font()
-    IF pt = 6 THEN sprite 80, 80, general(29), 1, 10, 2, 1, einfo$(), 3200, 2, 3, font()
-    IF pt = 7 THEN sprite 50, 50, general(32), 3, 12, 0, 2, ainfo$(), 1250, 2, 4, font()
-    IF pt = 8 THEN sprite 24, 24, general(31), 2, 2, 0, 5, xinfo$(), 288, 4, 5, font()
-    IF pt = 9 THEN importbmp ".mxs", "screen", general(100)
+    IF pt = 2 THEN sprite 20, 20, gen(30), 8, 5, 0, 7, winfo$(), 200, 4, 4, font()
+    IF pt = 3 THEN sprite 32, 40, gen(26), 8, 16, 0, 3, hinfo$(), 640, 4, 0, font()
+    IF pt = 4 THEN sprite 34, 34, gen(27), 1, 2, 0, 4, einfo$(), 578, 4, 1, font()
+    IF pt = 5 THEN sprite 50, 50, gen(28), 1, 4, 1, 2, einfo$(), 1250, 2, 2, font()
+    IF pt = 6 THEN sprite 80, 80, gen(29), 1, 10, 2, 1, einfo$(), 3200, 2, 3, font()
+    IF pt = 7 THEN sprite 50, 50, gen(32), 3, 12, 0, 2, ainfo$(), 1250, 2, 4, font()
+    IF pt = 8 THEN sprite 24, 24, gen(31), 2, 2, 0, 5, xinfo$(), 288, 4, 5, font()
+    IF pt = 9 THEN importbmp ".mxs", "screen", gen(100)
     IF pt = 10 THEN
-     general(33) = general(33) + 1
-     importbmp ".til", "tileset", general(33)
-     general(33) = general(33) - 1
+     gen(33) = gen(33) + 1
+     importbmp ".til", "tileset", gen(33)
+     gen(33) = gen(33) - 1
     END IF
   END SELECT
   '--always resave the .GEN lump after any menu
-  xbsave game$ + ".gen", general(), 1000
+  xbsave game$ + ".gen", gen(), 1000
  END IF
 
  standardmenu menu$(), mainmax, 22, pt, 0, 0, 0, dpage, 0
@@ -447,7 +447,7 @@ OPEN workingdir$ + SLASH + "lockfile.tmp" FOR BINARY AS #lockfile
 RETRACE
 
 relump:
-xbsave game$ + ".gen", general(), 1000
+xbsave game$ + ".gen", gen(), 1000
 rpg$(0) = "Continue editing"
 rpg$(1) = "Save changes and continue editing"
 rpg$(2) = "Save changes and quit"
@@ -481,16 +481,16 @@ copylump gamefile$, "archinym.lmp", workingdir$
 '--set game$ according to the archinym
 game$ = readarchinym()
 copylump gamefile$, game$ + ".gen", workingdir$
-xbload workingdir$ + SLASH + game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
+xbload workingdir$ + SLASH + game$ + ".gen", gen(), "general data is missing, RPG file corruption is likely"
 '----load password-----
-IF general(5) >= 256 THEN
+IF gen(5) >= 256 THEN
  '--new format password
  rpas$ = readpassword$
 ELSE
  '--old scattertable format
- IF general(94) = -1 THEN RETRACE 'this is stupid
- readscatter rpas$, general(94), 200
- rpas$ = rotascii(rpas$, general(93) * -1)
+ IF gen(94) = -1 THEN RETRACE 'this is stupid
+ readscatter rpas$, gen(94), 200
+ rpas$ = rotascii(rpas$, gen(93) * -1)
 END IF
 '--if password is unset, do not prompt
 IF rpas$ = "" THEN RETRACE
@@ -534,10 +534,10 @@ ON ERROR GOTO 0
 SYSTEM
 
 hsimport:
-xbload game$ + ".gen", general(), "general data is missing, RPG file corruption is likely"
+xbload game$ + ".gen", gen(), "general data is missing, RPG file corruption is likely"
 upgrade font() 'needed?
 importscripts hsfile$
-xbsave game$ + ".gen", general(), 1000
+xbsave game$ + ".gen", gen(), 1000
 GOSUB dorelump
 GOSUB cleanupfiles
 CHDIR curdir$
@@ -980,10 +980,10 @@ FUNCTION readpassword$
 '--read a 17-byte string from GEN at word offset 7
 '--(Note that array2str uses the byte offset not the word offset)
 s$ = STRING$(17, 0)
-array2str general(), 14, s$
+array2str gen(), 14, s$
 
 '--reverse ascii rotation / weak obfuscation
-s$ = rotascii(s$, general(6) * -1)
+s$ = rotascii(s$, gen(6) * -1)
 
 '-- discard ascii chars lower than 32
 p$ = ""
@@ -1062,7 +1062,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, general(97), 0, game$ + ".sho", 40, 1: GOSUB menugen
+ IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, gen(97), 0, game$ + ".sho", 40, 1: GOSUB menugen
  dummy = usemenu(csr, 0, 0, li, 24)
  IF csr = 1 THEN
   IF keyval(75) > 1 AND pt > 0 THEN
@@ -1073,7 +1073,7 @@ DO
   IF keyval(77) > 1 AND pt < 32767 THEN
    GOSUB sshopset
    pt = pt + 1
-   IF needaddset(pt, general(97), "Shop") THEN
+   IF needaddset(pt, gen(97), "Shop") THEN
     flusharray a(), 19, 0
     setpicstuf a(), 40, -1
     storeset game$ + ".sho", pt, 0
@@ -1150,7 +1150,7 @@ storeset game$ + ".sho", pt, 0
 RETRACE
 
 menuup:
-menu$(1) = CHR$(27) + " Shop" + XSTR$(pt) + " of" + XSTR$(general(97)) + CHR$(26)
+menu$(1) = CHR$(27) + " Shop" + XSTR$(pt) + " of" + XSTR$(gen(97)) + CHR$(26)
 menu$(2) = "Name:" + sn$
 menu$(5) = "Inn Price:" + XSTR$(a(18))
 IF readbit(a(), 17, 3) = 0 THEN menu$(5) = "Inn Price: N/A"
@@ -1397,8 +1397,8 @@ SUB upgrade (font())
 DIM pal16(8)
 
 
-IF general(genVersion) = 0 THEN
- general(genVersion) = 1
+IF gen(genVersion) = 0 THEN
+ gen(genVersion) = 1
  clearpage vpage
  printstr "Flushing New Text Data...", 0, 0, vpage
  setvispage vpage 'refresh
@@ -1410,8 +1410,8 @@ IF general(genVersion) = 0 THEN
   storeset game$ + ".say", o, 0
  NEXT o
 END IF
-IF general(genVersion) = 1 THEN
- general(genVersion) = 2
+IF gen(genVersion) = 1 THEN
+ gen(genVersion) = 2
  clearpage vpage
  printstr "Updating Door Format...", 0, 0, vpage
  setvispage vpage 'refresh
@@ -1453,7 +1453,7 @@ IF general(genVersion) = 1 THEN
  FOR i = 0 TO 14
   savetanim i, buffer()
  NEXT i
- FOR i = 0 TO general(0)
+ FOR i = 0 TO gen(0)
   printstr " map" + XSTR$(i), 16, 24 + i * 8, vpage
   XBLOAD maplumpname$(i, "t"), buffer(), "Map not loaded"
   setmapdata buffer(), buffer(), 0, 0
@@ -1466,54 +1466,54 @@ IF general(genVersion) = 1 THEN
  NEXT i
 END IF
 '---VERSION 3---
-IF general(genVersion) = 2 THEN
- general(genVersion) = 3
+IF gen(genVersion) = 2 THEN
+ gen(genVersion) = 3
  clearpage vpage
  '-get old-old password
  rpas$ = ""
- FOR i = 1 TO general(99)
-  IF general(4 + i) >= 0 AND general(4 + i) <= 255 THEN rpas$ = rpas$ + CHR$(loopvar(general(4 + i), 0, 255, general(98) * -1))
+ FOR i = 1 TO gen(99)
+  IF gen(4 + i) >= 0 AND gen(4 + i) <= 255 THEN rpas$ = rpas$ + CHR$(loopvar(gen(4 + i), 0, 255, gen(98) * -1))
  NEXT i
  '-SET (obsolete) SCATTERTABLE BASE
- general(199) = INT(RND * 15) + 1
+ gen(199) = INT(RND * 15) + 1
  '-WRITE PASSWORD INTO (obsolete) SCATTERTABLE
- general(93) = INT(RND * 250) + 1
- rpas$ = rotascii(rpas$, general(93))
+ gen(93) = INT(RND * 250) + 1
+ rpas$ = rotascii(rpas$, gen(93))
  '--write old password (will be upgraded again later in this same routine)
- writescatter rpas$, general(94), 200
+ writescatter rpas$, gen(94), 200
  '-REPLACE OLD-OLD PASSWORD
  pas$ = rotascii("ufxx|twi%|fx%rt{ji", -5)
- general(99) = LEN(pas$)
- general(98) = INT(RND * 250) + 1
- FOR i = 1 TO general(99)
+ gen(99) = LEN(pas$)
+ gen(98) = INT(RND * 250) + 1
+ FOR i = 1 TO gen(99)
   temp = ASC(MID$(pas$, i, 1))
-  general(4 + i) = loopvar(temp, 0, 255, general(98))
+  gen(4 + i) = loopvar(temp, 0, 255, gen(98))
  NEXT i
  printstr "Data Scaling Shtuff...", 0, 0, vpage
  setvispage vpage 'refresh
- general(26) = 40
- general(27) = 149
- general(28) = 79
- general(29) = 29
- general(30) = 119
- general(31) = 149
- general(32) = 99
- general(33) = 14
- general(34) = 200
- general(35) = 59
- general(36) = 500
- general(37) = 1000
- general(38) = 99
- general(39) = 999
+ gen(26) = 40
+ gen(27) = 149
+ gen(28) = 79
+ gen(29) = 29
+ gen(30) = 119
+ gen(31) = 149
+ gen(32) = 99
+ gen(33) = 14
+ gen(34) = 200
+ gen(35) = 59
+ gen(36) = 500
+ gen(37) = 1000
+ gen(38) = 99
+ gen(39) = 999
 END IF
 '--VERSION 4--
-IF general(genVersion) = 3 THEN
- general(genVersion) = 4
+IF gen(genVersion) = 3 THEN
+ gen(genVersion) = 4
  clearpage vpage
  printstr "Clearing New Attack Bitsets...", 0, 0, vpage
  setvispage vpage 'refresh
  setpicstuf buffer(), 80, -1
- FOR o = 0 TO general(34)
+ FOR o = 0 TO gen(34)
   loadset game$ + ".dt6", o, 0
   buffer(18) = 0
   IF readbit(buffer(), 20, 60) THEN buffer(18) = 1
@@ -1526,12 +1526,12 @@ IF general(genVersion) = 3 THEN
   NEXT i
   storeset game$ + ".dt6", o, 0
  NEXT o
- setbit general(), 101, 6, 0 'no hide readymeter
- setbit general(), 101, 7, 0 'no hide health meter
+ setbit gen(), 101, 6, 0 'no hide readymeter
+ setbit gen(), 101, 7, 0 'no hide health meter
 END IF
 '--VERSION 5--
-IF general(genVersion) = 4 THEN
- general(genVersion) = 5
+IF gen(genVersion) = 4 THEN
+ gen(genVersion) = 5
  clearpage vpage
  printstr "Upgrading 16-color Palette Format...", 0, 0, vpage
  setvispage vpage 'refresh
@@ -1569,10 +1569,10 @@ IF general(genVersion) = 4 THEN
  NEXT j
 END IF
 '--VERSION 6--
-IF general(genVersion) = 5 THEN
+IF gen(genVersion) = 5 THEN
  'Shop stuff and song name formats changed, MIDI music added
  'Sub version info also added
- general(genVersion) = 6
+ gen(genVersion) = 6
 END IF
 
 
@@ -1589,7 +1589,7 @@ IF NOT isfile(game$ + ".veh") THEN
  '--make sure vehicle lump is present
  IF isfile("ohrrpgce.new") THEN
   IF unlumpone("ohrrpgce.new", "ohrrpgce.veh", game$ + ".veh") THEN
-   general(55) = 2
+   gen(55) = 2
   END IF
  END IF
 END IF
@@ -1608,7 +1608,7 @@ IF NOT isfile(workingdir$ + SLASH + "attack.bin") THEN
  flusharray buffer(), curbinsize(0) / 2, 0
  setbinsize 0, curbinsize(0)
  setpicstuf buffer(), curbinsize(0), -1
- FOR i = 0 TO general(34)
+ FOR i = 0 TO gen(34)
   storeset workingdir$ + SLASH + "attack.bin", i, 0
  NEXT i
 
@@ -1616,7 +1616,7 @@ IF NOT isfile(workingdir$ + SLASH + "attack.bin") THEN
  printstr "Re-init recycled enemy data...", 0, 10, vpage
  setvispage vpage 'refresh
  setpicstuf buffer(), 320, -1
- FOR i = 0 TO general(36)
+ FOR i = 0 TO gen(36)
   loadset game$ + ".dt1", i, 0
   FOR j = 17 TO 52
    buffer(j) = 0
@@ -1645,7 +1645,7 @@ IF NOT isfile(workingdir$ + SLASH + "songdata.bin") THEN
  FOR i = 99 TO 1 STEP -1
   '-- check for midis as well 'cause some people might use a WIP custom or whatnot
   IF song$(i) <> "" OR isfile(game$ + "." + STR$(i)) OR isfile(workingdir$ + SLASH + "song" + STR$(i) + ".mid") THEN
-   general(genMaxSong) = i
+   gen(genMaxSong) = i
    EXIT FOR
   END IF
  NEXT
@@ -1653,7 +1653,7 @@ IF NOT isfile(workingdir$ + SLASH + "songdata.bin") THEN
  flusharray buffer(), curbinsize(2) / 2, 0
  setbinsize 2, curbinsize(2)
  setpicstuf buffer(), curbinsize(2), -1
- FOR i = 0 TO general(genMaxSong)
+ FOR i = 0 TO gen(genMaxSong)
   writebinstring song$(i), buffer(), 0, 30
   storeset workingdir$ + SLASH + "songdata.bin", i, 0
  NEXT
@@ -1669,15 +1669,15 @@ updaterecordlength game$ + ".stf", 1
 updaterecordlength workingdir$ + SLASH + "songdata.bin", 2
 
 '--update to new (3rd) password format
-IF general(5) < 256 THEN
- general(5) = 256
- IF general(94) = -1 THEN
+IF gen(5) < 256 THEN
+ gen(5) = 256
+ IF gen(94) = -1 THEN
   '--no password, write a blank one
   pas$ = ""
  ELSE
   '--read the old scattertable
-  readscatter pas$, general(94), 200
-  pas$ = rotascii(pas$, general(93) * -1)
+  readscatter pas$, gen(94), 200
+  pas$ = rotascii(pas$, gen(93) * -1)
  END IF
  writepassword pas$
 END IF
@@ -1689,7 +1689,7 @@ IF getfixbit(fixAttackitems) = 0 THEN
   OPEN workingdir$ + SLASH + "attack.bin" FOR BINARY AS #FH
   REDIM dat(curbinsize(0)/2 - 1) AS SHORT
   p = 1
-  FOR i = 0 to general(genMaxAttack)
+  FOR i = 0 to gen(genMaxAttack)
 
     GET #fh,p,dat()
     FOR y = 53 TO 59
@@ -1708,7 +1708,7 @@ END SUB
 SUB writepassword (p$)
 
 '-- set password version number (only if needed)
-IF general(5) < 256 THEN general(5) = 256
+IF gen(5) < 256 THEN gen(5) = 256
 
 '--pad the password with some silly obfuscating low-ascii chars
 FOR i = 1 TO 17 - LEN(p$)
@@ -1720,11 +1720,11 @@ FOR i = 1 TO 17 - LEN(p$)
 NEXT i
 
 '--apply a new ascii rotation / weak obfuscation number
-general(6) = INT(RND * 253) + 1
-p$ = rotascii(p$, general(6))
+gen(6) = INT(RND * 253) + 1
+p$ = rotascii(p$, gen(6))
 
 '--write the password into GEN
-str2array p$, general(), 14
+str2array p$, gen(), 14
 
 END SUB
 

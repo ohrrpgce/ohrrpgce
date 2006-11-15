@@ -85,19 +85,6 @@ pt = 0: csr = 0: top = 0
 
 bitname$(0) = "Background is Fuzzy"
 
-
-' min(3) = 0: max(3) = 5: offset(3) = 8             'speed
-' FOR i = 0 TO 3
-'  min(5 + i) = 0: max(5 + i) = 8: offset(5 + i) = 17 + i
-' NEXT i
-' min(9) = -1: max(9) = 255: offset(9) = 11 'battles
-' min(10) = -2: max(10) = general(43): offset(10) = 12 'use button
-' min(11) = -2: max(11) = general(43): offset(11) = 13 'menu button
-' min(12) = -999: max(12) = 999: offset(12) = 14 'tag
-' min(13) = general(43) * -1: max(13) = general(39): offset(13) = 15'mount
-' min(14) = general(43) * -1: max(14) = general(39): offset(14) = 16'dismount
-' min(15) = 0: max(15) = 99: offset(15) = 21'dismount
-
 GOSUB loaddat
 GOSUB menu
 
@@ -114,10 +101,10 @@ DO
     EXIT DO
    END IF
   CASE 1
-   IF pt = general(genMaxMenu) AND keyval(77) > 1 THEN
+   IF pt = gen(genMaxMenu) AND keyval(77) > 1 THEN
     GOSUB savedat
     pt = bound(pt + 1, 0, 255)
-    IF needaddset(pt, general(genMaxMenu), "menu") THEN
+    IF needaddset(pt, gen(genMaxMenu), "menu") THEN
      FOR i = 0 TO MenuDatSize - 1
       menudat(i) = 0
      NEXT i
@@ -126,7 +113,7 @@ DO
     END IF
    END IF
    newptr = pt
-   IF intgrabber(newptr, 0, general(genMaxMenu), 75, 77) THEN
+   IF intgrabber(newptr, 0, gen(genMaxMenu), 75, 77) THEN
     GOSUB savedat
     pt = newptr
     GOSUB loaddat
@@ -277,11 +264,11 @@ FOR i = 0 TO 3
  min(5 + i) = 0: max(5 + i) = 8: offset(5 + i) = 17 + i
 NEXT i
 min(9) = -1: max(9) = 255: offset(9) = 11 'battles
-min(10) = -2: max(10) = general(43): offset(10) = 12 'use button
-min(11) = -2: max(11) = general(43): offset(11) = 13 'menu button
+min(10) = -2: max(10) = gen(43): offset(10) = 12 'use button
+min(11) = -2: max(11) = gen(43): offset(11) = 13 'menu button
 min(12) = -999: max(12) = 999: offset(12) = 14 'tag
-min(13) = general(43) * -1: max(13) = general(39): offset(13) = 15'mount
-min(14) = general(43) * -1: max(14) = general(39): offset(14) = 16'dismount
+min(13) = gen(43) * -1: max(13) = gen(39): offset(13) = 15'mount
+min(14) = gen(43) * -1: max(14) = gen(39): offset(14) = 16'dismount
 min(15) = 0: max(15) = 99: offset(15) = 21'dismount
 
 GOSUB loadveh
@@ -300,10 +287,10 @@ DO
     EXIT DO
    END IF
   CASE 1
-   IF pt = general(55) AND keyval(77) > 1 THEN
+   IF pt = gen(55) AND keyval(77) > 1 THEN
     GOSUB saveveh
     pt = bound(pt + 1, 0, 32767)
-    IF needaddset(pt, general(55), "vehicle") THEN
+    IF needaddset(pt, gen(55), "vehicle") THEN
      FOR i = 0 TO 39
       veh(i) = 0
      NEXT i
@@ -312,7 +299,7 @@ DO
     END IF
    END IF
    newptr = pt
-   IF intgrabber(newptr, 0, general(55), 75, 77) THEN
+   IF intgrabber(newptr, 0, gen(55), 75, 77) THEN
     GOSUB saveveh
     pt = newptr
     GOSUB loadveh
@@ -468,9 +455,9 @@ stat$(9) = names$(7)
 stat$(10) = names$(31)
 stat$(11) = names$(4)
 
-IF general(genPoison) <= 0 THEN general(genPoison) = 161
-IF general(genStun) <= 0 THEN general(genStun) = 159
-IF general(genMute) <= 0 THEN general(genMute) = 163
+IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
+IF gen(genStun) <= 0 THEN gen(genStun) = 159
+IF gen(genMute) <= 0 THEN gen(genMute) = 163
 last = maxMenu
 m$(0) = "Return to Main Menu"
 m$(1) = "Preference Bitsets..."
@@ -483,10 +470,10 @@ m$(16) = "Import New Master Palette..."
 max(1) = 1
 max(2) = 320
 max(3) = 200
-max(4) = general(genMaxMap)
-max(5) = general(genMaxSong)
-max(6) = general(genMaxSong)
-max(7) = general(genMaxSong)
+max(4) = gen(genMaxMap)
+max(5) = gen(genMaxSong)
+max(6) = gen(genMaxSong)
+max(7) = gen(genMaxSong)
 max(9) = 0
 max(12) = 32000
 max(17) = 255 'poison
@@ -535,7 +522,7 @@ DO
    bitname$(12) = "Skip load screen"
    bitname$(13) = "Pause on All Battle Menus"
    bitname$(14) = "Disable Hero's Battle Cursor"
-   editbitset general(), 101, 15, bitname$()
+   editbitset gen(), 101, 15, bitname$()
   END IF
   IF csr = 8 THEN generalsfxmenu
   IF csr = 10 THEN GOSUB ttlbrowse
@@ -546,34 +533,34 @@ DO
  IF csr = 17 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
-  general(genPoison) = ASC(d$)
+  gen(genPoison) = ASC(d$)
    GOSUB genstr
   END IF
  END IF
  IF csr = 18 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
-  general(genStun) = ASC(d$)
+  gen(genStun) = ASC(d$)
    GOSUB genstr
   END IF
  END IF
  IF csr = 19 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
-  general(genMute) = ASC(d$)
+  gen(genMute) = ASC(d$)
    GOSUB genstr
   END IF
  END IF
 
  END IF
  IF csr > 1 AND csr <= 4 THEN
-  IF intgrabber(general(100 + csr), 0, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(gen(100 + csr), 0, max(csr), 75, 77) THEN GOSUB genstr
  END IF
  IF csr > 4 AND csr < 8 THEN
-  IF zintgrabber(general(csr - 3), -1, max(csr), 75, 77) THEN GOSUB genstr
+  IF zintgrabber(gen(csr - 3), -1, max(csr), 75, 77) THEN GOSUB genstr
  END IF
  IF csr = 12 THEN
-  IF intgrabber(general(96), 0, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(gen(96), 0, max(csr), 75, 77) THEN GOSUB genstr
  END IF
  IF csr = 14 THEN
   strgrabber longname$, 38
@@ -584,19 +571,19 @@ DO
   GOSUB genstr
  END IF
  IF csr = 17 THEN
-  IF intgrabber(general(genPoison), 32, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(gen(genPoison), 32, max(csr), 75, 77) THEN GOSUB genstr
  END IF
  IF csr = 18 THEN
-  IF intgrabber(general(genStun), 32, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(gen(genStun), 32, max(csr), 75, 77) THEN GOSUB genstr
  END IF
  IF csr = 19 THEN
-  IF intgrabber(general(genMute), 32, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(gen(genMute), 32, max(csr), 75, 77) THEN GOSUB genstr
  END IF
  IF csr = 20 THEN
-  IF intgrabber(general(genDamageCap), 0, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(gen(genDamageCap), 0, max(csr), 75, 77) THEN GOSUB genstr
  END IF
  IF csr >= 21 AND csr <= 32 THEN
-  IF intgrabber(general(genStatCap + (csr - 21)), 0, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(gen(genStatCap + (csr - 21)), 0, max(csr), 75, 77) THEN GOSUB genstr
  END IF
 
  standardmenu m$(), last, 22, csr, menutop, 0, 0, dpage, 0
@@ -614,27 +601,27 @@ clearpage 3
 EXIT SUB
 
 genstr:
-'IF general(101) = 0 THEN m$(1) = "Active Menu Mode" ELSE m$(1) = "Wait Menu Mode"
-m$(2) = "Starting X: " & general(102)
-m$(3) = "Starting Y: " & general(103)
-m$(4) = "Starting Map: " & general(104)
+'IF gen(101) = 0 THEN m$(1) = "Active Menu Mode" ELSE m$(1) = "Wait Menu Mode"
+m$(2) = "Starting X: " & gen(102)
+m$(3) = "Starting Y: " & gen(103)
+m$(4) = "Starting Map: " & gen(104)
 m$(5) = "Title Music: "
-IF general(2) = 0 THEN m$(5) = m$(5) & "-none-" ELSE m$(5) = m$(5) & (general(2) - 1) & " " & getsongname$(general(2) - 1)
+IF gen(2) = 0 THEN m$(5) = m$(5) & "-none-" ELSE m$(5) = m$(5) & (gen(2) - 1) & " " & getsongname$(gen(2) - 1)
 m$(6) = "Battle Victory Music: "
-IF general(3) = 0 THEN m$(6) = m$(6) & "-none-" ELSE m$(6) = m$(6) & (general(3) - 1) & " " & getsongname$(general(3) - 1)
+IF gen(3) = 0 THEN m$(6) = m$(6) & "-none-" ELSE m$(6) = m$(6) & (gen(3) - 1) & " " & getsongname$(gen(3) - 1)
 m$(7) = "Default Battle Music: "
-IF general(4) = 0 THEN m$(7) = m$(7) & "-none-" ELSE m$(7) = m$(7) & (general(4) - 1) & " " & getsongname$(general(4) - 1)
-m$(12) = "Starting Money: " & general(96)
+IF gen(4) = 0 THEN m$(7) = m$(7) & "-none-" ELSE m$(7) = m$(7) & (gen(4) - 1) & " " & getsongname$(gen(4) - 1)
+m$(12) = "Starting Money: " & gen(96)
 m$(14) = "Long Name:" + longname$
 m$(15) = "About Line:" + aboutline$
-m$(17) = "Poison Indicator: " & general(61) & " " & CHR$(general(61))
-m$(18) = "Stun Indicator: " & general(62) & " " & CHR$(general(62))
-m$(19) = "Mute Indicator: " & general(genMute) & " " & CHR$(general(genMute))
+m$(17) = "Poison Indicator: " & gen(61) & " " & CHR$(gen(61))
+m$(18) = "Stun Indicator: " & gen(62) & " " & CHR$(gen(62))
+m$(19) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
 m$(20) = "Damage Cap: "
-if general(genDamageCap) = 0 THEN m$(20) = m$(20) + "None" ELSE m$(20) = m$(20) & general(genDamageCap)
+if gen(genDamageCap) = 0 THEN m$(20) = m$(20) + "None" ELSE m$(20) = m$(20) & gen(genDamageCap)
 FOR i = 0 to 11
  m$(21 + i) = stat$(i) + " Cap: "
- if general(genStatCap + i) = 0 THEN m$(21 + i) = m$(21 + i) + "None" ELSE m$(21 + i) = m$(21 + i) & general(genStatCap + i)
+ if gen(genStatCap + i) = 0 THEN m$(21 + i) = m$(21 + i) + "None" ELSE m$(21 + i) = m$(21 + i) & gen(genStatCap + i)
 NEXT
 RETRACE
 
@@ -650,7 +637,7 @@ DO
  IF keyval(72) > 1 AND gcsr = 1 THEN gcsr = 0
  IF keyval(80) > 1 AND gcsr = 0 THEN gcsr = 1
  IF gcsr = 1 THEN
-  IF intgrabber(general(1), 0, general(100) - 1, 75, 77) THEN GOSUB gshowpage
+  IF intgrabber(gen(1), 0, gen(100) - 1, 75, 77) THEN GOSUB gshowpage
  END IF
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF gcsr = 0 THEN RETRACE
@@ -666,17 +653,17 @@ DO
 LOOP
 
 gshowpage:
-loadpage game$ + ".mxs", general(1), 2
+loadpage game$ + ".mxs", gen(1), 2
 RETRACE
 
 loadpass:
-IF general(5) >= 256 THEN
+IF gen(5) >= 256 THEN
  '--new simple format
  pas$ = readpassword$
 ELSE
  '--old scattertable format
- readscatter pas$, general(94), 200
- pas$ = rotascii(pas$, general(93) * -1)
+ readscatter pas$, gen(94), 200
+ pas$ = rotascii(pas$, gen(93) * -1)
 END IF
 IF isfile(workingdir$ + SLASH + "browse.txt") THEN
  setpicstuf buffer(), 40, -1
@@ -696,9 +683,9 @@ writepassword newpas$
 
 '--also write old scattertable format, for backwards
 '-- compatability with older versions of game.exe
-general(93) = INT(RND * 250) + 1
-oldpas$ = rotascii(pas$, general(93))
-writescatter oldpas$, general(94), 200
+gen(93) = INT(RND * 250) + 1
+oldpas$ = rotascii(pas$, gen(93))
+writescatter oldpas$, gen(94), 200
 
 '--write long name and about line
 setpicstuf buffer(), 40, -1
@@ -841,7 +828,7 @@ menu$(2) = "game-over plotscript"
 menu$(3) = "load-game plotscript"
 scrname$(0) = ""
 FOR i = 1 TO 3
- scrname$(i) = ": " + scriptname$(general(scriptgenoff(i)), plottrigger)
+ scrname$(i) = ": " + scriptname$(gen(scriptgenoff(i)), plottrigger)
 NEXT
 
 pt = 0
@@ -857,9 +844,9 @@ DO
   IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
  ELSE
   IF keyval(57) > 1 OR keyval(28) > 1 THEN
-   scrname$(pt) = ": " + scriptbrowse$(general(scriptgenoff(pt)), plottrigger, menu$(pt))
-  ELSEIF scrintgrabber(general(scriptgenoff(pt)), 0, 0, 75, 77, 1, plottrigger) THEN
-   scrname$(pt) = ": " + scriptname$(general(scriptgenoff(pt)), plottrigger)
+   scrname$(pt) = ": " + scriptbrowse$(gen(scriptgenoff(pt)), plottrigger, menu$(pt))
+  ELSEIF scrintgrabber(gen(scriptgenoff(pt)), 0, 0, 75, 77, 1, plottrigger) THEN
+   scrname$(pt) = ": " + scriptname$(gen(scriptgenoff(pt)), plottrigger)
   END IF
  END IF
  FOR i = 0 TO menusize
@@ -884,8 +871,8 @@ SUB generalsfxmenu ()
   menu(3) = "Cursor Sound: "
 
   FOR i = 1 to num
-    IF general(sfxgenoff(i)) > 0 THEN
-      disp(i) = menu(i) & (general(sfxgenoff(i)) - 1) & " " & getsfxname(general(sfxgenoff(i)) - 1)
+    IF gen(sfxgenoff(i)) > 0 THEN
+      disp(i) = menu(i) & (gen(sfxgenoff(i)) - 1) & " " & getsfxname(gen(sfxgenoff(i)) - 1)
     ELSE
       disp(i) = menu(i) & "None"
     END IF
@@ -907,9 +894,9 @@ SUB generalsfxmenu ()
     CASE 0
       IF accept THEN EXIT DO
     CASE 1 TO num
-      IF zintgrabber(general(sfxgenoff(pt)), -1, general(genMaxSFX), 75, 77) THEN
-        IF general(sfxgenoff(pt)) > 0 THEN
-          disp(pt) = menu(pt) & (general(sfxgenoff(pt))-1) & " " & getsfxname(general(sfxgenoff(pt))-1)
+      IF zintgrabber(gen(sfxgenoff(pt)), -1, gen(genMaxSFX), 75, 77) THEN
+        IF gen(sfxgenoff(pt)) > 0 THEN
+          disp(pt) = menu(pt) & (gen(sfxgenoff(pt))-1) & " " & getsfxname(gen(sfxgenoff(pt))-1)
         ELSE
           disp(pt) = menu(pt) & "None"
         END IF
@@ -918,7 +905,7 @@ SUB generalsfxmenu ()
 
     standardmenu disp(), num, 22, pt, menutop, 0, 0, dpage, 0
 
-    printstr str(general(174)), 0, 100, dpage
+    printstr str(gen(174)), 0, 100, dpage
 
     SWAP vpage, dpage
     setvispage vpage
@@ -963,7 +950,7 @@ DO
  ELSE
   '-- check for switching song
   newsong = snum
-  IF intgrabber(newsong, 0, general(genMaxSong), 51, 52) THEN
+  IF intgrabber(newsong, 0, gen(genMaxSong), 51, 52) THEN
    GOSUB ssongdata
    snum = newsong
    GOSUB getsonginfo
@@ -976,7 +963,7 @@ DO
   IF keyval(77) > 1 AND snum < 32767 THEN
    GOSUB ssongdata
    snum = snum + 1
-   IF needaddset(snum, general(genMaxSong), "song") THEN sname$ = ""
+   IF needaddset(snum, gen(genMaxSong), "song") THEN sname$ = ""
    GOSUB getsonginfo
   END IF
  END IF
@@ -1066,7 +1053,7 @@ ELSE
  sname$ = ""
 END IF
 
-menu$(1) = "<- Song " + STR$(snum) + " of " + STR$(general(genMaxSong)) + " ->"
+menu$(1) = "<- Song " + STR$(snum) + " of " + STR$(gen(genMaxSong)) + " ->"
 IF songfile$ <> "" THEN menu$(2) = "Name: " + sname$ ELSE menu$(2) = "-Unused-"
 menu$(7) = ""
 menu$(8) = "Type: " + songtype$
@@ -1169,7 +1156,7 @@ DO
  ELSE
   '-- check for switching sfx
   newsfx = snum
-  IF intgrabber(newsfx, 0, general(genMaxSFX), 51, 52) THEN
+  IF intgrabber(newsfx, 0, gen(genMaxSFX), 51, 52) THEN
    GOSUB ssfxdata
    snum = newsfx
    GOSUB getsfxinfo
@@ -1182,7 +1169,7 @@ DO
   IF keyval(77) > 1 AND snum < 32767 THEN
    GOSUB ssfxdata
    snum = snum + 1
-   IF needaddset(snum, general(genMaxSFX), "sfx") THEN sname$ = ""
+   IF needaddset(snum, gen(genMaxSFX), "sfx") THEN sname$ = ""
    GOSUB getsfxinfo
   END IF
  END IF
@@ -1273,7 +1260,7 @@ ELSE '--sfx doesn't exist
  sname$ = ""
 END IF
 
-menu$(1) = "<- SFX " + STR$(snum) + " of " + STR$(general(genMaxSFX)) + " ->"
+menu$(1) = "<- SFX " + STR$(snum) + " of " + STR$(gen(genMaxSFX)) + " ->"
 IF sfxfile$ <> "" THEN menu$(2) = "Name: " + sname$ ELSE menu$(2) = "-Unused-"
 menu$(8) = ""
 menu$(9) = "Type: " + sfxtype$
@@ -1332,7 +1319,7 @@ IF triggertype = 1 THEN
  fh = FREEFILE
  OPEN workingdir$ + SLASH + "plotscr.lst" FOR BINARY AS #fh
  'numberedlast = firstscript + LOF(fh) \ 40 - 1
- numberedlast = firstscript + general(40) - 1
+ numberedlast = firstscript + gen(40) - 1
 
  REDIM scriptnames$(numberedlast), scriptids(numberedlast)
 

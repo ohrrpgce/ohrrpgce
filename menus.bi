@@ -11,14 +11,7 @@ declare sub editmenus
 declare sub vehicles
 declare sub gendata ()
 declare subcsr = 0
-declare subm$(0) = "previous menu"
-declare subm$(1) = "new-game script: " + scriptname$(general(41), "plotscr.lst")
-declare subm$(2) = "game-over script: " + scriptname$(general(42), "plotscr.lst")
-declare subm$(3) = "load-game script: " + scriptname$(general(57), "plotscr.lst")
 declare sub importsong ()
-declare submenu$(0) = "export " + ext$ + " file"
-declare submenu$(1) = "export .bam fallback file"
-declare submenu$(2) = "cancel"
 declare sub importsfx ()
 
 #ENDIF

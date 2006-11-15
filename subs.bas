@@ -208,7 +208,7 @@ DIM max(22), min(22)
 'Limit 0 is not used
 
 CONST EnLimPic = 1
-max(EnLimPic) = general(27) 'or 28 or 29. Must be updated!
+max(EnLimPic) = gen(27) 'or 28 or 29. Must be updated!
 
 CONST EnLimUInt = 2
 max(EnLimUInt) = 32767
@@ -233,13 +233,13 @@ FOR i = 9 TO 10: max(EnLimStat + i) = 100:   NEXT i ' focus, counter
 max(EnLimStat + 11) = 10        ' max hits
 
 CONST EnLimSpawn = 18
-max(EnLimSpawn) = general(36) + 1 'must be updated!
+max(EnLimSpawn) = gen(36) + 1 'must be updated!
 
 CONST EnLimSpawnNum = 19
 max(EnLimSpawnNum) = 8
 
 CONST EnLimAtk = 20
-max(EnLimAtk) = general(34) + 1
+max(EnLimAtk) = gen(34) + 1
 
 CONST EnLimStr16 = 21
 max(EnLimStr16) = 16
@@ -540,26 +540,26 @@ DO
 
  '--CTRL+BACKSPACE
  IF keyval(29) > 0 AND keyval(14) THEN
-  cropafter recindex, general(36), 0, game$ + ".dt1", 320, 1
+  cropafter recindex, gen(36), 0, game$ + ".dt1", 320, 1
  END IF
 
  dummy = usemenu(pt, top, 0, size, 22)
 
  IF workmenu(pt) = EnMenuChooseAct OR (keyval(56) > 0 and NOT isStringField(menutype(workmenu(pt)))) THEN
   lastindex = recindex
-  IF keyval(77) > 1 AND recindex = general(36) AND recindex < 32767 THEN
+  IF keyval(77) > 1 AND recindex = gen(36) AND recindex < 32767 THEN
    '--attempt to add a new set
    '--save current
    writeenemydata recbuf(), lastindex
    '--increment
    recindex = recindex + 1
    '--make sure we really have permission to increment
-   IF needaddset(recindex, general(36), "enemy") THEN
+   IF needaddset(recindex, gen(36), "enemy") THEN
     flusharray recbuf(), 159, 0
     GOSUB EnUpdateMenu
    END IF
   ELSE
-   IF intgrabber(recindex, 0, general(36), 75, 77) THEN
+   IF intgrabber(recindex, 0, gen(36), 75, 77) THEN
     writeenemydata recbuf(), lastindex
     GOSUB EnLoadSub
    END IF
@@ -635,10 +635,10 @@ EXIT SUB
 EnUpdateMenu:
 
 '--in case new enemies have been added
-max(EnLimSpawn) = general(36) + 1
+max(EnLimSpawn) = gen(36) + 1
 
 '--in case the PicSize has changed
-max(EnLimPic) = general(27 + bound(recbuf(EnDatPicSize), 0, 2))
+max(EnLimPic) = gen(27 + bound(recbuf(EnDatPicSize), 0, 2))
 
 '--re-enforce bounds, as they might have just changed
 enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
@@ -769,7 +769,7 @@ DO
  END IF
  IF bcsr = 2 THEN dummy = intgrabber(c(0), 0, 99, 75, 77)
  IF bcsr > 2 THEN
-  IF zintgrabber(c(bcsr - 2), -1, general(37), 75, 77) THEN
+  IF zintgrabber(c(bcsr - 2), -1, gen(37), 75, 77) THEN
    GOSUB lpreviewform
   END IF
   IF pt >= 0 THEN
@@ -820,8 +820,8 @@ RETRACE
 
 editform:
 '--???  well, you see..
-max(1) = general(genMaxBackdrop) - 1   'genMaxBackdrop is number of backdrops, but is necessary
-max(2) = general(genMaxSong) + 1   'genMaxSongs is number of last song, but is optional
+max(1) = gen(genMaxBackdrop) - 1   'genMaxBackdrop is number of backdrops, but is necessary
+max(2) = gen(genMaxSong) + 1   'genMaxSongs is number of last song, but is optional
 max(3) = 50
 max(4) = 1000
 pt = 0: csr2 = -6: csr3 = 0
@@ -851,7 +851,7 @@ DO
    GOSUB saveform
    RETRACE
   END IF
-  IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, general(37), 0, game$ + ".for", 80, 1
+  IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, gen(37), 0, game$ + ".for", 80, 1
   dummy = usemenu(csr2, -6, -6, 7, 25)
   IF keyval(57) > 1 OR keyval(28) > 1 THEN
    IF csr2 = -6 THEN
@@ -880,7 +880,7 @@ DO
   END IF
   IF csr2 = -5 THEN '---SELECT A DIFFERENT FORMATION
    remptr = pt
-   IF intgrabber(pt, 0, general(37), 51, 52) THEN
+   IF intgrabber(pt, 0, gen(37), 51, 52) THEN
     SWAP pt, remptr
     GOSUB saveform
     SWAP pt, remptr
@@ -896,13 +896,13 @@ DO
    IF keyval(77) > 1 AND pt < 32767 THEN
     GOSUB saveform
     pt = pt + 1
-    IF needaddset(pt, general(37), "formation") THEN GOSUB clearformation
+    IF needaddset(pt, gen(37), "formation") THEN GOSUB clearformation
     GOSUB loadform
     GOSUB formpics
    END IF
   END IF'--DONE SELECTING DIFFERENT FORMATION
   IF csr2 >= 0 THEN
-   IF zintgrabber(a(csr2 * 4 + 0), -1, general(36), 75, 77) THEN
+   IF zintgrabber(a(csr2 * 4 + 0), -1, gen(36), 75, 77) THEN
     GOSUB formpics
    END IF
   END IF
@@ -962,7 +962,7 @@ clearformation:
 FOR i = 0 TO 40
  a(i) = 0
 NEXT i
-a(33) = general(4)
+a(33) = gen(4)
 setpicstuf a(), 80, -1
 storeset game$ + ".for", pt, 0
 RETRACE
@@ -1064,7 +1064,7 @@ DO
  GOSUB movesmall
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) THEN
-  cropafter pt, general(35), -1, game$ + ".dt0", 636, 1
+  cropafter pt, gen(35), -1, game$ + ".dt0", 636, 1
  END IF
  dummy = usemenu(csr, 0, 0, 8, 24)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
@@ -1078,7 +1078,7 @@ DO
  END IF
  IF csr = 1 THEN
   remptr = pt
-  IF intgrabber(pt, 0, general(35), 51, 52) THEN
+  IF intgrabber(pt, 0, gen(35), 51, 52) THEN
    SWAP pt, remptr
    GOSUB lasthero
    SWAP pt, remptr
@@ -1092,7 +1092,7 @@ DO
   IF keyval(77) > 1 AND pt < 59 THEN
    GOSUB lasthero
    pt = pt + 1
-   IF needaddset(pt, general(35), "hero") THEN GOSUB clearhero
+   IF needaddset(pt, gen(35), "hero") THEN GOSUB clearhero
    GOSUB thishero
   END IF
  END IF
@@ -1182,9 +1182,9 @@ LOOP
 picnpal:
 bctr = 0
 bmenu$(0) = "Previous Menu"
-min(1) = 0: max(1) = general(26)
+min(1) = 0: max(1) = gen(26)
 min(2) = 0: max(2) = 32767
-min(3) = 0: max(3) = general(30)
+min(3) = 0: max(3) = gen(30)
 min(4) = 0: max(4) = 32767
 min(5) = -1: max(5) = 99
 min(6) = 0: max(6) = 254
@@ -1350,7 +1350,7 @@ DO
  END IF
  IF bctr > 0 THEN
   IF colcsr = 0 THEN
-   IF zintgrabber(a(offset + (bctr - 1) * 2), -1, general(34), leftkey, rightkey) THEN
+   IF zintgrabber(a(offset + (bctr - 1) * 2), -1, gen(34), leftkey, rightkey) THEN
     o = bctr
     GOSUB gosubatkname
    END IF
@@ -1645,12 +1645,12 @@ menu$(18) = "Stat Bonuses..."
 menu$(19) = "Equipment Bits..."
 menu$(20) = "Who Can Equip?..."
 max(3) = 32767
-max(4) = general(34) + 1
-max(5) = general(34) + 1
+max(4) = gen(34) + 1
+max(5) = gen(34) + 1
 max(6) = 5
-max(7) = general(34) + 1
-max(8) = general(34) + 1
-max(9) = general(31)
+max(7) = gen(34) + 1
+max(8) = gen(34) + 1
+max(9) = gen(31)
 max(10) = 32767
 max(11) = 2
 max(12) = 999
@@ -1711,7 +1711,7 @@ DO
   CASE 4, 5, 7
    IF zintgrabber(a(46 + (pt - 3)), -1, max(pt), 75, 77) THEN GOSUB itemmenu
   CASE 8
-   IF xintgrabber(a(46 + (pt - 3)), 0, max(pt), -1, general(39) * -1, 75, 77) THEN GOSUB itemmenu
+   IF xintgrabber(a(46 + (pt - 3)), 0, max(pt), -1, gen(39) * -1, 75, 77) THEN GOSUB itemmenu
   CASE 11
    IF intgrabber(a(73), 0, 2, 75, 77) THEN GOSUB itemmenu
   CASE 12 TO 15
@@ -1966,9 +1966,9 @@ lnpc(9) = -999
 lnpc(10) = -999
 lnpc(13) = -32767
 
-unpc(4) = general(39)'max text boxes
-unpc(12) = general(43)'max scripts
-unpc(14) = general(55) + 1'max vehicles
+unpc(4) = gen(39)'max text boxes
+unpc(12) = gen(43)'max scripts
+unpc(14) = gen(55) + 1'max vehicles
 mtype$(0) = "Stand Still"
 mtype$(1) = "Wander"
 mtype$(2) = "Pace"
@@ -1998,7 +1998,7 @@ info$(2, 0) = ":Step On"
 info$(0, 1) = " Change Direction"
 info$(1, 1) = " Face Player"
 info$(2, 1) = " Do Not Face Player"
-unpc(0) = general(30)
+unpc(0) = gen(30)
 
 csr = 0
 cur = 0: top = 0
@@ -2141,17 +2141,17 @@ LOOP
 
 onetimetog:
 IF npc(cur * 15 + 11) > 0 THEN
- setbit general(), 106, npc(cur * 15 + 11) - 1, 0
+ setbit gen(), 106, npc(cur * 15 + 11) - 1, 0
  npc(cur * 15 + 11) = 0: RETRACE
 END IF
 
 i = 0
 DO
- general(105) = loopvar(general(105), 0, 999, 1)
+ gen(105) = loopvar(gen(105), 0, 999, 1)
  i = i + 1: IF i > 1000 THEN RETRACE
-LOOP UNTIL readbit(general(), 106, general(105)) = 0
-npc(cur * 15 + 11) = general(105) + 1
-setbit general(), 106, general(105), 1
+LOOP UNTIL readbit(gen(), 106, gen(105)) = 0
+npc(cur * 15 + 11) = gen(105) + 1
+setbit gen(), 106, gen(105), 1
 RETRACE
 
 ' itstr:
@@ -2247,7 +2247,7 @@ DIM stray(10)
 s$ = STRING$(20, "!")
 
 FOR i = 0 TO lhold
- setbit stray(), 0, i, readbit(general(), start - 1, general(start + i))
+ setbit stray(), 0, i, readbit(gen(), start - 1, gen(start + i))
 NEXT i
 
 array2str stray(), 0, s$
@@ -2418,12 +2418,12 @@ FOR i = 0 TO lhold
  trueb = readbit(stray(), 0, i)
  DO
   scatb = INT(RND * (16 + (i * 16)))
- LOOP UNTIL readbit(general(), start - 1, scatb) = trueb
- general(start + i) = scatb
+ LOOP UNTIL readbit(gen(), start - 1, scatb) = trueb
+ gen(start + i) = scatb
 NEXT i
 
 FOR i = lhold + 1 TO 159
- general(start + i) = INT(RND * 4444)
+ gen(start + i) = INT(RND * 4444)
 NEXT i
 END SUB
 

@@ -220,7 +220,7 @@ CONST AtkLimStr38 = 19
 max(AtkLimStr38) = 38
 
 CONST AtkLimPic = 1
-max(AtkLimPic) = general(32)
+max(AtkLimPic) = gen(32)
 
 CONST AtkLimAnimPattern = 2
 max(AtkLimAnimPattern) = 3
@@ -304,7 +304,7 @@ max(AtkLimExtraDamage) = 1000
 min(AtkLimExtraDamage) = -100
 
 CONST AtkLimChainTo = 12
-max(AtkLimChainTo) = general(34) + 1'--must be updated!
+max(AtkLimChainTo) = gen(34) + 1'--must be updated!
 
 CONST AtkLimChainRate = 13
 max(AtkLimChainRate) = 100
@@ -415,7 +415,7 @@ max(AtkLimItem) = 255
 min(AtkLimItem) = 0
 
 CONST AtkLimSfx = 27
-max(AtkLimSfx) = general(genMaxSFX) + 1
+max(AtkLimSfx) = gen(genMaxSFX) + 1
 min(AtkLimSfx) = 0
 
 'next limit is 28 (remember to update the dim)
@@ -792,12 +792,12 @@ DO
 
  '--CTRL+BACKSPACE
  IF keyval(29) > 0 AND keyval(14) THEN
-  cropafter recindex, general(34), 0, game$ + ".dt6", 80, 1
+  cropafter recindex, gen(34), 0, game$ + ".dt6", 80, 1
   '--this is a hack to detect if it is safe to erase the extended data
   '--in the second file
-  IF recindex = general(34) THEN
+  IF recindex = gen(34) THEN
    '--delete the end of attack.bin without the need to prompt
-   cropafter recindex, general(34), 0, workingdir$ + SLASH + "attack.bin", getbinsize(0), 0
+   cropafter recindex, gen(34), 0, workingdir$ + SLASH + "attack.bin", getbinsize(0), 0
   END IF
  END IF
 
@@ -805,19 +805,19 @@ DO
 
  IF workmenu(pt) = AtkChooseAct OR (keyval(56) > 0 and NOT isStringField(menutype(workmenu(pt)))) THEN
   lastindex = recindex
-  IF keyval(77) > 1 AND recindex = general(34) AND recindex < 32767 THEN
+  IF keyval(77) > 1 AND recindex = gen(34) AND recindex < 32767 THEN
    '--attempt to add a new set
    '--save current
    writeattackdata recbuf(), lastindex
    '--increment
    recindex = recindex + 1
    '--make sure we really have permission to increment
-   IF needaddset(recindex, general(34), "attack") THEN
+   IF needaddset(recindex, gen(34), "attack") THEN
     flusharray recbuf(), 39 + curbinsize(0) / 2, 0
     GOSUB AtkUpdateMenu
    END IF
   ELSE
-   IF intgrabber(recindex, 0, general(34), 75, 77) THEN
+   IF intgrabber(recindex, 0, gen(34), 75, 77) THEN
     writeattackdata recbuf(), lastindex
     GOSUB AtkLoadSub
    END IF
@@ -911,7 +911,7 @@ EXIT SUB
 AtkUpdateMenu:
 
 '--in case new attacks have been added
-max(AtkLimChainTo) = general(34) + 1
+max(AtkLimChainTo) = gen(34) + 1
 
 '--re-enforce bounds, as they might have just changed
 enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()

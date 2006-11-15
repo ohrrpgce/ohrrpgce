@@ -356,22 +356,22 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) > 1 AND pagenum > -1 THEN
-  cropafter pagenum, general(33), 3, game$ + ".til", -1, 1
+  cropafter pagenum, gen(33), 3, game$ + ".til", -1, 1
  END IF
- IF keyval(80) > 1 AND pagenum = general(33) AND general(33) < 32767 THEN
+ IF keyval(80) > 1 AND pagenum = gen(33) AND gen(33) < 32767 THEN
   pagenum = pagenum + 1
-  IF needaddset(pagenum, general(33), "tile set") THEN
+  IF needaddset(pagenum, gen(33), "tile set") THEN
    WHILE pagenum > top + 20: top = top + 1: WEND
    clearpage 3
    storepage mapfile$, pagenum, 3
   END IF
  END IF
- IF usemenu(pagenum, top, -1, general(33), 20) THEN
+ IF usemenu(pagenum, top, -1, gen(33), 20) THEN
   IF pagenum = -1 THEN clearpage 3 ELSE loadpage mapfile$, pagenum, 3
  END IF
  IF (keyval(57) > 1 OR keyval(28) > 1) AND pagenum = -1 THEN EXIT DO
  IF (keyval(57) > 1 OR keyval(28) > 1) AND pagenum > -1 THEN GOSUB tilemode
- FOR i = top TO small(top + 20, general(33))
+ FOR i = top TO small(top + 20, gen(33))
   textcolor 7, 240
   IF pagenum = i THEN textcolor 14 + tog, 240
   IF i < 0 THEN
@@ -2190,9 +2190,9 @@ DO
  END IF
  '---PICK BACKGROUND PAGE------
  oldcut = ts.cutfrom
- dummy = intgrabber(ts.cutfrom, 0, general(genMaxBackdrop) - 1, 51, 52)
- IF ts.zone = 11 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, general(genMaxBackdrop) - 1, -1)
- IF ts.zone = 12 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, general(genMaxBackdrop) - 1, 1)
+ dummy = intgrabber(ts.cutfrom, 0, gen(genMaxBackdrop) - 1, 51, 52)
+ IF ts.zone = 11 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, gen(genMaxBackdrop) - 1, -1)
+ IF ts.zone = 12 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, gen(genMaxBackdrop) - 1, 1)
  IF oldcut <> ts.cutfrom THEN loadpage game$ + ".mxs", ts.cutfrom, 2
  '----
  drawline ts.x, ts.y, ts.x + 19, ts.y, 10 + tog * 5, dpage

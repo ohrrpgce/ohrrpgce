@@ -106,7 +106,7 @@ DO
   GOSUB addmaphowmenu
  END IF
  IF pt = 2 THEN
-  IF intgrabber(maptocopy, 0, general(0), 75, 77) THEN
+  IF intgrabber(maptocopy, 0, gen(0), 75, 77) THEN
    GOSUB addmaphowmenu
   END IF
  END IF
@@ -192,11 +192,11 @@ DO
  setkeys
  IF keyval(1) > 1 THEN EXIT DO
  oldtop = maptop
- dummy = usemenu(pt, maptop, 0, 2 + general(0), 24)
+ dummy = usemenu(pt, maptop, 0, 2 + gen(0), 24)
  IF oldtop <> maptop THEN GOSUB maketopmenu
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF pt = 0 THEN EXIT DO
-  IF pt > 0 AND pt <= general(0) + 1 THEN
+  IF pt > 0 AND pt <= gen(0) + 1 THEN
    '--silly backcompat pt adjustment
    pt = pt - 1
    GOSUB loadmap
@@ -204,7 +204,7 @@ DO
    pt = pt + 1
    GOSUB maketopmenu
   END IF
-  IF pt = general(0) + 2 THEN
+  IF pt = gen(0) + 2 THEN
    GOSUB addmap
    GOSUB maketopmenu
   END IF
@@ -231,9 +231,9 @@ FOR i = 0 TO 24
  SELECT CASE maptop + i
   CASE 0
    topmenu$(i) = "Return to Main Menu"
-  CASE 1 TO general(0) + 1
+  CASE 1 TO gen(0) + 1
    topmenu$(i) = "Map " + filenum$((maptop + i) - 1) + ": " + getmapname$((maptop + i) - 1)
-  CASE general(0) + 2
+  CASE gen(0) + 2
    topmenu$(i) = "Add a New Map"
   CASE ELSE
    topmenu$(i) = ""
@@ -335,8 +335,8 @@ gd$(15) = "On-Keypress Script:"
 gd$(16) = "Walkabout Layering:"
 gd$(17) = "NPC Data:"
 gd$(18) = "Tile Data:"
-gdmax(0) = general(genMaxTile):            gdmin(0) = 0
-gdmax(1) = general(genMaxSong) + 1:        gdmin(1) = 0
+gdmax(0) = gen(genMaxTile):            gdmin(0) = 0
+gdmax(1) = gen(genMaxSong) + 1:        gdmin(1) = 0
 gdmax(2) = 1:                              gdmin(2) = 0
 gdmax(3) = 1:                              gdmin(3) = 0
 gdmax(4) = 255:                            gdmin(4) = 0
@@ -948,18 +948,18 @@ RETRACE
 
 copymap:
 '--increment map count
-general(0) = general(0) + 1
+gen(0) = gen(0) + 1
 '--load the source map
 pt = how
 GOSUB loadmap
 '-- save the new map
-pt = general(0)
+pt = gen(0)
 GOSUB savemap
 RETRACE
 
 newblankmap:
 '--increment map count
-general(0) = general(0) + 1
+gen(0) = gen(0) + 1
 '--flush map buffers
 flusharray map(), 16002, 0
 flusharray pass(), 16002, 0
@@ -973,18 +973,18 @@ map(0) = 64: map(1) = 64
 pass(0) = 64: pass(1) = 64
 emap(0) = 64: emap(1) = 64
 '--save map buffers
-xBSAVE maplumpname$(general(0), "t"), map(), map(0) * map(1) + 4
-xBSAVE maplumpname$(general(0), "p"), pass(), pass(0) * pass(1) + 4
-xBSAVE maplumpname$(general(0), "e"), emap(), emap(0) * emap(1) + 4
-xBSAVE maplumpname$(general(0), "d"), link(), 2000
-xBSAVE maplumpname$(general(0), "n"), npcstat(), 3000
-xBSAVE maplumpname$(general(0), "l"), npc(), 3000
+xBSAVE maplumpname$(gen(0), "t"), map(), map(0) * map(1) + 4
+xBSAVE maplumpname$(gen(0), "p"), pass(), pass(0) * pass(1) + 4
+xBSAVE maplumpname$(gen(0), "e"), emap(), emap(0) * emap(1) + 4
+xBSAVE maplumpname$(gen(0), "d"), link(), 2000
+xBSAVE maplumpname$(gen(0), "n"), npcstat(), 3000
+xBSAVE maplumpname$(gen(0), "l"), npc(), 3000
 setpicstuf doors(), 600, -1
-storeset game$ + ".dox", general(0), 0
+storeset game$ + ".dox", gen(0), 0
 '--setup map name
 buffer(0) = 0
 setpicstuf buffer(), 80, -1
-storeset game$ + ".mn", general(0), 0
+storeset game$ + ".mn", gen(0), 0
 RETRACE
 
 savemap:
@@ -1091,7 +1091,7 @@ linkdoor:
 GOSUB savemap
 ulim(0) = 99: llim(0) = 0
 ulim(1) = 99: llim(1) = 0
-ulim(2) = general(0): llim(2) = 0
+ulim(2) = gen(0): llim(2) = 0
 ulim(3) = 999: llim(3) = -999
 ulim(4) = 999: llim(4) = -999
 ttop = 0: cur = 0
