@@ -11,23 +11,19 @@ declare function charpicker$
 declare sub clearallpages
 declare sub enemydata
 declare sub formation
-declare function getbinsize (id)
 declare sub herodata
 declare sub herotags (a())
 declare function intgrabber (n, min, max, less, more)
 declare sub itemdata
 declare function itemstr$ (it%, hidden%, offbyone%)
 declare sub npcdef (npc(), pt)
-declare sub readattackdata (array(), index)
 declare function readattackname$ (index)
 declare function readenemyname$ (index)
 declare function readitemname$ (index)
 declare sub readscatter (s$, lhold, start)
 declare function readshopname$ (shopnum)
-declare sub setbinsize (id, size)
 declare sub stredit (s$, maxl)
 declare sub strgrabber (s$, maxl)
-declare sub writeattackdata (array(), index)
 declare sub writescatter (s$, lhold, start)
 declare function zintgrabber (n, min, max, less, more)
 

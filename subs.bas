@@ -21,10 +21,6 @@ DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), me
 DECLARE SUB setactivemenu (workmenu%(), newmenu%(), pt%, top%, size%)
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE SUB testflexmenu ()
-DECLARE SUB setbinsize (id%, size%)
-DECLARE SUB writeattackdata (array%(), index%)
-DECLARE SUB readattackdata (array%(), index%)
-DECLARE FUNCTION getbinsize% (id%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
@@ -996,25 +992,6 @@ NEXT i
 RETRACE
 
 END SUB
-
-FUNCTION getbinsize (id)
-
-IF isfile(workingdir$ + SLASH + "binsize.bin") THEN
- fbdim recordsize
- fh = FREEFILE
- OPEN workingdir$ + SLASH + "binsize.bin" FOR BINARY AS #fh
- IF LOF(fh) < 2 * id + 2 THEN
-  getbinsize = defbinsize(id)
- ELSE
-  GET #fh, 1 + id * 2, recordsize
-  getbinsize = recordsize
- END IF
- CLOSE #fh
-ELSE
- getbinsize = defbinsize(id)
-END IF
-
-END FUNCTION
 
 SUB herodata
 DIM names$(100), a(318), menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 25), hmenu$(4), pal16(16), elemtype$(2)
@@ -2159,29 +2136,6 @@ RETRACE
 
 END SUB
 
-SUB readattackdata (array(), index)
-
-flusharray array(), 39 + curbinsize(0) / 2, 0
-
-'--load 40 elements from the .dt6 lump
-setpicstuf array(), 80, -1
-loadset game$ + ".dt6", index, 0
-
-'--load the rest from the attack.bin lump
-size = getbinsize(0)
-
-IF size THEN
- IF isfile(workingdir$ + SLASH + "attack.bin") THEN
-  setpicstuf buffer(), size, -1
-  loadset workingdir$ + SLASH + "attack.bin", index, 0
-  FOR i = 0 TO size / 2 - 1
-   array(40 + i) = buffer(i)
-  NEXT i
- END IF
-END IF
-
-END SUB
-
 FUNCTION readattackname$ (index)
 
 '--clobbers buffer!!!
@@ -2226,16 +2180,6 @@ FUNCTION readshopname$ (shopnum)
 readshopname$ = readbadgenericname$(shopnum, game$ + ".sho", 40, 0, 15, 0)
 
 END FUNCTION
-
-SUB setbinsize (id, size)
-fbdim size16
-size16 = size
-fh = FREEFILE
-OPEN workingdir$ + SLASH + "binsize.bin" FOR BINARY AS #fh
-PUT #fh, 1 + id * 2, size16
-CLOSE #fh
-
-END SUB
 
 SUB stredit (s$, maxl)
 STATIC clip$
@@ -2349,20 +2293,6 @@ IF LEN(s$) < maxl THEN
  END IF
 
 END IF
-
-END SUB
-
-SUB writeattackdata (array(), index)
-
-setpicstuf array(), 80, -1
-storeset game$ + ".dt6", index, 0
-
-FOR i = 0 TO 59
- buffer(i) = array(40 + i)
-NEXT i
-
-setpicstuf buffer(), curbinsize(0), -1
-storeset workingdir$ + SLASH + "attack.bin", index, 0
 
 END SUB
 

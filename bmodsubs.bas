@@ -19,8 +19,6 @@ DECLARE SUB setbatcap (cap$, captime%, capdelay%)
 DECLARE FUNCTION checktheftchance% (item%, itemP%, rareitem%, rareitemP%)
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE SUB wrappedsong (songnumber%)
-DECLARE FUNCTION getbinsize% (id%)
-DECLARE SUB readattackdata (array%(), index%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE FUNCTION targetmaskcount% (tmask%())
@@ -140,7 +138,7 @@ IF atkid < 0 THEN
 END IF
 
 '--load attack data
-readattackdata atkbuf(), atkid
+loadattackdata atkbuf(), atkid
 
 '--check for mutedness
 IF readbit(atkbuf(),65,0) = 1 AND stat(attacker, 0, 15) < stat(attacker, 1, 15) THEN
@@ -600,25 +598,6 @@ END IF
 
 END SUB
 
-FUNCTION getbinsize (id)
-fbdim recordsize
-
-IF isfile(workingdir$ + SLASH + "binsize.bin") THEN
- fh = FREEFILE
- OPEN workingdir$ + SLASH + "binsize.bin" FOR BINARY AS #fh
- IF LOF(fh) < id * 2 + 2 THEN
-  getbinsize = defbinsize(id)
- ELSE
-  GET #fh, 1 + (id * 2), recordsize
-  getbinsize = recordsize
- END IF
- CLOSE #fh
-ELSE
- getbinsize = defbinsize(id)
-END IF
-
-END FUNCTION
-
 Function GetWeaponPos(w,f,isY)'or x?
  dim fh
  IF w >= 0 THEN
@@ -1030,29 +1009,6 @@ ELSE
 END IF
 END FUNCTION
 
-SUB readattackdata (array(), index)
-
-flusharray array(), 39 + curbinsize(0) / 2, 0
-
-'--load 40 elements from the .dt6 lump
-setpicstuf array(), 80, -1
-loadset game$ + ".dt6", index, 0
-
-'--load the rest from the attack.bin lump
-size = getbinsize(0)
-
-IF size THEN
- IF isfile(workingdir$ + SLASH + "attack.bin") THEN
-  setpicstuf buffer(), size, -1
-  loadset workingdir$ + SLASH + "attack.bin", index, 0
-  FOR i = 0 TO size / 2 - 1
-   array(40 + i) = buffer(i)
-  NEXT i
- END IF
-END IF
-
-END SUB
-
 SUB retreat (who, atk(), bslot() AS BattleSprite, t())
 
 IF is_enemy(who) THEN
@@ -1337,9 +1293,3 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 END SUB
-
-FUNCTION dimbinsize% (id%)
- 'curbinsize is size supported by current version of engine
- 'getbinsize is size of data in RPG file
- dimbinsize% = large(curbinsize(id%), getbinsize(id%)) / 2
-END FUNCTION

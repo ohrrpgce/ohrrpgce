@@ -35,7 +35,7 @@ REMEMBERSTATE
 bstackstart = stackpos
 
 battle = 1
-DIM formdata(40), atktemp(40 + dimbinsize(0)), atk(40 + dimbinsize(0)), st(3, 318), es(7, 160), zbuf(24),  p(24), of(24), ext$(7), ctr(11), stat(11,  _
+DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), st(3, 318), es(7, 160), zbuf(24),  p(24), of(24), ext$(7), ctr(11), stat(11,  _
 1, 17), ready(11), batname$(11), menu$(3, 5), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
@@ -305,8 +305,7 @@ IF countai(ai, them, es()) > 0 THEN
  LOOP UNTIL godo(them) > 0
 
  'load the data for this attack
- setpicstuf atktemp(), 80, -1
- loadset game$ + ".dt6", godo(them) - 1, 0
+ loadattackdata atktemp(), godo(them) - 1
 
  'get the delay to wait for this attack
  delay(them) = atktemp(16)
@@ -344,8 +343,7 @@ IF carray(1) > 1 THEN pt = pt + 1: IF pt > mend(you) THEN pt = 0
 IF carray(4) > 1 THEN
  IF bmenu(you, pt) > 0 THEN 'simple attack
   godo(you) = bmenu(you, pt)
-  setpicstuf buffer(), 80, -1
-  loadset game$ + ".dt6", godo(you) - 1, 0
+  loadattackdata buffer(), godo(you) - 1
   delay(you) = large(buffer(16), 1)
   ptarg = 1
   flusharray carray(), 7, 0
@@ -363,13 +361,7 @@ IF carray(4) > 1 THEN
    setbit spelmask(), 0, i, 0
    IF spell(you, sptype, i) > 0 THEN
     spel(i) = spell(you, sptype, i) - 1
-    setpicstuf atktemp(), getbinsize(0), -1
-    loadset workingdir$ + SLASH + "attack.bin", spel(i), 0
-    FOR j = getbinsize(0) / 2 - 1 TO 0 STEP -1
-     atktemp(40 + j) = atktemp(j)
-    NEXT j
-    setpicstuf atktemp(), 80, -1
-    loadset game$ + ".dt6", spel(i), 0
+    loadattackdata atktemp(), spel(i)
     spel$(i) = readbadbinstring$(atktemp(), 24, 10, 1)
     speld$(i) = readbinstring$(atktemp(), 73, 38)
     IF st(you, 288 + sptype) = 0 THEN
@@ -406,8 +398,7 @@ IF carray(4) > 1 THEN
    LOOP UNTIL spel(rptr) > -1 OR ol > 999
   NEXT i
   godo(you) = spel(rptr) + 1
-  setpicstuf buffer(), 80, -1
-  loadset game$ + ".dt6", godo(you) - 1, 0
+  loadattackdata buffer(), godo(you) - 1
   delay(you) = large(buffer(16), 1)
   ptarg = 1
   flusharray carray(), 7, 0
@@ -426,7 +417,7 @@ IF icons(who) >= 0 THEN
  END IF
 END IF
 '--load attack
-readattackdata atk(), anim
+loadattackdata atk(), anim
 '--load picture
 setpicstuf buffer(), 3750, 3
 loadset game$ + ".pt6", atk(0), 144
@@ -1088,8 +1079,7 @@ IF anim = -1 THEN
  '-------Spawn a Chained Attack--------
  IF atk(12) > 0 AND INT(RND * 100) < atk(13) AND stat(who, 0, 0) > 0 THEN
   wf = 0: aset = 0
-  setpicstuf buffer(), 80, -1
-  loadset game$ + ".dt6", atk(12) - 1, 0
+  loadattackdata buffer(), atk(12) - 1
   IF buffer(16) > 0 THEN
    godo(who) = atk(12)
    delay(who) = buffer(16)
@@ -1178,8 +1168,7 @@ FOR i = 0 TO 11
 NEXT i
 
 'load attack
-setpicstuf buffer(), 80, -1
-loadset game$ + ".dt6", godo(you) - 1, 0
+loadattackdata buffer(), godo(you) - 1
 
 noifdead = 0
 ltarg(you) = 0
@@ -1343,9 +1332,7 @@ IF deadguyhp = 0 and formslotused <> 0 THEN
     IF t(j, k) = deadguy AND readbit(ltarg(), j, deadguy) = 0 THEN SWAP t(j, k), t(j, k + 1)
    NEXT k
    IF t(j, 0) = -1 AND who <> j AND godo(j) > 0 THEN
-    'godo(j) = 0: ready(j) = 1: delay(j) = 0
-    setpicstuf buffer(), 80, -1
-    loadset game$ + ".dt6", godo(j) - 1, 0
+    loadattackdata buffer(), godo(j) - 1
     IF buffer(4) = 1 OR (buffer(4) = 2 AND INT(RND * 100) < 33) THEN
      eaispread j, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
     ELSE
@@ -1450,8 +1437,7 @@ IF carray(4) > 1 THEN
   loaditemdata buffer(), inventory(iptr).id
   icons(you) = -1: IF buffer(73) = 1 THEN icons(you) = iptr
   temp = buffer(47)
-  setpicstuf buffer(), 80, -1
-  loadset game$ + ".dt6", temp - 1, 0
+  loadattackdata buffer(), temp - 1
   godo(you) = temp
   delay(you) = large(buffer(16), 1)
   ptarg = 1
@@ -1495,8 +1481,7 @@ IF carray(4) > 1 THEN
    '--if lmp then set lmp consume flag
    IF st(you, 288 + sptype) = 1 THEN conlmp(you) = INT(sptr / 3) + 1
    '--load atk data (for delay)
-   setpicstuf atktemp(), 80, -1
-   loadset game$ + ".dt6", spel(sptr), 0
+   loadattackdata atktemp(), spel(sptr)
    '--queue attack
    godo(you) = spel(sptr) + 1
    delay(you) = large(atktemp(16), 1)
@@ -1922,8 +1907,7 @@ FOR i = 0 TO 3
   FOR o = 0 TO 5
    menu$(i, o) = ""
    IF bmenu(i, o) > 0 THEN
-    setpicstuf atk(), 80, -1
-    loadset game$ + ".dt6", bmenu(i, o) - 1, 0
+    loadattackdata atk(), bmenu(i, o) - 1
     menu$(i, o) = readbadbinstring$(atk(), 24, 10, 1)
    END IF
    IF bmenu(i, o) < 0 AND bmenu(i, o) > -5 THEN
@@ -2046,8 +2030,7 @@ SELECT CASE vdance
    LOOP
    IF vdance = 3 THEN
     found$ = batname$(learna) + learned$
-    setpicstuf buffer(), 80, -1
-    loadset game$ + ".dt6", spell(learna, learnb, learnc) - 1, 0
+    loadattackdata buffer(), spell(learna, learnb, learnc) - 1
     found$ = found$ + readbadbinstring$(buffer(), 24, 10, 1)
     showlearn = 1
     drawvicbox = 1

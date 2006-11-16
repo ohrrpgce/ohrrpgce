@@ -927,8 +927,18 @@ SUB guessdefaultpals(fileset, poffset(), sets)
    NEXT j
   NEXT i
  CASE 6 'Attacks
+  REDIM buf(40 + dimbinsize(binATTACK))
+  FOR i = 0 TO sets
+   FOR j = 0 TO gen(genMaxAttack)
+    loadattackdata buf(), j
+    IF buf(0) = i THEN
+     poffset(i) = buf(1)
+     EXIT FOR
+    END IF
+   NEXT j
+  NEXT i
  CASE ELSE
-   debug "Unknown sprite type: " & fileset
+  debug "Unknown sprite type: " & fileset
  END SELECT
 END SUB
 
@@ -939,12 +949,16 @@ NEXT i
 END SUB
 
 SUB loadbinrecord (filename$, recsize, array(), index)
-
-setpicstuf array(), recsize * 2, -1
-loadset filename$, index, 0
-for i = 0 to recsize
- s$ = s$ & "," & array(i)
-next i
+IF isfile(filename$) THEN
+ setpicstuf array(), recsize * 2, -1
+ loadset filename$, index, 0
+ for i = 0 to recsize
+  s$ = s$ & "," & array(i)
+ next i
+ELSE
+ flusharray array(), recsize, 0
+ debug "File not found loading record " & index & " from " & filename$
+END IF
 END SUB
 
 SUB savebinrecord (filename$, recsize, array(), index)
@@ -986,3 +1000,72 @@ SUB saveitemdata (array(), index)
 savebinrecord game$ & ".itm", 100, array(), index
 END SUB
 
+SUB loadoldattackdata (array(), index)
+loadbinrecord game$ & ".dt6", 40, array(), index
+END SUB
+
+SUB saveoldattackdata (array(), index)
+savebinrecord game$ & ".dt6", 40, array(), index
+END SUB
+
+SUB loadnewattackdata (array(), index)
+loadbinrecord workingdir$ + SLASH + "attack.bin", getbinsize(binATTACK) / 2, array(), index
+END SUB
+
+SUB savenewattackdata (array(), index)
+savebinrecord workingdir$ + SLASH + "attack.bin", getbinsize(binATTACK) / 2, array(), index
+END SUB
+
+SUB loadattackdata (array(), index)
+loadoldattackdata array(), index
+size = getbinsize(binATTACK) / 2
+DIM buf(size)
+loadnewattackdata buf(), index
+FOR i = 0 TO size
+ array(40 + i) = buf(i)
+NEXT i
+END SUB
+
+SUB saveattackdata (array(), index)
+saveoldattackdata array(), index
+size = getbinsize(binATTACK) / 2
+DIM buf(size)
+FOR i = 0 TO size
+ buf(i) = array(40 + i)
+NEXT i
+savenewattackdata buf(), index
+END SUB
+
+FUNCTION getbinsize (id)
+
+IF isfile(workingdir$ + SLASH + "binsize.bin") THEN
+ fbdim recordsize
+ fh = FREEFILE
+ OPEN workingdir$ + SLASH + "binsize.bin" FOR BINARY AS #fh
+ IF LOF(fh) < 2 * id + 2 THEN
+  getbinsize = defbinsize(id)
+ ELSE
+  GET #fh, 1 + id * 2, recordsize
+  getbinsize = recordsize
+ END IF
+ CLOSE #fh
+ELSE
+ getbinsize = defbinsize(id)
+END IF
+
+END FUNCTION
+
+FUNCTION dimbinsize (id)
+ 'curbinsize is size supported by current version of engine
+ 'getbinsize is size of data in RPG file
+ dimbinsize = large(curbinsize(id), getbinsize(id)) / 2
+END FUNCTION
+
+SUB setbinsize (id, size)
+fbdim size16
+size16 = size
+fh = FREEFILE
+OPEN workingdir$ + SLASH + "binsize.bin" FOR BINARY AS #fh
+PUT #fh, 1 + id * 2, size16
+CLOSE #fh
+END SUB

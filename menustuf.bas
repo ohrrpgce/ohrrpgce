@@ -54,10 +54,7 @@ DECLARE FUNCTION rangel& (n&, r%)
 DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE SUB checkTagCond(t,check,tag,tagand) 'in bmod.bas
-DECLARE FUNCTION getbinsize% (id%)
-DECLARE SUB readattackdata (array%(), index%)
 DECLARE FUNCTION countitem% (it%)
-DECLARE FUNCTION dimbinsize% (id%)
 DECLARE SUB loadshopstuf (array%(), id%)
 
 '$INCLUDE: 'compat.bi'
@@ -797,8 +794,7 @@ FOR i = 0 TO inventoryMax
   IF buffer(51) > 0 OR buffer(50) > 0 THEN
    setbit iuse(), 0, 3 + i, 1
    temp = buffer(51) - 1
-   setpicstuf buffer(), 80, -1
-   loadset game$ + ".dt6", temp, 0
+   loadattackdata buffer(), temp
    IF buffer(3) = 4 OR buffer(3) = 10 THEN setbit ondead(), 0, 3 + i, 1
    IF buffer(3) = 10 THEN setbit onlive(), 0, 3 + i, 0
   END IF
@@ -932,8 +928,7 @@ IF pick = 0 THEN
      RETRACE
     END IF
     IF a(51) > 0 THEN '--attack/oobcure
-     setpicstuf buffer(), 80, -1
-     loadset game$ + ".dt6", a(51) - 1, 0
+     loadattackdata buffer(), a(51) - 1
      tclass = buffer(3)
      ttype = buffer(4)
      IF tclass = 0 THEN RETRACE
@@ -1113,10 +1108,7 @@ ELSE
  NEXT i
 END IF
 
-'load attack data
-'setpicstuf buffer(), 80, -1
-'loadset game$ + ".dt6", atk, 0
-readattackdata attack(), atk
+loadattackdata attack(), atk
 
 targstat = attack(18)
 
@@ -1528,8 +1520,7 @@ RETRACE
 END FUNCTION
 
 FUNCTION readatkname$ (id)
-setpicstuf buffer(), 80, -1
-loadset game$ + ".dt6", id - 1, 0
+loadattackdata buffer(), id - 1
 readatkname$ = readbadbinstring$(buffer(), 24, 10, 1)
 END FUNCTION
 
@@ -1827,14 +1818,7 @@ FOR i = 0 TO 23
  spel$(i) = "": speld$(i) = "": cost$(i) = "": spel(i) = -1: canuse(i) = 0: targt(i) = 0
  IF spell(pt, spid(csr), i) > 0 THEN
   spel(i) = spell(pt, spid(csr), i) - 1
-  'flusharray buffer(), 39 + curbinsize(0) / 2
-  setpicstuf buffer(), getbinsize(0),-1
-  loadset workingdir$ + SLASH + "attack.bin", spel(i), 0
-  FOR j = getbinsize(0) / 2 - 1 TO 0 STEP -1
-   buffer(40 + j) = buffer(j)
-  NEXT j
-  setpicstuf buffer(), 80, -1
-  loadset game$ + ".dt6", spel(i), 0
+  loadattackdata buffer(), spel(i)
   IF readbit(buffer(), 20, 59) = 1 AND buffer(3) > 0 THEN
    canuse(i) = buffer(3)
    targt(i) = buffer(4)
@@ -1984,14 +1968,7 @@ ELSE
  END IF
  IF carray(4) > 1 THEN
   IF mtype(csr) = 0 THEN
-'   flusharray buffer(), 39 + curbinsize(0) / 2
-'   setpicstuf buffer(), getbinsize(0),-1
-'   loadset "attack.bin", spel(sptr), 0
-'   FOR i = getbinsize(0) / 2 - 1 TO 0 STEP -1
-'    buffer(40 + i) = buffer(i)
-'   NEXT i
-   setpicstuf buffer(), 80, -1
-   loadset game$ + ".dt6", spel(sptr), 0
+   loadattackdata buffer(), spel(sptr)
    cost = focuscost(buffer(8), stat(pt, 0, 10))
    IF cost > stat(pt, 0, 1) THEN pick = 0: RETRACE
    stat(pt, 0, 1) = small(large(stat(pt, 0, 1) - cost, 0), stat(pt, 1, 1))

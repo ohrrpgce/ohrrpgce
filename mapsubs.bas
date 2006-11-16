@@ -9,7 +9,6 @@ DEFINT A-Z
 DECLARE FUNCTION addmaphow% ()
 DECLARE FUNCTION filenum$ (n%)
 DECLARE FUNCTION animadjust% (tilenum%, tastuf%())
-DECLARE SUB setbinsize (id%, size%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)

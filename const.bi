@@ -81,3 +81,9 @@ CONST fixAttackitems = 0        'zero out attack data for item cost (ammunition)
 '---Sizes (replaceable with variables when suitable)
 CONST npcdMax = 35
 CONST inventoryMax = 197	'last inventory slot num (3 doesn't divide into 200)
+
+'--- Binary files in BINSIZE.BIN for getbinsize()
+CONST binATTACK = 0
+CONST binSTF = 1
+CONST binSONGDATA = 2
+CONST binSFXDATA = 3

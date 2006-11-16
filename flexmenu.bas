@@ -7,8 +7,6 @@ DEFINT A-Z
 '$DYNAMIC
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
 DECLARE SUB clearallpages ()
-DECLARE SUB writeattackdata (array%(), index%)
-DECLARE SUB readattackdata (array%(), index%)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
 DECLARE SUB setactivemenu (workmenu%(), newmenu%(), pt%, top%, size%)
@@ -20,8 +18,6 @@ DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
 DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
 DECLARE FUNCTION tagstring$ (tag%, zero$, one$, negone$)
-DECLARE FUNCTION getbinsize% (id%)
-DECLARE SUB setbinsize (id%, size%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
@@ -808,7 +804,7 @@ DO
   IF keyval(77) > 1 AND recindex = gen(34) AND recindex < 32767 THEN
    '--attempt to add a new set
    '--save current
-   writeattackdata recbuf(), lastindex
+   saveattackdata recbuf(), lastindex
    '--increment
    recindex = recindex + 1
    '--make sure we really have permission to increment
@@ -818,7 +814,7 @@ DO
    END IF
   ELSE
    IF intgrabber(recindex, 0, gen(34), 75, 77) THEN
-    writeattackdata recbuf(), lastindex
+    saveattackdata recbuf(), lastindex
     GOSUB AtkLoadSub
    END IF
   END IF
@@ -900,7 +896,7 @@ DO
 LOOP
 
 '--save what we were last working on
-writeattackdata recbuf(), recindex
+saveattackdata recbuf(), recindex
 
 clearallpages
 
@@ -972,7 +968,7 @@ RETRACE
 '-----------------------------------------------------------------------
 
 AtkLoadSub:
-readattackdata recbuf(), recindex
+loadattackdata recbuf(), recindex
 GOSUB AtkUpdateMenu
 RETRACE
 

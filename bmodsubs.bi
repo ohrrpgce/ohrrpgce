@@ -21,7 +21,6 @@ declare sub eaispread (j, atkdat(), t(), stat(), bslot() as battlesprite, ebits(
 declare function enemycount (bslot() as battlesprite, stat())
 declare function targenemycount (bslot() AS BattleSprite, stat())
 declare sub etwitch (who, atk(), bslot() as battlesprite, t())
-declare function getbinsize (id)
 declare function getweaponpos(w,f,isy)'or x?
 declare function getheropos(h,f,isy)'or x?
 declare sub heroanim (who, atk(), bslot() as battlesprite, t())
@@ -30,7 +29,6 @@ declare function liveherocount (stat())
 declare sub loadfoe (i, formdata(), es(), bslot() as battlesprite, p(), ext$(), bits(), stat(), ebits(), batname$())
 declare function randomally (who)
 declare function randomfoe (who)
-declare sub readattackdata (array(), index)
 declare sub retreat (who, atk(), bslot() as battlesprite, t())
 declare function safesubtract (number, minus)
 declare function safemultiply (number, by!)
@@ -46,6 +44,5 @@ declare sub updatestatslevelup (i, exstat(), stat(), allowforget)
 declare sub giveheroexperience (i, exstat(), exper&)
 declare function visibleandalive (o, stat(), bslot() as battlesprite)
 declare sub writestats (exstat(), stat())
-declare function dimbinsize% (id%)
 
 #ENDIF

@@ -15,8 +15,6 @@ DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION readenemyname$ (index%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE FUNCTION readitemname$ (index%)
-DECLARE SUB setbinsize (id%, size%)
-DECLARE FUNCTION getbinsize% (id%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
@@ -252,13 +250,13 @@ DO:
    CASE 1'--graphics mode
     IF pt = 0 THEN pt = 0: menumode = 0: GOSUB setmainmenu
     IF pt = 1 THEN maptile font()
-    IF pt = 2 THEN sprite 20, 20, gen(30), 8, 5, 0, 7, winfo$(), 200, 4, 4, font()
-    IF pt = 3 THEN sprite 32, 40, gen(26), 8, 16, 0, 3, hinfo$(), 640, 4, 0, font()
-    IF pt = 4 THEN sprite 34, 34, gen(27), 1, 2, 0, 4, einfo$(), 578, 4, 1, font()
-    IF pt = 5 THEN sprite 50, 50, gen(28), 1, 4, 1, 2, einfo$(), 1250, 2, 2, font()
-    IF pt = 6 THEN sprite 80, 80, gen(29), 1, 10, 2, 1, einfo$(), 3200, 2, 3, font()
-    IF pt = 7 THEN sprite 50, 50, gen(32), 3, 12, 0, 2, ainfo$(), 1250, 2, 4, font()
-    IF pt = 8 THEN sprite 24, 24, gen(31), 2, 2, 0, 5, xinfo$(), 288, 4, 5, font()
+    IF pt = 2 THEN sprite 20, 20, gen(genMaxNPCPic),    8, 5, 0, 7, winfo$(), 200, 4, 4, font()
+    IF pt = 3 THEN sprite 32, 40, gen(genMaxHeroPic),   8, 16, 0, 3, hinfo$(), 640, 4, 0, font()
+    IF pt = 4 THEN sprite 34, 34, gen(genMaxEnemy1Pic), 1, 2, 0, 4, einfo$(), 578, 4, 1, font()
+    IF pt = 5 THEN sprite 50, 50, gen(genMaxEnemy2Pic), 1, 4, 1, 2, einfo$(), 1250, 2, 2, font()
+    IF pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, 10, 2, 1, einfo$(), 3200, 2, 3, font()
+    IF pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, 12, 0, 2, ainfo$(), 1250, 2, 6, font()
+    IF pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, 0, 5, xinfo$(), 288, 4, 5, font()
     IF pt = 9 THEN importbmp ".mxs", "screen", gen(100)
     IF pt = 10 THEN
      gen(33) = gen(33) + 1
@@ -1504,8 +1502,8 @@ IF gen(genVersion) = 3 THEN
  printstr "Clearing New Attack Bitsets...", 0, 0, vpage
  setvispage vpage 'refresh
  setpicstuf buffer(), 80, -1
- FOR o = 0 TO gen(34)
-  loadset game$ + ".dt6", o, 0
+ FOR o = 0 TO gen(genMaxAttack)
+  loadoldattackdata buffer(), o
   buffer(18) = 0
   IF readbit(buffer(), 20, 60) THEN buffer(18) = 1
   setbit buffer(), 20, 2, 0
@@ -1515,7 +1513,7 @@ IF gen(genVersion) = 3 THEN
   FOR i = 60 TO 63
    setbit buffer(), 20, i, 0
   NEXT i
-  storeset game$ + ".dt6", o, 0
+  saveoldattackdata buffer(), o
  NEXT o
  setbit gen(), 101, 6, 0 'no hide readymeter
  setbit gen(), 101, 7, 0 'no hide health meter
@@ -1596,11 +1594,9 @@ IF NOT isfile(workingdir$ + SLASH + "attack.bin") THEN
  clearpage vpage
  printstr "Init extended attack data...", 0, 0, vpage
  setvispage vpage 'refresh
- flusharray buffer(), curbinsize(0) / 2, 0
  setbinsize 0, curbinsize(0)
- setpicstuf buffer(), curbinsize(0), -1
- FOR i = 0 TO gen(34)
-  storeset workingdir$ + SLASH + "attack.bin", i, 0
+ FOR i = 0 TO gen(genMaxAttack)
+  savenewattackdata buffer(), i
  NEXT i
 
  '--and while we are at it, clear the old death-string from enemies
