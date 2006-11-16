@@ -63,7 +63,6 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
-DECLARE FUNCTION maplumpname$(map, oldext$)
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
@@ -274,7 +273,6 @@ DO
   IF csr = 1 THEN GOSUB sizemap
   IF csr = 2 THEN
    npcdef npcstat(), pt
-   'xbload game$ + ".n" + filenum$(pt), npcstat(), "NPCstat lump has dissapeared!"
   END IF
   IF csr = 3 THEN
    GOSUB gmapdata
@@ -1244,10 +1242,3 @@ RETRACE
 '128 overhead
 END SUB
 
-FUNCTION maplumpname$(map, oldext$)
- IF map < 100 THEN
-  maplumpname$ = game$ + "." + oldext$ + filenum$(map)
- ELSE
-  maplumpname$ = workingdir$ + SLASH + STR$(map) + "." + oldext$
- END IF
-END FUNCTION

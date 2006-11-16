@@ -124,7 +124,6 @@ DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
 DECLARE SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
 DECLARE SUB setusermenu (menu$(), mi%())
-DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
 DECLARE SUB drawnpcs ()

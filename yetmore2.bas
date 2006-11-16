@@ -89,7 +89,6 @@ DECLARE FUNCTION readatkname$ (id%)
 DECLARE SUB getmapname (mapname$, m%)
 DECLARE SUB defaultc ()
 DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
-DECLARE FUNCTION maplumpname$ (map, oldext$)
 DECLARE SUB cathero ()
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE SUB readjoysettings ()
@@ -388,14 +387,6 @@ END IF
 '17*20=340
 '10*20=200
 
-END FUNCTION
-
-FUNCTION maplumpname$ (map, oldext$)
- IF map < 100 THEN
-  maplumpname$ = game$ + "." + oldext$ + RIGHT$("0" + STR$(map), 2)
- ELSE
-  maplumpname$ = workingdir$ + SLASH + STR$(map) + "." + oldext$
- END IF
 END FUNCTION
 
 SUB setmapxy

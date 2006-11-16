@@ -17,7 +17,6 @@ declare function getsongname$ (num)
 declare sub initgamedefaults
 declare sub innrestore (stat())
 declare function isonscreen (x, y)
-declare function maplumpname$ (map, oldext$)
 declare sub setmapxy
 declare sub setscriptarg (arg, value)
 declare sub setusermenu (menu$(), mi())

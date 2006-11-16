@@ -915,6 +915,32 @@ SUB guessdefaultpals(fileset, poffset(), sets)
    NEXT j
   NEXT i
  CASE 4 'NPCs
+  REDIM buf(318)
+  REDIM npcbuf(1500)
+  FOR i = 0 TO sets
+   found = 0
+   FOR j = 0 TO gen(genMaxHero)
+    loadherodata buf(), j
+    IF buf(19) = i THEN
+     poffset(i) = buf(20)
+     found = 1
+     EXIT FOR
+    END IF
+   NEXT j
+   IF found = 0 THEN
+    FOR mapi = 0 TO gen(genMaxMap)
+     xbload maplumpname$(mapi, "n"), npcbuf(), "npcstat lump " & mapi & " is missing"
+     FOR j = 0 to 35
+      IF npcbuf(15 * j + 0) = i THEN
+       poffset(i) = npcbuf(15 * j + 1)
+       found = 1
+       EXIT FOR
+      END IF
+     NEXT j
+     IF found THEN EXIT FOR
+    NEXT mapi
+   END IF
+  NEXT i
  CASE 5 'Weapons
   REDIM buf(100)
   FOR i = 0 TO sets
@@ -1069,3 +1095,11 @@ OPEN workingdir$ + SLASH + "binsize.bin" FOR BINARY AS #fh
 PUT #fh, 1 + id * 2, size16
 CLOSE #fh
 END SUB
+
+FUNCTION maplumpname$ (map, oldext$)
+ IF map < 100 THEN
+  maplumpname$ = game$ & "." & oldext$ & RIGHT$("0" & map, 2)
+ ELSE
+  maplumpname$ = workingdir$ & SLASH & map & "." & oldext$
+ END IF
+END FUNCTION

@@ -10,6 +10,5 @@
 declare function addmaphow
 declare function animadjust (tilenum, tastuf())
 declare sub mapmaker (font(), map(), pass(), emap(), doors(), link(), npc(), npcstat())
-declare function maplumpname$(map, oldext$)
 
 #ENDIF

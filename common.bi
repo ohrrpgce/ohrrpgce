@@ -49,6 +49,7 @@ DECLARE SUB loadnewattackdata (array(), index)
 DECLARE SUB savenewattackdata (array(), index)
 DECLARE SUB loadattackdata (array(), index)
 DECLARE SUB saveattackdata (array(), index)
+DECLARE FUNCTION maplumpname$ (map, oldext$)
 
 'Global variables
 EXTERN uilook()
