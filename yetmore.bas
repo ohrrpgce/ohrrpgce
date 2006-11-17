@@ -14,7 +14,6 @@ DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, unitsize%)
 DECLARE SUB aheadxy (x%, y%, direction%, distance%)
 DECLARE SUB wrapxy (x%, y%, wide%, high%)
 DECLARE SUB loadSayToBuffer (say%)
-DECLARE SUB touchfile (f$)
 DECLARE FUNCTION partybyrank% (slot%)
 DECLARE FUNCTION herobyrank% (slot%)
 DECLARE FUNCTION rankincaterpillar% (heroid%)
@@ -32,7 +31,6 @@ DECLARE SUB suspendresume (id%)
 DECLARE SUB scriptwatcher (mode%)
 DECLARE SUB onkeyscript (scriptnum%)
 DECLARE SUB waitcommands (id%)
-DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE SUB greyscalepal ()
 DECLARE SUB tweakpalette ()
 DECLARE SUB vishero (stat%())
@@ -45,7 +43,6 @@ DECLARE FUNCTION functiondone% ()
 DECLARE FUNCTION functionread% ()
 DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION countitem% (it%)
-DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE SUB heroswap (iAll%, stat%())
@@ -75,7 +72,6 @@ DECLARE FUNCTION battle (form%, fatal%, exstat%())
 DECLARE SUB addhero (who%, slot%, stat%())
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
-DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE FUNCTION readitemname$ (itemnum%)
@@ -498,33 +494,6 @@ END SELECT
 '--failure
 getnpcref = -1
 END FUNCTION
-
-SUB getpal16 (array(), aoffset, foffset)
-
-setpicstuf buffer(), 16, -1
-loadset game$ + ".pal", 0, 0
-
-IF buffer(0) = 4444 THEN '--check magic number
- IF buffer(1) >= foffset AND foffset >= 0 THEN
-  'palette is available
-  loadset game$ + ".pal", 1 + foffset, 0
-  FOR i = 0 TO 7
-   array(aoffset * 8 + i) = buffer(i)
-  NEXT i
- ELSE
-  'palette is out of range, return blank
-  FOR i = 0 TO 7
-   array(aoffset * 8 + i) = 0
-  NEXT i
- END IF
-ELSE '--magic number not found, palette is still in BSAVE format
- xbload game$ + ".pal", buffer(), "16-color palletes missing from " + game$
- FOR i = 0 TO 7
-  array(aoffset * 8 + i) = buffer(foffset * 8 + i)
- NEXT i
-END IF
-
-END SUB
 
 SUB greyscalepal
 FOR i = bound(retvals(0), 0, 255) TO bound(retvals(1), 0, 255)

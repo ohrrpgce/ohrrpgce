@@ -18,7 +18,6 @@ declare function functiondone
 declare function functionread
 declare function gethighbyte (n)
 declare function getnpcref (seekid, offset)
-declare sub getpal16 (array(), aoffset, foffset)
 declare sub greyscalepal
 declare function herobyrank (slot)
 declare sub initgame

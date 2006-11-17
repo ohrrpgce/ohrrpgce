@@ -23,14 +23,12 @@ DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
-DECLARE SUB touchfile (f$)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION readitemname$ (index%)
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB textfatalerror (e$)
-DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE FUNCTION getmapname$ (m%)
 DECLARE FUNCTION numbertail$ (s$)
@@ -281,48 +279,6 @@ w = getkey
 
 END SUB
 
-SUB fatalerror (e$)
-
-debug "fatal error:" + e$
-textcolor 15, 0
-FOR i = 0 TO 1
- clearpage i
- printstr e$, 0, 0, i
- printstr "an error has occured. Press ESC to", 0, 16, i
- printstr "close " + CUSTOMEXE + " or press any other", 0, 24, i
- printstr "key to try to continue. If the", 0, 32, i
- printstr "error keeps happening, send e-mail to", 0, 40, i
- printstr "ohrrpgce-crash@HamsterRepublic.com", 0, 48, i
-NEXT i
-setvispage vpage 'refresh
-
-w = getkey
-
-IF w = 1 THEN
- restoremode
- 
- touchfile workingdir$ + SLASH + "__danger.tmp"
- 
- PRINT "fatal error:"
- PRINT e$
- 
- 'borrowed this code from game.bas cos wildcard didn't work in FB
- findfiles workingdir$ + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
- fh = FREEFILE
- OPEN "filelist.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh)
-  LINE INPUT #fh, filename$
-  KILL workingdir$ + SLASH + filename$
- LOOP
- CLOSE #fh
- KILL "filelist.tmp"
- RMDIR workingdir$
- 
- SYSTEM
-END IF
-
-END SUB
-
 FUNCTION getmapname$ (m)
 setpicstuf buffer(), 80, -1
 loadset game$ + ".mn", m, 0
@@ -350,31 +306,6 @@ FOR i = 0 TO max
 NEXT i
 
 CLOSE #fh
-
-END SUB
-
-SUB getpal16 (array(), aoffset, foffset)
-
-setpicstuf buffer(), 16, -1
-loadset game$ + ".pal", 0, 0
-
-IF buffer(0) <> 4444 THEN
- fatalerror "16-color palette file may be corrupt."
- buffer(0) = 4444
-END IF
-
-IF buffer(1) >= foffset AND foffset >= 0 THEN '--check in-range
- 'palette is available
- loadset game$ + ".pal", 1 + foffset, 0
- FOR i = 0 TO 7
-  array(aoffset * 8 + i) = buffer(i)
- NEXT i
-ELSE
- 'palette is out of range, return blank
- FOR i = 0 TO 7
-  array(aoffset * 8 + i) = 0
- NEXT i
-END IF
 
 END SUB
 
@@ -883,44 +814,6 @@ DO
  clearpage dpage
  dowait
 LOOP
-
-END SUB
-
-SUB storepal16 (array(), aoffset, foffset)
-
-setpicstuf buffer(), 16, -1
-loadset game$ + ".pal", 0, 0
-
-IF buffer(0) <> 4444 THEN
- fatalerror "16-color palette file may be corrupt."
- buffer(0) = 4444
- storeset game$ + ".pal", 0, 0
-END IF
-
-last = buffer(1)
-
-IF foffset > last THEN
- '--blank out palettes before extending file
- FOR i = last + 1 TO foffset
-  FOR j = 0 TO 7
-   buffer(j) = 0
-  NEXT j
-  storeset game$ + ".pal", 1 + i, 0
- NEXT i
- '--update header
- buffer(0) = 4444
- buffer(1) = foffset
- storeset game$ + ".pal", 0, 0
-END IF
-
-IF foffset >= 0 THEN '--never write a negative file offset
- 'copy palette to buffer
- FOR i = 0 TO 7
-  buffer(i) = array(aoffset * 8 + i)
- NEXT i
- 'write palette
- storeset game$ + ".pal", 1 + foffset, 0
-END IF
 
 END SUB
 

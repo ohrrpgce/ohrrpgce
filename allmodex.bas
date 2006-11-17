@@ -3095,44 +3095,6 @@ function nearcolor(pal() as integer, byval red as ubyte, byval green as ubyte, b
 	nearcolor = save
 end function
 
-''-----------------------------------------------------------------------
-'' Compatibility stuff that should probably go in another file
-''-----------------------------------------------------------------------
-function xstr$(x as integer)
-	if x >= 0 then
-		xstr$ = " " + str$(x)
-	else
-		xstr$ = str$(x)
-	end if
-end function
-
-function xstr$(x as short)
-	if x >= 0 then
-		xstr$ = " " + str$(x)
-	else
-		xstr$ = str$(x)
-	end if
-end function
-
-function xstr$(x as single)
-	if x >= 0 then
-		xstr$ = " " + str$(x)
-	else
-		xstr$ = str$(x)
-	end if
-end function
-
-function xstr$(x as double)
-	if x >= 0 then
-		xstr$ = " " + str$(x)
-	else
-		xstr$ = str$(x)
-	end if
-end function
-
-function intstr$(x as integer)
-    intstr$ = str$(x)
-end function
 
 '-------------- Software GFX mode routines -----------------
 sub setclip(l as integer, t as integer, r as integer, b as integer)

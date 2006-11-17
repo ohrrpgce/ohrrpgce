@@ -2,6 +2,10 @@
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
+'
+' This file is for code that is shared between GAME and CUSTOM.
+' Code that is not OHRRPGCE-specific that would be of general use
+' to any FreeBasic program belongs in util.bas instead
 
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'compat.bi'
@@ -861,6 +865,20 @@ scriptname$ = a$
 #endif
 END FUNCTION
 
+FUNCTION getdefaultpal(fileset, index)
+ DIM v AS SHORT
+ f$ = workingdir$ & SLASH & "defpal" & fileset & ".bin"
+ IF isfile(f$) THEN
+   fh = FREEFILE
+   OPEN f$ FOR BINARY AS #fh
+   GET #fh, 1 + index * 2, v
+   CLOSE #fh
+   RETURN v
+ ELSE
+  debug "Default palette file " & f$ & " does not exist"
+ END IF
+END FUNCTION
+
 SUB loaddefaultpals(fileset, poffset(), sets)
  DIM v AS SHORT
  f$ = workingdir$ & SLASH & "defpal" & fileset & ".bin"
@@ -1102,4 +1120,141 @@ FUNCTION maplumpname$ (map, oldext$)
  ELSE
   maplumpname$ = workingdir$ & SLASH & map & "." & oldext$
  END IF
+END FUNCTION
+
+SUB getpal16 (array(), aoffset, foffset, autotype=-1, sprite=0)
+DIM buf(8)
+
+loadbinrecord game$ + ".pal", 8, buf(), 0
+IF buf(0) = 4444 THEN '--check magic number
+ IF buf(1) >= foffset AND foffset >= 0 THEN
+  'palette is available
+  loadbinrecord game$ + ".pal", 8, buf(), 1 + foffset
+  FOR i = 0 TO 7
+   array(aoffset * 8 + i) = buf(i)
+  NEXT i
+ ELSEIF foffset = -1 THEN
+  'load a default palette
+  IF autotype >= 0 THEN
+   defaultpal = getdefaultpal(autotype, sprite)
+   'Recursive
+   getpal16 array(), aoffset, defaultpal
+  END IF
+ ELSE
+  'palette is out of range, return blank
+  FOR i = 0 TO 7
+   array(aoffset * 8 + i) = 0
+  NEXT i
+ END IF
+ELSE '--magic number not found, palette is still in BSAVE format
+ DIM xbuf(100 * 8)
+ xbload game$ + ".pal", xbuf(), "16-color palletes missing from " + game$
+ FOR i = 0 TO 7
+  array(aoffset * 8 + i) = xbuf(foffset * 8 + i)
+ NEXT i
+END IF
+
+END SUB
+
+SUB storepal16 (array(), aoffset, foffset)
+DIM buf(8)
+
+f$ = game$ + ".pal"
+loadbinrecord f$, 8, buf(), 0
+
+IF buf(0) <> 4444 THEN
+ fatalerror "16-color palette file may be corrupt"
+END IF
+
+last = buf(1)
+
+IF foffset > last THEN
+ '--blank out palettes before extending file
+ FOR i = last + 1 TO foffset
+  flusharray buf(), 8, 0
+  savebinrecord f$, 8, buf(), 1 + i
+ NEXT i
+ '--update header
+ buf(0) = 4444
+ buf(1) = foffset
+ savebinrecord f$, 8, buf(), 0
+END IF
+
+IF foffset >= 0 THEN '--never write a negative file offset
+ 'copy palette to buffer
+ FOR i = 0 TO 7
+  buf(i) = array(aoffset * 8 + i)
+ NEXT i
+ 'write palette
+ savebinrecord f$, 8, buf(), 1 + foffset
+END IF
+
+END SUB
+
+SUB fatalerror (e$)
+#IFDEF IS_GAME
+setvispage 0
+centerbox 160, 100, 300, 180, 3, 0
+edgeprint e$, xstring(e$, 160), 20, uilook(uiText), 0
+edgeprint "Press ESC to cleanly close the program", 15, 40, uilook(uiMenuItem), 0
+edgeprint "or any other key to ignore the", 15, 50, uilook(uiMenuItem), 0
+edgeprint "error and try to continue playing.", 15, 60, uilook(uiMenuItem), 0
+
+w = getkey
+
+IF w = 1 THEN
+ closemusic
+ restoremode
+ PRINT e$
+ SYSTEM
+END IF
+#ENDIF
+#IFDEF IS_GAME
+debug "fatal error:" + e$
+textcolor 15, 0
+FOR i = 0 TO 1
+ clearpage i
+ printstr e$, 0, 0, i
+ printstr "an error has occured. Press ESC to", 0, 16, i
+ printstr "close " + CUSTOMEXE + " or press any other", 0, 24, i
+ printstr "key to try to continue. If the", 0, 32, i
+ printstr "error keeps happening, send e-mail to", 0, 40, i
+ printstr "ohrrpgce-crash@HamsterRepublic.com", 0, 48, i
+NEXT i
+setvispage vpage 'refresh
+
+w = getkey
+
+IF w = 1 THEN
+ restoremode
+ 
+ touchfile workingdir$ + SLASH + "__danger.tmp"
+ 
+ PRINT "fatal error:"
+ PRINT e$
+ 
+ 'borrowed this code from game.bas cos wildcard didn't work in FB
+ findfiles workingdir$ + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
+ fh = FREEFILE
+ OPEN "filelist.tmp" FOR INPUT AS #fh
+ DO UNTIL EOF(fh)
+  LINE INPUT #fh, filename$
+  KILL workingdir$ + SLASH + filename$
+ LOOP
+ CLOSE #fh
+ KILL "filelist.tmp"
+ RMDIR workingdir$
+ 
+ SYSTEM
+END IF
+#ENDIF
+END SUB
+
+FUNCTION xstring (s$, x)
+xstring = small(large(x - LEN(s$) * 4, 0), 319 - LEN(s$) * 8)
+END FUNCTION
+
+FUNCTION defaultint$ (n)
+IF n = -1 THEN RETURN " default"
+RETURN XSTR$(n)
 END FUNCTION

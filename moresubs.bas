@@ -28,7 +28,6 @@ DECLARE SUB textfatalerror (e$)
 DECLARE SUB playtimer ()
 DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION countitem% (it%)
-DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE SUB minimap (x%, y%, tastuf%())
@@ -60,12 +59,10 @@ DECLARE FUNCTION battle (form%, fatal%, exstat%())
 DECLARE SUB addhero (who%, slot%, stat%())
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
-DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION exptolevel& (level%)
 DECLARE SUB deletetemps ()
 DECLARE FUNCTION decodetrigger (trigger%, trigtype%)
-DECLARE SUB touchfile (f$)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -525,34 +522,6 @@ NEXT j
 'itembits(n,1)      is in inventory
 'itembits(n,2)      is equiped tag
 'itembits(n,3)      is equiped by hero in active party
-
-END SUB
-
-SUB fatalerror (e$)
-
-setvispage 0
-centerbox 160, 100, 300, 180, 3, 0
-edgeprint e$, xstring(e$, 160), 20, uilook(uiText), 0
-edgeprint "Press ESC to cleanly close the program", 15, 40, uilook(uiMenuItem), 0
-edgeprint "or any other key to ignore the", 15, 50, uilook(uiMenuItem), 0
-edgeprint "error and try to continue playing.", 15, 60, uilook(uiMenuItem), 0
-
-w = getkey
-
-IF w = 1 THEN
- '--close digital audio file
- 'closefile
- '--close current BAM file
- closemusic
- '--reset FM synth chip
- 'dummy = resetfm
- '--replace Mode-X with previous screen mode
- restoremode
- '--display error message
- PRINT e$
- '--crash out
- SYSTEM
-END IF
 
 END SUB
 
@@ -2136,10 +2105,6 @@ SELECT CASE id
 END SELECT
 
 END SUB
-
-FUNCTION xstring (s$, x)
-xstring = small(large(x - LEN(s$) * 4, 0), 319 - LEN(s$) * 8)
-END FUNCTION
 
 FUNCTION getdisplayname$ (default$)
  '--Get game's display name

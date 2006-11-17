@@ -24,7 +24,6 @@ DECLARE SUB testflexmenu ()
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
-DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE FUNCTION xintgrabber% (n%, pmin%, pmax%, nmin%, nmax%, less%, more%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
@@ -125,7 +124,18 @@ elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
 getnames names$(), 32
 '--name offsets
-nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
+nof(0) = 0
+nof(1) = 1
+nof(2) = 2
+nof(3) = 3
+nof(4) = 5
+nof(5) = 6
+nof(6) = 29
+nof(7) = 30
+nof(8) = 8
+nof(9) = 7
+nof(10) = 31
+nof(11) = 4
 
 '--preview stuff
 DIM workpal(7), previewsize(2)
@@ -199,7 +209,7 @@ CONST EnDatAtkAlone = 102' to 106
 
 capindex = 0
 DIM caption$(5)
-DIM max(22), min(22)
+DIM max(23), min(23)
 'Limit 0 is not used
 
 CONST EnLimPic = 1
@@ -247,7 +257,11 @@ EnCapStealAvail = capindex
 addcaption caption$(), capindex, "Only one"
 addcaption caption$(), capindex, "Unlimited"
 
-'--next limit 23, remeber to update dim!
+CONST EnLimPal16 = 23
+max(EnLimPal16) = 32767
+min(EnLimPal16) = -1
+
+'--next limit 24, remeber to update dim!
 
 '-------------------------------------------------------------------------
 '--menu content
@@ -299,9 +313,9 @@ menulimits(EnMenuPic) = EnLimPic
 
 CONST EnMenuPal = 10
 menu$(EnMenuPal) = "Palette:"
-menutype(EnMenuPal) = 0
+menutype(EnMenuPal) = 12
 menuoff(EnMenuPal) = EnDatPal
-menulimits(EnMenuPal) = EnLimUInt
+menulimits(EnMenuPal) = EnLimPal16
 
 CONST EnMenuPicSize = 11
 menu$(EnMenuPicSize) = "Picture Size:"
@@ -549,8 +563,9 @@ DO
    '--increment
    recindex = recindex + 1
    '--make sure we really have permission to increment
-   IF needaddset(recindex, gen(36), "enemy") THEN
+   IF needaddset(recindex, gen(genMaxEnemy), "enemy") THEN
     flusharray recbuf(), 159, 0
+    recbuf(54) = -1 'default palette
     GOSUB EnUpdateMenu
    END IF
   ELSE
@@ -643,7 +658,7 @@ updateflexmenu pt, dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff()
 '--load the picture and palette
 setpicstuf buffer(), (previewsize(recbuf(EnDatPicSize)) ^ 2) / 2, 2
 loadset game$ + ".pt" + STR$(1 + recbuf(EnDatPicSize)), recbuf(EnDatPic), 0
-getpal16 workpal(), 0, recbuf(EnDatPal)
+getpal16 workpal(), 0, recbuf(EnDatPal), 1 + recbuf(EnDatPicSize), recbuf(EnDatPic)
 
 RETRACE
 
@@ -1156,10 +1171,10 @@ LOOP
 picnpal:
 bctr = 0
 bmenu$(0) = "Previous Menu"
-min(1) = 0: max(1) = gen(26)
-min(2) = 0: max(2) = 32767
-min(3) = 0: max(3) = gen(30)
-min(4) = 0: max(4) = 32767
+min(1) = 0: max(1) = gen(genMaxHeroPic)
+min(2) = -1: max(2) = 32767
+min(3) = 0: max(3) = gen(genMaxNPCPic)
+min(4) = -1: max(4) = 32767
 min(5) = -1: max(5) = 99
 min(6) = 0: max(6) = 254
 min(7) = 0: max(7) = 16
@@ -1236,9 +1251,9 @@ RETRACE
 
 genheromenu:
 bmenu$(1) = "Battle Picture:" + XSTR$(a(17))
-bmenu$(2) = "Battle Palette:" + XSTR$(a(18))
+bmenu$(2) = "Battle Palette:" + defaultint$(a(18))
 bmenu$(3) = "Walkabout Picture:" + XSTR$(a(19))
-bmenu$(4) = "Walkabout Palette:" + XSTR$(a(20))
+bmenu$(4) = "Walkabout Palette:" + defaultint$(a(20))
 bmenu$(5) = "Base Level:" + XSTR$(a(21))
 IF a(21) < 0 THEN bmenu$(5) = "Base Level: Party Average"
 bmenu$(6) = "Default Weapon:" + it$
@@ -1409,6 +1424,8 @@ RETRACE
 
 clearhero:
 flusharray a(), 318, 0
+a(18) = -1 'default battle palette
+a(20) = -1 'default walkabout palette
 saveherodata a(), pt
 RETRACE
 
@@ -1440,10 +1457,10 @@ RETRACE
 heropics:
 setpicstuf buffer(), 5120, 2
 loadset game$ + ".pt0", a(17), 0
-getpal16 pal16(), 0, a(18)
+getpal16 pal16(), 0, a(18), 0, a(17)
 setpicstuf buffer(), 1600, 2
 loadset game$ + ".pt4", a(19), 16
-getpal16 pal16(), 1, a(20)
+getpal16 pal16(), 1, a(20), 4, a(19)
 RETRACE
 
 END SUB

@@ -10,10 +10,8 @@
 declare sub cropafter (index, limit, flushafter, lump$, bytes, prompt)
 declare sub cycletile (cycle(), tastuf(), pt(), skip())
 declare sub exportnames ()
-declare sub fatalerror (e$)
 declare function getmapname$ (m)
 declare sub getnames (stat$(), max)
-declare sub getpal16 (array(), aoffset, foffset)
 declare function heroname$ (num, cond(), a())
 declare sub addtrigger (scrname$, id, triggers as triggerset)
 declare sub importscripts (f$)
@@ -24,7 +22,6 @@ declare function onoroff$ (n)
 declare sub scriptman ()
 declare sub standardmenu (menu$(), size, vis, pt, top, x, y, page, edge)
 declare sub statname
-declare sub storepal16 (array(), aoffset, foffset)
 declare function sublist (num, s$())
 declare sublist = -1
 declare sublist = pt

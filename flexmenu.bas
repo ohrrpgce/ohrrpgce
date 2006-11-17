@@ -14,7 +14,6 @@ DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE FUNCTION readenemyname$ (index%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE FUNCTION readitemname$ (index%)
-DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
 DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
 DECLARE FUNCTION tagstring$ (tag%, zero$, one$, negone$)
@@ -22,7 +21,6 @@ DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB importbmp (f$, cap$, count%)
-DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE SUB upgrade (font%())
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
 DECLARE SUB textxbload (f$, array%(), e$)
@@ -1008,7 +1006,7 @@ FUNCTION editflexmenu (nowindex, menutype(), menuoff(), menulimits(), datablock(
 changed = 0
 
 SELECT CASE menutype(nowindex)
- CASE 0, 8, 1000 TO 3999' integers
+ CASE 0, 8, 12, 1000 TO 3999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)), 75, 77)
  CASE 7, 9 TO 11 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1, 75, 77)
@@ -1042,7 +1040,7 @@ SUB enforceflexbounds (menuoff(), menutype(), menulimits(), recbuf(), min(), max
 
 FOR i = 0 TO UBOUND(menuoff)
  SELECT CASE menutype(i)
-  CASE 0, 1000 TO 3999
+  CASE 0, 12, 1000 TO 3999
    '--bound ints
    IF menulimits(i) > 0 THEN
     '--only bound items that have real limits
@@ -1224,6 +1222,9 @@ SUB updateflexmenu (mpointer, nowmenu$(), nowdat(), size, menu$(), menutype(), m
 '           7=attack number (offset)
 '           8=item number (not offset)
 '           9=enemy name (offset)
+'           10=item name (offset)
+'           11=sound effect (offset)
+'           12=defaultable positive int >=0 is int, -1 is "default"
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -1283,6 +1284,8 @@ FOR i = 0 TO size
     ELSE
       nowmenu$(i) = nowmenu$(i) + str$(datablock(menuoff(nowdat(i))) - 1 ) + " (" + getsfxname(datablock(menuoff(nowdat(i))) - 1) + ")"
     END IF
+  CASE 12 '--defaultable positive int
+    nowmenu$(i) = nowmenu$(i) + defaultint$(datablock(menuoff(nowdat(i))))
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
    nowmenu$(i) = nowmenu$(i) + XSTR$(datablock(menuoff(nowdat(i)))) + " " + caption$(capnum + datablock(menuoff(nowdat(i))))

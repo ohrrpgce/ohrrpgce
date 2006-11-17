@@ -54,8 +54,6 @@ DECLARE SUB copymapblock (buf%(), sx%, sy%, sp%, dx%, dy%, dp%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
 DECLARE SUB changepal (palval%, palchange%, workpal%(), aindex%)
-DECLARE SUB storepal16 (array%(), aoffset%, foffset%)
-DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE SUB smnemonic (tagname$, index%)
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
 DECLARE SUB savepasdefaults (array%(), tilesetnum%)
@@ -1342,7 +1340,7 @@ RETRACE
 
 spritescreen:
 defseg(varseg(workpal(0)))
-curcol = col + (pt - top) * 16
+curcol = PEEK(col + (pt - top) * 16)
 rectangle 247 + ((curcol - (INT(curcol / 16) * 16)) * 4), 0 + (INT(curcol / 16) * 6), 5, 7, 15, dpage
 FOR i = 0 TO 15
  FOR o = 0 TO 15

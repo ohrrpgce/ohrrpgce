@@ -10,7 +10,6 @@ DECLARE SUB writepassword (p$)
 DECLARE FUNCTION readpassword$ ()
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filenum$ (n%)
-DECLARE SUB touchfile (f$)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION readenemyname$ (index%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
@@ -19,7 +18,6 @@ DECLARE FUNCTION readattackname$ (index%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB importbmp (f$, cap$, count%)
-DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE SUB upgrade (font%())
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
 DECLARE SUB textxbload (f$, array%(), e$)
@@ -1369,14 +1367,6 @@ FOR i = 1 TO small(buf(0), 20)
 NEXT i
 
 storeset game$ + ".tmn", index, 0
-
-END SUB
-
-SUB touchfile (f$)
-
-fh = FREEFILE
-OPEN f$ FOR BINARY AS #fh
-CLOSE #fh
 
 END SUB
 

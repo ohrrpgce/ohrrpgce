@@ -20,7 +20,6 @@ DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, mapwide%, maphigh%, wrap
 DECLARE SUB aheadxy (x%, y%, direction%, distance%)
 DECLARE SUB wrapxy (x%, y%, wide%, high%)
 DECLARE SUB loadSayToBuffer (say%)
-DECLARE SUB touchfile (f$)
 DECLARE SUB keyhandleroff ()
 DECLARE FUNCTION partybyrank% (slot%)
 DECLARE FUNCTION herobyrank% (slot%)
@@ -38,7 +37,6 @@ DECLARE SUB suspendresume (id%)
 DECLARE SUB scriptwatcher (page%)
 DECLARE SUB onkeyscript (scriptnum%)
 DECLARE SUB waitcommands (id%)
-DECLARE SUB getpal16 (array%(), aoffset%, foffset%)
 DECLARE SUB greyscalepal ()
 DECLARE SUB tweakpalette ()
 DECLARE SUB vishero (stat%())
@@ -51,7 +49,6 @@ DECLARE FUNCTION functiondone% ()
 DECLARE FUNCTION functionread% ()
 DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION countitem% (it%)
-DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE SUB heroswap (iAll%, stat%())
@@ -81,7 +78,6 @@ DECLARE FUNCTION battle (form%, fatal%, exstat%())
 DECLARE SUB addhero (who%, slot%, stat%())
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
-DECLARE FUNCTION xstring% (s$, x%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE FUNCTION readitemname$ (itemnum%)
@@ -557,14 +553,6 @@ IF LEN(s$) < maxl THEN
  END IF
 
 END IF
-
-END SUB
-
-SUB touchfile (f$)
-
-fh = FREEFILE
-OPEN f$ FOR BINARY AS #fh
-CLOSE #fh
 
 END SUB
 

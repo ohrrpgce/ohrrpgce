@@ -19,7 +19,6 @@ declare sub doswap (s, d, stat())
 declare sub drawsay (saybit(), sayenh(), say$(), showsay, choose$(), choosep)
 declare sub evalherotag (stat())
 declare sub evalitemtag
-declare sub fatalerror (e$)
 declare function findhero (who, f, l, d)
 declare sub getmapname (mapname$, m)
 declare sub getnames (stat$())
@@ -54,7 +53,6 @@ declare sub textfatalerror (e$)
 declare function unlumpone (lumpfile$, onelump$, asfile$)
 declare sub writejoysettings
 declare sub writescriptvar (id, newval)
-declare function xstring (s$, x)
 declare function getdisplayname$ (default$)
 
 #ENDIF

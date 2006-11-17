@@ -81,3 +81,9 @@ FUNCTION anycase$ (filename$)
  RETURN filename$
 #ENDIF
 END FUNCTION
+
+SUB touchfile (filename$)
+fh = FREEFILE
+OPEN filename$ FOR BINARY AS #fh
+CLOSE #fh
+END SUB
