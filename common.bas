@@ -34,6 +34,15 @@ limit = 255
 DIM drive$(26), tree$(limit), display$(limit), about$(limit), treec(limit), catfg(6), catbg(6), bmpd(40), f = -1
 'about$() is only used for special 7
 
+'treec() contains the type of each object in the menu
+'0 = Drive (Windows only)
+'1 = Parent Directory
+'2 = Subdirectory
+'3 = Selectable item
+'4 = Root
+'5 = Special (not used)
+'6 = Unselectable item
+
 showHidden = 0
 
 catfg(0) = 7: catbg(0) = 1    'selectable drives (none on unix systems)
@@ -317,7 +326,7 @@ ELSE
   LINE INPUT #fh, tree$(treesize)
   IF tree$(treesize) = "." OR tree$(treesize) = ".." OR RIGHT$(tree$(treesize), 4) = ".tmp" THEN treesize = treesize - 1
   IF special = 7 THEN ' Special handling in RPG mode
-   IF right$(tree$(treesize),7) = ".rpgdir" THEN treesize = treesize -1
+   IF justextension$(tree$(treesize)) = "rpgdir" THEN treesize = treesize - 1
   END IF
   GOSUB drawmeter
  LOOP
@@ -378,7 +387,7 @@ FOR i = 0 TO treesize
  END IF
 NEXT
 
-sortstart = 0
+sortstart = treesize
 FOR k = 0 TO treesize
  IF treec(k) = 2 OR treec(k) = 3 OR treec(k) = 6 THEN sortstart = k: EXIT FOR
 NEXT
@@ -403,8 +412,8 @@ FOR i = sortstart TO treesize - 1
 NEXT o
 
 '--sort by type
-FOR o = treesize TO sortstart + 2 STEP -1
- FOR i = sortstart + 1 TO o
+FOR o = treesize TO sortstart + 1 STEP -1
+ FOR i = sortstart TO o
   IF treec(i) < treec(i - 1) THEN
    SWAP display$(i), display$(i - 1)
    SWAP about$(i), about$(i - 1)
