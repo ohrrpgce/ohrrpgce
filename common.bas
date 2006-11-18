@@ -1258,3 +1258,29 @@ FUNCTION defaultint$ (n)
 IF n = -1 THEN RETURN " default"
 RETURN XSTR$(n)
 END FUNCTION
+
+SUB poke8bit (array16(), index, val8)
+ IF val8 <> (val8 AND &hFF) THEN
+   debug "Warning: " & val8 & " is not an 8-bit number. Discarding bits: " & (val8 XOR &hFF) 
+   val8 = val8 AND &hFF
+ END IF
+ element = array16(index \ 2)
+ lb = element AND &hFF
+ hb = (element AND &hFF00) SHR 8
+ IF index AND 1 THEN
+  hb = val8
+ ELSE
+  lb = val8
+ END IF
+ element = lb OR (hb SHL 8)
+ array16(index \ 2) = element
+END SUB
+
+FUNCTION peek8bit (array16(), index)
+ element = array16(index \ 2)
+ IF index AND 1 THEN
+  RETURN (element AND &hFF00) SHR 8
+ ELSE
+  RETURN element AND &hFF
+ END IF
+END FUNCTION

@@ -56,6 +56,8 @@ DECLARE SUB storepal16 (array(), aoffset, foffset)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION xstring (s$, x)
 DECLARE FUNCTION defaultint$ (n)
+DECLARE SUB poke8bit (array16(), index, val8)
+DECLARE FUNCTION peek8bit (array16(), index)
 
 'Global variables
 EXTERN uilook()

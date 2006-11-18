@@ -798,9 +798,8 @@ tool$(3) = "Fill": icon$(3) = "F":     shortk(3) = 33: cursor(3) = 3
 tool$(4) = "Oval": icon$(4) = "O":     shortk(4) = 24: cursor(4) = 2
 tool$(5) = "Air ": icon$(5) = "A":     shortk(5) = 30: cursor(5) = 3
 
-defseg(varseg(nulpal(0)))
 FOR i = 0 TO 15
- POKE i, i
+ poke8bit nulpal(), i, i
 NEXT i
 loaddefaultpals fileset, poffset(), sets
 GOSUB loadalluc
@@ -891,9 +890,8 @@ DO
  GOSUB choose
  textcolor 7, 0
  printstr "Palette" + XSTR$(poffset(pt)), 320 - (LEN("Palette" + XSTR$(poffset(pt))) * 8), 0, dpage
- defseg(varseg(workpal(0)))
  FOR i = 0 TO 15
-  rectangle 271 + i * 3, 8, 3, 8, PEEK((pt - top) * 16 + i), dpage
+  rectangle 271 + i * 3, 8, 3, 8, peek8bit(workpal(), (pt - top) * 16 + i), dpage
  NEXT i
  printstr "Set" + XSTR$(pt), 320 - (LEN("Set" + XSTR$(pt)) * 8), 16, dpage
  printstr info$(num), 320 - (LEN(info$(num)) * 8), 24, dpage
@@ -1031,8 +1029,7 @@ IF keyval(56) > 0 AND keyval(47) > 1 THEN
   NEXT
  END IF
 END IF
-defseg(varseg(workpal(0)))
-curcol = PEEK((pt - top) * 16 + col)
+curcol = peek8bit(workpal(), (pt - top) * 16 + col)
 IF keyval(56) > 0 AND col > 0 THEN
  IF keyval(72) > 0 AND curcol > 15 THEN curcol -= 16
  IF keyval(80) > 0 AND curcol < 240 THEN curcol += 16
@@ -1042,8 +1039,7 @@ END IF
 IF mouse(3) = 1 AND zone = 3 THEN 'AND col > 0 THEN
  curcol = INT(INT(zoy / 6) * 16) + INT(zox / 4)
 END IF
-defseg(varseg(workpal(0)))
-POKE (pt - top) * 16 + col, curcol
+poke8bit workpal(), (pt - top) * 16 + col, curcol
 IF keyval(56) = 0 THEN
  fixmouse = 0
  IF keyval(72) > 0 THEN y = large(0, y - 1): fixmouse = 1
@@ -1262,10 +1258,9 @@ NEXT i
 '--swap the transparent palette entry to 0
 IF pcsr = 0 THEN
  getbmppal srcbmp$, master(), workpal(), 16 * (pt - top)
- defseg(varseg(workpal(0)))
  'swap black with the transparent color
- POKE temp + (pt - top) * 16, PEEK(0) + (pt - top) * 16
- POKE 0 + (pt - top) * 16, 0
+ poke8bit workpal(), temp + (pt - top) * 16, peek8bit(workpal(), 0) + (pt - top) * 16
+ poke8bit workpal(), 0 + (pt - top) * 16, 0
 END IF
 '--read the sprite
 getsprite placer(), 0, 1, 1, xw, yw, 2
@@ -1339,8 +1334,7 @@ getsprite placer(), 0, 239, 119, xw, yw, dpage
 RETRACE
 
 spritescreen:
-defseg(varseg(workpal(0)))
-curcol = PEEK(col + (pt - top) * 16)
+curcol = peek8bit(workpal(), col + (pt - top) * 16)
 rectangle 247 + ((curcol - (INT(curcol / 16) * 16)) * 4), 0 + (INT(curcol / 16) * 6), 5, 7, 15, dpage
 FOR i = 0 TO 15
  FOR o = 0 TO 15
@@ -1355,12 +1349,11 @@ textcolor 15, 0
 printstr LEFT$(" Pal", 4 - (LEN(XSTR$(poffset(pt))) - 3)) + XSTR$(poffset(pt)), 248, 100, dpage
 rectangle 247 + (col * 4), 110, 5, 7, 15, dpage
 FOR i = 0 TO 15
- rectangle 248 + (i * 4), 111, 3, 5, PEEK(i + (pt - top) * 16), dpage
+ rectangle 248 + (i * 4), 111, 3, 5, peek8bit(workpal(), i + (pt - top) * 16), dpage
 NEXT
 IF zoom = 4 THEN hugesprite placer(), workpal(), (pt - top) * 16, 4, 1, dpage, 0
 IF zoom = 2 THEN bigsprite placer(), workpal(), (pt - top) * 16, 4, 1, dpage, 0
-defseg(varseg(workpal(0)))
-curcol = PEEK(col + (pt - top) * 16)
+curcol = peek8bit(workpal(), col + (pt - top) * 16)
 IF box = 1 THEN
  rectangle 4 + small(x, bx) * zoom, 1 + small(y, by) * zoom, (ABS(x - bx) + 1) * zoom, (ABS(y - by) + 1) * zoom, curcol, dpage
  rectangle 4 + bx * zoom, 1 + by * zoom, zoom, zoom, tog * 15, dpage

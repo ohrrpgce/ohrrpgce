@@ -16,11 +16,6 @@ option nokeyword setmouse
 #ifndef DEMACRO
 #ifndef DONESTR
 #define fbdim dim as short
-#define varseg varptr
-option nokeyword peek
-#define peek(x) xpeek(x)
-option nokeyword poke
-#define poke xpoke
 #define DONESTR
 #endif
 
@@ -68,10 +63,6 @@ declare function xstr$ (x as short)
 declare function xstr$ (x as single)
 declare function xstr$ (x as double)
 declare function intstr$ (x as integer)
-
-declare sub defseg(var as integer ptr)
-declare function xpeek (byval idx as integer) as integer
-declare sub xpoke(byval idx as integer, byval v as integer)
 
 DECLARE SUB getdefaultfont (font() as integer)
 DECLARE SUB xbload (f$, array%(), e$)

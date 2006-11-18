@@ -118,46 +118,6 @@ SUB crashexplain()
 '	PRINT "RPG file: "; sourcerpg$
 END SUB
 
-'replacements for def seg and peek, use seg shared ptr
-'assumes def seg will always be used to point to an integer and
-'that integers are only holding 2 bytes of data
-sub defseg(var as integer ptr)
-	seg = var
-end sub
-
-function xpeek(byval idx as integer) as integer
-	dim as ubyte bval
-	dim as integer hilow
-
-	hilow = idx mod 2
-	idx = idx \ 2
-
-	if hilow = 0 then
-		bval = seg[idx] and &hff
-	else
-		bval = (seg[idx] and &hff00) shr 8
-	end if
-	xpeek = bval
-end function
-
-sub xpoke(byval idx as integer, byval v as integer)
-	dim as integer bval
-	dim as integer hilow
-	dim as integer newval
-
-	hilow = idx mod 2
-	idx = idx \ 2
-
-	bval = v and &hff
-	if hilow = 0 then
-		newval = seg[idx] and &hff00
-		seg[idx] = newval or bval
-	else
-		newval = seg[idx] and &hff
-		seg[idx] = newval or (bval shl 8)
-	end if
-end sub
-
 sub togglewindowed()
 	gfx_togglewindowed
 end sub
@@ -308,21 +268,6 @@ END FUNCTION
 SUB romfontchar (font(), char)
 'should I implement this using the default font? potentially useful
 'i suppose
-
-'regs.ax = &H1130
-'regs.bx = &H300
-'CALL interruptx(&H10, regs, regs)
-'off9 = regs.bx: seg9 = regs.es
-'DEF SEG = regs.es
-''FOR i = 1 TO 255
-'FOR j = 0 TO 7
-' b = PEEK(regs.bp + (8 * char) + j)
-' FOR k = 0 TO 7
-'  setbit font(), char * 4, (7 - k) * 8 + j, (b AND 2 ^ k)
-' NEXT k
-'NEXT j
-''NEXT i
-
 END SUB
 
 SUB makedir (dirname$)
