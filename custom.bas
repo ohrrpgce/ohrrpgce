@@ -102,7 +102,7 @@ DIM font(1024), buffer(16384), timing(4), joy(4), scroll(16002), pass(16002), em
 DIM menu$(22), gen(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600), uilook(uiColors)
 DIM master(255) as RGBcolor
 'more global variables
-DIM game$, gamefile$, unsafefile$, insert
+DIM game$, gamefile$, unsafefile$, insert, activepalette
 DIM vpage, dpage, fadestate, workingdir$, version$
 
 '--DIM binsize arrays
@@ -193,7 +193,8 @@ IF NOT isfile(game$ + ".fnt") THEN copyfile "ohrrpgce.fnt", game$ + ".fnt", buff
 xbload game$ + ".fnt", font(), "Font not loaded"
 '--loadgen, upgrade, resave
 xbload game$ + ".gen", gen(), "general data is missing, RPG file corruption is likely"
-loadpalette master(), gen(genMasterPal)
+activepalette = gen(genMasterPal)
+loadpalette master(), activepalette
 setpal master()
 upgrade font()
 xbsave game$ + ".gen", gen(), 1000

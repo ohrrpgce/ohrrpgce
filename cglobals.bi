@@ -8,4 +8,4 @@ EXTERN unsafefile$
 EXTERN timing()
 EXTERN spriteclip()
 EXTERN insert
-
+EXTERN activepalette

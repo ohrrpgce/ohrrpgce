@@ -59,6 +59,7 @@ DECLARE SUB generalscriptsmenu ()
 DECLARE SUB generalsfxmenu ()
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
+DECLARE SUB masterpalettemenu ()
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -67,6 +68,7 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
+'$INCLUDE: 'uiconst.bi'
 
 REM $STATIC
 SUB editmenus
@@ -463,7 +465,7 @@ m$(9) = "Password For Editing..."
 m$(10) = "Pick Title Screen..."
 m$(11) = "Rename Game..."
 m$(13) = "Special PlotScripts..."
-m$(16) = "Import New Master Palette..."
+m$(16) = "View Master Palettes..."
 max(1) = 1
 max(2) = 320
 max(3) = 200
@@ -525,7 +527,7 @@ DO
   IF csr = 10 THEN GOSUB ttlbrowse
   IF csr = 11 THEN GOSUB renrpg
   IF csr = 13 THEN generalscriptsmenu
-  IF csr = 16 THEN GOSUB importmaspal
+  IF csr = 16 THEN masterpalettemenu
   IF csr = 9 THEN GOSUB inputpasw
  IF csr = 17 THEN
   d$ = charpicker$
@@ -1452,3 +1454,118 @@ END IF
 trigger = scriptids(pt)
 
 END FUNCTION
+
+SUB masterpalettemenu
+STATIC default$
+DIM menu$(4), submenu$(2), palbuf(767)
+
+csr = 1
+palnum = activepalette
+loadpalette master(), palnum
+setpal master()
+GOSUB buildmenu
+
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+setkeys
+DO
+ setwait timing(), 55
+ setkeys
+ tog = tog XOR 1
+
+ IF keyval(1) > 1 THEN EXIT DO
+ dummy = usemenu(csr, 0, 0, UBOUND(menu$), 10)
+ IF csr = 1 THEN
+  IF keyval(77) > 1 AND palnum = gen(genMaxMasterPal) THEN
+   palnum += 1
+   IF needaddset(palnum, gen(genMaxMasterPal), "Master Palette") THEN
+    GOSUB importpal
+    GOSUB buildmenu
+   END IF
+  END IF
+  IF intgrabber(palnum, 0, gen(genMaxMasterPal), 75, 77) THEN
+   loadpalette master(), palnum
+   setpal master()
+   GOSUB buildmenu
+  END IF
+ END IF
+ IF (keyval(28) > 1 OR keyval(57) > 1) THEN
+  SELECT CASE csr 
+  CASE 0
+    EXIT DO
+  CASE 2
+    'setuicolors palnum
+  CASE 3
+    gen(genMasterPal) = palnum
+    GOSUB buildmenu
+  CASE 4
+    activepalette = palnum
+    GOSUB buildmenu
+  END SELECT
+ END IF
+
+ 'draw the menu
+ FOR i = 0 TO UBOUND(menu$)
+  IF (i = 3 AND palnum = gen(genMasterPal)) OR (i = 4 AND palnum = activepalette) THEN 
+   col = uilook(uiDisabledItem)
+   IF csr = i THEN col = uilook(uiSelectedDisabled + tog)
+  ELSE
+   col = uilook(uiMenuItem)
+   IF csr = i THEN col = uilook(uiSelectedItem + tog)
+  END IF
+  textcolor col, 0
+  printstr menu$(i), 0, i * 8, dpage
+ NEXT i
+
+ FOR i = 0 TO 255
+  rectangle 34 + (i MOD 16) * 16, 70 + (i \ 16) * 7, 12, 5, i, dpage
+ NEXT
+
+ SWAP vpage, dpage
+ setvispage vpage
+ copypage 2, dpage
+ dowait
+LOOP
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+
+IF activepalette <> palnum THEN
+ loadpalette master(), activepalette
+ setpal master()
+END IF
+EXIT SUB
+
+buildmenu:
+menu$(0) = "Previous Menu"
+menu$(1) = "<- Master Palette " & palnum & " of " & gen(genMaxMasterPal) & " ->"
+menu$(2) = "Edit User Interface Colours..."
+IF palnum = gen(genMasterPal) THEN
+ menu$(3) = "Current default Master Palette"
+ELSE
+ menu$(3) = "Set as Default"
+END IF
+IF palnum = activepalette THEN
+ menu$(4) = "Current active editing palette"
+ELSE
+ menu$(4) = "Set as Active"
+END IF
+RETRACE
+
+importpal:
+f$ = browse$(4, default$, "*.mas", "")
+IF f$ <> "" THEN
+ xbload f$, buffer(), "MAS load error"
+ convertpalette buffer(), master()
+ setpal master()
+ savepalette master(), palnum
+ELSE
+ palnum -= 1
+ gen(genMaxMasterPal) -= 1
+END IF
+RETRACE
+
+END SUB
