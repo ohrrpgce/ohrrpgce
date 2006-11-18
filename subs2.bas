@@ -405,7 +405,7 @@ SUB importscripts (f$)
    
     IF fh THEN
      FOR j = 0 TO .size - 1
-      loadrecord buffer(), fh, 40, j
+      loadrecord buffer(), fh, 20, j
       .ids[j] = buffer(0)
       .tnames$[j] = readbinstring$(buffer(), 1, 36)
      NEXT
@@ -421,7 +421,7 @@ SUB importscripts (f$)
    IF EOF(fptr) THEN EXIT DO
    IF dotbin THEN 
     'read from scripts.bin
-    loadrecord buffer(), fptr, recordsize
+    loadrecord buffer(), fptr, recordsize \ 2
     id = buffer(0)
     trigger = buffer(1)
     names$ = readbinstring$(buffer(), 2, 36)
@@ -441,7 +441,7 @@ SUB importscripts (f$)
    'save to plotscr.lst
    buffer(0) = id
    writebinstring names$, buffer(), 1, 36
-   storerecord buffer(), workingdir$ + SLASH + "plotscr.lst", 40, gen(40)
+   storerecord buffer(), workingdir$ + SLASH + "plotscr.lst", 20, gen(40)
    gen(40) = gen(40) + 1
    IF buffer(0) > gen(43) AND buffer(0) < 16384 THEN gen(43) = buffer(0)
 
@@ -476,7 +476,7 @@ SUB importscripts (f$)
      IF BIT(.usedbits[j \ 32], j MOD 32) = 0 THEN .ids[j] = 0
      buffer(0) = .ids[j]
      writebinstring .tnames$[j], buffer(), 1, 36
-     storerecord buffer(), workingdir$ + SLASH + "lookup" + STR$(i) + ".bin", 40, j
+     storerecord buffer(), workingdir$ + SLASH + "lookup" + STR$(i) + ".bin", 20, j
     NEXT
 
     DEALLOCATE(.ids)

@@ -364,7 +364,7 @@ SUB seekscript (temp, seekdir, triggertype)
     screxists = -1
    ELSE
     WHILE recordsloaded < gen(40)
-     loadrecord buf(), workingdir$ + SLASH + "plotscr.lst", 40, recordsloaded
+     loadrecord buf(), workingdir$ + SLASH + "plotscr.lst", 20, recordsloaded
      recordsloaded += 1
      IF buf(0) = temp THEN screxists = -1: EXIT WHILE
      IF buf(0) <= gen(43) THEN plotids(buf(0)) = -1
@@ -372,7 +372,7 @@ SUB seekscript (temp, seekdir, triggertype)
    END IF
   END IF
   IF temp >= 16384 THEN
-   loadrecord buf(), fh, 40, temp - 16384
+   loadrecord buf(), fh, 20, temp - 16384
    IF buf(0) THEN screxists = -1
   END IF
   IF screxists THEN EXIT DO

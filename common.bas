@@ -822,7 +822,7 @@ IF num >= 16384 AND trigger > 0 THEN
  fh = FREEFILE
  OPEN workingdir$ + SLASH + "lookup" + STR$(trigger) + ".bin" FOR BINARY AS #fh
  IF (num - 16384) * 40 <= LOF(fh) THEN
-  loadrecord buf(), fh, 40, num - 16384
+  loadrecord buf(), fh, 20, num - 16384
   sname$ = readbinstring(buf(), 1, 36)
   IF buf(0) THEN
    a$ = sname$
@@ -992,30 +992,12 @@ FOR i = 0 TO size
 NEXT i
 END SUB
 
-SUB loadbinrecord (filename$, recsize, array(), index)
-IF isfile(filename$) THEN
- setpicstuf array(), recsize * 2, -1
- loadset filename$, index, 0
- for i = 0 to recsize
-  s$ = s$ & "," & array(i)
- next i
-ELSE
- flusharray array(), recsize, 0
- debug "File not found loading record " & index & " from " & filename$
-END IF
-END SUB
-
-SUB savebinrecord (filename$, recsize, array(), index)
-setpicstuf array(), recsize * 2, -1
-storeset filename$, index, 0
-END SUB
-
 SUB loadherodata (array(), index)
-loadbinrecord (game$ & ".dt0", 318, array(), index)
+loadrecord array(), game$ & ".dt0", 318, index
 END SUB
 
 SUB saveherodata (array(), index)
-savebinrecord (game$ & ".dt0", 318, array(), index)
+storerecord array(), game$ & ".dt0", 318, index
 END SUB
 
 SUB loadenemydata (array(), index, altfile = 0)
@@ -1024,7 +1006,7 @@ IF altfile THEN
 ELSE
  filename$ = game$ & ".dt1"
 END IF
-loadbinrecord (filename$, 160, array(), index)
+loadrecord array(), filename$, 160, index
 END SUB
 
 SUB saveenemydata (array(), index, altfile = 0)
@@ -1033,36 +1015,36 @@ IF altfile THEN
 ELSE
  filename$ = game$ & ".dt1"
 END IF
-savebinrecord (filename$, 160, array(), index)
+storerecord array(), filename$, 160, index
 END SUB
 
 SUB loaditemdata (array(), index)
-loadbinrecord game$ & ".itm", 100, array(), index
+loadrecord array(), game$ & ".itm", 100, index
 END SUB
 
 SUB saveitemdata (array(), index)
-savebinrecord game$ & ".itm", 100, array(), index
+storerecord array(), game$ & ".itm", 100, index
 END SUB
 
 SUB loadoldattackdata (array(), index)
-loadbinrecord game$ & ".dt6", 40, array(), index
+loadrecord array(), game$ & ".dt6", 40, index
 END SUB
 
 SUB saveoldattackdata (array(), index)
-savebinrecord game$ & ".dt6", 40, array(), index
+storerecord array(), game$ & ".dt6", 40, index
 END SUB
 
 SUB loadnewattackdata (array(), index)
-loadbinrecord workingdir$ + SLASH + "attack.bin", getbinsize(binATTACK) / 2, array(), index
+loadrecord array(), workingdir$ + SLASH + "attack.bin", getbinsize(binATTACK) \ 2, index
 END SUB
 
 SUB savenewattackdata (array(), index)
-savebinrecord workingdir$ + SLASH + "attack.bin", getbinsize(binATTACK) / 2, array(), index
+storerecord array(), workingdir$ + SLASH + "attack.bin", getbinsize(binATTACK) \ 2, index
 END SUB
 
 SUB loadattackdata (array(), index)
 loadoldattackdata array(), index
-size = getbinsize(binATTACK) / 2
+size = getbinsize(binATTACK) \ 2
 DIM buf(size)
 loadnewattackdata buf(), index
 FOR i = 0 TO size
@@ -1125,11 +1107,11 @@ END FUNCTION
 SUB getpal16 (array(), aoffset, foffset, autotype=-1, sprite=0)
 DIM buf(8)
 
-loadbinrecord game$ + ".pal", 8, buf(), 0
+loadrecord buf(), game$ + ".pal", 8, 0
 IF buf(0) = 4444 THEN '--check magic number
  IF buf(1) >= foffset AND foffset >= 0 THEN
   'palette is available
-  loadbinrecord game$ + ".pal", 8, buf(), 1 + foffset
+  loadrecord buf(), game$ + ".pal", 8, 1 + foffset
   FOR i = 0 TO 7
    array(aoffset * 8 + i) = buf(i)
   NEXT i
@@ -1160,7 +1142,7 @@ SUB storepal16 (array(), aoffset, foffset)
 DIM buf(8)
 
 f$ = game$ + ".pal"
-loadbinrecord f$, 8, buf(), 0
+loadrecord buf(), f$, 8, 0
 
 IF buf(0) <> 4444 THEN
  fatalerror "16-color palette file may be corrupt"
@@ -1172,12 +1154,12 @@ IF foffset > last THEN
  '--blank out palettes before extending file
  FOR i = last + 1 TO foffset
   flusharray buf(), 8, 0
-  savebinrecord f$, 8, buf(), 1 + i
+  storerecord buf(), f$, 8, 1 + i
  NEXT i
  '--update header
  buf(0) = 4444
  buf(1) = foffset
- savebinrecord f$, 8, buf(), 0
+ storerecord buf(), f$, 8, 0
 END IF
 
 IF foffset >= 0 THEN '--never write a negative file offset
@@ -1186,7 +1168,7 @@ IF foffset >= 0 THEN '--never write a negative file offset
   buf(i) = array(aoffset * 8 + i)
  NEXT i
  'write palette
- savebinrecord f$, 8, buf(), 1 + foffset
+ storerecord buf(), f$, 8, 1 + foffset
 END IF
 
 END SUB

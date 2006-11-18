@@ -1315,7 +1315,7 @@ IF triggertype = 1 THEN
 
  i = firstscript
  FOR j = firstscript TO numberedlast
-  loadrecord localbuf(), fh, 40
+  loadrecord localbuf(), fh, 20
   IF localbuf(0) < 16384 THEN
    scriptids(i) = localbuf(0)
    scriptnames$(i) = STR$(localbuf(0)) + " " + readbinstring(localbuf(), 1, 36)
@@ -1348,7 +1348,7 @@ IF firstscript = 2 THEN
 END IF
 
 FOR i = numberedlast + 1 TO scriptmax
- loadrecord localbuf(), fh, 40
+ loadrecord localbuf(), fh, 20
  scriptids(i) = 16384 + i - (numberedlast + 1)
  scriptnames$(i) = readbinstring(localbuf(), 1, 36)
 NEXT

@@ -1613,16 +1613,16 @@ SUB loadrecord (buf() as integer, fh as integer, recordsize as integer, record a
 'loads 16bit records in an array
 'buf() = buffer to load shorts into, starting at buf(0)
 'fh = open file handle
-'recordsize = record size in bytes
+'recordsize = record size in shorts (not bytes)
 'record = record number, defaults to read from current file position
 	dim idx as integer
-    dim readbuf(recordsize \ 2 - 1) as short
+    dim readbuf(recordsize - 1) as short
 
 	if record <> -1 then
-		seek #fh, recordsize * record + 1
+		seek #fh, recordsize * 2 * record + 1
 	end if
     get #fh, , readbuf()
-	for idx = 0 to recordsize \ 2 - 1
+	for idx = 0 to recordsize - 1
 		buf(idx) = readbuf(idx)
 	next
 END SUB
@@ -1630,11 +1630,15 @@ END SUB
 SUB loadrecord (buf() as integer, filen$, recordsize as integer, record as integer = 0)
 'wrapper for above
 	dim f as integer
+	dim i as integer
 
 	f = freefile
 	open filen$ for binary access read as #f
 	if err > 0 then
-		'debug "Couldn't open " + filen$
+		debug "File not found loading record " & record & " from " & filen$
+		for i = 0 to recordsize - 1
+			buf(i) = 0
+		next	
 		exit sub
 	end if
 
@@ -1645,13 +1649,13 @@ END SUB
 SUB storerecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
 'same as loadrecord
 	dim idx as integer
-	dim writebuf(recordsize \ 2 - 1) as short
+	dim writebuf(recordsize - 1) as short
 
 	if record <> -1 then
-		seek #fh, recordsize * record + 1
+		seek #fh, recordsize * 2 * record + 1
 	end if
-	for idx = 0 to recordsize \ 2 - 1
-	writebuf(idx) = buf(idx)
+	for idx = 0 to recordsize - 1
+		writebuf(idx) = buf(idx)
 	next
 	put #fh, , writebuf()
 end SUB
