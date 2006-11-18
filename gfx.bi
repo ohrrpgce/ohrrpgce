@@ -1,10 +1,21 @@
+'' Backend-independent graphics structs
+
+#IFNDEF RGBcolor
+'this is also defined in allmodex.bi
+
+type RGBcolor
+  as ubyte r, g, b
+end type
+
+#ENDIF
+
 '' External graphics and IO functions
 
 declare sub gfx_init()		'initilization, including gfx_screenres
 declare sub gfx_screenres()		'set screen res, etc
 declare sub gfx_close()		'put it back how we found it
 declare sub gfx_showpage(byval raw as ubyte ptr) 'the main event
-declare sub gfx_setpal(pal() as integer) 'set colour palette
+declare sub gfx_setpal(pal() as RGBcolor) 'set colour palette
 declare function gfx_screenshot(fname as string, byval page as integer) as integer
 declare sub gfx_setwindowed(byval iswindow as integer)
 declare sub gfx_togglewindowed()

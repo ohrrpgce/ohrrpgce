@@ -51,7 +51,7 @@ declare SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as int
 declare sub setclip(l as integer=0, t as integer=0, r as integer=319, b as integer=199)
 declare sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer=1)
 declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr)
-declare function nearcolor(pal() as integer, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
+declare function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
 declare SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 declare SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 
@@ -120,7 +120,7 @@ dim shared fontdata as ubyte ptr
 
 dim shared as integer clipl, clipt, clipr, clipb
 
-dim shared intpal(0 to 255) as integer	'current palette
+dim shared intpal(0 to 255) as RGBcolor	'current palette
 
 'global sprite buffer, to allow reuse without allocate/deallocate
 dim shared tbuf as ohrsprite ptr = null
@@ -212,14 +212,13 @@ SUB setvispage (BYVAL page as integer)
 	vispage = page
 end SUB
 
-sub setpal(pal() as integer)
-	dim p as integer
+sub setpal(pal() as RGBcolor)
 	dim i as integer
 
-	p = 0 ' is it actually base 0?
 	for i = 0 to 255
-		intpal(i) = pal(p) or (pal(p+1) shl 8) or (pal(p+2) shl 16)
-		p = p + 3
+		intpal(i).r = pal(i).r
+		intpal(i).g = pal(i).g
+		intpal(i).b = pal(i).b
 	next i
 
 	mutexlock keybdmutex
@@ -227,114 +226,77 @@ sub setpal(pal() as integer)
 	mutexunlock keybdmutex
 end sub
 
-SUB fadeto (palbuff() as integer, BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
+SUB fadeto (BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
 	dim i as integer
 	dim j as integer
-	dim hue as integer
-	dim count as integer = 1
+	dim diff as integer
 
-	'palette get using pal 'intpal holds current palette
-
-	'max of 64-1 steps
-	for i = 0 to 62
+	for i = 1 to 32
 		for j = 0 to 255
 			'red
-			hue = intpal(j) and &hff
-			intpal(j) = intpal(j) and &hffff00 'clear
-			if hue > red then
-				hue = hue - 1
+			diff = intpal(j).r - red
+			if diff > 0 then
+				intpal(j).r -= iif(diff >= 8, 8, diff) 
+			elseif diff < 0 then
+				intpal(j).r -= iif(diff <= -8, -8, diff) 
 			end if
-			if hue < red then
-				hue = hue + 1
-			end if
-			intpal(j) = intpal(j) or hue
 			'green
-			hue = (intpal(j) and &hff00) shr 8
-			intpal(j) = intpal(j) and &hff00ff 'clear
-			if hue > green then
-				hue = hue - 1
+			diff = intpal(j).g - green
+			if diff > 0 then
+				intpal(j).g -= iif(diff >= 8, 8, diff) 
+			elseif diff < 0 then
+				intpal(j).g -= iif(diff <= -8, -8, diff) 
 			end if
-			if hue < green then
-				hue = hue + 1
-			end if
-			intpal(j) = intpal(j) or (hue shl 8)
 			'blue
-			hue = (intpal(j) and &hff0000) shr 16
-			intpal(j) = intpal(j) and &h00ffff 'clear
-			if hue > blue then
-				hue = hue - 1
+			diff = intpal(j).b - blue
+			if diff > 0 then
+				intpal(j).b -= iif(diff >= 8, 8, diff) 
+			elseif diff < 0 then
+				intpal(j).b -= iif(diff <= -8, -8, diff) 
 			end if
-			if hue < blue then
-				hue = hue + 1
-			end if
-			intpal(j) = intpal(j) or (hue shl 16)
 		next
-		if count = 1 then
-			mutexlock keybdmutex
-			gfx_setpal(intpal())
-			mutexunlock keybdmutex
-			count = 0
-		end if
-		count = count + 1
-		sleep 10 'how long?
+		mutexlock keybdmutex
+		gfx_setpal(intpal())
+		mutexunlock keybdmutex
+        sleep 15 'how long?
 	next
 
 	'Make sure the palette gets set on the final pass
 end SUB
 
-SUB fadetopal (pal() as integer, palbuff() as integer)
+SUB fadetopal (pal() as RGBcolor)
 	dim i as integer
 	dim j as integer
-	dim hue as integer
-	dim p as integer	'index to passed palette, which has separate r, g, b
-	dim count as integer = 1
+	dim diff as integer
 
-	'max of 64-1 steps
-	for i = 0 to 62
-		p = 0
+	for i = 1 to 32
 		for j = 0 to 255
 			'red
-			hue = intpal(j) and &hff
-			intpal(j) = intpal(j) and &hffff00 'clear
-			if hue > pal(p) then
-				hue = hue - 1
+			diff = intpal(j).r - pal(j).r
+			if diff > 0 then
+				intpal(j).r -= iif(diff >= 8, 8, diff) 
+			elseif diff < 0 then
+				intpal(j).r -= iif(diff <= -8, -8, diff) 
 			end if
-			if hue < pal(p) then
-				hue = hue + 1
-			end if
-			intpal(j) = intpal(j) or hue
-			p = p + 1
 			'green
-			hue = (intpal(j) and &hff00) shr 8
-			intpal(j) = intpal(j) and &hff00ff 'clear
-			if hue > pal(p) then
-				hue = hue - 1
+			diff = intpal(j).g - pal(j).g
+			if diff > 0 then
+				intpal(j).g -= iif(diff >= 8, 8, diff) 
+			elseif diff < 0 then
+				intpal(j).g -= iif(diff <= -8, -8, diff) 
 			end if
-			if hue < pal(p) then
-				hue = hue + 1
-			end if
-			intpal(j) = intpal(j) or (hue shl 8)
-			p = p + 1
 			'blue
-			hue = (intpal(j) and &hff0000) shr 16
-			intpal(j) = intpal(j) and &h00ffff 'clear
-			if hue > pal(p) then
-				hue = hue - 1
+				diff = intpal(j).b - pal(j).b
+			if diff > 0 then
+				intpal(j).b -= iif(diff >= 8, 8, diff) 
+			elseif diff < 0 then
+				intpal(j).b -= iif(diff <= -8, -8, diff) 
 			end if
-			if hue < pal(p) then
-				hue = hue + 1
-			end if
-			intpal(j) = intpal(j) or (hue shl 16)
-			p = p + 1
 		next
-		if count = 1 then
-			mutexlock keybdmutex
-			gfx_setpal(intpal())
-			mutexunlock keybdmutex
-			count = 0
-		end if
-		count = count + 1
-		sleep 10 'how long?
+		mutexlock keybdmutex
+		gfx_setpal(intpal())
+		mutexunlock keybdmutex
+	sleep 15 'how long?
 	next
 end SUB
 
@@ -1683,15 +1645,15 @@ END SUB
 SUB storerecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
 'same as loadrecord
 	dim idx as integer
-    dim writebuf(recordsize \ 2 - 1) as short
+	dim writebuf(recordsize \ 2 - 1) as short
 
 	if record <> -1 then
 		seek #fh, recordsize * record + 1
 	end if
 	for idx = 0 to recordsize \ 2 - 1
-        writebuf(idx) = buf(idx)
+	writebuf(idx) = buf(idx)
 	next
-    put #fh, , writebuf()
+	put #fh, , writebuf()
 end SUB
 
 SUB storerecord (buf() as integer, filen$, recordsize as integer, record as integer = 0)
@@ -1750,12 +1712,12 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$)
 	CLOSE #f2
 	KILL shellout$
 #else
-    DIM a$, i%, folder$
+	DIM a$, i%, folder$
 	if attrib = 0 then attrib = 255 xor 16
-  if attrib = 16 then attrib = 55 '*sigh*
+	if attrib = 16 then attrib = 55 '*sigh*
 	FOR i = LEN(fmask$) TO 1 STEP -1
-        IF MID$(fmask$, i, 1) = "\" THEN folder$ = MID$(fmask$, 1, i): EXIT FOR
-    NEXT
+		IF MID$(fmask$, i, 1) = "\" THEN folder$ = MID$(fmask$, 1, i): EXIT FOR
+	NEXT
 
 	dim tempf%, realf%
 	tempf = FreeFile
@@ -1770,22 +1732,22 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$)
 		a$ = DIR$ '("", attrib)
 	LOOP
 	CLOSE #tempf
-    OPEN outfile$ + ".tmp" FOR INPUT AS #tempf
-    realf = FREEFILE
-    OPEN outfile$ FOR OUTPUT AS #realf
-    DO UNTIL EOF(tempf)
-        LINE INPUT #tempf, a$
+	OPEN outfile$ + ".tmp" FOR INPUT AS #tempf
+	realf = FREEFILE
+	OPEN outfile$ FOR OUTPUT AS #realf
+	DO UNTIL EOF(tempf)
+	LINE INPUT #tempf, a$
         IF attrib = 55 THEN
-            'alright, we want directories, but DIR$ is too broken to give them to us
-            'files with attribute 0 appear in the list, so single those out
-            IF DIR$(folder$ + a$, 55) <> "" AND DIR$(folder$ + a$, 39) = "" THEN PRINT #realf, a$
-        ELSE
-            PRINT #realf, a$
-        END IF
-    LOOP
-    CLOSE #tempf
-    CLOSE #realf
-    KILL outfile$ + ".tmp"
+		'alright, we want directories, but DIR$ is too broken to give them to us
+		'files with attribute 0 appear in the list, so single those out
+		IF DIR$(folder$ + a$, 55) <> "" AND DIR$(folder$ + a$, 39) = "" THEN PRINT #realf, a$
+	ELSE
+		PRINT #realf, a$
+	END IF
+	LOOP
+	CLOSE #tempf
+	CLOSE #realf
+	KILL outfile$ + ".tmp"
 #endif
 END SUB
 
@@ -1798,7 +1760,7 @@ SUB unlump (lump$, ulpath$)
 end SUB
 
 SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
-  unlumpfile(lump$, fmask$, path$)
+	unlumpfile(lump$, fmask$, path$)
 end sub
 
 SUB unlumpfile (lump$, fmask$, path$)
@@ -2257,7 +2219,7 @@ SUB copyfile (s$, d$, buf() as integer)
 
 end SUB
 
-SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
+SUB screenshot (f$, BYVAL p as integer, maspal() as RGBcolor, buf() as integer)
 'Not sure whether this should be in here or in gfx. Possibly both?
 '	bsave f$, 0
 
@@ -2309,10 +2271,10 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as integer, buf() as integer)
 		put #of, , header
 		put #of, , info
 
-		for i = 0 to 765 step 3
-			argb.rgbRed = maspal(i) * 4
-			argb.rgbGreen = maspal(i+1) * 4
-			argb.rgbBlue = maspal(i+2) * 4
+		for i = 0 to 255
+			argb.rgbRed = maspal(i).r
+			argb.rgbGreen = maspal(i).g
+			argb.rgbBlue = maspal(i).b
 			put #of, , argb
 		next
 
@@ -2676,8 +2638,8 @@ end function
 'Bitmap import functions - other formats are probably quite simple
 'with Allegro or SDL or FreeImage, but we'll stick to this for now.
 '----------------------------------------------------------------------
-SUB bitmap2page (temp(), bmp$, BYVAL p)
-'loads the 24-bit bitmap bmp$ into page p with palette temp()
+SUB bitmap2page (pal() as RGBcolor, bmp$, BYVAL p)
+'loads the 24-bit bitmap bmp$ into page p with palette pal()
 'I'm pretty sure this is only ever called with 320x200 pics, but I
 'have tried to generalise it to cope with any size.
 	dim header as BITMAPFILEHEADER
@@ -2743,7 +2705,7 @@ SUB bitmap2page (temp(), bmp$, BYVAL p)
 				for w = 0 to maxw
 					'read the data
 					get #bf, , pix
-					*sptr = nearcolor(temp(), pix.rgbtRed, pix.rgbtGreen, pix.rgbtBlue)
+					*sptr = nearcolor(pal(), pix.rgbtRed, pix.rgbtGreen, pix.rgbtBlue)
 					sptr += 1
 				next
 			end if
@@ -2793,7 +2755,7 @@ SUB bitmap2page (temp(), bmp$, BYVAL p)
 	close #bf
 END SUB
 
-SUB loadbmp (f$, BYVAL x, BYVAL y, buf(), BYVAL p)
+SUB loadbmp (f$, BYVAL x, BYVAL y, BYVAL p)
 'loads the 4-bit bitmap f$ into page p at x, y
 'sets palette to match file???
 	dim header as BITMAPFILEHEADER
@@ -2977,7 +2939,7 @@ SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, b
 
 end sub
 
-SUB getbmppal (f$, mpal(), pal(), BYVAL o)
+SUB getbmppal (f$, mpal() as RGBcolor, pal(), BYVAL o)
 'gets the nearest-match palette pal() starting at offset o, from file f$
 'according to the master palette mpal()
 	dim header as BITMAPFILEHEADER
@@ -3020,7 +2982,7 @@ SUB getbmppal (f$, mpal(), pal(), BYVAL o)
 			pal(p) = col8
 			toggle = 1
 		else
-			pal(p) = pal(p) or (col8  shl 8)
+			pal(p) = pal(p) or (col8 shl 8)
 			toggle = 0
 			p += 1
 		end if
@@ -3067,27 +3029,25 @@ FUNCTION bmpinfo (f$, dat())
 	bmpinfo = -1
 END FUNCTION
 
-function nearcolor(pal() as integer, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
+function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
 'figure out nearest palette colour
-'supplied pal() is r,g,b
-	dim as integer i, diff, col, best, save, rdif, bdif, gdif
+	dim as integer i, diff, best, save, rdif, bdif, gdif
 
 	best = 1000
 	save = 0
-	for col = 0 to 255
-		i = col * 3
-		rdif = (red shr 2) - pal(i)
-		gdif = (green shr 2) - pal(i+1)
-		bdif = (blue shr 2) - pal(i+2)
+	for i = 0 to 255
+		rdif = red - pal(i).r
+		gdif = green - pal(i).g
+		bdif = blue - pal(i).b
 		diff = abs(rdif) + abs(gdif) + abs(bdif)
 		'diff = rdif^2 + gdif^2 + bdif^2
 		if diff = 0 then
 			'early out on direct hit
-			save = col
+			save = i
 			exit for
 		end if
 		if diff < best then
-			save = col
+			save = i
 			best = diff
 		end if
 	next

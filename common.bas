@@ -45,13 +45,13 @@ catfg(5) = 10: catbg(5) = 8   'special
 catfg(6) = 8: catbg(6) = 0    'disabled
 
 IF needf = 1 THEN
- FOR i = 0 TO 767
-  buffer(i) = 0
+ DIM temppal(255) as RGBcolor
+ FOR i = 0 TO 255
+  temppal(i).r = 0
+  temppal(i).g = 0
+  temppal(i).b = 0
  NEXT i
- buffer(24) = 5
- buffer(25) = 5
- buffer(26) = 5
- setpal buffer()
+ setpal temppal()
 END IF
 
 drivetotal = drivelist(drive$())
@@ -539,12 +539,12 @@ END SUB
 'fade in and out not actually used in custom
 SUB fadein (force)
 fadestate = 1
-fadetopal master(), buffer()
+fadetopal master()
 END SUB
 
 SUB fadeout (red, green, blue, force)
 fadestate = 0
-fadeto buffer(), red, green, blue
+fadeto red, green, blue
 END SUB
 
 SUB getui (f$)
@@ -1284,3 +1284,63 @@ FUNCTION peek8bit (array16(), index)
   RETURN element AND &hFF
  END IF
 END FUNCTION
+
+SUB loadpalette(pal() as RGBcolor, palnum)
+IF NOT isfile(workingdir$ + SLASH + "palettes.bin") THEN
+ '.MAS fallback, palnum ignored because it doesn't matter
+ DIM palbuf(767)
+ xbload game$ + ".mas", palbuf(), "master palette missing from " + game$
+ convertpalette palbuf(), pal()
+ELSE
+ DIM AS SHORT headsize, recsize
+ DIM palbuf(767) as UBYTE
+
+ fh = FREEFILE
+ OPEN workingdir$ + SLASH + "palettes.bin" FOR BINARY AS #fh
+ GET #fh, , headsize
+ GET #fh, , recsize
+ GET #fh, recsize * palnum + headsize + 1, palbuf()
+ CLOSE #fh
+ FOR i = 0 TO 255
+  pal(i).r = palbuf(i * 3)
+  pal(i).g = palbuf(i * 3 + 1)
+  pal(i).b = palbuf(i * 3 + 2)
+ NEXT
+END IF
+END SUB
+
+SUB savepalette(pal() as RGBcolor, palnum)
+IF isfile(workingdir$ + SLASH + "palettes.bin") THEN
+ DIM AS SHORT headsize, recsize
+
+ fh = FREEFILE
+ OPEN workingdir$ + SLASH + "palettes.bin" FOR BINARY AS #fh
+ GET #fh, , headsize
+ GET #fh, , recsize
+
+ DIM palbuf(recsize - 1) as UBYTE
+ FOR i = 0 TO 255
+  palbuf(i * 3) = pal(i).r
+  palbuf(i * 3 + 1) = pal(i).g
+  palbuf(i * 3 + 2) = pal(i).b
+ NEXT
+ PUT #fh, recsize * palnum + headsize + 1, palbuf()
+ CLOSE #fh
+END IF
+END SUB
+
+SUB convertpalette(oldpal() as integer, newpal() as RGBcolor)
+'takes a old QB style palette (as 768 ints), translates it to
+'8 bits per component and writes it to the provided RGBcolor array
+FOR i = 0 TO 255
+ r = oldpal(i * 3)
+ g = oldpal(i * 3 + 1)
+ b = oldpal(i * 3 + 2)
+ 'newpal(i).r = r shl 2 or r shr 4
+ 'newpal(i).g = g shl 2 or g shr 4
+ 'newpal(i).b = b shl 2 or b shr 4
+ newpal(i).r = iif(r, r shl 2 + 3, 0)   'Mapping as Neo suggested
+ newpal(i).g = iif(g, g shl 2 + 3, 0)
+ newpal(i).b = iif(b, b shl 2 + 3, 0)
+NEXT
+END SUB

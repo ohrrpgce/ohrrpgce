@@ -1291,7 +1291,7 @@ FOR i = 0 TO 31
  plotstrBits(i) = 0
 NEXT i
 
-xbload game$ + ".mas", master(), "master palette missing from " + game$
+loadpalette master(), gen(genMasterPal)
 
 'delete temp files that are part of the game state
 deletetemps
@@ -1527,7 +1527,7 @@ SUB savegame (slot, map, foep, stat(), stock())
 FOR i = 0 TO 16000
  buffer(i) = 0
 NEXT i
-
+  
 buffer(0) = 3        'SAVEGAME VERSION NUMBER
 buffer(1) = map
 buffer(2) = catx(0)

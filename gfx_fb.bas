@@ -23,7 +23,7 @@ dim shared screenmodey as integer = 400
 dim shared bordered as integer = 0
 dim shared depth as integer = 8
 
-'internal palette for 24-bit mode, with 0-255 RGB instead of 0-63 BGR
+'internal palette for 32-bit mode, with RGB colour components packed into a int
 dim shared truepal(255) as integer
 
 declare sub debug(s$)
@@ -34,7 +34,7 @@ declare sub debug(s$)
 'the main loop?
 sub gfx_init
 	if init_gfx = 0 then
-    gfx_screenres
+		gfx_screenres
 		screenset 1, 0
 		init_gfx = 1
 	end if
@@ -42,9 +42,9 @@ end sub
 
 sub gfx_screenres
 	if windowed = 0 then
-     screenres screenmodex, screenmodey, depth, 1, GFX_FULLSCREEN
+		screenres screenmodex, screenmodey, depth, 1, GFX_FULLSCREEN
 	else
-     screenres screenmodex, screenmodey, depth, 1, GFX_WINDOWED
+		screenres screenmodex, screenmodey, depth, 1, GFX_WINDOWED
 	end if
 end sub
 
@@ -105,29 +105,22 @@ sub gfx_showpage(byval raw as ubyte ptr)
 
 end sub
 
-sub gfx_setpal(pal() as integer)
-'NOTE: component colour values are 0-63 not 0-255
-'Format is BGR, packed within 1 integer, which may not be that
-'useful. Should it be 768 bytes instead of 256 ints?
+sub gfx_setpal(pal() as RGBcolor)
+	dim as integer i
 	if depth = 8 then
-		palette using pal
-	else
-		'set truecolour palette with scaled colour values
-		dim as integer r, g, b, i
 		for i = 0 to 255
-			r = pal(i) and &hff
-			g = (pal(i) and &hff00) shr 8
-			b = (pal(i) and &hff0000) shr 16
-			r = r shl 2 or r shr 4
-			g = g shl 2 or g shr 4
-			b = b shl 2 or b shr 4
-			truepal(i) = RGB(r, g, b)
+			palette i, pal(i).r, pal(i).g, pal(i).b
 		next
-		'This does not update the page "live", like the 8-bit version
-		'so fades aren't working, and there's no way to force an
-		'update from here at the moment because the screen buffer is not
-		'accessible.
 	end if
+	'copy the palette, both for 32bit colour mode and when changing
+	'res requires resetting the palette
+	for i = 0 to 255
+		truepal(i) = RGB(pal(i).r, pal(i).g, pal(i).b)
+	next
+	'This does not update the page "live", like the 8-bit version
+	'so fades aren't working, and there's no way to force an
+	'update from here at the moment because the screen buffer is not
+	'accessible.
 end sub
 
 function gfx_screenshot(fname as string, byval page as integer) as integer
@@ -141,10 +134,14 @@ sub gfx_setwindowed(byval iswindow as integer)
 	windowed = iswindow
 
 	if init_gfx = 1 then
-		dim pal(255) as integer
-		if depth = 8 then palette get using pal
-    gfx_screenres
-		if depth = 8 then palette using pal
+		dim i as integer
+		gfx_screenres
+        'palette must be re-set
+		if depth = 8 then
+			for i = 0 to 255
+				palette i, (truepal(i) and &hFF0000) shr 16, (truepal(i) and &hFF00) shr 8, truepal(i) and &hFF 
+			next
+		end if
 	end if
 end sub
 
@@ -178,8 +175,8 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 			'default zoom is 2, 1 is the only other valid value
 			if value = 1 then
 				zoom = 1
-      elseif value = 3 then
-        zoom = 3
+			elseif value = 3 then
+		zoom = 3
 			else
 				zoom = 2
 			end if
@@ -200,18 +197,18 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 		if zoom = 1 then
 			if depth = 8 then
 				screenmodex = 320
-        screenmodey = 200 + (bordered * BORDER * zoom)
+				screenmodey = 200 + (bordered * BORDER * zoom)
 			else
 				'only bordered is supported in 24-bit it seems
 				bordered = 1
 				screenmodex = 320
-        screenmodey = 240
+				screenmodey = 240
 			end if
-    elseif zoom = 3 then
-		bordered = 0 ' bordered mode is not supported in 3x zoom
-		screen_buffer_offset = 0
-		screenmodex = 960
-		screenmodey = 600
+		elseif zoom = 3 then
+			bordered = 0 ' bordered mode is not supported in 3x zoom
+			screen_buffer_offset = 0
+			screenmodex = 960
+			screenmodey = 600
 		else
 			screenmodex = 640
 			screenmodey = 400 + (bordered * BORDER * zoom)
@@ -240,7 +237,7 @@ function io_keypressed(byval scancode as integer)
 'the contract of this function is basically the same as multikey
 'in this case it's just a wrapper, but multikey only works with
 'the built-in gfxlib
-  dim ret as integer = multikey(scancode)
+	dim ret as integer = multikey(scancode)
 	'debug "key(" & scancode & ") = " & ret
 	return ret
 end function
@@ -292,7 +289,7 @@ function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
 	joybuf(1) = int(y * 100) 'ditto
 	joybuf(2) = (button AND 1) = 0 '0 = pressed, not 0 = unpressed (why???)
 	joybuf(3) = (button AND 2) = 0 'ditto
-  if abs(joybuf(0)) > 10 then debug "X = " + str(joybuf(0))
+	if abs(joybuf(0)) > 10 then debug "X = " + str(joybuf(0))
 	return 1
 
 end function
@@ -300,12 +297,11 @@ end function
 function io_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
 	dim as single xa, ya
 	if getjoystick(joynum,button,xa,ya) then 'returns 1 on failure
-	  return 0
-  else
-    x = int(xa * 100)
-    y = int(ya * 100)
-    if abs(x) > 10 then debug "X = " + str(x)
-    return 1
+		return 0
+	else
+	x = int(xa * 100)
+	y = int(ya * 100)
+	if abs(x) > 10 then debug "X = " + str(x)
+		return 1
 	end if
-
 end function

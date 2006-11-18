@@ -98,8 +98,9 @@ processcommandline
 gamedir$ = exepath$
 CHDIR gamedir$
 
-DIM font(1024), master(767), buffer(16384), timing(4), joy(4), scroll(16002), pass(16002), emap(16002)
+DIM font(1024), buffer(16384), timing(4), joy(4), scroll(16002), pass(16002), emap(16002)
 DIM menu$(22), gen(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600), uilook(uiColors)
+DIM master(255) as RGBcolor
 'more global variables
 DIM game$, gamefile$, unsafefile$, insert
 DIM vpage, dpage, fadestate, workingdir$, version$
@@ -108,7 +109,8 @@ DIM vpage, dpage, fadestate, workingdir$, version$
 '$INCLUDE: 'binsize.bi'
 
 RANDOMIZE TIMER
-textxbload "ohrrpgce.mas", master(), "default master palette ohrrpgce.mas is missing"
+textxbload "ohrrpgce.mas", buffer(), "default master palette ohrrpgce.mas is missing"
+convertpalette buffer(), master()
 textxbload "ohrrpgce.fnt", font(), "default font ohrrpgce.fnt is missing"
 getui ""
 setmodex
@@ -185,18 +187,17 @@ safekill workingdir$ + SLASH + "__danger.tmp"
 
 IF hsfile$ <> "" THEN GOTO hsimport
 
-IF NOT isfile(game$ + ".mas") THEN copyfile "ohrrpgce.mas", game$ + ".mas", buffer()
-xbload game$ + ".mas", master(), "Master palette not found"
-setpal master()
+IF NOT isfile(game$ + ".mas") AND NOT isfile(workingdir$ + SLASH + "palettes.bin") THEN copyfile "ohrrpgce.mas", game$ + ".mas", buffer()
 getui workingdir$ + SLASH + "uilook.bin"
 IF NOT isfile(game$ + ".fnt") THEN copyfile "ohrrpgce.fnt", game$ + ".fnt", buffer()
 xbload game$ + ".fnt", font(), "Font not loaded"
 '--loadgen, upgrade, resave
 xbload game$ + ".gen", gen(), "general data is missing, RPG file corruption is likely"
+loadpalette master(), gen(genMasterPal)
+setpal master()
 upgrade font()
 xbsave game$ + ".gen", gen(), 1000
 setfont font()
-needf = 1
 
 menumode = 0
 pt = 0
@@ -1635,7 +1636,17 @@ IF NOT isfile(workingdir$ + SLASH + "songdata.bin") THEN
  ERASE song$
 END IF
 
-
+IF NOT isfile(workingdir$ + SLASH + "palettes.bin") THEN
+ DIM AS SHORT headsize = 4, recsize = 768
+ printstr "Upgrading Master Palette format...", 0, 0, vpage
+ loadpalette master(), 0
+ fh = FREEFILE
+ OPEN workingdir$ + SLASH + "palettes.bin" FOR BINARY AS #fh
+ PUT #fh, , headsize
+ PUT #fh, , recsize
+ CLOSE #fh
+ savepalette master(), 0
+END IF
 
 '--check variable record size lumps and reoutput them if records have been extended
 '--all of the files below should exist, be non zero length and have non zero record size by this point

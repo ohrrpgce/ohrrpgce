@@ -7,7 +7,6 @@
 '$INCLUDE: 'udts.bi'
 
 'Misc game globals
-EXTERN game$
 EXTERN sourcerpg$
 EXTERN tmpdir$
 EXTERN exename$

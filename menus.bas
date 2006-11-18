@@ -797,19 +797,10 @@ w = getkey
 
 f$ = browse$(4, default$, "*.mas", "")
 IF f$ <> "" THEN
- '--copy the new palette in
- copyfile f$, game$ + ".mas", buffer()
- '--patch the header in case it is a corrupt PalEdit header.
- masfh = FREEFILE
- OPEN game$ + ".mas" FOR BINARY AS #masfh
- a$ = CHR$(13)
- PUT #masfh, 2, a$
- a$ = CHR$(0)
- PUT #masfh, 6, a$
- CLOSE #masfh
- '--load the new palette!
- xbload game$ + ".mas", master(), "MAS load error"
+ xbload game$ + ".mas", buffer(), "MAS load error"
+ convertpalette buffer(), master()
  setpal master()
+ savepalette master(), 0
 END IF
 
 RETRACE

@@ -179,7 +179,8 @@ END SUB
 
 SUB importbmp (f$, cap$, count)
 STATIC default$
-DIM menu$(10), pmask(767)
+DIM menu$(10)
+DIM pmask(255) as RGBcolor
 csr = 0
 pt = 0
 
@@ -193,7 +194,7 @@ menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
 menu$(2) = "Replace current " + cap$
 menu$(3) = "Append a new " + cap$
 menu$(4) = "Disable palette colors"
-GOSUB resetpal
+loadpalette pmask(), gen(genMasterPal)
 GOSUB showpage
 
 setkeys
@@ -269,9 +270,9 @@ DO
   IF keyval(80) > 1 THEN cy = small(cy + 1, 15)
   IF keyval(72) > 1 THEN cy = cy - 1: IF cy < 0 THEN cy = 0: csr2 = 0
   IF keyval(57) > 1 OR keyval(28) > 1 THEN
-   FOR i = 0 TO 2
-    pmask((cy * 16 + cx) * 3 + i) = pmask((cy * 16 + cx) * 3 + i) XOR master((cy * 16 + cx) * 3 + i)
-   NEXT i
+   pmask(cy * 16 + cx).r xor= master(cy * 16 + cx).r
+   pmask(cy * 16 + cx).g xor= master(cy * 16 + cx).g
+   pmask(cy * 16 + cx).b xor= master(cy * 16 + cx).b
    setpal pmask()
   END IF
  END IF
@@ -289,17 +290,13 @@ DO
  dowait
 LOOP
 
-resetpal:
-xbload game$ + ".mas", pmask(), "internal master palette missing!"
-RETRACE
-
 bimport:
 clearpage 3
 setvispage 3
 IF at < count THEN loadpage game$ + f$, at, 3
 bitmap2page pmask(), srcbmp$, 3
 storepage game$ + f$, at, 3
-GOSUB resetpal
+loadpalette pmask(), gen(genMasterPal)
 RETRACE
 
 showpage:
@@ -1209,7 +1206,7 @@ LOOP
 clearpage dpage
 clearpage 2
 
-loadbmp srcbmp$, 1, 1, buffer(), 2
+loadbmp srcbmp$, 1, 1, 2
 
 '---------------------
 'PICK BACKGROUND COLOR

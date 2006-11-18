@@ -182,7 +182,7 @@ thestart:
 'DEBUG debug "dim (almost) everything"
 
 'Mixed global and module variables
-DIM font(1024), master(767), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
+DIM font(1024), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
 DIM door(206), gen(104), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev&(40, 1), names$(40), gotj(2), veh(21)
 DIM eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
@@ -194,6 +194,7 @@ DIM SHARED cycle(1), cycptr(1), cycskip(1), tastuf(40), stat(40, 1, 16)
 
 'global variables
 DIM scroll(16002), pass(16002)
+DIM master(255) as RGBcolor
 DIM uilook(uiColors)
 DIM inventory(inventoryMax) as InventSlot
 DIM npcs(npcdMax) as NPCType
@@ -239,9 +240,9 @@ gen(60) = 0'--leave joystick calibration enabled
 'fpstimer! = TIMER
 
 FOR i = 1 TO 15
- master(i * 3 + 0) = SGN(i AND 4) * 32 + SGN(i AND 8) * 16
- master(i * 3 + 1) = SGN(i AND 2) * 32 + SGN(i AND 8) * 16
- master(i * 3 + 2) = SGN(i AND 1) * 32 + SGN(i AND 8) * 16
+ master(i).r = SGN(i AND 4) * 168 + SGN(i AND 8) * 87
+ master(i).g = SGN(i AND 2) * 168 + SGN(i AND 8) * 87
+ master(i).b = SGN(i AND 1) * 168 + SGN(i AND 8) * 87
 NEXT i
 
 'DEBUG debug "load font"
@@ -376,10 +377,9 @@ ERASE lumpbuf
 fadeout 0, 0, 0, -1
 needf = 1
 
-xbload game$ + ".mas", master(), "master palette missing from " + game$
-xbload game$ + ".fnt", font(), "font missing from " + game$
-'xbload game$ + ".gen", buffer(), "general data missing from " + game$
 LoadGEN
+loadpalette master(), gen(genMasterPal)
+xbload game$ + ".fnt", font(), "font missing from " + game$
 
 rpgversion gen(genVersion)
 

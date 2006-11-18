@@ -103,7 +103,7 @@ sub gfx_showpage(byval raw as ubyte ptr)
 	
 	for y = 0 to 199
 		for x = 0 to 319
-		  #IFDEF putpixel8
+			#IFDEF putpixel8
 			putpixel8(screenbuf, x, y, *raw)
 			#ELSE
 			putpixel(screenbuf, x, y, *raw)
@@ -116,20 +116,14 @@ sub gfx_showpage(byval raw as ubyte ptr)
 	
 end sub
 
-sub gfx_setpal(pal() as integer)
-'NOTE: component colour values are 0-63 not 0-255
-'Format is BGR, packed within 1 integer, which may not be that
-'useful. Should it be 768 bytes instead of 256 ints?
+sub gfx_setpal(pal() as RGBcolor)
+'In 8 bit colour depth, allegro uses 6 bit colour components in the palette
 	dim as integer i
 	
 	for i = 0 to 255
-		dim as integer r, g, b
-		r = pal(i) and &hff
-		g = (pal(i) and &hff00) shr 8
-		b = (pal(i) and &hff0000) shr 16
-		alpal(i).r = r shl 2 or r shr 4
-		alpal(i).g = g shl 2 or g shr 4
-		alpal(i).b = b shl 2 or b shr 4
+		alpal(i).r = pal(i).r \ 4
+		alpal(i).g = pal(i).g \ 4
+		alpal(i).b = pal(i).b \ 4
 	next
 	
 	set_palette(@alpal(0))

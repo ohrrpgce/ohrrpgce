@@ -497,12 +497,9 @@ END FUNCTION
 
 SUB greyscalepal
 FOR i = bound(retvals(0), 0, 255) TO bound(retvals(1), 0, 255)
- r = master(i * 3)
- g = master(i * 3 + 1)
- b = master(i * 3 + 2)
- FOR j = 0 TO 2
-  master(i * 3 + j) = bound((r + g + b) / 3, 0, 63)
- NEXT j
+ master(i).r = bound((master(i).r + master(i).g + master(i).b) / 3, 0, 255)
+ master(i).g = master(i).r
+ master(i).b = master(i).r
 NEXT i
 END SUB
 
@@ -1160,13 +1157,22 @@ SELECT CASE AS CONST id
    scriptret = catd(retvals(0) * 5)
   END IF
  CASE 103'--reset palette
-  xbload game$ + ".mas", master(), "master palette missing from " + game$
+  loadpalette master(), gen(genMasterPal)
  CASE 104'--tweak palette
   tweakpalette
  CASE 105'--read color
-  scriptret = master(bound(retvals(0), 0, 255) * 3 + bound(retvals(1), 0, 3))
+  IF retvals(0) >= 0 AND retvals(0) < 256 THEN
+   IF retvals(1) = 0 THEN scriptret = master(retvals(0)).r / 4
+   IF retvals(1) = 1 THEN scriptret = master(retvals(0)).g / 4
+   IF retvals(1) = 2 THEN scriptret = master(retvals(0)).b / 4
+  END IF
  CASE 106'--write color
-  master(bound(retvals(0), 0, 255) * 3 + bound(retvals(1), 0, 3)) = bound(retvals(2), 0, 63)
+  IF retvals(0) >= 0 AND retvals(0) < 256 THEN
+   temp = bound(retvals(2), 0, 63)
+   IF retvals(1) = 0 THEN master(retvals(0)).r = iif(temp, temp * 4 + 3, 0)
+   IF retvals(1) = 1 THEN master(retvals(0)).g = iif(temp, temp * 4 + 3, 0)
+   IF retvals(1) = 2 THEN master(retvals(0)).b = iif(temp, temp * 4 + 3, 0)
+  END IF
  CASE 107'--update palette
   setpal master()
  CASE 108'--reseed random
@@ -1956,9 +1962,9 @@ END SUB
 
 SUB tweakpalette
 FOR i = bound(retvals(3), 0, 255) TO bound(retvals(4), 0, 255)
- FOR j = 0 TO 2
-  master(i * 3 + j) = bound(INT(master(i * 3 + j) + retvals(j)), 0, 63)
- NEXT j
+ master(i).r = bound(master(i).r + retvals(0) * 4, 0, 255)
+ master(i).g = bound(master(i).g + retvals(1) * 4, 0, 255)
+ master(i).b = bound(master(i).b + retvals(2) * 4, 0, 255)
 NEXT i
 END SUB
 

@@ -58,16 +58,19 @@ DECLARE FUNCTION xstring (s$, x)
 DECLARE FUNCTION defaultint$ (n)
 DECLARE SUB poke8bit (array16(), index, val8)
 DECLARE FUNCTION peek8bit (array16(), index)
+DECLARE SUB loadpalette(pal() as RGBcolor, palnum%)
+DECLARE SUB savepalette(pal() as RGBcolor, palnum%)
+DECLARE SUB convertpalette(oldpal%(), newpal() as RGBcolor)
 
 'Global variables
+EXTERN game$
 EXTERN uilook()
 EXTERN vpage, dpage
 EXTERN buffer()
 EXTERN version$
 EXTERN fadestate
-EXTERN master()
+EXTERN master() as RGBcolor
 EXTERN workingdir$
 EXTERN curbinsize(), defbinsize()
 EXTERN keyv()
-EXTERN game$
 EXTERN gen()

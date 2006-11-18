@@ -3,6 +3,15 @@
 #IFNDEF ALLMODEX_BI
 #DEFINE ALLMODEX_BI
 
+#IFNDEF RGBcolor
+'this is also defined in gfx.bi
+
+TYPE RGBcolor
+  as UBYTE r, g, b
+END TYPE
+
+#ENDIF
+
 #include "compat.bi"
 
 'Library routines
@@ -11,9 +20,9 @@ DECLARE SUB restoremode ()
 DECLARE SUB copypage (BYVAL page1, BYVAL page2)
 DECLARE SUB clearpage (BYVAL page)
 DECLARE SUB setvispage (BYVAL page)
-DECLARE SUB setpal (pal())
-DECLARE SUB fadeto (palbuff(), BYVAL red, BYVAL green, BYVAL blue)
-DECLARE SUB fadetopal (pal(), palbuff())
+DECLARE SUB setpal (pal() as RGBcolor)
+DECLARE SUB fadeto (BYVAL red, BYVAL green, BYVAL blue)
+DECLARE SUB fadetopal (pal() as RGBcolor)
 DECLARE SUB setmapdata (array(), pas(), BYVAL t, BYVAL b)
 DECLARE SUB setmapblock (BYVAL x, BYVAL y, BYVAL v)
 DECLARE FUNCTION readmapblock (BYVAL x, BYVAL y)
@@ -56,7 +65,7 @@ DECLARE SUB loadrecord overload (buf(), fh, recordsize, record = -1)
 DECLARE SUB loadrecord overload (buf(), filename$, recordsize, record = 0)
 DECLARE SUB storerecord overload (buf(), fh, recordsize, record = -1)
 DECLARE SUB storerecord overload (buf(), filename$, recordsize, record = 0)
-DECLARE SUB bitmap2page (temp(), bmp$, BYVAL p)
+DECLARE SUB bitmap2page (pal() as RGBcolor, bmp$, BYVAL p)
 DECLARE SUB findfiles overload(fmask$, BYVAL attrib, outfile$, buf())
 DECLARE SUB findfiles (fmask$, BYVAL attrib, outfile$)
 DECLARE SUB lumpfiles overload(listf$, lump$, path$, buffer())
@@ -81,9 +90,9 @@ DECLARE SUB fademusic (BYVAL vol)
 DECLARE FUNCTION getfmvol ()
 DECLARE SUB setfmvol (BYVAL vol)
 DECLARE SUB copyfile (s$, d$, buf())
-DECLARE SUB screenshot (f$, BYVAL p, maspal(), buf())
-DECLARE SUB loadbmp (f$, BYVAL x, BYVAL y, buf(), BYVAL p)
-DECLARE SUB getbmppal (f$, mpal(), pal(), BYVAL o)
+DECLARE SUB screenshot (f$, BYVAL p, maspal() as RGBcolor, buf())
+DECLARE SUB loadbmp (f$, BYVAL x, BYVAL y, BYVAL p)
+DECLARE SUB getbmppal (f$, mpal() as RGBcolor, pal(), BYVAL o)
 DECLARE FUNCTION bmpinfo (f$, dat())
 DECLARE FUNCTION setmouse (mbuf())
 DECLARE SUB readmouse (mbuf())
