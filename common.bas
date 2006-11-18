@@ -1020,20 +1020,20 @@ END SUB
 
 SUB loadenemydata (array(), index, altfile = 0)
 IF altfile THEN
- file$ = workingdir$ + SLASH + "dt1.tmp"
+ filename$ = workingdir$ + SLASH + "dt1.tmp"
 ELSE
- file$ = game$ & ".dt1"
+ filename$ = game$ & ".dt1"
 END IF
-loadbinrecord (file$, 160, array(), index)
+loadbinrecord (filename$, 160, array(), index)
 END SUB
 
 SUB saveenemydata (array(), index, altfile = 0)
 IF altfile THEN
- file$ = workingdir$ + SLASH + "dt1.tmp"
+ filename$ = workingdir$ + SLASH + "dt1.tmp"
 ELSE
- file$ = game$ & ".dt1"
+ filename$ = game$ & ".dt1"
 END IF
-savebinrecord (file$, 160, array(), index)
+savebinrecord (filename$, 160, array(), index)
 END SUB
 
 SUB loaditemdata (array(), index)

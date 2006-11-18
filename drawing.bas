@@ -775,7 +775,7 @@ STATIC default$, clippedpal, clippedw, clippedh, paste
 DIM nulpal(8), placer(1602), pclip(8), menu$(255), pmenu$(3), bmpd(40), mouse(4), area(20, 4), tool$(5), icon$(5), shortk(5), cursor(5)
 DIM workpal(8 * sets)
 DIM poffset(sets)
-file$ = ".pt" + STR$(fileset)
+spritefile$ = game$ + ".pt" + STR$(fileset)
 
 gotm = setmouse(mouse())
 GOSUB initmarea
@@ -812,7 +812,7 @@ DO
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) > 1 THEN
   GOSUB savealluc
-  cropafter pt, sets, 0, game$ + file$, size * perset, 1
+  cropafter pt, sets, 0, spritefile$, size * perset, 1
   clearpage 3
   GOSUB loadalluc
  END IF
@@ -845,7 +845,7 @@ DO
    FOR i = 0 TO (size * perset) / 2
     buffer(i) = 0
    NEXT i
-   storeset game$ + file$, pt, 0
+   storeset spritefile$, pt, 0
    '--add a new blank default palette
    REDIM poffset(sets)
    poffset(pt) = 0
@@ -1525,7 +1525,7 @@ IF j <= sets THEN
   loadsprite placer(), 0, size * o, soff * (j - top), xw, yw, 3
   stosprite placer(), 0, size * o, 0, 2
  NEXT o
- storeset game$ + file$, large(j, 0), 0
+ storeset spritefile$, large(j, 0), 0
 END IF
 RETRACE
 
@@ -1539,7 +1539,7 @@ loadwuc:
 getpal16 workpal(), j - top, poffset(j)
 IF j <= sets THEN
  setpicstuf buffer(), size * perset, 2
- loadset game$ + file$, large(j, 0), 0
+ loadset spritefile$, large(j, 0), 0
  FOR o = 0 TO (perset - 1)
   loadsprite placer(), 0, size * o, 0, xw, yw, 2
   stosprite placer(), 0, size * o, soff * (j - top), 3
