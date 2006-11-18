@@ -87,6 +87,8 @@ DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB interpolatecat ()
 DECLARE FUNCTION scriptstate$ ()
 DECLARE FUNCTION decodetrigger (trigger%, trigtype%)
+DECLARE SUB loadglobalvars (slot%, first%, last%)
+DECLARE SUB saveglobalvars (slot%, first%, last%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -1275,33 +1277,25 @@ SELECT CASE AS CONST id
    IF checksaveslot(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 172'--importglobals
-  IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
-   sg$ = savefile$
-   setpicstuf buffer(), 30000, -1
-   loadset sg$, retvals(0) * 2 - 1, 0
+  IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 THEN
    IF retvals(1) = -1 THEN 'importglobals(slot)
     retvals(1) = 0
     retvals(2) = 1024
    END IF
    IF retvals(2) = -1 THEN 'importglobals(slot,id)
-    scriptret = buffer(retvals(1) + 5013)
+    remval = global(retvals(1))
+    loadglobalvars retvals(0) - 1, retvals(1), retvals(1)
+    scriptret = global(retvals(1))
+    global(retvals(1)) = remval
    ELSE                    'importglobals(slot,first,last)
-    IF retvals(1) >= 0 AND retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
-     FOR i = retvals(1) TO retvals(2)
-      global(i) = buffer(i + 5013)
-     NEXT i
+    IF retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
+     loadglobalvars retvals(0) - 1, retvals(1), retvals(2)
     END IF
    END IF
   END IF
  CASE 173'--exportglobals
   IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 AND retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
-   setpicstuf buffer(), 30000, -1
-   sg$ = savefile$
-   loadset sg$, retvals(0) * 2 - 1, 0
-   FOR i = retvals(1) TO retvals(2)
-    buffer(i + 5013) = global(i)
-   NEXT i
-   storeset sg$, retvals(0) * 2 - 1, 0
+   saveglobalvars retvals(0) - 1, retvals(1), retvals(2)
   END IF
  CASE 175'--deletesave
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN

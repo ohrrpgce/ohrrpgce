@@ -945,6 +945,10 @@ FOR i = 0 TO 40
   z = z + 1
  NEXT o
 NEXT i
+'top global variable bits
+FOR i = 0 TO 1024
+ global(i) or= buffer(z) shl 16: z = z + 1
+NEXT i
 
 '---BLODDY BACKWARD COMPATABILITY---
 'fix doors...
@@ -981,6 +985,29 @@ END IF
 'ALL THE STUFF THAT MUST BE PASSED
 'slot,map,x,y,d,foep,gold&,stat(),bmenu(),spell(),lmp(),exlev&(),item(),item$()
 '30000
+END SUB
+
+SUB loadglobalvars (slot, first, last)
+DIM buf(last - first)
+IF isfile$(savefile$) THEN
+ fh = FREEFILE
+ OPEN savefile$ FOR BINARY AS #fh
+ SEEK #fh, 60000 * slot + 2 * first + 40027  '30000 + 5013 * 2 + 1
+ loadrecord buf(), fh, last - first + 1, -1
+ FOR i = 0 TO last - first
+  global(first + i) = buf(i)
+ NEXT
+ SEEK #fh, 60000 * slot + 2 * first + 43027  '30000 + 6513 * 2 + 1
+ loadrecord buf(), fh, last - first + 1, -1
+ FOR i = 0 TO last - first
+  global(first + i) or= buf(i) shl 16
+ NEXT
+ CLOSE #fh
+ELSE
+ FOR i = 0 TO last - first
+  global(first + i) = 0
+ NEXT
+END IF
 END SUB
 
 SUB loadtanim (n, tastuf())
@@ -1651,6 +1678,7 @@ FOR i = 1 TO 3
  buffer(z) = caty(i * 5): z = z + 1
  buffer(z) = catd(i * 5): z = z + 1
 NEXT i
+'--bottom 16 bits of each global variable in 5013 - 6037
 FOR i = 0 TO 1024
  buffer(z) = global(i): z = z + 1
 NEXT i
@@ -1673,8 +1701,12 @@ FOR i = 0 TO 40
   buffer(z) = nativehbits(i, o): z = z + 1
  NEXT o
 NEXT i
+'--top 16 bits of each global variable in 6513 - 7539
+FOR i = 0 TO 1024
+ buffer(z) = global(i) shr 16: z = z + 1
+NEXT
 
-' z = 6513 here
+' z = 7540 here
 
 setpicstuf buffer(), 30000, -1
 sg$ = savefile$
@@ -1686,6 +1718,23 @@ storeset sg$, slot * 2 + 1, 0
 'ALL THE STUFF THAT MUST BE PASSED
 'slot,map,x,y,d,foep,gold&,stat(),bmenu(),spell(),lmp(),exlev&(),item(),item$()
 '30000
+END SUB
+
+SUB saveglobalvars (slot, first, last)
+DIM buf(last - first)
+fh = FREEFILE
+OPEN savefile$ FOR BINARY AS #fh
+SEEK #fh, 60000 * slot + 2 * first + 40027  '30000 + 5013 * 2 + 1
+FOR i = 0 TO last - first
+ buf(i) = global(first + i)
+NEXT
+storerecord buf(), fh, last - first + 1, -1
+SEEK #fh, 60000 * slot + 2 * first + 43027  '30000 + 6513 * 2 + 1
+FOR i = 0 TO last - first
+ buf(i) = global(first + i) shr 16
+NEXT
+storerecord buf(), fh, last - first + 1, -1
+CLOSE #fh
 END SUB
 
 SUB scripterr (e$)
