@@ -770,7 +770,7 @@ END SUB
 SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, fileset, font())
 STATIC default$, clippedpal, clippedw, clippedh, paste
 DIM nulpal(8), placer(1602), pclip(8), menu$(255), pmenu$(3), bmpd(40), mouse(4), area(20, 4), tool$(5), icon$(5), shortk(5), cursor(5)
-DIM workpal(8 * sets)
+DIM workpal(8 * (atatime + 1))
 DIM poffset(sets)
 spritefile$ = game$ + ".pt" + STR$(fileset)
 
@@ -816,14 +816,26 @@ DO
  IF keyval(57) > 1 OR keyval(28) > 1 THEN GOSUB spriteage
  IF keyval(73) > 1 THEN
   GOSUB savealluc
-  top = large(top - atatime, 0)
   pt = large(pt - atatime, 0)
+  top = pt
   GOSUB loadalluc
  END IF
  IF keyval(81) > 1 THEN
   GOSUB savealluc
-  top = large(small(top + atatime, sets - atatime), 0)
-  pt = large(small(pt + atatime, sets - atatime), 0)
+  top = large(small(pt, sets - atatime), 0)
+  pt = small(pt + atatime, sets)
+  GOSUB loadalluc
+ END IF
+ IF keyval(71) > 1 THEN
+  GOSUB savealluc
+  pt = 0
+  top = 0
+  GOSUB loadalluc
+ END IF
+ IF keyval(79) > 1 THEN
+  GOSUB savealluc
+  pt = sets
+  top = large(small(pt, sets - atatime), 0)
   GOSUB loadalluc
  END IF
  IF keyval(72) > 1 THEN
@@ -844,7 +856,7 @@ DO
    NEXT i
    storeset spritefile$, pt, 0
    '--add a new blank default palette
-   REDIM poffset(sets)
+   REDIM PRESERVE poffset(sets)
    poffset(pt) = 0
   END IF
   IF pt > top + atatime THEN
