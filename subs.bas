@@ -1583,6 +1583,7 @@ DO
   GOSUB litemname
  END IF
  dummy = usemenu(csr, top, -1, 254, 23)
+ dummy = intgrabber(csr, -1, 254, 75, 77)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF csr = -1 THEN EXIT DO
   IF csr <= 254 THEN

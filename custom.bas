@@ -1061,12 +1061,7 @@ DO
  IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, gen(97), 0, game$ + ".sho", 40, 1: GOSUB menugen
  dummy = usemenu(csr, 0, 0, li, 24)
  IF csr = 1 THEN
-  IF keyval(75) > 1 AND pt > 0 THEN
-   GOSUB sshopset
-   pt = pt - 1
-   GOSUB lshopset
-  END IF
-  IF keyval(77) > 1 AND pt < 32767 THEN
+  IF pt = gen(97) AND keyval(77) > 1 THEN
    GOSUB sshopset
    pt = pt + 1
    IF needaddset(pt, gen(97), "Shop") THEN
@@ -1074,6 +1069,12 @@ DO
     setpicstuf a(), 40, -1
     storeset game$ + ".sho", pt, 0
    END IF
+   GOSUB lshopset
+  END IF
+  newpt = pt
+  IF intgrabber(newpt, 0, gen(97), 75, 77) THEN
+   GOSUB sshopset
+   pt = newpt
    GOSUB lshopset
   END IF
  END IF

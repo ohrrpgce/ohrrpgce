@@ -66,6 +66,8 @@ WHAT IS NEW?
       browser where you can enter an id or browse by starting letter [Ralph]
     * The sprite editor remembers a default palette for every sprite
       [James Paige]
+    * You can use the Home/End keys in the sprite editors and browse by typing
+      in shop/item number
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
