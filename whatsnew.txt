@@ -68,6 +68,9 @@ WHAT IS NEW?
       [James Paige]
     * You can use the Home/End keys in the sprite editors and browse by typing
       in shop/item number
+    * You can import multiple master palettes and switch between them while
+      editing in the View Master Palettes menu. Master Palettes can now also
+      be imported from the palettes of 8 bit BMP files [Ralph Versteegen]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
@@ -144,6 +147,8 @@ WHAT IS NEW?
     * Hspeak's exit code is 2 if there were warnings [Mike Caron]
     * Use keyval(-1) to detect when the OS has requested the program
       to exit
+    * New internal master palette format has higher colour precision: 8 bits
+      instead of 6, and multiple palettes [Ralph]
 
 July 09 2006 [hasta-la-qb]
   * This is the final version to support a real DOS version (GAME-QB and

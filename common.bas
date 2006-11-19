@@ -23,7 +23,7 @@ browse$ = ""
 'special=1   just BAM
 'special=2   16 color BMP
 'special=3   background
-'special=4   master palette
+'special=4   master palette (*.mas and 8 bit *.bmp) (fmask$ is ignored)
 'special=5   any supported music (currently *.bam and *.mid)  (fmask$ is ignored)
 'special=6   any supported SFX (currently *.wav) (fmask$ is ignored)
 'special=7   RPG files
@@ -194,17 +194,24 @@ SELECT CASE special
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
    masfh = FREEFILE
    OPEN nowdir$ + tree$(treeptr) FOR BINARY AS #masfh
-   a$ = "       "
-   GET #masfh, 1, a$
-   CLOSE #masfh
-   SELECT CASE a$
-    CASE mashead$
-     alert$ = "MAS format"
-    CASE paledithead$
-     alert$ = "MAS format (PalEdit)"
-    CASE ELSE
+   IF LCASE$(justextension$(tree$(treeptr))) = "mas" THEN
+    a$ = "       "
+    GET #masfh, 1, a$
+    CLOSE #masfh
+    SELECT CASE a$
+     CASE mashead$
+      alert$ = "MAS format"
+     CASE paledithead$
+      alert$ = "MAS format (PalEdit)"
+     CASE ELSE
      alert$ = "Not a valid MAS file"
-   END SELECT
+    END SELECT
+   ELSE
+    '.bmp file
+    IF bmpinfo(nowdir$ + tree$(treeptr), bmpd()) THEN
+     alert$ = bmpd(0) & "-bit color BMP"
+    END IF
+   END IF
   END IF
  CASE 5
   stopsong
@@ -216,11 +223,11 @@ SELECT CASE special
    END IF
   END IF
  CASE 6
-  if f > -1 then
+  IF f > -1 THEN
     sound_stop(f,-1)
     UnloadSound(f)
     f = -1
-  end if
+  END IF
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
    IF validmusicfile(nowdir$ + tree$(treeptr), VALID_FX_FORMAT) THEN
     f = LoadSound(nowdir$ + tree$(treeptr))
@@ -334,7 +341,12 @@ ELSE
  safekill tmp$ + "hrbrowse.tmp"
  '---FIND ALL FILES IN FILEMASK---
  attrib = attribAlmostAll OR showHidden
- IF special = 5 THEN
+ IF special = 4 THEN
+  findfiles nowdir$ + anycase$("*.mas"), attrib, tmp$ + "hrbrowse.tmp"
+  GOSUB addmatchs
+  findfiles nowdir$ + anycase$("*.bmp"), attrib, tmp$ + "hrbrowse.tmp"
+  GOSUB addmatchs
+ ELSEIF special = 5 THEN
   '--disregard fmask$. one call per extension
   findfiles nowdir$ + anycase$("*.bam"), attrib, tmp$ + "hrbrowse.tmp"
   GOSUB addmatchs
@@ -470,14 +482,8 @@ DO UNTIL EOF(fh) OR treesize >= limit
  '---320x200x24/8bit BMP files
  IF special = 3 THEN
   IF bmpinfo(nowdir$ + tree$(treesize), bmpd()) THEN
-   IF ISDOS = 1 THEN
-    IF bmpd(0) <> 24 OR bmpd(1) <> 320 OR bmpd(2) <> 200 then
-     treec(treesize) = 6
-    END IF
-   ELSE
-    IF (bmpd(0) <> 24 AND bmpd(0) <> 8) OR bmpd(1) <> 320 OR bmpd(2) <> 200 THEN
+   IF (bmpd(0) <> 24 AND bmpd(0) <> 8) OR bmpd(1) <> 320 OR bmpd(2) <> 200 THEN
     treec(treesize) = 6
-    END IF
    END IF
   ELSE
    treesize = treesize - 1
@@ -485,13 +491,21 @@ DO UNTIL EOF(fh) OR treesize >= limit
  END IF
  '--master palettes  (why isn't this up there?)
  IF special = 4 THEN
-  masfh = FREEFILE
-  OPEN nowdir$ + tree$(treesize) FOR BINARY AS #masfh
-  a$ = "       "
-  GET #masfh, 1, a$
-  CLOSE #masfh
-  IF a$ <> mashead$ AND a$ <> paledithead$ THEN
-   treec(treesize) = 6
+  IF LCASE$(justextension$(tree$(treesize))) = "mas" THEN
+   masfh = FREEFILE
+   OPEN nowdir$ + tree$(treesize) FOR BINARY AS #masfh
+   a$ = "       "
+   GET #masfh, 1, a$
+   CLOSE #masfh
+   IF a$ <> mashead$ AND a$ <> paledithead$ THEN
+    treec(treesize) = 6
+   END IF
+  ELSE
+   IF bmpinfo(nowdir$ + tree$(treesize), bmpd()) THEN
+    IF bmpd(0) <> 8 THEN treec(treesize) = 6
+   ELSE
+    treesize = treesize - 1
+   END IF
   END IF
  END IF
  '--RPG files

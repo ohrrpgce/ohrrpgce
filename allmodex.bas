@@ -2943,56 +2943,78 @@ SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, b
 
 end sub
 
-SUB getbmppal (f$, mpal() as RGBcolor, pal(), BYVAL o)
-'gets the nearest-match palette pal() starting at offset o, from file f$
-'according to the master palette mpal()
+FUNCTION loadbmppal (f$, pal() as RGBcolor)
+'loads the palette of a 4-bit or 8-bit bmp into pal
+'returns the number of bits
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim col as RGBQUAD
-	dim col8 as integer
 	dim bf as integer
 	dim i as integer
-	dim p as integer
-	dim toggle as integer
 
 	bf = freefile
 	open f$ for binary access read as #bf
 	if err > 0 then
 		'debug "Couldn't open " + f$
-		exit sub
+		exit function
 	end if
 
 	get #bf, , header
 	if header.bfType <> 19778 then
 		'not a bitmap
 		close #bf
-		exit sub
+		exit function
 	end if
 
 	get #bf, , info
 
-	if info.biBitCount <> 4 then
-		close #bf
-		exit sub
+	loadbmppal = info.biBitCount
+
+	if info.biBitCount = 4 or info.biBitCount = 8 then
+		for i = 0 to (1 shl info.biBitCount) - 1
+			get #bf, , col
+			pal(i).r = col.rgbRed
+			pal(i).g = col.rgbGreen
+			pal(i).b = col.rgbBlue
+		next
 	end if
-
-	'read and translate the 16 colour entries
-	p = o
-	toggle = p mod 2
-	for i = 0 to 15
-		get #bf, , col
-		col8 = nearcolor(mpal(), col.rgbRed, col.rgbGreen, col.rgbBlue)
-		if toggle = 0 then
-			pal(p) = col8
-			toggle = 1
-		else
-			pal(p) = pal(p) or (col8 shl 8)
-			toggle = 0
-			p += 1
-		end if
-	next
-
 	close #bf
+END FUNCTION
+
+SUB convertbmppal (f$, mpal() as RGBcolor, pal(), BYVAL o)
+'find the nearest match palette mapping from a 4/8 bit bmp f$ to
+'the master palette mpal(), and store it in pal() starting at offset o
+'for 4 bit bmps, pal() is a 2 bytes per int packed format used for
+'sprite palettes, for 8bit bmps it is a simple array
+	dim col8 as integer
+	dim i as integer
+	dim p as integer
+	dim toggle as integer
+	dim bitdepth as integer
+	dim cols(255) as RGBcolor
+
+	bitdepth = loadbmppal(f$, cols())
+
+	if bitdepth = 4 then
+		'read and translate the 16 colour entries
+		p = o
+		toggle = p mod 2
+		for i = 0 to 15
+			col8 = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b)
+			if toggle = 0 then
+				pal(p) = col8
+				toggle = 1
+			else
+				pal(p) = pal(p) or (col8 shl 8)
+				toggle = 0
+				p += 1
+			end if
+		next
+	elseif bitdepth = 8 then
+		for i = 0 to 255
+			pal(p + i) = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b)
+		next
+	end if
 END SUB
 
 FUNCTION bmpinfo (f$, dat())

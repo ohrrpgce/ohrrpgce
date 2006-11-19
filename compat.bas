@@ -21,7 +21,6 @@ option dynamic
 dim shared gosubbuf(31) as crt_jmp_buf
 dim shared gosubptr as integer = 0
 
-dim shared seg as integer ptr
 'stores the rpg name from the command line without any command-line arguments
 dim shared storecmd(7) as string
 dim shared cmdargs as integer
@@ -255,11 +254,11 @@ FUNCTION validmusicfile (file$, types = FORMAT_BAM AND FORMAT_MIDI)
 	END SELECT
 
 	if v then
-  	musfh = FREEFILE
-  	OPEN file$ FOR BINARY AS #musfh
-	  GET #musfh, 1, a$
-	  CLOSE #musfh
-	  IF a$ <> realhd$ THEN return 0
+		musfh = FREEFILE
+		OPEN file$ FOR BINARY AS #musfh
+		GET #musfh, 1, a$
+		CLOSE #musfh
+		IF a$ <> realhd$ THEN return 0
 	end if
 
 	return 1

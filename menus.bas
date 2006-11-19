@@ -1561,10 +1561,14 @@ END IF
 RETRACE
 
 importpal:
-f$ = browse$(4, default$, "*.mas", "")
+f$ = browse$(4, default$, "", "")
 IF f$ <> "" THEN
- xbload f$, buffer(), "MAS load error"
- convertpalette buffer(), master()
+ IF LCASE$(justextension$(f$)) = "mas" THEN
+  xbload f$, buffer(), "MAS load error"
+  convertpalette buffer(), master()
+ ELSE
+  loadbmppal(f$, master())
+ END IF
  setpal master()
  savepalette master(), palnum
 ELSE

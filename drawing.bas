@@ -1266,9 +1266,9 @@ FOR i = 1 TO edjx
 NEXT i
 '--swap the transparent palette entry to 0
 IF pcsr = 0 THEN
- getbmppal srcbmp$, master(), workpal(), 16 * (pt - top)
+ convertbmppal srcbmp$, master(), workpal(), 8 * (pt - top)
  'swap black with the transparent color
- poke8bit workpal(), temp + (pt - top) * 16, peek8bit(workpal(), 0) + (pt - top) * 16
+ poke8bit workpal(), temp + (pt - top) * 16, peek8bit(workpal(), 0 + (pt - top) * 16)
  poke8bit workpal(), 0 + (pt - top) * 16, 0
 END IF
 '--read the sprite
