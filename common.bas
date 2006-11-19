@@ -1279,9 +1279,9 @@ END FUNCTION
 SUB loadpalette(pal() as RGBcolor, palnum)
 IF NOT isfile(workingdir$ + SLASH + "palettes.bin") THEN
  '.MAS fallback, palnum ignored because it doesn't matter
- DIM palbuf(767)
- xbload game$ + ".mas", palbuf(), "master palette missing from " + game$
- convertpalette palbuf(), pal()
+ DIM oldpalbuf(767)
+ xbload game$ + ".mas", oldpalbuf(), "master palette missing from " + game$
+ convertpalette oldpalbuf(), pal()
 ELSE
  DIM AS SHORT headsize, recsize
  DIM palbuf(767) as UBYTE
