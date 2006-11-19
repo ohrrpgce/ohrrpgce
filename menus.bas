@@ -1347,11 +1347,16 @@ IF firstscript = 2 THEN
  scriptids(1) = trigger
 END IF
 
-FOR i = numberedlast + 1 TO scriptmax
+i = numberedlast + 1
+FOR j = numberedlast + 1 TO scriptmax
  loadrecord localbuf(), fh, 20
- scriptids(i) = 16384 + i - (numberedlast + 1)
- scriptnames$(i) = readbinstring(localbuf(), 1, 36)
+ IF localbuf(0) <> 0 THEN
+  scriptids(i) = 16384 + j - (numberedlast + 1)
+  scriptnames$(i) = readbinstring(localbuf(), 1, 36)
+  i += 1
+ END IF
 NEXT
+scriptmax = i - 1
 
 CLOSE #fh
 
@@ -1417,7 +1422,7 @@ DO
  IF usemenu(pt, top, 0, scriptmax, 21) THEN
   IF scriptids(pt) < 16384 THEN id = scriptids(pt) ELSE id = 0: iddisplay = 0
  END IF
- FOR i = 2 TO 53
+ FOR i = 12 TO 53
   IF keyval(i) > 1 AND keyv(i, 0) > 0 THEN
    j = pt + 1
    FOR ctr = numberedlast + 1 TO scriptmax

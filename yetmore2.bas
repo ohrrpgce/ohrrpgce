@@ -936,17 +936,17 @@ SUB deletetemps
 END SUB
 
 FUNCTION decodetrigger (trigger, trigtype)
- DIM id AS SHORT
+ DIM buf(19)
  'debug "decoding " + STR$(trigger) + " type " + STR$(trigtype)
  decodetrigger = trigger  'default
  IF trigger >= 16384 THEN
   fname$ = workingdir$ + SLASH + "lookup" + STR$(trigtype) + ".bin"
   IF isfile(fname$) THEN
-   fh = FREEFILE
-   OPEN fname$ FOR BINARY AS #fh
-   GET #fh, (trigger - 16384) * 40 + 1, id
-   IF id THEN decodetrigger = id
-   CLOSE fh
+   loadrecord buf(), fname$, 20, trigger - 16384
+   decodetrigger = buf(0)
+   IF buf(0) = 0 THEN
+    scripterr "Script " + readbinstring(buf(), 1, 36) + " is not imported"
+   END IF
   END IF
  END IF
 END FUNCTION

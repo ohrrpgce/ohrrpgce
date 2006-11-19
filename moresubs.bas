@@ -1383,7 +1383,7 @@ runscript = 1 ' --success by default...
 IF trigger <> 0 THEN n = decodetrigger(id, trigger) ELSE n = id
 
 IF n = 0 THEN
- runscript = 2 '--quiet failure
+ runscript = 2 '--quiet failure (though decodetrigger might have shown a scripterr)
  EXIT FUNCTION
 END IF
 
