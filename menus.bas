@@ -60,6 +60,7 @@ DECLARE SUB generalsfxmenu ()
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 DECLARE SUB masterpalettemenu ()
+DECLARE SUB importmasterpal (f$, palnum%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -1461,8 +1462,7 @@ trigger = scriptids(pt)
 END FUNCTION
 
 SUB masterpalettemenu
-STATIC default$
-DIM menu$(4), submenu$(2), palbuf(767)
+DIM menu$(5), submenu$(2), palbuf(767)
 
 csr = 1
 palnum = activepalette
@@ -1486,7 +1486,8 @@ DO
   IF keyval(77) > 1 AND palnum = gen(genMaxMasterPal) THEN
    palnum += 1
    IF needaddset(palnum, gen(genMaxMasterPal), "Master Palette") THEN
-    GOSUB importpal
+    importmasterpal("", palnum)
+    setpal master()
     GOSUB buildmenu
    END IF
   END IF
@@ -1501,11 +1502,15 @@ DO
   CASE 0
     EXIT DO
   CASE 2
-    'setuicolors palnum
+    importmasterpal("", palnum)
+    setpal master()
+    GOSUB buildmenu
   CASE 3
+    'setuicolors palnum
+  CASE 4
     gen(genMasterPal) = palnum
     GOSUB buildmenu
-  CASE 4
+  CASE 5
     activepalette = palnum
     GOSUB buildmenu
   END SELECT
@@ -1513,7 +1518,7 @@ DO
 
  'draw the menu
  FOR i = 0 TO UBOUND(menu$)
-  IF (i = 3 AND palnum = gen(genMasterPal)) OR (i = 4 AND palnum = activepalette) THEN 
+  IF (i = 4 AND palnum = gen(genMasterPal)) OR (i = 5 AND palnum = activepalette) THEN 
    col = uilook(uiDisabledItem)
    IF csr = i THEN col = uilook(uiSelectedDisabled + tog)
   ELSE
@@ -1546,22 +1551,26 @@ EXIT SUB
 
 buildmenu:
 menu$(0) = "Previous Menu"
-menu$(1) = "<- Master Palette " & palnum & " of " & gen(genMaxMasterPal) & " ->"
-menu$(2) = "Edit User Interface Colours..."
+menu$(1) = "<- Master Palette " & palnum & " ->"
+menu$(2) = "Replace this Master Palette"
+menu$(3) = "Edit User Interface Colours..."
 IF palnum = gen(genMasterPal) THEN
- menu$(3) = "Current default Master Palette"
+ menu$(4) = "Current default Master Palette"
 ELSE
- menu$(3) = "Set as Default"
+ menu$(4) = "Set as Default"
 END IF
 IF palnum = activepalette THEN
- menu$(4) = "Current active editing palette"
+ menu$(5) = "Current active editing palette"
 ELSE
- menu$(4) = "Set as Active"
+ menu$(5) = "Set as Active"
 END IF
 RETRACE
 
-importpal:
-f$ = browse$(4, default$, "", "")
+END SUB
+
+SUB importmasterpal (f$, palnum)
+STATIC default$
+IF f$ = "" THEN f$ = browse$(4, default$, "", "")
 IF f$ <> "" THEN
  IF LCASE$(justextension$(f$)) = "mas" THEN
   xbload f$, buffer(), "MAS load error"
@@ -1569,12 +1578,10 @@ IF f$ <> "" THEN
  ELSE
   loadbmppal(f$, master())
  END IF
- setpal master()
  savepalette master(), palnum
-ELSE
- palnum -= 1
+ IF palnum > gen(genMaxMasterPal) THEN gen(genMaxMasterPal) = palnum
+ELSEIF palnum = gen(genMaxMasterPal) THEN
  gen(genMaxMasterPal) -= 1
+ palnum = small(palnum, gen(genMaxMasterPal)) 'pointer aliasing?
 END IF
-RETRACE
-
 END SUB

@@ -85,6 +85,7 @@ DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
+DECLARE SUB importmasterpal (f$, palnum%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
@@ -179,7 +180,7 @@ END SUB
 
 SUB importbmp (f$, cap$, count)
 STATIC default$
-DIM menu$(10)
+DIM menu$(10), submenu$(2), palmapping(255), bmpd(4)
 DIM pmask(255) as RGBcolor
 csr = 0
 pt = 0
@@ -194,7 +195,10 @@ menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
 menu$(2) = "Replace current " + cap$
 menu$(3) = "Append a new " + cap$
 menu$(4) = "Disable palette colors"
-loadpalette pmask(), gen(genMasterPal)
+submenu$(0) = "Import with current Master Palette"
+submenu$(1) = "Import with new Master Palette"
+submenu$(2) = "Do not remap colours"
+loadpalette pmask(), activepalette
 GOSUB showpage
 
 setkeys
@@ -218,7 +222,6 @@ DO
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 2 THEN
-   at = pt
    srcbmp$ = browse$(3, default$, "*.bmp", "")
    IF srcbmp$ <> "" THEN
     GOSUB bimport
@@ -226,12 +229,14 @@ DO
    GOSUB showpage
   END IF
   IF csr = 3 AND count < 32767 THEN
-   at = count
    srcbmp$ = browse$(3, default$, "*.bmp", "")
    IF srcbmp$ <> "" THEN
+    oldpt = pt
+    pt = count
     GOSUB bimport
-    count = count + 1
+    IF pt = count THEN pt = oldpt 'cancelled
    END IF
+   menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
    GOSUB showpage
   END IF
   IF csr = 4 THEN GOSUB disable
@@ -291,12 +296,29 @@ DO
 LOOP
 
 bimport:
-clearpage 3
-setvispage 3
-IF at < count THEN loadpage game$ + f$, at, 3
+bmpinfo(srcbmp$, bmpd())
+paloption = 2
+IF bmpd(0) = 8 THEN
+ paloption = sublist(2, submenu$())
+ IF paloption = -1 THEN RETRACE
+ IF paloption = 1 THEN
+  importmasterpal srcbmp$, gen(genMaxMasterPal) + 1
+  activepalette = gen(genMaxMasterPal)
+  setpal master()
+ END IF
+END IF
 bitmap2page pmask(), srcbmp$, 3
-storepage game$ + f$, at, 3
-loadpalette pmask(), gen(genMasterPal)
+IF paloption = 0 THEN
+ convertbmppal srcbmp$, pmask(), palmapping(), 0
+ FOR y = 0 TO 199
+  FOR x = 0 TO 319
+   putpixel x, y, palmapping(readpixel(x, y, 3)), 3
+  NEXT
+ NEXT
+END IF
+storepage game$ + f$, pt, 3
+IF pt >= count THEN count = pt + 1
+loadpalette pmask(), activepalette
 RETRACE
 
 showpage:

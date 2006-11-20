@@ -3012,7 +3012,7 @@ SUB convertbmppal (f$, mpal() as RGBcolor, pal(), BYVAL o)
 		next
 	elseif bitdepth = 8 then
 		for i = 0 to 255
-			pal(p + i) = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b)
+			pal(o + i) = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b)
 		next
 	end if
 END SUB

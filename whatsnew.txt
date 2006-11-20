@@ -3,9 +3,7 @@ WHAT IS NEW?
 ??? ?? 2006 [ubersetzung]
   * New Features
     * New NPC movement type: Walk In Place [James Paige]
-    * 8-bit bitmaps can now be imported as backdrops and tilesets (pre-index
-      your tilesets using Photoshop, etc. to use this. YOU MUST INDEX THEM WITH
-      THE MASTER PALETTE, custom won't re-map the colours). [Mike Caron]
+    * 8-bit bitmaps can now be imported as backdrops and tilesets [Mike Caron]
     * New HamsterSpeak flow control commands: break, continue, exit script,
       exit returning, switch (and case). See the HS Definition for details
       [Ralph Versteegen]
