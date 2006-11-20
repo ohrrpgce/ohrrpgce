@@ -1542,7 +1542,7 @@ END IF
 END FUNCTION
 
 SUB itemdata
-DIM names$(100), a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), item$(-1 TO 255), eqst$(5), max(18), sbmax(11), workpal(8), elemtype$(2), frame
+DIM names$(100), a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), item$(-1 TO 255), eqst$(5), max(18), min(18), sbmax(11), workpal(8), elemtype$(2), frame
 imax = 32
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
 clearpage 0
@@ -1628,6 +1628,7 @@ max(7) = gen(34) + 1
 max(8) = gen(34) + 1
 max(9) = gen(31)
 max(10) = 32767
+min(10) = -1
 max(11) = 2
 max(12) = 999
 max(13) = 999
@@ -1639,7 +1640,7 @@ GOSUB itemmenu
 
 setpicstuf buffer(), 576, 2
 loadset game$ + ".pt5", a(52), 0
-getpal16 workpal(), 0, a(53)
+getpal16 workpal(), 0, a(53), 5, a(52)
 
 setkeys
 DO
@@ -1669,8 +1670,8 @@ DO
    END IF
   END IF
   IF pt = 10 THEN '--palette picker
-   a(46 + (pt - 3)) = pal16browse(a(46 + (pt - 3)), 2, 0, 0, 24, 24, 2)
-   getpal16 workpal(), 0, a(46 + (pt - 3))
+   a(46 + (pt - 3)) = pal16browse(a(53), 2, 0, 0, 24, 24, 2)
+   getpal16 workpal(), 0, a(53), 5, a(52)
    GOSUB itemmenu
   END IF
  END IF
@@ -1682,7 +1683,7 @@ DO
    strgrabber info$, 34
    menu$(2) = "Info:" + info$
   CASE 3, 6, 9, 10
-   IF intgrabber(a(46 + (pt - 3)), 0, max(pt), 75, 77) THEN GOSUB itemmenu
+   IF intgrabber(a(46 + (pt - 3)), min(pt), max(pt), 75, 77) THEN GOSUB itemmenu
   CASE 4, 5, 7
    IF zintgrabber(a(46 + (pt - 3)), -1, max(pt), 75, 77) THEN GOSUB itemmenu
   CASE 8
@@ -1739,7 +1740,7 @@ ELSE
  menu$(8) = "When used out of battle- Text" + XSTR$(ABS(a(51)))
 END IF
 menu$(9) = "Weapon Picture" + XSTR$(a(52))
-menu$(10) = "Weapon Palette" + XSTR$(a(53))
+menu$(10) = "Weapon Palette" + defaultint$(a(53))
 IF a(49) <> 1 THEN menu$(9) = "Weapon Picture N/A": menu$(10) = "Weapon Palette N/A"
 menu$(11) = "Unlimited Use"
 IF a(73) = 1 THEN menu$(11) = "Consumed By Use"
@@ -1761,7 +1762,7 @@ IF pt = 9 OR pt = 10 THEN
  'oldframe = frame
  setpicstuf buffer(), 576, 2
  loadset game$ + ".pt5", a(52), 0
- getpal16 workpal(), 0, a(53)
+ getpal16 workpal(), 0, a(53), 5, a(52)
 END IF
 RETRACE
 
@@ -1933,6 +1934,7 @@ unpc(14) = 0
 FOR i = 0 TO 14
  lnpc(i) = 0
 NEXT i
+lnpc(1) = -1
 lnpc(9) = -999
 lnpc(10) = -999
 lnpc(13) = -32767
@@ -2004,7 +2006,7 @@ EXIT SUB
 loadnpcpic:
 setpicstuf buffer(), 1600, 2
 loadset game$ + ".pt4", npc(i * 15 + 0), 5 * i
-getpal16 pal16(), i, npc(i * 15 + 1)
+getpal16 pal16(), i, npc(i * 15 + 1), 4, npc(i * 15 + 0)
 RETRACE
 
 npcstats:
@@ -2032,14 +2034,14 @@ DO
  END IF
  IF (csr >= 1 AND csr < 11) OR csr > 12 THEN
   IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr), 75, 77) THEN
-   IF csr = 1 THEN getpal16 pal16(), cur, npc(cur * 15 + 1)
+   IF csr = 1 THEN getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0)
    IF csr = 6 THEN it$ = itemstr(npc(cur * 15 + 6), 0, 0)
    IF csr = 4 THEN GOSUB frstline
   END IF
  END IF
  IF csr = 1 AND (keyval(28) > 1 OR keyval(57) > 1) THEN
   npc(cur * 15 + csr) = pal16browse(npc(cur * 15 + csr), 8, 0, 5 * cur, 20, 20, 2)
-  getpal16 pal16(), cur, npc(cur * 15 + csr)
+  getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0) 
  END IF
  IF csr = 0 THEN
   IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr), 75, 77) = 1 THEN
@@ -2056,6 +2058,8 @@ DO
   IF csr = i THEN textcolor 14 + tog, 0
   temp$ = XSTR$(npc(cur * 15 + i))
   SELECT CASE i
+   CASE 1
+    temp$ = defaultint$(npc(cur * 15 + i))
    CASE 2
     temp$ = " = " + mtype$(npc(cur * 15 + i))
    CASE 3

@@ -196,7 +196,7 @@ CONST AtkDatSoundEffect = 99
 '----------------------------------------------------------
 capindex = 0
 DIM caption$(120)
-DIM max(27), min(27)
+DIM max(28), min(28)
 
 'Limit(0) is not used
 
@@ -412,7 +412,11 @@ CONST AtkLimSfx = 27
 max(AtkLimSfx) = gen(genMaxSFX) + 1
 min(AtkLimSfx) = 0
 
-'next limit is 28 (remember to update the dim)
+CONST AtkLimPal16 = 28
+max(AtkLimPal16) = 32767
+min(AtkLimPal16) = -1
+
+'next limit is 29 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
@@ -461,9 +465,9 @@ menulimits(AtkPic) = AtkLimPic
 
 CONST AtkPal = 9
 menu$(AtkPal) = "Palette:"
-menutype(AtkPal) = 0
+menutype(AtkPal) = 12
 menuoff(AtkPal) = AtkDatPal
-menulimits(AtkPal) = AtkLimUInt
+menulimits(AtkPal) = AtkLimPal16
 
 CONST AtkAnimPattern = 10
 menu$(AtkAnimPattern) = "Animation Pattern:"
@@ -925,7 +929,7 @@ updateflexmenu pt, dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff()
 '--load the picture and palette
 setpicstuf buffer(), 3750, 2
 loadset game$ + ".pt6", recbuf(AtkDatPic), 0
-getpal16 workpal(), 0, recbuf(AtkDatPal)
+getpal16 workpal(), 0, recbuf(AtkDatPal), 6, recbuf(AtkDatPic)
 
 RETRACE
 
