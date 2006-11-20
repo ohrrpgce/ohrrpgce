@@ -374,7 +374,7 @@ ERASE lumpbuf
 
 'DEBUG debug "dim big stuff *after* unlumping"
 
-fadeout 0, 0, 0, -1
+fadeout 0, 0, 0
 needf = 1
 
 LoadGEN
@@ -435,7 +435,7 @@ END IF
 'DEBUG debug "picked save slot"+XSTR$(temp)
 fademusic 0
 stopsong
-fadeout 0, 0, 0, -1
+fadeout 0, 0, 0
 IF temp = -2 THEN GOTO resetg
 IF temp >= 0 THEN
  GOSUB doloadgame
@@ -626,7 +626,7 @@ DO
   setupstack
   fademusic 0
   stopsong
-  fadeout 0, 0, 0, -1
+  fadeout 0, 0, 0
   needf = 1: ng = 1
   lastmap = -1
   GOSUB doloadgame
@@ -677,7 +677,7 @@ DO
     needf = 2
    END IF
   ELSE
-   fadeout 63, 0, 0, 0
+   fadeout 255, 0, 0
   END IF
  END IF
  GOSUB displayall
@@ -694,7 +694,7 @@ DO
  IF needf = 1 AND fatal = 0 THEN
   needf = 0
   fademusic fmvol
-  fadein 0
+  fadein
   setkeys
  END IF
  IF needf > 1 THEN needf = needf - 1
@@ -1029,7 +1029,7 @@ IF istag(saytag(7), 0) THEN
  inn = 0
  IF saytag(8) < 0 THEN
   IF shoption(inn, ABS(saytag(8)), needf, stat()) THEN
-   fadeout 0, 0, 20, 0
+   fadeout 0, 0, 80
    needf = 1
   END IF
  END IF
@@ -1407,7 +1407,7 @@ FOR o = 0 TO 199
    loaddoor map, door()
    catx(0) = door(destdoor) * 20
    caty(0) = (door(destdoor + 100) - 1) * 20
-   fadeout 0, 0, 0, 0
+   fadeout 0, 0, 0
    needf = 2
    afterbat = 0
    IF oldmap = map THEN samemap = -1
@@ -1533,7 +1533,7 @@ RETRACE
 resetg:
 IF autorungame THEN exitprogram (NOT abortg)
 fademusic 0
-fadeout 0, 0, 0, -1
+fadeout 0, 0, 0
 closemusic
 closesound
 'closefile
@@ -2168,7 +2168,7 @@ SELECT CASE scrat(nowscript, curkind)
      IF scriptret = -1 THEN
       abortg = 2  'don't go straight back to loadmenu!
       scrat(nowscript, scrstate) = stwait
-      fadeout 0, 0, 0, 0
+      fadeout 0, 0, 0
      ELSEIF scriptret > 0 THEN
       wantloadgame = scriptret
       scrat(nowscript, scrstate) = stwait

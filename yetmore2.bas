@@ -643,7 +643,7 @@ SUB exitprogram (needfade)
 'DEBUG debug "fade music"
 fademusic 0
 'DEBUG debug "fade screen"
-IF needfade THEN fadeout 0, 0, 0, -1
+IF needfade THEN fadeout 0, 0, 0
 quitcleanup
 'DEBUG debug "Restore Old Graphics Mode"
 restoremode
@@ -683,7 +683,7 @@ SUB verquit
   wtog(0) = loopvar(wtog(0), 0, 3, 1)
   IF carray(5) > 1 THEN abortg = 0: setkeys: flusharray carray(),7,0: EXIT DO
   IF (carray(4) > 1 AND ABS(ptr2) > 20) OR ABS(ptr2) > 50 THEN
-   IF ptr2 < 0 THEN abortg = 1: fadeout 0, 0, 0, 0
+   IF ptr2 < 0 THEN abortg = 1: fadeout 0, 0, 0
    setkeys
    flusharray carray(), 7, 0
    EXIT SUB
@@ -745,7 +745,7 @@ DO
  IF needf = 1 THEN
   needf = 0
   fademusic fmvol
-  fadein -1
+  fadein
  END IF
  IF needf > 1 THEN needf = needf - 1
  dowait

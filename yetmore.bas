@@ -1116,9 +1116,12 @@ SELECT CASE AS CONST id
  CASE 74'--set death script
   gen(42) = large(retvals(0), 0)
  CASE 75'--fade screen out
-  fadeout bound(retvals(0), 0, 63), bound(retvals(1), 0, 63), bound(retvals(2), 0, 63), -1
+  FOR i = 0 TO 2
+   retvals(i) = bound(iif(retvals(i), retvals(i) * 4 + 3, 0), 0, 255)
+  NEXT
+  fadeout retvals(0), retvals(1), retvals(2)
  CASE 76'--fade screen in
-  fadein -1
+  fadein
  CASE 81'--set hero speed
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    herospeed(retvals(0)) = bound(retvals(1), 0, 20)

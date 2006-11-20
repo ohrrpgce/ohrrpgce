@@ -7,8 +7,8 @@
  
 DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$, needf = 0)
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
-DECLARE SUB fadein (force%)
-DECLARE SUB fadeout (red%, green%, blue%, force%)
+DECLARE SUB fadein ()
+DECLARE SUB fadeout (red%, green%, blue%)
 DECLARE FUNCTION usemenu (pt%, top%, first%, last%, size%)
 DECLARE SUB debug (s$)
 DECLARE FUNCTION soundfile$ (sfxnum%)

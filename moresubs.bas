@@ -1203,7 +1203,7 @@ gen(60) = 1'--disable joystick calibration
 
 copypage dpage, vpage
 IF fadestate = 0 THEN
- fadein -1
+ fadein
  needfadeout = 1
 END IF
 
@@ -1229,7 +1229,7 @@ LOOP
 gen(60) = rememberjoycal '-- restore joystick calibration setting
 
 IF needfadeout = 1 THEN
- fadeout 0, 0, 0, -1
+ fadeout 0, 0, 0
 END IF
 
 END SUB
@@ -1371,10 +1371,10 @@ IF v > current THEN
  printstr "latest version at", 52, 114, 0
  printstr "http://HamsterRepublic.com", 52, 122, 0
 END IF
-fadein -1
+fadein
 setvispage 0
 w = getkey
-fadeout 0, 0, 0, -1
+fadeout 0, 0, 0
 END SUB
 
 FUNCTION runscript (id, index, newcall, er$, trigger)
@@ -1918,7 +1918,7 @@ DO
      END IF
     ELSE
      '--Inn has no script, do simple fade
-     fadeout 0, 0, 20, 0
+     fadeout 0, 0, 80
      needf = 1
     END IF
    END IF
@@ -1937,7 +1937,7 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  copypage 3, dpage
- IF needf = 1 THEN needf = 0: fadein 0: setkeys
+ IF needf = 1 THEN needf = 0: fadein: setkeys
  IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
@@ -2016,7 +2016,7 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  copypage 3, dpage
- IF needf = 1 THEN needf = 0: fadein 0: setkeys
+ IF needf = 1 THEN needf = 0: fadein: setkeys
  IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP

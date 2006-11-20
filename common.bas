@@ -167,7 +167,7 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
- IF needf = 1 THEN fadein -1: setkeys
+ IF needf = 1 THEN fadein: setkeys
  IF needf THEN needf = needf - 1
  dowait
 LOOP
@@ -560,12 +560,12 @@ printstr s$, x + 1, y + 1, p
 END SUB
 
 'fade in and out not actually used in custom
-SUB fadein (force)
+SUB fadein ()
 fadestate = 1
 fadetopal master()
 END SUB
 
-SUB fadeout (red, green, blue, force)
+SUB fadeout (red, green, blue)
 fadestate = 0
 fadeto red, green, blue
 END SUB

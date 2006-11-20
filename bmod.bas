@@ -64,7 +64,7 @@ alert = 0
 alert$ = ""
 
 fademusic 0
-fadeout 60, 60, 60, 0
+fadeout 240, 240, 240
 stopsong
 vpage = 0: dpage = 1: needf = 1: anim = -1: you = -1: them = -1: fiptr = 0
 vdance = 0: drawvicbox = 0: aset = 0: wf = 0: noifdead = 0: ptarg = 0
@@ -218,7 +218,7 @@ DO
  IF needf = 1 THEN
   needf = 0
   fademusic fmvol
-  fadein -1
+  fadein
   setkeys
  END IF
  dowait
@@ -245,7 +245,7 @@ END IF
 if formdata(33) > 0 then fademusic 0
 if formdata(33) < 0 then stopsfx abs(formdata(33)) - 1
 
-fadeout 0, 0, 0, -1
+fadeout 0, 0, 0
 
 clearpage 0
 clearpage 1
