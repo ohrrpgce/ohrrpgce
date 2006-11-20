@@ -1039,7 +1039,7 @@ IF keyval(56) > 0 AND keyval(47) > 1 THEN
  END IF
 END IF
 curcol = peek8bit(workpal(), (pt - top) * 16 + col)
-IF keyval(56) > 0 AND col > 0 THEN
+IF keyval(56) > 0 THEN
  IF keyval(72) > 0 AND curcol > 15 THEN curcol -= 16
  IF keyval(80) > 0 AND curcol < 240 THEN curcol += 16
  IF keyval(75) > 0 AND curcol > 0 THEN curcol -= 1
