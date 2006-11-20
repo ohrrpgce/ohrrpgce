@@ -757,7 +757,7 @@ vishero stat()
 FOR i = 0 TO npcdMax
  setpicstuf buffer(), 1600, 2
  loadset game$ + ".pt4", npcs(i).picture, 20 + (5 * i)
- getpal16 pal16(), 4 + i, npcs(i).palette
+ getpal16 pal16(), 4 + i, npcs(i).palette, 4, npcs(i).picture
 NEXT i
 END SUB
 

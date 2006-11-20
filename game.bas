@@ -2099,7 +2099,7 @@ SELECT CASE scrat(nowscript, curkind)
        setpicstuf buffer(), 1600, 2
        loadset game$ + ".pt4", retvals(2), 20 + (5 * retvals(0))
       END IF
-      IF retvals(1) = 1 THEN getpal16 pal16(), 4 + retvals(0), retvals(2)
+      IF retvals(1) = 1 THEN getpal16 pal16(), 4 + retvals(0), retvals(2), 4, npcs(retvals(0)).picture
      END IF
     END IF
    CASE 79'--show no value

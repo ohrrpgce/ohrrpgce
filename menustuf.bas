@@ -347,7 +347,7 @@ IF b(pt * recordsize + 17) = 1 THEN
  temp$ = XSTR$(atlevel(buffer(21), buffer(23 + 0 * 2), buffer(24 + 0 * 2)) + wbuf(54 + 0))
  eqinfo$ = RIGHT$(temp$, LEN(temp$) - 1) + " " + sname$(0)
  showhero = buffer(17)
- getpal16 hpal(), 0, buffer(18)
+ getpal16 hpal(), 0, buffer(18), 0, showhero
  setpicstuf buffer(), 5120, 2
  loadset game$ + ".pt0", showhero, 0
  IF eslot = 0 THEN info1$ = noroom$
@@ -1357,12 +1357,12 @@ FOR i = 0 TO 3
     '--hero pic and palette
     IF picpalmagic = 4444 THEN
      pic(i, o) = tstat(o, 0, 14)
-     getpal16 pal16(), 40 + (i * 4) + o, tstat(o, 0, 15)
+     getpal16 pal16(), 40 + (i * 4) + o, tstat(o, 0, 15), 0, pic(i, o)
     ELSE
      '--backcompat
      loadherodata buffer(), id(i, o) - 1
      pic(i, o) = buffer(17)
-     getpal16 pal16(), 40 + (i * 4) + o, buffer(18)
+     getpal16 pal16(), 40 + (i * 4) + o, buffer(18), 0, pic(i, o)
     END IF
     setpicstuf buffer(), 5120, 2
     loadset game$ + ".pt0", pic(i, o), 0

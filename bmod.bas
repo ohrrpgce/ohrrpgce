@@ -422,7 +422,7 @@ loadattackdata atk(), anim
 setpicstuf buffer(), 3750, 3
 loadset game$ + ".pt6", atk(0), 144
 '--load palette
-getpal16 pal16(), 53, atk(1)
+getpal16 pal16(), 53, atk(1), 6, atk(0)
 FOR i = 12 TO 23
  p(i) = 53
  of(i) = 0
@@ -466,7 +466,7 @@ IF is_hero(who) THEN
  setpicstuf buffer(), 576, 3
  loadset game$ + ".pt5" , exstat(who, 0, 13), 156
  p(24) = 52
- getpal16 pal16(), 52, exstat(who, 1, 13)
+ getpal16 pal16(), 52, exstat(who, 1, 13), 5, exstat(who, 0, 13)
 END IF
 numhits = atk(17) + INT(RND * (stat(who, 0, 11) + 1))
 IF readbit(atk(), 20, 49) THEN numhits = atk(17)
@@ -1897,7 +1897,7 @@ FOR i = 0 TO 3
  setpicstuf buffer(), 5120, 3
  IF hero(i) > 0 THEN
   loadset game$ + ".pt0", exstat(i, 0, 14), i * 16
-  getpal16 pal16(), 40 + i, exstat(i, 0, 15)
+  getpal16 pal16(), 40 + i, exstat(i, 0, 15), 0, exstat(i, 0, 14)
   FOR o = 0 TO 11
    stat(i, 0, o) = exstat(i, 0, o)
    stat(i, 1, o) = exstat(i, 1, o)

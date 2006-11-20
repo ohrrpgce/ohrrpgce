@@ -481,7 +481,7 @@ clearpage 2
 FOR i = 0 TO 35
  setpicstuf buffer(), 1600, 2
  loadset game$ + ".pt4", npcstat(i * 15 + 0), 5 * i
- getpal16 pal16(), i, npcstat(i * 15 + 1)
+ getpal16 pal16(), i, npcstat(i * 15 + 1), 4, npcstat(i * 15 + 0)
 NEXT i
 defpass = 1
 

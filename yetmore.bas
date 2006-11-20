@@ -2200,7 +2200,7 @@ SUB vishero (stat())
 o = 0
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
-  getpal16 pal16(), o, stat(i, 1, 15)
+  getpal16 pal16(), o, stat(i, 1, 15), 4, stat(i, 1, 14)
   setpicstuf buffer(), 1600, 2
   loadset game$ + ".pt4", stat(i, 1, 14), 5 * o
   o = o + 1

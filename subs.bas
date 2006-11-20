@@ -996,7 +996,7 @@ FOR i = 0 TO 7
   FOR o = 1 TO b(0)
    ename$(i) = ename$(i) + CHR$(b(o))
   NEXT o
-  getpal16 pal16(), i, b(54)
+  getpal16 pal16(), i, b(54), 1 + b(55), b(54)
   IF b(55) = 0 THEN s(i) = 578: w(i) = 34: f$ = ".pt1"
   IF b(55) = 1 THEN s(i) = 1250: w(i) = 50: f$ = ".pt2"
   IF b(55) = 2 THEN s(i) = 3200: w(i) = 80: f$ = ".pt3"
