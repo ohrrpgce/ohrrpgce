@@ -1019,7 +1019,7 @@ ELSEIF isfile(temp$ + ".mp3") THEN
 ELSEIF isfile(temp$ + ".s3m") THEN
  ext$ = ".s3m"
  songfile$ = temp$ + ext$
- songtype$ = "S3 Module (S3M)" 'fixme
+ songtype$ = "Screamtracker (S3M)"
 ELSEIF isfile(temp$ + ".it") THEN
  ext$ = ".it"
  songfile$ = temp$ + ext$
@@ -1120,10 +1120,10 @@ clearpage 3
 DIM menu$(11), submenu$(2), optionsbottom
 optionsbottom = 7
 menu$(0) = "Previous Menu"
-menu$(3) = "Import Wave..."
-menu$(4) = "Export Wave..."
-menu$(5) = "Delete Wave"
-menu$(6) = "Play Wave"
+menu$(3) = "Import Sound..."
+menu$(4) = "Export Sound..."
+menu$(5) = "Delete Sound"
+menu$(6) = "Play Sound"
 menu$(7) = "Streaming"
 
 csr = 1
@@ -1224,7 +1224,7 @@ ELSEIF isfile(temp$ + ".mp3") THEN
 ELSEIF isfile(temp$ + ".s3m") THEN 'N/A for sound effects
  ext$ = ".s3m"
  sfxfile$ = temp$ + ext$
- sfxtype$ = "A MOD Format (S3M)" 'fixme
+ sfxtype$ = "Screamtracker (S3M)"
 ELSEIF isfile(temp$ + ".it") THEN
  ext$ = ".it"
  sfxfile$ = temp$ + ext$
@@ -1232,7 +1232,7 @@ ELSEIF isfile(temp$ + ".it") THEN
 ELSEIF isfile(temp$ + ".xm") THEN
  ext$ = ".xm"
  sfxfile$ = temp$ + ext$
- sfxtype$ = "A MOD format (XM)"
+ sfxtype$ = "Extended Module (XM)"
 ELSEIF isfile(temp$ + ".mod") THEN
  ext$ = ".mod"
  sfxfile$ = temp$ + ext$
