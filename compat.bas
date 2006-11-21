@@ -185,14 +185,28 @@ function commandlinearg(argnum as integer) as string
 end function
 
 SUB playsongnum (songnum%)
-	DIM as string songbase, songfile, numtext
+	DIM songbase$, songfile$
 
-	numtext = STR$(songnum)
-	songbase = workingdir$ + SLASH + "song" + numtext
-	songfile = DIR$(songbase + ".*")
-	if songfile = "" then exit sub
-
-	loadsong workingdir$ + SLASH + songfile
+	songbase$ = workingdir$ & SLASH & "song" & songnum%
+  songfile$ = ""
+  IF isfile(game$ & "." & songnum%) THEN
+    songfile$ = game$ & "." & songnum% ' old-style BAM naming scheme
+  ELSEIF isfile(songbase$ & ".mid") THEN
+    songfile$ = songbase$ & ".mid"
+  ELSEIF isfile(songbase$ & ".mp3") THEN
+    songfile$ = songbase$ & ".mp3"
+  ELSEIF isfile(songbase$ & ".ogg") THEN
+    songfile$ = songbase$ & ".ogg"
+  ELSEIF isfile(songbase$ & ".mod") THEN
+    songfile$ = songbase$ & ".mod"
+  ELSEIF isfile(songbase$ & ".xm") THEN
+    songfile$ = songbase$ & ".xm"
+  ELSEIF isfile(songbase$ & ".s3m") THEN
+    songfile$ = songbase$ & ".s3m"
+  END IF
+  debug songfile$
+  if songfile$ = "" then exit sub
+	loadsong songfile$
 END SUB
 
 FUNCTION getmusictype (file$)
