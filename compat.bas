@@ -204,7 +204,7 @@ SUB playsongnum (songnum%)
   ELSEIF isfile(songbase$ & ".s3m") THEN
     songfile$ = songbase$ & ".s3m"
   END IF
-  debug songfile$
+
   if songfile$ = "" then exit sub
 	loadsong songfile$
 END SUB

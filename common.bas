@@ -615,15 +615,18 @@ END IF
 END FUNCTION
 
 FUNCTION soundfile$ (sfxnum%)
-	DIM as string sfxbase, f
+	DIM as string sfxbase
 
-	sfxbase = workingdir$ + SLASH + "sfx" + STR$(sfxnum%)
-	f = dir(sfxbase & ".*")
-	if f <> "" then
-		return workingdir$ & SLASH & f
-	else
-		return ""
-	end if
+	sfxbase = workingdir$ & SLASH & "sfx" & sfxnum%
+	IF isfile(sfxbase & ".ogg") THEN
+   RETURN sfxbase & ".ogg"
+  ELSEIF isfile(sfxbase & ".mp3") THEN
+   RETURN sfxbase & ".mp3"
+  ELSEIF isfile(sfxbase & ".wav") THEN
+   RETURN sfxbase & ".wav"
+	ELSE
+   RETURN ""
+	END IF
 END FUNCTION
 
 SUB debug (s$)
