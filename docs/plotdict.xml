@@ -454,12 +454,12 @@ resume player # ok, done</example>
 		<command id="usedoor">
 			<cannon>use door (number)</cannon>
 			<shortname>use door</shortname>
-			<description>Instantly uses the numbered door, just as if you had stepped into it.</description>
+			<description>Instantly uses the numbered door, just as if you had stepped into it. (This command implies a one-tick <ref>wait</ref>)</description>
 		</command>
 		<command id="teleporttomap">
 			<cannon>teleport to map (map, x, y)</cannon>
 			<shortname>teleport to map</shortname>
-			<description>An alternative to <ref>usedoor</ref>, teleport to map moves you to a given x,y position on the specified map without the need to create a door-link on the map. Teleport to map does not fade to black.</description>
+			<description>An alternative to <ref>usedoor</ref>, teleport to map moves you to a given x,y position on the specified map without the need to create a door-link on the map. Teleport to map does not fade to black. (This command implies a one-tick <ref>wait</ref>)</description>
 		</command>
 		<command id="dismountvehicle">
 			<cannon>dismount vehicle</cannon>
@@ -684,12 +684,12 @@ wait for text box # wait until the player continues</example>
 		<command id="fightformation">
 			<cannon>fight formation (number)</cannon>
 			<shortname>fight formation</shortname>
-			<description>Starts a battle with the numbered enemy formation. This command returns <ref>false</ref> if you lost or ran from battle, or <ref>true</ref> if you won.</description>
+			<description>Starts a battle with the numbered enemy formation. This command returns <ref>false</ref> if you lost or ran from battle, or <ref>true</ref> if you won. (This command implies a one-tick <ref>wait</ref>)</description>
 		</command>
 		<command id="usenpc">
 			<cannon>Use NPC (who)</cannon>
 			<shortname>Use NPC</shortname>
-			<description>Remotely trigger an NPC. You can use either an <ref>npcreference</ref> or an NPC ID number. Whatever actions are associated with triggering that NPC will be taken, text box, script, vehicle, item, whatever.</description>
+			<description>Remotely trigger an NPC. You can use either an <ref>npcreference</ref> or an NPC ID number. Whatever actions are associated with triggering that NPC will be taken, text box, script, vehicle, item, whatever. (This command implies a one-tick <ref>wait</ref>)</description>
 		</command>
 		<command id="gameover">
 			<cannon>game over</cannon>
