@@ -441,6 +441,11 @@ resume player # ok, done</example>
 			<shortname>walk hero to y</shortname>
 			<description>Makes the specified hero walk to a given Y coordinate on the map</description>
 		</command>
+		<command id="checkherowall">
+			<cannon>check hero wall (who,direction)</cannon>
+			<shortname>check hero wall</shortname>
+			<description>Returns true if there is a wall blocking the hero from moving in the specified direction. No actual movement takes place.</description>
+		</command>
 		<command id="setherospeed">
 			<cannon>set hero speed (who, speed)</cannon>
 			<shortname>set hero speed</shortname>
@@ -559,6 +564,11 @@ end</example>
 			<cannon>walk NPC to Y (who,Y)</cannon>
 			<shortname>walk NPC to Y</shortname>
 			<description>Makes the specified NPC walk to a given Y coordinate on the map. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will move.</description>
+		</command>
+		<command id="checknpcwall">
+			<cannon>check NPC wall (who,direction)</cannon>
+			<shortname>check NPC wall</shortname>
+			<description>Returns true if there is a wall blocking the NPC from moving in the specified direction. No actual movement takes place.</description>
 		</command>
 		<command id="setnpcspeed">
 			<cannon>set NPC speed (who,speed)</cannon>

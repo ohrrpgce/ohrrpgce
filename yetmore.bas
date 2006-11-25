@@ -2231,12 +2231,12 @@ DIM pd(3)
 wrappass = 0
 
 tilex = x: tiley = y
-p = readmapblock(tilex, tiley)
+p = readpassblock(tilex, tiley)
 
 FOR i = 0 TO 3
  tilex = x: tiley = y
  wrapaheadxy tilex, tiley, i, 1, 1
- pd(i) = readmapblock(tilex, tiley)
+ pd(i) = readpassblock(tilex, tiley)
 NEXT i
 
 IF ygo > 0 AND movdivis(ygo) AND ((p AND 1) = 1 OR (pd(0) AND 4) = 4 OR (isveh AND vehpass(veh(18), pd(0), 0))) THEN ygo = 0: wrappass = 1

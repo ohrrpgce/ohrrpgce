@@ -782,6 +782,7 @@ IF gmap(3) = 0 THEN
  IF o = 1 THEN mt = mt - 1
 END IF
 csr = 0: pt = 0
+menusound gen(genAcceptSFX)
 setkeys
 DO
  setwait timing(), speedcontrol
@@ -2204,6 +2205,25 @@ SELECT CASE scrat(nowscript, curkind)
     ELSEIF retvals(0) >= 160 AND retvals(0) < 256 THEN
      scriptret = tastuf(((retvals(0) - 160) \ 48) * 20) + (retvals(0) - 160) MOD 48
     END IF
+   CASE 258'--checkherowall
+    IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+     tempxgo = 0
+     tempygo = 0
+     IF retvals(1) = 0 THEN tempygo = 20
+     IF retvals(1) = 1 THEN tempxgo = -20
+     IF retvals(1) = 2 THEN tempygo = -20
+     IF retvals(1) = 3 THEN tempxgo = 20
+     scriptret = wrappass(catx(retvals(0) * 5) \ 20, catx(retvals(0) * 5) \ 20, tempxgo, tempygo, 0)
+    END IF
+   CASE 259'--checkNPCwall
+    npcref = getnpcref(retvals(0), 0)
+    tempxgo = 0
+    tempygo = 0
+    IF retvals(1) = 0 THEN tempygo = 20
+    IF retvals(1) = 1 THEN tempxgo = -20
+    IF retvals(1) = 2 THEN tempygo = -20
+    IF retvals(1) = 3 THEN tempxgo = 20
+    scriptret = wrappass(npc(npcref).x \ 20, npc(npcref).y \ 20, tempxgo, tempygo, 0)
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript, curvalue)
     scriptmisc scrat(nowscript, curvalue)

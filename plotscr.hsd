@@ -264,7 +264,8 @@ define function, begin
 255,animationstarttile,1,0    #tile number which this tile starts its animation pattern off as (id of a tile)
 256,suspendmapmusic,0         #prevent ambient music from playing on entering a map
 257,resumemapmusic,0          #reverse above
-
+258,checkherowall,2,0,0       #check passability in a direction relative to a hero
+259,checknpcwall,2,0,0        #check passability in a direction relative to an NPC
 #24x,getnpcraw,2,0,0          #raw npc data(who,which)
 #24x,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
@@ -811,6 +812,7 @@ define constant, begin
   5,NPCmovetype:randomturns
   6,NPCmovetype:chaseyou
   7,NPCmovetype:avoidyou
+  8,NPCmovetype:walkinplace
 3,NPCstat:movespeed
 4,NPCstat:displaytext
 5,NPCstat:whenactivated

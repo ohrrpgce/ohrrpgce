@@ -123,6 +123,7 @@ WHAT IS NEW?
     * "party money", "set money" [Ralph]
     * "get tile animation offset", "set tile animation offset",
       "current display tile", "animation start tile" [Ralph Versteegen]
+    * "check hero wall", "check NPC wall" [James Paige]
 
   * Unlump.exe
     * Ported to FreeBasic [Mike Caron]
