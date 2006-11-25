@@ -1262,7 +1262,7 @@ RETRACE
 
 importsfxfile:
 
-sourcesfx$ = browse$(6, "", "", "")
+sourcesfx$ = browse$(6, default$, "", "")
 IF sourcesfx$ = "" THEN
  RETRACE
 END IF
