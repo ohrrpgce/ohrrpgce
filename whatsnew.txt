@@ -2,6 +2,8 @@ WHAT IS NEW?
 
 ??? ?? 2006 [ubersetzung]
   * New Features
+    * New Music Formats. In addition to BAM and MIDI, you can also play
+      MP3, OGG, MOD, XM, S3M and IT [Mike Caron]
     * New NPC movement type: Walk In Place [James Paige]
     * 8-bit bitmaps can now be imported as backdrops and tilesets [Mike Caron]
     * New HamsterSpeak flow control commands: break, continue, exit script,
@@ -10,7 +12,7 @@ WHAT IS NEW?
     * New HamsterSpeak reference syntax. A script name or global variable
       name preceded by an @ symbol will compile to the ID number of that
       script or global. [James Paige]
-    * Sound effects. [Mike Caron]
+    * Sound effects. in WAV, MP3, and OGG format [Mike Caron]
     * Sound effect triggers in battle [Mike Caron]
     * Attacks can now consume or give items (up to three at once!) [Mike Caron]
     * "Transparent" colour in sprite editor can now be chosen (only affects the
