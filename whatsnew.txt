@@ -126,6 +126,7 @@ WHAT IS NEW?
     * "get tile animation offset", "set tile animation offset",
       "current display tile", "animation start tile" [Ralph Versteegen]
     * "check hero wall", "check NPC wall" [James Paige]
+    * "set timer", "stop timer", "read timer" [Mike Caron]
 
   * Unlump.exe
     * Ported to FreeBasic [Mike Caron]

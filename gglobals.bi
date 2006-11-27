@@ -24,6 +24,7 @@ EXTERN lockfile
 EXTERN lastsaveslot
 EXTERN abortg
 EXTERN usepreunlump%
+EXTERN fatal
 
 'Input handling globals
 EXTERN carray(), csetup()
@@ -81,11 +82,12 @@ EXTERN scriptret
 EXTERN nextscroff
 
 'Script string globals
-EXTERN plotstring$()
-EXTERN plotstrX(), plotstrY()
-EXTERN plotstrCol()
-EXTERN plotstrBGCol()
-EXTERN plotstrBits()
+'EXTERN plotstring$()
+'EXTERN plotstrX(), plotstrY()
+'EXTERN plotstrCol()
+'EXTERN plotstrBGCol()
+'EXTERN plotstrBits()
+EXTERN plotstr() as Plotstring
 
 'Battle globals
 EXTERN battlecaption$
@@ -93,3 +95,5 @@ EXTERN battlecaptime
 EXTERN battlecapdelay
 EXTERN bstackstart
 EXTERN learnmask()
+
+EXTERN timers() as Timer

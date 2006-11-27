@@ -1483,7 +1483,7 @@ end</example>
           <ul><li>00</li><li>01 ESC</li><li>02 1</li><li>03 2</li><li>04 3</li><li>05 4</li><li>06 5</li><li>07 6</li><li>08 7</li><li>09 8</li><li>10 9</li><li>11 0</li><li>12 - _</li><li>13 = +</li><li>14 BACKSPACE</li><li>15 TAB</li><li>16 Q</li><li>17 W</li><li>18 E</li><li>19 R</li><li>20 T</li><li>21 Y</li><li>22 U</li><li>23 I</li><li>24 O</li><li>25 P</li><li>26 [ {</li><li>27 ] }</li><li>28 ENTER</li><li>29 CTRL</li><li>30 A</li><li>31 S</li><li>32 D</li><li>33 F</li><li>34 G</li><li>35 H</li><li>36 J</li><li>37 K</li><li>38 L</li><li>39 ; :</li><li>40 &quot; &apos;</li><li>41 ` ~</li><li>42 LEFT SHIFT</li><li>43 \ |</li><li>44 Z</li><li>45 X</li><li>46 C</li><li>47 V</li><li>48 B</li><li>49 N</li><li>50 M</li><li>51 , &lt;</li><li>52 . ></li><li>53 / ?</li><li>54 RIGHT SHIFT</li><li>55 PRINT SCREEN *</li><li>56 ALT</li><li>57 SPACE</li><li>58 CAPSLOCK</li><li>59 F1</li><li>60 F2</li><li>61 F3</li><li>62 F4</li><li>63 F5</li><li>64 F6</li><li>65 F7</li><li>66 F8</li><li>67 F9</li><li>68 F10</li><li>69 NUMLOCK</li><li>70 SCROLL LOCK</li><li>71 HOME 7</li><li>72 UP 8</li><li>73 PAGEUP 9</li><li>74 KEYPAD -</li><li>75 LEFT 4</li><li>76 KEYPAD 5</li><li>77 RIGHT 6</li><li>78 KEYPAD +</li><li>79 END 1</li><li>80 DOWN 2</li><li>81 PAGEDOWN 3</li><li>82 INSERT 0</li><li>83 DEL .</li><li>84</li><li>85</li><li>86</li><li>87 F11</li><li>88 F12</li><li>89</li><li>90</li><li>91 L WIN LOGO</li><li>92 R WIN LOGO</li><li>93 CONTEXT</li></ul><lb/>
           Joystick scan codes:
           <ul><li>128 BUTTON 1</li><li>129 BUTTON 2</li><li>130-143 BUTTON 3-16</li><li>144 X LEFT</li><li>145 X RIGHT</li><li>146 Y UP</li><li>147 Y DOWN</li></ul>
-          Note: you can NOT wait for the player to press a key by continually polling <p>key is pressed</p> unless you stick a <ref>wait</ref> in your do loop. That's because <p>key is pressed</p> does not return real time data, but the state of the keyboard at the beginning of the current game tick.</description>
+          <note>You can NOT wait for the player to press a key by continually polling <p>key is pressed</p> unless you stick a <ref>wait</ref> in your do loop. That's because <p>key is pressed</p> does not return real time data, but the state of the keyboard at the beginning of the current game tick.</note></description>
             <seealso>
                 <ref>keyval</ref>
             </seealso>
@@ -1491,9 +1491,9 @@ end</example>
 		<command id="keyval">
 			<cannon>keyval (scancode)</cannon>
 			<shortname>keyval</shortname>
-            <description>Returns a bitmask for the state of the specified key. The argument is a scancode, see <ref>keyispressed</ref>. The first (least significant) bit is whether the key was depressed at the beginning of the current tick. The second bit is whether the key was pushed down by the player since the start of the previous tick (or when the key starts to repeatedly trigger after being held down for a while). It can therefore return 0, 1, 2 or 3: <lb/><lb/>0 = not pressed<lb/>1 = key held down since last tick, but is not a new press<lb/>2 = the player pressed the key and released it, all in the same tick<lb/>3 = new keypress (or typematic repeat)<lb/><lb/>
-            Note: just like <ref>keyispressed</ref>, this command does not return real time data, but the situation at the beginning of the current game tick.<lb/>
-            Also Note: the joystick scancodes described in <ref>keyispressed</ref> do not work in this command.</description>
+            <description>Returns a bitmask for the state of the specified key. The argument is a scancode, see <ref>keyispressed</ref>. The first (least significant) bit is whether the key was depressed at the beginning of the current tick. The second bit is whether the key was pushed down by the player since the start of the previous tick (or when the key starts to repeatedly trigger after being held down for a while). It can therefore return 0, 1, 2 or 3: <lb/><lb/>0 = not pressed<lb/>1 = key held down since last tick, but is not a new press<lb/>2 = the player pressed the key and released it, all in the same tick<lb/>3 = new keypress (or typematic repeat)
+            <danger>Just like <ref>keyispressed</ref>, this command does not return real time data, but the situation at the beginning of the current game tick.</danger>
+            <note>The joystick scancodes described in <ref>keyispressed</ref> do not work in this command.</note></description>
             <seealso>
               <ref>keyispressed</ref>
             </seealso>
@@ -1668,6 +1668,34 @@ if (herolevelled (find hero (hero: Bob))) then (
   show textbox (233) # ${S31} :show string 31
 )</example>
 		</command>
+		<command id="settimer">
+		  <cannon>set timer (id, count, speed, trigger, string, flags)</cannon>
+		  <shortname>set timer</shortname>
+		  <description>Sets the settings for a given timer (<p>id</p>), and starts it. <p>Count</p> is the length of the timer. While it's running, the count will go down by one every <p>speed</p> ticks. I.e., if you set speed to 15, it will count down once every 15 ticks.<lb/>
+<p>trigger</p> is what happens when the timer runs out. You can use the constant <ref>timer:gameover</ref> to indicate that the game should end, or specify a plotscript (in the form "@my script") to have that run.<lb/>
+By default, a timer will not show up on screen. However, you can bind a timer to a string using the <p>string</p> parameter. Pass it the id of a string, and that string will be updated every time the timer counts down. You are responsible for displaying and positioning the string.<lb/>
+A timer also has a few other options in the form of <p>flags</p>. You can pass any combination of these flags: <ref>timerflag:critical</ref> to have the timer end a battle, if it runs out during it, <ref>timerflag:battle</ref> to have it count down during a battle in the first place or <ref>timerflag:menu</ref> to have it count down while the player is in a menu (i.e. the main menu).
+<note>You can pass <ref>timer:default</ref> to any parameter except <p>id</p>. This will either leave the parameter unchanged (if it's set), or set it to its default value.</note></description>
+		  <seealso>
+		    <ref>stoptimer</ref>
+		    <ref>readtimer</ref>
+		  </seealso>
+		  <example>#this starts a 300 second (5 minute) timer that counts down once every 15 ticks. If
+#it runs out during a battle, the battle won't end, but it will go game over after.
+set timer (0, 300, 15, timer: game over, 0, timerflag: battle)</example>
+		</command>
+	  <command id="stoptimer">
+	    <cannon>stop timer (id)</cannon>
+	    <shortname>stop timer</shortname>
+	    <description>Stops a timer by setting its speed to 0. All of its other settings remain the same.</description>
+	    <seealso><ref>settimer</ref></seealso>
+	  </command>
+	  <command id="readtimer">
+	    <cannon>read timer (id)</cannon>
+	    <shortname>read timer</shortname>
+	    <description>Returns the count of a given timer.</description>
+	    <seealso><ref>settimer</ref></seealso>
+	  </command>
 	</section>
 	<section title="Tweaking Maps">
 		<command id="readmapblock">
@@ -2623,6 +2651,31 @@ end</example>
 		  <cannon>y axis</cannon>
 		  <shortname>y axis</shortname>
 		  <description>Pass to <ref>joystickaxis</ref> to specify the Y axis (up and down).</description>
+		</command>
+		<command id="timer:default">
+		  <cannon>timer: default</cannon>
+		  <shortname>timer: default</shortname>
+		  <description>Pass to <ref>settimer</ref> to leave one of the parameters at its default setting. Valid for any parameter except <p>id</p></description>
+		</command>
+		<command id="timer:gameover">
+		  <cannon>timer: game over</cannon>
+		  <shortname>timer: game over</shortname>
+		  <description>Pass to <ref>settimer</ref> in the <p>trigger</p> field to have the game end when the timer runs out.</description>
+		</command>
+		<command id="timerflag:critical">
+		  <cannon>timer flag: critical</cannon>
+		  <shortname>timer flag: critical</shortname>
+		  <description>Pass to <ref>settimer</ref> in the <p>flags</p> field to indicate that if the timer runs out during a battle, it should end the battle immediately.</description>
+		</command>
+		<command id="timerflag:battle">
+		  <cannon>timer flag: battle</cannon>
+		  <shortname>timer flag: battle</shortname>
+		  <description>Pass to <ref>settimer</ref> in the <p>flags</p> field to indicate that the timer should run during battle. Otherwise, the timer will be paused during battle.</description>
+		</command>
+		<command id="timerflag:menu">
+		  <cannon>timer flag: menu</cannon>
+		  <shortname>timer flag: menu</shortname>
+		  <description>Pass to <ref>settimer</ref> in the <p>flags</p> field to indicate that the timer should run while the player is in the menu. Otherwise, it will be paused while the player is in the main menu.</description>
 		</command>
 	</section>
 </plotscript>

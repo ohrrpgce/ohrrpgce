@@ -212,6 +212,20 @@ DO
   centerfuz 160, 190, 100, 16, 3, dpage
   edgeprint alert$, 160 - LEN(alert$) * 4, 185, uilook(uiSelectedItem + tog), dpage
  END IF
+
+ if dotimerbattle then
+  fatal = 0
+  exit do
+ end if
+
+ '--show the timer
+ FOR i = 0 to 15
+   if timers(i).speed > 0 and timers(i).st > -1 and timers(i).flags and 2 = 2 then
+     edgeprint plotstr(timers(i).st-1).s, 320 - len(plotstr(timers(i).st-1).s) * 10, 185, uilook(uiText), dpage
+     exit for
+   end if
+ NEXT
+
  SWAP vpage, dpage
  setvispage vpage
  copypage 2, dpage
@@ -243,7 +257,6 @@ IF (stackpos - bstackstart) \ 2 < 0 THEN
 END IF
 
 if formdata(33) > 0 then fademusic 0
-if formdata(33) < 0 then stopsfx abs(formdata(33)) - 1
 
 fadeout 0, 0, 0
 

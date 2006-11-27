@@ -56,29 +56,44 @@
 						font-weight:bold;
 						color:red;
 					}
-					
+
 					a.ref:after {
 						/*content: " ?";*/
 					}
-					
+
 					.key, .param {
 						font-weight: bold;
 						color: yellow;
 					}
-					
+
 					/*.param {
 						color: yellow;
 					}*/
-					
+
 					.seealso {
 						display: inline;
 						margin:0;
 						padding:0;
 					}
-					
+
 					.seealso li {
 						display: inline;
-						
+
+					}
+
+					div.note {
+					  border:thin black solid;
+					  padding:5px;
+					  color:black;
+					  margin:3px;
+					}
+
+					div.note a {
+					  color: #008800;
+					}
+
+					div.note .param, div.note .key {
+					  color: #888800;
 					}
 ]]>
 				</style>
@@ -122,11 +137,11 @@
 
 	<xsl:template match="section" mode="full"><xsl:text>
 		</xsl:text><a name="{@title}" ></a><xsl:text>
-		
+
 		</xsl:text><font color="#f06060" size="4"><xsl:value-of select="@title" /></font><xsl:text>
 		</xsl:text><p><xsl:apply-templates select="description"/></p><xsl:text>
 		</xsl:text><xsl:apply-templates select="command" mode="full" /><xsl:text>
-		
+
 		</xsl:text><hr></hr><xsl:text>
 	</xsl:text></xsl:template>
 
@@ -161,7 +176,7 @@
 			<pre><xsl:value-of select="." /></pre>
 		</xsl:if>
 	</xsl:template>
-	
+
 	<xsl:template match="p"><span class="key"><xsl:value-of select="." /></span></xsl:template>
 	<xsl:template match="ref">
 		<xsl:if test='count(id(.))=0'>
@@ -190,8 +205,17 @@
 		</xsl:if><xsl:if test="not(position() = last())">, </xsl:if></li></xsl:template>
 
 	<xsl:template match="lb"><br/></xsl:template>
-	
+
 	<xsl:template match="p"><span class="param"><xsl:apply-templates /></span></xsl:template>
+
+	<xsl:template match="note">
+<div style="background-color:#EFF;" class="note"><img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left"/><xsl:apply-templates /><br clear="all" /></div></xsl:template>
+
+<xsl:template match="warn">
+<div style="background-color:#FFE;" class="note"><img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" style="float:left"/><xsl:apply-templates /><br clear="all" /></div></xsl:template>
+
+<xsl:template match="danger">
+<div style="background-color:#FEE;" class="note"><img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" style="float:left"/><xsl:apply-templates /><br clear="all" /></div></xsl:template>
 
 </xsl:stylesheet>
 

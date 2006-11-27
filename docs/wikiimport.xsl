@@ -15,7 +15,7 @@
 
 	<xsl:template match="/">
 	  <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mediawiki.org/xml/export-0.3/ http://www.mediawiki.org/xml/export-0.3.xsd" version="0.3" xml:lang="en">
-	    <xsl:apply-templates select="//section/command[alias]"/>
+	    <xsl:apply-templates select="//section/command[@id='keyval']"/>
 	    <page>
 	      <title>Plot:Index</title>
 	      <revision>
@@ -76,6 +76,15 @@
 
 <xsl:template match="ref" mode="sa">* [[Plot:<xsl:value-of select='hr:wiki-title(id(.)/shortname)' />|<xsl:value-of select='id(.)/shortname' />]]
 </xsl:template>
+
+<xsl:template match="note" xml:space="preserve">
+&lt;div style="background-color:#EFF;border:thin black solid;padding:5px;">[[Image:Plotnote.png|left]]<xsl:apply-templates />&lt;br clear="all" />&lt;/div></xsl:template>
+
+<xsl:template match="warn" xml:space="preserve">
+&lt;div style="background-color:#FFE;border:thin black solid;padding:5px;">[[Image:Plotwarn.png|left]]<xsl:apply-templates />&lt;br clear="all" />&lt;/div></xsl:template>
+
+<xsl:template match="danger" xml:space="preserve">
+&lt;div style="background-color:#FEE;border:thin black solid;padding:5px;">[[Image:Plotdanger.png|left]]<xsl:apply-templates />&lt;br clear="all" />&lt;/div></xsl:template>
 
 <xsl:function name="hr:string-pad" as="xs:string">
   <xsl:param name="padString" as="xs:string?"/>

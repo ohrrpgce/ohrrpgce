@@ -4,7 +4,7 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 
 '$INCLUDE: 'util.bi'
- 
+
 DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$, needf = 0)
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE SUB fadein ()
@@ -28,6 +28,7 @@ DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
 DECLARE FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTEGER
 DECLARE FUNCTION scriptname$ (num%, trigger% = 0)
+DECLARE Function seconds2str(byval sec as integer, byval f as string = "%m:%S") as string
 DECLARE SUB loaddefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
 DECLARE SUB savedefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
 DECLARE SUB guessdefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)

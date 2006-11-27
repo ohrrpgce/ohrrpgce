@@ -149,7 +149,9 @@ DECLARE SUB deletetemps ()
 DECLARE FUNCTION scriptstate$ ()
 DECLARE Sub MenuSound(byval s as integer)
 DECLARE SUB LoadGen
-
+DECLARE SUB dotimer(byval l as integer)
+DECLARE function dotimerbattle() as integer
+DECLARE sub dotimerafterbattle()
 
 
 '---INCLUDE FILES---
@@ -185,7 +187,8 @@ DIM font(1024), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
 DIM door(206), gen(104), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev&(40, 1), names$(40), gotj(2), veh(21)
 DIM eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
-DIM script(4096), heap(2048), global(1024), scrat(128, 15), retvals(32), plotstring$(31), plotstrX(31), plotstrY(31), plotstrCol(31), plotstrBGCol(31), plotstrBits(31)
+DIM script(4096), heap(2048), global(1024), scrat(128, 15), retvals(32)
+DIM plotstr(31) as Plotstring
 DIM menu$(8), mi(8)
 
 'shared module variables
@@ -203,6 +206,8 @@ DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, tmpdir$, usepreunl
 DIM nowscript, scriptret, nextscroff
 DIM prefsdir$
 DIM savefile$
+DIM timers(15) as timer
+DIM fatal
 
 'DEBUG debug "dim binsize arrays"
 '$INCLUDE: 'binsize.bi'
@@ -267,7 +272,7 @@ keyboardsetup
 
 textcolor uilook(uiText), 0
 FOR i = 0 TO 31
- plotstrCol(i) = uilook(uiText)
+ plotstr(i).Col = uilook(uiText)
 NEXT i
 
 'DEBUG debug "init sound"
@@ -468,6 +473,7 @@ DO
  GOSUB interpret
  'DEBUG debug "increment timers"
  playtimer
+ dotimer(0)
  'DEBUG debug "keyboard handling"
  IF carray(5) > 1 AND showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(0) = 0 AND xgo(0) = 0 AND ygo(0) = 0 THEN
   GOSUB usermenu
@@ -652,6 +658,7 @@ DO
     '--normal battle
     fatal = 0
     wonbattle = battle(batform, fatal, stat())
+    dotimerafterbattle
     afterbat = 1
     GOSUB preparemap
     needf = 2
@@ -665,7 +672,7 @@ DO
    foep = range(100, 60)
   END IF
  END IF
- 'DEBUG debug "check for death"
+ 'DEBUG debug "check for death (fatal = " & fatal & ")"
  IF fatal = 1 THEN
   '--this is what happens when you die in battle
   showsay = 0
@@ -2159,7 +2166,7 @@ SELECT CASE scrat(nowscript, curkind)
     END IF
    CASE 210'--show string
     IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
-     scriptout$ = plotstring$(retvals(0))
+     scriptout$ = plotstr(retvals(0)).s
     END IF
    CASE 234'--load menu
     scriptret = picksave(1) + 1
@@ -2320,3 +2327,77 @@ SUB LoadGen
     gen(i) = buffer(i)
   next
 END SUB
+
+SUB dotimer(byval l as integer)
+  dim i as integer
+  for i = 0 to 15
+    with timers(i)
+      if .speed > 0 then
+        if ((l = 1) AND (.flags AND 2 = 0)) OR ((l = 2) AND (.flags AND 4 = 0)) then continue for 'not supposed to run here
+        'debug "updating timer #" & i
+
+        if .st > 0 AND plotstr(.st - 1).s = "" then plotstr(.st - 1).s = seconds2str(.count)
+
+        .ticks += 1
+        if .ticks >= .speed then
+          .count -= 1
+          .ticks = 0
+          if .st > 0 and .count >= 0 then plotstr(.st - 1).s = seconds2str(.count)
+          if .count < 0 then
+            .speed *= -1
+            .speed -= 1
+            'do something
+            if l <> 1 then 'except in battle
+              if .trigger = -2 then 'game over
+                fatal = 1
+                abortg = 1
+
+                exit sub
+              end if
+
+              if .trigger = -1 then 'undefined, shouldn't happen
+              end if
+
+              if .trigger > -1 then 'plotscript
+                rsr = runscript(.trigger, nowscript + 1, -1, "timer", 0)
+                IF rsr = 1 THEN
+                  setScriptArg 0, i
+                END IF
+              end if
+            end if
+          end if
+        end if
+      end if
+    end with
+  next
+end sub
+
+function dotimerbattle() as integer
+  dotimer 1  'no sense duplicating code
+
+  dim i as integer
+  for i = 0 to 15
+    with timers(i)
+      if .speed < 0 then 'normally, not valid. but, if a timer expired in battle, this will be -ve, -1
+        if .flags AND 1 then return -1
+      end if
+    end with
+  next
+  return 0
+end function
+
+Sub dotimerafterbattle()
+  dim i as integer
+  for i = 0 to 15
+    with timers(i)
+      if .speed < 0 then 'normally, not valid. but, if a timer expired in battle, this will be -ve, -1
+        .speed *= -1
+        .speed -= 1
+
+        .count = 0
+        .ticks = .speed
+      end if
+    end with
+  next
+
+end sub

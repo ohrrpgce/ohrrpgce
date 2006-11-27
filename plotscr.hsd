@@ -266,6 +266,9 @@ define function, begin
 257,resumemapmusic,0          #reverse above
 258,checkherowall,2,0,0       #check passability in a direction relative to a hero
 259,checknpcwall,2,0,0        #check passability in a direction relative to an NPC
+260,settimer,6,0,-1,-1,-1,-1,-1#start (or modify) a timer(id, count, speed, trigger, string, flags)
+261,stoptimer,1,0             #convenience for settimer(id,-1,0)
+262,readtimer,1,0             #returns the count of a timer(id)
 #24x,getnpcraw,2,0,0          #raw npc data(who,which)
 #24x,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
@@ -881,4 +884,10 @@ define constant, begin
 6,mapstate:npcs
 24,mapstate:tiles
 255,mapstate:all
+0,timer:stop #use in speed
+-1,timer:default #use in any
+-2,timer:gameover#use in trigger
+1,timerflag:critical
+2,timerflag:battle
+4,timerflag:menu
 end

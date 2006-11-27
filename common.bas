@@ -891,6 +891,44 @@ scriptname$ = a$
 #endif
 END FUNCTION
 
+Function seconds2str(byval sec as integer, byval f as string = "%m:%S") as string
+  dim ret as string
+  dim as integer s, m, h
+  s = sec
+  m = int(sec / 60) mod 60
+  h = int(sec / 3600)
+
+  dim as integer i
+  for i = 0 to len(f) - 1
+    if f[i] = asc("%") then
+      i+=1
+      select case as const f[i]
+        case asc("s")
+          ret = ret & s
+        case asc("S")
+          if s < 10 then ret = ret & "0"
+          ret = ret & s
+        case asc("m")
+          ret = ret & m
+          case asc("M")
+          if m < 10 then ret = ret & "0"
+          ret = ret & m
+        case asc("h")
+          ret = ret & h
+        case asc("H")
+          if h < 10 then ret = ret & "0"
+          ret = ret & h
+        case asc("%")
+          ret = ret & "%"
+      end select
+    else
+      ret = ret & chr(f[i])
+    end if
+  next
+
+  return ret
+end function
+
 FUNCTION getdefaultpal(fileset, index)
  DIM v AS SHORT
  f$ = workingdir$ & SLASH & "defpal" & fileset & ".bin"
@@ -1235,12 +1273,12 @@ w = getkey
 
 IF w = 1 THEN
  restoremode
- 
+
  touchfile workingdir$ + SLASH + "__danger.tmp"
- 
+
  PRINT "fatal error:"
  PRINT e$
- 
+
  'borrowed this code from game.bas cos wildcard didn't work in FB
  findfiles workingdir$ + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
  fh = FREEFILE
@@ -1252,7 +1290,7 @@ IF w = 1 THEN
  CLOSE #fh
  KILL "filelist.tmp"
  RMDIR workingdir$
- 
+
  SYSTEM
 END IF
 #ENDIF
@@ -1269,7 +1307,7 @@ END FUNCTION
 
 SUB poke8bit (array16(), index, val8)
  IF val8 <> (val8 AND &hFF) THEN
-   debug "Warning: " & val8 & " is not an 8-bit number. Discarding bits: " & (val8 XOR &hFF) 
+   debug "Warning: " & val8 & " is not an 8-bit number. Discarding bits: " & (val8 XOR &hFF)
    val8 = val8 AND &hFF
  END IF
  element = array16(index \ 2)

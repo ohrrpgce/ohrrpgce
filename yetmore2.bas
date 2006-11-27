@@ -472,15 +472,15 @@ SUB showplotstrings
 
 FOR i = 0 TO 31
  '-- for each string
- IF readbit(plotstrBits(), i, 0) THEN
+ IF plotstr(i).bits AND 1 THEN
   '-- only display visible strings
-  IF readbit(plotstrBits(), i, 1) THEN
+  IF plotstr(i).bits AND 2 THEN
     '-- flat text
-    textcolor plotstrCol(i), plotstrBGCol(i)
-    printstr plotstring$(i), plotstrX(i), plotstrY(i), dpage
+    textcolor plotstr(i).Col, plotstr(i).BGCol
+    printstr plotstr(i).s, plotstr(i).X, plotstr(i).Y, dpage
   ELSE
     '-- with outline
-    edgeprint plotstring$(i), plotstrX(i), plotstrY(i), plotstrCol(i), dpage
+    edgeprint plotstr(i).s, plotstr(i).X, plotstr(i).Y, plotstr(i).Col, dpage
   END IF
  END IF
 NEXT i

@@ -66,7 +66,7 @@ DECLARE FUNCTION decodetrigger (trigger%, trigtype%)
 
 '$INCLUDE: 'compat.bi'
 '$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi' 
+'$INCLUDE: 'common.bi'
 '$INCLUDE: 'gglobals.bi'
 '$INCLUDE: 'const.bi'
 '$INCLUDE: 'scrconst.bi'
@@ -506,7 +506,7 @@ FOR j = 0 TO inventoryMax
   IF itembits(id, 1) > 1 THEN setbit tag(), 0, itembits(id, 1), 1 'it is in your inventory
  END IF
 NEXT j
- 
+
 FOR j = 0 TO 40 'search hero list
  FOR k = 0 TO 4 'search equipment slots
   id = eqstuf(j, k) - 1
@@ -657,7 +657,7 @@ DO
    LOOP
   END IF
  END IF
- 
+
  GOSUB showswapmenu
  SWAP vpage, dpage
  setvispage vpage
@@ -1038,7 +1038,7 @@ FOR i = 0 TO scroll(1) - 1
   '--larger minimap for smaller maps
   FOR zx = 0 to zoom - 1
    FOR zy = 0 to zoom - 1
-    subtile = 20 \ zoom 
+    subtile = 20 \ zoom
     pixel = readpixel((mx*20) + (zx*subtile) + INT(RND*subtile), (my*20) + (zy*subtile) + INT(RND*subtile), 3)
     putpixel topcorner + o * zoom + zx, leftcorner + i * zoom + zy, pixel, vpage
    NEXT zy
@@ -1310,12 +1310,14 @@ flusharray veh(), 21, 0
 flusharray sayenh(), 6, 0
 
 FOR i = 0 TO 31
- plotstring$(i) = ""
- plotstrCol(i) = 15
- plotstrBGCol(i) = 0
- plotstrX(i) = 0
- plotstrY(i) = 0
- plotstrBits(i) = 0
+ with plotstr(i)
+  .s = ""
+  .col = 15
+  .BGCol = 0
+  .X = 0
+  .Y = 0
+  .Bits = 0
+ end with
 NEXT i
 
 loadpalette master(), gen(genMasterPal)
@@ -1451,7 +1453,7 @@ ELSE
 
  IF scriptfile$ <> "" THEN
   DIM temp as short
-	
+
   f = FREEFILE
   OPEN scriptfile$ FOR BINARY AS #f
   GET #f, 1, temp
@@ -1486,7 +1488,7 @@ ELSE
    runscript = 0'--error
    EXIT FUNCTION
   END IF
-  
+
   IF nextscroff + (LOF(f) - skip) / wordsize > 4096 THEN
    scripterr "Script buffer overflow"
    CLOSE #f
@@ -1554,7 +1556,7 @@ SUB savegame (slot, map, foep, stat(), stock())
 FOR i = 0 TO 16000
  buffer(i) = 0
 NEXT i
-  
+
 buffer(0) = 3        'SAVEGAME VERSION NUMBER
 buffer(1) = map
 buffer(2) = catx(0)
@@ -1810,7 +1812,7 @@ SELECT CASE scrat(nowscript, curvalue)
  CASE 19'not
   IF retvals(0) = 0 THEN
    scriptret = 1
-  ELSE 
+  ELSE
    scriptret = 0
   END IF
  CASE 20'&&

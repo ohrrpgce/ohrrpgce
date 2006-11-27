@@ -13,5 +13,6 @@ declare sub loadmap_npcd(mapnum)
 declare sub loadmap_tilemap(mapnum)
 declare sub loadmap_passmap(mapnum)
 declare sub loadmaplumps (mapnum, loadmask)
+DECLARE function dotimerbattle() as integer
 
 #ENDIF

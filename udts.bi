@@ -20,12 +20,12 @@ TYPE NPCType
 END TYPE
 
 TYPE NPCInst
-  x as integer      'npcl+0   
-  y as integer      'npcl+300 
+  x as integer      'npcl+0
+  y as integer      'npcl+300
   xgo as integer    'npcl+1500
   ygo as integer    'npcl+1800
-  id as integer     'npcl+600 
-  dir as integer    'npcl+900 
+  id as integer     'npcl+600
+  dir as integer    'npcl+900
   frame as integer  'npcl+1200
   extra1 as integer
   extra2 as integer
@@ -35,7 +35,7 @@ TYPE InventSlot
   used : 1 as integer	'use this to check if empty, not num!
 
   'following fields should not be used if used = 0
-  id as integer		'absolute, not +1!! 
+  id as integer		'absolute, not +1!!
   num as integer
   text as string	'text field which shows up in inventory, blank if empty
 END TYPE
@@ -60,6 +60,24 @@ TYPE BattleSprite
   enemy_untargetable AS INTEGER
 END TYPE
 
+TYPE Timer
+  count as integer
+  speed as integer
+  ticks as integer
+  trigger as integer
+  flags as integer
+  st as integer 'string, but both str and string are reserved
+END TYPE
+
+TYPE Plotstring
+  s as string
+  X as integer
+  Y as integer
+  col as integer
+  bgcol as integer
+  bits as integer
+END TYPE
+
 'Loading subs
 DECLARE SUB LoadNPCD(file as string, dat() as NPCType)
 DECLARE SUB LoadNPCL(file as string, dat() as NPCInst, num as integer)
@@ -82,5 +100,7 @@ DECLARE SUB DeserInventory(invent() as InventSlot, z, buf())
 DECLARE SUB CleanNPCD(dat() as NPCType)
 DECLARE SUB CleanNPCL(dat() as NPCInst, num as integer)
 DECLARE SUB CleanInventory(invent() as InventSlot)
+
+
 
 #ENDIF
