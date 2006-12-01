@@ -204,7 +204,7 @@ SUB clearpage (BYVAL page as integer)
 end SUB
 
 SUB setvispage (BYVAL page as integer)
-	' the fb and fb2 backends may freeze up if they collide with the polling thread (why???)
+        ' the fb backend may freeze up if they collide with the polling thread (why???)
 	mutexlock keybdmutex
 	gfx_showpage(spage(page))
 	mutexunlock keybdmutex

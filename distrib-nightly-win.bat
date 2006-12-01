@@ -22,18 +22,6 @@ call nightly-gfx-music fb sdl
 
 del game*.exe
 del custom*.exe
-call makegame-gfx-music fb2 native
-call makeedit-gfx-music fb2 native
-call nightly-gfx-music fb2 native
-
-del game*.exe
-del custom*.exe
-call makegame-gfx-music fb2 sdl
-call makeedit-gfx-music fb2 sdl
-call nightly-gfx-music fb2 sdl
-
-del game*.exe
-del custom*.exe
 call makegame-gfx-music alleg native
 call makeedit-gfx-music alleg native
 call nightly-gfx-music alleg native
