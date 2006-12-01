@@ -1247,6 +1247,11 @@ end</example>
 			<shortname>hide string</shortname>
 			<description>Makes a string previously displayed with <ref>showstringat</ref> or <ref>centerstringat</ref> disappear. Has no effect on strings displayed with <ref>showstring</ref></description>
 		</command>
+		<command id="stringisvisible">
+			<cannon>string is visible (ID)</cannon>
+			<shortname>string is visible</shortname>
+			<description>Returns true if a string is being displayed by <ref>showstringat</ref> or <ref>centerstringat</ref>. Otherwise, returns false. Is not effected by <ref>showstring</ref></description>
+		</command>
 		<command id="stringstyle">
 			<cannon>string style (ID, style)</cannon>
 			<shortname>string style</shortname>

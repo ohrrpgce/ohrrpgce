@@ -371,6 +371,10 @@ script,stringstyle,stringID=0,style=0,begin
   setstringbit(stringID,1,style)
 end
 
+script,stringisvisible,stringID=0,begin
+  return(getstringbit(stringID,0))
+end
+
 script, last ascii, begin
 	variable(code, shift)
 
