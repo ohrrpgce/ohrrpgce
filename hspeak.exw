@@ -1,4 +1,4 @@
--- HamsterSpeak Compiler v.3A
+-- HamsterSpeak Compiler
 
 --(C) Copyright 2002 James Paige and Hamster Republic Productions
 -- Please read LICENSE.txt for GPL License details and disclaimer of liability
@@ -13,7 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
---3F 2006-10-23 Two small fixes to some rare bugs causing crashes
+--3Ec 2006-11-30 while(true) no longer produces a warning
+--3Eb 2006-10-23 Two small fixes to some rare bugs causing crashes
 --3Ea 2006-09-03 Actually export triggers in scripts.bin
 --3E 2006-08-30 "define trigger" support
 --3D 2006-08-16 String literal lookup tables added to end of
@@ -74,8 +75,11 @@ include machine.e  --needed for int_to_bytes
 constant false=0
 constant true=1
 
-constant COMPILER_VERSION=3
-constant COMPILER_SUB_VERSION="Ea"
+-- increment COMPILER_VERSION only for major language-altering changes
+constant COMPILER_VERSION=3 
+-- For small changes increment the second letter of COMPILER_SUB_VERSION
+-- For large changes increment the first letter and reset the second letter
+constant COMPILER_SUB_VERSION="Ec"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -2273,7 +2277,7 @@ function sanity_check(sequence tree,sequence vars,sequence parent)
     kind_and_id=what_kind_and_id(tree[i][TREE_TRUNK],vars)
     kind=kind_and_id[1]
     id=kind_and_id[2]
-    if (compare("if",parent)=0 or compare("while",parent)=0) and i=1 then
+    if (compare("if",parent)=0) and i=1 then
       if kind=KIND_NUMBER then
         if id then
           src_warn(sprintf("condition is always true ("&COLYEL&"%d"&COLRED&")",{id}),tree[i][TREE_TRUNK][CMD_LINE])
