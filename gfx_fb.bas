@@ -139,7 +139,7 @@ sub gfx_setwindowed(byval iswindow as integer)
         'palette must be re-set
 		if depth = 8 then
 			for i = 0 to 255
-				palette i, (truepal(i) and &hFF0000) shr 16, (truepal(i) and &hFF00) shr 8, truepal(i) and &hFF 
+				palette i, (truepal(i) and &hFF0000) shr 16, (truepal(i) and &hFF00) shr 8, truepal(i) and &hFF
 			next
 		end if
 	end if
@@ -289,7 +289,7 @@ function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
 	joybuf(1) = int(y * 100) 'ditto
 	joybuf(2) = (button AND 1) = 0 '0 = pressed, not 0 = unpressed (why???)
 	joybuf(3) = (button AND 2) = 0 'ditto
-	if abs(joybuf(0)) > 10 then debug "X = " + str(joybuf(0))
+	'if abs(joybuf(0)) > 10 then debug "X = " + str(joybuf(0))
 	return 1
 
 end function
@@ -298,10 +298,11 @@ function io_readjoysane(byval joynum as integer, byref button as integer, byref 
 	dim as single xa, ya
 	if getjoystick(joynum,button,xa,ya) then 'returns 1 on failure
 		return 0
-	else
+	end if
+
 	x = int(xa * 100)
 	y = int(ya * 100)
-	if abs(x) > 10 then debug "X = " + str(x)
-		return 1
-	end if
+	'if abs(x) > 10 then debug "X = " + str(x)
+  return 1
+
 end function

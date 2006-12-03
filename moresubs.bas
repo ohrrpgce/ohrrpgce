@@ -188,8 +188,8 @@ SUB calibrate
 
 state = 0
 state$ = "Center Joystick and Press Button"
-midx = 400
-midy = 400
+midx = 0
+midy = 0
 button = 0
 disabled = 10
 
@@ -259,6 +259,7 @@ DO
   CASE 6
    IF disabled = 0 THEN
     writejoysettings
+    gen(60) = 1
     EXIT DO
    END IF
  END SELECT
@@ -1169,6 +1170,7 @@ IF isfile(exepath$ + SLASH + "joyset.ini") THEN
  '--wait a little to make sure the buttons clear
  setwait timing(), speedcontrol
  dowait
+ gen(60) = 1
 ELSE
  '--no joyset.ini file, must recalibrate
  calibrate
