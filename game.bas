@@ -151,17 +151,18 @@ DECLARE Sub MenuSound(byval s as integer)
 DECLARE SUB LoadGen
 DECLARE SUB dotimer(byval l as integer)
 DECLARE function dotimerbattle() as integer
+DECLARE function dotimermenu() as integer
 DECLARE sub dotimerafterbattle()
 
 
 '---INCLUDE FILES---
-'$INCLUDE: 'compat.bi'
-'$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi'
-'$INCLUDE: 'gglobals.bi'
-'$INCLUDE: 'const.bi'
-'$INCLUDE: 'scrconst.bi'
-'$INCLUDE: 'uiconst.bi'
+#include "compat.bi"
+#include "allmodex.bi"
+#include "common.bi"
+#include "gglobals.bi"
+#include "const.bi"
+#include "scrconst.bi"
+#include "uiconst.bi"
 
 'DEBUG debug "started debug session "+date$+" "+time$
 
@@ -178,7 +179,7 @@ tmpdir$ = aquiretempdir$
 'DEBUG debug "Thestart"
 thestart:
 
-'$INCLUDE: 'gver.txt'
+#include "gver.txt"
 
 'DEBUG debug "dim (almost) everything"
 
@@ -210,7 +211,7 @@ DIM timers(15) as timer
 DIM fatal
 
 'DEBUG debug "dim binsize arrays"
-'$INCLUDE: 'binsize.bi'
+#include "binsize.bi"
 
 'DEBUG debug "setup directories"
 
@@ -428,9 +429,9 @@ IF readbit(gen(), genBits, 11) = 0 THEN
  IF titlescr = 0 THEN GOTO resetg
  IF readbit(gen(), genBits, 12) = 0 THEN temp = picksave(1)
 ELSE
+ readjoysettings
  IF readbit(gen(), genBits, 12) = 0 THEN
   IF gen(2) > 0 THEN wrappedsong gen(2) - 1
-  IF gen(2) < 0 THEN playsfx abs(gen(2)) - 1, -1
   fademusic fmvol
   clearpage 3
   temp = picksave(2)
@@ -795,6 +796,7 @@ DO
  setkeys
  tog = tog XOR 1
  playtimer
+ if dotimermenu then exit do
  control
  GOSUB displayall
  IF carray(5) > 1 OR abortg > 0 THEN
@@ -2347,7 +2349,7 @@ SUB dotimer(byval l as integer)
             .speed *= -1
             .speed -= 1
             'do something
-            if l <> 1 then 'except in battle
+            if l = 0 then 'on the field
               if .trigger = -2 then 'game over
                 fatal = 1
                 abortg = 1
@@ -2379,6 +2381,20 @@ function dotimerbattle() as integer
   for i = 0 to 15
     with timers(i)
       if .speed < 0 then 'normally, not valid. but, if a timer expired in battle, this will be -ve, -1
+        if .flags AND 1 then return -1
+      end if
+    end with
+  next
+  return 0
+end function
+
+function dotimermenu() as integer
+  dotimer 2  'no sense duplicating code
+
+  dim i as integer
+  for i = 0 to 15
+    with timers(i)
+      if .speed < 0 then 'normally, not valid. but, if a timer expired in the menu, this will be -ve, -1
         if .flags AND 1 then return -1
       end if
     end with
