@@ -55,12 +55,12 @@ DECLARE SUB checkTagCond(t,check,tag,tagand) 'in bmod.bas
 DECLARE FUNCTION countitem% (it%)
 DECLARE SUB loadshopstuf (array%(), id%)
 
-'$INCLUDE: 'compat.bi'
-'$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi' 
-'$INCLUDE: 'gglobals.bi'
-'$INCLUDE: 'const.bi'
-'$INCLUDE: 'uiconst.bi'
+#include "compat.bi"
+#include "allmodex.bi"
+#include "common.bi" 
+#include "gglobals.bi"
+#include "const.bi"
+#include "uiconst.bi"
 
 REM $STATIC
 SUB buystuff (id, shoptype, storebuf(), stock(), stat())

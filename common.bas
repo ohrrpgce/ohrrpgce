@@ -7,14 +7,14 @@
 ' Code that is not OHRRPGCE-specific that would be of general use
 ' to any FreeBasic program belongs in util.bas instead
 
-'$INCLUDE: 'const.bi'
-'$INCLUDE: 'compat.bi'
-'$INCLUDE: 'allmodex.bi'
+#include "const.bi"
+#include "compat.bi"
+#include "allmodex.bi"
 
-'$INCLUDE: 'uiconst.bi'
-'$INCLUDE: 'common.bi'
+#include "uiconst.bi"
+#include "common.bi"
 
-'$INCLUDE: 'music.bi'
+#include "music.bi"
 
 FUNCTION browse$ (special, default$, fmask$, tmp$, needf)
 browse$ = ""

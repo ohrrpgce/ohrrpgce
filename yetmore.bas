@@ -89,14 +89,14 @@ DECLARE FUNCTION decodetrigger (trigger%, trigtype%)
 DECLARE SUB loadglobalvars (slot%, first%, last%)
 DECLARE SUB saveglobalvars (slot%, first%, last%)
 
-'$INCLUDE: 'compat.bi'
-'$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi'
-'$INCLUDE: 'gglobals.bi'
-'$INCLUDE: 'const.bi'
-'$INCLUDE: 'scrconst.bi'
-'$INCLUDE: 'uiconst.bi'
-'$INCLUDE: 'gfx.bi'
+#include "compat.bi"
+#include "allmodex.bi"
+#include "common.bi"
+#include "gglobals.bi"
+#include "const.bi"
+#include "scrconst.bi"
+#include "uiconst.bi"
+#include "gfx.bi"
 
 REM $STATIC
 SUB arslhero (saytag(), stat())

@@ -87,12 +87,12 @@ DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE SUB importmasterpal (f$, palnum%)
 
-'$INCLUDE: 'compat.bi'
-'$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi' 
-'$INCLUDE: 'cglobals.bi'
+#include "compat.bi"
+#include "allmodex.bi"
+#include "common.bi" 
+#include "cglobals.bi"
 
-'$INCLUDE: 'const.bi'
+#include "const.bi"
 
 REM $STATIC
 SUB airbrush (x, y, d, m, c, p)

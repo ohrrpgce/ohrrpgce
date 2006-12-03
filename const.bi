@@ -1,3 +1,6 @@
+#IFNDEF __CONST_BI__
+#DEFINE __CONST_BI__
+
 'OHRRPGCE GAME - shared constants
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
@@ -89,3 +92,7 @@ CONST binATTACK = 0
 CONST binSTF = 1
 CONST binSONGDATA = 2
 CONST binSFXDATA = 3
+
+#include "uiconst.bi"
+
+#ENDIF

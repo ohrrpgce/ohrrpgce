@@ -62,14 +62,14 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 DECLARE SUB masterpalettemenu ()
 DECLARE SUB importmasterpal (f$, palnum%)
 
-'$INCLUDE: 'compat.bi'
-'$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi'
-'$INCLUDE: 'cglobals.bi'
+#include "compat.bi"
+#include "allmodex.bi"
+#include "common.bi"
+#include "cglobals.bi"
 
-'$INCLUDE: 'const.bi'
-'$INCLUDE: 'scrconst.bi'
-'$INCLUDE: 'uiconst.bi'
+#include "const.bi"
+#include "scrconst.bi"
+#include "uiconst.bi"
 
 REM $STATIC
 SUB editmenus

@@ -70,12 +70,12 @@ DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION isStringField(mnu%)
 DECLARE FUNCTION getsfxname$ (num%)
 
-'$INCLUDE: 'compat.bi'
-'$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi'
-'$INCLUDE: 'cglobals.bi'
+#include "compat.bi"
+#include "allmodex.bi"
+#include "common.bi"
+#include "cglobals.bi"
 
-'$INCLUDE: 'const.bi'
+#include "const.bi"
 
 REM $STATIC
 SUB addcaption (caption$(), indexer, cap$)

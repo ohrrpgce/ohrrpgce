@@ -64,12 +64,12 @@ DECLARE FUNCTION is_enemy(who%)
 DECLARE FUNCTION is_attack(who%)
 DECLARE FUNCTION is_weapon(who%)
 
-'$INCLUDE: 'compat.bi'
-'$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi'
-'$INCLUDE: 'gglobals.bi'
-'$INCLUDE: 'const.bi'
-'$INCLUDE: 'uiconst.bi'
+#include "compat.bi"
+#include "allmodex.bi"
+#include "common.bi"
+#include "gglobals.bi"
+#include "const.bi"
+#include "uiconst.bi"
 
 DECLARE SUB loadfoe (i%, formdata%(), es%(), bslot() AS BattleSprite, p%(), ext$(), bits%(), stat%(), ebits%(), batname$())
 DECLARE FUNCTION inflict (w%, t%, stat%(), bslot() AS BattleSprite, harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())

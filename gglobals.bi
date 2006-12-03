@@ -4,7 +4,7 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 
-'$INCLUDE: 'udts.bi'
+#include "udts.bi"
 
 'Misc game globals
 EXTERN sourcerpg$

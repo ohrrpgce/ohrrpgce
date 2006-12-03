@@ -78,19 +78,19 @@ DECLARE SUB importscripts (f$)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
-'$INCLUDE: 'compat.bi'
-'$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi'
-'$INCLUDE: 'cglobals.bi'
+#include "compat.bi"
+#include "allmodex.bi"
+#include "common.bi"
+#include "cglobals.bi"
 
-'$INCLUDE: 'const.bi'
-'$INCLUDE: 'uiconst.bi'
-'$INCLUDE: 'scrconst.bi'
+#include "const.bi"
+#include "uiconst.bi"
+#include "scrconst.bi"
 
 workingdir$ = "working.tmp"
 
 'version ID
-'$INCLUDE: 'cver.txt'
+#include "cver.txt"
 'PRINT isn't going to work in FB Allegro
 IF (LCASE$(COMMAND$) = "/v" AND NOT LINUX) OR LCASE$(COMMAND$) = "-v" THEN PRINT version$: SYSTEM
 processcommandline
@@ -106,7 +106,7 @@ DIM game$, gamefile$, unsafefile$, insert, activepalette
 DIM vpage, dpage, fadestate, workingdir$, version$
 
 '--DIM binsize arrays
-'$INCLUDE: 'binsize.bi'
+#include "binsize.bi"
 
 RANDOMIZE TIMER
 textxbload "ohrrpgce.mas", buffer(), "default master palette ohrrpgce.mas is missing"

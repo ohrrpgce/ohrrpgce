@@ -44,7 +44,7 @@ DECLARE FUNCTION hasmedia (BYVAL d)
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
 
-'$INCLUDE: 'util.bi'
+#include "util.bi"
 
 CONST true = -1
 CONST false = 0

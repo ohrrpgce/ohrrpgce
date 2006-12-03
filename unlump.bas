@@ -41,7 +41,7 @@ DECLARE FUNCTION isremovable (BYVAL d)
 DECLARE FUNCTION isvirtual (BYVAL d)
 DECLARE FUNCTION hasmedia (BYVAL d)
 
-'$INCLUDE: 'util.bi'
+#include "util.bi"
 
 #ifdef __FB_LINUX__
 #define LINUX -1

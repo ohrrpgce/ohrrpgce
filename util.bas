@@ -7,7 +7,7 @@
 ' any FreeBasic program. Nothing in here can depend on Allmodex, nor on any
 ' gfx or music backend, nor on any other part of the OHR
 
-'$INCLUDE: 'compat.bi'
+#include "compat.bi"
 
 FUNCTION bound (n, lowest, highest)
 bound = n

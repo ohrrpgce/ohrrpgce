@@ -64,13 +64,13 @@ DECLARE FUNCTION exptolevel& (level%)
 DECLARE SUB deletetemps ()
 DECLARE FUNCTION decodetrigger (trigger%, trigtype%)
 
-'$INCLUDE: 'compat.bi'
-'$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi'
-'$INCLUDE: 'gglobals.bi'
-'$INCLUDE: 'const.bi'
-'$INCLUDE: 'scrconst.bi'
-'$INCLUDE: 'uiconst.bi'
+#include "compat.bi"
+#include "allmodex.bi"
+#include "common.bi"
+#include "gglobals.bi"
+#include "const.bi"
+#include "scrconst.bi"
+#include "uiconst.bi"
 
 REM $STATIC
 SUB addhero (who, slot, stat())

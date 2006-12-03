@@ -53,13 +53,13 @@ DECLARE FUNCTION isStringField(mnu%)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
-'$INCLUDE: 'compat.bi'
-'$INCLUDE: 'allmodex.bi'
-'$INCLUDE: 'common.bi'
-'$INCLUDE: 'cglobals.bi'
+#include "compat.bi"
+#include "allmodex.bi"
+#include "common.bi"
+#include "cglobals.bi"
 
-'$INCLUDE: 'const.bi'
-'$INCLUDE: 'scrconst.bi'
+#include "const.bi"
+#include "scrconst.bi"
 
 REM $STATIC
 FUNCTION charpicker$

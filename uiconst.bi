@@ -1,3 +1,6 @@
+#IFNDEF __UICONST_BI__
+#DEFINE __UICONST_BI__
+
 'OHRRPGCE - UICONST.BI - UI colour constants
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
@@ -21,3 +24,6 @@ CONST uiDescription = 15		'Spell description
 CONST uiGold = 16				'Total cash
 CONST uiShadow = 17				'Vehicle shadow
 CONST uiTextBox = 18			'Text box styles, 15 * (bg & border)
+
+
+#ENDIF
