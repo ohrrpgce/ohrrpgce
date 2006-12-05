@@ -757,6 +757,8 @@ names$(121) = "minute":                 stat$(121) = readglobalstring$(158, "min
 names$(122) = "minutes":                stat$(122) = readglobalstring$(159, "minutes", 10)
 
 'names$() = "":      stat$() = readglobalstring$(, "", 10)
+'NOTE: if you add global strings here, be sure to update the limit-checking on
+'the implementation of the "get global string" plotscripting command
 
 top = 0
 pt = 0

@@ -65,6 +65,7 @@ WHAT IS NEW?
     * You can import multiple master palettes and switch between them while
       editing in the View Master Palettes menu. Master Palettes can now also
       be imported from the palettes of 8 bit BMP files [Ralph Versteegen]
+    * Plotscripting Strings no longer have a max length of 40 [James Paige]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
