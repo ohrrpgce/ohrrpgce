@@ -1483,7 +1483,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 219'--ascii from string
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
-   scriptret = plotstr(retvals(0)).s[retvals(1)]'you can index strings a la C
+   scriptret = plotstr(retvals(0)).s[retvals(1)-1]'you can index strings a la C
   END IF
  CASE 220'--position string
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN

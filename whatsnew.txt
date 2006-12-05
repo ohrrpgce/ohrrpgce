@@ -96,6 +96,8 @@ WHAT IS NEW?
     * Fixed bug 203, script interpreter crashes
     * Fixed bug 226 Battle gets stuck when fighting a single jumping enemy
       with the "pause on all battle menus" bitset is on
+    * Fixed bug 272 (Skip title screen makes input go nuts) [Mike]
+    * Fixed bug 274 (Ascii from string: position off by 1) [Mike]
 
   * New Plotscripting Commands
     * New HamsterSpeak flow control commands: break, continue, exit script,
