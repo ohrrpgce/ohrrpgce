@@ -1588,7 +1588,6 @@ SELECT CASE AS CONST id
   retvals(0) = bound(retvals(0),0,31)
   retvals(1) = bound(retvals(1),0,gen(genMaxTextbox))
   retvals(2) = bound(retvals(2),0,7)
-  retvals(3) = (retvals(3) = 0)
 
   loadsaytobuffer retvals(1)
   plotstr(retvals(0)).s = string$(38,0)
