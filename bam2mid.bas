@@ -38,34 +38,34 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 
 	'fields for writing to midi file
 	dim magic as string * 4
-	
+
 	dim tracklen as integer = 0
 	dim lenpos as integer
-	
+
 	dim bamvoice as voice
-	
+
 	'need to remember the exact note pressed in mids, unlike bams
 	dim tracknote(0 to 8) as integer => { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 	'save file positions for loops
 	dim labelpos(0 to 15) as integer
 	dim loopcount(0 to 15) as integer
 	dim returnpos as integer = -1
-	
+
 	dim as integer f1, f2, i, j
-	
+
 	'initialise shared vals
 	setbigval(0)
 	setsmallval(0)
-	
+
 	for i = 0 to 15
 		labelpos(i) = -1
 		loopcount(i) = -1
 	next
-	
+
 	if outfile = "" then
 		outfile = infile + ".mid"
 	end if
-	
+
 	'open both files
 	f1 = freefile
 	open infile for binary as #f1
@@ -73,16 +73,16 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 		debug "File " + infile + " could not be opened."
 		exit sub
 	end if
-	
+
 	get #f1, , magic
 	if magic <> "CBMF" then
 		debug "File " + infile + " is not a BAM."
 		close #f1
 		exit sub
 	end if
-	
+
 	kill outfile
-	
+
 	f2 = freefile
 	open outfile for binary as #f2
 	if err <> 0 then
@@ -90,25 +90,25 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 		close #f1
 		exit sub
 	end if
-	
+
 	'write the midi header
 	magic = "MThd"
 	put #f2, , magic			'chunk type
-	bignum(3) = 6			
+	bignum(3) = 6
 	put #f2, , bignum()			'chunk length
 	put #f2, , smallnum()		'file type (type 0 = single track)
 	smallnum(1) = 1
 	put #f2, , smallnum()		'number of tracks (always 1 for type 0)
 	smallnum(1) = 37
 	put #f2, , smallnum()		'ticks per 1/4 note (half second, by default)
-	
+
 	'write the track header
 	magic = "MTrk"
 	put #f2, , magic		'chunk type
 	lenpos = seek(f2)		'remember where we are
 	bignum(3) = 0
 	put #f2, , bignum()		'chunk length - come back and fill this in later
-	
+
 	'process a bam
 	dim ub as ubyte
 	dim cmd as ubyte
@@ -117,7 +117,7 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 	dim bc as integer
 	dim mb as ubyte
 
-	
+
 	get #f1, , ub
 	do while not eof(f1)
 		if ub < 128 then
@@ -148,7 +148,7 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 					put #f2, , ub				'note
 					tracknote(chan) = ub 		'remember note
 					mb = VELOCITY
-					put #f2, , mb				'velocity	
+					put #f2, , mb				'velocity
 					tracklen = tracklen + 3
 					delta = 0
 				case 32: 'stop note
@@ -161,10 +161,10 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 					mb = tracknote(chan)
 					put #f2, , mb				'note
 					mb = 64
-					put #f2, , mb				'velocity	
+					put #f2, , mb				'velocity
 					tracklen = tracklen + 3
 					delta = 0
-				case 48: 'define instrument 
+				case 48: 'define instrument
 					'write midi patch change
 					bc = setvarval(delta)
 					fput f2, , @bignum(0), bc	'variable length delta time
@@ -178,6 +178,16 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 					delta = 0
 				case 80: 'set label
 					'save file position
+					if chan = 0 then
+					  bc = setvarval(delta)
+				    fput f2, , @bignum(0), bc	'variable length delta time
+				    tracklen += bc
+            mb = &HB0
+            put #f2,,mb
+            mb = 0
+            put #f2,,mb
+            put #f2,,mb
+          end if
 					if useOHRm then
 						bc = setvarval(delta)
 						fput f2, , @bignum(0), bc	'variable length delta time
@@ -193,7 +203,7 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 					end if
 				case 96: 'jump
 					get #f1, , ub 'loop control
-					if useOHRm then 
+					if useOHRm then
 						bc = setvarval(delta)
 						fput f2, , @bignum(0), bc	'variable length delta time
 						tracklen = tracklen + bc
@@ -264,10 +274,10 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 			'wait
 			delta = delta + ((ub - 127) * 4)
 		end if
-		
+
 		get #f1, , ub
 	loop
-	
+
 	'write end track event
 	bc = setvarval(delta)
 	fput f2, , @bignum(0), bc	'variable length delta time
@@ -279,14 +289,14 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 	mb = 0
 	put #f2, , mb				'no further params
 	tracklen = tracklen + 3
-	
+
 	'skip back and write the track length
 	setbigval(tracklen)
 	put #f2, lenpos, bignum()
-	
+
 	close #f2
 	close #f1
-	
+
 end sub
 
 sub setbigval(byval value as integer)
@@ -306,13 +316,13 @@ function setvarval(byval value as integer) as integer
 	dim tmp as integer
 	dim b as integer
 	dim flag as ubyte = 0
-	
+
 	if value = 0 then
 		bignum(0) = 0
 		setvarval = 1
 		exit function
 	end if
-	
+
 	tmp = value
 	while tmp > 0
 		bytes = bytes + 1
@@ -325,7 +335,7 @@ function setvarval(byval value as integer) as integer
 		flag = &h80
 		tmp = tmp \ 128
 	next
-	
+
 	setvarval = bytes
 end function
 
@@ -337,7 +347,7 @@ function getvoice(bamvoice as voice) as integer
 	dim as integer i, j
 
 	voicenum = 0	'default = acoustic grand piano
-		
+
 	found = 0
 	'check gm voices
 	for i = 0 to 127
@@ -356,7 +366,7 @@ function getvoice(bamvoice as voice) as integer
 		end if
 	next
 
-	if found <> 1 then		
+	if found <> 1 then
 		'check ibank voices
 		for i = 0 to 127
 			check = 1
@@ -374,20 +384,20 @@ function getvoice(bamvoice as voice) as integer
 			end if
 		next
 	end if
-	
-	getvoice = voicenum				
+
+	getvoice = voicenum
 end function
 
 sub magicSysexStart(file as integer,length as integer)
 	dim magic as string * 4, bc as integer, tmp as ubyte
 	magic = "OHRm"
-	
+
 	tmp = &HF0 'sysex
 	put #file, , tmp
-	
+
 	bc = setvarval(length+5) 'sig + tail
 	fput file, , @bignum(0), bc 'length of the sysex
-	
+
 end sub
 
 sub magicSysexEnd(file as integer)
