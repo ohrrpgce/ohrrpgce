@@ -203,7 +203,7 @@ wait for key(cancel key)</example>
 		<command id="waitforscancode">
 			<cannon>wait for scancode (key)</cannon>
 			<shortname>wait for scancode</shortname>
-			<description>Waits for the player to press a specific key. You can use any of the constants from <ref>keyispressed</ref> to specify the key. Note that you must <ref>include</ref> scancode.hsi to use these constants.</description>
+			<description>Waits for the player to press a specific key. You can use any of the constants from <ref>keyispressed</ref> to specify the key. <note>You must <ref>include</ref> scancode.hsi to use these constants.</note></description>
 			<example>show text box(624) # "press P!"
 wait for scancode(key:P)</example>
 		</command>
@@ -519,7 +519,7 @@ end</example>
 		<command id="npcatspot">
 			<cannon>NPC at spot (x,y,number)</cannon>
 			<shortname>NPC at spot</shortname>
-			<description>This command returns a reference to the NPC at the given X and Y coordinate on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom most NPC, which is number 0). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile. Note that an NPC's tile is the tile its top left corner is on.</description>
+			<description>This command returns a reference to the NPC at the given X and Y coordinate on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom most NPC, which is number 0). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile. <note>An NPC's tile is the tile its top left corner is on.</note></description>
 			<seealso>
 				<ref>npcreference</ref>
 			</seealso>
@@ -583,7 +583,7 @@ end</example>
 		<command id="getnpcid">
 			<cannon>get NPC ID (reference)</cannon>
 			<shortname>get NPC ID</shortname>
-			<description>This command is the opposite of <ref>npcreference</ref>. If you give get NPC ID a reference to an NPC it will return the NPC&amp;s ID.<lb/>(Note: in some older versions, This command was useful if you needed to do an <ref>alternpc</ref> or a <ref>setnpcspeed</ref> on an NPC that you are working with by reference. This is no longer neccisary, because both those commands now support NPC references (although they still affect every copy of that NPC on the map))</description>
+			<description>This command is the opposite of <ref>npcreference</ref>. If you give get NPC ID a reference to an NPC it will return the NPC&amp;s ID.<lb/><note>In some older versions, This command was useful if you needed to do an <ref>alternpc</ref> or a <ref>setnpcspeed</ref> on an NPC that you are working with by reference. This is no longer neccisary, because both those commands now support NPC references (although they still affect every copy of that NPC on the map)</note></description>
 		</command>
 		<command id="npccopycount">
 			<cannon>NPC copy count (ID)</cannon>
@@ -630,7 +630,7 @@ end</example>
 		<command id="destroynpc">
 			<cannon>destroy NPC (reference)</cannon>
 			<shortname>destroy NPC</shortname>
-			<description>This command will erase the specified NPC. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number. The deletion is not permanent. Unless this is an NPC that you created with <ref>createnpc</ref>, the NPC will be back again next time the map gets loaded. If you need to permanently remove an NPC, use tags. (Note: this only deletes the one NPC you specify. If you use an NPC ID number as the argument, only the first copy of the NPC on the map will be deleted)</description>
+			<description>This command will erase the specified NPC. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number. The deletion is not permanent. Unless this is an NPC that you created with <ref>createnpc</ref>, the NPC will be back again next time the map gets loaded. If you need to permanently remove an NPC, use tags. <note>This only deletes the one NPC you specify. If you use an NPC ID number as the argument, only the first copy of the NPC on the map will be deleted</note></description>
 		</command>
 		<command id="putnpc">
 			<cannon>put npc (who,x,y)</cannon>
@@ -669,7 +669,7 @@ end</example>
 		<command id="showtextbox">
 			<cannon>show text box (number)</cannon>
 			<shortname>show text box</shortname>
-			<description>Displays the numbered text box, just as if you had talked to an NPC. The text box will not actually pop up until the next wait command. This command is most often used with the <ref>waitfortextbox</ref> command.</description>
+			<description>Displays the numbered text box, just as if you had talked to an NPC. The text box will not actually pop up until the next <ref>wait</ref> command. This command is most often used with the <ref>waitfortextbox</ref> command.</description>
 			<example>show text box(2) # Show a text box
 wait for text box # wait until the player continues</example>
 		</command>
@@ -937,7 +937,7 @@ end</example>
 		<command id="setmusicvolume">
 			<cannon>set music volume (volume)</cannon>
 			<shortname>set music volume</shortname>
-			<description>Sets the volume at which music is played, volume being a number on the scale of 0 to 255, 0 being silent, 255 loudest. If you want to manipulate the sound (e.g. fading out the music) you should take note of the original vulume that the player has set and return to this. By default volume is not maximum, so you should not hardcode fades to begin at volume 255. NOTE: the actual resolution at which the volume is set is not necessarily 1/255th of full volume but depends on your implementation. Currently vanilla OHR uses only 0-15 internally, so 240-255 all translate to the same volume.</description>
+			<description>Sets the volume at which music is played, volume being a number on the scale of 0 to 255, 0 being silent, 255 loudest. If you want to manipulate the sound (e.g. fading out the music) you should take note of the original vulume that the player has set and return to this. By default volume is not maximum, so you should not hardcode fades to begin at volume 255. <note>The actual resolution at which the volume is set is not necessarily 1/255th of full volume but depends on your implementation. Currently vanilla OHR uses only 0-15 internally, so 240-255 all translate to the same volume.</note></description>
 		</command>
 		<command id="getmusicvolume">
 			<cannon>get music volume</cannon>
@@ -1074,7 +1074,7 @@ end</example>
 		<command id="initmouse">
 			<cannon>init mouse</cannon>
 			<shortname>init mouse</shortname>
-			<description>Initializes the mouse, returning <ref>true</ref> if one is present, and loads the mouse driver. This command much be run before any mouse functions can be used. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<lb/>The mouse will start in the middle of the screen with bounds of 0-319 horizontally and 0-199 vertically. The bounds can be changed with <ref>mouseregion</ref>, and you can reposition the mouse with <ref>putmouse</ref>.<lb/>NOTE: Running this command does not draw a cursor on screen - your script must do this itself by placing an npc at the appropriate location. Here is an example:</description>
+			<description>Initializes the mouse, returning <ref>true</ref> if one is present, and loads the mouse driver. This command much be run before any mouse functions can be used. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<lb/>The mouse will start in the middle of the screen with bounds of 0-319 horizontally and 0-199 vertically. The bounds can be changed with <ref>mouseregion</ref>, and you can reposition the mouse with <ref>putmouse</ref>.<lb/><note>Running this command does not draw a cursor on screen - your script must do this itself by placing an npc at the appropriate location.</note> Here is an example:</description>
 			<example>include,plotscr.hsd
 define script(1,displaymouse,none)
 
