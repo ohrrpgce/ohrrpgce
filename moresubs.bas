@@ -1173,7 +1173,7 @@ IF isfile(exepath$ + SLASH + "joyset.ini") THEN
  gen(60) = 1
 ELSE
  '--no joyset.ini file, must recalibrate
- calibrate
+ 'calibrate
 END IF
 
 END SUB
