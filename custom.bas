@@ -1553,6 +1553,14 @@ END IF
 IF gen(genVersion) = 5 THEN
  'Shop stuff and song name formats changed, MIDI music added
  'Sub version info also added
+ 'Clear battle formation animation data
+ FOR i = 0 TO gen(genMaxFormation)
+  setpicstuf buffer(), 80, -1
+  loadset game$ + ".for", i, 0
+  buffer(34) = 0
+  buffer(35) = 0
+  storeset game$ + ".for", i, 0
+ NEXT i
  gen(genVersion) = 6
 END IF
 

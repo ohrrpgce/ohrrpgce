@@ -114,7 +114,7 @@ DO
  flash = loopvar(flash, 0, 14, 1)
 
  '--background animation hack
- IF formdata(34) > 0 THEN
+ IF formdata(34) > 0 and gen(genVersion) >= 6 THEN
   bgspeed = loopvar(bgspeed, 0, formdata(35), 1)
   IF bgspeed = 0 THEN
    curbg = loopvar(curbg, formdata(32), formdata(32) + formdata(34), 1)
