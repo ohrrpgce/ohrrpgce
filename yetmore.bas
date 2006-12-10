@@ -407,25 +407,25 @@ FUNCTION functiondone
 'IF nowscript + 1 < 128 THEN
 ' '-- when a script terminates, the script directly above it in
 ' '-- the script buffer must be invalidated for caching
-' scrat(nowscript + 1, scrid) = -1
+' scrat(nowscript + 1).id = -1
 'END IF
 
 '--if the finishing script is at the top of the script buffer,
 '--then nextscroff needs to be changed
-IF scrat(nowscript, scrsize) <> 0 THEN nextscroff = scrat(nowscript, scroff)
+IF scrat(nowscript).size <> 0 THEN nextscroff = scrat(nowscript).off
 
 nowscript = nowscript - 1
 
 IF nowscript < 0 THEN
  functiondone = 1'--no scripts are running anymore
 ELSE
- IF scrat(nowscript, scrstate) < 0 THEN
+ IF scrat(nowscript).state < 0 THEN
   '--suspended script is resumed
-  scrat(nowscript, scrstate) = ABS(scrat(nowscript, scrstate))
+  scrat(nowscript).state = ABS(scrat(nowscript).state)
   functiondone = 2'--reactivating a supended script
  ELSE
-  scriptret = scrat(nowscript + 1, scrret)
-  scrat(nowscript, scrstate) = streturn'---return
+  scriptret = scrat(nowscript + 1).ret
+  scrat(nowscript).state = streturn'---return
   functiondone = 0'--returning a value to a caller
  END IF
 END IF
@@ -436,28 +436,28 @@ FUNCTION functionread
 'returns false normally, true when it should terminate
 functionread = 0
 scriptret = 0'--default returnvalue is zero
-scrat(nowscript, curkind) = script(scrat(nowscript, scroff) + scrat(nowscript, scrptr))
-scrat(nowscript, curvalue) = script(scrat(nowscript, scroff) + scrat(nowscript, scrptr) + 1)
-scrat(nowscript, curargc) = script(scrat(nowscript, scroff) + scrat(nowscript, scrptr) + 2)
-scrat(nowscript, curargn) = 0
+scrat(nowscript).curkind = script(scrat(nowscript).off + scrat(nowscript).ptr)
+scrat(nowscript).curvalue = script(scrat(nowscript).off + scrat(nowscript).ptr + 1)
+scrat(nowscript).curargc = script(scrat(nowscript).off + scrat(nowscript).ptr + 2)
+scrat(nowscript).curargn = 0
 'scriptdump "functionread"
-SELECT CASE scrat(nowscript, curkind)
+SELECT CASE scrat(nowscript).curkind
  CASE tystop
   scripterr "interpretloop encountered noop": nowscript = -1: functionread = -1: EXIT FUNCTION
  CASE tynumber
-  scriptret = scrat(nowscript, curvalue)
-  scrat(nowscript, scrstate) = streturn'---return
+  scriptret = scrat(nowscript).curvalue
+  scrat(nowscript).state = streturn'---return
  CASE tyglobal
-  scriptret = global(bound(scrat(nowscript, curvalue), 0, 1024))
-  scrat(nowscript, scrstate) = streturn'---return
+  scriptret = global(bound(scrat(nowscript).curvalue, 0, 1024))
+  scrat(nowscript).state = streturn'---return
  CASE tylocal
-  scriptret = heap(scrat(nowscript, scrheap) + scrat(nowscript, curvalue))'--get from heap
-  scrat(nowscript, scrstate) = streturn'---return
+  scriptret = heap(scrat(nowscript).heap + scrat(nowscript).curvalue)'--get from heap
+  scrat(nowscript).state = streturn'---return
   '--flow control would be a special case
  CASE tymath, tyfunct, tyscript, tyflow
-  scrat(nowscript, scrstate) = stnext '---function
+  scrat(nowscript).state = stnext '---function
  CASE ELSE
-  scripterr "Illegal statement type" + XSTR$(scrat(nowscript, curkind))
+  scripterr "Illegal statement type" + XSTR$(scrat(nowscript).curkind)
 END SELECT
 END FUNCTION
 
@@ -681,7 +681,7 @@ IF doit = 0 THEN
 END IF
 
 IF nowscript >= 0 THEN
- IF scrat(nowscript, scrstate) = stwait AND scrat(nowscript, curvalue) = 9 THEN
+ IF scrat(nowscript).state = stwait AND scrat(nowscript).curvalue = 9 THEN
   '--never trigger a onkey script when the previous script
   '--has a "wait for key" command active
   doit = 0
@@ -912,28 +912,28 @@ statestr$(4) = "next"
 statestr$(5) = "doarg"
 statestr$(6) = "done"
 
-IF scrat(nowscript, scrdepth) >= 0 THEN
-  indent$ = STRING$(scrat(nowscript, scrdepth), " ")
+IF scrat(nowscript).depth >= 0 THEN
+  indent$ = STRING$(scrat(nowscript).depth, " ")
 ELSE
-  indent$ = STRING$(ABS(scrat(nowscript, scrdepth)), "<")
+  indent$ = STRING$(ABS(scrat(nowscript).depth), "<")
 END IF
 
-SELECT CASE scrat(nowscript, scrstate)
+SELECT CASE scrat(nowscript).state
  CASE 0 TO 6
-   state$ = " " + statestr$(scrat(nowscript, scrstate))
+   state$ = " " + statestr$(scrat(nowscript).state)
  CASE ELSE
-   state$ = XSTR$(scrat(nowscript, scrstate))
+   state$ = XSTR$(scrat(nowscript).state)
 END SELECT
 
 debug indent$ + "[" + s$ + "]"
 debug indent$ + "script =" + XSTR$(nowscript)
-debug indent$ + "id     =" + XSTR$(scrat(nowscript, scrid))
-debug indent$ + "ptr    =" + XSTR$(scrat(nowscript, scrptr))
+debug indent$ + "id     =" + XSTR$(scrat(nowscript).id)
+debug indent$ + "ptr    =" + XSTR$(scrat(nowscript).ptr)
 debug indent$ + "state  =" + state$
-debug indent$ + "kind   =" + XSTR$(scrat(nowscript, curkind))
-debug indent$ + "value  =" + XSTR$(scrat(nowscript, curvalue))
-debug indent$ + "argn   =" + XSTR$(scrat(nowscript, curargn))
-debug indent$ + "argc   =" + XSTR$(scrat(nowscript, curargc))
+debug indent$ + "kind   =" + XSTR$(scrat(nowscript).curkind)
+debug indent$ + "value  =" + XSTR$(scrat(nowscript).curvalue)
+debug indent$ + "argn   =" + XSTR$(scrat(nowscript).curargn)
+debug indent$ + "argc   =" + XSTR$(scrat(nowscript).curargc)
 
 END SUB
 
@@ -1311,7 +1311,7 @@ SELECT CASE AS CONST id
    rsr = runscript(retvals(0), nowscript + 1, 0, "indirect", 0)
    IF rsr = 1 THEN
     '--fill heap with return values
-    FOR i = scrat(nowscript - 1, curargc) - 1 TO 1 STEP -1  'flexible argument number!
+    FOR i = scrat(nowscript - 1).curargc - 1 TO 1 STEP -1  'flexible argument number!
      setScriptArg i - 1, retvals(i)
     NEXT i
    END IF
@@ -1567,7 +1567,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 237'--sound slots
   scriptret = sfxslots
- CASE 238'--Search string
+ CASE 238'--search string
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
     WITH plotstr(retvals(0))
      scriptret = instr(bound(retvals(2), 1, LEN(.s)), .s, plotstr(retvals(1)).s)
@@ -1575,7 +1575,7 @@ SELECT CASE AS CONST id
   ELSE
    scriptret = 0
   END IF
- CASE 239'--Trim String
+ CASE 239'--trim string
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
    IF retvals(1) = -1 THEN
     plotstr(retvals(0)).s = trim$(plotstr(retvals(0)).s)
@@ -1585,7 +1585,7 @@ SELECT CASE AS CONST id
     plotstr(retvals(0)).s = MID$(plotstr(retvals(0)).s,retvals(1),retvals(2))
    END IF
   END IF
- CASE 240'-- String From Textbox
+ CASE 240'-- string from textbox
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
    retvals(1) = bound(retvals(1),0,gen(genMaxTextbox))
    retvals(2) = bound(retvals(2),0,7)
@@ -1633,14 +1633,12 @@ SELECT CASE AS CONST id
  CASE 250'--set money
   IF retvals(0) >= 0 THEN gold = retvals(0)
  CASE 251'--setstringfromtable
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND scrat(nowscript, strtable) THEN
-   plotstr(retvals(0)).s = read32bitstring$(script(), scrat(nowscript, scroff) + scrat(nowscript, strtable) + retvals(1))
-   LEN(plotstr(retvals(0)).s)
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND scrat(nowscript).strtable THEN
+   plotstr(retvals(0)).s = read32bitstring$(script(), scrat(nowscript).off + scrat(nowscript).strtable + retvals(1))
   END IF
  CASE 252'--appendstringfromtable
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND scrat(nowscript, strtable) THEN
-   plotstr(retvals(0)).s += read32bitstring$(script(), scrat(nowscript, scroff) + scrat(nowscript, strtable) + retvals(1))
-   LEN(plotstr(retvals(0)).s)
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND scrat(nowscript).strtable THEN
+   plotstr(retvals(0)).s += read32bitstring$(script(), scrat(nowscript).off + scrat(nowscript).strtable + retvals(1))
   END IF
  CASE 256'--suspendmapmusic
   setbit gen(), 44, suspendambientmusic, 1
@@ -1648,7 +1646,7 @@ SELECT CASE AS CONST id
   setbit gen(), 44, suspendambientmusic, 0
  CASE 260'--settimer(id, count, speed, trigger, string, flags)
   IF retvals(0) >= 0 AND retvals(0) < 16 THEN
-    with timers(retvals(0))
+    WITH timers(retvals(0))
       IF retvals(1) > -1 THEN .count = retvals(1)
       IF retvals(2) > -1 THEN
         .speed = retvals(2)
@@ -1659,8 +1657,8 @@ SELECT CASE AS CONST id
       IF retvals(4) > -1 THEN .st = retvals(4) + 1
       IF retvals(5)<> -1 THEN .flags = retvals(5)
 
-      if .speed < -1 then .speed *= -1: .speed -= 1
-    end with
+      IF .speed < -1 THEN .speed *= -1: .speed -= 1
+    END WITH
   END IF
  CASE 261'--stoptimer
   IF retvals(0) >= 0 AND retvals(0) < 16 THEN timers(retvals(0)).speed = 0
@@ -1671,8 +1669,8 @@ END SELECT
 EXIT SUB
 
 setwaitstate:
-scrat(nowscript, curwaitarg) = retvals(0)
-scrat(nowscript, scrstate) = stwait
+scrat(nowscript).waitarg = retvals(0)
+scrat(nowscript).state = stwait
 RETRACE
 
 END SUB
@@ -1864,7 +1862,7 @@ SUB scriptwatcher (mode)
 'Note: the colours here are fairly arbitrary
 rectangle 0, 0, 320, 4, uilook(uiBackground), dpage
 rectangle 0, 0, (320 / 4096) * nextscroff, 2, uilook(uiSelectedItem), dpage
-rectangle 0, 2, (320 / 2048) * scrat(nowscript + 1, scrheap), 2, uilook(uiSelectedItem + 1), dpage
+rectangle 0, 2, (320 / 2048) * scrat(nowscript + 1).heap, 2, uilook(uiSelectedItem + 1), dpage
 
 ol = 192
 
@@ -1882,11 +1880,11 @@ edgeprint " #     ID    Rtval CmdKn CmdID State", 0, ol, uilook(uiText), dpage
 ol -= 8
 FOR i = large(nowscript - 21, 0) TO nowscript
  edgeprint XSTR$(i), 0, ol, uilook(uiText), dpage
- edgeprint XSTR$(scrat(i, scrid)), 48, ol, uilook(uiText), dpage
- edgeprint XSTR$(scrat(i, scrret)), 96, ol, uilook(uiText), dpage
- edgeprint XSTR$(scrat(i, curkind)), 144, ol, uilook(uiText), dpage
- edgeprint XSTR$(scrat(i, curvalue)), 192, ol, uilook(uiText), dpage
- edgeprint XSTR$(scrat(i, scrstate)), 240, ol, uilook(uiText), dpage
+ edgeprint XSTR$(scrat(i).id), 48, ol, uilook(uiText), dpage
+ edgeprint XSTR$(scrat(i).ret), 96, ol, uilook(uiText), dpage
+ edgeprint XSTR$(scrat(i).curkind), 144, ol, uilook(uiText), dpage
+ edgeprint XSTR$(scrat(i).curvalue), 192, ol, uilook(uiText), dpage
+ edgeprint XSTR$(scrat(i).state), 240, ol, uilook(uiText), dpage
  ol = ol - 8
 NEXT i
 END SUB
@@ -1900,31 +1898,31 @@ gen(cameraArg3) = 5
 END SUB
 
 SUB subdoarg
-scrat(nowscript, scrdepth) = scrat(nowscript, scrdepth) + 1
-pushdw scrat(nowscript, scrptr)
-pushdw scrat(nowscript, curkind)
-pushdw scrat(nowscript, curvalue)
-pushdw scrat(nowscript, curargc)
-pushdw scrat(nowscript, curargn)
+scrat(nowscript).depth = scrat(nowscript).depth + 1
+pushdw scrat(nowscript).ptr
+pushdw scrat(nowscript).curkind
+pushdw scrat(nowscript).curvalue
+pushdw scrat(nowscript).curargc
+pushdw scrat(nowscript).curargn
 '--set script pointer to new offset
-scrat(nowscript, scrptr) = script(scrat(nowscript, scroff) + scrat(nowscript, scrptr) + 3 + scrat(nowscript, curargn))
-scrat(nowscript, scrstate) = stread '---read new statement
+scrat(nowscript).ptr = script(scrat(nowscript).off + scrat(nowscript).ptr + 3 + scrat(nowscript).curargn)
+scrat(nowscript).state = stread '---read new statement
 END SUB
 
 SUB subreturn
-scrat(nowscript, scrdepth) = scrat(nowscript, scrdepth) - 1
-IF scrat(nowscript, scrdepth) < 0 THEN
- scrat(nowscript, scrstate) = stdone
+scrat(nowscript).depth = scrat(nowscript).depth - 1
+IF scrat(nowscript).depth < 0 THEN
+ scrat(nowscript).state = stdone
 ELSE
- scrat(nowscript, curargn) = popdw
- scrat(nowscript, curargc) = popdw
- scrat(nowscript, curvalue) = popdw
- scrat(nowscript, curkind) = popdw
- scrat(nowscript, scrptr) = popdw
+ scrat(nowscript).curargn = popdw
+ scrat(nowscript).curargc = popdw
+ scrat(nowscript).curvalue = popdw
+ scrat(nowscript).curkind = popdw
+ scrat(nowscript).ptr = popdw
  '--push return value
  pushdw scriptret
- scrat(nowscript, curargn) = scrat(nowscript, curargn) + 1
- scrat(nowscript, scrstate) = stnext'---try next arg
+ scrat(nowscript).curargn = scrat(nowscript).curargn + 1
+ scrat(nowscript).state = stnext'---try next arg
 END IF
 END SUB
 
@@ -1935,30 +1933,30 @@ SUB unwindtodo (levels)
 'note: we assume the calling command has popped its args
 
 WHILE levels > 0
- scrat(nowscript, scrdepth) = scrat(nowscript, scrdepth) - 1
- IF scrat(nowscript, scrdepth) < 0 THEN
-  scrat(nowscript, scrstate) = stdone
+ scrat(nowscript).depth = scrat(nowscript).depth - 1
+ IF scrat(nowscript).depth < 0 THEN
+  scrat(nowscript).state = stdone
   EXIT SUB
  END IF
 
- scrat(nowscript, curargn) = popdw
- scrat(nowscript, curargc) = popdw
- scrat(nowscript, curvalue) = popdw
- scrat(nowscript, curkind) = popdw
- scrat(nowscript, scrptr) = popdw
+ scrat(nowscript).curargn = popdw
+ scrat(nowscript).curargc = popdw
+ scrat(nowscript).curvalue = popdw
+ scrat(nowscript).curkind = popdw
+ scrat(nowscript).ptr = popdw
 
- IF scrat(nowscript, curkind) = tyflow AND scrat(nowscript, curvalue) = flowdo THEN
+ IF scrat(nowscript).curkind = tyflow AND scrat(nowscript).curvalue = flowdo THEN
   levels = levels - 1
   'first pop do's evaluated arguments before stopping
  END IF
 
  'pop arguments
- IF scrat(nowscript, curkind) = tyflow AND scrat(nowscript, curvalue) = flowswitch THEN
+ IF scrat(nowscript).curkind = tyflow AND scrat(nowscript).curvalue = flowswitch THEN
   'unlike all other flow, switch stack usage != argn
   dummy = popdw 'state
   dummy = popdw 'matching value
  ELSE
-  FOR i = 1 TO scrat(nowscript, curargn)
+  FOR i = 1 TO scrat(nowscript).curargn
    dummy = popdw
   NEXT
  END IF
@@ -2312,17 +2310,17 @@ IF y < 0 THEN y = high + y
 IF y >= high THEN y = y - high
 END SUB
 
-SUB readstackcommand (state(), i)
+SUB readstackcommand (state as ScriptInst, i)
  i -= 1
- state(curargn) = readstackdw(i)
+ state.curargn = readstackdw(i)
  i -= 1
- state(curargc) = readstackdw(i)
+ state.curargc = readstackdw(i)
  i -= 1
- state(curvalue) = readstackdw(i)
+ state.curvalue = readstackdw(i)
  i -= 1
- state(curkind) = readstackdw(i)
+ state.curkind = readstackdw(i)
  i -= 1
- state(scrptr) = readstackdw(i)
+ state.ptr = readstackdw(i)
 END SUB
 
 FUNCTION scriptstate$
@@ -2331,7 +2329,7 @@ FUNCTION scriptstate$
  'recurse 1 = top script plus calling scripts
  'recurse 2 = all scripts, including suspended ones
 
- DIM state(15), flowname$(15), flowtype(15)
+ DIM flowname$(15), flowtype(15), state as ScriptInst
 
  flowtype(0) = 0:	flowname$(0) = "do"
  flowtype(3) = 1:	flowname$(3) = "return"
@@ -2362,10 +2360,11 @@ FUNCTION scriptstate$
 
  wasscript = nowscript
 
- FOR i = 0 TO 15: state(i) = scrat(wasscript, i): NEXT
+ copyobj(state, scrat(wasscript))
 
- IF scrat(nowscript, scrstate) = stdoarg THEN GOTO jmpdoarg
- IF scrat(nowscript, scrstate) = stnext THEN GOTO jmpnext
+
+ IF scrat(nowscript).state = stdoarg THEN GOTO jmpdoarg
+ IF scrat(nowscript).state = stnext THEN GOTO jmpnext
 
  DO
   jmpread:
@@ -2373,37 +2372,37 @@ FUNCTION scriptstate$
 
    cmd$ = ""
    hidearg = 0
-  SELECT CASE state(curkind)
+  SELECT CASE state.curkind
     CASE tynumber
-     outstr$ = STR$(state(curvalue))
+     outstr$ = STR$(state.curvalue)
     CASE tyflow
-     cmd$ = flowname$(state(curvalue))
-     IF state(scrdepth) = 0 THEN cmd$ = scriptname$(state(scrid))
-     IF flowtype(state(curvalue)) = 1 THEN hidearg = -1: cmd$ += ":"
-     IF (state(curargc) = state(curargn) + 1) AND flowtype(state(curvalue)) = 2 THEN hidearg = -1: cmd$ += "()"
-     IF state(curvalue) = flowif AND state(curargn) > 0 THEN hidearg = -1
+     cmd$ = flowname$(state.curvalue)
+     IF state.depth = 0 THEN cmd$ = scriptname$(state.id)
+     IF flowtype(state.curvalue) = 1 THEN hidearg = -1: cmd$ += ":"
+     IF (state.curargc = state.curargn + 1) AND flowtype(state.curvalue) = 2 THEN hidearg = -1: cmd$ += "()"
+     IF state.curvalue = flowif AND state.curargn > 0 THEN hidearg = -1
     CASE tyglobal
-     outstr$ = "global" + STR$(state(curvalue))
+     outstr$ = "global" + STR$(state.curvalue)
     CASE tylocal
-     outstr$ = "local" + STR$(state(curvalue))
+     outstr$ = "local" + STR$(state.curvalue)
     CASE tymath
-     cmd$ = mathname$(state(curvalue))
+     cmd$ = mathname$(state.curvalue)
     CASE tyfunct
-     cmd$ = "cmd" + STR$(state(curvalue))
+     cmd$ = "cmd" + STR$(state.curvalue)
     CASE tyscript
-     IF state(curargn) >= state(curargc) THEN
+     IF state.curargn >= state.curargc THEN
       'currently executing this script (must have already printed it out)
       cmd$ = "==>>"
      ELSE
-      cmd$ = scriptname$(state(curvalue))
+      cmd$ = scriptname$(state.curvalue)
      END IF
    END SELECT
-   'debug "kind = " + STR$(state(curkind))
+   'debug "kind = " + STR$(state.curkind)
    'debug "cmd$ = " + cmd$
 
    IF cmd$ <> "" THEN
-    IF state(curargn) < state(curargc) AND hidearg = 0 THEN
-     outstr$ = cmd$ + ":" + LTRIM$(STR$(state(curargn) + 1)) + "/" + LTRIM$(STR$(state(curargc))) + " " + outstr$
+    IF state.curargn < state.curargc AND hidearg = 0 THEN
+     outstr$ = cmd$ + ":" + STR$(state.curargn + 1) + "/" + STR$(state.curargc) + " " + outstr$
     ELSE
      outstr$ = cmd$ + " " + outstr$
     END IF
@@ -2412,15 +2411,15 @@ FUNCTION scriptstate$
    'anything left on stack?
    IF stkpos <= stkbottom THEN EXIT DO
 
-   state(scrdepth) -= 1
+   state.depth -= 1
 
-   IF state(scrdepth) < 0 THEN
+   IF state.depth < 0 THEN
     IF recurse = 0 THEN EXIT DO
     'load next script
     wasscript -= 1
     IF wasscript < 0 THEN EXIT DO
-    FOR i = 0 TO 15: state(i) = scrat(wasscript, i): NEXT
-    IF scrat(wasscript, scrstate) < 0 THEN
+    copyobj(state, scrat(wasscript))
+    IF scrat(wasscript).state < 0 THEN
      IF recurse = 2 THEN
       'deal with state   (can only be wait?)
       CONTINUE DO
@@ -2429,20 +2428,20 @@ FUNCTION scriptstate$
      END IF
     ELSE
      CONTINUE DO
-    ' state(scrdepth) -= 1  'returning from a script kind or runscriptbyid command
+    ' state.depth -= 1  'returning from a script kind or runscriptbyid command
     END IF
    END IF
 
-   readstackcommand state(), stkpos
+   readstackcommand state, stkpos
 
   jmpnext:
   jmpdoarg:
 
    'ditch arguments
-   IF state(curkind) = tyflow AND state(curvalue) = flowswitch THEN
+   IF state.curkind = tyflow AND state.curvalue = flowswitch THEN
     stkpos -= 2
    ELSE
-    stkpos -= state(curargn)
+    stkpos -= state.curargn
    END IF
 
    IF stkpos < stkbottom THEN scripterr "interpreter state corrupt; stack underflow": EXIT DO

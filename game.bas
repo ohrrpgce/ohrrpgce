@@ -188,7 +188,8 @@ DIM font(1024), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
 DIM door(206), gen(104), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev&(40, 1), names$(40), gotj(2), veh(21)
 DIM eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
-DIM script(4096), heap(2048), global(1024), scrat(128, 15), retvals(32)
+DIM script(4096), heap(2048), global(1024), retvals(32)
+DIM scrat(128) as ScriptInst
 DIM plotstr(31) as Plotstring
 DIM menu$(8), mi(8)
 
@@ -1567,25 +1568,25 @@ ON ERROR GOTO 0
 exitprogram 0
 
 '--this is what we have dimed for scripts
-'--script(4096), heap(2048), global(1024), scrat(128, 14), nowscript
+'--script(4096), heap(2048), global(1024), scrat(128), nowscript
 interpret:
 IF scrwatch THEN scriptwatcher scrwatch
 IF nowscript >= 0 THEN
- SELECT CASE scrat(nowscript, scrstate)
+ SELECT CASE scrat(nowscript).state
   CASE IS < stnone
    scripterr "illegally suspended script"
-   scrat(nowscript, scrstate) = ABS(scrat(nowscript, scrstate))
+   scrat(nowscript).state = ABS(scrat(nowscript).state)
   CASE stnone
    scripterr "script" + XSTR$(nowscript) + " became stateless"
   CASE stwait
    '--evaluate wait conditions
-   SELECT CASE scrat(nowscript, curvalue)
+   SELECT CASE scrat(nowscript).curvalue
     CASE 15, 16, 35, 61'--use door, teleport to map, use NPC, want battle
-     scrat(nowscript, scrstate) = streturn
+     scrat(nowscript).state = streturn
     CASE 1'--wait number of ticks
-     scrat(nowscript, curwaitarg) = scrat(nowscript, curwaitarg) - 1
-     IF scrat(nowscript, curwaitarg) < 1 THEN
-      scrat(nowscript, scrstate) = streturn
+     scrat(nowscript).waitarg = scrat(nowscript).waitarg - 1
+     IF scrat(nowscript).waitarg < 1 THEN
+      scrat(nowscript).state = streturn
      END IF
     CASE 2'--wait for all
      n = 0
@@ -1600,62 +1601,62 @@ IF nowscript >= 0 THEN
      END IF
      IF gen(cameramode) = pancam OR gen(cameramode) = focuscam THEN n = 1
      IF n = 0 THEN
-      scrat(nowscript, scrstate) = streturn
+      scrat(nowscript).state = streturn
      END IF
     CASE 3'--wait for hero
-     IF scrat(nowscript, curwaitarg) < 0 OR scrat(nowscript, curwaitarg) > 3 THEN
-      scripterr "waiting for nonexistant hero" + XSTR$(scrat(nowscript, curwaitarg))
-      scrat(nowscript, scrstate) = streturn
+     IF scrat(nowscript).waitarg < 0 OR scrat(nowscript).waitarg > 3 THEN
+      scripterr "waiting for nonexistant hero" + XSTR$(scrat(nowscript).waitarg)
+      scrat(nowscript).state = streturn
      ELSE
-      IF xgo(scrat(nowscript, curwaitarg)) = 0 AND ygo(scrat(nowscript, curwaitarg)) = 0 THEN
-       scrat(nowscript, scrstate) = streturn
+      IF xgo(scrat(nowscript).waitarg) = 0 AND ygo(scrat(nowscript).waitarg) = 0 THEN
+       scrat(nowscript).state = streturn
       END IF
      END IF
     CASE 4'--wait for NPC
-     npcref = getnpcref(scrat(nowscript, curwaitarg), 0)
+     npcref = getnpcref(scrat(nowscript).waitarg, 0)
      IF npcref >= 0 THEN
       IF npc(npcref).xgo = 0 AND npc(npcref).ygo = 0 THEN
-       scrat(nowscript, scrstate) = streturn
+       scrat(nowscript).state = streturn
       END IF
      ELSE
       '--no reference found, why wait for a non-existant npc?
-      scrat(nowscript, scrstate) = streturn
+      scrat(nowscript).state = streturn
      END IF
     CASE 9'--wait for key
-     IF scrat(nowscript, curwaitarg) >= 0 AND scrat(nowscript, curwaitarg) <= 5 THEN
-      IF carray(scrat(nowscript, curwaitarg)) > 1 THEN
-       scrat(nowscript, scrstate) = streturn
+     IF scrat(nowscript).waitarg >= 0 AND scrat(nowscript).waitarg <= 5 THEN
+      IF carray(scrat(nowscript).waitarg) > 1 THEN
+       scrat(nowscript).state = streturn
       END IF
      ELSE
       FOR i = 0 TO 5
        IF carray(i) > 1 THEN
         scriptret = csetup(i)
-        scrat(nowscript, scrstate) = streturn
+        scrat(nowscript).state = streturn
        END IF
       NEXT i
       FOR i = 1 TO 127
        IF keyval(i) > 1 THEN
         scriptret = i
-        scrat(nowscript, scrstate) = streturn
+        scrat(nowscript).state = streturn
        END IF
       NEXT i
      END IF
     CASE 244'--wait for scancode
-     IF keyval(scrat(nowscript, curwaitarg)) > 1 THEN
-      scrat(nowscript, scrstate) = streturn
+     IF keyval(scrat(nowscript).waitarg) > 1 THEN
+      scrat(nowscript).state = streturn
      END IF
     CASE 42'--wait for camera
-     IF gen(cameramode) <> pancam AND gen(cameramode) <> focuscam THEN scrat(nowscript, scrstate) = streturn
+     IF gen(cameramode) <> pancam AND gen(cameramode) <> focuscam THEN scrat(nowscript).state = streturn
     CASE 59'--wait for text box
      IF showsay = 0 OR readbit(gen(), 44, suspendboxadvance) = 1 THEN
-      scrat(nowscript, scrstate) = streturn
+      scrat(nowscript).state = streturn
      END IF
     CASE 73, 234'--game over, quit from loadmenu
     CASE ELSE
-     scripterr "illegal wait substate" + XSTR$(scrat(nowscript, curvalue))
-     scrat(nowscript, scrstate) = streturn
+     scripterr "illegal wait substate" + XSTR$(scrat(nowscript).curvalue)
+     scrat(nowscript).state = streturn
    END SELECT
-   IF scrat(nowscript, scrstate) = streturn THEN
+   IF scrat(nowscript).state = streturn THEN
     '--this allows us to resume the script without losing a game cycle
     wantimmediate = -1
    END IF
@@ -1714,7 +1715,7 @@ RETRACE
 
 interpretloop:
 DO
- SELECT CASE scrat(nowscript, scrstate)
+ SELECT CASE scrat(nowscript).state
   CASE stwait'---begin waiting for something
    EXIT DO
   CASE stdoarg'---do argument
@@ -1727,118 +1728,118 @@ DO
    '--sets stdone if done with entire script, stnext otherwise
    subreturn
   CASE stnext'---check if all args are done
-   IF scrat(nowscript, curargn) >= scrat(nowscript, curargc) THEN
+   IF scrat(nowscript).curargn >= scrat(nowscript).curargc THEN
     '--pop return values of each arg
     '--evaluate function, math, script, whatever
     '--scriptret would be set here, pushed at return
-    SELECT CASE scrat(nowscript, curkind)
+    SELECT CASE scrat(nowscript).curkind
      CASE tystop
-      scripterr "stnext encountered noop" + XSTR$(scrat(nowscript, curvalue)) + " at" + XSTR$(scrat(nowscript, scrptr)) + " in" + XSTR$(nowscript): nowscript = -1: EXIT DO
+      scripterr "stnext encountered noop" + XSTR$(scrat(nowscript).curvalue) + " at" + XSTR$(scrat(nowscript).ptr) + " in" + XSTR$(nowscript): nowscript = -1: EXIT DO
      CASE tymath, tyfunct
       '--complete math and functions, nice and easy.
-      FOR i = scrat(nowscript, curargc) - 1 TO 0 STEP -1
+      FOR i = scrat(nowscript).curargc - 1 TO 0 STEP -1
        retvals(i) = popdw
       NEXT i
       GOSUB sfunctions
       '--unless you have switched to wait mode, return
-      IF scrat(nowscript, scrstate) = stnext THEN scrat(nowscript, scrstate) = streturn'---return
+      IF scrat(nowscript).state = stnext THEN scrat(nowscript).state = streturn'---return
      CASE tyflow
       '--finish flow control? tricky!
-      SELECT CASE scrat(nowscript, curvalue)
+      SELECT CASE scrat(nowscript).curvalue
        CASE flowwhile'--repeat or terminate while
-	SELECT CASE scrat(nowscript, curargn)
+	SELECT CASE scrat(nowscript).curargn
 	 CASE 2
 	  '--if a while statement finishes normally (argn is 2) then it repeats.
 	  dummy = popdw
       dummy = popdw
-	  scrat(nowscript, curargn) = 0
+	  scrat(nowscript).curargn = 0
 	 CASE ELSE
-	  scripterr "while fell out of bounds, landed on" + XSTR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
+	  scripterr "while fell out of bounds, landed on" + XSTR$(scrat(nowscript).curargn): nowscript = -1: EXIT DO
 	END SELECT
        CASE flowfor'--repeat or terminate for
-	SELECT CASE scrat(nowscript, curargn)
+	SELECT CASE scrat(nowscript).curargn
 	 CASE 5
 	  '--normal for termination means repeat
 	  dummy = popdw
 	  GOSUB incrementflow
-	  scrat(nowscript, curargn) = 4
+	  scrat(nowscript).curargn = 4
 	 CASE ELSE
-	  scripterr "for fell out of bounds, landed on" + XSTR$(scrat(nowscript, curargn)): nowscript = -1: EXIT DO
+	  scripterr "for fell out of bounds, landed on" + XSTR$(scrat(nowscript).curargn): nowscript = -1: EXIT DO
 	END SELECT
        CASE flowreturn
-	scrat(nowscript, scrret) = popdw
-	scrat(nowscript, scrstate) = streturn'---return
+	scrat(nowscript).ret = popdw
+	scrat(nowscript).state = streturn'---return
        CASE flowbreak
         r = popdw
         unwindtodo(r)
         '--for and while need to be broken
-        IF scrat(nowscript, curkind) = tyflow AND (scrat(nowscript, curvalue) = flowfor OR scrat(nowscript, curvalue) = flowwhile) THEN
+        IF scrat(nowscript).curkind = tyflow AND (scrat(nowscript).curvalue = flowfor OR scrat(nowscript).curvalue = flowwhile) THEN
          GOSUB dumpandreturn
         END IF
        CASE flowcontinue
         r = popdw
         unwindtodo(r)
-        IF scrat(nowscript, curkind) = tyflow AND scrat(nowscript, curvalue) = flowswitch THEN
+        IF scrat(nowscript).curkind = tyflow AND scrat(nowscript).curvalue = flowswitch THEN
          '--set state to 2
          dummy = popdw
          dummy = popdw
          pushdw 2
          pushdw 9999
-        ELSEIF NOT (scrat(nowscript, curkind) = tyflow AND (scrat(nowscript, curvalue) = flowfor OR scrat(nowscript, curvalue) = flowwhile)) THEN
+        ELSEIF NOT (scrat(nowscript).curkind = tyflow AND (scrat(nowscript).curvalue = flowfor OR scrat(nowscript).curvalue = flowwhile)) THEN
          '--if this do isn't a for's or while's, then just repeat it, discarding the returned value
          dummy = popdw
-         scrat(nowscript, curargn) = scrat(nowscript, curargn) - 1
+         scrat(nowscript).curargn = scrat(nowscript).curargn - 1
         END IF
        CASE flowexit
         unwindtodo(9999)
        CASE flowexitreturn
-        scrat(nowscript, scrret) = popdw
+        scrat(nowscript).ret = popdw
         unwindtodo(9999)
        CASE flowswitch
         tmpcase = popdw
         tmpstate = popdw
         tmpvar = popdw
         scriptret = 0
-        scrat(nowscript, scrstate) = streturn
+        scrat(nowscript).state = streturn
        CASE ELSE
 	'--do, then, etc... terminate normally
 	scriptret = -1
 	GOSUB dumpandreturn
       END SELECT
-      'scrat(nowscript, scrstate) = streturn'---return
+      'scrat(nowscript).state = streturn'---return
      CASE tyscript
-      rsr = runscript(scrat(nowscript, curvalue), nowscript + 1, 0, "indirect", 0)
+      rsr = runscript(scrat(nowscript).curvalue, nowscript + 1, 0, "indirect", 0)
       IF rsr = 1 THEN
        '--fill heap with return values
-       FOR i = scrat(nowscript - 1, curargc) - 1 TO 0 STEP -1
+       FOR i = scrat(nowscript - 1).curargc - 1 TO 0 STEP -1
 	setScriptArg i, popdw
        NEXT i
       END IF
       IF rsr = 0 THEN
-       scrat(nowscript, scrstate) = streturn'---return
+       scrat(nowscript).state = streturn'---return
       END IF
      CASE ELSE
-      scripterr "illegal kind" + XSTR$(scrat(nowscript, curkind)) + XSTR$(scrat(nowscript, curvalue)) + " in stnext": nowscript = -1: EXIT DO
+      scripterr "illegal kind" + XSTR$(scrat(nowscript).curkind) + XSTR$(scrat(nowscript).curvalue) + " in stnext": nowscript = -1: EXIT DO
     END SELECT
    ELSE
     '--flow control is special, for all else, do next arg
-    SELECT CASE scrat(nowscript, curkind)
+    SELECT CASE scrat(nowscript).curkind
      CASE tyflow
-      SELECT CASE scrat(nowscript, curvalue)
+      SELECT CASE scrat(nowscript).curvalue
        CASE flowif'--we got an if!
-	SELECT CASE scrat(nowscript, curargn)
+	SELECT CASE scrat(nowscript).curargn
 	 CASE 0
-	  scrat(nowscript, scrstate) = stdoarg'---call conditional
+	  scrat(nowscript).state = stdoarg'---call conditional
 	 CASE 1
 	  r = popdw
 	  pushdw r
 	  IF r THEN
-	   scrat(nowscript, scrstate) = stdoarg'---call then block
+	   scrat(nowscript).state = stdoarg'---call then block
 	  ELSE
-	   scrat(nowscript, curargn) = 2
+	   scrat(nowscript).curargn = 2
 	   '--if-else needs one extra thing on the stack to account for the then that didnt get used.
 	   pushdw 0
-	   scrat(nowscript, scrstate) = stdoarg'---call else block
+	   scrat(nowscript).state = stdoarg'---call else block
 	  END IF
 	 CASE 2
           '--finished then but not at end of argument list: skip else
@@ -1847,25 +1848,25 @@ DO
 	  scripterr "if statement overstepped bounds"
 	END SELECT
        CASE flowwhile'--we got a while!
-	SELECT CASE scrat(nowscript, curargn)
+	SELECT CASE scrat(nowscript).curargn
 	 CASE 0
-	  scrat(nowscript, scrstate) = stdoarg'---call condition
+	  scrat(nowscript).state = stdoarg'---call condition
 	 CASE 1
 	  r = popdw
 	  IF r THEN
-	   scrat(nowscript, scrstate) = stdoarg'---call do block
+	   scrat(nowscript).state = stdoarg'---call do block
            '--number of words on stack should equal argn (for simplicity when unwinding stack)
            pushdw 0
 	  ELSE
            '--break while: no args to pop
 	   scriptret = 0
-           scrat(nowscript, scrstate) = streturn'---return
+           scrat(nowscript).state = streturn'---return
 	  END IF
 	 CASE ELSE
 	  scripterr "while statement has jumped the curb"
 	END SELECT
        CASE flowfor'--we got a for!
-	SELECT CASE scrat(nowscript, curargn)
+	SELECT CASE scrat(nowscript).curargn
 	 '--argn 0 is var
 	 '--argn 1 is start
 	 '--argn 2 is end
@@ -1874,7 +1875,7 @@ DO
 	 '--argn 5 is repeat (normal termination)
 	 CASE 0, 1, 3
 	  '--get var, start, and later step
-	  scrat(nowscript, scrstate) = stdoarg
+	  scrat(nowscript).state = stdoarg
 	 CASE 2
 	  '--set variable to start val before getting end
 	  tmpstart = popdw
@@ -1886,7 +1887,7 @@ DO
 	  writescriptvar tmpvar, tmpstart
 
 	  '---now get end value
-	  scrat(nowscript, scrstate) = stdoarg
+	  scrat(nowscript).state = stdoarg
 	 CASE 4
 	  tmpstep = popdw
 	  tmpend = popdw
@@ -1896,26 +1897,26 @@ DO
 	  IF (tmpnow > tmpend AND tmpstep > 0) OR (tmpnow < tmpend AND tmpstep < 0) THEN
            '--breakout
 	   scriptret = 0
-           scrat(nowscript, scrstate) = streturn'---return
+           scrat(nowscript).state = streturn'---return
 	  ELSE
 	   pushdw tmpvar
 	   pushdw tmpstart
 	   pushdw tmpend
 	   pushdw tmpstep
-	   scrat(nowscript, scrstate) = stdoarg'---execute the do block
+	   scrat(nowscript).state = stdoarg'---execute the do block
 	  END IF
 	 CASE ELSE
 	  scripterr "for statement is being difficult"
 	END SELECT
        CASE flowswitch
-        IF scrat(nowscript, curargn) = 0 THEN
+        IF scrat(nowscript).curargn = 0 THEN
          '--get expression to match
-         scrat(nowscript, scrstate) = stdoarg
-        ELSEIF scrat(nowscript, curargn) = 1 THEN
+         scrat(nowscript).state = stdoarg
+        ELSEIF scrat(nowscript).curargn = 1 THEN
          '--set up state - push a 0: not fallen in
          '--assume first statement is a case, run it
          pushdw 0
-         scrat(nowscript, scrstate) = stdoarg
+         scrat(nowscript).state = stdoarg
         ELSE
          tmpcase = popdw
          tmpstate = popdw
@@ -1936,32 +1937,32 @@ DO
           '--after successfully running a do block, pop off matching value and exit
           tmpvar = popdw
           scriptret = 0
-          scrat(nowscript, scrstate) = streturn'---return
+          scrat(nowscript).state = streturn'---return
          END IF
 
          WHILE doseek
-          tmpkind = script(scrat(nowscript, scroff) + script(scrat(nowscript, scroff) + scrat(nowscript, scrptr) + 3 + scrat(nowscript, curargn)))
+          tmpkind = script(scrat(nowscript).off + script(scrat(nowscript).off + scrat(nowscript).ptr + 3 + scrat(nowscript).curargn))
 
-          IF (tmpstate = 1 AND tmpkind = tyflow) OR (tmpstate = 0 AND (tmpkind <> tyflow OR scrat(nowscript, curargn) = scrat(nowscript, curargc) - 1)) THEN
+          IF (tmpstate = 1 AND tmpkind = tyflow) OR (tmpstate = 0 AND (tmpkind <> tyflow OR scrat(nowscript).curargn = scrat(nowscript).curargc - 1)) THEN
            '--fall into a do, execute a case, or run default (last arg)
-           scrat(nowscript, scrstate) = stdoarg
+           scrat(nowscript).state = stdoarg
            pushdw tmpstate
            EXIT WHILE
           END IF
-          IF scrat(nowscript, curargn) >= scrat(nowscript, curargc) THEN
+          IF scrat(nowscript).curargn >= scrat(nowscript).curargc THEN
            tmpvar = popdw
            scriptret = 0
-           scrat(nowscript, scrstate) = streturn'---return
+           scrat(nowscript).state = streturn'---return
            EXIT WHILE
           END IF
-          scrat(nowscript, curargn) = scrat(nowscript, curargn) + 1
+          scrat(nowscript).curargn = scrat(nowscript).curargn + 1
          WEND
         END IF
        CASE ELSE
-	scrat(nowscript, scrstate) = stdoarg'---call argument
+	scrat(nowscript).state = stdoarg'---call argument
       END SELECT
      CASE ELSE
-      scrat(nowscript, scrstate) = stdoarg'---call argument
+      scrat(nowscript).state = stdoarg'---call argument
     END SELECT
    END IF
   CASE stdone'---script terminates
@@ -1991,17 +1992,17 @@ writescriptvar tmpvar, readscriptvar(tmpvar) + tmpstep
 RETRACE
 
 dumpandreturn:
-FOR i = scrat(nowscript, curargn) - 1 TO 0 STEP -1
+FOR i = scrat(nowscript).curargn - 1 TO 0 STEP -1
  dummy = popdw
 NEXT i
 scriptret = 0
-scrat(nowscript, scrstate) = streturn'---return
+scrat(nowscript).state = streturn'---return
 RETRACE
 
 '---DO THE ACTUAL EFFECTS OF MATH AND FUNCTIONS----
 sfunctions:
 scriptret = 0
-SELECT CASE scrat(nowscript, curkind)
+SELECT CASE scrat(nowscript).curkind
  '---MATH----------------------------------------------------------------------
  CASE tymath
   scriptmath
@@ -2009,18 +2010,18 @@ SELECT CASE scrat(nowscript, curkind)
  CASE tyfunct
   'the only commands that belong at the top level are the ones that need
   'access to main-module top-level global variables or GOSUBs
-  SELECT CASE scrat(nowscript, curvalue)
+  SELECT CASE scrat(nowscript).curvalue
    CASE 11'--Show Text Box (box)
     wantbox = retvals(0)
    CASE 15'--use door
     wantdoor = retvals(0) + 1
-    scrat(nowscript, curwaitarg) = 0
-    scrat(nowscript, scrstate) = stwait
+    scrat(nowscript).waitarg = 0
+    scrat(nowscript).state = stwait
    CASE 16'--fight formation
     IF retvals(0) <= gen(37) THEN
      wantbattle = retvals(0) + 1
-     scrat(nowscript, curwaitarg) = 0
-     scrat(nowscript, scrstate) = stwait
+     scrat(nowscript).waitarg = 0
+     scrat(nowscript).state = stwait
     ELSE
      scriptret = -1
     END IF
@@ -2047,8 +2048,8 @@ SELECT CASE scrat(nowscript, curkind)
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
      wantusenpc = npcref + 1
-     scrat(nowscript, curwaitarg) = 0
-     scrat(nowscript, scrstate) = stwait
+     scrat(nowscript).waitarg = 0
+     scrat(nowscript).state = stwait
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 THEN
@@ -2089,14 +2090,14 @@ SELECT CASE scrat(nowscript, curkind)
      caty(i) = retvals(2) * 20
     NEXT i
     wantteleport = 1
-    scrat(nowscript, curwaitarg) = 0
-    scrat(nowscript, scrstate) = stwait
+    scrat(nowscript).waitarg = 0
+    scrat(nowscript).state = stwait
    CASE 63, 169'--resume random enemies
     setbit gen(), 44, suspendrandomenemies, 0
     foep = range(100, 60)
    CASE 73'--game over
     abortg = 1
-    scrat(nowscript, scrstate) = stwait
+    scrat(nowscript).state = stwait
    CASE 77'--show value
     scriptout$ = STR$(retvals(0))
    CASE 78'--alter NPC
@@ -2149,7 +2150,7 @@ SELECT CASE scrat(nowscript, curkind)
    CASE 155, 170'--save menu
     'ID 155 is a backcompat hack
     scriptret = picksave(0) + 1
-    IF scriptret > 0 AND (retvals(0) OR scrat(nowscript, curvalue) = 155) THEN
+    IF scriptret > 0 AND (retvals(0) OR scrat(nowscript).curvalue = 155) THEN
      savegame scriptret - 1, map, foep, stat(), stock()
     END IF
     reloadnpc stat()
@@ -2163,7 +2164,7 @@ SELECT CASE scrat(nowscript, curkind)
     IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
      IF checksaveslot(retvals(0)) = 3 THEN
       wantloadgame = retvals(0)
-      scrat(nowscript, scrstate) = stwait
+      scrat(nowscript).state = stwait
      END IF
     END IF
    CASE 210'--show string
@@ -2176,11 +2177,11 @@ SELECT CASE scrat(nowscript, curkind)
     IF retvals(0) THEN
      IF scriptret = -1 THEN
       abortg = 2  'don't go straight back to loadmenu!
-      scrat(nowscript, scrstate) = stwait
+      scrat(nowscript).state = stwait
       fadeout 0, 0, 0
      ELSEIF scriptret > 0 THEN
       wantloadgame = scriptret
-      scrat(nowscript, scrstate) = stwait
+      scrat(nowscript).state = stwait
      END IF
     END IF
    CASE 245'--save map state
@@ -2233,10 +2234,10 @@ SELECT CASE scrat(nowscript, curkind)
     IF retvals(1) = 3 THEN tempxgo = 20
     scriptret = wrappass(npc(npcref).x \ 20, npc(npcref).y \ 20, tempxgo, tempygo, 0)
    CASE ELSE '--try all the scripts implemented in subs
-    scriptnpc scrat(nowscript, curvalue)
-    scriptmisc scrat(nowscript, curvalue)
-    scriptadvanced scrat(nowscript, curvalue)
-    scriptstat scrat(nowscript, curvalue), stat()
+    scriptnpc scrat(nowscript).curvalue
+    scriptmisc scrat(nowscript).curvalue
+    scriptadvanced scrat(nowscript).curvalue
+    scriptstat scrat(nowscript).curvalue, stat()
     '---------
   END SELECT
 END SELECT

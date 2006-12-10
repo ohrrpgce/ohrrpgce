@@ -1182,7 +1182,7 @@ FUNCTION readscriptvar (id)
 
 SELECT CASE id
  CASE IS < 0 'local variable
-  readscriptvar = heap(scrat(nowscript, scrheap) + ABS(id) - 1)
+  readscriptvar = heap(scrat(nowscript).heap + ABS(id) - 1)
  CASE 0 TO 1024 'global variable
   readscriptvar = global(id)
  CASE ELSE
@@ -1304,9 +1304,7 @@ NEXT i
 flusharray hmask(), 3, 0
 flusharray global(), 1024, 0
 FOR i = 0 TO 128
- FOR o = 0 TO 13
-  scrat(i, o) = 0
- NEXT o
+ clearobj(scrat(i))
 NEXT i
 flusharray veh(), 21, 0
 flusharray sayenh(), 6, 0
@@ -1399,7 +1397,7 @@ IF index > 127 THEN
 END IF
 
 IF newcall AND index > 0 THEN
- IF n = scrat(index - 1, scrid) AND readbit(gen(), 101, 10) = 0 THEN
+ IF n = scrat(index - 1).id AND readbit(gen(), 101, 10) = 0 THEN
   'fail quietly
   '--scripterr "script" + XSTR$(n) + " is already running"
   runscript = 2 '--quiet failure
@@ -1412,32 +1410,32 @@ loadinstead = -1
 '-- If we are loading a script that is already running
 '-- we can re-use it.
 FOR i = 0 TO nowscript
- IF scrat(i, scrid) = n THEN loadinstead = i: EXIT FOR
+ IF scrat(i).id = n THEN loadinstead = i: EXIT FOR
 NEXT i
 
 '-- if the script was the last terminated it can also be reused
 IF loadinstead = -1 THEN
- IF scrat(index, scrid) = n AND scrat(index, scroff) = nextscroff AND scrat(index, scrsize) <> 0 THEN loadinstead = index
+ IF scrat(index).id = n AND scrat(index).off = nextscroff AND scrat(index).size <> 0 THEN loadinstead = index
 END IF
 
 'erase state, pointer, return value and depth, set id
-scrat(index, scrstate) = 0
-scrat(index, scrptr) = 0
-scrat(index, scrret) = 0
-scrat(index, scrdepth) = 0
-scrat(index, scrid) = n
+scrat(index).state = 0
+scrat(index).ptr = 0
+scrat(index).ret = 0
+scrat(index).depth = 0
+scrat(index).id = n
 
 IF loadinstead <> -1 THEN
  '--reuse the script from memory
  IF loadinstead = index THEN
   '--because the reloaded script will be on top of the script stack, we need to recalculate nextscroff
-  nextscroff = scrat(index, scroff) + scrat(index, scrsize)
+  nextscroff = scrat(index).off + scrat(index).size
  ELSE
-  scrat(index, scrsize) = 0
-  scrat(index, scroff) = scrat(loadinstead, scroff)
-  scrat(index, scrvars) = scrat(loadinstead, scrvars)
-  scrat(index, scrargs) = scrat(loadinstead, scrargs)
-  scrat(index, strtable) = scrat(loadinstead, strtable)
+  scrat(index).size = 0
+  scrat(index).off = scrat(loadinstead).off
+  scrat(index).vars = scrat(loadinstead).vars
+  scrat(index).args = scrat(loadinstead).args
+  scrat(index).strtable = scrat(loadinstead).strtable
  END IF
 ELSE
  '--load the script from file
@@ -1462,13 +1460,13 @@ ELSE
   skip = temp
   GET #f, 3, temp
   'some HSX files seem to have an illegal negative number of variables
-  scrat(index, scrvars) = temp
-  scrat(index, scrvars) = large(scrat(index, scrvars), 0)
+  scrat(index).vars = temp
+  scrat(index).vars = large(scrat(index).vars, 0)
   IF skip >= 6 THEN
    GET #f, 5, temp
-   scrat(index, scrargs) = temp
+   scrat(index).args = temp
   ELSE
-   scrat(index, scrargs) = 999
+   scrat(index).args = 999
   END IF
   IF skip >= 8 THEN
    GET #f, 7, temp
@@ -1479,9 +1477,9 @@ ELSE
   IF scrformat = 1 THEN wordsize = 4 ELSE wordsize = 2
   IF skip >= 10 THEN
    GET #f, 9, temp
-   scrat(index, strtable) = (temp - skip) \ wordsize
+   scrat(index).strtable = (temp - skip) \ wordsize
   ELSE
-   scrat(index, strtable) = 0
+   scrat(index).strtable = 0
   END IF
 
   IF scrformat > 1 THEN
@@ -1498,53 +1496,53 @@ ELSE
    scripterr "failed to load " + er$ + " script" + XSTR$(n)
    EXIT FUNCTION
   END IF
-  scrat(index, scroff) = nextscroff
-  scrat(index, scrsize) = (LOF(f) - skip) / wordsize
-  nextscroff = nextscroff + scrat(index, scrsize)
+  scrat(index).off = nextscroff
+  scrat(index).size = (LOF(f) - skip) / wordsize
+  nextscroff = nextscroff + scrat(index).size
 
   '--mysterious. why can't I do this?
   'bigstring$ = STRING$(LOF(f) - skip, 0)
   'GET #f, 1 + skip, bigstring$
-  'str2array bigstring$, script(), scrat(index, scroff)
+  'str2array bigstring$, script(), scrat(index).off
 
   FOR i = skip TO LOF(f) - wordsize STEP wordsize
    IF wordsize = 2 THEN
     GET #f, 1 + i, temp
-    script(scrat(index, scroff) + ((i - skip) / wordsize)) = temp
+    script(scrat(index).off + ((i - skip) / wordsize)) = temp
    ELSE
-    GET #f, 1 + i, script(scrat(index, scroff) + ((i - skip) / wordsize))
+    GET #f, 1 + i, script(scrat(index).off + ((i - skip) / wordsize))
    END IF
   NEXT i
   CLOSE #f
 
   '--if any higher scripts have been overwritten, invalidate them
   FOR i = index + 1 TO 127
-   IF scrat(i, scrid) = 0 THEN EXIT FOR
-   IF nextscroff > scrat(i, scroff) THEN scrat(i, scrid) = -1 ELSE EXIT FOR
+   IF scrat(i).id = 0 THEN EXIT FOR
+   IF nextscroff > scrat(i).off THEN scrat(i).id = -1 ELSE EXIT FOR
   NEXT i
  ELSE
   scripterr "failed to unlump " + trimpath$(scriptfile$)
  END IF
 END IF
 
-scrat(index + 1, scrheap) = scrat(index, scrheap) + scrat(index, scrvars)
+scrat(index + 1).heap = scrat(index).heap + scrat(index).vars
 
-IF scrat(index + 1, scrheap) > 2048 THEN
+IF scrat(index + 1).heap > 2048 THEN
  scripterr "Script heap overflow"
  runscript = 0'--error
  scripterr "failed to load " + er$ + " script" + XSTR$(n)
  EXIT FUNCTION
 END IF
 
-FOR i = 1 TO scrat(index, scrvars)
- heap(scrat(index, scrheap) + (i - 1)) = 0
+FOR i = 1 TO scrat(index).vars
+ heap(scrat(index).heap + (i - 1)) = 0
 NEXT i
 
-scrat(index, scrstate) = stread
+scrat(index).state = stread
 
 '--suspend the previous script...Why was I doing this?
 IF newcall AND index > 0 THEN
- scrat(index - 1, scrstate) = scrat(index - 1, scrstate) * -1
+ scrat(index - 1).state = scrat(index - 1).state * -1
 END IF
 
 '--we are successful, so now its safe to increment this
@@ -1762,7 +1760,7 @@ END SELECT
 END SUB
 
 SUB scriptmath
-SELECT CASE scrat(nowscript, curvalue)
+SELECT CASE scrat(nowscript).curvalue
  CASE 0' random
   lowest& = retvals(0)
   highest& = retvals(1)
@@ -2150,7 +2148,7 @@ SUB writescriptvar (id, newval)
 
 SELECT CASE id
  CASE IS < 0 'local variable
-  heap(scrat(nowscript, scrheap) + ABS(id) - 1) = newval
+  heap(scrat(nowscript).heap + ABS(id) - 1) = newval
  CASE 0 TO 1024 'global variable
   global(id) = newval
  CASE ELSE

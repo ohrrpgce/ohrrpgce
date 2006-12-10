@@ -437,8 +437,8 @@ RETRACE
 END SUB
 
 SUB setScriptArg (arg, value)
- IF scrat(nowscript, scrargs) > arg THEN
-  heap(scrat(nowscript, scrheap) + arg) = value
+ IF scrat(nowscript).args > arg THEN
+  heap(scrat(nowscript).heap + arg) = value
  END IF
 END SUB
 

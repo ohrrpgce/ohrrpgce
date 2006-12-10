@@ -3,23 +3,6 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-'---SCRIPT ALLOCATION CONSTANTS---
-CONST scroff = 0     'position of the script in the buffer
-CONST scrheap = 1    'position of the script's local vars in the buffer
-CONST scrstate = 2   'what the script is doing right now
-CONST scrptr = 3     'the execution pointer
-CONST scrvars = 4    'variable (including arguments) count
-CONST scrret = 5     'the scripts current return value
-CONST curkind = 6    'kind of current statement
-CONST curvalue = 7   'value of current stament
-CONST curargc = 8    'number of args for current statement
-CONST curargn = 9    'current arg for current statement
-CONST scrdepth = 10  'stack depth of current script
-CONST scrid = 11     'id number current script
-CONST curwaitarg = 12'wait state argument
-CONST scrsize = 13   'amount the script takes up in the buffer
-CONST scrargs = 14   'number of arguments
-CONST strtable = 15  'pointer to string table
 '---INTERPRETER STATES---
 'suspended scripts have negative states
 CONST stnone = 0
