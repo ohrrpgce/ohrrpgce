@@ -182,7 +182,7 @@ define function, begin
 173,exportglobals,3,1,0,1024 # (slot, first, last) writes a range of globals to a save slot
 174,loadfromslot,1,1        # loads saved game from slot
 175,deletesave,1,1          # delete (hide from load/save screen - data not *actaully* deleted) specified slot
-176,runscriptbyid,9,0,0,0,0,0,0,0,0,0 # run a script by its id number and pass up to 8 arguments
+176,runscriptbyid,-1        # run a script by its id number and pass any number of arguments
 177,NPCiswalking,1,0        # (who) returns true if walking (for real, unlike the old implementation)
 178,readgmap,1,0            # read from general map data array
 179,writegmap,2,0,0         # write a gmap data item
@@ -276,31 +276,31 @@ end
 #--------------------------------------------------------------------------
 # soft coded functions
 
-script,walkherotoX,who=0,n=0,begin
+script,walkherotoX,who,n,begin
 if (n<<heroX(who)) then(walk hero(who,west,heroX(who)--n))
 if (n>>heroX(who)) then(walk hero(who,east,n--heroX(who)))
 end
 
-script,walkherotoY,who=0,n=0,begin
+script,walkherotoY,who,n,begin
 if (n<<heroY(who)) then(walk hero(who,north,heroY(who)--n))
 if (n>>heroY(who)) then(walk hero(who,south,n--heroY(who)))
 end
 
-script,walkNPCtoX,who=0,n=0,begin
+script,walkNPCtoX,who,n,begin
 if (n<<NPCX(who)) then(walk NPC(who,west,NPCX(who)--n))
 if (n>>NPCX(who)) then(walk NPC(who,east,n--NPCX(who)))
 end
 
-script,walkNPCtoY,who=0,n=0,begin
+script,walkNPCtoY,who,n,begin
 if (n<<NPCY(who)) then(walk NPC(who,north,NPCY(who)--n))
 if (n>>NPCY(who)) then(walk NPC(who,south,n--NPCY(who)))
 end
 
-script,setNPCspeed,who=0,speed=4,begin
+script,setNPCspeed,who,speed=4,begin
 alterNPC(who,NPCstat:movespeed,speed)
 end
 
-script,swapbyname,hero1=0,hero2=0,begin
+script,swapbyname,hero1,hero2,begin
  hero1:=findhero(hero1)
  hero2:=findhero(hero2)
  if (hero1==-1,or,hero2==-1)
@@ -328,23 +328,31 @@ if (lastsaveslot==0)
   else(saveinslot(lastsaveslot),return(lastsaveslot))
 end
 
-script,stringtoglobals,stringID=0,start=0,length=0,begin
-  variable(temp)
+script,stringtoglobals,stringID,start,length,begin
+  variable(temp,padding)
   if (stringID>=0,and,stringID<=31) then(
-    if (length>=1,and,length<=40) then(
+    if (length>=1) then(
+      if (length+start>>1025) then(length:=1025--start)
+      padding:=length--stringlength(stringID)
+      length:=stringlength(stringID)
       for (temp,1,length) do(
-        writeglobal(start+(temp--1),asciifromstring(stringid,temp))
+        writeglobal(start,asciifromstring(stringid,temp))
+        start+=1
+      )
+      for (temp,start,start+padding--1) do(
+        writeglobal(temp,256)
       )
     )
   )
 end
 
-script,globalstostring,stringID=0,start=0,length=0,begin
+script,globalstostring,stringID,start,length,begin
   variable(temp)
   variable(temp2)
   if (stringID>=0,and,stringID<=31) then(
     clearstring(stringid)
-    if (length>=1,and,length<=40) then(
+    if (length>=1) then(
+      if (length+start>>1025) then(length:=1025--start)
       for (temp,1,length) do(
         temp2:=readglobal(start+(temp--1))
         if (temp2>=0,and,temp2<=255) then(appendascii(stringid,temp2))
@@ -358,7 +366,7 @@ script,showstringat,stringID=0,x=0,y=0,begin
   positionstring(stringID,x,y)
 end
 
-script,centerstringat,stringID=0,x=0,y=0,begin
+script,centerstringat,stringID=0,x=160,y=100,begin
   setstringbit(stringID,0,1)
   positionstring(stringID,x--(stringlength(stringID)*4),y)
 end
@@ -490,22 +498,22 @@ end
 #--------------------------------------------------------------------------
 #read/write enemy wrappers
 
-script,getenemyname,enemyID=0,stringID=0,begin
+script,getenemyname,enemyID,stringID=0,begin
 variable(t)
   for (t,1,readenemydata(enemyID,0))do(
     appendascii(stringID,readenemydata(enemyid,t))
   end
 end
 
-script,getenemystat,enemyid=0,stat=0,begin
+script,getenemystat,enemyid,stat,begin
   return(readenemydata(enemyid,stat+62))
 end
 
-script,setenemystat,enemyid=0,stat=0,value=0,begin
+script,setenemystat,enemyid,stat,value,begin
   writeenemydata(enemyid,stat+62,value)
 end
 
-script,setenemyname,enemyid=0,stringid=0,begin
+script,setenemyname,enemyid,stringid=0,begin
 variable(t,t2)
 if(stringlength(stringid)>=16)then(t2:=16)else(t2:=stringlength(stringid))
  writeenemydata(enemyid,0,t2)
@@ -514,18 +522,18 @@ if(stringlength(stringid)>=16)then(t2:=16)else(t2:=stringlength(stringid))
   )
 end
 
-script,getenemyappearance,enemyid=0,appearance=0,begin
+script,getenemyappearance,enemyid,appearance,begin
   return(readenemydata(enemyid,appearance))
 end
 
-script,setenemyappearance,enemyid=0,appearance=0,value=0,begin
+script,setenemyappearance,enemyid,appearance,value,begin
   writeenemydata(enemyid,appearance,value)
 end
 
 #--------------------------------------------------------------------------
 # read/write general wrappers
 
-script,set victory music,song=0,begin
+script,set victory music,song,begin
   write general(3,song)
 end
 
@@ -586,11 +594,11 @@ script,set debug keys disable,bit=1,begin
   write general(101,(read general(101),and,32511)+bit)
 end
 
-script, get hero stat cap, stat=0, begin
+script, get hero stat cap, stat, begin
  read general(65+stat)
 end
 
-script,set capped hero stat,who=0,stat=0,value=0,cur or max=0,begin
+script,set capped hero stat,who,stat,value,cur or max=0,begin
  variable(cap)
  cap := get hero stat cap(stat)
  if(cap>>0, and, cap<<value) then(value:=cap)

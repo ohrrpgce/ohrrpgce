@@ -17,6 +17,7 @@
 #include "music.bi"
 
 FUNCTION browse$ (special, default$, fmask$, tmp$, needf)
+STATIC remember$
 browse$ = ""
 
 'special=0   no preview
@@ -65,7 +66,7 @@ END IF
 
 drivetotal = drivelist(drive$())
 
-remember$ = curdir$ + SLASH
+IF remember$ = "" THEN remember$ = curdir$ + SLASH
 IF default$ = "" THEN
  nowdir$ = remember$
 ELSE
@@ -171,7 +172,11 @@ DO
  IF needf THEN needf = needf - 1
  dowait
 LOOP
-default$ = nowdir$
+IF default$ = "" THEN
+ remember$ = nowdir$
+ELSE
+ default$ = nowdir$
+END IF
 stopsong:if f >= 0 then sound_stop(f, -1): UnloadSound(f)
 EXIT FUNCTION
 

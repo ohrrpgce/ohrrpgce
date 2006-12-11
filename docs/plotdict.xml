@@ -1121,7 +1121,7 @@ end</example>
 		</command>
 	</section>
 	<section title="String Functions">
-		<description>When refering to a position in a string, <p>position</p> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!<lb/>Also note that a string cannot exceed 40 characters. If it does, it will be truncated to 40 characters.</description>
+		<description>When refering to a position in a string, <p>position</p> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!<lb/>There is no limit on string length (previously, they were limited to 40 characters, the width of the screen)</description>
 		<command id="showstring">
 			<cannon>show string (ID)</cannon>
 			<shortname>show string</shortname>
@@ -1188,13 +1188,13 @@ end</example>
 		<command id="stringtoglobals">
 			<cannon>string to globals (ID, starting global, length)</cannon>
 			<shortname>string to globals</shortname>
-			<description>This command will fill global variables (starting with #<p>starting global</p>), up to <p>length</p> globals, with the ascii values of the characters in string #<p>ID</p>. Don&quot;t ask us why you would want to, but I&quot;m sure there&quot;s a use (encryption?)</description>
+			<description>This command will fill global variables (starting with #<p>starting global</p>), up to <p>length</p> globals, with the ascii values of the characters in string #<p>ID</p>. If the string is not long enough, the rest of the globals in this "field" are padded with the value 256.</description>
 			<seealso><ref>globalstostring</ref></seealso>
 		</command>
 		<command id="globalstostring">
 			<cannon>globals to string(ID, starting global, length)</cannon>
 			<shortname>globals to string</shortname>
-			<description>This command is the opposite of <ref>stringtoglobals</ref>. It will build a new string in slot #<p>ID</p>, using the ascii values from the global variables #<p>starting global</p> and <p>length</p> globals thereafter. If a global has a value greater than 255, the value will be ignored.</description>
+			<description>This command is the opposite of <ref>stringtoglobals</ref>. It will build a new string in slot #<p>ID</p>, using the ascii values from the global variables #<p>starting global</p> and <p>length</p> globals thereafter. Pass the same value for <p>length</p> as you did to <ref>stringtoglobals</ref> if you don't know the length of the string. If a global has a value greater than 255, the value will be ignored.</description>
 			<seealso><ref>stringtoglobals</ref></seealso>
 		</command>
 		<command id="getheroname">
@@ -1225,12 +1225,12 @@ end</example>
 		<command id="getglobalstring">
 			<cannon>get global string (ID, global)</cannon>
 			<shortname>get global string</shortname>
-			<description>This command will take the name of global string #<p>global</p> and stick it in string #<p>ID</p>, overwriting its contents. Global strings include every text string in the game, such as prompts and messages. See a the Global String Editor in CUSTOM for a list of all of them. Due to the way global strings are stored internally, not all values of #<p>global</p> will produce valid results. <!-- need a table of them here? ot at least on the wiki? --></description>
+			<description>This command will take the name of global string #<p>global</p> and stick it in string #<p>ID</p>, overwriting its contents. Global strings include every text string in the game, such as prompts and messages. See the Global String Editor in CUSTOM for a list of all of them. Due to the way global strings are stored internally, not all values of #<p>global</p> will produce valid results. <!-- TMC is creating an HSI file for getglobalstring, it's partially finished and misplaced --></description>
 		</command>
 		<command id="inputstring">
 			<cannon>input string (ID, maxlength, use current, center, position x, position y)</cannon>
 			<shortname>input string</shortname>
-			<description>Allows the player to type in a string. Returns false if they press ESC to cancel. All arguments are optional: <p>ID</p> is the string you want to use, default is string #1. <p>maxlen</p> is the length of input, if left blank the limit will be the limit of the string, which is 40. <p>use current</p> is whether you want to add to the existing string, or clear the string before typing. Default is clear the string before typing, valid arguments are <ref>true</ref> or <ref>false</ref>. <p>center</p> centers the string input at position x/y. If left blank the string will use its current positioning. Otherwise, valid arguments are <ref>true</ref> or <ref>false</ref>. If the string is not visible, then it will automatically be placed onscreen (centered if not specified) and hidden when done. <p>position x</p> and <p>position y</p> are optional, and are the position at which the string will be shown as it is being typed. The default values are 160,110.</description>
+			<description>Allows the player to type in a string. Returns false if they press ESC to cancel. All arguments are optional: <p>ID</p> is the string you want to use, default is string #0. <p>maxlen</p> is the length of input, if left blank the limit will be set to 40 (max visible onscreen length). <p>use current</p> is whether you want to add to the existing string, or clear the string before typing. The default is to clear the string before typing, valid arguments are <ref>true</ref> or <ref>false</ref>. <p>center</p> centers the string input at position x/y. If left blank the string will use its current positioning. Otherwise, valid arguments are <ref>true</ref> or <ref>false</ref>. If the string is not visible, then it will automatically be placed onscreen (centered if not specified) and hidden when done. <p>position x</p> and <p>position y</p> are optional, and are the position at which the string will be shown as it is being typed. The default values are 160,110.</description>
 		</command>
 		<command id="showstringat">
 			<cannon>show string at (ID, x, y)</cannon>
@@ -1240,7 +1240,7 @@ end</example>
 		<command id="centerstringat">
 			<cannon>center string at (ID, x, y)</cannon>
 			<shortname>center string at</shortname>
-			<description>Displays string #<p>ID</p> on the screen, positioning its top-middle at the given (<p>x</p>,<p>y</p>) coordinates. Unlike <ref>showstring</ref>, changes to the string will be displayed in real-time.</description>
+			<description>Displays string #<p>ID</p> on the screen, positioning its top-middle at the given (<p>x</p>,<p>y</p>) coordinates. Unlike <ref>showstring</ref>, changes to the string will be displayed in real-time.<note>The string is not re-centered automatically if its length changes. If you change the string and want to keep it centered, call showstringat again. Otherwise, its topleft corner will stay fixed.</note></description>
 		</command>
 		<command id="hidestring">
 			<cannon>hide string (ID)</cannon>
@@ -2281,12 +2281,11 @@ end</example>
 		<command id="runscriptbyid">
 			<cannon>run script by ID (id, argument1, argument2, argument3...)</cannon>
 			<shortname>run script by ID</shortname>
-			<description>To making switching between scripts easier, you can call a script by its ID number. Pass arguments after the ID as normal. The script can also return a value as normal. -1 is returned if the script does not exist.</description>
-			<example>variable (return value)
-return value := run script by id (10, 1, 2, 3)
-show value (return value)
+			<description>To making switching between scripts easier, you can call a script by its ID number. Pass arguments after the ID as normal. The script can also return a value as normal. -1 is returned if the script does not exist. Yuo can pass up to 31 arguments to the script.<note>No check on the correct number of arguments can be performed, so default arguments are not used.</note></description>
+			<example>plotscript,scriptcallingtest,begin
+  show value (run script by id (@sum, 1, 2, 3))
+end
 
-define script (10,sum,3,0,0,0)
 script,sum,a,b,c,begin
   return(a+b+c)
 end</example>

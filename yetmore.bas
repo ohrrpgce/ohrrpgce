@@ -1306,14 +1306,19 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 176'--runscriptbyid
-  retvals(0) = decodetrigger(retvals(0), plottrigger)  'possible to get ahold of triggers
+  IF NOT (isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsx") OR isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsz")) THEN
+   retvals(0) = decodetrigger(retvals(0), plottrigger)  'possible to get ahold of triggers
+  END IF
   IF isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsx") OR isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsz") THEN
    rsr = runscript(retvals(0), nowscript + 1, 0, "indirect", 0)
    IF rsr = 1 THEN
     '--fill heap with return values
-    FOR i = scrat(nowscript - 1).curargc - 1 TO 1 STEP -1  'flexible argument number!
+    FOR i = 1 TO scrat(nowscript - 1).curargc - 1  'flexible argument number!
      setScriptArg i - 1, retvals(i)
     NEXT i
+    FOR i = scrat(nowscript - 1).curargc TO scrat(nowscript).args
+     setScriptArg i - 1, 0
+    NEXT
    END IF
   ELSE
    scriptret = -1

@@ -13,6 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3F 2006-12-11 Support for variable number of arguments to functions
+--              by giving -1 as the number of args in the define block
 --3Ec 2006-11-30 while(true) no longer produces a warning
 --3Eb 2006-10-23 Two small fixes to some rare bugs causing crashes
 --3Ea 2006-09-03 Actually export triggers in scripts.bin
@@ -76,10 +78,10 @@ constant false=0
 constant true=1
 
 -- increment COMPILER_VERSION only for major language-altering changes
-constant COMPILER_VERSION=3 
+constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
-constant COMPILER_SUB_VERSION="Ec"
+constant COMPILER_SUB_VERSION="F"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -122,7 +124,8 @@ constant OPER_LINE=4
 constant FUNC_ARGS=3
 constant FUNC_LINE=4
 constant GLB_LINE=3
-constant NO_DEFAULT={}
+constant NO_DEFAULT={}  --when appears in script_list[FUNC_ARGS], indicates arg with no default value
+constant VAR_ARGS=0     --when appears AS function_list[FUNC_ARGS], indicates unlimited num of args
 constant KIND_NUMBER=1
 constant KIND_FLOW=2
 constant KIND_GLOBAL=3
@@ -1006,7 +1009,9 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-function create_function(sequence list,integer id,sequence name,sequence arglist,integer func_type,integer line)
+--arglist is either a sequence of default values (which may equal to the NO_DEFAULT constant), or it's equal to
+--VAR_ARGS indicating a variable (unlimited) number of arguments.
+function create_function(sequence list,integer id,sequence name,object arglist,integer func_type,integer line)
   integer at
   at=find(id,column(list,PAIR_NUM))
   if at then
@@ -1048,15 +1053,19 @@ function parse_define_block(sequence block,sequence list,integer func_type)
         i+=1
         args=try_string_to_number(block[i])
         arglist={}
-        for j=1 to args do
-          if i+1>length(block) then
-            src_error("expected argument default but define block ended",block[i][CMD_LINE])
-          else
-            i+=1
-            arglist=append(arglist,try_string_to_number(block[i]))
-          end if
-        end for
-        list=create_function(list,num,name,arglist,func_type,name_line)
+        if args<0 then
+          list=create_function(list,num,name,VAR_ARGS,func_type,name_line)
+        else
+          for j=1 to args do
+            if i+1>length(block) then
+              src_error("expected argument default but define block ended",block[i][CMD_LINE])
+            else
+              i+=1
+              arglist=append(arglist,try_string_to_number(block[i]))
+            end if
+          end for
+          list=create_function(list,num,name,arglist,func_type,name_line)
+        end if
         i+=1
       end if
     end if
@@ -1207,16 +1216,20 @@ procedure dump_script_and_function_info(integer fh,sequence list)
       ,id_string
       ,this[2]
     })
-    for j=1 to length(this[FUNC_ARGS]) do
-      if j>1 then
-        printf(fh,",",{})
-      end if
-      if equal(this[FUNC_ARGS][j],NO_DEFAULT) then
-        printf(fh,"NONE",{})
-      else
-        printf(fh,"%d",{this[FUNC_ARGS][j]})
-      end if
-    end for
+    if equal(this[FUNC_ARGS],VAR_ARGS) then
+      printf(fh,"VARIABLE ARGS",{})
+    else
+      for j=1 to length(this[FUNC_ARGS]) do
+        if j>1 then
+          printf(fh,",",{})
+        end if
+        if equal(this[FUNC_ARGS][j],NO_DEFAULT) then
+          printf(fh,"NONE",{})
+        else
+          printf(fh,"%d",{this[FUNC_ARGS][j]})
+        end if
+      end for
+    end if
     printf(fh,")\n",{})
   end for
 end procedure
@@ -1530,7 +1543,11 @@ function how_many_args(sequence name,integer kind)
     result=length(math_list[at][FUNC_ARGS])
   elsif kind=KIND_FUNCTION then
     at=find(name[CMD_TEXT],column(function_list,PAIR_NAME))
-    result=length(function_list[at][FUNC_ARGS])
+    if equal(function_list[at][FUNC_ARGS],VAR_ARGS) then
+      result=-1
+    else
+      result=length(function_list[at][FUNC_ARGS])
+    end if
   elsif kind=KIND_SCRIPT then
     at=find(name[CMD_TEXT],column(script_list,PAIR_NAME))
     result=length(script_list[at][FUNC_ARGS])
@@ -1949,15 +1966,22 @@ end function
 function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
   integer at,var_at
   integer argkind
+  integer argnum,maxargs
+  argnum=length(tree[TREE_BRANCHES])
   at=find(tree[TREE_TRUNK][CMD_TEXT],column(list,PAIR_NAME))
-  if length(list[at][FUNC_ARGS]) < length(tree[TREE_BRANCHES]) then
+  if equal(list[at][FUNC_ARGS],VAR_ARGS) then
+    return(tree[TREE_BRANCHES])
+  else
+    maxargs=length(list[at][FUNC_ARGS])
+  end if
+  if maxargs < argnum then
     --warn and truncate if too many args are present
     src_warn(sprintf(
       "%s "&COLYEL&"%s"&COLRED&" has %d more arguments than it needs"
-      ,{KIND_LONGNAMES[kind],tree[TREE_TRUNK][CMD_TEXT],length(tree[TREE_BRANCHES])-length(list[at][FUNC_ARGS])}
+      ,{KIND_LONGNAMES[kind],tree[TREE_TRUNK][CMD_TEXT],argnum-maxargs}
     ),tree[TREE_TRUNK][CMD_LINE])
-    tree[TREE_BRANCHES]=tree[TREE_BRANCHES][1..length(list[at][FUNC_ARGS])]
-  elsif length(list[at][FUNC_ARGS]) > length(tree[TREE_BRANCHES]) then
+    tree[TREE_BRANCHES]=tree[TREE_BRANCHES][1..maxargs]
+  elsif maxargs > argnum then
     --add defaults if not enough args are present
     if kind=KIND_MATH then
       --special processing for math
@@ -1965,17 +1989,17 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
         --math shouldnt have defaults
         src_error(sprintf(
           "math function "&COLYEL&"%s"&COLRED&" has %d arguments it should always have %d"
-          ,{tree[TREE_TRUNK][CMD_TEXT],length(tree[TREE_BRANCHES]),length(list[at][FUNC_ARGS])}
+          ,{tree[TREE_TRUNK][CMD_TEXT],argnum,maxargs}
         ),tree[TREE_TRUNK][CMD_LINE])
       else
         --variable stuff can have a defaults
-        if length(tree[TREE_BRANCHES]) = 0 then
+        if argnum = 0 then
           --no defaults for first argument of variable function
           src_error(sprintf(
             "variable manipulation function "&COLYEL&"%s"&COLRED&" has %d arguments it needs at least 1"
-            ,{tree[TREE_TRUNK][CMD_TEXT],length(tree[TREE_BRANCHES])}
+            ,{tree[TREE_TRUNK][CMD_TEXT],argnum}
           ),tree[TREE_TRUNK][CMD_LINE])
-        elsif length(tree[TREE_BRANCHES]) = 1 then
+        elsif argnum = 1 then
           --make defaults for second arg of variable function  
           if list[at][PAIR_NUM]=16 then
             --setvariable
@@ -1994,7 +2018,7 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
       end if
     else  
       --normal processing for script and function
-      for i=length(tree[TREE_BRANCHES])+1 to length(list[at][FUNC_ARGS]) do
+      for i=argnum+1 to maxargs do
         if equal(list[at][FUNC_ARGS][i],NO_DEFAULT) then
           src_error(sprintf(
             "%s "&COLYEL&"%s"&COLRED&" has no default for missing argument %d"
@@ -2316,7 +2340,7 @@ function sanity_check(sequence tree,sequence vars,sequence parent)
       tree[i][TREE_BRANCHES]=sanity_check(tree[i][TREE_BRANCHES],vars,tree[i][TREE_TRUNK][CMD_TEXT])
     end if
   end for
-  return(tree)  
+  return(tree)
 end function
 
 ---------------------------------------------------------------------------
