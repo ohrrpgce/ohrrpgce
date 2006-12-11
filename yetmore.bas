@@ -1316,9 +1316,6 @@ SELECT CASE AS CONST id
     FOR i = 1 TO scrat(nowscript - 1).curargc - 1  'flexible argument number!
      setScriptArg i - 1, retvals(i)
     NEXT i
-    FOR i = scrat(nowscript - 1).curargc TO scrat(nowscript).args
-     setScriptArg i - 1, 0
-    NEXT
    END IF
   ELSE
    scriptret = -1
