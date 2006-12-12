@@ -1104,31 +1104,41 @@ storerecord array(), game$ & ".dt6", 40, index
 END SUB
 
 SUB loadnewattackdata (array(), index)
-loadrecord array(), workingdir$ + SLASH + "attack.bin", getbinsize(binATTACK) \ 2, index
+size = getbinsize(binATTACK) \ 2
+IF size > 0 THEN
+ loadrecord array(), workingdir$ + SLASH + "attack.bin", size, index
+END IF
 END SUB
 
 SUB savenewattackdata (array(), index)
-storerecord array(), workingdir$ + SLASH + "attack.bin", getbinsize(binATTACK) \ 2, index
+size = curbinsize(binATTACK) \ 2
+IF size > 0 THEN
+ storerecord array(), workingdir$ + SLASH + "attack.bin", size, index
+END IF
 END SUB
 
 SUB loadattackdata (array(), index)
 loadoldattackdata array(), index
-size = getbinsize(binATTACK) \ 2
-DIM buf(size)
-loadnewattackdata buf(), index
-FOR i = 0 TO size
- array(40 + i) = buf(i)
-NEXT i
+size = getbinsize(binATTACK) \ 2 'size of record in RPG file
+IF size > 0 THEN
+ DIM buf(size)
+ loadnewattackdata buf(), index
+ FOR i = 0 TO size
+  array(40 + i) = buf(i)
+ NEXT i
+END IF
 END SUB
 
 SUB saveattackdata (array(), index)
 saveoldattackdata array(), index
-size = getbinsize(binATTACK) / 2
-DIM buf(size)
-FOR i = 0 TO size
- buf(i) = array(40 + i)
-NEXT i
-savenewattackdata buf(), index
+size = curbinsize(binATTACK) / 2 'size of record supported by engine
+IF size > 0 THEN
+ DIM buf(size)
+ FOR i = 0 TO size
+  buf(i) = array(40 + i)
+ NEXT i
+ savenewattackdata buf(), index
+END IF
 END SUB
 
 FUNCTION getbinsize (id)
@@ -1150,6 +1160,7 @@ END IF
 
 END FUNCTION
 
+'INTS, not bytes!
 FUNCTION dimbinsize (id)
  'curbinsize is size supported by current version of engine
  'getbinsize is size of data in RPG file

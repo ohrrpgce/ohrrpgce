@@ -1615,16 +1615,16 @@ SUB loadrecord (buf() as integer, fh as integer, recordsize as integer, record a
 'fh = open file handle
 'recordsize = record size in shorts (not bytes)
 'record = record number, defaults to read from current file position
-	dim idx as integer
-    dim readbuf(recordsize - 1) as short
+ dim idx as integer
+ dim readbuf(recordsize - 1) as short
 
-	if record <> -1 then
-		seek #fh, recordsize * 2 * record + 1
-	end if
-    get #fh, , readbuf()
-	for idx = 0 to recordsize - 1
-		buf(idx) = readbuf(idx)
-	next
+ if record <> -1 then
+  seek #fh, recordsize * 2 * record + 1
+ end if
+ get #fh, , readbuf()
+ for idx = 0 to recordsize - 1
+  buf(idx) = readbuf(idx)
+ next
 END SUB
 
 SUB loadrecord (buf() as integer, filen$, recordsize as integer, record as integer = 0)
