@@ -1616,6 +1616,7 @@ SUB loadrecord (buf() as integer, fh as integer, recordsize as integer, record a
 'recordsize = record size in shorts (not bytes)
 'record = record number, defaults to read from current file position
  dim idx as integer
+ if recordsize <= 0 then exit sub
  dim readbuf(recordsize - 1) as short
 
  if record <> -1 then
@@ -1631,6 +1632,8 @@ SUB loadrecord (buf() as integer, filen$, recordsize as integer, record as integ
 'wrapper for above
 	dim f as integer
 	dim i as integer
+
+  if recordsize <= 0 then exit sub
 
 	f = freefile
 	open filen$ for binary access read as #f
