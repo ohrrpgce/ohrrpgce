@@ -6,6 +6,7 @@ REM this script to be run from a manually updated copy, and pay
 REM attention to changes to it.
 
 cd c:\nightly\ohrrpgce
+svn cleanup
 svn update
 
 del game*.exe
@@ -13,6 +14,12 @@ del custom*.exe
 call makegame-gfx-music fb native
 call makeedit-gfx-music fb native
 call nightly-gfx-music fb native
+
+del game*.exe
+del custom*.exe
+call makegame-gfx-music fb native2
+call makeedit-gfx-music fb native2
+call nightly-gfx-music fb native2
 
 del game*.exe
 del custom*.exe
