@@ -32,10 +32,6 @@ option explicit
 #include once "common.bi"
 
 
-
-
-#DEFINE ESCAPE_SEQUENCE Goto endOfSong
-
 #IFDEF IS_GAME
 #include once "gglobals.bi"
 #ELSE
@@ -56,6 +52,15 @@ type MIDIEVENT
   dwEvent as integer
 end type
 
+
+
+
+
+
+#DEFINE USE_DEBUG_WINDOW 0
+
+
+
 'extern
 
 declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
@@ -66,6 +71,8 @@ DECLARE Sub UpdateDelay(BYREF delay as integer, tempo as integer)
 DECLARE Sub StreamCallback(Byval handle as HMIDIOUT, byval umsg as Uinteger, byval dwInstance as UInteger, byval dwParam1 as UInteger, byval dwParam2 as UInteger)
 DECLARE Sub PrepareNextBeat(byval unused as integer)
 Declare Sub ResetInternals()
+DECLARE function streamPosition as integer
+
 
 dim shared music_on as integer = 0
 dim shared music_vol as integer = 8
@@ -118,7 +125,6 @@ dim shared DebugWndClass as ATOM '??? dunno.
 dim shared DebugWnd as HWND
 dim shared clasName as ZString * 9
 Sub initDebugWindow
-
   dim clas as WNDCLASSEX
   'dim mainHandle as integer
   
@@ -187,25 +193,44 @@ function DebugWndProc(byval hwnd as HWND, byval uMsg as uinteger, byval wParam a
   case WM_USER
     'this thread created the window, this thread must destroy it...
     DestroyWindow(DebugWnd)
+  case WM_CREATE
+    'debug "WM_CREATE"
+    SetTimer(hWnd, 1, 100, 0)
+    return 0
   case WM_DESTROY
     'debug "WM_DESTROY"
+    KillTimer(hwnd, 1)
     PostQuitMessage(0)
+    return 0
+  case WM_TIMER
+    'debug "WM_TIMER"
+    RedrawWindow(hwnd, 0, 0, RDW_INVALIDATE OR RDW_ERASE)
+    'SetTimer(DebugWnd, 1, 100, 0)
     return 0
   case WM_PAINT
     'debug "WM_PAINT"
     dim dc as HDC, o as string, ps as PAINTSTRUCT
     dc = BeginPaint(hwnd, @ps)
     
-    
-    
     SetBkMode(dc, TRANSPARENT)
     
-    'draw the buffer size
-    o = "Buffer size: " & str(buffer_size)
-    ExtTextOut(dc, 5, 10, 0, 0, strptr(o), len(o), 0)
+    if music_song then
+      'draw the buffer size
+      o = "Buffer size: " & str(buffer_size)
+      ExtTextOut(dc, 5, 10, 0, 0, strptr(o), len(o), 0)
+      
+      o = "Division: " & str(division)
+      ExtTextOut(dc, 5, 25, 0, 0, strptr(o), len(o), 0)
+      
+      o = "Position: " & str(StreamPosition)
+      ExtTextOut(dc, 5, 40, 0, 0, strptr(o), len(o), 0)
+    else
+      o = "Not playing a midi"
+      ExtTextOut(dc, 5, 10, 0, 0, strptr(o), len(o), 0)
+    end if
     
-    o = "Division: " & str(division)
-    ExtTextOut(dc, 5, 25, 0, 0, strptr(o), len(o), 0)
+    o = "music_song: " & hex(music_song)
+    ExtTextOut(dc, 5, 65, 0, 0, strptr(o), len(o), 0)
     
     EndPaint(hwnd, @ps)
     return 0
@@ -237,7 +262,9 @@ function openMidi() as integer
 
     origvol = music_getvolume
 
+    #IF USE_DEBUG_WINDOW
     initDebugWindow
+    #ENDIF
     
     Return erro
     #ENDIF
@@ -246,8 +273,10 @@ end function
 function closeMidi() as integer
 #IFNDEF __FB_LINUX__
 
+    #IF USE_DEBUG_WINDOW
     killDebugWindow
-
+    #ENDIF
+    
     ResetInternals
     
     return 0
@@ -456,23 +485,10 @@ Sub PrepareNextBeat(byval unused as integer)
       'debug "looping to point"
       song_ptr = looppoint
       song_ptr = song_ptr->next 'loop point, skip it
-      goto bufferanyway
     else
       song_ptr = music_song
-      goto bufferanyway
-      'debug "doing nothing"
-'       buffer_beat = CAllocate(len(Midievent)) 'just one event, in case windows tries to read it anyway
-
-'       with *buffer_head
-'         .dwBufferLength = len(MIDIEVENT)
-'         .dwBytesRecorded = .dwBufferLength
-'         .dwFlags = 0
-'         .lpData = cptr(LPSTR, buffer_beat)
-'       end with
-
-'       buffer_beat[0] = MIDINOP(ticks) 'do nothing this beat
     end if
-  else
+  end if
 
 bufferanyway:
     if song_ptr = NULL then exit sub 'sanity
@@ -560,9 +576,6 @@ orig = song_ptr
 
         buffer_beat[0] = MIDINOP(bufferlen) 'do nothing this beat
       end if
-
-    End if
-
   end if
 
   '5. Prepare buffer
@@ -582,11 +595,11 @@ orig = song_ptr
     PrepareNextBeat 0 'new song, no front buffer yet
   end if
 
-  if DebugWnd then
-    'debug "telling the debug window to update itself"
-    'SendMessage(DebugWnd, WM_PAINT, 0, 0)
-    RedrawWindow(DebugWnd, 0, 0, RDW_INVALIDATE OR RDW_ERASE)
-  end if
+'   if DebugWnd then
+'     'debug "telling the debug window to update itself"
+'     'SendMessage(DebugWnd, WM_PAINT, 0, 0)
+'     RedrawWindow(DebugWnd, 0, 0, RDW_INVALIDATE OR RDW_ERASE)
+'   end if
   
   buffer_thread = NULL
   
@@ -649,6 +662,18 @@ Sub ResetInternals
 		music_paused = 0
 end sub
 
+function streamPosition as integer
+  if device then
+    dim erro as MMRESULT
+    dim t as MMTIME
+    
+    t.wType = TIME_TICKS
+    
+    erro = midiStreamPosition(device, @t, len(t))
+    
+    return t.ticks
+  end if
+end function
 
 
 'The music module needs to manage a list of temporary files to
