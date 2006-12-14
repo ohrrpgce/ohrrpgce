@@ -425,7 +425,7 @@ end Sub
 
 sub FreeMidiEventList(head as MIDI_EVENT ptr)
  	dim as MIDI_EVENT ptr cur, n
-	on error goto error_handle
+	if head = 0 then exit sub
  	cur = head
 
  	do while cur
@@ -434,10 +434,5 @@ sub FreeMidiEventList(head as MIDI_EVENT ptr)
 		Deallocate cur
  		cur = n
  	loop
- 	exit sub
- 	
- 	error_handle:
- 	debug "Error #" + str$(err)
- 	exit sub
 end sub
 
