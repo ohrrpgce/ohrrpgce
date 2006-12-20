@@ -7,6 +7,7 @@ echo Now uploading the OHR with %1 graphics module, and %2 music module
 
 del distrib\ohrrpgce-wip-%1-%2.zip
 support\zip -q distrib\ohrrpgce-wip-%1-%2.zip game.exe custom.exe
+support\zip -q distrib\ohrrpgce-wip-%1-%2.zip ohrrpgce.mas ohrrpgce.new
 support\zip -q distrib\ohrrpgce-wip-%1-%2.zip whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd
 
 IF NOT EXIST distrib\ohrrpgce-wip-%1-%2.zip GOTO failed
