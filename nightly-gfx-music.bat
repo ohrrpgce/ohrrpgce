@@ -18,10 +18,7 @@ cd sanity
 cd ..
 IF NOT EXIST sanity\game.exe GOTO sanityfailed
 IF NOT EXIST sanity\custom.exe GOTO sanityfailed
-del sanity\*.exe
-del sanity\*.txt
-del sanity\*.hsd
-rmdir sanity
+rm -r sanity
 
 IF NOT %1==alleg GOTO skipgfxalleg
 support\zip -q distrib\ohrrpgce-wip-%1-%2.zip alleg40.dll
