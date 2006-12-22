@@ -1167,7 +1167,7 @@ end</example>
         </command>
 		<command id="stringcompare">
 			<cannon>string compare (ID1, ID2)</cannon>
-			<shortname>string command</shortname>
+			<shortname>string compare</shortname>
             <description>Returns true if the two strings #<p>ID1</p> and #<p>ID2</p> are identical, case sensitive.</description>
 		</command>
 		<command id="replacechar">
