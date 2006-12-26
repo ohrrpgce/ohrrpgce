@@ -2362,7 +2362,9 @@ FUNCTION scriptstate$
 
  wasscript = nowscript
 
- copyobj(state, scrat(wasscript))
+ 'macro disabled for fb 0.15 compat
+ 'copyobj(state, scrat(wasscript))
+ memcpy(@(state),@(scrat(wasscript)),LEN(scrat(wasscript)))
 
 
  IF scrat(nowscript).state = stdoarg THEN GOTO jmpdoarg
@@ -2420,7 +2422,9 @@ FUNCTION scriptstate$
     'load next script
     wasscript -= 1
     IF wasscript < 0 THEN EXIT DO
-    copyobj(state, scrat(wasscript))
+    'macro disabled for fb 0.15 compat
+    'copyobj(state, scrat(wasscript))
+    memcpy(@(state),@(scrat(wasscript)),LEN(scrat(wasscript)))
     IF scrat(wasscript).state < 0 THEN
      IF recurse = 2 THEN
       'deal with state   (can only be wait?)

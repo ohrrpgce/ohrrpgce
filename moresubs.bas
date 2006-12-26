@@ -1304,7 +1304,9 @@ NEXT i
 flusharray hmask(), 3, 0
 flusharray global(), 1024, 0
 FOR i = 0 TO 128
- clearobj(scrat(i))
+ 'macro disabled for fb0.15 compat
+ 'clearobj(scrat(i))
+ memset(@(scrat(i)),0,LEN(scrat(i)))
 NEXT i
 flusharray veh(), 21, 0
 flusharray sayenh(), 6, 0

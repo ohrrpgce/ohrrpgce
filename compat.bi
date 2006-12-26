@@ -43,8 +43,8 @@ option nokeyword gosub
 #define retrievestate gosubptr=localgosubptr
 #define rememberstate localgosubptr=gosubptr
 
-#DEFINE CLEAROBJ(OBJ) memset(@(OBJ),0,LEN(OBJ))
-#DEFINE COPYOBJ(TO,FROM) memcpy(@(TO),@(FROM),LEN(FROM))
+'#DEFINE CLEAROBJ(OBJ) memset(@(OBJ),0,LEN(OBJ))
+'#DEFINE COPYOBJ(TO,FROM) memcpy(@(TO),@(FROM),LEN(FROM))
 
 #endif
 
