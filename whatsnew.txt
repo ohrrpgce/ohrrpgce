@@ -160,6 +160,7 @@ WHAT IS NEW?
       to exit
     * New internal master palette format has higher colour precision: 8 bits
       instead of 6, and multiple palettes [Ralph]
+    * Cool experimental gfx_smooth2x graphics backend [Jim (duderoth)]
 
 July 09 2006 [hasta-la-qb]
   * This is the final version to support a real DOS version (GAME-QB and

@@ -29,6 +29,24 @@ call nightly-gfx-music fb sdl
 
 del game*.exe
 del custom*.exe
+call makegame-gfx-music smooth2x native
+call makeedit-gfx-music smooth2x native
+call nightly-gfx-music smooth2x native
+
+del game*.exe
+del custom*.exe
+call makegame-gfx-music smooth2x native2
+call makeedit-gfx-music smooth2x native2
+call nightly-gfx-music smooth2x native2
+
+del game*.exe
+del custom*.exe
+call makegame-gfx-music smooth2x sdl
+call makeedit-gfx-music smooth2x sdl
+call nightly-gfx-music smooth2x sdl
+
+del game*.exe
+del custom*.exe
 call makegame-gfx-music alleg native
 call makeedit-gfx-music alleg native
 call nightly-gfx-music alleg native
