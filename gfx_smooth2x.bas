@@ -1,7 +1,7 @@
 ''
 '' gfx_smooth2x.bas - External graphics functions implemented in FB's
 ''				built-in gfxlib. Multi-option version.''
-''              same as gfx_fb except a 2x filter for 640x400x8 has been added
+''              same as gfx_fb except a 3x filter for 640x400x8 has been added
 '' part of OHRRPGCE - see elsewhere for license details
 ''
 
@@ -17,9 +17,9 @@ dim shared screen_buffer_offset as integer = 0
 dim shared windowed as integer = 1
 dim shared init_gfx as integer = 0
 'defaults are 2x zoom and 640x400 in 8-bit
-dim shared zoom as integer = 2
-dim shared screenmodex as integer = 640
-dim shared screenmodey as integer = 400
+dim shared zoom as integer = 3
+dim shared screenmodex as integer = 960
+dim shared screenmodey as integer = 600
 dim shared bordered as integer = 0
 dim shared depth as integer = 8
 
@@ -55,7 +55,7 @@ sub gfx_showpage(byval raw as ubyte ptr)
 'takes a pointer to raw 8-bit data at 320x200
 	dim rptr as ubyte ptr
 	dim as integer w, h, i, j
-    dim as integer fx, fy, p0, p1, p2, p3, p4'for 2x filtering
+    dim as integer fx, fy, p0, p1, p2, p3, p4, pstep'for 3x filtering
 	screenlock
 	if depth = 8 then
 		dim sptr as ubyte ptr
@@ -76,19 +76,20 @@ sub gfx_showpage(byval raw as ubyte ptr)
 				next
 			next
 		next
-        if zoom = 2 then
+        if zoom = 2 or zoom = 3 then
             'added for 2x filtering
+            if screenmodex > 640 then pstep = 1 else pstep = 2
             sptr = screenptr
-            for fy = 1 to 398 step 2
-            for fx = 1 to 638
-            p0 = PEEK (sptr +(fy * 640) + fx)'point(fx,fy)'peek is faster than point
-            p1 = PEEK (sptr +((fy-1) * 640) + (fx-1))'point(fx-1,fy-1)'nw
-            p2 = PEEK (sptr +((fy-1) * 640) + (fx+1))'point(fx+1,fy-1)'ne
-            p3 = PEEK (sptr +((fy+1) * 640) + (fx+1))'point(fx+1,fy+1)'se
-            p4 = PEEK (sptr +((fy+1) * 640) + (fx-1))'point(fx-1,fy+1)'sw
+            for fy = 1 to (screenmodey - 2) step pstep
+            for fx = 1 to (screenmodex - 2)
+            p0 = *(sptr +(fy * screenmodex) + fx)'point(fx,fy)'peek is faster than point
+            p1 = *(sptr +((fy-1) * screenmodex) + (fx-1))'point(fx-1,fy-1)'nw
+            p2 = *(sptr +((fy-1) * screenmodex) + (fx+1))'point(fx+1,fy-1)'ne
+            p3 = *(sptr +((fy+1) * screenmodex) + (fx+1))'point(fx+1,fy+1)'se
+            p4 = *(sptr +((fy+1) * screenmodex) + (fx-1))'point(fx-1,fy+1)'sw
             if p1 = p3 then p0 = p1
             if p2 = p4 then p0 = p2
-            POKE sptr + (fy * 640) + fx, p0'pset(fx,fy),p0'poke is faster than pset
+            *(sptr + (fy * screenmodex) + fx) = p0'pset(fx,fy),p0'poke is faster than pset
             next fx
             next fy
         end if
