@@ -11,11 +11,11 @@
   And, yes, it is as ugly as it looks. However, it should be cross-platform...
 -->
 
-<xsl:variable name="da" select="dateTime(xs:date(concat(string(year-from-dateTime($cda)),'-',string(month-from-dateTime($cda)),'-',string(day-from-dateTime($cda)))),xs:time(concat(hr:string-pad('0', 2 - string-length(string(hours-from-dateTime($cda)))),string(hours-from-dateTime($cda)),':',hr:string-pad('0', 2 - string-length(string(minutes-from-dateTime($cda)))),string(minutes-from-dateTime($cda)),':',hr:string-pad('0', 2 - string-length(string(floor(seconds-from-dateTime($cda))))),string(floor(seconds-from-dateTime($cda))))))" />
+<xsl:variable name="da" select="dateTime(xs:date(concat(string(year-from-dateTime($cda)),'-',hr:string-pad('0', 2 - string-length(string(month-from-dateTime($cda)))), string(month-from-dateTime($cda)),'-',hr:string-pad('0', 2 - string-length(string(day-from-dateTime($cda)))), string(day-from-dateTime($cda)))),xs:time(concat(hr:string-pad('0', 2 - string-length(string(hours-from-dateTime($cda)))),string(hours-from-dateTime($cda)),':',hr:string-pad('0', 2 - string-length(string(minutes-from-dateTime($cda)))),string(minutes-from-dateTime($cda)),':',hr:string-pad('0', 2 - string-length(string(floor(seconds-from-dateTime($cda))))),string(floor(seconds-from-dateTime($cda))))))" />
 
 	<xsl:template match="/">
 	  <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mediawiki.org/xml/export-0.3/ http://www.mediawiki.org/xml/export-0.3.xsd" version="0.3" xml:lang="en">
-	    <xsl:apply-templates select="//section/command[@id='keyval']"/>
+	    <xsl:apply-templates select="//section/command"/>
 	    <page>
 	      <title>Plot:Index</title>
 	      <revision>

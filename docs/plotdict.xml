@@ -981,11 +981,15 @@ end</example>
 			<note>This command operates on values from 0-63. For operation on full color values (0-255), see <ref>getcolor</ref></note></description>
 			<seealso>
 				<ref>getcolor</ref>
+			</seealso>
 		</command>
 		<command id="writecolor">
 			<cannon>write color (index,element,value)</cannon>
 			<shortname>write color</shortname>
 			<description>Writes a color value into the master palette. The first argument is the index in the palette to write to, 0 to 255. The second argument is the color value to write, red, green, or blue. You can use 0, 1, and 2, or you can use the predefined constants <ref>colorred</ref>, <ref>colorgreen</ref>, and <ref>colorblue</ref>. The third argument is the color value to write. It can be in the range of 0 to 63. Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref> The counterpart to this is <ref>readcolor</ref>. Changes to the master palette last as long as you are playing, but are not stored in saved-games. If you need to make master-palette changes persist in saved-games you will have to use the on-load plotscript trigger.</description>
+			<seealso>
+				<ref>setcolor</ref>
+			</seealso>
 		</command>
 		<command id="getcolor">
 			<cannon>get color(index)</cannon>
@@ -999,7 +1003,11 @@ end</example>
 		<command id="setcolor">
 			<cannon>set color(index, value)</cannon>
 			<shortname>set color</shortname>
-			<description></description>
+			<description>Updates the master palette with a new 32-bit color. The <p>value</p>, a 32-bit number representing the red, green and blue components of the color, can come from <ref>rgb</ref> or <ref>getcolor</ref>.</description>
+			<seealso>
+				<ref>getcolor</ref>
+				<ref>rgb</ref>
+			</seealso>
 		</command>
 		<command id="rgb">
 			<cannon>RGB(red, green blue)</cannon>
