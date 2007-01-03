@@ -1653,7 +1653,7 @@ SELECT CASE AS CONST id
       IF retvals(2) > -1 THEN
         .speed = retvals(2)
       ELSEIF retvals(2) = -1 AND timerspeed = 0 THEN
-        .speed = 15
+        .speed = 18
       END IF
       IF retvals(3)<> -1 THEN .trigger = retvals(3)
       IF retvals(4) > -1 THEN .st = retvals(4) + 1
@@ -1666,6 +1666,28 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 AND retvals(0) < 16 THEN timers(retvals(0)).speed = 0
  CASE 262'--readtimer
   IF retvals(0) >= 0 AND retvals(0) < 16 THEN scriptret = timers(retvals(0)).count
+ CASE 263'--getcolor
+  IF retvals(0) >= 0 AND retvals(0) < 256 THEN
+  	scriptret = master(retvals(0)).col
+  END IF
+ CASE 264'--setcolor
+  IF retvals(0) >= 0 AND retvals(0) < 256 THEN
+  	retvals(1) = retvals(1) AND &HFFFFFF 'just in case, blank the alpha
+  	master(retvals(0)).col = retvals(1)
+  END IF
+ CASE 265'--rgb
+ 	scriptret = RGB(bound(retvals(0),0,255), bound(retvals(1),0,255), bound(retvals(2),0,255))
+ CASE 266'--extractcolor
+ 	dim c as rgbcolor
+ 	c.col = retvals(0)
+ 	select case as const retvals(1)
+ 	case 0
+ 		scriptret = c.r
+ 	case 1
+ 		scriptret = c.g
+ 	case 2
+ 		scriptret = c.b
+ 	end select
 END SELECT
 
 EXIT SUB

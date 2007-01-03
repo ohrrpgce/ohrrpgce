@@ -3,15 +3,7 @@
 #IFNDEF ALLMODEX_BI
 #DEFINE ALLMODEX_BI
 
-#IFNDEF RGBcolor
-'this is also defined in gfx.bi
-
-TYPE RGBcolor
-  as UBYTE r, g, b
-END TYPE
-
-#ENDIF
-
+#include "udts.bi"
 #include "compat.bi"
 
 'Library routines

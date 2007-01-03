@@ -269,6 +269,10 @@ define function, begin
 260,settimer,6,0,-1,-1,-1,-1,-1#start (or modify) a timer(id, count, speed, trigger, string, flags)
 261,stoptimer,1,0             #convenience for settimer(id,-1,0)
 262,readtimer,1,0             #returns the count of a timer(id)
+263,getcolor,1,0			  #returns a 32-bit color from the master palette(index)
+264,setcolor,2,0,0			  #writes a 32-bit color to the master palette(index,val)
+265,rgb,3,0,0,0				  #mixes red, green and blue into a 32-bit color(r, g, b)
+266,extractcolor,2,0,0		  #extracts an RGB component from a 32-bit color(color, component)
 #24x,getnpcraw,2,0,0          #raw npc data(who,which)
 #24x,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end

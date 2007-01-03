@@ -97,6 +97,16 @@ TYPE ScriptInst
   strtable as integer   'pointer to string table
 END TYPE
 
+type RGBcolor
+	UNION
+  		TYPE
+  			as ubyte b, g, r, a
+  		END TYPE
+		as uinteger col
+	END UNION
+end type
+
+
 'Loading subs
 DECLARE SUB LoadNPCD(file as string, dat() as NPCType)
 DECLARE SUB LoadNPCL(file as string, dat() as NPCInst, num as integer)

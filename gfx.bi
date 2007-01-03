@@ -1,15 +1,6 @@
-'' Backend-independent graphics structs
-
-#IFNDEF RGBcolor
-'this is also defined in allmodex.bi
-
-type RGBcolor
-  as ubyte r, g, b
-end type
-
-#ENDIF
-
 '' External graphics and IO functions
+
+#include "udts.bi"
 
 declare sub gfx_init()		'initilization, including gfx_screenres
 declare sub gfx_screenres()		'set screen res, etc
