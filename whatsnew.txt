@@ -66,6 +66,7 @@ WHAT IS NEW?
       editing in the View Master Palettes menu. Master Palettes can now also
       be imported from the palettes of 8 bit BMP files [Ralph Versteegen]
     * Plotscripting Strings no longer have a max length of 40 [James Paige]
+    * New commands for dealing with 32-bit colors (0-255, as opposed to 0-63)
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
@@ -133,6 +134,7 @@ WHAT IS NEW?
     * "check hero wall", "check NPC wall" [James Paige]
     * "set timer", "stop timer", "read timer" [Mike Caron]
     * "string is visible" [James Paige]
+    * "set/get color", "rgb", "extract color" [Mike Caron]
     * HSPEAK no longer produces a warning for while(true). Endless while loops
       were already useful, and the new "break" flow control command has
       made them even more useful.
