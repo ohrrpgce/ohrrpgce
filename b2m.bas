@@ -7,7 +7,7 @@
 DEFINT A-Z
 
 'extern
-declare sub bam2mid(infile as string, outfile as string)
+declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 'subs and functions
 declare sub debug(s$)
 declare function isfile(n$) as integer
@@ -16,7 +16,7 @@ IF command$ = "" THEN
 	PRINT "Usage: b2m filename"
 	PRINT "Converts a BAM file into MIDI format"
 ELSE
-	bam2mid command$, ""
+        bam2mid command$, "", 0
 END IF
 
 SUB debug (s$)

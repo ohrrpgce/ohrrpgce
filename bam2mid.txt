@@ -1,0 +1,12 @@
+BAM2MID is a command-line utility to convert BAM (Bob's Adlib Music) format
+files into MIDI format files. (the looping features of BAM will be lost)
+
+USAGE:
+
+   bam2mid filename.bam
+
+Or you can drag your bam file and drop it on bam2mid.exe
+
+The source code is available under the GPL license. See LICENCE.txt
+To compile, install FreeBasic, and run make-bam2mid.bat
+
