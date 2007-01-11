@@ -2233,6 +2233,11 @@ SELECT CASE scrat(nowscript).curkind
     IF retvals(1) = 2 THEN tempygo = -20
     IF retvals(1) = 3 THEN tempxgo = 20
     scriptret = wrappass(npc(npcref).x \ 20, npc(npcref).y \ 20, tempxgo, tempygo, 0)
+   CASE 267'--main menu
+    GOSUB usermenu
+    evalherotag stat()
+    evalitemtag
+    npcplot
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
     scriptmisc scrat(nowscript).curvalue

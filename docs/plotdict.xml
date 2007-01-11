@@ -726,6 +726,11 @@ wait for text box # wait until the player continues</example>
 			<shortname>use shop</shortname>
 			<description>Takes you directly to a shop. You can specify the shop&apos;s ID number or its name in the form shop:name</description>
 		</command>
+		<command id="mainmenu">
+			<cannon>main menu</cannon>
+			<shortname>main menu</shortname>
+			<description>Takes you directly to the main menu.</description>
+		</command>
 		<command id="showminimap">
 			<cannon>show mini map</cannon>
 			<shortname>show mini map</shortname>

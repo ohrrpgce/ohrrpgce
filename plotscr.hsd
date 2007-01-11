@@ -273,8 +273,9 @@ define function, begin
 264,setcolor,2,0,0			  #writes a 32-bit color to the master palette(index,val)
 265,rgb,3,0,0,0				  #mixes red, green and blue into a 32-bit color(r, g, b)
 266,extractcolor,2,0,0		  #extracts an RGB component from a 32-bit color(color, component)
-#24x,getnpcraw,2,0,0          #raw npc data(who,which)
-#24x,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
+267,mainmenu,0                #opens the main menu
+#2xx,getnpcraw,2,0,0          #raw npc data(who,which)
+#2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
 
 #--------------------------------------------------------------------------
