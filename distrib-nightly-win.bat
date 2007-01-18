@@ -78,5 +78,7 @@ pscp -i C:\progra~1\putty\id_rsa.ppk distrib\hspeak-win-nightly.zip spam@brionne
 
 del distrib\bam2mid.zip
 call make-bam2mid.bat
-support\zip distrib\bam2mid.zip bam2mid.exe bam2mid.txt b2m.bas bam2mid.bas banks.bi LICENSE.txt
+IF NOT EXIST bam2mid.exe GOTO NOBAM2MID
+support\zip distrib\bam2mid.zip bam2mid.exe bam2mid.txt b2m.bas bam2mid.bas banks.bi LICENSE.txt make-bam2mid.bat
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\bam2mid.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
+:NOBAM2MID
