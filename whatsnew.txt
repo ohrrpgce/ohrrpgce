@@ -102,6 +102,8 @@ WHAT IS NEW?
     * Fixed bug 274 (Ascii from string: position off by 1) [Mike]
     * Fixed bug 240 (Background animations taking old unused formation data)
       [James]
+    * Fixed bug 59 (Vehicle mount/dismount buggy if leader is not in first
+      slot in party) [Ralph]
 
   * New Plotscripting Commands
     * New HamsterSpeak flow control commands: break, continue, exit script,

@@ -2146,10 +2146,14 @@ vehiclestuff = result
 EXIT FUNCTION
 
 vehscramble:
+catsize = 0
+FOR i = 0 TO 3
+ IF hero(i) > 0 THEN catsize += 1
+NEXT
 tmp = 0
 FOR i = 0 TO 3
- IF hero(i) <= 0 THEN
-  tmp = tmp + 1
+ IF i >= catsize THEN
+  tmp += 1
  ELSE
   scramx = catx(i * 5)
   scramy = caty(i * 5)
