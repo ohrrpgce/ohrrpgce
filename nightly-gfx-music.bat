@@ -36,7 +36,12 @@ IF NOT %2==native GOTO skipmusnative
 support\zip -q distrib\ohrrpgce-wip-%1-%2.zip audiere.dll audwrap.dll
 :skipmusnative
 
+IF NOT %2==native2 GOTO skipmusnative2
+support\zip -q distrib\ohrrpgce-wip-%1-%2.zip audiere.dll audwrap.dll
+:skipmusnative2
+
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-wip-%1-%2.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
+pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-wip-%1-%2.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 GOTO finished
 
 :sanityfailed

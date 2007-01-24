@@ -65,20 +65,29 @@ call nightly-gfx-music alleg allegro
 
 Echo upload plotdict.xml
 pscp -i C:\progra~1\putty\id_rsa.ppk docs\plotdict.xml spam@brionne.cyberverse.com:web/html/ohrrpgce/docs/
+pscp -i C:\progra~1\putty\id_rsa.ppk docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
 
 call makeutil.bat
 del distrib\ohrrpgce-util.zip
+IF NOT EXIST unlump.exe GOTO NOUTIL
+IF NOT EXIST relump.exe GOTO NOUTIL
 support\zip distrib\ohrrpgce-util.zip unlump.exe relump.exe LICENSE-binary.txt
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-util.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
+pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-util.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+:NOUTIL
 
 del distrib\hspeak-win-nightly.zip
 call bindw -clear_routines hspeak.exw
+IF NOT EXIST hspeak.exe GOTO NOHSPEAK
 support\zip distrib\hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e LICENSE.txt
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\hspeak-win-nightly.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
+pscp -i C:\progra~1\putty\id_rsa.ppk distrib\hspeak-win-nightly.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+:NOHSPEAK
 
 del distrib\bam2mid.zip
 call make-bam2mid.bat
 IF NOT EXIST bam2mid.exe GOTO NOBAM2MID
 support\zip distrib\bam2mid.zip bam2mid.exe bam2mid.txt b2m.bas bam2mid.bas banks.bi LICENSE.txt make-bam2mid.bat
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\bam2mid.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
+pscp -i C:\progra~1\putty\id_rsa.ppk distrib\bam2mid.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 :NOBAM2MID
