@@ -74,6 +74,10 @@ echo "uploading mirror..."
 scp -p mirror.tar.bz2 james_paige@motherhamster.org:mirror.motherhamster.org/
 ssh james_paige@motherhamster.org mirror.motherhamster.org/expand.sh wiki
 
-echo "uploading stable..."
+echo "uploading stable to cyberverse..."
 scp -p mirror.tar.bz2 spam@brionne.cyberverse.com:web/html/tmp/
 ssh spam@brionne.cyberverse.com sh script/ohrrpgce-mirror.sh
+
+echo "uploading stable to dreamhost..."
+scp -p mirror.tar.bz2 james_paige@motherhamster.org:tmp/
+ssh james_paige@motherhamster.org sh script/ohrrpgce-mirror.sh
