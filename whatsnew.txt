@@ -104,6 +104,7 @@ WHAT IS NEW?
       [James]
     * Fixed bug 59 (Vehicle mount/dismount buggy if leader is not in first
       slot in party) [Ralph]
+    * Fixed bug 184 "Dead" enemies can be attacked over and over again
 
   * New Plotscripting Commands
     * New HamsterSpeak flow control commands: break, continue, exit script,

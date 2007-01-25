@@ -1176,12 +1176,16 @@ END IF
 RETRACE
 
 triggerfade:
+'If the target is really dead...
 IF stat(tdwho, 0, 0) = 0 THEN
+ 'the number of ticks it takes the enemy to fade away is equal to half its width
  die(tdwho) = bslot(tdwho).w * .5
  IF is_enemy(tdwho) THEN
   '--flee as alternative to death
   IF readbit(ebits(), (tdwho - 4) * 5, 59) = 1 THEN
    eflee(tdwho) = 1
+   'the number of ticks it takes an enemy to run away is based on its distance
+   'from the left side of the screen and its width. Enemys flee at 10 pixels per tick
    die(tdwho) = (bslot(tdwho).w + bslot(tdwho).x) / 10
   END IF
  END IF
@@ -1807,15 +1811,20 @@ FOR i = 0 TO 11
   'ENEMIES DEATH THROES
   IF is_enemy(i) THEN
    IF eflee(i) = 0 THEN
-    'rectangle 2 * die(i) * (bslot(i).h * .5), 64 + 10 * (i - 4), bslot(i).h * .5, 1, 0, 3
+    'not running away, normal fade
     FOR ii = 0 TO bslot(i).w * .5
      putpixel INT(RND * (bslot(i).h * bslot(i).w * .5)), 64 + 10 * (i - 4), 0, 3
     NEXT ii
    ELSE
+    'running away
     bslot(i).x = bslot(i).x - 10: bslot(i).d = 1
    END IF
    die(i) = die(i) - 1
-   IF die(i) = 0 THEN formdata((i-4) * 4) = 0 'moved from way above
+   IF die(i) = 0 THEN
+    'formdata((i-4) * 4) = 0 'disabled to fix bug 184
+    'make dead enemy invisible (the ifdead code will actually do the final removal)
+    bslot(i).vis = 0
+   END IF
   END IF
   IF is_hero(i) THEN of(i) = 7
  END IF
@@ -1859,10 +1868,13 @@ RETRACE
 
 seestuff:
 FOR i = 0 TO 11
- c = 12: IF is_hero(i) THEN c = uilook(uiDescription)
+ c = uilook(uiSelectedDisabled)
+ IF is_hero(i) THEN c = uilook(uiSelectedItem)
  rectangle 0, 80 + (i * 10), ctr(i) / 10, 4, c, dpage
  IF is_enemy(i) THEN edgeprint XSTR$(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
- edgeprint XSTR$(bslot(i).vis) + ":v" + XSTR$(delay(i)) + ":dly" + XSTR$(tmask(i)) + ":tm", 20, 80 + i * 10, c, dpage
+ info$ = "v=" & bslot(i).vis & " dly=" & delay(i) & " tm=" & tmask(i) & " hp=" & stat(i,0,0) & " die=" & die(i)
+ IF is_enemy(i) THEN  info$ = info$ & " fm=" & formdata((i-4)*4) 
+ edgeprint info$, 20, 80 + i * 10, c, dpage
 NEXT i
 RETRACE
 
@@ -1979,6 +1991,7 @@ FOR i = 4 TO 11
 NEXT i
 IF bos = 0 THEN
  FOR i = 4 TO 11
+  ' check the "die without boss" bitset
   IF readbit(ebits(), (i - 4) * 5, 58) = 1 THEN
    tdwho = i
    stat(tdwho, 0, 0) = 0
