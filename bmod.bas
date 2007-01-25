@@ -578,23 +578,36 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
 END IF
 '----------------------------SEQUENTIAL PROJECTILE
 IF atk(15) = 7 THEN
+ 'attacker steps forward
  advance who, atk(), bslot(), t()
+ 'repeat the following for each attack
  FOR j = 1 TO numhits
+  'attacker animates
   IF is_hero(who) THEN heroanim who, atk(), bslot(), t()
   IF is_enemy(who) THEN etwitch who, atk(), bslot(), t()
-  temp = 50: IF is_hero(who) THEN temp = -50
-  dtemp = 0: IF readbit(atk(), 20, 3) = 0 THEN dtemp = pdir
-  anim_setpos 12, bslot(who).x + temp, bslot(who).y, dtemp
+  'calculate where the projectile will start relative to the attacker
+  startoffset = 50: IF is_hero(who) THEN startoffset = -50
+  'calculate the direction the projectile should be facing
+  atkimgdirection = 0: IF readbit(atk(), 20, 3) = 0 THEN atkimgdirection = pdir
+  'set the projectile position
+  anim_setpos 12, bslot(who).x + startoffset, bslot(who).y, atkimgdirection
   anim_appear 12
-  if atk(99) > 0  then anim_sound(atk(99) - 1)
+  'play the sound effect
+  IF atk(99) > 0 THEN anim_sound(atk(99) - 1)
+  'repeat the following for each target...
   FOR i = 0 TO tcount
+   'find the target's position
    yt = (bslot(t(who, i)).h - 50) + 2
    xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
+   'make the projectile move to the target
    anim_relmove 12, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt, 5, 5
    anim_waitforall
+   'inflict damage
    anim_inflict t(who, i)
-   temp = 3: IF is_enemy(t(who, i)) THEN temp = -3
-   anim_setmove t(who, i), temp, 0, 2, 0
+   'make the target flinch back
+   targetflinch = 3: IF is_enemy(t(who, i)) THEN targetflinch = -3
+   anim_setmove t(who, i), targetflinch, 0, 2, 0
+   'show harm animation
    IF readbit(atk(), 20, 0) = 0 THEN
     anim_setframe t(who, i), 5
    END IF
@@ -602,13 +615,16 @@ IF atk(15) = 7 THEN
     anim_setframe t(who, i), 2
    END IF
    anim_wait 3
-   temp = -3: IF is_enemy(t(who, i)) THEN temp = 3
-   anim_setmove t(who, i), temp, 0, 2, 0
+   'recover from flinch
+   targetflinch = -3: IF is_enemy(t(who, i)) THEN targetflinch = 3
+   anim_setmove t(who, i), targetflinch, 0, 2, 0
    anim_setframe t(who, i), 0
    IF i = 0 THEN
+    'attacker's weapon picture vanishes after the first hit
     anim_disappear 24
    END IF
   NEXT i
+  'after all hits are done, projectile flies off the side of the screen
   IF is_hero(who) THEN
    anim_relmove 12, -50, 100, 5, 5
   END IF
@@ -616,8 +632,10 @@ IF atk(15) = 7 THEN
    anim_relmove 12, 320, 100, 5, 5
   END IF
   anim_waitforall
+  'hide projectile
   anim_disappear 12
  NEXT j
+ 'attacker steps back
  retreat who, atk(), bslot(), t()
  anim_end
 END IF
