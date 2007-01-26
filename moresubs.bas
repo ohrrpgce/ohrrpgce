@@ -63,6 +63,7 @@ DECLARE SUB snapshot ()
 DECLARE FUNCTION exptolevel& (level%)
 DECLARE SUB deletetemps ()
 DECLARE FUNCTION decodetrigger (trigger%, trigtype%)
+DECLARE Sub MenuSound(byval s as integer)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -437,7 +438,14 @@ col = uilook(uiText): IF sayenh(2) > 0 THEN col = sayenh(2)
 FOR i = 0 TO 8 - showsay
  edgeprint say$(i), 7, (8 + i * 10) + (sayenh(0) * 4), col, dpage
 NEXT i
-IF showsay > 1 THEN showsay = showsay - 1
+
+IF showsay > 1 THEN
+	showsay = showsay - 1
+	if showsay <= 7 then
+		if trim(say$(7 - showsay)) <> "" then menusound gen(genTextboxLetter)
+	end if
+END IF
+	
 IF readbit(saybit(), 0, 0) THEN
  tempy = 100 + (sayenh(0) * 4) - (sayenh(1) * 4)
  IF tempy > 160 THEN tempy = 20

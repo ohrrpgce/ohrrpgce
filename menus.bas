@@ -852,14 +852,15 @@ LOOP
 END SUB
 
 SUB generalsfxmenu ()
-  CONST num as integer = 3
+  CONST num as integer = 4
   DIM as string menu(num), snd(num), disp(num)
-  DIM as integer sfxgenoff(1 to num) = {genAcceptSFX, genCancelSFX, genCursorSFX}, menutop
+  DIM as integer sfxgenoff(1 to num) = {genAcceptSFX, genCancelSFX, genCursorSFX, genTextboxLetter}, menutop
 
   disp(0) = "Previous Menu" 'don't need menu(0)
   menu(1) = "Accept Sound: "
   menu(2) = "Cancel Sound: "
   menu(3) = "Cursor Sound: "
+  menu(4) = "Textbox Sound: "
 
   FOR i = 1 to num
     IF gen(sfxgenoff(i)) > 0 THEN
@@ -895,8 +896,6 @@ SUB generalsfxmenu ()
     END SELECT
 
     standardmenu disp(), num, 22, pt, menutop, 0, 0, dpage, 0
-
-    printstr str(gen(174)), 0, 100, dpage
 
     SWAP vpage, dpage
     setvispage vpage
@@ -1498,7 +1497,7 @@ DO
   END IF
  END IF
  IF (keyval(28) > 1 OR keyval(57) > 1) THEN
-  SELECT CASE csr 
+  SELECT CASE csr
   CASE 0
     EXIT DO
   CASE 2
@@ -1518,7 +1517,7 @@ DO
 
  'draw the menu
  FOR i = 0 TO UBOUND(menu$)
-  IF (i = 4 AND palnum = gen(genMasterPal)) OR (i = 5 AND palnum = activepalette) THEN 
+  IF (i = 4 AND palnum = gen(genMasterPal)) OR (i = 5 AND palnum = activepalette) THEN
    col = uilook(uiDisabledItem)
    IF csr = i THEN col = uilook(uiSelectedDisabled + tog)
   ELSE

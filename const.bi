@@ -79,6 +79,7 @@ CONST genMaxSong = 172          'last song number
 CONST genAcceptSFX = 173        'menu interface
 CONST genCancelSFX = 174        ' "       "
 CONST genCursorSFX = 175        ' "       "
+CONST genTextboxLetter = 175    'Text box 'click'
 
 '---Format fix bits
 CONST fixAttackitems = 0        'zero out attack data for item cost (ammunition)
