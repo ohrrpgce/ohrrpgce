@@ -2159,7 +2159,7 @@ SUB loadsong (f$)
 
 end SUB
 
-SUB stopsong ()
+SUB pausesong ()
 	music_pause()
 end SUB
 

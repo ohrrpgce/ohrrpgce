@@ -876,7 +876,7 @@ DO
    END IF
   END IF
   IF csr2 = -3 THEN
-   IF intgrabber(a(36 + csr2), 0, max(csr2 + 5), 75, 77) THEN
+   IF zintgrabber(a(36 + csr2), -2, max(csr2 + 5), 75, 77) THEN
     GOSUB saveform
     GOSUB loadform
    END IF
@@ -924,8 +924,10 @@ DO
   menu$(4) = CHR$(27) + "formation" + XSTR$(pt) + CHR$(26)
   menu$(5) = "Backdrop screen:" + XSTR$(a(32))
   menu$(6) = "Battle Music:"
-  IF a(33) = 0 THEN
+  IF a(33) = -1 THEN
     menu$(6) = menu$(6) + " -none-"
+  ELSEIF a(33) = 0 THEN
+    menu$(6) = menu$(6) + " -silence-"
   ELSEIF a(33) > 0 THEN
     menu$(6) = menu$(6) + XSTR$(a(33) - 1) + " " + getsongname$(a(33) - 1)
   END IF
@@ -2341,17 +2343,20 @@ END SUB
 FUNCTION zintgrabber (n, min, max, less, more)
 '--adjust for entries that are offset by +1
 '--what a hack!
+'--all entries <= 0 are special options not meant to be enumerated
+'--supply the min & max as visible, not actual range for n
+'--eg a menu with 'A' = -2, 'B' = -1, 'C' = 0, 'item 0 - item 99' = 1 - 100 would have min = -3, max = 99
 old = n
 temp = n - 1
-'--must adjust for -1 being 0
-IF temp = -1 THEN
+'--must adjust to always be able to type in a number
+IF temp < 0 THEN
  FOR i = 2 TO 11
   IF keyval(i) > 1 THEN temp = 0
  NEXT i
 END IF
 dummy = intgrabber(temp, min, max, less, more)
-IF temp = 0 AND keyval(14) > 1 THEN temp = -1
 n = temp + 1
+IF old = 1 AND keyval(14) > 1 THEN n = 0
 
 IF old = n THEN
  zintgrabber = 0

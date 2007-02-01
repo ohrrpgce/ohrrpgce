@@ -985,13 +985,13 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-stopsong
+pausesong
 closemusic
 
 EXIT SUB
 
 getsonginfo:
-stopsong
+pausesong
 
 '-- first job: find the song's name
 temp$ = workingdir$ + SLASH + "song" + STR$(snum)
@@ -1061,7 +1061,7 @@ END IF
 RETRACE
 
 importsongfile:
-stopsong
+pausesong
 'sourcesong$ = browse$(1, default$, "*.bam", "")
 sourcesong$ = browse$(5, default$, "", "")
 IF sourcesong$ = "" THEN

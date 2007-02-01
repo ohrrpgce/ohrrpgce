@@ -26,7 +26,7 @@ DECLARE FUNCTION getfilelist% (wildcard$)
 DECLARE SUB scriptadvanced (id%)
 DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%, showsay%)
 DECLARE FUNCTION checkfordeath (stat())
-DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
+DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, remembermusic%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
 DECLARE SUB correctbackdrop ()
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
 DECLARE FUNCTION isonscreen% (x%, y%)
@@ -38,6 +38,7 @@ DECLARE SUB writescriptvar (id%, newval%)
 DECLARE FUNCTION readscriptvar% (id%)
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE SUB wrappedsong (songnumber%)
+DECLARE SUB stopsong ()
 DECLARE SUB scriptmisc (id%)
 DECLARE SUB scriptcam (id%)
 DECLARE SUB scriptnpc (id%)
@@ -117,7 +118,7 @@ DECLARE FUNCTION range% (n%, r%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
-DECLARE SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
+DECLARE SUB forcedismount (choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
 DECLARE SUB setusermenu (menu$(), mi%())
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
@@ -409,6 +410,7 @@ map = gen(104)
 lastmap = -1
 choosep = 0
 sayer = 0
+remembermusic = -1
 
 makebackups 'make a few backup lumps
 
@@ -432,7 +434,7 @@ IF readbit(gen(), genBits, 11) = 0 THEN
 ELSE
  readjoysettings
  IF readbit(gen(), genBits, 12) = 0 THEN
-  IF gen(2) > 0 THEN wrappedsong gen(2) - 1
+  IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
   fademusic fmvol
   clearpage 3
   temp = picksave(2)
@@ -536,7 +538,7 @@ DO
     npcplot
    CASE IS > 1
     say = tmp - 1
-    loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+    loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
   END SELECT
  END IF
  IF showsay = 1 THEN
@@ -659,6 +661,7 @@ DO
    IF gmap(13) <= 0 THEN
     '--normal battle
     fatal = 0
+    remembermusic = presentsong
     wonbattle = battle(batform, fatal, stat())
     dotimerafterbattle
     afterbat = 1
@@ -818,7 +821,7 @@ DO
    IF say THEN
     '--player has used an item that calls a text box--
     IF say > 0 THEN
-     loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+     loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
     END IF
     EXIT DO
    END IF
@@ -981,7 +984,7 @@ IF sayer >= 0 THEN
   CASE 0
    sayer = -1
   CASE IS > 0
-   loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+   loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
  END SELECT
  evalherotag stat()
  evalitemtag
@@ -1005,8 +1008,10 @@ END IF
 IF readbit(saybit(), 0, 3) THEN
  IF gmap(1) > 0 THEN
   wrappedsong gmap(1) - 1
- ELSE
+ ELSEIF gmap(1) = 0 THEN
   stopsong
+ ELSE
+  IF remembermusic > -1 THEN wrappedsong remembermusic ELSE stopsong
  END IF
 END IF
 '---GAIN/LOSE CASH-----
@@ -1018,6 +1023,7 @@ END IF
 '---SPAWN BATTLE--------
 IF istag(saytag(5), 0) THEN
  fatal = 0
+ remembermusic = presentsong
  wonbattle = battle(saytag(6), fatal, stat())
  afterbat = 1
  GOSUB preparemap
@@ -1069,7 +1075,7 @@ IF istag(saytag(11), 0) THEN
   rsr = runscript(ABS(saytag(12)), nowscript + 1, -1, "textbox", plottrigger)
  ELSE
   say = saytag(12)
-  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+  loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
   RETRACE
  END IF
 END IF
@@ -1451,8 +1457,10 @@ loadmapstate_gmap map, "map"
 IF readbit(gen(), 44, suspendambientmusic) = 0 THEN
  IF gmap(1) > 0 THEN
   wrappedsong gmap(1) - 1
- ELSE
+ ELSEIF gmap(1) = 0 THEN
   stopsong
+ ELSEIF gmap(1) = -1 AND afterbat THEN
+  IF remembermusic > -1 THEN wrappedsong remembermusic ELSE stopsong
  END IF
 END IF
 
@@ -1491,7 +1499,7 @@ END IF
 loaddoor map, door()
 
 IF afterbat = 0 AND samemap = 0 THEN
- forcedismount choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
+ forcedismount choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
 END IF
 IF afterbat = 0 AND afterload = 0 THEN
  FOR i = 0 TO 15
@@ -1673,7 +1681,7 @@ END IF
 '--do spawned text boxes, battles, etc.
 IF wantbox > 0 THEN
  say = wantbox
- loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+ loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
  wantbox = 0
 END IF
 IF wantdoor > 0 THEN
@@ -1690,6 +1698,7 @@ IF wantdoor > 0 THEN
 END IF
 IF wantbattle > 0 THEN
  fatal = 0
+ remembermusic = presentsong
  wonbattle = battle(wantbattle - 1, fatal, stat())
  scriptret = wonbattle
  wantbattle = 0
@@ -2043,7 +2052,7 @@ SELECT CASE scrat(nowscript).curkind
     gen(50) = 0
     correctbackdrop
    CASE 34'--dismount vehicle
-    forcedismount choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
+    forcedismount choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
    CASE 35'--use NPC
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN

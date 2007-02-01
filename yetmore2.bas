@@ -81,7 +81,7 @@ DECLARE FUNCTION readitemname$ (itemnum%)
 DECLARE FUNCTION readatkname$ (id%)
 DECLARE SUB getmapname (mapname$, m%)
 DECLARE SUB defaultc ()
-DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
+DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, remembermusic%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
 DECLARE SUB cathero ()
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE SUB readjoysettings ()
@@ -200,7 +200,7 @@ SUB drawnpcs
  NEXT i
 END SUB
 
-SUB forcedismount (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
+SUB forcedismount (choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
 IF veh(0) THEN
  '--clear vehicle on loading new map--
  IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) = 0 THEN
@@ -218,7 +218,7 @@ IF veh(0) THEN
  END IF
  IF veh(16) > 0 THEN
   say = veh(16)
-  loadsay choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+  loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
  END IF
  IF veh(16) < 0 THEN
   rsr = runscript(ABS(veh(16)), nowscript + 1, -1, "dismount", plottrigger)

@@ -911,7 +911,7 @@ end</example>
 		<command id="currentsong">
 			<cannon>current song</cannon>
 			<shortname>current song</shortname>
-			<description>Returns the number of the currently playing song.</description>
+			<description>Returns the number of the currently playing song, or -1 if none.</description>
 		</command>
 		<command id="stopsong">
 			<cannon>stop song</cannon>

@@ -98,7 +98,7 @@ DO
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   alert$ = ""
   changed = 1
-  IF special = 1 OR special = 5 THEN stopsong
+  IF special = 1 OR special = 5 THEN pausesong
   SELECT CASE treec(treeptr)
    CASE 0
     'this could take a while...
@@ -177,13 +177,13 @@ IF default$ = "" THEN
 ELSE
  default$ = nowdir$
 END IF
-stopsong:if f >= 0 then sound_stop(f, -1): UnloadSound(f)
+pausesong:if f >= 0 then sound_stop(f, -1): UnloadSound(f)
 EXIT FUNCTION
 
 hover:
 SELECT CASE special
  CASE 1
-  stopsong
+  pausesong
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
    IF validmusicfile(nowdir$ + tree$(treeptr), FORMAT_BAM) THEN
     loadsong nowdir$ + tree$(treeptr)
@@ -219,7 +219,7 @@ SELECT CASE special
    END IF
   END IF
  CASE 5
-  stopsong
+  pausesong
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
    IF validmusicfile(nowdir$ + tree$(treeptr), VALID_MUSIC_FORMAT) THEN
     loadsong nowdir$ + tree$(treeptr)

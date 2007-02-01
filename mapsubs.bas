@@ -332,7 +332,7 @@ gd$(16) = "Walkabout Layering:"
 gd$(17) = "NPC Data:"
 gd$(18) = "Tile Data:"
 gdmax(0) = gen(genMaxTile):            gdmin(0) = 0
-gdmax(1) = gen(genMaxSong) + 1:        gdmin(1) = 0
+gdmax(1) = gen(genMaxSong) + 1:        gdmin(1) = -1
 gdmax(2) = 1:                              gdmin(2) = 0
 gdmax(3) = 1:                              gdmin(3) = 0
 gdmax(4) = 255:                            gdmin(4) = 0
@@ -393,7 +393,13 @@ DO
    CASE 0, 9
     xtemp$ = XSTR$(gmap(i))
    CASE 1
-    IF gmap(1) = 0 THEN xtemp$ = " -none-" ELSE xtemp$ = XSTR$(gmap(1) - 1) + " " + getsongname$(gmap(1) - 1)
+    IF gmap(1) = 0 THEN
+     xtemp$ = " -silence-"
+    ELSEIF gmap(1) = -1 THEN
+     xtemp$ = " -none-"
+    ELSE
+     xtemp$ = XSTR$(gmap(1) - 1) + " " + getsongname$(gmap(1) - 1)
+    END IF
    CASE 2, 3
     IF gmap(i) = 0 THEN xtemp$ = " NO" ELSE xtemp$ = " YES"
    CASE 4

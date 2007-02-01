@@ -67,6 +67,8 @@ WHAT IS NEW?
       be imported from the palettes of 8 bit BMP files [Ralph Versteegen]
     * Plotscripting Strings no longer have a max length of 40 [James Paige]
     * New commands for dealing with 32-bit colors (0-255, as opposed to 0-63)
+    * Map and battle music can be set to "none" to keep playing current
+      music, previous "none" option renamed to "silence" [Ralph]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
@@ -105,6 +107,7 @@ WHAT IS NEW?
     * Fixed bug 59 (Vehicle mount/dismount buggy if leader is not in first
       slot in party) [Ralph]
     * Fixed bug 184 "Dead" enemies can be attacked over and over again
+    * "current song" now always returns -1 when no music is playing
 
   * New Plotscripting Commands
     * New HamsterSpeak flow control commands: break, continue, exit script,

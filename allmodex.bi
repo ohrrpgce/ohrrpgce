@@ -76,7 +76,7 @@ DECLARE FUNCTION hasmedia (drive$)
 DECLARE SUB setupmusic
 DECLARE SUB closemusic ()
 DECLARE SUB loadsong (f$)
-DECLARE SUB stopsong ()
+DECLARE SUB pausesong ()
 DECLARE SUB resumesong ()
 DECLARE SUB fademusic (BYVAL vol)
 DECLARE FUNCTION getfmvol ()

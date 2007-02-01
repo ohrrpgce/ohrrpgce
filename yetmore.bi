@@ -38,6 +38,7 @@ declare sub scriptmisc (id)
 declare sub scriptnpc (id)
 declare sub scriptwatcher (mode)
 declare sub setdebugpan
+declare sub stopsong
 declare sub subdoarg
 declare sub subreturn
 declare sub unwindtodo (levels)

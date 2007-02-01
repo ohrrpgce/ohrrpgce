@@ -23,6 +23,7 @@ DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
 DECLARE SUB correctbackdrop ()
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE SUB wrappedsong (songnumber%)
+DECLARE SUB stopsong ()
 DECLARE SUB delitem (it%, num%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION getnpcref% (seekid%, offset%)
@@ -544,7 +545,7 @@ FOR o = 0 TO 10 STEP 5
 NEXT o
 END SUB
 
-SUB loadsay (choosep, say, sayer, showsay, say$(), saytag(), choose$(), chtag(), saybit(), sayenh())
+SUB loadsay (choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh())
 DIM temp$
 
 loadsaybegin:
@@ -616,7 +617,10 @@ IF sayenh(4) > 0 THEN
  correctbackdrop
 END IF
 '-- change music if necessary
-IF sayenh(5) > 0 THEN wrappedsong sayenh(5) - 1
+IF sayenh(5) > 0 THEN
+ remembermusic = presentsong
+ wrappedsong sayenh(5) - 1
+END IF
 
 showsay = 8
 
@@ -2325,9 +2329,14 @@ IF songnumber <> presentsong THEN
  playsongnum songnumber
  presentsong = songnumber
 ELSE
- resumesong
+ resumesong  'why is this here??
 END IF
 
+END SUB
+
+SUB stopsong
+presentsong = -1
+pausesong 'this is how you stop the music
 END SUB
 
 SUB wrapxy (x, y, wide, high)

@@ -63,9 +63,7 @@ battlecaption$ = ""
 alert = 0
 alert$ = ""
 
-fademusic 0
 fadeout 240, 240, 240
-stopsong
 vpage = 0: dpage = 1: needf = 1: anim = -1: you = -1: them = -1: fiptr = 0
 vdance = 0: drawvicbox = 0: aset = 0: wf = 0: noifdead = 0: ptarg = 0
 FOR i = 0 TO 11
@@ -231,7 +229,7 @@ DO
  copypage 2, dpage
  IF needf = 1 THEN
   needf = 0
-  fademusic fmvol
+  IF formdata(33) >= 0 THEN fademusic fmvol
   fadein
   setkeys
  END IF
@@ -256,7 +254,7 @@ IF (stackpos - bstackstart) \ 2 < 0 THEN
  fatalerror "bstack underflow" + XSTR$(stackpos) + XSTR$(bstackstart)
 END IF
 
-if formdata(33) > 0 then fademusic 0
+IF formdata(33) > 0 OR gen(3) > 0 THEN fademusic 0
 
 fadeout 0, 0, 0
 
@@ -1917,6 +1915,8 @@ RETRACE
 loadall:
 setpicstuf formdata(), 80, -1
 loadset workingdir$ + SLASH + "for.tmp", form, 0
+
+IF formdata(33) >= 0 THEN fademusic 0: stopsong
 IF formdata(33) > 0 THEN wrappedsong formdata(33) - 1
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
