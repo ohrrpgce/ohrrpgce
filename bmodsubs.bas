@@ -605,7 +605,7 @@ Function GetWeaponPos(w,f,isY)'or x?
   fh = FREEFILE
   OPEN game$ + ".itm" FOR BINARY AS #fh
   'debug "weapon" + XSTR$(w) + " offset: " + XSTR$(w * 200 + 157 + f * 4 + isY * 2)
-  GetWeaponPos = ReadShort(fh,w * 200 + 157 + f * 4 + isY * 2)
+  GetWeaponPos = ReadShort(fh,w * 200 + 157 + f * 4 + iif(isY,1,0) * 2)
   CLOSE #FH
  END IF
 End Function
@@ -615,7 +615,7 @@ Function GetHeroPos(h,f,isY)'or x?
  fh = FREEFILE
  OPEN game$ + ".dt0" FOR BINARY AS #fh
  'debug "hero offset: " + XSTR$(h * 636 + 595 + f * 4 + isY * 2)
- GetHeroPos = ReadShort(fh,h * 636 + 595 + f * 4 + isY * 2)
+ GetHeroPos = ReadShort(fh,h * 636 + 595 + f * 4 + iif(isY,1,0) * 2)
  CLOSE #FH
 End Function
 
@@ -626,15 +626,17 @@ IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN ' strike, cast, dash, stand
  anim_wait 3 'wait 3 ticks
  IF atk(14) <> 1 AND atk(14) <> 7 THEN 'if it's not cast or standing cast
   anim_setframe who, 2
-   hx = GetHeroPos(hero(who)-1,0,0)
-   hy = GetHeroPos(hero(who)-1,0,1)
-   wx = GetWeaponPos(eqstuf(who,0)-1,0,0)
-   wy = GetWeaponPos(eqstuf(who,0)-1,0,1)
+  hx = GetHeroPos(hero(who)-1,0,0)
+  hy = GetHeroPos(hero(who)-1,0,1)
+  wx = GetWeaponPos(eqstuf(who,0)-1,1,0)
+  wy = GetWeaponPos(eqstuf(who,0)-1,1,1)
   dx = hx - wx
   dy = hy - wy
+  
   IF atk(14) <> 2 THEN 'if it's not dash in
-   anim_setpos 24, bslot(who).x + dx + 4, bslot(who).y + dy, 0
+   anim_setpos 24, bslot(who).x - 4 + dx - 16, bslot(who).y + dy, 0
   END IF
+  
   yt = (bslot(t(who, 0)).h - bslot(who).h) + 2 'yt...?
   IF atk(14) = 2 THEN 'if it IS dash in
    anim_setpos 24, bslot(t(who, 0)).x + bslot(t(who, 0)).w + 24 + dx, bslot(t(who, 0)).y + yt + dy, 0 'set position, again
@@ -649,13 +651,13 @@ IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN ' strike, cast, dash, stand
  IF atk(14) <> 1 AND atk(14) <> 7 THEN 'if it's not cast or standing cast
   anim_setframe who, 3
   IF atk(14) <> 2 THEN 'if it's not dash in
-    hx = GetHeroPos(hero(who)-1,1,0)
-    hy = GetHeroPos(hero(who)-1,1,1)
-    wx = GetWeaponPos(eqstuf(who,0)-1,1,0)
-    wy = GetWeaponPos(eqstuf(who,0)-1,1,1)
+   hx = GetHeroPos(hero(who)-1,1,0)
+   hy = GetHeroPos(hero(who)-1,1,1)
+   wx = GetWeaponPos(eqstuf(who,0)-1,0,0)
+   wy = GetWeaponPos(eqstuf(who,0)-1,0,1)
    dx = hx - wx
    dy = hy - wy
-   anim_setpos 24, bslot(who).x + dx - 44, bslot(who).y + dy, 0
+   anim_setpos 24, bslot(who).x - 4 + dx - 16, bslot(who).y + dy, 0
   END IF
   yt = (bslot(t(who, 0)).h - bslot(who).h) + 2 '???
   IF atk(14) = 2 THEN 'if it is dash in
