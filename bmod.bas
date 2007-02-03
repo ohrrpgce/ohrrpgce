@@ -1097,6 +1097,39 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    bslot(ww).zspeed = popw
   CASE 16 'sound(which)
    sound_play(popw,0)
+  CASE 17 'align(who, target, edge, offset)
+   w1 = popw
+   w2 = popw
+   select case popw 'which edge?
+   case dirUp
+   	bslot(w1).y = bslot(w2).y + popw
+   case dirDown
+   	bslot(w1).y = bslot(w2).y + bslot(w2).h - bslot(w1).h + popw
+   case dirLeft
+   	bslot(w1).x = bslot(w2).x + popw
+   case dirRight
+   	bslot(w1).x = bslot(w2).x + bslot(w2).w - bslot(w1).w + popw
+   end select
+  CASE 18 'setcenter(who, target, offx, offy)
+   w1 = popw
+   w2 = popw
+   bslot(w1).x = (bslot(w2).w - bslot(w1).w) / 2 + bslot(w2).x + popw
+   bslot(w1).y = (bslot(w2).h - bslot(w1).h) / 2 + bslot(w2).y + popw
+	CASE 19 'align2(who, target, edgex, edgey, offx, offy)
+	 w1 = popw
+	 w2 = popw
+	 xd = popw
+	 yd = popw
+	 if xd then
+   	bslot(w1).x = bslot(w2).x + bslot(w2).w - bslot(w1).w + popw
+	 else
+	 	bslot(w1).x = bslot(w2).x + popw
+	 end if
+	 if yd then
+   	bslot(w1).y = bslot(w2).y + bslot(w2).h - bslot(w1).h + popw
+	 else
+	 	bslot(w1).y = bslot(w2).y + popw
+	 end if
  END SELECT
 LOOP UNTIL wf <> 0 OR anim = -1
 
@@ -2265,4 +2298,16 @@ END SUB
 
 SUB anim_sound(which)
  pushw 16: pushw which
+END SUB
+
+SUB anim_align(who, target, dire, offset)
+ pushw 17: pushw who: pushw target: pushw dire: pushw offset
+END SUB
+
+SUB anim_setcenter(who, target, offx, offy)
+ pushw 18: pushw who: pushw target: pushw offx: pushw offy
+END SUB
+
+SUB anim_align2(who, target, edgex, edgey, offx, offy)
+ pushw 19: pushw who: pushw target: pushw edgex: pushw edgey: pushw offx: pushw offy
 END SUB

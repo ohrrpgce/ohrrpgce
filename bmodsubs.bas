@@ -58,6 +58,10 @@ DECLARE SUB anim_relmove(who%, tox%, toy%, xspeed%, yspeed%)
 DECLARE SUB anim_zmove(who%, zm%, zstep%)
 DECLARE SUB anim_walktoggle(who%)
 DECLARE SUB anim_sound(which)
+DECLARE SUB anim_align(who, target, dire, offset)
+DECLARE SUB anim_setcenter(who, target, offx, offy)
+DECLARE SUB anim_align2(who, target, edgex, edgey, offx, offy)
+
 
 DECLARE FUNCTION is_hero(who%)
 DECLARE FUNCTION is_enemy(who%)
@@ -620,12 +624,14 @@ Function GetHeroPos(h,f,isY)'or x?
 End Function
 
 SUB heroanim (who, atk(), bslot() AS BattleSprite, t())
-hx = 0:hy = 0:wx = 0: wy = 0
+hx = 0:hy = 0:wx = 0: wy = 0: xt = 0: yt = 0
 IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN ' strike, cast, dash, standing cast, teleport
  anim_setframe who, 0
  anim_wait 3 'wait 3 ticks
  IF atk(14) <> 1 AND atk(14) <> 7 THEN 'if it's not cast or standing cast
+ 
   anim_setframe who, 2
+  
   hx = GetHeroPos(hero(who)-1,0,0)
   hy = GetHeroPos(hero(who)-1,0,1)
   wx = GetWeaponPos(eqstuf(who,0)-1,1,0)
@@ -633,38 +639,34 @@ IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN ' strike, cast, dash, stand
   dx = hx - wx
   dy = hy - wy
   
-  IF atk(14) <> 2 THEN 'if it's not dash in
-   anim_setpos 24, bslot(who).x - 4 + dx - 16, bslot(who).y + dy, 0
-  END IF
+  anim_align2 24, who, 0, 0, dx, dy
   
-  yt = (bslot(t(who, 0)).h - bslot(who).h) + 2 'yt...?
-  IF atk(14) = 2 THEN 'if it IS dash in
-   anim_setpos 24, bslot(t(who, 0)).x + bslot(t(who, 0)).w + 24 + dx, bslot(t(who, 0)).y + yt + dy, 0 'set position, again
-  END IF
   anim_setframe 24, 0
   anim_appear 24
+  
  END IF
+ 
  IF atk(14) = 1 OR atk(14) = 7 THEN 'if it's cast or standing cast
   anim_setframe who, 4
  END IF
+ 
  anim_wait 3
+ 
  IF atk(14) <> 1 AND atk(14) <> 7 THEN 'if it's not cast or standing cast
   anim_setframe who, 3
-  IF atk(14) <> 2 THEN 'if it's not dash in
-   hx = GetHeroPos(hero(who)-1,1,0)
-   hy = GetHeroPos(hero(who)-1,1,1)
-   wx = GetWeaponPos(eqstuf(who,0)-1,0,0)
-   wy = GetWeaponPos(eqstuf(who,0)-1,0,1)
-   dx = hx - wx
-   dy = hy - wy
-   anim_setpos 24, bslot(who).x - 4 + dx - 16, bslot(who).y + dy, 0
-  END IF
-  yt = (bslot(t(who, 0)).h - bslot(who).h) + 2 '???
-  IF atk(14) = 2 THEN 'if it is dash in
-   anim_setpos 24, bslot(t(who, 0)).x + bslot(t(who, 0)).w + dx - 20, bslot(t(who, 0)).y + dy + yt, 0
-  END IF
+  
+  hx = GetHeroPos(hero(who)-1,1,0)
+  hy = GetHeroPos(hero(who)-1,1,1)
+  wx = GetWeaponPos(eqstuf(who,0)-1,0,0)
+  wy = GetWeaponPos(eqstuf(who,0)-1,0,1)
+  dx = hx - wx
+  dy = hy - wy
+  
+  anim_align2 24, who, 0, 0, dx, dy
+  
   anim_setframe 24, 1
  END IF
+ 
 END IF
 IF atk(14) = 3 THEN ' spin
  FOR ii = 0 TO 2
