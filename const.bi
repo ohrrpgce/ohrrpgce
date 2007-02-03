@@ -83,6 +83,7 @@ CONST genTextboxLetter = 175    'Text box 'click'
 
 '---Format fix bits
 CONST fixAttackitems = 0        'zero out attack data for item cost (ammunition)
+CONST fixNewTextbox  = 1
 
 '---Sizes (replaceable with variables when suitable)
 CONST npcdMax = 35
@@ -93,6 +94,14 @@ CONST binATTACK = 0
 CONST binSTF = 1
 CONST binSONGDATA = 2
 CONST binSFXDATA = 3
+
+'--- Misc constants
+Enum constDirection
+	dirUp
+	dirRight
+	dirDown
+	dirLeft
+End Enum
 
 #include "uiconst.bi"
 
