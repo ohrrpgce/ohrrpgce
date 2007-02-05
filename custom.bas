@@ -1698,6 +1698,31 @@ IF getfixbit(fixAttackitems) = 0 THEN
   CLOSE #fh
 END IF
 
+IF getfixbit(fixWeapPoints) = 0 THEN
+	setfixbit(fixWeapPoints, 1)
+	fh = freefile
+	OPEN game$ + ".DT0" FOR BINARY AS #fh
+	REDIM dat(317) AS SHORT
+	p = 1
+	FOR i = 0 to gen(genMaxHero)
+		GET #fh,,dat()
+		if dat(297) <> 0 OR dat(298) <> 0 OR dat(299) <> 0 OR dat(300) <> 0 THEN
+			close #fh
+			exit sub 'they already use hand points, abort!
+		end if
+	NEXT
+	
+	FOR i = 0 to gen(genMaxHero)
+		GET #fh,p,dat()
+		dat(297) = 24
+		dat(299) = -20
+		PUT #fh,p,dat()
+		p+=318
+	NEXT
+	close #fh
+	
+END IF
+
 'wow! this is quite a big and ugly routine!
 END SUB
 

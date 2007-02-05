@@ -83,7 +83,7 @@ CONST genTextboxLetter = 175    'Text box 'click'
 
 '---Format fix bits
 CONST fixAttackitems = 0        'zero out attack data for item cost (ammunition)
-CONST fixNewTextbox  = 1
+CONST fixWeapPoints  = 1				'add defaults for weapon points
 
 '---Sizes (replaceable with variables when suitable)
 CONST npcdMax = 35
