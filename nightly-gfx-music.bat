@@ -40,7 +40,6 @@ IF NOT %2==native2 GOTO skip2musnative
 support\zip -q distrib\ohrrpgce-wip-%1-%2.zip audiere.dll audwrap.dll
 :skip2musnative
 
-pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-wip-%1-%2.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-wip-%1-%2.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 GOTO finished
 
