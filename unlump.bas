@@ -283,6 +283,9 @@ END FUNCTION
 
 SUB xbload (f$, array(), e$)
 
+    ' Linux compat demands lowercase lump names
+    f$ = lcase(f$)
+
 	IF isfile(f$) THEN
 		DIM ff%, byt as UByte, seg AS Short, offset AS Short, length AS Short
 		dim ilength as integer
