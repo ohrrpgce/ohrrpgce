@@ -516,13 +516,13 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
   FOR i = 0 TO tcount
    anim_appear 12 + i
    IF atk(15) = 4 THEN
-    anim_relmove 12 + i, bslot(t(who, i)).x + xt - bslot(t(who, i)).w, bslot(t(who, i)).y + yt, 3, 3
+    anim_absmove 12 + i, bslot(t(who, i)).x + xt - bslot(t(who, i)).w, bslot(t(who, i)).y + yt, 3, 3
    END IF
    IF atk(15) = 3 THEN
     anim_zmove 12 + i, -10, 20
    END IF
    IF atk(15) = 6 THEN
-    anim_relmove 12 + i, INT(RND * 270), INT(RND * 150), 6, 6
+    anim_absmove 12 + i, INT(RND * 270), INT(RND * 150), 6, 6
    END IF
   NEXT i
   anim_wait 2
@@ -533,15 +533,15 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
   anim_disappear 24
   IF atk(15) = 4 THEN
    FOR i = 0 TO tcount
-    anim_relmove 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt + bslot(t(who, i)).w, 3, 3
+    anim_absmove 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt + bslot(t(who, i)).w, 3, 3
    NEXT i
    anim_waitforall
    FOR i = 0 TO tcount
-    anim_relmove 12 + i, bslot(t(who, i)).x + xt + bslot(t(who, i)).w, bslot(t(who, i)).y + yt, 3, 3
+    anim_absmove 12 + i, bslot(t(who, i)).x + xt + bslot(t(who, i)).w, bslot(t(who, i)).y + yt, 3, 3
    NEXT i
    anim_waitforall
    FOR i = 0 TO tcount
-    anim_relmove 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt - bslot(t(who, i)).w, 3, 3
+    anim_absmove 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt - bslot(t(who, i)).w, 3, 3
    NEXT i
    anim_waitforall
   END IF
@@ -598,7 +598,7 @@ IF atk(15) = 7 THEN
    yt = (bslot(t(who, i)).h - 50) + 2
    xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
    'make the projectile move to the target
-   anim_relmove 12, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt, 5, 5
+   anim_absmove 12, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt, 5, 5
    anim_waitforall
    'inflict damage
    anim_inflict t(who, i)
@@ -624,10 +624,10 @@ IF atk(15) = 7 THEN
   NEXT i
   'after all hits are done, projectile flies off the side of the screen
   IF is_hero(who) THEN
-   anim_relmove 12, -50, 100, 5, 5
+   anim_absmove 12, -50, 100, 5, 5
   END IF
   IF is_enemy(who) THEN
-   anim_relmove 12, 320, 100, 5, 5
+   anim_absmove 12, 320, 100, 5, 5
   END IF
   anim_waitforall
   'hide projectile
@@ -670,10 +670,10 @@ IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
    yt = (bslot(t(who, i)).h - 50) + 2
    xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
    IF atk(15) = 1 OR atk(15) = 8 THEN
-    anim_relmove 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt, 6, 6
+    anim_absmove 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt, 6, 6
    END IF
    IF atk(15) = 2 THEN
-    anim_relmove 12 + i, bslot(who).x + temp, bslot(who).y, 6, 6
+    anim_absmove 12 + i, bslot(who).x + temp, bslot(who).y, 6, 6
    END IF
    IF atk(15) = 8 THEN
     anim_zmove 12 + i, -6, 30
@@ -728,7 +728,7 @@ IF atk(15) = 9 THEN
    anim_appear 12 + i
    temp = 50: IF is_hero(who) THEN temp = -50
    yt = (bslot(t(who, i)).h - 50) + 2
-   anim_relmove 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt, 8, 8
+   anim_absmove 12 + i, bslot(t(who, i)).x + xt, bslot(t(who, i)).y + yt, 8, 8
   NEXT i
   if atk(99) > 0  then anim_sound(atk(99) - 1)
   anim_wait 4
@@ -746,10 +746,10 @@ IF atk(15) = 9 THEN
    END IF
    yt = (bslot(t(who, i)).h - 50) + 2
    IF is_hero(who) THEN
-    anim_relmove 12 + i, -50, bslot(t(who, i)).y + yt, 5, 7
+    anim_absmove 12 + i, -50, bslot(t(who, i)).y + yt, 5, 7
    END IF
    IF is_enemy(who) THEN
-    anim_relmove 12 + i, 320, bslot(t(who, i)).y + yt, 5, 7
+    anim_absmove 12 + i, 320, bslot(t(who, i)).y + yt, 5, 7
    END IF
   NEXT i
   anim_waitforall
@@ -791,7 +791,7 @@ IF atk(15) = 4 AND tcount = 0 THEN
   xt = 0: IF t(who, i) = who AND is_hero(who) AND atk(14) <> 7 THEN xt = -20
   FOR i = 0 TO 7
    anim_appear 12 + i
-   anim_relmove 12 + i, bslot(t(who, 0)).x + xt, bslot(t(who, 0)).y + yt, 4, 4
+   anim_absmove 12 + i, bslot(t(who, 0)).x + xt, bslot(t(who, 0)).y + yt, 4, 4
   NEXT i
   if atk(99) > 0  then anim_sound(atk(99) - 1)
   anim_wait 8
@@ -963,7 +963,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    fr = popw
    IF is_hero(ww) THEN walk(ww) = 0: of(ww) = fr
    IF ww > 23 THEN of(ww) = fr '--is this right?
-  CASE 8 'relmove(who,n,n,n,n)
+  CASE 8 'absmove(who,n,n,n,n)
    ww = popw
    tmp1 = popw
    tmp2 = popw
@@ -1130,6 +1130,23 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
 	 else
 	 	bslot(w1).y = bslot(w2).y + popw
 	 end if
+	CASE 20 'relmove(who, x, y, sx, sy)
+	 ww = popw
+   tmp1 = popw
+   tmp2 = popw
+   tmp3 = popw
+   tmp4 = popw
+   with bslot(ww)
+   	.xspeed = (tmp1 - .x) / tmp3
+   	.yspeed = (tmp2 - .y) / tmp4
+  	.xmov = .x + tmp3
+   	.ymov = .y + tmp4
+   end with
+	CASE 21 'setdir(who, d)
+	 ww = popw
+	 tmp1 = popw
+	 debug "blsot(" & ww & ").d = " & tmp1
+	 bslot(ww).d = tmp1
  END SELECT
 LOOP UNTIL wf <> 0 OR anim = -1
 
@@ -2272,7 +2289,7 @@ SUB anim_setmove(who, xm, ym, xstep, ystep)
  pushw 2: pushw who: pushw xm: pushw ym: pushw xstep: pushw ystep
 END SUB
 
-SUB anim_relmove(who, tox, toy, xspeed, yspeed)
+SUB anim_absmove(who, tox, toy, xspeed, yspeed)
  pushw 8: pushw who: pushw tox: pushw toy: pushw xspeed: pushw yspeed
 END SUB
 
@@ -2310,4 +2327,12 @@ END SUB
 
 SUB anim_align2(who, target, edgex, edgey, offx, offy)
  pushw 19: pushw who: pushw target: pushw edgex: pushw edgey: pushw offx: pushw offy
+END SUB
+
+SUB anim_relmove(who, tox, toy, xspeed, yspeed)
+ pushw 20: pushw who: pushw tox: pushw toy: pushw xspeed: pushw yspeed
+END SUB
+
+SUB anim_setdir(who, d)
+ pushw 21: pushw who: pushw d
 END SUB

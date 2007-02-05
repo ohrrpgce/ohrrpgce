@@ -8,7 +8,6 @@ DEFINT A-Z
 'basic subs and functions
 DECLARE SUB exitprogram (needfade%)
 DECLARE SUB quitcleanup ()
-DECLARE FUNCTION focuscost% (cost%, focus%)
 DECLARE FUNCTION safesubtract% (number%, minus%)
 DECLARE FUNCTION safemultiply% (number%, by!)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
@@ -35,7 +34,6 @@ DECLARE SUB spells (pt%, stat%())
 DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB resetlmp (slot%, lev%)
-DECLARE FUNCTION battle (form%, fatal%, exstat%())
 DECLARE SUB addhero (who%, slot%, stat%())
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
@@ -44,29 +42,13 @@ DECLARE SUB snapshot ()
 DECLARE SUB delitem (it%, num%)
 DECLARE FUNCTION countitem% (it%)
 
-DECLARE SUB anim_end()
-DECLARE SUB anim_wait(ticks%)
-DECLARE SUB anim_waitforall()
-DECLARE SUB anim_inflict(who%)
-DECLARE SUB anim_disappear(who%)
-DECLARE SUB anim_appear(who%)
-DECLARE SUB anim_setframe(who%, frame%)
-DECLARE SUB anim_setpos(who%, x%, y%, d%)
-DECLARE SUB anim_setz(who%, z%)
-DECLARE SUB anim_setmove(who%, xm%, ym%, xstep%, ystep%)
-DECLARE SUB anim_relmove(who%, tox%, toy%, xspeed%, yspeed%)
-DECLARE SUB anim_zmove(who%, zm%, zstep%)
-DECLARE SUB anim_walktoggle(who%)
-DECLARE SUB anim_sound(which)
-DECLARE SUB anim_align(who, target, dire, offset)
-DECLARE SUB anim_setcenter(who, target, offx, offy)
-DECLARE SUB anim_align2(who, target, edgex, edgey, offx, offy)
-
 
 DECLARE FUNCTION is_hero(who%)
 DECLARE FUNCTION is_enemy(who%)
 DECLARE FUNCTION is_attack(who%)
 DECLARE FUNCTION is_weapon(who%)
+
+#include "bmod.bi"
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -118,7 +100,7 @@ END IF
 IF atk(14) = 2 THEN ' Dash in
  yt = (bslot(t(who, 0)).h - bslot(who).h) + 2
  anim_walktoggle who
- anim_relmove who, bslot(t(who, 0)).x + bslot(t(who, 0)).w * d, bslot(t(who, 0)).y + yt, 6, 6
+ anim_absmove who, bslot(t(who, 0)).x + bslot(t(who, 0)).w * d, bslot(t(who, 0)).y + yt, 6, 6
  anim_waitforall
 END IF
 IF atk(14) = 8 THEN ' Teleport
@@ -581,14 +563,14 @@ IF atk(14) < 2 THEN' twitch
 END IF
 IF atk(14) = 3 THEN' spin
  FOR ii = 0 TO 2
-  anim_setpos who, bslot(who).x, bslot(who).y, 1
+  anim_setdir who, 1
   anim_wait 1
-  anim_setpos who, bslot(who).x, bslot(who).y, 0
+  anim_setdir who, 0
   anim_wait 1
  NEXT ii
 END IF
 IF atk(14) = 4 THEN' jump
- anim_relmove who, bslot(who).x + 50, bslot(who).y, 7, 7
+ anim_absmove who, bslot(who).x + 50, bslot(who).y, 7, 7
  anim_zmove who, 10, 20
  anim_waitforall
  anim_disappear who
@@ -670,19 +652,15 @@ IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN ' strike, cast, dash, stand
 END IF
 IF atk(14) = 3 THEN ' spin
  FOR ii = 0 TO 2
-  anim_setpos who, bslot(who).x, bslot(who).y, 1
-  anim_setpos 24, bslot(who).x + 40, bslot(who).y, 0
-  anim_setframe 24, 0
-  anim_wait 1
-  anim_setpos who, bslot(who).x, bslot(who).y, 0
-  anim_setpos 24, bslot(who).x - 40, bslot(who).y, 0
-  anim_setframe 24, 1
-  anim_wait 1
+  anim_setdir who, 1
+  anim_wait 10
+  anim_setdir who, 0
+  anim_wait 10
  NEXT ii
 END IF
 IF atk(14) = 4 THEN ' Jump
  anim_setframe who, 4
- anim_relmove who, bslot(who).x - 40, bslot(who).y, 7, 7
+ anim_relmove who, -40, 0, 7, 7
  anim_zmove who, 10, 20
  anim_waitforall
  anim_disappear who
@@ -1019,7 +997,7 @@ SUB retreat (who, atk(), bslot() AS BattleSprite, t())
 IF is_enemy(who) THEN
  IF atk(14) = 2 OR atk(14) = 5 THEN
   anim_setz who, 0
-  anim_relmove who, bslot(who).x, bslot(who).y, 6, 6
+  anim_absmove who, bslot(who).x, bslot(who).y, 6, 6
   anim_waitforall
  END IF
 END IF
@@ -1035,7 +1013,7 @@ IF is_hero(who) THEN
   anim_setframe who, 0
   anim_walktoggle who
   anim_setz who, 0
-  anim_relmove who, bslot(who).x, bslot(who).y, 6, 6
+  anim_absmove who, bslot(who).x, bslot(who).y, 6, 6
   anim_waitforall
   anim_setframe who, 0
  END IF
