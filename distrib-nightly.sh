@@ -35,12 +35,9 @@ zip -q -r ohrrpgce-source-nightly.zip wip
 ls -l ohrrpgce-source-nightly.zip
 
 echo uploading new nightly snapshot
-scp -p ohrrpgce-source-nightly.zip spam@brionne.cyberverse.com:web/html/ohrrpgce/nightly/
 scp -p ohrrpgce-source-nightly.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 
 echo uploading plotscripting docs
-scp -p wip/docs/plotdict.xml spam@brionne.cyberverse.com:web/html/ohrrpgce/docs/
-scp -p wip/docs/htmlplot.xsl spam@brionne.cyberverse.com:web/html/ohrrpgce/docs/
 scp -p wip/docs/plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
 scp -p wip/docs/htmlplot.xsl james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
 
