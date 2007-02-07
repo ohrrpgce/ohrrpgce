@@ -7,6 +7,7 @@ ECHO Verifying support programs...
 IF NOT EXIST support\cp.exe GOTO NOSUPPORT
 IF NOT EXIST support\zip.exe GOTO NOSUPPORT
 IF NOT EXIST %ISCC% GOTO NOINNO
+IF NOT EXIST %EUDIR%\bin\exw.exe GOTO NOEUPHORIA
 
 MKDIR tmpdist
 
@@ -118,6 +119,12 @@ GOTO DONE
 ECHO ERROR: SVN (Subversion) is missing, unable to continue.
 ECHO Default location: %SVN%
 ECHO Download from http://subversion.tigris.org/
+GOTO DONE
+
+:NOEUPHORIA
+ECHO ERROR: Euphoria is missing, unable to continue.
+ECHO Default location: %EUDIR%
+ECHO Download from http://www.RapidEuphoria.com/
 GOTO DONE
 
 :NOEXE

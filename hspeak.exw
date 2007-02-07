@@ -6,8 +6,8 @@
 -- This is a compiler for HamsterSpeak scripts used for plotscripting in
 -- the O.H.R.RPG.C.E. For more info, visit http://HamsterRepublic.com
 
--- This code is written in Euphoria 2.2. You can get the public-domain
--- version from http://RapidEuphoria.com . I also highly recommend
+-- This code is written in Euphoria. You can get the Free Open-Source
+-- Euphoria compiler from http://RapidEuphoria.com . I also highly recommend
 -- David Cuny's EE editor which you can download from the same site.
 
 ---------------------------------------------------------------------------
