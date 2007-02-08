@@ -29,7 +29,7 @@ declare sub magicSysexStart(file as integer,length as integer)
 declare sub magicSysexEnd(file as integer)
 
 'external
-declare sub debug(message as string)
+'declare sub debug(message as string)
 
 dim shared bignum(0 to 3) as ubyte => { 0, 0, 0, 0 }
 dim shared smallnum(0 to 1) as ubyte => { 0, 0 }
@@ -70,13 +70,13 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 	f1 = freefile
 	open infile for binary as #f1
 	if err <> 0 then
-		debug "File " + infile + " could not be opened."
+		'debug "File " + infile + " could not be opened."
 		exit sub
 	end if
 
 	get #f1, , magic
 	if magic <> "CBMF" then
-		debug "File " + infile + " is not a BAM."
+		'debug "File " + infile + " is not a BAM."
 		close #f1
 		exit sub
 	end if
@@ -86,7 +86,7 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 	f2 = freefile
 	open outfile for binary as #f2
 	if err <> 0 then
-		debug "Output file " + outfile + " could not be opened."
+		'debug "Output file " + outfile + " could not be opened."
 		close #f1
 		exit sub
 	end if
@@ -125,18 +125,7 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 			chan = ub and &h0f
 			select case cmd
 				case 0: 'stop song
-					if useOHRm then
-						bc = setvarval(delta)
-						fput f2, , @bignum(0), bc	'variable length delta time
-						tracklen = tracklen + bc
-						delta = 0
-						magicSysexStart f2,1
-						ub = 0
-						put #f2,,ub
-						magicSysexEnd f2
-					else
 						exit do
-					end if
 				case 16: 'start note
 					get #f1, , ub 'get freq
 					'write midi note on
@@ -184,88 +173,41 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 				    tracklen += bc
             mb = &HB0
             put #f2,,mb
-            mb = 0
+            mb = 111
             put #f2,,mb
+            mb = 127
             put #f2,,mb
+           	tracklen += 3
+            delta = 0
           end if
-					if useOHRm then
-						bc = setvarval(delta)
-						fput f2, , @bignum(0), bc	'variable length delta time
-						tracklen = tracklen + bc
-						delta = 0
-						magicSysexStart f2,2
-						ub = 1
-						put #f2,,ub
-						put #f2,,chan
-						magicSysexEnd f2
-					else
-						labelpos(chan) = seek(f1) + 1
-					end if
+					labelpos(chan) = seek(f1) + 1
 				case 96: 'jump
 					get #f1, , ub 'loop control
-					if useOHRm then
-						bc = setvarval(delta)
-						fput f2, , @bignum(0), bc	'variable length delta time
-						tracklen = tracklen + bc
-						delta = 0
-						if ub >= 1 and ub <= 253 then 'limited
-							magicSysexStart f2,3
-							cmd = 3
-							put #f2,,cmd
-							put #f2,,chan
-							put #f2,,ub
-							magicSysexEnd f2
-						elseif ub = 254 then 'infinite
-							magicSysexStart f2,2
-							ub = 2
-							put #f2,,ub
-							put #f2,,chan
-							magicSysexEnd f2
-						elseif ub = 255 then 'chorus
-							magicSysexStart f2,2
-							ub = 4
-							put #f2,,ub
-							put #f2,,chan
-							magicSysexEnd f2
-						end if
-					else
-						if labelpos(chan) > 0 then
-							if ub = 255 then
-								'chorus loop, but only if not already
-								'in a chorus
-								if returnpos = -1 then
-									returnpos = seek(f1) + 1
-									seek f1, labelpos(chan)
-								end if
+					if labelpos(chan) > 0 then
+						if ub = 255 then
+							'chorus loop, but only if not already
+							'in a chorus
+							if returnpos = -1 then
+								returnpos = seek(f1) + 1
+								seek f1, labelpos(chan)
 							end if
-							if ub < 254 then
-								if loopcount(chan) = -1 then
-									loopcount(chan) = ub
-								end if
-								if loopcount(chan) = 0 then
-									loopcount(chan) = -1 'reset
-								else
-									loopcount(chan) = loopcount(chan) - 1
-									seek f1, labelpos(chan)
-								end if
+						end if
+						if ub < 254 then
+							if loopcount(chan) = -1 then
+								loopcount(chan) = ub
+							end if
+							if loopcount(chan) = 0 then
+								loopcount(chan) = -1 'reset
+							else
+								loopcount(chan) = loopcount(chan) - 1
+								seek f1, labelpos(chan)
 							end if
 						end if
 					end if
 				case 112: 'end of chorus
-					if useOHRm then
-						bc = setvarval(delta)
-						fput f2, , @bignum(0), bc	'variable length delta time
-						tracklen = tracklen + bc
-						delta = 0
-						magicSysexStart f2,1
-						ub = 5
-						put #f2,,ub
-						magicSysexEnd f2
-					else
-						if returnpos > -1 then
-							seek f1, returnpos
-							returnpos = -1
-						end if
+					if returnpos > -1 then
+						seek f1, returnpos
+						returnpos = -1
 					end if
 				case else: 'ignore
 					'nothing
@@ -388,20 +330,26 @@ function getvoice(bamvoice as voice) as integer
 	getvoice = voicenum
 end function
 
-sub magicSysexStart(file as integer,length as integer)
-	dim magic as string * 4, bc as integer, tmp as ubyte
-	magic = "OHRm"
 
-	tmp = &HF0 'sysex
-	put #file, , tmp
+#ifndef IS_GAME
+#ifndef IS_CUSTOM
 
-	bc = setvarval(length+5) 'sig + tail
-	fput file, , @bignum(0), bc 'length of the sysex
+dim infile as string, outfile as string
 
-end sub
+if command(1) <> "" then infile = command(1) else end
+if command(2) <> "" then outfile = command(2)
 
-sub magicSysexEnd(file as integer)
-	dim tmp as ubyte
-	tmp = &HF7
-	put #file, , tmp
-end sub
+if outfile = "" then
+	outfile = infile
+	outfile = left(outfile, instr(outfile, "."))
+	outfile = outfile & "mid"
+end if
+
+
+bam2mid(infile, outfile, 0)
+
+
+
+
+#endif
+#endif
