@@ -10,6 +10,9 @@ option explicit
 #include "fbgfx.bi"
 #include "gfx.bi"
 
+'subs only used internally
+declare sub gfx_screenres()		'set screen res, etc
+
 'border required to fit standard 4:3 screen at zoom 1
 #define BORDER 20
 

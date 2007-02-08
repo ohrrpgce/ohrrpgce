@@ -7,8 +7,9 @@
 option explicit
 
 #include "music.bi"
-#include "SDL\SDL.bi"
-#include "SDL\SDL_mixer.bi"
+#include once "sdl_common.bi"
+DIM SHARED sdl_init_done AS INTEGER = 0
+DIM SHARED sdl_audio_only AS INTEGER = 0
 
 'extern
 declare sub debug(s$)
@@ -53,8 +54,11 @@ sub music_init()
 		audio_channels = 2
 		audio_buffers = 4096
 		
-'		SDL_Init(SDL_INIT_VIDEO or SDL_INIT_AUDIO)
-		SDL_Init(SDL_INIT_AUDIO)
+		if sdl_init_done = 0 then
+			SDL_Init(SDL_INIT_AUDIO)
+			sdl_init_done = -1
+			sdl_audio_only = -1
+		end if
 		
 		if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) <> 0 then
 			Debug "Can't open audio"
@@ -87,7 +91,9 @@ sub music_close()
 		end if
 		
 		Mix_CloseAudio
-		SDL_Quit
+		if sdl_audio_only then
+		  SDL_Quit
+		end if
 		music_on = 0
 		callback_set_up = 0 	' For SFX
 		
