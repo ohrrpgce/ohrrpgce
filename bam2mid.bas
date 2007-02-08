@@ -330,19 +330,27 @@ function getvoice(bamvoice as voice) as integer
 	getvoice = voicenum
 end function
 
-
 #ifndef IS_GAME
 #ifndef IS_CUSTOM
 
 dim infile as string, outfile as string
 
-if command(1) <> "" then infile = command(1) else end
+if command(1) <> "" then infile = command(1)
 if command(2) <> "" then outfile = command(2)
+
+if infile = "" then
+	PRINT "Usage: bam2mid filename"
+	PRINT "Converts a BAM file into MIDI format"
+	system
+end if
+
 
 if outfile = "" then
 	outfile = infile
-	outfile = left(outfile, instr(outfile, "."))
-	outfile = outfile & "mid"
+	if right(lcase(outfile), 4) = ".bam" then
+		outfile = left(outfile, len(outfile)-4)
+	end if
+	outfile = outfile & ".mid"
 end if
 
 

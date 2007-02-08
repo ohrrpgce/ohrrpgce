@@ -84,6 +84,6 @@ pscp -i C:\progra~1\putty\id_rsa.ppk distrib\hspeak-win-nightly.zip james_paige@
 del distrib\bam2mid.zip
 call make-bam2mid.bat
 IF NOT EXIST bam2mid.exe GOTO NOBAM2MID
-support\zip distrib\bam2mid.zip bam2mid.exe bam2mid.txt b2m.bas bam2mid.bas banks.bi LICENSE.txt make-bam2mid.bat
+support\zip distrib\bam2mid.zip bam2mid.exe bam2mid.txt bam2mid.bas banks.bi LICENSE.txt make-bam2mid.bat make-bam2mid.sh
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\bam2mid.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 :NOBAM2MID
