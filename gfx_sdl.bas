@@ -6,13 +6,14 @@
 
 option explicit
 
+#include "crt.bi"
 #include "gfx.bi"
 #include once "sdl_common.bi"
 
 DECLARE SUB gfx_sdl_set_screen_mode()
 DECLARE SUB gfx_sdl_update_screen()
 
-DIM SHARED zoom AS INTEGER = 1
+DIM SHARED zoom AS INTEGER = 2
 DIM SHARED screensurface AS SDL_Surface PTR = NULL
 DIM SHARED screenbuffer AS SDL_Surface PTR = NULL
 DIM SHARED windowedmode AS INTEGER = -1
@@ -240,22 +241,24 @@ SUB gfx_sdl_update_screen()
     SDL_SetColors(screenbuffer, @sdlpalette(0), 0, 256)
     SDL_BlitSurface(screenbuffer, @source_rect, screensurface, @dest_rect)
     IF zoom > 1 THEN
-      DIM AS INTEGER x, y, b, pitch, bpp, src, dest, px, py
-      DIM pixels AS ubyte PTR
-      SDL_LockSurface(screensurface)
+      DIM AS INTEGER x, y, b, z, pitch, bpp, pixels
+      DIM pixelptr AS ubyte PTR
       pitch = screensurface->pitch
       bpp = screensurface->format->BytesPerPixel
-      pixels = screensurface->pixels
+      DIM zoombuffer(pitch) AS ubyte
+      SDL_LockSurface(screensurface)
+      pixelptr = screensurface->pixels
       FOR y = 199 TO 0 STEP -1
-        FOR x = 319 TO 0 STEP -1
-          FOR b = 0 TO bpp - 1
-            FOR py = 0 to zoom - 1
-              FOR px = 0 to zoom - 1
-                pixels[(y * zoom + py) * pitch + ((x * zoom + px) * bpp + b)] = pixels[y * pitch + (x * bpp + b)]
-              NEXT px
-            NEXT py
-          NEXT b
-        NEXT x
+       FOR x = 0 TO 319
+         FOR z = 0 TO zoom - 1
+           FOR b = 0 TO bpp - 1
+             zoombuffer((x * zoom + z) * bpp + b) = pixelptr[y * pitch + (x * bpp + b)]
+           NEXT b
+         NEXT z
+       NEXT x
+       FOR z = 0 TO zoom - 1
+         memcpy pixelptr + (y * zoom + z) * pitch, @zoombuffer(0), pitch
+       NEXT z
       NEXT y
       SDL_UnlockSurface(screensurface)
     END IF
