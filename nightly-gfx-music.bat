@@ -24,6 +24,10 @@ IF NOT %1==alleg GOTO skipgfxalleg
 support\zip -q distrib\ohrrpgce-wip-%1-%2.zip alleg40.dll
 :skipgfxalleg
 
+IF NOT %1==sdl GOTO skipgfxsdl
+support\zip -q distrib\ohrrpgce-wip-%1-%2.zip SDL.dll
+:skipgfxsdl
+
 IF NOT %2==allegro GOTO skipmusalleg
 support\zip -q distrib\ohrrpgce-wip-%1-%2.zip alleg40.dll
 :skipmusalleg

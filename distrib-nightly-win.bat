@@ -63,6 +63,12 @@ call makegame-gfx-music alleg allegro
 call makeedit-gfx-music alleg allegro
 call nightly-gfx-music alleg allegro
 
+del game*.exe
+del custom*.exe
+call makegame-gfx-music sdl sdl
+call makeedit-gfx-music sdl sdl
+call nightly-gfx-music sdl sdl
+
 Echo upload plotdict.xml
 pscp -i C:\progra~1\putty\id_rsa.ppk docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
 
