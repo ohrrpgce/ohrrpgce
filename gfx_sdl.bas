@@ -226,9 +226,9 @@ END SUB
 SUB gfx_showpage(byval raw as ubyte ptr)
   'takes a pointer to raw 8-bit data at 320x200
   IF screenbuffer = NULL THEN
-    screenbuffer = SDL_CreateRGBSurfaceFrom(raw, 320, 200, 8, 320, &hff000000, &h00ff0000, &h0000ff00, &h000000ff)
+    screenbuffer = SDL_CreateRGBSurfaceFrom(raw, 320 * zoom, 200 * zoom, 8, 320, &hff000000, &h00ff0000, &h0000ff00, &h000000ff)
     IF screenbuffer = NULL THEN
-      print "Failed to allocate screen buffer"
+      print "Failed to allocate screen buffer " & 320 * zoom & "x" & 200 * zoom
       SYSTEM
     END IF
   END IF
@@ -236,10 +236,29 @@ SUB gfx_showpage(byval raw as ubyte ptr)
 END SUB
 
 SUB gfx_sdl_update_screen()
-
   IF screenbuffer <> NULL and screensurface <> NULL THEN
     SDL_SetColors(screenbuffer, @sdlpalette(0), 0, 256)
     SDL_BlitSurface(screenbuffer, @source_rect, screensurface, @dest_rect)
+    IF zoom > 1 THEN
+      DIM AS INTEGER x, y, b, pitch, bpp, src, dest, px, py
+      DIM pixels AS ubyte PTR
+      SDL_LockSurface(screensurface)
+      pitch = screensurface->pitch
+      bpp = screensurface->format->BytesPerPixel
+      pixels = screensurface->pixels
+      FOR y = 199 TO 0 STEP -1
+        FOR x = 319 TO 0 STEP -1
+          FOR b = 0 TO bpp - 1
+            FOR py = 0 to zoom - 1
+              FOR px = 0 to zoom - 1
+                pixels[(y * zoom + py) * pitch + ((x * zoom + px) * bpp + b)] = pixels[y * pitch + (x * bpp + b)]
+              NEXT px
+            NEXT py
+          NEXT b
+        NEXT x
+      NEXT y
+      SDL_UnlockSurface(screensurface)
+    END IF
     SDL_Flip(screensurface)
     SDL_PumpEvents()
   END IF
@@ -280,7 +299,14 @@ SUB gfx_windowtitle(title as string)
 END SUB
 
 SUB gfx_setoption(opt as string, byval value as integer = -1)
-  'ignore all options for now...
+  IF opt = "zoom" THEN
+    IF value >= 1 AND value <= 4 THEN
+      zoom = value
+      IF sdl_init_done THEN
+        gfx_sdl_set_screen_mode()
+      END IF
+    END IF
+  END IF
 END SUB
 
 SUB io_init
