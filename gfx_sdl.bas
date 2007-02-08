@@ -9,6 +9,8 @@ option explicit
 #include "gfx.bi"
 #include once "sdl_common.bi"
 
+DECLARE SUB gfx_sdl_update_screen()
+
 DIM SHARED zoom AS INTEGER = 1
 DIM SHARED screensurface AS SDL_Surface PTR = NULL
 DIM SHARED screenbuffer AS SDL_Surface PTR = NULL
@@ -16,7 +18,7 @@ DIM SHARED screenrect AS SDL_Rect
 DIM SHARED windowedmode AS INTEGER = -1
 DIM SHARED keystate AS Uint8 PTR = NULL
 DIM SHARED sdljoystick AS SDL_Joystick PTR = NULL
-DIM SHARED sdlpalette(256) AS SDL_Color PTR
+DIM SHARED sdlpalette(0 TO 255) AS SDL_Color
 
 SUB gfx_init()
   IF sdl_init_done = 0 THEN
@@ -41,9 +43,6 @@ SUB gfx_close()
   IF screenbuffer <> NULL THEN SDL_FreeSurface(screenbuffer)
   IF sdljoystick <> NULL THEN SDL_JoystickClose(sdljoystick)
   DIM i AS INTEGER
-  FOR i = 0 to 255
-    IF sdlpalette(i) = NULL THEN DEALLOCATE(sdlpalette(i))
-  NEXT i
   SDL_VideoQuit()
   SDL_Quit()
 END SUB
@@ -57,20 +56,26 @@ SUB gfx_showpage(byval raw as ubyte ptr)
       SYSTEM
     END IF
   END IF
-  SDL_SetColors(screenbuffer, sdlpalette(0), 0, 256)
-  SDL_BlitSurface(screenbuffer, @screenrect, screensurface, @screenrect)
+  gfx_sdl_update_screen()
+END SUB
+
+SUB gfx_sdl_update_screen()
+  IF screenbuffer <> NULL and screensurface <> NULL THEN
+    SDL_SetColors(screenbuffer, @sdlpalette(0), 0, 256)
+    SDL_BlitSurface(screenbuffer, @screenrect, screensurface, @screenrect)
+    SDL_Flip(screensurface)
+    SDL_PumpEvents()
+  END IF
 END SUB
 
 SUB gfx_setpal(pal() as RGBcolor)
   DIM i AS INTEGER
   FOR i = 0 TO 255
-    IF sdlpalette(i) = NULL THEN
-      sdlpalette(i) = ALLOCATE(SIZEOF(SDL_Color))
-    END IF
-    sdlpalette(i)->r = pal(i).r
-    sdlpalette(i)->g = pal(i).g
-    sdlpalette(i)->b = pal(i).b
+    sdlpalette(i).r = pal(i).r
+    sdlpalette(i).g = pal(i).g
+    sdlpalette(i).b = pal(i).b
   NEXT
+  gfx_sdl_update_screen()
 END SUB
 
 FUNCTION gfx_screenshot(fname as string, byval page as integer) as integer
