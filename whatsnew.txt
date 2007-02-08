@@ -170,6 +170,8 @@ WHAT IS NEW?
     * New internal master palette format has higher colour precision: 8 bits
       instead of 6, and multiple palettes [Ralph]
     * Cool experimental gfx_smooth2x graphics backend [Reaxor Jones]
+    * Experimental gfx_sdl graphics backend (may eventually become default
+      on Linux) [James Paige]
 
 July 09 2006 [hasta-la-qb]
   * This is the final version to support a real DOS version (GAME-QB and
