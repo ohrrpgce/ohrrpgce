@@ -14,7 +14,6 @@ declare sub gfx_setoption(opt as string, byval value as integer = -1)
 
 declare sub io_init()
 declare sub io_updatekeys(keybd() as integer)
-declare function io_keypressed(byval scancode as integer) as integer
 declare function io_enablemouse() as integer
 declare sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
 declare sub io_setmouse(byval x as integer, byval y as integer)

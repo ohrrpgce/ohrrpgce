@@ -23,27 +23,6 @@ DIM SHARED sdlpalette(0 TO 255) AS SDL_Color
 DIM SHARED source_rect AS SDL_Rect
 DIM SHARED dest_rect AS SDL_Rect
 
-'Translate an OHR scancode to an SDL one 
-'FIXME: keytrans is useless and can be removed once io_keypressed is removed
-DIM SHARED keytrans(0 to 127) AS INTEGER => { _
-	0, SDLK_ESCAPE, SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, _
-	SDLK_7, SDLK_8, SDLK_9, SDLK_0, SDLK_MINUS, SDLK_EQUALS, SDLK_BACKSPACE, SDLK_TAB, _
-	SDLK_Q, SDLK_W, SDLK_E, SDLK_R, SDLK_T, SDLK_Y, SDLK_U, SDLK_I, _
-	SDLK_O, SDLK_P, SDLK_LEFTBRACKET, SDLK_RIGHTBRACKET, SDLK_RETURN, SDLK_LCTRL, SDLK_A, SDLK_S, _
-	SDLK_D, SDLK_F, SDLK_G, SDLK_H, SDLK_J, SDLK_K, SDLK_L, SDLK_SEMICOLON, _
-	SDLK_QUOTE, SDLK_BACKQUOTE, SDLK_LSHIFT, SDLK_BACKSLASH, SDLK_Z, SDLK_X, SDLK_C, SDLK_V, _
-	SDLK_B, SDLK_N, SDLK_M, SDLK_COMMA, SDLK_PERIOD, SDLK_SLASH, SDLK_RSHIFT, SDLK_ASTERISK, _
-	SDLK_LALT, SDLK_SPACE, SDLK_CAPSLOCK, SDLK_F1, SDLK_F2, SDLK_F3, SDLK_F4, SDLK_F5, _
-	SDLK_F6, SDLK_F7, SDLK_F8, SDLK_F9, SDLK_F10, SDLK_NUMLOCK, SDLK_SCROLLOCK, SDLK_HOME, _
-	SDLK_UP, SDLK_PAGEUP, 0, SDLK_LEFT, 0, SDLK_RIGHT, SDLK_KP_PLUS, SDLK_END, _
-	SDLK_DOWN, SDLK_PAGEDOWN, SDLK_INSERT, SDLK_DELETE, 0, 0, 0, SDLK_F11, _
-	SDLK_F12, 0, 0, 0, 0, 0, 0, 0, _
-	0, 0, 0, 0, 0, 0, 0, 0, _
-	0, 0, 0, 0, 0, 0, 0, 0, _
-	0, 0, 0, 0, 0, 0, 0, 0, _
-	0, 0, 0, 0, 0, SDLK_UNKNOWN, SDLK_UNKNOWN, SDLK_UNKNOWN _
-}
-
 'Translate SDL scancodes into a OHR scancodes
 DIM SHARED scantrans(0 to 322) AS INTEGER
 scantrans(SDLK_UNKNOWN) = 0
@@ -327,13 +306,8 @@ SUB io_updatekeys(keybd() as integer)
       END IF
     END IF
   NEXT
+  SDL_PumpEvents()
 END SUB
-
-FUNCTION io_keypressed(byval sccode as integer)
-  'FIXME: this is not called anywhere. remove from all backends
-  keystate = SDL_GetKeyState(NULL)
-  io_keypressed = keystate[keytrans(sccode)]
-END FUNCTION
 
 FUNCTION io_enablemouse() as integer
   'FIXME: this is unneeded. It was originally for DOS mouse init voodoo

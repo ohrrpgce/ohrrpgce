@@ -236,15 +236,6 @@ sub io_updatekeys(keybd() as integer)
 	next
 end sub
 
-function io_keypressed(byval scancode as integer)
-'the contract of this function is basically the same as multikey
-'in this case it's just a wrapper, but multikey only works with
-'the built-in gfxlib
-	dim ret as integer = multikey(scancode)
-	'debug "key(" & scancode & ") = " & ret
-	return ret
-end function
-
 function io_enablemouse() as integer
 'returns 0 if mouse okay
 	'This fails if mouse is outside window, so just always return 0
