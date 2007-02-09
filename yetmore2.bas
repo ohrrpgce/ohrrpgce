@@ -97,6 +97,7 @@ DECLARE SUB savemapstate_npcl(mapnum%, prefix$)
 DECLARE SUB savemapstate_npcd(mapnum%, prefix$)
 DECLARE SUB savemapstate_tilemap(mapnum%, prefix$)
 DECLARE SUB savemapstate_passmap(mapnum%, prefix$)
+DECLARE SUB freescripts (mem%)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -437,7 +438,7 @@ RETRACE
 END SUB
 
 SUB setScriptArg (arg, value)
- IF scrat(nowscript).args > arg THEN
+ IF script(scrat(nowscript).scrnum).args > arg THEN
   heap(scrat(nowscript).heap + arg) = value
  END IF
 END SUB
@@ -947,3 +948,25 @@ FUNCTION decodetrigger (trigger, trigtype)
   END IF
  END IF
 END FUNCTION
+
+SUB killallscripts
+'this kills all running scripts.
+'for use in cases of massive errors, quiting to titlescreen or loading a game.
+
+ FOR i = nowscript TO 0 STEP -1 
+  IF scrat(i).scrnum > -1 THEN script(scrat(i).scrnum).refcount -= 1
+ NEXT
+ nowscript = -1
+
+ releasestack
+ setupstack
+
+END SUB
+
+SUB resetinterpreter
+'unload all scripts and wipe interpreter state. use when quitting the game.
+
+ killallscripts
+
+ freescripts(0)
+END SUB

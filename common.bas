@@ -815,6 +815,16 @@ NEXT
 read32bitstring$ = result$
 END FUNCTION
 
+FUNCTION read32bitstring$ (stringptr as integer ptr)
+result$ = ""
+word = stringptr[1]
+FOR i = 1 TO stringptr[0]
+ result$ += CHR$(word AND 255)
+ IF i MOD 4 = 0 THEN word = stringptr[i \ 4 + 1] ELSE word = word SHR 8
+NEXT
+read32bitstring$ = result$
+END FUNCTION
+
 FUNCTION readbadgenericname$ (index, filename$, recsize, offset, size, skip)
 
 '--clobbers buffer!

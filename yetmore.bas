@@ -88,6 +88,8 @@ DECLARE FUNCTION scriptstate$ ()
 DECLARE FUNCTION decodetrigger (trigger%, trigtype%)
 DECLARE SUB loadglobalvars (slot%, first%, last%)
 DECLARE SUB saveglobalvars (slot%, first%, last%)
+DECLARE FUNCTION loadscript% (n%)
+DECLARE SUB killallscripts ()
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -413,13 +415,22 @@ FUNCTION functiondone
 
 '--if the finishing script is at the top of the script buffer,
 '--then nextscroff needs to be changed
-IF scrat(nowscript).size <> 0 THEN nextscroff = scrat(nowscript).off
+'IF scrat(nowscript).size <> 0 THEN nextscroff = scrat(nowscript).off
 
+script(scrat(nowscript).scrnum).refcount -= 1
 nowscript = nowscript - 1
 
 IF nowscript < 0 THEN
  functiondone = 1'--no scripts are running anymore
 ELSE
+ 'check if script needs reloading
+ IF scrat(nowscript).scrnum = -1 THEN
+  scrat(nowscript).scrnum = loadscript(scrat(nowscript).id)
+  script(scrat(nowscript).scrnum).totaluse += 1
+  script(scrat(nowscript).scrnum).refcount += 1
+ END IF
+ scriptctr += 1
+ script(scrat(nowscript).scrnum).lastuse = scriptctr
  IF scrat(nowscript).state < 0 THEN
   '--suspended script is resumed
   scrat(nowscript).state = ABS(scrat(nowscript).state)
@@ -435,16 +446,20 @@ END FUNCTION
 
 FUNCTION functionread
 'returns false normally, true when it should terminate
+DIM as integer ptr cmdptr = script(scrat(nowscript).scrnum).ptr + scrat(nowscript).ptr
 functionread = 0
 scriptret = 0'--default returnvalue is zero
-scrat(nowscript).curkind = script(scrat(nowscript).off + scrat(nowscript).ptr)
-scrat(nowscript).curvalue = script(scrat(nowscript).off + scrat(nowscript).ptr + 1)
-scrat(nowscript).curargc = script(scrat(nowscript).off + scrat(nowscript).ptr + 2)
+scrat(nowscript).curkind = cmdptr[0]
+scrat(nowscript).curvalue = cmdptr[1]
+scrat(nowscript).curargc = cmdptr[2]
 scrat(nowscript).curargn = 0
 'scriptdump "functionread"
 SELECT CASE scrat(nowscript).curkind
  CASE tystop
-  scripterr "interpretloop encountered noop": nowscript = -1: functionread = -1: EXIT FUNCTION
+  scripterr "interpretloop encountered noop"
+  killallscripts
+  functionread = -1
+  EXIT FUNCTION
  CASE tynumber
   scriptret = scrat(nowscript).curvalue
   scrat(nowscript).state = streturn'---return
@@ -1639,12 +1654,12 @@ SELECT CASE AS CONST id
  CASE 250'--set money
   IF retvals(0) >= 0 THEN gold = retvals(0)
  CASE 251'--setstringfromtable
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND scrat(nowscript).strtable THEN
-   plotstr(retvals(0)).s = read32bitstring$(script(), scrat(nowscript).off + scrat(nowscript).strtable + retvals(1))
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND script(scrat(nowscript).scrnum).strtable THEN
+   plotstr(retvals(0)).s = read32bitstring$(script(scrat(nowscript).scrnum).ptr + script(scrat(nowscript).scrnum).strtable + retvals(1))
   END IF
  CASE 252'--appendstringfromtable
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND scrat(nowscript).strtable THEN
-   plotstr(retvals(0)).s += read32bitstring$(script(), scrat(nowscript).off + scrat(nowscript).strtable + retvals(1))
+  IF retvals(0) >= 0 AND retvals(0) <= 31 AND script(scrat(nowscript).scrnum).strtable THEN
+   plotstr(retvals(0)).s += read32bitstring$(script(scrat(nowscript).scrnum).ptr + script(scrat(nowscript).scrnum).strtable + retvals(1))
   END IF
  CASE 256'--suspendmapmusic
   setbit gen(), 44, suspendambientmusic, 1
@@ -1889,7 +1904,7 @@ SUB scriptwatcher (mode)
 
 'Note: the colours here are fairly arbitrary
 rectangle 0, 0, 320, 4, uilook(uiBackground), dpage
-rectangle 0, 0, (320 / 4096) * nextscroff, 2, uilook(uiSelectedItem), dpage
+rectangle 0, 0, (320 / scriptmemMax) * totalscrmem, 2, uilook(uiSelectedItem), dpage
 rectangle 0, 2, (320 / 2048) * scrat(nowscript + 1).heap, 2, uilook(uiSelectedItem + 1), dpage
 
 ol = 192
@@ -1933,7 +1948,7 @@ pushdw scrat(nowscript).curvalue
 pushdw scrat(nowscript).curargc
 pushdw scrat(nowscript).curargn
 '--set script pointer to new offset
-scrat(nowscript).ptr = script(scrat(nowscript).off + scrat(nowscript).ptr + 3 + scrat(nowscript).curargn)
+scrat(nowscript).ptr = script(scrat(nowscript).scrnum).ptr[scrat(nowscript).ptr + 3 + scrat(nowscript).curargn]
 scrat(nowscript).state = stread '---read new statement
 END SUB
 

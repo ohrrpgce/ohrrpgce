@@ -73,13 +73,15 @@ EXTERN npc() as NPCInst
 EXTERN inventory() as InventSlot
 
 'Script globals
-EXTERN script()
+EXTERN script() as ScriptData
 EXTERN heap()
 EXTERN scrat() as ScriptInst
 EXTERN retvals()
 EXTERN nowscript
 EXTERN scriptret
-EXTERN nextscroff
+EXTERN numloadedscr
+EXTERN totalscrmem
+EXTERN scriptctr
 
 'Script string globals
 'EXTERN plotstring$()

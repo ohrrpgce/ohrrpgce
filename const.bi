@@ -88,6 +88,7 @@ CONST fixWeapPoints  = 1				'add defaults for weapon points
 '---Sizes (replaceable with variables when suitable)
 CONST npcdMax = 35
 CONST inventoryMax = 197	'last inventory slot num (3 doesn't divide into 200)
+CONST scriptmemMax = 65536    'in 4-byte ints (256kb)
 
 '--- Binary files in BINSIZE.BIN for getbinsize()
 CONST binATTACK = 0

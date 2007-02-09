@@ -64,6 +64,9 @@ DECLARE FUNCTION exptolevel& (level%)
 DECLARE SUB deletetemps ()
 DECLARE FUNCTION decodetrigger (trigger%, trigtype%)
 DECLARE Sub MenuSound(byval s as integer)
+DECLARE SUB freescripts (mem%)
+DECLARE FUNCTION loadscript% (n%)
+DECLARE SUB killallscripts ()
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1311,11 +1314,6 @@ FOR i = 0 TO 99
 NEXT i
 flusharray hmask(), 3, 0
 flusharray global(), 1024, 0
-FOR i = 0 TO 128
- 'macro disabled for fb0.15 compat
- 'clearobj(scrat(i))
- memset(@(scrat(i)),0,LEN(scrat(i)))
-NEXT i
 flusharray veh(), 21, 0
 flusharray sayenh(), 6, 0
 
@@ -1334,6 +1332,8 @@ loadpalette master(), gen(genMasterPal)
 
 'delete temp files that are part of the game state
 deletetemps
+
+killallscripts
 
 'ALL THE STUFF THAT MUST BE RESET
 'map,foep,gold&,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev&(40,1),names$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
@@ -1390,7 +1390,6 @@ fadeout 0, 0, 0
 END SUB
 
 FUNCTION runscript (id, index, newcall, er$, trigger)
-runscript = 1 ' --success by default...
 
 IF trigger <> 0 THEN n = decodetrigger(id, trigger) ELSE n = id
 
@@ -1402,52 +1401,78 @@ END IF
 IF index > 127 THEN
  scripterr "interpreter overloaded"
  runscript = 0 '--error
- scripterr "failed to load " + er$ + " script" + XSTR$(n)
+ scripterr "failed to load " + er$ + " script " & n
  EXIT FUNCTION
 END IF
 
 IF newcall AND index > 0 THEN
  IF n = scrat(index - 1).id AND readbit(gen(), 101, 10) = 0 THEN
   'fail quietly
-  '--scripterr "script" + XSTR$(n) + " is already running"
+  '--scripterr "script " & n & " is already running"
   runscript = 2 '--quiet failure
   EXIT FUNCTION
  END IF
 END IF
 
-loadinstead = -1
-
-'-- If we are loading a script that is already running
-'-- we can re-use it.
-FOR i = 0 TO nowscript
- IF scrat(i).id = n THEN loadinstead = i: EXIT FOR
-NEXT i
-
-'-- if the script was the last terminated it can also be reused
-IF loadinstead = -1 THEN
- IF scrat(index).id = n AND scrat(index).off = nextscroff AND scrat(index).size <> 0 THEN loadinstead = index
-END IF
-
-'erase state, pointer, return value and depth, set id
-scrat(index).state = 0
-scrat(index).ptr = 0
-scrat(index).ret = 0
-scrat(index).depth = 0
-scrat(index).id = n
-
-IF loadinstead <> -1 THEN
- '--reuse the script from memory
- IF loadinstead = index THEN
-  '--because the reloaded script will be on top of the script stack, we need to recalculate nextscroff
-  nextscroff = scrat(index).off + scrat(index).size
- ELSE
-  scrat(index).size = 0
-  scrat(index).off = scrat(loadinstead).off
-  scrat(index).vars = scrat(loadinstead).vars
-  scrat(index).args = scrat(loadinstead).args
-  scrat(index).strtable = scrat(loadinstead).strtable
+WITH scrat(index)
+ '-- Load the script (or return the reference if already loaded)
+ .scrnum = loadscript(n)
+ IF .scrnum = -1 THEN
+  '--failed to load
+  runscript = 0'--error
+  scripterr "Failed to load " + er$ + " script " & n
+  EXIT FUNCTION
  END IF
-ELSE
+ script(.scrnum).totaluse += 1
+ scriptctr += 1
+ script(.scrnum).lastuse = scriptctr
+ 'increment refcount once loading is successful
+
+ 'erase state, pointer, return value and depth, set id
+ .state = stread
+ .ptr = 0
+ .ret = 0
+ .depth = 0
+ .id = n
+ 
+ scrat(index + 1).heap = .heap + script(.scrnum).vars
+
+ IF scrat(index + 1).heap > 2048 THEN
+  scripterr "Script heap overflow"
+  runscript = 0'--error
+  scripterr "failed to load " + er$ + " script " & n
+  EXIT FUNCTION
+ END IF
+
+ FOR i = 0 TO script(.scrnum).vars - 1
+  heap(.heap + i) = 0
+ NEXT i
+
+ '--suspend the previous script...Why was I doing this?
+ IF newcall AND index > 0 THEN
+  scrat(index - 1).state *= -1
+ END IF
+
+ '--we are successful, so now its safe to increment this
+ script(.scrnum).refcount += 1
+ nowscript += 1
+
+ 'debug scriptname$(.id) & " in script(" & .scrnum & "): totaluse = " & script(.scrnum).totaluse & " refc = " & script(.scrnum).refcount & " lastuse = " & script(.scrnum).lastuse
+END WITH
+
+RETURN 1 '--success
+
+END FUNCTION
+
+FUNCTION loadscript (n)
+ DIM thisscr as ScriptData
+ DIM temp as short
+
+ '-- Check if this script has already been loaded into memory
+ FOR i = 0 TO 127
+  IF script(i).id = n THEN RETURN i
+ NEXT
+
  '--load the script from file
  IF isfile(workingdir$ + SLASH + STR$(n) + ".hsz") THEN
   scriptfile$ = workingdir$ + SLASH + STR$(n) + ".hsz"
@@ -1456,109 +1481,164 @@ ELSE
  END IF
 
  IF NOT isfile(scriptfile$) THEN
-  runscript = 0'--error
   scripterr "script id " + STR$(n) + " does not exist"
-  EXIT FUNCTION
+  RETURN -1
  END IF
 
- IF scriptfile$ <> "" THEN
-  DIM temp as short
+ '--may have to free some loaded scripts before we have a free script() slot
+ WITH thisscr
 
   f = FREEFILE
   OPEN scriptfile$ FOR BINARY AS #f
+
   GET #f, 1, temp
   skip = temp
+
   GET #f, 3, temp
   'some HSX files seem to have an illegal negative number of variables
-  scrat(index).vars = temp
-  scrat(index).vars = large(scrat(index).vars, 0)
+  .vars = temp
+  .vars = large(.vars, 0)
+ 
   IF skip >= 6 THEN
    GET #f, 5, temp
-   scrat(index).args = temp
+   .args = temp
   ELSE
-   scrat(index).args = 999
+   .args = 999
   END IF
+
   IF skip >= 8 THEN
    GET #f, 7, temp
    scrformat = temp
   ELSE
    scrformat = 0
   END IF
-  IF scrformat = 1 THEN wordsize = 4 ELSE wordsize = 2
-  IF skip >= 10 THEN
-   GET #f, 9, temp
-   scrat(index).strtable = (temp - skip) \ wordsize
-  ELSE
-   scrat(index).strtable = 0
-  END IF
-
-  IF scrformat > 1 THEN
+  IF scrformat > 2 THEN
    scripterr "script" + XSTR$(n) + " is in an unsupported format"
    CLOSE #f
-   runscript = 0'--error
-   EXIT FUNCTION
+   RETURN -1
+  END IF
+  IF scrformat >= 1 THEN wordsize = 4 ELSE wordsize = 2
+
+  IF skip >= 12 THEN
+   GET #f, 9, .strtable
+   .strtable = (.strtable - skip) \ wordsize
+  ELSEIF skip = 10 THEN
+   GET #f, 9, temp
+   .strtable = (temp - skip) \ wordsize
+  ELSE
+   .strtable = 0
   END IF
 
-  IF nextscroff + (LOF(f) - skip) / wordsize > 4096 THEN
-   scripterr "Script buffer overflow"
+  'set an arbitrary max script buffer size (scriptmemMax in const.bi), individual scripts must also obey
+  .size = (LOF(f) - skip) \ wordsize
+  IF .size > scriptmemMax THEN
+   scripterr "Script " & n & " exceeds maximum size"
    CLOSE #f
-   runscript = 0'--error
-   scripterr "failed to load " + er$ + " script" + XSTR$(n)
-   EXIT FUNCTION
+   RETURN -1
   END IF
-  scrat(index).off = nextscroff
-  scrat(index).size = (LOF(f) - skip) / wordsize
-  nextscroff = nextscroff + scrat(index).size
 
-  '--mysterious. why can't I do this?
-  'bigstring$ = STRING$(LOF(f) - skip, 0)
-  'GET #f, 1 + skip, bigstring$
-  'str2array bigstring$, script(), scrat(index).off
+  IF .size + totalscrmem > scriptmemMax OR numloadedscr = 128 THEN
+   'debug "opps! size = " & .size & " totalscrmem = " & totalscrmem & ", calling freescripts"
+   freescripts(scriptmemMax - .size)
+  END IF
 
-  FOR i = skip TO LOF(f) - wordsize STEP wordsize
-   IF wordsize = 2 THEN
+  .ptr = allocate(.size * sizeof(integer))
+  IF .ptr = 0 THEN
+   scripterr "Could not allocate memory to load script"
+   CLOSE #f
+   RETURN -1
+  END IF
+
+  IF wordsize = 2 THEN
+   FOR i = skip TO LOF(f) - wordsize STEP wordsize
     GET #f, 1 + i, temp
-    script(scrat(index).off + ((i - skip) / wordsize)) = temp
-   ELSE
-    GET #f, 1 + i, script(scrat(index).off + ((i - skip) / wordsize))
-   END IF
-  NEXT i
+    .ptr[(i - skip) \ 2] = temp
+   NEXT
+  ELSE
+   GET #f, skip + 1, *.ptr, .size
+  END IF
   CLOSE #f
 
-  '--if any higher scripts have been overwritten, invalidate them
-  FOR i = index + 1 TO 127
-   IF scrat(i).id = 0 THEN EXIT FOR
-   IF nextscroff > scrat(i).off THEN scrat(i).id = -1 ELSE EXIT FOR
-  NEXT i
- ELSE
-  scripterr "failed to unlump " + trimpath$(scriptfile$)
- END IF
-END IF
+  .id = n
+  .refcount = 0
+  .totaluse = 0
+  .lastuse = 0
+  numloadedscr += 1
+  totalscrmem += .size
+ END WITH
 
-scrat(index + 1).heap = scrat(index).heap + scrat(index).vars
+ '--copy to an empty script() slot
+ FOR i = 0 TO 127
+  IF script(i).id = 0 THEN EXIT FOR
+ NEXT
 
-IF scrat(index + 1).heap > 2048 THEN
- scripterr "Script heap overflow"
- runscript = 0'--error
- scripterr "failed to load " + er$ + " script" + XSTR$(n)
- EXIT FUNCTION
-END IF
-
-FOR i = 1 TO scrat(index).vars
- heap(scrat(index).heap + (i - 1)) = 0
-NEXT i
-
-scrat(index).state = stread
-
-'--suspend the previous script...Why was I doing this?
-IF newcall AND index > 0 THEN
- scrat(index - 1).state = scrat(index - 1).state * -1
-END IF
-
-'--we are successful, so now its safe to increment this
-nowscript = nowscript + 1
-
+ 'macro disabled for fb 0.15 compat
+ 'copyobj(script(i), thisscr)
+ memcpy(@script(i),@thisscr,LEN(thisscr))
+ RETURN i
 END FUNCTION
+
+SUB freescripts (mem)
+'frees loaded scripts until totalscrmem <= mem (measured in 4-byte ints) (probably alot lower)
+'always frees at least one script to provide an opening in script()
+'call freescripts(0) to cleanup all scripts
+
+'give each script a score (the lower, the more likely to throw) and sort them
+'this is roughly a least recently used list
+DIM LRUlist(127, 1)
+listtail = -1
+
+FOR i = 0 TO 127
+ WITH script(i)
+  IF .id THEN
+   score = .lastuse + iif(.totaluse < 200, .totaluse, 200) - .size \ 256
+   FOR j = listtail TO 0 STEP -1
+    IF score >= LRUlist(j, 1) THEN EXIT FOR
+    LRUlist(j + 1, 0) = LRUlist(j, 0)
+    LRUlist(j + 1, 1) = LRUlist(j, 1)
+   NEXT
+   LRUlist(j + 1, 0) = i
+   LRUlist(j + 1, 1) = score
+   listtail += 1
+  END IF
+ END WITH
+ IF listtail + 1 = numloadedscr THEN EXIT FOR
+NEXT
+
+'debug "listing scripts:"
+'FOR i = 0 TO listtail
+' debug i & ": script(" & LRUlist(i, 0) & ") score = " & LRUlist(i, 1)
+' WITH script(LRUlist(i, 0))
+'  debug "id = " & .id & " " & scriptname$(.id)
+'  debug "refcount = " & .refcount
+'  debug "totaluse = " & .totaluse
+'  debug "lastuse = " & .lastuse
+'  debug "size = " & .size
+' END WITH
+'NEXT
+
+
+targetmem = mem
+IF mem > scriptmemMax \ 2 THEN targetmem = mem * (1 - 0.5 * (mem - scriptmemMax \ 2) / scriptmemMax)
+
+'debug "mem = " & mem & " target = " & targetmem
+
+FOR i = 0 TO listtail
+ WITH script(LRUlist(i, 0))
+  totalscrmem -= .size
+  numloadedscr -= 1
+  deallocate(.ptr)
+  .id = 0
+  IF .refcount THEN
+   FOR j = 0 TO nowscript
+    IF scrat(j).scrnum = LRUlist(i, 0) THEN scrat(j).scrnum = -1
+   NEXT
+  END IF
+  IF totalscrmem <= targetmem THEN EXIT SUB
+ END WITH
+NEXT
+
+END SUB
 
 SUB savegame (slot, map, foep, stat(), stock())
 

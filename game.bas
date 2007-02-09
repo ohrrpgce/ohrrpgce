@@ -154,6 +154,9 @@ DECLARE SUB dotimer(byval l as integer)
 DECLARE function dotimerbattle() as integer
 DECLARE function dotimermenu() as integer
 DECLARE sub dotimerafterbattle()
+DECLARE FUNCTION loadscript% (n%)
+DECLARE SUB resetinterpreter ()
+DECLARE SUB killallscripts ()
 
 
 '---INCLUDE FILES---
@@ -189,9 +192,6 @@ DIM font(1024), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
 DIM door(206), gen(104), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev&(40, 1), names$(40), gotj(2), veh(21)
 DIM eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
-DIM script(4096), heap(2048), global(1024), retvals(32)
-DIM scrat(128) as ScriptInst
-DIM plotstr(31) as Plotstring
 DIM menu$(8), mi(8)
 
 'shared module variables
@@ -206,11 +206,16 @@ DIM npcs(npcdMax) as NPCType
 DIM npc(300) as NPCInst
 DIM didgo(0 TO 3)
 DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, tmpdir$, usepreunlump, lockfile, gold, lastsaveslot, abortg, exename$, sourcerpg$, foemaph, presentsong, framex, framey, game$, workingdir$, version$
-DIM nowscript, scriptret, nextscroff
 DIM prefsdir$
 DIM savefile$
 DIM timers(15) as timer
 DIM fatal
+
+DIM nowscript, scriptret, scriptctr, numloadedscr, totalscrmem
+DIM heap(2048), global(1024), retvals(32)
+DIM scrat(128) as ScriptInst
+DIM script(128) as ScriptData
+DIM plotstr(31) as Plotstring
 
 'DEBUG debug "dim binsize arrays"
 #include "binsize.bi"
@@ -401,6 +406,13 @@ FOR i = 0 TO 254
 NEXT i
 j = 0
 
+nowscript = -1
+numloadedscr = 0
+totalscrmem = 0
+depth = 0
+releasestack
+setupstack
+
 beginplay:
 
 initgamedefaults
@@ -413,12 +425,6 @@ sayer = 0
 remembermusic = -1
 
 makebackups 'make a few backup lumps
-
-nowscript = -1
-nextscroff = 0
-depth = 0
-releasestack
-setupstack
 
 wantbox = 0
 wantdoor = 0
@@ -629,10 +635,6 @@ DO
   wantloadgame = 0
   resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
   initgamedefaults
-  nowscript = -1
-  nextscroff = 0
-  releasestack
-  setupstack
   fademusic 0
   stopsong
   fadeout 0, 0, 0
@@ -1550,6 +1552,7 @@ RETRACE
 
 resetg:
 IF autorungame THEN exitprogram (NOT abortg)
+resetinterpreter
 fademusic 0
 fadeout 0, 0, 0
 closemusic
@@ -1723,6 +1726,14 @@ END IF
 RETRACE
 
 interpretloop:
+IF scrat(nowscript).scrnum = -1 THEN
+ scrat(nowscript).scrnum = loadscript(scrat(nowscript).id)
+ IF scrat(nowscript).scrnum = -1 THEN RETRACE
+ script(scrat(nowscript).scrnum).totaluse += 1
+ script(scrat(nowscript).scrnum).refcount += 1
+END IF
+scriptctr += 1
+script(scrat(nowscript).scrnum).lastuse = scriptctr
 DO
  SELECT CASE scrat(nowscript).state
   CASE stwait'---begin waiting for something
@@ -1743,7 +1754,9 @@ DO
     '--scriptret would be set here, pushed at return
     SELECT CASE scrat(nowscript).curkind
      CASE tystop
-      scripterr "stnext encountered noop" + XSTR$(scrat(nowscript).curvalue) + " at" + XSTR$(scrat(nowscript).ptr) + " in" + XSTR$(nowscript): nowscript = -1: EXIT DO
+      scripterr "stnext encountered noop " & scrat(nowscript).curvalue & " at " & scrat(nowscript).ptr & " in " & nowscript
+      killallscripts
+      EXIT DO
      CASE tymath, tyfunct
       '--complete math and functions, nice and easy.
       FOR i = scrat(nowscript).curargc - 1 TO 0 STEP -1
@@ -1763,7 +1776,9 @@ DO
       dummy = popdw
 	  scrat(nowscript).curargn = 0
 	 CASE ELSE
-	  scripterr "while fell out of bounds, landed on" + XSTR$(scrat(nowscript).curargn): nowscript = -1: EXIT DO
+	  scripterr "while fell out of bounds, landed on " & scrat(nowscript).curargn
+          killallscripts
+          EXIT DO
 	END SELECT
        CASE flowfor'--repeat or terminate for
 	SELECT CASE scrat(nowscript).curargn
@@ -1773,7 +1788,9 @@ DO
 	  GOSUB incrementflow
 	  scrat(nowscript).curargn = 4
 	 CASE ELSE
-	  scripterr "for fell out of bounds, landed on" + XSTR$(scrat(nowscript).curargn): nowscript = -1: EXIT DO
+	  scripterr "for fell out of bounds, landed on " & scrat(nowscript).curargn
+          killallscripts
+          EXIT DO
 	END SELECT
        CASE flowreturn
 	scrat(nowscript).ret = popdw
@@ -1828,7 +1845,9 @@ DO
        scrat(nowscript).state = streturn'---return
       END IF
      CASE ELSE
-      scripterr "illegal kind" + XSTR$(scrat(nowscript).curkind) + XSTR$(scrat(nowscript).curvalue) + " in stnext": nowscript = -1: EXIT DO
+      scripterr "illegal kind " & scrat(nowscript).curkind & " " & scrat(nowscript).curvalue & " in stnext"
+      killallscripts
+      EXIT DO
     END SELECT
    ELSE
     '--flow control is special, for all else, do next arg
@@ -1949,8 +1968,9 @@ DO
           scrat(nowscript).state = streturn'---return
          END IF
 
+         DIM as integer ptr tmpptr = script(scrat(nowscript).scrnum).ptr + scrat(nowscript).ptr + 3
          WHILE doseek
-          tmpkind = script(scrat(nowscript).off + script(scrat(nowscript).off + scrat(nowscript).ptr + 3 + scrat(nowscript).curargn))
+          tmpkind = tmpptr[scrat(nowscript).curargn]
 
           IF (tmpstate = 1 AND tmpkind = tyflow) OR (tmpstate = 0 AND (tmpkind <> tyflow OR scrat(nowscript).curargn = scrat(nowscript).curargc - 1)) THEN
            '--fall into a do, execute a case, or run default (last arg)

@@ -69,6 +69,8 @@ WHAT IS NEW?
     * New commands for dealing with 32-bit colors (0-255, as opposed to 0-63)
     * Map and battle music can be set to "none" to keep playing current
       music, previous "none" option renamed to "silence" [Ralph]
+    * Script buffer overflows are a thing of the past! Only a script larger
+      than maximum size (very generous) will cause an error. [Ralph]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the

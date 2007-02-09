@@ -13,6 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3G 2007-02-09 Offset to string literal tables given as a 32-bit
+--              int, script format version++ to 2.
 --3F 2006-12-11 Support for variable number of arguments to functions
 --              by giving -1 as the number of args in the define block
 --3Ec 2006-11-30 while(true) no longer produces a warning
@@ -81,7 +83,7 @@ constant true=1
 constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
-constant COMPILER_SUB_VERSION="F"
+constant COMPILER_SUB_VERSION="G"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -149,8 +151,8 @@ constant KIND_LONGNAMES={"number"
                         }
 constant TREE_TRUNK=1
 constant TREE_BRANCHES=2
-constant CODE_START_BYTE_OFFSET=10
-constant SCRIPT_FORMAT_VERSION=1
+constant CODE_START_BYTE_OFFSET=12
+constant SCRIPT_FORMAT_VERSION=2
 
 ---------------------------------------------------------------------------
 --globals--               --initializations--
@@ -2230,7 +2232,7 @@ function binary_compile(integer id,sequence tree,sequence vars)
   string_table={}
 
   --binary data is in a mix of 16-bit and 32-bit signed words.
-  --the header is 16-bit and the data (script format version 1+) is 32-bit.
+  --the header is (mostly) 16-bit and the data (script format version 1+) is 32-bit.
 
   --output header
   --the first word is the zero-rooted byte-offset of the first executable code byte
@@ -2242,7 +2244,8 @@ function binary_compile(integer id,sequence tree,sequence vars)
   result&=output_word(length(script_list[at][FUNC_ARGS]))
   --the fourth word is the format of the command data (presently used to indicate 32-bit encoding)
   result&=output_word(SCRIPT_FORMAT_VERSION)
-  --the fifth word is pointer to the string literal table (in bytes), we don't know it yet
+  --the fifth&sixth words are a 32bit pointer to the string literal table (in bytes), we don't know it yet
+  result&=output_word(0)
   result&=output_word(0)
 
   --what follows is command data in the format [kindID,Value,argcount,argpointerlist]
@@ -2260,7 +2263,7 @@ function binary_compile(integer id,sequence tree,sequence vars)
   result&=convert_to_bytes(binary_compile_recurse(tree[1],vars,""))
   --append with a table of string literals and give its offset
   if length(string_table)>0 then
-    result[9..10]=output_word(length(result))
+    result[9..12]=int_to_bytes(length(result))
     result&=string_table
   end if
   return(result)
