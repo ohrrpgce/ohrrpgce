@@ -1708,7 +1708,7 @@ IF getfixbit(fixWeapPoints) = 0 THEN
 		GET #fh,,dat()
 		if dat(297) <> 0 OR dat(298) <> 0 OR dat(299) <> 0 OR dat(300) <> 0 THEN
 			close #fh
-			exit sub 'they already use hand points, abort!
+			goto nofixweappoints 'they already use hand points, abort!
 		end if
 	NEXT
 	
@@ -1720,7 +1720,8 @@ IF getfixbit(fixWeapPoints) = 0 THEN
 		p+=318
 	NEXT
 	close #fh
-	
+nofixweappoints:
+
 END IF
 
 'wow! this is quite a big and ugly routine!
