@@ -625,7 +625,7 @@ End Sub
 Sub ResetInternals
 		music_playing = 0
     dim erro as HRESULT
-    erro = midiStreamStop(device)
+    if device then erro = midiStreamStop(device)
     
 '     if erro then
 '       debug "midiStreamStop error"
@@ -633,8 +633,7 @@ Sub ResetInternals
 '     end if
     
     if buffer_thread then threadwait cint(buffer_thread)
-
-    erro = midiOutUnprepareHeader(device, current_head, len(MIDIHDR))
+		if current_head then erro = midiOutUnprepareHeader(device, current_head, len(MIDIHDR))
 '     if erro then
 '       debug "midiOutUnprepareHeader error"
 '       if erro = MIDIERR_STILLPLAYING then debug "The buffer is still playing"
@@ -642,7 +641,7 @@ Sub ResetInternals
 '       if erro = MMSYSERR_INVALPARAM then debug "Doesn't like the buffer."
 '     end if
     
-    erro = midiOutUnprepareHeader(device, buffer_head, len(MIDIHDR))
+    if buffer_head then erro = midiOutUnprepareHeader(device, buffer_head, len(MIDIHDR))
 '     if erro then
 '       debug "midiOutUnprepareHeader error"
 '       if erro = MIDIERR_STILLPLAYING then debug "The buffer is still playing"
