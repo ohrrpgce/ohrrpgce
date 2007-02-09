@@ -1919,15 +1919,15 @@ IF mode = 2 THEN
  NEXT
 END IF
 
-edgeprint " #     ID    Rtval CmdKn CmdID State", 0, ol, uilook(uiText), dpage
+edgeprint "# Name           Rtval CmdKn CmdID State", 0, ol, uilook(uiText), dpage
 ol -= 8
 FOR i = large(nowscript - 21, 0) TO nowscript
- edgeprint XSTR$(i), 0, ol, uilook(uiText), dpage
- edgeprint XSTR$(scrat(i).id), 48, ol, uilook(uiText), dpage
- edgeprint XSTR$(scrat(i).ret), 96, ol, uilook(uiText), dpage
- edgeprint XSTR$(scrat(i).curkind), 144, ol, uilook(uiText), dpage
- edgeprint XSTR$(scrat(i).curvalue), 192, ol, uilook(uiText), dpage
- edgeprint XSTR$(scrat(i).state), 240, ol, uilook(uiText), dpage
+ edgeprint STR$(i), 0, ol, uilook(uiText), dpage
+ edgeprint LEFT$(scriptname$(scrat(i).id), 14), 16, ol, uilook(uiText), dpage
+ edgeprint XSTR$(scrat(i).ret), 128, ol, uilook(uiText), dpage
+ edgeprint XSTR$(scrat(i).curkind), 176, ol, uilook(uiText), dpage
+ edgeprint XSTR$(scrat(i).curvalue), 224, ol, uilook(uiText), dpage
+ edgeprint XSTR$(scrat(i).state), 272, ol, uilook(uiText), dpage
  ol = ol - 8
 NEXT i
 END SUB

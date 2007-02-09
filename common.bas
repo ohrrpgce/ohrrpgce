@@ -852,7 +852,7 @@ END FUNCTION
 FUNCTION scriptname$ (num, trigger = 0)
 #ifdef IS_GAME
  'remember script names!
- STATIC cachenum, cacheids(9), cachenames$(9)
+ STATIC cachenum, cacheids(24), cachenames$(24)
  FOR i = 0 TO cachenum - 1
   IF cacheids(i) = num THEN RETURN cachenames$(i)
  NEXT
@@ -899,7 +899,7 @@ END IF
 theend:
 scriptname$ = a$
 #ifdef IS_GAME
- IF cachenum = 10 THEN cachenum = 0
+ IF cachenum = 25 THEN cachenum = 0
  cacheids(cachenum) = num
  cachenames$(cachenum) = a$
  cachenum += 1
