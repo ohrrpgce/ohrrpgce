@@ -1968,7 +1968,8 @@ DO
           scrat(nowscript).state = streturn'---return
          END IF
 
-         DIM as integer ptr tmpptr = script(scrat(nowscript).scrnum).ptr + scrat(nowscript).ptr + 3
+         DIM tmpptr as integer ptr
+         tmpptr = script(scrat(nowscript).scrnum).ptr + scrat(nowscript).ptr + 3
          WHILE doseek
           tmpkind = tmpptr[scrat(nowscript).curargn]
 
