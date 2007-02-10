@@ -2074,7 +2074,7 @@ IF readbit(veh(), 6, 2) THEN '--fall-------------------
 END IF
 IF readbit(veh(), 6, 3) THEN '--dismount---------------
  setbit veh(), 6, 3, 0
- IF vehpass(veh(20), readmapblock(disx, disy), -1) THEN
+ IF vehpass(veh(20), readmapblock(disx, disy, 0), -1) THEN
   '--dismount point is landable
   FOR i = 0 TO 15
    catx(i) = catx(0)

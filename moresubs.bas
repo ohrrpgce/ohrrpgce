@@ -1041,7 +1041,7 @@ topcorner = 160 - INT(scroll(0) * .5) * zoom
 leftcorner = 100 - INT(scroll(1) * .5) * zoom
 FOR i = 0 TO scroll(1) - 1
  FOR o = 0 TO scroll(0) - 1
-  block = readmapblock(o, i)
+  block = readmapblock(o, i, 0)
   'ignore tile animation
   IF block > 207 THEN block = (block - 207) + tastuf(20)
   IF block > 159 THEN block = (block - 159) + tastuf(0)
@@ -2039,7 +2039,7 @@ EXIT SUB
 repaintback:
 loadpage game$ + ".til", gmap(0), 3
 setmapdata scroll(), buffer(), 0, 0
-drawmap mapx, mapy, 0, dpage
+drawmap mapx, mapy,0, 0, dpage
 copypage dpage, 3
 RETRACE
 

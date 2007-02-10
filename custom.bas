@@ -1440,7 +1440,7 @@ IF gen(genVersion) = 1 THEN
   setmapdata buffer(), buffer(), 0, 0
   FOR tx = 0 TO buffer(0)
    FOR ty = 0 TO buffer(1)
-    IF readmapblock(tx, ty) = 158 THEN setmapblock tx, ty, 206
+    IF readmapblock(tx, ty, 0) = 158 THEN setmapblock tx, ty, 0, 206
    NEXT ty
   NEXT tx
   xbsave maplumpname$(i, "t"), buffer(), buffer(0) * buffer(1) + 4

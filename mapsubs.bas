@@ -73,6 +73,7 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 
 #include "const.bi"
 #include "scrconst.bi"
+#include "scancodes.bi"
 
 REM $STATIC
 
@@ -144,8 +145,12 @@ animadjust = pic
 END FUNCTION
 
 SUB mapmaker (font(), map(), pass(), emap(), doors(), link(), npc(), npcstat())
-DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 5), topmenu$(24), gmap(20), gd$(-1 TO 20), gdmax(20), gdmin(20), destdoor(300), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
+DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(20), gd$(-1 TO 20), gdmax(20), gdmin(20), destdoor(300), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
 defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
+
+DIM as integer visible(0 to 2) = {1,0,0}
+
+dim as integer layer
 
 textcolor 15, 0
 
@@ -288,9 +293,9 @@ DO
     FOR tx = 0 TO pass(0) - 1
      FOR ty = 0 TO pass(1) - 1
       setmapdata map(), pass(), 0, 0
-      n = defaults(animadjust(readmapblock(tx, ty), tastuf()))
+      n = defaults(animadjust(readmapblock(tx, ty, 0), tastuf()))
       setmapdata pass(), pass(), 0, 0
-      setmapblock tx, ty, n
+      setmapblock tx, ty, 0, n
      NEXT ty
     NEXT tx
    END IF
@@ -467,8 +472,8 @@ DO
  IF gmap(5) = 2 THEN
   '--show default edge tile
   setmapdata sampmap(), sampmap(), 180, 0
-  setmapblock 0, 0, gmap(6)
-  drawmap 0, -180, 0, dpage
+  setmapblock 0, 0, 0, gmap(6)
+  drawmap 0, -180, 0, 0, dpage
   rectangle 20, 180, 300, 20, 240, dpage
  END IF
  
@@ -495,21 +500,35 @@ setkeys
 DO
  setwait timing(), 120
  setkeys
- IF keyval(59) > 1 THEN
-  editmode = 0
- END IF
- IF keyval(60) > 1 THEN
-  editmode = 1
- END IF
- IF keyval(61) > 1 THEN
-  editmode = 2
- END IF
- IF keyval(62) > 1 THEN
-  editmode = 3
- END IF
- IF keyval(63) > 1 THEN
-  editmode = 4
- END IF
+ if keyval(scCtrl) = 0 AND keyval(scAlt) = 0 then
+	 IF keyval(59) > 1 THEN
+	  editmode = 0
+	 END IF
+	 IF keyval(60) > 1 THEN
+	  editmode = 1
+	 END IF
+	 IF keyval(61) > 1 THEN
+	  editmode = 2
+	 END IF
+	 IF keyval(62) > 1 THEN
+	  editmode = 3
+	 END IF
+	 IF keyval(63) > 1 THEN
+	  editmode = 4
+	 END IF
+ else
+ 	for i = 0 to 2
+ 		if keyval(scAlt) AND keyval(scF1 + i) AND i > 0 then setbit(gmap(), 19, i-1, readbit(gmap(), 19, i-1) xor 1): if not readbit(gmap(), 19, i-1) then visible(i) = 0: layer = 0: visible(0) = 1
+ 		if keyval(scCtrl) AND keyval(scF1 + i) then
+ 			if i = 0 then
+ 				visible(i) = visible(i) xor 1
+ 			elseif readbit(gmap(), 19, i-1) then
+ 				visible(i) = visible(i) xor 1
+ 			end if
+ 		end if
+ 	next
+ end if
+ IF keyval(29) > 0 AND keyval(38) > 1 THEN gosub layermenu'ctrl-L
  IF keyval(1) > 1 THEN RETRACE
  IF keyval(15) > 1 THEN tiny = tiny XOR 1
  SELECT CASE editmode
@@ -519,7 +538,7 @@ DO
    IF keyval(33) > 1 AND keyval(29) > 0 THEN
     FOR i = 0 TO 14
      FOR o = 0 TO 8
-      setmapblock mapx \ 20 + i, mapy \ 20 + o, pic
+      setmapblock mapx \ 20 + i, mapy \ 20 + o, layer, pic
       IF defpass THEN setpassblock mapx \ 20 + i, mapy \ 20 + o, defaults(pic)
      NEXT o
     NEXT i
@@ -529,17 +548,18 @@ DO
    IF keyval(28) > 1 THEN GOSUB pickblock
    IF keyval(57) > 0 THEN
     IF defpass THEN setpassblock x, y, defaults(pic)
-    setmapblock x, y, pic
+    setmapblock x, y, layer, pic
    END IF
    IF keyval(58) > 1 THEN 'grab tile
-    pic = animadjust(readmapblock(x, y), tastuf())
+    pic = animadjust(readmapblock(x, y, layer), tastuf())
     menu = small(pic, 145)
     by = INT(pic / 16): bx = pic - (by * 16)
    END IF
    IF keyval(29) > 0 AND keyval(32) > 1 THEN defpass = defpass XOR 1   
    FOR i = 0 TO 1
+   	FOR l = 0 to 2
     IF keyval(2 + i) > 1 THEN
-     old = readmapblock(x, y)
+     old = readmapblock(x, y, l)
      IF old > 159 + (i * 48) THEN
       new = (old - (160 + (i * 48))) + tastuf(i * 20)
      ELSE
@@ -548,15 +568,16 @@ DO
       END IF
      END IF
      IF keyval(29) = 0 THEN
-      setmapblock x, y, new
+      setmapblock x, y, l, new
      ELSE
       FOR tx = 0 TO map(0)
        FOR ty = 0 TO map(1)
-	IF readmapblock(tx, ty) = old THEN setmapblock tx, ty, new
+				IF readmapblock(tx, ty, l) = old THEN setmapblock tx, ty, l, new
        NEXT ty
       NEXT tx
      END IF
     END IF
+    Next l
    NEXT i
    IF keyval(51) > 0 AND pic > 0 THEN
     pic = pic - 1: bx = bx - 1
@@ -571,20 +592,20 @@ DO
    '---PASSMODE-------
   CASE 1
    setmapdata pass(), pass(), 20, 0
-   over = readmapblock(x, y)
-   IF keyval(57) > 1 AND (over AND 15) = 0 THEN setmapblock x, y, 15
-   IF keyval(57) > 1 AND (over AND 15) = 15 THEN setmapblock x, y, 0
-   IF keyval(57) > 1 AND (over AND 15) > 0 AND (over AND 15) < 15 THEN setmapblock x, y, 0
+   over = readmapblock(x, y, 0)
+   IF keyval(57) > 1 AND (over AND 15) = 0 THEN setmapblock x, y, 0, 15
+   IF keyval(57) > 1 AND (over AND 15) = 15 THEN setmapblock x, y, 0, 0
+   IF keyval(57) > 1 AND (over AND 15) > 0 AND (over AND 15) < 15 THEN setmapblock x, y, 0, 0
    IF keyval(29) > 0 THEN
-    IF keyval(72) > 1 THEN setmapblock x, y, (over XOR 1)
-    IF keyval(77) > 1 THEN setmapblock x, y, (over XOR 2)
-    IF keyval(80) > 1 THEN setmapblock x, y, (over XOR 4)
-    IF keyval(75) > 1 THEN setmapblock x, y, (over XOR 8)
+    IF keyval(72) > 1 THEN setmapblock x, y, 0, (over XOR 1)
+    IF keyval(77) > 1 THEN setmapblock x, y, 0, (over XOR 2)
+    IF keyval(80) > 1 THEN setmapblock x, y, 0, (over XOR 4)
+    IF keyval(75) > 1 THEN setmapblock x, y, 0, (over XOR 8)
    END IF
-   IF keyval(30) > 1 THEN setmapblock x, y, (over XOR 16) 'vehicle A
-   IF keyval(48) > 1 THEN setmapblock x, y, (over XOR 32) 'vehicle B
-   IF keyval(35) > 1 THEN setmapblock x, y, (over XOR 64) 'harm tile
-   IF keyval(24) > 1 THEN setmapblock x, y, (over XOR 128)'overhead
+   IF keyval(30) > 1 THEN setmapblock x, y, 0, (over XOR 16) 'vehicle A
+   IF keyval(48) > 1 THEN setmapblock x, y, 0, (over XOR 32) 'vehicle B
+   IF keyval(35) > 1 THEN setmapblock x, y, 0, (over XOR 64) 'harm tile
+   IF keyval(24) > 1 THEN setmapblock x, y, 0, (over XOR 128)'overhead
    '---DOORMODE-----
   CASE 2
    IF keyval(57) > 1 THEN
@@ -639,17 +660,17 @@ DO
   CASE 4
    IF keyval(51) > 0 THEN foe = loopvar(foe, 0, 255, -1)
    IF keyval(52) > 0 THEN foe = loopvar(foe, 0, 255, 1)
-   IF keyval(57) > 0 THEN setmapdata emap(), pass(), 20, 0: setmapblock x, y, foe: setmapdata map(), pass(), 20, 0
+   IF keyval(57) > 0 THEN setmapdata emap(), pass(), 20, 0: setmapblock x, y, 0, foe: setmapdata map(), pass(), 20, 0
    IF keyval(33) > 1 AND keyval(29) > 0 THEN
     setmapdata emap(), pass(), 20, 0
     FOR i = 0 TO 14
      FOR o = 0 TO 8
-      setmapblock INT(mapx / 20) + i, INT(mapy / 20) + o, foe
+      setmapblock INT(mapx / 20) + i, INT(mapy / 20) + o, 0, foe
      NEXT o
     NEXT i
     setmapdata map(), pass(), 20, 0
    END IF
-   IF keyval(58) > 1 THEN foe = readmapblock(x, y): menu = pic: by = INT(pic / 15): bx = pic - (by * 16)
+   IF keyval(58) > 1 THEN foe = readmapblock(x, y, 0): menu = pic: by = INT(pic / 15): bx = pic - (by * 16)
    '--done input-modes-------
  END SELECT
  
@@ -668,13 +689,40 @@ DO
   IF keyval(75) > 0 AND mapx > 0 THEN mapx = mapx - 20: x = x - 1
   IF keyval(77) > 0 AND mapx < ((wide + 1) * 20) - 320 THEN mapx = mapx + 20: x = x + 1
  END IF
+ 
+ IF keyval(scPageup) > 1 then
+ 	for i = layer+1 to 2
+ 		if readbit(gmap(), 19, i-1) then
+ 			layer = i
+ 			visible(i) = 1
+ 			exit for
+ 		end if
+ 	next
+ end if
+ 	 
+ IF keyval(scPageDown) > 1 then
+ 	for i = layer-1 to 0 step -1
+ 		if i > 0 THEN
+ 			if readbit(gmap(), 19, i-1) then
+	 			layer = i
+	 			visible(i) = 1
+	 			exit for
+	 		end if
+	 	ELSE
+	 		layer = i
+	 		visible(i) = 1
+	 		exit for
+ 		end if
+ 	next
+ end if
+ 
  tog = tog XOR 1
  flash = loopvar(flash, 0, 3, 1)
  
  '--draw menubar
  IF editmode = 0 THEN
   setmapdata menubar(), pass(), 0, 180
-  drawmap menu * 20, 0, 0, dpage
+  drawmap menu * 20, 0, 0, 0, dpage
  ELSE
   rectangle 0, 0, 320, 20, 0, dpage
  END IF
@@ -683,14 +731,18 @@ DO
  setmapdata map(), pass(), 20, 0
  setanim tastuf(0) + cycle(0), tastuf(20) + cycle(1)
  cycletile cycle(), tastuf(), cycptr(), cycskip()
- drawmap mapx, mapy - 20, 0, dpage
+ rectangle 0, 20, 320, 180, 0, dpage
+ for i = 0 to 2
+ 	if visible(i) then drawmap mapx, mapy - 20, i, 0, dpage, i <> 0
+ next
+
  
  '--show passmode overlay
  IF editmode = 1 THEN
   setmapdata pass(), pass(), 20, 0
   FOR o = 0 TO 8
    FOR i = 0 TO 15
-    over = readmapblock(INT(mapx / 20) + i, INT(mapy / 20) + o)
+    over = readmapblock(INT(mapx / 20) + i, INT(mapy / 20) + o, 0)
     IF (over AND 1) THEN rectangle i * 20, o * 20 + 20, 20, 3, 7 + tog, dpage
     IF (over AND 2) THEN rectangle i * 20 + 17, o * 20 + 20, 3, 20, 7 + tog, dpage
     IF (over AND 4) THEN rectangle i * 20, o * 20 + 37, 20, 3, 7 + tog, dpage
@@ -761,14 +813,15 @@ DO
   textcolor 14 + tog, 0
   FOR i = 0 TO 14
    FOR o = 0 TO 8
-    temp = readmapblock(INT(mapx / 20) + i, INT(mapy / 20) + o)
+    temp = readmapblock(INT(mapx / 20) + i, INT(mapy / 20) + o, 0)
     IF temp > 0 THEN printstr STR$(temp), i * 20 - ((temp < 10) * 5), o * 20 + 26, dpage
    NEXT o
   NEXT i
  END IF
  
  textcolor 14 + tog, 0
- printstr "X" + XSTR$(x) + "   Y" + XSTR$(y), 0, 192, dpage
+ printstr "Layer " & layer, 0, 180, dpage
+ printstr "X " & x & "   Y " & y, 0, 192, dpage
  setmapdata map(), pass(), 20, 0
  rectangle 300, 0, 20, 200, 0, dpage
  rectangle 0, 19, 320, 1, 15, dpage
@@ -906,12 +959,15 @@ IF yesno = 1 THEN
  map(0) = 32: map(1) = 20
  pass(0) = 32: pass(1) = 20
  emap(0) = 32: emap(1) = 20
- FOR i = 2 TO 16002
+ FOR i = 2 TO ubound(map)
   rectangle INT(i * .02), 180, 2, 10, 15, vpage
   map(i) = 0
-  pass(i) = 0
-  emap(i) = 0
  NEXT i
+ for i = 2 to 16002
+ 	rectangle INT(i * .02), 180, 2, 10, 0, vpage
+ 	pass(i) = 0
+  emap(i) = 0
+ next
  '---FLUSH DOOR LINKS---
  FOR i = 0 TO 1000
   link(i) = 0
@@ -926,7 +982,7 @@ IF yesno = 1 THEN
   doors(i + 100) = 0
   doors(i + 200) = 0
  NEXT
- xBSAVE maplumpname$(pt, "t"), map(), map(0) * map(1) + 4
+ xBSAVE maplumpname$(pt, "t"), map(), map(0) * map(1) * 3 + 4
  xBSAVE maplumpname$(pt, "p"), pass(), pass(0) * pass(1) + 4
  xBSAVE maplumpname$(pt, "e"), emap(), emap(0) * emap(1) + 4
  xBSAVE maplumpname$(pt, "d"), link(), 2000
@@ -937,6 +993,8 @@ END IF
 '--reset scroll position
 wide = map(0): high = map(1)
 x = 0: y = 0: mapx = 0: mapy = 0
+layer = 0
+visible(0) = 1: visible(1) = 0: visible(2) = 0
 RETRACE
 
 addmap:
@@ -975,7 +1033,7 @@ map(0) = 64: map(1) = 64
 pass(0) = 64: pass(1) = 64
 emap(0) = 64: emap(1) = 64
 '--save map buffers
-xBSAVE maplumpname$(gen(0), "t"), map(), map(0) * map(1) + 4
+xBSAVE maplumpname$(gen(0), "t"), map(), map(0) * map(1) * 3 + 4
 xBSAVE maplumpname$(gen(0), "p"), pass(), pass(0) * pass(1) + 4
 xBSAVE maplumpname$(gen(0), "e"), emap(), emap(0) * emap(1) + 4
 xBSAVE maplumpname$(gen(0), "d"), link(), 2000
@@ -992,7 +1050,7 @@ RETRACE
 savemap:
 setpicstuf gmap(), 40, -1
 storeset game$ + ".map", pt, 0
-xBSAVE maplumpname$(pt, "t"), map(), map(0) * map(1) + 4
+xBSAVE maplumpname$(pt, "t"), map(), map(0) * map(1) * 3 + 4
 xBSAVE maplumpname$(pt, "p"), pass(), pass(0) * pass(1) + 4
 xBSAVE maplumpname$(pt, "e"), emap(), emap(0) * emap(1) + 4
 xBSAVE maplumpname$(pt, "l"), npc(), 3000
@@ -1010,6 +1068,10 @@ RETRACE
 loadmap:
 setpicstuf gmap(), 40, -1
 loadset game$ + ".map", pt, 0
+visible(0) = 1
+for i = 0 to 1
+	visible(i + 1) = readbit(gmap(), 19, i)
+next
 loadpage game$ + ".til", gmap(0), 3
 loadtanim gmap(0), tastuf()
 FOR i = 0 TO 1
@@ -1026,6 +1088,7 @@ xbload maplumpname$(pt, "d"), link(), "doorlink lump is missing!"
 setpicstuf doors(), 600, -1
 loadset game$ + ".dox", pt, 0
 wide = map(0): high = map(1)
+if ubound(map) < wide * high * 3 + 1 then redim preserve map(wide*high*3+1) 'three layers + 2 fields - 1 offset
 mapname$ = getmapname$(pt)
 loadpasdefaults defaults(), gmap(0)
 GOSUB verifymap
@@ -1085,7 +1148,7 @@ RETRACE
 loadmenu:
 setmapdata menubar(), pass(), 180, 0
 FOR i = 0 TO 159
- setmapblock i, 0, i
+ setmapblock i, 0, 0, i
 NEXT
 RETRACE
 
@@ -1185,7 +1248,7 @@ IF doors(link(cur + (0 * 200)) + 200) = 1 THEN
  dmy = doors(link(cur + (0 * 200)) + 100) * 20 - 65
  dmx = small(large(dmx, 0), map(0) * 20 - 320)
  dmy = small(large(dmy, 0), map(1) * 20 - 100)
- drawmap dmx, dmy, 0, 2
+ drawmap dmx, dmy, 0, 0, 2
  rectangle doors(link(cur + (0 * 200))) * 20 - dmx, doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 20, 20, 20, 240, 2
  rectangle 1 + doors(link(cur + (0 * 200))) * 20 - dmx, 1 + doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 20, 18, 18, 7, 2
  textcolor 240, 0
@@ -1205,7 +1268,7 @@ IF destdoor(link(cur + (1 * 200)) + 200) = 1 THEN
  dmy = destdoor(link(cur + (1 * 200)) + 100) * 20 - 65
  dmx = small(large(dmx, 0), map(0) * 20 - 320)
  dmy = small(large(dmy, 0), map(1) * 20 - 100)
- drawmap dmx, dmy - 100, 0, 2
+ drawmap dmx, dmy - 100, 0, 0, 2
  rectangle destdoor(link(cur + (1 * 200))) * 20 - dmx, destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 80, 20, 20, 240, 2
  rectangle 1 + destdoor(link(cur + (1 * 200))) * 20 - dmx, 1 + destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 80, 18, 18, 7, 2
  textcolor 240, 0
@@ -1215,6 +1278,84 @@ END IF
 '-----------------RESET DATA
 loadpage game$ + ".til", gmap(0), 3
 xbload maplumpname$(pt, "t"), map(), "Tilemap lump disappeared!"
+RETRACE
+
+
+layermenu:
+
+	gosub makelayermenu
+	csr2 = 0
+	
+	DO 
+		setwait timing(), 100
+		setkeys
+	 	tog = tog XOR 1
+
+		IF keyval(1) > 1 THEN clearkey(1): EXIT DO
+		usemenu(csr2, 0, 0, 4, 22)
+		
+		select case csr2
+		case 0
+			IF keyval(57) > 1 OR keyval(28) > 1 THEN
+				clearkey(57) 'clear repeats
+				clearkey(28)
+    		EXIT DO
+   		END IF
+   	case 1 'layer 1 can't be disabled
+   		IF keyval(75) > 1 OR keyval(77) > 1 THEN
+   			visible(0) = visible(0) xor 1
+   			gosub makelayermenu
+   		end if
+   	case 2 to 3
+   		IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   			setbit(gmap(), 19, csr2-2, readbit(gmap(), 19, csr2-2) xor 1)
+   			if not readbit(gmap(), 19, csr2-2) then visible(csr2-1) = 0
+   			gosub makelayermenu
+   		end if
+   		IF readbit(gmap(), 19, csr2-2) AND (keyval(75) > 1 OR keyval(77) > 1) THEN
+   			visible(csr2-1) = visible(csr2-1) xor 1
+   			gosub makelayermenu
+   		end if
+
+		end select
+		
+		FOR i = 0 TO 3
+		  if i = 1 then
+		  	textcolor 7, 0
+		  	IF csr2 = i THEN textcolor 14 + tog, 0
+		  elseif i > 1 AND readbit(gmap(), 19, i-2) = 0 then
+		  	textcolor 6, 0
+		  	IF csr2 = i THEN textcolor 6 + tog, 0		 
+		  else
+		  	textcolor 7, 0
+		  	IF csr2 = i THEN textcolor 14 + tog, 0
+		  end if
+		  
+		  printstr menu$(i), 0, i * 8, dpage
+		NEXT i
+		
+		SWAP vpage, dpage
+ 		setvispage vpage
+ 		clearpage dpage
+ 		dowait
+
+	LOOP
+	
+RETRACE
+
+makelayermenu:
+menu$(0) = "Go back"
+menu$(1) = "Bottom Layer "
+menu$(2) = "Middle Layer "
+menu$(3) = "Top Layer    "
+
+for i = 1 to 3
+	if visible(i-1) then
+		menu$(i) = menu$(i) & "(Visible)"
+	else
+		menu$(i) = menu$(i) & "(Invisible)"
+	end if
+next
 RETRACE
 
 '----

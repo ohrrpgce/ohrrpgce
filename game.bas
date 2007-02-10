@@ -739,7 +739,8 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
  'DEBUG debug "drawmap"
  overlay = 1
  IF readbit(gen(), 44, suspendoverlay) THEN overlay = 0
- drawmap mapx, mapy, overlay, dpage
+ drawmap mapx, mapy, 0, overlay, dpage, 0
+ if readbit(gmap(), 19, 0) then drawmap mapx, mapy, 1, 0, dpage, 1
  'DEBUG debug "draw npcs and heroes"
  IF gmap(16) = 1 THEN
   cathero
@@ -749,7 +750,8 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
   cathero
  END IF
  'DEBUG debug "drawoverhead"
- IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 2, dpage
+ IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 0, 2, dpage
+ if readbit(gmap(), 19, 1) then drawmap mapx, mapy, 2, 0, dpage, 1
 ELSE '---END NORMAL DISPLAY---
  'DEBUG debug "backdrop display"
  copypage 3, dpage
@@ -969,7 +971,7 @@ IF sayer >= 0 THEN
   setpicstuf buffer(), 80, -1
   loadset game$ + ".veh", vehuse - 1, 0
   setmapdata pass(), pass(), 0, 0
-  IF vehpass(buffer(19), readmapblock(catx(0) \ 20, caty(0) \ 20), -1) THEN
+  IF vehpass(buffer(19), readmapblock(catx(0) \ 20, caty(0) \ 20, 0), -1) THEN
    '--check mounting permissions first
    FOR i = 0 TO 7: veh(i) = 0: NEXT i
    FOR i = 8 TO 21: veh(i) = buffer(i): NEXT i
@@ -1111,7 +1113,7 @@ FOR whoi = 0 TO 3
  thisherotilex = INT(catx(whoi * 5) / 20)
  thisherotiley = INT(caty(whoi * 5) / 20)
  '--if if aligned in at least one direction and passibility is enabled ... and some vehicle stuff ...
- IF (movdivis(xgo(whoi)) OR movdivis(ygo(whoi))) AND ghost = 0 AND readbit(veh(), 9, 0) = 0 AND vehpass(veh(17), readmapblock(thisherotilex, thisherotiley), 0) = 0 THEN
+ IF (movdivis(xgo(whoi)) OR movdivis(ygo(whoi))) AND ghost = 0 AND readbit(veh(), 9, 0) = 0 AND vehpass(veh(17), readmapblock(thisherotilex, thisherotiley, 0), 0) = 0 THEN
   IF readbit(gen(), 44, suspendherowalls) = 0 AND veh(6) = 0 THEN
    '--this only happens if herowalls is on
    '--wrapping passability
@@ -1185,7 +1187,7 @@ FOR whoi = 0 TO 3
   '--Stuff that should only happen when you finish moving
   IF didgo(o) = 1 AND xgo(o) = 0 AND ygo(o) = 0 THEN
    '---check for harm tile
-   p = readmapblock(catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
+   p = readmapblock(catx(whoi * 5) \ 20, caty(whoi * 5) \ 20, 0)
    IF (p AND 64) THEN
     o = -1
     FOR i = 0 TO whoi
@@ -2150,16 +2152,16 @@ SELECT CASE scrat(nowscript).curkind
     GOSUB nextsay
    CASE 97'--read map block
     setmapdata scroll(), pass(), 0, 0
-    scriptret = readmapblock(bound(retvals(0), 0, scroll(0)), bound(retvals(1), 0, scroll(1)))
+    scriptret = readmapblock(bound(retvals(0), 0, scroll(0)), bound(retvals(1), 0, scroll(1)), bound(retvals(2), 0, 2))
    CASE 98'--write map block
     setmapdata scroll(), pass(), 0, 0
-    setmapblock bound(retvals(0), 0, scroll(0)), bound(retvals(1), 0, scroll(1)), bound(retvals(2), 0, 255)
+    setmapblock bound(retvals(0), 0, scroll(0)), bound(retvals(1), 0, scroll(1)), bound(retvals(3),0,2), bound(retvals(2), 0, 255)
    CASE 99'--read pass block
     setmapdata pass(), pass(), 0, 0
-    scriptret = readmapblock(bound(retvals(0), 0, pass(0)), bound(retvals(1), 0, pass(1)))
+    scriptret = readmapblock(bound(retvals(0), 0, pass(0)), bound(retvals(1), 0, pass(1)), 0)
    CASE 100'--write pass block
     setmapdata pass(), pass(), 0, 0
-    setmapblock bound(retvals(0), 0, pass(0)), bound(retvals(1), 0, pass(1)), bound(retvals(2), 0, 255)
+    setmapblock bound(retvals(0), 0, pass(0)), bound(retvals(1), 0, pass(1)), 0, bound(retvals(2), 0, 255)
    CASE 144'--load tileset
     IF retvals(0) >= 0 THEN
      o = retvals(0)

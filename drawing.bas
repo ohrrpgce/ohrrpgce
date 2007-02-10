@@ -760,32 +760,52 @@ RETRACE
 END SUB
 
 SUB sizemar (array(), wide, high, tempx, tempy, tempw, temph, yout, page)
-'---FLUSH BUFFER---
-edgeprint "Flushing buffer...", 0, yout * 10, 15, page: yout = yout + 1
-buffer(0) = tempw
-buffer(1) = temph
-FOR i = 2 TO 16002
- buffer(i) = 0
-NEXT i
-'---WRITE RESIZED MAP INTO BUFFER
-edgeprint "Resizing Map...", 0, yout * 10, 15, page: yout = yout + 1
-FOR i = tempy TO tempy + temph
- FOR o = tempx TO tempx + tempw
-  setmapdata array(), array(), 20, 0
-  IF o < wide AND i < high THEN
-   j = readmapblock(o, i)
-  ELSE
-   j = 0
-  END IF
-  setmapdata buffer(), buffer(), 20, 0
-  setmapblock o - tempx, i - tempy, j
- NEXT o
-NEXT i
-'---MOVE BUFFER TO ARRAY---
-edgeprint "Refreshing from buffer...", 0, yout * 10, 15, page: yout = yout + 1
-FOR i = 0 TO 16002
- array(i) = buffer(i)
-NEXT i
+' '---FLUSH BUFFER---
+ edgeprint "Resizing Map...", 0, yout * 10, 15, page: yout = yout + 1
+ 
+ dim as integer tmp(ubound(array)), i, x, y
+ 
+ for i = 0 to ubound(array)
+ 	tmp(i) = array(i)
+ next
+ 
+ redim array(tempw * temph * 3 + 2)
+ 
+ array(0) = tempw
+ array(1) = temph
+ 
+ for i = 0 to 2
+ 	for x = 0 to tempw
+ 		for y = 0 to tempy
+ 			array(i * tempw * temph + x * tempw + y + 2) = tmp(i * wide * high + (x + tempx) * wide + (y + tempy))
+ 		next
+ 	next
+ next
+ 
+' buffer(0) = tempw
+' buffer(1) = temph
+' FOR i = 2 TO 16002
+'  buffer(i) = 0
+' NEXT i
+' '---WRITE RESIZED MAP INTO BUFFER
+' edgeprint "Resizing Map...", 0, yout * 10, 15, page: yout = yout + 1
+' FOR i = tempy TO tempy + temph
+'  FOR o = tempx TO tempx + tempw
+'   setmapdata array(), array(), 20, 0
+'   IF o < wide AND i < high THEN
+'    j = readmapblock(o, i)
+'   ELSE
+'    j = 0
+'   END IF
+'   setmapdata buffer(), buffer(), 20, 0
+'   setmapblock o - tempx, i - tempy, j
+'  NEXT o
+' NEXT i
+' '---MOVE BUFFER TO ARRAY---
+' edgeprint "Refreshing from buffer...", 0, yout * 10, 15, page: yout = yout + 1
+' FOR i = 0 TO 16002
+'  array(i) = buffer(i)
+' NEXT i
 
 END SUB
 
@@ -1595,7 +1615,7 @@ setmapdata buffer(), buffer(), 10, 130
 FOR i = 0 TO 47
  y = INT(i / 16)
  x = i - y * 16
- setmapblock x, y, tastuf(20 * taset) + i
+ setmapblock x, y, 0, tastuf(20 * taset) + i
 NEXT i
 
 GOSUB setupsample
@@ -1615,12 +1635,12 @@ DO
  setvispage vpage
  '--draw available animating tiles--
  setmapdata buffer(), buffer(), 10, 130
- drawmap 0, -10, 0, dpage
+ drawmap 0, -10, 0, 0, dpage
  '--draw sample--
  setmapdata sample(), sample(), 100, 40
  setanim tastuf(0) + cycle(0), tastuf(20) + cycle(1)
  cycletile cycle(), tastuf(), cycptr(), cycskip()
- drawmap -130, -100, 0, dpage
+ drawmap -130, -100, 0, 0, dpage
  '--Draw cursor--
  y = INT(csr / 16)
  x = csr - y * 16
@@ -1638,7 +1658,7 @@ setmapdata sample(), sample(), 100, 70
 FOR i = 0 TO 8
  y = INT(i / 3)
  x = i - y * 3
- setmapblock x, y, 160 + (taset * 48) + csr
+ setmapblock x, y, 0, 160 + (taset * 48) + csr
 NEXT i
 RETRACE
 

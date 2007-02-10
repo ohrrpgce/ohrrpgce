@@ -49,18 +49,18 @@ end type
 'add page? or assume workpage? (all pages for clip?)
 declare SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer=1, BYVAL trans as integer = -1)
 declare sub setclip(l as integer=0, t as integer=0, r as integer=319, b as integer=199)
-declare sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer=1)
-declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr)
+declare sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer=1, trans as integer = -1)
+declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
 declare SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 declare SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 
 'used for map and pass
-DECLARE SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, BYVAL mp as integer ptr)
-DECLARE FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, BYVAL mp as integer ptr) as integer
+DECLARE SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, byval l as integer, BYVAL mp as integer ptr)
+DECLARE FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, byval l as integer, BYVAL mp as integer ptr) as integer
 
 declare function matchmask(match as string, mask as string) as integer
-declare function calcblock(byval x as integer, byval y as integer, byval t as integer) as integer
+declare function calcblock(byval x as integer, byval y as integer, byval l as integer, byval t as integer) as integer
 
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
@@ -311,27 +311,27 @@ SUB setmapdata (array() as integer, pas() as integer, BYVAL t as integer, BYVAL 
 	maplines = 200 - t - b
 end SUB
 
-SUB setmapblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
-	setblock(x, y, v, mptr)
+SUB setmapblock (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL v as integer)
+	setblock(x, y, v, l, mptr)
 end sub
 
-FUNCTION readmapblock (BYVAL x as integer, BYVAL y as integer) as integer
-	readmapblock = readblock(x, y, mptr)
+FUNCTION readmapblock (BYVAL x as integer, BYVAL y as integer, byval l as integer) as integer
+	return readblock(x, y, l, mptr)
 end function
 
 SUB setpassblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
-	setblock(x, y, v, pptr)
+	setblock(x, y, v, 0, pptr)
 END SUB
 
 FUNCTION readpassblock (BYVAL x as integer, BYVAL y as integer)
-	readpassblock = readblock(x, y, pptr)
+	return readblock(x, y, 0, pptr)
 END FUNCTION
 
-SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, BYVAL mp as integer ptr)
+SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, BYVAL l as integer, BYVAL mp as integer ptr)
 	dim index as integer
 	dim hilow as integer
 
-	index = (map_x * y) + x	'raw byte offset
+	index = (map_x * map_y * l) + (map_x * y) + x	'raw byte offset
 	hilow = index mod 2		'which byte in word
 	index = index shr 1 	'divide by 2
 
@@ -349,12 +349,12 @@ SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, BYVAL 
 
 end SUB
 
-FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, BYVAL mp as integer ptr) as integer
+FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL mp as integer ptr) as integer
 	dim block as integer
 	dim index as integer
 	dim hilow as integer
 
-	index = (map_x * y) + x	'raw byte offset
+	index = (map_x * map_y * l) + (map_x * y) + x	'raw byte offset
 	hilow = index mod 2		'which byte in word
 	index = index shr 1 	'divide by 2
 
@@ -367,7 +367,7 @@ FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, BYVAL mp as integer 
 	readblock = block
 end FUNCTION
 
-SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer)
+SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer, BYVAL p as integer, byval trans as integer = 0)
 	dim sptr as ubyte ptr
 	dim plane as integer
 
@@ -385,7 +385,7 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 	dim tpage as integer
 	'this is static to allow optimised reuse
 	static lasttile as integer
-
+	
 	if wrkpage <> p then
 		wrkpage = p
 	end if
@@ -416,9 +416,11 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 		tbuf = callocate(sizeof(ohrsprite))
 		tbuf->w = 20
 		tbuf->h = 20
-		tbuf->mask = 0
+		tbuf->mask = callocate(20 * 20)
 		tbuf->image = callocate(20 * 20)
 	end if
+	
+	'debug trans & " " & tbuf->mask
 	'force it to be cleared for each redraw
 	lasttile = -1
 
@@ -431,7 +433,7 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 		tx = xoff
 		xpos = xstart
 		while tx < 320
-			todraw = calcblock(xpos, ypos, t)
+			todraw = calcblock(xpos, ypos, l, t)
 			if (todraw >= 160) then
 				if (todraw > 207) then
 					todraw = (todraw - 48 + anim2) MOD 160
@@ -448,11 +450,11 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL t as integer, BYVAL p as integer
 					'page 3 is the tileset page (#define??)
 					'get and put don't take a page argument, so I'll
 					'have to toggle the work page, not sure that's efficient
-					grabrect(3, tpx, tpy, 20, 20, tbuf->image)
+					grabrect(3, tpx, tpy, 20, 20, tbuf->image, tbuf->mask)
 				end if
 
 				'draw it on the map
-				drawohr(*tbuf, tx, ty)
+				drawohr(*tbuf, tx, ty,,trans)
 				lasttile = todraw
 			end if
 
@@ -843,6 +845,10 @@ SUB setkeys ()
 	END IF
 	mutexunlock keybdmutex
 end SUB
+
+SUB clearkey(byval k as integer)
+	keybd(k) = 0
+end sub
 
 sub pollingthread
 	dim as integer a, dummy, buttons
@@ -1476,7 +1482,7 @@ SUB setbit (bb() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as 
 	end if
 
 	mask = 1 shl wb
-	if v = 1 then
+	if v then
 		bb(woff) = bb(woff) or mask
 	else
 		mask = not mask
@@ -2590,7 +2596,7 @@ function matchmask(match as string, mask as string) as integer
 
 end function
 
-function calcblock(byval x as integer, byval y as integer, byval t as integer) as integer
+function calcblock(byval x as integer, byval y as integer, byval l as integer, byval t as integer) as integer
 'returns -1 if overlay
 	dim block as integer
 	dim tptr as integer ptr
@@ -2613,16 +2619,14 @@ function calcblock(byval x as integer, byval y as integer, byval t as integer) a
 		wend
 	else
 		if (y < 0) or (y >= map_y) then
-			calcblock = bordertile
-			exit function
+			return bordertile
 		end if
 		if (x < 0) or (x >= map_x) then
-			calcblock = bordertile
-			exit function
+			return bordertile
 		end if
 	end if
 
-	block = readmapblock(x, y)
+	block = readmapblock(x, y, l)
 
 	'check overlay (??)
 	'I think it should work like this:
@@ -2638,7 +2642,7 @@ function calcblock(byval x as integer, byval y as integer, byval t as integer) a
 		end if
 	end if
 
-	calcblock = block
+	return block
 end function
 
 '----------------------------------------------------------------------
@@ -3093,7 +3097,7 @@ sub setclip(l as integer, t as integer, r as integer, b as integer)
 	clipb = b
 end sub
 
-sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer)
+sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer, trans as integer = -1)
 	dim sptr as ubyte ptr
 	dim as integer tx, ty
 	dim as integer i, j, pix, spix
@@ -3115,7 +3119,7 @@ sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer
 				pix = (ty * 320) + tx
 				spix = ((i \ scale) * spr.w) + (j \ scale)
 				'check mask
-				if spr.mask <> 0 then
+				if spr.mask <> 0 and trans then
 					'not really sure whether to leave the masks like
 					'this or change them above, this is the wrong
 					'way round, really. perhaps.
@@ -3133,10 +3137,10 @@ sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer
 
 end sub
 
-sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr)
+sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 'ibuf should be pre-allocated
 	dim sptr as ubyte ptr
-	dim as integer i, j, px, py
+	dim as integer i, j, px, py, l
 
 	if ibuf = null then exit sub
 
@@ -3146,11 +3150,16 @@ sub grabrect(page as integer, x as integer, y as integer, w as integer, h as int
 	for i = 0 to h-1
 		px = x
 		for j = 0 to w-1
+			l = i * w + j
 			'ignore clip rect, but check screen bounds
 			if not (px < 0 or px > 319 or py < 0 or py > 199) then
-				ibuf[i*w + j] = sptr[(py * 320) + px]
+				ibuf[l] = sptr[(py * 320) + px]
+				if tbuf then
+					if ibuf[l] = 0 then tbuf[l] = 1 else tbuf[l] = 0
+				end if
 			else
-				ibuf[i*w + j] = 0
+				ibuf[l] = 0
+				tbuf[l] = 0
 			end if
 			px += 1
 		next
