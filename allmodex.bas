@@ -828,6 +828,7 @@ SUB setkeys ()
 'or keyboard event callback as needed. - tmc
 	dim a as integer
 	mutexlock keybdmutex
+	io_pollkeyevents()
 	for a = 0 to &h7f
 		keybd(a) = keybdstate(a)
 		if keysteps(a) > 0 then

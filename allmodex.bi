@@ -32,6 +32,7 @@ DECLARE SUB bigsprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page, BYVA
 DECLARE SUB hugesprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page, BYVAL trans = -1)
 DECLARE FUNCTION keyval (BYVAL a)
 DECLARE FUNCTION getkey ()
+DECLARE SUB waitforkey ()
 DECLARE SUB setkeys ()
 DECLARE SUB clearkey(byval k as integer)
 DECLARE SUB putpixel (BYVAL x, BYVAL y, BYVAL c, BYVAL p)

@@ -244,6 +244,10 @@ sub io_init
 	setmouse(0, 0, 0) 'hide mouse
 end sub
 
+sub io_pollkeyevents()
+	'not needed by this backend
+end sub
+
 sub io_updatekeys(keybd() as integer)
 	dim as integer a
 	for a = 0 to &h7f

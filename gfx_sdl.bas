@@ -295,6 +295,10 @@ SUB io_init
   'nothing needed at the moment...
 END SUB
 
+SUB io_pollkeyevents()
+  SDL_PumpEvents()
+END SUB
+
 SUB io_updatekeys(keybd() as integer)
   DIM a AS INTEGER
   keystate = SDL_GetKeyState(NULL)
@@ -306,7 +310,6 @@ SUB io_updatekeys(keybd() as integer)
       END IF
     END IF
   NEXT
-  SDL_PumpEvents()
 END SUB
 
 FUNCTION io_enablemouse() as integer

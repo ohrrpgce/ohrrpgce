@@ -159,6 +159,10 @@ sub io_init
 ' 	end if
 end sub
 
+sub io_pollkeyevents()
+	'not needed by this backend
+end sub
+
 sub io_updatekeys(keybd() as integer)
 	dim a as integer
 	for a = 0 to &h7f
