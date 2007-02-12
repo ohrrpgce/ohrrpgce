@@ -739,34 +739,21 @@ END SUB
 SUB sizemar (array(), wide, high, tempx, tempy, tempw, temph, yout, page, big)
 ' '---FLUSH BUFFER---
  edgeprint "Resizing Map...", 0, yout * 10, 15, page: yout = yout + 1
- 
- 'debug "old size = " & ubound(array)
- 
+  
  dim as integer tmp(ubound(array)), i, x, y
- 
- 'debug "tranfering old data to temp array"
- for i = 0 to ubound(array)
+  for i = 0 to ubound(array)
  	tmp(i) = array(i)
  next
  
- 'debug "setting big flag"
  if big then big = 3 else big = 1
 
  dim as integer newsize = tempw * temph, oldsize = wide * high
   
- 'debug "allocating new array"
  redim array((big * newsize)  / 2 + 2)
- 'debug "new size = " & ubound(newarray)
  
  array(0) = tempw
  array(1) = temph
- 
- 'debug "old width = " & wide & ", height = " & high & ", new width = " & tempw & ", height = " & temph & ", offset is (" & tempx & ", " & tempy & ")"
- 
- 'debug "iterating x = " & tempx & " to " & small(wide, tempw - tempx) - 1
- 'debug "iterating y = " & tempy & " to " & small(high, temph - tempy) - 1
- 'debug "iterating i = " & 0 & " to " & big - 1
- 
+  
  for i = 0 to big - 1
  	for x = tempx to small(wide, tempw - tempx) - 1
  		for y = tempy to small(high, temph - tempy) - 1
