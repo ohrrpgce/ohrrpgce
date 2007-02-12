@@ -38,7 +38,7 @@ DECLARE FUNCTION onoroff$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE SUB smnemonic (tagname$, index%)
 DECLARE SUB tagnames ()
-DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%)
+DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%, big%)
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB mapmaker (font%(), map%(), pass%(), emap%(), doors%(), link%(), npc%(), npcstat%())
@@ -912,11 +912,11 @@ clearpage 0
 clearpage 1
 yout = 0
 edgeprint "TILEMAP", 0, yout * 10, 15, vpage: yout = yout + 1
-sizemar map(), wide, high, tempx, tempy, tempw, temph, yout, vpage
+sizemar map(), wide, high, tempx, tempy, tempw, temph, yout, vpage, 1
 edgeprint "PASSMAP", 0, yout * 10, 15, vpage: yout = yout + 1
-sizemar pass(), wide, high, tempx, tempy, tempw, temph, yout, vpage
+sizemar pass(), wide, high, tempx, tempy, tempw, temph, yout, vpage, 0
 edgeprint "FOEMAP", 0, yout * 10, 15, vpage: yout = yout + 1
-sizemar emap(), wide, high, tempx, tempy, tempw, temph, yout, vpage
+sizemar emap(), wide, high, tempx, tempy, tempw, temph, yout, vpage, 0
 setmapdata map(), pass(), 20, 0
 wide = map(0): high = map(1)
 '--reset map scroll position

@@ -6,30 +6,7 @@
 '$DYNAMIC
 DEFINT A-Z
 
-'User-defined types
-TYPE TileEditState
- x as INTEGER
- y as INTEGER
- tilex as INTEGER
- tiley as INTEGER
- gotmouse as INTEGER
- drawcursor as INTEGER
- tool as INTEGER
- curcolor as INTEGER
- hidemouse as INTEGER
- airsize as INTEGER
- mist as INTEGER
- undo as INTEGER
- allowundo as INTEGER
- zone as INTEGER
- justpainted as INTEGER
- hold as INTEGER
- hox as INTEGER
- hoy as INTEGER
- cutfrom as INTEGER
- canpaste as INTEGER
- delay as INTEGER
-END TYPE
+#include "udts.bi"
 
 'basic subs and functions
 DECLARE SUB picktiletoedit (tmode%, pagenum%, mapfile$)
@@ -759,7 +736,7 @@ RETRACE
 
 END SUB
 
-SUB sizemar (array(), wide, high, tempx, tempy, tempw, temph, yout, page)
+SUB sizemar (array(), wide, high, tempx, tempy, tempw, temph, yout, page, big)
 ' '---FLUSH BUFFER---
  edgeprint "Resizing Map...", 0, yout * 10, 15, page: yout = yout + 1
  
@@ -769,14 +746,17 @@ SUB sizemar (array(), wide, high, tempx, tempy, tempw, temph, yout, page)
  	tmp(i) = array(i)
  next
  
- redim array(tempw * temph * 3 + 2)
+ if big then big = 3 else big = 1
+ 
+ redim array(tempw * temph * big + 2)
+
  
  array(0) = tempw
  array(1) = temph
  
- for i = 0 to 2
- 	for x = 0 to tempw
- 		for y = 0 to tempy
+ for i = 0 to big - 1
+ 	for x = 0 to tempw - 1
+ 		for y = 0 to tempy - 1
  			array(i * tempw * temph + x * tempw + y + 2) = tmp(i * wide * high + (x + tempx) * wide + (y + tempy))
  		next
  	next
