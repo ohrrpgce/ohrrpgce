@@ -119,6 +119,34 @@ type RGBcolor
 	END UNION
 end type
 
+Type TilesetData field=1
+	TransColor as Integer
+End Type
+
+TYPE TileEditState
+ x as INTEGER
+ y as INTEGER
+ tilex as INTEGER
+ tiley as INTEGER
+ gotmouse as INTEGER
+ drawcursor as INTEGER
+ tool as INTEGER
+ curcolor as INTEGER
+ hidemouse as INTEGER
+ airsize as INTEGER
+ mist as INTEGER
+ undo as INTEGER
+ allowundo as INTEGER
+ zone as INTEGER
+ justpainted as INTEGER
+ hold as INTEGER
+ hox as INTEGER
+ hoy as INTEGER
+ cutfrom as INTEGER
+ canpaste as INTEGER
+ delay as INTEGER
+END TYPE
+
 
 'Documentation of veh() in game, which is different from the VEH lump
 '0 is true (-1) if in/mounting/dismounting a vehicle
@@ -139,6 +167,7 @@ end type
 'Loading subs
 DECLARE SUB LoadNPCD(file as string, dat() as NPCType)
 DECLARE SUB LoadNPCL(file as string, dat() as NPCInst, num as integer)
+DECLARE SUB LoadTileData(file as string, num as integer, t as TilesetData ptr)
 
 'Integer offset access write wrappers
 DECLARE SUB SetNPCD(npcd AS NPCType, offset AS INTEGER, value AS INTEGER)
