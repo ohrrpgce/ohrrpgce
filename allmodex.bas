@@ -792,6 +792,7 @@ FUNCTION getkey () as integer
 
 	setkeys
 	do
+		io_pollkeyevents()
 		setkeys
 		'keybd(0) may contain garbage (but in assembly, keyval(0) contains last key pressed)
 		for i=1 to &h7f
@@ -828,7 +829,6 @@ SUB setkeys ()
 'or keyboard event callback as needed. - tmc
 	dim a as integer
 	mutexlock keybdmutex
-	io_pollkeyevents()
 	for a = 0 to &h7f
 		keybd(a) = keybdstate(a)
 		if keysteps(a) > 0 then
