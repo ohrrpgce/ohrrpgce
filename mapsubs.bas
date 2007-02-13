@@ -487,6 +487,7 @@ loadpasdefaults defaults(), gmap(0)
 RETRACE
 
 mapping:
+DIM jiggle(0) AS INTEGER
 clearpage 2
 '--load NPC graphics--
 FOR i = 0 TO 35
@@ -543,6 +544,9 @@ DO
      NEXT o
     NEXT i
     setmapdata map(), pass(), 20, 0
+   END IF
+   IF keyval(29) > 0 AND keyval(36) > 1 THEN
+     setbit jiggle(), 0, layer, (readbit(jiggle(), 0, layer) XOR 1)
    END IF
    IF keyval(41) > 1 THEN GOSUB minimap
    IF keyval(28) > 1 THEN GOSUB pickblock
@@ -733,7 +737,15 @@ DO
  cycletile cycle(), tastuf(), cycptr(), cycskip()
  rectangle 0, 20, 320, 180, 0, dpage
  for i = 0 to 2
- 	if visible(i) then drawmap mapx, mapy - 20, i, 0, dpage, i <> 0
+ 	if visible(i) then
+		jigx = 0: jigy = 0
+		if readbit(jiggle(), 0, i) and tog then
+			if i = 0 then jigx = 1
+			if i = 1 then jigy = 1
+			if i = 2 then jigx = -1: jigy = -1
+		end if
+		drawmap mapx + jigx, mapy + jigy - 20, i, 0, dpage, i <> 0
+	end if
  next
 
  

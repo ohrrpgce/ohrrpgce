@@ -73,7 +73,8 @@ WHAT IS NEW?
       than maximum size (very generous) will cause an error. [Ralph]
     * Tile map layers! In the map editor, use Ctrl-L to enable the new layers,
       Alt-F1/2/3 to enable/disable them quickly, and Ctrl-F1/2/3 to toggle their
-      visibility [Mike]
+      visibility. Press Ctrl+J to make the current layer jiggle so it stands
+	  out from the other layers [Mike]
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
       hero at the opposite edge" and bug 27: "NPCs cannot walk across the
