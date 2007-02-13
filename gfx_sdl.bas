@@ -296,6 +296,7 @@ SUB io_init
 END SUB
 
 SUB io_pollkeyevents()
+  SDL_Flip(screensurface)
   SDL_PumpEvents()
 END SUB
 
