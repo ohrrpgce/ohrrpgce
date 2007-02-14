@@ -149,12 +149,13 @@ DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4),
 defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
 
 DIM as integer visible(0 to 2) = {1,0,0}
-
-dim as integer layer
+DIM as integer usetile(0 to 2)
+DIM as integer menubarstart(0 to 2)
+DIM as integer layer
 
 textcolor 15, 0
 
-wide = 0: high = 0: nptr = 0: pic = 0
+wide = 0: high = 0: nptr = 0
 mapname$ = ""
 
 xtemp$ = ""
@@ -536,11 +537,11 @@ DO
   '---TILEMODE------
   CASE 0
    setmapdata map(), pass(), 20, 0
-   IF keyval(33) > 1 AND keyval(29) > 0 THEN
+   IF keyval(33) > 1 AND keyval(29) > 0 THEN' Alt+F Fill screen
     FOR i = 0 TO 14
      FOR o = 0 TO 8
-      setmapblock mapx \ 20 + i, mapy \ 20 + o, layer, pic
-      IF defpass THEN setpassblock mapx \ 20 + i, mapy \ 20 + o, defaults(pic)
+      setmapblock mapx \ 20 + i, mapy \ 20 + o, layer, usetile(layer)
+      IF defpass THEN setpassblock mapx \ 20 + i, mapy \ 20 + o, defaults(usetile(layer))
      NEXT o
     NEXT i
     setmapdata map(), pass(), 20, 0
@@ -551,13 +552,12 @@ DO
    IF keyval(41) > 1 THEN GOSUB minimap
    IF keyval(28) > 1 THEN GOSUB pickblock
    IF keyval(57) > 0 THEN
-    IF defpass THEN setpassblock x, y, defaults(pic)
-    setmapblock x, y, layer, pic
+    IF defpass THEN setpassblock x, y, defaults(usetile(layer))
+    setmapblock x, y, layer, usetile(layer)
    END IF
    IF keyval(58) > 1 THEN 'grab tile
-    pic = animadjust(readmapblock(x, y, layer), tastuf())
-    menu = small(pic, 145)
-    by = INT(pic / 16): bx = pic - (by * 16)
+    usetile(layer) = animadjust(readmapblock(x, y, layer), tastuf())
+	GOSUB updatetilepicker
    END IF
    IF keyval(29) > 0 AND keyval(32) > 1 THEN defpass = defpass XOR 1   
    FOR i = 0 TO 1
@@ -583,15 +583,13 @@ DO
     END IF
     Next l
    NEXT i
-   IF keyval(51) > 0 AND pic > 0 THEN
-    pic = pic - 1: bx = bx - 1
-    IF bx < 0 THEN bx = 15: by = by - 1
-    IF pic - menu < 0 AND pic + menu > 0 THEN menu = menu - 1
+   IF keyval(51) > 0 AND usetile(layer) > 0 THEN
+    usetile(layer) = usetile(layer) - 1
+    GOSUB updatetilepicker
    END IF
-   IF keyval(52) > 0 AND pic < 159 THEN
-    pic = pic + 1: bx = bx + 1
-    IF bx > 15 THEN bx = 0: by = by + 1
-    IF pic - menu > 14 AND menu < 159 THEN menu = menu + 1
+   IF keyval(52) > 0 AND usetile(layer) < 159 THEN
+    usetile(layer) = usetile(layer) + 1
+    GOSUB updatetilepicker
    END IF
    '---PASSMODE-------
   CASE 1
@@ -674,7 +672,7 @@ DO
     NEXT i
     setmapdata map(), pass(), 20, 0
    END IF
-   IF keyval(58) > 1 THEN foe = readmapblock(x, y, 0): menu = pic: by = INT(pic / 15): bx = pic - (by * 16)
+   IF keyval(58) > 1 THEN foe = readmapblock(x, y, 0)
    '--done input-modes-------
  END SELECT
  
@@ -699,6 +697,7 @@ DO
  		if readbit(gmap(), 19, i-1) then
  			layer = i
  			visible(i) = 1
+			GOSUB updatetilepicker
  			exit for
  		end if
  	next
@@ -710,11 +709,13 @@ DO
  			if readbit(gmap(), 19, i-1) then
 	 			layer = i
 	 			visible(i) = 1
+				GOSUB updatetilepicker
 	 			exit for
 	 		end if
 	 	ELSE
 	 		layer = i
 	 		visible(i) = 1
+			GOSUB updatetilepicker
 	 		exit for
  		end if
  	next
@@ -726,7 +727,7 @@ DO
  '--draw menubar
  IF editmode = 0 THEN
   setmapdata menubar(), pass(), 0, 180
-  drawmap menu * 20, 0, 0, 0, dpage
+  drawmap menubarstart(layer) * 20, 0, 0, 0, dpage
  ELSE
   rectangle 0, 0, 320, 20, 0, dpage
  END IF
@@ -807,7 +808,7 @@ DO
  '--normal cursor--
  IF editmode <> 3 THEN
   drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, (x * 20) - mapx, (y * 20) - mapy + 20, dpage
-  IF editmode = 0 THEN drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, ((pic - menu) * 20), 0, dpage
+  IF editmode = 0 THEN drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, ((usetile(layer) - menubarstart(layer)) * 20), 0, dpage
  END IF
  
  '--npc placement cursor--
@@ -850,19 +851,24 @@ DO
  dowait
 LOOP
 
+updatetilepicker:
+	menubarstart(layer) = bound(menubarstart(layer), large(usetile(layer) - 14, 0), small(usetile(layer), 145))
+	by = INT(usetile(layer) / 16)
+	bx = usetile(layer) - (by * 16)
+RETRACE
 
 pickblock:
 setkeys
 DO
  setwait timing(), 120
  setkeys
- IF keyval(28) > 1 OR keyval(1) > 1 THEN menu = pic: RETRACE
- IF keyval(72) > 0 AND by > 0 THEN by = by - 1: pic = pic - 16
- IF keyval(80) > 0 AND by < 9 THEN by = by + 1: pic = pic + 16
- IF keyval(75) > 0 AND bx > 0 THEN bx = bx - 1: pic = pic - 1
- IF keyval(77) > 0 AND bx < 15 THEN bx = bx + 1: pic = pic + 1
- IF keyval(51) > 0 AND pic > 0 THEN pic = pic - 1: bx = bx - 1: IF bx < 0 THEN bx = 15: by = by - 1
- IF keyval(52) > 0 AND pic < 159 THEN pic = pic + 1: bx = bx + 1: IF bx > 15 THEN bx = 0: by = by + 1
+ IF keyval(28) > 1 OR keyval(1) > 1 THEN menu = usetile(layer): EXIT DO
+ IF keyval(72) > 0 AND by > 0 THEN by = by - 1: usetile(layer) = usetile(layer) - 16
+ IF keyval(80) > 0 AND by < 9 THEN by = by + 1: usetile(layer) = usetile(layer) + 16
+ IF keyval(75) > 0 AND bx > 0 THEN bx = bx - 1: usetile(layer) = usetile(layer) - 1
+ IF keyval(77) > 0 AND bx < 15 THEN bx = bx + 1: usetile(layer) = usetile(layer) + 1
+ IF keyval(51) > 0 AND usetile(layer) > 0 THEN usetile(layer) = usetile(layer) - 1: bx = bx - 1: IF bx < 0 THEN bx = 15: by = by - 1
+ IF keyval(52) > 0 AND usetile(layer) < 159 THEN usetile(layer) = usetile(layer) + 1: bx = bx + 1: IF bx > 15 THEN bx = 0: by = by + 1
  tog = tog XOR 1
  loadsprite cursor(), 0, 0, 0, 20, 20, 2
  drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, bx * 20, by * 20, dpage
@@ -870,6 +876,8 @@ DO
  copypage 3, dpage
  dowait
 LOOP
+GOSUB updatetilepicker
+RETRACE
 
 sizemap:
 clearpage 2
