@@ -152,6 +152,7 @@ DIM as integer visible(0 to 2) = {1,0,0}
 DIM as integer usetile(0 to 2)
 DIM as integer menubarstart(0 to 2)
 DIM as integer layer
+DIM as integer jiggle(0) 'used as bitsets
 
 textcolor 15, 0
 
@@ -488,7 +489,6 @@ loadpasdefaults defaults(), gmap(0)
 RETRACE
 
 mapping:
-DIM jiggle(0) AS INTEGER
 clearpage 2
 '--load NPC graphics--
 FOR i = 0 TO 35
