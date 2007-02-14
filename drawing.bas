@@ -984,7 +984,7 @@ DO
   ELSE
    stosprite placer(), 0, num * size, soff * (pt - top), 3
    GOSUB resettool
-   RETRACE
+   EXIT DO
   END IF
  END IF
  GOSUB sprctrl
@@ -997,6 +997,8 @@ DO
  rectangle 239, 119, xw, yw, 0, dpage
  dowait
 LOOP
+changepal poffset(pt), 0, workpal(), pt - top
+RETRACE
 
 sprctrl:
 IF mouse(2) = 0 THEN
