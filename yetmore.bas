@@ -261,7 +261,7 @@ SUB scriptstat (id, stat())
 STATIC spellmaskhero
 DIM dummystats(40, 1, 1) 'just need HP and MP
 
-SELECT CASE id
+SELECT CASE AS CONST id
  CASE 64'--get hero stat
   scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(2), 0, 1), bound(retvals(1), 0, 13))
  CASE 66'--add hero
@@ -841,7 +841,7 @@ SUB scriptadvanced (id)
 
 DIM mouse(4)
 
-SELECT CASE id
+SELECT CASE AS CONST id
 
  CASE 135'--puthero
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
@@ -1722,7 +1722,7 @@ SUB scriptnpc (id)
 
 'contains npc related scripting commands
 
-SELECT CASE id
+SELECT CASE AS CONST id
 
  CASE 26'--set NPC frame
   npcref = getnpcref(retvals(0), 0)
