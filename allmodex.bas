@@ -1393,11 +1393,6 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 	dim fstep as integer
 	dim maxrow as integer
 	dim minrow as integer
-	dim ox as integer = x
-	dim oy as integer = y
-	dim fgcol as integer = textfg
-	dim bgcol as integer = textbg
-	
 
 	if wrkpage <> p then
 		wrkpage = p
@@ -1423,58 +1418,45 @@ SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 	col = x
 	pscr = spage(p)
 	for ch = 0 to len(s$) - 1
-		select case as const s$[ch]
-		case 13 'new line
-			y+=8
-			col =ox
-		case 1 'set fg colour
-			ch+=1
-			fgcol = s$[ch]
-		case 2 'set fg colour
-			ch+=1
-			bgcol = s$[ch]
-		case else 
-			'find fontdata index, bearing in mind that the data is stored
-			'2-bytes at a time in 4-byte integers, due to QB->FB quirks,
-			'and fontdata itself is a byte pointer. Because there are
-			'always 8 bytes per character, we will always use exactly 4
-			'ints, or 16 bytes, making the initial calc pretty simple.
-			fi = (s$[ch] * 16)
-			'fi = s$[ch] * 8	'index to fontdata
-			fstep = 1 'used because our indexing is messed up, see above
-
-			for cc = 0 to 7
-				if col >= 0 then
-					si = (y * 320) + col
-					if (fontdata[fi] > 0) then
-						tbyte = 1 shl minrow
-						for pix = minrow to maxrow
-							bval = fontdata[fi] and tbyte
-							if bval > 0 then
-								pscr[si] = fgcol
-							else
-								if textbg > 0 then
-									pscr[si] = bgcol
-								end if
+		'find fontdata index, bearing in mind that the data is stored
+		'2-bytes at a time in 4-byte integers, due to QB->FB quirks,
+		'and fontdata itself is a byte pointer. Because there are
+		'always 8 bytes per character, we will always use exactly 4
+		'ints, or 16 bytes, making the initial calc pretty simple.
+		fi = (s$[ch] * 16)
+		'fi = s$[ch] * 8	'index to fontdata
+		fstep = 1 'used because our indexing is messed up, see above
+		for cc = 0 to 7
+			if col >= 0 then
+				si = (y * 320) + col
+				if (fontdata[fi] > 0) then
+					tbyte = 1 shl minrow
+					for pix = minrow to maxrow
+						bval = fontdata[fi] and tbyte
+						if bval > 0 then
+							pscr[si] = textfg
+						else
+							if textbg > 0 then
+								pscr[si] = textbg
 							end if
-							si = si + 320
-							tbyte = tbyte shl 1
-						next
-					else
-						if textbg > 0 then
-							for pix = minrow to maxrow
-								pscr[si] = bgcol
-								si = si + 320
-							next
 						end if
+						si = si + 320
+						tbyte = tbyte shl 1
+					next
+				else
+					if textbg > 0 then
+						for pix = minrow to maxrow
+							pscr[si] = textbg
+							si = si + 320
+						next
 					end if
 				end if
-				col = col + 1
-				if col >= 320 THEN exit SUB
-				fi = fi + fstep
-				fstep = iif(fstep = 1, 3, 1) 'uneven steps due to 2->4 byte thunk
-			next
-		end select
+			end if
+			col = col + 1
+			if col >= 320 THEN exit SUB
+			fi = fi + fstep
+			fstep = iif(fstep = 1, 3, 1) 'uneven steps due to 2->4 byte thunk
+		next
 	next
 end SUB
 
