@@ -1752,17 +1752,17 @@ set timer (0, 300, 15, timer: game over, 0, timerflag: battle)</example>
 	</section>
 	<section title="Tweaking Maps">
 		<command id="readmapblock">
-			<cannon>read map block (x,y)</cannon>
+			<cannon>read map block (x,y,layer)</cannon>
 			<shortname>read map block</shortname>
-			<description>Returns the value of a map tile on the current map at the specified X,Y position. Normal map tiles return values from 0-159, animating maptiles from set 1 return 160-207 and animating maptiles from set 2 return 208-255.</description>
+			<description>Returns the value of a map tile on the current map at the specified X,Y position. Normal map tiles return values from 0-159, animating maptiles from set 1 return 160-207 and animating maptiles from set 2 return 208-255. The optional layer can be 0, 1, or 2. The bottom layer will be read by default.</description>
 			<seealso>
 				<ref>currentdisplaytile</ref>
 			</seealso>
 		</command>
 		<command id="writemapblock">
-			<cannon>write map block (x,y,value)</cannon>
+			<cannon>write map block (x,y,value,layer)</cannon>
 			<shortname>write map block</shortname>
-			<description>Writes a new tile to the specified X,Y position on the current map. This change will only persist until you leave the map or fight a battle.</description>
+			<description>Writes a new tile to the specified X,Y position on the current map. This change will only persist until you leave the map or fight a battle. The optional layer argument can be 0, 1, or 2. The bottom layer will be written to by default</description>
 		</command>
 		<command id="readpassblock">
 			<cannon>read pass block (x,y)</cannon>

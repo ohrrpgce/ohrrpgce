@@ -2152,8 +2152,10 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     GOSUB nextsay
    CASE 97'--read map block
     setmapdata scroll(), pass(), 0, 0
+    IF scrat(nowscript).curargc = 2 THEN retvals(2) = 0
     scriptret = readmapblock(bound(retvals(0), 0, scroll(0)), bound(retvals(1), 0, scroll(1)), bound(retvals(2), 0, 2))
    CASE 98'--write map block
+    IF scrat(nowscript).curargc = 2 THEN retvals(3) = 0
     setmapdata scroll(), pass(), 0, 0
     setmapblock bound(retvals(0), 0, scroll(0)), bound(retvals(1), 0, scroll(1)), bound(retvals(3),0,2), bound(retvals(2), 0, 255)
    CASE 99'--read pass block

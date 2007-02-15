@@ -105,8 +105,8 @@ define function, begin
 #94,minutesofplay,0          # returns the minutes
 95,resumeNPCwalls,0         # restores normal NPC wall behavior
 96,setheroz,2,0,0           # sets the hero's vertical position
-97,readmapblock,2,0,0       # get mapblock x,y
-98,writemapblock,3,0,0,0    # set mapblock x,y,value
+97,readmapblock,3,0,0,0     # get mapblock x,y,layer
+98,writemapblock,4,0,0,0,0  # set mapblock x,y,value,layer
 99,readpassblock,2,0,0      # get passblock x,y
 100,writepassblock,3,0,0,0  # set passblock x,y,value
 101,NPCdirection,1,0        # return an NPC's direction
