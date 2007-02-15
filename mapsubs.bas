@@ -1108,7 +1108,14 @@ xbload maplumpname$(pt, "d"), link(), "doorlink lump is missing!"
 setpicstuf doors(), 600, -1
 loadset game$ + ".dox", pt, 0
 wide = map(0): high = map(1)
-if ubound(map) < wide * high * 3 + 1 then redim preserve map(wide*high*3+1) 'three layers + 2 fields - 1 offset
+if ubound(map) < wide * high * 3 + 1 then
+  'resize the map data if layers are not present
+  redim preserve map(wide*high*3+1) 'three layers + 2 fields - 1 offset
+  'manually clear the upper layers because redim fails to for some reason
+  for i = wide * high + 1 to wide * high * 3 + 1
+    map(i) = 0
+  next i
+end if
 mapname$ = getmapname$(pt)
 loadpasdefaults defaults(), gmap(0)
 GOSUB verifymap
