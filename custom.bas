@@ -1701,7 +1701,7 @@ END IF
 IF getfixbit(fixWeapPoints) = 0 THEN
 	setfixbit(fixWeapPoints, 1)
 	fh = freefile
-	OPEN game$ + ".DT0" FOR BINARY AS #fh
+	OPEN game$ + ".dt0" FOR BINARY AS #fh
 	REDIM dat(317) AS SHORT
 	p = 1
 	FOR i = 0 to gen(genMaxHero)
