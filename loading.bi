@@ -18,5 +18,7 @@ declare sub cleannpcl(dat() as npcinst, num as integer)
 declare sub serinventory(invent() as inventslot, z, buf())
 declare sub deserinventory(invent() as inventslot, z, buf())
 declare sub cleaninventory(invent() as inventslot)
+declare sub loadtilemap(mapnum as integer, array(), byref wide as integer, byref high as integer)
+'declare sub savetilemap(mapnum as integer, array(), wide as integer, high as integer)
 
 #ENDIF

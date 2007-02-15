@@ -98,7 +98,12 @@ DECLARE SUB killallscripts ()
 #include "const.bi"
 #include "scrconst.bi"
 #include "uiconst.bi"
+#include "loading.bi"
+
+
+'FIXME: this should not be called directly here. needs wrapping in allmodex.bi
 #include "gfx.bi"
+
 
 REM $STATIC
 SUB arslhero (saytag(), stat())

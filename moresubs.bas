@@ -75,6 +75,7 @@ DECLARE SUB killallscripts ()
 #include "const.bi"
 #include "scrconst.bi"
 #include "uiconst.bi"
+#include "loading.bi"
 
 REM $STATIC
 SUB addhero (who, slot, stat())

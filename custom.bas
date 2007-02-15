@@ -46,7 +46,7 @@ DECLARE SUB tagnames ()
 DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%)
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
-DECLARE SUB mapmaker (font%(), map%(), pass%(), emap%(), doors%(), link%(), npcn%(), npcstat%())
+DECLARE SUB mapmaker (font%(), doors%(), link%(), npcn%(), npcstat%())
 DECLARE SUB npcdef (npcn%(), pt%)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
@@ -98,7 +98,7 @@ processcommandline
 gamedir$ = exepath$
 CHDIR gamedir$
 
-DIM font(1024), buffer(16384), timing(4), joy(4), scroll(16002), pass(16002), emap(16002)
+DIM font(1024), buffer(16384), timing(4), joy(4)
 DIM menu$(22), gen(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), spriteclip(1600), uilook(uiColors)
 DIM master(255) as RGBcolor
 'more global variables
@@ -175,11 +175,9 @@ IF isdir(gamefile$) THEN
  CLOSE #fh
  KILL "filelist.tmp"
 ELSE
- ERASE scroll, pass, emap
  DIM lumpbuf(16383)
  unlump gamefile$, workingdir$ + SLASH, lumpbuf()
  ERASE lumpbuf
- DIM scroll(16002), pass(16002), emap(16002)
 END IF
 game$ = workingdir$ + SLASH + game$
 verifyrpg
@@ -225,7 +223,7 @@ DO:
   SELECT CASE menumode
    CASE 0'--normal mode
     IF pt = 0 THEN pt = 0: menumode = 1: GOSUB setgraphicmenu
-    IF pt = 1 THEN mapmaker font(), scroll(), pass(), emap(), doors(), link(), npcn(), npcstat()
+    IF pt = 1 THEN mapmaker font(), doors(), link(), npcn(), npcstat()
     IF pt = 2 THEN statname
     IF pt = 3 THEN herodata
     IF pt = 4 THEN enemydata

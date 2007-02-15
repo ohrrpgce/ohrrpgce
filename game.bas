@@ -167,6 +167,7 @@ DECLARE SUB killallscripts ()
 #include "const.bi"
 #include "scrconst.bi"
 #include "uiconst.bi"
+#include "loading.bi"
 
 'DEBUG debug "started debug session "+date$+" "+time$
 
@@ -198,7 +199,7 @@ DIM menu$(8), mi(8)
 DIM SHARED cycle(1), cycptr(1), cycskip(1), tastuf(40), stat(40, 1, 16)
 
 'global variables
-DIM scroll(16002), pass(16002)
+DIM scroll(2 + 16000 * 3), pass(16002)
 DIM master(255) as RGBcolor
 DIM uilook(uiColors)
 DIM inventory(inventoryMax) as InventSlot
@@ -2310,7 +2311,8 @@ SUB loadmap_npcd(mapnum)
 END SUB
 
 SUB loadmap_tilemap(mapnum)
- xbload maplumpname$(mapnum, "t"), scroll(), "Oh no! Map " + STR$(mapnum) + " tilemap is missing"
+ DIM as integer tempw, temph
+ LoadTilemap mapnum, scroll(), tempw, temph
 END SUB
 
 SUB loadmap_passmap(mapnum)

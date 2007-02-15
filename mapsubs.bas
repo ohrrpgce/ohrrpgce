@@ -41,7 +41,7 @@ DECLARE SUB tagnames ()
 DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%, big%)
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
-DECLARE SUB mapmaker (font%(), map%(), pass%(), emap%(), doors%(), link%(), npc%(), npcstat%())
+DECLARE SUB mapmaker (font%(), doors%(), link%(), npc%(), npcstat%())
 DECLARE SUB npcdef (npc%(), pt%)
 DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
@@ -74,6 +74,7 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 #include "const.bi"
 #include "scrconst.bi"
 #include "scancodes.bi"
+#include "loading.bi"
 
 REM $STATIC
 
@@ -144,7 +145,8 @@ IF pic >= 160 THEN pic = (pic - 160) + tastuf(0)
 animadjust = pic
 END FUNCTION
 
-SUB mapmaker (font(), map(), pass(), emap(), doors(), link(), npc(), npcstat())
+SUB mapmaker (font(), doors(), link(), npc(), npcstat())
+DIM map(2 + 16000 * 3), pass(16002), emap(16002)
 DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(20), gd$(-1 TO 20), gdmax(20), gdmin(20), destdoor(300), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
 defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
 
@@ -1099,7 +1101,8 @@ FOR i = 0 TO 1
  cycptr(i) = 0
  cycskip(i) = 0
 NEXT i
-xbload maplumpname$(pt, "t"), map(), "tilemap lump is missing!"
+'xbload maplumpname$(pt, "t"), map(), "tilemap lump is missing!"
+LoadTilemap pt, map(), wide, high
 xbload maplumpname$(pt, "p"), pass(), "passmap lump is missing!"
 xbload maplumpname$(pt, "e"), emap(), "foemap lump is missing!"
 xbload maplumpname$(pt, "l"), npc(), "npclocation lump is missing!"
@@ -1107,11 +1110,6 @@ xbload maplumpname$(pt, "n"), npcstat(), "npcstat lump is missing!"
 xbload maplumpname$(pt, "d"), link(), "doorlink lump is missing!"
 setpicstuf doors(), 600, -1
 loadset game$ + ".dox", pt, 0
-wide = map(0): high = map(1)
-if ubound(map) < wide * high * 3 + 1 then
-  'resize the map data if layers are not present
-  redim preserve map(wide*high*3+1) 'three layers + 2 fields - 1 offset
-end if
 mapname$ = getmapname$(pt)
 loadpasdefaults defaults(), gmap(0)
 GOSUB verifymap

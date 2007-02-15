@@ -1,4 +1,4 @@
-'OHRRPGCE GAME - Routines for loading data
+'OHRRPGCE GAME&CUSTOM - Routines for loading data
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
@@ -6,10 +6,10 @@
 #include "udts.bi"
 #include "compat.bi"
 #include "const.bi"
+#include "common.bi"
+#include "loading.bi"
 
 option explicit
-
-DECLARE SUB debug (s$)
 
 SUB LoadNPCD(file as string, dat() as NPCType)
   DIM i AS INTEGER, j AS INTEGER, f AS INTEGER
@@ -201,3 +201,32 @@ SUB CleanInventory(invent() as InventSlot)
     invent(i).text = SPACE$(11)
   NEXT
 END SUB
+
+SUB LoadTilemap(mapnum as integer, array(), byref wide as integer, byref high as integer)
+  DIM filename$
+  DIM AS INTEGER fh, lastlayer, layeri, index, i
+  filename$ = maplumpname$(mapnum, "t")
+  fh = FREEFILE
+  OPEN filename$ FOR BINARY AS #fh
+  SEEK #fh, 8
+  wide = Readshort(fh, -1)
+  high = ReadShort(fh, -1)
+  array(0) = wide
+  array(1) = high
+  lastlayer = 2
+  IF LOF(fh) < wide * high * 3 + 2 THEN lastlayer = 0
+  FOR layeri = 0 TO 2
+    FOR i = 0 TO (wide * high) \ 2 - 1
+      index = 2 + layeri * (wide * high \ 2) + i
+      IF layeri <= lastlayer THEN
+        array(index) = ReadShort(fh, -1)
+      ELSE
+        array(index) = 0
+      END IF
+    NEXT i
+  NEXT layeri
+  CLOSE #fh
+END SUB
+
+'SUB SaveTilemap(mapnum as integer, array(), wide as integer, high as integer)
+'END SUB

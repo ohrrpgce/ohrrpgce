@@ -164,30 +164,4 @@ END TYPE
 '8-21 are copied from VEH
 
 
-'Loading subs
-DECLARE SUB LoadNPCD(file as string, dat() as NPCType)
-DECLARE SUB LoadNPCL(file as string, dat() as NPCInst, num as integer)
-DECLARE SUB LoadTileData(file as string, num as integer, t as TilesetData ptr)
-
-'Integer offset access write wrappers
-DECLARE SUB SetNPCD(npcd AS NPCType, offset AS INTEGER, value AS INTEGER)
-
-'Integer offset access read wrappers
-DECLARE FUNCTION GetNPCD(npcd AS NPCType, offset AS INTEGER) AS INTEGER
-
-'Serialization
-DECLARE SUB SerNPCL(dat() as NPCInst, z, buf(), num as integer)
-DECLARE SUB SerInventory(invent() as InventSlot, z, buf())
-
-'DeSerialization
-DECLARE SUB DeserNPCL(dat() as NPCInst, z, buf(), num as integer)
-DECLARE SUB DeserInventory(invent() as InventSlot, z, buf())
-
-'Cleaning
-DECLARE SUB CleanNPCD(dat() as NPCType)
-DECLARE SUB CleanNPCL(dat() as NPCInst, num as integer)
-DECLARE SUB CleanInventory(invent() as InventSlot)
-
-
-
 #ENDIF
