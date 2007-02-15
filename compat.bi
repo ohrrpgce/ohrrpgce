@@ -21,6 +21,21 @@ option nokeyword setmouse
 
 'included only for $inclib?
 #include once "crt.bi"
+#undef rand
+#undef abort
+#undef bound
+#undef strlen
+
+#if  __FB_VERSION__ = "0.15"
+'use native gosubs
+#define retrace return
+#define retrievestate
+#define rememberstate
+#define crt_jmp_buf byte
+
+#else
+'use a setjmp/longjmp kludge
+
 '#include "crt/setjmp.bi"
 ' setjmp.bi is incorrect
 type crt_jmp_buf:dummy(63) as byte:end type
@@ -30,10 +45,6 @@ declare function setjmp cdecl alias "_setjmp" (byval as any ptr) as integer
 declare function setjmp cdecl alias "setjmp" (byval as any ptr) as integer
 #endif
 declare sub longjmp cdecl alias "longjmp" (byval as any ptr, byval as integer)
-#undef rand
-#undef abort
-#undef bound
-#undef strlen
 
 extern gosubbuf() as crt_jmp_buf
 extern gosubptr as integer
@@ -42,6 +53,7 @@ option nokeyword gosub
 #define retrace longjmp(@gosubbuf(gosubptr-1),1)
 #define retrievestate gosubptr=localgosubptr
 #define rememberstate localgosubptr=gosubptr
+#endif
 
 '#DEFINE CLEAROBJ(OBJ) memset(@(OBJ),0,LEN(OBJ))
 '#DEFINE COPYOBJ(TO,FROM) memcpy(@(TO),@(FROM),LEN(FROM))
