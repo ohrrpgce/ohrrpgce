@@ -1618,7 +1618,7 @@ SELECT CASE AS CONST id
    loadsaytobuffer retvals(1)
    plotstr(retvals(0)).s = string$(38,0)
    array2str buffer() , retvals(2) * 38 , plotstr(retvals(0)).s
-   IF retvals(3) THEN embedtext plotstr(retvals(0)).s
+   IF NOT retvals(3) THEN embedtext plotstr(retvals(0)).s
    plotstr(retvals(0)).s = trim$(plotstr(retvals(0)).s)
   END IF
  CASE 241'-- expand string(id)
