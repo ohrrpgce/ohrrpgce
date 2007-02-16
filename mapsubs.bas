@@ -563,9 +563,8 @@ DO
    END IF
    IF keyval(29) > 0 AND keyval(32) > 1 THEN defpass = defpass XOR 1   
    FOR i = 0 TO 1
-   	FOR l = 0 to 2
     IF keyval(2 + i) > 1 THEN
-     old = readmapblock(x, y, l)
+     old = readmapblock(x, y, layer)
      IF old > 159 + (i * 48) THEN
       new = (old - (160 + (i * 48))) + tastuf(i * 20)
      ELSE
@@ -574,16 +573,15 @@ DO
       END IF
      END IF
      IF keyval(29) = 0 THEN
-      setmapblock x, y, l, new
+      setmapblock x, y, layer, new
      ELSE
       FOR tx = 0 TO map(0)
        FOR ty = 0 TO map(1)
-				IF readmapblock(tx, ty, l) = old THEN setmapblock tx, ty, l, new
+				IF readmapblock(tx, ty, layer) = old THEN setmapblock tx, ty, layer, new
        NEXT ty
       NEXT tx
      END IF
     END IF
-    Next l
    NEXT i
    IF keyval(51) > 0 AND usetile(layer) > 0 THEN
     usetile(layer) = usetile(layer) - 1
