@@ -66,6 +66,13 @@ DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
+DECLARE Function LayerIsVisible(vis() as integer, byval l as integer) as integer
+DECLARE Function LayerIsEnabled(gmap() as integer, byval l as integer) as integer
+DECLARE Sub SetLayerVisible(vis() as integer, byval l as integer, byval v as integer)
+DECLARE Sub SetLayerEnabled(gmap() as integer, byval l as integer, byval v as integer)
+DECLARE Sub ToggleLayerVisible(vis() as integer, byval l as integer)
+DECLARE Sub ToggleLayerEnabled(vis() as integer, byval l as integer)
+
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi" 
@@ -150,11 +157,11 @@ DIM map(2 + 16000 * 3), pass(16002), emap(16002)
 DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(20), gd$(-1 TO 20), gdmax(20), gdmin(20), destdoor(300), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
 defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
 
-DIM as integer visible(0 to 2) = {1,0,0}
 DIM as integer usetile(0 to 2)
 DIM as integer menubarstart(0 to 2)
 DIM as integer layer
-DIM as integer jiggle(0) 'used as bitsets
+DIM as integer jiggle(0), visible(0) = {&b111} 'used as bitsets
+
 
 textcolor 15, 0
 
@@ -521,17 +528,28 @@ DO
 	  editmode = 4
 	 END IF
  else
- 	for i = 0 to 2
- 		if keyval(scAlt) AND keyval(scF1 + i) AND i > 0 then setbit(gmap(), 19, i-1, readbit(gmap(), 19, i-1) xor 1): if not readbit(gmap(), 19, i-1) then visible(i) = 0: layer = 0: visible(0) = 1
- 		if keyval(scCtrl) AND keyval(scF1 + i) then
- 			if i = 0 then
- 				visible(i) = visible(i) xor 1
- 			elseif readbit(gmap(), 19, i-1) then
- 				visible(i) = visible(i) xor 1
- 			end if
- 		end if
+  for i = 0 to 2
+  	if keyval(scAlt) AND keyval(sc1 + i) then
+  		clearkey(sc1 + i)
+  		togglelayerenabled(gmap(), i)
+  		if not layerisenabled(gmap(), i) then
+  			if layer = i then
+  				do until layerisenabled(gmap(), layer): layer -= 1: loop
+  			end if
+  		end if
+  	end if
+  	if keyval(scCtrl) AND keyval(scF1 + i) then
+  		clearkey(scF1 + i)
+	 		if layerisenabled(gmap(), i) then togglelayervisible(visible(), i)
+  	end if
  	next
+ 	
+ 	if keyval(scTilde) then
+ 		togglelayervisible(visible(), layer)
+ 		clearkey(scTilde)
+ 	end if
  end if
+ 
  IF keyval(29) > 0 AND keyval(38) > 1 THEN gosub layermenu'ctrl-L
  IF keyval(1) > 1 THEN RETRACE
  IF keyval(15) > 1 THEN tiny = tiny XOR 1
@@ -694,9 +712,9 @@ DO
  
  IF keyval(scPageup) > 1 then
  	for i = layer+1 to 2
- 		if readbit(gmap(), 19, i-1) then
+ 		if layerisenabled(gmap(), i) then
  			layer = i
- 			visible(i) = 1
+ 			setlayervisible(visible(), layer, 1)
 			GOSUB updatetilepicker
  			exit for
  		end if
@@ -705,18 +723,11 @@ DO
  	 
  IF keyval(scPageDown) > 1 then
  	for i = layer-1 to 0 step -1
- 		if i > 0 THEN
- 			if readbit(gmap(), 19, i-1) then
-	 			layer = i
-	 			visible(i) = 1
-				GOSUB updatetilepicker
-	 			exit for
-	 		end if
-	 	ELSE
-	 		layer = i
-	 		visible(i) = 1
+ 		if layerisenabled(gmap(), i) then
+ 			layer = i
+ 			setlayervisible(visible(), layer, 1)
 			GOSUB updatetilepicker
-	 		exit for
+ 			exit for
  		end if
  	next
  end if
@@ -738,7 +749,7 @@ DO
  cycletile cycle(), tastuf(), cycptr(), cycskip()
  rectangle 0, 20, 320, 180, 0, dpage
  for i = 0 to 2
- 	if visible(i) then
+ 	if layerisvisible(visible(), i) AND layerisenabled(gmap(), i) then
 		jigx = 0: jigy = 0
 		if readbit(jiggle(), 0, i) and tog then
 			if i = 0 then jigx = 1
@@ -1014,7 +1025,7 @@ END IF
 wide = map(0): high = map(1)
 x = 0: y = 0: mapx = 0: mapy = 0
 layer = 0
-visible(0) = 1: visible(1) = 0: visible(2) = 0
+'visible(0) = 1: visible(1) = 0: visible(2) = 0
 RETRACE
 
 addmap:
@@ -1088,10 +1099,11 @@ RETRACE
 loadmap:
 setpicstuf gmap(), 40, -1
 loadset game$ + ".map", pt, 0
-visible(0) = 1
-for i = 0 to 1
-	visible(i + 1) = readbit(gmap(), 19, i)
-next
+'visible(0) = 1
+'for i = 0 to 1
+'	visible(i + 1) = readbit(gmap(), 19, i)
+'next
+visible(0) = &b111'default all layers to visible, if they're enabled too, of course
 loadpage game$ + ".til", gmap(0), 3
 loadtanim gmap(0), tastuf()
 FOR i = 0 TO 1
@@ -1320,36 +1332,26 @@ layermenu:
 				clearkey(28)
     		EXIT DO
    		END IF
-   	case 1 'layer 1 can't be disabled
-   		IF keyval(75) > 1 OR keyval(77) > 1 THEN
-   			visible(0) = visible(0) xor 1
-   			gosub makelayermenu
-   		end if
-   	case 2 to 3
+   	case 1 to 3
    		IF keyval(57) > 1 OR keyval(28) > 1 THEN
-   			setbit(gmap(), 19, csr2-2, readbit(gmap(), 19, csr2-2) xor 1)
-   			if not readbit(gmap(), 19, csr2-2) then visible(csr2-1) = 0
+   			ToggleLayerEnabled(gmap(), csr2 - 1)
    			gosub makelayermenu
    		end if
-   		IF readbit(gmap(), 19, csr2-2) AND (keyval(75) > 1 OR keyval(77) > 1) THEN
-   			visible(csr2-1) = visible(csr2-1) xor 1
+   		IF layerisenabled(gmap(), csr2-1) AND (keyval(75) > 1 OR keyval(77) > 1) THEN
+   			togglelayervisible(visible(), csr2-1)
    			gosub makelayermenu
    		end if
 
 		end select
 		
 		FOR i = 0 TO 3
-		  if i = 1 then
-		  	textcolor 7, 0
-		  	IF csr2 = i THEN textcolor 14 + tog, 0
-		  elseif i > 1 AND readbit(gmap(), 19, i-2) = 0 then
-		  	textcolor 6, 0
+			if layerisenabled(gmap(), i - 1) then
+				textcolor 7, 0
+				if csr2 = i then textcolor 14 + tog, 0
+			else
+				textcolor 6, 0
 		  	IF csr2 = i THEN textcolor 6 + tog, 0		 
-		  else
-		  	textcolor 7, 0
-		  	IF csr2 = i THEN textcolor 14 + tog, 0
-		  end if
-		  
+			end if
 		  printstr menu$(i), 0, i * 8, dpage
 		NEXT i
 		
@@ -1368,11 +1370,11 @@ menu$(1) = "Bottom Layer "
 menu$(2) = "Middle Layer "
 menu$(3) = "Top Layer    "
 
-for i = 1 to 3
-	if visible(i-1) then
-		menu$(i) = menu$(i) & "(Visible)"
+for i = 0 to 2
+	if layerisvisible(visible(),i) then
+		menu$(i+1) = menu$(i+1) & "(Visible)"
 	else
-		menu$(i) = menu$(i) & "(Invisible)"
+		menu$(i+1) = menu$(i+1) & "(Invisible)"
 	end if
 next
 RETRACE
@@ -1407,3 +1409,31 @@ RETRACE
 '128 overhead
 END SUB
 
+Function LayerIsVisible(vis() as integer, byval l as integer) as integer
+	'debug "layer #" & l & " is: " & readbit(vis(), 0, l)
+	return readbit(vis(), 0, l)
+end function
+
+Function LayerIsEnabled(gmap() as integer, byval l as integer) as integer
+	if l <= 0 then return 1
+	'debug "layer #" & l & " is: " & readbit(gmap(), 19, l-1)
+	return readbit(gmap(), 19, l-1)
+end function
+
+Sub SetLayerVisible(vis() as integer, byval l as integer, byval v as integer)
+	setbit(vis(), 0, l, v)
+end sub
+
+Sub SetLayerEnabled(gmap() as integer, byval l as integer, byval v as integer)
+	if l <= 0 then exit sub
+	setbit(gmap(), 19, l-1 ,v)
+end sub
+
+Sub ToggleLayerVisible(vis() as integer, byval l as integer)
+	setbit(vis(), 0, l, readbit(vis(), 0, l) xor 1)
+end sub
+
+Sub ToggleLayerEnabled(gmap() as integer, byval l as integer)
+	if l <= 0 then exit sub
+	setbit(gmap(), 19, l - 1, readbit(gmap(), 19, l-1) xor 1)
+end sub
