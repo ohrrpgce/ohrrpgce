@@ -73,6 +73,8 @@ DECLARE Sub SetLayerEnabled(gmap() as integer, byval l as integer, byval v as in
 DECLARE Sub ToggleLayerVisible(vis() as integer, byval l as integer)
 DECLARE Sub ToggleLayerEnabled(vis() as integer, byval l as integer)
 
+DECLARE SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors(), link(), gmap())
+
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi" 
@@ -154,7 +156,7 @@ END FUNCTION
 
 SUB mapmaker (font(), doors(), link(), npc(), npcstat())
 DIM map(2 + 16000 * 3), pass(16002), emap(16002)
-DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(20), gd$(-1 TO 20), gdmax(20), gdmin(20), destdoor(300), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
+DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(20), gd$(-1 TO 20), gdmax(20), gdmin(20), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
 defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
 
 DIM as integer usetile(0 to 2)
@@ -1099,10 +1101,6 @@ RETRACE
 loadmap:
 setpicstuf gmap(), 40, -1
 loadset game$ + ".map", pt, 0
-'visible(0) = 1
-'for i = 0 to 1
-'	visible(i + 1) = readbit(gmap(), 19, i)
-'next
 visible(0) = &b111'default all layers to visible, if they're enabled too, of course
 loadpage game$ + ".til", gmap(0), 3
 loadtanim gmap(0), tastuf()
@@ -1228,7 +1226,7 @@ menu$(4) = "Require Tag"
 cur2 = -1
 sdwait = 0
 outmap$ = getmapname$(link(cur + 400))
-GOSUB showldoor
+DrawDoorPair pt, cur, map(), pass(), doors(), link(), gmap()
 setkeys
 DO
  setwait timing(), 100
@@ -1236,7 +1234,7 @@ DO
  tog = tog XOR 1
  IF sdwait > 0 THEN
   sdwait = sdwait - 1
-  IF sdwait = 0 THEN GOSUB showldoor
+  IF sdwait = 0 THEN DrawDoorPair pt, cur, map(), pass(), doors(), link(), gmap()
  END IF
  IF keyval(1) > 1 THEN RETRACE
  'IF keyval(72) > 1 THEN cur2 = cur2 - 1: IF cur2 < -1 THEN cur2 = 4
@@ -1269,47 +1267,6 @@ DO
  copypage 2, dpage
  dowait
 LOOP
-
-showldoor:
-clearpage 2
-setmapdata map(), pass(), 0, 101
-IF doors(link(cur + (0 * 200)) + 200) = 1 THEN
- dmx = doors(link(cur + (0 * 200))) * 20 - 150
- dmy = doors(link(cur + (0 * 200)) + 100) * 20 - 65
- dmx = small(large(dmx, 0), map(0) * 20 - 320)
- dmy = small(large(dmy, 0), map(1) * 20 - 100)
- drawmap dmx, dmy, 0, 0, 2
- rectangle doors(link(cur + (0 * 200))) * 20 - dmx, doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 20, 20, 20, 240, 2
- rectangle 1 + doors(link(cur + (0 * 200))) * 20 - dmx, 1 + doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 20, 18, 18, 7, 2
- textcolor 240, 0
- xtemp$ = XSTR$(link(cur + (0 * 200)))
- printstr RIGHT$(xtemp$, LEN(xtemp$) - 1), doors(link(cur + (0 * 200))) * 20 - dmx + 10 - (4 * LEN(xtemp$)), doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 14, 2
-END IF
-'-----------------EXIT DOOR
-setpicstuf destdoor(), 600, -1
-loadset game$ + ".dox", link(cur + (2 * 200)), 0
-LoadTilemap link(cur + (2 * 200)), map(), tempw, temph
-setpicstuf buffer(), 40, -1
-loadset game$ + ".map", link(cur + (2 * 200)), 0
-loadpage game$ + ".til", buffer(0), 3
-setmapdata map(), pass(), 101, 0
-IF destdoor(link(cur + (1 * 200)) + 200) = 1 THEN
- dmx = destdoor(link(cur + (1 * 200))) * 20 - 150
- dmy = destdoor(link(cur + (1 * 200)) + 100) * 20 - 65
- dmx = small(large(dmx, 0), map(0) * 20 - 320)
- dmy = small(large(dmy, 0), map(1) * 20 - 100)
- drawmap dmx, dmy - 100, 0, 0, 2
- rectangle destdoor(link(cur + (1 * 200))) * 20 - dmx, destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 80, 20, 20, 240, 2
- rectangle 1 + destdoor(link(cur + (1 * 200))) * 20 - dmx, 1 + destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 80, 18, 18, 7, 2
- textcolor 240, 0
- xtemp$ = XSTR$(link(cur + (1 * 200)))
- printstr RIGHT$(xtemp$, LEN(xtemp$) - 1), destdoor(link(cur + (1 * 200))) * 20 - dmx + 10 - (4 * LEN(xtemp$)), destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 86, 2
-END IF
-'-----------------RESET DATA
-loadpage game$ + ".til", gmap(0), 3
-LoadTilemap pt, map(), tempw, temph
-RETRACE
-
 
 layermenu:
 
@@ -1436,3 +1393,63 @@ Sub ToggleLayerEnabled(gmap() as integer, byval l as integer)
 	if l <= 0 then exit sub
 	setbit(gmap(), 19, l - 1, readbit(gmap(), 19, l-1) xor 1)
 end sub
+
+SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors(), link(), gmap())
+ DIM as integer dmx, dmy, i, tempw, temph
+ DIM caption$
+ DIM destdoor(300)
+ DIM gmap2(20), anim(40)
+ 
+ clearpage 2
+ 
+ loadtanim gmap(0), anim()
+ setanim anim(0), anim(20)
+ setmapdata map(), pass(), 0, 101
+ IF doors(link(cur + (0 * 200)) + 200) = 1 THEN
+  dmx = doors(link(cur + (0 * 200))) * 20 - 150
+  dmy = doors(link(cur + (0 * 200)) + 100) * 20 - 65
+  dmx = small(large(dmx, 0), map(0) * 20 - 320)
+  dmy = small(large(dmy, 0), map(1) * 20 - 100)
+  FOR i = 0 to 2
+   IF LayerIsEnabled(gmap(), i) THEN
+     drawmap dmx, dmy, i, 0, 2, i <> 0
+   END IF
+  NEXT i
+  rectangle doors(link(cur + (0 * 200))) * 20 - dmx, doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 20, 20, 20, 240, 2
+  rectangle 1 + doors(link(cur + (0 * 200))) * 20 - dmx, 1 + doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 20, 18, 18, 7, 2
+  textcolor 240, 0
+  caption$ = XSTR$(link(cur + (0 * 200)))
+  printstr caption$, doors(link(cur + (0 * 200))) * 20 - dmx + 10 - (4 * LEN(caption$)), doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 14, 2
+ END IF
+ '-----------------EXIT DOOR
+ destmap = link(cur + (2 * 200))
+ setpicstuf gmap2(), 40, -1
+ loadset game$ + ".map", destmap, 0
+ setpicstuf destdoor(), 600, -1
+ loadset game$ + ".dox", destmap, 0
+ LoadTilemap destmap, map(), tempw, temph
+ loadpage game$ + ".til", gmap2(0), 3
+ 
+ loadtanim gmap2(0), anim()
+ setanim anim(0), anim(20)
+ setmapdata map(), pass(), 101, 0
+ IF destdoor(link(cur + (1 * 200)) + 200) = 1 THEN
+  dmx = destdoor(link(cur + (1 * 200))) * 20 - 150
+  dmy = destdoor(link(cur + (1 * 200)) + 100) * 20 - 65
+  dmx = small(large(dmx, 0), map(0) * 20 - 320)
+  dmy = small(large(dmy, 0), map(1) * 20 - 100)
+  FOR i = 0 to 2
+   IF LayerIsEnabled(gmap2(), i) THEN
+     drawmap dmx, dmy - 100, i, 0, 2, i <> 0
+   END IF
+  NEXT i
+  rectangle destdoor(link(cur + (1 * 200))) * 20 - dmx, destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 80, 20, 20, 240, 2
+  rectangle 1 + destdoor(link(cur + (1 * 200))) * 20 - dmx, 1 + destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 80, 18, 18, 7, 2
+  textcolor 240, 0
+  caption$ = XSTR$(link(cur + (1 * 200)))
+  printstr caption$, destdoor(link(cur + (1 * 200))) * 20 - dmx + 10 - (4 * LEN(caption$)), destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 86, 2
+ END IF
+ '-----------------RESET DATA
+ loadpage game$ + ".til", gmap(0), 3
+ LoadTilemap curmap, map(), tempw, temph
+END SUB
