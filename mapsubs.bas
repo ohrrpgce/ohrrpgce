@@ -1013,7 +1013,7 @@ IF yesno = 1 THEN
   doors(i + 100) = 0
   doors(i + 200) = 0
  NEXT
- xBSAVE maplumpname$(pt, "t"), map(), map(0) * map(1) * 3 + 4
+ SaveTilemap pt, map()
  xBSAVE maplumpname$(pt, "p"), pass(), pass(0) * pass(1) + 4
  xBSAVE maplumpname$(pt, "e"), emap(), emap(0) * emap(1) + 4
  xBSAVE maplumpname$(pt, "d"), link(), 2000
@@ -1064,7 +1064,7 @@ map(0) = 64: map(1) = 64
 pass(0) = 64: pass(1) = 64
 emap(0) = 64: emap(1) = 64
 '--save map buffers
-xBSAVE maplumpname$(gen(0), "t"), map(), map(0) * map(1) * 3 + 4
+SaveTilemap gen(genMaxMap), map()
 xBSAVE maplumpname$(gen(0), "p"), pass(), pass(0) * pass(1) + 4
 xBSAVE maplumpname$(gen(0), "e"), emap(), emap(0) * emap(1) + 4
 xBSAVE maplumpname$(gen(0), "d"), link(), 2000
@@ -1081,7 +1081,7 @@ RETRACE
 savemap:
 setpicstuf gmap(), 40, -1
 storeset game$ + ".map", pt, 0
-xBSAVE maplumpname$(pt, "t"), map(), map(0) * map(1) * 3 + 4
+SaveTilemap pt, map()
 xBSAVE maplumpname$(pt, "p"), pass(), pass(0) * pass(1) + 4
 xBSAVE maplumpname$(pt, "e"), emap(), emap(0) * emap(1) + 4
 xBSAVE maplumpname$(pt, "l"), npc(), 3000
@@ -1111,7 +1111,6 @@ FOR i = 0 TO 1
  cycptr(i) = 0
  cycskip(i) = 0
 NEXT i
-'xbload maplumpname$(pt, "t"), map(), "tilemap lump is missing!"
 LoadTilemap pt, map(), wide, high
 xbload maplumpname$(pt, "p"), pass(), "passmap lump is missing!"
 xbload maplumpname$(pt, "e"), emap(), "foemap lump is missing!"
@@ -1219,7 +1218,7 @@ DO
 LOOP
 
 seedoors:
-xBSAVE maplumpname$(pt, "t"), map(), map(0) * map(1) + 4
+SaveTilemap pt, map()
 menu$(-1) = "Go Back"
 menu$(0) = "Entrance Door"
 menu$(1) = "Exit Door"
@@ -1289,7 +1288,7 @@ END IF
 '-----------------EXIT DOOR
 setpicstuf destdoor(), 600, -1
 loadset game$ + ".dox", link(cur + (2 * 200)), 0
-xbload maplumpname$(link(cur + (2 * 200)), "t"), map(), "Could not find map" + filenum$(link(cur + (2 * 200)))
+LoadTilemap link(cur + (2 * 200)), map(), tempw, temph
 setpicstuf buffer(), 40, -1
 loadset game$ + ".map", link(cur + (2 * 200)), 0
 loadpage game$ + ".til", buffer(0), 3
@@ -1308,7 +1307,7 @@ IF destdoor(link(cur + (1 * 200)) + 200) = 1 THEN
 END IF
 '-----------------RESET DATA
 loadpage game$ + ".til", gmap(0), 3
-xbload maplumpname$(pt, "t"), map(), "Tilemap lump disappeared!"
+LoadTilemap pt, map(), tempw, temph
 RETRACE
 
 

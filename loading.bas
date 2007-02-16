@@ -228,5 +228,9 @@ SUB LoadTilemap(mapnum as integer, array(), byref wide as integer, byref high as
   CLOSE #fh
 END SUB
 
-'SUB SaveTilemap(mapnum as integer, array(), wide as integer, high as integer)
-'END SUB
+SUB SaveTilemap(mapnum as integer, array())
+  DIM AS INTEGER wide, high
+  wide = array(0)
+  high = array(1)
+  xbsave maplumpname$(mapnum, "t"), array(), 4 + wide * high * 3
+END SUB
