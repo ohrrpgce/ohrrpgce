@@ -839,7 +839,10 @@ DO
   clearpage 3
   GOSUB loadalluc
  END IF
- IF keyval(57) > 1 OR keyval(28) > 1 THEN GOSUB spriteage
+ IF keyval(57) > 1 OR keyval(28) > 1 THEN
+  GOSUB spriteage
+  GOSUB loadalluc
+ END IF
  IF keyval(73) > 1 THEN
   GOSUB savealluc
   pt = large(pt - atatime, 0)
@@ -997,6 +1000,8 @@ DO
  rectangle 239, 119, xw, yw, 0, dpage
  dowait
 LOOP
+j = pt
+GOSUB savewuc
 changepal poffset(pt), 0, workpal(), pt - top
 RETRACE
 
