@@ -800,6 +800,9 @@ touchfile workingdir$ + SLASH + "kill.tmp"
 'DEBUG debug "Kill working files"
 
 cleanuptemp
+#IFDEF __FB_LINUX__
+  RMDIR tmpdir$
+#ENDIF
 
 'DEBUG debug "Remove working directory"
 IF usepreunlump = 0 THEN RMDIR workingdir$

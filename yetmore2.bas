@@ -608,7 +608,6 @@ SUB cleanuptemp
   KILL tmpdir$ + "filelist.tmp"
 #IFDEF __FB_LINUX__
   RMDIR tmpdir$ + "playing.tmp"
-  RMDIR tmpdir$
 #ENDIF
 END SUB
 
