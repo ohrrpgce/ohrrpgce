@@ -944,11 +944,11 @@ dosizemap:
 clearpage 0
 clearpage 1
 yout = 0
-edgeprint "TILEMAP", 0, yout * 10, 15, vpage: yout = yout + 1
+edgeprint "TILEMAP", 0, yout * 10, 15, vpage: setvispage vpage: yout = yout + 1
 sizemar map(), wide, high, tempx, tempy, tempw, temph, yout, vpage, 1
-edgeprint "PASSMAP", 0, yout * 10, 15, vpage: yout = yout + 1
+edgeprint "PASSMAP", 0, yout * 10, 15, vpage: setvispage vpage: yout = yout + 1
 sizemar pass(), wide, high, tempx, tempy, tempw, temph, yout, vpage, 0
-edgeprint "FOEMAP", 0, yout * 10, 15, vpage: yout = yout + 1
+edgeprint "FOEMAP", 0, yout * 10, 15, vpage: setvispage vpage: yout = yout + 1
 sizemar emap(), wide, high, tempx, tempy, tempw, temph, yout, vpage, 0
 setmapdata map(), pass(), 20, 0
 wide = map(0): high = map(1)
@@ -962,7 +962,7 @@ FOR i = 0 TO 99
   doors(i + 200) = 0
  END IF
 NEXT
-edgeprint "Aligning and truncating NPCs", 0, yout * 10, 15, vpage: yout = yout + 1
+edgeprint "Aligning and truncating NPCs", 0, yout * 10, 15, vpage: setvispage vpage: yout = yout + 1
 FOR i = 0 TO 299
  npc(i + 0) = npc(i + 0) - tempx
  npc(i + 300) = npc(i + 300) - tempy
@@ -989,6 +989,7 @@ temp$(1) = "Delete Map"
 yesno = sublist(1, temp$())
 IF yesno = 1 THEN
  printstr "Please Wait...", 0, 40, vpage
+ setvispage vpage
  map(0) = 32: map(1) = 20
  pass(0) = 32: pass(1) = 20
  emap(0) = 32: emap(1) = 20
@@ -1146,6 +1147,7 @@ IF map(0) <> pass(0) OR map(0) <> emap(0) OR map(1) <> pass(1) OR map(1) <> emap
    IF keyval(1) > 1 OR keyval(28) > 1 THEN EXIT DO
    dummy = intgrabber(wide, 0, 9999, 75, 77)
    printstr "Width:" + XSTR$(wide) + "   ", 0, j * 8, vpage
+   setvispage vpage
    dowait
   LOOP
   j = j + 1
@@ -1156,6 +1158,7 @@ IF map(0) <> pass(0) OR map(0) <> emap(0) OR map(1) <> pass(1) OR map(1) <> emap
    IF keyval(1) > 1 OR keyval(28) > 1 THEN EXIT DO
    dummy = intgrabber(high, 0, 9999, 75, 77)
    printstr "Height:" + XSTR$(high) + "    ", 0, j * 8, vpage
+   setvispage vpage
    dowait
   LOOP
   textcolor 15, 0
@@ -1169,6 +1172,7 @@ IF map(0) <> pass(0) OR map(0) <> emap(0) OR map(1) <> pass(1) OR map(1) <> emap
  j = j + 2
  printstr "please report this error to", 0, j * 8, vpage: j = j + 1
  printstr "ohrrpgce@HamsterRepublic.com", 0, j * 8, vpage: j = j + 1
+ setvispage vpage
  w = getkey
 END IF
 RETRACE

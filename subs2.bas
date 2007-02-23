@@ -1415,6 +1415,7 @@ DO
  IF pt = remptr THEN
   rectangle 115, 90, 100, 20, 1, vpage
   edgeprint "Not found.", 120, 95, 15, vpage
+  setvispage vpage
   w = getkey
   EXIT DO
  END IF

@@ -580,6 +580,7 @@ END FUNCTION
 SUB updaterecordlength (lumpf$, bindex)
 IF getbinsize(bindex) < curbinsize(bindex) THEN
  printstr "Upgrading " + lumpf$ + " to new record size...", 0, 10, vpage
+ setvispage vpage
 
  tempf$ = workingdir$ + SLASH + "resize.tmp"
 

@@ -727,6 +727,7 @@ DO
      LINE INPUT #fh, temp$
      IF temp$ = "-END OF LIST-" THEN EXIT DO
      printstr " " + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)) + " ", 0, 50, vpage
+     setvispage vpage
      copyfile workingdir$ + SLASH + temp$, workingdir$ + SLASH + newgame$ + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)), buffer()
      KILL workingdir$ + SLASH + temp$
     LOOP
@@ -747,6 +748,7 @@ DO
     game$ = workingdir$ + SLASH + newgame$
    ELSE '---IN CASE FILE EXISTS
     edgeprint newgame$ + " Already Exists. Cannot Rename.", 0, 30, 15, vpage
+    setvispage vpage
     w = getkey
    END IF '---END IF OKAY TO COPY
   END IF '---END IF VALID NEW ENTRY
@@ -788,24 +790,6 @@ DO
  clearpage dpage
  dowait
 LOOP
-RETRACE
-
-importmaspal:
-
-clearpage vpage
-textcolor 15, 0
-printstr "WARNING: Importing a new master palette", 0, 0, vpage
-printstr "will change ALL of your graphics!", 48, 8, vpage
-w = getkey
-
-f$ = browse$(4, default$, "*.mas", "")
-IF f$ <> "" THEN
- xbload game$ + ".mas", buffer(), "MAS load error"
- convertpalette buffer(), master()
- setpal master()
- savepalette master(), 0
-END IF
-
 RETRACE
 
 END SUB

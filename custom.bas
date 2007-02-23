@@ -160,6 +160,7 @@ clearpage 0
 setvispage 0
 textcolor 15, 0
 printstr "UNLUMPING DATA: please wait.", 0, 0, 0
+setvispage 0
 
 touchfile workingdir$ + SLASH + "__danger.tmp"
 
@@ -1754,9 +1755,11 @@ FUNCTION newRPGfile (template$, newrpg$)
  textcolor 6, 0
  printstr "Please Wait...", 0, 40, vpage
  printstr "Creating RPG File", 0, 50, vpage
+ setvispage vpage
  IF NOT isfile(template$) THEN
   printstr "Error: " + template$ + " not found", 0, 60, vpage
   printstr "Press Enter to quit", 0, 70, vpage
+ setvispage vpage
   w = getkey
   EXIT FUNCTION
  END IF
