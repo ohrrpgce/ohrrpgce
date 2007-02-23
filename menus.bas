@@ -1504,7 +1504,7 @@ DO
     importmasterpal("", palnum)
     setpal master()
     GOSUB buildmenu
-  CASE 3
+'  CASE 3
     'setuicolors palnum
   CASE 4
     gen(genMasterPal) = palnum
@@ -1531,6 +1531,11 @@ DO
  FOR i = 0 TO 255
   rectangle 34 + (i MOD 16) * 16, 70 + (i \ 16) * 7, 12, 5, i, dpage
  NEXT
+ IF csr = 3 THEN
+  FOR i = 0 TO uiColors
+   drawbox 33 + (uilook(i) MOD 16) * 16, 69 + (uilook(i) \ 16) * 7, 14, 7, uilook(uiHighlight), dpage
+  NEXT
+ END IF
 
  SWAP vpage, dpage
  setvispage vpage
@@ -1552,7 +1557,7 @@ buildmenu:
 menu$(0) = "Previous Menu"
 menu$(1) = "<- Master Palette " & palnum & " ->"
 menu$(2) = "Replace this Master Palette"
-menu$(3) = "Edit User Interface Colours..."
+menu$(3) = "User Interface Colours"
 IF palnum = gen(genMasterPal) THEN
  menu$(4) = "Current default Master Palette"
 ELSE
