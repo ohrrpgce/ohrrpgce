@@ -1813,7 +1813,7 @@ DO
          dummy = popdw
          dummy = popdw
          pushdw 2
-         pushdw 9999
+         pushdw 0 '-- dummy value
         ELSEIF NOT (scrat(nowscript).curkind = tyflow AND (scrat(nowscript).curvalue = flowfor OR scrat(nowscript).curvalue = flowwhile)) THEN
          '--if this do isn't a for's or while's, then just repeat it, discarding the returned value
          dummy = popdw
@@ -1959,22 +1959,22 @@ DO
            tmpstate = 1
           END IF
           pushdw tmpvar
-          doseek = 1 '---search for a case
-         ELSEIF tmpstate = 2 THEN
-          '--continue encountered, fall back in
-          tmpstate = 1
-          doseek = 1
-         ELSE
+          doseek = 1 '--search for a case or do
+         ELSEIF tmpstate = 1 THEN
           '--after successfully running a do block, pop off matching value and exit
           tmpvar = popdw
           scriptret = 0
           scrat(nowscript).state = streturn'---return
+         ELSEIF tmpstate = 2 THEN
+          '--continue encountered, fall back in
+          tmpstate = 1
+          doseek = 1 '--search for a do
          END IF
 
          DIM tmpptr as integer ptr
-         tmpptr = script(scrat(nowscript).scrnum).ptr + scrat(nowscript).ptr + 3
+         IF doseek THEN tmpptr = script(scrat(nowscript).scrnum).ptr
          WHILE doseek
-          tmpkind = tmpptr[scrat(nowscript).curargn]
+          tmpkind = tmpptr[tmpptr[scrat(nowscript).curargn + scrat(nowscript).ptr + 3]]
 
           IF (tmpstate = 1 AND tmpkind = tyflow) OR (tmpstate = 0 AND (tmpkind <> tyflow OR scrat(nowscript).curargn = scrat(nowscript).curargc - 1)) THEN
            '--fall into a do, execute a case, or run default (last arg)
