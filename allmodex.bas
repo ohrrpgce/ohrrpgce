@@ -1615,32 +1615,35 @@ SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 	bpage = p
 end SUB
 
-SUB loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
+FUNCTION loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
 'common sense alternative to loadset, setpicstuf
 'loads 16bit records in an array
 'buf() = buffer to load shorts into, starting at buf(0)
 'fh = open file handle
 'recordsize = record size in shorts (not bytes)
 'record = record number, defaults to read from current file position
+'returns 1 if successful, 0 if failure (eg. file too short)
  dim idx as integer
- if recordsize <= 0 then exit sub
+ if recordsize <= 0 then return 0
  dim readbuf(recordsize - 1) as short
 
  if record <> -1 then
   seek #fh, recordsize * 2 * record + 1
  end if
+ if seek(fh) + 2 * recordsize > lof(fh) + 1 then return 0
  get #fh, , readbuf()
  for idx = 0 to recordsize - 1
   buf(idx) = readbuf(idx)
  next
-END SUB
+ loadrecord = 1
+END FUNCTION
 
-SUB loadrecord (buf() as integer, filen$, recordsize as integer, record as integer = 0)
+FUNCTION loadrecord (buf() as integer, filen$, recordsize as integer, record as integer = 0)
 'wrapper for above
 	dim f as integer
 	dim i as integer
 
-  if recordsize <= 0 then exit sub
+  if recordsize <= 0 then return 0
 
 	f = freefile
 	open filen$ for binary access read as #f
@@ -1649,12 +1652,12 @@ SUB loadrecord (buf() as integer, filen$, recordsize as integer, record as integ
 		for i = 0 to recordsize - 1
 			buf(i) = 0
 		next	
-		exit sub
+		return 0
 	end if
 
-	loadrecord buf(), f, recordsize, record
+	loadrecord = loadrecord (buf(), f, recordsize, record)
 	close #f
-END SUB
+END FUNCTION
 
 SUB storerecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
 'same as loadrecord

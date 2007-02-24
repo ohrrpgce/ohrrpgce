@@ -852,7 +852,11 @@ END FUNCTION
 FUNCTION scriptname$ (num, trigger = 0)
 #ifdef IS_GAME
  'remember script names!
- STATIC cachenum, cacheids(24), cachenames$(24)
+ STATIC cachenum, cacheids(24), cachenames$(24), gamename$
+ IF game$ <> gamename$ THEN
+  gamename$ = game$
+  cachenum = 0
+ END IF
  FOR i = 0 TO cachenum - 1
   IF cacheids(i) = num THEN RETURN cachenames$(i)
  NEXT
@@ -860,38 +864,29 @@ FUNCTION scriptname$ (num, trigger = 0)
 
 DIM buf(19)
 IF num >= 16384 AND trigger > 0 THEN
- fh = FREEFILE
- OPEN workingdir$ + SLASH + "lookup" + STR$(trigger) + ".bin" FOR BINARY AS #fh
- IF (num - 16384) * 40 <= LOF(fh) THEN
-  loadrecord buf(), fh, 20, num - 16384
+ IF loadrecord (buf(), workingdir$ + SLASH + "lookup" + STR$(trigger) + ".bin", 20, num - 16384) THEN
   sname$ = readbinstring(buf(), 1, 36)
   IF buf(0) THEN
    a$ = sname$
   ELSE
    a$ = "[" + sname$ + "]"
   END IF
-  CLOSE fh
   GOTO theend
  END IF
- CLOSE fh
 END IF
 
-a$ = "[" + STR$(num) + "]"
 IF num THEN
+ a$ = "[id " + STR$(num) + "]"
  fh = FREEFILE
  OPEN workingdir$ + SLASH + "plotscr.lst" FOR BINARY AS #fh
- numscripts = LOF(fh) \ 40
- CLOSE fh
- 'numscripts = FILELEN(workingdir$ + SLASH + f$) \ 40
- setpicstuf buf(), 40, -1
- FOR i = 0 TO numscripts - 1
-  loadset workingdir$ + SLASH + "plotscr.lst", i, 0
+ WHILE loadrecord (buf(), fh, 20)
   IF buf(0) = num THEN
    a$ = STRING$(small(large(buf(1), 0), 38), " ")
    array2str buf(), 4, a$
-   EXIT FOR
+   EXIT WHILE
   END IF
- NEXT i
+ WEND
+ CLOSE fh
 ELSE
  a$ = "[none]"
 END IF
@@ -1272,6 +1267,7 @@ edgeprint "Press ESC to cleanly close the program", 15, 40, uilook(uiMenuItem), 
 edgeprint "or any other key to ignore the", 15, 50, uilook(uiMenuItem), 0
 edgeprint "error and try to continue playing.", 15, 60, uilook(uiMenuItem), 0
 
+setvispage 0 'refresh
 w = getkey
 
 IF w = 1 THEN
@@ -1293,7 +1289,7 @@ FOR i = 0 TO 1
  printstr "error keeps happening, send e-mail to", 0, 40, i
  printstr "ohrrpgce-crash@HamsterRepublic.com", 0, 48, i
 NEXT i
-setvispage vpage 'refresh
+setvispage 0 'refresh
 
 w = getkey
 

@@ -940,10 +940,11 @@ FUNCTION decodetrigger (trigger, trigtype)
  IF trigger >= 16384 THEN
   fname$ = workingdir$ + SLASH + "lookup" + STR$(trigtype) + ".bin"
   IF isfile(fname$) THEN
-   loadrecord buf(), fname$, 20, trigger - 16384
-   decodetrigger = buf(0)
-   IF buf(0) = 0 THEN
-    scripterr "Script " + readbinstring(buf(), 1, 36) + " is not imported"
+   IF loadrecord (buf(), fname$, 20, trigger - 16384) THEN
+    decodetrigger = buf(0)
+    IF buf(0) = 0 THEN
+     scripterr "Script " + readbinstring(buf(), 1, 36) + " is not imported"
+    END IF
    END IF
   END IF
  END IF
