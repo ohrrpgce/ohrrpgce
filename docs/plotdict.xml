@@ -786,8 +786,8 @@ wait for text box # wait until the player continues</example>
 	</section>
 	<section title="Adding and Removing">
 		<command id="partymoney">
-			<cannon>check money</cannon>
-			<shortname>check money</shortname>
+			<cannon>party money</cannon>
+			<shortname>party money</shortname>
 			<description>Returns how much money your party has.</description>
         </command>
         <command id="getmoney">
