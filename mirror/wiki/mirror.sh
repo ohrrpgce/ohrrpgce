@@ -32,7 +32,14 @@ httrack --quiet --extended-parsing=YES \
   +"*/index.php?title=MediaWiki:Monobook.css&*" \
   +"*/index.php?title=-*gen=css*" \
   +"*/favicon.ico" \
-  > /dev/null
+  > httrack.out 2>&1
+
+SEGFAULT=`grep "Segmentation fault" httrack.out`
+rm httrack.out
+if [ -s "${SEGFAULT}" ] ; then
+  echo "SANITY CHECK FAILED: Segmentation fault while downloading"
+  exit 1
+fi
 
 echo "manually download Browser-specific files"
 wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/common/IEFixes.js http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/common/IEFixes.js
