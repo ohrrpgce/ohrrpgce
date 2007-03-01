@@ -115,6 +115,8 @@ WHAT IS NEW?
     * "current song" now always returns -1 when no music is playing
     * Fixed bugs 30 and 58, both relating to weapon handle/hero hand points
       [Mike]
+    * New general bitset to disable default passability by default
+      [James Paige]
 
   * New Plotscripting Commands
     * New HamsterSpeak flow control commands: break, continue, exit script,

@@ -508,6 +508,7 @@ FOR i = 0 TO 35
  getpal16 pal16(), i, npcstat(i * 15 + 1), 4, npcstat(i * 15 + 0)
 NEXT i
 defpass = 1
+IF readbit(gen(), genBits, 15) THEN defpass = 0 ' option to default the defaults to OFF
 
 setkeys
 DO

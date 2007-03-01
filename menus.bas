@@ -439,7 +439,7 @@ END SUB
 SUB gendata ()
 STATIC default$
 CONST maxMenu = 32
-DIM m$(maxMenu), max(maxMenu), bitname$(15)
+DIM m$(maxMenu), max(maxMenu), bitname$(16)
 DIM names$(32), stat$(11), menutop
 getnames names$(), 32
 stat$(0) = names$(0)
@@ -522,7 +522,8 @@ DO
    bitname$(12) = "Skip load screen"
    bitname$(13) = "Pause on All Battle Menus"
    bitname$(14) = "Disable Hero's Battle Cursor"
-   editbitset gen(), 101, 15, bitname$()
+   bitname$(15) = "Default passability disabled by default"
+   editbitset gen(), 101, 16, bitname$()
   END IF
   IF csr = 8 THEN generalsfxmenu
   IF csr = 10 THEN GOSUB ttlbrowse
