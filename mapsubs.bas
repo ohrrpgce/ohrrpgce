@@ -560,7 +560,7 @@ DO
   '---TILEMODE------
   CASE 0
    setmapdata map(), pass(), 20, 0
-   IF keyval(33) > 1 AND keyval(29) > 0 THEN' Alt+F Fill screen
+   IF keyval(33) > 1 AND keyval(29) > 0 THEN' Ctrl+F Fill screen
     FOR i = 0 TO 14
      FOR o = 0 TO 8
       setmapblock mapx \ 20 + i, mapy \ 20 + o, layer, usetile(layer)
@@ -568,6 +568,14 @@ DO
      NEXT o
     NEXT i
     setmapdata map(), pass(), 20, 0
+   END IF
+   IF keyval(19) > 1 AND keyval(29) > 0 THEN' Ctrl+R to replace-all
+    old = readmapblock(x, y, layer)
+    FOR ty = 0 to map(1)
+     FOR tx = 0 to map(0)
+      IF readmapblock(tx, ty, layer) = old THEN setmapblock tx, ty, layer, usetile(layer)
+     NEXT tx
+    NEXT ty
    END IF
    IF keyval(29) > 0 AND keyval(36) > 1 THEN
      setbit jiggle(), 0, layer, (readbit(jiggle(), 0, layer) XOR 1)

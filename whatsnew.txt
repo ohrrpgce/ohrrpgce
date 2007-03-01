@@ -117,6 +117,8 @@ WHAT IS NEW?
       [Mike]
     * New general bitset to disable default passability by default
       [James Paige]
+    * In the tile map editor you can press CTRL+R to replace every tile
+      like the selected one. [James Paige]
 
   * New Plotscripting Commands
     * New HamsterSpeak flow control commands: break, continue, exit script,
