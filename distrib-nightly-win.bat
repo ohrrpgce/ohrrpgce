@@ -81,7 +81,7 @@ pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-util.zip james_paige@mothe
 :NOUTIL
 
 del distrib\hspeak-win-nightly.zip
-call bindw -clear_routines hspeak.exw
+call makehspeak.bat
 IF NOT EXIST hspeak.exe GOTO NOHSPEAK
 support\zip distrib\hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e LICENSE.txt
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\hspeak-win-nightly.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
