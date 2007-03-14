@@ -268,7 +268,7 @@ end procedure
 procedure opt_wait_for_key()
   integer key
   if not find('k',optlist) then
-    color_print("[Press Any Key]",{})
+    color_print("[Press Any Key]\n",{})
     key=timeless_wait_key()
   end if
 end procedure
