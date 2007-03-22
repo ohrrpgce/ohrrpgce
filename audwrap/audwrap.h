@@ -5,12 +5,6 @@ See README.txt for code docs. This code (unlike the main source) is clean and
 elegant, so no appologies are necessary.
 */
 
-// The following ifdef block is the standard way of creating macros which make exporting 
-// from a DLL simpler. All files within this DLL are compiled with the AUDWRAP_EXPORTS
-// symbol defined on the command line. this symbol should not be defined on any project
-// that uses this DLL. This way any other project whose source files include this file see 
-// AUDWRAP_API functions as being imported from a DLL, whereas this DLL sees symbols
-// defined with this macro as being exported.
 #ifndef __AUDWRAP_H__
 #define __AUDWRAP_H__
 
@@ -22,10 +16,6 @@ elegant, so no appologies are necessary.
 #endif
 
 extern "C" {
-
-//extern AUDWRAP_API int naudwrap;
-
-//AUDWRAP_API int fnaudwrap(void);
 
 AUDWRAP_API int AudInit(void);
 AUDWRAP_API void AudClose(void);
