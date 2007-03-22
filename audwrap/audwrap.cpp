@@ -5,8 +5,19 @@ See README.txt for code docs. This code (unlike the main source) is clean and
 elegant, so no appologies are necessary.
 */
 
-#include "stdafx.h"
+//#include "stdafx.h"
+//#include <stdlib.h>
+/*
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+// Windows Header Files:
+#include <windows.h>
+#endif*/
+
+
 #include "audwrap.h"
+/*
+#ifdef WIN32
 BOOL APIENTRY DllMain( HANDLE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
@@ -22,8 +33,11 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 	}
     return TRUE;
 }
+#endif
+*/
 
 /*
+
 // This is an example of an exported variable
 AUDWRAP_API int naudwrap=0;
 
