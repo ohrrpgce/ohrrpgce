@@ -34,8 +34,6 @@ AUDWRAP_API int AudInit(void) {
 	numSounds = 10; //10 sounds by default, but can grow
 	sounds = new OutputStreamPtr[numSounds];
     if (!sounds) {
-        //device = 0;
-        device->unref();
         device = 0;
         return(-1);
     }
@@ -47,8 +45,7 @@ AUDWRAP_API int AudInit(void) {
 //terminates Audiere
 AUDWRAP_API void AudClose(void) {
     for(int i = 0;i < numSounds; i++) sounds[i] = 0;
-    delete [] sounds;
-    device->unref();
+    if(sounds) delete [] sounds;
 	device = 0;
 }
 
