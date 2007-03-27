@@ -660,8 +660,8 @@ IF atk(14) = 3 THEN ' spin
 END IF
 IF atk(14) = 4 THEN ' Jump
  anim_setframe who, 4
- anim_relmove who, -40, 0, 7, 7
- anim_zmove who, 10, 20
+ anim_relmove who, -40, 0, 7, 0
+ anim_zmove who, 20, 10
  anim_waitforall
  anim_disappear who
  anim_setframe who, 0
@@ -670,7 +670,8 @@ IF atk(14) = 5 THEN ' Land
  anim_setz who, 200
  anim_setframe who, 2
  anim_appear who
- anim_setpos who, bslot(t(who, 0)).x, bslot(t(who, 0)).y, 0
+ anim_setcenter who, t(who, 0), 0, 0
+ anim_align who, t(who, 0), dirDown, 0
  anim_zmove who, -10, 20
  anim_waitforall
  anim_setframe who, 5

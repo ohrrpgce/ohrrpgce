@@ -1126,22 +1126,22 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
 	 	bslot(w1).x = bslot(w2).x + popw
 	 end if
 	 if yd then
-   	bslot(w1).y = bslot(w2).y + bslot(w2).h - bslot(w1).h + popw
+		bslot(w1).y = bslot(w2).y + bslot(w2).h - bslot(w1).h + popw
 	 else
-	 	bslot(w1).y = bslot(w2).y + popw
-	 end if
+		bslot(w1).y = bslot(w2).y + popw
+	end if
 	CASE 20 'relmove(who, x, y, sx, sy)
-	 ww = popw
-   tmp1 = popw
-   tmp2 = popw
-   tmp3 = popw
-   tmp4 = popw
-   with bslot(ww)
-   	.xspeed = (tmp1 - .x) / tmp3
-   	.yspeed = (tmp2 - .y) / tmp4
-  	.xmov = .x + tmp3
-   	.ymov = .y + tmp4
-   end with
+		ww = popw  'who
+		tmp1 = popw'x
+		tmp2 = popw'y
+		tmp3 = popw'sx
+		tmp4 = popw'sy
+		with bslot(ww)
+			if tmp2 <> 0 then .xspeed = tmp1 / tmp3
+			if tmp4 <> 0 then .yspeed = tmp2 / tmp4
+			.xmov = tmp1' .x + tmp3
+			.ymov = tmp2' .y + tmp4
+		end with
 	CASE 21 'setdir(who, d)
 	 ww = popw
 	 tmp1 = popw
