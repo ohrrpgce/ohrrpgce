@@ -155,9 +155,6 @@ animadjust = pic
 END FUNCTION
 
 SUB mapmaker (font(), doors(), link(), npc(), npcstat())
-'$dynamic
-DIM map(), pass(), emap()
-'$static
 DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(20), gd$(-1 TO 20), gdmax(20), gdmin(20), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
 defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
 
