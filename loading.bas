@@ -211,6 +211,7 @@ SUB LoadTilemap(mapnum as integer, array(), byref wide as integer, byref high as
   SEEK #fh, 8
   wide = Readshort(fh, -1)
   high = ReadShort(fh, -1)
+  redim array(wide * high * 3)
   array(0) = wide
   array(1) = high
   lastlayer = 2

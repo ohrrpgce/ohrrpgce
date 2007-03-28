@@ -736,36 +736,44 @@ RETRACE
 
 END SUB
 
-SUB sizemar (array(), wide, high, tempx, tempy, tempw, temph, yout, page, big)
+SUB sizemar (array(), old_width, old_height, old_x, old_y, new_width, new_height, yout, page, big)
 ' '---FLUSH BUFFER---
  edgeprint "Resizing Map...", 0, yout * 10, 15, page: yout = yout + 1
-  
+' debug "sizemar"
+' debug "old_width = " & old_width & ", " & _
+'       "old_height = " & old_height & ", " & _
+'       "old_x = " & old_x & ", " & _
+'       "old_y = " & old_y & ", " & _
+'       "new_width = " & new_width & ", " & _
+'       "new_height = " & new_height
  dim as integer tmp(ubound(array)), i, x, y
-  for i = 0 to ubound(array)
+ for i = 0 to ubound(array)
  	tmp(i) = array(i)
  next
  
  if big then big = 3 else big = 1
 
- dim as integer newsize = tempw * temph, oldsize = wide * high
-  
- redim array((big * newsize)  / 2 + 2)
+ dim as integer newsize = new_width * new_height, oldsize = old_width * old_height
  
- array(0) = tempw
- array(1) = temph
-  
- for i = 0 to big - 1
- 	for x = tempx to small(wide, tempw - tempx) - 1
- 		for y = tempy to small(high, temph - tempy) - 1
- 			'newarray(i * newsize + (x - tempx) * tempw + (y - tempy) + 2) = tmp(i * oldsize + x * wide + y + 2)
- 			setmapdata tmp(), tmp(), 20, 0
- 			j = readmapblock(x,y,i)
- 			setmapdata array(), array(), 20, 0
- 			setmapblock(x - tempx,y - tempy,i,j)
- 		next
- 	next
- next
+ 'debug "new size: " & ((big * newsize + (big * newsize) mod 2)  / 2 + 2)
+ redim array((big * newsize + (big * newsize) mod 2)  / 2 + 2)
  
+ array(0) = new_width
+ array(1) = new_height
+  
+for i = 0 to big - 1
+	for x = old_x to small(old_width, new_width - old_x) - 1
+		for y = old_y to small(old_height, new_height - old_y) - 1
+			'newarray(i * newsize + (x - tempx) * tempw + (y - tempy) + 2) = tmp(i * oldsize + x * wide + y + 2)
+			setmapdata tmp(), tmp(), 20, 0
+			j = readmapblock(x,y,i)
+			setmapdata array(), array(), 20, 0
+			setmapblock(x - old_x,y - old_y,i,j)
+		next
+	next
+next
+ 
+''old code!
 ' buffer(0) = tempw
 ' buffer(1) = temph
 ' FOR i = 2 TO 16002

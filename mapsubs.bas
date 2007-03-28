@@ -155,7 +155,7 @@ animadjust = pic
 END FUNCTION
 
 SUB mapmaker (font(), doors(), link(), npc(), npcstat())
-DIM map(2 + 16000 * 3), pass(16002), emap(16002)
+DIM map(), pass(), emap()
 DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(20), gd$(-1 TO 20), gdmax(20), gdmin(20), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
 defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
 
@@ -164,6 +164,9 @@ DIM as integer menubarstart(0 to 2)
 DIM as integer layer
 DIM as integer jiggle(0), visible(0) = {&b111} 'used as bitsets
 
+redim map(16000 * 3 + 2)
+redim pass(16000+ 2)
+redim emap(16000 + 2)
 
 textcolor 15, 0
 
@@ -541,10 +544,12 @@ DO
   			end if
   		end if
   	end if
+  	#IFNDEF __FB_LINUX__
   	if keyval(scCtrl) AND keyval(scF1 + i) then
   		clearkey(scF1 + i)
 	 		if layerisenabled(gmap(), i) then togglelayervisible(visible(), i)
   	end if
+  	#ENDIF
  	next
  	
  	if keyval(scTilde) then
