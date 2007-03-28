@@ -204,7 +204,7 @@ SUB clearpage (BYVAL page as integer)
 end SUB
 
 SUB setvispage (BYVAL page as integer)
-        ' the fb backend may freeze up if they collide with the polling thread (why???)
+  'the fb backend may freeze up if they collide with the polling thread (why???)
 	mutexlock keybdmutex
 	gfx_showpage(spage(page))
 	mutexunlock keybdmutex
@@ -1276,8 +1276,6 @@ SUB storepage (fil$, BYVAL i as integer, BYVAL p as integer)
 
 	'skip to index
 	seek #f, (i*64000) + 1 'will this work with write access?
-
-	screenlock
 
 	'modex format, 4 planes
 	scrnbase = spage(p)
