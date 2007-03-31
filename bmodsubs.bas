@@ -653,9 +653,9 @@ END IF
 IF atk(14) = 3 THEN ' spin
  FOR ii = 0 TO 2
   anim_setdir who, 1
-  anim_wait 10
+  anim_wait 1
   anim_setdir who, 0
-  anim_wait 10
+  anim_wait 1
  NEXT ii
 END IF
 IF atk(14) = 4 THEN ' Jump
