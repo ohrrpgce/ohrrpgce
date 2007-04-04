@@ -109,9 +109,24 @@ DIM vpage, dpage, fadestate, workingdir$, version$
 #include "binsize.bi"
 
 RANDOMIZE TIMER
-textxbload "ohrrpgce.mas", buffer(), "default master palette ohrrpgce.mas is missing"
-convertpalette buffer(), master()
-textxbload "ohrrpgce.fnt", font(), "default font ohrrpgce.fnt is missing"
+
+IF isfile("ohrrpgce.mas") THEN
+ textxbload "ohrrpgce.mas", buffer(), "default master palette ohrrpgce.mas is missing"
+ convertpalette buffer(), master()
+ELSE
+ FOR i = 1 TO 15
+  master(i).r = SGN(i AND 4) * 168 + SGN(i AND 8) * 87
+  master(i).g = SGN(i AND 2) * 168 + SGN(i AND 8) * 87
+  master(i).b = SGN(i AND 1) * 168 + SGN(i AND 8) * 87
+ NEXT i
+END IF
+
+IF isfile("ohrrpgce.fnt") THEN
+ textxbload "ohrrpgce.fnt", font(), "default font ohrrpgce.fnt is missing"
+ELSE
+ getdefaultfont font()
+END IF
+
 getui ""
 setmodex
 ON ERROR GOTO modeXerr
