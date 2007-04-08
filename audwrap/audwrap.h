@@ -8,11 +8,18 @@ elegant, so no appologies are necessary.
 #ifndef __AUDWRAP_H__
 #define __AUDWRAP_H__
 
-
-#ifdef AUDWRAP_EXPORTS
+#ifdef __win32
+#ifdef AUDWARP_EXPORTS
 #define AUDWRAP_API __declspec(dllexport)
 #else
 #define AUDWRAP_API __declspec(dllimport)
+#endif
+#else
+#define AUDWRAP_API 
+#endif
+
+#ifndef __cplusplus
+#error Audwrap requires C++!
 #endif
 
 extern "C" {
@@ -30,8 +37,5 @@ AUDWRAP_API bool AudIsPlaying(int s);
 AUDWRAP_API void AudPlay(int s);
 AUDWRAP_API void AudStop(int s);
 AUDWRAP_API void AudPause(int s);
-
-
 }
-
 #endif
