@@ -6,7 +6,7 @@
 #ifndef __AUDWRAP_BI__
 #define __AUDWRAP_BI__
 
-#ifdef __WIN32__
+#ifdef __FB_WIN32__
 #libpath "audwrap"
 #inclib "audwrap"
 #endif

@@ -32,7 +32,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				GenerateDebugInformation="TRUE"/>
+				AdditionalDependencies="audiere.lib"
+				OutputFile="../audwrap.dll"
+				GenerateDebugInformation="TRUE"
+				ImportLibrary="libaudwrap.a"
+				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool

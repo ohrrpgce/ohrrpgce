@@ -8,8 +8,8 @@ elegant, so no appologies are necessary.
 #ifndef __AUDWRAP_H__
 #define __AUDWRAP_H__
 
-#ifdef __win32
-#ifdef AUDWARP_EXPORTS
+#ifdef WIN32
+#ifdef AUDWRAP_EXPORTS
 #define AUDWRAP_API __declspec(dllexport)
 #else
 #define AUDWRAP_API __declspec(dllimport)
