@@ -15,7 +15,7 @@ if [ "${MUSIC}" == "native" ] ; then
   cd audwrap
   make CXXFLAGS=-g
   cd ..
-  EXTRA="${EXTRA} -p audwrap -l audwrap"
+  #EXTRA="${EXTRA} -p audwrap -l audwrap"
 fi
 
 fbc verprint.bas

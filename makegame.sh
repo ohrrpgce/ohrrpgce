@@ -15,7 +15,7 @@ if [ "${MUSIC}" == "native" ] ; then
   cd audwrap
   make
   cd ..
-  EXTRA="-p audwrap -l audwrap"
+  #EXTRA="-p audwrap -l audwrap"
 fi
 
 fbc verprint.bas
