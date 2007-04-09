@@ -120,7 +120,6 @@ dim shared division as short
 dim shared midibuffer as UByte ptr, midibufferlen as integer, midibufferused as integer
 
 function openMidi() as integer
-	#IFNDEF USE_ALLEGRO
     #IFNDEF __FB_LINUX__
     dim moc as MIDIOUTCAPS
     midiOutGetDevCaps MIDI_MAPPER, @moc, len(MIDIOUTCAPS)
@@ -128,48 +127,18 @@ function openMidi() as integer
 
     return midiOutOpen (@midi_handle,MIDI_MAPPER,0,0,0)
     #ENDIF
-    #ELSE
-    'see if allegro's been initialized
-    if inited_once = 0 then
-
-    	win_set_window FB_Win32.Wnd
-    	allegro_init
-
-    	inited_once = 1
-    end if
-
-    install_sound(-1,-1,"")
-    load_midi_patches
-
-    midibuffer = Allocate(60)
-	midibufferlen = 60 '20 events, roughly
-	midibufferused = 0
-    #ENDIF
 end function
 
 function closeMidi() as integer
-	#IFNDEF USE_ALLEGRO
     #IFNDEF __FB_LINUX__
     return midiOutClose (midi_handle)
-    #ENDIF
-    #ELSE
-
-    remove_sound
-    Deallocate(midibuffer)
-    midibufferused = 0
-    midibufferlen = 0
     #ENDIF
 end function
 
 'emit a single event to the device
 function shortMidi(event as UByte, a as UByte, b as UByte) as integer
-	#IFNDEF USE_ALLEGRO
     #IFDEF __FB_LINUX__
-    if b = 255 then '-1
-    	return putc(event, midi_handle) OR putc(a, midi_handle)
-    ELSE
-    	return putc(event, midi_handle) OR putc(a, midi_handle) OR putc(b, midi_handle)
-    END IF
+	'todo
     #ELSE
     if b = 255 then '-1
     	return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8)
@@ -178,34 +147,14 @@ function shortMidi(event as UByte, a as UByte, b as UByte) as integer
     end if
     #ENDIF
 
-    #ELSE
-
-    dim d(0 to 2) as UByte
-    d(0) = event
-    d(1) = a
-    d(2) = b
-    if b = 255 then
-    	midi_out @d(0), 2
-    else
-    	midi_out @d(0), 3
-    end if
-
-    #ENDIF
 end function
 
 'emit a stream of bytes to the device
 function longMidi(dat as UByte ptr, l as integer) as integer
-	#IFNDEF USE_ALLEGRO
     #IFDEF __FB_LINUX__
     '???
     #ELSE
     '??? - api doesn't support streaming?
-    #ENDIF
-
-    #ELSE
-
-    midi_out dat, l
-
     #ENDIF
     return -1
 end function
@@ -220,64 +169,11 @@ sub setVolMidi(v as integer)
 end sub
 
 Sub BufferEvent(event as UByte, a as Byte = -1, b as Byte = -1) 'pass -1 to a and b to ignore them
-
-#IFDEF USE_ALLEGRO
-	dim goingtouse as integer, tmpbuf(2) as UByte, i as integer
-
-	if midibuffer = NULL then
-		midibuffer = Allocate(60)
-		midibufferlen = 60 '20 events, roughly
-		midibufferused = 0
-	end if
-
-	tmpbuf(0) = event: goingtouse = 1
-	if a <> -1 then tmpbuf(1) = a: goingtouse = 2
-	if b <> -1 then tmpbuf(2) = b: goingtouse = 3
-	'debug "buffering event of " + Str$(goingtouse) + " bytes"
-	do while midibufferlen - midibufferused < goingtouse
-		dim newbuf as UByte ptr
-		'debug "Reallocating buffer from " + str(midibufferlen) + " to " + str(midibufferlen * 2)
-		newbuf = OReallocate(midibuffer, midibufferlen * 2)
-		if newbuf = NULL then
-'			debug "FAILED TO REALLOCATE MIDI BUFFER, DROPPING EVENTS"
-			'ehh... problem. The only thing we can do it toss the extra events...
-			exit sub
-		end if
-		midibufferlen *= 2
-		midibuffer = newbuf 'in case it moved
-	loop
-
-	'memcpy @tmpbuf(0), midibuffer + midibufferused, goingtouse
-	for i = 0 to goingtouse - 1
-		midibuffer[midibufferused +  i] = tmpbuf(i)
-	next
-
-
-	midibufferused += goingtouse
-
-#ELSE ' well, maybe the buffer is possible with the API. I dunno. TODO: check later
 	shortMidi event, a, b
-#ENDIF
-
 End Sub
 
-
-
 Sub FlushMidiBuffer()
-#IFNDEF USE_ALLEGRO
 	exit sub 'nothing to do, as midi events are unbuffered
-#ELSE
-	If midibuffer = NULL then
-		exit sub 'no buffer? buh?
-	end if
-
-	#IFDEF USE_ALLEGRO
-	load_midi_patches
-	#ENDIF
-	longMidi midibuffer, midibufferused
-	midibufferused = 0
-	'should I null the buffer? ehh, let's see how it runs without
-#ENDIF
 End Sub
 
 

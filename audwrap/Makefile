@@ -3,7 +3,9 @@ OUTPUT=libaudwrap.a
 all: audwrap
 
 audwrap: CXXFLAGS+=-DAUDIERE_EXPORTS -O3 -Wall -Wno-non-virtual-dtor
-audwrap: audwrap.o
+audwrap: $(OUTPUT)
+
+$(OUTPUT): audwrap.o
 	$(CXX) -shared -Wall -o $(OUTPUT) audwrap.o -L./ -laudiere -lvorbisfile -lvorbis -logg -lrt -lpthread
 
 clean:
