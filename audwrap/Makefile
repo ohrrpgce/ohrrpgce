@@ -1,11 +1,12 @@
+OUTPUT=libaudwrap.a
+
 all: audwrap
 
-audwrap: libaudwrap.a
+audwrap: CXXFLAGS+=-DAUDIERE_EXPORTS -O3 -Wall -Wno-non-virtual-dtor
+audwrap: audwrap.o
+	$(CXX) -shared -Wall -o $(OUTPUT) audwrap.o -L./ -laudiere -lvorbisfile -lvorbis -logg -lrt -lpthread
+
 clean:
-	$(RM) libaudwrap.a *.o
+	@$(RM) audwrap.o
 
-libaudwrap.a: CXXFLAGS+=-DAUDWRAP_EXPORTS -O
-libaudwrap.a: audwrap.o
-	$(CXX) -shared -o libaudwrap.a audwrap.o -laudiere -lpthread -lvorbisfile -lvorbis -logg -lrt $(CXXFLAGS)
-
-.PHONY: all audwrap clean
+.PHONY: all audwrap clean relink

@@ -82,6 +82,8 @@ dim shared tag(2000), global(1025)
 #IFNDEF USE_ALLEGRO
 #IFNDEF __FB_LINUX__
 dim shared midi_handle as HMIDIOUT
+#ELSE
+dim shared midi_handle as FILE ptr
 #ENDIF
 #ENDIF
 
@@ -1021,9 +1023,9 @@ Function LoadSound(byval f as string,  byval num as integer = -1) as integer
   dim s as integer
 '  debug f & ": " & fe
   if fe = "mp3" or fe = "ogg" then 'intended for streaming
-    s = AudLoadSound(f, true)
+    s = AudLoadSound(f, 1)
   else
-    s = AudLoadSound(f, false)
+    s = AudLoadSound(f, 0)
   end if
 
 '  debug "slot is " & s

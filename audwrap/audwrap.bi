@@ -6,8 +6,10 @@
 #ifndef __AUDWRAP_BI__
 #define __AUDWRAP_BI__
 
+#ifdef __WIN32__
 #libpath "audwrap"
 #inclib "audwrap"
+#endif
 
 'initing routines
 declare function AudInit cdecl alias "AudInit" () as integer
