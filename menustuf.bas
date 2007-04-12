@@ -1896,6 +1896,7 @@ scontrol:
 IF pick = 0 THEN
  IF mset = 0 THEN
   IF carray(5) > 1 THEN
+   menusound gen(genCancelSFX)
    setkeys
    FOR i = 0 TO 7: carray(i) = 0: NEXT i
    loadtemppage 3
@@ -1908,39 +1909,40 @@ IF pick = 0 THEN
   IF carray(1) > 1 THEN csr = small(csr + 1, last): menusound gen(genCursorSFX): GOSUB curspellist
   IF carray(4) > 1 THEN
    IF mi(csr) = -1 THEN
+    menusound gen(genCancelSFX)
     setkeys
     FOR i = 0 TO 7: carray(i) = 0: NEXT i
     loadtemppage 3
     RETRIEVESTATE
     EXIT SUB
    END IF
+   menusound gen(genAcceptSFX)
    mset = 1: sptr = 0
   END IF
  ELSE
   IF carray(5) > 1 THEN
-  	mset = 0
-  	menusound gen(genCancelSFX)
+   mset = 0
+   menusound gen(genCancelSFX)
   END IF
   IF carray(0) > 1 THEN sptr = sptr - 3: menusound gen(genCursorSFX): IF sptr < 0 THEN sptr = 24
   IF carray(1) > 1 THEN
    IF sptr < 24 THEN
-   	sptr = small(sptr + 3, 24)
-   	menusound gen(genCursorSFX)
+    sptr = small(sptr + 3, 24)
    ELSE
-   	sptr = 0
-   	menusound gen(genCancelSFX)
+    sptr = 0
    END IF
-  END IF
-  IF carray(2) > 1 THEN
-  	IF (sptr / 3 - INT(sptr / 3)) * 3 > 0 THEN
-  		sptr = sptr - 1
-  	ELSE
-  		sptr = small(sptr + 2, 24)
-  	END IF
-  	menusound gen(genCursorSFX)
+   menusound gen(genCursorSFX)
   END IF
   IF sptr < 24 THEN
-   IF carray(3) > 1 THEN menusound gen(genCursorSFX): IF (((sptr / 3) - INT(sptr / 3)) * 3) < 2 THEN sptr = sptr + 1 ELSE sptr = sptr - 2
+   IF carray(2) > 1 THEN
+    IF sptr MOD 3 THEN
+     sptr = sptr - 1
+    ELSE
+     sptr = sptr + 2
+    END IF
+    menusound gen(genCursorSFX)
+   END IF
+   IF carray(3) > 1 THEN menusound gen(genCursorSFX): IF sptr MOD 3 = 2 THEN sptr = sptr - 2 ELSE sptr = sptr + 1
   END IF
   IF carray(4) > 1 THEN
    IF sptr = 24 THEN mset = 0
@@ -1955,11 +1957,9 @@ IF pick = 0 THEN
       'IF hero(i) > 0 AND (stat(i, 0, 0) > 0 OR readbit(ondead(), 0, sptr)) THEN spred = spred + 1
       IF chkOOBtarg(i, sptr, stat(), ondead(), onlive()) THEN spred = spred + 1
      NEXT i
-    ELSE
-    	menusound gen(genCancelSFX)
     END IF
    ELSE
-   	menusound gen(genCancelSFX)
+    menusound gen(genCancelSFX)
    END IF '}
   END IF
  END IF
@@ -2051,8 +2051,6 @@ GOSUB nextstat
 copypage vpage, 3
 centerfuz 160, 100, 304, 184, 1, 3
 centerbox 160, 36, 260, 40, 4, 3
-
-menusound gen(genAcceptSFX)
 
 setkeys
 DO
