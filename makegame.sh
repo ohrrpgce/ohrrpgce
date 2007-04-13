@@ -11,7 +11,7 @@ if [ -z "${MUSIC}" ] ; then
   MUSIC=sdl
 fi
 
-if [ "${MUSIC}" == "native" ] ; then
+if [ "${MUSIC}" = "native" ] ; then
   cd audwrap
   make
   cd ..
