@@ -18,14 +18,14 @@ PRINT "Codename " + codename$
 
 OPEN "cver.txt" FOR OUTPUT AS #1
 
-a$ = "version$ = " + CHR$(34) + "OHRRPGCE Editor: " + codename$ + " " + datetag$ + CHR$(34)
+a$ = "version$ = " + CHR$(34) + "OHRRPGCE Editor: " + codename$ + " " + datetag$ + " (" + command(1) + ", " + command(2) + ")"  + CHR$(34)
 PRINT #1, a$
 
 CLOSE #1
 
 OPEN "gver.txt" FOR OUTPUT AS #1
 
-a$ = "version$ = " + CHR$(34) + "OHRRPGCE Player " + codename$ + " " + datetag$ + CHR$(34)
+a$ = "version$ = " + CHR$(34) + "OHRRPGCE Player " + codename$ + " " + datetag$ + " (" + command(1) + ", " + command(2) + ")" + CHR$(34)
 PRINT #1, a$
 
 CLOSE #1
