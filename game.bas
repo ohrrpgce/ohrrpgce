@@ -751,8 +751,8 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
   cathero
  END IF
  'DEBUG debug "drawoverhead"
- IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 0, 2, dpage
  if readbit(gmap(), 19, 1) then drawmap mapx, mapy, 2, 0, dpage, 1
+ IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 0, 2, dpage
 ELSE '---END NORMAL DISPLAY---
  'DEBUG debug "backdrop display"
  copypage 3, dpage
