@@ -725,6 +725,7 @@ DO
   IF keyval(77) > 0 AND mapx < ((wide + 1) * 20) - 320 THEN mapx = mapx + 20: x = x + 1
  END IF
  
+ if editmode = 0 then 'tilemode, uses layers
  IF keyval(scPageup) > 1 then
  	for i = layer+1 to 2
  		if layerisenabled(gmap(), i) then
@@ -745,6 +746,7 @@ DO
  			exit for
  		end if
  	next
+ end if
  end if
  
  tog = tog XOR 1
@@ -771,7 +773,20 @@ DO
 			if i = 1 then jigy = 1
 			if i = 2 then jigx = -1: jigy = -1
 		end if
-		drawmap mapx + jigx, mapy + jigy - 20, i, 0, dpage, i <> 0
+		if i = 0 then
+			drawmap mapx + jigx, mapy + jigy - 20, 0, 1, dpage, i <> 0
+		elseif i = 1 then
+			drawmap mapx + jigx, mapy + jigy - 20, 1, 0, dpage, i <> 0
+		elseif i = 2 then
+			drawmap mapx + jigx, mapy + jigy - 20, 2, 0, dpage, i <> 0
+		end if
+	end if
+	if i = 2 AND layerisvisible(visible(), 0) AND layerisenabled(gmap(), 0) then
+		if readbit(jiggle(), 0, 0) and tog then
+			drawmap mapx + 1, mapy - 20, 0, 2, dpage, i <> 0
+		else
+			drawmap mapx, mapy - 20, 0, 2, dpage, i <> 0
+		end if
 	end if
  next
 
@@ -859,7 +874,9 @@ DO
  END IF
  
  textcolor 14 + tog, 0
+ if editmode = 0 then
  printstr "Layer " & layer, 0, 180, dpage
+ end if
  printstr "X " & x & "   Y " & y, 0, 192, dpage
  setmapdata map(), pass(), 20, 0
  rectangle 300, 0, 20, 200, 0, dpage
