@@ -69,6 +69,12 @@ call makegame-gfx-music sdl sdl
 call makeedit-gfx-music sdl sdl
 call nightly-gfx-music sdl sdl
 
+del game*.exe
+del custom*.exe
+call makegame-gfx-music fb silence
+call makeedit-gfx-music fb silence
+call nightly-gfx-music fb silence
+
 Echo upload plotdict.xml
 pscp -i C:\progra~1\putty\id_rsa.ppk docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
 
