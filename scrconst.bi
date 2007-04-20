@@ -58,3 +58,15 @@ CONST focuscam = 3
 CONST stopcam = -1
 '--SCRIPT TRIGGER TYPES--
 CONST plottrigger = 1
+'--SCRIPT DEBUGGER BITS--
+CONST stepnext = 1
+CONST stepargsdone = 2
+CONST stepup = 3
+CONST stependscript = 4
+CONST stepscript = 8
+
+CONST breakstread = 4
+CONST breakstnext = 8
+CONST breakstdone = 16
+CONST breaklooptop = 32 'above interpret
+CONST breakloopbrch = 64 'doesn't work

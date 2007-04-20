@@ -28,7 +28,7 @@ DECLARE SUB delitem (it%, num%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION getnpcref% (seekid%, offset%)
 DECLARE SUB suspendresume (id%)
-DECLARE SUB scriptwatcher (mode%)
+DECLARE SUB scriptwatcher (mode%, callspot%)
 DECLARE SUB onkeyscript (scriptnum%)
 DECLARE SUB greyscalepal ()
 DECLARE SUB tweakpalette ()
@@ -84,12 +84,15 @@ DECLARE SUB cleanuptemp ()
 DECLARE FUNCTION getsongname$ (num%)
 DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB interpolatecat ()
-DECLARE FUNCTION scriptstate$ ()
+DECLARE FUNCTION scriptstate$ (targetscript% = -1)
 DECLARE FUNCTION decodetrigger (trigger%, trigtype%)
 DECLARE SUB loadglobalvars (slot%, first%, last%)
 DECLARE SUB saveglobalvars (slot%, first%, last%)
 DECLARE FUNCTION loadscript% (n%)
 DECLARE SUB killallscripts ()
+DECLARE SUB reloadscript (index, updatestats = -1)
+DECLARE FUNCTION localvariablename$ (value%, scriptargs%)
+DECLARE FUNCTION mathvariablename$ (value%, scriptargs%)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -103,6 +106,9 @@ DECLARE SUB killallscripts ()
 
 'FIXME: this should not be called directly here. needs wrapping in allmodex.bi
 #include "gfx.bi"
+
+'these variables hold information used by breakpoint to step to the desired position
+DIM SHARED waitforscript, waitfordepth, stepmode, lastscriptnum
 
 
 REM $STATIC
@@ -429,13 +435,7 @@ IF nowscript < 0 THEN
  functiondone = 1'--no scripts are running anymore
 ELSE
  'check if script needs reloading
- IF scrat(nowscript).scrnum = -1 THEN
-  scrat(nowscript).scrnum = loadscript(scrat(nowscript).id)
-  script(scrat(nowscript).scrnum).totaluse += 1
-  script(scrat(nowscript).scrnum).refcount += 1
- END IF
- scriptctr += 1
- script(scrat(nowscript).scrnum).lastuse = scriptctr
+ reloadscript (nowscript)
  IF scrat(nowscript).state < 0 THEN
   '--suspended script is resumed
   scrat(nowscript).state = ABS(scrat(nowscript).state)
@@ -693,7 +693,6 @@ END SUB
 
 SUB onkeyscript (scriptnum)
 doit = 0
-
 FOR i = 0 TO 5
  IF carray(i) THEN doit = 1: EXIT FOR
 NEXT i
@@ -1908,36 +1907,302 @@ END SELECT
 
 END SUB
 
-SUB scriptwatcher (mode)
+SUB breakpoint (mode, callspot)
+' callspot = 1  stnext
+' callspot = 2  stdone
+' callspot = 3  stread  - (skipping to end of a command?)
+' callspot = 4  at top of main loop, after loading onkeypress
 
-'Note: the colours here are fairly arbitrary
-rectangle 0, 0, 320, 4, uilook(uiBackground), dpage
-rectangle 0, 0, (320 / scriptmemMax) * totalscrmem, 2, uilook(uiSelectedItem), dpage
-rectangle 0, 2, (320 / 2048) * scrat(nowscript + 1).heap, 2, uilook(uiSelectedItem + 1), dpage
-
-ol = 192
-
-IF mode = 2 THEN
- decmpl$ = scriptstate$
- FOR i = 5 TO 0 STEP -1
-  IF LEN(decmpl$) > i * 40 THEN
-   edgeprint MID$(decmpl$, i * 40 + 1), 0, ol, uilook(uiSelectedItem), dpage
-   ol -= 8
-  END IF
- NEXT
+IF stepmode = 0 THEN GOTO breakin
+IF nowscript = -1 AND stepmode <> stepscript THEN
+ stepmode = 0
+ waitforscript = 999
+ waitfordepth = 999
+ EXIT SUB
 END IF
 
-edgeprint "# Name           Rtval CmdKn CmdID State", 0, ol, uilook(uiText), dpage
-ol -= 8
-FOR i = large(nowscript - 21, 0) TO nowscript
- edgeprint STR$(i), 0, ol, uilook(uiText), dpage
- edgeprint LEFT$(scriptname$(scrat(i).id), 14), 16, ol, uilook(uiText), dpage
- edgeprint XSTR$(scrat(i).ret), 128, ol, uilook(uiText), dpage
- edgeprint XSTR$(scrat(i).curkind), 176, ol, uilook(uiText), dpage
- edgeprint XSTR$(scrat(i).curvalue), 224, ol, uilook(uiText), dpage
- edgeprint XSTR$(scrat(i).state), 272, ol, uilook(uiText), dpage
- ol = ol - 8
+'STEPPING LOGIC
+'some generic logic for going up scripts/commands
+IF waitforscript <> 999 THEN
+ IF nowscript > waitforscript THEN 
+  EXIT SUB
+ ELSEIF nowscript < waitforscript THEN 
+  waitforscript = 999
+  waitfordepth = 999
+ ELSE
+  'if final objective is a script, not a depth, stop
+  IF waitfordepth = 999 THEN waitforscript = 999
+ END IF
+
+ IF scrat(nowscript).depth > waitfordepth THEN
+  EXIT SUB
+ ELSE
+  waitforscript = 999
+  waitfordepth = 999
+ END IF
+END IF
+
+SELECT CASE stepmode
+ CASE stependscript
+  GOTO breakin
+ CASE stepscript
+'  IF callspot = 1 THEN IF scrat(nowscript).curkind = tyscript THEN GOTO breakin
+'  IF callspot = 2 THEN GOTO breakin
+  IF lastscriptnum <> nowscript THEN GOTO breakin
+ CASE stepargsdone, stepup, stepnext
+  IF callspot = 1 THEN
+   IF scrat(nowscript).curargn < scrat(nowscript).curargc OR scrat(nowscript).curargn = 0 THEN EXIT SUB
+   IF scrat(nowscript).curkind = tyflow AND scrat(nowscript).curvalue = flowif THEN EXIT SUB
+  END IF
+  GOTO breakin
+END SELECT
+
+'IF callspot = 1 THEN 'stnext
+'' IF (mode AND 4) AND scrat(nowscript).curkind <> tyscript THEN EXIT SUB
+' 'only used to print off evaluated list of arguments
+'' IF ((mode AND breakreadcmd) <> 0) AND (scrat(nowscript).curargn < scrat(nowscript).curargc OR scrat(nowscript).curargn = 0) THEN EXIT SUB
+' IF scrat(nowscript).curargn < scrat(nowscript).curargc OR scrat(nowscript).curargn = 0 THEN EXIT SUB
+'' IF (mode AND breakargsdone) THEN EXIT SUB
+' IF scrat(nowscript).curkind = tyflow AND scrat(nowscript).curvalue = flowif THEN EXIT SUB
+'END IF
+
+'END STEPPING LOGIC
+
+EXIT SUB
+
+breakin:
+
+'clear breakpoint bits
+mode = mode AND 3
+stepmode = 0
+scriptwatcher mode, 0
+
+END SUB
+
+SUB scriptwatcher (mode, drawloop)
+STATIC localsscroll, globalsscroll
+STATIC selectedscript, bottom, viewmode, lastscript
+'viewmode: 0 = script state, 1 = local variables, 2 = global variables
+
+'debug "watch mode=" & mode & " callspot = " & callspot & " stepmode = " & stepmode _
+'      & " curscript = " & nowscript & " curdepth = " & scrat(nowscript).depth & " waitscr = " & waitforscript & " waitdepth = " & waitfordepth
+
+'initialise state
+IF mode = 1 THEN waitforscript = 999: waitfordepth = 999: stepmode = 0
+
+
+redraw:
+'if in stepping mode, make a copy so debug info can be redrawn, need to keep dpage clean 
+'if called from displayall, need to keep a clean copy of nearly-drawn page to be used next tick 
+IF drawloop AND mode = 1 THEN
+ page = dpage
+ELSE
+ copypage dpage, vpage
+ page = vpage
+END IF
+
+'edgeprint callmode & " " & viewmode & " " & callspot, 140, 4, uilook(uiText), page
+
+selectedscript = bound(selectedscript, 0, nowscript)
+IF selectedscript = lastscript THEN selectedscript = nowscript
+lastscript = nowscript
+
+SELECT CASE scrat(nowscript).curkind
+ CASE tynumber, tyglobal, tylocal
+  hasargs = 0
+ CASE ELSE
+  hasargs = 1
+END SELECT
+
+'Note: the colours here are fairly arbitrary
+rectangle 0, 0, 320, 4, uilook(uiBackground), page
+rectangle 0, 0, (320 / scriptmemMax) * totalscrmem, 2, uilook(uiSelectedItem), page
+rectangle 0, 2, (320 / 2048) * scrat(nowscript + 1).heap, 2, uilook(uiSelectedItem + 1), page
+
+ol = 191
+
+IF mode > 1 AND viewmode = 0 THEN
+ decmpl$ = scriptstate$(selectedscript)
+ FOR i = 5 TO 0 STEP -1
+  IF LEN(decmpl$) > i * 40 THEN
+   edgeprint MID$(decmpl$, i * 40 + 1), 0, ol, uilook(uiDescription), page
+   ol -= 9
+  END IF
+ NEXT
+' edgeprint "Last return value: " & scriptret, 0, ol, uilook(uiDescription), page
+' ol -= 9
+END IF
+
+IF mode > 1 AND viewmode = 1 THEN
+ reloadscript selectedscript
+ WITH scrat(selectedscript)
+  IF script(.scrnum).vars = 0 THEN
+   edgeprint "Has no variables", 0, ol, uilook(uiText), page
+   ol -= 9
+  ELSE
+   scriptargs = script(.scrnum).args
+   FOR i = small((script(.scrnum).vars - localsscroll - 1) \ 3, 3) TO 0 STEP -1
+    FOR j = 0 TO 2
+     localno = localsscroll + i * 3 + j
+     IF localno < script(.scrnum).vars THEN
+      temp$ = localvariablename$(localno, scriptargs) & "="
+      edgeprint temp$, j * 96, ol, uilook(uiText), page
+      edgeprint STR$(heap(.heap + localno)), j * 96 + 8 * LEN(temp$), ol, uilook(uiDescription), page
+     END IF
+    NEXT
+    ol -= 9
+   NEXT
+   IF scriptargs = 999 THEN
+    edgeprint script(.scrnum).vars & " local variables and arguments:", 0, ol, uilook(uiText), page
+   ELSE
+    edgeprint (script(.scrnum).vars - scriptargs) & " local variables and " & scriptargs & " arguments:", 0, ol, uilook(uiText), page
+   END IF
+   ol -= 9
+  END IF
+  edgeprint "Return value = " & .ret, 0, ol, uilook(uiText), page
+  ol -= 9
+ END WITH
+END IF
+
+IF mode > 1 AND viewmode = 2 THEN
+ FOR i = 4 TO 0 STEP -1
+  FOR j = 0 TO 3
+   globalno = globalsscroll + i * 4 + j
+   edgeprint globalno & "=", j * 72, ol, uilook(uiText), page
+   edgeprint STR$(global(globalno)), j * 72 + 8 * LEN(globalno & "="), ol, uilook(uiDescription), page
+  NEXT
+  ol -= 9
+ NEXT
+ edgeprint "Global variables:", 0, ol, uilook(uiText), page
+ ol -= 9
+END IF
+
+'IF mode > 1 THEN
+' edgeprint "argc=" & scrat(selectedscript).curargc & " argn=" & scrat(selectedscript).curargn & " ptr=" & scrat(selectedscript).ptr, 0, ol, uilook(uiDescription), page
+' ol -= 9
+'END IF
+
+edgeprint "# Name           Depth State CmdKn CmdID", 0, ol, uilook(uiText), page
+ol -= 9
+
+IF mode = 1 THEN
+ bottom = nowscript - (ol - 6) \ 9
+ selectedscript = nowscript
+ELSE
+ bottom = small(bottom, selectedscript)
+ bottom = large(bottom, selectedscript - (ol - 6) \ 9)
+END IF
+
+FOR i = large(bottom, 0) TO nowscript
+ 'if script is about to be executed, don't show it as having been already
+ IF scrat(i).curargn >= scrat(i).curargc AND i <> nowscript THEN lastarg = -1 ELSE lastarg = 0
+
+ IF mode > 1 AND i = selectedscript THEN col = uilook(uiSelectedItem) ELSE col = uilook(uiText)
+ edgeprint STR$(i), 0, ol, col, page
+ edgeprint LEFT$(scriptname$(scrat(i).id), 14), 16, ol, col, page
+ edgeprint STR$(scrat(i).depth), 136, ol, col, page
+ IF scrat(i).state < 0 THEN
+  edgeprint "Suspended", 184, ol, col, page
+ ELSEIF scrat(i).state = stwait THEN
+  SELECT CASE scrat(i).curvalue
+   CASE 1'--wait number of ticks
+    waitcause$ = "wait(" & scrat(i).waitarg & ")"
+   CASE 2'--wait for all
+    waitcause$ = "waitforall"
+   CASE 3'--wait for hero
+    waitcause$ = "waitforhero(" & scrat(i).waitarg & ")"
+   CASE 4'--wait for NPC
+    waitcause$ = "waitfornpc(" & scrat(i).waitarg & ")"
+   CASE 9'--wait for key
+    waitcause$ = "waitforkey(" & scrat(i).waitarg & ")"
+   CASE 244'--wait for scancode
+    waitcause$ = "waitscancode(" & scrat(i).waitarg & ")"
+   CASE 42'--wait for camera
+    waitcause$ = "waitforcamera"
+   CASE 59'--wait for text box
+    waitcause$ = "waitfortextbox"
+   CASE ELSE
+    waitcause$ = "Cmd " & scrat(i).curvalue & " caused wait"
+  END SELECT
+  edgeprint waitcause$, 184, ol, col, page
+ ELSEIF scrat(i).state = stnext AND scrat(i).curkind = tyscript AND lastarg THEN
+  edgeprint "Called #" & i + 1, 184, ol, col, page
+ ELSEIF scrat(i).state = stnext AND scrat(i).curkind = tyfunct AND scrat(i).curvalue = 176 AND lastarg THEN
+  edgeprint "Called #" & i + 1 & " by ID", 184, ol, col, page
+ ELSE
+  edgeprint STR$(scrat(i).state), 184, ol, col, page
+  edgeprint STR$(scrat(i).curkind), 232, ol, col, page
+  edgeprint STR$(scrat(i).curvalue), 280, ol, col, page
+ END IF
+ ol = ol - 9
+ IF ol < 6 THEN EXIT FOR
 NEXT i
+
+
+IF mode > 1 AND drawloop = 0 THEN
+ setvispage page
+ w = getkey
+ IF w = 68 THEN mode = 0: clearkey(68) 'f10
+ IF w = 47 THEN viewmode = loopvar(viewmode, 0, 2, 1): GOTO redraw 'v
+ IF w = 73 THEN 'pgup
+  selectedscript += 1
+  localsscroll = 0
+  GOTO redraw
+ END IF
+ IF w = 81 THEN 'pgdw
+  selectedscript -= 1
+  localsscroll = 0
+  GOTO redraw
+ END IF
+ IF w = 12 OR w = 74 THEN '-
+  IF viewmode = 1 THEN localsscroll = large(0, localsscroll - 4): GOTO redraw
+  IF viewmode = 2 THEN globalsscroll = large(0, globalsscroll - 12): GOTO redraw
+ END IF
+ IF w = 13 OR w = 78 THEN '+
+  IF viewmode = 1 THEN localsscroll = small(large(script(scrat(selectedscript).scrnum).vars - 11, 0), localsscroll + 4): GOTO redraw
+  IF viewmode = 2 THEN globalsscroll = small(1005, globalsscroll + 12): GOTO redraw
+ END IF
+
+ 'stepping
+ IF w = 49 THEN 'n
+  'step till next script
+  mode or= breakstnext OR breakstdone OR breaklooptop
+  stepmode = stepscript
+  lastscriptnum = nowscript
+ END IF
+ IF w = 22 THEN 'u
+  mode or= breakstnext
+  stepmode = stepup
+  waitfordepth = scrat(selectedscript).depth - 1
+  waitforscript = nowscript
+ END IF
+ IF w = 17 THEN 'w
+  mode or= breakstnext
+  waitforscript = selectedscript
+  stepmode = stependscript
+ END IF
+ IF w = 31 THEN 's
+  mode or= breakstread OR breakstnext OR breakloopbrch
+  stepmode = stepnext
+ END IF
+ IF w = 33 THEN 'f
+  'mode or= breakstread
+  mode or= breakstnext OR breakloopbrch
+  stepmode = stepargsdone
+  waitforscript = nowscript
+  waitfordepth = scrat(selectedscript).depth
+  'it would be more useful to wait for the calling command to finish
+  IF hasargs = 0 THEN waitfordepth -= 1
+ END IF
+END IF
+
+IF drawloop AND mode > 1 THEN
+ 'displayall: dpage was copied to vpage
+ SWAP dpage, vpage
+END IF
+
+'just incase was swapped out above
+reloadscript nowscript
 END SUB
 
 SUB setdebugpan
@@ -2383,11 +2648,44 @@ SUB readstackcommand (state as ScriptInst, i)
  state.ptr = readstackdw(i)
 END SUB
 
-FUNCTION scriptstate$
- recurse = 0
+FUNCTION localvariablename$ (value, scriptargs)
+ 'get a variable name from a local variable number
+ 'locals (and args) numbered from 0
+ IF scriptargs = 999 THEN
+  'old HS file
+  localvariablename$ = "local" & value
+ ELSEIF value < scriptargs THEN
+  localvariablename$ = "arg" & value
+ ELSE
+  localvariablename$ = "var" & (value - scriptargs)
+ END IF
+END FUNCTION
+
+FUNCTION mathvariablename$ (value, scriptargs)
+ 'get a variable name from an variable id number passed to a math function or for
+ 'locals (and args) numbered from 0
+ IF value >= 0 THEN
+  mathvariablename$ = "global" & value
+ ELSEIF scriptargs = 999 THEN
+  'old HS file
+  mathvariablename$ = "local" & (-value - 1)
+ ELSEIF -value <= scriptargs THEN
+  mathvariablename$ = "arg" & (-value - 1)
+ ELSE
+  mathvariablename$ = "var" & (-value - scriptargs - 1)
+ END IF
+END FUNCTION
+
+FUNCTION scriptstate$ (targetscript)
+ IF targetscript = -1 OR targetscript = nowscript THEN
+  recurse = 2
+ ELSE
+  recurse = 3
+ END IF
  'recurse 0 = only top script
  'recurse 1 = top script plus calling scripts
  'recurse 2 = all scripts, including suspended ones
+ 'recurse 3 = only the specified script
 
  DIM flowname$(15), flowtype(15), state as ScriptInst
 
@@ -2424,54 +2722,99 @@ FUNCTION scriptstate$
  'copyobj(state, scrat(wasscript))
  memcpy(@(state),@(scrat(wasscript)),LEN(scrat(wasscript)))
 
+ 'so we can grab extra data on the current script
+ reloadscript nowscript, 0
 
- IF scrat(nowscript).state = stdoarg THEN GOTO jmpdoarg
- IF scrat(nowscript).state = stnext THEN GOTO jmpnext
+ IF state.state = stdoarg THEN GOTO jmpdoarg
+ IF state.state = stnext THEN
+  IF recurse <> 3 THEN
+
+   IF state.curkind = tyflow AND state.curvalue = flowfor AND state.curargn = 4 THEN
+    'print variable, start, end, and step of a for loop
+    outstr$ = "(" & mathvariablename$(readstackdw(stkpos - 4), script(state.scrnum).args)
+    outstr$ += "," & readstackdw(stkpos - 3)
+    outstr$ += "," & readstackdw(stkpos - 2)
+    outstr$ += "," & readstackdw(stkpos - 1) & ")"
+   ELSEIF state.curargn >= state.curargc AND state.curkind <> tyflow THEN
+    'print the evaluated list of arguments from the stack if they are all done
+    outstr$ = "("
+    IF state.curkind = tymath AND state.curvalue >= 16 AND state.curvalue <= 18 THEN
+     outstr$ += mathvariablename$(readstackdw(stkpos - 2), script(state.scrnum).args)
+     outstr$ += "," & readstackdw(stkpos - 1)
+    ELSE
+     FOR i = state.curargn TO 1 STEP -1
+      outstr$ += STR$(readstackdw(stkpos - i))
+      IF i <> 1 THEN outstr$ += ","
+     NEXT
+    END IF
+    outstr$ += ")"
+   END IF
+
+  END IF
+  IF state.curargn = 0 THEN hideoverride = -1
+  GOTO jmpnext
+ END IF
 
  DO
   jmpread:
   jmpreturn:
+  jmpwait:
 
-   cmd$ = ""
-   hidearg = 0
+  cmd$ = ""
+  hidearg = 0
+  IF hideoverride THEN hidearg = -1: hideoverride = 0
   SELECT CASE state.curkind
     CASE tynumber
      outstr$ = STR$(state.curvalue)
     CASE tyflow
      cmd$ = flowname$(state.curvalue)
      IF state.depth = 0 THEN cmd$ = scriptname$(state.id)
+     IF flowtype(state.curvalue) = 0 THEN IF state.curargc = 0 THEN hidearg = -1: cmd$ += "()"
      IF flowtype(state.curvalue) = 1 THEN hidearg = -1: cmd$ += ":"
-     IF (state.curargc = state.curargn + 1) AND flowtype(state.curvalue) = 2 THEN hidearg = -1: cmd$ += "()"
-     IF state.curvalue = flowif AND state.curargn > 0 THEN hidearg = -1
+     IF flowtype(state.curvalue) = 2 THEN
+      IF state.curargn = state.curargc - 1 THEN hidearg = -1: cmd$ += "()"
+      IF state.curvalue = flowwhile AND state.curargn = 0 THEN hidearg = -1
+     END IF
+     IF state.curvalue = flowif THEN
+      hidearg = -1
+      IF state.curargn > 0 AND state.curargn < state.curargc THEN cmd$ += "()"
+     END IF
     CASE tyglobal
      outstr$ = "global" + STR$(state.curvalue)
     CASE tylocal
-     outstr$ = "local" + STR$(state.curvalue)
+     'locals can only appear in the topmost script, which we made sure is loaded
+     outstr$ = localvariablename$(state.curvalue, script(state.scrnum).args)
     CASE tymath
      cmd$ = mathname$(state.curvalue)
     CASE tyfunct
      cmd$ = "cmd" + STR$(state.curvalue)
     CASE tyscript
-     IF state.curargn >= state.curargc THEN
+     'IF recurse < 3 AND state.curargn >= state.curargc THEN
       'currently executing this script (must have already printed it out)
-      cmd$ = "==>>"
-     ELSE
+      'cmd$ = "==>>"
+     'ELSE
       cmd$ = scriptname$(state.curvalue)
-     END IF
+     'END IF
    END SELECT
    'debug "kind = " + STR$(state.curkind)
    'debug "cmd$ = " + cmd$
 
    IF cmd$ <> "" THEN
-    IF state.curargn < state.curargc AND hidearg = 0 THEN
-     outstr$ = cmd$ + ":" + STR$(state.curargn + 1) + "/" + STR$(state.curargc) + " " + outstr$
+    IF outstr$ = "" THEN
+     outstr$ = cmd$
     ELSE
-     outstr$ = cmd$ + " " + outstr$
+     IF (state.curargc = 1) AND (state.curargn = 0) AND (hidearg = 0) THEN
+      outstr$ = cmd$ + ": " + outstr$
+     ELSEIF state.curargn < state.curargc AND hidearg = 0 THEN
+      outstr$ = cmd$ + ":" + STR$(state.curargn + 1) + "/" + STR$(state.curargc) + " " + outstr$
+     ELSE
+      outstr$ = cmd$ + " " + outstr$
+     END IF
     END IF
    END IF
 
-   'anything left on stack?
-   IF stkpos <= stkbottom THEN EXIT DO
+   'don't check this because script might be queued up due to timers and triggers but not run, consuming 0 stack
+   'IF stkpos <= stkbottom THEN EXIT DO
 
    state.depth -= 1
 
@@ -2479,13 +2822,15 @@ FUNCTION scriptstate$
     IF recurse = 0 THEN EXIT DO
     'load next script
     wasscript -= 1
+    IF wasscript = targetscript THEN outstr$ = ""
+    IF wasscript < targetscript THEN EXIT DO
     IF wasscript < 0 THEN EXIT DO
     'macro disabled for fb 0.15 compat
     'copyobj(state, scrat(wasscript))
     memcpy(@(state),@(scrat(wasscript)),LEN(scrat(wasscript)))
     IF scrat(wasscript).state < 0 THEN
-     IF recurse = 2 THEN
-      'deal with state   (can only be wait?)
+     IF recurse = 2 OR recurse = 3 THEN
+      'deal with state   (can only be wait? - goto streturn)
       CONTINUE DO
      ELSE
       EXIT DO
@@ -2512,6 +2857,5 @@ FUNCTION scriptstate$
  LOOP
  IF stkpos > stkbottom AND wasscript < 0 THEN scripterr "interpreter state corrupt; stack garbage"
 
- 'debug "finished product: " + outstr$
  scriptstate$ = TRIM$(outstr$)
 END FUNCTION

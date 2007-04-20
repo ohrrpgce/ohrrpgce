@@ -47,7 +47,8 @@ DECLARE FUNCTION rpad$ (s$, pad$, size%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION getnpcref% (seekid%, offset%)
 DECLARE SUB suspendresume (id%)
-DECLARE SUB scriptwatcher (mode%)
+DECLARE SUB scriptwatcher (mode%, drawloop%)
+DECLARE SUB breakpoint (mode%, callspot%)
 DECLARE SUB onkeyscript (scriptnum%)
 DECLARE SUB scriptpalette (id%)
 DECLARE SUB greyscalepal ()
@@ -147,7 +148,7 @@ DECLARE SUB loadmapstate_passmap (mapnum%, prefix$, dontfallback% = 0)
 DECLARE SUB loadmapstate (mapnum%, loadmask%, prefix$, dontfallback% = 0)
 DECLARE SUB deletemapstate (filebase$, killmask%)
 DECLARE SUB deletetemps ()
-DECLARE FUNCTION scriptstate$ ()
+DECLARE FUNCTION scriptstate$ (targetscript% = -1)
 DECLARE Sub MenuSound(byval s as integer)
 DECLARE SUB LoadGen
 DECLARE SUB dotimer(byval l as integer)
@@ -157,6 +158,7 @@ DECLARE sub dotimerafterbattle()
 DECLARE FUNCTION loadscript% (n%)
 DECLARE SUB resetinterpreter ()
 DECLARE SUB killallscripts ()
+DECLARE SUB reloadscript (index, updatestats = -1)
 
 
 '---INCLUDE FILES---
@@ -424,6 +426,7 @@ lastmap = -1
 choosep = 0
 sayer = 0
 remembermusic = -1
+scrwatch = 0
 
 makebackups 'make a few backup lumps
 
@@ -480,6 +483,8 @@ DO
  'DEBUG debug "read controls"
  control
  IF gmap(15) THEN onkeyscript gmap(15)
+ 'breakpoint : called after keypress script is run, but don't get called by wantimmediate
+ IF scrwatch > 1 THEN breakpoint scrwatch, 4
  'DEBUG debug "enter script interpreter"
  GOSUB interpret
  'DEBUG debug "increment timers"
@@ -577,7 +582,7 @@ DO
   IF keyval(61) > 1 AND showsay = 0 THEN
    wantloadgame = 33
   END IF
-  IF keyval(62) > 1 THEN showtags = showtags XOR 1
+  IF keyval(62) > 1 THEN showtags = showtags XOR 1: scrwatch = 0 
   IF keyval(63) > 1 THEN
    SELECT CASE gen(cameramode)
     CASE herocam
@@ -622,7 +627,7 @@ DO
   END IF
   IF keyval(66) > 1 THEN patcharray gen(), "gen", 104
   IF keyval(67) > 1 THEN patcharray gmap(), "gmap", 20
-  IF keyval(68) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1)
+  IF keyval(68) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): showtags = 0
   IF keyval(87) > 1 THEN ghost = ghost XOR 1
   IF keyval(29) > 0 THEN
    IF keyval(74) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = XSTR$(speedcontrol)
@@ -775,7 +780,7 @@ END IF
 edgeprint scriptout$, 0, 190, uilook(uiText), dpage
 showplotstrings
 IF showtags > 0 THEN tagdisplay
-IF scrwatch THEN scriptwatcher scrwatch
+IF scrwatch THEN scriptwatcher scrwatch, -1
 RETRACE
 
 usermenu:
@@ -1584,7 +1589,6 @@ exitprogram 0
 '--this is what we have dimed for scripts
 '--script(4096), heap(2048), global(1024), scrat(128), nowscript
 interpret:
-IF scrwatch THEN scriptwatcher scrwatch
 IF nowscript >= 0 THEN
  SELECT CASE scrat(nowscript).state
   CASE IS < stnone
@@ -1729,14 +1733,7 @@ END IF
 RETRACE
 
 interpretloop:
-IF scrat(nowscript).scrnum = -1 THEN
- scrat(nowscript).scrnum = loadscript(scrat(nowscript).id)
- IF scrat(nowscript).scrnum = -1 THEN RETRACE
- script(scrat(nowscript).scrnum).totaluse += 1
- script(scrat(nowscript).scrnum).refcount += 1
-END IF
-scriptctr += 1
-script(scrat(nowscript).scrnum).lastuse = scriptctr
+reloadscript(nowscript)
 DO
  SELECT CASE scrat(nowscript).state
   CASE stwait'---begin waiting for something
@@ -1747,10 +1744,12 @@ DO
    '--FIRST STATE
    '--sets stnext for a function, or streturn for others
    IF functionread THEN EXIT DO
+   IF scrwatch AND breakstread THEN breakpoint scrwatch, 3
   CASE streturn'---return
    '--sets stdone if done with entire script, stnext otherwise
    subreturn
   CASE stnext'---check if all args are done
+   IF scrwatch AND breakstnext THEN breakpoint scrwatch, 1
    IF scrat(nowscript).curargn >= scrat(nowscript).curargc THEN
     '--pop return values of each arg
     '--evaluate function, math, script, whatever
@@ -1776,7 +1775,7 @@ DO
 	 CASE 2
 	  '--if a while statement finishes normally (argn is 2) then it repeats.
 	  dummy = popdw
-      dummy = popdw
+          dummy = popdw
 	  scrat(nowscript).curargn = 0
 	 CASE ELSE
 	  scripterr "while fell out of bounds, landed on " & scrat(nowscript).curargn
@@ -1920,6 +1919,7 @@ DO
 	  '---now get end value
 	  scrat(nowscript).state = stdoarg
 	 CASE 4
+          IF scrwatch AND breakloopbrch THEN breakpoint scrwatch, 5
 	  tmpstep = popdw
 	  tmpend = popdw
 	  tmpstart = popdw
@@ -2008,6 +2008,7 @@ DO
     CASE 2
      wantimmediate = -1
    END SELECT
+   IF scrwatch AND breakstnext THEN breakpoint scrwatch, 2
  END SELECT
 LOOP
 RETRACE

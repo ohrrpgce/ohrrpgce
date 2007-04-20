@@ -98,6 +98,7 @@ DECLARE SUB savemapstate_npcd(mapnum%, prefix$)
 DECLARE SUB savemapstate_tilemap(mapnum%, prefix$)
 DECLARE SUB savemapstate_passmap(mapnum%, prefix$)
 DECLARE SUB freescripts (mem%)
+DECLARE FUNCTION loadscript% (n%)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -970,4 +971,17 @@ SUB resetinterpreter
  killallscripts
 
  freescripts(0)
+END SUB
+
+SUB reloadscript (index, updatestats)
+ IF scrat(index).scrnum = -1 THEN
+  scrat(index).scrnum = loadscript(scrat(index).id)
+  IF scrat(nowscript).scrnum = -1 THEN killallscripts: EXIT SUB
+  script(scrat(nowscript).scrnum).refcount += 1
+  IF updatestats THEN script(scrat(nowscript).scrnum).totaluse += 1
+ END IF
+ IF updatestats THEN 
+  scriptctr += 1
+  script(scrat(nowscript).scrnum).lastuse = scriptctr
+ END IF
 END SUB

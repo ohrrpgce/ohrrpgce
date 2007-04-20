@@ -188,9 +188,10 @@ SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer)
 	for i = 0 to (320 * 200) - 1
 		spage(page2)[i] = spage(page1)[i]
 	next
-	if page2 = vispage then
-		setvispage(vispage)
-	end if
+	'call setvispage manually if required
+'	if page2 = vispage then
+'		setvispage(vispage)
+'	end if
 end sub
 
 SUB clearpage (BYVAL page as integer)

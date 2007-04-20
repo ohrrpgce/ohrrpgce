@@ -917,6 +917,7 @@ DO
  drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, bx * 20, by * 20, dpage
  copypage dpage, vpage
  copypage 3, dpage
+ setvispage vpage
  dowait
 LOOP
 GOSUB updatetilepicker
@@ -967,6 +968,7 @@ DO
  rectangle tempx + tempw, tempy, 1, temph, 14 + tog, dpage
  copypage dpage, vpage
  copypage 2, dpage
+ setvispage vpage
  dowait
 LOOP
 

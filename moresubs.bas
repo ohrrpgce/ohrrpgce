@@ -1102,6 +1102,7 @@ NEXT i
 IF alone = 0 AND howmanyh(0, 3) <= 1 THEN onwho = w: setkeys: EXIT FUNCTION
 
 copypage dpage, vpage
+setvispage vpage
 setkeys
 DO
  setwait timing(), speedcontrol
@@ -1216,6 +1217,7 @@ rememberjoycal = gen(60)
 gen(60) = 1'--disable joystick calibration
 
 copypage dpage, vpage
+setvispage vpage
 IF fadestate = 0 THEN
  fadein
  needfadeout = 1
