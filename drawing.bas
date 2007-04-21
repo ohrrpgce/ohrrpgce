@@ -159,7 +159,7 @@ END SUB
 SUB importbmp (f$, cap$, count)
 STATIC default$
 DIM menu$(10), submenu$(2), palmapping(255), bmpd(4)
-DIM pmask(255) as RGBcolor
+DIM pmask(255) as RGBcolor, temppal(255) as RGBcolor
 csr = 0
 pt = 0
 
@@ -282,12 +282,15 @@ bimport:
 bmpinfo(srcbmp$, bmpd())
 paloption = 2
 IF bmpd(0) = 8 THEN
- paloption = sublist(2, submenu$())
- IF paloption = -1 THEN RETRACE
- IF paloption = 1 THEN
-  importmasterpal srcbmp$, gen(genMaxMasterPal) + 1
-  activepalette = gen(genMaxMasterPal)
-  setpal master()
+ loadbmppal srcbmp$, temppal()
+ IF memcmp(@temppal(0), @master(0), 256 * sizeof(RGBcolor)) <> 0 THEN
+  paloption = sublist(2, submenu$())
+  IF paloption = -1 THEN RETRACE
+  IF paloption = 1 THEN
+   importmasterpal srcbmp$, gen(genMaxMasterPal) + 1
+   activepalette = gen(genMaxMasterPal)
+   setpal master()
+  END IF
  END IF
 END IF
 bitmap2page pmask(), srcbmp$, 3

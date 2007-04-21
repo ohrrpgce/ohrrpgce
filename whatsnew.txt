@@ -5,7 +5,7 @@ WHAT IS NEW?
     * New Music Formats. In addition to BAM and MIDI, you can also play
       MP3, OGG, MOD, XM, S3M and IT [Mike Caron]
     * New NPC movement type: Walk In Place [James Paige]
-    * 8-bit bitmaps can now be imported as backdrops and tilesets [Mike Caron]
+    * 8-bit bitmaps can now be imported as backdrops and tilesets [Mike, Ralph]
     * Sound effects. in WAV or OGG format [Mike Caron]
     * Sound effect triggers in battle [Mike Caron]
     * Attacks can now consume or give items (up to three at once!) [Mike Caron]

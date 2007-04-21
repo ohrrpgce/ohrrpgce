@@ -2653,7 +2653,7 @@ end function
 'with Allegro or SDL or FreeImage, but we'll stick to this for now.
 '----------------------------------------------------------------------
 SUB bitmap2page (pal() as RGBcolor, bmp$, BYVAL p)
-'loads the 24-bit bitmap bmp$ into page p with palette pal()
+'loads the 24- or 8-bit bitmap bmp$ into page p with palette pal()
 'I'm pretty sure this is only ever called with 320x200 pics, but I
 'have tried to generalise it to cope with any size.
 	dim header as BITMAPFILEHEADER
