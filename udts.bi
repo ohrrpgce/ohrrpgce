@@ -110,14 +110,12 @@ TYPE ScriptData
   strtable as integer   'pointer to string table (offset from start of script data in long ints)
 END TYPE
 
-type RGBcolor
-	UNION
-  		TYPE
-  			as ubyte b, g, r, a
-  		END TYPE
-		as uinteger col
-	END UNION
-end type
+UNION RGBcolor
+	as uinteger col
+		TYPE
+			as ubyte b, g, r, a
+		END TYPE
+END UNION
 
 Type TilesetData field=1
 	TransColor as Integer
