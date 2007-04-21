@@ -46,7 +46,7 @@ DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE SUB smnemonic (tagname$, index%)
 DECLARE SUB fixfilename (s$)
-DECLARE FUNCTION inputfilename$ (query$, ext$)
+DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
 #include "compat.bi"
@@ -238,26 +238,28 @@ loadset workingdir$ + SLASH + "sfxdata.bin", num, 0
 getsfxname$ = readbinstring$ (sfxd(), 0, 30)
 END FUNCTION
 
-FUNCTION inputfilename$ (query$, ext$)
-dim file$   'CRT name clash
+FUNCTION inputfilename$ (query$, ext$, default$)
+filename$ = default$
 setkeys
 DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN inputfilename$ = "": EXIT DO
- strgrabber file$, 40
- fixfilename file$
+ strgrabber filename$, 40
+ fixfilename filename$
  IF keyval(28) > 1 THEN
-  file$ = TRIM$(file$)
-  IF isfile(file$ + ext$) AND file$ <> "" THEN alert$ = file$ + ext$ + " already exists": alert = 30: file$ = ""
-  IF file$ <> "" THEN inputfilename$ = file$: EXIT DO
+  filename$ = TRIM$(filename$)
+  IF isfile(filename$ + ext$) AND filename$ <> "" THEN alert$ = filename$ + ext$ + " already exists": alert = 30: filename$ = ""
+  IF filename$ <> "" THEN inputfilename$ = filename$: EXIT DO
  END IF
  textcolor 15, 0
  printstr query$, 160 - LEN(query$) * 4, 20, dpage
  IF alert > 0 THEN printstr alert$, 160 - LEN(alert$) * 4, 40, dpage: alert = alert - 1
  textcolor 14 + tog, 1
- printstr file$, 160 - LEN(file$) * 4 , 30, dpage
+ printstr filename$, 160 - (LEN(filename$) + LEN(ext$)) * 4 , 30, dpage
+ textcolor 15, 1
+ printstr ext$, 160 + (LEN(filename$) - LEN(ext$)) * 4 , 30, dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage

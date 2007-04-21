@@ -75,6 +75,8 @@ WHAT IS NEW?
       Alt-F1/2/3 to enable/disable them quickly, and Ctrl-F1/2/3 to toggle their
       visibility. Press Ctrl+J to make the current layer jiggle so it stands
 	  out from the other layers [Mike, James]
+    * You can export backdrops and tilesets as 8-bit BMP files [Ralph]
+
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
       hero at the opposite edge" and bug 27: "NPCs cannot walk across the

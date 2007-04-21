@@ -2235,7 +2235,7 @@ SUB copyfile (s$, d$, buf() as integer)
 
 end SUB
 
-SUB screenshot (f$, BYVAL p as integer, maspal() as RGBcolor, buf() as integer)
+SUB screenshot (f$, BYVAL p as integer, maspal() as RGBcolor)
 'Not sure whether this should be in here or in gfx. Possibly both?
 '	bsave f$, 0
 

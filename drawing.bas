@@ -63,6 +63,7 @@ DECLARE SUB statname ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE SUB importmasterpal (f$, palnum%)
+DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -171,7 +172,8 @@ menu$(0) = "Return to Main Menu"
 menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
 menu$(2) = "Replace current " + cap$
 menu$(3) = "Append a new " + cap$
-menu$(4) = "Disable palette colors"
+menu$(4) = "Disable palette colors for import"
+menu$(5) = "Export current " + cap$ + " as BMP"
 submenu$(0) = "Import with current Master Palette"
 submenu$(1) = "Import with new Master Palette"
 submenu$(2) = "Do not remap colours"
@@ -189,7 +191,7 @@ DO
   count = this + 1
  END IF
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(csr, 0, 0, 4, 24)
+ dummy = usemenu(csr, 0, 0, 5, 24)
  IF csr = 1 THEN
   IF intgrabber(pt, 0, count - 1, 75, 77) THEN
    menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
@@ -217,8 +219,12 @@ DO
    GOSUB showpage
   END IF
   IF csr = 4 THEN GOSUB disable
+  IF csr = 5 THEN
+   outfile$ = inputfilename$("Name of file to export to?", ".bmp", trimpath$(game$) & " " & cap$ & pt)
+   IF outfile$ <> "" THEN screenshot outfile$ & ".bmp", 2, master()
+  END IF
  END IF
- FOR i = 0 TO 4
+ FOR i = 0 TO 5
   col = 7: IF i = csr THEN col = 14 + tog
   edgeprint menu$(i), 1, 1 + 10 * i, col, dpage
  NEXT i

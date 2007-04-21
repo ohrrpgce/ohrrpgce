@@ -2138,7 +2138,7 @@ ELSE
 END IF
 #ENDIF
 
-screenshot shot$, vpage, master(), buffer()
+screenshot shot$, vpage, master()
 
 IF isfile(shot$) THEN
  fh = FREEFILE

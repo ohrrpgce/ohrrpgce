@@ -70,7 +70,7 @@ DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE SUB updaterecordlength (lumpf$, bindex%)
 DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
-DECLARE FUNCTION inputfilename$ (query$, ext$)
+DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 DECLARE FUNCTION newRPGfile (template$, newrpg$)
 DECLARE SUB dolumpfiles (filetolump$)
 DECLARE FUNCTION readarchinym$ ()
@@ -326,8 +326,8 @@ menu$(5) = "Draw Medium Enemy Graphics 50x50"
 menu$(6) = "Draw Big Enemy Graphics    80x80"
 menu$(7) = "Draw Attacks"
 menu$(8) = "Draw Weapons"
-menu$(9) = "Import Screens"
-menu$(10) = "Import Full Maptile Sets"
+menu$(9) = "Import/Export Screens"
+menu$(10) = "Import/Export Full Maptile Sets"
 RETRACE
 
 chooserpg:
