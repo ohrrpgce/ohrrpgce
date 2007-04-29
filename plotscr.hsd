@@ -761,14 +761,14 @@ define operator,begin
 60,xor,xor
 60,and,and
 60,or, or
-60 ^^ logxor
-60 && logand
-60 || logor
-70 :=  setvariable
-70 +=  increment
-70 -=  decrement
-70 $+  concatenatestrings
-70 $=  copystring
+65 &&  logand
+70 ||  logor
+70 ^^  logxor
+80 :=  setvariable
+80 +=  increment
+80 -=  decrement
+80 $+  concatenatestrings
+80 $=  copystring
 end
 
 #--------------------------------------------------------------------------

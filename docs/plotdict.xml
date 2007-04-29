@@ -1919,12 +1919,12 @@ write pass block(15,3,pass)
 	  <command id="logicaland">
 			<cannon>value &amp;&amp; value</cannon>
 			<shortname>&amp;&amp;</shortname>
-			<description>Returns true if both of the values are true (non-zero). If either of them is false, and returns false.</description>
+            <description>Returns true if both of the values are true (non-zero). If either of them is false, and returns false. This command uses shortcut evaluation: if the first argument is false, the second argument is never evaluated.</description>
 		</command>
 		<command id="logicalor">
 			<cannon>value || value</cannon>
 			<shortname>||</shortname>
-			<description>Returns true if at least one of the values are true (non-zero). Only if both of them are false does or return false.</description>
+			<description>Returns true if at least one of the values are true (non-zero). Only if both of them are false does or return false. This command uses shortcut evaluation: if the first argument is true, the second argument is never evaluated.</description>
 		</command>
 		<command id="logicalxor">
 			<cannon>value ^^ value</cannon>

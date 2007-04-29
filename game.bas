@@ -1852,8 +1852,44 @@ DO
       EXIT DO
     END SELECT
    ELSE
-    '--flow control is special, for all else, do next arg
+    '--flow control and logical math are special, for all else, do next arg
     SELECT CASE scrat(nowscript).curkind
+     CASE tymath
+      IF scrat(nowscript).curargn > 0 THEN
+       debug "math " & scrat(nowscript).curvalue
+       SELECT CASE scrat(nowscript).curvalue
+        CASE 20'--logand
+         r = popdw
+         IF r THEN
+          '--push it back
+          pushdw r
+          scrat(nowscript).state = stdoarg'---call 2nd argument
+         ELSE
+          '--shortcut evaluate to false
+          scriptret = 0
+          '--we've popped one arg, pop the rest
+          FOR i = scrat(nowscript).curargn - 2 TO 0 STEP -1: dummy = popdw: NEXT
+          scrat(nowscript).state = streturn'---return
+         END IF
+        CASE 21'--logor
+         r = popdw
+         IF r THEN
+          '--shortcut evaluate to true
+          scriptret = 1
+          '--we've popped one arg, pop the rest
+          FOR i = scrat(nowscript).curargn - 2 TO 0 STEP -1: dummy = popdw: NEXT
+          scrat(nowscript).state = streturn'---return
+         ELSE
+          '--push it back
+          pushdw r
+          scrat(nowscript).state = stdoarg'---call 2nd argument
+         END IF
+        CASE ELSE
+         scrat(nowscript).state = stdoarg'---call argument
+       END SELECT
+      ELSE
+       scrat(nowscript).state = stdoarg'---always need first argument
+      END IF
      CASE tyflow
       SELECT CASE scrat(nowscript).curvalue
        CASE flowif'--we got an if!
