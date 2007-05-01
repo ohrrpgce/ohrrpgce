@@ -1299,11 +1299,11 @@ FOR o = 0 TO 299
       rand = 100
       IF INT(RND * 100) < rand THEN
        IF INT(RND * 100) < 50 THEN
-	IF caty(0) < npc(o).y THEN temp = 0
-	IF caty(0) > npc(o).y THEN temp = 2
+        IF caty(0) < npc(o).y THEN temp = 0
+        IF caty(0) > npc(o).y THEN temp = 2
         IF gmap(5) = 1 AND caty(0) - scroll(1) * 10 > npc(o).y THEN temp = 0
         IF gmap(5) = 1 AND caty(0) + scroll(1) * 10 < npc(o).y THEN temp = 2
-	IF caty(0) = npc(o).y THEN temp = INT(RND * 4)
+        IF caty(0) = npc(o).y THEN temp = INT(RND * 4)
        ELSE
         IF catx(0) < npc(o).x THEN temp = 3
         IF catx(0) > npc(o).x THEN temp = 1
@@ -1771,32 +1771,32 @@ DO
       '--finish flow control? tricky!
       SELECT CASE scrat(nowscript).curvalue
        CASE flowwhile'--repeat or terminate while
-	SELECT CASE scrat(nowscript).curargn
-	 CASE 2
-	  '--if a while statement finishes normally (argn is 2) then it repeats.
-	  dummy = popdw
+        SELECT CASE scrat(nowscript).curargn
+         CASE 2
+          '--if a while statement finishes normally (argn is 2) then it repeats.
           dummy = popdw
-	  scrat(nowscript).curargn = 0
-	 CASE ELSE
-	  scripterr "while fell out of bounds, landed on " & scrat(nowscript).curargn
+          dummy = popdw
+          scrat(nowscript).curargn = 0
+         CASE ELSE
+          scripterr "while fell out of bounds, landed on " & scrat(nowscript).curargn
           killallscripts
           EXIT DO
-	END SELECT
+        END SELECT
        CASE flowfor'--repeat or terminate for
-	SELECT CASE scrat(nowscript).curargn
-	 CASE 5
-	  '--normal for termination means repeat
-	  dummy = popdw
-	  GOSUB incrementflow
-	  scrat(nowscript).curargn = 4
-	 CASE ELSE
-	  scripterr "for fell out of bounds, landed on " & scrat(nowscript).curargn
+        SELECT CASE scrat(nowscript).curargn
+         CASE 5
+          '--normal for termination means repeat
+          dummy = popdw
+          GOSUB incrementflow
+          scrat(nowscript).curargn = 4
+         CASE ELSE
+          scripterr "for fell out of bounds, landed on " & scrat(nowscript).curargn
           killallscripts
           EXIT DO
-	END SELECT
+        END SELECT
        CASE flowreturn
-	scrat(nowscript).ret = popdw
-	scrat(nowscript).state = streturn'---return
+        scrat(nowscript).ret = popdw
+        scrat(nowscript).state = streturn'---return
        CASE flowbreak
         r = popdw
         unwindtodo(r)
@@ -1830,9 +1830,9 @@ DO
         scriptret = 0
         scrat(nowscript).state = streturn
        CASE ELSE
-	'--do, then, etc... terminate normally
-	scriptret = -1
-	GOSUB dumpandreturn
+        '--do, then, etc... terminate normally
+        scriptret = -1
+        GOSUB dumpandreturn
       END SELECT
       'scrat(nowscript).state = streturn'---return
      CASE tyscript
@@ -1840,7 +1840,7 @@ DO
       IF rsr = 1 THEN
        '--fill heap with return values
        FOR i = scrat(nowscript - 1).curargc - 1 TO 0 STEP -1
-	setScriptArg i, popdw
+        setScriptArg i, popdw
        NEXT i
       END IF
       IF rsr = 0 THEN
@@ -1852,11 +1852,13 @@ DO
       EXIT DO
     END SELECT
    ELSE
-    '--flow control and logical math are special, for all else, do next arg
-    SELECT CASE scrat(nowscript).curkind
-     CASE tymath
-      IF scrat(nowscript).curargn > 0 THEN
-       debug "math " & scrat(nowscript).curvalue
+    IF scrat(nowscript).curargn = 0 THEN
+     '--always need to execute the first argument
+     scrat(nowscript).state = stdoarg
+    ELSE 
+     '--flow control and logical math are special, for all else, do next arg
+     SELECT CASE scrat(nowscript).curkind
+      CASE tymath
        SELECT CASE scrat(nowscript).curvalue
         CASE 20'--logand
          r = popdw
@@ -1887,152 +1889,150 @@ DO
         CASE ELSE
          scrat(nowscript).state = stdoarg'---call argument
        END SELECT
-      ELSE
-       scrat(nowscript).state = stdoarg'---always need first argument
-      END IF
-     CASE tyflow
-      SELECT CASE scrat(nowscript).curvalue
-       CASE flowif'--we got an if!
-	SELECT CASE scrat(nowscript).curargn
-	 CASE 0
-	  scrat(nowscript).state = stdoarg'---call conditional
-	 CASE 1
-	  r = popdw
-	  pushdw r
-	  IF r THEN
-	   scrat(nowscript).state = stdoarg'---call then block
-	  ELSE
-	   scrat(nowscript).curargn = 2
-	   '--if-else needs one extra thing on the stack to account for the then that didnt get used.
-	   pushdw 0
-	   scrat(nowscript).state = stdoarg'---call else block
-	  END IF
-	 CASE 2
-          '--finished then but not at end of argument list: skip else
-          GOSUB dumpandreturn
-	 CASE ELSE
-	  scripterr "if statement overstepped bounds"
-	END SELECT
-       CASE flowwhile'--we got a while!
-	SELECT CASE scrat(nowscript).curargn
-	 CASE 0
-	  scrat(nowscript).state = stdoarg'---call condition
-	 CASE 1
-	  r = popdw
-	  IF r THEN
-	   scrat(nowscript).state = stdoarg'---call do block
-           '--number of words on stack should equal argn (for simplicity when unwinding stack)
-           pushdw 0
-	  ELSE
-           '--break while: no args to pop
-	   scriptret = 0
-           scrat(nowscript).state = streturn'---return
-	  END IF
-	 CASE ELSE
-	  scripterr "while statement has jumped the curb"
-	END SELECT
-       CASE flowfor'--we got a for!
-	SELECT CASE scrat(nowscript).curargn
-	 '--argn 0 is var
-	 '--argn 1 is start
-	 '--argn 2 is end
-	 '--argn 3 is step
-	 '--argn 4 is do block
-	 '--argn 5 is repeat (normal termination)
-	 CASE 0, 1, 3
-	  '--get var, start, and later step
-	  scrat(nowscript).state = stdoarg
-	 CASE 2
-	  '--set variable to start val before getting end
-	  tmpstart = popdw
-	  tmpvar = popdw
-	  pushdw tmpvar
-	  pushdw tmpstart
-
-	  '--update for counter
-	  writescriptvar tmpvar, tmpstart
-
-	  '---now get end value
-	  scrat(nowscript).state = stdoarg
-	 CASE 4
-          IF scrwatch AND breakloopbrch THEN breakpoint scrwatch, 5
-	  tmpstep = popdw
-	  tmpend = popdw
-	  tmpstart = popdw
-	  tmpvar = popdw
-	  tmpnow = readscriptvar(tmpvar)
-	  IF (tmpnow > tmpend AND tmpstep > 0) OR (tmpnow < tmpend AND tmpstep < 0) THEN
-           '--breakout
-	   scriptret = 0
-           scrat(nowscript).state = streturn'---return
-	  ELSE
-	   pushdw tmpvar
-	   pushdw tmpstart
-	   pushdw tmpend
-	   pushdw tmpstep
-	   scrat(nowscript).state = stdoarg'---execute the do block
-	  END IF
-	 CASE ELSE
-	  scripterr "for statement is being difficult"
-	END SELECT
-       CASE flowswitch
-        IF scrat(nowscript).curargn = 0 THEN
-         '--get expression to match
-         scrat(nowscript).state = stdoarg
-        ELSEIF scrat(nowscript).curargn = 1 THEN
-         '--set up state - push a 0: not fallen in
-         '--assume first statement is a case, run it
-         pushdw 0
-         scrat(nowscript).state = stdoarg
-        ELSE
-         tmpcase = popdw
-         tmpstate = popdw
-         doseek = 0 ' whether or not to search argument list for something to execute
-         IF tmpstate = 0 THEN
-          '--not fallen in
-          tmpvar = popdw
-          IF tmpcase = tmpvar THEN
-           tmpstate = 1
-          END IF
-          pushdw tmpvar
-          doseek = 1 '--search for a case or do
-         ELSEIF tmpstate = 1 THEN
-          '--after successfully running a do block, pop off matching value and exit
-          tmpvar = popdw
-          scriptret = 0
-          scrat(nowscript).state = streturn'---return
-         ELSEIF tmpstate = 2 THEN
-          '--continue encountered, fall back in
-          tmpstate = 1
-          doseek = 1 '--search for a do
-         END IF
-
-         DIM tmpptr as integer ptr
-         IF doseek THEN tmpptr = script(scrat(nowscript).scrnum).ptr
-         WHILE doseek
-          tmpkind = tmpptr[tmpptr[scrat(nowscript).curargn + scrat(nowscript).ptr + 3]]
-
-          IF (tmpstate = 1 AND tmpkind = tyflow) OR (tmpstate = 0 AND (tmpkind <> tyflow OR scrat(nowscript).curargn = scrat(nowscript).curargc - 1)) THEN
-           '--fall into a do, execute a case, or run default (last arg)
+      CASE tyflow
+       SELECT CASE scrat(nowscript).curvalue
+        CASE flowif'--we got an if!
+         SELECT CASE scrat(nowscript).curargn
+          CASE 0
+           scrat(nowscript).state = stdoarg'---call conditional
+          CASE 1
+           r = popdw
+           pushdw r
+           IF r THEN
+            scrat(nowscript).state = stdoarg'---call then block
+           ELSE
+            scrat(nowscript).curargn = 2
+            '--if-else needs one extra thing on the stack to account for the then that didnt get used.
+            pushdw 0
+            scrat(nowscript).state = stdoarg'---call else block
+           END IF
+          CASE 2
+           '--finished then but not at end of argument list: skip else
+           GOSUB dumpandreturn
+          CASE ELSE
+           scripterr "if statement overstepped bounds"
+         END SELECT
+        CASE flowwhile'--we got a while!
+         SELECT CASE scrat(nowscript).curargn
+          CASE 0
+           scrat(nowscript).state = stdoarg'---call condition
+          CASE 1
+           r = popdw
+           IF r THEN
+            scrat(nowscript).state = stdoarg'---call do block
+            '--number of words on stack should equal argn (for simplicity when unwinding stack)
+            pushdw 0
+           ELSE
+            '--break while: no args to pop
+            scriptret = 0
+            scrat(nowscript).state = streturn'---return
+           END IF
+          CASE ELSE
+          scripterr "while statement has jumped the curb"
+         END SELECT
+        CASE flowfor'--we got a for!
+         SELECT CASE scrat(nowscript).curargn
+          '--argn 0 is var
+          '--argn 1 is start
+          '--argn 2 is end
+          '--argn 3 is step
+          '--argn 4 is do block
+          '--argn 5 is repeat (normal termination)
+          CASE 0, 1, 3
+           '--get var, start, and later step
            scrat(nowscript).state = stdoarg
-           pushdw tmpstate
-           EXIT WHILE
-          END IF
-          IF scrat(nowscript).curargn >= scrat(nowscript).curargc THEN
+          CASE 2
+           '--set variable to start val before getting end
+           tmpstart = popdw
+           tmpvar = popdw
+           pushdw tmpvar
+           pushdw tmpstart
+
+           '--update for counter
+           writescriptvar tmpvar, tmpstart
+
+           '---now get end value
+           scrat(nowscript).state = stdoarg
+          CASE 4
+           IF scrwatch AND breakloopbrch THEN breakpoint scrwatch, 5
+           tmpstep = popdw
+           tmpend = popdw
+           tmpstart = popdw
+           tmpvar = popdw
+           tmpnow = readscriptvar(tmpvar)
+           IF (tmpnow > tmpend AND tmpstep > 0) OR (tmpnow < tmpend AND tmpstep < 0) THEN
+            '--breakout
+            scriptret = 0
+            scrat(nowscript).state = streturn'---return
+           ELSE
+            pushdw tmpvar
+            pushdw tmpstart
+            pushdw tmpend
+            pushdw tmpstep
+            scrat(nowscript).state = stdoarg'---execute the do block
+           END IF
+          CASE ELSE
+           scripterr "for statement is being difficult"
+         END SELECT
+        CASE flowswitch
+         IF scrat(nowscript).curargn = 0 THEN
+          '--get expression to match
+          scrat(nowscript).state = stdoarg
+         ELSEIF scrat(nowscript).curargn = 1 THEN
+          '--set up state - push a 0: not fallen in
+          '--assume first statement is a case, run it
+          pushdw 0
+          scrat(nowscript).state = stdoarg
+         ELSE
+          tmpcase = popdw
+          tmpstate = popdw
+          doseek = 0 ' whether or not to search argument list for something to execute
+          IF tmpstate = 0 THEN
+           '--not fallen in
+           tmpvar = popdw
+           IF tmpcase = tmpvar THEN
+            tmpstate = 1
+           END IF
+           pushdw tmpvar
+           doseek = 1 '--search for a case or do
+          ELSEIF tmpstate = 1 THEN
+           '--after successfully running a do block, pop off matching value and exit
            tmpvar = popdw
            scriptret = 0
            scrat(nowscript).state = streturn'---return
-           EXIT WHILE
+          ELSEIF tmpstate = 2 THEN
+           '--continue encountered, fall back in
+           tmpstate = 1
+           doseek = 1 '--search for a do
           END IF
-          scrat(nowscript).curargn = scrat(nowscript).curargn + 1
-         WEND
-        END IF
-       CASE ELSE
-	scrat(nowscript).state = stdoarg'---call argument
-      END SELECT
-     CASE ELSE
-      scrat(nowscript).state = stdoarg'---call argument
-    END SELECT
+
+          DIM tmpptr as integer ptr
+          IF doseek THEN tmpptr = script(scrat(nowscript).scrnum).ptr
+          WHILE doseek
+           tmpkind = tmpptr[tmpptr[scrat(nowscript).curargn + scrat(nowscript).ptr + 3]]
+
+           IF (tmpstate = 1 AND tmpkind = tyflow) OR (tmpstate = 0 AND (tmpkind <> tyflow OR scrat(nowscript).curargn = scrat(nowscript).curargc - 1)) THEN
+            '--fall into a do, execute a case, or run default (last arg)
+            scrat(nowscript).state = stdoarg
+            pushdw tmpstate
+            EXIT WHILE
+           END IF
+           IF scrat(nowscript).curargn >= scrat(nowscript).curargc THEN
+            tmpvar = popdw
+            scriptret = 0
+            scrat(nowscript).state = streturn'---return
+            EXIT WHILE
+           END IF
+           scrat(nowscript).curargn = scrat(nowscript).curargn + 1
+          WEND
+         END IF
+        CASE ELSE
+         scrat(nowscript).state = stdoarg'---call argument
+       END SELECT
+      CASE ELSE
+       scrat(nowscript).state = stdoarg'---call argument
+     END SELECT
+    END IF
    END IF
   CASE stdone'---script terminates
    '--if resuming a supended script, restore its state (normally stwait)
