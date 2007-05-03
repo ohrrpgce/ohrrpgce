@@ -904,9 +904,9 @@ END FUNCTION
 Function seconds2str(byval sec as integer, byval f as string = "%m:%S") as string
   dim ret as string
   dim as integer s, m, h
-  s = sec
-  m = int(sec / 60) mod 60
-  h = int(sec / 3600)
+  s = sec mod 60
+  m = (sec \ 60) mod 60
+  h = (sec \ 3600) mod 60
 
   dim as integer i
   for i = 0 to len(f) - 1
@@ -914,17 +914,17 @@ Function seconds2str(byval sec as integer, byval f as string = "%m:%S") as strin
       i+=1
       select case as const f[i]
         case asc("s")
-          ret = ret & s
+          ret = ret & sec
         case asc("S")
           if s < 10 then ret = ret & "0"
           ret = ret & s
         case asc("m")
-          ret = ret & m
-          case asc("M")
+          ret = ret & (sec \ 60)
+        case asc("M")
           if m < 10 then ret = ret & "0"
           ret = ret & m
         case asc("h")
-          ret = ret & h
+          ret = ret & (sec \ 3600)
         case asc("H")
           if h < 10 then ret = ret & "0"
           ret = ret & h

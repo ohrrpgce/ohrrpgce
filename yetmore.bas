@@ -1675,14 +1675,14 @@ SELECT CASE AS CONST id
  CASE 260'--settimer(id, count, speed, trigger, string, flags)
   IF retvals(0) >= 0 AND retvals(0) < 16 THEN
     WITH timers(retvals(0))
-      IF retvals(1) > -1 THEN .count = retvals(1)
+      IF retvals(1) > -1 THEN .count = retvals(1): .ticks = 0
       IF retvals(2) > -1 THEN
         .speed = retvals(2)
       ELSEIF retvals(2) = -1 AND timerspeed = 0 THEN
         .speed = 18
       END IF
       IF retvals(3)<> -1 THEN .trigger = retvals(3)
-      IF retvals(4) > -1 THEN .st = retvals(4) + 1
+      IF retvals(4) > -1 AND retvals(4) < 32 THEN .st = retvals(4) + 1: plotstr(retvals(4)).s = seconds2str(.count)
       IF retvals(5)<> -1 THEN .flags = retvals(5)
 
       IF .speed < -1 THEN .speed *= -1: .speed -= 1
