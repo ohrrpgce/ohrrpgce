@@ -1608,9 +1608,13 @@ SELECT CASE AS CONST id
    IF retvals(1) = -1 THEN
     plotstr(retvals(0)).s = trim$(plotstr(retvals(0)).s)
    ELSE
-    retvals(1) = bound(retvals(1),1,LEN(plotstr(retvals(0)).s))
-    retvals(2) = bound(retvals(2),1,LEN(plotstr(retvals(0)).s))
-    plotstr(retvals(0)).s = MID$(plotstr(retvals(0)).s,retvals(1),retvals(2))
+    IF retvals(1) <= LEN(plotstr(retvals(0)).s) AND retvals(2) >= 1 THEN
+     retvals(1) = large(retvals(1),1)
+     'retvals(2) = bound(retvals(2),1,LEN(plotstr(retvals(0)).s))
+     plotstr(retvals(0)).s = MID$(plotstr(retvals(0)).s,retvals(1),retvals(2))
+    ELSE
+     plotstr(retvals(0)).s = ""
+    END IF
    END IF
   END IF
  CASE 240'-- string from textbox

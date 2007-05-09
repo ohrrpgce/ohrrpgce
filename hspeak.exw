@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Ga 2007-05-09 String length not limited to 40
 --3G 2007-02-09 Offset to string literal tables given as a 32-bit
 --              int, script format version++ to 2.
 --3F 2006-12-11 Support for variable number of arguments to functions
@@ -83,7 +84,7 @@ constant true=1
 constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
-constant COMPILER_SUB_VERSION="G"
+constant COMPILER_SUB_VERSION="Ga"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -2108,11 +2109,6 @@ function table_string(integer id)
   integer offset
   offset=length(string_table)/4
   len=length(string_list[id])
-  if len>40 then
-    simple_warn(sprintf(COLBWHI&"%s"&COLRED&"\n String exceeds maximum length of 40 and will be trimmed",{string_list[id]}))
-    string_list[id]=string_list[id][1..40]
-    len=40
-  end if
   string_table&=int_to_bytes(len)
   string_table&=string_list[id]
   if remainder(len,4) then
@@ -2324,7 +2320,7 @@ function sanity_check(sequence tree,sequence vars,sequence parent)
       elsif kind=KIND_LOCAL then
         src_warn(sprintf("Expected script, function, or flow control, but found local variable "&COLYEL&"%s"&COLRED&". It will do nothing here."
                  ,{vars[id][CMD_TEXT]}),tree[i][TREE_TRUNK][CMD_LINE])
-      elsif kind=KIND_MATH and (id<=15 or id>=19) then
+      elsif kind=KIND_MATH and (id<=15 or id=19) then
         src_warn(sprintf("built-in function "&COLYEL&"%s"&COLRED&" is returning a value that is being discarded"
                  ,{s}),tree[i][TREE_TRUNK][CMD_LINE])
       end if
