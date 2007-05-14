@@ -44,9 +44,9 @@ WHAT IS NEW?
     * Add -z 3 to the command-line to run with a 3x zoomed screen. This
       Only works when running in a window, not when running fullscreen
       [James Paige]
-    * You no longer need to give your scripts ID numbers; definescript is
-      obsolete. Instead, use this syntax to define default values for script
-      arguments:
+    * You no longer need to give your scripts ID numbers; definescript is now
+      optional. Instead, you can use this syntax to define default values for
+      script arguments:
 
        script, myscript, required arg, optional arg = 3, begin
 
@@ -55,7 +55,8 @@ WHAT IS NEW?
 
        plotscript, introduction, begin
 
-      See the HS Definition or Wiki for details [Ralph Versteegen]
+      See http://hamsterrepublic.com/ohrrpgce/index.php/New_syntax.html
+      for more information. [Ralph Versteegen]
     * Press enter/space on any field that accepts scripts to enter a script
       browser where you can enter an id or browse by starting letter [Ralph]
     * The sprite editor remembers a default palette for every sprite
