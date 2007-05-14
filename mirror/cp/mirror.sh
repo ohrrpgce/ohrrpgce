@@ -24,6 +24,7 @@ httrack \
   -*year=* \
   -"*pages.stern.nyu.edu*" \
   -"*www.ohrrpgce.com*" \
+  -"*64.49.222.57*" \
   > /dev/null
 
 rm backblue.gif fade.gif cookies.txt hts-log.txt > /dev/null 2>&1
