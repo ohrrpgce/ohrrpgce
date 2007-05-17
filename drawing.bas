@@ -828,6 +828,7 @@ itop = 0
 dcsr = 1
 x = 0: y = 0
 zox = 0: zoy = 0
+debug_palettes = 0
 pmenu$(0) = "Overwrite Current Palette"
 pmenu$(1) = "Import Without Palette"
 pmenu$(2) = "Cancel Import"
@@ -904,6 +905,7 @@ DO
    '--add a new blank default palette
    REDIM PRESERVE poffset(sets)
    poffset(pt) = 0
+   GOSUB loadalluc
   END IF
   IF pt > top + atatime THEN
    GOSUB savealluc
@@ -942,12 +944,22 @@ DO
   getsprite placer(), 0, 0, 0, xw, yw, dpage
   stosprite placer(), 0, num * size, soff * (pt - top), 3
  END IF
+ IF keyval(59) > 1 THEN
+  debug_palettes = debug_palettes XOR 1
+ END IF
  GOSUB choose
  textcolor 7, 0
  printstr "Palette" + XSTR$(poffset(pt)), 320 - (LEN("Palette" + XSTR$(poffset(pt))) * 8), 0, dpage
  FOR i = 0 TO 15
   rectangle 271 + i * 3, 8, 3, 8, peek8bit(workpal(), (pt - top) * 16 + i), dpage
  NEXT i
+ IF debug_palettes THEN
+   FOR j = 0 TO atatime
+     FOR i = 0 TO 15
+      rectangle 271 + i * 3, 40 + j * 5, 3, 4, peek8bit(workpal(), j * 16 + i), dpage
+     NEXT i
+   NEXT j
+ END IF
  printstr "Set" + XSTR$(pt), 320 - (LEN("Set" + XSTR$(pt)) * 8), 16, dpage
  printstr info$(num), 320 - (LEN(info$(num)) * 8), 24, dpage
  SWAP vpage, dpage
