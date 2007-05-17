@@ -90,6 +90,7 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 workingdir$ = "working.tmp"
 
 'version ID
+DIM version$, version_code$, version_build$
 #include "cver.txt"
 'PRINT isn't going to work in FB Allegro
 IF (LCASE$(COMMAND$) = "/v" AND NOT LINUX) OR LCASE$(COMMAND$) = "-v" THEN PRINT version$: SYSTEM
@@ -103,7 +104,7 @@ DIM menu$(22), gen(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0
 DIM master(255) as RGBcolor
 'more global variables
 DIM game$, gamefile$, unsafefile$, insert, activepalette
-DIM vpage, dpage, fadestate, workingdir$, version$
+DIM vpage, dpage, fadestate, workingdir$
 
 '--DIM binsize arrays
 #include "binsize.bi"
@@ -284,7 +285,8 @@ DO:
  standardmenu menu$(), mainmax, 22, pt, 0, 0, 0, dpage, 0
 
  textcolor 6, 0
- printstr version$, 0, 192, dpage
+ printstr version_code$, 0, 184, dpage
+ printstr version_build$, 0, 192, dpage
 
  SWAP vpage, dpage
  setvispage vpage
