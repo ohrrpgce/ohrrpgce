@@ -482,19 +482,6 @@ FOR i = 0 TO large(gen(35), 59) '--for each available hero
  NEXT j
 NEXT i
 
-'--this may not be the best place to do this, but here we make sure that you do not have an all-dead party
-'falive = -1
-'fhave = -1
-'FOR i = 3 TO 0 STEP -1
-' IF hero(i) > 0 THEN
-'  fhave = i
-'  IF stat(i, 1, 0) > 0 THEN falive = i
-' END IF
-'NEXT i
-'IF falive = -1 THEN
-' stat(fhave, 1, 0) = 1
-'END IF
-
 '292     have hero tag
 '293     is alive tag
 '294     is leader tag

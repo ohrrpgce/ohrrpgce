@@ -2100,12 +2100,14 @@ SELECT CASE AS CONST scrat(nowscript).curkind
      i = retvals(0)
      unequip i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat(), 1
     END IF
+    evalitemtag
    CASE 24'--force equip
     IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
      i = retvals(0)
      unequip i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat(), 0
      doequip bound(retvals(2), 0, 255) + 1, i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat()
     END IF
+    evalitemtag
    CASE 32'--show backdrop
     gen(50) = bound(retvals(0) + 1, 0, gen(100))
     correctbackdrop
