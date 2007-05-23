@@ -214,6 +214,9 @@ DIM savefile$
 DIM timers(15) as timer
 DIM fatal
 
+DIM backcompat_sound_slot_mode
+DIM backcompat_sound_slots(7)
+
 DIM nowscript, scriptret, scriptctr, numloadedscr, totalscrmem
 DIM heap(2048), global(1024), retvals(32)
 DIM scrat(128) as ScriptInst

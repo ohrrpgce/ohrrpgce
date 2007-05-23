@@ -1379,25 +1379,31 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    scriptret = wtog(retvals(0)) \ 2
   END IF
-'  CASE 195'--load sound
-'   IF retvals(0) >= 0 AND retvals(0) <= sfxslots THEN
-'    sfx$ = soundfile(retvals(1))
-'    slot = retvals(0) - 1
-'    IF sfx$ <> "" THEN
-'     loadsfx slot,sfx$
-'    END IF
-'    scriptret = slot + 1
-'   END IF
-'  CASE 196'--free sound
-'   IF retvals(0) >= 1 AND retvals(0) <= sfxslots THEN
-'    slot = retvals(0) - 1
-'    freesfx slot
-'    scriptret = -1
-'   END IF
+ CASE 195'--load sound (BACKWARDS COMPATABILITY HACK )
+  'This opcode is not exposed in plotscr.hsd and should not be used in any new scripts
+  IF retvals(0) >= 0 AND retvals(0) <= 7 THEN
+   backcompat_sound_slot_mode = -1
+   backcompat_sound_slots(retvals(0)) = retvals(1) + 1
+  END IF
+ CASE 196'--free sound (BACKWARDS COMPATABILITY HACK)
+  'This opcode is not exposed in plotscr.hsd and should not be used in any new scripts
+  IF retvals(0) >= 0 AND retvals(0) <= 7 THEN
+   backcompat_sound_slots(retvals(0)) = 0
+  END IF
  CASE 197'--play sound
-  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxSFX) THEN
-   if retvals(2) then stopsfx retvals(0)
-   playsfx retvals(0), retvals(1)
+  sfxid = -1
+  IF backcompat_sound_slot_mode THEN
+   'BACKWARDS COMPATABILITY HACK
+   IF retvals(0) >= 0 AND retvals(0) <= 7 THEN
+    sfxid = backcompat_sound_slots(retvals(0)) - 1
+   END IF
+  ELSE
+   'Normal playsound mode
+   sfxid = retvals(0)
+  END IF
+  IF sfxid >= 0 AND sfxid <= gen(genMaxSFX) THEN
+   if retvals(2) then stopsfx sfxid
+   playsfx sfxid, retvals(1)
    scriptret = -1
   END IF
  CASE 198'--pause sound

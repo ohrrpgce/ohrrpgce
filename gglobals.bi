@@ -25,6 +25,8 @@ EXTERN lastsaveslot
 EXTERN abortg
 EXTERN usepreunlump%
 EXTERN fatal
+EXTERN backcompat_sound_slot_mode
+EXTERN backcompat_sound_slots()
 
 'Input handling globals
 EXTERN carray(), csetup()
