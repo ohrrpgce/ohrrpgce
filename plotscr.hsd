@@ -1,4 +1,4 @@
-# PLOTSCR.HSD (rusalka)
+# PLOTSCR.HSD (übersetzung)
 # This file holds the language definition for OHRRPGCE plotscripting.
 # modifying this file may have undesired/disasterous effects,
 # but reading it can be somewhat educational. Especially the constants.
@@ -527,6 +527,7 @@ if(stringlength(stringid)>=16)then(t2:=16)else(t2:=stringlength(stringid))
   )
 end
 
+#get/set enemy appearance are now simply wrappers. too much confusion to remove them now
 script,getenemyappearance,enemyid,appearance,begin
   return(readenemydata(enemyid,appearance))
 end
@@ -864,9 +865,9 @@ define constant, begin
 -1,getcount
 0,string:outline
 1,string:flat
-0,Enemy:Picture
-1,Enemy:Palette
-2,Enemy:PictureSize
+53,Enemy:Picture
+54,Enemy:Palette
+55,Enemy:PictureSize
   0, EnemySize:small
   1, EnemySize:medium
   2, EnemySize:large
