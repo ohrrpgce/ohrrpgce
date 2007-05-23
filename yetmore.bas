@@ -93,6 +93,7 @@ DECLARE SUB killallscripts ()
 DECLARE SUB reloadscript (index, updatestats = -1)
 DECLARE FUNCTION localvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION mathvariablename$ (value%, scriptargs%)
+DECLARE FUNCTION backcompat_sound_id (id AS INTEGER)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1391,16 +1392,7 @@ SELECT CASE AS CONST id
    backcompat_sound_slots(retvals(0)) = 0
   END IF
  CASE 197'--play sound
-  sfxid = -1
-  IF backcompat_sound_slot_mode THEN
-   'BACKWARDS COMPATABILITY HACK
-   IF retvals(0) >= 0 AND retvals(0) <= 7 THEN
-    sfxid = backcompat_sound_slots(retvals(0)) - 1
-   END IF
-  ELSE
-   'Normal playsound mode
-   sfxid = retvals(0)
-  END IF
+  sfxid = backcompat_sound_id(retvals(0))
   IF sfxid >= 0 AND sfxid <= gen(genMaxSFX) THEN
    if retvals(2) then stopsfx sfxid
    playsfx sfxid, retvals(1)
@@ -1595,12 +1587,15 @@ SELECT CASE AS CONST id
    scriptret = 0
   END SELECT
  CASE 236'--sound is playing
-  IF retvals(0) >= 1 AND retvals(0) <= sfxslots THEN
-   slot = retvals(0) - 1
-   scriptret = sfxisplaying(slot)
+  sfxid = backcompat_sound_id(retvals(0))
+  IF sfxid >= 0 AND sfxid <= gen(genMaxSFX) THEN
+   scriptret = sfxisplaying(sfxid)
   END IF
- CASE 237'--sound slots
-  scriptret = sfxslots
+ CASE 237'--sound slots (BACKWARDS COMPATABILITY HACK)
+  'This opcode is not exposed in plotscr.hsd and should not be used in any new scripts
+  IF backcompat_sound_slot_mode THEN
+    scriptret = 8
+  END IF
  CASE 238'--search string
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
     WITH plotstr(retvals(0))
@@ -2868,4 +2863,16 @@ FUNCTION scriptstate$ (targetscript)
  IF stkpos > stkbottom AND wasscript < 0 THEN scripterr "interpreter state corrupt; stack garbage"
 
  scriptstate$ = TRIM$(outstr$)
+END FUNCTION
+
+FUNCTION backcompat_sound_id (id AS INTEGER)
+  IF backcompat_sound_slot_mode THEN
+   'BACKWARDS COMPATABILITY HACK
+   IF id >= 0 AND id <= 7 THEN
+    RETURN backcompat_sound_slots(id) - 1
+   END IF
+  ELSE
+   'Normal playsound mode
+   RETURN id
+  END IF
 END FUNCTION

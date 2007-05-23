@@ -242,8 +242,8 @@ define function, begin
 233,getsongname,2,0,0         #get song name and store in string
 234,loadmenu,1,-1             #show loadmenu (really load/quit?)
 235,keyispressed,2,0,0        #check key by scancode, returns a bool
-236,soundisplaying,1,1        #checks to see if a slot is playing (slot)
-237,soundslots,0              #returns the number of slots available
+236,soundisplaying,1,0        #checks to see if a sound is playing (soundID)
+#237,soundslots,0              #returns the number of slots available
 238,searchstring,3,0,0,1      #Search string, (ID1,ID2,start)
 239,trimstring,3,0,-1,1       #Trims the specified string, (ID, start,length)
 240,stringfromtextbox,4,0,0,0,0 #loads string with whatever line in whatever textbox you specify
