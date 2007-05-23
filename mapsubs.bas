@@ -75,6 +75,8 @@ DECLARE Sub ToggleLayerEnabled(vis() as integer, byval l as integer)
 
 DECLARE SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors(), link(), gmap())
 
+DECLARE SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS INTEGER, defaults() AS INTEGER, tastuf() AS INTEGER)
+
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi" 
@@ -308,7 +310,10 @@ DO
     FOR tx = 0 TO pass(0) - 1
      FOR ty = 0 TO pass(1) - 1
       setmapdata map(), pass(), 0, 0
-      n = defaults(animadjust(readmapblock(tx, ty, 0), tastuf()))
+      n = 0
+      FOR tl = 0 TO 2
+       n = n OR defaults(animadjust(readmapblock(tx, ty, tl), tastuf()))
+      NEXT tl
       setmapdata pass(), pass(), 0, 0
       setmapblock tx, ty, 0, n
      NEXT ty
@@ -565,12 +570,12 @@ DO
   CASE 0
    setmapdata map(), pass(), 20, 0
    IF keyval(33) > 1 AND keyval(29) > 0 THEN' Ctrl+F Fill screen
-    FOR i = 0 TO 14
-     FOR o = 0 TO 8
-      setmapblock mapx \ 20 + i, mapy \ 20 + o, layer, usetile(layer)
-      IF defpass THEN setpassblock mapx \ 20 + i, mapy \ 20 + o, defaults(usetile(layer))
-     NEXT o
-    NEXT i
+    FOR tx = 0 TO 14
+     FOR ty = 0 TO 8
+      setmapblock mapx \ 20 + tx, mapy \ 20 + ty, layer, usetile(layer)
+      IF defpass THEN calculatepassblock mapx \ 20 + tx, mapy \ 20 + ty, map(), pass(), defaults(), tastuf()
+     NEXT ty
+    NEXT tx
     setmapdata map(), pass(), 20, 0
    END IF
    IF keyval(19) > 1 AND keyval(29) > 0 THEN' Ctrl+R to replace-all
@@ -587,8 +592,8 @@ DO
    IF keyval(41) > 1 THEN GOSUB minimap
    IF keyval(28) > 1 THEN GOSUB pickblock
    IF keyval(57) > 0 THEN
-    IF defpass THEN setpassblock x, y, defaults(usetile(layer))
     setmapblock x, y, layer, usetile(layer)
+    IF defpass THEN calculatepassblock x, y, map(), pass(), defaults(), tastuf()
    END IF
    IF keyval(58) > 1 THEN 'grab tile
     usetile(layer) = animadjust(readmapblock(x, y, layer), tastuf())
@@ -1488,4 +1493,13 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors(), link
  '-----------------RESET DATA
  loadpage game$ + ".til", gmap(0), 3
  LoadTilemap curmap, map(), tempw, temph
+END SUB
+
+SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS INTEGER, defaults() AS INTEGER, tastuf() AS INTEGER)
+ setmapdata map(), pass(), 0, 0
+ n = 0
+ FOR i = 0 TO 2
+  n = n OR defaults(animadjust(readmapblock(x, y, i), tastuf()))
+ NEXT i
+ setpassblock x, y, n
 END SUB
