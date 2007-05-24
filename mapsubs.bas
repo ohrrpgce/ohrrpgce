@@ -565,6 +565,31 @@ DO
  IF keyval(29) > 0 AND keyval(38) > 1 THEN gosub layermenu'ctrl-L
  IF keyval(1) > 1 THEN RETRACE
  IF keyval(15) > 1 THEN tiny = tiny XOR 1
+ IF keyval(14) > 1 THEN
+   'delete tile
+   setmapdata map(), pass(), 20, 0
+   FOR i = 0 TO 2
+    setmapblock x, y, i, 0
+   NEXT i
+   'delete passability
+   setmapdata map(), pass(), 20, 0
+   setpassblock x, y, 0
+   'delete foemap
+   setmapdata emap(), pass(), 20, 0
+   setmapblock x, y, 0, 0
+   'setmapdata sucks. we should find a better way...
+   setmapdata map(), pass(), 20, 0
+   'delete NPC
+   FOR i = 0 TO 299
+    IF npc(i + 600) > 0 THEN
+     IF npc(i + 0) = x AND npc(i + 300) = y + 1 THEN npc(i + 600) = 0
+    END IF
+   NEXT i
+   'delete door
+   FOR i = 0 TO 99
+    IF doors(i) = x AND doors(i + 100) = y + 1 AND doors(i + 200) = 1 THEN doors(i + 200) = 0
+   NEXT
+ END IF
  SELECT CASE editmode
   '---TILEMODE------
   CASE 0
@@ -595,9 +620,12 @@ DO
     setmapblock x, y, layer, usetile(layer)
     IF defpass THEN calculatepassblock x, y, map(), pass(), defaults(), tastuf()
    END IF
+   IF keyval(83) > 1 THEN 'delete
+    setmapblock x, y, layer, 0
+   END IF
    IF keyval(58) > 1 THEN 'grab tile
     usetile(layer) = animadjust(readmapblock(x, y, layer), tastuf())
-	GOSUB updatetilepicker
+   GOSUB updatetilepicker
    END IF
    IF keyval(29) > 0 AND keyval(32) > 1 THEN defpass = defpass XOR 1   
    FOR i = 0 TO 1
@@ -615,7 +643,7 @@ DO
      ELSE
       FOR tx = 0 TO map(0)
        FOR ty = 0 TO map(1)
-				IF readmapblock(tx, ty, layer) = old THEN setmapblock tx, ty, layer, new
+        IF readmapblock(tx, ty, layer) = old THEN setmapblock tx, ty, layer, new
        NEXT ty
       NEXT tx
      END IF
@@ -636,6 +664,9 @@ DO
    IF keyval(57) > 1 AND (over AND 15) = 0 THEN setmapblock x, y, 0, 15
    IF keyval(57) > 1 AND (over AND 15) = 15 THEN setmapblock x, y, 0, 0
    IF keyval(57) > 1 AND (over AND 15) > 0 AND (over AND 15) < 15 THEN setmapblock x, y, 0, 0
+   IF keyval(83) > 1 THEN 'delete
+    setmapblock x, y, 0, 0
+   END IF
    IF keyval(29) > 0 THEN
     IF keyval(72) > 1 THEN setmapblock x, y, 0, (over XOR 1)
     IF keyval(77) > 1 THEN setmapblock x, y, 0, (over XOR 2)
@@ -661,10 +692,14 @@ DO
      IF temp >= 0 THEN doors(0 + temp) = x: doors(100 + temp) = y + 1: doors(200 + temp) = 1
     END IF
    END IF
+   IF keyval(83) > 1 THEN 'delete
+    FOR i = 0 TO 99
+     IF doors(i) = x AND doors(i + 100) = y + 1 AND doors(i + 200) = 1 THEN doors(i + 200) = 0
+    NEXT
+   END IF
    '---NPCMODE------
   CASE 3
-   
-   IF keyval(83) > 1 THEN
+   IF keyval(83) > 1 THEN 'delete
     FOR i = 0 TO 299
      IF npc(i + 600) > 0 THEN
       IF npc(i + 0) = x AND npc(i + 300) = y + 1 THEN npc(i + 600) = 0
@@ -700,7 +735,16 @@ DO
   CASE 4
    IF keyval(51) > 0 THEN foe = loopvar(foe, 0, 255, -1)
    IF keyval(52) > 0 THEN foe = loopvar(foe, 0, 255, 1)
-   IF keyval(57) > 0 THEN setmapdata emap(), pass(), 20, 0: setmapblock x, y, 0, foe: setmapdata map(), pass(), 20, 0
+   IF keyval(57) > 0 THEN
+    setmapdata emap(), pass(), 20, 0
+    setmapblock x, y, 0, foe
+    setmapdata map(), pass(), 20, 0
+   END IF
+   IF keyval(83) > 1 THEN 'delete
+    setmapdata emap(), pass(), 20, 0
+    setmapblock x, y, 0, 0
+    setmapdata map(), pass(), 20, 0
+   END IF
    IF keyval(33) > 1 AND keyval(29) > 0 THEN
     setmapdata emap(), pass(), 20, 0
     FOR i = 0 TO 14

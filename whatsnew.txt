@@ -75,8 +75,11 @@ WHAT IS NEW?
     * Tile map layers! In the map editor, use Ctrl-L to enable the new layers,
       Alt-F1/2/3 to enable/disable them quickly, and Ctrl-F1/2/3 to toggle their
       visibility. Press Ctrl+J to make the current layer jiggle so it stands
-	  out from the other layers [Mike, James]
+      out from the other layers [Mike, James]
     * You can export backdrops and tilesets as 8-bit BMP files [Ralph]
+    * Press DEL in the map editor to delete the current tile
+      Press BACKSPACE to delete tile, passability, npc, door, and foemap
+      for the current tile [James Paige]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
