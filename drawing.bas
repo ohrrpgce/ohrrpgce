@@ -858,6 +858,7 @@ DO
   GOSUB loadalluc
  END IF
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
+  GOSUB savealluc
   GOSUB spriteage
   GOSUB loadalluc
  END IF
