@@ -274,6 +274,7 @@ define function, begin
 265,rgb,3,0,0,0				  #mixes red, green and blue into a 32-bit color(r, g, b)
 266,extractcolor,2,0,0		  #extracts an RGB component from a 32-bit color(color, component)
 267,mainmenu,0                #opens the main menu
+268,loadpalette,1,0           #load master palette
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end

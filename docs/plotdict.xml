@@ -958,6 +958,11 @@ end</example>
 			<cannon>fade screen in</cannon>
 			<shortname>fade screen in</shortname>
 			<description>Fades the screen back to normal after a <ref>fadescreenout</ref> command, or applies the changes made with other palette commands such as <ref>greyscalepalette</ref>, <ref>tweakpalette</ref>, <ref>resetpalette</ref>, and <ref>writecolor</ref>.</description>
+        </command>
+		<command id="loadpalette">
+			<cannon>load palette (palette number)</cannon>
+			<shortname>load palette</shortname>
+            <description>Loads a different master palette (one of the palettes on the "View Master Palettes..." menu). Use this if a backdrop or entire map was imported/drawn with a palette other than the default. Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>.</description>
 		</command>
 		<command id="updatepalette">
 			<cannon>update palette</cannon>
@@ -965,22 +970,22 @@ end</example>
 			<description>Instantly returns from fade screen out, and applies changes made by other palette command such as <ref>greyscalepalette</ref>, <ref>tweakpalette</ref>, <ref>resetpalette</ref>, and <ref>writecolor</ref>.</description>
 		</command>
 		<command id="greyscalepalette">
-			<cannon>greyscale palette (first,last)</cannon>
+			<cannon>greyscale palette (first, last)</cannon>
 			<shortname>greyscale palette</shortname>
-			<description>converts a section of the master palette from color to greyscale. The two arguments determine what range of colors will be affected. If called with no arguments, the entire palette is affected. Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>. Changes to the master palette last as long as you are playing, but are not stored in saved-games. If you need to make master-palette changes persist in saved-games you will have to use the on-load plotscript trigger.</description>
+			<description>Converts a section of the master palette from color to greyscale. The two arguments determine what range of colors will be affected. If called with no arguments, the entire palette is affected. Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>. Changes to the master palette last as long as you are playing, but are not stored in saved-games. If you need to make master-palette changes persist in saved-games you will have to use the on-load plotscript trigger.</description>
 		</command>
 		<command id="tweakpalette">
-			<cannon>tweak palette (red, green ,blue ,first,last)</cannon>
+			<cannon>tweak palette (red, green, blue, first, last)</cannon>
 			<shortname>tweak palette</shortname>
-			<description>Color-adjusts a section of the master palette. The first three arguments are the changes to make to the red, green, and blue values of each palette color. For example, tweak palette (20,-30,0) would redden everything, and drop out most of the green. The last two arguments determine what range of colors will be affected. If they are left out, the entire palette is affected. Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>. Changes to the master palette last as long as you are playing, but are not stored in saved-games. If you need to make master-palette changes persist in saved-games you will have to use the on-load plotscript trigger.</description>
+			<description>Color-adjusts a section of the master palette. The first three arguments are the changes to make to the red, green, and blue values of each palette color. For example, tweak palette (20,-30,0) would redden everything, and drop out most of the green. These arguments expect values in the range -63 to 63, NOT -255 to 255. The last two arguments determine what range of colors will be affected. If they are left out, the entire palette is affected. Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>. Changes to the master palette last as long as you are playing, but are not stored in saved-games. If you need to make master-palette changes persist in saved-games you will have to use the on-load plotscript trigger.</description>
 		</command>
 		<command id="resetpalette">
 			<cannon>reset palette</cannon>
 			<shortname>reset palette</shortname>
-			<description>Reloads the default palette, undoing any changes you have made with other palette-altering commands such as <ref>tweakpalette</ref> or <ref>greyscalepalette</ref> Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref></description>
+			<description>Reloads the default master palette, undoing any changes you have made with other palette-altering commands such as <ref>tweakpalette</ref> or <ref>greyscalepalette</ref> Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref></description>
 		</command>
 		<command id="readcolor">
-			<cannon>read color (index,element)</cannon>
+			<cannon>read color (index, element)</cannon>
 			<shortname>read color</shortname>
 			<description>Returns a color value from the master palette. The first argument is the index in the palette to read from, 0 to 255. The second argument is the color value to read, red, green, or blue. You can use 0,1, and 2, or you can use the predefined constants <ref>colorred</ref>, <ref>colorgreen</ref>, and <ref>colorblue</ref>. The counterpart to this is <ref>writecolor</ref>.
 			<note>This command operates on values from 0-63. For operation on full color values (0-255), see <ref>getcolor</ref></note></description>
@@ -989,7 +994,7 @@ end</example>
 			</seealso>
 		</command>
 		<command id="writecolor">
-			<cannon>write color (index,element,value)</cannon>
+			<cannon>write color (index, element, value)</cannon>
 			<shortname>write color</shortname>
 			<description>Writes a color value into the master palette. The first argument is the index in the palette to write to, 0 to 255. The second argument is the color value to write, red, green, or blue. You can use 0, 1, and 2, or you can use the predefined constants <ref>colorred</ref>, <ref>colorgreen</ref>, and <ref>colorblue</ref>. The third argument is the color value to write. It can be in the range of 0 to 63. Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref> The counterpart to this is <ref>readcolor</ref>. Changes to the master palette last as long as you are playing, but are not stored in saved-games. If you need to make master-palette changes persist in saved-games you will have to use the on-load plotscript trigger.</description>
 			<seealso>

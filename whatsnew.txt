@@ -158,6 +158,7 @@ WHAT IS NEW?
     * "set timer", "stop timer", "read timer" [Mike Caron]
     * "string is visible" [James Paige]
     * "set/get color", "rgb", "extract color" [Mike Caron]
+    * "load palette" [Ralph Versteegen]
     * HSPEAK no longer produces a warning for while(true). Endless while loops
       were already useful, and the new "break" flow control command has
       made them even more useful.

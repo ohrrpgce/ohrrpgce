@@ -121,6 +121,7 @@ ELSE
   master(i).b = SGN(i AND 1) * 168 + SGN(i AND 8) * 87
  NEXT i
 END IF
+getui uilook()
 
 IF isfile("ohrrpgce.fnt") THEN
  textxbload "ohrrpgce.fnt", font(), "default font ohrrpgce.fnt is missing"
@@ -128,7 +129,6 @@ ELSE
  getdefaultfont font()
 END IF
 
-getui ""
 setmodex
 ON ERROR GOTO modeXerr
 setpal master()
@@ -203,7 +203,6 @@ safekill workingdir$ + SLASH + "__danger.tmp"
 IF hsfile$ <> "" THEN GOTO hsimport
 
 IF NOT isfile(game$ + ".mas") AND NOT isfile(workingdir$ + SLASH + "palettes.bin") THEN copyfile "ohrrpgce.mas", game$ + ".mas", buffer()
-getui workingdir$ + SLASH + "uilook.bin"
 IF NOT isfile(game$ + ".fnt") THEN copyfile "ohrrpgce.fnt", game$ + ".fnt", buffer()
 xbload game$ + ".fnt", font(), "Font not loaded"
 '--loadgen, upgrade, resave
@@ -211,6 +210,7 @@ xbload game$ + ".gen", gen(), "general data is missing, RPG file corruption is l
 activepalette = gen(genMasterPal)
 loadpalette master(), activepalette
 setpal master()
+getui uilook(), activepalette
 upgrade font()
 xbsave game$ + ".gen", gen(), 1000
 setfont font()
@@ -956,6 +956,7 @@ END SUB
 FUNCTION needaddset (pt, check, what$)
 needaddset = 0
 csr = 0
+boxwidth = large(160, LEN(what$) * 8 + 88)
 IF pt > check THEN
  setkeys
  DO
@@ -974,7 +975,7 @@ IF pt > check THEN
    setkeys
    EXIT FUNCTION
   END IF
-  rectangle 80, 10, 160, 40, 1, dpage
+  rectangle 160 - boxwidth \ 2, 10, boxwidth, 40, 1, dpage
   edgeprint "Add new " + what$ + "?", 160 - LEN("Add new " + what$ + "?") * 4, 20, 15, dpage
   textcolor 7, 1: IF csr = 0 THEN textcolor 14 + tog, 9
   printstr " YES ", 120, 30, dpage

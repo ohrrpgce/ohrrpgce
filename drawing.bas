@@ -290,6 +290,7 @@ IF bmpd(0) = 8 THEN
    importmasterpal srcbmp$, gen(genMaxMasterPal) + 1
    activepalette = gen(genMaxMasterPal)
    setpal master()
+   getui uilook(), activepalette
   END IF
  END IF
 END IF

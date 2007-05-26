@@ -262,12 +262,11 @@ FOR i = 1 TO 15
  master(i).g = SGN(i AND 2) * 168 + SGN(i AND 8) * 87
  master(i).b = SGN(i AND 1) * 168 + SGN(i AND 8) * 87
 NEXT i
+'get default ui colours
+getui uilook()
 
 'DEBUG debug "load font"
-
 getdefaultfont font()
-'get default ui colours
-getui ""
 
 'DEBUG debug "set mode-X"
 setmodex
@@ -397,12 +396,10 @@ needf = 1
 
 LoadGEN
 loadpalette master(), gen(genMasterPal)
+getui uilook(), gen(genMasterPal)
 xbload game$ + ".fnt", font(), "font missing from " + game$
 
 rpgversion gen(genVersion)
-
-'Get UI colours
-getui workingdir$ + SLASH + "uilook.bin"
 
 setfont font()
 setpicstuf buffer(), 50, -1

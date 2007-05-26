@@ -60,7 +60,7 @@ DECLARE SUB generalsfxmenu ()
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 DECLARE SUB masterpalettemenu ()
-DECLARE SUB importmasterpal (f$, palnum%)
+DECLARE FUNCTION importmasterpal (f$, palnum%)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1452,6 +1452,7 @@ csr = 1
 palnum = activepalette
 loadpalette master(), palnum
 setpal master()
+getui uilook(), palnum
 GOSUB buildmenu
 
 clearpage 0
@@ -1470,14 +1471,20 @@ DO
   IF keyval(77) > 1 AND palnum = gen(genMaxMasterPal) THEN
    palnum += 1
    IF needaddset(palnum, gen(genMaxMasterPal), "Master Palette") THEN
-    importmasterpal("", palnum)
-    setpal master()
-    GOSUB buildmenu
+    IF importmasterpal("", palnum) THEN
+     setpal master()
+     getui uilook(), palnum
+     GOSUB buildmenu     
+    ELSE
+     palnum -= 1
+     gen(genMaxMasterPal) = palnum
+    END IF
    END IF
   END IF
   IF intgrabber(palnum, 0, gen(genMaxMasterPal), 75, 77) THEN
    loadpalette master(), palnum
    setpal master()
+   getui uilook(), palnum
    GOSUB buildmenu
   END IF
  END IF
@@ -1486,9 +1493,11 @@ DO
   CASE 0
     EXIT DO
   CASE 2
-    importmasterpal("", palnum)
-    setpal master()
-    GOSUB buildmenu
+    IF importmasterpal("", palnum) THEN
+     setpal master()
+     getui uilook(), palnum
+     GOSUB buildmenu
+    END IF
 '  CASE 3
     'setuicolors palnum
   CASE 4
@@ -1535,6 +1544,7 @@ clearpage 3
 IF activepalette <> palnum THEN
  loadpalette master(), activepalette
  setpal master()
+ getui uilook(), activepalette
 END IF
 EXIT SUB
 
@@ -1557,7 +1567,7 @@ RETRACE
 
 END SUB
 
-SUB importmasterpal (f$, palnum)
+FUNCTION importmasterpal (f$, palnum)
 STATIC default$
 IF f$ = "" THEN f$ = browse$(4, default$, "", "")
 IF f$ <> "" THEN
@@ -1569,8 +1579,7 @@ IF f$ <> "" THEN
  END IF
  savepalette master(), palnum
  IF palnum > gen(genMaxMasterPal) THEN gen(genMaxMasterPal) = palnum
-ELSEIF palnum = gen(genMaxMasterPal) THEN
- gen(genMaxMasterPal) -= 1
- palnum = small(palnum, gen(genMaxMasterPal)) 'pointer aliasing?
+ RETURN -1
 END IF
-END SUB
+RETURN 0
+END FUNCTION

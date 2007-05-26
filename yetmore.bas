@@ -1719,6 +1719,11 @@ SELECT CASE AS CONST id
  	case 2
  		scriptret = c.b
  	end select
+ CASE 268'--loadpalette
+  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxMasterPal) THEN
+   loadpalette master(), retvals(0)
+   getui uilook(), retvals(0)
+  END IF
 END SELECT
 
 EXIT SUB
@@ -2027,15 +2032,20 @@ rectangle 0, 2, (320 / 2048) * scrat(nowscript + 1).heap, 2, uilook(uiSelectedIt
 ol = 191
 
 IF mode > 1 AND viewmode = 0 THEN
- decmpl$ = scriptstate$(selectedscript)
- FOR i = 5 TO 0 STEP -1
-  IF LEN(decmpl$) > i * 40 THEN
-   edgeprint MID$(decmpl$, i * 40 + 1), 0, ol, uilook(uiDescription), page
-   ol -= 9
-  END IF
- NEXT
-' edgeprint "Last return value: " & scriptret, 0, ol, uilook(uiDescription), page
-' ol -= 9
+ IF nowscript = -1 THEN
+  edgeprint "Advanced debug mode: no scripts", 0, ol, uilook(uiDescription), page
+  ol -= 9 
+ ELSE
+  decmpl$ = scriptstate$(selectedscript)
+  FOR i = 5 TO 0 STEP -1
+   IF LEN(decmpl$) > i * 40 THEN
+    edgeprint MID$(decmpl$, i * 40 + 1), 0, ol, uilook(uiDescription), page
+    ol -= 9
+   END IF
+  NEXT
+ ' edgeprint "Last return value: " & scriptret, 0, ol, uilook(uiDescription), page
+ ' ol -= 9
+ END IF
 END IF
 
 IF mode > 1 AND viewmode = 1 THEN
