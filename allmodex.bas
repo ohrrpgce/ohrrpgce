@@ -121,6 +121,7 @@ dim shared fontdata as ubyte ptr
 dim shared as integer clipl, clipt, clipr, clipb
 
 dim shared intpal(0 to 255) as RGBcolor	'current palette
+dim shared updatepal as integer  'setpal called, load new palette at next setvispage
 
 'global sprite buffer, to allow reuse without allocate/deallocate
 dim shared tbuf as ohrsprite ptr = null
@@ -207,6 +208,10 @@ end SUB
 SUB setvispage (BYVAL page as integer)
   'the fb backend may freeze up if they collide with the polling thread (why???)
 	mutexlock keybdmutex
+	if updatepal then
+		gfx_setpal(intpal())
+		updatepal = 0
+	end if	
 	gfx_showpage(spage(page))
 	mutexunlock keybdmutex
 
@@ -214,23 +219,22 @@ SUB setvispage (BYVAL page as integer)
 end SUB
 
 sub setpal(pal() as RGBcolor)
-	dim i as integer
+	memcpy(@intpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
 
-	for i = 0 to 255
-		intpal(i).r = pal(i).r
-		intpal(i).g = pal(i).g
-		intpal(i).b = pal(i).b
-	next i
-
-	mutexlock keybdmutex
-	gfx_setpal(intpal())
-	mutexunlock keybdmutex
+	updatepal = -1
 end sub
 
 SUB fadeto (BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
 	dim i as integer
 	dim j as integer
 	dim diff as integer
+
+	if updatepal then
+		mutexlock keybdmutex
+		gfx_setpal(intpal())
+		mutexunlock keybdmutex
+		updatepal = 0
+	end if
 
 	for i = 1 to 32
 		for j = 0 to 255
@@ -269,6 +273,13 @@ SUB fadetopal (pal() as RGBcolor)
 	dim i as integer
 	dim j as integer
 	dim diff as integer
+
+	if updatepal then
+		mutexlock keybdmutex
+		gfx_setpal(intpal())
+		mutexunlock keybdmutex
+		updatepal = 0
+	end if
 
 	for i = 1 to 32
 		for j = 0 to 255

@@ -13,18 +13,18 @@
 option nokeyword getkey
 option nokeyword setmouse
 
-#ifndef DEMACRO
-#ifndef DONESTR
-#define fbdim dim as short
-#define DONESTR
-#endif
-
 'included only for $inclib?
 #include once "crt.bi"
 #undef rand
 #undef abort
 #undef bound
 #undef strlen
+
+#ifndef DEMACRO
+#ifndef DONESTR
+#define fbdim dim as short
+#define DONESTR
+#endif
 
 #if  __FB_VERSION__ = "0.15"
 'use native gosubs
