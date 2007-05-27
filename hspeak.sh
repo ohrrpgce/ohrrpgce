@@ -1,4 +1,4 @@
-export EUDIR=~/misc/euphoria
+export EUDIR=/usr/share/euphoria
 if [ ! -d "${EUDIR}" ] ; then
   echo "Euphoria for Linux was not found installed at $EUDIR"
   echo "If you installed it in a different location, you must edit this script."
