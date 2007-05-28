@@ -121,6 +121,7 @@ WHAT IS NEW?
     * "current song" now always returns -1 when no music is playing
     * Fixed bugs 30 and 58, both relating to weapon handle/hero hand points
       [Mike]
+    * Fixed bug 321 (HSpeak crash with empty parentheses) [Ralph]
     * New general bitset to disable default passability by default
       [James Paige]
     * In the tile map editor you can press CTRL+R to replace every tile

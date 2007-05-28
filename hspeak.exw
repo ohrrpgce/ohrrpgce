@@ -13,6 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Gc 2007-05-29 Handle empty paratheses correctly, and use
+--               lowercase ".hs" extension
 --3Gb 2007-05-09 Throw error on missing include file
 --3Ga 2007-05-09 String length not limited to 40
 --3G 2007-02-09 Offset to string literal tables given as a 32-bit
@@ -85,7 +87,7 @@ constant true=1
 constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
-constant COMPILER_SUB_VERSION="Gb"
+constant COMPILER_SUB_VERSION="Gc"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -446,7 +448,7 @@ procedure init()
   if length(args)>3 then
     dest_file=normalize_filename(args[4])
   else
-    dest_file=normalize_filename(alter_extension(source_file,"HS"))
+    dest_file=normalize_filename(alter_extension(source_file,"hs"))
   end if
   if find('f',optlist) then
     fast_mode=true
@@ -1534,6 +1536,7 @@ end function
 
 ---------------------------------------------------------------------------
 
+--this function not used anywhere
 function how_many_args(sequence name,integer kind)
   integer result
   integer at
@@ -1565,12 +1568,21 @@ end function
 
 ---------------------------------------------------------------------------
 
+function takes_args(integer kind)
+  if kind=KIND_PARENS or kind=KIND_FLOW or kind=KIND_MATH or kind=KIND_FUNCTION or kind=KIND_SCRIPT then
+    return(-1)
+  else
+    return(0)
+  end if
+end function
+
+---------------------------------------------------------------------------
+
 function get_script_cmd(integer ptr,sequence data,sequence vars)
   sequence command
   sequence this
   sequence after
   integer kind
-  integer argcount
   after={}
   command=data[ptr]
   ptr+=1
@@ -1595,11 +1607,9 @@ function get_script_cmd(integer ptr,sequence data,sequence vars)
   if ptr<=length(data) then
     --there is room for args
     kind=what_kind(command,vars,true)
-    argcount=how_many_args(command,kind)
 
-    if argcount=0 then
-      --no arguments are allowed
-    else
+    --distinguishing between functions with and without args means wait() would be ok but noop() would not
+    if takes_args(kind) then
       this=data[ptr]
       if compare("begin",this[CMD_TEXT])=0 then
         --yes, it has args
@@ -1607,14 +1617,9 @@ function get_script_cmd(integer ptr,sequence data,sequence vars)
         after=get_cmd_depth(ptr,data,1)
         ptr=after[1]   --this is a hack, because we cannot say {n,n}=func()
         after=after[2]
-      elsif kind=KIND_SCRIPT or kind=KIND_FUNCTION or kind=KIND_FLOW then
-        --has no args, but thats okay (check later)
-      else  
-        --has no args, but requires them!
-        src_error(sprintf(
-                     "expected "&COLYEL&"()"&COLRED&" or "&COLYEL&"begin,end"&COLRED&" for %s "&COLYEL&"%s"&COLRED&" but found "&COLYEL&"%s"&COLRED
-                    ,{KIND_LONGNAMES[kind],command[CMD_TEXT],this[CMD_TEXT]}),command[CMD_LINE]
-                  ) 
+        if length(after)=0 and kind=KIND_PARENS then
+          src_error("found empty parentheses not associated with a function call",command[CMD_LINE])
+        end if 
       end if
     end if
   end if
@@ -2037,25 +2042,25 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
       end for
     end if
   end if
-    --this is as good a time as any to make sure that var maipulation functions point to real variables
-    if kind=KIND_MATH and list[at][PAIR_NUM]>=16 and list[at][PAIR_NUM]<19 then
-      argkind=what_kind(tree[TREE_BRANCHES][1][TREE_TRUNK],vars,false)
-      if argkind=KIND_LOCAL then
-        --its local. translate it to a numeric reference
-        var_at=find(tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT],column(vars,CMD_TEXT))
-        tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]=sprintf("-%d",{var_at})
-      elsif argkind=KIND_GLOBAL then
-        --its global. translate it to a numeric reference
-        var_at=find(tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT],global_list[PAIR_NAME])
-        tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]=sprintf("%d",{global_list[PAIR_NUM][var_at]})
-      else
-        --its not a variable. bad!
-        src_error(sprintf(
-          "first argument of variable manipulation function "&COLYEL&"%s"&COLRED&" must be a variable, not %s "&COLYEL&"%s"&COLRED
-          ,{tree[TREE_TRUNK][CMD_TEXT],KIND_LONGNAMES[argkind],tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]}
-        ),tree[TREE_TRUNK][CMD_LINE])
-      end if
+  --this is as good a time as any to make sure that var maipulation functions point to real variables
+  if kind=KIND_MATH and list[at][PAIR_NUM]>=16 and list[at][PAIR_NUM]<19 then
+    argkind=what_kind(tree[TREE_BRANCHES][1][TREE_TRUNK],vars,false)
+    if argkind=KIND_LOCAL then
+      --its local. translate it to a numeric reference
+      var_at=find(tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT],column(vars,CMD_TEXT))
+      tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]=sprintf("-%d",{var_at})
+    elsif argkind=KIND_GLOBAL then
+      --its global. translate it to a numeric reference
+      var_at=find(tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT],global_list[PAIR_NAME])
+      tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]=sprintf("%d",{global_list[PAIR_NUM][var_at]})
+    else
+      --its not a variable. bad!
+      src_error(sprintf(
+        "first argument of variable manipulation function "&COLYEL&"%s"&COLRED&" must be a variable, not %s "&COLYEL&"%s"&COLRED
+        ,{tree[TREE_TRUNK][CMD_TEXT],KIND_LONGNAMES[argkind],tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]}
+      ),tree[TREE_TRUNK][CMD_LINE])
     end if
+  end if
   return(tree[TREE_BRANCHES])
 end function
 
