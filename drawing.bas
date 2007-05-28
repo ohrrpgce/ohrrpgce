@@ -812,7 +812,7 @@ next
 END SUB
 
 SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, fileset, font())
-STATIC default$, clippedpal, clippedw, clippedh, paste
+STATIC default$, spriteclip(1600), clippedpal, clippedw, clippedh, paste
 DIM nulpal(8), placer(1602), pclip(8), menu$(255), pmenu$(3), bmpd(40), mouse(4), area(20, 4), tool$(5), icon$(5), shortk(5), cursor(5)
 DIM workpal(8 * (atatime + 1))
 DIM poffset(sets)
@@ -1687,9 +1687,10 @@ RETRACE
 END SUB
 
 SUB picktiletoedit (tmode, pagenum, mapfile$)
-DIM ts AS TileEditState, mover(12), mouse(4), cutnpaste(19, 19), area(20, 4), toolname$(5), icon$(5), shortk(5), cursor(5)
+STATIC cutnpaste(19, 19), oldpaste
+DIM ts AS TileEditState, mover(12), mouse(4), area(20, 4), toolname$(5), icon$(5), shortk(5), cursor(5)
 ts.gotmouse = setmouse(mouse())
-ts.canpaste = 0
+ts.canpaste = oldpaste
 ts.drawcursor = 1
 ts.airsize = 5
 ts.mist = 10
@@ -1849,6 +1850,7 @@ LOOP
 IF tmode = 2 THEN
  savepasdefaults defaults(), pagenum
 END IF
+oldpaste = ts.canpaste
 END SUB
 
 SUB refreshtileedit (mover(), state AS TileEditState)
