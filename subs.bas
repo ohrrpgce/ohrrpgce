@@ -698,7 +698,7 @@ RETRACE
 END SUB
 
 SUB formation
-DIM a(40), b(160), c(24), s(7), w(7), menu$(10), ename$(7), max(10), min(10), z(7), bmenu$(22), pal16(64)
+DIM a(40), b(160), c(24), s(7), w(7), h(7), menu$(10), ename$(7), max(10), min(10), z(7), bmenu$(22), pal16(64)
 clearpage 0
 clearpage 1
 clearpage 2
@@ -948,7 +948,7 @@ NEXT i
 FOR i = 0 TO 6
  temp = 200
  FOR o = 7 TO i STEP -1
-  IF a(z(o) * 4 + 2) < temp THEN temp = a(z(o) * 4 + 2): j = o
+  IF a(z(o) * 4 + 2) + h(z(o)) <= temp THEN temp = a(z(o) * 4 + 2) + h(z(o)): j = o
  NEXT o
  SWAP z(j), z(i)
 NEXT i
@@ -991,9 +991,9 @@ FOR i = 0 TO 7
    ename$(i) = ename$(i) + CHR$(b(o))
   NEXT o
   getpal16 pal16(), i, b(54), 1 + b(55), b(53)
-  IF b(55) = 0 THEN s(i) = 578: w(i) = 34: f$ = ".pt1"
-  IF b(55) = 1 THEN s(i) = 1250: w(i) = 50: f$ = ".pt2"
-  IF b(55) = 2 THEN s(i) = 3200: w(i) = 80: f$ = ".pt3"
+  IF b(55) = 0 THEN s(i) = 578: w(i) = 34: h(i) = 34: f$ = ".pt1"
+  IF b(55) = 1 THEN s(i) = 1250: w(i) = 50: h(i) = 50: f$ = ".pt2"
+  IF b(55) = 2 THEN s(i) = 3200: w(i) = 80: h(i) = 80: f$ = ".pt3"
   setpicstuf buffer(), s(i), 3
   loadset game$ + f$, b(53), i * 10
  END IF
