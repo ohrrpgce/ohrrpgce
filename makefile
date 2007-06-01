@@ -1,3 +1,4 @@
+# NOTE: This makefile does not work on linux! use makegame.sh and makeedit.sh
 #for consistency (yes, this even works on windows)
 SHELL = /bin/sh
 
