@@ -945,13 +945,18 @@ formsprite:
 FOR i = 0 TO 7
  z(i) = i
 NEXT i
-FOR i = 0 TO 6
- temp = 200
- FOR o = 7 TO i STEP -1
-  IF a(z(o) * 4 + 2) + h(z(o)) <= temp THEN temp = a(z(o) * 4 + 2) + h(z(o)): j = o
- NEXT o
- SWAP z(j), z(i)
-NEXT i
+FOR o = 1 TO 7
+ insertval = z(o)
+ searchval = a(insertval * 4 + 2) + h(insertval)
+ FOR i = o - 1 TO 0 STEP -1
+  IF searchval < a(z(i) * 4 + 2) + h(z(i)) THEN
+   z(i + 1) = z(i)
+  ELSE
+   EXIT FOR
+  END IF
+ NEXT
+ z(i + 1) = insertval
+NEXT
 FOR i = 0 TO 7
  IF a(z(i) * 4 + 0) > 0 THEN
   loadsprite buffer(), 0, 0, z(i) * 10, w(z(i)), w(z(i)), 3

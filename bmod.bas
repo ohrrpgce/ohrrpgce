@@ -41,6 +41,9 @@ DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4
 ), targmem(23), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
 DIM bslot(24) AS BattleSprite
+DIM as double timinga, timingb
+timinga = 0
+timingb = 0
 
 mpname$ = readglobalstring(1, "MP", 10)
 goldname$ = readglobalstring(32, "Gold", 10)
@@ -1883,13 +1886,18 @@ sprite:
 FOR i = 0 TO 24 'set zbuf to 0 through 24
  zbuf(i) = i
 NEXT i
-FOR i = 0 TO 23 'sort the sprites by y + height
- temp = 200
- FOR o = 24 TO i STEP -1
-  IF bslot(zbuf(o)).y + bslot(zbuf(o)).h <= temp THEN temp = bslot(zbuf(o)).y + bslot(zbuf(o)).h: j = o
- NEXT o
- SWAP zbuf(j), zbuf(i)
-NEXT i
+FOR o = 1 TO 24
+ insertval = zbuf(o)
+ searchval = bslot(insertval).y + bslot(insertval).h
+ FOR i = o - 1 TO 0 STEP -1
+  IF searchval < bslot(zbuf(i)).y + bslot(zbuf(i)).h THEN
+   zbuf(i + 1) = zbuf(i)
+  ELSE
+   EXIT FOR
+  END IF
+ NEXT
+ zbuf(i + 1) = insertval
+NEXT
 FOR i = 0 TO 24
  IF (bslot(zbuf(i)).vis = 1 OR die(zbuf(i)) > 0) THEN
   temp = 64 + (zbuf(i) - 4) * 10
