@@ -1544,7 +1544,7 @@ SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS I
  setmapdata map(), pass(), 0, 0
  n = 0
  FOR i = 0 TO 2
-  tilenum = animadjust(readmapblock(tx, ty, i), tastuf())
+  tilenum = animadjust(readmapblock(x, y, i), tastuf())
   IF i = 0 OR tilenum > 0 THEN n = n OR defaults(tilenum)
  NEXT i
  setpassblock x, y, n
