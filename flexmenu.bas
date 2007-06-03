@@ -639,7 +639,7 @@ menu$(AtkTagAct) = "Tags..."
 menutype(AtkTagAct) = 1
 
 CONST AtkDescription = 39
-menu$(AtkDescription) = "Description: "
+menu$(AtkDescription) = "Description:"
 menutype(AtkDescription) = 3
 menuoff(AtkDescription) = AtkDatDescription
 menulimits(AtkDescription) = AtkLimStr38
@@ -697,7 +697,7 @@ DIM mainMenu(10)
 mainMenu(0) = AtkBackAct
 mainMenu(1) = AtkChooseAct
 mainMenu(2) = AtkName
-mainMenu(3) = AtkCaption
+mainMenu(3) = AtkDescription
 mainMenu(4) = AtkAppearAct
 mainMenu(5) = AtkDmgAct
 mainMenu(6) = AtkTargAct
@@ -713,9 +713,9 @@ appearMenu(2) = AtkPal
 appearMenu(3) = AtkAnimAttack
 appearMenu(4) = AtkAnimPattern
 appearMenu(5) = AtkAnimAttacker
-appearMenu(6) = AtkCapTime
-appearMenu(7) = AtkCaptDelay
-appearMenu(8) = AtkDescription
+appearMenu(6) = AtkCaption
+appearMenu(7) = AtkCapTime
+appearMenu(8) = AtkCaptDelay
 appearMenu(9) = AtkSoundEffect
 
 DIM dmgMenu(8)
@@ -767,6 +767,7 @@ menudepth = 0
 lastptr = 0
 lasttop = 0
 recindex = 0
+needupdatemenu = 0
 
 'load data here
 GOSUB AtkLoadSub
@@ -798,7 +799,7 @@ DO
   END IF
  END IF
 
- dummy = usemenu(pt, top, 0, size, 22)
+ IF usemenu(pt, top, 0, size, 22) THEN needupdatemenu = 1
 
  IF workmenu(pt) = AtkChooseAct OR (keyval(56) > 0 and NOT isStringField(menutype(workmenu(pt)))) THEN
   lastindex = recindex
@@ -811,7 +812,7 @@ DO
    '--make sure we really have permission to increment
    IF needaddset(recindex, gen(34), "attack") THEN
     flusharray recbuf(), 39 + curbinsize(0) / 2, 0
-    GOSUB AtkUpdateMenu
+    needupdatemenu = 1
    END IF
   ELSE
    IF intgrabber(recindex, 0, gen(34), 75, 77) THEN
@@ -832,30 +833,30 @@ DO
    CASE AtkAppearAct
     GOSUB AtkPushPtrSub
     setactivemenu workmenu(), appearMenu(), pt, top, size
-    GOSUB AtkUpdateMenu
+    needupdatemenu = 1
    CASE AtkDmgAct
     GOSUB AtkPushPtrSub
     setactivemenu workmenu(), dmgMenu(), pt, top, size
-    GOSUB AtkUpdateMenu
+    needupdatemenu = 1
    CASE AtkTargAct
     GOSUB AtkPushPtrSub
     setactivemenu workmenu(), targMenu(), pt, top, size
-    GOSUB AtkUpdateMenu
+    needupdatemenu = 1
    CASE AtkCostAct
     GOSUB AtkPushPtrSub
     setactivemenu workmenu(), costMenu(), pt, top, size
-    GOSUB AtkUpdateMenu
+    needupdatemenu = 1
    CASE AtkChainAct
     GOSUB AtkPushPtrSub
     setactivemenu workmenu(), chainMenu(), pt, top, size
-    GOSUB AtkUpdateMenu
+    needupdatemenu = 1
    CASE AtkTagAct
     GOSUB AtkPushPtrSub
     setactivemenu workmenu(), tagMenu(), pt, top, size
-    GOSUB AtkUpdateMenu
+    needupdatemenu = 1
    CASE AtkPal
     recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), 3, 0, 0, 50, 50, 2)
-    GOSUB AtkUpdateMenu
+    needupdatemenu = 1
    CASE AtkBitAct
     'merge the two blocks of bitsets into the buffer
     FOR i = 0 TO 3
@@ -877,10 +878,14 @@ DO
 
  IF keyval(56) = 0 or isStringField(menutype(workmenu(pt))) THEN 'not pressing ALT, or not allowed to
   IF editflexmenu(workmenu(pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
-   GOSUB AtkUpdateMenu
+   needupdatemenu = 1
   END IF
  END IF
 
+ IF needupdatemenu THEN
+  GOSUB AtkUpdateMenu
+  needupdatemenu = 0
+ END IF
  GOSUB AtkPreviewSub
 
  standardmenu dispmenu$(), size, 22, pt, top, 0, 0, dpage, 0
@@ -920,8 +925,8 @@ enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
 ''caption$(AtkCapDamageEq + 3) = "Pure Damage: " + caption$(AtkCapBaseAtk + recbuf(AtkDatBaseAtk))
 
 '--percentage damage shows target stat
-caption$(AtkCapDamageEq + 5) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " =" + XSTR$(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
-caption$(AtkCapDamageEq + 6) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " =" + XSTR$(100 + recbuf(AtkDatExtraDamage)) + "% of Current"
+caption$(AtkCapDamageEq + 5) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
+caption$(AtkCapDamageEq + 6) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Current"
 
 updateflexmenu pt, dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
 
@@ -955,7 +960,7 @@ setactivemenu workmenu(), mainMenu(), pt, top, size
 menudepth = 0
 pt = lastptr
 top = lasttop
-GOSUB AtkUpdateMenu
+needupdatemenu = 1
 RETRACE
 
 '-----------------------------------------------------------------------
@@ -970,7 +975,7 @@ RETRACE
 
 AtkLoadSub:
 loadattackdata recbuf(), recindex
-GOSUB AtkUpdateMenu
+needupdatemenu = 1
 RETRACE
 
 '-----------------------------------------------------------------------
