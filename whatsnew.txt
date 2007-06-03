@@ -124,6 +124,7 @@ WHAT IS NEW?
     * Fixed bug 321 (HSpeak crash with empty parentheses) [Ralph]
     * Fixed bug 322 (Z position of enemies in battle randomness and
       inconsistency between custom and game) [Ralph]
+    * Fixed bug 178 (Spell descriptions overrun menu box) [Ralph]
     * New general bitset to disable default passability by default
       [James Paige]
     * In the tile map editor you can press CTRL+R to replace every tile

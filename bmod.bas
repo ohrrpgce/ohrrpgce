@@ -1737,22 +1737,27 @@ IF vdance = 0 THEN 'only display interface till you win
    IF pt = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
    printstr menu$(you, i), 228, 9 + i * 8, dpage
   NEXT i
+  IF ptarg = 0 AND readbit(gen(), genBits, 14) = 0 THEN
+   edgeprint CHR$(24), bslot(you).x + (bslot(you).w / 2) - 4, bslot(you).y - 5 + (tog * 2), uilook(uiSelectedItem + tog), dpage
+  END IF
   IF mset = 1 THEN '--draw spell menu
-   centerbox 148, 55, 280, 100, 1, dpage
-   rectangle 8, 82, 281, 1, uilook(uiTextBox + 1), dpage
-   rectangle 8, 93, 281, 1, uilook(uiTextBox + 1), dpage
+   centerbox 160, 52, 310, 94, 1, dpage
+   IF sptr < 24 THEN
+    IF speld$(sptr) <> "" THEN rectangle 5, 74, 311, 1, uilook(uiTextBox + 1), dpage
+   END IF
+   rectangle 5, 87, 310, 1, uilook(uiTextBox + 1), dpage
    FOR i = 0 TO 23
     textcolor uilook(uiDisabledItem - readbit(spelmask(), 0, i)), 0
     IF sptr = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(spelmask(), 0, i)) + tog), uilook(uiHighlight)
-    printstr spel$(i), 16 + (((i / 3) - INT(i / 3)) * 3) * 88, 8 + INT(i / 3) * 8, dpage
+    printstr spel$(i), 16 + (i MOD 3) * 104, 8 + (i \ 3) * 8, dpage
    NEXT i
    textcolor uilook(uiMenuItem), 0
    IF sptr = 24 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
-   printstr cancelspell$, 16, 96, dpage
+   printstr cancelspell$, 9, 90, dpage
    textcolor uilook(uiDescription), 0
    IF sptr < 24 THEN
-    printstr speld$(sptr), 16, 84, dpage
-    printstr cost$(sptr), 280 - LEN(cost$(sptr)) * 8, 96, dpage
+    printstr speld$(sptr), 9, 77, dpage
+    printstr cost$(sptr), 308 - LEN(cost$(sptr)) * 8, 90, dpage
    END IF
   END IF
   IF mset = 2 THEN
@@ -1772,7 +1777,6 @@ IF vdance = 0 THEN 'only display interface till you win
    NEXT i
   END IF
  END IF
- IF you >= 0 AND ptarg = 0 AND readbit(gen(), genBits, 14) = 0 THEN edgeprint CHR$(24), bslot(you).x + (bslot(you).w / 2) - 4, bslot(you).y - 5 + (tog * 2), uilook(uiSelectedItem + tog), dpage
 END IF'--end if vdance=0
 RETRACE
 

@@ -1745,12 +1745,11 @@ mset = 0
 
 GOSUB splname
 copypage vpage, 3
-centerfuz 160, 100, 304, 184, 1, 3	'outer box
+centerfuz 160, 100, 312, 184, 1, 3	'outer box
 centerbox 206, 36, 200, 20, 2, 3 	'name box
 centerbox 60, 50, 82, 60, 2, 3		'menu box
-centerbox 160, 135, 280, 100, 2, 3	'spell list
-rectangle 21, 159, 280, 1, uilook(uiTextBox + 3), 3	'divider 1
-rectangle 21, 172, 280, 1, uilook(uiTextBox + 3), 3	'divider 2
+centerbox 160, 133, 308, 94, 2, 3	'spell list
+rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), 3	'divider 2
 setkeys
 DO
  setwait timing(), speedcontrol
@@ -1772,15 +1771,18 @@ DO
       textcolor uilook(uiMenuItem), uilook(uiHighlight)
      END IF
     END IF
-    printstr spel$(o), 24 + (((o / 3) - INT(o / 3)) * 3) * 88, 90 + INT(o / 3) * 8, dpage 'spells
+    printstr spel$(o), 12 + (o MOD 3) * 104, 90 + (o \ 3) * 8, dpage 'spells
    NEXT o
    textcolor uilook(uiMenuItem), 0
    IF sptr = 24 AND mset = 1 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
-   printstr cancelmenu$, 24, 175, dpage 'cancel
+   printstr cancelmenu$, 16, 171, dpage 'cancel
    IF mset = 1 THEN
+    IF speld$(sptr) <> "" THEN
+     rectangle 6, 155, 308, 1, uilook(uiTextBox + 3), dpage  'description divider
+    END IF
     textcolor uilook(uiDescription), 0
-    printstr cost$(sptr), 288 - LEN(cost$(sptr)) * 8, 175, dpage 'cost
-    printstr speld$(sptr), 24, 162, dpage 'description
+    printstr cost$(sptr), 303 - LEN(cost$(sptr)) * 8, 171, dpage 'cost
+    printstr speld$(sptr), 9, 158, dpage 'description
    END IF
   END IF
   textcolor uilook(uiMenuItem), 0
@@ -1798,7 +1800,7 @@ DO
     wt = 0: IF wptr = i THEN wt = INT(wtogl / 2)
     loadsprite buffer(), 0, 200 * ((2 * 2) + wt), o * 5, 20, 20, 2
     drawsprite buffer(), 0, pal16(), o * 16, 125, 8 + i * 20, dpage
-    temp$ = STR$(ABS(stat(i, 0, 0))) + "/" + STR$(ABS(stat(i, 1, 0)))
+    temp$ = ABS(stat(i, 0, 0)) & "/" & ABS(stat(i, 1, 0))
     col = uilook(uiMenuItem): IF i = wptr THEN col = uilook(uiSelectedItem + tog)
     edgeprint temp$, 155, 16 + i * 20, col, dpage
     o = o + 1
