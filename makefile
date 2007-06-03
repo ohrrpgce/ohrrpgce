@@ -26,12 +26,6 @@ compiler=fbc
 
 include config.mak
 
-%.d:
-	@touch $@
-
-include $(common_deps) $(edit_deps) $(game_deps)
-
-
 libraries=fbmt gcc
 libpaths=
 
@@ -97,15 +91,6 @@ $(edit_exe): $(common_objects) $(edit_objects)
 	@echo Compiling CUSTOM...
 	$(compiler) -s gui -x $(edit_exe) -m custom $(CFLAGS) cicon.rc $(edit_objects) $(common_objects) $(libpaths) $(libraries)
 
-depend: makedep
-	@echo Erasing and regenerating dependancy files
-	./makedep $(common_sources) $(edit_sources) $(game_sources)
-
-makedep: makedep.exe
-
-makedep.exe: makedep.bas
-	@echo Compiling makedep
-	$(compiler) makedep.bas $(CFLAGS)
 
 bam2mid: bam2mid.bas
 	@echo Compiling Bam2Midi...
@@ -127,9 +112,6 @@ gver.txt cver.txt:
 
 $(common_objects): %.o : %.bas
 	$(compiler) -c $< $(CFLAGS)
-	
-#for some reason, make tries to compile the headers otherwise...
-%.bi: ;
 
 
 #these need the program specific -m flag
