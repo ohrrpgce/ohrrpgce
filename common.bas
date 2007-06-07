@@ -16,6 +16,10 @@
 
 #include "music.bi"
 
+'Subs and functions only used locally
+DECLARE SUB draw_browse_meter(meter AS INTEGER, ranalready AS INTEGER, viewsize AS INTEGER)
+DECLARE SUB browse_add_files(wildcard$, attrib AS INTEGER, nowdir$, tmp$, treesize AS INTEGER, limit AS INTEGER, treec() AS INTEGER, tree$(), display$(), about$(), special AS INTEGER, meter AS INTEGER, ranalready AS INTEGER, viewsize AS INTEGER)
+
 FUNCTION browse$ (special, default$, fmask$, tmp$, needf)
 STATIC remember$
 browse$ = ""
@@ -264,7 +268,7 @@ meter = 0
 treesize = 0
 IF nowdir$ = "" THEN
 ELSE
- GOSUB drawmeter
+ draw_browse_meter meter, ranalready, viewsize
  a$ = nowdir$
  '--Drive list
  IF LINUX THEN
@@ -281,7 +285,7 @@ ELSE
     ELSE
      display$(treesize) = drive$(i) + " (not ready)"
     END IF
-    GOSUB drawmeter
+     draw_browse_meter meter, ranalready, viewsize
    END IF
    treesize += 1
   NEXT i
@@ -325,7 +329,7 @@ ELSE
    tree$(treesize) = b$
    treec(treesize) = 1
    b$ = ""
-   GOSUB drawmeter
+   draw_browse_meter meter, ranalready, viewsize
   END IF
  LOOP
  '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
@@ -340,60 +344,37 @@ ELSE
   IF special = 7 THEN ' Special handling in RPG mode
    IF justextension$(tree$(treesize)) = "rpgdir" THEN treesize = treesize - 1
   END IF
-  GOSUB drawmeter
+  draw_browse_meter meter, ranalready, viewsize
  LOOP
  CLOSE #fh
  safekill tmp$ + "hrbrowse.tmp"
  '---FIND ALL FILES IN FILEMASK---
  attrib = attribAlmostAll OR showHidden
  IF special = 4 THEN
-  findfiles nowdir$ + anycase$("*.mas"), attrib, tmp$ + "hrbrowse.tmp"
-  GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.bmp"), attrib, tmp$ + "hrbrowse.tmp"
-  GOSUB addmatchs
+  browse_add_files "*.mas", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+  browse_add_files "*.bmp", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
  ELSEIF special = 5 THEN
   '--disregard fmask$. one call per extension
-  findfiles nowdir$ + anycase$("*.bam"), attrib, tmp$ + "hrbrowse.tmp"
-  GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.mid"), attrib, tmp$ + "hrbrowse.tmp"
-  GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.xm"), attrib, tmp$ + "hrbrowse.tmp"
-  GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.it"), attrib, tmp$ + "hrbrowse.tmp"
-  GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.mod"), attrib, tmp$ + "hrbrowse.tmp"
-  GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.s3m"), attrib, tmp$ + "hrbrowse.tmp"
-  GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.ogg"), attrib, tmp$ + "hrbrowse.tmp"
-  GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.mp3"), attrib, tmp$ + "hrbrowse.tmp"
-  GOSUB addmatchs
+  browse_add_files "*.bam", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+  browse_add_files "*.mid", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+  browse_add_files "*.xm", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+  browse_add_files "*.it", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+  browse_add_files "*.mod", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+  browse_add_files "*.s3m", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+  browse_add_files "*.ogg", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+  browse_add_files "*.mp3", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
  ELSEIF special = 6 THEN
   '--disregard fmask$. one call per extension
-  findfiles nowdir$ + anycase$("*.wav"), attrib, tmp$ + "hrbrowse.tmp"
-  GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.s3m"), attrib, tmp$ + "hrbrowse.tmp"
-  GOSUB addmatchs
-'   findfiles nowdir$ + anycase$("*.xm"), attrib, tmp$ + "hrbrowse.tmp"
-'   GOSUB addmatchs
-'   findfiles nowdir$ + anycase$("*.it"), attrib, tmp$ + "hrbrowse.tmp"
-'   GOSUB addmatchs
-'   findfiles nowdir$ + anycase$("*.mod"), attrib, tmp$ + "hrbrowse.tmp"
-'   GOSUB addmatchs
-   findfiles nowdir$ + anycase$("*.ogg"), attrib, tmp$ + "hrbrowse.tmp"
-   GOSUB addmatchs
-   findfiles nowdir$ + anycase$("*.mp3"), attrib, tmp$ + "hrbrowse.tmp"
-   GOSUB addmatchs
+  browse_add_files "*.wav", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+  browse_add_files "*.s3m", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+  browse_add_files "*.ogg", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+  browse_add_files "*.mp3", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
  ELSEIF special = 7 THEN
   'Call once for RPG files once for rpgdirs
-  findfiles nowdir$ + anycase$(fmask$), attrib, tmp$ + "hrbrowse.tmp"
-  GOSUB addmatchs
-  findfiles nowdir$ + anycase$("*.rpgdir"), 16, tmp$ + "hrbrowse.tmp"
-  GOSUB addmatchs
+  browse_add_files fmask$, attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+  browse_add_files "*.rpgdir", 16, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
  ELSE
-  findfiles nowdir$ + anycase$(fmask$), attrib, tmp$ + "hrbrowse.tmp"
-  GOSUB addmatchs
+  browse_add_files fmask$, attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
  END IF
 END IF
 
@@ -454,102 +435,6 @@ treetop = bound(treetop, treeptr - (viewsize + 2), treeptr)
 '--don't display progress bar overtop of previous menu
 ranalready = 1
 
-RETRACE
-
-addmatchs:
-fh = FREEFILE
-OPEN tmp$ + "hrbrowse.tmp" FOR INPUT AS #fh
-DO UNTIL EOF(fh) OR treesize >= limit
- treesize = treesize + 1
- treec(treesize) = 3
- LINE INPUT #fh, tree$(treesize)
- '---music files
- IF special = 1 OR special = 5 THEN
-  IF validmusicfile(nowdir$ + tree$(treesize), VALID_MUSIC_FORMAT) = 0 THEN
-   treec(treesize) = 6
-  END IF
- END IF
- IF special = 6 THEN
-  IF validmusicfile(nowdir$ + tree$(treesize), VALID_FX_FORMAT) = 0 THEN
-   treec(treesize) = 6
-  END IF
- END IF
- '---4-bit BMP browsing
- IF special = 2 THEN
-  IF bmpinfo(nowdir$ + tree$(treesize), bmpd()) THEN
-   IF bmpd(0) <> 4 OR bmpd(1) > 320 OR bmpd(2) > 200 THEN
-    treec(treesize) = 6
-   END IF
-  ELSE
-   treesize = treesize - 1
-  END IF
- END IF
- '---320x200x24/8bit BMP files
- IF special = 3 THEN
-  IF bmpinfo(nowdir$ + tree$(treesize), bmpd()) THEN
-   IF (bmpd(0) <> 24 AND bmpd(0) <> 8) OR bmpd(1) <> 320 OR bmpd(2) <> 200 THEN
-    treec(treesize) = 6
-   END IF
-  ELSE
-   treesize = treesize - 1
-  END IF
- END IF
- '--master palettes  (why isn't this up there?)
- IF special = 4 THEN
-  IF LCASE$(justextension$(tree$(treesize))) = "mas" THEN
-   masfh = FREEFILE
-   OPEN nowdir$ + tree$(treesize) FOR BINARY AS #masfh
-   a$ = "       "
-   GET #masfh, 1, a$
-   CLOSE #masfh
-   IF a$ <> mashead$ AND a$ <> paledithead$ THEN
-    treec(treesize) = 6
-   END IF
-  ELSE
-   IF bmpinfo(nowdir$ + tree$(treesize), bmpd()) THEN
-    IF bmpd(0) <> 8 THEN treec(treesize) = 6
-   ELSE
-    treesize = treesize - 1
-   END IF
-  END IF
- END IF
- '--RPG files
- IF special = 7 THEN
-  IF isdir(nowdir$ + tree$(treesize)) THEN
-   'unlumped RPGDIR folders
-   copyfile nowdir$ + tree$(treesize) + SLASH + "browse.txt", tmp$ + "browse.txt", buffer()
-  ELSE
-   'lumped RPG files
-   unlumpfile nowdir$ + tree$(treesize), "browse.txt", tmp$
-  END IF
-  IF isfile(tmp$ + "browse.txt") THEN
-   setpicstuf buffer(), 40, -1
-   loadset tmp$ + "browse.txt", 0, 0
-   display$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
-   array2str buffer(), 2, display$(treesize)
-   loadset tmp$ + "browse.txt", 1, 0
-   about$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
-   array2str buffer(), 2, about$(treesize)
-   safekill tmp$ + "browse.txt"
-   IF LEN(display$(treesize)) = 0 THEN display$(treesize) = tree$(treesize)
-  ELSE
-   about$(treesize) = ""
-   display$(treesize) = tree$(treesize)
-  END IF
- END IF
-
- GOSUB drawmeter
-LOOP
-CLOSE #fh
-safekill tmp$ + "hrbrowse.tmp"
-
-RETRACE
-
-drawmeter:
-IF ranalready THEN
- meter = small(meter + 1, 308): rectangle 5 + meter, 33 + viewsize * 9, 2, 5, 9, vpage
- setvispage vpage 'refresh
-END IF
 RETRACE
 
 END FUNCTION
@@ -1418,3 +1303,108 @@ a$ = STRING$(small((nameread(0) AND 255), 39), " ")
 array2str nameread(), 1, a$
 RETURN a$
 END FUNCTION
+
+SUB browse_add_files(wildcard$, attrib AS INTEGER, nowdir$, tmp$, treesize AS INTEGER, limit AS INTEGER, treec() AS INTEGER, tree$(), display$(), about$(), special AS INTEGER, meter AS INTEGER, ranalready AS INTEGER, viewsize AS INTEGER)
+DIM bmpd(4) AS INTEGER
+mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
+paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
+
+DIM filelist$
+filelist$ = tmp$ + "hrbrowse.tmp"
+findfiles nowdir$ + anycase$(wildcard$), attrib, filelist$
+
+fh = FREEFILE
+OPEN filelist$ FOR INPUT AS #fh
+DO UNTIL EOF(fh) OR treesize >= limit
+ treesize = treesize + 1
+ treec(treesize) = 3
+ LINE INPUT #fh, tree$(treesize)
+ '---music files
+ IF special = 1 OR special = 5 THEN
+  IF validmusicfile(nowdir$ + tree$(treesize), VALID_MUSIC_FORMAT) = 0 THEN
+   treec(treesize) = 6
+  END IF
+ END IF
+ IF special = 6 THEN
+  IF validmusicfile(nowdir$ + tree$(treesize), VALID_FX_FORMAT) = 0 THEN
+   treec(treesize) = 6
+  END IF
+ END IF
+ '---4-bit BMP browsing
+ IF special = 2 THEN
+  IF bmpinfo(nowdir$ + tree$(treesize), bmpd()) THEN
+   IF bmpd(0) <> 4 OR bmpd(1) > 320 OR bmpd(2) > 200 THEN
+    treec(treesize) = 6
+   END IF
+  ELSE
+   treesize = treesize - 1
+  END IF
+ END IF
+ '---320x200x24/8bit BMP files
+ IF special = 3 THEN
+  IF bmpinfo(nowdir$ + tree$(treesize), bmpd()) THEN
+   IF (bmpd(0) <> 24 AND bmpd(0) <> 8) OR bmpd(1) <> 320 OR bmpd(2) <> 200 THEN
+    treec(treesize) = 6
+   END IF
+  ELSE
+   treesize = treesize - 1
+  END IF
+ END IF
+ '--master palettes  (why isn't this up there?)
+ IF special = 4 THEN
+  IF LCASE$(justextension$(tree$(treesize))) = "mas" THEN
+   masfh = FREEFILE
+   OPEN nowdir$ + tree$(treesize) FOR BINARY AS #masfh
+   a$ = "       "
+   GET #masfh, 1, a$
+   CLOSE #masfh
+   IF a$ <> mashead$ AND a$ <> paledithead$ THEN
+    treec(treesize) = 6
+   END IF
+  ELSE
+   IF bmpinfo(nowdir$ + tree$(treesize), bmpd()) THEN
+    IF bmpd(0) <> 8 THEN treec(treesize) = 6
+   ELSE
+    treesize = treesize - 1
+   END IF
+  END IF
+ END IF
+ '--RPG files
+ IF special = 7 THEN
+  IF isdir(nowdir$ + tree$(treesize)) THEN
+   'unlumped RPGDIR folders
+   copyfile nowdir$ + tree$(treesize) + SLASH + "browse.txt", tmp$ + "browse.txt", buffer()
+  ELSE
+   'lumped RPG files
+   unlumpfile nowdir$ + tree$(treesize), "browse.txt", tmp$
+  END IF
+  IF isfile(tmp$ + "browse.txt") THEN
+   setpicstuf buffer(), 40, -1
+   loadset tmp$ + "browse.txt", 0, 0
+   display$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
+   array2str buffer(), 2, display$(treesize)
+   loadset tmp$ + "browse.txt", 1, 0
+   about$(treesize) = STRING$(bound(buffer(0), 0, 38), " ")
+   array2str buffer(), 2, about$(treesize)
+   safekill tmp$ + "browse.txt"
+   IF LEN(display$(treesize)) = 0 THEN display$(treesize) = tree$(treesize)
+  ELSE
+   about$(treesize) = ""
+   display$(treesize) = tree$(treesize)
+  END IF
+ END IF
+
+ draw_browse_meter meter, ranalready, viewsize
+LOOP
+CLOSE #fh
+safekill filelist$
+
+END SUB
+
+SUB draw_browse_meter(meter AS INTEGER, ranalready AS INTEGER, viewsize AS INTEGER)
+IF ranalready THEN
+ meter = small(meter + 1, 308)
+ rectangle 5 + meter, 33 + viewsize * 9, 2, 5, 9, vpage
+ setvispage vpage 'refresh
+END IF
+END SUB
