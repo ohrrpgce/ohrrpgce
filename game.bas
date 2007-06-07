@@ -78,7 +78,6 @@ DECLARE FUNCTION movdivis% (xygo%)
 DECLARE SUB scripterr (e$)
 DECLARE SUB calibrate ()
 DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
-DECLARE SUB getmapname (mapname$, M%)
 DECLARE FUNCTION istag% (num%, zero%)
 DECLARE SUB evalitemtag ()
 DECLARE SUB evalherotag (stat%())
@@ -201,7 +200,7 @@ DIM menu$(8), mi(8)
 DIM SHARED cycle(1), cycptr(1), cycskip(1), tastuf(40), stat(40, 1, 16)
 
 'global variables
-DIM scroll(2 + 16000 * 3), pass(16002)
+DIM scroll(), pass()
 DIM master(255) as RGBcolor
 DIM uilook(uiColors)
 DIM inventory(inventoryMax) as InventSlot
@@ -1474,7 +1473,7 @@ IF readbit(gen(), 44, suspendambientmusic) = 0 THEN
  END IF
 END IF
 
-getmapname mapname$, map
+mapname$ = getmapname$(map)
 
 IF gmap(18) < 2 THEN
  loadmapstate_tilemap map, "map"
@@ -2323,8 +2322,7 @@ END SELECT
 RETRACE
 
 SUB loadmap_gmap(mapnum)
- setpicstuf gmap(), 40, -1
- loadset game$ + ".map", mapnum, 0
+ loadrecord gmap(), game$ + ".map", 20, mapnum
  loadpage game$ + ".til", gmap(0), 3
  loadtanim gmap(0), tastuf()
  FOR i = 0 TO 1
@@ -2350,12 +2348,11 @@ SUB loadmap_npcd(mapnum)
 END SUB
 
 SUB loadmap_tilemap(mapnum)
- DIM as integer tempw, temph
- LoadTilemap mapnum, scroll(), tempw, temph
+ LoadTileData maplumpname$(mapnum, "t"), scroll(), 3
 END SUB
 
 SUB loadmap_passmap(mapnum)
- xbload maplumpname$(mapnum, "p"), pass(), "Oh no! Map " + STR$(mapnum) + " passabilitymap is missing"
+ LoadTileData maplumpname$(mapnum, "p"), pass(), 1
 END SUB
 
 SUB loadmaplumps (mapnum, loadmask)

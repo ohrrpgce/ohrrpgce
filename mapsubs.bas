@@ -21,7 +21,6 @@ DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE SUB vehicles ()
 DECLARE SUB verifyrpg ()
-DECLARE FUNCTION getmapname$ (m%)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION exclude$ (s$, x$)
@@ -38,7 +37,7 @@ DECLARE FUNCTION onoroff$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE SUB smnemonic (tagname$, index%)
 DECLARE SUB tagnames ()
-DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%, big%)
+DECLARE SUB resizetiledata (array%(), xoff%, yoff%, neww%, newh%, yout%, page%, layer%)
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB mapmaker (font%(), doors%(), link%(), npc%(), npcstat%())
@@ -142,7 +141,7 @@ EXIT FUNCTION
 addmaphowmenu:
 temp$(0) = "Cancel"
 temp$(1) = "New Blank Map"
-temp$(2) = "Copy of map" + XSTR$(maptocopy) + " " + getmapname$(maptocopy)
+temp$(2) = "Copy of map " + STR$(maptocopy) + " " + getmapname$(maptocopy)
 RETRACE
 
 END FUNCTION
@@ -165,9 +164,9 @@ DIM as integer menubarstart(0 to 2)
 DIM as integer layer
 DIM as integer jiggle(0), visible(0) = {&b111} 'used as bitsets
 
-redim map(16000 * 3 + 2)
-redim pass(16000+ 2)
-redim emap(16000 + 2)
+DIM map()
+DIM pass()
+DIM emap()
 
 textcolor 15, 0
 
@@ -824,29 +823,28 @@ DO
 			if i = 2 then jigx = -1: jigy = -1
 		end if
 		if i = 0 then
-			drawmap mapx + jigx, mapy + jigy - 20, 0, 1, dpage, i <> 0
+			drawmap mapx + jigx, mapy + jigy - 20, 0, 1, dpage, 0
 		elseif i = 1 then
-			drawmap mapx + jigx, mapy + jigy - 20, 1, 0, dpage, i <> 0
+			drawmap mapx + jigx, mapy + jigy - 20, 1, 0, dpage, 1
 		elseif i = 2 then
-			drawmap mapx + jigx, mapy + jigy - 20, 2, 0, dpage, i <> 0
-		end if
-	end if
-	if i = 2 AND layerisvisible(visible(), 0) AND layerisenabled(gmap(), 0) then
-		if readbit(jiggle(), 0, 0) and tog then
-			drawmap mapx + 1, mapy - 20, 0, 2, dpage, i <> 0
-		else
-			drawmap mapx, mapy - 20, 0, 2, dpage, i <> 0
+			drawmap mapx + jigx, mapy + jigy - 20, 2, 0, dpage, 1
 		end if
 	end if
  next
-
+ if layerisvisible(visible(), 0) AND layerisenabled(gmap(), 0) then
+	if readbit(jiggle(), 0, 0) and tog then
+		drawmap mapx + 1, mapy - 20, 0, 2, dpage, 0
+	else
+		drawmap mapx, mapy - 20, 0, 2, dpage, 0
+	end if
+ end if
  
  '--show passmode overlay
  IF editmode = 1 THEN
   setmapdata pass(), pass(), 20, 0
   FOR o = 0 TO 8
    FOR i = 0 TO 15
-    over = readmapblock(INT(mapx / 20) + i, INT(mapy / 20) + o, 0)
+    over = readmapblock((mapx \ 20) + i, (mapy \ 20) + o, 0)
     IF (over AND 1) THEN rectangle i * 20, o * 20 + 20, 20, 3, 7 + tog, dpage
     IF (over AND 2) THEN rectangle i * 20 + 17, o * 20 + 20, 3, 20, 7 + tog, dpage
     IF (over AND 4) THEN rectangle i * 20, o * 20 + 37, 20, 3, 7 + tog, dpage
@@ -1027,11 +1025,11 @@ clearpage 0
 clearpage 1
 yout = 0
 edgeprint "TILEMAP", 0, yout * 10, 15, vpage: setvispage vpage: yout = yout + 1
-sizemar map(), wide, high, tempx, tempy, tempw, temph, yout, vpage, 1
+resizetiledata map(), tempx, tempy, tempw, temph, yout, vpage, 3
 edgeprint "PASSMAP", 0, yout * 10, 15, vpage: setvispage vpage: yout = yout + 1
-sizemar pass(), wide, high, tempx, tempy, tempw, temph, yout, vpage, 0
+resizetiledata pass(), tempx, tempy, tempw, temph, yout, vpage, 1
 edgeprint "FOEMAP", 0, yout * 10, 15, vpage: setvispage vpage: yout = yout + 1
-sizemar emap(), wide, high, tempx, tempy, tempw, temph, yout, vpage, 0
+resizetiledata emap(), tempx, tempy, tempw, temph, yout, vpage, 1
 setmapdata map(), pass(), 20, 0
 wide = map(0): high = map(1)
 '--reset map scroll position
@@ -1040,7 +1038,7 @@ edgeprint "Aligning and truncating doors", 0, yout * 10, 15, vpage: yout = yout 
 FOR i = 0 TO 99
  doors(i) = doors(i) - tempx
  doors(i + 100) = doors(i + 100) - tempy
- IF doors(i) < 0 OR doors(i + 100) < 0 OR doors(i) > wide OR doors(i + 100) > high THEN
+ IF doors(i) < 0 OR doors(i + 100) < 0 OR doors(i) >= wide OR doors(i + 100) >= high THEN
   doors(i + 200) = 0
  END IF
 NEXT
@@ -1048,7 +1046,7 @@ edgeprint "Aligning and truncating NPCs", 0, yout * 10, 15, vpage: setvispage vp
 FOR i = 0 TO 299
  npc(i + 0) = npc(i + 0) - tempx
  npc(i + 300) = npc(i + 300) - tempy
- IF npc(i + 0) < 0 OR npc(i + 300) < 0 OR npc(i + 0) > wide OR npc(i + 300) > high THEN
+ IF npc(i + 0) < 0 OR npc(i + 300) < 0 OR npc(i + 0) >= wide OR npc(i + 300) >= high THEN
   npc(i + 600) = 0
  END IF
 NEXT i
@@ -1072,42 +1070,22 @@ yesno = sublist(1, temp$())
 IF yesno = 1 THEN
  printstr "Please Wait...", 0, 40, vpage
  setvispage vpage
- map(0) = 32: map(1) = 20
- pass(0) = 32: pass(1) = 20
- emap(0) = 32: emap(1) = 20
- FOR i = 2 TO ubound(map)
-  rectangle INT(i * .02), 180, 2, 10, 15, vpage
-  map(i) = 0
- NEXT i
- for i = 2 to 16002
- 	rectangle INT(i * .02), 180, 2, 10, 0, vpage
- 	pass(i) = 0
-  emap(i) = 0
- next
- '---FLUSH DOOR LINKS---
- FOR i = 0 TO 1000
-  link(i) = 0
- NEXT i
- '---FLUSH NPC LOCATIONS---
- FOR i = 0 TO 900
-  npc(i) = 0
- NEXT i
- '---FLUSH DOOR LOCATIONS---
- FOR i = 0 TO 99
-  doors(i) = 0
-  doors(i + 100) = 0
-  doors(i + 200) = 0
- NEXT
- SaveTilemap pt, map()
- xBSAVE maplumpname$(pt, "p"), pass(), pass(0) * pass(1) + 4
- xBSAVE maplumpname$(pt, "e"), emap(), emap(0) * emap(1) + 4
+
+ cleantiledata map(), wide, high, 3
+ cleantiledata pass(), wide, high
+ cleantiledata emap(), wide, high
+ flusharray link(), 1000, 0
+ flusharray npc(), 900, 0
+ flusharray doors(), 299, 0
+
+ savetiledata maplumpname$(pt, "t"), map(), 3
+ savetiledata maplumpname$(pt, "p"), pass()
+ savetiledata maplumpname$(pt, "e"), emap()
  xBSAVE maplumpname$(pt, "d"), link(), 2000
  xBSAVE maplumpname$(pt, "l"), npc(), 3000
- setpicstuf doors(), 600, -1
- storeset game$ + ".dox", pt, 0
+ storerecord doors(), game$ + ".dox", 300, pt
 END IF
 '--reset scroll position
-wide = map(0): high = map(1)
 x = 0: y = 0: mapx = 0: mapy = 0
 layer = 0
 'visible(0) = 1: visible(1) = 0: visible(2) = 0
@@ -1135,56 +1113,48 @@ RETRACE
 
 newblankmap:
 '--increment map count
-gen(0) = gen(0) + 1
+gen(genMaxMap) += 1
 '--flush map buffers
-flusharray map(), 16002, 0
-flusharray pass(), 16002, 0
-flusharray emap(), 16002, 0
+cleantiledata map(), 64, 64, 3
+cleantiledata pass(), 64, 64
+cleantiledata emap(), 64, 64
+flusharray gmap(), 19, 0
 flusharray link(), 1000, 0
 flusharray npc(), 900, 0
 flusharray npcstat(), 1500, 0
 flusharray doors(), 299, 0
-'--setup default new map size
-map(0) = 64: map(1) = 64
-pass(0) = 64: pass(1) = 64
-emap(0) = 64: emap(1) = 64
 '--save map buffers
-SaveTilemap gen(genMaxMap), map()
-xBSAVE maplumpname$(gen(0), "p"), pass(), pass(0) * pass(1) + 4
-xBSAVE maplumpname$(gen(0), "e"), emap(), emap(0) * emap(1) + 4
-xBSAVE maplumpname$(gen(0), "d"), link(), 2000
-xBSAVE maplumpname$(gen(0), "n"), npcstat(), 3000
-xBSAVE maplumpname$(gen(0), "l"), npc(), 3000
-setpicstuf doors(), 600, -1
-storeset game$ + ".dox", gen(0), 0
+storerecord gmap(), game$ + ".map", 20, gen(genMaxMap)
+savetiledata maplumpname$(gen(genMaxMap), "t"), map(), 3
+savetiledata maplumpname$(gen(genMaxMap), "p"), pass()
+savetiledata maplumpname$(gen(genMaxMap), "e"), emap()
+xBSAVE maplumpname$(gen(genMaxMap), "d"), link(), 2000
+xBSAVE maplumpname$(gen(genMaxMap), "n"), npcstat(), 3000
+xBSAVE maplumpname$(gen(genMaxMap), "l"), npc(), 3000
+storerecord doors(), game$ + ".dox", 300, gen(genMaxMap)
 '--setup map name
 buffer(0) = 0
-setpicstuf buffer(), 80, -1
-storeset game$ + ".mn", gen(0), 0
+storerecord buffer(), game$ + ".mn", 40, gen(genMaxMap)
 RETRACE
 
 savemap:
-setpicstuf gmap(), 40, -1
-storeset game$ + ".map", pt, 0
-SaveTilemap pt, map()
-xBSAVE maplumpname$(pt, "p"), pass(), pass(0) * pass(1) + 4
-xBSAVE maplumpname$(pt, "e"), emap(), emap(0) * emap(1) + 4
-xBSAVE maplumpname$(pt, "l"), npc(), 3000
+storerecord gmap(), game$ + ".map", 20, pt
+savetiledata maplumpname$(pt, "t"), map(), 3
+savetiledata maplumpname$(pt, "p"), pass()
+savetiledata maplumpname$(pt, "e"), emap()
 xBSAVE maplumpname$(pt, "d"), link(), 2000
+xBSAVE maplumpname$(pt, "l"), npc(), 3000
 xBSAVE maplumpname$(pt, "n"), npcstat(), 3000
-setpicstuf doors(), 600, -1
-storeset game$ + ".dox", pt, 0
+storerecord doors(), game$ + ".dox", 300, pt
 '--save map name
 buffer(0) = LEN(mapname$)
 str2array LEFT$(mapname$, 39), buffer(), 1
-setpicstuf buffer(), 80, -1
-storeset game$ + ".mn", pt, 0
+storerecord buffer(), game$ + ".mn", 40, pt
 RETRACE
 
 loadmap:
-setpicstuf gmap(), 40, -1
-loadset game$ + ".map", pt, 0
-visible(0) = &b111'default all layers to visible, if they're enabled too, of course
+loadrecord gmap(), game$ + ".map", 20, pt
+visible(0) = &b111   'default all layers to visible, if they're enabled too, of course
 loadpage game$ + ".til", gmap(0), 3
 loadtanim gmap(0), tastuf()
 FOR i = 0 TO 1
@@ -1192,14 +1162,13 @@ FOR i = 0 TO 1
  cycptr(i) = 0
  cycskip(i) = 0
 NEXT i
-LoadTilemap pt, map(), wide, high
-xbload maplumpname$(pt, "p"), pass(), "passmap lump is missing!"
-xbload maplumpname$(pt, "e"), emap(), "foemap lump is missing!"
+loadtiledata maplumpname$(pt, "t"), map(), 3, wide, high
+loadtiledata maplumpname$(pt, "p"), pass()
+loadtiledata maplumpname$(pt, "e"), emap()
 xbload maplumpname$(pt, "l"), npc(), "npclocation lump is missing!"
 xbload maplumpname$(pt, "n"), npcstat(), "npcstat lump is missing!"
 xbload maplumpname$(pt, "d"), link(), "doorlink lump is missing!"
-setpicstuf doors(), 600, -1
-loadset game$ + ".dox", pt, 0
+loadrecord doors(), game$ + ".dox", 300, pt
 mapname$ = getmapname$(pt)
 loadpasdefaults defaults(), gmap(0)
 GOSUB verifymap
@@ -1215,9 +1184,9 @@ IF map(0) <> pass(0) OR map(0) <> emap(0) OR map(1) <> pass(1) OR map(1) <> emap
  j = j + 1
  printstr "this map seems to be corrupted", 0, j * 8, vpage: j = j + 1
  j = j + 1
- printstr " TileMap" + XSTR$(map(0)) + "*" + STR$(map(1)) + " tiles", 0, j * 8, vpage: j = j + 1
- printstr " WallMap" + XSTR$(pass(0)) + "*" + STR$(pass(1)) + " tiles", 0, j * 8, vpage: j = j + 1
- printstr " FoeMap" + XSTR$(emap(0)) + "*" + STR$(emap(1)) + " tiles", 0, j * 8, vpage: j = j + 1
+ printstr " TileMap " & map(0) & "*" & map(1) & " tiles", 0, j * 8, vpage: j = j + 1
+ printstr " WallMap " & pass(0) & "*" & pass(1) & " tiles", 0, j * 8, vpage: j = j + 1
+ printstr " FoeMap " & emap(0) & "*" & emap(1) & " tiles", 0, j * 8, vpage: j = j + 1
  j = j + 1
  printstr "What is the correct size?", 0, j * 8, vpage: j = j + 1
  DO
@@ -1267,7 +1236,7 @@ NEXT
 RETRACE
 
 linkdoor:
-GOSUB savemap
+GOSUB savemap   'other map tilemaps are loaded
 ulim(0) = 99: llim(0) = 0
 ulim(1) = 99: llim(1) = 0
 ulim(2) = gen(0): llim(2) = 0
@@ -1287,12 +1256,22 @@ DO
  FOR i = ttop TO ttop + 10
   textcolor 7, 0
   IF cur = i THEN textcolor 14 + tog, 0
-  a$ = "Door" + XSTR$(link(i)) + " leads to door" + XSTR$(link(i + 200)) + " on map" + XSTR$(link(i + 400))
+
+  a$ = "Door " & link(i) & " leads to door " & link(i + 200) & " on map " & link(i + 400)
   printstr a$, 0, 2 + (i - ttop) * 16, dpage
-  a$ = "  only if tag" + XSTR$(ABS(link(i + 600))) + " =" + XSTR$(SGN(SGN(link(i + 600)) + 1)) + " and tag" + XSTR$(ABS(link(i + 800))) + " =" + XSTR$(SGN(SGN(link(i + 800)) + 1))
-  IF link(i + 600) = 0 AND link(i + 800) <> 0 THEN a$ = "  only if tag" + XSTR$(ABS(link(i + 800))) + " =" + XSTR$(SGN(SGN(link(i + 800)) + 1))
-  IF link(i + 600) <> 0 AND link(i + 800) = 0 THEN a$ = "  only if tag" + XSTR$(ABS(link(i + 600))) + " =" + XSTR$(SGN(SGN(link(i + 600)) + 1))
-  IF link(i + 600) = 0 AND link(i + 800) = 0 THEN a$ = "  all the time"
+
+  IF link(i + 600) = 0 AND link(i + 800) = 0 THEN
+   a$ = "  all the time"
+  ELSE
+   a$ = "  only if tag "
+   IF link(i + 600) THEN
+    a$ += ABS(link(i + 600)) & " = " & iif(link(i + 600) > 0, 1, 0)
+   END IF
+   IF link(i + 800) THEN
+    IF link(i + 600) THEN a$ += " and tag "
+    a$ += ABS(link(i + 800)) & " = " & iif(link(i + 800) > 0, 1, 0)
+   END IF
+  END IF
   printstr a$, 0, 10 + (i - ttop) * 16, dpage
  NEXT i
  SWAP vpage, dpage
@@ -1302,7 +1281,6 @@ DO
 LOOP
 
 seedoors:
-SaveTilemap pt, map()
 menu$(-1) = "Go Back"
 menu$(0) = "Entrance Door"
 menu$(1) = "Exit Door"
@@ -1509,11 +1487,9 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors(), link
  END IF
  '-----------------EXIT DOOR
  destmap = link(cur + (2 * 200))
- setpicstuf gmap2(), 40, -1
- loadset game$ + ".map", destmap, 0
- setpicstuf destdoor(), 600, -1
- loadset game$ + ".dox", destmap, 0
- LoadTilemap destmap, map(), tempw, temph
+ loadrecord gmap2(), game$ + ".map", 20, destmap
+ loadrecord destdoor(), game$ + ".dox", 300, destmap
+ LoadTiledata maplumpname$(destmap, "t"), map(), 3, tempw, temph
  loadpage game$ + ".til", gmap2(0), 3
  
  loadtanim gmap2(0), anim()
@@ -1537,7 +1513,7 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors(), link
  END IF
  '-----------------RESET DATA
  loadpage game$ + ".til", gmap(0), 3
- LoadTilemap curmap, map(), tempw, temph
+ LoadTiledata maplumpname$(curmap, "t"), map(), 3, tempw, temph
 END SUB
 
 SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS INTEGER, defaults() AS INTEGER, tastuf() AS INTEGER)
@@ -1548,4 +1524,35 @@ SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS I
   IF i = 0 OR tilenum > 0 THEN n = n OR defaults(tilenum)
  NEXT i
  setpassblock x, y, n
+END SUB
+
+SUB resizetiledata (array(), x_off, y_off, new_width, new_height, yout, page, layers)
+ edgeprint "Resizing Map...", 0, yout * 10, 15, page
+ yout += 1
+ setvispage page
+' debug "sizemar"
+' debug "old_width = " & old_width & ", " & _
+'       "old_height = " & old_height & ", " & _
+'       "old_x = " & old_x & ", " & _
+'       "old_y = " & old_y & ", " & _
+'       "new_width = " & new_width & ", " & _
+'       "new_height = " & new_height
+
+ dim as integer tmp(ubound(array)), i, x, y
+
+ memcpy (@tmp(0), @array(0), sizeof(integer) * (ubound(array) + 1))  'why doesn't sizeof work on arrays?!
+ cleantiledata array(), new_width, new_height, layers
+ 
+ for i = 0 to layers - 1
+	for x = large(x_off, 0) to small(tmp(0), new_width + x_off) - 1
+		for y = large(y_off, 0) to small(tmp(1), new_height + y_off) - 1
+			'newarray(i * newsize + (x - tempx) * tempw + (y - tempy) + 2) = tmp(i * oldsize + x * wide + y + 2)
+			'this'll be fixed when the tile data format is fixed, of course	
+			setmapdata tmp(), tmp(), 20, 0
+			j = readmapblock(x,y,i)
+			setmapdata array(), array(), 20, 0
+			setmapblock(x - x_off,y - y_off,i,j)
+		next
+	next
+ next
 END SUB

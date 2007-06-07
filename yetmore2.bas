@@ -79,7 +79,6 @@ DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE FUNCTION readitemname$ (itemnum%)
 DECLARE FUNCTION readatkname$ (id%)
-DECLARE SUB getmapname (mapname$, m%)
 DECLARE SUB defaultc ()
 DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, remembermusic%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
 DECLARE SUB cathero ()
@@ -786,11 +785,11 @@ SUB savemapstate_npcd(mapnum, prefix$)
 END SUB
 
 SUB savemapstate_tilemap(mapnum, prefix$)
- xbsave mapstatetemp$(mapnum, prefix$) + "_t.tmp", scroll(), scroll(0) * scroll(1) + 4
+ savetiledata mapstatetemp$(mapnum, prefix$) + "_t.tmp", scroll(), 3
 END SUB
 
 SUB savemapstate_passmap(mapnum, prefix$)
- xbsave mapstatetemp$(mapnum, prefix$) + "_p.tmp", pass(), pass(0) * pass(1) + 4
+ savetiledata mapstatetemp$(mapnum, prefix$) + "_p.tmp", pass()
 END SUB
 
 SUB savemapstate (mapnum, savemask = 255, prefix$)
@@ -849,20 +848,20 @@ SUB loadmapstate_npcd (mapnum, prefix$, dontfallback = 0)
 END SUB
 
 SUB loadmapstate_tilemap (mapnum, prefix$, dontfallback = 0)
- DIM AS SHORT mapsize(1), propersize(1)
- fh = FREEFILE
- OPEN maplumpname$(mapnum, "t") FOR BINARY AS #fh
- GET #fh, 8, propersize()
- CLOSE #fh
  filebase$ = mapstatetemp$(mapnum, prefix$)
  IF NOT isfile(filebase$ + "_t.tmp") THEN
   IF dontfallback = 0 THEN loadmap_tilemap mapnum
  ELSE
+  DIM AS SHORT mapsize(1), propersize(1)
+  fh = FREEFILE
+  OPEN maplumpname$(mapnum, "t") FOR BINARY AS #fh
+  GET #fh, 8, propersize()
+  CLOSE #fh
   OPEN filebase$ + "_t.tmp" FOR BINARY AS #fh
   GET #fh, 8, mapsize()
   CLOSE #fh
   IF mapsize(0) = propersize(0) AND mapsize(1) = propersize(1) THEN
-   xbload filebase$ + "_t.tmp", scroll(), "Temporary tilemap is corrupt!"
+   loadtiledata filebase$ + "_t.tmp", scroll(), 3
   ELSE
    IF dontfallback = 0 THEN loadmap_tilemap mapnum
   END IF
@@ -870,20 +869,20 @@ SUB loadmapstate_tilemap (mapnum, prefix$, dontfallback = 0)
 END SUB
 
 SUB loadmapstate_passmap (mapnum, prefix$, dontfallback = 0)
- DIM AS SHORT mapsize(1), propersize(1)
- fh = FREEFILE
- OPEN maplumpname$(mapnum, "p") FOR BINARY AS #fh
- GET #fh, 8, propersize()
- CLOSE #fh
  filebase$ = mapstatetemp$(mapnum, prefix$)
  IF NOT isfile(filebase$ + "_p.tmp") THEN
   IF dontfallback = 0 THEN loadmap_passmap mapnum
  ELSE
+  DIM AS SHORT mapsize(1), propersize(1)
+  fh = FREEFILE
+  OPEN maplumpname$(mapnum, "p") FOR BINARY AS #fh
+  GET #fh, 8, propersize()
+  CLOSE #fh
   OPEN filebase$ + "_p.tmp" FOR BINARY AS #fh
   GET #fh, 8, mapsize()
   CLOSE #fh
   IF mapsize(0) = propersize(0) AND mapsize(1) = propersize(1) THEN
-   xbload filebase$ + "_p.tmp", pass(), "Temporary passmap is corrupt!"
+   loadtiledata filebase$ + "_p.tmp", pass()
   ELSE
    IF dontfallback = 0 THEN loadmap_passmap mapnum
   END IF

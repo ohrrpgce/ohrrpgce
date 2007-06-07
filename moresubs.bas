@@ -533,14 +533,6 @@ NEXT i
 findhero = result
 END FUNCTION
 
-SUB getmapname (mapname$, m)
-setpicstuf buffer(), 80, -1
-loadset game$ + ".mn", m, 0
-a$ = STRING$(small((buffer(0) AND 255), 39), " ")
-array2str buffer(), 1, a$
-mapname$ = a$
-END SUB
-
 SUB getnames (stat$())
 IF isfile(game$ + ".stt") THEN
  fh = FREEFILE

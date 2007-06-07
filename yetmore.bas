@@ -75,7 +75,6 @@ DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE FUNCTION readitemname$ (itemnum%)
 DECLARE FUNCTION readatkname$ (id%)
-DECLARE SUB getmapname (mapname$, m%)
 DECLARE FUNCTION exptolevel& (level%)
 DECLARE SUB updatestatslevelup (i%, exstat%(), stat%(), allowforget%)
 DECLARE SUB giveheroexperience (i%, exstat%(), exper&)
@@ -1441,7 +1440,7 @@ SELECT CASE AS CONST id
    IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > gen(genMaxMap) THEN
    scriptret = 0
   ELSE
-   getmapname plotstr(retvals(0)).s, retvals(1)
+   plotstr(retvals(0)).s = getmapname$(retvals(1))
    scriptret = 1
   END IF
  CASE 208'--get attack name(str,atk)

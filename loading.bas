@@ -202,36 +202,34 @@ SUB CleanInventory(invent() as InventSlot)
   NEXT
 END SUB
 
-SUB LoadTilemap(mapnum as integer, array(), byref wide as integer, byref high as integer)
-  DIM filename$
-  DIM AS INTEGER fh, lastlayer, layeri, index, i
-  filename$ = maplumpname$(mapnum, "t")
+SUB LoadTiledata(filename as string, array(), byval numlayers as integer, byref wide as integer, byref high as integer)
+  'resize array and attempt to read numlayers of tile data, if that many are not present, default to 1 layer (blank out the rest)
+  DIM AS INTEGER fh, i
   fh = FREEFILE
   OPEN filename$ FOR BINARY AS #fh
   SEEK #fh, 8
   wide = Readshort(fh, -1)
   high = ReadShort(fh, -1)
-  redim array(wide * high * 3)
-  array(0) = wide
-  array(1) = high
-  lastlayer = 2
-  IF LOF(fh) < wide * high * 3 + 2 THEN lastlayer = 0
-  FOR layeri = 0 TO 2
-    FOR i = 0 TO (wide * high) \ 2 - 1
-      index = 2 + layeri * (wide * high \ 2) + i
-      IF layeri <= lastlayer THEN
-        array(index) = ReadShort(fh, -1)
-      ELSE
-        array(index) = 0
-      END IF
-    NEXT i
-  NEXT layeri
+  REDIM array(1 + (numlayers * wide * high + 1) \ 2)
+  IF LOF(fh) < 7 + 4 + numlayers * wide * high THEN numlayers = 1
+  DIM temparray(1 + (numlayers * wide * high + 1) \ 2) AS SHORT
+  GET #fh, 8, temparray()    'handles odd bytes
+  FOR i = 0 TO UBOUND(temparray)
+   array(i) = temparray(i)
+  NEXT
   CLOSE #fh
 END SUB
 
-SUB SaveTilemap(mapnum as integer, array())
+SUB SaveTiledata(filename as string, array(), byval numlayers as integer)
   DIM AS INTEGER wide, high
   wide = array(0)
   high = array(1)
-  xbsave maplumpname$(mapnum, "t"), array(), 4 + wide * high * 3
+  xbsave filename, array(), 4 + numlayers * wide * high
+END SUB
+
+SUB CleanTiledata(array(), wide as integer, high as integer, numlayers as integer)
+  'aka AllocateTiledata
+  REDIM array(1 + (numlayers * wide * high + 1) \ 2)
+  array(0) = wide
+  array(1) = high
 END SUB

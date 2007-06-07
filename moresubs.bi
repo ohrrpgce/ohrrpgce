@@ -20,7 +20,6 @@ declare sub drawsay (saybit(), sayenh(), say$(), showsay, choose$(), choosep)
 declare sub evalherotag (stat())
 declare sub evalitemtag
 declare function findhero (who, f, l, d)
-declare sub getmapname (mapname$, m)
 declare sub getnames (stat$())
 declare sub heroswap (iall%, stat())
 declare function howmanyh (f, l)

@@ -18,7 +18,8 @@ declare sub cleannpcl(dat() as npcinst, num as integer)
 declare sub serinventory(invent() as inventslot, z, buf())
 declare sub deserinventory(invent() as inventslot, z, buf())
 declare sub cleaninventory(invent() as inventslot)
-declare sub loadtilemap(mapnum as integer, array(), byref wide as integer, byref high as integer)
-declare sub savetilemap(mapnum as integer, array())
+declare sub loadtiledata(filename as string, array(), byval numlayers as integer = 1, byref wide as integer = 0, byref high as integer = 0)
+declare sub savetiledata(filename as string, array(), byval numlayers as integer = 1)
+declare sub cleantiledata(array(), wide as integer, high as integer, numlayers as integer = 1)
 
 #ENDIF

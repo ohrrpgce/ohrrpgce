@@ -1410,3 +1410,11 @@ FOR i = 0 TO 255
  newpal(i).b = iif(b, b shl 2 + 3, 0)
 NEXT
 END SUB
+
+FUNCTION getmapname$ (m)
+DIM nameread(39)
+loadrecord nameread(), game$ + ".mn", 40, m
+a$ = STRING$(small((nameread(0) AND 255), 39), " ")
+array2str nameread(), 1, a$
+RETURN a$
+END FUNCTION

@@ -61,6 +61,7 @@ DECLARE FUNCTION peek8bit (array16(), index)
 DECLARE SUB loadpalette(pal() as RGBcolor, palnum%)
 DECLARE SUB savepalette(pal() as RGBcolor, palnum%)
 DECLARE SUB convertpalette(oldpal%(), newpal() as RGBcolor)
+DECLARE FUNCTION getmapname$ (m)
 
 'Global variables
 EXTERN game$

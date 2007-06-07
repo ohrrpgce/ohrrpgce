@@ -28,7 +28,6 @@ DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION istag% (num%, zero%)
 DECLARE SUB evalherotag (stat%())
 DECLARE SUB delitem (it%, num%)
-DECLARE SUB getmapname (mapname$, m%)
 DECLARE FUNCTION consumeitem% (index%)
 DECLARE SUB evalitemtag ()
 DECLARE SUB intgrabber (n%, min%, max%, less%, more%)
@@ -1374,7 +1373,7 @@ FOR i = 0 TO 3
     stosprite buffer(), 0, 0, 16 + (i * 16) + (o * 4) + 2, 2
    END IF
   NEXT o
-  getmapname mapname$(i), map
+  mapname$(i) = getmapname$(map)
  END IF
 NEXT i
 

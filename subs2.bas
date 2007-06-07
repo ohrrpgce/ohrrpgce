@@ -30,7 +30,6 @@ DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB textfatalerror (e$)
 DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
-DECLARE FUNCTION getmapname$ (m%)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION isunique% (s$, u$(), r%)
@@ -278,14 +277,6 @@ setvispage 0
 w = getkey
 
 END SUB
-
-FUNCTION getmapname$ (m)
-setpicstuf buffer(), 80, -1
-loadset game$ + ".mn", m, 0
-a$ = STRING$(small((buffer(0) AND 255), 39), " ")
-array2str buffer(), 1, a$
-getmapname$ = a$
-END FUNCTION
 
 SUB getnames (stat$(), max)
 
@@ -1490,4 +1481,6 @@ IF a$ <> "" THEN
  PRINT #filehandle, a$
 END IF
 END SUB
+
+
 
