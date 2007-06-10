@@ -1568,13 +1568,19 @@ END SUB
 
 FUNCTION importmasterpal (f$, palnum)
 STATIC default$
+DIM bmpd(4) AS INTEGER
 IF f$ = "" THEN f$ = browse$(4, default$, "", "")
 IF f$ <> "" THEN
  IF LCASE$(justextension$(f$)) = "mas" THEN
   xbload f$, buffer(), "MAS load error"
   convertpalette buffer(), master()
  ELSE
-  loadbmppal(f$, master())
+  bmpinfo(f$, bmpd())
+  IF bmpd(0) = 24 THEN
+   bitmap2pal f$, master()
+  ELSE
+   loadbmppal f$, master()
+  END IF
  END IF
  savepalette master(), palnum
  IF palnum > gen(genMaxMasterPal) THEN gen(genMaxMasterPal) = palnum

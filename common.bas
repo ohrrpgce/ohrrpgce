@@ -28,7 +28,7 @@ browse$ = ""
 'special=1   just BAM
 'special=2   16 color BMP
 'special=3   background
-'special=4   master palette (*.mas and 8 bit *.bmp) (fmask$ is ignored)
+'special=4   master palette (*.mas, 8 bit *.bmp, 16x16 24 bit *.bmp) (fmask$ is ignored)
 'special=5   any supported music (currently *.bam and *.mid)  (fmask$ is ignored)
 'special=6   any supported SFX (currently *.wav) (fmask$ is ignored)
 'special=7   RPG files
@@ -197,7 +197,7 @@ SELECT CASE special
   END IF
  CASE 2, 3
   IF bmpinfo(nowdir$ + tree$(treeptr), bmpd()) THEN
-   alert$ = STR$(bmpd(1)) + "*" + STR$(bmpd(2)) + " pixels, " + STR$(bmpd(0)) + "-bit color"
+   alert$ = bmpd(1) & "*" & bmpd(2) & " pixels, " & bmpd(0) & "-bit color"
   END IF
  CASE 4
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
@@ -218,7 +218,11 @@ SELECT CASE special
    ELSE
     '.bmp file
     IF bmpinfo(nowdir$ + tree$(treeptr), bmpd()) THEN
-     alert$ = bmpd(0) & "-bit color BMP"
+     IF bmpd(0) = 24 THEN
+      alert$ = bmpd(1) & "*" & bmpd(2) & " pixels, " & bmpd(0) & "-bit color"
+     ELSE
+      alert$ = bmpd(0) & "-bit color BMP"
+     END IF
     END IF
    END IF
   END IF
@@ -1363,7 +1367,8 @@ DO UNTIL EOF(fh) OR treesize >= limit
    END IF
   ELSE
    IF bmpinfo(nowdir$ + tree$(treesize), bmpd()) THEN
-    IF bmpd(0) <> 8 THEN treec(treesize) = 6
+    IF bmpd(0) = 4 THEN treec(treesize) = 6
+    IF bmpd(0) = 24 AND (bmpd(1) <> 16 OR bmpd(2) <> 16) THEN treec(treesize) = 6
    ELSE
     treesize = treesize - 1
    END IF

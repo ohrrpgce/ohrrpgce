@@ -2780,6 +2780,52 @@ SUB bitmap2page (pal() as RGBcolor, bmp$, BYVAL p)
 	close #bf
 END SUB
 
+SUB bitmap2pal (bmp$, pal() as RGBcolor)
+'loads the 24-bit 16x16 palette bitmap bmp$ into palette pal()
+'so, pixel (0,0) holds colour 0, (0,1) has colour 16, and (15,15) has colour 255
+	dim header as BITMAPFILEHEADER
+	dim info as BITMAPINFOHEADER
+	dim col as RGBTRIPLE
+	dim bf as integer
+	dim as integer w, h 
+
+	bf = freefile
+	open bmp$ for binary access read as #bf
+	if err > 0 then
+		'debug "Couldn't open " + bmp$
+		exit sub
+	end if
+
+	get #bf, , header
+	if header.bfType <> 19778 then
+		'not a bitmap
+		close #bf
+		exit sub
+	end if
+
+	get #bf, , info
+
+	if info.biBitCount <> 24 OR info.biWidth <> 16 OR info.biHeight <> 16 then
+		close #bf
+		exit sub
+	end if
+
+	'navigate to the beginning of the bitmap data
+	seek #bf, header.bfOffBits + 1
+
+	for h = 15 to 0 step -1
+		for w = 0 to 15
+			'read the data
+			get #bf, , col
+			pal(h * 16 + w).r = col.rgbtRed
+			pal(h * 16 + w).g = col.rgbtGreen
+			pal(h * 16 + w).b = col.rgbtBlue
+		next
+	next
+
+	close #bf
+END SUB
+
 SUB loadbmp (f$, BYVAL x, BYVAL y, BYVAL p)
 'loads the 4-bit bitmap f$ into page p at x, y
 'sets palette to match file???

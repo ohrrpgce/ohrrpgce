@@ -64,8 +64,9 @@ WHAT IS NEW?
     * You can use the Home/End keys in the sprite editors and browse by typing
       in shop/item number
     * You can import multiple master palettes and switch between them while
-      editing in the View Master Palettes menu. Master Palettes can now also
-      be imported from the palettes of 8 bit BMP files [Ralph Versteegen]
+      editing in the View Master Palettes menu and with scripting. Master
+      Palettes can now also be imported from the palettes of 8 bit BMP files,
+      and from 16x16 24-bit BMP files [Ralph Versteegen]
     * Plotscripting Strings no longer have a max length of 40 [James Paige]
     * New commands for dealing with 32-bit colors (0-255, as opposed to 0-63)
     * Map and battle music can be set to "none" to keep playing current
