@@ -1831,11 +1831,12 @@ NEXT i
 refreshtileedit mover(), ts
 textcolor 7, 0
 printstr ">", 270, 16 + (ts.undo * 21), 2
-FOR i = 0 TO 31
- FOR j = 0 TO 7
-  rectangle i * 10, j * 4 + 160, 10, 4, j * 32 + i, 2
- NEXT j
-NEXT i
+FOR j = 0 TO 7
+ FOR i = 0 TO 15
+  rectangle i * 10, j * 4 + 160, 10, 4, j * 16 + i, 2
+  rectangle i * 10 + 160, j * 4 + 160, 10, 4, j * 16 + i + 128, 2
+ NEXT i
+NEXT j
 '---EDIT BLOCK---
 setkeys
 DO
@@ -1877,8 +1878,8 @@ DO
  '----------
  IF keyval(51) > 1 OR (keyval(56) > 0 AND keyval(75) > 0) THEN ts.curcolor = large(ts.curcolor - 1, 0)
  IF keyval(52) > 1 OR (keyval(56) > 0 AND keyval(77) > 0) THEN ts.curcolor = small(ts.curcolor + 1, 255)
- IF keyval(56) > 0 AND keyval(72) > 0 THEN IF ts.curcolor > 31 THEN ts.curcolor = ts.curcolor - 32
- IF keyval(56) > 0 AND keyval(80) > 0 THEN IF ts.curcolor < 224 THEN ts.curcolor = ts.curcolor + 32
+ IF keyval(56) > 0 AND keyval(72) > 0 THEN IF ts.curcolor > 15 THEN ts.curcolor = ts.curcolor - 16
+ IF keyval(56) > 0 AND keyval(80) > 0 THEN IF ts.curcolor < 240 THEN ts.curcolor = ts.curcolor + 16
  IF keyval(41) > 1 THEN ts.hidemouse = ts.hidemouse XOR 1
  IF keyval(29) > 0 AND keyval(44) > 1 AND ts.allowundo THEN
   ts.undo = loopvar(ts.undo, 0, 5, -1)
@@ -1895,7 +1896,9 @@ DO
    IF mouse(2) = 2 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
    IF mouse(2) = 1 THEN clicktile mover(), ts, mouse(3)
   CASE 2
-   IF mouse(2) > 0 AND mouse(3) = 1 THEN ts.curcolor = (INT(zoy / 4) * 32) + INT(zox / 10)
+   IF mouse(2) > 0 AND mouse(3) = 1 THEN
+    ts.curcolor = ((zoy \ 4) * 16) + ((zox MOD 160) \ 10) + (zox \ 160) * 128
+   END IF
   CASE 3 TO 8
    IF mouse(3) = 1 THEN
     ts.tool = ts.zone - 3
@@ -1940,8 +1943,8 @@ DO
   END IF
  END IF
  IF keyval(14) > 1 OR keyval(26) > 1 OR keyval(27) > 1 THEN fliptile mover(), ts
- cy = INT(ts.curcolor / 32)
- cx = ts.curcolor AND 31
+ cy = (ts.curcolor \ 16) MOD 8
+ cx = (ts.curcolor AND 15) + (ts.curcolor \ 128) * 16
  rectangle cx * 10 + 4, cy * 4 + 162, 3, 1, tog * 15, dpage
  rectangle 60 + ts.x * 10, ts.y * 8, 10, 8, readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3), dpage
  rectangle ts.x * 10 + 64, ts.y * 8 + 3, 3, 2, tog * 15, dpage
