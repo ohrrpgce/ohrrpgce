@@ -2600,10 +2600,10 @@ function matchmask(match as string, mask as string) as integer
 end function
 
 function calcblock(byval x as integer, byval y as integer, byval l as integer, byval t as integer) as integer
-'returns -1 if overlay
+'returns -1 to draw no tile
+'t = 1 : draw non overhead tiles only (to avoid double draw)
+'t = 2 : draw overhead tiles only
 	dim block as integer
-	dim tptr as integer ptr
-	dim over as integer
 
 	'check bounds
 	if bordertile = -1 then
@@ -2621,26 +2621,24 @@ function calcblock(byval x as integer, byval y as integer, byval l as integer, b
 			x = x - map_x
 		wend
 	else
-		if (y < 0) or (y >= map_y) then
-			return bordertile
-		end if
-		if (x < 0) or (x >= map_x) then
-			return bordertile
+		if (y < 0) or (y >= map_y) or (x < 0) or (x >= map_x) then
+			if l = 0 and t <= 1 then
+				'only draw the border tile once!
+				return bordertile
+			else
+				return -1
+			end if
 		end if
 	end if
 
 	block = readmapblock(x, y, l)
 
-	'check overlay (??)
-	'I think it should work like this:
-	'if overlay (t) is 0, then ignore the overlay flag
-	'if it's 1, return -1 and don't draw overhead tiles (this is
-	'actually not working, but doesn't matter too much)
-	'if it's 130 then return the tile id
+	if block = 0 and l > 0 then
+		return -1
+	end if
+
 	if t > 0 then
-		over = readpassblock(x, y)
-		over = (over and 128) + t 'whuh?
-		if (over <> 130) and (over <> 1) then
+		if ((readpassblock(x, y) and 128) <> 0) xor (t = 2) then
 			block = -1
 		end if
 	end if

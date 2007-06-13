@@ -1343,7 +1343,7 @@ layermenu:
 	 	tog = tog XOR 1
 
 		IF keyval(1) > 1 THEN clearkey(1): EXIT DO
-		usemenu(csr2, 0, 0, 4, 22)
+		usemenu(csr2, 0, 0, 3, 22)
 		
 		select case csr2
 		case 0
