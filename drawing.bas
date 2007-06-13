@@ -1876,10 +1876,16 @@ DO
   IF keyval(shortk(i)) > 1 THEN ts.tool = i: ts.hold = 0: ts.drawcursor = cursor(i) + 1
  NEXT i
  '----------
- IF keyval(51) > 1 OR (keyval(56) > 0 AND keyval(75) > 0) THEN ts.curcolor = large(ts.curcolor - 1, 0)
- IF keyval(52) > 1 OR (keyval(56) > 0 AND keyval(77) > 0) THEN ts.curcolor = small(ts.curcolor + 1, 255)
- IF keyval(56) > 0 AND keyval(72) > 0 THEN IF ts.curcolor > 15 THEN ts.curcolor = ts.curcolor - 16
- IF keyval(56) > 0 AND keyval(80) > 0 THEN IF ts.curcolor < 240 THEN ts.curcolor = ts.curcolor + 16
+ IF keyval(51) > 1 OR (keyval(56) > 0 AND keyval(75) > 0) THEN
+  ts.curcolor = (ts.curcolor + 255) MOD 256
+  IF ts.curcolor MOD 16 = 15 THEN ts.curcolor = (ts.curcolor + 144) MOD 256
+ END IF
+ IF keyval(52) > 1 OR (keyval(56) > 0 AND keyval(77) > 0) THEN
+  ts.curcolor += 1
+  IF ts.curcolor MOD 16 = 0 THEN ts.curcolor = (ts.curcolor + 112) MOD 256
+ END IF
+ IF keyval(56) > 0 AND keyval(72) > 0 THEN ts.curcolor = (ts.curcolor + 240) MOD 256
+ IF keyval(56) > 0 AND keyval(80) > 0 THEN ts.curcolor = (ts.curcolor + 16) MOD 256
  IF keyval(41) > 1 THEN ts.hidemouse = ts.hidemouse XOR 1
  IF keyval(29) > 0 AND keyval(44) > 1 AND ts.allowundo THEN
   ts.undo = loopvar(ts.undo, 0, 5, -1)
