@@ -325,27 +325,21 @@ SUB io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as int
   DIM buttons AS Uint8
   buttons = SDL_GetMouseState(@x, @y)
 	
-  IF x < 0 THEN
-    'mouse is outside window
-    mx = -1
-    my = -1
-  ELSE
-    mx = x \ zoom
-    my = y \ zoom
-    mbuttons = 0
-    'FIXME: why can't I get the right and middle buttons correct? they seem inverted no matter what I do...
-    IF SDL_BUTTON_LEFT AND buttons THEN mbuttons = mbuttons OR 1
-    IF SDL_BUTTON_RIGHT AND buttons THEN mbuttons = mbuttons OR 2
-    IF SDL_BUTTON_MIDDLE AND buttons THEN mbuttons = mbuttons OR 4
-  END IF
+  mx = x \ zoom
+  my = y \ zoom
+  mbuttons = 0
+  IF SDL_BUTTON(SDL_BUTTON_LEFT) AND buttons THEN mbuttons = mbuttons OR 1
+  IF SDL_BUTTON(SDL_BUTTON_RIGHT) AND buttons THEN mbuttons = mbuttons OR 2
+  IF SDL_BUTTON(SDL_BUTTON_MIDDLE) AND buttons THEN mbuttons = mbuttons OR 4
 END SUB
 
 SUB io_setmouse(byval x as integer, byval y as integer)
-  SDL_WarpMouse x, y
+  SDL_WarpMouse x * zoom, y * zoom
 END SUB
 
 SUB io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
   'FIXME: not implemented yet
+  'not required?
 END SUB
 
 FUNCTION io_readjoy(joybuf() as integer, byval joynum as integer) as integer

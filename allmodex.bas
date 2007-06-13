@@ -2328,20 +2328,14 @@ end FUNCTION
 
 SUB readmouse (mbuf() as integer)
 	dim as integer mx, my, mw, mb, mc
-	static lastx as integer = 0
-	static lasty as integer = 0
 
 	io_getmouse(mx, my, mw, mb)
-	if (mx < 0) then
-		mx = lastx
-	else
-		lastx = mx
-	end if
-	if (my < 0) then
-		my = lasty
-	else
-		lasty = my
-	end if
+	'gfx_fb/sdl/alleg return last onscreen position when the mouse is offscreen
+	'gfx_fb: If you release a mouse button offscreen, it becomes stuck (FB bug)
+	'        wheel scrolls offscreen are registered when you move back onscreen
+	'gfx_alleg: button state continues to work offscreen but wheel scrolls are not registered
+	'gfx_sdl: button state works offscreen. wheel state unavailable
+
 	if (mx > mouse_xmax) then mx = mouse_xmax
 	if (mx < mouse_xmin) then mx = mouse_xmin
 	if (my > mouse_ymax) then my = mouse_ymax
@@ -2352,17 +2346,12 @@ SUB readmouse (mbuf() as integer)
 	mouselastflags = mb
 	mouseflags = 0
 
-	if (mb < 0) then
-		'off screen, preserve last button state
-		mb = mouselastflags
-		mc = 0
-	end if
 	mutexunlock keybdmutex
 
 	mbuf(0) = mx
 	mbuf(1) = my
-	mbuf(2) = mb or mc
-	mbuf(3) = mc
+	mbuf(2) = mb or mc   'current button state bits, plus missed clicks since last call
+	mbuf(3) = mc         '1 if new (left?) click since last call to readmouse
 end SUB
 
 SUB movemouse (BYVAL x as integer, BYVAL y as integer)
