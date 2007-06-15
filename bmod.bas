@@ -128,7 +128,7 @@ DO
   IF keyval(62) > 1 THEN away = 11 ' Instant-cheater-running
   IF keyval(63) > 1 THEN exper& = 1000000  'Million experience!
  END IF
- IF keyval(69) > 0 THEN GOSUB pgame '--PAUSE
+ IF keyval(69) > 1 THEN GOSUB pgame '--PAUSE
  '--running away
  IF carray(5) > 1 THEN
   flee = flee + 1
@@ -272,6 +272,7 @@ EXIT FUNCTION '---------------------------------------------------------------
 pgame:
 fuzzyrect 0, 0, 320, 200, uilook(uiTextBox), vpage
 edgeprint pause$, xstring(pause$, 160), 95, uilook(uiText), vpage
+setvispage vpage
 '--wait for a key
 wk = getkey
 RETRACE
