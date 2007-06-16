@@ -75,6 +75,7 @@ DECLARE Sub ToggleLayerEnabled(vis() as integer, byval l as integer)
 DECLARE SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors(), link(), gmap())
 
 DECLARE SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS INTEGER, defaults() AS INTEGER, tastuf() AS INTEGER)
+DECLARE SUB resizemapmenu (map(), tastuf(), byref newwide, byref newhigh, byref tempx, byref tempy)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -972,55 +973,13 @@ GOSUB updatetilepicker
 RETRACE
 
 sizemap:
-clearpage 2
-tempx = 0: tempy = 0
-tempw = wide: temph = high
-setmapdata map(), pass(), 20, 0
-drawmini high, wide, cursor(), 2, tastuf()
-setkeys
-DO
- setwait timing(), 100
- setkeys
- IF keyval(1) > 1 THEN RETRACE
- IF keyval(28) > 1 THEN
-  GOSUB dosizemap
-  RETRACE
- END IF
- IF keyval(29) THEN
-  IF keyval(72) > 0 THEN tempy = tempy - (1 + (keyval(56) * 8)): tempy = large(tempy, 0)
-  IF keyval(80) > 0 THEN tempy = tempy + (1 + (keyval(56) * 8)): tempy = small(tempy, high - temph)
-  IF keyval(75) > 0 THEN tempx = tempx - (1 + (keyval(56) * 8)): tempx = large(tempx, 0)
-  IF keyval(77) > 0 THEN tempx = tempx + (1 + (keyval(56) * 8)): tempx = small(tempx, wide - tempw)
-  tempx = large(tempx, 0)
-  tempy = large(tempy, 0)
- ELSE
-  IF keyval(72) > 0 THEN temph = temph - (1 + (keyval(56) * 8)): temph = large(temph, 10)
-  IF keyval(80) > 0 THEN temph = temph + (1 + (keyval(56) * 8)): temph = small(temph, 32000): WHILE temph * tempw > 32000 AND tempw > 16: tempw = tempw - 1: WEND
-  IF keyval(75) > 0 THEN tempw = tempw - (1 + (keyval(56) * 8)): tempw = large(tempw, 16)
-  IF keyval(77) > 0 THEN tempw = tempw + (1 + (keyval(56) * 8)): tempw = small(tempw, 32000): WHILE temph * tempw > 32000 AND temph > 10: temph = temph - 1: WEND
-  th& = temph
-  tw& = tempw
-  WHILE th& * tw& >= 32000
-   temph = large(temph - 1, 10)
-   tempw = large(tempw - 1, 16)
-   th& = temph
-   tw& = tempw
-  WEND
- END IF
- edgeprint "width" + XSTR$(wide) + CHR$(26) + STR$(tempw), 1, 1, 7, dpage
- edgeprint "height" + XSTR$(high) + CHR$(26) + STR$(temph), 1, 11, 7, dpage
- edgeprint "area" + XSTR$(wide * high) + CHR$(26) + STR$(temph * tempw), 1, 21, 7, dpage
- rectangle tempx, tempy, tempw, 1, 14 + tog, dpage
- rectangle tempx, tempy, 1, temph, 14 + tog, dpage
- rectangle tempx, tempy + temph, tempw, 1, 14 + tog, dpage
- rectangle tempx + tempw, tempy, 1, temph, 14 + tog, dpage
- copypage dpage, vpage
- copypage 2, dpage
- setvispage vpage
- dowait
-LOOP
+tempw = 0
+temph = 0
+tempx = 0
+tempy = 0
+resizemapmenu map(), tastuf(), tempw, temph, tempx, tempy
+IF tempw = -1 THEN RETRACE
 
-dosizemap:
 clearpage 0
 clearpage 1
 yout = 0
@@ -1555,4 +1514,138 @@ SUB resizetiledata (array(), x_off, y_off, new_width, new_height, yout, page, la
 		next
 	next
  next
+END SUB
+
+SUB resizemapmenu (map(), tastuf(), byref tempw, byref temph, byref tempx, byref tempy)
+ 'returns the new size and offset in passed args, or -1 width to cancel
+DIM minimap(), menu$(6), tog, csr = 1, zoom = 0
+wide = map(0)
+high = map(1)
+tempw = wide
+temph = high
+tempx = 0
+tempy = 0
+setmapdata map(), map(), 20, 0
+GOSUB getmini
+GOSUB buildmenu
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ tog = tog xor 1
+ IF keyval(1) > 1 THEN EXIT DO
+ dummy = usemenu(csr, 0, 0, 4, 10)
+ IF keyval(56) > 0 THEN incval = 8 ELSE incval = 1
+ SELECT CASE csr
+  CASE 0
+   IF keyval(28) > 1 THEN EXIT DO
+  CASE 1
+   IF keyval(75) > 0 THEN tempw -= incval 
+   IF keyval(77) > 0 THEN tempw += incval
+   GOSUB correctw
+  CASE 2
+   IF keyval(75) > 0 THEN temph -= incval 
+   IF keyval(77) > 0 THEN temph += incval
+   GOSUB correcth
+  CASE 3
+   IF keyval(75) > 0 THEN tempx -= incval: tempw += incval
+   IF keyval(77) > 0 THEN tempx += incval: tempw -= incval
+   GOSUB correctw
+  CASE 4
+   IF keyval(75) > 0 THEN tempy -= incval: temph += incval
+   IF keyval(77) > 0 THEN tempy += incval: temph -= incval
+   GOSUB correcth
+ END SELECT
+ IF keyval(28) > 1 THEN EXIT SUB
+
+ clearpage dpage
+ drawoffx = large(0, -tempx * zoom)
+ drawoffy = large(0, -tempy * zoom)
+ FOR i = 0 TO UBOUND(minimap, 1) - 1
+  FOR j = 0 TO UBOUND(minimap, 2) - 1
+   putpixel drawoffx + i, drawoffy + j, minimap(i, j), dpage
+  NEXT
+ NEXT
+ standardmenu menu$(), UBOUND(menu$), 28, csr, 0, 0, 140, dpage, 0
+ drawbox drawoffx + zoom * tempx, drawoffy + zoom * tempy, zoom * tempw, zoom * temph, 14 + tog, dpage
+
+ SWAP dpage, vpage
+ setvispage vpage
+ dowait
+LOOP
+'cancel
+tempw = -1
+temph = -1
+EXIT SUB
+
+correctw:
+tempw = bound(tempw, 16, 32000)
+tempx = bound(tempx, -tempw + 1, wide - 1)
+WHILE temph * tempw > 32000 AND temph > 10
+ temph -= 1
+WEND
+GOTO dimchange
+
+correcth:
+temph = bound(temph, 10, 32000)
+tempy = bound(tempy, -temph + 1, high - 1)
+WHILE temph * tempw > 32000 AND tempw > 16
+ tempw -= 1
+WEND
+GOTO dimchange
+
+dimchange:
+WHILE temph * tempw > 32000
+ temph = large(temph - 1, 10)
+ tempw = large(tempw - 1, 16)
+WEND
+GOSUB getmini
+
+buildmenu:
+menu$(0) = "Cancel"
+menu$(1) = "Width " & wide & CHR$(26) & tempw
+menu$(2) = "Height " & high & CHR$(26) & temph
+IF tempx > 0 THEN
+ menu$(3) = "Left edge: trim " & tempx & " tiles"
+ELSE
+ menu$(3) = "Left edge: add " & -tempx & " tiles"
+END IF
+IF tempy > 0 THEN
+ menu$(4) = "Top edge: trim " & tempy & " tiles"
+ELSE
+ menu$(4) = "Top edge: add " & -tempy & " tiles"
+END IF
+menu$(5) = "Area " & (wide * high) & CHR$(26) & (temph * tempw)
+menu$(6) = zoom & "x zoom"
+RETRACE
+
+getmini:
+lastzoom = zoom
+tw = large(wide, tempx + tempw) 'right most point
+IF tempx < 0 THEN tw -= tempx   'plus left most
+th = large(high, tempy + temph)
+IF tempy < 0 THEN th -= tempy
+zoom = bound(small(320 \ tw, 200 \ th), 1, 20)
+IF zoom <> lastzoom THEN
+ createminimap minimap(), map(), tastuf(), 3, zoom
+END IF
+RETRACE
+
+END SUB
+
+SUB drawmini (high, wide, cursor(), page, tastuf())
+
+clearpage vpage
+FOR i = 0 TO high
+ FOR o = 0 TO wide
+  block = readmapblock(o, i, 0)
+  IF block > 207 THEN block = (block - 207) + tastuf(20)
+  IF block > 159 THEN block = (block - 159) + tastuf(0)
+  mx = block - (INT(block / 16) * 16)
+  my = INT(block / 16)
+  loadsprite cursor(), 0, (INT(RND * 7) + 7) + (mx * 20), (INT(RND * 7) + 7) + (my * 20), 1, 1, 3
+  stosprite cursor(), 0, o, i, page
+ NEXT o
+NEXT i
+
 END SUB

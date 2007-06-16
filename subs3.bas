@@ -158,23 +158,6 @@ LOOP
 
 END SUB
 
-SUB drawmini (high, wide, cursor(), page, tastuf())
-
-clearpage vpage
-FOR i = 0 TO high
- FOR o = 0 TO wide
-  block = readmapblock(o, i, 0)
-  IF block > 207 THEN block = (block - 207) + tastuf(20)
-  IF block > 159 THEN block = (block - 159) + tastuf(0)
-  mx = block - (INT(block / 16) * 16)
-  my = INT(block / 16)
-  loadsprite cursor(), 0, (INT(RND * 7) + 7) + (mx * 20), (INT(RND * 7) + 7) + (my * 20), 1, 1, 3
-  stosprite cursor(), 0, o, i, page
- NEXT o
-NEXT i
-
-END SUB
-
 FUNCTION exclude$ (s$, x$)
 outf$ = ""
 FOR i = 1 TO LEN(s$)

@@ -81,6 +81,7 @@ WHAT IS NEW?
     * Press DEL in the map editor to delete the current tile
       Press BACKSPACE to delete tile, passability, npc, door, and foemap
       for the current tile [James Paige]
+    * New zooming map resize screen to add or trim from any edge [Ralph]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the

@@ -62,6 +62,7 @@ DECLARE SUB loadpalette(pal() as RGBcolor, palnum%)
 DECLARE SUB savepalette(pal() as RGBcolor, palnum%)
 DECLARE SUB convertpalette(oldpal%(), newpal() as RGBcolor)
 DECLARE FUNCTION getmapname$ (m)
+DECLARE SUB createminimap (array(), map(), tastuf(), tilesetpage, zoom)
 
 'Global variables
 EXTERN game$

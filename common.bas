@@ -1413,3 +1413,34 @@ IF ranalready THEN
  setvispage vpage 'refresh
 END IF
 END SUB
+
+SUB createminimap (array(), map(), tastuf(), tilesetpage, zoom)
+ 'we don't have any sprite struct, so redim array() (dynamic array) and pass back the pixel data
+
+ REDIM array(zoom * map(0) - 1, zoom * map(1) - 1)
+ DIM AS SINGLE fraction, rand
+ fraction = 20 / zoom
+ rand = RND
+
+ setmapdata map(), map(), 20, 0
+ FOR i = 0 TO zoom * map(0) - 1
+  FOR j = 0 TO zoom * map(1) - 1
+   tx = i \ zoom
+   ty = j \ zoom
+   x = INT(((i MOD zoom) + rand) * fraction)
+   y = INT(((j MOD zoom) + rand) * fraction)
+   'over the top layer support
+   FOR k = 2 TO 0 STEP -1
+    block = readmapblock(tx, ty, k)
+    IF block = 0 AND k > 0 THEN CONTINUE FOR
+    IF block > 207 THEN block = (block - 207) + tastuf(20)
+    IF block > 159 THEN block = (block - 159) + tastuf(0)
+    mx = (block MOD 16) * 20
+    my = (block \ 16) * 20
+    array(i,j) = readpixel(mx + x, my + y, tilesetpage)
+    IF array(i,j) <> 0 THEN EXIT FOR
+   NEXT
+  NEXT
+ NEXT
+
+END SUB
