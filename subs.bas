@@ -917,7 +917,7 @@ DO
   menu$(5) = "Backdrop screen:" + XSTR$(a(32))
   menu$(6) = "Battle Music:"
   IF a(33) = -1 THEN
-    menu$(6) = menu$(6) + " -none-"
+    menu$(6) = menu$(6) + " -same music as map-"
   ELSEIF a(33) = 0 THEN
     menu$(6) = menu$(6) + " -silence-"
   ELSEIF a(33) > 0 THEN
