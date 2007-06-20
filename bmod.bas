@@ -35,8 +35,8 @@ REMEMBERSTATE
 bstackstart = stackpos
 
 battle = 1
-DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), st(3, 318), es(7, 160), zbuf(24),  p(24), of(24), ext$(7), ctr(11), stat(11,  _
-1, 17), ready(11), batname$(11), menu$(3, 5), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
+DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3, 318), es(7, 160), zbuf(24),  p(24), of(24), ext$(7), ctr(11), stat(11,  _
+1, 17), ready(11), batname$(11), menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
@@ -352,17 +352,33 @@ RETRACE
 
 
 heromenu: '-----------------------------------------------------------------
+FOR i = 0 TO 5
+ setbit menubits(), 0, you*4+i, 0
+ IF bmenu(you, i) > 0 THEN
+  IF wepatkid <> bmenu(you, i) THEN
+   wepatkid = bmenu(you, i)
+   loadattackdata wepatk(), wepatkid - 1
+  END IF
+  IF readbit(wepatk(), 65, 6) THEN
+   IF atkallowed(wepatkid - 1, you, 0, 0, stat(), wepatk()) = 0 THEN
+    setbit menubits(), 0, you*4+i, 1
+   END IF
+  END IF
+ END IF
+NEXT i
 IF carray(5) > 1 THEN yn = you: you = -1: RETRACE
 IF carray(0) > 1 THEN pt = pt - 1: IF pt < 0 THEN pt = mend(you)
 IF carray(1) > 1 THEN pt = pt + 1: IF pt > mend(you) THEN pt = 0
 IF carray(4) > 1 THEN
  IF bmenu(you, pt) > 0 THEN 'simple attack
-  godo(you) = bmenu(you, pt)
-  loadattackdata buffer(), godo(you) - 1
-  delay(you) = large(buffer(16), 1)
-  ptarg = 1
-  flusharray carray(), 7, 0
-  RETRACE
+  IF readbit(menubits(), 0, you*4+pt) = 0 THEN
+   godo(you) = bmenu(you, pt)
+   loadattackdata buffer(), godo(you) - 1
+   delay(you) = large(buffer(16), 1)
+   ptarg = 1
+   flusharray carray(), 7, 0
+   RETRACE
+  END IF
  END IF
  IF bmenu(you, pt) < 0 AND bmenu(you, pt) >= -4 AND st(you, 288 + (bmenu(you, pt) + 1) * -1) < 2 THEN
   '--init spell menu
@@ -1734,8 +1750,17 @@ IF vdance = 0 THEN 'only display interface till you win
  IF you >= 0 THEN
   centerbox 268, 5 + (4 * (mend(you) + 2)), 88, 8 * (mend(you) + 2), 1, dpage
   FOR i = 0 TO mend(you)
-   textcolor uilook(uiMenuItem), 0
-   IF pt = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
+   bg = 0
+   fg = uilook(uiMenuItem)
+   IF pt = i THEN
+     fg = uilook(uiSelectedItem + tog)
+     bg = uilook(uiHighlight)
+   END IF
+   IF readbit(menubits(), 0, you*4+i) THEN
+     fg = uilook(uiDisabledItem)
+     IF pt = i THEN fg = uilook(uiSelectedDisabled + tog)
+   END IF
+   textcolor fg, bg
    printstr menu$(you, i), 228, 9 + i * 8, dpage
   NEXT i
   IF ptarg = 0 AND readbit(gen(), genBits, 14) = 0 THEN
@@ -1997,11 +2022,7 @@ FOR i = 0 TO 3
    p(i) = 40 + i
    .vis = 1
   END WITH
- END IF
-NEXT i
-FOR i = 0 TO 3
- setpicstuf buffer(), 5120, 3
- IF hero(i) > 0 THEN
+  setpicstuf buffer(), 5120, 3
   loadset game$ + ".pt0", exstat(i, 0, 14), i * 16
   getpal16 pal16(), 40 + i, exstat(i, 0, 15), 0, exstat(i, 0, 14)
   FOR o = 0 TO 11

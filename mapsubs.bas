@@ -422,7 +422,7 @@ DO
     IF gmap(1) = 0 THEN
      xtemp$ = " -silence-"
     ELSEIF gmap(1) = -1 THEN
-     xtemp$ = " -none-"
+     xtemp$ = " -same as previous map-"
     ELSE
      xtemp$ = XSTR$(gmap(1) - 1) + " " + getsongname$(gmap(1) - 1)
     END IF

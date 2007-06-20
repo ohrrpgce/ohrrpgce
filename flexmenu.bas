@@ -142,6 +142,7 @@ atkbit$(66) = "Fail if target is regened"
 atkbit$(67) = "Fail if target is stunned"
 atkbit$(68) = "Fail if target is muted"
 atkbit$(69) = "% based attacks damage instead of set"
+atkbit$(70) = "Check costs when used as a weapon"
 '             ^---------------------------------------^
 '               the amount of room you have (39 chars)
 

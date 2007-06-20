@@ -131,6 +131,8 @@ WHAT IS NEW?
       [James Paige]
     * In the tile map editor you can press CTRL+R to replace every tile
       like the selected one. [James Paige]
+    * Weapons can optionally require MP, HP, money or items, just like
+      spells do (a new attack bitset) [James Paige]
 
   * New Plotscripting Commands
     * New HamsterSpeak flow control commands: break, continue, exit script,
