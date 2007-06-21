@@ -1047,7 +1047,7 @@ FUNCTION curbinsize (id)
  IF id = 1 THEN RETURN 84  '.stf
  IF id = 2 THEN RETURN 32  'songdata.bin
  IF id = 3 THEN RETURN 34  'sfxdata.bin
- IF id = 4 THEN RETURN 40  '.map
+ IF id = 4 THEN RETURN 44  '.map
  RETURN 0
 END FUNCTION
 
