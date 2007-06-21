@@ -165,9 +165,9 @@ DIM as integer menubarstart(0 to 2)
 DIM as integer layer
 DIM as integer jiggle(0), visible(0) = {&b111} 'used as bitsets
 
-DIM map()
-DIM pass()
-DIM emap()
+REDIM map(0)
+REDIM pass(0)
+REDIM emap(0)
 
 textcolor 15, 0
 
@@ -1518,7 +1518,8 @@ END SUB
 
 SUB resizemapmenu (map(), tastuf(), byref tempw, byref temph, byref tempx, byref tempy)
  'returns the new size and offset in passed args, or -1 width to cancel
-DIM minimap(), menu$(6), tog, csr = 1, zoom = 0
+REDIM minimap(0,0)
+DIM menu$(6), tog, csr = 1, zoom = 0
 wide = map(0)
 high = map(1)
 tempw = wide
