@@ -803,8 +803,8 @@ version = buffer(0)
 IF version < 2 OR version > 3 THEN EXIT SUB
 map = buffer(1)
 loadrecord gmaptmp(), game$ + ".map", getbinsize(4) / 2, map
-catx(0) = buffer(2) + gmaptmp(20)
-caty(0) = buffer(3) + gmaptmp(21)
+catx(0) = buffer(2) + gmaptmp(20) * 20
+caty(0) = buffer(3) + gmaptmp(21) * 20
 catd(0) = buffer(4)
 foep = buffer(5)
 'leader = buffer(6)
@@ -912,8 +912,8 @@ FOR i = 0 TO 3
  hmask(i) = buffer(z): z = z + 1
 NEXT i
 FOR i = 1 TO 3
- catx(i * 5) = buffer(z) + gmaptmp(20): z = z + 1
- caty(i * 5) = buffer(z) + gmaptmp(21): z = z + 1
+ catx(i * 5) = buffer(z) + gmaptmp(20) * 20: z = z + 1
+ caty(i * 5) = buffer(z) + gmaptmp(21) * 20: z = z + 1
  catd(i * 5) = buffer(z): z = z + 1
 NEXT i
 FOR i = 0 TO 1024
@@ -1637,8 +1637,8 @@ NEXT i
 buffer(0) = 3        'SAVEGAME VERSION NUMBER
 buffer(1) = map
 loadrecord gmaptmp(), game$ + ".map", getbinsize(4) / 2, map
-buffer(2) = catx(0) - gmaptmp(20)
-buffer(3) = caty(0) - gmaptmp(21)
+buffer(2) = catx(0) - gmaptmp(20) * 20
+buffer(3) = caty(0) - gmaptmp(21) * 20
 buffer(4) = catd(0)
 buffer(5) = foep
 buffer(6) = 0    'was leader
@@ -1754,8 +1754,8 @@ FOR i = 0 TO 3
  buffer(z) = hmask(i): z = z + 1
 NEXT i
 FOR i = 1 TO 3
- buffer(z) = catx(i * 5) - gmaptmp(20): z = z + 1
- buffer(z) = caty(i * 5) - gmaptmp(21): z = z + 1
+ buffer(z) = catx(i * 5) - gmaptmp(20) * 20: z = z + 1
+ buffer(z) = caty(i * 5) - gmaptmp(21) * 20: z = z + 1
  buffer(z) = catd(i * 5): z = z + 1
 NEXT i
 '--bottom 16 bits of each global variable in 5013 - 6037
