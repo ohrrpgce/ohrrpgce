@@ -192,7 +192,7 @@ thestart:
 'Mixed global and module variables
 DIM font(1024), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
 DIM door(206), gen(104), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev&(40, 1), names$(40), gotj(2), veh(21)
-DIM eqstuf(40, 4), gmap(20), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(255, 3)
+DIM eqstuf(40, 4), gmap(dimbinsize(4)), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
 DIM menu$(8), mi(8)
 
@@ -2319,7 +2319,7 @@ END SELECT
 RETRACE
 
 SUB loadmap_gmap(mapnum)
- loadrecord gmap(), game$ + ".map", 20, mapnum
+ loadrecord gmap(), game$ + ".map", getbinsize(4) / 2, mapnum
  loadpage game$ + ".til", gmap(0), 3
  loadtanim gmap(0), tastuf()
  FOR i = 0 TO 1

@@ -157,7 +157,7 @@ animadjust = pic
 END FUNCTION
 
 SUB mapmaker (font(), doors(), link(), npc(), npcstat())
-DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(20), gd$(-1 TO 20), gdmax(20), gdmin(20), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
+DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(-1 TO 20), gdmax(20), gdmin(20), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
 defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
 
 DIM as integer usetile(0 to 2)
@@ -1083,7 +1083,7 @@ flusharray npc(), 900, 0
 flusharray npcstat(), 1500, 0
 flusharray doors(), 299, 0
 '--save map buffers
-storerecord gmap(), game$ + ".map", 20, gen(genMaxMap)
+storerecord gmap(), game$ + ".map", getbinsize(4) / 2, gen(genMaxMap)
 savetiledata maplumpname$(gen(genMaxMap), "t"), map(), 3
 savetiledata maplumpname$(gen(genMaxMap), "p"), pass()
 savetiledata maplumpname$(gen(genMaxMap), "e"), emap()
@@ -1097,7 +1097,7 @@ storerecord buffer(), game$ + ".mn", 40, gen(genMaxMap)
 RETRACE
 
 savemap:
-storerecord gmap(), game$ + ".map", 20, pt
+storerecord gmap(), game$ + ".map", getbinsize(4) / 2, pt
 savetiledata maplumpname$(pt, "t"), map(), 3
 savetiledata maplumpname$(pt, "p"), pass()
 savetiledata maplumpname$(pt, "e"), emap()
@@ -1112,7 +1112,7 @@ storerecord buffer(), game$ + ".mn", 40, pt
 RETRACE
 
 loadmap:
-loadrecord gmap(), game$ + ".map", 20, pt
+loadrecord gmap(), game$ + ".map", getbinsize(4) / 2, pt
 visible(0) = &b111   'default all layers to visible, if they're enabled too, of course
 loadpage game$ + ".til", gmap(0), 3
 loadtanim gmap(0), tastuf()
@@ -1446,7 +1446,7 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors(), link
  END IF
  '-----------------EXIT DOOR
  destmap = link(cur + (2 * 200))
- loadrecord gmap2(), game$ + ".map", 20, destmap
+ loadrecord gmap2(), game$ + ".map", getbinsize(4) / 2, destmap
  loadrecord destdoor(), game$ + ".dox", 300, destmap
  LoadTiledata maplumpname$(destmap, "t"), map(), 3, tempw, temph
  loadpage game$ + ".til", gmap2(0), 3

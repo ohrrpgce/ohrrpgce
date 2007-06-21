@@ -1676,6 +1676,8 @@ END IF
 updaterecordlength workingdir$ + SLASH + "attack.bin", 0
 updaterecordlength game$ + ".stf", 1
 updaterecordlength workingdir$ + SLASH + "songdata.bin", 2
+'updaterecordlength workingdir$ + SLASH + "sfxdata.bin", 3 '' Why was this never used? why does it hang?
+updaterecordlength game$ + ".map", 4
 
 '--update to new (3rd) password format
 IF gen(5) < 256 THEN
