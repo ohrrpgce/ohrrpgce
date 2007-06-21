@@ -222,9 +222,6 @@ DIM scrat(128) as ScriptInst
 DIM script(128) as ScriptData
 DIM plotstr(31) as Plotstring
 
-'DEBUG debug "dim binsize arrays"
-#include "binsize.bi"
-
 'DEBUG debug "setup directories"
 
 '---get work dir and exe name---

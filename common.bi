@@ -36,6 +36,8 @@ DECLARE SUB guessdefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS 
 DECLARE FUNCTION getdefaultpal(fileset, index)
 DECLARE SUB flusharray (array%(), size%, value%)
 DECLARE SUB setbinsize (id, size)
+DECLARE FUNCTION curbinsize (id)
+DECLARE FUNCTION defbinsize (id)
 DECLARE FUNCTION getbinsize (id)
 DECLARE FUNCTION dimbinsize (id)
 DECLARE SUB loadherodata (array(), index)
@@ -73,6 +75,8 @@ EXTERN version$
 EXTERN fadestate
 EXTERN master() as RGBcolor
 EXTERN workingdir$
-EXTERN curbinsize(), defbinsize()
 EXTERN keyv()
 EXTERN gen()
+
+'Constants
+CONST sizebinsize = 4

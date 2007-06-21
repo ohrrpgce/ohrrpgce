@@ -105,9 +105,6 @@ DIM master(255) as RGBcolor
 DIM game$, gamefile$, unsafefile$, insert, activepalette
 DIM vpage, dpage, fadestate, workingdir$
 
-'--DIM binsize arrays
-#include "binsize.bi"
-
 RANDOMIZE TIMER
 
 IF isfile("ohrrpgce.mas") THEN
