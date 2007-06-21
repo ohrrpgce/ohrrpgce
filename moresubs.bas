@@ -791,7 +791,6 @@ END SUB
 SUB loadgame (slot, map, foep, stat(), stock())
 
 DIM gmaptmp(dimbinsize(4))
-loadrecord gmaptmp(), game$ + ".map", getbinsize(4) / 2, map
 
 '--return gen to defaults
 xbload game$ + ".gen", gen(), "General data is missing from " + game$
@@ -803,6 +802,7 @@ loadset sg$, slot * 2, 0
 version = buffer(0)
 IF version < 2 OR version > 3 THEN EXIT SUB
 map = buffer(1)
+loadrecord gmaptmp(), game$ + ".map", getbinsize(4) / 2, map
 catx(0) = buffer(2) + gmaptmp(20)
 caty(0) = buffer(3) + gmaptmp(21)
 catd(0) = buffer(4)
@@ -1628,7 +1628,6 @@ END SUB
 SUB savegame (slot, map, foep, stat(), stock())
 
 DIM gmaptmp(dimbinsize(4))
-loadrecord gmaptmp(), game$ + ".map", getbinsize(4) / 2, map
 
 '--FLUSH BUFFER---
 FOR i = 0 TO 16000
@@ -1637,6 +1636,7 @@ NEXT i
 
 buffer(0) = 3        'SAVEGAME VERSION NUMBER
 buffer(1) = map
+loadrecord gmaptmp(), game$ + ".map", getbinsize(4) / 2, map
 buffer(2) = catx(0) - gmaptmp(20)
 buffer(3) = caty(0) - gmaptmp(21)
 buffer(4) = catd(0)
