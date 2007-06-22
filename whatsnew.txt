@@ -82,6 +82,8 @@ WHAT IS NEW?
       Press BACKSPACE to delete tile, passability, npc, door, and foemap
       for the current tile [James Paige]
     * New zooming map resize screen to add or trim from any edge [Ralph]
+    * Hero start location is visible in the map editor. Press CTRL+H
+      to move the start location [James Paige]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the

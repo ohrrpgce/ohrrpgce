@@ -598,6 +598,11 @@ DO
     IF doors(i) = x AND doors(i + 100) = y + 1 AND doors(i + 200) = 1 THEN doors(i + 200) = 0
    NEXT
  END IF
+ IF keyval(29) > 0 AND keyval(35) > 1 THEN 'Ctrl+H for hero start position
+  gen(genStartMap) = pt
+  gen(genStartX) = x
+  gen(genStartY) = y
+ END IF
  SELECT CASE editmode
   '---TILEMODE------
   CASE 0
