@@ -165,6 +165,8 @@ DIM as integer menubarstart(0 to 2)
 DIM as integer layer
 DIM as integer jiggle(0), visible(0) = {&b111} 'used as bitsets
 
+DIM heroimg(102), heropal(8)
+
 REDIM map(0)
 REDIM pass(0)
 REDIM emap(0)
@@ -509,6 +511,11 @@ RETRACE
 
 mapping:
 clearpage 2
+'--load hero graphics--
+loadherodata buffer(), 0
+loadrecord heroimg(), game$ + ".pt4", 100, buffer(19) * 8 + 4
+fixspriterecord heroimg(), 20, 20
+getpal16 heropal(), 0, buffer(20), 4, buffer(19)
 '--load NPC graphics--
 FOR i = 0 TO 35
  setpicstuf buffer(), 1600, 2
@@ -869,7 +876,15 @@ DO
    END IF
   NEXT
  END IF
- 
+
+ '--hero start location display--
+ IF gen(genStartMap) = pt THEN
+  IF gen(genStartX) >= INT(mapx / 20) AND gen(genStartX) < INT(mapx / 20) + 16 AND gen(genStartY) > INT(mapy / 20) AND gen(genStartY) <= INT(mapy / 20) + 9 THEN
+   drawsprite heroimg(), 0, heropal(), 0, gen(genStartX) * 20 - mapx, gen(genStartY) * 20 + 20 - mapy, dpage
+   printstr "Hero", gen(genStartX) * 20 - mapx, gen(genStartY) * 20 + 30 - mapy, dpage
+  END IF
+ END IF
+
  '--npc display--
  IF editmode = 3 THEN
   FOR i = 0 to 35
