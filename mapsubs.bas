@@ -990,8 +990,13 @@ resizetiledata pass(), tempx, tempy, tempw, temph, yout, vpage, 1
 edgeprint "FOEMAP", 0, yout * 10, 15, vpage: setvispage vpage: yout = yout + 1
 resizetiledata emap(), tempx, tempy, tempw, temph, yout, vpage, 1
 ' update SAV x/y offset in MAP lump
-gmap(20) = gmap(20) + tempx * - 1
-gmap(21) = gmap(21) + tempy * - 1
+gmap(20) += tempx * - 1
+gmap(21) += tempy * - 1
+' update hero's starting position (if on current map)
+IF gen(genStartMap) = pt THEN
+ gen(genStartX) += tempx * -1
+ gen(genStartY) += tempy * -1 
+END IF
 setmapdata map(), pass(), 20, 0
 wide = map(0): high = map(1)
 '--reset map scroll position
