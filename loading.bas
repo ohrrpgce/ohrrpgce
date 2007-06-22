@@ -84,13 +84,13 @@ SUB LoadNPCL(file as string, dat() as NPCInst, num as integer)
   CLOSE #f
 END SUB
 
-SUB SerNPCL(npc() as NPCInst, z, buffer(), num as integer)
+SUB SerNPCL(npc() as NPCInst, z, buffer(), num as integer, xoffset as integer, yoffset as integer)
   DIM i as integer
   FOR i = 0 to num - 1
-    buffer(z) = npc(i).x: z = z + 1
+    buffer(z) = npc(i).x - xoffset: z = z + 1
   NEXT
   FOR i = 0 to num - 1
-    buffer(z) = npc(i).y : z = z + 1
+    buffer(z) = npc(i).y - yoffset : z = z + 1
   NEXT
   FOR i = 0 to num - 1
     buffer(z) = npc(i).id: z = z + 1
@@ -109,13 +109,13 @@ SUB SerNPCL(npc() as NPCInst, z, buffer(), num as integer)
   NEXT
 END SUB
 
-SUB DeserNPCL(npc() as NPCInst, z, buffer(), num as integer)
+SUB DeserNPCL(npc() as NPCInst, z, buffer(), num as integer, xoffset as integer, yoffset as integer)
   DIM i as integer
   FOR i = 0 to num - 1
-    npc(i).x = buffer(z): z = z + 1
+    npc(i).x = buffer(z) + xoffset: z = z + 1
   NEXT
   FOR i = 0 to num - 1
-    npc(i).y = buffer(z): z = z + 1
+    npc(i).y = buffer(z) + yoffset: z = z + 1
   NEXT
   FOR i = 0 to num - 1
     npc(i).id = buffer(z): z = z + 1

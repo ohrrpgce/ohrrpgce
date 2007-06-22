@@ -829,7 +829,7 @@ FOR i = 0 TO 500
  z = z + 1
 NEXT i
 
-DeserNPCL npc(),z,buffer(),300
+DeserNPCL npc(),z,buffer(),300,gmaptmp(20),gmaptmp(21)
 z=z+1 'fix an old bug
 
 FOR i = 0 TO 126
@@ -1666,7 +1666,7 @@ NEXT i
 ' FOR i = 0 TO 2100
 '  buffer(z) = npcl(i): z = z + 1
 ' NEXT i
-SerNPCL npc(), z, buffer(), 300
+SerNPCL npc(), z, buffer(), 300, gmaptmp(20), gmaptmp(21)
 z=z+1 'fix an old bug
 FOR i = 0 TO 126
  buffer(z) = tag(i): z = z + 1
