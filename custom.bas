@@ -434,17 +434,6 @@ makeworkingdir:
 IF NOT isdir(workingdir$) THEN
  makedir workingdir$
 ELSE
- 'check for locked working directory
- safekill (workingdir$ + SLASH + "lockfile.tmp")
- IF ERR THEN
-  PRINT "Either " + CUSTOMEXE + " is already running in the background, or it"
-  PRINT "terminated incorrectly last time it was run, and was unable to clean up"
-  PRINT "its temporary files. The operating system is denying access to the"
-  PRINT "files in " + workingdir$
-  PRINT
-  PRINT "Error code"; ERR
-  SYSTEM
- END IF
  'Recover from an old crash
  GOSUB cleanup
  clearpage 0
@@ -455,10 +444,6 @@ ELSE
  w = getkey
  GOTO finis
 END IF
-'--open a lockfile to notify other instances of custom that the working
-'--dir is in use
-lockfile = FREEFILE
-OPEN workingdir$ + SLASH + "lockfile.tmp" FOR BINARY AS #lockfile
 RETRACE
 
 relump:
@@ -567,7 +552,6 @@ restoremode
 END
 
 cleanupfiles:
-CLOSE #lockfile
 IF nocleanup = 0 THEN
  touchfile workingdir$ + SLASH + "kill.tmp"
  'borrowed this code from game.bas cos wildcard didn't work in FB

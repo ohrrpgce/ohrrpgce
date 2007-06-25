@@ -788,8 +788,6 @@ SUB quitcleanup
 '--open files
 'DEBUG debug "Close foemap handle"
 CLOSE #foemaph
-'DEBUG debug "Close lockfile"
-IF lockfile THEN CLOSE #lockfile
 '--script stack
 'DEBUG debug "Release script stack"
 releasestack

@@ -36,7 +36,6 @@ option explicit
 	#undef getcommandline
 	#include once "windows.bi"
 	#undef createevent
-	#undef lockfile '?
 	#include "externs.bi"
 	#include once "win/msacm.bi"
 	#IFNDEF USE_ALLEGRO

@@ -584,8 +584,6 @@ loadpage game$ + ".til", gmap(0), 3
 END SUB
 
 SUB cleanuptemp
- 'we don't have a lockfile if we never got past the browse screen!
- IF lockfile THEN KILL workingdir$ + SLASH + "lockfile.tmp"
  findfiles workingdir$ + SLASH + ALLFILES, 0, tmpdir$ + "filelist.tmp", buffer()
  fh = FREEFILE
   OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh

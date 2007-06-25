@@ -207,7 +207,7 @@ DIM inventory(inventoryMax) as InventSlot
 DIM npcs(npcdMax) as NPCType
 DIM npc(300) as NPCInst
 DIM didgo(0 TO 3)
-DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, tmpdir$, usepreunlump, lockfile, gold, lastsaveslot, abortg, exename$, sourcerpg$, foemaph, presentsong, framex, framey, game$, workingdir$, version$
+DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, tmpdir$, usepreunlump, gold, lastsaveslot, abortg, exename$, sourcerpg$, foemaph, presentsong, framex, framey, game$, workingdir$, version$
 DIM prefsdir$
 DIM savefile$
 DIM timers(15) as timer
@@ -333,11 +333,6 @@ IF autorungame = 0 THEN
   workingdir$ = sourcerpg$
  END IF
 END IF
-
-'--open a lockfile in the working directory to notify other instances
-'--of GAME.EXE that it is taken.
-lockfile = FREEFILE
-OPEN workingdir$ + SLASH + "lockfile.tmp" FOR BINARY AS #lockfile
 
 '-- set up prefs dir
 #IFDEF __FB_LINUX__

@@ -20,7 +20,6 @@ EXTERN speedcontrol
 EXTERN deferpaint
 EXTERN presentsong
 EXTERN foemaph
-EXTERN lockfile
 EXTERN lastsaveslot
 EXTERN abortg
 EXTERN usepreunlump%

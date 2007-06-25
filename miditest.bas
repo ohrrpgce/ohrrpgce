@@ -9,7 +9,6 @@ option explicit
 #include "win/mmsystem.bi"
 #undef MIDIEVENT
 #undef createevent
-#undef lockfile
 #ENDIF
 
 #IFDEF __FB_LINUX__
