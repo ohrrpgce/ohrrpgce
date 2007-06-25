@@ -1449,7 +1449,7 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors(), link
  DIM as integer dmx, dmy, i, tempw, temph
  DIM caption$
  DIM destdoor(300)
- DIM gmap2(20), anim(40)
+ DIM gmap2(dimbinsize(4)), anim(40)
  
  clearpage 2
  
@@ -1474,7 +1474,7 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors(), link
  END IF
  '-----------------EXIT DOOR
  destmap = link(cur + (2 * 200))
- loadrecord gmap2(), game$ + ".map", getbinsize(4) / 2, destmap
+ loadrecord gmap2(), game$ + ".map", dimbinsize(4), destmap
  loadrecord destdoor(), game$ + ".dox", 300, destmap
  LoadTiledata maplumpname$(destmap, "t"), map(), 3, tempw, temph
  loadpage game$ + ".til", gmap2(0), 3

@@ -1665,6 +1665,9 @@ FUNCTION loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 'returns 1 if successful, 0 if failure (eg. file too short)
  dim idx as integer
  if recordsize <= 0 then return 0
+ if ubound(buf) < recordsize - 1 then
+  debug "loadrecord: " & recordsize & " ints will not fit in " & ubound(buf) + 1 & " element array"
+ end if
  dim readbuf(recordsize - 1) as short
 
  if record <> -1 then
