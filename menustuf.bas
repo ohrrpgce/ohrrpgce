@@ -874,7 +874,8 @@ IF sel >= 0 AND ic = -1 THEN
   IF readbit(permask(), 0, 3 + sel) THEN info$ = readglobalstring$(42, "Cannot", 10) + " " + info$ + "!"
  END IF
 END IF
-IF ic < 0 OR inventory(ic).used = 0 THEN RETRACE
+IF ic < 0 THEN RETRACE
+IF inventory(ic).used = 0 THEN RETRACE
 loaditemdata buffer(), inventory(ic).id
 FOR o = 10 TO 9 + buffer(9)
  info$ = info$ + CHR$(buffer(o))
