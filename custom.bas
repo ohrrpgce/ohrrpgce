@@ -126,7 +126,6 @@ ELSE
 END IF
 
 setmodex
-ON ERROR GOTO modeXerr
 setpal master()
 setfont font()
 setdiskpages buffer(), 200, 0
@@ -436,9 +435,16 @@ IF NOT isdir(workingdir$) THEN
  makedir workingdir$
 ELSE
  'check for locked working directory
- ON ERROR GOTO tempDirErr
  safekill (workingdir$ + SLASH + "lockfile.tmp")
- ON ERROR GOTO 0
+ IF ERR THEN
+  PRINT "Either " + CUSTOMEXE + " is already running in the background, or it"
+  PRINT "terminated incorrectly last time it was run, and was unable to clean up"
+  PRINT "its temporary files. The operating system is denying access to the"
+  PRINT "files in " + workingdir$
+  PRINT
+  PRINT "Error code"; ERR
+  SYSTEM
+ END IF
  'Recover from an old crash
  GOSUB cleanup
  clearpage 0
@@ -532,16 +538,6 @@ DO
  dowait
 LOOP
 
-tempDirErr:
-PRINT "Either " + CUSTOMEXE + " is already running in the background, or it"
-PRINT "terminated incorrectly last time it was run, and was unable to clean up"
-PRINT "its temporary files. The operating system is denying access to the"
-PRINT "files in " + workingdir$
-PRINT
-PRINT "Error code"; ERR
-ON ERROR GOTO 0
-SYSTEM
-
 hsimport:
 xbload game$ + ".gen", gen(), "general data is missing, RPG file corruption is likely"
 upgrade font() 'needed?
@@ -552,17 +548,6 @@ GOSUB cleanupfiles
 CHDIR curdir$
 restoremode
 SYSTEM
-
-modeXerr:
-restoremode
-IF LEN(unsafefile$) THEN
- PRINT unsafefile$
- GOSUB cleanupfiles
-END IF
-crashexplain
-'PRINT "Game: " & gamedir$ & SLASH & gamefile$
-'--crash and print the error
-ON ERROR GOTO 0
 
 finis:
 GOSUB cleanupfiles

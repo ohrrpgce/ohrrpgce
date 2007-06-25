@@ -235,9 +235,7 @@ IF isdir(workingdir$) THEN
  'DEBUG debug workingdir$+" already exists"
  touchfile workingdir$ + SLASH + "delete.tmp"
  'DEBUG debug "erasing "+workingdir$+"\"+ALLFILES
- ON ERROR GOTO tempDirErr
  cleanuptemp
- ON ERROR GOTO 0
 ELSE
  makedir workingdir$
 END IF
@@ -267,9 +265,6 @@ getdefaultfont font()
 'DEBUG debug "set mode-X"
 setmodex
 setwindowtitle "O.H.R.RPG.C.E"
-
-'DEBUG debug "init error-handler"
-ON ERROR GOTO modeXerr
 
 'DEBUG debug "set diskpages"
 setdiskpages buffer(), 200, 0
@@ -1566,21 +1561,6 @@ setfmvol fmvol
 restoremode
 RETRIEVESTATE
 GOTO thestart
-
-tempDirErr:
-templockexplain
-ON ERROR GOTO 0
-SYSTEM
-
-modeXerr:
-'--get back to text mode
-restoremode
-quitcleanup
-crashexplain
-'--crash and print the error
-PRINT "Error code"; ERR
-ON ERROR GOTO 0
-exitprogram 0
 
 '--this is what we have dimed for scripts
 '--script(4096), heap(2048), global(1024), scrat(128), nowscript
