@@ -780,7 +780,7 @@ mt = ubound(menu$)
 IF gmap(2) = 0 THEN
  '--minimap not available
  o = 0
- FOR i = 0 TO mt
+ FOR i = 0 TO mt - 1
   IF mi(i) = 2 THEN o = 1: SWAP mi(i), mi(i + 1)
  NEXT i
  IF o = 1 THEN mt = mt - 1
