@@ -167,9 +167,9 @@ DIM as integer jiggle(0), visible(0) = {&b111} 'used as bitsets
 
 DIM heroimg(102), heropal(8)
 
-REDIM map(0)
-REDIM pass(0)
-REDIM emap(0)
+REDIM map(2) ' dummy empty map data, will be resized later
+REDIM pass(2)
+REDIM emap(2)
 
 textcolor 15, 0
 
