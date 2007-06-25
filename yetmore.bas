@@ -792,8 +792,6 @@ CLOSE #foemaph
 'DEBUG debug "Release script stack"
 releasestack
 '--working files
-'DEBUG debug "Touch killfile"
-touchfile workingdir$ + SLASH + "kill.tmp"
 'DEBUG debug "Kill working files"
 
 cleanuptemp

@@ -328,8 +328,6 @@ menu$(10) = "Import/Export Full Maptile Sets"
 RETRACE
 
 chooserpg:
-fh = FREEFILE
-OPEN "rpg.lst" FOR INPUT AS #fh
 last = 2: csr = 1: top = 0
 rpg$(0) = "CREATE NEW GAME"
 rpg$(1) = "LOAD EXISTING GAME"
@@ -553,7 +551,6 @@ END
 
 cleanupfiles:
 IF nocleanup = 0 THEN
- touchfile workingdir$ + SLASH + "kill.tmp"
  'borrowed this code from game.bas cos wildcard didn't work in FB
  findfiles workingdir$ + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
  fh = FREEFILE
@@ -566,7 +563,6 @@ IF nocleanup = 0 THEN
  KILL "filelist.tmp"
  RMDIR workingdir$
 END IF
-safekill "rpg.lst"
 safekill "temp.lst"
 RETRACE
 
