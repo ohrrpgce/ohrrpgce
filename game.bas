@@ -771,7 +771,7 @@ RETRACE
 
 usermenu:
 setusermenu menu$(), mi()
-mt = ubound(menu$)
+mt = ubound(menu$) - 1
 IF gmap(2) = 0 THEN
  '--minimap not available
  o = 0
