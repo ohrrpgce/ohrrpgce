@@ -194,7 +194,7 @@ DIM font(1024), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
 DIM door(206), gen(104), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev&(40, 1), names$(40), gotj(2), veh(21)
 DIM eqstuf(40, 4), gmap(dimbinsize(4)), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
-DIM menu$(8), mi(8)
+DIM menu$(9), mi(9)
 
 'shared module variables
 DIM SHARED cycle(1), cycptr(1), cycskip(1), tastuf(40), stat(40, 1, 16)
@@ -788,7 +788,7 @@ END IF
 IF gmap(3) = 0 THEN
  '--save not available
  o = 0
- FOR i = 0 TO mt
+ FOR i = 0 TO mt - 1
   IF mi(i) = 6 THEN o = 1: SWAP mi(i), mi(i + 1)
  NEXT i
  IF o = 1 THEN mt = mt - 1
