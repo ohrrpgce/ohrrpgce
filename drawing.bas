@@ -750,7 +750,7 @@ SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, file
 STATIC default$, spriteclip(1600), clippedpal, clippedw, clippedh, paste
 DIM nulpal(8), placer(1602), pclip(8), menu$(255), pmenu$(3), bmpd(40), mouse(4), area(20, 4), tool$(5), icon$(5), shortk(5), cursor(5)
 DIM workpal(8 * (atatime + 1))
-DIM poffset(sets)
+DIM poffset(large(sets, atatime))
 spritefile$ = game$ + ".pt" + STR$(fileset)
 
 gotm = setmouse(mouse())
@@ -840,7 +840,6 @@ DO
    NEXT i
    storeset spritefile$, pt, 0
    '--add a new blank default palette
-   REDIM PRESERVE poffset(sets)
    poffset(pt) = 0
    GOSUB loadalluc
   END IF
