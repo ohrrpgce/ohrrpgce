@@ -438,7 +438,7 @@ END SUB
 
 SUB gendata ()
 STATIC default$
-CONST maxMenu = 32
+CONST maxMenu = 31
 DIM m$(maxMenu), max(maxMenu), bitname$(16)
 DIM names$(32), stat$(11), menutop
 getnames names$(), 32
@@ -464,9 +464,8 @@ m$(1) = "Preference Bitsets..."
 m$(8) = "Special Sound Effects..."
 m$(9) = "Password For Editing..."
 m$(10) = "Pick Title Screen..."
-m$(11) = "THIS SPACE FOR RENT"
-m$(13) = "Special PlotScripts..."
-m$(16) = "View Master Palettes..."
+m$(12) = "Special PlotScripts..."
+m$(15) = "View Master Palettes..."
 max(1) = 1
 max(2) = 320
 max(3) = 200
@@ -475,19 +474,19 @@ max(5) = gen(genMaxSong)
 max(6) = gen(genMaxSong)
 max(7) = gen(genMaxSong)
 max(9) = 0
-max(12) = 32000
-max(17) = 255 'poison
-max(18) = 255 'stun
-max(19) = 255 'mute
-max(20) = 32767
-FOR i = 21 to 22 'shut up
+max(11) = 32000
+max(16) = 255 'poison
+max(17) = 255 'stun
+max(18) = 255 'mute
+max(19) = 32767
+FOR i = 20 to 21 'shut up (~snicker~)
  max(i) = 9999 'HP + MP
 NEXT
-FOR i = 23 to 30
+FOR i = 22 to 29
  max(i) = 999 'Regular stats
 NEXT
-max(31) = 100 'MP~
-max(32) = 20  'Extra Hits
+max(30) = 100 'MP~
+max(31) = 20  'Extra Hits
 
 pas$ = ""
 aboutline$ = ""
@@ -545,25 +544,24 @@ DO
   END IF
   IF csr = 8 THEN generalsfxmenu
   IF csr = 10 THEN titlescreenbrowse
-  'IF csr = 11 THEN GOSUB renrpg
-  IF csr = 13 THEN generalscriptsmenu
-  IF csr = 16 THEN masterpalettemenu
+  IF csr = 12 THEN generalscriptsmenu
+  IF csr = 15 THEN masterpalettemenu
   IF csr = 9 THEN GOSUB inputpasw
- IF csr = 17 THEN
+ IF csr = 16 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
   gen(genPoison) = ASC(d$)
    GOSUB genstr
   END IF
  END IF
- IF csr = 18 THEN
+ IF csr = 17 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
   gen(genStun) = ASC(d$)
    GOSUB genstr
   END IF
  END IF
- IF csr = 19 THEN
+ IF csr = 18 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
   gen(genMute) = ASC(d$)
@@ -578,31 +576,31 @@ DO
  IF csr > 4 AND csr < 8 THEN
   IF zintgrabber(gen(csr - 3), -1, max(csr), 75, 77) THEN GOSUB genstr
  END IF
- IF csr = 12 THEN
+ IF csr = 11 THEN
   IF intgrabber(gen(96), 0, max(csr), 75, 77) THEN GOSUB genstr
  END IF
- IF csr = 14 THEN
+ IF csr = 13 THEN
   strgrabber longname$, 38
   GOSUB genstr
  END IF
- IF csr = 15 THEN
+ IF csr = 14 THEN
   strgrabber aboutline$, 38
   GOSUB genstr
  END IF
- IF csr = 17 THEN
+ IF csr = 16 THEN
   IF intgrabber(gen(genPoison), 32, max(csr), 75, 77) THEN GOSUB genstr
  END IF
- IF csr = 18 THEN
+ IF csr = 17 THEN
   IF intgrabber(gen(genStun), 32, max(csr), 75, 77) THEN GOSUB genstr
  END IF
- IF csr = 19 THEN
+ IF csr = 18 THEN
   IF intgrabber(gen(genMute), 32, max(csr), 75, 77) THEN GOSUB genstr
  END IF
- IF csr = 20 THEN
+ IF csr = 19 THEN
   IF intgrabber(gen(genDamageCap), 0, max(csr), 75, 77) THEN GOSUB genstr
  END IF
- IF csr >= 21 AND csr <= 32 THEN
-  IF intgrabber(gen(genStatCap + (csr - 21)), 0, max(csr), 75, 77) THEN GOSUB genstr
+ IF csr >= 20 AND csr <= 31 THEN
+  IF intgrabber(gen(genStatCap + (csr - 20)), 0, max(csr), 75, 77) THEN GOSUB genstr
  END IF
 
  standardmenu m$(), last, 22, csr, menutop, 0, 0, dpage, 0
@@ -630,17 +628,17 @@ m$(6) = "Battle Victory Music: "
 IF gen(3) = 0 THEN m$(6) = m$(6) & "-none-" ELSE m$(6) = m$(6) & (gen(3) - 1) & " " & getsongname$(gen(3) - 1)
 m$(7) = "Default Battle Music: "
 IF gen(4) = 0 THEN m$(7) = m$(7) & "-none-" ELSE m$(7) = m$(7) & (gen(4) - 1) & " " & getsongname$(gen(4) - 1)
-m$(12) = "Starting Money: " & gen(96)
-m$(14) = "Long Name:" + longname$
-m$(15) = "About Line:" + aboutline$
-m$(17) = "Poison Indicator: " & gen(61) & " " & CHR$(gen(61))
-m$(18) = "Stun Indicator: " & gen(62) & " " & CHR$(gen(62))
-m$(19) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
-m$(20) = "Damage Cap: "
-if gen(genDamageCap) = 0 THEN m$(20) = m$(20) + "None" ELSE m$(20) = m$(20) & gen(genDamageCap)
+m$(11) = "Starting Money: " & gen(96)
+m$(13) = "Long Name:" + longname$
+m$(14) = "About Line:" + aboutline$
+m$(16) = "Poison Indicator: " & gen(61) & " " & CHR$(gen(61))
+m$(17) = "Stun Indicator: " & gen(62) & " " & CHR$(gen(62))
+m$(18) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
+m$(19) = "Damage Cap: "
+if gen(genDamageCap) = 0 THEN m$(19) = m$(19) + "None" ELSE m$(19) = m$(19) & gen(genDamageCap)
 FOR i = 0 to 11
- m$(21 + i) = stat$(i) + " Cap: "
- if gen(genStatCap + i) = 0 THEN m$(21 + i) = m$(21 + i) + "None" ELSE m$(21 + i) = m$(21 + i) & gen(genStatCap + i)
+ m$(20 + i) = stat$(i) + " Cap: "
+ if gen(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + "None" ELSE m$(20 + i) = m$(20 + i) & gen(genStatCap + i)
 NEXT
 RETRACE
 
