@@ -60,6 +60,7 @@ DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 DECLARE SUB masterpalettemenu ()
 DECLARE FUNCTION importmasterpal (f$, palnum%)
+DECLARE SUB titlescreenbrowse ()
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -543,7 +544,7 @@ DO
    editbitset gen(), 101, 16, bitname$()
   END IF
   IF csr = 8 THEN generalsfxmenu
-  IF csr = 10 THEN GOSUB ttlbrowse
+  IF csr = 10 THEN titlescreenbrowse
   IF csr = 11 THEN GOSUB renrpg
   IF csr = 13 THEN generalscriptsmenu
   IF csr = 16 THEN masterpalettemenu
@@ -641,37 +642,6 @@ FOR i = 0 to 11
  m$(21 + i) = stat$(i) + " Cap: "
  if gen(genStatCap + i) = 0 THEN m$(21 + i) = m$(21 + i) + "None" ELSE m$(21 + i) = m$(21 + i) & gen(genStatCap + i)
 NEXT
-RETRACE
-
-ttlbrowse:
-setdiskpages buffer(), 200, 0
-GOSUB gshowpage
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN RETRACE
- IF keyval(72) > 1 AND gcsr = 1 THEN gcsr = 0
- IF keyval(80) > 1 AND gcsr = 0 THEN gcsr = 1
- IF gcsr = 1 THEN
-  IF intgrabber(gen(1), 0, gen(100) - 1, 75, 77) THEN GOSUB gshowpage
- END IF
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
-  IF gcsr = 0 THEN RETRACE
- END IF
- col = 7: IF gcsr = 0 THEN col = 14 + tog
- edgeprint "Go Back", 1, 1, col, dpage
- col = 7: IF gcsr = 1 THEN col = 14 + tog
- edgeprint CHR$(27) + "Browse" + CHR$(26), 1, 11, col, dpage
- SWAP vpage, dpage
- setvispage vpage
- copypage 2, dpage
- dowait
-LOOP
-
-gshowpage:
-loadpage game$ + ".mxs", gen(1), 2
 RETRACE
 
 savepass:
@@ -1586,3 +1556,33 @@ IF f$ <> "" THEN
 END IF
 RETURN 0
 END FUNCTION
+
+SUB titlescreenbrowse
+setdiskpages buffer(), 200, 0
+loadpage game$ + ".mxs", gen(1), 2
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(72) > 1 AND gcsr = 1 THEN gcsr = 0
+ IF keyval(80) > 1 AND gcsr = 0 THEN gcsr = 1
+ IF gcsr = 1 THEN
+  IF intgrabber(gen(1), 0, gen(100) - 1, 75, 77) THEN 
+   loadpage game$ + ".mxs", gen(1), 2
+  END IF
+ END IF
+ IF keyval(57) > 1 OR keyval(28) > 1 THEN
+  IF gcsr = 0 THEN EXIT DO
+ END IF
+ col = 7: IF gcsr = 0 THEN col = 14 + tog
+ edgeprint "Go Back", 1, 1, col, dpage
+ col = 7: IF gcsr = 1 THEN col = 14 + tog
+ edgeprint CHR$(27) + "Browse" + CHR$(26), 1, 11, col, dpage
+ SWAP vpage, dpage
+ setvispage vpage
+ copypage 2, dpage
+ dowait
+LOOP
+END SUB
