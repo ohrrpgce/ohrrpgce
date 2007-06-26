@@ -645,18 +645,18 @@ DO
     IF keyval(2 + i) > 1 THEN
      old = readmapblock(x, y, layer)
      IF old > 159 + (i * 48) THEN
-      new = (old - (160 + (i * 48))) + tastuf(i * 20)
+      newtile = (old - (160 + (i * 48))) + tastuf(i * 20)
      ELSE
       IF old >= tastuf(i * 20) AND old < tastuf(i * 20) + 48 THEN
-       new = 160 + (i * 48) + (old - tastuf(i * 20))
+       newtile = 160 + (i * 48) + (old - tastuf(i * 20))
       END IF
      END IF
      IF keyval(29) = 0 THEN
-      setmapblock x, y, layer, new
+      setmapblock x, y, layer, newtile
      ELSE
       FOR tx = 0 TO map(0)
        FOR ty = 0 TO map(1)
-        IF readmapblock(tx, ty, layer) = old THEN setmapblock tx, ty, layer, new
+        IF readmapblock(tx, ty, layer) = old THEN setmapblock tx, ty, layer, newtile
        NEXT ty
       NEXT tx
      END IF

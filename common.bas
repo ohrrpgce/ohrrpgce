@@ -468,17 +468,13 @@ SUB getui (colarray(), palnum)
 'load ui colors from data lump
 '(lump not finalised, just set defaults for now)
 
-RESTORE defaultui
+DIM uidef(uiColors) = {0,7,8,14,15,6,7,1,2,18,21,35,37,15,240,10,14,240, _
+        18,28,34,44,50,60,66,76,82,92,98,108,114,124,130,140, _
+        146,156,162,172,178,188,194,204,210,220,226,236,242,252}
+
 FOR i=0 TO uiColors
- READ col%
- colarray(i) = col%
+ colarray(i) = uidef(i)
 NEXT
-
-defaultui:
-DATA 0,7,8,14,15,6,7,1,2,18,21,35,37,15,240,10,14,240
-DATA 18,28,34,44,50,60,66,76,82,92,98,108,114,124,130,140
-DATA 146,156,162,172,178,188,194,204,210,220,226,236,242,252
-
 END SUB
 
 SUB safekill (f$)

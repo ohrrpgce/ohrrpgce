@@ -166,19 +166,16 @@ FUNCTION cropmovement (x, y, xgo, ygo)
 END FUNCTION
 
 SUB defaultc
- RESTORE ctrldata
+ DIM cconst(12) = {72,80,75,77,57,28,29,1,56,1,15,36,51}
+ DIM joyconst(3) = {150,650,150,650}
+
  FOR i = 0 TO 12
-  READ csetup(i)
+  csetup(i) = cconst(i)
  NEXT i
  FOR i = 9 TO 12
-  READ joy(i)
+  joy(i) = joyconst(i - 9)
  NEXT i
  EXIT SUB
-
-ctrldata:
-DATA 72,80,75,77,57,28,29,1,56,1,15,36,51
-DATA 150,650,150,650
-
 END SUB
 
 SUB drawnpcs
@@ -649,17 +646,17 @@ SYSTEM
 END SUB
 
 SUB keyboardsetup
-RESTORE keyconst
-keyconst:
+DIM keyconst(103) as string = {"1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/", _
+"!","@","#","$","%","^","&","*","(",")","_","+","","","Q","W","E","R","T","Y","U","I","O","P","{","}","","","A","S","D","F","G","H","J","K","L",":"," ","~","","|","Z","X","C","V","B","N","M","<",">","?"}
+
 FOR o = 0 TO 1
  FOR i = 2 TO 53
-  READ temp$
+  temp$ = keyconst$((i - 2) + o * 52)
   IF temp$ <> "" THEN keyv(i, o) = ASC(temp$) ELSE keyv(i, o) = 0
  NEXT i
 NEXT o
 keyv(40, 1) = 34
-DATA "1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/"
-DATA "!","@","#","$","%","^","&","*","(",")","_","+","","","Q","W","E","R","T","Y","U","I","O","P","{","}","","","A","S","D","F","G","H","J","K","L",":"," ","~","","|","Z","X","C","V","B","N","M","<",">","?"
+
 END SUB
 
 SUB verquit

@@ -20,8 +20,8 @@ large = n1
 IF n2 > n1 THEN large = n2
 END FUNCTION
 
-FUNCTION loopvar (var, min, max, inc)
-a = var + inc
+FUNCTION loopvar (value, min, max, inc)
+a = value + inc
 IF a > max THEN a = a - ((max - min) + 1): loopvar = a: EXIT FUNCTION
 IF a < min THEN a = a + ((max - min) + 1): loopvar = a: EXIT FUNCTION
 loopvar = a
