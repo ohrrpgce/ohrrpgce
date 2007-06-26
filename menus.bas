@@ -464,7 +464,7 @@ m$(1) = "Preference Bitsets..."
 m$(8) = "Special Sound Effects..."
 m$(9) = "Password For Editing..."
 m$(10) = "Pick Title Screen..."
-m$(11) = "Rename Game..."
+m$(11) = "THIS SPACE FOR RENT"
 m$(13) = "Special PlotScripts..."
 m$(16) = "View Master Palettes..."
 max(1) = 1
@@ -545,7 +545,7 @@ DO
   END IF
   IF csr = 8 THEN generalsfxmenu
   IF csr = 10 THEN titlescreenbrowse
-  IF csr = 11 THEN GOSUB renrpg
+  'IF csr = 11 THEN GOSUB renrpg
   IF csr = 13 THEN generalscriptsmenu
   IF csr = 16 THEN masterpalettemenu
   IF csr = 9 THEN GOSUB inputpasw
@@ -664,74 +664,6 @@ buffer(0) = bound(LEN(aboutline$), 0, 38)
 str2array aboutline$, buffer(), 2
 storeset workingdir$ + SLASH + "browse.txt", 1, 0
 RETRACE
-
-renrpg:
-oldgame$ = RIGHT$(game$, LEN(game$) - 12)
-newgame$ = oldgame$
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN RETRACE
- strgrabber newgame$, 8
- fixfilename newgame$
- IF keyval(28) > 1 THEN
-  IF oldgame$ <> newgame$ AND newgame$ <> "" THEN
-   IF NOT isfile(newgame$ + ".rpg") THEN
-    textcolor 10, 0
-    printstr "Finding files...", 0, 30, vpage
-    findfiles workingdir$ + SLASH + oldgame$ + ".*", 0, "temp.lst", buffer()
-    fh = FREEFILE
-    OPEN "temp.lst" FOR APPEND AS #fh
-    PRINT #fh, "-END OF LIST-"
-    CLOSE #fh
-    fh = FREEFILE
-    OPEN "temp.lst" FOR INPUT AS #fh
-    textcolor 10, 0
-    printstr "Renaming Lumps...", 0, 40, vpage
-    textcolor 15, 2
-    DO
-     LINE INPUT #fh, temp$
-     IF temp$ = "-END OF LIST-" THEN EXIT DO
-     printstr " " + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)) + " ", 0, 50, vpage
-     setvispage vpage
-     copyfile workingdir$ + SLASH + temp$, workingdir$ + SLASH + newgame$ + RIGHT$(temp$, LEN(temp$) - LEN(oldgame$)), buffer()
-     KILL workingdir$ + SLASH + temp$
-    LOOP
-    CLOSE #fh
-    safekill "temp.lst"
-    '--update archinym information lump
-    fh = FREEFILE
-    IF isfile(workingdir$ + SLASH + "archinym.lmp") THEN
-     OPEN workingdir$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
-     LINE INPUT #fh, oldversion$
-     LINE INPUT #fh, oldversion$
-     CLOSE #fh
-    END IF
-    OPEN workingdir$ + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
-    PRINT #fh, newgame$
-    PRINT #fh, oldversion$
-    CLOSE #fh
-    game$ = workingdir$ + SLASH + newgame$
-   ELSE '---IN CASE FILE EXISTS
-    edgeprint newgame$ + " Already Exists. Cannot Rename.", 0, 30, 15, vpage
-    setvispage vpage
-    w = getkey
-   END IF '---END IF OKAY TO COPY
-  END IF '---END IF VALID NEW ENTRY
-  RETRACE
- END IF
- textcolor 7, 0
- printstr "Current Name: " + oldgame$, 0, 0, dpage
- printstr "Type New Name and press ENTER", 0, 10, dpage
- textcolor 14 + tog, 2
- printstr newgame$, 0, 20, dpage
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
 
 inputpasw:
 setkeys
