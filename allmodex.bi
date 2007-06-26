@@ -108,6 +108,8 @@ DECLARE FUNCTION stackpos ()
 DECLARE FUNCTION readstackdw (BYVAL off)
 DECLARE SUB drawbox(BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL c, BYVAL p)
 DECLARE FUNCTION isawav(fi$)
+DECLARE FUNCTION fileisreadable(f$)
+DECLARE FUNCTION fileiswriteable(f$)
 
 DECLARE SUB setupsound ()
 DECLARE SUB closesound ()

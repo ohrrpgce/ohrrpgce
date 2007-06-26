@@ -1279,12 +1279,9 @@ SUB storepage (fil$, BYVAL i as integer, BYVAL p as integer)
 		wrkpage = p
 	end if
 
+	if NOT fileiswriteable(fil$) then exit sub
 	f = freefile
 	open fil$ for binary access read write as #f
-	if err > 0 then
-		'debug "Couldn't open " + fil$
-		exit sub
-	end if
 
 	'skip to index
 	seek #f, (i*64000) + 1 'will this work with write access?
@@ -1318,12 +1315,9 @@ SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
 		wrkpage = p
 	end if
 
+	if NOT fileisreadable(fil$) then exit sub
 	f = freefile
 	open fil$ for binary access read as #f
-	if err > 0 then
-		'debug "Couldn't open " + fil$
-		exit sub
-	end if
 
 	'skip to index
 	seek #f, (i*64000) + 1
@@ -1527,12 +1521,9 @@ SUB storeset (fil$, BYVAL i as integer, BYVAL l as integer)
 	dim toggle as integer
 	dim sptr as ubyte ptr
 
+	if NOT fileiswriteable(fil$) then exit sub
 	f = freefile
 	open fil$ for binary access read write as #f
-	if err > 0 then
-		'debug "Couldn't open " + fil$
-		exit sub
-	end if
 
 	seek #f, (i*bsize) + 1 'does this work properly with write?
 	'this is a horrible hack to get 2 bytes per integer, even though
@@ -1573,12 +1564,9 @@ SUB loadset (fil$, BYVAL i as integer, BYVAL l as integer)
 	dim toggle as integer
 	dim sptr as ubyte ptr
 
+	if NOT fileisreadable(fil$) then exit sub
 	f = freefile
 	open fil$ for binary access read as #f
-	if err > 0 then
-		'debug "Couldn't open " + fil$
-		exit sub
-	end if
 
 	seek #f, (i*bsize) + 1
 	'this is a horrible hack to get 2 bytes per integer, even though
@@ -1688,15 +1676,15 @@ FUNCTION loadrecord (buf() as integer, filen$, recordsize as integer, record as 
 
   if recordsize <= 0 then return 0
 
-	f = freefile
-	open filen$ for binary access read as #f
-	if err > 0 then
+	if NOT fileisreadable(filen$) then
 		debug "File not found loading record " & record & " from " & filen$
 		for i = 0 to recordsize - 1
 			buf(i) = 0
-		next	
+		next
 		return 0
 	end if
+	f = freefile
+	open filen$ for binary access read as #f
 
 	loadrecord = loadrecord (buf(), f, recordsize, record)
 	close #f
@@ -1720,12 +1708,9 @@ SUB storerecord (buf() as integer, filen$, recordsize as integer, record as inte
 'wrapper for above
 	dim f as integer
 
+	if NOT fileiswriteable(filen$) then exit sub
 	f = freefile
 	open filen$ for binary access read write as #f
-	if err > 0 then
-		'debug "Couldn't open " + filen$
-		exit sub
-	end if
 
 	storerecord buf(), f, recordsize, record
 	close #f
@@ -1833,12 +1818,9 @@ SUB unlumpfile (lump$, fmask$, path$)
 	dim bufr as ubyte ptr
 	dim nowildcards as integer = 0
 
+	if NOT fileisreadable(lump$) then exit sub
 	lf = freefile
 	open lump$ for binary access read as #lf
-	if err > 0 then
-		'debug "Could not open file " + lump$
-		exit sub
-	end if
 	maxsize = LOF(lf)
 
 	bufr = allocate(16383)
@@ -1900,12 +1882,9 @@ SUB unlumpfile (lump$, fmask$, path$)
 				dim of as integer
 				dim csize as integer
 
+				if NOT fileiswriteable(path$ + lname) then exit while
 				of = freefile
 				open path$ + lname for binary access write as #of
-				if err > 0 then
-					'debug "Could not open file " + path$ + lname
-					exit while
-				end if
 
 				'copy the data
 				while size > 0
@@ -1950,17 +1929,14 @@ FUNCTION islumpfile (lump$, fmask$)
 	dim lname as string
 	dim i as integer
 
-    islumpfile = 0
+	islumpfile = 0
 
+	if NOT fileisreadable(lump$) then exit function
 	lf = freefile
 	open lump$ for binary access read as #lf
-	if err > 0 then
-		'debug "Could not open file " + lump$
-		exit function
-	end if
 	maxsize = LOF(lf)
 
-    get #lf, , dat	'read first byte
+	get #lf, , dat	'read first byte
 	while not eof(lf)
 		'get lump name
 		lname = ""
@@ -2321,12 +2297,9 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as RGBcolor)
 		info.biClrUsed = biClrUsed
 		info.biClrImportant = biClrUsed
 
+		if NOT fileiswriteable(f$) then exit sub
 		of = freefile
 		open f$ for binary access write as #of
-		if err > 0 then
-			'debug "Couldn't open " + f$
-			exit sub
-		end if
 
 		put #of, , header
 		put #of, , info
@@ -2697,12 +2670,9 @@ SUB bitmap2page (pal() as RGBcolor, bmp$, BYVAL p)
 	dim ub as ubyte
 	dim pad as integer
 
+	if NOT fileisreadable(bmp$) then exit sub
 	bf = freefile
 	open bmp$ for binary access read as #bf
-	if err > 0 then
-		'debug "Couldn't open " + bmp$
-		exit sub
-	end if
 
 	get #bf, , header
 	if header.bfType <> 19778 then
@@ -2809,12 +2779,9 @@ SUB bitmap2pal (bmp$, pal() as RGBcolor)
 	dim bf as integer
 	dim as integer w, h 
 
+	if NOT fileisreadable(bmp$) then exit sub
 	bf = freefile
 	open bmp$ for binary access read as #bf
-	if err > 0 then
-		'debug "Couldn't open " + bmp$
-		exit sub
-	end if
 
 	get #bf, , header
 	if header.bfType <> 19778 then
@@ -2857,12 +2824,9 @@ SUB loadbmp (f$, BYVAL x, BYVAL y, BYVAL p)
 	dim i as integer
 	dim col as RGBQUAD
 
+	if NOT fileisreadable(f$) then exit sub
 	bf = freefile
 	open f$ for binary access read as #bf
-	if err > 0 then
-		'debug "Couldn't open " + f$
-		exit sub
-	end if
 
 	get #bf, , header
 	if header.bfType <> 19778 then
@@ -3039,12 +3003,9 @@ FUNCTION loadbmppal (f$, pal() as RGBcolor)
 	dim bf as integer
 	dim i as integer
 
+	if NOT fileisreadable(f$) then exit function
 	bf = freefile
 	open f$ for binary access read as #bf
-	if err > 0 then
-		'debug "Couldn't open " + f$
-		exit function
-	end if
 
 	get #bf, , header
 	if header.bfType <> 19778 then
@@ -3109,13 +3070,9 @@ FUNCTION bmpinfo (f$, dat())
 	dim info as BITMAPINFOHEADER
 	dim bf as integer
 
+	if NOT fileisreadable(f$) then return 0
 	bf = freefile
 	open f$ for binary access read as #bf
-	if err > 0 then
-		'debug "Couldn't open " + f$
-		bmpinfo = 0
-		exit function
-	end if
 
 	get #bf, , header
 	if header.bfType <> 19778 then
@@ -3308,3 +3265,57 @@ Function sfxisplaying(BYVAL num)
   return sound_playing(num)
 end Function
 
+Function fileisreadable(f$)
+#ifdef EXXERROR
+	on local error goto fileisreadableerror
+#endif
+	dim as integer fh, forcefail
+	forcefail = 0
+	fh = freefile
+	open f$ for binary access read as #fh
+	if err > 0 or forcefail then
+		'debug "Couldn't open " + f$
+		return 0 
+	end if
+	close #fh
+	return -1
+#ifdef EXXERROR
+fileisreadableerror:
+	if err = 2 then
+		debug f$ & " unreadable (ignored)"
+		forcefail = -1
+		resume next
+	end if
+	on local error goto 0
+	resume  
+#endif
+end Function
+
+Function fileiswriteable(f$)
+#ifdef EXXERROR
+	on local error goto fileiswriteableerror
+#endif
+	dim as integer fh, forcefail
+	forcefail = 0
+	fh = freefile
+	open f$ for binary access read write as #fh
+	if err > 0 or forcefail then
+		'debug "Couldn't open " + f$
+		forcefail = -1
+		return 0 
+	end if
+	close #fh
+	return -1
+#ifdef EXXERROR
+fileiswriteableerror:
+	if err = 1 then 'closing an unopened file means the open failed
+		return 0
+	end if
+	if err = 2 then
+		debug f$ & " unreadable (ignored)"
+		resume next
+	end if
+	on local error goto 0
+	resume  
+#endif
+end Function
