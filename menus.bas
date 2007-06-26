@@ -488,11 +488,29 @@ NEXT
 max(31) = 100 'MP~
 max(32) = 20  'Extra Hits
 
+pas$ = ""
 aboutline$ = ""
 longname$ = ""
 csr = 0
 
-GOSUB loadpass
+IF gen(5) >= 256 THEN
+ '--new simple format
+ pas$ = readpassword$
+ELSE
+ '--old scattertable format
+ readscatter pas$, gen(94), 200
+ pas$ = rotascii(pas$, gen(93) * -1)
+END IF
+IF isfile(workingdir$ + SLASH + "browse.txt") THEN
+ setpicstuf buffer(), 40, -1
+ loadset workingdir$ + SLASH + "browse.txt", 0, 0
+ longname$ = STRING$(bound(buffer(0), 0, 38), " ")
+ array2str buffer(), 2, longname$
+ loadset workingdir$ + SLASH + "browse.txt", 1, 0
+ aboutline$ = STRING$(bound(buffer(0), 0, 38), " ")
+ array2str buffer(), 2, aboutline$
+END IF
+
 GOSUB genstr
 setkeys
 DO
@@ -654,26 +672,6 @@ LOOP
 
 gshowpage:
 loadpage game$ + ".mxs", gen(1), 2
-RETRACE
-
-loadpass:
-IF gen(5) >= 256 THEN
- '--new simple format
- pas$ = readpassword$
-ELSE
- '--old scattertable format
- readscatter pas$, gen(94), 200
- pas$ = rotascii(pas$, gen(93) * -1)
-END IF
-IF isfile(workingdir$ + SLASH + "browse.txt") THEN
- setpicstuf buffer(), 40, -1
- loadset workingdir$ + SLASH + "browse.txt", 0, 0
- longname$ = STRING$(bound(buffer(0), 0, 38), " ")
- array2str buffer(), 2, longname$
- loadset workingdir$ + SLASH + "browse.txt", 1, 0
- aboutline$ = STRING$(bound(buffer(0), 0, 38), " ")
- array2str buffer(), 2, aboutline$
-END IF
 RETRACE
 
 savepass:
