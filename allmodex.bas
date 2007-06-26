@@ -2088,10 +2088,9 @@ SUB lumpfiles (listf$, lump$, path$)
 END SUB
 
 FUNCTION isfile (n$) as integer
-    ' I'm assuming we don't count directories as files
-	  'return dir$(n$) <> ""
-	  dim ret as integer = dir$(n$, 255 xor 16) <> ""
-	  return ret
+	' directories don't count as files
+	' this is a simple wrapper for fileisreadable
+	return fileisreadable(n$)
 END FUNCTION
 
 FUNCTION isdir (sDir$) as integer
