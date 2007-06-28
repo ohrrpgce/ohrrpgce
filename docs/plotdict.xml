@@ -120,6 +120,7 @@ have to do it manually, but you MUST do it. Remember: 1 indent = 1 tab.
 		<command id="definescript">
 			<cannon>define script (id,name,arguments)</cannon>
 			<shortname>define script</shortname>
+			<deprecated>ubersetzung</deprecated>
 			<description>The define script command names a script, and associates it with an ID number. Every script must have a unique ID number for your game to call it directly (scripts that will only be called indirectly, by other scripts can use the special ID autonumber). The first argument is the <p>ID number</p>. It is a number between 1 and 16383. If you try to give two individual scripts the same <p>ID number</p>, your script file will not compile. The next argument is the <p>name</p> of the script. this is the same name that will used later in your script command. The third argument is the number of arguments that the script can accept. If it doesnt need any arguments (most scripts dont) then use <ref>none</ref>. If there are arguments, you then follow the argument count with default values for each argument.</description>
 			<example># example of a simple script definition
 define script (1,my first script,none)</example>
@@ -203,6 +204,7 @@ wait for key(cancel key)</example>
 		<command id="waitforscancode">
 			<cannon>wait for scancode (key)</cannon>
 			<shortname>wait for scancode</shortname>
+			<added>ubersetzung</added>
 			<description>Waits for the player to press a specific key. You can use any of the constants from <ref>keyispressed</ref> to specify the key. <note>You must <ref>include</ref> scancode.hsi to use these constants.</note></description>
 			<example>show text box(624) # "press P!"
 wait for scancode(key:P)</example>
@@ -317,10 +319,12 @@ resume caterpillar # normal game again.</example>
 		<command id="suspendcatapillar">
 			<alias>suspendcaterpillar</alias>
 			<shortname>suspend catapillar</shortname>
+			<deprecated>May 22 2001</deprecated>
 		</command>
 		<command id="resumecatapillar">
 			<alias>resumecaterpillar</alias>
 			<shortname>resume catapillar</shortname>
+			<deprecated>May 22 2001</deprecated>
 		</command>
 		<command id="suspendrandomenemies">
 			<cannon>suspend random enemies</cannon>
@@ -373,6 +377,7 @@ resume box advance # go back to normal</example>
 		<command id="suspendmapmusic">
 			<cannon>suspend map music</cannon>
 			<shortname>suspend map music</shortname>
+			<added>serendipity</added>
 			<description>Causes ambient music not to automatically play when you enter a map. Does not affect the currently playing music, or the map's ambient music. Use when playing thematic music during a scene that involves changing maps.</description>
 			<example># begin scene
 play song(song:Happy Times)
@@ -395,6 +400,7 @@ play song (get ambient music)</example>
 		<command id="resumemapmusic">
 			<cannon>resume map music</cannon>
 			<shortname>resume map music</shortname>
+			<added>serendipity</added>
 			<description>Causes ambient music to automatically start playing when you enter a map again after a <ref>suspendmapmusic</ref> command.</description>
 		</command>
 	</section>
@@ -1989,6 +1995,40 @@ end</example>
 			<cannon>return(value)</cannon>
 			<shortname>return</shortname>
 			<description>Sets the value to be returned by the script. This is only useful when the script has been called as a function from another script. It is irrelevant to scripts called directly from your RPG. This command does NOT cause the script to terminate, it just sets the return value. If return is used more than once in the same script, only the last one executed matters</description>
+			<seealso>
+				<ref>exit returning</ref>
+			</seealso>
+		</command>
+		<command id="exitreturning">
+			<cannon>exit returning(value)</cannon>
+			<shortname>exit returning</shortname>
+			<added>ubersetzung</added>
+			<description>Sets the value to be returned by the script, and exits the script. This is only useful when the script has been called as a function from another script.</description>
+			<seealso>
+				<ref>return</ref>
+				<ref>exit script</ref>
+			</seealso>
+		</command>
+		<command id="exitscript">
+			<cannon>exit script</cannon>
+			<shortname>exit script</shortname>
+			<added>ubersetzung</added>
+			<description>Causes the script to end immediately</description>
+			<seealso>
+				<ref>exit returning</ref>
+			</seealso>
+		</command>
+		<command id="break">
+			<cannon>break</cannon>
+			<shortname>break</shortname>
+			<added>ubersetzung</added>
+			<description>breaks out of a <ref>for</ref> or <ref>while</ref> command and continue the script after the end of the <ref>do</ref> block</description>
+		</command>
+		<command id="continue">
+			<cannon>continue</cannon>
+			<shortname>continue</shortname>
+			<added>ubersetzung</added>
+			<description>When used inside the <ref>do</ref> block of a <ref>for</ref> or <ref>while</ref> command, continue skips the rest of the do block and continues on to the next loop. When used inside a <ref>switch</ref> statement, continue flows on to the next <ref>case</ref> block</description>
 		</command>
 	</section>
 	<section title="Advanced Commands">
