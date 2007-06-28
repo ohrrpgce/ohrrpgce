@@ -841,6 +841,8 @@ DO
     buffer(i) = 0
    NEXT i
    storeset spritefile$, pt, 0
+   '-- re-size the array that stores the default palette offset
+   REDIM PRESERVE poffset(large(sets, atatime))
    '--add a new blank default palette
    poffset(pt) = 0
    GOSUB loadalluc
