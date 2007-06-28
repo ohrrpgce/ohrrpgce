@@ -1750,6 +1750,7 @@ centerbox 206, 36, 200, 20, 2, 3 	'name box
 centerbox 60, 50, 82, 60, 2, 3		'menu box
 centerbox 160, 133, 308, 94, 2, 3	'spell list
 rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), 3	'divider 2
+csr = 0
 setkeys
 DO
  setwait timing(), speedcontrol

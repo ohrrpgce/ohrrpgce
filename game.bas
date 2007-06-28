@@ -422,6 +422,7 @@ wantbattle = 0
 wantteleport = 0
 wantusenpc = 0
 wantloadgame = 0
+showsay = 0
 
 temp = -1
 IF readbit(gen(), genBits, 11) = 0 THEN

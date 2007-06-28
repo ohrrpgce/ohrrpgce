@@ -42,6 +42,7 @@ DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4
 DIM laststun AS DOUBLE
 DIM bslot(24) AS BattleSprite
 DIM as double timinga, timingb
+dim as integer dead
 timinga = 0
 timingb = 0
 
@@ -2143,6 +2144,7 @@ SELECT CASE vdance
  CASE 3
   '--print learned spells, one at a time
   IF showlearn = 0 THEN
+   nextbit = 0 'Mike sez: Grr to whoever did this!
    DO WHILE readbit(learnmask(), 0, learna * 96 + learnb * 24 + learnc) = 0 OR nextbit
     nextbit = 0 '-- to skip a set bit
     learnc = learnc + 1

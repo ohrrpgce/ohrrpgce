@@ -384,6 +384,7 @@ SELECT CASE AS CONST id
  CASE 185'--hero levelled (who)
   scriptret = stat(bound(retvals(0), 0, 40), 1, 12)
  CASE 186'--spells learnt
+  found = 0
   IF retvals(0) >= 0 AND (retvals(0) <= 3 OR retvals(0) = spellmaskhero) THEN
    effectivehero = small(retvals(0), 4)  'if the hero num was greater than 3, use hero 4's learnmask slots
    FOR i = effectivehero * 96 TO effectivehero * 96 + 95
@@ -1678,7 +1679,7 @@ SELECT CASE AS CONST id
       IF retvals(1) > -1 THEN .count = retvals(1): .ticks = 0
       IF retvals(2) > -1 THEN
         .speed = retvals(2)
-      ELSEIF retvals(2) = -1 AND timerspeed = 0 THEN
+      ELSEIF retvals(2) = -1 AND .speed = 0 THEN
         .speed = 18
       END IF
       IF retvals(3)<> -1 THEN .trigger = retvals(3)
@@ -1698,7 +1699,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 264'--setcolor
   IF retvals(0) >= 0 AND retvals(0) < 256 THEN
-  	retvals(1) = retvals(1) AND &HFFFFFF 'just in case, blank the alpha
+  	retvals(1) = retvals(1) OR &HFF000000 'just in case, set the alpha
   	master(retvals(0)).col = retvals(1)
   END IF
  CASE 265'--rgb
