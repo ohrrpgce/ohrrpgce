@@ -105,6 +105,8 @@ DIM master(255) as RGBcolor
 DIM game$, gamefile$, unsafefile$, insert, activepalette
 DIM vpage, dpage, fadestate, workingdir$
 
+dim shared trit as string 'to fix an undefined variable error
+
 RANDOMIZE TIMER
 
 IF isfile("ohrrpgce.mas") THEN
@@ -1256,7 +1258,7 @@ stufmenu:
 smenu$(1) = CHR$(27) + "Shop Thing" + XSTR$(thing) + " of" + XSTR$(a(16)) + CHR$(26)
 smenu$(2) = "Name: " + thing$
 smenu$(3) = "Type:" + XSTR$(b(17)) + "-" + stf$(bound(b(17), 0, 2))
-smenu$(4) = "Number:" + XSTR$(b(18)) + " " + nit$
+smenu$(4) = "Number:" + XSTR$(b(18)) + " " + "???" 'nit$
 IF b(19) > 0 THEN
  smenu$(5) = "In Stock:" + XSTR$(b(19))
 ELSE

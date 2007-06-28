@@ -73,6 +73,8 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 #include "const.bi"
 #include "scrconst.bi"
 
+dim shared shop as string
+
 REM $STATIC
 SUB cropafter (index, limit, flushafter, lump$, bytes, prompt)
 

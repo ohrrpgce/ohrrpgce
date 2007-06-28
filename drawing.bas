@@ -72,6 +72,8 @@ DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 
 #include "const.bi"
 
+dim shared col as integer
+
 REM $STATIC
 SUB airbrush (x, y, d, m, c, p)
 'airbrush thanks to Ironhoof (Russel Hamrick)
