@@ -29,6 +29,7 @@ option explicit
 #include once "allmodex.bi"
 
 #include once "common.bi"
+#include once "const.bi"
 
 
 #IFDEF IS_GAME
@@ -44,14 +45,13 @@ dim shared tag(2000), global(1025)
 #include once "music.bi"
 
 
+
 #undef MIDIEVENT 'fb's MIDIEVENT is wrong
 type MIDIEVENT
   dwDeltaTime as integer
   dwReserved as integer
   dwEvent as integer
 end type
-
-
 
 
 
@@ -83,7 +83,7 @@ dim shared music_song as MIDI_EVENT ptr = NULL
 dim shared song_ptr as MIDI_EVENT ptr = NULL
 
 dim shared orig_vol as integer = -1
-dim shared fade_thread as integer
+dim shared fade_thread as intptr
 dim shared inited_once as integer = 0
 
 dim shared device as any ptr
@@ -103,7 +103,7 @@ dim shared buffer_beat as MIDIEVENT ptr = NULL, buffer_head as MIDIHDR ptr = NUL
 dim shared current_size as integer, buffer_size as integer
 
 dim shared skip_ticks as integer
-dim shared buffer_thread as Any Ptr = NULL
+dim shared buffer_thread as intptr = NULL
 
 declare function DebugWndProc (byval hwnd as HWND, byval uMsg as uinteger, byval wParam as WPARAM, byval lParam as LPARAM)
 Declare sub DebugWindowThread(byval useless as integer)
@@ -613,7 +613,7 @@ Sub StreamCallback(Byval handle as HMIDIOUT, byval umsg as Uinteger, byval dwIns
   case MOM_DONE
     'debug "callback"
     'the midi is done playing the buffer
-    if buffer_thread = NULL and music_playing <> 0 then buffer_thread = CPTR(Any ptr, ThreadCreate(@PrepareNextBeat))
+    if buffer_thread = NULL and music_playing <> 0 then buffer_thread = ThreadCreate(@PrepareNextBeat)
   case MOM_OPEN
     'debug "callback - opening!"
   case MOM_CLOSE
@@ -631,7 +631,7 @@ Sub ResetInternals
 '       if erro = MMSYSERR_INVALHANDLE then debug "The device hasn't been opened...?"
 '     end if
     
-    if buffer_thread then threadwait cint(buffer_thread)
+    if buffer_thread then threadwait buffer_thread
 		if current_head then erro = midiOutUnprepareHeader(device, current_head, len(MIDIHDR))
 '     if erro then
 '       debug "midiOutUnprepareHeader error"
@@ -903,7 +903,11 @@ sub music_fade(targetvol as integer)
 	if fade_thread then
 		threadwait fade_thread
 	end if
-	fade_thread = threadcreate (@fade_daemon,targetvol)
+	#if __FB_VERSION__ < "0.17"
+		fade_thread = threadcreate(@fade_daemon,targetvol)
+	#else
+		fade_thread = threadcreate(@fade_daemon,cptr(any ptr,targetvol))
+	#endif
 end sub
 
 sub fade_daemon(byval targetvol as integer)

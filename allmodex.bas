@@ -22,6 +22,7 @@
 #include "music.bi"
 #include "bitmap.bi"
 #include "util.bi"
+#include "const.bi"
 
 option explicit
 
@@ -98,8 +99,8 @@ dim shared keybd(-1 to 255) as integer  'keyval array
 dim shared keybdstate(127) as integer  '"real"time array
 dim shared keysteps(127) as integer
 
-dim shared keybdmutex as integer  'controls access to keybdstate(), mouseflags and mouselastflags
-dim shared keybdthread as integer   'id of the polling thread
+dim shared keybdmutex as intptr  'controls access to keybdstate(), mouseflags and mouselastflags
+dim shared keybdthread as intptr   'id of the polling thread
 dim shared endpollthread as integer  'signal the polling thread to quit
 
 dim shared stackbottom as ubyte ptr

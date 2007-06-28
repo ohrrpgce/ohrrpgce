@@ -104,6 +104,12 @@ Enum constDirection
 	dirLeft
 End Enum
 
+#IF __FB_VERSION__ < "0.17"
+type intptr as integer
+#else
+type intptr as any ptr
+#endif
+
 #include "uiconst.bi"
 
 #ENDIF
