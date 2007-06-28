@@ -1138,6 +1138,7 @@ RETRACE
 
 shopstuf:
 thing = 0
+defaultthing$ = ""
 thing$ = ""
 tcsr = 0
 last = 2
@@ -1206,7 +1207,8 @@ DO
     IF intgrabber(b(17 + tcsr - 3), min(tcsr), max(tcsr), 75, 77) THEN
      IF tcsr = 3 OR tcsr = 4 THEN
       GOSUB othertype
-      GOSUB setdefault
+      GOSUB getdefaultthingname
+      thing$ = defaultthing$
      END IF
     END IF
   END SELECT
@@ -1238,27 +1240,27 @@ SELECT CASE b(17)
 END SELECT
 RETRACE
 
-setdefault:
+getdefaultthingname:
 IF b(17) = 0 THEN
- thing$ = itemstr$(b(18),1,1)
+ defaultthing$ = itemstr$(b(18),1,1)
  b(24) = buffer(46)
  b(27) = INT(buffer(46) / 2)
 END IF
 IF b(17) = 1 THEN
- thing$ = ""
+ defaultthing$ = ""
  loadherodata buffer(), b(18)
  FOR i = 1 TO small(buffer(0), 16)
-  thing$ = thing$ + CHR$(buffer(i))
+  defaultthing$ = defaultthing$ + CHR$(buffer(i))
  NEXT i
 END IF
-IF b(17) = 2 THEN thing$ = "Unsupported"
+IF b(17) = 2 THEN defaultthing$ = "Unsupported"
 RETRACE
 
 stufmenu:
 smenu$(1) = CHR$(27) + "Shop Thing" + XSTR$(thing) + " of" + XSTR$(a(16)) + CHR$(26)
 smenu$(2) = "Name: " + thing$
 smenu$(3) = "Type:" + XSTR$(b(17)) + "-" + stf$(bound(b(17), 0, 2))
-smenu$(4) = "Number:" + XSTR$(b(18)) + " " + "???" 'nit$
+smenu$(4) = "Number:" + XSTR$(b(18)) + " " + defaultthing$
 IF b(19) > 0 THEN
  smenu$(5) = "In Stock:" + XSTR$(b(19))
 ELSE
@@ -1305,10 +1307,6 @@ flusharray b(), curbinsize(1) / 2, 0
 setpicstuf b(), getbinsize(1), -1
 loadset game$ + ".stf", pt * 50 + thing, 0
 thing$ = readbadbinstring$(b(), 0, 16, 0)
-'thing$ = ""
-'FOR i = 1 TO bound(b(0), 0, 16)
-' thing$ = thing$ + CHR$(bound(b(i), 0, 255))
-'NEXT i
 '---check for invalid data
 IF b(17) < 0 OR b(17) > 2 THEN b(17) = 0
 IF b(19) < -1 THEN b(19) = 0
@@ -1317,8 +1315,7 @@ IF (b(26) < 0 OR b(26) > 3) AND b(17) <> 1 THEN b(26) = 0
 FOR i = 32 TO 42
  b(i) = large(b(i), 0)
 NEXT
-'--didn't see what this is for
-'GOSUB menuup
+GOSUB getdefaultthingname
 RETRACE
 
 sstuf:
