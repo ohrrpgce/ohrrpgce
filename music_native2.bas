@@ -903,11 +903,7 @@ sub music_fade(targetvol as integer)
 	if fade_thread then
 		threadwait fade_thread
 	end if
-	#if __FB_VERSION__ < "0.17"
-		fade_thread = threadcreate(@fade_daemon,targetvol)
-	#else
-		fade_thread = threadcreate(@fade_daemon,cptr(any ptr,targetvol))
-	#endif
+	fade_thread = threadcreate(@fade_daemon, cast(intptr, targetvol))
 end sub
 
 sub fade_daemon(byval targetvol as integer)

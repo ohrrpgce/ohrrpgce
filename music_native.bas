@@ -61,6 +61,7 @@ option explicit
 
 #include once "common.bi"
 
+#include once "const.bi"
 
 
 
@@ -106,8 +107,8 @@ dim shared music_paused as integer
 dim shared music_playing as integer
 dim shared music_song as MIDI_EVENT ptr = NULL
 dim shared orig_vol as integer = -1
-dim shared playback_thread as integer
-dim shared fade_thread as integer
+dim shared playback_thread as intptr
+dim shared fade_thread as intptr
 dim shared inited_once as integer = 0
 
 dim shared sound_song as integer = -1'if it's not a midi
@@ -416,7 +417,7 @@ sub music_fade(targetvol as integer)
 	if fade_thread then
 		threadwait fade_thread
 	end if
-	fade_thread = threadcreate (@fade_daemon,targetvol)
+	fade_thread = threadcreate (@fade_daemon, cast(intptr, targetvol))
 end sub
 
 sub fade_daemon(byval targetvol as integer)
