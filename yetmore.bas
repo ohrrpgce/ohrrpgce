@@ -2628,7 +2628,7 @@ IF songnumber <> presentsong THEN
  playsongnum songnumber
  presentsong = songnumber
 ELSE
- resumesong  'why is this here??
+ resumesong
 END IF
 
 END SUB

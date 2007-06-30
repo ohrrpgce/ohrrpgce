@@ -42,7 +42,7 @@ DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4
 DIM laststun AS DOUBLE
 DIM bslot(24) AS BattleSprite
 DIM as double timinga, timingb
-dim as integer dead
+DIM dead, mapsong
 timinga = 0
 timingb = 0
 
@@ -258,7 +258,7 @@ IF (stackpos - bstackstart) \ 2 < 0 THEN
  fatalerror "bstack underflow" + XSTR$(stackpos) + XSTR$(bstackstart)
 END IF
 
-IF formdata(33) > 0 OR gen(3) > 0 THEN fademusic 0
+IF (formdata(33) >= 0 AND formdata(33) - 1 <> mapsong) OR (gen(3) > 0 AND fatal = 0) THEN fademusic 0
 
 fadeout 0, 0, 0
 
@@ -2005,7 +2005,8 @@ loadall:
 setpicstuf formdata(), 80, -1
 loadset workingdir$ + SLASH + "for.tmp", form, 0
 
-IF formdata(33) >= 0 THEN fademusic 0: stopsong
+mapsong = presentsong
+IF formdata(33) = 0 THEN fademusic 0
 IF formdata(33) > 0 THEN wrappedsong formdata(33) - 1
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN

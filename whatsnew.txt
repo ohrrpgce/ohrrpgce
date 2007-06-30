@@ -69,8 +69,8 @@ WHAT IS NEW?
       and from 16x16 24-bit BMP files [Ralph Versteegen]
     * Plotscripting Strings no longer have a max length of 40 [James Paige]
     * New commands for dealing with 32-bit colors (0-255, as opposed to 0-63)
-    * Map and battle music can be set to "none" to keep playing current
-      music, previous "none" option renamed to "silence" [Ralph]
+    * Map music can be set to "same as previous map" and battle music as
+      "same music as map", previous "none" option renamed to "silence" [Ralph]
     * Script buffer overflows are a thing of the past! Only a script larger
       than maximum size (very generous) will cause an error. [Ralph]
     * Tile map layers! In the map editor, use Ctrl-L to enable the new layers,
