@@ -3266,56 +3266,23 @@ Function sfxisplaying(BYVAL num)
 end Function
 
 Function fileisreadable(f$)
-#ifdef EXXERROR
-	on local error goto fileisreadableerror
-#endif
-	dim as integer fh, forcefail
-	forcefail = 0
+	dim fh as integer
 	fh = freefile
-	open f$ for binary access read as #fh
-	if err > 0 or forcefail then
-		'debug "Couldn't open " + f$
+	if open(f$ for binary access read as #fh) = 2 then
+		debug f$ & " unreadable (ignored)"
 		return 0 
 	end if
 	close #fh
 	return -1
-#ifdef EXXERROR
-fileisreadableerror:
-	if err = 2 then
-		debug f$ & " unreadable (ignored)"
-		forcefail = -1
-		resume next
-	end if
-	on local error goto 0
-	resume  
-#endif
 end Function
 
 Function fileiswriteable(f$)
-#ifdef EXXERROR
-	on local error goto fileiswriteableerror
-#endif
-	dim as integer fh, forcefail
-	forcefail = 0
+	dim fh as integer
 	fh = freefile
-	open f$ for binary access read write as #fh
-	if err > 0 or forcefail then
-		'debug "Couldn't open " + f$
-		forcefail = -1
+	if open (f$ for binary access read write as #fh) = 2 then
+		debug f$ & " unreadable (ignored)"
 		return 0 
 	end if
 	close #fh
 	return -1
-#ifdef EXXERROR
-fileiswriteableerror:
-	if err = 1 then 'closing an unopened file means the open failed
-		return 0
-	end if
-	if err = 2 then
-		debug f$ & " unreadable (ignored)"
-		resume next
-	end if
-	on local error goto 0
-	resume  
-#endif
 end Function
