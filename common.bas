@@ -275,9 +275,7 @@ ELSE
  draw_browse_meter meter, ranalready, viewsize
  a$ = nowdir$
  '--Drive list
- IF LINUX THEN
-  treesize = 0
- ELSE
+#IFNDEF __FB_LINUX__
   FOR i = 0 TO drivetotal - 1
    tree$(treesize) = drive$(i)
    treec(treesize) = 0
@@ -289,12 +287,12 @@ ELSE
     ELSE
      display$(treesize) = drive$(i) + " (not ready)"
     END IF
-     draw_browse_meter meter, ranalready, viewsize
+    draw_browse_meter meter, ranalready, viewsize
    END IF
    treesize += 1
   NEXT i
   'could add My Documents to drives list here
- END IF
+#ENDIF
  '--Current drive
  tree$(treesize) = MID$(a$, 1, INSTR(a$, SLASH))
 #IFNDEF __FB_LINUX__
@@ -415,7 +413,7 @@ NEXT o
 
 '--sort by type
 FOR o = treesize TO sortstart + 1 STEP -1
- FOR i = sortstart TO o
+ FOR i = sortstart + 1 TO o
   IF treec(i) < treec(i - 1) THEN
    SWAP display$(i), display$(i - 1)
    SWAP about$(i), about$(i - 1)

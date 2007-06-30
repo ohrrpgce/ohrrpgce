@@ -297,9 +297,9 @@ autorungame = 0
 FOR i = 1 TO commandlineargcount
  a$ = commandlinearg(i)
 
- IF NOT linux THEN
-  IF MID$(a$, 2, 1) <> ":" THEN a$ = curdir$ + SLASH + a$
- END IF
+#IFNDEF __FB_LINUX__
+ IF MID$(a$, 2, 1) <> ":" THEN a$ = curdir$ + SLASH + a$
+#ENDIF
  IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$) THEN
   sourcerpg$ = a$
   autorungame = 1
