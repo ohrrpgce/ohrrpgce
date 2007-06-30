@@ -1767,12 +1767,14 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$)
 
 	dim tempf%, realf%
 	tempf = FreeFile
-	OPEN outfile$ + ".tmp" FOR OUTPUT AS #tempf
 	a$ = DIR$(fmask$, attrib)
 	if a$ = "" then
+		'create an empty file
+		OPEN outfile$ FOR OUTPUT AS #tempf
 		close #tempf
 		exit sub
 	end if
+	OPEN outfile$ + ".tmp" FOR OUTPUT AS #tempf
 	DO UNTIL a$ = ""
 		PRINT #tempf, a$
 		a$ = DIR$ '("", attrib)
