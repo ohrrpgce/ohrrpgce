@@ -256,8 +256,7 @@ end function
 sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
 	static as integer lastx = 0, lasty = 0, lastwheel = 0, lastbuttons = 0
 	dim as integer dmx, dmy, dw, db
-	getmouse(dmx, dmy, dw, db)
-	if dmx <> -1 then
+	if getmouse(dmx, dmy, dw, db) = 0 then
 		'mouse is inside window
 		dmx = dmx \ zoom
 		dmy = (dmy \ zoom) - screen_buffer_offset
