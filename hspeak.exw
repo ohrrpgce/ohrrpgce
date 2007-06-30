@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Gd 2007-07-01 Allow constants for new syntax default args
 --3Gc 2007-05-29 Handle empty paratheses correctly, and use
 --               lowercase ".hs" extension
 --3Gb 2007-05-09 Throw error on missing include file
@@ -87,7 +88,7 @@ constant true=1
 constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
-constant COMPILER_SUB_VERSION="Gc"
+constant COMPILER_SUB_VERSION="Gd"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -2517,7 +2518,7 @@ function process_arglist(sequence args,sequence script_name)
     end if
     if at>0 then
       arglist=append(arglist,{try_undefined_string({args[i][CMD_TEXT][1..at-1],args[i][CMD_LINE]},"argument name"),args[i][CMD_LINE]})
-      defaults&=try_string_to_number({args[i][CMD_TEXT][at+1..length(args[i][CMD_TEXT])],args[i][CMD_LINE]})
+      defaults&=try_string_to_number({enforce_constants(args[i][CMD_TEXT][at+1..length(args[i][CMD_TEXT])]),args[i][CMD_LINE]})
       using_defaults=true
     else
       if using_defaults=true then
