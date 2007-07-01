@@ -45,7 +45,7 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 	dim bamvoice as voice
 
 	'need to remember the exact note pressed in mids, unlike bams
-	dim tracknote(0 to 8) as integer => { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+	dim tracknote(0 to 15) as integer
 	'save file positions for loops
 	dim labelpos(0 to 15) as integer
 	dim loopcount(0 to 15) as integer
