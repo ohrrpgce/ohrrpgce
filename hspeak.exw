@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Ge 2007-07-01 String conversion rewrite to allow more whitespace
 --3Gd 2007-07-01 Allow constants for new syntax default args
 --3Gc 2007-05-29 Handle empty paratheses correctly, and use
 --               lowercase ".hs" extension
@@ -88,7 +89,7 @@ constant true=1
 constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
-constant COMPILER_SUB_VERSION="Gd"
+constant COMPILER_SUB_VERSION="Ge"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -616,9 +617,8 @@ function convert_strings(sequence s)
   integer start
   integer stringstart
   integer ptr
-  integer at
-  integer at2
   integer switch
+  integer state
   sequence output
   sequence result
   sequence string
@@ -634,30 +634,41 @@ function convert_strings(sequence s)
       result=result&s[start..stringstart-1]
     end if
     start=stringstart
-    at=match("=\"",s[start..length(s)])
-    at2=match("+\"",s[start..length(s)])
-    if at=0 and at2=0 then 
+    ptr=stringstart
+    state=0
+    while ptr<length(s) do
+      if s[ptr]='$' then
+        state=0
+        stringstart=ptr
+        result=result&s[start..stringstart-1]
+        start=stringstart
+      elsif state=0 then
+        if s[ptr]='=' then
+          state=1
+          output=",setstringfromtable(" & s[stringstart+1..ptr-1]
+        elsif s[ptr]='+' then
+          state=1
+          output=",appendstringfromtable(" & s[stringstart+1..ptr-1]
+        end if
+      elsif state=1 then
+        if s[ptr]='"' then
+          state=2
+          exit
+        elsif s[ptr]!=' ' then
+          state=0
+        end if
+      end if
+      ptr+=1
+    end while
+    if state!=2 then
       exit
     end if
-    if at!=0 and at<at2 or at2=0 then 
-      output=",setstringfromtable("
-    else
-      output=",appendstringfromtable("
-      at=at2
-    end if
-    if at=2 then --no id
-      exit
-    end if
-    at+=start-1
-    output=output&s[stringstart+1..at-1]  --id
-    ptr=at+2
+    ptr+=1
     switch=false
     string=""
     while true do
       if ptr>length(s) then  --did not find a closing " so not a valid string (previous matches presumably a coincidence)
-        result=result&s[stringstart..at+1]
-        start=at+2 --skip the $..=" and try again
-        exit
+        return(result&s[stringstart..length(s)])
       end if
       if switch then
         if s[ptr]='"' then
