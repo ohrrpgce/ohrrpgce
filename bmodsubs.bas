@@ -1195,7 +1195,7 @@ IF exstat(i, 1, 12) THEN
    FOR j = 0 TO 4
     IF eqstuf(i, j) > 0 THEN
      loaditemdata buffer(), eqstuf(i, j) - 1
-     exstat(i, 1, o) = exstat(i, 1, o) + buffer(54 + o)
+     exstat(i, 1, o) = exstat(i, 1, o) + buffer(54 + o) * exstat(i, 1, 12)
     END IF
    NEXT j
    'do stat caps
@@ -1259,6 +1259,38 @@ SUB giveheroexperience (i, exstat(), exper&)
    exstat(i, 1, 12) = exstat(i, 1, 12) + 1 'levelup flag
    exlev&(i, 1) = exptolevel(exstat(i, 0, 12))
   WEND
+ END IF
+END SUB
+
+SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, stat())
+ 'unlike giveheroexperience, this can cause delevelling
+ DIM dummystats(40, 1, 1) 'just need HP and MP
+
+ temp = stat(who, 0, 12)
+ total = 0
+ FOR i = 0 TO stat(who, 0, 12) - 1
+  total += exptolevel(i)
+ NEXT
+ IF total > amount THEN
+  'losing levels; lvl up from level 0
+  stat(who, 0, 12) = 0
+  exlev(who, 1) = exptolevel(0)
+  lostlevels = -1
+ ELSE
+  'set spell learnt bits correctly
+  amount -= total
+  temp = 0
+  lostlevels = 0
+ END IF
+ exlev(who, 0) = 0
+ giveheroexperience who, stat(), amount
+ updatestatslevelup who, stat(), dummystats(), allowforget
+ stat(who, 1, 12) -= temp
+ IF lostlevels THEN
+  'didn't learn spells, wipe mask
+  FOR i = small(who, 4) * 6 TO small(who, 4) * 6 + 5
+   learnmask(i) = 0
+  NEXT
  END IF
 END SUB
 

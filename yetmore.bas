@@ -93,6 +93,7 @@ DECLARE SUB reloadscript (index, updatestats = -1)
 DECLARE FUNCTION localvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION mathvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION backcompat_sound_id (id AS INTEGER)
+DECLARE SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, stat())
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -367,8 +368,8 @@ SELECT CASE AS CONST id
    spellmaskhero = retvals(0)  'used for spells learnt
    stat(retvals(0), 1, 12) = retvals(1) - stat(retvals(0), 0, 12)
    stat(retvals(0), 0, 12) = retvals(1)
-   exlev&(retvals(0), 1) = exptolevel(retvals(1))
-   exlev&(retvals(0), 0) = 0  'XP attained towards the next level
+   exlev(retvals(0), 1) = exptolevel(retvals(1))
+   exlev(retvals(0), 0) = 0  'XP attained towards the next level
    updatestatslevelup retvals(0), stat(), dummystats(), retvals(2) 'updates stats and spells
   END IF
  CASE 184'--give experience (who, how much)
@@ -377,7 +378,7 @@ SELECT CASE AS CONST id
   FOR i = 0 TO 40
    IF i = retvals(0) OR (retvals(0) = -1 AND i <= 3) THEN
     'give the XP to the hero only if it is alive if party is target
-    IF retvals(0) <> -1 OR stat(i, 0, 0) THEN giveheroexperience i, stat(), (retvals(1))
+    IF retvals(0) <> -1 OR stat(i, 0, 0) > 0 THEN giveheroexperience i, stat(), retvals(1)
     updatestatslevelup i, stat(), dummystats(), 0
    END IF
   NEXT i
@@ -397,6 +398,28 @@ SELECT CASE AS CONST id
     END IF
    NEXT
    IF retvals(1) = -1 THEN scriptret = found  'getcount
+  END IF
+ CASE 269'--totalexperience
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   scriptret = 0
+   FOR i = 0 TO stat(retvals(0), 0, 12) - 1
+    scriptret += exptolevel(i)
+   NEXT
+   scriptret += exlev(retvals(0), 0)
+  END IF
+ CASE 270'--experiencetolevel
+  scriptret = 0
+  FOR i = 0 TO retvals(0) - 1
+   scriptret += exptolevel(i)
+  NEXT
+ CASE 271'--experiencetonextlevel
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   scriptret = exlev(retvals(0), 1) - exlev(retvals(0), 0)
+  END IF
+ CASE 272'--setexperience  (who, what, allowforget)
+  IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN
+   spellmaskhero = retvals(0)  'used for spells learnt
+   setheroexperience retvals(0), retvals(1), retvals(2), stat()
   END IF
 END SELECT
 END SUB

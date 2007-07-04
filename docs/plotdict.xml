@@ -905,7 +905,7 @@ end</example>
 		<command id="giveexperience">
 			<cannon>give experience (hero,amount)</cannon>
 			<shortname>give experience</shortname>
-			<description>Gives (or removes, but you can't drop level) experience to either a hero by position in party (use result returned by <ref>findhero</ref> command) or the whole active party, if the constant <ref>party</ref> is passed as first argument. If you give experience to the whole party, then it will be split amongst live heroes as it is in battle. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <ref>herolevelled</ref> and <ref>spellslearnt</ref> for dealing with this.</description>
+			<description>Gives experience to either a hero by position in party (use result returned by <ref>findhero</ref> command) or the whole active party, if the constant <ref>party</ref> is passed as first argument. If you give experience to the whole party, then it will be split amongst live heroes as it is in battle. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <ref>herolevelled</ref> and <ref>spellslearnt</ref> for dealing with this. You should use <ref>setexperience</ref> to remove experience in a way that allows delevelling.</description>
 		</command>
 	</section>
 	<section title="Effects">
@@ -1107,7 +1107,7 @@ end</example>
 		<command id="spellslearnt">
 			<cannon>spells learnt (hero,number)</cannon>
 			<shortname>spells learnt</shortname>
-			<description>Used to return the id numbers of spells the hero learnt from the last battle or <ref>giveexperience</ref> or <ref>setherolevel</ref> command. (Returns only the spells learnt from the very last battle or <ref>giveexperience</ref>/<ref>setherolevel</ref> command). If the second argument is <ref>getcount</ref> then the number of spells that the hero learnt is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learnt:</description>
+			<description>Used to return the id numbers of spells the hero learnt from the last battle, <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command. (Returns only the spells learnt from the very last battle or command). If the second argument is <ref>getcount</ref> then the number of spells that the hero learnt is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learnt:</description>
 			<example>define script (autonumber, print learnt spells, 1, 0)
 # the following script uses strings 0, 1, 2 for its use (will be overwritten)
 script, print learnt spells, who, begin
@@ -1723,7 +1723,7 @@ get hero name (1,find hero(hero by rank(0)))
 		<command id="herolevelled">
 			<cannon>hero levelled (who)</cannon>
 			<shortname>hero levelled</shortname>
-			<description>Returns the number of levels the specified hero (use result from <ref>findhero</ref>) gained from only the very last battle or <ref>giveexperience</ref> command - levels gained from previous battles or commands is not recorded. In other words, does not return true or false, but can be be used in an if statement like:</description>
+			<description>Returns the number of levels the specified hero (use result from <ref>findhero</ref>) gained from only the very last battle, <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:</description>
 			<example>give experience (party, 50)
 if (herolevelled (find hero (hero: Bob))) then (
   $31="Bob gained "
@@ -1731,6 +1731,24 @@ if (herolevelled (find hero (hero: Bob))) then (
   $31+" levels!"
   show textbox (233) # ${S31} :show string 31
 )</example>
+		</command>
+		<command id="totalexperience">
+			<cannon>total experience (who)</cannon>
+			<shortname>total experience</shortname>
+			<description>Returns a hero&apos;s total experience. The argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>.</description>
+			<seealso>
+				<ref>setexperience</ref>
+			</seealso>
+		</command>
+		<command id="experiencetonextlevel">
+			<cannon>experience to next level (who)</cannon>
+			<shortname>experience to next level</shortname>
+			<description>Returns experience required by a hero to reach the next level. The argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>.</description>
+		</command>
+		<command id="experiencetolevel">
+			<cannon>experience to level (level)</cannon>
+			<shortname>experience to level</shortname>
+			<description>Returns the total experience required to reach a specified level from level 0.</description>
 		</command>
 		<command id="settimer">
 		  <cannon>set timer (id, count, speed, trigger, string, flags)</cannon>
@@ -2222,11 +2240,32 @@ end</example>
 			<cannon>get hero level (who)</cannon>
 			<shortname>get hero level</shortname>
 			<description>A function that returns a hero&apos;s current level. The argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. The return value with be your current level, from 0 to 99</description>
+			<seealso>
+				<ref>setherolevel</ref>
+				<ref>totalexperience</ref>
+			</seealso>
 		</command>
 		<command id="setherolevel">
 			<cannon>set hero level (who, level, forgetspells)</cannon>
 			<shortname>set hero level</shortname>
-			<description>A command that sets a hero&apos;s current level. The first argument is the position of the hero you want to change in your party as as returned by <ref>findhero</ref>. You can specify any hero in the active or reserve party and any (positive) level. Unlike old workarounds, this command teachs the hero any spells they would have learnt by that level and correctly sets the experience to next levelup (experience gained to the current next level is lost). You can also decrease the hero&apos;s level, which will cause spells to be forgotten, unless the optional 3rd argument (defaulting to true) is set as false.</description>
+			<description>A command that sets a hero&apos;s current level. The first argument is the position of the hero you want to change in your party as as returned by <ref>findhero</ref>. You can specify any hero in the active or reserve party and any (non-negative) level. Unlike old workarounds, this command teachs the hero any spells they would have learnt by that level and correctly sets the experience to next levelup (experience gained to the current next level is lost). You can also decrease the hero&apos;s level, which will cause spells to be forgotten, unless the optional 3rd argument (defaulting to true) is set as false.</description>
+			<seealso>
+				<ref>getherolevel</ref>
+				<ref>herolevelled</ref>
+				<ref>spellslearnt</ref>
+				<ref>setexperience</ref>
+			</seealso>
+		</command>
+		<command id="setexperience">
+			<cannon>set experience (who, experience, allowforget)</cannon>
+			<shortname>set experience</shortname>
+			<description>Sets a hero&apos;s total experience and updates their level and spell list. The argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. To decrease a hero&apos;s level without forgetting spells, pass false as the optional third argument.</description>
+			<seealso>
+				<ref>setherolevel</ref>
+				<ref>totalexperience</ref>
+				<ref>herolevelled</ref>
+				<ref>spellslearnt</ref>
+			</seealso>
 		</command>
 		<command id="readglobal">
 			<cannon>read global (id)</cannon>

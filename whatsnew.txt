@@ -173,6 +173,8 @@ WHAT IS NEW?
       were already useful, and the new "break" flow control command has
       made them even more useful.
     * "main menu" [James Paige]
+    * "total experience", "set experience", "experience to next level",
+      "experience to level" [Ralph Versteegen]
 
   * Unlump.exe
     * Ported to FreeBasic [Mike Caron]
