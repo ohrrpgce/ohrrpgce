@@ -235,13 +235,13 @@ SUB CleanTiledata(array() as integer, wide as integer, high as integer, numlayer
   array(1) = high
 END SUB
 
-SUB DeserDoorLinks(filename as string, array() as door)
+SUB DeserDoorLinks(filename as string, array() as DoorLink)
 	dim as integer hasheader = 0, f, i
 	'when we strip the header, we can check for its presence here
 	if not fileisreadable(filename) then exit sub
 	open filename for binary as #f
 	
-	redim array(99)
+	redim array(99) as DoorLink
 	
 	for i = 0 to 99
 		array(i).source = ReadShort(f)
@@ -262,7 +262,7 @@ SUB DeserDoorLinks(filename as string, array() as door)
 	close #f
 End SUB
 
-Sub SerDoorLinks(filename as string, array() as door, withhead as integer = 1)
+Sub SerDoorLinks(filename as string, array() as DoorLink, withhead as integer = 1)
 	dim as integer f, i
 	
 	if not fileiswriteable(filename) then exit sub
