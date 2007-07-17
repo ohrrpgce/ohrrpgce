@@ -145,6 +145,10 @@ TYPE TileEditState
  delay as INTEGER
 END TYPE
 
+Type Door
+	as integer source, dest, dest_map, tag1, tag2
+End Type
+
 
 'Documentation of veh() in game, which is different from the VEH lump
 '0 is true (-1) if in/mounting/dismounting a vehicle

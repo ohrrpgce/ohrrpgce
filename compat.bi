@@ -93,7 +93,7 @@ DECLARE SUB playsongnum (songnum%)
 DECLARE SUB romfontchar (font%(), char%)
 DECLARE SUB makedir (dirname$)
 DECLARE SUB setwindowtitle (title as string)
-DECLARE FUNCTION ReadShort(fh as integer,p as long) as short
+DECLARE FUNCTION ReadShort(fh as integer,p as long=-1) as short
 DECLARE Sub WriteShort(fh as integer,p as long, v as integer)
 
 #ENDIF

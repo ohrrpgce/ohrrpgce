@@ -8,6 +8,7 @@
 #include "const.bi"
 #include "common.bi"
 #include "loading.bi"
+#include "allmodex.bi"
 
 option explicit
 
@@ -202,7 +203,7 @@ SUB CleanInventory(invent() as InventSlot)
   NEXT
 END SUB
 
-SUB LoadTiledata(filename as string, array(), byval numlayers as integer, byref wide as integer, byref high as integer)
+SUB LoadTiledata(filename as string, array() as integer, byval numlayers as integer, byref wide as integer, byref high as integer)
   'resize array and attempt to read numlayers of tile data, if that many are not present, default to 1 layer (blank out the rest)
   DIM AS INTEGER fh, i
   fh = FREEFILE
@@ -220,16 +221,75 @@ SUB LoadTiledata(filename as string, array(), byval numlayers as integer, byref 
   CLOSE #fh
 END SUB
 
-SUB SaveTiledata(filename as string, array(), byval numlayers as integer)
+SUB SaveTiledata(filename as string, array() as integer, byval numlayers as integer)
   DIM AS INTEGER wide, high
   wide = array(0)
   high = array(1)
   xbsave filename, array(), 4 + numlayers * wide * high
 END SUB
 
-SUB CleanTiledata(array(), wide as integer, high as integer, numlayers as integer)
+SUB CleanTiledata(array() as integer, wide as integer, high as integer, numlayers as integer)
   'aka AllocateTiledata
   REDIM array(1 + (numlayers * wide * high + 1) \ 2)
   array(0) = wide
   array(1) = high
 END SUB
+
+SUB DeserDoors(filename as string, array() as door)
+	dim as integer hasheader = 0, f, i
+	'when we strip the header, we can check for its presence here
+	if not fileisreadable(filename) then exit sub
+	open filename for binary as #f
+	
+	redim array(199)
+	
+	for i = 0 to 199
+		array(i).source = ReadShort(f)
+	next
+	for i = 0 to 199
+		array(i).dest = ReadShort(f)
+	next
+	for i = 0 to 199
+		array(i).dest_map = ReadShort(f)
+	next
+	for i = 0 to 199
+		array(i).tag1 = ReadShort(f)
+	next
+	for i = 0 to 199
+		array(i).tag2 = ReadShort(f)
+	next
+	
+	close #f
+End SUB
+
+Sub SerDoors(filename as string, array() as door, withhead as integer = 1)
+	dim as integer f, i
+	
+	if not fileiswriteable(filename) then exit sub
+	
+	safekill(filename)
+	
+	open filename for binary as #1
+	
+	if withhead then
+		dim stupid(6) as ubyte
+		put #f, , stupid()
+	end if
+	
+	for i = 0 to 199
+		WriteShort f, -1, array(i).source
+	next
+	for i = 0 to 199
+		WriteShort f, -1, array(i).dest
+	next
+	for i = 0 to 199
+		WriteShort f, -1, array(i).dest_map
+	next
+	for i = 0 to 199
+		WriteShort f, -1, array(i).tag1
+	next
+	for i = 0 to 199
+		WriteShort f, -1, array(i).tag2
+	next
+	
+end sub

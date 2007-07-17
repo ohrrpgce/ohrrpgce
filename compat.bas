@@ -296,7 +296,7 @@ SUB setwindowtitle (title as string)
 	gfx_windowtitle title
 END SUB
 
-FUNCTION ReadShort(fh as integer,p as long) as short
+FUNCTION ReadShort(fh as integer,p as long=-1) as short
 	DIM ret as short
 	IF p = -1 THEN
 		GET #fh,,ret
