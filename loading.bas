@@ -235,34 +235,34 @@ SUB CleanTiledata(array() as integer, wide as integer, high as integer, numlayer
   array(1) = high
 END SUB
 
-SUB DeserDoors(filename as string, array() as door)
+SUB DeserDoorLinks(filename as string, array() as door)
 	dim as integer hasheader = 0, f, i
 	'when we strip the header, we can check for its presence here
 	if not fileisreadable(filename) then exit sub
 	open filename for binary as #f
 	
-	redim array(199)
+	redim array(99)
 	
-	for i = 0 to 199
+	for i = 0 to 99
 		array(i).source = ReadShort(f)
 	next
-	for i = 0 to 199
+	for i = 0 to 99
 		array(i).dest = ReadShort(f)
 	next
-	for i = 0 to 199
+	for i = 0 to 99
 		array(i).dest_map = ReadShort(f)
 	next
-	for i = 0 to 199
+	for i = 0 to 99
 		array(i).tag1 = ReadShort(f)
 	next
-	for i = 0 to 199
+	for i = 0 to 99
 		array(i).tag2 = ReadShort(f)
 	next
 	
 	close #f
 End SUB
 
-Sub SerDoors(filename as string, array() as door, withhead as integer = 1)
+Sub SerDoorLinks(filename as string, array() as door, withhead as integer = 1)
 	dim as integer f, i
 	
 	if not fileiswriteable(filename) then exit sub
@@ -276,19 +276,19 @@ Sub SerDoors(filename as string, array() as door, withhead as integer = 1)
 		put #f, , stupid()
 	end if
 	
-	for i = 0 to 199
+	for i = 0 to 99
 		WriteShort f, -1, array(i).source
 	next
-	for i = 0 to 199
+	for i = 0 to 99
 		WriteShort f, -1, array(i).dest
 	next
-	for i = 0 to 199
+	for i = 0 to 99
 		WriteShort f, -1, array(i).dest_map
 	next
-	for i = 0 to 199
+	for i = 0 to 99
 		WriteShort f, -1, array(i).tag1
 	next
-	for i = 0 to 199
+	for i = 0 to 99
 		WriteShort f, -1, array(i).tag2
 	next
 	
