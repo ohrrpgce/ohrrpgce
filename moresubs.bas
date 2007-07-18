@@ -772,19 +772,21 @@ IF num < 0 AND ret = 0 THEN RETURN -1
 RETURN 0
 END FUNCTION
 
-SUB loaddoor (map, door())
+SUB loaddoor (map, door() as door)
 '--clobbers buffer!
 IF gen(95) < 2 THEN
  '--obsolete doors
 ELSE
  '--THE RIGHT WAY--
- setpicstuf buffer(), 600, -1
- loadset game$ + ".dox", map, 0
- FOR i = 0 TO 99
-  door(i) = buffer(i)
-  door(100 + i) = buffer(100 + i)
-  setbit door(), 200, i, buffer(200 + i)
- NEXT i
+ 'setpicstuf buffer(), 600, -1
+ 'loadset game$ + ".dox", map, 0
+ 'FOR i = 0 TO 99
+'  door(i) = buffer(i)
+  'door(100 + i) = buffer(100 + i)
+  'setbit door(), 200, i, buffer(200 + i)
+ 'NEXT i
+ 
+ DeSerDoors(game$ + ".dox", door(), map)
 END IF
 END SUB
 

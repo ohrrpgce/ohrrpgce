@@ -23,5 +23,10 @@ declare sub savetiledata(filename as string, array(), byval numlayers as integer
 declare sub cleantiledata(array(), wide as integer, high as integer, numlayers as integer = 1)
 declare SUB DeserDoorLinks(filename as string, array() as doorlink)
 declare Sub SerDoorLinks(filename as string, array() as doorlink, withhead as integer = 1)
+declare sub CleanDoorLinks(array() as doorlink)
+declare Sub DeSerDoors(filename as string, array() as door, record as integer)
+declare Sub SerDoors(filename as string, array() as door, record as integer)
+declare Sub CleanDoors(array() as door)
+
 
 #ENDIF

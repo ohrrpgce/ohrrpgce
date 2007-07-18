@@ -5,6 +5,9 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+
+#include "udts.bi"
+
 'basic subs and functions
 DECLARE FUNCTION addmaphow% ()
 DECLARE FUNCTION filenum$ (n%)
@@ -40,7 +43,7 @@ DECLARE SUB tagnames ()
 DECLARE SUB resizetiledata (array%(), xoff%, yoff%, neww%, newh%, yout%, page%, layer%)
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
-DECLARE SUB mapmaker (font%(), doors%(), link%(), npc%(), npcstat%())
+DECLARE SUB mapmaker (font%(), npc%(), npcstat%())
 DECLARE SUB npcdef (npc%(), pt%)
 DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
@@ -72,7 +75,7 @@ DECLARE Sub SetLayerEnabled(gmap() as integer, byval l as integer, byval v as in
 DECLARE Sub ToggleLayerVisible(vis() as integer, byval l as integer)
 DECLARE Sub ToggleLayerEnabled(vis() as integer, byval l as integer)
 
-DECLARE SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors(), link(), gmap())
+DECLARE SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors() as door, link() as doorlink, gmap())
 
 DECLARE SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS INTEGER, defaults() AS INTEGER, tastuf() AS INTEGER)
 DECLARE SUB resizemapmenu (map(), tastuf(), byref newwide, byref newhigh, byref tempx, byref tempy)
@@ -156,9 +159,11 @@ IF pic >= 160 THEN pic = (pic - 160) + tastuf(0)
 animadjust = pic
 END FUNCTION
 
-SUB mapmaker (font(), doors(), link(), npc(), npcstat())
+SUB mapmaker (font(), npc(), npcstat())
 DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(-1 TO 20), gdmax(20), gdmin(20), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
 defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
+
+redim doors(0) as door, link(0) as doorlink
 
 DIM as integer usetile(0 to 2)
 DIM as integer menubarstart(0 to 2)
@@ -595,7 +600,7 @@ DO
    NEXT i
    'delete door
    FOR i = 0 TO 99
-    IF doors(i) = x AND doors(i + 100) = y + 1 AND doors(i + 200) = 1 THEN doors(i + 200) = 0
+    IF doors(i).x = x AND doors(i).y = y + 1 AND readbit(doors(i).bits(),0,0) = 1 THEN setbit(doors(i).bits(),0,0, 1)
    NEXT
  END IF
  IF keyval(29) > 0 AND keyval(35) > 1 THEN 'Ctrl+H for hero start position
@@ -695,19 +700,19 @@ DO
    IF keyval(57) > 1 THEN
     temp = 0
     FOR i = 0 TO 99
-     IF doors(i) = x AND doors(i + 100) = y + 1 AND doors(i + 200) = 1 THEN temp = 1: doors(i + 200) = 0
+     IF doors(i).x = x AND doors(i).y = y + 1 AND readbit(doors(i).bits(),0,0) = 1 THEN temp = 1: setbit(doors(i).bits(),0,0,0)
     NEXT
     IF temp = 0 THEN
      temp = -1
      FOR i = 99 TO 0 STEP -1
-      IF doors(i + 200) = 0 THEN temp = i
+      IF readbit(doors(i).bits(),0,0) = 0 THEN temp = i
      NEXT
-     IF temp >= 0 THEN doors(0 + temp) = x: doors(100 + temp) = y + 1: doors(200 + temp) = 1
+     IF temp >= 0 THEN doors(temp).x = x: doors(temp).y = y + 1: setbit(doors(temp).bits(),0,0,1)
     END IF
    END IF
    IF keyval(83) > 1 THEN 'delete
     FOR i = 0 TO 99
-     IF doors(i) = x AND doors(i + 100) = y + 1 AND doors(i + 200) = 1 THEN doors(i + 200) = 0
+     IF doors(i).x = x AND doors(i).y = y + 1 AND readbit(doors(i).bits(),0,0) = 1 THEN setbit(doors(i).bits(),0,0,0)
     NEXT
    END IF
    '---NPCMODE------
@@ -875,9 +880,9 @@ DO
  IF editmode = 2 THEN
   textcolor 240, 0
   FOR i = 0 TO 99
-   IF doors(i) >= INT(mapx / 20) AND doors(i) < INT(mapx / 20) + 16 AND doors(i + 100) > INT(mapy / 20) AND doors(i + 100) <= INT(mapy / 20) + 9 AND doors(i + 200) = 1 THEN
-    rectangle doors(i) * 20 - mapx, doors(i + 100) * 20 - mapy, 20, 20, 15 - tog, dpage
-    printstr STR$(i), doors(i) * 20 - mapx + 10 - (4 * LEN(STR$(i))), doors(i + 100) * 20 - mapy + 6, dpage
+   IF doors(i).x >= INT(mapx / 20) AND doors(i).x < INT(mapx / 20) + 16 AND doors(i).y > INT(mapy / 20) AND doors(i).y <= INT(mapy / 20) + 9 AND readbit(doors(i).bits(),0,0) = 1 THEN
+    rectangle doors(i).x * 20 - mapx, doors(i).y * 20 - mapy, 20, 20, 15 - tog, dpage
+    printstr STR$(i), doors(i).x * 20 - mapx + 10 - (4 * LEN(STR$(i))), doors(i).y * 20 - mapy + 6, dpage
    END IF
   NEXT
  END IF
@@ -1023,10 +1028,10 @@ wide = map(0): high = map(1)
 x = 0: y = 0: mapx = 0: mapy = 0
 edgeprint "Aligning and truncating doors", 0, yout * 10, 15, vpage: yout = yout + 1
 FOR i = 0 TO 99
- doors(i) = doors(i) - tempx
- doors(i + 100) = doors(i + 100) - tempy
- IF doors(i) < 0 OR doors(i + 100) < 0 OR doors(i) >= wide OR doors(i + 100) >= high THEN
-  doors(i + 200) = 0
+ doors(i).x -= tempx
+ doors(i).y -= tempy
+ IF doors(i).x < 0 OR doors(i).y < 0 OR doors(i).x >= wide OR doors(i).y >= high THEN
+  setbit(doors(i).bits(),0,0,0)
  END IF
 NEXT
 edgeprint "Aligning and truncating NPCs", 0, yout * 10, 15, vpage: setvispage vpage: yout = yout + 1
@@ -1061,16 +1066,17 @@ IF yesno = 1 THEN
  cleantiledata map(), wide, high, 3
  cleantiledata pass(), wide, high
  cleantiledata emap(), wide, high
- flusharray link(), 1000, 0
  flusharray npc(), 900, 0
- flusharray doors(), 299, 0
+ cleandoorlinks link()
+ cleandoors doors()
+ 'flusharray doors(), 299, 0
 
  savetiledata maplumpname$(pt, "t"), map(), 3
  savetiledata maplumpname$(pt, "p"), pass()
  savetiledata maplumpname$(pt, "e"), emap()
- xBSAVE maplumpname$(pt, "d"), link(), 2000
  xBSAVE maplumpname$(pt, "l"), npc(), 3000
- storerecord doors(), game$ + ".dox", 300, pt
+ serdoorlinks maplumpname$(pt, "d"), link()
+ serdoors game$ + ".dox", doors(), pt
 END IF
 '--reset scroll position
 x = 0: y = 0: mapx = 0: mapy = 0
@@ -1106,19 +1112,19 @@ cleantiledata map(), 64, 64, 3
 cleantiledata pass(), 64, 64
 cleantiledata emap(), 64, 64
 flusharray gmap(), 19, 0
-flusharray link(), 1000, 0
 flusharray npc(), 900, 0
 flusharray npcstat(), 1500, 0
-flusharray doors(), 299, 0
+cleandoors doors()
+cleandoorlinks link()
 '--save map buffers
 storerecord gmap(), game$ + ".map", getbinsize(4) / 2, gen(genMaxMap)
 savetiledata maplumpname$(gen(genMaxMap), "t"), map(), 3
 savetiledata maplumpname$(gen(genMaxMap), "p"), pass()
 savetiledata maplumpname$(gen(genMaxMap), "e"), emap()
-xBSAVE maplumpname$(gen(genMaxMap), "d"), link(), 2000
 xBSAVE maplumpname$(gen(genMaxMap), "n"), npcstat(), 3000
 xBSAVE maplumpname$(gen(genMaxMap), "l"), npc(), 3000
-storerecord doors(), game$ + ".dox", 300, gen(genMaxMap)
+serdoors game$ + ".dox", doors(), gen(genMaxMap)
+serdoorlinks maplumpname$(gen(genMaxMap), "d"), link()
 '--setup map name
 buffer(0) = 0
 storerecord buffer(), game$ + ".mn", 40, gen(genMaxMap)
@@ -1129,10 +1135,10 @@ storerecord gmap(), game$ + ".map", getbinsize(4) / 2, pt
 savetiledata maplumpname$(pt, "t"), map(), 3
 savetiledata maplumpname$(pt, "p"), pass()
 savetiledata maplumpname$(pt, "e"), emap()
-xBSAVE maplumpname$(pt, "d"), link(), 2000
 xBSAVE maplumpname$(pt, "l"), npc(), 3000
 xBSAVE maplumpname$(pt, "n"), npcstat(), 3000
-storerecord doors(), game$ + ".dox", 300, pt
+serdoors game$ + ".dox", doors(), pt
+serdoorlinks maplumpname$(pt, "d"), link()
 '--save map name
 buffer(0) = LEN(mapname$)
 str2array LEFT$(mapname$, 39), buffer(), 1
@@ -1154,8 +1160,9 @@ loadtiledata maplumpname$(pt, "p"), pass()
 loadtiledata maplumpname$(pt, "e"), emap()
 xbload maplumpname$(pt, "l"), npc(), "npclocation lump is missing!"
 xbload maplumpname$(pt, "n"), npcstat(), "npcstat lump is missing!"
-xbload maplumpname$(pt, "d"), link(), "doorlink lump is missing!"
-loadrecord doors(), game$ + ".dox", 300, pt
+deserdoors game$ + ".dox", doors(), pt
+deserdoorlinks maplumpname$(pt, "d"), link()
+
 mapname$ = getmapname$(pt)
 loadpasdefaults defaults(), gmap(0)
 GOSUB verifymap
@@ -1235,7 +1242,10 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN xBSAVE maplumpname$(pt, "d"), link(), 2000: RETRACE
+ IF keyval(1) > 1 THEN
+ 	serdoorlinks(maplumpname$(pt, "d"), link())
+ 	RETRACE
+ end if
  'IF keyval(72) > 1 AND cur > 0 THEN cur = cur - 1: IF cur < ttop THEN ttop = ttop - 1
  'IF keyval(80) > 1 AND cur < 199 THEN cur = cur + 1: IF cur > ttop + 10 THEN ttop = ttop + 1
  dummy = usemenu(cur, ttop, 0, 199, 10)
@@ -1244,19 +1254,19 @@ DO
   textcolor 7, 0
   IF cur = i THEN textcolor 14 + tog, 0
 
-  a$ = "Door " & link(i) & " leads to door " & link(i + 200) & " on map " & link(i + 400)
+  a$ = "Door " & link(i).source & " leads to door " & link(i).dest & " on map " & link(i).dest_map
   printstr a$, 0, 2 + (i - ttop) * 16, dpage
 
-  IF link(i + 600) = 0 AND link(i + 800) = 0 THEN
+  IF link(i).tag1 = 0 AND link(i).tag2 = 0 THEN
    a$ = "  all the time"
   ELSE
    a$ = "  only if tag "
-   IF link(i + 600) THEN
-    a$ += ABS(link(i + 600)) & " = " & iif(link(i + 600) > 0, 1, 0)
+   IF link(i).tag1 <> 0 THEN
+    a$ += ABS(link(i).tag1) & " = " & iif(link(i).tag1 > 0, 1, 0)
    END IF
-   IF link(i + 800) THEN
-    IF link(i + 600) THEN a$ += " and tag "
-    a$ += ABS(link(i + 800)) & " = " & iif(link(i + 800) > 0, 1, 0)
+   IF link(i).tag2 THEN
+    IF link(i).tag1 THEN a$ += " and tag "
+    a$ += ABS(link(i).tag2) & " = " & iif(link(i).tag2 > 0, 1, 0)
    END IF
   END IF
   printstr a$, 0, 10 + (i - ttop) * 16, dpage
@@ -1276,7 +1286,7 @@ menu$(3) = "Require Tag"
 menu$(4) = "Require Tag"
 cur2 = -1
 sdwait = 0
-outmap$ = getmapname$(link(cur + 400))
+outmap$ = getmapname$(link(cur).dest_map)
 DrawDoorPair pt, cur, map(), pass(), doors(), link(), gmap()
 setkeys
 DO
@@ -1292,21 +1302,47 @@ DO
  'IF keyval(80) > 1 THEN cur2 = cur2 + 1: IF cur2 > 4 THEN cur2 = -1
  dummy = usemenu(cur2, 0, -1, 4, 24)
  IF cur2 >= 0 THEN
-  IF intgrabber(link(cur + (cur2 * 200)), llim(cur2), ulim(cur2), 75, 77) THEN sdwait = 3: outmap$ = getmapname$(link(cur + 400))
+  select case cur2
+  	case 0
+  		if intgrabber(link(cur).source, llim(cur2), ulim(cur2), 75, 77) then sdwait = 3
+  	case 1
+  		if intgrabber(link(cur).dest, llim(cur2), ulim(cur2), 75, 77) then sdwait = 3
+  	case 2
+  		if intgrabber(link(cur).dest_map, llim(cur2), ulim(cur2), 75, 77) then sdwait = 3: outmap$ = getmapname$(link(cur).dest_map)
+  	case 3
+  		intgrabber(link(cur).tag1, llim(cur2), ulim(cur2), 75, 77)
+  	case 4
+  		intgrabber(link(cur).tag2, llim(cur2), ulim(cur2), 75, 77)
+  	case else
+  		'...
+  end select
  ELSE
   IF keyval(28) > 1 OR keyval(57) > 1 THEN RETRACE
  END IF
  rectangle 0, 100, 320, 2, 1 + tog, dpage
  FOR i = -1 TO 4
   xtemp$ = ""
-  IF i >= 0 AND i <= 2 THEN xtemp$ = XSTR$(link(cur + (i * 200)))
-  IF i > 2 THEN
-   IF link(cur + (i * 200)) THEN
-    xtemp$ = XSTR$(ABS(link(cur + (i * 200)))) + " = " + onoroff$(link(cur + (i * 200))) + " (" + lmnemonic$(ABS(link(cur + (i * 200)))) + ")"
-   ELSE
-    xtemp$ = " 0 [N/A]"
-   END IF
-  END IF
+  select case i
+	case 0
+		xtemp$ = XSTR$(link(cur).source)
+	case 1
+		xtemp$ = XSTR$(link(cur).dest)
+	case 2
+		xtemp$ = XSTR$(link(cur).dest_map)
+	case 3
+		if link(cur).tag1 then
+			xtemp$ = XSTR$(ABS(link(cur).tag1)) + " = " + onoroff$(link(cur).tag1) + " (" + lmnemonic$(ABS(link(cur).tag1)) + ")"
+		else
+			xtemp$ = " 0 [N/A]"
+		end if
+	case 4
+		if link(cur).tag2 then
+			xtemp$ = XSTR$(ABS(link(cur).tag2)) + " = " + onoroff$(link(cur).tag2) + " (" + lmnemonic$(ABS(link(cur).tag2)) + ")"
+		else
+			xtemp$ = " 0 [N/A]"
+		end if
+  end select
+
   col = 7: IF cur2 = i THEN col = 14 + tog
   edgeprint menu$(i) + xtemp$, 1, 1 + (i + 1) * 10, col, dpage
  NEXT i
@@ -1445,10 +1481,10 @@ Sub ToggleLayerEnabled(gmap() as integer, byval l as integer)
 	setbit(gmap(), 19, l - 1, readbit(gmap(), 19, l-1) xor 1)
 end sub
 
-SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors(), link(), gmap())
+SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors() as door, link() as doorlink, gmap())
  DIM as integer dmx, dmy, i, tempw, temph
  DIM caption$
- DIM destdoor(300)
+ DIM destdoor() as door
  DIM gmap2(dimbinsize(4)), anim(40)
  
  clearpage 2
@@ -1456,9 +1492,9 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors(), link
  loadtanim gmap(0), anim()
  setanim anim(0), anim(20)
  setmapdata map(), pass(), 0, 101
- IF doors(link(cur + (0 * 200)) + 200) = 1 THEN
-  dmx = doors(link(cur + (0 * 200))) * 20 - 150
-  dmy = doors(link(cur + (0 * 200)) + 100) * 20 - 65
+ IF readbit(doors(link(cur).source).bits(),0,0) = 1 THEN
+  dmx = doors(link(cur).source).x * 20 - 150
+  dmy = doors(link(cur).source).y * 20 - 65
   dmx = small(large(dmx, 0), map(0) * 20 - 320)
   dmy = small(large(dmy, 0), map(1) * 20 - 100)
   FOR i = 0 to 2
@@ -1466,25 +1502,25 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors(), link
      drawmap dmx, dmy, i, 0, 2, i <> 0
    END IF
   NEXT i
-  rectangle doors(link(cur + (0 * 200))) * 20 - dmx, doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 20, 20, 20, 240, 2
-  rectangle 1 + doors(link(cur + (0 * 200))) * 20 - dmx, 1 + doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 20, 18, 18, 7, 2
+  rectangle doors(link(cur).source).x * 20 - dmx, doors(link(cur).source).y * 20 - dmy - 20, 20, 20, 240, 2
+  rectangle 1 + doors(link(cur).source).x * 20 - dmx, 1 + doors(link(cur).source).y * 20 - dmy - 20, 18, 18, 7, 2
   textcolor 240, 0
-  caption$ = XSTR$(link(cur + (0 * 200)))
-  printstr caption$, doors(link(cur + (0 * 200))) * 20 - dmx + 10 - (4 * LEN(caption$)), doors(link(cur + (0 * 200)) + 100) * 20 - dmy - 14, 2
+  caption$ = XSTR$(link(cur).source)
+  printstr caption$, doors(link(cur).source).x * 20 - dmx + 10 - (4 * LEN(caption$)), doors(link(cur).source).y * 20 - dmy - 14, 2
  END IF
  '-----------------EXIT DOOR
- destmap = link(cur + (2 * 200))
+ destmap = link(cur).dest_map
  loadrecord gmap2(), game$ + ".map", dimbinsize(4), destmap
- loadrecord destdoor(), game$ + ".dox", 300, destmap
+ deserdoors game$ + ".dox", destdoor(), destmap
  LoadTiledata maplumpname$(destmap, "t"), map(), 3, tempw, temph
  loadpage game$ + ".til", gmap2(0), 3
  
  loadtanim gmap2(0), anim()
  setanim anim(0), anim(20)
  setmapdata map(), pass(), 101, 0
- IF destdoor(link(cur + (1 * 200)) + 200) = 1 THEN
-  dmx = destdoor(link(cur + (1 * 200))) * 20 - 150
-  dmy = destdoor(link(cur + (1 * 200)) + 100) * 20 - 65
+ IF readbit(destdoor(link(cur).dest).bits(),0,0) = 1 THEN
+  dmx = destdoor(link(cur).dest).x * 20 - 150
+  dmy = destdoor(link(cur).dest).y * 20 - 65
   dmx = small(large(dmx, 0), map(0) * 20 - 320)
   dmy = small(large(dmy, 0), map(1) * 20 - 100)
   FOR i = 0 to 2
@@ -1492,11 +1528,11 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors(), link
      drawmap dmx, dmy - 100, i, 0, 2, i <> 0
    END IF
   NEXT i
-  rectangle destdoor(link(cur + (1 * 200))) * 20 - dmx, destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 80, 20, 20, 240, 2
-  rectangle 1 + destdoor(link(cur + (1 * 200))) * 20 - dmx, 1 + destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 80, 18, 18, 7, 2
+  rectangle destdoor(link(cur).dest).x * 20 - dmx, destdoor(link(cur).dest).y * 20 - dmy + 80, 20, 20, 240, 2
+  rectangle 1 + destdoor(link(cur).dest).x * 20 - dmx, 1 + destdoor(link(cur).dest).y * 20 - dmy + 80, 18, 18, 7, 2
   textcolor 240, 0
-  caption$ = XSTR$(link(cur + (1 * 200)))
-  printstr caption$, destdoor(link(cur + (1 * 200))) * 20 - dmx + 10 - (4 * LEN(caption$)), destdoor(link(cur + (1 * 200)) + 100) * 20 - dmy + 86, 2
+  caption$ = XSTR$(link(cur).dest)
+  printstr caption$, destdoor(link(cur).dest).x * 20 - dmx + 10 - (4 * LEN(caption$)), destdoor(link(cur).dest).y * 20 - dmy + 86, 2
  END IF
  '-----------------RESET DATA
  loadpage game$ + ".til", gmap(0), 3

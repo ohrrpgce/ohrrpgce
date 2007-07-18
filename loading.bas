@@ -235,61 +235,143 @@ SUB CleanTiledata(array() as integer, wide as integer, high as integer, numlayer
   array(1) = high
 END SUB
 
-SUB DeserDoorLinks(filename as string, array() as DoorLink)
-	dim as integer hasheader = 0, f, i
+SUB DeserDoorLinks(filename as string, array() as doorlink)
+	dim as integer hasheader = -1, f, i
 	'when we strip the header, we can check for its presence here
-	if not fileisreadable(filename) then exit sub
+	
+	redim array(199) 'there are 200 links per map
+
+	if not fileisreadable(filename) then
+		debug "couldn't load " & filename
+		exit sub
+	end if
+	
+	f = freefile
 	open filename for binary as #f
 	
-	redim array(99) as DoorLink
 	
-	for i = 0 to 99
+	if hasheader then 
+		dim stupid(6) as ubyte
+		get #f,, stupid()
+	end if
+		
+	for i = 0 to 199
 		array(i).source = ReadShort(f)
 	next
-	for i = 0 to 99
+	for i = 0 to 199
 		array(i).dest = ReadShort(f)
 	next
-	for i = 0 to 99
+	for i = 0 to 199
 		array(i).dest_map = ReadShort(f)
 	next
-	for i = 0 to 99
+	for i = 0 to 199
 		array(i).tag1 = ReadShort(f)
 	next
-	for i = 0 to 99
+	for i = 0 to 199
 		array(i).tag2 = ReadShort(f)
 	next
 	
 	close #f
 End SUB
 
-Sub SerDoorLinks(filename as string, array() as DoorLink, withhead as integer = 1)
-	dim as integer f, i
+Sub SerDoorLinks(filename as string, array() as doorlink, withhead as integer = -1)
+	dim as integer f = freefile, i
 	
 	if not fileiswriteable(filename) then exit sub
 	
 	safekill(filename)
 	
-	open filename for binary as #1
+	open filename for binary as #f
 	
 	if withhead then
-		dim stupid(6) as ubyte
-		put #f, , stupid()
+		dim stupid as ubyte = 253
+		put #f, , stupid
+		writeshort f, -1, -26215 '&h9999, signed
+		writeshort f, -1, 0
+		writeshort f, -1, 2000
 	end if
 	
-	for i = 0 to 99
+	
+	for i = 0 to 199
 		WriteShort f, -1, array(i).source
 	next
-	for i = 0 to 99
+	for i = 0 to 199
 		WriteShort f, -1, array(i).dest
 	next
-	for i = 0 to 99
+	for i = 0 to 199
 		WriteShort f, -1, array(i).dest_map
 	next
-	for i = 0 to 99
+	for i = 0 to 199
 		WriteShort f, -1, array(i).tag1
 	next
-	for i = 0 to 99
+	for i = 0 to 199
 		WriteShort f, -1, array(i).tag2
 	next
 	
+	close #f
+end sub
+
+sub CleanDoorLinks(array() as doorlink)
+	dim i as integer
+	for i = lbound(array) to ubound(array)
+		array(i).source = 0
+		array(i).dest = 0
+		array(i).dest_map = 0
+		array(i).tag1 = 0
+		array(i).tag2 = 0
+	next
+end sub
+
+Sub DeSerDoors(filename as string, array() as door, record as integer)
+	if not fileisreadable(filename) then exit sub
+	
+	dim as integer f = freefile, i
+	
+	open filename for binary as #f
+	
+	seek #f, record * 600 + 1
+	redim array(99)
+	
+	for i = 0 to 99
+		array(i).x = readshort(f)
+	next
+	for i = 0 to 99
+		array(i).y = readshort(f)
+	next
+	for i = 0 to 99
+		array(i).bits(0) = readshort(f)
+	next
+	
+	close #f
+End Sub
+
+Sub SerDoors(filename as string, array() as door, record as integer)
+	if not fileiswriteable(filename) then exit sub
+	dim as integer f = freefile, i
+	
+	open filename for binary as #f
+	
+	seek #f, record * 600 + 1
+	
+	for i = 0 to 99
+		writeshort f, -1, array(i).x
+	next
+	for i = 0 to 99
+		writeshort f, -1, array(i).y
+	next
+	for i = 0 to 99
+		writeshort f, -1, array(i).bits(0)
+	next
+	
+	close #f
+	
+End Sub
+
+Sub CleanDoors(array() as door)
+	dim i as integer
+	for i = lbound(array) to ubound(array)
+		array(i).x = 0
+		array(i).y = 0
+		array(i).bits(0) = 0
+	next
 end sub

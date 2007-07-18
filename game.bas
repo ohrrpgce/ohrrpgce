@@ -5,6 +5,9 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+
+#include "udts.bi"
+
 'basic subs and functions
 DECLARE SUB verquit ()
 DECLARE SUB keyboardsetup ()
@@ -85,7 +88,7 @@ DECLARE SUB tagdisplay ()
 DECLARE SUB rpgversion (v%)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB loadtanim (n%, tastuf%())
-DECLARE SUB loaddoor (map%, door%())
+DECLARE SUB loaddoor (map%, door() as door)
 DECLARE FUNCTION findhero% (who%, f%, l%, d%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE FUNCTION howmanyh% (f%, l%)
@@ -189,12 +192,16 @@ thestart:
 
 'DEBUG debug "dim (almost) everything"
 
+'$dynamic
+
 'Mixed global and module variables
 DIM font(1024), buffer(16384), pal16(448), timing(4), joy(14), music(16384)
-DIM door(206), gen(104), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev&(40, 1), names$(40), gotj(2), veh(21)
+DIM gen(104), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev&(40, 1), names$(40), gotj(2), veh(21)
 DIM eqstuf(40, 4), csetup(20), carray(20), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4), keyv(55, 1)
 DIM menu$(9), mi(9)
+
+dim door() as door, doorlinks() as doorlink
 
 'shared module variables
 DIM SHARED cycle(1), cycptr(1), cycskip(1), tastuf(40), stat(40, 1, 16)
@@ -1395,8 +1402,8 @@ RETRACE
 opendoor:
 IF veh(0) AND readbit(veh(), 9, 3) = 0 AND dforce = 0 THEN RETRACE
 FOR doori = 0 TO 99
- IF readbit(door(), 200, doori) THEN
-  IF (door(doori) = INT(catx(0) / 20) AND door(doori + 100) = INT(caty(0) / 20) + 1) OR dforce - 1 = doori THEN
+ IF readbit(door(doori).bits(),0,0) THEN
+  IF (door(doori).x = INT(catx(0) / 20) AND door(doori).y = INT(caty(0) / 20)+1) OR dforce - 1 = doori THEN
    dforce = 0
    GOSUB thrudoor
    EXIT FOR
@@ -1409,19 +1416,21 @@ thrudoor:
 samemap = 0
 oldmap = map
 '--load link data into buffer() -- Take care not to clobber it!
-xbload maplumpname$(map, "d"), buffer(), "Oh no! Map" + STR$(map) + " doorlinks missing"
+'xbload maplumpname$(map, "d"), buffer(), "Oh no! Map" + STR$(map) + " doorlinks missing"
+deserdoorlinks(maplumpname(map,"d"), doorlinks())
+
 FOR o = 0 TO 199
- IF doori = buffer(o) THEN
+ with doorlinks(o)
+ IF doori = .source THEN
   'PLOT CHECKING FOR DOORS
   bad = 1
-  IF istag(buffer(o + 800), -1) AND istag(buffer(o + 600), -1) THEN bad = 0
+  IF istag(.tag1, -1) AND istag(.tag2, -1) THEN bad = 0
   IF bad = 0 THEN
-   map = buffer(o + 400)
-   destdoor = buffer(o + 200)
-   '--buffer() gets clobbered here, but thats okay because we are done with it
-   loaddoor map, door()
-   catx(0) = door(destdoor) * 20
-   caty(0) = (door(destdoor + 100) - 1) * 20
+   map = .dest_map
+   destdoor = .dest
+   deserdoors game$ + ".dox", door(), map
+   catx(0) = door(destdoor).x * 20
+   caty(0) = (door(destdoor).y - 1) * 20
    fadeout 0, 0, 0
    needf = 2
    afterbat = 0
@@ -1431,6 +1440,7 @@ FOR o = 0 TO 199
    EXIT FOR
   END IF
  END IF
+ end with
 NEXT o
 RETRACE
 

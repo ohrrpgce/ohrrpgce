@@ -41,7 +41,7 @@ SUB xbload (f$, array(), e$)
 		DIM ff%, byt as UByte, seg AS Short, offset AS Short, length AS Short
 		dim ilength as integer
 		dim i as integer
-
+		
 		ff = FreeFile
 		OPEN f$ FOR BINARY AS #ff
 		GET #ff,, byt 'Magic number, always 253
@@ -73,7 +73,7 @@ SUB xbsave (f$, array%(), bsize%)
 	dim ilength as integer
 	dim i as integer
 	dim needbyte as integer
-
+	
 	seg = &h9999
 	offset = 0
 	'Because we're working with a short array, but the data is in bytes

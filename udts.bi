@@ -145,6 +145,11 @@ TYPE TileEditState
  delay as INTEGER
 END TYPE
 
+Type Door
+	as integer x, y
+	as integer bits(0)
+End Type
+
 Type DoorLink
 	as integer source, dest, dest_map, tag1, tag2
 End Type

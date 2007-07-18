@@ -5,6 +5,9 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+
+#include "udts.bi"
+
 'basic subs and functions
 DECLARE SUB writepassword (p$)
 DECLARE FUNCTION readpassword$ ()
@@ -45,7 +48,7 @@ DECLARE SUB tagnames ()
 DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%)
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE FUNCTION rotascii$ (s$, o%)
-DECLARE SUB mapmaker (font%(), doors%(), link%(), npcn%(), npcstat%())
+DECLARE SUB mapmaker (font%(), npcn%(), npcstat%())
 DECLARE SUB npcdef (npcn%(), pt%)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
@@ -99,11 +102,12 @@ gamedir$ = exepath$
 CHDIR gamedir$
 
 DIM font(1024), buffer(16384), timing(4), joy(4)
-DIM menu$(22), gen(360), keyv(55, 3), doors(300), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), link(1000), npcn(1500), npcstat(1500), uilook(uiColors)
+DIM menu$(22), gen(360), keyv(55, 3), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), npcn(1500), npcstat(1500), uilook(uiColors)
 DIM master(255) as RGBcolor
 'more global variables
 DIM game$, gamefile$, unsafefile$, insert, activepalette
 DIM vpage, dpage, fadestate, workingdir$
+
 
 dim shared trit as string 'to fix an undefined variable error
 
@@ -237,7 +241,7 @@ DO:
   SELECT CASE menumode
    CASE 0'--normal mode
     IF pt = 0 THEN pt = 0: menumode = 1: GOSUB setgraphicmenu
-    IF pt = 1 THEN mapmaker font(), doors(), link(), npcn(), npcstat()
+    IF pt = 1 THEN mapmaker font(), npcn(), npcstat()
     IF pt = 2 THEN statname
     IF pt = 3 THEN herodata
     IF pt = 4 THEN enemydata
