@@ -1184,11 +1184,13 @@ NEXT
 'THIS PART UPDATES STATS FOR A LEVEL UP
 IF exstat(i, 1, 12) THEN
 
- loadherodata buffer(), hero(i) - 1
+ 'loadherodata buffer(), hero(i) - 1
+ dim her as herodef
+ loadherodata @her, hero(i) - 1
 
  'update stats
  FOR o = 0 TO 11
-  exstat(i, 1, o) = exstat(i, 1, o) + (atlevel(exstat(i, 0, 12), buffer(23 + o * 2), buffer(24 + o * 2)) - atlevel(exstat(i, 0, 12) - exstat(i, 1, 12), buffer(23 + o * 2), buffer(24 + o * 2)))
+  exstat(i, 1, o) = exstat(i, 1, o) + (atlevel(exstat(i, 0, 12), cint(her.lev0.sta(o)), cint(her.lev99.sta(o))) - atlevel(exstat(i, 0, 12) - exstat(i, 1, 12), cint(her.lev0.sta(o)), cint(her.lev99.sta(o))))
 
   'simulate levelup bug
   IF readbit(gen(), 101, 9) = 1 THEN
@@ -1200,7 +1202,6 @@ IF exstat(i, 1, 12) THEN
    NEXT j
    'do stat caps
    IF gen(genStatCap + o) > 0 THEN exstat(i, 0, o) = small(exstat(i, 0, o),gen(genStatCap + o))
-   loadherodata buffer(), hero(i) - 1
   END IF
  NEXT o
 
@@ -1230,7 +1231,7 @@ IF exstat(i, 1, 12) THEN
  FOR j = 0 TO 3
   FOR o = 0 TO 23
    '--if slot is empty and slot accepts this spell and learn-by-level condition is true
-   IF spell(i, j, o) = 0 AND buffer(47 + (j * 48) + (o * 2)) > 0 AND buffer(48 + (j * 48) + (o * 2)) - 1 <= exstat(i, 0, 12) AND buffer(48 + (j * 48) + (o * 2)) > 0 THEN
+   IF spell(i, j, o) = 0 AND her.spell_lists(j,o).attack > 0 AND her.spell_lists(j,o).learned - 1 <= exstat(i, 0, 12) AND her.spell_lists(j,o).learned > 0 THEN
     spell(i, j, o) = buffer(47 + (j * 48) + (o * 2))
     setbit learnmask(), 0, small(i, 4) * 96 + j * 24 + o, 1
    END IF

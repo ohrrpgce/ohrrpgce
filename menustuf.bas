@@ -342,13 +342,14 @@ IF b(pt * recordsize + 17) = 0 THEN
 END IF
 IF b(pt * recordsize + 17) = 1 THEN
  'hire
- loadherodata buffer(), b(pt * recordsize + 18)
- loaditemdata wbuf(), buffer(22)
- IF buffer(21) < 0 THEN buffer(21) = averagelev(stat())
- temp$ = XSTR$(atlevel(buffer(21), buffer(23 + 0 * 2), buffer(24 + 0 * 2)) + wbuf(54 + 0))
+ dim her as herodef
+ loadherodata @her, b(pt * recordsize + 18)
+ loaditemdata wbuf(), her.def_weapon
+ IF her.def_level < 0 THEN her.def_level = averagelev(stat())
+ temp$ = XSTR$(atlevel(her.def_level, cint(her.lev0.hp), cint(her.lev99.hp)) + wbuf(54 + 0))
  eqinfo$ = RIGHT$(temp$, LEN(temp$) - 1) + " " + sname$(0)
  showhero = buffer(17)
- getpal16 hpal(), 0, buffer(18), 0, showhero
+ getpal16 hpal(), 0, her.sprite_pal, 0, showhero
  setpicstuf buffer(), 5120, 2
  loadset game$ + ".pt0", showhero, 0
  IF eslot = 0 THEN info1$ = noroom$
@@ -1362,9 +1363,10 @@ FOR i = 0 TO 3
      getpal16 pal16(), 40 + (i * 4) + o, tstat(o, 0, 15), 0, pic(i, o)
     ELSE
      '--backcompat
-     loadherodata buffer(), id(i, o) - 1
-     pic(i, o) = buffer(17)
-     getpal16 pal16(), 40 + (i * 4) + o, buffer(18), 0, pic(i, o)
+     dim her as herodef
+     loadherodata @her, id(i,o) - 1
+     pic(i, o) = her.sprite
+     getpal16 pal16(), 40 + (i * 4) + o, her.sprite_pal, 0, pic(i, o)
     END IF
     setpicstuf buffer(), 5120, 2
     loadset game$ + ".pt0", pic(i, o), 0
@@ -1728,6 +1730,8 @@ SUB spells (pt, stat())
 REMEMBERSTATE
 
 DIM sname$(40), menu$(4), mi(4), mtype(5), spel$(24), speld$(24), cost$(24), spel(24), canuse(24), targt(24), spid(5), ondead(2), onlive(2)
+dim her as herodef
+
 getnames sname$()
 
 savetemppage 3
@@ -1850,12 +1854,12 @@ FOR i = 0 TO 5
  '--clear menu type
  mtype(i) = -1
  '--load hero data
- loadherodata buffer(), hero(pt) - 1
+ loadherodata @her, hero(pt) - 1
  '--if it is a menu...
  IF bmenu(pt, i) < 0 AND bmenu(pt, i) > -10 THEN
   '--set spell-menu-id and menu-type
   spid(i) = (bmenu(pt, i) + 1) * -1
-  mtype(i) = buffer(288 + spid(i))
+  mtype(i) = her.list_type(spid(i))
  END IF
 NEXT i
 last = 0
@@ -1865,15 +1869,16 @@ FOR o = 0 TO 5
   mtype(last) = mtype(o)
   spid(last) = spid(o)
 
-  loadherodata buffer(), hero(pt) - 1
+ 
+  loadherodata @her, hero(pt) - 1
 
   '--get menu index
   mi(last) = (bmenu(pt, o) + 1) * -1
 
   '--read menu name
-  menu$(last) = readbadbinstring$(buffer(), 243 + mi(last) * 11, 10, 0)
+  menu$(last) = her.list_name(mi(last))
 
-  '--old crappy code for reading menu name
+  '--old crappy code for reading menu name (very obsolete)
   'FOR j = 244 + temp * 11 TO 243 + temp * 11 + buffer(243 + temp * 11)
   ' menu$(last) = menu$(last) + CHR$(buffer(j))
   'NEXT j
@@ -2019,6 +2024,7 @@ END SUB
 
 SUB status (pt, stat())
 DIM sname$(40), sno(9), mtype(5), hbits(3, 4), thishbits(4), elemtype$(2), info$(25)
+dim her as herodef
 
 savetemppage 3
 copypage dpage, 3
@@ -2154,13 +2160,14 @@ LOOP
 
 nextstat: '--loads the hero who's ID is held in pt
 '--load the hero data lump only to get the spell list types
-loadherodata buffer(), hero(pt) - 1
+'loadherodata buffer(), hero(pt) - 1
+loadherodata @her, hero(pt) - 1
 
 FOR i = 0 TO 5
  mtype(i) = -1
  IF bmenu(pt, i) < 0 AND bmenu(pt, i) > -10 THEN
   temp = (bmenu(pt, i) + 1) * -1
-  IF buffer(243 + temp * 11) > 0 THEN mtype(i) = buffer(288 + temp)
+  IF her.list_name(temp) <> "" THEN mtype(i) = her.list_type(temp)
  END IF
 NEXT i
 
@@ -2197,8 +2204,9 @@ FUNCTION trylearn (who, atk, learntype)
 '--fail by default
 result = 0
 
+dim her as herodef
 '--pre-populate buffer() with the hero's data.
-loadherodata buffer(), hero(who) - 1
+loadherodata @her, hero(who) - 1
 
 '--for each spell list
 FOR j = 0 TO 3
@@ -2206,8 +2214,7 @@ FOR j = 0 TO 3
  FOR o = 0 TO 23
   '--if this slot is empty and accepts this spell
   '--and is learnable by learntype
-  k = (j * 48) + (o * 2)
-  IF spell(who, j, o) = 0 AND buffer(47 + k) = atk AND buffer(48 + k) = learntype THEN
+  IF spell(who, j, o) = 0 AND her.spell_lists(j,o).attack = atk AND her.spell_lists(j,o).learned = learntype THEN
    spell(who, j, o) = atk
    result = 1
   END IF

@@ -35,7 +35,7 @@ REMEMBERSTATE
 bstackstart = stackpos
 
 battle = 1
-DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3, 318), es(7, 160), zbuf(24),  p(24), of(24), ext$(7), ctr(11), stat(11,  _
+DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24),  p(24), of(24), ext$(7), ctr(11), stat(11,  _
 1, 17), ready(11), batname$(11), menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
@@ -381,7 +381,7 @@ IF carray(4) > 1 THEN
    RETRACE
   END IF
  END IF
- IF bmenu(you, pt) < 0 AND bmenu(you, pt) >= -4 AND st(you, 288 + (bmenu(you, pt) + 1) * -1) < 2 THEN
+ IF bmenu(you, pt) < 0 AND bmenu(you, pt) >= -4 AND st(you).list_type((bmenu(you, pt) + 1) * -1) < 2 THEN
   '--init spell menu
   mset = 1: sptr = 0
   sptype = (bmenu(you, pt) + 1) * -1 '-tells which menu
@@ -396,22 +396,22 @@ IF carray(4) > 1 THEN
     loadattackdata atktemp(), spel(i)
     spel$(i) = readbadbinstring$(atktemp(), 24, 10, 1)
     speld$(i) = readbinstring$(atktemp(), 73, 38)
-    IF st(you, 288 + sptype) = 0 THEN
+    IF st(you).list_type(sptype) = 0 THEN
      '--regular MP
      cost$(i) = XSTR$(focuscost(atktemp(8), stat(you, 0, 10))) + " " + mpname$ + " " + STR$(stat(you, 0, 1)) + "/" + STR$(stat(you, 1, 1))
     END IF
-    IF st(you, 288 + sptype) = 1 THEN
+    IF st(you).list_type(sptype) = 1 THEN
      '--level MP
      cost$(i) = "Level" + XSTR$(INT(i / 3) + 1) + ":  " + XSTR$(lmp(you, INT(i / 3)))
     END IF
-    IF atkallowed(spel(i), you, st(you, 288 + sptype), INT(i / 3), stat(), atktemp()) THEN
+    IF atkallowed(spel(i), you, st(you).list_type(sptype), INT(i / 3), stat(), atktemp()) THEN
      setbit spelmask(), 0, i, 1
     END IF
    END IF
    spel$(i) = rpad$(spel$(i), " ", 10)
   NEXT i
  END IF
- IF bmenu(you, pt) < 0 AND bmenu(you, pt) >= -4 AND st(you, 288 + (bmenu(you, pt) + 1) * -1) = 2 THEN
+ IF bmenu(you, pt) < 0 AND bmenu(you, pt) >= -4 AND st(you).list_type((bmenu(you, pt) + 1) * -1) = 2 THEN
   last = -1
   sptype = (bmenu(you, pt) + 1) * -1
   FOR i = 0 TO 23
@@ -1580,10 +1580,10 @@ IF carray(4) > 1 THEN
  '--can-I-use-it? checking
  IF spel(sptr) > -1 THEN
   '--list-entry is non-empty
-  IF atkallowed(spel(sptr), you, st(you, 288 + sptype), INT(sptr / 3), stat(), atktemp()) THEN
+  IF atkallowed(spel(sptr), you, st(you).list_type(sptype), INT(sptr / 3), stat(), atktemp()) THEN
    '--attack is allowed
    '--if lmp then set lmp consume flag
-   IF st(you, 288 + sptype) = 1 THEN conlmp(you) = INT(sptr / 3) + 1
+   IF st(you).list_type(sptype) = 1 THEN conlmp(you) = INT(sptr / 3) + 1
    '--load atk data (for delay)
    loadattackdata atktemp(), spel(sptr)
    '--queue attack
@@ -2010,10 +2010,10 @@ IF formdata(33) = 0 THEN fademusic 0
 IF formdata(33) > 0 THEN wrappedsong formdata(33) - 1
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
-  loadherodata buffer(), hero(i) - 1
-  FOR o = 0 TO 317
-   st(i, o) = buffer(o)
-  NEXT o
+  loadherodata @st(i), hero(i) - 1
+  'FOR o = 0 TO 317
+  ' st(i, o) = buffer(o)
+  'NEXT o
   WITH bslot(i)
    .basex = (240 + i * 8)
    .basey = (82 + i * 20)
@@ -2041,9 +2041,7 @@ FOR i = 0 TO 3
    END IF
    IF bmenu(i, o) < 0 AND bmenu(i, o) > -5 THEN
     temp = (bmenu(i, o) + 1) * -1
-    FOR j = 244 + temp * 11 TO 243 + temp * 11 + st(i, 243 + temp * 11)
-     menu$(i, o) = menu$(i, o) + CHR$(st(i, j))
-    NEXT j
+    menu$(i,o) = st(i).list_name(temp)
    END IF
    IF bmenu(i, o) = -10 THEN menu$(i, o) = readglobalstring$(34, "Item", 10): mend(i) = o
    WHILE LEN(menu$(i, o)) < 10: menu$(i, o) = menu$(i, o) + " ": WEND

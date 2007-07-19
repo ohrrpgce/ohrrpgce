@@ -154,6 +154,55 @@ Type DoorLink
 	as integer source, dest, dest_map, tag1, tag2
 End Type
 
+Type Stats
+	Union
+		Type
+			hp as short
+			mp as short
+			str as short
+			acc as short
+			def as short
+			dog as short
+			mag as short
+			wil as short
+			spd as short
+			ctr as short
+			foc as short
+			hits as short
+		End Type
+		sta(11) as short
+	end Union
+End Type
+
+Type SpellList
+	attack as short
+	learned as short
+End Type
+
+Type HeroDef
+	name as string
+	sprite as integer
+	sprite_pal as integer
+	walk_sprite as integer
+	walk_sprite_pal as integer
+	def_level as integer
+	def_weapon as integer
+	Lev0 as stats
+	Lev99 as stats
+	spell_lists(3,23) as SpellList
+	bits(2) as integer
+	list_name(3) as string
+	list_type(3) as integer
+	have_tag as integer
+	alive_tag as integer
+	leader_tag as integer
+	active_tag as integer
+	max_name_len as integer
+	hand_a_x as integer
+	hand_a_y as integer
+	hand_b_x as integer
+	hand_b_y as integer
+End Type
 
 'Documentation of veh() in game, which is different from the VEH lump
 '0 is true (-1) if in/mounting/dismounting a vehicle

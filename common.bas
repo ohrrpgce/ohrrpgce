@@ -15,6 +15,7 @@
 #include "common.bi"
 
 #include "music.bi"
+#include "loading.bi
 
 'Subs and functions only used locally
 DECLARE SUB draw_browse_meter(meter AS INTEGER, ranalready AS INTEGER, viewsize AS INTEGER)
@@ -863,19 +864,21 @@ SUB savedefaultpals(fileset, poffset(), sets)
 END SUB
 
 SUB guessdefaultpals(fileset, poffset(), sets)
+ dim her as herodef
+ 
  flusharray poffset(), sets, 0
  SELECT CASE fileset
  CASE 0 'Heroes
-  REDIM buf(318)
-  FOR i = 0 TO sets
-   FOR j = 0 TO gen(genMaxHero)
-    loadherodata buf(), j
-    IF buf(17) = i THEN
-     poffset(i) = buf(18)
+  'REDIM buf(318)
+  FOR j = 0 TO gen(genMaxHero) 'I reversed the loops, because it's more efficient  
+   FOR i = 0 TO sets           'to do the file I/O in the outer loop
+    loadherodata @her, j
+    IF her.sprite = i THEN
+     poffset(i) = her.sprite_pal
      EXIT FOR
     END IF
-   NEXT j
-  NEXT i
+   NEXT
+  NEXT
  CASE 1 TO 3 'Enemies
   REDIM buf(160)
   FOR i = 0 TO sets
@@ -887,15 +890,16 @@ SUB guessdefaultpals(fileset, poffset(), sets)
     END IF
    NEXT j
   NEXT i
- CASE 4 'NPCs
-  REDIM buf(318)
+ CASE 4 'Walkabouts
+  'REDIM buf(318)
   REDIM npcbuf(1500)
   FOR i = 0 TO sets
    found = 0
    FOR j = 0 TO gen(genMaxHero)
-    loadherodata buf(), j
-    IF buf(19) = i THEN
-     poffset(i) = buf(20)
+    loadherodata @her, j
+    
+    IF her.walk_sprite = i THEN
+     poffset(i) = her.walk_sprite_pal
      found = 1
      EXIT FOR
     END IF
@@ -947,12 +951,12 @@ FOR i = 0 TO size
 NEXT i
 END SUB
 
-SUB loadherodata (array(), index)
-loadrecord array(), game$ & ".dt0", 318, index
+SUB loadherodata (hero as herodef ptr, index)
+deserherodef game$ & ".dt0", hero, index
 END SUB
 
-SUB saveherodata (array(), index)
-storerecord array(), game$ & ".dt0", 318, index
+SUB saveherodata (hero as herodef ptr, index)
+'serherodef game$ & ".dt0", hero, index
 END SUB
 
 SUB loadenemydata (array(), index, altfile = 0)

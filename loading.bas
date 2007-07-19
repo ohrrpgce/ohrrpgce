@@ -375,3 +375,135 @@ Sub CleanDoors(array() as door)
 		array(i).bits(0) = 0
 	next
 end sub
+
+'loads a standard block of stats from a file handle.
+Sub LoadStats(fh as integer, sta as stats ptr)
+	if sta = 0 then exit sub
+	
+	with *sta
+		get #fh,, .sta()
+	end with
+	
+end sub
+
+'saves a stat block to a file handle
+Sub SaveStats(fh as integer, sta as stats ptr)
+	if sta = 0 then exit sub
+	
+	with *sta
+		put #fh,, .sta()
+	end with
+	
+end sub
+
+'this differs from the above because it loads two interleaved blocks of stats,
+'such as those found in the hero definitions.
+Sub LoadStats2(fh as integer, lev0 as stats ptr, lev99 as stats ptr)
+	if lev0 = 0 or lev99 = 0 then exit sub
+	lev0->hp	= readShort(fh)
+	lev99->hp	= readShort(fh)
+	lev0->mp	= readShort(fh)
+	lev99->mp	= readShort(fh)
+	lev0->str	= readShort(fh)
+	lev99->str= readShort(fh)
+	lev0->acc	= readShort(fh)
+	lev99->acc= readShort(fh)
+	lev0->def	= readShort(fh)
+	lev99->def= readShort(fh)
+	lev0->dog	= readShort(fh)
+	lev99->dog= readShort(fh)
+	lev0->mag	= readShort(fh)
+	lev99->mag= readShort(fh)
+	lev0->wil	= readShort(fh)
+	lev99->wil= readShort(fh)
+	lev0->spd	= readShort(fh)
+	lev99->spd= readShort(fh)
+	lev0->ctr	= readShort(fh)
+	lev99->ctr= readShort(fh)
+	lev0->foc	= readShort(fh)
+	lev99->foc= readShort(fh)
+	lev0->hits	= readShort(fh)
+	lev99->hits	= readShort(fh)
+end sub
+
+'save interleaved stat blocks
+Sub SaveStats2(fh as integer, lev0 as stats ptr, lev99 as stats ptr)
+	if lev0 = 0 or lev99 = 0 then exit sub
+	writeShort(fh,-1,cint(lev0->hp))
+	writeShort(fh,-1,cint(lev99->hp))
+	writeShort(fh,-1,cint(lev0->mp))
+	writeShort(fh,-1,cint(lev99->mp))
+	writeShort(fh,-1,cint(lev0->str))
+	writeShort(fh,-1,cint(lev99->str))
+	writeShort(fh,-1,cint(lev0->acc))
+	writeShort(fh,-1,cint(lev99->acc))
+	writeShort(fh,-1,cint(lev0->def))
+	writeShort(fh,-1,cint(lev99->def))
+	writeShort(fh,-1,cint(lev0->dog))
+	writeShort(fh,-1,cint(lev99->dog))
+	writeShort(fh,-1,cint(lev0->mag))
+	writeShort(fh,-1,cint(lev99->mag))
+	writeShort(fh,-1,cint(lev0->wil))
+	writeShort(fh,-1,cint(lev99->wil))
+	writeShort(fh,-1,cint(lev0->spd))
+	writeShort(fh,-1,cint(lev99->spd))
+	writeShort(fh,-1,cint(lev0->ctr))
+	writeShort(fh,-1,cint(lev99->ctr))
+	writeShort(fh,-1,cint(lev0->foc))
+	writeShort(fh,-1,cint(lev99->foc))
+	writeShort(fh,-1,cint(lev0->hits))
+	writeShort(fh,-1,cint(lev99->hits))
+end sub
+
+Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
+	if not fileisreadable(filename) or hero = 0 then exit sub
+	
+	dim as integer f = freefile, i, j
+	
+	open filename for binary as #f
+	
+	seek #f, record * 636 + 1
+	
+	'begin (this makes the baby jesus cry :'( )
+	with *hero
+		.name							= readvstr(f, 16)
+		.sprite						= readshort(f)
+		.sprite_pal				= readshort(f)
+		.walk_sprite			= readshort(f)
+		.walk_sprite_pal	= readshort(f)
+		.def_level				= readshort(f)
+		.def_weapon				= readshort(f)
+		LoadStats2(f, @.Lev0, @.Lev99)
+		'get #f,, .spell_lists()
+		for i = 0 to 3
+			for j = 0 to 23 'have to do it this way in case FB reads arrays the wrong way
+				.spell_lists(i,j).attack = readshort(f)
+				.spell_lists(i,j).learned = readshort(f)
+			next
+		next
+		readshort(f) 'unused
+		for i = 0 to 2
+			.bits(i) = readShort(f)
+		next
+		for i = 0 to 3
+			.list_name(i) = ReadVStr(f,10)
+		next
+		readshort(f) 'unused
+		for i = 0 to 3
+			.list_type(i) = readshort(f)
+		next
+		.have_tag = readshort(f)
+		.alive_tag = readshort(f)
+		.leader_tag = readshort(f)
+		.active_tag = readshort(f)
+		.max_name_len = readshort(f)
+		.hand_a_x = readshort(f)
+		.hand_a_y = readshort(f)
+		.hand_b_x = readshort(f)
+		.hand_b_y = readshort(f)
+		'16 more unused bytes
+		
+	end with
+	
+	
+end sub

@@ -81,14 +81,16 @@ REM $STATIC
 SUB addhero (who, slot, stat())
 DIM wbuf(100), thishbits(4)
 
+dim her as herodef
+
 '--load hero's data
-loadherodata buffer(), who - 1
+loadherodata @her, who - 1
 
 '--load data of hero's default weapon
 loaditemdata wbuf(), buffer(22)
 
 '--do average level enforcement
-IF buffer(21) < 0 THEN buffer(21) = averagelev(stat())
+IF her.def_level < 0 THEN her.def_level = averagelev(stat())
 
 '--formally add hero
 hero(slot) = who
@@ -98,11 +100,11 @@ wep = large(wbuf(48), 1)
 FOR i = 0 TO 4
  eqstuf(slot, i) = 0
 NEXT i
-eqstuf(slot, 0) = buffer(22) + 1
+eqstuf(slot, 0) = her.def_weapon + 1
 
 '--fill in stats
 FOR i = 0 TO 11
- stat(slot, 0, i) = atlevel(buffer(21), buffer(23 + i * 2), buffer(24 + i * 2)) + wbuf(54 + i)
+ stat(slot, 0, i) = atlevel(her.def_level, cint(her.lev0.sta(i)), cint(her.lev99.sta(i))) + wbuf(54 + i)
  stat(slot, 1, i) = stat(slot, 0, i)
 NEXT i
 '--weapon picture and palette
@@ -120,7 +122,7 @@ NEXT i
 '--include spell lists that have names
 o = 1
 FOR i = 0 TO 3
- IF buffer(243 + i * 11) > 0 THEN bmenu(slot, o) = (i + 1) * -1: o = o + 1
+ IF her.list_name(i) <> "" THEN bmenu(slot, o) = (i + 1) * -1: o = o + 1
 NEXT i
 
 '--add item list to the end
@@ -130,37 +132,38 @@ bmenu(slot, o) = -10
 FOR i = 0 TO 3
  FOR o = 0 TO 23
   spell(slot, i, o) = 0
-  IF buffer(47 + (i * 48) + (o * 2)) > 0 AND buffer(48 + (i * 48) + (o * 2)) - 1 <= buffer(21) AND buffer(48 + (i * 48) + (o * 2)) > 0 THEN spell(slot, i, o) = buffer(47 + (i * 48) + (o * 2))
+  IF her.spell_lists(i,o).attack > 0 AND her.spell_lists(i,o).learned - 1 <= her.def_level AND her.spell_lists(i,o).learned > 0 THEN spell(slot, i, o) = her.spell_lists(i,o).attack
  NEXT o
 NEXT i
 
 '--elemental bitsets
 FOR i = 0 TO 2
- thishbits(i) = buffer(240 + i)
- nativehbits(slot, i) = buffer(240 + i)
+ thishbits(i) = her.bits(i)
+ nativehbits(slot, i) = her.bits(i)
 NEXT i
 
 '--reset levelmp
-resetlmp slot, buffer(21)
+resetlmp slot, her.def_level
 
 '--setup experience
-stat(slot, 0, 12) = buffer(21)
+stat(slot, 0, 12) = her.def_level
 stat(slot, 1, 12) = 0
 exlev&(slot, 0) = 0
-exlev&(slot, 1) = exptolevel(buffer(21))
+exlev&(slot, 1) = exptolevel(her.def_level)
 
 '--heros are added unlocked
 setbit hmask(), 0, who - 1, 0
 
 '--appearance settings
-stat(slot, 0, 14) = buffer(17)'bat pic
-stat(slot, 0, 15) = buffer(18)'bat pal
-stat(slot, 1, 14) = buffer(19)'walk pic
-stat(slot, 1, 15) = buffer(20)'walk pal
-stat(slot, 0, 16) = buffer(22) + 1'default weapon
+' udts are self documenting
+stat(slot, 0, 14) = her.sprite
+stat(slot, 0, 15) = her.sprite_pal
+stat(slot, 1, 14) = her.walk_sprite
+stat(slot, 1, 15) = her.walk_sprite_pal
+stat(slot, 0, 16) = her.def_weapon + 1'default weapon
 
-'--read hero's name (doing this last because it clobbers the buffer)
-names$(slot) = readbadbinstring$(buffer(), 0, 16, 0)
+'--read hero's name (doing this last for no real reason)
+names$(slot) = her.name
 '--if renaming is permitted, do it
 IF readbit(thishbits(), 0, 24) THEN
  '--add-hero rename is allowed
@@ -947,7 +950,7 @@ FOR i = 0 TO 1024
  global(i) or= buffer(z) shl 16: z = z + 1
 NEXT i
 
-'---BLODDY BACKWARD COMPATABILITY---
+'---BLOODY BACKWARD COMPATABILITY---
 'fix doors...
 IF version = 2 THEN gen(95) = 3
 
@@ -955,12 +958,13 @@ IF picpalmagicnum <> 4444 THEN
  '--fix appearance settings
  FOR sl = 0 TO 40
   IF hero(sl) > 0 THEN
-   loadherodata buffer(), hero(sl) - 1
-   stat(sl, 0, 14) = buffer(17)'bat pic
-   stat(sl, 0, 15) = buffer(18)'bat pal
-   stat(sl, 1, 14) = buffer(19)'walk pic
-   stat(sl, 1, 15) = buffer(20)'walk pal
-   stat(sl, 0, 16) = buffer(22) + 1'default weapon
+   dim her as herodef
+   loadherodata @her, hero(sl) - 1
+   stat(sl, 0, 14) = her.sprite
+   stat(sl, 0, 15) = her.sprite_pal
+   stat(sl, 1, 14) = her.walk_sprite
+   stat(sl, 1, 15) = her.walk_sprite_pal
+   stat(sl, 0, 16) = her.def_weapon + 1'default weapon
   END IF
  NEXT sl
 END IF
@@ -969,9 +973,10 @@ IF nativebitmagicnum <> 4444 THEN
  '--fix native hero bits
  FOR sl = 0 TO 40
   IF hero(sl) > 0 THEN
-   loadherodata buffer(), hero(sl) - 1
-   FOR i = 0 TO 4
-    nativehbits(sl, i) = buffer(240 + i)
+   dim her as herodef
+   loadherodata @her, hero(sl) - 1
+   FOR i = 0 TO 2 '??
+    nativehbits(sl, i) = her.bits(i)
    NEXT i
   END IF
  NEXT sl
@@ -1190,8 +1195,10 @@ END FUNCTION
 
 SUB renamehero (who)
 
-loadherodata buffer(), hero(who) - 1
-limit = buffer(296)
+dim her as herodef
+loadherodata @her, hero(who) - 1
+
+limit = her.max_name_len
 IF limit = 0 THEN limit = 16
 
 prompt$ = readglobalstring$(137, "Name the Hero", 20)

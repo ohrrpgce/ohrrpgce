@@ -106,6 +106,7 @@ DECLARE SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, stat(
 
 
 'FIXME: this should not be called directly here. needs wrapping in allmodex.bi
+'Mike: why? it's already wrapped in gfx_*.bas
 #include "gfx.bi"
 
 'these variables hold information used by breakpoint to step to the desired position
@@ -180,12 +181,13 @@ FUNCTION checksaveslot (slot)
 END FUNCTION
 
 SUB doihavebits
+dim her as herodef
 FOR i = 0 TO large(gen(35), 59)
- loadherodata buffer(), i
- herobits(i, 0) = buffer(292)    'have hero tag
- herobits(i, 1) = buffer(293)    'is alive tag
- herobits(i, 2) = buffer(294)    'is leader tag
- herobits(i, 3) = buffer(295)    'is in active party tag
+ loadherodata @her, i
+ herobits(i, 0) = her.have_tag    'have hero tag
+ herobits(i, 1) = her.alive_tag   'is alive tag
+ herobits(i, 2) = her.leader_tag  'is leader tag
+ herobits(i, 3) = her.active_tag  'is in active party tag
 NEXT i
 FOR i = 0 TO 255
  loaditemdata buffer(), i
@@ -985,7 +987,7 @@ END SUB
 
 SUB scriptmisc (id)
  fbdim temp16 'required for FB to fix get and put
-
+ dim her as herodef
 'contains a whole mess of scripting commands that do not depend on
 'any main-module level local variables or GOSUBs, and therefore
 'can be moved out here to save memory
@@ -1287,12 +1289,11 @@ SELECT CASE AS CONST id
   scriptret = 0
   retvals(0) = bound(retvals(0), 0, 40)
   IF retvals(1) > 0 THEN
-   loadherodata buffer(), hero(retvals(0)) - 1
+   loadherodata @her, hero(retvals(0)) - 1
    FOR i = 0 TO 3
     FOR j = 0 TO 23
      IF spell(retvals(0), i, j) = 0 THEN
-      k = (i * 48) + (j * 2)
-      IF buffer(47 + k) = retvals(1) AND buffer(48 + k) = retvals(2) THEN
+      IF her.spell_lists(i,j).attack = retvals(1) AND her.spell_lists(i,j).learned = retvals(2) THEN
        scriptret = 1
        EXIT FOR
       END IF
