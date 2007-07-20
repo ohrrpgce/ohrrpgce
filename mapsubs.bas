@@ -161,6 +161,7 @@ END FUNCTION
 SUB mapmaker (font(), npc(), npcstat())
 DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(-1 TO 20), gdmax(20), gdmin(20), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
 defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
+DIM her AS HeroDef
 
 redim doors(0) as door, link(0) as doorlink
 
@@ -516,10 +517,10 @@ RETRACE
 mapping:
 clearpage 2
 '--load hero graphics--
-loadherodata buffer(), 0
-loadrecord heroimg(), game$ + ".pt4", 100, buffer(19) * 8 + 4
+loadherodata @her, 0
+loadrecord heroimg(), game$ + ".pt4", 100, her.walk_sprite * 8 + 4
 fixspriterecord heroimg(), 20, 20
-getpal16 heropal(), 0, buffer(20), 4, buffer(19)
+getpal16 heropal(), 0, her.walk_sprite_pal, 4, her.walk_sprite
 '--load NPC graphics--
 FOR i = 0 TO 35
  setpicstuf buffer(), 1600, 2
