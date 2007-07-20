@@ -324,7 +324,7 @@ Function ReadVStr(fh as integer, le as integer) as string
 	
 	for i = 0 to le - 1
 		c = readshort(fh)
-		if i < l then ret &= chr(c AND 255)
+		if i < l then ret = ret & chr(c AND 255)
 	next
 	
 	return ret
