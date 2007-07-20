@@ -429,30 +429,30 @@ end sub
 'save interleaved stat blocks
 Sub SaveStats2(fh as integer, lev0 as stats ptr, lev99 as stats ptr)
 	if lev0 = 0 or lev99 = 0 then exit sub
-	writeShort(fh,-1,cint(lev0->hp))
-	writeShort(fh,-1,cint(lev99->hp))
-	writeShort(fh,-1,cint(lev0->mp))
-	writeShort(fh,-1,cint(lev99->mp))
-	writeShort(fh,-1,cint(lev0->str))
-	writeShort(fh,-1,cint(lev99->str))
-	writeShort(fh,-1,cint(lev0->acc))
-	writeShort(fh,-1,cint(lev99->acc))
-	writeShort(fh,-1,cint(lev0->def))
-	writeShort(fh,-1,cint(lev99->def))
-	writeShort(fh,-1,cint(lev0->dog))
-	writeShort(fh,-1,cint(lev99->dog))
-	writeShort(fh,-1,cint(lev0->mag))
-	writeShort(fh,-1,cint(lev99->mag))
-	writeShort(fh,-1,cint(lev0->wil))
-	writeShort(fh,-1,cint(lev99->wil))
-	writeShort(fh,-1,cint(lev0->spd))
-	writeShort(fh,-1,cint(lev99->spd))
-	writeShort(fh,-1,cint(lev0->ctr))
-	writeShort(fh,-1,cint(lev99->ctr))
-	writeShort(fh,-1,cint(lev0->foc))
-	writeShort(fh,-1,cint(lev99->foc))
-	writeShort(fh,-1,cint(lev0->hits))
-	writeShort(fh,-1,cint(lev99->hits))
+	writeShort(fh,-1,lev0->hp)
+	writeShort(fh,-1,lev99->hp)
+	writeShort(fh,-1,lev0->mp)
+	writeShort(fh,-1,lev99->mp)
+	writeShort(fh,-1,lev0->str)
+	writeShort(fh,-1,lev99->str)
+	writeShort(fh,-1,lev0->acc)
+	writeShort(fh,-1,lev99->acc)
+	writeShort(fh,-1,lev0->def)
+	writeShort(fh,-1,lev99->def)
+	writeShort(fh,-1,lev0->dog)
+	writeShort(fh,-1,lev99->dog)
+	writeShort(fh,-1,lev0->mag)
+	writeShort(fh,-1,lev99->mag)
+	writeShort(fh,-1,lev0->wil)
+	writeShort(fh,-1,lev99->wil)
+	writeShort(fh,-1,lev0->spd)
+	writeShort(fh,-1,lev99->spd)
+	writeShort(fh,-1,lev0->ctr)
+	writeShort(fh,-1,lev99->ctr)
+	writeShort(fh,-1,lev0->foc)
+	writeShort(fh,-1,lev99->foc)
+	writeShort(fh,-1,lev0->hits)
+	writeShort(fh,-1,lev99->hits)
 end sub
 
 Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
@@ -505,5 +505,58 @@ Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
 		
 	end with
 	
+	close #f
+end sub
+
+Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
+	if not fileiswriteable(filename) or hero = 0 then exit sub
 	
+	dim as integer f = freefile, i, j
+	
+	open filename for binary as #f
+	
+	seek #f, record * 636 + 1
+	
+	'begin (this makes the baby jesus cry :'( )
+	with *hero
+		writevstr(f,16,.name)
+		writeshort(f,-1,.sprite)
+		writeshort(f,-1,.sprite_pal)
+		writeshort(f,-1,.walk_sprite)
+		writeshort(f,-1,.walk_sprite_pal)
+		writeshort(f,-1,.def_level)
+		writeshort(f,-1,.def_weapon)
+		SaveStats2(f, @.Lev0, @.Lev99)
+		'get #f,, .spell_lists()
+		for i = 0 to 3
+			for j = 0 to 23 'have to do it this way in case FB reads arrays the wrong way
+				writeshort(f,-1,.spell_lists(i,j).attack)
+				writeshort(f,-1,.spell_lists(i,j).learned)
+			next
+		next
+		writeshort(f,-1,0) 'unused
+		for i = 0 to 2
+			writeshort(f,-1,.bits(i))
+		next
+		for i = 0 to 3
+			WriteVStr(f,10, .listname(i))
+		next
+		writeshort(f,-1,0) 'unused
+		for i = 0 to 3
+			writeshort(f,-1,.list_type(i))
+		next
+		writeshort(f,-1,.have_tag)
+		writeshort(f,-1,.alive_tag)
+		writeshort(f,-1,.leader_tag)
+		writeshort(f,-1,.active_tag)
+		writeshort(f,-1,.max_name_len)
+		writeshort(f,-1,.hand_a_x)
+		writeshort(f,-1,.hand_a_y)
+		writeshort(f,-1,.hand_b_x)
+		writeshort(f,-1,.hand_b_y)
+		'16 more unused bytes
+		
+	end with
+	
+	close #f
 end sub

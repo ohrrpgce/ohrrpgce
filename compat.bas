@@ -307,12 +307,37 @@ FUNCTION ReadShort(fh as integer,p as long=-1) as short
 END FUNCTION
 
 Sub WriteShort(fh as integer,p as long, v as integer)
+	WriteShort(fh,p,cshort(v))
+END SUB
+
+Sub WriteShort(fh as integer,p as long, v as short)
 	IF p = -1 THEN
-		PUT #fh,,cshort(v)
+		PUT #fh,,v
 	ELSEIF p >= 0 THEN
-		PUT #fh,p,cshort(v)
+		PUT #fh,p,v
 	END IF
 END SUB
+
+Function ReadVStr(fh as integer, le as integer) as string
+	dim l as short, ret as string, c as short, i as integer
+	l = readshort(fh)
+	
+	for i = 0 to le - 1
+		c = readshort(fh)
+		if i < l then ret &= chr(c AND 255)
+	next
+	
+	return ret
+end function
+
+Sub WriteVStr(fh as integer, le as integer, s as string)
+	dim i as integer
+	writeshort(fh, -1, len(s))
+	
+	for i = 0 to le - 1
+		if i < len(s) then writeshort(fh, -1, cint(s[i])) else writeshort(fh, -1, 0)
+	next
+end sub
 
 function xstr$(x as integer)
 	if x >= 0 then

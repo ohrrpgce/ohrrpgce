@@ -95,6 +95,7 @@ DECLARE SUB makedir (dirname$)
 DECLARE SUB setwindowtitle (title as string)
 DECLARE FUNCTION ReadShort(fh as integer,p as long=-1) as short
 DECLARE Sub WriteShort(fh as integer,p as long, v as integer)
+DECLARE Sub WriteShort(fh as integer,p as long, v as short)
 DECLARE FUNCTION ReadVStr(fh as integer, le as integer) as string
 DECLARE Sub WriteVStr(fh as integer, le as integer, s as string)
 

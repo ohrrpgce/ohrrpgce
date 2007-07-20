@@ -3,7 +3,11 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 
+#ifndef COMMON_BI
+#define COMMON_BI
+
 #include "util.bi"
+#include "udts.bi"
 
 DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$, needf = 0)
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
@@ -40,8 +44,8 @@ DECLARE FUNCTION curbinsize (id)
 DECLARE FUNCTION defbinsize (id)
 DECLARE FUNCTION getbinsize (id)
 DECLARE FUNCTION dimbinsize (id)
-DECLARE SUB loadherodata (array(), index)
-DECLARE SUB saveherodata (array(), index)
+DECLARE SUB loadherodata (hero as herodef ptr, index)
+DECLARE SUB saveherodata (hero as herodef ptr, index)
 DECLARE SUB loadenemydata (array(), index, altfile = 0)
 DECLARE SUB saveenemydata (array(), index, altfile = 0)
 DECLARE SUB loaditemdata (array(), index)
@@ -80,3 +84,5 @@ EXTERN gen()
 
 'Constants
 CONST sizebinsize = 4
+
+#ENDIF
