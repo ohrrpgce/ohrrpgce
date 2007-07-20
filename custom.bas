@@ -979,6 +979,7 @@ END FUNCTION
 
 SUB shopdata
 DIM names$(32), a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
+DIM her AS HeroDef ' only used in getdefaultthingname
 
 maxcount = 32: pt = 0: it$ = "-NONE-": sn$ = ""
 havestuf = 0
@@ -1245,7 +1246,7 @@ END SELECT
 RETRACE
 
 getdefaultthingname:
-dim her as herodef
+'"DIM her AS HeroDef" is only used here but appears at the top of shopdata sub to avoid branch crossing warning
 IF b(17) = 0 THEN
  defaultthing$ = itemstr$(b(18),1,1)
  b(24) = buffer(46)
