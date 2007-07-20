@@ -381,7 +381,18 @@ Sub LoadStats(fh as integer, sta as stats ptr)
 	if sta = 0 then exit sub
 	
 	with *sta
-		get #fh,, .sta()
+	.hp	= readShort(fh)
+	.mp	= readShort(fh)
+	.str	= readShort(fh)
+	.acc	= readShort(fh)
+	.def	= readShort(fh)
+	.dog	= readShort(fh)
+	.mag	= readShort(fh)
+	.wil	= readShort(fh)
+	.spd	= readShort(fh)
+	.ctr	= readShort(fh)
+	.foc	= readShort(fh)
+	.hits	= readShort(fh)
 	end with
 	
 end sub
@@ -391,7 +402,18 @@ Sub SaveStats(fh as integer, sta as stats ptr)
 	if sta = 0 then exit sub
 	
 	with *sta
-		put #fh,, .sta()
+	writeShort(fh, -1, .hp)
+	writeShort(fh, -1, .mp)
+	writeShort(fh, -1, .str)
+	writeShort(fh, -1, .acc)
+	writeShort(fh, -1, .def)
+	writeShort(fh, -1, .dog)
+	writeShort(fh, -1, .mag)
+	writeShort(fh, -1, .wil)
+	writeShort(fh, -1, .spd)
+	writeShort(fh, -1, .ctr)
+	writeShort(fh, -1, .foc)
+	writeShort(fh, -1, .hits)
 	end with
 	
 end sub

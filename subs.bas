@@ -1265,8 +1265,13 @@ drawsprite buffer(), 0, pal16(), 0, 250, 25, dpage
 loadsprite buffer(), 0, (wd * 400) + (200 * tog), 16, 20, 20, 2
 drawsprite buffer(), 0, pal16(), 16, 230 + wx, 5 + wy, dpage
 IF frame <> -1 THEN
- IF frame = 0 THEN handx = her.hand_a_x : handy = her.hand_a_y
- IF frame = 1 THEN handx = her.hand_b_x : handy = her.hand_b_y
+ IF frame = 0 THEN
+  handx = her.hand_a_x
+  handy = her.hand_a_y
+ ELSE
+  handx = her.hand_b_x
+  handy = her.hand_b_y
+ END IF
  drawline 248 + handx,25 + handy,249 + handx, 25 + handy,14 + tog,dpage
  drawline 250 + handx,23 + handy,250 + handx, 24 + handy,14 + tog,dpage
  drawline 251 + handx,25 + handy,252 + handx, 25 + handy,14 + tog,dpage
@@ -1322,66 +1327,17 @@ DO
  IF keyval(77) > 1 AND bctr < 24 THEN bctr = bctr + 1
  IF (keyval(28) > 1 OR keyval(57) > 1) AND bctr = 0 THEN RETRACE
  IF bctr > 0 THEN
+  changed = 0
   IF (bctr AND 1) = 1 THEN ' odd numbers are level 0
-   WITH her.Lev0
-    SELECT CASE (bctr - 1) \ 2
-     CASE 0
-      IF intgrabber(.hp, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 1
-      IF intgrabber(.mp, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 2
-      IF intgrabber(.str, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 3
-      IF intgrabber(.acc, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 4
-      IF intgrabber(.def, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 5
-      IF intgrabber(.dog, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 6
-      IF intgrabber(.mag, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 7
-      IF intgrabber(.wil, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 8
-      IF intgrabber(.spd, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 9
-      IF intgrabber(.ctr, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 10
-      IF intgrabber(.foc, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 11
-      IF intgrabber(.hits, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-    END SELECT
-   END WITH
+   n = get_herostat_byindex(her.Lev0, (bctr - 1) \ 2)
+   IF intgrabber(n, min(bctr), max(bctr), 51, 52) THEN changed = -1
+   set_herostat_byindex(her.Lev0, (bctr - 1) \ 2, n)
   ELSE' even numbers are level 99
-   WITH her.Lev99
-    SELECT CASE (bctr - 2) \ 2
-     CASE 0
-      IF intgrabber(.hp, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 1
-      IF intgrabber(.mp, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 2
-      IF intgrabber(.str, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 3
-      IF intgrabber(.acc, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 4
-      IF intgrabber(.def, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 5
-      IF intgrabber(.dog, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 6
-      IF intgrabber(.mag, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 7
-      IF intgrabber(.wil, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 8
-      IF intgrabber(.spd, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 9
-      IF intgrabber(.ctr, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 10
-      IF intgrabber(.foc, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-     CASE 11
-      IF intgrabber(.hits, min(bctr), max(bctr), 51, 52) THEN GOSUB smi
-    END SELECT
-   END WITH
+   n = get_herostat_byindex(her.Lev99, (bctr - 2) \ 2)
+   IF intgrabber(n, min(bctr), max(bctr), 51, 52) THEN changed = -1
+   set_herostat_byindex(her.Lev99, (bctr - 2) \ 2, n)
   END IF
-  'IF intgrabber(a(22 + bctr), min(bctr), max(bctr), 51, 52) THEN GOSUB smi
+  IF changed THEN GOSUB smi
  END IF
  textcolor 7, 0
  IF 0 = bctr THEN textcolor 14 + tog, 0
@@ -1499,32 +1455,9 @@ textcolor 7, 0
 printstr names$(nof(o)), 310 - LEN(names$(nof(o))) * 8, 180, dpage
 FOR i = 0 TO 99 STEP 4
  ii = (.8 * i / 50) * i
- SELECT CASE o
-  CASE 0
-   ii = ii * ((her.Lev99.hp - her.Lev0.hp) / 100) + her.Lev0.hp
-  CASE 1
-   ii = ii * ((her.Lev99.mp - her.Lev0.mp) / 100) + her.Lev0.mp
-  CASE 2
-   ii = ii * ((her.Lev99.str - her.Lev0.str) / 100) + her.Lev0.str
-  CASE 3
-   ii = ii * ((her.Lev99.acc - her.Lev0.acc) / 100) + her.Lev0.acc
-  CASE 4
-   ii = ii * ((her.Lev99.def - her.Lev0.def) / 100) + her.Lev0.def
-  CASE 5
-   ii = ii * ((her.Lev99.dog - her.Lev0.dog) / 100) + her.Lev0.dog
-  CASE 6
-   ii = ii * ((her.Lev99.mag - her.Lev0.mag) / 100) + her.Lev0.mag
-  CASE 7
-   ii = ii * ((her.Lev99.wil - her.Lev0.wil) / 100) + her.Lev0.wil
-  CASE 8
-   ii = ii * ((her.Lev99.spd - her.Lev0.spd) / 100) + her.Lev0.spd
-  CASE 9
-   ii = ii * ((her.Lev99.ctr - her.Lev0.ctr) / 100) + her.Lev0.ctr
-  CASE 10
-   ii = ii * ((her.Lev99.foc - her.Lev0.foc) / 100) + her.Lev0.foc
-  CASE 11
-   ii = ii * ((her.Lev99.hits - her.Lev0.hits) / 100) + her.Lev0.hits
- END SELECT
+ n0 = get_herostat_byindex(her.Lev0, o)
+ n99 = get_herostat_byindex(her.Lev99, o)
+ ii = ii * ((n99 - n0) / 100) + n0
  ii = large(ii, 0)
  j = (ii) * (100 / max(bctr))
  rectangle 290 + (i / 4), 176 - j, 1, j + 1, 7, dpage
@@ -1533,62 +1466,8 @@ RETRACE
 
 smi:
 FOR i = 0 TO 11
- WITH her.Lev0
-  SELECT CASE i
-   CASE 0
-    bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(.hp)
-   CASE 1
-    bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(.mp)
-   CASE 2
-    bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(.str)
-   CASE 3
-    bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(.acc)
-   CASE 4
-    bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(.def)
-   CASE 5
-    bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(.dog)
-   CASE 6
-    bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(.mag)
-   CASE 7
-    bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(.wil)
-   CASE 8
-    bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(.spd)
-   CASE 9
-    bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(.ctr)
-   CASE 10
-    bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(.foc)
-   CASE 11
-    bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(.hits)
-  END SELECT
- END WITH
- WITH her.Lev99
-  SELECT CASE i
-   CASE 0
-    bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(.hp)
-   CASE 1
-    bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(.mp)
-   CASE 2
-    bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(.str)
-   CASE 3
-    bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(.acc)
-   CASE 4
-    bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(.def)
-   CASE 5
-    bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(.dog)
-   CASE 6
-    bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(.mag)
-   CASE 7
-    bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(.wil)
-   CASE 8
-    bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(.spd)
-   CASE 9
-    bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(.ctr)
-   CASE 10
-    bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(.foc)
-   CASE 11
-    bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(.hits)
-  END SELECT
- END WITH
+ bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(get_herostat_byindex(her.Lev0, i))
+ bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(get_herostat_byindex(her.Lev99, i))
 NEXT i
 RETRACE
 

@@ -1190,7 +1190,9 @@ IF exstat(i, 1, 12) THEN
 
  'update stats
  FOR o = 0 TO 11
-  exstat(i, 1, o) = exstat(i, 1, o) + (atlevel(exstat(i, 0, 12), cint(her.lev0.sta(o)), cint(her.lev99.sta(o))) - atlevel(exstat(i, 0, 12) - exstat(i, 1, 12), cint(her.lev0.sta(o)), cint(her.lev99.sta(o))))
+  n0 = get_herostat_byindex(her.Lev0, o)
+  n99 = get_herostat_byindex(her.Lev99, o)
+  exstat(i, 1, o) = exstat(i, 1, o) + (atlevel(exstat(i, 0, 12), n0, n99) - atlevel(exstat(i, 0, 12) - exstat(i, 1, 12), n0, n99))
 
   'simulate levelup bug
   IF readbit(gen(), 101, 9) = 1 THEN
