@@ -1245,6 +1245,7 @@ END SELECT
 RETRACE
 
 getdefaultthingname:
+dim her as herodef
 IF b(17) = 0 THEN
  defaultthing$ = itemstr$(b(18),1,1)
  b(24) = buffer(46)
@@ -1252,10 +1253,8 @@ IF b(17) = 0 THEN
 END IF
 IF b(17) = 1 THEN
  defaultthing$ = ""
- loadherodata buffer(), b(18)
- FOR i = 1 TO small(buffer(0), 16)
-  defaultthing$ = defaultthing$ + CHR$(buffer(i))
- NEXT i
+ loadherodata @her, b(18)
+ defaultthing$ = defaultthing$ + her.name
 END IF
 IF b(17) = 2 THEN defaultthing$ = "Unsupported"
 RETRACE
