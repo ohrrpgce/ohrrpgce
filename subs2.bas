@@ -15,6 +15,7 @@ TYPE triggerset
  usedbits AS UNSIGNED INTEGER PTR
 END TYPE
 
+#include "udts.bi"
 
 'basic subs and functions
 DECLARE SUB stredit (s$, maxl%)
@@ -33,7 +34,6 @@ DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION isunique% (s$, u$(), r%)
-DECLARE FUNCTION loadname$ (length%, offset%)
 DECLARE SUB exportnames ()
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
@@ -168,6 +168,7 @@ END SUB
 SUB exportnames ()
 
 DIM u$(1024), names$(32), stat$(11)
+DIM her AS HeroDef
 max = 32
 
 getnames names$(), max
@@ -227,8 +228,8 @@ setvispage 0
 printstr "hero names", 0, pl * 8, 0: pl = pl + 1
 a = isunique("", u$(), 1)
 FOR i = 0 TO gen(35)
- loadherodata buffer(), i
- writeconstant fh, i, loadname(0, 1), u$(), "hero"
+ loadherodata @her, i
+ writeconstant fh, i, her.name, u$(), "hero"
 NEXT i
 
 printstr "item names", 0, pl * 8, 0: pl = pl + 1
@@ -535,16 +536,6 @@ NEXT i
 
 lmnemonic$ = temp$
 
-END FUNCTION
-
-FUNCTION loadname$ (length, offset)
-a$ = ""
-FOR i = 0 TO buffer(length) - 1
- j = buffer(offset + i)
- IF j > 255 OR j < 0 THEN j = 0
- a$ = a$ + CHR$(j)
-NEXT i
-loadname$ = a$
 END FUNCTION
 
 FUNCTION onoroff$ (n)
