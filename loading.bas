@@ -539,7 +539,7 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
 			writeshort(f,-1,.bits(i))
 		next
 		for i = 0 to 3
-			WriteVStr(f,10, .listname(i))
+			WriteVStr(f,10, .list_name(i))
 		next
 		writeshort(f,-1,0) 'unused
 		for i = 0 to 3
