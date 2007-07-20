@@ -104,7 +104,7 @@ eqstuf(slot, 0) = her.def_weapon + 1
 
 '--fill in stats
 FOR i = 0 TO 11
- stat(slot, 0, i) = atlevel(her.def_level, get_herostat_byindex(her.Lev0, i), get_herostat_byindex(her.Lev99, i)) + wbuf(54 + i)
+ stat(slot, 0, i) = atlevel(her.def_level, her.Lev0.sta(i), her.Lev99.sta(i)) + wbuf(54 + i)
  stat(slot, 1, i) = stat(slot, 0, i)
 NEXT i
 '--weapon picture and palette

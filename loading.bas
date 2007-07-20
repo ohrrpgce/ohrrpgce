@@ -378,42 +378,26 @@ end sub
 
 'loads a standard block of stats from a file handle.
 Sub LoadStats(fh as integer, sta as stats ptr)
+	dim i as integer
 	if sta = 0 then exit sub
 	
 	with *sta
-	.hp	= readShort(fh)
-	.mp	= readShort(fh)
-	.str	= readShort(fh)
-	.acc	= readShort(fh)
-	.def	= readShort(fh)
-	.dog	= readShort(fh)
-	.mag	= readShort(fh)
-	.wil	= readShort(fh)
-	.spd	= readShort(fh)
-	.ctr	= readShort(fh)
-	.foc	= readShort(fh)
-	.hits	= readShort(fh)
+		for i = 0 to 11
+			.sta(i) = readShort(fh)
+		next i
 	end with
 	
 end sub
 
 'saves a stat block to a file handle
 Sub SaveStats(fh as integer, sta as stats ptr)
+	dim i as integer
 	if sta = 0 then exit sub
 	
 	with *sta
-	writeShort(fh, -1, .hp)
-	writeShort(fh, -1, .mp)
-	writeShort(fh, -1, .str)
-	writeShort(fh, -1, .acc)
-	writeShort(fh, -1, .def)
-	writeShort(fh, -1, .dog)
-	writeShort(fh, -1, .mag)
-	writeShort(fh, -1, .wil)
-	writeShort(fh, -1, .spd)
-	writeShort(fh, -1, .ctr)
-	writeShort(fh, -1, .foc)
-	writeShort(fh, -1, .hits)
+		for i = 0 to 11
+			writeShort(fh, -1, .sta(i))
+		next i
 	end with
 	
 end sub
@@ -421,60 +405,22 @@ end sub
 'this differs from the above because it loads two interleaved blocks of stats,
 'such as those found in the hero definitions.
 Sub LoadStats2(fh as integer, lev0 as stats ptr, lev99 as stats ptr)
+	dim as integer i
 	if lev0 = 0 or lev99 = 0 then exit sub
-	lev0->hp	= readShort(fh)
-	lev99->hp	= readShort(fh)
-	lev0->mp	= readShort(fh)
-	lev99->mp	= readShort(fh)
-	lev0->str	= readShort(fh)
-	lev99->str= readShort(fh)
-	lev0->acc	= readShort(fh)
-	lev99->acc= readShort(fh)
-	lev0->def	= readShort(fh)
-	lev99->def= readShort(fh)
-	lev0->dog	= readShort(fh)
-	lev99->dog= readShort(fh)
-	lev0->mag	= readShort(fh)
-	lev99->mag= readShort(fh)
-	lev0->wil	= readShort(fh)
-	lev99->wil= readShort(fh)
-	lev0->spd	= readShort(fh)
-	lev99->spd= readShort(fh)
-	lev0->ctr	= readShort(fh)
-	lev99->ctr= readShort(fh)
-	lev0->foc	= readShort(fh)
-	lev99->foc= readShort(fh)
-	lev0->hits	= readShort(fh)
-	lev99->hits	= readShort(fh)
+	for i = 0 to 11
+		lev0->sta(i) = readShort(fh)
+		lev99->sta(i) = readShort(fh)
+	next i
 end sub
 
 'save interleaved stat blocks
 Sub SaveStats2(fh as integer, lev0 as stats ptr, lev99 as stats ptr)
 	if lev0 = 0 or lev99 = 0 then exit sub
-	writeShort(fh,-1,lev0->hp)
-	writeShort(fh,-1,lev99->hp)
-	writeShort(fh,-1,lev0->mp)
-	writeShort(fh,-1,lev99->mp)
-	writeShort(fh,-1,lev0->str)
-	writeShort(fh,-1,lev99->str)
-	writeShort(fh,-1,lev0->acc)
-	writeShort(fh,-1,lev99->acc)
-	writeShort(fh,-1,lev0->def)
-	writeShort(fh,-1,lev99->def)
-	writeShort(fh,-1,lev0->dog)
-	writeShort(fh,-1,lev99->dog)
-	writeShort(fh,-1,lev0->mag)
-	writeShort(fh,-1,lev99->mag)
-	writeShort(fh,-1,lev0->wil)
-	writeShort(fh,-1,lev99->wil)
-	writeShort(fh,-1,lev0->spd)
-	writeShort(fh,-1,lev99->spd)
-	writeShort(fh,-1,lev0->ctr)
-	writeShort(fh,-1,lev99->ctr)
-	writeShort(fh,-1,lev0->foc)
-	writeShort(fh,-1,lev99->foc)
-	writeShort(fh,-1,lev0->hits)
-	writeShort(fh,-1,lev99->hits)
+	dim as integer i
+	for i = 0 to 11
+		writeShort(fh,-1,lev0->sta(i))
+		writeShort(fh,-1,lev99->sta(i))
+	next i
 end sub
 
 Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)

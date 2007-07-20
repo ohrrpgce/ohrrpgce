@@ -1329,13 +1329,9 @@ DO
  IF bctr > 0 THEN
   changed = 0
   IF (bctr AND 1) = 1 THEN ' odd numbers are level 0
-   n = get_herostat_byindex(her.Lev0, (bctr - 1) \ 2)
-   IF intgrabber(n, min(bctr), max(bctr), 51, 52) THEN changed = -1
-   set_herostat_byindex(her.Lev0, (bctr - 1) \ 2, n)
+   IF intgrabber(her.Lev0.sta((bctr - 1) \ 2), min(bctr), max(bctr), 51, 52) THEN changed = -1
   ELSE' even numbers are level 99
-   n = get_herostat_byindex(her.Lev99, (bctr - 2) \ 2)
-   IF intgrabber(n, min(bctr), max(bctr), 51, 52) THEN changed = -1
-   set_herostat_byindex(her.Lev99, (bctr - 2) \ 2, n)
+   IF intgrabber(her.Lev99.sta((bctr - 2) \ 2), min(bctr), max(bctr), 51, 52) THEN changed = -1
   END IF
   IF changed THEN GOSUB smi
  END IF
@@ -1455,8 +1451,8 @@ textcolor 7, 0
 printstr names$(nof(o)), 310 - LEN(names$(nof(o))) * 8, 180, dpage
 FOR i = 0 TO 99 STEP 4
  ii = (.8 * i / 50) * i
- n0 = get_herostat_byindex(her.Lev0, o)
- n99 = get_herostat_byindex(her.Lev99, o)
+ n0 = her.Lev0.sta(o)
+ n99 = her.Lev99.sta(o)
  ii = ii * ((n99 - n0) / 100) + n0
  ii = large(ii, 0)
  j = (ii) * (100 / max(bctr))
@@ -1466,8 +1462,8 @@ RETRACE
 
 smi:
 FOR i = 0 TO 11
- bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(get_herostat_byindex(her.Lev0, i))
- bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(get_herostat_byindex(her.Lev99, i))
+ bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(her.Lev0.sta(i))
+ bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(her.Lev99.sta(i))
 NEXT i
 RETRACE
 

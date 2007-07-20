@@ -1190,8 +1190,8 @@ IF exstat(i, 1, 12) THEN
 
  'update stats
  FOR o = 0 TO 11
-  n0 = get_herostat_byindex(her.Lev0, o)
-  n99 = get_herostat_byindex(her.Lev99, o)
+  n0 = her.Lev0.sta(o)
+  n99 = her.Lev99.sta(o)
   exstat(i, 1, o) = exstat(i, 1, o) + (atlevel(exstat(i, 0, 12), n0, n99) - atlevel(exstat(i, 0, 12) - exstat(i, 1, 12), n0, n99))
 
   'simulate levelup bug

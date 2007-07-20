@@ -154,7 +154,7 @@ Type DoorLink
 	as integer source, dest, dest_map, tag1, tag2
 End Type
 
-Type Stats
+Type StatsByName
 	hp as integer
 	mp as integer
 	str as integer
@@ -167,6 +167,13 @@ Type Stats
 	ctr as integer
 	foc as integer
 	hits as integer
+End Type
+
+Type Stats
+	Union
+		st as StatsByName
+		sta(12) as integer
+	End Union
 End Type
 
 Type SpellList

@@ -69,8 +69,6 @@ DECLARE SUB savepalette(pal() as RGBcolor, palnum%)
 DECLARE SUB convertpalette(oldpal%(), newpal() as RGBcolor)
 DECLARE FUNCTION getmapname$ (m)
 DECLARE SUB createminimap (array(), map(), tastuf(), tilesetpage, zoom)
-DECLARE SUB set_herostat_byindex(BYREF st AS Stats, index AS INTEGER, value AS INTEGER)
-DECLARE FUNCTION get_herostat_byindex(BYREF st AS Stats, index AS INTEGER)
 
 'Global variables
 EXTERN game$

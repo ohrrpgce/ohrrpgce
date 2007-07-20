@@ -346,7 +346,7 @@ IF b(pt * recordsize + 17) = 1 THEN
  loadherodata @her, b(pt * recordsize + 18)
  loaditemdata wbuf(), her.def_weapon
  IF her.def_level < 0 THEN her.def_level = averagelev(stat())
- temp$ = XSTR$(atlevel(her.def_level, cint(her.lev0.hp), cint(her.lev99.hp)) + wbuf(54 + 0))
+ temp$ = XSTR$(atlevel(her.def_level, her.lev0.st.hp, her.lev99.st.hp) + wbuf(54 + 0))
  eqinfo$ = RIGHT$(temp$, LEN(temp$) - 1) + " " + sname$(0)
  showhero = buffer(17)
  getpal16 hpal(), 0, her.sprite_pal, 0, showhero
