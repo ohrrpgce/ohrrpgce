@@ -40,7 +40,7 @@ DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION heroname$ (num%, cond%(), a%())
+DECLARE FUNCTION boxconditionheroname$ (num%, cond%())
 DECLARE FUNCTION onoroff$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE FUNCTION rotascii$ (s$, o%)
@@ -303,15 +303,13 @@ CLOSE #fh
 
 END SUB
 
-FUNCTION heroname$ (num, cond(), a())
-h$ = ""
+FUNCTION boxconditionheroname$ (num, cond())
+DIM her AS HeroDef
 IF cond(num) THEN
- loadherodata a(), ABS(cond(num)) - 1
- FOR i = 1 TO 0 + a(0)
-  h$ = h$ + CHR$(a(i))
- NEXT i
+ loadherodata @her, ABS(cond(num)) - 1
+ RETURN her.name
 END IF
-heroname$ = h$
+RETURN ""
 END FUNCTION
 
 SUB addtrigger (scrname$, id, triggers AS TRIGGERSET)
@@ -1170,9 +1168,9 @@ NEXT i
 RETRACE
 
 heroar:
-h$(0) = heroname$(10, cond(), a())
-h$(1) = heroname$(19, cond(), a())
-h$(2) = heroname$(20, cond(), a())
+h$(0) = boxconditionheroname$(10, cond())
+h$(1) = boxconditionheroname$(19, cond())
+h$(2) = boxconditionheroname$(20, cond())
 RETRACE
 
 shopar:
