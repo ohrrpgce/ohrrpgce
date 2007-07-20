@@ -157,26 +157,26 @@ End Type
 Type Stats
 	Union
 		Type
-			hp as short
-			mp as short
-			str as short
-			acc as short
-			def as short
-			dog as short
-			mag as short
-			wil as short
-			spd as short
-			ctr as short
-			foc as short
-			hits as short
+			hp as integer
+			mp as integer
+			str as integer
+			acc as integer
+			def as integer
+			dog as integer
+			mag as integer
+			wil as integer
+			spd as integer
+			ctr as integer
+			foc as integer
+			hits as integer
 		End Type
-		sta(11) as short
+		sta(11) as integer
 	end Union
 End Type
 
 Type SpellList
-	attack as short
-	learned as short
+	attack as integer
+	learned as integer
 End Type
 
 Type HeroDef

@@ -956,7 +956,7 @@ deserherodef game$ & ".dt0", hero, index
 END SUB
 
 SUB saveherodata (hero as herodef ptr, index)
-'serherodef game$ & ".dt0", hero, index
+serherodef game$ & ".dt0", hero, index
 END SUB
 
 SUB loadenemydata (array(), index, altfile = 0)

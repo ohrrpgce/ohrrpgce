@@ -6,6 +6,9 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
+
+#include "udts.bi"
+
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION readshopname$ (shopnum%)
@@ -30,7 +33,7 @@ DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-DECLARE SUB herotags (a%())
+DECLARE SUB herotags (hero as HeroDef ptr)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION heroname$ (num%, cond%(), a%())
@@ -1008,7 +1011,8 @@ RETRACE
 END SUB
 
 SUB herodata
-DIM names$(100), a(318), menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 25), hmenu$(4), pal16(16), elemtype$(2)
+DIM names$(100), menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 25), hmenu$(4), pal16(16), elemtype$(2)
+DIM AS HeroDef her, blankhero
 wd = 1: wc = 0: wx = 0: wy = 0: hmax = 32
 leftkey = 0: rightkey = 0
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
@@ -1061,8 +1065,8 @@ DO
   IF csr = 4 THEN GOSUB levstats
   IF csr = 5 THEN GOSUB speltypes '--spell list contents
   IF csr = 6 THEN GOSUB heromenu '--spell list names
-  IF csr = 7 THEN editbitset a(), 240, 25, hbit$()
-  IF csr = 8 THEN herotags a()
+  IF csr = 7 THEN editbitset her.bits(), 0, 25, hbit$()
+  IF csr = 8 THEN herotags @her
  END IF
  IF csr = 1 THEN
   remptr = pt
@@ -1132,7 +1136,7 @@ LOOP
 
 speltypes:
 FOR i = 0 TO 3
- IF a(288 + i) > 10 OR a(288 + i) < 0 THEN a(288 + i) = 0
+ IF her.list_type(i) > 10 OR her.list_type(i) < 0 THEN her.list_type(i) = 0
 NEXT i
 bctr = -1
 opt$(0) = "Spells (MP Based)"
@@ -1146,20 +1150,20 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
  dummy = usemenu(bctr, -1, -1, 3, 24)
- IF bctr >= 0 THEN dummy = intgrabber(a(288 + bctr), 0, 2, 75, 77)
+ IF bctr >= 0 THEN dummy = intgrabber(her.list_type(bctr), 0, 2, 75, 77)
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF bctr = -1 THEN RETRACE
   IF bctr >= 0 AND bctr < 4 THEN
-   temp = bctr
+   listnum = bctr
    GOSUB spells
-   bctr = temp
+   bctr = listnum
   END IF
  END IF
  textcolor 7, 0: IF bctr = -1 THEN textcolor 14 + tog, 0
  printstr "Previous Menu", 0, 0, dpage
  FOR i = 0 TO 3
   textcolor 7, 0: IF bctr = i THEN textcolor 14 + tog, 0
-  printstr "Type" + XSTR$(i) + " Spells:" + opt$(a(288 + i)), 0, 8 + i * 8, dpage
+  printstr "Type" + XSTR$(i) + " Spells:" + opt$(her.list_type(i)), 0, 8 + i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1179,7 +1183,7 @@ min(6) = 0: max(6) = 254
 min(7) = 0: max(7) = 16
 min(8) = -100:max(8) = 100
 min(9) = -100:max(9) = 100
-it$ = itemstr(a(22), 0, 1)
+it$ = itemstr(her.def_weapon, 0, 1)
 setkeys
 frame = 0
 DO
@@ -1196,23 +1200,48 @@ DO
  IF (keyval(28) > 1 OR keyval(57) > 1) AND bctr = 0 THEN frame = -1: RETRACE
  IF bctr > 0 THEN
   SELECT CASE bctr
-   CASE 0 TO 6
-    IF intgrabber(a(16 + bctr), min(bctr), max(bctr), 75, 77) THEN
-     IF bctr >= 1 OR bctr <= 4 THEN GOSUB heropics
-     IF bctr = 6 THEN it$ = itemstr$(a(22), 0, 1)
+   CASE 1
+    IF intgrabber(her.sprite, min(bctr), max(bctr), 75, 77) THEN
+      GOSUB heropics
+    END IF
+   CASE 2
+    IF intgrabber(her.sprite_pal, min(bctr), max(bctr), 75, 77) THEN
+      GOSUB heropics
+    END IF
+   CASE 3
+    IF intgrabber(her.walk_sprite, min(bctr), max(bctr), 75, 77) THEN
+      GOSUB heropics
+    END IF
+   CASE 4
+    IF intgrabber(her.walk_sprite_pal, min(bctr), max(bctr), 75, 77) THEN
+      GOSUB heropics
+    END IF
+   CASE 5
+    dummy = intgrabber(her.def_level, min(bctr), max(bctr), 75, 77)
+   CASE 6
+    IF intgrabber(her.def_weapon, min(bctr), max(bctr), 75, 77) THEN
+      it$ = itemstr$(her.def_weapon, 0, 1)
     END IF
    CASE 7
-    dummy = intgrabber(a(296), min(bctr), max(bctr), 75, 77)
+    dummy = intgrabber(her.max_name_len, min(bctr), max(bctr), 75, 77)
    CASE 8
-    dummy = intgrabber(a(297 + frame * 2), min(bctr), max(bctr), 75, 77)
+    IF frame = 0 THEN
+      dummy = intgrabber(her.hand_a_x, min(bctr), max(bctr), 75, 77)
+    ELSE
+      dummy = intgrabber(her.hand_b_x, min(bctr), max(bctr), 75, 77)
+    END IF
    CASE 9
-    dummy = intgrabber(a(298 + frame * 2), min(bctr), max(bctr), 75, 77)
+    IF frame = 0 THEN
+      dummy = intgrabber(her.hand_a_y, min(bctr), max(bctr), 75, 77)
+    ELSE
+      dummy = intgrabber(her.hand_b_y, min(bctr), max(bctr), 75, 77)
+    END IF
   END SELECT
-  IF (bctr = 2 OR bctr = 4) AND (keyval(28) > 1 OR keyval(57) > 1) THEN
+  IF keyval(28) > 1 OR keyval(57) > 1 THEN
    IF bctr = 2 THEN
-    a(16 + bctr) = pal16browse(a(16 + bctr), 8, 0, 0, 32, 40, 2)
-   ELSE
-    a(16 + bctr) = pal16browse(a(16 + bctr), 8, 0, 16, 20, 20, 2)
+    her.sprite_pal = pal16browse(her.sprite_pal, 8, 0, 0, 32, 40, 2)
+   ELSEIF bctr = 4 THEN
+    her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, 8, 0, 16, 20, 20, 2)
    END IF
    GOSUB heropics
   END IF
@@ -1237,33 +1266,40 @@ drawsprite buffer(), 0, pal16(), 0, 250, 25, dpage
 loadsprite buffer(), 0, (wd * 400) + (200 * tog), 16, 20, 20, 2
 drawsprite buffer(), 0, pal16(), 16, 230 + wx, 5 + wy, dpage
 IF frame <> -1 THEN
- drawline 248 + a(297 + frame * 2),25 + a(298 + frame * 2),249 + a(297 + frame * 2), 25 + a(298 + frame * 2),14 + tog,dpage
- drawline 250 + a(297 + frame * 2),23 + a(298 + frame * 2),250 + a(297 + frame * 2), 24 + a(298 + frame * 2),14 + tog,dpage
- drawline 251 + a(297 + frame * 2),25 + a(298 + frame * 2),252 + a(297 + frame * 2), 25 + a(298 + frame * 2),14 + tog,dpage
- drawline 250 + a(297 + frame * 2),26 + a(298 + frame * 2),250 + a(297 + frame * 2), 27 + a(298 + frame * 2),14 + tog,dpage
+ IF frame = 0 THEN handx = her.hand_a_x : handy = her.hand_a_y
+ IF frame = 1 THEN handx = her.hand_b_x : handy = her.hand_b_y
+ drawline 248 + handx,25 + handy,249 + handx, 25 + handy,14 + tog,dpage
+ drawline 250 + handx,23 + handy,250 + handx, 24 + handy,14 + tog,dpage
+ drawline 251 + handx,25 + handy,252 + handx, 25 + handy,14 + tog,dpage
+ drawline 250 + handx,26 + handy,250 + handx, 27 + handy,14 + tog,dpage
+ printstr XSTR$(frame),256,18,dpage
  IF frame = 1 THEN printstr "<",256,18,dpage
- IF frame <> -1 THEN printstr XSTR$(frame),256,18,dpage
  IF frame = 0 THEN printstr ">",272,18,dpage
 END IF
 
 RETRACE
 
 genheromenu:
-bmenu$(1) = "Battle Picture:" + XSTR$(a(17))
-bmenu$(2) = "Battle Palette:" + defaultint$(a(18))
-bmenu$(3) = "Walkabout Picture:" + XSTR$(a(19))
-bmenu$(4) = "Walkabout Palette:" + defaultint$(a(20))
-bmenu$(5) = "Base Level:" + XSTR$(a(21))
-IF a(21) < 0 THEN bmenu$(5) = "Base Level: Party Average"
+bmenu$(1) = "Battle Picture:" + XSTR$(her.sprite)
+bmenu$(2) = "Battle Palette:" + defaultint$(her.sprite_pal)
+bmenu$(3) = "Walkabout Picture:" + XSTR$(her.walk_sprite)
+bmenu$(4) = "Walkabout Palette:" + defaultint$(her.walk_sprite_pal)
+bmenu$(5) = "Base Level:" + XSTR$(her.def_level)
+IF her.def_level < 0 THEN bmenu$(5) = "Base Level: Party Average"
 bmenu$(6) = "Default Weapon:" + it$
 bmenu$(7) = "Max Name Length:"
-IF a(296) THEN
- bmenu$(7) = bmenu$(7) + XSTR$(a(296))
+IF her.max_name_len THEN
+ bmenu$(7) = bmenu$(7) + XSTR$(her.max_name_len)
 ELSE
  bmenu$(7) = bmenu$(7) + " default"
 END IF
-bmenu$(8) = "Hand X:" + XSTR$(a(297 + frame * 2))
-bmenu$(9) = "Hand Y:" + XSTR$(a(298 + frame * 2))
+IF frame = 0 THEN
+ bmenu$(8) = "Hand X:" + XSTR$(her.hand_a_x)
+ bmenu$(9) = "Hand Y:" + XSTR$(her.hand_a_y)
+ELSEIF frame = 1 THEN
+ bmenu$(8) = "Hand X:" + XSTR$(her.hand_b_x)
+ bmenu$(9) = "Hand Y:" + XSTR$(her.hand_b_y)
+END IF
 RETRACE
 
 levstats:
@@ -1287,7 +1323,12 @@ DO
  IF keyval(77) > 1 AND bctr < 24 THEN bctr = bctr + 1
  IF (keyval(28) > 1 OR keyval(57) > 1) AND bctr = 0 THEN RETRACE
  IF bctr > 0 THEN
-  IF intgrabber(a(22 + bctr), min(bctr), max(bctr), 51, 52) THEN GOSUB smi
+  IF (bctr AND 1) = 1 THEN ' odd numbers are level 0
+   IF intgrabber(her.Lev0.sta((bctr-1) \ 2), min(bctr), max(bctr), 51, 52) THEN GOSUB smi
+  ELSE' even numbers are level 99
+   IF intgrabber(her.Lev99.sta((bctr-2) \ 2), min(bctr), max(bctr), 51, 52) THEN GOSUB smi
+  END IF
+  'IF intgrabber(a(22 + bctr), min(bctr), max(bctr), 51, 52) THEN GOSUB smi
  END IF
  textcolor 7, 0
  IF 0 = bctr THEN textcolor 14 + tog, 0
@@ -1315,7 +1356,6 @@ bctr = 0
 colcsr = 0
 sticky = 0
 GOSUB setsticky
-offset = 47 + (temp * 48)
 FOR o = 1 TO 24
  GOSUB gosubatkname
 NEXT o
@@ -1329,21 +1369,21 @@ DO
  ELSE
   IF keyval(1) > 1 THEN RETRACE
   IF usemenu(bctr, 0, 0, 24, 24) THEN
-   IF a(offset + (bctr - 1) * 2) = 0 THEN colcsr = 0
+   IF her.spell_lists(listnum, bctr-1).attack = 0 THEN colcsr = 0
   END IF
   IF keyval(75) > 1 OR keyval(77) > 1 THEN
    colcsr = colcsr XOR 1
-   IF a(offset + (bctr - 1) * 2) = 0 THEN colcsr = 0
+   IF her.spell_lists(listnum, bctr-1).attack = 0 THEN colcsr = 0
   END IF
  END IF
  IF bctr > 0 THEN
   IF colcsr = 0 THEN
-   IF zintgrabber(a(offset + (bctr - 1) * 2), -1, gen(34), leftkey, rightkey) THEN
+   IF zintgrabber(her.spell_lists(listnum, bctr-1).attack, -1, gen(genMaxAttack), leftkey, rightkey) THEN
     o = bctr
     GOSUB gosubatkname
    END IF
   END IF
-  IF colcsr = 1 THEN dummy = zintgrabber(a(offset + (bctr - 1) * 2 + 1), -1, 99, leftkey, rightkey)
+  IF colcsr = 1 THEN dummy = zintgrabber(her.spell_lists(listnum, bctr-1).learned, -1, 99, leftkey, rightkey)
  END IF
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF bctr = 0 THEN
@@ -1355,18 +1395,20 @@ DO
    GOSUB setsticky
   END IF
  END IF
- textcolor 10, 0: printstr UCASE$(opt$(a(288 + temp))), 300 - LEN(opt$(a(288 + temp))) * 8, 0, dpage
+ textcolor 10, 0: printstr UCASE$(opt$(her.list_type(listnum))), 300 - LEN(opt$(her.list_type(listnum))) * 8, 0, dpage
  textcolor 7, 0: IF bctr = 0 THEN textcolor 14 + tog, 0
  printstr "Previous Menu", 0, 0, dpage
  FOR i = 1 TO 24
   textcolor 7, 0: IF bctr = i THEN textcolor 14 + tog, 0
   temp1$ = attack$(i)
-  IF a(offset + (i - 1) * 2) > 0 THEN
-   IF a(offset + (i - 1) * 2 + 1) = 0 THEN temp2$ = "Learned from Item"
-   IF a(offset + (i - 1) * 2 + 1) > 0 THEN temp2$ = "Learned at Level" + XSTR$(a(offset + (i - 1) * 2 + 1) - 1)
-  ELSE
-   temp2$ = ""
-  END IF
+  WITH her.spell_lists(listnum, i-1)
+   IF .attack > 0 THEN
+    IF .learned = 0 THEN temp2$ = "Learned from Item"
+    IF .learned > 0 THEN temp2$ = "Learned at Level" + XSTR$(.learned - 1)
+   ELSE
+    temp2$ = ""
+   END IF
+  END WITH
   textcolor 7, 0: IF bctr = i AND colcsr = 0 THEN textcolor 14 + tog, 0 + sticky
   printstr temp1$, 0, 8 * i, dpage
   textcolor 7, 0: IF bctr = i AND colcsr = 1 THEN textcolor 14 + tog, 0 + sticky
@@ -1389,9 +1431,13 @@ END IF
 RETRACE
 
 gosubatkname:
-IF a(offset + (o - 1) * 2) = 0 THEN attack$(o) = "EMPTY": RETRACE
-attack$(o) = STR$(a(offset + (o - 1) * 2) - 1) + ":"
-attack$(o) = attack$(o) + readattackname$(a(offset + (o - 1) * 2) - 1)
+WITH her.spell_lists(listnum, o-1)
+ IF .attack = 0 THEN
+  attack$(o) = "EMPTY"
+ ELSE
+  attack$(o) = STR$(.attack - 1) + ":" + readattackname$(.attack - 1)
+ END IF
+END WITH
 RETRACE
 
 graph:
@@ -1399,7 +1445,7 @@ o = INT((bctr - 1) / 2)
 textcolor 7, 0
 printstr names$(nof(o)), 310 - LEN(names$(nof(o))) * 8, 180, dpage
 FOR i = 0 TO 99 STEP 4
- ii = (.8 * i / 50) * i * ((a(24 + o * 2) - a(23 + o * 2)) / 100) + a(23 + o * 2)
+ ii = (.8 * i / 50) * i * ((her.Lev99.sta(o) - her.Lev0.sta(o)) / 100) + her.Lev0.sta(o)
  ii = large(ii, 0)
  j = (ii) * (100 / max(bctr))
  rectangle 290 + (i / 4), 176 - j, 1, j + 1, 7, dpage
@@ -1408,8 +1454,8 @@ RETRACE
 
 smi:
 FOR i = 0 TO 11
- bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(a(i * 2 + 23))
- bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(a(i * 2 + 24))
+ bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(her.Lev0.sta(i))
+ bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(her.Lev99.sta(i))
 NEXT i
 RETRACE
 
@@ -1422,31 +1468,24 @@ IF wd = 3 THEN wx = wx - 4
 RETRACE
 
 clearhero:
-flusharray a(), 318, 0
-a(18) = -1 'default battle palette
-a(20) = -1 'default walkabout palette
-saveherodata a(), pt
+blankhero.sprite_pal = -1      'default battle palette
+blankhero.walk_sprite_pal = -1 'default walkabout palette
+saveherodata @blankhero, pt
 RETRACE
 
 lasthero:
-a(0) = LEN(nam$)
-FOR i = 1 TO a(0)
- a(i) = ASC(MID$(nam$, i, 1))
-NEXT i
+her.name = nam$
 FOR i = 0 TO 3
- a(243 + i * 11) = LEN(hmenu$(i))
- FOR o = 1 TO LEN(hmenu$(i))
-  a(243 + (i * 11) + o) = ASC(MID$(hmenu$(i), o, 1))
- NEXT o
+ her.list_name(i) = hmenu$(i)
 NEXT i
-saveherodata a(), pt
+saveherodata @her, pt
 RETRACE
 
 thishero:
-loadherodata a(), pt
-nam$ = readbadbinstring$(a(), 0, 16, 0)
+loadherodata @her, pt
+nam$ = her.name
 FOR i = 0 TO 3
- hmenu$(i) = readbadbinstring$(a(), 243 + i * 11, 10, 0)
+ hmenu$(i) = her.list_name(i)
 NEXT i
 menu$(2) = "Name:" + nam$
 menu$(1) = CHR$(27) + "Pick Hero" + XSTR$(pt) + CHR$(26)
@@ -1455,16 +1494,16 @@ RETRACE
 
 heropics:
 setpicstuf buffer(), 5120, 2
-loadset game$ + ".pt0", a(17), 0
-getpal16 pal16(), 0, a(18), 0, a(17)
+loadset game$ + ".pt0", her.sprite, 0
+getpal16 pal16(), 0, her.sprite_pal, 0, her.sprite
 setpicstuf buffer(), 1600, 2
-loadset game$ + ".pt4", a(19), 16
-getpal16 pal16(), 1, a(20), 4, a(19)
+loadset game$ + ".pt4", her.walk_sprite, 16
+getpal16 pal16(), 1, her.walk_sprite_pal, 4, her.walk_sprite
 RETRACE
 
 END SUB
 
-SUB herotags (a())
+SUB herotags (hero AS HeroDef ptr)
 
 DIM menu$(5)
 menu$(0) = "Previous Menu"
@@ -1472,6 +1511,8 @@ menu$(1) = "have hero TAG"
 menu$(2) = "is alive TAG"
 menu$(3) = "is leader TAG"
 menu$(4) = "is in party now TAG"
+
+WITH *hero
 
 pt = 0
 setkeys
@@ -1484,23 +1525,36 @@ DO
  SELECT CASE pt
   CASE 0
    IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
-  CASE ELSE
-   dummy = intgrabber(a(291 + pt), 0, 999, 75, 77)
+  CASE 1
+   dummy = intgrabber(.have_tag, 0, 999, 75, 77)
+  CASE 2
+   dummy = intgrabber(.alive_tag, 0, 999, 75, 77)
+  CASE 3
+   dummy = intgrabber(.leader_tag, 0, 999, 75, 77)
+  CASE 4
+   dummy = intgrabber(.active_tag, 0, 999, 75, 77)
  END SELECT
  FOR i = 0 TO 4
-  a$ = ""
-  IF i > 0 THEN
-   a$ = XSTR$(a(291 + i)) + " (" + lmnemonic(a(291 + i)) + ")"
-  END IF
   textcolor 7, 0
   IF pt = i THEN textcolor 14 + tog, 0
-  printstr menu$(i) + a$, 0, i * 8, dpage
+  SELECT CASE i
+   CASE 1
+    a$ = lmnemonic(.have_tag)
+   CASE 2
+    a$ = lmnemonic(.alive_tag)
+   CASE 3
+    a$ = lmnemonic(.leader_tag)
+   CASE 4
+    a$ = lmnemonic(.active_tag)
+  END SELECT
+  printstr menu$(i) & " (" & a$ & ")", 0, i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
  dowait
 LOOP
+END WITH
 EXIT SUB
 
 END SUB
