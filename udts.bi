@@ -170,7 +170,7 @@ Type Stats
 			foc as integer
 			hits as integer
 		End Type
-		sta(11) as integer
+		sta(11) as integer ' Union does not work. This part is ignored
 	end Union
 End Type
 
