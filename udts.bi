@@ -172,7 +172,7 @@ End Type
 Type Stats
 	Union
 		st as StatsByName
-		sta(12) as integer
+		sta(11) as integer
 	End Union
 End Type
 
