@@ -2138,37 +2138,37 @@ SELECT CASE vdance
   IF o = 0 OR (carray(4) > 1 OR carray(5) > 1) THEN
    vdance = 3
    showlearn = 0
-   learna = 0: learnb = 0: learnc = 0
+   learnwho = 0: learnlist = 0: learnslot = -1
   END IF
  CASE 3
+  edgeprint learnwho & " " & learnlist & " " & learnslot, 0,0,15,dpage
   '--print learned spells, one at a time
-  IF showlearn = 0 THEN
-   nextbit = 0 'Mike sez: Grr to whoever did this!
-   DO WHILE readbit(learnmask(), 0, learna * 96 + learnb * 24 + learnc) = 0 OR nextbit
-    nextbit = 0 '-- to skip a set bit
-    learnc = learnc + 1
-    IF learnc > 23 THEN learnc = 0: learnb = learnb + 1
-    IF learnb > 3 THEN learnb = 0: learna = learna + 1
-    IF learna > 3 THEN
+  IF showlearn = 0 THEN '--Not showing a spell yet. find the next one
+   DO
+    learnslot = learnslot + 1
+    IF learnslot > 23 THEN learnslot = 0: learnlist = learnlist + 1
+    IF learnlist > 3 THEN learnlist = 0: learnwho = learnwho + 1
+    IF learnwho > 3 THEN ' We have iterated through all spell lists for all heroes, time to move on
      vdance = 4
      found$ = ""
      fptr = 0
      drawvicbox = 0
      EXIT DO
     END IF
+    IF readbit(learnmask(), 0, learnwho * 96 + learnlist * 24 + learnslot) THEN
+     'found a learned spell
+     found$ = batname$(learnwho) + learned$
+     loadattackdata buffer(), spell(learnwho, learnlist, learnslot) - 1
+     found$ = found$ + readbadbinstring$(buffer(), 24, 10, 1)
+     debug "" & spell(learnwho, learnlist, learnslot) - 1
+     showlearn = 1
+     drawvicbox = 1
+     EXIT DO
+    END IF
    LOOP
-   IF vdance = 3 THEN
-    found$ = batname$(learna) + learned$
-    loadattackdata buffer(), spell(learna, learnb, learnc) - 1
-    found$ = found$ + readbadbinstring$(buffer(), 24, 10, 1)
-    showlearn = 1
-    drawvicbox = 1
-   END IF
-  ELSE
+  ELSE' Found a learned spell to display, show it until a keypress
    IF carray(4) > 1 OR carray(5) > 1 THEN
-    showlearn = 0
-    'setbit learnmask(), 0, learna * 96 + learnb * 24 + learnc, 0
-    nextbit = 1
+    showlearn = 0 ' hide the display (which causes us to search for the next learned spell)
    END IF
    edgeprint found$, xstring(found$, 160), 22, uilook(uiText), dpage
   END IF
