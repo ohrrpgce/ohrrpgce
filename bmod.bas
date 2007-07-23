@@ -381,60 +381,60 @@ IF carray(4) > 1 THEN
    RETRACE
   END IF
  END IF
- IF bmenu(you, pt) < 0 AND bmenu(you, pt) >= -4 AND st(you).list_type((bmenu(you, pt) + 1) * -1) < 2 THEN
-  '--init spell menu
-  mset = 1: sptr = 0
-  sptype = (bmenu(you, pt) + 1) * -1 '-tells which menu
-  FOR i = 0 TO 23
-   spel$(i) = ""
-   speld$(i) = ""
-   cost$(i) = ""
-   spel(i) = -1
-   setbit spelmask(), 0, i, 0
-   IF spell(you, sptype, i) > 0 THEN
-    spel(i) = spell(you, sptype, i) - 1
-    loadattackdata atktemp(), spel(i)
-    spel$(i) = readbadbinstring$(atktemp(), 24, 10, 1)
-    speld$(i) = readbinstring$(atktemp(), 73, 38)
-    IF st(you).list_type(sptype) = 0 THEN
-     '--regular MP
-     cost$(i) = XSTR$(focuscost(atktemp(8), stat(you, 0, 10))) + " " + mpname$ + " " + STR$(stat(you, 0, 1)) + "/" + STR$(stat(you, 1, 1))
+ IF bmenu(you, pt) < 0 AND bmenu(you, pt) >= -4 THEN
+  IF st(you).list_type((bmenu(you, pt) + 1) * -1) < 2 THEN
+   '--init spell menu
+   mset = 1: sptr = 0
+   sptype = (bmenu(you, pt) + 1) * -1 '-tells which menu
+   FOR i = 0 TO 23
+    spel$(i) = ""
+    speld$(i) = ""
+    cost$(i) = ""
+    spel(i) = -1
+    setbit spelmask(), 0, i, 0
+    IF spell(you, sptype, i) > 0 THEN
+     spel(i) = spell(you, sptype, i) - 1
+     loadattackdata atktemp(), spel(i)
+     spel$(i) = readbadbinstring$(atktemp(), 24, 10, 1)
+     speld$(i) = readbinstring$(atktemp(), 73, 38)
+     IF st(you).list_type(sptype) = 0 THEN
+      '--regular MP
+      cost$(i) = XSTR$(focuscost(atktemp(8), stat(you, 0, 10))) + " " + mpname$ + " " + STR$(stat(you, 0, 1)) + "/" + STR$(stat(you, 1, 1))
+     END IF
+     IF st(you).list_type(sptype) = 1 THEN
+      '--level MP
+      cost$(i) = "Level" + XSTR$(INT(i / 3) + 1) + ":  " + XSTR$(lmp(you, INT(i / 3)))
+     END IF
+     IF atkallowed(spel(i), you, st(you).list_type(sptype), INT(i / 3), stat(), atktemp()) THEN
+      setbit spelmask(), 0, i, 1
+     END IF
     END IF
-    IF st(you).list_type(sptype) = 1 THEN
-     '--level MP
-     cost$(i) = "Level" + XSTR$(INT(i / 3) + 1) + ":  " + XSTR$(lmp(you, INT(i / 3)))
+    spel$(i) = rpad$(spel$(i), " ", 10)
+   NEXT i
+   last = -1
+   sptype = (bmenu(you, pt) + 1) * -1
+   FOR i = 0 TO 23
+    spel(i) = -1
+    IF spell(you, sptype, i) > 0 THEN
+     spel(i) = spell(you, sptype, i) - 1: last = i
     END IF
-    IF atkallowed(spel(i), you, st(you).list_type(sptype), INT(i / 3), stat(), atktemp()) THEN
-     setbit spelmask(), 0, i, 1
-    END IF
-   END IF
-   spel$(i) = rpad$(spel$(i), " ", 10)
-  NEXT i
- END IF
- IF bmenu(you, pt) < 0 AND bmenu(you, pt) >= -4 AND st(you).list_type((bmenu(you, pt) + 1) * -1) = 2 THEN
-  last = -1
-  sptype = (bmenu(you, pt) + 1) * -1
-  FOR i = 0 TO 23
-   spel(i) = -1
-   IF spell(you, sptype, i) > 0 THEN
-    spel(i) = spell(you, sptype, i) - 1: last = i
-   END IF
-  NEXT i
-  IF last = -1 THEN RETRACE
-  rptr = INT(RND * 24)
-  FOR i = 0 TO INT(RND * last + 1)
-   ol = 0
-   DO
-    rptr = loopvar(rptr, 0, 23, 1)
-    ol = ol + 1
-   LOOP UNTIL spel(rptr) > -1 OR ol > 999
-  NEXT i
-  godo(you) = spel(rptr) + 1
-  loadattackdata buffer(), godo(you) - 1
-  delay(you) = large(buffer(16), 1)
-  ptarg = 1
-  flusharray carray(), 7, 0
-  RETRACE
+   NEXT i
+   IF last = -1 THEN RETRACE
+   rptr = INT(RND * 24)
+   FOR i = 0 TO INT(RND * last + 1)
+    ol = 0
+    DO
+     rptr = loopvar(rptr, 0, 23, 1)
+     ol = ol + 1
+    LOOP UNTIL spel(rptr) > -1 OR ol > 999
+   NEXT i
+   godo(you) = spel(rptr) + 1
+   loadattackdata buffer(), godo(you) - 1
+   delay(you) = large(buffer(16), 1)
+   ptarg = 1
+   flusharray carray(), 7, 0
+   RETRACE
+  END IF
  END IF
  IF bmenu(you, pt) = -10 THEN mset = 2: iptr = 0: itop = 0
 END IF
