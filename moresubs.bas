@@ -2037,6 +2037,8 @@ repaintback:
 loadpage game$ + ".til", gmap(0), 3
 setmapdata scroll(), buffer(), 0, 0
 drawmap mapx, mapy,0, 0, dpage
+if readbit(gmap(), 19, 0) then drawmap mapx, mapy, 1, 0, dpage, 1
+if readbit(gmap(), 19, 1) then drawmap mapx, mapy, 2, 0, dpage, 1
 copypage dpage, 3
 RETRACE
 
