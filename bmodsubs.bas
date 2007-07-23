@@ -1183,7 +1183,6 @@ NEXT
 'THIS PART UPDATES STATS FOR A LEVEL UP
 IF exstat(i, 1, 12) THEN
 
- 'loadherodata buffer(), hero(i) - 1
  dim her as herodef
  loadherodata @her, hero(i) - 1
 
@@ -1232,17 +1231,19 @@ IF exstat(i, 1, 12) THEN
  'learn spells
  FOR j = 0 TO 3
   FOR o = 0 TO 23
-   '--if slot is empty and slot accepts this spell and learn-by-level condition is true
-   IF spell(i, j, o) = 0 AND her.spell_lists(j,o).attack > 0 AND her.spell_lists(j,o).learned - 1 <= exstat(i, 0, 12) AND her.spell_lists(j,o).learned > 0 THEN
-    spell(i, j, o) = buffer(47 + (j * 48) + (o * 2))
-    setbit learnmask(), 0, small(i, 4) * 96 + j * 24 + o, 1
-   END IF
-   IF allowforget THEN
-    '--plotscripts may lower level, forget spells if drop below requirement and know the spell specified
-    IF spell(i, j, o) = buffer(47 + (j * 48) + (o * 2)) AND buffer(48 + (j * 48) + (o * 2)) - 1 > exstat(i, 0, 12) THEN
-     spell(i, j, o) = 0
+   WITH her.spell_lists(j,o)
+    '--if slot is empty and slot accepts a spell and learn-by-level condition is true
+    IF spell(i, j, o) = 0 AND .attack > 0 AND .learned - 1 <= exstat(i, 0, 12) AND .learned > 0 THEN
+     spell(i, j, o) = .attack
+     setbit learnmask(), 0, small(i, 4) * 96 + j * 24 + o, 1
     END IF
-   END IF
+    IF allowforget THEN
+     '--plotscripts may lower level, forget spells if drop below requirement and know the spell specified
+     IF spell(i, j, o) = .attack AND .learned - 1 > exstat(i, 0, 12) THEN
+      spell(i, j, o) = 0
+     END IF
+    END IF
+   END WITH
   NEXT o
  NEXT j
 

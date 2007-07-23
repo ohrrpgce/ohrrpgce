@@ -2141,7 +2141,6 @@ SELECT CASE vdance
    learnwho = 0: learnlist = 0: learnslot = -1
   END IF
  CASE 3
-  edgeprint learnwho & " " & learnlist & " " & learnslot, 0,0,15,dpage
   '--print learned spells, one at a time
   IF showlearn = 0 THEN '--Not showing a spell yet. find the next one
    DO
@@ -2158,8 +2157,7 @@ SELECT CASE vdance
     IF readbit(learnmask(), 0, learnwho * 96 + learnlist * 24 + learnslot) THEN
      'found a learned spell
      found$ = batname$(learnwho) + learned$
-     loadattackdata buffer(), spell(learnwho, learnlist, learnslot) - 1
-     found$ = found$ + readbadbinstring$(buffer(), 24, 10, 1)
+     found$ = found$ & readattackname$(spell(learnwho, learnlist, learnslot) -1)
      showlearn = 1
      drawvicbox = 1
      EXIT DO
