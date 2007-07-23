@@ -11,12 +11,9 @@ DEFINT A-Z
 
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
-DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE FUNCTION charpicker$ ()
-DECLARE FUNCTION readenemyname$ (index%)
-DECLARE FUNCTION readitemname$ (index%)
 DECLARE SUB clearallpages ()
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
@@ -24,7 +21,6 @@ DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), me
 DECLARE SUB setactivemenu (workmenu%(), newmenu%(), pt%, top%, size%)
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE SUB testflexmenu ()
-DECLARE FUNCTION readattackname$ (index%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
 DECLARE FUNCTION xintgrabber% (n%, pmin%, pmax%, nmin%, nmax%, less%, more%)
@@ -2220,30 +2216,6 @@ RETRACE
 
 END SUB
 
-FUNCTION readattackname$ (index)
-
-'--clobbers buffer!!!
-
-readattackname$ = readbadgenericname$(index, game$ + ".dt6", 80, 24, 10, 1)
-
-END FUNCTION
-
-FUNCTION readenemyname$ (index)
-
-'--clobbers buffer!!!
-
-readenemyname$ = readbadgenericname$(index, game$ + ".dt1", 320, 0, 16, 0)
-
-END FUNCTION
-
-FUNCTION readitemname$ (index)
-
-'--clobbers buffer!!!
-
-readitemname$ = readbadgenericname$(index, game$ + ".itm", 200, 0, 8, 0)
-
-END FUNCTION
-
 SUB readscatter (s$, lhold, start)
 DIM stray(10)
 s$ = STRING$(20, "!")
@@ -2256,14 +2228,6 @@ array2str stray(), 0, s$
 s$ = LEFT$(s$, INT((lhold + 1) / 8))
 
 END SUB
-
-FUNCTION readshopname$ (shopnum)
-
-'clobbers buffer!
-
-readshopname$ = readbadgenericname$(shopnum, game$ + ".sho", 40, 0, 15, 0)
-
-END FUNCTION
 
 SUB stredit (s$, maxl)
 STATIC clip$

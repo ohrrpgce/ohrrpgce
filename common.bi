@@ -70,6 +70,12 @@ DECLARE SUB convertpalette(oldpal%(), newpal() as RGBcolor)
 DECLARE FUNCTION getmapname$ (m)
 DECLARE SUB createminimap (array(), map(), tastuf(), tilesetpage, zoom)
 
+DECLARE FUNCTION readattackname$ (index%)
+DECLARE FUNCTION readenemyname$ (index%)
+DECLARE FUNCTION readitemname$ (index%)
+DECLARE FUNCTION readshopname$ (shopnum%)
+
+
 'Global variables
 EXTERN game$
 EXTERN uilook()

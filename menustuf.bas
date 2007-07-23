@@ -11,12 +11,10 @@ DECLARE SUB renamehero (who%)
 DECLARE FUNCTION chkOOBtarg% (wptr%, index%, stat%(), ondead%(), onlive%())
 DECLARE FUNCTION getOOBtarg% (gamma%, wptr%, index%, stat%(), ondead%(), onlive%())
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
-DECLARE FUNCTION readatkname$ (id%)
 DECLARE SUB herobattlebits (bitbuf%(), who%)
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
 DECLARE SUB loadtemppage (page%)
 DECLARE SUB savetemppage (page%)
-DECLARE FUNCTION readitemname$ (itemnum%)
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
@@ -1012,7 +1010,7 @@ ELSE
    didlearn = trylearn(wptr, atk, 0)
    '--announce learn
    IF didlearn = 1 THEN
-    tmp$ = names$(wptr) + " " + readglobalstring$(124, "learned", 10) + " " + readatkname$(atk)
+    tmp$ = names$(wptr) + " " + readglobalstring$(124, "learned", 10) + " " + readattackname$(atk)
     centerbox 160, 100, small(LEN(tmp$) * 8 + 16, 320), 24, 1, vpage
     edgeprint tmp$, large(xstring(tmp$, 160), 0), 95, uilook(uiText), vpage
     setvispage vpage
@@ -1521,11 +1519,6 @@ RETRACE
 
 END FUNCTION
 
-FUNCTION readatkname$ (id)
-loadattackdata buffer(), id - 1
-readatkname$ = readbadbinstring$(buffer(), 24, 10, 1)
-END FUNCTION
-
 FUNCTION readglobalstring$ (index, default$, maxlen)
 fh = FREEFILE
 OPEN game$ + ".stt" FOR BINARY AS #fh
@@ -1544,11 +1537,6 @@ END IF
 CLOSE #fh
 
 readglobalstring = result$
-END FUNCTION
-
-FUNCTION readitemname$ (itemnum)
-loaditemdata buffer(), itemnum
-readitemname$ = readbadbinstring$(buffer(), 0, 8, 0)
 END FUNCTION
 
 FUNCTION rpad$ (s$, pad$, size)

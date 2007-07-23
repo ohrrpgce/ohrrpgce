@@ -73,8 +73,6 @@ DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
-DECLARE FUNCTION readitemname$ (itemnum%)
-DECLARE FUNCTION readatkname$ (id%)
 DECLARE FUNCTION exptolevel& (level%)
 DECLARE SUB updatestatslevelup (i%, exstat%(), stat%(), allowforget%)
 DECLARE SUB giveheroexperience (i%, exstat%(), exper&)
@@ -1468,7 +1466,7 @@ SELECT CASE AS CONST id
   IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > gen(genMaxAttack) THEN
    scriptret = 0
   ELSE
-   plotstr(retvals(0)).s = readatkname$(retvals(1) + 1)
+   plotstr(retvals(0)).s = readattackname$(retvals(1) + 1)
    scriptret = 1
   END IF
  CASE 209'--get global string(str,glo)

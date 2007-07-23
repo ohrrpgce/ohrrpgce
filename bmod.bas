@@ -2160,7 +2160,6 @@ SELECT CASE vdance
      found$ = batname$(learnwho) + learned$
      loadattackdata buffer(), spell(learnwho, learnlist, learnslot) - 1
      found$ = found$ + readbadbinstring$(buffer(), 24, 10, 1)
-     debug "" & spell(learnwho, learnlist, learnslot) - 1
      showlearn = 1
      drawvicbox = 1
      EXIT DO

@@ -1460,3 +1460,23 @@ SUB createminimap (array(), map(), tastuf(), tilesetpage, zoom)
  NEXT
 
 END SUB
+
+FUNCTION readattackname$ (index)
+'--clobbers buffer!!!
+readattackname$ = readbadgenericname$(index, game$ + ".dt6", 80, 24, 10, 1)
+END FUNCTION
+
+FUNCTION readenemyname$ (index)
+'--clobbers buffer!!!
+readenemyname$ = readbadgenericname$(index, game$ + ".dt1", 320, 0, 16, 0)
+END FUNCTION
+
+FUNCTION readitemname$ (index)
+'--clobbers buffer!!!
+readitemname$ = readbadgenericname$(index, game$ + ".itm", 200, 0, 8, 0)
+END FUNCTION
+
+FUNCTION readshopname$ (shopnum)
+'clobbers buffer!
+readshopname$ = readbadgenericname$(shopnum, game$ + ".sho", 40, 0, 15, 0)
+END FUNCTION
