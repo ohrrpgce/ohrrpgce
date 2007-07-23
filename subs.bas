@@ -1370,11 +1370,19 @@ DO
  ELSE
   IF keyval(1) > 1 THEN RETRACE
   IF usemenu(bctr, 0, 0, 24, 24) THEN
-   IF her.spell_lists(listnum, bctr-1).attack = 0 THEN colcsr = 0
+   IF bctr > 0 THEN
+    IF her.spell_lists(listnum, bctr-1).attack = 0 THEN colcsr = 0
+   ELSE
+    colcsr = 0
+   END IF
   END IF
   IF keyval(75) > 1 OR keyval(77) > 1 THEN
    colcsr = colcsr XOR 1
-   IF her.spell_lists(listnum, bctr-1).attack = 0 THEN colcsr = 0
+   IF bctr > 0 THEN
+    IF her.spell_lists(listnum, bctr-1).attack = 0 THEN colcsr = 0
+   ELSE
+    colcsr = 0
+   END IF
   END IF
  END IF
  IF bctr > 0 THEN
