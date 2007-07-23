@@ -1543,15 +1543,23 @@ DO
   IF pt = i THEN textcolor 14 + tog, 0
   SELECT CASE i
    CASE 1
-    a$ = lmnemonic(.have_tag)
+    tagnum = .have_tag
    CASE 2
-    a$ = lmnemonic(.alive_tag)
+    tagnum = .alive_tag
    CASE 3
-    a$ = lmnemonic(.leader_tag)
+    tagnum = .leader_tag
    CASE 4
-    a$ = lmnemonic(.active_tag)
+    tagnum = .active_tag
   END SELECT
-  printstr menu$(i) & " (" & a$ & ")", 0, i * 8, dpage
+  SELECT CASE tagnum
+   CASE 0
+    a$ = "None"
+   CASE 1
+    a$ = "None (tag 1 not usable)"
+   CASE ELSE
+    a$ = lmnemonic(tagnum) & "(" & tagnum & ")"
+  END SELECT
+  printstr menu$(i) & ": " & a$, 0, i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
