@@ -1201,9 +1201,10 @@ IF exstat(i, 1, 12) THEN
      exstat(i, 1, o) = exstat(i, 1, o) + buffer(54 + o) * exstat(i, 1, 12)
     END IF
    NEXT j
-   'do stat caps
-   IF gen(genStatCap + o) > 0 THEN exstat(i, 0, o) = small(exstat(i, 0, o),gen(genStatCap + o))
   END IF
+
+  'do stat caps
+  IF gen(genStatCap + o) > 0 THEN exstat(i, 0, o) = small(exstat(i, 0, o),gen(genStatCap + o))
  NEXT o
 
  'stat restoration
