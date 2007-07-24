@@ -1643,6 +1643,7 @@ SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 4)
  DIM AS STRING app, args
  IF NOT isfile(in_file) THEN debug "wav_to_ogg: " & in_file & " does not exist" : EXIT SUB
  app = find_helper_app("oggenc")
+ IF app = "" THEN app = find_helper_app("oggenc2")
  IF app = "" THEN debug "wav_to_mp3: failed to find oggenc" : EXIT SUB
  args = " -q " & quality & " -o """ & out_file & """ """ & in_file & """"
  SHELL app & args
