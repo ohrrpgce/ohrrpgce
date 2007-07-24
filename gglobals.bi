@@ -8,7 +8,6 @@
 
 'Misc game globals
 EXTERN sourcerpg$
-EXTERN tmpdir$
 EXTERN exename$
 EXTERN prefsdir$ ' currently only used by Linux
 EXTERN savefile$

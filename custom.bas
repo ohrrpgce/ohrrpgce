@@ -85,7 +85,9 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 #include "uiconst.bi"
 #include "scrconst.bi"
 
-workingdir$ = "working.tmp"
+DIM tmpdir$
+tmpdir$ = "" 'Custom currently works in the current dir
+workingdir$ = tmpdir$ & "working.tmp"
 
 'version ID
 DIM version$, version_code$, version_build$

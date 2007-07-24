@@ -1479,3 +1479,33 @@ FUNCTION readshopname$ (shopnum)
 'clobbers buffer!
 readshopname$ = readbadgenericname$(shopnum, game$ + ".sho", 40, 0, 15, 0)
 END FUNCTION
+
+FUNCTION find_helper_app (appname AS STRING) AS STRING
+'Returns an empty string if the app is not found, or the full path if it is found
+#IFDEF __FB_LINUX__
+'--Find helper app on Linux
+DIM AS INTEGER fh
+DIM AS STRING tempfile
+DIM AS STRING s
+tempfile = tmpdir$ & "find_helper_app.txt"
+'Use the standard util "which" to search the path
+SHELL "which " & appname & " > " & tempfile
+fh = FREEFILE
+OPEN tempfile FOR INPUT AS #fh
+LINE INPUT #fh, s
+CLOSE #fh
+KILL tempfile
+s$ = TRIM(s)
+RETURN s
+#ELSE
+'--Find helper app on Windows
+DIM AS STRING exedir
+exedir = trimpath$(exename$)
+'First look in the support subdirectory
+IF isfile(exedir & "support\" & appname$ & ".exe") THEN RETURN exedir & "support\" & appname$ & ".exe"
+'Then look in the same folder as CUSTOM/GAME
+IF isfile(exedir & appname$ & ".exe") THEN RETURN exedir & appname$ & ".exe"
+RETURN ""
+#ENDIF
+END FUNCTION
+

@@ -75,9 +75,11 @@ DECLARE FUNCTION readenemyname$ (index%)
 DECLARE FUNCTION readitemname$ (index%)
 DECLARE FUNCTION readshopname$ (shopnum%)
 
+DECLARE FUNCTION find_helper_app (appname AS STRING) AS STRING
 
 'Global variables
 EXTERN game$
+EXTERN tmpdir$
 EXTERN uilook()
 EXTERN vpage, dpage
 EXTERN buffer()
