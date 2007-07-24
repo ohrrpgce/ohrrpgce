@@ -740,29 +740,6 @@ NEXT i
 howmanyh = temp
 END FUNCTION
 
-SUB intgrabber (n, min, max, less, more)
-STATIC clip
-IF keyval(more) > 1 THEN n = loopvar(n, min, max, 1): EXIT SUB
-IF keyval(less) > 1 THEN n = loopvar(n, min, max, -1): EXIT SUB
-s = SGN(n)
-n$ = STR$(ABS(n))
-IF keyval(14) > 1 AND LEN(n$) > 0 THEN n$ = LEFT$(n$, LEN(n$) - 1)
-FOR i = 1 TO 9
- IF keyval(i + 1) > 1 THEN n$ = n$ + STR$(ABS(i))
-NEXT i
-IF keyval(11) > 1 THEN n$ = n$ + "0"
-IF min < 0 THEN IF keyval(12) > 1 OR keyval(13) > 1 OR keyval(74) > 1 OR keyval(78) > 1 THEN s = s * -1
-capper& = str2lng&(n$)
-IF capper& > 32767 THEN capper& = 32767
-n = capper&
-IF s THEN n = n * s
-'CLIPBOARD
-IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN clip = n
-IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN n = clip
-n = large(min, n)
-n = small(max, n)
-END SUB
-
 FUNCTION istag (num, zero)
 IF num = 0 THEN RETURN zero 'why go through all that just to return defaults?
 IF num = 1 THEN RETURN 0

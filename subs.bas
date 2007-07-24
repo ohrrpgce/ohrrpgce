@@ -25,7 +25,6 @@ DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
 DECLARE FUNCTION xintgrabber% (n%, pmin%, pmax%, nmin%, nmax%, less%, more%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
-DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
@@ -1578,41 +1577,6 @@ END WITH
 EXIT SUB
 
 END SUB
-
-FUNCTION intgrabber (n, min, max, less, more)
-STATIC clip
-old = n
-
-IF more <> 0 AND keyval(more) > 1 THEN
- n = loopvar(n, min, max, 1)
-ELSEIF less <> 0 AND keyval(less) > 1 THEN
- n = loopvar(n, min, max, -1)
-ELSE
- s = SGN(n)
- n = ABS(n)
- IF keyval(14) > 1 THEN n \= 10
- FOR i = 1 TO 9
-  IF keyval(i + 1) > 1 THEN n = n * 10 + i
- NEXT i
- IF keyval(11) > 1 THEN n *= 10
- IF min < 0 AND max > 0 THEN
-  IF keyval(12) > 1 OR keyval(13) > 1 OR keyval(74) > 1 OR keyval(78) > 1 THEN s = s * -1
- END IF
- IF min < 0 AND (s < 0 OR max = 0) THEN n = -n
- 'CLIPBOARD
- IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN clip = n
- IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN n = clip
- n = large(min, n)
- n = small(max, n)
-END IF
-
-IF old = n THEN
- intgrabber = 0
-ELSE
- intgrabber = 1
-END IF
-
-END FUNCTION
 
 SUB itemdata
 DIM names$(100), a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), item$(-1 TO 255), eqst$(5), max(18), min(18), sbmax(11), workpal(8), elemtype$(2), frame

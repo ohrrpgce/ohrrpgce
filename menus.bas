@@ -35,7 +35,6 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
-DECLARE FUNCTION intgrabber (n%, min%, max%, less%, more%)
 DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE SUB editmenus ()
@@ -784,6 +783,7 @@ END SUB
 SUB importsong ()
 STATIC default$
 DIM oggtemp AS STRING
+DIM ogg_quality AS INTEGER
 setupmusic
 setfmvol getfmvol
 clearpage 0
@@ -960,11 +960,12 @@ sname$ = a$
 'Convert MP3
 IF getmusictype(sourcesong$) = FORMAT_MP3 THEN
  oggtemp = tmpdir$ & "temp." & INT(RND * 100000) & ".ogg"
+ ogg_quality = pick_ogg_quality()
  clearpage vpage
  centerbox 160, 100, 300, 20, 4, vpage
- edgeprint "Please wait, converting to OGG...", 28, 96, 15, vpage
+ edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
  setvispage vpage
- mp3_to_ogg(sourcesong$, oggtemp)
+ mp3_to_ogg(sourcesong$, oggtemp, ogg_quality)
  IF NOT isfile(oggtemp) THEN debug "Conversion failed." : RETRACE
  sourcesong$ = oggtemp
 ELSE

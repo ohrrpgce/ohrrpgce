@@ -1486,6 +1486,41 @@ FUNCTION readshopname$ (shopnum)
 readshopname$ = readbadgenericname$(shopnum, game$ + ".sho", 40, 0, 15, 0)
 END FUNCTION
 
+FUNCTION intgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER, more AS INTEGER) AS INTEGER
+STATIC clip
+old = n
+
+IF more <> 0 AND keyval(more) > 1 THEN
+ n = loopvar(n, min, max, 1)
+ELSEIF less <> 0 AND keyval(less) > 1 THEN
+ n = loopvar(n, min, max, -1)
+ELSE
+ s = SGN(n)
+ n = ABS(n)
+ IF keyval(14) > 1 THEN n \= 10
+ FOR i = 1 TO 9
+  IF keyval(i + 1) > 1 THEN n = n * 10 + i
+ NEXT i
+ IF keyval(11) > 1 THEN n *= 10
+ IF min < 0 AND max > 0 THEN
+  IF keyval(12) > 1 OR keyval(13) > 1 OR keyval(74) > 1 OR keyval(78) > 1 THEN s = s * -1
+ END IF
+ IF min < 0 AND (s < 0 OR max = 0) THEN n = -n
+ 'CLIPBOARD
+ IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN clip = n
+ IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN n = clip
+ n = large(min, n)
+ n = small(max, n)
+END IF
+
+IF old = n THEN
+ intgrabber = 0
+ELSE
+ intgrabber = 1
+END IF
+
+END FUNCTION
+
 SUB playsongnum (songnum%)
 	DIM songbase$, songfile$
 
@@ -1586,7 +1621,7 @@ FUNCTION can_convert_wav () AS INTEGER
  RETURN -1 
 END FUNCTION
 
-SUB mp3_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5)
+SUB mp3_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 4)
  DIM AS STRING tempwav
  tempwav = tmpdir$ & "temp." & INT(RND * 100000) & ".wav"
  mp3_to_wav(in_file, tempwav)
@@ -1604,7 +1639,7 @@ SUB mp3_to_wav (in_file AS STRING, out_file AS STRING)
  IF NOT isfile(out_file) THEN debug "mp3_to_wav: failed to create " & out_file : EXIT SUB
 END SUB
 
-SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5)
+SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 4)
  DIM AS STRING app, args
  IF NOT isfile(in_file) THEN debug "wav_to_ogg: " & in_file & " does not exist" : EXIT SUB
  app = find_helper_app("oggenc")
@@ -1613,3 +1648,26 @@ SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5)
  SHELL app & args
  IF NOT isfile(out_file) THEN debug "wav_to_ogg: " & out_file & " does not exist" : EXIT SUB
 END SUB
+
+FUNCTION pick_ogg_quality() AS INTEGER
+ STATIC q AS INTEGER = 4
+ DIM i AS INTEGER
+ clearpage dpage
+ clearpage vpage
+ setkeys
+ DO
+  setwait 80
+  setkeys
+  IF keyval(28) > 1 OR keyval(57) > 1 THEN EXIT DO
+  intgrabber (q, -1, 10, 75, 77)
+  centerbox 160, 100, 300, 40, 4, dpage
+  edgeprint "Pick Ogg quality level (" & q & ")", 64, 86, uilook(uiText), dpage
+  FOR i = 0 TO q + 1
+   rectangle 30 + 21 * i, 100, 20, 16, uilook(uiText), dpage
+  NEXT i
+  swap vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ RETURN q
+END FUNCTION
