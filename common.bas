@@ -1602,7 +1602,7 @@ RETURN s
 #ELSE
 '--Find helper app on Windows
 DIM AS STRING exedir
-exedir = trimpath$(exename$)
+exedir = trimfilename$(exename$)
 'First look in the support subdirectory
 IF isfile(exedir & "support\" & appname$ & ".exe") THEN RETURN exedir & "support\" & appname$ & ".exe"
 'Then look in the same folder as CUSTOM/GAME
@@ -1617,7 +1617,7 @@ FUNCTION can_convert_mp3 () AS INTEGER
 END FUNCTION
 
 FUNCTION can_convert_wav () AS INTEGER
- IF find_helper_app("oggenc") = "" THEN RETURN 0
+ IF find_helper_app("oggenc") = "" AND find_helper_app("oggenc2") = "" THEN RETURN 0
  RETURN -1 
 END FUNCTION
 

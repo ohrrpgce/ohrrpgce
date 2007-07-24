@@ -45,6 +45,19 @@ NEXT
 RETURN MID$(filename$, i)
 END FUNCTION
 
+FUNCTION trimfilename$ (filename$)
+'return the path without the filename
+dim i as integer
+for i = 0 to len(filename$) -1 
+	if filename$[i] = asc("\") or filename$[i] = asc("/") then filename$[i] = asc(SLASH)
+next
+IF INSTR(filename$,SLASH) = 0 THEN RETURN ""
+FOR i = LEN(filename$) TO 1 STEP -1
+ IF MID$(filename$, i, 1) = SLASH THEN i -= 1 : EXIT FOR
+NEXT
+RETURN MID$(filename$, 1, i)
+END FUNCTION
+
 FUNCTION trimextension$ (filename$)
 'return the filename without extension
 IF INSTR(filename$,".") = 0 THEN RETURN filename$
