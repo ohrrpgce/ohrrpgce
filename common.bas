@@ -365,13 +365,12 @@ ELSE
   browse_add_files "*.mod", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
   browse_add_files "*.s3m", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
   browse_add_files "*.ogg", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
-  browse_add_files "*.mp3", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+  'browse_add_files "*.mp3", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
  ELSEIF special = 6 THEN
   '--disregard fmask$. one call per extension
   browse_add_files "*.wav", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
-  browse_add_files "*.s3m", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
   browse_add_files "*.ogg", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
-  browse_add_files "*.mp3", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+  'browse_add_files "*.mp3", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
  ELSEIF special = 7 THEN
   'Call once for RPG files once for rpgdirs
   browse_add_files fmask$, attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
