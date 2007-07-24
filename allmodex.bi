@@ -118,6 +118,7 @@ DECLARE SUB stopsfx (BYVAL num)
 DECLARE SUB pausesfx (BYVAL num)
 DECLARE SUB freesfx (BYVAL num) ' only used by custom's importing interface
 DECLARE FUNCTION sfxisplaying (BYVAL num)
+DECLARE FUNCTION getmusictype (file$)
 'DECLARE SUB getsfxvol (BYVAL num)
 'DECLARE SUB setsfxvol (BYVAL num, BYVAL vol)
 

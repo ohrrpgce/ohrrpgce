@@ -230,8 +230,14 @@ SELECT CASE special
  CASE 5
   pausesong
   IF treec(treeptr) = 3 OR treec(treeptr) = 6 THEN
-   IF validmusicfile(nowdir$ + tree$(treeptr), VALID_MUSIC_FORMAT) THEN
+   IF validmusicfile(nowdir$ + tree$(treeptr), PREVIEWABLE_MUSIC_FORMAT) THEN
     loadsong nowdir$ + tree$(treeptr)
+   ELSEIF getmusictype(nowdir$ + tree$(treeptr)) = FORMAT_MP3 THEN
+    IF can_convert_mp3() THEN
+     alert$ = "Cannot preview MP3, try importing"
+    ELSE
+     alert$ = "madplay & oggenc required. See README"
+    END IF
    ELSE
     alert$ = tree$(treeptr) + " is not a valid music file"
    END IF
@@ -356,7 +362,7 @@ ELSE
  IF special = 4 THEN
   browse_add_files "*.mas", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
   browse_add_files "*.bmp", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
- ELSEIF special = 5 THEN
+ ELSEIF special = 5 THEN' background music
   '--disregard fmask$. one call per extension
   browse_add_files "*.bam", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
   browse_add_files "*.mid", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
@@ -365,12 +371,12 @@ ELSE
   browse_add_files "*.mod", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
   browse_add_files "*.s3m", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
   browse_add_files "*.ogg", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
-  'browse_add_files "*.mp3", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
- ELSEIF special = 6 THEN
+  browse_add_files "*.mp3", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+ ELSEIF special = 6 THEN ' sound effects
   '--disregard fmask$. one call per extension
   browse_add_files "*.wav", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
   browse_add_files "*.ogg", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
-  'browse_add_files "*.mp3", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
+  browse_add_files "*.mp3", attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
  ELSEIF special = 7 THEN
   'Call once for RPG files once for rpgdirs
   browse_add_files fmask$, attrib, nowdir$, tmp$, treesize, limit, treec(), tree$(), display$(), about$(), special, meter, ranalready, viewsize
@@ -1480,6 +1486,67 @@ FUNCTION readshopname$ (shopnum)
 readshopname$ = readbadgenericname$(shopnum, game$ + ".sho", 40, 0, 15, 0)
 END FUNCTION
 
+SUB playsongnum (songnum%)
+	DIM songbase$, songfile$
+
+	songbase$ = workingdir$ & SLASH & "song" & songnum%
+  songfile$ = ""
+  IF isfile(game$ & "." & songnum%) THEN
+    songfile$ = game$ & "." & songnum% ' old-style BAM naming scheme
+  ELSEIF isfile(songbase$ & ".mid") THEN
+    songfile$ = songbase$ & ".mid"
+  ELSEIF isfile(songbase$ & ".mp3") THEN
+    songfile$ = songbase$ & ".mp3"
+  ELSEIF isfile(songbase$ & ".ogg") THEN
+    songfile$ = songbase$ & ".ogg"
+  ELSEIF isfile(songbase$ & ".mod") THEN
+    songfile$ = songbase$ & ".mod"
+  ELSEIF isfile(songbase$ & ".xm") THEN
+    songfile$ = songbase$ & ".xm"
+  ELSEIF isfile(songbase$ & ".s3m") THEN
+    songfile$ = songbase$ & ".s3m"
+  END IF
+
+  if songfile$ = "" then exit sub
+	loadsong songfile$
+END SUB
+
+FUNCTION validmusicfile (file$, types = FORMAT_BAM AND FORMAT_MIDI)
+'-- actually, doesn't need to be a music file, but only multi-filetype imported data right now
+	DIM ext$, a$, realhd$, musfh, v, chk
+	ext$ = lcase(justextension(file$))
+	chk = getmusictype(file$)
+
+	if (chk AND types) = 0 then return 0
+
+	SELECT CASE chk
+	CASE FORMAT_BAM
+		a$ = "    "
+		realhd$ = "CBMF"
+		v = 1
+	CASE FORMAT_MIDI
+		a$ = "    "
+		realhd$ = "MThd"
+		v = 1
+	CASE FORMAT_XM
+		a$ =      "                 "
+		realhd$ = "Extended Module: "
+		v = 1
+	CASE FORMAT_MP3
+		return can_convert_mp3()
+	END SELECT
+
+	if v then
+		musfh = FREEFILE
+		OPEN file$ FOR BINARY AS #musfh
+		GET #musfh, 1, a$
+		CLOSE #musfh
+		IF a$ <> realhd$ THEN return 0
+	end if
+
+	return 1
+END FUNCTION
+
 FUNCTION find_helper_app (appname AS STRING) AS STRING
 'Returns an empty string if the app is not found, or the full path if it is found
 #IFDEF __FB_LINUX__
@@ -1529,14 +1596,20 @@ END SUB
 
 SUB mp3_to_wav (in_file AS STRING, out_file AS STRING)
  DIM AS STRING app, args
+ IF NOT isfile(in_file) THEN debug "mp3_to_wav: " & in_file & " does not exist" : EXIT SUB
  app = find_helper_app("madplay")
- args = "-o wave:""" & out_file & """ """ & in_file & """"
- IF EXEC(app, args) = -1 THEN debug "Error executing: " & app & args
+ IF app = "" THEN debug "mp3_to_wav: failed to find madplay" : EXIT SUB
+ args = " -o wave:""" & out_file & """ """ & in_file & """"
+ SHELL app & args
+ IF NOT isfile(out_file) THEN debug "mp3_to_wav: failed to create " & out_file : EXIT SUB
 END SUB
 
 SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5)
  DIM AS STRING app, args
+ IF NOT isfile(in_file) THEN debug "wav_to_ogg: " & in_file & " does not exist" : EXIT SUB
  app = find_helper_app("oggenc")
- args = "-q " & quality & " -o """ & out_file & """ """ & in_file & """"
- IF EXEC(app, args) = -1 THEN debug "Error executing: " & app & args
+ IF app = "" THEN debug "wav_to_mp3: failed to find oggenc" : EXIT SUB
+ args = " -q " & quality & " -o """ & out_file & """ """ & in_file & """"
+ SHELL app & args
+ IF NOT isfile(out_file) THEN debug "wav_to_ogg: " & out_file & " does not exist" : EXIT SUB
 END SUB

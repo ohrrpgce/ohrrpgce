@@ -3288,3 +3288,38 @@ Function fileiswriteable(f$)
 	close #fh
 	return -1
 end Function
+
+FUNCTION getmusictype (file$)
+
+	DIM ext$, chk
+	ext$ = lcase(justextension(file$))
+
+	'special case
+	if str(cint(ext$)) = ext$ then return FORMAT_BAM
+
+	SELECT CASE ext$
+	CASE "bam"
+		chk = FORMAT_BAM
+	CASE "mid"
+		chk = FORMAT_MIDI
+	CASE "xm"
+		chk = FORMAT_XM
+	CASE "it"
+	  chk = FORMAT_IT
+	CASE "wav"
+	  chk = FORMAT_WAV
+	CASE "ogg"
+	  chk = FORMAT_OGG
+	CASE "mp3"
+	  chk = FORMAT_MP3
+	CASE "s3m"
+	  chk = FORMAT_S3M
+	CASE "mod"
+	  chk = FORMAT_MOD
+	CASE ELSE
+	  debug "unknown format: " & file$ & " - " & ext$
+	  chk = 0
+	END SELECT
+
+  return chk
+END FUNCTION

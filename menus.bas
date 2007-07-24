@@ -783,6 +783,7 @@ END SUB
 
 SUB importsong ()
 STATIC default$
+DIM oggtemp AS STRING
 setupmusic
 setfmvol getfmvol
 clearpage 0
@@ -892,7 +893,7 @@ ELSEIF isfile(temp$ + ".ogg") THEN
 ELSEIF isfile(temp$ + ".mp3") THEN
  ext$ = ".mp3"
  songfile$ = temp$ + ext$
- songtype$ = "MPEG Layer III (MP3)"
+ songtype$ = "MPEG Layer III (MP3) OBSOLETE"
 ELSEIF isfile(temp$ + ".s3m") THEN
  ext$ = ".s3m"
  songfile$ = temp$ + ext$
@@ -939,26 +940,50 @@ RETRACE
 
 importsongfile:
 pausesong
-'sourcesong$ = browse$(1, default$, "*.bam", "")
+
+'browse for new song
 sourcesong$ = browse$(5, default$, "", "")
+
+'If not song was selected, go back
 IF sourcesong$ = "" THEN
  GOSUB getsonginfo 'to play the song again
  RETRACE
 END IF
-'--remove song file (except BAM, we can leave those as fallback for QB version)
+
+'remove song file (except BAM, we can leave those as fallback for QB version)
 IF songfile$ <> bamfile$ THEN safekill songfile$
 
-IF sourcesong$ <> "" THEN
- IF LCASE$(RIGHT$(sourcesong$, 4)) = ".bam" AND snum <= 99 THEN
-  songfile$ = game$ + "." + STR$(snum)
- ELSE
-  songfile$ = workingdir$ + SLASH + "song" + STR$(snum) + "." + justextension$(sourcesong$)
- END IF
- copyfile sourcesong$, songfile$, buffer()
- a$ = trimextension$(trimpath$(sourcesong$))
- sname$ = a$
- GOSUB ssongdata
+'Update song name
+a$ = trimextension$(trimpath$(sourcesong$))
+sname$ = a$
+
+'Convert MP3
+IF getmusictype(sourcesong$) = FORMAT_MP3 THEN
+ oggtemp = tmpdir$ & "temp." & INT(RND * 100000) & ".ogg"
+ clearpage vpage
+ centerbox 160, 100, 300, 20, 4, vpage
+ edgeprint "Please wait, converting to OGG...", 28, 96, 15, vpage
+ setvispage vpage
+ mp3_to_ogg(sourcesong$, oggtemp)
+ IF NOT isfile(oggtemp) THEN debug "Conversion failed." : RETRACE
+ sourcesong$ = oggtemp
+ELSE
+ oggtemp = ""
 END IF
+
+'generate lump name
+IF LCASE$(RIGHT$(sourcesong$, 4)) = ".bam" AND snum <= 99 THEN
+ songfile$ = game$ + "." + STR$(snum)
+ELSE
+ songfile$ = workingdir$ + SLASH + "song" + STR$(snum) + "." + justextension$(sourcesong$)
+END IF
+
+'Copy in new lump
+copyfile sourcesong$, songfile$, buffer()
+
+IF oggtemp <> "" THEN KILL oggtemp
+
+GOSUB ssongdata
 GOSUB getsonginfo
 RETRACE
 
