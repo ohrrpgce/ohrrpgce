@@ -92,6 +92,7 @@ DECLARE FUNCTION intgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less 
 'Global variables
 EXTERN game$
 EXTERN tmpdir$
+EXTERN exename$
 EXTERN uilook()
 EXTERN vpage, dpage
 EXTERN buffer()

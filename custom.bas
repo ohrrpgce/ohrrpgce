@@ -84,6 +84,9 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 #include "uiconst.bi"
 #include "scrconst.bi"
 
+DIM exename$
+exename$ = trimextension$(trimpath$(COMMAND$(0)))
+
 DIM tmpdir$
 tmpdir$ = "" 'Custom currently works in the current dir
 workingdir$ = tmpdir$ & "working.tmp"
