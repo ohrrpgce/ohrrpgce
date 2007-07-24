@@ -76,6 +76,11 @@ DECLARE FUNCTION readitemname$ (index%)
 DECLARE FUNCTION readshopname$ (shopnum%)
 
 DECLARE FUNCTION find_helper_app (appname AS STRING) AS STRING
+DECLARE FUNCTION can_convert_mp3 () AS INTEGER
+DECLARE FUNCTION can_convert_wav () AS INTEGER
+DECLARE SUB mp3_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5)
+DECLARE SUB mp3_to_wav (in_file AS STRING, out_file AS STRING)
+DECLARE SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5)
 
 'Global variables
 EXTERN game$

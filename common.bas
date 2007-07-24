@@ -1509,3 +1509,34 @@ RETURN ""
 #ENDIF
 END FUNCTION
 
+FUNCTION can_convert_mp3 () AS INTEGER
+ IF find_helper_app("madplay") = "" THEN RETURN 0
+ RETURN can_convert_wav()
+END FUNCTION
+
+FUNCTION can_convert_wav () AS INTEGER
+ IF find_helper_app("oggenc") = "" THEN RETURN 0
+ RETURN -1 
+END FUNCTION
+
+SUB mp3_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5)
+ DIM AS STRING tempwav
+ tempwav = tmpdir$ & "temp." & INT(RND * 100000) & ".wav"
+ mp3_to_wav(in_file, tempwav)
+ wav_to_ogg(tempwav, out_file, quality)
+ KILL tempwav
+END SUB
+
+SUB mp3_to_wav (in_file AS STRING, out_file AS STRING)
+ DIM AS STRING app, args
+ app = find_helper_app("madplay")
+ args = "-o wave:""" & out_file & """ """ & in_file & """"
+ IF EXEC(app, args) = -1 THEN debug "Error executing: " & app & args
+END SUB
+
+SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5)
+ DIM AS STRING app, args
+ app = find_helper_app("oggenc")
+ args = "-q " & quality & " -o """ & out_file & """ """ & in_file & """"
+ IF EXEC(app, args) = -1 THEN debug "Error executing: " & app & args
+END SUB
