@@ -49,6 +49,9 @@ Source: "plotscr.hsd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "scancode.hsi"; DestDir: "{app}"; Flags: ignoreversion
 Source: "import\*"; DestDir: "{app}\import\"; Flags: ignoreversion
 Source: "docs\*"; DestDir: "{app}\docs\"; Flags: ignoreversion
+Source: "support\madplay.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
+Source: "support\oggenc.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
+Source: "support\LICENSE-*.txt"; DestDir: "{app}\support\"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
