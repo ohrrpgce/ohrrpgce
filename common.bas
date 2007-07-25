@@ -1030,42 +1030,6 @@ SUB playsongnum (songnum%)
 	loadsong songfile$
 END SUB
 
-FUNCTION validmusicfile (file$, types = FORMAT_BAM AND FORMAT_MIDI)
-'-- actually, doesn't need to be a music file, but only multi-filetype imported data right now
-	DIM ext$, a$, realhd$, musfh, v, chk
-	ext$ = lcase(justextension(file$))
-	chk = getmusictype(file$)
-
-	if (chk AND types) = 0 then return 0
-
-	SELECT CASE chk
-	CASE FORMAT_BAM
-		a$ = "    "
-		realhd$ = "CBMF"
-		v = 1
-	CASE FORMAT_MIDI
-		a$ = "    "
-		realhd$ = "MThd"
-		v = 1
-	CASE FORMAT_XM
-		a$ =      "                 "
-		realhd$ = "Extended Module: "
-		v = 1
-	CASE FORMAT_MP3
-		return can_convert_mp3()
-	END SELECT
-
-	if v then
-		musfh = FREEFILE
-		OPEN file$ FOR BINARY AS #musfh
-		GET #musfh, 1, a$
-		CLOSE #musfh
-		IF a$ <> realhd$ THEN return 0
-	end if
-
-	return 1
-END FUNCTION
-
 FUNCTION find_helper_app (appname AS STRING) AS STRING
 'Returns an empty string if the app is not found, or the full path if it is found
 #IFDEF __FB_LINUX__

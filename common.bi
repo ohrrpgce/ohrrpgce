@@ -78,7 +78,6 @@ DECLARE FUNCTION readshopname$ (shopnum%)
 DECLARE FUNCTION getsongname$ (num AS INTEGER, prefixnum AS INTEGER = 0)
 DECLARE FUNCTION getsfxname$ (num AS INTEGER)
 
-DECLARE FUNCTION validmusicfile (file$, as integer = FORMAT_BAM AND FORMAT_MIDI)
 DECLARE SUB playsongnum (songnum%)
 
 DECLARE FUNCTION find_helper_app (appname AS STRING) AS STRING

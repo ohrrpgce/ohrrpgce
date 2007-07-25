@@ -11,6 +11,7 @@
 'Subs and functions only used locally
 DECLARE SUB draw_browse_meter(br AS BrowseMenuState)
 DECLARE SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
+DECLARE FUNCTION validmusicfile (file$, as integer = FORMAT_BAM AND FORMAT_MIDI)
 
 FUNCTION browse$ (special, default$, fmask$, tmp$, needf)
 STATIC remember$
@@ -26,8 +27,8 @@ br.special = special
 'special=2   16 color BMP
 'special=3   background
 'special=4   master palette (*.mas, 8 bit *.bmp, 16x16 24 bit *.bmp) (fmask$ is ignored)
-'special=5   any supported music (currently *.bam and *.mid)  (fmask$ is ignored)
-'special=6   any supported SFX (currently *.wav) (fmask$ is ignored)
+'special=5   any supported music (currently *.bam and *.mid, *.ogg, *.mp3 and mod format)  (fmask$ is ignored)
+'special=6   any supported SFX (currently *.ogg, *.wav, *.mp3) (fmask$ is ignored)
 'special=7   RPG files
 mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
@@ -544,3 +545,39 @@ WITH br
  END IF
 END WITH
 END SUB
+
+FUNCTION validmusicfile (file$, types = FORMAT_BAM AND FORMAT_MIDI)
+'-- actually, doesn't need to be a music file, but only multi-filetype imported data right now
+	DIM ext$, a$, realhd$, musfh, v, chk
+	ext$ = lcase(justextension(file$))
+	chk = getmusictype(file$)
+
+	if (chk AND (FORMAT_BAM AND FORMAT_MIDI)) = 0 then return 0
+
+	SELECT CASE chk
+	CASE FORMAT_BAM
+		a$ = "    "
+		realhd$ = "CBMF"
+		v = 1
+	CASE FORMAT_MIDI
+		a$ = "    "
+		realhd$ = "MThd"
+		v = 1
+	CASE FORMAT_XM
+		a$ =      "                 "
+		realhd$ = "Extended Module: "
+		v = 1
+	CASE FORMAT_MP3
+		return can_convert_mp3()
+	END SELECT
+
+	if v then
+		musfh = FREEFILE
+		OPEN file$ FOR BINARY AS #musfh
+		GET #musfh, 1, a$
+		CLOSE #musfh
+		IF a$ <> realhd$ THEN return 0
+	end if
+
+	return 1
+END FUNCTION
