@@ -55,6 +55,7 @@ DECLARE FUNCTION importmasterpal (f$, palnum%)
 DECLARE SUB titlescreenbrowse ()
 DECLARE SUB generate_gen_menu(m$(), longname$, aboutline$, stat$())
 DECLARE SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
+DECLARE SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -864,10 +865,6 @@ ELSEIF isfile(temp$ + ".ogg") THEN
  ext$ = ".ogg"
  songfile$ = temp$ + ext$
  songtype$ = "OGG Vorbis (OGG)"
-ELSEIF isfile(temp$ + ".mp3") THEN
- ext$ = ".mp3"
- songfile$ = temp$ + ext$
- songtype$ = "MPEG Layer III (MP3) OBSOLETE"
 ELSEIF isfile(temp$ + ".s3m") THEN
  ext$ = ".s3m"
  songfile$ = temp$ + ext$
@@ -884,6 +881,10 @@ ELSEIF isfile(temp$ + ".mod") THEN
  ext$ = ".mod"
  songfile$ = temp$ + ext$
  songtype$ = "Module (MOD)"
+ELSEIF isfile(temp$ + ".mp3") THEN ' Obsolete. only present in some Ubersetzung WIP games
+ ext$ = ".mp3"
+ songfile$ = temp$ + ext$
+ songtype$ = "MPEG Layer III (MP3) OBSOLETE"
 END IF
 '--add more formats here
 
@@ -1080,15 +1081,15 @@ temp$ = workingdir$ + SLASH + "sfx" + STR$(snum)
 sfxfile$ = ""
 sfxtype$ = "NO FILE"
 
-IF isfile(temp$ + ".wav") THEN
- ext$ = ".wav"
- sfxfile$ = temp$ + ext$
- sfxtype$ = "Waveform (WAV)"
-ELSEIF isfile(temp$ + ".ogg") THEN
+IF isfile(temp$ + ".ogg") THEN
  ext$ = ".ogg"
  sfxfile$ = temp$ + ext$
  sfxtype$ = "OGG Vorbis (OGG)"
-ELSEIF isfile(temp$ + ".mp3") THEN
+ELSEIF isfile(temp$ + ".wav") THEN ' Obsolete, only present in Pre-Ubersetzung games
+ ext$ = ".wav"
+ sfxfile$ = temp$ + ext$
+ sfxtype$ = "Waveform (WAV) OBSOLETE"
+ELSEIF isfile(temp$ + ".mp3") THEN ' Obsolete, only present in some Ubersetzung WIP games
  ext$ = ".mp3"
  sfxfile$ = temp$ + ext$
  sfxtype$ = "MPEG Layer III (MP3) OBSOLETE"
@@ -1130,6 +1131,8 @@ sname$ = a$
 'Convert MP3
 IF getmusictype(sourcesfx$) = FORMAT_MP3 THEN
  import_convert_mp3 sourcesfx$, oggtemp
+ELSEIF getmusictype(sourcesfx$) = FORMAT_WAV THEN
+ import_convert_wav sourcesfx$, oggtemp
 ELSE
  oggtemp = ""
 END IF
@@ -1537,4 +1540,17 @@ SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
  mp3_to_ogg(mp3, oggtemp, ogg_quality)
  IF NOT isfile(oggtemp) THEN debug "Conversion failed." : EXIT SUB
  mp3 = oggtemp
+END SUB
+
+SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
+ DIM ogg_quality AS INTEGER
+ oggtemp = tmpdir$ & "temp." & INT(RND * 100000) & ".ogg"
+ ogg_quality = pick_ogg_quality()
+ clearpage vpage
+ centerbox 160, 100, 300, 20, 4, vpage
+ edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
+ setvispage vpage
+ wav_to_ogg(wav, oggtemp, ogg_quality)
+ IF NOT isfile(oggtemp) THEN debug "Conversion failed." : EXIT SUB
+ wav = oggtemp
 END SUB
