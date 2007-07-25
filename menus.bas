@@ -45,8 +45,6 @@ DECLARE SUB readscatter (s$, lhold%, start%)
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filesize$ (file$)
 DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
-DECLARE FUNCTION getsongname$ (num%)
-DECLARE FUNCTION getsfxname$ (num%)
 DECLARE FUNCTION charpicker$ ()
 DECLARE SUB generalscriptsmenu ()
 DECLARE SUB generalsfxmenu ()
@@ -55,6 +53,7 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 DECLARE SUB masterpalettemenu ()
 DECLARE FUNCTION importmasterpal (f$, palnum%)
 DECLARE SUB titlescreenbrowse ()
+DECLARE SUB generate_gen_menu(m$(), longname$, aboutline$, stat$())
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -505,7 +504,7 @@ IF isfile(workingdir$ + SLASH + "browse.txt") THEN
  array2str buffer(), 2, aboutline$
 END IF
 
-GOSUB genstr
+generate_gen_menu(m$(), longname$, aboutline$, stat$())
 setkeys
 DO
  setwait timing(), 100
@@ -545,56 +544,56 @@ DO
   d$ = charpicker$
   IF d$ <> "" THEN
   gen(genPoison) = ASC(d$)
-   GOSUB genstr
+   generate_gen_menu(m$(), longname$, aboutline$, stat$())
   END IF
  END IF
  IF csr = 17 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
   gen(genStun) = ASC(d$)
-   GOSUB genstr
+   generate_gen_menu(m$(), longname$, aboutline$, stat$())
   END IF
  END IF
  IF csr = 18 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
   gen(genMute) = ASC(d$)
-   GOSUB genstr
+   generate_gen_menu(m$(), longname$, aboutline$, stat$())
   END IF
  END IF
 
  END IF
  IF csr > 1 AND csr <= 4 THEN
-  IF intgrabber(gen(100 + csr), 0, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(gen(100 + csr), 0, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr > 4 AND csr < 8 THEN
-  IF zintgrabber(gen(csr - 3), -1, max(csr), 75, 77) THEN GOSUB genstr
+  IF zintgrabber(gen(csr - 3), -1, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr = 11 THEN
-  IF intgrabber(gen(96), 0, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(gen(96), 0, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr = 13 THEN
   strgrabber longname$, 38
-  GOSUB genstr
+  generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr = 14 THEN
   strgrabber aboutline$, 38
-  GOSUB genstr
+  generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr = 16 THEN
-  IF intgrabber(gen(genPoison), 32, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(gen(genPoison), 32, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr = 17 THEN
-  IF intgrabber(gen(genStun), 32, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(gen(genStun), 32, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr = 18 THEN
-  IF intgrabber(gen(genMute), 32, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(gen(genMute), 32, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr = 19 THEN
-  IF intgrabber(gen(genDamageCap), 0, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(gen(genDamageCap), 0, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr >= 20 AND csr <= 31 THEN
-  IF intgrabber(gen(genStatCap + (csr - 20)), 0, max(csr), 75, 77) THEN GOSUB genstr
+  IF intgrabber(gen(genStatCap + (csr - 20)), 0, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
 
  standardmenu m$(), last, 22, csr, menutop, 0, 0, dpage, 0
@@ -610,31 +609,6 @@ clearpage 1
 clearpage 2
 clearpage 3
 EXIT SUB
-
-genstr:
-'IF gen(101) = 0 THEN m$(1) = "Active Menu Mode" ELSE m$(1) = "Wait Menu Mode"
-m$(2) = "Starting X: " & gen(102)
-m$(3) = "Starting Y: " & gen(103)
-m$(4) = "Starting Map: " & gen(104)
-m$(5) = "Title Music: "
-IF gen(2) = 0 THEN m$(5) = m$(5) & "-none-" ELSE m$(5) = m$(5) & (gen(2) - 1) & " " & getsongname$(gen(2) - 1)
-m$(6) = "Battle Victory Music: "
-IF gen(3) = 0 THEN m$(6) = m$(6) & "-none-" ELSE m$(6) = m$(6) & (gen(3) - 1) & " " & getsongname$(gen(3) - 1)
-m$(7) = "Default Battle Music: "
-IF gen(4) = 0 THEN m$(7) = m$(7) & "-none-" ELSE m$(7) = m$(7) & (gen(4) - 1) & " " & getsongname$(gen(4) - 1)
-m$(11) = "Starting Money: " & gen(96)
-m$(13) = "Long Name:" + longname$
-m$(14) = "About Line:" + aboutline$
-m$(16) = "Poison Indicator: " & gen(61) & " " & CHR$(gen(61))
-m$(17) = "Stun Indicator: " & gen(62) & " " & CHR$(gen(62))
-m$(18) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
-m$(19) = "Damage Cap: "
-if gen(genDamageCap) = 0 THEN m$(19) = m$(19) + "None" ELSE m$(19) = m$(19) & gen(genDamageCap)
-FOR i = 0 to 11
- m$(20 + i) = stat$(i) + " Cap: "
- if gen(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + "None" ELSE m$(20 + i) = m$(20 + i) & gen(genStatCap + i)
-NEXT
-RETRACE
 
 savepass:
 
@@ -1537,4 +1511,25 @@ DO
  copypage 2, dpage
  dowait
 LOOP
+END SUB
+
+SUB generate_gen_menu(m$(), longname$, aboutline$, stat$())
+m$(2) = "Starting X: " & gen(genStartX)
+m$(3) = "Starting Y: " & gen(genStartY)
+m$(4) = "Starting Map: " & gen(genStartMap)
+m$(5) = "Title Music: " & getsongname$(gen(genTitleMus) - 1, true)
+m$(6) = "Battle Victory Music: " & getsongname$(gen(genVictMus) - 1, true)
+m$(7) = "Default Battle Music: " & getsongname$(gen(genBatMus) - 1, true)
+m$(11) = "Starting Money: " & gen(genStartMoney)
+m$(13) = "Long Name:" + longname$
+m$(14) = "About Line:" + aboutline$
+m$(16) = "Poison Indicator: " & gen(genPoison) & " " & CHR$(gen(genPoison))
+m$(17) = "Stun Indicator: " & gen(genStun) & " " & CHR$(gen(genStun))
+m$(18) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
+m$(19) = "Damage Cap: "
+IF gen(genDamageCap) = 0 THEN m$(19) = m$(19) + "None" ELSE m$(19) = m$(19) & gen(genDamageCap)
+FOR i = 0 to 11
+ m$(20 + i) = stat$(i) + " Cap: "
+ IF gen(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + "None" ELSE m$(20 + i) = m$(20 + i) & gen(genStatCap + i)
+NEXT
 END SUB

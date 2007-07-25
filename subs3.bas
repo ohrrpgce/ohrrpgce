@@ -200,20 +200,6 @@ ELSE
 END IF
 END FUNCTION
 
-FUNCTION getsongname$ (num)
-DIM songd(curbinsize(2) / 2)
-setpicstuf songd(), curbinsize(2), -1
-loadset workingdir$ + SLASH + "songdata.bin", num, 0
-getsongname$ = readbinstring$ (songd(), 0, 30)
-END FUNCTION
-
-FUNCTION getsfxname$ (num)
-DIM sfxd(curbinsize(2) / 2)
-setpicstuf sfxd(), curbinsize(3), -1
-loadset workingdir$ + SLASH + "sfxdata.bin", num, 0
-getsfxname$ = readbinstring$ (sfxd(), 0, 30)
-END FUNCTION
-
 FUNCTION inputfilename$ (query$, ext$, default$)
 filename$ = default$
 setkeys

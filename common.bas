@@ -1486,6 +1486,25 @@ FUNCTION readshopname$ (shopnum)
 readshopname$ = readbadgenericname$(shopnum, game$ + ".sho", 40, 0, 15, 0)
 END FUNCTION
 
+FUNCTION getsongname$ (num AS INTEGER, prefixnum AS INTEGER = 0)
+DIM songd(curbinsize(2) / 2) AS INTEGER
+DIM s AS STRING
+IF num = -1 THEN RETURN "-none-"
+s = ""
+IF prefixnum THEN s = num & " "
+setpicstuf songd(), curbinsize(2), -1
+loadset workingdir$ + SLASH + "songdata.bin", num, 0
+s = s & readbinstring$ (songd(), 0, 30)
+RETURN s
+END FUNCTION
+
+FUNCTION getsfxname$ (num AS INTEGER)
+DIM sfxd(curbinsize(2) / 2)
+setpicstuf sfxd(), curbinsize(3), -1
+loadset workingdir$ + SLASH + "sfxdata.bin", num, 0
+getsfxname$ = readbinstring$ (sfxd(), 0, 30)
+END FUNCTION
+
 FUNCTION intgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER, more AS INTEGER) AS INTEGER
 STATIC clip
 old = n

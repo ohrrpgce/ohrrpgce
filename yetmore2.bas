@@ -80,7 +80,6 @@ DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
 DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, remembermusic%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
 DECLARE SUB cathero ()
-DECLARE FUNCTION getsongname$ (num%)
 DECLARE SUB readjoysettings ()
 DECLARE SUB loadmap_gmap(mapnum%)
 DECLARE SUB loadmap_npcl(mapnum%)
@@ -317,13 +316,6 @@ ELSE
 END IF
 
 framewalkabout = yesdraw
-END FUNCTION
-
-FUNCTION getsongname$ (num)
-DIM songd(curbinsize(2) / 2)
-setpicstuf songd(), curbinsize(2), -1
-loadset workingdir$ + SLASH + "songdata.bin", num, 0
-getsongname$ = readbinstring$ (songd(), 0, 30)
 END FUNCTION
 
 SUB initgamedefaults

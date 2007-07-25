@@ -75,6 +75,8 @@ DECLARE FUNCTION readattackname$ (index%)
 DECLARE FUNCTION readenemyname$ (index%)
 DECLARE FUNCTION readitemname$ (index%)
 DECLARE FUNCTION readshopname$ (shopnum%)
+DECLARE FUNCTION getsongname$ (num AS INTEGER, prefixnum AS INTEGER = 0)
+DECLARE FUNCTION getsfxname$ (num AS INTEGER)
 
 DECLARE FUNCTION validmusicfile (file$, as integer = FORMAT_BAM AND FORMAT_MIDI)
 DECLARE SUB playsongnum (songnum%)

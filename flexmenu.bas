@@ -61,7 +61,6 @@ DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION isStringField(mnu%)
-DECLARE FUNCTION getsfxname$ (num%)
 
 #include "compat.bi"
 #include "allmodex.bi"
