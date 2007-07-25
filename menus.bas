@@ -1517,9 +1517,9 @@ SUB generate_gen_menu(m$(), longname$, aboutline$, stat$())
 m$(2) = "Starting X: " & gen(genStartX)
 m$(3) = "Starting Y: " & gen(genStartY)
 m$(4) = "Starting Map: " & gen(genStartMap)
-m$(5) = "Title Music: " & getsongname$(gen(genTitleMus) - 1, true)
-m$(6) = "Battle Victory Music: " & getsongname$(gen(genVictMus) - 1, true)
-m$(7) = "Default Battle Music: " & getsongname$(gen(genBatMus) - 1, true)
+m$(5) = "Title Music: " & getsongname$(gen(genTitleMus) - 1, -1)
+m$(6) = "Battle Victory Music: " & getsongname$(gen(genVictMus) - 1, -1)
+m$(7) = "Default Battle Music: " & getsongname$(gen(genBatMus) - 1, -1)
 m$(11) = "Starting Money: " & gen(genStartMoney)
 m$(13) = "Long Name:" + longname$
 m$(14) = "About Line:" + aboutline$

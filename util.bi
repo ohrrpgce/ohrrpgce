@@ -18,7 +18,4 @@ declare function justextension$ (filename$)
 declare function anycase$ (filename$)
 declare function touchfile (filename$)
 
-CONST true = -1
-CONST false = 0
-
 #ENDIF
