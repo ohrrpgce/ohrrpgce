@@ -1030,6 +1030,25 @@ SUB playsongnum (songnum%)
 	loadsong songfile$
 END SUB
 
+FUNCTION find_madplay () AS STRING
+ STATIC cached AS INTEGER = 0
+ STATIC cached_app AS STRING
+ IF cached THEN RETURN cached_app
+ cached_app = find_helper_app("madplay")
+ cached = -1
+ RETURN cached_app
+END FUNCTION
+
+FUNCTION find_oggenc () AS STRING
+ STATIC cached AS INTEGER = 0
+ STATIC cached_app AS STRING
+ IF cached THEN RETURN cached_app
+ cached_app = find_helper_app("oggenc")
+ IF cached_app = "" THEN cached_app = find_helper_app("oggenc2")
+ cached = -1
+ RETURN cached_app
+END FUNCTION
+
 FUNCTION find_helper_app (appname AS STRING) AS STRING
 'Returns an empty string if the app is not found, or the full path if it is found
 #IFDEF __FB_LINUX__
@@ -1061,12 +1080,12 @@ RETURN ""
 END FUNCTION
 
 FUNCTION can_convert_mp3 () AS INTEGER
- IF find_helper_app("madplay") = "" THEN RETURN 0
+ IF find_madplay() = "" THEN RETURN 0
  RETURN can_convert_wav()
 END FUNCTION
 
 FUNCTION can_convert_wav () AS INTEGER
- IF find_helper_app("oggenc") = "" AND find_helper_app("oggenc2") = "" THEN RETURN 0
+ IF find_oggenc() = "" THEN RETURN 0
  RETURN -1 
 END FUNCTION
 
@@ -1081,7 +1100,7 @@ END SUB
 SUB mp3_to_wav (in_file AS STRING, out_file AS STRING)
  DIM AS STRING app, args
  IF NOT isfile(in_file) THEN debug "mp3_to_wav: " & in_file & " does not exist" : EXIT SUB
- app = find_helper_app("madplay")
+ app = find_madplay()
  IF app = "" THEN debug "mp3_to_wav: failed to find madplay" : EXIT SUB
  args = " -o wave:""" & out_file & """ """ & in_file & """"
  SHELL app & args
@@ -1091,8 +1110,7 @@ END SUB
 SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 4)
  DIM AS STRING app, args
  IF NOT isfile(in_file) THEN debug "wav_to_ogg: " & in_file & " does not exist" : EXIT SUB
- app = find_helper_app("oggenc")
- IF app = "" THEN app = find_helper_app("oggenc2")
+ app = find_oggenc()
  IF app = "" THEN debug "wav_to_mp3: failed to find oggenc" : EXIT SUB
  args = " -q " & quality & " -o """ & out_file & """ """ & in_file & """"
  SHELL app & args

@@ -81,6 +81,8 @@ DECLARE FUNCTION getsfxname$ (num AS INTEGER)
 DECLARE SUB playsongnum (songnum%)
 
 DECLARE FUNCTION find_helper_app (appname AS STRING) AS STRING
+DECLARE FUNCTION find_madplay () AS STRING
+DECLARE FUNCTION find_oggenc () AS STRING
 DECLARE FUNCTION can_convert_mp3 () AS INTEGER
 DECLARE FUNCTION can_convert_wav () AS INTEGER
 DECLARE SUB mp3_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5)
