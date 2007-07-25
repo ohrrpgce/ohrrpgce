@@ -552,7 +552,7 @@ FUNCTION validmusicfile (file$, types = FORMAT_BAM AND FORMAT_MIDI)
 	ext$ = lcase(justextension(file$))
 	chk = getmusictype(file$)
 
-	if (chk AND (FORMAT_BAM AND FORMAT_MIDI)) = 0 then return 0
+	if (chk AND types) = 0 then return 0
 
 	SELECT CASE chk
 	CASE FORMAT_BAM
