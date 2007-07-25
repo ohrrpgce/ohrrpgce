@@ -46,8 +46,6 @@ declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as i
 
 #include "util.bi"
 
-CONST true = -1
-CONST false = 0
 #IFDEF __FB_LINUX__
  CONST SLASH = "/"
  CONST ALLFILES = "*"

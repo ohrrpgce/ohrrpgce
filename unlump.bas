@@ -53,8 +53,6 @@ DECLARE FUNCTION hasmedia (BYVAL d)
 #define ALLFILES "*.*"
 #endif
 
-CONST true  =-1
-CONST false = 0
 CONST null  = 0
 DIM buffer(16383)
 
