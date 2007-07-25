@@ -5,7 +5,7 @@ SHELL = /bin/sh
 #don't use the built in compiler rules, they don't apply to FB
 .SUFFIXES:
 
-common_modules:=allmodex compat bam2mid gfx_$(OHRGFX) music_$(OHRMUSIC) common util loading
+common_modules:=allmodex compat bam2mid gfx_$(OHRGFX) music_$(OHRMUSIC) common browse util loading
 common_objects:=$(addsuffix .o,$(common_modules))
 common_sources:=$(addsuffix .bas,$(common_modules))
 common_deps   :=$(addsuffix .d,$(common_modules))

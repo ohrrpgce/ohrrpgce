@@ -9,8 +9,8 @@
 #include "util.bi"
 #include "udts.bi"
 #include "music.bi"
+#include "browse.bi"
 
-DECLARE FUNCTION browse$ (special, default$, fmask$, tmp$, needf = 0)
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE SUB fadein ()
 DECLARE SUB fadeout (red%, green%, blue%)
