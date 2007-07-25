@@ -6,7 +6,7 @@ WHAT IS NEW?
       MP3, OGG, MOD, XM, S3M and IT [Mike Caron]
     * New NPC movement type: Walk In Place [James Paige]
     * 8-bit bitmaps can now be imported as backdrops and tilesets [Mike, Ralph]
-    * Sound effects. in WAV or OGG format [Mike Caron]
+    * Sound effects. in WAV, OGG, or MP3 format [Mike Caron]
     * Sound effect triggers in battle [Mike Caron]
     * Attacks can now consume or give items (up to three at once!) [Mike Caron]
     * "Transparent" colour in sprite editor can now be chosen (only affects the

@@ -1037,9 +1037,10 @@ FUNCTION find_helper_app (appname AS STRING) AS STRING
 DIM AS INTEGER fh
 DIM AS STRING tempfile
 DIM AS STRING s
-tempfile = tmpdir$ & "find_helper_app.txt"
+tempfile = tmpdir$ & "find_helper_app." & INT(RND * 10000) & ".tmp"
 'Use the standard util "which" to search the path
 SHELL "which " & appname & " > " & tempfile
+IF NOT isfile(tempfile) THEN debug "find_helper_app(" & appname & ") failed" : RETURN ""
 fh = FREEFILE
 OPEN tempfile FOR INPUT AS #fh
 LINE INPUT #fh, s

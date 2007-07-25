@@ -12,6 +12,7 @@
 DECLARE SUB draw_browse_meter(br AS BrowseMenuState)
 DECLARE SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
 DECLARE FUNCTION validmusicfile (file$, as integer = FORMAT_BAM AND FORMAT_MIDI)
+DECLARE FUNCTION show_mp3_info() AS STRING
 
 FUNCTION browse$ (special, default$, fmask$, tmp$, needf)
 STATIC remember$
@@ -224,31 +225,27 @@ SELECT CASE br.special
   END IF
  CASE 5
   pausesong
-  IF tree(treeptr).kind = 3 OR tree(treeptr).kind = 6 THEN
+  alert$ = tree(treeptr).about
+  IF tree(treeptr).kind = 3 THEN
    IF validmusicfile(br.nowdir + tree(treeptr).filename, PREVIEWABLE_MUSIC_FORMAT) THEN
     loadsong br.nowdir + tree(treeptr).filename
    ELSEIF getmusictype(br.nowdir + tree(treeptr).filename) = FORMAT_MP3 THEN
-    IF can_convert_mp3() THEN
-     alert$ = "Cannot preview MP3, try importing"
-    ELSE
-     alert$ = "madplay & oggenc required. See README"
-    END IF
-   ELSE
-    alert$ = tree(treeptr).filename + " is not a valid music file"
+    alert$ = show_mp3_info()
    END IF
   END IF
  CASE 6
+  alert$ = tree(treeptr).about
   IF f > -1 THEN
-    sound_stop(f,-1)
-    UnloadSound(f)
-    f = -1
+   sound_stop(f,-1)
+   UnloadSound(f)
+   f = -1
   END IF
-  IF tree(treeptr).kind = 3 OR tree(treeptr).kind = 6 THEN
-   IF validmusicfile(br.nowdir + tree(treeptr).filename, VALID_FX_FORMAT) THEN
+  IF tree(treeptr).kind = 3 THEN
+   IF validmusicfile(br.nowdir + tree(treeptr).filename, PREVIEWABLE_FX_FORMAT) THEN
     f = LoadSound(br.nowdir + tree(treeptr).filename)
     sound_play(f, 0, -1)
-   ELSE
-    alert$ = left(tree(treeptr).filename, 20) + " is not a valid sound effect"
+   ELSEIF getmusictype(br.nowdir + tree(treeptr).filename) = FORMAT_MP3 THEN
+    alert$ = show_mp3_info()
    END IF
   END IF
  CASE 7
@@ -440,6 +437,7 @@ END FUNCTION
 
 SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
 DIM bmpd(4) AS INTEGER
+DIM f AS STRING
 mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
 
@@ -453,20 +451,23 @@ DO UNTIL EOF(fh) OR br.treesize >= br.limit
  br.treesize = br.treesize + 1
  tree(br.treesize).kind = 3
  LINE INPUT #fh, tree(br.treesize).filename
+ f = br.nowdir & tree(br.treesize).filename
  '---music files
  IF br.special = 1 OR br.special = 5 THEN
-  IF validmusicfile(br.nowdir + tree(br.treesize).filename, VALID_MUSIC_FORMAT) = 0 THEN
+  IF validmusicfile(f, VALID_MUSIC_FORMAT) = 0 THEN
    tree(br.treesize).kind = 6
+   tree(br.treesize).about = "Not a valid music file"
   END IF
  END IF
  IF br.special = 6 THEN
-  IF validmusicfile(br.nowdir + tree(br.treesize).filename, VALID_FX_FORMAT) = 0 THEN
+  IF validmusicfile(f, VALID_FX_FORMAT) = 0 THEN
    tree(br.treesize).kind = 6
+   tree(br.treesize).about = "Not a valid sound effect file"
   END IF
  END IF
  '---4-bit BMP browsing
  IF br.special = 2 THEN
-  IF bmpinfo(br.nowdir + tree(br.treesize).filename, bmpd()) THEN
+  IF bmpinfo(f, bmpd()) THEN
    IF bmpd(0) <> 4 OR bmpd(1) > 320 OR bmpd(2) > 200 THEN
     tree(br.treesize).kind = 6
    END IF
@@ -476,7 +477,7 @@ DO UNTIL EOF(fh) OR br.treesize >= br.limit
  END IF
  '---320x200x24/8bit BMP files
  IF br.special = 3 THEN
-  IF bmpinfo(br.nowdir + tree(br.treesize).filename, bmpd()) THEN
+  IF bmpinfo(f, bmpd()) THEN
    IF (bmpd(0) <> 24 AND bmpd(0) <> 8) OR bmpd(1) <> 320 OR bmpd(2) <> 200 THEN
     tree(br.treesize).kind = 6
    END IF
@@ -488,7 +489,7 @@ DO UNTIL EOF(fh) OR br.treesize >= br.limit
  IF br.special = 4 THEN
   IF LCASE$(justextension$(tree(br.treesize).filename)) = "mas" THEN
    masfh = FREEFILE
-   OPEN br.nowdir + tree(br.treesize).filename FOR BINARY AS #masfh
+   OPEN f FOR BINARY AS #masfh
    a$ = "       "
    GET #masfh, 1, a$
    CLOSE #masfh
@@ -496,7 +497,7 @@ DO UNTIL EOF(fh) OR br.treesize >= br.limit
     tree(br.treesize).kind = 6
    END IF
   ELSE
-   IF bmpinfo(br.nowdir + tree(br.treesize).filename, bmpd()) THEN
+   IF bmpinfo(f, bmpd()) THEN
     IF bmpd(0) = 4 THEN tree(br.treesize).kind = 6
     IF bmpd(0) = 24 AND (bmpd(1) <> 16 OR bmpd(2) <> 16) THEN tree(br.treesize).kind = 6
    ELSE
@@ -506,12 +507,12 @@ DO UNTIL EOF(fh) OR br.treesize >= br.limit
  END IF
  '--RPG files
  IF br.special = 7 THEN
-  IF isdir(br.nowdir + tree(br.treesize).filename) THEN
+  IF isdir(f) THEN
    'unlumped RPGDIR folders
-   copyfile br.nowdir + tree(br.treesize).filename + SLASH + "browse.txt", br.tmp + "browse.txt", buffer()
+   copyfile f + SLASH + "browse.txt", br.tmp + "browse.txt", buffer()
   ELSE
    'lumped RPG files
-   unlumpfile br.nowdir + tree(br.treesize).filename, "browse.txt", br.tmp
+   unlumpfile f, "browse.txt", br.tmp
   END IF
   IF isfile(br.tmp + "browse.txt") THEN
    setpicstuf buffer(), 40, -1
@@ -528,7 +529,6 @@ DO UNTIL EOF(fh) OR br.treesize >= br.limit
    tree(br.treesize).caption = tree(br.treesize).filename
   END IF
  END IF
-
  draw_browse_meter br
 LOOP
 CLOSE #fh
@@ -580,4 +580,12 @@ FUNCTION validmusicfile (file$, types = FORMAT_BAM AND FORMAT_MIDI)
 	end if
 
 	return 1
+END FUNCTION
+
+FUNCTION show_mp3_info() AS STRING
+ IF can_convert_mp3() THEN
+  RETURN "Cannot preview MP3, try importing"
+ ELSE
+  RETURN "madplay & oggenc required. See README"
+ END IF
 END FUNCTION

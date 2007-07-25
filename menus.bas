@@ -54,6 +54,7 @@ DECLARE SUB masterpalettemenu ()
 DECLARE FUNCTION importmasterpal (f$, palnum%)
 DECLARE SUB titlescreenbrowse ()
 DECLARE SUB generate_gen_menu(m$(), longname$, aboutline$, stat$())
+DECLARE SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -757,7 +758,6 @@ END SUB
 SUB importsong ()
 STATIC default$
 DIM oggtemp AS STRING
-DIM ogg_quality AS INTEGER
 setupmusic
 setfmvol getfmvol
 clearpage 0
@@ -933,15 +933,7 @@ sname$ = a$
 
 'Convert MP3
 IF getmusictype(sourcesong$) = FORMAT_MP3 THEN
- oggtemp = tmpdir$ & "temp." & INT(RND * 100000) & ".ogg"
- ogg_quality = pick_ogg_quality()
- clearpage vpage
- centerbox 160, 100, 300, 20, 4, vpage
- edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
- setvispage vpage
- mp3_to_ogg(sourcesong$, oggtemp, ogg_quality)
- IF NOT isfile(oggtemp) THEN debug "Conversion failed." : RETRACE
- sourcesong$ = oggtemp
+ import_convert_mp3 sourcesong$, oggtemp
 ELSE
  oggtemp = ""
 END IF
@@ -989,6 +981,8 @@ END SUB
 
 SUB importsfx ()
 STATIC default$
+DIM oggtemp AS STRING
+
 setupsound
 clearpage 0
 clearpage 1
@@ -1097,23 +1091,7 @@ ELSEIF isfile(temp$ + ".ogg") THEN
 ELSEIF isfile(temp$ + ".mp3") THEN
  ext$ = ".mp3"
  sfxfile$ = temp$ + ext$
- sfxtype$ = "MPEG Layer III (MP3)"
-ELSEIF isfile(temp$ + ".s3m") THEN 'N/A for sound effects
- ext$ = ".s3m"
- sfxfile$ = temp$ + ext$
- sfxtype$ = "Screamtracker (S3M)"
-ELSEIF isfile(temp$ + ".it") THEN
- ext$ = ".it"
- sfxfile$ = temp$ + ext$
- sfxtype$ = "Impulse Tracker (IT)"
-ELSEIF isfile(temp$ + ".xm") THEN
- ext$ = ".xm"
- sfxfile$ = temp$ + ext$
- sfxtype$ = "Extended Module (XM)"
-ELSEIF isfile(temp$ + ".mod") THEN
- ext$ = ".mod"
- sfxfile$ = temp$ + ext$
- sfxtype$ = "Module (MOD)"
+ sfxtype$ = "MPEG Layer III (MP3) OBSOLETE"
 END IF
 
 '--add more formats here
@@ -1145,14 +1123,28 @@ END IF
 
 safekill sfxfile$
 
-IF sourcesfx$ <> "" THEN
- sfxfile$ = workingdir$ + SLASH + "sfx" + STR$(snum) + "." + justextension$(sourcesfx$)
- copyfile sourcesfx$, sfxfile$, buffer()
- a$ = trimextension$(trimpath$(sourcesfx$))
- sname$ = a$
- GOSUB ssfxdata
- freesfx snum
+'-- get name
+a$ = trimextension$(trimpath$(sourcesfx$))
+sname$ = a$
+
+'Convert MP3
+IF getmusictype(sourcesfx$) = FORMAT_MP3 THEN
+ import_convert_mp3 sourcesfx$, oggtemp
+ELSE
+ oggtemp = ""
 END IF
+
+'-- calculate lump name
+sfxfile$ = workingdir$ + SLASH + "sfx" + STR$(snum) + "." + justextension$(sourcesfx$)
+
+'--copy in the new lump
+copyfile sourcesfx$, sfxfile$, buffer()
+
+IF oggtemp <> "" THEN KILL oggtemp
+
+'--save and update
+GOSUB ssfxdata
+freesfx snum
 GOSUB getsfxinfo
 RETRACE
 
@@ -1532,4 +1524,17 @@ FOR i = 0 to 11
  m$(20 + i) = stat$(i) + " Cap: "
  IF gen(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + "None" ELSE m$(20 + i) = m$(20 + i) & gen(genStatCap + i)
 NEXT
+END SUB
+
+SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
+ DIM ogg_quality AS INTEGER
+ oggtemp = tmpdir$ & "temp." & INT(RND * 100000) & ".ogg"
+ ogg_quality = pick_ogg_quality()
+ clearpage vpage
+ centerbox 160, 100, 300, 20, 4, vpage
+ edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
+ setvispage vpage
+ mp3_to_ogg(mp3, oggtemp, ogg_quality)
+ IF NOT isfile(oggtemp) THEN debug "Conversion failed." : EXIT SUB
+ mp3 = oggtemp
 END SUB
