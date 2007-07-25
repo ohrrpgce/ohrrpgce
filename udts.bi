@@ -206,6 +206,13 @@ Type HeroDef
 	hand_b_y as integer
 End Type
 
+Type BrowseMenuEntry
+	filename as string
+	caption as string
+	about as string
+	kind as integer
+End type
+
 'Documentation of veh() in game, which is different from the VEH lump
 '0 is true (-1) if in/mounting/dismounting a vehicle
 '1-4 unused
