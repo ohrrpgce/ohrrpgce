@@ -19,12 +19,17 @@
 #include "loading.bi
 
 'Subs and functions only used locally
-DECLARE SUB draw_browse_meter(meter AS INTEGER, ranalready AS INTEGER, viewsize AS INTEGER)
-DECLARE SUB browse_add_files(wildcard$, attrib AS INTEGER, nowdir$, tmp$, treesize AS INTEGER, limit AS INTEGER, tree() AS BrowseMenuEntry, special AS INTEGER, meter AS INTEGER, ranalready AS INTEGER, viewsize AS INTEGER)
+DECLARE SUB draw_browse_meter(br AS BrowseMenuState)
+DECLARE SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
 
 FUNCTION browse$ (special, default$, fmask$, tmp$, needf)
 STATIC remember$
 browse$ = ""
+
+DIM br AS BrowseMenuState
+br.limit = 255
+br.tmp = tmp$
+br.special = special
 
 'special=0   no preview
 'special=1   just BAM
@@ -37,8 +42,7 @@ browse$ = ""
 mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
 
-limit = 255
-DIM tree(limit) AS BrowseMenuEntry
+DIM tree(br.limit) AS BrowseMenuEntry
 DIM drive$(26), catfg(6), catbg(6), bmpd(4), f = -1
 
 'tree().kind contains the type of each object in the menu
@@ -74,18 +78,18 @@ drivetotal = drivelist(drive$())
 
 IF remember$ = "" THEN remember$ = curdir$ + SLASH
 IF default$ = "" THEN
- nowdir$ = remember$
+ br.nowdir = remember$
 ELSE
- nowdir$ = default$
+ br.nowdir = default$
 END IF
 
-If special = 7 THEN viewsize = 16 ELSE viewsize = 17
+If br.special = 7 THEN br.viewsize = 16 ELSE br.viewsize = 17
 
 treeptr = 0
 treetop = 0
-treesize = 0
+br.treesize = 0
 
-ranalready = 0
+br.ranalready = 0
 GOSUB context
 
 changed = 1
@@ -96,7 +100,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- IF usemenu(treeptr, treetop, 0, treesize, viewsize) OR changed THEN
+ IF usemenu(treeptr, treetop, 0, br.treesize, br.viewsize) OR changed THEN
   alert$ = ""
   changed = 0
   GOSUB hover
@@ -104,31 +108,31 @@ DO
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   alert$ = ""
   changed = 1
-  IF special = 1 OR special = 5 THEN pausesong
+  IF br.special = 1 OR br.special = 5 THEN pausesong
   SELECT CASE tree(treeptr).kind
    CASE 0
     'this could take a while...
-    rectangle 5, 32 + viewsize * 9, 310, 12, 1, vpage
-    edgeprint "Reading...", 8, 34 + viewsize * 9, uilook(uiText), vpage
+    rectangle 5, 32 + br.viewsize * 9, 310, 12, 1, vpage
+    edgeprint "Reading...", 8, 34 + br.viewsize * 9, uilook(uiText), vpage
     setvispage vpage
     IF hasmedia(tree(treeptr).filename) THEN
-     nowdir$ = tree(treeptr).filename
+     br.nowdir = tree(treeptr).filename
      GOSUB context
     ELSE
      alert$ = "No media"
      changed = 0
     END IF
    CASE 1, 4
-    nowdir$ = ""
+    br.nowdir = ""
     FOR i = drivetotal TO treeptr
-     nowdir$ = nowdir$ + tree(i).filename
+     br.nowdir = br.nowdir + tree(i).filename
     NEXT i
     GOSUB context
    CASE 2
-    nowdir$ = nowdir$ + tree(treeptr).filename + SLASH
+    br.nowdir = br.nowdir + tree(treeptr).filename + SLASH
     GOSUB context
    CASE 3
-    browse$ = nowdir$ + tree(treeptr).filename
+    browse$ = br.nowdir + tree(treeptr).filename
     EXIT DO
   END SELECT
  END IF
@@ -142,8 +146,8 @@ DO
   'find by letter
   FOR i = 2 TO 53
    IF keyval(i) > 1 AND keyv(i, 0) > 0 THEN
-    FOR j = 1 TO treesize
-     mappedj = (j + treeptr) MOD (treesize + 1)
+    FOR j = 1 TO br.treesize
+     mappedj = (j + treeptr) MOD (br.treesize + 1)
      tempstr$ = LCASE$(tree(mappedj).caption)
      IF (tree(mappedj).kind = 1 OR tree(mappedj).kind = 2 OR tree(mappedj).kind = 3) AND tempstr$[0] = keyv(i, 0) THEN treeptr = mappedj: EXIT FOR
     NEXT
@@ -153,18 +157,18 @@ DO
  END IF
  rectangle 5, 4, 310, 12, 1, dpage
  drawbox 4, 3, 312, 14, 9, dpage
- edgeprint nowdir$, 8, 6, uilook(uiText), dpage
- rectangle 5, 32 + viewsize * 9, 310, 12, 1, dpage
- drawbox 4, 31 + viewsize * 9, 312, 14, 9, dpage
- edgeprint alert$, 8, 34 + viewsize * 9, uilook(uiText), dpage
- IF special = 7 THEN
+ edgeprint br.nowdir, 8, 6, uilook(uiText), dpage
+ rectangle 5, 32 + br.viewsize * 9, 310, 12, 1, dpage
+ drawbox 4, 31 + br.viewsize * 9, 312, 14, 9, dpage
+ edgeprint alert$, 8, 34 + br.viewsize * 9, uilook(uiText), dpage
+ IF br.special = 7 THEN
   rectangle 0, 190, 320, 10, 8, dpage
   edgeprint version$, 8, 190, uilook(uiMenuItem), dpage
   textcolor uilook(uiText), 0
  END IF
  textcolor uilook(uiText), 0
  printstr ">", 0, 20 + (treeptr - treetop) * 9, dpage
- FOR i = treetop TO small(treetop + viewsize, treesize)
+ FOR i = treetop TO small(treetop + br.viewsize, br.treesize)
   textcolor catfg(tree(i).kind), catbg(tree(i).kind)
   a$ = tree(i).caption
   IF LEN(a$) < 38 AND catbg(tree(i).kind) > 0 THEN a$ = a$ + STRING$(38 - LEN(a$), " ")
@@ -178,32 +182,32 @@ DO
  dowait
 LOOP
 IF default$ = "" THEN
- remember$ = nowdir$
+ remember$ = br.nowdir
 ELSE
- default$ = nowdir$
+ default$ = br.nowdir
 END IF
 pausesong:if f >= 0 then sound_stop(f, -1): UnloadSound(f)
 EXIT FUNCTION
 
 hover:
-SELECT CASE special
+SELECT CASE br.special
  CASE 1
   pausesong
   IF tree(treeptr).kind = 3 OR tree(treeptr).kind = 6 THEN
-   IF validmusicfile(nowdir$ + tree(treeptr).filename, FORMAT_BAM) THEN
-    loadsong nowdir$ + tree(treeptr).filename
+   IF validmusicfile(br.nowdir + tree(treeptr).filename, FORMAT_BAM) THEN
+    loadsong br.nowdir + tree(treeptr).filename
    ELSE
     alert$ = tree(treeptr).filename + " is not a valid BAM file"
    END IF
   END IF
  CASE 2, 3
-  IF bmpinfo(nowdir$ + tree(treeptr).filename, bmpd()) THEN
+  IF bmpinfo(br.nowdir + tree(treeptr).filename, bmpd()) THEN
    alert$ = bmpd(1) & "*" & bmpd(2) & " pixels, " & bmpd(0) & "-bit color"
   END IF
  CASE 4
   IF tree(treeptr).kind = 3 OR tree(treeptr).kind = 6 THEN
    masfh = FREEFILE
-   OPEN nowdir$ + tree(treeptr).filename FOR BINARY AS #masfh
+   OPEN br.nowdir + tree(treeptr).filename FOR BINARY AS #masfh
    IF LCASE$(justextension$(tree(treeptr).filename)) = "mas" THEN
     a$ = "       "
     GET #masfh, 1, a$
@@ -218,7 +222,7 @@ SELECT CASE special
     END SELECT
    ELSE
     '.bmp file
-    IF bmpinfo(nowdir$ + tree(treeptr).filename, bmpd()) THEN
+    IF bmpinfo(br.nowdir + tree(treeptr).filename, bmpd()) THEN
      IF bmpd(0) = 24 THEN
       alert$ = bmpd(1) & "*" & bmpd(2) & " pixels, " & bmpd(0) & "-bit color"
      ELSE
@@ -230,9 +234,9 @@ SELECT CASE special
  CASE 5
   pausesong
   IF tree(treeptr).kind = 3 OR tree(treeptr).kind = 6 THEN
-   IF validmusicfile(nowdir$ + tree(treeptr).filename, PREVIEWABLE_MUSIC_FORMAT) THEN
-    loadsong nowdir$ + tree(treeptr).filename
-   ELSEIF getmusictype(nowdir$ + tree(treeptr).filename) = FORMAT_MP3 THEN
+   IF validmusicfile(br.nowdir + tree(treeptr).filename, PREVIEWABLE_MUSIC_FORMAT) THEN
+    loadsong br.nowdir + tree(treeptr).filename
+   ELSEIF getmusictype(br.nowdir + tree(treeptr).filename) = FORMAT_MP3 THEN
     IF can_convert_mp3() THEN
      alert$ = "Cannot preview MP3, try importing"
     ELSE
@@ -249,8 +253,8 @@ SELECT CASE special
     f = -1
   END IF
   IF tree(treeptr).kind = 3 OR tree(treeptr).kind = 6 THEN
-   IF validmusicfile(nowdir$ + tree(treeptr).filename, VALID_FX_FORMAT) THEN
-    f = LoadSound(nowdir$ + tree(treeptr).filename)
+   IF validmusicfile(br.nowdir + tree(treeptr).filename, VALID_FX_FORMAT) THEN
+    f = LoadSound(br.nowdir + tree(treeptr).filename)
     sound_play(f, 0, -1)
    ELSE
     alert$ = left(tree(treeptr).filename, 20) + " is not a valid sound effect"
@@ -267,142 +271,142 @@ RETRACE
 
 context:
 'erase old list
-FOR i = 0 TO limit
+FOR i = 0 TO br.limit
  tree(i).filename = ""
  tree(i).caption = ""
  tree(i).about = ""
  tree(i).kind = 0
 NEXT i
 'for progress meter
-IF ranalready THEN rectangle 5, 32 + viewsize * 9, 310, 12, 1, vpage
-meter = 0
-treesize = 0
-IF nowdir$ = "" THEN
+IF br.ranalready THEN rectangle 5, 32 + br.viewsize * 9, 310, 12, 1, vpage
+br.meter = 0
+br.treesize = 0
+IF br.nowdir = "" THEN
 ELSE
- draw_browse_meter meter, ranalready, viewsize
- a$ = nowdir$
+ draw_browse_meter br
+ a$ = br.nowdir
  '--Drive list
 #IFNDEF __FB_LINUX__
   FOR i = 0 TO drivetotal - 1
-   tree(treesize).filename = drive$(i)
-   tree(treesize).kind = 0
+   tree(br.treesize).filename = drive$(i)
+   tree(br.treesize).kind = 0
    IF isremovable(drive$(i)) THEN
-    tree(treesize).caption = drive$(i) + " (removable)"
+    tree(br.treesize).caption = drive$(i) + " (removable)"
    ELSE
     IF hasmedia(drive$(i)) THEN
-     tree(treesize).caption = drive$(i) + " <" + drivelabel$(drive$(i)) + ">"
+     tree(br.treesize).caption = drive$(i) + " <" + drivelabel$(drive$(i)) + ">"
     ELSE
-     tree(treesize).caption = drive$(i) + " (not ready)"
+     tree(br.treesize).caption = drive$(i) + " (not ready)"
     END IF
-    draw_browse_meter meter, ranalready, viewsize
+    draw_browse_meter br
    END IF
-   treesize += 1
+   br.treesize += 1
   NEXT i
   'could add My Documents to drives list here
 #ENDIF
  '--Current drive
- tree(treesize).filename = MID$(a$, 1, INSTR(a$, SLASH))
+ tree(br.treesize).filename = MID$(a$, 1, INSTR(a$, SLASH))
 #IFNDEF __FB_LINUX__
- IF hasmedia(tree(treesize).filename) = 0 THEN
+ IF hasmedia(tree(br.treesize).filename) = 0 THEN
   'Somebody pulled out the disk
   changed = 0
   alert$ = "Disk not readable"
-  treesize -= 1
+  br.treesize -= 1
   treeptr = 0
   treetop = 0
-  nowdir$ = ""
+  br.nowdir = ""
   RETRACE
  END IF
 #ENDIF
  a$ = MID$(a$, INSTR$(a$, SLASH) + 1)
- tree(treesize).kind = 4
- tmpname$ = drivelabel$(tree(treesize).filename)
- IF LEN(tmpname$) THEN tree(treesize).caption = tree(treesize).filename + " <" + tmpname$ + ">"
+ tree(br.treesize).kind = 4
+ tmpname$ = drivelabel$(tree(br.treesize).filename)
+ IF LEN(tmpname$) THEN tree(br.treesize).caption = tree(br.treesize).filename + " <" + tmpname$ + ">"
  '--Directories
  b$ = ""
- DO UNTIL a$ = "" OR treesize >= limit
+ DO UNTIL a$ = "" OR br.treesize >= br.limit
   b$ = b$ + LEFT$(a$, 1)
   a$ = RIGHT$(a$, LEN(a$) - 1)
   IF RIGHT$(b$, 1) = SLASH THEN
 #IFNDEF __FB_LINUX__
    'Special handling of My Documents in Windows
    IF b$ = "My Documents\" OR b$ = "MYDOCU~1\" THEN
-    FOR i = treesize to drivetotal STEP -1
+    FOR i = br.treesize to drivetotal STEP -1
      b$ = tree(i).filename + b$
     NEXT i
-    treesize = drivetotal - 1
-    tree(treesize + 1).caption = "My Documents\"
+    br.treesize = drivetotal - 1
+    tree(br.treesize + 1).caption = "My Documents\"
    END IF
 #ENDIF
-   treesize = treesize + 1
-   tree(treesize).filename = b$
-   tree(treesize).kind = 1
+   br.treesize = br.treesize + 1
+   tree(br.treesize).filename = b$
+   tree(br.treesize).kind = 1
    b$ = ""
-   draw_browse_meter meter, ranalready, viewsize
+   draw_browse_meter br
   END IF
  LOOP
  '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
- findfiles nowdir$ + ALLFILES, 16, tmp$ + "hrbrowse.tmp"
+ findfiles br.nowdir + ALLFILES, 16, br.tmp + "hrbrowse.tmp"
  fh = FREEFILE
- OPEN tmp$ + "hrbrowse.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh) OR treesize >= limit
-  treesize = treesize + 1
-  tree(treesize).kind = 2
-  LINE INPUT #fh, tree(treesize).filename
-  IF tree(treesize).filename = "." OR tree(treesize).filename = ".." OR RIGHT$(tree(treesize).filename, 4) = ".tmp" THEN treesize = treesize - 1
-  IF special = 7 THEN ' Special handling in RPG mode
-   IF justextension$(tree(treesize).filename) = "rpgdir" THEN treesize = treesize - 1
+ OPEN br.tmp + "hrbrowse.tmp" FOR INPUT AS #fh
+ DO UNTIL EOF(fh) OR br.treesize >= br.limit
+  br.treesize = br.treesize + 1
+  tree(br.treesize).kind = 2
+  LINE INPUT #fh, tree(br.treesize).filename
+  IF tree(br.treesize).filename = "." OR tree(br.treesize).filename = ".." OR RIGHT$(tree(br.treesize).filename, 4) = ".tmp" THEN br.treesize = br.treesize - 1
+  IF br.special = 7 THEN ' Special handling in RPG mode
+   IF justextension$(tree(br.treesize).filename) = "rpgdir" THEN br.treesize = br.treesize - 1
   END IF
-  draw_browse_meter meter, ranalready, viewsize
+  draw_browse_meter br
  LOOP
  CLOSE #fh
- safekill tmp$ + "hrbrowse.tmp"
+ safekill br.tmp + "hrbrowse.tmp"
  '---FIND ALL FILES IN FILEMASK---
  attrib = attribAlmostAll OR showHidden
- IF special = 4 THEN
-  browse_add_files "*.mas", attrib, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
-  browse_add_files "*.bmp", attrib, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
- ELSEIF special = 5 THEN' background music
+ IF br.special = 4 THEN
+  browse_add_files "*.mas", attrib, br, tree()
+  browse_add_files "*.bmp", attrib, br, tree()
+ ELSEIF br.special = 5 THEN' background music
   '--disregard fmask$. one call per extension
-  browse_add_files "*.bam", attrib, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
-  browse_add_files "*.mid", attrib, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
-  browse_add_files "*.xm", attrib, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
-  browse_add_files "*.it", attrib, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
-  browse_add_files "*.mod", attrib, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
-  browse_add_files "*.s3m", attrib, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
-  browse_add_files "*.ogg", attrib, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
-  browse_add_files "*.mp3", attrib, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
- ELSEIF special = 6 THEN ' sound effects
+  browse_add_files "*.bam", attrib, br, tree()
+  browse_add_files "*.mid", attrib, br, tree()
+  browse_add_files "*.xm", attrib, br, tree()
+  browse_add_files "*.it", attrib, br, tree()
+  browse_add_files "*.mod", attrib, br, tree()
+  browse_add_files "*.s3m", attrib, br, tree()
+  browse_add_files "*.ogg", attrib, br, tree()
+  browse_add_files "*.mp3", attrib, br, tree()
+ ELSEIF br.special = 6 THEN ' sound effects
   '--disregard fmask$. one call per extension
-  browse_add_files "*.wav", attrib, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
-  browse_add_files "*.ogg", attrib, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
-  browse_add_files "*.mp3", attrib, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
- ELSEIF special = 7 THEN
+  browse_add_files "*.wav", attrib, br, tree()
+  browse_add_files "*.ogg", attrib, br, tree()
+  browse_add_files "*.mp3", attrib, br, tree()
+ ELSEIF br.special = 7 THEN
   'Call once for RPG files once for rpgdirs
-  browse_add_files fmask$, attrib, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
-  browse_add_files "*.rpgdir", 16, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
+  browse_add_files fmask$, attrib, br, tree()
+  browse_add_files "*.rpgdir", 16, br, tree()
  ELSE
-  browse_add_files fmask$, attrib, nowdir$, tmp$, treesize, limit, tree(), special, meter, ranalready, viewsize
+  browse_add_files fmask$, attrib, br, tree()
  END IF
 END IF
 
 '--set display
-FOR i = 0 TO treesize
+FOR i = 0 TO br.treesize
  IF LEN(tree(i).caption) = 0 THEN
   tree(i).caption = tree(i).filename
  END IF
 NEXT
 
-sortstart = treesize
-FOR k = 0 TO treesize
+sortstart = br.treesize
+FOR k = 0 TO br.treesize
  WITH tree(k)
   IF .kind = 2 OR .kind = 3 OR .kind = 6 THEN sortstart = k: EXIT FOR
  END WITH
 NEXT
 
 '--alphabetize
-FOR i = sortstart TO treesize - 1
- FOR j = treesize TO i + 1 STEP -1
+FOR i = sortstart TO br.treesize - 1
+ FOR j = br.treesize TO i + 1 STEP -1
   FOR k = 0 TO small(LEN(tree(i).caption), LEN(tree(j).caption))
    chara = ASC(LCASE$(CHR$(tree(i).caption[k])))
    charb = ASC(LCASE$(CHR$(tree(j).caption[k])))
@@ -417,7 +421,7 @@ FOR i = sortstart TO treesize - 1
 NEXT o
 
 '--sort by type
-FOR o = treesize TO sortstart + 1 STEP -1
+FOR o = br.treesize TO sortstart + 1 STEP -1
  FOR i = sortstart + 1 TO o
   IF tree(i).kind < tree(i - 1).kind THEN
    SWAP tree(i), tree(i - 1)
@@ -428,16 +432,16 @@ NEXT o
 '--set cursor
 treeptr = 0
 treetop = 0
-FOR i = drivetotal TO treesize
+FOR i = drivetotal TO br.treesize
  IF tree(i).kind = 1 OR tree(i).kind = 4 THEN treeptr = i
 NEXT i
-FOR i = treesize TO 1 STEP -1
+FOR i = br.treesize TO 1 STEP -1
  IF tree(i).kind = 3 THEN treeptr = i
 NEXT i
-treetop = bound(treetop, treeptr - (viewsize + 2), treeptr)
+treetop = bound(treetop, treeptr - (br.viewsize + 2), treeptr)
 
 '--don't display progress bar overtop of previous menu
-ranalready = 1
+br.ranalready = 1
 
 RETRACE
 
@@ -1325,110 +1329,112 @@ array2str nameread(), 1, a$
 RETURN a$
 END FUNCTION
 
-SUB browse_add_files(wildcard$, attrib AS INTEGER, nowdir$, tmp$, treesize AS INTEGER, limit AS INTEGER, tree() AS BrowseMenuEntry, special AS INTEGER, meter AS INTEGER, ranalready AS INTEGER, viewsize AS INTEGER)
+SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
 DIM bmpd(4) AS INTEGER
 mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
 
 DIM filelist$
-filelist$ = tmp$ + "hrbrowse.tmp"
-findfiles nowdir$ + anycase$(wildcard$), attrib, filelist$
+filelist$ = br.tmp + "hrbrowse.tmp"
+findfiles br.nowdir + anycase$(wildcard$), attrib, filelist$
 
 fh = FREEFILE
 OPEN filelist$ FOR INPUT AS #fh
-DO UNTIL EOF(fh) OR treesize >= limit
- treesize = treesize + 1
- tree(treesize).kind = 3
- LINE INPUT #fh, tree(treesize).filename
+DO UNTIL EOF(fh) OR br.treesize >= br.limit
+ br.treesize = br.treesize + 1
+ tree(br.treesize).kind = 3
+ LINE INPUT #fh, tree(br.treesize).filename
  '---music files
- IF special = 1 OR special = 5 THEN
-  IF validmusicfile(nowdir$ + tree(treesize).filename, VALID_MUSIC_FORMAT) = 0 THEN
-   tree(treesize).kind = 6
+ IF br.special = 1 OR br.special = 5 THEN
+  IF validmusicfile(br.nowdir + tree(br.treesize).filename, VALID_MUSIC_FORMAT) = 0 THEN
+   tree(br.treesize).kind = 6
   END IF
  END IF
- IF special = 6 THEN
-  IF validmusicfile(nowdir$ + tree(treesize).filename, VALID_FX_FORMAT) = 0 THEN
-   tree(treesize).kind = 6
+ IF br.special = 6 THEN
+  IF validmusicfile(br.nowdir + tree(br.treesize).filename, VALID_FX_FORMAT) = 0 THEN
+   tree(br.treesize).kind = 6
   END IF
  END IF
  '---4-bit BMP browsing
- IF special = 2 THEN
-  IF bmpinfo(nowdir$ + tree(treesize).filename, bmpd()) THEN
+ IF br.special = 2 THEN
+  IF bmpinfo(br.nowdir + tree(br.treesize).filename, bmpd()) THEN
    IF bmpd(0) <> 4 OR bmpd(1) > 320 OR bmpd(2) > 200 THEN
-    tree(treesize).kind = 6
+    tree(br.treesize).kind = 6
    END IF
   ELSE
-   treesize = treesize - 1
+   br.treesize = br.treesize - 1
   END IF
  END IF
  '---320x200x24/8bit BMP files
- IF special = 3 THEN
-  IF bmpinfo(nowdir$ + tree(treesize).filename, bmpd()) THEN
+ IF br.special = 3 THEN
+  IF bmpinfo(br.nowdir + tree(br.treesize).filename, bmpd()) THEN
    IF (bmpd(0) <> 24 AND bmpd(0) <> 8) OR bmpd(1) <> 320 OR bmpd(2) <> 200 THEN
-    tree(treesize).kind = 6
+    tree(br.treesize).kind = 6
    END IF
   ELSE
-   treesize = treesize - 1
+   br.treesize = br.treesize - 1
   END IF
  END IF
  '--master palettes  (why isn't this up there?)
- IF special = 4 THEN
-  IF LCASE$(justextension$(tree(treesize).filename)) = "mas" THEN
+ IF br.special = 4 THEN
+  IF LCASE$(justextension$(tree(br.treesize).filename)) = "mas" THEN
    masfh = FREEFILE
-   OPEN nowdir$ + tree(treesize).filename FOR BINARY AS #masfh
+   OPEN br.nowdir + tree(br.treesize).filename FOR BINARY AS #masfh
    a$ = "       "
    GET #masfh, 1, a$
    CLOSE #masfh
    IF a$ <> mashead$ AND a$ <> paledithead$ THEN
-    tree(treesize).kind = 6
+    tree(br.treesize).kind = 6
    END IF
   ELSE
-   IF bmpinfo(nowdir$ + tree(treesize).filename, bmpd()) THEN
-    IF bmpd(0) = 4 THEN tree(treesize).kind = 6
-    IF bmpd(0) = 24 AND (bmpd(1) <> 16 OR bmpd(2) <> 16) THEN tree(treesize).kind = 6
+   IF bmpinfo(br.nowdir + tree(br.treesize).filename, bmpd()) THEN
+    IF bmpd(0) = 4 THEN tree(br.treesize).kind = 6
+    IF bmpd(0) = 24 AND (bmpd(1) <> 16 OR bmpd(2) <> 16) THEN tree(br.treesize).kind = 6
    ELSE
-    treesize = treesize - 1
+    br.treesize = br.treesize - 1
    END IF
   END IF
  END IF
  '--RPG files
- IF special = 7 THEN
-  IF isdir(nowdir$ + tree(treesize).filename) THEN
+ IF br.special = 7 THEN
+  IF isdir(br.nowdir + tree(br.treesize).filename) THEN
    'unlumped RPGDIR folders
-   copyfile nowdir$ + tree(treesize).filename + SLASH + "browse.txt", tmp$ + "browse.txt", buffer()
+   copyfile br.nowdir + tree(br.treesize).filename + SLASH + "browse.txt", br.tmp + "browse.txt", buffer()
   ELSE
    'lumped RPG files
-   unlumpfile nowdir$ + tree(treesize).filename, "browse.txt", tmp$
+   unlumpfile br.nowdir + tree(br.treesize).filename, "browse.txt", br.tmp
   END IF
-  IF isfile(tmp$ + "browse.txt") THEN
+  IF isfile(br.tmp + "browse.txt") THEN
    setpicstuf buffer(), 40, -1
-   loadset tmp$ + "browse.txt", 0, 0
-   tree(treesize).caption = STRING$(bound(buffer(0), 0, 38), " ")
-   array2str buffer(), 2, tree(treesize).caption
-   loadset tmp$ + "browse.txt", 1, 0
-   tree(treesize).about = STRING$(bound(buffer(0), 0, 38), " ")
-   array2str buffer(), 2, tree(treesize).about
-   safekill tmp$ + "browse.txt"
-   IF LEN(tree(treesize).caption) = 0 THEN tree(treesize).caption = tree(treesize).filename
+   loadset br.tmp + "browse.txt", 0, 0
+   tree(br.treesize).caption = STRING$(bound(buffer(0), 0, 38), " ")
+   array2str buffer(), 2, tree(br.treesize).caption
+   loadset br.tmp + "browse.txt", 1, 0
+   tree(br.treesize).about = STRING$(bound(buffer(0), 0, 38), " ")
+   array2str buffer(), 2, tree(br.treesize).about
+   safekill br.tmp + "browse.txt"
+   IF LEN(tree(br.treesize).caption) = 0 THEN tree(br.treesize).caption = tree(br.treesize).filename
   ELSE
-   tree(treesize).about = ""
-   tree(treesize).caption = tree(treesize).filename
+   tree(br.treesize).about = ""
+   tree(br.treesize).caption = tree(br.treesize).filename
   END IF
  END IF
 
- draw_browse_meter meter, ranalready, viewsize
+ draw_browse_meter br
 LOOP
 CLOSE #fh
 safekill filelist$
 
 END SUB
 
-SUB draw_browse_meter(meter AS INTEGER, ranalready AS INTEGER, viewsize AS INTEGER)
-IF ranalready THEN
- meter = small(meter + 1, 308)
- rectangle 5 + meter, 33 + viewsize * 9, 2, 5, 9, vpage
- setvispage vpage 'refresh
-END IF
+SUB draw_browse_meter(br AS BrowseMenuState)
+WITH br
+ IF .ranalready THEN
+  .meter = small(.meter + 1, 308)
+  rectangle 5 + .meter, 33 + .viewsize * 9, 2, 5, 9, vpage
+  setvispage vpage 'refresh
+ END IF
+END WITH
 END SUB
 
 SUB createminimap (array(), map(), tastuf(), tilesetpage, zoom)

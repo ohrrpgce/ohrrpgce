@@ -213,6 +213,17 @@ Type BrowseMenuEntry
 	kind as integer
 End type
 
+Type BrowseMenuState
+	nowdir as string
+	tmp as string
+	treesize as integer
+	limit as integer
+	viewsize as integer
+	special as integer
+	ranalready as integer
+	meter as integer
+End Type
+
 'Documentation of veh() in game, which is different from the VEH lump
 '0 is true (-1) if in/mounting/dismounting a vehicle
 '1-4 unused
