@@ -44,6 +44,7 @@ DIM bslot(24) AS BattleSprite
 DIM as double timinga, timingb
 DIM dead, mapsong
 DIM spellcount AS INTEGER '--only used in heromenu GOSUB block
+DIM listslot AS INTEGER
 timinga = 0
 timingb = 0
 
@@ -1585,10 +1586,10 @@ IF carray(4) > 1 THEN
  '--can-I-use-it? checking
  IF spel(sptr) > -1 THEN
   '--list-entry is non-empty
-  IF atkallowed(spel(sptr), you, st(you).list_type(sptype), INT(sptr / 3), stat(), atktemp()) THEN
+  IF atkallowed(spel(sptr), you, st(you).list_type(listslot), INT(sptr / 3), stat(), atktemp()) THEN
    '--attack is allowed
    '--if lmp then set lmp consume flag
-   IF st(you).list_type(sptype) = 1 THEN conlmp(you) = INT(sptr / 3) + 1
+   IF st(you).list_type(listslot) = 1 THEN conlmp(you) = INT(sptr / 3) + 1
    '--load atk data (for delay)
    loadattackdata atktemp(), spel(sptr)
    '--queue attack
