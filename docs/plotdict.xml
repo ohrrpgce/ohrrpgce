@@ -2048,6 +2048,28 @@ end</example>
 			<added>ubersetzung</added>
 			<description>When used inside the <ref>do</ref> block of a <ref>for</ref> or <ref>while</ref> command, continue skips the rest of the do block and continues on to the next loop. When used inside a <ref>switch</ref> statement, continue flows on to the next <ref>case</ref> block</description>
 		</command>
+		<command id="switch">
+			<cannon>switch(expression)</cannon>
+			<shortname>switch</shortname>
+			<added>ubersetzung</added>
+			<description>select between a number of <ref>case</ref> statements based on the value of an expression. <example>switch(v) do, begin
+  case(0) do, begin
+    do foo
+  end
+  case(1) do, begin
+    do bar
+  end
+  case(10) do, begin
+    do baz
+  end
+end</example></description>
+		</command>
+		<command id="case">
+			<cannon>case(value)</cannon>
+			<shortname>case</shortname>
+			<added>ubersetzung</added>
+			<description>See <ref>switch</ref></description>
+		</command>
 	</section>
 	<section title="Advanced Commands">
 		<command id="setheropicture">
