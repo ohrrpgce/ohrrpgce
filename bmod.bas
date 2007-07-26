@@ -43,6 +43,7 @@ DIM laststun AS DOUBLE
 DIM bslot(24) AS BattleSprite
 DIM as double timinga, timingb
 DIM dead, mapsong
+DIM spellcount AS INTEGER '--only used in heromenu GOSUB block
 timinga = 0
 timingb = 0
 
@@ -381,62 +382,66 @@ IF carray(4) > 1 THEN
    RETRACE
   END IF
  END IF
- IF bmenu(you, pt) < 0 AND bmenu(you, pt) >= -4 THEN
-  IF st(you).list_type((bmenu(you, pt) + 1) * -1) < 2 THEN
+ IF bmenu(you, pt) < 0 AND bmenu(you, pt) >= -4 THEN '--this is a spell list
+  listslot = (bmenu(you, pt) + 1) * -1
+  IF st(you).list_type(listslot) < 2 THEN '--the type of this spell list is one that displays a menu
    '--init spell menu
    mset = 1: sptr = 0
-   sptype = (bmenu(you, pt) + 1) * -1 '-tells which menu
-   FOR i = 0 TO 23
+   FOR i = 0 TO 23 '-- loop through the spell list setting up menu items for each
     spel$(i) = ""
     speld$(i) = ""
     cost$(i) = ""
     spel(i) = -1
     setbit spelmask(), 0, i, 0
-    IF spell(you, sptype, i) > 0 THEN
-     spel(i) = spell(you, sptype, i) - 1
+    IF spell(you, listslot, i) > 0 THEN '--there is a spell in this slot
+     spellcount += 1
+     spel(i) = spell(you, listslot, i) - 1
      loadattackdata atktemp(), spel(i)
      spel$(i) = readbadbinstring$(atktemp(), 24, 10, 1)
      speld$(i) = readbinstring$(atktemp(), 73, 38)
-     IF st(you).list_type(sptype) = 0 THEN
+     IF st(you).list_type(listslot) = 0 THEN
       '--regular MP
       cost$(i) = XSTR$(focuscost(atktemp(8), stat(you, 0, 10))) + " " + mpname$ + " " + STR$(stat(you, 0, 1)) + "/" + STR$(stat(you, 1, 1))
      END IF
-     IF st(you).list_type(sptype) = 1 THEN
+     IF st(you).list_type(listslot) = 1 THEN
       '--level MP
       cost$(i) = "Level" + XSTR$(INT(i / 3) + 1) + ":  " + XSTR$(lmp(you, INT(i / 3)))
      END IF
-     IF atkallowed(spel(i), you, st(you).list_type(sptype), INT(i / 3), stat(), atktemp()) THEN
+     IF atkallowed(spel(i), you, st(you).list_type(listslot), INT(i / 3), stat(), atktemp()) THEN
+      '-- check whether or not the spell is allowed
       setbit spelmask(), 0, i, 1
      END IF
     END IF
-    spel$(i) = rpad$(spel$(i), " ", 10)
+    spel$(i) = rpad$(spel$(i), " ", 10) '-- pad the spell menu caption
    NEXT i
-   last = -1
-   sptype = (bmenu(you, pt) + 1) * -1
-   FOR i = 0 TO 23
+  ELSEIF st(you).list_type(listslot) = 2 THEN '-- this is a random spell list
+   spellcount = 0
+   FOR i = 0 TO 23 '-- loop through the spell list storing attack ID numbers
     spel(i) = -1
-    IF spell(you, sptype, i) > 0 THEN
-     spel(i) = spell(you, sptype, i) - 1: last = i
+    IF spell(you, listslot, i) > 0 THEN '--there is a spell in this slot
+     spellcount += 1
+     spel(i) = spell(you, listslot, i) - 1
     END IF
    NEXT i
-   IF last = -1 THEN RETRACE
-   rptr = INT(RND * 24)
-   FOR i = 0 TO INT(RND * last + 1)
-    ol = 0
-    DO
-     rptr = loopvar(rptr, 0, 23, 1)
-     ol = ol + 1
-    LOOP UNTIL spel(rptr) > -1 OR ol > 999
-   NEXT i
-   godo(you) = spel(rptr) + 1
-   loadattackdata buffer(), godo(you) - 1
-   delay(you) = large(buffer(16), 1)
-   ptarg = 1
-   flusharray carray(), 7, 0
-   RETRACE
+   IF spellcount > 0 THEN '-- don't attempt to pick randomly from an empty list
+    rptr = INT(RND * 24)
+    FOR i = 0 TO INT(RND * spellcount)
+     ol = 0
+     DO
+      rptr = loopvar(rptr, 0, 23, 1)
+      ol = ol + 1
+     LOOP UNTIL spel(rptr) > -1 OR ol > 999 '--loop until we have found a spell (or give up after 999 tries)
+    NEXT i
+    godo(you) = spel(rptr) + 1
+    loadattackdata buffer(), godo(you) - 1
+    delay(you) = large(buffer(16), 1)
+    ptarg = 1
+    flusharray carray(), 7, 0
+   END IF
   END IF
+ ELSEIF bmenu(you, pt) = -10 THEN
+  mset = 2: iptr = 0: itop = 0
  END IF
- IF bmenu(you, pt) = -10 THEN mset = 2: iptr = 0: itop = 0
 END IF
 RETRACE
 
