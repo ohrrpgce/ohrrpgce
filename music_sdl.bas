@@ -16,10 +16,11 @@ declare sub debug(s$)
 declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 declare function isfile(n$) as integer
 declare function soundfile$ (sfxnum%)
-declare sub sound_slot_free(byval slot as integer)
-declare function next_free_slot() as integer
-declare sub sound_dump(s$, slot as integer)
+
+'local functions
 declare function GetSlot(byval num as integer) as integer
+declare function next_free_slot() as integer
+declare function sfx_slot_info (slot as integer) as string
 
 dim shared music_on as integer = 0
 dim shared music_vol as integer
@@ -304,7 +305,7 @@ sub sound_close
   
  	dim i as integer
 
-    for i = 0 to 7
+    for i = 0 to ubound(sfx_slots)
     	UnloadSound(i)
   	next
   
@@ -405,7 +406,12 @@ sub sound_stop(byval num as integer,  byval s as integer = 0)
 end sub
 
 sub sound_free(byval num as integer)
-  UnloadSound num
+  dim i as integer
+  for i = 0 to ubound(sfx_slots)
+    with sfx_slots(i)
+      if .effectID = num then UnloadSound i
+    end with
+  next
 end sub
 
 
@@ -465,7 +471,7 @@ function LoadSound overload(byval f as string,  byval num as integer = -1) as in
  	end if
  	size = LOF(ff)
  	close #ff
- 	if size>500000 then 
+ 	if size > 500*1024 then 
  		debug "Sound effect file too large (>500k): " & f 
  		return -1
  	end if
@@ -489,7 +495,7 @@ end function
 
 'Unloads a sound loaded in a slot. TAKES A SLOT, NOT AN SFX NUMBER!
 Sub UnloadSound(byval slot as integer)
-  	if not sfx_slots(slot).used then exit sub
+  	if sfx_slots(slot).used = 0 then exit sub
   	with sfx_slots(slot)
         Mix_FreeChunk(.buf)
         .paused = 0
@@ -504,3 +510,9 @@ sub SDL_done_playing cdecl(byval channel as integer)
   	sfx_slots(channel).playing = 0
 end sub
 
+'-- for debugging
+function sfx_slot_info (slot as integer) as string
+ with sfx_slots(slot)
+   return .used & " " & .effectID & " " & .paused & " " & .playing & " " & .pause_pos & " " & .buf
+ end with
+end function
