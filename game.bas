@@ -161,7 +161,7 @@ DECLARE FUNCTION loadscript% (n%)
 DECLARE SUB resetinterpreter ()
 DECLARE SUB killallscripts ()
 DECLARE SUB reloadscript (index, updatestats = -1)
-
+DECLARE FUNCTION count_sav(filename AS STRING) AS INTEGER
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -699,7 +699,7 @@ DO
  IF fatal = 1 OR abortg > 0 THEN
   resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
   'if skip loadmenu and title bits set, quit
-  IF readbit(gen(), genBits, 11) AND (readbit(gen(), genBits, 12) OR abortg = 2) THEN GOTO resetg ELSE GOTO beginplay
+  IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_sav(savefile$) = 0) THEN GOTO resetg ELSE GOTO beginplay
  END IF
  'DEBUG debug "swap video pages"
  SWAP vpage, dpage
@@ -2480,3 +2480,17 @@ Sub dotimerafterbattle()
   next
 
 end sub
+
+FUNCTION count_sav(filename AS STRING) AS INTEGER
+ DIM i AS INTEGER
+ DIM n AS INTEGER
+ DIM version AS INTEGER
+ n = 0
+ setpicstuf buffer(), 30000, -1
+ FOR i = 0 TO 3
+  loadset filename, i * 2, 0
+  version = buffer(0)
+  IF version = 3 THEN n += 1
+ NEXT i
+ RETURN n
+END FUNCTION
