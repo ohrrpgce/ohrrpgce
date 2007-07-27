@@ -1048,7 +1048,7 @@ DO
       safekill sfxfile$
       GOSUB getsfxinfo
     END IF
-  CASE 6
+  CASE 1, 6
     IF sfxfile$ <> "" THEN 'play sfx
       playsfx snum, 0
     END IF

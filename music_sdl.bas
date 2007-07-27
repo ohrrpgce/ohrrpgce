@@ -314,6 +314,7 @@ end sub
 
 
 function next_free_slot() as integer
+  	static retake_slot as integer = 0
   	dim i as integer
 
   	'Look for empty slots
@@ -325,11 +326,12 @@ function next_free_slot() as integer
 
   	'Look for silent slots
   	for i = 0 to ubound(sfx_slots)
-  		with sfx_slots(i)
+  		retake_slot = (retake_slot + 1) mod (ubound(sfx_slots)+1)
+  		with sfx_slots(retake_slot)
     		if .playing = 0 and .paused = 0 then
     			Mix_FreeChunk(.buf)
     			.used = 0
-      			return i
+      			return retake_slot
    		 	end if
    		 end with
   	next
@@ -493,7 +495,7 @@ function LoadSound overload(byval f as string,  byval num as integer = -1) as in
   
 end function
 
-'Unloads a sound loaded in a slot. TAKES A SLOT, NOT AN SFX NUMBER!
+'Unloads a sound loaded in a slot. TAKES A CACHE SLOT, NOT AN SFX ID NUMBER!
 Sub UnloadSound(byval slot as integer)
   	if sfx_slots(slot).used = 0 then exit sub
   	with sfx_slots(slot)
