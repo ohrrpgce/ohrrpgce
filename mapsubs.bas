@@ -645,6 +645,7 @@ DO
    IF keyval(29) > 0 AND keyval(32) > 1 THEN defpass = defpass XOR 1   
    FOR i = 0 TO 1
     IF keyval(2 + i) > 1 THEN
+     newtile = -1
      old = readmapblock(x, y, layer)
      IF old > 159 + (i * 48) THEN
       newtile = (old - (160 + (i * 48))) + tastuf(i * 20)
@@ -653,14 +654,16 @@ DO
        newtile = 160 + (i * 48) + (old - tastuf(i * 20))
       END IF
      END IF
-     IF keyval(29) = 0 THEN
-      setmapblock x, y, layer, newtile
-     ELSE
-      FOR tx = 0 TO map(0)
-       FOR ty = 0 TO map(1)
-        IF readmapblock(tx, ty, layer) = old THEN setmapblock tx, ty, layer, newtile
-       NEXT ty
-      NEXT tx
+     IF newtile >= 0 THEN
+      IF keyval(29) = 0 THEN
+       setmapblock x, y, layer, newtile
+      ELSE
+       FOR tx = 0 TO map(0)
+        FOR ty = 0 TO map(1)
+         IF readmapblock(tx, ty, layer) = old THEN setmapblock tx, ty, layer, newtile
+        NEXT ty
+       NEXT tx
+      END IF
      END IF
     END IF
    NEXT i
