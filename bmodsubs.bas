@@ -940,6 +940,7 @@ IF formdata(i * 4) > 0 THEN
   p(4 + i) = 44 + i
   getpal16 pal16(), 44 + i, es(i, 54), 1 + es(i, 55), es(i, 53)
   .vis = 1
+  .dissolve = 0
   IF es(i, 55) = 0 THEN
    ext$(i) = ".pt1"
    .w = 34

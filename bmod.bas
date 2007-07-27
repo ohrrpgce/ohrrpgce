@@ -1481,8 +1481,7 @@ RETRACE
 
 spawnally:
 IF is_enemy(deadguy) THEN
- IF es(deadguy - 4, 80) > 0 AND atktype(0) = 1 THEN
-  bslot(deadguy).dissolve = 1 'FIXME
+ IF es(deadguy - 4, 80) > 0 AND atktype(0) = 1 THEN ' spawn on non-elemental death
   FOR j = 1 TO es(deadguy - 4, 91)
    slot = -1
    FOR k = 7 TO 0 STEP -1
@@ -1496,8 +1495,7 @@ IF is_enemy(deadguy) THEN
   NEXT j
   es(deadguy - 4, 80) = 0
  END IF
- IF es(deadguy - 4, 79) > 0 THEN
-  bslot(deadguy).dissolve = 1 'FIXME
+ IF es(deadguy - 4, 79) > 0 THEN ' spawn on elemental death
   FOR j = 1 TO es(deadguy - 4, 91)
    slot = -1
    FOR k = 7 TO 0 STEP -1
