@@ -113,7 +113,7 @@ DECLARE FUNCTION fileiswriteable(f$)
 
 DECLARE SUB setupsound ()
 DECLARE SUB closesound ()
-DECLARE SUB playsfx (BYVAL num, BYVAL l)
+DECLARE SUB playsfx (BYVAL num, BYVAL l=0) 'l is loop count. -1 for infinite loop
 DECLARE SUB stopsfx (BYVAL num)
 DECLARE SUB pausesfx (BYVAL num)
 DECLARE SUB freesfx (BYVAL num) ' only used by custom's importing interface

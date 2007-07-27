@@ -769,6 +769,7 @@ GOSUB AtkLoadSub
 '------------------------------------------------------------------------
 '--main loop
 
+setupsound
 setkeys
 DO
  setwait timing(), 100
@@ -867,6 +868,8 @@ DO
     FOR i = 0 TO 7
      recbuf(AtkDatBitsets2 + i) = buffer(4 + i)
     NEXT i
+   CASE AtkSoundEffect
+    playsfx recbuf(AtkDatSoundEffect) - 1
   END SELECT
  END IF
 
@@ -899,6 +902,7 @@ LOOP
 saveattackdata recbuf(), recindex
 
 clearallpages
+closesound
 
 EXIT SUB
 

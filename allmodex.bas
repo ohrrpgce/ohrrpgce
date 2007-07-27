@@ -3247,7 +3247,7 @@ SUB closesound ()
  	closemusic
 end SUB
 
-SUB playsfx (BYVAL num, BYVAL l)
+SUB playsfx (BYVAL num, BYVAL l=0)
   sound_play(num,l)
 end sub
 
