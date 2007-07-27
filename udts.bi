@@ -58,6 +58,7 @@ TYPE BattleSprite
   vis AS INTEGER
   hero_untargetable AS INTEGER
   enemy_untargetable AS INTEGER
+  dissolve AS INTEGER
 END TYPE
 
 TYPE Timer

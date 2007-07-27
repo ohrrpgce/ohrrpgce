@@ -23,6 +23,9 @@ DEFINT A-Z
 #INCLUDE "const.bi"
 #INCLUDE "uiconst.bi"
 
+'--local subs and functions
+DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
+
 'these are the battle global variables
 DIM battlecaption$, battlecaptime, battlecapdelay, bstackstart, learnmask(29)
 
@@ -37,7 +40,7 @@ bstackstart = stackpos
 battle = 1
 DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24),  p(24), of(24), ext$(7), ctr(11), stat(11,  _
 1, 17), ready(11), batname$(11), menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
-DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), die(24), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
+DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
 DIM bslot(24) AS BattleSprite
@@ -200,11 +203,7 @@ DO
  IF vdance > 0 THEN GOSUB vicdance
  IF vis = 1 THEN GOSUB seestuff
  IF dead = 1 AND vdance = 0 THEN
-  o = 0
-  FOR i = 4 TO 11
-   IF die(i) > 0 THEN o = 1
-  NEXT i
-  IF o = 0 THEN GOSUB victory
+  IF count_dissolving_enemies(bslot()) = 0 THEN GOSUB victory
  END IF
  IF vdance = -2 THEN EXIT DO 'normal victory exit
  IF dead = 2 THEN
@@ -1007,7 +1006,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    'set tag, if there is one
    checkTagCond atk(60), 1, atk(59), atk(61)
    checkTagCond atk(63), 1, atk(62), atk(64)
-   IF inflict(who, targ, stat(), bslot(), harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
+   IF inflict(who, targ, stat(), bslot(), harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
     '--attack succeeded
 	IF readbit(atk(), 20, 50) = 1 THEN
 	 es(targ - 4, 56) = 0
@@ -1042,7 +1041,8 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    GOSUB triggerfade
    IF stat(targ, 0, 0) > 0 THEN
     '---REVIVE---
-    bslot(targ).vis = 1: die(targ) = 0
+    bslot(targ).vis = 1
+    bslot(targ).dissolve = 0
    END IF
    IF is_enemy(targ) THEN GOSUB sponhit
    IF conmp = 1 THEN
@@ -1254,14 +1254,14 @@ triggerfade:
 'If the target is really dead...
 IF stat(tdwho, 0, 0) = 0 THEN
  'the number of ticks it takes the enemy to fade away is equal to half its width
- die(tdwho) = bslot(tdwho).w * .5
+ bslot(tdwho).dissolve = bslot(tdwho).w * .5
  IF is_enemy(tdwho) THEN
   '--flee as alternative to death
   IF readbit(ebits(), (tdwho - 4) * 5, 59) = 1 THEN
    eflee(tdwho) = 1
    'the number of ticks it takes an enemy to run away is based on its distance
    'from the left side of the screen and its width. Enemys flee at 10 pixels per tick
-   die(tdwho) = (bslot(tdwho).w + bslot(tdwho).x) / 10
+   bslot(tdwho).dissolve = (bslot(tdwho).w + bslot(tdwho).x) / 10
   END IF
  END IF
 END IF
@@ -1482,7 +1482,7 @@ RETRACE
 spawnally:
 IF is_enemy(deadguy) THEN
  IF es(deadguy - 4, 80) > 0 AND atktype(0) = 1 THEN
-  die(deadguy) = 1
+  bslot(deadguy).dissolve = 1 'FIXME
   FOR j = 1 TO es(deadguy - 4, 91)
    slot = -1
    FOR k = 7 TO 0 STEP -1
@@ -1497,7 +1497,7 @@ IF is_enemy(deadguy) THEN
   es(deadguy - 4, 80) = 0
  END IF
  IF es(deadguy - 4, 79) > 0 THEN
-  die(deadguy) = 1
+  bslot(deadguy).dissolve = 1 'FIXME
   FOR j = 1 TO es(deadguy - 4, 91)
    slot = -1
    FOR k = 7 TO 0 STEP -1
@@ -1848,7 +1848,7 @@ FOR i = 0 TO 11
  NEXT poisreg
 
  '--if not doing anything, not dying, not ready, and not stunned
- IF godo(i) = 0 AND die(i) = 0 AND ready(i) = 0 AND stat(i, 0, 14) = stat(i, 1, 14) THEN
+ IF godo(i) = 0 AND bslot(i).dissolve = 0 AND ready(i) = 0 AND stat(i, 0, 14) = stat(i, 1, 14) THEN
   '--increment ctr by speed
   ctr(i) = small(1000, ctr(i) + stat(i, 0, 8))
   IF ctr(i) = 1000 AND wf = 0 THEN ready(i) = 1
@@ -1895,7 +1895,7 @@ FOR i = 0 TO 11
   of(i + 12) = aframe(i, fctr(i))
   IF atk(2) = 3 THEN of(i + 12) = INT(RND * 3)
  END IF
- IF die(i) > 0 THEN
+ IF bslot(i).dissolve > 0 THEN
   'ENEMIES DEATH THROES
   IF is_enemy(i) THEN
    IF eflee(i) = 0 THEN
@@ -1907,8 +1907,8 @@ FOR i = 0 TO 11
     'running away
     bslot(i).x = bslot(i).x - 10: bslot(i).d = 1
    END IF
-   die(i) = die(i) - 1
-   IF die(i) = 0 THEN
+   bslot(i).dissolve -= 1
+   IF bslot(i).dissolve = 0 THEN
     'formdata((i-4) * 4) = 0 'disabled to fix bug 184
     'make dead enemy invisible (the ifdead code will actually do the final removal)
     bslot(i).vis = 0
@@ -1936,7 +1936,7 @@ FOR o = 1 TO 24
  zbuf(i + 1) = insertval
 NEXT
 FOR i = 0 TO 24
- IF (bslot(zbuf(i)).vis = 1 OR die(zbuf(i)) > 0) THEN
+ IF (bslot(zbuf(i)).vis = 1 OR bslot(zbuf(i)).dissolve > 0) THEN
   temp = 64 + (zbuf(i) - 4) * 10
   IF is_hero(zbuf(i)) THEN temp = zbuf(i) * 16
   IF is_attack(zbuf(i)) THEN temp = 144
@@ -1965,7 +1965,7 @@ FOR i = 0 TO 11
  IF is_hero(i) THEN c = uilook(uiSelectedItem)
  rectangle 0, 80 + (i * 10), ctr(i) / 10, 4, c, dpage
  IF is_enemy(i) THEN edgeprint XSTR$(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
- info$ = "v=" & bslot(i).vis & " dly=" & delay(i) & " tm=" & tmask(i) & " hp=" & stat(i,0,0) & " die=" & die(i)
+ info$ = "v=" & bslot(i).vis & " dly=" & delay(i) & " tm=" & tmask(i) & " hp=" & stat(i,0,0) & " dis=" & bslot(i).dissolve
  IF is_enemy(i) THEN  info$ = info$ & " fm=" & formdata((i-4)*4) 
  edgeprint info$, 20, 80 + i * 10, c, dpage
 NEXT i
@@ -2070,7 +2070,7 @@ setdiskpages buffer(), 200, 0
 loadpage game$ + ".mxs", curbg, 2
 FOR i = 0 TO 3
  IF stat(i, 0, 0) < stat(i, 1, 0) / 5 AND vdance = 0 THEN of(i) = 6
- IF hero(i) > 0 AND stat(i, 0, 0) = 0 THEN die(i) = 1
+ IF hero(i) > 0 AND stat(i, 0, 0) = 0 THEN bslot(i).dissolve = 1
  lifemeter(i) = (88 / large(stat(i, 1, 0), 1)) * stat(i, 0, 0)
 NEXT i
 bslot(24).w = 24
@@ -2374,3 +2374,12 @@ END SUB
 SUB anim_setdir(who, d)
  pushw 21: pushw who: pushw d
 END SUB
+
+FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
+ DIM i AS INTEGER
+ DIM count AS INTEGER = 0
+ FOR i = 4 TO 11
+  IF bslot(i).dissolve THEN count += 1
+ NEXT i
+ RETURN count
+END FUNCTION

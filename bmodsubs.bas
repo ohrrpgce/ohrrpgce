@@ -57,7 +57,7 @@ DECLARE FUNCTION is_weapon(who%)
 #include "uiconst.bi"
 
 DECLARE SUB loadfoe (i%, formdata%(), es%(), bslot() AS BattleSprite, p%(), ext$(), bits%(), stat%(), ebits%(), batname$())
-DECLARE FUNCTION inflict (w%, t%, stat%(), bslot() AS BattleSprite, harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, die%(), bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())
+DECLARE FUNCTION inflict (w%, t%, stat%(), bslot() AS BattleSprite, harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())
 DECLARE SUB smartarrowmask (inrange%(), pt%, d%, axis%, bslot() AS BattleSprite, tmask%())
 DECLARE FUNCTION visibleandalive% (o%, stat%(), bslot() AS BattleSprite)
 DECLARE FUNCTION enemycount% (bslot() AS BattleSprite, stat%())
@@ -678,7 +678,7 @@ END IF
 
 END SUB
 
-FUNCTION inflict (w, t, stat(), bslot() AS BattleSprite, harm$(), hc(), hx(), hy(), atk(), tcount, die(), bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
+FUNCTION inflict (w, t, stat(), bslot() AS BattleSprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
 
 DIM tbits(4)
 
