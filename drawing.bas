@@ -61,6 +61,7 @@ DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE SUB importmasterpal (f$, palnum%)
 DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
+declare sub loadwuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1539,20 +1540,8 @@ RETRACE
 
 loadalluc:
 FOR j = top TO top + atatime
- GOSUB loadwuc
-NEXT j
-RETRACE
-
-loadwuc:
-getpal16 workpal(), j - top, poffset(j)
-IF j <= sets THEN
- setpicstuf buffer(), size * perset, 2
- loadset spritefile$, large(j, 0), 0
- FOR o = 0 TO (perset - 1)
-  loadsprite placer(), 0, size * o, 0, xw, yw, 2
-  stosprite placer(), 0, size * o, soff * (j - top), 3
- NEXT o
-END IF
+ loadwuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
+NEXT
 RETRACE
 
 END SUB
@@ -2260,3 +2249,16 @@ IF ts.canpaste THEN
  NEXT i
 END IF 
 END SUB
+
+sub loadwuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
+getpal16 workpal(), j - top, poffset(j)
+IF j <= sets THEN
+ setpicstuf buffer(), size * perset, 2
+ loadset spritefile$, large(j, 0), 0
+ FOR o = 0 TO (perset - 1)
+  loadsprite placer(), 0, size * o, 0, xw, yw, 2
+  stosprite placer(), 0, size * o, soff * (j - top), 3
+ NEXT o
+END IF
+
+end sub
