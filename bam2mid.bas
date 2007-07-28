@@ -116,6 +116,23 @@ sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 	dim delta as integer = 0
 	dim bc as integer
 	dim mb as ubyte
+	
+	'put the tempo in
+	bc = setvarval(0)
+	fput f2, , @bignum(0), bc	'variable length delta time
+	tracklen = tracklen + bc
+	mb = &hff
+	put #f2, , mb				'metacommand
+	mb = &h51
+	put #f2, , mb				'end track
+	mb = 3
+	put #f2, , mb				'no further params
+	tracklen = tracklen + 3
+	bignum(0) = &h07
+	bignum(1) = &hA1
+	bignum(2) = &h20
+	fput f2, , @bignum(0), 3
+	tracklen = tracklen + 3
 
 
 	get #f1, , ub
