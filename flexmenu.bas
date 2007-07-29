@@ -869,7 +869,9 @@ DO
      recbuf(AtkDatBitsets2 + i) = buffer(4 + i)
     NEXT i
    CASE AtkSoundEffect
-    playsfx recbuf(AtkDatSoundEffect) - 1
+    IF recbuf(AtkDatSoundEffect) > 0 THEN
+     playsfx recbuf(AtkDatSoundEffect) - 1
+    END IF
   END SELECT
  END IF
 
