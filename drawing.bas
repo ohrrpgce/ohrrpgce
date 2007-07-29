@@ -62,6 +62,7 @@ DECLARE SUB maptile (font())
 DECLARE SUB importmasterpal (f$, palnum%)
 DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 declare sub loadwuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
+declare sub savewuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -968,7 +969,7 @@ DO
  dowait
 LOOP
 j = pt
-GOSUB savewuc
+savewuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
 changepal poffset(pt), 0, workpal(), pt - top
 RETRACE
 
@@ -1523,19 +1524,8 @@ RETRACE
 
 savealluc:
 FOR j = top TO top + atatime
- GOSUB savewuc
+	savewuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset()) 
 NEXT j
-RETRACE
-
-savewuc:
-IF j <= sets THEN
- setpicstuf buffer(), size * perset, 2
- FOR o = 0 TO (perset - 1)
-  loadsprite placer(), 0, size * o, soff * (j - top), xw, yw, 3
-  stosprite placer(), 0, size * o, 0, 2
- NEXT o
- storeset spritefile$, large(j, 0), 0
-END IF
 RETRACE
 
 loadalluc:
@@ -2259,6 +2249,18 @@ IF j <= sets THEN
   loadsprite placer(), 0, size * o, 0, xw, yw, 2
   stosprite placer(), 0, size * o, soff * (j - top), 3
  NEXT o
+END IF
+
+end sub
+
+sub savewuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
+IF j <= sets THEN
+ setpicstuf buffer(), size * perset, 2
+ FOR o = 0 TO (perset - 1)
+  loadsprite placer(), 0, size * o, soff * (j - top), xw, yw, 3
+  stosprite placer(), 0, size * o, 0, 2
+ NEXT o
+ storeset spritefile$, large(j, 0), 0
 END IF
 
 end sub
