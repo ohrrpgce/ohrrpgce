@@ -48,6 +48,7 @@ DECLARE SUB snapshot ()
 DECLARE SUB checkTagCond(t,check,tag,tagand) 'in bmod.bas
 DECLARE FUNCTION countitem% (it%)
 DECLARE SUB loadshopstuf (array%(), id%)
+DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
 
 DECLARE Sub MenuSound(byval s as integer)
 
@@ -1850,11 +1851,8 @@ last = 0
 FOR o = 0 TO 5
  IF mtype(o) >= 0 AND mtype(o) < 2 THEN
   IF readbit(her.bits(), 0, 26) <> 0 then
-   for i = 0 to 23
-    if spell(pt,o,i) <> 0 then i = -1 : exit for
-   next
-   if i <> -1 then continue for
-  end if
+   IF count_available_spells(pt, o - 1) = 0 THEN CONTINUE FOR
+  END IF
   menu$(last) = ""
   mtype(last) = mtype(o)
   spid(last) = spid(o)
@@ -1864,11 +1862,6 @@ FOR o = 0 TO 5
 
   '--read menu name
   menu$(last) = her.list_name(mi(last))
-
-  '--old crappy code for reading menu name (very obsolete)
-  'FOR j = 244 + temp * 11 TO 243 + temp * 11 + buffer(243 + temp * 11)
-  ' menu$(last) = menu$(last) + CHR$(buffer(j))
-  'NEXT j
 
   '--if non-null...
   IF menu$(last) <> "" THEN
@@ -2259,3 +2252,12 @@ FOR i = 0 TO ol - 1
  NEXT o
 NEXT i
 END SUB
+
+FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
+ DIM i AS INTEGER
+ DIM n AS INTEGER = 0
+ FOR i = 0 to 23
+  IF spell(who, list, i) > 0 THEN n + = 1
+ NEXT i
+ RETURN n
+END FUNCTION

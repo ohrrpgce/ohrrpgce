@@ -15,6 +15,7 @@ DEFINT A-Z
 #include "yetmore.bi"
 #include "moresubs.bi"
 #include "music.bi"
+DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
 
 'misc
 #include "common.bi"
@@ -2022,17 +2023,14 @@ FOR i = 0 TO 3
   oldm = 0
   newm = 0
   do while oldm <= 5
-  	nmenu(i,newm) = bmenu(i,oldm)
-  	
-  	if nmenu(i, oldm) < 0 AND nmenu(i, oldm) > -5 AND readbit(st(i).bits(),0,26) <> 0 then
-  		temp = (nmenu(i, oldm) * -1) - 1
-  		for o = 0 to 23
-  			if spell(i,temp,o) <> 0 then o = -1: exit for
-  		next
-  		if o <> -1 then nmenu(i, newm) = 0: newm -= 1
-  	end if
-  	oldm += 1
-  	newm += 1
+    nmenu(i,newm) = bmenu(i,oldm)
+  
+    if nmenu(i, oldm) < 0 AND nmenu(i, oldm) > -5 AND readbit(st(i).bits(),0,26) <> 0 then
+      temp = (nmenu(i, oldm) * -1) - 1
+      IF count_available_spells(i, temp) = 0 THEN nmenu(i, newm) = 0: newm -= 1
+    end if
+    oldm += 1
+    newm += 1
   loop
  
   'FOR o = 0 TO 317
