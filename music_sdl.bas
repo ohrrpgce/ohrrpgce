@@ -462,6 +462,7 @@ function LoadSound overload(byval f as string,  byval num as integer = -1) as in
 	dim as long size
 	
 	if f="" then return -1
+	if not isfile(f) then return -1
 	
 	'File size restriction to stop massive oggs being decompressed
 	'into memory
