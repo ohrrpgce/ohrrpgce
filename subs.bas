@@ -1003,7 +1003,7 @@ RETRACE
 END SUB
 
 SUB herodata
-DIM names$(100), menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 25), hmenu$(4), pal16(16), elemtype$(2)
+DIM names$(100), menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), pal16(16), elemtype$(2)
 DIM AS HeroDef her, blankhero
 wd = 1: wc = 0: wx = 0: wy = 0: hmax = 32
 leftkey = 0: rightkey = 0
@@ -1027,6 +1027,7 @@ FOR i = 0 TO 7
 NEXT i
 hbit$(24) = "Rename when added to party"
 hbit$(25) = "Permit renaming on status screen"
+hbit$(26) = "Do not show spell lists if empty"
 
 menu$(0) = "Return to Main Menu"
 menu$(1) = CHR$(27) + "Pick Hero" + XSTR$(pt) + CHR$(26)
@@ -1057,7 +1058,7 @@ DO
   IF csr = 4 THEN GOSUB levstats
   IF csr = 5 THEN GOSUB speltypes '--spell list contents
   IF csr = 6 THEN GOSUB heromenu '--spell list names
-  IF csr = 7 THEN editbitset her.bits(), 0, 25, hbit$()
+  IF csr = 7 THEN editbitset her.bits(), 0, 26, hbit$()
   IF csr = 8 THEN herotags @her
  END IF
  IF csr = 1 THEN

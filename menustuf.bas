@@ -1834,12 +1834,11 @@ NEXT i
 RETRACE
 
 splname:
+loadherodata @her, hero(pt) - 1 'why the heck would we load this 12 times?!
 FOR i = 0 TO 5
  '--for each btl menu slot
  '--clear menu type
  mtype(i) = -1
- '--load hero data
- loadherodata @her, hero(pt) - 1
  '--if it is a menu...
  IF bmenu(pt, i) < 0 AND bmenu(pt, i) > -10 THEN
   '--set spell-menu-id and menu-type
@@ -1850,12 +1849,15 @@ NEXT i
 last = 0
 FOR o = 0 TO 5
  IF mtype(o) >= 0 AND mtype(o) < 2 THEN
+  IF readbit(her.bits(), 0, 26) <> 0 then
+   for i = 0 to 23
+    if spell(pt,o,i) <> 0 then i = -1 : exit for
+   next
+   if i <> -1 then continue for
+  end if
   menu$(last) = ""
   mtype(last) = mtype(o)
   spid(last) = spid(o)
-
- 
-  loadherodata @her, hero(pt) - 1
 
   '--get menu index
   mi(last) = (bmenu(pt, o) + 1) * -1
