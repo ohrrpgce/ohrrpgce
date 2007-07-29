@@ -48,6 +48,8 @@ DIM as double timinga, timingb
 DIM dead, mapsong
 DIM spellcount AS INTEGER '--only used in heromenu GOSUB block
 DIM listslot AS INTEGER
+DIM nmenu(3,5) as integer 'new battle menu
+
 timinga = 0
 timingb = 0
 
@@ -356,25 +358,27 @@ RETRACE
 heromenu: '-----------------------------------------------------------------
 FOR i = 0 TO 5
  setbit menubits(), 0, you*4+i, 0
- IF bmenu(you, i) > 0 THEN
-  IF wepatkid <> bmenu(you, i) THEN
-   wepatkid = bmenu(you, i)
-   loadattackdata wepatk(), wepatkid - 1
-  END IF
-  IF readbit(wepatk(), 65, 6) THEN
-   IF atkallowed(wepatkid - 1, you, 0, 0, stat(), wepatk()) = 0 THEN
-    setbit menubits(), 0, you*4+i, 1
+ IF nmenu(you, i) > 0 THEN
+  'IF foo then
+   IF wepatkid <> nmenu(you, i) THEN
+    wepatkid = nmenu(you, i)
+    loadattackdata wepatk(), wepatkid - 1
    END IF
-  END IF
+   IF readbit(wepatk(), 65, 6) THEN
+    IF atkallowed(wepatkid - 1, you, 0, 0, stat(), wepatk()) = 0 THEN
+     setbit menubits(), 0, you*4+i, 1
+    END IF
+   END IF
+  'END IF
  END IF
 NEXT i
 IF carray(5) > 1 THEN yn = you: you = -1: RETRACE
 IF carray(0) > 1 THEN pt = pt - 1: IF pt < 0 THEN pt = mend(you)
 IF carray(1) > 1 THEN pt = pt + 1: IF pt > mend(you) THEN pt = 0
 IF carray(4) > 1 THEN
- IF bmenu(you, pt) > 0 THEN 'simple attack
+ IF nmenu(you, pt) > 0 THEN 'simple attack
   IF readbit(menubits(), 0, you*4+pt) = 0 THEN
-   godo(you) = bmenu(you, pt)
+   godo(you) = nmenu(you, pt)
    loadattackdata buffer(), godo(you) - 1
    delay(you) = large(buffer(16), 1)
    ptarg = 1
@@ -382,8 +386,8 @@ IF carray(4) > 1 THEN
    RETRACE
   END IF
  END IF
- IF bmenu(you, pt) < 0 AND bmenu(you, pt) >= -4 THEN '--this is a spell list
-  listslot = (bmenu(you, pt) + 1) * -1
+ IF nmenu(you, pt) < 0 AND nmenu(you, pt) >= -4 THEN '--this is a spell list
+  listslot = (nmenu(you, pt) + 1) * -1
   IF st(you).list_type(listslot) < 2 THEN '--the type of this spell list is one that displays a menu
    '--init spell menu
    mset = 1: sptr = 0
@@ -439,7 +443,7 @@ IF carray(4) > 1 THEN
     flusharray carray(), 7, 0
    END IF
   END IF
- ELSEIF bmenu(you, pt) = -10 THEN
+ ELSEIF nmenu(you, pt) = -10 THEN
   mset = 2: iptr = 0: itop = 0
  END IF
 END IF
@@ -2015,6 +2019,22 @@ IF formdata(33) > 0 THEN wrappedsong formdata(33) - 1
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
   loadherodata @st(i), hero(i) - 1
+  oldm = 0
+  newm = 0
+  do while oldm <= 5
+  	nmenu(i,newm) = bmenu(i,oldm)
+  	
+  	if nmenu(i, oldm) < 0 AND nmenu(i, oldm) > -5 AND readbit(st(i).bits(),0,26) <> 0 then
+  		temp = (nmenu(i, oldm) * -1) - 1
+  		for o = 0 to 23
+  			if spell(i,temp,o) <> 0 then o = -1: exit for
+  		next
+  		if o <> -1 then nmenu(i, newm) = 0: newm -= 1
+  	end if
+  	oldm += 1
+  	newm += 1
+  loop
+ 
   'FOR o = 0 TO 317
   ' st(i, o) = buffer(o)
   'NEXT o
@@ -2039,15 +2059,15 @@ FOR i = 0 TO 3
   batname$(i) = names$(i)
   FOR o = 0 TO 5
    menu$(i, o) = ""
-   IF bmenu(i, o) > 0 THEN
-    loadattackdata atk(), bmenu(i, o) - 1
+   IF nmenu(i, o) > 0 THEN
+    loadattackdata atk(), nmenu(i, o) - 1
     menu$(i, o) = readbadbinstring$(atk(), 24, 10, 1)
    END IF
-   IF bmenu(i, o) < 0 AND bmenu(i, o) > -5 THEN
-    temp = (bmenu(i, o) + 1) * -1
+   IF nmenu(i, o) < 0 AND nmenu(i, o) > -5 THEN
+    temp = (nmenu(i, o) + 1) * -1
     menu$(i,o) = st(i).list_name(temp)
    END IF
-   IF bmenu(i, o) = -10 THEN menu$(i, o) = readglobalstring$(34, "Item", 10): mend(i) = o
+   IF nmenu(i, o) = -10 THEN menu$(i, o) = readglobalstring$(34, "Item", 10): mend(i) = o
    WHILE LEN(menu$(i, o)) < 10: menu$(i, o) = menu$(i, o) + " ": WEND
   NEXT o
  END IF
