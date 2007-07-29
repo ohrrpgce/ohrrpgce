@@ -343,7 +343,7 @@ IF b(pt * recordsize + 17) = 1 THEN
  IF her.def_level < 0 THEN her.def_level = averagelev(stat())
  temp$ = XSTR$(atlevel(her.def_level, her.lev0.st.hp, her.lev99.st.hp) + wbuf(54 + 0))
  eqinfo$ = RIGHT$(temp$, LEN(temp$) - 1) + " " + sname$(0)
- showhero = buffer(17)
+ showhero = her.sprite
  getpal16 hpal(), 0, her.sprite_pal, 0, showhero
  setpicstuf buffer(), 5120, 2
  loadset game$ + ".pt0", showhero, 0
