@@ -1077,8 +1077,14 @@ DO
  IF carray(5) > 1 THEN
   onwho = -1: EXIT DO
  END IF
- IF carray(2) > 1 THEN DO: w = loopvar(w, 0, 3, -1): LOOP UNTIL hero(w) > 0
- IF carray(3) > 1 THEN DO: w = loopvar(w, 0, 3, 1): LOOP UNTIL hero(w) > 0
+ IF carray(2) > 1 THEN
+  DO: w = loopvar(w, 0, 3, -1): LOOP UNTIL hero(w) > 0
+  menusound gen(genCursorSFX)
+ END IF
+ IF carray(3) > 1 THEN
+  DO: w = loopvar(w, 0, 3, 1): LOOP UNTIL hero(w) > 0
+  menusound gen(genCursorSFX)
+ END IF
  IF carray(4) > 1 THEN onwho = w: EXIT DO
  centerbox 160, 100, 140, 52, 1, dpage
  o = 0
