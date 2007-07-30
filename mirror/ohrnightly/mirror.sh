@@ -37,7 +37,12 @@ for i in *.zip ; do
     echo "${i} (NEW)"
     continue
   fi
-  DIF=`diff "${i}" "${OLD}"`
+  TMP1="/tmp/ohrnightly.${RANDOM}.tmp"
+  TMP2="/tmp/ohrnightly.${RANDOM}.tmp"
+  unzip -qq -d "${TMP1}" "${i}"
+  unzip -qq -d "${TMP2}" "${OLD}"
+  DIF=`diff "${TMP1}" "${TMP2}"`
+  rm -R "${TMP1}" "${TMP2}"
   if [ "${DIF}" ] ; then
     echo "${i} (Updated)"
   else
