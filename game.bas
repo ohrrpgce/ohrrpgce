@@ -852,9 +852,8 @@ DO
     equip w, stat()
    END IF
   END IF
-  IF mi(pt) = 2 THEN menusound gen(genAcceptSFX) : minimap catx(0), caty(0), tastuf()
+  IF mi(pt) = 2 THEN minimap catx(0), caty(0), tastuf()
   IF mi(pt) = 8 THEN
-   menusound gen(genAcceptSFX)
    heroswap readbit(gen(), 101, 5), stat()
   END IF
   IF mi(pt) = 0 THEN menusound gen(genAcceptSFX) : verquit

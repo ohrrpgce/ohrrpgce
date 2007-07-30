@@ -570,6 +570,7 @@ GOSUB resetswap
 
 IF hero(acsr) THEN info$ = names$(acsr) ELSE info$ = ""
 
+MenuSound gen(genAcceptSFX)
 setkeys
 DO
  setwait timing(), speedcontrol
@@ -579,15 +580,16 @@ DO
  control
  IF carray(5) > 1 THEN
   IF swapme >= 0 THEN
+   MenuSound gen(genCancelSFX)
    swapme = -1
   ELSE
    loadtemppage 3
-   FOR t = 4 TO 5: carray(t) = 0: NEXT t
-   EXIT SUB
+   EXIT DO
   END IF
  END IF
  IF iAll THEN
   IF carray(0) > 1 THEN
+   MenuSound gen(genCursorSFX)
    IF ecsr < 0 THEN
     ecsr = la
     GOSUB refreshemenu
@@ -597,6 +599,7 @@ DO
    END IF
   END IF
   IF carray(1) > 1 THEN
+   MenuSound gen(genCursorSFX)
    IF ecsr < 0 THEN
     ecsr = 0
     GOSUB refreshemenu
@@ -607,21 +610,25 @@ DO
   END IF
  END IF
  IF carray(2) > 1 AND ecsr < 0 THEN
+  MenuSound gen(genCursorSFX)
   acsr = loopvar(acsr, 0, 3, -1)
   IF hero(acsr) AND ecsr < 0 THEN info$ = names$(acsr) ELSE info$ = ""
  END IF
  IF carray(3) > 1 AND ecsr < 0 THEN
+  MenuSound gen(genCursorSFX)
   acsr = loopvar(acsr, 0, 3, 1)
   IF hero(acsr) AND ecsr < 0 THEN info$ = names$(acsr) ELSE info$ = ""
  END IF
  IF carray(4) > 1 THEN
   IF swapme = -1 THEN
+   MenuSound gen(genAcceptSFX)
    IF ecsr < 0 THEN
     swapme = acsr
    ELSE
     swapme = 4 + ecsr
    END IF
   ELSE
+   MenuSound gen(genAcceptSFX)
    DO
     IF swapme < 4 THEN
      IF (numhero < 2 AND ecsr = la) OR (readbit(hmask(), 0, swapme) AND ecsr > -1) THEN EXIT DO
@@ -655,6 +662,9 @@ DO
  copypage 3, dpage
  dowait
 LOOP
+FOR t = 4 TO 5: carray(t) = 0: NEXT t
+MenuSound gen(genCancelSFX)
+EXIT SUB
 
 refreshemenu:
 IF ecsr < top THEN top = large(ecsr, 0)
@@ -1020,6 +1030,7 @@ FOR i = 0 TO scroll(1) - 1
   NEXT zx
  NEXT
 NEXT
+MenuSound gen(genAcceptSFX)
 copypage vpage, dpage
 setkeys
 DO
@@ -1039,6 +1050,7 @@ DO
 LOOP
 setkeys
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
+MenuSound gen(genCancelSFX)
 END SUB
 
 FUNCTION movdivis (xygo)
