@@ -1779,6 +1779,7 @@ centerbox 60, 50, 82, 60, 2, 3		'menu box
 centerbox 160, 133, 308, 94, 2, 3	'spell list
 rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), 3	'divider 2
 csr = 0
+menusound gen(genAcceptSFX)
 setkeys
 DO
  setwait timing(), speedcontrol
@@ -1919,7 +1920,7 @@ GOSUB curspellist
 RETRACE
 
 scontrol:
-IF pick = 0 THEN
+IF pick = 0 THEN '--picking which spell list
  IF mset = 0 THEN
   IF carray(5) > 1 THEN
    menusound gen(genCancelSFX)
@@ -1929,10 +1930,30 @@ IF pick = 0 THEN
    RETRIEVESTATE
    EXIT SUB
   END IF
-  IF carray(2) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): GOSUB splname
-  IF carray(3) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): GOSUB splname
-  IF carray(0) > 1 THEN csr = large(csr - 1, 0): menusound gen(genCursorSFX): GOSUB curspellist
-  IF carray(1) > 1 THEN csr = small(csr + 1, last): menusound gen(genCursorSFX): GOSUB curspellist
+  IF carray(2) > 1 THEN
+   DO
+    pt = loopvar(pt, 0, 3, -1)
+   LOOP UNTIL hero(pt) > 0
+   menusound gen(genCursorSFX)
+   GOSUB splname
+  END IF
+  IF carray(3) > 1 THEN
+   DO
+    pt = loopvar(pt, 0, 3, 1)
+   LOOP UNTIL hero(pt) > 0
+   menusound gen(genCursorSFX)
+   GOSUB splname
+  END IF
+  IF carray(0) > 1 THEN
+   csr = large(csr - 1, 0)
+   menusound gen(genCursorSFX)
+   GOSUB curspellist
+  END IF
+  IF carray(1) > 1 THEN
+   csr = small(csr + 1, last)
+   menusound gen(genCursorSFX)
+   GOSUB curspellist
+  END IF
   IF carray(4) > 1 THEN
    IF mi(csr) = -1 THEN
     menusound gen(genCancelSFX)
@@ -1950,7 +1971,11 @@ IF pick = 0 THEN
    mset = 0
    menusound gen(genCancelSFX)
   END IF
-  IF carray(0) > 1 THEN sptr = sptr - 3: menusound gen(genCursorSFX): IF sptr < 0 THEN sptr = 24
+  IF carray(0) > 1 THEN
+   sptr = sptr - 3
+   menusound gen(genCursorSFX)
+   IF sptr < 0 THEN sptr = 24
+  END IF
   IF carray(1) > 1 THEN
    IF sptr < 24 THEN
     sptr = small(sptr + 3, 24)
@@ -1968,7 +1993,10 @@ IF pick = 0 THEN
     END IF
     menusound gen(genCursorSFX)
    END IF
-   IF carray(3) > 1 THEN menusound gen(genCursorSFX): IF sptr MOD 3 = 2 THEN sptr = sptr - 2 ELSE sptr = sptr + 1
+   IF carray(3) > 1 THEN
+    menusound gen(genCursorSFX)
+    IF sptr MOD 3 = 2 THEN sptr = sptr - 2 ELSE sptr = sptr + 1
+   END IF
   END IF
   IF carray(4) > 1 THEN
    IF sptr = 24 THEN mset = 0
@@ -1990,7 +2018,10 @@ IF pick = 0 THEN
   END IF
  END IF
 ELSE
- IF carray(5) > 1 THEN pick = 0
+ IF carray(5) > 1 THEN
+  menusound gen(genCancelSFX)
+  pick = 0
+ END IF
  IF canuse(sptr) <> 2 AND spred = 0 THEN
   IF carray(0) > 1 THEN
    dummy = getOOBtarg(-1, wptr, sptr, stat(), ondead(), onlive())
