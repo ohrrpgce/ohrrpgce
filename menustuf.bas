@@ -465,6 +465,7 @@ centerbox 84, 100, 140, 130, 4, 3
 centerbox 236, 75, 80, 78, 4, 3
 
 '--main loop
+MenuSound gen(genAcceptSFX)
 setkeys
 DO
  setwait timing(), speedcontrol
@@ -474,11 +475,25 @@ DO
  control
  IF mset = 0 THEN
   '--primary menu
-  IF carray(5) > 1 THEN loadtemppage 3: FOR t = 4 TO 5: carray(t) = 0: NEXT t: EXIT SUB
-  IF carray(2) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: GOSUB setupeq
-  IF carray(3) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: GOSUB setupeq
-  IF carray(0) > 1 THEN csr = csr - 1: IF csr < 0 THEN csr = 6
-  IF carray(1) > 1 THEN csr = csr + 1: IF csr > 6 THEN csr = 0
+  IF carray(5) > 1 THEN loadtemppage 3: FOR t = 4 TO 5: carray(t) = 0: NEXT t: EXIT DO
+  IF carray(2) > 1 THEN
+   DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0
+   GOSUB setupeq
+   MenuSound gen(genCursorSFX)
+  END IF
+  IF carray(3) > 1 THEN
+   DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0
+   GOSUB setupeq
+   MenuSound gen(genCursorSFX)
+  END IF
+  IF carray(0) > 1 THEN
+   csr = loopvar(csr, 0, 6, - 1)
+   MenuSound gen(genCursorSFX)
+  END IF
+  IF carray(1) > 1 THEN
+   csr = loopvar(csr, 0, 6, 1)
+   MenuSound gen(genCursorSFX)
+  END IF
   IF carray(4) > 1 THEN
    IF csr < 5 THEN
     '--change equipment
@@ -488,11 +503,13 @@ DO
      top = toff(csr)
      csr2 = top
      GOSUB stbonus
+     MenuSound gen(genAcceptSFX)
     END IF
     'UPDATE ITEM POSESION BITSETS
     evalitemtag
    END IF
    IF csr = 5 THEN
+    MenuSound gen(genCancelSFX)
     '--unequip all
     FOR csr = 0 TO 4
      unequip pt, csr, dw, stat(), 1
@@ -502,30 +519,38 @@ DO
     'UPDATE ITEM POSESSION BITSETS
     evalitemtag
    END IF
-   IF csr = 6 THEN loadtemppage 3: carray(4) = 0: EXIT SUB
+   IF csr = 6 THEN loadtemppage 3: carray(4) = 0: EXIT DO
   END IF
  ELSE
   '--change equip menu
-  IF carray(5) > 1 THEN mset = 0: FOR i = 0 TO 11: stb(i) = 0: NEXT i
+  IF carray(5) > 1 THEN
+   mset = 0
+   FOR i = 0 TO 11: stb(i) = 0: NEXT i
+   MenuSound gen(genCancelSFX)
+  END IF
   IF carray(0) > 1 THEN
    csr2 = large(csr2 - 1, toff(csr))
    GOSUB stbonus
    IF csr2 < top THEN top = top - 1
+   MenuSound gen(genCursorSFX)
   END IF
   IF carray(1) > 1 THEN
    csr2 = small(csr2 + 1, toff(csr) + tlim(csr) + 1)
    GOSUB stbonus
    IF csr2 > top + 17 THEN top = top + 1
+   MenuSound gen(genCursorSFX)
   END IF
   IF carray(4) > 1 THEN
    IF csr2 = toff(csr) + tlim(csr) + 1 THEN
     '--unequip
     unequip pt, csr, dw, stat(), 1
     GOSUB EquBacktomenuSub
+    MenuSound gen(genCancelSFX)
    ELSE
     '--normal equip
     ie = inventory(eq(csr2)).id + 1
     GOSUB newequip
+    MenuSound gen(genAcceptSFX)
    END IF
   END IF
  END IF
@@ -590,6 +615,8 @@ DO
  copypage 3, dpage
  dowait
 LOOP
+MenuSound gen(genCancelSFX)
+EXIT SUB
 
 stbonus:
 '--load stat bonuses of currently hovered weapon for display
