@@ -2110,6 +2110,7 @@ copypage vpage, 3
 centerfuz 160, 100, 304, 184, 1, 3
 centerbox 160, 36, 260, 40, 4, 3
 
+menusound gen(genAcceptSFX)
 setkeys
 DO
  setwait timing(), speedcontrol
