@@ -1063,6 +1063,7 @@ NEXT i
 '--unless we are in alone-mode
 IF alone = 0 AND howmanyh(0, 3) <= 1 THEN onwho = w: setkeys: EXIT FUNCTION
 
+menusound gen(genAcceptSFX)
 copypage dpage, vpage
 setvispage vpage
 setkeys
@@ -1074,7 +1075,9 @@ DO
  control
  wtg = loopvar(wtg, 0, 3, 1)
  IF carray(5) > 1 THEN
-  onwho = -1: EXIT DO
+  onwho = -1
+  menusound gen(genCancelSFX)
+  EXIT DO
  END IF
  IF carray(2) > 1 THEN
   DO: w = loopvar(w, 0, 3, -1): LOOP UNTIL hero(w) > 0

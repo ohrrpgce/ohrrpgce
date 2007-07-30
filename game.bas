@@ -829,14 +829,12 @@ DO
    END IF
   END IF
   IF mi(pt) = 1 THEN
-   menusound gen(genAcceptSFX)
    w = onwho(readglobalstring$(104, "Whose Status?", 20), 0)
    IF w >= 0 THEN
     status w, stat()
    END IF
   END IF
   IF mi(pt) = 3 THEN
-   menusound gen(genAcceptSFX)
    w = onwho(readglobalstring$(106, "Whose Spells?", 20), 0)
    IF w >= 0 THEN
     spells w, stat()
@@ -849,7 +847,6 @@ DO
    reloadnpc stat()
   END IF
   IF mi(pt) = 5 THEN
-   menusound gen(genAcceptSFX)
    w = onwho(readglobalstring$(108, "Equip Whom?", 20), 0)
    IF w >= 0 THEN
     equip w, stat()
