@@ -546,29 +546,32 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
  printstr "Upgrading " + lumpf$ + " to new record size...", 0, 10 + 8 * bindex, vpage
  setvispage vpage
 
- tempf$ = workingdir$ + SLASH + "resize.tmp"
-
  oldsize = getbinsize(bindex)
  newsize = curbinsize(bindex)
 
- flusharray buffer(), newsize / 2, 0
+ IF oldsize > 0 THEN ' Only bother to do this for records of nonzero size
 
- ff = FREEFILE
- OPEN lumpf$ FOR BINARY AS #ff
- records = LOF(ff) / oldsize
- CLOSE #ff
+  tempf$ = workingdir$ + SLASH + "resize.tmp"
 
- copyfile lumpf$, tempf$, buffer()
- KILL lumpf$
+  flusharray buffer(), newsize / 2, 0
 
- FOR i = 0 TO records - 1
-  setpicstuf buffer(), oldsize, -1
-  loadset tempf$, i, 0
-  setpicstuf buffer(), newsize, -1
-  storeset lumpf$, i, 0
- NEXT
+  ff = FREEFILE
+  OPEN lumpf$ FOR BINARY AS #ff
+  records = LOF(ff) / oldsize
+  CLOSE #ff
 
- KILL tempf$
+  copyfile lumpf$, tempf$, buffer()
+  KILL lumpf$
+
+  FOR i = 0 TO records - 1
+   setpicstuf buffer(), oldsize, -1
+   loadset tempf$, i, 0
+   setpicstuf buffer(), newsize, -1
+   storeset lumpf$, i, 0
+  NEXT
+
+  KILL tempf$
+ END IF
 
  setbinsize bindex, newsize
 

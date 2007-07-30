@@ -1099,9 +1099,7 @@ END IF
 
 if sfxfile$ <> "" then
  'playsfx snum, 0
- setpicstuf buffer(), curbinsize(3), -1
- loadset workingdir$ + SLASH + "sfxdata.bin", snum, 0
- sname$ = readbinstring(buffer(), 0, 30)
+ sname$ = getsfxname$(snum)
 ELSE '--sfx doesn't exist
  sname$ = ""
 END IF

@@ -952,7 +952,7 @@ readshopname$ = readbadgenericname$(shopnum, game$ + ".sho", 40, 0, 15, 0)
 END FUNCTION
 
 FUNCTION getsongname$ (num AS INTEGER, prefixnum AS INTEGER = 0)
-DIM songd(curbinsize(2) / 2) AS INTEGER
+DIM songd(dimbinsize(2)) AS INTEGER
 DIM s AS STRING
 IF num = -1 THEN RETURN "-none-"
 s = ""
@@ -964,7 +964,7 @@ RETURN s
 END FUNCTION
 
 FUNCTION getsfxname$ (num AS INTEGER)
-DIM sfxd(curbinsize(2) / 2)
+DIM sfxd(dimbinsize(3))
 setpicstuf sfxd(), curbinsize(3), -1
 loadset workingdir$ + SLASH + "sfxdata.bin", num, 0
 getsfxname$ = readbinstring$ (sfxd(), 0, 30)
