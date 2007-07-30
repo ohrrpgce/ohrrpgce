@@ -1454,7 +1454,7 @@ IF loading THEN
  END IF
 END IF
 
-
+IF needf = 0 THEN MenuSound gen(genAcceptSFX)
 setkeys
 DO
  setwait timing(), speedcontrol
@@ -1464,22 +1464,28 @@ DO
  IF loading = 0 THEN playtimer
  control
  IF carray(5) > 1 THEN
+  MenuSound gen(genCancelSFX)
   IF loading THEN picksave = -2 ELSE picksave = -1
   EXIT DO
  END IF
  IF cursor = -2 THEN
-  IF carray(0) > 1 THEN cursor = 3
-  IF carray(1) > 1 THEN cursor = 0
+  IF carray(0) > 1 THEN cursor = 3: MenuSound gen(genCursorSFX)
+  IF carray(1) > 1 THEN cursor = 0: MenuSound gen(genCursorSFX)
  ELSE
-  IF carray(0) > 1 THEN cursor = loopvar(cursor, -1, 3, -1)
-  IF carray(1) > 1 THEN cursor = loopvar(cursor, -1, 3, 1)
+  IF carray(0) > 1 THEN cursor = loopvar(cursor, -1, 3, -1): MenuSound gen(genCursorSFX)
+  IF carray(1) > 1 THEN cursor = loopvar(cursor, -1, 3, 1): MenuSound gen(genCursorSFX)
  END IF
  IF cursor < 0 AND loading THEN
-  IF carray(2) > 1 THEN cursor = -1
-  IF carray(3) > 1 THEN cursor = -2
+  IF carray(2) > 1 THEN cursor = -1: MenuSound gen(genCursorSFX)
+  IF carray(3) > 1 THEN cursor = -2: MenuSound gen(genCursorSFX)
  END IF
  IF carray(4) > 1 THEN
-  IF cursor < 0 THEN
+  IF cursor = -2 THEN
+   MenuSound gen(genAcceptSFX)
+   picksave = cursor
+   EXIT DO
+  ELSEIF cursor = -1 THEN
+   MenuSound gen(genCancelSFX)
    picksave = cursor
    EXIT DO
   ELSE
@@ -1492,9 +1498,12 @@ DO
     IF full(cursor) = 1 THEN GOSUB confirm
    END IF
    IF allow = 1 THEN
-     picksave = cursor
-     lastsaveslot = cursor + 1
-     EXIT DO
+    MenuSound gen(genAcceptSFX)
+    picksave = cursor
+    lastsaveslot = cursor + 1
+    EXIT DO
+   ELSE
+    MenuSound gen(genCancelSFX)
    END IF
   END IF
  END IF
@@ -1520,6 +1529,7 @@ EXIT FUNCTION
 
 confirm:
 allow = 0
+MenuSound gen(genAcceptSFX)
 setkeys
 DO
  setwait timing(), speedcontrol
@@ -1527,8 +1537,15 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF carray(5) > 1 THEN allow = 0: RETRACE
- IF carray(0) > 1 OR carray(1) > 1 THEN allow = allow XOR 1
+ IF carray(5) > 1 THEN
+  allow = 0
+  MenuSound gen(genCancelSFX)
+  RETRACE
+ END IF
+ IF carray(0) > 1 OR carray(1) > 1 THEN
+  allow = allow XOR 1
+  MenuSound gen(genCursorSFX)
+ END IF
  IF carray(4) > 1 THEN RETRACE
  GOSUB drawmenu
  centerbox 160, 14 + (44 * cursor), 40 + (LEN(replacedat$) * 8) + menuwidth, 22, 3, dpage

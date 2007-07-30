@@ -841,7 +841,6 @@ DO
    END IF
   END IF
   IF mi(pt) = 6 THEN
-   menusound gen(genAcceptSFX)
    temp = picksave(0)
    IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
    reloadnpc stat()
