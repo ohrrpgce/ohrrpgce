@@ -46,3 +46,6 @@ for i in *.zip ; do
     ln -s "${OLD}" "${i}"
   fi
 done
+
+# Throw away nightlies older than one year.
+find "${WEBDIR}" -type d -mtime +365 -exec rm -R "{}" \;
