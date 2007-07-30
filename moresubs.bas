@@ -1928,6 +1928,7 @@ IF last = 0 THEN autopick = 1
 last = last + 1: menu$(last) = readglobalstring$(74, "Exit", 10)
 
 GOSUB repaintback
+menusound gen(genAcceptSFX)
 
 setkeys
 DO
@@ -1936,8 +1937,8 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF carray(0) > 1 THEN pt = large(pt - 1, 0)
- IF carray(1) > 1 THEN pt = small(pt + 1, last)
+ IF carray(0) > 1 THEN pt = large(pt - 1, 0) : menusound gen(genCursorSFX)
+ IF carray(1) > 1 THEN pt = small(pt + 1, last) : menusound gen(genCursorSFX)
  IF carray(5) > 1 THEN EXIT DO
  IF carray(4) > 1 OR autopick THEN
   IF pt = last THEN EXIT DO
@@ -2005,6 +2006,7 @@ DO
  IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
+menusound gen(genCancelSFX)
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
 EXIT SUB
 
