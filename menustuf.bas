@@ -767,6 +767,7 @@ END SUB
 
 FUNCTION items (stat())
 DIM a(100), iuse(15), ondead(15), onlive(15), permask(15), special$(-3 TO -1)
+DIM autosort_changed AS INTEGER = 0
 'bit 0 of iuse, permask, onlive, ondead correspond to item -3
 
 special$(-3) = rpad$(readglobalstring$(35, "DONE", 10), " ", 11)
@@ -807,6 +808,8 @@ GOSUB infostr
 setkeys
 quit = 0
 wtogl = 0
+menusound gen(genAcceptSFX)
+
 DO
  setwait timing(), speedcontrol
  setkeys
@@ -859,6 +862,7 @@ DO
  copypage 3, dpage
  dowait
 LOOP
+menusound gen(genCancelSFX)
 loadtemppage 3
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
 EXIT FUNCTION
@@ -884,7 +888,12 @@ itcontrol:
 IF pick = 0 THEN
  IF carray(5) > 1 THEN
   '--deselect currently selected item
-  IF sel > -1 THEN sel = -4 ELSE quit = 1
+  IF sel > -1 THEN
+   sel = -4
+   menusound gen(genCancelSFX)
+  ELSE
+   quit = 1
+  END IF
  END IF
  IF carray(4) > 1 THEN
   '--exit
@@ -893,6 +902,7 @@ IF pick = 0 THEN
   IF ic = -2 THEN GOSUB autosort
   IF ic = -1 AND sel >= 0 AND readbit(permask(), 0, 3 + sel) = 0 THEN
    '--try to thow item away
+   IF inventory(sel).used > 0 THEN MenuSound gen(genAcceptSFX)
    inventory(sel).text = SPACE$(11)
    inventory(sel).used = 0
    setbit iuse(), 0, 3 + sel, 0
@@ -905,6 +915,7 @@ IF pick = 0 THEN
     '--swap the selected item and the item under the cursor
     itemmenuswap inventory(), iuse(), permask(), ic, sel
     sel = -4
+    MenuSound gen(genAcceptSFX)
     RETRACE
    END IF
    IF ic >= 0 AND sel = ic THEN
@@ -922,6 +933,7 @@ IF pick = 0 THEN
       wptr = loopvar(wptr, 0, 3, 1)
      WEND
      spred = 0
+     MenuSound gen(genAcceptSFX)
      RETRACE
     END IF
     IF a(51) > 0 THEN '--attack/oobcure
@@ -932,30 +944,39 @@ IF pick = 0 THEN
      wptr = 0
      pick = 1
      spred = 0
+     MenuSound gen(genAcceptSFX)
      RETRACE
     END IF
     IF a(51) < 0 THEN '--trigger a text box
      IF buffer(73) = 1 THEN dummy = consumeitem(ic)
      items = a(51) * -1
+     MenuSound gen(genAcceptSFX)
      loadtemppage 3
      RETRIEVESTATE
      EXIT FUNCTION
     END IF
    END IF
   END IF
-  IF sel < -3 AND ic >= 0 THEN sel = ic: RETRACE
+  IF sel < -3 AND ic >= 0 THEN
+   sel = ic
+   MenuSound gen(genAcceptSFX)
+   RETRACE
+  END IF
  END IF
  IF carray(0) > 1 AND ic >= 0 THEN
+  menusound gen(genCursorSFX)
   ic = ic - 3
   GOSUB infostr
   IF ic < top THEN top = top - 3
  END IF
  IF carray(1) > 1 AND ic <= inventoryMax - 3 THEN
+  menusound gen(genCursorSFX)
   ic = ic + 3
   GOSUB infostr
   IF ic > top + 62 THEN top = top + 3
  END IF
  IF carray(2) > 1 THEN
+  menusound gen(genCursorSFX)
   IF (ic MOD 3) = 0 THEN
    ic = ic + 2
   ELSE
@@ -964,6 +985,7 @@ IF pick = 0 THEN
   GOSUB infostr
  END IF
  IF carray(3) > 1 THEN
+  menusound gen(genCursorSFX)
   IF ((ic + 3) MOD 3) = 2 THEN ' the +3 adjust for the first negative row
    ic = ic - 2
   ELSE
@@ -973,6 +995,7 @@ IF pick = 0 THEN
  END IF
 ELSE
  IF carray(5) > 1 THEN
+  menusound gen(genCancelSFX)
   pick = 0
   GOSUB infostr
   RETRACE
@@ -981,9 +1004,11 @@ ELSE
  IF spred = 0 THEN
   IF carray(0) > 1 THEN
    dummy = getOOBtarg(-1, wptr, 3 + ic, stat(), ondead(), onlive())
+   MenuSound gen(genCursorSFX)
   END IF
   IF carray(1) > 1 THEN
    dummy = getOOBtarg(1, wptr, 3 + ic, stat(), ondead(), onlive())
+   MenuSound gen(genCursorSFX)
   END IF
  END IF
  IF ttype = 2 THEN
@@ -1040,10 +1065,12 @@ END IF
 RETRACE
 
 autosort:
+autosort_changed = 0
 FOR i = 0 TO inventoryMax - 1
  FOR o = i + 1 TO inventoryMax
   IF inventory(i).used = 0 AND inventory(o).used THEN
    itemmenuswap inventory(), iuse(), permask(), i, o
+   autosort_changed = -1
    EXIT FOR
   END IF
  NEXT o
@@ -1052,10 +1079,16 @@ FOR i = 0 TO inventoryMax - 1
  FOR o = i + 1 TO inventoryMax
   IF readbit(iuse(), 0, 3 + i) = 0 AND readbit(iuse(), 0, 3 + o) = 1 THEN
    itemmenuswap inventory(), iuse(), permask(), i, o
+   autosort_changed = -1
    EXIT FOR
   END IF
  NEXT o
 NEXT i
+IF autosort_changed THEN
+ menusound gen(genAcceptSFX)
+ELSE
+ menusound gen(genCancelSFX)
+END IF
 RETRACE
 
 END FUNCTION
@@ -1180,7 +1213,11 @@ IF h2& > 32767 THEN h2& = 32767
 IF h2& < -32768 THEN h2& = -32768
 h = h2&
 
+'Inflict the damage
 stat(t, 0, targstat) = stat(t, 0, targstat) - h
+
+'Sound effect
+MenuSound attack(99)
 
 'bounds
 stat(t, 0, targstat) = large(stat(t, 0, targstat), 0)
@@ -1200,6 +1237,7 @@ END IF
 '--TODO: Must add the attack-tag conditional stuff. Except, this sub doesn't use
 '        the full attack data set, so I can't access the data. I also don't
 '        know enough about it to make it use the whole thing...
+'        [Note from James: The above is no longer true. oobcure has access to all attack data]
 
 END SUB
 
@@ -1955,12 +1993,12 @@ ELSE
  IF carray(5) > 1 THEN pick = 0
  IF canuse(sptr) <> 2 AND spred = 0 THEN
   IF carray(0) > 1 THEN
-   'DO: wptr = loopvar(wptr, 0, 3, -1): LOOP UNTIL hero(wptr) > 0 AND (stat(wptr, 0, 0) > 0 OR readbit(ondead(), 0, sptr))
    dummy = getOOBtarg(-1, wptr, sptr, stat(), ondead(), onlive())
+   MenuSound gen(genCursorSFX)
   END IF
   IF carray(1) > 1 THEN
-   'DO: wptr = loopvar(wptr, 0, 3, 1): LOOP UNTIL hero(wptr) > 0 AND (stat(wptr, 0, 0) > 0 OR readbit(ondead(), 0, sptr))
    dummy = getOOBtarg(1, wptr, sptr, stat(), ondead(), onlive())
+   MenuSound gen(genCursorSFX)
   END IF
  END IF
  IF targt(sptr) = 2 AND canuse(sptr) <> 2 THEN

@@ -107,7 +107,6 @@ DECLARE SUB loadgame (slot%, map%, foep%, stat%(), stock())
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB delitem (it%, num%)
-DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
 DECLARE SUB spells (pt%, stat%())
 DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
@@ -820,7 +819,6 @@ DO
  END IF
  IF carray(4) > 1 THEN
   IF mi(pt) = 4 THEN
-   menusound gen(genAcceptSFX)
    say = items(stat())
    IF say THEN
     '--player has used an item that calls a text box--
