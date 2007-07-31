@@ -4,6 +4,7 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 EXTERN gamefile$
+EXTERN homedir$
 EXTERN timing()
 EXTERN insert
 EXTERN activepalette

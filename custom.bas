@@ -88,11 +88,14 @@ DIM exename$
 exename$ = trimextension$(trimpath$(COMMAND$(0)))
 
 DIM tmpdir$
+DIM homedir$
 #IFDEF __FB_LINUX__
-tmpdir$ = ENVIRON$("HOME") + SLASH + ".ohrrpgce"
+homedir$ = ENVIRON$("HOME")
+tmpdir$ = homedir$ + SLASH + ".ohrrpgce"
 IF NOT isdir(tmpdir$) THEN makedir tmpdir$
 #ELSE
 'Custom on Windows works in the current dir
+homedir$ = ENVIRON$("USERPROFILE") & SLASH & "My Documents" 'Is My Documents called something else for non-English versions of Windows?
 tmpdir$ = ""
 #ENDIF
 
@@ -115,11 +118,7 @@ IF NOT fileiswriteable(exename$) THEN
  CHDIR gamedir$
 ELSE
  'If CUSTOM is installed read-only, use your home dir as the default
- #IFDEF __FB_LINUX__
-  CHDIR ENVIRON$("HOME")
- #ELSE
-  CHDIR ENVIRON$("USERPROFILE") & SLASH & "My Documents" 'Is My Documents called something else for non-English versions of Windows?
- #ENDIF
+ CHDIR homedir$ 
 END IF
 
 DIM font(1024), buffer(16384), timing(4), joy(4)
@@ -1804,6 +1803,17 @@ IF isdir(filetolump$) THEN
  safekill "temp.lst"
 ELSE
  '---relump data into lumpfile package---
+ IF NOT fileiswriteable(filetolump$) THEN
+  clearpage vpage
+  centerbox 160, 100, 310, 50, 3, vpage
+  edgeprint filetolump$, 10, 80, 15, vpage
+  edgeprint "is not writable. Saving to:", 10, 90, 15, vpage
+  filetolump$ = homedir$ & SLASH & trimpath$(filetolump$)
+  edgeprint filetolump$, 10, 100, 15, vpage
+  edgeprint "[Press Any Key]", 10, 110, 15, vpage
+  setvispage vpage
+  w = getkey
+ END IF
  DIM lumpbuf(16383)
  lumpfiles "temp.lst", filetolump$, workingdir$ + SLASH, lumpbuf()
  safekill "temp.lst"
