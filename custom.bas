@@ -74,6 +74,7 @@ DECLARE FUNCTION readarchinym$ ()
 DECLARE SUB importscripts (f$)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
+DECLARE SUB move_unwritable_rpg(BYREF filetolump$)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1792,6 +1793,10 @@ findfiles workingdir$ + SLASH + ALLFILES, 0, "temp.lst", buffer()
 fixorder "temp.lst"
 IF isdir(filetolump$) THEN
  '---copy changed files back to source rpgdir---
+ IF NOT fileiswriteable(filetolump$ & SLASH & "archinym.lmp") THEN
+  move_unwritable_rpg filetolump$
+  makedir filetolump$
+ END IF
  fh = FREEFILE
  OPEN "temp.lst" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
@@ -1804,15 +1809,7 @@ IF isdir(filetolump$) THEN
 ELSE
  '---relump data into lumpfile package---
  IF NOT fileiswriteable(filetolump$) THEN
-  clearpage vpage
-  centerbox 160, 100, 310, 50, 3, vpage
-  edgeprint filetolump$, 10, 80, 15, vpage
-  edgeprint "is not writable. Saving to:", 10, 90, 15, vpage
-  filetolump$ = homedir$ & SLASH & trimpath$(filetolump$)
-  edgeprint filetolump$, 10, 100, 15, vpage
-  edgeprint "[Press Any Key]", 10, 110, 15, vpage
-  setvispage vpage
-  w = getkey
+  move_unwritable_rpg filetolump$
  END IF
  DIM lumpbuf(16383)
  lumpfiles "temp.lst", filetolump$, workingdir$ + SLASH, lumpbuf()
@@ -1835,3 +1832,15 @@ FUNCTION readarchinym$ ()
   readarchinym$ = LCASE$(trimpath$(game$))
  END IF
 END FUNCTION
+
+SUB move_unwritable_rpg(BYREF filetolump$)
+ clearpage vpage
+ centerbox 160, 100, 310, 50, 3, vpage
+ edgeprint filetolump$, 10, 80, 15, vpage
+ edgeprint "is not writable. Saving to:", 10, 90, 15, vpage
+ filetolump$ = homedir$ & SLASH & trimpath$(filetolump$)
+ edgeprint filetolump$, 10, 100, 15, vpage
+ edgeprint "[Press Any Key]", 10, 110, 15, vpage
+ setvispage vpage
+ w = getkey
+END SUB
