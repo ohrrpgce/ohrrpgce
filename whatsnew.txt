@@ -138,6 +138,7 @@ WHAT IS NEW?
     * Fix for bug 341 "After battle, the music speeds up" [Mike]
     * Fix for bug 422 "Only first sprite appears in FB .17 custom" [Mike]
     * Fix for bug 113 "Empty spell lists should not appear in Game" [Mike]
+    * Linux version can be installed system-wide, for example, to /usr/games
 
   * New Plotscripting Commands
     * New HamsterSpeak flow control commands: break, continue, exit script,

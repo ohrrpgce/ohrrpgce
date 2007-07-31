@@ -88,8 +88,19 @@ DIM exename$
 exename$ = trimextension$(trimpath$(COMMAND$(0)))
 
 DIM tmpdir$
-tmpdir$ = "" 'Custom currently works in the current dir
-workingdir$ = tmpdir$ & "working.tmp"
+#IFDEF __FB_LINUX__
+tmpdir$ = ENVIRON$("HOME") + SLASH + ".ohrrpgce"
+IF NOT isdir(tmpdir$) THEN makedir tmpdir$
+#ELSE
+'Custom on Windows works in the current dir
+tmpdir$ = ""
+#ENDIF
+
+IF LEN(tmpdir$) THEN
+ workingdir$ = tmpdir$ & SLASH & "working.tmp"
+ELSE
+ workingdir$ = "working.tmp"
+END IF
 
 'version ID
 DIM version$, version_code$, version_build$
@@ -98,8 +109,18 @@ DIM version$, version_code$, version_build$
 IF (LCASE$(COMMAND$) = "/v" AND NOT LINUX) OR LCASE$(COMMAND$) = "-v" THEN PRINT version$: SYSTEM
 processcommandline
 
-gamedir$ = exepath$
-CHDIR gamedir$
+IF NOT fileiswriteable(exename$) THEN
+ 'When CUSTOM is installed read-write, work in CUSTOM's folder
+ gamedir$ = exepath$ 'Note that exepath$ is a FreeBasic builtin, and not derived from the above exename$
+ CHDIR gamedir$
+ELSE
+ 'If CUSTOM is installed read-only, use your home dir as the default
+ #IFDEF __FB_LINUX__
+  CHDIR ENVIRON$("HOME")
+ #ELSE
+  CHDIR ENVIRON$("USERPROFILE") & SLASH & "My Documents" 'Is My Documents called something else for non-English versions of Windows?
+ #ENDIF
+END IF
 
 DIM font(1024), buffer(16384), timing(4), joy(4)
 DIM menu$(22), gen(360), keyv(55, 3), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), npcn(1500), npcstat(1500), uilook(uiColors)
