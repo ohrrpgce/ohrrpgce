@@ -41,8 +41,8 @@ for i in *.zip ; do
   TMP2="/tmp/ohrnightly.${RANDOM}.tmp"
   unzip -qq -d "${TMP1}" "${i}"
   unzip -qq -d "${TMP2}" "${OLD}"
-  DIF=`diff "${TMP1}" "${TMP2}"`
-  rm -R "${TMP1}" "${TMP2}"
+  DIF=`diff -r "${TMP1}" "${TMP2}"`
+  rm -Rf "${TMP1}" "${TMP2}"
   if [ "${DIF}" ] ; then
     echo "${i} (Updated)"
   else
