@@ -1,8 +1,17 @@
 #!/bin/sh
 rm *.deb
-rm -R ohrrpgce
+
+if [ -d ohrrpgce ] ; then
+  rm -R ohrrpgce
+fi
 ./ohrrpgce.py
-rm -R wandering-hamster
+
+if [ -d wandering-hamster ] ; then
+  rm -R wandering-hamster
+fi
 ./wander.py
-rm -R vikings-of-midgard
+
+if [ -d vikings-of-midgard ] ; then
+  rm -R vikings-of-midgard
+fi
 ./viking.py

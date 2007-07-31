@@ -6,9 +6,16 @@ from ohr_debian import *
 
 package_name = "vikings-of-midgard"
 maintainer = '"Fenrir Lunaris & OHR Developers" <ohrrpgce@lists.motherhamster.org>'
-depends = "ohrrpgce (>=2006.10)"
+depends = "ohrrpgce (>=2007.07)"
 
-files = ["../viking.rpg"]
+prefix = "../../games/vikings/"
+os.system("../relump " + prefix + "/vikings.rpgdir vikings.rpg")
+files = [
+  "vikings.rpg",
+  prefix + "ReadMe.txt",
+  prefix + "viking.txt",
+  prefix + "weaponsnarmorlist.txt",
+  prefix + "utility.lib"]
 
 executables = []
 
@@ -30,8 +37,10 @@ Description: A retro (SNES style) 2D Role Playing Game.
  world, and a shadowy menace prepares to usurp power from them.
  It will take all your strength, courage, and wits to stop this
  dastardly plan!  
+ Featuring glorious pixelation artwork by Fenrir-Lunaris.
 """
 , (package_name, calculate_size(files, executables), maintainer, version, depends))
 build_tree(package_name, files, executables)
-rpg_menu_entry(package_name, "Vikings of Midgard", "viking.rpg")
+rpg_menu_entry(package_name, "Vikings of Midgard", "vikings.rpg")
 run_dpkg(package_name, version)
+os.remove("vikings.rpg")
