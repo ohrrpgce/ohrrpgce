@@ -126,7 +126,7 @@ DIM font(1024), buffer(16384), timing(4), joy(4)
 DIM menu$(22), gen(360), keyv(55, 3), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), npcn(1500), npcstat(1500), uilook(uiColors)
 DIM master(255) as RGBcolor
 'more global variables
-DIM game$, gamefile$, unsafefile$, insert, activepalette
+DIM game$, gamefile$, insert, activepalette
 DIM vpage, dpage, fadestate, workingdir$
 
 
@@ -1795,7 +1795,6 @@ IF isdir(filetolump$) THEN
  '---copy changed files back to source rpgdir---
  fh = FREEFILE
  OPEN "temp.lst" FOR INPUT AS #fh
- unsafefile$ = "RPG lump copy failed!"
  DO UNTIL EOF(fh)
   LINE INPUT #fh, filename$
   safekill filetolump$ + SLASH + filename$
@@ -1803,14 +1802,11 @@ IF isdir(filetolump$) THEN
  LOOP
  CLOSE #fh
  safekill "temp.lst"
- unsafefile$ = ""
 ELSE
  '---relump data into lumpfile package---
  DIM lumpbuf(16383)
- unsafefile$ = "RPG lumping failed!"
  lumpfiles "temp.lst", filetolump$, workingdir$ + SLASH, lumpbuf()
  safekill "temp.lst"
- unsafefile$ = ""
  ERASE lumpbuf
 END IF
 END SUB
