@@ -351,8 +351,7 @@ prefsdir$ = ENVIRON$("APPDATA") + SLASH + "OHRRPGCE" + SLASH + trimextension$(tr
 '--set up savegame file
 savefile$ = trimextension$(sourcerpg$) + ".sav"
 #IFDEF __FB_LINUX__
-touchfile savefile$
-IF NOT isfile(savefile$) THEN
+IF NOT fileisreadable(savefile$) THEN
  savefile$ = prefsdir$ + SLASH + trimpath$(savefile$)
 END IF
 #ENDIF

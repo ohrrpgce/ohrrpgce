@@ -2122,11 +2122,8 @@ DO
 LOOP UNTIL n > 999
 
 #IFDEF __FB_LINUX__
-touchfile shot$
-IF isfile(shot$) THEN
-  KILL shot$
-ELSE
-  shot$ = prefsdir$ + SLASH + trimpath$(shot$)
+IF NOT fileiswriteable(shot$) THEN
+  shot$ = ENVIRON$("HOME") + SLASH + trimpath$(shot$)
 END IF
 #ENDIF
 
