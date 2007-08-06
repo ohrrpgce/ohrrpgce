@@ -3,10 +3,11 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-DECLARE FUNCTION datetag$ ()
+DECLARE FUNCTION get_date_tag () AS STRING
 DEFINT A-Z
 '$DYNAMIC
 
+datetag$ = get_date_tag()
 
 OPEN "codename.txt" FOR INPUT AS #1
 INPUT #1, codename$
@@ -51,7 +52,23 @@ PRINT #1, a$
 CLOSE #1
 
 REM $STATIC
-FUNCTION datetag$
-datetag$ = MID$(DATE$, 7, 4) + MID$(DATE$, 1, 2) + MID$(DATE$, 4, 2)
+FUNCTION get_date_tag() AS STRING
+DIM s AS STRING
+
+'-- use the current date as a fallback in case svn info fails
+get_date_tag = MID$(DATE$, 7, 4) & MID$(DATE$, 1, 2) & MID$(DATE$, 4, 2)
+
+KILL "svninfo.tmp"
+SHELL "svn info > svninfo.tmp"
+fh = FREEFILE
+OPEN "svninfo.tmp" FOR INPUT AS #fh
+DO WHILE NOT EOF(fh)
+ LINE INPUT #fh, s
+ IF LEFT$(s, 19) = "Last Changed Date: " THEN
+   get_date_tag = MID$(s, 20, 4) & MID$(s, 25, 2) & MID$(s, 28, 2)
+ END IF
+LOOP
+CLOSE #fh
+KILL "svninfo.tmp"
 END FUNCTION
 
