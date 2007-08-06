@@ -271,16 +271,21 @@ function io_enablemouse() as integer
 end function
 
 sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
-	dim as integer dmx, dmy
-	getmouse(dmx, dmy, mwheel, mbuttons)
-	if dmx < 0 then
-		'mouse is outside window
-		mx = -1
-		my = -1
-	else
-		mx = dmx \ zoom
-		my = (dmy \ zoom) - screen_buffer_offset
+	static as integer lastx = 0, lasty = 0, lastwheel = 0, lastbuttons = 0
+	dim as integer dmx, dmy, dw, db
+	if getmouse(dmx, dmy, dw, db) = 0 then
+		'mouse is inside window
+		dmx = dmx \ zoom
+		dmy = (dmy \ zoom) - screen_buffer_offset
+		lastx = dmx
+		lasty = dmy
+		lastwheel = dw
+		lastbuttons = db
 	end if
+	mx = lastx
+	my = lasty
+	mwheel = lastwheel
+	mbuttons = lastbuttons
 end sub
 
 sub io_setmouse(byval x as integer, byval y as integer)
