@@ -84,6 +84,8 @@ WHAT IS NEW?
     * New zooming map resize screen to add or trim from any edge [Ralph]
     * Hero start location is visible in the map editor. Press CTRL+H
       to move the start location [James Paige]
+    * Optional graphics smoothing. Run with -s 1 command-line option.
+      [Reaxor Jones]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
@@ -208,7 +210,6 @@ WHAT IS NEW?
       to exit
     * New internal master palette format has higher colour precision: 8 bits
       instead of 6, and multiple palettes [Ralph]
-    * Cool experimental gfx_smooth2x graphics backend [Reaxor Jones]
     * Experimental gfx_sdl graphics backend (may eventually become default
       on Linux) [James Paige]
     * Added UDTs for Hero data [Mike]

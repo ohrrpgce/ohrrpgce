@@ -158,6 +158,8 @@ sub processcommandline()
 							gfx_setoption("border", arg) ' 0 or 1
 						elseif temp = "d" or temp = "depth" then
 							gfx_setoption("depth", arg) ' 8, 24 or 32
+						elseif temp = "s" or temp = "smooth" then
+							gfx_setoption("smooth", arg) ' 8, 24 or 32
 						end if
 					else
 						'ignore this parameter and set i back

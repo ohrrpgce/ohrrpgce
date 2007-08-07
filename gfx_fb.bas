@@ -25,6 +25,7 @@ dim shared screenmodex as integer = 640
 dim shared screenmodey as integer = 400
 dim shared bordered as integer = 0
 dim shared depth as integer = 8
+dim shared smooth as integer = 0
 
 'internal palette for 32-bit mode, with RGB colour components packed into a int
 dim shared truepal(255) as integer
@@ -58,6 +59,7 @@ sub gfx_showpage(byval raw as ubyte ptr)
 'takes a pointer to raw 8-bit data at 320x200
 	dim rptr as ubyte ptr
 	dim as integer w, h, i, j
+	dim as integer fx, fy, p0, p1, p2, p3, p4, pstep'for 2x/3x filtering
 
 	screenlock
 	if depth = 8 then
@@ -79,6 +81,23 @@ sub gfx_showpage(byval raw as ubyte ptr)
 				next
 			next
 		next
+		if smooth = 1 and (zoom = 2 or zoom = 3) then
+			'added for 2x filtering
+			if screenmodex > 640 then pstep = 1 else pstep = 2
+			sptr = screenptr
+			for fy = 1 to (screenmodey - 2) step pstep
+			for fx = 1 to (screenmodex - 2)
+			p0 = *(sptr +(fy * screenmodex) + fx)'point(fx,fy)'peek is faster than point
+			p1 = *(sptr +((fy-1) * screenmodex) + (fx-1))'point(fx-1,fy-1)'nw
+			p2 = *(sptr +((fy-1) * screenmodex) + (fx+1))'point(fx+1,fy-1)'ne
+			p3 = *(sptr +((fy+1) * screenmodex) + (fx+1))'point(fx+1,fy+1)'se
+			p4 = *(sptr +((fy+1) * screenmodex) + (fx-1))'point(fx-1,fy+1)'sw
+			if p1 = p3 then p0 = p1
+			if p2 = p4 then p0 = p2
+			*(sptr + (fy * screenmodex) + fx) = p0'pset(fx,fy),p0'poke is faster than pset
+			next fx
+			next fy
+		end if
 	else
 		'true colour
 		dim xptr as integer ptr
@@ -171,6 +190,7 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 '	zoom (1, 2*, 3),
 '	depth (8*, 24),
 '	border (0*, 1)
+'	smooth (0*, 1)
 'only before gfx has been initialised
 
 	if init_gfx = 0 then
@@ -194,6 +214,12 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 				bordered = 1
 			else
 				bordered = 0
+			end if
+		elseif opt = "smooth" then
+			if value = 1 then
+				smooth = 1
+			else
+				smooth = 0
 			end if
 		end if
 		'calculate mode
