@@ -323,7 +323,7 @@ IF b(pt * recordsize + 17) = 0 THEN
  loaditemdata buffer(), b(pt * recordsize + 18)
  IF buffer(49) = 1 THEN eqinfo$ = eqprefix$ + " " + wepslot$
  IF buffer(49) > 1 THEN eqinfo$ = eqprefix$ + " " + sname$(23 + buffer(49))
- info1$ = readbadbinstring$(buffer(), 9, 40, 0)
+ info1$ = readbadbinstring$(buffer(), 9, 35, 0)
  IF LEN(info1$) > 17 THEN
   FOR o = 18 TO 1 STEP -1
    IF MID$(info1$, o, 1) = " " OR MID$(info1$, o, 1) = "-" OR MID$(info1$, o, 1) = "," OR MID$(info1$, o, 1) = "." THEN EXIT FOR
@@ -793,7 +793,10 @@ setbit permask(), 0, 3 + o, t1
 END SUB
 
 FUNCTION items (stat())
-DIM a(100), iuse(15), ondead(15), onlive(15), permask(15), special$(-3 TO -1)
+DIM itemdata(100) AS INTEGER
+DIM itemtemp(100) AS INTEGER
+DIM atktemp(40 + dimbinsize(binATTACK)) AS INTEGER
+DIM iuse(15), ondead(15), onlive(15), permask(15), special$(-3 TO -1)
 DIM autosort_changed AS INTEGER = 0
 'bit 0 of iuse, permask, onlive, ondead correspond to item -3
 
@@ -813,16 +816,16 @@ FOR i = 0 TO inventoryMax
  setbit ondead(), 0, 3 + i, 0
  setbit onlive(), 0, 3 + i, 1
  IF inventory(i).used THEN
-  loaditemdata buffer(), inventory(i).id
-  IF buffer(73) = 2 THEN setbit permask(), 0, 3 + i, 1
-  IF buffer(51) > 0 OR buffer(50) > 0 THEN
+  loaditemdata itemtemp(), inventory(i).id
+  IF itemtemp(73) = 2 THEN setbit permask(), 0, 3 + i, 1
+  IF itemtemp(51) > 0 OR itemtemp(50) > 0 THEN
    setbit iuse(), 0, 3 + i, 1
-   temp = buffer(51) - 1
-   loadattackdata buffer(), temp
-   IF buffer(3) = 4 OR buffer(3) = 10 THEN setbit ondead(), 0, 3 + i, 1
-   IF buffer(3) = 10 THEN setbit onlive(), 0, 3 + i, 0
+   temp = itemtemp(51) - 1
+   loadattackdata itemtemp(), temp
+   IF itemtemp(3) = 4 OR itemtemp(3) = 10 THEN setbit ondead(), 0, 3 + i, 1
+   IF itemtemp(3) = 10 THEN setbit onlive(), 0, 3 + i, 0
   END IF
-  IF buffer(51) < 0 THEN
+  IF itemtemp(51) < 0 THEN
    setbit iuse(), 0, 3 + i, 1
   END IF
  END IF
@@ -895,7 +898,6 @@ FOR t = 4 TO 5: carray(t) = 0: NEXT t
 EXIT FUNCTION
 
 infostr:
-info$ = ""
 IF sel >= 0 AND ic = -1 THEN
  IF inventory(sel).used THEN
   info$ = readglobalstring$(41, "Discard", 10) + " " + inventory(sel).text
@@ -904,10 +906,8 @@ IF sel >= 0 AND ic = -1 THEN
 END IF
 IF ic < 0 THEN RETRACE
 IF inventory(ic).used = 0 THEN RETRACE
-loaditemdata buffer(), inventory(ic).id
-FOR o = 10 TO 9 + buffer(9)
- info$ = info$ + CHR$(buffer(o))
-NEXT o
+loaditemdata itemtemp(), inventory(ic).id
+info$ = readbadbinstring$(itemtemp(), 9, 35, 0)
 RETRACE
 
 itcontrol:
@@ -950,8 +950,8 @@ IF pick = 0 THEN
     sel = -4
     '--if the usability bit is off, or you dont have any of the item, exit
     IF readbit(iuse(), 0, 3 + ic) = 0 OR inventory(ic).used = 0 THEN RETRACE
-    loaditemdata a(), inventory(ic).id
-    IF a(50) > 0 THEN '--learn a spell
+    loaditemdata itemdata(), inventory(ic).id
+    IF itemdata(50) > 0 THEN '--learn a spell
      tclass = 1
      ttype = 0
      pick = 1: wptr = 0
@@ -963,10 +963,10 @@ IF pick = 0 THEN
      MenuSound gen(genAcceptSFX)
      RETRACE
     END IF
-    IF a(51) > 0 THEN '--attack/oobcure
-     loadattackdata buffer(), a(51) - 1
-     tclass = buffer(3)
-     ttype = buffer(4)
+    IF itemdata(51) > 0 THEN '--attack/oobcure
+     loadattackdata atktemp(), itemdata(51) - 1
+     tclass = atktemp(3)
+     ttype = atktemp(4)
      IF tclass = 0 THEN RETRACE
      wptr = 0
      pick = 1
@@ -974,9 +974,9 @@ IF pick = 0 THEN
      MenuSound gen(genAcceptSFX)
      RETRACE
     END IF
-    IF a(51) < 0 THEN '--trigger a text box
-     IF buffer(73) = 1 THEN dummy = consumeitem(ic)
-     items = a(51) * -1
+    IF itemdata(51) < 0 THEN '--trigger a text box
+     IF itemdata(73) = 1 THEN dummy = consumeitem(ic)
+     items = itemdata(51) * -1
      MenuSound gen(genAcceptSFX)
      loadtemppage 3
      RETRIEVESTATE
@@ -1051,28 +1051,26 @@ ELSE
  END IF
  IF carray(4) > 1 THEN
   'DO ACTUAL EFFECT
-  loaditemdata buffer(), inventory(ic).id
+  loaditemdata itemtemp(), inventory(ic).id
   'if can teach a spell
   didlearn = 0
-  IF buffer(50) > 0 THEN
-   atk = buffer(50)
+  IF itemtemp(50) > 0 THEN
+   atk = itemtemp(50)
    '--trylearn
    didlearn = trylearn(wptr, atk, 0)
    '--announce learn
    IF didlearn = 1 THEN
-    tmp$ = names$(wptr) + " " + readglobalstring$(124, "learned", 10) + " " + readattackname$(atk)
+    tmp$ = names$(wptr) + " " + readglobalstring$(124, "learned", 10) + " " + readattackname$(atk - 1)
     centerbox 160, 100, small(LEN(tmp$) * 8 + 16, 320), 24, 1, vpage
     edgeprint tmp$, large(xstring(tmp$, 160), 0), 95, uilook(uiText), vpage
     setvispage vpage
     dummy = getkey
    END IF
   END IF
-  '(do we need to reload?)
-  loaditemdata buffer(), inventory(ic).id
   '--do (cure) attack outside of battle
   didcure = 0
-  IF buffer(51) > 0 THEN
-   atk = buffer(51) - 1
+  IF itemtemp(51) > 0 THEN
+   atk = itemtemp(51) - 1
    IF spred = 0 THEN
     IF chkOOBtarg(wptr, 3 + ic, stat(), ondead(), onlive()) THEN oobcure -1, wptr, atk, spred, stat(): didcure = -1
    ELSE
@@ -1081,8 +1079,8 @@ ELSE
      IF chkOOBtarg(i, 3 + ic, stat(), ondead(), onlive()) THEN oobcure -1, i, atk, spred, stat(): didcure = -1
     NEXT i
    END IF
-  END IF 'buffer(51) > 0
-  IF buffer(73) = 1 AND (didcure OR didlearn = 1) THEN
+  END IF 'itemtemp(51) > 0
+  IF itemtemp(73) = 1 AND (didcure OR didlearn = 1) THEN
    IF consumeitem(ic) THEN
     setbit iuse(), 0, 3 + ic, 0: pick = 0: GOSUB infostr
    END IF
