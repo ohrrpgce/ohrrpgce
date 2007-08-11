@@ -32,7 +32,7 @@ DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB writescatter (s$, lhold%, start%)
 DECLARE SUB readscatter (s$, lhold%, start%)
-DECLARE SUB fontedit (font%(), gamedir$)
+DECLARE SUB fontedit (font%())
 DECLARE SUB savetanim (n%, tastuf%())
 DECLARE SUB loadtanim (n%, tastuf%())
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
@@ -90,6 +90,7 @@ exename$ = trimextension$(trimpath$(COMMAND$(0)))
 
 DIM tmpdir$
 DIM homedir$
+'why do we use different temp dirs in game and custom?
 #IFDEF __FB_LINUX__
 homedir$ = ENVIRON$("HOME")
 tmpdir$ = homedir$ + SLASH + ".ohrrpgce"
@@ -97,8 +98,21 @@ IF NOT isdir(tmpdir$) THEN makedir tmpdir$
 #ELSE
 'Custom on Windows works in the current dir
 homedir$ = ENVIRON$("USERPROFILE") & SLASH & "My Documents" 'Is My Documents called something else for non-English versions of Windows?
-tmpdir$ = ""
+tmpdir$ = exepath$
 #ENDIF
+
+IF fileiswriteable(exepath$ + SLASH + "writetest.tmp") THEN
+ 'When CUSTOM is installed read-write, work in CUSTOM's folder
+ safekill exepath$ + SLASH + "writetest.tmp"
+ CHDIR exepath$ 'Note that exepath$ is a FreeBasic builtin, and not derived from the above exename$
+ELSE
+ 'If CUSTOM is installed read-only, use your home dir as the default
+ CHDIR homedir$
+ #IFNDEF __FB_LINUX__
+  'under Windows, need a new tmpdir$ too
+  tmpdir$ = homedir$
+ #ENDIF
+END IF
 
 IF LEN(tmpdir$) THEN
  workingdir$ = tmpdir$ & SLASH & "working.tmp"
@@ -113,15 +127,6 @@ DIM version$, version_code$, version_build$
 IF (LCASE$(COMMAND$) = "/v" AND NOT LINUX) OR LCASE$(COMMAND$) = "-v" THEN PRINT version$: SYSTEM
 processcommandline
 
-IF NOT fileiswriteable(exename$) THEN
- 'When CUSTOM is installed read-write, work in CUSTOM's folder
- gamedir$ = exepath$ 'Note that exepath$ is a FreeBasic builtin, and not derived from the above exename$
- CHDIR gamedir$
-ELSE
- 'If CUSTOM is installed read-only, use your home dir as the default
- CHDIR homedir$ 
-END IF
-
 DIM font(1024), buffer(16384), timing(4), joy(4)
 DIM menu$(22), gen(360), keyv(55, 3), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), npcn(1500), npcstat(1500), uilook(uiColors)
 DIM master(255) as RGBcolor
@@ -134,8 +139,8 @@ dim shared trit as string 'to fix an undefined variable error
 
 RANDOMIZE TIMER
 
-IF isfile("ohrrpgce.mas") THEN
- textxbload "ohrrpgce.mas", buffer(), "default master palette ohrrpgce.mas is missing"
+IF isfile(exepath$ + SLASH + "ohrrpgce.mas") THEN
+ textxbload exepath$ + SLASH + "ohrrpgce.mas", buffer(), "default master palette ohrrpgce.mas is missing"
  convertpalette buffer(), master()
 ELSE
  FOR i = 1 TO 15
@@ -146,8 +151,8 @@ ELSE
 END IF
 getui uilook()
 
-IF isfile("ohrrpgce.fnt") THEN
- textxbload "ohrrpgce.fnt", font(), "default font ohrrpgce.fnt is missing"
+IF isfile(exepath$ + SLASH + "ohrrpgce.fnt") THEN
+ textxbload exepath$ + SLASH + "ohrrpgce.fnt", font(), "default font ohrrpgce.fnt is missing"
 ELSE
  getdefaultfont font()
 END IF
@@ -276,7 +281,7 @@ DO:
     IF pt = 11 THEN tagnames
     IF pt = 12 THEN importsong
     IF pt = 13 THEN importsfx
-    IF pt = 14 THEN fontedit font(), gamedir$
+    IF pt = 14 THEN fontedit font()
     IF pt = 15 THEN gendata
     IF pt = 16 THEN scriptman
     IF pt = 17 THEN
@@ -371,7 +376,7 @@ DO
   IF csr = 0 THEN
    game$ = inputfilename$("Filename of New Game?", ".rpg")
    IF game$ <> "" THEN
-     IF NOT newRPGfile("ohrrpgce.new", game$ + ".rpg") THEN GOTO finis
+     IF NOT newRPGfile(exepath$ + SLASH + "ohrrpgce.new", game$ + ".rpg") THEN GOTO finis
      gamefile$ = game$ + ".rpg"
      EXIT DO
    END IF
@@ -729,7 +734,7 @@ safekill "fixorder.tmp"
 
 END SUB
 
-SUB fontedit (font(), gamedir$)
+SUB fontedit (font())
 
 STATIC default$
 
@@ -922,13 +927,13 @@ DO
 
  IF keyval(28) > 1 THEN
   GOSUB savefont
-  copyfile game$ + ".fnt", gamedir$ + SLASH + newfont$ + ".ohf", buffer()
+  copyfile game$ + ".fnt", newfont$ + ".ohf", buffer()
   EXIT DO
  END IF
 
  textcolor 7, 0
  printstr "Input a filename to save to", 0, 0, dpage
- printstr "[" + gamedir$ + SLASH + newfont$ + ".ohf]", 0, 8, dpage
+ printstr "[" + newfont$ + ".ohf]", 0, 8, dpage
  textcolor 14 + tog, 1
  printstr newfont$, 0, 16, dpage
 
