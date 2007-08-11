@@ -498,8 +498,7 @@ DO UNTIL EOF(fh) OR br.treesize >= br.limit
    END IF
   ELSE
    IF bmpinfo(f, bmpd()) THEN
-    IF bmpd(0) = 4 THEN tree(br.treesize).kind = 6
-    IF bmpd(0) = 24 AND (bmpd(1) <> 16 OR bmpd(2) <> 16) THEN tree(br.treesize).kind = 6
+    IF (bmpd(0) = 8 OR bmpd(0) = 24 AND (bmpd(1) = 16 AND bmpd(2) = 16)) = 0 THEN tree(br.treesize).kind = 6
    ELSE
     br.treesize = br.treesize - 1
    END IF
