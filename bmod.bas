@@ -1064,7 +1064,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     END IF
 
     '--ditto for money
-    IF atk(10) > 0 THEN
+    IF atk(10) <> 0 THEN
       gold& = large(gold& - atk(10), 0)
       hc(who) = 7
       hx(who) = bslot(who).x + (bslot(who).w * .5)
