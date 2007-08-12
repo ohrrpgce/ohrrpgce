@@ -1117,7 +1117,7 @@ SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 4)
  IF NOT isfile(out_file) THEN debug "wav_to_ogg: " & out_file & " does not exist" : EXIT SUB
 END SUB
 
-FUNCTION pick_ogg_quality() AS INTEGER
+FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
  STATIC q AS INTEGER = 4
  DIM i AS INTEGER
  clearpage dpage
@@ -1126,6 +1126,7 @@ FUNCTION pick_ogg_quality() AS INTEGER
  DO
   setwait 80
   setkeys
+  IF keyval(1) > 1 THEN RETURN -1   'cancel
   IF keyval(28) > 1 OR keyval(57) > 1 THEN EXIT DO
   intgrabber (q, -1, 10, 75, 77)
   centerbox 160, 100, 300, 40, 4, dpage
@@ -1137,5 +1138,6 @@ FUNCTION pick_ogg_quality() AS INTEGER
   setvispage vpage
   dowait
  LOOP
- RETURN q
+ quality = q
+ RETURN 0
 END FUNCTION

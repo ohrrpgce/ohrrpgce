@@ -919,7 +919,17 @@ pausesong
 'browse for new song
 sourcesong$ = browse$(5, default$, "", "")
 
-'If not song was selected, go back
+'Get song name
+a$ = trimextension$(trimpath$(sourcesong$))
+
+'Convert MP3
+IF getmusictype(sourcesong$) = FORMAT_MP3 THEN
+ import_convert_mp3 sourcesong$, oggtemp
+ELSE
+ oggtemp = ""
+END IF
+
+'If no song was selected, go back
 IF sourcesong$ = "" THEN
  GOSUB getsonginfo 'to play the song again
  RETRACE
@@ -928,16 +938,7 @@ END IF
 'remove song file (except BAM, we can leave those as fallback for QB version)
 IF songfile$ <> bamfile$ THEN safekill songfile$
 
-'Update song name
-a$ = trimextension$(trimpath$(sourcesong$))
 sname$ = a$
-
-'Convert MP3
-IF getmusictype(sourcesong$) = FORMAT_MP3 THEN
- import_convert_mp3 sourcesong$, oggtemp
-ELSE
- oggtemp = ""
-END IF
 
 'generate lump name
 IF LCASE$(RIGHT$(sourcesong$, 4)) = ".bam" AND snum <= 99 THEN
@@ -1116,15 +1117,9 @@ RETRACE
 importsfxfile:
 
 sourcesfx$ = browse$(6, default$, "", "")
-IF sourcesfx$ = "" THEN
- RETRACE
-END IF
-
-safekill sfxfile$
 
 '-- get name
 a$ = trimextension$(trimpath$(sourcesfx$))
-sname$ = a$
 
 'Convert MP3
 IF getmusictype(sourcesfx$) = FORMAT_MP3 THEN
@@ -1134,6 +1129,12 @@ ELSEIF getmusictype(sourcesfx$) = FORMAT_WAV THEN
 ELSE
  oggtemp = ""
 END IF
+
+IF sourcesfx$ = "" THEN RETRACE
+
+safekill sfxfile$
+
+sname$ = a$
 
 '-- calculate lump name
 sfxfile$ = workingdir$ + SLASH + "sfx" + STR$(snum) + "." + justextension$(sourcesfx$)
@@ -1529,8 +1530,8 @@ END SUB
 
 SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
  DIM ogg_quality AS INTEGER
+ IF (pick_ogg_quality(ogg_quality)) THEN mp3 = "" : EXIT SUB
  oggtemp = tmpdir$ & "temp." & INT(RND * 100000) & ".ogg"
- ogg_quality = pick_ogg_quality()
  clearpage vpage
  centerbox 160, 100, 300, 20, 4, vpage
  edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
@@ -1542,8 +1543,8 @@ END SUB
 
 SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
  DIM ogg_quality AS INTEGER
+ IF (pick_ogg_quality(ogg_quality)) THEN wav = "" : EXIT SUB
  oggtemp = tmpdir$ & "temp." & INT(RND * 100000) & ".ogg"
- ogg_quality = pick_ogg_quality()
  clearpage vpage
  centerbox 160, 100, 300, 20, 4, vpage
  edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage

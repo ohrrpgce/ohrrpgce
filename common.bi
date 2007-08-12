@@ -88,7 +88,7 @@ DECLARE FUNCTION can_convert_wav () AS INTEGER
 DECLARE SUB mp3_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5)
 DECLARE SUB mp3_to_wav (in_file AS STRING, out_file AS STRING)
 DECLARE SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5)
-DECLARE FUNCTION pick_ogg_quality() AS INTEGER
+DECLARE FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
 
 DECLARE FUNCTION intgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER, more AS INTEGER) AS INTEGER
 

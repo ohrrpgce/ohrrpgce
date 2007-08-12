@@ -93,12 +93,12 @@ DIM homedir$
 'why do we use different temp dirs in game and custom?
 #IFDEF __FB_LINUX__
 homedir$ = ENVIRON$("HOME")
-tmpdir$ = homedir$ + SLASH + ".ohrrpgce"
+tmpdir$ = homedir$ + SLASH + ".ohrrpgce" + SLASH
 IF NOT isdir(tmpdir$) THEN makedir tmpdir$
 #ELSE
 'Custom on Windows works in the current dir
 homedir$ = ENVIRON$("USERPROFILE") & SLASH & "My Documents" 'Is My Documents called something else for non-English versions of Windows?
-tmpdir$ = exepath$
+tmpdir$ = exepath$ + SLASH
 #ENDIF
 
 IF fileiswriteable(exepath$ + SLASH + "writetest.tmp") THEN
@@ -110,15 +110,11 @@ ELSE
  CHDIR homedir$
  #IFNDEF __FB_LINUX__
   'under Windows, need a new tmpdir$ too
-  tmpdir$ = homedir$
+  tmpdir$ = homedir$ + SLASH
  #ENDIF
 END IF
 
-IF LEN(tmpdir$) THEN
- workingdir$ = tmpdir$ & SLASH & "working.tmp"
-ELSE
- workingdir$ = "working.tmp"
-END IF
+workingdir$ = tmpdir$ & "working.tmp"
 
 'version ID
 DIM version$, version_code$, version_build$
