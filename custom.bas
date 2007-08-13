@@ -116,9 +116,6 @@ END IF
 
 workingdir$ = tmpdir$ & "working.tmp"
 
-'version ID
-DIM version$, version_code$, version_build$
-#include "cver.txt"
 'PRINT isn't going to work in FB Allegro
 IF (LCASE$(COMMAND$) = "/v" AND NOT LINUX) OR LCASE$(COMMAND$) = "-v" THEN PRINT version$: SYSTEM
 processcommandline

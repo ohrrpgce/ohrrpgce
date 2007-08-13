@@ -18,16 +18,24 @@ PRINT "Version ID " + datetag$
 PRINT "Codename " + codename$
 
 OPEN "cver.txt" FOR OUTPUT AS #1
-a$ = "version$ = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + " " + command(1) + "/" + command(2) + CHR$(34)
+a$ = "#DEFINE GFX_" + UCASE$(command(1)) + "_BACKEND"
 PRINT #1, a$
-a$ = "version_code$ = " + CHR$(34) + "OHRRPGCE Editor version " + codename$ + CHR$(34)
+a$ = "#DEFINE MUSIC_" + UCASE$(command(2)) + "_BACKEND"
 PRINT #1, a$
-a$ = "version_build$ = " + CHR$(34) + "build:" + datetag$ + " gfx_" + command(1) + " music_" + command(2) + CHR$(34)
+a$ = "CONST version$ = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + " " + command(1) + "/" + command(2) + CHR$(34)
+PRINT #1, a$
+a$ = "CONST version_code$ = " + CHR$(34) + "OHRRPGCE Editor version " + codename$ + CHR$(34)
+PRINT #1, a$
+a$ = "CONST version_build$ = " + CHR$(34) + "build:" + datetag$ + " gfx_" + command(1) + " music_" + command(2) + CHR$(34)
 PRINT #1, a$
 CLOSE #1
 
 OPEN "gver.txt" FOR OUTPUT AS #1
-a$ = "version$ = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + " " + command(1) + "/" + command(2) + CHR$(34)
+a$ = "#DEFINE GFX_" + UCASE$(command(1)) + "_BACKEND"
+PRINT #1, a$
+a$ = "#DEFINE MUSIC_" + UCASE$(command(2)) + "_BACKEND"
+PRINT #1, a$
+a$ = "CONST version$ = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + " " + command(1) + "/" + command(2) + CHR$(34)
 PRINT #1, a$
 CLOSE #1
 

@@ -787,8 +787,8 @@ sg$ = savefile$
 setpicstuf buffer(), 30000, -1
 loadset sg$, slot * 2, 0
 
-version = buffer(0)
-IF version < 2 OR version > 3 THEN EXIT SUB
+savver = buffer(0)
+IF savver < 2 OR savver > 3 THEN EXIT SUB
 map = buffer(1)
 loadrecord gmaptmp(), game$ + ".map", getbinsize(4) / 2, map
 catx(0) = buffer(2) + gmaptmp(20) * 20
@@ -935,7 +935,7 @@ NEXT i
 
 '---BLOODY BACKWARD COMPATABILITY---
 'fix doors...
-IF version = 2 THEN gen(95) = 3
+IF savver = 2 THEN gen(95) = 3
 
 IF picpalmagicnum <> 4444 THEN
  '--fix appearance settings

@@ -8,6 +8,13 @@
 #IFNDEF COMPAT_BI
 #DEFINE COMPAT_BI
 
+#IFDEF IS_GAME
+#INCLUDE "gver.txt"
+#ENDIF
+#IFDEF IS_CUSTOM
+#INCLUDE "cver.txt"
+#ENDIF
+
 option nokeyword getkey
 option nokeyword setmouse
 

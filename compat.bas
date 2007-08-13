@@ -12,7 +12,7 @@ option explicit
 #include "util.bi"
 #include "music.bi"
 
-extern workingdir$, version$, game$
+extern workingdir$, game$
 
 declare SUB debug (s$)
 

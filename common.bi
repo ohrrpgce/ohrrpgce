@@ -99,7 +99,6 @@ EXTERN exename$
 EXTERN uilook()
 EXTERN vpage, dpage
 EXTERN buffer()
-EXTERN version$
 EXTERN fadestate
 EXTERN master() as RGBcolor
 EXTERN workingdir$

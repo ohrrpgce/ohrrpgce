@@ -185,8 +185,6 @@ tmpdir$ = aquiretempdir$
 'DEBUG debug "Thestart"
 thestart:
 
-#include "gver.txt"
-
 'DEBUG debug "dim (almost) everything"
 
 '$dynamic
@@ -211,7 +209,7 @@ DIM inventory(inventoryMax) as InventSlot
 DIM npcs(npcdMax) as NPCType
 DIM npc(300) as NPCInst
 DIM didgo(0 TO 3)
-DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, tmpdir$, usepreunlump, gold, lastsaveslot, abortg, exename$, sourcerpg$, foemaph, presentsong, framex, framey, game$, workingdir$, version$
+DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, tmpdir$, usepreunlump, gold, lastsaveslot, abortg, exename$, sourcerpg$, foemaph, presentsong, framex, framey, game$, workingdir$
 DIM prefsdir$
 DIM savefile$
 DIM timers(15) as timer
@@ -2474,13 +2472,13 @@ end sub
 FUNCTION count_sav(filename AS STRING) AS INTEGER
  DIM i AS INTEGER
  DIM n AS INTEGER
- DIM version AS INTEGER
+ DIM savver AS INTEGER
  n = 0
  setpicstuf buffer(), 30000, -1
  FOR i = 0 TO 3
   loadset filename, i * 2, 0
-  version = buffer(0)
-  IF version = 3 THEN n += 1
+  savver = buffer(0)
+  IF savver = 3 THEN n += 1
  NEXT i
  RETURN n
 END FUNCTION
