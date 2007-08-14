@@ -861,8 +861,6 @@ SUB scriptadvanced (id)
 
 'contains advanced scripting stuff such as pixel-perfect movement
 
-DIM mouse(4)
-
 SELECT CASE AS CONST id
 
  CASE 135'--puthero
@@ -913,21 +911,21 @@ SELECT CASE AS CONST id
  CASE 159'--init mouse
   IF setmouse(mouse()) THEN scriptret = 1 ELSE scriptret = 0
   mouserect 0, 319, 0, 199
- CASE 160'--get mouse x
   readmouse mouse()
+ CASE 160'--get mouse x
   scriptret = mouse(0)
  CASE 161'--get mouse y
-  readmouse mouse()
   scriptret = mouse(1)
  CASE 162'--mouse button
   IF retvals(0) <= 1 THEN
-   readmouse mouse()
    IF mouse(2) AND 2 ^ retvals(0) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 163'--put mouse
   movemouse retvals(0), retvals(1)
+  readmouse mouse()
  CASE 164'--mouse region
   mouserect retvals(0), retvals(1), retvals(2), retvals(3)
+  readmouse mouse()
  CASE 178'--readgmap
   IF retvals(0) >= 0 AND retvals(0) <= 19 THEN
    scriptret = gmap(retvals(0))

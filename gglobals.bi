@@ -28,6 +28,7 @@ EXTERN backcompat_sound_slots()
 'Input handling globals
 EXTERN carray(), csetup()
 EXTERN gotj(), joy()
+EXTERN mouse()
 
 'Game state globals
 EXTERN tag()
