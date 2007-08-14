@@ -56,7 +56,7 @@ DECLARE FUNCTION hasmedia (BYVAL d)
 CONST null  = 0
 DIM buffer(16383)
 
-DIM SHARED createddir = false, dest$, olddir$
+DIM SHARED createddir = 0, dest$, olddir$
 
 rpas$ = ""
 cur = 0
@@ -118,7 +118,7 @@ ELSE
  ELSE
    MKDIR dest$
  END IF
- createddir = true
+ createddir = -1
 END IF
 
 IF NOT isdir(dest$) THEN fatalerror "unable to create destination directory `" + dest$ + "'"
@@ -148,10 +148,10 @@ xbload dest$ + SLASH + game$ + ".gen", buffer(), "unable to open general data"
 
 KILL dest$ + SLASH + game$ + ".gen"
 
-passokay = true
+passokay = -1
 
 IF buffer(94) > -1 THEN
- passokay = false
+ passokay = 0
  '----load password-----
  'Note that this is still using the old 2nd-style password format, not the
  'newer simpler 3rd-style password format. This is okay for now, since
@@ -168,11 +168,11 @@ IF buffer(94) > -1 THEN
   IF w$ = CHR$(13) THEN
    PRINT ""
    IF pas$ <> rpas$ THEN fatalerror "password mismatch"
-   passokay = true
+   passokay = -1
    EXIT DO
   END IF
   LOCATE , 1: FOR i = 1 TO LEN(pas$): PRINT " "; : NEXT i
-  pas$ = editstr(pas$, w$, cur, 17, false)
+  pas$ = editstr(pas$, w$, cur, 17, 0)
   LOCATE , 1: FOR i = 1 TO LEN(pas$): PRINT "*"; : NEXT i
   sleep 80,1
  LOOP
