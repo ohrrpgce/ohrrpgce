@@ -41,7 +41,11 @@ for i in *.zip ; do
   TMP2="/tmp/ohrnightly.${RANDOM}.tmp"
   unzip -qq -d "${TMP1}" "${i}"
   unzip -qq -d "${TMP2}" "${OLD}"
-  DIF=`diff -r "${TMP1}" "${TMP2}"`
+  if [ -f "${TMP1}/svninfo.txt" -a -f "${TMP2}/svninfo.txt" ] ; then
+    DIF=`diff -u "${TMP1}/svninfo.txt" "${TMP2}/svninfo.txt"`
+  else
+    DIF=`diff -r "${TMP1}" "${TMP2}"`
+  fi
   rm -Rf "${TMP1}" "${TMP2}"
   if [ "${DIF}" ] ; then
     echo "${i} (Updated)"
