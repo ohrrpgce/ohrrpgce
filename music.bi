@@ -1,6 +1,8 @@
 #IFNDEF __MUSIC_BI__
 #DEFINE __MUSIC_BI__
 
+#INCLUDE "compat.bi"
+
 '' External music functions
 
 ENUM music_format
@@ -18,8 +20,14 @@ END ENUM
 '' FX=WAV or OGG only, Music=all but WAV and MP3
 #define VALID_FX_FORMAT (FORMAT_WAV or FORMAT_OGG or FORMAT_MP3)
 #define VALID_MUSIC_FORMAT (FORMAT_BAM or FORMAT_MIDI or FORMAT_MOD or FORMAT_OGG or FORMAT_MP3 or FORMAT_XM or FORMAT_IT or FORMAT_S3M)
+'SDL_Mixer crashes on a lot of MP3s
+#if not defined(MUSIC_SDL_BACKEND)
+#define PREVIEWABLE_FX_FORMAT (FORMAT_WAV or FORMAT_OGG or FORMAT_MP3)
+#define PREVIEWABLE_MUSIC_FORMAT (FORMAT_BAM or FORMAT_MIDI or FORMAT_MOD or FORMAT_OGG or FORMAT_MP3 or FORMAT_XM or FORMAT_IT or FORMAT_S3M)
+#else
 #define PREVIEWABLE_FX_FORMAT (FORMAT_WAV or FORMAT_OGG)
 #define PREVIEWABLE_MUSIC_FORMAT (FORMAT_BAM or FORMAT_MIDI or FORMAT_MOD or FORMAT_OGG or FORMAT_XM or FORMAT_IT or FORMAT_S3M)
+#endif
 
 declare sub music_init()
 declare sub music_close()

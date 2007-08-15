@@ -226,12 +226,10 @@ SELECT CASE br.special
  CASE 5
   pausesong
   alert$ = tree(treeptr).about
-  IF tree(treeptr).kind = 3 THEN
-   IF validmusicfile(br.nowdir + tree(treeptr).filename, PREVIEWABLE_MUSIC_FORMAT) THEN
-    loadsong br.nowdir + tree(treeptr).filename
-   ELSEIF getmusictype(br.nowdir + tree(treeptr).filename) = FORMAT_MP3 THEN
-    alert$ = show_mp3_info()
-   END IF
+  IF validmusicfile(br.nowdir + tree(treeptr).filename, PREVIEWABLE_MUSIC_FORMAT) THEN
+   loadsong br.nowdir + tree(treeptr).filename
+  ELSEIF getmusictype(br.nowdir + tree(treeptr).filename) = FORMAT_MP3 THEN
+   alert$ = show_mp3_info()
   END IF
  CASE 6
   alert$ = tree(treeptr).about
@@ -240,13 +238,11 @@ SELECT CASE br.special
    UnloadSound(f)
    f = -1
   END IF
-  IF tree(treeptr).kind = 3 THEN
-   IF validmusicfile(br.nowdir + tree(treeptr).filename, PREVIEWABLE_FX_FORMAT) THEN
-    f = LoadSound(br.nowdir + tree(treeptr).filename)
-    sound_play(f, 0, -1)
-   ELSEIF getmusictype(br.nowdir + tree(treeptr).filename) = FORMAT_MP3 THEN
-    alert$ = show_mp3_info()
-   END IF
+  IF validmusicfile(br.nowdir + tree(treeptr).filename, PREVIEWABLE_FX_FORMAT) THEN
+   f = LoadSound(br.nowdir + tree(treeptr).filename)
+   sound_play(f, 0, -1)
+  ELSEIF getmusictype(br.nowdir + tree(treeptr).filename) = FORMAT_MP3 THEN
+   alert$ = show_mp3_info()
   END IF
  CASE 7
   alert$ = tree(treeptr).about

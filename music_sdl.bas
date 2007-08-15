@@ -41,7 +41,6 @@ dim shared delhead as delitem ptr = null
 dim shared callback_set_up as integer = 0
 
 sub music_init()	
-	dim version as uinteger
 	if music_on = 0 then
 		dim audio_rate as integer
 		dim audio_format as Uint16
