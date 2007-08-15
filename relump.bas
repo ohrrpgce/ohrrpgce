@@ -84,8 +84,10 @@ IF dest$ = "" THEN
  IF dest$ = "" THEN fatalerror "please specify an output folder"
 END IF
 
-IF isfile(src$) THEN fatalerror src$ + "' is a file, not a folder"
-IF NOT isdir(src$) THEN fatalerror "rpgdir folder `" + src$ + "' was not found"
+IF NOT isdir(src$) THEN
+  IF isfile(src$) THEN fatalerror src$ + "' is a file, not a folder"
+  fatalerror "rpgdir folder `" + src$ + "' was not found"
+END IF
 
 PRINT "From " + src$ + " to " + dest$
 
@@ -122,6 +124,7 @@ IF buffer(94) > -1 THEN
  'newer simpler 3rd-style password format. This is okay for now, since
  'CUSTOM writes both 2nd and 3rd style passwords, but supporting 3rd-style
  'here also would be desireable
+ rpas$ = ""
  readscatter rpas$, buffer(94), buffer(), 200
  rpas$ = rotascii(rpas$, buffer(93) * -1)
  'PRINT rpas$
@@ -137,6 +140,7 @@ IF buffer(94) > -1 THEN
    EXIT DO
   END IF
   LOCATE , 1: FOR i = 1 TO LEN(pas$): PRINT " "; : NEXT i
+  cur = 0
   pas$ = editstr(pas$, w$, cur, 17, 0)
   LOCATE , 1: FOR i = 1 TO LEN(pas$): PRINT "*"; : NEXT i
   sleep 80,1
