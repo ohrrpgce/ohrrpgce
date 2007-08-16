@@ -155,27 +155,24 @@ Type DoorLink
 	as integer source, dest, dest_map, tag1, tag2
 End Type
 
-Type StatsByName
-	hp as integer
-	mp as integer
-	str as integer
-	acc as integer
-	def as integer
-	dog as integer
-	mag as integer
-	wil as integer
-	spd as integer
-	ctr as integer
-	foc as integer
-	hits as integer
-End Type
+Union Stats
+       Type
+               hp as integer
+               mp as integer
+               str as integer
+               acc as integer
+               def as integer
+               dog as integer
+               mag as integer
+               wil as integer
+               spd as integer
+               ctr as integer
+               foc as integer
+               hits as integer
+       End Type
+       sta(11) as integer
+End Union
 
-Type Stats
-	Union
-		st as StatsByName
-		sta(11) as integer
-	End Union
-End Type
 
 Type SpellList
 	attack as integer

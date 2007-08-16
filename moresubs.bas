@@ -937,11 +937,12 @@ NEXT i
 'fix doors...
 IF savver = 2 THEN gen(95) = 3
 
+dim her as herodef
+
 IF picpalmagicnum <> 4444 THEN
  '--fix appearance settings
  FOR sl = 0 TO 40
   IF hero(sl) > 0 THEN
-   dim her as herodef
    loadherodata @her, hero(sl) - 1
    stat(sl, 0, 14) = her.sprite
    stat(sl, 0, 15) = her.sprite_pal
@@ -956,7 +957,6 @@ IF nativebitmagicnum <> 4444 THEN
  '--fix native hero bits
  FOR sl = 0 TO 40
   IF hero(sl) > 0 THEN
-   dim her as herodef
    loadherodata @her, hero(sl) - 1
    FOR i = 0 TO 2 '??
     nativehbits(sl, i) = her.bits(i)
