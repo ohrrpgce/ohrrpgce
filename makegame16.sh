@@ -1,4 +1,5 @@
 #!/bin/sh
+# This version of the compile script works with FreeBasic 0.16 and older
 GFX=${1}
 MUSIC=${2}
 EXTRA=
