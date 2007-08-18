@@ -150,6 +150,11 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 'can be ignored or supported as the library permits.
 end sub
 
+function gfx_describe_options() as string
+'No options are supported by this backend
+ return ""
+end function
+
 '------------- IO Functions --------------
 sub io_init
 ' 	'mostly handled above

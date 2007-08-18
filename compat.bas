@@ -155,6 +155,7 @@ sub processcommandline()
 				print "-v -version         Show version and build info"
 				print "-f -fullscreen      Start in full-screen mode if possible"
 				print "-w -windowed        Start in windowed mode (default)"
+				print gfx_describe_options()
 				SYSTEM
 			elseif temp = "s" or temp = "smooth" then
 				gfx_setoption("smooth", 1)

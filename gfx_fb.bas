@@ -199,7 +199,7 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 			if value = 1 then
 				zoom = 1
 			elseif value = 3 then
-		zoom = 3
+				zoom = 3
 			else
 				zoom = 2
 			end if
@@ -247,6 +247,21 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 	end if
 
 end sub
+
+function gfx_describe_options() as string
+ dim s as string
+ dim lineend as string
+#ifdef __FB_LINUX__
+ lineend = chr(10)
+#else
+ lineend = chr(13) & chr(10)
+#endif
+ s =     "-z -zoom [1|2|3]    Scale screen to 1x 2x or 3x normal size (2x default)" & lineend
+ s = s & "-b -border [0|1]    Add a letterbox border (default off)" & lineend
+ s = s & "-d -depth [8|24|32] Set color bit-depth (default 8-bit)" & lineend
+ s = s & "-s -smooth          Enable smoothing filter for zoom modes (default off)"
+ return s
+end function
 
 '------------- IO Functions --------------
 sub io_init

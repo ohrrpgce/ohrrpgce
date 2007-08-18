@@ -11,6 +11,7 @@ declare sub gfx_setwindowed(byval iswindow as integer)
 declare sub gfx_togglewindowed()
 declare sub gfx_windowtitle(title as string)
 declare sub gfx_setoption(opt as string, byval value as integer = -1)
+declare function gfx_describe_options() as string
 
 declare sub io_init()
 declare sub io_pollkeyevents()

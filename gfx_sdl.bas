@@ -291,6 +291,12 @@ SUB gfx_setoption(opt as string, byval value as integer = -1)
   END IF
 END SUB
 
+FUNCTION gfx_describe_options() AS STRING
+ dim s as string
+ s =     "-z -zoom [1|2|3|4]  Scale screen to 1,2,3 or 4x normal size (2x default)"
+ return s
+END FUNCTION
+
 SUB io_init
   'nothing needed at the moment...
 END SUB
