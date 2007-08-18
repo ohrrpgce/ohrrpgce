@@ -794,8 +794,8 @@ sub sound_play(byval num as integer, byval l as integer,  byval s as integer = 0
     end if
 
     .paused = 0
-    AudSetRepeat(.soundID, l)
     AudPlay(.soundID)
+    AudSetRepeat(.soundID, l)
   end with
 '  debug "<<done"
 end sub
