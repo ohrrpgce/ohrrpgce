@@ -807,7 +807,7 @@ sub sound_pause(byval num as integer,  byval s as integer = 0)
   if slot = -1 then exit sub
 
   with SoundPool[slot]
-    if sound_playing(num) = 0 OR .paused then
+    if sound_playing(slot, -1) = 0 OR .paused then
       exit sub
     end if
 
