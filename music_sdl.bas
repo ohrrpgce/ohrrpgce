@@ -352,39 +352,45 @@ sub sound_play(byval num as integer, byval l as integer,  byval s as integer = 0
 	
 	if slot=-1 then exit sub
 	
-  	with sfx_slots(slot)
-    	if .buf = 0 then
-      		exit sub
-    	end if
-    
-    	if l then l = -1
-    	if .playing=0 then
-    		if mix_playchannel(slot,.buf,l) = -1 then
-      			exit sub
-    		end if
-    		.playing = 1
-    	end if
-  	end with
-  	
+	with sfx_slots(slot)
+		if .buf = 0 then
+			exit sub
+		end if
+
+		if l then l = -1
+
+		if .paused then
+			Mix_Resume(slot)
+			.paused = 0
+		end if
+
+		if .playing=0 then
+			if mix_playchannel(slot,.buf,l) = -1 then
+				exit sub
+			end if
+			.playing = 1
+		end if
+	end with
+
 end sub
 
 sub sound_pause(byval num as integer,  byval s as integer = 0)
 	dim slot as integer
-	
+
 	if s=0 then 
 		slot=GetSlot(num)
 	else
 		slot=num
 	end if
-	
+
 	if slot=-1 then exit sub
 	
-    with sfx_slots(slot)
-        if .playing <> 0 and .paused <> 0 then
-          	.paused = 1
-          	Mix_Pause(slot)
-        end if
-    end with
+	with sfx_slots(slot)
+		if .playing <> 0 and .paused = 0 then
+			.paused = 1
+			Mix_Pause(slot)
+		end if
+	end with
 end sub
 
 sub sound_stop(byval num as integer,  byval s as integer = 0)
