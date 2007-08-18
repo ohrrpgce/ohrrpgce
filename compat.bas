@@ -145,7 +145,17 @@ sub processcommandline()
 			elseif temp = "f" or temp = "fullscreen" then
 				gfx_setwindowed(0)
 			elseif temp = "v" or temp = "version" then
-				print long_version$ : SYSTEM
+				print long_version$
+				print "(C) Copyright 1997-2007 James Paige and Hamster Republic Productions"
+				print "This is free software under the terms of the GPL. For source-code see"
+				print "http://HamsterRepublic.com/ohrrpgce/source.php"
+				SYSTEM
+			elseif temp = "?" or temp = "help" then
+				print "-? -help            Display this help screen"
+				print "-v -version         Show version and build info"
+				print "-f -fullscreen      Start in full-screen mode if possible"
+				print "-w -windowed        Start in windowed mode (default)"
+				SYSTEM
 			else
 				'get next argument and check it is numeric
 				i = i + 1
