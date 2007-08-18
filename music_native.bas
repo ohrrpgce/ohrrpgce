@@ -900,7 +900,7 @@ Function LoadSound(byval f as string,  byval num as integer = -1) as integer
   if i = SoundPoolSize then
     'Grow the sound pool
     dim newpool as SoundEffect ptr
-    newpool = Reallocate(SoundPool, SoundPoolSize * 1.1 + 3)
+    newpool = Reallocate(SoundPool, (SoundPoolSize * 1.1 + 3) * SIZEOF(SoundEffect))
 
     if newpool = NULL then return -1 'crap
 
