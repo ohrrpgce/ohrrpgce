@@ -116,8 +116,6 @@ END IF
 
 workingdir$ = tmpdir$ & "working.tmp"
 
-'PRINT isn't going to work in FB Allegro
-IF (LCASE$(COMMAND$) = "/v" AND NOT LINUX) OR LCASE$(COMMAND$) = "-v" THEN PRINT version$: SYSTEM
 processcommandline
 
 DIM font(1024), buffer(16384), timing(4), joy(4)

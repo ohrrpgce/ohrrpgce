@@ -144,6 +144,8 @@ sub processcommandline()
 				gfx_setwindowed(1)
 			elseif temp = "f" or temp = "fullscreen" then
 				gfx_setwindowed(0)
+			elseif temp = "v" or temp = "version" then
+				print long_version$ : SYSTEM
 			else
 				'get next argument and check it is numeric
 				i = i + 1
