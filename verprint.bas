@@ -4,10 +4,12 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 DECLARE FUNCTION get_date_tag () AS STRING
+DECLARE FUNCTION get_svn_rev () AS STRING
 DEFINT A-Z
 '$DYNAMIC
 
 datetag$ = get_date_tag()
+svnrev$ = get_svn_rev()
 
 OPEN "codename.txt" FOR INPUT AS #1
 INPUT #1, codename$
@@ -17,7 +19,7 @@ codename$ = LEFT$(codename$, 15)
 PRINT "Version ID " + datetag$
 PRINT "Codename " + codename$
 
-long_version$ = "CONST long_version$ = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + " " + command(1) + "/" + command(2) + " FB" + __FB_VERSION__ + CHR$(34)
+long_version$ = "CONST long_version$ = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + "." + svnrev$ + " gfx_" + command(1) + "/music_" + command(2) + " FB" + __FB_VERSION__ + CHR$(34)
 
 OPEN "cver.txt" FOR OUTPUT AS #1
 a$ = "#DEFINE GFX_" + UCASE$(command(1)) + "_BACKEND"
@@ -47,7 +49,7 @@ OPEN "iver.txt" FOR OUTPUT AS #1
 
 a$ = "AppVerName=" + "OHRRPGCE (" + codename$ + ") " + datetag$
 PRINT #1, a$
-a$ = "VersionInfoVersion=" + MID$(datetag$, 1, 4) + "." + MID$(datetag$, 5, 2) + "." + MID$(datetag$, 7, 2) + ".0"
+a$ = "VersionInfoVersion=" + MID$(datetag$, 1, 4) + "." + MID$(datetag$, 5, 2) + "." + MID$(datetag$, 7, 2) + "." + svnrev$
 PRINT #1, a$
 
 CLOSE #1
@@ -78,6 +80,26 @@ DO WHILE NOT EOF(fh)
  LINE INPUT #fh, s
  IF LEFT$(s, 19) = "Last Changed Date: " THEN
    get_date_tag = MID$(s, 20, 4) & MID$(s, 25, 2) & MID$(s, 28, 2)
+ END IF
+LOOP
+CLOSE #fh
+KILL "svninfo.tmp"
+END FUNCTION
+
+FUNCTION get_svn_rev() AS STRING
+DIM s AS STRING
+
+'-- default in case svn info fails
+get_svn_rev = "0"
+
+KILL "svninfo.tmp"
+SHELL "svn info > svninfo.tmp"
+fh = FREEFILE
+OPEN "svninfo.tmp" FOR INPUT AS #fh
+DO WHILE NOT EOF(fh)
+ LINE INPUT #fh, s
+ IF LEFT$(s, 10) = "Revision: " THEN
+   get_svn_rev = MID$(s, 11)
  END IF
 LOOP
 CLOSE #fh
