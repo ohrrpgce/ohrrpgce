@@ -147,8 +147,9 @@ sub processcommandline()
 			elseif temp = "v" or temp = "version" then
 				print long_version$
 				print "(C) Copyright 1997-2007 James Paige and Hamster Republic Productions"
-				print "This is free software under the terms of the GPL. For source-code see"
-				print "http://HamsterRepublic.com/ohrrpgce/source.php"
+				print "This game engine is free software under the terms of the GPL"
+				print "For source-code see http://HamsterRepublic.com/ohrrpgce/source.php"
+				print "Game data copyright and license will vary."
 				SYSTEM
 			elseif temp = "?" or temp = "help" then
 				print "-? -help            Display this help screen"
