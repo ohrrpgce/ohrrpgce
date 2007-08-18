@@ -156,6 +156,8 @@ sub processcommandline()
 				print "-f -fullscreen      Start in full-screen mode if possible"
 				print "-w -windowed        Start in windowed mode (default)"
 				SYSTEM
+			elseif temp = "s" or temp = "smooth" then
+				gfx_setoption("smooth", 1)
 			else
 				'get next argument and check it is numeric
 				i = i + 1
@@ -170,8 +172,6 @@ sub processcommandline()
 							gfx_setoption("border", arg) ' 0 or 1
 						elseif temp = "d" or temp = "depth" then
 							gfx_setoption("depth", arg) ' 8, 24 or 32
-						elseif temp = "s" or temp = "smooth" then
-							gfx_setoption("smooth", arg) ' 8, 24 or 32
 						end if
 					else
 						'ignore this parameter and set i back
