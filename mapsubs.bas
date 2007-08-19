@@ -160,7 +160,7 @@ DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4),
 defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
 DIM her AS HeroDef
 
-redim doors(0) as door, link(0) as doorlink
+redim doors(99) as door, link(199) as doorlink
 
 DIM as integer usetile(0 to 2)
 DIM as integer menubarstart(0 to 2)
@@ -1484,7 +1484,7 @@ end sub
 SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors() as door, link() as doorlink, gmap())
  DIM as integer dmx, dmy, i, tempw, temph
  DIM caption$
- DIM destdoor() as door
+ DIM destdoor(99) as door
  DIM gmap2(dimbinsize(4)), anim(40)
  
  clearpage 2

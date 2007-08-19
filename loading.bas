@@ -238,8 +238,6 @@ END SUB
 SUB DeserDoorLinks(filename as string, array() as doorlink)
 	dim as integer hasheader = -1, f, i
 	'when we strip the header, we can check for its presence here
-	
-	redim array(199) 'there are 200 links per map
 
 	if not fileisreadable(filename) then
 		debug "couldn't load " & filename
@@ -330,7 +328,6 @@ Sub DeSerDoors(filename as string, array() as door, record as integer)
 	open filename for binary as #f
 	
 	seek #f, record * 600 + 1
-	redim array(99)
 	
 	for i = 0 to 99
 		array(i).x = readshort(f)
