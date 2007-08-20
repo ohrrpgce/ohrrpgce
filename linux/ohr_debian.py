@@ -3,6 +3,7 @@
 import os
 import re
 import shutil
+from datetime import date
 
 ############################################################################
 
@@ -15,17 +16,38 @@ def calculate_size(files, executables):
   return size / 1000
 
 def read_version():
-  f = open('../gver.txt', 'r')
+  year = date.today().year
+  month = date.today().month
+  day = date.today().day
+  rev = 0
+  code = read_codename()
+
+  date_regex = re.compile('^Last Changed Date: (?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})', re.I)
+  rev_regex  = re.compile('^Revision: (?P<rev>\d+)', re.I)
+  got_date = False
+  got_rev = False
+  f = os.popen('svn info ..', 'r')
+  for line in f:
+    match = date_regex.match(line)
+    if match != None:
+      year  = match.group('year')
+      month = match.group('month')
+      day   = match.group('day')
+      got_date = True
+    match = rev_regex.match(line)
+    if match != None:
+      rev = match.group('rev')
+      got_rev = True
+  f.close()
+  if not got_rev: print "Failed to get subversion revision number, using 0"
+  if not got_date: print "Failed to get subversion last-modified date, using today's date "
+  return "%s.%s.%s.%s-%s" % (year, month, day, code, rev)
+
+def read_codename():
+  f = open('../codename.txt', 'r')
   line = f.read()
   f.close()
-  regex = re.compile('.* (?P<code>[a-z]+) (?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2}) [a-z]+/[a-z0-9]+"$', re.I)
-  match = regex.match(line)
-  if match == None: raise Exception('failed to get version')
-  year  = match.group('year')
-  month = match.group('month')
-  day   = match.group('day')
-  code  = match.group('code')
-  return "%s.%s.%s.%s-1" % (year, month, day, code)
+  return line.strip()
 
 def write_control_file(filename, template, values):
   f = open(filename, 'w')
@@ -70,5 +92,13 @@ def menu_entry(package_name, title, command, append=False, desktop_file_suffix="
 def rpg_menu_entry(package_name, title, rpg_file):
   command = "/usr/games/ohrrpgce-game /usr/share/games/%s/%s" % (package_name, rpg_file)
   menu_entry(package_name, title, command)
+
+def relump(lumpdir, rpgfile):
+  try:
+    os.remove(rpgfile)
+  except(OSError):
+    # don't care if the file does not already exist
+    pass
+  os.system('../relump "' + lumpdir + '" "' + rpgfile + '"')
 
 ############################################################################

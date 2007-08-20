@@ -9,7 +9,7 @@ maintainer = '"Fenrir Lunaris & OHR Developers" <ohrrpgce@lists.motherhamster.or
 depends = "ohrrpgce (>=2007.07)"
 
 prefix = "../../games/vikings/"
-os.system("../relump " + prefix + "/vikings.rpgdir vikings.rpg")
+relump(prefix + "vikings.rpgdir", "vikings.rpg")
 files = [
   "vikings.rpg",
   prefix + "ReadMe.txt",
