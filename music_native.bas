@@ -793,9 +793,11 @@ sub sound_play(byval num as integer, byval l as integer,  byval s as integer = 0
       exit sub
     end if
 
-    .paused = 0
     AudPlay(.soundID)
-    AudSetRepeat(.soundID, l)
+
+    'for consistency with other backends, can't change loop behaviour of a paused effect
+    if .paused = 0 then AudSetRepeat(.soundID, l)
+    .paused = 0
   end with
 '  debug "<<done"
 end sub
