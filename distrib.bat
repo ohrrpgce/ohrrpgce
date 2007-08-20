@@ -33,12 +33,35 @@ IF NOT EXIST hspeak.exe GOTO NOEXE
 REM ------------------------------------------
 ECHO Erasing old distrib files ...
 
+IF NOT EXIST distrib\ohrrpgce_play.zip GOTO DONEDELGAME
+del distrib\ohrrpgce_play.zip
+:DONEDELGAME
 IF NOT EXIST distrib\ohrrpgce.zip GOTO DONEDELCUSTOM
 del distrib\ohrrpgce.zip
 :DONEDELCUSTOM
 IF NOT EXIST distrib\ohrrpgce-win-installer.exe GOTO DONEDELINSTALL
 del distrib\ohrrpgce-win-installer.exe
 :DONEDELINSTALL
+
+REM ------------------------------------------
+ECHO Packaging player-only ohrrpgce_play.zip ...
+del tmpdist\*.???
+support\cp game.exe tmpdist
+support\cp README-game.txt tmpdist
+support\cp LICENSE-binary.txt tmpdist
+support\cp audiere.dll tmpdist
+support\cp audwrap.dll tmpdist
+
+cd tmpdist
+..\support\zip -q -r ..\distrib\ohrrpgce_play.zip *.*
+cd ..
+
+del tmpdist\*.???
+cd tmpdist
+..\support\unzip -q ..\distrib\ohrrpgce_play.zip game.exe
+cd ..
+IF NOT EXIST tmpdist\game.exe GOTO SANITYFAIL
+del tmpdist\game.exe
 
 REM ------------------------------------------
 ECHO Packaging minimalist ohrrpgce.zip ...
@@ -55,6 +78,14 @@ support\cp LICENSE-binary.txt tmpdist
 support\cp plotscr.hsd tmpdist
 support\cp scancode.hsi tmpdist
 support\cp docs\more-docs.txt tmpdist
+support\cp audiere.dll tmpdist
+support\cp audwrap.dll tmpdist
+mkdir tmpdist\support
+support\cp support\madplay.exe tmpdist\support
+support\cp support\LICENSE-madplay.txt tmpdist\support
+support\cp support\oggenc.exe tmpdist\support
+support\cp support\LICENSE-oggenc.txt tmpdist\support
+
 
 cd tmpdist
 ..\support\zip -q -r ..\distrib\ohrrpgce.zip *.*
@@ -96,6 +127,7 @@ rmdir /s /q tmpdist
 REM ------------------------------------------
 ECHO Rename results...
 ECHO %OHRVERDATE%-%OHRVERCODE%
+move distrib\ohrrpgce_play.zip distrib\ohrrpgce_play-%OHRVERDATE%-%OHRVERCODE%.zip
 move distrib\ohrrpgce.zip distrib\ohrrpgce-%OHRVERDATE%-%OHRVERCODE%.zip
 move distrib\ohrrpgce-win-installer.exe distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERCODE%.exe
 move distrib\ohrrpgce-source.zip distrib\ohrrpgce-source-%OHRVERDATE%-%OHRVERCODE%.zip
