@@ -196,7 +196,7 @@ DIM eqstuf(40, 4), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), ca
 DIM mapname$, catermask(0), nativehbits(40, 4)
 DIM menu$(9), mi(9)
 
-dim door() as door, doorlinks() as doorlink
+dim door(99) as door, doorlinks(199) as doorlink
 
 'shared module variables
 DIM SHARED cycle(1), cycptr(1), cycskip(1), tastuf(40), stat(40, 1, 16)
