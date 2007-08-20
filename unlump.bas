@@ -255,14 +255,14 @@ END SUB
 FUNCTION rightafter$ (s$, d$)
 
 rightafter$ = ""
-new$ = ""
+result$ = ""
 
 FOR i = LEN(s$) TO 1 STEP -1
  IF MID$(s$, i, 1) = d$ THEN
-  rightafter$ = new$
+  rightafter$ = result$
   EXIT FOR
  END IF
- new$ = MID$(s$, i, 1) + new$
+ result$ = MID$(s$, i, 1) + result$
 NEXT i
 
 END FUNCTION
