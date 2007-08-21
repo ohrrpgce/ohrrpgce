@@ -70,7 +70,6 @@ support\cp game.exe tmpdist
 support\cp custom.exe tmpdist
 support\cp hspeak.exe tmpdist
 support\cp ohrrpgce.mas tmpdist
-support\cp ohrrpgce.fnt tmpdist
 support\cp ohrrpgce.new tmpdist
 support\cp README-custom.txt tmpdist
 support\cp LICENSE.txt tmpdist

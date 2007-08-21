@@ -142,11 +142,7 @@ ELSE
 END IF
 getui uilook()
 
-IF isfile(exepath$ + SLASH + "ohrrpgce.fnt") THEN
- textxbload exepath$ + SLASH + "ohrrpgce.fnt", font(), "default font ohrrpgce.fnt is missing"
-ELSE
- getdefaultfont font()
-END IF
+getdefaultfont font()
 
 setmodex
 setpal master()
@@ -221,7 +217,10 @@ safekill workingdir$ + SLASH + "__danger.tmp"
 IF hsfile$ <> "" THEN GOTO hsimport
 
 IF NOT isfile(game$ + ".mas") AND NOT isfile(workingdir$ + SLASH + "palettes.bin") THEN copyfile "ohrrpgce.mas", game$ + ".mas", buffer()
-IF NOT isfile(game$ + ".fnt") THEN copyfile "ohrrpgce.fnt", game$ + ".fnt", buffer()
+IF NOT isfile(game$ + ".fnt") THEN
+ getdefaultfont font()
+ xbsave game$ + ".fnt", font(), 2048
+END IF
 xbload game$ + ".fnt", font(), "Font not loaded"
 '--loadgen, upgrade, resave
 xbload game$ + ".gen", gen(), "general data is missing, RPG file corruption is likely"
@@ -1404,8 +1403,8 @@ IF gen(genVersion) = 1 THEN
  NEXT o
  printstr "Enforcing default font", 0, 16, vpage
  setvispage vpage 'refresh
- copyfile "ohrrpgce.fnt", game$ + ".fnt", buffer()
- xbload game$ + ".fnt", font(), "Font not loaded"
+ getdefaultfont font()
+ xbsave game$ + ".fnt", font(), 2048
  setfont font()
  printstr "Making AniMaptiles Backward Compatable", 0, 16, vpage
  setvispage vpage 'refresh

@@ -37,7 +37,6 @@ Source: "audwrap.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "hspeak.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "unlump.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "relump.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "ohrrpgce.fnt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "ohrrpgce.mas"; DestDir: "{app}"; Flags: ignoreversion
 Source: "ohrrpgce.new"; DestDir: "{app}"; Flags: ignoreversion
 Source: "game.ico"; DestDir: "{app}"; Flags: ignoreversion

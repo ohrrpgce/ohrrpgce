@@ -15,7 +15,6 @@ rm -Rf tmp/*
 
 echo Packaging binary distribution of CUSTOM
 cp -p ohrrpgce.mas tmp
-cp -p ohrrpgce.fnt tmp
 cp -p ohrrpgce.new tmp
 cp -p README-game.txt tmp
 cp -p README-custom.txt tmp

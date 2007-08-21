@@ -86,6 +86,7 @@ WHAT IS NEW?
       to move the start location [James Paige]
     * Optional graphics smoothing. Run with -s 1 command-line option.
       [Reaxor Jones]
+    * ohrrpgce.fnt is not used anymore. [James Paige]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
