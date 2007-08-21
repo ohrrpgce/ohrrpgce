@@ -756,7 +756,7 @@ IF w = 1 THEN
  SYSTEM
 END IF
 #ENDIF
-#IFDEF IS_GAME
+#IFDEF IS_CUSTOM
 debug "fatal error:" + e$
 textcolor 15, 0
 FOR i = 0 TO 1

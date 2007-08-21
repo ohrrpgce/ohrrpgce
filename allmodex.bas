@@ -2093,6 +2093,7 @@ END SUB
 FUNCTION isfile (n$) as integer
 	' directories don't count as files
 	' this is a simple wrapper for fileisreadable
+	if n$ = "" then return 0
 	return fileisreadable(n$)
 END FUNCTION
 

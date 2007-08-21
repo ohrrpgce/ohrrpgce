@@ -75,6 +75,7 @@ DECLARE SUB importscripts (f$)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 DECLARE SUB move_unwritable_rpg(BYREF filetolump$)
+DECLARE FUNCTION finddatafile$(filename$)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -130,8 +131,9 @@ dim shared trit as string 'to fix an undefined variable error
 
 RANDOMIZE TIMER
 
-IF isfile(exepath$ + SLASH + "ohrrpgce.mas") THEN
- textxbload exepath$ + SLASH + "ohrrpgce.mas", buffer(), "default master palette ohrrpgce.mas is missing"
+palfile$ = finddatafile("ohrrpgce.mas")
+IF palfile$ <> "" THEN
+ textxbload palfile$, buffer(), "default master palette ohrrpgce.mas is missing"
  convertpalette buffer(), master()
 ELSE
  FOR i = 1 TO 15
@@ -216,7 +218,11 @@ safekill workingdir$ + SLASH + "__danger.tmp"
 
 IF hsfile$ <> "" THEN GOTO hsimport
 
-IF NOT isfile(game$ + ".mas") AND NOT isfile(workingdir$ + SLASH + "palettes.bin") THEN copyfile "ohrrpgce.mas", game$ + ".mas", buffer()
+IF NOT isfile(game$ + ".mas") AND NOT isfile(workingdir$ + SLASH + "palettes.bin") THEN 
+ palfile$ = finddatafile("ohrrpgce.mas")
+ IF palfile$ = "" THEN fatalerror "RPG master palette and ohrrpgce.mas missing"
+ copyfile palfile$, game$ + ".mas", buffer()
+END IF
 IF NOT isfile(game$ + ".fnt") THEN
  getdefaultfont font()
  xbsave game$ + ".fnt", font(), 2048
@@ -366,7 +372,7 @@ DO
   IF csr = 0 THEN
    game$ = inputfilename$("Filename of New Game?", ".rpg")
    IF game$ <> "" THEN
-     IF NOT newRPGfile(exepath$ + SLASH + "ohrrpgce.new", game$ + ".rpg") THEN GOTO finis
+     IF NOT newRPGfile(finddatafile("ohrrpgce.new"), game$ + ".rpg") THEN GOTO finis
      gamefile$ = game$ + ".rpg"
      EXIT DO
    END IF
@@ -1567,8 +1573,9 @@ END IF
 IF NOT isfile(game$ + ".veh") THEN
  upgrade_message "add vehicle data"
  '--make sure vehicle lump is present
- IF isfile("ohrrpgce.new") THEN
-  IF unlumpone("ohrrpgce.new", "ohrrpgce.veh", game$ + ".veh") THEN
+ template$ = finddatafile("ohrrpgce.new")
+ IF template$ <> "" THEN
+  IF unlumpone(template$, "ohrrpgce.veh", game$ + ".veh") THEN
    gen(55) = 2
   END IF
  END IF
@@ -1747,7 +1754,7 @@ FUNCTION newRPGfile (template$, newrpg$)
  printstr "Creating RPG File", 0, 50, vpage
  setvispage vpage
  IF NOT isfile(template$) THEN
-  printstr "Error: " + template$ + " not found", 0, 60, vpage
+  printstr "Error: ohrrpgce.new not found", 0, 60, vpage
   printstr "Press Enter to quit", 0, 70, vpage
  setvispage vpage
   w = getkey
@@ -1829,3 +1836,13 @@ SUB move_unwritable_rpg(BYREF filetolump$)
  setvispage vpage
  w = getkey
 END SUB
+
+FUNCTION finddatafile$(filename$)
+IF isfile(filename$) THEN RETURN filename$
+IF isfile(homedir$ + SLASH + filename$) THEN RETURN homedir$ + SLASH + filename$
+IF isfile(exepath$ + SLASH + filename$) THEN RETURN exepath$ + SLASH + filename$
+#IFDEF __FB__LINUX__
+IF isfile("/usr/games/lib/ohrrpgce/" + filename$) THEN RETURN "/usr/games/lib/ohrrpgce/" + filename$
+#ENDIF
+RETURN ""
+END FUNCTION
