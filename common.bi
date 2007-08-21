@@ -70,6 +70,8 @@ DECLARE SUB savepalette(pal() as RGBcolor, palnum%)
 DECLARE SUB convertpalette(oldpal%(), newpal() as RGBcolor)
 DECLARE FUNCTION getmapname$ (m)
 DECLARE SUB createminimap (array(), map(), tastuf(), tilesetpage, zoom)
+DECLARE SUB loadtanim (n, tastuf())
+DECLARE SUB savetanim (n, tastuf())
 
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE FUNCTION readenemyname$ (index%)

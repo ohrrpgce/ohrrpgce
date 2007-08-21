@@ -45,8 +45,6 @@ DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION onoroff$ (n%)
 DECLARE SUB setanimpattern (tastuf%(), taset%)
-DECLARE SUB loadtanim (n%, tastuf%())
-DECLARE SUB savetanim (n%, tastuf%())
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE FUNCTION mouseover% (mouse%(), zox%, zoy%, zcsr%, area%())
@@ -335,12 +333,6 @@ setpicstuf array(), 322, -1
 storeset workingdir$ + SLASH + "defpass.bin", tilesetnum, 0
 END SUB
 
-
-SUB loadtanim (n, tastuf())
-setpicstuf tastuf(), 80, -1
-loadset game$ + ".tap", n, 0
-END SUB
-
 SUB maptile (font())
 DIM menu$(10), tastuf(40)
 
@@ -625,11 +617,6 @@ NEXT i
 RETRACE
 
 END FUNCTION
-
-SUB savetanim (n, tastuf())
-setpicstuf tastuf(), 80, -1
-storeset game$ + ".tap", n, 0
-END SUB
 
 SUB setanimpattern (tastuf(), taset)
 DIM menu$(12), stuff$(7), llim(7), ulim(7)

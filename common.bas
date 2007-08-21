@@ -1160,3 +1160,13 @@ SUB show_message (s AS STRING)
  y += 1
  IF y >= 25 THEN y = 0
 END SUB
+
+SUB loadtanim (n, tastuf())
+setpicstuf tastuf(), 80, -1
+loadset game$ + ".tap", n, 0
+END SUB
+
+SUB savetanim (n, tastuf())
+setpicstuf tastuf(), 80, -1
+storeset game$ + ".tap", n, 0
+END SUB

@@ -995,11 +995,6 @@ ELSE
 END IF
 END SUB
 
-SUB loadtanim (n, tastuf())
-setpicstuf tastuf(), 80, -1
-loadset game$ + ".tap", n, 0
-END SUB
-
 SUB minimap (x, y, tastuf())
 
 centerfuz 160, 100, 304, 184, 1, vpage
