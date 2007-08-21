@@ -25,7 +25,6 @@ DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION onoroff$ (n%)
 DECLARE FUNCTION lmnemonic$ (index%)
-DECLARE FUNCTION rotascii$ (s$, o%)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
@@ -279,18 +278,6 @@ END IF
 CLOSE #fh
 
 readglobalstring = result$
-END FUNCTION
-
-FUNCTION rotascii$ (s$, o)
-
-temp$ = ""
-
-FOR i = 1 TO LEN(s$)
- temp$ = temp$ + CHR$(loopvar(ASC(MID$(s$, i, 1)), 0, 255, o))
-NEXT i
-
-rotascii$ = temp$
-
 END FUNCTION
 
 SUB seekscript (temp, seekdir, triggertype)

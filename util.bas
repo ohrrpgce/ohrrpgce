@@ -104,3 +104,11 @@ fh = FREEFILE
 OPEN filename$ FOR BINARY AS #fh
 CLOSE #fh
 END SUB
+
+FUNCTION rotascii$ (s$, o)
+temp$ = ""
+FOR i = 1 TO LEN(s$)
+ temp$ = temp$ + CHR$(loopvar(ASC(MID$(s$, i, 1)), 0, 255, o))
+NEXT i
+rotascii$ = temp$
+END FUNCTION

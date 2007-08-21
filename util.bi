@@ -17,5 +17,6 @@ declare function trimextension$ (filename$)
 declare function justextension$ (filename$)
 declare function anycase$ (filename$)
 declare function touchfile (filename$)
+declare function rotascii$ (s$, o)
 
 #ENDIF

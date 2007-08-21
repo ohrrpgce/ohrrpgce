@@ -15,7 +15,6 @@ DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION rightafter$ (s$, d$)
 DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB readscatter (s$, lhold%, array%(), start%)
-DECLARE FUNCTION rotascii$ (s$, o%)
 'DECLARE FUNCTION readpassword$ ()
 
 'assembly subs and functions
@@ -264,18 +263,6 @@ FOR i = LEN(s$) TO 1 STEP -1
  END IF
  result$ = MID$(s$, i, 1) + result$
 NEXT i
-
-END FUNCTION
-
-FUNCTION rotascii$ (s$, o)
-
-temp$ = ""
-
-FOR i = 1 TO LEN(s$)
- temp$ = temp$ + CHR$(loopvar(ASC(MID$(s$, i, 1)), 0, 255, o))
-NEXT i
-
-rotascii$ = temp$
 
 END FUNCTION
 
