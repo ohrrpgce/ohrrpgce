@@ -1205,3 +1205,18 @@ array2str stray(), 0, s$
 s$ = LEFT$(s$, INT((lhold + 1) / 8))
 
 END SUB
+
+FUNCTION finddatafile$(filename$)
+'Current dir
+IF isfile(filename$) THEN RETURN filename$
+'same folder as executable
+IF isfile(exepath$ + SLASH + filename$) THEN RETURN exepath$ + SLASH + filename$
+#IFDEF __FB_LINUX__
+'~/.ohrrpgce/
+IF isfile(tmpdir$ + SLASH + filename$) THEN RETURN tmpdir$ + SLASH + filename$
+#IFDEF DATAFILES
+IF isfile(DATAFILES + SLASH + filename$) THEN RETURN DATAFILES + SLASH + filename$
+#ENDIF
+#ENDIF
+RETURN ""
+END FUNCTION

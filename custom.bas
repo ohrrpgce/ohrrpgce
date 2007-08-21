@@ -70,7 +70,6 @@ DECLARE SUB importscripts (f$)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 DECLARE SUB move_unwritable_rpg(BYREF filetolump$)
-DECLARE FUNCTION finddatafile$(filename$)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1831,18 +1830,3 @@ SUB move_unwritable_rpg(BYREF filetolump$)
  setvispage vpage
  w = getkey
 END SUB
-
-FUNCTION finddatafile$(filename$)
-'Current dir
-IF isfile(filename$) THEN RETURN filename$
-'same folder as executable
-IF isfile(exepath$ + SLASH + filename$) THEN RETURN exepath$ + SLASH + filename$
-'~/.ohrrpgce/
-IF isfile(tmpdir$ + SLASH + filename$) THEN RETURN tmpdir$ + SLASH + filename$
-#IFDEF __FB_LINUX__
-#IFDEF DATAFILES
-IF isfile(DATAFILES + SLASH + filename$) THEN RETURN DATAFILES + SLASH + filename$
-#ENDIF
-#ENDIF
-RETURN ""
-END FUNCTION
