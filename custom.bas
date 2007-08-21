@@ -1374,12 +1374,10 @@ SUB upgrade (font())
 
 DIM pal16(8)
 
-
 IF gen(genVersion) = 0 THEN
+ upgrade_message "Ancient Pre-1999 format (1)"
  gen(genVersion) = 1
- clearpage vpage
- printstr "Flushing New Text Data...", 0, 0, vpage
- setvispage vpage 'refresh
+ upgrade_message "Flushing New Text Data..."
  setpicstuf buffer(), 400, -1
  FOR o = 0 TO 999
   loadset game$ + ".say", o, 0
@@ -1389,10 +1387,9 @@ IF gen(genVersion) = 0 THEN
  NEXT o
 END IF
 IF gen(genVersion) = 1 THEN
+ upgrade_message "June 18 1999 format (2)"
  gen(genVersion) = 2
- clearpage vpage
- printstr "Updating Door Format...", 0, 0, vpage
- setvispage vpage 'refresh
+ upgrade_message "Updating Door Format..."
  FOR o = 0 TO 19
   IF isfile(game$ + ".dor") THEN xbload game$ + ".dor", buffer(), "No doors"
   FOR i = 0 TO 299
@@ -1401,13 +1398,11 @@ IF gen(genVersion) = 1 THEN
   setpicstuf buffer(), 600, -1
   storeset game$ + ".dox", o, 0
  NEXT o
- printstr "Enforcing default font", 0, 16, vpage
- setvispage vpage 'refresh
+ upgrade_message "Enforcing default font"
  getdefaultfont font()
  xbsave game$ + ".fnt", font(), 2048
  setfont font()
- printstr "Making AniMaptiles Backward Compatable", 0, 16, vpage
- setvispage vpage 'refresh
+ upgrade_message "rpgfix:Making AniMaptiles Backward Compatable"
  FOR i = 0 TO 39
   buffer(i) = 0
  NEXT i
@@ -1432,7 +1427,7 @@ IF gen(genVersion) = 1 THEN
   savetanim i, buffer()
  NEXT i
  FOR i = 0 TO gen(0)
-  printstr " map" + XSTR$(i), 16, 24 + i * 8, vpage
+  upgrade_message " map " & i
   XBLOAD maplumpname$(i, "t"), buffer(), "Map not loaded"
   setmapdata buffer(), buffer(), 0, 0
   FOR tx = 0 TO buffer(0)
@@ -1445,8 +1440,8 @@ IF gen(genVersion) = 1 THEN
 END IF
 '---VERSION 3---
 IF gen(genVersion) = 2 THEN
+ upgrade_message "July 8 1999 format (3)"
  gen(genVersion) = 3
- clearpage vpage
  '-get old-old password
  rpas$ = ""
  FOR i = 1 TO gen(99)
@@ -1467,8 +1462,7 @@ IF gen(genVersion) = 2 THEN
   temp = ASC(MID$(pas$, i, 1))
   gen(4 + i) = loopvar(temp, 0, 255, gen(98))
  NEXT i
- printstr "Data Scaling Shtuff...", 0, 0, vpage
- setvispage vpage 'refresh
+ upgrade_message "Put record count defaults in GEN..."
  gen(26) = 40
  gen(27) = 149
  gen(28) = 79
@@ -1486,10 +1480,9 @@ IF gen(genVersion) = 2 THEN
 END IF
 '--VERSION 4--
 IF gen(genVersion) = 3 THEN
+ upgrade_message "Sept 15 2000 format (4)"
  gen(genVersion) = 4
- clearpage vpage
- printstr "Clearing New Attack Bitsets...", 0, 0, vpage
- setvispage vpage 'refresh
+ upgrade_message "Clearing New Attack Bitsets..."
  setpicstuf buffer(), 80, -1
  FOR o = 0 TO gen(genMaxAttack)
   loadoldattackdata buffer(), o
@@ -1509,10 +1502,9 @@ IF gen(genVersion) = 3 THEN
 END IF
 '--VERSION 5--
 IF gen(genVersion) = 4 THEN
+ upgrade_message "March 31 2001 format (5)"
  gen(genVersion) = 5
- clearpage vpage
- printstr "Upgrading 16-color Palette Format...", 0, 0, vpage
- setvispage vpage 'refresh
+ upgrade_message "Upgrading 16-color Palette Format..."
  setpicstuf pal16(), 16, -1
  xbload game$ + ".pal", buffer(), "16-color palletes missing from " + game$
  KILL game$ + ".pal"
@@ -1529,8 +1521,7 @@ IF gen(genVersion) = 4 THEN
   NEXT i
   IF foundpal THEN EXIT FOR
  NEXT j
- printstr "Last used palette is" + XSTR$(last), 0, 8, vpage
- setvispage vpage 'refresh
+ upgrade_message "Last used palette is " & last
  '--write header
  pal16(0) = 4444
  pal16(1) = last
@@ -1548,6 +1539,7 @@ IF gen(genVersion) = 4 THEN
 END IF
 '--VERSION 6--
 IF gen(genVersion) = 5 THEN
+ upgrade_message "Serendipity format (6)"
  'Shop stuff and song name formats changed, MIDI music added
  'Sub version info also added
  'Clear battle formation animation data
@@ -1563,6 +1555,7 @@ END IF
 
 
 IF NOT isfile(workingdir$ + SLASH + "archinym.lmp") THEN
+ upgrade_message "generate default archinym.lmp"
  '--create archinym information lump
  fh = FREEFILE
  OPEN workingdir$ + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
@@ -1572,6 +1565,7 @@ IF NOT isfile(workingdir$ + SLASH + "archinym.lmp") THEN
 END IF
 
 IF NOT isfile(game$ + ".veh") THEN
+ upgrade_message "add vehicle data"
  '--make sure vehicle lump is present
  IF isfile("ohrrpgce.new") THEN
   IF unlumpone("ohrrpgce.new", "ohrrpgce.veh", game$ + ".veh") THEN
@@ -1588,17 +1582,14 @@ FOR i = 0 TO sizebinsize
 NEXT
 
 IF NOT isfile(workingdir$ + SLASH + "attack.bin") THEN
- clearpage vpage
- printstr "Init extended attack data...", 0, 0, vpage
- setvispage vpage 'refresh
+ upgrade_message "Init extended attack data..."
  setbinsize 0, curbinsize(0)
  FOR i = 0 TO gen(genMaxAttack)
   savenewattackdata buffer(), i
  NEXT i
 
  '--and while we are at it, clear the old death-string from enemies
- printstr "Re-init recycled enemy data...", 0, 10, vpage
- setvispage vpage 'refresh
+ upgrade_message "Re-init recycled enemy data..."
  FOR i = 0 TO gen(36)
   loadenemydata buffer(), i
   FOR j = 17 TO 52
@@ -1609,8 +1600,7 @@ IF NOT isfile(workingdir$ + SLASH + "attack.bin") THEN
 END IF
 
 IF NOT isfile(workingdir$ + SLASH + "songdata.bin") THEN
- printstr "Upgrading Song Name format...", 0, 0, vpage
- setvispage vpage 'refresh
+ upgrade_message "Upgrading Song Name format..."
  DIM song$(99)
  fh = FREEFILE
  OPEN game$ + ".sng" FOR BINARY AS #fh
@@ -1645,7 +1635,7 @@ END IF
 
 IF NOT isfile(workingdir$ + SLASH + "palettes.bin") THEN
  DIM AS SHORT headsize = 4, recsize = 768
- printstr "Upgrading Master Palette format...", 0, 0, vpage
+ upgrade_message "Upgrading Master Palette format..."
  loadpalette master(), 0
  fh = FREEFILE
  OPEN workingdir$ + SLASH + "palettes.bin" FOR BINARY AS #fh

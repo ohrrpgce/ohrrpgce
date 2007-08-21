@@ -1141,3 +1141,22 @@ FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
  quality = q
  RETURN 0
 END FUNCTION
+
+SUB upgrade_message (s AS STRING)
+ STATIC already = 0
+ IF NOT already THEN
+  already = -1
+  upgrade_message "Auto-Updating obsolete RPG file"
+ END IF
+ debug "rpgfix:" & s
+ show_message(s)
+END SUB
+
+SUB show_message (s AS STRING)
+ STATIC y = 0
+ IF y = 0 THEN clearpage vpage
+ printstr s, 0, y * 8, vpage
+ setvispage vpage
+ y += 1
+ IF y >= 25 THEN y = 0
+END SUB

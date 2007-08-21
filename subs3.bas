@@ -543,11 +543,11 @@ END FUNCTION
 
 SUB updaterecordlength (lumpf$, bindex)
 IF getbinsize(bindex) < curbinsize(bindex) THEN
- printstr "Upgrading " + lumpf$ + " to new record size...", 0, 10 + 8 * bindex, vpage
- setvispage vpage
 
  oldsize = getbinsize(bindex)
  newsize = curbinsize(bindex)
+
+ upgrade_message trimpath$(lumpf$) & " record size = " & newsize
 
  IF oldsize > 0 THEN ' Only bother to do this for records of nonzero size
 

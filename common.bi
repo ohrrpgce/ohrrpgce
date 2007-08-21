@@ -91,6 +91,8 @@ DECLARE SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGE
 DECLARE FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
 
 DECLARE FUNCTION intgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER, more AS INTEGER) AS INTEGER
+DECLARE SUB upgrade_message (s AS STRING)
+DECLARE SUB show_message (s AS STRING)
 
 'Global variables
 EXTERN game$
