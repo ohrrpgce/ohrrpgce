@@ -1838,11 +1838,16 @@ SUB move_unwritable_rpg(BYREF filetolump$)
 END SUB
 
 FUNCTION finddatafile$(filename$)
+'Current dir
 IF isfile(filename$) THEN RETURN filename$
-IF isfile(homedir$ + SLASH + filename$) THEN RETURN homedir$ + SLASH + filename$
+'same folder as executable
 IF isfile(exepath$ + SLASH + filename$) THEN RETURN exepath$ + SLASH + filename$
-#IFDEF __FB__LINUX__
-IF isfile("/usr/games/lib/ohrrpgce/" + filename$) THEN RETURN "/usr/games/lib/ohrrpgce/" + filename$
+'~/.ohrrpgce/
+IF isfile(tmpdir$ + SLASH + filename$) THEN RETURN tmpdir$ + SLASH + filename$
+#IFDEF __FB_LINUX__
+#IFDEF DATAFILES
+IF isfile(DATAFILES + SLASH + filename$) THEN RETURN DATAFILES + SLASH + filename$
+#ENDIF
 #ENDIF
 RETURN ""
 END FUNCTION
