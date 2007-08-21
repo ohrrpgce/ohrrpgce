@@ -76,6 +76,8 @@ DECLARE SUB writescatter (s$, lhold%, start%)
 DECLARE SUB readscatter (s$, lhold%, start%)
 DECLARE FUNCTION finddatafile$(filename$)
 DECLARE SUB updaterecordlength (lumpf$, bindex AS INTEGER)
+DECLARE SUB writepassword (p$)
+DECLARE FUNCTION readpassword$ ()
 
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE FUNCTION readenemyname$ (index%)

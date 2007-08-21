@@ -9,8 +9,6 @@ DEFINT A-Z
 #include "udts.bi"
 
 'basic subs and functions
-DECLARE SUB writepassword (p$)
-DECLARE FUNCTION readpassword$ ()
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
@@ -971,27 +969,6 @@ IF pt > check THEN
 END IF
 END FUNCTION
 
-FUNCTION readpassword$
-
-'--read a 17-byte string from GEN at word offset 7
-'--(Note that array2str uses the byte offset not the word offset)
-s$ = STRING$(17, 0)
-array2str gen(), 14, s$
-
-'--reverse ascii rotation / weak obfuscation
-s$ = rotascii(s$, gen(6) * -1)
-
-'-- discard ascii chars lower than 32
-p$ = ""
-FOR i = 1 TO 17
- c$ = MID$(s$, i, 1)
- IF ASC(c$) >= 32 THEN p$ = p$ + c$
-NEXT i
-
-readpassword$ = p$
-
-END FUNCTION
-
 SUB shopdata
 DIM names$(32), a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
 DIM her AS HeroDef ' only used in getdefaultthingname
@@ -1714,29 +1691,6 @@ nofixweappoints:
 END IF
 
 'wow! this is quite a big and ugly routine!
-END SUB
-
-SUB writepassword (p$)
-
-'-- set password version number (only if needed)
-IF gen(5) < 256 THEN gen(5) = 256
-
-'--pad the password with some silly obfuscating low-ascii chars
-FOR i = 1 TO 17 - LEN(p$)
- IF INT(RND * 10) < 5 THEN
-  p$ = p$ + CHR$(INT(RND * 30))
- ELSE
-  p$ = CHR$(INT(RND * 30)) + p$
- END IF
-NEXT i
-
-'--apply a new ascii rotation / weak obfuscation number
-gen(6) = INT(RND * 253) + 1
-p$ = rotascii(p$, gen(6))
-
-'--write the password into GEN
-str2array p$, gen(), 14
-
 END SUB
 
 FUNCTION newRPGfile (template$, newrpg$)

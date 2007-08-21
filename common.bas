@@ -1257,3 +1257,47 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
 
 END IF
 END SUB
+
+SUB writepassword (p$)
+
+'-- set password version number (only if needed)
+IF gen(5) < 256 THEN gen(5) = 256
+
+'--pad the password with some silly obfuscating low-ascii chars
+FOR i = 1 TO 17 - LEN(p$)
+ IF INT(RND * 10) < 5 THEN
+  p$ = p$ + CHR$(INT(RND * 30))
+ ELSE
+  p$ = CHR$(INT(RND * 30)) + p$
+ END IF
+NEXT i
+
+'--apply a new ascii rotation / weak obfuscation number
+gen(6) = INT(RND * 253) + 1
+p$ = rotascii(p$, gen(6))
+
+'--write the password into GEN
+str2array p$, gen(), 14
+
+END SUB
+
+FUNCTION readpassword$
+
+'--read a 17-byte string from GEN at word offset 7
+'--(Note that array2str uses the byte offset not the word offset)
+s$ = STRING$(17, 0)
+array2str gen(), 14, s$
+
+'--reverse ascii rotation / weak obfuscation
+s$ = rotascii(s$, gen(6) * -1)
+
+'-- discard ascii chars lower than 32
+p$ = ""
+FOR i = 1 TO 17
+ c$ = MID$(s$, i, 1)
+ IF ASC(c$) >= 32 THEN p$ = p$ + c$
+NEXT i
+
+readpassword$ = p$
+
+END FUNCTION
