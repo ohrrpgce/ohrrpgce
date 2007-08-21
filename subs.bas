@@ -2194,19 +2194,6 @@ RETRACE
 
 END SUB
 
-SUB readscatter (s$, lhold, start)
-DIM stray(10)
-s$ = STRING$(20, "!")
-
-FOR i = 0 TO lhold
- setbit stray(), 0, i, readbit(gen(), start - 1, gen(start + i))
-NEXT i
-
-array2str stray(), 0, s$
-s$ = LEFT$(s$, INT((lhold + 1) / 8))
-
-END SUB
-
 SUB stredit (s$, maxl)
 STATIC clip$
 
@@ -2320,26 +2307,6 @@ IF LEN(s$) < maxl THEN
 
 END IF
 
-END SUB
-
-SUB writescatter (s$, lhold, start)
-DIM stray(10)
-
-s$ = LEFT$(s$, 20)
-lhold = LEN(s$) * 8 - 1
-str2array s$, stray(), 0
-
-FOR i = 0 TO lhold
- trueb = readbit(stray(), 0, i)
- DO
-  scatb = INT(RND * (16 + (i * 16)))
- LOOP UNTIL readbit(gen(), start - 1, scatb) = trueb
- gen(start + i) = scatb
-NEXT i
-
-FOR i = lhold + 1 TO 159
- gen(start + i) = INT(RND * 4444)
-NEXT i
 END SUB
 
 FUNCTION zintgrabber (n, min, max, less, more)

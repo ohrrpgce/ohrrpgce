@@ -72,6 +72,8 @@ DECLARE FUNCTION getmapname$ (m)
 DECLARE SUB createminimap (array(), map(), tastuf(), tilesetpage, zoom)
 DECLARE SUB loadtanim (n, tastuf())
 DECLARE SUB savetanim (n, tastuf())
+DECLARE SUB writescatter (s$, lhold%, start%)
+DECLARE SUB readscatter (s$, lhold%, start%)
 
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE FUNCTION readenemyname$ (index%)
