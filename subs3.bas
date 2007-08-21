@@ -528,43 +528,6 @@ RMDIR "unlump1.tmp"
 
 END FUNCTION
 
-SUB updaterecordlength (lumpf$, bindex)
-IF getbinsize(bindex) < curbinsize(bindex) THEN
-
- oldsize = getbinsize(bindex)
- newsize = curbinsize(bindex)
-
- upgrade_message trimpath$(lumpf$) & " record size = " & newsize
-
- IF oldsize > 0 THEN ' Only bother to do this for records of nonzero size
-
-  tempf$ = workingdir$ + SLASH + "resize.tmp"
-
-  flusharray buffer(), newsize / 2, 0
-
-  ff = FREEFILE
-  OPEN lumpf$ FOR BINARY AS #ff
-  records = LOF(ff) / oldsize
-  CLOSE #ff
-
-  copyfile lumpf$, tempf$, buffer()
-  KILL lumpf$
-
-  FOR i = 0 TO records - 1
-   setpicstuf buffer(), oldsize, -1
-   loadset tempf$, i, 0
-   setpicstuf buffer(), newsize, -1
-   storeset lumpf$, i, 0
-  NEXT
-
-  KILL tempf$
- END IF
-
- setbinsize bindex, newsize
-
-END IF
-END SUB
-
 SUB writeglobalstring (index, s$, maxlen)
 
 fh = FREEFILE
