@@ -1506,6 +1506,7 @@ IF NOT isfile(game$ + ".veh") THEN
  IF template$ <> "" THEN
   unlumpfile(template$, "ohrrpgce.veh", tmpdir$)
   copyfile tmpdir$ & SLASH & "ohrrpgce.veh", game$ & ".veh", buffer()
+  safekill tmpdir$ & SLASH & "ohrrpgce.veh"
   gen(55) = 2
  END IF
 END IF
