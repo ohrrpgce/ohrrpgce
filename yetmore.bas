@@ -801,7 +801,6 @@ END IF
 END SUB
 
 SUB quitcleanup
-
 'DEBUG debug "Cleanup Routine"
 '--open files
 'DEBUG debug "Close foemap handle"
@@ -814,6 +813,7 @@ releasestack
 
 cleanuptemp
 #IFDEF __FB_LINUX__
+  RMDIR tmpdir$ + "playing.tmp"
   RMDIR tmpdir$
 #ENDIF
 
