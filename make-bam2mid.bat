@@ -1,2 +1,2 @@
 rm bam2mid.exe
-fbc bam2mid.bas
+fbc -lang deprecated bam2mid.bas
