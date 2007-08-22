@@ -2393,7 +2393,9 @@ SUB dotimer(byval l as integer)
         if ((l = 1) AND (.flags AND 2 = 0)) OR ((l = 2) AND (.flags AND 4 = 0)) then continue for 'not supposed to run here
         'debug "updating timer #" & i
 
-        if .st > 0 AND plotstr(.st - 1).s = "" then plotstr(.st - 1).s = seconds2str(.count)
+        if .st > 0 then
+          if plotstr(.st - 1).s = "" then plotstr(.st - 1).s = seconds2str(.count)
+        end if
 
         .ticks += 1
         if .ticks >= .speed then
