@@ -136,21 +136,23 @@ IF NOT fileiswriteable(tmp$ & SLASH & "writetest.tmp") THEN tmp$ = exepath$
 IF NOT fileiswriteable(tmp$ & SLASH & "writetest.tmp") THEN tmp$ = ""
 IF NOT fileiswriteable(tmp$ & SLASH & "writetest.tmp") THEN debug "Unable to find any writable temp dir"
 safekill tmp$ & SLASH & "writetest.tmp"
+IF RIGHT$(tmp$, 1) <> SLASH THEN tmp$ = tmp$ & SLASH
+tmp$ = tmp$ & "ohrrpgce"
 #ELSE
 'Linux only behavior
 #IFDEF IS_CUSTOM
-RETURN ""
+RETURN "" 'Custom only ever uses this routine for browse$
 #ELSE
 tmp$ = environ$("HOME")
-tmp$ = tmp$ + "/.ohrrpgce"
+tmp$ = tmp$ & SLASH & ".ohrrpgce"
 IF NOT isdir(tmp$) THEN makedir(tmp$)
+tmp$ = tmp$ & SLASH
 #ENDIF
 #ENDIF
-IF RIGHT$(tmp$, 1) <> SLASH THEN tmp$ = tmp$ + SLASH
 d$ = DATE
 t$ = TIME
-tmp$ = tmp$ + "ohrrpgce" + MID$(d$,7,4) + MID$(d$,1,2) + MID$(d$,4,2) + MID$(t$,1,2) + MID$(t$,4,2) + MID$(t$,7,2) + "." + STR$(INT(RND * 1000)) + ".tmp"
-tmp$ = tmp$ + "/"
+tmp$ = tmp$ & MID$(d$,7,4) & MID$(d$,1,2) & MID$(d$,4,2) & MID$(t$,1,2) & MID$(t$,4,2) & MID$(t$,7,2) & "." & STR$(INT(RND * 1000)) & ".tmp"
+tmp$ = tmp$ & SLASH
 RETURN tmp$
 END FUNCTION
 
