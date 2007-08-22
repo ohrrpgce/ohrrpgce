@@ -1301,3 +1301,349 @@ NEXT i
 readpassword$ = p$
 
 END FUNCTION
+
+SUB upgrade (font())
+DIM pal16(8)
+
+IF gen(genVersion) = 0 THEN
+ upgrade_message "Ancient Pre-1999 format (1)"
+ gen(genVersion) = 1
+ upgrade_message "Flushing New Text Data..."
+ setpicstuf buffer(), 400, -1
+ FOR o = 0 TO 999
+  loadset game$ + ".say", o, 0
+  temp$ = STRING$(68, 0)
+  str2array temp$, buffer(), 331
+  storeset game$ + ".say", o, 0
+ NEXT o
+END IF
+IF gen(genVersion) = 1 THEN
+ upgrade_message "June 18 1999 format (2)"
+ gen(genVersion) = 2
+ upgrade_message "Updating Door Format..."
+ FOR o = 0 TO 19
+  IF isfile(game$ + ".dor") THEN xbload game$ + ".dor", buffer(), "No doors"
+  FOR i = 0 TO 299
+   buffer(i) = buffer(o * 300 + i)
+  NEXT i
+  setpicstuf buffer(), 600, -1
+  storeset game$ + ".dox", o, 0
+ NEXT o
+ upgrade_message "Enforcing default font"
+ getdefaultfont font()
+ xbsave game$ + ".fnt", font(), 2048
+ setfont font()
+ upgrade_message "rpgfix:Making AniMaptiles Backward Compatable"
+ FOR i = 0 TO 39
+  buffer(i) = 0
+ NEXT i
+ FOR i = 0 TO 1
+  o = i * 20
+  buffer(0 + o) = 112
+  buffer(1 + o) = 0
+  '--wait 3--
+  buffer(2 + o + 0) = 5
+  buffer(11 + o + 0) = 3
+  '--right 1--
+  buffer(2 + o + 1) = 3
+  buffer(11 + o + 1) = 1
+  '--wait 3--
+  buffer(2 + o + 2) = 5
+  buffer(11 + o + 2) = 3
+  '--left 1--
+  buffer(2 + o + 3) = 4
+  buffer(11 + o + 3) = 1
+ NEXT i
+ FOR i = 0 TO 14
+  savetanim i, buffer()
+ NEXT i
+ FOR i = 0 TO gen(0)
+  upgrade_message " map " & i
+  XBLOAD maplumpname$(i, "t"), buffer(), "Map not loaded"
+  setmapdata buffer(), buffer(), 0, 0
+  FOR tx = 0 TO buffer(0)
+   FOR ty = 0 TO buffer(1)
+    IF readmapblock(tx, ty, 0) = 158 THEN setmapblock tx, ty, 0, 206
+   NEXT ty
+  NEXT tx
+  xbsave maplumpname$(i, "t"), buffer(), buffer(0) * buffer(1) + 4
+ NEXT i
+END IF
+'---VERSION 3---
+IF gen(genVersion) = 2 THEN
+ upgrade_message "July 8 1999 format (3)"
+ gen(genVersion) = 3
+ '-get old-old password
+ rpas$ = ""
+ FOR i = 1 TO gen(99)
+  IF gen(4 + i) >= 0 AND gen(4 + i) <= 255 THEN rpas$ = rpas$ + CHR$(loopvar(gen(4 + i), 0, 255, gen(98) * -1))
+ NEXT i
+ '-SET (obsolete) SCATTERTABLE BASE
+ gen(199) = INT(RND * 15) + 1
+ '-WRITE PASSWORD INTO (obsolete) SCATTERTABLE
+ gen(93) = INT(RND * 250) + 1
+ rpas$ = rotascii(rpas$, gen(93))
+ '--write old password (will be upgraded again later in this same routine)
+ writescatter rpas$, gen(94), 200
+ '-REPLACE OLD-OLD PASSWORD
+ pas$ = rotascii("ufxx|twi%|fx%rt{ji", -5)
+ gen(99) = LEN(pas$)
+ gen(98) = INT(RND * 250) + 1
+ FOR i = 1 TO gen(99)
+  temp = ASC(MID$(pas$, i, 1))
+  gen(4 + i) = loopvar(temp, 0, 255, gen(98))
+ NEXT i
+ upgrade_message "Put record count defaults in GEN..."
+ gen(26) = 40
+ gen(27) = 149
+ gen(28) = 79
+ gen(29) = 29
+ gen(30) = 119
+ gen(31) = 149
+ gen(32) = 99
+ gen(33) = 14
+ gen(34) = 200
+ gen(35) = 59
+ gen(36) = 500
+ gen(37) = 1000
+ gen(38) = 99
+ gen(39) = 999
+END IF
+'--VERSION 4--
+IF gen(genVersion) = 3 THEN
+ upgrade_message "Sept 15 2000 format (4)"
+ gen(genVersion) = 4
+ upgrade_message "Clearing New Attack Bitsets..."
+ setpicstuf buffer(), 80, -1
+ FOR o = 0 TO gen(genMaxAttack)
+  loadoldattackdata buffer(), o
+  buffer(18) = 0
+  IF readbit(buffer(), 20, 60) THEN buffer(18) = 1
+  setbit buffer(), 20, 2, 0
+  FOR i = 21 TO 58
+   setbit buffer(), 20, i, 0
+  NEXT i
+  FOR i = 60 TO 63
+   setbit buffer(), 20, i, 0
+  NEXT i
+  saveoldattackdata buffer(), o
+ NEXT o
+ setbit gen(), 101, 6, 0 'no hide readymeter
+ setbit gen(), 101, 7, 0 'no hide health meter
+END IF
+'--VERSION 5--
+IF gen(genVersion) = 4 THEN
+ upgrade_message "March 31 2001 format (5)"
+ gen(genVersion) = 5
+ upgrade_message "Upgrading 16-color Palette Format..."
+ setpicstuf pal16(), 16, -1
+ xbload game$ + ".pal", buffer(), "16-color palletes missing from " + game$
+ KILL game$ + ".pal"
+ '--find last used palette
+ last = 99
+ foundpal = 0
+ FOR j = 99 TO 0 STEP -1
+  FOR i = 0 TO 7
+   IF buffer(j * 8 + i) <> 0 THEN
+    last = j
+    foundpal = 1
+    EXIT FOR
+   END IF
+  NEXT i
+  IF foundpal THEN EXIT FOR
+ NEXT j
+ upgrade_message "Last used palette is " & last
+ '--write header
+ pal16(0) = 4444
+ pal16(1) = last
+ FOR i = 2 TO 7
+  pal16(i) = 0
+ NEXT i
+ storeset game$ + ".pal", 0, 0
+ '--convert palettes
+ FOR j = 0 TO last
+  FOR i = 0 TO 7
+   pal16(i) = buffer(j * 8 + i)
+  NEXT i
+  storeset game$ + ".pal", 1 + j, 0
+ NEXT j
+END IF
+'--VERSION 6--
+IF gen(genVersion) = 5 THEN
+ upgrade_message "Serendipity format (6)"
+ 'Shop stuff and song name formats changed, MIDI music added
+ 'Sub version info also added
+ 'Clear battle formation animation data
+ FOR i = 0 TO gen(genMaxFormation)
+  setpicstuf buffer(), 80, -1
+  loadset game$ + ".for", i, 0
+  buffer(34) = 0
+  buffer(35) = 0
+  storeset game$ + ".for", i, 0
+ NEXT i
+ gen(genVersion) = 6
+END IF
+
+
+IF NOT isfile(workingdir$ + SLASH + "archinym.lmp") THEN
+ upgrade_message "generate default archinym.lmp"
+ '--create archinym information lump
+ fh = FREEFILE
+ OPEN workingdir$ + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
+ PRINT #fh, RIGHT$(game$, LEN(game$) - LEN(workingdir$ + SLASH))
+ PRINT #fh, version$ + "(previous)"
+ CLOSE #fh
+END IF
+
+IF NOT isfile(game$ + ".veh") THEN
+ upgrade_message "add vehicle data"
+ '--make sure vehicle lump is present
+ template$ = finddatafile("ohrrpgce.new")
+ IF template$ <> "" THEN
+  unlumpfile(template$, "ohrrpgce.veh", tmpdir$)
+  copyfile tmpdir$ & SLASH & "ohrrpgce.veh", game$ & ".veh", buffer()
+  gen(55) = 2
+ END IF
+END IF
+
+'--make sure binsize.bin is full. why are we doing this? as lumps are upgraded
+'--and binsize is extended, records in binsize which are meant to default
+'--because they don't exist take on the value 0 instead
+FOR i = 0 TO sizebinsize
+ setbinsize i, getbinsize(i)
+NEXT
+
+IF NOT isfile(workingdir$ + SLASH + "attack.bin") THEN
+ upgrade_message "Init extended attack data..."
+ setbinsize 0, curbinsize(0)
+ FOR i = 0 TO gen(genMaxAttack)
+  savenewattackdata buffer(), i
+ NEXT i
+
+ '--and while we are at it, clear the old death-string from enemies
+ upgrade_message "Re-init recycled enemy data..."
+ FOR i = 0 TO gen(36)
+  loadenemydata buffer(), i
+  FOR j = 17 TO 52
+   buffer(j) = 0
+  NEXT j
+  saveenemydata buffer(), i
+ NEXT i
+END IF
+
+IF NOT isfile(workingdir$ + SLASH + "songdata.bin") THEN
+ upgrade_message "Upgrading Song Name format..."
+ DIM song$(99)
+ fh = FREEFILE
+ OPEN game$ + ".sng" FOR BINARY AS #fh
+ temp& = LOF(fh)
+ CLOSE #fh
+ IF temp& > 0 THEN
+  fh = FREEFILE
+  OPEN game$ + ".sng" FOR INPUT AS #fh
+  FOR i = 0 TO 99
+   INPUT #fh, song$(i)
+  NEXT i
+  CLOSE #fh
+ END IF
+
+ FOR i = 99 TO 1 STEP -1
+  '-- check for midis as well 'cause some people might use a WIP custom or whatnot
+  IF song$(i) <> "" OR isfile(game$ + "." + STR$(i)) OR isfile(workingdir$ + SLASH + "song" + STR$(i) + ".mid") THEN
+   gen(genMaxSong) = i
+   EXIT FOR
+  END IF
+ NEXT
+
+ flusharray buffer(), curbinsize(2) / 2, 0
+ setbinsize 2, curbinsize(2)
+ setpicstuf buffer(), curbinsize(2), -1
+ FOR i = 0 TO gen(genMaxSong)
+  writebinstring song$(i), buffer(), 0, 30
+  storeset workingdir$ + SLASH + "songdata.bin", i, 0
+ NEXT
+ ERASE song$
+END IF
+
+IF NOT isfile(workingdir$ + SLASH + "palettes.bin") THEN
+ DIM AS SHORT headsize = 4, recsize = 768
+ upgrade_message "Upgrading Master Palette format..."
+ loadpalette master(), 0
+ fh = FREEFILE
+ OPEN workingdir$ + SLASH + "palettes.bin" FOR BINARY AS #fh
+ PUT #fh, , headsize
+ PUT #fh, , recsize
+ CLOSE #fh
+ savepalette master(), 0
+END IF
+
+'--check variable record size lumps and reoutput them if records have been extended
+'--all of the files below should exist, be non zero length and have non zero record size by this point
+updaterecordlength workingdir$ + SLASH + "attack.bin", 0
+updaterecordlength game$ + ".stf", 1
+updaterecordlength workingdir$ + SLASH + "songdata.bin", 2
+updaterecordlength workingdir$ + SLASH + "sfxdata.bin", 3
+updaterecordlength game$ + ".map", 4
+
+'--update to new (3rd) password format
+IF gen(5) < 256 THEN
+ gen(5) = 256
+ IF gen(94) = -1 THEN
+  '--no password, write a blank one
+  pas$ = ""
+ ELSE
+  '--read the old scattertable
+  readscatter pas$, gen(94), 200
+  pas$ = rotascii(pas$, gen(93) * -1)
+ END IF
+ writepassword pas$
+END IF
+
+'Zero out new attack item cost (ammunition) data
+IF getfixbit(fixAttackitems) = 0 THEN
+  setfixbit(fixAttackitems, 1)
+  fh = freefile
+  OPEN workingdir$ + SLASH + "attack.bin" FOR BINARY AS #FH
+  REDIM dat(curbinsize(0)/2 - 1) AS SHORT
+  p = 1
+  FOR i = 0 to gen(genMaxAttack)
+
+    GET #fh,p,dat()
+    FOR y = 53 TO 59
+      dat(y) = 0
+    NEXT
+
+    PUT #fh,p,dat()
+    p+=curbinsize(0)
+  NEXT
+  CLOSE #fh
+END IF
+
+IF getfixbit(fixWeapPoints) = 0 THEN
+	setfixbit(fixWeapPoints, 1)
+	fh = freefile
+	OPEN game$ + ".dt0" FOR BINARY AS #fh
+	REDIM dat(317) AS SHORT
+	p = 1
+	FOR i = 0 to gen(genMaxHero)
+		GET #fh,,dat()
+		if dat(297) <> 0 OR dat(298) <> 0 OR dat(299) <> 0 OR dat(300) <> 0 THEN
+			close #fh
+			goto nofixweappoints 'they already use hand points, abort!
+		end if
+	NEXT
+	
+	FOR i = 0 to gen(genMaxHero)
+		GET #fh,p,dat()
+		dat(297) = 24
+		dat(299) = -20
+		PUT #fh,p,dat()
+		p+=318
+	NEXT
+	close #fh
+nofixweappoints:
+
+END IF
+
+'wow! this is quite a big and ugly routine!
+END SUB
