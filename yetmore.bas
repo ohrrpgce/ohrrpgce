@@ -553,12 +553,8 @@ herobyrank = result
 END FUNCTION
 
 SUB initgame
-
 '--back compat game$
-i = 0
-IF usepreunlump = 0 THEN
- game$ = workingdir$ + SLASH + trimextension$(trimpath$(sourcerpg$))
-END IF
+game$ = workingdir$ + SLASH + LCASE(trimextension$(trimpath$(sourcerpg$)))
 '--set game$ according to the archinym
 IF isfile(workingdir$ + SLASH + "archinym.lmp") THEN
  fh = FREEFILE
