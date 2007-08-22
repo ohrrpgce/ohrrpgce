@@ -541,9 +541,9 @@ SUB makebackups
  'what is this for? Since some lumps can be modified at run time, we need to keep a
  'backup copy, and then only edit the copy. The original is never used directly.
  'enemy data
- copyfile game$ + ".dt1", workingdir$ + SLASH + "dt1.tmp", buffer()
+ copyfile game$ + ".dt1", tmpdir$ & "dt1.tmp", buffer()
  'formation data
- copyfile game$ + ".for", workingdir$ + SLASH + "for.tmp", buffer()
+ copyfile game$ + ".for", tmpdir$ & "for.tmp", buffer()
  'if you add lump-modding commands, you better well add them here >:(
 END SUB
 
@@ -571,7 +571,6 @@ SUB cleanuptemp
   OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
   DO UNTIL EOF(fh)
    LINE INPUT #fh, filename$
-   filename$ = LCASE$(filename$)
    IF usepreunlump = 0 THEN
     'normally delete everything
     KILL workingdir$ + SLASH + filename$
@@ -581,6 +580,20 @@ SUB cleanuptemp
     IF ext$ = "tmp" OR ext$ = "hsx" OR ext$ = "hsz" OR ext$ = "bmd" OR filename$ = "scripts.txt" or filename$ = "hs" THEN
      KILL workingdir$ + SLASH + filename$
     END IF
+   END IF
+  LOOP
+  CLOSE #fh
+
+  KILL tmpdir$ + "filelist.tmp"
+
+  findfiles tmpdir$ + ALLFILES, 0, tmpdir$ + "filelist.tmp", buffer()
+  fh = FREEFILE
+  OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
+  DO UNTIL EOF(fh)
+   LINE INPUT #fh, filename$
+   IF filename$ = "filelist.tmp" THEN CONTINUE DO ' skip this, deal with it later
+   IF NOT isdir(tmpdir$ & filename$) THEN
+    KILL tmpdir$ & filename$
    END IF
   LOOP
   CLOSE #fh

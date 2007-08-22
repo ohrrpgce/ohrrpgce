@@ -2012,7 +2012,7 @@ RETRACE
 
 loadall:
 setpicstuf formdata(), 80, -1
-loadset workingdir$ + SLASH + "for.tmp", form, 0
+loadset tmpdir$ & "for.tmp", form, 0
 
 mapsong = presentsong
 IF formdata(33) = 0 THEN fademusic 0

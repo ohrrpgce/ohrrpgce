@@ -542,7 +542,7 @@ END SUB
 
 SUB loadenemydata (array(), index, altfile = 0)
 IF altfile THEN
- filename$ = workingdir$ + SLASH + "dt1.tmp"
+ filename$ = tmpdir$ & "dt1.tmp"
 ELSE
  filename$ = game$ & ".dt1"
 END IF
@@ -551,7 +551,7 @@ END SUB
 
 SUB saveenemydata (array(), index, altfile = 0)
 IF altfile THEN
- filename$ = workingdir$ + SLASH + "dt1.tmp"
+ filename$ = tmpdir$ & "dt1.tmp"
 ELSE
  filename$ = game$ & ".dt1"
 END IF
