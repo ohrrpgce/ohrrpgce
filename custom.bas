@@ -20,7 +20,6 @@ DECLARE SUB upgrade (font%())
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
 DECLARE SUB textxbload (f$, array%(), e$)
 DECLARE SUB fixorder (f$)
-DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE SUB vehicles ()
 DECLARE SUB verifyrpg ()
 DECLARE FUNCTION numbertail$ (s$)
@@ -1545,9 +1544,9 @@ IF NOT isfile(game$ + ".veh") THEN
  '--make sure vehicle lump is present
  template$ = finddatafile("ohrrpgce.new")
  IF template$ <> "" THEN
-  IF unlumpone(template$, "ohrrpgce.veh", game$ + ".veh") THEN
-   gen(55) = 2
-  END IF
+  unlumpfile(template$, "ohrrpgce.veh", tmpdir$)
+  copyfile tmpdir$ & SLASH & "ohrrpgce.veh", game$ & ".veh", buffer()
+  gen(55) = 2
  END IF
 END IF
 

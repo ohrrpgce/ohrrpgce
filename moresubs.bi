@@ -47,7 +47,6 @@ declare function shoption (inn, price, needf, stat())
 declare sub snapshot
 declare sub tagdisplay
 declare sub textfatalerror (e$)
-declare function unlumpone (lumpfile$, onelump$, asfile$)
 declare sub writejoysettings
 declare sub writescriptvar (id, newval)
 declare function getdisplayname$ (default$)

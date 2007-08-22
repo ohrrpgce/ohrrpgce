@@ -1826,6 +1826,8 @@ SUB unlumpfile (lump$, fmask$, path$)
 	open lump$ for binary access read as #lf
 	maxsize = LOF(lf)
 
+	if(len(path$) > 0 and right(path$, 1) <> SLASH) then path$ = path$ & SLASH
+
 	bufr = allocate(16383)
 	if bufr = null then
 		close #lf

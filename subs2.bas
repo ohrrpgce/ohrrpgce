@@ -27,7 +27,6 @@ DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB textfatalerror (e$)
-DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION isunique% (s$, u$(), r%)
@@ -350,7 +349,8 @@ SUB importscripts (f$)
   copyfile f$, game$ + ".hsp", buffer()
   textcolor 7, 0
   textx = 0: texty = 0
-  IF unlumpone(game$ + ".hsp", "scripts.bin", workingdir$ + SLASH + "scripts.bin") THEN
+  unlumpfile(game$ + ".hsp", "scripts.bin", workingdir$)
+  IF isfile(workingdir$ & SLASH & "scripts.bin") THEN
    dotbin = -1
    fptr = FREEFILE
    OPEN workingdir$ + SLASH + "scripts.bin" FOR BINARY AS #fptr
@@ -362,7 +362,7 @@ SUB importscripts (f$)
    SEEK #fptr, headersize + 1
   ELSE
    dotbin = 0
-   dummy = unlumpone(game$ + ".hsp", "scripts.txt", workingdir$ + SLASH + "scripts.txt")
+   unlumpfile(game$ + ".hsp", "scripts.txt", workingdir$)
    fptr = FREEFILE
    OPEN workingdir$ + SLASH + "scripts.txt" FOR INPUT AS #fptr
   END IF

@@ -36,7 +36,6 @@ DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
 DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
 DECLARE SUB scripterr (e$)
-DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE SUB itstr (i%)
 DECLARE FUNCTION findhero% (who%, f%, l%, d%)
 DECLARE FUNCTION howmanyh% (f%, l%)
@@ -2192,21 +2191,6 @@ PRINT e$
 SYSTEM
 
 END SUB
-
-FUNCTION unlumpone (lumpfile$, onelump$, asfile$)
-unlumpone = 0
-
-unlumpfile lumpfile$, onelump$, tmpdir$, buffer()
-
-IF isfile(tmpdir$ + onelump$) THEN
- copyfile tmpdir$ + onelump$, asfile$, buffer()
- KILL tmpdir$ + onelump$
- unlumpone = -1
-END IF
-
-f = FREEFILE
-
-END FUNCTION
 
 SUB writejoysettings
 fh = FREEFILE

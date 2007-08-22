@@ -14,7 +14,6 @@ DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB textfatalerror (e$)
-DECLARE FUNCTION unlumpone% (lumpfile$, onelump$, asfile$)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION isunique% (s$, u$(), r%)
@@ -499,34 +498,6 @@ RMDIR workingdir$
 SYSTEM
 
 END SUB
-
-FUNCTION unlumpone (lumpfile$, onelump$, asfile$)
-unlumpone = 0
-
-IF NOT isdir("unlump1.tmp") THEN makedir "unlump1.tmp"
-CALL unlump(lumpfile$, "unlump1.tmp" + SLASH, buffer())
-
-IF isfile("unlump1.tmp" + SLASH + onelump$) THEN
- copyfile "unlump1.tmp" +SLASH + onelump$, asfile$, buffer()
- unlumpone = -1
-END IF
-
-touchfile "unlump1.tmp" + SLASH + "nothing.tmp"
-
-'borrowed this code from game.bas cos wildcard didn't work
-findfiles "unlump1.tmp" + SLASH + ALLFILES, 0, "unlist.tmp", buffer()
-fh = FREEFILE
-OPEN "unlist.tmp" FOR INPUT AS #fh
-DO UNTIL EOF(fh)
- LINE INPUT #fh, filename$
- KILL "unlump1.tmp" + SLASH + filename$
-LOOP
-CLOSE #fh
-KILL "unlist.tmp"
-
-RMDIR "unlump1.tmp"
-
-END FUNCTION
 
 SUB writeglobalstring (index, s$, maxlen)
 
