@@ -299,6 +299,7 @@ defaultc
 '---ALSO CHECKS FOR GAME.EXE RENAMING
 'DEBUG debug "enable autorunning"
 autorungame = 0
+usepreunlump = 0
 FOR i = 1 TO commandlineargcount
  a$ = commandlinearg(i)
 
