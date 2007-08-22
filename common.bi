@@ -29,7 +29,7 @@ DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION read32bitstring$ overload (array%(), offset%)
 DECLARE FUNCTION read32bitstring$ overload (strptr as integer ptr)
 DECLARE FUNCTION readbadgenericname$ (index%, filename$, recsize%, offset%, size%, skip%)
-DECLARE SUB copylump(package$, lump$, dest$)
+DECLARE SUB copylump(package$, lump$, dest$, ignoremissing AS INTEGER = 0)
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
 DECLARE FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTEGER

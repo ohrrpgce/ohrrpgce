@@ -492,7 +492,7 @@ dolumpfiles gamefile$
 RETRACE
 
 checkpass:
-copylump gamefile$, "archinym.lmp", workingdir$
+copylump gamefile$, "archinym.lmp", workingdir$, -1
 '--set game$ according to the archinym
 game$ = readarchinym()
 copylump gamefile$, game$ + ".gen", workingdir$

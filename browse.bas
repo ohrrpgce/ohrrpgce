@@ -502,13 +502,7 @@ DO UNTIL EOF(fh) OR br.treesize >= br.limit
  END IF
  '--RPG files
  IF br.special = 7 THEN
-  IF isdir(f) THEN
-   'unlumped RPGDIR folders
-   copyfile f + SLASH + "browse.txt", br.tmp + "browse.txt", buffer()
-  ELSE
-   'lumped RPG files
-   unlumpfile f, "browse.txt", br.tmp
-  END IF
+  copylump f, "browse.txt", br.tmp, -1
   IF isfile(br.tmp + "browse.txt") THEN
    setpicstuf buffer(), 40, -1
    loadset br.tmp + "browse.txt", 0, 0

@@ -155,13 +155,17 @@ RETURN tmp$
 #ENDIF
 END FUNCTION
 
-SUB copylump(package$, lump$, dest$)
+SUB copylump(package$, lump$, dest$, ignoremissing AS INTEGER = 0)
+if len(dest$) and right(dest$, 1) <> SLASH then dest$ = dest$ + SLASH
 IF isdir(package$) THEN
  'unlumped folder
- copyfile package$ + SLASH + lump$, dest$ + SLASH + lump$, buffer()
+ IF ignoremissing THEN
+  IF NOT isfile(package$ + SLASH + lump$) THEN EXIT SUB
+ END IF
+ copyfile package$ + SLASH + lump$, dest$ + lump$, buffer()
 ELSE
  'lumpfile
- unlumpfile package$, lump$, dest$ + SLASH
+ unlumpfile package$, lump$, dest$
 END IF
 END SUB
 
