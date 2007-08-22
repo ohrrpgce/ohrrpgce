@@ -163,7 +163,7 @@ IF isdir(package$) THEN
  IF ignoremissing THEN
   IF NOT isfile(package$ + SLASH + lump$) THEN EXIT SUB
  END IF
- copyfile package$ + SLASH + lump$, dest$ + lump$, buffer()
+ copyfile package$ + SLASH + lump$, dest$ + lump$
 ELSE
  'lumpfile
  unlumpfile package$, lump$, dest$
@@ -1245,7 +1245,7 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
   records = LOF(ff) / oldsize
   CLOSE #ff
 
-  copyfile lumpf$, tempf$, buffer()
+  copyfile lumpf$, tempf$
   KILL lumpf$
 
   FOR i = 0 TO records - 1
@@ -1506,7 +1506,7 @@ IF NOT isfile(game$ + ".veh") THEN
  template$ = finddatafile("ohrrpgce.new")
  IF template$ <> "" THEN
   unlumpfile(template$, "ohrrpgce.veh", tmpdir$)
-  copyfile tmpdir$ & SLASH & "ohrrpgce.veh", game$ & ".veh", buffer()
+  copyfile tmpdir$ & SLASH & "ohrrpgce.veh", game$ & ".veh"
   safekill tmpdir$ & SLASH & "ohrrpgce.veh"
   gen(55) = 2
  END IF

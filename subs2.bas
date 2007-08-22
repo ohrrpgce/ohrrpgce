@@ -116,7 +116,7 @@ ELSE '--use pages instead of sets
  
 END IF'--separate setpicstuf and setdiskpages
 
-copyfile workingdir$ + SLASH + "_cropped.tmp", lump$, buffer()
+copyfile workingdir$ + SLASH + "_cropped.tmp", lump$
 safekill workingdir$ + SLASH + "_cropped.tmp"
 
 END SUB
@@ -346,7 +346,7 @@ SUB importscripts (f$)
  clearpage vpage
  IF buffer(0) = 21320 AND buffer(1) = 0 THEN
 
-  copyfile f$, game$ + ".hsp", buffer()
+  copyfile f$, game$ + ".hsp"
   textcolor 7, 0
   textx = 0: texty = 0
   unlumpfile(game$ + ".hsp", "scripts.bin", workingdir$)

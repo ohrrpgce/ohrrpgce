@@ -24,7 +24,7 @@ DECLARE SUB setwait (b(), BYVAL t)
 DECLARE SUB dowait ()
 DECLARE SUB setbit (b(), BYVAL w, BYVAL b, BYVAL v)
 DECLARE FUNCTION readbit (b(), BYVAL w, BYVAL b)
-DECLARE SUB copyfile (s$, d$, buf())
+DECLARE SUB copyfile (s$, d$)
 DECLARE SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 DECLARE SUB lumpfiles (listf$, lump$, path$, buffer())
 DECLARE SUB array2str (arr(), BYVAL o, s$)
@@ -444,7 +444,7 @@ function matchmask(match as string, mask as string) as integer
 end function
 
 SUB fixorder (f$)
-copyfile f$, "fixorder.tmp", buffer()
+copyfile f$, "fixorder.tmp"
 
 ofh = FREEFILE
 OPEN f$ FOR OUTPUT AS #ofh
@@ -489,7 +489,7 @@ CLOSE #ofh
 KILL "fixorder.tmp"
 END SUB
 
-SUB copyfile (s$, d$, buf() as integer)
+SUB copyfile (s$, d$)
 	dim bufr as ubyte ptr
 	dim as integer fi, fo, size, csize
 

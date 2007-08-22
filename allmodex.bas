@@ -2213,7 +2213,7 @@ SUB setfmvol (BYVAL vol as integer)
 	music_setvolume(vol)
 end SUB
 
-SUB copyfile (s$, d$, buf() as integer)
+SUB copyfile (s$, d$)
 	dim bufr as ubyte ptr
 	dim as integer fi, fo, size, csize
 

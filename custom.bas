@@ -192,7 +192,7 @@ IF isdir(gamefile$) THEN
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
   LINE INPUT #fh, filename$
-  copyfile gamefile$ + SLASH + filename$, workingdir$ + SLASH + filename$, buffer()
+  copyfile gamefile$ + SLASH + filename$, workingdir$ + SLASH + filename$
  LOOP
  CLOSE #fh
  KILL "filelist.tmp"
@@ -210,7 +210,7 @@ IF hsfile$ <> "" THEN GOTO hsimport
 IF NOT isfile(game$ + ".mas") AND NOT isfile(workingdir$ + SLASH + "palettes.bin") THEN 
  palfile$ = finddatafile("ohrrpgce.mas")
  IF palfile$ = "" THEN fatalerror "RPG master palette and ohrrpgce.mas missing"
- copyfile palfile$, game$ + ".mas", buffer()
+ copyfile palfile$, game$ + ".mas"
 END IF
 IF NOT isfile(game$ + ".fnt") THEN
  getdefaultfont font()
@@ -671,7 +671,7 @@ END SUB
 
 SUB fixorder (f$)
 
-copyfile f$, "fixorder.tmp", buffer()
+copyfile f$, "fixorder.tmp"
 
 ofh = FREEFILE
 OPEN f$ FOR OUTPUT AS #ofh
@@ -867,7 +867,7 @@ RETRACE
 importfont:
 newfont$ = browse$(0, default$, "*.ohf", "")
 IF newfont$ <> "" THEN
- copyfile newfont$, game$ + ".fnt", buffer()
+ copyfile newfont$, game$ + ".fnt"
 
  '--never overwrite 0 thru 31
  FOR i = 0 TO 2047
@@ -912,7 +912,7 @@ DO
 
  IF keyval(28) > 1 THEN
   GOSUB savefont
-  copyfile game$ + ".fnt", newfont$ + ".ohf", buffer()
+  copyfile game$ + ".fnt", newfont$ + ".ohf"
   EXIT DO
  END IF
 
@@ -1358,7 +1358,7 @@ FUNCTION newRPGfile (template$, newrpg$)
   w = getkey
   EXIT FUNCTION
  END IF
- copyfile template$, newrpg$, buffer()
+ copyfile template$, newrpg$
  printstr "Unlumping", 0, 60, vpage
  setvispage vpage 'refresh
  DIM lumpbuf(16383)
@@ -1392,7 +1392,7 @@ IF isdir(filetolump$) THEN
  DO UNTIL EOF(fh)
   LINE INPUT #fh, filename$
   safekill filetolump$ + SLASH + filename$
-  copyfile workingdir$ + SLASH + filename$, filetolump$ + SLASH + filename$, buffer()
+  copyfile workingdir$ + SLASH + filename$, filetolump$ + SLASH + filename$
  LOOP
  CLOSE #fh
  safekill "temp.lst"
