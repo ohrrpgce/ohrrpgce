@@ -130,29 +130,28 @@ END SUB
 FUNCTION aquiretempdir$ ()
 #IFNDEF __FB_LINUX__
 'Windows only behavior
-t$ = environ$("TEMP")
-IF NOT isdir(t$) THEN t$ = environ("TMP")
-IF NOT isdir(t$) THEN
- '--fall back to working dir if all else fails
- t$ = exepath$
-END IF
-IF RIGHT$(t$, 1) <> SLASH THEN t$ = t$ + SLASH
-RETURN t$
+tmp$ = environ$("TEMP")
+IF NOT fileiswriteable(tmp$ & SLASH & "writetest.tmp") THEN tmp$ = environ("TMP")
+IF NOT fileiswriteable(tmp$ & SLASH & "writetest.tmp") THEN tmp$ = exepath$
+IF NOT fileiswriteable(tmp$ & SLASH & "writetest.tmp") THEN tmp$ = ""
+IF NOT fileiswriteable(tmp$ & SLASH & "writetest.tmp") THEN debug "Unable to find any writable temp dir"
+safekill tmp$ & SLASH & "writetest.tmp"
 #ELSE
 'Linux only behavior
 #IFDEF IS_CUSTOM
 RETURN ""
 #ELSE
-h$ = environ$("HOME")
-o$ = h$ + "/.ohrrpgce"
-IF NOT isdir(o$) THEN makedir(o$)
+tmp$ = environ$("HOME")
+tmp$ = tmp$ + "/.ohrrpgce"
+IF NOT isdir(tmp$) THEN makedir(tmp$)
+#ENDIF
+#ENDIF
+IF RIGHT$(tmp$, 1) <> SLASH THEN tmp$ = tmp$ + SLASH
 d$ = DATE
 t$ = TIME
-tmp$ = o$ + "/" + MID$(d$,7,4) + MID$(d$,1,2) + MID$(d$,4,2) + MID$(t$,1,2) + MID$(t$,4,2) + MID$(t$,7,2) + "." + STR$(INT(RND * 1000)) + ".tmp"
+tmp$ = tmp$ + "ohrrpgce" + MID$(d$,7,4) + MID$(d$,1,2) + MID$(d$,4,2) + MID$(t$,1,2) + MID$(t$,4,2) + MID$(t$,7,2) + "." + STR$(INT(RND * 1000)) + ".tmp"
 tmp$ = tmp$ + "/"
 RETURN tmp$
-#ENDIF
-#ENDIF
 END FUNCTION
 
 SUB copylump(package$, lump$, dest$, ignoremissing AS INTEGER = 0)

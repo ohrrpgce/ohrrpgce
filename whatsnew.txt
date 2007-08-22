@@ -87,6 +87,8 @@ WHAT IS NEW?
     * Optional graphics smoothing. Run with -s 1 command-line option.
       [Reaxor Jones]
     * ohrrpgce.fnt is not used anymore. [James Paige]
+    * You can play two different RPG files at the same time and they will not
+      clobber each other's temporary files [James Paige]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the

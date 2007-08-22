@@ -807,21 +807,20 @@ releasestack
 '--working files
 'DEBUG debug "Kill working files"
 
-cleanuptemp
-#IFDEF __FB_LINUX__
-  RMDIR tmpdir$ + "playing.tmp"
-  RMDIR tmpdir$
-#ENDIF
-
-'DEBUG debug "Remove working directory"
-IF usepreunlump = 0 THEN RMDIR workingdir$
-'--reset audio
-'closefile
 'DEBUG debug "Unload BAM player"
 closemusic
 closesound
 'DEBUG debug "Restore original FM volume"
 setfmvol fmvol
+
+cleanuptemp
+RMDIR tmpdir$ + "playing.tmp"
+RMDIR tmpdir$
+
+'DEBUG debug "Remove working directory"
+IF usepreunlump = 0 THEN RMDIR workingdir$
+'--reset audio
+'closefile
 
 END SUB
 
