@@ -577,8 +577,8 @@ SUB cleanuptemp
     KILL workingdir$ + SLASH + filename$
    ELSE
     'but for preunlumped games only delete specific files
-    ext$ = RIGHT$(filename$,4)
-    IF ext$ = ".tmp" OR ext$ = ".hsx" OR ext$ = ".hsz" OR ext$ = ".bmd" OR filename$ = "scripts.txt" or filename$ = "hs" THEN
+    ext$ = justextension$(filename$)
+    IF ext$ = "tmp" OR ext$ = "hsx" OR ext$ = "hsz" OR ext$ = "bmd" OR filename$ = "scripts.txt" or filename$ = "hs" THEN
      KILL workingdir$ + SLASH + filename$
     END IF
    END IF
@@ -893,7 +893,7 @@ IF killmask AND 16 THEN safekill filebase$ + "_p.tmp"
 END SUB
 
 SUB deletetemps
-'similiar to cleanuptemp, except only deletes game-state temporary files
+'deletes game-state temporary files when exiting back to the load screen or doing a quickload
 
  findfiles workingdir$ + SLASH + ALLFILES, 0, tmpdir$ + "filelist.tmp", buffer()
  fh = FREEFILE

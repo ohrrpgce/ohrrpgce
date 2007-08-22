@@ -1553,6 +1553,7 @@ RETRACE
 resetg:
 IF autorungame THEN exitprogram (NOT abortg)
 resetinterpreter
+cleanuptemp
 fademusic 0
 fadeout 0, 0, 0
 closemusic
