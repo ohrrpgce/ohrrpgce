@@ -1140,7 +1140,6 @@ IF oggtemp <> "" THEN KILL oggtemp
 
 '--save and update
 GOSUB ssfxdata
-freesfx snum
 GOSUB getsfxinfo
 RETRACE
 
@@ -1152,7 +1151,7 @@ copyfile sfxfile$, outfile$ + ext$, buffer()
 RETRACE
 
 ssfxdata:
-stopsfx snum
+freesfx snum
 flusharray buffer(), curbinsize(3) / 2, 0
 setpicstuf buffer(), curbinsize(3), -1
 writebinstring sname$, buffer(), 0, 30

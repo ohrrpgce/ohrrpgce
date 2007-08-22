@@ -732,7 +732,7 @@ TYPE SoundEffect
   paused as integer
 END TYPE
 
-dim Shared SoundPool as SoundEffect ptr, SoundPoolSize as integer
+redim Shared SoundPool(10) as SoundEffect
 
 
 
@@ -764,7 +764,7 @@ sub sound_close
   if sound_inited <> 0 then exit sub
 '  debug "sound_close"
 
-  for i = 0 to SoundPoolSize - 1
+  for i = 0 to Ubound(SoundPool)
     UnloadSound(i)
   next
 
@@ -778,15 +778,19 @@ sub sound_play(byval num as integer, byval l as integer,  byval s as integer = 0
   'debug ">>sound_play(" & num & ", " & l & ")"
   dim slot as integer
 
-  if not s then slot = SoundSlot(num) else slot = num
-  if slot = -1 then
-    'debug "sound not loaded, loading."
-    slot = LoadSound(num)
-    if slot = -1 then debug "failed": exit sub
+  if s then
+    slot = num
+  else
+    slot = SoundSlot(num)
+    if slot = -1 then
+      'debug "sound not loaded, loading."
+      slot = LoadSound(num)
+    end if
   end if
-  'slot -= 1
+  if slot = -1 then exit sub
+
   'debug "slot " & slot
-  with SoundPool[slot]
+  with SoundPool(slot)
   'debug str(AudIsPlaying(.soundID))
     if AudIsPlaying(.soundID) <> 0 and .paused = 0 then
       'debug "<<already playing"
@@ -808,7 +812,7 @@ sub sound_pause(byval num as integer,  byval s as integer = 0)
   if not s then slot = SoundSlot(num) else slot = num
   if slot = -1 then exit sub
 
-  with SoundPool[slot]
+  with SoundPool(slot)
     if sound_playing(slot, -1) = 0 OR .paused then
       exit sub
     end if
@@ -825,7 +829,7 @@ sub sound_stop(byval num as integer,  byval s as integer = 0)
   if not s then slot = SoundSlot(num) else slot = num
   if slot = -1 then exit sub
 
-  with SoundPool[slot]
+  with SoundPool(slot)
 
     AudStop(.soundID)
 
@@ -835,8 +839,13 @@ sub sound_stop(byval num as integer,  byval s as integer = 0)
 end sub
 
 sub sound_free(byval num as integer)
+  dim i as integer
 
-  UnloadSound num
+  for i = 0 to Ubound(SoundPool)
+    if SoundPool(i).used and SoundPool(i).effectID = num then
+      UnloadSound(i)
+    end if
+  next
 end sub
 
 function sound_playing(byval num as integer,  byval s as integer = 0) as integer
@@ -845,7 +854,7 @@ function sound_playing(byval num as integer,  byval s as integer = 0) as integer
   if not s then slot = SoundSlot(num) else slot = num
   if slot = -1 then return 0
 
-  if AudIsPlaying(SoundPool[slot].soundID) then return 1 ELSE return 0
+  return AudIsPlaying(SoundPool(slot).soundID) <> 0
 
 end function
 
@@ -855,13 +864,13 @@ end function
 
 
 
-'Returns the slot+1 in the sound pool which corresponds to the given sound effect
+'Returns the slot in the sound pool which corresponds to the given sound effect
 ' if the sound is not loaded, returns -1
 
 Function SoundSlot(byval num as integer) as integer
   dim i as integer
-  for i = 0 to SoundPoolSize - 1
-    with SoundPool[i]
+  for i = 0 to Ubound(SoundPool)
+    with SoundPool(i)
       'debug "i = " & i & ", used = " & .used & ", effID = " & .effectID & ", sndID = " & .soundID & ", AudIsValid = " & AudIsValidSound(.soundID)
       if .used AND (.effectID = num OR num = -1) AND AudIsValidSound(.soundID) then return i
     end with
@@ -894,20 +903,14 @@ Function LoadSound(byval f as string,  byval num as integer = -1) as integer
   dim i as integer
 
   'iterate through the pool
-  for i = 0 to SoundPoolSize - 1
-    if SoundPool[i].used <> -1 then exit for 'if we found a free spot, coo'
+  for i = 0 to Ubound(SoundPool)
+    if SoundPool(i).used <> -1 then exit for 'if we found a free spot, coo'
   next
 
-  'otherwise, i will be left =ing SoundPoolSize
-  if i = SoundPoolSize then
+  'otherwise, i will be left =ing SoundPool size + 1
+  if i = Ubound(SoundPool) + 1 then
     'Grow the sound pool
-    dim newpool as SoundEffect ptr
-    newpool = Reallocate(SoundPool, (SoundPoolSize * 1.1 + 3) * SIZEOF(SoundEffect))
-
-    if newpool = NULL then return -1 'crap
-
-    SoundPool = newpool 'vw00t
-    SoundPoolSize = SoundPoolSize * 1.1 + 3
+    redim preserve SoundPool(Ubound(SoundPool) * 1.5)
   end if
 
   'ok, now i points at a valid slot. goody.
@@ -931,7 +934,7 @@ Function LoadSound(byval f as string,  byval num as integer = -1) as integer
   if s = -1 then return -1 'crap
 
   'if we got this far, yes!
-  with SoundPool[i]
+  with SoundPool(i)
     .used = -1
     .soundID = s
     .effectID = num
@@ -944,8 +947,8 @@ End Function
 
 'Unloads a sound loaded in a slot. TAKES A SLOT, NOT AN SFX NUMBER!
 Sub UnloadSound(byval slot as integer)
-  if not SoundPool[slot].used then exit sub
-  with SoundPool[slot]
+  with SoundPool(slot)
+    if not .used then exit sub
     if AudIsValidSound(.soundID) then AudUnloadSound(.soundID)
     .used = 0
     .paused = 0
