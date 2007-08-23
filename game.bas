@@ -190,7 +190,7 @@ thestart:
 
 'Mixed global and module variables
 DIM font(1024), buffer(16384), pal16(448), timing(4), music(16384)
-DIM gen(104), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev&(40, 1), names$(40), veh(21)
+DIM gen(360), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev&(40, 1), names$(40), veh(21)
 DIM eqstuf(40, 4), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4)
 DIM menu$(9), mi(9)
@@ -2376,7 +2376,6 @@ SUB LoadGen
     get #ff, , s
     buffer(genlen) = s
     genlen += 1
-    IF genlen >= 199 THEN EXIT DO 'Do not load scattertable.
   LOOP
   genlen -= 1
 
