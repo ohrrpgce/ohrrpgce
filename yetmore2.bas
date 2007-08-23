@@ -750,7 +750,7 @@ NEXT i
 END SUB
 
 FUNCTION mapstatetemp$(mapnum, prefix$)
- RETURN workingdir$ + SLASH + prefix$ + STR$(mapnum)
+ RETURN tmpdir$ & prefix$ & mapnum
 END FUNCTION
 
 SUB savemapstate_gmap(mapnum, prefix$)
