@@ -366,7 +366,7 @@ DO
      EXIT DO
    END IF
   ELSEIF csr = 1 THEN
-   gamefile$ = browse$(7, "", "*.rpg", aquiretempdir$, 0)
+   gamefile$ = browse$(7, "", "*.rpg", tmpdir$, 0)
    game$ = trimextension$(trimpath$(gamefile$))
    IF game$ <> "" THEN EXIT DO
   ELSEIF csr = 2 THEN

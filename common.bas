@@ -141,7 +141,7 @@ tmp$ = tmp$ & "ohrrpgce"
 #ELSE
 'Linux only behavior
 #IFDEF IS_CUSTOM
-RETURN "" 'Custom only ever uses this routine for browse$
+RETURN "" 'Custom doesn't use this sub anyway...
 #ELSE
 tmp$ = environ$("HOME")
 tmp$ = tmp$ & SLASH & ".ohrrpgce"
