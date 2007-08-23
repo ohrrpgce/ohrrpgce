@@ -2377,16 +2377,10 @@ SUB LoadGen
 
   DO UNTIL EOF(ff)
     get #ff, , s
-    buffer(genlen) = s
+    gen(genlen) = s
     genlen += 1
   LOOP
   genlen -= 1
-
-  REDIM gen(genlen)
-
-  for i = 0 to genlen
-    gen(i) = buffer(i)
-  next
 END SUB
 
 SUB dotimer(byval l as integer)
