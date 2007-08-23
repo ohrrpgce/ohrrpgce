@@ -1130,7 +1130,7 @@ END SUB
 SUB loadtemppage (page)
 '--reads a previously stored page from a temporary file
 setdiskpages buffer(), 200, 0
-loadpage workingdir$ + SLASH + "temppage.tmp", 0, page
+loadpage tmpdir$ & "temppage.tmp", 0, page
 END SUB
 
 SUB oobcure (w, t, atk, spred, stat())
@@ -1626,7 +1626,7 @@ END FUNCTION
 SUB savetemppage (page)
 '--writes a page into a temp file for situations where we need more pages than we have
 setdiskpages buffer(), 200, 0
-storepage workingdir$ + SLASH + "temppage.tmp", 0, page
+storepage tmpdir$ & "temppage.tmp", 0, page
 END SUB
 
 SUB sellstuff (id, storebuf(), stock(), stat())
