@@ -1310,6 +1310,13 @@ END FUNCTION
 SUB upgrade (font())
 DIM pal16(8)
 
+IF NOT fileiswriteable(workingdir$ + SLASH + "writetest.tmp") THEN
+ upgrade_message workingdir$ & " not writable"
+ upgrade_message "Making no attempt to upgrade"
+ EXIT SUB
+END IF
+safekill workingdir$ + SLASH + "writetest.tmp"
+
 IF gen(genVersion) = 0 THEN
  upgrade_message "Ancient Pre-1999 format (1)"
  gen(genVersion) = 1
