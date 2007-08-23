@@ -377,6 +377,11 @@ dim gmap(dimbinsize(4)) 'this must be declared here, after the binsize file exis
 
 initgame '--set game$
 
+xbload game$ + ".fnt", font(), "font missing from " + game$
+LoadGEN
+'--upgrade obsolete RPG files (if possible)
+upgrade font()
+
 makebackups 'make a few backup lumps
 
 if isfile(game$ + ".hsp") then unlump game$ + ".hsp", tmpdir$, lumpbuf()
@@ -387,10 +392,8 @@ ERASE lumpbuf
 fadeout 0, 0, 0
 needf = 1
 
-LoadGEN
 loadpalette master(), gen(genMasterPal)
 getui uilook(), gen(genMasterPal)
-xbload game$ + ".fnt", font(), "font missing from " + game$
 
 rpgversion gen(genVersion)
 
