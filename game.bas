@@ -2171,17 +2171,17 @@ SELECT CASE AS CONST scrat(nowscript).curkind
    CASE 97'--read map block
     setmapdata scroll(), pass(), 0, 0
     IF scrat(nowscript).curargc = 2 THEN retvals(2) = 0
-    scriptret = readmapblock(bound(retvals(0), 0, scroll(0)), bound(retvals(1), 0, scroll(1)), bound(retvals(2), 0, 2))
+    scriptret = readmapblock(bound(retvals(0), 0, scroll(0)-1), bound(retvals(1), 0, scroll(1)-1), bound(retvals(2), 0, 2))
    CASE 98'--write map block
     IF scrat(nowscript).curargc = 3 THEN retvals(3) = 0
     setmapdata scroll(), pass(), 0, 0
-    setmapblock bound(retvals(0), 0, scroll(0)), bound(retvals(1), 0, scroll(1)), bound(retvals(3),0,2), bound(retvals(2), 0, 255)
+    setmapblock bound(retvals(0), 0, scroll(0)-1), bound(retvals(1), 0, scroll(1)-1), bound(retvals(3),0,2), bound(retvals(2), 0, 255)
    CASE 99'--read pass block
-    setmapdata pass(), pass(), 0, 0
-    scriptret = readmapblock(bound(retvals(0), 0, pass(0)), bound(retvals(1), 0, pass(1)), 0)
+    setmapdata scroll(), pass(), 0, 0
+    scriptret = readpassblock(bound(retvals(0), 0, pass(0)-1), bound(retvals(1), 0, pass(1)-1))
    CASE 100'--write pass block
-    setmapdata pass(), pass(), 0, 0
-    setmapblock bound(retvals(0), 0, pass(0)), bound(retvals(1), 0, pass(1)), 0, bound(retvals(2), 0, 255)
+    setmapdata scroll(), pass(), 0, 0
+    setpassblock bound(retvals(0), 0, pass(0)-1), bound(retvals(1), 0, pass(1)-1), bound(retvals(2), 0, 255)
    CASE 144'--load tileset
     IF retvals(0) >= 0 THEN
      o = retvals(0)
