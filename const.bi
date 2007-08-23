@@ -65,9 +65,13 @@ CONST genStatCap = 65           'Stat caps (genStatCap + stat)
 CONST genMaxSFX = 77            'last song number
 CONST genMasterPal = 78         'master palette number
 CONST genMaxMasterPal = 79      'max master palette number
+CONST genPW2Offset = 93         'old password offset
+CONST genPW2Length = 94         'old password length
 CONST genVersion = 95           'RPG file format version(6 is the latest)
 CONST genStartMoney = 96        'starting money
 CONST genMaxShop = 97           'last shop in .SHO
+CONST genPW1Offset = 98         'old-old password offset
+CONST genPW1Length = 99         'old-old password length
 CONST genMaxBackdrop = 100      'number of screens in .MXS
 CONST genBits = 101             'general bitsets
 CONST genStartX = 102           'starting X
@@ -80,6 +84,7 @@ CONST genAcceptSFX = 173        'menu interface
 CONST genCancelSFX = 174        ' "       "
 CONST genCursorSFX = 175        ' "       "
 CONST genTextboxLetter = 176    'Text box 'click'
+CONST genScatterTableHead = 199 'old password scattertable head
 
 '---Format fix bits
 CONST fixAttackitems = 0        'zero out attack data for item cost (ammunition)

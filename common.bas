@@ -1266,7 +1266,7 @@ END SUB
 SUB writepassword (p$)
 
 '-- set password version number (only if needed)
-IF gen(5) < 256 THEN gen(5) = 256
+IF gen(genPassVersion) < 256 THEN gen(genPassVersion) = 256
 
 '--pad the password with some silly obfuscating low-ascii chars
 FOR i = 1 TO 17 - LEN(p$)
@@ -1278,8 +1278,8 @@ FOR i = 1 TO 17 - LEN(p$)
 NEXT i
 
 '--apply a new ascii rotation / weak obfuscation number
-gen(6) = INT(RND * 253) + 1
-p$ = rotascii(p$, gen(6))
+gen(genPassRot) = INT(RND * 253) + 1
+p$ = rotascii(p$, gen(genPassRot))
 
 '--write the password into GEN
 str2array p$, gen(), 14
@@ -1294,7 +1294,7 @@ s$ = STRING$(17, 0)
 array2str gen(), 14, s$
 
 '--reverse ascii rotation / weak obfuscation
-s$ = rotascii(s$, gen(6) * -1)
+s$ = rotascii(s$, gen(genPassRot) * -1)
 
 '-- discard ascii chars lower than 32
 p$ = ""
@@ -1369,7 +1369,7 @@ IF gen(genVersion) = 1 THEN
  FOR i = 0 TO 14
   savetanim i, buffer()
  NEXT i
- FOR i = 0 TO gen(0)
+ FOR i = 0 TO gen(genMaxMap)
   upgrade_message " map " & i
   XBLOAD maplumpname$(i, "t"), buffer(), "Map not loaded"
   setmapdata buffer(), buffer(), 0, 0
@@ -1387,39 +1387,40 @@ IF gen(genVersion) = 2 THEN
  gen(genVersion) = 3
  '-get old-old password
  rpas$ = ""
- FOR i = 1 TO gen(99)
-  IF gen(4 + i) >= 0 AND gen(4 + i) <= 255 THEN rpas$ = rpas$ + CHR$(loopvar(gen(4 + i), 0, 255, gen(98) * -1))
+ FOR i = 1 TO gen(genPW1Length)
+  IF gen(4 + i) >= 0 AND gen(4 + i) <= 255 THEN rpas$ = rpas$ + CHR$(loopvar(gen(4 + i), 0, 255, gen(genPW1Offset) * -1))
  NEXT i
+
  '-SET (obsolete) SCATTERTABLE BASE
- gen(199) = INT(RND * 15) + 1
+ gen(genScatterTableHead) = INT(RND * 15) + 1
  '-WRITE PASSWORD INTO (obsolete) SCATTERTABLE
- gen(93) = INT(RND * 250) + 1
- rpas$ = rotascii(rpas$, gen(93))
+ gen(genPW2Offset) = INT(RND * 250) + 1
+ rpas$ = rotascii(rpas$, gen(genPW2Offset))
  '--write old password (will be upgraded again later in this same routine)
- writescatter rpas$, gen(94), 200
+ writescatter rpas$, gen(genPW2Length), 200
  '-REPLACE OLD-OLD PASSWORD
  pas$ = rotascii("ufxx|twi%|fx%rt{ji", -5)
- gen(99) = LEN(pas$)
- gen(98) = INT(RND * 250) + 1
- FOR i = 1 TO gen(99)
+ gen(genPW1Length) = LEN(pas$)
+ gen(genPW1Offset) = INT(RND * 250) + 1
+ FOR i = 1 TO gen(genPW1Length)
   temp = ASC(MID$(pas$, i, 1))
-  gen(4 + i) = loopvar(temp, 0, 255, gen(98))
+  gen(4 + i) = loopvar(temp, 0, 255, gen(genPW1Offset))
  NEXT i
  upgrade_message "Put record count defaults in GEN..."
- gen(26) = 40
- gen(27) = 149
- gen(28) = 79
- gen(29) = 29
- gen(30) = 119
- gen(31) = 149
- gen(32) = 99
- gen(33) = 14
- gen(34) = 200
- gen(35) = 59
- gen(36) = 500
- gen(37) = 1000
- gen(38) = 99
- gen(39) = 999
+ gen(genMaxHeroPic)   = 40
+ gen(genMaxEnemy1Pic) = 149
+ gen(genMaxEnemy2Pic) = 79
+ gen(genMaxEnemy3Pic) = 29
+ gen(genMaxNPCPic)    = 119
+ gen(genMaxWeaponPic) = 149
+ gen(genMaxAttackPic) = 99
+ gen(genMaxTile)      = 14
+ gen(genMaxAttack)    = 200
+ gen(genMaxHero)      = 59
+ gen(genMaxEnemy)     = 500
+ gen(genMaxFormation) = 1000
+ gen(genMaxPal)       = 99
+ gen(genMaxTextbox)   = 999
 END IF
 '--VERSION 4--
 IF gen(genVersion) = 3 THEN
@@ -1515,7 +1516,7 @@ IF NOT isfile(game$ + ".veh") THEN
   unlumpfile(template$, "ohrrpgce.veh", tmpdir$)
   copyfile tmpdir$ & SLASH & "ohrrpgce.veh", game$ & ".veh"
   safekill tmpdir$ & SLASH & "ohrrpgce.veh"
-  gen(55) = 2
+  gen(genMaxVehicle) = 2
  END IF
 END IF
 
@@ -1535,7 +1536,7 @@ IF NOT isfile(workingdir$ + SLASH + "attack.bin") THEN
 
  '--and while we are at it, clear the old death-string from enemies
  upgrade_message "Re-init recycled enemy data..."
- FOR i = 0 TO gen(36)
+ FOR i = 0 TO gen(genMaxEnemy)
   loadenemydata buffer(), i
   FOR j = 17 TO 52
    buffer(j) = 0
@@ -1599,15 +1600,15 @@ updaterecordlength workingdir$ + SLASH + "sfxdata.bin", 3
 updaterecordlength game$ + ".map", 4
 
 '--update to new (3rd) password format
-IF gen(5) < 256 THEN
- gen(5) = 256
- IF gen(94) = -1 THEN
+IF gen(genPassVersion) < 256 THEN
+ gen(genPassVersion) = 256
+ IF gen(genPW2Length) = -1 THEN
   '--no password, write a blank one
   pas$ = ""
  ELSE
   '--read the old scattertable
-  readscatter pas$, gen(94), 200
-  pas$ = rotascii(pas$, gen(93) * -1)
+  readscatter pas$, gen(genPW2Length), 200
+  pas$ = rotascii(pas$, gen(genPW2Offset) * -1)
  END IF
  writepassword pas$
 END IF
