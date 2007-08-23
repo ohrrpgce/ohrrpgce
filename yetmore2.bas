@@ -880,6 +880,7 @@ SUB loadmapstate_passmap (mapnum, prefix$, dontfallback = 0)
 END SUB
 
 SUB loadmapstate (mapnum, loadmask, prefix$, dontfallback = 0)
+'This sub is only ever used by the plotscripting interface
 IF loadmask AND 1 THEN
  loadmapstate_gmap mapnum, prefix$, dontfallback
 END IF

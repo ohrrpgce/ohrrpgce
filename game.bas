@@ -127,6 +127,7 @@ DECLARE FUNCTION cropmovement (x%, y%, xgo%, ygo%)
 DECLARE FUNCTION wraptouch (x1%, y1%, x2%, y2%, distance%)
 DECLARE FUNCTION titlescr% ()
 DECLARE SUB loadmap_gmap(mapnum%)
+DECLARE SUB loadmap_tileset(mapnum%)
 DECLARE SUB loadmap_npcl(mapnum%)
 DECLARE SUB loadmap_npcd(mapnum%)
 DECLARE SUB loadmap_tilemap(mapnum%)
@@ -2248,8 +2249,13 @@ SELECT CASE AS CONST scrat(nowscript).curkind
    CASE 246'--load map state
     IF retvals(1) > -1 AND retvals(1) <= 31 THEN
      loadmapstate retvals(1), retvals(0), "state", -1
+     IF retvals(1) AND 1 THEN
+      ' when loading gmap, re-load the tileset in case it changed
+      loadmap_tileset mapnum
+     END IF
     ELSEIF retvals(1) = -1 THEN
      loadmapstate map, retvals(0), "map"
+     loadmap_tileset mapnum
     END IF
    CASE 247'--reset map state
     loadmaplumps map, retvals(0)
@@ -2305,6 +2311,9 @@ RETRACE
 
 SUB loadmap_gmap(mapnum)
  loadrecord gmap(), game$ + ".map", getbinsize(4) / 2, mapnum
+END SUB
+
+SUB loadmap_tileset(mapnum)
  loadpage game$ + ".til", gmap(0), 3
  loadtanim gmap(0), tastuf()
  FOR i = 0 TO 1
@@ -2341,6 +2350,7 @@ SUB loadmaplumps (mapnum, loadmask)
  'loads some, but not all the lumps needed for each map
  IF loadmask AND 1 THEN
   loadmap_gmap mapnum
+  loadmap_tileset mapnum
  END IF
  IF loadmask AND 2 THEN
   loadmap_npcl mapnum
