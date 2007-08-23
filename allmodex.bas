@@ -3274,7 +3274,7 @@ Function fileisreadable(f$)
 	dim fh as integer
 	fh = freefile
 	if open(f$ for binary access read as #fh) = 2 then
-		debug f$ & " unreadable (ignored)"
+		'debug f$ & " unreadable (ignored)"
 		return 0 
 	end if
 	close #fh
@@ -3285,7 +3285,7 @@ Function fileiswriteable(f$)
 	dim fh as integer
 	fh = freefile
 	if open (f$ for binary access read write as #fh) = 2 then
-		debug f$ & " unreadable (ignored)"
+		'debug f$ & " unreadable (ignored)"
 		return 0 
 	end if
 	close #fh
