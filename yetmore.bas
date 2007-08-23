@@ -1338,10 +1338,10 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 176'--runscriptbyid
-  IF NOT (isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsx") OR isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsz")) THEN
+  IF NOT (isfile(tmpdir$ & retvals(0) & ".hsx") OR isfile(tmpdir$ & retvals(0) & ".hsz")) THEN
    retvals(0) = decodetrigger(retvals(0), plottrigger)  'possible to get ahold of triggers
   END IF
-  IF isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsx") OR isfile(workingdir$ + SLASH + STR$(retvals(0)) + ".hsz") THEN
+  IF isfile(tmpdir$ & retvals(0) & ".hsx") OR isfile(tmpdir$ & retvals(0) & ".hsz") THEN
    rsr = runscript(retvals(0), nowscript + 1, 0, "indirect", 0)
    IF rsr = 1 THEN
     '--fill heap with return values

@@ -697,13 +697,13 @@ WHILE NOT EOF(ifh)
  LINE INPUT #ifh, a$
  b$ = LCASE$(a$)
  SELECT CASE b$
-  CASE "archinym.lmp", "browse.txt", "scripts.txt", "hs"
+  CASE "archinym.lmp", "browse.txt"
    '--do nothing
   CASE ELSE
    '--check extenstion
    c$ = RIGHT$(b$, 4)
    SELECT CASE c$
-    CASE ".tmp", ".hsx", ".hsz"
+    CASE ".tmp"
      '--do nothing
     CASE ELSE
      '--output all other names

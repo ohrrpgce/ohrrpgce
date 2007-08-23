@@ -379,7 +379,7 @@ initgame '--set game$
 
 makebackups 'make a few backup lumps
 
-if isfile(game$ + ".hsp") then unlump game$ + ".hsp", workingdir$ + SLASH, lumpbuf()
+if isfile(game$ + ".hsp") then unlump game$ + ".hsp", tmpdir$, lumpbuf()
 ERASE lumpbuf
 
 'DEBUG debug "dim big stuff *after* unlumping"

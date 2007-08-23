@@ -1456,14 +1456,14 @@ FUNCTION loadscript (n)
  NEXT
 
  '--load the script from file
- IF isfile(workingdir$ + SLASH + STR$(n) + ".hsz") THEN
-  scriptfile$ = workingdir$ + SLASH + STR$(n) + ".hsz"
- ELSEIF isfile(workingdir$ + SLASH + STR$(n) + ".hsx") THEN
-  scriptfile$ = workingdir$ + SLASH + STR$(n) + ".hsx"
+ IF isfile(tmpdir$ & n & ".hsz") THEN
+  scriptfile$ = tmpdir$ & n & ".hsz"
+ ELSEIF isfile(tmpdir$ & n & ".hsx") THEN
+  scriptfile$ = tmpdir$ & n & ".hsx"
  END IF
 
  IF NOT isfile(scriptfile$) THEN
-  scripterr "script id " + STR$(n) + " does not exist"
+  scripterr "script id " & n & " does not exist"
   RETURN -1
  END IF
 

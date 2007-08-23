@@ -470,14 +470,18 @@ WHILE NOT EOF(ifh)
  LINE INPUT #ifh, a$
  b$ = LCASE$(a$)
  SELECT CASE b$
-  CASE "archinym.lmp", "browse.txt", "scripts.txt", "hs"
+  CASE "archinym.lmp", "browse.txt", "scripts.txt", "hs" 
    '--do nothing
+   'scripts.txt and hs won't be located here anymore, but check them anyway
+   'in case we are reluping a crashed playing.tmp from an old version
   CASE ELSE
    '--check extenstion
    c$ = RIGHT$(b$, 4)
    SELECT CASE c$
     CASE ".tmp", ".hsx", ".hsz"
-     '--do nothing
+     '--do nothing 
+     'hsx and hsz script files shouldn't appear here anymore, but check for them anyway
+     'in case we are reluping a crashed playing.tmp from an old version
     CASE ELSE
      '--output all other names
      PRINT #ofh, a$

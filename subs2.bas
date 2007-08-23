@@ -349,11 +349,11 @@ SUB importscripts (f$)
   copyfile f$, game$ + ".hsp"
   textcolor 7, 0
   textx = 0: texty = 0
-  unlumpfile(game$ + ".hsp", "scripts.bin", workingdir$)
-  IF isfile(workingdir$ & SLASH & "scripts.bin") THEN
+  unlumpfile(game$ + ".hsp", "scripts.bin", tmpdir$)
+  IF isfile(tmpdir$ & "scripts.bin") THEN
    dotbin = -1
    fptr = FREEFILE
-   OPEN workingdir$ + SLASH + "scripts.bin" FOR BINARY AS #fptr
+   OPEN tmpdir$ + "scripts.bin" FOR BINARY AS #fptr
    'load header
    GET #fptr, , temp
    headersize = temp
@@ -362,9 +362,9 @@ SUB importscripts (f$)
    SEEK #fptr, headersize + 1
   ELSE
    dotbin = 0
-   unlumpfile(game$ + ".hsp", "scripts.txt", workingdir$)
+   unlumpfile(game$ + ".hsp", "scripts.txt", tmpdir$)
    fptr = FREEFILE
-   OPEN workingdir$ + SLASH + "scripts.txt" FOR INPUT AS #fptr
+   OPEN tmpdir$ & "scripts.txt" FOR INPUT AS #fptr
   END IF
 
   'load in existing trigger tables
@@ -471,7 +471,7 @@ SUB importscripts (f$)
   NEXT
 
   CLOSE #fptr
-  IF dotbin THEN safekill workingdir$ + SLASH + "scripts.bin" ELSE safekill workingdir$ + SLASH + "scripts.txt"
+  IF dotbin THEN safekill tmpdir$ & "scripts.bin" ELSE safekill tmpdir$ & "scripts.txt"
   edgeprint "imported" + XSTR$(viscount) + " scripts", 0, 180, 15, vpage
 
  ELSE
