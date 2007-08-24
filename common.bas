@@ -1236,7 +1236,7 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
 
  IF oldsize > 0 THEN ' Only bother to do this for records of nonzero size
 
-  tempf$ = workingdir$ + SLASH + "resize.tmp"
+  tempf$ = tmpdir$ & "resize.tmp"
 
   flusharray buffer(), newsize / 2, 0
 
