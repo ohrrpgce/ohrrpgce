@@ -238,7 +238,6 @@ exename$ = trimextension$(trimpath$(COMMAND$(0)))
 '---If workingdir$ does not already exist, it must be created---
 IF isdir(workingdir$) THEN
  'DEBUG debug workingdir$+" already exists"
- touchfile workingdir$ + SLASH + "delete.tmp"
  'DEBUG debug "erasing "+workingdir$+"\"+ALLFILES
  cleanuptemp
 ELSE
