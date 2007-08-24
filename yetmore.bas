@@ -2574,7 +2574,7 @@ END SUB
 
 SUB wrapaheadxy (x, y, direction, distance, unitsize)
 'alters X and Y ahead by distance in direction, wrapping if neccisary
-'unitsize is 1 for pixels, 20 for tiles
+'unitsize is 20 for pixels, 1 for tiles
 
 aheadxy x, y, direction, distance
 
