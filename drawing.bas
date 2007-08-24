@@ -1783,7 +1783,11 @@ ts.justpainted = 0
 ts.undo = 0
 ts.allowundo = 0
 ts.delay = 3
-zox = 0: zoy = 0
+zox = ts.x * 10 + 5
+zoy = ts.y * 8 + 4
+mouse(0) = area(0,0) + zox
+mouse(1) = area(0,1) + zoy
+movemouse mouse(0), mouse(1)
 clearpage 2
 FOR i = 0 TO 5
  rectangle 279, 9 + (i * 21), 22, 22, 7, 2
