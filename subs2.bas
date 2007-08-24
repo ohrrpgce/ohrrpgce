@@ -92,15 +92,12 @@ IF bytes >= 0 THEN
  setpicstuf buffer(), bytes, -1
  FOR i = 0 TO index
   loadset lump$, i, 0
-  storeset workingdir$ + SLASH + "_cropped.tmp", i, 0
+  storeset tmpdir$ & "_cropped.tmp", i, 0
  NEXT i
  IF flushafter THEN
-  'FOR i = 0 TO INT(bytes / 2) + 1
-  '  buffer(i) = 0
-  'NEXT i
   flusharray buffer(), INT(bytes / 2) + 1, 0
   FOR i = index + 1 TO limit
-   storeset workingdir$ + SLASH + "_cropped.tmp", i, 0
+   storeset tmpdir$ & "_cropped.tmp", i, 0
   NEXT i
  ELSE
   limit = index
@@ -110,14 +107,14 @@ ELSE '--use pages instead of sets
  setdiskpages buffer(), 200, 0
  FOR i = 0 TO index
   loadpage lump$, i, flushafter
-  storepage workingdir$ + SLASH + "_cropped.tmp", i, flushafter
+  storepage tmpdir$ & "_cropped.tmp", i, flushafter
  NEXT i
  limit = index
  
 END IF'--separate setpicstuf and setdiskpages
 
-copyfile workingdir$ + SLASH + "_cropped.tmp", lump$
-safekill workingdir$ + SLASH + "_cropped.tmp"
+copyfile tmpdir$ & "_cropped.tmp", lump$
+safekill tmpdir$ & "_cropped.tmp"
 
 END SUB
 
