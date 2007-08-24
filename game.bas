@@ -2375,7 +2375,7 @@ SUB LoadGen
   OPEN game$ + ".gen" FOR BINARY AS #ff
   SEEK #ff, 8
 
-  DO UNTIL EOF(ff)
+  DO UNTIL EOF(ff) OR genlen > UBOUND(gen)
     get #ff, , s
     gen(genlen) = s
     genlen += 1
