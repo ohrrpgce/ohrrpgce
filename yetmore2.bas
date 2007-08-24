@@ -368,6 +368,8 @@ END FUNCTION
 
 SUB setmapxy
 SELECT CASE gen(cameramode)
+ CASE stopcam
+  GOSUB limitcamera
  CASE herocam
   mapx = catx(gen(cameraArg)) - 150
   mapy = caty(gen(cameraArg)) - 90
