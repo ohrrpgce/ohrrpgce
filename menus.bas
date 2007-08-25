@@ -1530,7 +1530,11 @@ SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
  edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
  setvispage vpage
  mp3_to_ogg(mp3, oggtemp, ogg_quality)
- IF NOT isfile(oggtemp) THEN debug "Conversion failed." : EXIT SUB
+ IF NOT isfile(oggtemp) THEN
+  visible_debug "MP3 conversion failed."
+  mp3 = ""
+  EXIT SUB
+ END IF
  mp3 = oggtemp
 END SUB
 
@@ -1543,6 +1547,10 @@ SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
  edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
  setvispage vpage
  wav_to_ogg(wav, oggtemp, ogg_quality)
- IF NOT isfile(oggtemp) THEN debug "Conversion failed." : EXIT SUB
+ IF NOT isfile(oggtemp) THEN
+  visible_debug "WAV conversion failed."
+  wav = ""
+  EXIT SUB
+ END IF
  wav = oggtemp
 END SUB

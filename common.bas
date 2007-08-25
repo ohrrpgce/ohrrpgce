@@ -105,6 +105,15 @@ SUB debug (s$)
  CLOSE #fh
 END SUB
 
+SUB visible_debug (s$)
+ debug s$
+ centerbox 160, 100, 300, 36, 3, vpage
+ edgeprint s$, 15, 90, uilook(uiText), vpage
+ edgeprint "Press any key...", 15, 100, uilook(uiMenuItem), vpage
+ setvispage vpage 'refresh
+ w = getkey
+END SUB
+
 FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
  DIM f$
  f$ = workingdir$ + SLASH + "fixbits.bin"
