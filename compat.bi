@@ -68,11 +68,13 @@ option nokeyword gosub
 #ifdef __FB_LINUX__
 #define LINUX -1
 #define SLASH "/"
+#define LINE_END CHR(10)
 #define CUSTOMEXE "ohrrpgce-custom"
 #define ALLFILES "*"
 #else
 #define LINUX 0
 #define SLASH "\"
+#define LINE_END CHR(13) & CHR(10)
 #define CUSTOMEXE "CUSTOM.EXE"
 #define ALLFILES "*.*"
 #endif

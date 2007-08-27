@@ -107,16 +107,6 @@ SUB xbsave (f$, array%(), bsize%)
 
 END SUB
 
-SUB crashexplain()
-	PRINT "Please report this exact error message to ohrrpgce@HamsterRepublic.com"
-	PRINT "Be sure to describe in detail what you were doing when it happened"
-	PRINT
-	PRINT version$
-	PRINT "Memory Info:"; FRE(0)
-	PRINT "Executable: "; exepath + command(0)
-'	PRINT "RPG file: "; sourcerpg$
-END SUB
-
 sub togglewindowed()
 	gfx_togglewindowed
 end sub
@@ -127,6 +117,9 @@ sub processcommandline()
 	dim temp as string
 	dim vtemp as string
 	dim arg as integer
+
+	dim show_help as integer = 0
+	dim help as string = ""
 
 	cmdargs = 0
 
@@ -145,19 +138,19 @@ sub processcommandline()
 			elseif temp = "f" or temp = "fullscreen" then
 				gfx_setwindowed(0)
 			elseif temp = "v" or temp = "version" then
-				print long_version$
-				print "(C) Copyright 1997-2007 James Paige and Hamster Republic Productions"
-				print "This game engine is free software under the terms of the GPL"
-				print "For source-code see http://HamsterRepublic.com/ohrrpgce/source.php"
-				print "Game data copyright and license will vary."
-				SYSTEM
+				show_help = -1
+				help = help & long_version$ & LINE_END
+				help = help & "(C) Copyright 1997-2007 James Paige and Hamster Republic Productions" & LINE_END
+				help = help & "This game engine is free software under the terms of the GPL" & LINE_END
+				help = help & "For source-code see http://HamsterRepublic.com/ohrrpgce/source.php" & LINE_END
+				help = help & "Game data copyright and license will vary." & LINE_END
 			elseif temp = "?" or temp = "help" then
-				print "-? -help            Display this help screen"
-				print "-v -version         Show version and build info"
-				print "-f -fullscreen      Start in full-screen mode if possible"
-				print "-w -windowed        Start in windowed mode (default)"
-				print gfx_describe_options()
-				SYSTEM
+				show_help = -1
+				help = help & "-? -help            Display this help screen" & LINE_END
+				help = help & "-v -version         Show version and build info" & LINE_END
+				help = help & "-f -fullscreen      Start in full-screen mode if possible" & LINE_END
+				help = help & "-w -windowed        Start in windowed mode (default)" & LINE_END
+				help = help & gfx_describe_options() & LINE_END
 			elseif temp = "s" or temp = "smooth" then
 				gfx_setoption("smooth", 1)
 			else
@@ -188,6 +181,10 @@ sub processcommandline()
 		end if
 		i = i + 1
 	wend
+	if show_help then
+		print help
+		SYSTEM
+	end if
 end sub
 
 function commandlineargcount() as integer
