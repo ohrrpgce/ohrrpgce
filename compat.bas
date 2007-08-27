@@ -25,6 +25,9 @@ dim shared gosubptr as integer = 0
 dim shared storecmd(7) as string
 dim shared cmdargs as integer
 
+'private Subs and functions oly used internally
+DECLARE SUB display_help_string(help as string)
+
 DECLARE SUB fatalerror (e$)
 
 SUB getdefaultfont(font() as integer)
@@ -182,9 +185,17 @@ sub processcommandline()
 		i = i + 1
 	wend
 	if show_help then
-		print help
-		SYSTEM
+		display_help_string help
 	end if
+end sub
+
+sub display_help_string(help as string)
+	dim k as string
+	print help    ' display to text console (only works on some linux)
+	screen 11     ' create a graphical fake text console
+	print help    ' display the help on the graphical console
+	k = input(1)  ' use FreeBasic-style keypress checking because our keyhandler isn't set up yet
+	SYSTEM        ' terminate the program
 end sub
 
 function commandlineargcount() as integer
