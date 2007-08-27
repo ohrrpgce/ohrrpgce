@@ -734,6 +734,8 @@ STATIC default$, spriteclip(1600), clippedpal, clippedw, clippedh, paste
 DIM nulpal(8), placer(1602), pclip(8), menu$(255), pmenu$(3), bmpd(40), mouse(4), area(20, 4), tool$(5), icon$(5), shortk(5), cursor(5)
 DIM workpal(8 * (atatime + 1))
 DIM poffset(large(sets, atatime))
+DIM AS INTEGER do_paste = 0
+DIM AS INTEGER paste_transparent = 0
 spritefile$ = game$ + ".pt" + STR$(fileset)
 
 gotm = setmouse(mouse())
@@ -842,28 +844,35 @@ DO
  IF keyval(27) > 1 THEN
   changepal poffset(pt), 1, workpal(), pt - top
  END IF
+ '--copying
  IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN 
   loadsprite spriteclip(), 0, num * size, soff * (pt - top), xw, yw, 3
   paste = 1
   clippedw = xw
   clippedh = yw
  END IF
+ '--pasting
+ do_paste = 0
  IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN
-  loadsprite placer(), 0, num * size, soff * (pt - top), xw, yw, 3
-  rectangle 0, 0, xw, yw, 0, dpage
-  drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
-  rectangle 0, 0, clippedw, clippedh, 0, dpage
-  drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
-  getsprite placer(), 0, 0, 0, xw, yw, dpage
-  stosprite placer(), 0, num * size, soff * (pt - top), 3
+  do_paste = -1
+  paste_transparent = 0
  END IF
- IF (keyval(29) > 0 AND keyval(20) > 1) AND paste = 1 THEN     'transparent pasting
+ IF (keyval(29) > 0 AND keyval(20) > 1) AND paste = 1 THEN
+  do_paste = -1
+  paste_transparent = -1
+ END IF
+ IF do_paste THEN
+  do_paste = 0
   loadsprite placer(), 0, num * size, soff * (pt - top), xw, yw, 3
   rectangle 0, 0, xw, yw, 0, dpage
   drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
+  IF NOT paste_transparent THEN
+   rectangle 0, 0, clippedw, clippedh, 0, dpage
+  END IF
   drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
   getsprite placer(), 0, 0, 0, xw, yw, dpage
   stosprite placer(), 0, num * size, soff * (pt - top), 3
+  savewuc(spritefile$, pt, top, sets, xw,yw, soff, perset, size, placer(), workpal(), poffset())
  END IF
  IF keyval(59) > 1 THEN
   debug_palettes = debug_palettes XOR 1
