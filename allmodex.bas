@@ -3294,6 +3294,16 @@ end Function
 
 FUNCTION getmusictype (file$)
 
+	if file$ = "" then
+	  'no further checking for blank names
+	  return 0
+	end if
+
+	if isdir(file$) OR right(file$, 1) = SLASH then
+	  'no further checking if this is a directory
+	  return 0
+	end if
+
 	DIM ext$, chk
 	ext$ = lcase(justextension(file$))
 
