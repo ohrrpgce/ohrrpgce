@@ -1,6 +1,6 @@
 #/bin/sh
 
-WEBDIR="./"
+WEBDIR="/var/www/ohrimport/"
 TMPDIR="./"
 
 function mirrormedia () {
@@ -28,8 +28,12 @@ function mirrormedia () {
 
   rm -R *.gif hts-* *.html
   cd ..
+  zip -r import.zip "${SUBDIR}"
+  rm -Rf "${SUBDIR}"
 }
 
 cd "${TMPDIR}"
+rm import.zip
 mirrormedia "Sound Effects" "*.ogg" "http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/index.php/Free_Sound_Effects"
 mirrormedia "Music" "*.mid" "http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/index.php/Free_Music"
+mv import.zip "${WEBDIR}"
