@@ -2,6 +2,8 @@ WHAT IS NEW?
 
 Sept ?? 2007 [ubersetzung]
   * New Features
+    * New sample game! Fenrir Lunaris's modern retro epic fantasy masterpiece
+      Vikings of Midgard! [Fenrir-Lunaris]
     * New Music Formats. In addition to BAM and MIDI, you can also play
       MP3, OGG, MOD, XM, S3M and IT [Mike Caron]
     * New NPC movement type: Walk In Place [James Paige]
