@@ -45,10 +45,8 @@ Source: "README-custom.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE-binary.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "whatsnew.txt"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "viking.rpg"; DestDir: "{app}"; Flags: ignoreversion
 Source: "plotscr.hsd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "scancode.hsi"; DestDir: "{app}"; Flags: ignoreversion
-Source: "import\*"; DestDir: "{app}\import\"; Flags: ignoreversion
 Source: "docs\*"; DestDir: "{app}\docs\"; Flags: ignoreversion
 Source: "support\madplay.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\oggenc.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
@@ -58,6 +56,10 @@ Source: "..\games\vikings\vikings.hss"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\games\vikings\vikings.hsi"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\games\vikings\utility.hsi"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\games\vikings\README-vikings.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "import\background\*"; DestDir: "{app}\import\background"; Flags: ignoreversion
+Source: "import\fonts\*"; DestDir: "{app}\import\fonts"; Flags: ignoreversion
+Source: "import\Music\*"; DestDir: "{app}\import\Music"; Flags: ignoreversion
+Source: "import\Sound Effects\*"; DestDir: "{app}\import\Sound Effects"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

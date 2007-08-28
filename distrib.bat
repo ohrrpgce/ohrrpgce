@@ -9,6 +9,9 @@ IF NOT EXIST support\zip.exe GOTO NOSUPPORT
 IF NOT EXIST %ISCC% GOTO NOINNO
 IF NOT EXIST %EUDIR%\bin\exw.exe GOTO NOEUPHORIA
 
+IF NOT EXIST tmpdist GOTO SKIPDELTMPDIST
+RMDIR /S /Q tmpdist
+:SKIPDELTMPDIST
 MKDIR tmpdist
 
 REM ------------------------------------------
@@ -31,15 +34,20 @@ CALL makehspeak.bat > NUL
 IF NOT EXIST hspeak.exe GOTO NOEXE
 
 ECHO   Lumping Vikings of Midgard
-relump ..\games\vikings\vikings.rpgdir vikings.rpg
+IF NOT EXIST vikings.rpg GOTO SKIPDELVIKING
+DEL vikings.rpg
+:SKIPDELVIKING
+relump ..\games\vikings\vikings.rpgdir vikings.rpg > NUL
 IF NOT EXIST vikings.rpg GOTO NORPG
+
+CALL update-import.bat 
 
 REM ------------------------------------------
 ECHO Erasing old distrib files ...
 
-IF NOT EXIST distrib\ohrrpgce_play.zip GOTO DONEDELGAME
-del distrib\ohrrpgce_play.zip
-:DONEDELGAME
+IF NOT EXIST distrib\ohrrpgce-floppy.zip GOTO DONEDELFLOPPY
+del distrib\ohrrpgce-floppy.zip
+:DONEDELFLOPPY
 IF NOT EXIST distrib\ohrrpgce.zip GOTO DONEDELCUSTOM
 del distrib\ohrrpgce.zip
 :DONEDELCUSTOM
@@ -48,21 +56,29 @@ del distrib\ohrrpgce-win-installer.exe
 :DONEDELINSTALL
 
 REM ------------------------------------------
-ECHO Packaging player-only ohrrpgce_play.zip ...
+ECHO Packaging minimalist ohrrpgce-floppy.zip ...
 del tmpdist\*.???
 support\cp game.exe tmpdist
+support\cp custom.exe tmpdist
 support\cp README-game.txt tmpdist
+support\cp README-custom.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
 support\cp audiere.dll tmpdist
 support\cp audwrap.dll tmpdist
+mkdir tmpdist\support
+support\cp support\madplay.exe tmpdist\support
+support\cp support\LICENSE-madplay.txt tmpdist\support
+support\cp support\oggenc.exe tmpdist\support
+support\cp support\LICENSE-oggenc.txt tmpdist\support
 
 cd tmpdist
-..\support\zip -q -r ..\distrib\ohrrpgce_play.zip *.*
+..\support\zip -q -r ..\distrib\ohrrpgce-floppy.zip *.*
 cd ..
 
 del tmpdist\*.???
+RMDIR /s /q tmpdist\support
 cd tmpdist
-..\support\unzip -q ..\distrib\ohrrpgce_play.zip game.exe
+..\support\unzip -q ..\distrib\ohrrpgce-floppy.zip game.exe
 cd ..
 IF NOT EXIST tmpdist\game.exe GOTO SANITYFAIL
 del tmpdist\game.exe
@@ -94,8 +110,18 @@ support\cp ..\games\vikings\vikings.hsi tmpdist
 support\cp ..\games\vikings\utility.hsi tmpdist
 support\cp ..\games\vikings\README-vikings.txt tmpdist
 
+mkdir tmpdist\import
+mkdir tmpdist\import\background
+support\cp import\background\*.bmp tmpdist\import\background
+mkdir tmpdist\import\fonts
+support\cp import\fonts\*.ohf tmpdist\import\fonts
+mkdir tmpdist\import\Music
+support\cp import\Music\*.* tmpdist\import\Music
+mkdir "tmpdist\import\Sound Effects"
+support\cp import/"Sound Effects"/*.ogg tmpdist/import/"Sound Effects"
+
 cd tmpdist
-..\support\zip -q -r ..\distrib\ohrrpgce.zip *.*
+..\support\zip -q -r ..\distrib\ohrrpgce.zip *.* -x *.svn*
 cd ..
 
 del tmpdist\*.???
@@ -116,7 +142,9 @@ IF NOT EXIST %SVN% GOTO NOSVN
 IF NOT EXIST support\grep.exe GOTO NOSUPPORT
 IF NOT EXIST support\sed.exe GOTO NOSUPPORT
 CALL distver.bat
-del tmpdist\*.???
+DEL tmpdist\*.???
+RMDIR /s /q tmpdist\support
+RMDIR /s /q tmpdist\import
 CD tmpdist
 %SVN% info .. | ..\support\grep "^URL:" | ..\support\sed s/"^URL: "/"SET REPOSITORY="/ > svnrepo.bat
 CALL svnrepo.bat
@@ -134,7 +162,7 @@ rmdir /s /q tmpdist
 REM ------------------------------------------
 ECHO Rename results...
 ECHO %OHRVERDATE%-%OHRVERCODE%
-move distrib\ohrrpgce_play.zip distrib\ohrrpgce_play-%OHRVERDATE%-%OHRVERCODE%.zip
+move distrib\ohrrpgce-floppy.zip distrib\ohrrpgce-floppy-%OHRVERDATE%-%OHRVERCODE%.zip
 move distrib\ohrrpgce.zip distrib\ohrrpgce-%OHRVERDATE%-%OHRVERCODE%.zip
 move distrib\ohrrpgce-win-installer.exe distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERCODE%.exe
 move distrib\ohrrpgce-source.zip distrib\ohrrpgce-source-%OHRVERDATE%-%OHRVERCODE%.zip
