@@ -6,16 +6,16 @@ from ohr_debian import *
 
 package_name = "vikings-of-midgard"
 maintainer = '"Fenrir Lunaris & OHR Developers" <ohrrpgce@lists.motherhamster.org>'
-depends = "ohrrpgce (>=2007.07)"
+depends = "ohrrpgce (>=2007.08)"
 
 prefix = "../../games/vikings/"
 relump(prefix + "vikings.rpgdir", "vikings.rpg")
 files = [
   "vikings.rpg",
-  prefix + "ReadMe.txt",
-  prefix + "viking.txt",
-  prefix + "weaponsnarmorlist.txt",
-  prefix + "utility.lib"]
+  prefix + "README-vikings.txt",
+  prefix + "vikings.hss",
+  prefix + "vikings.hsi",
+  prefix + "utility.hsi"]
 
 executables = []
 
