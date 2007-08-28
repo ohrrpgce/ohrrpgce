@@ -53,6 +53,11 @@ Source: "docs\*"; DestDir: "{app}\docs\"; Flags: ignoreversion
 Source: "support\madplay.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\oggenc.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\LICENSE-*.txt"; DestDir: "{app}\support\"; Flags: ignoreversion
+Source: "vikings.rpg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\games\vikings\vikings.hss"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\games\vikings\vikings.hsi"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\games\vikings\utility.hsi"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\games\vikings\README-vikings.txt"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -61,6 +66,7 @@ Name: "{userdesktop}\OHRRPGCE Game Player"; Filename: "{app}\game.exe"; WorkingD
 Name: "{group}\OHRRPGCE Custom Editor"; Filename: "{app}\custom.exe"; WorkingDir: "{app}"; Flags: closeonexit
 Name: "{userdesktop}\OHRRPGCE Custom Editor"; Filename: "{app}\custom.exe"; WorkingDir: "{app}"; Flags: closeonexit; Tasks: desktopicon
 Name: "{userdesktop}\OHRRPGCE Folder (install games here)"; Filename: "{app}"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{group}\OHRRPGCE Folder (install games here)"; Filename: "{app}"; WorkingDir: "{app}"; Tasks: desktopicon
 Name: "{group}\Website (Help, HOWTO, FAQ)"; Filename: "http://HamsterRepublic.com/ohrrpgce/";
 Name: "{group}\Download RPG Games"; Filename: "http://HamsterRepublic.com/ohrrpgce/index.php/Games.html";
 

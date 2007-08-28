@@ -30,6 +30,10 @@ ECHO   Hspeak compiler...
 CALL makehspeak.bat > NUL
 IF NOT EXIST hspeak.exe GOTO NOEXE
 
+ECHO   Lumping Vikings of Midgard
+relump ..\games\vikings\vikings.rpgdir vikings.rpg
+IF NOT EXIST vikings.rpg GOTO NORPG
+
 REM ------------------------------------------
 ECHO Erasing old distrib files ...
 
@@ -64,7 +68,7 @@ IF NOT EXIST tmpdist\game.exe GOTO SANITYFAIL
 del tmpdist\game.exe
 
 REM ------------------------------------------
-ECHO Packaging minimalist ohrrpgce.zip ...
+ECHO Packaging ohrrpgce.zip ...
 del tmpdist\*.???
 support\cp game.exe tmpdist
 support\cp custom.exe tmpdist
@@ -84,7 +88,11 @@ support\cp support\madplay.exe tmpdist\support
 support\cp support\LICENSE-madplay.txt tmpdist\support
 support\cp support\oggenc.exe tmpdist\support
 support\cp support\LICENSE-oggenc.txt tmpdist\support
-
+support\cp vikings.rpg tmpdist
+support\cp ..\games\vikings\vikings.hss tmpdist
+support\cp ..\games\vikings\vikings.hsi tmpdist
+support\cp ..\games\vikings\utility.hsi tmpdist
+support\cp ..\games\vikings\README-vikings.txt tmpdist
 
 cd tmpdist
 ..\support\zip -q -r ..\distrib\ohrrpgce.zip *.*
@@ -160,6 +168,10 @@ GOTO DONE
 
 :NOEXE
 ECHO ERROR: An executable failed to build, unable to continue.
+GOTO DONE
+
+:NORPG
+ECHO ERROR: Failed to relump vikings of midgard
 GOTO DONE
 
 :SANITYFAIL
