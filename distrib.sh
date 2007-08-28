@@ -10,44 +10,74 @@ echo Building binaries
 ./makeedit.sh || exit 1
 ./makeutil.sh || exit 1
 
-echo Erasing contents of temporary directory
-rm -Rf tmp/*
+echo "Lumping Vikings of Midgard"
+if [ -f vikings.rpg ] ; then
+  rm vikings.rpg
+fi
+./relump ../games/vikings/vikings.rpgdir ./vikings.rpg
 
-echo Packaging binary distribution of CUSTOM
-cp -p ohrrpgce.mas tmp
-cp -p ohrrpgce.new tmp
-cp -p README-game.txt tmp
-cp -p README-custom.txt tmp
-cp -p LICENSE.txt tmp
-cp -p LICENSE-binary.txt tmp
-cp -p whatsnew.txt tmp
-cp -p sample/sample.rpg tmp
-cp -p sample/npc_tag.rpg tmp
-cp -p sample/pstutor.rpg tmp
-cp -p plotscr.hsd tmp
-cp -p scancode.hsi tmp
+echo "Downloading import media"
+if [ -f import.zip ] ; then
+  rm import.zip
+fi
+if [ -d "import/Music" ] ; then
+  rm -Rf "import/Music"
+fi
+if [ -d "import/Sound Effects" ] ; then
+  rm -Rf "import/Sound Effects"
+fi
+wget -q http://gilgamesh.hamsterrepublic.com/ohrimport/import.zip
+unzip -q -d import/ import.zip
+rm import.zip
+
+echo "Erasing contents of temporary directory"
+rm -Rf tmp/*
 
 echo Erasing old distribution files
 rm distrib/ohrrpgce-*.tar.bz2
 
-echo Including Linux binaries
+echo "Packaging binary distribution of CUSTOM"
+
+echo "  Including binaries"
 cp -p ohrrpgce-game tmp
 cp -p ohrrpgce-custom tmp
 cp -p unlump tmp
 cp -p relump tmp
 
-echo including hspeak
+echo "  Including hspeak"
+cp -p hspeak.sh tmp
 cp -p hspeak.exw tmp
 cp -p hsspiffy.e tmp
-cp -p hspeak.sh tmp
 
-echo Including import
+echo "  Including support files"
+cp -p ohrrpgce.mas tmp
+cp -p ohrrpgce.new tmp
+cp -p plotscr.hsd tmp
+cp -p scancode.hsi tmp
+
+echo "  Including readmes"
+cp -p README-game.txt tmp
+cp -p README-custom.txt tmp
+cp -p LICENSE.txt tmp
+cp -p LICENSE-binary.txt tmp
+cp -p whatsnew.txt tmp
+
+echo "  Including Vikings of Midgard"
+cp -p vikings.rpg tmpdist
+cp -p ../games/vikings/vikings.hss tmp
+cp -p ../games/vikings/vikings.hsi tmp
+cp -p ../games/vikings/utility.hsi tmp
+cp -p ../games/vikings/README-vikings.txt tmp
+
+echo "  Including import"
 mkdir tmp/import
+cp -pr import/* tmp/import
+
+echo "  Including docs"
 mkdir tmp/docs
-cp -p import/* tmp/import
 cp -p docs/* tmp/docs
 
-echo tarring and bzip2ing distribution
+echo "tarring and bzip2ing distribution"
 mv tmp ohrrpgce
 tar -jcf distrib/ohrrpgce-linux-x86.tar.bz2 ./ohrrpgce --exclude .svn
 mv ohrrpgce tmp
@@ -56,6 +86,14 @@ TODAY=`date "+%Y-%m-%d"`
 CODE=`cat codename.txt | tr -d "\r"`
 mv distrib/ohrrpgce-linux-x86.tar.bz2 distrib/ohrrpgce-linux-x86-$TODAY-$CODE.tar.bz2
 
-echo Erasing contents of temporary directory
+echo "Erasing contents of temporary directory"
 rm -Rf tmp/*
 
+echo "Building Debian/Ubuntu packages"
+cd linux
+if [ -f linux/*.deb ] ; then
+  rm linux/*.deb
+fi
+./all.sh
+cd ..
+cp -p linux/*.deb distrib
