@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-??? ?? 2006 [ubersetzung]
+Sept ?? 2007 [ubersetzung]
   * New Features
     * New Music Formats. In addition to BAM and MIDI, you can also play
       MP3, OGG, MOD, XM, S3M and IT [Mike Caron]

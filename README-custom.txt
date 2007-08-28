@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Editor            (March 15 2006 tirgoviste)
+ O.H.R.RPG.C.E Editor            (Sept ?? 2007 ubersetzung)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
@@ -33,13 +33,6 @@ http://HamsterRepublic.com/ohrrpgce/faq.php
 Report bugs at: http://HamsterRepublic.com/ohrrpgce/buglist.php
 
 ---
-MUSIC
-
-A small assortment of Public-Domain music has also been included for you to
-use for free if you do not want to compose your own music. Please read
-MUSIC.TXT for more info on the songs.
-
----
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
 Free Software Foundation; either version 2 of the License, or (at your
@@ -55,6 +48,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 See LICENSE.txt for the full text of the GPL
+
+---
 
 (EXTERNAL UTILITIES)
 madplay

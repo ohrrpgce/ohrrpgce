@@ -5,36 +5,16 @@ code :)
 -----------------------------------------------------------------------------
 http://HamsterRepublic.com/ohrrpgce/source.php for more information 
 -----------------------------------------------------------------------------
-WINDOWS/LINUX: Requires FreeBasic verion 0.15b
+WINDOWS/LINUX:
+  Reccomends FreeBasic version 0.18.1b
+  Requires minimum FreeBasic version 0.15b
   Download FreeBasic from http://freebasic.net/
-
-DOS (16-BIT): Requires Quickbasic version 4.5 or 7.1  (4.5 is preferred)
-  Older Versions of the OHRRPGCE required QuickBasic. Quickbasic is being
-  phased out, but is currently still supported. How do you get it? ... Well,
-  I hate to say this, but unless you purchased a copy back in 1989, your only
-  hope is to pirate a copy. Quickbasic 4.5 is not hard to find on abandonware
-  websites. Search around, and you should be able to find it easily. I was
-  tempted to just include a pirate copy of it along with the OHRRPGCE
-  sources, as that would make your life WAY easier, but a cease-and-desist
-  letter from Microsoft would not make my day, so I am not going to do it.
-  Anyway. The important part of Quickbasic is the compiler, BC.EXE
-  That is really the only file you need. The QB editor is fairly nice for
-  editing the code, but you cannot run the code in it because the code is
-  hella way too big.
 -----------------------------------------------------------------------------
 INSTRUCTIONS
-  (Windows/Linux)
-    Unpack the source code to a new folder
-    Install FreeBasic
-    Run makegame.bat to compile the game player
-    Run makeedit.bat to compile the game editor
-  (DOS)
-    Install the OHRRPGCE source code into C:\OHRRPGCE\
-    Install QuickBasic in C:\QB45\
-    If you want to install to a different location you should edit env-set.bat
-    If you install Quickbasic 7.1 instead you will need to edit env-set.bat
-    If you are using real DOS, run env-set.bat
-    Run compile.bat to compile the player and editor
+  Unpack the source code to a new folder
+  Install FreeBasic
+  Run makegame.bat to compile the game player
+  Run makeedit.bat to compile the game editor
 -----------------------------------------------------------------------------
 MAKING IMPROVEMENTS
   There are still lots of bugs that need to be fixed. For a list of known
@@ -54,7 +34,7 @@ WHAT IF YOU WANT TO BREAK COMPATABILITY?
   be happy to elaborate. You can also find the full text of the license in
   LICENSE.txt
 -----------------------------------------------------------------------------
-APOLOGY
+HISTORY & AN APOLOGY
   Most of the OHRRPGCE's Source code is ugly. UGLY! Messy! Poorly planned! I
   most sincerely apologize for this fact, and I protest that I am not really
   the terribly incompetent programmer that you might assume I am just by
@@ -91,17 +71,21 @@ APOLOGY
   pollution... but by that point I was used to working in a polluted
   namespace, so I lived with it.
 
-  My code got better later, in particular I am happy with the flexmenu
-  routines that I converted all the menus in CUSTOM to use, but the good code
-  is rare, and the bad code still abounds. All of the OHRRPGCE source code is
-  still riddled and pock-marked with global usage, badly planned and
+  My code got better later, in particular I was happy with the flexmenu
+  routines that I converted some of the menus in CUSTOM to use, but the good
+  code is rare, and the bad code still abounds. All of the OHRRPGCE source
+  code is still riddled and pock-marked with global usage, badly planned and
   unplanned SUBs and FUNCTIONs, ill-conceived hacks of every kind, and a
   wealth of things that could easily be re-written properly... except that
   they work well enough now, who has the time and motivation to fix them?
 
   After releasing the source code under the GPL, it turns out that several
-  people did in fact have time and motivation to improve the code. Although
-  bad code still abounds, it is getting better.
+  people did in fact have time and motivation to improve the code. These new
+  developers had been a blessing, and have revitalized OHRRPGCE development.
+  Although bad code still abounds, it is getting better. The OHRRPGCE has
+  become an exciting exercise in incrementally transforming a BIG BALL OF MUD
+  into well-structured code, while maintaining backwards compatability all
+  along the way.
 
   Well, I hope that doesn't discourage you too much. Play around with the
   code, have fun, and if you make any improvements that you would like me
