@@ -59,6 +59,10 @@ DECLARE Sub MenuSound(byval s as integer)
 #include "const.bi"
 #include "uiconst.bi"
 
+'--SUBs and FUNCTIONS only used locally
+DECLARE SUB loadtrades(tradestf(), b(), recordsize)
+
+
 REM $STATIC
 SUB buystuff (id, shoptype, storebuf(), stock(), stat())
 DIM b(dimbinsize(1) * 50), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walks(15), hpal(8), tradestf(3, 1)
@@ -267,7 +271,7 @@ FOR i = 0 TO storebuf(16)
  IF NOT istag(b(i * recordsize + 20), -1) THEN setbit vmask(), 0, i, 1
  IF b(i * recordsize + 24) > gold& THEN setbit emask(), 0, i, 1
  temp = i
- GOSUB loadtrades
+ loadtrades tradestf(), b(), recordsize
  FOR j = 0 TO 3
   IF tradestf(j, 0) > -1 THEN
    IF countitem(tradestf(j, 0) + 1) < tradestf(j, 1) THEN setbit emask(), 0, i, 1
@@ -291,7 +295,7 @@ info2$ = ""
 IF b(pt * recordsize + 24) > 0 THEN price$ = STR$(b(pt * recordsize + 24)) + " " + sname$(32)
 '--load must trade in item types+amounts
 temp = pt
-GOSUB loadtrades
+loadtrades tradestf(), b(), recordsize
 FOR i = 0 TO 3
  IF tradestf(i, 0) > -1 THEN
   tradingitems = 1
@@ -364,15 +368,15 @@ FOR i = 0 TO storebuf(16)
 NEXT i
 RETRACE
 
-loadtrades:
+END SUB
+
+SUB loadtrades(tradestf(), b(), recordsize)
 tradestf(0, 0) = b(temp * recordsize + 25) - 1
 tradestf(0, 1) = b(temp * recordsize + 30) + 1
 FOR k = 1 TO 3
  tradestf(k, 0) = b(temp * recordsize + k * 2 + 29) - 1
  tradestf(k, 1) = b(temp * recordsize + k * 2 + 30) + 1
 NEXT
-RETRACE
-
 END SUB
 
 FUNCTION chkOOBtarg (wptr, index, stat(), ondead(), onlive())
