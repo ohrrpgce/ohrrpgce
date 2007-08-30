@@ -91,8 +91,8 @@ rm -Rf tmp/*
 
 echo "Building Debian/Ubuntu packages"
 cd linux
-if [ -f linux/*.deb ] ; then
-  rm linux/*.deb
+if [ -f *.deb ] ; then
+  rm *.deb
 fi
 ./all.sh
 cd ..
