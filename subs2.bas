@@ -896,11 +896,6 @@ DO
    strgrabber search$, 36
   CASE 6'quickchainer
    IF scrintgrabber(cond(12), 0, gen(39), 75, 77, -1, plottrigger) THEN
-    IF cond(12) = 0 THEN
-     cond(11) = 0
-    ELSE
-     IF cond(11) = 0 THEN cond(11) = -1
-    END IF
     GOSUB nextboxline 
    END IF'--modify next
   CASE ELSE '--not using the quick textbox chainer
@@ -938,9 +933,9 @@ DO
     GOSUB loadlines
    ELSE
     temptrig = ABS(cond(12))
-    m$(6) = "Next: script " + scriptbrowse$(temptrig, plottrigger, "textbox plotscript")
-    IF cond(11) <> 0 AND cond(11) <> -1 THEN m$(6) += " (conditional)"
+    dummy$ = scriptbrowse$(temptrig, plottrigger, "textbox plotscript")
     cond(12) = -temptrig
+    GOSUB nextboxline
    END IF
   END IF
   IF csr = 7 AND keyval(28) > 1 THEN
@@ -973,6 +968,11 @@ GOSUB savelines
 EXIT SUB
 
 nextboxline:
+IF cond(12) = 0 THEN
+ cond(11) = 0
+ELSE
+ IF cond(11) = 0 THEN cond(11) = -1
+END IF
 SELECT CASE cond(11)
  CASE 0
   m$(6) = "Next: None Selected"
