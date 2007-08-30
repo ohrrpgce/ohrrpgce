@@ -96,4 +96,4 @@ if [ -f linux/*.deb ] ; then
 fi
 ./all.sh
 cd ..
-cp -p linux/*.deb distrib
+mv linux/*.deb distrib
