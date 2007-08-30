@@ -82,7 +82,7 @@ dim her as herodef
 loadherodata @her, who - 1
 
 '--load data of hero's default weapon
-loaditemdata wbuf(), buffer(22)
+loaditemdata wbuf(), her.def_weapon
 
 '--do average level enforcement
 IF her.def_level < 0 THEN her.def_level = averagelev(stat())
