@@ -532,16 +532,20 @@ findhero = result
 END FUNCTION
 
 SUB getnames (stat$())
+DIM bytecount AS UBYTE
 IF isfile(game$ + ".stt") THEN
  fh = FREEFILE
  OPEN game$ + ".stt" FOR BINARY AS #fh
  max = 32
  FOR i = 0 TO max
-  temp$ = CHR$(0)
-  GET #fh, 1 + (11 * i), temp$
-  temp = 0: IF temp$ <> "" THEN temp = small(ASC(temp$), 10)
-  stat$(i) = STRING$(temp, CHR$(0))
-  GET #fh, 2 + (11 * i), stat$(i)
+  debug "i=" & i
+  GET #fh, 1 + (11 * i), bytecount
+  IF bytecount = 0 THEN
+   stat$(i) = ""
+  ELSE
+   stat$(i) = STRING$(bytecount, CHR$(0))
+   GET #fh, 2 + (11 * i), stat$(i)
+  END IF
  NEXT i
  CLOSE #fh
 END IF
