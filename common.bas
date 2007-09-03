@@ -1036,6 +1036,8 @@ SUB playsongnum (songnum%)
     songfile$ = songbase$ & ".xm"
   ELSEIF isfile(songbase$ & ".s3m") THEN
     songfile$ = songbase$ & ".s3m"
+  ELSEIF isfile(songbase$ & ".it") THEN
+    songfile$ = songbase$ & ".it"
   ELSEIF isfile(songbase$ & ".bam") THEN
     songfile$ = songbase$ & ".bam"
   ELSEIF isfile(game$ & "." & songnum%) THEN
