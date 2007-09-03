@@ -149,6 +149,8 @@ Sept ?? 2007 [ubersetzung]
       [James Paige]
     * Editing a read-only RPG file copies it to your home directory.
       [James Paige]
+    * When 2 scripts were triggered at once, wait commands would break
+      or an illegal wait substate error occurred (bug 430) [Ralph, Yuriy]
 
 
   * New Plotscripting Commands
