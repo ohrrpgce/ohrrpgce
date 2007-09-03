@@ -1024,9 +1024,7 @@ SUB playsongnum (songnum%)
 
 	songbase$ = workingdir$ & SLASH & "song" & songnum%
   songfile$ = ""
-  IF isfile(game$ & "." & songnum%) THEN
-    songfile$ = game$ & "." & songnum% ' old-style BAM naming scheme
-  ELSEIF isfile(songbase$ & ".mid") THEN
+  IF isfile(songbase$ & ".mid") THEN
     songfile$ = songbase$ & ".mid"
   ELSEIF isfile(songbase$ & ".mp3") THEN
     songfile$ = songbase$ & ".mp3"
@@ -1038,6 +1036,10 @@ SUB playsongnum (songnum%)
     songfile$ = songbase$ & ".xm"
   ELSEIF isfile(songbase$ & ".s3m") THEN
     songfile$ = songbase$ & ".s3m"
+  ELSEIF isfile(songbase$ & ".bam") THEN
+    songfile$ = songbase$ & ".bam"
+  ELSEIF isfile(game$ & "." & songnum%) THEN
+    songfile$ = game$ & "." & songnum% ' old-style BAM naming scheme
   END IF
 
   if songfile$ = "" then exit sub
