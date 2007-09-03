@@ -63,8 +63,8 @@ support\cp custom.exe tmpdist
 support\cp README-game.txt tmpdist
 support\cp README-custom.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
-support\cp audiere.dll tmpdist
-support\cp audwrap.dll tmpdist
+support\cp SDL.dll tmpdist
+support\cp SDL_mixer.dll tmpdist
 mkdir tmpdist\support
 support\cp support\madplay.exe tmpdist\support
 support\cp support\LICENSE-madplay.txt tmpdist\support
@@ -97,8 +97,8 @@ support\cp LICENSE-binary.txt tmpdist
 support\cp plotscr.hsd tmpdist
 support\cp scancode.hsi tmpdist
 support\cp docs\more-docs.txt tmpdist
-support\cp audiere.dll tmpdist
-support\cp audwrap.dll tmpdist
+support\cp SDL.dll tmpdist
+support\cp SDL_mixer.dll tmpdist
 mkdir tmpdist\support
 support\cp support\madplay.exe tmpdist\support
 support\cp support\LICENSE-madplay.txt tmpdist\support

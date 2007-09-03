@@ -32,8 +32,8 @@ Name: "associate"; Description: "{cm:AssocFileExtension,the OHRRPGCE,RPG}"
 [Files]
 Source: "game.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "custom.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "audiere.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "audwrap.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "SDL.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "SDL_mixer.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "hspeak.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "unlump.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "relump.exe"; DestDir: "{app}"; Flags: ignoreversion
