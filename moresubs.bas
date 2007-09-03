@@ -538,7 +538,6 @@ IF isfile(game$ + ".stt") THEN
  OPEN game$ + ".stt" FOR BINARY AS #fh
  max = 32
  FOR i = 0 TO max
-  debug "i=" & i
   GET #fh, 1 + (11 * i), bytecount
   IF bytecount = 0 THEN
    stat$(i) = ""
