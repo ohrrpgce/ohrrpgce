@@ -86,11 +86,21 @@ Sept ?? 2007 [ubersetzung]
     * New zooming map resize screen to add or trim from any edge [Ralph]
     * Hero start location is visible in the map editor. Press CTRL+H
       to move the start location [James Paige]
-    * Optional graphics smoothing. Run with -s 1 command-line option.
+    * Optional graphics smoothing. Run with -s command-line option.
       [Reaxor Jones]
     * ohrrpgce.fnt is not used anymore. [James Paige]
     * You can play two different RPG files at the same time and they will not
       clobber each other's temporary files [James Paige]
+    * Linux version can be installed system-wide, for example, to /usr/games
+      [James Paige]
+    * Editing a read-only RPG file copies it to your home directory.
+      [James Paige]
+    * New general bitset to disable default passability by default
+      [James Paige]
+    * In the tile map editor you can press CTRL+R to replace every tile
+      like the selected one. [James Paige]
+    * Weapons can optionally require MP, HP, money or items, just like
+      spells do (a new attack bitset) [James Paige]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
@@ -136,19 +146,9 @@ Sept ?? 2007 [ubersetzung]
     * Fixed bug 322 (Z position of enemies in battle randomness and
       inconsistency between custom and game) [Ralph]
     * Fixed bug 178 (Spell descriptions overrun menu box) [Ralph]
-    * New general bitset to disable default passability by default
-      [James Paige]
-    * In the tile map editor you can press CTRL+R to replace every tile
-      like the selected one. [James Paige]
-    * Weapons can optionally require MP, HP, money or items, just like
-      spells do (a new attack bitset) [James Paige]
     * Fix for bug 341 "After battle, the music speeds up" [Mike]
     * Fix for bug 422 "Only first sprite appears in FB .17 custom" [Mike]
     * Fix for bug 113 "Empty spell lists should not appear in Game" [Mike]
-    * Linux version can be installed system-wide, for example, to /usr/games
-      [James Paige]
-    * Editing a read-only RPG file copies it to your home directory.
-      [James Paige]
     * When 2 scripts were triggered at once, wait commands would break
       or an illegal wait substate error occurred (bug 430) [Ralph, Yuriy]
 
@@ -198,7 +198,8 @@ Sept ?? 2007 [ubersetzung]
     * Output directory defaults to gamename.rpgdir [James]
     * When run without arguments, tells windows users to
       drag-and-drop [James]
-    * Can be used to unlump other lumped files too; cleans up on error [Ralph]
+    * Can be used to unlump other lumped files too [Ralph]
+    * cleans up on error [Ralph]
 
   * Stuff only Developers Will Notice
     * FreeBASIC 0.16b and newer support [Ralph]

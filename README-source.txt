@@ -6,7 +6,7 @@ code :)
 http://HamsterRepublic.com/ohrrpgce/source.php for more information 
 -----------------------------------------------------------------------------
 WINDOWS/LINUX:
-  Reccomends FreeBasic version 0.18.1b
+  Recommends FreeBasic version 0.18.1b
   Requires minimum FreeBasic version 0.15b
   Download FreeBasic from http://freebasic.net/
 -----------------------------------------------------------------------------
@@ -14,18 +14,20 @@ INSTRUCTIONS
   Unpack the source code to a new folder
   Install FreeBasic
   Run makegame.bat to compile the game player
+   (use makegame16.bat for FreeBASIC 0.15b and 0.16b)
   Run makeedit.bat to compile the game editor
+   (use makeedit16.bat for FreeBASIC 0.15b and 0.16b)
 -----------------------------------------------------------------------------
 MAKING IMPROVEMENTS
   There are still lots of bugs that need to be fixed. For a list of known
   bugs, visit http://HamsterRepublic.com/ohrrpgce/buglist.php
   I also welcome code-cleanup and new features as long as you don't break
-  compatability with existing games. If you want to submit a improvement
-  to me, I reccomend you post your patch and/or a description of the changes
+  compatibility with existing games. If you want to submit a improvement
+  to me, I recommend you post your patch and/or a description of the changes
   to http://HamsterRepublic.com/bugzilla/ instead of e-mailing it to me.
 -----------------------------------------------------------------------------
-WHAT IF YOU WANT TO BREAK COMPATABILITY?
-  I will not accept patches that break compatability into the official
+WHAT IF YOU WANT TO BREAK COMPATIBILITY?
+  I will not accept patches that break compatibility into the official
   version, but you are welcome to make your own "fork" of the OHRRPGCE
   code as long as you obey the conditions of the GPL license. This means that
   if you make your own personal version of the OHRRPGCE based on my source
@@ -84,7 +86,7 @@ HISTORY & AN APOLOGY
   developers had been a blessing, and have revitalized OHRRPGCE development.
   Although bad code still abounds, it is getting better. The OHRRPGCE has
   become an exciting exercise in incrementally transforming a BIG BALL OF MUD
-  into well-structured code, while maintaining backwards compatability all
+  into well-structured code, while maintaining backwards compatibility all
   along the way.
 
   Well, I hope that doesn't discourage you too much. Play around with the
