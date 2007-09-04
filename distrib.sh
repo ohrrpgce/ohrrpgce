@@ -35,6 +35,7 @@ rm -Rf tmp/*
 
 echo Erasing old distribution files
 rm distrib/ohrrpgce-*.tar.bz2
+rm distrib/*.deb
 
 echo "Packaging binary distribution of CUSTOM"
 
