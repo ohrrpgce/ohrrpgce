@@ -2019,8 +2019,12 @@ DO
    '--if resuming a supended script, restore its state (normally stwait)
    '--if returning a value to a calling script, set streturn
    '--if no scripts left, break the loop
-   IF functiondone = 1 THEN EXIT DO
-   IF scrat(nowscript).state = stwait THEN wantimmediate = -1
+   SELECT CASE functiondone
+    CASE 1
+     EXIT DO
+    CASE 2
+     wantimmediate = -1
+   END SELECT
    IF scrwatch AND breakstnext THEN breakpoint scrwatch, 2
  END SELECT
 LOOP

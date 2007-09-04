@@ -149,9 +149,6 @@ Sept ?? 2007 [ubersetzung]
     * Fix for bug 341 "After battle, the music speeds up" [Mike]
     * Fix for bug 422 "Only first sprite appears in FB .17 custom" [Mike]
     * Fix for bug 113 "Empty spell lists should not appear in Game" [Mike]
-    * When 2 scripts were triggered at once, wait commands would break
-      or an illegal wait substate error occurred (bug 430) [Ralph, Yuriy]
-
 
   * New Plotscripting Commands
     * New HamsterSpeak flow control commands: break, continue, exit script,
