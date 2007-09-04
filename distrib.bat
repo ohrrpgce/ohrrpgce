@@ -60,6 +60,8 @@ ECHO Packaging minimalist ohrrpgce-floppy.zip ...
 del tmpdist\*.???
 support\cp game.exe tmpdist
 support\cp custom.exe tmpdist
+support\cp ohrrpgce.new tmpdist
+support\cp ohrrpgce.mas tmpdist
 support\cp README-game.txt tmpdist
 support\cp README-custom.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
