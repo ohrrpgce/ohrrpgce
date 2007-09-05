@@ -72,6 +72,8 @@ support\cp support\madplay.exe tmpdist\support
 support\cp support\LICENSE-madplay.txt tmpdist\support
 support\cp support\oggenc.exe tmpdist\support
 support\cp support\LICENSE-oggenc.txt tmpdist\support
+mkdir tmpdist\docs
+support\cp docs\*.URL tmpdist\docs
 
 cd tmpdist
 ..\support\zip -q -r ..\distrib\ohrrpgce-floppy.zip *.*
@@ -98,9 +100,10 @@ support\cp LICENSE.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
 support\cp plotscr.hsd tmpdist
 support\cp scancode.hsi tmpdist
-support\cp docs\more-docs.txt tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
+mkdir tmpdist\docs
+support\cp docs\* tmpdist\docs
 mkdir tmpdist\support
 support\cp support\madplay.exe tmpdist\support
 support\cp support\LICENSE-madplay.txt tmpdist\support
