@@ -2596,7 +2596,11 @@ p = readpassblock(tilex, tiley)
 FOR i = 0 TO 3
  tilex = x: tiley = y
  wrapaheadxy tilex, tiley, i, 1, 1
- pd(i) = readpassblock(tilex, tiley)
+ IF tilex < 0 OR tilex >= scroll(0) OR tiley < 0 OR tiley >= scroll(1) THEN
+  pd(i) = 15
+ ELSE
+  pd(i) = readpassblock(tilex, tiley)
+ END IF
 NEXT i
 
 IF ygo > 0 AND movdivis(ygo) AND ((p AND 1) = 1 OR (pd(0) AND 4) = 4 OR (isveh AND vehpass(veh(18), pd(0), 0))) THEN ygo = 0: wrappass = 1
