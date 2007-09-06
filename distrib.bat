@@ -60,27 +60,26 @@ ECHO Packaging minimalist ohrrpgce-floppy.zip ...
 del tmpdist\*.???
 support\cp game.exe tmpdist
 support\cp custom.exe tmpdist
+support\cp hspeak.exe tmpdist
 support\cp ohrrpgce.new tmpdist
 support\cp ohrrpgce.mas tmpdist
+support\cp plotscr.hsd tmpdist
+support\cp scancode.hsi tmpdist
 support\cp README-game.txt tmpdist
 support\cp README-custom.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
-mkdir tmpdist\support
-support\cp support\madplay.exe tmpdist\support
-support\cp support\LICENSE-madplay.txt tmpdist\support
-support\cp support\oggenc.exe tmpdist\support
-support\cp support\LICENSE-oggenc.txt tmpdist\support
+support\cp support\madplay+oggenc.URL tmpdist
 mkdir tmpdist\docs
 support\cp docs\*.URL tmpdist\docs
 
 cd tmpdist
-..\support\zip -q -r ..\distrib\ohrrpgce-floppy.zip *.*
+..\support\zip -9 -q -r ..\distrib\ohrrpgce-floppy.zip *.*
 cd ..
 
 del tmpdist\*.???
-RMDIR /s /q tmpdist\support
+RMDIR /s /q tmpdist\docs
 cd tmpdist
 ..\support\unzip -q ..\distrib\ohrrpgce-floppy.zip game.exe
 cd ..
@@ -126,7 +125,7 @@ mkdir "tmpdist\import\Sound Effects"
 support\cp import/"Sound Effects"/*.ogg tmpdist/import/"Sound Effects"
 
 cd tmpdist
-..\support\zip -q -r ..\distrib\ohrrpgce.zip *.* -x *.svn*
+..\support\zip -9 -q -r ..\distrib\ohrrpgce.zip *.* -x *.svn*
 cd ..
 
 del tmpdist\*.???
