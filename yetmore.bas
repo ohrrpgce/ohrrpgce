@@ -2022,12 +2022,14 @@ selectedscript = bound(selectedscript, 0, nowscript)
 IF selectedscript = lastscript THEN selectedscript = nowscript
 lastscript = nowscript
 
-SELECT CASE scrat(nowscript).curkind
- CASE tynumber, tyglobal, tylocal
-  hasargs = 0
- CASE ELSE
-  hasargs = 1
-END SELECT
+IF nowscript >= 0 THEN 
+ SELECT CASE scrat(nowscript).curkind
+  CASE tynumber, tyglobal, tylocal
+   hasargs = 0
+  CASE ELSE
+   hasargs = 1
+ END SELECT
+END IF
 
 'Note: the colours here are fairly arbitrary
 rectangle 0, 0, 320, 4, uilook(uiBackground), page
@@ -2222,7 +2224,9 @@ IF drawloop AND mode > 1 THEN
 END IF
 
 'just incase was swapped out above
-reloadscript nowscript
+IF nowscript >= 0 THEN
+ reloadscript nowscript
+END IF
 END SUB
 
 SUB setdebugpan
