@@ -149,6 +149,7 @@ CALL distver.bat
 DEL tmpdist\*.???
 RMDIR /s /q tmpdist\support
 RMDIR /s /q tmpdist\import
+RMDIR /s /q tmpdist\docs
 CD tmpdist
 %SVN% info .. | ..\support\grep "^URL:" | ..\support\sed s/"^URL: "/"SET REPOSITORY="/ > svnrepo.bat
 CALL svnrepo.bat
