@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Editor            (Sept ?? 2007 ubersetzung)
+ O.H.R.RPG.C.E Editor            (Sept 14 2007 ubersetzung)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 

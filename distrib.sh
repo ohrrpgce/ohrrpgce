@@ -14,7 +14,7 @@ echo "Lumping Vikings of Midgard"
 if [ -f vikings.rpg ] ; then
   rm vikings.rpg
 fi
-./relump ../games/vikings/vikings.rpgdir ./vikings.rpg
+./relump ./vikings/vikings.rpgdir ./vikings.rpg
 
 echo "Downloading import media"
 if [ -f import.zip ] ; then
@@ -65,10 +65,10 @@ cp -p whatsnew.txt tmp
 
 echo "  Including Vikings of Midgard"
 cp -p vikings.rpg tmpdist
-cp -p ../games/vikings/vikings.hss tmp
-cp -p ../games/vikings/vikings.hsi tmp
-cp -p ../games/vikings/utility.hsi tmp
-cp -p ../games/vikings/README-vikings.txt tmp
+cp -p vikings/vikings.hss tmp
+cp -p vikings/vikings.hsi tmp
+cp -p vikings/utility.hsi tmp
+cp -p vikings/README-vikings.txt tmp
 
 echo "  Including import"
 mkdir tmp/import

@@ -52,10 +52,10 @@ Source: "support\madplay.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\oggenc.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\LICENSE-*.txt"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "vikings.rpg"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\games\vikings\vikings.hss"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\games\vikings\vikings.hsi"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\games\vikings\utility.hsi"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\games\vikings\README-vikings.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "vikings\vikings.hss"; DestDir: "{app}"; Flags: ignoreversion
+Source: "vikings\vikings.hsi"; DestDir: "{app}"; Flags: ignoreversion
+Source: "vikings\utility.hsi"; DestDir: "{app}"; Flags: ignoreversion
+Source: "vikings\README-vikings.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "import\background\*"; DestDir: "{app}\import\background"; Flags: ignoreversion
 Source: "import\fonts\*"; DestDir: "{app}\import\fonts"; Flags: ignoreversion
 Source: "import\Music\*"; DestDir: "{app}\import\Music"; Flags: ignoreversion
