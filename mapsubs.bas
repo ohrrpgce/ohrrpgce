@@ -772,17 +772,28 @@ DO
  setmapdata map(), pass(), 20, 0
  
  '--general purpose controls----
+ IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
+  xrate = 8
+  yrate = 5
+ ELSE
+  xrate = 1
+  yrate = 1
+ END IF
  IF keyval(56) = 0 AND keyval(29) = 0 THEN
-  IF keyval(72) > 0 THEN y = large(y - 1, 0): IF y < INT(mapy / 20) AND mapy > 0 THEN mapy = mapy - 20
-  IF keyval(80) > 0 THEN y = small(y + 1, high - 1): IF y > INT(mapy / 20) + 8 AND mapy < (high * 20) - 180 THEN mapy = mapy + 20
-  IF keyval(75) > 0 THEN x = large(x - 1, 0): IF x < INT(mapx / 20) AND mapx > 0 THEN mapx = mapx - 20
-  IF keyval(77) > 0 THEN x = small(x + 1, wide - 1): IF x > INT(mapx / 20) + 14 AND mapx < (wide * 20) - 300 THEN mapx = mapx + 20
+  IF keyval(72) > 0 THEN y = large(y - yrate, 0): IF y < INT(mapy / 20) THEN mapy = y * 20
+  IF keyval(80) > 0 THEN y = small(y + yrate, high - 1): IF y > INT(mapy / 20) + 8 THEN mapy = y * 20 - 160
+  IF keyval(75) > 0 THEN x = large(x - xrate, 0): IF x < INT(mapx / 20) THEN mapx = x * 20
+  IF keyval(77) > 0 THEN x = small(x + xrate, wide - 1): IF x > INT(mapx / 20) + 14 THEN mapx = x * 20 - 280
  END IF
  IF keyval(56) > 0 AND keyval(29) = 0 THEN
-  IF keyval(72) > 0 AND mapy > 0 THEN mapy = mapy - 20: y = y - 1
-  IF keyval(80) > 0 AND mapy < (high * 20) - 180 THEN mapy = mapy + 20: y = y + 1
-  IF keyval(75) > 0 AND mapx > 0 THEN mapx = mapx - 20: x = x - 1
-  IF keyval(77) > 0 AND mapx < ((wide + 1) * 20) - 320 THEN mapx = mapx + 20: x = x + 1
+  oldrelx = x - mapx / 20
+  oldrely = y - mapy / 20
+  IF keyval(72) > 0 THEN mapy = large(mapy - 20 * yrate, 0)
+  IF keyval(80) > 0 THEN mapy = small(mapy + 20 * yrate, high * 20 - 180)
+  IF keyval(75) > 0 THEN mapx = large(mapx - 20 * xrate, 0)
+  IF keyval(77) > 0 THEN mapx = small(mapx + 20 * xrate, wide * 20 - 300)
+  x = mapx / 20 + oldrelx
+  y = mapy / 20 + oldrely
  END IF
  
  if editmode = 0 then 'tilemode, uses layers

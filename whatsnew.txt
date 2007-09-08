@@ -101,6 +101,7 @@ Sept ?? 2007 [ubersetzung]
       like the selected one. [James Paige]
     * Weapons can optionally require MP, HP, money or items, just like
       spells do (a new attack bitset) [James Paige]
+    * Hold down Shift in the map editor to scroll quickly. [Ralph Versteegen]
 
   * Bug Fixes
     * Fixed bug 12: "An NPC at the edge of a wraparound map does not block the
