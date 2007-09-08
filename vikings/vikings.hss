@@ -1,0 +1,1853 @@
+#This is the script file for Vikings of Midgard.  I've tried to document it as thouroughly as
+#possible, but that's not always possible!  Whenever you see comments like these that start every 
+#line with a (pound key) sign, they indicate that that line will not be read by the
+#script itself.  So we can write whatever we want here!
+
+
+
+include, plotscr.hsd
+include, vikings.hsi
+include, scancode.hsi
+include, utility.hsi
+
+
+
+
+
+
+define script (1,run,none)
+define script (2,afterbattle,none)
+define script (3,HPtab,none)
+define script (4,MPtab,none)
+define script (5,opening scene,none)
+define script (6,inn,none)
+define script (7,inn2,none)
+define script (8,inn3,none)
+define script (9,earthfiend,none)
+define script (10,die in battle,none)
+define script (11,cthulhu1,none)
+define script (12,tulzcha,none)
+define script (13,dagon,none)
+define script (14,cthulhu,none)
+define script (15,kyle,none)
+define script (16,azathoth,none)
+define script (17,credits,none)
+
+
+script,run,begin
+ #change this to choose your own key.
+ #By default, holding "x" when walking will make you run
+ if (key is pressed (key:x)) then, begin
+ 
+  if (hero is walking (me)==false) then, begin
+   #This basically states that if "x" is held down, you'll move a little faster
+   set hero speed (me,5)
+
+   #This line shows that if the stated tag is on, you'll dash faster. This particular tag is set to the
+   #Brigand's "Is Leader" bitset, so when the brigand is in charge, you'll run quite fast.
+   if (checktag(tag:SPRINT)) then (set hero speed (me, 10))
+
+   #This line is like the above lines in that if the tag is on, you'll run at a blazing 20 pixels per tick.
+   #That's one tile per tick!
+   if (checktag(tag:DASH)) then (set hero speed (me, 20))
+  end
+
+ end, else,begin
+
+  #This line states that if the player isn't holding "x", then the hero will only walk normally.
+  if (hero is walking (me)==false) then, begin
+   set hero speed (me,4)
+  end
+
+ end
+end
+
+
+script,afterbattle,begin
+ #These lines do different and mysterious things!
+ #Firstly, this line checks to see if the warrior is the leader, then if he is, 
+ #the whole party gets some extra experience based off of his level
+ if (checktag(tag:WARRIORLEAD)==on) then (give experience (party, get hero level(0)))
+
+ #This line checks to see if the Valkyrie is leading, then if she is, everyone's HPs will be 
+ #totally restored when they levelup!
+ if (checktag(tag:VALKYRIELEAD)==on) then (set no HP level up restore (off))
+
+ #This line checks to see if the Shaman is leading, then if she is, everyone's MPs will be
+ #totally restored when they levelup!
+ if (checktag(tag:SHAMANLEAD)==on) then (set no MP level up restore (off))
+
+ #This one is more dependant on whether an item is in the player's inventory.
+ #If this particular item with the tag "DARKMATTER" is on, the player will raise
+ #the game's damage limit from 999 to 9999!
+ if (checktag(tag:DARKMATTER)==on) then (set damage cap (9999))
+
+ #This script changes a certain hero's appearance...   hmm....
+ if (checktag(tag:HATI)==on) then ( set hero picture (find hero (hero:Shaman),9,inside battle) )
+ if (checktag(tag:HATI)==on) then ( set hero palette (find hero (hero:Shaman),97,inside battle) )
+end
+
+
+script,HPtab,begin
+ #This script is short, and to the point.
+ #It will bring up a pickbox to choose the hero, then add 10 points to that hero's HP!
+ #Just be sure to link it to a textbox, and have an item call that textbox when used in the field.
+ Add To Stat (pickhero, stat:HP, 10)
+end
+
+script,MPtab,begin
+ #This script is short, and to the point.
+ #It will bring up a pickbox to choose the hero, then add 10 points to that hero's MP!
+ #Just be sure to link it to a textbox, and have an item call that textbox when used in the field.
+ Add To Stat (pickhero, stat:MP, 10)
+end
+
+script,opening scene,begin
+ suspend player
+ suspend box advance
+ wait (10)
+ walk NPC (0,right,1)
+ wait (10)
+ show text box (586)
+ focus camera (29,57,4)
+ wait (60)
+ advance text box
+ show text box (587)
+ wait (60)
+ advance text box
+ wait for camera
+ wait (5)
+ focus camera (29,13,4)
+ show textbox (588)
+ wait (70)
+ advance text box
+ show textbox (589)
+ wait (70)
+ advance text box
+ show textbox (590)
+ wait (70)
+ advance textbox
+ wait (10)
+ fade screen out
+ wait (5)
+ show textbox (591)
+ camera follows hero (me)
+ wait (2)
+ fade screen in
+ wait (70)
+ fade screen out
+ wait (5)
+ advance textbox
+ use door (0)
+ set hero direction (me,left)
+ wait (5)
+ set hero direction (me,up)
+ wait (5)
+ set hero direction (me,right)
+ wait (5)
+ set hero direction (me,up)
+ wait (5)
+ walk hero (me,up,4)
+ wait for hero (me)
+ wait (10)
+ walk hero (me,up,6)
+ wait (10)
+ show textbox (1)
+ resume player
+ resume box advance
+end
+
+script,inn,begin
+ suspend player
+ suspend box advance
+ walk hero (me,left,7)
+ focus camera (4,6,4)
+ if (checktag(tag:MISSIONARYLEAD)==on) then (set inn no revive mode (off))
+ wait for hero (me)
+ suspend caterpillar
+ wait (2)
+ set hero speed (2)
+ set hero direction (me,down)
+ wait (3)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (2)
+ set caterpillar mode (on)
+ set hero position (1, 4, 6)
+ set hero position (2, 4, 6)
+ set hero position (3, 4, 6)
+ wait (4)
+ walk hero (0,up,2)
+ walk hero (1,up,2)
+ walk hero (2,down,2)
+ walk hero (3,down,2)
+
+ wait (1)
+ walk hero (0,left,2)
+ walk hero (1,right,2)
+ walk hero (2,left,2)
+ walk hero (3,right,2)
+
+ wait for hero (me)
+
+ wait (5)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+
+ tweak palette (-20,-20,20)
+ fade screen in
+ play song (song:Sleeptime)
+ wait (180)
+ stop song
+ wait (5)
+ reset palette
+ play song (get ambient music)
+ wait (5)
+ fade screen in
+ wait (5)
+ #Now the heroes get out of bed
+ set hero z (0, 5)
+ set hero z (1, 5)
+ set hero z (2, 5)
+ set hero z (3, 5)
+ wait (1)
+ walk hero (0,right,1)
+ walk hero (1,left,1)
+ walk hero (2,right,1)
+ walk hero (3,left,1)
+ wait (3)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (1)
+ set hero direction (0,left)
+ set hero direction (1,left)
+ set hero direction (2,left)
+ set hero direction (3,left)
+ wait (1)
+ set hero direction (0,up)
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (1)
+ set hero direction (0,right)
+ set hero direction (1,right)
+ set hero direction (2,right)
+ set hero direction (3,right)
+ wait (1)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (1)
+ set hero direction (0,left)
+ set hero direction (1,left)
+ set hero direction (2,left)
+ set hero direction (3,left)
+ wait (1)
+ set hero direction (0,up)
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (1)
+ set hero direction (0,right)
+ set hero direction (1,right)
+ set hero direction (2,right)
+ set hero direction (3,right)
+ wait (1)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (1)
+ set hero direction (0,left)
+ set hero direction (1,left)
+ set hero direction (2,left)
+ set hero direction (3,left)
+ wait (1)
+ set hero direction (0,up)
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (1)
+ set hero direction (0,right)
+ set hero direction (1,right)
+ set hero direction (2,right)
+ set hero direction (3,right)
+ wait (1)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (5)
+ set hero z (0, 10)
+ set hero z (1, 10)
+ set hero z (2, 10)
+ set hero z (3, 10)
+ wait (1)
+ set hero z (0, 15)
+ set hero z (1, 15)
+ set hero z (2, 15)
+ set hero z (3, 15)
+ wait (1)
+ set hero z (0, 20)
+ set hero z (1, 20)
+ set hero z (2, 20)
+ set hero z (3, 20)
+ wait (1)
+ set hero z (0, 15)
+ set hero z (1, 15)
+ set hero z (2, 15)
+ set hero z (3, 15)
+ set hero z (0, 10)
+ set hero z (1, 10)
+ set hero z (2, 10)
+ set hero z (3, 10)
+ wait (1)
+ set hero z (0, 5)
+ set hero z (1, 5)
+ set hero z (2, 5)
+ set hero z (3, 5)
+ wait (5)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (2)
+ walk hero (0,right,1)
+ walk hero (1,left,1)
+ walk hero (2,right,1)
+ walk hero (3,left,1)
+ wait (1)
+ walk hero (0,down,2)
+ walk hero (1,down,2)
+ walk hero (2,up,2)
+ walk hero (3,up,2)
+ wait for hero (me)
+ set caterpillar mode (off)
+ wait (1) 
+ camera follows hero (me)
+ resume player
+ resume box advance
+end
+
+
+
+
+
+
+script,inn2,begin
+ suspend player
+ suspend box advance
+ walk hero (me,left,7)
+ focus camera (4,27,4)
+ if (checktag(tag:MISSIONARYLEAD)==on) then (set inn no revive mode (off))
+ wait for hero (me)
+ suspend caterpillar
+ wait (2)
+ set hero speed (2)
+ set hero direction (me,down)
+ wait (3)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (2)
+ set caterpillar mode (on)
+ set hero position (1, 4, 27)
+ set hero position (2, 4, 27)
+ set hero position (3, 4, 27)
+ wait (4)
+ walk hero (0,up,2)
+ walk hero (1,up,2)
+ walk hero (2,down,2)
+ walk hero (3,down,2)
+
+ wait (1)
+ walk hero (0,left,2)
+ walk hero (1,right,2)
+ walk hero (2,left,2)
+ walk hero (3,right,2)
+
+ wait for hero (me)
+
+ wait (5)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+
+ tweak palette (-20,-20,20)
+ fade screen in
+ play song (song:Sleeptime)
+ wait (180)
+ stop song
+ wait (5)
+ reset palette
+ play song (get ambient music)
+ wait (5)
+ fade screen in
+ wait (5)
+ #Now the heroes get out of bed
+ set hero z (0, 5)
+ set hero z (1, 5)
+ set hero z (2, 5)
+ set hero z (3, 5)
+ wait (1)
+ walk hero (0,right,1)
+ walk hero (1,left,1)
+ walk hero (2,right,1)
+ walk hero (3,left,1)
+ wait (3)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (1)
+ set hero direction (0,left)
+ set hero direction (1,left)
+ set hero direction (2,left)
+ set hero direction (3,left)
+ wait (1)
+ set hero direction (0,up)
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (1)
+ set hero direction (0,right)
+ set hero direction (1,right)
+ set hero direction (2,right)
+ set hero direction (3,right)
+ wait (1)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (1)
+ set hero direction (0,left)
+ set hero direction (1,left)
+ set hero direction (2,left)
+ set hero direction (3,left)
+ wait (1)
+ set hero direction (0,up)
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (1)
+ set hero direction (0,right)
+ set hero direction (1,right)
+ set hero direction (2,right)
+ set hero direction (3,right)
+ wait (1)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (1)
+ set hero direction (0,left)
+ set hero direction (1,left)
+ set hero direction (2,left)
+ set hero direction (3,left)
+ wait (1)
+ set hero direction (0,up)
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (1)
+ set hero direction (0,right)
+ set hero direction (1,right)
+ set hero direction (2,right)
+ set hero direction (3,right)
+ wait (1)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (5)
+ set hero z (0, 10)
+ set hero z (1, 10)
+ set hero z (2, 10)
+ set hero z (3, 10)
+ wait (1)
+ set hero z (0, 15)
+ set hero z (1, 15)
+ set hero z (2, 15)
+ set hero z (3, 15)
+ wait (1)
+ set hero z (0, 20)
+ set hero z (1, 20)
+ set hero z (2, 20)
+ set hero z (3, 20)
+ wait (1)
+ set hero z (0, 15)
+ set hero z (1, 15)
+ set hero z (2, 15)
+ set hero z (3, 15)
+ set hero z (0, 10)
+ set hero z (1, 10)
+ set hero z (2, 10)
+ set hero z (3, 10)
+ wait (1)
+ set hero z (0, 5)
+ set hero z (1, 5)
+ set hero z (2, 5)
+ set hero z (3, 5)
+ wait (5)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (2)
+ walk hero (0,right,1)
+ walk hero (1,left,1)
+ walk hero (2,right,1)
+ walk hero (3,left,1)
+ wait (1)
+ walk hero (0,down,2)
+ walk hero (1,down,2)
+ walk hero (2,up,2)
+ walk hero (3,up,2)
+ wait for hero (me)
+ set caterpillar mode (off)
+ wait (1) 
+ camera follows hero (me)
+ resume player
+ resume box advance
+end
+
+
+
+script,inn3,begin
+ suspend player
+ suspend box advance
+ walk hero (me,left,7)
+ focus camera (4,44,4)
+ if (checktag(tag:MISSIONARYLEAD)==on) then (set inn no revive mode (off))
+ wait for hero (me)
+ suspend caterpillar
+ wait (2)
+ set hero speed (2)
+ set hero direction (me,down)
+ wait (3)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (2)
+ set caterpillar mode (on)
+ set hero position (1, 4, 44)
+ set hero position (2, 4, 44)
+ set hero position (3, 4, 44)
+ wait (4)
+ walk hero (0,up,2)
+ walk hero (1,up,2)
+ walk hero (2,down,2)
+ walk hero (3,down,2)
+
+ wait (1)
+ walk hero (0,left,2)
+ walk hero (1,right,2)
+ walk hero (2,left,2)
+ walk hero (3,right,2)
+
+ wait for hero (me)
+
+ wait (5)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+
+ tweak palette (-20,-20,20)
+ fade screen in
+ play song (song:Sleeptime)
+ wait (180)
+ stop song
+ wait (5)
+ reset palette
+ play song (get ambient music)
+ wait (5)
+ fade screen in
+ wait (5)
+ #Now the heroes get out of bed
+ set hero z (0, 5)
+ set hero z (1, 5)
+ set hero z (2, 5)
+ set hero z (3, 5)
+ wait (1)
+ walk hero (0,right,1)
+ walk hero (1,left,1)
+ walk hero (2,right,1)
+ walk hero (3,left,1)
+ wait (3)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (1)
+ set hero direction (0,left)
+ set hero direction (1,left)
+ set hero direction (2,left)
+ set hero direction (3,left)
+ wait (1)
+ set hero direction (0,up)
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (1)
+ set hero direction (0,right)
+ set hero direction (1,right)
+ set hero direction (2,right)
+ set hero direction (3,right)
+ wait (1)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (1)
+ set hero direction (0,left)
+ set hero direction (1,left)
+ set hero direction (2,left)
+ set hero direction (3,left)
+ wait (1)
+ set hero direction (0,up)
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (1)
+ set hero direction (0,right)
+ set hero direction (1,right)
+ set hero direction (2,right)
+ set hero direction (3,right)
+ wait (1)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (1)
+ set hero direction (0,left)
+ set hero direction (1,left)
+ set hero direction (2,left)
+ set hero direction (3,left)
+ wait (1)
+ set hero direction (0,up)
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (1)
+ set hero direction (0,right)
+ set hero direction (1,right)
+ set hero direction (2,right)
+ set hero direction (3,right)
+ wait (1)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (5)
+ set hero z (0, 10)
+ set hero z (1, 10)
+ set hero z (2, 10)
+ set hero z (3, 10)
+ wait (1)
+ set hero z (0, 15)
+ set hero z (1, 15)
+ set hero z (2, 15)
+ set hero z (3, 15)
+ wait (1)
+ set hero z (0, 20)
+ set hero z (1, 20)
+ set hero z (2, 20)
+ set hero z (3, 20)
+ wait (1)
+ set hero z (0, 15)
+ set hero z (1, 15)
+ set hero z (2, 15)
+ set hero z (3, 15)
+ set hero z (0, 10)
+ set hero z (1, 10)
+ set hero z (2, 10)
+ set hero z (3, 10)
+ wait (1)
+ set hero z (0, 5)
+ set hero z (1, 5)
+ set hero z (2, 5)
+ set hero z (3, 5)
+ wait (5)
+ set hero direction (0,down)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,down)
+ wait (2)
+ walk hero (0,right,1)
+ walk hero (1,left,1)
+ walk hero (2,right,1)
+ walk hero (3,left,1)
+ wait (1)
+ walk hero (0,down,2)
+ walk hero (1,down,2)
+ walk hero (2,up,2)
+ walk hero (3,up,2)
+ wait for hero (me)
+ set caterpillar mode (off)
+ wait (1) 
+ camera follows hero (me)
+ resume player
+ resume box advance
+end
+
+
+
+
+
+
+
+
+#Finally! Now time for some more scripts!
+
+
+
+script,earthfiend,begin
+ suspend player
+ suspend box advance
+ suspend random enemies
+ #We don't want to run into any extra encounters, do we?
+ walk hero (me,left,4)
+ wait for hero (me) 
+ wait (1)
+ #These set the heroes to face up, and look up at the boss
+ set hero direction (0,up)
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (1)
+ #This sets the other party members to appear at the leader's position
+ set caterpillar mode (on)
+ set hero position (1, 12, 9)
+ set hero position (2, 12, 9)
+ set hero position (3, 12, 9)
+ wait (1)
+ suspend caterpillar
+ #These actions then cause the party to move a bit, so they can all be seen at once.
+ walk hero (me,up,1)
+ walk hero (1,left,1)
+ walk hero (2, right,1)
+ wait for hero (me)
+ #Now, beacuse they've moved, we set the heroes on the side to all face the same direction.
+ set hero direction (1,up)
+ set hero direction (2,up)
+ #Now it's time for some introductory dialogue.  Though its not shown here, Text box 83 has the 
+ #party leader say something.
+ show textbox (83)
+ wait (7)
+ #I've found that the delay between just skipping through boxes is *ABOUT* 7-10 ticks.
+ #So, since we don't want the game to be too sensitive between when you press a key to
+ #advance a text box, we've a delay of 7 ticks before you can advance it.
+ wait for key (usekey)
+ advance text box
+ walk hero (1,up,1)
+ #The next textbox has hero (1) saying something, so its only reasonable to indicate that
+ #by having whoever's in that slot move to indicate they're doing something.
+ wait for hero (1)
+ show textbox (84)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ walk hero (2,up,1)
+ wait for hero (2)
+ #Again, another textbox, this one having hero (2) say something, and move in some way to indicate it.
+ #It's not alway needed to have each hero move, or twich or whatever before they speak, but
+ #it does give the player the sense that what's being said on screen isn't just text, but
+ #being spoken by a character.  Many well known professional games do this too.
+ show textbox (85)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ #Now that talking is done, it's time for the enemy to attack!
+ walk NPC (1,down,2)
+ #So he moves down to face the party first
+ wait for NPC (1)
+ #....Except he's kinda slow, so we want to wait a bit for him.
+ wait (3)
+ #You should always try to indicate to the player that something BIG is coming.
+ invert colors
+ #After the nifty color inverting takes place, we've got a battle to fight!  
+ fight formation (22)
+ #Shub-Niggurath, the first boss, can be found in-game at formation 22, so we call that right now.
+ set tag (tag:ShubNiggurath, on)
+ #Since the boss isn't there, we have to make it vanish!  Set a tag to the NPC so it'll
+ #Vanish once the player beats it!
+ walk hero (me,up,1)
+ wait for hero (me)
+ #Now the party's going to face eachother to talk amoungst themselves.
+ set hero direction (me,right)
+ wait (3)
+ set hero direction (me,down)
+ set hero direction (1,right)
+ set hero direction (2,left)
+ 
+ show textbox (105)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (106)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ walk hero (me,down,1)
+ walk hero (1,right,1)
+ walk hero (2,left,1)
+ walk hero (3,up,1)
+ wait for hero (me)
+ set caterpillar mode (off)
+ resume caterpillar
+ wait (1)
+ resume player
+ resume random enemies
+ resume box advance
+end
+
+
+script,die in battle,begin
+  variable(i)
+
+  if(check tag(tag:DO NOT DIE)==OFF) then, begin
+   show textbox (596)
+   wait for key (anykey)
+   fade screen out (0,0,0)
+   game over
+  end, else, begin
+    for(i,0,3) do,begin
+      if (get hero stat(i,stat:HP,current stat) <= 0) then, begin
+       set hero stat(i,stat:HP,1)
+      end
+    end
+  end
+end
+
+script,cthulhu1,begin
+ suspend player
+ suspend box advance
+ suspend random enemies
+ walk hero (me,down,2)
+ wait for hero (me)
+ set caterpillar mode (on)
+ set hero position (1, 46, 13)
+ set hero position (2, 46, 13)
+ set hero position (3, 46, 13)
+ wait (1)
+ suspend caterpillar
+ walk hero (me,up,1)
+ walk hero (1,left,1)
+ walk hero (2, right,1)
+ wait for hero (me)
+ #Now, beacuse they've moved, we set the heroes on the side to all face the same direction.
+ set hero direction (1,up)
+ set hero direction (2,up)
+ wait (1)
+ show textbox (107)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (108)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (109)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (110)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ wait (1)
+ tweak palette (20,-20,20)
+ fade screen in
+ wait (4)
+ set tag (tag:CTHULHU1, on)
+ wait (3)
+ set tag (tag:CTHULHU1, off)
+ wait (3)
+ set tag (tag:CTHULHU1, on)
+ wait (3)
+ set tag (tag:CTHULHU1, off)
+ wait (3)
+ set tag (tag:CTHULHU1, on)
+ wait (3)
+ set tag (tag:CTHULHU1, off)
+ wait (3)
+ set tag (tag:CTHULHU1, on)
+ wait (3)
+ reset palette
+ fade screen in
+ walk hero (3,down,1)
+ wait for hero (3)
+ set hero direction (3,left)
+ set hero direction (me,right)
+ wait (3)
+ set hero direction (me,down)
+ set hero direction (1,right)
+ set hero direction (2,left)
+ set hero direction (3,up)
+ wait (3)
+ show textbox (597)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ walk hero (me,down,1)
+ walk hero (1,right,1)
+ walk hero (2,left,1)
+ walk hero (3,up,1)
+ wait for hero (me)
+ set caterpillar mode (off)
+ resume caterpillar
+ wait (1)
+ resume player
+ resume random enemies
+ resume box advance
+end
+
+script,Tulzcha,begin
+ suspend player
+ suspend box advance
+ suspend random enemies
+ walk hero (me,up,3)
+ wait for hero (me)
+ set caterpillar mode (on)
+ set hero position (1, 21, 10)
+ set hero position (2, 21, 10)
+ set hero position (3, 21, 10)
+ wait (1)
+ suspend caterpillar
+ walk hero (me,up,1)
+ walk hero (1,left,1)
+ walk hero (2, right,1)
+ wait for hero (me)
+ #Now, beacuse they've moved, we set the heroes on the side to all face the same direction.
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (1)
+ show textbox (118)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (119)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (120)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ #The boss now has to freak out.  Since this character talks REALLY hyper, it should move fast
+ #Therefore its speed as an NPC is set to 10.
+ #Also, we should have it move around a lot.  In this case, it circles around a well a bunch
+ #Before attacking the party.
+ wait (2)
+ walk NPC (10,up,1)
+ wait for NPC (10)
+ walk NPC (10,left,1)
+ wait for NPC (10)
+ walk NPC (10,down,2)
+ wait for NPC (10)
+ walk NPC (10,right,2)
+ wait for NPC (10)
+ walk NPC (10,up,2)
+ wait for NPC (10)
+ walk NPC (10,left,2)
+ wait for NPC (10)
+ walk NPC (10,down,2)
+ wait for NPC (10)
+ walk NPC (10,right,2)
+ wait for NPC (10)
+ walk NPC (10,up,2)
+ wait for NPC (10)
+ walk NPC (10,left,2)
+ wait for NPC (10)
+ walk NPC (10,down,2)
+ wait for NPC (10)
+ walk NPC (10,right,2)
+ wait for NPC (10)
+ walk NPC (10,up,2)
+ wait for NPC (10)
+ walk NPC (10,left,2)
+ wait for NPC (10)
+ walk NPC (10,down,2)
+ wait for NPC (10)
+ walk NPC (10,right,2)
+ wait for NPC (10)
+ walk NPC (10,up,2)
+ wait for NPC (10)
+ walk NPC (10,left,2)
+ wait for NPC (10)
+ walk NPC (10,down,2)
+ wait for NPC (10)
+ walk NPC (10,right,2)
+ wait for NPC (10)
+ walk NPC (10,up,2)
+ wait for NPC (10)
+ walk NPC (10,left,2)
+ wait for NPC (10)
+ walk NPC (10,down,2)
+ wait for NPC (10)
+ walk NPC (10,right,2)
+ wait for NPC (10)
+ walk NPC (10,up,2)
+ wait for NPC (10)
+ walk NPC (10,left,2)
+ wait for NPC (10)
+ walk NPC (10,down,2)
+ wait for NPC (10)
+ walk NPC (10,right,1)
+ wait for NPC (10)
+ show textbox (121)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (122)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ wait (3)
+ #You should always try to indicate to the player that something BIG is coming.
+ invert colors
+ #After the nifty color inverting takes place, we've got a battle to fight!  
+ fight formation (42)
+ #Tulzcha, the second boss, can be found in-game at formation 42, so we call that right now.
+ set tag (tag:Tulzcha, on)
+ #Since the boss isn't there, we have to make it vanish!  Set a tag to the NPC so it'll
+ #Vanish once the player beats it!
+ wait (3)
+ walk hero (1,down,1)
+ wait for hero (1)
+ walk hero (1,right,1)
+ set hero direction (me,right)
+ set hero direction (1,right)
+ set hero direction (2,right)
+ set hero direction (3,right)
+ show textbox (123)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (124)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (125)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (126)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (127)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+
+ wait (1)
+ tweak palette (20,-20,20)
+ fade screen in
+ wait (4)
+ set tag (tag:CTHULHU2, on)
+ wait (3)
+ set tag (tag:CTHULHU2, off)
+ wait (3)
+ set tag (tag:CTHULHU2, on)
+ wait (3)
+ set tag (tag:CTHULHU2, off)
+ wait (3)
+ set tag (tag:CTHULHU2, on)
+ wait (3)
+ set tag (tag:CTHULHU2, off)
+ wait (3)
+ set tag (tag:CTHULHU2, on)
+ wait (3)
+ reset palette
+ fade screen in
+ wait (3)
+ walk hero (3,left,1)
+ wait for hero (3)
+ 
+ wait (3)
+ set hero direction (me,down)
+ set hero direction (3,right)
+ set hero direction (2,left)
+ set hero direction (1,up)
+ wait (3)
+ show textbox (597)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ walk hero (me,down,1)
+ walk hero (3,right,1)
+ walk hero (2,left,1)
+ walk hero (1,up,1)
+ wait for hero (me)
+ set caterpillar mode (off)
+ resume caterpillar
+ wait (1)
+ resume player
+ resume random enemies
+ resume box advance
+end
+
+script,dagon,begin
+ suspend player
+ suspend box advance
+ suspend random enemies
+ walk hero (me,up,3)
+ wait for hero (me)
+ set caterpillar mode (on)
+ set hero position (1, 5, 55)
+ set hero position (2, 5, 55)
+ set hero position (3, 5, 55)
+ wait (1)
+ suspend caterpillar
+ walk hero (me,up,1)
+ walk hero (1,left,1)
+ walk hero (2, right,1)
+ wait for hero (me)
+ #Now, beacuse they've moved, we set the heroes on the side to all face the same direction.
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (1)
+ show textbox (186)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ set hero z (0, 5)
+ wait (2)
+ set hero z (0, 0)
+ wait (2)
+ set hero z (0, 5)
+ wait (2)
+ set hero z (0, 0)
+ wait (2)
+ show textbox (187)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (188)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ set hero z (0, 5)
+ wait (2)
+ set hero z (0, 0)
+ wait (2)
+ set hero z (0, 5)
+ wait (2)
+ set hero z (0, 0)
+ wait (2)
+ show textbox (189)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (190)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ set hero z (1, 5)
+ wait (2)
+ set hero z (1, 0)
+ wait (2)
+ set hero z (1, 5)
+ wait (2)
+ set hero z (1, 0)
+ wait (2)
+ show textbox (191)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (191)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (192)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ wait (3)
+ #You should always try to indicate to the player that something BIG is coming.
+ invert colors
+ #After the nifty color inverting takes place, we've got a battle to fight!  
+ fight formation (67)
+ #Dagon, the third boss, can be found in-game at formation 67, so we call that right now.
+ set tag (tag:Fight Dagon, on)
+ #Since the boss isn't there, we have to make it vanish!  Set a tag to the NPC so it'll
+ #Vanish once the player beats it!
+ show textbox (193)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ focus camera (5,51,4)
+ wait for camera
+
+
+ show textbox (194)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (195)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (196)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (197)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (198)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ wait (1)
+ tweak palette (20,-20,20)
+ fade screen in
+ wait (4)
+ set tag (tag:CTHULHU3, on)
+ wait (3)
+ set tag (tag:CTHULHU3, off)
+ wait (3)
+ set tag (tag:CTHULHU3, on)
+ wait (3)
+ set tag (tag:CTHULHU3, off)
+ wait (3)
+ set tag (tag:CTHULHU3, on)
+ wait (3)
+ set tag (tag:CTHULHU3, off)
+ wait (3)
+ set tag (tag:CTHULHU3, on)
+ wait (3)
+ reset palette
+ fade screen in
+ wait (3)
+
+
+ focus camera (5,54,4)
+ wait for camera
+ wait (3)
+ set hero direction (me,right)
+ walk hero (3,down,1)
+ set hero direction (3,up)
+ wait (3)
+ camera follows hero (me)
+ set hero direction (me,down)
+ set hero direction (1,right)
+ set hero direction (2,left)
+ set hero direction (3,up)
+ show textbox (199)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ walk hero (me,down,1)
+ walk hero (1,right,1)
+ walk hero (2,left,1)
+ walk hero (3,up,1)
+ wait for hero (me)
+ set caterpillar mode (off)
+ resume caterpillar
+ wait (1)
+ resume player
+ resume random enemies
+ resume box advance
+end
+
+script,cthulhu,begin
+ suspend player
+ suspend box advance
+ suspend random enemies
+ walk hero to y (me,72)
+ wait for hero (me)
+ walk hero to x (me,8)
+ wait for hero (me)
+ set hero direction (me,up)
+ set caterpillar mode (on)
+ set hero position (1, 8, 72)
+ set hero position (2, 8, 72)
+ set hero position (3, 8, 72)
+ wait (1)
+ suspend caterpillar
+ walk hero (me,up,1)
+ walk hero (1,left,1)
+ walk hero (2, right,1)
+ wait for hero (me)
+ #Now, beacuse they've moved, we set the heroes on the side to all face the same direction.
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (1)
+ show textbox (305)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (306)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (307)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (308)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ wait (3)
+ #You should always try to indicate to the player that something BIG is coming.
+ invert colors
+ #After the nifty color inverting takes place, we've got a battle to fight!  
+ fight formation (85)
+ show textbox (309)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (310)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (311)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ #Cthulhu threatens the party by approaching them
+ walk npc (11,down,1)
+ show textbox (312)
+ wait (7)
+ walk hero (me,down,1)
+ walk hero (1,down,1)
+ walk hero (2,down,1)
+ walk hero (3,down,1)
+ set hero direction (me,up)
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait for hero (me)
+ wait for key (usekey)
+ advance text box
+ show textbox (313)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (314)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (315)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ tweak palette (-20,-20,-20)
+ fade screen in
+ wait (7)
+ #You should always try to indicate to the player that something BIG is coming.
+ invert colors
+ #After the nifty color inverting takes place, we've got a battle to fight!  
+ fight formation (86)
+ show textbox (316)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (317)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (318)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ wait (1)
+ tweak palette (20,-20,20)
+ fade screen in
+ wait (4)
+ set tag (tag:defeat Cthulhu, on)
+ wait (3)
+ set tag (tag:defeat Cthulhu, off)
+ wait (3)
+ set tag (tag:defeat Cthulhu, on)
+ wait (3)
+ set tag (tag:defeat Cthulhu, off)
+ wait (3)
+ set tag (tag:defeat Cthulhu, on)
+ wait (3)
+ set tag (tag:defeat Cthulhu, off)
+ wait (3)
+ set tag (tag:defeat Cthulhu, on)
+ wait (3)
+ reset palette
+ fade screen in
+ wait (3)
+ set hero direction (me,right)
+ walk hero (3,down,1)
+ set hero direction (3,up)
+ wait (3)
+ camera follows hero (me)
+ set hero direction (me,down)
+ set hero direction (1,right)
+ set hero direction (2,left)
+ set hero direction (3,up)
+ show textbox (319)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ walk hero (me,down,1)
+ walk hero (1,right,1)
+ walk hero (2,left,1)
+ walk hero (3,up,1)
+ wait for hero (me)
+ set caterpillar mode (off)
+ resume caterpillar
+ wait (1)
+ resume player
+ resume random enemies
+ resume box advance
+end
+
+script,kyle,begin
+ suspend player
+ suspend box advance
+ suspend random enemies
+
+ walk hero to x (me,31)
+ wait for hero (me)
+ set hero direction (me,up)
+ set caterpillar mode (on)
+ set hero position (1, 31, 122)
+ set hero position (2, 31, 122)
+ set hero position (3, 31, 122)
+ wait (1)
+ suspend caterpillar
+ walk hero (me,up,1)
+ walk hero (1,left,1)
+ walk hero (2, right,1)
+ wait for hero (me)
+ #Now, beacuse they've moved, we set the heroes on the side to all face the same direction.
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (1)
+ show textbox (494)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (495)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (496)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (497)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (498)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ wait (4)
+ walk NPC (9,down,1)
+ walk hero (me,down,1)
+ walk hero (1,down,1)
+ walk hero (2,down,1)
+ walk hero (3,down,1)
+ set hero direction (me,up)
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait for hero (me)
+ wait (3)
+ show textbox (499)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (500)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (501)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (502)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ wait (4)
+ greyscale palette
+ fade screen in
+ wait (13)
+ #You should always try to indicate to the player that something BIG is coming.
+ invert colors
+ #After the nifty color inverting takes place, we've got a battle to fight!  
+ fight formation (104)
+ show textbox (505)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (506)
+ wait (7)
+ walk hero (me,up,1)
+ wait for key (usekey)
+ advance text box
+ show textbox (507)
+ wait (7)
+ walk hero (1,up,1)
+ wait for key (usekey)
+ advance text box
+ show textbox (508)
+ wait (7)
+ walk hero (2,up,1)
+ wait for key (usekey)
+ advance text box
+ show textbox (509)
+ wait (7)
+ walk hero (3,up,1)
+ wait for key (usekey)
+ advance text box
+ show textbox (510)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (511)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (512)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ wait (7)
+ fade screen out (63,63,63)
+ wait (5)
+ set caterpillar mode (off)
+ resume caterpillar
+ wait (1)
+ use door (63)
+ wait (7)
+ fade screen in
+ show textbox (513)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (514)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+
+ wait for hero (me)
+ set caterpillar mode (on)
+ set hero position (1, 12, 14)
+ set hero position (2, 12, 14)
+ set hero position (3, 12, 14)
+ wait (1)
+ suspend caterpillar
+ walk hero (me,up,1)
+ walk hero (1,left,1)
+ walk hero (2,right,1)
+ walk hero (3,down,1)
+ wait for hero (me) 
+ wait (3)
+ set hero direction (me,right)
+ set hero direction (1,down)
+ set hero direction (2,down)
+ set hero direction (3,right)
+ wait (3)
+ set hero direction (me,down)
+ set hero direction (1,right)
+ set hero direction (2,left)
+ set hero direction (3,up)
+ wait (3)
+ show textbox (515)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (516)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (517)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ walk hero (me,down,1)
+ walk hero (1,right,1)
+ walk hero (2,left,1)
+ walk hero (3,up,1)
+ wait for hero (me)
+ set caterpillar mode (off)
+ resume caterpillar
+ wait (1)
+ resume player
+ resume random enemies
+ resume box advance
+end
+
+script,azathoth,begin
+ suspend player
+ suspend box advance
+ suspend random enemies
+ walk hero to y (me,46)
+ wait for hero (me)
+ set hero direction (me,up)
+ set caterpillar mode (on)
+ set hero position (1, 33, 46)
+ set hero position (2, 33, 46)
+ set hero position (3, 33, 46)
+ wait (1)
+ suspend caterpillar
+ walk hero (me,up,1)
+ walk hero (1,left,1)
+ walk hero (2, right,1)
+ wait for hero (me)
+ #Now, beacuse they've moved, we set the heroes on the side to all face the same direction.
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (1)
+ show textbox (518)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ focus camera (33,44,2)
+ wait for camera
+ wait (12)
+ show textbox (519)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (520)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (521)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (522)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (523)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (524)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (525)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (526)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ #At this point, what we THINK is the villan gets scared and runs to the right.
+ #This is mostly for comedic effect, but the confrontation is yet to begin!
+ walk NPC (1,right,4)
+ wait for NPC (1)
+ set hero direction (me,right)
+ set hero direction (1,right)
+ set hero direction (2,right)
+ set hero direction (3,right)
+ wait (12)
+ walk NPC (1,down,8)
+ wait (4)
+ set tag (tag:Azathoth appears, on)
+ set hero direction (me,up)
+ set hero direction (1,up)
+ set hero direction (2,up)
+ set hero direction (3,up)
+ wait (5)
+ walk NPC (13,down,7)
+ wait (3)
+ walk NPC (9,down,7)
+ wait (3)
+ walk NPC (17,down,7)
+ wait (3)
+ walk NPC (5,down,7)
+ wait (3)
+ walk NPC (12,down,7)
+ wait (3)
+ walk NPC (21,down,7) 
+ wait (3)
+ walk NPC (8,down,7)
+ wait (3)
+ walk NPC (16,down,7)
+ wait (3)
+ walk NPC (4,down,7)
+ wait (3)
+ walk NPC (11,down,7)
+ wait (3)
+ walk NPC (20,down,7)
+ wait (3)
+ walk NPC (10,down,7)
+ wait (3)
+ walk NPC (15,down,7)
+ wait (3)
+ walk NPC (7,down,7)
+ wait (3)
+ walk NPC (19,down,7)
+ wait (3)
+ walk NPC (3,down,7)
+ wait (3)
+ walk NPC (6,down,7)
+ wait (3)
+ walk NPC (14,down,7)
+ wait (3)
+ walk NPC (2,down,7)
+ wait (3)
+ walk NPC (18,down,7)
+ wait for NPC (18)
+ wait (3)
+ set NPC direction (2,right)
+ set NPC direction (3,right)
+ set NPC direction (4,right)
+ set NPC direction (5,right)
+ set NPC direction (6,right)
+ set NPC direction (7,right)
+ set NPC direction (8,right)
+ set NPC direction (9,right)
+ set NPC direction (10,right)
+ set NPC direction (11,right)
+ set NPC direction (12,right)
+ set NPC direction (13,right)
+ set NPC direction (14,right)
+ set NPC direction (15,right)
+ set NPC direction (16,right)
+ set NPC direction (17,right)
+ set NPC direction (18,right)
+ set NPC direction (19,right)
+ set NPC direction (20,right)
+ set NPC direction (21,right) 
+ wait (3)
+ set NPC direction (2,up)
+ set NPC direction (3,up)
+ set NPC direction (4,up)
+ set NPC direction (5,up)
+ set NPC direction (6,up)
+ set NPC direction (7,up)
+ set NPC direction (8,up)
+ set NPC direction (9,up)
+ set NPC direction (10,up)
+ set NPC direction (11,up)
+ set NPC direction (12,up)
+ set NPC direction (13,up)
+ set NPC direction (14,up)
+ set NPC direction (15,up)
+ set NPC direction (16,up)
+ set NPC direction (17,up)
+ set NPC direction (18,up)
+ set NPC direction (19,up)
+ set NPC direction (20,up)
+ set NPC direction (21,up) 
+ wait (3)
+ show textbox (527)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (528)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (529)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (530)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (531)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (532)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (533)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (534)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ wait (4)
+ greyscale palette
+ fade screen in
+ wait (13)
+ #You should always try to indicate to the player that something BIG is coming.
+ invert colors
+ #After the nifty color inverting takes place, we've got a battle to fight!  
+ fight formation (68)
+
+ show textbox (535)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (536)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (537)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (538)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ fade screen out (63,63,63)
+ wait (20)
+ set caterpillar mode (off)
+ resume caterpillar
+ camera follows hero (me)
+ wait (5) 
+ 
+ use door (0)
+ show textbox (539)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (540)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (541)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show textbox (542)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ resume player
+ resume random enemies
+ resume box advance
+end
+
+
+script,credits,begin
+ suspend player
+ set hero speed (me,2)
+ use door (0)
+ walk hero (me,down,120)
+ wait for hero
+ wait (20)
+ gameover
+end

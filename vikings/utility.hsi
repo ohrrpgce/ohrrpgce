@@ -1,0 +1,281 @@
+#Commands in this File (10)
+
+# Copy Hero Spells (From hero, From List, To Hero, To List)
+# Add to Stat (Hero, Stat, Value, Add to Current)
+# Add Spell (Hero, List, Spell)
+# Hero Is Leader (Hero)
+# Run On Key Press (Key, Tag, Speed)
+# Do Hero Change (Hero, picture, palette)
+# Box Wait (Text Box)
+# Delete Spell (Hero, List, Spell)
+# Count Heroes
+# Count DownUp (Mins/Secs, Tag, Down/Up, Display Counter)
+# Percent (Number, Percent, Up/Down)
+# In Area (X Location, Y Location, To X, To Y)
+# In Area2 (X Location, Y Location, Tiles Right, Tiles Down)
+# Chance (Percent)
+# Invert Colors
+
+#--------------------------------------------------------------------------------------------------------------------------
+
+define script (autonumber, Copy Hero Spells,4,0,0,0,0)
+define script (autonumber, Add To Stat,4,0,0,0,true)
+define script (autonumber, Add Spell, 3, 0, 0, 0)
+define script (autonumber, Hero Is Leader, 1, 0)
+define script (autonumber, Run On Key Press, 3, 0, 0, 10)
+define script (autonumber, Do Hero Change, 4, me, 0, 0, false)
+define script (autonumber, Box Wait, 1, 0)
+define script (autonumber, Delete Spell, 3, 0, 0, 0)
+define script (autonumber, Count Heroes, none)
+define script (autonumber, Count DownUp, 4, 0, 0, up, false)
+define script (autonumber, Percent, 3, 0, 0, Up)
+define script (autonumber, In Area, 4, 0, 0, 0, 0)
+define script (autonumber, In Area2, 4, 0, 0, 0, 0)
+define script (autonumber, Chance, 1, 100)
+define script (autonumber, Invert Colors, none)
+
+#--------------------------------------------------------------------------------------------------------------------------
+
+script, Copy Hero Spells, from hero, from list, to hero, to list, begin
+variable (slot)
+variable (spell)
+for (slot, 0, 23, 1) do (
+	spell := read spell (from hero, from list, slot)
+	if (spell >= 0) then (
+		write spell (to hero, to list, slot, spell)
+	)
+)
+end
+
+#--------------------------------------------------------------------------------------------------------------------------
+
+script, Add To Stat, hero, stat, amount, add to current, begin
+set hero stat (hero, stat, get hero stat (hero, stat, maximum stat) + amount, maximum stat)
+
+if (add to current) then (
+	set hero stat (hero, stat, get hero stat (hero, stat, current stat) + amount, current stat)
+)
+end
+
+#--------------------------------------------------------------------------------------------------------------------------
+
+script, Add Spell, Hero, List, Spell, begin
+variable (slot)
+variable (check)
+check := 1
+
+if (knows spell (hero, Spell) == false) then (
+
+	while (check >> 0) do (
+		check := read spell (hero, list, slot)
+		if (check == 0) then (
+			write spell (hero, list, slot, spell)
+		)
+		slot += 1
+	)
+)
+end
+
+#--------------------------------------------------------------------------------------------------------------------------
+
+script, Hero Is Leader, Hero, begin
+swap by position (0, find hero (hero))
+end
+
+#--------------------------------------------------------------------------------------------------------------------------
+
+script, Run On Key Press, Key, Tag, Speed, begin
+if (hero is walking (me) == false) then (
+	if (key is pressed(Key) == true && check tag (Tag) == false) then (
+		set hero speed (me, Speed)
+		set tag (Tag, True)
+	)
+	if (key is pressed(Key) == false && check tag (Tag) == True) then (
+		set hero speed (me, 4)
+		set tag (Tag, False)
+	)
+) else (
+	if (key is pressed (Key) && check tag (Tag)) then (
+		wait for hero (me)
+		set hero speed (me, Speed)
+		set tag (Tag, True)
+	)
+)
+end
+
+#--------------------------------------------------------------------------------------------------------------------------
+
+script, Do Hero Change, who, picture, palette, outside inside, begin
+if (outside inside == outside battle) then (
+	set hero picture (who, picture, outside battle)
+	set hero palette (who, palette, outside battle)
+) else (
+	set hero picture (who, picture, inside battle)
+	set hero palette (who, palette, inside battle)
+)
+	
+end
+
+#--------------------------------------------------------------------------------------------------------------------------
+
+script, Box Wait, Box, begin
+show text box (Box)
+wait for text box
+end
+
+#--------------------------------------------------------------------------------------------------------------------------
+
+script, Delete Spell, Hero, List, Spell, begin
+variable (slot)
+variable (check)
+check := 1
+
+if (knows spell (hero, Spell)) then (
+
+	while (slot <= 23) do (
+		check := read spell (hero, list, slot)
+		if (check == spell) then (
+			write spell (hero, list, slot, none)
+		)
+		slot += 1
+	)
+)
+end
+
+#--------------------------------------------------------------------------------------------------------------------------
+
+script, Count Heroes, begin
+variable (amount_hero)
+variable (rank)
+while (rank << 48) do (
+	if (hero by slot (rank) <> -1) then (
+		amount_hero += 1
+	)
+	rank += 1
+)
+return (amount_hero)
+end
+
+#--------------------------------------------------------------------------------------------------------------------------
+
+script, Count DownUp, Counter, SomeTag, UpDown, ShowNum, begin
+variable (minute)
+variable (second)
+
+if (UpDown == 0) then (
+
+	show value (minute+second)
+
+	while ((minute+second) <> Counter && check tag (SomeTag) == off) do (
+		wait (17)
+		second += 1
+		if (second == 60) then (
+			minute += 100
+			second := 0
+		)
+		if (ShowNum) then (
+			show value (minute+second)
+		)
+	)
+
+) else (
+	second := Counter, mod, 100
+
+	if (second >> 59) then (
+		second := 59
+	)
+
+	minute := Counter -- second
+
+	show value (minute+second)
+
+	while ((minute+second) >> 0 && check tag (SomeTag) == off) do (
+		wait (17)
+		second -= 1
+	
+		if (minute <> 0 && second << 0) then (
+			minute -= 100
+			second := 59
+		)
+		if (ShowNum) then (
+			show value (minute+second)
+		)
+
+	)
+
+)
+show no value
+if (check tag (SomeTag)) then (
+	return (false)
+) else (
+	return (true)
+)
+end
+
+#---------------------------------------------------------------------------------------------------------------------------
+
+script, Percent, UpDown, Number, Percentc, begin
+variable (result)
+
+if (UpDown == Up) then (
+	result := Number + Number*Percentc/100
+) else (
+	result := Number -- Number*Percentc/100
+)
+
+return (result)
+end
+
+#---------------------------------------------------------------------------------------------------------------------------
+
+script, In Area, Locationx, Locationy, ToX, ToY, begin
+variable (hx)
+variable (hy)
+
+hx := herox (me)
+hy := heroy (me)
+
+return ( (hx >= LocationX) && (hx <= ToX) && (hy >= Locationy) && (hy <= ToY) )
+end
+
+#---------------------------------------------------------------------------------------------------------------------------
+
+script, In Area2, Locationx, Locationy, Rightx, Downy, begin
+variable (hx)
+variable (hy)
+variable (ToX)
+variable (ToY)
+
+ToX := Locationx + Rightx
+ToX := Locationy + Downy
+
+hx := herox (me)
+hy := heroy (me)
+return ( (hx >= LocationX) && (hx <= ToX) && (hy >= Locationy) && (hy <= ToY) )
+end
+
+#---------------------------------------------------------------------------------------------------------------------------
+
+script, Chance, CPercent, begin
+return ( random (0, 100) <= CPercent )
+end
+
+#---------------------------------------------------------------------------------------------------------------------------
+
+script, Invert Colors, begin
+#This next script was originally done by Mad Cacti.
+#It fades all the colors to their inverses, then snaps them back to normal
+variable (var1) 
+variable (var2)
+# for each of the 256 colors...
+for (var1,0,255,1) do (
+	# and for each of the (red=0,green=1,blue=2) components of that color...
+	for (var2,0,2,1) do (
+		# invert it
+		write color (var1, var2, 63 -- read color (var1, var2))
+	)
+)
+fade screen in 
+wait (1)
+reset palette
+end
