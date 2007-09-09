@@ -76,7 +76,10 @@ cp -pr import/* tmp/import
 
 echo "  Including docs"
 mkdir tmp/docs
-cp -p docs/* tmp/docs
+cp -p docs/*.html tmp/docs
+cp -p docs/plotdict.xml tmp/docs
+cp -p docs/htmlplot.xsl tmp/docs
+cp -p docs/more-docs.txt tmp/docs
 
 echo "tarring and bzip2ing distribution"
 mv tmp ohrrpgce
