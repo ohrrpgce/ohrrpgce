@@ -102,7 +102,12 @@ support\cp scancode.hsi tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
 mkdir tmpdist\docs
-support\cp docs\* tmpdist\docs
+support\cp docs\FAQ.URL tmpdist\docs
+support\cp docs\HOWTO.URL tmpdist\docs
+support\cp docs\*.html tmpdist\docs
+support\cp docs\plotdict.xml tmpdist\docs
+support\cp docs\htmlplot.xsl tmpdist\docs
+support\cp docs\more-docs.txt tmpdist\docs
 mkdir tmpdist\support
 support\cp support\madplay.exe tmpdist\support
 support\cp support\LICENSE-madplay.txt tmpdist\support
