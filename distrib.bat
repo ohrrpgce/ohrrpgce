@@ -70,9 +70,17 @@ support\cp README-custom.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
-support\cp support\madplay+oggenc.URL tmpdist
+mkdir tmpdist\support
+support\cp support\LICENSE-madplay.txt tmpdist\support
+support\cp support\LICENSE-oggenc.txt tmpdist\support
+support\cp support\madplay.exe tmpdist\support
+support\cp support\oggenc.exe tmpdist\support
 mkdir tmpdist\docs
 support\cp docs\*.URL tmpdist\docs
+
+IF NOT EXIST support\upx.exe GOTO NOUPX
+support\upx --brute tmpdist\game.exe tmpdist\custom.exe tmpdist\SDL.dll tmpdist\SDL_mixer.dll
+:NOUPX
 
 cd tmpdist
 ..\support\zip -9 -q -r ..\distrib\ohrrpgce-floppy.zip *.*
@@ -80,6 +88,7 @@ cd ..
 
 del tmpdist\*.???
 RMDIR /s /q tmpdist\docs
+RMDIR /s /q tmpdist\support
 cd tmpdist
 ..\support\unzip -q ..\distrib\ohrrpgce-floppy.zip game.exe
 cd ..
