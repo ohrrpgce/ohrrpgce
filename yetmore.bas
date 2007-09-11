@@ -86,6 +86,7 @@ DECLARE FUNCTION localvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION mathvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION backcompat_sound_id (id AS INTEGER)
 DECLARE SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, stat())
+DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -271,10 +272,11 @@ SELECT CASE AS CONST id
  CASE 64'--get hero stat
   scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(2), 0, 1), bound(retvals(1), 0, 13))
  CASE 66'--add hero
-  IF retvals(0) >= 0 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxHero) THEN
    FOR i = 37 TO 0 STEP -1
     IF hero(i) = 0 THEN slot = i
    NEXT i
+   'retvals(0) is the real hero id, addhero removes the 1 again
    addhero retvals(0) + 1, slot, stat()
    vishero stat()
   END IF
@@ -859,12 +861,14 @@ SELECT CASE AS CONST id
 
  CASE 135'--puthero
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   cropposition retvals(1), retvals(2), 20
    catx(retvals(0) * 5) = retvals(1)
    caty(retvals(0) * 5) = retvals(2)
   END IF
  CASE 136'--putnpc
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
+   cropposition retvals(1), retvals(2), 20
    npc(npcref).x = retvals(1)
    npc(npcref).y = retvals(2)
   END IF
@@ -915,10 +919,10 @@ SELECT CASE AS CONST id
    IF mouse(2) AND 2 ^ retvals(0) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 163'--put mouse
-  movemouse retvals(0), retvals(1)
+  movemouse bound(retvals(0), 0, 319), bound(retvals(1), 0, 199)
   readmouse mouse()
  CASE 164'--mouse region
-  mouserect retvals(0), retvals(1), retvals(2), retvals(3)
+  mouserect bound(retvals(0), 0, 319), bound(retvals(1), 0, 319), bound(retvals(2), 0, 199), bound(retvals(3), 0, 199)
   readmouse mouse()
  CASE 178'--readgmap
   IF retvals(0) >= 0 AND retvals(0) <= 19 THEN
@@ -1025,16 +1029,16 @@ SELECT CASE AS CONST id
  CASE 12'--check tag
   scriptret = ABS(istag(retvals(0), 0))
  CASE 13'--set tag
-  IF retvals(0) > 1 THEN
+  IF retvals(0) > 1 AND retvals(0) < 2000 THEN  'there are actually 2048 tags
    setbit tag(), 0, retvals(0), retvals(1)
    npcplot
   END IF
  CASE 17'--get item
-  IF retvals(1) >= 1 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= 254 AND retvals(1) >= 1 THEN
    getitem retvals(0) + 1, retvals(1)
   END IF
  CASE 18'--delete item
-  IF retvals(1) >= 1 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= 254 AND retvals(1) >= 1 THEN
    delitem retvals(0) + 1, retvals(1)
   END IF
  CASE 19'--leader
@@ -1065,7 +1069,9 @@ SELECT CASE AS CONST id
  CASE 29'--stop song
   stopsong
  CASE 30'--keyval
-  scriptret = keyval(retvals(0))
+  IF retvals(0) >= 0 AND retvals(0) < 256 THEN
+   scriptret = keyval(retvals(0))
+  END IF
  CASE 31'--rank in caterpillar
   scriptret = rankincaterpillar(retvals(0))
  CASE 38'--camera follows hero
@@ -1116,7 +1122,7 @@ SELECT CASE AS CONST id
    GOSUB setwaitstate
   END IF
  CASE 60'--equip where
-  loaditemdata buffer(), bound(retvals(1), 0, 255)
+  loaditemdata buffer(), bound(retvals(1), 0, 254)
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    i = hero(retvals(0)) - 1
@@ -1160,6 +1166,7 @@ SELECT CASE AS CONST id
   setbit gen(), 44, suspendboxadvance, 0
  CASE 87'--set hero position
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  cropposition retvals(1), retvals(2), 1
    FOR i = 0 TO 4
     catx(small(retvals(0) * 5 + i, 15)) = retvals(1) * 20
     caty(small(retvals(0) * 5 + i, 15)) = retvals(2) * 20
@@ -1305,19 +1312,21 @@ SELECT CASE AS CONST id
    IF checksaveslot(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 172'--importglobals
-  IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 THEN
+  IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
    IF retvals(1) = -1 THEN 'importglobals(slot)
     retvals(1) = 0
     retvals(2) = 1024
    END IF
-   IF retvals(2) = -1 THEN 'importglobals(slot,id)
-    remval = global(retvals(1))
-    loadglobalvars retvals(0) - 1, retvals(1), retvals(1)
-    scriptret = global(retvals(1))
-    global(retvals(1)) = remval
-   ELSE                    'importglobals(slot,first,last)
-    IF retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
-     loadglobalvars retvals(0) - 1, retvals(1), retvals(2)
+   IF retvals(1) >= 0 AND retvals(1) <= 1024 THEN
+    IF retvals(2) = -1 THEN 'importglobals(slot,id)
+     remval = global(retvals(1))
+     loadglobalvars retvals(0) - 1, retvals(1), retvals(1)
+     scriptret = global(retvals(1))
+     global(retvals(1)) = remval
+    ELSE                    'importglobals(slot,first,last)
+     IF retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
+      loadglobalvars retvals(0) - 1, retvals(1), retvals(2)
+     END IF
     END IF
    END IF
   END IF
@@ -1768,10 +1777,10 @@ SELECT CASE AS CONST id
      npc(npcref).ygo = retvals(2) * 20
     CASE 1'--east
      npc(npcref).dir = 1
-     npc(npcref).xgo = (retvals(2) * 20) * -1
+     npc(npcref).xgo = retvals(2) * -20
     CASE 2'--south
      npc(npcref).dir = 2
-     npc(npcref).ygo = (retvals(2) * 20) * -1
+     npc(npcref).ygo = retvals(2) * -20
     CASE 3'--west
      npc(npcref).dir = 3
      npc(npcref).xgo = retvals(2) * 20
@@ -1783,6 +1792,7 @@ SELECT CASE AS CONST id
  CASE 88'--set NPC position
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
+   cropposition retvals(1), retvals(2), 1
    npc(npcref).x = retvals(1) * 20
    npc(npcref).y = retvals(2) * 20
   END IF
@@ -1851,6 +1861,7 @@ SELECT CASE AS CONST id
    FOR i = 299 TO 0 STEP -1
     IF npc(i).id <= 0 THEN
      npc(i).id = retvals(0) + 1
+     cropposition retvals(1), retvals(2), 1
      npc(i).x = retvals(1) * 20
      npc(i).y = retvals(2) * 20
      npc(i).dir = ABS(retvals(3)) MOD 4
@@ -2588,6 +2599,17 @@ END IF
 
 END SUB
 
+SUB cropposition (BYREF x, BYREF y, unitsize)
+
+IF gmap(5) = 1 THEN
+ wrapxy x, y, scroll(0) * unitsize, scroll(1) * unitsize
+ELSE
+ x = bound(x, 0, (scroll(0) - 1) * unitsize)
+ y = bound(y, 0, (scroll(1) - 1) * unitsize)
+END IF
+
+END SUB
+
 FUNCTION wrappass (x, y, xgo, ygo, isveh)
 ' returns true if blocked by terrain
 DIM pd(3)
@@ -2657,10 +2679,8 @@ END SUB
 
 SUB wrapxy (x, y, wide, high)
 '--wraps the given X and Y values within the bounds of width and height
-IF x < 0 THEN x = wide + x
-IF x >= wide THEN x = x - wide
-IF y < 0 THEN y = high + y
-IF y >= high THEN y = y - high
+x = ((x MOD wide) + wide) MOD wide  'negative modulo is the devil's creation and never helped me once
+y = ((y MOD high) + high) MOD high
 END SUB
 
 SUB readstackcommand (state as ScriptInst, i)
