@@ -86,6 +86,7 @@ DECLARE FUNCTION localvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION mathvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION backcompat_sound_id (id AS INTEGER)
 DECLARE SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, stat())
+DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -271,10 +272,11 @@ SELECT CASE AS CONST id
  CASE 64'--get hero stat
   scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(2), 0, 1), bound(retvals(1), 0, 13))
  CASE 66'--add hero
-  IF retvals(0) >= 0 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxHero) THEN
    FOR i = 37 TO 0 STEP -1
     IF hero(i) = 0 THEN slot = i
    NEXT i
+   'retvals(0) is the real hero id, addhero removes the 1 again
    addhero retvals(0) + 1, slot, stat()
    vishero stat()
   END IF
@@ -859,12 +861,14 @@ SELECT CASE AS CONST id
 
  CASE 135'--puthero
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   cropposition retvals(1), retvals(2), 20
    catx(retvals(0) * 5) = retvals(1)
    caty(retvals(0) * 5) = retvals(2)
   END IF
  CASE 136'--putnpc
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
+   cropposition retvals(1), retvals(2), 20
    npc(npcref).x = retvals(1)
    npc(npcref).y = retvals(2)
   END IF
@@ -1162,6 +1166,7 @@ SELECT CASE AS CONST id
   setbit gen(), 44, suspendboxadvance, 0
  CASE 87'--set hero position
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  cropposition retvals(1), retvals(2), 1
    FOR i = 0 TO 4
     catx(small(retvals(0) * 5 + i, 15)) = retvals(1) * 20
     caty(small(retvals(0) * 5 + i, 15)) = retvals(2) * 20
@@ -1787,6 +1792,7 @@ SELECT CASE AS CONST id
  CASE 88'--set NPC position
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
+   cropposition retvals(1), retvals(2), 1
    npc(npcref).x = retvals(1) * 20
    npc(npcref).y = retvals(2) * 20
   END IF
@@ -1855,6 +1861,7 @@ SELECT CASE AS CONST id
    FOR i = 299 TO 0 STEP -1
     IF npc(i).id <= 0 THEN
      npc(i).id = retvals(0) + 1
+     cropposition retvals(1), retvals(2), 1
      npc(i).x = retvals(1) * 20
      npc(i).y = retvals(2) * 20
      npc(i).dir = ABS(retvals(3)) MOD 4
@@ -2592,6 +2599,17 @@ END IF
 
 END SUB
 
+SUB cropposition (BYREF x, BYREF y, unitsize)
+
+IF gmap(5) = 1 THEN
+ wrapxy x, y, scroll(0) * unitsize, scroll(1) * unitsize
+ELSE
+ x = bound(x, 0, (scroll(0) - 1) * unitsize)
+ y = bound(y, 0, (scroll(1) - 1) * unitsize)
+END IF
+
+END SUB
+
 FUNCTION wrappass (x, y, xgo, ygo, isveh)
 ' returns true if blocked by terrain
 DIM pd(3)
@@ -2661,10 +2679,8 @@ END SUB
 
 SUB wrapxy (x, y, wide, high)
 '--wraps the given X and Y values within the bounds of width and height
-IF x < 0 THEN x = wide + x
-IF x >= wide THEN x = x - wide
-IF y < 0 THEN y = high + y
-IF y >= high THEN y = y - high
+x = ((x MOD wide) + wide) MOD wide  'negative modulo is the devil's creation and never helped me once
+y = ((y MOD high) + high) MOD high
 END SUB
 
 SUB readstackcommand (state as ScriptInst, i)
