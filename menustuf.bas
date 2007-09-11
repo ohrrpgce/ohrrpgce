@@ -757,7 +757,7 @@ FOR i = 0 TO inventoryMax
   IF numitems = 0 THEN EXIT SUB
  END IF
 NEXT
-getit = 0
+getit = 0 ' this looks dangerous to me
 END SUB
 
 FUNCTION getOOBtarg (gamma, wptr, index, stat(), ondead(), onlive())

@@ -2069,7 +2069,7 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     scrat(nowscript).waitarg = 0
     scrat(nowscript).state = stwait
    CASE 16'--fight formation
-    IF retvals(0) <= gen(37) THEN
+    IF retvals(0) >= 0 AND retvals(0) <= gen(37) THEN
      wantbattle = retvals(0) + 1
      scrat(nowscript).waitarg = 0
      scrat(nowscript).state = stwait
@@ -2105,7 +2105,7 @@ SELECT CASE AS CONST scrat(nowscript).curkind
      scrat(nowscript).state = stwait
     END IF
    CASE 37'--use shop
-    IF retvals(0) >= 0 THEN
+    IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxShop) THEN
      shop retvals(0), needf, stock(), stat(), map, foep, tastuf()
      reloadnpc stat()
      loadpage game$ + ".til", gmap(0), 3
@@ -2137,14 +2137,16 @@ SELECT CASE AS CONST scrat(nowscript).curkind
      END IF
     END IF
    CASE 61'--teleport to map
-    map = bound(retvals(0), 0, gen(0))
-    FOR i = 0 TO 3
-     catx(i) = retvals(1) * 20
-     caty(i) = retvals(2) * 20
-    NEXT i
-    wantteleport = 1
-    scrat(nowscript).waitarg = 0
-    scrat(nowscript).state = stwait
+    IF retvals(0) >= 0 AND retvals(0) <= gen(0) THEN
+     map = retvals(0)
+     FOR i = 0 TO 3
+      catx(i) = bound(retvals(1), 0, scroll(0) - 1) * 20
+      caty(i) = bound(retvals(2), 0, scroll(1) - 1) * 20
+     NEXT i
+     wantteleport = 1
+     scrat(nowscript).waitarg = 0
+     scrat(nowscript).state = stwait
+    END IF
    CASE 63, 169'--resume random enemies
     setbit gen(), 44, suspendrandomenemies, 0
     foep = range(100, 60)
@@ -2155,14 +2157,19 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     scriptout$ = STR$(retvals(0))
    CASE 78'--alter NPC
     IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
-     IF retvals(0) < 0 THEN retvals(0) = (npc(abs(retvals(0) + 1)).id - 1)
+     IF retvals(0) < 0 AND retvals(0) >= -300 THEN retvals(0) = (npc(abs(retvals(0) + 1)).id - 1)
      IF retvals(0) >= 0 AND retvals(0) <= npcdMax THEN
-      SetNPCD(npcs(retvals(0)), retvals(1), retvals(2))
+      writesafe = 1
       IF retvals(1) = 0 THEN
-       setpicstuf buffer(), 1600, 2
-       loadset game$ + ".pt4", retvals(2), 20 + (5 * retvals(0))
+       IF retvals(2) < 0 OR retvals(2) > gen(genMaxNPCPic) THEN
+        writesafe = 0
+       ELSE
+        setpicstuf buffer(), 1600, 2
+        loadset game$ + ".pt4", retvals(2), 20 + (5 * retvals(0))
+       END IF
       END IF
       IF retvals(1) = 1 THEN getpal16 pal16(), 4 + retvals(0), retvals(2), 4, npcs(retvals(0)).picture
+      IF writesafe THEN SetNPCD(npcs(retvals(0)), retvals(1), retvals(2))
      END IF
     END IF
    CASE 79'--show no value
@@ -2186,18 +2193,18 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     setmapdata scroll(), pass(), 0, 0
     setpassblock bound(retvals(0), 0, pass(0)-1), bound(retvals(1), 0, pass(1)-1), bound(retvals(2), 0, 255)
    CASE 144'--load tileset
-    IF retvals(0) >= 0 THEN
-     o = retvals(0)
-    ELSE
-     o = gmap(0)
+    IF retvals(0) <= gen(genMaxTile) THEN
+     IF retvals(0) < 0 THEN
+      retvals(0) = gmap(0)
+     END IF
+     loadpage game$ + ".til", retvals(0), 3
+     loadtanim retvals(0), tastuf()
+     FOR i = 0 TO 1
+      cycle(i) = 0
+      cycptr(i) = 0
+      cycskip(i) = 0
+     NEXT i
     END IF
-    loadpage game$ + ".til", o, 3
-    loadtanim o, tastuf()
-    FOR i = 0 TO 1
-     cycle(i) = 0
-     cycptr(i) = 0
-     cycskip(i) = 0
-    NEXT i
    CASE 151'--show mini map
     minimap catx(0), caty(0), tastuf()
    CASE 153'--items menu

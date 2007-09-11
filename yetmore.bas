@@ -915,10 +915,10 @@ SELECT CASE AS CONST id
    IF mouse(2) AND 2 ^ retvals(0) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 163'--put mouse
-  movemouse retvals(0), retvals(1)
+  movemouse bound(retvals(0), 0, 319), bound(retvals(1), 0, 199)
   readmouse mouse()
  CASE 164'--mouse region
-  mouserect retvals(0), retvals(1), retvals(2), retvals(3)
+  mouserect bound(retvals(0), 0, 319), bound(retvals(1), 0, 319), bound(retvals(2), 0, 199), bound(retvals(3), 0, 199)
   readmouse mouse()
  CASE 178'--readgmap
   IF retvals(0) >= 0 AND retvals(0) <= 19 THEN
@@ -1025,16 +1025,16 @@ SELECT CASE AS CONST id
  CASE 12'--check tag
   scriptret = ABS(istag(retvals(0), 0))
  CASE 13'--set tag
-  IF retvals(0) > 1 THEN
+  IF retvals(0) > 1 AND retvals(0) < 2000 THEN  'there are actually 2048 tags
    setbit tag(), 0, retvals(0), retvals(1)
    npcplot
   END IF
  CASE 17'--get item
-  IF retvals(1) >= 1 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= 254 AND retvals(1) >= 1 THEN
    getitem retvals(0) + 1, retvals(1)
   END IF
  CASE 18'--delete item
-  IF retvals(1) >= 1 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= 254 AND retvals(1) >= 1 THEN
    delitem retvals(0) + 1, retvals(1)
   END IF
  CASE 19'--leader
@@ -1065,7 +1065,9 @@ SELECT CASE AS CONST id
  CASE 29'--stop song
   stopsong
  CASE 30'--keyval
-  scriptret = keyval(retvals(0))
+  IF retvals(0) >= 0 AND retvals(0) < 256 THEN
+   scriptret = keyval(retvals(0))
+  END IF
  CASE 31'--rank in caterpillar
   scriptret = rankincaterpillar(retvals(0))
  CASE 38'--camera follows hero
@@ -1116,7 +1118,7 @@ SELECT CASE AS CONST id
    GOSUB setwaitstate
   END IF
  CASE 60'--equip where
-  loaditemdata buffer(), bound(retvals(1), 0, 255)
+  loaditemdata buffer(), bound(retvals(1), 0, 254)
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    i = hero(retvals(0)) - 1
@@ -1768,10 +1770,10 @@ SELECT CASE AS CONST id
      npc(npcref).ygo = retvals(2) * 20
     CASE 1'--east
      npc(npcref).dir = 1
-     npc(npcref).xgo = (retvals(2) * 20) * -1
+     npc(npcref).xgo = retvals(2) * -20
     CASE 2'--south
      npc(npcref).dir = 2
-     npc(npcref).ygo = (retvals(2) * 20) * -1
+     npc(npcref).ygo = retvals(2) * -20
     CASE 3'--west
      npc(npcref).dir = 3
      npc(npcref).xgo = retvals(2) * 20
