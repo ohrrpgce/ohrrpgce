@@ -1394,7 +1394,7 @@ IF is_enemy(deadguy) THEN
  isenemy = 1
  enemynum = deadguy - 4
  formslotused = formdata((deadguy - 4) * 4)
- IF stat(deadguy, 0, 0) > 0 AND bslot(deadguy).enemy_untargetable <> 0 THEN deadguycount = deadguycount + 1
+ IF stat(deadguy, 0, 0) > 0 AND bslot(deadguy).hero_untargetable <> 0 THEN deadguycount = deadguycount + 1
 ELSE
  isenemy = 0
  enemynum = -1
