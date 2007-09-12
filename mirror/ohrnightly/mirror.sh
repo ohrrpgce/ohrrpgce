@@ -2,16 +2,25 @@
 
 URL="http://HamsterRepublic.com/ohrrpgce/nightly/"
 WEBDIR="/var/www/nightly-archive"
+
+function followlink () {
+  LINK=`readlink "${1}"`
+  if [ -z "${LINK}" ] ; then
+    echo "${1}"
+  else
+    followlink "${LINK}"
+  fi
+}
+
 NOW=`date "+%Y-%m-%d"`
 
 echo "Mirroring ${URL} on ${NOW}"
 
+cd "${WEBDIR}"
 if [ -d "${NOW}" ] ; then
   echo "Oops! we have already mirrored today."
   exit 1
 fi
-
-cd "${WEBDIR}"
 mkdir "${NOW}"
 cd "${NOW}"
 
@@ -50,9 +59,15 @@ for i in *.zip ; do
   if [ "${DIF}" ] ; then
     echo "${i} (Updated)"
   else
-    echo "${i} (Not changed)"
-    rm "${i}"
-    ln -s "${OLD}" "${i}"
+    printf "${i}"
+    LINK=`followlink "${OLD}"`
+    if [ -f "${LINK}" ] ; then
+      rm "${i}"
+      ln -s "${LINK}" "${i}"
+      echo " (${LINK})"
+    else
+      echo " (unable to symlink)"
+    fi
   fi
 done
 
