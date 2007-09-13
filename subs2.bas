@@ -190,7 +190,7 @@ setvispage 0
 
 fh = FREEFILE
 OPEN outf$ FOR OUTPUT AS #fh
-PRINT #fh, "# HamsterSpeak constant definitions for " + RIGHT$(game$, LEN(game$) - 12)
+PRINT #fh, "# HamsterSpeak constant definitions for " & trimpath$(gamefile$)
 PRINT #fh, ""
 PRINT #fh, "define constant, begin"
 
