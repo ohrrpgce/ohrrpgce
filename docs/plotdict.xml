@@ -890,7 +890,7 @@ end</example>
 		<command id="checkequipment">
 			<cannon>check equipment (hero,slot)</cannon>
 			<shortname>check equipment</shortname>
-			<description>eturns the number of the item that the specified hero has equipped in the specified slot, or -1 if there is nothing equipped there. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the slot to unequip. Use the number 1-5 or the names slot:weapon, slot:armor, etc.</description>
+			<description>Returns the number of the item that the specified hero has equipped in the specified slot, or -1 if there is nothing equipped there. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the slot to check. Use the number 1-5 or the names slot:weapon, slot:armor, etc.</description>
 		</command>
 		<command id="getdefaultweapon">
 			<cannon>get default weapon (hero)</cannon>
