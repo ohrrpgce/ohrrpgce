@@ -880,12 +880,6 @@ IF atk(5) <> 4 THEN
   stat(w, 0, targstat) = small(stat(w, 0, targstat), large(stat(w, 1, targstat), rematkrstat))
  END IF
 
- 'stat cap ' do we want to cap spells...?
-'  IF gen(genStatCap + targstat) > 0 THEN
-'   IF stat(t, 0, targstat) > gen(genStatCap + targstat) THEN stat(t, 0, targstat) = gen(genStatCap + targstat)
-'   IF stat(t, 1, targstat) > gen(genStatCap + targstat) THEN stat(t, 1, targstat) = gen(genStatCap + targstat)
-'  END IF
-
  'set damage display
  IF readbit(atk(), 20, 56) = 0 THEN
   harm$(t) = STR$(ABS(h))
@@ -1203,7 +1197,7 @@ IF exstat(i, 1, 12) THEN
   END IF
 
   'do stat caps
-  IF gen(genStatCap + o) > 0 THEN exstat(i, 0, o) = small(exstat(i, 0, o),gen(genStatCap + o))
+  IF gen(genStatCap + o) > 0 THEN exstat(i, 1, o) = small(exstat(i, 1, o),gen(genStatCap + o))
  NEXT o
 
  'stat restoration
