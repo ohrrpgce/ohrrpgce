@@ -2140,8 +2140,8 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     IF retvals(0) >= 0 AND retvals(0) <= gen(0) THEN
      map = retvals(0)
      FOR i = 0 TO 3
-      catx(i) = bound(retvals(1), 0, scroll(0) - 1) * 20
-      caty(i) = bound(retvals(2), 0, scroll(1) - 1) * 20
+      catx(i) = retvals(1) * 20
+      caty(i) = retvals(2) * 20
      NEXT i
      wantteleport = 1
      scrat(nowscript).waitarg = 0
