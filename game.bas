@@ -158,6 +158,7 @@ DECLARE SUB resetinterpreter ()
 DECLARE SUB killallscripts ()
 DECLARE SUB reloadscript (index, updatestats = -1)
 DECLARE FUNCTION count_sav(filename AS STRING) AS INTEGER
+DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -1478,6 +1479,9 @@ ELSE
  loadmap_tilemap map
  loadmap_passmap map
 END IF
+
+'--as soon as we know the dimentions of the map, enforce hero position boundaries
+cropposition catx(0), caty(0), 20
 
 IF afterbat = 0 THEN
  showmapname = gmap(4)
