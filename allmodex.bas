@@ -2103,6 +2103,7 @@ FUNCTION isdir (sDir$) as integer
 #IFDEF __FB_LINUX__
 	'Special hack for broken Linux dir$() behavior
 	isdir = 0
+	sDir$ = escape_string(sDir$, """`\$")
 	SHELL "if [ -d """ + sDir$ + """ ] ; then echo dir ; fi > isdirhack.tmp"
 	DIM AS INTEGER fh
 	fh = FREEFILE

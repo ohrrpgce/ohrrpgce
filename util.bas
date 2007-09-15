@@ -112,3 +112,18 @@ FOR i = 1 TO LEN(s$)
 NEXT i
 rotascii$ = temp$
 END FUNCTION
+
+FUNCTION escape_string(s AS STRING, chars AS STRING) AS STRING
+ DIM i AS INTEGER
+ DIM c AS STRING
+ DIM result AS STRING
+ result = ""
+ FOR i = 1 to LEN(s)
+  c = MID$(s, i, 1)
+  IF INSTR(chars, c) THEN
+   result = result & "\"
+  END IF
+  result = result & c
+ NEXT i
+ RETURN result
+END FUNCTION
