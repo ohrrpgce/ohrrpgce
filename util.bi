@@ -18,5 +18,6 @@ declare function justextension$ (filename$)
 declare function anycase$ (filename$)
 declare function touchfile (filename$)
 declare function rotascii$ (s$, o)
+declare function escape_string(s as string, chars as string) as string
 
 #ENDIF
