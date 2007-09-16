@@ -1066,6 +1066,7 @@ SELECT CASE AS CONST id
  CASE 28'--play song
   'loadsong game$ + "." + STR$(retvals(0))
   wrappedsong retvals(0)
+  setfmvol fmvol
  CASE 29'--stop song
   stopsong
  CASE 30'--keyval
