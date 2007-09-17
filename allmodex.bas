@@ -1748,6 +1748,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$)
 	DIM s$
 	DO UNTIL EOF(f1)
 		LINE INPUT #f1, s$
+		IF s$ = "/dev/" OR s$ = "/proc/" OR s$ = "/sys/" THEN CONTINUE DO
 		IF RIGHT$(s$, 1) = "/" THEN s$ = LEFT$(s$, LEN(s$) - 1)
 		DO WHILE INSTR(s$, "/")
 			s$ = RIGHT$(s$, LEN(s$) - INSTR(s$, "/"))
@@ -3272,11 +3273,15 @@ Function sfxisplaying(BYVAL num)
 end Function
 
 Function fileisreadable(f$)
-	dim fh as integer
+	dim fh as integer, err_code as integer
 	fh = freefile
-	if open(f$ for binary access read as #fh) = 2 then
+	err_code = open(f$ for binary access read as #fh)
+	if err_code = 2 then
 		'debug f$ & " unreadable (ignored)"
-		return 0 
+		return 0
+	elseif err_code <> 0 then
+		debug "Error " & err_code & " reading " & f$
+		return 0
 	end if
 	close #fh
 	return -1
