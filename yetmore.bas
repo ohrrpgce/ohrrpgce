@@ -2736,7 +2736,7 @@ FUNCTION scriptstate$ (targetscript)
  'recurse 2 = all scripts, including suspended ones
  'recurse 3 = only the specified script
 
- DIM flowname$(15), flowtype(15), state as ScriptInst
+ DIM flowname$(15), flowtype(15), state as ScriptInst, laststate as ScriptInst
 
  flowtype(0) = 0:	flowname$(0) = "do"
  flowtype(3) = 1:	flowname$(3) = "return"
@@ -2760,19 +2760,27 @@ FUNCTION scriptstate$ (targetscript)
  stkbottom = -(stackpos \ 4)
  stkpos = 0
 
- 'FOR i = stkbottom TO -1
- ' dstr$ = dstr$ + xstr$(readstackdw(i))
- 'NEXT
- 'debug "stack contents = " + dstr$
-
  wasscript = nowscript
 
  'macro disabled for fb 0.15 compat
  'copyobj(state, scrat(wasscript))
  memcpy(@(state),@(scrat(wasscript)),LEN(scrat(wasscript)))
+ memcpy(@(laststate),@(state),LEN(state))
 
  'so we can grab extra data on the current script
  reloadscript nowscript, 0
+
+ 'debug "state = " & state.state
+ 'debug "depth = " & state.depth
+ 'debug "kind = " & state.curkind
+ 'debug "val = " & state.curvalue
+ 'debug "argn = " & state.curargn
+ 'debug "argc = " & state.curargc
+ 'FOR i = stkbottom TO -1
+ ' dstr$ = dstr$ + xstr$(readstackdw(i))
+ 'NEXT
+ 'debug "stack contents = " + dstr$
+
 
  IF state.state = stdoarg THEN GOTO jmpdoarg
  IF state.state = stnext THEN
@@ -2784,7 +2792,7 @@ FUNCTION scriptstate$ (targetscript)
     outstr$ += "," & readstackdw(stkpos - 3)
     outstr$ += "," & readstackdw(stkpos - 2)
     outstr$ += "," & readstackdw(stkpos - 1) & ")"
-   ELSEIF state.curargn >= state.curargc AND state.curkind <> tyflow THEN
+   ELSEIF state.curargn >= state.curargc AND (state.curkind <> tyflow OR flowtype(state.curvalue) = 1) THEN
     'print the evaluated list of arguments from the stack if they are all done
     outstr$ = "("
     IF state.curkind = tymath AND state.curvalue >= 16 AND state.curvalue <= 18 THEN
@@ -2819,7 +2827,7 @@ FUNCTION scriptstate$ (targetscript)
      cmd$ = flowname$(state.curvalue)
      IF state.depth = 0 THEN cmd$ = scriptname$(state.id)
      IF flowtype(state.curvalue) = 0 THEN IF state.curargc = 0 THEN hidearg = -1: cmd$ += "()"
-     IF flowtype(state.curvalue) = 1 THEN hidearg = -1: cmd$ += ":"
+     IF flowtype(state.curvalue) = 1 THEN hidearg = -1: IF state.curargn = 0 THEN cmd$ += ":"
      IF flowtype(state.curvalue) = 2 THEN
       IF state.curargn = state.curargc - 1 THEN hidearg = -1: cmd$ += "()"
       IF state.curvalue = flowwhile AND state.curargn = 0 THEN hidearg = -1
@@ -2827,6 +2835,27 @@ FUNCTION scriptstate$ (targetscript)
      IF state.curvalue = flowif THEN
       hidearg = -1
       IF state.curargn > 0 AND state.curargn < state.curargc THEN cmd$ += "()"
+     END IF
+     IF state.curvalue = flowswitch THEN
+      hidearg = -1
+      IF state.curargn = 0 THEN
+       cmd$ += ":"
+      ELSE
+       cmd$ += "(" & readstackdw(stkpos) & ")"
+       IF state.curargn + 1 = state.curargc THEN
+        cmd$ += " else"
+        'hack to replace the 'do' with 'else' (hspeak outputs a do instead of an else)
+        IF LEN(outstr$) > 1 THEN outstr$ = MID$(outstr$, 3)
+        hidearg = -2
+       ELSEIF state.curargn >= state.curargc THEN
+        'an extra step the stepper currently pauses on
+       ELSEIF laststate.curkind = tyflow AND laststate.curvalue = flowdo THEN
+        cmd$ += " case()"
+       ELSE
+        cmd$ += " case"
+        IF state.curargn < state.curargc THEN cmd$ += ":" ELSE cmd$ += "()"
+       END IF
+      END IF
      END IF
     CASE tyglobal
      outstr$ = "global" + STR$(state.curvalue)
@@ -2856,6 +2885,8 @@ FUNCTION scriptstate$ (targetscript)
       outstr$ = cmd$ + ": " + outstr$
      ELSEIF state.curargn < state.curargc AND hidearg = 0 THEN
       outstr$ = cmd$ + ":" + STR$(state.curargn + 1) + "/" + STR$(state.curargc) + " " + outstr$
+     ELSEIF hidearg = -2 THEN
+      outstr$ = cmd$ + outstr$
      ELSE
       outstr$ = cmd$ + " " + outstr$
      END IF
@@ -2890,14 +2921,21 @@ FUNCTION scriptstate$ (targetscript)
     END IF
    END IF
 
+   memcpy(@(laststate),@(state),LEN(state))
+
    readstackcommand state, stkpos
 
   jmpnext:
   jmpdoarg:
 
    'ditch arguments
-   IF state.curkind = tyflow AND state.curvalue = flowswitch THEN
-    stkpos -= 2
+   IF state.curkind = tyflow AND state.curvalue = flowswitch AND state.curargn > 0 THEN
+    IF state.curargn >= state.curargc THEN
+     'result of last case/do remains (?)
+     stkpos -= 3
+    ELSE
+     stkpos -= 2
+    END IF
    ELSE
     stkpos -= state.curargn
    END IF
