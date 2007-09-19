@@ -2527,6 +2527,11 @@ end</example>
 			<shortname>set tile animation offset</shortname>
 			<description>Sets the offset from the starting tile that an <p>animation pattern</p> (either 0 or 1) is currently at. If there is a pattern defined, it will continue to step left, right, up and down from the offset you give it, until the end of the animation is reached, when the offset is reset to 0.</description>
 		</command>
+		<command id="milliseconds">
+			<cannon>milliseconds</cannon>
+			<shortname>milliseconds</shortname>
+            <description>Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's uptime).</description>
+        </command>
 	</section>
 	<section title="Predefined Constants">
 		<command id="numericconstants">
