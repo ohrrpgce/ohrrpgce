@@ -193,6 +193,7 @@ Sept ?? 2007 [ubersetzung]
     * "main menu" [James Paige]
     * "total experience", "set experience", "experience to next level",
       "experience to level" [Ralph Versteegen]
+    * "milliseconds"
 
   * Unlump.exe
     * Ported to FreeBasic [Mike Caron]

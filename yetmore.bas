@@ -1739,6 +1739,8 @@ SELECT CASE AS CONST id
    loadpalette master(), retvals(0)
    getui uilook(), retvals(0)
   END IF
+ CASE 273'--milliseconds
+  scriptret = INT(TIMER * 1000)
 END SELECT
 
 EXIT SUB
