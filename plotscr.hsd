@@ -279,6 +279,7 @@ define function, begin
 270,experiencetolevel,1,0     #total experience to reach a level
 271,experiencetonextlevel,1,0 #experience to level up
 272,setexperience,3,0,0,1     #set total experience (who,amount,allow spell forgetting)
+273,milliseconds,0            #uptime in milliseconds
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
