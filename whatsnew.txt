@@ -1,6 +1,18 @@
 WHAT IS NEW?
 
-Sept ?? 2007 [ubersetzung]
+Dec ?? 2007 [voxhumana]
+
+  * New Features
+
+  * Bugfixes
+
+  * New Plotscripting Commands
+
+  * Vikings of Midgard
+  
+  * Stuff only Developers Will Notice
+
+Sept 21 2007 [ubersetzung]
   * New Features
     * New sample game! Fenrir Lunaris's modern retro epic fantasy masterpiece
       Vikings of Midgard! [Fenrir-Lunaris]
