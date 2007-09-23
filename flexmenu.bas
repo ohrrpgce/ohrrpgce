@@ -130,6 +130,7 @@ atkbit$(67) = "Fail if target is stunned"
 atkbit$(68) = "Fail if target is muted"
 atkbit$(69) = "% based attacks damage instead of set"
 atkbit$(70) = "Check costs when used as a weapon"
+atkbit$(71) = "Do not chain if attack fails"
 '             ^---------------------------------------^
 '               the amount of room you have (39 chars)
 

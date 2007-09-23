@@ -3,6 +3,7 @@ WHAT IS NEW?
 Dec ?? 2007 [voxhumana]
 
   * New Features
+    * Attack bitset 'Do not chain if attack fails' [Mike Caron]
 
   * Bugfixes
 

@@ -685,6 +685,7 @@ dim h&
 
 'failure by default
 inflict = 0
+bslot(w).attack_succeeded = 0
 
 'remember this target
 setbit targmem(), w, t, 1
@@ -905,6 +906,7 @@ END IF
 
 '--success!
 inflict = 1
+bslot(w).attack_succeeded = 1
 
 END FUNCTION
 
