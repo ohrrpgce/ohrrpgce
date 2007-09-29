@@ -4,6 +4,7 @@ Dec ?? 2007 [voxhumana]
 
   * New Features
     * Attack bitset 'Do not chain if attack fails' [Mike Caron]
+    * Equip screen displays the number by which a stat will change [James]
 
   * Bugfixes
 

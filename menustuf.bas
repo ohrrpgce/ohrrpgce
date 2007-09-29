@@ -560,7 +560,10 @@ DO
  '--display
  edgeprint names$(pt), 84 - LEN(names$(pt)) * 4, 12, uilook(uiText), dpage
  FOR i = 0 TO 11
-  edgeprint sname$(sno(i)), 20, 42 + i * 10, uilook(uiMenuItem), dpage
+  temp$ = ""
+  IF stb(i) > 0 THEN temp$ = temp$ & "+" & stb(i)
+  IF stb(i) < 0 THEN temp$ = temp$ & stb(i)
+  edgeprint sname$(sno(i)) & temp$, 20, 42 + i * 10, uilook(uiMenuItem), dpage
   col = uilook(uiMenuItem)
   IF stb(i) < 0 THEN col = uilook(uiDisabledItem)
   IF stb(i) > 0 THEN col = uilook(uiSelectedItem + tog)
