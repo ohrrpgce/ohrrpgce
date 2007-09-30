@@ -1740,7 +1740,7 @@ SELECT CASE AS CONST id
    getui uilook(), retvals(0)
   END IF
  CASE 273'--milliseconds
-  scriptret = INT(TIMER * 1000)
+  scriptret = fmod((TIMER * 1000) + 2147483648.0, 4294967296.0) - 2147483648.0
 END SELECT
 
 EXIT SUB
