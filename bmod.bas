@@ -1188,7 +1188,7 @@ IF anim = -1 THEN
  'DEBUG debug "discarding" + XSTR$((stackpos - bstackstart) \ 2) + " from stack"
  WHILE stackpos > bstackstart: dummy = popw: WEND
  '-------Spawn a Chained Attack--------
- IF atk(12) > 0 AND INT(RND * 100) < atk(13) AND stat(who, 0, 0) > 0 AND (bslot(who).attack_succeeded <> 0 AND readbit(atk(),65,7))THEN
+ IF atk(12) > 0 AND INT(RND * 100) < atk(13) AND stat(who, 0, 0) > 0 AND (bslot(who).attack_succeeded <> 0 AND readbit(atk(),65,7) OR readbit(atk(),65,7) = 0)THEN
   wf = 0: aset = 0
   loadattackdata buffer(), atk(12) - 1
   IF buffer(16) > 0 THEN
