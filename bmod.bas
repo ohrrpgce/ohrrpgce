@@ -329,14 +329,41 @@ IF countai(ai, them, es()) = 0 THEN them = -1: RETRACE
 lim = 0
 DO
  godo(them) = es(them - 4, 92 + (ai * 5) + INT(RND * 5))
-LOOP UNTIL godo(them) > 0
-
-'load the data for this attack
-loadattackdata atktemp(), godo(them) - 1
+ IF godo(them) > 0 THEN
+  'load the data for this attack
+  loadattackdata atktemp(), godo(them) - 1
+  IF atkallowed(atktemp(), them, 0, 0, bstat()) THEN
+   'this attack is good, continue on to target selection
+   EXIT DO
+  ELSE
+   'this attack is unusable
+   godo(them) = 0
+   IF bstat(them).cur.mp - atktemp(8) < 0 THEN
+    'inadequate MP was the reason for the failure
+    'MP-idiot loses its turn
+    IF readbit(ebits(), (them - 4) * 5, 55) THEN
+      ready(them) = 0
+      ctr(them) = 0
+      them = -1
+      RETRACE
+    END IF
+   END IF
+   'currently, item requirements are disregarded. should they be? Maybe they should
+   'come out of theft items?
+  END IF
+ END IF
+ lim = lim + 1
+ IF lim > 99 THEN
+  'give up eventually
+  them = -1
+  RETRACE
+ END IF
+LOOP
 
 'get the delay to wait for this attack
 delay(them) = atktemp(16)
 
+'Choose a target
 IF atktemp(4) = 1 OR (atktemp(4) = 2 AND INT(RND * 100) < 33) THEN
  'spread attack
  eaispread them, atktemp(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
@@ -345,19 +372,10 @@ ELSE
  eaifocus them, atktemp(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
 END IF
 
-'fail if MP is inadequate
-IF bstat(them).cur.mp - atktemp(8) < 0 THEN godo(them) = 0
-
-'currently, item requirements are disregarded. should they be? Maybe they should
-'come out of theft items?
-
-'MP-idiot loses its turn
-IF godo(them) = 0 THEN
- IF readbit(ebits(), (them - 4) * 5, 55) = 0 THEN them = -1: RETRACE
-END IF
-
-'ready for next
-ready(them) = 0: ctr(them) = 0: them = -1
+'ready for next attack
+ready(them) = 0
+ctr(them) = 0
+them = -1
 
 RETRACE
 

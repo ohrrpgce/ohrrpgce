@@ -9,6 +9,7 @@ Dec ?? 2007 [voxhumana]
       [Reaxor Jones]
 
   * Bugfixes
+    * Fixed bug 257 "Mute status effect broken for enemies" [James Paige]
 
   * New Plotscripting Commands
 
