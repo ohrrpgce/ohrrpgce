@@ -372,7 +372,7 @@ FOR i = 0 TO 5
     loadattackdata wepatk(), wepatkid - 1
    END IF
    IF readbit(wepatk(), 65, 6) THEN
-    IF atkallowed(wepatkid - 1, you, 0, 0, bstat(), wepatk()) = 0 THEN
+    IF atkallowed(wepatk(), you, 0, 0, bstat()) = 0 THEN
      setbit menubits(), 0, you*4+i, 1
     END IF
    END IF
@@ -418,7 +418,7 @@ IF carray(4) > 1 THEN
       '--level MP
       cost$(i) = "Level" + XSTR$(INT(i / 3) + 1) + ":  " + XSTR$(lmp(you, INT(i / 3)))
      END IF
-     IF atkallowed(spel(i), you, st(you).list_type(listslot), INT(i / 3), bstat(), atktemp()) THEN
+     IF atkallowed(atktemp(), you, st(you).list_type(listslot), INT(i / 3), bstat()) THEN
       '-- check whether or not the spell is allowed
       setbit spelmask(), 0, i, 1
      END IF
@@ -1598,12 +1598,11 @@ IF carray(4) > 1 THEN
  '--can-I-use-it? checking
  IF spel(sptr) > -1 THEN
   '--list-entry is non-empty
-  IF atkallowed(spel(sptr), you, st(you).list_type(listslot), INT(sptr / 3), bstat(), atktemp()) THEN
+  loadattackdata atktemp(), spel(sptr)
+  IF atkallowed(atktemp(), you, st(you).list_type(listslot), INT(sptr / 3), bstat()) THEN
    '--attack is allowed
    '--if lmp then set lmp consume flag
    IF st(you).list_type(listslot) = 1 THEN conlmp(you) = INT(sptr / 3) + 1
-   '--load atk data (for delay)
-   loadattackdata atktemp(), spel(sptr)
    '--queue attack
    godo(you) = spel(sptr) + 1
    delay(you) = large(atktemp(16), 1)

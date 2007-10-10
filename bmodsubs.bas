@@ -55,7 +55,7 @@ DECLARE FUNCTION visibleandalive (o, bstat() AS BattleStats, bslot() as battlesp
 DECLARE FUNCTION enemycount (bslot() as battlesprite, bstat() AS BattleStats)
 DECLARE FUNCTION targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats)
 DECLARE FUNCTION targetable (attacker, target, ebits(), bslot() as battlesprite)
-DECLARE FUNCTION atkallowed (atkid, attacker, spclass, lmplev, bstat() AS BattleStats, atkbuf())
+DECLARE FUNCTION atkallowed (atkbuf(), attacker, spclass, lmplev, bstat() AS BattleStats)
 DECLARE FUNCTION liveherocount (bstat() AS BattleStats)
 
 REM $STATIC
@@ -102,20 +102,11 @@ END IF
 
 END SUB
 
-FUNCTION atkallowed (atkid, attacker, spclass, lmplev, bstat() AS BattleStats, atkbuf())
-'--atkid    = attack ID number
+FUNCTION atkallowed (atkbuf(), attacker, spclass, lmplev, bstat() AS BattleStats)
+'--atkbuf   = attack data
 '--attacker = hero or enemy who is attacking
 '--spclass  = 0 for normal attacks, 1 for level-MP spells
 '--lmplev   = which level-MP level to use
-
-IF atkid < 0 THEN
- '--fail if not a valid attack id
- atkallowed = 0
- EXIT FUNCTION
-END IF
-
-'--load attack data
-loadattackdata atkbuf(), atkid
 
 '--check for mutedness
 IF readbit(atkbuf(),65,0) = 1 AND bstat(attacker).cur.mute < bstat(attacker).max.mute THEN

@@ -14,7 +14,7 @@ declare function is_enemy(who)
 declare function is_attack(who)
 declare function is_weapon(who)
 declare sub advance (who, atk(), bslot() as battlesprite, t())
-declare function atkallowed (atkid, attacker, spclass, lmplev, bstat() AS BattleStats, atkbuf())
+declare function atkallowed (atkbuf(), attacker, spclass, lmplev, bstat() AS BattleStats)
 declare function checktheftchance (item, itemp, rareitem, rareitemp)
 declare sub control
 declare function countai (ai, them, es())
