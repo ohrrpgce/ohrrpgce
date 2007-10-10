@@ -322,28 +322,27 @@ IF countai(ai, them, es()) = 0 THEN
  END IF
 END IF
 
-'if a valid ai set is available, use it
-IF countai(ai, them, es()) > 0 THEN
+'if no valid ai set is available, the enemy loses its turn
+IF countai(ai, them, es()) = 0 THEN them = -1: RETRACE
 
- 'pick a random attack
- lim = 0
- DO
-  godo(them) = es(them - 4, 92 + (ai * 5) + INT(RND * 5))
- LOOP UNTIL godo(them) > 0
+'pick a random attack
+lim = 0
+DO
+ godo(them) = es(them - 4, 92 + (ai * 5) + INT(RND * 5))
+LOOP UNTIL godo(them) > 0
 
- 'load the data for this attack
- loadattackdata atktemp(), godo(them) - 1
+'load the data for this attack
+loadattackdata atktemp(), godo(them) - 1
 
- 'get the delay to wait for this attack
- delay(them) = atktemp(16)
+'get the delay to wait for this attack
+delay(them) = atktemp(16)
 
- IF atktemp(4) = 1 OR (atktemp(4) = 2 AND INT(RND * 100) < 33) THEN
-  'spread attack
-  eaispread them, atktemp(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
- ELSE
-  'focused attack
-  eaifocus them, atktemp(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
- END IF
+IF atktemp(4) = 1 OR (atktemp(4) = 2 AND INT(RND * 100) < 33) THEN
+ 'spread attack
+ eaispread them, atktemp(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
+ELSE
+ 'focused attack
+ eaifocus them, atktemp(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
 END IF
 
 'fail if MP is inadequate
