@@ -39,12 +39,13 @@ REMEMBERSTATE
 bstackstart = stackpos
 
 battle = 1
-DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24),  p(24), of(24), ext$(7), ctr(11), stat(11,  _
-1, 17), ready(11), batname$(11), menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
+DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24),  p(24), of(24), ext$(7), ctr(11)
+DIM ready(11), batname$(11), menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
 DIM bslot(24) AS BattleSprite
+DIM bstat(11) AS BattleStats
 DIM as double timinga, timingb
 DIM dead, mapsong
 DIM spellcount AS INTEGER '--only used in heromenu GOSUB block
@@ -89,15 +90,21 @@ FOR i = 0 TO 11
 NEXT i
 
 '--init affliction registers
-'--it is important to understand that stat() is not the same array
-'--inside battle as it is outside battle. indexes above stat(11) are
-'--used differently. In battle they are affliction registers. Out of battle
-'--they are picture and palette sets. Tacky hacks suck.
+'--it should be clear by the fact that BattleStats is a separate type that
+'--that bstat() inside battle is not the same array as stat() outside battle
 FOR i = 0 TO 11
- FOR o = 12 TO 17
-  stat(i, 0, o) = 1000 ' cur (perhaps preserve some for heros?)
-  stat(i, 1, o) = 1000 ' max
- NEXT o
+ WITH bstat(i).cur
+  .poison = 1000
+  .regen  = 1000
+  .stun   = 1000
+  .mute   = 1000
+ END WITH
+ WITH bstat(i).max
+  .poison = 1000
+  .regen  = 1000
+  .stun   = 1000
+  .mute   = 1000
+ END WITH
  prtimer(i, 0) = INT(RND * 2000)
  prtimer(i, 1) = INT(RND * 2000)
 NEXT i
@@ -146,7 +153,7 @@ DO
  IF away > 0 THEN
   FOR i = 0 TO 3
    '--if alive, animate running away
-   IF stat(i, 0, 0) THEN
+   IF bstat(i).cur.hp > 0 THEN
     WITH bslot(i)
      IF .vis THEN
       .xmov = 10
@@ -181,7 +188,7 @@ DO
  yn = loopvar(yn, 0, 3, 1)
  IF you = -1 THEN
   '--if it is no heros turn, check to see if anyone is alive and ready
-  IF ready(yn) = 1 AND stat(yn, 0, 0) > 0 AND dead = 0 THEN
+  IF ready(yn) = 1 AND bstat(yn).cur.hp > 0 AND dead = 0 THEN
    you = yn
    pt = 0
    mset = 0
@@ -189,7 +196,7 @@ DO
  END IF
  en = loopvar(en, 4, 11, 1)
  IF them = -1 THEN
-  IF ready(en) = 1 AND stat(en, 0, 0) > 0 AND dead = 0 THEN them = en
+  IF ready(en) = 1 AND bstat(en).cur.hp > 0 AND dead = 0 THEN them = en
  END IF
  IF vdance = 0 THEN
   IF them >= 0 THEN GOSUB enemyai
@@ -245,7 +252,7 @@ DO
 LOOP
 
 donebattle:
-writestats exstat(), stat()
+writestats exstat(), bstat()
 IF fatal THEN battle = 0
 
 '--overflow checking for the battle stack
@@ -286,10 +293,10 @@ enemyai: '-------------------------------------------------------------------
 ai = 0
 
 'if HP is less than 20% go into desperation mode
-IF stat(them, 0, 0) < stat(them, 1, 0) / 5 THEN ai = 1
+IF bstat(them).cur.hp < bstat(them).max.hp / 5 THEN ai = 1
 
 'if targetable enemy count is 1, go into alone mode
-IF targenemycount(bslot(), stat()) = 1 THEN ai = 2
+IF targenemycount(bslot(), bstat()) = 1 THEN ai = 2
 
 'spawn allys when alone
 IF ai = 2 AND es(them - 4, 81) THEN
@@ -300,7 +307,7 @@ IF ai = 2 AND es(them - 4, 81) THEN
   NEXT k
   IF slot > -1 THEN
    formdata(slot * 4) = es(them - 4, 81)
-   loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), stat(), ebits(), batname$()
+   loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
   END IF
  NEXT j
 END IF
@@ -309,7 +316,7 @@ END IF
 'otherwise fall back on another
 IF countai(ai, them, es()) = 0 THEN
  ai = 0
- IF stat(them, 0, 0) < stat(them, 1, 0) / 5 THEN
+ IF bstat(them).cur.hp < bstat(them).max.hp / 5 THEN
   ai = 1
   IF countai(ai, them, es()) = 0 THEN ai = 0
  END IF
@@ -332,15 +339,15 @@ IF countai(ai, them, es()) > 0 THEN
 
  IF atktemp(4) = 1 OR (atktemp(4) = 2 AND INT(RND * 100) < 33) THEN
   'spread attack
-  eaispread them, atktemp(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
+  eaispread them, atktemp(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
  ELSE
   'focused attack
-  eaifocus them, atktemp(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
+  eaifocus them, atktemp(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
  END IF
 END IF
 
 'fail if MP is inadequate
-IF stat(them, 0, 1) - atktemp(8) < 0 THEN godo(them) = 0
+IF bstat(them).cur.mp - atktemp(8) < 0 THEN godo(them) = 0
 
 'currently, item requirements are disregarded. should they be? Maybe they should
 'come out of theft items?
@@ -366,7 +373,7 @@ FOR i = 0 TO 5
     loadattackdata wepatk(), wepatkid - 1
    END IF
    IF readbit(wepatk(), 65, 6) THEN
-    IF atkallowed(wepatkid - 1, you, 0, 0, stat(), wepatk()) = 0 THEN
+    IF atkallowed(wepatkid - 1, you, 0, 0, bstat(), wepatk()) = 0 THEN
      setbit menubits(), 0, you*4+i, 1
     END IF
    END IF
@@ -406,13 +413,13 @@ IF carray(4) > 1 THEN
      speld$(i) = readbinstring$(atktemp(), 73, 38)
      IF st(you).list_type(listslot) = 0 THEN
       '--regular MP
-      cost$(i) = XSTR$(focuscost(atktemp(8), stat(you, 0, 10))) + " " + mpname$ + " " + STR$(stat(you, 0, 1)) + "/" + STR$(stat(you, 1, 1))
+      cost$(i) = XSTR$(focuscost(atktemp(8), bstat(you).cur.foc)) + " " + mpname$ + " " + STR$(bstat(you).cur.mp) + "/" + STR$(bstat(you).max.mp)
      END IF
      IF st(you).list_type(listslot) = 1 THEN
       '--level MP
       cost$(i) = "Level" + XSTR$(INT(i / 3) + 1) + ":  " + XSTR$(lmp(you, INT(i / 3)))
      END IF
-     IF atkallowed(spel(i), you, st(you).list_type(listslot), INT(i / 3), stat(), atktemp()) THEN
+     IF atkallowed(spel(i), you, st(you).list_type(listslot), INT(i / 3), bstat(), atktemp()) THEN
       '-- check whether or not the spell is allowed
       setbit spelmask(), 0, i, 1
      END IF
@@ -510,7 +517,7 @@ IF is_hero(who) THEN
  p(24) = 52
  getpal16 pal16(), 52, exstat(who, 1, 13), 5, exstat(who, 0, 13)
 END IF
-numhits = atk(17) + INT(RND * (stat(who, 0, 11) + 1))
+numhits = atk(17) + INT(RND * (bstat(who).cur.hits + 1))
 IF readbit(atk(), 20, 49) THEN numhits = atk(17)
 '----------------------------NULL ANIMATION
 IF atk(15) = 10 THEN
@@ -952,7 +959,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
   CASE 0 '--end()
    FOR i = 0 TO 3
     '--enforce weak picture
-    IF stat(i, 0, 0) < stat(i, 1, 0) / 5 AND vdance = 0 THEN of(i) = 6
+    IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vdance = 0 THEN of(i) = 6
     '--re-enforce party's X/Y positions...
     bslot(i).x = bslot(i).basex
     bslot(i).y = bslot(i).basey
@@ -1011,7 +1018,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    'set tag, if there is one
    checkTagCond atk(60), 1, atk(59), atk(61)
    checkTagCond atk(63), 1, atk(62), atk(64)
-   IF inflict(who, targ, stat(), bslot(), harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
+   IF inflict(who, targ, bstat(), bslot(), harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
     '--attack succeeded
 	IF readbit(atk(), 20, 50) = 1 THEN
 	 es(targ - 4, 56) = 0
@@ -1021,7 +1028,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
 	END IF
 	IF readbit(atk(), 20, 63) = 1 THEN
 	 'force heroes to run away
-	 IF checkNoRunBit(stat(), ebits(), bslot()) THEN
+	 IF checkNoRunBit(bstat(), ebits(), bslot()) THEN
 	  alert$ = cannotrun$
 	  alert = 10
 	 ELSE
@@ -1030,7 +1037,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
 	END IF
 	checkTagCond atk(60), 2, atk(59), atk(61)
 	checkTagCond atk(63), 2, atk(62), atk(64)
-	IF stat(targ, 0, 0) = 0 THEN
+	IF bstat(targ).cur.hp = 0 THEN
 	 checkTagCond atk(60), 4, atk(59), atk(61)
 	 checkTagCond atk(63), 4, atk(62), atk(64)
 	END IF
@@ -1044,7 +1051,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    END IF
    tdwho = targ
    GOSUB triggerfade
-   IF stat(targ, 0, 0) > 0 THEN
+   IF bstat(targ).cur.hp > 0 THEN
     '---REVIVE---
     bslot(targ).vis = 1
     bslot(targ).dissolve = 0
@@ -1052,11 +1059,11 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    IF is_enemy(targ) THEN GOSUB sponhit
    IF conmp = 1 THEN
     '--if the attack costs MP, we want to actually consume MP
-    IF  atk(8) > 0 THEN stat(who, 0, 1) = large(stat(who, 0, 1) - focuscost(atk(8), stat(who, 0, 10)), 0)
+    IF atk(8) > 0 THEN bstat(who).cur.mp = large(bstat(who).cur.mp - focuscost(atk(8), bstat(who).cur.foc), 0)
 
     '--ditto for HP
     IF atk(9) > 0 THEN
-      stat(who, 0, 0) = large(stat(who, 0, 0) - atk(9), 0)
+      bstat(who).cur.hp = large(bstat(who).cur.hp - atk(9), 0)
       hc(who) = 7
       hx(who) = bslot(who).x + (bslot(who).w * .5)
       hy(who) = bslot(who).y + (bslot(who).h * .5)
@@ -1098,18 +1105,18 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    END IF
    o = 0
    FOR i = 0 TO 3
-    IF stat(i, 0, 0) = 0 THEN o = o + 1
+    IF bstat(i).cur.hp = 0 THEN o = o + 1
    NEXT i
    IF o = 4 THEN anim = -1
    o = 0
    FOR i = 4 TO 11
-    IF stat(i, 0, 0) = 0 THEN o = o + 1
+    IF bstat(i).cur.hp = 0 THEN o = o + 1
    NEXT i
-   IF stat(targ, 0, 0) = 0 AND o < 8 AND anim > -1 THEN
+   IF bstat(targ).cur.hp = 0 AND o < 8 AND anim > -1 THEN
     IF atk(4) = 1 OR (atk(4) = 2 AND INT(RND * 100) < 33) THEN
-     eaispread who, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
+     eaispread who, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
     ELSE
-     eaifocus who, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
+     eaifocus who, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
     END IF
    END IF
   CASE 11 'setz(who,z)
@@ -1188,7 +1195,7 @@ IF anim = -1 THEN
  'DEBUG debug "discarding" + XSTR$((stackpos - bstackstart) \ 2) + " from stack"
  WHILE stackpos > bstackstart: dummy = popw: WEND
  '-------Spawn a Chained Attack--------
- IF atk(12) > 0 AND INT(RND * 100) < atk(13) AND stat(who, 0, 0) > 0 AND (bslot(who).attack_succeeded <> 0 AND readbit(atk(),65,7) OR readbit(atk(),65,7) = 0)THEN
+ IF atk(12) > 0 AND INT(RND * 100) < atk(13) AND bstat(who).cur.hp > 0 AND (bslot(who).attack_succeeded <> 0 AND readbit(atk(),65,7) OR readbit(atk(),65,7) = 0)THEN
   wf = 0: aset = 0
   loadattackdata buffer(), atk(12) - 1
   IF buffer(16) > 0 THEN
@@ -1199,14 +1206,14 @@ IF anim = -1 THEN
   END IF
   o = 0
   FOR i = 4 TO 11
-   IF stat(i, 0, 0) = 0 THEN o = o + 1
+   IF bstat(i).cur.hp = 0 THEN o = o + 1
   NEXT i
   IF o < 8 THEN
    IF buffer(4) <> atk(4) OR buffer(3) <> atk(3) THEN
     IF buffer(4) = 1 OR (buffer(4) = 2 AND INT(RND * 100) < 33) THEN
-     eaispread who, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
+     eaispread who, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
     ELSE
-     eaifocus who, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
+     eaifocus who, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
     END IF
    END IF
   END IF
@@ -1232,7 +1239,7 @@ FOR j = 4 TO 11
  '--is it a boss?
  IF readbit(ebits(), (j - 4) * 5, 56) = 1 THEN
   '-- is it alive?
-  IF stat(j, 0, 0) > 0 THEN
+  IF bstat(j).cur.hp > 0 THEN
    bosses = bosses + 1
   END IF
  END IF
@@ -1244,10 +1251,10 @@ IF bosses = 0 THEN
   '--should it die without a boss?
   IF readbit(ebits(), (j - 4) * 5, 58) = 1 THEN
    '-- is it still alive?
-   IF stat(j, 0, 0) > 0 THEN
+   IF bstat(j).cur.hp > 0 THEN
     '--trigger death fade
     tdwho = j
-    stat(tdwho, 0, 0) = 0
+    bstat(tdwho).cur.hp = 0
     GOSUB triggerfade
    END IF
   END IF
@@ -1257,7 +1264,7 @@ RETRACE
 
 triggerfade:
 'If the target is really dead...
-IF stat(tdwho, 0, 0) = 0 THEN
+IF bstat(tdwho).cur.hp = 0 THEN
  'the number of ticks it takes the enemy to fade away is equal to half its width
  bslot(tdwho).dissolve = bslot(tdwho).w * .5
  IF is_enemy(tdwho) THEN
@@ -1337,7 +1344,7 @@ SELECT CASE buffer(3)
  CASE 10 'dead-ally (hero only)
   noifdead = 1
   FOR i = 0 TO 3
-   IF hero(i) > 0 AND stat(i, 0, 0) = 0 THEN tmask(i) = 1
+   IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN tmask(i) = 1
   NEXT i
 
 END SELECT
@@ -1389,12 +1396,12 @@ IF deadguycount = 4 THEN dead = 2
 RETRACE
 
 ifdead:
-deadguyhp = stat(deadguy, 0, 0)
+deadguyhp = bstat(deadguy).cur.hp
 IF is_enemy(deadguy) THEN
  isenemy = 1
  enemynum = deadguy - 4
  formslotused = formdata((deadguy - 4) * 4)
- IF stat(deadguy, 0, 0) > 0 AND bslot(deadguy).hero_untargetable <> 0 THEN deadguycount = deadguycount + 1
+ IF bstat(deadguy).cur.hp > 0 AND bslot(deadguy).hero_untargetable <> 0 THEN deadguycount = deadguycount + 1
 ELSE
  isenemy = 0
  enemynum = -1
@@ -1408,9 +1415,12 @@ IF deadguyhp = 0 and formslotused <> 0 THEN
  godo(deadguy) = 0
  bslot(deadguy).d = 0
  '--reset poison/regen/stun/mute
- FOR j = 12 TO 17
-  stat(deadguy, 0, j) = stat(deadguy, 1, j)
- NEXT j
+ WITH bstat(deadguy)
+  .cur.poison = .max.poison
+  .cur.regen  = .max.regen
+  .cur.stun   = .max.stun
+  .cur.mute   = .max.mute
+ END WITH
  '-- if it is a dead hero's turn, cancel menu
  IF you = deadguy THEN you = -1: mset = 0
  '-- if it is a dead enemy's turn, cancel ai
@@ -1449,9 +1459,9 @@ IF deadguyhp = 0 and formslotused <> 0 THEN
    IF t(j, 0) = -1 AND who <> j AND godo(j) > 0 THEN
     loadattackdata buffer(), godo(j) - 1
     IF buffer(4) = 1 OR (buffer(4) = 2 AND INT(RND * 100) < 33) THEN
-     eaispread j, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
+     eaispread j, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
     ELSE
-     eaifocus j, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
+     eaifocus j, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
     END IF
    END IF
    IF tmask(deadguy) = 1 THEN tmask(deadguy) = 0
@@ -1476,7 +1486,7 @@ FOR i = 0 TO 8
    NEXT k
    IF slot > -1 THEN
     formdata(slot * 4) = es(targ - 4, 82 + i)
-    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), stat(), ebits(), batname$()
+    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
    END IF
   NEXT j
   EXIT FOR
@@ -1495,7 +1505,7 @@ IF is_enemy(deadguy) THEN
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 80)
     deadguycount = deadguycount - 1
-    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), stat(), ebits(), batname$()
+    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
    END IF
   NEXT j
   es(deadguy - 4, 80) = 0
@@ -1509,7 +1519,7 @@ IF is_enemy(deadguy) THEN
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 79)
     deadguycount = deadguycount - 1
-    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), stat(), ebits(), batname$()
+    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
    END IF
   NEXT j
   es(deadguy - 4, 79) = 0
@@ -1589,7 +1599,7 @@ IF carray(4) > 1 THEN
  '--can-I-use-it? checking
  IF spel(sptr) > -1 THEN
   '--list-entry is non-empty
-  IF atkallowed(spel(sptr), you, st(you).list_type(listslot), INT(sptr / 3), stat(), atktemp()) THEN
+  IF atkallowed(spel(sptr), you, st(you).list_type(listslot), INT(sptr / 3), bstat(), atktemp()) THEN
    '--attack is allowed
    '--if lmp then set lmp consume flag
    IF st(you).list_type(listslot) = 1 THEN conlmp(you) = INT(sptr / 3) + 1
@@ -1621,9 +1631,9 @@ IF ptarg = 1 THEN GOSUB setuptarg
 'autotarget
 IF ptarg = 3 THEN
  IF buffer(4) = 1 OR (buffer(4) = 2 AND INT(RND * 100) < 33) THEN
-  eaispread you, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
+  eaispread you, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
  ELSE
-  eaifocus you, buffer(), t(), stat(), bslot(), ebits(), revenge(), revengemask(), targmem()
+  eaifocus you, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
  END IF
  ctr(you) = 0
  ready(you) = 0
@@ -1708,7 +1718,7 @@ IF vdance = 0 THEN 'only display interface till you win
     '--speed meter--
     col = uilook(uiTimeBar): IF ready(i) = 1 THEN col = uilook(uiTimeBarFull)
     centerfuz 66, 9 + i * 10, 131, 10, 1, dpage
-    IF stat(i, 0, 0) > 0 THEN
+    IF bstat(i).cur.hp > 0 THEN
      j = ctr(i) / 7.7
      IF delay(i) > 0 OR godo(i) > 0 OR (anim >= 0 AND who = i) THEN
       col = uilook(uiTimeBar)
@@ -1720,8 +1730,8 @@ IF vdance = 0 THEN 'only display interface till you win
    IF readbit(gen(), 101, 7) = 0 THEN
     '--hp-meter--
     col = uiLook(uiHealthBar)
-    IF lifemeter(i) < INT((87 / large(stat(i, 1, 0), 1)) * stat(i, 0, 0)) THEN lifemeter(i) = lifemeter(i) + 1
-    IF lifemeter(i) > INT((87 / large(stat(i, 1, 0), 1)) * stat(i, 0, 0)) THEN lifemeter(i) = lifemeter(i) - 1
+    IF lifemeter(i) < INT((87 / large(bstat(i).max.hp, 1)) * bstat(i).cur.hp) THEN lifemeter(i) = lifemeter(i) + 1
+    IF lifemeter(i) > INT((87 / large(bstat(i).max.hp, 1)) * bstat(i).cur.hp) THEN lifemeter(i) = lifemeter(i) - 1
     IF lifemeter(i) > 87 THEN
      lifemeter(i) = 87
      col = uiLook(uiHealthBar + tog)
@@ -1733,19 +1743,21 @@ IF vdance = 0 THEN 'only display interface till you win
    col = uilook(uiMenuItem): IF i = you THEN col = uilook(uiSelectedItem + tog)
    edgeprint batname$(i), 128 - LEN(batname$(i)) * 8, 5 + i * 10, col, dpage
    '--hp--
-   edgeprint STR$(stat(i, 0, 0)) + "/" + STR$(stat(i, 1, 0)), 136, 5 + i * 10, col, dpage
-   'poison indicator
-   IF (stat(i, 1, 12) - stat(i, 0, 12)) > 0 THEN
-    edgeprint CHR$(gen(genPoison)), 209, 5 + i * 10, col, dpage
-   END IF
-   'stun indicator
-   IF (stat(i, 1, 14) - stat(i, 0, 14)) > 0 THEN
-    edgeprint CHR$(gen(genStun)), 217, 5 + i * 10, col, dpage
-   END IF
-   'mute indicator
-   IF (stat(i, 1, 15) - stat(i, 0, 15)) > 0 THEN
-    edgeprint CHR$(gen(genMute)), 217, 5 + i * 10, col, dpage
-   END IF
+   edgeprint STR$(bstat(i).cur.hp) + "/" + STR$(bstat(i).max.hp), 136, 5 + i * 10, col, dpage
+   WITH bstat(i)
+    'poison indicator
+    IF .cur.poison < .max.poison THEN
+     edgeprint CHR$(gen(genPoison)), 209, 5 + i * 10, col, dpage
+    END IF
+    'stun indicator
+    IF .cur.stun < .max.stun THEN
+     edgeprint CHR$(gen(genStun)), 217, 5 + i * 10, col, dpage
+    END IF
+    'mute indicator
+    IF .cur.mute < .max.mute THEN
+     edgeprint CHR$(gen(genMute)), 217, 5 + i * 10, col, dpage
+    END IF
+   END WITH
   END IF
  NEXT i
  IF battlecaptime > 0 THEN
@@ -1821,7 +1833,7 @@ IF away = 1 THEN RETRACE
 '--if a menu is up, and pause-on-menus is ON then no time passes (as long as at least one visible targetable enemy is alive)
 isdeepmenu = (mset > 0 AND readbit(gen(), genBits, 0))
 isbattlemenu = (mset >= 0 AND you >= 0 AND readbit(gen(), genBits, 13))
-isenemytargs = (targenemycount(bslot(), stat()) > 0)
+isenemytargs = (targenemycount(bslot(), bstat()) > 0)
 IF (isdeepmenu OR isbattlemenu) AND isenemytargs THEN RETRACE
 
 FOR i = 0 TO 11
@@ -1829,31 +1841,45 @@ FOR i = 0 TO 11
  'delays for attacks already selected
  IF you <> i THEN delay(i) = large(delay(i) - 1, 0)
 
- '--poison/regen
- FOR poisreg = 0 TO 1
-  dif = stat(i, 1, 12 + poisreg) - stat(i, 0, 12 + poisreg)
-  IF dif > 0 THEN
-   prtimer(i, poisreg) = prtimer(i, poisreg) + large(stat(i, 0, 8), 7)
-   IF prtimer(i, poisreg) >= 1500 THEN
-    prtimer(i, poisreg) = 0
-    harm = dif
-    IF poisreg = 1 THEN '--regen
-     harm = harm * -1
-    END IF
+ '--poison
+ WITH bstat(i)
+  IF .cur.poison < .max.poison THEN
+   prtimer(i, 0) = prtimer(i, 0) + large(bstat(i).cur.spd, 7)
+   IF prtimer(i, 0) >= 1500 THEN
+    prtimer(i, 0) = 0
+    harm = .max.poison - .cur.poison
     harm = range(harm, 20)
-    quickinflict harm, i, hc(), hx(), hy(), bslot(), harm$(), stat()
+    quickinflict harm, i, hc(), hx(), hy(), bslot(), harm$(), bstat()
     tdwho = i
     GOSUB triggerfade
     GOSUB dieWOboss
     GOSUB fulldeathcheck
    END IF
   END IF
- NEXT poisreg
+ END WITH
+ 
+ '--regen
+ WITH bstat(i)
+  IF .cur.regen < .max.regen THEN
+   prtimer(i, 1) = prtimer(i, 1) + large(bstat(i).cur.spd, 7)
+   IF prtimer(i, 1) >= 1500 THEN
+    prtimer(i, 1) = 0
+    heal = .max.regen - .cur.regen
+    heal = heal * -1
+    heal = range(heal, 20)
+    quickinflict heal, i, hc(), hx(), hy(), bslot(), harm$(), bstat()
+    tdwho = i
+    GOSUB triggerfade
+    GOSUB dieWOboss
+    GOSUB fulldeathcheck
+   END IF
+  END IF
+ END WITH
 
  '--if not doing anything, not dying, not ready, and not stunned
- IF godo(i) = 0 AND bslot(i).dissolve = 0 AND ready(i) = 0 AND stat(i, 0, 14) = stat(i, 1, 14) THEN
+ IF godo(i) = 0 AND bslot(i).dissolve = 0 AND ready(i) = 0 AND bstat(i).cur.stun = bstat(i).max.stun THEN
   '--increment ctr by speed
-  ctr(i) = small(1000, ctr(i) + stat(i, 0, 8))
+  ctr(i) = small(1000, ctr(i) + bstat(i).cur.spd)
   IF ctr(i) = 1000 AND wf = 0 THEN ready(i) = 1
  END IF
 
@@ -1863,9 +1889,9 @@ NEXT i
 
 IF TIMER > laststun + 1 THEN
  FOR i = 0 TO 11
-  stat(i, 0, 15) = small(stat(i, 0, 15) + 1, stat(i, 1, 15))
-  stat(i, 0, 14) = small(stat(i, 0, 14) + 1, stat(i, 1, 14))
-  IF stat(i, 0, 14) < stat(i, 1, 14) THEN
+  bstat(i).cur.mute = small(bstat(i).cur.mute + 1, bstat(i).max.mute)
+  bstat(i).cur.stun = small(bstat(i).cur.stun + 1, bstat(i).max.stun)
+  IF bstat(i).cur.stun < bstat(i).max.stun THEN
    ready(i) = 0
    godo(i) = 0
    IF you = i THEN you = -1
@@ -1880,8 +1906,8 @@ RETRACE
 animate:
 FOR i = 0 TO 3
  IF walk(i) = 1 THEN of(i) = of(i) XOR tog
- IF who <> i AND stat(i, 0, 0) < stat(i, 1, 0) / 5 AND vdance = 0 THEN of(i) = 6
- IF vdance > 0 AND stat(i, 0, 0) > 0 AND tog = 0 THEN
+ IF who <> i AND bstat(i).cur.hp < bstat(i).max.hp / 5 AND vdance = 0 THEN of(i) = 6
+ IF vdance > 0 AND bstat(i).cur.hp > 0 AND tog = 0 THEN
   IF of(i) = 0 THEN of(i) = 2 ELSE of(i) = 0
  END IF
 NEXT i
@@ -1968,7 +1994,7 @@ FOR i = 0 TO 11
  IF is_hero(i) THEN c = uilook(uiSelectedItem)
  rectangle 0, 80 + (i * 10), ctr(i) / 10, 4, c, dpage
  IF is_enemy(i) THEN edgeprint XSTR$(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
- info$ = "v=" & bslot(i).vis & " dly=" & delay(i) & " tm=" & tmask(i) & " hp=" & stat(i,0,0) & " dis=" & bslot(i).dissolve
+ info$ = "v=" & bslot(i).vis & " dly=" & delay(i) & " tm=" & tmask(i) & " hp=" & bstat(i).cur.hp & " dis=" & bslot(i).dissolve
  IF is_enemy(i) THEN  info$ = info$ & " fm=" & formdata((i-4)*4) 
  edgeprint info$, 20, 80 + i * 10, c, dpage
 NEXT i
@@ -1985,7 +2011,7 @@ IF flee > 0 AND flee < 4 THEN
  END IF
 END IF
 IF flee = 4 THEN
- IF checkNoRunBit(stat(), ebits(), bslot()) THEN
+ IF checkNoRunBit(bstat(), ebits(), bslot()) THEN
   flee = 0
   alert$ = cannotrun$
   alert = 10
@@ -1993,18 +2019,17 @@ IF flee = 4 THEN
 END IF
 IF flee > 4 THEN
  FOR i = 0 TO 3
-  '--if alive and visible, turn around
-  'IF bslot(i).vis AND stat(i, 0, 0) THEN bslot(i).d = 1
-  IF stat(i, 0, 0) THEN bslot(i).d = 1
+  '--if alive turn around
+  IF bstat(i).cur.hp THEN bslot(i).d = 1
   walk(i) = 1
   godo(i) = 0
   ready(i) = 0
-  ctr(i) = large(0, ctr(i) - stat(i, 0, 8) * 2)
+  ctr(i) = large(0, ctr(i) - bstat(i).cur.spd * 2)
  NEXT i
  IF carray(6) = 0 THEN flee = 0: FOR i = 0 TO 3: bslot(i).d = 0: walk(i) = 0: NEXT i
  temp = 400
  FOR i = 4 TO 11
-  temp = temp + stat(i, 0, 8)
+  temp = temp + bstat(i).cur.spd
  NEXT i
  IF RND * temp < flee THEN away = 1: flee = 2: FOR i = 0 TO 3: ctr(i) = 0: ready(i) = 0: NEXT i
 END IF
@@ -2050,8 +2075,8 @@ FOR i = 0 TO 3
   loadset game$ + ".pt0", exstat(i, 0, 14), i * 16
   getpal16 pal16(), 40 + i, exstat(i, 0, 15), 0, exstat(i, 0, 14)
   FOR o = 0 TO 11
-   stat(i, 0, o) = exstat(i, 0, o)
-   stat(i, 1, o) = exstat(i, 1, o)
+   bstat(i).cur.sta(o) = exstat(i, 0, o)
+   bstat(i).max.sta(o) = exstat(i, 1, o)
   NEXT o
   herobattlebits bits(), i
   batname$(i) = names$(i)
@@ -2071,7 +2096,7 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 FOR i = 0 TO 7
- loadfoe i, formdata(), es(), bslot(), p(), ext$(), bits(), stat(), ebits(), batname$()
+ loadfoe i, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
 NEXT i
 FOR i = 0 TO 11
  ctr(i) = INT(RND * 500)
@@ -2085,9 +2110,9 @@ curbg = formdata(32)
 setdiskpages buffer(), 200, 0
 loadpage game$ + ".mxs", curbg, 2
 FOR i = 0 TO 3
- IF stat(i, 0, 0) < stat(i, 1, 0) / 5 AND vdance = 0 THEN of(i) = 6
- IF hero(i) > 0 AND stat(i, 0, 0) = 0 THEN bslot(i).dissolve = 1
- lifemeter(i) = (88 / large(stat(i, 1, 0), 1)) * stat(i, 0, 0)
+ IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vdance = 0 THEN of(i) = 6
+ IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN bslot(i).dissolve = 1
+ lifemeter(i) = (88 / large(bstat(i).max.hp, 1)) * bstat(i).cur.hp
 NEXT i
 bslot(24).w = 24
 bslot(24).h = 24
@@ -2100,7 +2125,7 @@ IF bos = 0 THEN
   ' check the "die without boss" bitset
   IF readbit(ebits(), (i - 4) * 5, 58) = 1 THEN
    tdwho = i
-   stat(tdwho, 0, 0) = 0
+   bstat(tdwho).cur.hp = 0
    GOSUB triggerfade
   END IF
  NEXT i
@@ -2116,10 +2141,10 @@ victory: '------------------------------------------------------------------
 IF gen(3) > 0 THEN wrappedsong gen(3) - 1
 gold& = gold& + plunder&
 IF gold& > 1000000000 THEN gold& = 1000000000
-IF liveherocount(stat()) > 0 THEN exper& = exper& / liveherocount(stat())
+IF liveherocount(bstat()) > 0 THEN exper& = exper& / liveherocount(bstat())
 FOR i = 0 TO 3
- IF stat(i, 0, 0) > 0 THEN giveheroexperience i, exstat(), exper&
- updatestatslevelup i, exstat(), stat(), 0
+ IF bstat(i).cur.hp > 0 THEN giveheroexperience i, exstat(), exper&
+ updatestatslevelup i, exstat(), bstat(), 0
 NEXT i
 vdance = 1
 RETRACE
@@ -2242,10 +2267,10 @@ RETRACE
 
 END FUNCTION
 
-FUNCTION checkNoRunBit (stat(), ebits(), bslot() AS BattleSprite)
+FUNCTION checkNoRunBit (bstat() AS BattleStats, ebits(), bslot() AS BattleSprite)
  checkNoRunBit = 0
  FOR i = 4 TO 11
-  IF stat(i, 0, 0) > 0 AND bslot(i).vis = 1 AND readbit(ebits(), (i - 4) * 5, 57) = 1 THEN checkNoRunBit = 1
+  IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND readbit(ebits(), (i - 4) * 5, 57) = 1 THEN checkNoRunBit = 1
  NEXT i
 END FUNCTION
 
@@ -2299,7 +2324,7 @@ NEXT i
 
 END SUB
 
-SUB quickinflict (harm, targ, hc(), hx(), hy(), bslot() AS BattleSprite, harm$(), stat())
+SUB quickinflict (harm, targ, hc(), hx(), hy(), bslot() AS BattleSprite, harm$(), bstat() AS BattleStats)
 '--quick damage infliction to hp. no bells and whistles
 hc(targ) = 7
 hx(targ) = bslot(targ).x + (bslot(targ).w * .5)
@@ -2312,7 +2337,7 @@ END IF
 
 if gen(genDamageCap) > 0 THEN harm = small(harm, gen(genDamageCap))
 
-stat(targ, 0, 0) = bound(stat(targ, 0, 0) - harm, 0, stat(targ, 1, 0))
+bstat(targ).cur.hp = bound(bstat(targ).cur.hp - harm, 0, bstat(targ).max.hp)
 END SUB
 
 SUB anim_end()

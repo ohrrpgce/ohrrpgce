@@ -15,6 +15,7 @@ Dec ?? 2007 [voxhumana]
   * Vikings of Midgard
   
   * Stuff only Developers Will Notice
+    * BattleStats UDT [James Paige]
 
 Sept 21 2007 [ubersetzung]
   * New Features

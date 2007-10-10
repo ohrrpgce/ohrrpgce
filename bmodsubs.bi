@@ -7,26 +7,28 @@
 #IFNDEF BMODSUBS_BI
 #DEFINE BMODSUBS_BI
 
+#INCLUDE "udts.bi"
+
 declare function is_hero(who)
 declare function is_enemy(who)
 declare function is_attack(who)
 declare function is_weapon(who)
 declare sub advance (who, atk(), bslot() as battlesprite, t())
-declare function atkallowed (atkid, attacker, spclass, lmplev, stat(), atkbuf())
+declare function atkallowed (atkid, attacker, spclass, lmplev, bstat() AS BattleStats, atkbuf())
 declare function checktheftchance (item, itemp, rareitem, rareitemp)
 declare sub control
 declare function countai (ai, them, es())
-declare sub eaifocus (j, atkdat(), t(), stat(), bslot() as battlesprite, ebits(), revenge(), revengemask(), targmem())
-declare sub eaispread (j, atkdat(), t(), stat(), bslot() as battlesprite, ebits(), revenge(), revengemask(), targmem())
-declare function enemycount (bslot() as battlesprite, stat())
-declare function targenemycount (bslot() AS BattleSprite, stat())
+declare sub eaifocus (j, atkdat(), t(), bstat() AS BattleStats, bslot() as battlesprite, ebits(), revenge(), revengemask(), targmem())
+declare sub eaispread (j, atkdat(), t(), bstat() AS BattleStats, bslot() as battlesprite, ebits(), revenge(), revengemask(), targmem())
+declare function enemycount (bslot() as battlesprite, bstat() AS BattleStats)
+declare function targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats)
 declare sub etwitch (who, atk(), bslot() as battlesprite, t())
 declare function getweaponpos(w,f,isy)'or x?
 declare function getheropos(h,f,isy)'or x?
 declare sub heroanim (who, atk(), bslot() as battlesprite, t())
-declare function inflict (w, t, stat(), bslot() as battlesprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
-declare function liveherocount (stat())
-declare sub loadfoe (i, formdata(), es(), bslot() as battlesprite, p(), ext$(), bits(), stat(), ebits(), batname$())
+declare function inflict (w, t, bstat() AS BattleStats, bslot() as battlesprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
+declare function liveherocount (bstat() AS BattleStats)
+declare sub loadfoe (i, formdata(), es(), bslot() as battlesprite, p(), ext$(), bits(), bstat() AS BattleStats, ebits(), batname$())
 declare function randomally (who)
 declare function randomfoe (who)
 declare sub retreat (who, atk(), bslot() as battlesprite, t())
@@ -40,9 +42,9 @@ declare function targetmaskcount (tmask())
 declare sub traceshow (s$)
 declare function trytheft (who, targ, atk(), es())
 declare function exptolevel& (level)
-declare sub updatestatslevelup (i, exstat(), stat(), allowforget)
+declare sub updatestatslevelup (i, exstat(), bstat() AS BattleStats, allowforget)
 declare sub giveheroexperience (i, exstat(), exper&)
-declare function visibleandalive (o, stat(), bslot() as battlesprite)
-declare sub writestats (exstat(), stat())
+declare function visibleandalive (o, bstat() AS BattleStats, bslot() as battlesprite)
+declare sub writestats (exstat(), bstat() AS BattleStats)
 
 #ENDIF

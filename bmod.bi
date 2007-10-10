@@ -10,12 +10,12 @@
 #INCLUDE "udts.bi"
 
 declare function battle (form, fatal, exstat())
-declare function checknorunbit (stat(), ebits(), bslot() as battlesprite)
+declare function checknorunbit (bstat() AS BattleStats, ebits(), bslot() as battlesprite)
 declare sub checktagcond (t, check, tg, tagand)
 declare function focuscost (cost, focus)
 declare sub herobattlebits (bitbuf(), who)
 declare sub invertstack
-declare sub quickinflict (harm, targ, hc(), hx(), hy(), bslot() as battlesprite, harm$(), stat())
+declare sub quickinflict (harm, targ, hc(), hx(), hy(), bslot() as battlesprite, harm$(), bstat() AS BattleStats)
 DECLARE SUB anim_end()
 DECLARE SUB anim_wait(ticks%)
 DECLARE SUB anim_waitforall()

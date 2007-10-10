@@ -7,11 +7,9 @@
 DEFINT A-Z
 'basic subs and functions
 DECLARE SUB exitprogram (needfade%)
-DECLARE SUB quitcleanup ()
 DECLARE FUNCTION safesubtract% (number%, minus%)
 DECLARE FUNCTION safemultiply% (number%, by!)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
-DECLARE FUNCTION atkallowed% (atkid%, attacker%, spclass%, lmplev%, stat%(), atkbuf%())
 DECLARE FUNCTION trytheft% (who%, targ%, atk%(), es%())
 DECLARE SUB setbatcap (cap$, captime%, capdelay%)
 DECLARE FUNCTION checktheftchance% (item%, itemP%, rareitem%, rareitemP%)
@@ -21,18 +19,12 @@ DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION targetmaskcount% (tmask%())
 DECLARE FUNCTION randomally% (who%)
 DECLARE FUNCTION randomfoe% (who%)
-DECLARE FUNCTION liveherocount% (stat%())
 DECLARE FUNCTION countai% (ai%, them%, es%())
 DECLARE SUB calibrate ()
 DECLARE SUB control ()
-DECLARE SUB equip (pt%, stat%())
-DECLARE FUNCTION items% (stat%())
 DECLARE SUB getitem (getit%, num%)
-DECLARE SUB spells (pt%, stat%())
-DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB resetlmp (slot%, lev%)
-DECLARE SUB addhero (who%, slot%, stat%())
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
 DECLARE FUNCTION rangel% (n&, r%)
@@ -54,14 +46,17 @@ DECLARE FUNCTION is_weapon(who%)
 #include "gglobals.bi"
 #include "const.bi"
 #include "uiconst.bi"
+#include "udts.bi"
 
-DECLARE SUB loadfoe (i%, formdata%(), es%(), bslot() AS BattleSprite, p%(), ext$(), bits%(), stat%(), ebits%(), batname$())
-DECLARE FUNCTION inflict (w%, t%, stat%(), bslot() AS BattleSprite, harm$(), hc%(), hx%(), hy%(), atk%(), tcount%, bits%(), revenge%(), revengemask%(), targmem%(), revengeharm%(), repeatharm%())
-DECLARE SUB smartarrowmask (inrange%(), pt%, d%, axis%, bslot() AS BattleSprite, tmask%())
-DECLARE FUNCTION visibleandalive% (o%, stat%(), bslot() AS BattleSprite)
-DECLARE FUNCTION enemycount% (bslot() AS BattleSprite, stat%())
-DECLARE FUNCTION targenemycount% (bslot() AS BattleSprite, stat%())
-DECLARE FUNCTION targetable% (attacker%, target%, ebits%(), bslot() AS BattleSprite)
+DECLARE SUB loadfoe (i, formdata(), es(), bslot() as battlesprite, p(), ext$(), bits(), bstat() AS BattleStats, ebits(), batname$())
+DECLARE FUNCTION inflict (w, t, bstat() AS BattleStats, bslot() as battlesprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
+DECLARE SUB smartarrowmask (inrange(), pt, d, axis, bslot() as battlesprite, tmask())
+DECLARE FUNCTION visibleandalive (o, bstat() AS BattleStats, bslot() as battlesprite)
+DECLARE FUNCTION enemycount (bslot() as battlesprite, bstat() AS BattleStats)
+DECLARE FUNCTION targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats)
+DECLARE FUNCTION targetable (attacker, target, ebits(), bslot() as battlesprite)
+DECLARE FUNCTION atkallowed (atkid, attacker, spclass, lmplev, bstat() AS BattleStats, atkbuf())
+DECLARE FUNCTION liveherocount (bstat() AS BattleStats)
 
 REM $STATIC
 FUNCTION is_hero(who)
@@ -107,7 +102,7 @@ END IF
 
 END SUB
 
-FUNCTION atkallowed (atkid, attacker, spclass, lmplev, stat(), atkbuf())
+FUNCTION atkallowed (atkid, attacker, spclass, lmplev, bstat() AS BattleStats, atkbuf())
 '--atkid    = attack ID number
 '--attacker = hero or enemy who is attacking
 '--spclass  = 0 for normal attacks, 1 for level-MP spells
@@ -123,13 +118,13 @@ END IF
 loadattackdata atkbuf(), atkid
 
 '--check for mutedness
-IF readbit(atkbuf(),65,0) = 1 AND stat(attacker, 0, 15) < stat(attacker, 1, 15) THEN
+IF readbit(atkbuf(),65,0) = 1 AND bstat(attacker).cur.mute < bstat(attacker).max.mute THEN
  atkallowed = 0
  EXIT FUNCTION
 END IF
 
 '--check for sufficient mp
-IF stat(attacker, 0, 1) - focuscost(atkbuf(8), stat(attacker, 0, 10)) < 0 THEN
+IF bstat(attacker).cur.mp - focuscost(atkbuf(8), bstat(attacker).cur.foc) < 0 THEN
  atkallowed = 0
  EXIT FUNCTION
 END IF
@@ -316,7 +311,7 @@ NEXT i
 countai = o
 END FUNCTION
 
-SUB eaifocus (j, atkdat(), t(), stat(), bslot() AS BattleSprite, ebits(), revenge(), revengemask(), targmem())
+SUB eaifocus (j, atkdat(), t(), bstat() AS BattleStats, bslot() AS BattleSprite, ebits(), revenge(), revengemask(), targmem())
 
 'flush the targeting space for this attacker
 FOR ii = 0 TO 11
@@ -324,7 +319,7 @@ FOR ii = 0 TO 11
 NEXT ii
 
 'cancel if no heros are alive
-IF liveherocount(stat()) = 0 THEN EXIT SUB
+IF liveherocount(bstat()) = 0 THEN EXIT SUB
 
 targetptr = 0
 
@@ -337,7 +332,7 @@ IF atkdat(3) = 0 THEN
   t(j, targetptr) = o
   ol = ol + 1
   'if its alive and visable and targetable, target it!
-  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
+  IF visibleandalive(o, bstat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
  LOOP UNTIL ol > 99 'safety cutoff
 END IF
 
@@ -356,7 +351,7 @@ IF atkdat(3) = 1 OR atkdat(3) = 4 OR atkdat(3) = 5 THEN
   t(j, targetptr) = o
   ol = ol + 1
   'if alive and targetable, target it!
-  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
+  IF visibleandalive(o, bstat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
  LOOP UNTIL ol > 99 'safety cutoff
 END IF
 
@@ -371,13 +366,13 @@ IF atkdat(3) = 3 THEN
   o = INT(RND * 12)
   t(j, targetptr) = o
   ol = ol + 1
-  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
+  IF visibleandalive(o, bstat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
  LOOP UNTIL ol > 99 'safety cutoff
 END IF
 
 'revenge one
 IF atkdat(3) = 6 AND revenge(j) >= 0 THEN
- IF visibleandalive(revenge(j), stat(), bslot()) AND targetable(j, revenge(j), ebits(), bslot()) THEN
+ IF visibleandalive(revenge(j), bstat(), bslot()) AND targetable(j, revenge(j), ebits(), bslot()) THEN
   t(j, targetptr) = revenge(j)
  END IF
 END IF
@@ -390,7 +385,7 @@ IF atkdat(3) = 7 AND revengemask(j) THEN
   o = INT(RND * 12)
   IF readbit(revengemask(), j, o) THEN
    t(j, targetptr) = o
-   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
+   IF visibleandalive(o, bstat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
   END IF
   ol = ol + 1
  LOOP UNTIL ol > 99 'safety cutoff
@@ -404,7 +399,7 @@ IF atkdat(3) = 8 AND targmem(j) THEN
   o = INT(RND * 12)
   IF readbit(targmem(), j, o) THEN
    t(j, targetptr) = o
-   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
+   IF visibleandalive(o, bstat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
   END IF
   ol = ol + 1
  LOOP UNTIL ol > 99 'safety cutoff
@@ -418,7 +413,7 @@ IF atkdat(3) = 9 AND targmem(j + 12) THEN
   o = randomfoe(j)
   IF readbit(targmem(), j + 12, o) THEN
    t(j, targetptr) = o
-   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
+   IF visibleandalive(o, bstat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN EXIT DO
   END IF
   ol = ol + 1
  LOOP UNTIL ol > 99 'safety cutoff
@@ -426,7 +421,7 @@ END IF
 
 END SUB
 
-SUB eaispread (j, atkdat(), t(), stat(), bslot() AS BattleSprite, ebits(), revenge(), revengemask(), targmem())
+SUB eaispread (j, atkdat(), t(), bstat() AS BattleStats, bslot() AS BattleSprite, ebits(), revenge(), revengemask(), targmem())
 
 'clear attacker's temporary target area
 FOR ii = 0 TO 11
@@ -434,14 +429,14 @@ FOR ii = 0 TO 11
 NEXT ii
 
 'fail if no heros are present
-IF liveherocount(stat()) = 0 THEN EXIT SUB
+IF liveherocount(bstat()) = 0 THEN EXIT SUB
 
 targetptr = 0
 
 'enemy targets hero
 IF atkdat(3) = 0 AND is_enemy(j) THEN
  FOR o = 0 TO 3
-  IF visibleandalive(o, stat(), bslot()) THEN
+  IF visibleandalive(o, bstat(), bslot()) THEN
    t(j, targetptr) = o
    targetptr = targetptr + 1
   END IF
@@ -452,7 +447,7 @@ END IF
 IF atkdat(3) = 0 AND is_hero(j) THEN
  FOR o = 4 TO 11
   IF is_hero(j) THEN
-   IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN
+   IF visibleandalive(o, bstat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN
     t(j, targetptr) = o
     targetptr = targetptr + 1
    END IF
@@ -463,7 +458,7 @@ END IF
 'enemy targets enemy
 IF (atkdat(3) = 1 OR atkdat(3) = 4 OR atkdat(3) = 5) AND is_enemy(j) THEN
  FOR o = 4 TO 11
-  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN
+  IF visibleandalive(o, bstat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN
    IF atkdat(3) <> 5 OR j <> o THEN
     t(j, targetptr) = o
     targetptr = targetptr + 1
@@ -475,7 +470,7 @@ END IF
 'hero targets hero
 IF (atkdat(3) = 1 OR atkdat(3) = 4 OR atkdat(3) = 5 OR atkdat(3) = 10) AND is_hero(j) THEN
  FOR o = 0 TO 3
-  IF visibleandalive(o, stat(), bslot()) OR (bslot(o).vis = 1 AND (atkdat(3) = 4 OR atkdat(3) = 10)) THEN
+  IF visibleandalive(o, bstat(), bslot()) OR (bslot(o).vis = 1 AND (atkdat(3) = 4 OR atkdat(3) = 10)) THEN
    IF atkdat(3) <> 5 OR j <> o THEN
     t(j, targetptr) = o
     targetptr = targetptr + 1
@@ -490,7 +485,7 @@ IF atkdat(3) = 2 AND targetable(j, j, ebits(), bslot()) THEN t(j, 0) = j
 'all
 IF atkdat(3) = 3 THEN
  FOR o = 0 TO 11
-  IF visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN
+  IF visibleandalive(o, bstat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN
    t(j, targetptr) = o
    targetptr = targetptr + 1
   END IF
@@ -499,7 +494,7 @@ END IF
 
 'revenge one
 IF atkdat(3) = 6 AND revenge(j) >= 0 THEN
- IF visibleandalive(revenge(j), stat(), bslot()) AND targetable(j, revenge(j), ebits(), bslot()) THEN
+ IF visibleandalive(revenge(j), bstat(), bslot()) AND targetable(j, revenge(j), ebits(), bslot()) THEN
   t(j, targetptr) = revenge(j)
  END IF
 END IF
@@ -507,7 +502,7 @@ END IF
 'revengeall
 IF atkdat(3) = 7 THEN
  FOR o = 0 TO 11
-  IF readbit(revengemask(), j, o) AND visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN
+  IF readbit(revengemask(), j, o) AND visibleandalive(o, bstat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN
    t(j, targetptr) = o
    targetptr = targetptr + 1
   END IF
@@ -517,7 +512,7 @@ END IF
 'lasttargs
 IF atkdat(3) = 8 THEN
  FOR o = 0 TO 11
-  IF readbit(targmem(), j, o) AND visibleandalive(o, stat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN
+  IF readbit(targmem(), j, o) AND visibleandalive(o, bstat(), bslot()) AND targetable(j, o, ebits(), bslot()) THEN
    t(j, targetptr) = o
    targetptr = targetptr + 1
   END IF
@@ -527,7 +522,7 @@ END IF
 'stored targs
 IF atkdat(3) = 9 THEN
  FOR o = 0 TO 11
-  IF readbit(targmem(), j + 12, o) AND visibleandalive(o, stat(), bslot()) THEN
+  IF readbit(targmem(), j + 12, o) AND visibleandalive(o, bstat(), bslot()) THEN
    t(j, targetptr) = o
    targetptr = targetptr + 1
   END IF
@@ -536,18 +531,18 @@ END IF
 
 END SUB
 
-FUNCTION enemycount (bslot() AS BattleSprite, stat())
+FUNCTION enemycount (bslot() AS BattleSprite, bstat() AS BattleStats)
 o = 0
 FOR i = 4 TO 11
- IF stat(i, 0, 0) > 0 THEN o = o + 1
+ IF bstat(i).cur.hp > 0 THEN o = o + 1
 NEXT i
 RETURN o
 END FUNCTION
 
-FUNCTION targenemycount (bslot() AS BattleSprite, stat())
+FUNCTION targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats)
 o = 0
 FOR i = 4 TO 11
- IF stat(i, 0, 0) > 0 AND bslot(i).vis = 1 AND bslot(i).hero_untargetable = 0 THEN o = o + 1
+ IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND bslot(i).hero_untargetable = 0 THEN o = o + 1
 NEXT i
 RETURN o
 END FUNCTION
@@ -677,7 +672,7 @@ END IF
 
 END SUB
 
-FUNCTION inflict (w, t, stat(), bslot() AS BattleSprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
+FUNCTION inflict (w, t, bstat() AS BattleStats, bslot() AS BattleSprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
 
 DIM tbits(4)
 
@@ -712,51 +707,55 @@ IF atk(5) <> 4 THEN
  hc(t) = 7
  hx(t) = bslot(t).x + (bslot(t).w * .5)
  hy(t) = bslot(t).y + (bslot(t).h * .5)
- targstat = atk(18)
+ targstat = bound(atk(18), 0, UBOUND(bstat(t).cur.sta))
 
  'accuracy
- a = stat(w, 0, 3): d = stat(t, 0, 5): dm! = .25
+ a = bstat(w).cur.acc
+ d = bstat(t).cur.dog
+ dm! = .25
  IF atk(6) = 1 THEN dm! = .5
  IF atk(6) = 2 THEN dm! = 1
  IF atk(6) = 3 THEN dm! = 0
- IF atk(6) = 4 THEN a = stat(w, 0, 6): d = stat(t, 0, 7): dm! = 1.25
+ IF atk(6) = 4 THEN a = bstat(w).cur.mag : d = bstat(t).cur.wil : dm! = 1.25
  IF range(a, 75) < range(d * dm!, 75) THEN
   harm$(t) = readglobalstring$(120, "miss", 20)
   EXIT FUNCTION
  END IF
 
- IF readbit(atk(),65,1) = 1 AND stat(t,0,12) < stat(t,1,12) THEN
+ IF readbit(atk(),65,1) = 1 AND bstat(t).cur.poison < bstat(t).max.poison THEN
   harm$(t) = readglobalstring$(121, "fail", 20)
   EXIT FUNCTION
  END IF
- IF readbit(atk(),65,2) = 1 AND stat(t,0,13) < stat(t,1,13) THEN
+ IF readbit(atk(),65,2) = 1 AND bstat(t).cur.regen < bstat(t).max.regen THEN
   harm$(t) = readglobalstring$(121, "fail", 20)
   EXIT FUNCTION
  END IF
- IF readbit(atk(),65,3) = 1 AND stat(t,0,14) <> stat(t,1,14) THEN
+ IF readbit(atk(),65,3) = 1 AND bstat(t).cur.stun <> bstat(t).max.stun THEN
   harm$(t) = readglobalstring$(121, "fail", 20)
   EXIT FUNCTION
  END IF
- IF readbit(atk(),65,4) = 1 AND stat(t,0,15) <> stat(t,1,15) THEN
+ IF readbit(atk(),65,4) = 1 AND bstat(t).cur.mute <> bstat(t).max.mute THEN
   harm$(t) = readglobalstring$(121, "fail", 20)
   EXIT FUNCTION
  END IF
 
  'attack and defense base
- a = stat(w, 0, 2): d = stat(t, 0, 4)
+ a = bstat(w).cur.str
+ d = bstat(t).cur.def
  SELECT CASE atk(7)
   CASE 1
-   a = stat(w, 0, 6): d = stat(t, 0, 7)
+   a = bstat(w).cur.mag
+   d = bstat(t).cur.wil
   CASE 2
-   a = stat(w, 0, 0)
+   a = bstat(w).cur.hp
   CASE 3
-   a = (stat(w, 1, 0) - stat(w, 0, 0))
+   a = bstat(w).max.hp - bstat(w).cur.hp
   CASE 4
    a = INT(RND * 999)
   CASE 5
    a = 100
   CASE 6 TO 17
-   a = stat(w, 0, atk(7) - 6)
+   a = bstat(w).cur.sta(atk(7) - 6)
   CASE 18
    a = repeatharm(w)
   CASE 19
@@ -766,7 +765,7 @@ IF atk(5) <> 4 THEN
  END SELECT
 
  '--defense base
- IF atk(58) > 0 THEN d = stat(t, 0, atk(58) - 1)
+ IF atk(58) > 0 AND atk(58) <= UBOUND(bstat(t).cur.sta) + 1 THEN d = bstat(t).cur.sta(atk(58) - 1)
 
  'calc defense
  am! = 1: dm! = .5                    'atk-def*.5
@@ -776,7 +775,7 @@ IF atk(5) <> 4 THEN
 
  'resetting
  IF readbit(atk(), 20, 57) = 1 THEN
-  stat(t, 0, targstat) = stat(t, 1, targstat)
+  bstat(t).cur.sta(targstat) = bstat(t).max.sta(targstat)
  END IF
 
  'calc harm
@@ -830,12 +829,12 @@ IF atk(5) <> 4 THEN
  END IF
 
  'remember target stat
- remtargstat = stat(t, 0, targstat)
- rematkrstat = stat(w, 0, targstat)
+ remtargstat = bstat(t).cur.sta(targstat)
+ rematkrstat = bstat(w).cur.sta(targstat)
 
  'pre-calculate percentage damage for display
- chp& = stat(t, 0, targstat)
- mhp& = stat(t, 1, targstat)
+ chp& = bstat(t).cur.sta(targstat)
+ mhp& = bstat(t).max.sta(targstat)
  IF readbit(atk(), 65, 5) = 1 THEN
   SELECT CASE atk(5)
    CASE 5'% of max
@@ -858,7 +857,7 @@ IF atk(5) <> 4 THEN
    IF h& < -gen(genDamageCap) THEN h& = -gen(genDamageCap)
   END IF
   h = h&
-  stat(t, 0, targstat) = safesubtract(stat(t, 0, targstat), h)
+  bstat(t).cur.sta(targstat) = safesubtract(bstat(t).cur.sta(targstat), h)
   IF readbit(atk(), 20, 2) THEN
    '--drain
    IF readbit(atk(), 20, 56) = 0 THEN
@@ -869,16 +868,16 @@ IF atk(5) <> 4 THEN
    hc(w + 12) = 12 'pink
    hx(w) = bslot(w).x + (bslot(w).w * .5)
    hy(w) = bslot(w).y + (bslot(w).h * .5)
-   stat(w, 0, targstat) = stat(w, 0, targstat) + h
+   bstat(w).cur.sta(targstat) = bstat(w).cur.sta(targstat) + h
   END IF
  END IF
 
  'enforce bounds
- stat(t, 0, targstat) = large(stat(t, 0, targstat), 0)
- stat(w, 0, targstat) = large(stat(w, 0, targstat), 0)
+ bstat(t).cur.sta(targstat) = large(bstat(t).cur.sta(targstat), 0)
+ bstat(w).cur.sta(targstat) = large(bstat(w).cur.sta(targstat), 0)
  IF readbit(atk(), 20, 58) = 0 THEN
-  stat(t, 0, targstat) = small(stat(t, 0, targstat), large(stat(t, 1, targstat), remtargstat))
-  stat(w, 0, targstat) = small(stat(w, 0, targstat), large(stat(w, 1, targstat), rematkrstat))
+  bstat(t).cur.sta(targstat) = small(bstat(t).cur.sta(targstat), large(bstat(t).max.sta(targstat), remtargstat))
+  bstat(w).cur.sta(targstat) = small(bstat(w).cur.sta(targstat), large(bstat(w).max.sta(targstat), rematkrstat))
  END IF
 
  'set damage display
@@ -889,11 +888,11 @@ IF atk(5) <> 4 THEN
  END IF
 
  'remember revenge data
- IF remtargstat > stat(t, 0, targstat) THEN
+ IF remtargstat > bstat(t).cur.sta(targstat) THEN
   setbit revengemask(), t, w, 1
   revenge(t) = w
-  revengeharm(t) = remtargstat - stat(t, 0, targstat)
-  repeatharm(w) = remtargstat - stat(t, 0, targstat)
+  revengeharm(t) = remtargstat - bstat(t).cur.sta(targstat)
+  repeatharm(w) = remtargstat - bstat(t).cur.sta(targstat)
  END IF
 
 END IF 'skips to here if no damage
@@ -910,15 +909,15 @@ bslot(w).attack_succeeded = 1
 
 END FUNCTION
 
-FUNCTION liveherocount (stat())
+FUNCTION liveherocount (bstat() AS BattleStats)
 i = 0
 FOR o = 0 TO 3
- IF hero(o) > 0 AND stat(o, 0, 0) > 0 THEN i = i + 1
+ IF hero(o) > 0 AND bstat(o).cur.hp > 0 THEN i = i + 1
 NEXT o
 liveherocount = i
 END FUNCTION
 
-SUB loadfoe (i, formdata(), es(), bslot() AS BattleSprite, p(), ext$(), bits(), stat(), ebits(), batname$())
+SUB loadfoe (i, formdata(), es(), bslot() AS BattleSprite, p(), ext$(), bits(), bstat() AS BattleStats, ebits(), batname$())
 IF formdata(i * 4) > 0 THEN
  loadenemydata buffer(), formdata(i * 4) - 1, -1
  FOR o = 0 TO 160
@@ -959,8 +958,8 @@ IF bslot(4 + i).vis = 1 THEN
  setpicstuf buffer(), (bslot(4 + i).w * bslot(4 + i).h) * .5, 3
  loadset game$ + ext$(i), es(i, 53), 64 + i * 10
  FOR o = 0 TO 11
-  stat(4 + i, 0, o) = es(i, 62 + o)
-  stat(4 + i, 1, o) = es(i, 62 + o)
+  bstat(4 + i).cur.sta(o) = es(i, 62 + o)
+  bstat(4 + i).max.sta(o) = es(i, 62 + o)
  NEXT o
  FOR o = 0 TO 4
   bits(4 + i, o) = es(i, 74 + o)
@@ -1164,7 +1163,7 @@ FUNCTION exptolevel& (level)
  exptolevel = exper&
 END FUNCTION
 
-SUB updatestatslevelup (i, exstat(), stat(), allowforget)
+SUB updatestatslevelup (i, exstat(), bstat() AS BattleStats, allowforget)
 ' i = who
 ' exstat = external stats
 ' stat = in-battle stats
@@ -1206,16 +1205,14 @@ IF exstat(i, 1, 12) THEN
  IF readbit(gen(), 101, 2) = 0 THEN
   '--HP restoration ON
   exstat(i, 0, 0) = exstat(i, 1, 0) 'set external cur to external max
-  FOR o = 0 TO 1
-   stat(i, o, 0) = exstat(i, 1, 0) 'set in-battle min and max to external max
-  NEXT o
+  bstat(i).cur.hp = exstat(i, 1, 0) 'set in-battle cur to external max
+  bstat(i).max.hp = exstat(i, 1, 0) 'set in-battle max to external max
  END IF
  IF readbit(gen(), 101, 3) = 0 THEN
   '--MP restoration ON
   exstat(i, 0, 1) = exstat(i, 1, 1) 'set external cur to external max
-  FOR o = 0 TO 1
-   stat(i, o, 1) = exstat(i, 1, 1) 'set in-battle min and max to external max
-  NEXT o
+  bstat(i).cur.mp = exstat(i, 1, 1) 'set in-battle cur to external max
+  bstat(i).max.mp = exstat(i, 1, 1) 'set in-battle max to external max
   resetlmp i, exstat(i, 0, 12)
  END IF
 
@@ -1262,18 +1259,18 @@ SUB giveheroexperience (i, exstat(), exper&)
  END IF
 END SUB
 
-SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, stat())
+SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat())
  'unlike giveheroexperience, this can cause delevelling
- DIM dummystats(40, 1, 1) 'just need HP and MP
+ DIM dummystats(40) AS BattleStats
 
- temp = stat(who, 0, 12)
+ temp = exstat(who, 0, 12)
  total = 0
- FOR i = 0 TO stat(who, 0, 12) - 1
+ FOR i = 0 TO exstat(who, 0, 12) - 1
   total += exptolevel(i)
  NEXT
  IF total > amount THEN
   'losing levels; lvl up from level 0
-  stat(who, 0, 12) = 0
+  exstat(who, 0, 12) = 0
   exlev(who, 1) = exptolevel(0)
   lostlevels = -1
  ELSE
@@ -1283,9 +1280,9 @@ SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, stat())
   lostlevels = 0
  END IF
  exlev(who, 0) = 0
- giveheroexperience who, stat(), amount
- updatestatslevelup who, stat(), dummystats(), allowforget
- stat(who, 1, 12) -= temp
+ giveheroexperience who, exstat(), amount
+ updatestatslevelup who, exstat(), dummystats(), allowforget
+ exstat(who, 1, 12) -= temp
  IF lostlevels THEN
   'didn't learn spells, wipe mask
   FOR i = small(who, 4) * 6 TO small(who, 4) * 6 + 5
@@ -1294,18 +1291,17 @@ SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, stat())
  END IF
 END SUB
 
-FUNCTION visibleandalive (o, stat(), bslot() AS BattleSprite)
-visibleandalive = (bslot(o).vis = 1 AND stat(o, 0, 0) > 0)
+FUNCTION visibleandalive (o, bstat() AS BattleStats, bslot() AS BattleSprite)
+visibleandalive = (bslot(o).vis = 1 AND bstat(o).cur.hp > 0)
 END FUNCTION
 
-SUB writestats (exstat(), stat())
+SUB writestats (exstat(), bstat() AS BattleStats)
 setpicstuf buffer(), 636, -1
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
   '--set out-of-battle HP and MP equal to in-battle HP and MP
-  FOR o = 0 TO 1
-   exstat(i, 0, o) = stat(i, 0, o)
-  NEXT o
+  exstat(i, 0, 0) = bstat(i).cur.hp
+  exstat(i, 0, 1) = bstat(i).cur.mp
  END IF
 NEXT i
 END SUB
