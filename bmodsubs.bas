@@ -129,8 +129,8 @@ IF bstat(attacker).cur.mp - focuscost(atkbuf(8), bstat(attacker).cur.foc) < 0 TH
  EXIT FUNCTION
 END IF
 
-'--check for level-MP
-IF spclass = 1 THEN
+'--check for level-MP (heroes only)
+IF attacker <= 3 AND spclass = 1 THEN
  IF lmp(attacker, lmplev) - 1 < 0 THEN
   atkallowed = 0
   EXIT FUNCTION
@@ -138,12 +138,17 @@ IF spclass = 1 THEN
 END IF
 
 '--check for sufficient items
+DIM itemid, itemcount AS INTEGER
 FOR i = 0 to 2
-  IF atkbuf(93 + i * 2) > 0 THEN 'this slot is used
-    IF countitem(atkbuf(93 + i * 2)) < atkbuf(94 + i * 2) THEN
-      'yes, this still works for adding items.
-      atkallowed = 0
-      EXIT FUNCTION
+  itemid = atkbuf(93 + i * 2)
+  itemcount = atkbuf(94 + i * 2)
+  IF itemid > 0 THEN 'this slot is used
+    IF attacker <= 3 THEN ' Only hero items are checked right now
+      IF countitem(itemid) < itemcount THEN
+        'yes, this still works for adding items.
+        atkallowed = 0
+        EXIT FUNCTION
+      END IF
     END IF
   END IF
 NEXT i
