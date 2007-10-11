@@ -12,6 +12,13 @@ function followlink () {
   fi
 }
 
+if [ ! -d "${WEBDIR}" ] ; then
+  echo "Error: ${WEBDIR} does not exist"
+  exit 1
+fi
+
+cp -p index.php "${WEBDIR}"
+
 NOW=`date "+%Y-%m-%d"`
 
 echo "Mirroring ${URL} on ${NOW}"
@@ -36,6 +43,14 @@ httrack \
   > /dev/null
 
 rm -R *.gif hts-* *.html
+
+COUNT=`ls -1 *.zip | wc -l`
+if [ ${COUNT} -eq 0 ] ; then
+  echo "No files downloaded."
+  cd ..
+  rmdir "${NOW}"
+  exit 1
+fi
 
 YEST=`date -d "Yesterday" "+%Y-%m-%d"`
 YDIR="../${YEST}"
