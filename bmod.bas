@@ -41,7 +41,7 @@ bstackstart = stackpos
 battle = 1
 DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24),  p(24), of(24), ext$(7), ctr(11)
 DIM ready(11), batname$(11), menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
-DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), firstt(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
+DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
 DIM bslot(24) AS BattleSprite
@@ -78,7 +78,14 @@ alert$ = ""
 
 fadeout 240, 240, 240
 vpage = 0: dpage = 1: needf = 1: anim = -1: you = -1: them = -1: fiptr = 0
-vdance = 0: drawvicbox = 0: aset = 0: wf = 0: noifdead = 0: ptarg = 0
+vdance = 0: drawvicbox = 0: aset = 0: wf = 0: noifdead = 0
+
+ptarg = 0 ' ptarg=0 means hero not currently picking a target
+          ' ptarg>0 means hero picking a target
+          ' ptarg=1 means targetting needs set-up
+          ' ptarg=2 means normal manual targetting
+          ' ptarg=3 means autotargeting
+
 FOR i = 0 TO 11
  icons(i) = -1
  revenge(i) = -1
@@ -1303,7 +1310,6 @@ spred = 0
 aim = 0
 randomtarg = 0
 firsttarg = 0
-firstt(you) = 0
 tptr = 0
 FOR i = 0 TO 11
  targs(i) = 0
@@ -1658,7 +1664,6 @@ IF ptarg = 3 THEN
  END IF
  ctr(you) = 0
  ready(you) = 0
- firstt(you) = tptr + 1
  you = -1
  ptarg = 0
  RETRACE
@@ -1680,24 +1685,20 @@ END IF
 
 'first target
 IF firsttarg THEN
- IF firstt(you) = 0 THEN
-  WHILE tmask(tptr) = 0
-   tptr = loopvar(tptr, 0, 11, 1)
-  WEND
- ELSE
-  tptr = firstt(you) - 1
- END IF
- GOSUB gottarg
- RETRACE
+ tptr = 0
+ WHILE tmask(tptr) = 0
+  tptr = loopvar(tptr, 0, 11, 1)
+ WEND
 END IF
-IF spred = 2 AND (carray(2) > 1 OR carray(3) > 1) THEN
+
+IF spred = 2 AND (carray(2) > 1 OR carray(3) > 1) AND randomtarg = 0 AND firsttarg = 0 THEN
  FOR i = 0 TO 11
   targs(i) = 0
  NEXT i
  spred = 1
  flusharray carray(), 7, 0
 END IF
-IF aim = 1 AND spred < 2 THEN
+IF aim = 1 AND spred < 2 AND randomtarg = 0 AND firsttarg = 0 THEN
  IF carray(0) > 1 THEN
   smartarrows tptr, -1, 1, bslot(), targs(), tmask(), 0
  END IF
@@ -1725,7 +1726,6 @@ FOR i = 0 TO 11
 NEXT i
 ctr(you) = 0
 ready(you) = 0
-firstt(you) = tptr + 1
 you = -1
 ptarg = 0
 noifdead = 0
