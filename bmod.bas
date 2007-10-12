@@ -1299,7 +1299,12 @@ RETRACE
 setuptarg: '--identify valid targets (heroes only)
 
 'init
-spred = 0: aim = 0: ran = 0: firstt(you) = 0: tptr = 0
+spred = 0
+aim = 0
+randomtarg = 0
+firsttarg = 0
+firstt(you) = 0
+tptr = 0
 FOR i = 0 TO 11
  targs(i) = 0
  tmask(i) = 0
@@ -1393,8 +1398,8 @@ END IF
 IF buffer(4) = 0 THEN aim = 1
 IF buffer(4) = 1 THEN FOR i = 0 TO 11: targs(i) = tmask(i): NEXT i
 IF buffer(4) = 2 THEN aim = 1: spred = 1
-IF buffer(4) = 3 THEN ran = 1
-IF buffer(4) = 4 THEN ran = 2
+IF buffer(4) = 3 THEN randomtarg = -1
+IF buffer(4) = 4 THEN firsttarg = -1
 'ready to choose targ from targset
 ptarg = 2
 RETRACE
@@ -1664,7 +1669,7 @@ IF targetmaskcount(tmask()) = 0 THEN
 END IF
 
 'random target
-IF ran = 1 THEN
+IF randomtarg THEN
  FOR i = 0 TO INT(RND * 2)
   tptr = loopvar(tptr, 0, 11, 1)
   WHILE tmask(tptr) = 0
@@ -1674,7 +1679,7 @@ IF ran = 1 THEN
 END IF
 
 'first target
-IF ran = 2 THEN
+IF firsttarg THEN
  IF firstt(you) = 0 THEN
   WHILE tmask(tptr) = 0
    tptr = loopvar(tptr, 0, 11, 1)
