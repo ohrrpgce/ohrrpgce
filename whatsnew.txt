@@ -14,8 +14,10 @@ Dec ?? 2007 [voxhumana]
     * Fixed bug 257 "Mute status effect broken for enemies" [James Paige]
     * Fixed bug 5 "First Target attacks can hit targets besides the first"
       [James Paige]
+    * Fixed bug 476, off-by-one-error in "set victory music" [James Paige]
 
   * New Plotscripting Commands
+    * get victory music
 
   * Vikings of Midgard
   

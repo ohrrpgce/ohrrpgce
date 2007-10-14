@@ -929,6 +929,11 @@ end</example>
 			<shortname>set victory music</shortname>
 			<description>Changes the after-battle victory music to the specified song. Use the constants defined in your HSI file. They appear in the form of song:name</description>
 		</command>
+		<command id="getvictorymusic">
+			<cannon>get victory music</cannon>
+			<shortname>get victory music</shortname>
+			<description>Returns the number of the after-battle victory music. Compare with the constants defined in your HSI file. They appear in the form of song:name</description>
+		</command>
 		<command id="setambientmusic">
 			<cannon>set ambient music (song)</cannon>
 			<shortname>set ambient music</shortname>

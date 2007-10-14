@@ -546,7 +546,11 @@ end
 # read/write general wrappers
 
 script,set victory music,song,begin
-  write general(3,song)
+  write general(3,song+1)
+end
+
+script,get victory music,begin
+  return(read general(3)--1)
 end
 
 script,get death script,begin

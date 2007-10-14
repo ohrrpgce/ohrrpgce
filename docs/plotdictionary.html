@@ -511,6 +511,9 @@
 		<a href="#about-gettileanimationoffset">get tile animation offset (animation pattern)</a><br>
 		
 	
+		<a href="#about-getvictorymusic">get victory music</a><br>
+		
+	
 		<a href="#about-giveexperience">give experience (hero,amount)</a><br>
 		
 	
@@ -690,6 +693,9 @@
 	
 		
 		<a href="#about-keyconstants">menu key</a><br>
+	
+		<a href="#about-milliseconds">milliseconds</a><br>
+		
 	
 		<a href="#about-minutesofplay">minutes of play</a><br>
 		
@@ -2649,6 +2655,14 @@ end</pre>
 		<tt>
 		<b><font color="yellow">set victory music (song)</font></b><br>
 			Changes the after-battle victory music to the specified song. Use the constants defined in your HSI file. They appear in the form of song:name
+			
+			
+		</tt></p>
+		<a name="about-getvictorymusic"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get victory music</font></b><br>
+			Returns the number of the after-battle victory music. Compare with the constants defined in your HSI file. They appear in the form of song:name
 			
 			
 		</tt></p>
@@ -5079,6 +5093,14 @@ end</pre>
 			
 			
 		</tt></p>
+		<a name="about-milliseconds"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">milliseconds</font></b><br>
+			Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's uptime).
+			
+			
+		</tt></p>
 
 		<hr>
 	
@@ -5605,7 +5627,7 @@ end</pre>
 		</tt></p>
 
 		<hr>
-	<p>Stats: There are 433 commands in this file, of which 51 are only references to other commands.</p>
+	<p>Stats: There are 435 commands in this file, of which 51 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
