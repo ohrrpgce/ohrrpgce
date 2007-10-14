@@ -1319,8 +1319,8 @@ randomtarg = 0
 firsttarg = 0
 tptr = 0
 FOR i = 0 TO 11
- targs(i) = 0 ' clear list of available targets
- tmask(i) = 0 ' clear list of selected targets
+ tmask(i) = 0 ' clear list of available targets
+ targs(i) = 0 ' clear list of selected targets
  t(you, i) = -1 'clear list of confirmed targets
 NEXT i
 
