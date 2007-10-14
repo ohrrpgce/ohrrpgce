@@ -1301,3 +1301,103 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 END SUB
+
+SUB get_valid_targs(tmask(), who, BYREF noifdead, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, revenge(), revengemask(), targmem())
+
+DIM i AS INTEGER
+
+FOR i = 0 TO 11
+ tmask(i) = 0 ' clear list of available targets
+NEXT i
+
+SELECT CASE atkbuf(3)
+
+ CASE 0 'foe
+  IF is_hero(who) THEN
+   FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
+  ELSEIF is_enemy(who) THEN
+   FOR i = 0 TO 3: tmask(i) = bslot(i).vis: NEXT i
+  END IF
+
+ CASE 1 'ally
+  IF is_hero(who) THEN
+   FOR i = 0 TO 3: tmask(i) = bslot(i).vis: NEXT i
+  ELSEIF is_enemy(who) THEN
+   FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
+  END IF
+
+ CASE 2 'self
+  tmask(who) = 1
+
+ CASE 3 'all
+  FOR i = 0 TO 11: tmask(i) = bslot(i).vis: NEXT i
+
+ CASE 4 'ally-including-dead
+  IF is_hero(who) THEN
+   noifdead = 1
+   FOR i = 0 TO 3
+    IF hero(i) > 0 THEN tmask(i) = 1
+   NEXT i
+  ELSEIF is_enemy(who) THEN
+   'enemies don't actually support targetting of dead allies
+   FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
+  END IF
+
+ CASE 5 'ally-not-self
+  IF is_hero(who) THEN
+   FOR i = 0 TO 3: tmask(i) = bslot(i).vis: NEXT i
+  ELSEIF is_enemy(who) THEN
+   FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
+  END IF
+  tmask(who) = 0
+
+ CASE 6 'revenge-one
+  IF revenge(who) >= 0 THEN
+   tmask(revenge(who)) = bslot(revenge(who)).vis
+  END IF
+
+ CASE 7 'revenge-all
+  FOR i = 0 TO 11
+   tmask(i) = (readbit(revengemask(), who, i) AND bslot(i).vis)
+  NEXT i
+
+ CASE 8 'previous
+  FOR i = 0 TO 11
+   tmask(i) = (readbit(targmem(), who, i) AND bslot(i).vis)
+  NEXT i
+
+ CASE 9 'stored
+  FOR i = 0 TO 11
+   tmask(i) = (readbit(targmem(), who + 12, i) AND bslot(i).vis)
+  NEXT i
+
+ CASE 10 'dead-ally (hero only)
+  IF is_hero(who) THEN
+   noifdead = 1
+   FOR i = 0 TO 3
+    IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN tmask(i) = 1
+   NEXT i
+  END IF
+
+END SELECT
+
+'enforce attack's disabled enemy target slots
+FOR i = 0 TO 7
+ IF readbit(atkbuf(), 20, 37 + i) THEN tmask(4 + i) = 0
+NEXT i
+
+'enforce attack's disabled hero target slots
+FOR i = 0 TO 3
+ IF readbit(atkbuf(), 20, 45 + i) THEN tmask(i) = 0
+NEXT i
+
+'enforce untargetability
+FOR i = 0 TO 11
+ IF is_hero(who) THEN
+  IF bslot(i).hero_untargetable <> 0 THEN tmask(i) = 0
+ ELSEIF is_enemy(who) THEN
+  IF bslot(i).enemy_untargetable <> 0 THEN tmask(i) = 0
+ END IF
+NEXT i
+
+END SUB

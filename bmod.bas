@@ -1319,7 +1319,6 @@ randomtarg = 0
 firsttarg = 0
 tptr = 0
 FOR i = 0 TO 11
- tmask(i) = 0 ' clear list of available targets
  targs(i) = 0 ' clear list of selected targets
  t(you, i) = -1 'clear list of confirmed targets
 NEXT i
@@ -1330,72 +1329,12 @@ loadattackdata buffer(), godo(you) - 1
 noifdead = 0
 ltarg(you) = 0
 
-SELECT CASE buffer(3)
+get_valid_targs tmask(), you, noifdead, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
 
- CASE 0 'enemy
-  FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
-
- CASE 1 'ally
-  FOR i = 0 TO 3: tmask(i) = bslot(i).vis: NEXT i
-
- CASE 2 'self
-  tmask(you) = 1
-
- CASE 3 'all
-  FOR i = 0 TO 11: tmask(i) = bslot(i).vis: NEXT i: tptr = 4
-
- CASE 4 'ally-including-dead
-  noifdead = 1
-  FOR i = 0 TO 3
-   IF hero(i) > 0 THEN tmask(i) = 1
-  NEXT i
-
- CASE 5 'ally-not-self
-  FOR i = 0 TO 3
-   tmask(i) = bslot(i).vis
-  NEXT i
-  tmask(you) = 0
-
- CASE 6 'revenge-one
-  IF revenge(you) >= 0 THEN
-   tmask(revenge(you)) = bslot(revenge(you)).vis
-  END IF
-
- CASE 7 'revenge-all
-  FOR i = 0 TO 11
-   tmask(i) = (readbit(revengemask(), you, i) AND bslot(i).vis)
-  NEXT i
-
- CASE 8 'previous
-  FOR i = 0 TO 11
-   tmask(i) = (readbit(targmem(), you, i) AND bslot(i).vis)
-  NEXT i
-
- CASE 9 'stored
-  FOR i = 0 TO 11
-   tmask(i) = (readbit(targmem(), you + 12, i) AND bslot(i).vis)
-  NEXT i
-
- CASE 10 'dead-ally (hero only)
-  noifdead = 1
-  FOR i = 0 TO 3
-   IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN tmask(i) = 1
-  NEXT i
-
-END SELECT
-
-'enforce attack's disabled target slots
-FOR i = 0 TO 7
- IF readbit(buffer(), 20, 37 + i) THEN tmask(4 + i) = 0
-NEXT i
-FOR i = 0 TO 3
- IF readbit(buffer(), 20, 45 + i) THEN tmask(i) = 0
-NEXT i
-
-'enforce untargetability by heros
-FOR i = 4 TO 11
- IF bslot(i).hero_untargetable <> 0 THEN tmask(i) = 0
-NEXT i
+'--attacks that can target all should default to the first enemy
+IF buffer(3) = 3 THEN
+ tptr = 4
+END IF
 
 'fail if there are no targets
 WHILE tmask(tptr) = 0
