@@ -1329,7 +1329,8 @@ loadattackdata buffer(), godo(you) - 1
 noifdead = 0
 ltarg(you) = 0
 
-get_valid_targs tmask(), you, noifdead, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
+get_valid_targs tmask(), you, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
+noifdead = attack_can_hit_dead(you, buffer())
 
 '--attacks that can target all should default to the first enemy
 IF buffer(3) = 3 THEN

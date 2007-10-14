@@ -1302,7 +1302,7 @@ FOR i = 0 TO 3
 NEXT i
 END SUB
 
-SUB get_valid_targs(tmask(), who, BYREF noifdead, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, revenge(), revengemask(), targmem())
+SUB get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, revenge(), revengemask(), targmem())
 
 DIM i AS INTEGER
 
@@ -1334,7 +1334,6 @@ SELECT CASE atkbuf(3)
 
  CASE 4 'ally-including-dead
   IF is_hero(who) THEN
-   noifdead = 1
    FOR i = 0 TO 3
     IF hero(i) > 0 THEN tmask(i) = 1
    NEXT i
@@ -1373,7 +1372,6 @@ SELECT CASE atkbuf(3)
 
  CASE 10 'dead-ally (hero only)
   IF is_hero(who) THEN
-   noifdead = 1
    FOR i = 0 TO 3
     IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN tmask(i) = 1
    NEXT i
@@ -1401,3 +1399,15 @@ FOR i = 0 TO 11
 NEXT i
 
 END SUB
+
+FUNCTION attack_can_hit_dead(who, atkbuf())
+
+SELECT CASE atkbuf(3)
+ CASE 4 'ally-including-dead (hero only)
+  IF is_hero(who) THEN RETURN 1
+ CASE 10 'dead-ally (hero only)
+  IF is_hero(who) THEN RETURN 1
+END SELECT
+
+RETURN 0
+END FUNCTION'noifdead
