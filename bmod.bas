@@ -40,7 +40,7 @@ bstackstart = stackpos
 
 battle = 1
 DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24),  p(24), of(24), ext$(7), ctr(11)
-DIM ready(11), batname$(11), menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), targs(11), t(11, 12), tmask(11), delay(11), cycle(24), walk(3), aframe(11, 11)
+DIM ready(11), batname$(11), menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(11), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
@@ -51,6 +51,13 @@ DIM dead, mapsong
 DIM spellcount AS INTEGER '--only used in heromenu GOSUB block
 DIM listslot AS INTEGER
 DIM nmenu(3,5) as integer 'new battle menu
+
+DIM tmask(11) ' For the currently targetting hero, a list of true/false values indicating
+              ' which targets are valid for the currently targetting attack
+DIM targs(11) ' For the currently targetting hero, a list of true/false valuse indicating
+              ' which targets from tmask() are currently selected.
+DIM t(11, 12) ' For each hero and enemy, a list of currently selected targets id numbers.
+              ' -1 means no target. targets must be sorted to the beginning of the list when it changes
 
 timinga = 0
 timingb = 0
@@ -1312,9 +1319,9 @@ randomtarg = 0
 firsttarg = 0
 tptr = 0
 FOR i = 0 TO 11
- targs(i) = 0
- tmask(i) = 0
- t(you, i) = -1
+ targs(i) = 0 ' clear list of available targets
+ tmask(i) = 0 ' clear list of selected targets
+ t(you, i) = -1 'clear list of confirmed targets
 NEXT i
 
 'load attack
