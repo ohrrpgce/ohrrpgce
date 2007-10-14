@@ -18,8 +18,6 @@ declare function atkallowed (atkbuf(), attacker, spclass, lmplev, bstat() AS Bat
 declare function checktheftchance (item, itemp, rareitem, rareitemp)
 declare sub control
 declare function countai (ai, them, es())
-declare sub eaifocus (j, atkdat(), t(), bstat() AS BattleStats, bslot() as battlesprite, ebits(), revenge(), revengemask(), targmem())
-declare sub eaispread (j, atkdat(), t(), bstat() AS BattleStats, bslot() as battlesprite, ebits(), revenge(), revengemask(), targmem())
 declare function enemycount (bslot() as battlesprite, bstat() AS BattleStats)
 declare function targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats)
 declare sub etwitch (who, atk(), bslot() as battlesprite, t())

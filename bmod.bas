@@ -52,7 +52,7 @@ DIM spellcount AS INTEGER '--only used in heromenu GOSUB block
 DIM listslot AS INTEGER
 DIM nmenu(3,5) as integer 'new battle menu
 
-DIM enemytmask(11) ' For the currently targetting enemy, a list of true/false values indicating
+DIM autotmask(11) ' A list of true/false values indicating
               ' which targets are valid for the currently targetting attack
 DIM tmask(11) ' For the currently targetting hero, a list of true/false values indicating
               ' which targets are valid for the currently targetting attack
@@ -379,8 +379,8 @@ LOOP
 'get the delay to wait for this attack
 delay(them) = atktemp(16)
 
-get_valid_targs enemytmask(), them, atktemp(), bslot(), bstat(), revenge(), revengemask(), targmem()
-autotarget t(), enemytmask(), them, atktemp()
+get_valid_targs autotmask(), them, atktemp(), bslot(), bstat(), revenge(), revengemask(), targmem()
+autotarget t(), autotmask(), them, atktemp()
 
 'ready for next attack
 ready(them) = 0
@@ -1139,12 +1139,10 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    FOR i = 4 TO 11
     IF bstat(i).cur.hp = 0 THEN o = o + 1
    NEXT i
-   IF bstat(targ).cur.hp = 0 AND o < 8 AND anim > -1 THEN
-    IF atk(4) = 1 OR (atk(4) = 2 AND INT(RND * 100) < 33) THEN
-     eaispread who, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
-    ELSE
-     eaifocus who, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
-    END IF
+   IF bstat(targ).cur.hp = 0 AND o < 8 AND anim > -1 THEN'
+    '--if the target is already dead, auto-pick a new target
+    get_valid_targs autotmask(), who, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
+    autotarget t(), autotmask(), who, buffer()
    END IF
   CASE 11 'setz(who,z)
    ww = popw
@@ -1237,11 +1235,9 @@ IF anim = -1 THEN
   NEXT i
   IF o < 8 THEN
    IF buffer(4) <> atk(4) OR buffer(3) <> atk(3) THEN
-    IF buffer(4) = 1 OR (buffer(4) = 2 AND INT(RND * 100) < 33) THEN
-     eaispread who, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
-    ELSE
-     eaifocus who, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
-    END IF
+    'if the chained attack has a different target class/type then re-target
+    get_valid_targs autotmask(), who, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
+    autotarget t(), autotmask(), who, buffer()
    END IF
   END IF
  END IF
@@ -1423,17 +1419,18 @@ IF deadguyhp = 0 and formslotused <> 0 THEN
  IF noifdead = 0 THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
   tcount = tcount - 1
   FOR j = 0 TO 11
+   '--Search through each hero and enemy to see if any of them are targetting the
+   '--guy who just died
    t(j, 12) = -1
    FOR k = 0 TO 11
+    '--sort dead target away
     IF t(j, k) = deadguy AND readbit(ltarg(), j, deadguy) = 0 THEN SWAP t(j, k), t(j, k + 1)
    NEXT k
    IF t(j, 0) = -1 AND who <> j AND godo(j) > 0 THEN
+    'if no targets left, a-to-re-target
     loadattackdata buffer(), godo(j) - 1
-    IF buffer(4) = 1 OR (buffer(4) = 2 AND INT(RND * 100) < 33) THEN
-     eaispread j, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
-    ELSE
-     eaifocus j, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
-    END IF
+    get_valid_targs autotmask(), j, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
+    autotarget t(), autotmask(), j, buffer()
    END IF
    IF tmask(deadguy) = 1 THEN tmask(deadguy) = 0
    IF targs(deadguy) = 1 THEN targs(deadguy) = 0
@@ -1600,11 +1597,8 @@ IF ptarg = 1 THEN GOSUB setuptarg
 
 'autotarget
 IF ptarg = 3 THEN
- IF buffer(4) = 1 OR (buffer(4) = 2 AND INT(RND * 100) < 33) THEN
-  eaispread you, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
- ELSE
-  eaifocus you, buffer(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
- END IF
+ get_valid_targs autotmask(), you, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
+ autotarget t(), autotmask(), you, buffer()
  ctr(you) = 0
  ready(you) = 0
  you = -1
