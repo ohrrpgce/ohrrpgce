@@ -52,6 +52,8 @@ DIM spellcount AS INTEGER '--only used in heromenu GOSUB block
 DIM listslot AS INTEGER
 DIM nmenu(3,5) as integer 'new battle menu
 
+DIM enemytmask(11) ' For the currently targetting enemy, a list of true/false values indicating
+              ' which targets are valid for the currently targetting attack
 DIM tmask(11) ' For the currently targetting hero, a list of true/false values indicating
               ' which targets are valid for the currently targetting attack
 DIM targs(11) ' For the currently targetting hero, a list of true/false valuse indicating
@@ -377,14 +379,8 @@ LOOP
 'get the delay to wait for this attack
 delay(them) = atktemp(16)
 
-'Choose a target
-IF atktemp(4) = 1 OR (atktemp(4) = 2 AND INT(RND * 100) < 33) THEN
- 'spread attack
- eaispread them, atktemp(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
-ELSE
- 'focused attack
- eaifocus them, atktemp(), t(), bstat(), bslot(), ebits(), revenge(), revengemask(), targmem()
-END IF
+get_valid_targs enemytmask(), them, atktemp(), bslot(), bstat(), revenge(), revengemask(), targmem()
+autotarget t(), enemytmask(), them, atktemp()
 
 'ready for next attack
 ready(them) = 0

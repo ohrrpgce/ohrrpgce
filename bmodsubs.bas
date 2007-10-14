@@ -58,6 +58,10 @@ DECLARE FUNCTION targetable (attacker, target, ebits(), bslot() as battlesprite)
 DECLARE FUNCTION atkallowed (atkbuf(), attacker, spclass, lmplev, bstat() AS BattleStats)
 DECLARE FUNCTION liveherocount (bstat() AS BattleStats)
 
+DECLARE SUB confirm_auto_spread (who, confirmtarg(), tmask())
+DECLARE SUB confirm_auto_random (who, confirmtarg(), tmask())
+DECLARE SUB confirm_auto_first (who, confirmtarg(), tmask())
+
 REM $STATIC
 FUNCTION is_hero(who)
  IF who >= 0 AND who <= 3 THEN RETURN -1
@@ -1411,3 +1415,70 @@ END SELECT
 
 RETURN 0
 END FUNCTION'noifdead
+
+SUB autotarget (confirmtarg(), tmask(), who, atkbuf())
+
+DIM i AS INTEGER
+
+'flush the targeting space for this attacker
+FOR i = 0 TO 11
+ confirmtarg(who, i) = -1
+NEXT i
+
+targetptr = 0
+
+SELECT CASE atkbuf(4)
+
+ CASE 0, 3: '--focus and random focus
+  confirm_auto_random who, confirmtarg(), tmask()
+
+ CASE 1: '--spread attack
+  confirm_auto_spread who, confirmtarg(), tmask()
+
+ CASE 2: '-- optional spread
+  IF INT(RND * 100) < 33 THEN
+   confirm_auto_spread who, confirmtarg(), tmask()
+  ELSE
+   confirm_auto_random who, confirmtarg(), tmask()
+  END IF
+
+ CASE 4: '--first target
+  confirm_auto_first who, confirmtarg(), tmask()
+
+END SELECT
+
+END SUB
+
+SUB confirm_auto_spread (who, confirmtarg(), tmask())
+ DIM i AS INTEGER
+ DIM targetptr AS INTEGER = 0
+ FOR i = 0 TO 11
+  IF tmask(i) <> 0 THEN
+   confirmtarg(who, targetptr) = i
+   targetptr = targetptr + 1
+  END IF
+ NEXT i
+END SUB
+
+SUB confirm_auto_random (who, confirmtarg(), tmask())
+ DIM safety AS INTEGER = 0
+ DIM i AS INTEGER
+ DO
+  i = INT(RND * 12)
+  IF tmask(i) <> 0 THEN
+   confirmtarg(who, 0) = i
+   EXIT DO
+  END IF
+  safety = safety + 1
+ LOOP UNTIL safety > 99 'safety cutoff
+END SUB
+
+SUB confirm_auto_first (who, confirmtarg(), tmask())
+ DIM i AS INTEGER
+ FOR i = 0 TO 11
+  IF tmask(i) <> 0 THEN
+   confirmtarg(who, 0) = i
+   EXIT SUB
+  END IF
+ NEXT i
+END SUB

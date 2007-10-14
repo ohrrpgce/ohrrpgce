@@ -46,7 +46,9 @@ declare sub updatestatslevelup (i, exstat(), bstat() AS BattleStats, allowforget
 declare sub giveheroexperience (i, exstat(), exper&)
 declare function visibleandalive (o, bstat() AS BattleStats, bslot() as battlesprite)
 declare sub writestats (exstat(), bstat() AS BattleStats)
+
 declare sub get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, revenge(), revengemask(), targmem())
 declare function attack_can_hit_dead(who, atkbuf())
+declare sub autotarget (confirmtarg(), tmask(), who, atkbuf())
 
 #ENDIF

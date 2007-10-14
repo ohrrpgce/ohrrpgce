@@ -7,9 +7,13 @@ Dec ?? 2007 [voxhumana]
     * Equip screen displays the number by which a stat will change [James]
     * -s pixel smoothing now works with all bit depths, not just 8-bit
       [Reaxor Jones]
+    * Attack bitsets to disable specific target slots now work for enemies
+      also [James Paige]
 
   * Bugfixes
     * Fixed bug 257 "Mute status effect broken for enemies" [James Paige]
+    * Fixed bug 5 "First Target attacks can hit targets besides the first"
+      [James Paige]
 
   * New Plotscripting Commands
 
