@@ -9,6 +9,8 @@ Dec ?? 2007 [voxhumana]
       [Reaxor Jones]
     * Attack bitsets to disable specific target slots now work for enemies
       also [James Paige]
+    * Attacks can have preferred default targets based on factors such as
+      distance or strongest stat or weakest stat [James Paige]
 
   * Bugfixes
     * Fixed bug 257 "Mute status effect broken for enemies" [James Paige]

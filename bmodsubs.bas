@@ -59,8 +59,9 @@ DECLARE FUNCTION atkallowed (atkbuf(), attacker, spclass, lmplev, bstat() AS Bat
 DECLARE FUNCTION liveherocount (bstat() AS BattleStats)
 
 DECLARE SUB confirm_auto_spread (who, confirmtarg(), tmask())
-DECLARE SUB confirm_auto_random (who, confirmtarg(), tmask())
+DECLARE SUB confirm_auto_focus (who, confirmtarg(), tmask(), atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
 DECLARE SUB confirm_auto_first (who, confirmtarg(), tmask())
+DECLARE FUNCTION find_preferred_target(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
 
 DECLARE FUNCTION quick_battle_distance(who1, who2, bslot() AS BattleSprite)
 DECLARE FUNCTION battle_distance(who1, who2, bslot() AS BattleSprite)
@@ -1199,7 +1200,7 @@ END SELECT
 RETURN 0
 END FUNCTION'noifdead
 
-SUB autotarget (confirmtarg(), tmask(), who, atkbuf())
+SUB autotarget (confirmtarg(), tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
 
 DIM i AS INTEGER
 
@@ -1213,7 +1214,7 @@ targetptr = 0
 SELECT CASE atkbuf(4)
 
  CASE 0, 3: '--focus and random focus
-  confirm_auto_random who, confirmtarg(), tmask()
+  confirm_auto_focus who, confirmtarg(), tmask(), atkbuf(), bslot(), bstat()
 
  CASE 1: '--spread attack
   confirm_auto_spread who, confirmtarg(), tmask()
@@ -1222,7 +1223,7 @@ SELECT CASE atkbuf(4)
   IF INT(RND * 100) < 33 THEN
    confirm_auto_spread who, confirmtarg(), tmask()
   ELSE
-   confirm_auto_random who, confirmtarg(), tmask()
+   confirm_auto_focus who, confirmtarg(), tmask(), atkbuf(), bslot(), bstat()
   END IF
 
  CASE 4: '--first target
@@ -1243,17 +1244,8 @@ SUB confirm_auto_spread (who, confirmtarg(), tmask())
  NEXT i
 END SUB
 
-SUB confirm_auto_random (who, confirmtarg(), tmask())
- DIM safety AS INTEGER = 0
- DIM i AS INTEGER
- DO
-  i = INT(RND * 12)
-  IF tmask(i) <> 0 THEN
-   confirmtarg(who, 0) = i
-   EXIT DO
-  END IF
-  safety = safety + 1
- LOOP UNTIL safety > 99 'safety cutoff
+SUB confirm_auto_focus (who, confirmtarg(), tmask(), atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
+ confirmtarg(who, 0) = find_preferred_target(tmask(), who, atkbuf(), bslot(), bstat())
 END SUB
 
 SUB confirm_auto_first (who, confirmtarg(), tmask())
@@ -1283,6 +1275,16 @@ END IF
 
 SELECT CASE atkbuf(19) ' Preferred target type
 
+ CASE 0 '--Default
+  IF is_hero(who) THEN
+   atkbuf(19) = 1 ' heroes default to first target
+  ELSEIF is_enemy(who) THEN
+   atkbuf(19) = 4 ' enemies default to a random target
+  END IF
+  found = find_preferred_target(tmask(), who, atkbuf(), bslot(), bstat())
+  atkbuf(19) = 0
+  RETURN found
+
  CASE 1 '--First
   'special handling for heroes using attacks that target all
   IF is_hero(who) AND atkbuf(3) = 3 THEN
@@ -1297,7 +1299,7 @@ SELECT CASE atkbuf(19) ' Preferred target type
 
  CASE 2 '--Closest
   best = -1
-  found = 32767
+  found = 200000
   FOR i = 0 TO 11
    IF tmask(i) <> 0 THEN
     search = quick_battle_distance(who, i, bslot())
@@ -1394,8 +1396,8 @@ FOR i = 0 TO 11
  IF tmask(i) <> 0 THEN RETURN i
 NEXT i
 
-debug "find_preferred_target: no valid targets for attacker " & who
-RETURN 0
+' If no valid targets were found, fail with -1
+RETURN -1
 
 END FUNCTION
 
@@ -1404,8 +1406,8 @@ FUNCTION quick_battle_distance(who1, who2, bslot() AS BattleSprite)
  ' and not the square root part of it, making the results only directly useful for
  ' quick comparisons of distance
  DIM AS INTEGER distx, disty
- distx = ABS(bslot(who1).x - bslot(who2).x)
- disty = ABS(bslot(who1).y - bslot(who2).y)
+ distx = ABS((bslot(who1).x + bslot(who1).w \ 2) - (bslot(who2).x + bslot(who2).w \ 2))
+ disty = ABS((bslot(who1).y + bslot(who1).h) - (bslot(who2).y + bslot(who2).h))
  RETURN distx ^ 2 + disty ^ 2
 END FUNCTION
 

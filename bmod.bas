@@ -380,7 +380,7 @@ LOOP
 delay(them) = atktemp(16)
 
 get_valid_targs autotmask(), them, atktemp(), bslot(), bstat(), revenge(), revengemask(), targmem()
-autotarget t(), autotmask(), them, atktemp()
+autotarget t(), autotmask(), them, atktemp(), bslot(), bstat()
 
 'ready for next attack
 ready(them) = 0
@@ -1142,7 +1142,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    IF bstat(targ).cur.hp = 0 AND o < 8 AND anim > -1 THEN'
     '--if the target is already dead, auto-pick a new target
     get_valid_targs autotmask(), who, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
-    autotarget t(), autotmask(), who, buffer()
+    autotarget t(), autotmask(), who, buffer(), bslot(), bstat()
    END IF
   CASE 11 'setz(who,z)
    ww = popw
@@ -1237,7 +1237,7 @@ IF anim = -1 THEN
    IF buffer(4) <> atk(4) OR buffer(3) <> atk(3) THEN
     'if the chained attack has a different target class/type then re-target
     get_valid_targs autotmask(), who, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
-    autotarget t(), autotmask(), who, buffer()
+    autotarget t(), autotmask(), who, buffer(), bslot(), bstat()
    END IF
   END IF
  END IF
@@ -1348,6 +1348,11 @@ IF buffer(4) = 3 THEN randomtarg = -1
 IF buffer(4) = 4 THEN firsttarg = -1
 
 tptr = find_preferred_target(tmask(), you, buffer(), bslot(), bstat())
+'fail if no targets are found
+IF tptr = -1 THEN
+ ptarg = 0
+ RETRACE
+END IF
 
 'ready to choose targs() from tmask()
 ptarg = 2
@@ -1434,7 +1439,7 @@ IF deadguyhp = 0 and formslotused <> 0 THEN
     'if no targets left, a-to-re-target
     loadattackdata buffer(), godo(j) - 1
     get_valid_targs autotmask(), j, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
-    autotarget t(), autotmask(), j, buffer()
+    autotarget t(), autotmask(), j, buffer(), bslot(), bstat()
    END IF
    IF tmask(deadguy) = 1 THEN tmask(deadguy) = 0
    IF targs(deadguy) = 1 THEN targs(deadguy) = 0
@@ -1602,7 +1607,7 @@ IF ptarg = 1 THEN GOSUB setuptarg
 'autotarget
 IF ptarg = 3 THEN
  get_valid_targs autotmask(), you, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
- autotarget t(), autotmask(), you, buffer()
+ autotarget t(), autotmask(), you, buffer(), bslot(), bstat()
  ctr(you) = 0
  ready(you) = 0
  you = -1
