@@ -1330,9 +1330,10 @@ IF buffer(3) = 3 THEN
 END IF
 
 'fail if there are no targets
-WHILE tmask(tptr) = 0
- tptr = tptr + 1: IF tptr > 11 THEN ptarg = 0: RETRACE
-WEND
+IF targetmaskcount(tmask()) = 0 THEN
+ ptarg = 0
+ RETRACE
+END IF
 
 'autoattack
 IF readbit(buffer(), 20, 54) THEN
@@ -1345,7 +1346,10 @@ IF buffer(4) = 1 THEN FOR i = 0 TO 11: targs(i) = tmask(i): NEXT i
 IF buffer(4) = 2 THEN aim = 1: spred = 1
 IF buffer(4) = 3 THEN randomtarg = -1
 IF buffer(4) = 4 THEN firsttarg = -1
-'ready to choose targ from targset
+
+tptr = find_preferred_target(tmask(), you, buffer(), bslot(), bstat())
+
+'ready to choose targs() from tmask()
 ptarg = 2
 RETRACE
 

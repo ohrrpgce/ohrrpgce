@@ -48,5 +48,6 @@ declare sub writestats (exstat(), bstat() AS BattleStats)
 declare sub get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, revenge(), revengemask(), targmem())
 declare function attack_can_hit_dead(who, atkbuf())
 declare sub autotarget (confirmtarg(), tmask(), who, atkbuf())
+declare function find_preferred_target(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
 
 #ENDIF

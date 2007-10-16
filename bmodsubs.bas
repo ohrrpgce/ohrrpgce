@@ -62,6 +62,9 @@ DECLARE SUB confirm_auto_spread (who, confirmtarg(), tmask())
 DECLARE SUB confirm_auto_random (who, confirmtarg(), tmask())
 DECLARE SUB confirm_auto_first (who, confirmtarg(), tmask())
 
+DECLARE FUNCTION quick_battle_distance(who1, who2, bslot() AS BattleSprite)
+DECLARE FUNCTION battle_distance(who1, who2, bslot() AS BattleSprite)
+
 REM $STATIC
 FUNCTION is_hero(who)
  IF who >= 0 AND who <= 3 THEN RETURN -1
@@ -1262,3 +1265,152 @@ SUB confirm_auto_first (who, confirmtarg(), tmask())
   END IF
  NEXT i
 END SUB
+
+FUNCTION find_preferred_target(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
+
+DIM i AS INTEGER
+DIM best AS INTEGER
+DIM search AS INTEGER
+DIM found AS INTEGER
+DIM prefstat AS INTEGER
+ 
+IF atkbuf(101) = 0 THEN
+ 'Weak/Strong pref stat defaults to target stat
+ prefstat = atkbuf(18)
+ELSE
+ prefstat = atkbuf(101) - 1
+END IF
+
+SELECT CASE atkbuf(19) ' Preferred target type
+
+ CASE 1 '--First
+  'special handling for heroes using attacks that target all
+  IF is_hero(who) AND atkbuf(3) = 3 THEN
+   FOR i = 4 to 11
+    IF tmask(i) <> 0 THEN RETURN i
+   NEXT i
+  ELSE ' normal first-target handling
+   FOR i = 0 to 11
+    IF tmask(i) <> 0 THEN RETURN i
+   NEXT i
+  END IF
+
+ CASE 2 '--Closest
+  best = -1
+  found = 32767
+  FOR i = 0 TO 11
+   IF tmask(i) <> 0 THEN
+    search = quick_battle_distance(who, i, bslot())
+    IF search < found THEN
+     best = i
+     found = search
+    END IF
+   END IF
+  NEXT i
+  IF best >= 0 THEN RETURN best
+
+ CASE 3 '--Farthest
+  best = -1
+  found = -1
+  FOR i = 0 TO 11
+   IF tmask(i) <> 0 THEN
+    search = quick_battle_distance(who, i, bslot())
+    IF search > found THEN
+     best = i
+     found = search
+    END IF
+   END IF
+  NEXT i
+  IF best >= 0 THEN RETURN best
+
+ CASE 4 '--Random
+  search = 0
+  DO
+   found = INT(RND * 12)
+   IF tmask(found) <> 0 THEN RETURN found
+   search = search + 1
+  LOOP UNTIL search > 999 ' safety
+
+ CASE 5 'Weakest (absolute)
+  best = -1
+  found = 32767
+  FOR i = 0 TO 11
+   IF tmask(i) <> 0 THEN
+    search = bstat(i).cur.sta(prefstat)
+    IF search < found THEN
+     best = i
+     found = search
+    END IF
+   END IF
+  NEXT i
+  IF best >= 0 THEN RETURN best
+
+ CASE 6 'Strongest (absolute)
+  best = -1
+  found = -1
+  FOR i = 0 TO 11
+   IF tmask(i) <> 0 THEN
+    search = bstat(i).cur.sta(prefstat)
+    IF search > found THEN
+     best = i
+     found = search
+    END IF
+   END IF
+  NEXT i
+  IF best >= 0 THEN RETURN best
+
+ CASE 7 'Weakest (percent)
+  best = -1
+  found = 10001 'use ten-thousands rather than hundreds to simulate two fixed-precision decmal places
+  FOR i = 0 TO 11
+   IF tmask(i) <> 0 THEN
+    search = INT(10000 / bstat(i).max.sta(prefstat) * bstat(i).cur.sta(prefstat))
+    IF search < found THEN
+     best = i
+     found = search
+    END IF
+   END IF
+  NEXT i
+  IF best >= 0 THEN RETURN best
+
+ CASE 8 'Strongest (percent)
+  best = -1
+  found = -1
+  FOR i = 0 TO 11
+   IF tmask(i) <> 0 THEN
+    search = INT(10000 / bstat(i).max.sta(prefstat) * bstat(i).cur.sta(prefstat))
+    IF search > found THEN
+     best = i
+     found = search
+    END IF
+   END IF
+  NEXT i
+  IF best >= 0 THEN RETURN best
+
+END SELECT
+
+'-- If all else fails, make sure the default target is valid
+FOR i = 0 TO 11
+ IF tmask(i) <> 0 THEN RETURN i
+NEXT i
+
+debug "find_preferred_target: no valid targets for attacker " & who
+RETURN 0
+
+END FUNCTION
+
+FUNCTION quick_battle_distance(who1, who2, bslot() AS BattleSprite)
+ ' For speed, this function only implements exponent part of the pythagorean theorum
+ ' and not the square root part of it, making the results only directly useful for
+ ' quick comparisons of distance
+ DIM AS INTEGER distx, disty
+ distx = ABS(bslot(who1).x - bslot(who2).x)
+ disty = ABS(bslot(who1).y - bslot(who2).y)
+ RETURN distx ^ 2 + disty ^ 2
+END FUNCTION
+
+FUNCTION battle_distance(who1, who2, bslot() AS BattleSprite)
+ 'Returns exact distance between two battlesprites
+ ' Square root is a bit slow, so don't over-use this function
+ RETURN SQR(quick_battle_distance(who1, who2, bslot()))
+END FUNCTION
