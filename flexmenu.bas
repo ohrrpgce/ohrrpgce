@@ -159,6 +159,7 @@ CONST AtkDatAnimAttack = 15
 CONST AtkDatDelay = 16
 CONST AtkDatHitX = 17
 CONST AtkDatTargStat = 18
+CONST AtkDatPreferTarg = 19
 CONST AtkDatBitsets = 20' to 23
 CONST AtkDatName = 24'to 35
 CONST AtkDatCapTime = 36
@@ -182,8 +183,8 @@ CONST AtkDatSoundEffect = 99
 
 '----------------------------------------------------------
 capindex = 0
-DIM caption$(120)
-DIM max(28), min(28)
+DIM caption$(129)
+DIM max(29), min(29)
 
 'Limit(0) is not used
 
@@ -403,11 +404,25 @@ CONST AtkLimPal16 = 28
 max(AtkLimPal16) = 32767
 min(AtkLimPal16) = -1
 
-'next limit is 29 (remember to update the dim)
+CONST AtkLimPreferTarg = 29
+max(AtkLimPreferTarg) = 8
+min(AtkLimPreferTarg) = 0
+AtkCapPreferTarg = capindex
+addcaption caption$(), capindex, "default"    '0
+addcaption caption$(), capindex, "first"      '1
+addcaption caption$(), capindex, "closest"    '2
+addcaption caption$(), capindex, "farthest"   '3
+addcaption caption$(), capindex, "random"     '4
+addcaption caption$(), capindex, "weakest"    '5
+addcaption caption$(), capindex, "strongest"  '6
+addcaption caption$(), capindex, "weakest%"   '7
+addcaption caption$(), capindex, "strongest%" '8
+
+'next limit is 30 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 46
+CONST MnuItems = 47
 DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -674,7 +689,13 @@ menutype(AtkSoundEffect) = 11
 menuoff(AtkSoundEffect) = AtkDatSoundEffect
 menulimits(AtkSoundEffect) = AtkLimSFX
 
-'Next menu item is 47 (remember to update the dims)
+CONST AtkPreferTarg = 47
+menu$(AtkPreferTarg) = "Prefer Target:"
+menutype(AtkPreferTarg) = 2000 + AtkCapPreferTarg
+menuoff(AtkPreferTarg) = AtkDatPreferTarg
+menulimits(AtkPreferTarg) = AtkLimPreferTarg
+
+'Next menu item is 48 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
@@ -717,10 +738,11 @@ dmgMenu(6) = AtkAimEq
 dmgMenu(7) = AtkHitX
 dmgMenu(8) = AtkDelay
 
-DIM targMenu(2)
+DIM targMenu(3)
 targMenu(0) = AtkBackAct
 targMenu(1) = AtkTargClass
 targMenu(2) = AtkTargSetting
+targMenu(3) = AtkPreferTarg
 
 DIM costMenu(9)
 costMenu(0) = AtkBackAct
