@@ -631,7 +631,7 @@ FUNCTION defbinsize (id)
 END FUNCTION
 
 FUNCTION curbinsize (id)
- IF id = 0 THEN RETURN 120 'attack.bin
+ IF id = 0 THEN RETURN 122 'attack.bin
  IF id = 1 THEN RETURN 84  '.stf
  IF id = 2 THEN RETURN 32  'songdata.bin
  IF id = 3 THEN RETURN 34  'sfxdata.bin
