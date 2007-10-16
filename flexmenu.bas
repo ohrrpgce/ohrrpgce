@@ -138,7 +138,7 @@ atkbit$(71) = "Do not chain if attack fails"
 '--Data is split, See AtkDatBits and AtkDatBits2 for offsets
 
 '----------------------------------------------------------
-DIM recbuf(40 + curbinsize(0) / 2) '--stores the 200 bytes of attack data
+DIM recbuf(40 + curbinsize(0) / 2) '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
 CONST AtkDatPic = 0
 CONST AtkDatPal = 1
@@ -177,14 +177,15 @@ CONST AtkDatDescription = 73'to 92
 CONST AtkDatItem = 93', 95, 97
 CONST AtkDatItemCost = 94', 96, 98
 CONST AtkDatSoundEffect = 99
+CONST AtkDatPrefTargStat = 100
 
 'anything past this requires expanding the data
 
 
 '----------------------------------------------------------
 capindex = 0
-DIM caption$(129)
-DIM max(29), min(29)
+DIM caption$(146)
+DIM max(30), min(30)
 
 'Limit(0) is not used
 
@@ -418,11 +419,33 @@ addcaption caption$(), capindex, "strongest"  '6
 addcaption caption$(), capindex, "weakest%"   '7
 addcaption caption$(), capindex, "strongest%" '8
 
-'next limit is 30 (remember to update the dim)
+CONST AtkLimPrefTargStat = 30
+max(AtkLimPrefTargStat) = 16
+min(AtkLimPrefTargStat) = 0
+AtkCapPrefTargStat = capindex
+addcaption caption$(), capindex, "same as target stat" '0
+addcaption caption$(), capindex, sname$(0) 'hp  1
+addcaption caption$(), capindex, sname$(1) 'mp  2
+addcaption caption$(), capindex, sname$(2) 'atk 3
+addcaption caption$(), capindex, sname$(3) 'aim 4
+addcaption caption$(), capindex, sname$(5) 'def 5
+addcaption caption$(), capindex, sname$(6) 'dog 6
+addcaption caption$(), capindex, sname$(29) 'mag  7
+addcaption caption$(), capindex, sname$(30) 'wil  8
+addcaption caption$(), capindex, sname$(8) 'spd   9
+addcaption caption$(), capindex, sname$(7) 'ctr   10
+addcaption caption$(), capindex, sname$(31) 'focus 11
+addcaption caption$(), capindex, sname$(4) 'hitX   12
+addcaption caption$(), capindex, "poison register"'13
+addcaption caption$(), capindex, "regen register" '14 
+addcaption caption$(), capindex, "stun register"  '15
+addcaption caption$(), capindex, "mute register"  '16
+
+'next limit is 31 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 47
+CONST MnuItems = 48
 DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -695,6 +718,12 @@ menutype(AtkPreferTarg) = 2000 + AtkCapPreferTarg
 menuoff(AtkPreferTarg) = AtkDatPreferTarg
 menulimits(AtkPreferTarg) = AtkLimPreferTarg
 
+CONST AtkPrefTargStat = 48
+menu$(AtkPrefTargStat) = "Weak/Strong Stat:"
+menutype(AtkPrefTargStat) = 2000 + AtkCapPrefTargStat
+menuoff(AtkPrefTargStat) = AtkDatPrefTargStat
+menulimits(AtkPrefTargStat) = AtkLimPrefTargStat
+
 'Next menu item is 48 (remember to update the dims)
 
 '----------------------------------------------------------
@@ -738,11 +767,12 @@ dmgMenu(6) = AtkAimEq
 dmgMenu(7) = AtkHitX
 dmgMenu(8) = AtkDelay
 
-DIM targMenu(3)
+DIM targMenu(4)
 targMenu(0) = AtkBackAct
 targMenu(1) = AtkTargClass
 targMenu(2) = AtkTargSetting
 targMenu(3) = AtkPreferTarg
+targMenu(4) = AtkPrefTargStat
 
 DIM costMenu(9)
 costMenu(0) = AtkBackAct
