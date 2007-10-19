@@ -2014,20 +2014,18 @@ FOR i = 0 TO 3
   loadherodata @st(i), hero(i) - 1
   oldm = 0
   newm = 0
-  do while oldm <= 5
-    nmenu(i,newm) = bmenu(i,oldm)
-  
-    if nmenu(i, oldm) < 0 AND nmenu(i, oldm) > -5 AND readbit(st(i).bits(),0,26) <> 0 then
-      temp = (nmenu(i, oldm) * -1) - 1
-      IF count_available_spells(i, temp) = 0 THEN nmenu(i, newm) = 0: newm -= 1
-    end if
-    oldm += 1
-    newm += 1
-  loop
+  'Loop through hero battle menu, populating nmenu() with he ones that should be displayed
+  FOR oldm = 0 TO 5
+   IF bmenu(i, oldm) < 0 AND bmenu(i, oldm) > -5 AND readbit(st(i).bits(),0,26) <> 0 THEN
+    'this is a spell list, and the hide empty spell lists bitset is on...
+    temp = ABS(bmenu(i, oldm)) - 1
+    'count the spells, and skip if empty
+    IF count_available_spells(i, temp) = 0 THEN CONTINUE FOR
+   END IF
+   nmenu(i,newm) = bmenu(i,oldm)
+   newm += 1
+  NEXT oldm
  
-  'FOR o = 0 TO 317
-  ' st(i, o) = buffer(o)
-  'NEXT o
   WITH bslot(i)
    .basex = (240 + i * 8)
    .basey = (82 + i * 20)

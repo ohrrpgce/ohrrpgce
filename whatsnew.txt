@@ -17,6 +17,8 @@ Dec ?? 2007 [voxhumana]
     * Fixed bug 5 "First Target attacks can hit targets besides the first"
       [James Paige]
     * Fixed bug 476, off-by-one-error in "set victory music" [James Paige]
+    * Fixed bug 484 "Do not show spell lists if empty" was only working in
+      battle for the first spell list [James Paige]
 
   * New Plotscripting Commands
     * get victory music
