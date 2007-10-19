@@ -54,6 +54,8 @@ DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION isStringField(mnu%)
+DECLARE SUB generic_menu_editor ()
+
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1365,3 +1367,38 @@ FUNCTION isStringField(mnu)
   IF mnu = 3 OR mnu = 4 OR mnu = 6 THEN RETURN -1
   RETURN 0
 END FUNCTION
+
+SUB editmenus
+ generic_menu_editor
+END SUB
+
+SUB generic_menu_editor ()
+
+DIM AS INTEGER csr, top, tog
+DIM edmenu$(2)
+
+edmenu$(0) = "Previous Menu"
+edmenu$(1) = "Menu" & pt
+edmenu$(2) = "Name: "
+
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 THEN EXIT DO
+ dummy = usemenu(csr, top, 0, 2, 22)
+ SELECT CASE csr
+  CASE 0
+   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+    EXIT DO
+   END IF
+ END SELECT
+ standardmenu edmenu$(), 2, 22, csr, top, 0, 0, dpage, 0
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
+
+END SUB

@@ -260,15 +260,15 @@ DO:
     IF pt = 7 THEN shopdata
     IF pt = 8 THEN formation
     IF pt = 9 THEN textage
-    'if pt = 10 then editmenus
-    IF pt = 10 THEN vehicles
-    IF pt = 11 THEN tagnames
-    IF pt = 12 THEN importsong
-    IF pt = 13 THEN importsfx
-    IF pt = 14 THEN fontedit font()
-    IF pt = 15 THEN gendata
-    IF pt = 16 THEN scriptman
-    IF pt = 17 THEN
+    if pt = 10 then editmenus
+    IF pt = 11 THEN vehicles
+    IF pt = 12 THEN tagnames
+    IF pt = 13 THEN importsong
+    IF pt = 14 THEN importsfx
+    IF pt = 15 THEN fontedit font()
+    IF pt = 16 THEN gendata
+    IF pt = 17 THEN scriptman
+    IF pt = 18 THEN
      GOSUB relump
      IF quitnow > 1 THEN GOTO finis
     END IF
@@ -306,7 +306,7 @@ DO:
 LOOP
 
 setmainmenu:
-mainmax = 17
+mainmax = 18
 menu$(0) = "Edit Graphics"
 menu$(1) = "Edit Map Data"
 menu$(2) = "Edit Global Text Strings"
@@ -317,15 +317,15 @@ menu$(6) = "Edit Items"
 menu$(7) = "Edit Shops"
 menu$(8) = "Edit Battle Formations"
 menu$(9) = "Edit Text Boxes"
-'menu$(10) = "Edit Menus"
-menu$(10) = "Edit Vehicles"
-menu$(11) = "Edit Tag Names"
-menu$(12) = "Import Music"
-menu$(13) = "Import Sound Effects"
-menu$(14) = "Edit Font"
-menu$(15) = "Edit General Game Data"
-menu$(16) = "Script Management"
-menu$(17) = "Quit Editing"
+menu$(10) = "Edit Menus"
+menu$(11) = "Edit Vehicles"
+menu$(12) = "Edit Tag Names"
+menu$(13) = "Import Music"
+menu$(14) = "Import Sound Effects"
+menu$(15) = "Edit Font"
+menu$(16) = "Edit General Game Data"
+menu$(17) = "Script Management"
+menu$(18) = "Quit Editing"
 RETRACE
 
 setgraphicmenu:

@@ -1611,6 +1611,8 @@ updaterecordlength game$ + ".stf", 1
 updaterecordlength workingdir$ + SLASH + "songdata.bin", 2
 updaterecordlength workingdir$ + SLASH + "sfxdata.bin", 3
 updaterecordlength game$ + ".map", 4
+updaterecordlength workingdir$ + SLASH + "menus.bin", 5
+updaterecordlength workingdir$ + SLASH + "menuitems.bin", 6
 
 '--update to new (3rd) password format
 IF gen(genPassVersion) < 256 THEN
