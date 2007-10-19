@@ -224,7 +224,6 @@ loadpalette master(), activepalette
 setpal master()
 getui uilook(), activepalette
 upgrade font()
-xbsave game$ + ".gen", gen(), 1000
 setfont font()
 
 menumode = 0

@@ -666,7 +666,7 @@ SUB loadSayToBuffer (say)
 
 '--load data from the textbox lump into the buffer
 
-IF say > gen(39) THEN ' It's 39!
+IF say > gen(genMaxTextBox) THEN
  str2array "Invalid textbox" + STRING$(385, 0), buffer(), 0
 ELSE
  setpicstuf buffer(), 400, -1

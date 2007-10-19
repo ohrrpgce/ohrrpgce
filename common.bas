@@ -1672,5 +1672,8 @@ nofixweappoints:
 
 END IF
 
+'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)
+xbsave game$ + ".gen", gen(), 1000
+
 'wow! this is quite a big and ugly routine!
 END SUB
