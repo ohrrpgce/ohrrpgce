@@ -1378,7 +1378,7 @@ DIM AS INTEGER csr, top, tog
 DIM edmenu$(2)
 
 edmenu$(0) = "Previous Menu"
-edmenu$(1) = "Menu" & pt
+edmenu$(1) = "Menu " & pt
 edmenu$(2) = "Name: "
 
 setkeys

@@ -627,6 +627,8 @@ FUNCTION defbinsize (id)
  IF id = 2 THEN RETURN 0  'songdata.bin
  IF id = 3 THEN RETURN 0  'sfxdata.bin
  IF id = 4 THEN RETURN 40 '.map
+ IF id = 5 THEN RETURN 0  'menus.bin
+ IF id = 6 THEN RETURN 0  'menuitem.bin
  RETURN 0
 END FUNCTION
 
@@ -1612,7 +1614,7 @@ updaterecordlength workingdir$ + SLASH + "songdata.bin", 2
 updaterecordlength workingdir$ + SLASH + "sfxdata.bin", 3
 updaterecordlength game$ + ".map", 4
 updaterecordlength workingdir$ + SLASH + "menus.bin", 5
-updaterecordlength workingdir$ + SLASH + "menuitems.bin", 6
+updaterecordlength workingdir$ + SLASH + "menuitem.bin", 6
 
 '--update to new (3rd) password format
 IF gen(genPassVersion) < 256 THEN
