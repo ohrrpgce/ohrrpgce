@@ -815,7 +815,8 @@ recindex = 0
 needupdatemenu = 0
 
 'load data here
-GOSUB AtkLoadSub
+loadattackdata recbuf(), recindex
+needupdatemenu = 1
 
 '------------------------------------------------------------------------
 '--main loop
@@ -863,7 +864,8 @@ DO
   ELSE
    IF intgrabber(recindex, 0, gen(34), 75, 77) THEN
     saveattackdata recbuf(), lastindex
-    GOSUB AtkLoadSub
+    loadattackdata recbuf(), recindex
+    needupdatemenu = 1
    END IF
   END IF
  END IF
@@ -1020,13 +1022,6 @@ AtkPushPtrSub:
 lastptr = pt
 lasttop = top
 menudepth = 1
-RETRACE
-
-'-----------------------------------------------------------------------
-
-AtkLoadSub:
-loadattackdata recbuf(), recindex
-needupdatemenu = 1
 RETRACE
 
 '-----------------------------------------------------------------------
