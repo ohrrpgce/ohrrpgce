@@ -2,8 +2,9 @@
 #DEFINE UDTS_BI
 
 TYPE MenuDefItem
-  caption   AS STRING
+  exists    AS INTEGER
   member    AS INTEGER
+  caption   AS STRING
   sortorder AS INTEGER
   t         AS INTEGER
   sub_t     AS INTEGER

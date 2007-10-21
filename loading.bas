@@ -538,6 +538,55 @@ SUB LoadMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, re
   .maxrows = ReadShort(f)
  END WITH
  CLOSE #f
+ LoadMenuItems menuitemfile, dat.items(), record
+END SUB
+
+SUB LoadMenuItems(menuitemfile AS STRING, mi() AS MenuDefItem, record AS INTEGER)
+ DIM i AS INTEGER
+ DIM f AS INTEGER
+ DIM member AS INTEGER
+ DIM elem AS INTEGER = 0
+ f = FREEFILE
+ OPEN menuitemfile FOR BINARY AS #f
+ FOR i = 0 TO gen(genMaxMenuItem)
+  SEEK #f, i * getbinsize(6) + 1
+  member = ReadShort(f)
+  IF member = record THEN
+   WITH mi(elem)
+    .exists = -1
+    .member = member
+    .caption = ReadVStr(f, 38)
+    .sortorder = ReadShort(f)
+    .t = ReadShort(f)
+    .sub_t = ReadShort(f)
+    .tag1 = ReadShort(f)
+    .tag2 = ReadShort(f)
+    .settag = ReadShort(f)
+    .bits = ReadShort(f)
+   END WITH
+   elem = elem + 1
+   IF elem > UBOUND(mi) THEN EXIT FOR
+  END IF
+ NEXT i
+ CLOSE #f
+ SortMenuItems mi()
+END SUB
+
+SUB SortMenuItems(mi() AS MenuDefItem)
+ DIM AS INTEGER i, j, lowest, found
+ FOR i = 0 TO UBOUND(mi)
+  lowest = 32767
+  found = -1
+  FOR j = i TO UBOUND(mi)
+   IF mi(j).sortorder < lowest AND mi(j).exists THEN
+    lowest = mi(j).sortorder
+    found = j
+   END IF
+  NEXT j
+  IF found >= 0 THEN
+   SWAP mi(i), mi(found)
+  END IF
+ NEXT i
 END SUB
 
 SUB LoadVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
