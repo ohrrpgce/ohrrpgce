@@ -33,5 +33,6 @@ declare Sub LoadStats2(fh as integer, lev0 as stats ptr, lev99 as stats ptr)
 declare Sub SaveStats2(fh as integer, lev0 as stats ptr, lev99 as stats ptr)
 declare Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
 declare Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
+declare Sub LoadMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, record AS INTEGER)
 
 #ENDIF

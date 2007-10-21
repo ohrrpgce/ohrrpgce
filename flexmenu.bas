@@ -54,8 +54,6 @@ DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION isStringField(mnu%)
-DECLARE SUB generic_menu_editor ()
-
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -63,6 +61,11 @@ DECLARE SUB generic_menu_editor ()
 #include "cglobals.bi"
 
 #include "const.bi"
+#include "loading.bi"
+
+DECLARE SUB generic_menu_editor (menusfile$, menuitemfile$)
+DECLARE SUB update_generic_menu_editor_menu(record, m$(), menu AS MenuDef)
+DECLARE FUNCTION zero_default(n) AS STRING
 
 REM $STATIC
 SUB addcaption (caption$(), indexer, cap$)
@@ -1369,17 +1372,18 @@ FUNCTION isStringField(mnu)
 END FUNCTION
 
 SUB editmenus
- generic_menu_editor
+ generic_menu_editor workingdir$ & SLASH & "menus.bin", workingdir$ & SLASH & "menuitem.bin"
 END SUB
 
-SUB generic_menu_editor ()
+SUB generic_menu_editor (menusfile$, menuitemfile$)
 
+DIM record AS INTEGER = 0
 DIM AS INTEGER csr, top, tog
-DIM edmenu$(2)
+DIM edmenu$(6)
 
-edmenu$(0) = "Previous Menu"
-edmenu$(1) = "Menu " & pt
-edmenu$(2) = "Name: "
+DIM menudata AS MenuDef
+loadMenuData menusfile$, menuitemfile$, menudata, record
+update_generic_menu_editor_menu record, edmenu$(), menudata
 
 setkeys
 DO
@@ -1387,14 +1391,14 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(csr, top, 0, 2, 22)
+ dummy = usemenu(csr, top, 0, UBOUND(edmenu$), 22)
  SELECT CASE csr
   CASE 0
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
     EXIT DO
    END IF
  END SELECT
- standardmenu edmenu$(), 2, 22, csr, top, 0, 0, dpage, 0
+ standardmenu edmenu$(), UBOUND(edmenu$), 22, csr, top, 0, 0, dpage, 0
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -1402,3 +1406,18 @@ DO
 LOOP
 
 END SUB
+
+SUB update_generic_menu_editor_menu(record, m$(), menu AS MenuDef)
+ m$(0) = "Previous Menu"
+ m$(1) = "Menu " & record
+ m$(2) = "Name: " & menu.name
+ m$(3) = "Background: " & menu.boxstyle
+ m$(4) = "Text color: " & zero_default(menu.textcolor)
+ m$(5) = "Max rows to display: " & zero_default(menu.maxrows)
+ m$(6) = "Edit Items..."
+END SUB
+
+FUNCTION zero_default(n) AS STRING
+ IF n = 0 THEN RETURN "default"
+ RETURN "" & n
+END FUNCTION

@@ -1,6 +1,26 @@
 #IFNDEF UDTS_BI
 #DEFINE UDTS_BI
 
+TYPE MenuDefItem
+  caption   AS STRING
+  member    AS INTEGER
+  sortorder AS INTEGER
+  t         AS INTEGER
+  sub_t     AS INTEGER
+  tag1      AS INTEGER
+  tag2      AS INTEGER
+  settag    AS INTEGER
+  bits      AS INTEGER
+END TYPE
+
+TYPE MenuDef
+  name      AS STRING
+  boxstyle  AS INTEGER
+  textcolor AS INTEGER
+  maxrows   AS INTEGER
+  items(20) AS MenuDefItem
+END TYPE
+
 TYPE NPCType
   picture as integer     '+0
   palette as integer     '+1
@@ -263,6 +283,5 @@ End Type
 ''bit 5 ahead - set while getting off (dismount ahead only)
 '7 remembers the speed of the leader 
 '8-21 are copied from VEH
-
 
 #ENDIF

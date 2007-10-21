@@ -525,3 +525,17 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
 	
 	close #f
 end sub
+
+SUB LoadMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, record AS INTEGER)
+ DIM i AS INTEGER, j AS INTEGER, f AS INTEGER
+ f = FREEFILE
+ OPEN menusfile FOR BINARY AS #f
+ SEEK #f, record * getbinsize(5) + 1
+ WITH dat
+  .name = ReadVStr(f, 20)
+  .boxstyle = ReadShort(f)
+  .textcolor = ReadShort(f)
+  .maxrows = ReadShort(f)
+ END WITH
+ CLOSE #f
+END SUB
