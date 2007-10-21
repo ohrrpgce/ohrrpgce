@@ -34,5 +34,7 @@ declare Sub SaveStats2(fh as integer, lev0 as stats ptr, lev99 as stats ptr)
 declare Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
 declare Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
 declare Sub LoadMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, record AS INTEGER)
+declare Sub LoadVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
+declare Sub SaveVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
 
 #ENDIF

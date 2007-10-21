@@ -58,6 +58,7 @@ DECLARE SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
 #include "const.bi"
 #include "scrconst.bi"
 #include "uiconst.bi"
+#include "loading.bi"
 
 REM $STATIC
 
@@ -99,7 +100,7 @@ min(13) = gen(43) * -1: max(13) = gen(39): offset(13) = 15'mount
 min(14) = gen(43) * -1: max(14) = gen(39): offset(14) = 16'dismount
 min(15) = 0: max(15) = 99: offset(15) = 21'dismount
 
-GOSUB loadveh
+LoadVehicle game$ + ".veh", veh(), vehname$, pt
 GOSUB vehmenu
 
 setkeys
@@ -116,7 +117,7 @@ DO
    END IF
   CASE 1
    IF pt = gen(55) AND keyval(77) > 1 THEN
-    GOSUB saveveh
+    SaveVehicle game$ + ".veh", veh(), vehname$, pt
     pt = bound(pt + 1, 0, 32767)
     IF needaddset(pt, gen(55), "vehicle") THEN
      FOR i = 0 TO 39
@@ -128,9 +129,9 @@ DO
    END IF
    newptr = pt
    IF intgrabber(newptr, 0, gen(55), 75, 77) THEN
-    GOSUB saveveh
+    SaveVehicle game$ + ".veh", veh(), vehname$, pt
     pt = newptr
-    GOSUB loadveh
+    LoadVehicle game$ + ".veh", veh(), vehname$, pt
     GOSUB vehmenu
    END IF
   CASE 2
@@ -169,7 +170,7 @@ DO
  clearpage dpage
  dowait
 LOOP
-GOSUB saveveh
+SaveVehicle game$ + ".veh", veh(), vehname$, pt
 EXIT SUB
 
 vehmenu:
@@ -246,20 +247,6 @@ END SELECT
 menu$(14) = "On Dismount: " + tmp$
 
 menu$(15) = "Elevation:" + XSTR$(veh(offset(15))) + " pixels"
-RETRACE
-
-loadveh:
-setpicstuf veh(), 80, -1
-loadset game$ + ".veh", pt, 0
-vehname$ = STRING$(bound(veh(0) AND 255, 0, 15), 0)
-array2str veh(), 1, vehname$
-RETRACE
-
-saveveh:
-veh(0) = bound(LEN(vehname$), 0, 15)
-str2array vehname$, veh(), 1
-setpicstuf veh(), 80, -1
-storeset game$ + ".veh", pt, 0
 RETRACE
 
 END SUB

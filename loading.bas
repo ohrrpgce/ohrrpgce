@@ -527,7 +527,7 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
 end sub
 
 SUB LoadMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, record AS INTEGER)
- DIM i AS INTEGER, j AS INTEGER, f AS INTEGER
+ DIM f AS INTEGER
  f = FREEFILE
  OPEN menusfile FOR BINARY AS #f
  SEEK #f, record * getbinsize(5) + 1
@@ -538,4 +538,18 @@ SUB LoadMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, re
   .maxrows = ReadShort(f)
  END WITH
  CLOSE #f
+END SUB
+
+SUB LoadVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
+ setpicstuf veh(), 80, -1
+ loadset file, record, 0
+ vehname$ = STRING$(bound(veh(0) AND 255, 0, 15), 0)
+ array2str veh(), 1, vehname$
+END SUB
+
+SUB SaveVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
+ veh(0) = bound(LEN(vehname$), 0, 15)
+ str2array vehname$, veh(), 1
+ setpicstuf veh(), 80, -1
+ storeset file, record, 0
 END SUB
