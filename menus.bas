@@ -66,6 +66,7 @@ REM $STATIC
 SUB vehicles
 
 DIM menu$(20), veh(39), min(39), max(39), offset(39), vehbit$(15), tiletype$(8)
+DIM vehname$ = ""
 
 pt = 0: csr = 0: top = 0
 

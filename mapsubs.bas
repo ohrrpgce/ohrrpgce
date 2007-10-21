@@ -69,6 +69,8 @@ DECLARE SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors
 DECLARE SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS INTEGER, defaults() AS INTEGER, tastuf() AS INTEGER)
 DECLARE SUB resizemapmenu (map(), tastuf(), byref newwide, byref newhigh, byref tempx, byref tempy)
 
+DECLARE SUB make_top_map_menu(maptop, topmenu$())
+
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi" 
@@ -201,7 +203,7 @@ GOSUB loadmenu
 
 maptop = 0
 pt = 0
-GOSUB maketopmenu
+make_top_map_menu maptop, topmenu$()
 setkeys
 DO
  setwait timing(), 120
@@ -209,7 +211,7 @@ DO
  IF keyval(1) > 1 THEN EXIT DO
  oldtop = maptop
  dummy = usemenu(pt, maptop, 0, 2 + gen(0), 24)
- IF oldtop <> maptop THEN GOSUB maketopmenu
+ IF oldtop <> maptop THEN make_top_map_menu maptop, topmenu$()
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF pt = 0 THEN EXIT DO
   IF pt > 0 AND pt <= gen(0) + 1 THEN
@@ -218,11 +220,11 @@ DO
    GOSUB loadmap
    GOSUB whattodo
    pt = pt + 1
-   GOSUB maketopmenu
+   make_top_map_menu maptop, topmenu$()
   END IF
   IF pt = gen(0) + 2 THEN
    GOSUB addmap
-   GOSUB maketopmenu
+   make_top_map_menu maptop, topmenu$()
   END IF
  END IF
  tog = tog XOR 1
@@ -241,21 +243,6 @@ clearpage 1
 clearpage 2
 clearpage 3
 EXIT SUB
-
-maketopmenu:
-FOR i = 0 TO 24
- SELECT CASE maptop + i
-  CASE 0
-   topmenu$(i) = "Return to Main Menu"
-  CASE 1 TO gen(0) + 1
-   topmenu$(i) = "Map " + filenum$((maptop + i) - 1) + ": " + getmapname$((maptop + i) - 1)
-  CASE gen(0) + 2
-   topmenu$(i) = "Add a New Map"
-  CASE ELSE
-   topmenu$(i) = ""
- END SELECT
-NEXT i
-RETRACE
 
 whattodo:
 x = 0: y = 0: mapx = 0: mapy = 0
@@ -1717,4 +1704,20 @@ FOR i = 0 TO high
  NEXT o
 NEXT i
 
+END SUB
+
+SUB make_top_map_menu(maptop, topmenu$())
+DIM i AS INTEGER
+FOR i = 0 TO 24
+ SELECT CASE maptop + i
+  CASE 0
+   topmenu$(i) = "Return to Main Menu"
+  CASE 1 TO gen(genMaxMap) + 1
+   topmenu$(i) = "Map " + filenum$((maptop + i) - 1) + ": " + getmapname$((maptop + i) - 1)
+  CASE gen(genMaxMap) + 2
+   topmenu$(i) = "Add a New Map"
+  CASE ELSE
+   topmenu$(i) = ""
+ END SELECT
+NEXT i
 END SUB
