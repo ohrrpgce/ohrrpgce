@@ -49,6 +49,7 @@ DECLARE SUB titlescreenbrowse ()
 DECLARE SUB generate_gen_menu(m$(), longname$, aboutline$, stat$())
 DECLARE SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
 DECLARE SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
+DECLARE SUB inputpasw(pas$)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -361,7 +362,7 @@ DO
   IF csr = 10 THEN titlescreenbrowse
   IF csr = 12 THEN generalscriptsmenu
   IF csr = 15 THEN masterpalettemenu
-  IF csr = 9 THEN GOSUB inputpasw
+  IF csr = 9 THEN inputpasw pas$
  IF csr = 16 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
@@ -451,33 +452,6 @@ storeset workingdir$ + SLASH + "browse.txt", 0, 0
 buffer(0) = bound(LEN(aboutline$), 0, 38)
 str2array aboutline$, buffer(), 2
 storeset workingdir$ + SLASH + "browse.txt", 1, 0
-RETRACE
-
-inputpasw:
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 OR keyval(28) > 1 THEN EXIT DO
- strgrabber pas$, 17
- textcolor 7, 0
- printstr "You can require a password for this", 0, 0, dpage
- printstr "game to be opened in " + CUSTOMEXE, 0, 8, dpage
- printstr "This does not encrypt your file, and", 0, 16, dpage
- printstr "should only be considered weak security", 0, 24, dpage
- printstr "PASSWORD", 30, 64, dpage
- IF LEN(pas$) THEN
-  textcolor 14 + tog, 1
-  printstr pas$, 30, 74, dpage
- ELSE
-  printstr "(NONE SET)", 30, 74, dpage
- END IF
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
 RETRACE
 
 END SUB
@@ -1379,4 +1353,32 @@ SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
   EXIT SUB
  END IF
  wav = oggtemp
+END SUB
+
+SUB inputpasw(pas$)
+DIM tog AS INTEGER = 0
+setkeys
+DO
+ setwait timing(), 100
+ setkeys
+ tog = tog XOR 1
+ IF keyval(1) > 1 OR keyval(28) > 1 THEN EXIT DO
+ strgrabber pas$, 17
+ textcolor 7, 0
+ printstr "You can require a password for this", 0, 0, dpage
+ printstr "game to be opened in " + CUSTOMEXE, 0, 8, dpage
+ printstr "This does not encrypt your file, and", 0, 16, dpage
+ printstr "should only be considered weak security", 0, 24, dpage
+ printstr "PASSWORD", 30, 64, dpage
+ IF LEN(pas$) THEN
+  textcolor 14 + tog, 1
+  printstr pas$, 30, 74, dpage
+ ELSE
+  printstr "(NONE SET)", 30, 74, dpage
+ END IF
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
 END SUB
