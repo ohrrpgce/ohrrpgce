@@ -11,7 +11,6 @@ DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
 DECLARE SUB setactivemenu (workmenu%(), newmenu%(), pt%, top%, size%)
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
-DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
 DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
 DECLARE FUNCTION tagstring$ (tag%, zero$, one$, negone$)
@@ -857,12 +856,12 @@ DO
    '--increment
    recindex = recindex + 1
    '--make sure we really have permission to increment
-   IF needaddset(recindex, gen(34), "attack") THEN
+   IF needaddset(recindex, gen(genMaxAttack), "attack") THEN
     flusharray recbuf(), 39 + curbinsize(0) / 2, 0
     needupdatemenu = 1
    END IF
   ELSE
-   IF intgrabber(recindex, 0, gen(34), 75, 77) THEN
+   IF intgrabber(recindex, 0, gen(genMaxAttack)) THEN
     saveattackdata recbuf(), lastindex
     loadattackdata recbuf(), recindex
     needupdatemenu = 1
@@ -1061,11 +1060,11 @@ changed = 0
 
 SELECT CASE menutype(nowindex)
  CASE 0, 8, 12, 1000 TO 3999' integers
-  changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)), 75, 77)
+  changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
  CASE 7, 9 TO 11 'offset integers
-  changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1, 75, 77)
+  changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
  CASE 2' set tag
-  changed = intgrabber(datablock(menuoff(nowindex)), -999, 999, 75, 77)
+  changed = intgrabber(datablock(menuoff(nowindex)), -999, 999)
  CASE 3' string
   a$ = readbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)))
   old$ = a$
@@ -1237,7 +1236,7 @@ SUB testflexmenu
 '  tog = tog XOR 1
 '  IF keyval(1) > 1 THEN EXIT DO
 '
-'  dummy = usemenu(pt(mode), top(mode), 0, size(mode), 22)
+'  usemenu pt(mode), top(mode), 0, size(mode), 22
 '
 '  IF editflexmenu(thismenu(pt(mode)), menutype(), menuoff(), menulimits(), dat(), min(), max()) THEN
 '    updateflexmenu pt, showmenu$(), thismenu(), size(mode), menu$(), menutype(), menuoff(), menulimits(), dat(), caption$(), max(), recindex
@@ -1374,7 +1373,7 @@ menuitemfile$ = workingdir$ & SLASH & "menuitem.bin"
 
 DIM needupdate AS INTEGER = -1
 DIM record AS INTEGER = 0
-DIM AS INTEGER csr, top, tog, dummy
+DIM AS INTEGER csr, top, tog
 DIM edmenu$(6)
 
 DIM menudata AS MenuDef
@@ -1386,7 +1385,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(csr, top, 0, UBOUND(edmenu$), 22)
+ usemenu csr, top, 0, UBOUND(edmenu$), 22
  SELECT CASE csr
   CASE 0
    IF keyval(57) > 1 OR keyval(28) > 1 THEN

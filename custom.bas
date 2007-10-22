@@ -12,7 +12,6 @@ DEFINT A-Z
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
-DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB importbmp (f$, cap$, count%)
@@ -246,7 +245,7 @@ DO:
     pt = 0: menumode = 0: GOSUB setmainmenu
   END SELECT
  END IF
- dummy = usemenu(pt, 0, 0, mainmax, 24)
+ usemenu pt, 0, 0, mainmax, 24
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   SELECT CASE menumode
    CASE 0'--normal mode
@@ -355,7 +354,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN GOTO finis
- dummy = usemenu(csr, top, 0, last, 20)
+ usemenu csr, top, 0, last, 20
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF csr = 0 THEN
    game$ = inputfilename$("Filename of New Game?", ".rpg")
@@ -398,7 +397,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- dummy = usemenu(temp, 0, 0, 2, 2)
+ usemenu temp, 0, 0, 2, 2
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF temp = 0 THEN
    IF isfile(workingdir$ + SLASH + "__danger.tmp") THEN
@@ -751,7 +750,7 @@ DO
  SELECT CASE mode
   CASE -1
    IF keyval(1) > 1 THEN EXIT DO
-   dummy = usemenu(menuptr, 0, 0, 3, 22)
+   usemenu menuptr, 0, 0, 3, 22
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
     IF menuptr = 0 THEN EXIT DO
     IF menuptr = 1 THEN mode = 0
@@ -1034,12 +1033,12 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, gen(97), 0, game$ + ".sho", 40, 1: GOSUB menugen
- dummy = usemenu(csr, 0, 0, li, 24)
+ usemenu csr, 0, 0, li, 24
  IF csr = 1 THEN
   IF pt = gen(97) AND keyval(77) > 1 THEN
    GOSUB sshopset
    pt = pt + 1
-   IF needaddset(pt, gen(97), "Shop") THEN
+   IF needaddset(pt, gen(genMaxShop), "Shop") THEN
     flusharray a(), 19, 0
     setpicstuf a(), 40, -1
     storeset game$ + ".sho", pt, 0
@@ -1047,7 +1046,7 @@ DO
    GOSUB lshopset
   END IF
   newpt = pt
-  IF intgrabber(newpt, 0, gen(97), 75, 77) THEN
+  IF intgrabber(newpt, 0, gen(genMaxShop)) THEN
    GOSUB sshopset
    pt = newpt
    GOSUB lshopset
@@ -1069,7 +1068,7 @@ DO
   END IF
  END IF
  IF csr = 5 THEN
-  IF intgrabber(a(18), 0, 32767, 75, 77) THEN GOSUB menuup
+  IF intgrabber(a(18), 0, 32767) THEN GOSUB menuup
  END IF
  IF csr = 6 THEN
   IF scrintgrabber(a(19), 0, 0, 75, 77, 1, plottrigger) THEN GOSUB menuup
@@ -1147,9 +1146,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
  IF tcsr = 0 THEN IF keyval(57) > 1 OR keyval(28) > 1 THEN RETRACE
- 'IF keyval(72) > 1 THEN tcsr = large(0, tcsr - 1)
- 'IF keyval(80) > 1 THEN tcsr = small(last, tcsr + 1)
- dummy = usemenu(tcsr, 0, 0, last, 24)
+ usemenu tcsr, 0, 0, last, 24
  IF tcsr = 1 THEN
   IF keyval(75) > 1 AND thing > 0 THEN
    GOSUB sstuf
@@ -1181,24 +1178,24 @@ DO
   END IF
   SELECT CASE tcsr
    CASE 11 '--must trade in item 1 type
-    IF zintgrabber(b(25), min(tcsr), max(tcsr), 75, 77) THEN GOSUB itstrsh
+    IF zintgrabber(b(25), min(tcsr), max(tcsr)) THEN GOSUB itstrsh
    CASE 13, 15, 17 '--must trade in item 2+ types
-    IF zintgrabber(b(18 + tcsr), min(tcsr), max(tcsr), 75, 77) THEN GOSUB itstrsh
+    IF zintgrabber(b(18 + tcsr), min(tcsr), max(tcsr)) THEN GOSUB itstrsh
    CASE 12, 14, 16, 18 '--trade in item amounts
     b(18 + tcsr) = b(18 + tcsr) + 1
-    dummy = intgrabber(b(18 + tcsr), min(tcsr), max(tcsr), 75, 77)
+    intgrabber(b(18 + tcsr), min(tcsr), max(tcsr))
     b(18 + tcsr) = b(18 + tcsr) - 1
    CASE 19, 20 '--sell type, price
-    dummy = intgrabber(b(7 + tcsr), min(tcsr), max(tcsr), 75, 77)
+    intgrabber(b(7 + tcsr), min(tcsr), max(tcsr))
     IF (b(26) < 0 OR b(26) > 3) AND b(17) <> 1 THEN b(26) = 0
    CASE 21 '--trade in for
-    IF zintgrabber(b(7 + tcsr), min(tcsr), max(tcsr), 75, 77) THEN GOSUB itstrsh
+    IF zintgrabber(b(7 + tcsr), min(tcsr), max(tcsr)) THEN GOSUB itstrsh
    CASE 22 '--trade in for amount
     b(7 + tcsr) = b(7 + tcsr) + 1
-    dummy = intgrabber(b(7 + tcsr), min(tcsr), max(tcsr), 75, 77)
+    intgrabber(b(7 + tcsr), min(tcsr), max(tcsr))
     b(7 + tcsr) = b(7 + tcsr) - 1
    CASE ELSE
-    IF intgrabber(b(17 + tcsr - 3), min(tcsr), max(tcsr), 75, 77) THEN
+    IF intgrabber(b(17 + tcsr - 3), min(tcsr), max(tcsr)) THEN
      IF tcsr = 3 OR tcsr = 4 THEN
       GOSUB othertype
       GOSUB getdefaultthingname

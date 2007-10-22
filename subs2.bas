@@ -49,8 +49,6 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
-DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
-DECLARE FUNCTION xintgrabber% (n%, pmin%, pmax%, nmin%, nmax%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
@@ -550,7 +548,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(pt, 0, 0, menumax, 24)
+ usemenu pt, 0, 0, menumax, 24
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   SELECT CASE pt
    CASE 0
@@ -740,7 +738,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(pt, top, 0, max, 22)
+ usemenu pt, top, 0, max, 22
  strgrabber stat$(pt), maxlen(pt)
  IF keyval(28) > 1 THEN GOSUB typestat
  
@@ -800,7 +798,7 @@ setkeys
 DO
  setwait timing(), 90
  setkeys
- dummy = usemenu(pt, 0, 0, num, 22)
+ usemenu pt, 0, 0, num, 22
  IF keyval(1) > 1 THEN
   sublist = -1
   EXIT DO
@@ -889,7 +887,7 @@ DO
   cropafter pt, gen(39), 0, game$ + ".say", 400, 1
   GOSUB loadlines
  END IF
- dummy = usemenu(csr, 0, 0, 7, 24)
+ usemenu csr, 0, 0, 7, 24
  remptr = pt
  SELECT CASE csr
   CASE 7'textsearch
@@ -1010,18 +1008,18 @@ DO
    cond(order(cur)) = -temptrig
   END IF
  END IF
- dummy = usemenu(cur, 0, -1, 20, 24)
+ usemenu cur, 0, -1, 20, 24
  IF keyval(83) > 1 AND cur > -1 THEN cond(order(cur)) = 0
  IF cur >= 0 THEN
   temp = cond(order(cur))
-  IF ct(order(cur)) = 0 THEN dummy = intgrabber(cond(order(cur)), -999, 999, 75, 77)
-  IF ct(order(cur)) = 1 THEN dummy = intgrabber(cond(order(cur)), 0, gen(37), 75, 77)
-  IF ct(order(cur)) = 2 THEN dummy = intgrabber(cond(order(cur)), -32000, gen(97) + 1, 75, 77)
-  IF ct(order(cur)) = 3 THEN dummy = intgrabber(cond(order(cur)), -99, 99, 75, 77)
-  IF ct(order(cur)) = 4 THEN dummy = intgrabber(cond(order(cur)), -32000, 32000, 75, 77)
-  IF ct(order(cur)) = 5 THEN dummy = intgrabber(cond(order(cur)), 0, 199, 75, 77)
-  IF ct(order(cur)) = 6 THEN dummy = xintgrabber(cond(order(cur)), 0, 255, 0, -255, 75, 77)
-  IF ct(order(cur)) = 7 THEN dummy = scrintgrabber(cond(order(cur)), 0, gen(39), 75, 77, -1, plottrigger)
+  IF ct(order(cur)) = 0 THEN intgrabber cond(order(cur)), -999, 999
+  IF ct(order(cur)) = 1 THEN intgrabber cond(order(cur)), 0, gen(genMaxFormation)
+  IF ct(order(cur)) = 2 THEN intgrabber cond(order(cur)), -32000, gen(genMaxShop) + 1
+  IF ct(order(cur)) = 3 THEN intgrabber cond(order(cur)), -99, 99
+  IF ct(order(cur)) = 4 THEN intgrabber cond(order(cur)), -32000, 32000
+  IF ct(order(cur)) = 5 THEN intgrabber cond(order(cur)), 0, 199
+  IF ct(order(cur)) = 6 THEN xintgrabber cond(order(cur)), 0, 255, 0, -255
+  IF ct(order(cur)) = 7 THEN scrintgrabber cond(order(cur)), 0, gen(39), 75, 77, -1, plottrigger
   IF order(cur) = 10 OR order(cur) = 19 OR order(cur) = 20 THEN IF temp <> cond(order(cur)) THEN GOSUB heroar
   IF order(cur) = 8 THEN IF temp <> cond(order(cur)) THEN GOSUB shopar
   IF order(cur) = 18 THEN IF temp <> cond(order(cur)) THEN GOSUB itemar
@@ -1123,7 +1121,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
- dummy = usemenu(tcur, 0, 0, 5, 24)
+ usemenu tcur, 0, 0, 5, 24
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF tcur = 0 THEN RETRACE
   IF tcur = 1 THEN setbit buffer(), 174, 0, (readbit(buffer(), 174, 0) XOR 1)
@@ -1133,7 +1131,7 @@ DO
  END IF
  FOR i = 0 TO 1
   IF tcur = 2 + (i * 2) THEN strgrabber choice$(i), 15
-  IF tcur = 3 + (i * 2) THEN dummy = intgrabber(buffer(182 + (i * 9)), -999, 999, 75, 77)
+  IF tcur = 3 + (i * 2) THEN intgrabber buffer(182 + (i * 9)), -999, 999
  NEXT i
  GOSUB tcmenu
  
@@ -1233,7 +1231,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
- dummy = usemenu(gcsr, 0, 0, 9, 24)
+ usemenu gcsr, 0, 0, 9, 24
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF gcsr = 0 THEN RETRACE
   FOR i = 0 TO 2
@@ -1247,12 +1245,12 @@ DO
  NEXT i
  FOR i = 0 TO 3
   IF gcsr = 1 + i THEN
-   IF intgrabber(buffer(193 + i), min(i), max(i), 75, 77) THEN GOSUB refresh
+   IF intgrabber(buffer(193 + i), min(i), max(i)) THEN GOSUB refresh
   END IF
  NEXT i
  FOR i = 4 TO 5
   IF gcsr = 1 + i THEN
-   IF zintgrabber(buffer(193 + i), min(i), max(i), 75, 77) THEN GOSUB refresh
+   IF zintgrabber(buffer(193 + i), min(i), max(i)) THEN GOSUB refresh
   END IF
  NEXT i
  GOSUB previewbox

@@ -185,9 +185,9 @@ DO
   count = this + 1
  END IF
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(csr, 0, 0, 5, 24)
+ usemenu csr, 0, 0, 5, 24
  IF csr = 1 THEN
-  IF intgrabber(pt, 0, count - 1, 75, 77) THEN
+  IF intgrabber(pt, 0, count - 1) THEN
    menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
    GOSUB showpage
   END IF
@@ -391,9 +391,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN tmode = 0: RETRACE
- 'IF keyval(72) > 1 THEN tmode = loopvar(tmode, 0, 4, -1)
- 'IF keyval(80) > 1 THEN tmode = loopvar(tmode, 0, 4, 1)
- dummy = usemenu(tmode, 0, 0, 4, 24)
+ usemenu tmode, 0, 0, 4, 24
  IF keyval(57) OR keyval(28) > 1 THEN
   SELECT CASE tmode
    CASE 0, 1, 2
@@ -441,10 +439,10 @@ DO
  IF keyval(1) > 1 THEN savetanim pagenum, tastuf(): RETRACE
  IF usemenu(taptr, 0, 0, 5, 5) THEN GOSUB utamenu
  IF taptr = 1 THEN
-  IF intgrabber(taset, 0, 1, 75, 77) THEN GOSUB utamenu
+  IF intgrabber(taset, 0, 1) THEN GOSUB utamenu
  END IF
  IF taptr = 4 THEN
-  IF intgrabber(tastuf(1 + 20 * taset), -999, 999, 75, 77) THEN GOSUB utamenu
+  IF intgrabber(tastuf(1 + 20 * taset), -999, 999) THEN GOSUB utamenu
  END IF
  IF keyval(57) OR keyval(28) > 1 THEN
   IF taptr = 0 THEN savetanim pagenum, tastuf(): RETRACE
@@ -659,9 +657,9 @@ DO
    END IF
   CASE 1 '---EDIT THAT STATEMENT---
    IF keyval(1) > 1 OR keyval(28) > 1 OR keyval(57) > 1 THEN context = 0
-   dummy = usemenu(ptr2, dummy, 0, 1, 1)
-   IF ptr2 = 0 THEN IF intgrabber(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset), 0, 6, 75, 77) THEN GOSUB refreshmenu
-   IF ptr2 = 1 THEN IF intgrabber(tastuf(11 + bound(pt - 1, 0, 8) + 20 * taset), llim(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)), ulim(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)), 75, 77) THEN GOSUB refreshmenu
+   usemenu ptr2, 0, 0, 1, 1
+   IF ptr2 = 0 THEN IF intgrabber(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset), 0, 6) THEN GOSUB refreshmenu
+   IF ptr2 = 1 THEN IF intgrabber(tastuf(11 + bound(pt - 1, 0, 8) + 20 * taset), llim(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)), ulim(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset))) THEN GOSUB refreshmenu
  END SELECT
  FOR i = 0 TO 9
   textcolor 7, 0
@@ -1190,7 +1188,7 @@ DO
  IF keyval(77) > 1 OR keyval(27) > 1 THEN
   changepal poffset(pt), 1, workpal(), pt - top
  END IF
- dummy = usemenu(pcsr, 0, 0, 2, 24)
+ usemenu pcsr, 0, 0, 2, 24
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF pcsr = 2 THEN RETRACE
   EXIT DO
@@ -2174,7 +2172,7 @@ DO
  END IF
  '---PICK BACKGROUND PAGE------
  oldcut = ts.cutfrom
- dummy = intgrabber(ts.cutfrom, 0, gen(genMaxBackdrop) - 1, 51, 52)
+ intgrabber ts.cutfrom, 0, gen(genMaxBackdrop) - 1, 51, 52
  IF ts.zone = 11 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, gen(genMaxBackdrop) - 1, -1)
  IF ts.zone = 12 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, gen(genMaxBackdrop) - 1, 1)
  IF oldcut <> ts.cutfrom THEN loadpage game$ + ".mxs", ts.cutfrom, 2

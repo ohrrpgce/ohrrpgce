@@ -62,7 +62,7 @@ REM $STATIC
 '  setkeys
 '  tog = tog XOR 1
 '  IF keyval(1) > 1 THEN EXIT DO
-'  dummy = usemenu(pt, top, -1, last, 24)
+'  usemenu pt, top, -1, last, 24
 '  IF pt >= 0 THEN
 '   IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, pt, 0
 '   IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, pt, 1
@@ -120,7 +120,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(pt, top, -1, count-1, 24)
+ usemenu pt, top, -1, count-1, 24
  IF pt >= 0 THEN
   IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, bits(pt), 0
   IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, bits(pt), 1
@@ -375,7 +375,7 @@ ELSE
    temp = small(temp, gen(43))
   END IF
  ELSEIF temp < 0 OR (temp = 0 AND scriptside = -1) THEN
-  dummy = intgrabber(temp, min, 0, 0, 0)
+  intgrabber(temp, min, 0, 0, 0)
  END IF
 END IF
 
@@ -442,11 +442,11 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(csr, 0, 0, 2, 24)
+ usemenu csr, 0, 0, 2, 24
  IF csr = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN EXIT DO
  IF csr = 1 THEN
   oldptr = pt
-  IF intgrabber(pt, 0, small(gen(56) + 1, 999), 75, 77) THEN
+  IF intgrabber(pt, 0, small(gen(56) + 1, 999)) THEN
    IF pt > gen(56) THEN gen(56) = pt
    smnemonic tagname$, oldptr
    tagname$ = lmnemonic$(pt)
@@ -513,84 +513,3 @@ PUT #fh, 2 + index * 11, a$
 CLOSE #fh
 
 END SUB
-
-FUNCTION xintgrabber (n, pmin, pmax, nmin, nmax, less, more)
-'--a little bit of documentation required:
-'--like zintgrabber, but for cases where positive values mean one thing, negatives
-'--another, and 0 means none.
-
-'nmin and nmax should be negative or 0. nmax should be less than nmin
-'nmax can be 0 for no negative range
-'nmin - nmax is the range of negative values
-'eg. nmin = -1 nmax = -100: negatives indicate a number between 1 and 100
-'pmin - pmax is position range, eg. 2 - 50
-
-old = n
-temp = n
-
-'depending on n, align sequence to match displayed
-
-IF old > 0 THEN
- temp = temp + pmin - 1
-END IF
-
-IF old < 0 THEN
- temp = temp + nmin + 1
-END IF
-
-'IF old = 0 THEN
-'END IF
-
-
-dummy = intgrabber(temp, nmax, pmax, less, more)
-
-IF keyval(12) > 1 OR keyval(13) > 1 OR keyval(74) > 1 OR keyval(78) > 1 THEN negated = 1
-
-
-IF old > 0 THEN
- IF temp >= pmin AND temp <= pmax THEN
-  temp = temp - pmin + 1
- ELSE
-  IF (temp >= 0 AND temp < pmin) OR (temp = -1 AND negated = 0) THEN
-   'you've hit backspace or left or something
-   temp = 0
-  ELSE
-   'you've hit minus or went off the far boundary
-   temp = temp - nmin - 1
-   'check the inverted value is in the other set
-   IF temp > 0 THEN temp = 0
-  END IF
- END IF
-END IF
-
-IF old < 0 THEN
- IF temp >= nmax AND temp <= nmin THEN
-  temp = temp - nmin - 1
- ELSE
-  IF (temp <= 0 AND temp > nmin) OR (temp = 1 AND negated = 0) THEN
-   temp = 0
-  ELSE
-   temp = temp - pmin + 1
-   IF temp < 0 THEN temp = 0
-  END IF
- END IF
-END IF
-
-IF old = 0 THEN
- IF temp < 0 THEN temp = -1 'must have pressed left
- IF temp > 0 THEN
-  IF temp < pmin OR keyval(more) > 1 THEN temp = 1 ELSE temp = temp - pmin + 1
- END IF
-END IF
-
-'backspace? goto none
-IF temp = SGN(temp) AND keyval(14) > 1 THEN temp = 0
-
-n = temp
-IF old = n THEN
- xintgrabber = 0
-ELSE
- xintgrabber = 1
-END IF
-
-END FUNCTION

@@ -33,7 +33,6 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
-DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filesize$ (file$)
@@ -111,7 +110,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(csr, top, 0, 15, 22)
+ usemenu csr, top, 0, 15, 22
  SELECT CASE csr
   CASE 0
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
@@ -121,7 +120,7 @@ DO
    IF pt = gen(55) AND keyval(77) > 1 THEN
     SaveVehicle game$ + ".veh", veh(), vehname$, pt
     pt = bound(pt + 1, 0, 32767)
-    IF needaddset(pt, gen(55), "vehicle") THEN
+    IF needaddset(pt, gen(genMaxVehicle), "vehicle") THEN
      FOR i = 0 TO 39
       veh(i) = 0
      NEXT i
@@ -130,7 +129,7 @@ DO
     END IF
    END IF
    newptr = pt
-   IF intgrabber(newptr, 0, gen(55), 75, 77) THEN
+   IF intgrabber(newptr, 0, gen(genMaxVehicle)) THEN
     SaveVehicle game$ + ".veh", veh(), vehname$, pt
     pt = newptr
     LoadVehicle game$ + ".veh", veh(), vehname$, pt
@@ -141,7 +140,7 @@ DO
    strgrabber vehname$, 15
    IF oldname$ <> vehname$ THEN GOSUB vehmenu
   CASE 3, 5 TO 9, 12, 15
-   IF intgrabber(veh(offset(csr)), min(csr), max(csr), 75, 77) THEN
+   IF intgrabber(veh(offset(csr)), min(csr), max(csr)) THEN
     GOSUB vehmenu
    END IF
   CASE 4
@@ -337,7 +336,7 @@ DO
  IF keyval(1) > 1 THEN
   EXIT DO
  END IF
- dummy = usemenu(csr, menutop, 0, last, 22)
+ usemenu csr, menutop, 0, last, 22
  IF (keyval(28) > 1 OR keyval(57) > 1) THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 1 THEN
@@ -388,13 +387,13 @@ DO
 
  END IF
  IF csr > 1 AND csr <= 4 THEN
-  IF intgrabber(gen(100 + csr), 0, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF intgrabber(gen(100 + csr), 0, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr > 4 AND csr < 8 THEN
-  IF zintgrabber(gen(csr - 3), -1, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF zintgrabber(gen(csr - 3), -1, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr = 11 THEN
-  IF intgrabber(gen(96), 0, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF intgrabber(gen(96), 0, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr = 13 THEN
   strgrabber longname$, 38
@@ -405,19 +404,19 @@ DO
   generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr = 16 THEN
-  IF intgrabber(gen(genPoison), 32, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF intgrabber(gen(genPoison), 32, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr = 17 THEN
-  IF intgrabber(gen(genStun), 32, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF intgrabber(gen(genStun), 32, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr = 18 THEN
-  IF intgrabber(gen(genMute), 32, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF intgrabber(gen(genMute), 32, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr = 19 THEN
-  IF intgrabber(gen(genDamageCap), 0, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF intgrabber(gen(genDamageCap), 0, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
  IF csr >= 20 AND csr <= 31 THEN
-  IF intgrabber(gen(genStatCap + (csr - 20)), 0, max(csr), 75, 77) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF intgrabber(gen(genStatCap + (csr - 20)), 0, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
  END IF
 
  standardmenu m$(), last, 22, csr, menutop, 0, 0, dpage, 0
@@ -477,7 +476,7 @@ DO
  setwait timing(), 100
  setkeys
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(pt, 0, 0, menusize, 24)
+ usemenu pt, 0, 0, menusize, 24
  IF pt = 0 THEN
   IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
  ELSE
@@ -533,7 +532,7 @@ SUB generalsfxmenu ()
     CASE 0
       IF accept THEN EXIT DO
     CASE 1 TO num
-      IF zintgrabber(gen(sfxgenoff(pt)), -1, gen(genMaxSFX), 75, 77) THEN
+      IF zintgrabber(gen(sfxgenoff(pt)), -1, gen(genMaxSFX)) THEN
         IF gen(sfxgenoff(pt)) > 0 THEN
           disp(pt) = menu(pt) & (gen(sfxgenoff(pt))-1) & " " & getsfxname(gen(sfxgenoff(pt))-1)
         ELSE
@@ -580,7 +579,7 @@ DO
  setkeys
  IF keyval(1) > 1 THEN EXIT DO
 
- dummy = usemenu(csr, 0, 0, optionsbottom, 22)
+ usemenu csr, 0, 0, optionsbottom, 22
 
  IF csr = 2 AND songfile$ <> "" THEN
   strgrabber sname$, 30
@@ -806,7 +805,7 @@ DO
  setkeys
  IF keyval(1) > 1 THEN EXIT DO
 
- dummy = usemenu(csr, 0, 0, optionsbottom, 22)
+ usemenu csr, 0, 0, optionsbottom, 22
 
  IF csr = 2 AND sfxfile$ <> "" THEN
   strgrabber sname$, 30
@@ -1077,7 +1076,7 @@ DO
  END IF
  IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
  IF scriptids(pt) < 16384 THEN
-  IF intgrabber(id, 0, 16383, 75, 77) THEN
+  IF intgrabber(id, 0, 16383) THEN
    iddisplay = -1
    FOR i = 0 TO numberedlast
     IF id = scriptids(i) THEN pt = i
@@ -1146,7 +1145,7 @@ DO
  tog = tog XOR 1
 
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(csr, 0, 0, UBOUND(menu$), 10)
+ usemenu csr, 0, 0, UBOUND(menu$), 10
  IF csr = 1 THEN
   IF keyval(77) > 1 AND palnum = gen(genMaxMasterPal) THEN
    palnum += 1
@@ -1161,7 +1160,7 @@ DO
     END IF
    END IF
   END IF
-  IF intgrabber(palnum, 0, gen(genMaxMasterPal), 75, 77) THEN
+  IF intgrabber(palnum, 0, gen(genMaxMasterPal)) THEN
    loadpalette master(), palnum
    setpal master()
    getui uilook(), palnum
@@ -1283,7 +1282,7 @@ DO
  IF keyval(72) > 1 AND gcsr = 1 THEN gcsr = 0
  IF keyval(80) > 1 AND gcsr = 0 THEN gcsr = 1
  IF gcsr = 1 THEN
-  IF intgrabber(gen(1), 0, gen(100) - 1, 75, 77) THEN 
+  IF intgrabber(gen(1), 0, gen(genMaxBackdrop) - 1) THEN 
    loadpage game$ + ".mxs", gen(1), 2
   END IF
  END IF

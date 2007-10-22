@@ -1023,6 +1023,113 @@ END IF
 
 END FUNCTION
 
+FUNCTION zintgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER=75, more AS INTEGER=77)
+'--adjust for entries that are offset by +1
+'--what a hack!
+'--all entries <= 0 are special options not meant to be enumerated
+'--supply the min & max as visible, not actual range for n
+'--eg a menu with 'A' = -2, 'B' = -1, 'C' = 0, 'item 0 - item 99' = 1 - 100 would have min = -3, max = 99
+old = n
+temp = n - 1
+'--must adjust to always be able to type in a number
+IF temp < 0 THEN
+ FOR i = 2 TO 11
+  IF keyval(i) > 1 THEN temp = 0
+ NEXT i
+END IF
+intgrabber temp, min, max, less, more
+n = temp + 1
+IF old = 1 AND keyval(14) > 1 THEN n = 0
+
+IF old = n THEN
+ zintgrabber = 0
+ELSE
+ zintgrabber = 1
+END IF
+
+END FUNCTION
+
+FUNCTION xintgrabber (n AS INTEGER, pmin AS INTEGER, pmax AS INTEGER, nmin AS INTEGER, nmax AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
+'--a little bit of documentation required:
+'--like zintgrabber, but for cases where positive values mean one thing, negatives
+'--another, and 0 means none.
+
+'nmin and nmax should be negative or 0. nmax should be less than nmin
+'nmax can be 0 for no negative range
+'nmin - nmax is the range of negative values
+'eg. nmin = -1 nmax = -100: negatives indicate a number between 1 and 100
+'pmin - pmax is position range, eg. 2 - 50
+
+old = n
+temp = n
+
+'depending on n, align sequence to match displayed
+
+IF old > 0 THEN
+ temp = temp + pmin - 1
+END IF
+
+IF old < 0 THEN
+ temp = temp + nmin + 1
+END IF
+
+'IF old = 0 THEN
+'END IF
+
+
+intgrabber temp, nmax, pmax, less, more
+
+IF keyval(12) > 1 OR keyval(13) > 1 OR keyval(74) > 1 OR keyval(78) > 1 THEN negated = 1
+
+
+IF old > 0 THEN
+ IF temp >= pmin AND temp <= pmax THEN
+  temp = temp - pmin + 1
+ ELSE
+  IF (temp >= 0 AND temp < pmin) OR (temp = -1 AND negated = 0) THEN
+   'you've hit backspace or left or something
+   temp = 0
+  ELSE
+   'you've hit minus or went off the far boundary
+   temp = temp - nmin - 1
+   'check the inverted value is in the other set
+   IF temp > 0 THEN temp = 0
+  END IF
+ END IF
+END IF
+
+IF old < 0 THEN
+ IF temp >= nmax AND temp <= nmin THEN
+  temp = temp - nmin - 1
+ ELSE
+  IF (temp <= 0 AND temp > nmin) OR (temp = 1 AND negated = 0) THEN
+   temp = 0
+  ELSE
+   temp = temp - pmin + 1
+   IF temp < 0 THEN temp = 0
+  END IF
+ END IF
+END IF
+
+IF old = 0 THEN
+ IF temp < 0 THEN temp = -1 'must have pressed left
+ IF temp > 0 THEN
+  IF temp < pmin OR keyval(more) > 1 THEN temp = 1 ELSE temp = temp - pmin + 1
+ END IF
+END IF
+
+'backspace? goto none
+IF temp = SGN(temp) AND keyval(14) > 1 THEN temp = 0
+
+n = temp
+IF old = n THEN
+ xintgrabber = 0
+ELSE
+ xintgrabber = 1
+END IF
+
+END FUNCTION
+
 SUB playsongnum (songnum%)
 	DIM songbase$, songfile$
 
@@ -1150,7 +1257,7 @@ FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
   setkeys
   IF keyval(1) > 1 THEN RETURN -1   'cancel
   IF keyval(28) > 1 OR keyval(57) > 1 THEN EXIT DO
-  intgrabber (q, -1, 10, 75, 77)
+  intgrabber (q, -1, 10)
   centerbox 160, 100, 300, 40, 4, dpage
   edgeprint "Pick Ogg quality level (" & q & ")", 64, 86, uilook(uiText), dpage
   FOR i = 0 TO q + 1
@@ -1683,3 +1790,4 @@ xbsave game$ + ".gen", gen(), 1000
 
 'wow! this is quite a big and ugly routine!
 END SUB
+

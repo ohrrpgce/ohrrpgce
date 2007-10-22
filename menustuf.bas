@@ -1298,8 +1298,8 @@ DO
  IF keyval(1) > 1 THEN EXIT SUB
  IF keyval(72) > 1 THEN csr = large(0, csr - 1)
  IF keyval(80) > 1 THEN csr = small(2, csr + 1)
- IF csr = 0 THEN intgrabber pt, 0, max, 75, 77
- IF csr = 1 THEN intgrabber array(pt), -32768, 32767, 75, 77
+ IF csr = 0 THEN intgrabber pt, 0, max
+ IF csr = 1 THEN intgrabber array(pt), -32768, 32767
  IF csr = 2 THEN
   FOR i = 0 TO 15
    IF keyval(hexk(i)) > 1 THEN setbit array(), pt, i, readbit(array(), pt, i) XOR 1

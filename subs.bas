@@ -23,8 +23,6 @@ DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE SUB testflexmenu ()
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
-DECLARE FUNCTION xintgrabber% (n%, pmin%, pmax%, nmin%, nmax%, less%, more%)
-DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
@@ -546,7 +544,7 @@ DO
   cropafter recindex, gen(36), 0, game$ + ".dt1", 320, 1
  END IF
 
- dummy = usemenu(pt, top, 0, size, 22)
+ usemenu pt, top, 0, size, 22
 
  IF workmenu(pt) = EnMenuChooseAct OR (keyval(56) > 0 and NOT isStringField(menutype(workmenu(pt)))) THEN
   lastindex = recindex
@@ -563,7 +561,7 @@ DO
     GOSUB EnUpdateMenu
    END IF
   ELSE
-   IF intgrabber(recindex, 0, gen(36), 75, 77) THEN
+   IF intgrabber(recindex, 0, gen(genMaxEnemy)) THEN
     saveenemydata recbuf(), lastindex
     GOSUB EnLoadSub
    END IF
@@ -709,7 +707,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(csr, 0, 0, 2, 24)
+ usemenu csr, 0, 0, 2, 24
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 1 THEN GOSUB editform
@@ -762,9 +760,9 @@ DO
    GOSUB loadfset
   END IF
  END IF
- IF bcsr = 2 THEN dummy = intgrabber(c(0), 0, 99, 75, 77)
+ IF bcsr = 2 THEN intgrabber c(0), 0, 99
  IF bcsr > 2 THEN
-  IF zintgrabber(c(bcsr - 2), -1, gen(37), 75, 77) THEN
+  IF zintgrabber(c(bcsr - 2), -1, gen(genMaxFormation)) THEN
    GOSUB lpreviewform
   END IF
   IF pt >= 0 THEN
@@ -847,7 +845,7 @@ DO
    RETRACE
   END IF
   IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, gen(37), 0, game$ + ".for", 80, 1
-  dummy = usemenu(csr2, -6, -6, 7, 25)
+  usemenu csr2, -6, -6, 7, 25
   IF keyval(57) > 1 OR keyval(28) > 1 THEN
    IF csr2 = -6 THEN
     GOSUB saveform
@@ -856,19 +854,19 @@ DO
    IF csr2 >= 0 THEN IF a(csr2 * 4 + 0) > 0 THEN csr3 = 1
   END IF
   IF (csr2 >= -5 AND csr2 <= -4) OR (csr2 >= -1 AND csr2 < 0) THEN
-   IF intgrabber(a(36 + csr2), 0, max(csr2 + 5), 75, 77) THEN
+   IF intgrabber(a(36 + csr2), 0, max(csr2 + 5)) THEN
     GOSUB saveform
     GOSUB loadform
    END IF
   END IF
   IF csr2 = -3 THEN
-   IF zintgrabber(a(36 + csr2), -2, max(csr2 + 5), 75, 77) THEN
+   IF zintgrabber(a(36 + csr2), -2, max(csr2 + 5)) THEN
     GOSUB saveform
     GOSUB loadform
    END IF
   END IF
   IF csr2 = -2 THEN
-   IF xintgrabber(a(36 + csr2), 2, max(csr2 + 5), 0, 0, 75, 77) THEN
+   IF xintgrabber(a(36 + csr2), 2, max(csr2 + 5), 0, 0) THEN
     GOSUB saveform
     GOSUB loadform
    END IF
@@ -897,7 +895,7 @@ DO
    END IF
   END IF'--DONE SELECTING DIFFERENT FORMATION
   IF csr2 >= 0 THEN
-   IF zintgrabber(a(csr2 * 4 + 0), -1, gen(36), 75, 77) THEN
+   IF zintgrabber(a(csr2 * 4 + 0), -1, gen(36)) THEN
     GOSUB formpics
    END IF
   END IF
@@ -1050,7 +1048,7 @@ DO
  IF keyval(29) > 0 AND keyval(14) THEN
   cropafter pt, gen(35), -1, game$ + ".dt0", 636, 1
  END IF
- dummy = usemenu(csr, 0, 0, 8, 24)
+ usemenu csr, 0, 0, 8, 24
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 3 THEN GOSUB picnpal
@@ -1109,7 +1107,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
  IF (keyval(57) > 1 OR keyval(28) > 1) AND bctr = 0 THEN RETRACE
- dummy = usemenu(bctr, 0, 0, 4, 24)
+ usemenu bctr, 0, 0, 4, 24
  IF bctr > 0 THEN
   strgrabber hmenu$(bctr - 1), 10
  END IF
@@ -1141,8 +1139,8 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
- dummy = usemenu(bctr, -1, -1, 3, 24)
- IF bctr >= 0 THEN dummy = intgrabber(her.list_type(bctr), 0, 2, 75, 77)
+ usemenu bctr, -1, -1, 3, 24
+ IF bctr >= 0 THEN intgrabber her.list_type(bctr), 0, 2
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF bctr = -1 THEN RETRACE
   IF bctr >= 0 AND bctr < 4 THEN
@@ -1188,45 +1186,45 @@ DO
  IF (keyval(52) > 1 AND frame = 0) OR (keyval(51) > 1 AND frame = 1) THEN
   frame = frame xor 1
  END IF
- dummy = usemenu(bctr, 0, 0, 9, 24)
+ usemenu bctr, 0, 0, 9, 24
  IF (keyval(28) > 1 OR keyval(57) > 1) AND bctr = 0 THEN frame = -1: RETRACE
  IF bctr > 0 THEN
   SELECT CASE bctr
    CASE 1
-    IF intgrabber(her.sprite, min(bctr), max(bctr), 75, 77) THEN
+    IF intgrabber(her.sprite, min(bctr), max(bctr)) THEN
       GOSUB heropics
     END IF
    CASE 2
-    IF intgrabber(her.sprite_pal, min(bctr), max(bctr), 75, 77) THEN
+    IF intgrabber(her.sprite_pal, min(bctr), max(bctr)) THEN
       GOSUB heropics
     END IF
    CASE 3
-    IF intgrabber(her.walk_sprite, min(bctr), max(bctr), 75, 77) THEN
+    IF intgrabber(her.walk_sprite, min(bctr), max(bctr)) THEN
       GOSUB heropics
     END IF
    CASE 4
-    IF intgrabber(her.walk_sprite_pal, min(bctr), max(bctr), 75, 77) THEN
+    IF intgrabber(her.walk_sprite_pal, min(bctr), max(bctr)) THEN
       GOSUB heropics
     END IF
    CASE 5
-    dummy = intgrabber(her.def_level, min(bctr), max(bctr), 75, 77)
+    intgrabber her.def_level, min(bctr), max(bctr)
    CASE 6
-    IF intgrabber(her.def_weapon, min(bctr), max(bctr), 75, 77) THEN
+    IF intgrabber(her.def_weapon, min(bctr), max(bctr)) THEN
       it$ = itemstr$(her.def_weapon, 0, 1)
     END IF
    CASE 7
-    dummy = intgrabber(her.max_name_len, min(bctr), max(bctr), 75, 77)
+    intgrabber her.max_name_len, min(bctr), max(bctr)
    CASE 8
     IF frame = 0 THEN
-      dummy = intgrabber(her.hand_a_x, min(bctr), max(bctr), 75, 77)
+      intgrabber her.hand_a_x, min(bctr), max(bctr)
     ELSE
-      dummy = intgrabber(her.hand_b_x, min(bctr), max(bctr), 75, 77)
+      intgrabber her.hand_b_x, min(bctr), max(bctr)
     END IF
    CASE 9
     IF frame = 0 THEN
-      dummy = intgrabber(her.hand_a_y, min(bctr), max(bctr), 75, 77)
+      intgrabber her.hand_a_y, min(bctr), max(bctr)
     ELSE
-      dummy = intgrabber(her.hand_b_y, min(bctr), max(bctr), 75, 77)
+      intgrabber her.hand_b_y, min(bctr), max(bctr)
     END IF
   END SELECT
   IF keyval(28) > 1 OR keyval(57) > 1 THEN
@@ -1389,7 +1387,7 @@ DO
     GOSUB gosubatkname
    END IF
   END IF
-  IF colcsr = 1 THEN dummy = zintgrabber(her.spell_lists(listnum, bctr-1).learned, -1, 99, leftkey, rightkey)
+  IF colcsr = 1 THEN zintgrabber her.spell_lists(listnum, bctr-1).learned, -1, 99, leftkey, rightkey
  END IF
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF bctr = 0 THEN
@@ -1530,18 +1528,18 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(pt, 0, 0, 4, 24)
+ usemenu pt, 0, 0, 4, 24
  SELECT CASE pt
   CASE 0
    IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
   CASE 1
-   dummy = intgrabber(.have_tag, 0, 999, 75, 77)
+   intgrabber .have_tag, 0, 999
   CASE 2
-   dummy = intgrabber(.alive_tag, 0, 999, 75, 77)
+   intgrabber .alive_tag, 0, 999
   CASE 3
-   dummy = intgrabber(.leader_tag, 0, 999, 75, 77)
+   intgrabber .leader_tag, 0, 999
   CASE 4
-   dummy = intgrabber(.active_tag, 0, 999, 75, 77)
+   intgrabber .active_tag, 0, 999
  END SELECT
  FOR i = 0 TO 4
   textcolor 7, 0
@@ -1618,8 +1616,8 @@ DO
   cropafter csr, 254, -1, game$ + ".itm", 200, 1
   GOSUB litemname
  END IF
- dummy = usemenu(csr, top, -1, 254, 23)
- dummy = intgrabber(csr, -1, 254, 75, 77)
+ usemenu csr, top, -1, 254, 23
+ intgrabber csr, -1, 254
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF csr = -1 THEN EXIT DO
   IF csr <= 254 THEN
@@ -1688,7 +1686,7 @@ DO
   frame = frame XOR 1
   GOSUB itemmenu
  END IF
- dummy = usemenu(pt, 0, 0, 20, 24)
+ usemenu pt, 0, 0, 20, 24
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
   IF pt = 0 THEN RETRACE
   IF a(49) > 0 THEN
@@ -1719,17 +1717,17 @@ DO
    strgrabber info$, 34
    menu$(2) = "Info:" + info$
   CASE 3, 6, 9, 10
-   IF intgrabber(a(46 + (pt - 3)), min(pt), max(pt), 75, 77) THEN GOSUB itemmenu
+   IF intgrabber(a(46 + (pt - 3)), min(pt), max(pt)) THEN GOSUB itemmenu
   CASE 4, 5, 7
-   IF zintgrabber(a(46 + (pt - 3)), -1, max(pt), 75, 77) THEN GOSUB itemmenu
+   IF zintgrabber(a(46 + (pt - 3)), -1, max(pt)) THEN GOSUB itemmenu
   CASE 8
-   IF xintgrabber(a(46 + (pt - 3)), 0, max(pt), -1, gen(39) * -1, 75, 77) THEN GOSUB itemmenu
+   IF xintgrabber(a(46 + (pt - 3)), 0, max(pt), -1, gen(39) * -1) THEN GOSUB itemmenu
   CASE 11
-   IF intgrabber(a(73), 0, 2, 75, 77) THEN GOSUB itemmenu
+   IF intgrabber(a(73), 0, 2) THEN GOSUB itemmenu
   CASE 12 TO 15
-   IF intgrabber(a(74 + (pt - 12)), 0, max(pt), 75, 77) THEN GOSUB itemmenu
+   IF intgrabber(a(74 + (pt - 12)), 0, max(pt)) THEN GOSUB itemmenu
   CASE 16, 17
-   IF intgrabber(a(78 + (pt - 16) + frame * 2), -100, 100,75,77) THEN GOSUB itemmenu
+   IF intgrabber(a(78 + (pt - 16) + frame * 2), -100, 100) THEN GOSUB itemmenu
  END SELECT
  FOR i = 0 TO 20
   textcolor 7, 0
@@ -1810,12 +1808,12 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
- dummy = usemenu(ptr2, 0, -1, 11, 24)
+ usemenu ptr2, 0, -1, 11, 24
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
   IF ptr2 = -1 THEN RETRACE
  END IF
  IF ptr2 >= 0 THEN
-  dummy = intgrabber(a(54 + ptr2), sbmax(ptr2) * -1, sbmax(ptr2), 75, 77)
+  intgrabber a(54 + ptr2), sbmax(ptr2) * -1, sbmax(ptr2)
  END IF
  textcolor 7, 0
  IF ptr2 = -1 THEN textcolor 14 + tog, 0
@@ -2020,7 +2018,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(cur, top, 0, 35, 7)
+ usemenu cur, top, 0, 35, 7
  IF (keyval(57) > 1 OR keyval(28) > 1) THEN GOSUB npcstats
  FOR i = top TO top + 7
   textcolor 7, 0
@@ -2057,7 +2055,7 @@ DO
  tog = tog XOR 1
  IF npc(cur * 15 + 2) > 0 THEN walk = walk + 1: IF walk > 3 THEN walk = 0
  IF keyval(1) > 1 THEN RETRACE
- dummy = usemenu(csr, 0, -1, 14, 24)
+ usemenu csr, 0, -1, 14, 24
  IF csr = 12 THEN
   IF keyval(28) > 1 OR keyval(57) > 1 THEN
    scrname$ = scriptbrowse$(npc(cur * 15 + 12), plottrigger, "NPC use plotscript")
@@ -2069,7 +2067,7 @@ DO
   IF keyval(75) > 1 OR keyval(77) > 1 OR keyval(57) > 1 OR keyval(28) > 1 THEN GOSUB onetimetog
  END IF
  IF (csr >= 1 AND csr < 11) OR csr > 12 THEN
-  IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr), 75, 77) THEN
+  IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr)) THEN
    IF csr = 1 THEN getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0)
    IF csr = 6 THEN it$ = itemstr(npc(cur * 15 + 6), 0, 0)
    IF csr = 4 THEN GOSUB frstline
@@ -2080,7 +2078,7 @@ DO
   getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0) 
  END IF
  IF csr = 0 THEN
-  IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr), 75, 77) = 1 THEN
+  IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr)) = 1 THEN
    i = cur
    GOSUB loadnpcpic
   END IF
@@ -2308,30 +2306,3 @@ IF LEN(s$) < maxl THEN
 END IF
 
 END SUB
-
-FUNCTION zintgrabber (n, min, max, less, more)
-'--adjust for entries that are offset by +1
-'--what a hack!
-'--all entries <= 0 are special options not meant to be enumerated
-'--supply the min & max as visible, not actual range for n
-'--eg a menu with 'A' = -2, 'B' = -1, 'C' = 0, 'item 0 - item 99' = 1 - 100 would have min = -3, max = 99
-old = n
-temp = n - 1
-'--must adjust to always be able to type in a number
-IF temp < 0 THEN
- FOR i = 2 TO 11
-  IF keyval(i) > 1 THEN temp = 0
- NEXT i
-END IF
-dummy = intgrabber(temp, min, max, less, more)
-n = temp + 1
-IF old = 1 AND keyval(14) > 1 THEN n = 0
-
-IF old = n THEN
- zintgrabber = 0
-ELSE
- zintgrabber = 1
-END IF
-
-END FUNCTION
-

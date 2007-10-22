@@ -40,7 +40,6 @@ DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB shopdata ()
-DECLARE FUNCTION zintgrabber% (n%, min%, max%, less%, more%)
 DECLARE SUB strgrabber (s$, maxl%)
 DECLARE SUB importsong ()
 DECLARE SUB gendata ()
@@ -110,7 +109,7 @@ DO
   GOSUB addmaphowmenu
  END IF
  IF pt = 2 THEN
-  IF intgrabber(maptocopy, 0, gen(0), 75, 77) THEN
+  IF intgrabber(maptocopy, 0, gen(genMaxMap)) THEN
    GOSUB addmaphowmenu
   END IF
  END IF
@@ -210,7 +209,7 @@ DO
  setkeys
  IF keyval(1) > 1 THEN EXIT DO
  oldtop = maptop
- dummy = usemenu(pt, maptop, 0, 2 + gen(0), 24)
+ usemenu pt, maptop, 0, 2 + gen(0), 24
  IF oldtop <> maptop THEN make_top_map_menu maptop, topmenu$()
  IF keyval(57) > 1 OR keyval(28) > 1 THEN
   IF pt = 0 THEN EXIT DO
@@ -269,7 +268,7 @@ DO
   GOSUB savemap
   RETRACE
  END IF
- dummy = usemenu(csr, 0, 0, 12, 24)
+ usemenu csr, 0, 0, 12, 24
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
   IF csr = 0 THEN
    GOSUB savemap
@@ -380,12 +379,12 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(gd, 0, -1, gmapmax, 24)
+ usemenu gd, 0, -1, gmapmax, 24
  SELECT CASE gd
   CASE -1
    IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
   CASE 1
-   zintgrabber(gmap(gd), gdmin(gd) - 1, gdmax(gd) - 1, 75, 77) 'song is optional
+   zintgrabber(gmap(gd), gdmin(gd) - 1, gdmax(gd) - 1) 'song is optional
   CASE 7, 12 TO 15
    IF gd = 7 THEN idx = 0 ELSE idx = gd - 11
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
@@ -394,7 +393,7 @@ DO
     gmapscr$(idx) = scriptname$(gmap(gd), plottrigger)
    END IF
   CASE ELSE
-   dummy = intgrabber(gmap(gd), gdmin(gd), gdmax(gd), 75, 77)
+   intgrabber gmap(gd), gdmin(gd), gdmax(gd)
  END SELECT
  scri = 0
  FOR i = -1 TO gmapmax
@@ -1181,7 +1180,7 @@ IF map(0) <> pass(0) OR map(0) <> emap(0) OR map(1) <> pass(1) OR map(1) <> emap
    setwait timing(), 100
    setkeys
    IF keyval(1) > 1 OR keyval(28) > 1 THEN EXIT DO
-   dummy = intgrabber(wide, 0, 9999, 75, 77)
+   intgrabber wide, 0, 9999
    printstr "Width:" + XSTR$(wide) + "   ", 0, j * 8, vpage
    setvispage vpage
    dowait
@@ -1192,7 +1191,7 @@ IF map(0) <> pass(0) OR map(0) <> emap(0) OR map(1) <> pass(1) OR map(1) <> emap
    setwait timing(), 100
    setkeys
    IF keyval(1) > 1 OR keyval(28) > 1 THEN EXIT DO
-   dummy = intgrabber(high, 0, 9999, 75, 77)
+   intgrabber high, 0, 9999
    printstr "Height:" + XSTR$(high) + "    ", 0, j * 8, vpage
    setvispage vpage
    dowait
@@ -1237,9 +1236,7 @@ DO
  	serdoorlinks(maplumpname$(pt, "d"), link())
  	RETRACE
  end if
- 'IF keyval(72) > 1 AND cur > 0 THEN cur = cur - 1: IF cur < ttop THEN ttop = ttop - 1
- 'IF keyval(80) > 1 AND cur < 199 THEN cur = cur + 1: IF cur > ttop + 10 THEN ttop = ttop + 1
- dummy = usemenu(cur, ttop, 0, 199, 10)
+ usemenu cur, ttop, 0, 199, 10
  IF keyval(28) > 1 OR keyval(57) > 1 THEN GOSUB seedoors
  FOR i = ttop TO ttop + 10
   textcolor 7, 0
@@ -1289,21 +1286,19 @@ DO
   IF sdwait = 0 THEN DrawDoorPair pt, cur, map(), pass(), doors(), link(), gmap()
  END IF
  IF keyval(1) > 1 THEN RETRACE
- 'IF keyval(72) > 1 THEN cur2 = cur2 - 1: IF cur2 < -1 THEN cur2 = 4
- 'IF keyval(80) > 1 THEN cur2 = cur2 + 1: IF cur2 > 4 THEN cur2 = -1
- dummy = usemenu(cur2, 0, -1, 4, 24)
+ usemenu cur2, 0, -1, 4, 24
  IF cur2 >= 0 THEN
   select case cur2
   	case 0
-  		if intgrabber(link(cur).source, llim(cur2), ulim(cur2), 75, 77) then sdwait = 3
+  		if intgrabber(link(cur).source, llim(cur2), ulim(cur2)) then sdwait = 3
   	case 1
-  		if intgrabber(link(cur).dest, llim(cur2), ulim(cur2), 75, 77) then sdwait = 3
+  		if intgrabber(link(cur).dest, llim(cur2), ulim(cur2)) then sdwait = 3
   	case 2
-  		if intgrabber(link(cur).dest_map, llim(cur2), ulim(cur2), 75, 77) then sdwait = 3: outmap$ = getmapname$(link(cur).dest_map)
+  		if intgrabber(link(cur).dest_map, llim(cur2), ulim(cur2)) then sdwait = 3: outmap$ = getmapname$(link(cur).dest_map)
   	case 3
-  		intgrabber(link(cur).tag1, llim(cur2), ulim(cur2), 75, 77)
+  		intgrabber(link(cur).tag1, llim(cur2), ulim(cur2))
   	case 4
-  		intgrabber(link(cur).tag2, llim(cur2), ulim(cur2), 75, 77)
+  		intgrabber(link(cur).tag2, llim(cur2), ulim(cur2))
   	case else
   		'...
   end select
@@ -1590,7 +1585,7 @@ DO
  setkeys
  tog = tog xor 1
  IF keyval(1) > 1 THEN EXIT DO
- dummy = usemenu(csr, 0, 0, 4, 10)
+ usemenu csr, 0, 0, 4, 10
  IF keyval(56) > 0 THEN incval = 8 ELSE incval = 1
  SELECT CASE csr
   CASE 0
