@@ -63,8 +63,8 @@ DECLARE FUNCTION isStringField(mnu%)
 #include "const.bi"
 #include "loading.bi"
 
-DECLARE SUB generic_menu_editor (menusfile$, menuitemfile$)
-DECLARE SUB update_generic_menu_editor_menu(record, m$(), menu AS MenuDef)
+DECLARE SUB menu_editor (menusfile$, menuitemfile$)
+DECLARE SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
 DECLARE FUNCTION zero_default(n) AS STRING
 
 REM $STATIC
@@ -1367,10 +1367,10 @@ FUNCTION isStringField(mnu)
 END FUNCTION
 
 SUB editmenus
- generic_menu_editor workingdir$ & SLASH & "menus.bin", workingdir$ & SLASH & "menuitem.bin"
+ menu_editor workingdir$ & SLASH & "menus.bin", workingdir$ & SLASH & "menuitem.bin"
 END SUB
 
-SUB generic_menu_editor (menusfile$, menuitemfile$)
+SUB menu_editor (menusfile$, menuitemfile$)
 
 DIM record AS INTEGER = 0
 DIM AS INTEGER csr, top, tog
@@ -1378,7 +1378,7 @@ DIM edmenu$(6)
 
 DIM menudata AS MenuDef
 loadMenuData menusfile$, menuitemfile$, menudata, record
-update_generic_menu_editor_menu record, edmenu$(), menudata
+update_menu_editor_menu record, edmenu$(), menudata
 
 setkeys
 DO
@@ -1402,7 +1402,7 @@ LOOP
 
 END SUB
 
-SUB update_generic_menu_editor_menu(record, m$(), menu AS MenuDef)
+SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
  m$(0) = "Previous Menu"
  m$(1) = "Menu " & record
  m$(2) = "Name: " & menu.name
