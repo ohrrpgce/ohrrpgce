@@ -11,6 +11,7 @@ TYPE MenuDefItem
   tag1      AS INTEGER
   tag2      AS INTEGER
   settag    AS INTEGER
+  togtag    AS INTEGER
   bits      AS INTEGER
 END TYPE
 

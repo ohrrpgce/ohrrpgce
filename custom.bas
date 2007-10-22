@@ -53,7 +53,7 @@ DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE SUB textage ()
-DECLARE SUB editmenus ()
+DECLARE SUB menu_editor ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
@@ -260,7 +260,7 @@ DO:
     IF pt = 7 THEN shopdata
     IF pt = 8 THEN formation
     IF pt = 9 THEN textage
-    if pt = 10 then editmenus
+    if pt = 10 then menu_editor
     IF pt = 11 THEN vehicles
     IF pt = 12 THEN tagnames
     IF pt = 13 THEN importsong

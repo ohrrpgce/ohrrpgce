@@ -526,8 +526,41 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
 	close #f
 end sub
 
+SUB ClearMenuData(dat AS MenuDef)
+ DIM i AS INTEGER
+ WITH dat
+  .name = ""
+  .boxstyle = 0
+  .textcolor = 0
+  .maxrows = 0
+  FOR i = 0 TO UBOUND(.items)
+   ClearMenuItem(.items(i))
+  NEXT i
+ END WITH
+END SUB
+
+SUB ClearMenuItem(mi AS MenuDefItem)
+ WITH mi
+  .exists = 0
+  .member = 0
+  .caption = ""
+  .sortorder = 0
+  .t = 0
+  .sub_t = 0
+  .tag1 = 0
+  .tag2 = 0
+  .settag = 0
+  .togtag = 0
+  .bits = 0
+ END WITH
+END SUB
+
 SUB LoadMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, record AS INTEGER)
  DIM f AS INTEGER
+ IF record > gen(genMaxMenu) THEN
+  ClearMenuData dat
+  EXIT SUB
+ END IF
  f = FREEFILE
  OPEN menusfile FOR BINARY AS #f
  SEEK #f, record * getbinsize(5) + 1
@@ -562,6 +595,7 @@ SUB LoadMenuItems(menuitemfile AS STRING, mi() AS MenuDefItem, record AS INTEGER
     .tag1 = ReadShort(f)
     .tag2 = ReadShort(f)
     .settag = ReadShort(f)
+    .togtag = ReadShort(f)
     .bits = ReadShort(f)
    END WITH
    elem = elem + 1
@@ -570,6 +604,25 @@ SUB LoadMenuItems(menuitemfile AS STRING, mi() AS MenuDefItem, record AS INTEGER
  NEXT i
  CLOSE #f
  SortMenuItems mi()
+END SUB
+
+SUB SaveMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, record AS INTEGER)
+ DIM f AS INTEGER
+ IF record > gen(genMaxMenu) THEN
+  ClearMenuData dat
+  EXIT SUB
+ END IF
+ f = FREEFILE
+ OPEN menusfile FOR BINARY AS #f
+ SEEK #f, record * getbinsize(5) + 1
+ WITH dat
+  .name = ReadVStr(f, 20)
+  .boxstyle = ReadShort(f)
+  .textcolor = ReadShort(f)
+  .maxrows = ReadShort(f)
+ END WITH
+ CLOSE #f
+ LoadMenuItems menuitemfile, dat.items(), record
 END SUB
 
 SUB SortMenuItems(mi() AS MenuDefItem)

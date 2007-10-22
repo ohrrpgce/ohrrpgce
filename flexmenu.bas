@@ -63,7 +63,7 @@ DECLARE FUNCTION isStringField(mnu%)
 #include "const.bi"
 #include "loading.bi"
 
-DECLARE SUB menu_editor (menusfile$, menuitemfile$)
+DECLARE SUB menu_editor ()
 DECLARE SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
 DECLARE FUNCTION zero_default(n) AS STRING
 
@@ -1366,19 +1366,19 @@ FUNCTION isStringField(mnu)
   RETURN 0
 END FUNCTION
 
-SUB editmenus
- menu_editor workingdir$ & SLASH & "menus.bin", workingdir$ & SLASH & "menuitem.bin"
-END SUB
+SUB menu_editor ()
 
-SUB menu_editor (menusfile$, menuitemfile$)
+DIM menusfile$, menuitemfile$
+menusfile$ = workingdir$ & SLASH & "menus.bin"
+menuitemfile$ = workingdir$ & SLASH & "menuitem.bin"
 
+DIM needupdate AS INTEGER = -1
 DIM record AS INTEGER = 0
-DIM AS INTEGER csr, top, tog
+DIM AS INTEGER csr, top, tog, dummy
 DIM edmenu$(6)
 
 DIM menudata AS MenuDef
 loadMenuData menusfile$, menuitemfile$, menudata, record
-update_menu_editor_menu record, edmenu$(), menudata
 
 setkeys
 DO
@@ -1392,7 +1392,39 @@ DO
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
     EXIT DO
    END IF
+  CASE 1
+   IF keyval(77) > 1 AND record = gen(genMaxMenu) AND record < 32767 THEN
+    '--attempt to add a new set
+    '--save current
+    ''''saveMenuData menusfile$, menuitemfile$, menudata, record
+    '--increment
+    record = record + 1
+    '--make sure we really have permission to increment
+    IF needaddset(record, gen(genMaxMenu), "menu") THEN
+     needupdate = -1
+    END IF
+   ELSE
+    IF intgrabber(record, 0, gen(genMaxMenu)) THEN
+     needupdate = -1
+    END IF
+   END IF
+   IF needupdate THEN
+    loadMenuData menusfile$, menuitemfile$, menudata, record
+   END IF
+  CASE 2
+   strgrabber(menudata.name, 38)
+   
+  CASE 3
+   IF intgrabber(menudata.boxstyle, 0, 15) THEN needupdate = -1
+  CASE 4
+   IF intgrabber(menudata.textcolor, 0, 255) THEN needupdate = -1
+  CASE 5
+   IF intgrabber(menudata.maxrows, 0, 20) THEN needupdate = -1
  END SELECT
+ IF needupdate THEN
+  needupdate = 0
+  update_menu_editor_menu record, edmenu$(), menudata
+ END IF
  standardmenu edmenu$(), UBOUND(edmenu$), 22, csr, top, 0, 0, dpage, 0
  SWAP vpage, dpage
  setvispage vpage

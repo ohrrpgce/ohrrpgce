@@ -988,7 +988,7 @@ loadset workingdir$ + SLASH + "sfxdata.bin", num, 0
 getsfxname$ = readbinstring$ (sfxd(), 0, 30)
 END FUNCTION
 
-FUNCTION intgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER, more AS INTEGER) AS INTEGER
+FUNCTION intgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
 STATIC clip
 old = n
 
