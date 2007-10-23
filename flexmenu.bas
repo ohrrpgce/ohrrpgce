@@ -40,7 +40,7 @@ DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB shopdata ()
-DECLARE SUB strgrabber (s$, maxl%)
+DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE SUB importsong ()
 DECLARE SUB gendata ()
 DECLARE SUB itemdata ()
@@ -1067,21 +1067,15 @@ SELECT CASE menutype(nowindex)
   changed = intgrabber(datablock(menuoff(nowindex)), -999, 999)
  CASE 3' string
   a$ = readbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)))
-  old$ = a$
-  strgrabber a$, maxtable(menulimits(nowindex))
-  IF old$ <> a$ THEN changed = 1
+  IF strgrabber(a$, maxtable(menulimits(nowindex))) THEN changed = 1
   writebinstring a$, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex))
  CASE 4' badly stored string
   a$ = readbadbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 0)
-  old$ = a$
-  strgrabber a$, maxtable(menulimits(nowindex))
-  IF old$ <> a$ THEN changed = 1
+  IF strgrabber(a$, maxtable(menulimits(nowindex))) THEN changed = 1
   writebadbinstring a$, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 0
  CASE 6' extra badly stored string
   a$ = readbadbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 1)
-  old$ = a$
-  strgrabber a$, maxtable(menulimits(nowindex))
-  IF old$ <> a$ THEN changed = 1
+  IF strgrabber(a$, maxtable(menulimits(nowindex))) THEN changed = 1
   writebadbinstring a$, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 1
 END SELECT
 

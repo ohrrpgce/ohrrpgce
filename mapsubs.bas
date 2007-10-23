@@ -40,7 +40,7 @@ DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB shopdata ()
-DECLARE SUB strgrabber (s$, maxl%)
+DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE SUB importsong ()
 DECLARE SUB gendata ()
 DECLARE SUB itemdata ()

@@ -49,7 +49,7 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
-DECLARE SUB strgrabber (s$, maxl%)
+DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)

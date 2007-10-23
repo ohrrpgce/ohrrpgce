@@ -33,7 +33,7 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
-DECLARE SUB strgrabber (s$, maxl%)
+DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filesize$ (file$)
 DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")

@@ -43,7 +43,7 @@ DECLARE SUB setanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE FUNCTION mouseover% (mouse%(), zox%, zoy%, zcsr%, area%())
-DECLARE SUB strgrabber (s$, maxl%)
+DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()

@@ -11,7 +11,7 @@ DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE SUB innRestore (stat%())
 DECLARE SUB renamehero (who%)
-DECLARE SUB strgrabber (s$, maxl%)
+DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE SUB loadtemppage (page%)
 DECLARE SUB savetemppage (page%)
 DECLARE SUB calibrate ()

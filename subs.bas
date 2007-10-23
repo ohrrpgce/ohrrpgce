@@ -23,7 +23,7 @@ DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE SUB testflexmenu ()
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
-DECLARE SUB strgrabber (s$, maxl%)
+DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE SUB herotags (hero as HeroDef ptr)
@@ -2261,8 +2261,11 @@ s$ = pre$ + post$
 
 END SUB
 
-SUB strgrabber (s$, maxl)
+FUNCTION strgrabber (s$, maxl) AS INTEGER
 STATIC clip$
+
+DIM old$
+old$ = s$
 
 '--BACKSPACE support
 IF keyval(14) > 1 AND LEN(s$) > 0 THEN s$ = LEFT$(s$, LEN(s$) - 1)
@@ -2305,4 +2308,7 @@ IF LEN(s$) < maxl THEN
 
 END IF
 
-END SUB
+'Return true of the string has changed
+RETURN (s$ <> old$)
+
+END FUNCTION

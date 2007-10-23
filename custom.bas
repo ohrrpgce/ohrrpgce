@@ -40,7 +40,7 @@ DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB shopdata ()
-DECLARE SUB strgrabber (s$, maxl%)
+DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE SUB importsong ()
 DECLARE SUB importsfx ()
 DECLARE SUB gendata ()
@@ -892,8 +892,7 @@ DO
  IF keyval(1) > 1 THEN EXIT DO
 
  old$ = newfont$
- strgrabber newfont$, 8
- IF old$ <> newfont$ THEN
+ IF strgrabber(newfont$, 8) THEN
   '--make sure only legal DOS filename chars are used
   lastchar = ASC(UCASE$(RIGHT$("_" + newfont$, 1)))
   SELECT CASE lastchar

@@ -509,8 +509,11 @@ str2lng& = n&
 
 END FUNCTION
 
-SUB strgrabber (s$, maxl)
+FUNCTION strgrabber (s$, maxl) AS INTEGER
 STATIC clip$
+
+DIM old$
+old$ = s$
 
 '--BACKSPACE support
 IF keyval(14) > 1 AND LEN(s$) > 0 THEN s$ = LEFT$(s$, LEN(s$) - 1)
@@ -537,7 +540,10 @@ IF LEN(s$) < maxl THEN
 
 END IF
 
-END SUB
+'Return true of the string has changed
+RETURN (s$ <> old$)
+
+END FUNCTION
 
 SUB makebackups
  'what is this for? Since some lumps can be modified at run time, we need to keep a
