@@ -826,9 +826,9 @@ FOR i = 0 TO inventoryMax
   IF itemtemp(51) > 0 OR itemtemp(50) > 0 THEN
    setbit iuse(), 0, 3 + i, 1
    temp = itemtemp(51) - 1
-   loadattackdata itemtemp(), temp
-   IF itemtemp(3) = 4 OR itemtemp(3) = 10 THEN setbit ondead(), 0, 3 + i, 1
-   IF itemtemp(3) = 10 THEN setbit onlive(), 0, 3 + i, 0
+   loadattackdata atktemp(), temp
+   IF atktemp(3) = 4 OR atktemp(3) = 10 THEN setbit ondead(), 0, 3 + i, 1
+   IF atktemp(3) = 10 THEN setbit onlive(), 0, 3 + i, 0
   END IF
   IF itemtemp(51) < 0 THEN
    setbit iuse(), 0, 3 + i, 1
