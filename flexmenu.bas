@@ -1395,7 +1395,7 @@ DO
    IF keyval(77) > 1 AND record = gen(genMaxMenu) AND record < 32767 THEN
     '--attempt to add a new set
     '--save current
-    ''''saveMenuData menusfile$, menuitemfile$, menudata, record
+    SaveMenuData menusfile$, menuitemfile$, menudata, record
     '--increment
     record = record + 1
     '--make sure we really have permission to increment

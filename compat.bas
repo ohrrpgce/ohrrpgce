@@ -262,7 +262,7 @@ end function
 
 Sub WriteVStr(fh as integer, le as integer, s as string)
 	dim i as integer
-	writeshort(fh, -1, len(s))
+	writeshort(fh, -1, small(le, len(s)))
 	
 	for i = 0 to le - 1
 		if i < len(s) then writeshort(fh, -1, cint(s[i])) else writeshort(fh, -1, 0)

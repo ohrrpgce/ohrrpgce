@@ -563,7 +563,7 @@ SUB LoadMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, re
  END IF
  f = FREEFILE
  OPEN menusfile FOR BINARY AS #f
- SEEK #f, record * getbinsize(5) + 1
+ SEEK #f, record * getbinsize(binMENUS) + 1
  WITH dat
   .name = ReadVStr(f, 20)
   .boxstyle = ReadShort(f)
@@ -582,11 +582,11 @@ SUB LoadMenuItems(menuitemfile AS STRING, mi() AS MenuDefItem, record AS INTEGER
  f = FREEFILE
  OPEN menuitemfile FOR BINARY AS #f
  FOR i = 0 TO gen(genMaxMenuItem)
-  SEEK #f, i * getbinsize(6) + 1
-  member = ReadShort(f)
+  SEEK #f, i * getbinsize(binMENUITEM) + 1
+  member = ReadShort(f) - 1
   IF member = record THEN
    WITH mi(elem)
-    .exists = -1
+    .exists = (member >= 0)
     .member = member
     .caption = ReadVStr(f, 38)
     .sortorder = ReadShort(f)
@@ -608,21 +608,71 @@ END SUB
 
 SUB SaveMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, record AS INTEGER)
  DIM f AS INTEGER
- IF record > gen(genMaxMenu) THEN
-  ClearMenuData dat
-  EXIT SUB
- END IF
  f = FREEFILE
  OPEN menusfile FOR BINARY AS #f
- SEEK #f, record * getbinsize(5) + 1
+ SEEK #f, record * getbinsize(binMENUS) + 1
  WITH dat
-  .name = ReadVStr(f, 20)
-  .boxstyle = ReadShort(f)
-  .textcolor = ReadShort(f)
-  .maxrows = ReadShort(f)
+  WriteVStr(f, 20, .name)
+  WriteShort(f, -1, .boxstyle)
+  WriteShort(f, -1, .textcolor)
+  WriteShort(f, -1, .maxrows)
  END WITH
  CLOSE #f
- LoadMenuItems menuitemfile, dat.items(), record
+ DIM i AS INTEGER
+ SaveMenuItems menuitemfile, dat.items(), record
+END SUB
+
+SUB SaveMenuItems(menuitemfile AS STRING, mi() AS MenuDefItem, record AS INTEGER)
+ DIM i AS INTEGER
+ DIM f AS INTEGER
+ DIM member AS INTEGER
+ DIM elem AS INTEGER = 0
+ DIM blankmi AS MenuDefItem
+ f = FREEFILE
+ OPEN menuitemfile FOR BINARY AS #f
+ 'Loop through each record and orphan all old entries for this menu
+ FOR i = 0 TO gen(genMaxMenuItem)
+  SEEK #f, i * getbinsize(binMENUITEM) + 1
+  member = ReadShort(f) - 1
+  IF member = record THEN
+   SaveMenuItem f, blankmi, i
+  END IF
+ NEXT i
+ 'Loop through each record, writing new values into orphan slots
+ FOR i = 0 TO gen(genMaxMenuItem)
+  SEEK #f, i * getbinsize(binMENUITEM) + 1
+  member = ReadShort(f) - 1
+  IF member = -1 THEN
+   SaveMenuItem f, mi(elem), i
+   elem = elem + 1
+   IF elem > UBOUND(mi) THEN EXIT FOR
+  END IF
+ NEXT i
+ DO WHILE elem <= UBOUND(mi)
+  'More items need to be written, append them
+  IF mi(elem).exists THEN
+   gen(genMaxMenuItem) += 1
+   SaveMenuItem f, mi(elem), gen(genMaxMenuItem)
+  END IF
+  elem += 1
+ LOOP
+ CLOSE #f
+END SUB
+
+SUB SaveMenuItem(f AS INTEGER, mi AS MenuDefItem, record AS INTEGER)
+ SEEK #f, record * getbinsize(binMENUITEM) + 1
+ WITH mi
+  WriteShort(f, -1, .member)
+  WriteVStr(f, 38, .caption)
+  WriteShort(f, -1, .sortorder)
+  WriteShort(f, -1, .t)
+  WriteShort(f, -1, .sub_t)
+  WriteShort(f, -1, .tag1)
+  WriteShort(f, -1, .tag2)
+  WriteShort(f, -1, .settag)
+  WriteShort(f, -1, .togtag)
+  WriteShort(f, -1, .bits)
+ END WITH
 END SUB
 
 SUB SortMenuItems(mi() AS MenuDefItem)

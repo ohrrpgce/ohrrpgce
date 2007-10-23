@@ -101,6 +101,9 @@ CONST binATTACK = 0
 CONST binSTF = 1
 CONST binSONGDATA = 2
 CONST binSFXDATA = 3
+CONST binMAP = 4
+CONST binMENUS = 5
+CONST binMENUITEM = 6
 
 '--- Misc constants
 Enum constDirection
