@@ -1367,6 +1367,7 @@ menuitemfile$ = workingdir$ & SLASH & "menuitem.bin"
 
 DIM needupdate AS INTEGER = -1
 DIM record AS INTEGER = 0
+DIM saverecord AS INTEGER = -1
 DIM AS INTEGER csr, top, tog
 DIM edmenu$(6)
 
@@ -1386,6 +1387,7 @@ DO
     EXIT DO
    END IF
   CASE 1
+   saverecord = record
    IF keyval(77) > 1 AND record = gen(genMaxMenu) AND record < 32767 THEN
     '--attempt to add a new set
     '--save current
@@ -1402,11 +1404,11 @@ DO
     END IF
    END IF
    IF needupdate THEN
-    loadMenuData menusfile$, menuitemfile$, menudata, record
+    SaveMenuData menusfile$, menuitemfile$, menudata, saverecord
+    LoadMenuData menusfile$, menuitemfile$, menudata, record
    END IF
   CASE 2
-   strgrabber(menudata.name, 38)
-   
+   IF strgrabber(menudata.name, 38) THEN needupdate = -1
   CASE 3
    IF intgrabber(menudata.boxstyle, 0, 15) THEN needupdate = -1
   CASE 4
@@ -1424,6 +1426,7 @@ DO
  clearpage dpage
  dowait
 LOOP
+SaveMenuData menusfile$, menuitemfile$, menudata, record
 
 END SUB
 
