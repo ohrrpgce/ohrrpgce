@@ -6,6 +6,11 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
+
+'---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved
+CONST TRU = -1
+CONST FAL = 0
+
 '---DOS directory attributes
 CONST attribReadOnly = 1
 CONST attribHidden = 2
