@@ -64,6 +64,7 @@ DECLARE FUNCTION isStringField(mnu%)
 
 DECLARE SUB menu_editor ()
 DECLARE SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
+DECLARE SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menusfile$, menuitemfile$)
 DECLARE FUNCTION zero_default(n) AS STRING
 
 REM $STATIC
@@ -1365,26 +1366,53 @@ DIM menusfile$, menuitemfile$
 menusfile$ = workingdir$ & SLASH & "menus.bin"
 menuitemfile$ = workingdir$ & SLASH & "menuitem.bin"
 
-DIM needupdate AS INTEGER = -1
 DIM record AS INTEGER = 0
-DIM saverecord AS INTEGER = -1
-DIM AS INTEGER csr, top, tog
 DIM edmenu$(6)
+DIM state AS MenuState 'top level
+state.last = UBOUND(edmenu$)
+state.size = 22
+state.active = TRU
+state.need_update = TRU
+DIM mstate AS MenuState 'menu
 
 DIM menudata AS MenuDef
 loadMenuData menusfile$, menuitemfile$, menudata, record
 
 setkeys
-DO
+DO WHILE state.active
  setwait timing(), 100
  setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
- usemenu csr, top, 0, UBOUND(edmenu$), 22
- SELECT CASE csr
+ state.tog = state.tog XOR 1
+ IF NOT mstate.active THEN
+  menu_editor_keys state, mstate, menudata, record, menusfile$, menuitemfile$
+ END IF
+ IF state.need_update THEN
+  state.need_update = FAL
+  update_menu_editor_menu record, edmenu$(), menudata
+ END IF
+ 'IF NOT mstate.active THEN DrawMenu menudata, mstate, dpage
+ standardmenu edmenu$(), state.last, state.size, state.pt, state.top, 0, 0, dpage, 0
+ 'IF mstate.active THEN DrawMenu menudata, mstate, dpage
+ SWAP vpage, dpage
+ setvispage vpage
+ clearpage dpage
+ dowait
+LOOP
+SaveMenuData menusfile$, menuitemfile$, menudata, record
+
+END SUB
+
+SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menusfile$, menuitemfile$)
+ DIM saverecord AS INTEGER
+
+ IF keyval(1) > 1 THEN state.active = FAL
+ 
+ usemenu state
+ 
+ SELECT CASE state.pt
   CASE 0
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
-    EXIT DO
+    state.active = FAL
    END IF
   CASE 1
    saverecord = record
@@ -1396,38 +1424,26 @@ DO
     record = record + 1
     '--make sure we really have permission to increment
     IF needaddset(record, gen(genMaxMenu), "menu") THEN
-     needupdate = -1
+     state.need_update = TRU
     END IF
    ELSE
     IF intgrabber(record, 0, gen(genMaxMenu)) THEN
-     needupdate = -1
+     state.need_update = TRU
     END IF
    END IF
-   IF needupdate THEN
+   IF state.need_update THEN
     SaveMenuData menusfile$, menuitemfile$, menudata, saverecord
     LoadMenuData menusfile$, menuitemfile$, menudata, record
    END IF
   CASE 2
-   IF strgrabber(menudata.name, 38) THEN needupdate = -1
+   IF strgrabber(menudata.name, 38) THEN state.need_update = TRU
   CASE 3
-   IF intgrabber(menudata.boxstyle, 0, 15) THEN needupdate = -1
+   IF intgrabber(menudata.boxstyle, 0, 15) THEN state.need_update = TRU
   CASE 4
-   IF intgrabber(menudata.textcolor, 0, 255) THEN needupdate = -1
+   IF intgrabber(menudata.textcolor, 0, 255) THEN state.need_update = TRU
   CASE 5
-   IF intgrabber(menudata.maxrows, 0, 20) THEN needupdate = -1
+   IF intgrabber(menudata.maxrows, 0, 20) THEN state.need_update = TRU
  END SELECT
- IF needupdate THEN
-  needupdate = 0
-  update_menu_editor_menu record, edmenu$(), menudata
- END IF
- standardmenu edmenu$(), UBOUND(edmenu$), 22, csr, top, 0, 0, dpage, 0
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-SaveMenuData menusfile$, menuitemfile$, menudata, record
-
 END SUB
 
 SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
