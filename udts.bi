@@ -23,6 +23,17 @@ TYPE MenuDef
   items(20) AS MenuDefItem
 END TYPE
 
+TYPE MenuState
+  active    AS INTEGER
+  pt        AS INTEGER 'currently selected item
+  top       AS INTEGER 'scroll position for long lists
+  tog       AS INTEGER 'flashing cursor
+  first     AS INTEGER 'first element (usually zero)
+  last      AS INTEGER 'last element
+  size      AS INTEGER 'number of elements to display at a time
+  need_update AS INTEGER 'menu needs some kind of update
+END TYPE
+
 TYPE NPCType
   picture as integer     '+0
   palette as integer     '+1

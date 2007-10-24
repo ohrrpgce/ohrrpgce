@@ -56,6 +56,12 @@ SUB safekill (f$)
 IF isfile(f$) THEN KILL f$
 END SUB
 
+FUNCTION usemenu (state AS MenuState)
+ WITH state
+  RETURN usemenu(.pt, .top, .first, .last, .size)
+ END WITH
+END FUNCTION
+
 FUNCTION usemenu (pt, top, first, last, size)
 
 oldptr = pt
