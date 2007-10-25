@@ -7,7 +7,6 @@ DEFINT A-Z
 '$DYNAMIC
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
 DECLARE SUB clearallpages ()
-DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
 DECLARE SUB setactivemenu (workmenu%(), newmenu%(), pt%, top%, size%)
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
@@ -1391,7 +1390,7 @@ DO WHILE state.active
   update_menu_editor_menu record, edmenu$(), menudata
  END IF
  'IF NOT mstate.active THEN DrawMenu menudata, mstate, dpage
- standardmenu edmenu$(), state.last, state.size, state.pt, state.top, 0, 0, dpage, 0
+ standardmenu edmenu$(), state, 0, 0, dpage, YES
  'IF mstate.active THEN DrawMenu menudata, mstate, dpage
  SWAP vpage, dpage
  setvispage vpage

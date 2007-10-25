@@ -10,12 +10,15 @@
 #include "udts.bi"
 #include "music.bi"
 #include "browse.bi"
+#include "const.bi"
 
 DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
 DECLARE SUB fadein ()
 DECLARE SUB fadeout (red%, green%, blue%)
 DECLARE FUNCTION usemenu OVERLOAD (pt, top, first, last, size)
 DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState)
+DECLARE SUB standardmenu OVERLOAD (menu$(), state AS MenuState, x, y, page, edge=NO)
+DECLARE SUB standardmenu OVERLOAD (menu$(), size, vis, pt, top, x, y, page, edge=NO)
 DECLARE SUB debug (s$)
 DECLARE SUB visible_debug (s$)
 DECLARE FUNCTION soundfile$ (sfxnum%)

@@ -23,7 +23,6 @@ DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
-DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB textfatalerror (e$)
@@ -570,27 +569,6 @@ DO
  copypage 3, dpage
  dowait
 LOOP
-END SUB
-
-SUB standardmenu (menu$(), size, vis, pt, top, x, y, page, edge)
-STATIC tog
-
-tog = tog XOR 1
-
-FOR i = top TO top + vis
- IF i <= size THEN
-  IF edge THEN
-   col = 7
-   IF pt = i THEN col = 14 + tog
-   edgeprint menu$(i), x + 0, y + (i - top) * 8, col, page
-  ELSE
-   textcolor 7, 0
-   IF pt = i THEN textcolor 14 + tog, 0
-   printstr menu$(i), x + 0, y + (i - top) * 8, page
-  END IF
- END IF
-NEXT i
-
 END SUB
 
 SUB statname

@@ -1797,3 +1797,27 @@ xbsave game$ + ".gen", gen(), 1000
 'wow! this is quite a big and ugly routine!
 END SUB
 
+SUB standardmenu (menu$(), state AS MenuState, x, y, page, edge=NO)
+ standardmenu menu$(), state.last, state.size, state.pt, state.top, x, y, page, edge
+END SUB
+
+SUB standardmenu (menu$(), size, vis, pt, top, x, y, page, edge=NO)
+STATIC tog
+
+tog = tog XOR 1
+
+FOR i = top TO top + vis
+ IF i <= size THEN
+  IF edge THEN
+   col = 7
+   IF pt = i THEN col = 14 + tog
+   edgeprint menu$(i), x + 0, y + (i - top) * 8, col, page
+  ELSE
+   textcolor 7, 0
+   IF pt = i THEN textcolor 14 + tog, 0
+   printstr menu$(i), x + 0, y + (i - top) * 8, page
+  END IF
+ END IF
+NEXT i
+
+END SUB

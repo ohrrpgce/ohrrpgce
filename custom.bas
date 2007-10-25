@@ -11,7 +11,6 @@ DEFINT A-Z
 'basic subs and functions
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filenum$ (n%)
-DECLARE SUB standardmenu (menu$(), size%, vis%, pt%, top%, x%, y%, page%, edge%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB importbmp (f$, cap$, count%)
