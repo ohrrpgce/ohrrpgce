@@ -90,6 +90,7 @@ DECLARE SUB savemapstate_tilemap(mapnum%, prefix$)
 DECLARE SUB savemapstate_passmap(mapnum%, prefix$)
 DECLARE SUB freescripts (mem%)
 DECLARE FUNCTION loadscript% (n%)
+DECLARE SUB limitcamera ()
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -368,58 +369,58 @@ END FUNCTION
 
 SUB setmapxy
 SELECT CASE gen(cameramode)
- CASE stopcam
-  GOSUB limitcamera
  CASE herocam
   mapx = catx(gen(cameraArg)) - 150
   mapy = caty(gen(cameraArg)) - 90
-  GOSUB limitcamera
  CASE npccam
   mapx = npc(gen(cameraArg)).x - 150
   mapy = npc(gen(cameraArg)).y - 90
-  GOSUB limitcamera
- CASE pancam ' 1=dir, 2=dist, 3=step
+ CASE pancam ' 1=dir, 2=ticks, 3=step
   IF gen(cameraArg2) > 0 THEN
-   SELECT CASE gen(cameraArg)
-    CASE 0'north
-     mapy = mapy - gen(cameraArg3)
-    CASE 1'east
-     mapx = mapx + gen(cameraArg3)
-    CASE 2'south
-     mapy = mapy + gen(cameraArg3)
-    CASE 3'west
-     mapx = mapx - gen(cameraArg3)
-   END SELECT
-   gen(cameraArg2) = gen(cameraArg2) - 1
-   IF gen(cameraArg2) = 0 THEN gen(cameramode) = stopcam
+   aheadxy mapx, mapy, gen(cameraArg), gen(cameraArg3)
+   gen(cameraArg2) -= 1
   END IF
- CASE focuscam
-  IF mapx < gen(cameraArg) THEN
-   mapx = mapx + gen(cameraArg3)
+  IF gen(cameraArg2) <= 0 THEN gen(cameramode) = stopcam
+ CASE focuscam ' 1=x, 2=y, 3=x step, 4=y step
+  temp = gen(cameraArg) - mapx
+  IF ABS(temp) <= gen(cameraArg3) THEN
+   gen(cameraArg3) = 0
+   mapx = gen(cameraArg)
   ELSE
-   IF mapx > gen(cameraArg) THEN mapx = mapx - gen(cameraArg3)
+   mapx += SGN(temp) * gen(cameraArg3)
   END IF
-  IF mapy < gen(cameraArg2) THEN
-   mapy = mapy + gen(cameraArg4)
+  temp = gen(cameraArg2) - mapy
+  IF ABS(temp) <= gen(cameraArg4) THEN
+   gen(cameraArg4) = 0
+   mapy = gen(cameraArg2)
   ELSE
-   IF mapy > gen(cameraArg2) THEN mapy = mapy - gen(cameraArg4)
+   mapy += SGN(temp) * gen(cameraArg4)
   END IF
-  IF mapx < gen(cameraArg) + gen(cameraArg3) AND mapx > gen(cameraArg) - gen(cameraArg3) AND ABS(gen(cameraArg3)) > 1 THEN gen(cameraArg3) = gen(cameraArg3) - 1
-  IF mapy < gen(cameraArg2) + gen(cameraArg4) AND mapy > gen(cameraArg2) - gen(cameraArg4) AND ABS(gen(cameraArg4)) > 1 THEN gen(cameraArg4) = gen(cameraArg4) - 1
-  IF mapx = gen(cameraArg) THEN gen(cameraArg3) = 0
-  IF mapy = gen(cameraArg2) THEN gen(cameraArg4) = 0
+  limitcamera
   IF gen(cameraArg3) = 0 AND gen(cameraArg4) = 0 THEN gen(cameramode) = stopcam
-  IF mapx <> bound(mapx, -320, scroll(0) * 20) OR mapy <> bound(mapy, -200, scroll(1) * 20) THEN gen(cameramode) = stopcam
 END SELECT
-EXIT SUB
+limitcamera
+END SUB
 
-limitcamera:
+SUB limitcamera 
 IF gmap(5) = 0 THEN
+ 'when cropping the camera to the map, stop camera movements that attempt to go over the edge
+ oldmapx = mapx
+ oldmapy = mapy
  mapx = bound(mapx, 0, scroll(0) * 20 - 320)
  mapy = bound(mapy, 0, scroll(1) * 20 - 200)
+ IF oldmapx <> mapx THEN
+  IF gen(cameramode) = pancam THEN gen(cameramode) = stopcam
+  IF gen(cameramode) = focuscam THEN gen(cameraArg3) = 0
+ END IF
+ IF oldmapy <> mapy THEN
+  IF gen(cameramode) = pancam THEN gen(cameramode) = stopcam
+  IF gen(cameramode) = focuscam THEN gen(cameraArg4) = 0
+ END IF
 END IF
-RETRACE
-
+IF gmap(5) = 1 THEN
+ wrapxy mapx, mapy, scroll(0) * 20, scroll(1) * 20
+END IF
 END SUB
 
 SUB setScriptArg (arg, value)

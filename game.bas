@@ -594,7 +594,7 @@ DO
      gen(cameraArg) = 0
    END SELECT
   END IF
-  IF keyval(64) > 0 AND (gen(cameramode) <> pancam OR gen(cameraArg2) = 0) THEN
+  IF keyval(64) > 0 AND gen(cameramode) <> pancam THEN
    '--only permit movement when not already panning
    IF keyval(72) > 0 THEN
     gen(cameraArg) = 0 'north

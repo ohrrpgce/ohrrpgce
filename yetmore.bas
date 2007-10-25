@@ -87,6 +87,7 @@ DECLARE FUNCTION mathvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION backcompat_sound_id (id AS INTEGER)
 DECLARE SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat())
 DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
+DECLARE SUB limitcamera ()
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -876,6 +877,7 @@ SELECT CASE AS CONST id
   gen(cameramode) = stopcam
   mapx = retvals(0)
   mapy = retvals(1)
+  limitcamera
  CASE 138'--heropixelx
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    scriptret = catx(retvals(0))
@@ -1082,7 +1084,7 @@ SELECT CASE AS CONST id
   gen(cameramode) = pancam
   gen(cameraArg) = small(large(retvals(0), 0), 3)
   gen(cameraArg2) = large(retvals(1), 0) * (20 / large(retvals(2), 1))
-  gen(cameraArg3) = large(retvals(2), 0)
+  gen(cameraArg3) = large(retvals(2), 1)
  CASE 41'--focus camera
   gen(cameramode) = focuscam
   gen(cameraArg) = (retvals(0) * 20) - 150
@@ -1762,9 +1764,11 @@ SELECT CASE AS CONST id
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN npc(npcref).frame = bound(retvals(1), 0, 1) * 2
  CASE 39'--camera follows NPC
-  gen(cameramode) = npccam
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN gen(cameraArg) = npcref
+  IF npcref >= 0 THEN
+   gen(cameramode) = npccam
+   gen(cameraArg) = npcref
+  END IF
  CASE 45'--NPC x
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN scriptret = npc(npcref).x \ 20
