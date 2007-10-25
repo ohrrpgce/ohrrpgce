@@ -8,8 +8,8 @@
 '
 
 '---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved
-CONST TRU = -1
-CONST FAL = 0
+CONST YES = -1
+CONST NO = 0
 
 '---DOS directory attributes
 CONST attribReadOnly = 1

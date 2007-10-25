@@ -1371,8 +1371,8 @@ DIM edmenu$(6)
 DIM state AS MenuState 'top level
 state.last = UBOUND(edmenu$)
 state.size = 22
-state.active = TRU
-state.need_update = TRU
+state.active = YES
+state.need_update = YES
 DIM mstate AS MenuState 'menu
 
 DIM menudata AS MenuDef
@@ -1387,7 +1387,7 @@ DO WHILE state.active
   menu_editor_keys state, mstate, menudata, record, menusfile$, menuitemfile$
  END IF
  IF state.need_update THEN
-  state.need_update = FAL
+  state.need_update = NO
   update_menu_editor_menu record, edmenu$(), menudata
  END IF
  'IF NOT mstate.active THEN DrawMenu menudata, mstate, dpage
@@ -1405,14 +1405,14 @@ END SUB
 SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menusfile$, menuitemfile$)
  DIM saverecord AS INTEGER
 
- IF keyval(1) > 1 THEN state.active = FAL
+ IF keyval(1) > 1 THEN state.active = NO
  
  usemenu state
  
  SELECT CASE state.pt
   CASE 0
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
-    state.active = FAL
+    state.active = NO
    END IF
   CASE 1
    saverecord = record
@@ -1424,11 +1424,11 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
     record = record + 1
     '--make sure we really have permission to increment
     IF needaddset(record, gen(genMaxMenu), "menu") THEN
-     state.need_update = TRU
+     state.need_update = YES
     END IF
    ELSE
     IF intgrabber(record, 0, gen(genMaxMenu)) THEN
-     state.need_update = TRU
+     state.need_update = YES
     END IF
    END IF
    IF state.need_update THEN
@@ -1436,13 +1436,13 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
     LoadMenuData menusfile$, menuitemfile$, menudata, record
    END IF
   CASE 2
-   IF strgrabber(menudata.name, 38) THEN state.need_update = TRU
+   IF strgrabber(menudata.name, 38) THEN state.need_update = YES
   CASE 3
-   IF intgrabber(menudata.boxstyle, 0, 15) THEN state.need_update = TRU
+   IF intgrabber(menudata.boxstyle, 0, 15) THEN state.need_update = YES
   CASE 4
-   IF intgrabber(menudata.textcolor, 0, 255) THEN state.need_update = TRU
+   IF intgrabber(menudata.textcolor, 0, 255) THEN state.need_update = YES
   CASE 5
-   IF intgrabber(menudata.maxrows, 0, 20) THEN state.need_update = TRU
+   IF intgrabber(menudata.maxrows, 0, 20) THEN state.need_update = YES
  END SELECT
 END SUB
 
