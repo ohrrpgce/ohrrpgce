@@ -17,7 +17,7 @@ DECLARE SUB fadein ()
 DECLARE SUB fadeout (red%, green%, blue%)
 DECLARE FUNCTION usemenu OVERLOAD (pt, top, first, last, size)
 DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState)
-DECLARE SUB standardmenu OVERLOAD (menu$(), state AS MenuState, x, y, page, edge=NO)
+DECLARE SUB standardmenu OVERLOAD (menu$(), state AS MenuState, x, y, page, edge=NO, hidecursor=NO)
 DECLARE SUB standardmenu OVERLOAD (menu$(), size, vis, pt, top, x, y, page, edge=NO)
 DECLARE SUB debug (s$)
 DECLARE SUB visible_debug (s$)
@@ -109,6 +109,11 @@ DECLARE FUNCTION zintgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less
 DECLARE FUNCTION xintgrabber (n AS INTEGER, pmin AS INTEGER, pmax AS INTEGER, nmin AS INTEGER, nmax AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
 DECLARE SUB upgrade_message (s AS STRING)
 DECLARE SUB show_message (s AS STRING)
+
+DECLARE SUB PositionMenu (menu AS MenuDef, BYREF rect AS RectType)
+DECLARE SUB DrawMenu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
+DECLARE SUB InitMenuState (BYREF state AS MenuState, menu AS MenuDef)
+DECLARE FUNCTION CountMenuItems (menu AS MenuDef)
 
 'Global variables
 EXTERN game$

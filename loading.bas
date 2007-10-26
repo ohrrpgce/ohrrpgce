@@ -579,12 +579,17 @@ SUB LoadMenuItems(menuitemfile AS STRING, mi() AS MenuDefItem, record AS INTEGER
  DIM f AS INTEGER
  DIM member AS INTEGER
  DIM elem AS INTEGER = 0
+
+ FOR i = 0 TO UBOUND(mi)
+  ClearMenuItem mi(i)
+ NEXT i
+
  f = FREEFILE
  OPEN menuitemfile FOR BINARY AS #f
  FOR i = 0 TO gen(genMaxMenuItem)
   SEEK #f, i * getbinsize(binMENUITEM) + 1
-  member = ReadShort(f) - 1
-  IF member = record THEN
+  member = ReadShort(f)
+  IF member = record + 1 THEN
    WITH mi(elem)
     .exists = (member >= 0)
     .member = member
@@ -628,21 +633,30 @@ SUB SaveMenuItems(menuitemfile AS STRING, mi() AS MenuDefItem, record AS INTEGER
  DIM member AS INTEGER
  DIM elem AS INTEGER = 0
  DIM blankmi AS MenuDefItem
+
+ FOR i = 0 TO UBOUND(mi)
+  'Force all items to use the correct member and sortorder
+  WITH mi(i)
+   .member = record + 1
+   .sortorder = i
+  END WITH
+ NEXT i
+ 
  f = FREEFILE
  OPEN menuitemfile FOR BINARY AS #f
  'Loop through each record and orphan all old entries for this menu
  FOR i = 0 TO gen(genMaxMenuItem)
   SEEK #f, i * getbinsize(binMENUITEM) + 1
-  member = ReadShort(f) - 1
-  IF member = record THEN
+  member = ReadShort(f)
+  IF member = record + 1 THEN
    SaveMenuItem f, blankmi, i
   END IF
  NEXT i
  'Loop through each record, writing new values into orphan slots
  FOR i = 0 TO gen(genMaxMenuItem)
   SEEK #f, i * getbinsize(binMENUITEM) + 1
-  member = ReadShort(f) - 1
-  IF member = -1 THEN
+  member = ReadShort(f)
+  IF member = 0 THEN
    SaveMenuItem f, mi(elem), i
    elem = elem + 1
    IF elem > UBOUND(mi) THEN EXIT FOR

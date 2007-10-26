@@ -1510,7 +1510,7 @@ DO
    END IF
   END IF
  END IF
- GOSUB drawmenu
+ GOSUB drawmenugosub
  SWAP vpage, dpage
  setvispage vpage
  copypage 3, dpage
@@ -1550,7 +1550,7 @@ DO
   MenuSound gen(genCursorSFX)
  END IF
  IF carray(4) > 1 THEN RETRACE
- GOSUB drawmenu
+ GOSUB drawmenugosub
  centerbox 160, 14 + (44 * cursor), 40 + (LEN(replacedat$) * 8) + menuwidth, 22, 3, dpage
  edgeprint replacedat$, 200 - (LEN(replacedat$) * 8), 9 + (44 * cursor), uilook(uiText), dpage
  FOR i = 0 TO 1
@@ -1563,7 +1563,7 @@ DO
  dowait
 LOOP
 
-drawmenu:
+drawmenugosub:
 'load and save menus enjoy different colour schemes
 IF loading THEN activec = 2 ELSE activec = 1
 SELECT CASE cursor

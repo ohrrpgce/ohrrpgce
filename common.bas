@@ -1797,8 +1797,13 @@ xbsave game$ + ".gen", gen(), 1000
 'wow! this is quite a big and ugly routine!
 END SUB
 
-SUB standardmenu (menu$(), state AS MenuState, x, y, page, edge=NO)
- standardmenu menu$(), state.last, state.size, state.pt, state.top, x, y, page, edge
+SUB standardmenu (menu$(), state AS MenuState, x, y, page, edge=NO, hidecursor=NO)
+ DIM p AS INTEGER
+ WITH state
+  p = .pt
+  IF hidecursor THEN p = .first - 1
+  standardmenu menu$(), .last, .size, p, .top, x, y, page, edge
+ END WITH
 END SUB
 
 SUB standardmenu (menu$(), size, vis, pt, top, x, y, page, edge=NO)
@@ -1809,15 +1814,105 @@ tog = tog XOR 1
 FOR i = top TO top + vis
  IF i <= size THEN
   IF edge THEN
-   col = 7
-   IF pt = i THEN col = 14 + tog
+   col = uilook(uiMenuItem)
+   IF pt = i THEN col = uilook(uiSelectedItem + tog)
    edgeprint menu$(i), x + 0, y + (i - top) * 8, col, page
   ELSE
-   textcolor 7, 0
-   IF pt = i THEN textcolor 14 + tog, 0
+   textcolor uilook(uiMenuItem), 0
+   IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
    printstr menu$(i), x + 0, y + (i - top) * 8, page
   END IF
  END IF
 NEXT i
 
 END SUB
+
+SUB DrawMenu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
+ STATIC tog AS INTEGER
+ DIM i AS INTEGER
+ DIM elem AS INTEGER
+ DIM rect AS RectType
+ DIM cap AS STRING
+ DIM col AS INTEGER
+ 
+ PositionMenu menu, rect
+ rectangle rect.x, rect.y, rect.wide, rect.high, uilook(uiTextBox + menu.boxstyle * 2), page
+
+ IF state.active THEN
+  tog = tog XOR 1
+ ELSE
+  tog = 0
+ END IF
+
+ FOR i = 0 TO state.size
+  elem = state.top + i
+  IF elem <= UBOUND(menu.items) THEN
+   col = menu.textcolor
+   IF col = 0 THEN col = uilook(uiMenuItem)
+   IF state.pt = elem THEN col = uilook(uiSelectedItem + tog)
+   WITH menu.items(elem)
+    IF .exists THEN
+     cap = .caption
+     IF menu.edit_mode = YES AND LEN(TRIM(cap)) = 0 THEN cap = "[BLANK]" 
+     edgeprint cap, rect.x + 8, rect.y + 8 + (i * 10), col, dpage
+    ELSE
+     IF menu.edit_mode = YES THEN
+      edgeprint "[NEW MENU ITEM]", rect.x + 8, rect.y + 8 + (i * 10), col, dpage
+     END IF
+     EXIT FOR ' Give up after we find the first non-existant item (which will always be sorted to the end)
+    END IF
+   END WITH
+  END IF
+ NEXT i
+ 
+END SUB
+
+SUB PositionMenu (menu AS MenuDef, BYREF rect AS RectType)
+ 'NOTE: This currently just centers the menu in the middle of the screen.
+ '      fancy positioning magic will come later...
+ DIM i AS INTEGER
+
+ rect.wide = 16
+ rect.high = 16
+
+ FOR i = 0 TO UBOUND(menu.items)
+  WITH menu.items(i)
+   IF .exists THEN
+    rect.wide = large(rect.wide, (LEN(.caption) + 2) * 8)
+    rect.high = rect.high + 10
+   END IF
+  END WITH
+ NEXT i
+ IF menu.edit_mode = YES THEN
+  rect.high = rect.high + 10
+  rect.wide = large(rect.wide, 16 + 15*8)
+ END IF
+ rect.wide = small(rect.wide, 320)
+ rect.high = small(rect.high, 200)
+ IF menu.maxrows > 0 THEN rect.high = small(rect.high, menu.maxrows * 10 + 16)
+
+ rect.x = 160 - rect.wide \ 2
+ rect.y = 100 - rect.high \ 2
+END SUB
+
+SUB InitMenuState (BYREF state AS MenuState, menu AS MenuDef)
+ state.last = CountMenuItems(menu) - 1
+ state.size = 20
+ IF menu.maxrows > 0 THEN state.size = small(menu.maxrows, state.size)
+ state.pt = small(state.pt, state.last)
+ state.top = small(state.top, state.last)
+END SUB
+
+FUNCTION CountMenuItems (menu AS MenuDef)
+ DIM i AS INTEGER
+ DIM count AS INTEGER = 0
+ FOR i = 0 TO UBOUND(menu.items)
+  WITH menu.items(i)
+   IF .exists THEN
+    count += 1
+   END IF
+  END WITH
+ NEXT i
+ IF menu.edit_mode = YES THEN count += 1
+ RETURN count
+END FUNCTION

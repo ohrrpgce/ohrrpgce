@@ -1,6 +1,18 @@
 #IFNDEF UDTS_BI
 #DEFINE UDTS_BI
 
+#INCLUDE "const.bi"
+
+TYPE RectType
+  x AS INTEGER
+  y AS INTEGER
+  wide AS INTEGER
+  high AS INTEGER
+  'NOTE this type will contain more magic later, example:
+  'x_origin AS INTEGER '-1=Left, 0=Middle, 1=Right
+  'y_origin AS INTEGER '-1=Top,  0=Middle, 1=Bottom
+END TYPE
+
 TYPE MenuDefItem
   exists    AS INTEGER
   member    AS INTEGER
@@ -20,14 +32,14 @@ TYPE MenuDef
   boxstyle  AS INTEGER
   textcolor AS INTEGER
   maxrows   AS INTEGER
+  edit_mode AS INTEGER 'Never hide disabled items, allow selection of unselectable items
   items(20) AS MenuDefItem
 END TYPE
 
 TYPE MenuState
-  active    AS INTEGER
+  active    AS INTEGER=YES
   pt        AS INTEGER 'currently selected item
   top       AS INTEGER 'scroll position for long lists
-  tog       AS INTEGER 'flashing cursor
   first     AS INTEGER 'first element (usually zero)
   last      AS INTEGER 'last element
   size      AS INTEGER 'number of elements to display at a time

@@ -64,6 +64,7 @@ DECLARE FUNCTION isStringField(mnu%)
 DECLARE SUB menu_editor ()
 DECLARE SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
 DECLARE SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menusfile$, menuitemfile$)
+DECLARE SUB menu_editor_menu_keys (mstate AS MenuState, menudata AS MenuDef)
 DECLARE FUNCTION zero_default(n) AS STRING
 
 REM $STATIC
@@ -1370,28 +1371,35 @@ DIM edmenu$(6)
 DIM state AS MenuState 'top level
 state.last = UBOUND(edmenu$)
 state.size = 22
-state.active = YES
 state.need_update = YES
 DIM mstate AS MenuState 'menu
+mstate.active = NO
+mstate.need_update = YES
 
 DIM menudata AS MenuDef
-loadMenuData menusfile$, menuitemfile$, menudata, record
+LoadMenuData menusfile$, menuitemfile$, menudata, record
 
 setkeys
-DO WHILE state.active
+DO
  setwait timing(), 100
  setkeys
- state.tog = state.tog XOR 1
- IF NOT mstate.active THEN
+ IF state.active = NO THEN EXIT DO
+ IF mstate.active = NO THEN
   menu_editor_keys state, mstate, menudata, record, menusfile$, menuitemfile$
+ ELSE
+  menu_editor_menu_keys mstate, menudata
  END IF
  IF state.need_update THEN
   state.need_update = NO
   update_menu_editor_menu record, edmenu$(), menudata
  END IF
- 'IF NOT mstate.active THEN DrawMenu menudata, mstate, dpage
- standardmenu edmenu$(), state, 0, 0, dpage, YES
- 'IF mstate.active THEN DrawMenu menudata, mstate, dpage
+ IF mstate.need_update THEN
+  mstate.need_update = NO
+  InitMenuState mstate, menudata
+ END IF
+ IF NOT mstate.active THEN DrawMenu menudata, mstate, dpage
+ standardmenu edmenu$(), state, 0, 0, dpage, YES, mstate.active
+ IF mstate.active THEN DrawMenu menudata, mstate, dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -1433,21 +1441,57 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
    IF state.need_update THEN
     SaveMenuData menusfile$, menuitemfile$, menudata, saverecord
     LoadMenuData menusfile$, menuitemfile$, menudata, record
+    mstate.need_update = YES
    END IF
   CASE 2
-   IF strgrabber(menudata.name, 38) THEN state.need_update = YES
+   IF strgrabber(menudata.name, 20) THEN state.need_update = YES
   CASE 3
-   IF intgrabber(menudata.boxstyle, 0, 15) THEN state.need_update = YES
+   IF intgrabber(menudata.boxstyle, 0, 14) THEN state.need_update = YES
   CASE 4
    IF intgrabber(menudata.textcolor, 0, 255) THEN state.need_update = YES
   CASE 5
    IF intgrabber(menudata.maxrows, 0, 20) THEN state.need_update = YES
+  CASE 6
+   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+    mstate.active = YES
+    mstate.need_update = YES
+    menudata.edit_mode = YES
+   END IF
  END SELECT
+END SUB
+
+SUB menu_editor_menu_keys (mstate AS MenuState, menudata AS MenuDef)
+ DIM i AS INTEGER
+ DIM elem AS INTEGER
+
+ IF keyval(1) > 1 THEN
+  mstate.active = NO
+  menudata.edit_mode = NO
+  EXIT SUB
+ END IF
+
+ usemenu mstate
+
+ WITH menudata.items(mstate.pt)
+  IF .exists THEN
+   strgrabber .caption, 38
+  ELSE
+   IF menudata.edit_mode = YES THEN
+    'Selecting the item that appends new items
+    IF keyval(28) > 1 OR keyval(57) > 1 THEN
+     .exists = YES
+     mstate.need_update = YES
+    END IF
+   END IF
+  END IF
+ END WITH
+
 END SUB
 
 SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
  m$(0) = "Previous Menu"
  m$(1) = "Menu " & record
+ IF record = 0 THEN m$(1) = m$(1) & " (MAIN MENU)"
  m$(2) = "Name: " & menu.name
  m$(3) = "Background: " & menu.boxstyle
  m$(4) = "Text color: " & zero_default(menu.textcolor)
