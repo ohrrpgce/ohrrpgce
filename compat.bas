@@ -236,11 +236,29 @@ FUNCTION ReadShort(fh as integer,p as long=-1) as short
 	return ret
 END FUNCTION
 
+FUNCTION ReadByte(fh as integer,p as long=-1) as ubyte
+	DIM ret as ubyte
+	IF p = -1 THEN
+		GET #fh,,ret
+	ELSEIF p >= 0 THEN
+		GET #fh,p,ret
+	END IF
+	return ret
+END FUNCTION
+
 Sub WriteShort(fh as integer,p as long, v as integer)
 	WriteShort(fh,p,cshort(v))
 END SUB
 
 Sub WriteShort(fh as integer,p as long, v as short)
+	IF p = -1 THEN
+		PUT #fh,,v
+	ELSEIF p >= 0 THEN
+		PUT #fh,p,v
+	END IF
+END SUB
+
+Sub WriteByte(fh as integer,v as ubyte, p as long=-1)
 	IF p = -1 THEN
 		PUT #fh,,v
 	ELSEIF p >= 0 THEN
@@ -266,6 +284,27 @@ Sub WriteVStr(fh as integer, le as integer, s as string)
 	
 	for i = 0 to le - 1
 		if i < len(s) then writeshort(fh, -1, cint(s[i])) else writeshort(fh, -1, 0)
+	next
+end sub
+
+Function ReadByteStr(fh as integer, le as integer) as string
+	dim l as short, ret as string, c as ubyte, i as integer
+	l = readshort(fh)
+	
+	for i = 0 to le - 1
+		c = readbyte(fh)
+		if i < l then ret = ret & chr(c)
+	next
+	
+	return ret
+end function
+
+Sub WriteByteStr(fh as integer, le as integer, s as string)
+	dim i as integer
+	writeshort(fh, -1, small(le, len(s)))
+	
+	for i = 0 to le - 1
+		if i < len(s) then writebyte(fh, cubyte(s[i])) else writebyte(fh, 0)
 	next
 end sub
 

@@ -102,5 +102,9 @@ DECLARE Sub WriteShort overload(fh as integer,p as long, v as integer)
 DECLARE Sub WriteShort(fh as integer,p as long, v as short)
 DECLARE FUNCTION ReadVStr(fh as integer, le as integer) as string
 DECLARE Sub WriteVStr(fh as integer, le as integer, s as string)
+DECLARE SUB WriteByte(fh as integer,v as ubyte, p as long=-1)
+DECLARE FUNCTION ReadByte(fh as integer,p as long=-1) as ubyte
+DECLARE SUB WriteByteStr(fh as integer, le as integer, s as string)
+DECLARE FUNCTION ReadByteStr(fh as integer, le as integer) as string
 
 #ENDIF
