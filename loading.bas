@@ -565,7 +565,7 @@ SUB LoadMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, re
  OPEN menusfile FOR BINARY AS #f
  SEEK #f, record * getbinsize(binMENUS) + 1
  WITH dat
-  .name = ReadVStr(f, 20)
+  .name = ReadByteStr(f, 20)
   .boxstyle = ReadShort(f)
   .textcolor = ReadShort(f)
   .maxrows = ReadShort(f)
@@ -588,7 +588,7 @@ SUB LoadMenuItems(menuitemfile AS STRING, mi() AS MenuDefItem, record AS INTEGER
    WITH mi(elem)
     .exists = (member >= 0)
     .member = member
-    .caption = ReadVStr(f, 38)
+    .caption = ReadByteStr(f, 38)
     .sortorder = ReadShort(f)
     .t = ReadShort(f)
     .sub_t = ReadShort(f)
@@ -612,7 +612,7 @@ SUB SaveMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, re
  OPEN menusfile FOR BINARY AS #f
  SEEK #f, record * getbinsize(binMENUS) + 1
  WITH dat
-  WriteVStr(f, 20, .name)
+  WriteByteStr(f, 20, .name)
   WriteShort(f, -1, .boxstyle)
   WriteShort(f, -1, .textcolor)
   WriteShort(f, -1, .maxrows)
@@ -663,7 +663,7 @@ SUB SaveMenuItem(f AS INTEGER, mi AS MenuDefItem, record AS INTEGER)
  SEEK #f, record * getbinsize(binMENUITEM) + 1
  WITH mi
   WriteShort(f, -1, .member)
-  WriteVStr(f, 38, .caption)
+  WriteByteStr(f, 38, .caption)
   WriteShort(f, -1, .sortorder)
   WriteShort(f, -1, .t)
   WriteShort(f, -1, .sub_t)

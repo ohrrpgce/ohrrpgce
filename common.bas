@@ -644,8 +644,8 @@ FUNCTION curbinsize (id)
  IF id = 2 THEN RETURN 32  'songdata.bin
  IF id = 3 THEN RETURN 34  'sfxdata.bin
  IF id = 4 THEN RETURN 44  '.map
- IF id = 5 THEN RETURN 48  'menus.bin
- IF id = 6 THEN RETURN 92  'menuitem.bin
+ IF id = 5 THEN RETURN 30  'menus.bin
+ IF id = 6 THEN RETURN 58  'menuitem.bin
  RETURN 0
 END FUNCTION
 

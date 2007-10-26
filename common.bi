@@ -123,7 +123,4 @@ EXTERN workingdir$
 EXTERN keyv()
 EXTERN gen()
 
-'Constants
-CONST sizebinsize = 4
-
 #ENDIF
