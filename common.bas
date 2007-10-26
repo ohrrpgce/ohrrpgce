@@ -1916,3 +1916,23 @@ FUNCTION CountMenuItems (menu AS MenuDef)
  IF menu.edit_mode = YES THEN count += 1
  RETURN count
 END FUNCTION
+
+FUNCTION readglobalstring$ (index, default$, maxlen)
+fh = FREEFILE
+OPEN game$ + ".stt" FOR BINARY AS #fh
+
+a$ = CHR$(0)
+GET #fh, 1 + index * 11, a$
+namelen = 0: IF a$ <> "" THEN namelen = ASC(a$)
+
+IF index * 11 + namelen > LOF(fh) THEN
+ result$ = default$
+ELSE
+ result$ = STRING$(small(namelen, maxlen), CHR$(0))
+ GET #fh, 2 + index * 11, result$
+END IF
+
+CLOSE #fh
+
+RETURN result$
+END FUNCTION

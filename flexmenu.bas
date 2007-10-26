@@ -14,7 +14,6 @@ DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(
 DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
 DECLARE FUNCTION tagstring$ (tag%, zero$, one$, negone$)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
-DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB importbmp (f$, cap$, count%)
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
 DECLARE SUB textxbload (f$, array%(), e$)

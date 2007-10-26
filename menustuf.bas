@@ -17,7 +17,6 @@ DECLARE SUB loadtemppage (page%)
 DECLARE SUB savetemppage (page%)
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
-DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB vishero (stat%())
 DECLARE SUB doequip (toequip%, who%, where%, defwep%, stat%())
 DECLARE FUNCTION playtime$ (d%, h%, m%)
@@ -1600,26 +1599,6 @@ IF loading THEN
 END IF
 RETRACE
 
-END FUNCTION
-
-FUNCTION readglobalstring$ (index, default$, maxlen)
-fh = FREEFILE
-OPEN game$ + ".stt" FOR BINARY AS #fh
-
-a$ = CHR$(0)
-GET #fh, 1 + index * 11, a$
-namelen = 0: IF a$ <> "" THEN namelen = ASC(a$)
-
-IF index * 11 + namelen > LOF(fh) THEN
- result$ = default$
-ELSE
- result$ = STRING$(small(namelen, maxlen), CHR$(0))
- GET #fh, 2 + index * 11, result$
-END IF
-
-CLOSE #fh
-
-readglobalstring = result$
 END FUNCTION
 
 FUNCTION rpad$ (s$, pad$, size)

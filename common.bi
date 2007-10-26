@@ -84,6 +84,7 @@ DECLARE SUB updaterecordlength (lumpf$, bindex AS INTEGER)
 DECLARE SUB writepassword (p$)
 DECLARE FUNCTION readpassword$ ()
 DECLARE SUB upgrade (font%())
+DECLARE FUNCTION readglobalstring$ (index, default$, maxlen)
 
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE FUNCTION readenemyname$ (index%)

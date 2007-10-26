@@ -12,7 +12,6 @@ DEFINT A-Z
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
-DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB importbmp (f$, cap$, count%)
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
 DECLARE SUB textxbload (f$, array%(), e$)

@@ -11,7 +11,6 @@ DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
-DECLARE FUNCTION readglobalstring$ (index%, default$, maxlen%)
 DECLARE SUB textfatalerror (e$)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
@@ -253,29 +252,6 @@ END IF
 
 numbertail$ = outf$
 
-END FUNCTION
-
-FUNCTION readglobalstring$ (index, default$, maxlen)
-
-fh = FREEFILE
-OPEN game$ + ".stt" FOR BINARY AS #fh
-
-a$ = CHR$(0)
-GET #fh, 1 + index * 11, a$
-namelen = 0: IF a$ <> "" THEN namelen = ASC(a$)
-
-i = 0
-
-IF index * 11 + i > LOF(fh) THEN
- result$ = default$
-ELSE
- result$ = STRING$(small(namelen, maxlen), CHR$(0))
- GET #fh, 2 + index * 11, result$
-END IF
-
-CLOSE #fh
-
-readglobalstring = result$
 END FUNCTION
 
 SUB seekscript (temp, seekdir, triggertype)
