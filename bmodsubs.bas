@@ -686,6 +686,13 @@ IF readbit(atk(), 20, 55) = 1 THEN
  harm$(t) = harm$(t) + readbadbinstring$(atk(), 24, 10, 1)
 END IF
 
+'reset registers as per convenience bits
+FOR i = 0 to 3
+ IF readbit(atk(), 65, 8 + i) = 1 THEN
+  bstat(t).cur.sta(12 + i) = 1000 '1000 is default, right?
+ END IF
+NEXT
+
 '--success!
 inflict = 1
 bslot(w).attack_succeeded = 1
