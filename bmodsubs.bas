@@ -689,7 +689,7 @@ END IF
 'reset registers as per convenience bits
 FOR i = 0 to 3
  IF readbit(atk(), 65, 8 + i) = 1 THEN
-  bstat(t).cur.sta(12 + i) = 1000 '1000 is default, right?
+  bstat(t).cur.sta(12 + i) = bstat(t).max.sta(12 + i) 'this should work better, methinks
  END IF
 NEXT
 
