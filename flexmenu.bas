@@ -62,8 +62,10 @@ DECLARE FUNCTION isStringField(mnu%)
 
 DECLARE SUB menu_editor ()
 DECLARE SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
-DECLARE SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menusfile$, menuitemfile$)
-DECLARE SUB menu_editor_menu_keys (mstate AS MenuState, menudata AS MenuDef)
+DECLARE SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
+DECLARE SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menu_set AS MenuSet)
+DECLARE SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS MenuDef)
+DECLARE SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS MenuDef, mi AS MenuDefItem)
 DECLARE FUNCTION zero_default(n) AS STRING
 
 REM $STATIC
@@ -1365,12 +1367,13 @@ END FUNCTION
 
 SUB menu_editor ()
 
-DIM menusfile$, menuitemfile$
-menusfile$ = workingdir$ & SLASH & "menus.bin"
-menuitemfile$ = workingdir$ & SLASH & "menuitem.bin"
+DIM menu_set AS MenuSet
+menu_set.menufile = workingdir$ & SLASH & "menus.bin"
+menu_set.itemfile = workingdir$ & SLASH & "menuitem.bin"
 
 DIM record AS INTEGER = 0
 DIM edmenu$(6)
+
 DIM state AS MenuState 'top level
 state.last = UBOUND(edmenu$)
 state.size = 22
@@ -1378,20 +1381,27 @@ state.need_update = YES
 DIM mstate AS MenuState 'menu
 mstate.active = NO
 mstate.need_update = YES
+DIM dstate AS MenuState 'detail state
+dstate.active = NO
 
 DIM menudata AS MenuDef
-LoadMenuData menusfile$, menuitemfile$, menudata, record
+LoadMenuData menu_set, menudata, record
+DIM detail AS MenuDef
 
 setkeys
 DO
  setwait timing(), 100
  setkeys
+ 
  IF state.active = NO THEN EXIT DO
- IF mstate.active = NO THEN
-  menu_editor_keys state, mstate, menudata, record, menusfile$, menuitemfile$
+ IF mstate.active = YES THEN
+  menu_editor_menu_keys mstate, dstate, menudata
+ ELSEIF dstate.active = YES THEN
+  menu_editor_detail_keys dstate, mstate, detail, menudata.items(mstate.pt)
  ELSE
-  menu_editor_menu_keys mstate, menudata
+  menu_editor_keys state, mstate, menudata, record, menu_set
  END IF
+ 
  IF state.need_update THEN
   state.need_update = NO
   update_menu_editor_menu record, edmenu$(), menudata
@@ -1400,19 +1410,30 @@ DO
   mstate.need_update = NO
   InitMenuState mstate, menudata
  END IF
- IF NOT mstate.active THEN DrawMenu menudata, mstate, dpage
- standardmenu edmenu$(), state, 0, 0, dpage, YES, mstate.active
- IF mstate.active THEN DrawMenu menudata, mstate, dpage
+ IF dstate.need_update THEN
+  dstate.need_update = NO
+  update_detail_menu detail, menudata.items(mstate.pt)
+  InitMenuState dstate, detail
+ END IF
+ 
+ IF NOT mstate.active THEN DrawMenu menu_set, menudata, mstate, dpage
+ standardmenu edmenu$(), state, 0, 0, dpage, YES, (mstate.active OR dstate.active)
+ IF mstate.active THEN
+  DrawMenu menu_set, menudata, mstate, dpage
+  edgeprint "ENTER to change menu item type", 0, 191, uilook(uiDisabledItem), dpage
+ END IF
+ IF dstate.active THEN DrawMenu menu_set, detail, dstate, dpage
+ 
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
  dowait
 LOOP
-SaveMenuData menusfile$, menuitemfile$, menudata, record
+SaveMenuData menu_set, menudata, record
 
 END SUB
 
-SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menusfile$, menuitemfile$)
+SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menu_set AS MenuSet)
  DIM saverecord AS INTEGER
 
  IF keyval(1) > 1 THEN state.active = NO
@@ -1429,7 +1450,7 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
    IF keyval(77) > 1 AND record = gen(genMaxMenu) AND record < 32767 THEN
     '--attempt to add a new set
     '--save current
-    SaveMenuData menusfile$, menuitemfile$, menudata, record
+    SaveMenuData menu_set, menudata, record
     '--increment
     record = record + 1
     '--make sure we really have permission to increment
@@ -1442,8 +1463,8 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
     END IF
    END IF
    IF state.need_update THEN
-    SaveMenuData menusfile$, menuitemfile$, menudata, saverecord
-    LoadMenuData menusfile$, menuitemfile$, menudata, record
+    SaveMenuData menu_set, menudata, saverecord
+    LoadMenuData menu_set, menudata, record
     mstate.need_update = YES
    END IF
   CASE 2
@@ -1463,7 +1484,7 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
  END SELECT
 END SUB
 
-SUB menu_editor_menu_keys (mstate AS MenuState, menudata AS MenuDef)
+SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS MenuDef)
  DIM i AS INTEGER
  DIM elem AS INTEGER
 
@@ -1478,6 +1499,11 @@ SUB menu_editor_menu_keys (mstate AS MenuState, menudata AS MenuDef)
  WITH menudata.items(mstate.pt)
   IF .exists THEN
    strgrabber .caption, 38
+   IF keyval(28) > 1 THEN
+    mstate.active = NO
+    dstate.active = YES
+    dstate.need_update = YES
+   END IF
   ELSE
    IF menudata.edit_mode = YES THEN
     'Selecting the item that appends new items
@@ -1491,6 +1517,51 @@ SUB menu_editor_menu_keys (mstate AS MenuState, menudata AS MenuDef)
 
 END SUB
 
+SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS MenuDef, mi AS MenuDefItem)
+ DIM max AS INTEGER
+
+ IF keyval(1) > 1 THEN
+  dstate.active = NO
+  mstate.active = YES
+  EXIT SUB
+ END IF
+
+ usemenu dstate
+
+ SELECT CASE dstate.pt
+  CASE 0
+   IF keyval(28) > 1 OR keyval(57) > 1 THEN
+    dstate.active = NO
+    mstate.active = YES
+    EXIT SUB
+   END IF
+  CASE 1: 'caption
+   IF strgrabber(mi.caption, 38) THEN
+    dstate.need_update = YES
+   END IF
+  CASE 2: 'type
+   IF intgrabber(mi.t, 0, 4) THEN
+    mi.sub_t = 0
+    dstate.need_update = YES
+   END IF
+  CASE 3:
+   SELECT CASE mi.t
+    CASE 0: '--caption
+     max = 1
+    CASE 1: '--special
+     max = 11
+    CASE 2: '--text box
+     max = gen(genMaxTextBox)
+    CASE 3: '--script
+     max = 0' FIXME
+   END SELECT
+   IF intgrabber(mi.sub_t, 0, max) THEN
+    dstate.need_update = YES
+   END IF
+ END SELECT
+
+END SUB
+
 SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
  m$(0) = "Previous Menu"
  m$(1) = "Menu " & record
@@ -1500,6 +1571,50 @@ SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
  m$(4) = "Text color: " & zero_default(menu.textcolor)
  m$(5) = "Max rows to display: " & zero_default(menu.maxrows)
  m$(6) = "Edit Items..."
+END SUB
+
+SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
+ DIM cap AS STRING
+ WITH detail.items(0)
+  .exists = YES
+  .caption = "Go Back"
+ END WITH
+ WITH detail.items(1)
+  .exists = YES
+  cap = mi.caption
+  IF LEN(cap) = 0 THEN cap = "[DEFAULT]"
+  .caption = "Caption: " & cap
+ END WITH
+ WITH detail.items(2)
+  .exists = YES
+  SELECT CASE mi.t
+   CASE 0
+    .caption = "Type: " & mi.t & " Caption"
+   CASE 1
+    .caption = "Type: " & mi.t & " Special screen"
+   CASE 2
+    .caption = "Type: " & mi.t & " Go to Menu"
+   CASE 3
+    .caption = "Type: " & mi.t & " Show text box"
+   CASE 4
+    .caption = "Type: " & mi.t & " Run script"
+  END SELECT
+ END WITH
+ WITH detail.items(3)
+  .exists = YES
+  .caption = "Subtype: " & mi.sub_t
+  SELECT CASE mi.t
+   CASE 0
+    SELECT CASE mi.sub_t
+     CASE 0: .caption = .caption & " Not Selectable"
+     CASE 1: .caption = .caption & " Selectable"
+    END SELECT
+   CASE 1
+    .caption = .caption & " " & GetSpecialMenuCaption(mi.sub_t, YES)
+   CASE ELSE
+   .caption = "Subtype: " & mi.sub_t
+  END SELECT
+ END WITH
 END SUB
 
 FUNCTION zero_default(n) AS STRING

@@ -1827,33 +1827,35 @@ NEXT i
 
 END SUB
 
-SUB DrawMenu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
- STATIC tog AS INTEGER
+SUB DrawMenu (menu_set AS MenuSet, menu AS MenuDef, state AS MenuState, page AS INTEGER)
  DIM i AS INTEGER
  DIM elem AS INTEGER
  DIM rect AS RectType
  DIM cap AS STRING
  DIM col AS INTEGER
+ DIM edgecol AS INTEGER
  
  PositionMenu menu, rect
  rectangle rect.x, rect.y, rect.wide, rect.high, uilook(uiTextBox + menu.boxstyle * 2), page
+ edgecol = uilook(uiTextBox + menu.boxstyle * 2 + 1)
+ WITH rect
+  rectangle .x, .y,             .wide, 1, edgecol, dpage
+  rectangle .x, .y + .high - 1, .wide, 1, edgecol, dpage
+  rectangle .x, .y,             1, .high, edgecol, dpage
+  rectangle .x + .wide - 1, .y, 1, .high, edgecol, dpage
+ END WITH
 
- IF state.active THEN
-  tog = tog XOR 1
- ELSE
-  tog = 0
- END IF
+ state.tog = state.tog XOR 1
 
  FOR i = 0 TO state.size
   elem = state.top + i
   IF elem <= UBOUND(menu.items) THEN
    col = menu.textcolor
    IF col = 0 THEN col = uilook(uiMenuItem)
-   IF state.pt = elem THEN col = uilook(uiSelectedItem + tog)
+   IF state.pt = elem and state.active THEN col = uilook(uiSelectedItem + state.tog)
    WITH menu.items(elem)
     IF .exists THEN
-     cap = .caption
-     IF menu.edit_mode = YES AND LEN(TRIM(cap)) = 0 THEN cap = "[BLANK]" 
+     cap = GetMenuItemCaption(menu_set, menu.items(elem), menu)
      edgeprint cap, rect.x + 8, rect.y + 8 + (i * 10), col, dpage
     ELSE
      IF menu.edit_mode = YES THEN
@@ -1935,4 +1937,54 @@ END IF
 CLOSE #fh
 
 RETURN result$
+END FUNCTION
+
+FUNCTION GetMenuItemCaption (menu_set AS MenuSet, mi AS MenuDefItem, menu AS MenuDef) AS STRING
+ DIM cap AS STRING
+ DIM menutemp AS MenuDef
+ cap = mi.caption
+ IF LEN(cap) = 0 THEN
+  'No caption, use the default
+  SELECT CASE mi.t
+   CASE 1 ' special screen
+    cap = GetSpecialMenuCaption(mi.sub_t, menu.edit_mode)
+   CASE 2 ' another menu
+    '--Loading the target menu name here may be inadvisable for performance reasons.
+    '--this routine gets called for evert    
+    'LoadMenuData menu_set, menutemp, mi.sub_t, YES
+    'cap = menutemp.name
+    cap = "Menu " & mi.sub_t
+   CASE 3 ' Text Box
+    cap = "Text Box " & mi.sub_t
+   CASE 4 ' Run Script
+    cap = scriptname$(mi.sub_t)
+  END SELECT
+ END IF
+ IF menu.edit_mode = YES AND LEN(TRIM(cap)) = 0 THEN cap = "[BLANK]" 
+ RETURN cap
+END FUNCTION
+
+FUNCTION GetSpecialMenuCaption(subtype AS INTEGER, edit_mode AS INTEGER= NO) AS STRING
+ DIM cap AS STRING
+ SELECT CASE subtype
+  CASE 0: cap = readglobalstring$(60, "Items", 10)
+  CASE 1: cap = readglobalstring$(61, "Spells", 10)
+  CASE 2: cap = readglobalstring$(62, "Status", 10)
+  CASE 3: cap = readglobalstring$(63, "Equip", 10)
+  CASE 4: cap = readglobalstring$(64, "Order", 10)
+  CASE 5: cap = readglobalstring$(65, "Team", 10)
+  CASE 6
+   IF readbit(gen(), genBits, 5) THEN
+    cap = readglobalstring$(65, "Team", 10)
+   ELSE
+    cap = readglobalstring$(64, "Order", 10)
+   END IF
+   IF edit_mode = YES THEN cap = cap & " [general bitset]"
+  CASE 7: cap = readglobalstring$(68, "Map", 10)
+  CASE 8: cap = readglobalstring$(66, "Save", 10)
+  CASE 9: cap = "Load" ' FIXME: Needs a global text string
+  CASE 10: cap = readglobalstring$(67, "Quit", 10)
+  CASE 11: cap = readglobalstring$(69, "Volume", 10)
+ END SELECT
+ RETURN cap
 END FUNCTION

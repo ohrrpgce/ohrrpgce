@@ -13,6 +13,11 @@ TYPE RectType
   'y_origin AS INTEGER '-1=Top,  0=Middle, 1=Bottom
 END TYPE
 
+TYPE MenuSet
+  menufile  AS STRING
+  itemfile AS STRING
+END TYPE
+
 TYPE MenuDefItem
   exists    AS INTEGER
   member    AS INTEGER
@@ -44,6 +49,7 @@ TYPE MenuState
   last      AS INTEGER 'last element
   size      AS INTEGER 'number of elements to display at a time
   need_update AS INTEGER 'menu needs some kind of update
+  tog       AS INTEGER ' For flashing cursor
 END TYPE
 
 TYPE NPCType

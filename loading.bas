@@ -555,14 +555,14 @@ SUB ClearMenuItem(mi AS MenuDefItem)
  END WITH
 END SUB
 
-SUB LoadMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, record AS INTEGER)
+SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER, ignore_items AS INTEGER=NO)
  DIM f AS INTEGER
  IF record > gen(genMaxMenu) THEN
   ClearMenuData dat
   EXIT SUB
  END IF
  f = FREEFILE
- OPEN menusfile FOR BINARY AS #f
+ OPEN menu_set.menufile FOR BINARY AS #f
  SEEK #f, record * getbinsize(binMENUS) + 1
  WITH dat
   .name = ReadByteStr(f, 20)
@@ -571,10 +571,12 @@ SUB LoadMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, re
   .maxrows = ReadShort(f)
  END WITH
  CLOSE #f
- LoadMenuItems menuitemfile, dat.items(), record
+ IF ignore_items = NO THEN 'This is disableable for performance when all you care about loading is the menu's name
+  LoadMenuItems menu_set, dat.items(), record
+ END IF
 END SUB
 
-SUB LoadMenuItems(menuitemfile AS STRING, mi() AS MenuDefItem, record AS INTEGER)
+SUB LoadMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
  DIM i AS INTEGER
  DIM f AS INTEGER
  DIM member AS INTEGER
@@ -585,7 +587,7 @@ SUB LoadMenuItems(menuitemfile AS STRING, mi() AS MenuDefItem, record AS INTEGER
  NEXT i
 
  f = FREEFILE
- OPEN menuitemfile FOR BINARY AS #f
+ OPEN menu_set.itemfile FOR BINARY AS #f
  FOR i = 0 TO gen(genMaxMenuItem)
   SEEK #f, i * getbinsize(binMENUITEM) + 1
   member = ReadShort(f)
@@ -611,10 +613,10 @@ SUB LoadMenuItems(menuitemfile AS STRING, mi() AS MenuDefItem, record AS INTEGER
  SortMenuItems mi()
 END SUB
 
-SUB SaveMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, record AS INTEGER)
+SUB SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
  DIM f AS INTEGER
  f = FREEFILE
- OPEN menusfile FOR BINARY AS #f
+ OPEN menu_set.menufile FOR BINARY AS #f
  SEEK #f, record * getbinsize(binMENUS) + 1
  WITH dat
   WriteByteStr(f, 20, .name)
@@ -624,10 +626,10 @@ SUB SaveMenuData(menusfile AS STRING, menuitemfile AS STRING, dat AS MenuDef, re
  END WITH
  CLOSE #f
  DIM i AS INTEGER
- SaveMenuItems menuitemfile, dat.items(), record
+ SaveMenuItems menu_set, dat.items(), record
 END SUB
 
-SUB SaveMenuItems(menuitemfile AS STRING, mi() AS MenuDefItem, record AS INTEGER)
+SUB SaveMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
  DIM i AS INTEGER
  DIM f AS INTEGER
  DIM member AS INTEGER
@@ -643,7 +645,7 @@ SUB SaveMenuItems(menuitemfile AS STRING, mi() AS MenuDefItem, record AS INTEGER
  NEXT i
  
  f = FREEFILE
- OPEN menuitemfile FOR BINARY AS #f
+ OPEN menu_set.itemfile FOR BINARY AS #f
  'Loop through each record and orphan all old entries for this menu
  FOR i = 0 TO gen(genMaxMenuItem)
   SEEK #f, i * getbinsize(binMENUITEM) + 1
