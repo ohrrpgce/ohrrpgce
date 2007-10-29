@@ -135,6 +135,10 @@ atkbit$(68) = "Fail if target is muted"
 atkbit$(69) = "% based attacks damage instead of set"
 atkbit$(70) = "Check costs when used as a weapon"
 atkbit$(71) = "Do not chain if attack fails"
+atkbit$(72) = "Reset Poison register"
+atkbit$(73) = "Reset Regen register"
+atkbit$(74) = "Reset Stun register"
+atkbit$(75) = "Reset Mute register"
 '             ^---------------------------------------^
 '               the amount of room you have (39 chars)
 
