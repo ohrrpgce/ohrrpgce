@@ -1730,6 +1730,16 @@ updaterecordlength workingdir$ + SLASH + "sfxdata.bin", 3
 updaterecordlength game$ + ".map", 4
 updaterecordlength workingdir$ + SLASH + "menus.bin", 5
 updaterecordlength workingdir$ + SLASH + "menuitem.bin", 6
+IF NOT isfile(workingdir$ + SLASH + "menuitem.bin") THEN
+ upgrade_message "Creating default menu file..."
+ DIM menu_set AS MenuSet
+ menu_set.menufile = workingdir$ + SLASH + "menus.bin"
+ menu_set.itemfile = workingdir$ + SLASH + "menuitem.bin"
+ DIM menu AS MenuDef
+ CreateDefaultMenu menu
+ SaveMenuData menu_set, menu, 0
+ 
+END IF
 
 '--update to new (3rd) password format
 IF gen(genPassVersion) < 256 THEN
@@ -1827,15 +1837,19 @@ NEXT i
 
 END SUB
 
-SUB DrawMenu (menu_set AS MenuSet, menu AS MenuDef, state AS MenuState, page AS INTEGER)
+SUB DrawMenu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
+ DIM rect AS RectType
+ PositionMenu menu, rect
+ DrawMenu rect, menu, state, page
+END SUB
+
+SUB DrawMenu (rect AS RectType, menu AS MenuDef, state AS MenuState, page AS INTEGER)
  DIM i AS INTEGER
  DIM elem AS INTEGER
- DIM rect AS RectType
  DIM cap AS STRING
  DIM col AS INTEGER
  DIM edgecol AS INTEGER
  
- PositionMenu menu, rect
  rectangle rect.x, rect.y, rect.wide, rect.high, uilook(uiTextBox + menu.boxstyle * 2), page
  edgecol = uilook(uiTextBox + menu.boxstyle * 2 + 1)
  WITH rect
@@ -1849,13 +1863,13 @@ SUB DrawMenu (menu_set AS MenuSet, menu AS MenuDef, state AS MenuState, page AS 
 
  FOR i = 0 TO state.size
   elem = state.top + i
-  IF elem <= UBOUND(menu.items) THEN
+  IF elem <= UBOUND(menu.items) AND elem >= LBOUND(menu.items) THEN
    col = menu.textcolor
    IF col = 0 THEN col = uilook(uiMenuItem)
    IF state.pt = elem and state.active THEN col = uilook(uiSelectedItem + state.tog)
    WITH menu.items(elem)
     IF .exists THEN
-     cap = GetMenuItemCaption(menu_set, menu.items(elem), menu)
+     cap = GetMenuItemCaption(menu.items(elem), menu)
      edgeprint cap, rect.x + 8, rect.y + 8 + (i * 10), col, dpage
     ELSE
      IF menu.edit_mode = YES THEN
@@ -1873,6 +1887,7 @@ SUB PositionMenu (menu AS MenuDef, BYREF rect AS RectType)
  'NOTE: This currently just centers the menu in the middle of the screen.
  '      fancy positioning magic will come later...
  DIM i AS INTEGER
+ DIM cap AS STRING
 
  rect.wide = 16
  rect.high = 16
@@ -1880,7 +1895,8 @@ SUB PositionMenu (menu AS MenuDef, BYREF rect AS RectType)
  FOR i = 0 TO UBOUND(menu.items)
   WITH menu.items(i)
    IF .exists THEN
-    rect.wide = large(rect.wide, (LEN(.caption) + 2) * 8)
+    cap = GetMenuItemCaption(menu.items(i), menu)
+    rect.wide = large(rect.wide, (LEN(cap) + 2) * 8)
     rect.high = rect.high + 10
    END IF
   END WITH
@@ -1901,8 +1917,8 @@ SUB InitMenuState (BYREF state AS MenuState, menu AS MenuDef)
  state.last = CountMenuItems(menu) - 1
  state.size = 20
  IF menu.maxrows > 0 THEN state.size = small(menu.maxrows, state.size)
- state.pt = small(state.pt, state.last)
- state.top = small(state.top, state.last)
+ state.pt = bound(state.pt, 0, state.last)
+ state.top = bound(state.top, 0, state.last)
 END SUB
 
 FUNCTION CountMenuItems (menu AS MenuDef)
@@ -1939,7 +1955,7 @@ CLOSE #fh
 RETURN result$
 END FUNCTION
 
-FUNCTION GetMenuItemCaption (menu_set AS MenuSet, mi AS MenuDefItem, menu AS MenuDef) AS STRING
+FUNCTION GetMenuItemCaption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
  DIM cap AS STRING
  DIM menutemp AS MenuDef
  cap = mi.caption
@@ -1987,4 +2003,86 @@ FUNCTION GetSpecialMenuCaption(subtype AS INTEGER, edit_mode AS INTEGER= NO) AS 
   CASE 11: cap = readglobalstring$(69, "Volume", 10)
  END SELECT
  RETURN cap
+END FUNCTION
+
+SUB CreateDefaultMenu(menu AS MenuDef)
+ DIM i AS INTEGER
+ FOR i = 0 TO 3
+  WITH menu.items(i)
+   .exists = YES
+  .t = 1
+  .sub_t = i ' item, spell, status, equip
+  END WITH
+ NEXT i
+ WITH menu.items(4)
+  .exists = YES
+  .t = 1
+  .sub_t = 6 ' Order/Status menu
+ END WITH
+ FOR i = 0 TO 1
+  WITH menu.items(5 + i)
+   .exists = YES
+  .t = 1
+  .sub_t = 7 + i ' map, save
+  END WITH
+ NEXT i
+ FOR i = 0 TO 1
+  WITH menu.items(7 + i)
+   .exists = YES
+  .t = 1
+  .sub_t = 10 + i ' quit, volume
+  END WITH
+ NEXT i
+END SUB
+
+FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
+ DIM state AS MenuState
+ DIM menu AS MenuDef
+ DIM result AS INTEGER
+
+ WITH menu.items(0)
+  .exists = YES
+  .caption = "Yes"
+ END WITH
+ WITH menu.items(1)
+  .exists = YES
+  .caption = "No"
+ END WITH
+
+ InitMenuState state, menu
+ IF defaultval = YES THEN state.pt = 0
+ IF defaultval = NO  THEN state.pt = 1 
+
+ copypage vpage, 2
+ setkeys
+ DO
+  setwait 100
+  setkeys
+
+  IF keyval(1) > 1 THEN
+   result = escval
+   state.active = NO
+  END IF
+
+  IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   IF state.pt = 0 THEN result = YES
+   IF state.pt = 1 THEN result = NO
+   state.active = NO
+  END IF
+
+  IF state.active = NO THEN EXIT DO
+  
+  usemenu state
+
+  centerbox 160, 70, small(16 + LEN(capt) * 8, 320), 16, uilook(uiHighlight), dpage
+  edgeprint capt, xstring(capt, 160), 65, uilook(uiMenuItem), dpage
+  DrawMenu menu, state, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage 2, dpage
+  dowait
+ LOOP
+ clearpage 2
+
+ RETURN result
 END FUNCTION

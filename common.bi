@@ -112,11 +112,15 @@ DECLARE SUB upgrade_message (s AS STRING)
 DECLARE SUB show_message (s AS STRING)
 
 DECLARE SUB PositionMenu (menu AS MenuDef, BYREF rect AS RectType)
-DECLARE SUB DrawMenu (menu_set AS MenuSet, menu AS MenuDef, state AS MenuState, page AS INTEGER)
+DECLARE SUB DrawMenu OVERLOAD(rect AS RectType, menu AS MenuDef, state AS MenuState, page AS INTEGER)
+DECLARE SUB DrawMenu OVERLOAD(menu AS MenuDef, state AS MenuState, page AS INTEGER)
 DECLARE SUB InitMenuState (BYREF state AS MenuState, menu AS MenuDef)
 DECLARE FUNCTION CountMenuItems (menu AS MenuDef)
-DECLARE FUNCTION GetMenuItemCaption (menu_set AS MenuSet, mi AS MenuDefItem, menu AS MenuDef) AS STRING
+DECLARE FUNCTION GetMenuItemCaption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
 DECLARE FUNCTION GetSpecialMenuCaption(subtype AS INTEGER, edit_mode AS INTEGER= NO) AS STRING
+DECLARE SUB CreateDefaultMenu(menu AS MenuDef)
+
+DECLARE FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
 
 'Global variables
 EXTERN game$

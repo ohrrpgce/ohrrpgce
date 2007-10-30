@@ -64,7 +64,7 @@ DECLARE SUB menu_editor ()
 DECLARE SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
 DECLARE SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
 DECLARE SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menu_set AS MenuSet)
-DECLARE SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS MenuDef)
+DECLARE SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS MenuDef, record AS INTEGER)
 DECLARE SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS MenuDef, mi AS MenuDefItem)
 DECLARE FUNCTION zero_default(n) AS STRING
 
@@ -1395,7 +1395,7 @@ DO
  
  IF state.active = NO THEN EXIT DO
  IF mstate.active = YES THEN
-  menu_editor_menu_keys mstate, dstate, menudata
+  menu_editor_menu_keys mstate, dstate, menudata, record
  ELSEIF dstate.active = YES THEN
   menu_editor_detail_keys dstate, mstate, detail, menudata.items(mstate.pt)
  ELSE
@@ -1416,13 +1416,16 @@ DO
   InitMenuState dstate, detail
  END IF
  
- IF NOT mstate.active THEN DrawMenu menu_set, menudata, mstate, dpage
+ IF NOT mstate.active THEN DrawMenu menudata, mstate, dpage
  standardmenu edmenu$(), state, 0, 0, dpage, YES, (mstate.active OR dstate.active)
  IF mstate.active THEN
-  DrawMenu menu_set, menudata, mstate, dpage
-  edgeprint "ENTER to change menu item type", 0, 191, uilook(uiDisabledItem), dpage
+  DrawMenu menudata, mstate, dpage
+  edgeprint "ENTER to edit entry.", 0, 191, uilook(uiDisabledItem), dpage
+  IF record = 0 THEN
+   edgeprint "CTRL+R to reload default", 0, 181, uilook(uiDisabledItem), dpage
+  END IF
  END IF
- IF dstate.active THEN DrawMenu menu_set, detail, dstate, dpage
+ IF dstate.active THEN DrawMenu detail, dstate, dpage
  
  SWAP vpage, dpage
  setvispage vpage
@@ -1484,7 +1487,7 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
  END SELECT
 END SUB
 
-SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS MenuDef)
+SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS MenuDef, record AS INTEGER)
  DIM i AS INTEGER
  DIM elem AS INTEGER
 
@@ -1515,6 +1518,16 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
   END IF
  END WITH
 
+ IF record = 0 THEN
+  IF keyval(29) > 0 AND keyval(19) > 1 THEN
+   IF yesno("Reload the default main menu?") THEN
+    ClearMenuData menudata
+    CreateDefaultMenu menudata
+    mstate.need_update = YES
+   END IF
+  END IF
+ END IF
+ 
 END SUB
 
 SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS MenuDef, mi AS MenuDefItem)
@@ -1606,8 +1619,8 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
   SELECT CASE mi.t
    CASE 0
     SELECT CASE mi.sub_t
-     CASE 0: .caption = .caption & " Not Selectable"
-     CASE 1: .caption = .caption & " Selectable"
+     CASE 0: .caption = .caption & " Selectable"
+     CASE 1: .caption = .caption & " Not Selectable"
     END SELECT
    CASE 1
     .caption = .caption & " " & GetSpecialMenuCaption(mi.sub_t, YES)

@@ -1044,10 +1044,7 @@ RETRACE
 
 delmap:
 setvispage vpage
-temp$(0) = "Do Not Delete"
-temp$(1) = "Delete Map"
-yesno = sublist(1, temp$())
-IF yesno = 1 THEN
+IF yesno("Delete this map?", NO) THEN
  printstr "Please Wait...", 0, 40, vpage
  setvispage vpage
 
