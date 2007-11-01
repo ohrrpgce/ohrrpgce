@@ -1405,6 +1405,7 @@ DO
  IF state.need_update THEN
   state.need_update = NO
   update_menu_editor_menu record, edmenu$(), menudata
+  InitMenuState mstate, menudata
  END IF
  IF mstate.need_update THEN
   mstate.need_update = NO
