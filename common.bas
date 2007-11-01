@@ -1853,10 +1853,27 @@ SUB DrawMenu (rect AS RectType, menu AS MenuDef, state AS MenuState, page AS INT
  rectangle rect.x, rect.y, rect.wide, rect.high, uilook(uiTextBox + menu.boxstyle * 2), page
  edgecol = uilook(uiTextBox + menu.boxstyle * 2 + 1)
  WITH rect
+  'Draw borders
   rectangle .x, .y,             .wide, 1, edgecol, dpage
   rectangle .x, .y + .high - 1, .wide, 1, edgecol, dpage
   rectangle .x, .y,             1, .high, edgecol, dpage
   rectangle .x + .wide - 1, .y, 1, .high, edgecol, dpage
+  'Draw scrollbar
+  IF state.top > 0 OR state.last > state.top + state.size THEN
+   DIM count AS INTEGER
+   count = CountMenuItems(menu)
+   IF count > 0 THEN
+    DIM sbar AS RectType
+    sbar.x = .x + .wide - 6
+    sbar.y = .y + 2
+    sbar.wide = 4
+    sbar.high = .high - 4
+    WITH sbar
+     rectangle .x, .y, .wide, .high, uilook(uiBackground), dpage
+     rectangle .x, .y + .high / count * (state.top), .wide, .high / count * (state.size+1) , edgecol, dpage
+    END WITH
+   END IF
+  END IF
  END WITH
 
  state.tog = state.tog XOR 1

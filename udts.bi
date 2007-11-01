@@ -47,7 +47,7 @@ TYPE MenuState
   top       AS INTEGER 'scroll position for long lists
   first     AS INTEGER 'first element (usually zero)
   last      AS INTEGER 'last element
-  size      AS INTEGER 'number of elements to display at a time
+  size      AS INTEGER 'number of elements to display at a time (actually index of last to display relative to top, so "size"-1)
   need_update AS INTEGER 'menu needs some kind of update
   tog       AS INTEGER ' For flashing cursor
 END TYPE
