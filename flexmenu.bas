@@ -1422,7 +1422,7 @@ DO
  standardmenu edmenu$(), state, 0, 0, dpage, YES, (mstate.active OR dstate.active)
  IF mstate.active THEN
   DrawMenu menudata, mstate, dpage
-  edgeprint "ENTER to edit entry.", 0, 191, uilook(uiDisabledItem), dpage
+  edgeprint "ENTER to edit, Shift+Arrows to re-order", 0, 191, uilook(uiDisabledItem), dpage
   IF record = 0 THEN
    edgeprint "CTRL+R to reload default", 0, 181, uilook(uiDisabledItem), dpage
   END IF
@@ -1517,6 +1517,18 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
     IF yesno("Delete this menu item?", NO) THEN
      ClearMenuItem menudata.items(mstate.pt)
      SortMenuItems menudata.items()
+     mstate.need_update = YES
+    END IF
+   END IF
+   IF keyval(42) > 0 OR keyval(54) > 0 THEN '--holding Shift
+    IF keyval(72) > 1 AND mstate.pt < mstate.last - 1 THEN ' just went up
+     'NOTE: Cursor will have already moved because of usemenu call above
+     SWAP menudata.items(mstate.pt), menudata.items(mstate.pt + 1)
+     mstate.need_update = YES
+    END IF
+    IF keyval(80) > 1 AND mstate.pt > mstate.first THEN ' just went down
+     'NOTE: Cursor will have already moved because of usemenu call above
+     SWAP menudata.items(mstate.pt), menudata.items(mstate.pt - 1)
      mstate.need_update = YES
     END IF
    END IF
