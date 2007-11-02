@@ -39,6 +39,8 @@ TYPE MenuDef
   maxrows   AS INTEGER
   edit_mode AS INTEGER 'Never hide disabled items, allow selection of unselectable items
   items(20) AS MenuDefItem
+  transparent  AS UBYTE ' Bitset
+  no_scrollbar AS UBYTE ' Bitset
 END TYPE
 
 TYPE MenuState

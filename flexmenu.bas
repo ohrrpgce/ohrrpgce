@@ -66,6 +66,7 @@ DECLARE SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
 DECLARE SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menu_set AS MenuSet)
 DECLARE SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS MenuDef, record AS INTEGER)
 DECLARE SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS MenuDef, mi AS MenuDefItem)
+DECLARE SUB edit_menu_bits (menu AS MenuDef)
 DECLARE FUNCTION zero_default(n) AS STRING
 
 REM $STATIC
@@ -1372,7 +1373,7 @@ menu_set.menufile = workingdir$ & SLASH & "menus.bin"
 menu_set.itemfile = workingdir$ & SLASH & "menuitem.bin"
 
 DIM record AS INTEGER = 0
-DIM edmenu$(6)
+DIM edmenu$(7)
 
 DIM state AS MenuState 'top level
 state.last = UBOUND(edmenu$)
@@ -1474,16 +1475,20 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
   CASE 2
    IF strgrabber(menudata.name, 20) THEN state.need_update = YES
   CASE 3
-   IF intgrabber(menudata.boxstyle, 0, 14) THEN state.need_update = YES
-  CASE 4
-   IF intgrabber(menudata.textcolor, 0, 255) THEN state.need_update = YES
-  CASE 5
-   IF intgrabber(menudata.maxrows, 0, 20) THEN state.need_update = YES
-  CASE 6
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
     mstate.active = YES
     mstate.need_update = YES
     menudata.edit_mode = YES
+   END IF
+  CASE 4
+   IF intgrabber(menudata.boxstyle, 0, 14) THEN state.need_update = YES
+  CASE 5
+   IF intgrabber(menudata.textcolor, 0, 255) THEN state.need_update = YES
+  CASE 6
+   IF intgrabber(menudata.maxrows, 0, 20) THEN state.need_update = YES
+  CASE 7
+   IF keyval(28) > 1 OR keyval(57) > 1 THEN
+    edit_menu_bits menudata
    END IF
  END SELECT
 END SUB
@@ -1581,10 +1586,11 @@ SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
  m$(1) = "Menu " & record
  IF record = 0 THEN m$(1) = m$(1) & " (MAIN MENU)"
  m$(2) = "Name: " & menu.name
- m$(3) = "Background: " & menu.boxstyle
- m$(4) = "Text color: " & zero_default(menu.textcolor)
- m$(5) = "Max rows to display: " & zero_default(menu.maxrows)
- m$(6) = "Edit Items..."
+ m$(3) = "Edit Items..."
+ m$(4) = "Background: " & menu.boxstyle
+ m$(5) = "Text color: " & zero_default(menu.textcolor)
+ m$(6) = "Max rows to display: " & zero_default(menu.maxrows)
+ m$(7) = "Edit Bitsets..."
 END SUB
 
 SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
@@ -1635,3 +1641,23 @@ FUNCTION zero_default(n) AS STRING
  IF n = 0 THEN RETURN "default"
  RETURN "" & n
 END FUNCTION
+
+SUB edit_menu_bits (menu AS MenuDef)
+ DIM bitname(1) AS STRING
+ DIM bits(0) AS SHORT
+ 
+ bitname(0) = "Transparent box"
+ bitname(1) = "Never show scrollbar"
+
+ WITH menu
+  bits(0) = 0
+  setbit bits(), 0, 0, .transparent
+  setbit bits(), 0, 1, .no_scrollbar
+  
+  editbitset bits(), 0, UBOUND(bitname), bitname()
+  
+  .transparent  = (readbit(bits(), 0, 0) <> 0)
+  .no_scrollbar = (readbit(bits(), 0, 1) <> 0)
+ END WITH
+
+END SUB

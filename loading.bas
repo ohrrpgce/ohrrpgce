@@ -557,6 +557,7 @@ END SUB
 
 SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER, ignore_items AS INTEGER=NO)
  DIM f AS INTEGER
+ DIM bits(0) AS SHORT
  IF record > gen(genMaxMenu) THEN
   ClearMenuData dat
   EXIT SUB
@@ -569,6 +570,9 @@ SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER, ignore_
   .boxstyle = ReadShort(f)
   .textcolor = ReadShort(f)
   .maxrows = ReadShort(f)
+  bits(0) = ReadShort(f)
+  .transparent = (readbit(bits(), 0, 0) <> 0)
+  .no_scrollbar = (readbit(bits(), 0, 1) <> 0)
  END WITH
  CLOSE #f
  IF ignore_items = NO THEN 'This is disableable for performance when all you care about loading is the menu's name
@@ -615,6 +619,7 @@ END SUB
 
 SUB SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
  DIM f AS INTEGER
+ DIM bits(0) AS SHORT
  f = FREEFILE
  OPEN menu_set.menufile FOR BINARY AS #f
  SEEK #f, record * getbinsize(binMENUS) + 1
@@ -623,6 +628,10 @@ SUB SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
   WriteShort(f, -1, .boxstyle)
   WriteShort(f, -1, .textcolor)
   WriteShort(f, -1, .maxrows)
+  bits(0) = 0
+  setbit bits(), 0, 0, .transparent
+  setbit bits(), 0, 1, .no_scrollbar
+  WriteShort(f, -1, bits(0))
  END WITH
  CLOSE #f
  DIM i AS INTEGER

@@ -644,7 +644,7 @@ FUNCTION curbinsize (id)
  IF id = 2 THEN RETURN 32  'songdata.bin
  IF id = 3 THEN RETURN 34  'sfxdata.bin
  IF id = 4 THEN RETURN 44  '.map
- IF id = 5 THEN RETURN 30  'menus.bin
+ IF id = 5 THEN RETURN 32  'menus.bin
  IF id = 6 THEN RETURN 58  'menuitem.bin
  RETURN 0
 END FUNCTION
@@ -1850,7 +1850,12 @@ SUB DrawMenu (rect AS RectType, menu AS MenuDef, state AS MenuState, page AS INT
  DIM col AS INTEGER
  DIM edgecol AS INTEGER
  
- rectangle rect.x, rect.y, rect.wide, rect.high, uilook(uiTextBox + menu.boxstyle * 2), page
+ IF menu.transparent THEN
+  fuzzyrect rect.x, rect.y, rect.wide, rect.high, uilook(uiTextBox + menu.boxstyle * 2), page
+ ELSE
+  rectangle rect.x, rect.y, rect.wide, rect.high, uilook(uiTextBox + menu.boxstyle * 2), page
+ END IF
+ 
  edgecol = uilook(uiTextBox + menu.boxstyle * 2 + 1)
  WITH rect
   'Draw borders
@@ -1859,7 +1864,7 @@ SUB DrawMenu (rect AS RectType, menu AS MenuDef, state AS MenuState, page AS INT
   rectangle .x, .y,             1, .high, edgecol, dpage
   rectangle .x + .wide - 1, .y, 1, .high, edgecol, dpage
   'Draw scrollbar
-  IF state.top > 0 OR state.last > state.top + state.size THEN
+  IF (state.top > 0 OR state.last > state.top + state.size) AND menu.no_scrollbar = NO THEN
    DIM count AS INTEGER
    count = CountMenuItems(menu)
    IF count > 0 THEN
@@ -2050,6 +2055,7 @@ SUB CreateDefaultMenu(menu AS MenuDef)
   .sub_t = 10 + i ' quit, volume
   END WITH
  NEXT i
+ menu.transparent = YES
 END SUB
 
 FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
