@@ -1508,10 +1508,17 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
  WITH menudata.items(mstate.pt)
   IF .exists THEN
    strgrabber .caption, 38
-   IF keyval(28) > 1 THEN
+   IF keyval(28) > 1 THEN '--Enter
     mstate.active = NO
     dstate.active = YES
     dstate.need_update = YES
+   END IF
+   IF keyval(83) > 1 THEN '-- Delete
+    IF yesno("Delete this menu item?", NO) THEN
+     ClearMenuItem menudata.items(mstate.pt)
+     SortMenuItems menudata.items()
+     mstate.need_update = YES
+    END IF
    END IF
   ELSE
    IF menudata.edit_mode = YES THEN

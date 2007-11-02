@@ -2076,7 +2076,10 @@ FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) 
  IF defaultval = YES THEN state.pt = 0
  IF defaultval = NO  THEN state.pt = 1 
 
+ 'Keep whatever was on the screen already as a background
+ copypage vpage, dpage
  copypage vpage, 2
+ 
  setkeys
  DO
   setwait 100
