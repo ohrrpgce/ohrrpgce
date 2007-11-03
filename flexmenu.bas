@@ -1589,9 +1589,11 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
      max = 1
     CASE 1: '--special
      max = 11
-    CASE 2: '--text box
+    CASE 2: '--menu
+     max = gen(genMaxMenu)
+    CASE 3: '--text box
      max = gen(genMaxTextBox)
-    CASE 3: '--script
+    CASE 4: '--script
      max = 0' FIXME
    END SELECT
    IF intgrabber(mi.sub_t, 0, max) THEN

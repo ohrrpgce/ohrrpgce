@@ -99,3 +99,9 @@ EXTERN bstackstart
 EXTERN learnmask()
 
 EXTERN timers() as Timer
+
+'Menu globals
+EXTERN menus() as MenuDef
+EXTERN mstates() as MenuState
+EXTERN menu_set as MenuSet
+EXTERN topmenu as INTEGER

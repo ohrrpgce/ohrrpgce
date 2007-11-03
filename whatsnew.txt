@@ -11,6 +11,8 @@ Dec ?? 2007 [voxhumana]
       also [James Paige]
     * Attacks can have preferred default targets based on factors such as
       distance or strongest stat or weakest stat [James Paige]
+    * Customizable main menus (In-Progress, press INSERT to test)
+      [James Paige]
 
   * Bugfixes
     * Fixed bug 257 "Mute status effect broken for enemies" [James Paige]

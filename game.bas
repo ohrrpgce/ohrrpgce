@@ -158,6 +158,10 @@ DECLARE SUB killallscripts ()
 DECLARE SUB reloadscript (index, updatestats = -1)
 DECLARE FUNCTION count_sav(filename AS STRING) AS INTEGER
 DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
+DECLARE SUB add_menu (record AS INTEGER)
+DECLARE SUB remove_menu (record AS INTEGER)
+DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
+DECLARE SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -193,7 +197,14 @@ DIM font(1024), buffer(16384), pal16(448), timing(4), music(16384)
 DIM gen(360), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev&(40, 1), names$(40), veh(21)
 DIM eqstuf(40, 4), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4)
+
+'Old Menu data
 DIM menu$(9), mi(9)
+'New Menu Data
+DIM menu_set AS MenuSet
+DIM menus(0) AS MenuDef 'This is an array because it will eventually be a stack of heirarchial menus
+DIM mstates(0) AS MenuState
+DIM topmenu AS INTEGER = -1
 
 dim door(99) as door, doorlinks(199) as doorlink
 
@@ -422,6 +433,8 @@ choosep = 0
 sayer = 0
 remembermusic = -1
 scrwatch = 0
+menu_set.menufile = workingdir$ & SLASH & "menus.bin"
+menu_set.itemfile = workingdir$ & SLASH & "menuitem.bin"
 
 makebackups 'make a few backup lumps
 
@@ -466,6 +479,7 @@ GOSUB preparemap
 doihavebits
 evalherotag stat()
 needf = 1: ng = 1
+DIM menu_text_box AS INTEGER = 0
 
 'DEBUG debug "pre-call movement"
 setmapdata pass(), pass(), 0, 0
@@ -479,6 +493,16 @@ DO
  tog = tog XOR 1
  'DEBUG debug "read controls"
  control
+ 'debug "menu key handling:"
+ handle_menu_keys menu_text_box, wantloadgame, stat(), catx(), caty(), tastuf(), map, foep, stock()
+ IF menu_text_box > 0 THEN
+  '--player has triggered a text box from the menu--
+  say = menu_text_box
+  loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+  remove_menu topmenu
+ END IF
+ 'debug "after menu key handling:"
+ IF menus_allow_gameplay() THEN
  IF gmap(15) THEN onkeyscript gmap(15)
  'breakpoint : called after keypress script is run, but don't get called by wantimmediate
  IF scrwatch > 1 THEN breakpoint scrwatch, 4
@@ -492,6 +516,10 @@ DO
   GOSUB usermenu
   evalitemtag
   npcplot
+ END IF
+ IF keyval(82) > 1 AND topmenu = -1 THEN ' temporaraly activated with the insert key
+  add_menu 0
+  menusound gen(genAcceptSFX)
  END IF
  IF showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(6) = 0 THEN
   IF xgo(0) = 0 AND ygo(0) = 0 THEN
@@ -696,6 +724,7 @@ DO
    fadeout 255, 0, 0
   END IF
  END IF
+ END IF' end menus_allow_gameplay
  GOSUB displayall
  IF fatal = 1 OR abortg > 0 THEN
   resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
@@ -767,6 +796,9 @@ IF showmapname > 0 AND gmap(4) >= showmapname THEN
 ELSE
  showmapname = 0
 END IF
+FOR i = 0 TO topmenu
+ DrawMenu menus(i), mstates(i), dpage
+NEXT i
 '--FPS
 'framecount = framecount + 1
 'IF fpstimer! + 1 < TIMER THEN
@@ -2511,3 +2543,102 @@ FUNCTION count_sav(filename AS STRING) AS INTEGER
  NEXT i
  RETURN n
 END FUNCTION
+
+SUB add_menu (record AS INTEGER)
+ topmenu = topmenu + 1
+ IF topmenu > UBOUND(menus) THEN
+  REDIM PRESERVE menus(topmenu) AS MenuDef
+  REDIM PRESERVE mstates(topmenu) AS MenuState
+ END IF
+ LoadMenuData menu_set, menus(topmenu), record
+ InitMenuState mstates(topmenu), menus(topmenu)
+ mstates(topmenu).active = YES
+END SUB
+
+SUB remove_menu (record AS INTEGER)
+ DIM i AS INTEGER
+ FOR i = record TO topmenu - 1
+  SWAP menus(i), menus(i + 1)
+  SWAP mstates(i), mstates(i + 1)
+ NEXT i
+ ClearMenuData menus(topmenu)
+ topmenu = topmenu - 1
+ IF topmenu >=0 THEN
+  REDIM PRESERVE menus(topmenu) AS MenuDef
+  REDIM PRESERVE mstates(topmenu) AS MenuState
+ END IF
+END SUB
+
+FUNCTION menus_allow_gameplay () AS INTEGER
+ 'this will be fancier later
+ RETURN topmenu < 0
+END FUNCTION
+
+SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock()) 'usermenu:
+ DIM slot AS INTEGER
+ menu_text_box = 0
+ IF topmenu >= 0 THEN
+  IF usemenu(mstates(topmenu)) THEN
+   menusound gen(genCursorSFX)
+  END IF
+  IF carray(5) > 1 THEN
+   carray(5) = 0' Forget keypress
+   remove_menu topmenu
+   menusound gen(genCancelSFX)
+  END IF
+  IF carray(4) > 1 THEN
+   WITH menus(topmenu).items(mstates(topmenu).pt)
+    SELECT CASE .t
+     CASE 0 ' Label
+     CASE 1 ' Special
+      SELECT CASE .sub_t
+       CASE 0 ' item
+        menu_text_box = items(stat())
+       CASE 1 ' spell
+        slot = onwho(readglobalstring$(106, "Whose Spells?", 20), 0)
+        IF slot >= 0 THEN spells slot, stat()
+       CASE 2 ' status
+        slot = onwho(readglobalstring$(104, "Whose Status?", 20), 0)
+        IF slot >= 0 THEN status slot, stat()
+       CASE 3 ' equip
+        slot = onwho(readglobalstring$(108, "Equip Whom?", 20), 0)
+        IF slot >= 0 THEN equip slot, stat()
+       CASE 4 ' order
+        heroswap 0, stat()
+       CASE 5 ' team
+        heroswap 1, stat()
+       CASE 6 ' order/team
+        heroswap readbit(gen(), 101, 5), stat()
+       CASE 7 ' map
+        minimap catx(0), caty(0), tastuf()
+       CASE 8 ' save
+        slot = picksave(0)
+        IF slot >= 0 THEN savegame slot, map, foep, stat(), stock()
+        reloadnpc stat()
+       CASE 9 ' load
+        debug "Menu: load not enabled yet"
+        'slot = picksave(1) 'This currently causes graphical corruption and crashes in evalitemtag (id becomes -1)
+        'IF slot >= 0 THEN
+        ' wantloadgame = slot + 1
+        ' 'Close all menus
+        ' DO WHILE topmenu >=0
+        '  remove_menu topmenu
+        ' LOOP
+        ' EXIT SUB
+        'END IF
+       CASE 10 ' quit
+        menusound gen(genAcceptSFX)
+        verquit
+       CASE 11 ' volume
+      END SELECT
+     CASE 2 ' Menu
+      debug "Menu: Submenu not implemented"
+     CASE 3 ' Text box
+      menu_text_box = .sub_t
+     CASE 4 ' Run Script
+      debug "Menu: Run script not implemented"
+    END SELECT
+   END WITH
+  END IF
+ END IF
+END SUB
