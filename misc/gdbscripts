@@ -1,0 +1,175 @@
+define pel
+	set $data = ((int*)&$arg0)
+	set $dimno = 0
+	set $dims = $data[4]
+	set $elem = 0
+	set $check = 0
+
+	set print pretty on
+	
+	while 1
+
+		if $dims < 1 || $dims > 5 || $data[1] == 0
+			echo Array descriptor invalid
+			loop_break
+		end
+
+		while $dimno < $dims
+			set $diminfo = ((int*)&$arg0) + 5 + 3 * $dimno
+
+			set $elem = ($elem * $diminfo[0]) + $arg1[$dimno]
+			set $check = ($check * $diminfo[0]) + $arg1[$dimno] - $diminfo[1]
+			set $dimno += 1
+		end
+		if &((char*)$arg0)[$elem * $data[3]] != &((char*)$data[1])[$check * $data[3]]
+			echo Array descriptor invalid
+			loop_break
+		end
+
+		if $argc >= 3
+			print *($arg2*)((void*)$arg0 + $elem * $data[3])
+		else
+			print ((int*)$arg0)[$elem * $data[3] / 4]
+		end
+		loop_break
+	end
+end
+
+document pel
+	pel ARRAYNAME INDICES TYPE
+	Print a single element of a dynamic FreeBASIC array, cast
+	to the specified TYPE (you may use types like 'int').
+	INDICES is an array of indices. Make sure you get the length
+	right, as there's no way for the script to check
+	Eg.
+	DIM array(300, 3) as MyType
+	(gdb) pel ARRAY {20, 1} MYTYPE
+end
+
+define parray
+	set $data = ((int*)&$arg0)
+	set $dimno = 0
+	set $dims = $data[4]
+	set $check = 0
+	set $dstack = {0, 0, 0, 0}
+	set $diminfo = ((int*)&$arg0) + 5
+	set $curelem = (char*)$data[1]
+	set $style = 0
+
+	if $argc >= 3
+		set $style = $arg2
+	end
+        set print repeats 3
+	if $style == 3
+		set print pretty on
+	else
+		set print pretty off
+	end
+	if $style == 0
+		set print array on
+	else
+		set print array off
+	end
+
+	while 1
+		if $dims < 1 || $dims > 5 || $data[1] == 0
+			echo Array descriptor invalid
+			loop_break
+		end
+
+		if sizeof($arg1) != $data[3]
+			printf "Warning: SIZEOF($arg1) = %d different from actual element size = %d\n", sizeof($arg1), $data[3]
+		end
+
+		echo $arg0
+		echo (
+		while $dimno < $dims
+			set $diminfo = ((int*)&$arg0) + 5 + 3 * $dimno
+			set $dstack[$dimno] = $diminfo[1]
+			set $check = ($check * $diminfo[0]) + $diminfo[1]
+
+			if $diminfo[1] != 0
+				printf "%d TO %d", $diminfo[1], $diminfo[2]
+			else
+				output $diminfo[2]
+			end
+			if $dimno < $dims - 1
+				echo , \ 
+			end
+
+			set $dimno += 1
+		end
+		echo ):\n
+
+		if (char*)$data[1] != ((char*)$data[0]) + ($check * $data[3])
+			echo Array descriptor invalid
+			loop_break
+		end
+
+		set $dimno = 0
+		while $dimno >= 0
+			echo (
+			set $dimno = 0
+			while $dimno < $dims
+				if $style < 2 && $dimno == $dims - 1
+					echo  *
+				else
+					output $dstack[$dimno]
+					if $dimno < $dims - 1
+						echo ,
+					end
+				end
+				set $dimno += 1
+			end
+			echo )=
+
+			set $dimno = $dims - 1
+			set $diminfo = ((int*)&$arg0) + 5 + 3 * $dimno
+
+			if $style < 2
+				output *($arg1*)$curelem @ $diminfo[0]
+				set $curelem += $data[3] * $diminfo[0]
+				set $dimno -= 1
+				set $diminfo -= 3
+			else
+				output *($arg1*)$curelem
+				set $curelem += $data[3]
+			end
+			echo \n
+
+			while $dimno >= 0
+				set $dstack[$dimno] += 1
+				if $dstack[$dimno] > $diminfo[2]
+					set $dstack[$dimno] = $diminfo[1]
+					set $dimno -= 1
+					set $diminfo -= 3
+				else
+					loop_break
+				end
+			end
+		end
+		loop_break
+	end
+end
+
+document parray
+	parray ARRAYNAME TYPE [PRINTOPTION]
+	Prints an entire dynamic FreeBASIC array, cast to
+	the specified TYPE (you may use types like 'int').
+	There are 4 formatting options. Optionally specify 0
+	(default), 1, 2 or 3 as PRINTOPTION. Try 2 or 3
+	(warning: slow) when dealing with a UDT array, use
+	3 to pretty print structures. 0 or 1 take advantage
+	of builtin array printing and repeat squashing,
+	necessary for large integer arrays.
+	Eg.
+	DIM array(300, 3) as integer
+	(gdb) parry ARRAY int 1
+end
+
+define runcatch
+	run
+	if $_exitcode == (void)0
+		echo crashed
+	end
+end
