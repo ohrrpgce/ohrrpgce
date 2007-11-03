@@ -2072,6 +2072,7 @@ FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) 
   .caption = "No"
  END WITH
 
+ state.active = YES
  InitMenuState state, menu
  IF defaultval = YES THEN state.pt = 0
  IF defaultval = NO  THEN state.pt = 1 

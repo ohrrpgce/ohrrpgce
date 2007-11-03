@@ -1376,6 +1376,7 @@ DIM record AS INTEGER = 0
 DIM edmenu$(7)
 
 DIM state AS MenuState 'top level
+state.active = YES
 state.last = UBOUND(edmenu$)
 state.size = 22
 state.need_update = YES
@@ -1663,7 +1664,7 @@ END FUNCTION
 
 SUB edit_menu_bits (menu AS MenuDef)
  DIM bitname(1) AS STRING
- DIM bits(0) AS SHORT
+ DIM bits(0) AS INTEGER
  
  bitname(0) = "Transparent box"
  bitname(1) = "Never show scrollbar"

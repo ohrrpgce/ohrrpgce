@@ -557,7 +557,7 @@ END SUB
 
 SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER, ignore_items AS INTEGER=NO)
  DIM f AS INTEGER
- DIM bits(0) AS SHORT
+ DIM bits(0) AS INTEGER
  IF record > gen(genMaxMenu) THEN
   ClearMenuData dat
   EXIT SUB
@@ -619,7 +619,7 @@ END SUB
 
 SUB SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
  DIM f AS INTEGER
- DIM bits(0) AS SHORT
+ DIM bits(0) AS INTEGER
  f = FREEFILE
  OPEN menu_set.menufile FOR BINARY AS #f
  SEEK #f, record * getbinsize(binMENUS) + 1
