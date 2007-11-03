@@ -1819,10 +1819,12 @@ END SUB
 
 SUB scripterr (e$)
 
-errormode = 1
+'errormode = 1
 
-SELECT CASE errormode
- CASE 1'--show error on screen
+'SELECT CASE errormode
+' CASE 1'--show error on screen
+  debug "Scripterr: " & e$
+
   textcolor uilook(uiText), 0
   clearpage vpage
   setpal master()
@@ -1831,9 +1833,9 @@ SELECT CASE errormode
   printstr e$, 160 - 4 * LEN(e$), 20, vpage
   setvispage vpage
   w = getkey
- CASE 2'--write error to file
-  debug e$
-END SELECT
+' CASE 2'--write error to file
+'  debug e$
+'END SELECT
 
 END SUB
 
