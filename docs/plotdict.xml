@@ -197,7 +197,7 @@ wait for hero (me) # wait until he stops</example>
 		<command id="waitforkey">
 			<cannon>wait for key (key)</cannon>
 			<shortname>wait for key</shortname>
-			<description>Waits for the player to press a key. You can use the follwing constants: <ref>anykey</ref>, <ref>upkey</ref>, <ref>downkey</ref>, <ref>leftkey</ref>, <ref>rightkey</ref>, <ref>usekey</ref>, <ref>cancelkey</ref>, or <ref>menukey</ref>. If you do not specify, then <ref>anykey</ref> will be used.</description>
+			<description>Waits for the player to press a key. You can use the follwing constants: <ref>anykey</ref>, <ref>upkey</ref>, <ref>downkey</ref>, <ref>leftkey</ref>, <ref>rightkey</ref>, <ref>usekey</ref>, <ref>cancelkey</ref>, or <ref>menukey</ref>. If you do not specify, then <ref>anykey</ref> will be used. If and only if anykey is used, waitforkey will return the scancode of the key that was pressed.</description>
 			<example>show text box(623) # "press cancel!"
 wait for key(cancel key)</example>
 		</command>
@@ -690,7 +690,10 @@ wait for text box # wait until the player continues</example>
 		<command id="fightformation">
 			<cannon>fight formation (number)</cannon>
 			<shortname>fight formation</shortname>
-			<description>Starts a battle with the numbered enemy formation. This command returns <ref>false</ref> if you lost or ran from battle, or <ref>true</ref> if you won. (This command implies a one-tick <ref>wait</ref>)</description>
+			<description>Starts a battle with the numbered enemy formation. This command returns <ref>false</ref> if you lost or ran from battle, or <ref>true</ref> if you won. However, if you lose the battle, the game will still end as normal unless you set a death script. (This command implies a one-tick <ref>wait</ref>)</description>
+			<seealso>
+				<ref>setdeathscript</ref>
+			</seealso>
 		</command>
 		<command id="usenpc">
 			<cannon>Use NPC (who)</cannon>
@@ -1759,7 +1762,7 @@ if (herolevelled (find hero (hero: Bob))) then (
 		  <cannon>set timer (id, count, speed, trigger, string, flags)</cannon>
 		  <shortname>set timer</shortname>
 		  <description>Sets the settings for a given timer (<p>id</p>), and starts it. <p>Count</p> is the length of the timer. While it's running, the count will go down by one every <p>speed</p> ticks. I.e., if you set speed to 18, it will count down once every 18 ticks.<lb/>
-<p>trigger</p> is what happens when the timer runs out. You can use the constant <ref>timer:gameover</ref> to indicate that the game should end, or specify a plotscript (in the form "@my script") to have that run.<lb/>
+<p>trigger</p> is what happens when the timer runs out. You can use the constant <ref>timer:gameover</ref> to indicate that the game should end, or specify a plotscript (in the form "@my script") to have that run. A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one.<lb/>
 By default, a timer will not show up on screen. However, you can bind a timer to a string using the <p>string</p> parameter. Pass it the id of a string, and that string will be updated every time the timer counts down. You are responsible for displaying and positioning the string.<lb/>
 A timer also has a few other options in the form of <p>flags</p>. You can pass any combination of these flags: <ref>timerflag:critical</ref> to have the timer end a battle, if it runs out during it, <ref>timerflag:battle</ref> to have it count down during a battle in the first place or <ref>timerflag:menu</ref> to have it count down while the player is in a menu (i.e. the main menu).
 <note>You can pass <ref>timer:default</ref> to any parameter except <p>id</p>. This will either leave the parameter unchanged (if it's set), or set it to its default value.</note></description>

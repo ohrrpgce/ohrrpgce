@@ -21,6 +21,8 @@ Dec ?? 2007 [voxhumana]
     * Fixed bug 476, off-by-one-error in "set victory music" [James Paige]
     * Fixed bug 484 "Do not show spell lists if empty" was only working in
       battle for the first spell list [James Paige]
+    * Having an after-battle script would prevent fightformation from
+      returning the correct battle result [Ralph Versteegen]
 
   * New Plotscripting Commands
     * get victory music

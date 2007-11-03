@@ -1615,7 +1615,10 @@ IF nowscript >= 0 THEN
   CASE stwait
    '--evaluate wait conditions
    SELECT CASE scrat(nowscript).curvalue
-    CASE 15, 16, 35, 61'--use door, teleport to map, use NPC, want battle
+    CASE 15, 35, 61'--use door, use NPC, teleport to map
+     scrat(nowscript).state = streturn
+    CASE 16'--fight formation
+     scriptret = wonbattle
      scrat(nowscript).state = streturn
     CASE 1'--wait number of ticks
      scrat(nowscript).waitarg = scrat(nowscript).waitarg - 1
@@ -1735,7 +1738,6 @@ IF wantbattle > 0 THEN
  fatal = 0
  remembermusic = presentsong
  wonbattle = battle(wantbattle - 1, fatal, stat())
- scriptret = wonbattle
  wantbattle = 0
  afterbat = 1
  GOSUB preparemap
