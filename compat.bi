@@ -33,12 +33,28 @@ option nokeyword setmouse
 
 #if  __FB_VERSION__ = "0.15"
 'use native gosubs
+
 #define retrace return
 #define retrievestate
 #define rememberstate
 #define crt_jmp_buf byte
 
 #else
+'use nearly-as-fast assembly version (one extra jump)
+
+option nokeyword gosub
+#define gosub _gosub_beta(__LINE__)
+'the "if 1 then else" is used to place a label after the goto
+#define _gosub_beta(a) asm : call __gosub_lab##a end asm : if 1 then else asm : __gosub_lab##a: end asm : goto
+#define retrace asm ret
+#define retrievestate
+#define rememberstate
+#define crt_jmp_buf byte
+
+#endif
+
+#if 0
+'alternative to above blocks, use this code on non x86 platforms
 'use a setjmp/longjmp kludge
 
 '#include "crt/setjmp.bi"
