@@ -1742,10 +1742,22 @@ IF carray(1) > 1 AND ic <= inventoryMax - 3 THEN
  IF ic > top + 62 THEN top = top + 3
 END IF
 IF carray(2) > 1 THEN
- IF ic MOD 3 > 0 THEN ic = ic - 1: GOSUB sellinfostr ELSE ic = ic + 2: GOSUB sellinfostr
+ IF ic MOD 3 > 0 THEN
+  ic = ic - 1
+  GOSUB sellinfostr
+ ELSE
+  ic = ic + 2
+  GOSUB sellinfostr
+ END IF
 END IF
 IF carray(3) > 1 THEN
- IF ic MOD 3 < 2 THEN ic = ic + 1: GOSUB sellinfostr ELSE ic = ic - 2: GOSUB sellinfostr
+ IF ic MOD 3 < 2 THEN
+  ic = ic + 1
+  GOSUB sellinfostr
+ ELSE
+  ic = ic - 2
+  GOSUB sellinfostr
+ END IF
 END IF
 RETRACE
 
