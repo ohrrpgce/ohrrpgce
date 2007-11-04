@@ -162,6 +162,7 @@ DECLARE SUB add_menu (record AS INTEGER)
 DECLARE SUB remove_menu (record AS INTEGER)
 DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
 DECLARE SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
+DECLARE FUNCTION getdisplayname$ (default$)
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -375,7 +376,8 @@ END IF
 
 edgeprint "Loading...", xstring("Loading...", 160), 6, uilook(uiText), vpage
 setvispage vpage 'refresh
-'DEBUG debug "unlumping "+sourcerpg$
+
+debug "Playing game " & trimpath$(sourcerpg$) & " (" & getdisplayname$(" ") & ")"
 
 '---GAME SELECTED, PREPARING TO PLAY---
 DIM lumpbuf(16383)
