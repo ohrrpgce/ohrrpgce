@@ -16,8 +16,25 @@ declare function trimfilename$ (filename$)
 declare function trimextension$ (filename$)
 declare function justextension$ (filename$)
 declare function anycase$ (filename$)
-declare function touchfile (filename$)
+declare sub touchfile (filename$)
 declare function rotascii$ (s$, o)
 declare function escape_string(s as string, chars as string) as string
+
+'also appears in udts.bi
+#ifndef Stack
+TYPE Stack
+  pos as integer ptr
+  bottom as integer ptr
+  size as integer
+END TYPE
+#endif
+
+declare sub createstack (st as Stack)
+declare sub destroystack (st as Stack)
+declare sub checkoverflow (st as Stack, byval amount as integer = 1)
+declare function reads (st as Stack, BYVAL off as integer) as integer
+#define pushs(stack, datum) *(stack).pos = (datum) : (stack).pos += 1
+#define pops(stack, var) (stack).pos -= 1 : (var) = *(stack).pos
+#define checkunderflow(stack, amount) ((stack).pos - (amount) < (stack).bottom)
 
 #ENDIF

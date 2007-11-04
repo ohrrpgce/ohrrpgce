@@ -302,6 +302,15 @@ Type BrowseMenuState
 	meter as integer
 End Type
 
+'it's not possible to include utils.bi in here, because of compat.bi
+#ifndef UTIL_BI
+TYPE Stack
+  pos as integer ptr
+  bottom as integer ptr
+  size as integer
+END TYPE
+#endif
+
 'Documentation of veh() in game, which is different from the VEH lump
 '0 is true (-1) if in/mounting/dismounting a vehicle
 '1-4 unused

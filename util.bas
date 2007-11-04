@@ -8,6 +8,7 @@
 ' gfx or music backend, nor on any other part of the OHR
 
 #include "compat.bi"
+#include "util.bi"
 
 FUNCTION bound (n, lowest, highest)
 bound = n
@@ -126,4 +127,48 @@ FUNCTION escape_string(s AS STRING, chars AS STRING) AS STRING
   result = result & c
  NEXT i
  RETURN result
+END FUNCTION
+
+SUB createstack (st as Stack)
+  WITH st
+    .bottom = allocate(512 * sizeof(integer))
+    IF .bottom = 0 THEN
+      'oh dear
+      'debug "Not enough memory for stack"
+      EXIT SUB
+    END IF
+    .pos = .bottom
+    .size = 512
+  END WITH
+END SUB
+
+SUB destroystack (st as Stack)
+  IF st.size > 0 THEN
+    deallocate st.bottom
+    st.size = -1
+  END IF
+END SUB
+
+SUB checkoverflow (st as Stack, byval amount as integer = 1)
+  WITH st
+    IF .pos - .bottom + amount >= .size THEN
+      DIM newptr as integer ptr
+      newptr = reallocate(.bottom, .size + 512 * sizeof(integer))
+      IF newptr = 0 THEN
+        'debug "stack: out of memory"
+        .bottom = 0
+        EXIT SUB
+      END IF
+      .size += 512
+      .pos += newptr - .bottom
+      .bottom = newptr
+    END IF
+  END WITH
+END SUB
+
+'read an int from the stack relative to current position (eg -1 is last word pushed - off should be negative)
+FUNCTION reads (st as Stack, BYVAL off as integer) as integer
+ IF st.pos - off >= st.bottom THEN
+  reads = st.pos[off]
+ END IF
 END FUNCTION
