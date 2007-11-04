@@ -2599,7 +2599,7 @@ SUB wrapaheadxy (x, y, direction, distance, unitsize)
 
 aheadxy x, y, direction, distance
 
-IF gmap(5) THEN
+IF gmap(5) = 1 THEN
  wrapxy x, y, scroll(0) * unitsize, scroll(1) * unitsize
 END IF
 
@@ -2649,7 +2649,7 @@ FUNCTION wrapcollision (xa, ya, xgoa, ygoa, xb, yb, xgob, ygob)
  y1 = (ya - bound(ygoa, -20, 20)) \ 20
  y2 = (yb - bound(ygob, -20, 20)) \ 20
 
- IF gmap(5) THEN
+ IF gmap(5) = 1 THEN
   wrapcollision = (x1 - x2) MOD scroll(0) = 0 AND (y1 - y2) MOD scroll(1) = 0
  ELSE
   wrapcollision = (x1 = x2) AND (y1 = y2)
@@ -2660,7 +2660,7 @@ END FUNCTION
 FUNCTION wraptouch (x1, y1, x2, y2, distance)
  'whether 2 walkabouts are within distance pixels horizontally + vertically
  wraptouch = 0
- IF gmap(5) THEN
+ IF gmap(5) = 1 THEN
   IF ABS((x1 - x2) MOD (scroll(0) * 20 - distance)) <= distance AND ABS((y1 - y2) MOD (scroll(1) * 20 - distance)) <= distance THEN wraptouch = 1
  ELSE
   IF ABS(x1 - x2) <= 20 AND ABS(y1 - y2) <= 20 THEN wraptouch = 1

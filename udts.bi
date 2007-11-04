@@ -75,8 +75,8 @@ END TYPE
 TYPE NPCInst
   x as integer      'npcl+0
   y as integer      'npcl+300
-  xgo as integer    'npcl+1500
-  ygo as integer    'npcl+1800
+  xgo as integer    'npcl+1500   warning: positive to go LEFT, negative RIGHT
+  ygo as integer    'npcl+1800   reversed as above
   id as integer     'npcl+600
   dir as integer    'npcl+900
   frame as integer  'npcl+1200

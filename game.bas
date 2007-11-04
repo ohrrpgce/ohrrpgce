@@ -939,18 +939,9 @@ IF sayer < 0 THEN
       EXIT DO
      ELSEIF nx MOD 20 <> 0 XOR ny mod 20 <> 0 THEN 'they're moving (i.e. misaligned)
       '--first check the tile the NPC is stepping into
-      IF npc(j).ygo > 0 THEN ' up
-       wrapaheadxy nx, ny, 0, ABS(npc(j).ygo), 20
-      END IF
-      IF npc(j).xgo < 0 THEN ' right
-       wrapaheadxy nx, ny, 1, ABS(npc(j).xgo), 20
-      END IF
-      IF npc(j).ygo < 0 THEN ' down
-       wrapaheadxy nx, ny, 2, ABS(npc(j).ygo), 20
-      END IF
-      IF npc(j).xgo > 0 THEN ' left
-       wrapaheadxy nx, ny, 3, ABS(npc(j).xgo), 20
-      END IF
+      nx -= npc(j).xgo
+      ny -= npc(j).ygo
+      cropposition nx, ny, 20
       '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
       'rectangle nx - mapx, ny - mapy, 20,20, 1, vpage : setvispage vpage
       IF (nx = ux AND ny = uy) THEN 'check for activation
@@ -1141,6 +1132,7 @@ FOR i = 0 TO 7: carray(i) = 0: NEXT i
 RETRACE
 
 movement:
+'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left 
 FOR whoi = 0 TO 3
  thisherotilex = INT(catx(whoi * 5) / 20)
  thisherotiley = INT(caty(whoi * 5) / 20)
@@ -1149,7 +1141,7 @@ FOR whoi = 0 TO 3
   IF readbit(gen(), 44, suspendherowalls) = 0 AND veh(6) = 0 THEN
    '--this only happens if herowalls is on
    '--wrapping passability
-   dummy = wrappass(thisherotilex, thisherotiley, xgo(whoi), ygo(whoi), veh(0))
+   wrappass thisherotilex, thisherotiley, xgo(whoi), ygo(whoi), veh(0)
   END IF
   IF readbit(gen(), 44, suspendobstruction) = 0 AND veh(6) = 0 THEN
    '--this only happens if obstruction is on
@@ -1238,7 +1230,7 @@ FOR whoi = 0 TO 3
    END IF
   END IF
  END IF
- dummy = cropmovement(catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi))
+ cropmovement catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi)
 NEXT whoi
 '--only the leader may activate NPCs
 IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR ng = 1) THEN

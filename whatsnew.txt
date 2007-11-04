@@ -23,6 +23,7 @@ Dec ?? 2007 [voxhumana]
       battle for the first spell list [James Paige]
     * Having an after-battle script would prevent fightformation from
       returning the correct battle result [Ralph Versteegen]
+    * More NPC activation/pushing over map edge fixes [Ralph Versteegen]
 
   * New Plotscripting Commands
     * get victory music
