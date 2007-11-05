@@ -648,8 +648,10 @@ SUB SaveMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
  FOR i = 0 TO UBOUND(mi)
   'Force all items to use the correct member and sortorder
   WITH mi(i)
-   .member = record + 1
-   .sortorder = i
+   IF .exists THEN
+    .member = record + 1
+    .sortorder = i
+   END IF
   END WITH
  NEXT i
  
