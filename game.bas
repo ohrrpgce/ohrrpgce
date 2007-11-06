@@ -2570,7 +2570,7 @@ FUNCTION menus_allow_gameplay () AS INTEGER
  RETURN topmenu < 0
 END FUNCTION
 
-SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock()) 'usermenu:
+SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
  DIM slot AS INTEGER
  menu_text_box = 0
  IF topmenu >= 0 THEN
@@ -2581,9 +2581,10 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
    carray(5) = 0' Forget keypress
    remove_menu topmenu
    menusound gen(genCancelSFX)
+   EXIT SUB
   END IF
-  IF carray(4) > 1 THEN
-   WITH menus(topmenu).items(mstates(topmenu).pt)
+  WITH menus(topmenu).items(mstates(topmenu).pt)
+   IF carray(4) > 1 THEN
     SELECT CASE .t
      CASE 0 ' Label
      CASE 1 ' Special
@@ -2634,7 +2635,11 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
      CASE 4 ' Run Script
       debug "Menu: Run script not implemented"
     END SELECT
-   END WITH
-  END IF
+   END IF
+   IF .t = 1 AND .sub_t = 11 THEN '--volume
+    IF carray(2) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
+    IF carray(3) > 1 THEN fmvol = small(fmvol + 1, 15): setfmvol fmvol
+   END IF
+  END WITH
  END IF
 END SUB

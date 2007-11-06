@@ -111,7 +111,8 @@ DIM master(255) as RGBcolor
 'more global variables
 DIM game$, gamefile$, insert, activepalette
 DIM vpage, dpage, fadestate, workingdir$
-
+DIM fmvol
+fmvol = getfmvol
 
 dim shared trit as string 'to fix an undefined variable error
 

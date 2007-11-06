@@ -37,6 +37,8 @@ DECLARE FUNCTION readbadgenericname$ (index%, filename$, recsize%, offset%, size
 DECLARE SUB copylump(package$, lump$, dest$, ignoremissing AS INTEGER = 0)
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
+DECLARE SUB edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO)
+DECLARE SUB edgebox (x, y, w, h, col, bordercol, p, fuzzy=NO)
 DECLARE FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTEGER
 DECLARE FUNCTION scriptname$ (num%, trigger% = 0)
 DECLARE Function seconds2str(byval sec as integer, byval f as string = "%m:%S") as string
@@ -134,5 +136,6 @@ EXTERN master() as RGBcolor
 EXTERN workingdir$
 EXTERN keyv()
 EXTERN gen()
+EXTERN fmvol
 
 #ENDIF

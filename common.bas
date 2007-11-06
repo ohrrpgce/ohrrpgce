@@ -194,6 +194,26 @@ rectangle x - INT(w * .5), y - INT(h * .5), 1, h, uilook(tbc + 1), p
 rectangle x + (w - INT(w * .5)), y - INT(h * .5), 1, h + 1, uilook(tbc + 1), p
 END SUB
 
+SUB edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO)
+ edgebox x, y, w, h, uilook(uiTextBox + 2 * boxstyle), uilook(uiTextBox + 2 * boxstyle + 1), p, fuzzy
+END SUB
+
+SUB edgebox (x, y, w, h, col, bordercol, p, fuzzy=NO)
+IF fuzzy THEN
+ fuzzyrect x, y, w, h, col, p
+ELSE
+ rectangle x, y, w, h, col, p
+END IF
+rectangle x       , y        , w, 1, bordercol, p
+IF h > 0 THEN
+ rectangle x       , y + h - 1, w, 1, bordercol, p
+END IF
+rectangle x       , y        , 1, h, bordercol, p
+IF w > 0 THEN
+ rectangle x + w - 1, y        , 1, h, bordercol, p
+END IF
+END SUB
+
 SUB centerfuz (x, y, w, h, c, p)
 tbc = uiTextBox + (2 * (c - 1))
 fuzzyrect x - INT(w * .5), y - INT(h * .5), w, h, uilook(tbc), p
@@ -1848,21 +1868,10 @@ SUB DrawMenu (rect AS RectType, menu AS MenuDef, state AS MenuState, page AS INT
  DIM elem AS INTEGER
  DIM cap AS STRING
  DIM col AS INTEGER
- DIM edgecol AS INTEGER
  
- IF menu.transparent THEN
-  fuzzyrect rect.x, rect.y, rect.wide, rect.high, uilook(uiTextBox + menu.boxstyle * 2), page
- ELSE
-  rectangle rect.x, rect.y, rect.wide, rect.high, uilook(uiTextBox + menu.boxstyle * 2), page
- END IF
+ edgeboxstyle rect.x, rect.y, rect.wide, rect.high, menu.boxstyle, page, menu.transparent
  
- edgecol = uilook(uiTextBox + menu.boxstyle * 2 + 1)
  WITH rect
-  'Draw borders
-  rectangle .x, .y,             .wide, 1, edgecol, dpage
-  rectangle .x, .y + .high - 1, .wide, 1, edgecol, dpage
-  rectangle .x, .y,             1, .high, edgecol, dpage
-  rectangle .x + .wide - 1, .y, 1, .high, edgecol, dpage
   'Draw scrollbar
   IF (state.top > 0 OR state.last > state.top + state.size) AND menu.no_scrollbar = NO THEN
    DIM count AS INTEGER
@@ -1875,7 +1884,7 @@ SUB DrawMenu (rect AS RectType, menu AS MenuDef, state AS MenuState, page AS INT
     sbar.high = .high - 4
     WITH sbar
      rectangle .x, .y, .wide, .high, uilook(uiBackground), dpage
-     rectangle .x, .y + .high / count * (state.top), .wide, .high / count * (state.size+1) , edgecol, dpage
+     rectangle .x, .y + .high / count * (state.top), .wide, .high / count * (state.size+1) , uilook(uiTextBox + menu.boxstyle * 2 + 1), dpage
     END WITH
    END IF
   END IF
@@ -1891,6 +1900,9 @@ SUB DrawMenu (rect AS RectType, menu AS MenuDef, state AS MenuState, page AS INT
    IF state.pt = elem and state.active THEN col = uilook(uiSelectedItem + state.tog)
    WITH menu.items(elem)
     IF .exists THEN
+     IF .t = 1 AND .sub_t = 11 THEN ' volume meter
+      edgeboxstyle rect.x + 8, rect.y + 8 + (i * 10), fmvol * 3, 10, menu.boxstyle, dpage
+     END IF
      cap = GetMenuItemCaption(menu.items(elem), menu)
      edgeprint cap, rect.x + 8, rect.y + 8 + (i * 10), col, dpage
     ELSE
@@ -1919,6 +1931,9 @@ SUB PositionMenu (menu AS MenuDef, BYREF rect AS RectType)
    IF .exists THEN
     cap = GetMenuItemCaption(menu.items(i), menu)
     rect.wide = large(rect.wide, (LEN(cap) + 2) * 8)
+    IF .t = 1 AND .sub_t = 11 THEN
+     rect.wide = large(rect.wide, 48 + 2 * 8)
+    END IF
     rect.high = rect.high + 10
    END IF
   END WITH

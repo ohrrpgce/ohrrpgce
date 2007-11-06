@@ -13,7 +13,6 @@ EXTERN savefile$
 EXTERN timing()
 EXTERN pal16()
 EXTERN names$()
-EXTERN fmvol
 EXTERN speedcontrol
 EXTERN deferpaint
 EXTERN presentsong
