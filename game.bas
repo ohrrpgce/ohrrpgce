@@ -502,7 +502,7 @@ DO
   '--player has triggered a text box from the menu--
   say = menu_text_box
   loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
-  remove_menu topmenu
+  'remove_menu topmenu
  END IF
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
@@ -2569,12 +2569,13 @@ SUB remove_menu (record AS INTEGER)
  IF topmenu >=0 THEN
   REDIM PRESERVE menus(topmenu) AS MenuDef
   REDIM PRESERVE mstates(topmenu) AS MenuState
+  mstates(topmenu).active = YES
  END IF
 END SUB
 
 FUNCTION menus_allow_gameplay () AS INTEGER
- 'this will be fancier later
- RETURN topmenu < 0
+ IF topmenu < 0 THEN RETURN YES
+ RETURN menus(topmenu).allow_gameplay
 END FUNCTION
 
 SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
@@ -2636,7 +2637,8 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
        CASE 11 ' volume
       END SELECT
      CASE 2 ' Menu
-      debug "Menu: Submenu not implemented"
+      mstates(topmenu).active = NO
+      add_menu .sub_t
      CASE 3 ' Text box
       menu_text_box = .sub_t
      CASE 4 ' Run Script

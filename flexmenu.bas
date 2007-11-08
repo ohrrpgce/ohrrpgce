@@ -1538,7 +1538,10 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
     'Selecting the item that appends new items
     IF keyval(28) > 1 OR keyval(57) > 1 THEN
      .exists = YES
+     mstate.active = NO
      mstate.need_update = YES
+     dstate.active = YES
+     dstate.need_update = YES
     END IF
    END IF
   END IF
@@ -1665,21 +1668,15 @@ FUNCTION zero_default(n) AS STRING
 END FUNCTION
 
 SUB edit_menu_bits (menu AS MenuDef)
- DIM bitname(1) AS STRING
+ DIM bitname(2) AS STRING
  DIM bits(0) AS INTEGER
  
  bitname(0) = "Transparent box"
  bitname(1) = "Never show scrollbar"
+ bitname(2) = "Allow gameplay"
 
- WITH menu
-  bits(0) = 0
-  setbit bits(), 0, 0, .transparent
-  setbit bits(), 0, 1, .no_scrollbar
-  
-  editbitset bits(), 0, UBOUND(bitname), bitname()
-  
-  .transparent  = (readbit(bits(), 0, 0) <> 0)
-  .no_scrollbar = (readbit(bits(), 0, 1) <> 0)
- END WITH
+ MenuBitsToArray menu, bits()
+ editbitset bits(), 0, UBOUND(bitname), bitname()
+ MenuBitsFromArray menu, bits()  
 
 END SUB

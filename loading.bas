@@ -571,8 +571,7 @@ SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER, ignore_
   .textcolor = ReadShort(f)
   .maxrows = ReadShort(f)
   bits(0) = ReadShort(f)
-  .transparent = (readbit(bits(), 0, 0) <> 0)
-  .no_scrollbar = (readbit(bits(), 0, 1) <> 0)
+  MenuBitsFromArray dat, bits()
  END WITH
  CLOSE #f
  IF ignore_items = NO THEN 'This is disableable for performance when all you care about loading is the menu's name
@@ -628,9 +627,7 @@ SUB SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
   WriteShort(f, -1, .boxstyle)
   WriteShort(f, -1, .textcolor)
   WriteShort(f, -1, .maxrows)
-  bits(0) = 0
-  setbit bits(), 0, 0, .transparent
-  setbit bits(), 0, 1, .no_scrollbar
+  MenuBitsToArray dat, bits()
   WriteShort(f, -1, bits(0))
  END WITH
  CLOSE #f
@@ -699,6 +696,23 @@ SUB SaveMenuItem(f AS INTEGER, mi AS MenuDefItem, record AS INTEGER)
   WriteShort(f, -1, .settag)
   WriteShort(f, -1, .togtag)
   WriteShort(f, -1, .bits)
+ END WITH
+END SUB
+
+SUB MenuBitsToArray (menu AS MenuDef, bits() AS INTEGER)
+ bits(0) = 0
+ WITH menu
+  setbit bits(), 0, 0, .transparent
+  setbit bits(), 0, 1, .no_scrollbar
+  setbit bits(), 0, 2, .allow_gameplay
+ END WITH
+END SUB
+
+SUB MenuBitsFromArray (menu AS MenuDef, bits() AS INTEGER)
+ WITH menu
+  .transparent = (readbit(bits(), 0, 0) <> 0)
+  .no_scrollbar = (readbit(bits(), 0, 1) <> 0)
+  .allow_gameplay = (readbit(bits(), 0, 2) <> 0)
  END WITH
 END SUB
 
