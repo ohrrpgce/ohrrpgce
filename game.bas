@@ -186,9 +186,6 @@ processcommandline
 '---get temp dir---
 tmpdir$ = aquiretempdir$
 
-'DEBUG debug "Thestart"
-thestart:
-
 'DEBUG debug "dim (almost) everything"
 
 '$dynamic
@@ -238,6 +235,9 @@ DIM heap(2048), global(1024), retvals(32)
 DIM scrat(128) as ScriptInst
 DIM script(128) as ScriptData
 DIM plotstr(31) as Plotstring
+
+'DEBUG debug "Thestart"
+DO 'This is a big loop that encloses the entire program. The loop is only reached when resetting the game
 
 'DEBUG debug "setup directories"
 
@@ -424,7 +424,8 @@ depth = 0
 releasestack
 setupstack
 
-beginplay:
+'beginplay
+DO' This loop encloses the playable game for a specific RPG file
 
 initgamedefaults
 fatal = 0: abortg = 0
@@ -450,7 +451,7 @@ showsay = 0
 
 temp = -1
 IF readbit(gen(), genBits, 11) = 0 THEN
- IF titlescr = 0 THEN GOTO resetg
+ IF titlescr = 0 THEN EXIT DO'resetg
  IF readbit(gen(), genBits, 12) = 0 THEN temp = picksave(1)
 ELSE
  readjoysettings
@@ -465,7 +466,7 @@ END IF
 fademusic 0
 stopsong
 fadeout 0, 0, 0
-IF temp = -2 THEN GOTO resetg
+IF temp = -2 THEN EXIT DO 'resetg
 IF temp >= 0 THEN
  GOSUB doloadgame
 ELSE
@@ -731,7 +732,11 @@ DO
  IF fatal = 1 OR abortg > 0 THEN
   resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
   'if skip loadmenu and title bits set, quit
-  IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_sav(savefile$) = 0) THEN GOTO resetg ELSE GOTO beginplay
+  IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_sav(savefile$) = 0) THEN
+   EXIT DO, DO ' To game select screen (quit the gameplay and RPG file loops, allowing the program loop to cycle)
+  ELSE
+   EXIT DO ' To title screen (quit the gameplay loop and allow the RPG file loop to cycle)
+  END IF
  END IF
  'DEBUG debug "swap video pages"
  SWAP vpage, dpage
@@ -748,6 +753,22 @@ DO
  'DEBUG debug "tail of main loop"
  dowait
 LOOP
+
+LOOP ' This is the end of the DO that encloses a specific RPG file
+
+'resetg
+IF autorungame THEN exitprogram (NOT abortg)
+resetinterpreter
+cleanuptemp
+fademusic 0
+fadeout 0, 0, 0
+closemusic
+closesound
+'closefile
+setfmvol fmvol
+restoremode
+RETRIEVESTATE
+LOOP ' This is the end of the DO that encloses the entire program.
 
 doloadgame:
 loadgame temp, map, foep, stat(), stock()
@@ -1581,20 +1602,6 @@ samemap = 0
 afterload = 0
 'DEBUG debug "end of preparemap"
 RETRACE
-
-resetg:
-IF autorungame THEN exitprogram (NOT abortg)
-resetinterpreter
-cleanuptemp
-fademusic 0
-fadeout 0, 0, 0
-closemusic
-closesound
-'closefile
-setfmvol fmvol
-restoremode
-RETRIEVESTATE
-GOTO thestart
 
 '--this is what we have dimed for scripts
 '--script(4096), heap(2048), global(1024), scrat(128), nowscript
