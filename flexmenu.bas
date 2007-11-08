@@ -1668,12 +1668,13 @@ FUNCTION zero_default(n) AS STRING
 END FUNCTION
 
 SUB edit_menu_bits (menu AS MenuDef)
- DIM bitname(2) AS STRING
+ DIM bitname(3) AS STRING
  DIM bits(0) AS INTEGER
  
  bitname(0) = "Transparent box"
  bitname(1) = "Never show scrollbar"
  bitname(2) = "Allow gameplay"
+ bitname(3) = "Suspend player even if gameplay allowed"
 
  MenuBitsToArray menu, bits()
  editbitset bits(), 0, UBOUND(bitname), bitname()

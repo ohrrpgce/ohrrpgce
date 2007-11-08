@@ -161,6 +161,7 @@ DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
 DECLARE SUB add_menu (record AS INTEGER)
 DECLARE SUB remove_menu (record AS INTEGER)
 DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
+DECLARE FUNCTION menus_allow_player () AS INTEGER
 DECLARE SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
 DECLARE FUNCTION getdisplayname$ (default$)
 
@@ -494,6 +495,8 @@ DO
  setkeys
  readmouse mouse()  'setmouse() is optional
  tog = tog XOR 1
+ 'DEBUG debug "increment play timers"
+ playtimer
  'DEBUG debug "read controls"
  control
  'debug "menu key handling:"
@@ -511,11 +514,10 @@ DO
  IF scrwatch > 1 THEN breakpoint scrwatch, 4
  'DEBUG debug "enter script interpreter"
  GOSUB interpret
- 'DEBUG debug "increment timers"
- playtimer
+ 'DEBUG debug "increment script timers"
  dotimer(0)
  'DEBUG debug "keyboard handling"
- IF carray(5) > 1 AND showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(0) = 0 AND xgo(0) = 0 AND ygo(0) = 0 THEN
+ IF carray(5) > 1 AND showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(0) = 0 AND xgo(0) = 0 AND ygo(0) = 0 AND topmenu = -1 THEN
   GOSUB usermenu
   evalitemtag
   npcplot
@@ -524,7 +526,7 @@ DO
   add_menu 0
   menusound gen(genAcceptSFX)
  END IF
- IF showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(6) = 0 THEN
+ IF showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(6) = 0 AND menus_allow_player() THEN
   IF xgo(0) = 0 AND ygo(0) = 0 THEN
    DO
     IF carray(0) > 0 THEN ygo(0) = 20: catd(0) = 0: EXIT DO
@@ -2576,6 +2578,11 @@ END SUB
 FUNCTION menus_allow_gameplay () AS INTEGER
  IF topmenu < 0 THEN RETURN YES
  RETURN menus(topmenu).allow_gameplay
+END FUNCTION
+
+FUNCTION menus_allow_player () AS INTEGER
+ IF topmenu < 0 THEN RETURN YES
+ RETURN menus(topmenu).suspend_player = NO
 END FUNCTION
 
 SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())

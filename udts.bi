@@ -42,6 +42,7 @@ TYPE MenuDef
   transparent      AS INTEGER ' Bitset
   no_scrollbar     AS INTEGER ' Bitset
   allow_gameplay   AS INTEGER ' Bitset
+  suspend_player   AS INTEGER ' Bitset
 END TYPE
 
 TYPE MenuState
