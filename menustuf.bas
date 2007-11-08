@@ -60,7 +60,7 @@ DECLARE Sub MenuSound(byval s as integer)
 
 '--SUBs and FUNCTIONS only used locally
 DECLARE SUB loadtrades(index, tradestf(), b(), recordsize)
-
+DECLARE SUB setshopstock (id, recordsize, stock(), storebuf(), stufbuf())
 
 REM $STATIC
 SUB buystuff (id, shoptype, storebuf(), stock(), stat())
@@ -98,7 +98,7 @@ FOR o = 0 TO storebuf(16)
 NEXT o
 
 total = 0
-GOSUB setstock
+setshopstock id, recordsize, stock(), storebuf(), b()
 GOSUB stufmask
 IF total = 0 THEN EXIT SUB
 
@@ -352,19 +352,19 @@ IF b(pt * recordsize + 17) = 1 THEN
  IF eslot = 0 THEN info1$ = noroom$
 END IF
 RETRACE
+END SUB
 
-setstock:
+SUB setshopstock (id, recordsize, stock(), storebuf(), stufbuf())
+DIM i AS INTEGER
 FOR i = 0 TO storebuf(16)
  '--for each shop-stuff
  IF stock(id, i) = 0 THEN
   '--if unloaded, reload stock
-  stock(id, i) = b(i * recordsize + 19)
+  stock(id, i) = stufbuf(i * recordsize + 19)
   '--zero means unloaded, 1 means no-stock, 2+n means 1+n in stock
   IF stock(id, i) > -1 THEN stock(id, i) = stock(id, i) + 1
  END IF
 NEXT i
-RETRACE
-
 END SUB
 
 SUB loadtrades(index, tradestf(), b(), recordsize)
