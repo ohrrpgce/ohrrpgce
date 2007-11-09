@@ -2684,7 +2684,9 @@ SUB check_menu_tags ()
   WITH menus(j)
    FOR i = 0 TO UBOUND(.items)
     WITH .items(i)
-     .disabled = NOT (istag(.tag1, YES) AND istag(.tag2, YES))
+     .disabled = NO
+     IF NOT (istag(.tag1, YES) AND istag(.tag2, YES)) THEN .disabled = YES
+     IF .t = 0 AND .sub_t = 1 THEN .disabled = YES
     END WITH
    NEXT i
   END WITH
