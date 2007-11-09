@@ -528,6 +528,7 @@ end sub
 
 SUB ClearMenuData(dat AS MenuDef)
  DIM i AS INTEGER
+ DIM bits(0) AS INTEGER
  WITH dat
   .name = ""
   .boxstyle = 0
@@ -537,9 +538,12 @@ SUB ClearMenuData(dat AS MenuDef)
    ClearMenuItem(.items(i))
   NEXT i
  END WITH
+ bits(0) = 0
+ MenuBitsFromArray dat, bits()
 END SUB
 
 SUB ClearMenuItem(mi AS MenuDefItem)
+ DIM bits(0) AS INTEGER
  WITH mi
   .exists = 0
   .member = 0
@@ -551,8 +555,9 @@ SUB ClearMenuItem(mi AS MenuDefItem)
   .tag2 = 0
   .settag = 0
   .togtag = 0
-  .bits = 0
  END WITH
+ bits(0) = 0
+ MenuItemBitsFromArray mi, bits()
 END SUB
 
 SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER, ignore_items AS INTEGER=NO)
@@ -584,6 +589,7 @@ SUB LoadMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
  DIM f AS INTEGER
  DIM member AS INTEGER
  DIM elem AS INTEGER = 0
+ DIM bits(0) AS INTEGER
 
  FOR i = 0 TO UBOUND(mi)
   ClearMenuItem mi(i)
@@ -606,8 +612,9 @@ SUB LoadMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
     .tag2 = ReadShort(f)
     .settag = ReadShort(f)
     .togtag = ReadShort(f)
-    .bits = ReadShort(f)
    END WITH
+   bits(0) = ReadShort(f)
+   MenuItemBitsFromArray mi(elem), bits()
    elem = elem + 1
    IF elem > UBOUND(mi) THEN EXIT FOR
   END IF
@@ -684,6 +691,7 @@ SUB SaveMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
 END SUB
 
 SUB SaveMenuItem(f AS INTEGER, mi AS MenuDefItem, record AS INTEGER)
+ DIM bits(0) AS INTEGER
  SEEK #f, record * getbinsize(binMENUITEM) + 1
  WITH mi
   WriteShort(f, -1, .member)
@@ -695,8 +703,9 @@ SUB SaveMenuItem(f AS INTEGER, mi AS MenuDefItem, record AS INTEGER)
   WriteShort(f, -1, .tag2)
   WriteShort(f, -1, .settag)
   WriteShort(f, -1, .togtag)
-  WriteShort(f, -1, .bits)
  END WITH
+ MenuItemBitsToArray mi, bits()
+ WriteShort(f, -1, bits(0))
 END SUB
 
 SUB MenuBitsToArray (menu AS MenuDef, bits() AS INTEGER)
@@ -715,6 +724,21 @@ SUB MenuBitsFromArray (menu AS MenuDef, bits() AS INTEGER)
   .no_scrollbar = (readbit(bits(), 0, 1) <> 0)
   .allow_gameplay = (readbit(bits(), 0, 2) <> 0)
   .suspend_player = (readbit(bits(), 0, 3) <> 0)
+ END WITH
+END SUB
+
+SUB MenuItemBitsToArray (mi AS MenuDefItem, bits() AS INTEGER)
+ bits(0) = 0
+ WITH mi
+  setbit bits(), 0, 0, .hide_if_disabled
+  setbit bits(), 0, 1, .close_if_selected
+ END WITH
+END SUB
+
+SUB MenuItemBitsFromArray (mi AS MenuDefItem, bits() AS INTEGER)
+ WITH mi
+  .hide_if_disabled = (readbit(bits(), 0, 0) <> 0)
+  .close_if_selected = (readbit(bits(), 0, 1) <> 0)
  END WITH
 END SUB
 

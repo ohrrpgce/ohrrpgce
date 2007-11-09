@@ -67,6 +67,7 @@ DECLARE SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata 
 DECLARE SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS MenuDef, record AS INTEGER)
 DECLARE SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS MenuDef, mi AS MenuDefItem)
 DECLARE SUB edit_menu_bits (menu AS MenuDef)
+DECLARE SUB edit_menu_item_bits (mi AS MenuDefItem)
 DECLARE FUNCTION zero_default(n) AS STRING
 DECLARE FUNCTION tag_condition_text(tag AS INTEGER, default_string AS STRING="None") AS STRING
 DECLARE FUNCTION tag_set_text(tag AS INTEGER, default_string AS STRING="Do nothing") AS STRING
@@ -1613,6 +1614,10 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
    IF intgrabber(mi.settag, -999, 999) THEN dstate.need_update = YES
   CASE 7: 'toggle tag
    IF intgrabber(mi.togtag, 0, 999) THEN dstate.need_update = YES
+  CASE 8: ' bitsets
+   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+    edit_menu_item_bits mi
+   END IF
  END SELECT
 
 END SUB
@@ -1687,6 +1692,10 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
   .exists = YES
   .caption = "When selected: " & tag_toggle_text(mi.togtag)
  END WITH
+ WITH detail.items(8)
+  .exists = YES
+  .caption = "Edit Bitsets..."
+ END WITH
 END SUB
 
 FUNCTION tag_condition_text(tag AS INTEGER, default_string AS STRING="None") AS STRING
@@ -1733,5 +1742,16 @@ SUB edit_menu_bits (menu AS MenuDef)
  MenuBitsToArray menu, bits()
  editbitset bits(), 0, UBOUND(bitname), bitname()
  MenuBitsFromArray menu, bits()  
+END SUB
 
+SUB edit_menu_item_bits (mi AS MenuDefItem)
+ DIM bitname(1) AS STRING
+ DIM bits(0) AS INTEGER
+ 
+ bitname(0) = "Hide if disabled"
+ bitname(1) = "Close menu if selected"
+
+ MenuItemBitsToArray mi, bits()
+ editbitset bits(), 0, UBOUND(bitname), bitname()
+ MenuItemBitsFromArray mi, bits()  
 END SUB

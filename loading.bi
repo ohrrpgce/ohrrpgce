@@ -44,6 +44,8 @@ declare Sub SaveMenuItem(f AS INTEGER, mi AS MenuDefItem, record AS INTEGER)
 declare Sub SortMenuItems(mi() AS MenuDefItem)
 declare Sub MenuBitsToArray (menu AS MenuDef, bits() AS INTEGER)
 declare Sub MenuBitsFromArray (menu AS MenuDef, bits() AS INTEGER)
+declare Sub MenuItemBitsToArray (mi AS MenuDefItem, bits() AS INTEGER)
+declare Sub MenuItemBitsFromArray (mi AS MenuDefItem, bits() AS INTEGER)
 
 declare Sub LoadVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
 declare Sub SaveVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
