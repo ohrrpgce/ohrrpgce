@@ -164,6 +164,7 @@ DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
 DECLARE FUNCTION menus_allow_player () AS INTEGER
 DECLARE SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
 DECLARE FUNCTION getdisplayname$ (default$)
+DECLARE SUB check_menu_tags ()
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -500,6 +501,7 @@ DO
  'DEBUG debug "read controls"
  control
  'debug "menu key handling:"
+ check_menu_tags
  handle_menu_keys menu_text_box, wantloadgame, stat(), catx(), caty(), tastuf(), map, foep, stock()
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
@@ -2658,4 +2660,18 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
    END IF
   END WITH
  END IF
+END SUB
+
+SUB check_menu_tags ()
+ DIM i AS INTEGER
+ DIM j AS INTEGER
+ FOR j = 0 TO topmenu
+  WITH menus(j)
+   FOR i = 0 TO UBOUND(.items)
+    WITH .items(i)
+     .disabled = NOT (istag(.tag1, YES) AND istag(.tag2, YES))
+    END WITH
+   NEXT i
+  END WITH
+ NEXT j
 END SUB

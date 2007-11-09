@@ -1897,8 +1897,12 @@ SUB DrawMenu (rect AS RectType, menu AS MenuDef, state AS MenuState, page AS INT
   IF elem <= UBOUND(menu.items) AND elem >= LBOUND(menu.items) THEN
    col = menu.textcolor
    IF col = 0 THEN col = uilook(uiMenuItem)
-   IF state.pt = elem and state.active THEN col = uilook(uiSelectedItem + state.tog)
+   IF state.pt = elem AND state.active THEN col = uilook(uiSelectedItem + state.tog)
    WITH menu.items(elem)
+    IF .disabled THEN
+     col = uilook(uiDisabledItem)
+     IF state.pt = elem AND state.active THEN col = uilook(uiSelectedDisabled + state.tog)
+    END IF
     IF .exists THEN
      IF .t = 1 AND .sub_t = 11 THEN ' volume meter
       edgeboxstyle rect.x + 8, rect.y + 8 + (i * 10), fmvol * 3, 10, menu.boxstyle, dpage

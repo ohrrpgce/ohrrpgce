@@ -20,6 +20,7 @@ END TYPE
 
 TYPE MenuDefItem
   exists    AS INTEGER
+  disabled  AS INTEGER ' set at run-time based on .tag1 and .tag2
   member    AS INTEGER
   caption   AS STRING
   sortorder AS INTEGER
