@@ -68,6 +68,9 @@ DECLARE SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, men
 DECLARE SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS MenuDef, mi AS MenuDefItem)
 DECLARE SUB edit_menu_bits (menu AS MenuDef)
 DECLARE FUNCTION zero_default(n) AS STRING
+DECLARE FUNCTION tag_condition_text(tag AS INTEGER, default_string AS STRING="None") AS STRING
+DECLARE FUNCTION tag_set_text(tag AS INTEGER, default_string AS STRING="Do nothing") AS STRING
+DECLARE FUNCTION tag_toggle_text(tag AS INTEGER, default_string AS STRING="Do nothing") AS STRING
 
 REM $STATIC
 SUB addcaption (caption$(), indexer, cap$)
@@ -1602,6 +1605,14 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
    IF intgrabber(mi.sub_t, 0, max) THEN
     dstate.need_update = YES
    END IF
+  CASE 4: 'conditional tag1
+   IF intgrabber(mi.tag1, -999, 999) THEN dstate.need_update = YES
+  CASE 5: 'conditional tag2
+   IF intgrabber(mi.tag2, -999, 999) THEN dstate.need_update = YES
+  CASE 6: 'set tag
+   IF intgrabber(mi.settag, -999, 999) THEN dstate.need_update = YES
+  CASE 7: 'toggle tag
+   IF intgrabber(mi.togtag, 0, 999) THEN dstate.need_update = YES
  END SELECT
 
 END SUB
@@ -1660,7 +1671,50 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
    .caption = "Subtype: " & mi.sub_t
   END SELECT
  END WITH
+ WITH detail.items(4)
+  .exists = YES
+  .caption = "Enable: " & tag_condition_text(mi.tag1, "No tag check")
+ END WITH
+ WITH detail.items(5)
+  .exists = YES
+  .caption = "Enable: " & tag_condition_text(mi.tag2, "No tag check")
+ END WITH
+ WITH detail.items(6)
+  .exists = YES
+  .caption = "When selected: " & tag_set_text(mi.settag)
+ END WITH
+ WITH detail.items(7)
+  .exists = YES
+  .caption = "When selected: " & tag_toggle_text(mi.togtag)
+ END WITH
 END SUB
+
+FUNCTION tag_condition_text(tag AS INTEGER, default_string AS STRING="None") AS STRING
+ SELECT CASE tag
+  CASE 0: RETURN default_string & " (tag 0)"
+  CASE 1: RETURN "Never (tag 1=ON)"
+  CASE -1: RETURN "Always (tag 1=OFF)"
+  CASE IS < -1: RETURN "If tag " & ABS(tag) & "=OFF (" & lmnemonic(ABS(tag)) & ")"
+  CASE IS > 1: RETURN "If tag " & tag & "=ON (" & lmnemonic(tag) & ")"
+ END SELECT
+END FUNCTION
+
+FUNCTION tag_set_text(tag AS INTEGER, default_string AS STRING="Do nothing") AS STRING
+ SELECT CASE tag
+  CASE 0: RETURN default_string & " (tag 0)"
+  CASE 1, -1: RETURN "tag 1 can't be changed"
+  CASE IS < -1: RETURN "Set tag " & ABS(tag) & "=OFF (" & lmnemonic(ABS(tag)) & ")"
+  CASE IS > 1: RETURN "Set tag " & tag & "=ON (" & lmnemonic(tag) & ")"
+ END SELECT
+END FUNCTION
+
+FUNCTION tag_toggle_text(tag AS INTEGER, default_string AS STRING="Do nothing") AS STRING
+ SELECT CASE tag
+  CASE 0: RETURN default_string & " (tag 0)"
+  CASE 1, -1: RETURN "tag 1 can't be changed"
+  CASE IS > 1: RETURN "Toggle tag " & tag & " (" & lmnemonic(tag) & ")"
+ END SELECT
+END FUNCTION
 
 FUNCTION zero_default(n) AS STRING
  IF n = 0 THEN RETURN "default"
