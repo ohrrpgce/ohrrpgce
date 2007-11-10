@@ -2603,6 +2603,7 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
   END IF
   do_tags = NO
   WITH menus(topmenu).items(mstates(topmenu).pt)
+   IF .disabled THEN EXIT SUB
    IF carray(4) > 1 THEN
     do_tags = YES
     SELECT CASE .t
