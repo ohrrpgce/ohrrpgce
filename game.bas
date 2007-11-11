@@ -2662,8 +2662,7 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
      CASE 3 ' Text box
       menu_text_box = .sub_t
      CASE 4 ' Run Script
-      debug "Menu: Run script not implemented"
-      activated = NO
+      runscript .sub_t, nowscript + 1, YES, "menuitem", plottrigger
     END SELECT
    END IF
    IF .t = 1 AND .sub_t = 11 THEN '--volume
