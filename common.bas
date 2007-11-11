@@ -1959,7 +1959,7 @@ SUB InitMenuState (BYREF state AS MenuState, menu AS MenuDef)
  state.size = menu.maxrows - 1
  IF state.size = -1 THEN state.size = 20
  state.pt = bound(state.pt, 0, state.last)
- state.top = bound(state.top, 0, state.last - state.size)
+ state.top = bound(state.top, 0, large(state.last - state.size, 0))
 END SUB
 
 FUNCTION CountMenuItems (menu AS MenuDef)
