@@ -51,6 +51,8 @@ DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION isStringField(mnu%)
+DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
+DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -58,6 +60,7 @@ DECLARE FUNCTION isStringField(mnu%)
 #include "cglobals.bi"
 
 #include "const.bi"
+#include "scrconst.bi"
 #include "loading.bi"
 
 DECLARE SUB menu_editor ()
@@ -1600,11 +1603,15 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
      max = gen(genMaxMenu)
     CASE 3: '--text box
      max = gen(genMaxTextBox)
-    CASE 4: '--script
-     max = 0' FIXME
    END SELECT
-   IF intgrabber(mi.sub_t, 0, max) THEN
-    dstate.need_update = YES
+   IF mi.t = 4 THEN '--script
+    IF scrintgrabber(mi.sub_t, 0, 0, 75, 77, 1, plottrigger) THEN dstate.need_update = YES
+    IF keyval(57) > 1 OR keyval(28) > 1 THEN
+     dummy$ = scriptbrowse$(mi.sub_t, plottrigger, "Menu Item Script")
+     dstate.need_update = YES
+    END IF
+   ELSE
+    IF intgrabber(mi.sub_t, 0, max) THEN dstate.need_update = YES
    END IF
   CASE 4: 'conditional tag1
    IF intgrabber(mi.tag1, -999, 999) THEN dstate.need_update = YES
@@ -1672,6 +1679,8 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
     END SELECT
    CASE 1
     .caption = .caption & " " & GetSpecialMenuCaption(mi.sub_t, YES)
+   CASE 4
+    .caption = "Subtype: " & scriptname$(mi.sub_t, plottrigger)
    CASE ELSE
    .caption = "Subtype: " & mi.sub_t
   END SELECT

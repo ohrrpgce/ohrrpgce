@@ -12,6 +12,7 @@
 #include "allmodex.bi"
 
 #include "udts.bi"
+#include "scrconst.bi"
 #include "uiconst.bi"
 #include "common.bi"
 
@@ -2015,7 +2016,7 @@ FUNCTION GetMenuItemCaption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
    CASE 3 ' Text Box
     cap = "Text Box " & mi.sub_t
    CASE 4 ' Run Script
-    cap = scriptname$(mi.sub_t)
+    cap = scriptname$(mi.sub_t, plottrigger)
   END SELECT
  END IF
  IF menu.edit_mode = YES AND LEN(TRIM(cap)) = 0 THEN cap = "[BLANK]" 
