@@ -507,7 +507,6 @@ DO
   '--player has triggered a text box from the menu--
   say = menu_text_box
   loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
-  'remove_menu topmenu
  END IF
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
@@ -2589,7 +2588,7 @@ END FUNCTION
 
 SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
  DIM slot AS INTEGER
- DIM do_tags AS INTEGER
+ DIM activated AS INTEGER
  menu_text_box = 0
  IF topmenu >= 0 THEN
   IF usemenu(mstates(topmenu)) THEN
@@ -2601,22 +2600,24 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
    menusound gen(genCancelSFX)
    EXIT SUB
   END IF
-  do_tags = NO
+  activated = NO
   WITH menus(topmenu).items(mstates(topmenu).pt)
    IF .disabled THEN EXIT SUB
    IF carray(4) > 1 THEN
-    do_tags = YES
+    activated = YES
     SELECT CASE .t
      CASE 0 ' Label
       SELECT CASE .sub_t
        CASE 0 'Selectable
        CASE 1 'Unselectable
-        do_tags = NO
+        activated = NO
       END SELECT
      CASE 1 ' Special
       SELECT CASE .sub_t
        CASE 0 ' item
         menu_text_box = items(stat())
+        remove_menu topmenu
+        EXIT SUB
        CASE 1 ' spell
         slot = onwho(readglobalstring$(106, "Whose Spells?", 20), 0)
         IF slot >= 0 THEN spells slot, stat()
@@ -2653,7 +2654,7 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
         menusound gen(genAcceptSFX)
         verquit
        CASE 11 ' volume
-        do_tags = NO
+        activated = NO
       END SELECT
      CASE 2 ' Menu
       mstates(topmenu).active = NO
@@ -2662,17 +2663,21 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
       menu_text_box = .sub_t
      CASE 4 ' Run Script
       debug "Menu: Run script not implemented"
-      do_tags = NO
+      activated = NO
     END SELECT
    END IF
    IF .t = 1 AND .sub_t = 11 THEN '--volume
     IF carray(2) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
     IF carray(3) > 1 THEN fmvol = small(fmvol + 1, 15): setfmvol fmvol
    END IF
-   IF do_tags THEN
+   IF activated THEN
     IF .settag > 1 THEN setbit tag(), 0, .settag, YES
     IF .settag < -1 THEN setbit tag(), 0, ABS(.settag), NO
     IF .togtag > 1 THEN setbit tag(), 0, .togtag, (readbit(tag(), 0, .togtag) XOR 1)
+    IF .close_if_selected THEN
+     remove_menu topmenu
+     EXIT SUB
+    END IF
    END IF
   END WITH
  END IF
