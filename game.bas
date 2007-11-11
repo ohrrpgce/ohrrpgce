@@ -2681,15 +2681,36 @@ END SUB
 SUB check_menu_tags ()
  DIM i AS INTEGER
  DIM j AS INTEGER
+ DIM old AS INTEGER
+ DIM changed AS INTEGER
+ DIM remember AS INTEGER
  FOR j = 0 TO topmenu
   WITH menus(j)
+   changed = NO
    FOR i = 0 TO UBOUND(.items)
     WITH .items(i)
+     old = .disabled
      .disabled = NO
      IF NOT (istag(.tag1, YES) AND istag(.tag2, YES)) THEN .disabled = YES
      IF .t = 0 AND .sub_t = 1 THEN .disabled = YES
+     IF old <> .disabled THEN changed = YES
     END WITH
    NEXT i
+   IF changed = YES THEN
+    remember = .items(mstates(j).pt).sortorder
+    SortMenuItems .items()
+    FOR i = 0 TO UBOUND(.items)
+     WITH .items(i)
+      IF .exists = NO THEN EXIT FOR
+      IF .disabled AND .hide_if_disabled THEN EXIT FOR
+      IF remember = .sortorder THEN
+        mstates(j).pt = i
+        EXIT FOR
+      END IF
+     END WITH
+    NEXT i
+    InitMenuState mstates(j), menus(j)
+   END IF
   END WITH
  NEXT j
 END SUB

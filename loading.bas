@@ -748,10 +748,12 @@ SUB SortMenuItems(mi() AS MenuDefItem)
   lowest = 32767
   found = -1
   FOR j = i TO UBOUND(mi)
-   IF mi(j).sortorder < lowest AND mi(j).exists THEN
-    lowest = mi(j).sortorder
-    found = j
-   END IF
+   WITH mi(j)
+    IF .sortorder < lowest AND .exists AND (NOT (.disabled AND .hide_if_disabled)) THEN
+     lowest = .sortorder
+     found = j
+    END IF
+   END WITH
   NEXT j
   IF found >= 0 THEN
    SWAP mi(i), mi(found)

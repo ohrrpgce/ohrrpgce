@@ -1903,7 +1903,7 @@ SUB DrawMenu (rect AS RectType, menu AS MenuDef, state AS MenuState, page AS INT
      col = uilook(uiDisabledItem)
      IF state.pt = elem AND state.active THEN col = uilook(uiSelectedDisabled + state.tog)
     END IF
-    IF .exists THEN
+    IF .exists AND (NOT (.disabled AND .hide_if_disabled)) THEN
      IF .t = 1 AND .sub_t = 11 THEN ' volume meter
       edgeboxstyle rect.x + 8, rect.y + 8 + (i * 10), fmvol * 3, 10, menu.boxstyle, dpage
      END IF
@@ -1959,7 +1959,7 @@ SUB InitMenuState (BYREF state AS MenuState, menu AS MenuDef)
  state.size = menu.maxrows - 1
  IF state.size = -1 THEN state.size = 20
  state.pt = bound(state.pt, 0, state.last)
- state.top = bound(state.top, 0, state.last)
+ state.top = bound(state.top, 0, state.last - state.size)
 END SUB
 
 FUNCTION CountMenuItems (menu AS MenuDef)
@@ -1967,6 +1967,7 @@ FUNCTION CountMenuItems (menu AS MenuDef)
  DIM count AS INTEGER = 0
  FOR i = 0 TO UBOUND(menu.items)
   WITH menu.items(i)
+   IF .disabled AND .hide_if_disabled THEN CONTINUE FOR
    IF .exists THEN
     count += 1
    END IF
