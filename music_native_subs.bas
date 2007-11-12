@@ -91,11 +91,6 @@ Function CreateEvent(t as UInteger, e as UByte, a as UByte, b as UByte) as MIDI_
 	return newEvent
 end Function
 
-Function ReadByte(d as UByte ptr, p as integer) as UByte
-	ReadByte = d[p]
-	p += 1
-End Function
-
 ' /* Convert a single midi track to a list of MIDI_EVENTs */
 
 Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
@@ -123,7 +118,7 @@ Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 		atime += GetVLQ(track, currentPos)
 
 
-		event = track->data[currentpos]  'ReadByte(track->data,currentpos)
+		event = track->data[currentpos]
 
 		currentPos += 1
 
@@ -134,7 +129,7 @@ Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 
 			if event = &HFF then
 
-				t = track->data[currentpos]  'ReadByte(track->data,currentpos)
+				t = track->data[currentpos]
 				currentPos += 1
 				if t = &H2f then
 
@@ -177,12 +172,12 @@ Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 				lastchan = a AND &HF
 				laststatus = (a shr 4) AND &HF
 ' 				/* Read the next byte which should always be a data byte */
-				a = track->data[currentpos] AND &H7F 'readbyte(track->data,currentPos) AND &H7F
+				a = track->data[currentpos] AND &H7F
 				currentPos += 1
 			end if
 
 			if (laststatus >= &H8 AND laststatus <= &HB) OR laststatus = &HE then
-				b = track->data[currentpos] AND &H7F 'readbyte(track->data,currentPos) AND &H7F
+				b = track->data[currentpos] AND &H7F
 				currentPos += 1
 				currentEvent->next = CreateEvent(atime, (laststatus shl 4) + lastchan, a, b)
 				currentEvent = currentEvent->next
