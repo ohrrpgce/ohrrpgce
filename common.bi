@@ -120,6 +120,7 @@ DECLARE FUNCTION CountMenuItems (menu AS MenuDef)
 DECLARE FUNCTION GetMenuItemCaption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
 DECLARE FUNCTION GetSpecialMenuCaption(subtype AS INTEGER, edit_mode AS INTEGER= NO) AS STRING
 DECLARE SUB CreateDefaultMenu(menu AS MenuDef)
+DECLARE FUNCTION anchor_point(anchor AS INTEGER, size AS INTEGER) AS INTEGER
 
 DECLARE FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
 

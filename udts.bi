@@ -16,9 +16,6 @@ TYPE RectType
   y AS INTEGER
   wide AS INTEGER
   high AS INTEGER
-  'NOTE this type will contain more magic later, example:
-  'x_origin AS INTEGER '-1=Left, 0=Middle, 1=Right
-  'y_origin AS INTEGER '-1=Top,  0=Middle, 1=Bottom
 END TYPE
 
 TYPE MenuSet
@@ -55,6 +52,7 @@ TYPE MenuDef
   suspend_player   AS INTEGER ' Bitset
   rect      AS RectType
   offset    AS XYPair
+  anchor    AS XYPair
 END TYPE
 
 TYPE MenuState

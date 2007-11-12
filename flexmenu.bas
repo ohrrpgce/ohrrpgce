@@ -72,6 +72,7 @@ DECLARE SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, de
 DECLARE SUB edit_menu_bits (menu AS MenuDef)
 DECLARE SUB edit_menu_item_bits (mi AS MenuDefItem)
 DECLARE SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
+DECLARE SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
 DECLARE FUNCTION zero_default(n) AS STRING
 DECLARE FUNCTION tag_condition_text(tag AS INTEGER, default_string AS STRING="None") AS STRING
 DECLARE FUNCTION tag_set_text(tag AS INTEGER, default_string AS STRING="Do nothing") AS STRING
@@ -1381,7 +1382,7 @@ menu_set.menufile = workingdir$ & SLASH & "menus.bin"
 menu_set.itemfile = workingdir$ & SLASH & "menuitem.bin"
 
 DIM record AS INTEGER = 0
-DIM edmenu$(8)
+DIM edmenu$(9)
 
 DIM state AS MenuState 'top level
 state.active = YES
@@ -1502,6 +1503,10 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
   CASE 8
    IF keyval(28) > 1 OR keyval(57) > 1 THEN
     reposition_menu menudata, mstate
+   END IF
+  CASE 9
+   IF keyval(28) > 1 OR keyval(57) > 1 THEN
+    reposition_anchor menudata, mstate
    END IF
  END SELECT
 END SUB
@@ -1644,7 +1649,8 @@ SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
  m$(5) = "Text color: " & zero_default(menu.textcolor)
  m$(6) = "Max rows to display: " & zero_default(menu.maxrows)
  m$(7) = "Edit Bitsets..."
- m$(8) = "Reposition menu... (" & menu.offset.x & "," & menu.offset.y & ")"
+ m$(8) = "Reposition menu..."
+ m$(9) = "Change Anchor Point..."
 END SUB
 
 SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
@@ -1782,13 +1788,49 @@ SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
   IF keyval(1) > 1 THEN EXIT DO
   
   shift = ABS(keyval(42) > 0 OR keyval(54) > 0)
-  IF keyval(72) > 1 THEN menu.offset.y -= 1 + 9 * shift
-  IF keyval(80) > 1 THEN menu.offset.y += 1 + 9 * shift
-  IF keyval(75) > 1 THEN menu.offset.x -= 1 + 9 * shift
-  IF keyval(77) > 1 THEN menu.offset.x += 1 + 9 * shift
+  WITH menu.offset
+   IF keyval(72) > 1 THEN .y -= 1 + 9 * shift
+   IF keyval(80) > 1 THEN .y += 1 + 9 * shift
+   IF keyval(75) > 1 THEN .x -= 1 + 9 * shift
+   IF keyval(77) > 1 THEN .x += 1 + 9 * shift
+  END WITH
  
   DrawMenu menu, mstate, dpage
   edgeprint "Offset=" & menu.offset.x & "," & menu.offset.y, 0, 0, uilook(uiDisabledItem), dpage
+  edgeprint "Arrows to re-position, ESC to exit", 0, 191, uilook(uiDisabledItem), dpage
+  
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+END SUB
+
+SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
+ DIM tog AS INTEGER = 0
+ DIM x AS INTEGER
+ DIM y AS INTEGER
+ setkeys
+ DO
+  setwait timing(), 100
+  setkeys
+  tog = tog XOR 1
+ 
+  IF keyval(1) > 1 THEN EXIT DO
+  
+  WITH menu.anchor
+   IF keyval(72) > 1 THEN .y = bound(.y - 1, -1, 1)
+   IF keyval(80) > 1 THEN .y = bound(.y + 1, -1, 1)
+   IF keyval(75) > 1 THEN .x = bound(.x - 1, -1, 1)
+   IF keyval(77) > 1 THEN .x = bound(.x + 1, -1, 1)
+  END WITH
+ 
+  DrawMenu menu, mstate, dpage
+  WITH menu
+   x = .rect.x - 2 + anchor_point(.anchor.x, .rect.wide)
+   y = .rect.y - 2 + anchor_point(.anchor.y, .rect.high)
+   edgebox x, y, 5, 5, 2 + tog, dpage, NO 
+  END WITH
   edgeprint "Arrows to re-position, ESC to exit", 0, 191, uilook(uiDisabledItem), dpage
   
   SWAP vpage, dpage
