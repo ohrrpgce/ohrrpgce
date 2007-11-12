@@ -1915,11 +1915,9 @@ SUB DrawMenu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
   END IF
  NEXT i
  
-END SUB'rect
+END SUB
 
 SUB PositionMenu (menu AS MenuDef)
- 'NOTE: This currently just centers the menu in the middle of the screen.
- '      fancy positioning magic will come later...
  DIM i AS INTEGER
  DIM cap AS STRING
 
@@ -1934,6 +1932,7 @@ SUB PositionMenu (menu AS MenuDef)
     IF .t = 1 AND .sub_t = 11 THEN
      menu.rect.wide = large(menu.rect.wide, 48 + 2 * 8)
     END IF
+    IF .disabled AND .hide_if_disabled THEN CONTINUE FOR 'hidden matter for auto-width but not auto-height
     menu.rect.high = menu.rect.high + 10
    END IF
   END WITH
