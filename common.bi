@@ -113,9 +113,8 @@ DECLARE FUNCTION xintgrabber (n AS INTEGER, pmin AS INTEGER, pmax AS INTEGER, nm
 DECLARE SUB upgrade_message (s AS STRING)
 DECLARE SUB show_message (s AS STRING)
 
-DECLARE SUB PositionMenu (menu AS MenuDef, BYREF rect AS RectType)
-DECLARE SUB DrawMenu OVERLOAD(rect AS RectType, menu AS MenuDef, state AS MenuState, page AS INTEGER)
-DECLARE SUB DrawMenu OVERLOAD(menu AS MenuDef, state AS MenuState, page AS INTEGER)
+DECLARE SUB PositionMenu (menu AS MenuDef)
+DECLARE SUB DrawMenu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
 DECLARE SUB InitMenuState (BYREF state AS MenuState, menu AS MenuDef)
 DECLARE FUNCTION CountMenuItems (menu AS MenuDef)
 DECLARE FUNCTION GetMenuItemCaption (mi AS MenuDefItem, menu AS MenuDef) AS STRING

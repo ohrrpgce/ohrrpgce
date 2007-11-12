@@ -1859,20 +1859,15 @@ NEXT i
 END SUB
 
 SUB DrawMenu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
- DIM rect AS RectType
- PositionMenu menu, rect
- DrawMenu rect, menu, state, page
-END SUB
-
-SUB DrawMenu (rect AS RectType, menu AS MenuDef, state AS MenuState, page AS INTEGER)
  DIM i AS INTEGER
  DIM elem AS INTEGER
  DIM cap AS STRING
  DIM col AS INTEGER
+
+ PositionMenu menu
  
- edgeboxstyle rect.x, rect.y, rect.wide, rect.high, menu.boxstyle, page, menu.transparent
- 
- WITH rect
+ WITH menu.rect
+  edgeboxstyle .x, .y, .wide, .high, menu.boxstyle, page, menu.transparent
   'Draw scrollbar
   IF (state.top > 0 OR state.last > state.top + state.size) AND menu.no_scrollbar = NO THEN
    DIM count AS INTEGER
@@ -1906,13 +1901,13 @@ SUB DrawMenu (rect AS RectType, menu AS MenuDef, state AS MenuState, page AS INT
     END IF
     IF .exists AND (NOT (.disabled AND .hide_if_disabled)) THEN
      IF .t = 1 AND .sub_t = 11 THEN ' volume meter
-      edgeboxstyle rect.x + 8, rect.y + 8 + (i * 10), fmvol * 3, 10, menu.boxstyle, dpage
+      edgeboxstyle menu.rect.x + 8, menu.rect.y + 8 + (i * 10), fmvol * 3, 10, menu.boxstyle, dpage
      END IF
      cap = GetMenuItemCaption(menu.items(elem), menu)
-     edgeprint cap, rect.x + 8, rect.y + 8 + (i * 10), col, dpage
+     edgeprint cap, menu.rect.x + 8, menu.rect.y + 8 + (i * 10), col, dpage
     ELSE
      IF menu.edit_mode = YES THEN
-      edgeprint "[NEW MENU ITEM]", rect.x + 8, rect.y + 8 + (i * 10), col, dpage
+      edgeprint "[NEW MENU ITEM]", menu.rect.x + 8, menu.rect.y + 8 + (i * 10), col, dpage
      END IF
      EXIT FOR ' Give up after we find the first non-existant item (which will always be sorted to the end)
     END IF
@@ -1920,39 +1915,39 @@ SUB DrawMenu (rect AS RectType, menu AS MenuDef, state AS MenuState, page AS INT
   END IF
  NEXT i
  
-END SUB
+END SUB'rect
 
-SUB PositionMenu (menu AS MenuDef, BYREF rect AS RectType)
+SUB PositionMenu (menu AS MenuDef)
  'NOTE: This currently just centers the menu in the middle of the screen.
  '      fancy positioning magic will come later...
  DIM i AS INTEGER
  DIM cap AS STRING
 
- rect.wide = 16
- rect.high = 16
+ menu.rect.wide = 16
+ menu.rect.high = 16
 
  FOR i = 0 TO UBOUND(menu.items)
   WITH menu.items(i)
    IF .exists THEN
     cap = GetMenuItemCaption(menu.items(i), menu)
-    rect.wide = large(rect.wide, (LEN(cap) + 2) * 8)
+    menu.rect.wide = large(menu.rect.wide, (LEN(cap) + 2) * 8)
     IF .t = 1 AND .sub_t = 11 THEN
-     rect.wide = large(rect.wide, 48 + 2 * 8)
+     menu.rect.wide = large(menu.rect.wide, 48 + 2 * 8)
     END IF
-    rect.high = rect.high + 10
+    menu.rect.high = menu.rect.high + 10
    END IF
   END WITH
  NEXT i
  IF menu.edit_mode = YES THEN
-  rect.high = rect.high + 10
-  rect.wide = large(rect.wide, 16 + 15*8)
+  menu.rect.high = menu.rect.high + 10
+  menu.rect.wide = large(menu.rect.wide, 16 + 15*8)
  END IF
- rect.wide = small(rect.wide, 320)
- rect.high = small(rect.high, 200)
- IF menu.maxrows > 0 THEN rect.high = small(rect.high, menu.maxrows * 10 + 16)
+ menu.rect.wide = small(menu.rect.wide, 320)
+ menu.rect.high = small(menu.rect.high, 200)
+ IF menu.maxrows > 0 THEN menu.rect.high = small(menu.rect.high, menu.maxrows * 10 + 16)
 
- rect.x = 160 - rect.wide \ 2
- rect.y = 100 - rect.high \ 2
+ menu.rect.x = 160 - menu.rect.wide \ 2
+ menu.rect.y = 100 - menu.rect.high \ 2
 END SUB
 
 SUB InitMenuState (BYREF state AS MenuState, menu AS MenuDef)
