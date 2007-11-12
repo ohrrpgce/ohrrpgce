@@ -1,7 +1,7 @@
 <?php
 ///////////////////////////////////////////////////////////////////////
 // Silent spam blocker for WikiMedia. Blocks spam using Wikimedia's
-// $wgFilterCallback and then attemtps to deceive the spammer into
+// $wgFilterCallback and then attempts to deceive the spammer into
 // believing that thier edit was posted successfully
 //
 // USAGE: In LocalSettings.php:
@@ -134,8 +134,11 @@ function spamCallBack($title, $body, $section){
       }
     }
 
-    // alert the administrator of the spam attempt.
-    mail($wgEmergencyContact,
+    $urlcount = preg_match_all('/http:\//', $diff, $match);
+
+    // alert the administrator of the spam attempt
+    // (unless there are more than 4 urls, in whcih case assume spam)
+    if($urlcount < 5) mail($wgEmergencyContact,
          sprintf('%s %s',$wgSitename,$title->mTextform),
          sprintf("spam attempt blocked from \"%s\"\nReason: %s\n\n%s",
                  $log_name,$reason,$diff),
