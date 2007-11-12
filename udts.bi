@@ -3,6 +3,14 @@
 
 #INCLUDE "const.bi"
 
+UNION XYPair
+  TYPE
+   x AS INTEGER
+   y AS INTEGER
+  END TYPE
+  n(1) AS INTEGER
+END UNION
+
 TYPE RectType
   x AS INTEGER
   y AS INTEGER
@@ -46,6 +54,7 @@ TYPE MenuDef
   allow_gameplay   AS INTEGER ' Bitset
   suspend_player   AS INTEGER ' Bitset
   rect      AS RectType
+  offset    AS XYPair
 END TYPE
 
 TYPE MenuState

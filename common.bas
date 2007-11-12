@@ -665,7 +665,7 @@ FUNCTION curbinsize (id)
  IF id = 2 THEN RETURN 32  'songdata.bin
  IF id = 3 THEN RETURN 34  'sfxdata.bin
  IF id = 4 THEN RETURN 44  '.map
- IF id = 5 THEN RETURN 32  'menus.bin
+ IF id = 5 THEN RETURN 36  'menus.bin
  IF id = 6 THEN RETURN 58  'menuitem.bin
  RETURN 0
 END FUNCTION
@@ -1946,8 +1946,8 @@ SUB PositionMenu (menu AS MenuDef)
  menu.rect.high = small(menu.rect.high, 200)
  IF menu.maxrows > 0 THEN menu.rect.high = small(menu.rect.high, menu.maxrows * 10 + 16)
 
- menu.rect.x = 160 - menu.rect.wide \ 2
- menu.rect.y = 100 - menu.rect.high \ 2
+ menu.rect.x = 160 - menu.rect.wide \ 2 + menu.offset.x
+ menu.rect.y = 100 - menu.rect.high \ 2 + menu.offset.y
 END SUB
 
 SUB InitMenuState (BYREF state AS MenuState, menu AS MenuDef)
