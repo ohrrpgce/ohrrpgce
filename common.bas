@@ -1867,7 +1867,7 @@ SUB DrawMenu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
  PositionMenu menu
  
  WITH menu.rect
-  edgeboxstyle .x, .y, .wide, .high, menu.boxstyle, page, menu.transparent
+  edgeboxstyle .x, .y, .wide, .high, menu.boxstyle, page, menu.translucent
   'Draw scrollbar
   IF (state.top > 0 OR state.last > state.top + state.size) AND menu.no_scrollbar = NO THEN
    DIM count AS INTEGER
@@ -2083,7 +2083,7 @@ SUB CreateDefaultMenu(menu AS MenuDef)
   .sub_t = 10 + i ' quit, volume
   END WITH
  NEXT i
- menu.transparent = YES
+ menu.translucent = YES
 END SUB
 
 FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER

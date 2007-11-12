@@ -1755,7 +1755,7 @@ SUB edit_menu_bits (menu AS MenuDef)
  DIM bitname(3) AS STRING
  DIM bits(0) AS INTEGER
  
- bitname(0) = "Transparent box"
+ bitname(0) = "Translucent box"
  bitname(1) = "Never show scrollbar"
  bitname(2) = "Allow gameplay"
  bitname(3) = "Suspend player even if gameplay allowed"
