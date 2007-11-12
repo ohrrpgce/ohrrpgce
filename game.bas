@@ -2556,6 +2556,8 @@ SUB add_menu (record AS INTEGER)
   REDIM PRESERVE menus(topmenu) AS MenuDef
   REDIM PRESERVE mstates(topmenu) AS MenuState
  END IF
+ mstates(topmenu).top = 0
+ mstates(topmenu).pt = 0
  LoadMenuData menu_set, menus(topmenu), record
  InitMenuState mstates(topmenu), menus(topmenu)
  mstates(topmenu).active = YES

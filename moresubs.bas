@@ -61,6 +61,7 @@ DECLARE Sub MenuSound(byval s as integer)
 DECLARE SUB freescripts (mem%)
 DECLARE FUNCTION loadscript% (n%)
 DECLARE SUB killallscripts ()
+DECLARE SUB remove_menu (record AS INTEGER)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1314,6 +1315,10 @@ FOR i = 0 TO 31
 NEXT i
 
 loadpalette master(), gen(genMasterPal)
+
+FOR i = topmenu TO 0 STEP -1
+ remove_menu i
+NEXT i
 
 'delete temp files that are part of the game state
 deletetemps
