@@ -2642,16 +2642,15 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
         IF slot >= 0 THEN savegame slot, map, foep, stat(), stock()
         reloadnpc stat()
        CASE 9 ' load
-        debug "Menu: load not enabled yet"
-        'slot = picksave(1) 'This currently causes graphical corruption and crashes in evalitemtag (id becomes -1)
-        'IF slot >= 0 THEN
-        ' wantloadgame = slot + 1
-        ' 'Close all menus
-        ' DO WHILE topmenu >=0
-        '  remove_menu topmenu
-        ' LOOP
-        ' EXIT SUB
-        'END IF
+        slot = picksave(1) 'This currently causes graphical corruption and crashes in evalitemtag (id becomes -1)
+        reloadnpc stat()
+        IF slot >= 0 THEN
+         wantloadgame = slot + 1
+         FOR i = topmenu TO 0 STEP -1
+          remove_menu i
+         NEXT i
+         EXIT SUB
+        END IF
        CASE 10 ' quit
         menusound gen(genAcceptSFX)
         verquit
