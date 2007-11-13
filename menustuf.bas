@@ -751,7 +751,7 @@ NEXT
 FOR i = 0 TO inventoryMax
  'loop through each inventory slot looking for an empty slot to populate 
  IF inventory(i).used = 0 THEN
-  inventory(i).used = 1
+  inventory(i).used = -1
   inventory(i).id = getit - 1
   inventory(i).num = small(numitems, 99)
   numitems -= inventory(i).num
@@ -933,7 +933,7 @@ IF pick = 0 THEN
   IF ic = -2 THEN GOSUB autosort
   IF ic = -1 AND sel >= 0 AND readbit(permask(), 0, 3 + sel) = 0 THEN
    '--try to thow item away
-   IF inventory(sel).used > 0 THEN MenuSound gen(genAcceptSFX)
+   IF inventory(sel).used THEN MenuSound gen(genAcceptSFX)
    inventory(sel).text = SPACE$(11)
    inventory(sel).used = 0
    setbit iuse(), 0, 3 + sel, 0

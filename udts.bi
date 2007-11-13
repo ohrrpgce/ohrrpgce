@@ -97,7 +97,7 @@ TYPE NPCInst
 END TYPE
 
 TYPE InventSlot
-  used : 1 as integer	'use this to check if empty, not num!
+  used as integer	'use this to check if empty, not num!
 
   'following fields should not be used if used = 0
   id as integer		'absolute, not +1!!
