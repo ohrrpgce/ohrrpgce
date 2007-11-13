@@ -723,15 +723,17 @@ SUB MenuBitsToArray (menu AS MenuDef, bits() AS INTEGER)
   setbit bits(), 0, 1, .no_scrollbar
   setbit bits(), 0, 2, .allow_gameplay
   setbit bits(), 0, 3, .suspend_player
+  setbit bits(), 0, 4, .no_box
  END WITH
 END SUB
 
 SUB MenuBitsFromArray (menu AS MenuDef, bits() AS INTEGER)
  WITH menu
-  .translucent = (readbit(bits(), 0, 0) <> 0)
-  .no_scrollbar = (readbit(bits(), 0, 1) <> 0)
+  .translucent    = (readbit(bits(), 0, 0) <> 0)
+  .no_scrollbar   = (readbit(bits(), 0, 1) <> 0)
   .allow_gameplay = (readbit(bits(), 0, 2) <> 0)
   .suspend_player = (readbit(bits(), 0, 3) <> 0)
+  .no_box         = (readbit(bits(), 0, 4) <> 0)
  END WITH
 END SUB
 

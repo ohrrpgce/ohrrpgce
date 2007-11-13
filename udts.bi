@@ -46,10 +46,11 @@ TYPE MenuDef
   maxrows   AS INTEGER
   edit_mode AS INTEGER 'Never hide disabled items, allow selection of unselectable items
   items(20) AS MenuDefItem
-  translucent      AS INTEGER ' Bitset
-  no_scrollbar     AS INTEGER ' Bitset
-  allow_gameplay   AS INTEGER ' Bitset
-  suspend_player   AS INTEGER ' Bitset
+  translucent      AS INTEGER ' Bitset 0
+  no_scrollbar     AS INTEGER ' Bitset 1
+  allow_gameplay   AS INTEGER ' Bitset 2
+  suspend_player   AS INTEGER ' Bitset 3
+  no_box           AS INTEGER ' Bitset 4
   rect      AS RectType
   offset    AS XYPair
   anchor    AS XYPair

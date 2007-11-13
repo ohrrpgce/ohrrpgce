@@ -1867,7 +1867,9 @@ SUB DrawMenu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
  PositionMenu menu
  
  WITH menu.rect
-  edgeboxstyle .x, .y, .wide, .high, menu.boxstyle, page, menu.translucent
+  IF menu.no_box = NO THEN
+   edgeboxstyle .x, .y, .wide, .high, menu.boxstyle, page, menu.translucent
+  END IF
   'Draw scrollbar
   IF (state.top > 0 OR state.last > state.top + state.size) AND menu.no_scrollbar = NO THEN
    DIM count AS INTEGER
