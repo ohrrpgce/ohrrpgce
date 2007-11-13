@@ -1047,6 +1047,10 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    checkTagCond atk(63), 1, atk(62), atk(64)
    IF inflict(who, targ, bstat(), bslot(), harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
     '--attack succeeded
+    IF readbit(atk(), 65, 12) THEN
+     '--cancel target's attack
+     godo(targ) = 0
+    END IF
 	IF readbit(atk(), 20, 50) = 1 THEN
 	 es(targ - 4, 56) = 0
 	 es(targ - 4, 57) = 0
@@ -1860,7 +1864,7 @@ IF TIMER > laststun + 1 THEN
   bstat(i).cur.stun = small(bstat(i).cur.stun + 1, bstat(i).max.stun)
   IF bstat(i).cur.stun < bstat(i).max.stun THEN
    ready(i) = 0
-   godo(i) = 0
+   godo(i) = 0 'FIXME
    IF you = i THEN you = -1
    IF them = i THEN them = -1
   END IF

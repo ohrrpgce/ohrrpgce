@@ -151,6 +151,7 @@ atkbit$(72) = "Reset Poison register"
 atkbit$(73) = "Reset Regen register"
 atkbit$(74) = "Reset Stun register"
 atkbit$(75) = "Reset Mute register"
+atkbit$(76) = "Cancel target's attack"
 '             ^---------------------------------------^
 '               the amount of room you have (39 chars)
 

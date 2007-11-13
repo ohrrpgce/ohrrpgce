@@ -12,6 +12,7 @@ Dec ?? 2007 [voxhumana]
     * Attacks can have preferred default targets based on factors such as
       distance or strongest stat or weakest stat [James Paige]
     * Customizable main menus. [James Paige]
+    * New attack bitset "Cancel target's attack" [James Paige]
 
   * Bugfixes
     * Fixed bug 257 "Mute status effect broken for enemies" [James Paige]
