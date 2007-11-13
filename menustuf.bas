@@ -39,7 +39,7 @@ DECLARE SUB status (pt%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB resetlmp (slot%, lev%)
 DECLARE FUNCTION battle (form%, fatal%, exstat%())
-DECLARE SUB addhero (who%, slot%, stat%())
+DECLARE SUB addhero (who, slot, stat(), forcelevel=-1)
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
 DECLARE FUNCTION rangel& (n&, r%)
@@ -170,7 +170,7 @@ DO
     FOR i = 37 TO 0 STEP -1
      IF hero(i) = 0 THEN slot = i
     NEXT i
-    addhero b(pt * recordsize + 18) + 1, slot, stat()
+    addhero b(pt * recordsize + 18) + 1, slot, stat(), b(pt * recordsize + 26)
     acol = 4
     alert = 10
     alert$ = stuf$(pt) + " " + joined$

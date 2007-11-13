@@ -50,7 +50,7 @@ DECLARE SUB spells (pt%, stat%())
 DECLARE SUB getnames (stat$())
 DECLARE SUB resetlmp (slot%, lev%)
 DECLARE FUNCTION battle (form%, fatal%, exstat%())
-DECLARE SUB addhero (who%, slot%, stat%())
+DECLARE SUB addhero (who, slot, stat(), forcelevel=-1)
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE FUNCTION range% (n%, r%)
 DECLARE SUB snapshot ()
@@ -73,7 +73,7 @@ DECLARE SUB remove_menu (record AS INTEGER)
 #include "loading.bi"
 
 REM $STATIC
-SUB addhero (who, slot, stat())
+SUB addhero (who, slot, stat(), forcelevel=-1)
 DIM wbuf(100), thishbits(4)
 
 dim her as herodef
@@ -83,6 +83,9 @@ loadherodata @her, who - 1
 
 '--load data of hero's default weapon
 loaditemdata wbuf(), her.def_weapon
+
+'--do level forcing
+IF forcelevel >= 0 THEN her.def_level = forcelevel
 
 '--do average level enforcement
 IF her.def_level < 0 THEN her.def_level = averagelev(stat())

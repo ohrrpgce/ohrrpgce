@@ -13,6 +13,8 @@ Dec ?? 2007 [voxhumana]
       distance or strongest stat or weakest stat [James Paige]
     * Customizable main menus. [James Paige]
     * New attack bitset "Cancel target's attack" [James Paige]
+    * A hero for hire in a shop can (optionally) be given a specific
+      experience level [James Paige]
 
   * Bugfixes
     * Fixed bug 257 "Mute status effect broken for enemies" [James Paige]

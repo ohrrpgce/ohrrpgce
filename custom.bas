@@ -1227,15 +1227,15 @@ LOOP
 
 othertype:
 SELECT CASE b(17)
- CASE 0
+ CASE 0 ' Is an item
   last = 22
-  max(4) = 254: IF b(18) > 255 THEN b(18) = 0
-  max(19) = 3
- CASE 1
+  max(4) = 254: IF b(18) > 254 THEN b(18) = 0
+  max(19) = 3 ' Item sell-type
+ CASE 1 ' Is a hero
   last = 19
-  max(4) = 59: IF b(18) > 59 THEN b(18) = 0
-  max(19) = 99
- CASE 2
+  max(4) = gen(genMaxHero): IF b(18) > gen(genMaxHero) THEN b(18) = 0
+  max(19) = 99 ' Hero experience level
+ CASE 2 ' Is ... something else?
   last = 18
   max(4) = 999
 END SELECT
@@ -1282,7 +1282,12 @@ IF b(17) = 0 THEN
  smenu$(21) = "Trade in for" + XSTR$(b(29) + 1) + " of:" + trit$
  smenu$(22) = " (Change Amount)"
 ELSE
- smenu$(19) = "Experience Level:" + XSTR$(b(26))
+ smenu$(19) = "Experience Level: "
+ IF b(26) = -1 THEN
+  smenu$(19) = smenu$(19) & "default"
+ ELSE
+  smenu$(19) = smenu$(19) & b(26)
+ END IF
 END IF
 '--mutate menu for item/hero
 RETRACE
