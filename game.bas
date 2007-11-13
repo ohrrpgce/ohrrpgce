@@ -2456,6 +2456,7 @@ SUB add_menu (record AS INTEGER)
  LoadMenuData menu_set, menus(topmenu), record
  InitMenuState mstates(topmenu), menus(topmenu)
  mstates(topmenu).active = YES
+ check_menu_tags
 END SUB
 
 SUB remove_menu (record AS INTEGER)
