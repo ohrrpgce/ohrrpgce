@@ -117,7 +117,6 @@ DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
 DECLARE SUB forcedismount (choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
-DECLARE SUB setusermenu (menu$(), mi%())
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
 DECLARE SUB drawnpcs ()
@@ -834,108 +833,6 @@ edgeprint scriptout$, 0, 190, uilook(uiText), dpage
 showplotstrings
 IF showtags > 0 THEN tagdisplay
 IF scrwatch THEN scriptwatcher scrwatch, -1
-RETRACE
-
-usermenu:
-setusermenu menu$(), mi()
-mt = ubound(menu$) - 1
-IF gmap(2) = 0 THEN
- '--minimap not available
- o = 0
- FOR i = 0 TO mt - 1
-  IF mi(i) = 2 THEN o = 1: SWAP mi(i), mi(i + 1)
- NEXT i
- IF o = 1 THEN mt = mt - 1
-END IF
-IF gmap(3) = 0 THEN
- '--save not available
- o = 0
- FOR i = 0 TO mt - 1
-  IF mi(i) = 6 THEN o = 1: SWAP mi(i), mi(i + 1)
- NEXT i
- IF o = 1 THEN mt = mt - 1
-END IF
-csr = 0: pt = 0
-menusound gen(genAcceptSFX)
-setkeys
-DO
- setwait timing(), speedcontrol
- setkeys
- tog = tog XOR 1
- playtimer
- if dotimermenu then exit do
- control
- GOSUB displayall
- IF carray(5) > 1 OR abortg > 0 THEN
-  if abortg = 0 then menusound gen(genCancelSFX)
-  EXIT DO
- END IF
- IF carray(0) > 1 THEN pt = loopvar(pt, 0, mt, -1) : menusound gen(genCursorSFX)
- IF carray(1) > 1 THEN pt = loopvar(pt, 0, mt, 1) : menusound gen(genCursorSFX)
- IF mi(pt) = 7 THEN
-  '--volume control
-  IF carray(2) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
-  IF carray(3) > 1 THEN fmvol = small(fmvol + 1, 15): setfmvol fmvol
- END IF
- IF carray(4) > 1 THEN
-  IF mi(pt) = 4 THEN
-   say = items(stat())
-   IF say THEN
-    '--player has used an item that calls a text box--
-    IF say > 0 THEN
-     loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
-    END IF
-    EXIT DO
-   END IF
-  END IF
-  IF mi(pt) = 1 THEN
-   w = onwho(readglobalstring$(104, "Whose Status?", 20), 0)
-   IF w >= 0 THEN
-    status w, stat()
-   END IF
-  END IF
-  IF mi(pt) = 3 THEN
-   w = onwho(readglobalstring$(106, "Whose Spells?", 20), 0)
-   IF w >= 0 THEN
-    spells w, stat()
-   END IF
-  END IF
-  IF mi(pt) = 6 THEN
-   temp = picksave(0)
-   IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
-   reloadnpc stat()
-  END IF
-  IF mi(pt) = 5 THEN
-   w = onwho(readglobalstring$(108, "Equip Whom?", 20), 0)
-   IF w >= 0 THEN
-    equip w, stat()
-   END IF
-  END IF
-  IF mi(pt) = 2 THEN minimap catx(0), caty(0), tastuf()
-  IF mi(pt) = 8 THEN
-   heroswap readbit(gen(), 101, 5), stat()
-  END IF
-  IF mi(pt) = 0 THEN menusound gen(genAcceptSFX) : verquit
-  '---After all sub-menus are done, re-evaluate the hero/item tags
-  '---that way if you revive a hero, kill a hero swap out... whatever
-  evalherotag stat()
-  evalitemtag
- END IF
- centerfuz 160, 100, 120, (mt + 2) * 10, 1, dpage
- FOR i = 0 TO mt
-  col = uilook(uiMenuItem)
-  IF mi(i) = 7 AND fmvol THEN centerbox 160, 110 - ((mt + 2) * 10) * .5 + (i * 10), fmvol * 6, 10, 1, dpage
-  IF pt = i THEN col = uilook(uiSelectedItem + tog)
-  edgeprint menu$(mi(i)), xstring(menu$(mi(i)), 160), 106 - ((mt + 2) * 10) * .5 + (i * 10), col, dpage
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- 'copypage 3, dpage
- dowait
-LOOP
-setkeys
-FOR i = 0 TO 7: carray(i) = 0: NEXT i
-fatal = checkfordeath(stat())
 RETRACE
 
 usething:
@@ -2598,6 +2495,7 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
    carray(5) = 0' Forget keypress
    remove_menu topmenu
    menusound gen(genCancelSFX)
+   fatal = checkfordeath(stat())
    EXIT SUB
   END IF
   activated = NO

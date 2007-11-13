@@ -428,30 +428,6 @@ SUB setScriptArg (arg, value)
  END IF
 END SUB
 
-SUB setusermenu (menu$(), mi())
-menu$(0) = readglobalstring$(67, "Quit", 10)
-menu$(1) = readglobalstring$(62, "Status", 10)
-menu$(2) = readglobalstring$(68, "Map", 10)
-menu$(3) = readglobalstring$(61, "Spells", 10)
-menu$(4) = readglobalstring$(60, "Items", 10)
-menu$(5) = readglobalstring$(63, "Equip", 10)
-menu$(6) = readglobalstring$(66, "Save", 10)
-menu$(7) = readglobalstring$(69, "Volume", 10)
-menu$(8) = readglobalstring$(64, "Order", 10)
-IF readbit(gen(), 101, 5) THEN menu$(8) = readglobalstring$(65, "Team", 10)
-'THIS STUFF WILL CHANGE LATER...yes it will!
-mi(0) = 4
-mi(1) = 3
-mi(2) = 1
-mi(3) = 5
-mi(4) = 8
-mi(5) = 2
-mi(6) = 6
-mi(7) = 0
-mi(8) = 7
-
-END SUB
-
 SUB showplotstrings
 
 FOR i = 0 TO 31
