@@ -27,6 +27,7 @@ Dec ?? 2007 [voxhumana]
     * Fixed bug 237, "Stun Attacks Cancel Actions"
       (Old stun attacks will continue to work the same thanks to the
       "Cancel target's attack" bitset) [James Paige]
+    * Fixed bug 473, "Shop data doesn't persist" [James Paige]
 
   * New Plotscripting Commands
     * get victory music

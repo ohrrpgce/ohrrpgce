@@ -965,7 +965,7 @@ END FUNCTION
 
 SUB shopdata
 DIM names$(32), a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
-DIM her AS HeroDef ' only used in getdefaultthingname
+DIM her AS HeroDef' Used to get hero name for default stuff name
 
 maxcount = 32: pt = 0: it$ = "-NONE-": sn$ = ""
 havestuf = 0
@@ -1196,8 +1196,20 @@ DO
     IF intgrabber(b(17 + tcsr - 3), min(tcsr), max(tcsr)) THEN
      IF tcsr = 3 OR tcsr = 4 THEN
       GOSUB othertype
-      GOSUB getdefaultthingname
-      thing$ = defaultthing$
+      '--Re-load default names and default prices
+      SELECT CASE b(17)
+       CASE 0' This is an item
+        thing$ = itemstr$(b(18),1,1)
+        b(24) = buffer(46) ' default buy price
+        b(27) = INT(buffer(46) / 2) ' default sell price
+       CASE 1
+        loadherodata @her, b(18)
+        thing$ = her.name
+        b(24) = 0 ' default buy price
+        b(27) = 0 ' default sell price
+       CASE ELSE
+        thing$ = "Unsupported"
+      END SELECT
      END IF
     END IF
   END SELECT
@@ -1227,21 +1239,6 @@ SELECT CASE b(17)
   last = 18
   max(4) = 999
 END SELECT
-RETRACE
-
-getdefaultthingname:
-'"DIM her AS HeroDef" is only used here but appears at the top of shopdata sub to avoid branch crossing warning
-IF b(17) = 0 THEN
- defaultthing$ = itemstr$(b(18),1,1)
- b(24) = buffer(46)
- b(27) = INT(buffer(46) / 2)
-END IF
-IF b(17) = 1 THEN
- defaultthing$ = ""
- loadherodata @her, b(18)
- defaultthing$ = defaultthing$ + her.name
-END IF
-IF b(17) = 2 THEN defaultthing$ = "Unsupported"
 RETRACE
 
 stufmenu:
@@ -1303,7 +1300,6 @@ IF (b(26) < 0 OR b(26) > 3) AND b(17) <> 1 THEN b(26) = 0
 FOR i = 32 TO 42
  b(i) = large(b(i), 0)
 NEXT
-GOSUB getdefaultthingname
 RETRACE
 
 sstuf:
