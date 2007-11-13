@@ -1778,6 +1778,7 @@ END IF
 
 'Zero out new attack item cost (ammunition) data
 IF getfixbit(fixAttackitems) = 0 THEN
+  upgrade_message "Zero new ammunition data..."
   setfixbit(fixAttackitems, 1)
   fh = freefile
   OPEN workingdir$ + SLASH + "attack.bin" FOR BINARY AS #FH
@@ -1797,29 +1798,49 @@ IF getfixbit(fixAttackitems) = 0 THEN
 END IF
 
 IF getfixbit(fixWeapPoints) = 0 THEN
-	setfixbit(fixWeapPoints, 1)
-	fh = freefile
-	OPEN game$ + ".dt0" FOR BINARY AS #fh
-	REDIM dat(317) AS SHORT
-	p = 1
-	FOR i = 0 to gen(genMaxHero)
-		GET #fh,,dat()
-		if dat(297) <> 0 OR dat(298) <> 0 OR dat(299) <> 0 OR dat(300) <> 0 THEN
-			close #fh
-			goto nofixweappoints 'they already use hand points, abort!
-		end if
-	NEXT
-	
-	FOR i = 0 to gen(genMaxHero)
-		GET #fh,p,dat()
-		dat(297) = 24
-		dat(299) = -20
-		PUT #fh,p,dat()
-		p+=318
-	NEXT
-	close #fh
-nofixweappoints:
+ upgrade_message "Reset hero hand points..."
+ DO
+  setfixbit(fixWeapPoints, 1)
+  fh = freefile
+  OPEN game$ + ".dt0" FOR BINARY AS #fh
+  REDIM dat(317) AS SHORT
+  p = 1
+  FOR i = 0 to gen(genMaxHero)
+   GET #fh,,dat()
+   IF dat(297) <> 0 OR dat(298) <> 0 OR dat(299) <> 0 OR dat(300) <> 0 THEN
+    close #fh
+    EXIT DO 'they already use hand points, abort!
+   END IF
+  NEXT
+  
+  FOR i = 0 to gen(genMaxHero)
+   GET #fh,p,dat()
+   dat(297) = 24
+   dat(299) = -20
+   PUT #fh,p,dat()
+   p+=318
+  NEXT
+  close #fh
+  EXIT DO
+ LOOP
+END IF
 
+IF getfixbit(fixStunCancelTarg) = 0 THEN
+ upgrade_message "Target disabling old stun attacks..."
+ setfixbit(fixStunCancelTarg, 1)
+ REDIM dat(40 + dimbinsize(binATTACK)) AS INTEGER
+ FOR i = 0 to gen(genMaxAttack)
+  loadattackdata dat(), i
+  IF dat(18) = 14 THEN '--Target stat is stun register
+   IF readbit(dat(), 20, 0) THEN CONTINUE FOR '--cure instead of harm
+   IF dat(5) = 5 OR dat(5) = 6 THEN '--set to percentage
+    IF dat(11) >= 0 THEN CONTINUE FOR'-- set to >= 100%
+   END IF
+   'Turn on the disable target attack bit
+   setbit dat(), 65, 12, YES
+   saveattackdata dat(), i
+  END IF
+ NEXT
 END IF
 
 'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)

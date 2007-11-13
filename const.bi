@@ -94,7 +94,8 @@ CONST genScatterTableHead = 199 'old password scattertable head
 
 '---Format fix bits
 CONST fixAttackitems = 0        'zero out attack data for item cost (ammunition)
-CONST fixWeapPoints  = 1				'add defaults for weapon points
+CONST fixWeapPoints  = 1        'add defaults for weapon points
+CONST fixStunCancelTarg = 2     'turn on cancel target bitset for old stun attacks
 
 '---Sizes (replaceable with variables when suitable)
 CONST npcdMax = 35

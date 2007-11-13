@@ -1864,7 +1864,6 @@ IF TIMER > laststun + 1 THEN
   bstat(i).cur.stun = small(bstat(i).cur.stun + 1, bstat(i).max.stun)
   IF bstat(i).cur.stun < bstat(i).max.stun THEN
    ready(i) = 0
-   godo(i) = 0 'FIXME
    IF you = i THEN you = -1
    IF them = i THEN them = -1
   END IF

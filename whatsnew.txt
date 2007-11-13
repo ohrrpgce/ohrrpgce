@@ -24,6 +24,9 @@ Dec ?? 2007 [voxhumana]
     * Having an after-battle script would prevent fightformation from
       returning the correct battle result [Ralph Versteegen]
     * More NPC activation/pushing over map edge fixes [Ralph Versteegen]
+    * Fixed bug 237, "Stun Attacks Cancel Actions"
+      (Old stun attacks will continue to work the same thanks to the
+      "Cancel target's attack" bitset) [James Paige]
 
   * New Plotscripting Commands
     * get victory music
