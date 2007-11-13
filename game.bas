@@ -572,7 +572,8 @@ DO
    CASE IS < 0
     rsr = runscript(ABS(tmp), nowscript + 1, -1, "vehicle", plottrigger)
    CASE 1
-    GOSUB usermenu
+    add_menu 0
+    menusound gen(genAcceptSFX)
     evalherotag stat()
     evalitemtag
     npcplot
@@ -2349,7 +2350,7 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     IF retvals(1) = 3 THEN tempxgo = 20
     scriptret = wrappass(npc(npcref).x \ 20, npc(npcref).y \ 20, tempxgo, tempygo, 0)
    CASE 267'--main menu
-    GOSUB usermenu
+    add_menu 0
     evalherotag stat()
     evalitemtag
     npcplot
