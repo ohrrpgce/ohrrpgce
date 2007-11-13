@@ -519,13 +519,10 @@ DO
  dotimer(0)
  'DEBUG debug "keyboard handling"
  IF carray(5) > 1 AND showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(0) = 0 AND xgo(0) = 0 AND ygo(0) = 0 AND topmenu = -1 THEN
-  GOSUB usermenu
-  evalitemtag
-  npcplot
- END IF
- IF keyval(82) > 1 AND topmenu = -1 THEN ' temporaraly activated with the insert key
   add_menu 0
   menusound gen(genAcceptSFX)
+  evalitemtag
+  npcplot
  END IF
  IF showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(6) = 0 AND menus_allow_player() THEN
   IF xgo(0) = 0 AND ygo(0) = 0 THEN
