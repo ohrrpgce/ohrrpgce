@@ -2514,8 +2514,10 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
       SELECT CASE .sub_t
        CASE 0 ' item
         menu_text_box = items(stat())
-        remove_menu topmenu
-        EXIT SUB
+        IF menu_text_box > 0 THEN
+         remove_menu topmenu
+         EXIT SUB
+        END IF
        CASE 1 ' spell
         slot = onwho(readglobalstring$(106, "Whose Spells?", 20), 0)
         IF slot >= 0 THEN spells slot, stat()
