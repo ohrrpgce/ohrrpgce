@@ -2493,7 +2493,7 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
    menusound gen(genCursorSFX)
   END IF
   IF carray(5) > 1 THEN
-   carray(5) = 0' Forget keypress
+   setkeys ' Forget keypress that closed the menu
    remove_menu topmenu
    menusound gen(genCancelSFX)
    fatal = checkfordeath(stat())
@@ -2575,6 +2575,7 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
     IF .togtag > 1 THEN setbit tag(), 0, .togtag, (readbit(tag(), 0, .togtag) XOR 1)
     IF .close_if_selected THEN
      remove_menu topmenu
+     setkeys '--Discard the  keypress that triggered the menu item that closed the menu
      EXIT SUB
     END IF
    END IF
