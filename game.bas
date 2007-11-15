@@ -164,6 +164,7 @@ DECLARE FUNCTION menus_allow_player () AS INTEGER
 DECLARE SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
 DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB check_menu_tags ()
+DECLARE FUNCTION game_usemenu (state AS MenuState)
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -2489,10 +2490,11 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
  DIM activated AS INTEGER
  menu_text_box = 0
  IF topmenu >= 0 THEN
-  IF usemenu(mstates(topmenu)) THEN
+  IF game_usemenu(mstates(topmenu)) THEN
    menusound gen(genCursorSFX)
   END IF
   IF carray(5) > 1 THEN
+   carray(5) = 0
    setkeys ' Forget keypress that closed the menu
    remove_menu topmenu
    menusound gen(genCancelSFX)
@@ -2541,7 +2543,7 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
         IF slot >= 0 THEN savegame slot, map, foep, stat(), stock()
         reloadnpc stat()
        CASE 9 ' load
-        slot = picksave(1) 'This currently causes graphical corruption and crashes in evalitemtag (id becomes -1)
+        slot = picksave(1)
         reloadnpc stat()
         IF slot >= 0 THEN
          wantloadgame = slot + 1
@@ -2575,6 +2577,7 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
     IF .togtag > 1 THEN setbit tag(), 0, .togtag, (readbit(tag(), 0, .togtag) XOR 1)
     IF .close_if_selected THEN
      remove_menu topmenu
+     carray(4) = 0
      setkeys '--Discard the  keypress that triggered the menu item that closed the menu
      EXIT SUB
     END IF
@@ -2619,3 +2622,24 @@ SUB check_menu_tags ()
   END WITH
  NEXT j
 END SUB
+
+FUNCTION game_usemenu (state AS MenuState)
+ DIM oldptr AS INTEGER
+ DIM oldtop AS INTEGER
+
+ WITH state
+  oldptr = .pt
+  oldtop = .top
+
+  IF carray(0) > 1 THEN .pt = loopvar(.pt, .first, .last, -1) 'UP
+  IF carray(1) > 1 THEN .pt = loopvar(.pt, .first, .last, 1)  'DOWN
+  IF keyval(73) > 1 THEN .pt = large(.pt - .size, .first)     'PGUP
+  IF keyval(81) > 1 THEN .pt = small(.pt + .size, .last)      'PGDN
+  IF keyval(71) > 1 THEN .pt = .first                         'HOME
+  IF keyval(79) > 1 THEN .pt = .last                          'END
+  .top = bound(.top, .pt - .size, .pt)
+
+  IF oldptr <> .pt OR oldtop <> .top THEN RETURN YES
+  RETURN NO
+ END WITH
+END FUNCTION
