@@ -34,7 +34,7 @@ option explicit
 #define SC_RSHIFT		&h36
 #define SC_ALT			&h38
 
-type ohrsprite
+type frame
 	w as integer
 	h as integer
 	image as ubyte ptr
@@ -50,7 +50,7 @@ end type
 'add page? or assume workpage? (all pages for clip?)
 declare SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer=1, BYVAL trans as integer = -1)
 declare sub setclip(l as integer=0, t as integer=0, r as integer=319, b as integer=199)
-declare sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer=1, trans as integer = -1)
+declare sub drawohr(byref spr as frame, x as integer, y as integer, scale as integer=1, trans as integer = -1)
 declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
 declare SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
@@ -71,7 +71,7 @@ declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as i
 declare sub debug(s$)
 declare sub fatalerror(e$)
 
-declare sub pollingthread()
+declare sub pollingthread(byval as any ptr)
 
 dim shared vispage as integer
 dim shared wrkpage as integer
@@ -125,7 +125,7 @@ dim shared intpal(0 to 255) as RGBcolor	'current palette
 dim shared updatepal as integer  'setpal called, load new palette at next setvispage
 
 'global sprite buffer, to allow reuse without allocate/deallocate
-dim shared tbuf as ohrsprite ptr = null
+dim shared tbuf as frame ptr = null
 
 sub setmodex()
 	dim i as integer
@@ -426,7 +426,7 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer
 
 	if tbuf = null then
 		'create tile buffer
-		tbuf = callocate(sizeof(ohrsprite))
+		tbuf = callocate(sizeof(frame))
 		tbuf->w = 20
 		tbuf->h = 20
 		tbuf->mask = callocate(20 * 20)
@@ -508,7 +508,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 'draw sprite scaled, used for drawsprite(x1), bigsprite(x2) and hugesprite(x4)
 	dim sw as integer
 	dim sh as integer
-	dim hspr as ohrsprite
+	dim hspr as frame
 	dim dspr as ubyte ptr
 	dim hmsk as ubyte ptr
 	dim dmsk as ubyte ptr
@@ -592,7 +592,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 'are the coords top left or top right, though?
 	dim sw as integer
 	dim sh as integer
-	dim hspr as ohrsprite
+	dim hspr as frame
 	dim dspr as ubyte ptr
 	dim hmsk as ubyte ptr
 	dim dmsk as ubyte ptr
@@ -864,7 +864,7 @@ SUB clearkey(byval k as integer)
 	keybd(k) = 0
 end sub
 
-sub pollingthread
+sub pollingthread(byval unused as any ptr)
 	dim as integer a, dummy, buttons
 
 	while endpollthread = 0
@@ -3141,7 +3141,7 @@ sub setclip(l as integer, t as integer, r as integer, b as integer)
 	clipb = b
 end sub
 
-sub drawohr(byref spr as ohrsprite, x as integer, y as integer, scale as integer, trans as integer = -1)
+sub drawohr(byref spr as frame, x as integer, y as integer, scale as integer, trans as integer = -1)
 	dim sptr as ubyte ptr
 	dim as integer tx, ty
 	dim as integer i, j, pix, spix
