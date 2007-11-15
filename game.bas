@@ -821,7 +821,7 @@ ELSE
  showmapname = 0
 END IF
 FOR i = 0 TO topmenu
- DrawMenu menus(i), mstates(i), dpage
+ draw_menu menus(i), mstates(i), dpage
 NEXT i
 '--FPS
 'framecount = framecount + 1
@@ -2455,7 +2455,7 @@ SUB add_menu (record AS INTEGER)
  mstates(topmenu).top = 0
  mstates(topmenu).pt = 0
  LoadMenuData menu_set, menus(topmenu), record
- InitMenuState mstates(topmenu), menus(topmenu)
+ init_menu_state mstates(topmenu), menus(topmenu)
  mstates(topmenu).active = YES
  check_menu_tags
 END SUB
@@ -2617,7 +2617,7 @@ SUB check_menu_tags ()
       END IF
      END WITH
     NEXT i
-    InitMenuState mstates(j), menus(j)
+    init_menu_state mstates(j), menus(j)
    END IF
   END WITH
  NEXT j

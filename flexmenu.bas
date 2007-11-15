@@ -1417,28 +1417,28 @@ DO
  IF state.need_update THEN
   state.need_update = NO
   update_menu_editor_menu record, edmenu$(), menudata
-  InitMenuState mstate, menudata
+  init_menu_state mstate, menudata
  END IF
  IF mstate.need_update THEN
   mstate.need_update = NO
-  InitMenuState mstate, menudata
+  init_menu_state mstate, menudata
  END IF
  IF dstate.need_update THEN
   dstate.need_update = NO
   update_detail_menu detail, menudata.items(mstate.pt)
-  InitMenuState dstate, detail
+  init_menu_state dstate, detail
  END IF
  
- IF NOT mstate.active THEN DrawMenu menudata, mstate, dpage
+ IF NOT mstate.active THEN draw_menu menudata, mstate, dpage
  standardmenu edmenu$(), state, 0, 0, dpage, YES, (mstate.active OR dstate.active)
  IF mstate.active THEN
-  DrawMenu menudata, mstate, dpage
+  draw_menu menudata, mstate, dpage
   edgeprint "ENTER to edit, Shift+Arrows to re-order", 0, 191, uilook(uiDisabledItem), dpage
   IF record = 0 THEN
    edgeprint "CTRL+R to reload default", 0, 181, uilook(uiDisabledItem), dpage
   END IF
  END IF
- IF dstate.active THEN DrawMenu detail, dstate, dpage
+ IF dstate.active THEN draw_menu detail, dstate, dpage
  
  SWAP vpage, dpage
  setvispage vpage
@@ -1569,7 +1569,7 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
   IF keyval(29) > 0 AND keyval(19) > 1 THEN
    IF yesno("Reload the default main menu?") THEN
     ClearMenuData menudata
-    CreateDefaultMenu menudata
+    create_default_menu menudata
     mstate.need_update = YES
    END IF
   END IF
@@ -1691,7 +1691,7 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
      CASE 1: .caption = .caption & " Not Selectable"
     END SELECT
    CASE 1
-    .caption = .caption & " " & GetSpecialMenuCaption(mi.sub_t, YES)
+    .caption = .caption & " " & get_special_menu_caption(mi.sub_t, YES)
    CASE 4
     .caption = "Subtype: " & scriptname$(mi.sub_t, plottrigger)
    CASE ELSE
@@ -1797,7 +1797,7 @@ SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
    IF keyval(77) > 1 THEN .x += 1 + 9 * shift
   END WITH
  
-  DrawMenu menu, mstate, dpage
+  draw_menu menu, mstate, dpage
   edgeprint "Offset=" & menu.offset.x & "," & menu.offset.y, 0, 0, uilook(uiDisabledItem), dpage
   edgeprint "Arrows to re-position, ESC to exit", 0, 191, uilook(uiDisabledItem), dpage
   
@@ -1827,7 +1827,7 @@ SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
    IF keyval(77) > 1 THEN .x = bound(.x + 1, -1, 1)
   END WITH
  
-  DrawMenu menu, mstate, dpage
+  draw_menu menu, mstate, dpage
   WITH menu
    x = .rect.x - 2 + anchor_point(.anchor.x, .rect.wide)
    y = .rect.y - 2 + anchor_point(.anchor.y, .rect.high)

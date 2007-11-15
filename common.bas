@@ -1757,7 +1757,7 @@ IF NOT isfile(workingdir$ + SLASH + "menuitem.bin") THEN
  menu_set.menufile = workingdir$ + SLASH + "menus.bin"
  menu_set.itemfile = workingdir$ + SLASH + "menuitem.bin"
  DIM menu AS MenuDef
- CreateDefaultMenu menu
+ create_default_menu menu
  SaveMenuData menu_set, menu, 0
  
 END IF
@@ -1879,13 +1879,13 @@ NEXT i
 
 END SUB
 
-SUB DrawMenu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
+SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
  DIM i AS INTEGER
  DIM elem AS INTEGER
  DIM cap AS STRING
  DIM col AS INTEGER
 
- PositionMenu menu
+ position_menu menu
  
  WITH menu.rect
   IF menu.no_box = NO THEN
@@ -1894,7 +1894,7 @@ SUB DrawMenu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
   'Draw scrollbar
   IF (state.top > 0 OR state.last > state.top + state.size) AND menu.no_scrollbar = NO THEN
    DIM count AS INTEGER
-   count = CountMenuItems(menu)
+   count = count_menu_items(menu)
    IF count > 0 THEN
     DIM sbar AS RectType
     sbar.x = .x + .wide - 6
@@ -1926,7 +1926,7 @@ SUB DrawMenu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
      IF .t = 1 AND .sub_t = 11 THEN ' volume meter
       edgeboxstyle menu.rect.x + 8, menu.rect.y + 8 + (i * 10), fmvol * 3, 10, menu.boxstyle, dpage
      END IF
-     cap = GetMenuItemCaption(menu.items(elem), menu)
+     cap = get_menu_item_caption(menu.items(elem), menu)
      edgeprint cap, menu.rect.x + 8, menu.rect.y + 8 + (i * 10), col, dpage
     ELSE
      IF menu.edit_mode = YES THEN
@@ -1940,7 +1940,7 @@ SUB DrawMenu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
  
 END SUB
 
-SUB PositionMenu (menu AS MenuDef)
+SUB position_menu (menu AS MenuDef)
  DIM i AS INTEGER
  DIM cap AS STRING
 
@@ -1950,7 +1950,7 @@ SUB PositionMenu (menu AS MenuDef)
  FOR i = 0 TO UBOUND(menu.items)
   WITH menu.items(i)
    IF .exists THEN
-    cap = GetMenuItemCaption(menu.items(i), menu)
+    cap = get_menu_item_caption(menu.items(i), menu)
     menu.rect.wide = large(menu.rect.wide, (LEN(cap) + 2) * 8)
     IF .t = 1 AND .sub_t = 11 THEN
      menu.rect.wide = large(menu.rect.wide, 48 + 2 * 8)
@@ -1985,15 +1985,15 @@ FUNCTION anchor_point(anchor AS INTEGER, size AS INTEGER) AS INTEGER
  END SELECT
 END FUNCTION
 
-SUB InitMenuState (BYREF state AS MenuState, menu AS MenuDef)
- state.last = CountMenuItems(menu) - 1
+SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
+ state.last = count_menu_items(menu) - 1
  state.size = menu.maxrows - 1
  IF state.size = -1 THEN state.size = 20
  state.pt = bound(state.pt, 0, state.last)
  state.top = bound(state.top, 0, large(state.last - state.size, 0))
 END SUB
 
-FUNCTION CountMenuItems (menu AS MenuDef)
+FUNCTION count_menu_items (menu AS MenuDef)
  DIM i AS INTEGER
  DIM count AS INTEGER = 0
  FOR i = 0 TO UBOUND(menu.items)
@@ -2028,7 +2028,7 @@ CLOSE #fh
 RETURN result$
 END FUNCTION
 
-FUNCTION GetMenuItemCaption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
+FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
  DIM cap AS STRING
  DIM menutemp AS MenuDef
  cap = mi.caption
@@ -2036,7 +2036,7 @@ FUNCTION GetMenuItemCaption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
   'No caption, use the default
   SELECT CASE mi.t
    CASE 1 ' special screen
-    cap = GetSpecialMenuCaption(mi.sub_t, menu.edit_mode)
+    cap = get_special_menu_caption(mi.sub_t, menu.edit_mode)
    CASE 2 ' another menu
     '--Loading the target menu name here may be inadvisable for performance reasons.
     '--this routine gets called for evert    
@@ -2053,7 +2053,7 @@ FUNCTION GetMenuItemCaption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
  RETURN cap
 END FUNCTION
 
-FUNCTION GetSpecialMenuCaption(subtype AS INTEGER, edit_mode AS INTEGER= NO) AS STRING
+FUNCTION get_special_menu_caption(subtype AS INTEGER, edit_mode AS INTEGER= NO) AS STRING
  DIM cap AS STRING
  SELECT CASE subtype
   CASE 0: cap = readglobalstring$(60, "Items", 10)
@@ -2078,7 +2078,7 @@ FUNCTION GetSpecialMenuCaption(subtype AS INTEGER, edit_mode AS INTEGER= NO) AS 
  RETURN cap
 END FUNCTION
 
-SUB CreateDefaultMenu(menu AS MenuDef)
+SUB create_default_menu(menu AS MenuDef)
  DIM i AS INTEGER
  FOR i = 0 TO 3
   WITH menu.items(i)
@@ -2124,7 +2124,7 @@ FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) 
  END WITH
 
  state.active = YES
- InitMenuState state, menu
+ init_menu_state state, menu
  IF defaultval = YES THEN state.pt = 0
  IF defaultval = NO  THEN state.pt = 1 
 
@@ -2154,7 +2154,7 @@ FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) 
 
   centerbox 160, 70, small(16 + LEN(capt) * 8, 320), 16, uilook(uiHighlight), dpage
   edgeprint capt, xstring(capt, 160), 65, uilook(uiMenuItem), dpage
-  DrawMenu menu, state, dpage
+  draw_menu menu, state, dpage
   SWAP vpage, dpage
   setvispage vpage
   copypage 2, dpage

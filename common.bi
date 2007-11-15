@@ -113,13 +113,13 @@ DECLARE FUNCTION xintgrabber (n AS INTEGER, pmin AS INTEGER, pmax AS INTEGER, nm
 DECLARE SUB upgrade_message (s AS STRING)
 DECLARE SUB show_message (s AS STRING)
 
-DECLARE SUB PositionMenu (menu AS MenuDef)
-DECLARE SUB DrawMenu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
-DECLARE SUB InitMenuState (BYREF state AS MenuState, menu AS MenuDef)
-DECLARE FUNCTION CountMenuItems (menu AS MenuDef)
-DECLARE FUNCTION GetMenuItemCaption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
-DECLARE FUNCTION GetSpecialMenuCaption(subtype AS INTEGER, edit_mode AS INTEGER= NO) AS STRING
-DECLARE SUB CreateDefaultMenu(menu AS MenuDef)
+DECLARE SUB position_menu (menu AS MenuDef)
+DECLARE SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
+DECLARE SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
+DECLARE FUNCTION count_menu_items (menu AS MenuDef)
+DECLARE FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
+DECLARE FUNCTION get_special_menu_caption(subtype AS INTEGER, edit_mode AS INTEGER= NO) AS STRING
+DECLARE SUB create_default_menu(menu AS MenuDef)
 DECLARE FUNCTION anchor_point(anchor AS INTEGER, size AS INTEGER) AS INTEGER
 
 DECLARE FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
