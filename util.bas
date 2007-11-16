@@ -172,3 +172,14 @@ FUNCTION reads (st as Stack, BYVAL off as integer) as integer
   reads = st.pos[off]
  END IF
 END FUNCTION
+
+FUNCTION sign_string(n AS INTEGER, neg_str AS STRING, zero_str AS STRING, pos_str AS STRING) AS STRING
+ IF n < 0 THEN RETURN neg_str
+ IF n > 0 THEN RETURN pos_str
+ RETURN zero_str
+END FUNCTION
+
+FUNCTION zero_default(n) AS STRING
+ IF n = 0 THEN RETURN "default"
+ RETURN "" & n
+END FUNCTION

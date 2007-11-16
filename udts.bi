@@ -54,6 +54,7 @@ TYPE MenuDef
   rect      AS RectType
   offset    AS XYPair
   anchor    AS XYPair
+  align     AS INTEGER
 END TYPE
 
 TYPE MenuState

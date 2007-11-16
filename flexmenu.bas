@@ -73,7 +73,6 @@ DECLARE SUB edit_menu_bits (menu AS MenuDef)
 DECLARE SUB edit_menu_item_bits (mi AS MenuDefItem)
 DECLARE SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
 DECLARE SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
-DECLARE FUNCTION zero_default(n) AS STRING
 DECLARE FUNCTION tag_condition_text(tag AS INTEGER, default_string AS STRING="None") AS STRING
 DECLARE FUNCTION tag_set_text(tag AS INTEGER, default_string AS STRING="Do nothing") AS STRING
 DECLARE FUNCTION tag_toggle_text(tag AS INTEGER, default_string AS STRING="Do nothing") AS STRING
@@ -1383,7 +1382,7 @@ menu_set.menufile = workingdir$ & SLASH & "menus.bin"
 menu_set.itemfile = workingdir$ & SLASH & "menuitem.bin"
 
 DIM record AS INTEGER = 0
-DIM edmenu$(9)
+DIM edmenu$(10)
 
 DIM state AS MenuState 'top level
 state.active = YES
@@ -1399,6 +1398,7 @@ dstate.active = NO
 DIM menudata AS MenuDef
 LoadMenuData menu_set, menudata, record
 DIM detail AS MenuDef
+detail.align = -1
 
 setkeys
 DO
@@ -1509,6 +1509,8 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
    IF keyval(28) > 1 OR keyval(57) > 1 THEN
     reposition_anchor menudata, mstate
    END IF
+  CASE 10 ' text align
+   IF intgrabber(menudata.align, -1, 1) THEN state.need_update = YES
  END SELECT
 END SUB
 
@@ -1652,6 +1654,7 @@ SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
  m$(7) = "Edit Bitsets..."
  m$(8) = "Reposition menu..."
  m$(9) = "Change Anchor Point..."
+ m$(10) = "Text Align: " & sign_string(menu.align, "Left", "Center", "Right")
 END SUB
 
 SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
@@ -1745,11 +1748,6 @@ FUNCTION tag_toggle_text(tag AS INTEGER, default_string AS STRING="Do nothing") 
   CASE 1, -1: RETURN "tag 1 can't be changed"
   CASE IS > 1: RETURN "Toggle tag " & tag & " (" & lmnemonic(tag) & ")"
  END SELECT
-END FUNCTION
-
-FUNCTION zero_default(n) AS STRING
- IF n = 0 THEN RETURN "default"
- RETURN "" & n
 END FUNCTION
 
 SUB edit_menu_bits (menu AS MenuDef)

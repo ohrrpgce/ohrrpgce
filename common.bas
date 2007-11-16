@@ -1884,6 +1884,7 @@ SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
  DIM elem AS INTEGER
  DIM cap AS STRING
  DIM col AS INTEGER
+ DIM where AS XYPair
 
  position_menu menu
  
@@ -1923,14 +1924,17 @@ SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
      IF state.pt = elem AND state.active THEN col = uilook(uiSelectedDisabled + state.tog)
     END IF
     IF .exists AND (NOT (.disabled AND .hide_if_disabled)) THEN
-     IF .t = 1 AND .sub_t = 11 THEN ' volume meter
-      edgeboxstyle menu.rect.x + 8, menu.rect.y + 8 + (i * 10), fmvol * 3, 10, menu.boxstyle, dpage
-     END IF
      cap = get_menu_item_caption(menu.items(elem), menu)
-     edgeprint cap, menu.rect.x + 8, menu.rect.y + 8 + (i * 10), col, dpage
+     position_menu_item menu, cap, i, where
+     IF .t = 1 AND .sub_t = 11 THEN ' volume meter
+      edgeboxstyle where.x, where.y, fmvol * 3, 10, menu.boxstyle, dpage
+     END IF
+     edgeprint cap, where.x, where.y, col, dpage
     ELSE
      IF menu.edit_mode = YES THEN
-      edgeprint "[NEW MENU ITEM]", menu.rect.x + 8, menu.rect.y + 8 + (i * 10), col, dpage
+      cap = "[NEW MENU ITEM]"
+      position_menu_item menu, cap, i, where
+      edgeprint cap, where.x, where.y, col, dpage
      END IF
      EXIT FOR ' Give up after we find the first non-existant item (which will always be sorted to the end)
     END IF
@@ -1938,6 +1942,20 @@ SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
   END IF
  NEXT i
  
+END SUB
+
+SUB position_menu_item (menu AS MenuDef, cap AS STRING, i AS INTEGER, BYREF where AS XYPair)
+ WITH menu.rect
+  SELECT CASE menu.align
+   CASE -1
+    where.x = .x + 8
+   CASE 0
+    where.x = .x + .wide / 2 - LEN(cap) * 4
+   CASE 1
+    where.x = .x + .wide - 8 - LEN(cap) * 8
+  END SELECT
+  where.y = .y + 8 + (i * 10)
+ END WITH
 END SUB
 
 SUB position_menu (menu AS MenuDef)
