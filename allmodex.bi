@@ -125,4 +125,15 @@ DECLARE FUNCTION getmusictype (file$)
 'DECLARE FUNCTION getsoundvol ()
 'DECLARE SUB setsoundvol (BYVAL vol)
 
+
+'new sprite loading functions
+declare function sprite_load(byval as string, byval as integer, byval as integer , byval as integer, byval as integer, byval as integer) as frame ptr
+declare function sprite_load_single(byval as string, byval as integer, byval as integer, byval as integer, byval as integer, byval as integer, byval as integer) as frame ptr
+declare sub sprite_draw overload(byval spr as frame ptr, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1)
+declare sub sprite_draw(byval spr as frame ptr, byval x as integer, byval y as integer, pal() as integer, byval po as integer, byval scale as integer = 1, byval trans as integer = -1)
+declare sub sprite_ward overload(byval spr as frame ptr, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1)
+declare sub sprite_ward(byval spr as frame ptr, byval x as integer, byval y as integer, pal() as integer, byval po as integer, byval scale as integer = 1, byval trans as integer = -1)
+declare function sprite_rev(byval spr as frame ptr) as frame ptr
+
+
 #ENDIF

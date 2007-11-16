@@ -742,11 +742,15 @@ IF formdata(i * 4) > 0 THEN
   END IF
   .hero_untargetable = readbit(ebits(), i * 5, 61)
   .enemy_untargetable = readbit(ebits(), i * 5, 60)
+  
+  .sprite_num = 1
+  .sprites = sprite_load(game$ + ".pt0",  es(i, 53), .sprite_num, .w, .h, 4)
+  
  END WITH
 END IF
 IF bslot(4 + i).vis = 1 THEN
- setpicstuf buffer(), (bslot(4 + i).w * bslot(4 + i).h) * .5, 3
- loadset game$ + ext$(i), es(i, 53), 64 + i * 10
+ 'setpicstuf buffer(), (bslot(4 + i).w * bslot(4 + i).h) * .5, 3
+ 'loadset game$ + ext$(i), es(i, 53), 64 + i * 10
  FOR o = 0 TO 11
   bstat(4 + i).cur.sta(o) = es(i, 62 + o)
   bstat(4 + i).max.sta(o) = es(i, 62 + o)

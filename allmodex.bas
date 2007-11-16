@@ -44,7 +44,6 @@ end type
 'add page? or assume workpage? (all pages for clip?)
 declare SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer=1, BYVAL trans as integer = -1)
 declare sub setclip(l as integer=0, t as integer=0, r as integer=319, b as integer=199)
-declare sub drawohr(byref spr as frame, x as integer, y as integer, scale as integer=1, trans as integer = -1)
 declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
 declare SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
@@ -60,17 +59,6 @@ declare function calcblock(byval x as integer, byval y as integer, byval l as in
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
-
-
-
-'new sprite loading functions
-declare function sprite_load(byval as string, byval as integer, byval as integer , byval as integer, byval as integer, byval as integer) as frame ptr
-declare function sprite_load_single(byval as string, byval as integer, byval as integer, byval as integer, byval as integer, byval as integer, byval as integer) as frame ptr
-
-
-
-
-
 
 
 
@@ -480,7 +468,7 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer
 				end if
 
 				'draw it on the map
-				drawohr(*tbuf, tx, ty,,trans)
+				sprite_draw(tbuf, tx, ty,,trans)
 				lasttile = todraw
 			end if
 
@@ -594,7 +582,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 		nib = nib and 3	'= mod 4, but possibly more efficient
 	next
 	'now draw the image
-	drawohr(hspr,x,y, scale)
+	sprite_draw(@hspr,x,y, scale)
 
 	deallocate(hspr.image)
 	deallocate(hspr.mask)
@@ -682,7 +670,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	next
 
 	'now draw the image
-	drawohr(hspr,x,y)
+	sprite_draw(@hspr,x,y)
 	deallocate(hspr.image)
 	deallocate(hspr.mask)
 end SUB
@@ -3154,11 +3142,13 @@ sub setclip(l as integer, t as integer, r as integer, b as integer)
 	clipb = b
 end sub
 
-sub drawohr(byref spr as frame, x as integer, y as integer, scale as integer, trans as integer = -1)
+sub sprite_draw(byval spr as frame ptr, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1)
 	dim sptr as ubyte ptr
 	dim as integer tx, ty
 	dim as integer i, j, pix, spix
-
+	
+	if spr = 0 then exit sub
+	
 	'assume wrkpage
 	sptr = spage(wrkpage)
 
@@ -3167,32 +3157,118 @@ sub drawohr(byref spr as frame, x as integer, y as integer, scale as integer, tr
 	'checking the clip region should really be outside the loop,
 	'I think, but we'll see how this works
 	ty = y
-	for i = 0 to (spr.h * scale) - 1
+	for i = 0 to (spr->h * scale) - 1
 		tx = x
-		for j = 0 to (spr.w * scale) - 1
+		for j = 0 to (spr->w * scale) - 1
 			'check bounds
 			if not (tx < clipl or tx > clipr or ty < clipt or ty > clipb) then
 				'ok to draw pixel
 				pix = (ty * 320) + tx
-				spix = ((i \ scale) * spr.w) + (j \ scale)
+				spix = ((i \ scale) * spr->w) + (j \ scale)
 				'check mask
-				if spr.mask <> 0 and trans then
+				if spr->mask <> 0 and trans then
 					'not really sure whether to leave the masks like
 					'this or change them above, this is the wrong
 					'way round, really. perhaps.
-					if spr.mask[spix] = 0 then
-						sptr[pix] = spr.image[spix]
+					if spr->mask[spix] = 0 then
+						sptr[pix] = spr->image[spix]
 					end if
 				else
-					sptr[pix] = spr.image[spix]
+					sptr[pix] = spr->image[spix]
 				end if
 			end if
 			tx += 1
 		next
 		ty += 1
 	next
-
 end sub
+
+sub sprite_draw(byval spr as frame ptr, byval x as integer, byval y as integer, pal() as integer, byval po as integer, byval scale as integer = 1, byval trans as integer = -1)
+	dim sptr as ubyte ptr
+	dim as integer tx, ty
+	dim as integer i, j, pix, spix
+
+	if spr = 0 then exit sub
+	
+	'assume wrkpage
+	sptr = spage(wrkpage)
+
+	if scale = 0 then scale = 1
+
+	'checking the clip region should really be outside the loop,
+	'I think, but we'll see how this works
+	ty = y
+	for i = 0 to (spr->h * scale) - 1
+		tx = x
+		for j = 0 to (spr->w * scale) - 1
+			'check bounds
+			if not (tx < clipl or tx > clipr or ty < clipt or ty > clipb) then
+				'ok to draw pixel
+				pix = (ty * 320) + tx
+				spix = ((i \ scale) * spr->w) + (j \ scale)
+				'check mask
+				if spr->mask <> 0 and trans then
+					'not really sure whether to leave the masks like
+					'this or change them above, this is the wrong
+					'way round, really. perhaps.
+					if spr->mask[spix] = 0 then
+						sptr[pix] = pal(int((po + spr->image[spix]) / 2))
+					end if
+				else
+					sptr[pix] = pal(int((po + spr->image[spix]) / 2))
+				end if
+			end if
+			tx += 1
+		next
+		ty += 1
+	next
+end sub
+
+sub sprite_ward(byval spr as frame ptr, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1)
+	dim s as frame ptr
+	
+	s = sprite_rev(spr)
+	
+	if s = 0 then exit sub
+	
+	sprite_draw(spr,x,y,scale,trans)
+end sub
+
+sub sprite_ward(byval spr as frame ptr, byval x as integer, byval y as integer, pal() as integer, byval po as integer, byval scale as integer = 1, byval trans as integer = -1)
+	dim s as frame ptr
+	
+	s = sprite_rev(spr)
+	
+	if s = 0 then exit sub
+	
+	sprite_draw(spr,x,y,pal(), po, scale, trans)
+end sub
+
+function sprite_rev(byval spr as frame ptr) as frame ptr
+
+	if spr = 0 then return 0
+	
+	dim ret as frame ptr = allocate(sizeof(frame))
+	
+	if ret = 0 then return 0
+	
+	with *ret
+		.w = spr->w
+		.h = spr->h
+		.image = allocate(.w * .h)
+		.mask = allocate(.w * .h)
+		
+		dim as integer x, y
+		
+		for x = spr->w - 1 to 0 step -1
+			for y = 0 to spr->h - 1
+				.image[y + (.w - x) * .h] = ret->image[y + x * ret->h]
+				.mask[y + (.w - x) * .h] = ret->mask[y + x * ret->h]
+			next
+		next
+	end with
+	return ret
+end function
 
 sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 'ibuf should be pre-allocated

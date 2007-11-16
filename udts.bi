@@ -18,6 +18,14 @@ TYPE RectType
   high AS INTEGER
 END TYPE
 
+'sprites use this
+TYPE Frame
+	w as integer
+	h as integer
+	image as ubyte ptr
+	mask as ubyte ptr
+END TYPE
+
 TYPE MenuSet
   menufile  AS STRING
   itemfile AS STRING
@@ -127,6 +135,8 @@ TYPE BattleSprite
   enemy_untargetable AS INTEGER
   dissolve AS INTEGER
   attack_succeeded as INTEGER
+  sprite_num as integer
+  sprites as frame ptr
 END TYPE
 
 UNION BattleStatsSingle
@@ -340,14 +350,6 @@ END TYPE
 '7 remembers the speed of the leader 
 '8-21 are copied from VEH
 
-
-'sprites use this
-type Frame
-	w as integer
-	h as integer
-	image as ubyte ptr
-	mask as ubyte ptr
-end type
 
 
 #ENDIF
