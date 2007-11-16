@@ -34,12 +34,6 @@ option explicit
 #define SC_RSHIFT		&h36
 #define SC_ALT			&h38
 
-type frame
-	w as integer
-	h as integer
-	image as ubyte ptr
-	mask as ubyte ptr
-end type
 
 type node 	'only used for floodfill
 	x as integer
@@ -66,6 +60,19 @@ declare function calcblock(byval x as integer, byval y as integer, byval l as in
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
+
+
+
+'new sprite loading functions
+declare function sprite_load(byval as string, byval as integer, byval as integer , byval as integer, byval as integer, byval as integer) as frame ptr
+declare function sprite_load_single(byval as string, byval as integer, byval as integer, byval as integer, byval as integer, byval as integer, byval as integer) as frame ptr
+
+
+
+
+
+
+
 
 'extern
 declare sub debug(s$)
@@ -3348,3 +3355,148 @@ FUNCTION getmusictype (file$)
 
   return chk
 END FUNCTION
+
+
+
+'New Sprite handling functions
+function sprite_load(byval fi as string, byval rec as integer, byval num as integer, byval wid as integer, byval hei as integer, byval bt as integer) as frame ptr
+
+	'first, we do a bit of math:
+	'the size of one sprite
+	dim sprsize as integer = wid * hei
+	select case as const bt
+		case 1 'font
+			sprsize /= 8
+		case 4 'most sprites
+			if sprsize mod 2 = 1 then sprsize -= 1 'not that we have any odd sized sprites
+			sprsize /= 2
+		case 8 'tileset, theoretically, though loading them is more complicated
+			'either way, no modifier
+		case else 'no way, no how
+			return 0
+	end select
+	
+	'the size of the whole *record* (the collection of sprites)
+	dim recsize as integer = sprsize * num
+	
+	'now, we can load the sprite
+	dim f as integer = freefile
+	
+	if not isfile(fi) then return 0
+	
+	if not open(fi for binary as #f) then return 0
+	
+	'if we get here, we can assume that all's well, and allocate the memory
+	dim ret as frame ptr = allocate(sizeof(frame) * num)
+	
+	if ret = 0 then
+		close #f
+		return 0
+	end if
+	
+	seek #f, recsize * rec + 1
+	
+	dim i as integer, x as integer, y as integer
+	dim waserr as integer = 0
+	
+	for i = 0 to num - 1
+		with ret[i]
+			.w = wid
+			.h = hei
+			.image = allocate(wid * hei)
+			.mask = allocate(wid * hei)
+			
+			for x = 0 to wid - 1
+				for y = 0 to hei - 1
+					get #f,,.image[y + x * hei]
+					if .image[y + x * hei] = 0 then .mask[y + x * hei] = &hFF
+					
+				next
+			next
+		end with
+	next
+	
+	if waserr then
+		for i = 0 to num - 1
+			with ret[i]
+				if .image then deallocate .image : .image = 0
+				if .mask then deallocate .mask : .mask = 0
+			end with
+		next
+		
+		deallocate ret
+		ret = 0
+	end if
+	
+	close #f
+	return ret
+end function
+
+function sprite_load_single(byval fi as string, byval rec as integer, byval frame as integer, byval num as integer, byval wid as integer, byval hei as integer, byval bt as integer) as frame ptr
+
+	'first, we do a bit of math:
+	'the size of one sprite
+	dim sprsize as integer = wid * hei
+	select case as const bt
+		case 1 'font
+			sprsize /= 8
+		case 4 'most sprites
+			if sprsize mod 2 = 1 then sprsize -= 1 'not that we have any odd sized sprites
+			sprsize /= 2
+		case 8 'tileset, theoretically, though loading them is more complicated
+			'either way, no modifier
+		case else 'no way, no how
+			return 0
+	end select
+	
+	'the size of the whole *record* (the collection of sprites)
+	dim recsize as integer = sprsize * num
+	
+	'now, we can load the sprite
+	dim f as integer = freefile
+	
+	if not isfile(fi) then return 0
+	
+	if not open(fi for binary as #f) then return 0
+	
+	'if we get here, we can assume that all's well, and allocate the memory
+	dim ret as frame ptr = allocate(sizeof(frame))
+	
+	if ret = 0 then
+		close #f
+		return 0
+	end if
+	
+	seek #f, recsize * rec + sprsize * frame + 1
+	
+	dim i as integer, x as integer, y as integer
+	dim waserr as integer = 0
+	
+	with *ret
+		.w = wid
+		.h = hei
+		.image = allocate(wid * hei)
+		.mask = allocate(wid * hei)
+		
+		for x = 0 to wid - 1
+			for y = 0 to hei - 1
+				get #f,,.image[y + x * hei]
+				if .image[y + x * hei] = 0 then .mask[y + x * hei] = &hFF
+				
+			next
+		next
+	end with
+	
+	if waserr then
+		with *ret
+			if .image then deallocate .image : .image = 0
+			if .mask then deallocate .mask : .mask = 0
+		end with
+		
+		deallocate ret
+		ret = 0
+	end if
+	
+	close #f
+	return ret
+end function
