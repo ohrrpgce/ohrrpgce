@@ -71,7 +71,13 @@ declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as i
 declare sub debug(s$)
 declare sub fatalerror(e$)
 
-declare sub pollingthread(byval as any ptr)
+#if __FB_VERSION__ > "0.16"
+#define threadbs any ptr
+#else
+#define threadbs integer
+#endif
+
+declare sub pollingthread(byval as threadbs)
 
 dim shared vispage as integer
 dim shared wrkpage as integer
@@ -864,7 +870,7 @@ SUB clearkey(byval k as integer)
 	keybd(k) = 0
 end sub
 
-sub pollingthread(byval unused as any ptr)
+sub pollingthread(byval unused as threadbs)
 	dim as integer a, dummy, buttons
 
 	while endpollthread = 0
