@@ -12,50 +12,42 @@ svn info > svninfo.txt
 
 del game*.exe
 del custom*.exe
-call makegame-gfx-music fb native
-call makeedit-gfx-music fb native
+call make.bat fb native
 call nightly-gfx-music fb native
 
 del game*.exe
 del custom*.exe
-call makegame-gfx-music fb native2
-call makeedit-gfx-music fb native2
+call make.bat fb native2
 call nightly-gfx-music fb native2
 
 del game*.exe
 del custom*.exe
-call makegame-gfx-music fb sdl
-call makeedit-gfx-music fb sdl
+call make.bat fb sdl
 call nightly-gfx-music fb sdl
 
 del game*.exe
 del custom*.exe
-call makegame-gfx-music alleg native
-call makeedit-gfx-music alleg native
+call make.bat alleg native
 call nightly-gfx-music alleg native
 
 del game*.exe
 del custom*.exe
-call makegame-gfx-music alleg sdl
-call makeedit-gfx-music alleg sdl
+call make.bat alleg sdl
 call nightly-gfx-music alleg sdl
 
 del game*.exe
 del custom*.exe
-call makegame-gfx-music alleg allegro
-call makeedit-gfx-music alleg allegro
+call make.bat alleg allegro
 call nightly-gfx-music alleg allegro
 
 del game*.exe
 del custom*.exe
-call makegame-gfx-music sdl sdl
-call makeedit-gfx-music sdl sdl
+call make.bat sdl sdl
 call nightly-gfx-music sdl sdl
 
 del game*.exe
 del custom*.exe
-call makegame-gfx-music fb silence
-call makeedit-gfx-music fb silence
+call make.bat fb silence
 call nightly-gfx-music fb silence
 
 Echo upload plotdict.xml
