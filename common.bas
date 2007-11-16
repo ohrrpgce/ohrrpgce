@@ -2092,13 +2092,17 @@ SUB create_default_menu(menu AS MenuDef)
   .t = 1
   .sub_t = 6 ' Order/Status menu
  END WITH
- FOR i = 0 TO 1
-  WITH menu.items(5 + i)
-   .exists = YES
+ WITH menu.items(5)
+  .exists = YES
   .t = 1
-  .sub_t = 7 + i ' map, save
-  END WITH
- NEXT i
+  .sub_t = 7 ' map
+  .hide_if_disabled = YES
+ END WITH
+ WITH menu.items(6)
+  .exists = YES
+  .t = 1
+  .sub_t = 8 ' save
+ END WITH
  FOR i = 0 TO 1
   WITH menu.items(7 + i)
    .exists = YES
