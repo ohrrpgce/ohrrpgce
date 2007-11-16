@@ -2164,3 +2164,91 @@ FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) 
 
  RETURN result
 END FUNCTION
+
+FUNCTION read_menu_int (menu AS MenuDef, intoffset AS INTEGER)
+ '--This function allows read access to integers in a menu for the plotscripting interface
+ '--intoffset is the integer offset, same as appears in the MENUS.BIN lump documentation
+ DIM bits(0) AS INTEGER
+ WITH menu
+  SELECT CASE intoffset
+   CASE 12: RETURN .boxstyle
+   CASE 13: RETURN .textcolor
+   CASE 14: RETURN .maxrows
+   CASE 15:
+    MenuBitsToArray menu, bits()
+    RETURN bits(0)
+   CASE 16: RETURN .offset.x
+   CASE 17: RETURN .offset.y
+   CASE 18: RETURN .anchor.x
+   CASE 19: RETURN .anchor.y
+   CASE ELSE
+    debug "read_menu_int: " & intoffset & " is an invalid integer offset"
+  END SELECT
+ END WITH
+ RETURN 0
+END FUNCTION
+
+SUB write_menu_int (menu AS MenuDef, intoffset AS INTEGER, n AS INTEGER)
+ '--This sub allows write access to integers in a menu for the plotscripting interface
+ '--intoffset is the integer offset, same as appears in the MENUS.BIN lump documentation
+ DIM bits(0) AS INTEGER
+ WITH menu
+  SELECT CASE intoffset
+   CASE 12: .boxstyle = n
+   CASE 13: .textcolor = n
+   CASE 14: .maxrows = n
+   CASE 15:
+    bits(0) = n
+    MenuBitsFromArray menu, bits()
+   CASE 16: .offset.x = n
+   CASE 17: .offset.y = n
+   CASE 18: .anchor.x = n
+   CASE 19: .anchor.y = n
+   CASE ELSE
+    debug "write_menu_int: " & intoffset & " is an invalid integer offset"
+  END SELECT
+ END WITH
+END SUB
+
+FUNCTION read_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER)
+ '--This function allows read access to integers in a menu item for the plotscripting interface
+ '--intoffset is the integer offset, same as appears in the MENUITEM.BIN lump documentation
+ DIM bits(0) AS INTEGER
+ WITH mi
+  SELECT CASE intoffset
+   CASE 22: RETURN .t
+   CASE 23: RETURN .sub_t
+   CASE 24: RETURN .tag1
+   CASE 25: RETURN .tag2
+   CASE 26: RETURN .settag
+   CASE 27: RETURN .togtag
+   CASE 28:
+    MenuItemBitsToArray mi, bits()
+    RETURN bits(0)
+   CASE ELSE
+    debug "read_menu_item_int: " & intoffset & " is an invalid integer offset"
+  END SELECT
+ END WITH
+ RETURN 0
+END FUNCTION
+
+SUB write_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER, n AS INTEGER)
+ '--This sub allows write access to integers in a menu item for the plotscripting interface
+ '--intoffset is the integer offset, same as appears in the MENUITEM.BIN lump documentation
+ DIM bits(0) AS INTEGER
+ WITH mi
+  SELECT CASE intoffset
+   CASE 22: .t = n
+   CASE 23: .sub_t = n
+   CASE 24: .tag1 = n
+   CASE 25: .tag2 = n
+   CASE 26: .settag = n
+   CASE 27: .togtag = n
+   CASE 28:
+    bits(0) = n
+    MenuItemBitsFromArray mi, bits()
+   CASE ELSE
+    debug "write_menu_item_int: " & intoffset & " is an invalid integer offset"
+  END SELECT
+ END WITH
+END SUB

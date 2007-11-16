@@ -121,6 +121,10 @@ DECLARE FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS S
 DECLARE FUNCTION get_special_menu_caption(subtype AS INTEGER, edit_mode AS INTEGER= NO) AS STRING
 DECLARE SUB create_default_menu(menu AS MenuDef)
 DECLARE FUNCTION anchor_point(anchor AS INTEGER, size AS INTEGER) AS INTEGER
+DECLARE FUNCTION read_menu_int (menu AS MenuDef, intoffset AS INTEGER)
+DECLARE SUB write_menu_int (menu AS MenuDef, intoffset AS INTEGER, n AS INTEGER)
+DECLARE FUNCTION read_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER)
+DECLARE SUB write_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER, n AS INTEGER)
 
 DECLARE FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
 
