@@ -44,6 +44,7 @@ end type
 'add page? or assume workpage? (all pages for clip?)
 declare SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer=1, BYVAL trans as integer = -1)
 declare sub setclip(l as integer=0, t as integer=0, r as integer=319, b as integer=199)
+declare sub drawohr(byref spr as frame, x as integer, y as integer, scale as integer=1, trans as integer = -1)
 declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
 declare SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
@@ -59,6 +60,17 @@ declare function calcblock(byval x as integer, byval y as integer, byval l as in
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
+
+
+
+'new sprite loading functions
+declare function sprite_load(byval as string, byval as integer, byval as integer , byval as integer, byval as integer, byval as integer) as frame ptr
+declare function sprite_load_single(byval as string, byval as integer, byval as integer, byval as integer, byval as integer, byval as integer, byval as integer) as frame ptr
+
+
+
+
+
 
 
 
@@ -468,7 +480,7 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer
 				end if
 
 				'draw it on the map
-				sprite_draw(tbuf, tx, ty,,trans)
+				drawohr(*tbuf, tx, ty,,trans)
 				lasttile = todraw
 			end if
 
@@ -582,7 +594,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 		nib = nib and 3	'= mod 4, but possibly more efficient
 	next
 	'now draw the image
-	sprite_draw(@hspr,x,y, scale)
+	drawohr(hspr,x,y, scale)
 
 	deallocate(hspr.image)
 	deallocate(hspr.mask)
@@ -670,7 +682,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	next
 
 	'now draw the image
-	sprite_draw(@hspr,x,y)
+	drawohr(hspr,x,y)
 	deallocate(hspr.image)
 	deallocate(hspr.mask)
 end SUB
@@ -3142,13 +3154,11 @@ sub setclip(l as integer, t as integer, r as integer, b as integer)
 	clipb = b
 end sub
 
-sub sprite_draw(byval spr as frame ptr, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1)
+sub drawohr(byref spr as frame, x as integer, y as integer, scale as integer, trans as integer = -1)
 	dim sptr as ubyte ptr
 	dim as integer tx, ty
 	dim as integer i, j, pix, spix
-	
-	if spr = 0 then exit sub
-	
+
 	'assume wrkpage
 	sptr = spage(wrkpage)
 
@@ -3157,128 +3167,32 @@ sub sprite_draw(byval spr as frame ptr, byval x as integer, byval y as integer, 
 	'checking the clip region should really be outside the loop,
 	'I think, but we'll see how this works
 	ty = y
-	for i = 0 to (spr->h * scale) - 1
+	for i = 0 to (spr.h * scale) - 1
 		tx = x
-		for j = 0 to (spr->w * scale) - 1
+		for j = 0 to (spr.w * scale) - 1
 			'check bounds
 			if not (tx < clipl or tx > clipr or ty < clipt or ty > clipb) then
 				'ok to draw pixel
 				pix = (ty * 320) + tx
-				spix = ((i \ scale) * spr->w) + (j \ scale)
+				spix = ((i \ scale) * spr.w) + (j \ scale)
 				'check mask
-				if spr->mask <> 0 and trans then
+				if spr.mask <> 0 and trans then
 					'not really sure whether to leave the masks like
 					'this or change them above, this is the wrong
 					'way round, really. perhaps.
-					if spr->mask[spix] = 0 then
-						sptr[pix] = spr->image[spix]
+					if spr.mask[spix] = 0 then
+						sptr[pix] = spr.image[spix]
 					end if
 				else
-					sptr[pix] = spr->image[spix]
+					sptr[pix] = spr.image[spix]
 				end if
 			end if
 			tx += 1
 		next
 		ty += 1
 	next
+
 end sub
-
-sub sprite_draw(byval spr as frame ptr, byval x as integer, byval y as integer, pal() as integer, byval po as integer, byval scale as integer = 1, byval trans as integer = -1)
-	dim sptr as ubyte ptr
-	dim as integer tx, ty
-	dim as integer sx, sy, pix, spix
-
-	if spr = 0 then exit sub
-	
-	'assume wrkpage
-	sptr = spage(wrkpage)
-
-	if scale = 0 then scale = 1
-
-	dim realpal(15) as ubyte
-	dim i as integer
-
-	for i = 0 to 7
-		realpal(i*2) = pal(po + i) AND &hff
-		realpal(i*2+1) = (pal(po + i) SHR 8) AND &hff
-	next
-
-	'checking the clip region should really be outside the loop,
-	'I think, but we'll see how this works
-	ty = y
-	for sy = 0 to (spr->h * scale) - 1
-		tx = x
-		for sx = 0 to (spr->w * scale) - 1
-			'check bounds
-			if not (tx < clipl or tx > clipr or ty < clipt or ty > clipb) then
-				'ok to draw pixel
-				pix = (ty * 320) + tx
-				spix = ((sy \ scale) * spr->w) + (sx \ scale)
-				'check mask
-				if spr->mask <> 0 and trans then
-					'not really sure whether to leave the masks like
-					'this or change them above, this is the wrong
-					'way round, really. perhaps.
-					if spr->mask[spix] = 0 then
-						sptr[pix] = realpal(spr->image[spix])
-						'sptr[pix] = 16
-					end if
-				else
-					sptr[pix] = realpal(spr->image[spix])
-					'sptr[pix] = 16
-				end if
-			end if
-			tx += 1
-		next
-		ty += 1
-	next
-end sub
-
-sub sprite_ward(byval spr as frame ptr, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1)
-	dim s as frame ptr
-	
-	s = sprite_rev(spr)
-	
-	if s = 0 then exit sub
-	
-	sprite_draw(spr,x,y,scale,trans)
-end sub
-
-sub sprite_ward(byval spr as frame ptr, byval x as integer, byval y as integer, pal() as integer, byval po as integer, byval scale as integer = 1, byval trans as integer = -1)
-	dim s as frame ptr
-	
-	s = sprite_rev(spr)
-	
-	if s = 0 then exit sub
-	
-	sprite_draw(spr,x,y,pal(), po, scale, trans)
-end sub
-
-function sprite_rev(byval spr as frame ptr) as frame ptr
-
-	if spr = 0 then return 0
-	
-	dim ret as frame ptr = allocate(sizeof(frame))
-	
-	if ret = 0 then return 0
-	
-	with *ret
-		.w = spr->w
-		.h = spr->h
-		.image = allocate(.w * .h)
-		.mask = allocate(.w * .h)
-		
-		dim as integer x, y
-		
-		for x = spr->w - 1 to 0 step -1
-			for y = 0 to spr->h - 1
-				.image[y + (.w - x) * .h] = ret->image[y + x * ret->h]
-				.mask[y + (.w - x) * .h] = ret->mask[y + x * ret->h]
-			next
-		next
-	end with
-	return ret
-end function
 
 sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 'ibuf should be pre-allocated
@@ -3445,11 +3359,22 @@ END FUNCTION
 
 
 'New Sprite handling functions
-function sprite_load(byval fi as string, byval rec as integer, byval num as integer, byval wid as integer, byval hei as integer) as frame ptr
+function sprite_load(byval fi as string, byval rec as integer, byval num as integer, byval wid as integer, byval hei as integer, byval bt as integer) as frame ptr
 
 	'first, we do a bit of math:
 	'the size of one sprite
-	dim sprsize as integer = wid * hei / 2 'sprites are 4-bit (for now)
+	dim sprsize as integer = wid * hei
+	select case as const bt
+		case 1 'font
+			sprsize /= 8
+		case 4 'most sprites
+			if sprsize mod 2 = 1 then sprsize -= 1 'not that we have any odd sized sprites
+			sprsize /= 2
+		case 8 'tileset, theoretically, though loading them is more complicated
+			'either way, no modifier
+		case else 'no way, no how
+			return 0
+	end select
 	
 	'the size of the whole *record* (the collection of sprites)
 	dim recsize as integer = sprsize * num
@@ -3457,77 +3382,41 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 	'now, we can load the sprite
 	dim f as integer = freefile
 	
-	if not isfile(fi) then debug("file doesn't exist: " & fi) : return 0
+	if not isfile(fi) then return 0
 	
-	if open(fi, for binary, as #f) then debug ("Couldn't open file:" & fi) : return 0
+	if not open(fi for binary as #f) then return 0
 	
 	'if we get here, we can assume that all's well, and allocate the memory
-	dim ret as frame ptr = callocate(sizeof(frame) * num)
+	dim ret as frame ptr = allocate(sizeof(frame) * num)
 	
 	if ret = 0 then
 		close #f
 		return 0
 	end if
 	
-	'debug "Fetching record #" & rec
-	
 	seek #f, recsize * rec + 1
 	
 	dim i as integer, x as integer, y as integer
 	dim waserr as integer = 0
-	'dim as ubyte ptr im, ma
-	dim tmp as ubyte
 	
-	'debug "beginning load loop"
 	for i = 0 to num - 1
-		'debug "frame #" & i
 		with ret[i]
 			.w = wid
 			.h = hei
-			.image = callocate(wid * hei)
-			.mask = callocate(wid * hei)
+			.image = allocate(wid * hei)
+			.mask = allocate(wid * hei)
 			
-			if .image = 0 or .mask = 0 then
-				waserr = -1
-				exit for
-			end if
-			
-			'debug "Loading pixels (at file pos " & hex(seek(f)) & ")"
-			'im = .image
-			'ma = .mask
-			#define SPOS y * wid + x
 			for x = 0 to wid - 1
 				for y = 0 to hei - 1
-					get #f,,tmp
+					get #f,,.image[y + x * hei]
+					if .image[y + x * hei] = 0 then .mask[y + x * hei] = &hFF
 					
-					.image[SPOS] = (tmp SHR 4) AND &hF
-					if .image[SPOS] then .mask[SPOS] = 0 else .mask[SPOS] = &hFF
-					'im += 1
-					'ma += 1
-					
-					y += 1
-					
-					.image[SPOS] = tmp AND &hF
-					if .image[SPOS] then .mask[SPOS] = 0 else .mask[SPOS] = &hFF
-					'im += 1
-					'ma += 1
 				next
 			next
-			
-			'dim tmp as string
-			'for y = 0 to hei - 1
-			'	tmp = ""
-			'	for x = 0 to wid - 1
-			'		'if .mask[y * wid + x] = 0 then tmp &= "#" else tmp &= " "
-			'		tmp &= hex(.image[y * wid + x])
-			'	next
-			'	debug tmp
-			'next
 		end with
 	next
 	
 	if waserr then
-		debug "Error loading sprites: Out of Memory"
 		for i = 0 to num - 1
 			with ret[i]
 				if .image then deallocate .image : .image = 0
@@ -3540,8 +3429,6 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 	end if
 	
 	close #f
-	
-	'debug "Loaded sprite to address 0x" & hex(ret)
 	return ret
 end function
 
@@ -3570,7 +3457,7 @@ function sprite_load_single(byval fi as string, byval rec as integer, byval fram
 	
 	if not isfile(fi) then return 0
 	
-	if open(fi for binary as #f) then return 0
+	if not open(fi for binary as #f) then return 0
 	
 	'if we get here, we can assume that all's well, and allocate the memory
 	dim ret as frame ptr = allocate(sizeof(frame))
@@ -3591,11 +3478,6 @@ function sprite_load_single(byval fi as string, byval rec as integer, byval fram
 		.image = allocate(wid * hei)
 		.mask = allocate(wid * hei)
 		
-		if .image = 0 or .mask = 0 then
-			waserr = -1
-			goto ohnoes
-		end if
-		
 		for x = 0 to wid - 1
 			for y = 0 to hei - 1
 				get #f,,.image[y + x * hei]
@@ -3605,7 +3487,6 @@ function sprite_load_single(byval fi as string, byval rec as integer, byval fram
 		next
 	end with
 	
-ohnoes:
 	if waserr then
 		with *ret
 			if .image then deallocate .image : .image = 0

@@ -1935,23 +1935,18 @@ FOR o = 1 TO 24
  zbuf(i + 1) = insertval
 NEXT
 FOR i = 0 TO 24
-	IF (bslot(zbuf(i)).vis = 1 OR bslot(zbuf(i)).dissolve > 0) THEN
-		temp = 64 + (zbuf(i) - 4) * 10
-		with bslot(zbuf(i))
-			IF is_hero(zbuf(i)) THEN temp = zbuf(i) * 16
-			IF is_attack(zbuf(i)) THEN temp = 144
-			IF is_weapon(zbuf(i)) THEN temp = 156
-			
-			
-			'loadsprite buffer(), 0, of(zbuf(i)) * (bslot(zbuf(i)).w * bslot(zbuf(i)).h * .5), temp, bslot(zbuf(i)).w, bslot(zbuf(i)).h, 3
-			IF .d = 0 THEN
-				'drawsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
-				sprite_draw(.sprites, .x, .y - .z, pal16(), p(zbuf(i)) * 8)
-			ELSE
-				sprite_ward(.sprites, .x, .y - .z, pal16(), p(zbuf(i)) * 8)
-			END IF
-		end with
-	END IF
+ IF (bslot(zbuf(i)).vis = 1 OR bslot(zbuf(i)).dissolve > 0) THEN
+  temp = 64 + (zbuf(i) - 4) * 10
+  IF is_hero(zbuf(i)) THEN temp = zbuf(i) * 16
+  IF is_attack(zbuf(i)) THEN temp = 144
+  IF is_weapon(zbuf(i)) THEN temp = 156
+  loadsprite buffer(), 0, of(zbuf(i)) * (bslot(zbuf(i)).w * bslot(zbuf(i)).h * .5), temp, bslot(zbuf(i)).w, bslot(zbuf(i)).h, 3
+  IF bslot(zbuf(i)).d = 0 THEN
+   drawsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
+  ELSE
+   wardsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
+  END IF
+ END IF
 NEXT i
 FOR i = 0 TO 11
  IF hc(i) > 0 THEN
@@ -2033,6 +2028,7 @@ FOR i = 0 TO 3
    nmenu(i,newm) = bmenu(i,oldm)
    newm += 1
   NEXT oldm
+ 
   WITH bslot(i)
    .basex = (240 + i * 8)
    .basey = (82 + i * 20)
@@ -2042,15 +2038,9 @@ FOR i = 0 TO 3
    .h = 40
    p(i) = 40 + i
    .vis = 1
-   
-   .sprite_num = 8
-   .sprites = sprite_load(game$ + ".pt0", exstat(i, 0, 14), .sprite_num, 32, 40) 'last three are frames, width, height
   END WITH
-  'setpicstuf buffer(), 5120, 3
-  'loadset game$ + ".pt0", exstat(i, 0, 14), i * 16
-  
-  
-  
+  setpicstuf buffer(), 5120, 3
+  loadset game$ + ".pt0", exstat(i, 0, 14), i * 16
   getpal16 pal16(), 40 + i, exstat(i, 0, 15), 0, exstat(i, 0, 14)
   FOR o = 0 TO 11
    bstat(i).cur.sta(o) = exstat(i, 0, o)
