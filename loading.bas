@@ -541,6 +541,7 @@ SUB ClearMenuData(dat AS MenuDef)
   .align = 0
   .min_chars = 0
   .max_chars = 0
+  .bordersize = 0
   FOR i = 0 TO UBOUND(.items)
    ClearMenuItem(.items(i))
   NEXT i
@@ -591,6 +592,7 @@ SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER, ignore_
   .align = ReadShort(f)
   .min_chars = ReadShort(f)
   .max_chars = ReadShort(f)
+  .bordersize = ReadShort(f)
  END WITH
  CLOSE #f
  IF ignore_items = NO THEN 'This is disableable for performance when all you care about loading is the menu's name
@@ -657,6 +659,7 @@ SUB SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
   WriteShort(f, -1, .align)
   WriteShort(f, -1, .min_chars)
   WriteShort(f, -1, .max_chars)
+  WriteShort(f, -1, .bordersize)
  END WITH
  CLOSE #f
  DIM i AS INTEGER

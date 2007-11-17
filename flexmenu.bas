@@ -1401,10 +1401,16 @@ edmenu.offset.y = -100
 edmenu.boxstyle = 3
 edmenu.translucent = YES
 edmenu.min_chars = 38
+edmenu.maxrows = 6
 DIM menudata AS MenuDef
 LoadMenuData menu_set, menudata, record
 DIM detail AS MenuDef
 detail.align = -1
+detail.anchor.x = -1
+detail.anchor.y = 1
+detail.offset.x = -152
+detail.offset.y = 92
+detail.min_chars = 36
 
 setkeys
 DO
@@ -1522,6 +1528,8 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
    IF intgrabber(menudata.min_chars, 0, 38) THEN state.need_update = YES
   CASE 12 ' Maximum width in chars
    IF intgrabber(menudata.max_chars, 0, 38) THEN state.need_update = YES
+  CASE 13 ' border size
+   IF intgrabber(menudata.bordersize, -100, 100) THEN state.need_update = YES
  END SELECT
 END SUB
 
@@ -1707,6 +1715,10 @@ SUB update_menu_editor_menu(record, edmenu AS MenuDef, menu AS MenuDef)
   WITH .items(12)
    .exists = YES
    .caption = "Maximum width: " & zero_default(menu.max_chars, "None")
+  END WITH
+  WITH .items(13)
+   .exists = YES
+   .caption = "Border size: " & zero_default(menu.bordersize)
   END WITH
  END WITH
 END SUB

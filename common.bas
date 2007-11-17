@@ -665,7 +665,7 @@ FUNCTION curbinsize (id)
  IF id = 2 THEN RETURN 32  'songdata.bin
  IF id = 3 THEN RETURN 34  'sfxdata.bin
  IF id = 4 THEN RETURN 44  '.map
- IF id = 5 THEN RETURN 46  'menus.bin
+ IF id = 5 THEN RETURN 48  'menus.bin
  IF id = 6 THEN RETURN 58  'menuitem.bin
  RETURN 0
 END FUNCTION
@@ -1945,31 +1945,35 @@ SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
 END SUB
 
 SUB position_menu_item (menu AS MenuDef, cap AS STRING, i AS INTEGER, BYREF where AS XYPair)
+ DIM bord AS INTEGER
+ bord = 8 + menu.bordersize
  WITH menu.rect
   SELECT CASE menu.align
    CASE -1
-    where.x = .x + 8
+    where.x = .x + bord
    CASE 0
     where.x = .x + .wide / 2 - LEN(cap) * 4
    CASE 1
-    where.x = .x + .wide - 8 - LEN(cap) * 8
+    where.x = .x + .wide - bord - LEN(cap) * 8
   END SELECT
-  where.y = .y + 8 + (i * 10)
+  where.y = .y + bord + (i * 10)
  END WITH
 END SUB
 
 SUB position_menu (menu AS MenuDef)
  DIM i AS INTEGER
  DIM cap AS STRING
+ DIM bord AS INTEGER
+ bord = 8 + menu.bordersize
 
- menu.rect.wide = 16
- menu.rect.high = 16
+ menu.rect.wide = bord * 2
+ menu.rect.high = bord * 2
 
  FOR i = 0 TO UBOUND(menu.items)
   WITH menu.items(i)
    IF .exists THEN
     cap = get_menu_item_caption(menu.items(i), menu)
-    menu.rect.wide = large(menu.rect.wide, (LEN(cap) + 2) * 8)
+    menu.rect.wide = large(menu.rect.wide, LEN(cap) * 8 + bord * 2)
     IF .disabled AND .hide_if_disabled THEN CONTINUE FOR 'hidden matter for auto-width but not auto-height
     menu.rect.high = menu.rect.high + 10
    END IF
@@ -1979,11 +1983,11 @@ SUB position_menu (menu AS MenuDef)
   menu.rect.high = menu.rect.high + 10
  END IF
  '--enforce min width
- menu.rect.wide = large(menu.rect.wide, menu.min_chars * 8 + 16)
+ menu.rect.wide = large(menu.rect.wide, menu.min_chars * 8 + bord * 2)
  '--enforce screen boundaries
  menu.rect.wide = small(menu.rect.wide, 320)
  menu.rect.high = small(menu.rect.high, 200)
- IF menu.maxrows > 0 THEN menu.rect.high = small(menu.rect.high, menu.maxrows * 10 + 16)
+ IF menu.maxrows > 0 THEN menu.rect.high = small(menu.rect.high, menu.maxrows * 10 + bord * 2)
 
  WITH menu
   .rect.x = 160 - anchor_point(.anchor.x, .rect.wide) + menu.offset.x
@@ -2213,6 +2217,7 @@ FUNCTION read_menu_int (menu AS MenuDef, intoffset AS INTEGER)
    CASE 20: RETURN .align
    CASE 21: RETURN .min_chars
    CASE 22: RETURN .max_chars
+   CASE 23: RETURN .bordersize
    CASE ELSE
     debug "read_menu_int: " & intoffset & " is an invalid integer offset"
   END SELECT
@@ -2239,6 +2244,7 @@ SUB write_menu_int (menu AS MenuDef, intoffset AS INTEGER, n AS INTEGER)
    CASE 20: .align = n
    CASE 21: .min_chars = n
    CASE 22: .max_chars = n
+   CASE 23: .bordersize = n
    CASE ELSE
     debug "write_menu_int: " & intoffset & " is an invalid integer offset"
   END SELECT
