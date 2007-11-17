@@ -64,7 +64,7 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 #include "loading.bi"
 
 DECLARE SUB menu_editor ()
-DECLARE SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
+DECLARE SUB update_menu_editor_menu(record, edmenu AS MenuDef, menu AS MenuDef)
 DECLARE SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
 DECLARE SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menu_set AS MenuSet)
 DECLARE SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS MenuDef, record AS INTEGER)
@@ -1382,12 +1382,9 @@ menu_set.menufile = workingdir$ & SLASH & "menus.bin"
 menu_set.itemfile = workingdir$ & SLASH & "menuitem.bin"
 
 DIM record AS INTEGER = 0
-DIM edmenu$(10)
 
 DIM state AS MenuState 'top level
 state.active = YES
-state.last = UBOUND(edmenu$)
-state.size = 22
 state.need_update = YES
 DIM mstate AS MenuState 'menu
 mstate.active = NO
@@ -1395,6 +1392,14 @@ mstate.need_update = YES
 DIM dstate AS MenuState 'detail state
 dstate.active = NO
 
+DIM edmenu AS MenuDef
+edmenu.align = -1
+edmenu.anchor.x = -1
+edmenu.anchor.y = -1
+edmenu.offset.x = -160
+edmenu.offset.y = -100
+edmenu.boxstyle = 3
+edmenu.translucent = YES
 DIM menudata AS MenuDef
 LoadMenuData menu_set, menudata, record
 DIM detail AS MenuDef
@@ -1416,7 +1421,8 @@ DO
  
  IF state.need_update THEN
   state.need_update = NO
-  update_menu_editor_menu record, edmenu$(), menudata
+  update_menu_editor_menu record, edmenu, menudata
+  init_menu_state state, edmenu
   init_menu_state mstate, menudata
  END IF
  IF mstate.need_update THEN
@@ -1430,7 +1436,8 @@ DO
  END IF
  
  IF NOT mstate.active THEN draw_menu menudata, mstate, dpage
- standardmenu edmenu$(), state, 0, 0, dpage, YES, (mstate.active OR dstate.active)
+ draw_menu edmenu, state, dpage
+ 'ZZZ standardmenu edmenu$(), state, 0, 0, dpage, YES, (mstate.active OR dstate.active)
  IF mstate.active THEN
   draw_menu menudata, mstate, dpage
   edgeprint "ENTER to edit, Shift+Arrows to re-order", 0, 191, uilook(uiDisabledItem), dpage
@@ -1642,19 +1649,54 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
 
 END SUB
 
-SUB update_menu_editor_menu(record, m$(), menu AS MenuDef)
- m$(0) = "Previous Menu"
- m$(1) = "Menu " & record
- IF record = 0 THEN m$(1) = m$(1) & " (MAIN MENU)"
- m$(2) = "Name: " & menu.name
- m$(3) = "Edit Items..."
- m$(4) = "Background: " & menu.boxstyle
- m$(5) = "Text color: " & zero_default(menu.textcolor)
- m$(6) = "Max rows to display: " & zero_default(menu.maxrows)
- m$(7) = "Edit Bitsets..."
- m$(8) = "Reposition menu..."
- m$(9) = "Change Anchor Point..."
- m$(10) = "Text Align: " & sign_string(menu.align, "Left", "Center", "Right")
+SUB update_menu_editor_menu(record, edmenu AS MenuDef, menu AS MenuDef)
+ WITH edmenu
+  WITH .items(0)
+   .exists = YES
+   .caption = "Previous Menu"
+  END WITH
+  WITH .items(1)
+   .exists = YES
+   .caption = "Menu " & record
+   IF record = 0 THEN .caption = .caption & " (MAIN MENU)"
+  END WITH
+  WITH .items(2)
+   .exists = YES
+   .caption = "Name: " & menu.name
+  END WITH
+  WITH .items(3)
+   .exists = YES
+   .caption = "Edit Items..."
+  END WITH
+  WITH .items(4)
+   .exists = YES
+   .caption = "Background: " & menu.boxstyle
+  END WITH
+  WITH .items(5)
+   .exists = YES
+   .caption = "Text color: " & zero_default(menu.textcolor)
+  END WITH
+  WITH .items(6)
+   .exists = YES
+   .caption = "Max rows to display: " & zero_default(menu.maxrows)
+  END WITH
+  WITH .items(7)
+   .exists = YES
+   .caption = "Edit Bitsets..."
+  END WITH
+  WITH .items(8)
+   .exists = YES
+   .caption = "Reposition menu..."
+  END WITH
+  WITH .items(9)
+   .exists = YES
+   .caption = "Change Anchor Point..."
+  END WITH
+  WITH .items(10)
+   .exists = YES
+   .caption = "Text Align: " & sign_string(menu.align, "Left", "Center", "Right")
+  END WITH
+ END WITH
 END SUB
 
 SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
