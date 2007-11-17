@@ -1946,10 +1946,9 @@ FOR i = 0 TO 24
 			'loadsprite buffer(), 0, of(zbuf(i)) * (bslot(zbuf(i)).w * bslot(zbuf(i)).h * .5), temp, bslot(zbuf(i)).w, bslot(zbuf(i)).h, 3
 			IF .d = 0 THEN
 				'drawsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
-				debug(hex(.sprites))
-				sprite_draw(.sprites, .x, .y - .z, pal16(), p(zbuf(i)))
+				sprite_draw(.sprites, .x, .y - .z, pal16(), p(zbuf(i)) * 8)
 			ELSE
-				sprite_ward(.sprites, .x, .y - .z, pal16(), p(zbuf(i)))
+				sprite_ward(.sprites, .x, .y - .z, pal16(), p(zbuf(i)) * 8)
 			END IF
 		end with
 	END IF
@@ -2034,7 +2033,6 @@ FOR i = 0 TO 3
    nmenu(i,newm) = bmenu(i,oldm)
    newm += 1
   NEXT oldm
- 
   WITH bslot(i)
    .basex = (240 + i * 8)
    .basey = (82 + i * 20)
@@ -2046,7 +2044,7 @@ FOR i = 0 TO 3
    .vis = 1
    
    .sprite_num = 8
-   .sprites = sprite_load(game$ + ".pt0", exstat(i, 0, 14), .sprite_num, 32, 40, 4) 'last four are frames, width, height, bittage
+   .sprites = sprite_load(game$ + ".pt0", exstat(i, 0, 14), .sprite_num, 32, 40) 'last three are frames, width, height
   END WITH
   'setpicstuf buffer(), 5120, 3
   'loadset game$ + ".pt0", exstat(i, 0, 14), i * 16

@@ -744,7 +744,7 @@ IF formdata(i * 4) > 0 THEN
   .enemy_untargetable = readbit(ebits(), i * 5, 60)
   
   .sprite_num = 1
-  .sprites = sprite_load(game$ + ".pt0",  es(i, 53), .sprite_num, .w, .h, 4)
+  .sprites = sprite_load(game$ + ext$(i),  es(i, 53), .sprite_num, .w, .h)
   
  END WITH
 END IF
