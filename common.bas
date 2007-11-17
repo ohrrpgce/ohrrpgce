@@ -1970,9 +1970,6 @@ SUB position_menu (menu AS MenuDef)
    IF .exists THEN
     cap = get_menu_item_caption(menu.items(i), menu)
     menu.rect.wide = large(menu.rect.wide, (LEN(cap) + 2) * 8)
-    IF .t = 1 AND .sub_t = 11 THEN
-     menu.rect.wide = large(menu.rect.wide, 48 + 2 * 8)
-    END IF
     IF .disabled AND .hide_if_disabled THEN CONTINUE FOR 'hidden matter for auto-width but not auto-height
     menu.rect.high = menu.rect.high + 10
    END IF
@@ -1980,8 +1977,10 @@ SUB position_menu (menu AS MenuDef)
  NEXT i
  IF menu.edit_mode = YES THEN
   menu.rect.high = menu.rect.high + 10
-  menu.rect.wide = large(menu.rect.wide, 16 + 15*8)
  END IF
+ '--enforce min width
+ menu.rect.wide = large(menu.rect.wide, menu.min_chars * 8 + 16)
+ '--enforce screen boundaries
  menu.rect.wide = small(menu.rect.wide, 320)
  menu.rect.high = small(menu.rect.high, 200)
  IF menu.maxrows > 0 THEN menu.rect.high = small(menu.rect.high, menu.maxrows * 10 + 16)
@@ -2068,6 +2067,13 @@ FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
   END SELECT
  END IF
  IF menu.edit_mode = YES AND LEN(TRIM(cap)) = 0 THEN cap = "[BLANK]" 
+ IF menu.max_chars > 0 THEN ' Crop overlength
+  IF menu.align = 1 THEN ' right align
+   cap = RIGHT(cap, menu.max_chars)
+  ELSE ' left and center align
+   cap = LEFT(cap, menu.max_chars)
+  END IF
+ END IF
  RETURN cap
 END FUNCTION
 

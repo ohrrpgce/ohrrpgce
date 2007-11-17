@@ -20,7 +20,7 @@ declare sub touchfile (filename$)
 declare function rotascii$ (s$, o)
 declare function escape_string(s as string, chars as string) as string
 declare function sign_string(n as integer, neg_str as string, zero_str as string, pos_str as string) as string
-declare function zero_default(n) as string
+declare function zero_default(n, zerocaption as string="default") as string
 
 'also appears in udts.bi
 #ifndef Stack

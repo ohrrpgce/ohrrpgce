@@ -1400,6 +1400,7 @@ edmenu.offset.x = -160
 edmenu.offset.y = -100
 edmenu.boxstyle = 3
 edmenu.translucent = YES
+edmenu.min_chars = 38
 DIM menudata AS MenuDef
 LoadMenuData menu_set, menudata, record
 DIM detail AS MenuDef
@@ -1437,7 +1438,6 @@ DO
  
  IF NOT mstate.active THEN draw_menu menudata, mstate, dpage
  draw_menu edmenu, state, dpage
- 'ZZZ standardmenu edmenu$(), state, 0, 0, dpage, YES, (mstate.active OR dstate.active)
  IF mstate.active THEN
   draw_menu menudata, mstate, dpage
   edgeprint "ENTER to edit, Shift+Arrows to re-order", 0, 191, uilook(uiDisabledItem), dpage
@@ -1518,6 +1518,10 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
    END IF
   CASE 10 ' text align
    IF intgrabber(menudata.align, -1, 1) THEN state.need_update = YES
+  CASE 11 ' Minimum width in chars
+   IF intgrabber(menudata.min_chars, 0, 38) THEN state.need_update = YES
+  CASE 12 ' Maximum width in chars
+   IF intgrabber(menudata.max_chars, 0, 38) THEN state.need_update = YES
  END SELECT
 END SUB
 
@@ -1695,6 +1699,14 @@ SUB update_menu_editor_menu(record, edmenu AS MenuDef, menu AS MenuDef)
   WITH .items(10)
    .exists = YES
    .caption = "Text Align: " & sign_string(menu.align, "Left", "Center", "Right")
+  END WITH
+  WITH .items(11)
+   .exists = YES
+   .caption = "Minimum width: " & zero_default(menu.min_chars, "Automatic")
+  END WITH
+  WITH .items(12)
+   .exists = YES
+   .caption = "Maximum width: " & zero_default(menu.max_chars, "None")
   END WITH
  END WITH
 END SUB

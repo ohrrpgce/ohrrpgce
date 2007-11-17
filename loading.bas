@@ -534,6 +534,13 @@ SUB ClearMenuData(dat AS MenuDef)
   .boxstyle = 0
   .textcolor = 0
   .maxrows = 0
+  .offset.x = 0
+  .offset.y = 0
+  .anchor.x = 0
+  .anchor.y = 0
+  .align = 0
+  .min_chars = 0
+  .max_chars = 0
   FOR i = 0 TO UBOUND(.items)
    ClearMenuItem(.items(i))
   NEXT i
