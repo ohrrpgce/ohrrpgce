@@ -582,6 +582,8 @@ SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER, ignore_
   .anchor.x = ReadShort(f)
   .anchor.y = ReadShort(f)
   .align = ReadShort(f)
+  .min_chars = ReadShort(f)
+  .max_chars = ReadShort(f)
  END WITH
  CLOSE #f
  IF ignore_items = NO THEN 'This is disableable for performance when all you care about loading is the menu's name
@@ -646,6 +648,8 @@ SUB SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
   WriteShort(f, -1, .anchor.x)
   WriteShort(f, -1, .anchor.y)
   WriteShort(f, -1, .align)
+  WriteShort(f, -1, .min_chars)
+  WriteShort(f, -1, .max_chars)
  END WITH
  CLOSE #f
  DIM i AS INTEGER

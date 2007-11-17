@@ -63,6 +63,8 @@ TYPE MenuDef
   offset    AS XYPair
   anchor    AS XYPair
   align     AS INTEGER
+  min_chars AS INTEGER
+  max_chars AS INTEGER
 END TYPE
 
 TYPE MenuState

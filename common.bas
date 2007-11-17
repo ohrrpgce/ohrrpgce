@@ -665,7 +665,7 @@ FUNCTION curbinsize (id)
  IF id = 2 THEN RETURN 32  'songdata.bin
  IF id = 3 THEN RETURN 34  'sfxdata.bin
  IF id = 4 THEN RETURN 44  '.map
- IF id = 5 THEN RETURN 42  'menus.bin
+ IF id = 5 THEN RETURN 46  'menus.bin
  IF id = 6 THEN RETURN 58  'menuitem.bin
  RETURN 0
 END FUNCTION
@@ -2203,6 +2203,9 @@ FUNCTION read_menu_int (menu AS MenuDef, intoffset AS INTEGER)
    CASE 17: RETURN .offset.y
    CASE 18: RETURN .anchor.x
    CASE 19: RETURN .anchor.y
+   CASE 20: RETURN .align
+   CASE 21: RETURN .min_chars
+   CASE 22: RETURN .max_chars
    CASE ELSE
     debug "read_menu_int: " & intoffset & " is an invalid integer offset"
   END SELECT
@@ -2226,6 +2229,9 @@ SUB write_menu_int (menu AS MenuDef, intoffset AS INTEGER, n AS INTEGER)
    CASE 17: .offset.y = n
    CASE 18: .anchor.x = n
    CASE 19: .anchor.y = n
+   CASE 20: .align = n
+   CASE 21: .min_chars = n
+   CASE 22: .max_chars = n
    CASE ELSE
     debug "write_menu_int: " & intoffset & " is an invalid integer offset"
   END SELECT
