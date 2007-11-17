@@ -2107,8 +2107,8 @@ SUB create_default_menu(menu AS MenuDef)
  FOR i = 0 TO 3
   WITH menu.items(i)
    .exists = YES
-  .t = 1
-  .sub_t = i ' item, spell, status, equip
+   .t = 1
+   .sub_t = i ' item, spell, status, equip
   END WITH
  NEXT i
  WITH menu.items(4)
@@ -2130,11 +2130,12 @@ SUB create_default_menu(menu AS MenuDef)
  FOR i = 0 TO 1
   WITH menu.items(7 + i)
    .exists = YES
-  .t = 1
-  .sub_t = 10 + i ' quit, volume
+   .t = 1
+   .sub_t = 10 + i ' quit, volume
   END WITH
  NEXT i
  menu.translucent = YES
+ menu.min_chars = 14
 END SUB
 
 FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
