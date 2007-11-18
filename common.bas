@@ -19,6 +19,10 @@
 #include "music.bi"
 #include "loading.bi
 
+#IFDEF IS_GAME
+DECLARE SUB embedtext (text$, limit=0)
+#ENDIF
+
 SUB edgeprint (s$, x, y, c, p)
 textcolor uilook(uiOutline), 0
 printstr s$, x, y + 1, p
@@ -2063,6 +2067,9 @@ FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
  DIM cap AS STRING
  DIM menutemp AS MenuDef
  cap = mi.caption
+ #IFDEF IS_GAME
+ embedtext cap
+ #ENDIF
  IF LEN(cap) = 0 THEN
   'No caption, use the default
   SELECT CASE mi.t

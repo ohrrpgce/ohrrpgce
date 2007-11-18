@@ -192,7 +192,6 @@ NEXT i
 END SUB
 
 SUB embedtext (text$, limit=0)
-'--Clobbers buffer() !
 start = 1
 DO WHILE start < LEN(text$)
  '--seek an embed spot
