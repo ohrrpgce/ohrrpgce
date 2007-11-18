@@ -166,7 +166,9 @@ DECLARE SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame
 DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB check_menu_tags ()
 DECLARE FUNCTION game_usemenu (state AS MenuState)
-DECLARE FUNCTION bound_menu_handle(n AS INTEGER, cmd AS STRING) AS INTEGER
+DECLARE FUNCTION bound_menu_handle(handle AS INTEGER, cmd AS STRING) AS INTEGER
+DECLARE FUNCTION bound_menu_handle_slot(handle AS INTEGER, slot AS INTEGER, cmd AS STRING) AS INTEGER
+DECLARE FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -2268,19 +2270,15 @@ SELECT CASE AS CONST scrat(nowscript).curkind
      write_menu_int(menus(retvals(0) - 1), retvals(1), retvals(2))
     END IF
    CASE 277'--read menu item int
-    IF bound_menu_handle(retvals(0), "read menu item int") THEN
+    IF bound_menu_handle_slot(retvals(0), retvals(1), "read menu item int") THEN
      WITH menus(retvals(0) - 1)
-      IF bound_arg(retvals(1), 0, ubound(.items), "read menu item int", "menu item ID") THEN
-       IF .items(retvals(1)).exists THEN scriptret = read_menu_item_int(.items(retvals(1)), retvals(2))
-      END IF
+      IF .items(retvals(1)).exists THEN scriptret = read_menu_item_int(.items(retvals(1)), retvals(2))
      END WITH
     END IF
    CASE 278'--write menu item int
-    IF bound_menu_handle(retvals(0), "write menu item int") THEN
+    IF bound_menu_handle_slot(retvals(0), retvals(1), "write menu item int") THEN
      WITH menus(retvals(0) - 1)
-      IF bound_arg(retvals(1), 0, ubound(.items), "write menu item int", "menu item ID") THEN
-       IF .items(retvals(1)).exists THEN write_menu_item_int(.items(retvals(1)), retvals(2), retvals(3))
-      END IF
+      IF .items(retvals(1)).exists THEN write_menu_item_int(.items(retvals(1)), retvals(2), retvals(3))
      END WITH
     END IF
    CASE 279'--create menu
@@ -2306,13 +2304,23 @@ SELECT CASE AS CONST scrat(nowscript).curkind
      END IF
     END IF
    CASE 284'--delete menu item
-    IF bound_menu_handle(retvals(0), "delete menu item") THEN
+    IF bound_menu_handle_slot(retvals(0), retvals(1), "delete menu item") THEN
      WITH menus(retvals(0))
-      IF bound_arg(retvals(1), 0, UBOUND(.items), "delete menu item", "menu item ID") THEN
-       ClearMenuItem .items(retvals(1))
-       SortMenuItems .items()
-      END IF
+      ClearMenuItem .items(retvals(1))
+      SortMenuItems .items()
      END WITH
+    END IF
+   CASE 285'--get menu item caption
+    IF bound_menu_handle_slot(retvals(0), retvals(1), "get menu item caption") THEN
+     IF bound_plotstr(retvals(2), "get menu item caption") THEN
+      plotstr(retvals(2)).s = get_menu_item_caption(menus(retvals(0)).items(retvals(1)), menus(retvals(0)))
+     END IF
+    END IF
+   CASE 286'--set menu item caption
+    IF bound_menu_handle_slot(retvals(0), retvals(1), "set menu item caption") THEN
+     IF bound_plotstr(retvals(2), "get menu item caption") THEN
+      menus(retvals(0)).items(retvals(1)).caption = plotstr(retvals(2)).s
+     END IF
     END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
@@ -2324,8 +2332,19 @@ SELECT CASE AS CONST scrat(nowscript).curkind
 END SELECT
 RETRACE
 
-FUNCTION bound_menu_handle(n AS INTEGER, cmd AS STRING) AS INTEGER
- RETURN bound_arg(n, 1, topmenu + 1, cmd, "menu handle")
+FUNCTION bound_menu_handle(handle AS INTEGER, cmd AS STRING) AS INTEGER
+ RETURN bound_arg(handle, 1, topmenu + 1, cmd, "menu handle")
+END FUNCTION
+
+FUNCTION bound_menu_handle_slot(handle AS INTEGER, slot AS INTEGER, cmd AS STRING) AS INTEGER
+ IF bound_menu_handle(handle, cmd) THEN
+  RETURN bound_arg(slot, 0, UBOUND(menus(handle).items), cmd, "menu item slot")
+ END IF
+ RETURN NO
+END FUNCTION
+
+FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
+ RETURN bound_arg(n, 0, UBOUND(plotstr), cmd, "string ID")
 END FUNCTION
 
 SUB loadmap_gmap(mapnum)

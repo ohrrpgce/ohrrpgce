@@ -291,6 +291,8 @@ define function, begin
 282,bringmenuforward,1,0      #bring menu forward(menu handle)
 283,addmenuitem,1,0           #add menu item(handle) appends, returns slot
 284,deletemenuitem,2,0,0      #delete menu item(handle, slot)
+285,getmenuitemcaption,3,0,0,0 #get menu item caption(handle, slot, string ID)
+286,setmenuitemcaption,3,0,0,0 #set menu item caption(handle, slot, string ID)
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
