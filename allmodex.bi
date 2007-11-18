@@ -125,4 +125,8 @@ DECLARE FUNCTION getmusictype (file$)
 'DECLARE FUNCTION getsoundvol ()
 'DECLARE SUB setsoundvol (BYVAL vol)
 
+'new sprite functions
+declare function sprite_load(byval as string, byval as integer, byval as integer , byval as integer, byval as integer) as frame ptr
+
+
 #ENDIF
