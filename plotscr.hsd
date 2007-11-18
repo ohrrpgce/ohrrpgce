@@ -293,6 +293,8 @@ define function, begin
 284,deletemenuitem,2,0,0      #delete menu item(handle, slot)
 285,getmenuitemcaption,3,0,0,0 #get menu item caption(handle, slot, string ID)
 286,setmenuitemcaption,3,0,0,0 #set menu item caption(handle, slot, string ID)
+287,getlevelmp,2,0,0          #get level mp(hero party slot, mp level)
+288,setlevelmp,3,0,0,0        #set level mp(hero party slot, mp level, new value)
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end

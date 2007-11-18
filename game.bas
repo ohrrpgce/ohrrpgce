@@ -166,6 +166,7 @@ DECLARE SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame
 DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB check_menu_tags ()
 DECLARE FUNCTION game_usemenu (state AS MenuState)
+DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_menu_handle(handle AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_menu_handle_slot(handle AS INTEGER, slot AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
@@ -2322,6 +2323,18 @@ SELECT CASE AS CONST scrat(nowscript).curkind
       menus(retvals(0)).items(retvals(1)).caption = plotstr(retvals(2)).s
      END IF
     END IF
+   CASE 287'--get level mp
+    IF bound_hero_party(retvals(0), "get level mp") THEN
+     IF bound_arg(retvals(1), 0, 7, "get level mp", "mp level") THEN
+      scriptret = lmp(retvals(0), retvals(1))
+     END IF
+    END IF
+   CASE 288'--set level mp
+    IF bound_hero_party(retvals(0), "set level mp") THEN
+     IF bound_arg(retvals(1), 0, 7, "set level mp", "mp level") THEN
+      lmp(retvals(0), retvals(1)) = retvals(2)
+     END IF
+    END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
     scriptmisc scrat(nowscript).curvalue
@@ -2331,6 +2344,10 @@ SELECT CASE AS CONST scrat(nowscript).curkind
   END SELECT
 END SELECT
 RETRACE
+
+FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING) AS INTEGER
+ RETURN bound_arg(who, 0, 40, cmd, "hero party slot")
+END FUNCTION
 
 FUNCTION bound_menu_handle(handle AS INTEGER, cmd AS STRING) AS INTEGER
  RETURN bound_arg(handle, 1, topmenu + 1, cmd, "menu handle")
