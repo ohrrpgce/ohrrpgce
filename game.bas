@@ -2257,29 +2257,37 @@ SELECT CASE AS CONST scrat(nowscript).curkind
      add_menu retvals(0)
     END IF
    CASE 275'--read menu int
-    IF bound_arg(retvals(0), 0, topmenu, "read menu int", "menu handle") THEN
-     scriptret = read_menu_int(menus(retvals(0)), retvals(1))
+    IF bound_arg(retvals(0), 1, topmenu + 1, "read menu int", "menu handle") THEN
+     scriptret = read_menu_int(menus(retvals(0) - 1), retvals(1))
     END IF
    CASE 276'--write menu int
-    IF bound_arg(retvals(0), 0, topmenu, "write menu int", "menu handle") THEN
-     write_menu_int(menus(retvals(0)), retvals(1), retvals(2))
+    IF bound_arg(retvals(0), 1, topmenu + 1, "write menu int", "menu handle") THEN
+     write_menu_int(menus(retvals(0) - 1), retvals(1), retvals(2))
     END IF
    CASE 277'--read menu item int
-    IF bound_arg(retvals(0), 0, topmenu, "read menu item int", "menu handle") THEN
-     WITH menus(retvals(0))
+    IF bound_arg(retvals(0), 1, topmenu + 1, "read menu item int", "menu handle") THEN
+     WITH menus(retvals(0) - 1)
       IF bound_arg(retvals(1), 0, ubound(.items), "read menu item int", "menu item ID") THEN
        IF .items(retvals(1)).exists THEN scriptret = read_menu_item_int(.items(retvals(1)), retvals(2))
       END IF
      END WITH
     END IF
    CASE 278'--write menu item int
-    IF bound_arg(retvals(0), 0, topmenu, "write menu item int", "menu handle") THEN
-     WITH menus(retvals(0))
+    IF bound_arg(retvals(0), 1, topmenu + 1, "write menu item int", "menu handle") THEN
+     WITH menus(retvals(0) - 1)
       IF bound_arg(retvals(1), 0, ubound(.items), "write menu item int", "menu item ID") THEN
        IF .items(retvals(1)).exists THEN write_menu_item_int(.items(retvals(1)), retvals(2), retvals(3))
       END IF
      END WITH
     END IF
+   CASE 279'--create menu
+    add_menu -1
+   CASE 280'--close menu
+    IF bound_arg(retvals(0), 1, topmenu + 1, "close menu", "menu handle") THEN
+     remove_menu retvals(0) - 1
+    END IF
+   CASE 281'--top menu
+    scriptret = topmenu + 1
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
     scriptmisc scrat(nowscript).curvalue
@@ -2482,7 +2490,11 @@ SUB add_menu (record AS INTEGER)
  END IF
  mstates(topmenu).top = 0
  mstates(topmenu).pt = 0
- LoadMenuData menu_set, menus(topmenu), record
+ IF record = -1 THEN
+  ClearMenuData menus(topmenu)
+ ELSE
+  LoadMenuData menu_set, menus(topmenu), record
+ END IF
  init_menu_state mstates(topmenu), menus(topmenu)
  mstates(topmenu).active = YES
  check_menu_tags
