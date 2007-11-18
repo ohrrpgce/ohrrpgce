@@ -159,6 +159,7 @@ DECLARE FUNCTION count_sav(filename AS STRING) AS INTEGER
 DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
 DECLARE SUB add_menu (record AS INTEGER)
 DECLARE SUB remove_menu (record AS INTEGER)
+DECLARE SUB bring_menu_forward (handle AS INTEGER)
 DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
 DECLARE FUNCTION menus_allow_player () AS INTEGER
 DECLARE SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
@@ -2288,6 +2289,10 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     END IF
    CASE 281'--top menu
     scriptret = topmenu + 1
+   CASE 282'--bring menu forward
+    IF bound_arg(retvals(0), 1, topmenu + 1, "bring menu forward", "menu handle") THEN
+     bring_menu_forward retvals(0)
+    END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
     scriptmisc scrat(nowscript).curvalue
@@ -2500,12 +2505,8 @@ SUB add_menu (record AS INTEGER)
  check_menu_tags
 END SUB
 
-SUB remove_menu (record AS INTEGER)
- DIM i AS INTEGER
- FOR i = record TO topmenu - 1
-  SWAP menus(i), menus(i + 1)
-  SWAP mstates(i), mstates(i + 1)
- NEXT i
+SUB remove_menu (handle AS INTEGER)
+ bring_menu_forward handle
  ClearMenuData menus(topmenu)
  topmenu = topmenu - 1
  IF topmenu >=0 THEN
@@ -2513,6 +2514,14 @@ SUB remove_menu (record AS INTEGER)
   REDIM PRESERVE mstates(topmenu) AS MenuState
   mstates(topmenu).active = YES
  END IF
+END SUB
+
+SUB bring_menu_forward (handle AS INTEGER)
+ DIM i AS INTEGER
+ FOR i = handle TO topmenu - 1
+  SWAP menus(i), menus(i + 1)
+  SWAP mstates(i), mstates(i + 1)
+ NEXT i
 END SUB
 
 FUNCTION menus_allow_gameplay () AS INTEGER

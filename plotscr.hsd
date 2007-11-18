@@ -288,6 +288,7 @@ define function, begin
 279,createmenu,0              #create a blank menu
 280,closemenu,1,0             #close menu(handle)
 281,topmenu,0                 #return a handle to the topmost menu
+282,bringmenuforward,1,0      #bring menu forward(menu handle)
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
