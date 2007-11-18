@@ -615,12 +615,14 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
    anim_inflict t(who, i)
    temp = 3: IF is_enemy(t(who, i)) THEN temp = -3
    anim_setmove t(who, i), temp, 0, 2, 0
-   IF readbit(atk(), 20, 0) = 0 THEN
-    anim_setframe t(who, i), 5
-   END IF
-   IF readbit(atk(), 20, 0) = 1 THEN
-    anim_setframe t(who, i), 2
-   END IF
+   if is_hero(t(who, i)) then
+    IF readbit(atk(), 20, 0) = 0 THEN
+     anim_setframe t(who, i), 5
+    END IF
+    IF readbit(atk(), 20, 0) = 1 THEN
+     anim_setframe t(who, i), 2
+    END IF
+   end if
   NEXT i
   IF atk(15) <> 4 THEN
    anim_wait 3
@@ -671,12 +673,14 @@ IF atk(15) = 7 THEN
    targetflinch = 3: IF is_enemy(t(who, i)) THEN targetflinch = -3
    anim_setmove t(who, i), targetflinch, 0, 2, 0
    'show harm animation
-   IF readbit(atk(), 20, 0) = 0 THEN
-    anim_setframe t(who, i), 5
-   END IF
-   IF readbit(atk(), 20, 0) = 1 THEN
-    anim_setframe t(who, i), 2
-   END IF
+   if is_hero(t(who, i)) then
+    IF readbit(atk(), 20, 0) = 0 THEN
+     anim_setframe t(who, i), 5
+    END IF
+    IF readbit(atk(), 20, 0) = 1 THEN
+     anim_setframe t(who, i), 2
+    END IF
+   end if
    anim_wait 3
    'recover from flinch
    targetflinch = -3: IF is_enemy(t(who, i)) THEN targetflinch = 3
@@ -752,11 +756,13 @@ IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
    anim_inflict t(who, i)
    temp = 3: IF is_enemy(t(who, i)) THEN temp = -3
    anim_setmove t(who, i), temp, 0, 2, 0
-   IF readbit(atk(), 20, 0) = 0 THEN
-    anim_setframe t(who, i), 5
-   ELSE
-    anim_setframe t(who, i), 2
-   END IF
+   if is_hero(t(who, i)) then
+    IF readbit(atk(), 20, 0) = 0 THEN
+     anim_setframe t(who, i), 5
+    ELSE
+     anim_setframe t(who, i), 2
+    END IF
+   end if
   NEXT i
   anim_wait 3
   FOR i = 0 TO tcount
@@ -804,11 +810,13 @@ IF atk(15) = 9 THEN
    anim_inflict t(who, i)
    temp = 3: IF is_enemy(t(who, i)) THEN temp = -3
    anim_setmove t(who, i), temp, 0, 2, 0
-   IF readbit(atk(), 20, 0) = 0 THEN
-    anim_setframe t(who, i), 5
-   ELSE
-    anim_setframe t(who, i), 2
-   END IF
+   if is_hero(t(who, i)) then
+    IF readbit(atk(), 20, 0) = 0 THEN
+     anim_setframe t(who, i), 5
+    ELSE
+     anim_setframe t(who, i), 2
+    END IF
+   end if
    yt = (bslot(t(who, i)).h - 50) + 2
    IF is_hero(who) THEN
     anim_absmove 12 + i, -50, bslot(t(who, i)).y + yt, 5, 7
@@ -866,11 +874,13 @@ IF atk(15) = 4 AND tcount = 0 THEN
    anim_inflict t(who, i)
    temp = 3: IF is_enemy(t(who, i)) THEN temp = -3
    anim_setmove t(who, i), temp, 0, 2, 0
-   IF readbit(atk(), 20, 0) = 0 THEN
-    anim_setframe t(who, i), 5
-   ELSE
-    anim_setframe t(who, i), 2
-   END IF
+   if is_hero(t(who, i)) then
+    IF readbit(atk(), 20, 0) = 0 THEN
+     anim_setframe t(who, i), 5
+    ELSE
+     anim_setframe t(who, i), 2
+    END IF
+   end if
   NEXT i
   anim_wait 3
   FOR i = 0 TO 7
@@ -919,11 +929,13 @@ IF atk(15) = 5 THEN
    anim_inflict t(who, i)
    temp = 3: IF is_enemy(t(who, i)) THEN temp = -3
    anim_setmove t(who, i), temp, 0, 2, 0
-   IF readbit(atk(), 20, 0) = 0 THEN
-    anim_setframe t(who, i), 5
-   ELSE
-    anim_setframe t(who, i), 2
-   END IF
+   if is_hero(t(who, i)) then
+    IF readbit(atk(), 20, 0) = 0 THEN
+     anim_setframe t(who, i), 5
+    ELSE
+     anim_setframe t(who, i), 2
+    END IF
+   end if
   NEXT i
   anim_waitforall
   FOR i = 0 TO 11
