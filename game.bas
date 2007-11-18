@@ -166,6 +166,7 @@ DECLARE SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame
 DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB check_menu_tags ()
 DECLARE FUNCTION game_usemenu (state AS MenuState)
+DECLARE FUNCTION bound_menu_handle(n AS INTEGER, cmd AS STRING) AS INTEGER
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -2256,17 +2257,18 @@ SELECT CASE AS CONST scrat(nowscript).curkind
    CASE 274'--open menu
     IF bound_arg(retvals(0), 0, gen(genMaxMenu), "open menu", "menu ID") THEN
      add_menu retvals(0)
+     scriptret = topmenu
     END IF
    CASE 275'--read menu int
-    IF bound_arg(retvals(0), 1, topmenu + 1, "read menu int", "menu handle") THEN
+    IF bound_menu_handle(retvals(0), "read menu int") THEN
      scriptret = read_menu_int(menus(retvals(0) - 1), retvals(1))
     END IF
    CASE 276'--write menu int
-    IF bound_arg(retvals(0), 1, topmenu + 1, "write menu int", "menu handle") THEN
+    IF bound_menu_handle(retvals(0), "write menu int") THEN
      write_menu_int(menus(retvals(0) - 1), retvals(1), retvals(2))
     END IF
    CASE 277'--read menu item int
-    IF bound_arg(retvals(0), 1, topmenu + 1, "read menu item int", "menu handle") THEN
+    IF bound_menu_handle(retvals(0), "read menu item int") THEN
      WITH menus(retvals(0) - 1)
       IF bound_arg(retvals(1), 0, ubound(.items), "read menu item int", "menu item ID") THEN
        IF .items(retvals(1)).exists THEN scriptret = read_menu_item_int(.items(retvals(1)), retvals(2))
@@ -2274,7 +2276,7 @@ SELECT CASE AS CONST scrat(nowscript).curkind
      END WITH
     END IF
    CASE 278'--write menu item int
-    IF bound_arg(retvals(0), 1, topmenu + 1, "write menu item int", "menu handle") THEN
+    IF bound_menu_handle(retvals(0), "write menu item int") THEN
      WITH menus(retvals(0) - 1)
       IF bound_arg(retvals(1), 0, ubound(.items), "write menu item int", "menu item ID") THEN
        IF .items(retvals(1)).exists THEN write_menu_item_int(.items(retvals(1)), retvals(2), retvals(3))
@@ -2283,15 +2285,34 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     END IF
    CASE 279'--create menu
     add_menu -1
+    scriptret = topmenu
    CASE 280'--close menu
-    IF bound_arg(retvals(0), 1, topmenu + 1, "close menu", "menu handle") THEN
+    IF bound_menu_handle(retvals(0), "close menu") THEN
      remove_menu retvals(0) - 1
     END IF
    CASE 281'--top menu
     scriptret = topmenu + 1
    CASE 282'--bring menu forward
-    IF bound_arg(retvals(0), 1, topmenu + 1, "bring menu forward", "menu handle") THEN
+    IF bound_menu_handle(retvals(0), "bring menu forward") THEN
      bring_menu_forward retvals(0)
+    END IF
+   CASE 283'--add menu item
+    IF bound_menu_handle(retvals(0), "add menu item") THEN
+     i = find_empty_menu_item(menus(retvals(0)))
+     IF i >= 0 THEN
+      menus(retvals(0)).items(i).exists = YES
+     ELSE
+      debug "add menu item: failed. menu " & retvals(0) & " is full"
+     END IF
+    END IF
+   CASE 284'--delete menu item
+    IF bound_menu_handle(retvals(0), "delete menu item") THEN
+     WITH menus(retvals(0))
+      IF bound_arg(retvals(1), 0, UBOUND(.items), "delete menu item", "menu item ID") THEN
+       ClearMenuItem .items(retvals(1))
+       SortMenuItems .items()
+      END IF
+     END WITH
     END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
@@ -2302,6 +2323,10 @@ SELECT CASE AS CONST scrat(nowscript).curkind
   END SELECT
 END SELECT
 RETRACE
+
+FUNCTION bound_menu_handle(n AS INTEGER, cmd AS STRING) AS INTEGER
+ RETURN bound_arg(n, 1, topmenu + 1, cmd, "menu handle")
+END FUNCTION
 
 SUB loadmap_gmap(mapnum)
  loadrecord gmap(), game$ + ".map", getbinsize(4) / 2, mapnum

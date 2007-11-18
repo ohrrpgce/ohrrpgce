@@ -2014,6 +2014,16 @@ SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
  state.top = bound(state.top, 0, large(state.last - state.size, 0))
 END SUB
 
+FUNCTION find_empty_menu_item (menu AS MenuDef)
+ DIM i AS INTEGER
+ FOR i = 0 TO UBOUND(menu.items)
+  WITH menu.items(i)
+   IF .exists = NO THEN RETURN i
+  END WITH
+ NEXT i
+ RETURN -1
+END FUNCTION
+
 FUNCTION count_menu_items (menu AS MenuDef)
  DIM i AS INTEGER
  DIM count AS INTEGER = 0

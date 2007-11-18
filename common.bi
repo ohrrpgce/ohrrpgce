@@ -117,6 +117,7 @@ DECLARE SUB position_menu (menu AS MenuDef)
 DECLARE SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
 DECLARE SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
 DECLARE FUNCTION count_menu_items (menu AS MenuDef)
+DECLARE FUNCTION find_empty_menu_item (menu AS MenuDef)
 DECLARE FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
 DECLARE FUNCTION get_special_menu_caption(subtype AS INTEGER, edit_mode AS INTEGER= NO) AS STRING
 DECLARE SUB create_default_menu(menu AS MenuDef)

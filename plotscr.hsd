@@ -289,6 +289,8 @@ define function, begin
 280,closemenu,1,0             #close menu(handle)
 281,topmenu,0                 #return a handle to the topmost menu
 282,bringmenuforward,1,0      #bring menu forward(menu handle)
+283,addmenuitem,1,0           #add menu item(handle) appends, returns slot
+284,deletemenuitem,2,0,0      #delete menu item(handle, slot)
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
