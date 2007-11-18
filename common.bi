@@ -128,6 +128,7 @@ DECLARE SUB write_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER, n AS I
 DECLARE SUB position_menu_item (menu AS MenuDef, cap AS STRING, i AS INTEGER, BYREF where AS XYPair)
 
 DECLARE FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
+DECLARE FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, cmd AS STRING, argname AS STRING) AS INTEGER
 
 'Global variables
 EXTERN game$

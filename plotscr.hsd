@@ -280,6 +280,11 @@ define function, begin
 271,experiencetonextlevel,1,0 #experience to level up
 272,setexperience,3,0,0,1     #set total experience (who,amount,allow spell forgetting)
 273,milliseconds,0            #uptime in milliseconds
+274,openmenu,1,0              #openmenu(menuID)
+275,readmenuint,2,0,0         #read menu int(menuhandle,intid)
+276,writemenuint,3,0,0,0      #write menu int(menuhandle,intid,n)
+277,readmenuitemint,3,0,0,0   #read menu item int(menuhandle,itemid,intid)
+278,writemenuitemint,4,0,0,0,0#write menu item int(menuhandle,itemid,intid,n)
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end

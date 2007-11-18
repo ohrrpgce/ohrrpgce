@@ -2252,6 +2252,34 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     evalherotag stat()
     evalitemtag
     npcplot
+   CASE 274'--open menu
+    IF bound_arg(retvals(0), 0, gen(genMaxMenu), "open menu", "menu ID") THEN
+     add_menu retvals(0)
+    END IF
+   CASE 275'--read menu int
+    IF bound_arg(retvals(0), 0, topmenu, "read menu int", "menu handle") THEN
+     scriptret = read_menu_int(menus(retvals(0)), retvals(1))
+    END IF
+   CASE 276'--write menu int
+    IF bound_arg(retvals(0), 0, topmenu, "write menu int", "menu handle") THEN
+     write_menu_int(menus(retvals(0)), retvals(1), retvals(2))
+    END IF
+   CASE 277'--read menu item int
+    IF bound_arg(retvals(0), 0, topmenu, "read menu item int", "menu handle") THEN
+     WITH menus(retvals(0))
+      IF bound_arg(retvals(1), 0, ubound(.items), "read menu item int", "menu item ID") THEN
+       IF .items(retvals(1)).exists THEN scriptret = read_menu_item_int(.items(retvals(1)), retvals(2))
+      END IF
+     END WITH
+    END IF
+   CASE 278'--write menu item int
+    IF bound_arg(retvals(0), 0, topmenu, "write menu item int", "menu handle") THEN
+     WITH menus(retvals(0))
+      IF bound_arg(retvals(1), 0, ubound(.items), "write menu item int", "menu item ID") THEN
+       IF .items(retvals(1)).exists THEN write_menu_item_int(.items(retvals(1)), retvals(2), retvals(3))
+      END IF
+     END WITH
+    END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
     scriptmisc scrat(nowscript).curvalue

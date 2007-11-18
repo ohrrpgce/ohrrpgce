@@ -2293,3 +2293,11 @@ SUB write_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER, n AS INTEGER)
   END SELECT
  END WITH
 END SUB
+
+FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, cmd AS STRING, argname AS STRING) AS INTEGER
+ IF n < min OR n > max THEN
+  debug cmd & ": invalid " & argname & " " & n
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
