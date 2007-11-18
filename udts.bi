@@ -24,6 +24,7 @@ type Frame
 	h as integer
 	image as ubyte ptr
 	mask as ubyte ptr
+	refcount as integer
 end type
 
 TYPE MenuSet

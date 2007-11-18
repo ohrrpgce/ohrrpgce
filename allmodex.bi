@@ -127,6 +127,7 @@ DECLARE FUNCTION getmusictype (file$)
 
 'new sprite functions
 declare function sprite_load(byval as string, byval as integer, byval as integer , byval as integer, byval as integer) as frame ptr
+declare sub sprite_unload(byval p as frame ptr ptr)
 
 
 #ENDIF

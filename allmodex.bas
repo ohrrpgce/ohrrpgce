@@ -3344,11 +3344,81 @@ FUNCTION getmusictype (file$)
   return chk
 END FUNCTION
 
+'This should be replaced with a real hash
 
+type SpriteCache
+	s as string
+	p as frame ptr
+end type
+
+
+redim shared sprcache(50) as SpriteCache
+
+sub sprite_delete(byval f as frame ptr ptr)
+	if f = 0 then exit sub
+	if *f = 0 then exit sub
+	with **f
+		if .image <> 0 then deallocate(.image) : .image = 0
+		if .mask <> 0 then deallocate(.mask) : .mask = 0
+	end with
+	deallocate(*f)
+	*f = 0
+end sub
+
+function sprite_find_cache(byval s as string) as frame ptr
+	dim i as integer
+	for i = 0 to ubound(sprcache)
+		if sprcache(i).s = s then return sprcache(i).p
+	next
+end function
+
+sub sprite_add_cache(byval s as string, byval p as frame ptr, byval fr as integer = 0)
+	if p = 0 then exit sub
+	dim as integer i, sec = -1
+	for i = fr to ubound(sprcache)
+		with sprcache(i)
+			if .s = "" then
+				.s = s
+				.p = p
+				p->refcount = 1
+				exit sub
+			elseif .p->refcount = 0 then
+				sec = i
+			end if
+		end with
+	next
+	
+	if sec <> 0 then
+		sprite_delete(@sprcache(sec).p)
+		sprcache(sec).s = s
+		sprcache(sec).p = p
+		p->refcount = 1
+		exit sub
+	end if
+	
+	'no room? pah.
+	redim preserve sprcache(ubound(sprcache) * 1.3 + 5)
+	
+	sprite_add_cache(s, p, i)
+end sub
 
 'New Sprite handling functions
 function sprite_load(byval fi as string, byval rec as integer, byval num as integer, byval wid as integer, byval hei as integer) as frame ptr
-
+	
+	dim ret as frame ptr
+	dim hashstring as string = fi & "#" & rec 'we assume that all sprites in the same file are the same size
+	'debug "Loading: " & hashstring
+	
+	ret = sprite_find_cache(hashstring)
+	
+	if ret then
+		ret->refcount += 1
+		'debug("Pulled cached copy: " & hashstring & "(" & ret->refcount & ")")
+		return ret
+	end if
+	
+	'debug "Must load from disk"
+	
 	'first, we do a bit of math:
 	dim frsize as integer = wid * hei / 2
 	dim recsize as integer = frsize * num
@@ -3363,7 +3433,7 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 	if open(fi for binary as #f) then return 0
 	
 	'if we get here, we can assume that all's well, and allocate the memory
-	dim ret as frame ptr = callocate(sizeof(frame) * num)
+	ret = callocate(sizeof(frame) * num)
 	
 	'no memory? shucks.
 	if ret = 0 then
@@ -3410,6 +3480,16 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 	next
 	
 	close #f
+	
+	sprite_add_cache(hashstring, ret)
 	return ret
 end function
+
+sub sprite_unload(byval p as frame ptr ptr)
+	if p = 0 then exit sub
+	if *p = 0 then exit sub
+	(*p)->refcount -= 1
+	'debug "unloading sprite (" & ((*p)->refcount) & " more copies!)"
+	*p = 0
+end sub
 

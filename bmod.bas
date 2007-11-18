@@ -299,6 +299,12 @@ clearpage 1
 clearpage 2
 clearpage 3
 
+
+for i = lbound(bslot) to ubound(bslot)
+	sprite_unload(@bslot(i).sprites)
+next
+
+
 RETRIEVESTATE
 EXIT FUNCTION '---------------------------------------------------------------
 
@@ -502,6 +508,7 @@ loadattackdata atk(), anim
 '--load picture
 setpicstuf buffer(), 3750, 3
 loadset game$ + ".pt6", atk(0), 144
+
 '--load palette
 getpal16 pal16(), 53, atk(1), 6, atk(0)
 FOR i = 12 TO 23
@@ -509,6 +516,11 @@ FOR i = 12 TO 23
  of(i) = 0
  cycle(i) = -1
  bslot(i).z = 0
+ bslot(i).sprite_num = 3
+ bslot(i).frame = 0
+ sprite_unload(@bslot(i).sprites)
+ bslot(i).sprites = sprite_load(game$ + ".pt6", atk(0), 3, 50, 50)
+ if bslot(i).sprites = 0 then debug "Failed to load attack sprites (#" & i & ")"
 NEXT i
 tcount = -1: pdir = 0: conmp = 1
 IF is_enemy(who) THEN pdir = 1
@@ -1965,7 +1977,12 @@ FOR i = 0 TO 24
     wardsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
    END IF
   else
-   'nothing here yet!
+   if bslot(zbuf(i)).d = 0 then
+    
+   else
+   
+   end if
+   
   end if
  END IF
 NEXT i
