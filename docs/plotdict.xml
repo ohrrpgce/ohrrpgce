@@ -115,30 +115,33 @@ have to do it manually, but you MUST do it. Remember: 1 indent = 1 tab.
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript lastmodified="September 14, 2007">
+<plotscript lastmodified="November 17, 2007">
 	<section title="Declarations">
-		<command id="definescript">
-			<cannon>define script (id,name,arguments)</cannon>
-			<shortname>define script</shortname>
-			<deprecated>ubersetzung</deprecated>
-			<description>The define script command names a script, and associates it with an ID number. Every script must have a unique ID number for your game to call it directly (scripts that will only be called indirectly, by other scripts can use the special ID autonumber). The first argument is the <p>ID number</p>. It is a number between 1 and 16383. If you try to give two individual scripts the same <p>ID number</p>, your script file will not compile. The next argument is the <p>name</p> of the script. this is the same name that will used later in your script command. The third argument is the number of arguments that the script can accept. If it doesnt need any arguments (most scripts dont) then use <ref>none</ref>. If there are arguments, you then follow the argument count with default values for each argument.</description>
-			<example># example of a simple script definition
-define script (1,my first script,none)</example>
-			<example># example of a script definition with arguments. this script
-# has three arguments, all of which default to zero if they
-# are not specified
-define script (2,my fancy script,3,0,0,0)</example>
+		<command id="plotscript">
+			<cannon>plotscript, name, argumentnames (statements)</cannon>
+			<shortname>plotscript</shortname>
+			<description>The plotscript command contains a list of commands that can be triggered directly by an event in your game. Plotscript starts with the keyword plotscript, a comma, and then the name of the plotscript. If there are any arguments to the script, you list their names separated by commas after the name of the script with default values. Then comes the text of the script. It is enclosed in <ref>begin</ref> and <ref>end</ref> statements. Scripts that are defined as plotscripts can be called directly from events in your game, or by name within other scripts.</description>
+			<example># example of a simple script
+plotscript,my first script,begin
+	# commands go here
+end</example>
+			<example># example of a script with arguments
+plotscript,my fancy script,fe=0,fi=0,fo=0,begin
+	# commands go here,
+	# and they can use the aruments fe, fi, and fo
+	# that where passed to the script
+end</example>
 		</command>
 		<command id="script">
 			<cannon>script, name, argumentnames (statements)</cannon>
 			<shortname>script</shortname>
-			<description>The script command contains the actual source code of a plotscript. every script command must have a corresponding <ref>definescript</ref> statement. Script starts with the keyword script, a comma, and then the name of the script. If there are any arguments to the script, you list their names separated by commas after the name of the script. Then comes the text of the script. It is usually enclosed in <ref>begin</ref> and <ref>end</ref> statements.</description>
+			<description>The script command contains a list of commands. Script starts with the keyword script, a comma, and then the name of the script. If there are any arguments to the script, you list their names separated by commas after the name of the script with default values. Then comes the text of the script. It is enclosed in <ref>begin</ref> and <ref>end</ref> statements. Scripts that are defined as script cannot be called directly from events in your game. They can only be called by name within other scripts. To make a script that can be run directly from your game, use <ref>plotscript</ref>.</description>
 			<example># example of a simple script
 script,my first script,begin
 	# commands go here
 end</example>
 			<example># example of a script with arguments
-script,my fancy script,fe,fi,fo,begin
+script,my fancy script,fe=0,fi=0,fo=0,begin
 	# commands go here,
 	# and they can use the aruments fe, fi, and fo
 	# that where passed to the script
@@ -169,6 +172,18 @@ variable+=1 # add one to it</example>
 			<description>The include command inserts another text file into your script. It is followed by a single filename that tells what file will be included. Windows long filenames are not supported. Every plotscript file should start with include, plotscr.hsd The PLOTSCR.HSD file contains definitions and constants for most of the other plotscripting commands.</description>
 			<example>include, plotscr.hsd # Plotscripting definitions
 include, mygame.hsi # constants particular to my game</example>
+		</command>
+		<command id="definescript">
+			<cannon>define script (id,name,arguments)</cannon>
+			<shortname>define script</shortname>
+			<deprecated>ubersetzung</deprecated>
+			<description><note>This declaration is available for backwards compatability, but it is not required anymore. See <ref>script</ref> and <ref>plotscript</ref> instead.</note> The define script command names an old-style script, and associates it with an ID number. Old scripts used to require a unique ID number. The first argument is the <p>ID number</p>. It is a number between 1 and 16383. If you try to give two individual scripts the same <p>ID number</p>, your script file will not compile. The next argument is the <p>name</p> of the script. this is the same name that will used later in your script command. The third argument is the number of arguments that the script can accept. If it doesnt need any arguments (most scripts don't) then use <ref>none</ref>. If there are arguments, you then follow the argument count with default values for each argument.</description>
+			<example># example of a simple script definition
+define script (1,my first script,none)</example>
+			<example># example of a script definition with arguments. this script
+# has three arguments, all of which default to zero if they
+# are not specified
+define script (2,my fancy script,3,0,0,0)</example>
 		</command>
 	</section>
 	<section title="Wait Commands">
@@ -489,11 +504,10 @@ resume player # ok, done</example>
 			<shortname>NPC reference</shortname>
 			<description>What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you dont specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. If you plan on using the same NPC reference many times in a script you can store it in a <ref>variable</ref>. If the NPC with the ID you asked for (or the NPC copy you asked for with ID you asked for) is not found on the map then NPC reference will return <ref>false</ref>.</description>
 			<example>include,plotscr.hsd
-define script(1,ref example,none)
 
 #---NPC reference example---
 
-script,ref example,begin
+plotscript,ref example,begin
 
   variable(Fred)
 
@@ -596,11 +610,10 @@ end</example>
 			<shortname>NPC copy count</shortname>
 			<description>This command tells you how many copys of a particular NPC ID exist on the map. This can be very useful if you want apply the same action to each copy of an NPC on the map.</description>
 			<example>include,plotscr.hsd
-define script(1,every NPC example,none)
 
 #---NPC copy count example---
 
-script,every NPC example,begin
+plotscript,every NPC example,begin
 
   variable(loop,guard count,current guard)
 
@@ -1116,9 +1129,8 @@ end</example>
 			<cannon>spells learnt (hero,number)</cannon>
 			<shortname>spells learnt</shortname>
 			<description>Used to return the id numbers of spells the hero learnt from the last battle, <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command. (Returns only the spells learnt from the very last battle or command). If the second argument is <ref>getcount</ref> then the number of spells that the hero learnt is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learnt:</description>
-			<example>define script (autonumber, print learnt spells, 1, 0)
-# the following script uses strings 0, 1, 2 for its use (will be overwritten)
-script, print learnt spells, who, begin
+			<example># the following script uses strings 0, 1, 2 for its use (will be overwritten)
+plotscript, print learnt spells, who=0, begin
   variable(i)
   get hero name (1, who) # construct the static part of the text in string 1
   $1+" learnt spell "
@@ -1139,11 +1151,10 @@ end</example>
 			<shortname>init mouse</shortname>
 			<description>Initializes the mouse, returning <ref>true</ref> if one is present, and loads the mouse driver. This command much be run before any mouse functions can be used. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<lb/>The mouse will start in the middle of the screen with bounds of 0-319 horizontally and 0-199 vertically. The bounds can be changed with <ref>mouseregion</ref>, and you can reposition the mouse with <ref>putmouse</ref>.<lb/><note>Running this command does not draw a cursor on screen - your script must do this itself by placing an npc at the appropriate location.</note> Here is an example:</description>
 			<example>include,plotscr.hsd
-define script(1,displaymouse,none)
 
 #Mouse cursor example
 
-script, display mouse, begin
+plotscript, display mouse, begin
 
   #start up the mouse
   init mouse
@@ -2106,9 +2117,8 @@ end</example></description>
 			<description>Changes the stats of an NPC. Constants for this command have been included in PLOTSCR.HSD. Alter NPC can be used for many purposes.<lb/>
 <ul><li>Alter NPC (who,NPCstat:picture,picture number)</li><li>Alter NPC (who,NPCstat:palette,palette number)</li><li>Alter NPC (who,NPCstat:move type,move type code)<lb/>Available move types<ul><li>NPCmovetype:standstill</li><li>NPCmovetype:wander</li><li>NPCmovetype:pace</li><li>NPCmovetype:rightturns</li><li>NPCmovetype:leftturns</li><li>NPCmovetype:randomturns</li><li>NPCmovetype:chaseyou</li><li>NPCmovetype:avoidyou</li></ul></li><li>Alter NPC (who,NPCstat:move speed,speed)</li><li>Alter NPC (who,NPCstat:display text,text box number)</li><li>Alter NPC (who,NPCstat:when activated,when activated code)<lb/>Available when activated codes<ul><li>NPCwhenactivated:changedirection</li><li>NPCwhenactivated:faceplayer</li><li>NPCwhenactivated:donotfaceplayer</li></ul></li><li>Alter NPC (who,NPCstat:give item,item number)</li><li>Alter NPC (who,NPCstat:pushability,pushability code)<lb/>Available pushability codes<ul><li>NPCpush:off</li><li>NPCpush:full</li><li>NPCpush:horizontal</li><li>NPCpush:vertical</li><li>NPCpush:uponly</li><li>NPCpush:rightonly</li><li>NPCpush:downonly</li><li>NPCpush:leftonly</li></ul></li><li>Alter NPC (who,NPCstat:activation,activation code)<lb/>Available activation codes<ul><li>NPCactivation:use</li><li>NPCactivation:touch</li><li>NPCactivation:stepon</li></ul></li><li>Alter NPC (who,NPCstat:script,script ID)</li><li>Alter NPC (who,NPCstat:script argument,number)</li><li>Alter NPC (who,NPCstat:vehicle,vehicle ID)</li></ul>Normally you would only give an NPC ID number to alter NPC, but if you want to use an <ref>npcreference</ref> it will still work. Just remember that alter NPC changes every copy of the NPC on the map, not just the specific one you referenced.<lb/>A good way to make use of Alter NPC is to wrap it in your own script. For example:</description>
 		<example># Example AlterNPC wrapper for changing NPC appearance
-Define Script (autonumber,change NPC,3,0,0,0)
 
-script,change NPC,who,picture,palette,begin
+plotscript,change NPC,who=0,picture=0,palette=0,begin
   Alter NPC(who,NPCstat:picture,picture)
   Alter NPC(who,NPCstat:palette,palette)
 end</example>
@@ -2404,22 +2414,18 @@ end</example>
 			<cannon>import globals (slot, first, last)</cannon>
 			<shortname>import globals</shortname>
 			<description>Loads a range of globals from a saved game, overwriting the current globals in that range. First and Last are the id numbers of the globals at the beginning and end of the range. First defaults to 0, and Last defaults to 1024 if both are not given. <lb/>To read a single global from a save slot without overwriting any, use the form 'var := import globals (slot, id)'<lb/>import globals and <ref>exportglobals</ref> can be used to save and retrieve info about a saved game without loading it, and also to store variables that any game the player starts can use, like in the following example:</description>
-			<example>define script (21, game finished, none)
-
-define script (22, check game finished, none)
-
-global variable (100, game completed)
+			<example>global variable (100, game completed)
 global variable (101, hours to complete)
 global variable (102, minutes to complete)
 
-script, game finished, begin
+plotscript, game finished, begin
   game complete := true
   hours to complete := hours of play
   minutes to complete := minutes of play
   export globals (5, 100, 102) #special slot that the player can not load, which we can use for anything
 end
 
-script, check game finished, begin
+plotscript, check game finished, begin
   import globals (5, 100, 102) #copy saved values into globals 100, 101, 102
   if (game completed) then (
     show textbox (105) #"you have previously finished this game in ${V101} hours and ${V102} minutes"
@@ -2476,8 +2482,7 @@ trace(1) # writes "TRACE: i = 1" to G_DEBUG.TXT</example>
 			<cannon>save map state (whichdata, customid)</cannon>
 			<shortname>save map state</shortname>
 			<description>Saves the state of the current map to a temporary file which will be loaded (unless the map is set to ignore that particular data) when you reenter the current map, in the same way as a map set to save (remember) NPC or tile data: the saved state will be used instead of the map data in the RPG file. Both arguments are optional and are only for advanced uses.<lb/> Map state is not saved in saved games, and the temporary files will be deleted when you load or start a new a game!<lb/><p>whichdata</p> is an <ref>or</ref>'d combination of the following constants, which specify exactly what you want to save:<lb/><ul><li>mapstate:all = mapstate:mapsettings, or, mapstate:npcs, or, mapstate:tiles</li><li>mapstate:npcs = mapstate:npclocations, or, mapstate:npcdefinitions</li><li>mapstate:tiles = mapstate:tilemap, or, mapstate:passmap</li><li>mapstate:mapsettings</li><li>mapstate:npclocations</li><li>mapstate:npcdefinitions</li><li>mapstate:tilemap</li><li>mapstate:passmap</li></ul>The default is mapstate:all. <lb/>If <p>customid</p> is passed, it is used to save the state in a separate state file with an id number of <p>customid</p> which can only be loaded with <ref>loadmapstate</ref>. There are 32 available slots for use: 0 - 31.<lb/>Note that mapstate:mapsettings (also saved by mapstate:all) is special in that if you save it, it will always be loaded when the map is loaded regardless of settings. It saves all the settings found in the General Map Settings menu like the tileset, ambient music, footoffset, map trigger scripts, and so forth.</description>
-			<example>define script (1, generic menu screen, none)
-script, generic menu screen, begin
+			<example>plotscript, generic menu screen, begin
   variable (remember map, remember x, remember y)
   remember map := current map
   remember x := hero x
@@ -2694,12 +2699,13 @@ end</example>
 		<command id="none">
 			<cannon>none</cannon>
 			<shortname>none</shortname>
-			<description>none is a constant that means the same as zero. It is normally used in <ref>definescript</ref> commands for scripts that do not have any arguments</description>
+			<description>none is a constant that means the same as zero.</description>
 		</command>
 		<command id="autonumber">
 			<cannon>autonumber</cannon>
 			<shortname>autonumber</shortname>
-			<description>autonumber is a constant that is used as the ID number in <ref>definescript</ref> commands for scripts that do not need to be called directly from the OHRRPGCE. Autonumber scripts are only called from within other scripts.</description>
+			<deprecated>ubersetzung</deprecated>
+			<description>autonumber is a constant that is used as the ID number in old-style <ref>definescript</ref> commands. This is not needed anymore. Use <ref>script</ref> instead.</description>
 		</command>
 		<command id="currentstat">
 			<cannon>current stat</cannon>
