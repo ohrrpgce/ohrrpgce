@@ -331,6 +331,43 @@ Type BrowseMenuState
 	meter as integer
 End Type
 
+TYPE TextBox
+  text(7) AS STRING
+  instead_tag AS INTEGER
+  instead     AS INTEGER
+  settag_tag  AS INTEGER
+  settag1     AS INTEGER
+  settag2     AS INTEGER
+  battle_tag  AS INTEGER
+  battle      AS INTEGER
+  shop_tag    AS INTEGER
+  shop        AS INTEGER
+  hero_tag    AS INTEGER
+  hero_addrem AS INTEGER
+  hero_swap   AS INTEGER
+  hero_lock   AS INTEGER
+  after_tag   AS INTEGER
+  after       AS INTEGER
+  money_tag   AS INTEGER
+  money       AS INTEGER
+  door_tag    AS INTEGER
+  door        AS INTEGER
+  item_tag    AS INTEGER
+  item        AS INTEGER
+  choice_enabled AS INTEGER
+  no_box      AS INTEGER
+  translucent AS INTEGER
+  restore_music AS INTEGER
+  choice(1)   AS STRING
+  choice_tag  AS INTEGER
+  vertical_offset AS INTEGER ' in 4-pixel increments
+  box_shrink  AS INTEGER     ' in 4-pixel increments
+  textcolor   AS INTEGER     ' 0=default
+  boxstyle    AS INTEGER
+  backdrop    AS INTEGER     ' +1
+  music       AS INTEGER     ' +1
+END TYPE
+
 'it's not possible to include utils.bi in here, because of compat.bi
 #ifndef UTIL_BI
 TYPE Stack
