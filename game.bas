@@ -2352,6 +2352,26 @@ SELECT CASE AS CONST scrat(nowscript).curkind
       lmp(retvals(0), retvals(1)) = retvals(2)
      END IF
     END IF
+   CASE 289'--bottom menu
+    IF topmenu >= 0 THEN
+     scriptret = menus(0).handle
+    END IF
+   CASE 290'--previous menu
+    menuslot = find_menu_handle(retvals(0))
+    IF bound_menuslot(menuslot, "previous menu") THEN
+     menuslot = menuslot - 1
+     IF menuslot >= 0 THEN
+      scriptret = menus(menuslot).handle
+     END IF
+    END IF
+   CASE 291'--previous menu
+    menuslot = find_menu_handle(retvals(0))
+    IF bound_menuslot(menuslot, "previous menu") THEN
+     menuslot = menuslot + 1
+     IF menuslot <= topmenu THEN
+      scriptret = menus(menuslot).handle
+     END IF
+    END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
     scriptmisc scrat(nowscript).curvalue
