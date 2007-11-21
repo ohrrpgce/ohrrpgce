@@ -175,7 +175,7 @@ DECLARE FUNCTION find_menu_item_handle_in_menuslot (handle AS INTEGER, menuslot 
 DECLARE FUNCTION find_menu_item_handle(handle AS INTEGER, BYREF found_in_menuslot) AS INTEGER
 DECLARE FUNCTION assign_menu_item_handle (BYREF mi AS MenuDefItem) AS INTEGER
 DECLARE FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
-DECLARE FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER) AS INTEGER
+DECLARE FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER, visible_only AS INTEGER=YES) AS INTEGER
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -2377,7 +2377,17 @@ SELECT CASE AS CONST scrat(nowscript).curkind
    CASE 292'--menu item by slot
     menuslot = find_menu_handle(retvals(0))
     IF bound_menuslot(menuslot, "menu item by slot") THEN
-     scriptret = menu_item_handle_by_slot(menuslot, retvals(1))
+     scriptret = menu_item_handle_by_slot(menuslot, retvals(1), retvals(2)<>0)
+    END IF
+   CASE 293'--previous menu item
+    mislot = find_menu_item_handle(retvals(0), menuslot)
+    IF bound_menuslot_and_mislot(menuslot, mislot, "previous menu item") THEN
+     scriptret = menu_item_handle_by_slot(menuslot, mislot - 1, retvals(1)<>0)
+    END IF
+   CASE 294'--next menu item
+    mislot = find_menu_item_handle(retvals(0), menuslot)
+    IF bound_menuslot_and_mislot(menuslot, mislot, "next menu item") THEN
+     scriptret = menu_item_handle_by_slot(menuslot, mislot - 1, retvals(1)<>0)
     END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
@@ -2858,12 +2868,14 @@ FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
  RETURN new_handle
 END FUNCTION
 
-FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER) AS INTEGER
+FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER, visible_only AS INTEGER=YES) AS INTEGER
  IF menuslot >= 0 AND menuslot <= topmenu THEN
   WITH menus(menuslot)
    IF mislot >= 0 AND mislot <= UBOUND(.items) THEN
     WITH .items(mislot)
-     IF .exists THEN RETURN .handle
+     IF .exists = NO THEN RETURN 0
+     IF visible_only AND .disabled AND .hide_if_disabled THEN RETURN 0
+     RETURN .handle
     END WITH
    END IF
   END WITH
