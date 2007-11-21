@@ -516,6 +516,7 @@ FOR i = 12 TO 23
  of(i) = 0
  cycle(i) = -1
  bslot(i).z = 0
+ 'load battle sprites
  bslot(i).sprite_num = 3
  bslot(i).frame = 0
  sprite_unload(@bslot(i).sprites)
@@ -556,10 +557,21 @@ targmem(who) = 0
 ' BIG CRAZY SCRIPT CONSTRUCTION
 'DEBUG debug "begin script construction"
 IF is_hero(who) THEN
+ 'load weapon sprites
  setpicstuf buffer(), 576, 3
  loadset game$ + ".pt5" , exstat(who, 0, 13), 156
  p(24) = 52
  getpal16 pal16(), 52, exstat(who, 1, 13), 5, exstat(who, 0, 13)
+ 
+ with bslot(24)
+  .sprite_num = 2
+  .sprites = sprite_load(game$ & ".pt5", exstat(who, 0, 13), 2, 24, 24)
+  .frame = 0
+  
+  if .sprites = 0 then
+  	debug "Could not load weapon sprite: " & game$ & ".pt5#" & exstat(who, 0, 13)
+  end if
+ end with
 END IF
 numhits = atk(17) + INT(RND * (bstat(who).cur.hits + 1))
 IF readbit(atk(), 20, 49) THEN numhits = atk(17)
@@ -2066,7 +2078,10 @@ FOR i = 0 TO 3
    nmenu(i,newm) = bmenu(i,oldm)
    newm += 1
   NEXT oldm
- 
+  
+  setpicstuf buffer(), 5120, 3
+  loadset game$ + ".pt0", exstat(i, 0, 14), i * 16
+  getpal16 pal16(), 40 + i, exstat(i, 0, 15), 0, exstat(i, 0, 14)
   WITH bslot(i)
    .basex = (240 + i * 8)
    .basey = (82 + i * 20)
@@ -2076,10 +2091,12 @@ FOR i = 0 TO 3
    .h = 40
    p(i) = 40 + i
    .vis = 1
+   'load hero sprites
+   .sprite_num = 8
+   .sprites = sprite_load(game$ & ".pt0", exstat(i, 0, 14), .sprite_num, 32, 40)
+   if .sprites = 0 then debug "Couldn't load hero sprite: " & game$ & ".pt0#" & exstat(i,0,14)
+   .frame = 0
   END WITH
-  setpicstuf buffer(), 5120, 3
-  loadset game$ + ".pt0", exstat(i, 0, 14), i * 16
-  getpal16 pal16(), 40 + i, exstat(i, 0, 15), 0, exstat(i, 0, 14)
   FOR o = 0 TO 11
    bstat(i).cur.sta(o) = exstat(i, 0, o)
    bstat(i).max.sta(o) = exstat(i, 1, o)
