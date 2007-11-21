@@ -56,6 +56,7 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi" 
+#include "loading.bi"
 #include "cglobals.bi"
 
 #include "const.bi"
@@ -154,6 +155,11 @@ SUB exportnames ()
 
 DIM u$(1024), names$(32), stat$(11)
 DIM her AS HeroDef
+DIM menu AS MenuDef
+DIM menu_set AS MenuSet
+menu_set.menufile = workingdir$ & SLASH & "menus.bin"
+menu_set.itemfile = workingdir$ & SLASH & "menuitem.bin"
+
 max = 32
 
 getnames names$(), max
@@ -191,47 +197,47 @@ PRINT #fh, ""
 PRINT #fh, "define constant, begin"
 
 printstr "tag names", 0, pl * 8, 0: pl = pl + 1
-a = isunique("", u$(), 1)
+isunique "", u$(), 1
 FOR i = 2 TO 999
  writeconstant fh, i, lmnemonic(i), u$(), "tag"
 NEXT i
 
 printstr "song names", 0, pl * 8, 0: pl = pl + 1
-a = isunique("", u$(), 1)
+isunique "", u$(), 1
 FOR i = 0 TO gen(genMaxSong)
  writeconstant fh, i, getsongname$(i), u$(), "song"
 NEXT i
 setvispage 0
 
 printstr "sound effect names", 0, pl * 8, 0: pl = pl + 1
-a = isunique("", u$(), 1)
+isunique "", u$(), 1
 FOR i = 0 TO gen(genMaxSFX)
  writeconstant fh, i, getsfxname$(i), u$(), "sfx"
 NEXT i
 setvispage 0
 
 printstr "hero names", 0, pl * 8, 0: pl = pl + 1
-a = isunique("", u$(), 1)
-FOR i = 0 TO gen(35)
+isunique "", u$(), 1
+FOR i = 0 TO gen(genMaxHero)
  loadherodata @her, i
  writeconstant fh, i, her.name, u$(), "hero"
 NEXT i
 
 printstr "item names", 0, pl * 8, 0: pl = pl + 1
-a = isunique("", u$(), 1)
+isunique "", u$(), 1
 FOR i = 0 TO 255
  writeconstant fh, i, readitemname$(i), u$(), "item"
 NEXT i
 setvispage 0
 
 printstr "stat names", 0, pl * 8, 0: pl = pl + 1
-a = isunique("", u$(), 1)
+isunique "", u$(), 1
 FOR i = 0 TO 11
  writeconstant fh, i, stat$(i), u$(), "stat"
 NEXT i
 
 printstr "slot names", 0, pl * 8, 0: pl = pl + 1
-a = isunique("", u$(), 1)
+isunique "", u$(), 1
 writeconstant fh, 1, "Weapon", u$(), "slot"
 FOR i = 0 TO 3
  writeconstant fh, i + 2, names$(25 + i), u$(), "slot"
@@ -239,23 +245,32 @@ NEXT i
 setvispage 0
 
 printstr "map names", 0, pl * 8, 0: pl = pl + 1
-a = isunique("", u$(), 1)
-FOR i = 0 TO gen(0)
+isunique "", u$(), 1
+FOR i = 0 TO gen(genMaxMap)
  writeconstant fh, i, getmapname$(i), u$(), "map"
 NEXT i
 
 printstr "attack names", 0, pl * 8, 0: pl = pl + 1
-a = isunique("", u$(), 1)
-FOR i = 0 TO gen(34)
+isunique "", u$(), 1
+FOR i = 0 TO gen(genMaxAttack)
  writeconstant fh, i + 1, readattackname$(i), u$(), "atk"
 NEXT i
 setvispage 0
 
 printstr "shop names", 0, pl * 8, 0: pl = pl + 1
-a = isunique("", u$(), 1)
-FOR i = 0 TO gen(97)
+isunique "", u$(), 1
+FOR i = 0 TO gen(genMaxShop)
  writeconstant fh, i, readshopname$(i), u$(), "shop"
 NEXT i
+setvispage 0
+
+printstr "menu names", 0, pl * 8, 0: pl = pl + 1
+isunique "", u$(), 1
+FOR i = 0 TO gen(genMaxMenu)
+ LoadMenuData menu_set, menu, i, NO
+ writeconstant fh, i, menu.name, u$(), "menu"
+NEXT i
+setvispage 0
 
 PRINT #fh, "end"
 CLOSE #fh
