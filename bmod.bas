@@ -2000,11 +2000,12 @@ FOR i = 0 TO 24
 				wardsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
 			END IF
 		else
+		#define DEFAULT_TRANSITION 1
 			with bslot(zbuf(i))
 				if .d = 0 then
 					if .sprites <> 0 AND .frame < .sprite_num then
 						if .dissolve and eflee(zbuf(i)) = 0 then
-							sprite_draw_dissolved(.sprites + .frame, .pal, .x, .y - .z,.dissolve, 1, 1, -1, dpage)
+							sprite_draw_dissolved(.sprites + .frame, .pal, .x, .y - .z,.dissolve, DEFAULT_TRANSITION, 1, -1, dpage)
 						else
 							sprite_draw(.sprites + .frame, .pal, .x, .y - .z, 1, -1, dpage)
 						end if
@@ -2013,7 +2014,7 @@ FOR i = 0 TO 24
 				else
 					if bslot(zbuf(i)).sprites <> 0 AND bslot(zbuf(i)).frame < bslot(zbuf(i)).sprite_num then
 						if .dissolve and eflee(zbuf(i)) = 0 then
-							sprite_draw_dissolved(.sprites + .frame, .pal, .x, .y - .z,.dissolve, 1, 1, -1, dpage)
+							sprite_draw_dissolved(.sprites + .frame, .pal, .x, .y - .z,.dissolve, DEFAULT_TRANSITION, 1, -1, dpage)
 						else
 							sprite_draw(.sprites + .frame, .pal, .x, .y - .z, 1, -1, dpage)
 						end if

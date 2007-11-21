@@ -3659,6 +3659,16 @@ sub sprite_draw_dissolved(byval spr as frame ptr, Byval pal as Palette16 ptr, By
 					cpy->mask[i] = large(cint(cpy->mask[i]), &hff * tog)
 				next
 			end if
+		case 2 'diagonal vanish
+			j = p * 4
+			for sy = 0 to p * 4 'we need to do four strips at once
+				j -= 1
+				for sx = 0 to j
+					if sx >= spr->w then exit for
+					cpy->mask[sy * spr->w + sx] = &hff
+				next
+				if sy >= spr->h then exit for
+			next
 	end select
 	
 	sprite_draw(cpy, pal, x, y, scale, trans, page)
