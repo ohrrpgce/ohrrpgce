@@ -1034,7 +1034,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
   CASE 0 '--end()
    FOR i = 0 TO 3
     '--enforce weak picture
-    IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vdance = 0 THEN of(i) = 6
+    IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vdance = 0 THEN of(i) = 6: bslot(i).frame = 6
     '--re-enforce party's X/Y positions...
     bslot(i).x = bslot(i).basex
     bslot(i).y = bslot(i).basey
@@ -1074,6 +1074,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
   CASE 7 'setframe(who,frame)
    ww = popw
    fr = popw
+   bslot(ww).frame = fr
    IF is_hero(ww) THEN walk(ww) = 0: of(ww) = fr
    IF ww > 23 THEN of(ww) = fr '--is this right?
   CASE 8 'absmove(who,n,n,n,n)
@@ -1206,6 +1207,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
   CASE 14 'walktoggle(who)
    ww = popw
    of(ww) = 0
+   bslot(ww).frame = 0
    IF is_hero(ww) THEN walk(ww) = walk(ww) XOR 1
   CASE 15 'zmove(who,zm,zstep)
    ww = popw
@@ -1923,10 +1925,11 @@ RETRACE
 
 animate:
 FOR i = 0 TO 3
- IF walk(i) = 1 THEN of(i) = of(i) XOR tog
- IF who <> i AND bstat(i).cur.hp < bstat(i).max.hp / 5 AND vdance = 0 THEN of(i) = 6
+ IF walk(i) = 1 THEN of(i) = of(i) XOR tog : bslot(i).frame = bslot(i).frame xor tog
+ IF who <> i AND bstat(i).cur.hp < bstat(i).max.hp / 5 AND vdance = 0 THEN of(i) = 6 : bslot(i).frame = 6
  IF vdance > 0 AND bstat(i).cur.hp > 0 AND tog = 0 THEN
   IF of(i) = 0 THEN of(i) = 2 ELSE of(i) = 0
+  if bslot(i).frame = 0 then bslot(i).frame = 2 else bslot(i).frame = 0
  END IF
 NEXT i
 FOR i = 0 TO 23
@@ -1940,7 +1943,8 @@ FOR i = 0 TO 11
  IF bslot(i + 12).vis = 1 THEN
   fctr(i) = fctr(i) + 1: IF aframe(i, fctr(i)) = -1 THEN fctr(i) = 0
   of(i + 12) = aframe(i, fctr(i))
-  IF atk(2) = 3 THEN of(i + 12) = INT(RND * 3)
+  bslot(i + 12).frame = aframe(i, fctr(i))
+  IF atk(2) = 3 THEN of(i + 12) = INT(RND * 3) : bslot(i + 12).frame = INT(RND * 3) 'so what if they won't both be the same?
  END IF
  IF bslot(i).dissolve > 0 THEN
   'ENEMIES DEATH THROES
@@ -1961,7 +1965,7 @@ FOR i = 0 TO 11
     bslot(i).vis = 0
    END IF
   END IF
-  IF is_hero(i) THEN of(i) = 7
+  IF is_hero(i) THEN of(i) = 7 : bslot(i).frame = 7
  END IF
 NEXT i
 RETRACE
@@ -2150,7 +2154,7 @@ curbg = formdata(32)
 setdiskpages buffer(), 200, 0
 loadpage game$ + ".mxs", curbg, 2
 FOR i = 0 TO 3
- IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vdance = 0 THEN of(i) = 6
+ IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vdance = 0 THEN of(i) = 6 : bslot(i).frame = 6
  IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN bslot(i).dissolve = 1
  lifemeter(i) = (88 / large(bstat(i).max.hp, 1)) * bstat(i).cur.hp
 NEXT i
