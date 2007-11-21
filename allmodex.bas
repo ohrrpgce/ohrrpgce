@@ -17,6 +17,7 @@
 #endif
 
 #include "compat.bi"
+#include "common.bi"
 #include "allmodex.bi"
 #include "gfx.bi"
 #include "music.bi"
@@ -61,10 +62,6 @@ declare function calcblock(byval x as integer, byval y as integer, byval l as in
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
 
-
-'extern
-declare sub debug(s$)
-declare sub fatalerror(e$)
 
 #if __FB_VERSION__ > "0.16"
 #define threadbs any ptr
@@ -3382,7 +3379,7 @@ sub sprite_add_cache(byval s as string, byval p as frame ptr, byval fr as intege
 				.p = p
 				p->refcount = 1
 				exit sub
-			elseif .p->refcount = 0 then
+			elseif .p->refcount <= 0 then
 				sec = i
 			end if
 		end with
@@ -3582,7 +3579,7 @@ sub Palette16_add_cache(byval s as string, byval p as Palette16 ptr, byval fr as
 				.p = p
 				p->refcount = 1
 				exit sub
-			elseif .p->refcount = 0 then
+			elseif .p->refcount <= 0 then
 				sec = i
 			end if
 		end with
@@ -3606,12 +3603,21 @@ end sub
 
 
 
-function palette16_load(byval fil as string, byval num as integer) as palette16 ptr
+function palette16_load(byval fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
 	dim f as integer, ret as palette16 ptr
+	dim hashstring as string
+	if num > -1 then
+		hashstring = fil & "#" & num & ":0"
+	else
+		num = getdefaultpal(autotype, spr)
+		if num <> -1 then
+			hashstring = fil & "#" & num & ":" & spr
+		else
+			return 0
+		end if
+	end if
 	
-	dim hashstring as string = fil & "#" & num
 	'debug "Loading: " & hashstring
-	
 	ret = palette16_find_cache(hashstring)
 	
 	if ret <> 0 then
@@ -3626,6 +3632,21 @@ function palette16_load(byval fil as string, byval num as integer) as palette16 
 	if open(fil for binary as #f) then return 0
 	
 	
+	dim mag as short
+	
+	get #f, 1, mag
+	
+	if mag = 4444 then
+		get #f,,mag
+		if num > mag then
+			close #f
+			return 0
+		end if
+		
+		seek #f, 17 + 16 * num
+	else
+		seek #f, 8 + 16 * num
+	end if
 	
 	ret = callocate(sizeof(palette16))
 	
@@ -3635,12 +3656,14 @@ function palette16_load(byval fil as string, byval num as integer) as palette16 
 		return 0
 	end if
 	
-	seek #f, 16 * num
-	
-	dim i as integer
-	for i = 0 to 15
-		get #f,, ret->col(i)
+	'see, it's "mag"ic, since it's used for so many things
+	for mag = 0 to 15
+		get #f,, ret->col(mag)
 	next
+	
+	close #f
+	
+	return ret
 	
 end function
 

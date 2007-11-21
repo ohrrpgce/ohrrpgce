@@ -302,6 +302,7 @@ clearpage 3
 
 for i = lbound(bslot) to ubound(bslot)
 	sprite_unload(@bslot(i).sprites)
+	palette16_unload(@bslot(i).pal)
 next
 
 
@@ -517,11 +518,16 @@ FOR i = 12 TO 23
  cycle(i) = -1
  bslot(i).z = 0
  'load battle sprites
- bslot(i).sprite_num = 3
- bslot(i).frame = 0
- sprite_unload(@bslot(i).sprites)
- bslot(i).sprites = sprite_load(game$ + ".pt6", atk(0), 3, 50, 50)
- if bslot(i).sprites = 0 then debug "Failed to load attack sprites (#" & i & ")"
+ with bslot(i)
+		.sprite_num = 3
+		.frame = 0
+		sprite_unload(@.sprites)
+		palette16_unload(@.pal)
+		.sprites = sprite_load(game$ + ".pt6", atk(0), 3, 50, 50)
+		if .sprites = 0 then debug "Failed to load attack sprites (#" & i & ")"
+		.pal = palette16_load(game$ + ".pal", atk(1), 6, atk(0))
+		if .pal = 0 then debug "Failed to load palette (#" & i & ")"
+ end with
 NEXT i
 tcount = -1: pdir = 0: conmp = 1
 IF is_enemy(who) THEN pdir = 1
@@ -566,11 +572,12 @@ IF is_hero(who) THEN
  with bslot(24)
   .sprite_num = 2
   .sprites = sprite_load(game$ & ".pt5", exstat(who, 0, 13), 2, 24, 24)
+  if .sprites = 0 then debug "Could not load weapon sprite: " & game$ & ".pt5#" & exstat(who, 0, 13)
+  .pal = palette16_load(game$ + ".pal", exstat(who, 1, 13), 5, exstat(who, 0, 13))
+  if .pal = 0 then debug "Failed to load palette (#" & 24 & ")"
   .frame = 0
   
-  if .sprites = 0 then
-  	debug "Could not load weapon sprite: " & game$ & ".pt5#" & exstat(who, 0, 13)
-  end if
+  
  end with
 END IF
 numhits = atk(17) + INT(RND * (bstat(who).cur.hits + 1))
@@ -2095,6 +2102,9 @@ FOR i = 0 TO 3
    .sprite_num = 8
    .sprites = sprite_load(game$ & ".pt0", exstat(i, 0, 14), .sprite_num, 32, 40)
    if .sprites = 0 then debug "Couldn't load hero sprite: " & game$ & ".pt0#" & exstat(i,0,14)
+   .pal = palette16_load(game$ + ".pal", exstat(i, 0, 15), 0, exstat(i, 0, 14))
+   if .pal = 0 then debug "Failed to load palette (#" & i & ")"
+
    .frame = 0
   END WITH
   FOR o = 0 TO 11

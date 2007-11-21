@@ -747,6 +747,14 @@ END IF
 IF bslot(4 + i).vis = 1 THEN
  setpicstuf buffer(), (bslot(4 + i).w * bslot(4 + i).h) * .5, 3
  loadset game$ + ext$(i), es(i, 53), 64 + i * 10
+ with bslot(4 + i)
+  .sprite_num = 1
+  .sprites = sprite_load(game$ + ext$(i), es(i, 53), 1, .w, .h)
+  if .sprites = 0 then debug "Failed to load enemy sprite (#" & i & ")"
+  .pal = palette16_load(game$ + ".pal", es(i, 54), 1 + es(i, 55), es(i, 53))
+  if .pal = 0 then debug "Failed to load palette (#" & (4+i) & ")"
+  
+ end with
  FOR o = 0 TO 11
   bstat(4 + i).cur.sta(o) = es(i, 62 + o)
   bstat(4 + i).max.sta(o) = es(i, 62 + o)
