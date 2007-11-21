@@ -2748,7 +2748,10 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
      CASE 3 ' Text box
       menu_text_box = .sub_t
      CASE 4 ' Run Script
-      runscript .sub_t, nowscript + 1, YES, "menuitem", plottrigger
+      rsr = runscript(.sub_t, nowscript + 1, YES, "menuitem", plottrigger)
+      IF rsr = 1 THEN
+       setScriptArg 0, .handle
+      END IF
     END SELECT
    END IF
    IF .t = 1 AND .sub_t = 11 THEN '--volume
