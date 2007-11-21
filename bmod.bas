@@ -2003,12 +2003,20 @@ FOR i = 0 TO 24
 			with bslot(zbuf(i))
 				if .d = 0 then
 					if .sprites <> 0 AND .frame < .sprite_num then
-						sprite_draw(.sprites + .frame, .pal, .x, .y - .z,,, dpage)
+						if .dissolve and eflee(zbuf(i)) = 0 then
+							sprite_draw_dissolved(.sprites + .frame, .pal, .x, .y - .z,.dissolve, 1, 1, -1, dpage)
+						else
+							sprite_draw(.sprites + .frame, .pal, .x, .y - .z, 1, -1, dpage)
+						end if
 						'debug "sprite_draw(" & .sprites & " + " & .frame & ", " & .pal & ", " & .x & ", " & .y & " - " & .z & ")"
 					end if
 				else
 					if bslot(zbuf(i)).sprites <> 0 AND bslot(zbuf(i)).frame < bslot(zbuf(i)).sprite_num then
-						sprite_draw(.sprites + .frame, .pal, .x, .y - .z,,, dpage)
+						if .dissolve and eflee(zbuf(i)) = 0 then
+							sprite_draw_dissolved(.sprites + .frame, .pal, .x, .y - .z,.dissolve, 1, 1, -1, dpage)
+						else
+							sprite_draw(.sprites + .frame, .pal, .x, .y - .z, 1, -1, dpage)
+						end if
 						'debug "sprite_draw(" & .sprites & " + " & .frame & ", " & .pal & ", " & .x & ", " & .y & " - " & .z & ")"
 					end if
 				end if

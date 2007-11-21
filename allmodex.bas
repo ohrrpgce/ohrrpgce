@@ -3487,10 +3487,43 @@ end function
 sub sprite_unload(byval p as frame ptr ptr)
 	if p = 0 then exit sub
 	if *p = 0 then exit sub
-	(*p)->refcount -= 1
+	if (*p)->refcount = -1 then
+		sprite_delete(p)
+	else
+		(*p)->refcount -= 1
+		*p = 0
+	end if
 	'debug "unloading sprite (" & ((*p)->refcount) & " more copies!)"
-	*p = 0
 end sub
+
+function sprite_duplicate(byval p as frame ptr) as frame ptr
+	dim ret as frame ptr, i as integer
+	
+	if p = 0 then return 0
+	
+	ret = allocate(sizeof(frame))
+	
+	if ret = 0 then return 0
+	
+	ret->w = p->w
+	ret->h = p->h
+	ret->refcount = -1 'that is, it's not refcounted
+	if p->image then
+		ret->image = allocate(ret->w * ret->h)
+		for i = 0 to ret->w * ret->h
+			ret->image[i] = p->image[i]
+		next
+	end if
+	if p->mask then
+		ret->mask = allocate(ret->w * ret->h)
+		for i = 0 to ret->w * ret->h
+			ret->mask[i] = p->mask[i]
+		next
+	end if
+	
+	return ret
+	
+end function
 
 sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer = wrkpage)
 	dim sptr as ubyte ptr
@@ -3563,9 +3596,75 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 	End With
 end sub
 
+sub sprite_draw_dissolved(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, byval amnt as integer, byval style as integer = 0,  Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer = wrkpage)
 
-
-
+	dim cpy as frame ptr
+	
+	if spr = 0 then exit sub
+	
+	cpy = sprite_duplicate(spr)
+	
+	if cpy = 0 then exit sub
+	
+	'the sprite dissolves in (spr->w / 2) ticks
+	dim tim as integer = spr->w / 2
+	'we'll get "frames remaining" as amnt
+	dim p as integer = tim - amnt
+	'debug str(p)
+	
+	dim as integer i, j, sx, sy, tog
+	
+	select case style
+		case 1 'crossfade
+			if p > tim / 2 then
+				dim m as integer = spr->w * spr->h / tim * (p - tim / 2) * 2
+				sx = 0
+				sy = 0
+				tog = 0
+				for i = 0 to spr->w * spr->h - 1
+					sx += 1
+					tog = tog xor 1
+					if sx > spr->w then
+						sy += 1
+						sx = 0
+						tog = tog xor 1
+					end if
+					cpy->mask[i] = large(cint(cpy->mask[i]), &hff * tog)
+				next
+				sx = 0
+				sy = 0
+				tog = 1
+				for i = 0 to m - 1
+					sx += 1
+					tog = tog xor 1
+					if sx > spr->w then
+						sy += 1
+						sx = 0
+						tog = tog xor 1
+					end if
+					cpy->mask[i] = large(cint(cpy->mask[i]), &hff * tog)
+				next
+			else
+				dim m as integer = spr->w * spr->h / tim * p * 2
+				sx = 0
+				sy = 0
+				for i = 0 to m - 1
+					sx += 1
+					tog = tog xor 1
+					if sx > spr->w then
+						sy += 1
+						sx = 0
+						tog = tog xor 1
+					end if
+					cpy->mask[i] = large(cint(cpy->mask[i]), &hff * tog)
+				next
+			end if
+	end select
+	
+	sprite_draw(cpy, pal, x, y, scale, trans, page)
+	
+	sprite_delete(@cpy)
+end sub
 
 'This should be replaced with a real hash
 
