@@ -298,6 +298,7 @@ define function, begin
 289,bottommenu,0              #return a handle to the bottommost menu
 290,previousmenu,1,0          #given a menu handle, return a handle to the menu beneath it
 291,nextmenu,1,0              #given a menu handle, return a handle to the menu on top of it
+292,menuitembyslot,2,0,0      #menu item by slot(menu handle, slotnum) returns menuitemhandle
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
@@ -761,6 +762,13 @@ end
 
 script,set seconds of play,s=0, begin
 	if(s >= 0, and, s << 60) then (write general(54,s))
+end
+
+#--------------------------------------------------------------------------
+# menu wrappers
+
+script, first menu item, menuhandle=0, begin
+  exit returning(menu item by slot(menuhandle, 0))
 end
 
 #--------------------------------------------------------------------------

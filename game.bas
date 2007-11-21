@@ -171,9 +171,11 @@ DECLARE FUNCTION bound_menuslot(menuslot AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_menuslot_and_mislot(menuslot AS INTEGER, mislot AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION find_menu_handle(menu_handle) AS INTEGER
-DECLARE FUNCTION find_menu_item_handle(handle, BYREF found_in_menuslot) AS INTEGER
+DECLARE FUNCTION find_menu_item_handle_in_menuslot (handle AS INTEGER, menuslot AS INTEGER) AS INTEGER
+DECLARE FUNCTION find_menu_item_handle(handle AS INTEGER, BYREF found_in_menuslot) AS INTEGER
 DECLARE FUNCTION assign_menu_item_handle (BYREF mi AS MenuDefItem) AS INTEGER
 DECLARE FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
+DECLARE FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER) AS INTEGER
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -2364,13 +2366,18 @@ SELECT CASE AS CONST scrat(nowscript).curkind
       scriptret = menus(menuslot).handle
      END IF
     END IF
-   CASE 291'--previous menu
+   CASE 291'--next menu
     menuslot = find_menu_handle(retvals(0))
-    IF bound_menuslot(menuslot, "previous menu") THEN
+    IF bound_menuslot(menuslot, "next menu") THEN
      menuslot = menuslot + 1
      IF menuslot <= topmenu THEN
       scriptret = menus(menuslot).handle
      END IF
+    END IF
+   CASE 292'--menu item by slot
+    menuslot = find_menu_handle(retvals(0))
+    IF bound_menuslot(menuslot, "menu item by slot") THEN
+     scriptret = menu_item_handle_by_slot(menuslot, retvals(1))
     END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
@@ -2801,20 +2808,30 @@ FUNCTION find_menu_handle (handle) AS INTEGER
  RETURN -1 ' Not found
 END FUNCTION
 
-FUNCTION find_menu_item_handle (handle, BYREF found_in_menuslot) AS INTEGER
+FUNCTION find_menu_item_handle_in_menuslot (handle AS INTEGER, menuslot AS INTEGER) AS INTEGER
+ DIM mislot AS INTEGER
+ WITH menus(menuslot)
+  FOR mislot = 0 TO UBOUND(.items)
+   WITH .items(mislot)
+    IF .exists AND .handle = handle THEN
+     RETURN mislot
+    END IF
+   END WITH
+  NEXT mislot
+ END WITH
+ RETURN -1 ' Not found
+END FUNCTION
+
+FUNCTION find_menu_item_handle (handle AS INTEGER, BYREF found_in_menuslot) AS INTEGER
  DIM menuslot AS INTEGER
  DIM mislot AS INTEGER
+ DIM found AS INTEGER
  FOR menuslot = 0 TO topmenu
-  WITH menus(menuslot)
-   FOR mislot = 0 TO UBOUND(.items)
-    WITH .items(mislot)
-     IF .exists AND .handle = handle THEN
-      found_in_menuslot = menuslot
-      RETURN mislot
-     END IF
-    END WITH
-   NEXT mislot
-  END WITH
+  found = find_menu_item_handle_in_menuslot(handle, menuslot)
+  IF found >= 0 THEN
+   found_in_menuslot = menuslot
+   RETURN found
+  END IF
  NEXT menuslot
  found_in_menuslot = -1
  RETURN -1 ' Not found
@@ -2839,4 +2856,17 @@ FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
   assign_menu_item_handle menu.items(i)
  NEXT i
  RETURN new_handle
+END FUNCTION
+
+FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER) AS INTEGER
+ IF menuslot >= 0 AND menuslot <= topmenu THEN
+  WITH menus(menuslot)
+   IF mislot >= 0 AND mislot <= UBOUND(.items) THEN
+    WITH .items(mislot)
+     IF .exists THEN RETURN .handle
+    END WITH
+   END IF
+  END WITH
+ END IF
+ RETURN 0
 END FUNCTION
