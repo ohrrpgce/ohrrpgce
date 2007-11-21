@@ -129,5 +129,9 @@ DECLARE FUNCTION getmusictype (file$)
 declare function sprite_load(byval as string, byval as integer, byval as integer , byval as integer, byval as integer) as frame ptr
 declare sub sprite_unload(byval p as frame ptr ptr)
 
+declare function palette16_load(byval fil as string, byval num as integer) as palette16 ptr
+declare sub palette16_unload(byval p as palette16 ptr ptr)
+
+
 
 #ENDIF

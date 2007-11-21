@@ -18,6 +18,11 @@ TYPE RectType
   high AS INTEGER
 END TYPE
 
+TYPE Palette16
+	col(15) as ubyte 'indicies into the master palette
+	refcount as integer 'private
+END TYPE
+
 'sprites use this
 type Frame
 	w as integer
@@ -143,6 +148,7 @@ TYPE BattleSprite
   sprites as Frame ptr 'the graphic set
   sprite_num as integer 'how many frames
   frame as integer 'the current frame
+  pal as palette16 ptr 'yeah
 END TYPE
 
 UNION BattleStatsSingle

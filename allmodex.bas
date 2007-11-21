@@ -3493,3 +3493,161 @@ sub sprite_unload(byval p as frame ptr ptr)
 	*p = 0
 end sub
 
+sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer, Byval trans as integer = -1)
+	dim sptr as ubyte ptr
+	dim as integer tx, ty
+	dim as integer i, j, pix, spix
+
+	if spr = 0 then exit sub
+	
+	'assume wrkpage
+	sptr = spage(wrkpage)
+
+	if scale = 0 then scale = 1
+
+	'checking the clip region should really be outside the loop,
+	'I think, but we'll see how this works
+	With *spr
+		ty = y
+		for i = 0 to (.h * scale) - 1
+			tx = x
+			for j = 0 to (.w * scale) - 1
+				'check bounds
+				if not (tx < clipl or tx > clipr or ty < clipt or ty > clipb) then
+					'ok to draw pixel
+					pix = (ty * 320) + tx
+					spix = ((i \ scale) * .w) + (j \ scale)
+					'check mask
+					if .mask <> 0 and trans then
+						'not really sure whether to leave the masks like
+						'this or change them above, this is the wrong
+						'way round, really. perhaps.
+						if .mask[spix] = 0 then
+							if pal <> 0 then
+								sptr[pix] = pal->col(.image[spix])
+							else
+								sptr[pix] = .image[spix]
+							end if
+						end if
+					else
+						if pal <> 0 then
+							sptr[pix] = pal->col(.image[spix])
+						else
+							sptr[pix] = .image[spix]
+						end if
+					end if
+				end if
+				tx += 1
+			next
+			ty += 1
+		next
+	End With
+end sub
+
+
+
+
+
+'This should be replaced with a real hash
+
+type Palette16Cache
+	s as string
+	p as palette16 ptr
+end type
+
+
+redim shared palcache(50) as Palette16Cache
+
+sub Palette16_delete(byval f as Palette16 ptr ptr)
+	if f = 0 then exit sub
+	if *f = 0 then exit sub
+	deallocate(*f)
+	*f = 0
+end sub
+
+function Palette16_find_cache(byval s as string) as Palette16 ptr
+	dim i as integer
+	for i = 0 to ubound(palcache)
+		if palcache(i).s = s then return palcache(i).p
+	next
+end function
+
+sub Palette16_add_cache(byval s as string, byval p as Palette16 ptr, byval fr as integer = 0)
+	if p = 0 then exit sub
+	dim as integer i, sec = -1
+	for i = fr to ubound(sprcache)
+		with palcache(i)
+			if .s = "" then
+				.s = s
+				.p = p
+				p->refcount = 1
+				exit sub
+			elseif .p->refcount = 0 then
+				sec = i
+			end if
+		end with
+	next
+	
+	if sec <> 0 then
+		Palette16_delete(@palcache(sec).p)
+		palcache(sec).s = s
+		palcache(sec).p = p
+		p->refcount = 1
+		exit sub
+	end if
+	
+	'no room? pah.
+	redim preserve palcache(ubound(palcache) * 1.3 + 5)
+	
+	Palette16_add_cache(s, p, i)
+end sub
+
+
+
+
+
+function palette16_load(byval fil as string, byval num as integer) as palette16 ptr
+	dim f as integer, ret as palette16 ptr
+	
+	dim hashstring as string = fil & "#" & num
+	'debug "Loading: " & hashstring
+	
+	ret = palette16_find_cache(hashstring)
+	
+	if ret <> 0 then
+		ret->refcount += 1
+		return ret
+	end if
+	
+	if not isfile(fil) then return 0
+	
+	f = freefile
+	
+	if open(fil for binary as #f) then return 0
+	
+	
+	
+	ret = callocate(sizeof(palette16))
+	
+	if ret = 0 then
+		close #f
+		debug "Could not create palette, no memory"
+		return 0
+	end if
+	
+	seek #f, 16 * num
+	
+	dim i as integer
+	for i = 0 to 15
+		get #f,, ret->col(i)
+	next
+	
+end function
+
+sub palette16_unload(byval p as palette16 ptr ptr)
+	if p = 0 then exit sub
+	if *p = 0 then exit sub
+	(*p)->refcount -= 1
+	'debug "unloading palette (" & ((*p)->refcount) & " more copies!)"
+	*p = 0
+end sub
