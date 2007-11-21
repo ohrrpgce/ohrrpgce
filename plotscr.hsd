@@ -764,6 +764,66 @@ script,set seconds of play,s=0, begin
 end
 
 #--------------------------------------------------------------------------
+# menu item data wrappers
+
+script, set menu item, handle=0, type=0, subtype=0, tag1=0, tag2=0, stag=0, togtag=0, begin
+  write menu item int(handle, 22, type)
+  write menu item int(handle, 23, subtype)
+  write menu item int(handle, 24, tag1)
+  write menu item int(handle, 25, tag2)
+  write menu item int(handle, 26, stag)
+  write menu item int(handle, 27, togtag)
+end
+
+script, set menu item type, handle=0, n=0, begin
+  write menu item int(handle, 22, n)
+end
+
+script, get menu item type, handle=0, begin
+  exit returning(read menu item int(handle, 22))
+end
+
+script, set menu item subtype, handle=0, n=0, begin
+  write menu item int(handle, 23, n)
+end
+
+script, get menu item subtype, handle=0, begin
+  exit returning(read menu item int(handle, 23))
+end
+
+script, set menu item tag1, handle=0, n=0, begin
+  write menu item int(handle, 24, n)
+end
+
+script, get menu item tag1, handle=0, begin
+  exit returning(read menu item int(handle, 24))
+end
+
+script, set menu item tag2, handle=0, n=0, begin
+  write menu item int(handle, 25, n)
+end
+
+script, get menu item tag2, handle=0, begin
+  exit returning(read menu item int(handle, 25))
+end
+
+script, set menu item settag, handle=0, n=0, begin
+  write menu item int(handle, 26, n)
+end
+
+script, get menu item settag, handle=0, begin
+  exit returning(read menu item int(handle, 26))
+end
+
+script, set menu item togtag, handle=0, n=0, begin
+  write menu item int(handle, 27, n)
+end
+
+script, get menu item togtag, handle=0, begin
+  exit returning(read menu item int(handle, 27))
+end
+
+#--------------------------------------------------------------------------
 # script triggers
 
 define trigger,begin
