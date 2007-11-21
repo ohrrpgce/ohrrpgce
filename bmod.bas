@@ -1996,17 +1996,19 @@ FOR i = 0 TO 24
 				wardsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
 			END IF
 		else
-			if bslot(zbuf(i)).d = 0 then
-				if bslot(zbuf(i)).sprites <> 0 AND bslot(zbuf(i)).frame < bslot(zbuf(i)).sprite_num then
-					sprite_draw(bslot(zbuf(i)).sprites + bslot(zbuf(i)).frame, bslot(zbuf(i)).pal, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z)
-					'debug "sprite_draw(" & bslot(zbuf(i)).sprites & " + " & bslot(zbuf(i)).frame & ", " & bslot(zbuf(i)).pal & ", " & bslot(zbuf(i)).x & ", " & bslot(zbuf(i)).y & " - " & bslot(zbuf(i)).z & ")"
+			with bslot(zbuf(i))
+				if .d = 0 then
+					if .sprites <> 0 AND .frame < .sprite_num then
+						sprite_draw(.sprites + .frame, .pal, .x, .y - .z,,, dpage)
+						'debug "sprite_draw(" & .sprites & " + " & .frame & ", " & .pal & ", " & .x & ", " & .y & " - " & .z & ")"
+					end if
+				else
+					if bslot(zbuf(i)).sprites <> 0 AND bslot(zbuf(i)).frame < bslot(zbuf(i)).sprite_num then
+						sprite_draw(.sprites + .frame, .pal, .x, .y - .z,,, dpage)
+						'debug "sprite_draw(" & .sprites & " + " & .frame & ", " & .pal & ", " & .x & ", " & .y & " - " & .z & ")"
+					end if
 				end if
-			else
-				if bslot(zbuf(i)).sprites <> 0 AND bslot(zbuf(i)).frame < bslot(zbuf(i)).sprite_num then
-					sprite_draw(bslot(zbuf(i)).sprites + bslot(zbuf(i)).frame, bslot(zbuf(i)).pal, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z)
-					'debug "sprite_draw(" & bslot(zbuf(i)).sprites & " + " & bslot(zbuf(i)).frame & ", " & bslot(zbuf(i)).pal & ", " & bslot(zbuf(i)).x & ", " & bslot(zbuf(i)).y & " - " & bslot(zbuf(i)).z & ")"
-				end if
-			end if
+			end with
 		end if
 	END IF
 NEXT i

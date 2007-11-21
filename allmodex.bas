@@ -3492,10 +3492,10 @@ sub sprite_unload(byval p as frame ptr ptr)
 	*p = 0
 end sub
 
-sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1)
+sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer = wrkpage)
 	dim sptr as ubyte ptr
 	dim as integer tx, ty
-	dim as integer i, j, pix, spix
+	dim as integer sx, sy, pix, spix
 
 	if spr = 0 then
 		debug "trying to draw null sprite"
@@ -3503,48 +3503,63 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 	end if
 	
 	'assume wrkpage
-	sptr = spage(wrkpage)
+	sptr = spage(page)
 
 	if scale = 0 then scale = 1
 	
 	if spr->mask = 0 then trans = 0 'no mask? no transparency.
-
-	'checking the clip region should really be outside the loop,
-	'I think, but we'll see how this works
+	
+	if trans then trans = -1
+	
+	dim as integer sxfrom, sxto, syfrom, syto
+	
+	sxfrom = large(clipl, x)
+	sxto = small(clipr, x + (spr->w * scale) - 1)
+	
+	syfrom = large(clipt, y)
+	syto = small(clipb, y + (spr->h * scale) - 1)
+	
 	With *spr
-		ty = y
-		for i = 0 to (.h * scale) - 1
-			tx = x
-			for j = 0 to (.w * scale) - 1
-				'check bounds
-				if not (tx < clipl or tx > clipr or ty < clipt or ty > clipb) then
-					'ok to draw pixel
+		'ty = syfrom
+		if not trans then
+			for ty = syfrom to syto
+				'tx = sxfrom
+				for tx = sxfrom to sxto
+					'figure out where to put the pixel
 					pix = (ty * 320) + tx
-					spix = ((i \ scale) * .w) + (j \ scale)
+					'and where to get the pixel from
+					spix = (int((ty-syfrom) / scale) * .w) + int((tx-sxfrom) / scale)
 					'check mask
-					if trans then
-						'not really sure whether to leave the masks like
-						'this or change them above, this is the wrong
-						'way round, really. perhaps.
-						if .mask[spix] = 0 then
-							if pal <> 0 then
-								sptr[pix] = pal->col(.image[spix])
-							else
-								sptr[pix] = .image[spix]
-							end if
-						end if
+					
+					if pal <> 0 then
+						sptr[pix] = pal->col(.image[spix])
 					else
+						sptr[pix] = .image[spix]
+					end if
+				next
+			next
+		else
+			for ty = syfrom to syto
+				'tx = sxfrom
+				for tx = sxfrom to sxto
+					'figure out where to put the pixel
+					pix = (ty * 320) + tx
+					'and where to get the pixel from
+					spix = (((ty-y) \ scale) * .w) + ((tx-x) \ scale)
+					
+					'check mask
+					if .mask[spix] = 0 then
 						if pal <> 0 then
 							sptr[pix] = pal->col(.image[spix])
 						else
 							sptr[pix] = .image[spix]
 						end if
 					end if
-				end if
-				tx += 1
+					
+				next
 			next
-			ty += 1
-		next
+		end if
+
 	End With
 end sub
 
@@ -3579,7 +3594,7 @@ end function
 sub Palette16_add_cache(byval s as string, byval p as Palette16 ptr, byval fr as integer = 0)
 	if p = 0 then exit sub
 	dim as integer i, sec = -1
-	for i = fr to ubound(sprcache)
+	for i = fr to ubound(palcache)
 		with palcache(i)
 			if .s = "" then
 				.s = s
@@ -3671,6 +3686,14 @@ function palette16_load(byval fil as string, byval num as integer, byval autotyp
 	close #f
 	
 	palette16_add_cache(hashstring, ret)
+	
+	'dim d as string
+	'd = hex(ret->col(0))
+	'for mag = 1 to 15
+	'	d &= "," & hex(ret->col(mag))
+	'next
+	
+	'debug d
 	
 	return ret
 	
