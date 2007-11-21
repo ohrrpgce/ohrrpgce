@@ -157,7 +157,7 @@ DECLARE SUB killallscripts ()
 DECLARE SUB reloadscript (index, updatestats = -1)
 DECLARE FUNCTION count_sav(filename AS STRING) AS INTEGER
 DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
-DECLARE SUB add_menu (record AS INTEGER)
+DECLARE FUNCTION add_menu (record AS INTEGER) AS INTEGER
 DECLARE SUB remove_menu (record AS INTEGER)
 DECLARE SUB bring_menu_forward (handle AS INTEGER)
 DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
@@ -2259,8 +2259,7 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     npcplot
    CASE 274'--open menu
     IF bound_arg(retvals(0), 0, gen(genMaxMenu), "open menu", "menu ID") THEN
-     add_menu retvals(0)
-     scriptret = topmenu
+     scriptret = add_menu(retvals(0))
     END IF
    CASE 275'--read menu int
     IF bound_menu_handle(retvals(0), "read menu int") THEN
@@ -2548,7 +2547,8 @@ FUNCTION count_sav(filename AS STRING) AS INTEGER
  RETURN n
 END FUNCTION
 
-SUB add_menu (record AS INTEGER)
+FUNCTION add_menu (record AS INTEGER) AS INTEGER
+ STATIC new_handle = 0
  topmenu = topmenu + 1
  IF topmenu > UBOUND(menus) THEN
   REDIM PRESERVE menus(topmenu) AS MenuDef
@@ -2564,7 +2564,10 @@ SUB add_menu (record AS INTEGER)
  init_menu_state mstates(topmenu), menus(topmenu)
  mstates(topmenu).active = YES
  check_menu_tags
-END SUB
+ new_handle = new_handle + 1
+ menus(topmenu).handle = new_handle
+ RETURN new_handle
+END FUNCTION
 
 SUB remove_menu (handle AS INTEGER)
  bring_menu_forward handle

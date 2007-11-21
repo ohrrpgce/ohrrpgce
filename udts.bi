@@ -49,6 +49,7 @@ TYPE MenuDefItem
 END TYPE
 
 TYPE MenuDef
+  handle    AS INTEGER
   name      AS STRING
   boxstyle  AS INTEGER
   textcolor AS INTEGER

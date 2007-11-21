@@ -530,6 +530,7 @@ SUB ClearMenuData(dat AS MenuDef)
  DIM i AS INTEGER
  DIM bits(0) AS INTEGER
  WITH dat
+  .handle = 0
   .name = ""
   .boxstyle = 0
   .textcolor = 0
