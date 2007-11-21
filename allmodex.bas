@@ -3669,6 +3669,18 @@ sub sprite_draw_dissolved(byval spr as frame ptr, Byval pal as Palette16 ptr, By
 				next
 				if sy >= spr->h then exit for
 			next
+		case 3 'sink into ground
+			for sy = spr->h - 1 to p * 2 step -1
+				for sx = 0 to spr->w - 1
+					cpy->image[sy * spr->w + sx] = spr->image[(sy-p * 2) * spr->w + sx]
+					cpy->mask[sy * spr->w + sx] = spr->mask[(sy-p * 2) * spr->w + sx]
+				next
+			next
+			for sy = 0 to p * 2 - 1
+				for sx = 0 to spr->w - 1
+					cpy->mask[sy * spr->w + sx] = &hff
+				next
+			next
 	end select
 	
 	sprite_draw(cpy, pal, x, y, scale, trans, page)
