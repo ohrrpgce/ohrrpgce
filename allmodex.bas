@@ -3476,6 +3476,8 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 		end with
 	next
 	
+	#undef SPOS
+	
 	close #f
 	
 	sprite_add_cache(hashstring, ret)
@@ -3490,17 +3492,22 @@ sub sprite_unload(byval p as frame ptr ptr)
 	*p = 0
 end sub
 
-sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer, Byval trans as integer = -1)
+sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1)
 	dim sptr as ubyte ptr
 	dim as integer tx, ty
 	dim as integer i, j, pix, spix
 
-	if spr = 0 then exit sub
+	if spr = 0 then
+		debug "trying to draw null sprite"
+		exit sub
+	end if
 	
 	'assume wrkpage
 	sptr = spage(wrkpage)
 
 	if scale = 0 then scale = 1
+	
+	if spr->mask = 0 then trans = 0 'no mask? no transparency.
 
 	'checking the clip region should really be outside the loop,
 	'I think, but we'll see how this works
@@ -3515,7 +3522,7 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 					pix = (ty * 320) + tx
 					spix = ((i \ scale) * .w) + (j \ scale)
 					'check mask
-					if .mask <> 0 and trans then
+					if trans then
 						'not really sure whether to leave the masks like
 						'this or change them above, this is the wrong
 						'way round, really. perhaps.
@@ -3662,6 +3669,8 @@ function palette16_load(byval fil as string, byval num as integer, byval autotyp
 	next
 	
 	close #f
+	
+	palette16_add_cache(hashstring, ret)
 	
 	return ret
 	

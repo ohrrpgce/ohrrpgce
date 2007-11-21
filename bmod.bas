@@ -1983,27 +1983,32 @@ FOR o = 1 TO 24
  zbuf(i + 1) = insertval
 NEXT
 FOR i = 0 TO 24
- IF (bslot(zbuf(i)).vis = 1 OR bslot(zbuf(i)).dissolve > 0) THEN
-  if battle_draw_style = 0 OR (battle_draw_style = 2 and battle_draw_toggle = 0) then
-   temp = 64 + (zbuf(i) - 4) * 10
-   IF is_hero(zbuf(i)) THEN temp = zbuf(i) * 16
-   IF is_attack(zbuf(i)) THEN temp = 144
-   IF is_weapon(zbuf(i)) THEN temp = 156
-   loadsprite buffer(), 0, of(zbuf(i)) * (bslot(zbuf(i)).w * bslot(zbuf(i)).h * .5), temp, bslot(zbuf(i)).w, bslot(zbuf(i)).h, 3
-   IF bslot(zbuf(i)).d = 0 THEN
-    drawsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
-   ELSE
-    wardsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
-   END IF
-  else
-   if bslot(zbuf(i)).d = 0 then
-    
-   else
-   
-   end if
-   
-  end if
- END IF
+	IF (bslot(zbuf(i)).vis = 1 OR bslot(zbuf(i)).dissolve > 0) THEN
+		if battle_draw_style = 0 OR (battle_draw_style = 2 and battle_draw_toggle = 0) then
+			temp = 64 + (zbuf(i) - 4) * 10
+			IF is_hero(zbuf(i)) THEN temp = zbuf(i) * 16
+			IF is_attack(zbuf(i)) THEN temp = 144
+			IF is_weapon(zbuf(i)) THEN temp = 156
+			loadsprite buffer(), 0, of(zbuf(i)) * (bslot(zbuf(i)).w * bslot(zbuf(i)).h * .5), temp, bslot(zbuf(i)).w, bslot(zbuf(i)).h, 3
+			IF bslot(zbuf(i)).d = 0 THEN
+				drawsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
+			ELSE
+				wardsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
+			END IF
+		else
+			if bslot(zbuf(i)).d = 0 then
+				if bslot(zbuf(i)).sprites <> 0 AND bslot(zbuf(i)).frame < bslot(zbuf(i)).sprite_num then
+					sprite_draw(bslot(zbuf(i)).sprites + bslot(zbuf(i)).frame, bslot(zbuf(i)).pal, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z)
+					'debug "sprite_draw(" & bslot(zbuf(i)).sprites & " + " & bslot(zbuf(i)).frame & ", " & bslot(zbuf(i)).pal & ", " & bslot(zbuf(i)).x & ", " & bslot(zbuf(i)).y & " - " & bslot(zbuf(i)).z & ")"
+				end if
+			else
+				if bslot(zbuf(i)).sprites <> 0 AND bslot(zbuf(i)).frame < bslot(zbuf(i)).sprite_num then
+					sprite_draw(bslot(zbuf(i)).sprites + bslot(zbuf(i)).frame, bslot(zbuf(i)).pal, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z)
+					'debug "sprite_draw(" & bslot(zbuf(i)).sprites & " + " & bslot(zbuf(i)).frame & ", " & bslot(zbuf(i)).pal & ", " & bslot(zbuf(i)).x & ", " & bslot(zbuf(i)).y & " - " & bslot(zbuf(i)).z & ")"
+				end if
+			end if
+		end if
+	END IF
 NEXT i
 FOR i = 0 TO 11
  IF hc(i) > 0 THEN
