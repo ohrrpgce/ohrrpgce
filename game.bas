@@ -513,6 +513,12 @@ DO
  control
  'debug "menu key handling:"
  check_menu_tags
+ FOR i = 0 TO topmenu
+  IF mstates(i).need_update THEN
+   mstates(i).need_update = NO
+   init_menu_state mstates(i), menus(i)
+  END IF
+ NEXT i
  handle_menu_keys menu_text_box, wantloadgame, stat(), catx(), caty(), tastuf(), map, foep, stock()
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
@@ -2316,6 +2322,7 @@ SELECT CASE AS CONST scrat(nowscript).curkind
      IF i >= 0 THEN
       menus(menuslot).items(i).exists = YES
       scriptret = assign_menu_item_handle(menus(menuslot).items(i))
+      mstates(menuslot).need_update = YES
      ELSE
       debug "add menu item: failed. menu " & menuslot & " is full"
      END IF
@@ -2327,6 +2334,7 @@ SELECT CASE AS CONST scrat(nowscript).curkind
       ClearMenuItem .items(mislot)
       SortMenuItems .items()
      END WITH
+     mstates(menuslot).need_update = YES
     END IF
    CASE 285'--get menu item caption
     mislot = find_menu_item_handle(retvals(0), menuslot)
@@ -2388,6 +2396,17 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF bound_menuslot_and_mislot(menuslot, mislot, "next menu item") THEN
      scriptret = menu_item_handle_by_slot(menuslot, mislot - 1, retvals(1)<>0)
+    END IF
+   CASE 295'--selected menu item
+    menuslot = find_menu_handle(retvals(0))
+    IF bound_menuslot(menuslot, "selected menu item") THEN
+     scriptret = menu_item_handle_by_slot(menuslot, mstates(menuslot).pt)
+    END IF
+   CASE 296'--select menu item
+    mislot = find_menu_item_handle(retvals(0), menuslot)
+    IF bound_menuslot_and_mislot(menuslot, mislot, "select menu item") THEN
+     mstates(menuslot).pt = menu_item_handle_by_slot(menuslot, mislot)
+     mstates(menuslot).need_update = YES
     END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
@@ -2783,7 +2802,7 @@ SUB check_menu_tags ()
       END IF
      END WITH
     NEXT i
-    init_menu_state mstates(j), menus(j)
+    mstates(j).need_update = YES
    END IF
   END WITH
  NEXT j

@@ -300,7 +300,9 @@ define function, begin
 291,nextmenu,1,0              #given a menu handle, return a handle to the menu on top of it
 292,menuitembyslot,3,0,0,true #menu item by slot(menu handle, slotnum, visible only) returns menuitemhandle
 293,previousmenuitem,2,0,true #given a menuitemhandle return handle to the menu item before it
-294,nextmenuitem,2,0,true     #given a menuitemhandle return handle to the  menu item after it
+294,nextmenuitem,2,0,true     #given a menuitemhandle return handle to the menu item after it
+295,selectedmenuitem,1,0      #selected menu item(menu handle) returns menuitemhandle
+296,selectmenuitem,1,0        #select menu item(menu item handle) moves the cursor
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
