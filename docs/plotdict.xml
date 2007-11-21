@@ -1383,8 +1383,107 @@ get hero name (1,find hero(hero by rank(0)))
 		    <shortname>expand string</shortname>
 		    <description>Expands codes in <p>ID</p> like ${H1}. This does the same thing that textboxes do automatically.</description>
 		</command>
+	</section>
+
+	<section title="Menu Functions">
+		<command id="openmenu">
+			<cannon>open menu (ID)</cannon>
+			<shortname>open menu</shortname>
+			<description>Opens the menu specified by <p>ID</p>. You can also use the constants defined in your HSI file in the form menu:name. The menu will be opened on top of any menus that are already open. The return value is a menu handle that you should store in a variable for use with other menu-related commands</description>
+		</command>
+		<command id="createmenu">
+			<cannon>create menu</cannon>
+			<shortname>create menu</shortname>
+			<description>Create a new empty menu. You can add menu items to it with the <ref>addmenuitem</ref> command. The return value is a menu handle that you should save in a variable for use with other menu related commands.</description>
+		</command>
+		<command id="closemenu">
+			<cannon>close menu(menu handle)</cannon>
+			<shortname>close menu</shortname>
+			<description>Close a menu. The argument is a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref> or <ref>topmenu</ref>)</description>
+		</command>
+		<command id="topmenu">
+			<cannon>top menu</cannon>
+			<shortname>top menu</shortname>
+			<description>Return a menu handle for the topmost menu. Returns <ref>false</ref> if no menus are open</description>
+		</command>
+		<command id="bottommenu">
+			<cannon>bottom menu</cannon>
+			<shortname>bottom menu</shortname>
+			<description>Return a menu handle for the bottom menu (the menu underneath all other open menus). Returns <ref>false</ref> if no menus are open</description>
+		</command>
+		<command id="bringmenuforward">
+			<cannon>bring menu forward(menu handle)</cannon>
+			<shortname>bring menu forward</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one return by <ref>bottommenu</ref>), move the menu to the top of all other open menus</description>
+		</command>
+
+		<command id="addmenuitem">
+			<cannon>addmenuitem(menu handle)</cannon>
+			<shortname>add menu item</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>createmenu</ref>), Add a new menu item to the end of the menu. Returns a menu item handle, which you can store in a variable for use with commands like <ref>setmenuitemcaption</ref> or <ref>setmenuitemtype</ref>.</description>
+		</command>
+		<command id="deletemenuitem">
+			<cannon>deletemenuitem(menu item handle)</cannon>
+			<shortname>add menu item</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref> or <ref>selectedmenuitem</ref>), delete the menu item from the menu.</description>
+		</command>
+		<command id="selectmenuitem">
+			<cannon>select menu item(menu item handle)</cannon>
+			<shortname>select menu item</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>), Move the menu selection cursor to point to that menu item</description>
+		</command>
+		<command id="selectedmenuitem">
+			<cannon>selected menu item(menu handle)</cannon>
+			<shortname>selected menu item</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a menu item handle for the menu item that is currently selected</description>
+		</command>
+		<command id="getmenuitemcaption">
+			<cannon>get menu item caption(menu item handle, string ID)</cannon>
+			<shortname>get menu item caption</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), take the caption and copy it into the string identified by <p>string ID</p></description>
+		</command>
+		<command id="setmenuitemcaption">
+			<cannon>set menu item caption(menu item handle, string ID)</cannon>
+			<shortname>set menu item caption</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Replace the caption with the string identified by <p>string ID</p></description>
+		</command>
+
+		<command id="getmenuitemtype">
+			<cannon>get menu item type(menu item handle)</cannon>
+			<shortname>get menu item type</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return the type of the menu item</description>
+		</command>
+		<command id="setmenuitemtype">
+			<cannon>set menu item type(menu item handle, new type)</cannon>
+			<shortname>set menu item type</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Change the type of the menu item to <p>new type</p>. Available constants are: <p>menutype:label</p>,<p>menutype:special</p>, <p>menutype:menu</p>, <p>menutype:textbox</p>, and <p>menutype:script</p></description>
+		</command>
+		<command id="getmenuitemsubtype">
+			<cannon>get menu item subtype(menu item handle)</cannon>
+			<shortname>get menu item subtype</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return the subtype of the menu item. The meaning of the subtype varies depending on the type.</description>
+			<seealso>
+				<ref>setmenuitemsubtype</ref>
+			</seealso>
+		</command>
+		<command id="setmenuitemsubtype">
+			<cannon>set menu item subtype(menu item handle, new subtype)</cannon>
+			<shortname>set menu item subtype</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Change the subtype of the menu item to <p>new subtype</p>. The meaning of the subtype varies depending on the type of the menu item. For menutype:special you can use constants like: <p>menuspecial:items</p>, <p>menuspecial:spells</p>, <p>menuspecial:status</p>, <p>menuspecial:equip</p>, <p>menuspecial:order</p>, <p>menuspecial:team</p>, <p>menuspecial:orderteam</p>, <p>menuspecial:map</p>, <p>menuspecial:save</p>, <p>menuspecial:load</p>, <p>menuspecial:quit</p>,  and <p>menuspecial:volume</p>. For menutype:textbox you can use the textbox's ID number. For menutype:menu you can use the menu's ID number or a menu:name constant from your HSI file. For menutype:script you can use script references in the form @scriptname</description>
+		</command>
+		<command id="getmenuitemtag1">
+			<cannon>get menu item tag1(menu item handle)</cannon>
+			<shortname>get menu item tag1</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return the first tag required for the menu item to be available</description>
+		</command>
+		<command id="setmenuitemtag1">
+			<cannon>set menu item tag1(menu item handle, new tag1)</cannon>
+			<shortname>set menu item tag1</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Set the first tag required for the menu item to <p>new tag1</p></description>
+		</command>
 
 	</section>
+
 	<section title="Misc Functions">
 		<command id="random">
 			<cannon>random (lownumber, highnumber)</cannon>
