@@ -38,6 +38,7 @@ TYPE MenuSet
 END TYPE
 
 TYPE MenuDefItem
+  handle    AS INTEGER
   exists    AS INTEGER
   disabled  AS INTEGER ' set at run-time based on .tag1 and .tag2
   member    AS INTEGER

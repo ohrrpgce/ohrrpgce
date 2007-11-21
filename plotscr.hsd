@@ -283,16 +283,16 @@ define function, begin
 274,openmenu,1,0              #openmenu(menuID)
 275,readmenuint,2,0,0         #read menu int(menuhandle,intid)
 276,writemenuint,3,0,0,0      #write menu int(menuhandle,intid,n)
-277,readmenuitemint,3,0,0,0   #read menu item int(menuhandle,itemid,intid)
-278,writemenuitemint,4,0,0,0,0#write menu item int(menuhandle,itemid,intid,n)
+277,readmenuitemint,2,0,0     #read menu item int(menuitemhandle,intid)
+278,writemenuitemint,3,0,0,0  #write menu item int(menuitemhandle,intid,n)
 279,createmenu,0              #create a blank menu
 280,closemenu,1,0             #close menu(handle)
 281,topmenu,0                 #return a handle to the topmost menu
 282,bringmenuforward,1,0      #bring menu forward(menu handle)
-283,addmenuitem,1,0           #add menu item(handle) appends, returns slot
-284,deletemenuitem,2,0,0      #delete menu item(handle, slot)
-285,getmenuitemcaption,3,0,0,0 #get menu item caption(handle, slot, string ID)
-286,setmenuitemcaption,3,0,0,0 #set menu item caption(handle, slot, string ID)
+283,addmenuitem,1,0           #add menu item(menuhandle) appends, returns menuitemhandle
+284,deletemenuitem,1,0        #delete menu item(menuitemhandle)
+285,getmenuitemcaption,2,0,0  #get menu item caption(menuitemhandle, string ID)
+286,setmenuitemcaption,2,0,0  #set menu item caption(menuitemhandle, string ID)
 287,getlevelmp,2,0,0          #get level mp(hero party slot, mp level)
 288,setlevelmp,3,0,0,0        #set level mp(hero party slot, mp level, new value)
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)

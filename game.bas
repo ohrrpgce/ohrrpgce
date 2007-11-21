@@ -167,9 +167,13 @@ DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB check_menu_tags ()
 DECLARE FUNCTION game_usemenu (state AS MenuState)
 DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING) AS INTEGER
-DECLARE FUNCTION bound_menu_handle(handle AS INTEGER, cmd AS STRING) AS INTEGER
-DECLARE FUNCTION bound_menu_handle_slot(handle AS INTEGER, slot AS INTEGER, cmd AS STRING) AS INTEGER
+DECLARE FUNCTION bound_menuslot(menuslot AS INTEGER, cmd AS STRING) AS INTEGER
+DECLARE FUNCTION bound_menuslot_and_mislot(menuslot AS INTEGER, mislot AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
+DECLARE FUNCTION find_menu_handle(menu_handle) AS INTEGER
+DECLARE FUNCTION find_menu_item_handle(handle, BYREF found_in_menuslot) AS INTEGER
+DECLARE FUNCTION assign_menu_item_handle (BYREF mi AS MenuDefItem) AS INTEGER
+DECLARE FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -2009,6 +2013,8 @@ RETRACE
 
 '---DO THE ACTUAL EFFECTS OF MATH AND FUNCTIONS----
 sfunctions:
+DIM menuslot AS INTEGER = 0
+DIM mislot AS INTEGER = 0
 scriptret = 0
 SELECT CASE AS CONST scrat(nowscript).curkind
  '---MATH----------------------------------------------------------------------
@@ -2262,64 +2268,76 @@ SELECT CASE AS CONST scrat(nowscript).curkind
      scriptret = add_menu(retvals(0))
     END IF
    CASE 275'--read menu int
-    IF bound_menu_handle(retvals(0), "read menu int") THEN
-     scriptret = read_menu_int(menus(retvals(0) - 1), retvals(1))
+    menuslot = find_menu_handle(retvals(0))
+    IF bound_menuslot(menuslot, "read menu int") THEN
+     scriptret = read_menu_int(menus(menuslot), retvals(1))
     END IF
    CASE 276'--write menu int
-    IF bound_menu_handle(retvals(0), "write menu int") THEN
-     write_menu_int(menus(retvals(0) - 1), retvals(1), retvals(2))
+    menuslot = find_menu_handle(retvals(0))
+    IF bound_menuslot(menuslot, "write menu int") THEN
+     write_menu_int(menus(menuslot), retvals(1), retvals(2))
     END IF
    CASE 277'--read menu item int
-    IF bound_menu_handle_slot(retvals(0), retvals(1), "read menu item int") THEN
-     WITH menus(retvals(0) - 1)
-      IF .items(retvals(1)).exists THEN scriptret = read_menu_item_int(.items(retvals(1)), retvals(2))
+    mislot = find_menu_item_handle(retvals(0), menuslot)
+    IF bound_menuslot_and_mislot(menuslot, mislot, "read menu item int") THEN
+     WITH menus(menuslot)
+      IF .items(mislot).exists THEN scriptret = read_menu_item_int(.items(mislot), retvals(1))
      END WITH
     END IF
    CASE 278'--write menu item int
-    IF bound_menu_handle_slot(retvals(0), retvals(1), "write menu item int") THEN
-     WITH menus(retvals(0) - 1)
-      IF .items(retvals(1)).exists THEN write_menu_item_int(.items(retvals(1)), retvals(2), retvals(3))
+    mislot = find_menu_item_handle(retvals(0), menuslot)
+    IF bound_menuslot_and_mislot(menuslot, mislot, "write menu item int") THEN
+     WITH menus(menuslot)
+      IF .items(mislot).exists THEN write_menu_item_int(.items(mislot), retvals(1), retvals(2))
      END WITH
     END IF
    CASE 279'--create menu
-    add_menu -1
-    scriptret = topmenu
+    scriptret = add_menu(-1)
    CASE 280'--close menu
-    IF bound_menu_handle(retvals(0), "close menu") THEN
-     remove_menu retvals(0) - 1
+    menuslot = find_menu_handle(retvals(0))
+    IF bound_menuslot(menuslot, "close menu") THEN
+     remove_menu menuslot
     END IF
    CASE 281'--top menu
-    scriptret = topmenu + 1
+    IF topmenu >= 0 THEN
+     scriptret = menus(topmenu).handle
+    END IF
    CASE 282'--bring menu forward
-    IF bound_menu_handle(retvals(0), "bring menu forward") THEN
-     bring_menu_forward retvals(0)
+    menuslot = find_menu_handle(retvals(0))
+    IF bound_menuslot(menuslot, "bring menu forward") THEN
+     bring_menu_forward menuslot
     END IF
    CASE 283'--add menu item
-    IF bound_menu_handle(retvals(0), "add menu item") THEN
-     i = find_empty_menu_item(menus(retvals(0)))
+    menuslot = find_menu_handle(retvals(0))
+    IF bound_menuslot(menuslot, "add menu item") THEN
+     i = find_empty_menu_item(menus(menuslot))
      IF i >= 0 THEN
-      menus(retvals(0)).items(i).exists = YES
+      menus(menuslot).items(i).exists = YES
+      scriptret = assign_menu_item_handle(menus(menuslot).items(i))
      ELSE
-      debug "add menu item: failed. menu " & retvals(0) & " is full"
+      debug "add menu item: failed. menu " & menuslot & " is full"
      END IF
     END IF
    CASE 284'--delete menu item
-    IF bound_menu_handle_slot(retvals(0), retvals(1), "delete menu item") THEN
-     WITH menus(retvals(0))
-      ClearMenuItem .items(retvals(1))
+    mislot = find_menu_item_handle(retvals(0), menuslot)
+    IF bound_menuslot_and_mislot(menuslot, mislot, "delete menu item") THEN
+     WITH menus(menuslot)
+      ClearMenuItem .items(mislot)
       SortMenuItems .items()
      END WITH
     END IF
    CASE 285'--get menu item caption
-    IF bound_menu_handle_slot(retvals(0), retvals(1), "get menu item caption") THEN
-     IF bound_plotstr(retvals(2), "get menu item caption") THEN
-      plotstr(retvals(2)).s = get_menu_item_caption(menus(retvals(0)).items(retvals(1)), menus(retvals(0)))
+    mislot = find_menu_item_handle(retvals(0), menuslot)
+    IF bound_menuslot_and_mislot(menuslot, mislot, "get menu item caption") THEN
+     IF bound_plotstr(retvals(1), "get menu item caption") THEN
+      plotstr(retvals(1)).s = get_menu_item_caption(menus(menuslot).items(mislot), menus(menuslot))
      END IF
     END IF
    CASE 286'--set menu item caption
-    IF bound_menu_handle_slot(retvals(0), retvals(1), "set menu item caption") THEN
-     IF bound_plotstr(retvals(2), "get menu item caption") THEN
-      menus(retvals(0)).items(retvals(1)).caption = plotstr(retvals(2)).s
+    mislot = find_menu_item_handle(retvals(0), menuslot)
+    IF bound_menuslot_and_mislot(menuslot, mislot, "set menu item caption") THEN
+     IF bound_plotstr(retvals(1), "get menu item caption") THEN
+      menus(menuslot).items(mislot).caption = plotstr(retvals(1)).s
      END IF
     END IF
    CASE 287'--get level mp
@@ -2348,13 +2366,13 @@ FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING) AS INTEGER
  RETURN bound_arg(who, 0, 40, cmd, "hero party slot")
 END FUNCTION
 
-FUNCTION bound_menu_handle(handle AS INTEGER, cmd AS STRING) AS INTEGER
- RETURN bound_arg(handle, 1, topmenu + 1, cmd, "menu handle")
+FUNCTION bound_menuslot(menuslot AS INTEGER, cmd AS STRING) AS INTEGER
+ RETURN bound_arg(menuslot, 0, topmenu, cmd, "menu handle")
 END FUNCTION
 
-FUNCTION bound_menu_handle_slot(handle AS INTEGER, slot AS INTEGER, cmd AS STRING) AS INTEGER
- IF bound_menu_handle(handle, cmd) THEN
-  RETURN bound_arg(slot, 0, UBOUND(menus(handle).items), cmd, "menu item slot")
+FUNCTION bound_menuslot_and_mislot(menuslot AS INTEGER, mislot AS INTEGER, cmd AS STRING) AS INTEGER
+ IF bound_menuslot(menuslot, cmd) THEN
+  RETURN bound_arg(mislot, 0, UBOUND(menus(menuslot).items), cmd, "menu item handle")
  END IF
  RETURN NO
 END FUNCTION
@@ -2548,7 +2566,6 @@ FUNCTION count_sav(filename AS STRING) AS INTEGER
 END FUNCTION
 
 FUNCTION add_menu (record AS INTEGER) AS INTEGER
- STATIC new_handle = 0
  topmenu = topmenu + 1
  IF topmenu > UBOUND(menus) THEN
   REDIM PRESERVE menus(topmenu) AS MenuDef
@@ -2564,9 +2581,7 @@ FUNCTION add_menu (record AS INTEGER) AS INTEGER
  init_menu_state mstates(topmenu), menus(topmenu)
  mstates(topmenu).active = YES
  check_menu_tags
- new_handle = new_handle + 1
- menus(topmenu).handle = new_handle
- RETURN new_handle
+ RETURN assign_menu_handles(menus(topmenu))
 END FUNCTION
 
 SUB remove_menu (handle AS INTEGER)
@@ -2756,4 +2771,52 @@ FUNCTION game_usemenu (state AS MenuState)
   IF oldptr <> .pt OR oldtop <> .top THEN RETURN YES
   RETURN NO
  END WITH
+END FUNCTION
+
+FUNCTION find_menu_handle (handle) AS INTEGER
+ DIM i AS INTEGER
+ FOR i = 0 TO topmenu
+  IF menus(i).handle = handle THEN RETURN i
+ NEXT i
+ RETURN -1 ' Not found
+END FUNCTION
+
+FUNCTION find_menu_item_handle (handle, BYREF found_in_menuslot) AS INTEGER
+ DIM menuslot AS INTEGER
+ DIM mislot AS INTEGER
+ FOR menuslot = 0 TO topmenu
+  WITH menus(menuslot)
+   FOR mislot = 0 TO UBOUND(.items)
+    WITH .items(mislot)
+     IF .exists AND .handle = handle THEN
+      found_in_menuslot = menuslot
+      RETURN mislot
+     END IF
+    END WITH
+   NEXT mislot
+  END WITH
+ NEXT menuslot
+ found_in_menuslot = -1
+ RETURN -1 ' Not found
+END FUNCTION
+
+FUNCTION assign_menu_item_handle (BYREF mi AS MenuDefItem) AS INTEGER
+ STATIC new_handle = 0
+ IF mi.exists THEN
+  new_handle = new_handle + 1
+  mi.handle = new_handle
+  RETURN new_handle
+ END IF
+ RETURN 0
+END FUNCTION
+
+FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
+ DIM i AS INTEGER
+ STATIC new_handle = 0
+ new_handle = new_handle + 1
+ menus(topmenu).handle = new_handle
+ FOR i = 0 TO UBOUND(menu.items)
+  assign_menu_item_handle menu.items(i)
+ NEXT i
+ RETURN new_handle
 END FUNCTION
