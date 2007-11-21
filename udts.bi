@@ -55,6 +55,7 @@ TYPE MenuDefItem
 END TYPE
 
 TYPE MenuDef
+  record    AS INTEGER
   handle    AS INTEGER
   name      AS STRING
   boxstyle  AS INTEGER

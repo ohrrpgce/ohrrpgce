@@ -2408,6 +2408,16 @@ SELECT CASE AS CONST scrat(nowscript).curkind
      mstates(menuslot).pt = menu_item_handle_by_slot(menuslot, mislot)
      mstates(menuslot).need_update = YES
     END IF
+   CASE 297'--parent menu
+    mislot = find_menu_item_handle(retvals(0), menuslot)
+    IF bound_menuslot_and_mislot(menuslot, mislot, "parent menu") THEN
+     scriptret = menus(menuslot).handle
+    END IF
+   CASE 298'--get menu ID
+    menuslot = find_menu_handle(retvals(0))
+    IF bound_menuslot(menuslot, "get menu ID") THEN
+     scriptret = menus(menuslot).record
+    END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
     scriptmisc scrat(nowscript).curvalue

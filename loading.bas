@@ -530,6 +530,7 @@ SUB ClearMenuData(dat AS MenuDef)
  DIM i AS INTEGER
  DIM bits(0) AS INTEGER
  WITH dat
+  .record = -1
   .handle = 0
   .name = ""
   .boxstyle = 0
@@ -580,6 +581,7 @@ SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER, ignore_
  OPEN menu_set.menufile FOR BINARY AS #f
  SEEK #f, record * getbinsize(binMENUS) + 1
  WITH dat
+  .record = record
   .name = ReadByteStr(f, 20)
   .boxstyle = ReadShort(f)
   .textcolor = ReadShort(f)
