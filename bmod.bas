@@ -2013,7 +2013,7 @@ FOR i = 0 TO 24
 				end if
 				
 				if .dissolve and eflee(zbuf(i)) = 0 then
-					spr = sprite_dissolve(spr,spr->w/2,spr->w/2 - .dissolve, DEFAULT_TRANSITION, custspr)
+					spr = sprite_dissolve(spr,spr->w/2,spr->w/2 - .dissolve, gen(genEnemyDissolve), custspr)
 					custspr = -1
 				end if
 				
