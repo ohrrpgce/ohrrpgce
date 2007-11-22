@@ -3351,6 +3351,10 @@ end type
 
 redim shared sprcache(50) as SpriteCache
 
+'Private
+' unconditionally frees a sprite from memory.
+' takes a pointer to a pointer so that the pointer can also be nulled, so it
+' will not be used again accidentally.
 sub sprite_delete(byval f as frame ptr ptr)
 	if f = 0 then exit sub
 	if *f = 0 then exit sub
@@ -3362,13 +3366,21 @@ sub sprite_delete(byval f as frame ptr ptr)
 	*f = 0
 end sub
 
+'Private:
+' looks for a key in the cache. Will return the pointer associated with it.
 function sprite_find_cache(byval s as string) as frame ptr
 	dim i as integer
 	for i = 0 to ubound(sprcache)
 		if sprcache(i).s = s then return sprcache(i).p
 	next
+	return 0
 end function
 
+'Private:
+' adds a frame to the cache with a given key. Sets the ->refcount member to 1.
+' will overwrite older sprites with refcounts of 0 or less.
+' if the key already exists, will update it to this pointer.
+' will also expand the cache if it is full of referenced sprites.
 sub sprite_add_cache(byval s as string, byval p as frame ptr, byval fr as integer = 0)
 	if p = 0 then exit sub
 	dim as integer i, sec = -1
@@ -3378,6 +3390,11 @@ sub sprite_add_cache(byval s as string, byval p as frame ptr, byval fr as intege
 				.s = s
 				.p = p
 				p->refcount = 1
+				exit sub
+			elseif .s = s then
+				.p->refcount = 0
+				.p = p
+				.p->refcount = 1
 				exit sub
 			elseif .p->refcount <= 0 then
 				sec = i
@@ -3399,7 +3416,10 @@ sub sprite_add_cache(byval s as string, byval p as frame ptr, byval fr as intege
 	sprite_add_cache(s, p, i)
 end sub
 
-'New Sprite handling functions
+'Public:
+' loads a sprite from a file. It expects 4-bit pixels, stored in columns (2/byte).
+' it will return a pointer to the first frame (of num frames), and subsequent frames
+' will be immediately after it in memory.
 function sprite_load(byval fi as string, byval rec as integer, byval num as integer, byval wid as integer, byval hei as integer) as frame ptr
 	
 	dim ret as frame ptr
@@ -3484,6 +3504,10 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 	return ret
 end function
 
+'Public:
+' Releases a reference to a sprite. Decrements the refcount, and nulls the pointer.
+' Although the pointer is still valid, the caller can no longer use it without
+' breaking the reference system
 sub sprite_unload(byval p as frame ptr ptr)
 	if p = 0 then exit sub
 	if *p = 0 then exit sub
@@ -3525,6 +3549,10 @@ function sprite_duplicate(byval p as frame ptr) as frame ptr
 	
 end function
 
+'Public:
+' draws a sprite to a page. scale must be greater than 1. if trans is false, the
+' mask will be wholly ignored (and, trans will be forced to false if the mask
+' doesn't even exist)
 sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer = wrkpage)
 	dim sptr as ubyte ptr
 	dim as integer tx, ty
@@ -3596,6 +3624,11 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 	End With
 end sub
 
+'Public:
+' Draws a sprite in the midst of a given fade out. amnt is expected to be the number
+' of ticks left in the fade out. The length of the fadeout is expected to be
+' (spr->w / 2), but this will be tweaked later. style is the specific transition.
+' All other parameters are as sprite_draw()
 sub sprite_draw_dissolved(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, byval amnt as integer, byval style as integer = 0,  Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer = wrkpage)
 
 	dim cpy as frame ptr
@@ -3687,6 +3720,54 @@ sub sprite_draw_dissolved(byval spr as frame ptr, Byval pal as Palette16 ptr, By
 	
 	sprite_delete(@cpy)
 end sub
+
+'Public:
+' returns a copy of the sprite flipped horizontally. The new sprite is not
+' cached, and is not ref-counted.
+function sprite_flip_horiz(byval spr as frame ptr) as frame ptr
+	dim ret as frame ptr
+	
+	if spr = 0 then return 0
+	
+	ret = sprite_duplicate(spr)
+	
+	if ret = 0 then return 0
+	
+	dim as integer x, y
+	
+	for y = 0 to spr->h
+		for x = 0 to spr->w
+			ret->image[y * spr->w + x] = spr->image[y * spr->w + (spr->w - x)]
+			ret->mask[y * spr->w + x] = spr->mask[y * spr->w + (spr->w - x)]
+		next
+	next
+	
+	return ret
+end function
+
+'Public:
+' returns a copy of the sprite flipped vertically. The new sprite is not cached,
+' and is not ref-counted.
+function sprite_flip_vert(byval spr as frame ptr) as frame ptr
+	dim ret as frame ptr
+	
+	if spr = 0 then return 0
+	
+	ret = sprite_duplicate(spr)
+	
+	if ret = 0 then return 0
+	
+	dim as integer x, y
+	
+	for y = 0 to spr->h
+		for x = 0 to spr->w
+			ret->image[y * spr->w + x] = spr->image[(spr->h - y) * spr->w + x]
+			ret->mask[y * spr->w + x] = spr->mask[(spr->h - y) * spr->w + x]
+		next
+	next
+	
+	return ret
+end function
 
 'This should be replaced with a real hash
 
