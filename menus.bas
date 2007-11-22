@@ -47,6 +47,7 @@ DECLARE SUB generate_gen_menu(m$(), longname$, aboutline$, stat$())
 DECLARE SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
 DECLARE SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
 DECLARE SUB inputpasw(pas$)
+DECLARE FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -252,9 +253,10 @@ END SUB
 
 SUB gendata ()
 STATIC default$
-CONST maxMenu = 31
+CONST maxMenu = 32
 DIM m$(maxMenu), max(maxMenu), bitname$(16)
 DIM names$(32), stat$(11), menutop
+DIM changed AS INTEGER = YES
 getnames names$(), 32
 stat$(0) = names$(0)
 stat$(1) = names$(1)
@@ -301,6 +303,7 @@ FOR i = 22 to 29
 NEXT
 max(30) = 100 'MP~
 max(31) = 20  'Extra Hits
+max(32) = 3   'Default Enemy Dissolve type
 
 pas$ = ""
 aboutline$ = ""
@@ -325,16 +328,22 @@ IF isfile(workingdir$ + SLASH + "browse.txt") THEN
  array2str buffer(), 2, aboutline$
 END IF
 
-generate_gen_menu(m$(), longname$, aboutline$, stat$())
 setkeys
 DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
+
+ IF changed THEN
+  generate_gen_menu m$(), longname$, aboutline$, stat$()
+  changed = NO
+ END IF
+
  IF keyval(1) > 1 THEN
   EXIT DO
  END IF
  usemenu csr, menutop, 0, last, 22
+ changed = NO
  IF (keyval(28) > 1 OR keyval(57) > 1) THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 1 THEN
@@ -364,57 +373,58 @@ DO
  IF csr = 16 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
-  gen(genPoison) = ASC(d$)
-   generate_gen_menu(m$(), longname$, aboutline$, stat$())
+   gen(genPoison) = ASC(d$)
+   changed = YES
   END IF
  END IF
  IF csr = 17 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
   gen(genStun) = ASC(d$)
-   generate_gen_menu(m$(), longname$, aboutline$, stat$())
+   changed = YES
   END IF
  END IF
  IF csr = 18 THEN
   d$ = charpicker$
   IF d$ <> "" THEN
   gen(genMute) = ASC(d$)
-   generate_gen_menu(m$(), longname$, aboutline$, stat$())
+   changed = YES
   END IF
  END IF
 
  END IF
  IF csr > 1 AND csr <= 4 THEN
-  IF intgrabber(gen(100 + csr), 0, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF intgrabber(gen(100 + csr), 0, max(csr)) THEN changed = YES
  END IF
  IF csr > 4 AND csr < 8 THEN
-  IF zintgrabber(gen(csr - 3), -1, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF zintgrabber(gen(csr - 3), -1, max(csr)) THEN changed = YES
  END IF
  IF csr = 11 THEN
-  IF intgrabber(gen(96), 0, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF intgrabber(gen(96), 0, max(csr)) THEN changed = YES
  END IF
  IF csr = 13 THEN
-  strgrabber longname$, 38
-  generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF strgrabber(longname$, 38) THEN changed = YES
  END IF
  IF csr = 14 THEN
-  strgrabber aboutline$, 38
-  generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF strgrabber(aboutline$, 38) THEN changed = YES
  END IF
  IF csr = 16 THEN
-  IF intgrabber(gen(genPoison), 32, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF intgrabber(gen(genPoison), 32, max(csr)) THEN changed = YES
  END IF
  IF csr = 17 THEN
-  IF intgrabber(gen(genStun), 32, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF intgrabber(gen(genStun), 32, max(csr)) THEN changed = YES
  END IF
  IF csr = 18 THEN
-  IF intgrabber(gen(genMute), 32, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF intgrabber(gen(genMute), 32, max(csr)) THEN changed = YES
  END IF
  IF csr = 19 THEN
-  IF intgrabber(gen(genDamageCap), 0, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF intgrabber(gen(genDamageCap), 0, max(csr)) THEN changed = YES
  END IF
  IF csr >= 20 AND csr <= 31 THEN
-  IF intgrabber(gen(genStatCap + (csr - 20)), 0, max(csr)) THEN generate_gen_menu(m$(), longname$, aboutline$, stat$())
+  IF intgrabber(gen(genStatCap + (csr - 20)), 0, max(csr)) THEN changed = YES
+ END IF
+ IF csr = 32 THEN
+  IF intgrabber(gen(genEnemyDissolve), 0, max(csr)) THEN changed = YES
  END IF
 
  standardmenu m$(), last, 22, csr, menutop, 0, 0, dpage, 0
@@ -1317,6 +1327,7 @@ FOR i = 0 to 11
  m$(20 + i) = stat$(i) + " Cap: "
  IF gen(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + "None" ELSE m$(20 + i) = m$(20 + i) & gen(genStatCap + i)
 NEXT
+m$(32) = "Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
 END SUB
 
 SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
@@ -1380,3 +1391,13 @@ DO
  dowait
 LOOP
 END SUB
+
+FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
+ SELECT CASE n
+  CASE 0: RETURN n & " Default"
+  CASE 1: RETURN n & " Crossfade"
+  CASE 2: RETURN n & " Diagonal Vanish"
+  CASE 3: RETURN n & " Sink into Ground"
+  CASE ELSE: RETURN n & " Invalid!"
+ END SELECT
+END FUNCTION

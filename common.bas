@@ -1847,6 +1847,12 @@ IF getfixbit(fixStunCancelTarg) = 0 THEN
  NEXT
 END IF
 
+IF getfixbit(fixDefaultDissolve) = 0 THEN
+ upgrade_message "Initializing default enemy fade..."
+ setfixbit(fixDefaultDissolve, 1)
+ gen(genEnemyDissolve) = 0
+END IF
+
 'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)
 xbsave game$ + ".gen", gen(), 1000
 

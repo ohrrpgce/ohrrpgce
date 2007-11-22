@@ -61,6 +61,7 @@ CONST genMaxVehicle = 55        'max vehicle types in .VEH
 CONST genMaxTagname = 56        'last named tag
 CONST genLoadGameScript = 57    'load-game script
 CONST genTextboxBackdrop = 58   'currently displaying text box backdrop in .MXS
+CONST genEnemyDissolve = 59     'Default dissolve animation for dying enemies
 CONST genJoy = 60               'enable/disable joystick
 CONST genPoison = 61            'poison status indicator char
 CONST genStun = 62              'Stun status indicator char
@@ -96,6 +97,7 @@ CONST genScatterTableHead = 199 'old password scattertable head
 CONST fixAttackitems = 0        'zero out attack data for item cost (ammunition)
 CONST fixWeapPoints  = 1        'add defaults for weapon points
 CONST fixStunCancelTarg = 2     'turn on cancel target bitset for old stun attacks
+CONST fixDefaultDissolve = 3    'Initialized genEnemyDissolve to default in GEN
 
 '---Sizes (replaceable with variables when suitable)
 CONST npcdMax = 35
