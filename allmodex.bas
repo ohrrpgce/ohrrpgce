@@ -3359,8 +3359,10 @@ sub sprite_delete(byval f as frame ptr ptr)
 	if f = 0 then exit sub
 	if *f = 0 then exit sub
 	with **f
-		if .image <> 0 then deallocate(.image) : .image = 0
-		if .mask <> 0 then deallocate(.mask) : .mask = 0
+		if .image <> 0 then deallocate(.image)
+		.image = 0
+		if .mask <> 0 then deallocate(.mask)
+		.mask = 0
 	end with
 	deallocate(*f)
 	*f = 0
@@ -3625,25 +3627,17 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 end sub
 
 'Public:
-' Draws a sprite in the midst of a given fade out. amnt is expected to be the number
-' of ticks left in the fade out. The length of the fadeout is expected to be
-' (spr->w / 2), but this will be tweaked later. style is the specific transition.
-' All other parameters are as sprite_draw()
-sub sprite_draw_dissolved(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, byval amnt as integer, byval style as integer = 0,  Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer = wrkpage)
+' returns a sprite in the midst of a given fade out. amnt is expected to be the number
+' of ticks left in the fade out. style is the specific transition.
+function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p as integer, byval style as integer = 0, byval direct as integer = 0) as frame ptr
 
 	dim cpy as frame ptr
 	
-	if spr = 0 then exit sub
+	if spr = 0 then return 0
 	
 	cpy = sprite_duplicate(spr)
 	
-	if cpy = 0 then exit sub
-	
-	'the sprite dissolves in (spr->w / 2) ticks
-	dim tim as integer = spr->w / 2
-	'we'll get "frames remaining" as amnt
-	dim p as integer = tim - amnt
-	'debug str(p)
+	if cpy = 0 then return 0
 	
 	dim as integer i, j, sx, sy, tog
 	
@@ -3657,7 +3651,7 @@ sub sprite_draw_dissolved(byval spr as frame ptr, Byval pal as Palette16 ptr, By
 				for i = 0 to spr->w * spr->h - 1
 					sx += 1
 					tog = tog xor 1
-					if sx > spr->w then
+					if sx >= spr->w then
 						sy += 1
 						sx = 0
 						tog = tog xor 1
@@ -3670,7 +3664,7 @@ sub sprite_draw_dissolved(byval spr as frame ptr, Byval pal as Palette16 ptr, By
 				for i = 0 to m - 1
 					sx += 1
 					tog = tog xor 1
-					if sx > spr->w then
+					if sx >= spr->w then
 						sy += 1
 						sx = 0
 						tog = tog xor 1
@@ -3684,7 +3678,7 @@ sub sprite_draw_dissolved(byval spr as frame ptr, Byval pal as Palette16 ptr, By
 				for i = 0 to m - 1
 					sx += 1
 					tog = tog xor 1
-					if sx > spr->w then
+					if sx >= spr->w then
 						sy += 1
 						sx = 0
 						tog = tog xor 1
@@ -3716,15 +3710,25 @@ sub sprite_draw_dissolved(byval spr as frame ptr, Byval pal as Palette16 ptr, By
 			next
 	end select
 	
-	sprite_draw(cpy, pal, x, y, scale, trans, page)
-	
-	sprite_delete(@cpy)
-end sub
+	if direct then
+		deallocate(spr->image)
+		deallocate(spr->mask)
+		spr->image = cpy->image
+		spr->mask = cpy->mask
+		cpy->image = 0
+		cpy->mask = 0
+		sprite_delete(@cpy)
+		
+		return spr
+	else
+		return cpy
+	end if
+end function
 
 'Public:
 ' returns a copy of the sprite flipped horizontally. The new sprite is not
 ' cached, and is not ref-counted.
-function sprite_flip_horiz(byval spr as frame ptr) as frame ptr
+function sprite_flip_horiz(byval spr as frame ptr, byval direct as integer = 0) as frame ptr
 	dim ret as frame ptr
 	
 	if spr = 0 then return 0
@@ -3735,20 +3739,31 @@ function sprite_flip_horiz(byval spr as frame ptr) as frame ptr
 	
 	dim as integer x, y
 	
-	for y = 0 to spr->h
-		for x = 0 to spr->w
+	for y = 0 to spr->h - 1
+		for x = 0 to spr->w - 1 
 			ret->image[y * spr->w + x] = spr->image[y * spr->w + (spr->w - x)]
 			ret->mask[y * spr->w + x] = spr->mask[y * spr->w + (spr->w - x)]
 		next
 	next
 	
-	return ret
+	if direct then
+		deallocate(spr->image)
+		deallocate(spr->mask)
+		spr->image = ret->image
+		spr->mask = ret->mask
+		ret->image = 0
+		ret->mask = 0
+		sprite_delete(@ret)
+		return spr
+	else
+		return ret
+	end if
 end function
 
 'Public:
 ' returns a copy of the sprite flipped vertically. The new sprite is not cached,
 ' and is not ref-counted.
-function sprite_flip_vert(byval spr as frame ptr) as frame ptr
+function sprite_flip_vert(byval spr as frame ptr, byval direct as integer = 0) as frame ptr
 	dim ret as frame ptr
 	
 	if spr = 0 then return 0
@@ -3766,7 +3781,18 @@ function sprite_flip_vert(byval spr as frame ptr) as frame ptr
 		next
 	next
 	
-	return ret
+	if direct then
+		deallocate(spr->image)
+		deallocate(spr->mask)
+		spr->image = ret->image
+		spr->mask = ret->mask
+		ret->image = 0
+		ret->mask = 0
+		sprite_delete(@ret)
+		return spr
+	else
+		return ret
+	end if
 end function
 
 'This should be replaced with a real hash

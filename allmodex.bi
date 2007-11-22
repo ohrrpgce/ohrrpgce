@@ -129,9 +129,9 @@ DECLARE FUNCTION getmusictype (file$)
 declare function sprite_load(byval as string, byval as integer, byval as integer , byval as integer, byval as integer) as frame ptr
 declare sub sprite_unload(byval p as frame ptr ptr)
 declare sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer = 0)
-declare sub sprite_draw_dissolved(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, byval amnt as integer, byval style as integer = 0,  Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer = 0)
-declare function sprite_flip_horiz(byval spr as frame ptr) as frame ptr
-declare function sprite_flip_vert(byval spr as frame ptr) as frame ptr
+declare function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p as integer, byval style as integer = 0, byval direct as integer = 0) as frame ptr
+declare function sprite_flip_horiz(byval spr as frame ptr, byval direct as integer = 0) as frame ptr
+declare function sprite_flip_vert(byval spr as frame ptr, byval direct as integer = 0) as frame ptr
 declare function sprite_duplicate(byval p as frame ptr) as frame ptr
 
 

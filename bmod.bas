@@ -2002,24 +2002,26 @@ FOR i = 0 TO 24
 		else
 		#define DEFAULT_TRANSITION 1
 			with bslot(zbuf(i))
-				if .d = 0 then
-					if .sprites <> 0 AND .frame < .sprite_num then
-						if .dissolve and eflee(zbuf(i)) = 0 then
-							sprite_draw_dissolved(.sprites + .frame, .pal, .x, .y - .z,.dissolve, DEFAULT_TRANSITION, 1, -1, dpage)
-						else
-							sprite_draw(.sprites + .frame, .pal, .x, .y - .z, 1, -1, dpage)
-						end if
-						'debug "sprite_draw(" & .sprites & " + " & .frame & ", " & .pal & ", " & .x & ", " & .y & " - " & .z & ")"
-					end if
-				else
-					if bslot(zbuf(i)).sprites <> 0 AND bslot(zbuf(i)).frame < bslot(zbuf(i)).sprite_num then
-						if .dissolve and eflee(zbuf(i)) = 0 then
-							sprite_draw_dissolved(.sprites + .frame, .pal, .x, .y - .z,.dissolve, DEFAULT_TRANSITION, 1, -1, dpage)
-						else
-							sprite_draw(.sprites + .frame, .pal, .x, .y - .z, 1, -1, dpage)
-						end if
-						'debug "sprite_draw(" & .sprites & " + " & .frame & ", " & .pal & ", " & .x & ", " & .y & " - " & .z & ")"
-					end if
+				dim spr as frame ptr, custspr as integer
+				custspr = 0
+				spr = .sprites
+				if .frame < .sprite_num then spr += .frame
+				
+				if .d then
+					spr = sprite_flip_horiz(spr)
+					custspr = -1
+				end if
+				
+				if .dissolve and eflee(zbuf(i)) = 0 then
+					spr = sprite_dissolve(spr,spr->w/2,spr->w/2 - .dissolve, DEFAULT_TRANSITION, custspr)
+					custspr = -1
+				end if
+				
+				sprite_draw(spr, .pal, .x, .y - .z, 1, -1, dpage)
+				
+				if custspr then
+					debug "unloading custom sprite"
+					sprite_unload(@spr)
 				end if
 			end with
 		end if
