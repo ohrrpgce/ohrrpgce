@@ -99,6 +99,8 @@ EXTERN learnmask()
 
 EXTERN timers() as Timer
 
+EXTERN map_draw_mode as integer
+
 'Menu globals
 EXTERN menus() as MenuDef
 EXTERN mstates() as MenuState

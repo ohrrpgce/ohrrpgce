@@ -209,6 +209,8 @@ DIM gen(360), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lm
 DIM eqstuf(40, 4), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(255, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4)
 
+dim map_draw_mode as integer = -1
+
 'Old Menu data
 DIM menu$(9), mi(9)
 'New Menu Data
@@ -680,6 +682,7 @@ DO
    IF keyval(78) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = XSTR$(speedcontrol)
   END IF
   IF keyval(29) > 0 AND keyval(32) THEN scriptout$ = scriptstate$
+  IF keyval(41) > 1 then map_draw_mode = not map_draw_mode
  END IF
  IF wantloadgame > 0 THEN
   'DEBUG debug "loading game slot" + XSTR$(wantloadgame - 1)

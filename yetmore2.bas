@@ -182,8 +182,12 @@ SUB drawnpcs
      rectangle npc(i).x - mapx + 6, npc(i).y - mapy + gmap(11) + 13, 8, 5, uilook(uiShadow), dpage
      rectangle npc(i).x - mapx + 5, npc(i).y - mapy + gmap(11) + 14, 10, 3, uilook(uiShadow), dpage
     END IF
-    loadsprite buffer(), 0, (400 * npc(i).dir) + (200 * INT(npc(i).frame / 2)), 20 + (5 * o), 20, 20, 2
-    drawsprite buffer(), 0, pal16(), (4 + o) * 16, drawnpcX, drawnpcY - z, dpage
+    if map_draw_mode = 0 then
+     loadsprite buffer(), 0, (400 * npc(i).dir) + (200 * INT(npc(i).frame / 2)), 20 + (5 * o), 20, 20, 2
+     drawsprite buffer(), 0, pal16(), (4 + o) * 16, drawnpcX, drawnpcY - z, dpage
+    else
+     sprite_draw npcs(o).sprite + (2 * npc(i).dir) + npc(i).frame \ 2, npcs(o).pal, drawnpcX, drawnpcY - z, 1, -1, dpage
+    end if
     'edgeprint STR$(i), drawnpcX, drawnpcY + gmap(11) - z, 15, dpage
    END IF
   END IF
