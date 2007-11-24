@@ -104,6 +104,8 @@ TYPE NPCType
   script as integer      '+12
   scriptarg as integer   '+13
   vechicle as integer    '+14
+  sprite as frame ptr
+  palette as palette16 ptr
 END TYPE
 
 TYPE NPCInst
