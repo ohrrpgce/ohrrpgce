@@ -1988,7 +1988,7 @@ FOR o = 1 TO 24
 NEXT
 FOR i = 0 TO 24
 	IF (bslot(zbuf(i)).vis = 1 OR bslot(zbuf(i)).dissolve > 0) THEN
-		if battle_draw_style = 0 OR (battle_draw_style = 2 and battle_draw_toggle = 0) then
+		if battle_draw_style = 1 OR (battle_draw_style = 2 and battle_draw_toggle = 0) then
 			temp = 64 + (zbuf(i) - 4) * 10
 			IF is_hero(zbuf(i)) THEN temp = zbuf(i) * 16
 			IF is_attack(zbuf(i)) THEN temp = 144
@@ -2000,7 +2000,6 @@ FOR i = 0 TO 24
 				wardsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
 			END IF
 		else
-		#define DEFAULT_TRANSITION 1
 			with bslot(zbuf(i))
 				dim spr as frame ptr, custspr as integer
 				custspr = 0
@@ -2020,7 +2019,6 @@ FOR i = 0 TO 24
 				sprite_draw(spr, .pal, .x, .y - .z, 1, -1, dpage)
 				
 				if custspr then
-					debug "unloading custom sprite"
 					sprite_unload(@spr)
 				end if
 			end with
