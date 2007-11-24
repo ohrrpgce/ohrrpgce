@@ -727,8 +727,14 @@ SUB reloadnpc (stat())
 vishero stat()
 FOR i = 0 TO npcdMax
  setpicstuf buffer(), 1600, 2
- loadset game$ + ".pt4", npcs(i).picture, 20 + (5 * i)
- getpal16 pal16(), 4 + i, npcs(i).palette, 4, npcs(i).picture
+ with npcs(i)
+  loadset game$ + ".pt4", .picture, 20 + (5 * i)
+  getpal16 pal16(), 4 + i, .palette, 4, npcs(i).picture
+  if .sprite then sprite_unload(@.sprite)
+  if .pal then palette16_unload(@.pal)
+  .sprite = sprite_load(game$ + ".pt4", .picture, 8, 20, 20)
+  .pal = palette16_load(game$ + ".pal", .palette, 4, .picture)
+ end with
 NEXT i
 END SUB
 
@@ -753,7 +759,27 @@ END SUB
 SUB savemapstate_npcd(mapnum, prefix$)
  fh = FREEFILE
  OPEN mapstatetemp$(mapnum, prefix$) + "_n.tmp" FOR BINARY AS #fh
- PUT #fh, , npcs()
+ 'PUT #fh, , npcs()
+ dim i as integer
+ for i = lbound(npcs) to ubound(npcs)
+  with npcs(i)
+   put #fh, ,.picture
+   put #fh, ,.palette
+   put #fh, ,.movetype
+   put #fh, ,.speed
+   put #fh, ,.textbox
+   put #fh, ,.facetype
+   put #fh, ,.item
+   put #fh, ,.pushtype
+   put #fh, ,.activation
+   put #fh, ,.tag1
+   put #fh, ,.tag2
+   put #fh, ,.usetag
+   put #fh, ,.script
+   put #fh, ,.scriptarg
+   put #fh, ,.vechicle
+  end with
+ next
  CLOSE #fh
 END SUB
 
@@ -815,9 +841,32 @@ SUB loadmapstate_npcd (mapnum, prefix$, dontfallback = 0)
   IF dontfallback = 0 THEN loadmap_npcd mapnum
  ELSE
   OPEN filebase$ + "_n.tmp" FOR BINARY AS #fh
-  GET #fh, , npcs()
+  for i = lbound(npcs) to ubound(npcs)
+   with npcs(i)
+    get #fh, ,.picture
+    get #fh, ,.palette
+    get #fh, ,.movetype
+    get #fh, ,.speed
+    get #fh, ,.textbox
+    get #fh, ,.facetype
+    get #fh, ,.item
+    get #fh, ,.pushtype
+    get #fh, ,.activation
+    get #fh, ,.tag1
+    get #fh, ,.tag2
+    get #fh, ,.usetag
+    get #fh, ,.script
+    get #fh, ,.scriptarg
+    get #fh, ,.vechicle
+   end with
+  next
   CLOSE #fh
  END IF
+
+ for i = 0 to 35
+  npcs(i).sprite = 0
+  npcs(i).pal = 0
+ next
 END SUB
 
 SUB loadmapstate_tilemap (mapnum, prefix$, dontfallback = 0)
