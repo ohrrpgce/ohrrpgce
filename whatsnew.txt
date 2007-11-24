@@ -15,6 +15,7 @@ Dec ?? 2007 [voxhumana]
     * New attack bitset "Cancel target's attack" [James Paige]
     * A hero for hire in a shop can (optionally) be given a specific
       experience level [James Paige]
+    * New, customizable enemy dissolving styles [Mike Caron]
 
   * Bugfixes
     * Fixed bug 257 "Mute status effect broken for enemies" [James Paige]
@@ -38,6 +39,7 @@ Dec ?? 2007 [voxhumana]
   
   * Stuff only Developers Will Notice
     * BattleStats UDT [James Paige]
+    * New sprite paradigm (currently used in battle) [Mike Caron]
 
 Sept 21 2007 [ubersetzung]
   * New Features

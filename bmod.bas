@@ -30,8 +30,7 @@ DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 'these are the battle global variables
 DIM battlecaption$, battlecaptime, battlecapdelay, bstackstart, learnmask(29)
 
-dim shared battle_draw_style as integer = 0'0 = old, 1 = new, 2 = toggle
-dim shared battle_draw_toggle as integer = 0
+dim shared battle_draw_style as integer = 0'0 = new, 1 = old
 
 REM $STATIC
 FUNCTION battle (form, fatal, exstat())
@@ -162,8 +161,7 @@ DO
   '--debug keys
   IF keyval(62) > 1 THEN away = 11 ' Instant-cheater-running
   IF keyval(63) > 1 THEN exper& = 1000000  'Million experience!
-  IF keyval(41) > 1 THEN battle_draw_style = (battle_draw_style + 1) mod 3
-  if battle_draw_style = 2 then battle_draw_toggle = NOT battle_draw_toggle
+  IF keyval(41) > 1 THEN battle_draw_style = (battle_draw_style + 1) mod 2
  END IF
  IF keyval(69) > 1 THEN GOSUB pgame '--PAUSE
  '--running away
@@ -1988,7 +1986,7 @@ FOR o = 1 TO 24
 NEXT
 FOR i = 0 TO 24
 	IF (bslot(zbuf(i)).vis = 1 OR bslot(zbuf(i)).dissolve > 0) THEN
-		if battle_draw_style = 1 OR (battle_draw_style = 2 and battle_draw_toggle = 0) then
+		if battle_draw_style = 1 then
 			temp = 64 + (zbuf(i) - 4) * 10
 			IF is_hero(zbuf(i)) THEN temp = zbuf(i) * 16
 			IF is_attack(zbuf(i)) THEN temp = 144
