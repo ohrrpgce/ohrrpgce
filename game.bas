@@ -2137,14 +2137,14 @@ SELECT CASE AS CONST scrat(nowscript).curkind
        ELSE
         setpicstuf buffer(), 1600, 2
         loadset game$ + ".pt4", retvals(2), 20 + (5 * retvals(0))
-        if npcs(retvals(0)).sprite then sprite_unload(npcs(retvals(0)).sprite)
+        if npcs(retvals(0)).sprite then sprite_unload(@npcs(retvals(0)).sprite)
         npcs(retvals(0)).sprite = sprite_load(game$ + ".pt4", retvals(2), 8, 20, 20)
        END IF
       END IF
       IF retvals(1) = 1 THEN
        getpal16 pal16(), 4 + retvals(0), retvals(2), 4, npcs(retvals(0)).picture
-       if npcs(retvals(0)).palette then palette16_unload(npcs(retvals(0)).palette)
-       npcs(retvals(0)).palette = palette16_load(game$ + ".pal", retvals(2), 4, npcs(retvals(0)).picture)
+       if npcs(retvals(0)).pal then palette16_unload(@npcs(retvals(0)).pal)
+       npcs(retvals(0)).pal = palette16_load(game$ + ".pal", retvals(2), 4, npcs(retvals(0)).picture)
       END IF
       IF writesafe THEN SetNPCD(npcs(retvals(0)), retvals(1), retvals(2))
      END IF
