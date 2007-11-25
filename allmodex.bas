@@ -3752,8 +3752,8 @@ function sprite_flip_horiz(byval spr as frame ptr, byval direct as integer = 0) 
 	
 	for y = 0 to spr->h - 1
 		for x = 0 to spr->w - 1 
-			ret->image[y * spr->w + x] = spr->image[y * spr->w + (spr->w - x)]
-			ret->mask[y * spr->w + x] = spr->mask[y * spr->w + (spr->w - x)]
+			ret->image[y * spr->w + x] = spr->image[y * spr->w + (spr->w - x - 1)]
+			ret->mask[y * spr->w + x] = spr->mask[y * spr->w + (spr->w - x - 1)]
 		next
 	next
 	
@@ -3787,8 +3787,8 @@ function sprite_flip_vert(byval spr as frame ptr, byval direct as integer = 0) a
 	
 	for y = 0 to spr->h - 1
 		for x = 0 to spr->w - 1
-			ret->image[y * spr->w + x] = spr->image[(spr->h - y) * spr->w + x]
-			ret->mask[y * spr->w + x] = spr->mask[(spr->h - y) * spr->w + x]
+			ret->image[y * spr->w + x] = spr->image[(spr->h - y - 1) * spr->w + x]
+			ret->mask[y * spr->w + x] = spr->mask[(spr->h - y - 1) * spr->w + x]
 		next
 	next
 	
