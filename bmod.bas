@@ -1341,7 +1341,12 @@ triggerfade:
 'If the target is really dead...
 IF bstat(tdwho).cur.hp = 0 THEN
  'the number of ticks it takes the enemy to fade away is equal to half its width
- bslot(tdwho).dissolve = bslot(tdwho).w * .5
+ 'bslot(tdwho).dissolve = bslot(tdwho).w * .5
+ if bslot(tdwho).deathtime = 0 then
+  bslot(tdwho).dissolve = bslot(tdwho).w / 2
+ else
+  bslot(tdwho).dissolve = bslot(tdwho).deathtime
+ end if
  IF is_enemy(tdwho) THEN
   '--flee as alternative to death
   IF readbit(ebits(), (tdwho - 4) * 5, 59) = 1 THEN
@@ -2010,7 +2015,10 @@ FOR i = 0 TO 24
 				end if
 				
 				if .dissolve and eflee(zbuf(i)) = 0 then
-					spr = sprite_dissolve(spr,spr->w/2,spr->w/2 - .dissolve, gen(genEnemyDissolve), custspr)
+					dim as integer dtype, dtime
+					if .deathtype = 0 then dtype = gen(genEnemyDissolve) else dtype = .deathtype - 1
+					if .deathtime = 0 then dtime = spr->w/2 else dtime = .deathtime
+					spr = sprite_dissolve(spr,dtime,dtime - .dissolve, dtype, custspr)
 					custspr = -1
 				end if
 				

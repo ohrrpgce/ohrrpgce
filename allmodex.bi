@@ -132,7 +132,8 @@ declare sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byva
 declare function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p as integer, byval style as integer = 0, byval direct as integer = 0) as frame ptr
 declare function sprite_flip_horiz(byval spr as frame ptr, byval direct as integer = 0) as frame ptr
 declare function sprite_flip_vert(byval spr as frame ptr, byval direct as integer = 0) as frame ptr
-declare function sprite_duplicate(byval p as frame ptr) as frame ptr
+declare function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as frame ptr
+declare sub sprite_clear(byval spr as frame ptr)
 
 
 declare function palette16_load(byval fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr

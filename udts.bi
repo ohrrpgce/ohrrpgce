@@ -153,6 +153,8 @@ TYPE BattleSprite
   sprite_num as integer 'how many frames
   frame as integer 'the current frame
   pal as palette16 ptr 'yeah
+  deathtype as integer 'for enemies (0 = default, otherwise is type + 1)
+  deathtime as integer '0 = default, otherwise is time + 1
 END TYPE
 
 UNION BattleStatsSingle

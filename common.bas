@@ -1853,6 +1853,18 @@ IF getfixbit(fixDefaultDissolve) = 0 THEN
  gen(genEnemyDissolve) = 0
 END IF
 
+IF getfixbit(fixDefaultDissolveEnemy) = 0 THEN
+ upgrade_message "Initializing default enemy fade (per enemy)..."
+ setfixbit(fixDefaultDissolveEnemy, 1)
+ REDIM dat(160)
+ FOR i = 0 to gen(genMaxEnemy)
+  loadenemydata dat(), i
+  dat(22) = 0
+  dat(23) = 0
+  saveenemydata dat(), i
+ NEXT
+END IF
+
 'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)
 xbsave game$ + ".gen", gen(), 1000
 

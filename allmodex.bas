@@ -3522,7 +3522,7 @@ sub sprite_unload(byval p as frame ptr ptr)
 	'debug "unloading sprite (" & ((*p)->refcount) & " more copies!)"
 end sub
 
-function sprite_duplicate(byval p as frame ptr) as frame ptr
+function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as frame ptr
 	dim ret as frame ptr, i as integer
 	
 	if p = 0 then return 0
@@ -3535,16 +3535,20 @@ function sprite_duplicate(byval p as frame ptr) as frame ptr
 	ret->h = p->h
 	ret->refcount = -1 'that is, it's not refcounted
 	if p->image then
-		ret->image = allocate(ret->w * ret->h)
-		for i = 0 to ret->w * ret->h - 1
-			ret->image[i] = p->image[i]
-		next
+		ret->image = callocate(ret->w * ret->h)
+		if clr = 0 then
+			for i = 0 to ret->w * ret->h - 1
+				ret->image[i] = p->image[i]
+			next
+		end if
 	end if
 	if p->mask then
-		ret->mask = allocate(ret->w * ret->h)
-		for i = 0 to ret->w * ret->h - 1
-			ret->mask[i] = p->mask[i]
-		next
+		ret->mask = callocate(ret->w * ret->h)
+		if clr = 0 then
+			for i = 0 to ret->w * ret->h - 1
+				ret->mask[i] = p->mask[i]
+			next
+		end if
 	end if
 	
 	return ret
@@ -3640,7 +3644,7 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 	if cpy = 0 then return 0
 	
 	dim as integer i, j, sx, sy, tog
-	
+
 	select case style
 		case 0,1 'crossfade
 			if p > tim / 2 then
@@ -3687,9 +3691,10 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 				next
 			end if
 		case 2 'diagonal vanish
-			j = p * 4
-			for sy = 0 to p * 4 'we need to do four strips at once
-				j -= 1
+			i = spr->w / tim * p * 2
+			j = i
+			for sy = 0 to i
+				j = i - sy
 				if sy >= spr->h then exit for
 				for sx = 0 to j
 					if sx >= spr->w then exit for
@@ -3697,15 +3702,21 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 				next
 			next
 		case 3 'sink into ground
-			for sy = spr->h - 1 to p * 2 step -1
+			dim t as integer = spr->h / tim * p
+			'debug str(t)
+			for sy = spr->h - 1 to t step -1
 				for sx = 0 to spr->w - 1
-					cpy->image[sy * spr->w + sx] = spr->image[(sy-p * 2) * spr->w + sx]
-					cpy->mask[sy * spr->w + sx] = spr->mask[(sy-p * 2) * spr->w + sx]
+					dim s as integer = (sy-t) * spr->w + sx
+					if s < 0 or s > spr->w * spr->h - 1 then
+						debug "!!! " & s
+					end if
+					cpy->image[sy * spr->w + sx] = spr->image[s]
+					cpy->mask[sy * spr->w + sx] = spr->mask[s]
 				next
 			next
-			for sy = 0 to p * 2 - 1
+			for i = 0 to t - 1
 				for sx = 0 to spr->w - 1
-					cpy->mask[sy * spr->w + sx] = &hff
+					cpy->mask[i * spr->w + sx] = &hff
 				next
 			next
 	end select
@@ -3794,6 +3805,77 @@ function sprite_flip_vert(byval spr as frame ptr, byval direct as integer = 0) a
 		return ret
 	end if
 end function
+
+sub sprite_clear(byval spr as frame ptr)
+	dim as integer i
+	
+	for i = 0 to spr->w * spr->h - 1
+		spr->image[i] = 0
+		spr->mask[i] = 0
+	next
+end sub
+
+' function sprite_scroll(byval spr as frame ptr, byval h as integer = 0, byval v as integer = 0, byval wrap as integer = 0, byval direct as integer = 0) as frame ptr
+
+' 	dim ret as frame ptr, x as integer, y as integer
+' 	
+' 	ret = sprite_clear(spr, -1)
+' 	
+' 	'first scroll horizontally
+' 	
+' 	if h <> 0 then
+' 		if h > 0 then
+' 			for y = 0 to spr->h - 1
+' 				for x = spr->w - 1 to h step -1
+' 					ret->image[y * spr->h + x] = spr->image[y * spr->h - h + x]
+' 					ret->mask[y * spr->h + x] = spr->mask[y * spr->h - h + x]
+' 				next
+' 			next
+' 			if wrap then
+' 				for y = 0 to spr->h - 1
+' 					for x = 0 to h - 1
+' 						ret->image[y * spr->h + x] = spr->image[y * spr->h + (x + spr->w - h)]
+' 						ret->mask[y * spr->h + x] = spr->mask[y * spr->h + (x + spr->w - h)]
+' 					next
+' 				next
+' 			end if
+' 		else if h < 0 then
+' 			for y = 0 to spr->h - 1
+' 				for x = 0 to abs(h) - 1
+' 					ret->image[y * spr->h + x] = spr->image[y * spr->h - h + x]
+' 					ret->mask[y * spr->h + x] = spr->mask[y * spr->h - h + x]
+' 				next
+' 			next
+' 			if wrap then
+' 				for y = 0 to spr->h - 1
+' 					for x = abs(h) to spr->w - 1
+' 						ret->image[y * spr->h - h + x] = spr->image[y * spr->h + x]
+' 						ret->mask[y * spr->h - h + x] = spr->mask[y * spr->h + x]
+' 					next
+' 				next
+' 			end if
+' 		end if
+' 	end if
+' 	
+' 	'then scroll vertically
+' 	
+' 	if v <> 0 then
+' 	
+' 	end if
+' 	
+' 	if direct then
+' 		deallocate(spr->image)
+' 		deallocate(spr->mask)
+' 		spr->image = ret->image
+' 		spr->mask = ret->mask
+' 		ret->image = 0
+' 		ret->mask = 0
+' 		sprite_delete(@ret)
+' 		return spr
+' 	else
+' 		return ret
+' 	end if
+' end function
 
 'This should be replaced with a real hash
 

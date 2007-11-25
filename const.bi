@@ -98,6 +98,7 @@ CONST fixAttackitems = 0        'zero out attack data for item cost (ammunition)
 CONST fixWeapPoints  = 1        'add defaults for weapon points
 CONST fixStunCancelTarg = 2     'turn on cancel target bitset for old stun attacks
 CONST fixDefaultDissolve = 3    'Initialized genEnemyDissolve to default in GEN
+CONST fixDefaultDissolveEnemy = 4'Initialized Enemy dissolves to default in DT1
 
 '---Sizes (replaceable with variables when suitable)
 CONST npcdMax = 35

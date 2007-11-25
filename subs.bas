@@ -200,7 +200,7 @@ CONST EnDatAtkAlone = 102' to 106
 '-------------------------------------------------------------------------
 
 capindex = 0
-DIM caption$(9)
+DIM caption$(10)
 DIM max(25), min(25)
 'Limit 0 is not used
 
@@ -255,8 +255,9 @@ min(EnLimPal16) = -1
 
 CONST EnLimDissolve = 24
 min(EnLimDissolve) = 0
-max(EnLimDissolve) = 3
+max(EnLimDissolve) = 4
 EnCapDissolve = capindex
+addcaption caption$(), capindex, "Global Default"
 addcaption caption$(), capindex, "Default"
 addcaption caption$(), capindex, "Crossfade"
 addcaption caption$(), capindex, "Diagonal vanish"
