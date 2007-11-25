@@ -3536,13 +3536,13 @@ function sprite_duplicate(byval p as frame ptr) as frame ptr
 	ret->refcount = -1 'that is, it's not refcounted
 	if p->image then
 		ret->image = allocate(ret->w * ret->h)
-		for i = 0 to ret->w * ret->h
+		for i = 0 to ret->w * ret->h - 1
 			ret->image[i] = p->image[i]
 		next
 	end if
 	if p->mask then
 		ret->mask = allocate(ret->w * ret->h)
-		for i = 0 to ret->w * ret->h
+		for i = 0 to ret->w * ret->h - 1
 			ret->mask[i] = p->mask[i]
 		next
 	end if
