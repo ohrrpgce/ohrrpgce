@@ -3690,11 +3690,11 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 			j = p * 4
 			for sy = 0 to p * 4 'we need to do four strips at once
 				j -= 1
+				if sy >= spr->h then exit for
 				for sx = 0 to j
 					if sx >= spr->w then exit for
 					cpy->mask[sy * spr->w + sx] = &hff
 				next
-				if sy >= spr->h then exit for
 			next
 		case 3 'sink into ground
 			for sy = spr->h - 1 to p * 2 step -1
