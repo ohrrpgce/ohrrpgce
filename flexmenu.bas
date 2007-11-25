@@ -1061,6 +1061,9 @@ FUNCTION editflexmenu (nowindex, menutype(), menuoff(), menulimits(), datablock(
 '           7=attack number (offset!)
 '           8=item number (not offset)
 '           10=item number (offset!)
+'           11=sound effect (offset)
+'           12=defaultable positive int >=0 is int, -1 is "default"
+'           13=Default zero int >0 is int, 0 is "default"
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -1075,7 +1078,7 @@ FUNCTION editflexmenu (nowindex, menutype(), menuoff(), menulimits(), datablock(
 changed = 0
 
 SELECT CASE menutype(nowindex)
- CASE 0, 8, 12, 1000 TO 3999' integers
+ CASE 0, 8, 12, 13, 1000 TO 3999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
  CASE 7, 9 TO 11 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
@@ -1288,6 +1291,7 @@ SUB updateflexmenu (mpointer, nowmenu$(), nowdat(), size, menu$(), menutype(), m
 '           10=item name (offset)
 '           11=sound effect (offset)
 '           12=defaultable positive int >=0 is int, -1 is "default"
+'           13=Default zero int >0 is int, 0 is "default"
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -1349,6 +1353,8 @@ FOR i = 0 TO size
     END IF
   CASE 12 '--defaultable positive int
     nowmenu$(i) = nowmenu$(i) + defaultint$(datablock(menuoff(nowdat(i))))
+  CASE 13 '--zero default int
+    nowmenu$(i) = nowmenu$(i) & " " & zero_default(datablock(menuoff(nowdat(i))))
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
    nowmenu$(i) = nowmenu$(i) + XSTR$(datablock(menuoff(nowdat(i)))) + " " + caption$(capnum + datablock(menuoff(nowdat(i))))

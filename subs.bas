@@ -171,7 +171,9 @@ CONST EnDatStealItem = 18
 CONST EnDatStealItemP = 19
 CONST EnDatStealRItem = 20
 CONST EnDatStealRItemP = 21
-'22 to 52 unused
+CONST EnDatDissolve = 22
+CONST EnDatDissolveTime = 23
+'24 to 52 unused
 CONST EnDatPic = 53
 CONST EnDatPal = 54
 CONST EnDatPicSize = 55
@@ -198,8 +200,8 @@ CONST EnDatAtkAlone = 102' to 106
 '-------------------------------------------------------------------------
 
 capindex = 0
-DIM caption$(5)
-DIM max(23), min(23)
+DIM caption$(9)
+DIM max(25), min(25)
 'Limit 0 is not used
 
 CONST EnLimPic = 1
@@ -251,7 +253,20 @@ CONST EnLimPal16 = 23
 max(EnLimPal16) = 32767
 min(EnLimPal16) = -1
 
-'--next limit 24, remeber to update dim!
+CONST EnLimDissolve = 24
+min(EnLimDissolve) = 0
+max(EnLimDissolve) = 3
+EnCapDissolve = capindex
+addcaption caption$(), capindex, "Default"
+addcaption caption$(), capindex, "Crossfade"
+addcaption caption$(), capindex, "Diagonal vanish"
+addcaption caption$(), capindex, "Sink into ground"
+
+CONST EnLimDissolveTime = 25
+min(EnLimDissolveTime) = 0
+max(EnLimDissolveTime) = 99
+
+'--next limit 26, remeber to update dim!
 
 '-------------------------------------------------------------------------
 '--menu content
@@ -449,6 +464,18 @@ menutype(EnMenuStealAvail) = 2000 + EnCapStealAvail
 menuoff(EnMenuStealAvail) = EnDatStealAvail
 menulimits(EnMenuStealAvail) = EnLimStealAvail
 
+CONST EnMenuDissolve = 63
+menu$(EnMenuDissolve) = "Death Animation:"
+menutype(EnMenuDissolve) = 2000 + EnCapDissolve
+menuoff(EnMenuDissolve) = EnDatDissolve
+menulimits(EnMenuDissolve) = EnLimDissolve
+
+CONST EnMenuDissolveTime = 64
+menu$(EnMenuDissolveTime) = "Death Animation ticks:"
+menutype(EnMenuDissolveTime) = 13
+menuoff(EnMenuDissolveTime) = EnDatDissolveTime
+menulimits(EnMenuDissolveTime) = EnLimDissolveTime
+
 '-------------------------------------------------------------------------
 '--menu structure
 DIM workmenu(15), dispmenu$(15)
@@ -465,11 +492,13 @@ mainMenu(6) = EnMenuBitsetAct
 mainMenu(7) = EnMenuSpawnAct
 mainMenu(8) = EnMenuAtkAct
 
-DIM appearMenu(3)
+DIM appearMenu(5)
 appearMenu(0) = EnMenuBackAct
 appearMenu(1) = EnMenuPicSize
 appearMenu(2) = EnMenuPic
 appearMenu(3) = EnMenuPal
+appearMenu(4) = EnMenuDissolve
+appearMenu(5) = EnMenuDissolveTime
 
 DIM rewardMenu(11)
 rewardMenu(0) = EnMenuBackAct
