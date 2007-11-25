@@ -3774,8 +3774,8 @@ function sprite_flip_vert(byval spr as frame ptr, byval direct as integer = 0) a
 	
 	dim as integer x, y
 	
-	for y = 0 to spr->h
-		for x = 0 to spr->w
+	for y = 0 to spr->h - 1
+		for x = 0 to spr->w - 1
 			ret->image[y * spr->w + x] = spr->image[(spr->h - y) * spr->w + x]
 			ret->mask[y * spr->w + x] = spr->mask[(spr->h - y) * spr->w + x]
 		next
