@@ -1471,15 +1471,15 @@ get hero name (1,find hero(hero by rank(0)))
 			<shortname>set menu item subtype</shortname>
 			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Change the subtype of the menu item to <p>new subtype</p>. The meaning of the subtype varies depending on the type of the menu item. For menutype:special you can use constants like: <p>menuspecial:items</p>, <p>menuspecial:spells</p>, <p>menuspecial:status</p>, <p>menuspecial:equip</p>, <p>menuspecial:order</p>, <p>menuspecial:team</p>, <p>menuspecial:orderteam</p>, <p>menuspecial:map</p>, <p>menuspecial:save</p>, <p>menuspecial:load</p>, <p>menuspecial:quit</p>,  and <p>menuspecial:volume</p>. For menutype:textbox you can use the textbox's ID number. For menutype:menu you can use the menu's ID number or a menu:name constant from your HSI file. For menutype:script you can use script references in the form @scriptname</description>
 		</command>
-		<command id="getmenuitemtag1">
-			<cannon>get menu item tag1(menu item handle)</cannon>
-			<shortname>get menu item tag1</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return the first tag required for the menu item to be available</description>
+		<command id="getmenuitemtag">
+			<cannon>get menu item tag(menu item handle, whichtag)</cannon>
+			<shortname>get menu item tag</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and a tag number <p>whichtag</p> which can be 1 or 2, Return the a tag required for the menu item to be available. The tag number will be positive if the tag needs to be ON, or negative if the tag needs to be OFF</description>
 		</command>
-		<command id="setmenuitemtag1">
-			<cannon>set menu item tag1(menu item handle, new tag1)</cannon>
-			<shortname>set menu item tag1</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Set the first tag required for the menu item to <p>new tag1</p></description>
+		<command id="setmenuitemtag">
+			<cannon>set menu item tag(menu item handle, new tag, whichtag)</cannon>
+			<shortname>set menu item tag</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and a tag number <p>whichtag</p> which can be 1 or 2, Set the tag required for the menu item to <p>new tag</p>. Use a positive number if the tag needs to be turned ON, and a negative number if the tag needs to be turned OFF</description>
 		</command>
 
 	</section>

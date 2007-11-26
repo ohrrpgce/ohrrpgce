@@ -805,20 +805,14 @@ script, get menu item subtype, handle=0, begin
   exit returning(read menu item int(handle, 23))
 end
 
-script, set menu item tag1, handle=0, n=0, begin
-  write menu item int(handle, 24, n)
+script, set menu item tag, handle=0, n=0, whichtag=1, begin
+  if(whichtag == 1) then(write menu item int(handle, 24, n))
+  if(whichtag == 2) then(write menu item int(handle, 25, n))
 end
 
-script, get menu item tag1, handle=0, begin
-  exit returning(read menu item int(handle, 24))
-end
-
-script, set menu item tag2, handle=0, n=0, begin
-  write menu item int(handle, 25, n)
-end
-
-script, get menu item tag2, handle=0, begin
-  exit returning(read menu item int(handle, 25))
+script, get menu item tag, handle=0, whichtag=1, begin
+  if(whichtag == 1) then(exit returning(read menu item int(handle, 24)))
+  if(whichtag == 2) then(exit returning(read menu item int(handle, 25)))
 end
 
 script, set menu item settag, handle=0, n=0, begin
