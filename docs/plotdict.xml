@@ -1598,12 +1598,112 @@ m := previous menu item(selected menu item)</example>
 		<command id="getmenumaxrows">
 			<cannon>get menu max rows(menu handle)</cannon>
 			<shortname>get menu max rows</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a the max rows to display of the menu, or 0 if the menu is auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a max rows to display of the menu, or 0 if the menu is auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.</description>
 		</command>
 		<command id="setmenumaxrows">
 			<cannon>set menu max rows(menu handle, new max rows)</cannon>
 			<shortname>set menu max rows</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the max rows to display of the menu to <p>new max rows</p>. Use 0 if you want the menu to be auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.</description>
+		</command>
+		<command id="getmenuoffsetx">
+			<cannon>get menu offset x(menu handle)</cannon>
+			<shortname>get menu offset x</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the x offset position of the menu in pixels relative to the center of the screen.</description>
+			<seealso>
+				<ref>getmenuoffsety</ref>
+				<ref>setmenuoffsetx</ref>
+				<ref>setmenuoffsety</ref>
+			</seealso>
+		</command>
+		<command id="getmenuoffsety">
+			<cannon>get menu offset y(menu handle)</cannon>
+			<shortname>get menu offset y</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the y offset position of the menu in pixels relative to the center of the screen.</description>
+			<seealso>
+				<ref>getmenuoffsetx</ref>
+				<ref>setmenuoffsetx</ref>
+				<ref>setmenuoffsety</ref>
+			</seealso>
+		</command>
+		<command id="setmenuoffsetx">
+			<cannon>set menu offset x(menu handle, new x)</cannon>
+			<shortname>set menu offset x</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the x offset position of the menu in pixels relative to the center of the screen.</description>
+			<seealso>
+				<ref>getmenuoffsetx</ref>
+				<ref>getmenuoffsety</ref>
+				<ref>setmenuoffsety</ref>
+			</seealso>
+		</command>
+		<command id="setmenuoffsety">
+			<cannon>set menu offset y(menu handle, new y)</cannon>
+			<shortname>set menu offset y</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the y offset position of the menu in pixels relative to the center of the screen.</description>
+			<seealso>
+				<ref>getmenuoffsetx</ref>
+				<ref>getmenuoffsety</ref>
+				<ref>setmenuoffsetx</ref>
+			</seealso>
+		</command>
+		<command id="getmenuanchorx">
+			<cannon>get menu anchor x(menu handle)</cannon>
+			<shortname>get menu anchor x</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the x anchor position of the menu. The return value will be <p>align:center</p>, <p>align:left</p> or <p>align:right</p></description>
+			<seealso>
+				<ref>getmenuanchory</ref>
+				<ref>setmenuanchorx</ref>
+				<ref>setmenuanchory</ref>
+			</seealso>
+		</command>
+		<command id="getmenuanchory">
+			<cannon>get menu anchor y(menu handle)</cannon>
+			<shortname>get menu anchor y</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the y anchor position of the menu. The return value will be <p>align:center</p>, <p>align:top</p> or <p>align:bottom</p></description>
+			<seealso>
+				<ref>getmenuanchorx</ref>
+				<ref>setmenuanchorx</ref>
+				<ref>setmenuanchory</ref>
+			</seealso>
+		</command>
+		<command id="setmenuanchorx">
+			<cannon>set menu anchor x(menu handle, new anchor)</cannon>
+			<shortname>set menu anchor x</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the horizontal x anchor position of the menu. The <p>new anchor</p> can be <p>align:center</p>, <p>align:left</p> or <p>align:right</p></description>
+			<seealso>
+				<ref>getmenuanchorx</ref>
+				<ref>getmenuanchory</ref>
+				<ref>setmenuanchory</ref>
+			</seealso>
+		</command>
+		<command id="setmenuanchory">
+			<cannon>set menu anchor y(menu handle, new anchor)</cannon>
+			<shortname>set menu anchor y</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the vertical y anchor position of the menu. Change the horizontal x anchor position of the menu. The <p>new anchor</p> can be <p>align:center</p>, <p>align:top</p> or <p>align:bottom</p></description>
+			<seealso>
+				<ref>getmenuanchorx</ref>
+				<ref>getmenuanchory</ref>
+				<ref>setmenuanchorx</ref>
+			</seealso>
+		</command>
+		<command id="getmenutextalign">
+			<cannon>get menu text align(menu handle)</cannon>
+			<shortname>get menu text align</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the text alignment of the menu. The return value will be <p>align:center</p>, <p>align:left</p> or <p>align:right</p></description>
+			<seealso>
+				<ref>getmenuanchory</ref>
+				<ref>setmenuanchorx</ref>
+				<ref>setmenuanchory</ref>
+			</seealso>
+		</command>
+		<command id="setmenutextalign">
+			<cannon>set menu anchor text align(menu handle, new align)</cannon>
+			<shortname>set menu text align</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the text alingment of the menu. The <p>new align</p> can be <p>align:center</p>, <p>align:left</p> or <p>align:right</p></description>
+			<seealso>
+				<ref>getmenuanchorx</ref>
+				<ref>getmenuanchory</ref>
+				<ref>setmenuanchory</ref>
+			</seealso>
 		</command>
 
 	</section>

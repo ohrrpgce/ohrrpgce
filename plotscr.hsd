@@ -805,6 +805,46 @@ script, set menu max rows, menuhandle=0, n=0, begin
   write menu int(menuhandle, 14, n)
 end
 
+script, get menu offset x, menuhandle=0, begin
+  exit returning(read menu int(menuhandle, 16))
+end
+
+script, set menu offset x, menuhandle=0, n=0, begin
+  write menu int(menuhandle, 16, n)
+end
+
+script, get menu offset y, menuhandle=0, begin
+  exit returning(read menu int(menuhandle, 17))
+end
+
+script, set menu offset y, menuhandle=0, n=0, begin
+  write menu int(menuhandle, 17, n)
+end
+
+script, get menu anchor x, menuhandle=0, begin
+  exit returning(read menu int(menuhandle, 18))
+end
+
+script, set menu anchor x, menuhandle=0, n=0, begin
+  write menu int(menuhandle, 18, n)
+end
+
+script, get menu anchor y, menuhandle=0, begin
+  exit returning(read menu int(menuhandle, 19))
+end
+
+script, set menu anchor y, menuhandle=0, n=0, begin
+  write menu int(menuhandle, 19, n)
+end
+
+script, get menu text align, menuhandle=0, begin
+  exit returning(read menu int(menuhandle, 20))
+end
+
+script, set menu text align, menuhandle=0, n=0, begin
+  write menu int(menuhandle, 20, n)
+end
+
 #--------------------------------------------------------------------------
 # menu item data wrappers
 
@@ -1065,4 +1105,9 @@ define constant, begin
 11,menuspecial:volume
 0,menuitembit:Hide when disabled
 1,menuitembit:Close menu when selected
+0,align:center
+-1,align:left
+1,align:right
+-1,align:top
+1,align:bottom
 end
