@@ -1733,6 +1733,22 @@ m := previous menu item(selected menu item)</example>
 				<ref>getmenumaxchars</ref>
 			</seealso>
 		</command>
+		<command id="getmenuborder">
+			<cannon>get menu border(menu handle)</cannon>
+			<shortname>get menu border</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the border thickness of the menu in pixels. Positive numbers indicate a thicker border. Negative numbers indicate a thinner border.</description>
+			<seealso>
+				<ref>setmenuborder</ref>
+			</seealso>
+		</command>
+		<command id="setmenuborder">
+			<cannon>set menu border(menu handle, new border)</cannon>
+			<shortname>set menu border</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the border thickness of the menu in pixels. Positive numbers will result in a thicker border. Negative numbers will result in a thinner border.</description>
+			<seealso>
+				<ref>getmenuborder</ref>
+			</seealso>
+		</command>
 
 	</section>
 

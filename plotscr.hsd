@@ -861,6 +861,13 @@ script, set menu max chars, menuhandle=0, n=0, begin
   write menu int(menuhandle, 22, n)
 end
 
+script, get menu border, menuhandle=0, begin
+  exit returning(read menu int(menuhandle, 23))
+end
+
+script, set menu border, menuhandle=0, n=0, begin
+  write menu int(menuhandle, 24, n)
+end
 
 #--------------------------------------------------------------------------
 # menu item data wrappers
