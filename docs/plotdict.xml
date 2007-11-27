@@ -1438,6 +1438,16 @@ end</example>
 			<shortname>bring menu forward</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one return by <ref>bottommenu</ref>), move the menu to the top of all other open menus</description>
 		</command>
+		<command id="findmenuid">
+			<cannon>find menu ID(menu ID)</cannon>
+			<shortname>find menu ID</shortname>
+			<description>Given a <p>menu ID</p> number or a constant in the form of <p>menu:name</p>, Check to see if it is already open, and return a menu handle to it.</description>
+		</command>
+		<command id="menu is open">
+			<cannon>menu is open(menu ID)</cannon>
+			<shortname>menu is open</shortname>
+			<description>Given a <p>menu ID</p> number or a constant in the form of <p>menu:name</p>, Check to see if it is already open, and return <ref>true</ref> if it is, or <ref>false</ref> if it is not</description>
+		</command>
 		<command id="addmenuitem">
 			<cannon>addmenuitem(menu handle)</cannon>
 			<shortname>add menu item</shortname>

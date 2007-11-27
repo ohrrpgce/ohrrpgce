@@ -2453,6 +2453,15 @@ SELECT CASE AS CONST scrat(nowscript).curkind
       IF mislot >= 0 THEN scriptret = menus(menuslot).items(mislot).handle
      END IF
     END IF
+   CASE 301'--find menu ID
+    IF bound_arg(retvals(0), 0, gen(genMaxMenu), "find menu ID", "menu ID") THEN
+     FOR i = topmenu TO 0 STEP -1
+      IF menus(i).record = retvals(0) THEN
+       scriptret = menus(i).handle
+       EXIT FOR
+      END IF
+     NEXT i
+    END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
     scriptmisc scrat(nowscript).curvalue
