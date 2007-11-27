@@ -1416,7 +1416,6 @@ get hero name (1,find hero(hero by rank(0)))
 			<shortname>bring menu forward</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one return by <ref>bottommenu</ref>), move the menu to the top of all other open menus</description>
 		</command>
-
 		<command id="addmenuitem">
 			<cannon>addmenuitem(menu handle)</cannon>
 			<shortname>add menu item</shortname>
@@ -1447,7 +1446,6 @@ get hero name (1,find hero(hero by rank(0)))
 			<shortname>set menu item caption</shortname>
 			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Replace the caption with the string identified by <p>string ID</p></description>
 		</command>
-
 		<command id="getmenuitemtype">
 			<cannon>get menu item type(menu item handle)</cannon>
 			<shortname>get menu item type</shortname>
@@ -1480,6 +1478,36 @@ get hero name (1,find hero(hero by rank(0)))
 			<cannon>set menu item tag(menu item handle, new tag, whichtag)</cannon>
 			<shortname>set menu item tag</shortname>
 			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and a tag number <p>whichtag</p> which can be 1 or 2, Set the tag required for the menu item to <p>new tag</p>. Use a positive number if the tag needs to be turned ON, and a negative number if the tag needs to be turned OFF</description>
+		</command>
+		<command id="getmenuitemsettag">
+			<cannon>get menu item settag(menu item handle)</cannon>
+			<shortname>get menu item settag</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return the number of the tag that will be set when the menu item is selected. The tag number will be positive if the tag will be set ON, or negative if the tag will be set OFF</description>
+		</command>
+		<command id="setmenuitemsettag">
+			<cannon>set menu item settag(menu item handle, new settag)</cannon>
+			<shortname>set menu item settag</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Change the tag that will be set when the menu item is selected. Use a positive number if the tag should be turned ON, and a negative number if the tag should be turned OFF</description>
+		</command>
+		<command id="getmenuitemtogtag">
+			<cannon>get menu item togtag(menu item handle)</cannon>
+			<shortname>get menu item togtag</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return the number of the tag that will be toggled when the menu item is selected. (The tag number will always be a positive number)</description>
+		</command>
+		<command id="setmenuitemtogtag">
+			<cannon>set menu item togtag(menu item handle, new settag)</cannon>
+			<shortname>set menu item togtag</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Change the tag that will be toggled when the menu item is selected. (the tag number will always be positive)</description>
+		</command>
+		<command id="parentmenu">
+			<cannon>parent menu(menu item handle)</cannon>
+			<shortname>parent menu</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return a menu handle for the menu that the menu item belongs to.</description>
+		</command>
+		<command id="getmenuid">
+			<cannon>get menu ID(menu handle)</cannon>
+			<shortname>get menu ID</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>parentmenu</ref>), Return a the ID number of the menu, or -1 if the men was created with the <ref>createmenu</ref> command.</description>
 		</command>
 
 	</section>
