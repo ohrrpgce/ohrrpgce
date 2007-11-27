@@ -158,8 +158,8 @@ DECLARE SUB reloadscript (index, updatestats = -1)
 DECLARE FUNCTION count_sav(filename AS STRING) AS INTEGER
 DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
 DECLARE FUNCTION add_menu (record AS INTEGER) AS INTEGER
-DECLARE SUB remove_menu (record AS INTEGER)
-DECLARE SUB bring_menu_forward (handle AS INTEGER)
+DECLARE SUB remove_menu (slot AS INTEGER)
+DECLARE SUB bring_menu_forward (slot AS INTEGER)
 DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
 DECLARE FUNCTION menus_allow_player () AS INTEGER
 DECLARE SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
@@ -2659,8 +2659,9 @@ FUNCTION add_menu (record AS INTEGER) AS INTEGER
  RETURN assign_menu_handles(menus(topmenu))
 END FUNCTION
 
-SUB remove_menu (handle AS INTEGER)
- bring_menu_forward handle
+SUB remove_menu (slot AS INTEGER)
+ IF slot < 0 OR slot > UBOUND(menus) THEN debug "remove_menu: invalid slot " & slot : EXIT SUB
+ bring_menu_forward slot
  ClearMenuData menus(topmenu)
  topmenu = topmenu - 1
  IF topmenu >=0 THEN
@@ -2670,9 +2671,10 @@ SUB remove_menu (handle AS INTEGER)
  END IF
 END SUB
 
-SUB bring_menu_forward (handle AS INTEGER)
+SUB bring_menu_forward (slot AS INTEGER)
  DIM i AS INTEGER
- FOR i = handle TO topmenu - 1
+ IF slot < 0 OR slot > UBOUND(menus) THEN debug "bring_menu_forward: invalid slot " & slot : EXIT SUB
+ FOR i = slot TO topmenu - 1
   SWAP menus(i), menus(i + 1)
   SWAP mstates(i), mstates(i + 1)
  NEXT i
@@ -2691,8 +2693,10 @@ END FUNCTION
 SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
  DIM slot AS INTEGER
  DIM activated AS INTEGER
+ DIM menu_handle AS INTEGER
  menu_text_box = 0
  IF topmenu >= 0 THEN
+  menu_handle = menus(topmenu).handle 'store handle for later use
   IF game_usemenu(mstates(topmenu)) THEN
    menusound gen(genCursorSFX)
   END IF
@@ -2782,7 +2786,7 @@ SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
     IF .settag < -1 THEN setbit tag(), 0, ABS(.settag), NO
     IF .togtag > 1 THEN setbit tag(), 0, .togtag, (readbit(tag(), 0, .togtag) XOR 1)
     IF .close_if_selected THEN
-     remove_menu topmenu
+     remove_menu find_menu_handle(menu_handle)
      carray(4) = 0
      setkeys '--Discard the  keypress that triggered the menu item that closed the menu
      EXIT SUB
