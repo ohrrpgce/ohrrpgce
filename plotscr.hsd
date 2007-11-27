@@ -305,6 +305,7 @@ define function, begin
 296,selectmenuitem,1,0        #select menu item(menu item handle) moves the cursor
 297,parentmenu,1,0            #parent menu(menu item handle) returns menu handle
 298,getmenuid,1,0             #menu ID(menu handle) returns the ID of the menu
+299,swapmenuitems,2,0,0       #swap menu items(handle1, handle2)
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end

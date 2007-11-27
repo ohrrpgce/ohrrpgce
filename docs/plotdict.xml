@@ -1570,6 +1570,11 @@ m := previous menu item(selected menu item)</example>
 			<shortname>get menu ID</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>parentmenu</ref>), Return a the ID number of the menu, or -1 if the men was created with the <ref>createmenu</ref> command.</description>
 		</command>
+		<command id="swapmenuitems">
+			<cannon>swap menu items(handle1, handle2)</cannon>
+			<shortname>swap menu items</shortname>
+			<description>Given two menu item handles (for example, the ones returned by <ref>selectedmenuitem</ref> and <ref>nextmenuitem</ref>) switch the positions of the two menu items. Note that this works both to rearrange menu items within one menu, or to move menu items between different menus</description>
+		</command>
 
 	</section>
 

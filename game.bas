@@ -2427,6 +2427,17 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     IF bound_menuslot(menuslot, "get menu ID") THEN
      scriptret = menus(menuslot).record
     END IF
+   CASE 299'--swap menu items
+    DIM AS INTEGER menuslot2, mislot2
+    mislot = find_menu_item_handle(retvals(0), menuslot)
+    mislot2 = find_menu_item_handle(retvals(1), menuslot2)
+    IF bound_menuslot_and_mislot(menuslot, mislot, "swap menu items") THEN
+     IF bound_menuslot_and_mislot(menuslot2, mislot2, "swap menu items") THEN
+      SWAP menus(menuslot).items(mislot), menus(menuslot2).items(mislot2)
+      mstates(menuslot).need_update = YES
+      mstates(menuslot2).need_update = YES
+     END IF
+    END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
     scriptmisc scrat(nowscript).curvalue
