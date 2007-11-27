@@ -831,6 +831,20 @@ script, get menu item togtag, handle=0, begin
   exit returning(read menu item int(handle, 27))
 end
 
+script, get menu item bit, handle=0, bit=0, begin
+  variable(n)
+  n := read menu item int(handle, 28)
+  if(n,and,2^bit) then(exit returning(true))
+  exit returning(false)
+end
+
+script, set menu item bit, handle=0, bit=0, begin
+  variable(n)
+  n := read menu item int(handle, 28)
+  n := n, or, 2^bit
+  write menu item int(handle, 28, n)
+end
+
 #--------------------------------------------------------------------------
 # script triggers
 
@@ -1021,4 +1035,6 @@ define constant, begin
 9,menuspecial:load
 10,menuspecial:quit
 11,menuspecial:volume
+0,menuitembit:Hide when disabled
+1,menuitembit:Close menu when selected
 end
