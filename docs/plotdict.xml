@@ -1690,9 +1690,7 @@ m := previous menu item(selected menu item)</example>
 			<shortname>get menu text align</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the text alignment of the menu. The return value will be <p>align:center</p>, <p>align:left</p> or <p>align:right</p></description>
 			<seealso>
-				<ref>getmenuanchory</ref>
-				<ref>setmenuanchorx</ref>
-				<ref>setmenuanchory</ref>
+				<ref>setmenutextalign</ref>
 			</seealso>
 		</command>
 		<command id="setmenutextalign">
@@ -1700,9 +1698,39 @@ m := previous menu item(selected menu item)</example>
 			<shortname>set menu text align</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the text alingment of the menu. The <p>new align</p> can be <p>align:center</p>, <p>align:left</p> or <p>align:right</p></description>
 			<seealso>
-				<ref>getmenuanchorx</ref>
-				<ref>getmenuanchory</ref>
-				<ref>setmenuanchory</ref>
+				<ref>getmenutextalign</ref>
+			</seealso>
+		</command>
+		<command id="getmenuminchars">
+			<cannon>get menu min chars(menu handle)</cannon>
+			<shortname>get menu min chars</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the minimum width of the menu in chars, or 0 for menus that have their width autodetected.</description>
+			<seealso>
+				<ref>setmenuminchars</ref>
+			</seealso>
+		</command>
+		<command id="setmenuminchars">
+			<cannon>set menu min chars(menu handle, new min)</cannon>
+			<shortname>set menu min chars</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the minimum width of the menu in chars, or use 0 to make the menu width autodetected.</description>
+			<seealso>
+				<ref>getmenuminchars</ref>
+			</seealso>
+		</command>
+		<command id="getmenumaxchars">
+			<cannon>get menu max chars(menu handle)</cannon>
+			<shortname>get menu max chars</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the maximum width of the menu in chars, or 0 for menus that do not have a maximum.</description>
+			<seealso>
+				<ref>setmenumaxchars</ref>
+			</seealso>
+		</command>
+		<command id="setmenumaxchars">
+			<cannon>set menu max chars(menu handle, new max)</cannon>
+			<shortname>set menu max chars</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the maximum width of the menu in chars, or use 0 for no maximum</description>
+			<seealso>
+				<ref>getmenumaxchars</ref>
 			</seealso>
 		</command>
 

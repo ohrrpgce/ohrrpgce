@@ -845,6 +845,23 @@ script, set menu text align, menuhandle=0, n=0, begin
   write menu int(menuhandle, 20, n)
 end
 
+script, get menu min chars, menuhandle=0, begin
+  exit returning(read menu int(menuhandle, 21))
+end
+
+script, set menu min chars, menuhandle=0, n=0, begin
+  write menu int(menuhandle, 21, n)
+end
+
+script, get menu max chars, menuhandle=0, begin
+  exit returning(read menu int(menuhandle, 22))
+end
+
+script, set menu max chars, menuhandle=0, n=0, begin
+  write menu int(menuhandle, 22, n)
+end
+
+
 #--------------------------------------------------------------------------
 # menu item data wrappers
 
