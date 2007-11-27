@@ -1411,6 +1411,28 @@ get hero name (1,find hero(hero by rank(0)))
 			<shortname>bottom menu</shortname>
 			<description>Return a menu handle for the bottom menu (the menu underneath all other open menus). Returns <ref>false</ref> if no menus are open</description>
 		</command>
+		<command id="previousmenu">
+			<cannon>previous menu(menu handle)</cannon>
+			<shortname>previous menu</shortname>
+			<description>Return a menu handle for the menu beneath the one specified by <p>menu handle</p>, or false if there is no menu underneath</description>
+			<example>variable(menu)
+menu := topmenu
+while(menu) do, begin
+ # do things to each menu
+ menu := previous menu(menu)
+end</example>
+		</command>
+		<command id="nextmenu">
+			<cannon>next menu(menu handle)</cannon>
+			<shortname>next menu</shortname>
+			<description>Return a menu handle for the menu on top of the one specified by <p>menu handle</p>, or false if there is no menu on top</description>
+			<example>variable(menu)
+menu := bottom menu
+while(menu) do, begin
+ # do things to each menu
+ menu := next menu(menu)
+end</example>
+		</command>
 		<command id="bringmenuforward">
 			<cannon>bring menu forward(menu handle)</cannon>
 			<shortname>bring menu forward</shortname>
@@ -1435,6 +1457,35 @@ get hero name (1,find hero(hero by rank(0)))
 			<cannon>selected menu item(menu handle)</cannon>
 			<shortname>selected menu item</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a menu item handle for the menu item that is currently selected</description>
+		</command>
+		<command id="firstmenuitem">
+			<cannon>first menu item(menu handle)</cannon>
+			<shortname>first menu item</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a menu item handle for the menu item at the top of the menu.</description>
+		</command>
+		<command id="menuitembyslot">
+			<cannon>menu item by slot(menu handle, slot, visible only)</cannon>
+			<shortname>menu item by slot</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a menu item handle for the menu item at the position specified by <p>slot</p>. The first slot in the menu is 0. You can optionally include invisible items by using the optional argument <p>visible only</p>, which defaults to <ref>true</ref>. Note that invisible menu items are always at the end of the menu, after the last visible menu item</description>
+		</command>
+		<command id="nextmenuitem">
+			<cannon>next menu item(menu item handle, visible only)</cannon>
+			<shortname>next menu item</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return a menu item handle for the menu item below the specified one, or <ref>false</ref> there is no next menu item. You can optionally include invisible items by using the optional argument <p>visible only</p>, which defaults to <ref>true</ref>. Note that invisible menu items are always at the end of the menu, after the last visible menu item</description>
+			<example>variable(mi)
+mi := first menu item
+while(mi) do, begin
+  # do things to each menu item
+  mi := next menu item(mi)
+end
+</example>
+		</command>
+		<command id="previousmenuitem">
+			<cannon>previous menu item(menu item handle, visible only)</cannon>
+			<shortname>previous menu item</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return a menu item handle for the menu item above the specified one, or <ref>false</ref> there is no previous menu item. You can optionally include invisible items by using the optional argument <p>visible only</p>, which defaults to <ref>true</ref>. Note that invisible menu items are always at the end of the menu, after the last visible menu item</description>
+			<example>variable(m)
+m := previous menu item(selected menu item)</example>
 		</command>
 		<command id="getmenuitemcaption">
 			<cannon>get menu item caption(menu item handle, string ID)</cannon>
@@ -2433,6 +2484,16 @@ end</example>
 				<ref>herolevelled</ref>
 				<ref>spellslearnt</ref>
 			</seealso>
+		</command>
+		<command id="getlevelmp">
+			<cannon>get level MP (who, mp level slot)</cannon>
+			<shortname>get level MP</shortname>
+			<description>Returns a hero's level MP (FF1-style MP). The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>mp level slot</p> is a number from 0 to 7 that represents a row of spells in the hero's spell list.</description>
+		</command>
+		<command id="setlevelmp">
+			<cannon>set level MP (who, mp level slot, new value)</cannon>
+			<shortname>get level MP</shortname>
+			<description>Changes a hero's level MP (FF1-style MP). The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>mp level slot</p> is a number from 0 to 7 that represents a row of spells in the hero's spell list. The argument <ref>new value</ref> is the new number of level MP points. Each point represents one spell from that row.</description>
 		</command>
 		<command id="readglobal">
 			<cannon>read global (id)</cannon>
