@@ -1893,6 +1893,7 @@ SELECT CASE scrat(nowscript).curvalue
   scriptret = (retvals(0) >= retvals(1)) * -1
  CASE 16'set variable
   writescriptvar retvals(0), retvals(1)
+  scriptret = retvals(1)
  CASE 17'increment
   writescriptvar retvals(0), readscriptvar(retvals(0)) + retvals(1)
  CASE 18'decrement
