@@ -779,6 +779,33 @@ script, first menu item, menuhandle=0, begin
 end
 
 #--------------------------------------------------------------------------
+# menu data wrappers
+
+script, get menu boxstyle, menuhandle=0, begin
+  exit returning(read menu int(menuhandle, 12))
+end
+
+script, set menu boxstyle, menuhandle=0, n=0, begin
+  write menu int(menuhandle, 12, n)
+end
+
+script, get menu textcolor, menuhandle=0, begin
+  exit returning(read menu int(menuhandle, 13))
+end
+
+script, set menu textcolor, menuhandle=0, n=0, begin
+  write menu int(menuhandle, 13, n)
+end
+
+script, get menu max rows, menuhandle=0, begin
+  exit returning(read menu int(menuhandle, 14))
+end
+
+script, set menu max rows, menuhandle=0, n=0, begin
+  write menu int(menuhandle, 14, n)
+end
+
+#--------------------------------------------------------------------------
 # menu item data wrappers
 
 script, set menu item, handle=0, type=0, subtype=0, tag1=0, tag2=0, stag=0, togtag=0, begin

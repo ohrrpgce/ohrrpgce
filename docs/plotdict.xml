@@ -1575,6 +1575,36 @@ m := previous menu item(selected menu item)</example>
 			<shortname>swap menu items</shortname>
 			<description>Given two menu item handles (for example, the ones returned by <ref>selectedmenuitem</ref> and <ref>nextmenuitem</ref>) switch the positions of the two menu items. Note that this works both to rearrange menu items within one menu, or to move menu items between different menus</description>
 		</command>
+		<command id="getmenuboxstyle">
+			<cannon>get menu boxstyle(menu handle)</cannon>
+			<shortname>get menu boxstyle</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a the boxstyle of the menu. This will be a number from 0 to 15</description>
+		</command>
+		<command id="setmenuboxstyle">
+			<cannon>set menu boxstyle(menu handle, new box style)</cannon>
+			<shortname>set menu boxstyle</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the boxstyle of the menu. <p>new box style</p> will be a number from 0 to 15</description>
+		</command>
+		<command id="getmenutextcolor">
+			<cannon>get menu textcolor(menu handle)</cannon>
+			<shortname>get menu textcolor</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a the text color of the menu. This will be a number from 0 to 255</description>
+		</command>
+		<command id="setmenutextcolor">
+			<cannon>set menu textcolor(menu handle, new textcolor)</cannon>
+			<shortname>set menu textcolor</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the text color of the menu. <p>new textcolor</p> will be a number from 0 to 255. 0 is the default color.</description>
+		</command>
+		<command id="getmenumaxrows">
+			<cannon>get menu max rows(menu handle)</cannon>
+			<shortname>get menu max rows</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a the max rows to display of the menu, or 0 if the menu is auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.</description>
+		</command>
+		<command id="setmenumaxrows">
+			<cannon>set menu max rows(menu handle, new max rows)</cannon>
+			<shortname>set menu max rows</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the max rows to display of the menu to <p>new max rows</p>. Use 0 if you want the menu to be auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.</description>
+		</command>
 
 	</section>
 
