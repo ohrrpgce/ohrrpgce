@@ -1487,6 +1487,19 @@ end
 			<example>variable(m)
 m := previous menu item(selected menu item)</example>
 		</command>
+		<command id="findmenuitemcaption">
+			<cannon>find menu item caption(menu handle, string ID, search after handle, visible only)</cannon>
+			<shortname>find menu item caption</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), and a string identified by <p>string ID</p>, Search the menu for a menu item with a label that is the same as the string, and return a handle to the matching menu item. The optional third argument <p>search after handle</p> is a menu item handle to start searching after instead of searching from the top of the menu. The optional fourth argument <p>visible only</p> is a <ref>true</ref> or <ref>false</ref> value that determines whether or not to include hidden items. it defaults to <ref>true</ref>.</description>
+			<example>variable(menu, mi)
+menu := open menu(menu:test menu)
+$0="Puppies"
+mi := find menu item caption(menu, 0)
+while(mi) do, begin
+ # do something to each menu item labelled "Puppies"
+ mi := find menu item(menu, 0, mi)
+end</example>
+		</command>
 		<command id="getmenuitemcaption">
 			<cannon>get menu item caption(menu item handle, string ID)</cannon>
 			<shortname>get menu item caption</shortname>

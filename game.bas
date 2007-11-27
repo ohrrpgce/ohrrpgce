@@ -176,6 +176,7 @@ DECLARE FUNCTION find_menu_item_handle(handle AS INTEGER, BYREF found_in_menuslo
 DECLARE FUNCTION assign_menu_item_handle (BYREF mi AS MenuDefItem) AS INTEGER
 DECLARE FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
 DECLARE FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER, visible_only AS INTEGER=YES) AS INTEGER
+DECLARE FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING, mislot AS INTEGER=0, visible_only AS INTEGER=YES) AS INTEGER
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -2438,6 +2439,20 @@ SELECT CASE AS CONST scrat(nowscript).curkind
       mstates(menuslot2).need_update = YES
      END IF
     END IF
+   CASE 300'--find menu item caption
+    IF bound_plotstr(retvals(1), "find menu item caption") THEN
+     menuslot = find_menu_handle(retvals(0))
+     DIM start_slot AS INTEGER
+     IF retvals(3) = 0 THEN
+      start_slot = 0
+     ELSE
+      start_slot = find_menu_item_handle_in_menuslot(retvals(3), menuslot) + 1
+     END IF
+     IF bound_menuslot_and_mislot(menuslot, start_slot, "find menu item caption") THEN
+      mislot = find_menu_item_slot_by_string(menuslot, plotstr(retvals(1)).s, start_slot, (retvals(2) <> 0))
+      IF mislot >= 0 THEN scriptret = menus(menuslot).items(mislot).handle
+     END IF
+    END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
     scriptmisc scrat(nowscript).curvalue
@@ -2937,4 +2952,21 @@ FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER, visibl
   END WITH
  END IF
  RETURN 0
+END FUNCTION
+
+FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING, mislot AS INTEGER=0, visible_only AS INTEGER=YES) AS INTEGER
+ DIM cap AS STRING
+ WITH menus(menuslot)
+  FOR i = mislot TO UBOUND(.items)
+   WITH .items(i)
+    IF .exists = NO THEN CONTINUE FOR
+    IF visible_only AND .disabled AND .hide_if_disabled THEN CONTINUE FOR
+    cap = get_menu_item_caption(menus(menuslot).items(i), menus(menuslot))
+    IF cap = s THEN
+     RETURN i
+    END IF
+   END WITH
+  NEXT i
+ END WITH
+ RETURN -1 ' not found
 END FUNCTION
