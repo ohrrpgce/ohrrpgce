@@ -3719,6 +3719,16 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 					cpy->mask[i * spr->w + sx] = &hff
 				next
 			next
+		case 4 'scattered pixel dissolve
+			dim t as integer = spr->w / tim * p
+			randomize 1 ' use the same random seed for each frame
+			for i = 0 to t - 1
+				for sy = 0 to spr->h - 1
+					sx = int(rnd * spr->w)
+					cpy->mask[sy * spr->w + sx] = &hff
+				next sy
+			next i
+			randomize timer 're-seed random
 	end select
 	
 	if direct then
