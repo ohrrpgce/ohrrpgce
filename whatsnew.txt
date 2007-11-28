@@ -36,6 +36,8 @@ Dec ?? 2007 [voxhumana]
       off the "Simulate pushed NPC obstruction bug" bitset. Do this
       with caution if your game uses pushed-NPC puzzles that rely on
       overlapping NPCs [James Paige]
+    * Fixed bug 21, "If you save on a door, you will go through the door
+      when you load" [James Paige]
 
   * New Plotscripting Commands
     * get victory music

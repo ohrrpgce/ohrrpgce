@@ -1207,7 +1207,9 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR force_npc_ch
    END IF '---NPC EXISTS
   NEXT i
  END IF
- GOSUB opendoor
+ IF didgo(0) = 1 THEN 'only check doors if the hero really moved, not just if force_npc_check = YES
+  GOSUB opendoor
+ END IF
  IF needf = 0 THEN
   temp = readfoemap(catx(0) \ 20, caty(0) \ 20, scroll(0), scroll(1), foemaph)
   IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
