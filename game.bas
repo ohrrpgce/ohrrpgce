@@ -2476,6 +2476,13 @@ SELECT CASE AS CONST scrat(nowscript).curkind
       END IF
      NEXT i
     END IF
+   CASE 302'--menu is open
+    menuslot = find_menu_handle(retvals(0))
+    IF menuslot = -1 THEN
+     scriptret = 0
+    ELSE
+     scriptret = 1
+    END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
     scriptmisc scrat(nowscript).curvalue

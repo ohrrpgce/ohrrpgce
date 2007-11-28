@@ -1444,9 +1444,14 @@ end</example>
 			<description>Given a <p>menu ID</p> number or a constant in the form of <p>menu:name</p>, Check to see if it is already open, and return a menu handle to it.</description>
 		</command>
 		<command id="menu is open">
-			<cannon>menu is open(menu ID)</cannon>
+			<cannon>menu is open(menu handle)</cannon>
 			<shortname>menu is open</shortname>
-			<description>Given a <p>menu ID</p> number or a constant in the form of <p>menu:name</p>, Check to see if it is already open, and return <ref>true</ref> if it is, or <ref>false</ref> if it is not</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <p>open menu</p>), Check to see if it is already open, and return <ref>true</ref> if it is, or <ref>false</ref> if it is not</description>
+		</command>
+		<command id="wait for menu">
+			<cannon>wait for menu(menu handle)</cannon>
+			<shortname>wait for menu</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <p>open menu</p>), causes the script to wait until that menu has been closed</description>
 		</command>
 		<command id="addmenuitem">
 			<cannon>addmenuitem(menu handle)</cannon>

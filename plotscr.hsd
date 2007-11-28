@@ -308,6 +308,7 @@ define function, begin
 299,swapmenuitems,2,0,0       #swap menu items(handle1, handle2)
 300,findmenuitemcaption,4,0,0,0,1 #find menu item caption(menu handle, string ID, search after handle=false, visible only=true)
 301,findmenuid,1,0            #find menu(menu ID) search open menus for menu ID and return menu handle
+302,menuisopen,1,0            #menu is open(menu handle) # return true as long as the handle is still valid
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
@@ -780,8 +781,8 @@ script, first menu item, menuhandle=0, begin
   exit returning(menu item by slot(menuhandle, 0))
 end
 
-script, menu is open, menu ID=0, begin
-  exit returning(find menu ID(menu ID) <> 0)
+script, wait for menu, menuhandle=0, begin
+  while(menu is open(menuhandle)) do(wait(1))
 end
 
 #--------------------------------------------------------------------------
