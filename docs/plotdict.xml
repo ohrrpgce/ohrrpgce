@@ -1389,12 +1389,12 @@ get hero name (1,find hero(hero by rank(0)))
 		<command id="openmenu">
 			<cannon>open menu (ID)</cannon>
 			<shortname>open menu</shortname>
-			<description>Opens the menu specified by <p>ID</p>. You can also use the constants defined in your HSI file in the form menu:name. The menu will be opened on top of any menus that are already open. The return value is a menu handle that you should store in a variable for use with other menu-related commands</description>
+			<description>Opens the menu specified by <p>ID</p>. You can also use the constants defined in your HSI file in the form menu:name. The menu will be opened on top of any menus that are already open. The return value is a menu handle that you should store in a variable for use with other menu-related commands. Note that a menu must have the "Allow gameplay" bitset turned ON to be manipulated by plotscripts. If the "Allow gameplay" menu is OFF, this command will open it, but the script will not resume until the player has closed the menu.</description>
 		</command>
 		<command id="createmenu">
 			<cannon>create menu</cannon>
 			<shortname>create menu</shortname>
-			<description>Create a new empty menu. You can add menu items to it with the <ref>addmenuitem</ref> command. The return value is a menu handle that you should save in a variable for use with other menu related commands.</description>
+			<description>Create a new empty menu. You can add menu items to it with the <ref>addmenuitem</ref> command. The return value is a menu handle that you should save in a variable for use with other menu related commands. Menus created with this command have the "Allow gameplay" bitset turned on by default.</description>
 		</command>
 		<command id="closemenu">
 			<cannon>close menu(menu handle)</cannon>

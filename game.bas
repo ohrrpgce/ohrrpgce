@@ -2325,6 +2325,7 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     END IF
    CASE 279'--create menu
     scriptret = add_menu(-1)
+    menus(topmenu).allow_gameplay = YES
    CASE 280'--close menu
     menuslot = find_menu_handle(retvals(0))
     IF bound_menuslot(menuslot, "close menu") THEN
