@@ -31,6 +31,11 @@ Dec ?? 2007 [voxhumana]
       (Old stun attacks will continue to work the same thanks to the
       "Cancel target's attack" bitset) [James Paige]
     * Fixed bug 473, "Shop data doesn't persist" [James Paige]
+    * Fixed bug 330, "Pushed npcs are obstructionless" for new games.
+      Old games can get the in the general game bitsets menu by turning
+      off the "Simulate pushed NPC obstruction bug" bitset. Do this
+      with caution if your game uses pushed-NPC puzzles that rely on
+      overlapping NPCs [James Paige]
 
   * New Plotscripting Commands
     * get victory music

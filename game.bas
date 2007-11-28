@@ -1099,6 +1099,16 @@ FOR whoi = 0 TO 3
         IF catd(whoi) = 2 AND (pushtype = 1 OR pushtype = 2 OR pushtype = 6) THEN npc(i).ygo = -20
         IF catd(whoi) = 3 AND (pushtype = 1 OR pushtype = 3 OR pushtype = 7) THEN npc(i).xgo = 20
         IF catd(whoi) = 1 AND (pushtype = 1 OR pushtype = 3 OR pushtype = 5) THEN npc(i).xgo = -20
+        IF readbit(gen(), genBits2, 0) = 0 THEN ' Only do this if the backcompat bitset is off
+         FOR o = 0 TO 299 ' check to make sure no other NPCs are blocking this one
+          IF i = o THEN CONTINUE FOR
+          IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN
+           npc(i).xgo = 0
+           npc(i).ygo = 0
+           EXIT FOR
+          END IF
+         NEXT o
+        END IF
        END IF
        IF npcs(id).activation = 1 AND whoi = 0 THEN
         IF wraptouch(npc(i).x, npc(i).y, catx(0), caty(0), 20) THEN

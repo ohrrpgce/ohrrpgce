@@ -254,7 +254,7 @@ END SUB
 SUB gendata ()
 STATIC default$
 CONST maxMenu = 32
-DIM m$(maxMenu), max(maxMenu), bitname$(16)
+DIM m$(maxMenu), max(maxMenu), bitname$(17)
 DIM names$(32), stat$(11), menutop
 DIM changed AS INTEGER = YES
 getnames names$(), 32
@@ -363,7 +363,13 @@ DO
    bitname$(13) = "Pause on All Battle Menus"
    bitname$(14) = "Disable Hero's Battle Cursor"
    bitname$(15) = "Default passability disabled by default"
-   editbitset gen(), 101, 16, bitname$()
+   bitname$(16) = "Simulate Pushable NPC obstruction bug"
+   DIM bittemp(1) AS INTEGER
+   bittemp(0) = gen(genBits)
+   bittemp(1) = gen(genBits2)
+   editbitset bittemp(), 0, 17, bitname$()
+   gen(genBits) = bittemp(0)
+   gen(genBits2) = bittemp(1)
   END IF
   IF csr = 8 THEN generalsfxmenu
   IF csr = 10 THEN titlescreenbrowse

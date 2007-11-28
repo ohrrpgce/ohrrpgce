@@ -91,14 +91,16 @@ CONST genAcceptSFX = 173        'menu interface
 CONST genCancelSFX = 174        ' "       "
 CONST genCursorSFX = 175        ' "       "
 CONST genTextboxLetter = 176    'Text box 'click'
+CONST genBits2 = 177            'More general bitsets
 CONST genScatterTableHead = 199 'old password scattertable head
 
 '---Format fix bits
-CONST fixAttackitems = 0        'zero out attack data for item cost (ammunition)
-CONST fixWeapPoints  = 1        'add defaults for weapon points
-CONST fixStunCancelTarg = 2     'turn on cancel target bitset for old stun attacks
-CONST fixDefaultDissolve = 3    'Initialized genEnemyDissolve to default in GEN
+CONST fixAttackitems = 0         'zero out attack data for item cost (ammunition)
+CONST fixWeapPoints  = 1         'add defaults for weapon points
+CONST fixStunCancelTarg = 2      'turn on cancel target bitset for old stun attacks
+CONST fixDefaultDissolve = 3     'Initialized genEnemyDissolve to default in GEN
 CONST fixDefaultDissolveEnemy = 4'Initialized Enemy dissolves to default in DT1
+CONST fixPushNPCBugCompat = 5    'Turned on the Simulate pushable NPC obstruction bug bitset
 
 '---Sizes (replaceable with variables when suitable)
 CONST npcdMax = 35

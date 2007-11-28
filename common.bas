@@ -1865,6 +1865,12 @@ IF getfixbit(fixDefaultDissolveEnemy) = 0 THEN
  NEXT
 END IF
 
+IF getfixbit(fixPushNPCBugCompat) = 0 THEN
+ upgrade_message "Enabling Simulate pushable NPC bug bitset..."
+ setfixbit(fixPushNPCBugCompat, 1)
+ setbit gen(), genBits2, 0, 1 ' For backcompat
+END IF
+
 'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)
 xbsave game$ + ".gen", gen(), 1000
 
