@@ -876,6 +876,20 @@ script, set menu border, menuhandle=0, n=0, begin
   write menu int(menuhandle, 24, n)
 end
 
+script, get menu bit, handle=0, bit=0, begin
+  variable(n)
+  n := read menu int(handle, 15)
+  if(n,and,2^bit) then(exit returning(true))
+  exit returning(false)
+end
+
+script, set menu bit, handle=0, bit=0, begin
+  variable(n)
+  n := read menu int(handle, 15)
+  n := n, or, 2^bit
+  write menu item int(handle, 15, n)
+end
+
 #--------------------------------------------------------------------------
 # menu item data wrappers
 
@@ -1136,6 +1150,11 @@ define constant, begin
 11,menuspecial:volume
 0,menuitembit:Hide when disabled
 1,menuitembit:Close menu when selected
+0,menubit:translucent box
+1,menubit:never show scrollbar
+2,menubit:allow gameplay
+3,menubit:suspend player even if gameplay allowed
+4,menubit:no box
 0,align:center
 -1,align:left
 1,align:right

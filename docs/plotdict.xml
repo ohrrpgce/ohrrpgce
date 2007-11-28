@@ -1588,6 +1588,16 @@ end</example>
 			<shortname>set menu item bit</shortname>
 			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and bit number <p>bit</p>, Set the bitset is ON or OFF depending on <p>value</p>. You can use constants for the <p>bit</p> bit number in the form of <p>menu item bit:Hide when disabled</p> and <p>menu item bit:Close menu if selected</p></description>
 		</command>
+		<command id="getmenubit">
+			<cannon>get menu bit(menu handle, bit)</cannon>
+			<shortname>get menu bit</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>topmenu</ref>), and bit number <p>bit</p>, Return <ref>true</ref> if the bitset is ON, and <ref>false</ref> if the bitset is OFF. You can use constants for the <p>bit</p> bit number in the form of <p>menubit:translucent box</p> <p>menubit:never show scrollbar</p> <p>menubit:allow gameplay</p> <p>menubit:suspend player even if gameplay allowed</p> <p>menubit:no box</p></description>
+		</command>
+		<command id="setmenubit">
+			<cannon>set menu bit(menu handle, bit, value)</cannon>
+			<shortname>set menu bit</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>topmenu</ref>), and bit number <p>bit</p>, Set the bitset is ON or OFF depending on <p>value</p>. You can use constants for the <p>bit</p> bit number in the form of <p>menubit:translucent box</p> <p>menubit:never show scrollbar</p> <p>menubit:allow gameplay</p> <p>menubit:suspend player even if gameplay allowed</p> <p>menubit:no box</p></description>
+		</command>
 		<command id="parentmenu">
 			<cannon>parent menu(menu item handle)</cannon>
 			<shortname>parent menu</shortname>
