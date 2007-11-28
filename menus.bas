@@ -303,7 +303,7 @@ FOR i = 22 to 29
 NEXT
 max(30) = 100 'MP~
 max(31) = 20  'Extra Hits
-max(32) = 4   'Default Enemy Dissolve type
+max(32) = 3   'Default Enemy Dissolve type
 
 pas$ = ""
 aboutline$ = ""
@@ -1404,7 +1404,6 @@ FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
   CASE 1: RETURN n & " Crossfade"
   CASE 2: RETURN n & " Diagonal Vanish"
   CASE 3: RETURN n & " Sink into Ground"
-  CASE 4: RETURN n & " Scatter pixel dissolve"
   CASE ELSE: RETURN n & " Invalid!"
  END SELECT
 END FUNCTION

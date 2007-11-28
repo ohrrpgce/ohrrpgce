@@ -255,7 +255,7 @@ min(EnLimPal16) = -1
 
 CONST EnLimDissolve = 24
 min(EnLimDissolve) = 0
-max(EnLimDissolve) = 5
+max(EnLimDissolve) = 4
 EnCapDissolve = capindex
 addcaption caption$(), capindex, "Global Default"
 addcaption caption$(), capindex, "Default"
