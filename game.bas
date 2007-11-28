@@ -497,7 +497,8 @@ END IF
 GOSUB preparemap
 doihavebits
 evalherotag stat()
-needf = 1: ng = 1
+needf = 1
+force_npc_check = YES
 DIM menu_text_box AS INTEGER = 0
 
 'DEBUG debug "pre-call movement"
@@ -694,7 +695,8 @@ DO
   fademusic 0
   stopsong
   fadeout 0, 0, 0
-  needf = 1: ng = 1
+  needf = 1
+  force_npc_check = YES
   lastmap = -1
   GOSUB doloadgame
   GOSUB preparemap
@@ -1184,9 +1186,9 @@ FOR whoi = 0 TO 3
  cropmovement catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi)
 NEXT whoi
 '--only the leader may activate NPCs
-IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR ng = 1) THEN
+IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR force_npc_check = YES) THEN
  '--finished a step
- ng = 0
+ force_npc_check = NO
  IF readbit(gen(), 44, suspendobstruction) = 0 THEN
   '--this only happens if obstruction is on
   FOR i = 0 TO 299
