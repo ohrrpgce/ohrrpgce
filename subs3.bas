@@ -32,7 +32,6 @@ DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
 DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
-DECLARE SUB smnemonic (tagname$, index%)
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
@@ -422,14 +421,14 @@ DO
   oldptr = pt
   IF intgrabber(pt, 0, small(gen(56) + 1, 999)) THEN
    IF pt > gen(56) THEN gen(56) = pt
-   smnemonic tagname$, oldptr
+   save_tag_name tagname$, oldptr
    tagname$ = load_tag_name(pt)
   END IF
  END IF
  IF csr = 2 THEN
   strgrabber tagname$, 20
   IF keyval(28) > 1 THEN
-   smnemonic tagname$, pt
+   save_tag_name tagname$, pt
    pt = small(pt + 1, 999)
    tagname$ = load_tag_name(pt)
   END IF
@@ -444,7 +443,7 @@ DO
  clearpage dpage
  dowait
 LOOP
-smnemonic tagname$, pt
+save_tag_name tagname$, pt
 
 END SUB
 

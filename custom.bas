@@ -27,7 +27,6 @@ DECLARE SUB fontedit (font%())
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION onoroff$ (n%)
-DECLARE SUB smnemonic (tagname$, index%)
 DECLARE SUB tagnames ()
 DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%)
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
@@ -1322,19 +1321,6 @@ tradestf$(2) = itemstr$(b(33),0,0)
 tradestf$(3) = itemstr$(b(35),0,0)
 trit$ = itemstr$(b(28),0,0)
 RETRACE
-
-END SUB
-
-SUB smnemonic (tagname$, index)
-DIM buf(20)
-setpicstuf buf(), 42, -1
-
-buf(0) = LEN(tagname$)
-FOR i = 1 TO small(buf(0), 20)
- buf(i) = ASC(MID$(tagname$, i, 1))
-NEXT i
-
-storeset game$ + ".tmn", index, 0
 
 END SUB
 

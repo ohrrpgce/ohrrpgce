@@ -293,7 +293,7 @@ NEXT i
 readbadbinstring$ = result$
 END FUNCTION
 
-SUB writebadbinstring (savestr$, array(), offset, maxlen, skipword)
+SUB writebadbinstring (savestr$, array(), offset, maxlen, skipword=0)
 
 '--write current length
 array(offset) = LEN(savestr$)
@@ -2351,3 +2351,10 @@ FUNCTION load_tag_name (index AS INTEGER) AS STRING
  loadset game$ + ".tmn", index, 0
  RETURN readbadbinstring$(buf(), 0, 20)
 END FUNCTION
+
+SUB save_tag_name (tagname AS STRING, index AS INTEGER)
+ DIM buf(20)
+ setpicstuf buf(), 42, -1
+ writebadbinstring tagname$, buf(), 0, 20
+ storeset game$ + ".tmn", index, 0
+END SUB

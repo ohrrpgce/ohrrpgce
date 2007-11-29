@@ -28,7 +28,7 @@ DECLARE FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
 DECLARE SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
 DECLARE FUNCTION aquiretempdir$ ()
 DECLARE SUB writebinstring (savestr$, array%(), offset%, maxlen%)
-DECLARE SUB writebadbinstring (savestr$, array%(), offset%, maxlen%, skipword%)
+DECLARE SUB writebadbinstring (savestr$, array(), offset, maxlen, skipword=0)
 DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
 DECLARE FUNCTION readbadbinstring$ (array(), offset, maxlen, skipword=0)
 DECLARE FUNCTION read32bitstring$ overload (array%(), offset%)
@@ -132,6 +132,7 @@ DECLARE FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTE
 DECLARE FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, cmd AS STRING, argname AS STRING) AS INTEGER
 
 DECLARE FUNCTION load_tag_name (index AS INTEGER) AS STRING
+DECLARE SUB save_tag_name (tagname AS STRING, index AS INTEGER)
 
 'Global variables
 EXTERN game$
