@@ -274,7 +274,7 @@ NEXT
 
 END SUB
 
-FUNCTION readbadbinstring$ (array(), offset, maxlen, skipword)
+FUNCTION readbadbinstring$ (array(), offset, maxlen, skipword=0)
 result$ = ""
 strlen = bound(array(offset), 0, maxlen)
 
@@ -2341,4 +2341,13 @@ FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, cmd AS STRING, 
   RETURN NO
  END IF
  RETURN YES
+END FUNCTION
+
+FUNCTION load_tag_name (index AS INTEGER) AS STRING
+ IF index = 0 THEN RETURN "NULL"
+ IF index = 1 THEN RETURN "CONSTANT"
+ DIM buf(20)
+ setpicstuf buf(), 42, -1
+ loadset game$ + ".tmn", index, 0
+ RETURN readbadbinstring$(buf(), 0, 20)
 END FUNCTION

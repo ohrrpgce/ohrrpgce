@@ -38,7 +38,6 @@ DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION onoroff$ (n%)
 DECLARE SUB setanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE FUNCTION mouseover% (mouse%(), zox%, zoy%, zcsr%, area%())
 DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
@@ -461,7 +460,7 @@ DO
 LOOP
 utamenu:
 menu$(1) = CHR$(27) + "Animation set" + XSTR$(taset) + CHR$(26)
-menu$(4) = "Disable if Tag#" + str$(ABS(tastuf(1 + 20 * taset))) + "=" + onoroff$(tastuf(1 + 20 * taset)) + " (" + lmnemonic(ABS(tastuf(1 + 20 * taset))) + ")"
+menu$(4) = "Disable if Tag#" + str$(ABS(tastuf(1 + 20 * taset))) + "=" + onoroff$(tastuf(1 + 20 * taset)) + " (" + load_tag_name(ABS(tastuf(1 + 20 * taset))) + ")"
 RETRACE
 
 setanimrange:
@@ -697,7 +696,7 @@ FOR i = 0 TO 8
  menu$(i + 1) = stuff$(a)
  IF a = 0 THEN EXIT FOR
  IF a > 0 AND a < 6 THEN menu$(i + 1) = menu$(i + 1) + XSTR$(b)
- IF a = 6 THEN menu$(i + 1) = menu$(i + 1) + lmnemonic(b)
+ IF a = 6 THEN menu$(i + 1) = menu$(i + 1) + load_tag_name(b)
 NEXT i
 IF i = 8 THEN menu$(10) = "end of animation"
 menu$(10) = "Action=" + stuff$(bound(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset), 0, 7))
@@ -709,7 +708,7 @@ SELECT CASE tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)
  CASE 5
   menu$(11) = menu$(11) + STR$(this) + " Ticks"
  CASE 6
-  menu$(11) = menu$(11) + "Tag#" + STR$(ABS(this)) + "=" + onoroff$(this) + " " + lmnemonic(ABS(this))
+  menu$(11) = menu$(11) + "Tag#" + STR$(ABS(this)) + "=" + onoroff$(this) + " " + load_tag_name(ABS(this))
  CASE ELSE
   menu$(11) = menu$(11) + "N/A"
 END SELECT

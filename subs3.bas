@@ -21,7 +21,6 @@ DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION onoroff$ (n%)
-DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
@@ -409,7 +408,7 @@ IF gen(56) < 1 THEN gen(56) = 1
 pt = 2
 csr = 0
 menu$(0) = "Previous Menu"
-tagname$ = lmnemonic$(pt)
+tagname$ = load_tag_name(pt)
 
 setkeys
 DO
@@ -424,7 +423,7 @@ DO
   IF intgrabber(pt, 0, small(gen(56) + 1, 999)) THEN
    IF pt > gen(56) THEN gen(56) = pt
    smnemonic tagname$, oldptr
-   tagname$ = lmnemonic$(pt)
+   tagname$ = load_tag_name(pt)
   END IF
  END IF
  IF csr = 2 THEN
@@ -432,7 +431,7 @@ DO
   IF keyval(28) > 1 THEN
    smnemonic tagname$, pt
    pt = small(pt + 1, 999)
-   tagname$ = lmnemonic$(pt)
+   tagname$ = load_tag_name(pt)
   END IF
  END IF
  menu$(1) = "Tag" + XSTR$(pt)

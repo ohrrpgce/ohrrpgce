@@ -36,7 +36,6 @@ DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION boxconditionheroname$ (num%, cond%())
 DECLARE FUNCTION onoroff$ (n%)
-DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
@@ -199,7 +198,7 @@ PRINT #fh, "define constant, begin"
 printstr "tag names", 0, pl * 8, 0: pl = pl + 1
 isunique "", u$(), 1
 FOR i = 2 TO 999
- writeconstant fh, i, lmnemonic(i), u$(), "tag"
+ writeconstant fh, i, load_tag_name(i), u$(), "tag"
 NEXT i
 
 printstr "song names", 0, pl * 8, 0: pl = pl + 1
@@ -516,24 +515,6 @@ NEXT i
 uptr = small(uptr + 1, 1024)'--gives up trying after 1024 records
 u$(uptr) = LCASE$(s$)
 isunique = -1
-
-END FUNCTION
-
-FUNCTION lmnemonic$ (index)
-DIM buf(20)
-setpicstuf buf(), 42, -1
-
-IF index = 0 THEN lmenmonic$ = "NULL": EXIT FUNCTION
-IF index = 1 THEN lmenmonic$ = "CONSTANT": EXIT FUNCTION
-
-loadset game$ + ".tmn", index, 0
-
-temp$ = ""
-FOR i = 1 TO small(buf(0), 20)
- temp$ = temp$ + CHR$(bound(buf(i), 0, 255))
-NEXT i
-
-lmnemonic$ = temp$
 
 END FUNCTION
 
@@ -1056,7 +1037,7 @@ SELECT CASE cond(1)
 END SELECT
 n = 2: GOSUB txttag
 FOR i = 3 TO 4
- menu$(i) = " set tag" + XSTR$(ABS(cond(i))) + " = " + onoroff$(cond(i)) + " (" + lmnemonic$(ABS(cond(i))) + ")"
+ menu$(i) = " set tag" + XSTR$(ABS(cond(i))) + " = " + onoroff$(cond(i)) + " (" + load_tag_name(ABS(cond(i))) + ")"
  IF ABS(cond(i)) <= 1 THEN menu$(i) = LEFT$(menu$(i), LEN(menu$(i)) - 2) + "[unchangeable]"
 NEXT i
 n = 5: GOSUB txttag
@@ -1099,7 +1080,7 @@ IF cond(18) < 0 THEN menu$(18) = " remove one" + item$
 RETRACE
 
 txttag:
-menu$(n) = "If tag" + XSTR$(ABS(cond(n))) + " = " + onoroff$(cond(n)) + " (" + lmnemonic$(ABS(cond(n))) + ")"
+menu$(n) = "If tag" + XSTR$(ABS(cond(n))) + " = " + onoroff$(cond(n)) + " (" + load_tag_name(ABS(cond(n))) + ")"
 IF cond(n) = 0 THEN menu$(n) = "Never do the following"
 IF cond(n) = 1 THEN menu$(n) = LEFT$(menu$(n), LEN(menu$(n)) - 2) + "[Never]"
 IF cond(n) = -1 THEN menu$(n) = "Always do the following"
@@ -1140,7 +1121,7 @@ IF readbit(buffer(), 174, 0) THEN menu$(1) = "Choice = Enabled" ELSE menu$(1) = 
 FOR i = 0 TO 1
  menu$(2 + (i * 2)) = "Option" + XSTR$(i) + " text:" + choice$(i)
  IF buffer(182 + (i * 9)) THEN
-  menu$(3 + (i * 2)) = "Set tag" + XSTR$(ABS(buffer(182 + (i * 9)))) + " = " + onoroff$(buffer(182 + (i * 9))) + " (" + lmnemonic$(ABS(buffer(182 + (i * 9)))) + ")"
+  menu$(3 + (i * 2)) = "Set tag" + XSTR$(ABS(buffer(182 + (i * 9)))) + " = " + onoroff$(buffer(182 + (i * 9))) + " (" + load_tag_name(ABS(buffer(182 + (i * 9)))) + ")"
  ELSE
   menu$(3 + (i * 2)) = "Set tag 0 (none)"
  END IF

@@ -30,7 +30,7 @@ DECLARE FUNCTION aquiretempdir$ ()
 DECLARE SUB writebinstring (savestr$, array%(), offset%, maxlen%)
 DECLARE SUB writebadbinstring (savestr$, array%(), offset%, maxlen%, skipword%)
 DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
-DECLARE FUNCTION readbadbinstring$ (array%(), offset%, maxlen%, skipword%)
+DECLARE FUNCTION readbadbinstring$ (array(), offset, maxlen, skipword=0)
 DECLARE FUNCTION read32bitstring$ overload (array%(), offset%)
 DECLARE FUNCTION read32bitstring$ overload (strptr as integer ptr)
 DECLARE FUNCTION readbadgenericname$ (index%, filename$, recsize%, offset%, size%, skip%)
@@ -130,6 +130,8 @@ DECLARE SUB position_menu_item (menu AS MenuDef, cap AS STRING, i AS INTEGER, BY
 
 DECLARE FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
 DECLARE FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, cmd AS STRING, argname AS STRING) AS INTEGER
+
+DECLARE FUNCTION load_tag_name (index AS INTEGER) AS STRING
 
 'Global variables
 EXTERN game$

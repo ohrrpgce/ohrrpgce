@@ -27,7 +27,6 @@ DECLARE SUB fontedit (font%(), gamedir$)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION onoroff$ (n%)
-DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE SUB smnemonic (tagname$, index%)
 DECLARE SUB tagnames ()
 DECLARE SUB resizetiledata (array%(), xoff%, yoff%, neww%, newh%, yout%, page%, layer%)
@@ -1312,13 +1311,13 @@ DO
 		xtemp$ = XSTR$(link(cur).dest_map)
 	case 3
 		if link(cur).tag1 then
-			xtemp$ = XSTR$(ABS(link(cur).tag1)) + " = " + onoroff$(link(cur).tag1) + " (" + lmnemonic$(ABS(link(cur).tag1)) + ")"
+			xtemp$ = XSTR$(ABS(link(cur).tag1)) + " = " + onoroff$(link(cur).tag1) + " (" + load_tag_name(ABS(link(cur).tag1)) + ")"
 		else
 			xtemp$ = " 0 [N/A]"
 		end if
 	case 4
 		if link(cur).tag2 then
-			xtemp$ = XSTR$(ABS(link(cur).tag2)) + " = " + onoroff$(link(cur).tag2) + " (" + lmnemonic$(ABS(link(cur).tag2)) + ")"
+			xtemp$ = XSTR$(ABS(link(cur).tag2)) + " = " + onoroff$(link(cur).tag2) + " (" + load_tag_name(ABS(link(cur).tag2)) + ")"
 		else
 			xtemp$ = " 0 [N/A]"
 		end if

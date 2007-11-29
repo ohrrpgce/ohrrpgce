@@ -21,7 +21,6 @@ DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION onoroff$ (n%)
-DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB formation ()
 DECLARE SUB herodata ()
@@ -222,7 +221,7 @@ SELECT CASE ABS(veh(offset(12)))
  CASE 1
   tmp$ = " (RESERVED TAG)"
  CASE ELSE
-  tmp$ = " (" + lmnemonic$(ABS(veh(offset(12)))) + ")"  '14
+  tmp$ = " (" + load_tag_name(ABS(veh(offset(12)))) + ")"  '14
 END SELECT
 menu$(12) = "If riding Tag" + XSTR$(ABS(veh(offset(12)))) + "=" + onoroff$(veh(offset(12))) + tmp$
 

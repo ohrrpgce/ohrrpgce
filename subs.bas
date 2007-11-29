@@ -28,7 +28,6 @@ DECLARE SUB herotags (hero as HeroDef ptr)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION onoroff$ (n%)
-DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
@@ -1588,7 +1587,7 @@ DO
    CASE 1
     a$ = "None (tag 1 not usable)"
    CASE ELSE
-    a$ = lmnemonic(tagnum) & "(" & tagnum & ")"
+    a$ = load_tag_name(tagnum) & "(" & tagnum & ")"
   END SELECT
   printstr menu$(i) & ": " & a$, 0, i * 8, dpage
  NEXT i
@@ -1807,10 +1806,10 @@ IF a(49) <> 1 THEN menu$(9) = "Weapon Picture N/A": menu$(10) = "Weapon Palette 
 menu$(11) = "Unlimited Use"
 IF a(73) = 1 THEN menu$(11) = "Consumed By Use"
 IF a(73) = 2 THEN menu$(11) = "Cannot be Sold/Dropped"
-menu$(12) = "own item TAG" + XSTR$(a(74)) + " " + lmnemonic(a(74))
-menu$(13) = "is in inventory TAG" + XSTR$(a(75)) + " " + lmnemonic(a(75))
-menu$(14) = "is equipped TAG" + XSTR$(a(76)) + " " + lmnemonic(a(76))
-menu$(15) = "eqpt by active hero TAG" + XSTR$(a(77)) + " " + lmnemonic(a(77))
+menu$(12) = "own item TAG" + XSTR$(a(74)) + " " + load_tag_name(a(74))
+menu$(13) = "is in inventory TAG" + XSTR$(a(75)) + " " + load_tag_name(a(75))
+menu$(14) = "is equipped TAG" + XSTR$(a(76)) + " " + load_tag_name(a(76))
+menu$(15) = "eqpt by active hero TAG" + XSTR$(a(77)) + " " + load_tag_name(a(77))
 menu$(16) = "Handle X:"
 menu$(17) = "Handle Y:"
 IF a(49) = 1 THEN
@@ -2136,7 +2135,7 @@ DO
     temp$ = info$(npc(cur * 15 + i), 0)
    CASE 9, 10
     IF npc(cur * 15 + i) THEN
-     temp$ = XSTR$(ABS(npc(cur * 15 + i))) + " = " + onoroff$(npc(cur * 15 + i)) + " (" + lmnemonic$(ABS(npc(cur * 15 + i))) + ")"
+     temp$ = XSTR$(ABS(npc(cur * 15 + i))) + " = " + onoroff$(npc(cur * 15 + i)) + " (" + load_tag_name(ABS(npc(cur * 15 + i))) + ")"
     ELSE
      temp$ = " 0 (N/A)"
     END IF

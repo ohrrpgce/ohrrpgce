@@ -27,7 +27,6 @@ DECLARE SUB fontedit (font%())
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION onoroff$ (n%)
-DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE SUB smnemonic (tagname$, index%)
 DECLARE SUB tagnames ()
 DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%)
@@ -1251,19 +1250,19 @@ IF b(19) > 0 THEN
 ELSE
  smenu$(5) = stf$(8 + bound(b(19), -1, 0))
 END IF
-smenu$(6) = "Buy Require Tag" + XSTR$(ABS(b(20))) + " =" + XSTR$(SGN(SGN(b(20)) + 1)) + " (" + lmnemonic$(ABS(b(20))) + ")"
+smenu$(6) = "Buy Require Tag" + XSTR$(ABS(b(20))) + " =" + XSTR$(SGN(SGN(b(20)) + 1)) + " (" + load_tag_name(ABS(b(20))) + ")"
 IF b(20) = 1 THEN smenu$(6) = smenu$(6) + "[Never]"
 IF b(20) = -1 THEN smenu$(6) = smenu$(6) + "[Always]"
 IF b(20) = 0 THEN smenu$(6) = "[No Tag Check]"
-smenu$(7) = "Sell Require Tag" + XSTR$(ABS(b(21))) + " =" + XSTR$(SGN(SGN(b(21)) + 1)) + " (" + lmnemonic$(ABS(b(21))) + ")"
+smenu$(7) = "Sell Require Tag" + XSTR$(ABS(b(21))) + " =" + XSTR$(SGN(SGN(b(21)) + 1)) + " (" + load_tag_name(ABS(b(21))) + ")"
 IF b(21) = 1 THEN smenu$(7) = smenu$(7) + "[Never]"
 IF b(21) = -1 THEN smenu$(7) = smenu$(7) + "[Always]"
 IF b(21) = 0 THEN smenu$(7) = "[No Tag Check]"
-smenu$(8) = "Buy Set Tag" + XSTR$(ABS(b(22))) + " =" + XSTR$(SGN(SGN(b(22)) + 1)) + " (" + lmnemonic$(ABS(b(22))) + ")"
+smenu$(8) = "Buy Set Tag" + XSTR$(ABS(b(22))) + " =" + XSTR$(SGN(SGN(b(22)) + 1)) + " (" + load_tag_name(ABS(b(22))) + ")"
 IF b(22) = 1 THEN smenu$(8) = smenu$(8) + "[Unalterable]"
 IF b(22) = -1 THEN smenu$(8) = smenu$(8) + "[Unalterable]"
 IF b(22) = 0 THEN smenu$(8) = "[No Tag Set]"
-smenu$(9) = "Sell Set Tag" + XSTR$(ABS(b(23))) + " =" + XSTR$(SGN(SGN(b(23)) + 1)) + " (" + lmnemonic$(ABS(b(23))) + ")"
+smenu$(9) = "Sell Set Tag" + XSTR$(ABS(b(23))) + " =" + XSTR$(SGN(SGN(b(23)) + 1)) + " (" + load_tag_name(ABS(b(23))) + ")"
 IF b(23) = 1 THEN smenu$(9) = smenu$(9) + "[Unalterable]"
 IF b(23) = -1 THEN smenu$(9) = smenu$(9) + "[Unalterable]"
 IF b(23) = 0 THEN smenu$(9) = "[No Tag Set]"

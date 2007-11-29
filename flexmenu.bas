@@ -28,7 +28,6 @@ DECLARE SUB fontedit (font%(), gamedir$)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION onoroff$ (n%)
-DECLARE FUNCTION lmnemonic$ (index%)
 DECLARE SUB smnemonic (tagname$, index%)
 DECLARE SUB tagnames ()
 DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%)
@@ -1136,7 +1135,7 @@ SELECT CASE tag
  CASE -1
   result$ = negone$
  CASE ELSE
-  result$ = STR$(ABS(tag)) + "=" + onoroff$(tag) + " (" + lmnemonic$(ABS(tag)) + ")"
+  result$ = STR$(ABS(tag)) + "=" + onoroff$(tag) + " (" + load_tag_name(ABS(tag)) + ")"
 END SELECT
 
 tagstring$ = result$
@@ -1800,8 +1799,8 @@ FUNCTION tag_condition_text(tag AS INTEGER, default_string AS STRING="None") AS 
   CASE 0: RETURN default_string & " (tag 0)"
   CASE 1: RETURN "Never (tag 1=ON)"
   CASE -1: RETURN "Always (tag 1=OFF)"
-  CASE IS < -1: RETURN "If tag " & ABS(tag) & "=OFF (" & lmnemonic(ABS(tag)) & ")"
-  CASE IS > 1: RETURN "If tag " & tag & "=ON (" & lmnemonic(tag) & ")"
+  CASE IS < -1: RETURN "If tag " & ABS(tag) & "=OFF (" & load_tag_name(ABS(tag)) & ")"
+  CASE IS > 1: RETURN "If tag " & tag & "=ON (" & load_tag_name(tag) & ")"
  END SELECT
 END FUNCTION
 
@@ -1809,8 +1808,8 @@ FUNCTION tag_set_text(tag AS INTEGER, default_string AS STRING="Do nothing") AS 
  SELECT CASE tag
   CASE 0: RETURN default_string & " (tag 0)"
   CASE 1, -1: RETURN "tag 1 can't be changed"
-  CASE IS < -1: RETURN "Set tag " & ABS(tag) & "=OFF (" & lmnemonic(ABS(tag)) & ")"
-  CASE IS > 1: RETURN "Set tag " & tag & "=ON (" & lmnemonic(tag) & ")"
+  CASE IS < -1: RETURN "Set tag " & ABS(tag) & "=OFF (" & load_tag_name(ABS(tag)) & ")"
+  CASE IS > 1: RETURN "Set tag " & tag & "=ON (" & load_tag_name(tag) & ")"
  END SELECT
 END FUNCTION
 
@@ -1818,7 +1817,7 @@ FUNCTION tag_toggle_text(tag AS INTEGER, default_string AS STRING="Do nothing") 
  SELECT CASE tag
   CASE 0: RETURN default_string & " (tag 0)"
   CASE 1, -1: RETURN "tag 1 can't be changed"
-  CASE IS > 1: RETURN "Toggle tag " & tag & " (" & lmnemonic(tag) & ")"
+  CASE IS > 1: RETURN "Toggle tag " & tag & " (" & load_tag_name(tag) & ")"
  END SELECT
 END FUNCTION
 
