@@ -16,6 +16,7 @@ TYPE triggerset
 END TYPE
 
 #include "udts.bi"
+#include "const.bi"
 
 'basic subs and functions
 DECLARE SUB stredit (s$, maxl%)
@@ -52,6 +53,7 @@ DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 DECLARE FUNCTION textbox_condition_caption(tag AS INTEGER) AS STRING
+DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER) AS INTEGER
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -59,7 +61,6 @@ DECLARE FUNCTION textbox_condition_caption(tag AS INTEGER) AS STRING
 #include "loading.bi"
 #include "cglobals.bi"
 
-#include "const.bi"
 #include "scrconst.bi"
 
 dim shared shop as string
@@ -986,7 +987,7 @@ DO
  IF keyval(83) > 1 AND cur > -1 THEN cond(order(cur)) = 0
  IF cur >= 0 THEN
   temp = cond(order(cur))
-  IF ct(order(cur)) = 0 THEN intgrabber cond(order(cur)), -999, 999
+  IF ct(order(cur)) = 0 THEN tag_grabber cond(order(cur))
   IF ct(order(cur)) = 1 THEN intgrabber cond(order(cur)), 0, gen(genMaxFormation)
   IF ct(order(cur)) = 2 THEN intgrabber cond(order(cur)), -32000, gen(genMaxShop) + 1
   IF ct(order(cur)) = 3 THEN intgrabber cond(order(cur)), -99, 99
@@ -1102,7 +1103,7 @@ DO
  END IF
  FOR i = 0 TO 1
   IF tcur = 2 + (i * 2) THEN strgrabber choice$(i), 15
-  IF tcur = 3 + (i * 2) THEN intgrabber buffer(182 + (i * 9)), -999, 999
+  IF tcur = 3 + (i * 2) THEN tag_grabber buffer(182 + (i * 9))
  NEXT i
  GOSUB tcmenu
  

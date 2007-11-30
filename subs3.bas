@@ -5,6 +5,9 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+
+#include "const.bi"
+
 'basic subs and functions
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
@@ -35,16 +38,14 @@ DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
+DECLARE FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
 
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "cglobals.bi"
 
-#include "const.bi"
 #include "scrconst.bi"
-
-DECLARE FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
 
 REM $STATIC
 ' SUB editbitset (array(), wof, last, names$())
