@@ -51,6 +51,7 @@ DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
+DECLARE FUNCTION textbox_condition_caption(tag AS INTEGER) AS STRING
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1026,64 +1027,61 @@ IF cond(18) <> 0 THEN item$ = itemstr$(ABS(cond(18)), 0, 0)
 RETRACE
 
 textcmenu:
-n = 0: GOSUB txttag
+menu$(0) = textbox_condition_caption(cond(0))
 SELECT CASE cond(1)
  CASE 0
   menu$(1) = " use [text box or script] instead"
  CASE IS < 0
-  menu$(1) = " run " + scriptname$(cond(1) * -1, plottrigger) + " instead"
+  menu$(1) = " run " & scriptname$(cond(1) * -1, plottrigger) & " instead"
  CASE IS > 0
-  menu$(1) = " jump to text box" + XSTR$(cond(1)) + " instead"
+  menu$(1) = " jump to text box " & cond(1) & " instead"
 END SELECT
-n = 2: GOSUB txttag
+menu$(2) = textbox_condition_caption(cond(2))
 FOR i = 3 TO 4
- menu$(i) = " set tag" + XSTR$(ABS(cond(i))) + " = " + onoroff$(cond(i)) + " (" + load_tag_name(ABS(cond(i))) + ")"
- IF ABS(cond(i)) <= 1 THEN menu$(i) = LEFT$(menu$(i), LEN(menu$(i)) - 2) + "[unchangeable]"
+ menu$(i) = " set tag " & ABS(cond(i)) & " = " & onoroff$(cond(i))
+ IF ABS(cond(i)) <= 1 THEN
+  menu$(i) = menu$(i) & " [unchangeable]"
+ ELSE
+  menu$(i) = menu$(i) & " (" & load_tag_name(ABS(cond(i))) & ")"
+ END IF
 NEXT i
-n = 5: GOSUB txttag
-menu$(6) = " fight enemy formation" + XSTR$(cond(6))
-n = 7: GOSUB txttag
-IF cond(8) > 0 THEN menu$(8) = " go to shop" + XSTR$(cond(8)) + " " + shop$
-IF cond(8) < 0 THEN menu$(8) = " go to an Inn that costs" + XSTR$(ABS(cond(8))) + "$"
+menu$(5) = textbox_condition_caption(cond(5))
+menu$(6) = " fight enemy formation " & cond(6)
+menu$(7) = textbox_condition_caption(cond(7))
+IF cond(8) > 0 THEN menu$(8) = " go to shop " & cond(8) & " " & shop$
+IF cond(8) < 0 THEN menu$(8) = " go to an Inn that costs " & ABS(cond(8)) & "$"
 IF cond(8) = 0 THEN menu$(8) = " restore Hp and Mp [select shop here]"
-n = 9: GOSUB txttag
+menu$(9) = textbox_condition_caption(cond(9))
 IF cond(10) = 0 THEN menu$(10) = " do not add/remove heros"
-IF cond(10) > 0 THEN menu$(10) = " add " + h$(0) + " to party"
-IF cond(10) < 0 THEN menu$(10) = " remove " + h$(0) + " from party"
+IF cond(10) > 0 THEN menu$(10) = " add " & h$(0) & " to party"
+IF cond(10) < 0 THEN menu$(10) = " remove " & h$(0) & " from party"
 IF cond(19) = 0 THEN menu$(19) = " do not swap in/out heros"
-IF cond(19) > 0 THEN menu$(19) = " swap in " + h$(1)
-IF cond(19) < 0 THEN menu$(19) = " swap out " + h$(1)
+IF cond(19) > 0 THEN menu$(19) = " swap in " & h$(1)
+IF cond(19) < 0 THEN menu$(19) = " swap out " & h$(1)
 IF cond(20) = 0 THEN menu$(20) = " do not unlock/lock heros"
-IF cond(20) > 0 THEN menu$(20) = " unlock " + h$(2)
-IF cond(20) < 0 THEN menu$(20) = " lock " + h$(2)
-n = 11: GOSUB txttag
+IF cond(20) > 0 THEN menu$(20) = " unlock " & h$(2)
+IF cond(20) < 0 THEN menu$(20) = " lock " & h$(2)
+menu$(11) = textbox_condition_caption(cond(11))
 SELECT CASE cond(12)
  CASE 0
   menu$(12) = " use [text box or script] next"
  CASE IS < 0
-  menu$(12) = " run " + scriptname$(cond(12) * -1, plottrigger) + " next"
+  menu$(12) = " run " & scriptname$(cond(12) * -1, plottrigger) & " next"
  CASE IS > 0
-  menu$(12) = " jump to text box" + XSTR$(cond(12)) + " next"
+  menu$(12) = " jump to text box " & cond(12) & " next"
 END SELECT
-n = 13: GOSUB txttag
+menu$(13) = textbox_condition_caption(cond(13))
 IF cond(14) < 0 THEN
- menu$(14) = " lose" + XSTR$(ABS(cond(14))) + "$"
+ menu$(14) = " lose " & ABS(cond(14)) & "$"
 ELSE
- menu$(14) = " gain" + XSTR$(ABS(cond(14))) + "$"
+ menu$(14) = " gain " & ABS(cond(14)) & "$"
 END IF
-n = 15: GOSUB txttag
-menu$(16) = " instantly use door" + XSTR$(cond(16))
-n = 17: GOSUB txttag
+menu$(15) = textbox_condition_caption(cond(15))
+menu$(16) = " instantly use door " & cond(16)
+menu$(17) = textbox_condition_caption(cond(17))
 IF cond(18) = 0 THEN menu$(18) = " do not add/remove items"
-IF cond(18) > 0 THEN menu$(18) = " add one" + item$
-IF cond(18) < 0 THEN menu$(18) = " remove one" + item$
-RETRACE
-
-txttag:
-menu$(n) = "If tag" + XSTR$(ABS(cond(n))) + " = " + onoroff$(cond(n)) + " (" + load_tag_name(ABS(cond(n))) + ")"
-IF cond(n) = 0 THEN menu$(n) = "Never do the following"
-IF cond(n) = 1 THEN menu$(n) = LEFT$(menu$(n), LEN(menu$(n)) - 2) + "[Never]"
-IF cond(n) = -1 THEN menu$(n) = "Always do the following"
+IF cond(18) > 0 THEN menu$(18) = " add one" & item$
+IF cond(18) < 0 THEN menu$(18) = " remove one" & item$
 RETRACE
 
 tchoice:
@@ -1383,6 +1381,13 @@ RETRACE
 '349-384 choice text
 
 END SUB
+
+FUNCTION textbox_condition_caption(tag AS INTEGER) AS STRING
+ IF tag = 0 THEN RETURN "Never do the following"
+ IF tag = 1 THEN RETURN "If tag 1 = ON [Never]"
+ IF tag = -1 THEN RETURN "Always do the following"
+ RETURN "If tag " & ABS(tag) & " = " + onoroff$(tag) & " (" & load_tag_name(ABS(tag)) & ")"
+END FUNCTION
 
 SUB textxbload (f$, array(), e$)
 
