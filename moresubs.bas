@@ -2150,7 +2150,6 @@ END SUB
 
 SUB tagdisplay
 STATIC pt, top
-DIM buf(20)
 
 pt = large(pt, 0)
 
@@ -2173,19 +2172,14 @@ END IF
 
 top = bound(top, pt - 4, pt)
 
-setpicstuf buf(), 42, -1
 fuzzyrect 0, 0, 208, 50, uilook(uiOutline), dpage
 FOR i = top TO top + 4
  temp$ = XSTR$(i) + " "
- buf(0) = 0
  SELECT CASE i
   CASE 0, 1
-   temp$ = temp$ + " Reserved Tag"
+   temp$ = temp$ & " Reserved Tag"
   CASE IS > 1
-   loadset game$ + ".tmn", i, 0
-   FOR j = 1 TO small(buf(0), 20)
-    temp$ = temp$ + CHR$(large(small(buf(j), 255), 0))
-   NEXT j
+   temp$ = temp$ & " " & load_tag_name(i)
  END SELECT
  c = uilook(uiDisabledItem)
  IF istag(i, 0) THEN c = uilook(uiHighlight) 'hmm
@@ -2193,7 +2187,6 @@ FOR i = top TO top + 4
  edgeprint temp$, 8, (i - top) * 10, c, dpage
  IF i = pt THEN edgeprint "->", 0, (i - top) * 10, uilook(uiText), dpage
 NEXT i
-
 END SUB
 
 SUB textfatalerror (e$)
