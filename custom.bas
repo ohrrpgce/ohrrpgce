@@ -27,7 +27,7 @@ DECLARE SUB fontedit (font%())
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION onoroff$ (n%)
-DECLARE SUB tagnames ()
+DECLARE FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
 DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%)
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE SUB mapmaker (font%(), npcn%(), npcstat%())

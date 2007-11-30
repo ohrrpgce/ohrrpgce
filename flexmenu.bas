@@ -73,6 +73,7 @@ DECLARE SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
 DECLARE FUNCTION tag_condition_text(tag AS INTEGER, default_string AS STRING="None") AS STRING
 DECLARE FUNCTION tag_set_text(tag AS INTEGER, default_string AS STRING="Do nothing") AS STRING
 DECLARE FUNCTION tag_toggle_text(tag AS INTEGER, default_string AS STRING="Do nothing") AS STRING
+DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER) AS INTEGER
 
 REM $STATIC
 SUB addcaption (caption$(), indexer, cap$)
@@ -1649,13 +1650,13 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
     IF intgrabber(mi.sub_t, 0, max) THEN dstate.need_update = YES
    END IF
   CASE 4: 'conditional tag1
-   IF intgrabber(mi.tag1, -999, 999) THEN dstate.need_update = YES
+   IF tag_grabber(mi.tag1) THEN dstate.need_update = YES
   CASE 5: 'conditional tag2
-   IF intgrabber(mi.tag2, -999, 999) THEN dstate.need_update = YES
+   IF tag_grabber(mi.tag2) THEN dstate.need_update = YES
   CASE 6: 'set tag
-   IF intgrabber(mi.settag, -999, 999) THEN dstate.need_update = YES
+   IF tag_grabber(mi.settag) THEN dstate.need_update = YES
   CASE 7: 'toggle tag
-   IF intgrabber(mi.togtag, 0, 999) THEN dstate.need_update = YES
+   IF tag_grabber(mi.togtag) THEN dstate.need_update = YES
   CASE 8: ' bitsets
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
     edit_menu_item_bits mi

@@ -44,6 +44,8 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 #include "const.bi"
 #include "scrconst.bi"
 
+DECLARE FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
+
 REM $STATIC
 ' SUB editbitset (array(), wof, last, names$())
 
@@ -398,12 +400,29 @@ str2lng& = n&
 
 END FUNCTION
 
-SUB tagnames
+FUNCTION tag_grabber (BYREF n AS INTEGER) AS INTEGER
+ IF intgrabber(n, -999, 999) THEN RETURN YES
+ IF keyval(28) > 1 OR keyval(57) > 1 THEN
+  DIM browse_tag AS INTEGER
+  browse_tag = tagnames(n, YES)
+  IF browse_tag >= 2 THEN
+   n = browse_tag
+   RETURN YES
+  END IF
+ END IF
+ RETURN NO
+END FUNCTION
+
+FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
 DIM state AS MenuState
 DIM thisname AS STRING
 IF gen(genMaxTagname) < 1 THEN gen(genMaxTagname) = 1
 DIM menu(gen(genMaxTagname)) AS STRING
-menu(0) = "Previous Menu"
+IF picktag THEN
+ menu(0) = "Cancel"
+ELSE
+ menu(0) = "Previous Menu"
+END IF
 DIM i AS INTEGER
 FOR i = 2 TO gen(genMaxTagname) + 1
  'Load all tag names plus the first blank name
@@ -413,8 +432,15 @@ NEXT i
 clearpage 0
 clearpage 1
 
+DIM tagsign AS INTEGER
+tagsign = SGN(starttag)
+IF tagsign = 0 THEN tagsign = 1
+
 state.size = 24
 state.last = gen(genMaxTagname)
+
+state.pt = 0
+IF ABS(starttag) >= 2 THEN state.pt = small(ABS(starttag) - 1, gen(genMaxTagName))
 IF state.pt >= 1 THEN thisname = load_tag_name(state.pt + 1)
 
 setkeys
@@ -432,6 +458,11 @@ DO
  END IF
  IF state.pt = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN EXIT DO
  IF state.pt > 0 AND state.pt <= gen(genMaxTagName) THEN
+  IF picktag THEN
+   IF keyval(28) > 1 THEN
+    RETURN (state.pt + 1) * tagsign
+   END IF
+  END IF
   IF strgrabber(thisname, 20) THEN
    save_tag_name thisname, state.pt + 1
    menu(state.pt) = "Tag " & state.pt + 1 & ":" & thisname
@@ -454,7 +485,8 @@ DO
  dowait
 LOOP
 
-END SUB
+RETURN 0
+END FUNCTION
 
 SUB textfatalerror (e$)
 
