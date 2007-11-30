@@ -16,6 +16,8 @@ Dec ?? 2007 [voxhumana]
     * A hero for hire in a shop can (optionally) be given a specific
       experience level [James Paige]
     * New, customizable enemy dissolving styles [Mike Caron]
+    * Tag name editor lets you browse tags at a glance, rather than
+      searching for them by tag number [James Paige]
 
   * Bugfixes
     * Fixed bug 257 "Mute status effect broken for enemies" [James Paige]

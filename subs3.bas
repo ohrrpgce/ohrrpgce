@@ -399,15 +399,23 @@ str2lng& = n&
 END FUNCTION
 
 SUB tagnames
-DIM menu$(2)
+DIM state AS MenuState
+DIM thisname AS STRING
+IF gen(genMaxTagname) < 1 THEN gen(genMaxTagname) = 1
+DIM menu(gen(genMaxTagname)) AS STRING
+menu(0) = "Previous Menu"
+DIM i AS INTEGER
+FOR i = 2 TO gen(genMaxTagname) + 1
+ 'Load all tag names plus the first blank name
+ menu(i - 1) = "Tag " & i & ":" & load_tag_name(i)
+NEXT i
+
 clearpage 0
 clearpage 1
 
-IF gen(56) < 1 THEN gen(56) = 1
-pt = 2
-csr = 0
-menu$(0) = "Previous Menu"
-tagname$ = load_tag_name(pt)
+state.size = 24
+state.last = gen(genMaxTagname)
+IF state.pt >= 1 THEN thisname = load_tag_name(state.pt + 1)
 
 setkeys
 DO
@@ -415,35 +423,36 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- usemenu csr, 0, 0, 2, 24
- IF csr = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN EXIT DO
- IF csr = 1 THEN
-  oldptr = pt
-  IF intgrabber(pt, 0, small(gen(56) + 1, 999)) THEN
-   IF pt > gen(56) THEN gen(56) = pt
-   save_tag_name tagname$, oldptr
-   tagname$ = load_tag_name(pt)
+ IF usemenu(state) THEN
+  IF state.pt >= 1 AND state.pt <= gen(genMaxTagName) THEN
+   thisname = load_tag_name(state.pt + 1)
+  ELSE
+   thisname = ""
   END IF
  END IF
- IF csr = 2 THEN
-  strgrabber tagname$, 20
-  IF keyval(28) > 1 THEN
-   save_tag_name tagname$, pt
-   pt = small(pt + 1, 999)
-   tagname$ = load_tag_name(pt)
+ IF state.pt = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN EXIT DO
+ IF state.pt > 0 AND state.pt <= gen(genMaxTagName) THEN
+  IF strgrabber(thisname, 20) THEN
+   save_tag_name thisname, state.pt + 1
+   menu(state.pt) = "Tag " & state.pt + 1 & ":" & thisname
+   IF state.pt = gen(genMaxTagName) THEN
+    IF gen(genMaxTagName) < 999 THEN
+     gen(genMaxTagName) += 1
+     REDIM PRESERVE menu(gen(genMaxTagName)) AS STRING
+     menu(gen(genMaxTagName)) = "Tag " & gen(genMaxTagName) + 1 & ":"
+     state.last += 1
+    END IF
+   END IF
   END IF
  END IF
- menu$(1) = "Tag" + XSTR$(pt)
- menu$(2) = "Name:" + tagname$
 
- standardmenu menu$(), 2, 22, csr, 0, 0, 0, dpage, 0
+ standardmenu menu(), state, 0, 0, dpage
 
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
  dowait
 LOOP
-save_tag_name tagname$, pt
 
 END SUB
 
