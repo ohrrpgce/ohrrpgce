@@ -2343,12 +2343,33 @@ FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, cmd AS STRING, 
  RETURN YES
 END FUNCTION
 
+FUNCTION tag_condition_caption(n AS INTEGER, prefix AS STRING="Tag", zerocap AS STRING="", onecap AS STRING="", negonecap AS STRING="") AS STRING
+ DIM s AS STRING
+ DIM cap AS STRING
+ s = prefix
+ IF LEN(s) > 0 THEN s = s & " "
+ s = s & ABS(n) & "=" & onoroff(n)
+ cap = load_tag_name(n)
+ IF n = 0 AND LEN(zerocap) > 0 THEN cap = zerocap
+ IF n = 1 AND LEN(onecap) > 0 THEN cap = onecap
+ IF n = -1 AND LEN(negonecap) > 0 THEN cap = negonecap
+ cap = TRIM(cap)
+ IF LEN(cap) > 0 THEN s = s & " (" & cap & ")"
+ RETURN s
+END FUNCTION
+
+FUNCTION onoroff (n AS INTEGER) AS STRING
+ IF n >= 0 THEN RETURN "ON"
+ RETURN "OFF"
+END FUNCTION
+
 FUNCTION load_tag_name (index AS INTEGER) AS STRING
- IF index = 0 THEN RETURN "NULL"
- IF index = 1 THEN RETURN "CONSTANT"
+ IF index = 0 THEN RETURN ""
+ IF index = 1 THEN RETURN "Never"
+ IF index = -1 THEN RETURN "Always"
  DIM buf(20)
  setpicstuf buf(), 42, -1
- loadset game$ + ".tmn", index, 0
+ loadset game$ + ".tmn", ABS(index), 0
  RETURN readbadbinstring$(buf(), 0, 20)
 END FUNCTION
 

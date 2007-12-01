@@ -133,6 +133,8 @@ DECLARE FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, cmd AS 
 
 DECLARE FUNCTION load_tag_name (index AS INTEGER) AS STRING
 DECLARE SUB save_tag_name (tagname AS STRING, index AS INTEGER)
+DECLARE FUNCTION tag_condition_caption(n AS INTEGER, prefix AS STRING="Tag", zerocap AS STRING="", onecap AS STRING="", negonecap AS STRING="") AS STRING
+DECLARE FUNCTION onoroff (n AS INTEGER) AS STRING
 
 'Global variables
 EXTERN game$

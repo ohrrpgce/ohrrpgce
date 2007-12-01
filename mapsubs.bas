@@ -6,6 +6,7 @@
 '$DYNAMIC
 DEFINT A-Z
 
+#include "const.bi"
 #include "udts.bi"
 
 'basic subs and functions
@@ -26,7 +27,6 @@ DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB fontedit (font%(), gamedir$)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION onoroff$ (n%)
 DECLARE SUB resizetiledata (array%(), xoff%, yoff%, neww%, newh%, yout%, page%, layer%)
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE SUB mapmaker (font%(), npc%(), npcstat%())
@@ -50,6 +50,7 @@ DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
+DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER) AS INTEGER
 
 DECLARE Function LayerIsVisible(vis() as integer, byval l as integer) as integer
 DECLARE Function LayerIsEnabled(gmap() as integer, byval l as integer) as integer
@@ -70,7 +71,6 @@ DECLARE SUB make_top_map_menu(maptop, topmenu$())
 #include "common.bi" 
 #include "cglobals.bi"
 
-#include "const.bi"
 #include "scrconst.bi"
 #include "scancodes.bi"
 #include "loading.bi"
@@ -1288,9 +1288,9 @@ DO
   	case 2
   		if intgrabber(link(cur).dest_map, llim(cur2), ulim(cur2)) then sdwait = 3: outmap$ = getmapname$(link(cur).dest_map)
   	case 3
-  		intgrabber(link(cur).tag1, llim(cur2), ulim(cur2))
+  		tag_grabber link(cur).tag1
   	case 4
-  		intgrabber(link(cur).tag2, llim(cur2), ulim(cur2))
+  		tag_grabber link(cur).tag2
   	case else
   		'...
   end select
@@ -1308,17 +1308,9 @@ DO
 	case 2
 		xtemp$ = XSTR$(link(cur).dest_map)
 	case 3
-		if link(cur).tag1 then
-			xtemp$ = XSTR$(ABS(link(cur).tag1)) + " = " + onoroff$(link(cur).tag1) + " (" + load_tag_name(ABS(link(cur).tag1)) + ")"
-		else
-			xtemp$ = " 0 [N/A]"
-		end if
+		xtemp$ = tag_condition_caption(link(cur).tag1, "", "No Tag Check")
 	case 4
-		if link(cur).tag2 then
-			xtemp$ = XSTR$(ABS(link(cur).tag2)) + " = " + onoroff$(link(cur).tag2) + " (" + load_tag_name(ABS(link(cur).tag2)) + ")"
-		else
-			xtemp$ = " 0 [N/A]"
-		end if
+		xtemp$ = tag_condition_caption(link(cur).tag2, "", "No Tag Check")
   end select
 
   col = 7: IF cur2 = i THEN col = 14 + tog

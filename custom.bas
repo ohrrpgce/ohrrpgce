@@ -7,6 +7,7 @@
 DEFINT A-Z
 
 #include "udts.bi"
+#include "const.bi"
 
 'basic subs and functions
 DECLARE SUB fixfilename (s$)
@@ -26,7 +27,6 @@ DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB fontedit (font%())
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION onoroff$ (n%)
 DECLARE FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
 DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%)
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
@@ -60,13 +60,13 @@ DECLARE SUB importscripts (f$)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 DECLARE SUB move_unwritable_rpg(BYREF filetolump$)
+DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER) AS INTEGER
 
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "cglobals.bi"
 
-#include "const.bi"
 #include "uiconst.bi"
 #include "scrconst.bi"
 
@@ -1173,6 +1173,8 @@ DO
    min(19) = 0: max(19) = 3
   END IF
   SELECT CASE tcsr
+   CASE 6 TO 9 '--tags
+    tag_grabber b(17 + tcsr - 3)
    CASE 11 '--must trade in item 1 type
     IF zintgrabber(b(25), min(tcsr), max(tcsr)) THEN GOSUB itstrsh
    CASE 13, 15, 17 '--must trade in item 2+ types
@@ -1249,22 +1251,10 @@ IF b(19) > 0 THEN
 ELSE
  smenu$(5) = stf$(8 + bound(b(19), -1, 0))
 END IF
-smenu$(6) = "Buy Require Tag" + XSTR$(ABS(b(20))) + " =" + XSTR$(SGN(SGN(b(20)) + 1)) + " (" + load_tag_name(ABS(b(20))) + ")"
-IF b(20) = 1 THEN smenu$(6) = smenu$(6) + "[Never]"
-IF b(20) = -1 THEN smenu$(6) = smenu$(6) + "[Always]"
-IF b(20) = 0 THEN smenu$(6) = "[No Tag Check]"
-smenu$(7) = "Sell Require Tag" + XSTR$(ABS(b(21))) + " =" + XSTR$(SGN(SGN(b(21)) + 1)) + " (" + load_tag_name(ABS(b(21))) + ")"
-IF b(21) = 1 THEN smenu$(7) = smenu$(7) + "[Never]"
-IF b(21) = -1 THEN smenu$(7) = smenu$(7) + "[Always]"
-IF b(21) = 0 THEN smenu$(7) = "[No Tag Check]"
-smenu$(8) = "Buy Set Tag" + XSTR$(ABS(b(22))) + " =" + XSTR$(SGN(SGN(b(22)) + 1)) + " (" + load_tag_name(ABS(b(22))) + ")"
-IF b(22) = 1 THEN smenu$(8) = smenu$(8) + "[Unalterable]"
-IF b(22) = -1 THEN smenu$(8) = smenu$(8) + "[Unalterable]"
-IF b(22) = 0 THEN smenu$(8) = "[No Tag Set]"
-smenu$(9) = "Sell Set Tag" + XSTR$(ABS(b(23))) + " =" + XSTR$(SGN(SGN(b(23)) + 1)) + " (" + load_tag_name(ABS(b(23))) + ")"
-IF b(23) = 1 THEN smenu$(9) = smenu$(9) + "[Unalterable]"
-IF b(23) = -1 THEN smenu$(9) = smenu$(9) + "[Unalterable]"
-IF b(23) = 0 THEN smenu$(9) = "[No Tag Set]"
+smenu$(6) = tag_condition_caption(b(20), "Buy Require Tag", "No Tag Check")
+smenu$(7) = tag_condition_caption(b(21), "Sell Require Tag", "No Tag Check")
+smenu$(8) = tag_condition_caption(b(22), "Buy Set Tag", "No Tag Set", "Unalterable", "Unalterable")
+smenu$(9) = tag_condition_caption(b(23), "Sell Set Tag", "No Tag Set", "Unalterable", "Unalterable")
 smenu$(10) = names$(32) + " Price:" + XSTR$(b(24))
 smenu$(11) = "Must Trade in" + XSTR$(b(30) + 1) + " of:" + tradestf$(0)
 smenu$(12) = " (Change Amount)"

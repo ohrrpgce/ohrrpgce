@@ -36,7 +36,6 @@ DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION boxconditionheroname$ (num%, cond%())
-DECLARE FUNCTION onoroff$ (n%)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
@@ -518,14 +517,6 @@ uptr = small(uptr + 1, 1024)'--gives up trying after 1024 records
 u$(uptr) = LCASE$(s$)
 isunique = -1
 
-END FUNCTION
-
-FUNCTION onoroff$ (n)
-IF SGN(n) + 1 THEN
- onoroff$ = "ON"
-ELSE
- onoroff$ = "OFF"
-END IF
 END FUNCTION
 
 SUB scriptman ()
