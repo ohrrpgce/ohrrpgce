@@ -135,8 +135,12 @@ DO
    oldname$ = vehname$
    strgrabber vehname$, 15
    IF oldname$ <> vehname$ THEN GOSUB vehmenu
-  CASE 3, 5 TO 9, 12, 15
+  CASE 3, 5 TO 9, 15
    IF intgrabber(veh(offset(csr)), min(csr), max(csr)) THEN
+    GOSUB vehmenu
+   END IF
+  CASE 12 '--tags
+   IF tag_grabber(veh(offset(csr))) THEN
     GOSUB vehmenu
    END IF
   CASE 4
