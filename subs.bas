@@ -1706,7 +1706,7 @@ DO
   CASE 11
    IF intgrabber(a(73), 0, 2) THEN GOSUB itemmenu
   CASE 12 TO 15
-   IF intgrabber(a(74 + (pt - 12)), 0, max(pt)) THEN GOSUB itemmenu
+   IF tag_grabber(a(74 + (pt - 12)), 0) THEN GOSUB itemmenu
   CASE 16, 17
    IF intgrabber(a(78 + (pt - 16) + frame * 2), -100, 100) THEN GOSUB itemmenu
  END SELECT
@@ -1754,16 +1754,16 @@ IF a(51) >= 0 THEN
 ELSE
  menu$(8) = "When used out of battle- Text" + XSTR$(ABS(a(51)))
 END IF
-menu$(9) = "Weapon Picture" + XSTR$(a(52))
+menu$(9) = "Weapon Picture " & a(52)
 menu$(10) = "Weapon Palette" + defaultint$(a(53))
 IF a(49) <> 1 THEN menu$(9) = "Weapon Picture N/A": menu$(10) = "Weapon Palette N/A"
 menu$(11) = "Unlimited Use"
 IF a(73) = 1 THEN menu$(11) = "Consumed By Use"
 IF a(73) = 2 THEN menu$(11) = "Cannot be Sold/Dropped"
-menu$(12) = "own item TAG" + XSTR$(a(74)) + " " + load_tag_name(a(74))
-menu$(13) = "is in inventory TAG" + XSTR$(a(75)) + " " + load_tag_name(a(75))
-menu$(14) = "is equipped TAG" + XSTR$(a(76)) + " " + load_tag_name(a(76))
-menu$(15) = "eqpt by active hero TAG" + XSTR$(a(77)) + " " + load_tag_name(a(77))
+menu$(12) = "own item TAG " & a(74) & " " & load_tag_name(a(74))
+menu$(13) = "is in inventory TAG " & a(75) & " " & load_tag_name(a(75))
+menu$(14) = "is equipped TAG " & a(76) & " " & load_tag_name(a(76))
+menu$(15) = "eqpt by active hero TAG " & a(77) & " " & load_tag_name(a(77))
 menu$(16) = "Handle X:"
 menu$(17) = "Handle Y:"
 IF a(49) = 1 THEN
