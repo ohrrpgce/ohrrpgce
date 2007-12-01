@@ -18,6 +18,8 @@ Dec ?? 2007 [voxhumana]
     * New, customizable enemy dissolving styles [Mike Caron]
     * Tag name editor lets you browse tags at a glance, rather than
       searching for them by tag number [James Paige]
+    * Browse for tags from any menu that takes tag numbers by pressing
+      enter or space on the tag [James Paige]
 
   * Bugfixes
     * Fixed bug 257 "Mute status effect broken for enemies" [James Paige]

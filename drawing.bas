@@ -52,7 +52,8 @@ declare sub savewuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(
 
 #include "compat.bi"
 #include "allmodex.bi"
-#include "common.bi" 
+#include "common.bi"
+#include "customsubs.bi"
 #include "cglobals.bi"
 
 #include "const.bi"
@@ -435,7 +436,7 @@ DO
   IF intgrabber(taset, 0, 1) THEN GOSUB utamenu
  END IF
  IF taptr = 4 THEN
-  IF intgrabber(tastuf(1 + 20 * taset), -999, 999) THEN GOSUB utamenu
+  IF tag_grabber(tastuf(1 + 20 * taset)) THEN GOSUB utamenu
  END IF
  IF keyval(57) OR keyval(28) > 1 THEN
   IF taptr = 0 THEN savetanim pagenum, tastuf(): RETRACE
@@ -454,9 +455,10 @@ DO
  clearpage dpage
  dowait
 LOOP
+
 utamenu:
 menu$(1) = CHR$(27) + "Animation set" + XSTR$(taset) + CHR$(26)
-menu$(4) = "Disable if Tag#" + str$(ABS(tastuf(1 + 20 * taset))) + "=" + onoroff$(tastuf(1 + 20 * taset)) + " (" + load_tag_name(ABS(tastuf(1 + 20 * taset))) + ")"
+menu$(4) = tag_condition_caption(tastuf(1 + 20 * taset), "Disable if Tag", "No tag check")
 RETRACE
 
 setanimrange:
@@ -632,6 +634,7 @@ GOSUB refreshmenu
 pt = 0
 ptr2 = 0
 context = 0
+index = 0
 setkeys
 DO
  setwait timing(), 100
@@ -649,10 +652,21 @@ DO
     END IF
    END IF
   CASE 1 '---EDIT THAT STATEMENT---
-   IF keyval(1) > 1 OR keyval(28) > 1 OR keyval(57) > 1 THEN context = 0
+   IF keyval(1) > 1 THEN context = 0
    usemenu ptr2, 0, 0, 1, 1
-   IF ptr2 = 0 THEN IF intgrabber(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset), 0, 6) THEN GOSUB refreshmenu
-   IF ptr2 = 1 THEN IF intgrabber(tastuf(11 + bound(pt - 1, 0, 8) + 20 * taset), llim(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)), ulim(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset))) THEN GOSUB refreshmenu
+   index = bound(pt - 1, 0, 8) + 20 * taset
+   IF ptr2 = 0 THEN
+    IF intgrabber(tastuf(2 + index), 0, 6) THEN GOSUB refreshmenu
+    IF keyval(28) > 1 OR keyval(57) > 1 THEN context = 0
+   END IF
+   IF ptr2 = 1 THEN
+    IF tastuf(2 + index) = 6 THEN
+     IF tag_grabber(tastuf(11 + index)) THEN GOSUB refreshmenu
+    ELSE
+     IF intgrabber(tastuf(11 + index), llim(tastuf(2 + index)), ulim(tastuf(2 + index))) THEN GOSUB refreshmenu
+     IF keyval(28) > 1 OR keyval(57) > 1 THEN context = 0
+    END IF
+   END IF
  END SELECT
  FOR i = 0 TO 9
   textcolor 7, 0
@@ -692,7 +706,7 @@ FOR i = 0 TO 8
  menu$(i + 1) = stuff$(a)
  IF a = 0 THEN EXIT FOR
  IF a > 0 AND a < 6 THEN menu$(i + 1) = menu$(i + 1) + XSTR$(b)
- IF a = 6 THEN menu$(i + 1) = menu$(i + 1) + load_tag_name(b)
+ IF a = 6 THEN menu$(i + 1) = menu$(i + 1) & " (" & load_tag_name(b) & ")"
 NEXT i
 IF i = 8 THEN menu$(10) = "end of animation"
 menu$(10) = "Action=" + stuff$(bound(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset), 0, 7))
@@ -704,7 +718,7 @@ SELECT CASE tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)
  CASE 5
   menu$(11) = menu$(11) + STR$(this) + " Ticks"
  CASE 6
-  menu$(11) = menu$(11) + "Tag#" + STR$(ABS(this)) + "=" + onoroff$(this) + " " + load_tag_name(ABS(this))
+  menu$(11) = menu$(11) + tag_condition_caption(this)
  CASE ELSE
   menu$(11) = menu$(11) + "N/A"
 END SELECT
