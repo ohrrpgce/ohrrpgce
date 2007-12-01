@@ -35,7 +35,6 @@ DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB shopdata ()
-DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE SUB importsong ()
 DECLARE SUB gendata ()
 DECLARE SUB itemdata ()
@@ -50,7 +49,6 @@ DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
-DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER) AS INTEGER
 
 DECLARE Function LayerIsVisible(vis() as integer, byval l as integer) as integer
 DECLARE Function LayerIsEnabled(gmap() as integer, byval l as integer) as integer
@@ -68,7 +66,8 @@ DECLARE SUB make_top_map_menu(maptop, topmenu$())
 
 #include "compat.bi"
 #include "allmodex.bi"
-#include "common.bi" 
+#include "common.bi"
+#include "customsubs.bi"
 #include "cglobals.bi"
 
 #include "scrconst.bi"

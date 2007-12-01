@@ -33,7 +33,6 @@ DECLARE SUB editbitset (array%(), wof%, last%, name$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB shopdata ()
-DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE SUB importsong ()
 DECLARE SUB gendata ()
 DECLARE SUB itemdata ()
@@ -52,6 +51,7 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
+#include "customsubs.bi"
 #include "cglobals.bi"
 
 #include "const.bi"
@@ -68,7 +68,6 @@ DECLARE SUB edit_menu_bits (menu AS MenuDef)
 DECLARE SUB edit_menu_item_bits (mi AS MenuDefItem)
 DECLARE SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
 DECLARE SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
-DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER) AS INTEGER
 DECLARE FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRING
 
 REM $STATIC
@@ -1636,7 +1635,7 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
   CASE 6: 'set tag
    IF tag_grabber(mi.settag) THEN dstate.need_update = YES
   CASE 7: 'toggle tag
-   IF tag_grabber(mi.togtag) THEN dstate.need_update = YES
+   IF tag_grabber(mi.togtag, 0) THEN dstate.need_update = YES
   CASE 8: ' bitsets
    IF keyval(57) > 1 OR keyval(28) > 1 THEN
     edit_menu_item_bits mi

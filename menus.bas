@@ -29,11 +29,9 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
-DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filesize$ (file$)
 DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
-DECLARE FUNCTION charpicker$ ()
 DECLARE SUB generalscriptsmenu ()
 DECLARE SUB generalsfxmenu ()
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
@@ -50,6 +48,7 @@ DECLARE FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
+#include "customsubs.bi"
 #include "cglobals.bi"
 
 #include "const.bi"

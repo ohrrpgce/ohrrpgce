@@ -46,17 +46,16 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
-DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 DECLARE FUNCTION textbox_condition_caption(tag AS INTEGER) AS STRING
-DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER) AS INTEGER
 
 #include "compat.bi"
 #include "allmodex.bi"
-#include "common.bi" 
+#include "common.bi"
+#include "customsubs.bi"
 #include "loading.bi"
 #include "cglobals.bi"
 

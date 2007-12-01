@@ -33,15 +33,14 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
-DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
-DECLARE FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
 
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
+#include "customsubs.bi"
 #include "cglobals.bi"
 
 #include "scrconst.bi"
@@ -398,94 +397,6 @@ NEXT i
 
 str2lng& = n&
 
-END FUNCTION
-
-FUNCTION tag_grabber (BYREF n AS INTEGER) AS INTEGER
- IF intgrabber(n, -999, 999) THEN RETURN YES
- IF keyval(28) > 1 OR keyval(57) > 1 THEN
-  DIM browse_tag AS INTEGER
-  browse_tag = tagnames(n, YES)
-  IF browse_tag >= 2 THEN
-   n = browse_tag
-   RETURN YES
-  END IF
- END IF
- RETURN NO
-END FUNCTION
-
-FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
-DIM state AS MenuState
-DIM thisname AS STRING
-IF gen(genMaxTagname) < 1 THEN gen(genMaxTagname) = 1
-DIM menu(gen(genMaxTagname)) AS STRING
-IF picktag THEN
- menu(0) = "Cancel"
-ELSE
- menu(0) = "Previous Menu"
-END IF
-DIM i AS INTEGER
-FOR i = 2 TO gen(genMaxTagname) + 1
- 'Load all tag names plus the first blank name
- menu(i - 1) = "Tag " & i & ":" & load_tag_name(i)
-NEXT i
-
-clearpage 0
-clearpage 1
-
-DIM tagsign AS INTEGER
-tagsign = SGN(starttag)
-IF tagsign = 0 THEN tagsign = 1
-
-state.size = 24
-state.last = gen(genMaxTagname)
-
-state.pt = 0
-IF ABS(starttag) >= 2 THEN state.pt = small(ABS(starttag) - 1, gen(genMaxTagName))
-IF state.pt >= 1 THEN thisname = load_tag_name(state.pt + 1)
-
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
- IF usemenu(state) THEN
-  IF state.pt >= 1 AND state.pt <= gen(genMaxTagName) THEN
-   thisname = load_tag_name(state.pt + 1)
-  ELSE
-   thisname = ""
-  END IF
- END IF
- IF state.pt = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN EXIT DO
- IF state.pt > 0 AND state.pt <= gen(genMaxTagName) THEN
-  IF picktag THEN
-   IF keyval(28) > 1 THEN
-    RETURN (state.pt + 1) * tagsign
-   END IF
-  END IF
-  IF strgrabber(thisname, 20) THEN
-   save_tag_name thisname, state.pt + 1
-   menu(state.pt) = "Tag " & state.pt + 1 & ":" & thisname
-   IF state.pt = gen(genMaxTagName) THEN
-    IF gen(genMaxTagName) < 999 THEN
-     gen(genMaxTagName) += 1
-     REDIM PRESERVE menu(gen(genMaxTagName)) AS STRING
-     menu(gen(genMaxTagName)) = "Tag " & gen(genMaxTagName) + 1 & ":"
-     state.last += 1
-    END IF
-   END IF
-  END IF
- END IF
-
- standardmenu menu(), state, 0, 0, dpage
-
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-
-RETURN 0
 END FUNCTION
 
 SUB textfatalerror (e$)

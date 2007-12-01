@@ -13,7 +13,6 @@ DEFINT A-Z
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION filenum$ (n%)
-DECLARE FUNCTION charpicker$ ()
 DECLARE SUB clearallpages ()
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
@@ -22,10 +21,9 @@ DECLARE SUB setactivemenu (workmenu%(), newmenu%(), pt%, top%, size%)
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE SUB testflexmenu ()
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
-DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-DECLARE SUB herotags (hero as HeroDef ptr)
+DECLARE SUB herotags (BYREF hero AS HeroDef)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
@@ -41,60 +39,16 @@ DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION isStringField(mnu%)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
-DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER) AS INTEGER
 
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
+#include "customsubs.bi"
 #include "cglobals.bi"
 
 #include "scrconst.bi"
 
 REM $STATIC
-FUNCTION charpicker$
-
-STATIC pt
-
-DIM f(255)
-
-last = -1
-FOR i = 32 TO 255
- last = last + 1
- f(last) = i
-NEXT i
-
-linesize = 16
-xoff = 160 - (linesize * 9) \ 2
-yoff = 100 - ((last \ linesize) * 9) \ 2
-
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN charpicker$ = "": EXIT DO
-
- IF keyval(72) > 1 THEN pt = large(pt - linesize, 0)
- IF keyval(80) > 1 THEN pt = small(pt + linesize, last)
- IF keyval(75) > 1 THEN pt = large(pt - 1, 0)
- IF keyval(77) > 1 THEN pt = small(pt + 1, last)
-
- IF keyval(28) > 1 OR keyval(57) > 1 THEN charpicker$ = CHR$(f(pt)): EXIT DO
-
- FOR i = 0 TO last
-  textcolor 7, 8
-  IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor 7, 1
-  IF pt = i THEN textcolor 14 + tog, 0
-  printstr CHR$(f(i)), xoff + (i MOD linesize) * 9, yoff + (i \ linesize) * 9, dpage
- NEXT i
-
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-
-END FUNCTION
 
 SUB clearallpages
 
@@ -1083,7 +1037,7 @@ DO
   IF csr = 5 THEN GOSUB speltypes '--spell list contents
   IF csr = 6 THEN GOSUB heromenu '--spell list names
   IF csr = 7 THEN editbitset her.bits(), 0, 26, hbit$()
-  IF csr = 8 THEN herotags @her
+  IF csr = 8 THEN herotags her
  END IF
  IF csr = 1 THEN
   remptr = pt
@@ -1537,7 +1491,7 @@ RETRACE
 
 END SUB
 
-SUB herotags (hero AS HeroDef ptr)
+SUB herotags (BYREF hero AS HeroDef)
 
 DIM menu$(5)
 menu$(0) = "Previous Menu"
@@ -1546,7 +1500,7 @@ menu$(2) = "is alive TAG"
 menu$(3) = "is leader TAG"
 menu$(4) = "is in party now TAG"
 
-WITH *hero
+WITH hero
 
 pt = 0
 setkeys
@@ -1560,13 +1514,13 @@ DO
   CASE 0
    IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
   CASE 1
-   intgrabber .have_tag, 0, 999
+   tag_grabber .have_tag, 0
   CASE 2
-   intgrabber .alive_tag, 0, 999
+   tag_grabber .alive_tag, 0
   CASE 3
-   intgrabber .leader_tag, 0, 999
+   tag_grabber .leader_tag, 0
   CASE 4
-   intgrabber .active_tag, 0, 999
+   tag_grabber .active_tag, 0
  END SELECT
  FOR i = 0 TO 4
   textcolor 7, 0
@@ -2290,55 +2244,3 @@ END IF
 s$ = pre$ + post$
 
 END SUB
-
-FUNCTION strgrabber (s$, maxl) AS INTEGER
-STATIC clip$
-
-DIM old$
-old$ = s$
-
-'--BACKSPACE support
-IF keyval(14) > 1 AND LEN(s$) > 0 THEN s$ = LEFT$(s$, LEN(s$) - 1)
-
-'--copy support
-IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN clip$ = s$
-
-'--paste support
-IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN s$ = LEFT$(clip$, maxl)
-
-'--SHIFT support
-shift = 0
-IF keyval(54) > 0 OR keyval(42) > 0 THEN shift = 1
-
-'--ALT support
-IF keyval(56) THEN shift = shift + 2
-
-'--adding chars
-IF LEN(s$) < maxl THEN
-
- IF keyval(57) > 1 THEN
-  IF keyval(29) = 0 THEN
-   '--SPACE support
-   s$ = s$ + " "
-  ELSE
-   '--charlist support
-   s$ = s$ + charpicker$
-  END IF
- ELSE
-  IF keyval(29) = 0 THEN
-   '--all other keys
-   FOR i = 2 TO 53
-    IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
-     s$ = s$ + CHR$(keyv(i, shift))
-     EXIT FOR
-    END IF
-   NEXT i
-  END IF
- END IF
-
-END IF
-
-'Return true of the string has changed
-RETURN (s$ <> old$)
-
-END FUNCTION

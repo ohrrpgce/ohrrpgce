@@ -3,6 +3,9 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
+#IFNDEF SCRCONST_BI
+#DEFINE SCRCONST_BI
+
 '---INTERPRETER STATES---
 'suspended scripts have negative states
 CONST stnone = 0
@@ -70,3 +73,5 @@ CONST breakstnext = 8
 CONST breakstdone = 16
 CONST breaklooptop = 32 'above interpret
 CONST breakloopbrch = 64 'doesn't work
+
+#ENDIF
