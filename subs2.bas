@@ -1030,12 +1030,7 @@ SELECT CASE cond(1)
 END SELECT
 menu$(2) = textbox_condition_caption(cond(2))
 FOR i = 3 TO 4
- menu$(i) = " set tag " & ABS(cond(i)) & " = " & onoroff$(cond(i))
- IF ABS(cond(i)) <= 1 THEN
-  menu$(i) = menu$(i) & " [unchangeable]"
- ELSE
-  menu$(i) = menu$(i) & " (" & load_tag_name(ABS(cond(i))) & ")"
- END IF
+ menu$(i) = tag_condition_caption(cond(i), " set tag", "unchangeable", "unchangeable", "unchangeable")
 NEXT i
 menu$(5) = textbox_condition_caption(cond(5))
 menu$(6) = " fight enemy formation " & cond(6)
@@ -1378,7 +1373,7 @@ FUNCTION textbox_condition_caption(tag AS INTEGER) AS STRING
  IF tag = 0 THEN RETURN "Never do the following"
  IF tag = 1 THEN RETURN "If tag 1 = ON [Never]"
  IF tag = -1 THEN RETURN "Always do the following"
- RETURN "If tag " & ABS(tag) & " = " + onoroff$(tag) & " (" & load_tag_name(ABS(tag)) & ")"
+ RETURN "If tag " & ABS(tag) & " = " + onoroff$(tag) & " (" & load_tag_name(tag) & ")"
 END FUNCTION
 
 SUB textxbload (f$, array(), e$)
