@@ -2343,6 +2343,10 @@ FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, cmd AS STRING, 
  RETURN YES
 END FUNCTION
 
+FUNCTION tag_set_caption(n AS INTEGER, prefix AS STRING="Set Tag") AS STRING
+ RETURN tag_condition_caption(n, prefix, "N/A", "Unchangeable", "Unchangeable")
+END FUNCTION
+
 FUNCTION tag_condition_caption(n AS INTEGER, prefix AS STRING="Tag", zerocap AS STRING="", onecap AS STRING="", negonecap AS STRING="") AS STRING
  DIM s AS STRING
  DIM cap AS STRING

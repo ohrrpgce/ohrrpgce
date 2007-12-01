@@ -12,7 +12,6 @@ DECLARE SUB setactivemenu (workmenu%(), newmenu%(), pt%, top%, size%)
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
 DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
-DECLARE FUNCTION tagstring$ (tag%, zero$, one$, negone$)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE SUB importbmp (f$, cap$, count%)
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
@@ -69,10 +68,8 @@ DECLARE SUB edit_menu_bits (menu AS MenuDef)
 DECLARE SUB edit_menu_item_bits (mi AS MenuDefItem)
 DECLARE SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
 DECLARE SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
-DECLARE FUNCTION tag_condition_text(tag AS INTEGER, default_string AS STRING="None") AS STRING
-DECLARE FUNCTION tag_set_text(tag AS INTEGER, default_string AS STRING="Do nothing") AS STRING
-DECLARE FUNCTION tag_toggle_text(tag AS INTEGER, default_string AS STRING="Do nothing") AS STRING
 DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER) AS INTEGER
+DECLARE FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRING
 
 REM $STATIC
 SUB addcaption (caption$(), indexer, cap$)
@@ -1123,22 +1120,6 @@ top = 0
 size = UBOUND(newmenu)
 END SUB
 
-FUNCTION tagstring$ (tag, zero$, one$, negone$)
-
-SELECT CASE tag
- CASE 0
-  result$ = zero$
- CASE 1
-  result$ = one$
- CASE -1
-  result$ = negone$
- CASE ELSE
-  result$ = STR$(ABS(tag)) + "=" + onoroff$(tag) + " (" + load_tag_name(ABS(tag)) + ")"
-END SELECT
-
-tagstring$ = result$
-END FUNCTION
-
 SUB testflexmenu
 '
 ''--fake data block--------------------------------------------------------
@@ -1308,7 +1289,7 @@ FOR i = 0 TO size
   CASE 0 '--int
    nowmenu$(i) = nowmenu$(i) + XSTR$(datablock(menuoff(nowdat(i))))
   CASE 2 '--set tag
-   nowmenu$(i) = nowmenu$(i) + " " + tagstring(datablock(menuoff(nowdat(i))), "NONE", "(Tag 1 cannot be changed)", "(Tag 1 cannot be changed)")
+   nowmenu$(i) = nowmenu$(i) & " " & tag_condition_caption(datablock(menuoff(nowdat(i))), "", "NONE", "Tag 1 cannot be changed", "Tag 1 cannot be changed")
   CASE 3 '--goodstring
    maxl = maxtable(menulimits(nowdat(i)))
    nowmenu$(i) = nowmenu$(i) + readbinstring$(datablock(), menuoff(nowdat(i)), maxl)
@@ -1772,19 +1753,19 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
  END WITH
  WITH detail.items(4)
   .exists = YES
-  .caption = "Enable: " & tag_condition_text(mi.tag1, "No tag check")
+  .caption = tag_condition_caption(mi.tag1, "Enable if tag", "No tag check")
  END WITH
  WITH detail.items(5)
   .exists = YES
-  .caption = "Enable: " & tag_condition_text(mi.tag2, "No tag check")
+  .caption = tag_condition_caption(mi.tag2, "Enable if tag", "No tag check")
  END WITH
  WITH detail.items(6)
   .exists = YES
-  .caption = "When selected: " & tag_set_text(mi.settag)
+  .caption = tag_set_caption(mi.settag, "Set tag")
  END WITH
  WITH detail.items(7)
   .exists = YES
-  .caption = "When selected: " & tag_toggle_text(mi.togtag)
+  .caption = tag_toggle_caption(mi.togtag)
  END WITH
  WITH detail.items(8)
   .exists = YES
@@ -1792,31 +1773,17 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
  END WITH
 END SUB
 
-FUNCTION tag_condition_text(tag AS INTEGER, default_string AS STRING="None") AS STRING
- SELECT CASE tag
-  CASE 0: RETURN default_string & " (tag 0)"
-  CASE 1: RETURN "Never (tag 1=ON)"
-  CASE -1: RETURN "Always (tag 1=OFF)"
-  CASE IS < -1: RETURN "If tag " & ABS(tag) & "=OFF (" & load_tag_name(ABS(tag)) & ")"
-  CASE IS > 1: RETURN "If tag " & tag & "=ON (" & load_tag_name(tag) & ")"
+FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRING
+ DIM s AS STRING
+ s = prefix
+ IF LEN(s) > 0 THEN s = s & " "
+ s = s & ABS(n)
+ SELECT CASE n
+  CASE 0: s = s & " (N/A)"
+  CASE 1, -1: s = s & " (unchangeable)"
+  CASE IS > 1: s = s & " (" & load_tag_name(n) & ")"
  END SELECT
-END FUNCTION
-
-FUNCTION tag_set_text(tag AS INTEGER, default_string AS STRING="Do nothing") AS STRING
- SELECT CASE tag
-  CASE 0: RETURN default_string & " (tag 0)"
-  CASE 1, -1: RETURN "tag 1 can't be changed"
-  CASE IS < -1: RETURN "Set tag " & ABS(tag) & "=OFF (" & load_tag_name(ABS(tag)) & ")"
-  CASE IS > 1: RETURN "Set tag " & tag & "=ON (" & load_tag_name(tag) & ")"
- END SELECT
-END FUNCTION
-
-FUNCTION tag_toggle_text(tag AS INTEGER, default_string AS STRING="Do nothing") AS STRING
- SELECT CASE tag
-  CASE 0: RETURN default_string & " (tag 0)"
-  CASE 1, -1: RETURN "tag 1 can't be changed"
-  CASE IS > 1: RETURN "Toggle tag " & tag & " (" & load_tag_name(tag) & ")"
- END SELECT
+ RETURN s
 END FUNCTION
 
 SUB edit_menu_bits (menu AS MenuDef)
