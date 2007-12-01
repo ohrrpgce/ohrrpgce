@@ -7,6 +7,7 @@
 DEFINT A-Z
 'basic subs and functions
 
+#include "const.bi"
 #include "udts.bi"
 
 DECLARE FUNCTION str2lng& (stri$)
@@ -41,13 +42,13 @@ DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION isStringField(mnu%)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
+DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER) AS INTEGER
 
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "cglobals.bi"
 
-#include "const.bi"
 #include "scrconst.bi"
 
 REM $STATIC
@@ -2083,33 +2084,36 @@ DO
  IF npc(cur * 15 + 2) > 0 THEN walk = walk + 1: IF walk > 3 THEN walk = 0
  IF keyval(1) > 1 THEN RETRACE
  usemenu csr, 0, -1, 14, 24
- IF csr = 12 THEN
+ SELECT CASE csr
+ CASE 12'--script
   IF keyval(28) > 1 OR keyval(57) > 1 THEN
    scrname$ = scriptbrowse$(npc(cur * 15 + 12), plottrigger, "NPC use plotscript")
   ELSEIF scrintgrabber(npc(cur * 15 + 12), 0, 0, 75, 77, 1, plottrigger) THEN
    scrname$ = scriptname$(npc(cur * 15 + 12), plottrigger)
   END IF
- END IF
- IF csr = 11 THEN
+ CASE 11'--one-time-use tag
   IF keyval(75) > 1 OR keyval(77) > 1 OR keyval(57) > 1 OR keyval(28) > 1 THEN GOSUB onetimetog
- END IF
- IF (csr >= 1 AND csr < 11) OR csr > 12 THEN
+ CASE 2 TO 8, IS > 12'--simple integers
   IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr)) THEN
-   IF csr = 1 THEN getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0)
    IF csr = 6 THEN it$ = itemstr(npc(cur * 15 + 6), 0, 0)
    IF csr = 4 THEN GOSUB frstline
   END IF
- END IF
- IF csr = 1 AND (keyval(28) > 1 OR keyval(57) > 1) THEN
-  npc(cur * 15 + csr) = pal16browse(npc(cur * 15 + csr), 8, 0, 5 * cur, 20, 20, 2)
-  getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0) 
- END IF
- IF csr = 0 THEN
+ CASE 9, 10'--tag conditionals
+  tag_grabber npc(cur * 15 + csr)
+ CASE 1'--palette
+  IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr)) THEN
+   getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0)
+  END IF
+  IF keyval(28) > 1 OR keyval(57) > 1 THEN
+   npc(cur * 15 + csr) = pal16browse(npc(cur * 15 + csr), 8, 0, 5 * cur, 20, 20, 2)
+   getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0) 
+  END IF
+ CASE 0'--picture
   IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr)) = 1 THEN
    i = cur
    GOSUB loadnpcpic
   END IF
- END IF
+ END SELECT
  IF (keyval(57) > 1 OR keyval(28) > 1) AND csr = -1 THEN RETRACE
  textcolor 7, 0
  IF csr = -1 THEN textcolor 14 + tog, 0
