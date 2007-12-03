@@ -8,7 +8,6 @@ DEFINT A-Z
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
 DECLARE SUB clearallpages ()
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
-DECLARE SUB setactivemenu (workmenu%(), newmenu%(), pt%, top%, size%)
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
 DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
@@ -68,6 +67,8 @@ DECLARE SUB edit_menu_item_bits (mi AS MenuDefItem)
 DECLARE SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
 DECLARE SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
 DECLARE FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRING
+
+DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
 
 REM $STATIC
 SUB addcaption (caption$(), indexer, cap$)
@@ -741,7 +742,9 @@ menulimits(AtkPrefTargStat) = AtkLimPrefTargStat
 '----------------------------------------------------------
 '--menu structure
 DIM workmenu(20), dispmenu$(20)
-pt = 0: top = 0: size = 0
+DIM state as MenuState
+state.size = 22
+'zzz
 
 DIM mainMenu(10)
 mainMenu(0) = AtkBackAct
@@ -813,7 +816,7 @@ tagMenu(5) = AtkTagAnd2
 tagMenu(6) = AtkTag2
 
 '--default starting menu
-setactivemenu workmenu(), mainMenu(), pt, top, size
+setactivemenu workmenu(), mainMenu(), state
 
 menudepth = 0
 lastptr = 0
@@ -853,9 +856,9 @@ DO
   END IF
  END IF
 
- IF usemenu(pt, top, 0, size, 22) THEN needupdatemenu = 1
+ IF usemenu(state) THEN needupdatemenu = 1
 
- IF workmenu(pt) = AtkChooseAct OR (keyval(56) > 0 and NOT isStringField(menutype(workmenu(pt)))) THEN
+ IF workmenu(state.pt) = AtkChooseAct OR (keyval(56) > 0 and NOT isStringField(menutype(workmenu(state.pt)))) THEN
   lastindex = recindex
   IF keyval(77) > 1 AND recindex = gen(34) AND recindex < 32767 THEN
    '--attempt to add a new set
@@ -878,7 +881,7 @@ DO
  END IF
 
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
-  SELECT CASE workmenu(pt)
+  SELECT CASE workmenu(state.pt)
    CASE AtkBackAct
     IF menudepth = 1 THEN
      GOSUB AtkBackSub
@@ -887,27 +890,27 @@ DO
     END IF
    CASE AtkAppearAct
     GOSUB AtkPushPtrSub
-    setactivemenu workmenu(), appearMenu(), pt, top, size
+    setactivemenu workmenu(), appearMenu(), state
     needupdatemenu = 1
    CASE AtkDmgAct
     GOSUB AtkPushPtrSub
-    setactivemenu workmenu(), dmgMenu(), pt, top, size
+    setactivemenu workmenu(), dmgMenu(), state
     needupdatemenu = 1
    CASE AtkTargAct
     GOSUB AtkPushPtrSub
-    setactivemenu workmenu(), targMenu(), pt, top, size
+    setactivemenu workmenu(), targMenu(), state
     needupdatemenu = 1
    CASE AtkCostAct
     GOSUB AtkPushPtrSub
-    setactivemenu workmenu(), costMenu(), pt, top, size
+    setactivemenu workmenu(), costMenu(), state
     needupdatemenu = 1
    CASE AtkChainAct
     GOSUB AtkPushPtrSub
-    setactivemenu workmenu(), chainMenu(), pt, top, size
+    setactivemenu workmenu(), chainMenu(), state
     needupdatemenu = 1
    CASE AtkTagAct
     GOSUB AtkPushPtrSub
-    setactivemenu workmenu(), tagMenu(), pt, top, size
+    setactivemenu workmenu(), tagMenu(), state
     needupdatemenu = 1
    CASE AtkPal
     recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), 3, 0, 0, 50, 50, 2)
@@ -935,8 +938,8 @@ DO
   END SELECT
  END IF
 
- IF keyval(56) = 0 or isStringField(menutype(workmenu(pt))) THEN 'not pressing ALT, or not allowed to
-  IF editflexmenu(workmenu(pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
+ IF keyval(56) = 0 or isStringField(menutype(workmenu(state.pt))) THEN 'not pressing ALT, or not allowed to
+  IF editflexmenu(workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
    needupdatemenu = 1
   END IF
  END IF
@@ -947,7 +950,7 @@ DO
  END IF
  GOSUB AtkPreviewSub
 
- standardmenu dispmenu$(), size, 22, pt, top, 0, 0, dpage, 0
+ standardmenu dispmenu$(), state, 0, 0, dpage
  IF keyval(56) > 0 THEN 'holding ALT
    tmp$ = readbadbinstring$(recbuf(), AtkDatName, 10, 1) + XSTR$(recindex)
    textcolor 15, 1
@@ -988,7 +991,7 @@ enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
 caption$(AtkCapDamageEq + 5) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
 caption$(AtkCapDamageEq + 6) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Current"
 
-updateflexmenu pt, dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
+updateflexmenu state.pt, dispmenu$(), workmenu(), state.last, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
 
 '--load the picture and palette
 setpicstuf buffer(), 3750, 2
@@ -1016,7 +1019,7 @@ RETRACE
 '-----------------------------------------------------------------------
 
 AtkBackSub:
-setactivemenu workmenu(), mainMenu(), pt, top, size
+setactivemenu workmenu(), mainMenu(), state
 menudepth = 0
 pt = lastptr
 top = lasttop
@@ -1026,17 +1029,13 @@ RETRACE
 '-----------------------------------------------------------------------
 
 AtkPushPtrSub:
-lastptr = pt
-lasttop = top
+lastptr = state.pt
+lasttop = state.top
 menudepth = 1
 RETRACE
 
-'-----------------------------------------------------------------------
-'DATA Picture,Palette,"Animation:","Target Class:","Target Setting:",Damage,Aim,"Base Stat:","","",Money Cost,"Extra Damage%","Chain to:",Chain%,"Attacker Motion:","Attack Motion:",Delay,Number of Hits,"Target Stat:",Edit Bitsets...,"Name="
-'DATA 0,0,0,0,0,0,0,0,-999,-9999,-32767,-100,0,0,0,0,0,1,0
-'DATA 99,32767,3,9,4,6,4,20,999,9999,32767,1000,300,100,8,10,1000,20,11
-
 END SUB
+'zzz
 
 FUNCTION editflexmenu (nowindex, menutype(), menuoff(), menulimits(), datablock(), mintable(), maxtable())
 '--returns true if data has changed, false it not
@@ -1109,140 +1108,14 @@ NEXT i
 
 END SUB
 
-SUB setactivemenu (workmenu(), newmenu(), pt, top, size)
-FOR i = 0 TO UBOUND(newmenu)
- workmenu(i) = newmenu(i)
-NEXT i
-pt = 0
-top = 0
-size = UBOUND(newmenu)
-END SUB
-
-SUB testflexmenu
-'
-''--fake data block--------------------------------------------------------
-'DIM dat(99)
-'
-'CONST TESTDATfingers = 0
-'CONST TESTDATeyes = 1
-'CONST TESTDATname = 2
-'CONST TESTDATtag = 11
-'CONST TESTDAThandedness = 12
-'
-''--dim the tables---------------------------------------------------------
-'DIM caption$(10), min(10), max(10)
-'
-''--caption table----------------------------------------------------------
-'
-'CONST TESTCAPhandedness = 1
-'caption$(1) = "Lefthand"
-'caption$(2) = "Righthand"
-'caption$(3) = "Abidexterous"
-'
-''--min/max tables---------------------------------------------------------
-'
-'CONST LIMITfingers = 0
-'min(LIMITfingers) = 0
-'max(LIMITfingers) = 10
-'
-'CONST LIMITeyes = 1
-'min(LIMITeyes) = 0
-'max(LIMITeyes) = 2
-'
-'CONST LIMITstring20 = 2
-'max(LIMITstring20) = 20
-'
-'CONST LIMITstring8 = 3
-'max(LIMITstring8) = 8
-'
-'CONST LIMITtristate = 4
-'max(LIMITtristate) = 2
-'
-''--the menu---------------------------------------------------------------
-'DIM menu$(20), menutype(20), menuoff(20), menulimits(20)
-'
-'CONST TESTmenuReturn = 0
-'menu$(TESTmenuReturn) = "return to main menu"
-'menutype(TESTmenuReturn) = 1'action
-'
-'CONST TESTmenuAct = 1
-'menu$(TESTmenuAct) = "some action..."
-'menutype(TESTmenuAct) = 1'action
-'
-'CONST TESTmenuFing = 2
-'menu$(TESTmenuFing) = "number of fingers"
-'menutype(TESTmenuFing) = 0
-'menuoff(TESTmenuFing) = TESTDATfingers
-'menulimits(TESTmenuFing) = LIMITfingers
-'
-'CONST TESTmenuEyes = 3
-'menu$(TESTmenuEyes) = "number of eyes"
-'menutype(TESTmenuEyes) = 0
-'menuoff(TESTmenuEyes) = TESTDATeyes
-'menulimits(TESTmenuEyes) = LIMITeyes
-'
-'CONST TESTmenuName = 4
-'menu$(TESTmenuName) = "Name:"
-'menutype(TESTmenuName) = 4'wordstring
-'menuoff(TESTmenuName) = TESTDATname
-'menulimits(TESTmenuName) = LIMITstring8
-'
-'CONST TESTmenuTag = 5
-'menu$(TESTmenuTag) = "Tag:"
-'menutype(TESTmenuTag) = 2'tag
-'menuoff(TESTmenuTag) = TESTDATtag
-'
-'CONST TESTmenuhandedness = 6
-'menu$(TESTmenuhandedness) = "Hand:"
-'menutype(TESTmenuhandedness) = 2000 + TESTCAPhandedness
-'menuoff(TESTmenuhandedness) = TESTDAThandedness
-'menulimits(TESTmenuhandedness) = LIMITtristate
-'
-''--menu pointers---------------------------------------------------------
-'DIM pt(3), top(3), size(3)
-'
-'--current working menu
-'DIM thismenu(22), showmenu$(22)
-'
-'size(0) = 6
-'thismenu(0) = TESTmenuReturn
-'thismenu(1) = TESTmenuName
-'thismenu(2) = TESTmenuEyes
-'thismenu(3) = TESTmenuFing
-'thismenu(4) = TESTmenuhandedness
-'thismenu(5) = TESTmenuTag
-'thismenu(6) = TESTmenuAct
-'
-''-------
-'mode = 0
-'
-'updateflexmenu pt, showmenu$(), thismenu(), size(mode), menu$(), menutype(), menuoff(), menulimits(), dat(), caption$(), max(), recindex
-'
-'setkeys
-'DO
-'  setwait timing(), 100
-'  setkeys
-'  tog = tog XOR 1
-'  IF keyval(1) > 1 THEN EXIT DO
-'
-'  usemenu pt(mode), top(mode), 0, size(mode), 22
-'
-'  IF editflexmenu(thismenu(pt(mode)), menutype(), menuoff(), menulimits(), dat(), min(), max()) THEN
-'    updateflexmenu pt, showmenu$(), thismenu(), size(mode), menu$(), menutype(), menuoff(), menulimits(), dat(), caption$(), max(), recindex
-'  END IF
-'
-'  standardmenu showmenu$(), size(mode), 22, pt(mode), top(mode), 0, 0, dpage, 0
-'
-'  FOR i = 0 TO 19
-'    printstr XSTR$(dat(i)), i * 20, 180, dpage
-'  NEXT i
-'
-'  SWAP vpage, dpage
-'  setvispage vpage
-'  copypage 3, dpage
-'  dowait
-'LOOP
-'
+SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
+ DIM i AS INTEGER
+ FOR i = 0 TO UBOUND(newmenu)
+  workmenu(i) = newmenu(i)
+ NEXT i
+ state.pt = 0
+ state.top = 0
+ state.last = UBOUND(newmenu)
 END SUB
 
 SUB updateflexmenu (mpointer, nowmenu$(), nowdat(), size, menu$(), menutype(), menuoff(), menulimits(), datablock(), caption$(), maxtable(), recindex)

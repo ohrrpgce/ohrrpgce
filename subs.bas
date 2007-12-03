@@ -17,7 +17,6 @@ DECLARE SUB clearallpages ()
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
 DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
-DECLARE SUB setactivemenu (workmenu%(), newmenu%(), pt%, top%, size%)
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE SUB testflexmenu ()
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
@@ -47,6 +46,8 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 #include "cglobals.bi"
 
 #include "scrconst.bi"
+
+DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
 
 REM $STATIC
 
@@ -433,7 +434,8 @@ menulimits(EnMenuDissolveTime) = EnLimDissolveTime
 '-------------------------------------------------------------------------
 '--menu structure
 DIM workmenu(15), dispmenu$(15)
-pt = 0: top = 0: size = 0
+DIM state AS MenuState
+state.size = 22
 
 DIM mainMenu(8)
 mainMenu(0) = EnMenuBackAct
@@ -494,7 +496,7 @@ FOR i = 0 TO 4
 NEXT i
 
 '--default starting menu
-setactivemenu workmenu(), mainMenu(), pt, top, size
+setactivemenu workmenu(), mainMenu(), state
 
 menudepth = 0
 lastptr = 0
@@ -525,9 +527,9 @@ DO
   cropafter recindex, gen(36), 0, game$ + ".dt1", 320, 1
  END IF
 
- usemenu pt, top, 0, size, 22
+ usemenu state
 
- IF workmenu(pt) = EnMenuChooseAct OR (keyval(56) > 0 and NOT isStringField(menutype(workmenu(pt)))) THEN
+ IF workmenu(state.pt) = EnMenuChooseAct OR (keyval(56) > 0 and NOT isStringField(menutype(workmenu(state.pt)))) THEN
   lastindex = recindex
   IF keyval(77) > 1 AND recindex = gen(36) AND recindex < 32767 THEN
    '--attempt to add a new set
@@ -550,7 +552,7 @@ DO
  END IF
 
  IF keyval(28) > 1 OR keyval(57) > 1 THEN
-  SELECT CASE workmenu(pt)
+  SELECT CASE workmenu(state.pt)
    CASE EnMenuBackAct
     IF menudepth = 1 THEN
      GOSUB EnBackSub
@@ -559,23 +561,23 @@ DO
     END IF
    CASE EnMenuAppearAct
     GOSUB EnPushPtrSub
-    setactivemenu workmenu(), appearMenu(), pt, top, size
+    setactivemenu workmenu(), appearMenu(), state
     GOSUB EnUpdateMenu
    CASE EnMenuRewardAct
     GOSUB EnPushPtrSub
-    setactivemenu workmenu(), rewardMenu(), pt, top, size
+    setactivemenu workmenu(), rewardMenu(), state
     GOSUB EnUpdateMenu
    CASE EnMenuStatAct
     GOSUB EnPushPtrSub
-    setactivemenu workmenu(), statMenu(), pt, top, size
+    setactivemenu workmenu(), statMenu(), state
     GOSUB EnUpdateMenu
    CASE EnMenuSpawnAct
     GOSUB EnPushPtrSub
-    setactivemenu workmenu(), spawnMenu(), pt, top, size
+    setactivemenu workmenu(), spawnMenu(), state
     GOSUB EnUpdateMenu
    CASE EnMenuAtkAct
     GOSUB EnPushPtrSub
-    setactivemenu workmenu(), atkMenu(), pt, top, size
+    setactivemenu workmenu(), atkMenu(), state
     GOSUB EnUpdateMenu
    CASE EnMenuPal
     recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), 1, 0, 0, previewsize(recbuf(EnDatPicSize)), previewsize(recbuf(EnDatPicSize)), 2)
@@ -585,15 +587,15 @@ DO
   END SELECT
  END IF
 
- IF keyval(56) = 0 or isStringField(menutype(workmenu(pt))) THEN 'not pressing ALT, or not allowed to
-  IF editflexmenu(workmenu(pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
+ IF keyval(56) = 0 or isStringField(menutype(workmenu(state.pt))) THEN 'not pressing ALT, or not allowed to
+  IF editflexmenu(workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
    GOSUB EnUpdateMenu
   END IF
  END IF
 
  GOSUB EnPreviewSub
 
- standardmenu dispmenu$(), size, 22, pt, top, 0, 0, dpage, 0
+ standardmenu dispmenu$(), state, 0, 0, dpage
  IF keyval(56) > 0 THEN 'holding ALT
   tmp$ = readbadbinstring$(recbuf(), EnDatName, 15, 0) + XSTR$(recindex)
   textcolor 15, 1
@@ -626,7 +628,7 @@ max(EnLimPic) = gen(27 + bound(recbuf(EnDatPicSize), 0, 2))
 '--re-enforce bounds, as they might have just changed
 enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
 
-updateflexmenu pt, dispmenu$(), workmenu(), size, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
+updateflexmenu state.pt, dispmenu$(), workmenu(), state.last, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
 
 '--load the picture and palette
 setpicstuf buffer(), (previewsize(recbuf(EnDatPicSize)) ^ 2) / 2, 2
@@ -645,7 +647,7 @@ RETRACE
 '-----------------------------------------------------------------------
 
 EnBackSub:
-setactivemenu workmenu(), mainMenu(), pt, top, size
+setactivemenu workmenu(), mainMenu(), state
 menudepth = 0
 pt = lastptr
 top = lasttop
@@ -655,8 +657,8 @@ RETRACE
 '-----------------------------------------------------------------------
 
 EnPushPtrSub:
-lastptr = pt
-lasttop = top
+lastptr = state.pt
+lasttop = state.top
 menudepth = 1
 RETRACE
 
