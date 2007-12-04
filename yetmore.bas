@@ -1737,7 +1737,7 @@ SELECT CASE AS CONST id
  CASE 268'--loadpalette
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxMasterPal) THEN
    loadpalette master(), retvals(0)
-   getui uilook(), retvals(0)
+   LoadUIColors uilook(), retvals(0)
   END IF
  CASE 273'--milliseconds
   scriptret = fmod((TIMER * 1000) + 2147483648.0, 4294967296.0) - 2147483648.0

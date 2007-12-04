@@ -50,4 +50,6 @@ declare Sub MenuItemBitsFromArray (mi AS MenuDefItem, bits() AS INTEGER)
 declare Sub LoadVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
 declare Sub SaveVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
 
+declare Sub LoadUIColors (colarray() AS INTEGER, palnum AS INTEGER=-1)
+
 #ENDIF

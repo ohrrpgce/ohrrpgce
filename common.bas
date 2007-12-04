@@ -44,19 +44,6 @@ fadestate = 0
 fadeto red, green, blue
 END SUB
 
-SUB getui (colarray(), palnum)
-'load ui colors from data lump
-'(lump not finalised, just set defaults for now)
-
-DIM uidef(uiColors) = {0,7,8,14,15,6,7,1,2,18,21,35,37,15,240,10,14,240, _
-        18,28,34,44,50,60,66,76,82,92,98,108,114,124,130,140, _
-        146,156,162,172,178,188,194,204,210,220,226,236,242,252}
-
-FOR i=0 TO uiColors
- colarray(i) = uidef(i)
-NEXT
-END SUB
-
 SUB safekill (f$)
 IF isfile(f$) THEN KILL f$
 END SUB

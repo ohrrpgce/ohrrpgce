@@ -289,7 +289,7 @@ FOR i = 1 TO 15
  master(i).b = SGN(i AND 1) * 168 + SGN(i AND 8) * 87
 NEXT i
 'get default ui colours
-getui uilook()
+LoadUIColors uilook()
 
 'DEBUG debug "load font"
 getdefaultfont font()
@@ -421,7 +421,7 @@ fadeout 0, 0, 0
 needf = 1
 
 loadpalette master(), gen(genMasterPal)
-getui uilook(), gen(genMasterPal)
+LoadUIColors uilook(), gen(genMasterPal)
 
 rpgversion gen(genVersion)
 

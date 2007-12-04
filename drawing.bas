@@ -53,6 +53,7 @@ declare sub savewuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
+#include "loading.bi"
 #include "customsubs.bi"
 #include "cglobals.bi"
 
@@ -278,7 +279,7 @@ IF bmpd(0) = 8 THEN
    importmasterpal srcbmp$, gen(genMaxMasterPal) + 1
    activepalette = gen(genMaxMasterPal)
    setpal master()
-   getui uilook(), activepalette
+   LoadUIColors uilook(), activepalette
   END IF
  END IF
 END IF

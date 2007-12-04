@@ -1146,7 +1146,7 @@ csr = 1
 palnum = activepalette
 loadpalette master(), palnum
 setpal master()
-getui uilook(), palnum
+LoadUIColors uilook(), palnum
 GOSUB buildmenu
 
 clearpage 0
@@ -1167,7 +1167,7 @@ DO
    IF needaddset(palnum, gen(genMaxMasterPal), "Master Palette") THEN
     IF importmasterpal("", palnum) THEN
      setpal master()
-     getui uilook(), palnum
+     LoadUIColors uilook(), palnum
      GOSUB buildmenu     
     ELSE
      palnum -= 1
@@ -1178,7 +1178,7 @@ DO
   IF intgrabber(palnum, 0, gen(genMaxMasterPal)) THEN
    loadpalette master(), palnum
    setpal master()
-   getui uilook(), palnum
+   LoadUIColors uilook(), palnum
    GOSUB buildmenu
   END IF
  END IF
@@ -1189,7 +1189,7 @@ DO
   CASE 2
     IF importmasterpal("", palnum) THEN
      setpal master()
-     getui uilook(), palnum
+     LoadUIColors uilook(), palnum
      GOSUB buildmenu
     END IF
 '  CASE 3
@@ -1238,7 +1238,7 @@ clearpage 3
 IF activepalette <> palnum THEN
  loadpalette master(), activepalette
  setpal master()
- getui uilook(), activepalette
+ LoadUIColors uilook(), activepalette
 END IF
 EXIT SUB
 

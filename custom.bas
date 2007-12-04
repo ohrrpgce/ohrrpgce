@@ -62,6 +62,7 @@ DECLARE SUB move_unwritable_rpg(BYREF filetolump$)
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
+#include "loading.bi"
 #include "customsubs.bi"
 #include "cglobals.bi"
 
@@ -125,7 +126,7 @@ ELSE
   master(i).b = SGN(i AND 1) * 168 + SGN(i AND 8) * 87
  NEXT i
 END IF
-getui uilook()
+LoadUIColors uilook()
 
 getdefaultfont font()
 
@@ -216,7 +217,7 @@ xbload game$ + ".gen", gen(), "general data is missing, RPG file corruption is l
 activepalette = gen(genMasterPal)
 loadpalette master(), activepalette
 setpal master()
-getui uilook(), activepalette
+LoadUIColors uilook(), activepalette
 upgrade font()
 setfont font()
 

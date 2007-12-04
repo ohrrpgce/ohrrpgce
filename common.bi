@@ -22,7 +22,6 @@ DECLARE SUB standardmenu OVERLOAD (menu$(), size, vis, pt, top, x, y, page, edge
 DECLARE SUB debug (s$)
 DECLARE SUB visible_debug (s$)
 DECLARE FUNCTION soundfile$ (sfxnum%)
-DECLARE SUB getui(colarray(), palnum = -1)
 DECLARE SUB safekill (f$)
 DECLARE FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
 DECLARE SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)

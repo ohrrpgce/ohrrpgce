@@ -807,3 +807,16 @@ SUB SaveVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
  setpicstuf veh(), 80, -1
  storeset file, record, 0
 END SUB
+
+SUB LoadUIColors (colarray() AS INTEGER, palnum AS INTEGER=-1)
+ 'load ui colors from data lump
+ '(lump not finalised, just set defaults for now)
+
+ DIM uidef(uiColors) = {0,7,8,14,15,6,7,1,2,18,21,35,37,15,240,10,14,240, _
+        18,28,34,44,50,60,66,76,82,92,98,108,114,124,130,140, _
+        146,156,162,172,178,188,194,204,210,220,226,236,242,252}
+ DIM i AS INTEGER
+ FOR i=0 TO uiColors
+  colarray(i) = uidef(i)
+ NEXT
+END SUB
