@@ -820,18 +820,40 @@ END SUB
 
 SUB LoadUIColors (colarray() AS INTEGER, palnum AS INTEGER=-1)
  'load ui colors from data lump
- '(lump not finalised, just set defaults for now)
  DIM filename AS STRING
  filename = workingdir$ & SLASH & "uicolors.bin"
 
- IF palnum = -1 OR palnum > gen(genMaxMasterPal) OR NOT isfile(filename) THEN
+ IF palnum < 0 OR palnum > gen(genMaxMasterPal) OR NOT isfile(filename) THEN
   DefaultUIColors colarray()
   EXIT SUB
  END IF
- 
+
+ DIM i AS INTEGER
  DIM f AS INTEGER
  f = FREEFILE
  OPEN filename FOR BINARY AS #f
  SEEK #f, palnum * getbinsize(binUICOLORS) + 1
+ FOR i = 0 TO uiColors
+  colarray(i) = ReadShort(f)
+ NEXT i
+ CLOSE f
+END SUB
+
+SUB SaveUIColors (colarray() AS INTEGER, palnum AS INTEGER)
+ DIM filename AS STRING
+ filename = workingdir$ & SLASH & "uicolors.bin"
+
+ IF palnum < 0 OR palnum > gen(genMaxMasterPal) OR NOT isfile(filename) THEN
+  debug "SaveUIColors: attempt to save colors out of range " & palnum
+ END IF
+
+ DIM i AS INTEGER
+ DIM f AS INTEGER
+ f = FREEFILE
+ OPEN filename FOR BINARY AS #f
+ SEEK #f, palnum * getbinsize(binUICOLORS) + 1
+ FOR i = 0 TO uiColors
+  WriteShort f, -1, colarray(i)
+ NEXT i
  CLOSE f
 END SUB

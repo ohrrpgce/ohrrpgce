@@ -659,7 +659,7 @@ FUNCTION curbinsize (id)
  IF id = 4 THEN RETURN 44  '.map
  IF id = 5 THEN RETURN 48  'menus.bin
  IF id = 6 THEN RETURN 58  'menuitem.bin
- IF id = 7 THEN RETURN 98  'uicolors.bin
+ IF id = 7 THEN RETURN 96  'uicolors.bin
  RETURN 0
 END FUNCTION
 
