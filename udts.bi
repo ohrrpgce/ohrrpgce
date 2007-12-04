@@ -68,6 +68,8 @@ TYPE MenuDef
   allow_gameplay   AS INTEGER ' Bitset 2
   suspend_player   AS INTEGER ' Bitset 3
   no_box           AS INTEGER ' Bitset 4
+  no_close         AS INTEGER ' Bitset 5
+  no_controls      AS INTEGER ' Bitset 6
   rect      AS RectType
   offset    AS XYPair
   anchor    AS XYPair

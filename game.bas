@@ -162,7 +162,7 @@ DECLARE SUB remove_menu (slot AS INTEGER)
 DECLARE SUB bring_menu_forward (slot AS INTEGER)
 DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
 DECLARE FUNCTION menus_allow_player () AS INTEGER
-DECLARE SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
+DECLARE SUB player_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
 DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB check_menu_tags ()
 DECLARE FUNCTION game_usemenu (state AS MenuState)
@@ -523,7 +523,7 @@ DO
    init_menu_state mstates(i), menus(i)
   END IF
  NEXT i
- handle_menu_keys menu_text_box, wantloadgame, stat(), catx(), caty(), tastuf(), map, foep, stock()
+ player_menu_keys menu_text_box, wantloadgame, stat(), catx(), caty(), tastuf(), map, foep, stock()
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
   say = menu_text_box
@@ -2747,17 +2747,18 @@ FUNCTION menus_allow_player () AS INTEGER
  RETURN menus(topmenu).suspend_player = NO
 END FUNCTION
 
-SUB handle_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
+SUB player_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
  DIM slot AS INTEGER
  DIM activated AS INTEGER
  DIM menu_handle AS INTEGER
  menu_text_box = 0
  IF topmenu >= 0 THEN
+  IF menus(topmenu).no_controls = YES THEN EXIT SUB
   menu_handle = menus(topmenu).handle 'store handle for later use
   IF game_usemenu(mstates(topmenu)) THEN
    menusound gen(genCursorSFX)
   END IF
-  IF carray(5) > 1 THEN
+  IF carray(5) > 1 AND menus(topmenu).no_close = NO THEN
    carray(5) = 0
    setkeys ' Forget keypress that closed the menu
    remove_menu topmenu

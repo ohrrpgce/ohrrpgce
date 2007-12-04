@@ -743,6 +743,8 @@ SUB MenuBitsToArray (menu AS MenuDef, bits() AS INTEGER)
   setbit bits(), 0, 2, .allow_gameplay
   setbit bits(), 0, 3, .suspend_player
   setbit bits(), 0, 4, .no_box
+  setbit bits(), 0, 5, .no_close
+  setbit bits(), 0, 6, .no_controls
  END WITH
 END SUB
 
@@ -753,6 +755,8 @@ SUB MenuBitsFromArray (menu AS MenuDef, bits() AS INTEGER)
   .allow_gameplay = (readbit(bits(), 0, 2) <> 0)
   .suspend_player = (readbit(bits(), 0, 3) <> 0)
   .no_box         = (readbit(bits(), 0, 4) <> 0)
+  .no_close       = (readbit(bits(), 0, 5) <> 0)
+  .no_controls    = (readbit(bits(), 0, 6) <> 0)
  END WITH
 END SUB
 
