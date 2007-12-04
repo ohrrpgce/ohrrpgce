@@ -115,8 +115,9 @@ CONST binSFXDATA = 3
 CONST binMAP = 4
 CONST binMENUS = 5
 CONST binMENUITEM = 6
+CONST binUICOLORS = 7
 
-CONST sizebinsize = 6 ' Update this when adding binsize records
+CONST sizebinsize = 7 ' Update this when adding binsize records
 
 '--- Misc constants
 Enum constDirection

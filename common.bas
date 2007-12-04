@@ -647,6 +647,7 @@ FUNCTION defbinsize (id)
  IF id = 4 THEN RETURN 40 '.map
  IF id = 5 THEN RETURN 0  'menus.bin
  IF id = 6 THEN RETURN 0  'menuitem.bin
+ IF id = 7 THEN RETURN 0  'uicolors.bin
  RETURN 0
 END FUNCTION
 
@@ -658,6 +659,7 @@ FUNCTION curbinsize (id)
  IF id = 4 THEN RETURN 44  '.map
  IF id = 5 THEN RETURN 48  'menus.bin
  IF id = 6 THEN RETURN 58  'menuitem.bin
+ IF id = 7 THEN RETURN 98  'uicolors.bin
  RETURN 0
 END FUNCTION
 
@@ -1735,13 +1737,13 @@ END IF
 
 '--check variable record size lumps and reoutput them if records have been extended
 '--all of the files below should exist, be non zero length and have non zero record size by this point
-updaterecordlength workingdir$ + SLASH + "attack.bin", 0
-updaterecordlength game$ + ".stf", 1
-updaterecordlength workingdir$ + SLASH + "songdata.bin", 2
-updaterecordlength workingdir$ + SLASH + "sfxdata.bin", 3
-updaterecordlength game$ + ".map", 4
-updaterecordlength workingdir$ + SLASH + "menus.bin", 5
-updaterecordlength workingdir$ + SLASH + "menuitem.bin", 6
+updaterecordlength workingdir$ + SLASH + "attack.bin", binATTACK
+updaterecordlength game$ + ".stf", binSTF
+updaterecordlength workingdir$ + SLASH + "songdata.bin", binSONGDATA
+updaterecordlength workingdir$ + SLASH + "sfxdata.bin", binSFXDATA
+updaterecordlength game$ + ".map", binMAP
+updaterecordlength workingdir$ + SLASH + "menus.bin", binMENUS
+updaterecordlength workingdir$ + SLASH + "menuitem.bin", binMENUITEM
 IF NOT isfile(workingdir$ + SLASH + "menuitem.bin") THEN
  upgrade_message "Creating default menu file..."
  DIM menu_set AS MenuSet
@@ -1750,8 +1752,8 @@ IF NOT isfile(workingdir$ + SLASH + "menuitem.bin") THEN
  DIM menu AS MenuDef
  create_default_menu menu
  SaveMenuData menu_set, menu, 0
- 
 END IF
+updaterecordlength workingdir$ + SLASH + "uicolors.bin", binUICOLORS
 
 '--update to new (3rd) password format
 IF gen(genPassVersion) < 256 THEN
