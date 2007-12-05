@@ -8,6 +8,7 @@
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
+#include "loading.bi"
 #include "const.bi"
 
 #include "customsubs.bi"
@@ -196,3 +197,74 @@ DO
 LOOP
 
 END FUNCTION
+
+SUB ui_color_editor()
+ DIM i AS INTEGER
+ DIM default_colors(uiColors) AS INTEGER
+ DefaultUIColors default_colors()
+
+ LoadUIColors uilook(), gen(genMasterPal)
+
+ DIM color_menu(uiColors + 1) AS STRING
+ make_ui_color_editor_menu color_menu(), uilook()
+
+ DIM state AS MenuState
+ state.size = 22
+ state.last = UBOUND(color_menu)
+
+ setkeys
+ DO
+  setwait 100
+  setkeys
+  tog = tog XOR 1
+  IF keyval(1) > 1 THEN EXIT DO
+  usemenu state
+
+  IF keyval(28) > 1 OR keyval(57) > 1 THEN
+   IF state.pt = 0 THEN EXIT DO
+   
+  END IF
+
+  IF state.pt > 0 THEN
+   IF intgrabber(uilook(state.pt - 1), 0, 255) THEN
+    make_ui_color_editor_menu color_menu(), uilook()
+   END IF
+  END IF
+
+  IF keyval(29) > 0 AND keyval(32) > 1 THEN ' Ctrl+D
+   uilook(state.pt - 1) = default_colors(state.pt - 1)
+  END IF
+
+  standardmenu color_menu(), state, 10, 0, dpage
+  FOR i = state.top TO state.top + state.size
+   IF i > 0 THEN
+    rectangle 0, 8 * (i - state.top), 8, 8, uilook(i - 1), dpage
+   END IF
+  NEXT i
+  edgeprint "Ctrl+D to revert to default", 100, 190, uilook(uiText), dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+ gen(genMaxMasterPal) = large(gen(genMaxMasterPal), gen(genMasterPal))
+ SaveUIColors uilook(), gen(genMasterPal)
+END SUB
+
+SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)
+ DIM cap(17) AS STRING = {"Background", "Menu item", "Disabled item", _
+     "Selected item (A)", "Selected item (B)", "Selected disabled item (A)", _
+      "Selected disabled item (B)", "Hilight (A)", "Hilight (B)", "Time bar", _
+      "Time bar (full)", "Health bar", "Health bar (flash)", "Default Text", _
+      "Text outline", "Spell description", "Total money", "Vehicle shadow"}
+ DIM i AS INTEGER
+ m(0) = "Previous Menu"
+ FOR i = 0 TO 17
+  m(1 + i) = cap(i) & ": " & colors(i)
+ NEXT i
+ FOR i = 0 TO 14
+  m(19 + i*2) = "Box style " & i & " color:" & colors(18 + i*2)
+  m(19 + i*2 + 1) = "Box style " & i & " border:" & colors(18 + i*2 + 1)
+ NEXT i
+END SUB

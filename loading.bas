@@ -843,8 +843,9 @@ SUB SaveUIColors (colarray() AS INTEGER, palnum AS INTEGER)
  DIM filename AS STRING
  filename = workingdir$ & SLASH & "uicolors.bin"
 
- IF palnum < 0 OR palnum > gen(genMaxMasterPal) OR NOT isfile(filename) THEN
+ IF palnum < 0 OR palnum > gen(genMaxMasterPal) THEN
   debug "SaveUIColors: attempt to save colors out of range " & palnum
+  EXIT SUB
  END IF
 
  DIM i AS INTEGER

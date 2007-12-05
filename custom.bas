@@ -283,6 +283,7 @@ DO:
      importbmp ".til", "tileset", gen(33)
      gen(33) = gen(33) - 1
     END IF
+    IF pt = 11 THEN ui_color_editor()
   END SELECT
   '--always resave the .GEN lump after any menu
   xbsave game$ + ".gen", gen(), 1000
@@ -324,7 +325,7 @@ menu$(18) = "Quit Editing"
 RETRACE
 
 setgraphicmenu:
-mainmax = 10
+mainmax = 11
 menu$(0) = "Back to the main menu"
 menu$(1) = "Edit Maptiles"
 menu$(2) = "Draw Walkabout Graphics"
@@ -336,6 +337,7 @@ menu$(7) = "Draw Attacks"
 menu$(8) = "Draw Weapons"
 menu$(9) = "Import/Export Screens"
 menu$(10) = "Import/Export Full Maptile Sets"
+menu$(11) = "Change User-Interface Colors"
 RETRACE
 
 chooserpg:
