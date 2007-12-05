@@ -200,6 +200,7 @@ END FUNCTION
 
 SUB ui_color_editor()
  DIM i AS INTEGER
+ DIM index AS INTEGER
  DIM default_colors(uiColors) AS INTEGER
  DefaultUIColors default_colors()
 
@@ -220,19 +221,21 @@ SUB ui_color_editor()
   IF keyval(1) > 1 THEN EXIT DO
   usemenu state
 
+  index = state.pt - 1
+
   IF keyval(28) > 1 OR keyval(57) > 1 THEN
    IF state.pt = 0 THEN EXIT DO
-   
+   uilook(index) = color_browser_256(uilook(index))
   END IF
 
   IF state.pt > 0 THEN
-   IF intgrabber(uilook(state.pt - 1), 0, 255) THEN
+   IF intgrabber(uilook(index), 0, 255) THEN
     make_ui_color_editor_menu color_menu(), uilook()
    END IF
   END IF
 
   IF keyval(29) > 0 AND keyval(32) > 1 THEN ' Ctrl+D
-   uilook(state.pt - 1) = default_colors(state.pt - 1)
+   uilook(index) = default_colors(index)
   END IF
 
   standardmenu color_menu(), state, 10, 0, dpage
@@ -268,3 +271,51 @@ SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)
   m(19 + i*2 + 1) = "Box style " & i & " border:" & colors(18 + i*2 + 1)
  NEXT i
 END SUB
+
+FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
+ DIM i AS INTEGER
+ DIM spot AS XYPair
+ DIM cursor AS XYPair
+ cursor = xy_from_int(start_color, 16, 16)
+ cursor.x = start_color MOD 16
+ cursor.y = INT(start_color / 16)
+ setkeys
+ DO
+  setwait 100
+  setkeys
+  tog = (tog + 1) MOD 256
+  IF keyval(1) > 1 THEN RETURN start_color
+
+  IF keyval(28) > 1 OR keyval(57) > 1 THEN RETURN int_from_xy(cursor, 16, 16)
+
+  IF keyval(72) > 0 THEN cursor.y = loopvar(cursor.y, 0, 15, -1)
+  IF keyval(80) > 0 THEN cursor.y = loopvar(cursor.y, 0, 15, 1)
+  IF keyval(75) > 0 THEN cursor.x = loopvar(cursor.x, 0, 15, -1)
+  IF keyval(77) > 0 THEN cursor.x = loopvar(cursor.x, 0, 15, 1)
+
+  FOR i = 0 TO 255
+   spot = xy_from_int(i, 16, 16)
+   IF spot.x = cursor.x AND spot.y = cursor.y THEN
+    edgebox 64 + spot.x * 12 , 0 + spot.y * 12 , 12, 12, i, tog, dpage
+   ELSE
+    rectangle 64 + spot.x * 12 , 0 + spot.y * 12 , 12, 12, i, dpage
+   END IF
+  NEXT i
+
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+END FUNCTION
+
+FUNCTION xy_from_int(n AS INTEGER, wide AS INTEGER, high AS INTEGER) AS XYPair
+ DIM pair AS XYPair
+ pair.x = n MOD wide
+ pair.y = small(INT(n / wide), high - 1)
+ RETURN pair
+END FUNCTION
+
+FUNCTION int_from_xy(pair AS XYPair, wide AS INTEGER, high AS INTEGER) AS INTEGER
+ RETURN bound(pair.y * wide + pair.x, 0, wide * high - 1)
+END FUNCTION

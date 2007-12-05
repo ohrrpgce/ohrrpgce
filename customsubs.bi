@@ -14,5 +14,8 @@ DECLARE FUNCTION strgrabber (s AS STRING, maxl AS INTEGER) AS INTEGER
 DECLARE FUNCTION charpicker() AS STRING
 DECLARE SUB ui_color_editor()
 DECLARE SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)
+DECLARE FUNCTION int_from_xy(pos AS XYPair, wide AS INTEGER, high AS INTEGER) AS INTEGER
+DECLARE FUNCTION xy_from_int(n AS INTEGER, wide AS INTEGER, high AS INTEGER) AS XYPair
+DECLARE FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
 
 #endif
