@@ -109,7 +109,7 @@ DO
  usemenu csr, top, 0, 15, 22
  SELECT CASE csr
   CASE 0
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   IF enter_or_space() THEN
     EXIT DO
    END IF
   CASE 1
@@ -144,11 +144,11 @@ DO
     GOSUB vehmenu
    END IF
   CASE 4
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   IF enter_or_space() THEN
     editbitset veh(), 9, 8, vehbit$()
    END IF
   CASE 10, 11
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   IF enter_or_space() THEN
     veh(offset(csr)) = large(0, veh(offset(csr)))
     dummy$ = scriptbrowse$(veh(offset(csr)), plottrigger, "vehicle plotscript")
     GOSUB vehmenu
@@ -156,7 +156,7 @@ DO
     GOSUB vehmenu
    END IF
   CASE 13, 14
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   IF enter_or_space() THEN
     temptrig = large(0, -veh(offset(csr)))
     dummy$ = scriptbrowse$(temptrig, plottrigger, "vehicle plotscript")
     veh(offset(csr)) = -temptrig
@@ -345,7 +345,7 @@ DO
  END IF
  usemenu csr, menutop, 0, last, 22
  changed = NO
- IF (keyval(28) > 1 OR keyval(57) > 1) THEN
+ IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 1 THEN
    bitname$(0) = "Pause on Battle Sub-menus"
@@ -493,9 +493,9 @@ DO
  IF keyval(1) > 1 THEN EXIT DO
  usemenu pt, 0, 0, menusize, 24
  IF pt = 0 THEN
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
+  IF enter_or_space() THEN EXIT DO
  ELSE
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN
+  IF enter_or_space() THEN
    scrname$(pt) = ": " + scriptbrowse$(gen(scriptgenoff(pt)), plottrigger, menu$(pt))
   ELSEIF scrintgrabber(gen(scriptgenoff(pt)), 0, 0, 75, 77, 1, plottrigger) THEN
    scrname$(pt) = ": " + scriptname$(gen(scriptgenoff(pt)), plottrigger)
@@ -537,7 +537,7 @@ SUB generalsfxmenu ()
     tog = tog XOR 1
     setwait timing(), 100
     setkeys
-    accept = keyval(57) > 1 OR keyval(28) > 1
+    accept = enter_or_space()
     cancel = keyval(1) > 1
 
     IF cancel THEN EXIT DO
@@ -619,7 +619,7 @@ DO
    GOSUB getsonginfo
   END IF
  END IF
- IF (keyval(28) > 1 OR keyval(57) > 1) THEN
+ IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 3 THEN GOSUB importsongfile
   IF csr = 4 AND songfile$ <> "" THEN GOSUB exportsong
@@ -845,7 +845,7 @@ DO
    GOSUB getsfxinfo
   END IF
  END IF
- IF (keyval(28) > 1 OR keyval(57) > 1) THEN
+ IF enter_or_space() THEN
   SELECT CASE csr
   CASE 0
     EXIT DO
@@ -1089,7 +1089,7 @@ DO
   scriptbrowse$ = temp$
   EXIT FUNCTION
  END IF
- IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
+ IF enter_or_space() THEN EXIT DO
  IF scriptids(pt) < 16384 THEN
   IF intgrabber(id, 0, 16383) THEN
    iddisplay = -1
@@ -1182,7 +1182,7 @@ DO
    GOSUB buildmenu
   END IF
  END IF
- IF (keyval(28) > 1 OR keyval(57) > 1) THEN
+ IF enter_or_space() THEN
   SELECT CASE csr
   CASE 0
     EXIT DO
@@ -1301,7 +1301,7 @@ DO
    loadpage game$ + ".mxs", gen(1), 2
   END IF
  END IF
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   IF gcsr = 0 THEN EXIT DO
  END IF
  col = 7: IF gcsr = 0 THEN col = 14 + tog

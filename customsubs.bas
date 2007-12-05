@@ -15,7 +15,7 @@
 
 FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=999) AS INTEGER
  IF intgrabber(n, min, max) THEN RETURN YES
- IF keyval(28) > 1 OR keyval(57) > 1 THEN
+ IF enter_or_space() THEN
   DIM browse_tag AS INTEGER
   browse_tag = tagnames(n, YES)
   IF browse_tag >= 2 THEN
@@ -69,7 +69,7 @@ DO
    thisname = ""
   END IF
  END IF
- IF state.pt = 0 AND (keyval(57) > 1 OR keyval(28) > 1) THEN EXIT DO
+ IF state.pt = 0 AND enter_or_space() THEN EXIT DO
  IF state.pt > 0 AND state.pt <= gen(genMaxTagName) THEN
   IF picktag THEN
    IF keyval(28) > 1 THEN
@@ -181,7 +181,7 @@ DO
  IF keyval(75) > 1 THEN pt = large(pt - 1, 0)
  IF keyval(77) > 1 THEN pt = small(pt + 1, last)
 
- IF keyval(28) > 1 OR keyval(57) > 1 THEN RETURN CHR(f(pt))
+ IF enter_or_space() THEN RETURN CHR(f(pt))
 
  FOR i = 0 TO last
   textcolor 7, 8
@@ -248,7 +248,7 @@ SUB ui_color_editor()
 
   index = state.pt - 1
 
-  IF keyval(28) > 1 OR keyval(57) > 1 THEN
+  IF enter_or_space() THEN
    IF state.pt = 0 THEN EXIT DO
    uilook(index) = color_browser_256(uilook(index))
   END IF
@@ -322,7 +322,7 @@ FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
   tog = (tog + 1) MOD 256
   IF keyval(1) > 1 THEN RETURN start_color
 
-  IF keyval(28) > 1 OR keyval(57) > 1 THEN RETURN int_from_xy(cursor, 16, 16)
+  IF enter_or_space() THEN RETURN int_from_xy(cursor, 16, 16)
 
   IF keyval(72) > 0 THEN cursor.y = loopvar(cursor.y, 0, 15, -1)
   IF keyval(80) > 0 THEN cursor.y = loopvar(cursor.y, 0, 15, 1)
@@ -354,4 +354,85 @@ END FUNCTION
 
 FUNCTION int_from_xy(pair AS XYPair, wide AS INTEGER, high AS INTEGER) AS INTEGER
  RETURN bound(pair.y * wide + pair.x, 0, wide * high - 1)
+END FUNCTION
+
+FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
+ STATIC q AS INTEGER = 4
+ DIM i AS INTEGER
+ clearpage dpage
+ clearpage vpage
+ setkeys
+ DO
+  setwait 80
+  setkeys
+  IF keyval(1) > 1 THEN RETURN -1   'cancel
+  IF enter_or_space() THEN EXIT DO
+  intgrabber (q, -1, 10)
+  centerbox 160, 100, 300, 40, 4, dpage
+  edgeprint "Pick Ogg quality level (" & q & ")", 64, 86, uilook(uiText), dpage
+  FOR i = 0 TO q + 1
+   rectangle 30 + 21 * i, 100, 20, 16, uilook(uiText), dpage
+  NEXT i
+  swap vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ quality = q
+ RETURN 0
+END FUNCTION
+
+FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
+ DIM state AS MenuState
+ DIM menu AS MenuDef
+ DIM result AS INTEGER
+
+ WITH menu.items(0)
+  .exists = YES
+  .caption = "Yes"
+ END WITH
+ WITH menu.items(1)
+  .exists = YES
+  .caption = "No"
+ END WITH
+
+ state.active = YES
+ init_menu_state state, menu
+ IF defaultval = YES THEN state.pt = 0
+ IF defaultval = NO  THEN state.pt = 1 
+
+ 'Keep whatever was on the screen already as a background
+ copypage vpage, dpage
+ copypage vpage, 2
+ 
+ setkeys
+ DO
+  setwait 100
+  setkeys
+
+  IF keyval(1) > 1 THEN
+   result = escval
+   state.active = NO
+  END IF
+
+  IF enter_or_space() THEN
+   IF state.pt = 0 THEN result = YES
+   IF state.pt = 1 THEN result = NO
+   state.active = NO
+  END IF
+
+  IF state.active = NO THEN EXIT DO
+  
+  usemenu state
+
+  centerbox 160, 70, small(16 + LEN(capt) * 8, 320), 16, uilook(uiHighlight), dpage
+  edgeprint capt, xstring(capt, 160), 65, uilook(uiMenuItem), dpage
+  draw_menu menu, state, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage 2, dpage
+  dowait
+ LOOP
+ clearpage 2
+
+ RETURN result
 END FUNCTION

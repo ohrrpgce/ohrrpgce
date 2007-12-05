@@ -535,7 +535,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
  usemenu pt, 0, 0, menumax, 24
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   SELECT CASE pt
    CASE 0
     EXIT DO
@@ -768,7 +768,7 @@ DO
   sublist = -1
   EXIT DO
  END IF
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   sublist = pt
   EXIT DO
  END IF
@@ -880,7 +880,7 @@ DO
     GOSUB loadlines
    END IF'--next/add text box
  END SELECT
- IF (keyval(28) > 1 OR keyval(57) > 1) THEN
+ IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 2 THEN GOSUB picktext
   IF csr = 3 THEN
@@ -965,7 +965,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
- IF (keyval(57) > 1 OR keyval(28) > 1) THEN
+ IF enter_or_space() THEN
   IF cur = -1 THEN RETRACE
   IF ct(order(cur)) = 7 THEN
    temptrig = large(-cond(order(cur)), 0)
@@ -1079,7 +1079,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
  usemenu tcur, 0, 0, 5, 24
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   IF tcur = 0 THEN RETRACE
   IF tcur = 1 THEN setbit buffer(), 174, 0, (readbit(buffer(), 174, 0) XOR 1)
  END IF
@@ -1189,7 +1189,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
  usemenu gcsr, 0, 0, 9, 24
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   IF gcsr = 0 THEN RETRACE
   FOR i = 0 TO 2
    IF gcsr = 7 + i THEN setbit buffer(), 174, 1 + i, (readbit(buffer(), 174, 1 + i) XOR 1)

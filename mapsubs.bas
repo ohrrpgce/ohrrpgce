@@ -106,7 +106,7 @@ DO
    GOSUB addmaphowmenu
   END IF
  END IF
- IF keyval(28) > 1 OR keyval(56) > 1 THEN
+ IF enter_or_space() THEN
   SELECT CASE pt
    CASE 0 ' cancel
     addmaphow = -2
@@ -204,7 +204,7 @@ DO
  oldtop = maptop
  usemenu pt, maptop, 0, 2 + gen(0), 24
  IF oldtop <> maptop THEN make_top_map_menu maptop, topmenu$()
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   IF pt = 0 THEN EXIT DO
   IF pt > 0 AND pt <= gen(0) + 1 THEN
    '--silly backcompat pt adjustment
@@ -262,7 +262,7 @@ DO
   RETRACE
  END IF
  usemenu csr, 0, 0, 12, 24
- IF keyval(28) > 1 OR keyval(57) > 1 THEN
+ IF enter_or_space() THEN
   IF csr = 0 THEN
    GOSUB savemap
    RETRACE
@@ -375,19 +375,19 @@ DO
  usemenu gd, 0, -1, gmapmax, 24
  SELECT CASE gd
   CASE -1
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
+   IF enter_or_space() THEN EXIT DO
   CASE 1
    zintgrabber(gmap(gd), gdmin(gd) - 1, gdmax(gd) - 1) 'song is optional
   CASE 7, 12 TO 15
    IF gd = 7 THEN idx = 0 ELSE idx = gd - 11
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   IF enter_or_space() THEN
     gmapscr$(idx) = scriptbrowse$(gmap(gd), plottrigger, "plotscript")
    ELSEIF scrintgrabber(gmap(gd), 0, 0, 75, 77, 1, plottrigger) THEN
     gmapscr$(idx) = scriptname$(gmap(gd), plottrigger)
    END IF
   CASE 10' Harm tile color
    intgrabber gmap(gd), gdmin(gd), gdmax(gd)
-   IF keyval(28) > 1 OR keyval(57) > 1 THEN
+   IF enter_or_space() THEN
     gmap(gd) = color_browser_256(gmap(gd))
    END IF
   CASE ELSE
@@ -1232,7 +1232,7 @@ DO
  	RETRACE
  end if
  usemenu cur, ttop, 0, 199, 10
- IF keyval(28) > 1 OR keyval(57) > 1 THEN GOSUB seedoors
+ IF enter_or_space() THEN GOSUB seedoors
  FOR i = ttop TO ttop + 10
   textcolor 7, 0
   IF cur = i THEN textcolor 14 + tog, 0
@@ -1298,7 +1298,7 @@ DO
   		'...
   end select
  ELSE
-  IF keyval(28) > 1 OR keyval(57) > 1 THEN RETRACE
+  IF enter_or_space() THEN RETRACE
  END IF
  rectangle 0, 100, 320, 2, 1 + tog, dpage
  FOR i = -1 TO 4
@@ -1343,13 +1343,13 @@ layermenu:
 		
 		select case csr2
 		case 0
-			IF keyval(57) > 1 OR keyval(28) > 1 THEN
+			IF enter_or_space() THEN
 				clearkey(57) 'clear repeats
 				clearkey(28)
     		EXIT DO
    		END IF
    	case 1 to 3
-   		IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   		IF enter_or_space() THEN
    			ToggleLayerEnabled(gmap(), csr2 - 1)
    			gosub makelayermenu
    		end if

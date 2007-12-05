@@ -1266,31 +1266,6 @@ SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 4)
  IF NOT isfile(out_file) THEN debug "wav_to_ogg: " & out_file & " does not exist" : EXIT SUB
 END SUB
 
-FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
- STATIC q AS INTEGER = 4
- DIM i AS INTEGER
- clearpage dpage
- clearpage vpage
- setkeys
- DO
-  setwait 80
-  setkeys
-  IF keyval(1) > 1 THEN RETURN -1   'cancel
-  IF keyval(28) > 1 OR keyval(57) > 1 THEN EXIT DO
-  intgrabber (q, -1, 10)
-  centerbox 160, 100, 300, 40, 4, dpage
-  edgeprint "Pick Ogg quality level (" & q & ")", 64, 86, uilook(uiText), dpage
-  FOR i = 0 TO q + 1
-   rectangle 30 + 21 * i, 100, 20, 16, uilook(uiText), dpage
-  NEXT i
-  swap vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
- quality = q
- RETURN 0
-END FUNCTION
-
 SUB upgrade_message (s AS STRING)
  STATIC already = 0
  IF NOT already THEN
@@ -2172,62 +2147,6 @@ SUB create_default_menu(menu AS MenuDef)
  menu.min_chars = 14
 END SUB
 
-FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
- DIM state AS MenuState
- DIM menu AS MenuDef
- DIM result AS INTEGER
-
- WITH menu.items(0)
-  .exists = YES
-  .caption = "Yes"
- END WITH
- WITH menu.items(1)
-  .exists = YES
-  .caption = "No"
- END WITH
-
- state.active = YES
- init_menu_state state, menu
- IF defaultval = YES THEN state.pt = 0
- IF defaultval = NO  THEN state.pt = 1 
-
- 'Keep whatever was on the screen already as a background
- copypage vpage, dpage
- copypage vpage, 2
- 
- setkeys
- DO
-  setwait 100
-  setkeys
-
-  IF keyval(1) > 1 THEN
-   result = escval
-   state.active = NO
-  END IF
-
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN
-   IF state.pt = 0 THEN result = YES
-   IF state.pt = 1 THEN result = NO
-   state.active = NO
-  END IF
-
-  IF state.active = NO THEN EXIT DO
-  
-  usemenu state
-
-  centerbox 160, 70, small(16 + LEN(capt) * 8, 320), 16, uilook(uiHighlight), dpage
-  edgeprint capt, xstring(capt, 160), 65, uilook(uiMenuItem), dpage
-  draw_menu menu, state, dpage
-  SWAP vpage, dpage
-  setvispage vpage
-  copypage 2, dpage
-  dowait
- LOOP
- clearpage 2
-
- RETURN result
-END FUNCTION
-
 FUNCTION read_menu_int (menu AS MenuDef, intoffset AS INTEGER)
  '--This function allows read access to integers in a menu for the plotscripting interface
  '--intoffset is the integer offset, same as appears in the MENUS.BIN lump documentation
@@ -2388,3 +2307,7 @@ SUB load_default_master_palette (master_palette_array() AS RGBColor)
   NEXT i
  END IF
 END SUB
+
+FUNCTION enter_or_space () AS INTEGER
+ RETURN keyval(28) > 1 OR keyval(57) > 1
+END FUNCTION

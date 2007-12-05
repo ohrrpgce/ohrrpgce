@@ -551,7 +551,7 @@ DO
   END IF
  END IF
 
- IF keyval(28) > 1 OR keyval(57) > 1 THEN
+ IF enter_or_space() THEN
   SELECT CASE workmenu(state.pt)
    CASE EnMenuBackAct
     IF menudepth = 1 THEN
@@ -691,7 +691,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
  usemenu csr, 0, 0, 2, 24
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 1 THEN GOSUB editform
   IF csr = 2 THEN GOSUB formsets
@@ -725,7 +725,7 @@ DO
   RETRACE
  END IF
  IF usemenu(bcsr, 0, 0, 22, 24) THEN GOSUB lpreviewform
- IF keyval(28) > 1 OR keyval(57) > 1 THEN
+ IF enter_or_space() THEN
   IF bcsr = 0 THEN
    GOSUB savefset
    RETRACE
@@ -814,7 +814,7 @@ DO
  flash = flash + 1: IF flash > 14 THEN flash = -13
  IF csr3 = 1 THEN
   '--enemy positioning mode
-  IF keyval(1) > 1 OR keyval(57) > 1 OR keyval(28) > 1 THEN setkeys: csr3 = 0
+  IF keyval(1) > 1 OR enter_or_space() THEN setkeys: csr3 = 0
   movpix = 1 + (7 * SGN(keyval(56)))
   IF keyval(72) > 0 AND a(csr2 * 4 + 2) > 0 THEN a(csr2 * 4 + 2) = a(csr2 * 4 + 2) - movpix
   IF keyval(80) > 0 AND a(csr2 * 4 + 2) < 199 - w(csr2) THEN a(csr2 * 4 + 2) = a(csr2 * 4 + 2) + movpix
@@ -829,7 +829,7 @@ DO
   END IF
   IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, gen(37), 0, game$ + ".for", 80, 1
   usemenu csr2, -6, -6, 7, 25
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN
+  IF enter_or_space() THEN
    IF csr2 = -6 THEN
     GOSUB saveform
     RETRACE
@@ -1032,7 +1032,7 @@ DO
   cropafter pt, gen(35), -1, game$ + ".dt0", 636, 1
  END IF
  usemenu csr, 0, 0, 8, 24
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 3 THEN GOSUB picnpal
   IF csr = 4 THEN GOSUB levstats
@@ -1089,7 +1089,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
- IF (keyval(57) > 1 OR keyval(28) > 1) AND bctr = 0 THEN RETRACE
+ IF enter_or_space() AND bctr = 0 THEN RETRACE
  usemenu bctr, 0, 0, 4, 24
  IF bctr > 0 THEN
   strgrabber hmenu$(bctr - 1), 10
@@ -1124,7 +1124,7 @@ DO
  IF keyval(1) > 1 THEN RETRACE
  usemenu bctr, -1, -1, 3, 24
  IF bctr >= 0 THEN intgrabber her.list_type(bctr), 0, 2
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   IF bctr = -1 THEN RETRACE
   IF bctr >= 0 AND bctr < 4 THEN
    listnum = bctr
@@ -1170,7 +1170,7 @@ DO
   frame = frame xor 1
  END IF
  usemenu bctr, 0, 0, 9, 24
- IF (keyval(28) > 1 OR keyval(57) > 1) AND bctr = 0 THEN frame = -1: RETRACE
+ IF enter_or_space() AND bctr = 0 THEN frame = -1: RETRACE
  IF bctr > 0 THEN
   SELECT CASE bctr
    CASE 1
@@ -1210,7 +1210,7 @@ DO
       intgrabber her.hand_b_y, min(bctr), max(bctr)
     END IF
   END SELECT
-  IF keyval(28) > 1 OR keyval(57) > 1 THEN
+  IF enter_or_space() THEN
    IF bctr = 2 THEN
     her.sprite_pal = pal16browse(her.sprite_pal, 8, 0, 0, 32, 40, 2)
    ELSEIF bctr = 4 THEN
@@ -1299,7 +1299,7 @@ DO
  IF keyval(80) > 1 AND bctr = 0 THEN bctr = bctr + 1
  IF keyval(75) > 1 AND bctr > 0 THEN bctr = bctr - 1
  IF keyval(77) > 1 AND bctr < 24 THEN bctr = bctr + 1
- IF (keyval(28) > 1 OR keyval(57) > 1) AND bctr = 0 THEN RETRACE
+ IF enter_or_space() AND bctr = 0 THEN RETRACE
  IF bctr > 0 THEN
   changed = 0
   IF (bctr AND 1) = 1 THEN ' odd numbers are level 0
@@ -1372,7 +1372,7 @@ DO
   END IF
   IF colcsr = 1 THEN zintgrabber her.spell_lists(listnum, bctr-1).learned, -1, 99, leftkey, rightkey
  END IF
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   IF bctr = 0 THEN
    '--exit menu
    RETRACE
@@ -1514,7 +1514,7 @@ DO
  usemenu pt, 0, 0, 4, 24
  SELECT CASE pt
   CASE 0
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
+   IF enter_or_space() THEN EXIT DO
   CASE 1
    tag_grabber .have_tag, 0
   CASE 2
@@ -1601,7 +1601,7 @@ DO
  END IF
  usemenu csr, top, -1, 254, 23
  intgrabber csr, -1, 254
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   IF csr = -1 THEN EXIT DO
   IF csr <= 254 THEN
    GOSUB edititem
@@ -1670,7 +1670,7 @@ DO
   GOSUB itemmenu
  END IF
  usemenu pt, 0, 0, 20, 24
- IF keyval(28) > 1 OR keyval(57) > 1 THEN
+ IF enter_or_space() THEN
   IF pt = 0 THEN RETRACE
   IF a(49) > 0 THEN
    IF pt = 18 THEN
@@ -1792,7 +1792,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
  usemenu ptr2, 0, -1, 11, 24
- IF keyval(28) > 1 OR keyval(57) > 1 THEN
+ IF enter_or_space() THEN
   IF ptr2 = -1 THEN RETRACE
  END IF
  IF ptr2 >= 0 THEN
@@ -2002,7 +2002,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
  usemenu cur, top, 0, 35, 7
- IF (keyval(57) > 1 OR keyval(28) > 1) THEN GOSUB npcstats
+ IF enter_or_space() THEN GOSUB npcstats
  FOR i = top TO top + 7
   textcolor 7, 0
   IF cur = i THEN textcolor 14 + tog, 0
@@ -2041,13 +2041,13 @@ DO
  usemenu csr, 0, -1, 14, 24
  SELECT CASE csr
  CASE 12'--script
-  IF keyval(28) > 1 OR keyval(57) > 1 THEN
+  IF enter_or_space() THEN
    scrname$ = scriptbrowse$(npc(cur * 15 + 12), plottrigger, "NPC use plotscript")
   ELSEIF scrintgrabber(npc(cur * 15 + 12), 0, 0, 75, 77, 1, plottrigger) THEN
    scrname$ = scriptname$(npc(cur * 15 + 12), plottrigger)
   END IF
  CASE 11'--one-time-use tag
-  IF keyval(75) > 1 OR keyval(77) > 1 OR keyval(57) > 1 OR keyval(28) > 1 THEN GOSUB onetimetog
+  IF keyval(75) > 1 OR keyval(77) > 1 OR enter_or_space() THEN GOSUB onetimetog
  CASE 2 TO 8, IS > 12'--simple integers
   IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr)) THEN
    IF csr = 6 THEN it$ = itemstr(npc(cur * 15 + 6), 0, 0)
@@ -2059,7 +2059,7 @@ DO
   IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr)) THEN
    getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0)
   END IF
-  IF keyval(28) > 1 OR keyval(57) > 1 THEN
+  IF enter_or_space() THEN
    npc(cur * 15 + csr) = pal16browse(npc(cur * 15 + csr), 8, 0, 5 * cur, 20, 20, 2)
    getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0) 
   END IF
@@ -2069,7 +2069,7 @@ DO
    GOSUB loadnpcpic
   END IF
  END SELECT
- IF (keyval(57) > 1 OR keyval(28) > 1) AND csr = -1 THEN RETRACE
+ IF enter_or_space() AND csr = -1 THEN RETRACE
  textcolor 7, 0
  IF csr = -1 THEN textcolor 14 + tog, 0
  printstr "Previous Menu", 0, 0, dpage

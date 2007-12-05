@@ -63,9 +63,9 @@ REM $STATIC
 '  IF pt >= 0 THEN
 '   IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, pt, 0
 '   IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, pt, 1
-'   IF keyval(57) > 1 OR keyval(28) > 1 THEN setbit array(), wof, pt, readbit(array(), wof, pt) XOR 1
+'   IF enter_or_space() THEN setbit array(), wof, pt, readbit(array(), wof, pt) XOR 1
 '  ELSE
-'   IF keyval(28) > 1 OR keyval(57) > 1 THEN EXIT DO
+'   IF enter_or_space() THEN EXIT DO
 '  END IF
 '  FOR i = top TO small(top + 24, last)
 '   c = 8 - readbit(array(), wof, i)
@@ -121,9 +121,9 @@ DO
  IF pt >= 0 THEN
   IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, bits(pt), 0
   IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, bits(pt), 1
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN setbit array(), wof, bits(pt), readbit(array(), wof, bits(pt)) XOR 1
+  IF enter_or_space() THEN setbit array(), wof, bits(pt), readbit(array(), wof, bits(pt)) XOR 1
  ELSE
-  IF keyval(28) > 1 OR keyval(57) > 1 THEN EXIT DO
+  IF enter_or_space() THEN EXIT DO
  END IF
  FOR i = top TO small(top + 24, count-1)
   c = 8 - readbit(array(), wof, bits(i))

@@ -231,7 +231,7 @@ DO:
   END SELECT
  END IF
  usemenu pt, 0, 0, mainmax, 24
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   SELECT CASE menumode
    CASE 0'--normal mode
     IF pt = 0 THEN pt = 0: menumode = 1: GOSUB setgraphicmenu
@@ -342,7 +342,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN GOTO finis
  usemenu csr, top, 0, last, 20
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   IF csr = 0 THEN
    game$ = inputfilename$("Filename of New Game?", ".rpg")
    IF game$ <> "" THEN
@@ -385,7 +385,7 @@ DO
  setkeys
  tog = tog XOR 1
  usemenu temp, 0, 0, 2, 2
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   IF temp = 0 THEN
    IF isfile(workingdir$ + SLASH + "__danger.tmp") THEN
     textcolor 14, 4
@@ -738,7 +738,7 @@ DO
   CASE -1
    IF keyval(1) > 1 THEN EXIT DO
    usemenu menuptr, 0, 0, 3, 22
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   IF enter_or_space() THEN
     IF menuptr = 0 THEN EXIT DO
     IF menuptr = 1 THEN mode = 0
     IF menuptr = 2 THEN GOSUB importfont
@@ -750,7 +750,7 @@ DO
    IF keyval(80) > 1 THEN pt = small(pt + linesize, last)
    IF keyval(75) > 1 THEN pt = large(pt - 1, 0)
    IF keyval(77) > 1 THEN pt = small(pt + 1, last)
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   IF enter_or_space() THEN
     IF pt < 0 THEN
      mode = -1
     ELSE
@@ -927,7 +927,7 @@ IF pt > check THEN
   tog = tog XOR 1
   IF keyval(1) > 1 THEN pt = pt - 1: EXIT DO
   IF keyval(72) > 1 OR keyval(80) > 1 OR keyval(75) > 1 OR keyval(77) > 1 THEN csr = csr XOR 1
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN
+  IF enter_or_space() THEN
    IF csr = 0 THEN
     check = check + 1
     needaddset = -1
@@ -1042,7 +1042,7 @@ DO
   strgrabber sn$, 15
   GOSUB menuup
  END IF
- IF keyval(28) > 1 OR keyval(57) > 1 THEN
+ IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 3 AND havestuf THEN
    GOSUB shopstuf
@@ -1131,7 +1131,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
- IF tcsr = 0 THEN IF keyval(57) > 1 OR keyval(28) > 1 THEN RETRACE
+ IF tcsr = 0 THEN IF enter_or_space() THEN RETRACE
  usemenu tcsr, 0, 0, last, 24
  IF tcsr = 1 THEN
   IF keyval(75) > 1 AND thing > 0 THEN

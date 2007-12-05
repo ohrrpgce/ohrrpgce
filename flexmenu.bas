@@ -879,7 +879,7 @@ DO
   END IF
  END IF
 
- IF keyval(28) > 1 OR keyval(57) > 1 THEN
+ IF enter_or_space() THEN
   SELECT CASE workmenu(state.pt)
    CASE AtkBackAct
     IF menudepth = 1 THEN
@@ -1325,7 +1325,7 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
  
  SELECT CASE state.pt
   CASE 0
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   IF enter_or_space() THEN
     state.active = NO
    END IF
   CASE 1
@@ -1353,7 +1353,7 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
   CASE 2
    IF strgrabber(menudata.name, 20) THEN state.need_update = YES
   CASE 3
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   IF enter_or_space() THEN
     mstate.active = YES
     mstate.need_update = YES
     menudata.edit_mode = YES
@@ -1362,22 +1362,22 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
    IF intgrabber(menudata.boxstyle, 0, 14) THEN state.need_update = YES
   CASE 5
    IF intgrabber(menudata.textcolor, 0, 255) THEN state.need_update = YES
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   IF enter_or_space() THEN
     menudata.textcolor = color_browser_256(menudata.textcolor)
     state.need_update = YES
    END IF
   CASE 6
    IF intgrabber(menudata.maxrows, 0, 20) THEN state.need_update = YES
   CASE 7
-   IF keyval(28) > 1 OR keyval(57) > 1 THEN
+   IF enter_or_space() THEN
     edit_menu_bits menudata
    END IF
   CASE 8
-   IF keyval(28) > 1 OR keyval(57) > 1 THEN
+   IF enter_or_space() THEN
     reposition_menu menudata, mstate
    END IF
   CASE 9
-   IF keyval(28) > 1 OR keyval(57) > 1 THEN
+   IF enter_or_space() THEN
     reposition_anchor menudata, mstate
    END IF
   CASE 10 ' text align
@@ -1433,7 +1433,7 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
   ELSE
    IF menudata.edit_mode = YES THEN
     'Selecting the item that appends new items
-    IF keyval(28) > 1 OR keyval(57) > 1 THEN
+    IF enter_or_space() THEN
      .exists = YES
      mstate.active = NO
      mstate.need_update = YES
@@ -1469,7 +1469,7 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
 
  SELECT CASE dstate.pt
   CASE 0
-   IF keyval(28) > 1 OR keyval(57) > 1 THEN
+   IF enter_or_space() THEN
     dstate.active = NO
     mstate.active = YES
     EXIT SUB
@@ -1496,7 +1496,7 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
    END SELECT
    IF mi.t = 4 THEN '--script
     IF scrintgrabber(mi.sub_t, 0, 0, 75, 77, 1, plottrigger) THEN dstate.need_update = YES
-    IF keyval(57) > 1 OR keyval(28) > 1 THEN
+    IF enter_or_space() THEN
      dummy$ = scriptbrowse$(mi.sub_t, plottrigger, "Menu Item Script")
      dstate.need_update = YES
     END IF
@@ -1512,7 +1512,7 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
   CASE 7: 'toggle tag
    IF tag_grabber(mi.togtag, 0) THEN dstate.need_update = YES
   CASE 8: ' bitsets
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   IF enter_or_space() THEN
     edit_menu_item_bits mi
    END IF
  END SELECT

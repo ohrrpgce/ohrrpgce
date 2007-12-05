@@ -97,7 +97,7 @@ DO
   changed = 0
   GOSUB hover
  END IF
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   alert$ = ""
   changed = 1
   IF br.special = 1 OR br.special = 5 THEN pausesong

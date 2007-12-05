@@ -105,7 +105,6 @@ DECLARE FUNCTION can_convert_wav () AS INTEGER
 DECLARE SUB mp3_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5)
 DECLARE SUB mp3_to_wav (in_file AS STRING, out_file AS STRING)
 DECLARE SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5)
-DECLARE FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
 
 DECLARE FUNCTION intgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
 DECLARE FUNCTION zintgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
@@ -128,7 +127,6 @@ DECLARE FUNCTION read_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER)
 DECLARE SUB write_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER, n AS INTEGER)
 DECLARE SUB position_menu_item (menu AS MenuDef, cap AS STRING, i AS INTEGER, BYREF where AS XYPair)
 
-DECLARE FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
 DECLARE FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, cmd AS STRING, argname AS STRING) AS INTEGER
 
 DECLARE FUNCTION load_tag_name (index AS INTEGER) AS STRING
@@ -136,6 +134,8 @@ DECLARE SUB save_tag_name (tagname AS STRING, index AS INTEGER)
 DECLARE FUNCTION tag_condition_caption(n AS INTEGER, prefix AS STRING="Tag", zerocap AS STRING="", onecap AS STRING="", negonecap AS STRING="") AS STRING
 DECLARE FUNCTION tag_set_caption(n AS INTEGER, prefix AS STRING="Set Tag") AS STRING
 DECLARE FUNCTION onoroff (n AS INTEGER) AS STRING
+
+DECLARE FUNCTION enter_or_space () AS INTEGER
 
 'Global variables
 EXTERN game$

@@ -187,7 +187,7 @@ DO
    GOSUB showpage
   END IF
  END IF
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 2 THEN
    srcbmp$ = browse$(3, default$, "*.bmp", "")
@@ -238,7 +238,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN setpal master(): RETRACE
  IF csr2 = 0 THEN
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN setpal master(): RETRACE
+  IF enter_or_space() THEN setpal master(): RETRACE
   IF keyval(80) > 1 THEN csr2 = 1: cy = -1
  END IF
  IF csr2 = 1 THEN
@@ -246,7 +246,7 @@ DO
   IF keyval(77) > 1 THEN cx = small(cx + 1, 15)
   IF keyval(80) > 1 THEN cy = small(cy + 1, 15)
   IF keyval(72) > 1 THEN cy = cy - 1: IF cy < 0 THEN cy = 0: csr2 = 0
-  IF keyval(57) > 1 OR keyval(28) > 1 THEN
+  IF enter_or_space() THEN
    pmask(cy * 16 + cx).r xor= master(cy * 16 + cx).r
    pmask(cy * 16 + cx).g xor= master(cy * 16 + cx).g
    pmask(cy * 16 + cx).b xor= master(cy * 16 + cx).b
@@ -356,8 +356,8 @@ DO
  IF usemenu(pagenum, top, -1, gen(33), 20) THEN
   IF pagenum = -1 THEN clearpage 3 ELSE loadpage mapfile$, pagenum, 3
  END IF
- IF (keyval(57) > 1 OR keyval(28) > 1) AND pagenum = -1 THEN EXIT DO
- IF (keyval(57) > 1 OR keyval(28) > 1) AND pagenum > -1 THEN GOSUB tilemode
+ IF enter_or_space() AND pagenum = -1 THEN EXIT DO
+ IF enter_or_space() AND pagenum > -1 THEN GOSUB tilemode
  FOR i = top TO small(top + 20, gen(33))
   textcolor 7, 240
   IF pagenum = i THEN textcolor 14 + tog, 240
@@ -387,7 +387,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN tmode = 0: RETRACE
  usemenu tmode, 0, 0, 4, 24
- IF keyval(57) OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   SELECT CASE tmode
    CASE 0, 1, 2
     picktiletoedit tmode, pagenum, mapfile$
@@ -439,7 +439,7 @@ DO
  IF taptr = 4 THEN
   IF tag_grabber(tastuf(1 + 20 * taset)) THEN GOSUB utamenu
  END IF
- IF keyval(57) OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   IF taptr = 0 THEN savetanim pagenum, tastuf(): RETRACE
   IF taptr = 2 THEN GOSUB setanimrange
   IF taptr = 3 THEN setanimpattern tastuf(), taset
@@ -468,7 +468,7 @@ DO
  setwait timing(), 100
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 OR keyval(28) > 1 OR keyval(57) > 1 THEN RETRACE
+ IF keyval(1) > 1 OR enter_or_space() THEN RETRACE
  IF keyval(72) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 16, 0)
  IF keyval(80) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 16, 112)
  IF keyval(75) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 1, 0)
@@ -548,7 +548,7 @@ DO
  END IF
  IF keyval(71) > 1 THEN curpal = -1: top = -1: GOSUB onscreenpals
  IF keyval(79) > 1 THEN curpal = lastpal: top = large(-1, lastpal - 8): GOSUB onscreenpals
- IF keyval(28) > 1 OR keyval(57) > 1 THEN
+ IF enter_or_space() THEN
   IF curpal >= 0 THEN result = curpal
   EXIT DO
  END IF
@@ -645,7 +645,7 @@ DO
   CASE 0 '---PICK A STATEMENT---
    IF keyval(1) > 1 THEN EXIT DO
    IF usemenu(pt, 0, 0, 9, 9) THEN GOSUB refreshmenu
-   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+   IF enter_or_space() THEN
     IF pt = 0 THEN
      EXIT DO
     ELSE
@@ -658,14 +658,14 @@ DO
    index = bound(pt - 1, 0, 8) + 20 * taset
    IF ptr2 = 0 THEN
     IF intgrabber(tastuf(2 + index), 0, 6) THEN GOSUB refreshmenu
-    IF keyval(28) > 1 OR keyval(57) > 1 THEN context = 0
+    IF enter_or_space() THEN context = 0
    END IF
    IF ptr2 = 1 THEN
     IF tastuf(2 + index) = 6 THEN
      IF tag_grabber(tastuf(11 + index)) THEN GOSUB refreshmenu
     ELSE
      IF intgrabber(tastuf(11 + index), llim(tastuf(2 + index)), ulim(tastuf(2 + index))) THEN GOSUB refreshmenu
-     IF keyval(28) > 1 OR keyval(57) > 1 THEN context = 0
+     IF enter_or_space() THEN context = 0
     END IF
    END IF
  END SELECT
@@ -784,7 +784,7 @@ DO
   clearpage 3
   GOSUB loadalluc
  END IF
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   GOSUB savealluc
   GOSUB spriteage
   GOSUB loadalluc
@@ -1197,7 +1197,7 @@ DO
   changepal poffset(pt), 1, workpal(), pt - top
  END IF
  usemenu pcsr, 0, 0, 2, 24
- IF keyval(57) > 1 OR keyval(28) > 1 THEN
+ IF enter_or_space() THEN
   IF pcsr = 2 THEN RETRACE
   EXIT DO
  END IF
@@ -1239,7 +1239,7 @@ DO
  IF keyval(80) > 0 THEN gy = small(gy + (1 + (keyval(56) * 8)), edjy)
  IF keyval(75) > 0 THEN gx = large(gx - (1 + (keyval(56) * 8)), 1)
  IF keyval(77) > 0 THEN gx = small(gx + (1 + (keyval(56) * 8)), edjx)
- IF keyval(57) > 1 OR keyval(28) > 1 THEN EXIT DO
+ IF enter_or_space() THEN EXIT DO
  putpixel gx, gy, 15 + tog, dpage
  edgeprint "Pick Background Color", 0, 190, 7, dpage
  SWAP vpage, dpage
@@ -1721,7 +1721,7 @@ DO
  IF (keyval(29) > 0 AND keyval(20) > 1) THEN tiletranspaste cutnpaste(), ts
  ts.tilex = bnum AND 15
  ts.tiley = INT(bnum / 16)
- IF keyval(28) > 1 OR keyval(57) OR mouse(3) > 0 THEN
+ IF enter_or_space() OR mouse(3) > 0 THEN
   setkeys
   IF tmode = 0 THEN
    editmaptile ts, mover(), mouse(), area(), shortk(), cursor(), icon$(), toolname$()
@@ -2167,7 +2167,7 @@ DO
  IF keyval(80) > 0 THEN ts.y = small(ts.y + inc, 180): IF ts.gotmouse THEN movemouse ts.x, ts.y
  IF keyval(75) > 0 THEN ts.x = large(ts.x - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
  IF keyval(77) > 0 THEN ts.x = small(ts.x + inc, 300): IF ts.gotmouse THEN movemouse ts.x, ts.y
- IF keyval(57) > 1 OR keyval(28) > 0 OR (mouse(3) > 0 AND ts.zone < 11) THEN
+ IF enter_or_space() OR (mouse(3) > 0 AND ts.zone < 11) THEN
   IF ts.delay = 0 THEN
    setkeys
    FOR i = 0 TO 19
