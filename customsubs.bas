@@ -209,20 +209,12 @@ SUB ui_color_editor()
   .anchor.y = -1
   .offset.x = 156
   .offset.y = -96
-  WITH .items(0)
-   .exists = YES
-   .caption = "Sample"
-  END WITH
-  WITH .items(1)
-   .exists = YES
-   .caption = "Example"
-  END WITH
-  WITH .items(2)
-   .exists = YES
-   .caption = "Disabled"
-   .disabled = YES
-  END WITH
  END WITH
+ append_menu_item sample_menu, "Sample"
+ append_menu_item sample_menu, "Example"
+ i = append_menu_item(sample_menu, "Disabled")
+ sample_menu.items(i).disabled = YES
+ 
  DIM sample_state AS MenuState
  sample_state.active = YES
  init_menu_state sample_state, sample_menu
@@ -386,14 +378,8 @@ FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) 
  DIM menu AS MenuDef
  DIM result AS INTEGER
 
- WITH menu.items(0)
-  .exists = YES
-  .caption = "Yes"
- END WITH
- WITH menu.items(1)
-  .exists = YES
-  .caption = "No"
- END WITH
+ append_menu_item menu, "Yes"
+ append_menu_item menu, "No"
 
  state.active = YES
  init_menu_state state, menu

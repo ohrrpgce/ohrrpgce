@@ -36,6 +36,7 @@ declare Sub SerHeroDef(filename as string, hero as herodef ptr, record as intege
 
 declare Sub ClearMenuData(dat AS MenuDef)
 declare Sub ClearMenuItem(mi AS MenuDefItem)
+declare Sub ClearMenuItems(menu AS MenuDef)
 declare Sub LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER, ignore_items AS INTEGER=NO)
 declare Sub LoadMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
 declare Sub SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)

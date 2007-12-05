@@ -126,6 +126,7 @@ DECLARE SUB write_menu_int (menu AS MenuDef, intoffset AS INTEGER, n AS INTEGER)
 DECLARE FUNCTION read_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER)
 DECLARE SUB write_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER, n AS INTEGER)
 DECLARE SUB position_menu_item (menu AS MenuDef, cap AS STRING, i AS INTEGER, BYREF where AS XYPair)
+DECLARE FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING)
 
 DECLARE FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, cmd AS STRING, argname AS STRING) AS INTEGER
 

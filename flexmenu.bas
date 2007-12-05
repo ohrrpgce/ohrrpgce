@@ -1520,81 +1520,42 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
 END SUB
 
 SUB update_menu_editor_menu(record, edmenu AS MenuDef, menu AS MenuDef)
- WITH edmenu
-  WITH .items(0)
-   .exists = YES
-   .caption = "Previous Menu"
-  END WITH
-  WITH .items(1)
-   .exists = YES
-   .caption = "Menu " & record
-   IF record = 0 THEN .caption = .caption & " (MAIN MENU)"
-  END WITH
-  WITH .items(2)
-   .exists = YES
-   .caption = "Name: " & menu.name
-  END WITH
-  WITH .items(3)
-   .exists = YES
-   .caption = "Edit Items..."
-  END WITH
-  WITH .items(4)
-   .exists = YES
-   .caption = "Background: " & menu.boxstyle
-  END WITH
-  WITH .items(5)
-   .exists = YES
-   .caption = "Text color: " & zero_default(menu.textcolor)
-  END WITH
-  WITH .items(6)
-   .exists = YES
-   .caption = "Max rows to display: " & zero_default(menu.maxrows)
-  END WITH
-  WITH .items(7)
-   .exists = YES
-   .caption = "Edit Bitsets..."
-  END WITH
-  WITH .items(8)
-   .exists = YES
-   .caption = "Reposition menu..."
-  END WITH
-  WITH .items(9)
-   .exists = YES
-   .caption = "Change Anchor Point..."
-  END WITH
-  WITH .items(10)
-   .exists = YES
-   .caption = "Text Align: " & sign_string(menu.align, "Left", "Center", "Right")
-  END WITH
-  WITH .items(11)
-   .exists = YES
-   .caption = "Minimum width: " & zero_default(menu.min_chars, "Automatic")
-  END WITH
-  WITH .items(12)
-   .exists = YES
-   .caption = "Maximum width: " & zero_default(menu.max_chars, "None")
-  END WITH
-  WITH .items(13)
-   .exists = YES
-   .caption = "Border size: " & zero_default(menu.bordersize)
-  END WITH
- END WITH
+ DIM cap AS STRING
+ ClearMenuItems edmenu
+ 
+ append_menu_item edmenu, "Previous Menu"
+ 
+ cap = "Menu " & record
+ IF record = 0 THEN cap = cap & " (MAIN MENU)"
+ append_menu_item edmenu, cap
+ 
+ append_menu_item edmenu, "Name: " & menu.name
+ append_menu_item edmenu, "Edit Items..."
+ append_menu_item edmenu, "Background: " & menu.boxstyle
+ append_menu_item edmenu, "Text color: " & zero_default(menu.textcolor)
+ append_menu_item edmenu, "Max rows to display: " & zero_default(menu.maxrows)
+ append_menu_item edmenu, "Edit Bitsets..."
+ append_menu_item edmenu, "Reposition menu..."
+ append_menu_item edmenu, "Change Anchor Point..."
+ append_menu_item edmenu, "Text Align: " & sign_string(menu.align, "Left", "Center", "Right")
+ append_menu_item edmenu, "Minimum width: " & zero_default(menu.min_chars, "Automatic")
+ append_menu_item edmenu, "Maximum width: " & zero_default(menu.max_chars, "None")
+ append_menu_item edmenu, "Border size: " & zero_default(menu.bordersize)
 END SUB
 
 SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
  DIM cap AS STRING
- WITH detail.items(0)
-  .exists = YES
-  .caption = "Go Back"
- END WITH
- WITH detail.items(1)
-  .exists = YES
-  cap = mi.caption
-  IF LEN(cap) = 0 THEN cap = "[DEFAULT]"
-  .caption = "Caption: " & cap
- END WITH
- WITH detail.items(2)
-  .exists = YES
+ DIM index AS INTEGER
+ ClearMenuItems detail
+ 
+ append_menu_item detail, "Go Back"
+ 
+ cap = mi.caption
+ IF LEN(cap) = 0 THEN cap = "[DEFAULT]"
+ append_menu_item detail, "Caption: " & cap
+ 
+ index = append_menu_item(detail, "Type")
+ WITH detail.items(index)
   SELECT CASE mi.t
    CASE 0
     .caption = "Type: " & mi.t & " Caption"
@@ -1608,9 +1569,9 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
     .caption = "Type: " & mi.t & " Run script"
   END SELECT
  END WITH
- WITH detail.items(3)
-  .exists = YES
-  .caption = "Subtype: " & mi.sub_t
+ 
+ index = append_menu_item(detail, "Subtype: " & mi.sub_t)
+ WITH detail.items(index)
   SELECT CASE mi.t
    CASE 0
     SELECT CASE mi.sub_t
@@ -1625,26 +1586,12 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
    .caption = "Subtype: " & mi.sub_t
   END SELECT
  END WITH
- WITH detail.items(4)
-  .exists = YES
-  .caption = tag_condition_caption(mi.tag1, "Enable if tag", "No tag check")
- END WITH
- WITH detail.items(5)
-  .exists = YES
-  .caption = tag_condition_caption(mi.tag2, "Enable if tag", "No tag check")
- END WITH
- WITH detail.items(6)
-  .exists = YES
-  .caption = tag_set_caption(mi.settag, "Set tag")
- END WITH
- WITH detail.items(7)
-  .exists = YES
-  .caption = tag_toggle_caption(mi.togtag)
- END WITH
- WITH detail.items(8)
-  .exists = YES
-  .caption = "Edit Bitsets..."
- END WITH
+ 
+ append_menu_item detail, tag_condition_caption(mi.tag1, "Enable if tag", "No tag check")
+ append_menu_item detail, tag_condition_caption(mi.tag2, "Enable if tag", "No tag check")
+ append_menu_item detail, tag_set_caption(mi.settag, "Set tag")
+ append_menu_item detail, tag_toggle_caption(mi.togtag)
+ append_menu_item detail, "Edit Bitsets..."
 END SUB
 
 FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRING

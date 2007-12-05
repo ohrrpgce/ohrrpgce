@@ -2343,9 +2343,8 @@ SELECT CASE AS CONST scrat(nowscript).curkind
    CASE 283'--add menu item
     menuslot = find_menu_handle(retvals(0))
     IF bound_menuslot(menuslot, "add menu item") THEN
-     i = find_empty_menu_item(menus(menuslot))
+     i = append_menu_item(menus(menuslot), "")
      IF i >= 0 THEN
-      menus(menuslot).items(i).exists = YES
       scriptret = assign_menu_item_handle(menus(menuslot).items(i))
       mstates(menuslot).need_update = YES
      ELSE

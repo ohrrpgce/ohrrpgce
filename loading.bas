@@ -527,7 +527,6 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
 end sub
 
 SUB ClearMenuData(dat AS MenuDef)
- DIM i AS INTEGER
  DIM bits(0) AS INTEGER
  WITH dat
   .record = -1
@@ -544,12 +543,19 @@ SUB ClearMenuData(dat AS MenuDef)
   .min_chars = 0
   .max_chars = 0
   .bordersize = 0
+  ClearMenuItems dat
+ END WITH
+ bits(0) = 0
+ MenuBitsFromArray dat, bits()
+END SUB
+
+SUB ClearMenuItems(menu AS MenuDef)
+ DIM i AS INTEGER
+ WITH menu
   FOR i = 0 TO UBOUND(.items)
    ClearMenuItem(.items(i))
   NEXT i
  END WITH
- bits(0) = 0
- MenuBitsFromArray dat, bits()
 END SUB
 
 SUB ClearMenuItem(mi AS MenuDefItem)

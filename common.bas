@@ -2311,3 +2311,18 @@ END SUB
 FUNCTION enter_or_space () AS INTEGER
  RETURN keyval(28) > 1 OR keyval(57) > 1
 END FUNCTION
+
+FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING)
+ DIM i AS INTEGER
+ FOR i = 0 TO UBOUND(menu.items)
+  WITH menu.items(i)
+   IF .exists = NO THEN
+    .exists = YES
+    .caption = caption
+    RETURN i
+   END IF
+  END WITH
+ NEXT i
+ debug "No room to append """ & caption & """ to menu " & menu.name 
+ RETURN -1 'failure
+END FUNCTION
