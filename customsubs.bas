@@ -202,6 +202,31 @@ SUB ui_color_editor()
  DIM i AS INTEGER
  DIM index AS INTEGER
  DIM default_colors(uiColors) AS INTEGER
+
+ DIM sample_menu AS MenuDef
+ WITH sample_menu
+  .anchor.x = 1
+  .anchor.y = -1
+  .offset.x = 156
+  .offset.y = -96
+  WITH .items(0)
+   .exists = YES
+   .caption = "Sample"
+  END WITH
+  WITH .items(1)
+   .exists = YES
+   .caption = "Example"
+  END WITH
+  WITH .items(2)
+   .exists = YES
+   .caption = "Disabled"
+   .disabled = YES
+  END WITH
+ END WITH
+ DIM sample_state AS MenuState
+ sample_state.active = YES
+ init_menu_state sample_state, sample_menu
+
  DefaultUIColors default_colors()
 
  LoadUIColors uilook(), gen(genMasterPal)
@@ -238,6 +263,17 @@ SUB ui_color_editor()
    uilook(index) = default_colors(index)
   END IF
 
+  '--update sample according to what you have highlighted
+  sample_menu.boxstyle = 0
+  sample_state.pt = 0
+  SELECT CASE state.pt - 1
+   CASE 5,6 ' selected disabled
+    sample_state.pt = 2
+   CASE 18 TO 47
+    sample_menu.boxstyle = INT((state.pt - 19) / 2)
+  END SELECT
+
+  draw_menu sample_menu, sample_state, dpage
   standardmenu color_menu(), state, 10, 0, dpage
   FOR i = state.top TO state.top + state.size
    IF i > 0 THEN
