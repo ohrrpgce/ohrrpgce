@@ -1194,6 +1194,7 @@ DO
   FOR i = 0 TO 2
    IF gcsr = 7 + i THEN setbit buffer(), 174, 1 + i, (readbit(buffer(), 174, 1 + i) XOR 1)
   NEXT i
+  IF gcsr = 3 THEN buffer(192 + gcsr) = color_browser_256(buffer(192 + gcsr))
  END IF
  FOR i = 0 TO 2
   IF gcsr = 7 + i THEN

@@ -1363,6 +1363,10 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
    IF intgrabber(menudata.boxstyle, 0, 14) THEN state.need_update = YES
   CASE 5
    IF intgrabber(menudata.textcolor, 0, 255) THEN state.need_update = YES
+   IF keyval(57) > 1 OR keyval(28) > 1 THEN
+    menudata.textcolor = color_browser_256(menudata.textcolor)
+    state.need_update = YES
+   END IF
   CASE 6
    IF intgrabber(menudata.maxrows, 0, 20) THEN state.need_update = YES
   CASE 7

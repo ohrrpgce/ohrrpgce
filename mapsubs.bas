@@ -386,6 +386,11 @@ DO
    ELSEIF scrintgrabber(gmap(gd), 0, 0, 75, 77, 1, plottrigger) THEN
     gmapscr$(idx) = scriptname$(gmap(gd), plottrigger)
    END IF
+  CASE 10' Harm tile color
+   intgrabber gmap(gd), gdmin(gd), gdmax(gd)
+   IF keyval(28) > 1 OR keyval(57) > 1 THEN
+    gmap(gd) = color_browser_256(gmap(gd))
+   END IF
   CASE ELSE
    intgrabber gmap(gd), gdmin(gd), gdmax(gd)
  END SELECT
