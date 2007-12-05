@@ -1482,6 +1482,17 @@ end</example>
 			<cannon>menu item by slot(menu handle, slot, visible only)</cannon>
 			<shortname>menu item by slot</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a menu item handle for the menu item at the position specified by <p>slot</p>. The first slot in the menu is 0. You can optionally include invisible items by using the optional argument <p>visible only</p>, which defaults to <ref>true</ref>. Note that invisible menu items are always at the end of the menu, after the last visible menu item</description>
+			<seealso>
+				<ref>menuitemslot</ref>
+			</seealso>
+		</command>
+		<command id="menuitemslot">
+			<cannon>menu item slot(menu item handle)</cannon>
+			<shortname>menu item slot</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>), Return a the slot number of the menu item. The first slot in the menu is 0.</description>
+			<seealso>
+				<ref>menuitembyslot</ref>
+			</seealso>
 		</command>
 		<command id="nextmenuitem">
 			<cannon>next menu item(menu item handle, visible only)</cannon>

@@ -2484,6 +2484,11 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     ELSE
      scriptret = 1
     END IF
+   CASE 303'--menu item slot
+    menuslot = find_menu_handle(retvals(0))
+    IF bound_menuslot(menuslot, "menu item slot") THEN
+     scriptret = menuslot
+    END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
     scriptmisc scrat(nowscript).curvalue
