@@ -14,7 +14,6 @@ DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
-DECLARE SUB textfatalerror (e$)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION isunique% (s$, u$(), r%)
@@ -398,31 +397,6 @@ NEXT i
 str2lng& = n&
 
 END FUNCTION
-
-SUB textfatalerror (e$)
-
-debug "fatal error:" + e$
-
-touchfile workingdir$ + SLASH + "__danger.tmp"
-
-PRINT "fatal error:"
-PRINT e$
-
-'borrowed this code from game.bas cos wildcard didn't work
-findfiles workingdir$ + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
-fh = FREEFILE
-OPEN "filelist.tmp" FOR INPUT AS #fh
-DO UNTIL EOF(fh)
-LINE INPUT #fh, filename$
-KILL workingdir$ + SLASH + filename$
-LOOP
-CLOSE #fh
-KILL "filelist.tmp"
-RMDIR workingdir$
-
-SYSTEM
-
-END SUB
 
 SUB writeglobalstring (index, s$, maxlen)
 

@@ -46,7 +46,6 @@ declare sub shop (id, needf, stock(), stat(), map, foep, tastuf())
 declare function shoption (inn, price, needf, stat())
 declare sub snapshot
 declare sub tagdisplay
-declare sub textfatalerror (e$)
 declare sub writejoysettings
 declare sub writescriptvar (id, newval)
 declare function getdisplayname$ (default$)

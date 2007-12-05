@@ -23,7 +23,6 @@ DECLARE FUNCTION gethighbyte% (n%)
 DECLARE SUB vishero (stat%())
 DECLARE SUB sellstuff (id%, storebuf%(), stock%(), stat%())
 DECLARE SUB buystuff (id%, shoptype%, storebuf%(), stock%(), stat%())
-DECLARE SUB textfatalerror (e$)
 DECLARE SUB playtimer ()
 DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION countitem% (it%)
@@ -2187,16 +2186,6 @@ FOR i = top TO top + 4
  edgeprint temp$, 8, (i - top) * 10, c, dpage
  IF i = pt THEN edgeprint "->", 0, (i - top) * 10, uilook(uiText), dpage
 NEXT i
-END SUB
-
-SUB textfatalerror (e$)
-
-'--show error
-PRINT e$
-
-'--crash out
-SYSTEM
-
 END SUB
 
 SUB writejoysettings
