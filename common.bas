@@ -2372,3 +2372,19 @@ SUB save_tag_name (tagname AS STRING, index AS INTEGER)
  writebadbinstring tagname$, buf(), 0, 20
  storeset game$ + ".tmn", index, 0
 END SUB
+
+SUB load_default_master_palette (master_palette_array() AS RGBColor)
+ DIM palfile AS STRING
+ palfile = finddatafile("ohrrpgce.mas")
+ IF palfile <> "" THEN
+  xbload palfile, buffer(), "load_default_master_palette: xbload error"
+  convertpalette buffer(), master()
+ ELSE
+  debug "default master palette ohrrpgce.mas is missing"
+  FOR i = 1 TO 15
+   master(i).r = SGN(i AND 4) * 168 + SGN(i AND 8) * 87
+   master(i).g = SGN(i AND 2) * 168 + SGN(i AND 8) * 87
+   master(i).b = SGN(i AND 1) * 168 + SGN(i AND 8) * 87
+  NEXT i
+ END IF
+END SUB

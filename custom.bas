@@ -15,7 +15,6 @@ DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE SUB importbmp (f$, cap$, count%)
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
-DECLARE SUB textxbload (f$, array%(), e$)
 DECLARE SUB fixorder (f$)
 DECLARE SUB vehicles ()
 DECLARE SUB verifyrpg ()
@@ -115,17 +114,7 @@ dim shared trit as string 'to fix an undefined variable error
 
 RANDOMIZE TIMER
 
-palfile$ = finddatafile("ohrrpgce.mas")
-IF palfile$ <> "" THEN
- textxbload palfile$, buffer(), "default master palette ohrrpgce.mas is missing"
- convertpalette buffer(), master()
-ELSE
- FOR i = 1 TO 15
-  master(i).r = SGN(i AND 4) * 168 + SGN(i AND 8) * 87
-  master(i).g = SGN(i AND 2) * 168 + SGN(i AND 8) * 87
-  master(i).b = SGN(i AND 1) * 168 + SGN(i AND 8) * 87
- NEXT i
-END IF
+load_default_master_palette master()
 LoadUIColors uilook()
 
 getdefaultfont font()

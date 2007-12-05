@@ -86,6 +86,7 @@ DECLARE SUB writepassword (p$)
 DECLARE FUNCTION readpassword$ ()
 DECLARE SUB upgrade (font%())
 DECLARE FUNCTION readglobalstring$ (index, default$, maxlen)
+DECLARE SUB load_default_master_palette (master_palette_array() AS RGBColor)
 
 DECLARE FUNCTION readattackname$ (index%)
 DECLARE FUNCTION readenemyname$ (index%)

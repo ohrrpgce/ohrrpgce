@@ -14,7 +14,6 @@ DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), me
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE SUB importbmp (f$, cap$, count%)
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
-DECLARE SUB textxbload (f$, array%(), e$)
 DECLARE SUB fixorder (f$)
 DECLARE SUB verifyrpg ()
 DECLARE FUNCTION numbertail$ (s$)

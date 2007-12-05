@@ -1376,32 +1376,6 @@ FUNCTION textbox_condition_caption(tag AS INTEGER) AS STRING
  RETURN "If tag " & ABS(tag) & " = " + onoroff$(tag) & " (" & load_tag_name(tag) & ")"
 END FUNCTION
 
-SUB textxbload (f$, array(), e$)
-
-IF isfile(f$) THEN
- handle = FREEFILE
- OPEN f$ FOR BINARY AS #handle
- bytes = LOF(handle)
- CLOSE #handle
- IF bytes THEN
-  OPEN f$ FOR BINARY AS #handle
-  a$ = " "
-  GET #handle, 1, a$
-  CLOSE #handle
-  IF a$ = CHR$(253) THEN
-   xBLOAD f$, array(), "Load failed" 'not sure about this
-  ELSE
-   textfatalerror e$ + "(unbloadable)"
-  END IF
- ELSE
-  textfatalerror e$ + "(zero byte)"
- END IF
-ELSE
- textfatalerror e$
-END IF
-
-END SUB
-
 SUB verifyrpg
 
 xbload game$ + ".gen", buffer(), "General data is missing!"
