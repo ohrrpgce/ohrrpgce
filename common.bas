@@ -2312,13 +2312,15 @@ FUNCTION enter_or_space () AS INTEGER
  RETURN keyval(28) > 1 OR keyval(57) > 1
 END FUNCTION
 
-FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING)
+FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS INTEGER=0, sub_t AS INTEGER=0)
  DIM i AS INTEGER
  FOR i = 0 TO UBOUND(menu.items)
   WITH menu.items(i)
    IF .exists = NO THEN
     .exists = YES
     .caption = caption
+    .t = t
+    .sub_t = sub_t
     RETURN i
    END IF
   END WITH
