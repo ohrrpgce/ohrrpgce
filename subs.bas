@@ -20,7 +20,6 @@ DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), me
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE SUB testflexmenu ()
 DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
-DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE SUB herotags (BYREF hero AS HeroDef)
 DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())

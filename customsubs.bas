@@ -387,8 +387,9 @@ FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) 
  IF defaultval = NO  THEN state.pt = 1 
 
  'Keep whatever was on the screen already as a background
+ DIM holdscreen(320 * 200 - 1) AS UBYTE
  copypage vpage, dpage
- copypage vpage, 2
+ copypage vpage, holdscreen()
  
  setkeys
  DO
@@ -415,10 +416,20 @@ FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) 
   draw_menu menu, state, dpage
   SWAP vpage, dpage
   setvispage vpage
-  copypage 2, dpage
+  copypage holdscreen(), dpage
   dowait
  LOOP
- clearpage 2
 
  RETURN result
+END FUNCTION
+
+FUNCTION needaddset (BYREF pt AS INTEGER, BYREF check AS INTEGER, what AS STRING) AS INTEGER
+ IF pt <= check THEN RETURN NO
+ IF yesno("Add new " & what & "?") THEN
+  check += 1
+  RETURN YES
+ ELSE
+  pt -= 1
+ END IF
+ RETURN NO
 END FUNCTION

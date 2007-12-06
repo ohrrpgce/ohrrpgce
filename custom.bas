@@ -32,7 +32,6 @@ DECLARE SUB mapmaker (font%(), npcn%(), npcstat%())
 DECLARE SUB npcdef (npcn%(), pt%)
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
-DECLARE FUNCTION needaddset (pt%, check%, what$)
 DECLARE SUB shopdata ()
 DECLARE SUB importsong ()
 DECLARE SUB importsfx ()
@@ -914,42 +913,6 @@ LOOP
 RETRACE
 
 END SUB
-
-FUNCTION needaddset (pt, check, what$)
-needaddset = 0
-csr = 0
-boxwidth = large(160, LEN(what$) * 8 + 88)
-IF pt > check THEN
- setkeys
- DO
-  setwait timing(), 100
-  setkeys
-  tog = tog XOR 1
-  IF keyval(1) > 1 THEN pt = pt - 1: EXIT DO
-  IF keyval(72) > 1 OR keyval(80) > 1 OR keyval(75) > 1 OR keyval(77) > 1 THEN csr = csr XOR 1
-  IF enter_or_space() THEN
-   IF csr = 0 THEN
-    check = check + 1
-    needaddset = -1
-   ELSE
-    pt = pt - 1
-   END IF
-   setkeys
-   EXIT FUNCTION
-  END IF
-  rectangle 160 - boxwidth \ 2, 10, boxwidth, 40, 1, dpage
-  edgeprint "Add new " + what$ + "?", 160 - LEN("Add new " + what$ + "?") * 4, 20, 15, dpage
-  textcolor 7, 1: IF csr = 0 THEN textcolor 14 + tog, 9
-  printstr " YES ", 120, 30, dpage
-  textcolor 7, 1: IF csr = 1 THEN textcolor 14 + tog, 9
-  printstr " NO ", 164, 30, dpage
-  SWAP vpage, dpage
-  setvispage vpage
-  clearpage dpage
-  dowait
- LOOP
-END IF
-END FUNCTION
 
 SUB shopdata
 DIM names$(32), a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
