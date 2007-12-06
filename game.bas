@@ -298,9 +298,6 @@ getdefaultfont font()
 setmodex
 setwindowtitle "O.H.R.RPG.C.E"
 
-'DEBUG debug "set diskpages"
-setdiskpages buffer(), 200, 0
-
 'DEBUG debug "apply font"
 setfont font()
 

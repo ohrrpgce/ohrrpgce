@@ -677,7 +677,6 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-setdiskpages buffer(), 200, 0
 csr = 0: bcsr = 0
 
 menu$(0) = "Return to Main Menu"

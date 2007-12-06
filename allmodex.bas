@@ -1352,13 +1352,6 @@ SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
 
 end SUB
 
-SUB setdiskpages (buf() as integer, BYVAL h as integer, BYVAL l as integer)
-'sets up buffer (not used) and page size in lines for the page functions above
-'at the moment I have ignored this, and handled whole pages only, I'll have
-'to check whether partial pages are used anywhere
-'No, doesn't look like it is ever less than a whole page, starting at line 0.
-end SUB
-
 SUB setwait (b() as integer, BYVAL t as integer)
 't is a value in milliseconds which, in the original, is used to set the event
 'frequency and is also used to set the wait time, but the resolution of the

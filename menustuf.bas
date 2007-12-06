@@ -1133,7 +1133,6 @@ END SUB
 
 SUB loadtemppage (page)
 '--reads a previously stored page from a temporary file
-setdiskpages buffer(), 200, 0
 loadpage tmpdir$ & "temppage.tmp", 0, page
 END SUB
 
@@ -1609,7 +1608,6 @@ END FUNCTION
 
 SUB savetemppage (page)
 '--writes a page into a temp file for situations where we need more pages than we have
-setdiskpages buffer(), 200, 0
 storepage tmpdir$ & "temppage.tmp", 0, page
 END SUB
 

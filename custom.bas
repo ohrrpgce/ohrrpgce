@@ -121,7 +121,6 @@ getdefaultfont font()
 setmodex
 setpal master()
 setfont font()
-setdiskpages buffer(), 200, 0
 textcolor 15, 0
 GOSUB readstuff
 

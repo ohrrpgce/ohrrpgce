@@ -166,7 +166,7 @@ submenu$(0) = "Import with current Master Palette"
 submenu$(1) = "Import with new Master Palette"
 submenu$(2) = "Do not remap colours"
 loadpalette pmask(), activepalette
-GOSUB showpage
+loadpage game$ + f$, pt, 2
 
 setkeys
 DO
@@ -183,7 +183,7 @@ DO
  IF csr = 1 THEN
   IF intgrabber(pt, 0, count - 1) THEN
    menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
-   GOSUB showpage
+   loadpage game$ + f$, pt, 2
   END IF
  END IF
  IF enter_or_space() THEN
@@ -193,7 +193,7 @@ DO
    IF srcbmp$ <> "" THEN
     GOSUB bimport
    END IF
-   GOSUB showpage
+   loadpage game$ + f$, pt, 2
   END IF
   IF csr = 3 AND count < 32767 THEN
    srcbmp$ = browse$(3, default$, "*.bmp", "")
@@ -204,7 +204,7 @@ DO
     IF pt = count THEN pt = oldpt 'cancelled
    END IF
    menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
-   GOSUB showpage
+   loadpage game$ + f$, pt, 2
   END IF
   IF csr = 4 THEN GOSUB disable
   IF csr = 5 THEN
@@ -296,11 +296,6 @@ IF pt >= count THEN count = pt + 1
 loadpalette pmask(), activepalette
 RETRACE
 
-showpage:
-setdiskpages buffer(), 200, 0
-loadpage game$ + f$, pt, 2
-RETRACE
-
 END SUB
 
 SUB loadpasdefaults (array(), tilesetnum)
@@ -324,8 +319,6 @@ END SUB
 
 SUB maptile (font())
 DIM menu$(10), tastuf(40)
-
-setdiskpages buffer(), 200, 0
 
 mapfile$ = game$ + ".til"
 

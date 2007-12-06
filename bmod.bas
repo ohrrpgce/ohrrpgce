@@ -2166,7 +2166,6 @@ FOR i = 12 TO 23
  bslot(i).h = 50
 NEXT i
 curbg = formdata(32)
-setdiskpages buffer(), 200, 0
 loadpage game$ + ".mxs", curbg, 2
 FOR i = 0 TO 3
  IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vdance = 0 THEN of(i) = 6 : bslot(i).frame = 6

@@ -98,14 +98,13 @@ IF bytes >= 0 THEN
  END IF
  
 ELSE '--use pages instead of sets
- setdiskpages buffer(), 200, 0
  FOR i = 0 TO index
   loadpage lump$, i, flushafter
   storepage tmpdir$ & "_cropped.tmp", i, flushafter
  NEXT i
  limit = index
  
-END IF'--separate setpicstuf and setdiskpages
+END IF'--separate setpicstuf
 
 copyfile tmpdir$ & "_cropped.tmp", lump$
 safekill tmpdir$ & "_cropped.tmp"
@@ -1255,7 +1254,6 @@ max(4) = gen(genMaxBackdrop) - 1
 min(5) = -1
 max(5) = gen(genMaxSong)
 IF buffer(197) > 0 THEN
- setdiskpages buf(), 200, 0
  loadpage game$ + ".mxs", buffer(197) - 1, 2
 END IF
 RETRACE

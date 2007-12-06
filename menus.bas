@@ -1283,7 +1283,6 @@ RETURN 0
 END FUNCTION
 
 SUB titlescreenbrowse
-setdiskpages buffer(), 200, 0
 loadpage game$ + ".mxs", gen(1), 2
 setkeys
 gcsr = 0
