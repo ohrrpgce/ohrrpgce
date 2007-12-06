@@ -387,7 +387,7 @@ FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) 
  IF defaultval = NO  THEN state.pt = 1 
 
  'Keep whatever was on the screen already as a background
- DIM holdscreen(320 * 200 - 1) AS UBYTE
+ DIM holdscreen(DIMSCREENPAGE) AS UBYTE
  copypage vpage, dpage
  copypage vpage, holdscreen()
  
