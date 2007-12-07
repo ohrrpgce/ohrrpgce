@@ -812,6 +812,21 @@ FUNCTION keyval (BYVAL a as integer) as integer
 	keyval = keybd(a)
 end FUNCTION
 
+FUNCTION waitforanykey (modkeys=-1) as integer
+	dim i as integer
+	setkeys
+	do
+		setwait 100
+		setkeys
+		for i = 1 to &h7f
+			if not modkeys and (i=29 or i=56 or i=42 or i=54) then continue for
+			if keyval(i) > 1 then return i
+		next i
+		dowait
+	loop
+	return 0
+end FUNCTION
+
 FUNCTION getkey () as integer
 	dim i as integer, key as integer
 	key = 0
@@ -832,6 +847,28 @@ FUNCTION getkey () as integer
 
 	getkey = key
 end FUNCTION
+
+'FIXME DELETEME
+'--This code is for screen page debugging, and will be removed in the future!
+DECLARE SUB debug_screen_page(p AS INTEGER)
+SUB debug_screen_page(p AS INTEGER)
+	dim caption as string
+	dim k as integer
+	copypage p, vpage
+	caption = "Screen Page: "
+	IF p = dpage THEN
+		caption = caption & "drawing page"
+	else
+	caption = caption & p
+	end if
+	edgeprint caption, 0, 0, uilook(uiText), vpage
+	edgeprint "B:blank, W:whiteout", 0, 190, uilook(uiText), vpage
+	setvispage vpage
+	k = waitforanykey(NO)
+	if k = 48 then clearpage p
+	if k = 17 then rectangle 0, 0, 320, 200, 15, p
+	clearkey (k)
+END SUB
 
 SUB setkeys ()
 'Quite nasty. Moved all this functionality from keyval() because this
@@ -870,7 +907,16 @@ SUB setkeys ()
 	ELSE
 		keybd(-1) = 0
 	END IF
+
 	mutexunlock keybdmutex
+
+	'FIXME DELETEME
+	'--This code is for screen page debugging, and will be removed in the future!
+	if keyval(70) > 0 then 'Scroll-lock
+		clearkey(70)
+		if keyval(3) > 1 then clearkey(3) : debug_screen_page 2
+		if keyval(4) > 1 then clearkey(4) : debug_screen_page 3
+	end if
 end SUB
 
 SUB clearkey(byval k as integer)
