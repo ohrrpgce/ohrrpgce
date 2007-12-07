@@ -170,6 +170,7 @@ DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_menuslot(menuslot AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_menuslot_and_mislot(menuslot AS INTEGER, mislot AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
+DECLARE FUNCTION find_menu_id (id AS INTEGER) AS INTEGER
 DECLARE FUNCTION find_menu_handle(menu_handle) AS INTEGER
 DECLARE FUNCTION find_menu_item_handle_in_menuslot (handle AS INTEGER, menuslot AS INTEGER) AS INTEGER
 DECLARE FUNCTION find_menu_item_handle(handle AS INTEGER, BYREF found_in_menuslot) AS INTEGER
@@ -536,11 +537,13 @@ DO
  'DEBUG debug "increment script timers"
  dotimer(0)
  'DEBUG debug "keyboard handling"
- IF carray(5) > 1 AND showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(0) = 0 AND xgo(0) = 0 AND ygo(0) = 0 AND topmenu = -1 THEN
-  add_menu 0
-  menusound gen(genAcceptSFX)
-  evalitemtag
-  npcplot
+ IF carray(5) > 1 AND showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(0) = 0 AND xgo(0) = 0 AND ygo(0) = 0 THEN
+  IF find_menu_id(0) < 0 THEN
+   add_menu 0
+   menusound gen(genAcceptSFX)
+   evalitemtag
+   npcplot
+  END IF
  END IF
  IF showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(6) = 0 AND menus_allow_player() THEN
   IF xgo(0) = 0 AND ygo(0) = 0 THEN
@@ -2467,12 +2470,10 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     END IF
    CASE 301'--find menu ID
     IF bound_arg(retvals(0), 0, gen(genMaxMenu), "find menu ID", "menu ID") THEN
-     FOR i = topmenu TO 0 STEP -1
-      IF menus(i).record = retvals(0) THEN
-       scriptret = menus(i).handle
-       EXIT FOR
-      END IF
-     NEXT i
+     menuslot = find_menu_id(retvals(0))
+     IF menuslot >= 0 THEN
+      scriptret = menus(menuslot).handle
+     END IF
     END IF
    CASE 302'--menu is open
     menuslot = find_menu_handle(retvals(0))
@@ -2915,10 +2916,20 @@ FUNCTION game_usemenu (state AS MenuState)
  END WITH
 END FUNCTION
 
+FUNCTION find_menu_id (id AS INTEGER) AS INTEGER
+ DIM i AS INTEGER
+ FOR i = topmenu TO 0 STEP -1
+  IF menus(i).record = id THEN
+   RETURN i 'return slot
+  END IF
+ NEXT i
+ RETURN -1 ' Not found
+END FUNCTION
+
 FUNCTION find_menu_handle (handle) AS INTEGER
  DIM i AS INTEGER
  FOR i = 0 TO topmenu
-  IF menus(i).handle = handle THEN RETURN i
+  IF menus(i).handle = handle THEN RETURN i 'return slot
  NEXT i
  RETURN -1 ' Not found
 END FUNCTION
