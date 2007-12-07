@@ -157,7 +157,7 @@ DECLARE SUB killallscripts ()
 DECLARE SUB reloadscript (index, updatestats = -1)
 DECLARE FUNCTION count_sav(filename AS STRING) AS INTEGER
 DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
-DECLARE FUNCTION add_menu (record AS INTEGER) AS INTEGER
+DECLARE FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
 DECLARE SUB remove_menu (slot AS INTEGER)
 DECLARE SUB bring_menu_forward (slot AS INTEGER)
 DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
@@ -2298,7 +2298,7 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     npcplot
    CASE 274'--open menu
     IF bound_arg(retvals(0), 0, gen(genMaxMenu), "open menu", "menu ID") THEN
-     scriptret = add_menu(retvals(0))
+     scriptret = add_menu(retvals(0), (retvals(1) <> 0))
     END IF
    CASE 275'--read menu int
     menuslot = find_menu_handle(retvals(0))
@@ -2700,8 +2700,8 @@ FUNCTION count_sav(filename AS STRING) AS INTEGER
  RETURN n
 END FUNCTION
 
-FUNCTION add_menu (record AS INTEGER) AS INTEGER
- IF record > = 0 THEN
+FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
+ IF record > = 0 AND allow_duplicate = NO THEN
   'If adding a non-blank menu, first check if the requested menu is already open
   DIM menuslot AS INTEGER
   menuslot = find_menu_id(record)

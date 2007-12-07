@@ -202,6 +202,11 @@ advance text box # "hit spacebar"</example>
 			<example>show text box(2) # Show a text box
 wait for text box # wait until the player continues</example>
 		</command>
+		<command id="wait for menu">
+			<cannon>wait for menu(menu handle)</cannon>
+			<shortname>wait for menu</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>open menu</ref>), causes the script to wait until that menu has been closed</description>
+		</command>
 		<command id="waitforhero">
 			<cannon>wait for hero (who)</cannon>
 			<shortname>wait for hero</shortname>
@@ -1387,9 +1392,9 @@ get hero name (1,find hero(hero by rank(0)))
 
 	<section title="Menu Functions">
 		<command id="openmenu">
-			<cannon>open menu (ID)</cannon>
+			<cannon>open menu (ID, allow duplicate)</cannon>
 			<shortname>open menu</shortname>
-			<description>Opens the menu specified by <p>ID</p>. You can also use the constants defined in your HSI file in the form menu:name. The menu will be opened on top of any menus that are already open. The return value is a menu handle that you should store in a variable for use with other menu-related commands. Note that a menu must have the "Allow gameplay" bitset turned ON to be manipulated by plotscripts. If the "Allow gameplay" menu is OFF, this command will open it, but the script will not resume until the player has closed the menu.</description>
+			<description>Opens the menu specified by <p>ID</p>. You can also use the constants defined in your HSI file in the form menu:name. The menu will be opened on top of any menus that are already open. The optional second argument <p>allow duplicates</p> can be <ref>true</ref> if you want to be able to open more than one copy of the same menu at the same time. The return value is a menu handle that you should store in a variable for use with other menu-related commands. Note that a menu must have the "Allow gameplay" bitset turned ON to be manipulated by plotscripts. If the "Allow gameplay" menu is OFF, this command will open it, but the script will not resume until the player has closed the menu.</description>
 		</command>
 		<command id="createmenu">
 			<cannon>create menu</cannon>
@@ -1447,11 +1452,6 @@ end</example>
 			<cannon>menu is open(menu handle)</cannon>
 			<shortname>menu is open</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <p>open menu</p>), Check to see if it is already open, and return <ref>true</ref> if it is, or <ref>false</ref> if it is not</description>
-		</command>
-		<command id="wait for menu">
-			<cannon>wait for menu(menu handle)</cannon>
-			<shortname>wait for menu</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <p>open menu</p>), causes the script to wait until that menu has been closed</description>
 		</command>
 		<command id="addmenuitem">
 			<cannon>addmenuitem(menu handle)</cannon>
