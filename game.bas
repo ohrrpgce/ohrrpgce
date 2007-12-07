@@ -2701,6 +2701,17 @@ FUNCTION count_sav(filename AS STRING) AS INTEGER
 END FUNCTION
 
 FUNCTION add_menu (record AS INTEGER) AS INTEGER
+ IF record > = 0 THEN
+  'If adding a non-blank menu, first check if the requested menu is already open
+  DIM menuslot AS INTEGER
+  menuslot = find_menu_id(record)
+  IF menuslot >= 0 THEN
+   'the requested menu is already open, just bring it to the top
+   bring_menu_forward menuslot
+   RETURN menus(topmenu).handle
+  END IF
+ END IF
+ 'Load the menu into a new menu slot
  topmenu = topmenu + 1
  IF topmenu > UBOUND(menus) THEN
   REDIM PRESERVE menus(topmenu) AS MenuDef
