@@ -96,7 +96,7 @@ DECLARE SUB drawsay (saybit%(), sayenh%(), say$(), showsay%, choose$(), choosep%
 DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, tastuf%())
 DECLARE SUB minimap (x%, y%, tastuf%())
 DECLARE FUNCTION onwho% (w$, alone)
-DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
+DECLARE FUNCTION useinn (inn%, price%, needf%, stat%(), holdscreen() AS UBYTE)
 DECLARE SUB itstr (i%)
 DECLARE SUB control ()
 DECLARE FUNCTION picksave% (load%)
@@ -1004,23 +1004,24 @@ IF istag(saytag(17), 0) THEN
 END IF
 '---SHOP/INN/SAVE/ETC------------
 IF istag(saytag(7), 0) THEN
- copypage vpage, 3
  IF saytag(8) > 0 THEN
   shop saytag(8) - 1, needf, stock(), stat(), map, foep, tastuf()
   reloadnpc stat()
  END IF
  inn = 0
  IF saytag(8) < 0 THEN
-  IF shoption(inn, ABS(saytag(8)), needf, stat()) THEN
+  DIM holdscreen(DIMSCREENPAGE) AS UBYTE
+  '--Preserve background for display beneath the top-level shop menu
+  copypage vpage, holdscreen()
+  IF useinn(inn, ABS(saytag(8)), needf, stat(), holdscreen()) THEN
    fadeout 0, 0, 80
    needf = 1
   END IF
+  ERASE holdscreen
  END IF
  IF saytag(8) <= 0 AND inn = 0 THEN
   innRestore stat()
  END IF
- vishero stat()
- loadpage game$ + ".til", gmap(0), 3
 END IF
 '---ADD/REMOVE/SWAP/LOCK HERO-----------------
 IF istag(saytag(9), 0) THEN arslhero saytag(), stat()

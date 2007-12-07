@@ -12,8 +12,6 @@ DECLARE FUNCTION str2lng& (stri$)
 DECLARE SUB innRestore (stat%())
 DECLARE SUB renamehero (who%)
 DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
-DECLARE SUB loadtemppage (page%)
-DECLARE SUB savetemppage (page%)
 DECLARE SUB calibrate ()
 DECLARE FUNCTION settingstring% (searchee$, setting$, result$)
 DECLARE SUB writejoysettings ()
@@ -30,7 +28,7 @@ DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE SUB minimap (x%, y%, tastuf%())
 DECLARE SUB heroswap (iAll%, stat%())
-DECLARE FUNCTION shoption (inn%, price%, needf%, stat%())
+DECLARE FUNCTION useinn (inn%, price%, needf%, stat%(), holdscreen() AS UBYTE)
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
 DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
 DECLARE SUB scripterr (e$)
@@ -61,6 +59,7 @@ DECLARE SUB freescripts (mem%)
 DECLARE FUNCTION loadscript% (n%)
 DECLARE SUB killallscripts ()
 DECLARE SUB remove_menu (record AS INTEGER)
+DECLARE FUNCTION herocount () AS INTEGER
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -553,11 +552,10 @@ END IF
 END SUB
 
 SUB heroswap (iAll%, stat())
+DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 
-'Page 2 has the npcs, which don't need to be reloaded afterward
-'Page 3 holds a copy of vpage.
-savetemppage 3
-copypage dpage, 3
+'--Preserve background for display beneath the hero swapper
+copypage vpage, holdscreen()
 
 DIM swindex(40), swname$(40)
 
@@ -587,7 +585,6 @@ DO
    MenuSound gen(genCancelSFX)
    swapme = -1
   ELSE
-   loadtemppage 3
    EXIT DO
   END IF
  END IF
@@ -663,7 +660,7 @@ DO
  GOSUB showswapmenu
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
+ copypage holdscreen(), dpage
  dowait
 LOOP
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
@@ -1932,6 +1929,10 @@ END FUNCTION
 SUB shop (id, needf, stock(), stat(), map, foep, tastuf())
 
 DIM storebuf(40), menu$(10), menuid(10)
+DIM holdscreen(DIMSCREENPAGE) AS UBYTE
+
+'--Preserve background for display beneath top-level shop menu
+copypage vpage, holdscreen()
 
 FOR i = 0 TO 7
  menuid(i) = i
@@ -1953,7 +1954,6 @@ IF last = -1 THEN EXIT SUB
 IF last = 0 THEN autopick = 1
 last = last + 1: menu$(last) = readglobalstring$(74, "Exit", 10)
 
-GOSUB repaintback
 menusound gen(genAcceptSFX)
 
 setkeys
@@ -1978,7 +1978,6 @@ DO
    buystuff id, 1, storebuf(), stock(), stat()
   END IF
   IF menuid(pt) = 6 THEN '--MAP
-   loadpage game$ + ".til", gmap(0), 3
    minimap catx(0), caty(0), tastuf()
   END IF
   IF menuid(pt) = 7 THEN '--TEAM
@@ -1997,7 +1996,7 @@ DO
   END IF
   IF menuid(pt) = 3 THEN '--INN
    inn = 0
-   IF shoption(inn, storebuf(18), needf, stat()) THEN
+   IF useinn(inn, storebuf(18), needf, stat(), holdscreen()) THEN
     IF inn = 0 THEN
      innRestore stat()
     END IF
@@ -2015,7 +2014,6 @@ DO
    END IF
   END IF
   IF autopick THEN EXIT SUB
-  GOSUB repaintback
  END IF
  h = (last + 2) * 10
  centerbox 160, 104 + (h * .5), 96, h, 1, dpage
@@ -2027,7 +2025,7 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
+ copypage holdscreen(), dpage
  IF needf = 1 THEN needf = 0: fadein: setkeys
  IF needf > 1 THEN needf = needf - 1
  dowait
@@ -2035,15 +2033,6 @@ LOOP
 menusound gen(genCancelSFX)
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
 EXIT SUB
-
-repaintback:
-loadpage game$ + ".til", gmap(0), 3
-setmapdata scroll(), buffer(), 0, 0
-drawmap mapx, mapy,0, 0, dpage
-if readbit(gmap(), 19, 0) then drawmap mapx, mapy, 1, 0, dpage, 1
-if readbit(gmap(), 19, 1) then drawmap mapx, mapy, 2, 0, dpage, 1
-copypage dpage, 3
-RETRACE
 
 initshop:
 setpicstuf storebuf(), 40, -1
@@ -2061,13 +2050,11 @@ NEXT i
 RETRACE
 END SUB
 
-FUNCTION shoption (inn, price, needf, stat())
+FUNCTION useinn (inn, price, needf, stat(), holdscreen() AS UBYTE)
 DIM menu$(1), sname$(40)
+DIM AS INTEGER i, y
 
-savetemppage 3
-copypage dpage, 3
-
-shoption = 0
+useinn = 0
 
 getnames sname$()
 
@@ -2087,16 +2074,19 @@ DO
  IF carray(4) > 1 THEN
   IF inn = 0 AND gold& >= price THEN
    gold& = gold& - price
-   shoption = -1
+   useinn = -1
    EXIT DO
   END IF
   IF inn = 1 THEN EXIT DO
  END IF
+ edgeboxstyle 0, 3, 218, herocount() * 10 + 4, 0, dpage
+ y = 0
  FOR i = 0 TO 3
   IF hero(i) > 0 THEN
    col = uilook(uiText)
-   edgeprint names$(i), 128 - LEN(names$(i)) * 8, 5 + i * 10, col, dpage
-   edgeprint STR$(ABS(stat(i, 0, 0))) + "/" + STR$(ABS(stat(i, 1, 0))), 136, 5 + i * 10, col, dpage
+   edgeprint names$(i), 128 - LEN(names$(i)) * 8, 5 + y * 10, col, dpage
+   edgeprint STR$(ABS(stat(i, 0, 0))) + "/" + STR$(ABS(stat(i, 1, 0))), 136, 5 + y * 10, col, dpage
+   y = y + 1
   END IF
  NEXT i
  centerfuz 160, 90, 200, 60, 1, dpage
@@ -2109,12 +2099,11 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
+ copypage holdscreen(), dpage
  IF needf = 1 THEN needf = 0: fadein: setkeys
  IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
-loadtemppage 3
 
 END FUNCTION
 
@@ -2228,4 +2217,15 @@ FUNCTION getdisplayname$ (default$)
   END IF
  END IF
  getdisplayname$ = default$
+END FUNCTION
+
+FUNCTION herocount () AS INTEGER
+'--differs from liveherocount() in that it does not care if they are alive
+ DIM i AS INTEGER
+ DIM count AS INTEGER
+ count = 0
+ FOR i = 0 TO 3
+  IF hero(i) > 0 THEN count + = 1
+ NEXT i
+ RETURN count
 END FUNCTION

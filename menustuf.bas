@@ -13,8 +13,6 @@ DECLARE FUNCTION getOOBtarg% (gamma%, wptr%, index%, stat%(), ondead%(), onlive%
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
 DECLARE SUB herobattlebits (bitbuf%(), who%)
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
-DECLARE SUB loadtemppage (page%)
-DECLARE SUB savetemppage (page%)
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
 DECLARE SUB vishero (stat%())
@@ -65,7 +63,11 @@ DECLARE SUB setshopstock (id, recordsize, stock(), storebuf(), stufbuf())
 REM $STATIC
 SUB buystuff (id, shoptype, storebuf(), stock(), stat())
 DIM b(dimbinsize(1) * 50), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walks(15), hpal(8), tradestf(3, 1)
+DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 recordsize = curbinsize(1) / 2 ' get size in INTs
+
+'--Preserve background for display beneath the buy menu
+copypage vpage, holdscreen()
 
 getnames sname$()
 buytype$(0, 0) = readglobalstring$(85, "Trade for", 20) + " "
@@ -247,7 +249,7 @@ DO
  END IF
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
+ copypage holdscreen(), dpage
  dowait
 LOOP
 vishero stat()
@@ -424,9 +426,7 @@ SUB equip (pt, stat())
 
 '--dim stuff
 DIM sname$(40), sno(11), eq(199), toff(4), tlim(4), m$(4), menu$(6), stb(11)
-
-savetemppage 3
-copypage dpage, 3
+DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 
 '--get names
 getnames sname$()
@@ -459,11 +459,8 @@ mset = 0
 GOSUB setupeq
 
 '--prepare the backdrop
-copypage vpage, 3
-centerfuz 160, 100, 304, 184, 1, 3
-centerbox 84, 16, 140, 20, 4, 3
-centerbox 84, 100, 140, 130, 4, 3
-centerbox 236, 75, 80, 78, 4, 3
+'preserve the background behind the equip menu
+copypage vpage, holdscreen()
 
 '--main loop
 MenuSound gen(genAcceptSFX)
@@ -476,7 +473,7 @@ DO
  control
  IF mset = 0 THEN
   '--primary menu
-  IF carray(5) > 1 THEN loadtemppage 3: FOR t = 4 TO 5: carray(t) = 0: NEXT t: EXIT DO
+  IF carray(5) > 1 THEN FOR t = 4 TO 5: carray(t) = 0: NEXT t: EXIT DO
   IF carray(2) > 1 THEN
    DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0
    GOSUB setupeq
@@ -520,7 +517,7 @@ DO
     'UPDATE ITEM POSESSION BITSETS
     evalitemtag
    END IF
-   IF csr = 6 THEN loadtemppage 3: carray(4) = 0: EXIT DO
+   IF csr = 6 THEN carray(4) = 0: EXIT DO
   END IF
  ELSE
   '--change equip menu
@@ -557,6 +554,10 @@ DO
  END IF
 
  '--display
+ centerfuz 160, 100, 304, 184, 1, dpage
+ centerbox 84, 16, 140, 20, 4, dpage
+ centerbox 84, 100, 140, 130, 4, dpage
+ centerbox 236, 75, 80, 78, 4, dpage
  edgeprint names$(pt), 84 - LEN(names$(pt)) * 4, 12, uilook(uiText), dpage
  FOR i = 0 TO 11
   temp$ = ""
@@ -616,7 +617,7 @@ DO
  END IF
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
+ copypage holdscreen(), dpage
  dowait
 LOOP
 MenuSound gen(genCancelSFX)
@@ -810,8 +811,9 @@ special$(-1) = rpad$(readglobalstring$(37, "TRASH", 10), " ", 11)
 
 REMEMBERSTATE
 
-savetemppage 3
-copypage dpage, 3
+DIM holdscreen(DIMSCREENPAGE) AS UBYTE
+'--Preserve background for display beneath the item menu
+copypage vpage, holdscreen()
 
 FOR i = 0 TO 2
  setbit iuse(), 0, i, 1
@@ -836,7 +838,6 @@ FOR i = 0 TO inventoryMax
 NEXT i
 ic = -3: top = -3: sel = -4: wptr = 0: spred = 0: pick = 0
 info$ = ""
-centerbox 160, 92, 304, 176, 1, 3
 
 GOSUB infostr
 setkeys
@@ -853,6 +854,7 @@ DO
  control
  GOSUB itcontrol
  IF quit THEN EXIT DO
+ centerbox 160, 92, 304, 176, 1, dpage
  FOR i = top TO top + 62
   textcolor uilook(uiDisabledItem), 0
   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
@@ -893,11 +895,10 @@ DO
  END IF
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
+ copypage holdscreen(), dpage
  dowait
 LOOP
 menusound gen(genCancelSFX)
-loadtemppage 3
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
 EXIT FUNCTION
 
@@ -982,7 +983,6 @@ IF pick = 0 THEN
      IF itemdata(73) = 1 THEN dummy = consumeitem(ic)
      items = itemdata(51) * -1
      MenuSound gen(genAcceptSFX)
-     loadtemppage 3
      RETRIEVESTATE
      EXIT FUNCTION
     END IF
@@ -1129,11 +1129,6 @@ ELSE
  inventory(i).text = readitemname$(inventory(i).id)
  inventory(i).text = rpad$(inventory(i).text, " ", 8) + CHR$(1) + RIGHT$(XSTR$(inventory(i).num), 2)
 END IF
-END SUB
-
-SUB loadtemppage (page)
-'--reads a previously stored page from a temporary file
-loadpage tmpdir$ & "temppage.tmp", 0, page
 END SUB
 
 SUB oobcure (w, t, atk, spred, stat())
@@ -1331,6 +1326,7 @@ END SUB
 FUNCTION picksave (loading)
 
 DIM full(3), herosname$(3), mapname$(3), svtime$(3), lev$(3), id(3, 3), tstat(3, 1, 16), pic(3, 3), confirm$(1), menu$(1)
+DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 
 '--if loading is 2, that means fade the screen in, and loadmenu
 '--loading 2 uses page 3 as background and overwrites it. loading 0+1 use dpage and preserve page 3. All wipe page 2
@@ -1356,16 +1352,12 @@ ELSE
  menuwidth = 8 * large(LEN(confirm$(0)), LEN(confirm$(1)))
 END IF
 
-'--draw buttons, save current display
 IF loading < 2 THEN
- savetemppage 3
- copypage dpage, 3
+ '--preserve background for display beneath the save/load picker
+ copypage vpage, holdscreen()
 END IF
-centerbox 50, 10, 80, 12, 15, 3
-IF loading THEN centerbox 270, 10, 80, 12, 15, 3
 
 FOR i = 0 TO 3
- centerbox 160, 40 + i * 44, 310, 42, 15, 3
  sg$ = savefile$
  setpicstuf buffer(), 30000, -1
  loadset sg$, i * 2, 0
@@ -1449,7 +1441,7 @@ IF loading THEN
   IF full(i) = 1 THEN nofull = 1
  NEXT i
  IF nofull = 0 THEN 
-  IF loading = 2 THEN clearpage 2 ELSE loadtemppage 3
+  IF loading = 2 THEN clearpage 2
   picksave = -1
   EXIT FUNCTION
  END IF
@@ -1511,7 +1503,7 @@ DO
  GOSUB drawmenugosub
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
+ copypage holdscreen(), dpage
  IF needf = 1 THEN   'the titlescreen might be skipped and with it the fading in
   needf = 0
   fademusic fmvol
@@ -1522,8 +1514,6 @@ DO
 LOOP
 IF loading = 2 THEN
  clearpage 2
-ELSE
- loadtemppage 3
 END IF
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
 EXIT FUNCTION
@@ -1557,11 +1547,16 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
+ copypage holdscreen(), dpage
  dowait
 LOOP
 
 drawmenugosub:
+centerbox 50, 10, 80, 12, 15, dpage
+IF loading THEN centerbox 270, 10, 80, 12, 15, dpage
+FOR i = 0 TO 3
+ centerbox 160, 40 + i * 44, 310, 42, 15, dpage
+NEXT i
 'load and save menus enjoy different colour schemes
 IF loading THEN activec = 2 ELSE activec = 1
 SELECT CASE cursor
@@ -1606,14 +1601,13 @@ WHILE LEN(result$) < size: result$ = result$ + pad$: WEND
 rpad$ = result$
 END FUNCTION
 
-SUB savetemppage (page)
-'--writes a page into a temp file for situations where we need more pages than we have
-storepage tmpdir$ & "temppage.tmp", 0, page
-END SUB
-
 SUB sellstuff (id, storebuf(), stock(), stat())
 DIM b(dimbinsize(1) * 50), sname$(40), permask(15), price(200)
+DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 recordsize = curbinsize(1) / 2 ' get size in INTs
+
+'--preserve background for display under sell menu
+copypage vpage, holdscreen()
 
 getnames sname$()
 
@@ -1666,7 +1660,7 @@ DO
  END IF
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
+ copypage holdscreen(), dpage
  dowait
 LOOP
 vishero stat()
@@ -1791,11 +1785,9 @@ REMEMBERSTATE
 
 DIM sname$(40), menu$(4), mi(4), mtype(5), spel$(24), speld$(24), cost$(24), spel(24), canuse(24), targt(24), spid(5), ondead(2), onlive(2)
 dim her as herodef
+DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 
 getnames sname$()
-
-savetemppage 3
-copypage dpage, 3
 
 cancelmenu$ = readglobalstring$(51, "(CANCEL)", 10)
 hasnone$ = readglobalstring$(133, "has no spells", 20)
@@ -1808,12 +1800,8 @@ sptr = 0
 mset = 0
 
 GOSUB splname
-copypage vpage, 3
-centerfuz 160, 100, 312, 184, 1, 3	'outer box
-centerbox 206, 36, 200, 20, 2, 3 	'name box
-centerbox 60, 50, 82, 60, 2, 3		'menu box
-centerbox 160, 133, 308, 94, 2, 3	'spell list
-rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), 3	'divider 2
+'--Preserve background for display beneath the spells menu
+copypage vpage, holdscreen()
 csr = 0
 menusound gen(genAcceptSFX)
 setkeys
@@ -1825,6 +1813,11 @@ DO
  playtimer
  control
  GOSUB scontrol
+ centerfuz 160, 100, 312, 184, 1, dpage 'outer box
+ centerbox 206, 36, 200, 20, 2, dpage   'name box
+ centerbox 60, 50, 82, 60, 2, dpage     'menu box
+ centerbox 160, 133, 308, 94, 2, dpage  'spell list
+ rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), dpage 'divider 2
  FOR i = 0 TO last
   IF mi(i) >= 0 AND csr = i THEN
    FOR o = 0 TO 23
@@ -1876,7 +1869,7 @@ DO
 
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
+ copypage holdscreen(), dpage
  dowait
 LOOP
 
@@ -1962,7 +1955,6 @@ IF pick = 0 THEN '--picking which spell list
    menusound gen(genCancelSFX)
    setkeys
    FOR i = 0 TO 7: carray(i) = 0: NEXT i
-   loadtemppage 3
    RETRIEVESTATE
    EXIT SUB
   END IF
@@ -1995,7 +1987,6 @@ IF pick = 0 THEN '--picking which spell list
     menusound gen(genCancelSFX)
     setkeys
     FOR i = 0 TO 7: carray(i) = 0: NEXT i
-    loadtemppage 3
     RETRIEVESTATE
     EXIT SUB
    END IF
@@ -2110,9 +2101,7 @@ END SUB
 SUB status (pt, stat())
 DIM sname$(40), sno(9), mtype(5), hbits(3, 4), thishbits(4), elemtype$(2), info$(25)
 dim her as herodef
-
-savetemppage 3
-copypage dpage, 3
+DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 
 getnames sname$()
 sname$(33) = readglobalstring$(33, "Experience", 10)
@@ -2142,9 +2131,8 @@ top = 0
 lastinfo = 0
 
 GOSUB nextstat
-copypage vpage, 3
-centerfuz 160, 100, 304, 184, 1, 3
-centerbox 160, 36, 260, 40, 4, 3
+'--Preserve background for display under status menu
+copypage vpage, holdscreen()
 
 menusound gen(genAcceptSFX)
 setkeys
@@ -2156,7 +2144,6 @@ DO
  control
  IF carray(5) > 1 THEN
  	menusound gen(genCancelSFX)
- 	loadtemppage 3
  	FOR t = 4 TO 5
  		carray(t) = 0
  	NEXT t
@@ -2167,6 +2154,9 @@ DO
  IF carray(3) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): GOSUB nextstat
  IF carray(0) > 1 THEN top = large(top - 1, 0): menusound gen(genCursorSFX)
  IF carray(1) > 1 THEN top = small(top + 1, large(0, lastinfo - 11)): menusound gen(genCursorSFX)
+
+ centerfuz 160, 100, 304, 184, 1, dpage
+ centerbox 160, 36, 260, 40, 4, dpage
 
  SELECT CASE mode
   CASE 0
@@ -2240,7 +2230,7 @@ DO
 
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
+ copypage holdscreen(), dpage
  dowait
 LOOP
 

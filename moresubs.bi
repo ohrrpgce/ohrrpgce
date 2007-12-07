@@ -43,7 +43,7 @@ declare sub scripterr (e$)
 declare sub scriptmath
 declare function settingstring (searchee$, setting$, result$)
 declare sub shop (id, needf, stock(), stat(), map, foep, tastuf())
-declare function shoption (inn, price, needf, stat())
+declare function useinn (inn, price, needf, stat())
 declare sub snapshot
 declare sub tagdisplay
 declare sub writejoysettings
