@@ -648,8 +648,8 @@ RETRACE
 EnBackSub:
 setactivemenu workmenu(), mainMenu(), state
 menudepth = 0
-pt = lastptr
-top = lasttop
+state.pt = lastptr
+state.top = lasttop
 GOSUB EnUpdateMenu
 RETRACE
 
