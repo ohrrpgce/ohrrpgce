@@ -70,6 +70,7 @@ TYPE MenuDef
   no_box           AS INTEGER ' Bitset 4
   no_close         AS INTEGER ' Bitset 5
   no_controls      AS INTEGER ' Bitset 6
+  prevent_main_menu AS INTEGER ' Bitset 7
   rect      AS RectType
   offset    AS XYPair
   anchor    AS XYPair

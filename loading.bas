@@ -751,6 +751,7 @@ SUB MenuBitsToArray (menu AS MenuDef, bits() AS INTEGER)
   setbit bits(), 0, 4, .no_box
   setbit bits(), 0, 5, .no_close
   setbit bits(), 0, 6, .no_controls
+  setbit bits(), 0, 7, .prevent_main_menu
  END WITH
 END SUB
 
@@ -763,6 +764,7 @@ SUB MenuBitsFromArray (menu AS MenuDef, bits() AS INTEGER)
   .no_box         = (readbit(bits(), 0, 4) <> 0)
   .no_close       = (readbit(bits(), 0, 5) <> 0)
   .no_controls    = (readbit(bits(), 0, 6) <> 0)
+  .prevent_main_menu = (readbit(bits(), 0, 7) <> 0)
  END WITH
 END SUB
 

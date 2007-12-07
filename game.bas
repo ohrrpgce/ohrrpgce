@@ -162,6 +162,7 @@ DECLARE SUB remove_menu (slot AS INTEGER)
 DECLARE SUB bring_menu_forward (slot AS INTEGER)
 DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
 DECLARE FUNCTION menus_allow_player () AS INTEGER
+DECLARE FUNCTION allowed_to_open_main_menu () AS INTEGER
 DECLARE SUB player_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
 DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB check_menu_tags ()
@@ -538,7 +539,7 @@ DO
  dotimer(0)
  'DEBUG debug "keyboard handling"
  IF carray(5) > 1 AND showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(0) = 0 AND xgo(0) = 0 AND ygo(0) = 0 THEN
-  IF find_menu_id(0) < 0 THEN
+  IF allowed_to_open_main_menu() THEN
    add_menu 0
    menusound gen(genAcceptSFX)
    evalitemtag
@@ -3025,4 +3026,13 @@ FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING, mislot 
   NEXT i
  END WITH
  RETURN -1 ' not found
+END FUNCTION
+
+FUNCTION allowed_to_open_main_menu () AS INTEGER
+ DIM i AS INTEGER
+ IF find_menu_id(0) >= 0 THEN RETURN NO 'Already open
+ FOR i = topmenu TO 0 STEP -1
+  IF menus(i).prevent_main_menu = YES THEN RETURN NO
+ NEXT i
+ RETURN YES
 END FUNCTION
