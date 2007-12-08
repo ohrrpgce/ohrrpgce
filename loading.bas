@@ -614,7 +614,6 @@ SUB LoadMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
  DIM f AS INTEGER
  DIM member AS INTEGER
  DIM elem AS INTEGER = 0
- DIM bits(0) AS INTEGER
 
  FOR i = 0 TO UBOUND(mi)
   ClearMenuItem mi(i)
@@ -626,26 +625,36 @@ SUB LoadMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
   SEEK #f, i * getbinsize(binMENUITEM) + 1
   member = ReadShort(f)
   IF member = record + 1 THEN
-   WITH mi(elem)
-    .exists = (member >= 0)
-    .member = member
-    .caption = ReadByteStr(f, 38)
-    .sortorder = ReadShort(f)
-    .t = ReadShort(f)
-    .sub_t = ReadShort(f)
-    .tag1 = ReadShort(f)
-    .tag2 = ReadShort(f)
-    .settag = ReadShort(f)
-    .togtag = ReadShort(f)
-   END WITH
-   bits(0) = ReadShort(f)
-   MenuItemBitsFromArray mi(elem), bits()
+   LoadMenuItem f, mi(elem), i
    elem = elem + 1
    IF elem > UBOUND(mi) THEN EXIT FOR
   END IF
  NEXT i
  CLOSE #f
  SortMenuItems mi()
+END SUB
+
+SUB LoadMenuItem(f AS INTEGER, BYREF mi AS MenuDefItem, record AS INTEGER)
+ DIM i AS INTEGER
+ DIM bits(0) AS INTEGER
+ SEEK #f, record * getbinsize(binMENUITEM) + 1
+ WITH mi
+  .member = ReadShort(f)
+  .exists = (.member >= 0)
+  .caption = ReadByteStr(f, 38)
+  .sortorder = ReadShort(f)
+  .t = ReadShort(f)
+  .sub_t = ReadShort(f)
+  .tag1 = ReadShort(f)
+  .tag2 = ReadShort(f)
+  .settag = ReadShort(f)
+  .togtag = ReadShort(f)
+  bits(0) = ReadShort(f)
+  FOR i = 0 TO 2
+   .extra(i) = ReadShort(f)
+  NEXT i
+ END WITH
+ MenuItemBitsFromArray mi, bits()
 END SUB
 
 SUB SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
@@ -724,6 +733,7 @@ SUB SaveMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
 END SUB
 
 SUB SaveMenuItem(f AS INTEGER, mi AS MenuDefItem, record AS INTEGER)
+ DIM i AS INTEGER
  DIM bits(0) AS INTEGER
  SEEK #f, record * getbinsize(binMENUITEM) + 1
  WITH mi
@@ -736,9 +746,12 @@ SUB SaveMenuItem(f AS INTEGER, mi AS MenuDefItem, record AS INTEGER)
   WriteShort(f, -1, .tag2)
   WriteShort(f, -1, .settag)
   WriteShort(f, -1, .togtag)
+  MenuItemBitsToArray mi, bits()
+  WriteShort(f, -1, bits(0))
+  FOR i = 0 TO 2
+   WriteShort(f, -1, .extra(i))
+  NEXT i
  END WITH
- MenuItemBitsToArray mi, bits()
- WriteShort(f, -1, bits(0))
 END SUB
 
 SUB MenuBitsToArray (menu AS MenuDef, bits() AS INTEGER)

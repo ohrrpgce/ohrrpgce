@@ -50,6 +50,7 @@ TYPE MenuDefItem
   tag2      AS INTEGER
   settag    AS INTEGER
   togtag    AS INTEGER
+  extra(2)  AS INTEGER
   hide_if_disabled  AS INTEGER ' Bitset
   close_if_selected AS INTEGER ' Bitset
 END TYPE

@@ -959,6 +959,18 @@ script, set menu item bit, handle=0, bit=0, begin
   write menu item int(handle, 28, n)
 end
 
+script, set menu item extra, handle=0, extra=0, n=0, begin
+  if(extra >= 0 && extra <= 2) then, begin
+    write menu item int(handle, 29+extra, n)
+  end
+end
+
+script, get menu item extra, handle=0, extra=0, begin
+  if(extra >= 0 && extra <= 2) then, begin
+    exit returning(read menu item int(handle, 29+extra))
+  end
+end
+
 #--------------------------------------------------------------------------
 # script triggers
 

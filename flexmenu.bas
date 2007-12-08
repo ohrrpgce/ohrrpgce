@@ -1514,6 +1514,8 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
    IF enter_or_space() THEN
     edit_menu_item_bits mi
    END IF
+  CASE 9 TO 11:
+   IF intgrabber(mi.extra(dstate.pt - 9), -32767, 32767) THEN dstate.need_update = YES
  END SELECT
 
 END SUB
@@ -1543,6 +1545,7 @@ SUB update_menu_editor_menu(record, edmenu AS MenuDef, menu AS MenuDef)
 END SUB
 
 SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
+ DIM i AS INTEGER
  DIM cap AS STRING
  DIM index AS INTEGER
  ClearMenuItems detail
@@ -1591,6 +1594,9 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
  append_menu_item detail, tag_set_caption(mi.settag, "Set tag")
  append_menu_item detail, tag_toggle_caption(mi.togtag)
  append_menu_item detail, "Edit Bitsets..."
+ FOR i = 0 TO 2
+  append_menu_item detail, "Extra data " & i & ": " & mi.extra(i)
+ NEXT i
 END SUB
 
 FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRING

@@ -658,7 +658,7 @@ FUNCTION curbinsize (id)
  IF id = 3 THEN RETURN 34  'sfxdata.bin
  IF id = 4 THEN RETURN 44  '.map
  IF id = 5 THEN RETURN 48  'menus.bin
- IF id = 6 THEN RETURN 58  'menuitem.bin
+ IF id = 6 THEN RETURN 64  'menuitem.bin
  IF id = 7 THEN RETURN 96  'uicolors.bin
  RETURN 0
 END FUNCTION
@@ -2215,6 +2215,7 @@ FUNCTION read_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER)
    CASE 28:
     MenuItemBitsToArray mi, bits()
     RETURN bits(0)
+   CASE 29 TO 31: RETURN .extra(intoffset - 29)
    CASE ELSE
     debug "read_menu_item_int: " & intoffset & " is an invalid integer offset"
   END SELECT
@@ -2237,6 +2238,7 @@ SUB write_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER, n AS INTEGER)
    CASE 28:
     bits(0) = n
     MenuItemBitsFromArray mi, bits()
+   CASE 29 TO 31: .extra(intoffset - 29) = n
    CASE ELSE
     debug "write_menu_item_int: " & intoffset & " is an invalid integer offset"
   END SELECT
