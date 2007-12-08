@@ -1394,7 +1394,7 @@ get hero name (1,find hero(hero by rank(0)))
 		<command id="openmenu">
 			<cannon>open menu (ID, allow duplicate)</cannon>
 			<shortname>open menu</shortname>
-			<description>Opens the menu specified by <p>ID</p>. You can also use the constants defined in your HSI file in the form menu:name. The menu will be opened on top of any menus that are already open. The optional second argument <p>allow duplicates</p> can be <ref>true</ref> if you want to be able to open more than one copy of the same menu at the same time. The return value is a menu handle that you should store in a variable for use with other menu-related commands. Note that a menu must have the "Allow gameplay" bitset turned ON to be manipulated by plotscripts. If the "Allow gameplay" menu is OFF, this command will open it, but the script will not resume until the player has closed the menu.</description>
+			<description>Opens the menu specified by <p>ID</p>. You can also use the constants defined in your HSI file in the form menu:name. The menu will be opened on top of any menus that are already open. The optional second argument <p>allow duplicates</p> can be <ref>true</ref> if you want to be able to open more than one copy of the same menu at the same time. The return value is a menu handle that you should store in a variable for use with other menu-related commands.</description>
 		</command>
 		<command id="createmenu">
 			<cannon>create menu</cannon>
