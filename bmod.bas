@@ -2014,7 +2014,7 @@ FOR i = 0 TO 24
 					custspr = -1
 				end if
 				
-				if .dissolve and eflee(zbuf(i)) = 0 then
+				if is_enemy(zbuf(i)) and .dissolve > 0 and eflee(zbuf(i)) = 0 then
 					dim as integer dtype, dtime
 					if .deathtype = 0 then dtype = gen(genEnemyDissolve) else dtype = .deathtype - 1
 					if .deathtime = 0 then dtime = spr->w/2 else dtime = .deathtime
@@ -2169,7 +2169,12 @@ curbg = formdata(32)
 loadpage game$ + ".mxs", curbg, 2
 FOR i = 0 TO 3
  IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vdance = 0 THEN of(i) = 6 : bslot(i).frame = 6
- IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN bslot(i).dissolve = 1
+ IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN
+  '--hero starts the battle dead
+  bslot(i).dissolve = 1 'Keeps the dead hero from vanishing
+  of(i) = 7
+  bslot(i).frame = 7
+ END IF
  lifemeter(i) = (88 / large(bstat(i).max.hp, 1)) * bstat(i).cur.hp
 NEXT i
 bslot(24).w = 24
@@ -2478,7 +2483,7 @@ FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
  DIM i AS INTEGER
  DIM count AS INTEGER = 0
  FOR i = 4 TO 11
-  IF bslot(i).dissolve THEN count += 1
+  IF bslot(i).dissolve > 0 THEN count += 1
  NEXT i
  RETURN count
 END FUNCTION
