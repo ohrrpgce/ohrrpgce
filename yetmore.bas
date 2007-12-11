@@ -1265,19 +1265,26 @@ SELECT CASE AS CONST id
   END IF
  CASE 132'--can learn spell
   scriptret = 0
-  retvals(0) = bound(retvals(0), 0, 40)
-  IF retvals(1) > 0 THEN
-   loadherodata @her, hero(retvals(0)) - 1
-   FOR i = 0 TO 3
-    FOR j = 0 TO 23
-     IF spell(retvals(0), i, j) = 0 THEN
-      IF her.spell_lists(i,j).attack = retvals(1) AND her.spell_lists(i,j).learned = retvals(2) THEN
-       scriptret = 1
-       EXIT FOR
+  DIM partyslot AS INTEGER
+  DIM heroID as INTEGER
+  partyslot = bound(retvals(0), 0, 40)
+  heroID = hero(partyslot) - 1
+  IF heroID = -1 THEN
+   debug "can learn spell: fail on empty party slot " & partyslot
+  ELSE
+   IF retvals(1) > 0 THEN
+    loadherodata @her, heroID
+    FOR i = 0 TO 3
+     FOR j = 0 TO 23
+      IF spell(partyslot, i, j) = 0 THEN
+       IF her.spell_lists(i,j).attack = retvals(1) AND her.spell_lists(i,j).learned = retvals(2) THEN
+        scriptret = 1
+        EXIT FOR
+       END IF
       END IF
-     END IF
-    NEXT j
-   NEXT i
+     NEXT j
+    NEXT i
+   END IF
   END IF
  CASE 133'--hero by slot
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN

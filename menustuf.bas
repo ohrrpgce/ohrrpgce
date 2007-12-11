@@ -2272,16 +2272,17 @@ RETRACE
 END SUB
 
 FUNCTION trylearn (who, atk, learntype)
-
-'CLOBBERS BUFFER!
+'first arg is hero position in the party
 
 '--returns 1 when the spell was learned, 0 when it was not learned
+
+IF hero(who) = 0 THEN debug "trylearn fail on empty party slot " & who : RETURN 0
 
 '--fail by default
 result = 0
 
 dim her as herodef
-'--pre-populate buffer() with the hero's data.
+'--load the hero's data.
 loadherodata @her, hero(who) - 1
 
 '--for each spell list

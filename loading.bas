@@ -421,6 +421,7 @@ Sub SaveStats2(fh as integer, lev0 as stats ptr, lev99 as stats ptr)
 end sub
 
 Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
+	if record < 0 or record > gen(genMaxHero) then debug "DeSerHeroDef: fail on record:" & record : exit sub
 	if not fileisreadable(filename) or hero = 0 then exit sub
 	
 	dim as integer f = freefile, i, j
