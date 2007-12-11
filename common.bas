@@ -1442,12 +1442,12 @@ IF gen(genVersion) = 0 THEN
  upgrade_message "Ancient Pre-1999 format (1)"
  gen(genVersion) = 1
  upgrade_message "Flushing New Text Data..."
- setpicstuf buffer(), 400, -1
+ DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
  FOR o = 0 TO 999
-  loadset game$ + ".say", o, 0
+  LoadTextBox boxbuf(), o
   temp$ = STRING$(68, 0)
-  str2array temp$, buffer(), 331
-  storeset game$ + ".say", o, 0
+  str2array temp$, boxbuf(), 331
+  SaveTextBox boxbuf(), o
  NEXT o
 END IF
 IF gen(genVersion) = 1 THEN
