@@ -12,7 +12,6 @@ DECLARE SUB setScriptArg (arg%, value%)
 DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, unitsize%)
 DECLARE SUB aheadxy (x%, y%, direction%, distance%)
 DECLARE SUB wrapxy (x%, y%, wide%, high%)
-DECLARE SUB loadSayToBuffer (say%)
 DECLARE FUNCTION partybyrank% (slot%)
 DECLARE FUNCTION herobyrank% (slot%)
 DECLARE FUNCTION rankincaterpillar% (heroid%)
@@ -588,7 +587,7 @@ gen(58) = 0
 choosep = 0
 
 '--load data from the textbox lump
-loadSayToBuffer say
+LoadTextBox buffer(), say
 
 '--read in the lines of text
 FOR j = 0 TO 7
@@ -601,7 +600,7 @@ FOR j = 0 TO 7
 NEXT j
 
 '--reload data from the textbox lump because embedtext clobbered it
-loadSayToBuffer say
+LoadTextBox buffer(), say
 
 '-- get the block of data used for conditionals
 temp$ = STRING$(42, 0)
@@ -658,19 +657,6 @@ IF sayenh(5) > 0 THEN
 END IF
 
 showsay = 8
-
-END SUB
-
-SUB loadSayToBuffer (say)
-
-'--load data from the textbox lump into the buffer
-
-IF say > gen(genMaxTextBox) THEN
- str2array "Invalid textbox" + STRING$(385, 0), buffer(), 0
-ELSE
- setpicstuf buffer(), 400, -1
- loadset game$ + ".say", say, 0
-END IF
 
 END SUB
 
@@ -1637,7 +1623,7 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
    retvals(1) = bound(retvals(1),0,gen(genMaxTextbox))
    retvals(2) = bound(retvals(2),0,7)
-   loadsaytobuffer retvals(1)
+   LoadTextBox buffer(), retvals(1)
    plotstr(retvals(0)).s = string$(38,0)
    array2str buffer() , retvals(2) * 38 , plotstr(retvals(0)).s
    IF NOT retvals(3) THEN embedtext plotstr(retvals(0)).s

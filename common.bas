@@ -648,6 +648,7 @@ FUNCTION defbinsize (id)
  IF id = 5 THEN RETURN 0  'menus.bin
  IF id = 6 THEN RETURN 0  'menuitem.bin
  IF id = 7 THEN RETURN 0  'uicolors.bin
+ IF id = 8 THEN RETURN 400 '.say
  RETURN 0
 END FUNCTION
 
@@ -660,6 +661,7 @@ FUNCTION curbinsize (id)
  IF id = 5 THEN RETURN 48  'menus.bin
  IF id = 6 THEN RETURN 64  'menuitem.bin
  IF id = 7 THEN RETURN 96  'uicolors.bin
+ IF id = 8 THEN RETURN 400 '.say
  RETURN 0
 END FUNCTION
 
