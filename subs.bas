@@ -41,12 +41,15 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
+#include "loading.bi"
 #include "customsubs.bi"
 #include "cglobals.bi"
 
 #include "scrconst.bi"
 
 DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
+
+DECLARE FUNCTION textbox_preview_line(boxnum AS INTEGER) AS STRING
 
 REM $STATIC
 
@@ -2028,7 +2031,7 @@ npcstats:
 it$ = itemstr(npc(cur * 15 + 6), 0, 0)
 x$ = ""
 scrname$ = scriptname$(npc(cur * 15 + 12), plottrigger)
-GOSUB frstline
+x$ = textbox_preview_line(npc(cur * 15 + 4))
 setkeys
 DO
  setwait timing(), 100
@@ -2049,7 +2052,7 @@ DO
  CASE 2 TO 8, IS > 12'--simple integers
   IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr)) THEN
    IF csr = 6 THEN it$ = itemstr(npc(cur * 15 + 6), 0, 0)
-   IF csr = 4 THEN GOSUB frstline
+   IF csr = 4 THEN x$ = textbox_preview_line(npc(cur * 15 + 4))
   END IF
  CASE 9, 10'--tag conditionals
   tag_grabber npc(cur * 15 + csr)
@@ -2147,15 +2150,6 @@ npc(cur * 15 + 11) = gen(105) + 1
 setbit gen(), 106, gen(105), 1
 RETRACE
 
-frstline:
-x$ = ""
-IF npc(cur * 15 + 4) = 0 THEN RETRACE
-x$ = STRING$(38, 0)
-setpicstuf buffer(), 400, -1
-loadset game$ + ".say", npc(cur * 15 + 4), 0
-array2str buffer(), 0, x$
-RETRACE
-
 'npc(i * 15 + 0) = picture
 'npc(i * 15 + 1) = palette
 'npc(i * 15 + 2) = move type
@@ -2175,6 +2169,21 @@ RETRACE
 'Pushability,Activation,Appear if Tag,Appear if Tag,Usable,*Unused*
 
 END SUB
+
+FUNCTION textbox_preview_line(boxnum AS INTEGER) AS STRING
+ IF boxnum <= 0 OR boxnum > gen(genMaxTextBox) THEN RETURN ""
+ DIM boxbuf(dimbinsize(binSAY))
+ LoadTextBox boxbuf(), boxnum
+ DIM s AS STRING
+ DIM i AS INTEGER
+ FOR i = 0 TO 7
+  s = STRING$(38, 0)
+  array2str boxbuf(), i * 38, s
+  s = TRIM(s)
+  IF LEN(s) > 0 THEN RETURN s 
+ NEXT i
+ RETURN "" 
+END FUNCTION
 
 SUB stredit (s$, maxl)
 STATIC clip$
