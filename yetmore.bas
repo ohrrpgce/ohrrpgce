@@ -581,35 +581,33 @@ END SUB
 
 SUB loadsay (choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh())
 DIM temp$
+DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
 
 loadsaybegin:
 gen(58) = 0
 choosep = 0
 
 '--load data from the textbox lump
-LoadTextBox buffer(), say
+LoadTextBox boxbuf(), say
 
 '--read in the lines of text
 FOR j = 0 TO 7
  say$(j) = STRING$(38, 0)
- array2str buffer(), j * 38, say$(j)
+ array2str boxbuf(), j * 38, say$(j)
 NEXT j
 
 FOR j = 0 TO 7
  embedtext say$(j), 38
 NEXT j
 
-'--reload data from the textbox lump because embedtext clobbered it
-LoadTextBox buffer(), say
-
 '-- get the block of data used for conditionals
 temp$ = STRING$(42, 0)
-array2str buffer(), 305, temp$
-str2array temp$, buffer(), 0
+array2str boxbuf(), 305, temp$
+str2array temp$, boxbuf(), 0
 
 '-- store the conditionals data in saytag()
 FOR j = 0 TO 20
- saytag(j) = buffer(j)
+ saytag(j) = boxbuf(j)
 NEXT j
 
 '-- evaluate "instead" conditionals
@@ -633,17 +631,17 @@ END IF
 '-- load choicebox data
 FOR j = 0 TO 1
  choose$(j) = STRING$(15, 0)
- array2str buffer(), 349 + (j * 18), choose$(j)
+ array2str boxbuf(), 349 + (j * 18), choose$(j)
  WHILE RIGHT$(choose$(j), 1) = CHR$(0): choose$(j) = LEFT$(choose$(j), LEN(choose$(j)) - 1): WEND
- chtag(j) = buffer(182 + (j * 9))
+ chtag(j) = boxbuf(182 + (j * 9))
 NEXT j
 
 '--the bitset that determines whether the choicebox is enabled
-saybit(0) = buffer(174)
+saybit(0) = boxbuf(174)
 
 '--load box appearance into sayenh()
 FOR j = 0 TO 6
- sayenh(j) = buffer(193 + j)
+ sayenh(j) = boxbuf(193 + j)
 NEXT j
 '-- update backdrop if necessary
 IF sayenh(4) > 0 THEN
@@ -1621,11 +1619,12 @@ SELECT CASE AS CONST id
   END IF
  CASE 240'-- string from textbox
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+   DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
    retvals(1) = bound(retvals(1),0,gen(genMaxTextbox))
    retvals(2) = bound(retvals(2),0,7)
-   LoadTextBox buffer(), retvals(1)
+   LoadTextBox boxbuf(), retvals(1)
    plotstr(retvals(0)).s = string$(38,0)
-   array2str buffer() , retvals(2) * 38 , plotstr(retvals(0)).s
+   array2str boxbuf() , retvals(2) * 38 , plotstr(retvals(0)).s
    IF NOT retvals(3) THEN embedtext plotstr(retvals(0)).s
    plotstr(retvals(0)).s = trim$(plotstr(retvals(0)).s)
   END IF
