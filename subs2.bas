@@ -784,6 +784,7 @@ END FUNCTION
 
 SUB textage
 DIM m$(10), x$(8), cond(21), ct(-1 TO 21), menu$(21), a(318), order(21), grey(21), choice$(1), max(8), min(8), buf(16384), h$(2), tagmn$, gcsr, tcur
+DIM boxbuf(dimbinsize(binSAY)) 
 pt = 1
 
 order(0) = 0:      grey(0) = -1
@@ -1078,14 +1079,14 @@ DO
  usemenu tcur, 0, 0, 5, 24
  IF enter_or_space() THEN
   IF tcur = 0 THEN RETRACE
-  IF tcur = 1 THEN setbit buffer(), 174, 0, (readbit(buffer(), 174, 0) XOR 1)
+  IF tcur = 1 THEN setbit boxbuf(), 174, 0, (readbit(boxbuf(), 174, 0) XOR 1)
  END IF
  IF tcur = 1 THEN
-  IF keyval(75) > 1 OR keyval(77) > 1 THEN setbit buffer(), 174, 0, (readbit(buffer(), 174, 0) XOR 1)
+  IF keyval(75) > 1 OR keyval(77) > 1 THEN setbit boxbuf(), 174, 0, (readbit(boxbuf(), 174, 0) XOR 1)
  END IF
  FOR i = 0 TO 1
   IF tcur = 2 + (i * 2) THEN strgrabber choice$(i), 15
-  IF tcur = 3 + (i * 2) THEN tag_grabber buffer(182 + (i * 9))
+  IF tcur = 3 + (i * 2) THEN tag_grabber boxbuf(182 + (i * 9))
  NEXT i
  GOSUB tcmenu
  
@@ -1098,11 +1099,11 @@ DO
 LOOP
 
 tcmenu:
-IF readbit(buffer(), 174, 0) THEN menu$(1) = "Choice = Enabled" ELSE menu$(1) = "Choice = Disabled"
+IF readbit(boxbuf(), 174, 0) THEN menu$(1) = "Choice = Enabled" ELSE menu$(1) = "Choice = Disabled"
 FOR i = 0 TO 1
  menu$(2 + (i * 2)) = "Option" + XSTR$(i) + " text:" + choice$(i)
- IF buffer(182 + (i * 9)) THEN
-  menu$(3 + (i * 2)) = "Set tag" + XSTR$(ABS(buffer(182 + (i * 9)))) + " = " + onoroff$(buffer(182 + (i * 9))) + " (" + load_tag_name(ABS(buffer(182 + (i * 9)))) + ")"
+ IF boxbuf(182 + (i * 9)) THEN
+  menu$(3 + (i * 2)) = "Set tag" + XSTR$(ABS(boxbuf(182 + (i * 9)))) + " = " + onoroff$(boxbuf(182 + (i * 9))) + " (" + load_tag_name(ABS(boxbuf(182 + (i * 9)))) + ")"
  ELSE
   menu$(3 + (i * 2)) = "Set tag 0 (none)"
  END IF
@@ -1189,23 +1190,23 @@ DO
  IF enter_or_space() THEN
   IF gcsr = 0 THEN RETRACE
   FOR i = 0 TO 2
-   IF gcsr = 7 + i THEN setbit buffer(), 174, 1 + i, (readbit(buffer(), 174, 1 + i) XOR 1)
+   IF gcsr = 7 + i THEN setbit boxbuf(), 174, 1 + i, (readbit(boxbuf(), 174, 1 + i) XOR 1)
   NEXT i
-  IF gcsr = 3 THEN buffer(192 + gcsr) = color_browser_256(buffer(192 + gcsr))
+  IF gcsr = 3 THEN boxbuf(192 + gcsr) = color_browser_256(boxbuf(192 + gcsr))
  END IF
  FOR i = 0 TO 2
   IF gcsr = 7 + i THEN
-   IF keyval(75) > 1 OR keyval(77) > 1 THEN setbit buffer(), 174, 1 + i, (readbit(buffer(), 174, 1 + i) XOR 1)
+   IF keyval(75) > 1 OR keyval(77) > 1 THEN setbit boxbuf(), 174, 1 + i, (readbit(boxbuf(), 174, 1 + i) XOR 1)
   END IF
  NEXT i
  FOR i = 0 TO 3
   IF gcsr = 1 + i THEN
-   IF intgrabber(buffer(193 + i), min(i), max(i)) THEN GOSUB refresh
+   IF intgrabber(boxbuf(193 + i), min(i), max(i)) THEN GOSUB refresh
   END IF
  NEXT i
  FOR i = 4 TO 5
   IF gcsr = 1 + i THEN
-   IF zintgrabber(buffer(193 + i), min(i), max(i)) THEN GOSUB refresh
+   IF zintgrabber(boxbuf(193 + i), min(i), max(i)) THEN GOSUB refresh
   END IF
  NEXT i
  GOSUB previewbox
@@ -1213,23 +1214,23 @@ DO
   col = 7: IF i = gcsr THEN col = 14 + tog
   temp$ = menu$(i)
   IF i > 0 AND i <= 4 THEN
-   temp$ = temp$ + XSTR$(buffer(192 + i))
+   temp$ = temp$ + XSTR$(boxbuf(192 + i))
   END IF
   IF i >= 5 AND i <= 6 THEN '-- backdrop and songs have "none" as an option
-   IF buffer(192 + i) THEN
-    temp$ = menu$(i) + XSTR$(buffer(192 + i) - 1)
+   IF boxbuf(192 + i) THEN
+    temp$ = menu$(i) + XSTR$(boxbuf(192 + i) - 1)
     IF i = 6 THEN
-     temp$ = temp$ + " " + getsongname$(buffer(192 + i) - 1)
+     temp$ = temp$ + " " + getsongname$(boxbuf(192 + i) - 1)
     END IF
    ELSE
     temp$ = menu$(i) + " NONE"
    END IF
   END IF
   IF i > 6 AND i < 9 THEN
-   IF readbit(buffer(), 174, -6 + i) THEN temp$ = temp$ + " NO" ELSE temp$ = temp$ + " YES"
+   IF readbit(boxbuf(), 174, -6 + i) THEN temp$ = temp$ + " NO" ELSE temp$ = temp$ + " YES"
   END IF
   IF i = 9 THEN
-   IF readbit(buffer(), 174, -6 + i) THEN temp$ = temp$ + " YES" ELSE temp$ = temp$ + " NO"
+   IF readbit(boxbuf(), 174, -6 + i) THEN temp$ = temp$ + " YES" ELSE temp$ = temp$ + " NO"
   END IF
   edgeprint temp$, 0, i * 10, col, dpage
  NEXT i
@@ -1242,7 +1243,7 @@ LOOP
 refresh:
 clearpage 2
 min(0) = 0
-max(0) = 27 + buffer(194)
+max(0) = 27 + boxbuf(194)
 min(1) = 0
 max(1) = 21
 min(2) = 0
@@ -1253,27 +1254,26 @@ min(4) = -1
 max(4) = gen(genMaxBackdrop) - 1
 min(5) = -1
 max(5) = gen(genMaxSong)
-IF buffer(197) > 0 THEN
- loadpage game$ + ".mxs", buffer(197) - 1, 2
+IF boxbuf(197) > 0 THEN
+ loadpage game$ + ".mxs", boxbuf(197) - 1, 2
 END IF
 RETRACE
 
 previewbox:
-IF readbit(buffer(), 174, 1) = 0 THEN
- rectangle 4, 4 + (buffer(193) * 4), 312, 88 - (buffer(194) * 4), ((buffer(196) + 1) * 16) + 12, dpage
- rectangle 5, 5 + (buffer(193) * 4), 310, 86 - (buffer(194) * 4), ((buffer(196) + 1) * 16) + 2, dpage
+IF readbit(boxbuf(), 174, 1) = 0 THEN
+ rectangle 4, 4 + (boxbuf(193) * 4), 312, 88 - (boxbuf(194) * 4), ((boxbuf(196) + 1) * 16) + 12, dpage
+ rectangle 5, 5 + (boxbuf(193) * 4), 310, 86 - (boxbuf(194) * 4), ((boxbuf(196) + 1) * 16) + 2, dpage
 END IF
 FOR i = 0 TO 7
- col = 15: IF buffer(195) > 0 THEN col = buffer(195)
- edgeprint x$(i), 8, 8 + (buffer(193) * 4) + i * 10, col, dpage
+ col = 15: IF boxbuf(195) > 0 THEN col = boxbuf(195)
+ edgeprint x$(i), 8, 8 + (boxbuf(193) * 4) + i * 10, col, dpage
 NEXT i
 RETRACE
 
 loadlines:
-setpicstuf buffer(), 400, -1
-loadset game$ + ".say", pt, 0
+LoadTextBox boxbuf(), pt
 temp$ = STRING$(42, 0)
-array2str buffer(), 305, temp$
+array2str boxbuf(), 305, temp$
 str2array temp$, cond(), 0
 FOR i = 0 TO 21
  IF ct(i) = 0 THEN cond(i) = bound(cond(i), -999, 999)
@@ -1287,12 +1287,12 @@ FOR i = 0 TO 21
 NEXT i
 FOR i = 0 TO 7
  x$(i) = STRING$(38, 0)
- array2str buffer(), i * 38, x$(i)
+ array2str boxbuf(), i * 38, x$(i)
  WHILE RIGHT$(x$(i), 1) = CHR$(0): x$(i) = LEFT$(x$(i), LEN(x$(i)) - 1): WEND
 NEXT i
 FOR i = 0 TO 1
  choice$(i) = STRING$(15, 0)
- array2str buffer(), 349 + (i * 18), choice$(i)
+ array2str boxbuf(), 349 + (i * 18), choice$(i)
  WHILE RIGHT$(choice$(i), 1) = CHR$(0): choice$(i) = LEFT$(choice$(i), LEN(choice$(i)) - 1): WEND
 NEXT i
 GOSUB nextboxline
@@ -1300,38 +1300,35 @@ search$ = ""
 RETRACE
 
 savelines:
-setpicstuf buffer(), 400, -1
 FOR i = 0 TO 7
  WHILE LEN(x$(i)) < 38: x$(i) = x$(i) + CHR$(0): WEND
- str2array x$(i), buffer(), i * 38
+ str2array x$(i), boxbuf(), i * 38
 NEXT i
 temp$ = STRING$(42, 0)
 array2str cond(), 0, temp$
-str2array temp$, buffer(), 305
+str2array temp$, boxbuf(), 305
 FOR i = 0 TO 1
  WHILE LEN(choice$(i)) < 15: choice$(i) = choice$(i) + CHR$(0): WEND
- str2array choice$(i), buffer(), 349 + (i * 18)
+ str2array choice$(i), boxbuf(), 349 + (i * 18)
 NEXT i
-storeset game$ + ".say", pt, 0
+SaveTextBox boxbuf(), pt
 RETRACE
 
 clearlines:
 '--this inits a new text box, and copies in values from text box 0 for defaults
-setpicstuf buffer(), 400, -1
-loadset game$ + ".say", 0, 0
+LoadTextBox boxbuf(), 0
 FOR i = 0 TO 199
  SELECT CASE i
   CASE 174, 193, 195, 196
    '--these are the ones we preserve
   CASE ELSE
-   buffer(i) = 0
+   boxbuf(i) = 0
  END SELECT
 NEXT i
-storeset game$ + ".say", pt, 0
+SaveTextBox boxbuf(), pt
 RETRACE
 
 seektextbox:
-setpicstuf buffer(), 400, -1
 remptr = pt
 pt = pt + 1
 DO
@@ -1343,11 +1340,11 @@ DO
   w = getkey
   EXIT DO
  END IF
- loadset game$ + ".say", pt, 0
+ LoadTextBox boxbuf(), pt
  foundstr = 0
  FOR i = 0 TO 7
   tmp$ = STRING$(38, 0)
-  array2str buffer(), i * 38, tmp$
+  array2str boxbuf(), i * 38, tmp$
   WHILE RIGHT$(tmp$, 1) = CHR$(0): tmp$ = LEFT$(tmp$, LEN(tmp$) - 1): WEND
   IF INSTR(UCASE$(tmp$), UCASE$(search$)) > 0 THEN foundstr = 1
  NEXT i
@@ -1357,12 +1354,7 @@ LOOP
 
 RETRACE
 
-'--text box record (byte offsets! not words!)
-'0-303   lines
-'304     unused?
-'305-347 conditionals
-'349-384 choice text
-
+'See wiki for .SAY file format docs
 END SUB
 
 FUNCTION textbox_condition_caption(tag AS INTEGER) AS STRING
