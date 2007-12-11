@@ -911,10 +911,14 @@ DO
  m$(7) = "Text Search:" + search$
  
  standardmenu m$(), 7, 7, csr, 0, 0, 0, dpage, 0
- 
- textcolor 15, 0
+
+ '--Draw box
+ IF readbit(boxbuf(), 174, 1) = 0 THEN
+  edgeboxstyle 4, 96, 312, 88 - (boxbuf(194) * 4), boxbuf(196), dpage, (readbit(boxbuf(), 174, 2) = 0)
+ END IF
+ '--Draw text lines
  FOR i = 0 TO 7
-  printstr x$(i), 8, 100 + i * 10, dpage
+  edgeprint x$(i), 8, 100 + i * 10, uilook(uiText), dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1141,20 +1145,24 @@ DO
  IF y <= 7 AND y >= 0 THEN
   stredit x$(y), 38
  END IF
- rectangle 4, 4, 312, 88, 15, dpage
- rectangle 5, 5, 310, 86, 243, dpage
+ 'Display the box
+ IF readbit(boxbuf(), 174, 1) = 0 THEN
+  edgeboxstyle 4, 4, 312, 88, boxbuf(196), dpage, (readbit(boxbuf(), 174, 2) = 0)
+ END IF
+ 'Display the lines in the box
  FOR i = 0 TO 7
-  textcolor 7, 0
+  textcolor uilook(uiText), 0
+  IF boxbuf(195) > 0 THEN textcolor boxbuf(195), 0
   IF y = i THEN
-   textcolor 15, 2 + tog
+   textcolor uilook(uiText), uilook(uiHighlight + tog)
    printstr " ", 8 + insert * 8, 8 + i * 10, dpage
-   textcolor 15 - tog, 0
+   textcolor uilook(uiSelectedItem + tog), 0
   END IF
   printstr x$(i), 8, 8 + i * 10, dpage
  NEXT i
- textcolor 10, 0
+ textcolor uilook(uiSelectedItem + tog), 0
  printstr "-", 0, 8 + y * 10, dpage
- textcolor 15, 0
+ textcolor uiLook(uiText), 0
  printstr "Text Box" + XSTR$(pt), 0, 100, dpage
  printstr "${C0} = Leader's name", 0, 120, dpage
  printstr "${C#} = Hero name at caterpillar slot #", 0, 128, dpage
@@ -1261,7 +1269,7 @@ RETRACE
 
 previewbox:
 IF readbit(boxbuf(), 174, 1) = 0 THEN
- edgeboxstyle 4, 4 + (boxbuf(193) * 4), 312, 88 - (boxbuf(194) * 4), boxbuf(196), dpage, readbit(boxbuf(), 174, 2) <> 0
+ edgeboxstyle 4, 4 + (boxbuf(193) * 4), 312, 88 - (boxbuf(194) * 4), boxbuf(196), dpage, (readbit(boxbuf(), 174, 2) = 0)
 END IF
 FOR i = 0 TO 7
  col = uilook(uiText)
