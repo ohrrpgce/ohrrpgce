@@ -897,3 +897,21 @@ SUB LoadTextBox (boxbuf() AS INTEGER, record AS INTEGER)
  NEXT i
  CLOSE #f
 END SUB
+
+SUB SaveTextBox (boxbuf() AS INTEGER, record AS INTEGER)
+ IF UBOUND(boxbuf) < dimbinsize(binSAY) THEN debug "SaveTextBox: boxbuf too small:" & UBOUND(boxbuf) : EXIT SUB
+ IF record < 0 OR record > gen(genMaxTextBox) THEN debug "SaveTextBox: invalid record: " & record : EXIT SUB
+
+ DIM filename AS STRING
+ filename = game$ & ".say"
+
+ DIM i AS INTEGER
+ DIM f AS INTEGER
+ f = FREEFILE
+ OPEN filename FOR BINARY AS #f
+ SEEK #f, record * getbinsize(binSAY) + 1
+ FOR i = 0 TO 199
+  WriteShort f, -1, boxbuf(i)
+ NEXT i
+ CLOSE #f
+END SUB

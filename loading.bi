@@ -57,5 +57,6 @@ declare Sub LoadUIColors (colarray() AS INTEGER, palnum AS INTEGER=-1)
 declare Sub DefaultUIColors (colarray() AS INTEGER)
 
 declare Sub LoadTextBox (boxbuf() AS INTEGER, record AS INTEGER)
+declare Sub SaveTextBox (boxbuf() AS INTEGER, record AS INTEGER)
 
 #ENDIF
