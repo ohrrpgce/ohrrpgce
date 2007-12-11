@@ -1261,11 +1261,11 @@ RETRACE
 
 previewbox:
 IF readbit(boxbuf(), 174, 1) = 0 THEN
- rectangle 4, 4 + (boxbuf(193) * 4), 312, 88 - (boxbuf(194) * 4), ((boxbuf(196) + 1) * 16) + 12, dpage
- rectangle 5, 5 + (boxbuf(193) * 4), 310, 86 - (boxbuf(194) * 4), ((boxbuf(196) + 1) * 16) + 2, dpage
+ edgeboxstyle 4, 4 + (boxbuf(193) * 4), 312, 88 - (boxbuf(194) * 4), boxbuf(196), dpage, readbit(boxbuf(), 174, 2) <> 0
 END IF
 FOR i = 0 TO 7
- col = 15: IF boxbuf(195) > 0 THEN col = boxbuf(195)
+ col = uilook(uiText)
+ IF boxbuf(195) > 0 THEN col = boxbuf(195)
  edgeprint x$(i), 8, 8 + (boxbuf(193) * 4) + i * 10, col, dpage
 NEXT i
 RETRACE
