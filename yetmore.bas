@@ -86,6 +86,7 @@ DECLARE FUNCTION backcompat_sound_id (id AS INTEGER)
 DECLARE SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat())
 DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
 DECLARE SUB limitcamera ()
+DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING) AS INTEGER
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1289,8 +1290,10 @@ SELECT CASE AS CONST id
  CASE 145'--pick hero
   scriptret = onwho(readglobalstring$(135, "Which Hero?", 20), 1)
  CASE 146'--rename hero by slot
-  IF hero(retvals(0)) > 0 THEN
-   renamehero retvals(0)
+  IF bound_hero_party(retvals(0), "rename hero by slot") THEN
+   IF hero(retvals(0)) > 0 THEN
+    renamehero retvals(0)
+   END IF
   END IF
  CASE 171'--saveslotused
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
