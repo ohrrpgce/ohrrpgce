@@ -561,6 +561,7 @@ END SUB
 
 SUB ClearMenuItem(mi AS MenuDefItem)
  DIM bits(0) AS INTEGER
+ DIM i AS INTEGER
  WITH mi
   .exists = 0
   .member = 0
@@ -572,6 +573,9 @@ SUB ClearMenuItem(mi AS MenuDefItem)
   .tag2 = 0
   .settag = 0
   .togtag = 0
+  FOR i = 0 TO 2
+   .extra(i) = 0
+  NEXT i
  END WITH
  bits(0) = 0
  MenuItemBitsFromArray mi, bits()
