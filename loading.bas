@@ -148,7 +148,7 @@ SUB CleanNPCL(dat() as NPCInst, num as integer)
   NEXT
 END SUB
 
-SUB SerInventory(invent() as InventSlot, z, buf())
+SUB SerInventory8Bit(invent() as InventSlot, z, buf())
   DIM i as integer, j as integer
   z += 3 ' disregard some jibba jabba
   FOR i = 0 to inventoryMax
@@ -173,7 +173,7 @@ SUB SerInventory(invent() as InventSlot, z, buf())
   z += 2 * 12
 END SUB
 
-SUB DeserInventory(invent() as InventSlot, z, buf())
+SUB DeserInventory8Bit(invent() as InventSlot, z, buf())
   DIM i as integer, j as integer, temp as string
   z += 3
   FOR i = 0 TO inventoryMax

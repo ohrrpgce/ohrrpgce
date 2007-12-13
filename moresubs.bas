@@ -878,7 +878,7 @@ FOR i = 0 TO 40
  names$(i) = temp$
 NEXT i
 
-DeserInventory inventory(), z, buffer()
+DeserInventory8Bit inventory(), z, buffer()
 
 FOR i = 0 TO 40
  FOR o = 0 TO 4
@@ -1667,9 +1667,6 @@ FOR i = 0 TO 500
  END IF
  z = z + 1
 NEXT i
-' FOR i = 0 TO 2100
-'  buffer(z) = npcl(i): z = z + 1
-' NEXT i
 SerNPCL npc(), z, buffer(), 300, gmaptmp(20), gmaptmp(21)
 z=z+1 'fix an old bug
 FOR i = 0 TO 126
@@ -1729,7 +1726,8 @@ FOR i = 0 TO 40
   z = z + 1
  NEXT j
 NEXT i
-SerInventory inventory(), z, buffer()
+'Store old-style 8-bit inventory
+SerInventory8bit inventory(), z, buffer()
 FOR i = 0 TO 40
  FOR o = 0 TO 4
   buffer(z) = eqstuf(i, o): z = z + 1
