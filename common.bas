@@ -1837,6 +1837,12 @@ IF getfixbit(fixPushNPCBugCompat) = 0 THEN
  setbit gen(), genBits2, 0, 1 ' For backcompat
 END IF
 
+IF getfixbit(fixDefaultMaxItem) = 0 THEN
+ upgrade_message "Store max item number in GEN..."
+ setfixbit(fixDefaultMaxItem, 1)
+ gen(genMaxItem) = 254
+END IF
+
 'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)
 xbsave game$ + ".gen", gen(), 1000
 

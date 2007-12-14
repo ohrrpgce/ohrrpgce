@@ -65,7 +65,7 @@ CONST genEnemyDissolve = 59     'Default dissolve animation for dying enemies
 CONST genJoy = 60               'enable/disable joystick
 CONST genPoison = 61            'poison status indicator char
 CONST genStun = 62              'Stun status indicator char
-CONST genDamageCap = 63	        'Damage cap
+CONST genDamageCap = 63         'Damage cap
 CONST genMute = 64              'Mute status indicator char
 CONST genStatCap = 65           'Stat caps (genStatCap + stat)
 CONST genMaxSFX = 77            'last song number
@@ -73,6 +73,7 @@ CONST genMasterPal = 78         'master palette number
 CONST genMaxMasterPal = 79      'max master palette number
 CONST genMaxMenu = 80           'max menu def in MENUS.BIN
 CONST genMaxMenuItem = 81       'max menu item def in MENUITEM.BIN
+CONST genMaxItem = 82           'max item in .ITM
 CONST genPW2Offset = 93         'old password offset
 CONST genPW2Length = 94         'old password length
 CONST genVersion = 95           'RPG file format version(6 is the latest)
@@ -101,6 +102,7 @@ CONST fixStunCancelTarg = 2      'turn on cancel target bitset for old stun atta
 CONST fixDefaultDissolve = 3     'Initialized genEnemyDissolve to default in GEN
 CONST fixDefaultDissolveEnemy = 4'Initialized Enemy dissolves to default in DT1
 CONST fixPushNPCBugCompat = 5    'Turned on the Simulate pushable NPC obstruction bug bitset
+CONST fixDefaultMaxItem = 6      'Stored default max item id in GEN
 
 '---Sizes (replaceable with variables when suitable)
 CONST npcdMax = 35
