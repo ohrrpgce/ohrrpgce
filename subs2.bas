@@ -985,7 +985,7 @@ DO
   IF ct(order(cur)) = 3 THEN intgrabber cond(order(cur)), -99, 99
   IF ct(order(cur)) = 4 THEN intgrabber cond(order(cur)), -32000, 32000
   IF ct(order(cur)) = 5 THEN intgrabber cond(order(cur)), 0, 199
-  IF ct(order(cur)) = 6 THEN xintgrabber cond(order(cur)), 0, 255, 0, -255
+  IF ct(order(cur)) = 6 THEN xintgrabber cond(order(cur)), 0, gen(genMaxItem), 0, -gen(genMaxItem)
   IF ct(order(cur)) = 7 THEN scrintgrabber cond(order(cur)), 0, gen(39), 75, 77, -1, plottrigger
   IF order(cur) = 10 OR order(cur) = 19 OR order(cur) = 20 THEN IF temp <> cond(order(cur)) THEN GOSUB heroar
   IF order(cur) = 8 THEN IF temp <> cond(order(cur)) THEN GOSUB shopar
