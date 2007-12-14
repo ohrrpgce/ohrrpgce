@@ -405,7 +405,7 @@ max(AtkLimTag) = 1000
 min(AtkLimTag) = -1000
 
 CONST AtkLimItem = 26
-max(AtkLimItem) = 255
+max(AtkLimItem) = gen(genMaxItem) + 1
 min(AtkLimItem) = 0
 
 CONST AtkLimSfx = 27

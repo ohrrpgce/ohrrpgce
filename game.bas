@@ -167,6 +167,7 @@ DECLARE SUB player_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame
 DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB check_menu_tags ()
 DECLARE FUNCTION game_usemenu (state AS MenuState)
+DECLARE FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_menuslot(menuslot AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_menuslot_and_mislot(menuslot AS INTEGER, mislot AS INTEGER, cmd AS STRING) AS INTEGER
@@ -209,7 +210,7 @@ tmpdir$ = aquiretempdir$
 'Mixed global and module variables
 DIM font(1024), buffer(16384), pal16(448), timing(4), music(16384)
 DIM gen(360), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev&(40, 1), names$(40), veh(21)
-DIM eqstuf(40, 4), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(255, 3)
+DIM eqstuf(40, 4), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(maxMaxItems, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4)
 
 dim map_draw_mode as integer = -1
@@ -2074,10 +2075,12 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     END IF
     evalitemtag
    CASE 24'--force equip
-    IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+    IF bound_hero_party(retvals(0), "force equip") THEN
      i = retvals(0)
-     unequip i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat(), 0
-     doequip bound(retvals(2), 0, 255) + 1, i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat()
+     IF bound_item(retvals(2), "force equip") THEN
+      unequip i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat(), 0
+      doequip retvals(2) + 1, i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat()
+     END IF
     END IF
     evalitemtag
    CASE 32'--show backdrop
@@ -2497,6 +2500,10 @@ SELECT CASE AS CONST scrat(nowscript).curkind
   END SELECT
 END SELECT
 RETRACE
+
+FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER
+ RETURN bound_arg(itemID, 0, gen(genMaxItem), cmd, "item ID")
+END FUNCTION
 
 FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING) AS INTEGER
  RETURN bound_arg(who, 0, 40, cmd, "hero party slot")
