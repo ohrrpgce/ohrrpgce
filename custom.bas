@@ -936,14 +936,8 @@ FOR i = 6 TO 9
 NEXT i
 min(10) = -32767
 max(10) = 32767
-'max(11) = 255
-'min(11) = -1
-'min(13) = -32767
-'max(13) = 32767
-'max(14) = 255
-'min(14) = -1
 FOR i = 11 TO 17 STEP 2
- max(i) = 255
+ max(i) = gen(genMaxItem)
  min(i) = -1
  max(i + 1) = 99
  min(i + 1) = 1
@@ -951,7 +945,7 @@ NEXT
 
 min(20) = -32767
 max(20) = 32767
-max(21) = 255
+max(21) = gen(genMaxItem)
 min(21) = -1
 max(22) = 99
 min(22) = 1
