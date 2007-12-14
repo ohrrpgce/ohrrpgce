@@ -5,6 +5,9 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+
+#include "udts.bi"
+
 'basic subs and functions
 DECLARE FUNCTION rangel% (n&, r%)
 DECLARE FUNCTION str2int% (stri$)
@@ -60,6 +63,7 @@ DECLARE FUNCTION loadscript% (n%)
 DECLARE SUB killallscripts ()
 DECLARE SUB remove_menu (record AS INTEGER)
 DECLARE FUNCTION herocount () AS INTEGER
+DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -885,6 +889,8 @@ FOR i = 0 TO 40
   eqstuf(i, o) = buffer(z): z = z + 1
  NEXT o
 NEXT i
+
+rebuild_inventory_captions inventory()
 
 'RECORD 2
 
@@ -2227,3 +2233,10 @@ FUNCTION herocount () AS INTEGER
  NEXT i
  RETURN count
 END FUNCTION
+
+SUB rebuild_inventory_captions (invent() AS InventSlot)
+ DIM i AS INTEGER
+ FOR i = 0 TO inventoryMax
+  itstr i
+ NEXT i
+END SUB

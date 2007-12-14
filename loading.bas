@@ -190,7 +190,8 @@ SUB DeserInventory8Bit(invent() as InventSlot, z, buf())
       IF buf(z) > 0 AND buf(z) <= 255 THEN temp = temp + CHR$(buf(z))
       z += 1
     NEXT j
-    invent(i).text = temp$
+    '--Don't bother actually using the stored string. it is rebuilt later with rebuild_inventory_captions()
+    'invent(i).text = temp$
   NEXT
   z += 2 * 12
 END SUB
