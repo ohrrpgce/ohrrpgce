@@ -101,7 +101,7 @@ workingdir$ = tmpdir$ & "working.tmp"
 processcommandline
 
 DIM font(1024), buffer(16384), timing(4), joy(4)
-DIM menu$(22), gen(360), keyv(55, 3), rpg$(255), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), npcn(1500), npcstat(1500), uilook(uiColors)
+DIM menu$(22), gen(360), keyv(55, 3), rpg$(3), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), npcn(1500), npcstat(1500), uilook(uiColors)
 DIM master(255) as RGBcolor
 'more global variables
 DIM game$, gamefile$, insert, activepalette
