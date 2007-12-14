@@ -221,7 +221,7 @@ NEXT i
 
 printstr "item names", 0, pl * 8, 0: pl = pl + 1
 isunique "", u$(), 1
-FOR i = 0 TO 255
+FOR i = 0 TO gen(genMaxItem)
  writeconstant fh, i, readitemname$(i), u$(), "item"
 NEXT i
 setvispage 0

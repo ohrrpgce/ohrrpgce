@@ -492,7 +492,7 @@ END SUB
 
 SUB evalitemtag
 
-FOR i = 0 TO 255
+FOR i = 0 TO maxMaxItems
  'clear all four bits
  FOR j = 0 TO 3
   IF itembits(i, j) > 1 THEN setbit tag(), 0, itembits(i, j), 0
