@@ -168,7 +168,6 @@ DO
     alert$ = purchased$ + " " + stuf$(pt)
    END IF '-------END IF ITEM-------------------------------------
    IF b(pt * recordsize + 17) = 1 THEN '---HIRE HERO------------------
-    'getitem b(pt * recordsize + 18) + 1, 1
     FOR i = 37 TO 0 STEP -1
      IF hero(i) = 0 THEN slot = i
     NEXT i
@@ -760,7 +759,6 @@ FOR i = 0 TO inventoryMax
   IF numitems = 0 THEN EXIT SUB
  END IF
 NEXT
-getit = 0 ' this looks dangerous to me
 END SUB
 
 FUNCTION getOOBtarg (gamma, wptr, index, stat(), ondead(), onlive())
