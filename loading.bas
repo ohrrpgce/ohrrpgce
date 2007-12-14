@@ -211,6 +211,9 @@ SUB SaveInventory16bit(invent() AS InventSlot, BYREF z AS INTEGER, buf())
       IF .used THEN
         buf(z) = .id
         buf(z+1) = .num
+      ELSE
+        buf(z) = -1
+        buf(z+1) = 0
       END IF
     END WITH
     z += 2
@@ -221,10 +224,16 @@ SUB LoadInventory16Bit(invent() AS InventSlot, BYREF z AS INTEGER, buf())
   DIM i AS INTEGER
   FOR i = 0 TO inventoryMax
     WITH invent(i)
-      .used = NO
-      .id = buf(z)
       .num = buf(z+1)
-      IF .num > 0 THEN .used = YES
+      IF .num > 0 THEN
+        .used = YES
+        .id = buf(z)
+      ELSE
+        'empty slot
+        .used = NO
+        .id = buf(z)
+        .num = 0
+      END IF
     END WITH
     z += 2
   NEXT i
