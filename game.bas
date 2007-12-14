@@ -2111,23 +2111,25 @@ SELECT CASE AS CONST scrat(nowscript).curkind
      scriptret = 0
     END IF
    CASE 56'--set default weapon
-    IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-     '--identify new default weapon
-     newdfw = bound(retvals(1), 0, 255) + 1
-     '--remember old default weapon
-     olddfw = stat(retvals(0), 0, 16)
-     '--remeber currently equipped weapon
-     cureqw = eqstuf(retvals(0), 0)
-     '--change default
-     stat(retvals(0), 0, 16) = newdfw
-     '--blank weapon
-     unequip retvals(0), 0, olddfw, stat(), 0
-     IF cureqw <> olddfw THEN
-      '--if previously using a weapon, re-equip old weapon
-      doequip cureqw, retvals(0), 0, newdfw, stat()
-     ELSE
-      '--otherwize equip new default weapon
-      doequip newdfw, retvals(0), 0, newdfw, stat()
+    IF bound_hero_party(retvals(0), "set default weapon") THEN
+     IF bound_item(retvals(1), "set default weapon") THEN
+      '--identify new default weapon
+      newdfw = retvals(1) + 1
+      '--remember old default weapon
+      olddfw = stat(retvals(0), 0, 16)
+      '--remeber currently equipped weapon
+      cureqw = eqstuf(retvals(0), 0)
+      '--change default
+      stat(retvals(0), 0, 16) = newdfw
+      '--blank weapon
+      unequip retvals(0), 0, olddfw, stat(), 0
+      IF cureqw <> olddfw THEN
+       '--if previously using a weapon, re-equip old weapon
+       doequip cureqw, retvals(0), 0, newdfw, stat()
+      ELSE
+       '--otherwize equip new default weapon
+       doequip newdfw, retvals(0), 0, newdfw, stat()
+      END IF
      END IF
     END IF
    CASE 61'--teleport to map
