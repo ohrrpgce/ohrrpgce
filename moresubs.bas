@@ -1739,13 +1739,15 @@ FOR i = 0 TO 40
   z = z + 1
  NEXT j
 NEXT i
-'Store old-style 8-bit inventory
+'Store old-style 8-bit inventory (provides a little compatability for new SAV files with old game versions)
 SerInventory8bit inventory(), z, buffer()
 FOR i = 0 TO 40
  FOR o = 0 TO 4
   buffer(z) = eqstuf(i, o): z = z + 1
  NEXT o
 NEXT i
+'Store new 16-bit inventory
+SaveInventory16Bit inventory(), z, buffer()
 
 setpicstuf buffer(), 30000, -1
 sg$ = savefile$
