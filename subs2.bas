@@ -1290,7 +1290,7 @@ FOR i = 0 TO 21
  IF ct(i) = 3 THEN cond(i) = bound(cond(i), -99, 99)
  IF ct(i) = 4 THEN cond(i) = bound(cond(i), -32000, 32000)
  IF ct(i) = 5 THEN cond(i) = bound(cond(i), 0, 199)
- IF ct(i) = 6 THEN cond(i) = bound(cond(i), -255, 255)
+ IF ct(i) = 6 THEN cond(i) = bound(cond(i), -gen(genMaxItem) - 1, gen(genMaxItem) + 1)
  IF ct(i) = 7 THEN cond(i) = bound(cond(i), -32767, gen(genMaxTextbox))
 NEXT i
 FOR i = 0 TO 7
