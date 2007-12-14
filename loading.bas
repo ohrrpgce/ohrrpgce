@@ -203,6 +203,32 @@ SUB CleanInventory(invent() as InventSlot)
   NEXT
 END SUB
 
+SUB SaveInventory16bit(invent() AS InventSlot, BYREF z AS INTEGER, buf())
+  DIM i AS INTEGER
+  FOR i = 0 TO inventoryMax
+    WITH invent(i)
+      IF .used THEN
+        buf(z) = .id
+        buf(z+1) = .num
+      END IF
+    END WITH
+    z += 2
+  NEXT i
+END SUB
+
+SUB LoadInventory16Bit(invent() AS InventSlot, BYREF z AS INTEGER, buf())
+  DIM i AS INTEGER
+  FOR i = 0 TO inventoryMax
+    WITH invent(i)
+      .used = NO
+      .id = buf(z)
+      .num = buf(z+1)
+      IF .num > 0 THEN .used = YES
+    END WITH
+    z += 2
+  NEXT i
+END SUB
+
 SUB LoadTiledata(filename as string, array() as integer, byval numlayers as integer, byref wide as integer, byref high as integer)
   'resize array and attempt to read numlayers of tile data, if that many are not present, default to 1 layer (blank out the rest)
   DIM AS INTEGER fh, i

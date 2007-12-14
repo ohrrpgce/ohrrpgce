@@ -15,9 +15,13 @@ declare sub loadnpcl(file as string, dat() as npcinst, num as integer)
 declare sub sernpcl(npc() as npcinst, z, buffer(), num as integer, xoffset as integer, yoffset as integer)
 declare sub desernpcl(npc() as npcinst, z, buffer(), num as integer, xoffset as integer, yoffset as integer)
 declare sub cleannpcl(dat() as npcinst, num as integer)
+
+declare Sub SaveInventory16bit(invent() AS InventSlot, BYREF z AS INTEGER, buf())
+declare Sub LoadInventory16Bit(invent() AS InventSlot, BYREF z AS INTEGER, buf())
 declare sub serinventory8bit(invent() as inventslot, z, buf())
 declare sub deserinventory8bit(invent() as inventslot, z, buf())
 declare sub cleaninventory(invent() as inventslot)
+
 declare sub loadtiledata(filename as string, array(), byval numlayers as integer = 1, byref wide as integer = 0, byref high as integer = 0)
 declare sub savetiledata(filename as string, array(), byval numlayers as integer = 1)
 declare sub cleantiledata(array(), wide as integer, high as integer, numlayers as integer = 1)
