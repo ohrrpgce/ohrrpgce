@@ -586,7 +586,9 @@ storerecord array(), filename$, 160, index
 END SUB
 
 SUB loaditemdata (array(), index)
-loadrecord array(), game$ & ".itm", 100, index
+ flusharray array(), 99, 0
+ IF index > gen(genMaxItem) THEN debug "loaditemdata:" & index & " out of range" : EXIT SUB
+ IF loadrecord(array(), game$ & ".itm", 100, index) = 0 THEN debug "loaditemdata:" & index & " loadrecord failed" : EXIT SUB
 END SUB
 
 SUB saveitemdata (array(), index)
