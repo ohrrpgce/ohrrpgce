@@ -150,6 +150,9 @@ END SUB
 
 SUB SerInventory8Bit(invent() as InventSlot, z, buf())
   DIM i as integer, j as integer
+  buf(z) = 1 'Instruct new versions of game to ignore all this junk and use the 16-bit data instead
+  '...but go ahead and write the 8-bit data so that loading a new SAV in an old version of game
+  '   will not result in a nuked inventory
   z += 3 ' disregard some jibba jabba
   FOR i = 0 to inventoryMax
     IF invent(i).used THEN
