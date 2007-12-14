@@ -882,7 +882,11 @@ FOR i = 0 TO 40
  names$(i) = temp$
 NEXT i
 
-DeserInventory8Bit inventory(), z, buffer()
+DIM inv_mode AS INTEGER
+inv_mode = buffer(z)
+IF inv_mode = 0 THEN ' Read 8-bit inventory data from old SAV files
+ DeserInventory8Bit inventory(), z, buffer()
+END IF
 
 FOR i = 0 TO 40
  FOR o = 0 TO 4
@@ -890,6 +894,9 @@ FOR i = 0 TO 40
  NEXT o
 NEXT i
 
+IF inv_mode = 1 THEN ' Read 16-bit inventory data from newer SAV files
+ LoadInventory16Bit inventory(), z, buffer()
+END IF
 rebuild_inventory_captions inventory()
 
 'RECORD 2
