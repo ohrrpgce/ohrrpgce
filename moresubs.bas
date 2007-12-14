@@ -886,6 +886,9 @@ DIM inv_mode AS INTEGER
 inv_mode = buffer(z)
 IF inv_mode = 0 THEN ' Read 8-bit inventory data from old SAV files
  DeserInventory8Bit inventory(), z, buffer()
+ELSE
+ 'Skip this section
+ z = 14595
 END IF
 
 FOR i = 0 TO 40
