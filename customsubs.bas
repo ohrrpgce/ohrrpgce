@@ -13,6 +13,8 @@
 
 #include "customsubs.bi"
 
+OPTION EXPLICIT
+
 FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=999) AS INTEGER
  IF intgrabber(n, min, max) THEN RETURN YES
  IF enter_or_space() THEN
@@ -56,6 +58,7 @@ state.pt = 0
 IF ABS(starttag) >= 2 THEN state.pt = small(ABS(starttag) - 1, gen(genMaxTagName))
 IF state.pt >= 1 THEN thisname = load_tag_name(state.pt + 1)
 
+DIM tog AS INTEGER = 0
 setkeys
 DO
  setwait 100
@@ -103,6 +106,8 @@ END FUNCTION
 
 FUNCTION strgrabber (s AS STRING, maxl AS INTEGER) AS INTEGER
 STATIC clip AS STRING
+DIM shift AS INTEGER
+DIM i AS INTEGER
 
 DIM old AS STRING
 old = s
@@ -157,18 +162,22 @@ FUNCTION charpicker() AS STRING
 
 STATIC pt
 
+DIM i AS INTEGER
 DIM f(255)
+DIM last AS INTEGER = -1
+DIM linesize AS INTEGER
+DIM offset AS XYPair
 
-last = -1
 FOR i = 32 TO 255
  last = last + 1
  f(last) = i
 NEXT i
 
 linesize = 16
-xoff = 160 - (linesize * 9) \ 2
-yoff = 100 - ((last \ linesize) * 9) \ 2
+offset.x = 160 - (linesize * 9) \ 2
+offset.y = 100 - ((last \ linesize) * 9) \ 2
 
+DIM tog AS INTEGER = 0
 setkeys
 DO
  setwait 100
@@ -187,7 +196,7 @@ DO
   textcolor 7, 8
   IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor 7, 1
   IF pt = i THEN textcolor 14 + tog, 0
-  printstr CHR(f(i)), xoff + (i MOD linesize) * 9, yoff + (i \ linesize) * 9, dpage
+  printstr CHR(f(i)), offset.x + (i MOD linesize) * 9, offset.y + (i \ linesize) * 9, dpage
  NEXT i
 
  SWAP vpage, dpage
@@ -230,6 +239,7 @@ SUB ui_color_editor()
  state.size = 22
  state.last = UBOUND(color_menu)
 
+ DIM tog AS INTEGER = 0
  setkeys
  DO
   setwait 100
@@ -302,6 +312,7 @@ END SUB
 
 FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
  DIM i AS INTEGER
+ DIM tog AS INTEGER = 0
  DIM spot AS XYPair
  DIM cursor AS XYPair
  cursor = xy_from_int(start_color, 16, 16)
@@ -316,10 +327,10 @@ FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
 
   IF enter_or_space() THEN RETURN int_from_xy(cursor, 16, 16)
 
-  IF keyval(72) > 0 THEN cursor.y = loopvar(cursor.y, 0, 15, -1)
-  IF keyval(80) > 0 THEN cursor.y = loopvar(cursor.y, 0, 15, 1)
-  IF keyval(75) > 0 THEN cursor.x = loopvar(cursor.x, 0, 15, -1)
-  IF keyval(77) > 0 THEN cursor.x = loopvar(cursor.x, 0, 15, 1)
+  IF keyval(72) > 1 THEN cursor.y = loopvar(cursor.y, 0, 15, -1)
+  IF keyval(80) > 1 THEN cursor.y = loopvar(cursor.y, 0, 15, 1)
+  IF keyval(75) > 1 THEN cursor.x = loopvar(cursor.x, 0, 15, -1)
+  IF keyval(77) > 1 THEN cursor.x = loopvar(cursor.x, 0, 15, 1)
 
   FOR i = 0 TO 255
    spot = xy_from_int(i, 16, 16)
