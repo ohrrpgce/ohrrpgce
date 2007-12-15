@@ -174,7 +174,7 @@ addcaption caption$(), capindex, "Medium 50x50"
 addcaption caption$(), capindex, "Big 80x80"
 
 CONST EnLimItem = 4
-max(EnLimItem) = 254
+max(EnLimItem) = gen(genMaxItem)
 
 CONST EnLimPercent = 5
 max(EnLimPercent) = 100
@@ -1153,7 +1153,7 @@ min(2) = -1: max(2) = 32767
 min(3) = 0: max(3) = gen(genMaxNPCPic)
 min(4) = -1: max(4) = 32767
 min(5) = -1: max(5) = 99
-min(6) = 0: max(6) = 254
+min(6) = 0: max(6) = gen(genMaxItem)
 min(7) = 0: max(7) = 16
 min(8) = -100:max(8) = 100
 min(9) = -100:max(9) = 100
@@ -1597,21 +1597,21 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) AND csr >= 0 THEN
-  cropafter csr, 254, -1, game$ + ".itm", 200, 1
+  cropafter csr, gen(genMaxItem), -1, game$ + ".itm", 200, 1
   GOSUB litemname
  END IF
- usemenu csr, top, -1, 254, 23
- intgrabber csr, -1, 254
+ usemenu csr, top, -1, gen(genMaxItem), 23
+ intgrabber csr, -1, gen(genMaxItem)
  IF enter_or_space() THEN
   IF csr = -1 THEN EXIT DO
-  IF csr <= 254 THEN
+  IF csr <= gen(genMaxItem) THEN
    GOSUB edititem
    saveitemdata a(), csr
    i = csr: GOSUB sitemname
   END IF
  END IF
  FOR i = top TO top + 23
-  IF i <= 254 THEN
+  IF i <= gen(genMaxItem) THEN
    textcolor 7, 0
    IF i = csr THEN textcolor 14 + tog, 0
    temp$ = XSTR$(i) + " " + item$(i)
@@ -1820,7 +1820,7 @@ temp$ = XSTR$(a(n) - 1) + " " + readattackname$(a(n) - 1)
 RETRACE
 
 litemname:
-FOR i = 0 TO 254
+FOR i = 0 TO gen(genMaxItem)
  loaditemdata a(), i
  item$(i) = readbadbinstring$(a(), 0, 8, 0)
 NEXT i

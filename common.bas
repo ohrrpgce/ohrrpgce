@@ -527,9 +527,9 @@ SUB guessdefaultpals(fileset, poffset(), sets)
    END IF
   NEXT i
  CASE 5 'Weapons
-  REDIM buf(100)
+  REDIM buf(99)
   FOR i = 0 TO sets
-   FOR j = 0 TO 254
+   FOR j = 0 TO gen(genMaxItem)
     loaditemdata buf(), j
     IF buf(49) = 1 AND buf(52) = i THEN
      poffset(i) = buf(53)

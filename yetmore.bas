@@ -1022,12 +1022,16 @@ SELECT CASE AS CONST id
    npcplot
   END IF
  CASE 17'--get item
-  IF retvals(0) >= 0 AND retvals(0) <= 254 AND retvals(1) >= 1 THEN
-   getitem retvals(0) + 1, retvals(1)
+  IF bound_item(retvals(0), "get item") THEN
+   IF retvals(1) >= 1 THEN
+    getitem retvals(0) + 1, retvals(1)
+   END IF
   END IF
  CASE 18'--delete item
-  IF retvals(0) >= 0 AND retvals(0) <= 254 AND retvals(1) >= 1 THEN
-   delitem retvals(0) + 1, retvals(1)
+  IF bound_item(retvals(0), "delete item") THEN
+   IF retvals(1) >= 1 THEN
+    delitem retvals(0) + 1, retvals(1)
+   END IF
   END IF
  CASE 19'--leader
   FOR i = 0 TO 3
@@ -1111,13 +1115,15 @@ SELECT CASE AS CONST id
    GOSUB setwaitstate
   END IF
  CASE 60'--equip where
-  loaditemdata buffer(), bound(retvals(1), 0, 254)
   scriptret = 0
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   i = hero(retvals(0)) - 1
-   IF i >= 0 THEN
-    IF readbit(buffer(), 66, i) THEN
-     scriptret = buffer(49)
+  IF bound_item(retvals(1), "equip where") THEN
+   IF bound_hero_party(retvals(0), "equip where") THEN
+    loaditemdata buffer(), retvals(1)
+    i = hero(retvals(0)) - 1
+    IF i >= 0 THEN
+     IF readbit(buffer(), 66, i) THEN
+      scriptret = buffer(49)
+     END IF
     END IF
    END IF
   END IF

@@ -1175,7 +1175,7 @@ othertype:
 SELECT CASE b(17)
  CASE 0 ' Is an item
   last = 22
-  max(4) = 254: IF b(18) > 254 THEN b(18) = 0
+  max(4) = gen(genMaxItem): IF b(18) > max(4) THEN b(18) = 0
   max(19) = 3 ' Item sell-type
  CASE 1 ' Is a hero
   last = 19
