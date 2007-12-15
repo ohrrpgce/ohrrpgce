@@ -193,7 +193,10 @@ mode$(4) = "Foe Mapping Mode"
 menubar(0) = 160: menubar(1) = 1
 sampmap(0) = 1
 sampmap(1) = 1
-GOSUB loadmenu
+setmapdata menubar(), pass(), 180, 0
+FOR i = 0 TO 159
+ setmapblock i, 0, 0, i
+NEXT
 
 maptop = 0
 pt = 0
@@ -1209,13 +1212,6 @@ IF map(0) <> pass(0) OR map(0) <> emap(0) OR map(1) <> pass(1) OR map(1) <> emap
  setvispage vpage
  w = getkey
 END IF
-RETRACE
-
-loadmenu:
-setmapdata menubar(), pass(), 180, 0
-FOR i = 0 TO 159
- setmapblock i, 0, 0, i
-NEXT
 RETRACE
 
 linkdoor:
