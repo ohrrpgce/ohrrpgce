@@ -61,7 +61,7 @@ DECLARE SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pas
 DECLARE SUB resizemapmenu (map(), tastuf(), byref newwide, byref newhigh, byref tempx, byref tempy)
 
 DECLARE SUB make_top_map_menu(maptop, topmenu$())
-DECLARE SUB update_tilepicker(BYREF bx AS INTEGER, BYREF by AS INTEGER, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER)
+DECLARE SUB update_tilepicker(BYREF tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -159,6 +159,8 @@ DIM heroimg(102), heropal(8)
 REDIM map(2) ' dummy empty map data, will be resized later
 REDIM pass(2)
 REDIM emap(2)
+
+DIM tilepick AS XYPair
 
 textcolor 15, 0
 
@@ -617,7 +619,7 @@ DO
    END IF
    IF keyval(58) > 1 THEN 'grab tile
     usetile(layer) = animadjust(readmapblock(x, y, layer), tastuf())
-    update_tilepicker bx, by, layer, usetile(), menubarstart()
+    update_tilepicker tilepick, layer, usetile(), menubarstart()
    END IF
    IF keyval(29) > 0 AND keyval(32) > 1 THEN defpass = defpass XOR 1   
    FOR i = 0 TO 1
@@ -646,11 +648,11 @@ DO
    NEXT i
    IF keyval(51) > 0 AND usetile(layer) > 0 THEN
     usetile(layer) = usetile(layer) - 1
-    update_tilepicker bx, by, layer, usetile(), menubarstart()
+    update_tilepicker tilepick, layer, usetile(), menubarstart()
    END IF
    IF keyval(52) > 0 AND usetile(layer) < 159 THEN
     usetile(layer) = usetile(layer) + 1
-    update_tilepicker bx, by, layer, usetile(), menubarstart()
+    update_tilepicker tilepick, layer, usetile(), menubarstart()
    END IF
    '---PASSMODE-------
   CASE 1
@@ -786,7 +788,7 @@ DO
     IF layerisenabled(gmap(), i) THEN
      layer = i
      setlayervisible(visible(), layer, 1)
-     update_tilepicker bx, by, layer, usetile(), menubarstart()
+     update_tilepicker tilepick, layer, usetile(), menubarstart()
      EXIT FOR
     END IF
    NEXT i
@@ -797,7 +799,7 @@ DO
     IF layerisenabled(gmap(), i) THEN
      layer = i
      setlayervisible(visible(), layer, 1)
-     update_tilepicker bx, by, layer, usetile(), menubarstart()
+     update_tilepicker tilepick, layer, usetile(), menubarstart()
      EXIT FOR
     END IF
    NEXT
@@ -962,21 +964,29 @@ DO
  setwait timing(), 120
  setkeys
  IF keyval(28) > 1 OR keyval(1) > 1 THEN menu = usetile(layer): EXIT DO
- IF keyval(72) > 0 AND by > 0 THEN by = by - 1: usetile(layer) = usetile(layer) - 16
- IF keyval(80) > 0 AND by < 9 THEN by = by + 1: usetile(layer) = usetile(layer) + 16
- IF keyval(75) > 0 AND bx > 0 THEN bx = bx - 1: usetile(layer) = usetile(layer) - 1
- IF keyval(77) > 0 AND bx < 15 THEN bx = bx + 1: usetile(layer) = usetile(layer) + 1
- IF keyval(51) > 0 AND usetile(layer) > 0 THEN usetile(layer) = usetile(layer) - 1: bx = bx - 1: IF bx < 0 THEN bx = 15: by = by - 1
- IF keyval(52) > 0 AND usetile(layer) < 159 THEN usetile(layer) = usetile(layer) + 1: bx = bx + 1: IF bx > 15 THEN bx = 0: by = by + 1
+ IF keyval(72) > 0 AND tilepick.y > 0 THEN tilepick.y -= 1: usetile(layer) = usetile(layer) - 16
+ IF keyval(80) > 0 AND tilepick.y < 9 THEN tilepick.y += 1: usetile(layer) = usetile(layer) + 16
+ IF keyval(75) > 0 AND tilepick.x > 0 THEN tilepick.x -= 1: usetile(layer) = usetile(layer) - 1
+ IF keyval(77) > 0 AND tilepick.x < 15 THEN tilepick.x += 1: usetile(layer) = usetile(layer) + 1
+ IF keyval(51) > 0 AND usetile(layer) > 0 THEN
+  usetile(layer) -= 1
+  tilepick.x -= 1
+  IF tilepick.x < 0 THEN tilepick.x = 15: tilepick.y -= 1
+ END IF
+ IF keyval(52) > 0 AND usetile(layer) < 159 THEN
+  usetile(layer) += 1
+  tilepick.x += 1
+  IF tilepick.x > 15 THEN tilepick.x = 0: tilepicky += 1
+ END IF
  tog = tog XOR 1
  loadsprite cursor(), 0, 0, 0, 20, 20, 2
- drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, bx * 20, by * 20, dpage
+ drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, tilepick.x * 20, tilepick.y * 20, dpage
  copypage dpage, vpage
  copypage 3, dpage
  setvispage vpage
  dowait
 LOOP
-update_tilepicker bx, by, layer, usetile(), menubarstart()
+update_tilepicker tilepick, layer, usetile(), menubarstart()
 RETRACE
 
 sizemap:
@@ -1419,10 +1429,10 @@ RETRACE
 '128 overhead
 END SUB
 
-SUB update_tilepicker(BYREF bx AS INTEGER, BYREF by AS INTEGER, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER)
+SUB update_tilepicker(BYREF tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER)
 	menubarstart(layer) = bound(menubarstart(layer), large(usetile(layer) - 14, 0), small(usetile(layer), 145))
-	by = INT(usetile(layer) / 16)
-	bx = usetile(layer) - (by * 16)
+	tilepick.y = INT(usetile(layer) / 16)
+	tilepick.x = usetile(layer) - (tilepick.y * 16)
 END SUB
 
 
