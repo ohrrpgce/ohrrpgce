@@ -61,6 +61,7 @@ DECLARE SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pas
 DECLARE SUB resizemapmenu (map(), tastuf(), byref newwide, byref newhigh, byref tempx, byref tempy)
 
 DECLARE SUB make_top_map_menu(maptop, topmenu$())
+DECLARE SUB update_tilepicker(BYREF bx AS INTEGER, BYREF by AS INTEGER, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -616,7 +617,7 @@ DO
    END IF
    IF keyval(58) > 1 THEN 'grab tile
     usetile(layer) = animadjust(readmapblock(x, y, layer), tastuf())
-   GOSUB updatetilepicker
+    update_tilepicker bx, by, layer, usetile(), menubarstart()
    END IF
    IF keyval(29) > 0 AND keyval(32) > 1 THEN defpass = defpass XOR 1   
    FOR i = 0 TO 1
@@ -645,11 +646,11 @@ DO
    NEXT i
    IF keyval(51) > 0 AND usetile(layer) > 0 THEN
     usetile(layer) = usetile(layer) - 1
-    GOSUB updatetilepicker
+    update_tilepicker bx, by, layer, usetile(), menubarstart()
    END IF
    IF keyval(52) > 0 AND usetile(layer) < 159 THEN
     usetile(layer) = usetile(layer) + 1
-    GOSUB updatetilepicker
+    update_tilepicker bx, by, layer, usetile(), menubarstart()
    END IF
    '---PASSMODE-------
   CASE 1
@@ -779,29 +780,29 @@ DO
   y = mapy / 20 + oldrely
  END IF
  
- if editmode = 0 then 'tilemode, uses layers
- IF keyval(scPageup) > 1 then
- 	for i = layer+1 to 2
- 		if layerisenabled(gmap(), i) then
- 			layer = i
- 			setlayervisible(visible(), layer, 1)
-			GOSUB updatetilepicker
- 			exit for
- 		end if
- 	next
- end if
- 	 
- IF keyval(scPageDown) > 1 then
- 	for i = layer-1 to 0 step -1
- 		if layerisenabled(gmap(), i) then
- 			layer = i
- 			setlayervisible(visible(), layer, 1)
-			GOSUB updatetilepicker
- 			exit for
- 		end if
- 	next
- end if
- end if
+ IF editmode = 0 THEN 'tilemode, uses layers
+  IF keyval(scPageup) > 1 THEN
+   FOR i = layer+1 TO 2
+    IF layerisenabled(gmap(), i) THEN
+     layer = i
+     setlayervisible(visible(), layer, 1)
+     update_tilepicker bx, by, layer, usetile(), menubarstart()
+     EXIT FOR
+    END IF
+   NEXT i
+  END IF
+
+  IF keyval(scPageDown) > 1 THEN
+   FOR i = layer-1 TO 0 STEP -1
+    IF layerisenabled(gmap(), i) THEN
+     layer = i
+     setlayervisible(visible(), layer, 1)
+     update_tilepicker bx, by, layer, usetile(), menubarstart()
+     EXIT FOR
+    END IF
+   NEXT
+  END IF
+ END IF
  
  tog = tog XOR 1
  flash = loopvar(flash, 0, 3, 1)
@@ -955,12 +956,6 @@ DO
  dowait
 LOOP
 
-updatetilepicker:
-	menubarstart(layer) = bound(menubarstart(layer), large(usetile(layer) - 14, 0), small(usetile(layer), 145))
-	by = INT(usetile(layer) / 16)
-	bx = usetile(layer) - (by * 16)
-RETRACE
-
 pickblock:
 setkeys
 DO
@@ -981,7 +976,7 @@ DO
  setvispage vpage
  dowait
 LOOP
-GOSUB updatetilepicker
+update_tilepicker bx, by, layer, usetile(), menubarstart()
 RETRACE
 
 sizemap:
@@ -1423,6 +1418,13 @@ RETRACE
 '64  harm tile
 '128 overhead
 END SUB
+
+SUB update_tilepicker(BYREF bx AS INTEGER, BYREF by AS INTEGER, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER)
+	menubarstart(layer) = bound(menubarstart(layer), large(usetile(layer) - 14, 0), small(usetile(layer), 145))
+	by = INT(usetile(layer) / 16)
+	bx = usetile(layer) - (by * 16)
+END SUB
+
 
 Function LayerIsVisible(vis() as integer, byval l as integer) as integer
 	'debug "layer #" & l & " is: " & readbit(vis(), 0, l)
