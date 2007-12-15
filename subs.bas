@@ -45,11 +45,15 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 #include "customsubs.bi"
 #include "cglobals.bi"
 
+#include "uiconst.bi"
 #include "scrconst.bi"
 
 DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
 
 DECLARE FUNCTION textbox_preview_line(boxnum AS INTEGER) AS STRING
+DECLARE SUB load_item_names (item_strings() AS STRING)
+DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
+DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, workpal() AS INTEGER, frame AS INTEGER)
 
 REM $STATIC
 
@@ -1559,7 +1563,8 @@ EXIT SUB
 END SUB
 
 SUB itemdata
-DIM names$(100), a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), item$(-1 TO maxMaxItems), eqst$(5), max(18), min(18), sbmax(11), workpal(8), elemtype$(2), frame
+DIM names$(100), a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), eqst$(5), max(18), min(18), sbmax(11), workpal(8), elemtype$(2), frame
+DIM item$(maxMaxItems)
 DIM her AS HeroDef ' This is only used in equipbit
 imax = 32
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
@@ -1589,7 +1594,8 @@ NEXT i
 sbmax(11) = 10
 
 csr = 0: top = -1: pt = 0
-GOSUB litemname
+DIM caption AS STRING
+load_item_names item$()
 setkeys
 DO
  setwait timing(), 100
@@ -1597,13 +1603,20 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) AND csr >= 0 THEN
-  cropafter csr, gen(genMaxItem), -1, game$ + ".itm", 200, 1
-  GOSUB litemname
+  cropafter csr, gen(genMaxItem), 0, game$ + ".itm", 200, 1
+  load_item_names item$()
  END IF
- usemenu csr, top, -1, gen(genMaxItem), 23
- intgrabber csr, -1, gen(genMaxItem)
+ usemenu csr, top, -1, gen(genMaxItem) + 1, 23
+ intgrabber csr, -1, gen(genMaxItem) + 1
  IF enter_or_space() THEN
   IF csr = -1 THEN EXIT DO
+  IF csr = gen(genMaxItem) + 1 THEN
+   IF gen(genMaxItem) < maxMaxItems THEN
+    gen(genMaxItem) += 1
+    flusharray a(), 99, 0
+    saveitemdata a(), csr
+   END IF
+  END IF
   IF csr <= gen(genMaxItem) THEN
    GOSUB edititem
    saveitemdata a(), csr
@@ -1611,12 +1624,24 @@ DO
   END IF
  END IF
  FOR i = top TO top + 23
-  IF i <= gen(genMaxItem) THEN
-   textcolor 7, 0
-   IF i = csr THEN textcolor 14 + tog, 0
-   temp$ = XSTR$(i) + " " + item$(i)
-   IF i < 0 THEN temp$ = "Return to Main Menu"
-   printstr temp$, 0, (i - top) * 8, dpage
+  IF i <= gen(genMaxItem) + 1 THEN
+   textcolor uilook(uiMenuItem), 0
+   IF i = csr THEN textcolor uilook(uiSelectedItem + tog), 0
+   SELECT CASE i
+    CASE IS < 0
+     caption = "Return to Main Menu"
+    CASE IS > gen(genMaxItem)
+     IF gen(genMaxItem) < maxMaxItems THEN
+      caption = "Add a new item"
+     ELSE
+      caption = "No more items can be added"
+      textcolor uilook(uiDisabledItem), 0
+      IF i = csr THEN textcolor uilook(uiSelectedDisabled + tog), 0
+     END IF
+    CASE ELSE
+     caption = i & " " & item$(i)
+   END SELECT
+   printstr caption, 0, (i - top) * 8, dpage
   END IF
  NEXT i
  SWAP vpage, dpage
@@ -1654,11 +1679,13 @@ max(14) = 999
 max(15) = 999
 
 loaditemdata a(), csr
-GOSUB itemmenu
+generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$(), workpal(), frame
 
 setpicstuf buffer(), 576, 2
 loadset game$ + ".pt5", a(52), 0
 getpal16 workpal(), 0, a(53), 5, a(52)
+
+need_update = NO
 
 setkeys
 DO
@@ -1668,7 +1695,7 @@ DO
  IF keyval(1) > 1 THEN RETRACE
  IF (keyval(51) > 1 AND frame = 0) OR (keyval(52) > 1 AND frame = 1) THEN
   frame = frame XOR 1
-  GOSUB itemmenu
+  need_update = YES
  END IF
  usemenu pt, 0, 0, 20, 24
  IF enter_or_space() THEN
@@ -1676,21 +1703,21 @@ DO
   IF a(49) > 0 THEN
    IF pt = 18 THEN
     GOSUB statbon
-    GOSUB itemmenu
+    need_update = YES
    END IF
    IF pt = 19 THEN
     GOSUB ibitset
-    GOSUB itemmenu
+    need_update = YES
    END IF
    IF pt = 20 THEN
     GOSUB equipbit
-    GOSUB itemmenu
+    need_update = YES
    END IF
   END IF
   IF pt = 10 THEN '--palette picker
    a(46 + (pt - 3)) = pal16browse(a(53), 2, 0, 0, 24, 24, 2)
    getpal16 workpal(), 0, a(53), 5, a(52)
-   GOSUB itemmenu
+   need_update = YES
   END IF
  END IF
  SELECT CASE pt
@@ -1701,18 +1728,34 @@ DO
    strgrabber info$, 34
    menu$(2) = "Info:" + info$
   CASE 3, 6, 9, 10
-   IF intgrabber(a(46 + (pt - 3)), min(pt), max(pt)) THEN GOSUB itemmenu
+   IF intgrabber(a(46 + (pt - 3)), min(pt), max(pt)) THEN
+    need_update = YES
+   END IF
   CASE 4, 5, 7
-   IF zintgrabber(a(46 + (pt - 3)), -1, max(pt)) THEN GOSUB itemmenu
+   IF zintgrabber(a(46 + (pt - 3)), -1, max(pt)) THEN
+    need_update = YES
+   END IF
   CASE 8
-   IF xintgrabber(a(46 + (pt - 3)), 0, max(pt), -1, gen(39) * -1) THEN GOSUB itemmenu
+   IF xintgrabber(a(46 + (pt - 3)), 0, max(pt), -1, gen(39) * -1) THEN
+    need_update = YES
+   END IF
   CASE 11
-   IF intgrabber(a(73), 0, 2) THEN GOSUB itemmenu
+   IF intgrabber(a(73), 0, 2) THEN
+    need_update = YES
+   END IF
   CASE 12 TO 15
-   IF tag_grabber(a(74 + (pt - 12)), 0) THEN GOSUB itemmenu
+   IF tag_grabber(a(74 + (pt - 12)), 0) THEN
+    need_update = YES
+   END IF
   CASE 16, 17
-   IF intgrabber(a(78 + (pt - 16) + frame * 2), -100, 100) THEN GOSUB itemmenu
+   IF intgrabber(a(78 + (pt - 16) + frame * 2), -100, 100) THEN
+    need_update = YES
+   END IF
  END SELECT
+ IF need_update THEN
+  need_update = NO
+  generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$(), workpal(), frame
+ END IF
  FOR i = 0 TO 20
   textcolor 7, 0
   IF pt = i THEN textcolor 14 + tog, 0
@@ -1739,50 +1782,6 @@ DO
  clearpage dpage
  dowait
 LOOP
-
-itemmenu:
-menu$(1) = "Name:" + item$(csr)
-menu$(2) = "Info:" + info$
-menu$(3) = "Value" + XSTR$(a(46))
-n = 47: GOSUB itatkname
-menu$(4) = "When used in battle- " + temp$
-n = 48: GOSUB itatkname
-menu$(5) = "When used as a Weapon- " + temp$
-menu$(6) = "Equippable as- " + eqst$(large(small(a(49), 5), 0))
-n = 50: GOSUB itatkname
-menu$(7) = "Teach Spell- " + temp$
-IF a(51) >= 0 THEN
- n = 51: GOSUB itatkname
- menu$(8) = "When used out of battle- " + temp$
-ELSE
- menu$(8) = "When used out of battle- Text" + XSTR$(ABS(a(51)))
-END IF
-menu$(9) = "Weapon Picture " & a(52)
-menu$(10) = "Weapon Palette" + defaultint$(a(53))
-IF a(49) <> 1 THEN menu$(9) = "Weapon Picture N/A": menu$(10) = "Weapon Palette N/A"
-menu$(11) = "Unlimited Use"
-IF a(73) = 1 THEN menu$(11) = "Consumed By Use"
-IF a(73) = 2 THEN menu$(11) = "Cannot be Sold/Dropped"
-menu$(12) = "own item TAG " & a(74) & " " & load_tag_name(a(74))
-menu$(13) = "is in inventory TAG " & a(75) & " " & load_tag_name(a(75))
-menu$(14) = "is equipped TAG " & a(76) & " " & load_tag_name(a(76))
-menu$(15) = "eqpt by active hero TAG " & a(77) & " " & load_tag_name(a(77))
-menu$(16) = "Handle X:"
-menu$(17) = "Handle Y:"
-IF a(49) = 1 THEN
- menu$(16) = menu$(16) + XSTR$(a(78 + frame * 2))
- menu$(17) = menu$(17) + XSTR$(a(79 + frame * 2))
-ELSE
- menu$(16) = menu$(16) + "N/A"
- menu$(17) = menu$(17) + "N/A"
-END IF
-IF pt = 9 OR pt = 10 THEN
- 'oldframe = frame
- setpicstuf buffer(), 576, 2
- loadset game$ + ".pt5", a(52), 0
- getpal16 workpal(), 0, a(53), 5, a(52)
-END IF
-RETRACE
 
 statbon:
 ptr2 = 0
@@ -1812,19 +1811,6 @@ DO
  clearpage dpage
  dowait
 LOOP
-
-itatkname: 'n is the offset
-temp$ = "NOTHING"
-IF a(n) <= 0 THEN RETRACE
-temp$ = XSTR$(a(n) - 1) + " " + readattackname$(a(n) - 1)
-RETRACE
-
-litemname:
-FOR i = 0 TO gen(genMaxItem)
- loaditemdata a(), i
- item$(i) = readbadbinstring$(a(), 0, 8, 0)
-NEXT i
-RETRACE
 
 sitemname:
 loaditemdata a(), i
@@ -1857,45 +1843,58 @@ NEXT i
 editbitset a(), 66, 59, ibit$()
 RETRACE
 
-'SHOP STUFF
-'0       Name length
-'1-8     Name
-'9       description length
-'10-45   description
-'46      cash value
-'47      attack when used in battle
-'48      attack as weapon
-'49      Equip style
-'        0 never
-'        1 weapon
-'        2 shield
-'        3 armor
-'        4 head
-'        5 ring/gauntlet
-'50      Learn when used out of battle
-'51      Attack when use oob
-'52      Weapon picture
-'53      weapon pal
-'54      Hp bonus
-'55      Mp bonus
-'56      Str bonus
-'57      Acc bonus
-'58      Def bonus
-'59      Dodge bonus
-'60      Mag bonus
-'61      Will bonus
-'62      Speed bonus
-'63      Counter bonus
-'64      Focus bonus
-'65      Xhits bonus
-'66-69   equipability bitsets
-'70-72   bitsetmask
-'73      Consumed by use
-'74      when have tag
-'75      is in inventory
-'76      is equiped tag
-'77      is equiped by hero in active party
+END SUB
 
+SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, workpal() AS INTEGER, frame AS INTEGER)
+ menu(1) = "Name:" & item_name
+ menu(2) = "Info:" & info_string
+ menu(3) = "Value: " & itembuf(46)
+ menu(4) = "When used in battle: " & item_attack_name(itembuf(47))
+ menu(5) = "When used as a Weapon: " & item_attack_name(itembuf(48))
+ menu(6) = "Equippable as: " & equip_types(bound(itembuf(49), 0, 5))
+ menu(7) = "Teach Spell: " & item_attack_name(itembuf(50))
+ IF itembuf(51) >= 0 THEN
+  menu(8) = "When used out of battle: " & item_attack_name(itembuf(51))
+ ELSE
+  menu(8) = "When used out of battle: Text " & ABS(itembuf(51))
+ END IF
+ menu(9) = "Weapon Picture: " & itembuf(52)
+ menu(10) = "Weapon Palette:" & defaultint$(itembuf(53))
+ IF itembuf(49) <> 1 THEN menu(9) = "Weapon Picture: N/A": menu(10) = "Weapon Palette: N/A"
+ menu(11) = "Unlimited Use"
+ IF itembuf(73) = 1 THEN menu(11) = "Consumed By Use"
+ IF itembuf(73) = 2 THEN menu(11) = "Cannot be Sold/Dropped"
+ menu(12) = "own item TAG " & itembuf(74) & " " & load_tag_name(itembuf(74))
+ menu(13) = "is in inventory TAG " & itembuf(75) & " " & load_tag_name(itembuf(75))
+ menu(14) = "is equipped TAG " & itembuf(76) & " " & load_tag_name(itembuf(76))
+ menu(15) = "eqpt by active hero TAG " & itembuf(77) & " " & load_tag_name(itembuf(77))
+ menu(16) = "Handle X:"
+ menu(17) = "Handle Y:"
+ IF itembuf(49) = 1 THEN
+  menu(16) = menu(16) & " " & itembuf(78 + frame * 2)
+  menu(17) = menu(17) & " " & itembuf(79 + frame * 2)
+ ELSE
+  menu(16) = menu(16) & "N/A"
+  menu(17) = menu(17) & "N/A"
+ END IF
+ IF pt = 9 OR pt = 10 THEN
+  'oldframe = frame
+  setpicstuf buffer(), 576, 2
+  loadset game$ + ".pt5", itembuf(52), 0
+  getpal16 workpal(), 0, itembuf(53), 5, itembuf(52)
+ END IF
+END SUB'
+
+FUNCTION item_attack_name(n AS INTEGER) AS STRING
+ IF n <= 0 THEN RETURN "NOTHING"
+ RETURN n - 1 & " " & readattackname$(n - 1)
+END FUNCTION
+
+SUB load_item_names (item_strings() AS STRING)
+ DIM i AS INTEGER
+ FOR i = 0 TO gen(genMaxItem)
+  item_strings(i) = itemstr$(i, YES, YES)
+ NEXT i
 END SUB
 
 FUNCTION itemstr$ (it%, hidden%, offbyone%)
@@ -1904,12 +1903,12 @@ FUNCTION itemstr$ (it%, hidden%, offbyone%)
  'offbyone - whether it is the item number (1), or the itemnumber + 1 (0)
  IF it = 0 AND offbyone = 0 THEN itemstr$ = " NONE": EXIT FUNCTION
  IF offbyone THEN itn = it ELSE itn = it - 1
-
- loaditemdata buffer(), itn
+ DIM buf(99) AS INTEGER
+ loaditemdata buf(), itn
  re$ = ""
- re$ = readbadbinstring$(buffer(), 0, 8, 0)
- IF hidden = 0 THEN re$ = XSTR$(itn) + " " + re$
- itemstr$ = re$
+ re$ = readbadbinstring$(buf(), 0, 8, 0)
+ IF hidden = 0 THEN re$ = itn & " " & re$
+ RETURN re$
 END FUNCTION
 
 SUB npcdef (npc(), pt)
