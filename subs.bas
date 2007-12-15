@@ -1559,7 +1559,7 @@ EXIT SUB
 END SUB
 
 SUB itemdata
-DIM names$(100), a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), item$(-1 TO 255), eqst$(5), max(18), min(18), sbmax(11), workpal(8), elemtype$(2), frame
+DIM names$(100), a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), item$(-1 TO maxMaxItems), eqst$(5), max(18), min(18), sbmax(11), workpal(8), elemtype$(2), frame
 DIM her AS HeroDef ' This is only used in equipbit
 imax = 32
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
@@ -1940,7 +1940,7 @@ unpc(2) = 8
 unpc(3) = 5
 unpc(4) = -1
 unpc(5) = 2
-unpc(6) = 255
+unpc(6) = gen(genMaxItem) + 1
 unpc(7) = 7
 unpc(8) = 2
 unpc(9) = 999

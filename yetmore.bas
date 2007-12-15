@@ -87,6 +87,8 @@ DECLARE SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exsta
 DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
 DECLARE SUB limitcamera ()
 DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING) AS INTEGER
+DECLARE FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER
+DECLARE FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -182,12 +184,13 @@ FOR i = 0 TO large(gen(35), 59)
  herobits(i, 2) = her.leader_tag  'is leader tag
  herobits(i, 3) = her.active_tag  'is in active party tag
 NEXT i
-FOR i = 0 TO 255
- loaditemdata buffer(), i
- itembits(i, 0) = buffer(74)   'when have tag
- itembits(i, 1) = buffer(75)   'is in inventory
- itembits(i, 2) = buffer(76)   'is equiped tag
- itembits(i, 3) = buffer(77)   'is equiped by hero in active party
+DIM item_data(99) AS INTEGER
+FOR i = 0 TO gen(genMaxItem)
+ loaditemdata item_data(), i
+ itembits(i, 0) = item_data(74)   'when have tag
+ itembits(i, 1) = item_data(75)   'is in inventory
+ itembits(i, 2) = item_data(76)   'is equiped tag
+ itembits(i, 3) = item_data(77)   'is equiped by hero in active party
 NEXT i
 END SUB
 
@@ -1440,11 +1443,12 @@ SELECT CASE AS CONST id
    scriptret = 1
   END IF
  CASE 206'--get item name(str,itm)
-  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 255 THEN
-   scriptret = 0
-  ELSE
-   plotstr(retvals(0)).s = readitemname(retvals(1))
-   scriptret = 1
+  scriptret = 0
+  IF bound_plotstr(retvals(0), "get item name") THEN
+   IF bound_item(retvals(1), "get item name") THEN
+    plotstr(retvals(0)).s = readitemname(retvals(1))
+    scriptret = 1
+   END IF
   END IF
  CASE 207'--get map name(str,map)
    IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > gen(genMaxMap) THEN
