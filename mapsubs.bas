@@ -63,6 +63,7 @@ DECLARE SUB make_top_map_menu(maptop, topmenu$())
 DECLARE SUB update_tilepicker(BYREF tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER)
 DECLARE SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, mapname AS STRING)
 DECLARE SUB mapedit_loadmap (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tastuf() AS INTEGER, tanim_state() AS TileAnimState, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS INTEGER, mapname AS STRING)
+DECLARE SUB mapedit_savemap (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -265,13 +266,13 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN
-  GOSUB savemap
+  mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
   RETRACE
  END IF
  usemenu csr, 0, 0, 12, 24
  IF enter_or_space() THEN
   IF csr = 0 THEN
-   GOSUB savemap
+   mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
    RETRACE
   END IF
   IF csr = 1 THEN GOSUB sizemap
@@ -1095,7 +1096,7 @@ pt = how
 mapedit_loadmap pt, wide, high, map(), pass(), emap(), gmap(), visible(), tastuf(), tanim_state(), npc(), npcstat(), doors(), link(), defaults(), mapname$
 '-- save the new map
 pt = gen(0)
-GOSUB savemap
+mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
 RETRACE
 
 newblankmap:
@@ -1124,23 +1125,8 @@ buffer(0) = 0
 storerecord buffer(), game$ + ".mn", 40, gen(genMaxMap)
 RETRACE
 
-savemap:
-storerecord gmap(), game$ + ".map", getbinsize(4) / 2, pt
-savetiledata maplumpname$(pt, "t"), map(), 3
-savetiledata maplumpname$(pt, "p"), pass()
-savetiledata maplumpname$(pt, "e"), emap()
-xBSAVE maplumpname$(pt, "l"), npc(), 3000
-xBSAVE maplumpname$(pt, "n"), npcstat(), 3000
-serdoors game$ + ".dox", doors(), pt
-serdoorlinks maplumpname$(pt, "d"), link()
-'--save map name
-buffer(0) = LEN(mapname$)
-str2array LEFT$(mapname$, 39), buffer(), 1
-storerecord buffer(), game$ + ".mn", 40, pt
-RETRACE
-
 linkdoor:
-GOSUB savemap   'other map tilemaps are loaded
+mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$ 
 ulim(0) = 99: llim(0) = 0
 ulim(1) = 99: llim(1) = 0
 ulim(2) = gen(0): llim(2) = 0
@@ -1372,6 +1358,22 @@ SUB mapedit_loadmap (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INT
  mapname$ = getmapname$(mapnum)
  loadpasdefaults defaults(), gmap(0)
  verify_map_size mapnum, wide, high, map(), pass(), emap(), mapname
+END SUB
+
+SUB mapedit_savemap (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+ storerecord gmap(), game$ & ".map", getbinsize(binMAP) / 2, mapnum
+ savetiledata maplumpname$(mapnum, "t"), map(), 3
+ savetiledata maplumpname$(mapnum, "p"), pass()
+ savetiledata maplumpname$(mapnum, "e"), emap()
+ xBSAVE maplumpname$(mapnum, "l"), npc(), 3000
+ xBSAVE maplumpname$(mapnum, "n"), npcstat(), 3000
+ serdoors game$ & ".dox", doors(), mapnum
+ serdoorlinks maplumpname$(mapnum, "d"), link()
+ '--save map name
+ DIM mapsave(39) AS INTEGER
+ mapsave(0) = LEN(mapname)
+ str2array LEFT(mapname, 39), mapsave(), 1
+ storerecord mapsave(), game$ & ".mn", 40, mapnum
 END SUB
 
 SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, mapname AS STRING)
