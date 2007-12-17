@@ -64,6 +64,7 @@ DECLARE SUB update_tilepicker(BYREF tilepick AS XYPair, layer AS INTEGER, usetil
 DECLARE SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, mapname AS STRING)
 DECLARE SUB mapedit_loadmap (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tastuf() AS INTEGER, tanim_state() AS TileAnimState, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS INTEGER, mapname AS STRING)
 DECLARE SUB mapedit_savemap (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+DECLARE SUB new_blank_map (map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1084,7 +1085,11 @@ how = addmaphow
 '-- -2  =Cancel
 '-- -1  =New blank
 '-- >=0 =Copy
-IF how = -1 THEN GOSUB newblankmap
+IF how = -1 THEN
+ gen(genMaxMap) += 1
+ new_blank_map map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link()
+ mapedit_savemap gen(genMaxMap), map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), ""
+END IF
 IF how >= 0 THEN GOSUB copymap
 RETRACE
 
@@ -1097,32 +1102,6 @@ mapedit_loadmap pt, wide, high, map(), pass(), emap(), gmap(), visible(), tastuf
 '-- save the new map
 pt = gen(0)
 mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
-RETRACE
-
-newblankmap:
-'--increment map count
-gen(genMaxMap) += 1
-'--flush map buffers
-cleantiledata map(), 64, 64, 3
-cleantiledata pass(), 64, 64
-cleantiledata emap(), 64, 64
-flusharray gmap(), 19, 0
-flusharray npc(), 900, 0
-flusharray npcstat(), 1500, 0
-cleandoors doors()
-cleandoorlinks link()
-'--save map buffers
-storerecord gmap(), game$ + ".map", getbinsize(4) / 2, gen(genMaxMap)
-savetiledata maplumpname$(gen(genMaxMap), "t"), map(), 3
-savetiledata maplumpname$(gen(genMaxMap), "p"), pass()
-savetiledata maplumpname$(gen(genMaxMap), "e"), emap()
-xBSAVE maplumpname$(gen(genMaxMap), "n"), npcstat(), 3000
-xBSAVE maplumpname$(gen(genMaxMap), "l"), npc(), 3000
-serdoors game$ + ".dox", doors(), gen(genMaxMap)
-serdoorlinks maplumpname$(gen(genMaxMap), "d"), link()
-'--setup map name
-buffer(0) = 0
-storerecord buffer(), game$ + ".mn", 40, gen(genMaxMap)
 RETRACE
 
 linkdoor:
@@ -1334,6 +1313,18 @@ RETRACE
 '32  vehicle B
 '64  harm tile
 '128 overhead
+END SUB
+
+SUB new_blank_map (map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink)
+ '--flush map buffers
+ cleantiledata map(), 64, 64, 3
+ cleantiledata pass(), 64, 64
+ cleantiledata emap(), 64, 64
+ flusharray gmap(), 19, 0
+ flusharray npc(), 900, 0
+ flusharray npcstat(), 1500, 0
+ cleandoors doors()
+ cleandoorlinks link()
 END SUB
 
 SUB mapedit_loadmap (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tastuf() AS INTEGER, tanim_state() AS TileAnimState, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS INTEGER, mapname AS STRING)
