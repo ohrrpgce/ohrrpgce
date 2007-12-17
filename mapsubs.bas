@@ -1393,12 +1393,12 @@ SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INT
  map(0) = wide: map(1) = high
  pass(0) = wide: pass(1) = high
  emap(0) = wide: emap(1) = high
- savetiledata maplumpname$(pt, "t"), map(), 3
- savetiledata maplumpname$(pt, "p"), pass()
- savetiledata maplumpname$(pt, "e"), emap()
- loadtiledata maplumpname$(pt, "t"), map(), 3, wide, high
- loadtiledata maplumpname$(pt, "p"), pass()
- loadtiledata maplumpname$(pt, "e"), emap()
+ savetiledata maplumpname$(mapnum, "t"), map(), 3
+ savetiledata maplumpname$(mapnum, "p"), pass()
+ savetiledata maplumpname$(mapnum, "e"), emap()
+ loadtiledata maplumpname$(mapnum, "t"), map(), 3, wide, high
+ loadtiledata maplumpname$(mapnum, "p"), pass()
+ loadtiledata maplumpname$(mapnum, "e"), emap()
  j += 1
  printstr "please report this error to", 0, j * 8, vpage: j += 1
  printstr "ohrrpgce@HamsterRepublic.com", 0, j * 8, vpage: j += 1
