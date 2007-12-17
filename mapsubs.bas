@@ -10,7 +10,7 @@ DEFINT A-Z
 #include "udts.bi"
 
 'basic subs and functions
-DECLARE FUNCTION addmaphow% ()
+DECLARE FUNCTION addmaphow () AS INTEGER
 DECLARE FUNCTION filenum$ (n%)
 DECLARE FUNCTION animadjust% (tilenum%, tastuf%())
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
@@ -65,6 +65,7 @@ DECLARE SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF hig
 DECLARE SUB mapedit_loadmap (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tastuf() AS INTEGER, tanim_state() AS TileAnimState, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS INTEGER, mapname AS STRING)
 DECLARE SUB mapedit_savemap (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB new_blank_map (map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink)
+DECLARE SUB mapedit_addmap(map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, tastuf() AS INTEGER, tanim_state() AS TileAnimState)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -78,7 +79,7 @@ DECLARE SUB new_blank_map (map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGE
 
 REM $STATIC
 
-FUNCTION addmaphow
+FUNCTION addmaphow () AS INTEGER
 '--Return values
 '  -2  =Cancel
 '  -1  =New blank
@@ -97,8 +98,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN
   '--return cancel
-  addmaphow = -2
-  EXIT DO
+  RETURN -2
  END IF
  IF usemenu(pt, 0, 0, 2, 22) THEN need_update = YES
  IF pt = 2 THEN
@@ -107,13 +107,12 @@ DO
  IF enter_or_space() THEN
   SELECT CASE pt
    CASE 0 ' cancel
-    addmaphow = -2
+    RETURN -2
    CASE 1 ' blank
-    addmaphow = -1
+    RETURN -1
    CASE 2 ' copy
-    addmaphow = maptocopy
+    RETURN maptocopy
   END SELECT
-  EXIT DO
  END IF
  IF need_update THEN
   need_update = NO
@@ -139,8 +138,8 @@ animadjust = pic
 END FUNCTION
 
 SUB mapmaker (font(), npc(), npcstat())
-DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(-1 TO 20), gdmax(20), gdmin(20), tastuf(40), sampmap(2), cursorpal(8),  _
-defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
+DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(-1 TO 20), gdmax(20), gdmin(20), tastuf(40), sampmap(2), cursorpal(8), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
+DIM defaults(160)
 DIM her AS HeroDef
 DIM tanim_state(1) AS TileAnimState
 
@@ -149,7 +148,8 @@ redim doors(99) as door, link(199) as doorlink
 DIM as integer usetile(0 to 2)
 DIM as integer menubarstart(0 to 2)
 DIM as integer layer
-DIM as integer jiggle(0), visible(0) = {&b111} 'used as bitsets
+DIM as integer jiggle(0)
+DIM as integer visible(0) = {&b111} 'used as bitsets
 
 DIM heroimg(102), heropal(8)
 
@@ -217,7 +217,7 @@ DO
    make_top_map_menu maptop, topmenu$()
   END IF
   IF pt = gen(0) + 2 THEN
-   GOSUB addmap
+   mapedit_addmap map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), tastuf(), tanim_state()
    make_top_map_menu maptop, topmenu$()
   END IF
  END IF
@@ -1073,22 +1073,6 @@ layer = 0
 'visible(0) = 1: visible(1) = 0: visible(2) = 0
 RETRACE
 
-addmap:
-how = addmaphow
-'-- -2  =Cancel
-'-- -1  =New blank
-'-- >=0 =Copy
-IF how = -1 THEN
- gen(genMaxMap) += 1
- new_blank_map map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link()
- mapedit_savemap gen(genMaxMap), map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), ""
-ELSEIF how >= 0 THEN
- gen(genMaxMap) += 1
- mapedit_loadmap how, wide, high, map(), pass(), emap(), gmap(), visible(), tastuf(), tanim_state(), npc(), npcstat(), doors(), link(), defaults(), mapname$
- mapedit_savemap gen(genMaxMap), map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
-END IF
-RETRACE
-
 linkdoor:
 mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$ 
 ulim(0) = 99: llim(0) = 0
@@ -1298,6 +1282,31 @@ RETRACE
 '32  vehicle B
 '64  harm tile
 '128 overhead
+END SUB
+
+SUB mapedit_addmap(map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, tastuf() AS INTEGER, tanim_state() AS TileAnimState)
+ DIM how AS INTEGER
+ 
+ 'Temporary bffers for making the copy
+ DIM copyname AS STRING
+ DIM copysize AS XYPair
+ DIM visible(0) AS INTEGER
+ visible(0) = &b111 'used as bitsets
+ DIM defaults(160)
+ 
+ how = addmaphow()
+ '-- -2  =Cancel
+ '-- -1  =New blank
+ '-- >=0 =Copy
+ IF how = -1 THEN
+  gen(genMaxMap) += 1
+  new_blank_map map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link()
+  mapedit_savemap gen(genMaxMap), map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), ""
+ ELSEIF how >= 0 THEN
+  gen(genMaxMap) += 1
+  mapedit_loadmap how, copysize.x, copysize.y, map(), pass(), emap(), gmap(), visible(), tastuf(), tanim_state(), npc(), npcstat(), doors(), link(), defaults(), copyname
+  mapedit_savemap gen(genMaxMap), map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), copyname
+ END IF
 END SUB
 
 SUB new_blank_map (map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink)
