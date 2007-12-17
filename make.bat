@@ -15,7 +15,7 @@ IF "%OHRMUSIC%"=="" set OHRMUSIC=sdl
 if Not exist "gfx_%OHRGFX%.bas" set OHRGFX=fb
 if Not exist "music_%OHRMUSIC%.bas" set OHRMUSIC=sdl
 
-call makegame %1 %2 %3 %4 %5
-call makeedit %1 %2 %3 %4 %5
+call makegame ~ %1 %2 %3 %4 %5
+call makeedit ~ %1 %2 %3 %4 %5
 
 
