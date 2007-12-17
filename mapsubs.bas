@@ -66,6 +66,7 @@ DECLARE SUB mapedit_loadmap (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF hig
 DECLARE SUB mapedit_savemap (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB new_blank_map (map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB mapedit_addmap(map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, tastuf() AS INTEGER, tanim_state() AS TileAnimState)
+DECLARE SUB mapedit_resize(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tastuf() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -269,7 +270,9 @@ DO
    mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
    RETRACE
   END IF
-  IF csr = 1 THEN GOSUB sizemap
+  IF csr = 1 THEN
+   mapedit_resize pt, wide, high, x, y, mapx, mapy, map(), pass(), emap(), gmap(), tastuf(), npc(), npcstat(), doors(), link(), mapname$
+  END IF
   IF csr = 2 THEN
    npcdef npcstat(), pt
   END IF
@@ -989,54 +992,6 @@ LOOP
 update_tilepicker tilepick, layer, usetile(), menubarstart()
 RETRACE
 
-sizemap:
-tempw = 0
-temph = 0
-tempx = 0
-tempy = 0
-resizemapmenu map(), tastuf(), tempw, temph, tempx, tempy
-IF tempw = -1 THEN RETRACE
-
-clearpage 0
-clearpage 1
-yout = 0
-edgeprint "TILEMAP", 0, yout * 10, 15, vpage: setvispage vpage: yout = yout + 1
-resizetiledata map(), tempx, tempy, tempw, temph, yout, vpage, 3
-edgeprint "PASSMAP", 0, yout * 10, 15, vpage: setvispage vpage: yout = yout + 1
-resizetiledata pass(), tempx, tempy, tempw, temph, yout, vpage, 1
-edgeprint "FOEMAP", 0, yout * 10, 15, vpage: setvispage vpage: yout = yout + 1
-resizetiledata emap(), tempx, tempy, tempw, temph, yout, vpage, 1
-' update SAV x/y offset in MAP lump
-gmap(20) += tempx * - 1
-gmap(21) += tempy * - 1
-' update hero's starting position (if on current map)
-IF gen(genStartMap) = pt THEN
- gen(genStartX) += tempx * -1
- gen(genStartY) += tempy * -1 
-END IF
-setmapdata map(), pass(), 20, 0
-wide = map(0): high = map(1)
-'--reset map scroll position
-x = 0: y = 0: mapx = 0: mapy = 0
-edgeprint "Aligning and truncating doors", 0, yout * 10, 15, vpage: yout = yout + 1
-FOR i = 0 TO 99
- doors(i).x -= tempx
- doors(i).y -= tempy
- IF doors(i).x < 0 OR doors(i).y < 0 OR doors(i).x >= wide OR doors(i).y >= high THEN
-  setbit(doors(i).bits(),0,0,0)
- END IF
-NEXT
-edgeprint "Aligning and truncating NPCs", 0, yout * 10, 15, vpage: setvispage vpage: yout = yout + 1
-FOR i = 0 TO 299
- npc(i + 0) = npc(i + 0) - tempx
- npc(i + 300) = npc(i + 300) - tempy
- IF npc(i + 0) < 0 OR npc(i + 300) < 0 OR npc(i + 0) >= wide OR npc(i + 300) >= high THEN
-  npc(i + 600) = 0
- END IF
-NEXT i
-verify_map_size pt, wide, high, map(), pass(), emap(), mapname$
-RETRACE
-
 minimap:
 clearpage vpage
 setmapdata map(), pass(), 20, 0
@@ -1395,10 +1350,67 @@ SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INT
  waitforanykey
 END SUB
 
+SUB mapedit_resize(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tastuf() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+'sizemap:
+ DIM size AS XYPair
+ DIM spot AS XYPair
+ size.x = 0
+ size.y = 0
+ spot.x = 0
+ spot.y = 0
+ resizemapmenu map(), tastuf(), size.x, size.y, spot.x, spot.y
+ IF size.x = -1 THEN EXIT SUB
+
+ clearpage 0
+ clearpage 1
+ 
+ DIM yout AS INTEGER = 0
+ edgeprint "TILEMAP", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
+ resizetiledata map(), spot.x, spot.y, size.x, size.y, yout, vpage, 3
+ edgeprint "PASSMAP", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
+ resizetiledata pass(), spot.x, spot.y, size.x, size.y, yout, vpage, 1
+ edgeprint "FOEMAP", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
+ resizetiledata emap(), spot.x, spot.y, size.x, size.y, yout, vpage, 1
+ ' update SAV x/y offset in MAP lump
+ gmap(20) += spot.x * - 1
+ gmap(21) += spot.y * - 1
+ ' update hero's starting position (if on current map)
+ IF gen(genStartMap) = mapnum THEN
+  gen(genStartX) += spot.x * -1
+  gen(genStartY) += spot.y * -1 
+ END IF
+ setmapdata map(), pass(), 20, 0
+ wide = map(0)
+ high = map(1)
+ '--reset map scroll position
+ x = 0
+ y = 0
+ mapx = 0
+ mapy = 0
+ edgeprint "Aligning and truncating doors", 0, yout * 10, 15, vpage: yout += 1
+ DIM i AS INTEGER
+ FOR i = 0 TO 99
+  doors(i).x -= spot.x
+  doors(i).y -= spot.y
+  IF doors(i).x < 0 OR doors(i).y < 0 OR doors(i).x >= wide OR doors(i).y >= high THEN
+   setbit(doors(i).bits(),0,0,0)
+  END IF
+ NEXT
+ edgeprint "Aligning and truncating NPCs", 0, yout * 10, 15, vpage: setvispage vpage: yout += 1
+ FOR i = 0 TO 299
+  npc(i + 0) = npc(i + 0) - spot.x
+  npc(i + 300) = npc(i + 300) - spot.y
+  IF npc(i + 0) < 0 OR npc(i + 300) < 0 OR npc(i + 0) >= wide OR npc(i + 300) >= high THEN
+   npc(i + 600) = 0
+  END IF
+ NEXT i
+ verify_map_size mapnum, wide, high, map(), pass(), emap(), mapname
+END SUB
+
 SUB update_tilepicker(BYREF tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER)
-	menubarstart(layer) = bound(menubarstart(layer), large(usetile(layer) - 14, 0), small(usetile(layer), 145))
-	tilepick.y = INT(usetile(layer) / 16)
-	tilepick.x = usetile(layer) - (tilepick.y * 16)
+ menubarstart(layer) = bound(menubarstart(layer), large(usetile(layer) - 14, 0), small(usetile(layer), 145))
+ tilepick.y = INT(usetile(layer) / 16)
+ tilepick.x = usetile(layer) - (tilepick.y * 16)
 END SUB
 
 Function LayerIsVisible(vis() as integer, byval l as integer) as integer
@@ -1580,7 +1592,7 @@ DO
    putpixel drawoffx + i, drawoffy + j, minimap(i, j), dpage
   NEXT
  NEXT
- standardmenu menu$(), UBOUND(menu$), 28, csr, 0, 0, 140, dpage, 0
+ standardmenu menu$(), UBOUND(menu$), 28, csr, 0, 0, 140, dpage, YES
  drawbox drawoffx + zoom * tempx, drawoffy + zoom * tempy, zoom * tempw, zoom * temph, 14 + tog, dpage
 
  SWAP dpage, vpage
