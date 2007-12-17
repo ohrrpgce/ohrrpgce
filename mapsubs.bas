@@ -1089,19 +1089,11 @@ IF how = -1 THEN
  gen(genMaxMap) += 1
  new_blank_map map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link()
  mapedit_savemap gen(genMaxMap), map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), ""
+ELSEIF how >= 0 THEN
+ gen(genMaxMap) += 1
+ mapedit_loadmap how, wide, high, map(), pass(), emap(), gmap(), visible(), tastuf(), tanim_state(), npc(), npcstat(), doors(), link(), defaults(), mapname$
+ mapedit_savemap gen(genMaxMap), map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
 END IF
-IF how >= 0 THEN GOSUB copymap
-RETRACE
-
-copymap:
-'--increment map count
-gen(0) = gen(0) + 1
-'--load the source map
-pt = how
-mapedit_loadmap pt, wide, high, map(), pass(), emap(), gmap(), visible(), tastuf(), tanim_state(), npc(), npcstat(), doors(), link(), defaults(), mapname$
-'-- save the new map
-pt = gen(0)
-mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
 RETRACE
 
 linkdoor:
