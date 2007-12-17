@@ -84,13 +84,12 @@ FUNCTION addmaphow
 '  -1  =New blank
 '  >=0 =Copy
 
-
 DIM temp$(2)
+DIM need_update AS INTEGER
+DIM maptocopy AS INTEGER = 0
+DIM pt AS INTEGER = 0
 
-maptocopy = 0
-pt = 0
-
-GOSUB addmaphowmenu
+need_update = YES
 setkeys
 DO
  setwait timing(), 100
@@ -101,13 +100,9 @@ DO
   addmaphow = -2
   EXIT DO
  END IF
- IF usemenu(pt, 0, 0, 2, 22) THEN
-  GOSUB addmaphowmenu
- END IF
+ IF usemenu(pt, 0, 0, 2, 22) THEN need_update = YES
  IF pt = 2 THEN
-  IF intgrabber(maptocopy, 0, gen(genMaxMap)) THEN
-   GOSUB addmaphowmenu
-  END IF
+  IF intgrabber(maptocopy, 0, gen(genMaxMap)) THEN need_update = YES
  END IF
  IF enter_or_space() THEN
   SELECT CASE pt
@@ -120,20 +115,18 @@ DO
   END SELECT
   EXIT DO
  END IF
+ IF need_update THEN
+  need_update = NO
+  temp$(0) = "Cancel"
+  temp$(1) = "New Blank Map"
+  temp$(2) = "Copy of map " & maptocopy & " " & getmapname$(maptocopy)
+ END IF
  standardmenu temp$(), 2, 22, pt, 0, 0, 0, dpage, 0
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
  dowait
 LOOP
-EXIT FUNCTION
-
-addmaphowmenu:
-temp$(0) = "Cancel"
-temp$(1) = "New Blank Map"
-temp$(2) = "Copy of map " + STR$(maptocopy) + " " + getmapname$(maptocopy)
-RETRACE
-
 END FUNCTION
 
 FUNCTION animadjust (tilenum, tastuf())
