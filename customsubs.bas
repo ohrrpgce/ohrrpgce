@@ -444,3 +444,39 @@ FUNCTION needaddset (BYREF pt AS INTEGER, BYREF check AS INTEGER, what AS STRING
  END IF
  RETURN NO
 END FUNCTION
+
+SUB cycletile (cycle() AS INTEGER, tastuf() AS INTEGER, pt() AS INTEGER, skip() AS INTEGER)
+ DIM i AS INTEGER
+ DIM notstuck AS INTEGER
+ FOR i = 0 TO 1
+  skip(i) = large(skip(i) - 1, 0)
+  IF skip(i) = 0 THEN
+   notstuck = 10
+   DO
+    SELECT CASE tastuf(2 + 20 * i + pt(i))
+     CASE 0
+      pt(i) = 0
+      cycle(i) = 0
+     CASE 1
+      cycle(i) = cycle(i) - tastuf(11 + 20 * i + pt(i)) * 16
+      pt(i) = loopvar(pt(i), 0, 8, 1)
+     CASE 2
+      cycle(i) = cycle(i) + tastuf(11 + 20 * i + pt(i)) * 16
+      pt(i) = loopvar(pt(i), 0, 8, 1)
+     CASE 3
+      cycle(i) = cycle(i) + tastuf(11 + 20 * i + pt(i))
+      pt(i) = loopvar(pt(i), 0, 8, 1)
+     CASE 4
+      cycle(i) = cycle(i) - tastuf(11 + 20 * i + pt(i))
+      pt(i) = loopvar(pt(i), 0, 8, 1)
+     CASE 5
+      skip(i) = tastuf(11 + 20 * i + pt(i))
+      pt(i) = loopvar(pt(i), 0, 8, 1)
+     CASE ELSE
+      pt(i) = loopvar(pt(i), 0, 8, 1)
+    END SELECT
+    notstuck = large(notstuck - 1, 0)
+   LOOP WHILE notstuck AND skip(i) = 0
+  END IF
+ NEXT i
+END SUB

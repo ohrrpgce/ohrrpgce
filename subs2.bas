@@ -31,7 +31,6 @@ DECLARE FUNCTION isunique% (s$, u$(), r%)
 DECLARE SUB exportnames ()
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
-DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION boxconditionheroname$ (num%, cond%())
 DECLARE SUB editbitset (array%(), wof%, last%, names$())
@@ -108,42 +107,6 @@ END IF'--separate setpicstuf
 
 copyfile tmpdir$ & "_cropped.tmp", lump$
 safekill tmpdir$ & "_cropped.tmp"
-
-END SUB
-
-SUB cycletile (cycle(), tastuf(), pt(), skip())
-
-FOR i = 0 TO 1
- skip(i) = large(skip(i) - 1, 0)
- IF skip(i) = 0 THEN
-  notstuck = 10
-  DO
-   SELECT CASE tastuf(2 + 20 * i + pt(i))
-    CASE 0
-     pt(i) = 0
-     cycle(i) = 0
-    CASE 1
-     cycle(i) = cycle(i) - tastuf(11 + 20 * i + pt(i)) * 16
-     pt(i) = loopvar(pt(i), 0, 8, 1)
-    CASE 2
-     cycle(i) = cycle(i) + tastuf(11 + 20 * i + pt(i)) * 16
-     pt(i) = loopvar(pt(i), 0, 8, 1)
-    CASE 3
-     cycle(i) = cycle(i) + tastuf(11 + 20 * i + pt(i))
-     pt(i) = loopvar(pt(i), 0, 8, 1)
-    CASE 4
-     cycle(i) = cycle(i) - tastuf(11 + 20 * i + pt(i))
-     pt(i) = loopvar(pt(i), 0, 8, 1)
-    CASE 5
-     skip(i) = tastuf(11 + 20 * i + pt(i))
-     pt(i) = loopvar(pt(i), 0, 8, 1)
-    CASE ELSE
-     pt(i) = loopvar(pt(i), 0, 8, 1)
-   END SELECT
-   notstuck = large(notstuck - 1, 0)
-  LOOP WHILE notstuck AND skip(i) = 0
- END IF
-NEXT i
 
 END SUB
 
