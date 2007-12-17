@@ -62,6 +62,7 @@ DECLARE SUB resizemapmenu (map(), tastuf(), byref newwide, byref newhigh, byref 
 
 DECLARE SUB make_top_map_menu(maptop, topmenu$())
 DECLARE SUB update_tilepicker(BYREF tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER)
+DECLARE SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, mapname AS STRING)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1037,7 +1038,7 @@ FOR i = 0 TO 299
   npc(i + 600) = 0
  END IF
 NEXT i
-GOSUB verifymap
+verify_map_size pt, wide, high, map(), pass(), emap(), mapname$
 RETRACE
 
 minimap:
@@ -1157,61 +1158,7 @@ deserdoorlinks maplumpname$(pt, "d"), link()
 
 mapname$ = getmapname$(pt)
 loadpasdefaults defaults(), gmap(0)
-GOSUB verifymap
-RETRACE
-
-verifymap:
-IF map(0) <> pass(0) OR map(0) <> emap(0) OR map(1) <> pass(1) OR map(1) <> emap(1) THEN
- '--Map's X and Y do not match
- clearpage vpage
- j = 0
- textcolor 15, 0
- printstr "Map" + filenum$(pt) + ":" + mapname$, 0, j * 8, vpage: j = j + 1
- j = j + 1
- printstr "this map seems to be corrupted", 0, j * 8, vpage: j = j + 1
- j = j + 1
- printstr " TileMap " & map(0) & "*" & map(1) & " tiles", 0, j * 8, vpage: j = j + 1
- printstr " WallMap " & pass(0) & "*" & pass(1) & " tiles", 0, j * 8, vpage: j = j + 1
- printstr " FoeMap " & emap(0) & "*" & emap(1) & " tiles", 0, j * 8, vpage: j = j + 1
- j = j + 1
- printstr "What is the correct size?", 0, j * 8, vpage: j = j + 1
- DO
-  textcolor 14, 240
-  setkeys
-  DO
-   setwait timing(), 100
-   setkeys
-   IF keyval(1) > 1 OR keyval(28) > 1 THEN EXIT DO
-   intgrabber wide, 0, 9999
-   printstr "Width:" + XSTR$(wide) + "   ", 0, j * 8, vpage
-   setvispage vpage
-   dowait
-  LOOP
-  j = j + 1
-  setkeys
-  DO
-   setwait timing(), 100
-   setkeys
-   IF keyval(1) > 1 OR keyval(28) > 1 THEN EXIT DO
-   intgrabber high, 0, 9999
-   printstr "Height:" + XSTR$(high) + "    ", 0, j * 8, vpage
-   setvispage vpage
-   dowait
-  LOOP
-  textcolor 15, 0
-  IF wide * high < 32000 AND wide > 0 AND high > 0 THEN EXIT DO
-  j = j - 2
-  printstr "What is the correct size? (bad size!)", 0, j * 8, vpage: j = j + 1
- LOOP
- map(0) = wide: map(1) = high
- pass(0) = wide: pass(1) = high
- emap(0) = wide: emap(1) = high
- j = j + 2
- printstr "please report this error to", 0, j * 8, vpage: j = j + 1
- printstr "ohrrpgce@HamsterRepublic.com", 0, j * 8, vpage: j = j + 1
- setvispage vpage
- w = getkey
-END IF
+verify_map_size pt, wide, high, map(), pass(), emap(), mapname$
 RETRACE
 
 linkdoor:
@@ -1425,12 +1372,45 @@ RETRACE
 '128 overhead
 END SUB
 
+SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, mapname AS STRING)
+ IF map(0) = pass(0) AND map(0) = emap(0) AND map(1) = pass(1) AND map(1) = emap(1) THEN EXIT SUB
+ '--Map's X and Y do not match
+ clearpage vpage
+ DIM j AS INTEGER
+ j = 0
+ textcolor uilook(uiText), 0
+ printstr "Map" & filenum$(mapnum) & ":" & mapname, 0, j * 8, vpage
+ j += 2
+ printstr "this map seems to be corrupted", 0, j * 8, vpage
+ j += 2
+ printstr " TileMap " & map(0) & "*" & map(1) & " tiles", 0, j * 8, vpage: j += 1
+ printstr " WallMap " & pass(0) & "*" & pass(1) & " tiles", 0, j * 8, vpage: j += 1
+ printstr " FoeMap " & emap(0) & "*" & emap(1) & " tiles", 0, j * 8, vpage: j += 1
+ j += 1
+ printstr "Fixing to " & wide & "*" & high, 0, j * 8, vpage: j += 1
+ wide = large(map(0), large(pass(0), emap(0)))
+ high = large(map(1), large(pass(1), emap(1)))
+ map(0) = wide: map(1) = high
+ pass(0) = wide: pass(1) = high
+ emap(0) = wide: emap(1) = high
+ savetiledata maplumpname$(pt, "t"), map(), 3
+ savetiledata maplumpname$(pt, "p"), pass()
+ savetiledata maplumpname$(pt, "e"), emap()
+ loadtiledata maplumpname$(pt, "t"), map(), 3, wide, high
+ loadtiledata maplumpname$(pt, "p"), pass()
+ loadtiledata maplumpname$(pt, "e"), emap()
+ j += 1
+ printstr "please report this error to", 0, j * 8, vpage: j += 1
+ printstr "ohrrpgce@HamsterRepublic.com", 0, j * 8, vpage: j += 1
+ setvispage vpage
+ waitforanykey
+END SUB
+
 SUB update_tilepicker(BYREF tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER)
 	menubarstart(layer) = bound(menubarstart(layer), large(usetile(layer) - 14, 0), small(usetile(layer), 145))
 	tilepick.y = INT(usetile(layer) / 16)
 	tilepick.x = usetile(layer) - (tilepick.y * 16)
 END SUB
-
 
 Function LayerIsVisible(vis() as integer, byval l as integer) as integer
 	'debug "layer #" & l & " is: " & readbit(vis(), 0, l)
