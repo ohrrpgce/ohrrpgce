@@ -62,6 +62,7 @@ DECLARE SUB resizemapmenu (map(), tastuf(), byref newwide, byref newhigh, byref 
 DECLARE SUB make_top_map_menu(maptop, topmenu$())
 DECLARE SUB update_tilepicker(BYREF tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER)
 DECLARE SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, mapname AS STRING)
+DECLARE SUB mapedit_loadmap (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tastuf() AS INTEGER, tanim_state() AS TileAnimState, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS INTEGER, mapname AS STRING)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -215,7 +216,7 @@ DO
   IF pt > 0 AND pt <= gen(0) + 1 THEN
    '--silly backcompat pt adjustment
    pt = pt - 1
-   GOSUB loadmap
+   mapedit_loadmap pt, wide, high, map(), pass(), emap(), gmap(), visible(), tastuf(), tanim_state(), npc(), npcstat(), doors(), link(), defaults(), mapname$
    GOSUB whattodo
    pt = pt + 1
    make_top_map_menu maptop, topmenu$()
@@ -1091,7 +1092,7 @@ copymap:
 gen(0) = gen(0) + 1
 '--load the source map
 pt = how
-GOSUB loadmap
+mapedit_loadmap pt, wide, high, map(), pass(), emap(), gmap(), visible(), tastuf(), tanim_state(), npc(), npcstat(), doors(), link(), defaults(), mapname$
 '-- save the new map
 pt = gen(0)
 GOSUB savemap
@@ -1136,31 +1137,6 @@ serdoorlinks maplumpname$(pt, "d"), link()
 buffer(0) = LEN(mapname$)
 str2array LEFT$(mapname$, 39), buffer(), 1
 storerecord buffer(), game$ + ".mn", 40, pt
-RETRACE
-
-loadmap:
-loadrecord gmap(), game$ + ".map", getbinsize(4) / 2, pt
-visible(0) = &b111   'default all layers to visible, if they're enabled too, of course
-loadpage game$ + ".til", gmap(0), 3
-loadtanim gmap(0), tastuf()
-FOR i = 0 TO 1
- WITH tanim_state(i)
-  .cycle = 0
-  .pt = 0
-  .skip = 0
- END WITH
-NEXT i
-loadtiledata maplumpname$(pt, "t"), map(), 3, wide, high
-loadtiledata maplumpname$(pt, "p"), pass()
-loadtiledata maplumpname$(pt, "e"), emap()
-xbload maplumpname$(pt, "l"), npc(), "npclocation lump is missing!"
-xbload maplumpname$(pt, "n"), npcstat(), "npcstat lump is missing!"
-deserdoors game$ + ".dox", doors(), pt
-deserdoorlinks maplumpname$(pt, "d"), link()
-
-mapname$ = getmapname$(pt)
-loadpasdefaults defaults(), gmap(0)
-verify_map_size pt, wide, high, map(), pass(), emap(), mapname$
 RETRACE
 
 linkdoor:
@@ -1372,6 +1348,30 @@ RETRACE
 '32  vehicle B
 '64  harm tile
 '128 overhead
+END SUB
+
+SUB mapedit_loadmap (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tastuf() AS INTEGER, tanim_state() AS TileAnimState, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS INTEGER, mapname AS STRING)
+ loadrecord gmap(), game$ & ".map", getbinsize(binMAP) / 2, mapnum
+ visible(0) = &b111   'default all layers to visible, if they're enabled too, of course
+ loadpage game$ & ".til", gmap(0), 3
+ loadtanim gmap(0), tastuf()
+ FOR i = 0 TO 1
+  WITH tanim_state(i)
+   .cycle = 0
+   .pt = 0
+   .skip = 0
+  END WITH
+ NEXT i
+ loadtiledata maplumpname$(mapnum, "t"), map(), 3, wide, high
+ loadtiledata maplumpname$(mapnum, "p"), pass()
+ loadtiledata maplumpname$(mapnum, "e"), emap()
+ xbload maplumpname$(mapnum, "l"), npc(), "npclocation lump is missing!"
+ xbload maplumpname$(mapnum, "n"), npcstat(), "npcstat lump is missing!"
+ deserdoors game$ & ".dox", doors(), mapnum
+ deserdoorlinks maplumpname$(mapnum, "d"), link()
+ mapname$ = getmapname$(mapnum)
+ loadpasdefaults defaults(), gmap(0)
+ verify_map_size mapnum, wide, high, map(), pass(), emap(), mapname
 END SUB
 
 SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, mapname AS STRING)
