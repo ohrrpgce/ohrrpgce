@@ -445,38 +445,41 @@ FUNCTION needaddset (BYREF pt AS INTEGER, BYREF check AS INTEGER, what AS STRING
  RETURN NO
 END FUNCTION
 
-SUB cycletile (cycle() AS INTEGER, tastuf() AS INTEGER, pt() AS INTEGER, skip() AS INTEGER)
+SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
+ 'Note that although this is almost the same as the cycletile in game, it does not handle tags
  DIM i AS INTEGER
  DIM notstuck AS INTEGER
  FOR i = 0 TO 1
-  skip(i) = large(skip(i) - 1, 0)
-  IF skip(i) = 0 THEN
-   notstuck = 10
-   DO
-    SELECT CASE tastuf(2 + 20 * i + pt(i))
-     CASE 0
-      pt(i) = 0
-      cycle(i) = 0
-     CASE 1
-      cycle(i) = cycle(i) - tastuf(11 + 20 * i + pt(i)) * 16
-      pt(i) = loopvar(pt(i), 0, 8, 1)
-     CASE 2
-      cycle(i) = cycle(i) + tastuf(11 + 20 * i + pt(i)) * 16
-      pt(i) = loopvar(pt(i), 0, 8, 1)
-     CASE 3
-      cycle(i) = cycle(i) + tastuf(11 + 20 * i + pt(i))
-      pt(i) = loopvar(pt(i), 0, 8, 1)
-     CASE 4
-      cycle(i) = cycle(i) - tastuf(11 + 20 * i + pt(i))
-      pt(i) = loopvar(pt(i), 0, 8, 1)
-     CASE 5
-      skip(i) = tastuf(11 + 20 * i + pt(i))
-      pt(i) = loopvar(pt(i), 0, 8, 1)
-     CASE ELSE
-      pt(i) = loopvar(pt(i), 0, 8, 1)
-    END SELECT
-    notstuck = large(notstuck - 1, 0)
-   LOOP WHILE notstuck AND skip(i) = 0
-  END IF
+  WITH tanim_state(i)
+   .skip = large(.skip - 1, 0)
+   IF .skip = 0 THEN
+    notstuck = 10
+    DO
+     SELECT CASE tastuf(2 + 20 * i + .pt)
+      CASE 0
+       .pt = 0
+       .cycle = 0
+      CASE 1
+       .cycle = .cycle - tastuf(11 + 20 * i + .pt) * 16
+       .pt = loopvar(.pt, 0, 8, 1)
+      CASE 2
+       .cycle = .cycle + tastuf(11 + 20 * i + .pt) * 16
+       .pt = loopvar(.pt, 0, 8, 1)
+      CASE 3
+       .cycle = .cycle + tastuf(11 + 20 * i + .pt)
+       .pt = loopvar(.pt, 0, 8, 1)
+      CASE 4
+       .cycle = .cycle - tastuf(11 + 20 * i + .pt)
+       .pt = loopvar(.pt, 0, 8, 1)
+      CASE 5
+       .skip = tastuf(11 + 20 * i + .pt)
+       .pt = loopvar(.pt, 0, 8, 1)
+      CASE ELSE
+       .pt = loopvar(.pt, 0, 8, 1)
+     END SELECT
+     notstuck = large(notstuck - 1, 0)
+    LOOP WHILE notstuck AND .skip = 0
+   END IF
+  END WITH
  NEXT i
 END SUB

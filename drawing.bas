@@ -1526,7 +1526,8 @@ END SUB
 
 SUB testanimpattern (tastuf(), taset)
 
-DIM cycle(1), sample(7), cycptr(1), cycskip(1)
+DIM sample(7)
+DIM tanim_state(1) AS TileAnimState
 
 clearpage vpage
 clearpage dpage
@@ -1562,8 +1563,8 @@ DO
  drawmap 0, -10, 0, 0, dpage
  '--draw sample--
  setmapdata sample(), sample(), 100, 40
- setanim tastuf(0) + cycle(0), tastuf(20) + cycle(1)
- cycletile cycle(), tastuf(), cycptr(), cycskip()
+ setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
+ cycletile tanim_state(), tastuf()
  drawmap -130, -100, 0, 0, dpage
  '--Draw cursor--
  y = INT(csr / 16)

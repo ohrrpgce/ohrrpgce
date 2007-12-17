@@ -273,6 +273,12 @@ TYPE TileEditState
  delay as INTEGER
 END TYPE
 
+Type TileAnimState
+ cycle AS INTEGER
+ pt AS INTEGER
+ skip AS INTEGER
+END Type
+
 Type Door
 	as integer x, y
 	as integer bits(0)

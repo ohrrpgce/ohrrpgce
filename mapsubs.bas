@@ -143,9 +143,10 @@ animadjust = pic
 END FUNCTION
 
 SUB mapmaker (font(), npc(), npcstat())
-DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(-1 TO 20), gdmax(20), gdmin(20), tastuf(40), cycle(1), cycptr(1), cycskip(1), sampmap(2), cursorpal(8),  _
+DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(-1 TO 20), gdmax(20), gdmin(20), tastuf(40), sampmap(2), cursorpal(8),  _
 defaults(160), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
 DIM her AS HeroDef
+DIM tanim_state(1) AS TileAnimState
 
 redim doors(99) as door, link(199) as doorlink
 
@@ -822,8 +823,8 @@ DO
  
  '--draw map
  setmapdata map(), pass(), 20, 0
- setanim tastuf(0) + cycle(0), tastuf(20) + cycle(1)
- cycletile cycle(), tastuf(), cycptr(), cycskip()
+ setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
+ cycletile tanim_state(), tastuf()
  rectangle 0, 20, 320, 180, 0, dpage
  for i = 0 to 2
  	if layerisvisible(visible(), i) AND layerisenabled(gmap(), i) then
@@ -1143,9 +1144,11 @@ visible(0) = &b111   'default all layers to visible, if they're enabled too, of 
 loadpage game$ + ".til", gmap(0), 3
 loadtanim gmap(0), tastuf()
 FOR i = 0 TO 1
- cycle(i) = 0
- cycptr(i) = 0
- cycskip(i) = 0
+ WITH tanim_state(i)
+  .cycle = 0
+  .pt = 0
+  .skip = 0
+ END WITH
 NEXT i
 loadtiledata maplumpname$(pt, "t"), map(), 3, wide, high
 loadtiledata maplumpname$(pt, "p"), pass()
