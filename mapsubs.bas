@@ -68,6 +68,7 @@ DECLARE SUB new_blank_map (map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGE
 DECLARE SUB mapedit_addmap(map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, tastuf() AS INTEGER, tanim_state() AS TileAnimState)
 DECLARE SUB mapedit_resize(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tastuf() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB mapedit_delete(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, BYREF layer AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink)
+DECLARE SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -140,7 +141,7 @@ animadjust = pic
 END FUNCTION
 
 SUB mapmaker (font(), npc(), npcstat())
-DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), ulim(4), llim(4), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(-1 TO 20), gdmax(20), gdmin(20), tastuf(40), sampmap(2), cursorpal(8), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
+DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(-1 TO 20), gdmax(20), gdmin(20), tastuf(40), sampmap(2), cursorpal(8), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
 DIM defaults(160)
 DIM her AS HeroDef
 DIM tanim_state(1) AS TileAnimState
@@ -1004,11 +1005,6 @@ RETRACE
 
 linkdoor:
 mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$ 
-ulim(0) = 99: llim(0) = 0
-ulim(1) = 99: llim(1) = 0
-ulim(2) = gen(0): llim(2) = 0
-ulim(3) = 999: llim(3) = -999
-ulim(4) = 999: llim(4) = -999
 ttop = 0: cur = 0
 setkeys
 DO
@@ -1020,7 +1016,7 @@ DO
  	RETRACE
  end if
  usemenu cur, ttop, 0, 199, 10
- IF enter_or_space() THEN GOSUB seedoors
+ IF enter_or_space() THEN link_one_door pt, cur, link(), doors(), map(), pass(), gmap()
  FOR i = ttop TO ttop + 10
   textcolor 7, 0
   IF cur = i THEN textcolor 14 + tog, 0
@@ -1045,74 +1041,6 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
- dowait
-LOOP
-
-seedoors:
-menu$(-1) = "Go Back"
-menu$(0) = "Entrance Door"
-menu$(1) = "Exit Door"
-menu$(2) = "Exit Map"
-menu$(3) = "Require Tag"
-menu$(4) = "Require Tag"
-cur2 = -1
-sdwait = 0
-outmap$ = getmapname$(link(cur).dest_map)
-DrawDoorPair pt, cur, map(), pass(), doors(), link(), gmap()
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF sdwait > 0 THEN
-  sdwait = sdwait - 1
-  IF sdwait = 0 THEN DrawDoorPair pt, cur, map(), pass(), doors(), link(), gmap()
- END IF
- IF keyval(1) > 1 THEN RETRACE
- usemenu cur2, 0, -1, 4, 24
- IF cur2 >= 0 THEN
-  select case cur2
-  	case 0
-  		if intgrabber(link(cur).source, llim(cur2), ulim(cur2)) then sdwait = 3
-  	case 1
-  		if intgrabber(link(cur).dest, llim(cur2), ulim(cur2)) then sdwait = 3
-  	case 2
-  		if intgrabber(link(cur).dest_map, llim(cur2), ulim(cur2)) then sdwait = 3: outmap$ = getmapname$(link(cur).dest_map)
-  	case 3
-  		tag_grabber link(cur).tag1
-  	case 4
-  		tag_grabber link(cur).tag2
-  	case else
-  		'...
-  end select
- ELSE
-  IF enter_or_space() THEN RETRACE
- END IF
- rectangle 0, 100, 320, 2, 1 + tog, dpage
- FOR i = -1 TO 4
-  xtemp$ = ""
-  select case i
-	case 0
-		xtemp$ = XSTR$(link(cur).source)
-	case 1
-		xtemp$ = XSTR$(link(cur).dest)
-	case 2
-		xtemp$ = XSTR$(link(cur).dest_map)
-	case 3
-		xtemp$ = tag_condition_caption(link(cur).tag1, "", "No Tag Check")
-	case 4
-		xtemp$ = tag_condition_caption(link(cur).tag2, "", "No Tag Check")
-  end select
-
-  col = 7: IF cur2 = i THEN col = 14 + tog
-  edgeprint menu$(i) + xtemp$, 1, 1 + (i + 1) * 10, col, dpage
- NEXT i
- edgeprint "ENTER", 275, 0, 15, dpage
- edgeprint "EXIT", 283, 190, 15, dpage
- edgeprint outmap$, 0, 190, 15, dpage
- SWAP vpage, dpage
- setvispage vpage
- copypage 2, dpage
  dowait
 LOOP
 
@@ -1382,7 +1310,6 @@ SUB mapedit_resize(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEG
 END SUB
 
 SUB mapedit_delete(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, BYREF layer AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink)
-'delmap:
  setvispage vpage
  IF yesno("Delete this map?", NO) THEN
   printstr "Please Wait...", 0, 40, vpage
@@ -1414,6 +1341,98 @@ SUB update_tilepicker(BYREF tilepick AS XYPair, layer AS INTEGER, usetile() AS I
  menubarstart(layer) = bound(menubarstart(layer), large(usetile(layer) - 14, 0), small(usetile(layer), 145))
  tilepick.y = INT(usetile(layer) / 16)
  tilepick.x = usetile(layer) - (tilepick.y * 16)
+END SUB
+
+SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER)
+ DIM ulim(4) AS INTEGER, llim(4) AS INTEGER
+ ulim(0) = 99: llim(0) = 0
+ ulim(1) = 99: llim(1) = 0
+ ulim(2) = gen(genMaxMap): llim(2) = 0
+ ulim(3) = 999: llim(3) = -999
+ ulim(4) = 999: llim(4) = -999
+
+ DIM menu(-1 TO 4) AS STRING
+ menu(-1) = "Go Back"
+ menu(0) = "Entrance Door"
+ menu(1) = "Exit Door"
+ menu(2) = "Exit Map"
+ menu(3) = "Require Tag"
+ menu(4) = "Require Tag"
+ 
+ DIM state AS MenuState
+ state.pt = -1
+ state.top = -1
+ state.size = 22
+ state.first = LBOUND(menu)
+ state.last = UBOUND(menu)
+ 
+ DIM preview_delay AS INTEGER = 0
+ DIM outmap AS STRING
+ outmap = getmapname$(link(linknum).dest_map)
+ DIM menu_temp AS STRING
+ DIM col AS INTEGER
+
+ DrawDoorPair mapnum, linknum, map(), pass(), doors(), link(), gmap()
+ 
+ setkeys
+ DO
+  setwait 100
+  setkeys
+  state.tog = state.tog XOR 1
+  IF preview_delay > 0 THEN
+   preview_delay -= 1
+   IF preview_delay = 0 THEN DrawDoorPair mapnum, linknum, map(), pass(), doors(), link(), gmap()
+  END IF
+  IF keyval(1) > 1 THEN EXIT DO
+  usemenu state
+  IF state.pt >= 0 THEN
+   SELECT CASE state.pt
+    CASE 0
+     IF intgrabber(link(linknum).source, llim(state.pt), ulim(state.pt)) THEN preview_delay = 3
+    CASE 1
+     IF intgrabber(link(linknum).dest, llim(state.pt), ulim(state.pt)) THEN preview_delay = 3
+    CASE 2
+     IF intgrabber(link(linknum).dest_map, llim(state.pt), ulim(state.pt)) THEN
+      preview_delay = 3
+      outmap = getmapname$(link(linknum).dest_map)
+     END IF
+    CASE 3
+     tag_grabber link(linknum).tag1
+    CASE 4
+     tag_grabber link(linknum).tag2
+    CASE ELSE
+     '...
+   END SELECT
+  ELSE
+   IF enter_or_space() THEN EXIT DO
+  END IF
+  rectangle 0, 100, 320, 2, uilook(uiSelectedDisabled) + state.tog, dpage
+  FOR i = -1 TO 4
+   menu_temp = ""
+   SELECT CASE i
+    CASE 0
+     menu_temp = STR(link(linknum).source)
+    CASE 1
+     menu_temp = STR(link(linknum).dest)
+    CASE 2
+     menu_temp = STR(link(linknum).dest_map)
+    CASE 3
+     menu_temp = tag_condition_caption(link(linknum).tag1, "", "No Tag Check")
+    CASE 4
+     menu_temp = tag_condition_caption(link(linknum).tag2, "", "No Tag Check")
+   END SELECT
+   col = uilook(uiMenuItem)
+   IF state.pt = i THEN col = uilook(uiSelectedItem + state.tog)
+   edgeprint menu(i) & " " & menu_temp, 1, 1 + (i + 1) * 10, col, dpage
+  NEXT i
+  edgeprint "ENTER", 275, 0, uilook(uiText), dpage
+  edgeprint "EXIT", 283, 190, uilook(uiText), dpage
+  edgeprint outmap, 0, 190, uilook(uiText), dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage 2, dpage
+  dowait
+ LOOP
 END SUB
 
 Function LayerIsVisible(vis() as integer, byval l as integer) as integer
