@@ -351,7 +351,7 @@ end sub
 sub CleanDoorLinks(array() as doorlink)
 	dim i as integer
 	for i = lbound(array) to ubound(array)
-		array(i).source = 0
+		array(i).source = -1
 		array(i).dest = 0
 		array(i).dest_map = 0
 		array(i).tag1 = 0

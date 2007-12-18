@@ -1328,6 +1328,7 @@ SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, e
   END IF
   IF usemenu(state) THEN state.need_update = YES
   IF enter_or_space() THEN
+   IF state.pt = state.last AND link(state.pt).source = -1 THEN link(state.pt).source = 0
    link_one_door mapnum, state.pt, link(), doors(), map(), pass(), gmap()
    state.need_update = YES
    IF state.pt = state.last AND link(state.pt).source >= 0 THEN
@@ -1338,7 +1339,7 @@ SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, e
    state.need_update = NO
    DrawDoorPair mapnum, state.pt, map(), pass(), doors(), link(), gmap()
   END IF
-  FOR i = state.top TO state.top + state.size
+  FOR i = state.top TO small(state.top + state.size, state.last)
    col = uilook(uiMenuItem)
    IF state.pt = i THEN
     col = uilook(uiSelectedItem + state.tog)
