@@ -25,6 +25,9 @@ Dec ?? 2007 [voxhumana]
     * In the door link editor, you can see a preview of each doorlinks
       when you browse the list of doorlinks. [James Paige]
     * Door link editor only shows the links that are actually used [James]
+    * Press Enter on a door in door-placement mode to go directly to the
+      doorlink editor for that door. (only works on the first link for
+      doors multiple conditional destinations) [James Paige]
 
   * Bugfixes
     * Fixed bug 257 "Mute status effect broken for enemies" [James Paige]

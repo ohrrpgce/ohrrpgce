@@ -73,6 +73,7 @@ DECLARE SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS IN
 DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
 DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
+DECLARE FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS INTEGER
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -514,6 +515,8 @@ FOR i = 0 TO 35
 NEXT i
 defpass = 1
 IF readbit(gen(), genBits, 15) THEN defpass = 0 ' option to default the defaults to OFF
+doorid = 0
+doorlinkid = 0
 
 setkeys
 DO
@@ -584,9 +587,9 @@ DO
     END IF
    NEXT i
    'delete door
-   i = find_door_at_spot(x, y, doors())
-   IF i >= 0 THEN
-    setbit doors(i).bits(), 0, 0, 1
+   doorid = find_door_at_spot(x, y, doors())
+   IF doorid >= 0 THEN
+    setbit doors(doorid).bits(), 0, 0, 1
    END IF
  END IF
  IF keyval(29) > 0 AND keyval(35) > 1 THEN 'Ctrl+H for hero start position
@@ -687,27 +690,39 @@ DO
    '---DOORMODE-----
   CASE 2
    IF keyval(28) > 1 THEN ' enter to link a door
-    
+    doorid = find_door_at_spot(x, y, doors())
+    IF doorid >= 0 THEN
+     doorlinkid = find_first_doorlink_by_door(doorid, link())
+     IF doorlinkid >= 0 THEN
+      link_one_door pt, doorlinkid, link(), doors(), map(), pass(), gmap()
+     ELSE
+      doorlinkid = find_last_used_doorlink(link()) + 1
+      IF doorlinkid > 0 AND doorlinkid <= UBOUND(link) THEN
+       link(doorlinkid).source = doorid
+       link_one_door pt, doorlinkid, link(), doors(), map(), pass(), gmap()
+      END IF
+     END IF
+    END IF
    END IF
    IF keyval(57) > 1 THEN ' space to place a door
-    i = find_door_at_spot(x, y, doors())
-    IF i >= 0 THEN
+    doorid = find_door_at_spot(x, y, doors())
+    IF doorid >= 0 THEN
      'clear an existing door
-     setbit doors(i).bits(), 0, 0, 0
+     setbit doors(doorid).bits(), 0, 0, 0
     ELSE
      'place a new door
-     i = find_first_free_door(doors())
-     IF i >= 0 THEN
-      doors(i).x = x
-      doors(i).y = y + 1
-      setbit doors(i).bits(), 0, 0, 1
+     doorid = find_first_free_door(doors())
+     IF doorid >= 0 THEN
+      doors(doorid).x = x
+      doors(doorid).y = y + 1
+      setbit doors(doorid).bits(), 0, 0, 1
      END IF
     END IF
    END IF
    IF keyval(83) > 1 THEN 'delete
-    i = find_door_at_spot(x, y, doors())
-    IF i >= 0 THEN
-     setbit doors(i).bits(), 0, 0, 0
+    doorid = find_door_at_spot(x, y, doors())
+    IF doorid >= 0 THEN
+     setbit doors(doorid).bits(), 0, 0, 0
     END IF
    END IF
    '---NPCMODE------
@@ -1127,6 +1142,14 @@ FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
   IF readbit(doors(i).bits(), 0, 0) = 0 THEN
    RETURN i
   END IF
+ NEXT i
+ RETURN -1
+END FUNCTION
+
+FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS INTEGER
+ DIM i AS INTEGER
+ FOR i = 0 TO UBOUND(link)
+  IF link(i).source = doornum THEN RETURN i
  NEXT i
  RETURN -1
 END FUNCTION
