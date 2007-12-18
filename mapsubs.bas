@@ -70,6 +70,7 @@ DECLARE SUB mapedit_resize(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high 
 DECLARE SUB mapedit_delete(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, BYREF layer AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER)
 DECLARE SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1309,7 +1310,7 @@ SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, e
  DIM state AS MenuState
  state.top = 0
  state.pt = 0
- state.last = 199
+ state.last = small(find_last_used_doorlink(link()) + 1, UBOUND(link))
  state.size = 11
  state.need_update = YES
 
@@ -1329,6 +1330,9 @@ SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, e
   IF enter_or_space() THEN
    link_one_door mapnum, state.pt, link(), doors(), map(), pass(), gmap()
    state.need_update = YES
+   IF state.pt = state.last AND link(state.pt).source >= 0 THEN
+    state.last = small(state.last + 1, UBOUND(link))
+   END IF
   END IF
   IF state.need_update THEN
    state.need_update = NO
@@ -1336,7 +1340,10 @@ SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, e
   END IF
   FOR i = state.top TO state.top + state.size
    col = uilook(uiMenuItem)
-   IF state.pt = i THEN col = uilook(uiSelectedItem + state.tog)
+   IF state.pt = i THEN
+    col = uilook(uiSelectedItem + state.tog)
+    edgeboxstyle 0, 1 + (i - state.top) * 16, 280, 19, 0, dpage, YES
+   END IF
 
    IF link(i).source >= 0 THEN
     menu_temp = "Door " & link(i).source & " leads to door " & link(i).dest & " on map " & link(i).dest_map
@@ -1355,6 +1362,9 @@ SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, e
      END IF
     END IF
     edgeprint menu_temp, 0, 10 + (i - state.top) * 16, col, dpage
+   ELSEIF i = state.last THEN
+    menu_temp = "Create a new doorlink..."
+    edgeprint menu_temp, 0, 2 + (i - state.top) * 16, col, dpage
    ELSE
     menu_temp = "Unused Door link #" & i
     edgeprint menu_temp, 0, 2 + (i - state.top) * 16, col, dpage
@@ -1397,7 +1407,7 @@ SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doo
  DIM col AS INTEGER
 
  DrawDoorPair mapnum, linknum, map(), pass(), doors(), link(), gmap()
- 
+
  setkeys
  DO
   setwait 100
@@ -1462,6 +1472,14 @@ SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doo
   dowait
  LOOP
 END SUB
+
+FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
+ DIM i AS INTEGER
+ FOR i = UBOUND(link) TO 0 STEP -1
+  IF link(i).source >= 0 THEN RETURN i
+ NEXT i
+ RETURN -1
+END FUNCTION
 
 Function LayerIsVisible(vis() as integer, byval l as integer) as integer
 	'debug "layer #" & l & " is: " & readbit(vis(), 0, l)
