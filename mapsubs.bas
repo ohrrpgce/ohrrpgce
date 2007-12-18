@@ -1338,22 +1338,27 @@ SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, e
    col = uilook(uiMenuItem)
    IF state.pt = i THEN col = uilook(uiSelectedItem + state.tog)
 
-   menu_temp = "Door " & link(i).source & " leads to door " & link(i).dest & " on map " & link(i).dest_map
-   edgeprint menu_temp, 0, 2 + (i - state.top) * 16, col, dpage
+   IF link(i).source >= 0 THEN
+    menu_temp = "Door " & link(i).source & " leads to door " & link(i).dest & " on map " & link(i).dest_map
+    edgeprint menu_temp, 0, 2 + (i - state.top) * 16, col, dpage
 
-   IF link(i).tag1 = 0 AND link(i).tag2 = 0 THEN
-    menu_temp = "  all the time"
+    IF link(i).tag1 = 0 AND link(i).tag2 = 0 THEN
+     menu_temp = "  all the time"
+    ELSE
+     menu_temp = "  only if tag "
+     IF link(i).tag1 <> 0 THEN
+      menu_temp += ABS(link(i).tag1) & " = " & iif(link(i).tag1 > 0, 1, 0)
+     END IF
+     IF link(i).tag2 THEN
+      IF link(i).tag1 THEN menu_temp += " and tag "
+      menu_temp += ABS(link(i).tag2) & " = " & iif(link(i).tag2 > 0, 1, 0)
+     END IF
+    END IF
+    edgeprint menu_temp, 0, 10 + (i - state.top) * 16, col, dpage
    ELSE
-    menu_temp = "  only if tag "
-    IF link(i).tag1 <> 0 THEN
-     menu_temp += ABS(link(i).tag1) & " = " & iif(link(i).tag1 > 0, 1, 0)
-    END IF
-    IF link(i).tag2 THEN
-     IF link(i).tag1 THEN menu_temp += " and tag "
-     menu_temp += ABS(link(i).tag2) & " = " & iif(link(i).tag2 > 0, 1, 0)
-    END IF
+    menu_temp = "Unused Door link #" & i
+    edgeprint menu_temp, 0, 2 + (i - state.top) * 16, col, dpage
    END IF
-   edgeprint menu_temp, 0, 10 + (i - state.top) * 16, col, dpage
   NEXT i
   SWAP vpage, dpage
   setvispage vpage
@@ -1364,7 +1369,7 @@ END SUB
 
 SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER)
  DIM ulim(4) AS INTEGER, llim(4) AS INTEGER
- ulim(0) = 99: llim(0) = 0
+ ulim(0) = 99: llim(0) = -1
  ulim(1) = 99: llim(1) = 0
  ulim(2) = gen(genMaxMap): llim(2) = 0
  ulim(3) = 999: llim(3) = -999
@@ -1430,7 +1435,11 @@ SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doo
    menu_temp = ""
    SELECT CASE i
     CASE 0
-     menu_temp = STR(link(linknum).source)
+     IF link(linknum).source >= 0 THEN
+      menu_temp = STR(link(linknum).source)
+     ELSE
+      menu_temp = "Unused"
+     END IF
     CASE 1
      menu_temp = STR(link(linknum).dest)
     CASE 2
@@ -1490,7 +1499,8 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors() as do
  DIM gmap2(dimbinsize(4)), anim(40)
  
  clearpage 2
- 
+ IF link(cur).source = -1 THEN EXIT SUB
+
  loadtanim gmap(0), anim()
  setanim anim(0), anim(20)
  setmapdata map(), pass(), 0, 101
