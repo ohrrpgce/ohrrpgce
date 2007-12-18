@@ -1845,6 +1845,32 @@ IF getfixbit(fixDefaultMaxItem) = 0 THEN
  gen(genMaxItem) = 254
 END IF
 
+IF getfixbit(fixBlankDoorLinks) = 0 THEN
+ upgrade_message "Disable redundant blank door links..."
+ setfixbit(fixBlankDoorLinks, 1)
+ DIM doorlink_temp(199) AS DoorLink
+ DIM found_first AS INTEGER
+ FOR i = 0 TO gen(genMaxMap)
+  deserDoorLinks maplumpname(i, "d"), doorlink_temp()
+  found_first = NO
+  FOR j = 0 TO UBOUND(doorlink_temp)
+   WITH doorlink_temp(j)
+    IF .source = 0 AND .tag1 = 0 AND .tag2 = 0 THEN
+     IF found_first = NO THEN
+      'Ignore the first "always" link for door 0
+      found_first = YES
+     ELSE
+      IF .dest = 0 AND .dest_map = 0 THEN
+       .source = -1 ' Mark redundant all-zero links as unused
+      END IF
+     END IF
+    END IF
+   END WITH
+  NEXT j
+  serDoorLinks maplumpname(i, "d"), doorlink_temp()
+ NEXT i
+END IF
+
 'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)
 xbsave game$ + ".gen", gen(), 1000
 

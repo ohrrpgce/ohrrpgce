@@ -103,6 +103,7 @@ CONST fixDefaultDissolve = 3     'Initialized genEnemyDissolve to default in GEN
 CONST fixDefaultDissolveEnemy = 4'Initialized Enemy dissolves to default in DT1
 CONST fixPushNPCBugCompat = 5    'Turned on the Simulate pushable NPC obstruction bug bitset
 CONST fixDefaultMaxItem = 6      'Stored default max item id in GEN
+CONST fixBlankDoorLinks = 7      'Marked redundant blank doorlinks as unused
 
 '---Sizes (replaceable with variables when suitable)
 CONST npcdMax = 35
