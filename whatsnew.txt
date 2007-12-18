@@ -22,6 +22,8 @@ Dec ?? 2007 [voxhumana]
       enter or space on the tag [James Paige]
     * User Interface color editor. Most (but not all) interface colors
       can now be customized [James Paige]
+    * In the door link editor, you can see a preview of each doorlinks
+      when you browse the list of doorlinks. [James Paige]
 
   * Bugfixes
     * Fixed bug 257 "Mute status effect broken for enemies" [James Paige]

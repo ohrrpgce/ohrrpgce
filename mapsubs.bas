@@ -1310,9 +1310,11 @@ SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, e
  state.top = 0
  state.pt = 0
  state.last = 199
- state.size = 10
+ state.size = 11
+ state.need_update = YES
 
  DIM menu_temp AS STRING
+ DIM col AS INTEGER
 
  setkeys
  DO
@@ -1323,14 +1325,21 @@ SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, e
    serdoorlinks(maplumpname$(mapnum, "d"), link())
    EXIT DO
   END IF
-  usemenu state
-  IF enter_or_space() THEN link_one_door mapnum, state.pt, link(), doors(), map(), pass(), gmap()
+  IF usemenu(state) THEN state.need_update = YES
+  IF enter_or_space() THEN
+   link_one_door mapnum, state.pt, link(), doors(), map(), pass(), gmap()
+   state.need_update = YES
+  END IF
+  IF state.need_update THEN
+   state.need_update = NO
+   DrawDoorPair mapnum, state.pt, map(), pass(), doors(), link(), gmap()
+  END IF
   FOR i = state.top TO state.top + state.size
-   textcolor uilook(uiMenuItem), 0
-   IF state.pt = i THEN textcolor uilook(uiSelectedItem + state.tog), 0
+   col = uilook(uiMenuItem)
+   IF state.pt = i THEN col = uilook(uiSelectedItem + state.tog)
 
    menu_temp = "Door " & link(i).source & " leads to door " & link(i).dest & " on map " & link(i).dest_map
-   printstr menu_temp, 0, 2 + (i - state.top) * 16, dpage
+   edgeprint menu_temp, 0, 2 + (i - state.top) * 16, col, dpage
 
    IF link(i).tag1 = 0 AND link(i).tag2 = 0 THEN
     menu_temp = "  all the time"
@@ -1344,11 +1353,11 @@ SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, e
      menu_temp += ABS(link(i).tag2) & " = " & iif(link(i).tag2 > 0, 1, 0)
     END IF
    END IF
-   printstr menu_temp, 0, 10 + (i - state.top) * 16, dpage
+   edgeprint menu_temp, 0, 10 + (i - state.top) * 16, col, dpage
   NEXT i
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
+  copypage 2, dpage
   dowait
  LOOP
 END SUB
