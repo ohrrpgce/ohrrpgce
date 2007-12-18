@@ -67,6 +67,7 @@ DECLARE SUB mapedit_savemap (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTE
 DECLARE SUB new_blank_map (map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB mapedit_addmap(map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, tastuf() AS INTEGER, tanim_state() AS TileAnimState)
 DECLARE SUB mapedit_resize(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tastuf() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+DECLARE SUB mapedit_delete(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, BYREF layer AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -280,7 +281,7 @@ DO
    GOSUB gmapdata
    loadpage game$ + ".til", gmap(0), 3
   END IF
-  IF csr = 4 THEN GOSUB delmap
+  IF csr = 4 THEN mapedit_delete pt, wide, high, x, y, mapx, mapy, layer, map(), pass(), emap(), npc(), npcstat(), doors(), link()
   IF csr = 5 THEN GOSUB linkdoor
   IF csr > 5 AND csr < 11 THEN editmode = csr - 6: GOSUB mapping
   IF csr = 11 THEN
@@ -1001,33 +1002,6 @@ setvispage vpage
 w = getkey
 RETRACE
 
-delmap:
-setvispage vpage
-IF yesno("Delete this map?", NO) THEN
- printstr "Please Wait...", 0, 40, vpage
- setvispage vpage
-
- cleantiledata map(), wide, high, 3
- cleantiledata pass(), wide, high
- cleantiledata emap(), wide, high
- flusharray npc(), 900, 0
- cleandoorlinks link()
- cleandoors doors()
- 'flusharray doors(), 299, 0
-
- savetiledata maplumpname$(pt, "t"), map(), 3
- savetiledata maplumpname$(pt, "p"), pass()
- savetiledata maplumpname$(pt, "e"), emap()
- xBSAVE maplumpname$(pt, "l"), npc(), 3000
- serdoorlinks maplumpname$(pt, "d"), link()
- serdoors game$ + ".dox", doors(), pt
-END IF
-'--reset scroll position
-x = 0: y = 0: mapx = 0: mapy = 0
-layer = 0
-'visible(0) = 1: visible(1) = 0: visible(2) = 0
-RETRACE
-
 linkdoor:
 mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$ 
 ulim(0) = 99: llim(0) = 0
@@ -1405,6 +1379,35 @@ SUB mapedit_resize(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEG
   END IF
  NEXT i
  verify_map_size mapnum, wide, high, map(), pass(), emap(), mapname
+END SUB
+
+SUB mapedit_delete(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, BYREF layer AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink)
+'delmap:
+ setvispage vpage
+ IF yesno("Delete this map?", NO) THEN
+  printstr "Please Wait...", 0, 40, vpage
+  setvispage vpage
+
+  cleantiledata map(), wide, high, 3
+  cleantiledata pass(), wide, high
+  cleantiledata emap(), wide, high
+  flusharray npc(), 900, 0
+  cleandoorlinks link()
+  cleandoors doors()
+
+  savetiledata maplumpname$(mapnum, "t"), map(), 3
+  savetiledata maplumpname$(mapnum, "p"), pass()
+  savetiledata maplumpname$(mapnum, "e"), emap()
+  xBSAVE maplumpname$(mapnum, "l"), npc(), 3000
+  serdoorlinks maplumpname$(mapnum, "d"), link()
+  serdoors game$ + ".dox", doors(), mapnum
+  '--reset scroll position
+  x = 0
+  y = 0
+  mapx = 0
+  mapy = 0
+  layer = 0
+ END IF
 END SUB
 
 SUB update_tilepicker(BYREF tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER)
