@@ -71,6 +71,8 @@ DECLARE SUB mapedit_delete(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high 
 DECLARE SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER)
 DECLARE SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
+DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
+DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -582,9 +584,10 @@ DO
     END IF
    NEXT i
    'delete door
-   FOR i = 0 TO 99
-    IF doors(i).x = x AND doors(i).y = y + 1 AND readbit(doors(i).bits(),0,0) = 1 THEN setbit(doors(i).bits(),0,0, 1)
-   NEXT
+   i = find_door_at_spot(x, y, doors())
+   IF i >= 0 THEN
+    setbit doors(i).bits(), 0, 0, 1
+   END IF
  END IF
  IF keyval(29) > 0 AND keyval(35) > 1 THEN 'Ctrl+H for hero start position
   gen(genStartMap) = pt
@@ -683,23 +686,29 @@ DO
    IF keyval(24) > 1 THEN setmapblock x, y, 0, (over XOR 128)'overhead
    '---DOORMODE-----
   CASE 2
-   IF keyval(57) > 1 THEN
-    temp = 0
-    FOR i = 0 TO 99
-     IF doors(i).x = x AND doors(i).y = y + 1 AND readbit(doors(i).bits(),0,0) = 1 THEN temp = 1: setbit(doors(i).bits(),0,0,0)
-    NEXT
-    IF temp = 0 THEN
-     temp = -1
-     FOR i = 99 TO 0 STEP -1
-      IF readbit(doors(i).bits(),0,0) = 0 THEN temp = i
-     NEXT
-     IF temp >= 0 THEN doors(temp).x = x: doors(temp).y = y + 1: setbit(doors(temp).bits(),0,0,1)
+   IF keyval(28) > 1 THEN ' enter to link a door
+    
+   END IF
+   IF keyval(57) > 1 THEN ' space to place a door
+    i = find_door_at_spot(x, y, doors())
+    IF i >= 0 THEN
+     'clear an existing door
+     setbit doors(i).bits(), 0, 0, 0
+    ELSE
+     'place a new door
+     i = find_first_free_door(doors())
+     IF i >= 0 THEN
+      doors(i).x = x
+      doors(i).y = y + 1
+      setbit doors(i).bits(), 0, 0, 1
+     END IF
     END IF
    END IF
    IF keyval(83) > 1 THEN 'delete
-    FOR i = 0 TO 99
-     IF doors(i).x = x AND doors(i).y = y + 1 AND readbit(doors(i).bits(),0,0) = 1 THEN setbit(doors(i).bits(),0,0,0)
-    NEXT
+    i = find_door_at_spot(x, y, doors())
+    IF i >= 0 THEN
+     setbit doors(i).bits(), 0, 0, 0
+    END IF
    END IF
    '---NPCMODE------
   CASE 3
@@ -1101,6 +1110,26 @@ RETRACE
 '64  harm tile
 '128 overhead
 END SUB
+
+FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
+ DIM i AS INTEGER
+ FOR i = 0 TO UBOUND(doors)
+  IF doors(i).x = x AND doors(i).y = y + 1 AND readbit(doors(i).bits(),0,0) = 1 THEN
+   RETURN i
+  END IF
+ NEXT i
+ RETURN -1
+END FUNCTION
+
+FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
+ DIM i AS INTEGER
+ FOR i = 0 TO UBOUND(doors)
+  IF readbit(doors(i).bits(), 0, 0) = 0 THEN
+   RETURN i
+  END IF
+ NEXT i
+ RETURN -1
+END FUNCTION
 
 SUB mapedit_addmap(map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, tastuf() AS INTEGER, tanim_state() AS TileAnimState)
  DIM how AS INTEGER
