@@ -69,6 +69,7 @@ DECLARE SUB mapedit_addmap(map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGE
 DECLARE SUB mapedit_resize(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tastuf() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB mapedit_delete(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, BYREF layer AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER)
+DECLARE SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -283,7 +284,7 @@ DO
    loadpage game$ + ".til", gmap(0), 3
   END IF
   IF csr = 4 THEN mapedit_delete pt, wide, high, x, y, mapx, mapy, layer, map(), pass(), emap(), npc(), npcstat(), doors(), link()
-  IF csr = 5 THEN GOSUB linkdoor
+  IF csr = 5 THEN mapedit_linkdoors pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
   IF csr > 5 AND csr < 11 THEN editmode = csr - 6: GOSUB mapping
   IF csr = 11 THEN
    '--reload default passability
@@ -1003,47 +1004,6 @@ setvispage vpage
 w = getkey
 RETRACE
 
-linkdoor:
-mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$ 
-ttop = 0: cur = 0
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN
- 	serdoorlinks(maplumpname$(pt, "d"), link())
- 	RETRACE
- end if
- usemenu cur, ttop, 0, 199, 10
- IF enter_or_space() THEN link_one_door pt, cur, link(), doors(), map(), pass(), gmap()
- FOR i = ttop TO ttop + 10
-  textcolor 7, 0
-  IF cur = i THEN textcolor 14 + tog, 0
-
-  a$ = "Door " & link(i).source & " leads to door " & link(i).dest & " on map " & link(i).dest_map
-  printstr a$, 0, 2 + (i - ttop) * 16, dpage
-
-  IF link(i).tag1 = 0 AND link(i).tag2 = 0 THEN
-   a$ = "  all the time"
-  ELSE
-   a$ = "  only if tag "
-   IF link(i).tag1 <> 0 THEN
-    a$ += ABS(link(i).tag1) & " = " & iif(link(i).tag1 > 0, 1, 0)
-   END IF
-   IF link(i).tag2 THEN
-    IF link(i).tag1 THEN a$ += " and tag "
-    a$ += ABS(link(i).tag2) & " = " & iif(link(i).tag2 > 0, 1, 0)
-   END IF
-  END IF
-  printstr a$, 0, 10 + (i - ttop) * 16, dpage
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-
 layermenu:
 
 	gosub makelayermenu
@@ -1341,6 +1301,56 @@ SUB update_tilepicker(BYREF tilepick AS XYPair, layer AS INTEGER, usetile() AS I
  menubarstart(layer) = bound(menubarstart(layer), large(usetile(layer) - 14, 0), small(usetile(layer), 145))
  tilepick.y = INT(usetile(layer) / 16)
  tilepick.x = usetile(layer) - (tilepick.y * 16)
+END SUB
+
+SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+ mapedit_savemap mapnum, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname
+ 
+ DIM state AS MenuState
+ state.top = 0
+ state.pt = 0
+ state.last = 199
+ state.size = 10
+
+ DIM menu_temp AS STRING
+
+ setkeys
+ DO
+  setwait 100
+  setkeys
+  state.tog = state.tog XOR 1
+  IF keyval(1) > 1 THEN
+   serdoorlinks(maplumpname$(mapnum, "d"), link())
+   EXIT DO
+  END IF
+  usemenu state
+  IF enter_or_space() THEN link_one_door mapnum, state.pt, link(), doors(), map(), pass(), gmap()
+  FOR i = state.top TO state.top + state.size
+   textcolor uilook(uiMenuItem), 0
+   IF state.pt = i THEN textcolor uilook(uiSelectedItem + state.tog), 0
+
+   menu_temp = "Door " & link(i).source & " leads to door " & link(i).dest & " on map " & link(i).dest_map
+   printstr menu_temp, 0, 2 + (i - state.top) * 16, dpage
+
+   IF link(i).tag1 = 0 AND link(i).tag2 = 0 THEN
+    menu_temp = "  all the time"
+   ELSE
+    menu_temp = "  only if tag "
+    IF link(i).tag1 <> 0 THEN
+     menu_temp += ABS(link(i).tag1) & " = " & iif(link(i).tag1 > 0, 1, 0)
+    END IF
+    IF link(i).tag2 THEN
+     IF link(i).tag1 THEN menu_temp += " and tag "
+     menu_temp += ABS(link(i).tag2) & " = " & iif(link(i).tag2 > 0, 1, 0)
+    END IF
+   END IF
+   printstr menu_temp, 0, 10 + (i - state.top) * 16, dpage
+  NEXT i
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
 END SUB
 
 SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER)
