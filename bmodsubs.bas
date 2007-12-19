@@ -744,6 +744,7 @@ IF formdata(i * 4) > 0 THEN
   END IF
   .hero_untargetable = readbit(ebits(), i * 5, 61)
   .enemy_untargetable = readbit(ebits(), i * 5, 60)
+  .death_sfx = es(i, 24)
  END WITH
 END IF
 IF bslot(4 + i).vis = 1 THEN

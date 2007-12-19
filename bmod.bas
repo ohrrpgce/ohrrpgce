@@ -14,7 +14,6 @@ DEFINT A-Z
 #include "menustuf.bi"
 #include "yetmore.bi"
 #include "moresubs.bi"
-#include "music.bi"
 DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
 
 'misc
@@ -1212,7 +1211,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    bslot(ww).zmov = popw
    bslot(ww).zspeed = popw
   CASE 16 'sound(which)
-   sound_play(popw,0)
+   playsfx(popw)
   CASE 17 'align(who, target, edge, offset)
    w1 = popw
    w2 = popw
@@ -1443,6 +1442,13 @@ END IF
 IF deadguyhp = 0 THEN deadguycount = deadguycount + 1
 IF deadguyhp = 0 and formslotused <> 0 THEN
  '--deadguy is really dead
+ IF bslot(deadguy).death_sfx = 0 THEN
+  IF gen(genDefaultDeathSFX) > 0 THEN
+   playsfx gen(genDefaultDeathSFX) - 1
+  END IF
+ ELSEIF bslot(deadguy).death_sfx > 0 THEN
+  playsfx bslot(deadguy).death_sfx - 1
+ END IF
  bslot(deadguy).vis = 0
  ready(deadguy) = 0
  godo(deadguy) = 0
@@ -2130,8 +2136,8 @@ FOR i = 0 TO 3
    if .sprites = 0 then debug "Couldn't load hero sprite: " & game$ & ".pt0#" & exstat(i,0,14)
    .pal = palette16_load(game$ + ".pal", exstat(i, 0, 15), 0, exstat(i, 0, 14))
    if .pal = 0 then debug "Failed to load palette (#" & i & ")"
-
    .frame = 0
+   .death_sfx = -1 'No death sounds for heroes (for now)
   END WITH
   FOR o = 0 TO 11
    bstat(i).cur.sta(o) = exstat(i, 0, o)

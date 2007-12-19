@@ -152,13 +152,14 @@ TYPE BattleSprite
   hero_untargetable AS INTEGER
   enemy_untargetable AS INTEGER
   dissolve AS INTEGER
-  attack_succeeded as INTEGER
+  attack_succeeded AS INTEGER
   sprites as Frame ptr 'the graphic set
-  sprite_num as integer 'how many frames
-  frame as integer 'the current frame
+  sprite_num AS INTEGER 'how many frames
+  frame AS INTEGER 'the current frame
   pal as palette16 ptr 'yeah
-  deathtype as integer 'for enemies (0 = default, otherwise is type + 1)
-  deathtime as integer '0 = default, otherwise is time + 1
+  deathtype AS INTEGER 'for enemies (0 = default, otherwise is type + 1)
+  deathtime AS INTEGER '0 = default, otherwise is time + 1
+  death_sfx AS INTEGER '0 = default, -1 = none, >0 = sfx ID + 1
 END TYPE
 
 UNION BattleStatsSingle

@@ -28,6 +28,7 @@ Dec ?? 2007 [voxhumana]
     * Press Enter on a door in door-placement mode to go directly to the
       doorlink editor for that door. (only works on the first link for
       doors multiple conditional destinations) [James Paige]
+    * Enemies can have a death sound effect. [James Paige]
 
   * Bugfixes
     * Fixed bug 257 "Mute status effect broken for enemies" [James Paige]
