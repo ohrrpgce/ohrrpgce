@@ -510,15 +510,17 @@ LOOP
 END SUB
 
 SUB generalsfxmenu ()
-  CONST num as integer = 4
+  CONST num as integer = 5
   DIM as string menu(num), snd(num), disp(num)
-  DIM as integer sfxgenoff(1 to num) = {genAcceptSFX, genCancelSFX, genCursorSFX, genTextboxLetter}, menutop
+  DIM as integer sfxgenoff(1 to num) = {genAcceptSFX, genCancelSFX, genCursorSFX, genTextboxLetter, genDefaultDeathSFX}
+  DIM as integer menutop
 
   disp(0) = "Previous Menu" 'don't need menu(0)
   menu(1) = "Accept Sound: "
   menu(2) = "Cancel Sound: "
   menu(3) = "Cursor Sound: "
   menu(4) = "Textbox Sound: "
+  menu(5) = "Default Enemy Death: "
 
   FOR i = 1 to num
     IF gen(sfxgenoff(i)) > 0 THEN

@@ -132,7 +132,8 @@ CONST EnDatStealRItem = 20
 CONST EnDatStealRItemP = 21
 CONST EnDatDissolve = 22
 CONST EnDatDissolveTime = 23
-'24 to 52 unused
+CONST EnDatDeathSFX = 24
+'25 to 52 unused
 CONST EnDatPic = 53
 CONST EnDatPal = 54
 CONST EnDatPicSize = 55
@@ -160,7 +161,7 @@ CONST EnDatAtkAlone = 102' to 106
 
 capindex = 0
 DIM caption$(10)
-DIM max(25), min(25)
+DIM max(26), min(26)
 'Limit 0 is not used
 
 CONST EnLimPic = 1
@@ -226,7 +227,11 @@ CONST EnLimDissolveTime = 25
 min(EnLimDissolveTime) = 0
 max(EnLimDissolveTime) = 99
 
-'--next limit 26, remeber to update dim!
+CONST EnLimDeathSFX = 26
+min(EnLimDeathSFX) = -1
+max(EnLimDeathSFX) = gen(genMaxSFX) + 1
+
+'--next limit 27, remeber to update dim!
 
 '-------------------------------------------------------------------------
 '--menu content
@@ -436,6 +441,12 @@ menutype(EnMenuDissolveTime) = 13
 menuoff(EnMenuDissolveTime) = EnDatDissolveTime
 menulimits(EnMenuDissolveTime) = EnLimDissolveTime
 
+CONST EnMenuDeathSFX = 65
+menu$(EnMenuDeathSFX) = "Death Sound Effect:"
+menutype(EnMenuDeathSFX) = 14
+menuoff(EnMenuDeathSFX) = EnDatDeathSFX
+menulimits(EnMenuDeathSFX) = EnLimDeathSFX
+
 '-------------------------------------------------------------------------
 '--menu structure
 DIM workmenu(15), dispmenu$(15)
@@ -453,13 +464,14 @@ mainMenu(6) = EnMenuBitsetAct
 mainMenu(7) = EnMenuSpawnAct
 mainMenu(8) = EnMenuAtkAct
 
-DIM appearMenu(5)
+DIM appearMenu(6)
 appearMenu(0) = EnMenuBackAct
 appearMenu(1) = EnMenuPicSize
 appearMenu(2) = EnMenuPic
 appearMenu(3) = EnMenuPal
 appearMenu(4) = EnMenuDissolve
 appearMenu(5) = EnMenuDissolveTime
+appearMenu(6) = EnMenuDeathSFX
 
 DIM rewardMenu(11)
 rewardMenu(0) = EnMenuBackAct
