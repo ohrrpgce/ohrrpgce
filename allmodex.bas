@@ -3467,14 +3467,14 @@ sub sprite_add_cache(byval s as string, byval p as frame ptr, byval fr as intege
 		end with
 	next
 	
-	if sec <> 0 then
+	if sec > 0 then
 		sprite_delete(@sprcache(sec).p)
 		sprcache(sec).s = s
 		sprcache(sec).p = p
 		p->refcount = 1
 		exit sub
 	end if
-	
+
 	'no room? pah.
 	redim preserve sprcache(ubound(sprcache) * 1.3 + 5)
 	
@@ -3991,7 +3991,7 @@ sub Palette16_add_cache(byval s as string, byval p as Palette16 ptr, byval fr as
 		end with
 	next
 	
-	if sec <> 0 then
+	if sec > 0 then
 		Palette16_delete(@palcache(sec).p)
 		palcache(sec).s = s
 		palcache(sec).p = p
