@@ -2593,7 +2593,7 @@ FOR i = 0 TO 3
 NEXT i
 FOR i = o TO 3
  '--black out unused heros
- rectangle 0, i * 5, 320, 5, uilook(uiBackground), 2
+ rectangle 0, i * 5, 320, 5, 0, 2
 NEXT i
 END SUB
 
