@@ -1152,7 +1152,7 @@ end</example>
 		<command id="outsidebattlecure">
 			<cannon>outside battle cure (attack, target, attacker)</cannon>
 			<shortname>outside battle cure</shortname>
-			<description>Uses an attack on a hero outside of battle as if you had used it from an item or cast it as a spell. In spite of the name, it works for both cure spells and damage spells. The first argument, <p>attack</p> is the ID number of the attack to use, or the name from your HSI file in the form atk:name. The second argument, <p>target</p> is the position in the party of the hero to cure (or harm). The third optional argument, <p>attacker</p> is the position in the party of the hero who is using the attack. If this argument is ommitted or set to -1, then the average stats of the active party will be used, just like when the attack is used from an item.</description>
+			<description>Uses an attack on a hero outside of battle as if you had used it from an item or cast it as a spell. In spite of the name, it works for both cure spells and damage spells. The first argument, <p>attack</p> is the ID number of the attack to use, or the name from your HSI file in the form atk:name. The second argument, <p>target</p> is the position in the party of the hero to cure (or harm). The third optional argument, <p>attacker</p> is the position in the party of the hero who is using the attack. If this argument is ommitted or set to -1, then the average stats of the active party will be used, just like when the attack is used from an item. The return value is <ref>true</true> if the cure/attack succeeded, and <ref>false</ref> if it did nothing.</description>
 		</command>
 	</section>
 	<section title="Mouse Functions">
