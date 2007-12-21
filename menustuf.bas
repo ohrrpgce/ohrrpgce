@@ -10,6 +10,7 @@ DECLARE FUNCTION focuscost% (cost%, focus%)
 DECLARE SUB renamehero (who%)
 DECLARE FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
 DECLARE FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
+DECLARE FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INTEGER, stat() AS INTEGER, spread AS INTEGER) AS INTEGER
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
 DECLARE SUB herobattlebits (bitbuf%(), who%)
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
@@ -390,6 +391,7 @@ FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS IN
 
  IF hp = 0 AND (atktemp(3) = 4 OR atktemp(3) = 10) THEN RETURN YES
  IF hp > 0 AND atktemp(3) = 10 THEN RETURN NO
+ IF hp = 0 THEN RETURN NO
 
  RETURN YES
 END FUNCTION
@@ -1083,14 +1085,7 @@ ELSE
   '--do (cure) attack outside of battle
   didcure = 0
   IF itemtemp(51) > 0 THEN
-   atk = itemtemp(51) - 1
-   IF spred = 0 THEN
-    IF chkOOBtarg(wptr, atkIDs(ic), stat()) THEN oobcure -1, wptr, atk, spred, stat(): didcure = -1
-   ELSE
-    FOR i = 0 TO 3
-     IF chkOOBtarg(i, atkIDs(ic), stat()) THEN oobcure -1, i, atk, spred, stat(): didcure = -1
-    NEXT i
-   END IF
+   didcure = outside_battle_cure(atkIDs(ic), wptr, -1, stat(), spred)
   END IF 'itemtemp(51) > 0
   IF itemtemp(73) = 1 AND (didcure OR didlearn = 1) THEN
    IF consumeitem(ic) THEN
@@ -2094,13 +2089,7 @@ ELSE
    lmp(pt, INT(sptr / 3)) = lmp(pt, INT(sptr / 3)) - 1
   END IF
   'DO ACTUAL EFFECT
-  IF spred = 0 THEN
-   IF chkOOBtarg(wptr, spel(sptr), stat()) THEN oobcure pt, wptr, spel(sptr), spred, stat()
-  ELSE
-   FOR i = 0 TO 3
-    IF chkOOBtarg(i, spel(sptr), stat()) THEN oobcure pt, i, spel(sptr), spred, stat()
-   NEXT i
-  END IF
+  outside_battle_cure spel(sptr), wptr, pt, stat(), spred
   GOSUB curspellist
  END IF
 END IF
@@ -2367,4 +2356,17 @@ FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
   IF spell(who, list, i) > 0 THEN n + = 1
  NEXT i
  RETURN n
+END FUNCTION
+
+FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INTEGER, stat() AS INTEGER, spread AS INTEGER) AS INTEGER
+ DIM i AS INTEGER
+ DIM didcure AS INTEGER = NO
+ IF spread = 0 THEN
+  IF chkOOBtarg(target, atk, stat()) THEN oobcure attacker, target, atk, spread, stat() : didcure = YES
+ ELSE
+  FOR i = 0 TO 3
+   IF chkOOBtarg(i, atk, stat()) THEN oobcure attacker, i, atk, spread, stat() : didcure = YES
+  NEXT i
+ END IF
+ RETURN didcure
 END FUNCTION
