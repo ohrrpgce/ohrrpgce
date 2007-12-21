@@ -57,6 +57,8 @@ Dec ?? 2007 [voxhumana]
     * Attacks with target class "Enemy" are usable on allies
       outside battle if the "Usable outside battle" bitset is ON
       [James Paige]
+    * Life spells/items that are not allowed to target live heroes are
+      no longer usable on a hero who you just revived. [James Paige]
 
   * New Plotscripting Commands
     * get victory music

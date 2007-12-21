@@ -8,9 +8,6 @@ DEFINT A-Z
 'basic subs and functions
 DECLARE FUNCTION focuscost% (cost%, focus%)
 DECLARE SUB renamehero (who%)
-DECLARE FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
-DECLARE FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
-DECLARE FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INTEGER, stat() AS INTEGER, spread AS INTEGER) AS INTEGER
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
 DECLARE SUB herobattlebits (bitbuf%(), who%)
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
@@ -56,6 +53,10 @@ DECLARE Sub MenuSound(byval s as integer)
 #include "gglobals.bi"
 #include "const.bi"
 #include "uiconst.bi"
+
+DECLARE FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
+DECLARE FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk AS INTEGER, stat() AS INTEGER, recheck AS INTEGER=NO) AS INTEGER
+DECLARE FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INTEGER, stat() AS INTEGER, spread AS INTEGER) AS INTEGER
 
 '--SUBs and FUNCTIONS only used locally
 DECLARE SUB loadtrades(index, tradestf(), b(), recordsize)
@@ -772,8 +773,9 @@ FOR i = 0 TO inventoryMax
 NEXT
 END SUB
 
-FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
+FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk AS INTEGER, stat() AS INTEGER, recheck AS INTEGER=NO) AS INTEGER
  '--return true on success, false on failure
+ IF recheck THEN target -= 1 ' For a re-check, back the cursor up so if the current target is still valid, it won't change
  DIM safety AS INTEGER = 0
  DO
   target = loopvar(target, 0, 3, search_direction)
@@ -2367,6 +2369,10 @@ FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INT
   FOR i = 0 TO 3
    IF chkOOBtarg(i, atk, stat()) THEN oobcure attacker, i, atk, spread, stat() : didcure = YES
   NEXT i
+ END IF
+ IF didcure THEN
+  're-check validify of target
+  getOOBtarg 1, target, atk, stat(), YES
  END IF
  RETURN didcure
 END FUNCTION
