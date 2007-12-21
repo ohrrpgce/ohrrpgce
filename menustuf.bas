@@ -8,8 +8,8 @@ DEFINT A-Z
 'basic subs and functions
 DECLARE FUNCTION focuscost% (cost%, focus%)
 DECLARE SUB renamehero (who%)
-DECLARE FUNCTION chkOOBtarg% (wptr%, index%, stat%(), ondead%(), onlive%())
-DECLARE FUNCTION getOOBtarg% (gamma%, wptr%, index%, stat%(), ondead%(), onlive%())
+DECLARE FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
+DECLARE FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
 DECLARE SUB herobattlebits (bitbuf%(), who%)
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
@@ -377,12 +377,21 @@ FOR i = 1 TO 3
 NEXT i
 END SUB
 
-FUNCTION chkOOBtarg (wptr, index, stat(), ondead(), onlive())
-'RETRACE true if valid, false if not valid
-chkOOBtarg = -1
-IF hero(wptr) = 0 OR (stat(wptr, 0, 0) = 0 AND readbit(ondead(), 0, index) = 0) OR (stat(wptr, 0, 0) > 0 AND readbit(onlive(), 0, index) = 0) THEN
- chkOOBtarg = 0
-END IF
+FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
+'true if valid, false if not valid
+ IF target < 0 OR target > 40 THEN RETURN NO
+ IF hero(target) = 0 THEN RETURN NO
+ IF atk < 0 OR atk > gen(genMaxAttack) THEN RETURN NO
+
+ DIM atktemp(40 + dimbinsize(binATTACK)) AS INTEGER
+ loadattackdata atktemp(), atk
+ DIM hp AS INTEGER
+ hp = stat(target, 0, 0)
+
+ IF hp = 0 AND (atktemp(3) = 4 OR atktemp(3) = 10) THEN RETURN YES
+ IF hp > 0 AND atktemp(3) = 10 THEN RETURN NO
+
+ RETURN YES
 END FUNCTION
 
 SUB doequip (toequip, who, where, defwep, stat())
@@ -761,19 +770,18 @@ FOR i = 0 TO inventoryMax
 NEXT
 END SUB
 
-FUNCTION getOOBtarg (gamma, wptr, index, stat(), ondead(), onlive())
-'--return true on success, false on failure
-getOOBtarg = -1
-safety = 0
-wptr = loopvar(wptr, 0, 3, gamma)
-DO WHILE chkOOBtarg(wptr, index, stat(), ondead(), onlive()) = 0
- wptr = loopvar(wptr, 0, 3, gamma)
- safety = safety + 1
- IF safety >= 4 THEN
-  getOOBtarg = 0
-  EXIT FUNCTION
- END IF
-LOOP
+FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
+ '--return true on success, false on failure
+ DIM safety AS INTEGER = 0
+ DO
+  target = loopvar(target, 0, 3, search_direction)
+  IF chkOOBtarg(target, atk, stat()) THEN RETURN YES
+  safety += 1
+  IF safety >= 4 THEN EXIT DO
+ LOOP
+ 'Failure
+ target = -1
+ RETURN NO
 END FUNCTION
 
 SUB itemmenuswap (invent() AS InventSlot, iuse(), permask(), i, o)
@@ -799,9 +807,9 @@ FUNCTION items (stat())
 DIM itemdata(100) AS INTEGER
 DIM itemtemp(100) AS INTEGER
 DIM atktemp(40 + dimbinsize(binATTACK)) AS INTEGER
-DIM iuse(15), ondead(15), onlive(15), permask(15), special$(-3 TO -1)
+DIM iuse(15), atkIDs(inventoryMax), permask(15), special$(-3 TO -1)
 DIM autosort_changed AS INTEGER = 0
-'bit 0 of iuse, permask, onlive, ondead correspond to item -3
+'bit 0 of iuse, permask, correspond to item -3
 
 special$(-3) = rpad$(readglobalstring$(35, "DONE", 10), " ", 11)
 special$(-2) = rpad$(readglobalstring$(36, "AUTOSORT", 10), " ", 11)
@@ -817,17 +825,13 @@ FOR i = 0 TO 2
  setbit iuse(), 0, i, 1
 NEXT i
 FOR i = 0 TO inventoryMax
- setbit ondead(), 0, 3 + i, 0
- setbit onlive(), 0, 3 + i, 1
+ atkIDs(i) = -1
  IF inventory(i).used THEN
   loaditemdata itemtemp(), inventory(i).id
   IF itemtemp(73) = 2 THEN setbit permask(), 0, 3 + i, 1
   IF itemtemp(51) > 0 OR itemtemp(50) > 0 THEN
    setbit iuse(), 0, 3 + i, 1
-   temp = itemtemp(51) - 1
-   loadattackdata atktemp(), temp
-   IF atktemp(3) = 4 OR atktemp(3) = 10 THEN setbit ondead(), 0, 3 + i, 1
-   IF atktemp(3) = 10 THEN setbit onlive(), 0, 3 + i, 0
+   atkIDs(i) = itemtemp(51) - 1
   END IF
   IF itemtemp(51) < 0 THEN
    setbit iuse(), 0, 3 + i, 1
@@ -877,7 +881,11 @@ DO
  edgeprint info$, xstring(info$, 160), 175, uilook(uiText), dpage
  IF pick = 1 THEN
   centerbox 160, 47, 160, 88, 2, dpage
-  IF spred = 0 THEN rectangle 84, 8 + wptr * 20, 152, 20, uilook(uiHighlight2), dpage ELSE rectangle 84, 8, 152, 80, uilook(uiHighlight2 * tog), dpage
+  IF spred = 0 AND wptr >= 0 THEN
+   rectangle 84, 8 + wptr * 20, 152, 20, uilook(uiHighlight2), dpage
+  ELSEIF spred <> 0 THEN
+   rectangle 84, 8, 152, 80, uilook(uiHighlight2 * tog), dpage
+  END IF
   o = 0
   FOR i = 0 TO 3
    IF hero(i) > 0 THEN
@@ -970,8 +978,11 @@ IF pick = 0 THEN
      loadattackdata atktemp(), itemdata(51) - 1
      tclass = atktemp(3)
      ttype = atktemp(4)
-     IF tclass = 0 THEN RETRACE
-     wptr = 0
+     wptr = -1
+     IF getOOBtarg(1, wptr, itemdata(51) - 1, stat()) = NO THEN
+      'Failed to get a target
+      MenuSound gen(genCancelSFX)
+     END IF
      pick = 1
      spred = 0
      MenuSound gen(genAcceptSFX)
@@ -1032,11 +1043,11 @@ ELSE
  info$ = inventory(ic).text
  IF spred = 0 THEN
   IF carray(0) > 1 THEN
-   dummy = getOOBtarg(-1, wptr, 3 + ic, stat(), ondead(), onlive())
+   getOOBtarg -1, wptr, atkIDs(ic), stat()
    MenuSound gen(genCursorSFX)
   END IF
   IF carray(1) > 1 THEN
-   dummy = getOOBtarg(1, wptr, 3 + ic, stat(), ondead(), onlive())
+   getOOBtarg 1, wptr, atkIDs(ic), stat()
    MenuSound gen(genCursorSFX)
   END IF
  END IF
@@ -1044,7 +1055,7 @@ ELSE
   IF carray(2) > 1 OR carray(3) > 1 THEN
    IF spred = 0 THEN
     FOR i = 0 TO 3
-     IF chkOOBtarg(i, 3 + ic, stat(), ondead(), onlive()) THEN spred = spred + 1
+     IF chkOOBtarg(i, atkIDs(ic), stat()) THEN spred = spred + 1
     NEXT i
    ELSE
     spred = 0
@@ -1074,11 +1085,10 @@ ELSE
   IF itemtemp(51) > 0 THEN
    atk = itemtemp(51) - 1
    IF spred = 0 THEN
-    IF chkOOBtarg(wptr, 3 + ic, stat(), ondead(), onlive()) THEN oobcure -1, wptr, atk, spred, stat(): didcure = -1
+    IF chkOOBtarg(wptr, atkIDs(ic), stat()) THEN oobcure -1, wptr, atk, spred, stat(): didcure = -1
    ELSE
     FOR i = 0 TO 3
-     ' IF hero(i) > 0 AND (stat(i, 0, 0) > 0 OR readbit(ondead(), 0, 3 + ic)) THEN oobcure -1, i, atk, spred, stat()
-     IF chkOOBtarg(i, 3 + ic, stat(), ondead(), onlive()) THEN oobcure -1, i, atk, spred, stat(): didcure = -1
+     IF chkOOBtarg(i, atkIDs(ic), stat()) THEN oobcure -1, i, atk, spred, stat(): didcure = -1
     NEXT i
    END IF
   END IF 'itemtemp(51) > 0
@@ -1781,7 +1791,7 @@ END SUB
 SUB spells (pt, stat())
 REMEMBERSTATE
 
-DIM sname$(40), menu$(4), mi(4), mtype(5), spel$(24), speld$(24), cost$(24), spel(24), canuse(24), targt(24), spid(5), ondead(2), onlive(2)
+DIM sname$(40), menu$(4), mi(4), mtype(5), spel$(24), speld$(24), cost$(24), spel(24), canuse(24), targt(24), spid(5)
 dim her as herodef
 DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 
@@ -1850,7 +1860,11 @@ DO
  edgeprint names$(pt), xstring(names$(pt), 206), 31, uilook(uiText), dpage
  IF pick = 1 THEN
   centerbox 196, 47, 160, 88, 2, dpage
-  IF spred = 0 THEN rectangle 120, 8 + wptr * 20, 152, 20, uilook(uiHighlight2), dpage ELSE rectangle 120, 8, 152, 80, uilook(uiHighlight2 * tog), dpage
+  IF spred = 0 AND wptr >= 0 THEN
+   rectangle 120, 8 + wptr * 20, 152, 20, uilook(uiHighlight2), dpage
+  ELSEIF spred <> 0 THEN
+   rectangle 120, 8, 152, 80, uilook(uiHighlight2 * tog), dpage
+  END IF
   o = 0
   FOR i = 0 TO 3
    IF hero(i) > 0 THEN
@@ -1878,13 +1892,9 @@ FOR i = 0 TO 23
  IF spell(pt, spid(csr), i) > 0 THEN
   spel(i) = spell(pt, spid(csr), i) - 1
   loadattackdata buffer(), spel(i)
-  IF readbit(buffer(), 20, 59) = 1 AND buffer(3) > 0 THEN
-   canuse(i) = buffer(3)
+  IF readbit(buffer(), 20, 59) = 1 THEN
+   canuse(i) = buffer(3) + 1
    targt(i) = buffer(4)
-   setbit ondead(), 0, i, 0
-   setbit onlive(), 0, i, 1
-   IF buffer(3) = 4 OR buffer(3) = 10 THEN setbit ondead(), 0, i, 1
-   IF buffer(3) = 10 THEN setbit onlive(), 0, i, 0
   END IF
   cost = focuscost(buffer(8), stat(pt, 0, 10))
   IF mtype(csr) = 0 AND stat(pt, 0, 1) < cost THEN canuse(i) = 0
@@ -2025,21 +2035,25 @@ IF pick = 0 THEN '--picking which spell list
   END IF
   IF carray(4) > 1 THEN
    IF sptr = 24 THEN mset = 0
-   IF canuse(sptr) > 0 THEN '{
+   IF canuse(sptr) > 0 THEN
     '--spell that can be used oob
-    wptr = pt
+    wptr = pt - 1
+    IF getOOBtarg(1, wptr, spel(sptr), stat()) = 0 THEN
+     '--Failed to get target
+     wptr = -1
+     menusound gen(genCancelSFX)
+    END IF
     pick = 1
     spred = 0
     menusound gen(genAcceptSFX)
-    IF targt(sptr) = 1 AND canuse(sptr) <> 2 THEN
+    IF targt(sptr) = 1 AND canuse(sptr) - 1 <> 2 THEN
      FOR i = 0 TO 3
-      'IF hero(i) > 0 AND (stat(i, 0, 0) > 0 OR readbit(ondead(), 0, sptr)) THEN spred = spred + 1
-      IF chkOOBtarg(i, sptr, stat(), ondead(), onlive()) THEN spred = spred + 1
+      IF chkOOBtarg(i, spel(sptr), stat()) THEN spred = spred + 1
      NEXT i
     END IF
    ELSE
     menusound gen(genCancelSFX)
-   END IF '}
+   END IF
   END IF
  END IF
 ELSE
@@ -2047,22 +2061,21 @@ ELSE
   menusound gen(genCancelSFX)
   pick = 0
  END IF
- IF canuse(sptr) <> 2 AND spred = 0 THEN
+ IF canuse(sptr) - 1 <> 2 AND spred = 0 THEN
   IF carray(0) > 1 THEN
-   dummy = getOOBtarg(-1, wptr, sptr, stat(), ondead(), onlive())
+   getOOBtarg -1, wptr, spel(sptr), stat()
    MenuSound gen(genCursorSFX)
   END IF
   IF carray(1) > 1 THEN
-   dummy = getOOBtarg(1, wptr, sptr, stat(), ondead(), onlive())
+   getOOBtarg 1, wptr, spel(sptr), stat()
    MenuSound gen(genCursorSFX)
   END IF
  END IF
- IF targt(sptr) = 2 AND canuse(sptr) <> 2 THEN
+ IF targt(sptr) = 2 AND canuse(sptr) - 1 <> 2 THEN
   IF carray(2) > 1 OR carray(3) > 1 THEN
    IF spred = 0 THEN
     FOR i = 0 TO 3
-     'IF hero(i) > 0 AND (stat(wptr, 0, 0) > 0 OR readbit(ondead(), 0, sptr)) THEN spred = spred + 1
-     IF chkOOBtarg(i, sptr, stat(), ondead(), onlive()) THEN spred = spred + 1
+     IF chkOOBtarg(i, spel(sptr), stat()) THEN spred = spred + 1
     NEXT i
    ELSE
     spred = 0
@@ -2082,11 +2095,10 @@ ELSE
   END IF
   'DO ACTUAL EFFECT
   IF spred = 0 THEN
-   IF chkOOBtarg(wptr, sptr, stat(), ondead(), onlive()) THEN oobcure pt, wptr, spel(sptr), spred, stat()
+   IF chkOOBtarg(wptr, spel(sptr), stat()) THEN oobcure pt, wptr, spel(sptr), spred, stat()
   ELSE
    FOR i = 0 TO 3
-    'IF hero(i) > 0 AND (stat(i, 0, 0) > 0 OR readbit(ondead(), 0, sptr)) THEN oobcure pt, i, spel(sptr), spred, stat()
-    IF chkOOBtarg(i, sptr, stat(), ondead(), onlive()) THEN oobcure pt, i, spel(sptr), spred, stat()
+    IF chkOOBtarg(i, spel(sptr), stat()) THEN oobcure pt, i, spel(sptr), spred, stat()
    NEXT i
   END IF
   GOSUB curspellist

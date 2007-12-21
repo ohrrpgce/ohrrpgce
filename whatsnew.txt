@@ -51,6 +51,12 @@ Dec ?? 2007 [voxhumana]
       overlapping NPCs [James Paige]
     * Fixed bug 21, "If you save on a door, you will go through the door
       when you load" [James Paige]
+    * Outside-battle attacks that target only dead heroes no longer
+      work on the first hero slot when no dead heroes are present
+      [James Paige]
+    * Attacks with target class "Enemy" are usable on allies
+      outside battle if the "Usable outside battle" bitset is ON
+      [James Paige]
 
   * New Plotscripting Commands
     * get victory music

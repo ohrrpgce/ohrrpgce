@@ -8,11 +8,9 @@
 #DEFINE MENUSTUF_BI
 
 declare sub buystuff (id, shoptype, storebuf(), stock(), stat())
-declare function chkoobtarg (wptr, index, stat(), ondead(), onlive())
 declare sub doequip (toequip, who, where, defwep, stat())
 declare sub equip (pt, stat())
 declare sub getitem (getit, num)
-declare function getoobtarg (gamma, wptr, index, stat(), ondead(), onlive())
 declare sub itemmenuswap (invent() as inventslot, iuse(), permask(), i, o)
 declare function items (stat())
 declare sub itstr (i)
