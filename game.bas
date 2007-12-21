@@ -168,7 +168,7 @@ DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB check_menu_tags ()
 DECLARE FUNCTION game_usemenu (state AS MenuState)
 DECLARE FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER
-DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING) AS INTEGER
+DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING, minimum AS INTEGER=0) AS INTEGER
 DECLARE FUNCTION bound_menuslot(menuslot AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_menuslot_and_mislot(menuslot AS INTEGER, mislot AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
@@ -190,6 +190,8 @@ DECLARE FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING,
 #include "scrconst.bi"
 #include "uiconst.bi"
 #include "loading.bi"
+
+DECLARE FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INTEGER, stat() AS INTEGER, spread AS INTEGER) AS INTEGER
 
 'DEBUG debug "started debug session "+date$+" "+time$
 
@@ -2493,6 +2495,14 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     IF bound_menuslot_and_mislot(menuslot, mislot, "menu item slot") THEN
      scriptret = mislot
     END IF
+   CASE 304'--outside battle cure
+    IF bound_arg(retvals(0), 0, gen(genMaxAttack), "outside battle cure", "attack ID") THEN
+     IF bound_hero_party(retvals(1), "outside battle cure") THEN
+      IF bound_hero_party(retvals(2), "outside battle cure", -1) THEN
+       scriptret = ABS(outside_battle_cure(retvals(0), retvals(1), retvals(2), stat(), 0))
+      END IF
+     END IF
+    END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc scrat(nowscript).curvalue
     scriptmisc scrat(nowscript).curvalue
@@ -2507,8 +2517,8 @@ FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER
  RETURN bound_arg(itemID, 0, gen(genMaxItem), cmd, "item ID")
 END FUNCTION
 
-FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING) AS INTEGER
- RETURN bound_arg(who, 0, 40, cmd, "hero party slot")
+FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING, minimum AS INTEGER=0) AS INTEGER
+ RETURN bound_arg(who, minimum, 40, cmd, "hero party slot")
 END FUNCTION
 
 FUNCTION bound_menuslot(menuslot AS INTEGER, cmd AS STRING) AS INTEGER

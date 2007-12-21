@@ -86,7 +86,7 @@ DECLARE FUNCTION backcompat_sound_id (id AS INTEGER)
 DECLARE SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat())
 DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
 DECLARE SUB limitcamera ()
-DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING) AS INTEGER
+DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING, minimum AS INTEGER=0) AS INTEGER
 DECLARE FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
 

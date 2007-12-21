@@ -62,12 +62,14 @@ Dec ?? 2007 [voxhumana]
 
   * New Plotscripting Commands
     * get victory music
+    * outside battle cure
 
   * Vikings of Midgard
   
   * Stuff only Developers Will Notice
     * BattleStats UDT [James Paige]
     * New sprite paradigm (currently used in battle) [Mike Caron]
+    * A lot of minor clean up in many places
 
 Sept 21 2007 [ubersetzung]
   * New Features
