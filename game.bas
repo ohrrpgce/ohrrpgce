@@ -37,7 +37,7 @@ DECLARE SUB readjoysettings ()
 DECLARE FUNCTION settingstring% (searchee$, setting$, result$)
 DECLARE SUB interpolatecat ()
 DECLARE SUB setdebugpan ()
-DECLARE SUB writescriptvar (id%, newval%)
+DECLARE SUB writescriptvar (BYVAL id%, BYVAL newval%)
 DECLARE FUNCTION readscriptvar% (id%)
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE SUB wrappedsong (songnumber%)
@@ -256,6 +256,7 @@ DIM heap(2048), global(1024), retvals(32)
 DIM scrat(128) as ScriptInst
 DIM script(128) as ScriptData
 DIM plotstr(31) as Plotstring
+DIM scrst as Stack
 
 'DEBUG debug "Thestart"
 DO 'This is a big loop that encloses the entire program. The loop is only reached when resetting the game
@@ -439,6 +440,8 @@ nowscript = -1
 numloadedscr = 0
 totalscrmem = 0
 depth = 0
+resetinterpreter
+'the old stack used only inbattle
 releasestack
 setupstack
 
@@ -1700,6 +1703,7 @@ END IF
 RETRACE
 
 interpretloop:
+DIM tmpstate, tmpcase  'tmpstart, tmpend, tmpstep, tmpnow, tmpvar
 reloadscript(nowscript)
 DO
  SELECT CASE scrat(nowscript).state
@@ -1729,7 +1733,7 @@ DO
      CASE tymath, tyfunct
       '--complete math and functions, nice and easy.
       FOR i = scrat(nowscript).curargc - 1 TO 0 STEP -1
-       retvals(i) = popdw
+       pops(scrst, retvals(i))
       NEXT i
       GOSUB sfunctions
       '--unless you have switched to wait mode, return
@@ -1741,8 +1745,7 @@ DO
         SELECT CASE scrat(nowscript).curargn
          CASE 2
           '--if a while statement finishes normally (argn is 2) then it repeats.
-          dummy = popdw
-          dummy = popdw
+          scrst.pos -= 2
           scrat(nowscript).curargn = 0
          CASE ELSE
           scripterr "while fell out of bounds, landed on " & scrat(nowscript).curargn
@@ -1753,7 +1756,7 @@ DO
         SELECT CASE scrat(nowscript).curargn
          CASE 5
           '--normal for termination means repeat
-          dummy = popdw
+          scrst.pos -= 1
           GOSUB incrementflow
           scrat(nowscript).curargn = 4
          CASE ELSE
@@ -1762,38 +1765,35 @@ DO
           EXIT DO
         END SELECT
        CASE flowreturn
-        scrat(nowscript).ret = popdw
+        pops(scrst, scrat(nowscript).ret)
         scrat(nowscript).state = streturn'---return
        CASE flowbreak
-        r = popdw
-        unwindtodo(r)
+        pops(scrst, temp)
+        unwindtodo(temp)
         '--for and while need to be broken
         IF scrat(nowscript).curkind = tyflow AND (scrat(nowscript).curvalue = flowfor OR scrat(nowscript).curvalue = flowwhile) THEN
          GOSUB dumpandreturn
         END IF
        CASE flowcontinue
-        r = popdw
-        unwindtodo(r)
+        pops(scrst, temp)
+        unwindtodo(temp)
         IF scrat(nowscript).curkind = tyflow AND scrat(nowscript).curvalue = flowswitch THEN
          '--set state to 2
-         dummy = popdw
-         dummy = popdw
-         pushdw 2
-         pushdw 0 '-- dummy value
+         scrst.pos -= 2
+         pushs(scrst, 2)
+         pushs(scrst, 0) '-- dummy value
         ELSEIF NOT (scrat(nowscript).curkind = tyflow AND (scrat(nowscript).curvalue = flowfor OR scrat(nowscript).curvalue = flowwhile)) THEN
          '--if this do isn't a for's or while's, then just repeat it, discarding the returned value
-         dummy = popdw
+         scrst.pos -= 1
          scrat(nowscript).curargn = scrat(nowscript).curargn - 1
         END IF
        CASE flowexit
         unwindtodo(9999)
        CASE flowexitreturn
-        scrat(nowscript).ret = popdw
+        pops(scrst, scrat(nowscript).ret)
         unwindtodo(9999)
        CASE flowswitch
-        tmpcase = popdw
-        tmpstate = popdw
-        tmpvar = popdw
+        scrst.pos -= 3
         scriptret = 0
         scrat(nowscript).state = streturn
        CASE ELSE
@@ -1807,7 +1807,8 @@ DO
       IF rsr = 1 THEN
        '--fill heap with return values
        FOR i = scrat(nowscript - 1).curargc - 1 TO 0 STEP -1
-        setScriptArg i, popdw
+        pops(scrst, temp)
+        setScriptArg i, temp
        NEXT i
       END IF
       IF rsr = 0 THEN
@@ -1828,29 +1829,23 @@ DO
       CASE tymath
        SELECT CASE scrat(nowscript).curvalue
         CASE 20'--logand
-         r = popdw
-         IF r THEN
-          '--push it back
-          pushdw r
+         IF reads(scrst, 0) THEN
           scrat(nowscript).state = stdoarg'---call 2nd argument
          ELSE
           '--shortcut evaluate to false
           scriptret = 0
-          '--we've popped one arg, pop the rest
-          FOR i = scrat(nowscript).curargn - 2 TO 0 STEP -1: dummy = popdw: NEXT
+          '--pop all args
+          scrst.pos -= scrat(nowscript).curargn
           scrat(nowscript).state = streturn'---return
          END IF
         CASE 21'--logor
-         r = popdw
-         IF r THEN
+         IF reads(scrst, 0) THEN
           '--shortcut evaluate to true
           scriptret = 1
-          '--we've popped one arg, pop the rest
-          FOR i = scrat(nowscript).curargn - 2 TO 0 STEP -1: dummy = popdw: NEXT
+          '--pop all args
+          scrst.pos -= scrat(nowscript).curargn
           scrat(nowscript).state = streturn'---return
          ELSE
-          '--push it back
-          pushdw r
           scrat(nowscript).state = stdoarg'---call 2nd argument
          END IF
         CASE ELSE
@@ -1863,14 +1858,13 @@ DO
           CASE 0
            scrat(nowscript).state = stdoarg'---call conditional
           CASE 1
-           r = popdw
-           pushdw r
-           IF r THEN
+           IF reads(scrst, 0) THEN
+            'scrst.pos -= 1
             scrat(nowscript).state = stdoarg'---call then block
            ELSE
             scrat(nowscript).curargn = 2
             '--if-else needs one extra thing on the stack to account for the then that didnt get used.
-            pushdw 0
+            pushs(scrst, 0)
             scrat(nowscript).state = stdoarg'---call else block
            END IF
           CASE 2
@@ -1884,13 +1878,12 @@ DO
           CASE 0
            scrat(nowscript).state = stdoarg'---call condition
           CASE 1
-           r = popdw
-           IF r THEN
+           IF reads(scrst, 0) THEN
             scrat(nowscript).state = stdoarg'---call do block
-            '--number of words on stack should equal argn (for simplicity when unwinding stack)
-            pushdw 0
+            '--don't pop: number of words on stack should equal argn (for simplicity when unwinding stack)
            ELSE
-            '--break while: no args to pop
+            '--break while
+            scrst.pos -= 1
             scriptret = 0
             scrat(nowscript).state = streturn'---return
            END IF
@@ -1910,32 +1903,22 @@ DO
            scrat(nowscript).state = stdoarg
           CASE 2
            '--set variable to start val before getting end
-           tmpstart = popdw
-           tmpvar = popdw
-           pushdw tmpvar
-           pushdw tmpstart
-
-           '--update for counter
-           writescriptvar tmpvar, tmpstart
-
+           writescriptvar reads(scrst, -1), reads(scrst, 0)
            '---now get end value
            scrat(nowscript).state = stdoarg
           CASE 4
            IF scrwatch AND breakloopbrch THEN breakpoint scrwatch, 5
-           tmpstep = popdw
-           tmpend = popdw
-           tmpstart = popdw
-           tmpvar = popdw
+           tmpstep = reads(scrst, 0)
+           tmpend = reads(scrst, -1)
+           tmpstart = reads(scrst, -2)
+           tmpvar = reads(scrst, -3)
            tmpnow = readscriptvar(tmpvar)
            IF (tmpnow > tmpend AND tmpstep > 0) OR (tmpnow < tmpend AND tmpstep < 0) THEN
             '--breakout
+            scrst.pos -= 4
             scriptret = 0
             scrat(nowscript).state = streturn'---return
            ELSE
-            pushdw tmpvar
-            pushdw tmpstart
-            pushdw tmpend
-            pushdw tmpstep
             scrat(nowscript).state = stdoarg'---execute the do block
            END IF
           CASE ELSE
@@ -1948,23 +1931,21 @@ DO
          ELSEIF scrat(nowscript).curargn = 1 THEN
           '--set up state - push a 0: not fallen in
           '--assume first statement is a case, run it
-          pushdw 0
+          pushs(scrst, 0)
           scrat(nowscript).state = stdoarg
          ELSE
-          tmpcase = popdw
-          tmpstate = popdw
+          pops(scrst, tmpcase)
+          pops(scrst, tmpstate)
           doseek = 0 ' whether or not to search argument list for something to execute
           IF tmpstate = 0 THEN
-           '--not fallen in
-           tmpvar = popdw
-           IF tmpcase = tmpvar THEN
+           '--not fallen in, check tmpvar
+           IF tmpcase = reads(scrst, 0) THEN 
             tmpstate = 1
            END IF
-           pushdw tmpvar
            doseek = 1 '--search for a case or do
           ELSEIF tmpstate = 1 THEN
            '--after successfully running a do block, pop off matching value and exit
-           tmpvar = popdw
+           scrst.pos -= 1
            scriptret = 0
            scrat(nowscript).state = streturn'---return
           ELSEIF tmpstate = 2 THEN
@@ -1981,11 +1962,11 @@ DO
            IF (tmpstate = 1 AND tmpkind = tyflow) OR (tmpstate = 0 AND (tmpkind <> tyflow OR scrat(nowscript).curargn = scrat(nowscript).curargc - 1)) THEN
             '--fall into a do, execute a case, or run default (last arg)
             scrat(nowscript).state = stdoarg
-            pushdw tmpstate
+            pushs(scrst, tmpstate)
             EXIT WHILE
            END IF
            IF scrat(nowscript).curargn >= scrat(nowscript).curargc THEN
-            tmpvar = popdw
+            scrst.pos -= 1
             scriptret = 0
             scrat(nowscript).state = streturn'---return
             EXIT WHILE
@@ -2023,21 +2004,12 @@ LOOP
 RETRACE
 
 incrementflow:
-tmpstep = popdw
-tmpend = popdw
-tmpstart = popdw
-tmpvar = popdw
-pushdw tmpvar
-pushdw tmpstart
-pushdw tmpend
-pushdw tmpstep
-writescriptvar tmpvar, readscriptvar(tmpvar) + tmpstep
+tmpvar = reads(scrst, -3)
+writescriptvar tmpvar, readscriptvar(tmpvar) + reads(scrst, 0)
 RETRACE
 
 dumpandreturn:
-FOR i = scrat(nowscript).curargn - 1 TO 0 STEP -1
- dummy = popdw
-NEXT i
+scrst.pos -= scrat(nowscript).curargn
 scriptret = 0
 scrat(nowscript).state = streturn'---return
 RETRACE

@@ -81,6 +81,7 @@ EXTERN scriptret
 EXTERN numloadedscr
 EXTERN totalscrmem
 EXTERN scriptctr
+EXTERN scrst as Stack
 
 'Script string globals
 'EXTERN plotstring$()

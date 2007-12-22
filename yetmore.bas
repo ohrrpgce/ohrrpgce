@@ -480,6 +480,12 @@ scrat(nowscript).curkind = cmdptr[0]
 scrat(nowscript).curvalue = cmdptr[1]
 scrat(nowscript).curargc = cmdptr[2]
 scrat(nowscript).curargn = 0
+
+IF scrat(nowscript).curkind = tyflow OR scrat(nowscript).curkind >= tymath THEN
+ '+5 just-in-case for extra state stuff pushed to stack (atm just switch, +1 ought to be sufficient)
+ checkoverflow(scrst, scrat(nowscript).curargc + 5)
+END IF
+
 'scriptdump "functionread"
 SELECT CASE scrat(nowscript).curkind
  CASE tystop
@@ -793,6 +799,7 @@ CLOSE #foemaph
 '--script stack
 'DEBUG debug "Release script stack"
 releasestack
+destroystack(scrst)
 '--working files
 'DEBUG debug "Kill working files"
 
@@ -2259,30 +2266,31 @@ gen(cameraArg3) = 5
 END SUB
 
 SUB subdoarg
-scrat(nowscript).depth = scrat(nowscript).depth + 1
-pushdw scrat(nowscript).ptr
-pushdw scrat(nowscript).curkind
-pushdw scrat(nowscript).curvalue
-pushdw scrat(nowscript).curargc
-pushdw scrat(nowscript).curargn
+scrat(nowscript).depth += 1
+checkoverflow(scrst, 5)
+pushs(scrst, scrat(nowscript).ptr)
+pushs(scrst, scrat(nowscript).curkind)
+pushs(scrst, scrat(nowscript).curvalue)
+pushs(scrst, scrat(nowscript).curargc)
+pushs(scrst, scrat(nowscript).curargn)
 '--set script pointer to new offset
 scrat(nowscript).ptr = script(scrat(nowscript).scrnum).ptr[scrat(nowscript).ptr + 3 + scrat(nowscript).curargn]
 scrat(nowscript).state = stread '---read new statement
 END SUB
 
 SUB subreturn
-scrat(nowscript).depth = scrat(nowscript).depth - 1
+scrat(nowscript).depth -= 1
 IF scrat(nowscript).depth < 0 THEN
  scrat(nowscript).state = stdone
 ELSE
- scrat(nowscript).curargn = popdw
- scrat(nowscript).curargc = popdw
- scrat(nowscript).curvalue = popdw
- scrat(nowscript).curkind = popdw
- scrat(nowscript).ptr = popdw
+ pops(scrst, scrat(nowscript).curargn)
+ pops(scrst, scrat(nowscript).curargc)
+ pops(scrst, scrat(nowscript).curvalue)
+ pops(scrst, scrat(nowscript).curkind)
+ pops(scrst, scrat(nowscript).ptr)
  '--push return value
- pushdw scriptret
- scrat(nowscript).curargn = scrat(nowscript).curargn + 1
+ pushs(scrst, scriptret)
+ scrat(nowscript).curargn += 1
  scrat(nowscript).state = stnext'---try next arg
 END IF
 END SUB
@@ -2294,32 +2302,29 @@ SUB unwindtodo (levels)
 'note: we assume the calling command has popped its args
 
 WHILE levels > 0
- scrat(nowscript).depth = scrat(nowscript).depth - 1
+ scrat(nowscript).depth -= 1
  IF scrat(nowscript).depth < 0 THEN
   scrat(nowscript).state = stdone
   EXIT SUB
  END IF
 
- scrat(nowscript).curargn = popdw
- scrat(nowscript).curargc = popdw
- scrat(nowscript).curvalue = popdw
- scrat(nowscript).curkind = popdw
- scrat(nowscript).ptr = popdw
+ pops(scrst, scrat(nowscript).curargn)
+ pops(scrst, scrat(nowscript).curargc)
+ pops(scrst, scrat(nowscript).curvalue)
+ pops(scrst, scrat(nowscript).curkind)
+ pops(scrst, scrat(nowscript).ptr)
 
  IF scrat(nowscript).curkind = tyflow AND scrat(nowscript).curvalue = flowdo THEN
-  levels = levels - 1
+  levels -= 1
   'first pop do's evaluated arguments before stopping
  END IF
 
  'pop arguments
  IF scrat(nowscript).curkind = tyflow AND scrat(nowscript).curvalue = flowswitch THEN
   'unlike all other flow, switch stack usage != argn
-  dummy = popdw 'state
-  dummy = popdw 'matching value
+  scrst.pos -= 2 'state, matching value
  ELSE
-  FOR i = 1 TO scrat(nowscript).curargn
-   dummy = popdw
-  NEXT
+  scrst.pos -= scrat(nowscript).curargn
  END IF
 WEND
 'return to normality
@@ -2693,17 +2698,13 @@ x = ((x MOD wide) + wide) MOD wide  'negative modulo is the devil's creation and
 y = ((y MOD high) + high) MOD high
 END SUB
 
-SUB readstackcommand (state as ScriptInst, i)
- i -= 1
- state.curargn = readstackdw(i)
- i -= 1
- state.curargc = readstackdw(i)
- i -= 1
- state.curvalue = readstackdw(i)
- i -= 1
- state.curkind = readstackdw(i)
- i -= 1
- state.ptr = readstackdw(i)
+SUB readstackcommand (state as ScriptInst, stk as Stack, i)
+ state.curargn = reads(stk, i)
+ state.curargc = reads(stk, i - 1)
+ state.curvalue = reads(stk, i - 2)
+ state.curkind = reads(stk, i - 3)
+ state.ptr = reads(stk, i - 4)
+ i -= 5
 END SUB
 
 FUNCTION localvariablename$ (value, scriptargs)
@@ -2766,7 +2767,7 @@ FUNCTION scriptstate$ (targetscript)
          ,"<=", ">=", "setvar", "inc", "dec", "not", "&&", "||", "^^"_
  }
 
- stkbottom = -(stackpos \ 4)
+ stkbottom = -(scrst.pos - scrst.bottom)  'pointer arithmetic seems to be 31-bit signed (breakage on negative diff)!
  stkpos = 0
 
  wasscript = nowscript
@@ -2797,20 +2798,20 @@ FUNCTION scriptstate$ (targetscript)
 
    IF state.curkind = tyflow AND state.curvalue = flowfor AND state.curargn = 4 THEN
     'print variable, start, end, and step of a for loop
-    outstr$ = "(" & mathvariablename$(readstackdw(stkpos - 4), script(state.scrnum).args)
-    outstr$ += "," & readstackdw(stkpos - 3)
-    outstr$ += "," & readstackdw(stkpos - 2)
-    outstr$ += "," & readstackdw(stkpos - 1) & ")"
+    outstr$ = "(" & mathvariablename$(reads(scrst, stkpos - 3), script(state.scrnum).args)
+    outstr$ += "," & reads(scrst, stkpos - 2)
+    outstr$ += "," & reads(scrst, stkpos - 1)
+    outstr$ += "," & reads(scrst, stkpos) & ")"
    ELSEIF state.curargn >= state.curargc AND (state.curkind <> tyflow OR flowtype(state.curvalue) = 1) THEN
     'print the evaluated list of arguments from the stack if they are all done
     outstr$ = "("
     IF state.curkind = tymath AND state.curvalue >= 16 AND state.curvalue <= 18 THEN
-     outstr$ += mathvariablename$(readstackdw(stkpos - 2), script(state.scrnum).args)
-     outstr$ += "," & readstackdw(stkpos - 1)
+     outstr$ += mathvariablename$(reads(scrst, stkpos - 1), script(state.scrnum).args)
+     outstr$ += "," & reads(scrst, stkpos)
     ELSE
-     FOR i = state.curargn TO 1 STEP -1
-      outstr$ += STR$(readstackdw(stkpos - i))
-      IF i <> 1 THEN outstr$ += ","
+     FOR i = state.curargn - 1 TO 0 STEP -1
+      outstr$ += STR$(reads(scrst, stkpos - i))
+      IF i <> 0 THEN outstr$ += ","
      NEXT
     END IF
     outstr$ += ")"
@@ -2850,7 +2851,7 @@ FUNCTION scriptstate$ (targetscript)
       IF state.curargn = 0 THEN
        cmd$ += ":"
       ELSE
-       cmd$ += "(" & readstackdw(stkpos) & ")"
+       cmd$ += "(" & reads(scrst, stkpos + 1) & ")"   ' ????
        IF state.curargn + 1 = state.curargc THEN
         cmd$ += " else"
         'hack to replace the 'do' with 'else' (hspeak outputs a do instead of an else)
@@ -2932,7 +2933,7 @@ FUNCTION scriptstate$ (targetscript)
 
    memcpy(@(laststate),@(state),LEN(state))
 
-   readstackcommand state, stkpos
+   readstackcommand state, scrst, stkpos
 
   jmpnext:
   jmpdoarg:
@@ -2949,9 +2950,9 @@ FUNCTION scriptstate$ (targetscript)
     stkpos -= state.curargn
    END IF
 
-   IF stkpos < stkbottom THEN scripterr "interpreter state corrupt; stack underflow": EXIT DO
+   IF stkpos < stkbottom THEN scripterr "state corrupt; stack underflow " & (stkpos - stkbottom): EXIT DO
  LOOP
- IF stkpos > stkbottom AND wasscript < 0 THEN scripterr "interpreter state corrupt; stack garbage"
+ IF stkpos > stkbottom AND wasscript < 0 THEN scripterr "state corrupt; stack garbage " & (stkpos - stkbottom)
 
  scriptstate$ = TRIM$(outstr$)
 END FUNCTION

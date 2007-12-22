@@ -18,7 +18,7 @@ DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
 DECLARE SUB calibrate ()
 DECLARE FUNCTION settingstring% (searchee$, setting$, result$)
 DECLARE SUB writejoysettings ()
-DECLARE SUB writescriptvar (id%, newval%)
+DECLARE SUB writescriptvar (BYVAL id%, BYVAL newval%)
 DECLARE FUNCTION readscriptvar% (id%)
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE SUB vishero (stat%())
@@ -2205,7 +2205,7 @@ PRINT #fh, "MENUBUTTON=" + STR$(joy(14 - 2))
 CLOSE #fh
 END SUB
 
-SUB writescriptvar (id, newval)
+SUB writescriptvar (BYVAL id, BYVAL newval)
 
 SELECT CASE id
  CASE IS < 0 'local variable

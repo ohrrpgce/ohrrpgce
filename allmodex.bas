@@ -2595,7 +2595,7 @@ end FUNCTION
 
 'read an int from the stack relative to current position (eg -1 is last word pushed - off should be negative)
 FUNCTION readstackdw (BYVAL off as integer) as integer
-	if stackptr - off * 4 >= stackbottom then
+	if stackptr + off * 4 >= stackbottom then
 		readstackdw = *cptr(integer ptr, stackptr + off * 4)
 	end if
 END FUNCTION

@@ -983,8 +983,8 @@ SUB killallscripts
  NEXT
  nowscript = -1
 
- releasestack
- setupstack
+ destroystack(scrst)  'temp
+ createstack(scrst)
 
 END SUB
 
