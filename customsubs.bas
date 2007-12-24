@@ -253,6 +253,7 @@ SUB ui_color_editor()
   IF enter_or_space() THEN
    IF state.pt = 0 THEN EXIT DO
    uilook(index) = color_browser_256(uilook(index))
+   make_ui_color_editor_menu color_menu(), uilook() 
   END IF
 
   IF state.pt > 0 THEN
@@ -263,6 +264,7 @@ SUB ui_color_editor()
 
   IF keyval(29) > 0 AND keyval(32) > 1 THEN ' Ctrl+D
    uilook(index) = default_colors(index)
+   make_ui_color_editor_menu color_menu(), uilook()
   END IF
 
   '--update sample according to what you have highlighted
