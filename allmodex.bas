@@ -3467,7 +3467,7 @@ sub sprite_add_cache(byval s as string, byval p as frame ptr, byval fr as intege
 		end with
 	next
 	
-	if sec > 0 then
+	if sec > -1 then
 		sprite_delete(@sprcache(sec).p)
 		sprcache(sec).s = s
 		sprcache(sec).p = p
