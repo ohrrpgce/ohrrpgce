@@ -2807,9 +2807,9 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
         heroswap 1, stat()
        CASE 6 ' order/team
         heroswap readbit(gen(), 101, 5), stat()
-       CASE 7 ' map
+       CASE 7,12 ' map
         minimap catx(0), caty(0), tastuf()
-       CASE 8 ' save
+       CASE 8,13 ' save
         slot = picksave(0)
         IF slot >= 0 THEN savegame slot, map, foep, stat(), stock()
         reloadnpc stat()

@@ -2138,8 +2138,12 @@ FUNCTION get_special_menu_caption(subtype AS INTEGER, edit_mode AS INTEGER= NO) 
     cap = readglobalstring$(64, "Order", 10)
    END IF
    IF edit_mode = YES THEN cap = cap & " [general bitset]"
-  CASE 7: cap = readglobalstring$(68, "Map", 10)
-  CASE 8: cap = readglobalstring$(66, "Save", 10)
+  CASE 7,12:
+   cap = readglobalstring$(68, "Map", 10)
+   IF subtype = 7 AND edit_mode = YES THEN cap = cap & " [if allowed by map]"
+  CASE 8,13:
+   cap = readglobalstring$(66, "Save", 10)
+   IF subtype = 8 AND edit_mode = YES THEN cap = cap & " [if allowed by map]"
   CASE 9: cap = "Load" ' FIXME: Needs a global text string
   CASE 10: cap = readglobalstring$(67, "Quit", 10)
   CASE 11: cap = readglobalstring$(69, "Volume", 10)
