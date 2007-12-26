@@ -74,6 +74,7 @@ DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
 DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS INTEGER
+DECLARE SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, minimap() AS INTEGER, map() AS INTEGER, tastuf() AS INTEGER)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1674,7 +1675,7 @@ temph = high
 tempx = 0
 tempy = 0
 setmapdata map(), map(), 20, 0
-GOSUB getmini
+resize_rezoom_mini_map zoom, wide, high, tempx, tempy, tempw, temph, minimap(), map(), tastuf()
 GOSUB buildmenu
 setkeys
 DO
@@ -1747,7 +1748,7 @@ WHILE temph * tempw > 32000
  temph = large(temph - 1, 10)
  tempw = large(tempw - 1, 16)
 WEND
-GOSUB getmini
+resize_rezoom_mini_map zoom, wide, high, tempx, tempy, tempw, temph, minimap(), map(), tastuf()
 
 buildmenu:
 menu$(0) = "Cancel"
@@ -1767,21 +1768,24 @@ menu$(5) = "Area " & (wide * high) & CHR$(26) & (temph * tempw)
 menu$(6) = zoom & "x zoom"
 RETRACE
 
-getmini:
-lastzoom = zoom
-tw = large(wide, tempx + tempw) 'right most point
-IF tempx < 0 THEN tw -= tempx   'plus left most
-th = large(high, tempy + temph)
-IF tempy < 0 THEN th -= tempy
-zoom = bound(small(320 \ tw, 200 \ th), 1, 20)
-IF zoom <> lastzoom THEN
- createminimap minimap(), map(), tastuf(), 3, zoom
-END IF
-RETRACE
+END SUB
 
+SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, minimap() AS INTEGER, map() AS INTEGER, tastuf() AS INTEGER)
+ DIM lastzoom AS INTEGER
+ lastzoom = zoom
+ DIM AS INTEGER tw, th
+ tw = large(wide, tempx + tempw) 'right most point
+ IF tempx < 0 THEN tw -= tempx   'plus left most
+ th = large(high, tempy + temph)
+ IF tempy < 0 THEN th -= tempy
+ zoom = bound(small(320 \ tw, 200 \ th), 1, 20)
+ IF zoom <> lastzoom THEN
+  createminimap minimap(), map(), tastuf(), 3, zoom
+ END IF
 END SUB
 
 SUB drawmini (high, wide, cursor(), page, tastuf())
+'FIXME: this is the obsolete minimap when you press ~ in the tilemap editor
 
 clearpage vpage
 FOR i = 0 TO high
