@@ -2171,6 +2171,7 @@ SUB create_default_menu(menu AS MenuDef)
   .exists = YES
   .t = 1
   .sub_t = 8 ' save
+  .hide_if_disabled = YES
  END WITH
  FOR i = 0 TO 1
   WITH menu.items(7 + i)

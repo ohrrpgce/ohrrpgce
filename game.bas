@@ -2876,6 +2876,7 @@ SUB check_menu_tags ()
      IF NOT (istag(.tag1, YES) AND istag(.tag2, YES)) THEN .disabled = YES
      IF .t = 0 AND .sub_t = 1 THEN .disabled = YES
      IF .t = 1 AND .sub_t = 7 AND gmap(2) = 0 THEN .disabled = YES 'Minimap disabled on this map
+     IF .t = 1 AND .sub_t = 8 AND gmap(3) = 0 THEN .disabled = YES 'Save anywhere disabled on this map
      IF old <> .disabled THEN changed = YES
     END WITH
    NEXT i
