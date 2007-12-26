@@ -26,7 +26,6 @@ DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB fontedit (font%(), gamedir$)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE SUB resizetiledata (array%(), xoff%, yoff%, neww%, newh%, yout%, page%, layer%)
-DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE SUB mapmaker (font%(), npc%(), npcstat%())
 DECLARE SUB npcdef (npc%(), pt%)
 DECLARE SUB editbitset (array%(), wof%, last%, name$())
@@ -75,6 +74,7 @@ DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door)
 DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS INTEGER
 DECLARE SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, minimap() AS INTEGER, map() AS INTEGER, tastuf() AS INTEGER)
+DECLARE SUB show_minimap(map() AS INTEGER, tastuf() AS INTEGER)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -622,7 +622,7 @@ DO
    IF keyval(29) > 0 AND keyval(36) > 1 THEN
      setbit jiggle(), 0, layer, (readbit(jiggle(), 0, layer) XOR 1)
    END IF
-   IF keyval(41) > 1 THEN GOSUB minimap
+   IF keyval(41) > 1 THEN show_minimap map(), tastuf()
    IF keyval(28) > 1 THEN GOSUB pickblock
    IF keyval(57) > 0 THEN
     setmapblock x, y, layer, usetile(layer)
@@ -1019,15 +1019,6 @@ DO
  dowait
 LOOP
 update_tilepicker tilepick, layer, usetile(), menubarstart()
-RETRACE
-
-minimap:
-clearpage vpage
-setmapdata map(), pass(), 20, 0
-drawmini high, wide, cursor(), vpage, tastuf()
-printstr "Press Any Key", 0, 180, vpage
-setvispage vpage
-w = getkey
 RETRACE
 
 layermenu:
@@ -1784,22 +1775,21 @@ SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEG
  END IF
 END SUB
 
-SUB drawmini (high, wide, cursor(), page, tastuf())
-'FIXME: this is the obsolete minimap when you press ~ in the tilemap editor
+SUB show_minimap(map() AS INTEGER, tastuf() AS INTEGER)
+ REDIM minimap(0,0) AS INTEGER
+ createminimap minimap(), map(), tastuf(), 3
 
-clearpage vpage
-FOR i = 0 TO high
- FOR o = 0 TO wide
-  block = readmapblock(o, i, 0)
-  IF block > 207 THEN block = (block - 207) + tastuf(20)
-  IF block > 159 THEN block = (block - 159) + tastuf(0)
-  mx = block - (INT(block / 16) * 16)
-  my = INT(block / 16)
-  loadsprite cursor(), 0, (INT(RND * 7) + 7) + (mx * 20), (INT(RND * 7) + 7) + (my * 20), 1, 1, 3
-  stosprite cursor(), 0, o, i, page
- NEXT o
-NEXT i
+ clearpage vpage
+ DIM AS INTEGER i, j
+ FOR i = 0 TO UBOUND(minimap, 1) - 1
+  FOR j = 0 TO UBOUND(minimap, 2) - 1
+   putpixel i, j, minimap(i, j), vpage
+  NEXT
+ NEXT
 
+ edgeprint "Press Any Key", 0, 180, uilook(uiText), vpage
+ setvispage vpage
+ waitforanykey
 END SUB
 
 SUB make_top_map_menu(maptop, topmenu$())
