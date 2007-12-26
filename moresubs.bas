@@ -1013,56 +1013,49 @@ END IF
 END SUB
 
 SUB minimap (x, y, tastuf())
+ REDIM mini(0, 0) AS INTEGER
+ DIM zoom AS INTEGER
+ zoom = createminimap(mini(), scroll(), tastuf(), 3)
 
-centerfuz 160, 100, 304, 184, 1, vpage
-centerbox 159, 99, scroll(0) + 3, scroll(1) + 3, 15, vpage
-setmapdata scroll(), buffer(), 0, 0
-zoom = 1
-IF scroll(0) < 160 AND scroll(1) < 100 THEN zoom = 2
-IF scroll(0) < 106 AND scroll(1) < 66 THEN zoom = 3
-IF scroll(0) < 80 AND scroll(1) < 50 THEN zoom = 4
-IF scroll(0) < 64 AND scroll(1) < 40 THEN zoom = 5
-topcorner = 160 - INT(scroll(0) * .5) * zoom
-leftcorner = 100 - INT(scroll(1) * .5) * zoom
-FOR i = 0 TO scroll(1) - 1
- FOR o = 0 TO scroll(0) - 1
-  block = readmapblock(o, i, 0)
-  'ignore tile animation
-  IF block > 207 THEN block = (block - 207) + tastuf(20)
-  IF block > 159 THEN block = (block - 159) + tastuf(0)
-  mx = block - (INT(block / 16) * 16)
-  my = INT(block / 16)
-  '--larger minimap for smaller maps
-  FOR zx = 0 to zoom - 1
-   FOR zy = 0 to zoom - 1
-    subtile = 20 \ zoom
-    pixel = readpixel((mx*20) + (zx*subtile) + INT(RND*subtile), (my*20) + (zy*subtile) + INT(RND*subtile), 3)
-    putpixel topcorner + o * zoom + zx, leftcorner + i * zoom + zy, pixel, vpage
-   NEXT zy
-  NEXT zx
- NEXT
-NEXT
-MenuSound gen(genAcceptSFX)
-copypage vpage, dpage
-setkeys
-DO
- setwait timing(), speedcontrol
+ DIM minisize AS XYPair
+ minisize.x = UBOUND(mini, 1)
+ minisize.y = UBOUND(mini, 2)
+ 
+ DIM offset AS XYPair
+ offset.x = 160 - minisize.x / 2
+ offset.y = 100 - minisize.y / 2
+
+ edgeboxstyle offset.x - 2, offset.y - 2, minisize.x + 6, minisize.y + 6, 0, vpage
+ DIM AS INTEGER tx, ty
+ FOR tx = 0 TO minisize.x - 1
+  FOR ty = 0 TO minisize.y - 1
+   putpixel offset.x + tx, offset.y + ty, mini(tx, ty), vpage
+  NEXT ty
+ NEXT tx
+ copypage vpage, dpage
+
+ MenuSound gen(genAcceptSFX)
+
+ DIM i AS INTEGER
  setkeys
- tog = tog XOR 1
- playtimer
- control
- IF carray(4) > 1 OR carray(5) > 1 THEN EXIT DO
- FOR i = 1 TO 99
-  IF keyval(i) > 1 THEN EXIT DO
- NEXT i
- rectangle topcorner + (x / 20) * zoom, leftcorner + (y / 20) * zoom, zoom, zoom, uilook(uiSelectedItem) * tog, dpage
- copypage dpage, vpage
- setvispage vpage
- dowait
-LOOP
-setkeys
-FOR i = 0 TO 7: carray(i) = 0: NEXT i
-MenuSound gen(genCancelSFX)
+ DO
+  setwait speedcontrol
+  setkeys
+  tog = tog XOR 1
+  playtimer
+  control
+  IF carray(4) > 1 OR carray(5) > 1 THEN EXIT DO
+  FOR i = 1 TO 99
+   IF keyval(i) > 1 THEN EXIT DO
+  NEXT i
+  rectangle offset.x + (x / 20) * zoom, offset.y + (y / 20) * zoom, zoom, zoom, uilook(uiSelectedItem) * tog, dpage
+  copypage dpage, vpage
+  setvispage vpage
+  dowait
+ LOOP
+ setkeys
+ flusharray carray(), 7, 0
+ MenuSound gen(genCancelSFX)
 END SUB
 
 FUNCTION movdivis (xygo)

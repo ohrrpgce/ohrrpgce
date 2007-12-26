@@ -942,7 +942,8 @@ array2str nameread(), 1, a$
 RETURN a$
 END FUNCTION
 
-SUB createminimap (array() AS INTEGER, map() AS INTEGER, tastuf() AS INTEGER, tilesetpage AS INTEGER, zoom AS INTEGER = -1)
+FUNCTION createminimap (array() AS INTEGER, map() AS INTEGER, tastuf() AS INTEGER, tilesetpage AS INTEGER, zoom AS INTEGER = -1) AS INTEGER
+ 'return value is zoom level
  'we don't have any sprite struct, so redim array() (dynamic array) and pass back the pixel data
 
  IF zoom = -1 THEN
@@ -976,7 +977,8 @@ SUB createminimap (array() AS INTEGER, map() AS INTEGER, tastuf() AS INTEGER, ti
   NEXT
  NEXT
 
-END SUB
+ RETURN zoom
+END FUNCTION
 
 FUNCTION readattackname$ (index)
 '--clobbers buffer!!!

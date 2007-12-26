@@ -30,6 +30,8 @@ Dec ?? 2007 [voxhumana]
       doorlink editor for that door. (only works on the first link for
       doors multiple conditional destinations) [James Paige]
     * Enemies can have a death sound effect. [James Paige]
+    * TeeEmCee's pretty mini-map from the map-resize menu is now used for
+      All mini-map drawing [Ralph, James]
 
   * Bugfixes
     * Fixed bug 257 "Mute status effect broken for enemies" [James Paige]
