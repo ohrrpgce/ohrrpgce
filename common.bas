@@ -942,8 +942,13 @@ array2str nameread(), 1, a$
 RETURN a$
 END FUNCTION
 
-SUB createminimap (array(), map(), tastuf(), tilesetpage, zoom)
+SUB createminimap (array() AS INTEGER, map() AS INTEGER, tastuf() AS INTEGER, tilesetpage AS INTEGER, zoom AS INTEGER = -1)
  'we don't have any sprite struct, so redim array() (dynamic array) and pass back the pixel data
+
+ IF zoom = -1 THEN
+  'auto-detect best zoom
+   zoom = bound(small(320 \ map(0), 200 \ map(1)), 1, 20)
+ END IF
 
  REDIM array(zoom * map(0) - 1, zoom * map(1) - 1)
  DIM AS SINGLE fraction, rand
