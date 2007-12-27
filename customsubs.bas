@@ -10,6 +10,7 @@
 #include "common.bi"
 #include "loading.bi"
 #include "const.bi"
+#include "cglobals.bi"
 
 #include "customsubs.bi"
 
