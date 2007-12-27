@@ -230,7 +230,7 @@ SUB ui_color_editor()
 
  DefaultUIColors default_colors()
 
- LoadUIColors uilook(), gen(genMasterPal)
+ LoadUIColors uilook(), activepalette
 
  DIM color_menu(uiColors + 1) AS STRING
  make_ui_color_editor_menu color_menu(), uilook()
@@ -291,8 +291,7 @@ SUB ui_color_editor()
   clearpage dpage
   dowait
  LOOP
- gen(genMaxMasterPal) = large(gen(genMaxMasterPal), gen(genMasterPal))
- SaveUIColors uilook(), gen(genMasterPal)
+ SaveUIColors uilook(), activepalette
 END SUB
 
 SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)
@@ -318,8 +317,6 @@ FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
  DIM spot AS XYPair
  DIM cursor AS XYPair
  cursor = xy_from_int(start_color, 16, 16)
- cursor.x = start_color MOD 16
- cursor.y = INT(start_color / 16)
  setkeys
  DO
   setwait 100
