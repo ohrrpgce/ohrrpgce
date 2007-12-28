@@ -1220,7 +1220,7 @@ DO
  NEXT
  IF csr = 3 THEN
   FOR i = 0 TO uiColors
-   drawbox 33 + (uilook(i) MOD 16) * 16, 69 + (uilook(i) \ 16) * 7, 14, 7, uilook(uiHighlight), dpage
+   drawbox 33 + (uilook(i) MOD 16) * 16, 69 + (uilook(i) \ 16) * 7, 14, 7, uilook(uiHighlight2), dpage
   NEXT
  END IF
 
@@ -1277,6 +1277,11 @@ IF f$ <> "" THEN
   END IF
  END IF
  savepalette master(), palnum
+ 'get a default set of ui colours (temporary)
+ DIM defaultcols(uiColors)
+ DefaultUIColors defaultcols()
+ SaveUIColors defaultcols(), palnum
+
  IF palnum > gen(genMaxMasterPal) THEN gen(genMaxMasterPal) = palnum
  RETURN -1
 END IF

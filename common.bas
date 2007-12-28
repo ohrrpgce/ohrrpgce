@@ -1741,6 +1741,20 @@ IF NOT isfile(workingdir$ + SLASH + "menuitem.bin") THEN
 END IF
 updaterecordlength workingdir$ + SLASH + "uicolors.bin", binUICOLORS
 
+'--give each palette a default ui color set
+ff = FREEFILE
+OPEN workingdir$ + SLASH + "uicolors.bin" FOR BINARY AS #ff
+uirecords = LOF(ff) \ getbinsize(binUICOLORS)
+CLOSE #ff
+IF uirecords < gen(genMaxMasterPal) + 1 THEN
+ upgrade_message "Adding default UI colors..."
+ DIM defaultcols(uiColors)
+ DefaultUIColors defaultcols()
+ FOR i = uirecords TO gen(genMaxMasterPal)
+  SaveUIColors defaultcols(), i
+ NEXT
+END IF
+
 '--update to new (3rd) password format
 IF gen(genPassVersion) < 256 THEN
  gen(genPassVersion) = 256
