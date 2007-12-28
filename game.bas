@@ -396,7 +396,7 @@ END IF
 edgeprint "Loading...", xstring("Loading...", 160), 6, uilook(uiText), vpage
 setvispage vpage 'refresh
 
-debug "Playing game " & trimpath$(sourcerpg$) & " (" & getdisplayname$(" ") & ")"
+debug "Playing game " & trimpath$(sourcerpg$) & " (" & getdisplayname$(" ") & ") " & DATE & " " & TIME
 
 '---GAME SELECTED, PREPARING TO PLAY---
 DIM lumpbuf(16383)
@@ -418,13 +418,8 @@ makebackups 'make a few backup lumps
 if isfile(game$ + ".hsp") then unlump game$ + ".hsp", tmpdir$, lumpbuf()
 ERASE lumpbuf
 
-'DEBUG debug "dim big stuff *after* unlumping"
-
 fadeout 0, 0, 0
 needf = 1
-
-loadpalette master(), gen(genMasterPal)
-LoadUIColors uilook(), gen(genMasterPal)
 
 rpgversion gen(genVersion)
 
@@ -447,6 +442,9 @@ setupstack
 
 'beginplay
 DO' This loop encloses the playable game for a specific RPG file
+
+loadpalette master(), gen(genMasterPal)
+LoadUIColors uilook(), gen(genMasterPal)
 
 initgamedefaults
 fatal = 0: abortg = 0

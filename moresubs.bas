@@ -1321,8 +1321,6 @@ FOR i = 0 TO 31
  end with
 NEXT i
 
-loadpalette master(), gen(genMasterPal)
-
 FOR i = topmenu TO 0 STEP -1
  remove_menu i
 NEXT i

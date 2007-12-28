@@ -1014,7 +1014,7 @@ end</example>
 		<command id="resetpalette">
 			<cannon>reset palette</cannon>
 			<shortname>reset palette</shortname>
-			<description>Reloads the default master palette, undoing any changes you have made with other palette-altering commands such as <ref>tweakpalette</ref> or <ref>greyscalepalette</ref> Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref></description>
+			<description>Reloads the default master palette and its user interface colors, undoing any changes you have made with other palette-altering commands such as <ref>tweakpalette</ref> or <ref>greyscalepalette</ref> Changes to the palette do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>, however the UI colors are changed immediately.</description>
 		</command>
 		<command id="readcolor">
 			<cannon>read color (index, element)</cannon>

@@ -1198,6 +1198,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 103'--reset palette
   loadpalette master(), gen(genMasterPal)
+  LoadUIColors uilook(), gen(genMasterPal)
  CASE 104'--tweak palette
   tweakpalette
  CASE 105'--read color
@@ -1726,26 +1727,26 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 AND retvals(0) < 16 THEN scriptret = timers(retvals(0)).count
  CASE 263'--getcolor
   IF retvals(0) >= 0 AND retvals(0) < 256 THEN
-  	scriptret = master(retvals(0)).col
+   scriptret = master(retvals(0)).col
   END IF
  CASE 264'--setcolor
   IF retvals(0) >= 0 AND retvals(0) < 256 THEN
-  	retvals(1) = retvals(1) OR &HFF000000 'just in case, set the alpha
-  	master(retvals(0)).col = retvals(1)
+   retvals(1) = retvals(1) OR &HFF000000 'just in case, set the alpha
+   master(retvals(0)).col = retvals(1)
   END IF
  CASE 265'--rgb
- 	scriptret = RGB(bound(retvals(0),0,255), bound(retvals(1),0,255), bound(retvals(2),0,255))
+  scriptret = RGB(bound(retvals(0),0,255), bound(retvals(1),0,255), bound(retvals(2),0,255))
  CASE 266'--extractcolor
- 	dim c as rgbcolor
- 	c.col = retvals(0)
- 	select case as const retvals(1)
- 	case 0
- 		scriptret = c.r
- 	case 1
- 		scriptret = c.g
- 	case 2
- 		scriptret = c.b
- 	end select
+  dim c as rgbcolor
+  c.col = retvals(0)
+  SELECT CASE as const retvals(1)
+   CASE 0
+    scriptret = c.r
+   CASE 1
+    scriptret = c.g
+   CASE 2
+    scriptret = c.b
+  END SELECT
  CASE 268'--loadpalette
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxMasterPal) THEN
    loadpalette master(), retvals(0)
