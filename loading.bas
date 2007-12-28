@@ -881,6 +881,36 @@ SUB DefaultUIColors (colarray() AS INTEGER)
  FOR i = 0 TO uiColors
   colarray(i) = uidef(i)
  NEXT
+
+
+ 'DIM hexstring AS STRING
+ 'FOR i = 0 TO uiColors
+ ' hexstring += "&h" & hex(master(uidef(i)).col, 6) & ","
+ 'NEXT
+ 'debug "defaults: " & hexstring
+
+' DIM AS INTEGER fixeddefaults(uiColors) = {&h000000,&hABABAB,&h575757,&hFFFF57,&hFFFFFF,&hAB5700,&hABABAB,_
+'        &h0000AB,&h00AB00,&h00005B,&h000097,&h005F00,&h009300,&hFFFFFF,&h000000,&h57FF57,&hFFFF57,&h000000,_
+'        &h00005B,&h6F6FFF,&h004B00,&h8FFF8F,&h530000,&hFF7F7F,&h004343,&h7BFFFF,&h5B5B00,&hFFFF83,&h570057,_
+'        &hFF7FFF,&h432B00,&hFF7F5B,&h3F2700,&hDF8F00,&h3F271F,&hDF8B6F,&hAF2BAF,&h2BAFAF,&h9B179B,&h179B9B,_
+'        &h870087,&h008787,&h730073,&h007373,&h5F005F,&h005F5F,&h232323,&hC3C3C3}
+
+' IF wantolddefaults THEN
+'  FOR i = 0 TO uiColors
+'   colarray(i) = uidef(i)
+'  NEXT
+' ELSE
+'  FOR i = 0 TO uiColors
+'   IF fixeddefaults(i) = master(uidef(i)).col THEN
+'    colarray(i) = uidef(i)
+'   ELSE
+'    DIM temp AS RGBcolor
+'    temp.col = fixeddefaults(i)
+'    colarray(i) = nearcolor(master(), temp.r, temp.g, temp.b)
+'   END IF
+'  NEXT
+' END IF
+
 END SUB
 
 SUB LoadUIColors (colarray() AS INTEGER, palnum AS INTEGER=-1)
