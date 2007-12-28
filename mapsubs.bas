@@ -693,6 +693,8 @@ DO
    IF keyval(28) > 1 THEN ' enter to link a door
     doorid = find_door_at_spot(x, y, doors())
     IF doorid >= 0 THEN
+     'Save currently-worked-on map data
+     mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
      doorlinkid = find_first_doorlink_by_door(doorid, link())
      IF doorlinkid >= 0 THEN
       link_one_door pt, doorlinkid, link(), doors(), map(), pass(), gmap()
