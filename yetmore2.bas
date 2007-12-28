@@ -931,7 +931,8 @@ IF loadmask AND 16 THEN
 END IF
 END SUB
 
-SUB deletemapstate (filebase$, killmask)
+SUB deletemapstate (mapnum, killmask, prefix$)
+filebase$ = mapstatetemp(mapnum, "map")
 IF killmask AND 1 THEN safekill filebase$ + "_map.tmp"
 IF killmask AND 2 THEN safekill filebase$ + "_l.tmp"
 IF killmask AND 4 THEN safekill filebase$ + "_n.tmp"
@@ -940,16 +941,16 @@ IF killmask AND 16 THEN safekill filebase$ + "_p.tmp"
 END SUB
 
 SUB deletetemps
-'deletes game-state temporary files when exiting back to the load screen or doing a quickload
+'deletes game-state temporary files when exiting back to the titlescreen
 
- findfiles workingdir$ + SLASH + ALLFILES, 0, tmpdir$ + "filelist.tmp", buffer()
+ findfiles tmpdir$ + ALLFILES, 0, tmpdir$ + "filelist.tmp", buffer()
  fh = FREEFILE
  OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
   LINE INPUT #fh, filename$
   filename$ = LCASE$(filename$)
   IF RIGHT$(filename$,4) = ".tmp" AND (LEFT$(filename$,3) = "map" OR LEFT$(filename$,5) = "state") THEN
-   KILL workingdir$ + SLASH + filename$
+   KILL tmpdir$ + filename$
   END IF
  LOOP
  CLOSE #fh

@@ -142,7 +142,7 @@ DECLARE SUB loadmapstate_npcd (mapnum%, prefix$, dontfallback% = 0)
 DECLARE SUB loadmapstate_tilemap (mapnum%, prefix$, dontfallback% = 0)
 DECLARE SUB loadmapstate_passmap (mapnum%, prefix$, dontfallback% = 0)
 DECLARE SUB loadmapstate (mapnum%, loadmask%, prefix$, dontfallback% = 0)
-DECLARE SUB deletemapstate (filebase$, killmask%)
+DECLARE SUB deletemapstate (mapnum%, killmask%, prefix$)
 DECLARE SUB deletetemps ()
 DECLARE FUNCTION scriptstate$ (targetscript% = -1)
 DECLARE Sub MenuSound(byval s as integer)
@@ -2235,7 +2235,7 @@ SELECT CASE AS CONST scrat(nowscript).curkind
    CASE 247'--reset map state
     loadmaplumps map, retvals(0)
    CASE 248'--delete map state
-    deletemapstate workingdir$ + SLASH + "map" + STR$(map), retvals(0)
+    deletemapstate map, retvals(0), "map"
    CASE 253'--settileanimationoffset
     IF retvals(0) = 0 OR retvals(0) = 1 THEN
      cycle(retvals(0)) = retvals(1) MOD 160

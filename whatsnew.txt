@@ -31,9 +31,13 @@ Dec ?? 2007 [voxhumana]
       doors multiple conditional destinations) [James Paige]
     * Enemies can have a death sound effect. [James Paige]
     * TeeEmCee's pretty mini-map from the map-resize menu is now used for
-      All mini-map drawing [Ralph, James]
+      all mini-map drawing [Ralph, James]
 
   * Bugfixes
+    * Temporary map state was not being deleted when exiting to the title
+      screen, meaning maps set to remember state would be in an unexpected
+      state from a previous game. deletemapstate was also broken.
+      [Ralph Versteegen]
     * Fixed bug 257 "Mute status effect broken for enemies" [James Paige]
     * Fixed bug 5 "First Target attacks can hit targets besides the first"
       [James Paige]
@@ -48,7 +52,7 @@ Dec ?? 2007 [voxhumana]
       "Cancel target's attack" bitset) [James Paige]
     * Fixed bug 473, "Shop data doesn't persist" [James Paige]
     * Fixed bug 330, "Pushed npcs are obstructionless" for new games.
-      Old games can get the in the general game bitsets menu by turning
+      Old games can get the fix in the general game bitsets menu by turning
       off the "Simulate pushed NPC obstruction bug" bitset. Do this
       with caution if your game uses pushed-NPC puzzles that rely on
       overlapping NPCs [James Paige]
