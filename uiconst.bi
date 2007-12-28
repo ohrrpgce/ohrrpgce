@@ -5,7 +5,7 @@
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
-CONST uiColors = 47				'last color entry (for Game)
+CONST uiColors = 47				'last color entry
 
 CONST uiBackground = 0          'background colour
 CONST uiMenuItem = 1			'normal menu item

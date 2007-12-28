@@ -208,7 +208,7 @@ LOOP
 
 END FUNCTION
 
-SUB ui_color_editor()
+SUB ui_color_editor(palnum AS INTEGER)
  DIM i AS INTEGER
  DIM index AS INTEGER
  DIM default_colors(uiColors) AS INTEGER
@@ -231,7 +231,7 @@ SUB ui_color_editor()
 
  DefaultUIColors default_colors()
 
- LoadUIColors uilook(), activepalette
+ LoadUIColors uilook(), palnum
 
  DIM color_menu(uiColors + 1) AS STRING
  make_ui_color_editor_menu color_menu(), uilook()
@@ -292,7 +292,7 @@ SUB ui_color_editor()
   clearpage dpage
   dowait
  LOOP
- SaveUIColors uilook(), activepalette
+ SaveUIColors uilook(), palnum
 END SUB
 
 SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)

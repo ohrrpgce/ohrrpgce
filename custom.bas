@@ -269,7 +269,7 @@ DO:
      importbmp ".til", "tileset", gen(33)
      gen(33) = gen(33) - 1
     END IF
-    IF pt = 11 THEN ui_color_editor()
+    IF pt = 11 THEN ui_color_editor(activepalette)
   END SELECT
   '--always resave the .GEN lump after any menu
   xbsave game$ + ".gen", gen(), 1000

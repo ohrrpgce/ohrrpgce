@@ -91,6 +91,7 @@ DECLARE SUB loadbmp (f$, BYVAL x, BYVAL y, BYVAL p)
 DECLARE SUB bitmap2pal (bmp$, pal() as RGBcolor)
 DECLARE FUNCTION loadbmppal (f$, pal() as RGBcolor)
 DECLARE SUB convertbmppal (f$, mpal() as RGBcolor, pal(), BYVAL o)
+DECLARE FUNCTION nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
 DECLARE FUNCTION bmpinfo (f$, dat())
 DECLARE FUNCTION setmouse (mbuf())
 DECLARE SUB readmouse (mbuf())

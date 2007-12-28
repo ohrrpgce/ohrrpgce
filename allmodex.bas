@@ -47,7 +47,6 @@ declare SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as int
 declare sub setclip(l as integer=0, t as integer=0, r as integer=319, b as integer=199)
 declare sub drawohr(byref spr as frame, x as integer, y as integer, scale as integer=1, trans as integer = -1)
 declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
-declare function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
 declare SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 declare SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 
@@ -3171,14 +3170,14 @@ function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, 
 'figure out nearest palette colour
 	dim as integer i, diff, best, save, rdif, bdif, gdif
 
-	best = 1000
+	best = 1000000
 	save = 0
 	for i = 0 to 255
 		rdif = red - pal(i).r
 		gdif = green - pal(i).g
 		bdif = blue - pal(i).b
-		diff = abs(rdif) + abs(gdif) + abs(bdif)
-		'diff = rdif^2 + gdif^2 + bdif^2
+		'diff = abs(rdif) + abs(gdif) + abs(bdif)
+		diff = rdif^2 + gdif^2 + bdif^2
 		if diff = 0 then
 			'early out on direct hit
 			save = i

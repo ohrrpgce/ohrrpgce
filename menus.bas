@@ -5,6 +5,18 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+
+#include "compat.bi"
+#include "allmodex.bi"
+#include "common.bi"
+#include "customsubs.bi"
+#include "cglobals.bi"
+
+#include "const.bi"
+#include "scrconst.bi"
+#include "uiconst.bi"
+#include "loading.bi"
+
 'basic subs and functions
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
@@ -41,17 +53,7 @@ DECLARE SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
 DECLARE SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
 DECLARE SUB inputpasw(pas$)
 DECLARE FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
-
-#include "compat.bi"
-#include "allmodex.bi"
-#include "common.bi"
-#include "customsubs.bi"
-#include "cglobals.bi"
-
-#include "const.bi"
-#include "scrconst.bi"
-#include "uiconst.bi"
-#include "loading.bi"
+DECLARE SUB nearestui (mimicpal, newpal() as RGBcolor, newui())
 
 REM $STATIC
 
@@ -1139,7 +1141,7 @@ trigger = scriptids(pt)
 END FUNCTION
 
 SUB masterpalettemenu
-DIM menu$(5), submenu$(2), palbuf(767)
+DIM menu$(6), oldpal
 
 csr = 1
 palnum = activepalette
@@ -1160,27 +1162,36 @@ DO
 
  IF keyval(1) > 1 THEN EXIT DO
  usemenu csr, 0, 0, UBOUND(menu$), 10
- IF csr = 1 THEN
-  IF keyval(77) > 1 AND palnum = gen(genMaxMasterPal) THEN
-   palnum += 1
-   IF needaddset(palnum, gen(genMaxMasterPal), "Master Palette") THEN
-    IF importmasterpal("", palnum) THEN
-     setpal master()
-     LoadUIColors uilook(), palnum
-     GOSUB buildmenu     
-    ELSE
-     palnum -= 1
-     gen(genMaxMasterPal) = palnum
-    END IF
+
+ oldpal = palnum
+ IF keyval(77) > 1 AND palnum = gen(genMaxMasterPal) THEN
+  palnum += 1
+  IF needaddset(palnum, gen(genMaxMasterPal), "Master Palette") THEN
+   IF importmasterpal("", palnum) THEN
+    setpal master()
+    LoadUIColors uilook(), palnum
+    GOSUB buildmenu     
+   ELSE
+    palnum -= 1
+    gen(genMaxMasterPal) = palnum
    END IF
   END IF
-  IF intgrabber(palnum, 0, gen(genMaxMasterPal)) THEN
-   loadpalette master(), palnum
-   setpal master()
-   LoadUIColors uilook(), palnum
-   GOSUB buildmenu
-  END IF
+  setkeys
  END IF
+ IF csr = 1 THEN
+  intgrabber(palnum, 0, gen(genMaxMasterPal))
+ ELSE
+  IF keyval(75) > 1 THEN palnum += gen(genMaxMasterPal)
+  IF keyval(77) > 1 THEN palnum += 1
+  palnum = palnum MOD (gen(genMaxMasterPal) + 1)
+ END IF
+ IF palnum <> oldpal THEN
+  loadpalette master(), palnum
+  setpal master()
+  LoadUIColors uilook(), palnum
+  GOSUB buildmenu
+ END IF
+
  IF enter_or_space() THEN
   SELECT CASE csr
   CASE 0
@@ -1191,12 +1202,15 @@ DO
      LoadUIColors uilook(), palnum
      GOSUB buildmenu
     END IF
-'  CASE 3
-    'setuicolors palnum
+  CASE 3
+    ui_color_editor palnum
   CASE 4
+    nearestui activepalette, master(), uilook()
+    SaveUIColors uilook(), palnum
+  CASE 5
     gen(genMasterPal) = palnum
     GOSUB buildmenu
-  CASE 5
+  CASE 6
     activepalette = palnum
     GOSUB buildmenu
   END SELECT
@@ -1204,7 +1218,7 @@ DO
 
  'draw the menu
  FOR i = 0 TO UBOUND(menu$)
-  IF (i = 4 AND palnum = gen(genMasterPal)) OR (i = 5 AND palnum = activepalette) THEN
+  IF (i = 5 AND palnum = gen(genMasterPal)) OR (i = 6 AND palnum = activepalette) THEN
    col = uilook(uiDisabledItem)
    IF csr = i THEN col = uilook(uiSelectedDisabled + tog)
   ELSE
@@ -1245,16 +1259,17 @@ buildmenu:
 menu$(0) = "Previous Menu"
 menu$(1) = "<- Master Palette " & palnum & " ->"
 menu$(2) = "Replace this Master Palette"
-menu$(3) = "User Interface Colours"
+menu$(3) = "Edit User Interface Colours..."
+menu$(4) = "Copy UI Colours from active palette"
 IF palnum = gen(genMasterPal) THEN
- menu$(4) = "Current default Master Palette"
+ menu$(5) = "Current default in-game Master Palette"
 ELSE
- menu$(4) = "Set as Default"
+ menu$(5) = "Set as Default"
 END IF
 IF palnum = activepalette THEN
- menu$(5) = "Current active editing palette"
+ menu$(6) = "Current active editing palette"
 ELSE
- menu$(5) = "Set as Active"
+ menu$(6) = "Set as Active"
 END IF
 RETRACE
 
@@ -1277,16 +1292,31 @@ IF f$ <> "" THEN
   END IF
  END IF
  savepalette master(), palnum
- 'get a default set of ui colours (temporary)
- DIM defaultcols(uiColors)
- DefaultUIColors defaultcols()
- SaveUIColors defaultcols(), palnum
+ 'get a default set of ui colours - nearest match to the current
+ nearestui activepalette, master(), uilook()
+ SaveUIColors uilook(), palnum
 
  IF palnum > gen(genMaxMasterPal) THEN gen(genMaxMasterPal) = palnum
  RETURN -1
 END IF
 RETURN 0
 END FUNCTION
+
+SUB nearestui (mimicpal, newpal() as RGBcolor, newui())
+ 'finds the nearest match newui() in newpal() to mimicpal's ui colours
+ DIM referencepal(255) as RGBcolor, referenceui(uiColors)
+ loadpalette referencepal(), mimicpal
+ LoadUIColors referenceui(), mimicpal
+ FOR i = 0 TO uiColors
+  WITH referencepal(referenceui(i))
+   IF .col = newpal(referenceui(i)).col THEN
+    newui(i) = referenceui(i)
+   ELSE
+    newui(i) = nearcolor(newpal(), .r, .g, .b)
+   END IF
+  END WITH
+ NEXT
+END SUB
 
 SUB titlescreenbrowse
 loadpage game$ + ".mxs", gen(1), 2
