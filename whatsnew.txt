@@ -21,7 +21,7 @@ Dec ?? 2007 [voxhumana]
     * Browse for tags from any menu that takes tag numbers by pressing
       enter or space on the tag [James Paige]
     * Most (but not all) user interface colors in Game and Custom can now
-      be customized [Simon, James]
+      be customized. Each master palette has its own set [Simon, James]
     * User Interface color editor. [James Paige]
     * In the door link editor, you can see a preview of each doorlinks
       when you browse the list of doorlinks. [James Paige]

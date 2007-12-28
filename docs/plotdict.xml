@@ -994,7 +994,7 @@ end</example>
 		<command id="loadpalette">
 			<cannon>load palette (palette number)</cannon>
 			<shortname>load palette</shortname>
-            <description>Loads a different master palette (one of the palettes on the "View Master Palettes..." menu). Use this if a backdrop or entire map was imported/drawn with a palette other than the default. Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>.</description>
+            <description>Loads a different master palette (one of the palettes on the "View Master Palettes..." menu), and the user interface colors for that palette. Use this if a backdrop or entire map was imported/drawn with a palette other than the default. Changes to the palette do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>, however the UI colors are changed immediately.</description>
 		</command>
 		<command id="updatepalette">
 			<cannon>update palette</cannon>
