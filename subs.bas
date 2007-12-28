@@ -1510,7 +1510,8 @@ RETRACE
 END SUB
 
 SUB herotags (BYREF hero AS HeroDef)
-
+DIM tagnum AS INTEGER
+DIM tagcaption AS STRING
 DIM menu$(5)
 menu$(0) = "Previous Menu"
 menu$(1) = "have hero TAG"
@@ -1543,6 +1544,7 @@ DO
  FOR i = 0 TO 4
   textcolor 7, 0
   IF pt = i THEN textcolor 14 + tog, 0
+  tagnum = 0
   SELECT CASE i
    CASE 1
     tagnum = .have_tag
@@ -1553,15 +1555,16 @@ DO
    CASE 4
     tagnum = .active_tag
   END SELECT
+  tagcaption = ""
   SELECT CASE tagnum
    CASE 0
-    a$ = "None"
+    tagcaption = "None"
    CASE 1
-    a$ = "None (tag 1 not usable)"
+    tagcaption = "None (tag 1 not usable)"
    CASE ELSE
-    a$ = load_tag_name(tagnum) & "(" & tagnum & ")"
+    tagcaption = load_tag_name(tagnum) & "(" & tagnum & ")"
   END SELECT
-  printstr menu$(i) & ": " & a$, 0, i * 8, dpage
+  printstr menu$(i) & ": " & tagcaption, 0, i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
