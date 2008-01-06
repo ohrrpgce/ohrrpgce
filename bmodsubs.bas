@@ -1060,7 +1060,7 @@ SUB giveheroexperience (i, exstat(), exper&)
  END IF
 END SUB
 
-SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat())
+SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat(), exlev())
  'unlike giveheroexperience, this can cause delevelling
  DIM dummystats(40) AS BattleStats
 

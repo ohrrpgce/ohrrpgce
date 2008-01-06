@@ -83,7 +83,7 @@ DECLARE SUB reloadscript (index, updatestats = -1)
 DECLARE FUNCTION localvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION mathvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION backcompat_sound_id (id AS INTEGER)
-DECLARE SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat())
+DECLARE SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat(), exlev())
 DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
 DECLARE SUB limitcamera ()
 DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING, minimum AS INTEGER=0) AS INTEGER
@@ -417,7 +417,7 @@ SELECT CASE AS CONST id
  CASE 272'--setexperience  (who, what, allowforget)
   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN
    spellmaskhero = retvals(0)  'used for spells learnt
-   setheroexperience retvals(0), retvals(1), retvals(2), stat()
+   setheroexperience retvals(0), retvals(1), retvals(2), stat(), exlev()
   END IF
 END SELECT
 END SUB
