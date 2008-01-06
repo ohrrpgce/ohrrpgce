@@ -340,6 +340,14 @@ function xstr$(x as double)
 	end if
 end function
 
+function xstr$(x as long)
+	if x >= 0 then
+		xstr$ = " " + str$(x)
+	else
+		xstr$ = str$(x)
+	end if
+end function
+
 function intstr$(x as integer)
     intstr$ = str$(x)
 end function

@@ -100,6 +100,7 @@ declare function xstr$ overload (x as integer)
 declare function xstr$ (x as short)
 declare function xstr$ (x as single)
 declare function xstr$ (x as double)
+declare function xstr$ (x as long)
 declare function intstr$ (x as integer)
 
 DECLARE SUB getdefaultfont (font() as integer)
