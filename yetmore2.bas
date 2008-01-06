@@ -322,7 +322,7 @@ lastsaveslot = 0
 CleanInventory inventory()
 
 '--money
-gold& = gen(96)
+gold = gen(genStartMoney)
 
 '--hero's speed
 FOR i = 0 TO 3

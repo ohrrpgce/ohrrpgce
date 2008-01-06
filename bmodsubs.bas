@@ -1048,19 +1048,19 @@ END SUB
 SUB giveheroexperience (i, exstat(), exper&)
  'experience
  IF hero(i) > 0 AND exstat(i, 0, 12) < 99 THEN
-  exlev&(i, 0) = exlev&(i, 0) + exper&
+  exlev(i, 0) = exlev(i, 0) + exper&
   'levelups
   exstat(i, 1, 12) = 0
-  WHILE exlev&(i, 0) >= exlev&(i, 1) AND exstat(i, 0, 12) < 99
-   exlev&(i, 0) = exlev&(i, 0) - exlev&(i, 1)
+  WHILE exlev(i, 0) >= exlev(i, 1) AND exstat(i, 0, 12) < 99
+   exlev(i, 0) = exlev(i, 0) - exlev(i, 1)
    exstat(i, 0, 12) = exstat(i, 0, 12) + 1 'current level
    exstat(i, 1, 12) = exstat(i, 1, 12) + 1 'levelup flag
-   exlev&(i, 1) = exptolevel(exstat(i, 0, 12))
+   exlev(i, 1) = exptolevel(exstat(i, 0, 12))
   WEND
  END IF
 END SUB
 
-SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat(), exlev())
+SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat(), exlev() AS LONG)
  'unlike giveheroexperience, this can cause delevelling
  DIM dummystats(40) AS BattleStats
 

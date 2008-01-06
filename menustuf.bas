@@ -155,7 +155,7 @@ DO
   IF readbit(emask(), 0, pt) = 0 THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
    IF stock(id, pt) > 1 THEN stock(id, pt) = stock(id, pt) - 1
    IF b(pt * recordsize + 22) THEN setbit tag(), 0, ABS(b(pt * recordsize + 22)), SGN(SGN(b(pt * recordsize + 22)) + 1)
-   gold& = gold& - b(pt * recordsize + 24)
+   gold = gold - b(pt * recordsize + 24)
    IF tradingitems THEN '---TRADE IN ITEMS----------
     FOR i = 0 TO 3
      IF tradestf(i, 0) > -1 THEN
@@ -205,8 +205,9 @@ DO
  centerbox 80, 94, 150, 168, 1, dpage
  centerbox 240, 94, 150, 168, 1, dpage
  '-----RIGHT PANEL------------------------------------------
- centerbox 240, 20, LEN(XSTR$(gold&) + " " + sname$(32)) * 8 + 8, 12, 4, dpage
- edgeprint XSTR$(gold&) + " " + sname$(32), xstring(XSTR$(gold&) + " " + sname$(32) + " ", 240), 15, uilook(uiText), dpage
+ temp$ = gold & " " & sname$(32)
+ centerbox 240, 20, LEN(temp$) * 8 + 8, 12, 4, dpage
+ edgeprint temp$, xstring(temp$ & " ", 240), 15, uilook(uiText), dpage
  o = 0
  edgeprint stuf$(pt), xstring(stuf$(pt), 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
  IF info1$ <> "" THEN edgeprint info1$, xstring(info1$, 240), 30 + o * 10, uilook(uiDisabledItem), dpage: o = o + 1
@@ -271,7 +272,7 @@ FOR i = 0 TO storebuf(16)
  IF stock(id, i) = 1 THEN setbit vmask(), 0, i, 1
  IF b(i * recordsize + 17) = (shoptype XOR 1) THEN setbit vmask(), 0, i, 1
  IF NOT istag(b(i * recordsize + 20), -1) THEN setbit vmask(), 0, i, 1
- IF b(i * recordsize + 24) > gold& THEN setbit emask(), 0, i, 1
+ IF b(i * recordsize + 24) > gold THEN setbit emask(), 0, i, 1
  loadtrades i, tradestf(), b(), recordsize
  FOR j = 0 TO 3
   IF tradestf(j, 0) > -1 THEN
@@ -1657,7 +1658,7 @@ DO
  NEXT i
  centerfuz 160, 180, 312, 20, 4, dpage
  edgeprint info$, xstring(info$, 160), 175, uilook(uiText), dpage
- edgeprint XSTR$(gold&) + " " + sname$(32), 310 - LEN(XSTR$(gold&) + " " + sname$(32)) * 8, 1, uilook(uiGold), dpage
+ edgeprint gold & " " & sname$(32), 310 - LEN(gold & " " & sname$(32)) * 8, 1, uilook(uiGold), dpage
  IF alert THEN
   alert = alert - 1
   centerbox 160, 178, LEN(alert$) * 8 + 8, 12, 4, dpage
@@ -1703,9 +1704,9 @@ IF carray(4) > 1 AND readbit(permask(), 0, ic) = 0 AND inventory(ic).used THEN
  alert$ = sold$ + " " + LEFT$(inventory(ic).text, 8)
  'inventory(ic).text = RTRIM$(inventory(ic).text)   '??? There's an itstr(ic) right down there
  'INCREMENT GOLD-----------
- gold& = gold& + price(ic)
- IF gold& > 2000000000 THEN gold& = 2000000000
- IF gold& < 0 THEN gold& = 0
+ gold = gold + price(ic)
+ IF gold > 2000000000 THEN gold = 2000000000
+ IF gold < 0 THEN gold = 0
  'CHECK FOR SPECIAL CASES---------
  FOR i = 0 TO storebuf(16)
   IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
@@ -2169,7 +2170,7 @@ DO
 
  edgeprint names$(pt), 160 - LEN(names$(pt)) * 4, 20, uilook(uiText), dpage
  edgeprint sname$(34) + XSTR$(stat(pt, 0, 12)), 160 - LEN(sname$(34) + STR$(stat(pt, 0, 12))) * 4, 30, uilook(uiText), dpage
- temp$ = STR$(exlev&(pt, 1) - exlev&(pt, 0)) + " " + sname$(33) + " " + readglobalstring$(47, "for next", 10) + " " + sname$(34)
+ temp$ = STR$(exlev(pt, 1) - exlev(pt, 0)) + " " + sname$(33) + " " + readglobalstring$(47, "for next", 10) + " " + sname$(34)
  edgeprint temp$, 160 - LEN(temp$) * 4, 40, uilook(uiText), dpage
 
  SELECT CASE mode
@@ -2211,7 +2212,7 @@ DO
    NEXT i
 
    '--gold
-   edgeprint STR$(gold&) + " " + sname$(32), 236 - LEN(STR$(gold&) + " " + sname$(32)) * 4, 167, uilook(uiGold), dpage
+   edgeprint STR$(gold) + " " + sname$(32), 236 - LEN(STR$(gold) + " " + sname$(32)) * 4, 167, uilook(uiGold), dpage
   CASE 1
 
    '--show elementals

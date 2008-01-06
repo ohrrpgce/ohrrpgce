@@ -211,7 +211,7 @@ tmpdir$ = aquiretempdir$
 
 'Mixed global and module variables
 DIM font(1024), buffer(16384), pal16(448), timing(4), music(16384)
-DIM gen(360), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev&(40, 1), names$(40), veh(21)
+DIM gen(360), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev(40, 1) AS LONG, names$(40), veh(21)
 DIM eqstuf(40, 4), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(maxMaxItems, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4)
 
@@ -238,7 +238,7 @@ DIM inventory(inventoryMax) as InventSlot
 DIM npcs(npcdMax) as NPCType
 DIM npc(300) as NPCInst
 DIM didgo(0 TO 3)
-DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, tmpdir$, usepreunlump, gold, lastsaveslot, abortg, exename$, sourcerpg$, foemaph, presentsong, framex, framey, game$, workingdir$
+DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, tmpdir$, usepreunlump, gold AS LONG, lastsaveslot, abortg, exename$, sourcerpg$, foemaph, presentsong, framex, framey, game$, workingdir$
 DIM prefsdir$
 DIM savefile$
 DIM timers(15) as timer
@@ -991,9 +991,9 @@ IF readbit(saybit(), 0, 3) THEN
 END IF
 '---GAIN/LOSE CASH-----
 IF istag(saytag(13), 0) THEN
- gold& = gold& + saytag(14)
- IF gold& > 2000000000 THEN gold& = 2000000000
- IF gold& < 0 THEN gold& = 0
+ gold = gold + saytag(14)
+ IF gold > 2000000000 THEN gold = 2000000000
+ IF gold < 0 THEN gold = 0
 END IF
 '---SPAWN BATTLE--------
 IF istag(saytag(5), 0) THEN

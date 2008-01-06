@@ -1149,14 +1149,14 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
 
     '--ditto for money
     IF atk(10) <> 0 THEN
-      gold& = large(gold& - atk(10), 0)
+      gold = large(gold - atk(10), 0)
       hc(who) = 7
       hx(who) = bslot(who).x + (bslot(who).w * .5)
       hy(who) = bslot(who).y + (bslot(who).h * .5)
       harm$(who) = STR$(atk(10)) + "$"
       IF atk(10) < 0 THEN harm$(who) += "+"
-      IF gold& > 1000000000 THEN gold& = 1000000000
-      IF gold& < 0 THEN gold& = 0
+      IF gold > 2000000000 THEN gold = 2000000000
+      IF gold < 0 THEN gold = 0
 
     END IF
 
@@ -2208,8 +2208,8 @@ RETRACE
 
 victory: '------------------------------------------------------------------
 IF gen(3) > 0 THEN wrappedsong gen(3) - 1
-gold& = gold& + plunder&
-IF gold& > 1000000000 THEN gold& = 1000000000
+gold = gold + plunder&
+IF gold > 1000000000 THEN gold = 1000000000
 IF liveherocount(bstat()) > 0 THEN exper& = exper& / liveherocount(bstat())
 FOR i = 0 TO 3
  IF bstat(i).cur.hp > 0 THEN giveheroexperience i, exstat(), exper&

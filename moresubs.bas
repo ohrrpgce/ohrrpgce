@@ -147,8 +147,8 @@ resetlmp slot, her.def_level
 '--setup experience
 stat(slot, 0, 12) = her.def_level
 stat(slot, 1, 12) = 0
-exlev&(slot, 0) = 0
-exlev&(slot, 1) = exptolevel(her.def_level)
+exlev(slot, 0) = 0
+exlev(slot, 1) = exptolevel(her.def_level)
 
 '--heros are added unlocked
 setbit hmask(), 0, who - 1, 0
@@ -408,7 +408,7 @@ NEXT i
 
 '---Experience
 FOR i = 0 TO 1
- SWAP exlev&(s, i), exlev&(d, i)
+ SWAP exlev(s, i), exlev(d, i)
 NEXT i
 
 '--name
@@ -427,7 +427,7 @@ NEXT i
 '---reload hero pictures and palettes
 vishero stat()
 
-'hero(40), bmenu(40,5), spell(40,3,23), stat(40,1,13), lmp(40,7), exlev&(40,1), names$(40), eqstuf(40,4)
+'hero(40), bmenu(40,5), spell(40,3,23), stat(40,1,13), lmp(40,7), exlev(40,1), names$(40), eqstuf(40,4)
 END SUB
 
 SUB drawsay (saybit(), sayenh(), say$(), showsay, choose$(), choosep)
@@ -809,7 +809,7 @@ FOR i = 0 TO 24
  IF buffer(i + 9) < 0 OR buffer(i + 9) > 255 THEN buffer(i + 9) = 0
  IF buffer(i + 9) > 0 THEN temp$ = temp$ + CHR$(buffer(i + 9))
 NEXT i
-gold& = str2lng&(temp$)
+gold = str2lng&(temp$)
 
 z = 34
 FOR i = 0 TO 500
@@ -868,7 +868,7 @@ FOR i = 0 TO 40
    IF buffer(z) > 0 THEN temp$ = temp$ + CHR$(buffer(z))
    z = z + 1
   NEXT j
-  exlev&(i, o) = str2lng&(temp$)
+  exlev(i, o) = str2lng&(temp$)
  NEXT o
 NEXT i
 FOR i = 0 TO 40
@@ -983,9 +983,9 @@ IF nativebitmagicnum <> 4444 THEN
 END IF
 
 'ALL THE STUFF THAT MUST BE SAVED
-'map,x,y,d,foep,gold&,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev&(40,1),names$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
+'map,x,y,d,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
 'ALL THE STUFF THAT MUST BE PASSED
-'slot,map,x,y,d,foep,gold&,stat(),bmenu(),spell(),lmp(),exlev&(),item(),item$()
+'slot,map,x,y,d,foep,gold,stat(),bmenu(),spell(),lmp(),exlev(),item(),item$()
 '30000
 END SUB
 
@@ -1249,7 +1249,7 @@ foep = 0
 'leader = 0
 mapx = 0
 mapy = 0
-gold& = 0
+gold = 0
 showsay = 0
 scriptout$ = ""
 '--return gen to defaults
@@ -1285,7 +1285,7 @@ FOR i = 0 TO 40
 NEXT i
 FOR i = 0 TO 40
  FOR o = 0 TO 1
-  exlev&(i, o) = 0
+  exlev(i, o) = 0
  NEXT o
 NEXT i
 FOR i = 0 TO 40
@@ -1331,7 +1331,7 @@ deletetemps
 killallscripts
 
 'ALL THE STUFF THAT MUST BE RESET
-'map,foep,gold&,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev&(40,1),names$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
+'map,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
 '30000
 END SUB
 
@@ -1655,7 +1655,7 @@ buffer(6) = 0    'was leader
 buffer(7) = mapx
 buffer(8) = mapy
 
-temp$ = XSTR$(gold&)
+temp$ = XSTR$(gold)
 FOR i = 0 TO 24
  IF i < LEN(temp$) THEN
   IF MID$(temp$, i + 1, 1) <> "" THEN buffer(i + 9) = ASC(MID$(temp$, i + 1, 1))
@@ -1712,7 +1712,7 @@ FOR i = 0 TO 40
 NEXT i
 FOR i = 0 TO 40
  FOR o = 0 TO 1
-  temp$ = XSTR$(exlev&(i, o))
+  temp$ = XSTR$(exlev(i, o))
   FOR j = 0 TO 25
    IF j < LEN(temp$) THEN
     IF MID$(temp$, j + 1, 1) <> "" THEN buffer(z) = ASC(MID$(temp$, j + 1, 1))
@@ -1804,9 +1804,9 @@ storeset sg$, slot * 2 + 1, 0
 
 
 'ALL THE STUFF THAT MUST BE SAVED
-'map,x,y,d,foep,gold&,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev&(40,1),names$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
+'map,x,y,d,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
 'ALL THE STUFF THAT MUST BE PASSED
-'slot,map,x,y,d,foep,gold&,stat(),bmenu(),spell(),lmp(),exlev&(),item(),item$()
+'slot,map,x,y,d,foep,gold,stat(),bmenu(),spell(),lmp(),exlev(),item(),item$()
 '30000
 END SUB
 
@@ -2078,8 +2078,8 @@ DO
  IF carray(5) > 1 THEN inn = 1: EXIT DO
  IF carray(0) > 1 OR carray(1) > 1 OR carray(2) > 1 OR carray(3) > 1 THEN inn = inn XOR 1
  IF carray(4) > 1 THEN
-  IF inn = 0 AND gold& >= price THEN
-   gold& = gold& - price
+  IF inn = 0 AND gold >= price THEN
+   gold = gold - price
    useinn = -1
    EXIT DO
   END IF
@@ -2098,7 +2098,7 @@ DO
  centerfuz 160, 90, 200, 60, 1, dpage
  rectangle 130, 92, 60, 22, uilook(uiHighlight), dpage 'orig colour 20
  edgeprint inncost$ + XSTR$(price) + " " + sname$(32), 160 - LEN(inncost$ + XSTR$(price) + " " + sname$(32)) * 4, 70, uilook(uiText), dpage
- edgeprint youhave$ + XSTR$(gold&) + " " + sname$(32), 160 - LEN(youhave$ + XSTR$(gold&) + " " + sname$(32)) * 4, 80, uilook(uiText), dpage
+ edgeprint youhave$ + XSTR$(gold) + " " + sname$(32), 160 - LEN(youhave$ + XSTR$(gold) + " " + sname$(32)) * 4, 80, uilook(uiText), dpage
  FOR i = 0 TO 1
   col = uilook(uiMenuItem): IF inn = i THEN col = uilook(uiSelectedItem + tog)
   edgeprint menu$(i), 160 - LEN(menu$(i)) * 4, 94 + i * 8, col, dpage

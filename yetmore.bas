@@ -83,7 +83,7 @@ DECLARE SUB reloadscript (index, updatestats = -1)
 DECLARE FUNCTION localvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION mathvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION backcompat_sound_id (id AS INTEGER)
-DECLARE SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat(), exlev())
+DECLARE SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat(), exlev() AS LONG)
 DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
 DECLARE SUB limitcamera ()
 DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING, minimum AS INTEGER=0) AS INTEGER
