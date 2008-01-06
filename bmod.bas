@@ -2225,11 +2225,11 @@ SELECT CASE vdance
   '--print acquired gold and experience
   IF plunder& > 0 OR exper& > 0 THEN drawvicbox = 1: centerfuz 160, 30, 280, 50, 1, dpage
   IF plunder& > 0 THEN
-   temp$ = goldcap$ + XSTR$(plunder&) + " " + goldname$ + "!"
+   temp$ = goldcap$ & " " & plunder& & " " & goldname$ & "!"
    edgeprint temp$, xstring(temp$, 160), 16, uilook(uiText), dpage
   END IF
   IF exper& > 0 THEN
-   temp$ = expcap$ + XSTR$(exper&) + " " + expname$ + "!"
+   temp$ = expcap$ & " " & exper& & " " & expname$ & "!"
    edgeprint temp$, xstring(temp$, 160), 28, uilook(uiText), dpage
   END IF
   IF carray(4) > 1 OR carray(5) > 1 OR (plunder& = 0 AND exper& = 0) THEN
