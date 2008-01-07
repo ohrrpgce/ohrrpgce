@@ -21,7 +21,7 @@ DEFINT A-Z
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION filenum$ (n%)
-DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
+DECLARE SUB writeconstant (filehandle%, num%, names, unique$(), prefix$)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
@@ -29,7 +29,7 @@ DECLARE FUNCTION isunique% (s$, u$(), r%)
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE SUB editbitset (array%(), wof%, last%, names$())
+DECLARE SUB editbitset (array%(), wof%, last%, names())
 DECLARE SUB formation ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
@@ -96,7 +96,7 @@ min(13) = gen(43) * -1: max(13) = gen(39): offset(13) = 15'mount
 min(14) = gen(43) * -1: max(14) = gen(39): offset(14) = 16'dismount
 min(15) = 0: max(15) = 99: offset(15) = 21'dismount
 
-LoadVehicle game$ + ".veh", veh(), vehname$, pt
+LoadVehicle game + ".veh", veh(), vehname$, pt
 GOSUB vehmenu
 
 setkeys
@@ -113,7 +113,7 @@ DO
    END IF
   CASE 1
    IF pt = gen(55) AND keyval(77) > 1 THEN
-    SaveVehicle game$ + ".veh", veh(), vehname$, pt
+    SaveVehicle game + ".veh", veh(), vehname$, pt
     pt = bound(pt + 1, 0, 32767)
     IF needaddset(pt, gen(genMaxVehicle), "vehicle") THEN
      FOR i = 0 TO 39
@@ -125,9 +125,9 @@ DO
    END IF
    newptr = pt
    IF intgrabber(newptr, 0, gen(genMaxVehicle)) THEN
-    SaveVehicle game$ + ".veh", veh(), vehname$, pt
+    SaveVehicle game + ".veh", veh(), vehname$, pt
     pt = newptr
-    LoadVehicle game$ + ".veh", veh(), vehname$, pt
+    LoadVehicle game + ".veh", veh(), vehname$, pt
     GOSUB vehmenu
    END IF
   CASE 2
@@ -170,7 +170,7 @@ DO
  clearpage dpage
  dowait
 LOOP
-SaveVehicle game$ + ".veh", veh(), vehname$, pt
+SaveVehicle game + ".veh", veh(), vehname$, pt
 EXIT SUB
 
 vehmenu:
@@ -255,21 +255,21 @@ SUB gendata ()
 STATIC default$
 CONST maxMenu = 32
 DIM m$(maxMenu), max(maxMenu), bitname$(17)
-DIM names$(32), stat$(11), menutop
+DIM names(32), stat$(11), menutop
 DIM changed AS INTEGER = YES
-getnames names$(), 32
-stat$(0) = names$(0)
-stat$(1) = names$(1)
-stat$(2) = names$(2)
-stat$(3) = names$(3)
-stat$(4) = names$(5)
-stat$(5) = names$(6)
-stat$(6) = names$(29)
-stat$(7) = names$(30)
-stat$(8) = names$(8)
-stat$(9) = names$(7)
-stat$(10) = names$(31)
-stat$(11) = names$(4)
+getnames names(), 32
+stat$(0) = names(0)
+stat$(1) = names(1)
+stat$(2) = names(2)
+stat$(3) = names(3)
+stat$(4) = names(5)
+stat$(5) = names(6)
+stat$(6) = names(29)
+stat$(7) = names(30)
+stat$(8) = names(8)
+stat$(9) = names(7)
+stat$(10) = names(31)
+stat$(11) = names(4)
 
 IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
 IF gen(genStun) <= 0 THEN gen(genStun) = 159
@@ -318,12 +318,12 @@ ELSE
  readscatter pas$, gen(94), 200
  pas$ = rotascii(pas$, gen(93) * -1)
 END IF
-IF isfile(workingdir$ + SLASH + "browse.txt") THEN
+IF isfile(workingdir + SLASH + "browse.txt") THEN
  setpicstuf buffer(), 40, -1
- loadset workingdir$ + SLASH + "browse.txt", 0, 0
+ loadset workingdir + SLASH + "browse.txt", 0, 0
  longname$ = STRING$(bound(buffer(0), 0, 38), " ")
  array2str buffer(), 2, longname$
- loadset workingdir$ + SLASH + "browse.txt", 1, 0
+ loadset workingdir + SLASH + "browse.txt", 1, 0
  aboutline$ = STRING$(bound(buffer(0), 0, 38), " ")
  array2str buffer(), 2, aboutline$
 END IF
@@ -462,10 +462,10 @@ writescatter oldpas$, gen(94), 200
 setpicstuf buffer(), 40, -1
 buffer(0) = bound(LEN(longname$), 0, 38)
 str2array longname$, buffer(), 2
-storeset workingdir$ + SLASH + "browse.txt", 0, 0
+storeset workingdir + SLASH + "browse.txt", 0, 0
 buffer(0) = bound(LEN(aboutline$), 0, 38)
 str2array aboutline$, buffer(), 2
-storeset workingdir$ + SLASH + "browse.txt", 1, 0
+storeset workingdir + SLASH + "browse.txt", 1, 0
 RETRACE
 
 END SUB
@@ -657,14 +657,14 @@ getsonginfo:
 pausesong
 
 '-- first job: find the song's name
-temp$ = workingdir$ + SLASH + "song" + STR$(snum)
+temp$ = workingdir + SLASH + "song" + STR$(snum)
 songfile$ = ""
 songtype$ = "NO FILE"
 '-- BAM special case and least desirable, so check first and override
 IF snum > 99 THEN
  IF isfile(temp$ + ".bam") THEN ext$ = ".bam" : songfile$ = temp$ + ext$ : songtype$ = "Bob's Adlib Music (BAM)"
 ELSE
- IF isfile(game$ + "." + STR$(snum)) THEN ext$ = ".bam" : songfile$ = game$ + "." + STR$(snum) : songtype$ = "Bob's Adlib Music (BAM)"
+ IF isfile(game + "." + STR$(snum)) THEN ext$ = ".bam" : songfile$ = game + "." + STR$(snum) : songtype$ = "Bob's Adlib Music (BAM)"
 END IF
 bamfile$ = songfile$
 IF isfile(temp$ + ".mid") THEN
@@ -752,9 +752,9 @@ sname$ = a$
 
 'generate lump name
 IF LCASE$(RIGHT$(sourcesong$, 4)) = ".bam" AND snum <= 99 THEN
- songfile$ = game$ + "." + STR$(snum)
+ songfile$ = game + "." + STR$(snum)
 ELSE
- songfile$ = workingdir$ + SLASH + "song" + STR$(snum) + "." + justextension$(sourcesong$)
+ songfile$ = workingdir + SLASH + "song" + STR$(snum) + "." + justextension$(sourcesong$)
 END IF
 
 'Copy in new lump
@@ -785,7 +785,7 @@ ssongdata:
 flusharray buffer(), curbinsize(2) / 2, 0
 setpicstuf buffer(), curbinsize(2), -1
 writebinstring sname$, buffer(), 0, 30
-storeset workingdir$ + SLASH + "songdata.bin", snum, 0
+storeset workingdir + SLASH + "songdata.bin", snum, 0
 RETRACE
 
 END SUB
@@ -888,7 +888,7 @@ EXIT SUB
 
 getsfxinfo:
 '-- first job: find the sfx's name
-temp$ = workingdir$ + SLASH + "sfx" + STR$(snum)
+temp$ = workingdir + SLASH + "sfx" + STR$(snum)
 sfxfile$ = ""
 sfxtype$ = "NO FILE"
 
@@ -947,7 +947,7 @@ safekill sfxfile$
 sname$ = a$
 
 '-- calculate lump name
-sfxfile$ = workingdir$ + SLASH + "sfx" + STR$(snum) + "." + justextension$(sourcesfx$)
+sfxfile$ = workingdir + SLASH + "sfx" + STR$(snum) + "." + justextension$(sourcesfx$)
 
 '--copy in the new lump
 copyfile sourcesfx$, sfxfile$
@@ -971,14 +971,14 @@ freesfx snum
 flusharray buffer(), curbinsize(3) / 2, 0
 setpicstuf buffer(), curbinsize(3), -1
 writebinstring sname$, buffer(), 0, 30
-storeset workingdir$ + SLASH + "sfxdata.bin", snum, 0
+storeset workingdir + SLASH + "sfxdata.bin", snum, 0
 RETRACE
 
 END SUB
 
 FUNCTION scriptbrowse$ (trigger, triggertype, scrtype$)
 DIM localbuf(20)
-REDIM scriptnames$(0), scriptids(0)
+REDIM scriptnames(0), scriptids(0)
 numberedlast = 0
 
 temp$ = scriptname(trigger, triggertype)
@@ -987,18 +987,18 @@ IF temp$ <> "[none]" AND LEFT$(temp$, 1) = "[" THEN firstscript = 2 ELSE firstsc
 IF triggertype = 1 THEN
  'plotscripts
  fh = FREEFILE
- OPEN workingdir$ + SLASH + "plotscr.lst" FOR BINARY AS #fh
+ OPEN workingdir + SLASH + "plotscr.lst" FOR BINARY AS #fh
  'numberedlast = firstscript + LOF(fh) \ 40 - 1
  numberedlast = firstscript + gen(40) - 1
 
- REDIM scriptnames$(numberedlast), scriptids(numberedlast)
+ REDIM scriptnames(numberedlast), scriptids(numberedlast)
 
  i = firstscript
  FOR j = firstscript TO numberedlast
   loadrecord localbuf(), fh, 20
   IF localbuf(0) < 16384 THEN
    scriptids(i) = localbuf(0)
-   scriptnames$(i) = STR$(localbuf(0)) + " " + readbinstring(localbuf(), 1, 36)
+   scriptnames(i) = STR$(localbuf(0)) + " " + readbinstring(localbuf(), 1, 36)
    i += 1
   END IF
  NEXT
@@ -1008,7 +1008,7 @@ IF triggertype = 1 THEN
 END IF
 
 fh = FREEFILE
-OPEN workingdir$ + SLASH + "lookup" + STR$(triggertype) + ".bin" FOR BINARY AS #fh
+OPEN workingdir + SLASH + "lookup" + STR$(triggertype) + ".bin" FOR BINARY AS #fh
 scriptmax = numberedlast + LOF(fh) \ 40
 
 IF scriptmax < firstscript THEN
@@ -1019,11 +1019,11 @@ END IF
 ' 0 to firstscript - 1 are special options (none, current script)
 ' firstscript to numberedlast are oldstyle numbered scripts
 ' numberedlast + 1 to scriptmax are newstyle trigger scripts
-REDIM PRESERVE scriptnames$(scriptmax), scriptids(scriptmax)
-scriptnames$(0) = "[none]"
+REDIM PRESERVE scriptnames(scriptmax), scriptids(scriptmax)
+scriptnames(0) = "[none]"
 scriptids(0) = 0
 IF firstscript = 2 THEN
- scriptnames$(1) = temp$
+ scriptnames(1) = temp$
  scriptids(1) = trigger
 END IF
 
@@ -1032,7 +1032,7 @@ FOR j = numberedlast + 1 TO scriptmax
  loadrecord localbuf(), fh, 20
  IF localbuf(0) <> 0 THEN
   scriptids(i) = 16384 + j - (numberedlast + 1)
-  scriptnames$(i) = readbinstring(localbuf(), 1, 36)
+  scriptnames(i) = readbinstring(localbuf(), 1, 36)
   i += 1
  END IF
 NEXT
@@ -1045,7 +1045,7 @@ FOR i = firstscript + 1 TO numberedlast
  FOR j = i - 1 TO firstscript STEP -1
   IF scriptids(j + 1) < scriptids(j) THEN
    SWAP scriptids(j + 1), scriptids(j)
-   SWAP scriptnames$(j + 1), scriptnames$(j)
+   SWAP scriptnames(j + 1), scriptnames(j)
   ELSE
    EXIT FOR
   END IF
@@ -1055,19 +1055,19 @@ NEXT
 'sort trigger scripts by name
 FOR i = numberedlast + 1 TO scriptmax - 1
  FOR j = scriptmax TO i + 1 STEP -1
-  FOR k = 0 TO small(LEN(scriptnames$(i)), LEN(scriptnames$(j)))
-   chara = ASC(LCASE$(CHR$(scriptnames$(i)[k])))
-   charb = ASC(LCASE$(CHR$(scriptnames$(j)[k])))
+  FOR k = 0 TO small(LEN(scriptnames(i)), LEN(scriptnames(j)))
+   chara = ASC(LCASE$(CHR$(scriptnames(i)[k])))
+   charb = ASC(LCASE$(CHR$(scriptnames(j)[k])))
    IF chara < charb THEN
     EXIT FOR
    ELSEIF chara > charb THEN
     SWAP scriptids(i), scriptids(j)
-    SWAP scriptnames$(i), scriptnames$(j)
+    SWAP scriptnames(i), scriptnames(j)
     EXIT FOR
    END IF
   NEXT
- NEXT i
-NEXT o
+ NEXT
+NEXT
 
 pt = 0
 IF firstscript = 2 THEN
@@ -1107,7 +1107,7 @@ DO
    j = pt + 1
    FOR ctr = numberedlast + 1 TO scriptmax
     IF j > scriptmax THEN j = numberedlast + 1
-    tempstr$ = LCASE$(scriptnames$(j))
+    tempstr$ = LCASE$(scriptnames(j))
     IF tempstr$[0] = keyv(i, 0) THEN pt = j: EXIT FOR
     j += 1
    NEXT
@@ -1117,7 +1117,7 @@ DO
 
  textcolor 7, 0
  printstr "Pick a " + scrtype$, 0, 0, dpage
- standardmenu scriptnames$(), scriptmax, 21, pt, top, 8, 10, dpage, 0
+ standardmenu scriptnames(), scriptmax, 21, pt, top, 8, 10, dpage, 0
  IF iddisplay THEN
   textcolor 7, 1
   printstr STR$(id), 8, 190, dpage
@@ -1132,9 +1132,9 @@ clearpage 0
 clearpage 1
 
 IF scriptids(pt) < 16384 THEN
- scriptbrowse$ = MID$(scriptnames$(pt), INSTR(scriptnames$(pt), " ") + 1)
+ scriptbrowse$ = MID$(scriptnames(pt), INSTR(scriptnames(pt), " ") + 1)
 ELSE
- scriptbrowse$ = scriptnames$(pt)
+ scriptbrowse$ = scriptnames(pt)
 END IF
 trigger = scriptids(pt)
 
@@ -1319,7 +1319,7 @@ SUB nearestui (mimicpal, newpal() as RGBcolor, newui())
 END SUB
 
 SUB titlescreenbrowse
-loadpage game$ + ".mxs", gen(1), 2
+loadpage game + ".mxs", gen(1), 2
 setkeys
 gcsr = 0
 DO
@@ -1331,7 +1331,7 @@ DO
  IF keyval(80) > 1 AND gcsr = 0 THEN gcsr = 1
  IF gcsr = 1 THEN
   IF intgrabber(gen(1), 0, gen(genMaxBackdrop) - 1) THEN 
-   loadpage game$ + ".mxs", gen(1), 2
+   loadpage game + ".mxs", gen(1), 2
   END IF
  END IF
  IF enter_or_space() THEN
@@ -1373,7 +1373,7 @@ END SUB
 SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
  DIM ogg_quality AS INTEGER
  IF (pick_ogg_quality(ogg_quality)) THEN mp3 = "" : EXIT SUB
- oggtemp = tmpdir$ & "temp." & INT(RND * 100000) & ".ogg"
+ oggtemp = tmpdir & "temp." & INT(RND * 100000) & ".ogg"
  clearpage vpage
  centerbox 160, 100, 300, 20, 4, vpage
  edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
@@ -1390,7 +1390,7 @@ END SUB
 SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
  DIM ogg_quality AS INTEGER
  IF (pick_ogg_quality(ogg_quality)) THEN wav = "" : EXIT SUB
- oggtemp = tmpdir$ & "temp." & INT(RND * 100000) & ".ogg"
+ oggtemp = tmpdir & "temp." & INT(RND * 100000) & ".ogg"
  clearpage vpage
  centerbox 160, 100, 300, 20, 4, vpage
  edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage

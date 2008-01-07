@@ -203,7 +203,7 @@ RANDOMIZE TIMER
 processcommandline
 
 '---get temp dir---
-tmpdir$ = aquiretempdir$
+tmpdir = aquiretempdir$
 
 'DEBUG debug "dim (almost) everything"
 
@@ -211,7 +211,7 @@ tmpdir$ = aquiretempdir$
 
 'Mixed global and module variables
 DIM font(1024), buffer(16384), pal16(448), timing(4), music(16384)
-DIM gen(360), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev(40, 1) AS LONG, names$(40), veh(21)
+DIM gen(360), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev(40, 1) AS LONG, names(40), veh(21)
 DIM eqstuf(40, 4), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(maxMaxItems, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4)
 
@@ -238,9 +238,10 @@ DIM inventory(inventoryMax) as InventSlot
 DIM npcs(npcdMax) as NPCType
 DIM npc(300) as NPCInst
 DIM didgo(0 TO 3)
-DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, tmpdir$, usepreunlump, gold AS LONG, lastsaveslot, abortg, exename$, sourcerpg$, foemaph, presentsong, framex, framey, game$, workingdir$
-DIM prefsdir$
-DIM savefile$
+DIM shared mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, usepreunlump, lastsaveslot, abortg, foemaph, presentsong, framex, framey
+DIM AS STRING tmpdir, exename, game, sourcerpg, savefile, workingdir
+DIM gold AS LONG
+DIM prefsdir as string
 DIM timers(15) as timer
 DIM fatal
 
@@ -264,18 +265,18 @@ DO 'This is a big loop that encloses the entire program. The loop is only reache
 'DEBUG debug "setup directories"
 
 '---get work dir and exe name---
-IF NOT isdir(tmpdir$) THEN makedir tmpdir$
-workingdir$ = tmpdir$ + "playing.tmp"
-exename$ = trimextension$(trimpath$(COMMAND$(0)))
+IF NOT isdir(tmpdir) THEN makedir tmpdir
+workingdir = tmpdir + "playing.tmp"
+exename = trimextension$(trimpath$(COMMAND$(0)))
 
 'DEBUG debug "create playing.tmp"
-'---If workingdir$ does not already exist, it must be created---
-IF isdir(workingdir$) THEN
- 'DEBUG debug workingdir$+" already exists"
- 'DEBUG debug "erasing "+workingdir$+"\"+ALLFILES
+'---If workingdir does not already exist, it must be created---
+IF isdir(workingdir) THEN
+ 'DEBUG debug workingdir+" already exists"
+ 'DEBUG debug "erasing "+workingdir+"\"+ALLFILES
  cleanuptemp
 ELSE
- makedir workingdir$
+ makedir workingdir
 END IF
 
 '-- Init joysticks
@@ -337,7 +338,7 @@ FOR i = 1 TO commandlineargcount
  IF MID$(a$, 2, 1) <> ":" THEN a$ = curdir$ + SLASH + a$
 #ENDIF
  IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$) THEN
-  sourcerpg$ = a$
+  sourcerpg = a$
   autorungame = 1
   EXIT FOR
  ELSEIF isdir(a$) THEN 'perhaps it's an unlumped folder?
@@ -345,46 +346,46 @@ FOR i = 1 TO commandlineargcount
   IF isfile(a$ + SLASH + "archinym.lmp") THEN 'ok, accept it
    autorungame = 1
    usepreunlump = 1
-   sourcerpg$ = a$
-   workingdir$ = a$
+   sourcerpg = a$
+   workingdir = a$
   END IF
   EXIT FOR
  END IF
 NEXT
 
 IF autorungame = 0 THEN
- IF LCASE$(exename$) <> "game" THEN
-  IF isfile(exepath + SLASH + exename$ + ".rpg") THEN
-   sourcerpg$ = exepath + SLASH + exename$ + ".rpg"
+ IF LCASE$(exename) <> "game" THEN
+  IF isfile(exepath + SLASH + exename + ".rpg") THEN
+   sourcerpg = exepath + SLASH + exename + ".rpg"
    autorungame = 1
   END IF
  END IF
 END IF
 IF autorungame = 0 THEN
  'DEBUG debug "browse for RPG"
- sourcerpg$ = browse$(7, "", "*.rpg", tmpdir$, 1)
- IF sourcerpg$ = "" THEN exitprogram 0
- IF isdir(sourcerpg$) THEN
+ sourcerpg = browse$(7, "", "*.rpg", tmpdir, 1)
+ IF sourcerpg = "" THEN exitprogram 0
+ IF isdir(sourcerpg) THEN
   usepreunlump = 1
-  workingdir$ = sourcerpg$
+  workingdir = sourcerpg
  END IF
 END IF
 
 '-- set up prefs dir
 #IFDEF __FB_LINUX__
 'This is important on linux in case you are playing an rpg file installed in /usr/share/games
-prefsdir$ = ENVIRON$("HOME") + SLASH + ".ohrrpgce" + SLASH + trimextension$(trimpath$(sourcerpg$))
-IF NOT isdir(prefsdir$) THEN makedir prefsdir$
+prefsdir = ENVIRON$("HOME") + SLASH + ".ohrrpgce" + SLASH + trimextension$(trimpath$(sourcerpg))
+IF NOT isdir(prefsdir) THEN makedir prefsdir
 #ELSE
 'This is not used anywhere yet in the Windows version
-prefsdir$ = ENVIRON$("APPDATA") + SLASH + "OHRRPGCE" + SLASH + trimextension$(trimpath$(sourcerpg$))
+prefsdir = ENVIRON$("APPDATA") + SLASH + "OHRRPGCE" + SLASH + trimextension$(trimpath$(sourcerpg))
 #ENDIF
 
 '--set up savegame file
-savefile$ = trimextension$(sourcerpg$) + ".sav"
+savefile = trimextension$(sourcerpg) + ".sav"
 #IFDEF __FB_LINUX__
-IF NOT fileisreadable(savefile$) THEN
- savefile$ = prefsdir$ + SLASH + trimpath$(savefile$)
+IF NOT fileisreadable(savefile) THEN
+ savefile = prefsdir + SLASH + trimpath$(savefile)
 END IF
 #ENDIF
 
@@ -396,26 +397,26 @@ END IF
 edgeprint "Loading...", xstring("Loading...", 160), 6, uilook(uiText), vpage
 setvispage vpage 'refresh
 
-debug "Playing game " & trimpath$(sourcerpg$) & " (" & getdisplayname$(" ") & ") " & DATE & " " & TIME
+debug "Playing game " & trimpath$(sourcerpg) & " (" & getdisplayname$(" ") & ") " & DATE & " " & TIME
 
 '---GAME SELECTED, PREPARING TO PLAY---
 DIM lumpbuf(16383)
 IF usepreunlump = 0 THEN
- unlump sourcerpg$, workingdir$ + SLASH, lumpbuf()
+ unlump sourcerpg, workingdir + SLASH, lumpbuf()
 END IF
 
 dim gmap(dimbinsize(4)) 'this must be declared here, after the binsize file exists!
 
-initgame '--set game$
+initgame '--set game
 
-xbload game$ + ".fnt", font(), "font missing from " + game$
+xbload game + ".fnt", font(), "font missing from " + game
 LoadGEN
 '--upgrade obsolete RPG files (if possible)
 upgrade font()
 
 makebackups 'make a few backup lumps
 
-if isfile(game$ + ".hsp") then unlump game$ + ".hsp", tmpdir$, lumpbuf()
+if isfile(game + ".hsp") then unlump game + ".hsp", tmpdir, lumpbuf()
 ERASE lumpbuf
 
 fadeout 0, 0, 0
@@ -426,7 +427,7 @@ rpgversion gen(genVersion)
 setfont font()
 setpicstuf buffer(), 50, -1
 FOR i = 0 TO 254
- loadset game$ + ".efs", i, 0
+ loadset game + ".efs", i, 0
  foef(i) = buffer(0)
 NEXT i
 j = 0
@@ -455,8 +456,8 @@ choosep = 0
 sayer = 0
 remembermusic = -1
 scrwatch = 0
-menu_set.menufile = workingdir$ & SLASH & "menus.bin"
-menu_set.itemfile = workingdir$ & SLASH & "menuitem.bin"
+menu_set.menufile = workingdir & SLASH & "menus.bin"
+menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
 
 makebackups 'make a few backup lumps
 
@@ -712,7 +713,7 @@ DO
   IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
   IF temp > 0 THEN
    setpicstuf buffer(), 50, -1
-   loadset game$ + ".efs", temp - 1, 0
+   loadset game + ".efs", temp - 1, 0
    FOR i = 0 TO INT(RND * range(19, 27))
     foenext = loopvar(foenext, 0, 19, 1)
     breakout = 0
@@ -761,7 +762,7 @@ DO
  IF fatal = 1 OR abortg > 0 THEN
   resetgame map, foep, stat(), stock(), showsay, scriptout$, sayenh()
   'if skip loadmenu and title bits set, quit
-  IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_sav(savefile$) = 0) THEN
+  IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_sav(savefile) = 0) THEN
    EXIT DO, DO ' To game select screen (quit the gameplay and RPG file loops, allowing the program loop to cycle)
   ELSE
    EXIT DO ' To title screen (quit the gameplay loop and allow the RPG file loop to cycle)
@@ -940,7 +941,7 @@ IF sayer >= 0 THEN
  vehuse = npcs(npc(sayer).id - 1).vechicle
  IF vehuse THEN '---activate a vehicle---
   setpicstuf buffer(), 80, -1
-  loadset game$ + ".veh", vehuse - 1, 0
+  loadset game + ".veh", vehuse - 1, 0
   setmapdata pass(), pass(), 0, 0
   IF vehpass(buffer(19), readmapblock(catx(0) \ 20, caty(0) \ 20, 0), -1) THEN
    '--check mounting permissions first
@@ -1411,7 +1412,7 @@ FOR o = 0 TO 199
   IF bad = 0 THEN
    map = .dest_map
    destdoor = .dest
-   deserdoors game$ + ".dox", door(), map
+   deserdoors game + ".dox", door(), map
    catx(0) = door(destdoor).x * 20
    caty(0) = (door(destdoor).y - 1) * 20
    fadeout 0, 0, 0
@@ -2074,7 +2075,7 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxShop) THEN
      shop retvals(0), needf, stock(), stat(), map, foep, tastuf()
      reloadnpc stat()
-     loadpage game$ + ".til", gmap(0), 3
+     loadpage game + ".til", gmap(0), 3
     END IF
    CASE 55'--get default weapon
     IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
@@ -2133,15 +2134,15 @@ SELECT CASE AS CONST scrat(nowscript).curkind
         writesafe = 0
        ELSE
         setpicstuf buffer(), 1600, 2
-        loadset game$ + ".pt4", retvals(2), 20 + (5 * retvals(0))
+        loadset game + ".pt4", retvals(2), 20 + (5 * retvals(0))
         if npcs(retvals(0)).sprite then sprite_unload(@npcs(retvals(0)).sprite)
-        npcs(retvals(0)).sprite = sprite_load(game$ + ".pt4", retvals(2), 8, 20, 20)
+        npcs(retvals(0)).sprite = sprite_load(game + ".pt4", retvals(2), 8, 20, 20)
        END IF
       END IF
       IF retvals(1) = 1 THEN
        getpal16 pal16(), 4 + retvals(0), retvals(2), 4, npcs(retvals(0)).picture
        if npcs(retvals(0)).pal then palette16_unload(@npcs(retvals(0)).pal)
-       npcs(retvals(0)).pal = palette16_load(game$ + ".pal", retvals(2), 4, npcs(retvals(0)).picture)
+       npcs(retvals(0)).pal = palette16_load(game + ".pal", retvals(2), 4, npcs(retvals(0)).picture)
       END IF
       IF writesafe THEN SetNPCD(npcs(retvals(0)), retvals(1), retvals(2))
      END IF
@@ -2171,7 +2172,7 @@ SELECT CASE AS CONST scrat(nowscript).curkind
      IF retvals(0) < 0 THEN
       retvals(0) = gmap(0)
      END IF
-     loadpage game$ + ".til", retvals(0), 3
+     loadpage game + ".til", retvals(0), 3
      loadtanim retvals(0), tastuf()
      FOR i = 0 TO 1
       cycle(i) = 0
@@ -2507,8 +2508,8 @@ FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
 END FUNCTION
 
 SUB loadmap_gmap(mapnum)
- loadrecord gmap(), game$ + ".map", getbinsize(4) / 2, mapnum
- loadpage game$ + ".til", gmap(0), 3
+ loadrecord gmap(), game + ".map", getbinsize(4) / 2, mapnum
+ loadpage game + ".til", gmap(0), 3
  loadtanim gmap(0), tastuf()
  FOR i = 0 TO 1
   cycle(i) = 0
@@ -2570,12 +2571,12 @@ SUB LoadGen
   dim as integer genlen, ff
   dim as short s
 
-  if not isfile(game$ + ".gen") then fatalerror("general data missing from " & game$): exit sub
+  if not isfile(game + ".gen") then fatalerror("general data missing from " & game): exit sub
 
   genlen = 0
   ff = freefile
 
-  OPEN game$ + ".gen" FOR BINARY AS #ff
+  OPEN game + ".gen" FOR BINARY AS #ff
   SEEK #ff, 8
 
   DO UNTIL EOF(ff) OR genlen > UBOUND(gen)

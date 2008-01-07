@@ -352,7 +352,7 @@ IF b(pt * recordsize + 17) = 1 THEN
  showhero = her.sprite
  getpal16 hpal(), 0, her.sprite_pal, 0, showhero
  setpicstuf buffer(), 5120, 2
- loadset game$ + ".pt0", showhero, 0
+ loadset game + ".pt0", showhero, 0
  IF eslot = 0 THEN info1$ = noroom$
 END IF
 RETRACE
@@ -570,7 +570,7 @@ DO
  centerbox 84, 16, 140, 20, 4, dpage
  centerbox 84, 100, 140, 130, 4, dpage
  centerbox 236, 75, 80, 78, 4, dpage
- edgeprint names$(pt), 84 - LEN(names$(pt)) * 4, 12, uilook(uiText), dpage
+ edgeprint names(pt), 84 - LEN(names(pt)) * 4, 12, uilook(uiText), dpage
  FOR i = 0 TO 11
   temp$ = ""
   IF stb(i) > 0 THEN temp$ = temp$ & "+" & stb(i)
@@ -1078,7 +1078,7 @@ ELSE
    didlearn = trylearn(wptr, atk, 0)
    '--announce learn
    IF didlearn = 1 THEN
-    tmp$ = names$(wptr) + " " + readglobalstring$(124, "learned", 10) + " " + readattackname$(atk - 1)
+    tmp$ = names(wptr) + " " + readglobalstring$(124, "learned", 10) + " " + readattackname$(atk - 1)
     centerbox 160, 100, small(LEN(tmp$) * 8 + 16, 320), 24, 1, vpage
     edgeprint tmp$, large(xstring(tmp$, 160), 0), 95, uilook(uiText), vpage
     setvispage vpage
@@ -1364,7 +1364,7 @@ IF loading < 2 THEN
 END IF
 
 FOR i = 0 TO 3
- sg$ = savefile$
+ sg$ = savefile
  setpicstuf buffer(), 30000, -1
  loadset sg$, i * 2, 0
  IF buffer(0) = 3 THEN 'current version number
@@ -1429,7 +1429,7 @@ FOR i = 0 TO 3
      getpal16 pal16(), 40 + (i * 4) + o, her.sprite_pal, 0, pic(i, o)
     END IF
     setpicstuf buffer(), 5120, 2
-    loadset game$ + ".pt0", pic(i, o), 0
+    loadset game + ".pt0", pic(i, o), 0
     loadsprite buffer(), 0, 0, 0, 32, 40, 2
     stosprite buffer(), 0, 0, 16 + (i * 16) + (o * 4), 2
     loadsprite buffer(), 0, 0, 2, 32, 40, 2
@@ -1854,8 +1854,8 @@ DO
   IF csr = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2): IF mset = 1 THEN textcolor uilook(uiMenuItem), uilook(uiHighlight2)
   printstr menu$(i), 21, 25 + i * 10, dpage 'spell menu
  NEXT i
- IF last = 0 THEN edgeprint names$(pt) + " " + hasnone$, xstring(names$(pt) + " " + hasnone$, 160), 120, uilook(uiText), dpage
- edgeprint names$(pt), xstring(names$(pt), 206), 31, uilook(uiText), dpage
+ IF last = 0 THEN edgeprint names(pt) + " " + hasnone$, xstring(names(pt) + " " + hasnone$, 160), 120, uilook(uiText), dpage
+ edgeprint names(pt), xstring(names(pt), 206), 31, uilook(uiText), dpage
  IF pick = 1 THEN
   centerbox 196, 47, 160, 88, 2, dpage
   IF spred = 0 AND wptr >= 0 THEN
@@ -2168,7 +2168,7 @@ DO
    centerbox 160, 120, 292, 120, 4, dpage
  END SELECT
 
- edgeprint names$(pt), 160 - LEN(names$(pt)) * 4, 20, uilook(uiText), dpage
+ edgeprint names(pt), 160 - LEN(names(pt)) * 4, 20, uilook(uiText), dpage
  edgeprint sname$(34) + XSTR$(stat(pt, 0, 12)), 160 - LEN(sname$(34) + STR$(stat(pt, 0, 12))) * 4, 30, uilook(uiText), dpage
  temp$ = STR$(exlev(pt, 1) - exlev(pt, 0)) + " " + sname$(33) + " " + readglobalstring$(47, "for next", 10) + " " + sname$(34)
  edgeprint temp$, 160 - LEN(temp$) * 4, 40, uilook(uiText), dpage
@@ -2343,7 +2343,7 @@ nw = curbinsize(1) / 2 'new size in memory
 flusharray array(), nw * 50, 0
 'load shop data from STF lump
 setpicstuf buffer(), ol * 2 * 50, -1
-loadset game$ + ".stf", id, 0
+loadset game + ".stf", id, 0
 'in case shop data has been resized, scale records to new size
 FOR i = 0 TO ol - 1
  FOR o = 0 to 49

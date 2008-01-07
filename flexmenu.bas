@@ -844,12 +844,12 @@ DO
 
  '--CTRL+BACKSPACE
  IF keyval(29) > 0 AND keyval(14) THEN
-  cropafter recindex, gen(34), 0, game$ + ".dt6", 80, 1
+  cropafter recindex, gen(34), 0, game + ".dt6", 80, 1
   '--this is a hack to detect if it is safe to erase the extended data
   '--in the second file
   IF recindex = gen(34) THEN
    '--delete the end of attack.bin without the need to prompt
-   cropafter recindex, gen(34), 0, workingdir$ + SLASH + "attack.bin", getbinsize(0), 0
+   cropafter recindex, gen(34), 0, workingdir + SLASH + "attack.bin", getbinsize(0), 0
   END IF
  END IF
 
@@ -992,7 +992,7 @@ updateflexmenu state.pt, dispmenu$(), workmenu(), state.last, menu$(), menutype(
 
 '--load the picture and palette
 setpicstuf buffer(), 3750, 2
-loadset game$ + ".pt6", recbuf(AtkDatPic), 0
+loadset game + ".pt6", recbuf(AtkDatPic), 0
 getpal16 workpal(), 0, recbuf(AtkDatPal), 6, recbuf(AtkDatPic)
 
 RETRACE
@@ -1240,8 +1240,8 @@ END FUNCTION
 SUB menu_editor ()
 
 DIM menu_set AS MenuSet
-menu_set.menufile = workingdir$ & SLASH & "menus.bin"
-menu_set.itemfile = workingdir$ & SLASH & "menuitem.bin"
+menu_set.menufile = workingdir & SLASH & "menus.bin"
+menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
 
 DIM record AS INTEGER = 0
 

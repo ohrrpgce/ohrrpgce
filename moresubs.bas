@@ -162,7 +162,7 @@ stat(slot, 1, 15) = her.walk_sprite_pal
 stat(slot, 0, 16) = her.def_weapon + 1'default weapon
 
 '--read hero's name (doing this last for no real reason)
-names$(slot) = her.name
+names(slot) = her.name
 '--if renaming is permitted, do it
 IF readbit(thishbits(), 0, 24) THEN
  '--add-hero rename is allowed
@@ -412,7 +412,7 @@ FOR i = 0 TO 1
 NEXT i
 
 '--name
-SWAP names$(s), names$(d)
+SWAP names(s), names(d)
 
 '---Equipment
 FOR i = 0 TO 4
@@ -427,7 +427,7 @@ NEXT i
 '---reload hero pictures and palettes
 vishero stat()
 
-'hero(40), bmenu(40,5), spell(40,3,23), stat(40,1,13), lmp(40,7), exlev(40,1), names$(40), eqstuf(40,4)
+'hero(40), bmenu(40,5), spell(40,3,23), stat(40,1,13), lmp(40,7), exlev(40,1), names(40), eqstuf(40,4)
 END SUB
 
 SUB drawsay (saybit(), sayenh(), say$(), showsay, choose$(), choosep)
@@ -537,9 +537,9 @@ END FUNCTION
 
 SUB getnames (stat$())
 DIM bytecount AS UBYTE
-IF isfile(game$ + ".stt") THEN
+IF isfile(game + ".stt") THEN
  fh = FREEFILE
- OPEN game$ + ".stt" FOR BINARY AS #fh
+ OPEN game + ".stt" FOR BINARY AS #fh
  max = 32
  FOR i = 0 TO max
   GET #fh, 1 + (11 * i), bytecount
@@ -573,7 +573,7 @@ wide = 0
 
 GOSUB resetswap
 
-IF hero(acsr) THEN info$ = names$(acsr) ELSE info$ = ""
+IF hero(acsr) THEN info$ = names(acsr) ELSE info$ = ""
 
 MenuSound gen(genAcceptSFX)
 setkeys
@@ -616,12 +616,12 @@ DO
  IF carray(2) > 1 AND ecsr < 0 THEN
   MenuSound gen(genCursorSFX)
   acsr = loopvar(acsr, 0, 3, -1)
-  IF hero(acsr) AND ecsr < 0 THEN info$ = names$(acsr) ELSE info$ = ""
+  IF hero(acsr) AND ecsr < 0 THEN info$ = names(acsr) ELSE info$ = ""
  END IF
  IF carray(3) > 1 AND ecsr < 0 THEN
   MenuSound gen(genCursorSFX)
   acsr = loopvar(acsr, 0, 3, 1)
-  IF hero(acsr) AND ecsr < 0 THEN info$ = names$(acsr) ELSE info$ = ""
+  IF hero(acsr) AND ecsr < 0 THEN info$ = names(acsr) ELSE info$ = ""
  END IF
  IF carray(4) > 1 THEN
   IF swapme = -1 THEN
@@ -673,7 +673,7 @@ EXIT SUB
 refreshemenu:
 IF ecsr < top THEN top = large(ecsr, 0)
 IF ecsr > top + 7 THEN top = ecsr - 7
-IF hero(acsr) AND ecsr < 0 THEN info$ = names$(acsr) ELSE info$ = ""
+IF hero(acsr) AND ecsr < 0 THEN info$ = names(acsr) ELSE info$ = ""
 RETRACE
 
 '---DRAWS SWAP MENU AND CURRENT SELECTION----
@@ -719,7 +719,7 @@ FOR i = 4 TO 40
  IF readbit(hmask(), 0, i) = 0 AND hero(i) THEN
   la = la + 1
   swindex(la) = i
-  swname$(la) = names$(i)
+  swname$(la) = names(i)
   wide = large(wide, LEN(swname$(la)))
  END IF
 NEXT i
@@ -738,7 +738,7 @@ FOR i = 0 TO 3
   numhero = numhero + 1
  END IF
 NEXT i
-IF hero(acsr) AND ecsr < 0 THEN info$ = names$(acsr) ELSE info$ = ""
+IF hero(acsr) AND ecsr < 0 THEN info$ = names(acsr) ELSE info$ = ""
 RETRACE
 END SUB
 
@@ -770,14 +770,14 @@ IF gen(95) < 2 THEN
 ELSE
  '--THE RIGHT WAY--
  'setpicstuf buffer(), 600, -1
- 'loadset game$ + ".dox", map, 0
+ 'loadset game + ".dox", map, 0
  'FOR i = 0 TO 99
 '  door(i) = buffer(i)
   'door(100 + i) = buffer(100 + i)
   'setbit door(), 200, i, buffer(200 + i)
  'NEXT i
  
- DeSerDoors(game$ + ".dox", door(), map)
+ DeSerDoors(game + ".dox", door(), map)
 END IF
 END SUB
 
@@ -786,16 +786,16 @@ SUB loadgame (slot, map, foep, stat(), stock())
 DIM gmaptmp(dimbinsize(4))
 
 '--return gen to defaults
-xbload game$ + ".gen", gen(), "General data is missing from " + game$
+xbload game + ".gen", gen(), "General data is missing from " + game
 
-sg$ = savefile$
+sg$ = savefile
 setpicstuf buffer(), 30000, -1
 loadset sg$, slot * 2, 0
 
 savver = buffer(0)
 IF savver < 2 OR savver > 3 THEN EXIT SUB
 map = buffer(1)
-loadrecord gmaptmp(), game$ + ".map", getbinsize(4) / 2, map
+loadrecord gmaptmp(), game + ".map", getbinsize(4) / 2, map
 catx(0) = buffer(2) + gmaptmp(20) * 20
 caty(0) = buffer(3) + gmaptmp(21) * 20
 catd(0) = buffer(4)
@@ -878,7 +878,7 @@ FOR i = 0 TO 40
   IF buffer(z) > 0 THEN temp$ = temp$ + CHR$(buffer(z))
   z = z + 1
  NEXT j
- names$(i) = temp$
+ names(i) = temp$
 NEXT i
 
 DIM inv_mode AS INTEGER
@@ -983,7 +983,7 @@ IF nativebitmagicnum <> 4444 THEN
 END IF
 
 'ALL THE STUFF THAT MUST BE SAVED
-'map,x,y,d,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
+'map,x,y,d,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
 'ALL THE STUFF THAT MUST BE PASSED
 'slot,map,x,y,d,foep,gold,stat(),bmenu(),spell(),lmp(),exlev(),item(),item$()
 '30000
@@ -991,9 +991,9 @@ END SUB
 
 SUB loadglobalvars (slot, first, last)
 DIM buf(last - first)
-IF isfile$(savefile$) THEN
+IF isfile$(savefile) THEN
  fh = FREEFILE
- OPEN savefile$ FOR BINARY AS #fh
+ OPEN savefile FOR BINARY AS #fh
  SEEK #fh, 60000 * slot + 2 * first + 40027  '30000 + 5013 * 2 + 1
  loadrecord buf(), fh, last - first + 1, -1
  FOR i = 0 TO last - first
@@ -1201,8 +1201,8 @@ limit = her.max_name_len
 IF limit = 0 THEN limit = 16
 
 prompt$ = readglobalstring$(137, "Name the Hero", 20)
-spacer$ = STRING$(large(limit, LEN(names$(who))), " ")
-remember$ = names$(who)
+spacer$ = STRING$(large(limit, LEN(names(who))), " ")
+remember$ = names(who)
 rememberjoycal = gen(60)
 gen(60) = 1'--disable joystick calibration
 
@@ -1221,12 +1221,12 @@ DO
  control
  centerbox 160, 100, 168, 32, 1, dpage
  IF carray(4) > 1 AND keyval(57) = 0 THEN EXIT DO
- IF carray(5) > 1 THEN names$(who) = remember$
- strgrabber names$(who), limit
+ IF carray(5) > 1 THEN names(who) = remember$
+ strgrabber names(who), limit
  edgeprint prompt$, xstring(prompt$, 160), 90, uilook(uiText), dpage
  textcolor uilook(uiHighlight), uiLook(uiHighlight)
  printstr spacer$, xstring(spacer$, 161), 101, dpage
- edgeprint names$(who), xstring(names$(who), 160), 100, uilook(uiMenuItem), dpage
+ edgeprint names(who), xstring(names(who), 160), 100, uilook(uiMenuItem), dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -1253,7 +1253,7 @@ gold = 0
 showsay = 0
 scriptout$ = ""
 '--return gen to defaults
-xbload game$ + ".gen", gen(), "General data is missing from " + game$
+xbload game + ".gen", gen(), "General data is missing from " + game
 
 'flusharray npcl(), 2100, 0
 CleanNPCL npc(),300
@@ -1289,7 +1289,7 @@ FOR i = 0 TO 40
  NEXT o
 NEXT i
 FOR i = 0 TO 40
- names$(i) = ""
+ names(i) = ""
 NEXT i
 CleanInventory(inventory())
 FOR i = 0 TO 40
@@ -1331,7 +1331,7 @@ deletetemps
 killallscripts
 
 'ALL THE STUFF THAT MUST BE RESET
-'map,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
+'map,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
 '30000
 END SUB
 
@@ -1469,10 +1469,10 @@ FUNCTION loadscript (n)
  NEXT
 
  '--load the script from file
- IF isfile(tmpdir$ & n & ".hsz") THEN
-  scriptfile$ = tmpdir$ & n & ".hsz"
- ELSEIF isfile(tmpdir$ & n & ".hsx") THEN
-  scriptfile$ = tmpdir$ & n & ".hsx"
+ IF isfile(tmpdir & n & ".hsz") THEN
+  scriptfile$ = tmpdir & n & ".hsz"
+ ELSEIF isfile(tmpdir & n & ".hsx") THEN
+  scriptfile$ = tmpdir & n & ".hsx"
  END IF
 
  IF NOT isfile(scriptfile$) THEN
@@ -1646,7 +1646,7 @@ NEXT i
 
 buffer(0) = 3        'SAVEGAME VERSION NUMBER
 buffer(1) = map
-loadrecord gmaptmp(), game$ + ".map", getbinsize(4) / 2, map
+loadrecord gmaptmp(), game + ".map", getbinsize(4) / 2, map
 buffer(2) = catx(0) - gmaptmp(20) * 20
 buffer(3) = caty(0) - gmaptmp(21) * 20
 buffer(4) = catd(0)
@@ -1724,7 +1724,7 @@ FOR i = 0 TO 40
  NEXT o
 NEXT i
 FOR i = 0 TO 40
- temp$ = names$(i)
+ temp$ = names(i)
  FOR j = 0 TO 16
   IF j < LEN(temp$) THEN
    IF MID$(temp$, j + 1, 1) <> "" THEN buffer(z) = ASC(MID$(temp$, j + 1, 1))
@@ -1743,7 +1743,7 @@ NEXT i
 SaveInventory16Bit inventory(), z, buffer()
 
 setpicstuf buffer(), 30000, -1
-sg$ = savefile$
+sg$ = savefile
 storeset sg$, slot * 2, 0
 
 '---RECORD 2
@@ -1799,12 +1799,12 @@ NEXT
 ' z = 7540 here
 
 setpicstuf buffer(), 30000, -1
-sg$ = savefile$
+sg$ = savefile
 storeset sg$, slot * 2 + 1, 0
 
 
 'ALL THE STUFF THAT MUST BE SAVED
-'map,x,y,d,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names$(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
+'map,x,y,d,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
 'ALL THE STUFF THAT MUST BE PASSED
 'slot,map,x,y,d,foep,gold,stat(),bmenu(),spell(),lmp(),exlev(),item(),item$()
 '30000
@@ -1813,7 +1813,7 @@ END SUB
 SUB saveglobalvars (slot, first, last)
 DIM buf(last - first)
 fh = FREEFILE
-OPEN savefile$ FOR BINARY AS #fh
+OPEN savefile FOR BINARY AS #fh
 SEEK #fh, 60000 * slot + 2 * first + 40027  '30000 + 5013 * 2 + 1
 FOR i = 0 TO last - first
  buf(i) = global(first + i)
@@ -1919,7 +1919,7 @@ END SUB
 
 FUNCTION settingstring (searchee$, setting$, result$)
 
-' checks to see if searchee$ begins with setting$=
+' checks to see if searchee$ begins with setting$ =
 ' if so, sets result$ to the uppercased space-trimmed value that
 ' follows the = sign and returns true. If not found, returns false
 
@@ -2042,7 +2042,7 @@ EXIT SUB
 
 initshop:
 setpicstuf storebuf(), 40, -1
-loadset game$ + ".sho", id, 0
+loadset game + ".sho", id, 0
 sn$ = readbadbinstring$(storebuf(), 0, 15, 0)
 o = 0
 FOR i = 0 TO 7
@@ -2090,7 +2090,7 @@ DO
  FOR i = 0 TO 3
   IF hero(i) > 0 THEN
    col = uilook(uiText)
-   edgeprint names$(i), 128 - LEN(names$(i)) * 8, 5 + y * 10, col, dpage
+   edgeprint names(i), 128 - LEN(names(i)) * 8, 5 + y * 10, col, dpage
    edgeprint STR$(ABS(stat(i, 0, 0))) + "/" + STR$(ABS(stat(i, 1, 0))), 136, 5 + y * 10, col, dpage
    y = y + 1
   END IF
@@ -2114,7 +2114,7 @@ LOOP
 END FUNCTION
 
 SUB snapshot
-pre$ = trimextension$(sourcerpg$)
+pre$ = trimextension$(sourcerpg)
 
 n = 0
 DO
@@ -2211,7 +2211,7 @@ END SUB
 
 FUNCTION getdisplayname$ (default$)
  '--Get game's display name
- f$ = workingdir$ + SLASH + "browse.txt"
+ f$ = workingdir + SLASH + "browse.txt"
  IF isfile(f$) THEN
   setpicstuf buffer(), 40, -1
   loadset f$, 0, 0

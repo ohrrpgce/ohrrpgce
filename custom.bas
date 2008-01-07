@@ -29,7 +29,7 @@ DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, you
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE SUB mapmaker (font%(), npcn%(), npcstat%())
 DECLARE SUB npcdef (npcn%(), pt%)
-DECLARE SUB editbitset (array%(), wof%, last%, names$())
+DECLARE SUB editbitset (array%(), wof%, last%, names())
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
 DECLARE SUB shopdata ()
 DECLARE SUB importsong ()
@@ -66,36 +66,37 @@ DECLARE SUB move_unwritable_rpg(BYREF filetolump$)
 #include "uiconst.bi"
 #include "scrconst.bi"
 
-DIM exename$
-exename$ = trimextension$(trimpath$(COMMAND$(0)))
+DIM exename as string
+exename = trimextension$(trimpath$(COMMAND$(0)))
 
-DIM tmpdir$
-DIM homedir$
+DIM tmpdir as string
+DIM homedir as string
 'why do we use different temp dirs in game and custom?
 #IFDEF __FB_LINUX__
-homedir$ = ENVIRON$("HOME")
-tmpdir$ = homedir$ + SLASH + ".ohrrpgce" + SLASH
-IF NOT isdir(tmpdir$) THEN makedir tmpdir$
+homedir = ENVIRON$("HOME")
+tmpdir = homedir + SLASH + ".ohrrpgce" + SLASH
+IF NOT isdir(tmpdir) THEN makedir tmpdir
 #ELSE
 'Custom on Windows works in the current dir
-homedir$ = ENVIRON$("USERPROFILE") & SLASH & "My Documents" 'Is My Documents called something else for non-English versions of Windows?
-tmpdir$ = exepath$ + SLASH
+homedir = ENVIRON$("USERPROFILE") & SLASH & "My Documents" 'Is My Documents called something else for non-English versions of Windows?
+tmpdir = exepath$ + SLASH
 #ENDIF
 
 IF fileiswriteable(exepath$ + SLASH + "writetest.tmp") THEN
  'When CUSTOM is installed read-write, work in CUSTOM's folder
  safekill exepath$ + SLASH + "writetest.tmp"
- CHDIR exepath$ 'Note that exepath$ is a FreeBasic builtin, and not derived from the above exename$
+ CHDIR exepath$ 'Note that exepath$ is a FreeBasic builtin, and not derived from the above exename
 ELSE
  'If CUSTOM is installed read-only, use your home dir as the default
- CHDIR homedir$
+ CHDIR homedir
  #IFNDEF __FB_LINUX__
-  'under Windows, need a new tmpdir$ too
-  tmpdir$ = homedir$ + SLASH
+  'under Windows, need a new tmpdir too
+  tmpdir = homedir + SLASH
  #ENDIF
 END IF
 
-workingdir$ = tmpdir$ & "working.tmp"
+dim workingdir as string
+workingdir = tmpdir & "working.tmp"
 
 processcommandline
 
@@ -103,8 +104,8 @@ DIM font(1024), buffer(16384), timing(4), joy(4)
 DIM menu$(22), gen(360), keyv(55, 3), rpg$(3), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), npcn(1500), npcstat(1500), uilook(uiColors)
 DIM master(255) as RGBcolor
 'more global variables
-DIM game$, gamefile$, insert, activepalette
-DIM vpage, dpage, fadestate, workingdir$
+DIM game as string, gamefile as string, insert, activepalette
+DIM vpage, dpage, fadestate
 DIM fmvol
 fmvol = getfmvol
 
@@ -124,8 +125,8 @@ textcolor 15, 0
 GOSUB readstuff
 
 dpage = 1: vpage = 0: Rate = 160
-game$ = ""
-gamefile$ = ""
+game = ""
+gamefile = ""
 hsfile$ = ""
 
 GOSUB makeworkingdir
@@ -146,15 +147,15 @@ FOR i = 1 TO commandlineargcount
  END IF
 
  IF (LCASE$(justextension$(cmdline$)) = "rpg" AND isfile(cmdline$)) OR isdir(cmdline$) THEN
-  gamefile$ = cmdline$
-  game$ = trimextension$(trimpath$(gamefile$))
+  gamefile = cmdline$
+  game = trimextension$(trimpath$(gamefile))
  END IF
 NEXT
-IF game$ = "" THEN
+IF game = "" THEN
  hsfile$ = ""
  GOSUB chooserpg
 END IF
-setwindowtitle "OHRRPGCE - " + gamefile$
+setwindowtitle "OHRRPGCE - " + gamefile
 
 GOSUB checkpass
 
@@ -164,42 +165,42 @@ textcolor 15, 0
 printstr "UNLUMPING DATA: please wait.", 0, 0, 0
 setvispage 0
 
-touchfile workingdir$ + SLASH + "__danger.tmp"
+touchfile workingdir + SLASH + "__danger.tmp"
 
-IF isdir(gamefile$) THEN
+IF isdir(gamefile) THEN
  'work on an unlumped RPG file
- findfiles gamefile$ + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
+ findfiles gamefile + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
   LINE INPUT #fh, filename$
-  copyfile gamefile$ + SLASH + filename$, workingdir$ + SLASH + filename$
+  copyfile gamefile + SLASH + filename$, workingdir + SLASH + filename$
  LOOP
  CLOSE #fh
  KILL "filelist.tmp"
 ELSE
  DIM lumpbuf(16383)
- unlump gamefile$, workingdir$ + SLASH, lumpbuf()
+ unlump gamefile, workingdir + SLASH, lumpbuf()
  ERASE lumpbuf
 END IF
-game$ = workingdir$ + SLASH + game$
+game = workingdir + SLASH + game
 verifyrpg
-safekill workingdir$ + SLASH + "__danger.tmp"
+safekill workingdir + SLASH + "__danger.tmp"
 
 IF hsfile$ <> "" THEN GOTO hsimport
 
-IF NOT isfile(game$ + ".mas") AND NOT isfile(workingdir$ + SLASH + "palettes.bin") THEN 
+IF NOT isfile(game + ".mas") AND NOT isfile(workingdir + SLASH + "palettes.bin") THEN 
  palfile$ = finddatafile("ohrrpgce.mas")
  IF palfile$ = "" THEN fatalerror "RPG master palette and ohrrpgce.mas missing"
- copyfile palfile$, game$ + ".mas"
+ copyfile palfile$, game + ".mas"
 END IF
-IF NOT isfile(game$ + ".fnt") THEN
+IF NOT isfile(game + ".fnt") THEN
  getdefaultfont font()
- xbsave game$ + ".fnt", font(), 2048
+ xbsave game + ".fnt", font(), 2048
 END IF
-xbload game$ + ".fnt", font(), "Font not loaded"
+xbload game + ".fnt", font(), "Font not loaded"
 '--loadgen, upgrade, resave
-xbload game$ + ".gen", gen(), "general data is missing, RPG file corruption is likely"
+xbload game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
 activepalette = gen(genMasterPal)
 loadpalette master(), activepalette
 setpal master()
@@ -272,7 +273,7 @@ DO:
     IF pt = 11 THEN ui_color_editor(activepalette)
   END SELECT
   '--always resave the .GEN lump after any menu
-  xbsave game$ + ".gen", gen(), 1000
+  xbsave game + ".gen", gen(), 1000
  END IF
 
  standardmenu menu$(), mainmax, 22, pt, 0, 0, 0, dpage, 0
@@ -341,16 +342,16 @@ DO
  usemenu csr, top, 0, last, 20
  IF enter_or_space() THEN
   IF csr = 0 THEN
-   game$ = inputfilename$("Filename of New Game?", ".rpg")
-   IF game$ <> "" THEN
-     IF NOT newRPGfile(finddatafile("ohrrpgce.new"), game$ + ".rpg") THEN GOTO finis
-     gamefile$ = game$ + ".rpg"
+   game = inputfilename$("Filename of New Game?", ".rpg")
+   IF game <> "" THEN
+     IF NOT newRPGfile(finddatafile("ohrrpgce.new"), game + ".rpg") THEN GOTO finis
+     gamefile = game + ".rpg"
      EXIT DO
    END IF
   ELSEIF csr = 1 THEN
-   gamefile$ = browse$(7, "", "*.rpg", tmpdir$, 0)
-   game$ = trimextension$(trimpath$(gamefile$))
-   IF game$ <> "" THEN EXIT DO
+   gamefile = browse$(7, "", "*.rpg", tmpdir, 0)
+   game = trimextension$(trimpath$(gamefile))
+   IF game <> "" THEN EXIT DO
   ELSEIF csr = 2 THEN
    GOTO finis
   END IF
@@ -384,7 +385,7 @@ DO
  usemenu temp, 0, 0, 2, 2
  IF enter_or_space() THEN
   IF temp = 0 THEN
-   IF isfile(workingdir$ + SLASH + "__danger.tmp") THEN
+   IF isfile(workingdir + SLASH + "__danger.tmp") THEN
     textcolor 14, 4
     printstr "Data is corrupt, not safe to relump", 0, 100, vpage
     setvispage vpage 'refresh
@@ -428,8 +429,8 @@ DO
 LOOP'a$
 
 makeworkingdir:
-IF NOT isdir(workingdir$) THEN
- makedir workingdir$
+IF NOT isdir(workingdir) THEN
+ makedir workingdir
 ELSE
  'Recover from an old crash
  GOSUB cleanup
@@ -444,7 +445,7 @@ END IF
 RETRACE
 
 relump:
-xbsave game$ + ".gen", gen(), 1000
+xbsave game + ".gen", gen(), 1000
 rpg$(0) = "Continue editing"
 rpg$(1) = "Save changes and continue editing"
 rpg$(2) = "Save changes and quit"
@@ -470,15 +471,15 @@ setvispage 0 'refresh
 '--verify that maps are not corrupt--
 verifyrpg
 '--lump data to SAVE rpg file
-dolumpfiles gamefile$
+dolumpfiles gamefile
 RETRACE
 
 checkpass:
-copylump gamefile$, "archinym.lmp", workingdir$, -1
-'--set game$ according to the archinym
-game$ = readarchinym()
-copylump gamefile$, game$ + ".gen", workingdir$
-xbload workingdir$ + SLASH + game$ + ".gen", gen(), "general data is missing, RPG file corruption is likely"
+copylump gamefile, "archinym.lmp", workingdir, -1
+'--set game according to the archinym
+game = readarchinym()
+copylump gamefile, game + ".gen", workingdir
+xbload workingdir + SLASH + game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
 '----load password-----
 IF gen(5) >= 256 THEN
  '--new format password
@@ -521,10 +522,10 @@ DO
 LOOP
 
 hsimport:
-xbload game$ + ".gen", gen(), "general data is missing, RPG file corruption is likely"
+xbload game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
 upgrade font() 'needed because it has not already happened because we are doing command-line import
 importscripts hsfile$
-xbsave game$ + ".gen", gen(), 1000
+xbsave game + ".gen", gen(), 1000
 GOSUB dorelump
 GOSUB cleanupfiles
 CHDIR curdir$
@@ -551,16 +552,16 @@ END
 cleanupfiles:
 IF nocleanup = 0 THEN
  'borrowed this code from game.bas cos wildcard didn't work in FB
- findfiles workingdir$ + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
+ findfiles workingdir + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
   LINE INPUT #fh, filename$
-  KILL workingdir$ + SLASH + filename$
+  KILL workingdir + SLASH + filename$
  LOOP
  CLOSE #fh
  KILL "filelist.tmp"
- RMDIR workingdir$
+ RMDIR workingdir
 END IF
 safekill "temp.lst"
 RETRACE
@@ -826,12 +827,12 @@ GOSUB savefont
 EXIT SUB
 
 loadfont:
-xbload game$ + ".fnt", font(), "Can't load font"
+xbload game + ".fnt", font(), "Can't load font"
 setfont font()
 RETRACE
 
 savefont:
-xbsave game$ + ".fnt", font(), 2048
+xbsave game + ".fnt", font(), 2048
 RETRACE
 
 copychar:
@@ -849,7 +850,7 @@ RETRACE
 importfont:
 newfont$ = browse$(0, default$, "*.ohf", "")
 IF newfont$ <> "" THEN
- copyfile newfont$, game$ + ".fnt"
+ copyfile newfont$, game + ".fnt"
 
  '--never overwrite 0 thru 31
  FOR i = 0 TO 2047
@@ -893,7 +894,7 @@ DO
 
  IF keyval(28) > 1 THEN
   GOSUB savefont
-  copyfile game$ + ".fnt", newfont$ + ".ohf"
+  copyfile game + ".fnt", newfont$ + ".ohf"
   EXIT DO
  END IF
 
@@ -913,7 +914,7 @@ RETRACE
 END SUB
 
 SUB shopdata
-DIM names$(32), a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
+DIM names(32), a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
 DIM her AS HeroDef' Used to get hero name for default stuff name
 
 maxcount = 32: pt = 0: it$ = "-NONE-": sn$ = ""
@@ -961,7 +962,7 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-getnames names$(), maxcount
+getnames names(), maxcount
 
 GOSUB lshopset
 GOSUB menugen
@@ -973,7 +974,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, gen(97), 0, game$ + ".sho", 40, 1: GOSUB menugen
+ IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, gen(97), 0, game + ".sho", 40, 1: GOSUB menugen
  usemenu csr, 0, 0, li, 24
  IF csr = 1 THEN
   IF pt = gen(97) AND keyval(77) > 1 THEN
@@ -982,7 +983,7 @@ DO
    IF needaddset(pt, gen(genMaxShop), "Shop") THEN
     flusharray a(), 19, 0
     setpicstuf a(), 40, -1
-    storeset game$ + ".sho", pt, 0
+    storeset game + ".sho", pt, 0
    END IF
    GOSUB lshopset
   END IF
@@ -1043,7 +1044,7 @@ RETRACE
 
 lshopset:
 setpicstuf a(), 40, -1
-loadset game$ + ".sho", pt, 0
+loadset game + ".sho", pt, 0
 sn$ = ""
 FOR i = 1 TO small(a(0), 15)
  sn$ = sn$ + CHR$(a(i))
@@ -1058,7 +1059,7 @@ FOR i = 1 TO small(a(0), 15)
  a(i) = ASC(MID$(sn$, i, 1))
 NEXT i
 setpicstuf a(), 40, -1
-storeset game$ + ".sho", pt, 0
+storeset game + ".sho", pt, 0
 RETRACE
 
 menuup:
@@ -1101,7 +1102,7 @@ DO
    IF needaddset(thing, a(16), "Shop Thing") THEN
     flusharray b(), getbinsize(1) / 2 - 1, 0
     setpicstuf b(), getbinsize(1), -1
-    storeset game$ + ".stf", pt * 50 + thing, 0
+    storeset game + ".stf", pt * 50 + thing, 0
    END IF
    GOSUB lstuf
    GOSUB itstrsh
@@ -1200,7 +1201,7 @@ smenu$(6) = tag_condition_caption(b(20), "Buy Require Tag", "No Tag Check")
 smenu$(7) = tag_condition_caption(b(21), "Sell Require Tag", "No Tag Check")
 smenu$(8) = tag_condition_caption(b(22), "Buy Set Tag", "No Tag Set", "Unalterable", "Unalterable")
 smenu$(9) = tag_condition_caption(b(23), "Sell Set Tag", "No Tag Set", "Unalterable", "Unalterable")
-smenu$(10) = names$(32) + " Price:" + XSTR$(b(24))
+smenu$(10) = names(32) + " Price:" + XSTR$(b(24))
 smenu$(11) = "Must Trade in" + XSTR$(b(30) + 1) + " of:" + tradestf$(0)
 smenu$(12) = " (Change Amount)"
 smenu$(13) = "Must Trade in" + XSTR$(b(32) + 1) + " of:" + tradestf$(1)
@@ -1228,7 +1229,7 @@ RETRACE
 lstuf:
 flusharray b(), curbinsize(1) / 2, 0
 setpicstuf b(), getbinsize(1), -1
-loadset game$ + ".stf", pt * 50 + thing, 0
+loadset game + ".stf", pt * 50 + thing, 0
 thing$ = readbadbinstring$(b(), 0, 16, 0)
 '---check for invalid data
 IF b(17) < 0 OR b(17) > 2 THEN b(17) = 0
@@ -1246,7 +1247,7 @@ FOR i = 1 TO small(b(0), 16)
  b(i) = ASC(MID$(thing$, i, 1))
 NEXT i
 setpicstuf b(), getbinsize(1), -1
-storeset game$ + ".stf", pt * 50 + thing, 0
+storeset game + ".stf", pt * 50 + thing, 0
 RETRACE
 
 itstrsh:
@@ -1277,11 +1278,11 @@ FUNCTION newRPGfile (template$, newrpg$)
  printstr "Unlumping", 0, 60, vpage
  setvispage vpage 'refresh
  DIM lumpbuf(16383)
- unlump newrpg$, workingdir$ + SLASH, lumpbuf()
+ unlump newrpg$, workingdir + SLASH, lumpbuf()
  ERASE lumpbuf
  '--create archinym information lump
  fh = FREEFILE
- OPEN workingdir$ + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
+ OPEN workingdir + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
  PRINT #fh, "ohrrpgce"
  PRINT #fh, version$
  CLOSE #fh
@@ -1294,7 +1295,7 @@ END FUNCTION
 
 SUB dolumpfiles (filetolump$)
 '--build the list of files to lump
-findfiles workingdir$ + SLASH + ALLFILES, 0, "temp.lst", buffer()
+findfiles workingdir + SLASH + ALLFILES, 0, "temp.lst", buffer()
 fixorder "temp.lst"
 IF isdir(filetolump$) THEN
  '---copy changed files back to source rpgdir---
@@ -1307,7 +1308,7 @@ IF isdir(filetolump$) THEN
  DO UNTIL EOF(fh)
   LINE INPUT #fh, filename$
   safekill filetolump$ + SLASH + filename$
-  copyfile workingdir$ + SLASH + filename$, filetolump$ + SLASH + filename$
+  copyfile workingdir + SLASH + filename$, filetolump$ + SLASH + filename$
  LOOP
  CLOSE #fh
  safekill "temp.lst"
@@ -1317,24 +1318,24 @@ ELSE
   move_unwritable_rpg filetolump$
  END IF
  DIM lumpbuf(16383)
- lumpfiles "temp.lst", filetolump$, workingdir$ + SLASH, lumpbuf()
+ lumpfiles "temp.lst", filetolump$, workingdir + SLASH, lumpbuf()
  safekill "temp.lst"
  ERASE lumpbuf
 END IF
 END SUB
 
 FUNCTION readarchinym$ ()
- IF isfile(workingdir$ + SLASH + "archinym.lmp") THEN
+ IF isfile(workingdir + SLASH + "archinym.lmp") THEN
   fh = FREEFILE
-  OPEN workingdir$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
+  OPEN workingdir + SLASH + "archinym.lmp" FOR INPUT AS #fh
   LINE INPUT #fh, a$
   CLOSE #fh
   a$ = LCASE$(a$)
   readarchinym$ = a$
  ELSE
   ' for backwards compatability with ancient games that lack archinym.lmp
-  debug workingdir$ + SLASH + "archinym.lmp" + " unreadable, using " + LCASE$(trimpath$(game$)) + " instead"
-  readarchinym$ = LCASE$(trimpath$(game$))
+  debug workingdir + SLASH + "archinym.lmp" + " unreadable, using " + LCASE$(trimpath$(game)) + " instead"
+  readarchinym$ = LCASE$(trimpath$(game))
  END IF
 END FUNCTION
 
@@ -1343,7 +1344,7 @@ SUB move_unwritable_rpg(BYREF filetolump$)
  centerbox 160, 100, 310, 50, 3, vpage
  edgeprint filetolump$, 10, 80, 15, vpage
  edgeprint "is not writable. Saving to:", 10, 90, 15, vpage
- filetolump$ = homedir$ & SLASH & trimpath$(filetolump$)
+ filetolump$ = homedir & SLASH & trimpath$(filetolump$)
  edgeprint filetolump$, 10, 100, 15, vpage
  edgeprint "[Press Any Key]", 10, 110, 15, vpage
  setvispage vpage

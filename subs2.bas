@@ -23,7 +23,7 @@ DECLARE SUB stredit (s$, maxl%)
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION filenum$ (n%)
-DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
+DECLARE SUB writeconstant (filehandle%, num%, names, unique$(), prefix$)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
@@ -33,7 +33,7 @@ DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION boxconditionheroname$ (num%, cond%())
-DECLARE SUB editbitset (array%(), wof%, last%, names$())
+DECLARE SUB editbitset (array%(), wof%, last%, names())
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
@@ -85,12 +85,12 @@ IF bytes >= 0 THEN
  setpicstuf buffer(), bytes, -1
  FOR i = 0 TO index
   loadset lump$, i, 0
-  storeset tmpdir$ & "_cropped.tmp", i, 0
+  storeset tmpdir & "_cropped.tmp", i, 0
  NEXT i
  IF flushafter THEN
   flusharray buffer(), INT(bytes / 2) + 1, 0
   FOR i = index + 1 TO limit
-   storeset tmpdir$ & "_cropped.tmp", i, 0
+   storeset tmpdir & "_cropped.tmp", i, 0
   NEXT i
  ELSE
   limit = index
@@ -99,43 +99,43 @@ IF bytes >= 0 THEN
 ELSE '--use pages instead of sets
  FOR i = 0 TO index
   loadpage lump$, i, flushafter
-  storepage tmpdir$ & "_cropped.tmp", i, flushafter
+  storepage tmpdir & "_cropped.tmp", i, flushafter
  NEXT i
  limit = index
  
 END IF'--separate setpicstuf
 
-copyfile tmpdir$ & "_cropped.tmp", lump$
-safekill tmpdir$ & "_cropped.tmp"
+copyfile tmpdir & "_cropped.tmp", lump$
+safekill tmpdir & "_cropped.tmp"
 
 END SUB
 
 SUB exportnames ()
 
-DIM u$(1024), names$(32), stat$(11)
+DIM u$(1024), names(32), stat$(11)
 DIM her AS HeroDef
 DIM menu AS MenuDef
 DIM menu_set AS MenuSet
-menu_set.menufile = workingdir$ & SLASH & "menus.bin"
-menu_set.itemfile = workingdir$ & SLASH & "menuitem.bin"
+menu_set.menufile = workingdir & SLASH & "menus.bin"
+menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
 
 max = 32
 
-getnames names$(), max
-stat$(0) = names$(0)
-stat$(1) = names$(1)
-stat$(2) = names$(2)
-stat$(3) = names$(3)
-stat$(4) = names$(5)
-stat$(5) = names$(6)
-stat$(6) = names$(29)
-stat$(7) = names$(30)
-stat$(8) = names$(8)
-stat$(9) = names$(7)
-stat$(10) = names$(31)
-stat$(11) = names$(4)
+getnames names(), max
+stat$(0) = names(0)
+stat$(1) = names(1)
+stat$(2) = names(2)
+stat$(3) = names(3)
+stat$(4) = names(5)
+stat$(5) = names(6)
+stat$(6) = names(29)
+stat$(7) = names(30)
+stat$(8) = names(8)
+stat$(9) = names(7)
+stat$(10) = names(31)
+stat$(11) = names(4)
 
-outf$ = trimextension$(gamefile$) + ".hsi"
+outf$ = trimextension$(gamefile) + ".hsi"
 
 clearpage 0
 clearpage 1
@@ -151,7 +151,7 @@ setvispage 0
 
 fh = FREEFILE
 OPEN outf$ FOR OUTPUT AS #fh
-PRINT #fh, "# HamsterSpeak constant definitions for " & trimpath$(gamefile$)
+PRINT #fh, "# HamsterSpeak constant definitions for " & trimpath$(gamefile)
 PRINT #fh, ""
 PRINT #fh, "define constant, begin"
 
@@ -199,7 +199,7 @@ printstr "slot names", 0, pl * 8, 0: pl = pl + 1
 isunique "", u$(), 1
 writeconstant fh, 1, "Weapon", u$(), "slot"
 FOR i = 0 TO 3
- writeconstant fh, i + 2, names$(25 + i), u$(), "slot"
+ writeconstant fh, i + 2, names(25 + i), u$(), "slot"
 NEXT i
 setvispage 0
 
@@ -244,7 +244,7 @@ SUB getnames (stat$(), max)
 
 fh = FREEFILE
 
-OPEN game$ + ".stt" FOR BINARY AS #fh
+OPEN game + ".stt" FOR BINARY AS #fh
 
 FOR i = 0 TO max
  temp$ = CHR$(0)
@@ -274,7 +274,7 @@ END FUNCTION
 SUB addtrigger (scrname$, id, triggers AS TRIGGERSET)
  WITH triggers
   FOR i = 0 TO .size - 1
-   IF .tnames$[i] = scrname$ THEN
+   IF .tnames[i] = scrname$ THEN
     .ids[i] = id
     .usedbits[i \ 32] = BITSET(.usedbits[i \ 32], i MOD 32)
     EXIT SUB
@@ -313,14 +313,14 @@ SUB importscripts (f$)
  clearpage vpage
  IF buffer(0) = 21320 AND buffer(1) = 0 THEN
 
-  copyfile f$, game$ + ".hsp"
+  copyfile f$, game + ".hsp"
   textcolor 7, 0
   textx = 0: texty = 0
-  unlumpfile(game$ + ".hsp", "scripts.bin", tmpdir$)
-  IF isfile(tmpdir$ & "scripts.bin") THEN
+  unlumpfile(game + ".hsp", "scripts.bin", tmpdir)
+  IF isfile(tmpdir & "scripts.bin") THEN
    dotbin = -1
    fptr = FREEFILE
-   OPEN tmpdir$ + "scripts.bin" FOR BINARY AS #fptr
+   OPEN tmpdir + "scripts.bin" FOR BINARY AS #fptr
    'load header
    GET #fptr, , temp
    headersize = temp
@@ -329,9 +329,9 @@ SUB importscripts (f$)
    SEEK #fptr, headersize + 1
   ELSE
    dotbin = 0
-   unlumpfile(game$ + ".hsp", "scripts.txt", tmpdir$)
+   unlumpfile(game + ".hsp", "scripts.txt", tmpdir)
    fptr = FREEFILE
-   OPEN tmpdir$ & "scripts.txt" FOR INPUT AS #fptr
+   OPEN tmpdir & "scripts.txt" FOR INPUT AS #fptr
   END IF
 
   'load in existing trigger tables
@@ -339,7 +339,7 @@ SUB importscripts (f$)
    WITH triggers(i)
     fh = 0
     .size = 0
-    fname$ = workingdir$ + SLASH + "lookup" + STR$(i) + ".bin"
+    fname$ = workingdir + SLASH + "lookup" + STR$(i) + ".bin"
     IF isfile(fname$) THEN
      fh = FREEFILE
      OPEN fname$ FOR BINARY AS #fh
@@ -353,13 +353,13 @@ SUB importscripts (f$)
     .usedbits = CALLOCATE(allocnum \ 8)
 
     IF .usedbits = 0 OR .ids = 0 OR .tnames = 0 THEN fatalerror "Could not allocate memory for script importation"
-    FOR j = 0 TO allocnum - 1: .tnames$[j] = "": NEXT
+    FOR j = 0 TO allocnum - 1: .tnames[j] = "": NEXT
    
     IF fh THEN
      FOR j = 0 TO .size - 1
       loadrecord buffer(), fh, 20, j
       .ids[j] = buffer(0)
-      .tnames$[j] = readbinstring$(buffer(), 1, 36)
+      .tnames[j] = readbinstring$(buffer(), 1, 36)
      NEXT
      CLOSE fh
     END IF
@@ -376,10 +376,10 @@ SUB importscripts (f$)
     loadrecord buffer(), fptr, recordsize \ 2
     id = buffer(0)
     trigger = buffer(1)
-    names$ = readbinstring$(buffer(), 2, 36)
+    names = readbinstring$(buffer(), 2, 36)
    ELSE
     'read from scripts.txt
-    LINE INPUT #fptr, names$
+    LINE INPUT #fptr, names
     LINE INPUT #fptr, num$
     LINE INPUT #fptr, argc$
     FOR i = 1 TO str2int(argc$)
@@ -387,24 +387,24 @@ SUB importscripts (f$)
     NEXT i
     id = str2int(num$)
     trigger = 0
-    names$ = LEFT$(names$, 36)
+    names = LEFT$(names, 36)
    END IF
 
    'save to plotscr.lst
    buffer(0) = id
-   writebinstring names$, buffer(), 1, 36
-   storerecord buffer(), workingdir$ + SLASH + "plotscr.lst", 20, gen(40)
+   writebinstring names, buffer(), 1, 36
+   storerecord buffer(), workingdir + SLASH + "plotscr.lst", 20, gen(40)
    gen(40) = gen(40) + 1
    IF buffer(0) > gen(43) AND buffer(0) < 16384 THEN gen(43) = buffer(0)
 
    'process trigger
    IF trigger > 0 AND trigger < 16 THEN
-    addtrigger names$, id, triggers(trigger)
+    addtrigger names, id, triggers(trigger)
     triggercount(trigger) += 1
    END IF
 
    'display progress
-   IF textx + LEN(names$) + 1 >= 40 THEN
+   IF textx + LEN(names) + 1 >= 40 THEN
     textx = 0
     texty = texty + 1
     IF texty > 23 THEN
@@ -416,8 +416,8 @@ SUB importscripts (f$)
 
    IF id < 16384 OR trigger > 0 THEN
     viscount = viscount + 1
-    printstr names$ + ",", textx * 8, texty * 8, vpage
-    textx = textx + LEN(names$) + 2
+    printstr names + ",", textx * 8, texty * 8, vpage
+    textx = textx + LEN(names) + 2
    END IF
   LOOP
 
@@ -427,8 +427,8 @@ SUB importscripts (f$)
     FOR j = 0 TO .size - 1
      IF BIT(.usedbits[j \ 32], j MOD 32) = 0 THEN .ids[j] = 0
      buffer(0) = .ids[j]
-     writebinstring .tnames$[j], buffer(), 1, 36
-     storerecord buffer(), workingdir$ + SLASH + "lookup" + STR$(i) + ".bin", 20, j
+     writebinstring .tnames[j], buffer(), 1, 36
+     storerecord buffer(), workingdir + SLASH + "lookup" + STR$(i) + ".bin", 20, j
     NEXT
 
     DEALLOCATE(.ids)
@@ -438,7 +438,7 @@ SUB importscripts (f$)
   NEXT
 
   CLOSE #fptr
-  IF dotbin THEN safekill tmpdir$ & "scripts.bin" ELSE safekill tmpdir$ & "scripts.txt"
+  IF dotbin THEN safekill tmpdir & "scripts.bin" ELSE safekill tmpdir & "scripts.txt"
   edgeprint "imported" + XSTR$(viscount) + " scripts", 0, 180, 15, vpage
 
  ELSE
@@ -520,7 +520,7 @@ END SUB
 
 SUB statname
 max = 122
-DIM stat$(max), names$(max), maxlen(max)
+DIM stat$(max), names(max), maxlen(max)
 clearpage 0
 clearpage 1
 
@@ -540,118 +540,118 @@ FOR i = 0 TO max
  END SELECT
 NEXT i
 
-names$(0) = "Health Points"
-names$(1) = "Spell Points"
-names$(2) = "Attack Power"
-names$(3) = "Accuracy"
-names$(4) = "Extra Hits"
-names$(5) = "Blocking Power"
-names$(6) = "Dodge Rate"
-names$(7) = "Counter Rate"
-names$(8) = "Speed"
+names(0) = "Health Points"
+names(1) = "Spell Points"
+names(2) = "Attack Power"
+names(3) = "Accuracy"
+names(4) = "Extra Hits"
+names(5) = "Blocking Power"
+names(6) = "Dodge Rate"
+names(7) = "Counter Rate"
+names(8) = "Speed"
 FOR i = 1 TO 8
- names$(8 + i) = "Enemy Type" + XSTR$(i)
- names$(16 + i) = "Elemental" + XSTR$(i)
+ names(8 + i) = "Enemy Type" + XSTR$(i)
+ names(16 + i) = "Elemental" + XSTR$(i)
 NEXT i
 FOR i = 1 TO 4
- names$(24 + i) = "Armor" + XSTR$(i)
+ names(24 + i) = "Armor" + XSTR$(i)
 NEXT i
-names$(29) = "Spell Skill"
-names$(30) = "Spell Block"
-names$(31) = "Spell cost %"
-names$(32) = "Money"
-names$(33) = "Experience":              stat$(33) = readglobalstring$(33, "Experience", 10)
-names$(34) = "Battle Item Menu":        stat$(34) = readglobalstring$(34, "Item", 10)
-names$(35) = "Exit Item Menu":          stat$(35) = readglobalstring$(35, "DONE", 10)
-names$(36) = "Sort Item Menu":          stat$(36) = readglobalstring$(36, "AUTOSORT", 10)
-names$(37) = "Drop Item":               stat$(37) = readglobalstring$(37, "TRASH", 10)
-names$(38) = "Weapon":                  stat$(38) = readglobalstring$(38, "Weapon", 10)
-names$(39) = "Unequip All":             stat$(39) = readglobalstring$(39, "-REMOVE-", 10)
-names$(40) = "Exit Equip":              stat$(40) = readglobalstring$(40, "-EXIT-", 10)
-names$(41) = "Drop Prompt":             stat$(41) = readglobalstring$(41, "Discard", 10)
-names$(42) = "Negative Drop Prefix":    stat$(42) = readglobalstring$(42, "Cannot", 10)
-names$(43) = "Level":                   stat$(43) = readglobalstring$(43, "Level", 10)
-names$(44) = "Overwrite Save Yes":      stat$(44) = readglobalstring$(44, "Yes", 10)
-names$(45) = "Overwrite Save No":       stat$(45) = readglobalstring$(45, "No", 10)
-names$(46) = "Exit Spell List Menu":    stat$(46) = readglobalstring$(46, "EXIT", 10)
-names$(47) = "(exp) for next (level)":  stat$(47) = readglobalstring$(47, "for next", 10)
-names$(48) = "Remove Hero from Team":   stat$(48) = readglobalstring$(48, "REMOVE", 10)
-names$(49) = "Pay at Inn":              stat$(49) = readglobalstring$(49, "Pay", 10)
-names$(50) = "Cancel Inn":              stat$(50) = readglobalstring$(50, "Cancel", 10)
-names$(51) = "Cancel Spell Menu":       stat$(51) = readglobalstring$(51, "(CANCEL)", 10)
-names$(52) = "New Game":                stat$(52) = readglobalstring$(52, "NEW GAME", 10)
-names$(53) = "Exit Game":               stat$(53) = readglobalstring$(53, "EXIT", 10)
-names$(54) = "Pause":                   stat$(54) = readglobalstring$(54, "PAUSE", 10)
-names$(55) = "Quit Playing Prompt":     stat$(55) = readglobalstring$(55, "Quit Playing?", 20)
-names$(56) = "Quit Playing Yes":        stat$(56) = readglobalstring$(57, "Yes", 10)
-names$(57) = "Quit Playing No":         stat$(57) = readglobalstring$(58, "No", 10)
-names$(58) = "Cancel Save":             stat$(58) = readglobalstring$(59, "CANCEL", 10)
-names$(59) = "Menu: Items":             stat$(59) = readglobalstring$(60, "Items", 10)
-names$(60) = "Menu: Spells":            stat$(60) = readglobalstring$(61, "Spells", 10)
-names$(61) = "Menu: Status":            stat$(61) = readglobalstring$(62, "Status", 10)
-names$(62) = "Menu: Equip":             stat$(62) = readglobalstring$(63, "Equip", 10)
-names$(63) = "Menu: Order":             stat$(63) = readglobalstring$(64, "Order", 10)
-names$(64) = "Menu: Team":              stat$(64) = readglobalstring$(65, "Team", 10)
-names$(65) = "Menu: Save":              stat$(65) = readglobalstring$(66, "Save", 10)
-names$(66) = "Menu: Quit":              stat$(66) = readglobalstring$(67, "Quit", 10)
-names$(67) = "Menu: Minimap":           stat$(67) = readglobalstring$(68, "Map", 10)
-names$(68) = "Volume Control":          stat$(68) = readglobalstring$(69, "Volume", 10)
-names$(69) = "Shop Menu: Buy":          stat$(69) = readglobalstring$(70, "Buy", 10)
-names$(70) = "Shop Menu: Sell":         stat$(70) = readglobalstring$(71, "Sell", 10)
-names$(71) = "Shop Menu: Inn":          stat$(71) = readglobalstring$(72, "Inn", 10)
-names$(72) = "Shop Menu: Hire":         stat$(72) = readglobalstring$(73, "Hire", 10)
-names$(73) = "Shop Menu: Exit":         stat$(73) = readglobalstring$(74, "Exit", 10)
-names$(74) = "Unsellable item warning": stat$(74) = readglobalstring$(75, "CANNOT SELL", 20)
-names$(75) = "Sell value prefix":       stat$(75) = readglobalstring$(77, "Worth", 20)
-names$(76) = "Sell trade prefix":       stat$(76) = readglobalstring$(79, "Trade for", 20)
-names$(77) = "($) and a (item)":        stat$(77) = readglobalstring$(81, "and a", 10)
-names$(78) = "Worthless item warning":  stat$(78) = readglobalstring$(82, "Worth Nothing", 20)
-names$(79) = "Sell alert":              stat$(79) = readglobalstring$(84, "Sold", 10)
-names$(80) = "Buy trade prefix":        stat$(80) = readglobalstring$(85, "Trade for", 20)
-names$(81) = "Hire price prefix":       stat$(81) = readglobalstring$(87, "Joins for", 20)
-names$(82) = "Cannot buy prefix":       stat$(82) = readglobalstring$(89, "Cannot Afford", 20)
-names$(83) = "Cannot hire prefix":      stat$(83) = readglobalstring$(91, "Cannot Hire", 20)
-names$(84) = "Buy alert":               stat$(84) = readglobalstring$(93, "Purchased", 20)
-names$(85) = "Hire alert (suffix)":     stat$(85) = readglobalstring$(95, "Joined!", 20)
-names$(86) = "(#) in stock":            stat$(86) = readglobalstring$(97, "in stock", 20)
-names$(87) = "Equipability prefix":     stat$(87) = readglobalstring$(99, "Equip:", 10)
-names$(88) = "Party full warning":      stat$(88) = readglobalstring$(100, "No Room In Party", 20)
-names$(89) = "Replace Save Prompt":     stat$(89) = readglobalstring$(102, "Replace Old Data?", 20)
-names$(90) = "Status Prompt":           stat$(90) = readglobalstring$(104, "Who's Status?", 20)
-names$(91) = "Spells Prompt":           stat$(91) = readglobalstring$(106, "Who's Spells?", 20)
-names$(92) = "Equip Prompt":            stat$(92) = readglobalstring$(108, "Equip Who?", 20)
-names$(93) = "Equip Nothing (unequip)": stat$(93) = readglobalstring$(110, "Nothing", 10)
-names$(94) = "Nothing to Steal":        stat$(94) = readglobalstring$(111, "Has Nothing", 30)
-names$(95) = "Steal Failure":           stat$(95) = readglobalstring$(114, "Cannot Steal", 30)
-names$(96) = "Stole (itemname)":        stat$(96) = readglobalstring$(117, "Stole", 30)
-names$(97) = "When an Attack Misses":   stat$(97) = readglobalstring$(120, "miss", 20)
-names$(98) = "When a Spell Fails":      stat$(98) = readglobalstring$(122, "fail", 20)
-names$(99) = "(hero) learned (spell)":  stat$(99) = readglobalstring$(124, "learned", 10)
-names$(100) = "Found (gold)":           stat$(100) = readglobalstring$(125, "Found", 10)
-names$(101) = "Gained (experience)":    stat$(101) = readglobalstring$(126, "Gained", 10)
-names$(102) = "Weak to (elemental)":    stat$(102) = readglobalstring$(127, "Weak to", 10)
-names$(103) = "Strong to (elemental)":  stat$(103) = readglobalstring$(128, "Strong to", 10)
-names$(104) = "Absorbs (elemental)":    stat$(104) = readglobalstring$(129, "Absorbs", 10)
-names$(105) = "No Elemental Effects":   stat$(105) = readglobalstring$(130, "No Elemental Effects", 30)
-names$(106) = "(hero) has no spells":   stat$(106) = readglobalstring$(133, "has no spells", 20)
-names$(107) = "Plotscript: pick hero":  stat$(107) = readglobalstring$(135, "Which Hero?", 20)
-names$(108) = "Hero name prompt":       stat$(108) = readglobalstring$(137, "Name the Hero", 20)
-names$(109) = "Found a (item)":         stat$(109) = readglobalstring$(139, "Found a", 20)
-names$(110) = "Found (number) (items)": stat$(110) = readglobalstring$(141, "Found", 20)
-names$(111) = "THE INN COSTS (# gold)": stat$(111) = readglobalstring$(143, "THE INN COSTS", 20)
-names$(112) = "You have (# gold)":      stat$(112) = readglobalstring$(145, "You have", 20)
-names$(113) = "CANNOT RUN!":            stat$(113) = readglobalstring$(147, "CANNOT RUN!", 20)
-names$(114) = "Level up for (hero)":    stat$(114) = readglobalstring$(149, "Level up for", 20)
-names$(115) = "(#) levels for (hero)":  stat$(115) = readglobalstring$(151, "levels for", 20)
-names$(116) = "($) and (number) (item)":stat$(116) = readglobalstring$(153, "and", 10)
-names$(117) = "day":                    stat$(117) = readglobalstring$(154, "day", 10)
-names$(118) = "days":                   stat$(118) = readglobalstring$(155, "days", 10)
-names$(119) = "hour":                   stat$(119) = readglobalstring$(156, "hour", 10)
-names$(120) = "hours":                  stat$(120) = readglobalstring$(157, "hours", 10)
-names$(121) = "minute":                 stat$(121) = readglobalstring$(158, "minute", 10)
-names$(122) = "minutes":                stat$(122) = readglobalstring$(159, "minutes", 10)
+names(29) = "Spell Skill"
+names(30) = "Spell Block"
+names(31) = "Spell cost %"
+names(32) = "Money"
+names(33) = "Experience":              stat$(33) = readglobalstring$(33, "Experience", 10)
+names(34) = "Battle Item Menu":        stat$(34) = readglobalstring$(34, "Item", 10)
+names(35) = "Exit Item Menu":          stat$(35) = readglobalstring$(35, "DONE", 10)
+names(36) = "Sort Item Menu":          stat$(36) = readglobalstring$(36, "AUTOSORT", 10)
+names(37) = "Drop Item":               stat$(37) = readglobalstring$(37, "TRASH", 10)
+names(38) = "Weapon":                  stat$(38) = readglobalstring$(38, "Weapon", 10)
+names(39) = "Unequip All":             stat$(39) = readglobalstring$(39, "-REMOVE-", 10)
+names(40) = "Exit Equip":              stat$(40) = readglobalstring$(40, "-EXIT-", 10)
+names(41) = "Drop Prompt":             stat$(41) = readglobalstring$(41, "Discard", 10)
+names(42) = "Negative Drop Prefix":    stat$(42) = readglobalstring$(42, "Cannot", 10)
+names(43) = "Level":                   stat$(43) = readglobalstring$(43, "Level", 10)
+names(44) = "Overwrite Save Yes":      stat$(44) = readglobalstring$(44, "Yes", 10)
+names(45) = "Overwrite Save No":       stat$(45) = readglobalstring$(45, "No", 10)
+names(46) = "Exit Spell List Menu":    stat$(46) = readglobalstring$(46, "EXIT", 10)
+names(47) = "(exp) for next (level)":  stat$(47) = readglobalstring$(47, "for next", 10)
+names(48) = "Remove Hero from Team":   stat$(48) = readglobalstring$(48, "REMOVE", 10)
+names(49) = "Pay at Inn":              stat$(49) = readglobalstring$(49, "Pay", 10)
+names(50) = "Cancel Inn":              stat$(50) = readglobalstring$(50, "Cancel", 10)
+names(51) = "Cancel Spell Menu":       stat$(51) = readglobalstring$(51, "(CANCEL)", 10)
+names(52) = "New Game":                stat$(52) = readglobalstring$(52, "NEW GAME", 10)
+names(53) = "Exit Game":               stat$(53) = readglobalstring$(53, "EXIT", 10)
+names(54) = "Pause":                   stat$(54) = readglobalstring$(54, "PAUSE", 10)
+names(55) = "Quit Playing Prompt":     stat$(55) = readglobalstring$(55, "Quit Playing?", 20)
+names(56) = "Quit Playing Yes":        stat$(56) = readglobalstring$(57, "Yes", 10)
+names(57) = "Quit Playing No":         stat$(57) = readglobalstring$(58, "No", 10)
+names(58) = "Cancel Save":             stat$(58) = readglobalstring$(59, "CANCEL", 10)
+names(59) = "Menu: Items":             stat$(59) = readglobalstring$(60, "Items", 10)
+names(60) = "Menu: Spells":            stat$(60) = readglobalstring$(61, "Spells", 10)
+names(61) = "Menu: Status":            stat$(61) = readglobalstring$(62, "Status", 10)
+names(62) = "Menu: Equip":             stat$(62) = readglobalstring$(63, "Equip", 10)
+names(63) = "Menu: Order":             stat$(63) = readglobalstring$(64, "Order", 10)
+names(64) = "Menu: Team":              stat$(64) = readglobalstring$(65, "Team", 10)
+names(65) = "Menu: Save":              stat$(65) = readglobalstring$(66, "Save", 10)
+names(66) = "Menu: Quit":              stat$(66) = readglobalstring$(67, "Quit", 10)
+names(67) = "Menu: Minimap":           stat$(67) = readglobalstring$(68, "Map", 10)
+names(68) = "Volume Control":          stat$(68) = readglobalstring$(69, "Volume", 10)
+names(69) = "Shop Menu: Buy":          stat$(69) = readglobalstring$(70, "Buy", 10)
+names(70) = "Shop Menu: Sell":         stat$(70) = readglobalstring$(71, "Sell", 10)
+names(71) = "Shop Menu: Inn":          stat$(71) = readglobalstring$(72, "Inn", 10)
+names(72) = "Shop Menu: Hire":         stat$(72) = readglobalstring$(73, "Hire", 10)
+names(73) = "Shop Menu: Exit":         stat$(73) = readglobalstring$(74, "Exit", 10)
+names(74) = "Unsellable item warning": stat$(74) = readglobalstring$(75, "CANNOT SELL", 20)
+names(75) = "Sell value prefix":       stat$(75) = readglobalstring$(77, "Worth", 20)
+names(76) = "Sell trade prefix":       stat$(76) = readglobalstring$(79, "Trade for", 20)
+names(77) = "($) and a (item)":        stat$(77) = readglobalstring$(81, "and a", 10)
+names(78) = "Worthless item warning":  stat$(78) = readglobalstring$(82, "Worth Nothing", 20)
+names(79) = "Sell alert":              stat$(79) = readglobalstring$(84, "Sold", 10)
+names(80) = "Buy trade prefix":        stat$(80) = readglobalstring$(85, "Trade for", 20)
+names(81) = "Hire price prefix":       stat$(81) = readglobalstring$(87, "Joins for", 20)
+names(82) = "Cannot buy prefix":       stat$(82) = readglobalstring$(89, "Cannot Afford", 20)
+names(83) = "Cannot hire prefix":      stat$(83) = readglobalstring$(91, "Cannot Hire", 20)
+names(84) = "Buy alert":               stat$(84) = readglobalstring$(93, "Purchased", 20)
+names(85) = "Hire alert (suffix)":     stat$(85) = readglobalstring$(95, "Joined!", 20)
+names(86) = "(#) in stock":            stat$(86) = readglobalstring$(97, "in stock", 20)
+names(87) = "Equipability prefix":     stat$(87) = readglobalstring$(99, "Equip:", 10)
+names(88) = "Party full warning":      stat$(88) = readglobalstring$(100, "No Room In Party", 20)
+names(89) = "Replace Save Prompt":     stat$(89) = readglobalstring$(102, "Replace Old Data?", 20)
+names(90) = "Status Prompt":           stat$(90) = readglobalstring$(104, "Who's Status?", 20)
+names(91) = "Spells Prompt":           stat$(91) = readglobalstring$(106, "Who's Spells?", 20)
+names(92) = "Equip Prompt":            stat$(92) = readglobalstring$(108, "Equip Who?", 20)
+names(93) = "Equip Nothing (unequip)": stat$(93) = readglobalstring$(110, "Nothing", 10)
+names(94) = "Nothing to Steal":        stat$(94) = readglobalstring$(111, "Has Nothing", 30)
+names(95) = "Steal Failure":           stat$(95) = readglobalstring$(114, "Cannot Steal", 30)
+names(96) = "Stole (itemname)":        stat$(96) = readglobalstring$(117, "Stole", 30)
+names(97) = "When an Attack Misses":   stat$(97) = readglobalstring$(120, "miss", 20)
+names(98) = "When a Spell Fails":      stat$(98) = readglobalstring$(122, "fail", 20)
+names(99) = "(hero) learned (spell)":  stat$(99) = readglobalstring$(124, "learned", 10)
+names(100) = "Found (gold)":           stat$(100) = readglobalstring$(125, "Found", 10)
+names(101) = "Gained (experience)":    stat$(101) = readglobalstring$(126, "Gained", 10)
+names(102) = "Weak to (elemental)":    stat$(102) = readglobalstring$(127, "Weak to", 10)
+names(103) = "Strong to (elemental)":  stat$(103) = readglobalstring$(128, "Strong to", 10)
+names(104) = "Absorbs (elemental)":    stat$(104) = readglobalstring$(129, "Absorbs", 10)
+names(105) = "No Elemental Effects":   stat$(105) = readglobalstring$(130, "No Elemental Effects", 30)
+names(106) = "(hero) has no spells":   stat$(106) = readglobalstring$(133, "has no spells", 20)
+names(107) = "Plotscript: pick hero":  stat$(107) = readglobalstring$(135, "Which Hero?", 20)
+names(108) = "Hero name prompt":       stat$(108) = readglobalstring$(137, "Name the Hero", 20)
+names(109) = "Found a (item)":         stat$(109) = readglobalstring$(139, "Found a", 20)
+names(110) = "Found (number) (items)": stat$(110) = readglobalstring$(141, "Found", 20)
+names(111) = "THE INN COSTS (# gold)": stat$(111) = readglobalstring$(143, "THE INN COSTS", 20)
+names(112) = "You have (# gold)":      stat$(112) = readglobalstring$(145, "You have", 20)
+names(113) = "CANNOT RUN!":            stat$(113) = readglobalstring$(147, "CANNOT RUN!", 20)
+names(114) = "Level up for (hero)":    stat$(114) = readglobalstring$(149, "Level up for", 20)
+names(115) = "(#) levels for (hero)":  stat$(115) = readglobalstring$(151, "levels for", 20)
+names(116) = "($) and (number) (item)":stat$(116) = readglobalstring$(153, "and", 10)
+names(117) = "day":                    stat$(117) = readglobalstring$(154, "day", 10)
+names(118) = "days":                   stat$(118) = readglobalstring$(155, "days", 10)
+names(119) = "hour":                   stat$(119) = readglobalstring$(156, "hour", 10)
+names(120) = "hours":                  stat$(120) = readglobalstring$(157, "hours", 10)
+names(121) = "minute":                 stat$(121) = readglobalstring$(158, "minute", 10)
+names(122) = "minutes":                stat$(122) = readglobalstring$(159, "minutes", 10)
 
-'names$() = "":      stat$() = readglobalstring$(, "", 10)
+'names() = "":      stat$() = readglobalstring$(, "", 10)
 'NOTE: if you add global strings here, be sure to update the limit-checking on
 'the implementation of the "get global string" plotscripting command
 
@@ -667,7 +667,7 @@ DO
  strgrabber stat$(pt), maxlen(pt)
  IF keyval(28) > 1 THEN GOSUB typestat
  
- standardmenu names$(), max, 22, pt, top, 0, 0, dpage, 0
+ standardmenu names(), max, 22, pt, top, 0, 0, dpage, 0
  standardmenu stat$(), max, 22, pt, top, 232, 0, dpage, 0
  SWAP vpage, dpage
  setvispage vpage
@@ -695,7 +695,7 @@ DO
  FOR i = top TO top + 22
   textcolor 7, 0
   IF i = pt THEN textcolor 14 + tog, 0
-  printstr names$(i), 0, (i - top) * 8, dpage
+  printstr names(i), 0, (i - top) * 8, dpage
   xpos = 232
   IF i = pt THEN
    textcolor 15, 1
@@ -810,7 +810,7 @@ DO
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) THEN
   GOSUB savelines
-  cropafter pt, gen(39), 0, game$ + ".say", 400, 1
+  cropafter pt, gen(39), 0, game + ".say", 400, 1
   GOSUB loadlines
  END IF
  usemenu csr, 0, 0, 7, 24
@@ -1087,7 +1087,7 @@ shopar:
 shop$ = ""
 IF cond(8) > 0 THEN
  setpicstuf a(), 40, -1
- loadset game$ + ".sho", cond(8) - 1, 0
+ loadset game + ".sho", cond(8) - 1, 0
  FOR i = 1 TO small(a(0), 15)
   shop$ = shop$ + CHR$(a(i))
  NEXT i
@@ -1226,7 +1226,7 @@ max(4) = gen(genMaxBackdrop) - 1
 min(5) = -1
 max(5) = gen(genMaxSong)
 IF boxbuf(197) > 0 THEN
- loadpage game$ + ".mxs", boxbuf(197) - 1, 2
+ loadpage game + ".mxs", boxbuf(197) - 1, 2
 END IF
 RETRACE
 
@@ -1337,7 +1337,7 @@ END FUNCTION
 
 SUB verifyrpg
 
-xbload game$ + ".gen", buffer(), "General data is missing!"
+xbload game + ".gen", buffer(), "General data is missing!"
 
 FOR i = 0 TO buffer(0)
  IF NOT isfile(maplumpname$(i, "t")) THEN fatalerror "map" + filenum$(i) + " tilemap is missing!"
@@ -1349,9 +1349,9 @@ FOR i = 0 TO buffer(0)
 NEXT
 END SUB
 
-SUB writeconstant (filehandle, num, names$, unique$(), prefix$)
+SUB writeconstant (filehandle, num, names, unique$(), prefix$)
 'prints to already-open filehandle 1
-a$ = exclusive(names$, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _'~")
+a$ = exclusive(names, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _'~")
 WHILE NOT isunique(a$, unique$(), 0): a$ = numbertail(a$): WEND
 IF a$ <> "" THEN
  a$ = STR$(num) + "," + prefix$ + ":" + a$

@@ -526,9 +526,9 @@ SUB makebackups
  'what is this for? Since some lumps can be modified at run time, we need to keep a
  'backup copy, and then only edit the copy. The original is never used directly.
  'enemy data
- copyfile game$ + ".dt1", tmpdir$ & "dt1.tmp"
+ copyfile game + ".dt1", tmpdir & "dt1.tmp"
  'formation data
- copyfile game$ + ".for", tmpdir$ & "for.tmp"
+ copyfile game + ".for", tmpdir & "for.tmp"
  'if you add lump-modding commands, you better well add them here >:(
 END SUB
 
@@ -536,54 +536,54 @@ SUB correctbackdrop
 
 IF gen(58) THEN
  '--restore text box backdrop
- loadpage game$ + ".mxs", gen(58) - 1, 3
+ loadpage game + ".mxs", gen(58) - 1, 3
  EXIT SUB
 END IF
 
 IF gen(50) THEN
  '--restore script backdrop
- loadpage game$ + ".mxs", gen(50) - 1, 3
+ loadpage game + ".mxs", gen(50) - 1, 3
  EXIT SUB
 END IF
 
-loadpage game$ + ".til", gmap(0), 3
+loadpage game + ".til", gmap(0), 3
 
 END SUB
 
 SUB cleanuptemp
- findfiles workingdir$ + SLASH + ALLFILES, 0, tmpdir$ + "filelist.tmp", buffer()
+ findfiles workingdir + SLASH + ALLFILES, 0, tmpdir + "filelist.tmp", buffer()
  fh = FREEFILE
-  OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
+  OPEN tmpdir + "filelist.tmp" FOR INPUT AS #fh
   DO UNTIL EOF(fh)
    LINE INPUT #fh, filename$
    IF usepreunlump = 0 THEN
     'normally delete everything
-    KILL workingdir$ + SLASH + filename$
+    KILL workingdir + SLASH + filename$
    ELSE
     'but for preunlumped games only delete specific files
     ext$ = justextension$(filename$)
     IF ext$ = "tmp" OR ext$ = "bmd" THEN
-     KILL workingdir$ + SLASH + filename$
+     KILL workingdir + SLASH + filename$
     END IF
    END IF
   LOOP
   CLOSE #fh
 
-  KILL tmpdir$ + "filelist.tmp"
+  KILL tmpdir + "filelist.tmp"
 
-  findfiles tmpdir$ + ALLFILES, 0, tmpdir$ + "filelist.tmp", buffer()
+  findfiles tmpdir + ALLFILES, 0, tmpdir + "filelist.tmp", buffer()
   fh = FREEFILE
-  OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
+  OPEN tmpdir + "filelist.tmp" FOR INPUT AS #fh
   DO UNTIL EOF(fh)
    LINE INPUT #fh, filename$
    IF filename$ = "filelist.tmp" THEN CONTINUE DO ' skip this, deal with it later
-   IF NOT isdir(tmpdir$ & filename$) THEN
-    KILL tmpdir$ & filename$
+   IF NOT isdir(tmpdir & filename$) THEN
+    KILL tmpdir & filename$
    END IF
   LOOP
   CLOSE #fh
 
-  KILL tmpdir$ + "filelist.tmp"
+  KILL tmpdir + "filelist.tmp"
 END SUB
 
 FUNCTION checkfordeath (stat())
@@ -680,7 +680,7 @@ END SUB
 FUNCTION titlescr
 titlescr = -1 ' default return true for success
 clearpage 3
-loadpage game$ + ".mxs", gen(genTitle), 3
+loadpage game + ".mxs", gen(genTitle), 3
 needf = 2
 IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
 fademusic fmvol
@@ -730,18 +730,18 @@ vishero stat()
 FOR i = 0 TO npcdMax
  setpicstuf buffer(), 1600, 2
  with npcs(i)
-  loadset game$ + ".pt4", .picture, 20 + (5 * i)
+  loadset game + ".pt4", .picture, 20 + (5 * i)
   getpal16 pal16(), 4 + i, .palette, 4, npcs(i).picture
   if .sprite then sprite_unload(@.sprite)
   if .pal then palette16_unload(@.pal)
-  .sprite = sprite_load(game$ + ".pt4", .picture, 8, 20, 20)
-  .pal = palette16_load(game$ + ".pal", .palette, 4, .picture)
+  .sprite = sprite_load(game + ".pt4", .picture, 8, 20, 20)
+  .pal = palette16_load(game + ".pal", .palette, 4, .picture)
  end with
 NEXT i
 END SUB
 
 FUNCTION mapstatetemp$(mapnum, prefix$)
- RETURN tmpdir$ & prefix$ & mapnum
+ RETURN tmpdir & prefix$ & mapnum
 END FUNCTION
 
 SUB savemapstate_gmap(mapnum, prefix$)
@@ -943,19 +943,19 @@ END SUB
 SUB deletetemps
 'deletes game-state temporary files when exiting back to the titlescreen
 
- findfiles tmpdir$ + ALLFILES, 0, tmpdir$ + "filelist.tmp", buffer()
+ findfiles tmpdir + ALLFILES, 0, tmpdir + "filelist.tmp", buffer()
  fh = FREEFILE
- OPEN tmpdir$ + "filelist.tmp" FOR INPUT AS #fh
+ OPEN tmpdir + "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
   LINE INPUT #fh, filename$
   filename$ = LCASE$(filename$)
   IF RIGHT$(filename$,4) = ".tmp" AND (LEFT$(filename$,3) = "map" OR LEFT$(filename$,5) = "state") THEN
-   KILL tmpdir$ + filename$
+   KILL tmpdir + filename$
   END IF
  LOOP
  CLOSE #fh
 
- KILL tmpdir$ + "filelist.tmp"
+ KILL tmpdir + "filelist.tmp"
 END SUB
 
 FUNCTION decodetrigger (trigger, trigtype)
@@ -963,7 +963,7 @@ FUNCTION decodetrigger (trigger, trigtype)
  'debug "decoding " + STR$(trigger) + " type " + STR$(trigtype)
  decodetrigger = trigger  'default
  IF trigger >= 16384 THEN
-  fname$ = workingdir$ + SLASH + "lookup" + STR$(trigtype) + ".bin"
+  fname$ = workingdir + SLASH + "lookup" + STR$(trigtype) + ".bin"
   IF isfile(fname$) THEN
    IF loadrecord (buf(), fname$, 20, trigger - 16384) THEN
     decodetrigger = buf(0)

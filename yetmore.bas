@@ -167,7 +167,7 @@ END SUB
 
 FUNCTION checksaveslot (slot)
   fbdim checkslot
-  sg$ = savefile$
+  sg$ = savefile
   savh = FREEFILE
   OPEN sg$ FOR BINARY AS #savh
   GET #savh, 1 + 60000 * (slot - 1), checkslot
@@ -222,14 +222,14 @@ DO WHILE start < LEN(text$)
      insert$ = ""
      where = findhero(arg + 1, 0, 40, 1)
      IF where >= 0 THEN
-      insert$ = names$(where)
+      insert$ = names(where)
      END IF
     CASE "P": '--Hero name by Party position
      IF arg < 40 THEN
       '--defaults blank if not found
       insert$ = ""
       IF hero(arg) > 0 THEN
-       insert$ = names$(arg)
+       insert$ = names(arg)
       END IF
      END IF
     CASE "C": '--Hero name by caterpillar position
@@ -237,7 +237,7 @@ DO WHILE start < LEN(text$)
      insert$ = ""
      where = partybyrank(arg)
      IF where >= 0 THEN
-      insert$ = names$(where)
+      insert$ = names(where)
      END IF
     CASE "V": '--global variable by ID
      '--defaults blank if out-of-range
@@ -563,18 +563,18 @@ herobyrank = result
 END FUNCTION
 
 SUB initgame
-'--back compat game$
-game$ = workingdir$ + SLASH + LCASE(trimextension$(trimpath$(sourcerpg$)))
-'--set game$ according to the archinym
-IF isfile(workingdir$ + SLASH + "archinym.lmp") THEN
+'--back compat game
+game = workingdir + SLASH + LCASE(trimextension$(trimpath$(sourcerpg)))
+'--set game according to the archinym
+IF isfile(workingdir + SLASH + "archinym.lmp") THEN
  fh = FREEFILE
- OPEN workingdir$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
+ OPEN workingdir + SLASH + "archinym.lmp" FOR INPUT AS #fh
  LINE INPUT #fh, a$
  CLOSE #fh
  a$ = LCASE$(a$)
- IF LEN(a$) <= 8 THEN game$ = workingdir$ + SLASH + a$
+ IF LEN(a$) <= 8 THEN game = workingdir + SLASH + a$
 END IF
-displayname$ = getdisplayname$(sourcerpg$)
+displayname$ = getdisplayname$(sourcerpg)
 setwindowtitle displayname$
 END SUB
 
@@ -810,11 +810,11 @@ closesound
 setfmvol fmvol
 
 cleanuptemp
-RMDIR tmpdir$ + "playing.tmp"
-RMDIR tmpdir$
+RMDIR tmpdir + "playing.tmp"
+RMDIR tmpdir
 
 'DEBUG debug "Remove working directory"
-IF usepreunlump = 0 THEN RMDIR workingdir$
+IF usepreunlump = 0 THEN RMDIR workingdir
 '--reset audio
 'closefile
 
@@ -1063,7 +1063,7 @@ SELECT CASE AS CONST id
  CASE 27'--suspend overlay
   setbit gen(), 44, suspendoverlay, 1
  CASE 28'--play song
-  'loadsong game$ + "." + STR$(retvals(0))
+  'loadsong game + "." + STR$(retvals(0))
   wrappedsong retvals(0)
   setfmvol fmvol
  CASE 29'--stop song
@@ -1350,7 +1350,7 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
    IF checksaveslot(retvals(0)) THEN
     fbdim savver ' for FB
-    sg$ = savefile$
+    sg$ = savefile
     savh = FREEFILE
     OPEN sg$ FOR BINARY AS #savh
     savver = 0
@@ -1359,10 +1359,10 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 176'--runscriptbyid
-  IF NOT (isfile(tmpdir$ & retvals(0) & ".hsx") OR isfile(tmpdir$ & retvals(0) & ".hsz")) THEN
+  IF NOT (isfile(tmpdir & retvals(0) & ".hsx") OR isfile(tmpdir & retvals(0) & ".hsz")) THEN
    retvals(0) = decodetrigger(retvals(0), plottrigger)  'possible to get ahold of triggers
   END IF
-  IF isfile(tmpdir$ & retvals(0) & ".hsx") OR isfile(tmpdir$ & retvals(0) & ".hsz") THEN
+  IF isfile(tmpdir & retvals(0) & ".hsx") OR isfile(tmpdir & retvals(0) & ".hsz") THEN
    rsr = runscript(retvals(0), nowscript + 1, 0, "indirect", 0)
    IF rsr = 1 THEN
     '--fill heap with return values
@@ -1385,7 +1385,7 @@ SELECT CASE AS CONST id
  CASE 189'--get formation song
   fh = FREEFILE
   IF retvals(0) >= 0 AND retvals(0) < gen(genMaxFormation) THEN
-   OPEN game$ + ".FOR" FOR BINARY AS #fh
+   OPEN game + ".FOR" FOR BINARY AS #fh
    'GET #fh,clng(retvals(0)) * 80 + 66,scriptret
    scriptret = readshort(fh,clng(retvals(0)) * 80 + 67)
    CLOSE #fh
@@ -1395,7 +1395,7 @@ SELECT CASE AS CONST id
  CASE 190'--set formation song
   fh = FREEFILE
   IF retvals(0) >= 0 AND retvals(0) < gen(genMaxFormation) AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxSong) THEN
-   OPEN game$ + ".FOR" FOR BINARY AS #fh
+   OPEN game + ".FOR" FOR BINARY AS #fh
    'GET #fh,clng(retvals(0)) * 80 + 66,scriptret
    WriteShort fh,clng(retvals(0)) * 80 + 65,retvals(1)
    CLOSE #fh
@@ -1446,14 +1446,14 @@ SELECT CASE AS CONST id
   IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 39 THEN
    scriptret = 0
   ELSE
-   plotstr(retvals(0)).s = names$(retvals(1))
+   plotstr(retvals(0)).s = names(retvals(1))
    scriptret = 1
   END IF
  CASE 205'--set hero name
   IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 39 THEN
    scriptret = 0
   ELSE
-   names$(retvals(1)) = plotstr(retvals(0)).s
+   names(retvals(1)) = plotstr(retvals(0)).s
    scriptret = 1
   END IF
  CASE 206'--get item name(str,itm)
@@ -1576,12 +1576,12 @@ SELECT CASE AS CONST id
   END IF
  CASE 230'--read enemy data
   f = FREEFILE
-  OPEN tmpdir$ & "dt1.tmp" FOR BINARY AS #f
+  OPEN tmpdir & "dt1.tmp" FOR BINARY AS #f
   scriptret = ReadShort(f, (CLNG(bound(retvals(0), 0, gen(genMaxEnemy))) * CLNG(320)) + (bound(retvals(1), 0, 159) * 2) + 1)
   CLOSE #f
  CASE 231'--write enemy data
   f = FREEFILE
-  OPEN tmpdir$ & "dt1.tmp" FOR BINARY AS #f
+  OPEN tmpdir & "dt1.tmp" FOR BINARY AS #f
   Writeshort f, (CLNG(bound(retvals(0), 0, gen(genMaxEnemy))) * CLNG(320)) + (bound(retvals(1), 0, 159) * 2) + 1, retvals(2)
   CLOSE #f
  CASE 232'--trace
@@ -2334,10 +2334,10 @@ subreturn
 END SUB
 
 SUB templockexplain
-PRINT "Either " + exename$ + " is already running in the background, or it"
+PRINT "Either " + exename + " is already running in the background, or it"
 PRINT "terminated incorrectly last time it was run, and was unable to clean up"
 PRINT "its temporary files. The operating system is denying access to the"
-PRINT "files in " + workingdir$
+PRINT "files in " + workingdir
 PRINT
 PRINT "If this problem persists, manually delete playing.tmp"
 PRINT
@@ -2593,7 +2593,7 @@ FOR i = 0 TO 3
  IF hero(i) > 0 THEN
   getpal16 pal16(), o, stat(i, 1, 15), 4, stat(i, 1, 14)
   setpicstuf buffer(), 1600, 2
-  loadset game$ + ".pt4", stat(i, 1, 14), 5 * o
+  loadset game + ".pt4", stat(i, 1, 14), 5 * o
   o = o + 1
  END IF
 NEXT i

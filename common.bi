@@ -139,17 +139,14 @@ DECLARE FUNCTION onoroff (n AS INTEGER) AS STRING
 DECLARE FUNCTION enter_or_space () AS INTEGER
 
 'Global variables
-EXTERN game$
-EXTERN tmpdir$
-EXTERN exename$
-EXTERN uilook()
-EXTERN vpage, dpage
-EXTERN buffer()
-EXTERN fadestate
+EXTERN as string game, tmpdir, exename, workingdir
+EXTERN uilook() as integer
+EXTERN as integer vpage, dpage
+EXTERN buffer() as integer
+EXTERN fadestate as integer
 EXTERN master() as RGBcolor
-EXTERN workingdir$
-EXTERN keyv()
-EXTERN gen()
-EXTERN fmvol
+EXTERN keyv() as integer
+EXTERN gen() as integer
+EXTERN fmvol as integer
 
 #ENDIF

@@ -27,7 +27,8 @@ DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTE
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 
 'these are the battle global variables
-DIM battlecaption$, battlecaptime, battlecapdelay, bstackstart, learnmask(29)
+DIM as string battlecaption
+dim as integer battlecaptime, battlecapdelay, bstackstart, learnmask(29)
 
 dim shared battle_draw_style as integer = 0'0 = new, 1 = old
 
@@ -81,7 +82,7 @@ levelXup$ = readglobalstring$(151, "levels for", 20)
 
 battlecaptime = 0
 battlecapdelay = 0
-battlecaption$ = ""
+battlecaption = ""
 
 alert = 0
 alert$ = ""
@@ -152,7 +153,7 @@ DO
   bgspeed = loopvar(bgspeed, 0, formdata(35), 1)
   IF bgspeed = 0 THEN
    curbg = loopvar(curbg, formdata(32), formdata(32) + formdata(34), 1)
-   loadpage game$ + ".mxs", curbg, 2
+   loadpage game + ".mxs", curbg, 2
   END IF
  END IF
 
@@ -505,7 +506,7 @@ END IF
 loadattackdata atk(), anim
 '--load picture
 setpicstuf buffer(), 3750, 3
-loadset game$ + ".pt6", atk(0), 144
+loadset game + ".pt6", atk(0), 144
 
 '--load palette
 getpal16 pal16(), 53, atk(1), 6, atk(0)
@@ -520,9 +521,9 @@ FOR i = 12 TO 23
 		.frame = 0
 		sprite_unload(@.sprites)
 		palette16_unload(@.pal)
-		.sprites = sprite_load(game$ + ".pt6", atk(0), 3, 50, 50)
+		.sprites = sprite_load(game + ".pt6", atk(0), 3, 50, 50)
 		if .sprites = 0 then debug "Failed to load attack sprites (#" & i & ")"
-		.pal = palette16_load(game$ + ".pal", atk(1), 6, atk(0))
+		.pal = palette16_load(game + ".pal", atk(1), 6, atk(0))
 		if .pal = 0 then debug "Failed to load palette (#" & i & ")"
  end with
 NEXT i
@@ -562,15 +563,15 @@ targmem(who) = 0
 IF is_hero(who) THEN
  'load weapon sprites
  setpicstuf buffer(), 576, 3
- loadset game$ + ".pt5" , exstat(who, 0, 13), 156
+ loadset game + ".pt5" , exstat(who, 0, 13), 156
  p(24) = 52
  getpal16 pal16(), 52, exstat(who, 1, 13), 5, exstat(who, 0, 13)
  
  with bslot(24)
   .sprite_num = 2
-  .sprites = sprite_load(game$ & ".pt5", exstat(who, 0, 13), 2, 24, 24)
-  if .sprites = 0 then debug "Could not load weapon sprite: " & game$ & ".pt5#" & exstat(who, 0, 13)
-  .pal = palette16_load(game$ + ".pal", exstat(who, 1, 13), 5, exstat(who, 0, 13))
+  .sprites = sprite_load(game & ".pt5", exstat(who, 0, 13), 2, 24, 24)
+  if .sprites = 0 then debug "Could not load weapon sprite: " & game & ".pt5#" & exstat(who, 0, 13)
+  .pal = palette16_load(game + ".pal", exstat(who, 1, 13), 5, exstat(who, 0, 13))
   if .pal = 0 then debug "Failed to load palette (#" & 24 & ")"
   .frame = 0
   
@@ -1796,7 +1797,7 @@ IF vdance = 0 THEN 'only display interface till you win
    battlecapdelay = battlecapdelay - 1
   ELSE
    centerbox 160, 186, 310, 14, 1, dpage
-   edgeprint battlecaption$, xstring(battlecaption$, 160), 182, uilook(uiText), dpage
+   edgeprint battlecaption, xstring(battlecaption, 160), 182, uilook(uiText), dpage
   END IF
  END IF
  IF you >= 0 THEN
@@ -2096,7 +2097,7 @@ RETRACE
 
 loadall:
 setpicstuf formdata(), 80, -1
-loadset tmpdir$ & "for.tmp", form, 0
+loadset tmpdir & "for.tmp", form, 0
 
 mapsong = presentsong
 IF formdata(33) = 0 THEN fademusic 0
@@ -2119,7 +2120,7 @@ FOR i = 0 TO 3
   NEXT oldm
   
   setpicstuf buffer(), 5120, 3
-  loadset game$ + ".pt0", exstat(i, 0, 14), i * 16
+  loadset game + ".pt0", exstat(i, 0, 14), i * 16
   getpal16 pal16(), 40 + i, exstat(i, 0, 15), 0, exstat(i, 0, 14)
   WITH bslot(i)
    .basex = (240 + i * 8)
@@ -2132,9 +2133,9 @@ FOR i = 0 TO 3
    .vis = 1
    'load hero sprites
    .sprite_num = 8
-   .sprites = sprite_load(game$ & ".pt0", exstat(i, 0, 14), .sprite_num, 32, 40)
-   if .sprites = 0 then debug "Couldn't load hero sprite: " & game$ & ".pt0#" & exstat(i,0,14)
-   .pal = palette16_load(game$ + ".pal", exstat(i, 0, 15), 0, exstat(i, 0, 14))
+   .sprites = sprite_load(game & ".pt0", exstat(i, 0, 14), .sprite_num, 32, 40)
+   if .sprites = 0 then debug "Couldn't load hero sprite: " & game & ".pt0#" & exstat(i,0,14)
+   .pal = palette16_load(game + ".pal", exstat(i, 0, 15), 0, exstat(i, 0, 14))
    if .pal = 0 then debug "Failed to load palette (#" & i & ")"
    .frame = 0
    .death_sfx = -1 'No death sounds for heroes (for now)
@@ -2144,7 +2145,7 @@ FOR i = 0 TO 3
    bstat(i).max.sta(o) = exstat(i, 1, o)
   NEXT o
   herobattlebits bits(), i
-  batname$(i) = names$(i)
+  batname$(i) = names(i)
   FOR o = 0 TO 5
    menu$(i, o) = ""
    IF nmenu(i, o) > 0 THEN
@@ -2172,7 +2173,7 @@ FOR i = 12 TO 23
  bslot(i).h = 50
 NEXT i
 curbg = formdata(32)
-loadpage game$ + ".mxs", curbg, 2
+loadpage game + ".mxs", curbg, 2
 FOR i = 0 TO 3
  IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vdance = 0 THEN of(i) = 6 : bslot(i).frame = 6
  IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN

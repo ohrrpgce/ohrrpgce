@@ -12,7 +12,7 @@ DEFINT A-Z
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION filenum$ (n%)
-DECLARE SUB writeconstant (filehandle%, num%, names$, unique$(), prefix$)
+DECLARE SUB writeconstant (filehandle%, num%, names, unique$(), prefix$)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
@@ -20,7 +20,7 @@ DECLARE FUNCTION isunique% (s$, u$(), r%)
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE SUB editbitset (array%(), wof%, last%, names$())
+DECLARE SUB editbitset (array%(), wof%, last%, names())
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
@@ -43,7 +43,7 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 #include "scrconst.bi"
 
 REM $STATIC
-' SUB editbitset (array(), wof, last, names$())
+' SUB editbitset (array(), wof, last, names())
 
 ' '---DIM AND INIT---
 ' pt = -1
@@ -69,7 +69,7 @@ REM $STATIC
 '   IF pt = i THEN c = (8 * readbit(array(), wof, i)) + 6 + tog
 '   textcolor c, 0
 '   IF i >= 0 THEN
-'    printstr names$(i), 8, (i - top) * 8, dpage
+'    printstr names(i), 8, (i - top) * 8, dpage
 '   ELSE
 '    IF c = 8 THEN c = 7
 '    textcolor c, 0
@@ -87,7 +87,7 @@ REM $STATIC
 ' END SUB
 
 'This new bitset() will build its own menu of bits, and thus hide blank bitsets
-SUB editbitset (array(), wof, last, names$())
+SUB editbitset (array(), wof, last, names())
 
 '---DIM AND INIT---
 pt = -1
@@ -97,8 +97,8 @@ dim menu$(-1 to last), bits(-1 to last), count
 
 pt = 0
 FOR i = 0 to last
- IF names$(i) <> "" THEN
-  menu$(pt) = names$(i)
+ IF names(i) <> "" THEN
+  menu$(pt) = names(i)
   bits(pt) = i
   pt = pt + 1
  END IF
@@ -259,7 +259,7 @@ SUB seekscript (temp, seekdir, triggertype)
  screxists = 0
 
  fh = FREEFILE
- OPEN workingdir$ + SLASH + "lookup" + STR$(triggertype) + ".bin" FOR BINARY AS #fh
+ OPEN workingdir + SLASH + "lookup" + STR$(triggertype) + ".bin" FOR BINARY AS #fh
  triggernum = LOF(fh) \ 40
  IF temp = -1 THEN temp = triggernum + 16384
 
@@ -285,7 +285,7 @@ SUB seekscript (temp, seekdir, triggertype)
     screxists = -1
    ELSE
     WHILE recordsloaded < gen(40)
-     loadrecord buf(), workingdir$ + SLASH + "plotscr.lst", 20, recordsloaded
+     loadrecord buf(), workingdir + SLASH + "plotscr.lst", 20, recordsloaded
      recordsloaded += 1
      IF buf(0) = temp THEN screxists = -1: EXIT WHILE
      IF buf(0) <= gen(43) THEN plotids(buf(0)) = -1
@@ -400,7 +400,7 @@ SUB writeglobalstring (index, s$, maxlen)
 
 fh = FREEFILE
 
-OPEN game$ + ".stt" FOR BINARY AS #fh
+OPEN game + ".stt" FOR BINARY AS #fh
 
 a$ = CHR$(small(LEN(s$), small(maxlen, 255)))
 PUT #fh, 1 + index * 11, a$

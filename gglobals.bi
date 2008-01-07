@@ -7,62 +7,62 @@
 #include "udts.bi"
 
 'Misc game globals
-EXTERN sourcerpg$
-EXTERN prefsdir$ ' currently only used by Linux
-EXTERN savefile$
-EXTERN timing()
-EXTERN pal16()
-EXTERN names$()
-EXTERN speedcontrol
-EXTERN deferpaint
-EXTERN presentsong
-EXTERN foemaph
-EXTERN lastsaveslot
-EXTERN abortg
-EXTERN usepreunlump%
-EXTERN fatal
-EXTERN backcompat_sound_slot_mode
+EXTERN sourcerpg as string
+EXTERN prefsdir as string ' currently only used by Linux
+EXTERN savefile as string
+EXTERN timing() as integer
+EXTERN pal16() as integer
+EXTERN names() as string
+EXTERN speedcontrol as integer
+EXTERN deferpaint as integer
+EXTERN presentsong as integer
+EXTERN foemaph as integer
+EXTERN lastsaveslot as integer
+EXTERN abortg as integer
+EXTERN usepreunlump as integer
+EXTERN fatal as integer
+EXTERN backcompat_sound_slot_mode as integer
 EXTERN backcompat_sound_slots()
 
 'Input handling globals
-EXTERN carray(), csetup()
-EXTERN gotj(), joy()
-EXTERN mouse()
+EXTERN as integer carray(), csetup()
+EXTERN as integer gotj(), joy()
+EXTERN as integer mouse()
 
 'Game state globals
-EXTERN tag()
-EXTERN global()
+EXTERN tag() as integer
+EXTERN global() as integer
 
 'Vehicle globals
-EXTERN veh()
+EXTERN veh() as integer
 
 'Hero globals
-EXTERN hero()
-EXTERN eqstuf()
-EXTERN lmp()
-EXTERN bmenu()
-EXTERN spell()
+EXTERN hero() as integer
+EXTERN eqstuf() as integer
+EXTERN lmp() as integer
+EXTERN bmenu() as integer
+EXTERN spell() as integer
 EXTERN exlev() AS LONG
-EXTERN herobits%()
-EXTERN itembits%()
-EXTERN hmask()
+EXTERN herobits()
+EXTERN itembits()
+EXTERN hmask() as integer
 EXTERN gold AS LONG
-EXTERN nativehbits()
+EXTERN nativehbits() as integer
 
 'Map state globals
-EXTERN gmap()
-EXTERN scroll()
-EXTERN pass()
-EXTERN mapx, mapy
-EXTERN framex
-EXTERN framey
+EXTERN gmap() as integer
+EXTERN scroll() as integer
+EXTERN pass() as integer
+EXTERN as integer mapx, mapy
+EXTERN framex as integer
+EXTERN framey as integer
 
 'Hero walkabout globals
-EXTERN catx(), caty(), catz(), catd()
-EXTERN herospeed()
-EXTERN xgo(), ygo()
-EXTERN wtog()
-EXTERN catermask()
+EXTERN as integer catx(), caty(), catz(), catd()
+EXTERN herospeed() as integer
+EXTERN as integer xgo(), ygo()
+EXTERN wtog() as integer
+EXTERN catermask() as integer
 
 'NPC globals
 EXTERN npcs() as NPCType
@@ -73,18 +73,18 @@ EXTERN inventory() as InventSlot
 
 'Script globals
 EXTERN script() as ScriptData
-EXTERN heap()
+EXTERN heap() as integer
 EXTERN scrat() as ScriptInst
-EXTERN retvals()
-EXTERN nowscript
-EXTERN scriptret
-EXTERN numloadedscr
-EXTERN totalscrmem
-EXTERN scriptctr
+EXTERN retvals() as integer
+EXTERN nowscript as integer
+EXTERN scriptret as integer
+EXTERN numloadedscr as integer
+EXTERN totalscrmem as integer
+EXTERN scriptctr as integer
 EXTERN scrst as Stack
 
 'Script string globals
-'EXTERN plotstring$()
+'EXTERN plotstring() as string
 'EXTERN plotstrX(), plotstrY()
 'EXTERN plotstrCol()
 'EXTERN plotstrBGCol()
@@ -92,11 +92,11 @@ EXTERN scrst as Stack
 EXTERN plotstr() as Plotstring
 
 'Battle globals
-EXTERN battlecaption$
-EXTERN battlecaptime
-EXTERN battlecapdelay
-EXTERN bstackstart
-EXTERN learnmask()
+EXTERN battlecaption as string
+EXTERN battlecaptime as integer
+EXTERN battlecapdelay as integer
+EXTERN bstackstart as integer
+EXTERN learnmask() as integer
 
 EXTERN timers() as Timer
 

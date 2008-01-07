@@ -23,7 +23,7 @@ DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, pic
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE SUB herotags (BYREF hero AS HeroDef)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE SUB editbitset (array%(), wof%, last%, names$())
+DECLARE SUB editbitset (array%(), wof%, last%, names())
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
@@ -67,11 +67,11 @@ END SUB
 SUB enemydata
 
 '--stat names
-DIM names$(32), nof(11), elemtype$(2)
+DIM names(32), nof(11), elemtype$(2)
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
-getnames names$(), 32
+getnames names(), 32
 '--name offsets
 nof(0) = 0
 nof(1) = 1
@@ -102,10 +102,10 @@ rectangle 220, 100, 80, 80, 8, 3
 DIM ebit$(61)
 
 FOR i = 0 TO 7
- ebit$(0 + i) = elemtype$(0) + " " + names$(17 + i)
- ebit$(8 + i) = elemtype$(1) + " " + names$(17 + i)
- ebit$(16 + i) = elemtype$(2) + " " + names$(17 + i)
- ebit$(24 + i) = "Is " + names$(9 + i)
+ ebit$(0 + i) = elemtype$(0) + " " + names(17 + i)
+ ebit$(8 + i) = elemtype$(1) + " " + names(17 + i)
+ ebit$(16 + i) = elemtype$(2) + " " + names(17 + i)
+ ebit$(24 + i) = "Is " + names(9 + i)
 NEXT i
 FOR i = 32 TO 53
  ebit$(i) = "" 'preferable to be blank, so we can hide it
@@ -331,7 +331,7 @@ menulimits(EnMenuRareItemP) = EnLimPercent
 
 CONST EnMenuStat = 18' to 29
 FOR i = 0 TO 11
- menu$(EnMenuStat + i) = names$(nof(i)) + ":"
+ menu$(EnMenuStat + i) = names(nof(i)) + ":"
  menutype(EnMenuStat + i) = 0
  menuoff(EnMenuStat + i) = EnDatStat + i
  menulimits(EnMenuStat + i) = EnLimStat + i
@@ -363,7 +363,7 @@ menulimits(EnMenuSpawnNEHit) = EnLimSpawn
 
 CONST EnMenuSpawnElement = 34' to 41
 FOR i = 0 TO 7
- menu$(EnMenuSpawnElement + i) = "on " + names$(17 + i) + " Hit:"
+ menu$(EnMenuSpawnElement + i) = "on " + names(17 + i) + " Hit:"
  menutype(EnMenuSpawnElement + i) = 9
  menuoff(EnMenuSpawnElement + i) = EnDatSpawnElement + i
  menulimits(EnMenuSpawnElement + i) = EnLimSpawn
@@ -541,7 +541,7 @@ DO
 
  '--CTRL+BACKSPACE
  IF keyval(29) > 0 AND keyval(14) THEN
-  cropafter recindex, gen(36), 0, game$ + ".dt1", 320, 1
+  cropafter recindex, gen(36), 0, game + ".dt1", 320, 1
  END IF
 
  usemenu state
@@ -649,7 +649,7 @@ updateflexmenu state.pt, dispmenu$(), workmenu(), state.last, menu$(), menutype(
 
 '--load the picture and palette
 setpicstuf buffer(), (previewsize(recbuf(EnDatPicSize)) ^ 2) / 2, 2
-loadset game$ + ".pt" + STR$(1 + recbuf(EnDatPicSize)), recbuf(EnDatPic), 0
+loadset game + ".pt" + STR$(1 + recbuf(EnDatPicSize)), recbuf(EnDatPic), 0
 getpal16 workpal(), 0, recbuf(EnDatPal), 1 + recbuf(EnDatPicSize), recbuf(EnDatPic)
 
 RETRACE
@@ -802,12 +802,12 @@ RETRACE
 
 savefset:
 setpicstuf c(), 50, -1
-storeset game$ + ".efs", gptr, 0
+storeset game + ".efs", gptr, 0
 RETRACE
 
 loadfset:
 setpicstuf c(), 50, -1
-loadset game$ + ".efs", gptr, 0
+loadset game + ".efs", gptr, 0
 RETRACE
 
 editform:
@@ -843,7 +843,7 @@ DO
    GOSUB saveform
    RETRACE
   END IF
-  IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, gen(37), 0, game$ + ".for", 80, 1
+  IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, gen(37), 0, game + ".for", 80, 1
   usemenu csr2, -6, -6, 7, 25
   IF enter_or_space() THEN
    IF csr2 = -6 THEN
@@ -963,18 +963,18 @@ FOR i = 0 TO 40
 NEXT i
 a(33) = gen(4)
 setpicstuf a(), 80, -1
-storeset game$ + ".for", pt, 0
+storeset game + ".for", pt, 0
 RETRACE
 
 saveform:
 setpicstuf a(), 80, -1
-storeset game$ + ".for", pt, 0
+storeset game + ".for", pt, 0
 RETRACE
 
 loadform:
 setpicstuf a(), 80, -1
-loadset game$ + ".for", pt, 0
-loadpage game$ + ".mxs", a(32), 2
+loadset game + ".for", pt, 0
+loadpage game + ".mxs", a(32), 2
 RETRACE
 
 formpics:
@@ -991,7 +991,7 @@ FOR i = 0 TO 7
   IF b(55) = 1 THEN s(i) = 1250: w(i) = 50: h(i) = 50: f$ = ".pt2"
   IF b(55) = 2 THEN s(i) = 3200: w(i) = 80: h(i) = 80: f$ = ".pt3"
   setpicstuf buffer(), s(i), 3
-  loadset game$ + f$, b(53), i * 10
+  loadset game + f$, b(53), i * 10
  END IF
 NEXT i
 RETRACE
@@ -999,7 +999,7 @@ RETRACE
 END SUB
 
 SUB herodata
-DIM names$(100), menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), pal16(16), elemtype$(2)
+DIM names(100), menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), pal16(16), elemtype$(2)
 DIM AS HeroDef her, blankhero
 wd = 1: wc = 0: wx = 0: wy = 0: hmax = 32
 leftkey = 0: rightkey = 0
@@ -1008,7 +1008,7 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-getnames names$(), hmax
+getnames names(), hmax
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
@@ -1017,9 +1017,9 @@ frame = -1
 pt = 0
 csr = 1
 FOR i = 0 TO 7
- hbit$(i) = elemtype$(0) + " " + names$(17 + i)
- hbit$(i + 8) = elemtype$(1) + " " + names$(17 + i)
- hbit$(i + 16) = elemtype$(2) + " " + names$(17 + i)
+ hbit$(i) = elemtype$(0) + " " + names(17 + i)
+ hbit$(i + 8) = elemtype$(1) + " " + names(17 + i)
+ hbit$(i + 16) = elemtype$(2) + " " + names(17 + i)
 NEXT i
 hbit$(24) = "Rename when added to party"
 hbit$(25) = "Permit renaming on status screen"
@@ -1045,7 +1045,7 @@ DO
  GOSUB movesmall
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) THEN
-  cropafter pt, gen(35), -1, game$ + ".dt0", 636, 1
+  cropafter pt, gen(35), -1, game + ".dt0", 636, 1
  END IF
  usemenu csr, 0, 0, 8, 24
  IF enter_or_space() THEN
@@ -1446,7 +1446,7 @@ RETRACE
 graph:
 o = INT((bctr - 1) / 2)
 textcolor 7, 0
-printstr names$(nof(o)), 310 - LEN(names$(nof(o))) * 8, 180, dpage
+printstr names(nof(o)), 310 - LEN(names(nof(o))) * 8, 180, dpage
 FOR i = 0 TO 99 STEP 4
  ii = (.8 * i / 50) * i
  n0 = her.Lev0.sta(o)
@@ -1460,8 +1460,8 @@ RETRACE
 
 smi:
 FOR i = 0 TO 11
- bmenu$(i * 2 + 1) = names$(nof(i)) + XSTR$(her.Lev0.sta(i))
- bmenu$(i * 2 + 2) = names$(nof(i)) + XSTR$(her.Lev99.sta(i))
+ bmenu$(i * 2 + 1) = names(nof(i)) + XSTR$(her.Lev0.sta(i))
+ bmenu$(i * 2 + 2) = names(nof(i)) + XSTR$(her.Lev99.sta(i))
 NEXT i
 RETRACE
 
@@ -1500,10 +1500,10 @@ RETRACE
 
 heropics:
 setpicstuf buffer(), 5120, 2
-loadset game$ + ".pt0", her.sprite, 0
+loadset game + ".pt0", her.sprite, 0
 getpal16 pal16(), 0, her.sprite_pal, 0, her.sprite
 setpicstuf buffer(), 1600, 2
-loadset game$ + ".pt4", her.walk_sprite, 16
+loadset game + ".pt4", her.walk_sprite, 16
 getpal16 pal16(), 1, her.walk_sprite_pal, 4, her.walk_sprite
 RETRACE
 
@@ -1577,7 +1577,7 @@ EXIT SUB
 END SUB
 
 SUB itemdata
-DIM names$(100), a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), eqst$(5), max(18), min(18), sbmax(11), workpal(8), elemtype$(2), frame
+DIM names(100), a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), eqst$(5), max(18), min(18), sbmax(11), workpal(8), elemtype$(2), frame
 DIM item$(maxMaxItems)
 DIM her AS HeroDef ' This is only used in equipbit
 imax = 32
@@ -1586,7 +1586,7 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-getnames names$(), imax
+getnames names(), imax
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
@@ -1594,7 +1594,7 @@ elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
 eqst$(0) = "NEVER EQUIPPED"
 eqst$(1) = "Weapon"
 FOR i = 0 TO 3
- eqst$(i + 2) = names$(25 + i)
+ eqst$(i + 2) = names(25 + i)
 NEXT i
 FOR i = 0 TO 1
  sbmax(i) = 9999
@@ -1617,7 +1617,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) AND csr >= 0 THEN
-  cropafter csr, gen(genMaxItem), 0, game$ + ".itm", 200, 1
+  cropafter csr, gen(genMaxItem), 0, game + ".itm", 200, 1
   load_item_names item$()
  END IF
  usemenu csr, top, -1, gen(genMaxItem) + 1, 23
@@ -1696,7 +1696,7 @@ loaditemdata a(), csr
 generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$(), workpal(), frame
 
 setpicstuf buffer(), 576, 2
-loadset game$ + ".pt5", a(52), 0
+loadset game + ".pt5", a(52), 0
 getpal16 workpal(), 0, a(53), 5, a(52)
 
 need_update = NO
@@ -1818,7 +1818,7 @@ DO
  FOR i = 0 TO 11
   textcolor 7, 0
   IF ptr2 = i THEN textcolor 14 + tog, 0
-  printstr names$(nof(i)) + " Bonus:" + XSTR$(a(54 + i)), 0, 8 + i * 8, dpage
+  printstr names(nof(i)) + " Bonus:" + XSTR$(a(54 + i)), 0, 8 + i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1841,9 +1841,9 @@ RETRACE
 
 ibitset:
 FOR i = 0 TO 7
- ibit$(i) = elemtype$(0) + " " + names$(17 + i)
- ibit$(i + 8) = elemtype$(1) + " " + names$(17 + i)
- ibit$(i + 16) = elemtype$(2) + " " + names$(17 + i)
+ ibit$(i) = elemtype$(0) + " " + names(17 + i)
+ ibit$(i + 8) = elemtype$(1) + " " + names(17 + i)
+ ibit$(i + 16) = elemtype$(2) + " " + names(17 + i)
 NEXT i
 editbitset a(), 70, 23, ibit$()
 RETRACE
@@ -1894,7 +1894,7 @@ SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTE
  IF pt = 9 OR pt = 10 THEN
   'oldframe = frame
   setpicstuf buffer(), 576, 2
-  loadset game$ + ".pt5", itembuf(52), 0
+  loadset game + ".pt5", itembuf(52), 0
   getpal16 workpal(), 0, itembuf(53), 5, itembuf(52)
  END IF
 END SUB'
@@ -2036,7 +2036,7 @@ EXIT SUB
 
 loadnpcpic:
 setpicstuf buffer(), 1600, 2
-loadset game$ + ".pt4", npc(i * 15 + 0), 5 * i
+loadset game + ".pt4", npc(i * 15 + 0), 5 * i
 getpal16 pal16(), i, npc(i * 15 + 1), 4, npc(i * 15 + 0)
 RETRACE
 
@@ -2123,7 +2123,7 @@ DO
      temp$ = "No"
     ELSE
      setpicstuf buffer(), 80, -1
-     loadset game$ + ".veh", npc(cur * 15 + 14) - 1, 0
+     loadset game + ".veh", npc(cur * 15 + 14) - 1, 0
      temp$ = STRING$(bound(buffer(0) AND 255, 0, 15), 0)
      array2str buffer(), 1, temp$
     END IF

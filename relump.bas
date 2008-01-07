@@ -98,21 +98,23 @@ END IF
 
 IF isdir(dest$) THEN fatalerror "destination file " + dest$ + " already exists as a folder."
 
-'--set game$ according to the archinym
+dim game as string
+
+'--set game according to the archinym
 IF isfile(src$ + SLASH + "archinym.lmp") THEN
  fh = FREEFILE
  OPEN src$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
  LINE INPUT #fh, a$
  CLOSE #fh
  IF LEN(a$) <= 8 THEN
-  game$ = a$
+  game = a$
  END IF
 ELSE
  PRINT "WARNING: " + src$ + SLASH + "archinym.lmp is missing."
- game$ ="ohrrpgce"
+ game ="ohrrpgce"
 END IF
 
-xbload src$ + SLASH + game$ + ".gen", buffer(), "unable to open general data"
+xbload src$ + SLASH + game + ".gen", buffer(), "unable to open general data"
 
 passokay = -1
 

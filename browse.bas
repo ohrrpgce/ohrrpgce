@@ -400,9 +400,9 @@ FOR i = sortstart TO br.treesize - 1
     SWAP tree(i), tree(j)
     EXIT FOR
    END IF
-  NEXT k
- NEXT i
-NEXT o
+  NEXT
+ NEXT
+NEXT
 
 '--sort by type
 FOR o = br.treesize TO sortstart + 1 STEP -1
@@ -410,8 +410,8 @@ FOR o = br.treesize TO sortstart + 1 STEP -1
   IF tree(i).kind < tree(i - 1).kind THEN
    SWAP tree(i), tree(i - 1)
   END IF
- NEXT i
-NEXT o
+ NEXT
+NEXT
 
 '--set cursor
 treeptr = 0

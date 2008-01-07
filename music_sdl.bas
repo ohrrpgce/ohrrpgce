@@ -17,7 +17,7 @@ declare sub debug(s$)
 declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 declare function isfile(n$) as integer
 declare function soundfile$ (sfxnum%)
-extern tmpdir$
+extern tmpdir as string
 
 'local functions
 declare function GetSlot(byval num as integer) as integer
@@ -134,7 +134,7 @@ sub music_play(songname as string, fmt as integer)
 			'use last 3 hex digits of length as a kind of hash, 
 			'to verify that the .bmd does belong to this file
 			flen = flen and &h0fff
-			midname = tmpdir$ & trimpath$(songname) & "-" & lcase(hex(flen)) & ".bmd"
+			midname = tmpdir & trimpath$(songname) & "-" & lcase(hex(flen)) & ".bmd"
 			'check if already converted
 			if isfile(midname) = 0 then
 				bam2mid(songname, midname,0)

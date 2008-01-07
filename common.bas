@@ -78,7 +78,7 @@ END FUNCTION
 FUNCTION soundfile$ (sfxnum%)
 	DIM as string sfxbase
 
-	sfxbase = workingdir$ & SLASH & "sfx" & sfxnum%
+	sfxbase = workingdir & SLASH & "sfx" & sfxnum%
 	IF isfile(sfxbase & ".ogg") THEN
    RETURN sfxbase & ".ogg"
   ELSEIF isfile(sfxbase & ".mp3") THEN
@@ -114,7 +114,7 @@ END SUB
 
 FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
  DIM f$
- f$ = workingdir$ + SLASH + "fixbits.bin"
+ f$ = workingdir + SLASH + "fixbits.bin"
  IF NOT isfile(f$) THEN RETURN 0
  DIM bits(1) as INTEGER
  setpicstuf bits(), 2, -1
@@ -124,7 +124,7 @@ END FUNCTION
 
 SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
  DIM f$
- f$ = workingdir$ + SLASH + "fixbits.bin"
+ f$ = workingdir + SLASH + "fixbits.bin"
  DIM bits(1) as INTEGER
  setpicstuf bits(), 2, -1
  IF isfile(f$) THEN
@@ -342,19 +342,19 @@ END FUNCTION
 FUNCTION scriptname$ (num, trigger = 0)
 #ifdef IS_GAME
  'remember script names!
- STATIC cachenum, cacheids(24), cachenames$(24), gamename$
- IF game$ <> gamename$ THEN
-  gamename$ = game$
+ STATIC cachenum, cacheids(24), cachenames(24) as string, gamename$
+ IF game <> gamename$ THEN
+  gamename$ = game
   cachenum = 0
  END IF
  FOR i = 0 TO cachenum - 1
-  IF cacheids(i) = num THEN RETURN cachenames$(i)
+  IF cacheids(i) = num THEN RETURN cachenames(i)
  NEXT
 #endif
 
 DIM buf(19)
 IF num >= 16384 AND trigger > 0 THEN
- IF loadrecord (buf(), workingdir$ + SLASH + "lookup" + STR$(trigger) + ".bin", 20, num - 16384) THEN
+ IF loadrecord (buf(), workingdir + SLASH + "lookup" + STR$(trigger) + ".bin", 20, num - 16384) THEN
   sname$ = readbinstring(buf(), 1, 36)
   IF buf(0) THEN
    a$ = sname$
@@ -368,7 +368,7 @@ END IF
 IF num THEN
  a$ = "[id " + STR$(num) + "]"
  fh = FREEFILE
- OPEN workingdir$ + SLASH + "plotscr.lst" FOR BINARY AS #fh
+ OPEN workingdir + SLASH + "plotscr.lst" FOR BINARY AS #fh
  WHILE loadrecord (buf(), fh, 20)
   IF buf(0) = num THEN
    a$ = STRING$(small(large(buf(1), 0), 38), " ")
@@ -386,7 +386,7 @@ scriptname$ = a$
 #ifdef IS_GAME
  IF cachenum = 25 THEN cachenum = 0
  cacheids(cachenum) = num
- cachenames$(cachenum) = a$
+ cachenames(cachenum) = a$
  cachenum += 1
 #endif
 END FUNCTION
@@ -431,7 +431,7 @@ end function
 
 FUNCTION getdefaultpal(fileset, index)
  DIM v AS SHORT
- f$ = workingdir$ & SLASH & "defpal" & fileset & ".bin"
+ f$ = workingdir & SLASH & "defpal" & fileset & ".bin"
  IF isfile(f$) THEN
    fh = FREEFILE
    OPEN f$ FOR BINARY AS #fh
@@ -445,7 +445,7 @@ END FUNCTION
 
 SUB loaddefaultpals(fileset, poffset(), sets)
  DIM v AS SHORT
- f$ = workingdir$ & SLASH & "defpal" & fileset & ".bin"
+ f$ = workingdir & SLASH & "defpal" & fileset & ".bin"
  IF isfile(f$) THEN
    fh = FREEFILE
    OPEN f$ FOR BINARY AS #fh
@@ -461,7 +461,7 @@ END SUB
 
 SUB savedefaultpals(fileset, poffset(), sets)
  DIM v AS SHORT
- f$ = workingdir$ & SLASH & "defpal" & fileset & ".bin"
+ f$ = workingdir & SLASH & "defpal" & fileset & ".bin"
  fh = FREEFILE
  OPEN f$ FOR BINARY AS #fh
  FOR i = 0 to sets
@@ -560,27 +560,27 @@ NEXT i
 END SUB
 
 SUB loadherodata (hero as herodef ptr, index)
-deserherodef game$ & ".dt0", hero, index
+deserherodef game & ".dt0", hero, index
 END SUB
 
 SUB saveherodata (hero as herodef ptr, index)
-serherodef game$ & ".dt0", hero, index
+serherodef game & ".dt0", hero, index
 END SUB
 
 SUB loadenemydata (array(), index, altfile = 0)
 IF altfile THEN
- filename$ = tmpdir$ & "dt1.tmp"
+ filename$ = tmpdir & "dt1.tmp"
 ELSE
- filename$ = game$ & ".dt1"
+ filename$ = game & ".dt1"
 END IF
 loadrecord array(), filename$, 160, index
 END SUB
 
 SUB saveenemydata (array(), index, altfile = 0)
 IF altfile THEN
- filename$ = tmpdir$ & "dt1.tmp"
+ filename$ = tmpdir & "dt1.tmp"
 ELSE
- filename$ = game$ & ".dt1"
+ filename$ = game & ".dt1"
 END IF
 storerecord array(), filename$, 160, index
 END SUB
@@ -588,32 +588,32 @@ END SUB
 SUB loaditemdata (array(), index)
  flusharray array(), 99, 0
  IF index > gen(genMaxItem) THEN debug "loaditemdata:" & index & " out of range" : EXIT SUB
- IF loadrecord(array(), game$ & ".itm", 100, index) = 0 THEN debug "loaditemdata:" & index & " loadrecord failed" : EXIT SUB
+ IF loadrecord(array(), game & ".itm", 100, index) = 0 THEN debug "loaditemdata:" & index & " loadrecord failed" : EXIT SUB
 END SUB
 
 SUB saveitemdata (array(), index)
-storerecord array(), game$ & ".itm", 100, index
+storerecord array(), game & ".itm", 100, index
 END SUB
 
 SUB loadoldattackdata (array(), index)
-loadrecord array(), game$ & ".dt6", 40, index
+loadrecord array(), game & ".dt6", 40, index
 END SUB
 
 SUB saveoldattackdata (array(), index)
-storerecord array(), game$ & ".dt6", 40, index
+storerecord array(), game & ".dt6", 40, index
 END SUB
 
 SUB loadnewattackdata (array(), index)
 size = getbinsize(binATTACK) \ 2
 IF size > 0 THEN
- loadrecord array(), workingdir$ + SLASH + "attack.bin", size, index
+ loadrecord array(), workingdir + SLASH + "attack.bin", size, index
 END IF
 END SUB
 
 SUB savenewattackdata (array(), index)
 size = curbinsize(binATTACK) \ 2
 IF size > 0 THEN
- storerecord array(), workingdir$ + SLASH + "attack.bin", size, index
+ storerecord array(), workingdir + SLASH + "attack.bin", size, index
 END IF
 END SUB
 
@@ -669,10 +669,10 @@ END FUNCTION
 
 FUNCTION getbinsize (id)
 
-IF isfile(workingdir$ + SLASH + "binsize.bin") THEN
+IF isfile(workingdir + SLASH + "binsize.bin") THEN
  fbdim recordsize
  fh = FREEFILE
- OPEN workingdir$ + SLASH + "binsize.bin" FOR BINARY AS #fh
+ OPEN workingdir + SLASH + "binsize.bin" FOR BINARY AS #fh
  IF LOF(fh) < 2 * id + 2 THEN
   getbinsize = defbinsize(id)
  ELSE
@@ -697,27 +697,27 @@ SUB setbinsize (id, size)
 fbdim size16
 size16 = size
 fh = FREEFILE
-OPEN workingdir$ + SLASH + "binsize.bin" FOR BINARY AS #fh
+OPEN workingdir + SLASH + "binsize.bin" FOR BINARY AS #fh
 PUT #fh, 1 + id * 2, size16
 CLOSE #fh
 END SUB
 
 FUNCTION maplumpname$ (map, oldext$)
  IF map < 100 THEN
-  maplumpname$ = game$ & "." & oldext$ & RIGHT$("0" & map, 2)
+  maplumpname$ = game & "." & oldext$ & RIGHT$("0" & map, 2)
  ELSE
-  maplumpname$ = workingdir$ & SLASH & map & "." & oldext$
+  maplumpname$ = workingdir & SLASH & map & "." & oldext$
  END IF
 END FUNCTION
 
 SUB getpal16 (array(), aoffset, foffset, autotype=-1, sprite=0)
 DIM buf(8)
 
-loadrecord buf(), game$ + ".pal", 8, 0
+loadrecord buf(), game + ".pal", 8, 0
 IF buf(0) = 4444 THEN '--check magic number
  IF buf(1) >= foffset AND foffset >= 0 THEN
   'palette is available
-  loadrecord buf(), game$ + ".pal", 8, 1 + foffset
+  loadrecord buf(), game + ".pal", 8, 1 + foffset
   FOR i = 0 TO 7
    array(aoffset * 8 + i) = buf(i)
   NEXT i
@@ -736,7 +736,7 @@ IF buf(0) = 4444 THEN '--check magic number
  END IF
 ELSE '--magic number not found, palette is still in BSAVE format
  DIM xbuf(100 * 8)
- xbload game$ + ".pal", xbuf(), "16-color palletes missing from " + game$
+ xbload game + ".pal", xbuf(), "16-color palletes missing from " + game
  FOR i = 0 TO 7
   array(aoffset * 8 + i) = xbuf(foffset * 8 + i)
  NEXT i
@@ -747,7 +747,7 @@ END SUB
 SUB storepal16 (array(), aoffset, foffset)
 DIM buf(8)
 
-f$ = game$ + ".pal"
+f$ = game + ".pal"
 loadrecord buf(), f$, 8, 0
 
 IF buf(0) <> 4444 THEN
@@ -817,22 +817,22 @@ w = getkey
 IF w = 1 THEN
  restoremode
 
- touchfile workingdir$ + SLASH + "__danger.tmp"
+ touchfile workingdir + SLASH + "__danger.tmp"
 
  PRINT "fatal error:"
  PRINT e$
 
  'borrowed this code from game.bas cos wildcard didn't work in FB
- findfiles workingdir$ + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
+ findfiles workingdir + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
   LINE INPUT #fh, filename$
-  KILL workingdir$ + SLASH + filename$
+  KILL workingdir + SLASH + filename$
  LOOP
  CLOSE #fh
  KILL "filelist.tmp"
- RMDIR workingdir$
+ RMDIR workingdir
 
  SYSTEM
 END IF
@@ -875,17 +875,17 @@ FUNCTION peek8bit (array16(), index)
 END FUNCTION
 
 SUB loadpalette(pal() as RGBcolor, palnum)
-IF NOT isfile(workingdir$ + SLASH + "palettes.bin") THEN
+IF NOT isfile(workingdir + SLASH + "palettes.bin") THEN
  '.MAS fallback, palnum ignored because it doesn't matter
  DIM oldpalbuf(767)
- xbload game$ + ".mas", oldpalbuf(), "master palette missing from " + game$
+ xbload game + ".mas", oldpalbuf(), "master palette missing from " + game
  convertpalette oldpalbuf(), pal()
 ELSE
  DIM AS SHORT headsize, recsize
  DIM palbuf(767) as UBYTE
 
  fh = FREEFILE
- OPEN workingdir$ + SLASH + "palettes.bin" FOR BINARY AS #fh
+ OPEN workingdir + SLASH + "palettes.bin" FOR BINARY AS #fh
  GET #fh, , headsize
  GET #fh, , recsize
  GET #fh, recsize * palnum + headsize + 1, palbuf()
@@ -899,11 +899,11 @@ END IF
 END SUB
 
 SUB savepalette(pal() as RGBcolor, palnum)
-IF isfile(workingdir$ + SLASH + "palettes.bin") THEN
+IF isfile(workingdir + SLASH + "palettes.bin") THEN
  DIM AS SHORT headsize, recsize
 
  fh = FREEFILE
- OPEN workingdir$ + SLASH + "palettes.bin" FOR BINARY AS #fh
+ OPEN workingdir + SLASH + "palettes.bin" FOR BINARY AS #fh
  GET #fh, , headsize
  GET #fh, , recsize
 
@@ -936,7 +936,7 @@ END SUB
 
 FUNCTION getmapname$ (m)
 DIM nameread(39)
-loadrecord nameread(), game$ + ".mn", 40, m
+loadrecord nameread(), game + ".mn", 40, m
 a$ = STRING$(small((nameread(0) AND 255), 39), " ")
 array2str nameread(), 1, a$
 RETURN a$
@@ -982,22 +982,22 @@ END FUNCTION
 
 FUNCTION readattackname$ (index)
 '--clobbers buffer!!!
-readattackname$ = readbadgenericname$(index, game$ + ".dt6", 80, 24, 10, 1)
+readattackname$ = readbadgenericname$(index, game + ".dt6", 80, 24, 10, 1)
 END FUNCTION
 
 FUNCTION readenemyname$ (index)
 '--clobbers buffer!!!
-readenemyname$ = readbadgenericname$(index, game$ + ".dt1", 320, 0, 16, 0)
+readenemyname$ = readbadgenericname$(index, game + ".dt1", 320, 0, 16, 0)
 END FUNCTION
 
 FUNCTION readitemname$ (index)
 '--clobbers buffer!!!
-readitemname$ = readbadgenericname$(index, game$ + ".itm", 200, 0, 8, 0)
+readitemname$ = readbadgenericname$(index, game + ".itm", 200, 0, 8, 0)
 END FUNCTION
 
 FUNCTION readshopname$ (shopnum)
 'clobbers buffer!
-readshopname$ = readbadgenericname$(shopnum, game$ + ".sho", 40, 0, 15, 0)
+readshopname$ = readbadgenericname$(shopnum, game + ".sho", 40, 0, 15, 0)
 END FUNCTION
 
 FUNCTION getsongname$ (num AS INTEGER, prefixnum AS INTEGER = 0)
@@ -1007,7 +1007,7 @@ IF num = -1 THEN RETURN "-none-"
 s = ""
 IF prefixnum THEN s = num & " "
 setpicstuf songd(), curbinsize(2), -1
-loadset workingdir$ + SLASH + "songdata.bin", num, 0
+loadset workingdir + SLASH + "songdata.bin", num, 0
 s = s & readbinstring$ (songd(), 0, 30)
 RETURN s
 END FUNCTION
@@ -1015,7 +1015,7 @@ END FUNCTION
 FUNCTION getsfxname$ (num AS INTEGER)
 DIM sfxd(dimbinsize(3))
 setpicstuf sfxd(), curbinsize(3), -1
-loadset workingdir$ + SLASH + "sfxdata.bin", num, 0
+loadset workingdir + SLASH + "sfxdata.bin", num, 0
 getsfxname$ = readbinstring$ (sfxd(), 0, 30)
 END FUNCTION
 
@@ -1164,7 +1164,7 @@ END FUNCTION
 SUB playsongnum (songnum%)
 	DIM songbase$, songfile$
 
-	songbase$ = workingdir$ & SLASH & "song" & songnum%
+	songbase$ = workingdir & SLASH & "song" & songnum%
   songfile$ = ""
   IF isfile(songbase$ & ".mid") THEN
     songfile$ = songbase$ & ".mid"
@@ -1182,8 +1182,8 @@ SUB playsongnum (songnum%)
     songfile$ = songbase$ & ".it"
   ELSEIF isfile(songbase$ & ".bam") THEN
     songfile$ = songbase$ & ".bam"
-  ELSEIF isfile(game$ & "." & songnum%) THEN
-    songfile$ = game$ & "." & songnum% ' old-style BAM naming scheme
+  ELSEIF isfile(game & "." & songnum%) THEN
+    songfile$ = game & "." & songnum% ' old-style BAM naming scheme
   END IF
 
   if songfile$ = "" then exit sub
@@ -1216,7 +1216,7 @@ FUNCTION find_helper_app (appname AS STRING) AS STRING
 DIM AS INTEGER fh
 DIM AS STRING tempfile
 DIM AS STRING s
-tempfile = tmpdir$ & "find_helper_app." & INT(RND * 10000) & ".tmp"
+tempfile = tmpdir & "find_helper_app." & INT(RND * 10000) & ".tmp"
 'Use the standard util "which" to search the path
 SHELL "which " & appname & " > " & tempfile
 IF NOT isfile(tempfile) THEN debug "find_helper_app(" & appname & ") failed" : RETURN ""
@@ -1230,7 +1230,7 @@ RETURN s
 #ELSE
 '--Find helper app on Windows
 DIM AS STRING exedir
-exedir = trimfilename$(exename$)
+exedir = trimfilename$(exename)
 'First look in the support subdirectory
 IF isfile(exedir & "support\" & appname$ & ".exe") THEN RETURN exedir & "support\" & appname$ & ".exe"
 'Then look in the same folder as CUSTOM/GAME
@@ -1251,7 +1251,7 @@ END FUNCTION
 
 SUB mp3_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 4)
  DIM AS STRING tempwav
- tempwav = tmpdir$ & "temp." & INT(RND * 100000) & ".wav"
+ tempwav = tmpdir & "temp." & INT(RND * 100000) & ".wav"
  mp3_to_wav(in_file, tempwav)
  wav_to_ogg(tempwav, out_file, quality)
  KILL tempwav
@@ -1298,12 +1298,12 @@ END SUB
 
 SUB loadtanim (n, tastuf())
 setpicstuf tastuf(), 80, -1
-loadset game$ + ".tap", n, 0
+loadset game + ".tap", n, 0
 END SUB
 
 SUB savetanim (n, tastuf())
 setpicstuf tastuf(), 80, -1
-storeset game$ + ".tap", n, 0
+storeset game + ".tap", n, 0
 END SUB
 
 'Write old password format (backcompat only)
@@ -1348,7 +1348,7 @@ IF isfile(filename$) THEN RETURN filename$
 IF isfile(exepath$ + SLASH + filename$) THEN RETURN exepath$ + SLASH + filename$
 #IFDEF __FB_LINUX__
 '~/.ohrrpgce/
-IF isfile(tmpdir$ + SLASH + filename$) THEN RETURN tmpdir$ + SLASH + filename$
+IF isfile(tmpdir + SLASH + filename$) THEN RETURN tmpdir + SLASH + filename$
 #IFDEF DATAFILES
 IF isfile(DATAFILES + SLASH + filename$) THEN RETURN DATAFILES + SLASH + filename$
 #ENDIF
@@ -1366,7 +1366,7 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
 
  IF oldsize > 0 THEN ' Only bother to do this for records of nonzero size
 
-  tempf$ = tmpdir$ & "resize.tmp"
+  tempf$ = tmpdir & "resize.tmp"
 
   flusharray buffer(), newsize / 2, 0
 
@@ -1440,12 +1440,12 @@ END FUNCTION
 SUB upgrade (font())
 DIM pal16(8)
 
-IF NOT fileiswriteable(workingdir$ + SLASH + "writetest.tmp") THEN
- upgrade_message workingdir$ & " not writable"
+IF NOT fileiswriteable(workingdir + SLASH + "writetest.tmp") THEN
+ upgrade_message workingdir & " not writable"
  upgrade_message "Making no attempt to upgrade"
  EXIT SUB
 END IF
-safekill workingdir$ + SLASH + "writetest.tmp"
+safekill workingdir + SLASH + "writetest.tmp"
 
 IF gen(genVersion) = 0 THEN
  upgrade_message "Ancient Pre-1999 format (1)"
@@ -1464,16 +1464,16 @@ IF gen(genVersion) = 1 THEN
  gen(genVersion) = 2
  upgrade_message "Updating Door Format..."
  FOR o = 0 TO 19
-  IF isfile(game$ + ".dor") THEN xbload game$ + ".dor", buffer(), "No doors"
+  IF isfile(game + ".dor") THEN xbload game + ".dor", buffer(), "No doors"
   FOR i = 0 TO 299
    buffer(i) = buffer(o * 300 + i)
   NEXT i
   setpicstuf buffer(), 600, -1
-  storeset game$ + ".dox", o, 0
+  storeset game + ".dox", o, 0
  NEXT o
  upgrade_message "Enforcing default font"
  getdefaultfont font()
- xbsave game$ + ".fnt", font(), 2048
+ xbsave game + ".fnt", font(), 2048
  setfont font()
  upgrade_message "rpgfix:Making AniMaptiles Backward Compatable"
  FOR i = 0 TO 39
@@ -1580,8 +1580,8 @@ IF gen(genVersion) = 4 THEN
  gen(genVersion) = 5
  upgrade_message "Upgrading 16-color Palette Format..."
  setpicstuf pal16(), 16, -1
- xbload game$ + ".pal", buffer(), "16-color palletes missing from " + game$
- KILL game$ + ".pal"
+ xbload game + ".pal", buffer(), "16-color palletes missing from " + game
+ KILL game + ".pal"
  '--find last used palette
  last = 99
  foundpal = 0
@@ -1602,13 +1602,13 @@ IF gen(genVersion) = 4 THEN
  FOR i = 2 TO 7
   pal16(i) = 0
  NEXT i
- storeset game$ + ".pal", 0, 0
+ storeset game + ".pal", 0, 0
  '--convert palettes
  FOR j = 0 TO last
   FOR i = 0 TO 7
    pal16(i) = buffer(j * 8 + i)
   NEXT i
-  storeset game$ + ".pal", 1 + j, 0
+  storeset game + ".pal", 1 + j, 0
  NEXT j
 END IF
 '--VERSION 6--
@@ -1619,33 +1619,33 @@ IF gen(genVersion) = 5 THEN
  'Clear battle formation animation data
  FOR i = 0 TO gen(genMaxFormation)
   setpicstuf buffer(), 80, -1
-  loadset game$ + ".for", i, 0
+  loadset game + ".for", i, 0
   buffer(34) = 0
   buffer(35) = 0
-  storeset game$ + ".for", i, 0
+  storeset game + ".for", i, 0
  NEXT i
  gen(genVersion) = 6
 END IF
 
 
-IF NOT isfile(workingdir$ + SLASH + "archinym.lmp") THEN
+IF NOT isfile(workingdir + SLASH + "archinym.lmp") THEN
  upgrade_message "generate default archinym.lmp"
  '--create archinym information lump
  fh = FREEFILE
- OPEN workingdir$ + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
- PRINT #fh, RIGHT$(game$, LEN(game$) - LEN(workingdir$ + SLASH))
+ OPEN workingdir + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
+ PRINT #fh, RIGHT$(game, LEN(game) - LEN(workingdir + SLASH))
  PRINT #fh, version$ + "(previous)"
  CLOSE #fh
 END IF
 
-IF NOT isfile(game$ + ".veh") THEN
+IF NOT isfile(game + ".veh") THEN
  upgrade_message "add vehicle data"
  '--make sure vehicle lump is present
  template$ = finddatafile("ohrrpgce.new")
  IF template$ <> "" THEN
-  unlumpfile(template$, "ohrrpgce.veh", tmpdir$)
-  copyfile tmpdir$ & SLASH & "ohrrpgce.veh", game$ & ".veh"
-  safekill tmpdir$ & SLASH & "ohrrpgce.veh"
+  unlumpfile(template$, "ohrrpgce.veh", tmpdir)
+  copyfile tmpdir & SLASH & "ohrrpgce.veh", game & ".veh"
+  safekill tmpdir & SLASH & "ohrrpgce.veh"
   gen(genMaxVehicle) = 2
  END IF
 END IF
@@ -1657,7 +1657,7 @@ FOR i = 0 TO sizebinsize
  setbinsize i, getbinsize(i)
 NEXT
 
-IF NOT isfile(workingdir$ + SLASH + "attack.bin") THEN
+IF NOT isfile(workingdir + SLASH + "attack.bin") THEN
  upgrade_message "Init extended attack data..."
  setbinsize 0, curbinsize(0)
  FOR i = 0 TO gen(genMaxAttack)
@@ -1675,16 +1675,16 @@ IF NOT isfile(workingdir$ + SLASH + "attack.bin") THEN
  NEXT i
 END IF
 
-IF NOT isfile(workingdir$ + SLASH + "songdata.bin") THEN
+IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
  upgrade_message "Upgrading Song Name format..."
  DIM song$(99)
  fh = FREEFILE
- OPEN game$ + ".sng" FOR BINARY AS #fh
+ OPEN game + ".sng" FOR BINARY AS #fh
  temp& = LOF(fh)
  CLOSE #fh
  IF temp& > 0 THEN
   fh = FREEFILE
-  OPEN game$ + ".sng" FOR INPUT AS #fh
+  OPEN game + ".sng" FOR INPUT AS #fh
   FOR i = 0 TO 99
    INPUT #fh, song$(i)
   NEXT i
@@ -1693,7 +1693,7 @@ IF NOT isfile(workingdir$ + SLASH + "songdata.bin") THEN
 
  FOR i = 99 TO 1 STEP -1
   '-- check for midis as well 'cause some people might use a WIP custom or whatnot
-  IF song$(i) <> "" OR isfile(game$ + "." + STR$(i)) OR isfile(workingdir$ + SLASH + "song" + STR$(i) + ".mid") THEN
+  IF song$(i) <> "" OR isfile(game + "." + STR$(i)) OR isfile(workingdir + SLASH + "song" + STR$(i) + ".mid") THEN
    gen(genMaxSong) = i
    EXIT FOR
   END IF
@@ -1704,17 +1704,17 @@ IF NOT isfile(workingdir$ + SLASH + "songdata.bin") THEN
  setpicstuf buffer(), curbinsize(2), -1
  FOR i = 0 TO gen(genMaxSong)
   writebinstring song$(i), buffer(), 0, 30
-  storeset workingdir$ + SLASH + "songdata.bin", i, 0
+  storeset workingdir + SLASH + "songdata.bin", i, 0
  NEXT
  ERASE song$
 END IF
 
-IF NOT isfile(workingdir$ + SLASH + "palettes.bin") THEN
+IF NOT isfile(workingdir + SLASH + "palettes.bin") THEN
  DIM AS SHORT headsize = 4, recsize = 768
  upgrade_message "Upgrading Master Palette format..."
  loadpalette master(), 0
  fh = FREEFILE
- OPEN workingdir$ + SLASH + "palettes.bin" FOR BINARY AS #fh
+ OPEN workingdir + SLASH + "palettes.bin" FOR BINARY AS #fh
  PUT #fh, , headsize
  PUT #fh, , recsize
  CLOSE #fh
@@ -1723,27 +1723,27 @@ END IF
 
 '--check variable record size lumps and reoutput them if records have been extended
 '--all of the files below should exist, be non zero length and have non zero record size by this point
-updaterecordlength workingdir$ + SLASH + "attack.bin", binATTACK
-updaterecordlength game$ + ".stf", binSTF
-updaterecordlength workingdir$ + SLASH + "songdata.bin", binSONGDATA
-updaterecordlength workingdir$ + SLASH + "sfxdata.bin", binSFXDATA
-updaterecordlength game$ + ".map", binMAP
-updaterecordlength workingdir$ + SLASH + "menus.bin", binMENUS
-updaterecordlength workingdir$ + SLASH + "menuitem.bin", binMENUITEM
-IF NOT isfile(workingdir$ + SLASH + "menuitem.bin") THEN
+updaterecordlength workingdir + SLASH + "attack.bin", binATTACK
+updaterecordlength game + ".stf", binSTF
+updaterecordlength workingdir + SLASH + "songdata.bin", binSONGDATA
+updaterecordlength workingdir + SLASH + "sfxdata.bin", binSFXDATA
+updaterecordlength game + ".map", binMAP
+updaterecordlength workingdir + SLASH + "menus.bin", binMENUS
+updaterecordlength workingdir + SLASH + "menuitem.bin", binMENUITEM
+IF NOT isfile(workingdir + SLASH + "menuitem.bin") THEN
  upgrade_message "Creating default menu file..."
  DIM menu_set AS MenuSet
- menu_set.menufile = workingdir$ + SLASH + "menus.bin"
- menu_set.itemfile = workingdir$ + SLASH + "menuitem.bin"
+ menu_set.menufile = workingdir + SLASH + "menus.bin"
+ menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
  DIM menu AS MenuDef
  create_default_menu menu
  SaveMenuData menu_set, menu, 0
 END IF
-updaterecordlength workingdir$ + SLASH + "uicolors.bin", binUICOLORS
+updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
 
 '--give each palette a default ui color set
 ff = FREEFILE
-OPEN workingdir$ + SLASH + "uicolors.bin" FOR BINARY AS #ff
+OPEN workingdir + SLASH + "uicolors.bin" FOR BINARY AS #ff
 uirecords = LOF(ff) \ getbinsize(binUICOLORS)
 CLOSE #ff
 IF uirecords < gen(genMaxMasterPal) + 1 THEN
@@ -1774,7 +1774,7 @@ IF getfixbit(fixAttackitems) = 0 THEN
   upgrade_message "Zero new ammunition data..."
   setfixbit(fixAttackitems, 1)
   fh = freefile
-  OPEN workingdir$ + SLASH + "attack.bin" FOR BINARY AS #FH
+  OPEN workingdir + SLASH + "attack.bin" FOR BINARY AS #FH
   REDIM dat(curbinsize(0)/2 - 1) AS SHORT
   p = 1
   FOR i = 0 to gen(genMaxAttack)
@@ -1795,7 +1795,7 @@ IF getfixbit(fixWeapPoints) = 0 THEN
  DO
   setfixbit(fixWeapPoints, 1)
   fh = freefile
-  OPEN game$ + ".dt0" FOR BINARY AS #fh
+  OPEN game + ".dt0" FOR BINARY AS #fh
   REDIM dat(317) AS SHORT
   p = 1
   FOR i = 0 to gen(genMaxHero)
@@ -1893,7 +1893,7 @@ IF getfixbit(fixBlankDoorLinks) = 0 THEN
 END IF
 
 'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)
-xbsave game$ + ".gen", gen(), 1000
+xbsave game + ".gen", gen(), 1000
 
 'wow! this is quite a big and ugly routine!
 END SUB
@@ -2090,7 +2090,7 @@ END FUNCTION
 
 FUNCTION readglobalstring$ (index, default$, maxlen)
 fh = FREEFILE
-OPEN game$ + ".stt" FOR BINARY AS #fh
+OPEN game + ".stt" FOR BINARY AS #fh
 
 a$ = CHR$(0)
 GET #fh, 1 + index * 11, a$
@@ -2345,7 +2345,7 @@ FUNCTION load_tag_name (index AS INTEGER) AS STRING
  IF index = -1 THEN RETURN "Always"
  DIM buf(20)
  setpicstuf buf(), 42, -1
- loadset game$ + ".tmn", ABS(index), 0
+ loadset game + ".tmn", ABS(index), 0
  RETURN readbadbinstring$(buf(), 0, 20)
 END FUNCTION
 
@@ -2353,7 +2353,7 @@ SUB save_tag_name (tagname AS STRING, index AS INTEGER)
  DIM buf(20)
  setpicstuf buf(), 42, -1
  writebadbinstring tagname$, buf(), 0, 20
- storeset game$ + ".tmn", index, 0
+ storeset game + ".tmn", index, 0
 END SUB
 
 SUB load_default_master_palette (master_palette_array() AS RGBColor)

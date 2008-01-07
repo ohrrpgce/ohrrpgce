@@ -365,7 +365,7 @@ Function GetWeaponPos(w,f,isY)'or x?
  dim fh
  IF w >= 0 THEN
   fh = FREEFILE
-  OPEN game$ + ".itm" FOR BINARY AS #fh
+  OPEN game + ".itm" FOR BINARY AS #fh
   'debug "weapon" + XSTR$(w) + " offset: " + XSTR$(w * 200 + 157 + f * 4 + isY * 2)
   GetWeaponPos = ReadShort(fh,w * 200 + 157 + f * 4 + iif(isY,1,0) * 2)
   CLOSE #FH
@@ -375,7 +375,7 @@ End Function
 Function GetHeroPos(h,f,isY)'or x?
  dim fh
  fh = FREEFILE
- OPEN game$ + ".dt0" FOR BINARY AS #fh
+ OPEN game + ".dt0" FOR BINARY AS #fh
  'debug "hero offset: " + XSTR$(h * 636 + 595 + f * 4 + isY * 2)
  GetHeroPos = ReadShort(fh,h * 636 + 595 + f * 4 + iif(isY,1,0) * 2)
  CLOSE #FH
@@ -749,12 +749,12 @@ IF formdata(i * 4) > 0 THEN
 END IF
 IF bslot(4 + i).vis = 1 THEN
  setpicstuf buffer(), (bslot(4 + i).w * bslot(4 + i).h) * .5, 3
- loadset game$ + ext$(i), es(i, 53), 64 + i * 10
+ loadset game + ext$(i), es(i, 53), 64 + i * 10
  with bslot(4 + i)
   .sprite_num = 1
-  .sprites = sprite_load(game$ + ext$(i), es(i, 53), 1, .w, .h)
+  .sprites = sprite_load(game + ext$(i), es(i, 53), 1, .w, .h)
   if .sprites = 0 then debug "Failed to load enemy sprite (#" & i & ")"
-  .pal = palette16_load(game$ + ".pal", es(i, 54), 1 + es(i, 55), es(i, 53))
+  .pal = palette16_load(game + ".pal", es(i, 54), 1 + es(i, 55), es(i, 53))
   if .pal = 0 then debug "Failed to load palette (#" & (4+i) & ")"
   
  end with
@@ -841,7 +841,7 @@ safemultiply = result
 END FUNCTION
 
 SUB setbatcap (cap$, captime, capdelay)
-battlecaption$ = cap$
+battlecaption = cap$
 battlecaptime = captime
 battlecapdelay = capdelay
 END SUB

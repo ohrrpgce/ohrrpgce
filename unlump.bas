@@ -99,10 +99,11 @@ IF NOT isfile(lump$) THEN fatalerror "lump file `" + lump$ + "' was not found"
 
 PRINT "From " + lump$ + " to " + dest$
 
-'--Get old-style game$ (only matters for ancient RPG files that are missing the archinym.lmp)
-game$ = rightafter(lump$, SLASH)
-IF game$ = "" THEN game$ = lump$
-IF INSTR(game$, ".") THEN game$ = trimextension$(game$)
+'--Get old-style game (only matters for ancient RPG files that are missing the archinym.lmp)
+dim game as string
+game = rightafter(lump$, SLASH)
+IF game = "" THEN game = lump$
+IF INSTR(game, ".") THEN game = trimextension$(game)
 
 IF isfile(dest$) THEN fatalerror "destination directory `" + dest$ + "' already exists as a file"
 
@@ -129,22 +130,22 @@ END IF
  
 unlumpfile lump$, "archinym.lmp", dest$ + SLASH, buffer()
 
-'--set game$ according to the archinym
+'--set game according to the archinym
 IF isfile(dest$ + SLASH + "archinym.lmp") THEN
  fh = FREEFILE
  OPEN dest$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
  LINE INPUT #fh, a$
  CLOSE #fh
  IF LEN(a$) <= 8 THEN
-  game$ = a$
+  game = a$
  END IF
  KILL dest$ + SLASH + "archinym.lmp"
 END IF
 
-unlumpfile lump$, game$ + ".gen", dest$ + SLASH, buffer()
-xbload dest$ + SLASH + game$ + ".gen", buffer(), "unable to open general data"
+unlumpfile lump$, game + ".gen", dest$ + SLASH, buffer()
+xbload dest$ + SLASH + game + ".gen", buffer(), "unable to open general data"
 
-KILL dest$ + SLASH + game$ + ".gen"
+KILL dest$ + SLASH + game + ".gen"
 
 passokay = -1
 

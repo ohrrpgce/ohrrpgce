@@ -916,7 +916,7 @@ END SUB
 SUB LoadUIColors (colarray() AS INTEGER, palnum AS INTEGER=-1)
  'load ui colors from data lump
  DIM filename AS STRING
- filename = workingdir$ & SLASH & "uicolors.bin"
+ filename = workingdir & SLASH & "uicolors.bin"
 
  IF palnum < 0 OR palnum > gen(genMaxMasterPal) OR NOT isfile(filename) THEN
   DefaultUIColors colarray()
@@ -936,7 +936,7 @@ END SUB
 
 SUB SaveUIColors (colarray() AS INTEGER, palnum AS INTEGER)
  DIM filename AS STRING
- filename = workingdir$ & SLASH & "uicolors.bin"
+ filename = workingdir & SLASH & "uicolors.bin"
 
  IF palnum < 0 OR palnum > gen(genMaxMasterPal) THEN
   debug "SaveUIColors: attempt to save colors out of range " & palnum
@@ -959,7 +959,7 @@ SUB LoadTextBox (boxbuf() AS INTEGER, record AS INTEGER)
  IF record < 0 OR record > gen(genMaxTextBox) THEN debug "LoadTextBox: invalid record: " & record : EXIT SUB
 
  DIM filename AS STRING
- filename = game$ & ".say"
+ filename = game & ".say"
 
  DIM i AS INTEGER
  DIM f AS INTEGER
@@ -977,7 +977,7 @@ SUB SaveTextBox (boxbuf() AS INTEGER, record AS INTEGER)
  IF record < 0 OR record > gen(genMaxTextBox) THEN debug "SaveTextBox: invalid record: " & record : EXIT SUB
 
  DIM filename AS STRING
- filename = game$ & ".say"
+ filename = game & ".say"
 
  DIM i AS INTEGER
  DIM f AS INTEGER

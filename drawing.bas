@@ -165,7 +165,7 @@ submenu$(0) = "Import with current Master Palette"
 submenu$(1) = "Import with new Master Palette"
 submenu$(2) = "Do not remap colours"
 loadpalette pmask(), activepalette
-loadpage game$ + f$, pt, 2
+loadpage game + f$, pt, 2
 
 setkeys
 DO
@@ -174,7 +174,7 @@ DO
  tog = tog XOR 1
  IF keyval(29) > 0 AND keyval(14) > 1 THEN
   this = count - 1
-  cropafter pt, this, 3, game$ + f$, -1, 1
+  cropafter pt, this, 3, game + f$, -1, 1
   count = this + 1
  END IF
  IF keyval(1) > 1 THEN EXIT DO
@@ -182,7 +182,7 @@ DO
  IF csr = 1 THEN
   IF intgrabber(pt, 0, count - 1) THEN
    menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
-   loadpage game$ + f$, pt, 2
+   loadpage game + f$, pt, 2
   END IF
  END IF
  IF enter_or_space() THEN
@@ -192,7 +192,7 @@ DO
    IF srcbmp$ <> "" THEN
     GOSUB bimport
    END IF
-   loadpage game$ + f$, pt, 2
+   loadpage game + f$, pt, 2
   END IF
   IF csr = 3 AND count < 32767 THEN
    srcbmp$ = browse$(3, default$, "*.bmp", "")
@@ -203,11 +203,11 @@ DO
     IF pt = count THEN pt = oldpt 'cancelled
    END IF
    menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
-   loadpage game$ + f$, pt, 2
+   loadpage game + f$, pt, 2
   END IF
   IF csr = 4 THEN GOSUB disable
   IF csr = 5 THEN
-   outfile$ = inputfilename$("Name of file to export to?", ".bmp", trimpath$(game$) & " " & cap$ & pt)
+   outfile$ = inputfilename$("Name of file to export to?", ".bmp", trimpath$(game) & " " & cap$ & pt)
    IF outfile$ <> "" THEN screenshot outfile$ & ".bmp", 2, master()
   END IF
  END IF
@@ -290,7 +290,7 @@ IF paloption = 0 THEN
   NEXT
  NEXT
 END IF
-storepage game$ + f$, pt, 3
+storepage game + f$, pt, 3
 IF pt >= count THEN count = pt + 1
 loadpalette pmask(), activepalette
 RETRACE
@@ -301,7 +301,7 @@ SUB loadpasdefaults (array(), tilesetnum)
 flusharray array(), 160, 0
 '--load defaults from tile set defaults file
 setpicstuf array(), 322, -1
-loadset workingdir$ + SLASH + "defpass.bin", tilesetnum, 0
+loadset workingdir + SLASH + "defpass.bin", tilesetnum, 0
 '--enforce magic number and filesize
 IF array(160) <> 4444 THEN
  flusharray array(), 160, 0
@@ -313,13 +313,13 @@ SUB savepasdefaults (array(), tilesetnum)
 array(160) = 4444
 '--write defaults into tile set defaults file
 setpicstuf array(), 322, -1
-storeset workingdir$ + SLASH + "defpass.bin", tilesetnum, 0
+storeset workingdir + SLASH + "defpass.bin", tilesetnum, 0
 END SUB
 
 SUB maptile (font())
 DIM menu$(10), tastuf(40)
 
-mapfile$ = game$ + ".til"
+mapfile$ = game + ".til"
 
 bnum = 0
 tmode = 0
@@ -334,7 +334,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) > 1 AND pagenum > -1 THEN
-  cropafter pagenum, gen(33), 3, game$ + ".til", -1, 1
+  cropafter pagenum, gen(33), 3, game + ".til", -1, 1
  END IF
  IF keyval(80) > 1 AND pagenum = gen(33) AND gen(33) < 32767 THEN
   pagenum = pagenum + 1
@@ -512,11 +512,11 @@ top = curpal - 1
 
 '--get last pal
 setpicstuf buffer(), 16, -1
-loadset game$ + ".pal", 0, 0
+loadset game + ".pal", 0, 0
 lastpal = buffer(1)
 o = 0
 FOR i = lastpal TO 0 STEP -1
- loadset game$ + ".pal", 1 + i, 0
+ loadset game + ".pal", 1 + i, 0
  FOR j = 0 TO 7
   IF buffer(j) <> 0 THEN o = 1: EXIT FOR
  NEXT j
@@ -733,7 +733,7 @@ DIM workpal(8 * (atatime + 1))
 DIM poffset(large(sets, atatime))
 DIM AS INTEGER do_paste = 0
 DIM AS INTEGER paste_transparent = 0
-spritefile$ = game$ + ".pt" + STR$(fileset)
+spritefile$ = game + ".pt" + STR$(fileset)
 
 gotm = setmouse(mouse())
 GOSUB initmarea
@@ -2137,7 +2137,7 @@ IF ts.gotmouse THEN
 END IF
 ts.delay = 3
 clearpage 2
-loadpage game$ + ".mxs", ts.cutfrom, 2
+loadpage game + ".mxs", ts.cutfrom, 2
 setkeys
 DO
  setwait timing(), 120
@@ -2175,7 +2175,7 @@ DO
  intgrabber ts.cutfrom, 0, gen(genMaxBackdrop) - 1, 51, 52
  IF ts.zone = 11 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, gen(genMaxBackdrop) - 1, -1)
  IF ts.zone = 12 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, gen(genMaxBackdrop) - 1, 1)
- IF oldcut <> ts.cutfrom THEN loadpage game$ + ".mxs", ts.cutfrom, 2
+ IF oldcut <> ts.cutfrom THEN loadpage game + ".mxs", ts.cutfrom, 2
  '----
  drawline ts.x, ts.y, ts.x + 19, ts.y, 10 + tog * 5, dpage
  drawline ts.x, ts.y, ts.x, ts.y + 19, 10 + tog * 5, dpage

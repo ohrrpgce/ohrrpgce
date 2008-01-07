@@ -286,7 +286,7 @@ DO
   END IF
   IF csr = 3 THEN
    GOSUB gmapdata
-   loadpage game$ + ".til", gmap(0), 3
+   loadpage game + ".til", gmap(0), 3
   END IF
   IF csr = 4 THEN mapedit_delete pt, wide, high, x, y, mapx, mapy, layer, map(), pass(), emap(), npc(), npcstat(), doors(), link()
   IF csr = 5 THEN mapedit_linkdoors pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
@@ -505,13 +505,13 @@ mapping:
 clearpage 2
 '--load hero graphics--
 loadherodata @her, 0
-loadrecord heroimg(), game$ + ".pt4", 100, her.walk_sprite * 8 + 4
+loadrecord heroimg(), game + ".pt4", 100, her.walk_sprite * 8 + 4
 fixspriterecord heroimg(), 20, 20
 getpal16 heropal(), 0, her.walk_sprite_pal, 4, her.walk_sprite
 '--load NPC graphics--
 FOR i = 0 TO 35
  setpicstuf buffer(), 1600, 2
- loadset game$ + ".pt4", npcstat(i * 15 + 0), 5 * i
+ loadset game + ".pt4", npcstat(i * 15 + 0), 5 * i
  getpal16 pal16(), i, npcstat(i * 15 + 1), 4, npcstat(i * 15 + 0)
 NEXT i
 defpass = 1
@@ -1186,9 +1186,9 @@ SUB new_blank_map (map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap(
 END SUB
 
 SUB mapedit_loadmap (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tastuf() AS INTEGER, tanim_state() AS TileAnimState, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS INTEGER, mapname AS STRING)
- loadrecord gmap(), game$ & ".map", getbinsize(binMAP) / 2, mapnum
+ loadrecord gmap(), game & ".map", getbinsize(binMAP) / 2, mapnum
  visible(0) = &b111   'default all layers to visible, if they're enabled too, of course
- loadpage game$ & ".til", gmap(0), 3
+ loadpage game & ".til", gmap(0), 3
  loadtanim gmap(0), tastuf()
  FOR i = 0 TO 1
   WITH tanim_state(i)
@@ -1202,7 +1202,7 @@ SUB mapedit_loadmap (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INT
  loadtiledata maplumpname$(mapnum, "e"), emap()
  xbload maplumpname$(mapnum, "l"), npc(), "npclocation lump is missing!"
  xbload maplumpname$(mapnum, "n"), npcstat(), "npcstat lump is missing!"
- deserdoors game$ & ".dox", doors(), mapnum
+ deserdoors game & ".dox", doors(), mapnum
  deserdoorlinks maplumpname$(mapnum, "d"), link()
  mapname$ = getmapname$(mapnum)
  loadpasdefaults defaults(), gmap(0)
@@ -1210,19 +1210,19 @@ SUB mapedit_loadmap (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INT
 END SUB
 
 SUB mapedit_savemap (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
- storerecord gmap(), game$ & ".map", getbinsize(binMAP) / 2, mapnum
+ storerecord gmap(), game & ".map", getbinsize(binMAP) / 2, mapnum
  savetiledata maplumpname$(mapnum, "t"), map(), 3
  savetiledata maplumpname$(mapnum, "p"), pass()
  savetiledata maplumpname$(mapnum, "e"), emap()
  xBSAVE maplumpname$(mapnum, "l"), npc(), 3000
  xBSAVE maplumpname$(mapnum, "n"), npcstat(), 3000
- serdoors game$ & ".dox", doors(), mapnum
+ serdoors game & ".dox", doors(), mapnum
  serdoorlinks maplumpname$(mapnum, "d"), link()
  '--save map name
  DIM mapsave(39) AS INTEGER
  mapsave(0) = LEN(mapname)
  str2array LEFT(mapname, 39), mapsave(), 1
- storerecord mapsave(), game$ & ".mn", 40, mapnum
+ storerecord mapsave(), game & ".mn", 40, mapnum
 END SUB
 
 SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, mapname AS STRING)
@@ -1334,7 +1334,7 @@ SUB mapedit_delete(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEG
   savetiledata maplumpname$(mapnum, "e"), emap()
   xBSAVE maplumpname$(mapnum, "l"), npc(), 3000
   serdoorlinks maplumpname$(mapnum, "d"), link()
-  serdoors game$ + ".dox", doors(), mapnum
+  serdoors game + ".dox", doors(), mapnum
   '--reset scroll position
   x = 0
   y = 0
@@ -1587,10 +1587,10 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors() as do
  END IF
  '-----------------EXIT DOOR
  destmap = link(cur).dest_map
- loadrecord gmap2(), game$ + ".map", dimbinsize(4), destmap
- deserdoors game$ + ".dox", destdoor(), destmap
+ loadrecord gmap2(), game + ".map", dimbinsize(4), destmap
+ deserdoors game + ".dox", destdoor(), destmap
  LoadTiledata maplumpname$(destmap, "t"), map(), 3, tempw, temph
- loadpage game$ + ".til", gmap2(0), 3
+ loadpage game + ".til", gmap2(0), 3
  
  loadtanim gmap2(0), anim()
  setanim anim(0), anim(20)
@@ -1612,7 +1612,7 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors() as do
   printstr caption$, destdoor(link(cur).dest).x * 20 - dmx + 10 - (4 * LEN(caption$)), destdoor(link(cur).dest).y * 20 - dmy + 86, 2
  END IF
  '-----------------RESET DATA
- loadpage game$ + ".til", gmap(0), 3
+ loadpage game + ".til", gmap(0), 3
  LoadTiledata maplumpname$(curmap, "t"), map(), 3, tempw, temph
 END SUB
 
