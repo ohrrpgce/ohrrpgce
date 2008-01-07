@@ -805,7 +805,7 @@ DO
    NEXT i
    IF mode = 1 THEN rectangle xoff + x * 20, yoff + y * 20, 20, 20, 2 + 8 * readbit(font(), 0, (f(pt) * 8 + x) * 8 + y), dpage
    textcolor 15, 0
-   printstr "ASCII" + XSTR$(f(pt)), 20, 190, dpage
+   printstr "ASCII " & f(pt), 20, 190, dpage
    IF f(pt) < 32 THEN
     printstr "RESERVED", 120, 190, dpage
    ELSE
@@ -1063,11 +1063,11 @@ storeset game + ".sho", pt, 0
 RETRACE
 
 menuup:
-menu$(1) = CHR$(27) + " Shop" + XSTR$(pt) + " of" + XSTR$(gen(97)) + CHR$(26)
-menu$(2) = "Name:" + sn$
-menu$(5) = "Inn Price:" + XSTR$(a(18))
+menu$(1) = CHR(27) & " Shop " & pt & " of " & gen(genMaxShop) & CHR(26)
+menu$(2) = "Name: " & sn$
+menu$(5) = "Inn Price: " & a(18)
 IF readbit(a(), 17, 3) = 0 THEN menu$(5) = "Inn Price: N/A"
-menu$(6) = "Inn Script: " + scriptname$(a(19), plottrigger)
+menu$(6) = "Inn Script: " & scriptname$(a(19), plottrigger)
 IF readbit(a(), 17, 0) OR readbit(a(), 17, 1) OR readbit(a(), 17, 2) THEN havestuf = 1 ELSE havestuf = 0
 RETRACE
 
@@ -1188,12 +1188,12 @@ END SELECT
 RETRACE
 
 stufmenu:
-smenu$(1) = CHR$(27) + "Shop Thing" + XSTR$(thing) + " of" + XSTR$(a(16)) + CHR$(26)
-smenu$(2) = "Name: " + thing$
-smenu$(3) = "Type:" + XSTR$(b(17)) + "-" + stf$(bound(b(17), 0, 2))
-smenu$(4) = "Number:" + XSTR$(b(18)) + " " + defaultthing$
+smenu$(1) = CHR(27) & "Shop Thing " & thing & " of " & a(16) & CHR(26)
+smenu$(2) = "Name: " & thing$
+smenu$(3) = "Type: " & b(17) & "-" & stf$(bound(b(17), 0, 2))
+smenu$(4) = "Number:" & b(18) & " " & defaultthing$
 IF b(19) > 0 THEN
- smenu$(5) = "In Stock:" + XSTR$(b(19))
+ smenu$(5) = "In Stock: " & b(19)
 ELSE
  smenu$(5) = stf$(8 + bound(b(19), -1, 0))
 END IF
@@ -1201,19 +1201,19 @@ smenu$(6) = tag_condition_caption(b(20), "Buy Require Tag", "No Tag Check")
 smenu$(7) = tag_condition_caption(b(21), "Sell Require Tag", "No Tag Check")
 smenu$(8) = tag_condition_caption(b(22), "Buy Set Tag", "No Tag Set", "Unalterable", "Unalterable")
 smenu$(9) = tag_condition_caption(b(23), "Sell Set Tag", "No Tag Set", "Unalterable", "Unalterable")
-smenu$(10) = names(32) + " Price:" + XSTR$(b(24))
-smenu$(11) = "Must Trade in" + XSTR$(b(30) + 1) + " of:" + tradestf$(0)
+smenu$(10) = names(32) & " Price: " & b(24)
+smenu$(11) = "Must Trade in " & (b(30) + 1) & " of:" & tradestf$(0)
 smenu$(12) = " (Change Amount)"
-smenu$(13) = "Must Trade in" + XSTR$(b(32) + 1) + " of:" + tradestf$(1)
+smenu$(13) = "Must Trade in " & (b(32) + 1) & " of:" & tradestf$(1)
 smenu$(14) = " (Change Amount)"
-smenu$(15) = "Must Trade in" + XSTR$(b(34) + 1) + " of:" + tradestf$(2)
+smenu$(15) = "Must Trade in " & (b(34) + 1) & " of:" & tradestf$(2)
 smenu$(16) = " (Change Amount)"
-smenu$(17) = "Must Trade in" + XSTR$(b(36) + 1) + " of:" + tradestf$(3)
+smenu$(17) = "Must Trade in " & (b(36) + 1) & " of:" & tradestf$(3)
 smenu$(18) = " (Change Amount)"
 IF b(17) = 0 THEN
- smenu$(19) = "Sell type: " + stf$(bound(b(26), 0, 3) + 3)
- smenu$(20) = "Sell Price:" + XSTR$(b(27))
- smenu$(21) = "Trade in for" + XSTR$(b(29) + 1) + " of:" + trit$
+ smenu$(19) = "Sell type: " & stf$(bound(b(26), 0, 3) + 3)
+ smenu$(20) = "Sell Price: " & b(27)
+ smenu$(21) = "Trade in for " & (b(29) + 1) & " of:" & trit$
  smenu$(22) = " (Change Amount)"
 ELSE
  smenu$(19) = "Experience Level: "
