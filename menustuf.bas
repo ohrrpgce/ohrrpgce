@@ -384,15 +384,18 @@ FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS IN
 'true if valid, false if not valid
  IF target < 0 OR target > 40 THEN RETURN NO
  IF hero(target) = 0 THEN RETURN NO
- IF atk < 0 OR atk > gen(genMaxAttack) THEN RETURN NO
+ IF atk < -1 OR atk > gen(genMaxAttack) THEN RETURN NO
 
- DIM atktemp(40 + dimbinsize(binATTACK)) AS INTEGER
- loadattackdata atktemp(), atk
  DIM hp AS INTEGER
  hp = stat(target, 0, 0)
 
- IF hp = 0 AND (atktemp(3) = 4 OR atktemp(3) = 10) THEN RETURN YES
- IF hp > 0 AND atktemp(3) = 10 THEN RETURN NO
+ IF atk >= 0 THEN
+  DIM atktemp(40 + dimbinsize(binATTACK)) AS INTEGER
+  loadattackdata atktemp(), atk
+  IF hp = 0 AND (atktemp(3) = 4 OR atktemp(3) = 10) THEN RETURN YES
+  IF hp > 0 AND atktemp(3) = 10 THEN RETURN NO
+ END IF
+
  IF hp = 0 THEN RETURN NO
 
  RETURN YES
