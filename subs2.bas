@@ -23,7 +23,7 @@ DECLARE SUB stredit (s$, maxl%)
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION filenum$ (n%)
-DECLARE SUB writeconstant (filehandle%, num%, names, unique$(), prefix$)
+DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique$(), prefix$)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
@@ -33,7 +33,7 @@ DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION boxconditionheroname$ (num%, cond%())
-DECLARE SUB editbitset (array%(), wof%, last%, names())
+DECLARE SUB editbitset (array%(), wof%, last%, names() AS STRING)
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
@@ -112,7 +112,7 @@ END SUB
 
 SUB exportnames ()
 
-DIM u$(1024), names(32), stat$(11)
+DIM u$(1024), names(32) AS STRING, stat$(11)
 DIM her AS HeroDef
 DIM menu AS MenuDef
 DIM menu_set AS MenuSet
@@ -369,6 +369,7 @@ SUB importscripts (f$)
   gen(40) = 0
   gen(43) = 0
   viscount = 0
+  DIM names AS STRING = ""
   DO
    IF EOF(fptr) THEN EXIT DO
    IF dotbin THEN 
@@ -520,7 +521,7 @@ END SUB
 
 SUB statname
 max = 122
-DIM stat$(max), names(max), maxlen(max)
+DIM stat$(max), names(max) AS STRING, maxlen(max)
 clearpage 0
 clearpage 1
 
@@ -1349,7 +1350,7 @@ FOR i = 0 TO buffer(0)
 NEXT
 END SUB
 
-SUB writeconstant (filehandle, num, names, unique$(), prefix$)
+SUB writeconstant (filehandle, num, names AS STRING, unique$(), prefix$)
 'prints to already-open filehandle 1
 a$ = exclusive(names, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _'~")
 WHILE NOT isunique(a$, unique$(), 0): a$ = numbertail(a$): WEND

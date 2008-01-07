@@ -29,7 +29,7 @@ DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, you
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE SUB mapmaker (font%(), npcn%(), npcstat%())
 DECLARE SUB npcdef (npcn%(), pt%)
-DECLARE SUB editbitset (array%(), wof%, last%, names())
+DECLARE SUB editbitset (array%(), wof%, last%, names() AS STRING)
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
 DECLARE SUB shopdata ()
 DECLARE SUB importsong ()
@@ -914,7 +914,7 @@ RETRACE
 END SUB
 
 SUB shopdata
-DIM names(32), a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
+DIM names(32) AS STRING, a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
 DIM her AS HeroDef' Used to get hero name for default stuff name
 
 maxcount = 32: pt = 0: it$ = "-NONE-": sn$ = ""

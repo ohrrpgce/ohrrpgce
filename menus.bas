@@ -21,7 +21,7 @@ DEFINT A-Z
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION filenum$ (n%)
-DECLARE SUB writeconstant (filehandle%, num%, names, unique$(), prefix$)
+DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique$(), prefix$)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
@@ -29,7 +29,7 @@ DECLARE FUNCTION isunique% (s$, u$(), r%)
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE SUB editbitset (array%(), wof%, last%, names())
+DECLARE SUB editbitset (array%(), wof%, last%, names() AS STRING)
 DECLARE SUB formation ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
@@ -255,7 +255,7 @@ SUB gendata ()
 STATIC default$
 CONST maxMenu = 32
 DIM m$(maxMenu), max(maxMenu), bitname$(17)
-DIM names(32), stat$(11), menutop
+DIM names(32) AS STRING, stat$(11), menutop
 DIM changed AS INTEGER = YES
 getnames names(), 32
 stat$(0) = names(0)
@@ -978,7 +978,7 @@ END SUB
 
 FUNCTION scriptbrowse$ (trigger, triggertype, scrtype$)
 DIM localbuf(20)
-REDIM scriptnames(0), scriptids(0)
+REDIM scriptnames(0) AS STRING, scriptids(0)
 numberedlast = 0
 
 temp$ = scriptname(trigger, triggertype)
@@ -991,7 +991,7 @@ IF triggertype = 1 THEN
  'numberedlast = firstscript + LOF(fh) \ 40 - 1
  numberedlast = firstscript + gen(40) - 1
 
- REDIM scriptnames(numberedlast), scriptids(numberedlast)
+ REDIM scriptnames(numberedlast) AS STRING, scriptids(numberedlast)
 
  i = firstscript
  FOR j = firstscript TO numberedlast

@@ -23,7 +23,7 @@ DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, pic
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE SUB herotags (BYREF hero AS HeroDef)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE SUB editbitset (array%(), wof%, last%, names())
+DECLARE SUB editbitset (array%(), wof%, last%, names() AS STRING)
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
@@ -67,7 +67,7 @@ END SUB
 SUB enemydata
 
 '--stat names
-DIM names(32), nof(11), elemtype$(2)
+DIM names(32) AS STRING, nof(11), elemtype$(2)
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
@@ -102,10 +102,10 @@ rectangle 220, 100, 80, 80, 8, 3
 DIM ebit$(61)
 
 FOR i = 0 TO 7
- ebit$(0 + i) = elemtype$(0) + " " + names(17 + i)
- ebit$(8 + i) = elemtype$(1) + " " + names(17 + i)
- ebit$(16 + i) = elemtype$(2) + " " + names(17 + i)
- ebit$(24 + i) = "Is " + names(9 + i)
+ ebit$(0 + i) = elemtype$(0) & " " & names(17 + i)
+ ebit$(8 + i) = elemtype$(1) & " " & names(17 + i)
+ ebit$(16 + i) = elemtype$(2) & " " & names(17 + i)
+ ebit$(24 + i) = "Is " & names(9 + i)
 NEXT i
 FOR i = 32 TO 53
  ebit$(i) = "" 'preferable to be blank, so we can hide it
@@ -331,7 +331,7 @@ menulimits(EnMenuRareItemP) = EnLimPercent
 
 CONST EnMenuStat = 18' to 29
 FOR i = 0 TO 11
- menu$(EnMenuStat + i) = names(nof(i)) + ":"
+ menu$(EnMenuStat + i) = names(nof(i)) & ":"
  menutype(EnMenuStat + i) = 0
  menuoff(EnMenuStat + i) = EnDatStat + i
  menulimits(EnMenuStat + i) = EnLimStat + i
@@ -614,7 +614,7 @@ DO
 
  standardmenu dispmenu$(), state, 0, 0, dpage
  IF keyval(56) > 0 THEN 'holding ALT
-  tmp$ = readbadbinstring$(recbuf(), EnDatName, 15, 0) + XSTR$(recindex)
+  tmp$ = readbadbinstring$(recbuf(), EnDatName, 15, 0) & " " & recindex
   textcolor 15, 1
   printstr tmp$, 320 - LEN(tmp$) * 8, 0, dpage
  END IF
@@ -769,10 +769,10 @@ DO
    GOSUB formsprite
   END IF
  END IF
- bmenu$(1) = CHR$(27) + "Formation Set" + XSTR$(gptr + 1) + CHR$(26)
- bmenu$(2) = "Battle Frequency:" + XSTR$(c(0))
+ bmenu$(1) = CHR(27) & "Formation Set " & (gptr + 1) & CHR(26)
+ bmenu$(2) = "Battle Frequency: " & c(0)
  FOR i = 3 TO 22
-  bmenu$(i) = "Formation" + XSTR$(c(i - 2) - 1)
+  bmenu$(i) = "Formation " & c(i - 2) - 1
   IF c(i - 2) = 0 THEN bmenu$(i) = "Empty"
  NEXT i
 
@@ -904,19 +904,19 @@ DO
   rectangle 240 + i * 8, 75 + i * 22, 32, 40, 18 + i * 2, dpage
  NEXT i
  IF csr3 = 0 THEN
-  menu$(4) = CHR$(27) + "formation" + XSTR$(pt) + CHR$(26)
-  menu$(5) = "Backdrop screen:" + XSTR$(a(32))
+  menu$(4) = CHR(27) + "formation " & pt & CHR(26)
+  menu$(5) = "Backdrop screen: " & a(32)
   menu$(6) = "Battle Music:"
   IF a(33) = -1 THEN
-    menu$(6) = menu$(6) + " -same music as map-"
+    menu$(6) = menu$(6) & " -same music as map-"
   ELSEIF a(33) = 0 THEN
-    menu$(6) = menu$(6) + " -silence-"
+    menu$(6) = menu$(6) & " -silence-"
   ELSEIF a(33) > 0 THEN
-    menu$(6) = menu$(6) + XSTR$(a(33) - 1) + " " + getsongname$(a(33) - 1)
+    menu$(6) = menu$(6) & " " & (a(33) - 1) & " " & getsongname$(a(33) - 1)
   END IF
   menu$(7) = "Backdrop Frames:"
-  IF a(34) = 0 THEN menu$(7) = menu$(7) + " no animation" ELSE menu$(7) = menu$(7) + XSTR$(a(34) + 1)
-  menu$(8) = "Backdrop Speed:" + XSTR$(a(35))
+  IF a(34) = 0 THEN menu$(7) = menu$(7) & " no animation" ELSE menu$(7) = menu$(7) & " " & (a(34) + 1)
+  menu$(8) = "Backdrop Speed: " & a(35)
   FOR i = 0 TO 5
    col = 7: IF csr2 + 6 = i THEN col = 14 + tog
    edgeprint menu$(i + 3), 1, 1 + (i * 10), col, dpage
@@ -999,7 +999,7 @@ RETRACE
 END SUB
 
 SUB herodata
-DIM names(100), menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), pal16(16), elemtype$(2)
+DIM names(100) AS STRING, menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), pal16(16), elemtype$(2)
 DIM AS HeroDef her, blankhero
 wd = 1: wc = 0: wx = 0: wy = 0: hmax = 32
 leftkey = 0: rightkey = 0
@@ -1026,7 +1026,7 @@ hbit$(25) = "Permit renaming on status screen"
 hbit$(26) = "Do not show spell lists if empty"
 
 menu$(0) = "Return to Main Menu"
-menu$(1) = CHR$(27) + "Pick Hero" + XSTR$(pt) + CHR$(26)
+menu$(1) = CHR(27) + "Pick Hero " & pt & CHR(26)
 menu$(2) = "Name:"
 menu$(3) = "Appearance and Misc..."
 menu$(4) = "Edit Stats..."
@@ -1152,7 +1152,7 @@ DO
  printstr "Previous Menu", 0, 0, dpage
  FOR i = 0 TO 3
   textcolor 7, 0: IF bctr = i THEN textcolor 14 + tog, 0
-  printstr "Type" + XSTR$(i) + " Spells:" + opt$(her.list_type(i)), 0, 8 + i * 8, dpage
+  printstr "Type " & i & " Spells: " & opt$(her.list_type(i)), 0, 8 + i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1266,7 +1266,7 @@ IF frame <> -1 THEN
  drawline 250 + handx,23 + handy,250 + handx, 24 + handy,14 + tog,dpage
  drawline 251 + handx,25 + handy,252 + handx, 25 + handy,14 + tog,dpage
  drawline 250 + handx,26 + handy,250 + handx, 27 + handy,14 + tog,dpage
- printstr XSTR$(frame),256,18,dpage
+ printstr "" & frame,256,18,dpage
  IF frame = 1 THEN printstr "<",256,18,dpage
  IF frame = 0 THEN printstr ">",272,18,dpage
 END IF
@@ -1274,25 +1274,25 @@ END IF
 RETRACE
 
 genheromenu:
-bmenu$(1) = "Battle Picture:" + XSTR$(her.sprite)
-bmenu$(2) = "Battle Palette:" + defaultint$(her.sprite_pal)
-bmenu$(3) = "Walkabout Picture:" + XSTR$(her.walk_sprite)
-bmenu$(4) = "Walkabout Palette:" + defaultint$(her.walk_sprite_pal)
-bmenu$(5) = "Base Level:" + XSTR$(her.def_level)
+bmenu$(1) = "Battle Picture: " & her.sprite
+bmenu$(2) = "Battle Palette: " & defaultint$(her.sprite_pal)
+bmenu$(3) = "Walkabout Picture: " & her.walk_sprite
+bmenu$(4) = "Walkabout Palette: " & defaultint$(her.walk_sprite_pal)
+bmenu$(5) = "Base Level: " & her.def_level
 IF her.def_level < 0 THEN bmenu$(5) = "Base Level: Party Average"
-bmenu$(6) = "Default Weapon:" + it$
-bmenu$(7) = "Max Name Length:"
+bmenu$(6) = "Default Weapon: " & it$
+bmenu$(7) = "Max Name Length: "
 IF her.max_name_len THEN
- bmenu$(7) = bmenu$(7) + XSTR$(her.max_name_len)
+ bmenu$(7) = bmenu$(7) & her.max_name_len
 ELSE
- bmenu$(7) = bmenu$(7) + " default"
+ bmenu$(7) = bmenu$(7) & "default"
 END IF
 IF frame = 0 THEN
- bmenu$(8) = "Hand X:" + XSTR$(her.hand_a_x)
- bmenu$(9) = "Hand Y:" + XSTR$(her.hand_a_y)
+ bmenu$(8) = "Hand X: " & her.hand_a_x
+ bmenu$(9) = "Hand Y: " & her.hand_a_y
 ELSEIF frame = 1 THEN
- bmenu$(8) = "Hand X:" + XSTR$(her.hand_b_x)
- bmenu$(9) = "Hand Y:" + XSTR$(her.hand_b_y)
+ bmenu$(8) = "Hand X: " & her.hand_b_x
+ bmenu$(9) = "Hand Y: " & her.hand_b_y
 END IF
 RETRACE
 
@@ -1407,7 +1407,7 @@ DO
   WITH her.spell_lists(listnum, i-1)
    IF .attack > 0 THEN
     IF .learned = 0 THEN temp2$ = "Learned from Item"
-    IF .learned > 0 THEN temp2$ = "Learned at Level" + XSTR$(.learned - 1)
+    IF .learned > 0 THEN temp2$ = "Learned at Level" & (.learned - 1)
    ELSE
     temp2$ = ""
    END IF
@@ -1460,8 +1460,8 @@ RETRACE
 
 smi:
 FOR i = 0 TO 11
- bmenu$(i * 2 + 1) = names(nof(i)) + XSTR$(her.Lev0.sta(i))
- bmenu$(i * 2 + 2) = names(nof(i)) + XSTR$(her.Lev99.sta(i))
+ bmenu$(i * 2 + 1) = names(nof(i)) & " " & her.Lev0.sta(i)
+ bmenu$(i * 2 + 2) = names(nof(i)) & " " & her.Lev99.sta(i)
 NEXT i
 RETRACE
 
@@ -1494,7 +1494,7 @@ FOR i = 0 TO 3
  hmenu$(i) = her.list_name(i)
 NEXT i
 menu$(2) = "Name:" + nam$
-menu$(1) = CHR$(27) + "Pick Hero" + XSTR$(pt) + CHR$(26)
+menu$(1) = CHR(27) + "Pick Hero " & pt & CHR(26)
 GOSUB heropics
 RETRACE
 
@@ -1577,7 +1577,7 @@ EXIT SUB
 END SUB
 
 SUB itemdata
-DIM names(100), a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), eqst$(5), max(18), min(18), sbmax(11), workpal(8), elemtype$(2), frame
+DIM names(100) AS STRING, a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), eqst$(5), max(18), min(18), sbmax(11), workpal(8), elemtype$(2), frame
 DIM item$(maxMaxItems)
 DIM her AS HeroDef ' This is only used in equipbit
 imax = 32
@@ -1784,7 +1784,7 @@ DO
   drawsprite buffer(), 0, workpal(), 0, 280, 160, dpage
   textcolor 7, 0
   IF frame = 0 THEN printstr "<",280,152,dpage
-  printstr XSTR$(1 - frame),281,152,dpage
+  printstr "" & (1 - frame),281,152,dpage
   IF frame = 1 THEN printstr ">",296,152,dpage
    drawline 278 + a(78 + frame * 2),160 + a(79 + frame * 2),279 + a(78 + frame * 2), 160 + a(79 + frame * 2),14 + tog,dpage
    drawline 280 + a(78 + frame * 2),158 + a(79 + frame * 2),280 + a(78 + frame * 2), 159 + a(79 + frame * 2),14 + tog,dpage
@@ -1818,7 +1818,7 @@ DO
  FOR i = 0 TO 11
   textcolor 7, 0
   IF ptr2 = i THEN textcolor 14 + tog, 0
-  printstr names(nof(i)) + " Bonus:" + XSTR$(a(54 + i)), 0, 8 + i * 8, dpage
+  printstr names(nof(i)) + " Bonus: " & a(54 + i), 0, 8 + i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -2020,7 +2020,7 @@ DO
  FOR i = top TO top + 7
   textcolor 7, 0
   IF cur = i THEN textcolor 14 + tog, 0
-  printstr XSTR$(i), 0, ((i - top) * 25), dpage
+  printstr "" & i, 0, ((i - top) * 25), dpage
   loadsprite buffer(), 0, 800, 5 * i, 20, 20, 2
   drawsprite buffer(), 0, pal16(), 16 * i, 32, ((i - top) * 25), dpage
  NEXT
@@ -2090,14 +2090,14 @@ DO
  FOR i = 0 TO 14
   textcolor 7, 0
   IF csr = i THEN textcolor 14 + tog, 0
-  temp$ = XSTR$(npc(cur * 15 + i))
+  temp$ = "" & npc(cur * 15 + i)
   SELECT CASE i
    CASE 1
     temp$ = defaultint$(npc(cur * 15 + i))
    CASE 2
-    temp$ = " = " + mtype$(npc(cur * 15 + i))
+    temp$ = " = " & mtype$(npc(cur * 15 + i))
    CASE 3
-    temp$ = XSTR$(stepi(npc(cur * 15 + i)))
+    temp$ = "" & stepi(npc(cur * 15 + i))
    CASE 5
     temp$ = info$(npc(cur * 15 + i), 1)
    CASE 6
@@ -2108,12 +2108,12 @@ DO
     temp$ = info$(npc(cur * 15 + i), 0)
    CASE 9, 10
     IF npc(cur * 15 + i) THEN
-     temp$ = XSTR$(ABS(npc(cur * 15 + i))) + " = " + onoroff$(npc(cur * 15 + i)) + " (" + load_tag_name(ABS(npc(cur * 15 + i))) + ")"
+     temp$ = ABS(npc(cur * 15 + i)) & " = " & onoroff$(npc(cur * 15 + i)) & " (" & load_tag_name(ABS(npc(cur * 15 + i))) & ")"
     ELSE
      temp$ = " 0 (N/A)"
     END IF
    CASE 11
-    IF npc(cur * 15 + i) THEN temp$ = " Only Once (tag" + XSTR$(1000 + npc(cur * 15 + i)) + ")" ELSE temp$ = " Repeatedly"
+    IF npc(cur * 15 + i) THEN temp$ = " Only Once (tag " & (1000 + npc(cur * 15 + i)) & ")" ELSE temp$ = " Repeatedly"
    CASE 12 'script
     temp$ = scrname$
    CASE 13 'script arg
@@ -2134,9 +2134,9 @@ DO
  rectangle 10, 140, 20, 20, 7, dpage
  loadsprite buffer(), 0, 800 + (200 * INT(walk / 2)), 5 * cur, 20, 20, 2
  drawsprite buffer(), 0, pal16(), 16 * cur, 10, 140, dpage
- a$ = "Appears if tag" + XSTR$(ABS(npc(cur * 15 + 9))) + " = " + onoroff$(npc(cur * 15 + 9)) + " and tag" + XSTR$(ABS(npc(cur * 15 + 10))) + " = " + onoroff$(npc(cur * 15 + 10))
- IF npc(cur * 15 + 9) <> 0 AND npc(cur * 15 + 10) = 0 THEN a$ = "Appears if tag" + XSTR$(ABS(npc(cur * 15 + 9))) + " = " + onoroff$(npc(cur * 15 + 9))
- IF npc(cur * 15 + 9) = 0 AND npc(cur * 15 + 10) <> 0 THEN a$ = "Appears if tag" + XSTR$(ABS(npc(cur * 15 + 10))) + " = " + onoroff$(npc(cur * 15 + 10))
+ a$ = "Appears if tag " & ABS(npc(cur * 15 + 9)) & " = " & onoroff$(npc(cur * 15 + 9)) & " and tag " & ABS(npc(cur * 15 + 10)) & " = " & onoroff$(npc(cur * 15 + 10))
+ IF npc(cur * 15 + 9) <> 0 AND npc(cur * 15 + 10) = 0 THEN a$ = "Appears if tag " & ABS(npc(cur * 15 + 9)) & " = " & onoroff$(npc(cur * 15 + 9))
+ IF npc(cur * 15 + 9) = 0 AND npc(cur * 15 + 10) <> 0 THEN a$ = "Appears if tag " & ABS(npc(cur * 15 + 10)) & " = " & onoroff$(npc(cur * 15 + 10))
  IF npc(cur * 15 + 9) = 0 AND npc(cur * 15 + 10) = 0 THEN a$ = "Appears all the time"
  textcolor 15, 0
  printstr a$, 0, 190, dpage
