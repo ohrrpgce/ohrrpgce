@@ -106,7 +106,7 @@ REDIM uilook(uiColors)
 REDIM timing(4)
 REDIM keyv(55, 3)
 DIM font(1024), joy(4)
-DIM menu$(22), rpg$(3), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), npcn(1500), npcstat(1500)
+DIM menu$(22), rpg$(3), npcn(1500), npcstat(1500)
 'more global variables
 DIM game as string, gamefile as string, insert, activepalette
 DIM vpage, dpage, fadestate
@@ -126,6 +126,15 @@ setmodex
 setpal master()
 setfont font()
 textcolor 15, 0
+
+'hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7)
+
+DIM walkabout_frame_captions(7) AS STRING = {"Up A","Up B","Right A","Right B","Down A","Down B","Left A","Left B"}
+DIM hero_frame_captions(7) AS STRING = {"Standing","Stepping","Attack A","Attack B","Cast/Use","Hurt","Weak","Dead"}
+DIM enemy_frame_captions(0) AS STRING = {"Enemy (facing right)"}
+DIM weapon_frame_captions(1) AS STRING = {"Frame 1","Frame 2"}
+DIM attack_frame_captions(2) AS STRING = {"First Frame","Middle Frame","Last Frame"}
+
 GOSUB readstuff
 
 dpage = 1: vpage = 0: Rate = 160
@@ -261,13 +270,13 @@ DO:
    CASE 1'--graphics mode
     IF pt = 0 THEN pt = 0: menumode = 0: GOSUB setmainmenu
     IF pt = 1 THEN maptile font()
-    IF pt = 2 THEN sprite 20, 20, gen(genMaxNPCPic),    8, 5, 0, 7, winfo$(), 200, 4, 4, font()
-    IF pt = 3 THEN sprite 32, 40, gen(genMaxHeroPic),   8, 16, 0, 3, hinfo$(), 640, 4, 0, font()
-    IF pt = 4 THEN sprite 34, 34, gen(genMaxEnemy1Pic), 1, 2, 0, 4, einfo$(), 578, 4, 1, font()
-    IF pt = 5 THEN sprite 50, 50, gen(genMaxEnemy2Pic), 1, 4, 1, 2, einfo$(), 1250, 2, 2, font()
-    IF pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, 10, 2, 1, einfo$(), 3200, 2, 3, font()
-    IF pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, 12, 0, 2, ainfo$(), 1250, 2, 6, font()
-    IF pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, 0, 5, xinfo$(), 288, 4, 5, font()
+    IF pt = 2 THEN sprite 20, 20, gen(genMaxNPCPic),    8, 5, 0, 7, walkabout_frame_captions(), 200, 4, 4, font()
+    IF pt = 3 THEN sprite 32, 40, gen(genMaxHeroPic),   8, 16, 0, 3, hero_frame_captions(), 640, 4, 0, font()
+    IF pt = 4 THEN sprite 34, 34, gen(genMaxEnemy1Pic), 1, 2, 0, 4, enemy_frame_captions(), 578, 4, 1, font()
+    IF pt = 5 THEN sprite 50, 50, gen(genMaxEnemy2Pic), 1, 4, 1, 2, enemy_frame_captions(), 1250, 2, 2, font()
+    IF pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, 10, 2, 1, enemy_frame_captions(), 3200, 2, 3, font()
+    IF pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, 12, 0, 2, attack_frame_captions(), 1250, 2, 6, font()
+    IF pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, 0, 5, weapon_frame_captions(), 288, 4, 5, font()
     IF pt = 9 THEN importbmp ".mxs", "screen", gen(100)
     IF pt = 10 THEN
      gen(33) = gen(33) + 1
@@ -572,22 +581,6 @@ RETRACE
 
 readstuff:
 RESTORE menuitems
-FOR i = 0 TO 7
- READ winfo$(i)
-NEXT i
-FOR i = 0 TO 7
- READ hinfo$(i)
-NEXT i
-FOR i = 0 TO 0
- READ einfo$(i)
-NEXT i
-FOR i = 0 TO 1
- READ xinfo$(i)
-NEXT i
-FOR i = 0 TO 2
- READ ainfo$(i)
-NEXT i
-
 FOR o = 0 TO 3
  FOR i = 2 TO 53
   READ temp$
@@ -600,12 +593,6 @@ keyv(40, 1) = 34
 RETRACE
 
 menuitems:
-DATA "Up A","Up B","Right A","Right B","Down A","Down B","Left A","Left B"
-DATA "Standing","Stepping","Attack A","Attack B","Cast/Use","Hurt","Weak","Dead"
-DATA "Enemy (facing right)"
-DATA "Frame 1","Frame 2"
-DATA "First Frame","Middle Frame","Last Frame"
-
 DATA "1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/"
 DATA "!","@","#","$","%","^","&","*","(",")","_","+","","","Q","W","E","R","T","Y","U","I","O","P","{","}","","","A","S","D","F","G","H","J","K","L",":"," ","~","","|","Z","X","C","V","B","N","M","<",">","?"
 DATA "Ç","É","Ñ","Ö","Ü","á","à","â","ä","ã","å","ç","","","é","è","ê","ë","í","ì","î","ï","ñ","ó","ò","ô","","","ö","õ","ú","ù","û","ü","†","°","¢","£","§","•","","¶","ß","®","©","™","´","¨","≠","Æ","Ø","∞"
