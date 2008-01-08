@@ -1385,7 +1385,7 @@ SELECT CASE AS CONST id
  CASE 189'--get formation song
   fh = FREEFILE
   IF retvals(0) >= 0 AND retvals(0) < gen(genMaxFormation) THEN
-   OPEN game + ".FOR" FOR BINARY AS #fh
+   OPEN game + ".for" FOR BINARY AS #fh
    'GET #fh,clng(retvals(0)) * 80 + 66,scriptret
    scriptret = readshort(fh,clng(retvals(0)) * 80 + 67)
    CLOSE #fh
@@ -1395,7 +1395,7 @@ SELECT CASE AS CONST id
  CASE 190'--set formation song
   fh = FREEFILE
   IF retvals(0) >= 0 AND retvals(0) < gen(genMaxFormation) AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxSong) THEN
-   OPEN game + ".FOR" FOR BINARY AS #fh
+   OPEN game + ".for" FOR BINARY AS #fh
    'GET #fh,clng(retvals(0)) * 80 + 66,scriptret
    WriteShort fh,clng(retvals(0)) * 80 + 65,retvals(1)
    CLOSE #fh
