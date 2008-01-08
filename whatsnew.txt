@@ -66,6 +66,8 @@ Jan ?? 2008 [voxhumana]
       [James Paige]
     * Life spells/items that are not allowed to target live heroes are
       no longer usable on a hero who you just revived. [James Paige]
+    * Fixed bug 553, "Cancelling level MP attack in battle still uses
+      cost for that turn" [James Paige]
 
   * New Plotscripting Commands
     * get victory music

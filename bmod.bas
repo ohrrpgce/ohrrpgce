@@ -1661,6 +1661,7 @@ picktarg: '-----------------------------------------------------------
 'cancel
 IF carray(5) > 1 THEN
  godo(you) = 0
+ conlmp(you) = 0
  ptarg = 0
  flusharray carray(), 7, 0
  RETRACE
