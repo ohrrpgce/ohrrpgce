@@ -3,7 +3,6 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-'$DYNAMIC
 DEFINT A-Z
 
 #include "udts.bi"
@@ -100,9 +99,14 @@ workingdir = tmpdir & "working.tmp"
 
 processcommandline
 
-DIM font(1024), buffer(16384), timing(4), joy(4)
-DIM menu$(22), gen(360), keyv(55, 3), rpg$(3), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), npcn(1500), npcstat(1500), uilook(uiColors)
-DIM master(255) as RGBcolor
+REDIM gen(360)
+REDIM buffer(16384)
+REDIM master(255) as RGBcolor
+REDIM uilook(uiColors)
+REDIM timing(4)
+REDIM keyv(55, 3)
+DIM font(1024), joy(4)
+DIM menu$(22), rpg$(3), hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7), npcn(1500), npcstat(1500)
 'more global variables
 DIM game as string, gamefile as string, insert, activepalette
 DIM vpage, dpage, fadestate
