@@ -36,6 +36,11 @@ DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION isStringField(mnu%)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
+DECLARE sub formsprite(z() as integer, w() as integer, a() as integer, h() as integer, pal16() as integer, byval csr2 as integer, byval flash as integer)
+DECLARE sub loadform(a() as integer, pt as integer)
+DECLARE sub saveform(a() as integer, pt as integer)
+DECLARE sub formpics(ename() as string, a() as integer, b() as integer, s() as integer, w() as integer, h() as integer, pal16() as integer)
+
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -58,9 +63,10 @@ REM $STATIC
 
 SUB clearallpages
 
-FOR i = 0 TO 3
- clearpage i
-NEXT i
+clearpage 0 'this is actually smaller. See, I happened to look at the ASM for
+clearpage 1 'the loop that used to be here. It wasn't very optimized. So, I
+clearpage 2 'guess the compiler isn't *always* right.
+clearpage 3 '~Mike
 
 END SUB
 
@@ -690,12 +696,13 @@ RETRACE
 END SUB
 
 SUB formation
-DIM a(40), b(160), c(24), s(7), w(7), h(7), menu$(10), ename$(7), max(10), min(10), z(7), bmenu$(22), pal16(64)
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
-csr = 0: bcsr = 0
+
+clearallpages
+
+DIM a(40), b(160), c(24), s(7), w(7), h(7), menu$(10), max(10), min(10), z(7), bmenu$(22), pal16(64)
+dim as integer flash, col, csr, bcsr, csr2, csr3, tog, pt, gptr, i, o, movpix
+
+DIM as string ename(7)
 
 menu$(0) = "Return to Main Menu"
 menu$(1) = "Edit Individual Formations..."
@@ -766,7 +773,7 @@ DO
   END IF
   IF pt >= 0 THEN
    '--preview form
-   GOSUB formsprite
+   formsprite(z(),w(),a(),h(),pal16(),csr2,flash)
   END IF
  END IF
  bmenu$(1) = CHR(27) & "Formation Set " & (gptr + 1) & CHR(26)
@@ -794,8 +801,8 @@ IF bcsr > 2 THEN
  pt = c(bcsr - 2) - 1
  IF pt >= 0 THEN
   '--form not empty
-  GOSUB loadform
-  GOSUB formpics
+  loadform(a(),pt)
+  formpics(ename(), a(), b(), s(), w(), h(), pal16())
  END IF
 END IF
 RETRACE
@@ -817,8 +824,8 @@ max(2) = gen(genMaxSong) + 1   'genMaxSongs is number of last song, but is optio
 max(3) = 50
 max(4) = 1000
 pt = 0: csr2 = -6: csr3 = 0
-GOSUB loadform
-GOSUB formpics
+loadform(a(),pt)
+formpics(ename(), a(), b(), s(), w(), h(), pal16())
 setkeys
 
 menu$(3) = "Previous Menu"
@@ -840,66 +847,66 @@ DO
  IF csr3 = 0 THEN
   '--menu mode
   IF keyval(1) > 1 THEN
-   GOSUB saveform
+   saveform(a(),pt)
    RETRACE
   END IF
   IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, gen(37), 0, game + ".for", 80, 1
   usemenu csr2, -6, -6, 7, 25
   IF enter_or_space() THEN
    IF csr2 = -6 THEN
-    GOSUB saveform
+    saveform(a(),pt)
     RETRACE
    END IF
    IF csr2 >= 0 THEN IF a(csr2 * 4 + 0) > 0 THEN csr3 = 1
   END IF
   IF (csr2 >= -5 AND csr2 <= -4) OR (csr2 >= -1 AND csr2 < 0) THEN
    IF intgrabber(a(36 + csr2), 0, max(csr2 + 5)) THEN
-    GOSUB saveform
-    GOSUB loadform
+    saveform(a(),pt)
+    loadform(a(),pt)
    END IF
   END IF
   IF csr2 = -3 THEN
    IF zintgrabber(a(36 + csr2), -2, max(csr2 + 5)) THEN
-    GOSUB saveform
-    GOSUB loadform
+    saveform(a(),pt)
+    loadform(a(),pt)
    END IF
   END IF
   IF csr2 = -2 THEN
    IF xintgrabber(a(36 + csr2), 2, max(csr2 + 5), 0, 0) THEN
-    GOSUB saveform
-    GOSUB loadform
+    saveform(a(),pt)
+    loadform(a(),pt)
    END IF
   END IF
   IF csr2 = -5 THEN '---SELECT A DIFFERENT FORMATION
-   remptr = pt
+   dim as integer remptr = pt
    IF intgrabber(pt, 0, gen(37), 51, 52) THEN
     SWAP pt, remptr
-    GOSUB saveform
+    saveform(a(),pt)
     SWAP pt, remptr
-    GOSUB loadform
-    GOSUB formpics
+    loadform(a(),pt)
+    formpics(ename(), a(), b(), s(), w(), h(), pal16())
    END IF
    IF keyval(75) > 1 AND pt > 0 THEN
-    GOSUB saveform
+    saveform(a(),pt)
     pt = large(pt - 1, 0)
-    GOSUB loadform
-    GOSUB formpics
+    loadform(a(),pt)
+    formpics(ename(), a(), b(), s(), w(), h(), pal16())
    END IF
    IF keyval(77) > 1 AND pt < 32767 THEN
-    GOSUB saveform
+    saveform(a(),pt)
     pt = pt + 1
     IF needaddset(pt, gen(37), "formation") THEN GOSUB clearformation
-    GOSUB loadform
-    GOSUB formpics
+    loadform(a(),pt)
+    formpics(ename(), a(), b(), s(), w(), h(), pal16())
    END IF
   END IF'--DONE SELECTING DIFFERENT FORMATION
   IF csr2 >= 0 THEN
    IF zintgrabber(a(csr2 * 4 + 0), -1, gen(36)) THEN
-    GOSUB formpics
+    formpics(ename(), a(), b(), s(), w(), h(), pal16())
    END IF
   END IF
  END IF
- GOSUB formsprite
+ formsprite(z(),w(),a(),h(),pal16(),csr2,flash)
  FOR i = 0 TO 3
   rectangle 240 + i * 8, 75 + i * 22, 32, 40, 18 + i * 2, dpage
  NEXT i
@@ -923,7 +930,7 @@ DO
   NEXT i
   FOR i = 0 TO 7
    col = 7: IF csr2 = i THEN col = 14 + tog
-   edgeprint "Enemy:" + ename$(i), 1, 61 + (i * 10), col, dpage
+   edgeprint "Enemy:" + ename(i), 1, 61 + (i * 10), col, dpage
   NEXT i
  END IF
  SWAP vpage, dpage
@@ -931,31 +938,6 @@ DO
  copypage 2, dpage
  dowait
 LOOP
-
-formsprite:
-FOR i = 0 TO 7
- z(i) = i
-NEXT i
-FOR o = 1 TO 7
- insertval = z(o)
- searchval = a(insertval * 4 + 2) + h(insertval)
- FOR i = o - 1 TO 0 STEP -1
-  IF searchval < a(z(i) * 4 + 2) + h(z(i)) THEN
-   z(i + 1) = z(i)
-  ELSE
-   EXIT FOR
-  END IF
- NEXT
- z(i + 1) = insertval
-NEXT
-FOR i = 0 TO 7
- IF a(z(i) * 4 + 0) > 0 THEN
-  loadsprite buffer(), 0, 0, z(i) * 10, w(z(i)), w(z(i)), 3
-  drawsprite buffer(), 0, pal16(), 16 * z(i), a(z(i) * 4 + 1), a(z(i) * 4 + 2), dpage
-  IF csr2 = z(i) THEN textcolor 176 + ABS(flash), 0: printstr CHR$(25), a(z(i) * 4 + 1) + (w(z(i)) * .5) - 4, a(z(i) * 4 + 2), dpage
- END IF
-NEXT i
-RETRACE
 
 clearformation:
 FOR i = 0 TO 40
@@ -966,37 +948,64 @@ setpicstuf a(), 80, -1
 storeset game + ".for", pt, 0
 RETRACE
 
-saveform:
-setpicstuf a(), 80, -1
-storeset game + ".for", pt, 0
-RETRACE
-
-loadform:
-setpicstuf a(), 80, -1
-loadset game + ".for", pt, 0
-loadpage game + ".mxs", a(32), 2
-RETRACE
-
-formpics:
-FOR i = 0 TO 7
- ename$(i) = "-EMPTY-"
- IF a(i * 4 + 0) > 0 THEN
-  loadenemydata b(), a(i * 4 + 0) - 1
-  ename$(i) = STR$(a(i * 4 + 0) - 1) + ":"
-  FOR o = 1 TO b(0)
-   ename$(i) = ename$(i) + CHR$(b(o))
-  NEXT o
-  getpal16 pal16(), i, b(54), 1 + b(55), b(53)
-  IF b(55) = 0 THEN s(i) = 578: w(i) = 34: h(i) = 34: f$ = ".pt1"
-  IF b(55) = 1 THEN s(i) = 1250: w(i) = 50: h(i) = 50: f$ = ".pt2"
-  IF b(55) = 2 THEN s(i) = 3200: w(i) = 80: h(i) = 80: f$ = ".pt3"
-  setpicstuf buffer(), s(i), 3
-  loadset game + f$, b(53), i * 10
- END IF
-NEXT i
-RETRACE
-
 END SUB
+
+sub loadform(a() as integer, pt as integer)
+ setpicstuf a(), 80, -1
+ loadset game + ".for", pt, 0
+ loadpage game + ".mxs", a(32), 2
+end sub
+
+sub saveform(a() as integer, pt as integer)
+ setpicstuf a(), 80, -1
+ storeset game + ".for", pt, 0
+end sub
+
+sub formpics(ename() as string, a() as integer, b() as integer, s() as integer, w() as integer, h() as integer, pal16() as integer)
+ FOR i as integer = 0 TO 7
+  ename(i) = "-EMPTY-"
+  IF a(i * 4 + 0) > 0 THEN
+   loadenemydata b(), a(i * 4 + 0) - 1
+   ename(i) = STR$(a(i * 4 + 0) - 1) + ":"
+   FOR o as integer = 1 TO b(0)
+    ename(i) = ename(i) + CHR$(b(o))
+   NEXT o
+   getpal16 pal16(), i, b(54), 1 + b(55), b(53)
+   dim as string f
+   IF b(55) = 0 THEN s(i) = 578: w(i) = 34: h(i) = 34: f = ".pt1"
+   IF b(55) = 1 THEN s(i) = 1250: w(i) = 50: h(i) = 50: f = ".pt2"
+   IF b(55) = 2 THEN s(i) = 3200: w(i) = 80: h(i) = 80: f = ".pt3"
+   setpicstuf buffer(), s(i), 3
+   loadset game + f, b(53), i * 10
+  END IF
+ NEXT i
+end sub
+
+sub formsprite(z() as integer, w() as integer, a() as integer, h() as integer, pal16() as integer, byval csr2 as integer, byval flash as integer)
+ dim as integer insertval, searchval, i
+ FOR i = 0 TO 7
+  z(i) = i
+ NEXT
+ FOR o as integer = 1 TO 7
+  insertval = z(o)
+  searchval = a(insertval * 4 + 2) + h(insertval)
+  FOR i = o - 1 TO 0 STEP -1
+   IF searchval < a(z(i) * 4 + 2) + h(z(i)) THEN
+    z(i + 1) = z(i)
+   ELSE
+    EXIT FOR
+   END IF
+  NEXT
+  z(i + 1) = insertval
+ NEXT
+ FOR i = 0 TO 7
+  IF a(z(i) * 4 + 0) > 0 THEN
+   loadsprite buffer(), 0, 0, z(i) * 10, w(z(i)), w(z(i)), 3
+   drawsprite buffer(), 0, pal16(), 16 * z(i), a(z(i) * 4 + 1), a(z(i) * 4 + 2), dpage
+   IF csr2 = z(i) THEN textcolor 176 + ABS(flash), 0: printstr CHR$(25), a(z(i) * 4 + 1) + (w(z(i)) * .5) - 4, a(z(i) * 4 + 2), dpage
+  END IF
+ NEXT
+end sub
 
 SUB herodata
 DIM names(100) AS STRING, menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), pal16(16), elemtype$(2)
