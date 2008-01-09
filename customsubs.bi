@@ -21,5 +21,6 @@ DECLARE FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTE
 DECLARE FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
 DECLARE FUNCTION needaddset (BYREF pt AS INTEGER, BYREF check AS INTEGER, what AS STRING) AS INTEGER
 DECLARE SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
+DECLARE SUB keyboardsetup ()
 
 #endif

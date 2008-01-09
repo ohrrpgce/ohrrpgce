@@ -135,7 +135,7 @@ DIM enemy_frame_captions(0) AS STRING = {"Enemy (facing right)"}
 DIM weapon_frame_captions(1) AS STRING = {"Frame 1","Frame 2"}
 DIM attack_frame_captions(2) AS STRING = {"First Frame","Middle Frame","Last Frame"}
 
-GOSUB readstuff
+keyboardsetup
 
 dpage = 1: vpage = 0: Rate = 160
 game = ""
@@ -578,31 +578,6 @@ IF nocleanup = 0 THEN
 END IF
 safekill "temp.lst"
 RETRACE
-
-readstuff:
-RESTORE menuitems
-FOR o = 0 TO 3
- FOR i = 2 TO 53
-  READ temp$
-  IF temp$ <> "" THEN keyv(i, o) = ASC(temp$) ELSE keyv(i, o) = 0
- NEXT i
-NEXT o
-
-keyv(40, 1) = 34
-
-RETRACE
-
-menuitems:
-DATA "1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/"
-DATA "!","@","#","$","%","^","&","*","(",")","_","+","","","Q","W","E","R","T","Y","U","I","O","P","{","}","","","A","S","D","F","G","H","J","K","L",":"," ","~","","|","Z","X","C","V","B","N","M","<",">","?"
-DATA "Ç","É","Ñ","Ö","Ü","á","à","â","ä","ã","å","ç","","","é","è","ê","ë","í","ì","î","ï","ñ","ó","ò","ô","","","ö","õ","ú","ù","û","ü","†","°","¢","£","§","•","","¶","ß","®","©","™","´","¨","≠","Æ","Ø","∞"
-DATA "±","≤","≥","¥","µ","∂","∑","∏","π","∫","ª","º","","","Ω","æ","ø","¿","¡","¬","√","ƒ","≈","∆","«","»","","","…"," ","À","Ã","Õ","Œ","œ","–","—","“","”","‘","","’","÷","◊","ÿ","Ÿ","⁄","€","‹","›","ﬁ","ﬂ"
-
-'DATA Picture,Palette,"Animation:","Target Class:","Target Setting:",Damage,Aim,"Base Stat:","","",Money Cost,"Extra Damage%","Chain to:",Chain%,"Attacker Motion:","Attack Motion:",Delay,Number of Hits,"Target Stat:",Edit Bitsets...,"Name="
-'DATA 0,0,0,0,0,0,0,0,-999,-9999,-32767,-100,0,0,0,0,0,1,0
-'DATA 99,32767,3,9,4,6,4,20,999,9999,32767,1000,300,100,8,10,1000,20,11
-
-'DATA Sleep,Stone,Poison,Plague,Blind,Mute,Insane,Slow,Weak,Soft,Curse,Power,Accuracy,Hyper,Shell,Dodge,Fast,Wall,Blessing
 
 '---GENERIC LOOP HEAD---
 'setkeys
