@@ -658,6 +658,7 @@ SUB LoadMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
  DIM f AS INTEGER
  DIM member AS INTEGER
  DIM elem AS INTEGER = 0
+ DIM actual_record_count AS INTEGER = 0
 
  FOR i = 0 TO UBOUND(mi)
   ClearMenuItem mi(i)
@@ -665,6 +666,11 @@ SUB LoadMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
 
  f = FREEFILE
  OPEN menu_set.itemfile FOR BINARY AS #f
+ actual_record_count = LOF(f) / getbinsize(binMENUITEM)
+ IF actual_record_count <> gen(genMaxMenuItem) + 1 THEN
+  debug "menuitem.bin record count sanity check failed " & gen(genMaxMenuItem) & "->" & actual_record_count - 1
+  gen(genMaxMenuItem) = actual_record_count - 1
+ END IF
  FOR i = 0 TO gen(genMaxMenuItem)
   SEEK #f, i * getbinsize(binMENUITEM) + 1
   member = ReadShort(f)
