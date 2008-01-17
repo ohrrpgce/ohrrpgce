@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-Jan ?? 2008 [voxhumana]
+Jan 19 2008 [voxhumana]
 
   * New Features
     * Attack bitset 'Do not chain if attack fails' [Mike Caron]
@@ -73,8 +73,6 @@ Jan ?? 2008 [voxhumana]
     * get victory music
     * outside battle cure
 
-  * Vikings of Midgard
-  
   * Stuff only Developers Will Notice
     * BattleStats UDT [James Paige]
     * New sprite paradigm (currently used in battle) [Mike Caron]

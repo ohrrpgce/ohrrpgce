@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Game Player       (Sept ?? 2007 Ubersetzung)
+ O.H.R.RPG.C.E Game Player      (January 19 2008 Voxhumana)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
