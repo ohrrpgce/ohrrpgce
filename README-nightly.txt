@@ -3,7 +3,7 @@ Why are there so many nightly builds? Which one should I use?
 Names are in the format: ohrrpgce-wip-GRAPHICS-MUSIC.zip
 
 GRAPHICS = fb = FreeBasic graphics. This is the default
-GRAPHICS = smooth2x = Same as FB with smooth scaling
+GRAPHICS = sdl = Simple Directmedia Library
 GRAPHICS = alleg = Allegro Game Library
 
 MUSIC = native  = Audiere + Windows MIDI
