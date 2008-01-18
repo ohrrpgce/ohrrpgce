@@ -32,6 +32,7 @@ Jan 19 2008 [voxhumana]
     * Enemies can have a death sound effect. [James Paige]
     * TeeEmCee's pretty mini-map from the map-resize menu is now used for
       all mini-map drawing [Ralph, James]
+    * General bitset to disable pressing ESC to run from battle [James]
 
   * Bugfixes
     * Temporary map state was not being deleted when exiting to the title

@@ -165,7 +165,7 @@ DO
  END IF
  IF keyval(69) > 1 THEN GOSUB pgame '--PAUSE
  '--running away
- IF carray(5) > 1 THEN
+ IF carray(5) > 1 AND readbit(gen(), genBits2, 1) = 0 THEN
   flee = flee + 1
  END IF
  GOSUB tryrun
