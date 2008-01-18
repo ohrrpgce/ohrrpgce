@@ -3440,6 +3440,20 @@ function sprite_find_cache(byval s as string) as frame ptr
 	return 0
 end function
 
+'Completely empty the sprite cache
+sub sprite_empty_cache()
+	dim i as integer
+	for i = 0 to ubound(sprcache)
+		with sprcache(i)
+			'if .p <> 0 or .s <> "" then debug i & ": " & .p & ", " & .s
+			if .p <> 0 then
+				sprite_delete(@.p)
+				.s = ""
+			end if
+		end with
+	next
+end sub
+
 'Private:
 ' adds a frame to the cache with a given key. Sets the ->refcount member to 1.
 ' will overwrite older sprites with refcounts of 0 or less.
@@ -3487,7 +3501,7 @@ end sub
 function sprite_load(byval fi as string, byval rec as integer, byval num as integer, byval wid as integer, byval hei as integer) as frame ptr
 	
 	dim ret as frame ptr
-	dim hashstring as string = fi & "#" & rec 'we assume that all sprites in the same file are the same size
+	dim hashstring as string = trimpath(fi) & "#" & rec 'we assume that all sprites in the same file are the same size
 	'debug "Loading: " & hashstring
 	
 	ret = sprite_find_cache(hashstring)
@@ -3581,7 +3595,6 @@ sub sprite_unload(byval p as frame ptr ptr)
 		(*p)->refcount -= 1
 		*p = 0
 	end if
-	'debug "unloading sprite (" & ((*p)->refcount) & " more copies!)"
 end sub
 
 function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as frame ptr
@@ -3967,6 +3980,20 @@ sub Palette16_delete(byval f as Palette16 ptr ptr)
 	*f = 0
 end sub
 
+'Completely empty the palette16 cache
+sub Palette16_empty_cache()
+	dim i as integer
+	for i = 0 to ubound(palcache)
+		with palcache(i)
+			'if .p <> 0 or .s <> "" then debug i & ": " & .p & ", " & .s
+			if .p <> 0 then
+				Palette16_delete(@.p)
+				.s = ""
+			end if
+		end with
+	next
+end sub
+
 function Palette16_find_cache(byval s as string) as Palette16 ptr
 	dim i as integer
 	for i = 0 to ubound(palcache)
@@ -4012,11 +4039,11 @@ function palette16_load(byval fil as string, byval num as integer, byval autotyp
 	dim f as integer, ret as palette16 ptr
 	dim hashstring as string
 	if num > -1 then
-		hashstring = fil & "#" & num & ":0"
+		hashstring = trimpath(fil) & "#" & num & ":0"
 	else
 		num = getdefaultpal(autotype, spr)
 		if num <> -1 then
-			hashstring = fil & "#" & num & ":" & spr
+			hashstring = trimpath(fil) & "#" & num & ":" & spr
 		else
 			return 0
 		end if
