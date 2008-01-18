@@ -878,18 +878,19 @@ script, set menu border, menuhandle=0, n=0, begin
   write menu int(menuhandle, 24, n)
 end
 
-script, get menu bit, handle=0, bit=0, begin
+script, get menu bit, handle, bit, begin
   variable(n)
   n := read menu int(handle, 15)
   if(n,and,2^bit) then(exit returning(true))
   exit returning(false)
 end
 
-script, set menu bit, handle=0, bit=0, begin
+script, set menu bit, handle, bit, value=1, begin
   variable(n)
   n := read menu int(handle, 15)
-  n := n, or, 2^bit
-  write menu item int(handle, 15, n)
+  if(value) then(n := n, or, 2^bit)
+    else(n := n, and, (-1, xor, 2^bit))
+  write menu int(handle, 15, n)
 end
 
 #--------------------------------------------------------------------------
@@ -946,17 +947,18 @@ script, get menu item togtag, handle=0, begin
   exit returning(read menu item int(handle, 27))
 end
 
-script, get menu item bit, handle=0, bit=0, begin
+script, get menu item bit, handle, bit, begin
   variable(n)
   n := read menu item int(handle, 28)
   if(n,and,2^bit) then(exit returning(true))
   exit returning(false)
 end
 
-script, set menu item bit, handle=0, bit=0, begin
+script, set menu item bit, handle, bit, value=1, begin
   variable(n)
   n := read menu item int(handle, 28)
-  n := n, or, 2^bit
+  if(value) then(n := n, or, 2^bit)
+    else(n := n, and, (-1, xor, 2^bit))
   write menu item int(handle, 28, n)
 end
 
