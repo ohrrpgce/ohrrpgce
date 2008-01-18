@@ -979,8 +979,12 @@ SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL 
 		x = x mod 320
 	end if
 
-	spage(p)[y*320 + x] = c
+	if y >= 200 or y < 0 or x < 0 then
+		debug "attempt to putpixel off-screen " & x & "," & y & "=" & c & " on page " & p
+		exit sub
+	end if
 
+	spage(p)[y*320 + x] = c
 end SUB
 
 FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) as integer
@@ -992,6 +996,11 @@ FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) 
 	if x >= 320 then
 		y = y + (x \ 320)
 		x = x mod 320
+	end if
+
+	if y >= 200 or y < 0 or x < 0 then
+		debug "attempt to readpixel off-screen " & x & "," & y & " on page " & p
+		return 0
 	end if
 
 	readpixel = spage(p)[y*320 + x]
