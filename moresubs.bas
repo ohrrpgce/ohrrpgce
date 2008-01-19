@@ -1330,9 +1330,9 @@ deletetemps
 
 killallscripts
 
-'ALL THE STUFF THAT MUST BE RESET
-'map,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
-'30000
+sprite_empty_cache()
+palette16_empty_cache()
+
 END SUB
 
 SUB resetlmp (slot, lev)
