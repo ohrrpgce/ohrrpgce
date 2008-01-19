@@ -262,9 +262,6 @@ DIM scrst as Stack
 'DEBUG debug "Thestart"
 DO 'This is a big loop that encloses the entire program. The loop is only reached when resetting the game
 
-sprite_empty_cache()
-palette16_empty_cache()
-
 'DEBUG debug "setup directories"
 
 '---get work dir and exe name---
