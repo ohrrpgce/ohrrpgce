@@ -69,6 +69,7 @@ Jan 19 2008 [voxhumana]
       no longer usable on a hero who you just revived. [James Paige]
     * Fixed bug 553, "Cancelling level MP attack in battle still uses
       cost for that turn" [James Paige]
+    * Input string actually works now! [Ralph Versteegen]
 
   * New Plotscripting Commands
     * get victory music
