@@ -428,7 +428,7 @@ end
 script, last ascii, begin
 	variable(code, shift)
 
-	shift := keyispressed(42)==true, or, keyispressed(54)==true
+	shift := keyispressed(42) || keyispressed(54)
 
 	if(keyispressed(30)) then (code := 65) #A...
 	if(keyispressed(48)) then (code := 66)
@@ -495,7 +495,7 @@ script, last ascii, begin
 	if(keyispressed(57)) then (code := 32) #Space
 
 
-	if(code <= 90, and, code >= 65) then, begin
+	if(code <= 90 && code >= 65) then, begin
 		if(shift == false) then (code += 32)
 	end
 
@@ -503,23 +503,23 @@ script, last ascii, begin
 
 end
 
-script, input string, str=0, max len=40, useexist=0, center=-1, positionx=160, positiony=110, begin
-  variable(done, key, show)
+script, input string, str=0, max len=40, useexist=0, center=-654321, positionx=160, positiony=110, begin
+  variable(done, key, show,c)
   if(useexist) else(clear string(str))
-  while(string length(str)>>maxlen) do(delete char(str,string length(str)))
+  trim string(str,1,maxlen)
   show:=getstringbit(str,0)==0
   if(center==0) then(show string at(str,positionx,positiony)) else(
-    if(center==1,or,show) then(
+    if(center<>-654321||show) then(
       center string at(str,positionx,positiony)
     )
   )
-  while(done == false) do, begin
-    if(center==1,or,(show,and,center<>0)) then(center string at(str,positionx,positiony))
+  while(not(done)) do, begin
+    if(center||(show&&center<>0)) then(center string at(str,positionx,positiony))
     wait for key
     if(key is pressed(28)) then(done:=true, return(true)) else(
       if(key is pressed(14)) then(delete char(str,string length(str)))
       key:=last ascii
-      if(key, and, string length(str)<<max len) then(append ascii(str,key)) else(
+      if(key&&string length(str)<<max len) then(append ascii(str,key)) else(
         while(key is pressed(1)) do, begin
           done:=true
           return(false)
