@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-Jan 19 2008 [voxhumana]
+Jan 21 2008 [voxhumana]
 
   * New Features
     * Attack bitset 'Do not chain if attack fails' [Mike Caron]
@@ -70,6 +70,9 @@ Jan 19 2008 [voxhumana]
     * Fixed bug 553, "Cancelling level MP attack in battle still uses
       cost for that turn" [James Paige]
     * Input string actually works now! [Ralph Versteegen]
+    * Fixed bug 576 incorrect camera movment and vanishing hero when
+      using "focus camera" close to the top or left edge of a map
+      [James]
 
   * New Plotscripting Commands
     * get victory music
