@@ -1157,7 +1157,7 @@ stufmenu:
 smenu$(1) = CHR(27) & "Shop Thing " & thing & " of " & a(16) & CHR(26)
 smenu$(2) = "Name: " & thing$
 smenu$(3) = "Type: " & b(17) & "-" & stf$(bound(b(17), 0, 2))
-smenu$(4) = "Number:" & b(18) & " " & defaultthing$
+smenu$(4) = "Number: " & b(18) & " " & defaultthing$
 IF b(19) > 0 THEN
  smenu$(5) = "In Stock: " & b(19)
 ELSE
@@ -1168,18 +1168,18 @@ smenu$(7) = tag_condition_caption(b(21), "Sell Require Tag", "No Tag Check")
 smenu$(8) = tag_condition_caption(b(22), "Buy Set Tag", "No Tag Set", "Unalterable", "Unalterable")
 smenu$(9) = tag_condition_caption(b(23), "Sell Set Tag", "No Tag Set", "Unalterable", "Unalterable")
 smenu$(10) = names(32) & " Price: " & b(24)
-smenu$(11) = "Must Trade in " & (b(30) + 1) & " of:" & tradestf$(0)
+smenu$(11) = "Must Trade in " & (b(30) + 1) & " of: " & tradestf$(0)
 smenu$(12) = " (Change Amount)"
-smenu$(13) = "Must Trade in " & (b(32) + 1) & " of:" & tradestf$(1)
+smenu$(13) = "Must Trade in " & (b(32) + 1) & " of: " & tradestf$(1)
 smenu$(14) = " (Change Amount)"
-smenu$(15) = "Must Trade in " & (b(34) + 1) & " of:" & tradestf$(2)
+smenu$(15) = "Must Trade in " & (b(34) + 1) & " of: " & tradestf$(2)
 smenu$(16) = " (Change Amount)"
-smenu$(17) = "Must Trade in " & (b(36) + 1) & " of:" & tradestf$(3)
+smenu$(17) = "Must Trade in " & (b(36) + 1) & " of: " & tradestf$(3)
 smenu$(18) = " (Change Amount)"
 IF b(17) = 0 THEN
  smenu$(19) = "Sell type: " & stf$(bound(b(26), 0, 3) + 3)
  smenu$(20) = "Sell Price: " & b(27)
- smenu$(21) = "Trade in for " & (b(29) + 1) & " of:" & trit$
+ smenu$(21) = "Trade in for " & (b(29) + 1) & " of: " & trit$
  smenu$(22) = " (Change Amount)"
 ELSE
  smenu$(19) = "Experience Level: "

@@ -844,8 +844,8 @@ xstring = small(large(x - LEN(s$) * 4, 0), 319 - LEN(s$) * 8)
 END FUNCTION
 
 FUNCTION defaultint$ (n)
-IF n = -1 THEN RETURN " default"
-RETURN XSTR$(n)
+IF n = -1 THEN RETURN "default"
+RETURN STR$(n)
 END FUNCTION
 
 SUB poke8bit (array16(), index, val8)
