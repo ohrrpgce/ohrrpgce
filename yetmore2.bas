@@ -419,7 +419,12 @@ IF gmap(5) = 0 THEN
  END IF
 END IF
 IF gmap(5) = 1 THEN
+ 'Wrap the camera according to the center, not the top-left
+ mapx += 160
+ mapy += 160
  wrapxy mapx, mapy, scroll(0) * 20, scroll(1) * 20
+ mapx -= 160
+ mapy -= 160
 END IF
 END SUB
 
