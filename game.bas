@@ -1650,7 +1650,7 @@ IF nowscript >= 0 THEN
    debug "wantimmediate would have skipped wait on command " & scrat(nowscript).curvalue & " in " & scriptname$(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
    debug "needf = " & needf
   END IF
-  wantimmediate = 0 'change to -1 to reenable bug
+  wantimmediate = -1 'change to 0 to re-fix bug 430, but bring back bug 550 side-effects
  END IF
  IF wantimmediate = -1 THEN
   '--wow! I hope this doesnt screw things up!
