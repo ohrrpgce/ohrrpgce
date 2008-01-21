@@ -1564,16 +1564,17 @@ DO
    CASE 4
     tagnum = .active_tag
   END SELECT
-  tagcaption = ""
+  tagcaption = ": "
   SELECT CASE tagnum
    CASE 0
-    tagcaption = "None"
+    tagcaption += "None"
    CASE 1
-    tagcaption = "None (tag 1 not usable)"
+    tagcaption += "None (tag 1 not usable)"
    CASE ELSE
-    tagcaption = load_tag_name(tagnum) & "(" & tagnum & ")"
+    tagcaption += load_tag_name(tagnum) & "(" & tagnum & ")"
   END SELECT
-  printstr menu$(i) & ": " & tagcaption, 0, i * 8, dpage
+  IF i = 0 THEN tagcaption = ""
+  printstr menu$(i) & tagcaption, 0, i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1882,7 +1883,7 @@ SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTE
   menu(8) = "When used out of battle: Text " & ABS(itembuf(51))
  END IF
  menu(9) = "Weapon Picture: " & itembuf(52)
- menu(10) = "Weapon Palette:" & defaultint$(itembuf(53))
+ menu(10) = "Weapon Palette: " & defaultint$(itembuf(53))
  IF itembuf(49) <> 1 THEN menu(9) = "Weapon Picture: N/A": menu(10) = "Weapon Palette: N/A"
  menu(11) = "Unlimited Use"
  IF itembuf(73) = 1 THEN menu(11) = "Consumed By Use"
@@ -1891,8 +1892,8 @@ SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTE
  menu(13) = "is in inventory TAG " & itembuf(75) & " " & load_tag_name(itembuf(75))
  menu(14) = "is equipped TAG " & itembuf(76) & " " & load_tag_name(itembuf(76))
  menu(15) = "eqpt by active hero TAG " & itembuf(77) & " " & load_tag_name(itembuf(77))
- menu(16) = "Handle X:"
- menu(17) = "Handle Y:"
+ menu(16) = "Handle X: "
+ menu(17) = "Handle Y: "
  IF itembuf(49) = 1 THEN
   menu(16) = menu(16) & " " & itembuf(78 + frame * 2)
   menu(17) = menu(17) & " " & itembuf(79 + frame * 2)
@@ -1924,11 +1925,10 @@ FUNCTION itemstr$ (it%, hidden%, offbyone%)
  'it - the item number
  'hidden - whether to *not* prefix the item number
  'offbyone - whether it is the item number (1), or the itemnumber + 1 (0)
- IF it = 0 AND offbyone = 0 THEN itemstr$ = " NONE": EXIT FUNCTION
+ IF it <= 0 AND offbyone = 0 THEN itemstr$ = "NONE": EXIT FUNCTION
  IF offbyone THEN itn = it ELSE itn = it - 1
  DIM buf(99) AS INTEGER
  loaditemdata buf(), itn
- re$ = ""
  re$ = readbadbinstring$(buf(), 0, 8, 0)
  IF hidden = 0 THEN re$ = itn & " " & re$
  RETURN re$
@@ -1948,7 +1948,7 @@ npc$(4) = "Display Text"
 npc$(5) = "When Activated"
 npc$(6) = "Give Item:"
 npc$(7) = "Pushability"
-npc$(8) = "Activation"
+npc$(8) = "Activation: "
 npc$(9) = "Appear if Tag"
 npc$(10) = "Appear if Tag"
 npc$(11) = "Usable"
@@ -2005,9 +2005,9 @@ stepi(2) = 2
 stepi(3) = 10
 stepi(4) = 4
 stepi(5) = 5
-info$(0, 0) = ":Use"
-info$(1, 0) = ":Touch"
-info$(2, 0) = ":Step On"
+info$(0, 0) = "Use"
+info$(1, 0) = "Touch"
+info$(2, 0) = "Step On"
 info$(0, 1) = " Change Direction"
 info$(1, 1) = " Face Player"
 info$(2, 1) = " Do Not Face Player"
@@ -2099,25 +2099,25 @@ DO
  FOR i = 0 TO 14
   textcolor 7, 0
   IF csr = i THEN textcolor 14 + tog, 0
-  temp$ = "" & npc(cur * 15 + i)
+  temp$ = " " & npc(cur * 15 + i)
   SELECT CASE i
    CASE 1
-    temp$ = defaultint$(npc(cur * 15 + i))
+    temp$ = " " & defaultint$(npc(cur * 15 + i))
    CASE 2
     temp$ = " = " & mtype$(npc(cur * 15 + i))
    CASE 3
-    temp$ = "" & stepi(npc(cur * 15 + i))
+    temp$ = " " & stepi(npc(cur * 15 + i))
    CASE 5
     temp$ = info$(npc(cur * 15 + i), 1)
    CASE 6
-    temp$ = it$
+    temp$ = " " & it$
    CASE 7
     temp$ = push$(npc(cur * 15 + i))
    CASE 8
     temp$ = info$(npc(cur * 15 + i), 0)
    CASE 9, 10
     IF npc(cur * 15 + i) THEN
-     temp$ = ABS(npc(cur * 15 + i)) & " = " & onoroff$(npc(cur * 15 + i)) & " (" & load_tag_name(ABS(npc(cur * 15 + i))) & ")"
+     temp$ = " " & ABS(npc(cur * 15 + i)) & " = " & onoroff$(npc(cur * 15 + i)) & " (" & load_tag_name(ABS(npc(cur * 15 + i))) & ")"
     ELSE
      temp$ = " 0 (N/A)"
     END IF

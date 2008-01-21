@@ -1179,7 +1179,7 @@ FOR i = 0 TO size
     nowmenu$(i) = nowmenu$(i) + " " + readattackname$(datablock(menuoff(nowdat(i))) - 1)
    END IF
   CASE 8 '--item number
-   nowmenu$(i) = nowmenu$(i) + itemstr(datablock(menuoff(nowdat(i))), 0, 1)
+   nowmenu$(i) = nowmenu$(i) + " " + itemstr(datablock(menuoff(nowdat(i))), 0, 1)
   CASE 9 '--enemy number
    IF datablock(menuoff(nowdat(i))) <= 0 THEN
     nowmenu$(i) = nowmenu$(i) + " None"
@@ -1188,11 +1188,7 @@ FOR i = 0 TO size
     nowmenu$(i) = nowmenu$(i) + " " + readenemyname$(datablock(menuoff(nowdat(i))) - 1)
    END IF
   CASE 10 '--item number, offset
-    IF datablock(menuoff(nowdat(i))) <= 0 THEN
-      nowmenu$(i) = nowmenu$(i) + " None"
-    ELSE
-      nowmenu$(i) = nowmenu$(i) + itemstr(datablock(menuoff(nowdat(i))) - 1, 0, 1)
-    END IF
+    nowmenu$(i) = nowmenu$(i) + " " + itemstr(datablock(menuoff(nowdat(i))), 0, 0)
   CASE 11 '--sound effect number, offset
     IF datablock(menuoff(nowdat(i))) <= 0 THEN
       nowmenu$(i) = nowmenu$(i) + " None"
@@ -1200,7 +1196,7 @@ FOR i = 0 TO size
       nowmenu$(i) = nowmenu$(i) + str$(datablock(menuoff(nowdat(i))) - 1 ) + " (" + getsfxname(datablock(menuoff(nowdat(i))) - 1) + ")"
     END IF
   CASE 12 '--defaultable positive int
-    nowmenu$(i) = nowmenu$(i) + defaultint$(datablock(menuoff(nowdat(i))))
+    nowmenu$(i) = nowmenu$(i) & " " & defaultint$(datablock(menuoff(nowdat(i))))
   CASE 13 '--zero default int
     nowmenu$(i) = nowmenu$(i) & " " & zero_default(datablock(menuoff(nowdat(i))))
   CASE 14 '--sound effect number + 1 (0=default, -1=none)

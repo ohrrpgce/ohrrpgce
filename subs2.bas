@@ -1032,8 +1032,8 @@ menu$(15) = textbox_condition_caption(cond(15))
 menu$(16) = " instantly use door " & cond(16)
 menu$(17) = textbox_condition_caption(cond(17))
 IF cond(18) = 0 THEN menu$(18) = " do not add/remove items"
-IF cond(18) > 0 THEN menu$(18) = " add one" & item$
-IF cond(18) < 0 THEN menu$(18) = " remove one" & item$
+IF cond(18) > 0 THEN menu$(18) = " add one " & item$
+IF cond(18) < 0 THEN menu$(18) = " remove one " & item$
 RETRACE
 
 tchoice:
@@ -1359,6 +1359,7 @@ IF a$ <> "" THEN
  PRINT #filehandle, a$
 END IF
 END SUB
+
 
 
 
