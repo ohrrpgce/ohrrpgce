@@ -1857,7 +1857,7 @@ SELECT CASE AS CONST id
  CASE 122'--get NPC ID
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
-   scriptret = npc(npcref).id - 1
+   scriptret = ABS(npc(npcref).id) - 1
   ELSE
    scriptret = -1
   END IF
@@ -1877,7 +1877,7 @@ SELECT CASE AS CONST id
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= npcdMax THEN
    FOR i = 299 TO 0 STEP -1
-    IF npc(i).id <= 0 THEN
+    IF npc(i).id = 0 THEN
      npc(i).id = retvals(0) + 1
      cropposition retvals(1), retvals(2), 1
      npc(i).x = retvals(1) * 20
@@ -1913,7 +1913,7 @@ SELECT CASE AS CONST id
    ELSE
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
-     scriptret = GetNPCD(npcs(npc(npcref).id - 1), retvals(1))
+     IF npc(npcref).id THEN scriptret = GetNPCD(npcs(ABS(npc(npcref).id) - 1), retvals(1))
     END IF
    END IF
   END IF
