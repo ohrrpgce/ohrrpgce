@@ -129,8 +129,10 @@ IF readbit(gen(), 101, 1) = 1 AND (veh(0) = 0 OR readbit(veh(), 9, 4) = 0) THEN
  NEXT i
 ELSE
  '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
- loadsprite buffer(), 0, 200 * ((catd(0) * 2) + INT(wtog(0) / 2)), 0, 20, 20, 2
- drawsprite buffer(), 0, pal16(), 0, catx(0) - mapx, (caty(0) - mapy) - catz(0) + gmap(11), dpage
+ IF framewalkabout(catx(0), caty(0) + gmap(11), framex, framey, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+  loadsprite buffer(), 0, 200 * ((catd(0) * 2) + INT(wtog(0) / 2)), 0, 20, 20, 2
+  drawsprite buffer(), 0, pal16(), 0, framex, framey - catz(0), dpage
+ END IF
 END IF
 
 END SUB
