@@ -1650,7 +1650,7 @@ IF nowscript >= 0 THEN
    debug "wantimmediate would have skipped wait on command " & scrat(nowscript).curvalue & " in " & scriptname$(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
    debug "needf = " & needf
   END IF
-  wantimmediate = -1 'change to 0 to un-reenable bug
+  wantimmediate = 0 'change to -1 to reenable bug
  END IF
  IF wantimmediate = -1 THEN
   '--wow! I hope this doesnt screw things up!
@@ -2126,7 +2126,7 @@ SELECT CASE AS CONST scrat(nowscript).curkind
     scriptout$ = STR$(retvals(0))
    CASE 78'--alter NPC
     IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
-     IF retvals(0) < 0 AND retvals(0) >= -300 THEN retvals(0) = (npc(abs(retvals(0) + 1)).id - 1)
+     IF retvals(0) < 0 AND retvals(0) >= -300 THEN retvals(0) = ABS(npc(ABS(retvals(0) + 1)).id) - 1
      IF retvals(0) >= 0 AND retvals(0) <= npcdMax THEN
       writesafe = 1
       IF retvals(1) = 0 THEN
