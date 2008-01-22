@@ -623,7 +623,7 @@ END SUB
 SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER, ignore_items AS INTEGER=NO)
  DIM f AS INTEGER
  DIM bits(0) AS INTEGER
- IF record > gen(genMaxMenu) THEN
+ IF record > gen(genMaxMenu) OR record < 0 THEN
   ClearMenuData dat
   EXIT SUB
  END IF
