@@ -1557,7 +1557,7 @@ SUB setbit (bb() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as 
 	wb = b mod 16
 
 	if woff > ubound(bb) then
-		debug "setbit overflow: ub " + str$(ubound(bb)) + ", w " + str$(w) + ", b " + str$(b)
+		debug "setbit overflow: ub " & ubound(bb) & ", w " & w & ", b " & b & ", v " & v
 		exit sub
 	end if
 
@@ -1576,6 +1576,10 @@ FUNCTION readbit (bb() as integer, BYVAL w as integer, BYVAL b as integer)  as i
 	dim wb as integer
 
 	woff = w + (b \ 16)
+	if woff > ubound(bb) then
+		debug "readbit overflow: ub " & ubound(bb) & ", w " & w & ", b " & b
+		return 0
+	end if
 	wb = b mod 16
 
 	mask = 1 shl wb
