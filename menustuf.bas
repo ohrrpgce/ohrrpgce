@@ -792,14 +792,10 @@ FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk A
  RETURN NO
 END FUNCTION
 
-SUB itemmenuswap (invent() AS InventSlot, iuse(), permask(), i, o)
+SUB itemmenuswap (invent() AS InventSlot, atkIDs() AS INTEGER, iuse(), permask(), i, o)
 'this sub called from items()
-SWAP invent(i).id, invent(o).id
-SWAP invent(i).num, invent(o).num
-SWAP invent(i).text, invent(o).text
-temp = invent(i).used
-invent(i).used = invent(o).used
-invent(o).used = temp
+SWAP invent(i), invent(o)
+SWAP atkIDs(i), atkIDs(o)
 
 t1 = readbit(iuse(), 0, 3 + i)
 t2 = readbit(iuse(), 0, 3 + o)
@@ -959,7 +955,7 @@ IF pick = 0 THEN
   IF sel >= 0 THEN
    IF ic >= 0 AND ic <> sel THEN
     '--swap the selected item and the item under the cursor
-    itemmenuswap inventory(), iuse(), permask(), ic, sel
+    itemmenuswap inventory(), atkIDs(), iuse(), permask(), ic, sel
     sel = -4
     MenuSound gen(genAcceptSFX)
     RETRACE
@@ -1107,7 +1103,7 @@ autosort_changed = 0
 FOR i = 0 TO inventoryMax - 1
  FOR o = i + 1 TO inventoryMax
   IF inventory(i).used = 0 AND inventory(o).used THEN
-   itemmenuswap inventory(), iuse(), permask(), i, o
+   itemmenuswap inventory(), atkIDs(), iuse(), permask(), i, o
    autosort_changed = -1
    EXIT FOR
   END IF
@@ -1116,7 +1112,7 @@ NEXT i
 FOR i = 0 TO inventoryMax - 1
  FOR o = i + 1 TO inventoryMax
   IF readbit(iuse(), 0, 3 + i) = 0 AND readbit(iuse(), 0, 3 + o) = 1 THEN
-   itemmenuswap inventory(), iuse(), permask(), i, o
+   itemmenuswap inventory(), atkIDs(), iuse(), permask(), i, o
    autosort_changed = -1
    EXIT FOR
   END IF
