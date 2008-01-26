@@ -1,5 +1,18 @@
 WHAT IS NEW?
 
+??? ?? 2008 [werewaffle]
+
+  * New Features
+
+  * Bugfixes
+    * Bug 585: Curative items used wrong attack after being arranged
+
+  * New Plotscripting Commands
+
+  * Stuff only Developers Will Notice
+
+  * Vikings of Midgard
+
 Jan 21 2008 [voxhumana]
 
   * New Features
