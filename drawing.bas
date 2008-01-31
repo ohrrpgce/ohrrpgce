@@ -251,9 +251,9 @@ DO
    setpal pmask()
   END IF
  END IF
- textcolor 7, 0: IF csr2 = 0 THEN textcolor 15 + 225 * tog, 0
+ textcolor uilook(uiMenuItem), 0: IF csr2 = 0 THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr "Previous Menu", 0, 0, dpage
- IF csr2 = 1 THEN rectangle 0 + cx * 10, 8 + cy * 10, 10, 10, 15 + 225 * tog, dpage
+ IF csr2 = 1 THEN rectangle 0 + cx * 10, 8 + cy * 10, 10, 10, uilook(uiSelectedItem + tog), dpage
  FOR i = 0 TO 15
   FOR o = 0 TO 15
    rectangle 1 + o * 10, 9 + i * 10, 8, 8, i * 16 + o, dpage
@@ -350,12 +350,12 @@ DO
  IF enter_or_space() AND pagenum = -1 THEN EXIT DO
  IF enter_or_space() AND pagenum > -1 THEN GOSUB tilemode
  FOR i = top TO small(top + 20, gen(33))
-  textcolor 7, 240
-  IF pagenum = i THEN textcolor 14 + tog, 240
+  c = uilook(uiMenuItem)
+  IF pagenum = i THEN c = uilook(uiSelectedItem + tog)
   IF i < 0 THEN
-   printstr "Return to Main Menu", 10, 8 + (i - top) * 8, dpage
+   edgeprint "Return to Main Menu", 10, 8 + (i - top) * 8, c, dpage
   ELSE
-   printstr "Tile Set" + XSTR$(i), 10, 8 + (i - top) * 8, dpage
+   edgeprint "Tile Set" + XSTR$(i), 10, 8 + (i - top) * 8, c, dpage
   END IF
  NEXT i
  SWAP vpage, dpage
@@ -392,9 +392,9 @@ DO
   END SELECT
  END IF
  FOR i = 0 TO 4
-  textcolor 7, 240
-  IF tmode = i THEN textcolor 14 + tog, 240
-  printstr menu$(i), 10, 8 * (i + 1), dpage
+  c = uilook(uiMenuItem)
+  IF tmode = i THEN c = uilook(uiSelectedItem + tog)
+  edgeprint menu$(i), 10, 8 * (i + 1), c, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -438,8 +438,8 @@ DO
   
  END IF
  FOR i = 0 TO 5
-  textcolor 7, 240
-  IF taptr = i THEN textcolor 14 + tog, 240
+  textcolor uilook(uiMenuItem), uilook(uiOutline)
+  IF taptr = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiOutline)
   printstr menu$(i), 10, 8 * (i + 1), dpage
  NEXT i
  SWAP vpage, dpage
@@ -545,15 +545,14 @@ DO
  END IF
  
  FOR i = 0 TO 9
-  textcolor 7, 0
-  IF top + i = curpal THEN textcolor 14 + tog, 0
+  textcolor uilook(uiMenuItem), 0
+  IF top + i = curpal THEN textcolor uilook(uiSelectedItem + tog), 0
   SELECT CASE top + i
    CASE IS >= 0
     printstr STR$(top + i), 4, 5 + i * 20, dpage
     o = LEN(XSTR$(top + i)) * 8
     IF top + i = curpal THEN
-     rectangle o - 1, 1 + i * 20, 114, 18, 7, dpage
-     rectangle o, 2 + i * 20, 112, 16, 0, dpage
+     edgebox o - 1, 1 + i * 20, 114, 18, uilook(uiBackground), uilook(uiMenuitem), dpage
     END IF
     FOR j = 0 TO 15
      c = pal16(i * 8 + j \ 2)
@@ -661,20 +660,20 @@ DO
    END IF
  END SELECT
  FOR i = 0 TO 9
-  textcolor 7, 0
+  textcolor uilook(uiMenuItem), 0
   IF i = pt THEN
-   textcolor 14 + tog, 0
+   textcolor uilook(uiSelectedItem + tog), 0
   END IF
-  IF context = 1 THEN textcolor 8, 0
+  IF context = 1 THEN textcolor uilook(uiDisabledItem), 0
   printstr menu$(i), 0, i * 8, dpage
  NEXT i
  IF pt > 0 THEN
   FOR i = 0 TO 1
-   textcolor 7, 0
+   textcolor uilook(uiMenuItem), 0
    IF context = 1 AND i = ptr2 THEN
-    textcolor 14 + tog, 0
+    textcolor uilook(uiSelectedItem + tog), 0
    END IF
-   IF context = 0 THEN textcolor 8, 0
+   IF context = 0 THEN textcolor uilook(uiDisabledItem), 0
    printstr menu$(10 + i), 0, 100 + i * 8, dpage
   NEXT i
  END IF 'pt > 1
@@ -861,10 +860,10 @@ DO
  IF do_paste THEN
   do_paste = 0
   loadsprite placer(), 0, num * size, soff * (pt - top), xw, yw, 3
-  rectangle 0, 0, xw, yw, 0, dpage
+  rectangle 0, 0, xw, yw, uilook(uiBackground), dpage
   drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
   IF NOT paste_transparent THEN
-   rectangle 0, 0, clippedw, clippedh, 0, dpage
+   rectangle 0, 0, clippedw, clippedh, uilook(uiBackground), dpage
   END IF
   drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
   getsprite placer(), 0, 0, 0, xw, yw, dpage
@@ -875,7 +874,7 @@ DO
   debug_palettes = debug_palettes XOR 1
  END IF
  GOSUB choose
- textcolor 7, 0
+ textcolor uilook(uiMenuItem), 0
  printstr "Palette" + XSTR$(poffset(pt)), 320 - (LEN("Palette" + XSTR$(poffset(pt))) * 8), 0, dpage
  FOR i = 0 TO 15
   rectangle 271 + i * 3, 8, 3, 8, peek8bit(workpal(), (pt - top) * 16 + i), dpage
@@ -904,12 +903,12 @@ clearpage 3
 EXIT SUB
 
 choose:
-rectangle 0, 0, 320, 200, 244, dpage
-rectangle 4 + (num * (xw + 1)), (pt - top) * (yw + 5), xw + 2, yw + 2, 15, dpage
+rectangle 0, 0, 320, 200, uilook(uiDisabledItem), dpage
+rectangle 4 + (num * (xw + 1)), (pt - top) * (yw + 5), xw + 2, yw + 2, uilook(uiText), dpage
 FOR i = top TO small(top + atatime, sets)
  picslot = i - top
  FOR o = 0 TO perset - 1
-  rectangle 5 + (o * (xw + 1)), 1 + (picslot * (yw + 5)), xw, yw, 0, dpage
+  rectangle 5 + (o * (xw + 1)), 1 + (picslot * (yw + 5)), xw, yw, uilook(uiBackground), dpage
   loadsprite placer(), 0, size * o, soff * picslot, xw, yw, 3
   drawsprite placer(), 0, workpal(), (i - top) * 16, 5 + (o * (xw + 1)), 1 + (picslot * (yw + 5)), dpage
  NEXT o
@@ -953,7 +952,7 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  'blank the sprite area
- rectangle 239, 119, xw, yw, 0, dpage
+ rectangle 239, 119, xw, yw, uilook(uiBackground), dpage
  dowait
 LOOP
 j = pt
@@ -999,15 +998,15 @@ IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AN
 END IF
 '--PASTE (SHIFT+INS,CTRL+V)
 IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN
- rectangle 0, 0, xw, yw, 0, dpage
+ rectangle 0, 0, xw, yw, uilook(uiBackground), dpage
  drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
- rectangle x, y, clippedw, clippedh, 0, dpage
+ rectangle x, y, clippedw, clippedh, uilook(uiBackground), dpage
  drawsprite spriteclip(), 0, nulpal(), 0, x, y, dpage
  getsprite placer(), 0, 0, 0, xw, yw, dpage
 END IF
 '--TRANSPARENT PASTE (CTRL+T)
 IF (keyval(29) > 0 AND keyval(20) > 1) AND paste = 1 THEN
- rectangle 0, 0, xw, yw, 0, dpage
+ rectangle 0, 0, xw, yw, uilook(uiBackground), dpage
  drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
  drawsprite spriteclip(), 0, nulpal(), 0, x, y, dpage
  getsprite placer(), 0, 0, 0, xw, yw, dpage
@@ -1147,22 +1146,22 @@ IF keyval(28) > 1 OR (zone = 1 AND mouse(2) = 2) THEN
 END IF
 IF keyval(14) > 1 OR (zone = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, nulpal(), 0, 239, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
 IF keyval(58) > 0 THEN
- IF keyval(72) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 118, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
- IF keyval(80) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 120, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
- IF keyval(75) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 238, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
- IF keyval(77) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 240, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+ IF keyval(72) > 0 THEN rectangle 239, 119, xw, yw, uilook(uiBackground), dpage: drawsprite placer(), 0, nulpal(), 0, 239, 118, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+ IF keyval(80) > 0 THEN rectangle 239, 119, xw, yw, uilook(uiBackground), dpage: drawsprite placer(), 0, nulpal(), 0, 239, 120, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+ IF keyval(75) > 0 THEN rectangle 239, 119, xw, yw, uilook(uiBackground), dpage: drawsprite placer(), 0, nulpal(), 0, 238, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+ IF keyval(77) > 0 THEN rectangle 239, 119, xw, yw, uilook(uiBackground), dpage: drawsprite placer(), 0, nulpal(), 0, 240, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
 END IF
 IF keyval(23) > 1 OR (zone = 13 AND mouse(3) > 0) THEN GOSUB import16
 RETRACE
 
 spedbak:
 clearpage 2
-rectangle 3, 0, xw * zoom + 2, yw * zoom + 2, 15, 2
-rectangle 4, 1, xw * zoom, yw * zoom, 0, 2
-rectangle 245, 109, 67, 8, 15, 2
-rectangle 246, 110, 65, 6, 0, 2
-rectangle 238, 118, xw + 2, yw + 2, 15, 2
-rectangle 239, 119, xw, yw, 0, 2
+rectangle 3, 0, xw * zoom + 2, yw * zoom + 2, uilook(uiText), 2
+rectangle 4, 1, xw * zoom, yw * zoom, uilook(uiBackground), 2
+rectangle 245, 109, 67, 8, uilook(uiText), 2
+rectangle 246, 110, 65, 6, uilook(uiBackground), 2
+rectangle 238, 118, xw + 2, yw + 2, uilook(uiText), 2
+rectangle 239, 119, xw, yw, uilook(uiBackground), 2
 area(0, 2) = xw * zoom
 area(0, 3) = yw * zoom
 area(13, 2) = xw
@@ -1193,7 +1192,7 @@ DO
   EXIT DO
  END IF
  GOSUB spritescreen
- rectangle 4, 156, 208, 32, 8, dpage
+ rectangle 4, 156, 208, 32, uilook(uiDisabledItem), dpage
  FOR i = 0 TO 2
   c = 7: IF i = pcsr THEN c = 14 + tog
   edgeprint pmenu$(i), 8, 160 + (i * 8), c, dpage
@@ -1267,8 +1266,8 @@ RETRACE
 
 floodfill:
 GOSUB writeundospr
-rectangle 238, 118, xw + 2, yw + 2, 17, dpage
-rectangle 239, 119, xw, yw, 0, dpage
+rectangle 238, 118, xw + 2, yw + 2, uilook(uiHighlight), dpage
+rectangle 239, 119, xw, yw, uilook(uiBackground), dpage
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 paintat 239 + x, 119 + y, col, dpage, buffer(), 16384
 getsprite placer(), 0, 239, 119, xw, yw, dpage
@@ -1333,19 +1332,19 @@ RETRACE
 
 spritescreen:
 curcol = peek8bit(workpal(), col + (pt - top) * 16)
-rectangle 247 + ((curcol - (INT(curcol / 16) * 16)) * 4), 0 + (INT(curcol / 16) * 6), 5, 7, 15, dpage
+rectangle 247 + ((curcol - (INT(curcol / 16) * 16)) * 4), 0 + (INT(curcol / 16) * 6), 5, 7, uilook(uiText), dpage
 FOR i = 0 TO 15
  FOR o = 0 TO 15
   rectangle 248 + (i * 4), 1 + (o * 6), 3, 5, o * 16 + i, dpage
  NEXT o
 NEXT i
-textcolor 15, 8: IF zone = 5 THEN textcolor 15, 6
+textcolor uilook(uiText), uilook(uiDisabledItem): IF zone = 5 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
 printstr CHR$(27), 248, 100, dpage
-textcolor 15, 8: IF zone = 6 THEN textcolor 15, 6
+textcolor uilook(uiText), uilook(uiDisabledItem): IF zone = 6 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
 printstr CHR$(26), 304, 100, dpage
-textcolor 15, 0
+textcolor uilook(uiText), 0
 printstr LEFT$(" Pal", 4 - (LEN(XSTR$(poffset(pt))) - 3)) + XSTR$(poffset(pt)), 248, 100, dpage
-rectangle 247 + (col * 4), 110, 5, 7, 15, dpage
+rectangle 247 + (col * 4), 110, 5, 7, uilook(uiText), dpage
 FOR i = 0 TO 15
  rectangle 248 + (i * 4), 111, 3, 5, peek8bit(workpal(), i + (pt - top) * 16), dpage
 NEXT
@@ -1354,9 +1353,9 @@ IF zoom = 2 THEN bigsprite placer(), workpal(), (pt - top) * 16, 4, 1, dpage, 0
 curcol = peek8bit(workpal(), col + (pt - top) * 16)
 IF box = 1 THEN
  rectangle 4 + small(x, bx) * zoom, 1 + small(y, by) * zoom, (ABS(x - bx) + 1) * zoom, (ABS(y - by) + 1) * zoom, curcol, dpage
- rectangle 4 + bx * zoom, 1 + by * zoom, zoom, zoom, tog * 15, dpage
+ rectangle 4 + bx * zoom, 1 + by * zoom, zoom, zoom, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
 END IF
-rectangle 4 + (x * zoom), 1 + (y * zoom), zoom, zoom, tog * 15, dpage
+rectangle 4 + (x * zoom), 1 + (y * zoom), zoom, zoom, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
 drawsprite placer(), 0, workpal(), (pt - top) * 16, 239, 119, dpage, 0
 IF box = 1 THEN
  rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, curcol, dpage
@@ -1375,33 +1374,38 @@ IF tool = 5 THEN
  ellipse 5 + (x * zoom), 2 + (y * zoom), (airsize / 2) * zoom, curcol, dpage, 0, 0
 END IF
 putpixel 239 + x, 119 + y, tog * 15, dpage
-textcolor 7, 0
+textcolor uilook(uiMenuItem), 0
 printstr info$(num), 0, 182, dpage
 printstr "Tool:" + tool$(tool), 0, 190, dpage
 FOR i = 0 TO 5
- t1 = 7: t2 = 8
- IF tool = i THEN t1 = 15: t2 = 7
- IF zone - 7 = i THEN t2 = 6
+ t1 = uilook(uiMenuItem): t2 = uilook(uiDisabledItem)
+ IF tool = i THEN t1 = uilook(uiText): t2 = uilook(uiMenuItem)
+ IF zone - 7 = i THEN t2 = uilook(uiSelectedDisabled)
  textcolor t1, t2
  printstr icon$(i), 90 + i * 12, 190, dpage
 NEXT i
-textcolor 7, 8: IF zone = 4 THEN textcolor 15, 6
+textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF zone = 4 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
 printstr CHR$(7), 182, 190, dpage
-textcolor 7, 8: IF zone = 13 THEN textcolor 15, 6
+textcolor uilook(uiMenuitem), uilook(uiDisabledItem): IF zone = 13 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
 printstr "I", 194, 190, dpage
-textcolor 0 + (7 * SGN(undodepth)), 8: IF zone = 20 AND undodepth > 0 THEN textcolor 15, 6
+IF undodepth = 0 THEN
+ textcolor uilook(uiBackground), uilook(uiDisabledItem)
+ELSE
+ textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
+END IF
+IF zone = 20 AND undodepth > 0 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
 printstr "UNDO", 170, 182, dpage
 IF tool = 5 THEN
- textcolor 7, 0
+ textcolor uilook(uiMenuItem), 0
  printstr "SIZE" + STR$(airsize), 218, 182, dpage
  printstr "MIST" + STR$(mist), 218, 190, dpage
- textcolor 7, 8: IF zone = 15 THEN textcolor 15, 6
+ textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF zone = 15 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
  printstr CHR$(27), 210, 182, dpage
- textcolor 7, 8: IF zone = 16 THEN textcolor 15, 6
+ textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF zone = 16 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
  printstr CHR$(27), 210, 190, dpage
- textcolor 7, 8: IF zone = 17 THEN textcolor 15, 6
+ textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF zone = 17 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
  printstr CHR$(26), 266, 182, dpage
- textcolor 7, 8: IF zone = 18 THEN textcolor 15, 6
+ textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF zone = 18 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
  printstr CHR$(26), 266, 190, dpage
 END IF
 IF gotm THEN
@@ -1409,7 +1413,11 @@ IF gotm THEN
  IF c = -1 THEN
   IF hideptr THEN c = -2 ELSE c = dcsr
  END IF
- textcolor 10 + tog * 5, 0
+ IF tog THEN
+  textcolor uilook(uiText), 0
+ ELSE
+  textcolor uilook(uiDescription), 0
+ END IF
  printstr CHR$(2 + c), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
 END IF
 RETRACE
@@ -1569,10 +1577,10 @@ DO
  '--Draw cursor--
  y = INT(csr / 16)
  x = csr - y * 16
- rectangle 20 * x, 10 + 20 * y, 20, 1, 14 + tog, dpage
- rectangle 20 * x, 10 + 20 * y, 1, 20, 14 + tog, dpage
- rectangle 20 * x, 29 + 20 * y, 20, 1, 14 + tog, dpage
- rectangle 20 * x + 19, 10 + 20 * y, 1, 20, 14 + tog, dpage
+ rectangle 20 * x, 10 + 20 * y, 20, 1, uilook(uiSelectedItem + tog), dpage
+ rectangle 20 * x, 10 + 20 * y, 1, 20, uilook(uiSelectedItem + tog), dpage
+ rectangle 20 * x, 29 + 20 * y, 20, 1, uilook(uiSelectedItem + tog), dpage
+ rectangle 20 * x + 19, 10 + 20 * y, 1, 20, uilook(uiSelectedItem + tog), dpage
  
  dowait
 LOOP
@@ -1729,11 +1737,11 @@ DO
  IF tmode = 2 THEN
   FOR o = 0 TO 9
    FOR i = 0 TO 15
-    IF (defaults(i + o * 16) AND 1) THEN rectangle i * 20, o * 20, 20, 3, 7 + tog, dpage
-    IF (defaults(i + o * 16) AND 2) THEN rectangle i * 20 + 17, o * 20, 3, 20, 7 + tog, dpage
-    IF (defaults(i + o * 16) AND 4) THEN rectangle i * 20, o * 20 + 17, 20, 3, 7 + tog, dpage
-    IF (defaults(i + o * 16) AND 8) THEN rectangle i * 20, o * 20, 3, 20, 7 + tog, dpage
-    textcolor 14 + tog, 0
+    IF (defaults(i + o * 16) AND 1) THEN rectangle i * 20, o * 20, 20, 3, uilook(uiMenuItem + tog), dpage
+    IF (defaults(i + o * 16) AND 2) THEN rectangle i * 20 + 17, o * 20, 3, 20, uilook(uiMenuItem + tog), dpage
+    IF (defaults(i + o * 16) AND 4) THEN rectangle i * 20, o * 20 + 17, 20, 3, uilook(uiMenuItem + tog), dpage
+    IF (defaults(i + o * 16) AND 8) THEN rectangle i * 20, o * 20, 3, 20, uilook(uiMenuItem + tog), dpage
+    textcolor uilook(uiSelectedItem + tog), 0
     IF (defaults(i + o * 16) AND 16) THEN printstr "A", i * 20, o * 20, dpage
     IF (defaults(i + o * 16) AND 32) THEN printstr "B", i * 20 + 10, o * 20, dpage
     IF (defaults(i + o * 16) AND 64) THEN printstr "H", i * 20, o * 20 + 10, dpage
@@ -1741,9 +1749,13 @@ DO
    NEXT i
   NEXT o
  END IF
- rectangle ts.tilex * 20 + 7, ts.tiley * 20 + 7, 6, 6, tog * 15, dpage
+ rectangle ts.tilex * 20 + 7, ts.tiley * 20 + 7, 6, 6, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
  IF ts.gotmouse THEN
-  textcolor 10 + tog * 5, 0
+  IF tog THEN
+   textcolor uilook(uiText), 0
+  ELSE
+   textcolor uilook(uiDescription), 0
+  END IF
   printstr CHR$(2), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
  END IF
  SWAP dpage, vpage
@@ -1758,7 +1770,7 @@ END SUB
 
 SUB refreshtileedit (mover(), state AS TileEditState)
 copymapblock mover(), state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
-rectangle 59, 0, 202, 161, 15, 2
+rectangle 59, 0, 202, 161, uilook(uiText), 2
 FOR i = 0 TO 19
  FOR j = 0 TO 19
   rectangle 60 + i * 10, j * 8, 10, 8, readpixel(state.tilex * 20 + i, state.tiley * 20 + j, 3), 2
@@ -1767,20 +1779,20 @@ NEXT i
 END SUB
 
 SUB writeundoblock (mover(), state AS TileEditState)
-rectangle 270, 16 + (state.undo * 21), 8, 8, 0, 2
+rectangle 270, 16 + (state.undo * 21), 8, 8, uilook(uiBackground), 2
 state.undo = loopvar(state.undo, 0, 5, 1)
 copymapblock mover(), state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
-textcolor 7, 0
+textcolor uilook(uiMenuItem), 0
 printstr ">", 270, 16 + (state.undo * 21), 2
 state.allowundo = 1
 END SUB
 
 SUB readundoblock (mover(), state AS TileEditState)
 FOR j = 0 TO 5
- rectangle 270, 16 + (j * 21), 8, 8, 0, 2
+ rectangle 270, 16 + (j * 21), 8, 8, uilook(uiBackground), 2
 NEXT j
 copymapblock mover(), 280, 10 + (state.undo * 21), 2, state.tilex * 20, state.tiley * 20, 3
-textcolor 7, 0
+textcolor uilook(uiMenuItem), 0
 printstr ">", 270, 16 + (state.undo * 21), 2
 refreshtileedit mover(), state
 END SUB
@@ -1797,11 +1809,10 @@ mouse(1) = area(0,1) + zoy
 movemouse mouse(0), mouse(1)
 clearpage 2
 FOR i = 0 TO 5
- rectangle 279, 9 + (i * 21), 22, 22, 7, 2
- rectangle 280, 10 + (i * 21), 20, 20, 0, 2
+ edgebox 279, 9 + (i * 21), 22, 22, uilook(uiBackground), uilook(uiMenuItem), 2
 NEXT i
 refreshtileedit mover(), ts
-textcolor 7, 0
+textcolor uilook(uiMenuItem), 0
 printstr ">", 270, 16 + (ts.undo * 21), 2
 FOR j = 0 TO 7
  FOR i = 0 TO 15
@@ -1923,9 +1934,9 @@ DO
  IF keyval(14) > 1 OR keyval(26) > 1 OR keyval(27) > 1 THEN fliptile mover(), ts
  cy = (ts.curcolor \ 16) MOD 8
  cx = (ts.curcolor AND 15) + (ts.curcolor \ 128) * 16
- rectangle cx * 10 + 4, cy * 4 + 162, 3, 1, tog * 15, dpage
+ rectangle cx * 10 + 4, cy * 4 + 162, 3, 1, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
  rectangle 60 + ts.x * 10, ts.y * 8, 10, 8, readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3), dpage
- rectangle ts.x * 10 + 64, ts.y * 8 + 3, 3, 2, tog * 15, dpage
+ rectangle ts.x * 10 + 64, ts.y * 8 + 3, 3, 2, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
  IF ts.tool = 5 THEN
   ellipse 64 + ts.x * 10, 3 + ts.y * 8, (ts.airsize * 9) / 2, ts.curcolor, dpage, 0, 0
  END IF
@@ -1938,34 +1949,34 @@ DO
    radius = large(ABS(ts.hox - ts.x), ABS(ts.hoy - ts.y)) * 9
    ellipse 65 + ts.hox * 10, 4 + ts.hoy * 8, radius, ts.curcolor, dpage, 0, 0
  END SELECT
- textcolor 15, 1
+ textcolor uilook(uiText), uilook(uiHighlight)
  printstr toolname$(ts.tool), 8, 8, dpage
  printstr "Tool", 8, 16, dpage
  printstr "Undo", 274, 1, dpage
  FOR i = 0 TO 5
-  t1 = 7: t2 = 8
-  IF ts.tool = i THEN t1 = 15: t2 = 7
-  IF ts.zone - 3 = i THEN t2 = 6
+  t1 = uilook(uiMenuItem): t2 = uilook(uiDisabledItem)
+  IF ts.tool = i THEN t1 = uilook(uiText): t2 = uilook(uiMenuItem)
+  IF ts.zone - 3 = i THEN t2 = uilook(uiSelectedDisabled)
   textcolor t1, t2
   printstr icon$(i), 4 + i * 9, 32, dpage
  NEXT i
  FOR i = 0 TO 3
-  textcolor 7, 8: IF ts.zone = 13 + i THEN textcolor 15, 6
+  textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ts.zone = 13 + i THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
   printstr CHR$(7 + i), 4 + i * 9, 42, dpage
  NEXT i
  IF ts.tool = 5 THEN
-  textcolor 7, 0
+  textcolor uilook(uiMenuItem), 0
   printstr "SIZE", 12, 52, dpage
   printstr XSTR$(ts.airsize), 12, 60, dpage
   printstr "MIST", 12, 68, dpage
   printstr XSTR$(ts.mist), 12, 76, dpage
-  textcolor 7, 8: IF ts.zone = 17 THEN textcolor 15, 6
+  textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ts.zone = 17 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
   printstr CHR$(27), 12, 60, dpage
-  textcolor 7, 8: IF ts.zone = 18 THEN textcolor 15, 6
+  textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ts.zone = 18 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
   printstr CHR$(27), 12, 76, dpage
-  textcolor 7, 8: IF ts.zone = 19 THEN textcolor 15, 6
+  textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ts.zone = 19 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
   printstr CHR$(26), 36, 60, dpage
-  textcolor 7, 8: IF ts.zone = 20 THEN textcolor 15, 6
+  textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ts.zone = 20 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
   printstr CHR$(26), 36, 76, dpage
  END IF
  IF ts.gotmouse THEN
@@ -1974,7 +1985,11 @@ DO
    c = ts.drawcursor
    IF ts.hidemouse THEN c = -2
   END IF
-  textcolor 10 + tog * 5, 0
+  IF tog THEN
+   textcolor uilook(uiText), 0
+  ELSE
+   textcolor uilook(uiDescription), 0
+  END IF
   printstr CHR$(2 + c), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
  END IF
  SWAP dpage, vpage
@@ -2038,14 +2053,14 @@ SELECT CASE ts.tool
     NEXT j
    NEXT i
    refreshtileedit mover(), ts
-   rectangle 0, 0, 22, 22, 0, dpage
+   rectangle 0, 0, 22, 22, uilook(uiBackground), dpage
   END IF
  CASE 4'---OVAL
   IF mouseclick > 0 OR keyval(57) > 1 THEN
    IF ts.hold = 3 THEN
     writeundoblock mover(), ts
     radius = large(ABS(ts.hox - ts.x), ABS(ts.hoy - ts.y))
-    rectangle 0, 0, 22, 22, 15, dpage
+    rectangle 0, 0, 22, 22, uilook(uiText), dpage
     FOR i = 0 TO 19
      FOR j = 0 TO 19
       putpixel 1 + i, 1 + j, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
@@ -2058,7 +2073,7 @@ SELECT CASE ts.tool
      NEXT j
     NEXT i
     refreshtileedit mover(), ts
-    rectangle 0, 0, 22, 22, 0, dpage
+    rectangle 0, 0, 22, 22, uilook(uiBackground), dpage
     ts.hold = 0
    ELSE
     ts.hold = 3
@@ -2069,7 +2084,7 @@ SELECT CASE ts.tool
  CASE 5'---AIR
   IF ts.justpainted = 0 THEN writeundoblock mover(), ts
   ts.justpainted = 3
-  rectangle 19, 119, 22, 22, 15, dpage
+  rectangle 19, 119, 22, 22, uilook(uiText), dpage
   FOR i = 0 TO 19
    FOR j = 0 TO 19
     putpixel 20 + i, 120 + j, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
@@ -2086,7 +2101,7 @@ END SELECT
 END SUB
 
 SUB scrolltile (mover(), ts AS TileEditState)
-rectangle 0, 0, 20, 20, 0, dpage
+rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 shiftx = 0: shifty = 0
 IF keyval(72) > 0 THEN shifty = -1
 IF keyval(80) > 0 THEN shifty = 1
@@ -2105,12 +2120,12 @@ FOR i = 0 TO 19
  NEXT j
 NEXT i
 refreshtileedit mover(), ts
-rectangle 0, 0, 20, 20, 0, dpage
+rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 END SUB
 
 SUB fliptile (mover(), ts AS TileEditState)
 writeundoblock mover(), ts
-rectangle 0, 0, 20, 20, 0, dpage
+rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 flipx = 0: flipy = 0
 IF (ts.zone = 13 OR ts.zone = 16) OR keyval(26) > 1 OR (keyval(14) > 1 AND keyval(29) = 0) THEN flipx = 19
 IF ts.zone = 14 OR ts.zone = 15 OR keyval(27) > 1 OR (keyval(14) > 1 AND keyval(29) > 0) THEN flipy = 19
@@ -2128,7 +2143,7 @@ FOR i = 0 TO 19
  NEXT j
 NEXT i
 refreshtileedit mover(), ts
-rectangle 0, 0, 20, 20, 0, dpage
+rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 END SUB
 
 SUB tilecut (ts AS TileEditState, mouse(), area())
@@ -2181,17 +2196,21 @@ DO
  drawline ts.x, ts.y, ts.x, ts.y + 19, 10 + tog * 5, dpage
  drawline ts.x + 19, ts.y + 19, ts.x + 19, ts.y, 10 + tog * 5, dpage
  drawline ts.x + 19, ts.y + 19, ts.x, ts.y + 19, 10 + tog * 5, dpage
- textcolor 7 + tog, 1
- IF ts.zone = 11 THEN textcolor 14 + tog, 3
+ textcolor uilook(uiMenuItem + tog), 1
+ IF ts.zone = 11 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
  printstr "Prev", 8, 190, dpage
- textcolor 7 + tog, 1
- IF ts.zone = 12 THEN textcolor 14 + tog, 3
+ textcolor uilook(uiMenuItem + tog), 1
+ IF ts.zone = 12 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
  printstr "Next", 280, 190, dpage
- textcolor 15, 1
+ textcolor uilook(uiText), uilook(uiHighlight)
  temp$ = XSTR$(ts.cutfrom) + " "
  printstr temp$, 160 - LEN(temp$) * 4, 190, dpage
  IF ts.gotmouse THEN
-  textcolor 10 + tog * 5, 0
+  IF tog THEN
+   textcolor uilook(uiText), 0
+  ELSE
+   textcolor uilook(uiDescription), 0
+  END IF
   printstr CHR$(2), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
  END IF
  SWAP dpage, vpage
