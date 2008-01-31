@@ -425,7 +425,7 @@ DO
   IF temp = 1 THEN RETRACE
   IF temp = 2 THEN nocleanup = 1: RETRACE
  END IF
- textcolor uilook(uiHighlight), 0
+ textcolor uilook(uiSelectedDisabled), 0
  printstr "A game was found unlumped", 0, 0, dpage
  printstr "This may mean that " + CUSTOMEXE + " crashed", 0, 40, dpage
  printstr "last time you used it, or it may mean", 0, 48, dpage
