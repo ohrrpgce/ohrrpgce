@@ -54,6 +54,7 @@ DECLARE SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
 DECLARE SUB inputpasw(pas$)
 DECLARE FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
 DECLARE SUB nearestui (mimicpal, newpal() as RGBcolor, newui())
+DECLARE SUB remappalette (oldmaster() as RGBcolor, oldpal(), newmaster() as RGBcolor, newpal())
 
 REM $STATIC
 
@@ -1303,17 +1304,21 @@ END IF
 RETURN 0
 END FUNCTION
 
-SUB nearestui (mimicpal, newpal() as RGBcolor, newui())
+SUB nearestui (mimicpal, newmaster() as RGBcolor, newui())
  'finds the nearest match newui() in newpal() to mimicpal's ui colours
  DIM referencepal(255) as RGBcolor, referenceui(uiColors)
  loadpalette referencepal(), mimicpal
  LoadUIColors referenceui(), mimicpal
- FOR i = 0 TO uiColors
-  WITH referencepal(referenceui(i))
-   IF .col = newpal(referenceui(i)).col THEN
-    newui(i) = referenceui(i)
+ remappalette referencepal(), referenceui(), newmaster(), newui()
+END SUB
+
+SUB remappalette (oldmaster() as RGBcolor, oldpal(), newmaster() as RGBcolor, newpal())
+ FOR i = 0 TO UBOUND(oldpal)
+  WITH oldmaster(oldpal(i))
+   IF .col = newmaster(oldpal(i)).col THEN
+    newpal(i) = oldpal(i)
    ELSE
-    newui(i) = nearcolor(newpal(), .r, .g, .b)
+    newpal(i) = nearcolor(newmaster(), .r, .g, .b)
    END IF
   END WITH
  NEXT
