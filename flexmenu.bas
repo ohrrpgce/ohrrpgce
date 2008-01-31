@@ -38,7 +38,6 @@ DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
-DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION isStringField(mnu%)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
@@ -1179,7 +1178,7 @@ FOR i = 0 TO size
     nowmenu$(i) = nowmenu$(i) + " " + readattackname$(datablock(menuoff(nowdat(i))) - 1)
    END IF
   CASE 8 '--item number
-   nowmenu$(i) = nowmenu$(i) + " " + itemstr(datablock(menuoff(nowdat(i))), 0, 1)
+   nowmenu$(i) = nowmenu$(i) + " " + load_item_name(datablock(menuoff(nowdat(i))), 0, 1)
   CASE 9 '--enemy number
    IF datablock(menuoff(nowdat(i))) <= 0 THEN
     nowmenu$(i) = nowmenu$(i) + " None"
@@ -1188,7 +1187,7 @@ FOR i = 0 TO size
     nowmenu$(i) = nowmenu$(i) + " " + readenemyname$(datablock(menuoff(nowdat(i))) - 1)
    END IF
   CASE 10 '--item number, offset
-    nowmenu$(i) = nowmenu$(i) + " " + itemstr(datablock(menuoff(nowdat(i))), 0, 0)
+    nowmenu$(i) = nowmenu$(i) + " " + load_item_name(datablock(menuoff(nowdat(i))), 0, 0)
   CASE 11 '--sound effect number, offset
     IF datablock(menuoff(nowdat(i))) <= 0 THEN
       nowmenu$(i) = nowmenu$(i) + " None"

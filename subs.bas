@@ -32,7 +32,6 @@ DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
-DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE FUNCTION isStringField(mnu%)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
@@ -54,7 +53,6 @@ DECLARE sub formpics(ename() as string, a() as integer, b() as integer, s() as i
 
 DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
 
-DECLARE FUNCTION textbox_preview_line(boxnum AS INTEGER) AS STRING
 DECLARE SUB load_item_names (item_strings() AS STRING)
 DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
 DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, workpal() AS INTEGER, frame AS INTEGER)
@@ -1181,7 +1179,7 @@ min(6) = 0: max(6) = gen(genMaxItem)
 min(7) = 0: max(7) = 16
 min(8) = -100:max(8) = 100
 min(9) = -100:max(9) = 100
-it$ = itemstr(her.def_weapon, 0, 1)
+it$ = load_item_name(her.def_weapon, 0, 1)
 setkeys
 frame = 0
 DO
@@ -1218,7 +1216,7 @@ DO
     intgrabber her.def_level, min(bctr), max(bctr)
    CASE 6
     IF intgrabber(her.def_weapon, min(bctr), max(bctr)) THEN
-      it$ = itemstr$(her.def_weapon, 0, 1)
+      it$ = load_item_name(her.def_weapon, 0, 1)
     END IF
    CASE 7
     intgrabber her.max_name_len, min(bctr), max(bctr)
@@ -1917,106 +1915,24 @@ END FUNCTION
 SUB load_item_names (item_strings() AS STRING)
  DIM i AS INTEGER
  FOR i = 0 TO gen(genMaxItem)
-  item_strings(i) = itemstr$(i, YES, YES)
+  item_strings(i) = load_item_name(i, YES, YES)
  NEXT i
 END SUB
 
-FUNCTION itemstr$ (it%, hidden%, offbyone%)
- 'it - the item number
- 'hidden - whether to *not* prefix the item number
- 'offbyone - whether it is the item number (1), or the itemnumber + 1 (0)
- IF it <= 0 AND offbyone = 0 THEN itemstr$ = "NONE": EXIT FUNCTION
- IF offbyone THEN itn = it ELSE itn = it - 1
- DIM buf(99) AS INTEGER
- loaditemdata buf(), itn
- re$ = readbadbinstring$(buf(), 0, 8, 0)
- IF hidden = 0 THEN re$ = itn & " " & re$
- RETURN re$
-END FUNCTION
-
 SUB npcdef (npc(), pt)
-DIM npc$(15), unpc(15), lnpc(15), mtype$(10), push$(7), stepi(5), info$(5, 1), pal16(288)
+
+DIM spritebuf(800) AS INTEGER
+DIM pal16(288) AS INTEGER
 
 clearpage 0: clearpage 1
 setvispage vpage
 
-npc$(0) = "Picture"
-npc$(1) = "Palette"
-npc$(2) = "Move Type"
-npc$(3) = "Move Speed"
-npc$(4) = "Display Text"
-npc$(5) = "When Activated"
-npc$(6) = "Give Item:"
-npc$(7) = "Pushability"
-npc$(8) = "Activation: "
-npc$(9) = "Appear if Tag"
-npc$(10) = "Appear if Tag"
-npc$(11) = "Usable"
-npc$(12) = "Run Script: "
-npc$(13) = "Script Argument"
-npc$(14) = "Vehicle: "
-
-unpc(0) = 119
-unpc(1) = 32767
-unpc(2) = 8
-unpc(3) = 5
-unpc(4) = -1
-unpc(5) = 2
-unpc(6) = gen(genMaxItem) + 1
-unpc(7) = 7
-unpc(8) = 2
-unpc(9) = 999
-unpc(10) = 999
-unpc(11) = 1
-unpc(12) = 0
-unpc(13) = 32767
-unpc(14) = 0
-FOR i = 0 TO 14
- lnpc(i) = 0
-NEXT i
-lnpc(1) = -1
-lnpc(9) = -999
-lnpc(10) = -999
-lnpc(13) = -32767
-
-unpc(4) = gen(39)'max text boxes
-unpc(12) = gen(43)'max scripts
-unpc(14) = gen(55) + 1'max vehicles
-mtype$(0) = "Stand Still"
-mtype$(1) = "Wander"
-mtype$(2) = "Pace"
-mtype$(3) = "Right Turns"
-mtype$(4) = "Left Turns"
-mtype$(5) = "Random Turns"
-mtype$(6) = "Chase You"
-mtype$(7) = "Avoid You"
-mtype$(8) = "Walk In Place"
-push$(0) = " Off"
-push$(1) = " Full"
-push$(2) = " Vertical"
-push$(3) = " Horizontal"
-push$(4) = " Up only"
-push$(5) = " Right Only"
-push$(6) = " Down Only"
-push$(7) = " Left Only"
-stepi(0) = 0
-stepi(1) = 1
-stepi(2) = 2
-stepi(3) = 10
-stepi(4) = 4
-stepi(5) = 5
-info$(0, 0) = "Use"
-info$(1, 0) = "Touch"
-info$(2, 0) = "Step On"
-info$(0, 1) = " Change Direction"
-info$(1, 1) = " Face Player"
-info$(2, 1) = " Do Not Face Player"
-unpc(0) = gen(30)
-
 csr = 0
 cur = 0: top = 0
+setpicstuf spritebuf(), 1600, 2
 FOR i = 0 TO 35
- GOSUB loadnpcpic
+ loadset game & ".pt4", npc(i * 15 + 0), 5 * i
+ getpal16 pal16(), i, npc(i * 15 + 1), 4, npc(i * 15 + 0)
 NEXT i
 setkeys
 DO
@@ -2025,13 +1941,13 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
  usemenu cur, top, 0, 35, 7
- IF enter_or_space() THEN GOSUB npcstats
+ IF enter_or_space() THEN edit_npc cur, npc()
  FOR i = top TO top + 7
   textcolor 7, 0
   IF cur = i THEN textcolor 14 + tog, 0
   printstr "" & i, 0, ((i - top) * 25), dpage
-  loadsprite buffer(), 0, 800, 5 * i, 20, 20, 2
-  drawsprite buffer(), 0, pal16(), 16 * i, 32, ((i - top) * 25), dpage
+  loadsprite spritebuf(), 0, 800, 5 * i, 20, 20, 2
+  drawsprite spritebuf(), 0, pal16(), 16 * i, 32, ((i - top) * 25), dpage
  NEXT
  SWAP vpage, dpage
  setvispage vpage
@@ -2043,169 +1959,7 @@ clearpage 1
 clearpage 2
 EXIT SUB
 
-loadnpcpic:
-setpicstuf buffer(), 1600, 2
-loadset game + ".pt4", npc(i * 15 + 0), 5 * i
-getpal16 pal16(), i, npc(i * 15 + 1), 4, npc(i * 15 + 0)
-RETRACE
-
-npcstats:
-it$ = itemstr(npc(cur * 15 + 6), 0, 0)
-x$ = ""
-scrname$ = scriptname$(npc(cur * 15 + 12), plottrigger)
-x$ = textbox_preview_line(npc(cur * 15 + 4))
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF npc(cur * 15 + 2) > 0 THEN walk = walk + 1: IF walk > 3 THEN walk = 0
- IF keyval(1) > 1 THEN RETRACE
- usemenu csr, 0, -1, 14, 24
- SELECT CASE csr
- CASE 12'--script
-  IF enter_or_space() THEN
-   scrname$ = scriptbrowse$(npc(cur * 15 + 12), plottrigger, "NPC use plotscript")
-  ELSEIF scrintgrabber(npc(cur * 15 + 12), 0, 0, 75, 77, 1, plottrigger) THEN
-   scrname$ = scriptname$(npc(cur * 15 + 12), plottrigger)
-  END IF
- CASE 11'--one-time-use tag
-  IF keyval(75) > 1 OR keyval(77) > 1 OR enter_or_space() THEN GOSUB onetimetog
- CASE 2 TO 8, IS > 12'--simple integers
-  IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr)) THEN
-   IF csr = 6 THEN it$ = itemstr(npc(cur * 15 + 6), 0, 0)
-   IF csr = 4 THEN x$ = textbox_preview_line(npc(cur * 15 + 4))
-  END IF
- CASE 9, 10'--tag conditionals
-  tag_grabber npc(cur * 15 + csr)
- CASE 1'--palette
-  IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr)) THEN
-   getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0)
-  END IF
-  IF enter_or_space() THEN
-   npc(cur * 15 + csr) = pal16browse(npc(cur * 15 + csr), 8, 0, 5 * cur, 20, 20, 2)
-   getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0) 
-  END IF
- CASE 0'--picture
-  IF intgrabber(npc(cur * 15 + csr), lnpc(csr), unpc(csr)) = 1 THEN
-   i = cur
-   GOSUB loadnpcpic
-  END IF
- END SELECT
- IF enter_or_space() AND csr = -1 THEN RETRACE
- textcolor 7, 0
- IF csr = -1 THEN textcolor 14 + tog, 0
- printstr "Previous Menu", 0, 0, dpage
- FOR i = 0 TO 14
-  textcolor 7, 0
-  IF csr = i THEN textcolor 14 + tog, 0
-  temp$ = " " & npc(cur * 15 + i)
-  SELECT CASE i
-   CASE 1
-    temp$ = " " & defaultint$(npc(cur * 15 + i))
-   CASE 2
-    temp$ = " = " & mtype$(npc(cur * 15 + i))
-   CASE 3
-    temp$ = " " & stepi(npc(cur * 15 + i))
-   CASE 5
-    temp$ = info$(npc(cur * 15 + i), 1)
-   CASE 6
-    temp$ = " " & it$
-   CASE 7
-    temp$ = push$(npc(cur * 15 + i))
-   CASE 8
-    temp$ = info$(npc(cur * 15 + i), 0)
-   CASE 9, 10
-    IF npc(cur * 15 + i) THEN
-     temp$ = " " & ABS(npc(cur * 15 + i)) & " = " & onoroff$(npc(cur * 15 + i)) & " (" & load_tag_name(ABS(npc(cur * 15 + i))) & ")"
-    ELSE
-     temp$ = " 0 (N/A)"
-    END IF
-   CASE 11
-    IF npc(cur * 15 + i) THEN temp$ = " Only Once (tag " & (1000 + npc(cur * 15 + i)) & ")" ELSE temp$ = " Repeatedly"
-   CASE 12 'script
-    temp$ = scrname$
-   CASE 13 'script arg
-    IF npc(cur * 15 + 12) = 0 THEN temp$ = " N/A"
-   CASE 14 'vehicle
-    IF npc(cur * 15 + 14) <= 0 THEN
-     temp$ = "No"
-    ELSE
-     setpicstuf buffer(), 80, -1
-     loadset game + ".veh", npc(cur * 15 + 14) - 1, 0
-     temp$ = STRING$(bound(buffer(0) AND 255, 0, 15), 0)
-     array2str buffer(), 1, temp$
-    END IF
-  END SELECT
-  printstr npc$(i) + temp$, 0, 8 + (8 * i), dpage
- NEXT i
- rectangle 9, 139, 22, 22, 15, dpage
- rectangle 10, 140, 20, 20, 7, dpage
- loadsprite buffer(), 0, 800 + (200 * INT(walk / 2)), 5 * cur, 20, 20, 2
- drawsprite buffer(), 0, pal16(), 16 * cur, 10, 140, dpage
- a$ = "Appears if tag " & ABS(npc(cur * 15 + 9)) & " = " & onoroff$(npc(cur * 15 + 9)) & " and tag " & ABS(npc(cur * 15 + 10)) & " = " & onoroff$(npc(cur * 15 + 10))
- IF npc(cur * 15 + 9) <> 0 AND npc(cur * 15 + 10) = 0 THEN a$ = "Appears if tag " & ABS(npc(cur * 15 + 9)) & " = " & onoroff$(npc(cur * 15 + 9))
- IF npc(cur * 15 + 9) = 0 AND npc(cur * 15 + 10) <> 0 THEN a$ = "Appears if tag " & ABS(npc(cur * 15 + 10)) & " = " & onoroff$(npc(cur * 15 + 10))
- IF npc(cur * 15 + 9) = 0 AND npc(cur * 15 + 10) = 0 THEN a$ = "Appears all the time"
- textcolor 15, 0
- printstr a$, 0, 190, dpage
- textcolor 15, 1
- printstr x$, 0, 170, dpage
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-
-onetimetog:
-IF npc(cur * 15 + 11) > 0 THEN
- setbit gen(), 106, npc(cur * 15 + 11) - 1, 0
- npc(cur * 15 + 11) = 0: RETRACE
-END IF
-
-i = 0
-DO
- gen(105) = loopvar(gen(105), 0, 999, 1)
- i = i + 1: IF i > 1000 THEN RETRACE
-LOOP UNTIL readbit(gen(), 106, gen(105)) = 0
-npc(cur * 15 + 11) = gen(105) + 1
-setbit gen(), 106, gen(105), 1
-RETRACE
-
-'npc(i * 15 + 0) = picture
-'npc(i * 15 + 1) = palette
-'npc(i * 15 + 2) = move type
-'npc(i * 15 + 3) = move speed
-'npc(i * 15 + 4) = display text
-'npc(i * 15 + 5) = when activated
-'npc(i * 15 + 6) = give item
-'npc(i * 15 + 7) = pushability
-'npc(i * 15 + 8) = activation
-'npc(i * 15 + 9) = appear if tag
-'npc(i * 15 + 10) = appear if secondary tag
-'npc(i * 15 + 11) = usable
-'npc(i * 15 + 12) = run script
-'npc(i * 15 + 13) = script argument
-'npc(i * 15 + 14) = vehicle
-'Picture,Palette,Move Type,Move Speed,Display Text,When Activated,"Give Item:"
-'Pushability,Activation,Appear if Tag,Appear if Tag,Usable,*Unused*
-
 END SUB
-
-FUNCTION textbox_preview_line(boxnum AS INTEGER) AS STRING
- IF boxnum <= 0 OR boxnum > gen(genMaxTextBox) THEN RETURN ""
- DIM boxbuf(dimbinsize(binSAY))
- LoadTextBox boxbuf(), boxnum
- DIM s AS STRING
- DIM i AS INTEGER
- FOR i = 0 TO 7
-  s = STRING$(38, 0)
-  array2str boxbuf(), i * 38, s
-  s = TRIM(s)
-  IF LEN(s) > 0 THEN RETURN s 
- NEXT i
- RETURN "" 
-END FUNCTION
 
 SUB stredit (s$, maxl)
 STATIC clip$

@@ -22,5 +22,10 @@ DECLARE FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
 DECLARE FUNCTION needaddset (BYREF pt AS INTEGER, BYREF check AS INTEGER, what AS STRING) AS INTEGER
 DECLARE SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
 DECLARE SUB keyboardsetup ()
+DECLARE FUNCTION load_vehicle_name(vehID AS INTEGER) AS STRING
+DECLARE FUNCTION load_item_name (it AS INTEGER, hidden AS INTEGER, offbyone AS INTEGER) AS STRING
+DECLARE FUNCTION textbox_preview_line(boxnum AS INTEGER) AS STRING
+DECLARE SUB onetimetog(BYREF tagnum AS INTEGER)
+DECLARE SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
 
 #endif

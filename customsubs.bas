@@ -10,9 +10,15 @@
 #include "common.bi"
 #include "loading.bi"
 #include "const.bi"
+#include "scrconst.bi"
 #include "cglobals.bi"
 
 #include "customsubs.bi"
+
+'Subs and functions defined elsewhere
+DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
+DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
+DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
 
 OPTION EXPLICIT
 
@@ -499,4 +505,272 @@ SUB keyboardsetup ()
   NEXT i
  NEXT j
  keyv(40, 1) = 34
+END SUB
+
+SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
+ DIM spritebuf(800) AS INTEGER
+ DIM pal16(288) AS INTEGER
+ 
+ DIM itemname AS STRING
+ DIM boxpreview AS STRING
+ DIM scrname AS STRING
+ DIM vehiclename AS STRING
+ DIM caption AS STRING
+ DIM appearstring AS STRING
+
+ DIM i AS INTEGER
+ DIM walk AS INTEGER = 0
+ DIM tog AS INTEGER = 0
+
+ DIM unpc(15) AS INTEGER, lnpc(15) AS INTEGER
+ DIM menucaption(15) AS STRING, movetype(10) AS STRING, pushtype(7) AS STRING, stepi(5), usetype(5, 1) AS STRING
+
+ DIM state AS MenuState
+ state.size = 24
+ state.first = -1
+ state.last = 14
+ state.top = -1
+ state.pt = -1
+
+ unpc(0) = gen(genMaxNPCPic)
+ unpc(1) = 32767
+ unpc(2) = 8
+ unpc(3) = 5
+ unpc(4) = -1
+ unpc(5) = 2
+ unpc(6) = gen(genMaxItem) + 1
+ unpc(7) = 7
+ unpc(8) = 2
+ unpc(9) = 999
+ unpc(10) = 999
+ unpc(11) = 1
+ unpc(12) = 0
+ unpc(13) = 32767
+ unpc(14) = 0
+ FOR i = 0 TO 14
+  lnpc(i) = 0
+ NEXT i
+ lnpc(1) = -1
+ lnpc(9) = -999
+ lnpc(10) = -999
+ lnpc(13) = -32767
+ unpc(4) = gen(genMaxTextbox)       'max text boxes
+ unpc(12) = gen(genMaxRegularScript)'max scripts
+ unpc(14) = gen(genMaxVehicle) + 1  'max vehicles
+
+ menucaption(0) = "Picture"
+ menucaption(1) = "Palette"
+ menucaption(2) = "Move Type"
+ menucaption(3) = "Move Speed"
+ menucaption(4) = "Display Text"
+ menucaption(5) = "When Activated"
+ menucaption(6) = "Give Item:"
+ menucaption(7) = "Pushability"
+ menucaption(8) = "Activation: "
+ menucaption(9) = "Appear if Tag"
+ menucaption(10) = "Appear if Tag"
+ menucaption(11) = "Usable"
+ menucaption(12) = "Run Script: "
+ menucaption(13) = "Script Argument"
+ menucaption(14) = "Vehicle: "
+ movetype(0) = "Stand Still"
+ movetype(1) = "Wander"
+ movetype(2) = "Pace"
+ movetype(3) = "Right Turns"
+ movetype(4) = "Left Turns"
+ movetype(5) = "Random Turns"
+ movetype(6) = "Chase You"
+ movetype(7) = "Avoid You"
+ movetype(8) = "Walk In Place"
+ pushtype(0) = " Off"
+ pushtype(1) = " Full"
+ pushtype(2) = " Vertical"
+ pushtype(3) = " Horizontal"
+ pushtype(4) = " Up only"
+ pushtype(5) = " Right Only"
+ pushtype(6) = " Down Only"
+ pushtype(7) = " Left Only"
+ stepi(0) = 0
+ stepi(1) = 1
+ stepi(2) = 2
+ stepi(3) = 10
+ stepi(4) = 4
+ stepi(5) = 5
+ usetype(0, 0) = "Use"
+ usetype(1, 0) = "Touch"
+ usetype(2, 0) = "Step On"
+ usetype(0, 1) = " Change Direction"
+ usetype(1, 1) = " Face Player"
+ usetype(2, 1) = " Do Not Face Player"
+
+ setpicstuf spritebuf(), 1600, 2
+ loadset game & ".pt4", npc(npcid * 15 + 0), 5 * npcid
+ getpal16 pal16(), npcid, npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0)
+
+ itemname = load_item_name(npc(npcid * 15 + 6), 0, 0)
+ boxpreview = textbox_preview_line(npc(npcid * 15 + 4))
+ scrname = scriptname$(npc(npcid * 15 + 12), plottrigger)
+ vehiclename = load_vehicle_name(npc(npcid * 15 + 14) - 1)
+
+ setkeys
+ DO
+  setwait 100
+  setkeys
+  tog = tog XOR 1
+  IF npc(npcid * 15 + 2) > 0 THEN walk = walk + 1: IF walk > 3 THEN walk = 0
+  IF keyval(1) > 1 THEN EXIT DO
+  usemenu state
+  SELECT CASE state.pt
+   CASE 12'--script
+    IF enter_or_space() THEN
+     scrname = scriptbrowse$(npc(npcid * 15 + 12), plottrigger, "NPC use plotscript")
+    ELSEIF scrintgrabber(npc(npcid * 15 + 12), 0, 0, 75, 77, 1, plottrigger) THEN
+     scrname = scriptname$(npc(npcid * 15 + 12), plottrigger)
+    END IF
+   CASE 11'--one-time-use tag
+    IF keyval(75) > 1 OR keyval(77) > 1 OR enter_or_space() THEN
+     onetimetog npc(npcid * 15 + 11)
+    END IF
+   CASE 2 TO 8, IS > 12'--simple integers
+    IF intgrabber(npc(npcid * 15 + state.pt), lnpc(state.pt), unpc(state.pt)) THEN
+     IF state.pt = 6 THEN itemname = load_item_name(npc(npcid * 15 + 6), 0, 0)
+     IF state.pt = 4 THEN boxpreview = textbox_preview_line(npc(npcid * 15 + 4))
+     IF state.pt = 14 THEN vehiclename = load_vehicle_name(npc(npcid * 15 + 14) - 1)
+    END IF
+   CASE 9, 10'--tag conditionals
+    tag_grabber npc(npcid * 15 + state.pt)
+   CASE 1'--palette
+    IF intgrabber(npc(npcid * 15 + state.pt), lnpc(state.pt), unpc(state.pt)) THEN
+     getpal16 pal16(), npcid, npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0)
+    END IF
+    IF enter_or_space() THEN
+     npc(npcid * 15 + state.pt) = pal16browse(npc(npcid * 15 + state.pt), 8, 0, 5 * npcid, 20, 20, 2)
+     getpal16 pal16(), npcid, npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0) 
+    END IF
+   CASE 0'--picture
+    IF intgrabber(npc(npcid * 15 + state.pt), lnpc(state.pt), unpc(state.pt)) = 1 THEN
+     setpicstuf spritebuf(), 1600, 2
+     loadset game & ".pt4", npc(npcid * 15 + 0), 5 * npcid
+     getpal16 pal16(), npcid, npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0)
+    END IF
+   CASE -1' previous menu
+    IF enter_or_space() THEN EXIT DO
+  END SELECT
+  textcolor uilook(uiMenuItem), 0
+  IF state.pt = -1 THEN textcolor uilook(uiSelectedItem + tog), 0
+  printstr "Previous Menu", 0, 0, dpage
+  FOR i = 0 TO 14
+   textcolor uilook(uiMenuItem), 0
+   IF state.pt = i THEN textcolor 14 + tog, 0
+   caption = " " & npc(npcid * 15 + i)
+   SELECT CASE i
+    CASE 1
+     caption = " " & defaultint$(npc(npcid * 15 + i))
+    CASE 2
+     caption = " = " & movetype(npc(npcid * 15 + i))
+    CASE 3
+     caption = " " & stepi(npc(npcid * 15 + i))
+    CASE 5
+     caption = usetype(npc(npcid * 15 + i), 1)
+    CASE 6
+     caption = " " & itemname
+    CASE 7
+     caption = pushtype(npc(npcid * 15 + i))
+    CASE 8
+     caption = usetype(npc(npcid * 15 + i), 0)
+    CASE 9, 10
+     IF npc(npcid * 15 + i) THEN
+      caption = " " & ABS(npc(npcid * 15 + i)) & " = " & onoroff$(npc(npcid * 15 + i)) & " (" & load_tag_name(ABS(npc(npcid * 15 + i))) & ")"
+     ELSE
+      caption = " 0 (N/A)"
+     END IF
+    CASE 11
+     IF npc(npcid * 15 + i) THEN caption = " Only Once (tag " & (1000 + npc(npcid * 15 + i)) & ")" ELSE caption = " Repeatedly"
+    CASE 12 'script
+     caption = scrname
+    CASE 13 'script arg
+     IF npc(npcid * 15 + 12) = 0 THEN caption = " N/A"
+    CASE 14 'vehicle
+     IF npc(npcid * 15 + 14) <= 0 THEN
+      caption = "No"
+     ELSE
+      caption = vehiclename
+     END IF
+   END SELECT
+   printstr menucaption(i) + caption, 0, 8 + (8 * i), dpage
+  NEXT i
+  drawbox 9, 139, 22, 22, 7, dpage
+  'rectangle 9, 139, 22, 22, 15, dpage
+  'rectangle 10, 140, 20, 20, 7, dpage
+  loadsprite spritebuf(), 0, 800 + (200 * INT(walk / 2)), 5 * npcid, 20, 20, 2
+  drawsprite spritebuf(), 0, pal16(), 16 * npcid, 10, 140, dpage
+  appearstring = "Appears if tag " & ABS(npc(npcid * 15 + 9)) & " = " & onoroff$(npc(npcid * 15 + 9)) & " and tag " & ABS(npc(npcid * 15 + 10)) & " = " & onoroff$(npc(npcid * 15 + 10))
+  IF npc(npcid * 15 + 9) <> 0 AND npc(npcid * 15 + 10) = 0 THEN appearstring = "Appears if tag " & ABS(npc(npcid * 15 + 9)) & " = " & onoroff$(npc(npcid * 15 + 9))
+  IF npc(npcid * 15 + 9) = 0 AND npc(npcid * 15 + 10) <> 0 THEN appearstring = "Appears if tag " & ABS(npc(npcid * 15 + 10)) & " = " & onoroff$(npc(npcid * 15 + 10))
+  IF npc(npcid * 15 + 9) = 0 AND npc(npcid * 15 + 10) = 0 THEN appearstring = "Appears all the time"
+  textcolor uilook(uiSelectedItem2), 0
+  printstr appearstring, 0, 190, dpage
+  textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
+  printstr boxpreview, 0, 170, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+END SUB
+
+FUNCTION load_vehicle_name(vehID AS INTEGER) AS STRING
+ IF vehID < 0 OR vehID > gen(genMaxVehicle) THEN RETURN ""
+ DIM vehname AS STRING
+ DIM vehbuffer(40) AS INTEGER
+ setpicstuf vehbuffer(), 80, -1
+ loadset game & ".veh", vehID, 0
+ vehname = STRING(bound(vehbuffer(0) AND 255, 0, 15), 0)
+ array2str vehbuffer(), 1, vehname
+ RETURN vehname
+END FUNCTION
+
+FUNCTION load_item_name (it AS INTEGER, hidden AS INTEGER, offbyone AS INTEGER) AS STRING
+ 'it - the item number
+ 'hidden - whether to *not* prefix the item number
+ 'offbyone - whether it is the item number (1), or the itemnumber + 1 (0)
+ IF it <= 0 AND offbyone = NO THEN RETURN "NONE"
+ DIM itn AS INTEGER
+ IF offbyone THEN itn = it ELSE itn = it - 1
+ DIM buf(99) AS INTEGER
+ loaditemdata buf(), itn
+ DIM result AS STRING
+ result = readbadbinstring$(buf(), 0, 8, 0)
+ IF hidden = 0 THEN result = itn & " " & result
+ RETURN result
+END FUNCTION
+
+FUNCTION textbox_preview_line(boxnum AS INTEGER) AS STRING
+ IF boxnum <= 0 OR boxnum > gen(genMaxTextBox) THEN RETURN ""
+ DIM boxbuf(dimbinsize(binSAY))
+ LoadTextBox boxbuf(), boxnum
+ DIM s AS STRING
+ DIM i AS INTEGER
+ FOR i = 0 TO 7
+  s = STRING$(38, 0)
+  array2str boxbuf(), i * 38, s
+  s = TRIM(s)
+  IF LEN(s) > 0 THEN RETURN s 
+ NEXT i
+ RETURN "" 
+END FUNCTION
+
+SUB onetimetog(BYREF tagnum AS INTEGER)
+ IF tagnum > 0 THEN
+  setbit gen(), 106, tagnum - 1, 0
+  tagnum = 0
+  EXIT SUB
+ END IF
+ DIM i AS INTEGER = 0
+ DO
+  gen(105) = loopvar(gen(105), 0, 999, 1)
+  i = i + 1: IF i > 1000 THEN EXIT SUB 'Revisit this later
+ LOOP UNTIL readbit(gen(), 106, gen(105)) = 0
+ tagnum = gen(105) + 1
+ setbit gen(), 106, gen(105), 1
 END SUB

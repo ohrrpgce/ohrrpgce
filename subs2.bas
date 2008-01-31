@@ -43,7 +43,6 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
-DECLARE FUNCTION itemstr$ (it%, hiden%, offbyone%)
 DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
@@ -980,7 +979,7 @@ LOOP
 
 itemar:
 item$ = ""
-IF cond(18) <> 0 THEN item$ = itemstr$(ABS(cond(18)), 0, 0)
+IF cond(18) <> 0 THEN item$ = load_item_name(ABS(cond(18)), 0, 0)
 RETRACE
 
 textcmenu:

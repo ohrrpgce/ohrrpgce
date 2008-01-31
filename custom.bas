@@ -45,7 +45,6 @@ DECLARE SUB textage ()
 DECLARE SUB menu_editor ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
-DECLARE FUNCTION itemstr$(it%,hiden%,offbyone%)
 DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 DECLARE FUNCTION newRPGfile (template$, newrpg$)
 DECLARE SUB dolumpfiles (filetolump$)
@@ -1111,7 +1110,7 @@ DO
       '--Re-load default names and default prices
       SELECT CASE b(17)
        CASE 0' This is an item
-        thing$ = itemstr$(b(18),1,1)
+        thing$ = load_item_name(b(18),1,1)
         b(24) = buffer(46) ' default buy price
         b(27) = INT(buffer(46) / 2) ' default sell price
        CASE 1
@@ -1217,11 +1216,11 @@ storeset game + ".stf", pt * 50 + thing, 0
 RETRACE
 
 itstrsh:
-tradestf$(0) = itemstr$(b(25),0,0)
-tradestf$(1) = itemstr$(b(31),0,0)
-tradestf$(2) = itemstr$(b(33),0,0)
-tradestf$(3) = itemstr$(b(35),0,0)
-trit$ = itemstr$(b(28),0,0)
+tradestf$(0) = load_item_name(b(25),0,0)
+tradestf$(1) = load_item_name(b(31),0,0)
+tradestf$(2) = load_item_name(b(33),0,0)
+tradestf$(3) = load_item_name(b(35),0,0)
+trit$ = load_item_name(b(28),0,0)
 RETRACE
 
 END SUB
