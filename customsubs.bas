@@ -200,9 +200,9 @@ DO
  IF enter_or_space() THEN RETURN CHR(f(pt))
 
  FOR i = 0 TO last
-  textcolor 7, 8
-  IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor 7, 1
-  IF pt = i THEN textcolor 14 + tog, 0
+  textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
+  IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor uilook(uiMenuItem), uilook(uiHighlight)
+  IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr CHR(f(i)), offset.x + (i MOD linesize) * 9, offset.y + (i \ linesize) * 9, dpage
  NEXT i
 
@@ -661,7 +661,7 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
   printstr "Previous Menu", 0, 0, dpage
   FOR i = 0 TO 14
    textcolor uilook(uiMenuItem), 0
-   IF state.pt = i THEN textcolor 14 + tog, 0
+   IF state.pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
    caption = " " & npc(npcid * 15 + i)
    SELECT CASE i
     CASE 1
@@ -699,9 +699,7 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
    END SELECT
    printstr menucaption(i) + caption, 0, 8 + (8 * i), dpage
   NEXT i
-  drawbox 9, 139, 22, 22, 7, dpage
-  'rectangle 9, 139, 22, 22, 15, dpage
-  'rectangle 10, 140, 20, 20, 7, dpage
+  edgebox 9, 139, 22, 22, uilook(uiDisabledItem), uilook(uiText), dpage
   loadsprite spritebuf(), 0, 800 + (200 * INT(walk / 2)), 5 * npcid, 20, 20, 2
   drawsprite spritebuf(), 0, pal16(), 16 * npcid, 10, 140, dpage
   appearstring = "Appears if tag " & ABS(npc(npcid * 15 + 9)) & " = " & onoroff$(npc(npcid * 15 + 9)) & " and tag " & ABS(npc(npcid * 15 + 10)) & " = " & onoroff$(npc(npcid * 15 + 10))

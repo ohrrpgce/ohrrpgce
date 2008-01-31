@@ -800,7 +800,7 @@ END IF
 #ENDIF
 #IFDEF IS_CUSTOM
 debug "fatal error:" + e$
-textcolor 15, 0
+textcolor uilook(uiText), 0
 FOR i = 0 TO 1
  clearpage i
  printstr e$, 0, 0, i
