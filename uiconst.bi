@@ -7,7 +7,7 @@
 '
 CONST uiColors = 47				'last color entry
 
-CONST uiBackground = 0          'background colour
+CONST uiBackground = 0          'background colour (not for transparent! transparent is always 0)
 CONST uiMenuItem = 1			'normal menu item
 CONST uiDisabledItem = 2		'disabled menu item
 CONST uiSelectedItem = 3		'selection, alternates 3 & 4

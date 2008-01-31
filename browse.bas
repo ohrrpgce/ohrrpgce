@@ -48,13 +48,14 @@ DIM drive$(26), catfg(6), catbg(6), bmpd(4), f = -1
 
 showHidden = 0
 
-catfg(0) = 7: catbg(0) = 1    'selectable drives (none on unix systems)
-catfg(1) = 9: catbg(1) = 8    'directories
-catfg(2) = 9: catbg(2) = 0    'subdirectories
-catfg(3) = 7: catbg(3) = 0    'files
-catfg(4) = 9: catbg(4) = 8   'root of current drive
-catfg(5) = 10: catbg(5) = 8   'special
-catfg(6) = 8: catbg(6) = 0    'disabled
+'FIXME: do we need another uilook() constant for these "blue" directories instead of uilook(uiTextbox + 1)?
+catfg(0) = uilook(uiMenuItem)   : catbg(0) = uilook(uiHighlight)    'selectable drives (none on unix systems)
+catfg(1) = uilook(uiTextbox + 1): catbg(1) = uilook(uiDisabledItem) 'directories
+catfg(2) = uilook(uiTextbox + 1): catbg(2) = uilook(uiBackground)   'subdirectories
+catfg(3) = uilook(uiMenuItem)   : catbg(3) = uilook(uiBackground)   'files
+catfg(4) = uilook(uiTextbox + 1): catbg(4) = uilook(uiDisabledItem) 'root of current drive
+catfg(5) = uilook(uiTextBox + 3): catbg(5) = uilook(uiDisabledItem) 'special (never used???)
+catfg(6) = uilook(uiDisabledItem): catbg(6) = uilook(uiBackground)  'disabled
 
 IF needf = 1 THEN
  DIM temppal(255) as RGBcolor
@@ -104,7 +105,7 @@ DO
   SELECT CASE tree(treeptr).kind
    CASE 0
     'this could take a while...
-    rectangle 5, 32 + br.viewsize * 9, 310, 12, 1, vpage
+    rectangle 5, 32 + br.viewsize * 9, 310, 12, uilook(uiTextbox + 0), vpage
     edgeprint "Reading...", 8, 34 + br.viewsize * 9, uilook(uiText), vpage
     setvispage vpage
     IF hasmedia(tree(treeptr).filename) THEN
@@ -147,14 +148,12 @@ DO
    END IF
   NEXT i
  END IF
- rectangle 5, 4, 310, 12, 1, dpage
- drawbox 4, 3, 312, 14, 9, dpage
+ edgeboxstyle 4, 3, 312, 14, 0, dpage
  edgeprint br.nowdir, 8, 6, uilook(uiText), dpage
- rectangle 5, 32 + br.viewsize * 9, 310, 12, 1, dpage
- drawbox 4, 31 + br.viewsize * 9, 312, 14, 9, dpage
+ edgeboxstyle 4, 31 + br.viewsize * 9, 312, 14, 0, dpage
  edgeprint alert$, 8, 34 + br.viewsize * 9, uilook(uiText), dpage
  IF br.special = 7 THEN
-  rectangle 0, 190, 320, 10, 8, dpage
+  rectangle 0, 190, 320, 10, uilook(uiDisabledItem), dpage
   edgeprint version$, 8, 190, uilook(uiMenuItem), dpage
   textcolor uilook(uiText), 0
  END IF
@@ -262,7 +261,7 @@ FOR i = 0 TO br.limit
  tree(i).kind = 0
 NEXT i
 'for progress meter
-IF br.ranalready THEN rectangle 5, 32 + br.viewsize * 9, 310, 12, 1, vpage
+IF br.ranalready THEN rectangle 5, 32 + br.viewsize * 9, 310, 12, uilook(uiTextbox + 0), vpage
 br.meter = 0
 br.treesize = 0
 IF br.nowdir = "" THEN
@@ -529,7 +528,7 @@ SUB draw_browse_meter(br AS BrowseMenuState)
 WITH br
  IF .ranalready THEN
   .meter = small(.meter + 1, 308)
-  rectangle 5 + .meter, 33 + .viewsize * 9, 2, 5, 9, vpage
+  rectangle 5 + .meter, 33 + .viewsize * 9, 2, 5, uilook(uiTextbox + 1), vpage
   setvispage vpage 'refresh
  END IF
 END WITH
