@@ -1292,9 +1292,9 @@ IF f$ <> "" THEN
    loadbmppal f$, master()
   END IF
  END IF
- savepalette master(), palnum
  'get a default set of ui colours - nearest match to the current
  nearestui activepalette, master(), uilook()
+ savepalette master(), palnum
  SaveUIColors uilook(), palnum
 
  IF palnum > gen(genMaxMasterPal) THEN gen(genMaxMasterPal) = palnum
