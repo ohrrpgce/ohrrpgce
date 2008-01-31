@@ -1741,6 +1741,9 @@ IF NOT isfile(workingdir + SLASH + "menuitem.bin") THEN
 END IF
 updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
 
+'sanity-check gen(genMaxMasterPal)
+gen(genMaxMasterPal) = large(gen(genMaxMasterPal), 0)
+
 '--give each palette a default ui color set
 ff = FREEFILE
 OPEN workingdir + SLASH + "uicolors.bin" FOR BINARY AS #ff
