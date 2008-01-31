@@ -124,7 +124,7 @@ getdefaultfont font()
 setmodex
 setpal master()
 setfont font()
-textcolor 15, 0
+textcolor uilook(uiText), 0
 
 'hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7)
 
@@ -173,7 +173,7 @@ GOSUB checkpass
 
 clearpage 0
 setvispage 0
-textcolor 15, 0
+textcolor uilook(uiText), 0
 printstr "UNLUMPING DATA: please wait.", 0, 0, 0
 setvispage 0
 
@@ -290,7 +290,7 @@ DO:
 
  standardmenu menu$(), mainmax, 22, pt, 0, 0, 0, dpage, 0
 
- textcolor 6, 0
+ textcolor uilook(uiSelectedDisabled), 0
  printstr version_code$, 0, 184, dpage
  printstr version_build$, 0, 192, dpage
 
@@ -398,7 +398,7 @@ DO
  IF enter_or_space() THEN
   IF temp = 0 THEN
    IF isfile(workingdir + SLASH + "__danger.tmp") THEN
-    textcolor 14, 4
+    textcolor uilook(uiSelectedItem), uilook(uiHighlight) 'FIXME: new uilook for warning text colors?
     printstr "Data is corrupt, not safe to relump", 0, 100, vpage
     setvispage vpage 'refresh
     w = getkey
@@ -425,7 +425,7 @@ DO
   IF temp = 1 THEN RETRACE
   IF temp = 2 THEN nocleanup = 1: RETRACE
  END IF
- textcolor 9, 0
+ textcolor uilook(uiHighlight), 0
  printstr "A game was found unlumped", 0, 0, dpage
  printstr "This may mean that " + CUSTOMEXE + " crashed", 0, 40, dpage
  printstr "last time you used it, or it may mean", 0, 48, dpage
@@ -448,7 +448,7 @@ ELSE
  GOSUB cleanup
  clearpage 0
  setvispage 0
- textcolor 15, 0
+ textcolor uilook(uiText), 0
  printstr "Run " + CUSTOMEXE + " again.", 0, 0, 0
  setvispage 0 'refresh
  w = getkey
@@ -477,7 +477,7 @@ RETRACE
 dorelump:
 clearpage 0
 setvispage 0
-textcolor 15, 0
+textcolor uilook(uiText), 0
 printstr "LUMPING DATA: please wait.", 0, 0, 0
 setvispage 0 'refresh
 '--verify that maps are not corrupt--
@@ -522,10 +522,10 @@ DO
   END IF
  END IF
  strgrabber pas$, 17
- textcolor 15, 0
+ textcolor uilook(uiText), 0
  printstr "This game requires a password to edit", 0, 0, dpage
  printstr " Type it in and press ENTER", 0, 9, dpage
- textcolor 14 + tog, 1
+ textcolor uilook(uiSelectedItem + tog), 1
  printstr STRING$(LEN(pas$), "*"), 0, 20, dpage
  SWAP vpage, dpage
  setvispage vpage
@@ -548,7 +548,7 @@ finis:
 GOSUB cleanupfiles
 setvispage 0
 clearpage 0
-textcolor 15, 0
+textcolor uilook(uiText), 0
 printstr "Don't forget to keep backup copies of", 0, 0, 0
 printstr "your work! You never know when an", 0, 8, 0
 printstr "unknown bug or a hard-drive crash or", 0, 16, 0
@@ -745,31 +745,38 @@ DO
  IF mode >= 0 THEN
   xoff = 8: yoff = 8
   FOR i = 0 TO last
-   textcolor 7, 8
+   textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
    IF pt >= 0 THEN
     IF mode = 0 THEN
-     IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor 7, 1
+     IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor uilook(uiMenuItem), uilook(uiHighlight)
     END IF
-    IF pt = i THEN textcolor 14 + tog, 0
+    IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
    END IF
    printstr CHR$(f(i)), xoff + (i MOD linesize) * 9, yoff + (i \ linesize) * 9, dpage
   NEXT i
-  textcolor 7, 0
-  IF pt < 0 THEN textcolor 14 + tog, 0
+  textcolor uilook(uiMenuItem), 0
+  IF pt < 0 THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr menu$(0), 8, 0, dpage
 
   IF pt >= 0 THEN
    xoff = 150
    yoff = 4
-   rectangle xoff, yoff, 160, 160, 8, dpage
+   rectangle xoff, yoff, 160, 160, uilook(uiDisabledItem), dpage
    FOR i = 0 TO 7
     FOR j = 0 TO 7
      z = readbit(font(), 0, (f(pt) * 8 + i) * 8 + j)
-     IF z THEN rectangle xoff + i * 20, yoff + j * 20, 20, 20, 7, dpage
+     IF z THEN rectangle xoff + i * 20, yoff + j * 20, 20, 20, uilook(uiMenuItem), dpage
     NEXT j
    NEXT i
-   IF mode = 1 THEN rectangle xoff + x * 20, yoff + y * 20, 20, 20, 2 + 8 * readbit(font(), 0, (f(pt) * 8 + x) * 8 + y), dpage
-   textcolor 15, 0
+   IF mode = 1 THEN
+    IF readbit(font(), 0, (f(pt) * 8 + x) * 8 + y) THEN
+     c = uilook(uiSelectedItem2)
+    ELSE
+     c = uilook(uiSelectedDisabled)
+    END IF
+    rectangle xoff + x * 20, yoff + y * 20, 20, 20, c, dpage
+   END IF
+   textcolor uilook(uiText), 0
    printstr "ASCII " & f(pt), 20, 190, dpage
    IF f(pt) < 32 THEN
     printstr "RESERVED", 120, 190, dpage
@@ -863,10 +870,10 @@ DO
   EXIT DO
  END IF
 
- textcolor 7, 0
+ textcolor uilook(uiMenuItem), 0
  printstr "Input a filename to save to", 0, 0, dpage
  printstr "[" + newfont$ + ".ohf]", 0, 8, dpage
- textcolor 14 + tog, 1
+ textcolor uilook(uiSelectedItem + tog), 1
  printstr newfont$, 0, 16, dpage
 
  SWAP vpage, dpage
@@ -981,9 +988,9 @@ DO
   IF scrintgrabber(a(19), 0, 0, 75, 77, 1, plottrigger) THEN GOSUB menuup
  END IF
  FOR i = 0 TO li
-  c = 7: IF i = csr THEN c = 14 + tog
+  c = uilook(uiMenuItem): IF i = csr THEN c = uilook(uiSelectedItem + tog)
   IF i = 3 AND havestuf = 0 THEN
-   c = 8: IF i = csr THEN c = 6 + tog
+   c = uilook(uiDisabledItem): IF i = csr THEN c = uilook(uiSelectedDisabled + tog)
   END IF
   textcolor c, 0
   printstr menu$(i), 0, i * 8, dpage
@@ -1228,7 +1235,7 @@ END SUB
 FUNCTION newRPGfile (template$, newrpg$)
  newRPGfile = 0 ' default return value 0 means failure
  IF newrpg$ = "" THEN EXIT FUNCTION
- textcolor 6, 0
+ textcolor uilook(uiSelectedDisabled), 0
  printstr "Please Wait...", 0, 40, vpage
  printstr "Creating RPG File", 0, 50, vpage
  setvispage vpage
