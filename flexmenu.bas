@@ -949,7 +949,7 @@ DO
  standardmenu dispmenu$(), state, 0, 0, dpage
  IF keyval(56) > 0 THEN 'holding ALT
    tmp$ = readbadbinstring$(recbuf(), AtkDatName, 10, 1) + XSTR$(recindex)
-   textcolor 15, 1
+   textcolor uilook(uiText), uilook(uiHighlight)
    printstr tmp$, 320 - LEN(tmp$) * 8, 0, dpage
  END IF
 

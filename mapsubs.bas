@@ -167,16 +167,21 @@ REDIM emap(2)
 
 DIM tilepick AS XYPair
 
-textcolor 15, 0
+textcolor uilook(uiText), 0
 
 wide = 0: high = 0: nptr = 0
 mapname$ = ""
 
 xtemp$ = ""
-FOR i = 0 TO 15: xtemp$ = xtemp$ + CHR$(i): NEXT i
+FOR i = 0 TO 15: xtemp$ = xtemp$ + CHR$(i): NEXT i ' Populate this 16-palette with the first 16 colors of the master palette, just... because...
 str2array xtemp$, cursorpal(), 0
+'Correct the colors that actually get used
+poke8bit cursorpal(), 15, uilook(uiText)
+poke8bit cursorpal(), 7, uilook(uiMenuItem)
 
 '--create cursor
+'-- there is a good reason this doesn't use uilook(). getsprite expects voodoo like this.
+'-- See also the construction of cursorpal() above
 clearpage 2
 rectangle 0, 0, 20, 20, 15, 2
 rectangle 1, 1, 18, 18, 0, 2
@@ -231,8 +236,8 @@ DO
  END IF
  tog = tog XOR 1
  FOR i = 0 TO 24
-  textcolor 7, 0
-  IF pt = maptop + i THEN textcolor 14 + tog, 0
+  textcolor uilook(uiMenuItem), 0
+  IF pt = maptop + i THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr topmenu$(i), 0, i * 8, dpage
  NEXT i
  SWAP vpage, dpage
@@ -478,8 +483,8 @@ DO
       xtemp$ = " Always load afresh from RPG"
     END SELECT
   END SELECT
-  textcolor 7, 0
-  IF i = gd THEN textcolor 14 + tog, 0
+  textcolor uilook(uiMenuItem), 0
+  IF i = gd THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr gd$(i) + xtemp$, 0, 8 + (8 * i), dpage
   IF i = 10 THEN rectangle 4 + (8 * LEN(gd$(i) + xtemp$)), 8 + (8 * i), 8, 8, gmap(i), dpage
  NEXT i
@@ -488,7 +493,7 @@ DO
   setmapdata sampmap(), sampmap(), 180, 0
   setmapblock 0, 0, 0, gmap(6)
   drawmap 0, -180, 0, 0, dpage
-  rectangle 20, 180, 300, 20, 240, dpage
+  rectangle 20, 180, 300, 20, uilook(uiBackground), dpage
  END IF
  
  SWAP vpage, dpage
@@ -847,14 +852,14 @@ DO
   setmapdata menubar(), pass(), 0, 180
   drawmap menubarstart(layer) * 20, 0, 0, 0, dpage
  ELSE
-  rectangle 0, 0, 320, 20, 0, dpage
+  rectangle 0, 0, 320, 20, uilook(uiBackground), dpage
  END IF
  
  '--draw map
  setmapdata map(), pass(), 20, 0
  setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
  cycletile tanim_state(), tastuf()
- rectangle 0, 20, 320, 180, 0, dpage
+ rectangle 0, 20, 320, 180, uilook(uiBackground), dpage
  for i = 0 to 2
  	if layerisvisible(visible(), i) AND layerisenabled(gmap(), i) then
 		jigx = 0: jigy = 0
@@ -886,11 +891,11 @@ DO
   FOR o = 0 TO 8
    FOR i = 0 TO 15
     over = readmapblock((mapx \ 20) + i, (mapy \ 20) + o, 0)
-    IF (over AND 1) THEN rectangle i * 20, o * 20 + 20, 20, 3, 7 + tog, dpage
-    IF (over AND 2) THEN rectangle i * 20 + 17, o * 20 + 20, 3, 20, 7 + tog, dpage
-    IF (over AND 4) THEN rectangle i * 20, o * 20 + 37, 20, 3, 7 + tog, dpage
-    IF (over AND 8) THEN rectangle i * 20, o * 20 + 20, 3, 20, 7 + tog, dpage
-    textcolor 14 + tog, 0
+    IF (over AND 1) THEN rectangle i * 20, o * 20 + 20, 20, 3, uilook(uiMenuItem + tog), dpage
+    IF (over AND 2) THEN rectangle i * 20 + 17, o * 20 + 20, 3, 20, uilook(uiMenuItem + tog), dpage
+    IF (over AND 4) THEN rectangle i * 20, o * 20 + 37, 20, 3, uilook(uiMenuItem + tog), dpage
+    IF (over AND 8) THEN rectangle i * 20, o * 20 + 20, 3, 20, uilook(uiMenuItem + tog), dpage
+    textcolor uilook(uiSelectedItem + tog), 0
     IF (over AND 16) THEN printstr "A", i * 20, o * 20 + 20, dpage
     IF (over AND 32) THEN printstr "B", i * 20 + 10, o * 20 + 20, dpage
     IF (over AND 64) THEN printstr "H", i * 20, o * 20 + 30, dpage
@@ -901,10 +906,10 @@ DO
  
  '--door display--
  IF editmode = 2 THEN
-  textcolor 240, 0
+  textcolor uilook(uiBackground), 0
   FOR i = 0 TO 99
    IF doors(i).x >= INT(mapx / 20) AND doors(i).x < INT(mapx / 20) + 16 AND doors(i).y > INT(mapy / 20) AND doors(i).y <= INT(mapy / 20) + 9 AND readbit(doors(i).bits(),0,0) = 1 THEN
-    rectangle doors(i).x * 20 - mapx, doors(i).y * 20 - mapy, 20, 20, 15 - tog, dpage
+    rectangle doors(i).x * 20 - mapx, doors(i).y * 20 - mapy, 20, 20, uilook(uiSelectedItem + tog), dpage
     printstr STR$(i), doors(i).x * 20 - mapx + 10 - (4 * LEN(STR$(i))), doors(i).y * 20 - mapy + 6, dpage
    END IF
   NEXT
@@ -929,7 +934,7 @@ DO
     IF npc(i + 0) >= INT(mapx / 20) AND npc(i + 0) < INT(mapx / 20) + 16 AND npc(i + 300) > INT(mapy / 20) AND npc(i + 300) <= INT(mapy / 20) + 9 THEN
      loadsprite cursor(), 0, 400 * npc(i + 900) + (200 * INT(walk / 2)), 5 * (npc(i + 600) - 1), 20, 20, 2
      drawsprite cursor(), 0, pal16(), 16 * (npc(i + 600) - 1), npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy, dpage
-     textcolor 14 + tog, 0
+     textcolor uilook(uiSelectedItem + tog), 0
      xtemp$ = STR$(npc(i + 600) - 1)
      printstr xtemp$, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy + 3, dpage
      xtemp$ = STR$(npcnum(npc(i + 600)-1))
@@ -941,7 +946,10 @@ DO
  END IF
  
  '--position finder--
- IF tiny = 1 THEN rectangle 0, 20, wide, high, 1, dpage: rectangle mapx / 20, (mapy / 20) + 20, 15, 9, 10, dpage
+ IF tiny = 1 THEN
+  fuzzyrect 0, 20, wide, high, uilook(uiHighlight), dpage
+  rectangle mapx / 20, (mapy / 20) + 20, 15, 9, uilook(uiDescription), dpage
+ END IF
  
  '--normal cursor--
  IF editmode <> 3 THEN
@@ -953,7 +961,7 @@ DO
  IF editmode = 3 THEN
   loadsprite cursor(), 0, (walk * 400), nptr * 5, 20, 20, 2
   drawsprite cursor(), 0, pal16(), 16 * nptr, (x * 20) - mapx, (y * 20) - mapy + 20, dpage
-  textcolor 14 + tog, 0
+  textcolor uilook(uiSelectedItem + tog), 0
   xtemp$ = STR$(nptr)
   printstr xtemp$, (x * 20) - mapx, (y * 20) - mapy + 28, dpage
  END IF
@@ -961,7 +969,7 @@ DO
  '--show foemap--
  IF editmode = 4 THEN
   setmapdata emap(), pass(), 20, 0
-  textcolor 14 + tog, 0
+  textcolor uilook(uiSelectedItem + tog), 0
   FOR i = 0 TO 14
    FOR o = 0 TO 8
     temp = readmapblock(INT(mapx / 20) + i, INT(mapy / 20) + o, 0)
@@ -970,22 +978,22 @@ DO
   NEXT i
  END IF
  
- textcolor 14 + tog, 0
+ textcolor uilook(uiSelectedItem + tog), 0
  if editmode = 0 then
  printstr "Layer " & layer, 0, 180, dpage
  end if
  printstr "X " & x & "   Y " & y, 0, 192, dpage
  setmapdata map(), pass(), 20, 0
- rectangle 300, 0, 20, 200, 0, dpage
- rectangle 0, 19, 320, 1, 15, dpage
+ rectangle 300, 0, 20, 200, uilook(uiBackground), dpage
+ rectangle 0, 19, 320, 1, uilook(uiText), dpage
  IF editmode = 0 THEN
   status$ = "Default Passability "
   IF defpass THEN status$ = status$ + "On" ELSE status$ = status$ + "Off"
   printstr status$, 124, 192, dpage
  END IF
- textcolor 15, 0
+ textcolor uilook(uiText), 0
  printstr mode$(editmode), 0, 24, dpage
- IF editmode = 4 THEN textcolor 15, 1: printstr "Formation Set:" + XSTR$(foe), 0, 16, dpage
+ IF editmode = 4 THEN textcolor uilook(uiText), uilook(uiHighlight): printstr "Formation Set: " & foe, 0, 16, dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -1056,11 +1064,11 @@ layermenu:
 		
 		FOR i = 0 TO 3
 			if layerisenabled(gmap(), i - 1) then
-				textcolor 7, 0
-				if csr2 = i then textcolor 14 + tog, 0
+				textcolor uilook(uiMenuItem), 0
+				if csr2 = i then textcolor uilook(uiSelectedItem + tog), 0
 			else
-				textcolor 6, 0
-		  	IF csr2 = i THEN textcolor 6 + tog, 0		 
+				textcolor uilook(uiSelectedDisabled), 0
+		  	IF csr2 = i THEN textcolor uilook(uiSelectedDisabled + tog), 0		 
 			end if
 		  printstr menu$(i), 0, i * 8, dpage
 		NEXT i
@@ -1486,7 +1494,7 @@ SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doo
   ELSE
    IF enter_or_space() THEN EXIT DO
   END IF
-  rectangle 0, 100, 320, 2, uilook(uiSelectedDisabled) + state.tog, dpage
+  rectangle 0, 100, 320, 2, uilook(uiSelectedDisabled + state.tog), dpage
   FOR i = -1 TO 4
    menu_temp = ""
    SELECT CASE i
@@ -1578,9 +1586,8 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors() as do
      drawmap dmx, dmy, i, 0, 2, i <> 0
    END IF
   NEXT i
-  rectangle doors(link(cur).source).x * 20 - dmx, doors(link(cur).source).y * 20 - dmy - 20, 20, 20, 240, 2
-  rectangle 1 + doors(link(cur).source).x * 20 - dmx, 1 + doors(link(cur).source).y * 20 - dmy - 20, 18, 18, 7, 2
-  textcolor 240, 0
+  edgebox doors(link(cur).source).x * 20 - dmx, doors(link(cur).source).y * 20 - dmy - 20, 20, 20, uilook(uiMenuItem), uilook(uiBackground), 2
+  textcolor uilook(uiBackground), 0
   caption$ = XSTR$(link(cur).source)
   printstr caption$, doors(link(cur).source).x * 20 - dmx + 10 - (4 * LEN(caption$)), doors(link(cur).source).y * 20 - dmy - 14, 2
  END IF
@@ -1604,9 +1611,8 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors() as do
      drawmap dmx, dmy - 100, i, 0, 2, i <> 0
    END IF
   NEXT i
-  rectangle destdoor(link(cur).dest).x * 20 - dmx, destdoor(link(cur).dest).y * 20 - dmy + 80, 20, 20, 240, 2
-  rectangle 1 + destdoor(link(cur).dest).x * 20 - dmx, 1 + destdoor(link(cur).dest).y * 20 - dmy + 80, 18, 18, 7, 2
-  textcolor 240, 0
+  edgebox destdoor(link(cur).dest).x * 20 - dmx, destdoor(link(cur).dest).y * 20 - dmy + 80, 20, 20, uilook(uiMenuItem), uilook(uiBackground), 2
+  textcolor uilook(uiBackground), 0
   caption$ = XSTR$(link(cur).dest)
   printstr caption$, destdoor(link(cur).dest).x * 20 - dmx + 10 - (4 * LEN(caption$)), destdoor(link(cur).dest).y * 20 - dmy + 86, 2
  END IF
