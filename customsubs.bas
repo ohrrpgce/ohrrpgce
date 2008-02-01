@@ -428,7 +428,7 @@ FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) 
   
   usemenu state
 
-  centerbox 160, 70, small(16 + LEN(capt) * 8, 320), 16, uilook(uiHighlight), dpage
+  centerbox 160, 70, small(16 + LEN(capt) * 8, 320), 16, 2, dpage
   edgeprint capt, xstring(capt, 160), 65, uilook(uiMenuItem), dpage
   draw_menu menu, state, dpage
   SWAP vpage, dpage
