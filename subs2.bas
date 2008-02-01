@@ -139,7 +139,7 @@ outf$ = trimextension$(gamefile) + ".hsi"
 clearpage 0
 clearpage 1
 setvispage 0
-textcolor 15, 0
+textcolor uilook(uiText), 0
 pl = 0
 printstr "exporting HamsterSpeak Definitions to:", 0, pl * 8, 0: pl = pl + 1
 printstr RIGHT$(outf$, 40), 0, pl * 8, 0: pl = pl + 1
@@ -313,7 +313,7 @@ SUB importscripts (f$)
  IF buffer(0) = 21320 AND buffer(1) = 0 THEN
 
   copyfile f$, game + ".hsp"
-  textcolor 7, 0
+  textcolor uilook(uiMenuItem), 0
   textx = 0: texty = 0
   unlumpfile(game + ".hsp", "scripts.bin", tmpdir)
   IF isfile(tmpdir & "scripts.bin") THEN
@@ -439,7 +439,7 @@ SUB importscripts (f$)
 
   CLOSE #fptr
   IF dotbin THEN safekill tmpdir & "scripts.bin" ELSE safekill tmpdir & "scripts.txt"
-  edgeprint "imported" + XSTR$(viscount) + " scripts", 0, 180, 15, vpage
+  edgeprint "imported" + XSTR$(viscount) + " scripts", 0, 180, uilook(uiText), vpage
 
  ELSE
   texty = 0
@@ -693,12 +693,12 @@ DO
  strgrabber stat$(pt), maxlen(pt)
  
  FOR i = top TO top + 22
-  textcolor 7, 0
-  IF i = pt THEN textcolor 14 + tog, 0
+  textcolor uilook(uiMenuItem), 0
+  IF i = pt THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr names(i), 0, (i - top) * 8, dpage
   xpos = 232
   IF i = pt THEN
-   textcolor 15, 1
+   textcolor uilook(uiText), uilook(uiHighlight)
    'FB0.16b throws up if you put these together, WHY??
    tempstr$ = stat$(i)
    xpos = 312 - (8 *  LEN(tempstr$))
@@ -868,8 +868,8 @@ DO
    GOSUB loadlines
   END IF
  END IF
- textcolor 7, 0
- IF csr = 1 THEN textcolor 14 + tog, 0
+ textcolor uilook(uiMenuItem), 0
+ IF csr = 1 THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr XSTR$(pt), 64, 8, dpage
  m$(7) = "Text Search:" + search$
  
@@ -955,20 +955,20 @@ DO
   IF order(cur) = 18 THEN IF temp <> cond(order(cur)) THEN GOSUB itemar
  END IF
  GOSUB textcmenu
- textcolor 7, 0
- IF cur = -1 THEN textcolor 14 + tog, 0
+ textcolor uilook(uiMenuItem), 0
+ IF cur = -1 THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr "Go Back", 0, 0, dpage
  FOR i = 0 TO 20
-  textcolor 7, 0
+  textcolor uilook(uiMenuItem), 0
   IF grey(i) < 0 THEN
-   c = 6
-   IF cond(order(i)) = 0 THEN c = 8
-   IF cond(order(i)) = -1 THEN c = 1
+   c = uilook(uiSelectedDisabled)
+   IF cond(order(i)) = 0 THEN c = uilook(uiDisabledItem)
+   IF cond(order(i)) = -1 THEN c = uilook(uiHighlight)
    rectangle 0, 9 + (i * 9), 320, 8, c, dpage
   ELSE
-   IF cond(order(grey(i))) = 0 THEN textcolor 8, 0
+   IF cond(order(grey(i))) = 0 THEN textcolor uilook(uiDisabledItem), 0
   END IF
-  IF i = cur THEN textcolor 14 + tog, 0
+  IF i = cur THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr menu$(order(i)), 0, 9 + (i * 9), dpage
  NEXT i
  SWAP vpage, dpage
@@ -1125,7 +1125,7 @@ DO
  NEXT i
  textcolor uilook(uiSelectedItem + tog), 0
  printstr "-", 0, 8 + y * 10, dpage
- textcolor uiLook(uiText), 0
+ textcolor uilook(uiText), 0
  printstr "Text Box" + XSTR$(pt), 0, 100, dpage
  printstr "${C0} = Leader's name", 0, 120, dpage
  printstr "${C#} = Hero name at caterpillar slot #", 0, 128, dpage
@@ -1182,7 +1182,7 @@ DO
  NEXT i
  GOSUB previewbox
  FOR i = 0 TO 9
-  col = 7: IF i = gcsr THEN col = 14 + tog
+  col = uilook(uimenuItem): IF i = gcsr THEN col = uilook(uiSelectedItem + tog)
   temp$ = menu$(i)
   IF i > 0 AND i <= 4 THEN
    temp$ = temp$ + XSTR$(boxbuf(192 + i))
@@ -1305,8 +1305,8 @@ pt = pt + 1
 DO
  IF pt > gen(39) THEN pt = 0
  IF pt = remptr THEN
-  rectangle 115, 90, 100, 20, 1, vpage
-  edgeprint "Not found.", 120, 95, 15, vpage
+  edgeboxstyle 115, 90, 100, 20, 0, vpage
+  edgeprint "Not found.", 120, 95, uilook(uiText), vpage
   setvispage vpage
   w = getkey
   EXIT DO
