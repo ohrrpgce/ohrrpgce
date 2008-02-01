@@ -79,13 +79,13 @@ DO
   IF enter_or_space() THEN EXIT DO
  END IF
  FOR i = top TO small(top + 24, count-1)
-  c = 8 - readbit(array(), wof, bits(i))
-  IF pt = i THEN c = (8 * readbit(array(), wof, bits(i))) + 6 + tog
+  c = IIF(readbit(array(), wof, bits(i)), uilook(uiMenuItem), uilook(uiDisabledItem))
+  IF pt = i THEN c = IIF(readbit(array(), wof, bits(i)), uilook(uiSelectedItem + tog), uilook(uiSelectedDisabled + tog))
   textcolor c, 0
   IF i >= 0 THEN
    printstr menu$(i), 8, (i - top) * 8, dpage
   ELSE
-   IF c = 8 THEN c = 7
+   IF c = uilook(uiDisabledItem) THEN c = uilook(uiMenuItem)
    textcolor c, 0
    printstr "Previous Menu", 8, (i - top) * 8, dpage
   END IF
@@ -163,12 +163,12 @@ DO
   IF isfile(filename$ + ext$) AND filename$ <> "" THEN alert$ = filename$ + ext$ + " already exists": alert = 30: filename$ = ""
   IF filename$ <> "" THEN inputfilename$ = filename$: EXIT DO
  END IF
- textcolor 15, 0
+ textcolor uilook(uiText), 0
  printstr query$, 160 - LEN(query$) * 4, 20, dpage
  IF alert > 0 THEN printstr alert$, 160 - LEN(alert$) * 4, 40, dpage: alert = alert - 1
- textcolor 14 + tog, 1
+ textcolor uilook(uiSelectedItem + tog), 1
  printstr filename$, 160 - (LEN(filename$) + LEN(ext$)) * 4 , 30, dpage
- textcolor 15, 1
+ textcolor uilook(uiText), uilook(uiHighlight)
  printstr ext$, 160 + (LEN(filename$) - LEN(ext$)) * 4 , 30, dpage
  SWAP vpage, dpage
  setvispage vpage
