@@ -24,7 +24,6 @@ DECLARE SUB tiletranspaste (cutnpaste%(), ts AS TileEditState)
 DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB copymapblock (buf%(), sx%, sy%, sp%, dx%, dy%, dp%)
-DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
 DECLARE SUB changepal (palval%, palchange%, workpal%(), aindex%)
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
 DECLARE SUB savepasdefaults (array%(), tilesetnum%)
@@ -498,102 +497,6 @@ FOR i = 20 TO 0 STEP -1
   END IF 'X OKAY---
  END IF 'VALID ZONE---
 NEXT i
-
-END FUNCTION
-
-FUNCTION pal16browse (curpal, usepic, picx, picy, picw, pich, picpage)
-
-DIM pal16(80)
-
-result = curpal
-clearpage vpage
-setvispage vpage
-top = curpal - 1
-
-'--get last pal
-setpicstuf buffer(), 16, -1
-loadset game + ".pal", 0, 0
-lastpal = buffer(1)
-o = 0
-FOR i = lastpal TO 0 STEP -1
- loadset game + ".pal", 1 + i, 0
- FOR j = 0 TO 7
-  IF buffer(j) <> 0 THEN o = 1: EXIT FOR
- NEXT j
- IF o = 1 THEN EXIT FOR
- lastpal = i
-NEXT i
-
-GOSUB onscreenpals
-
-setkeys
-DO
- setwait timing(), 100
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
- IF usemenu(curpal, top, -1, 32767, 9) THEN GOSUB onscreenpals
- IF intgrabber(curpal, 0, 32767, 51, 52) THEN
-  top = bound(top, curpal - 8, curpal - 1)
-  GOSUB onscreenpals
- END IF
- IF keyval(71) > 1 THEN curpal = -1: top = -1: GOSUB onscreenpals
- IF keyval(79) > 1 THEN curpal = lastpal: top = large(-1, lastpal - 8): GOSUB onscreenpals
- IF enter_or_space() THEN
-  IF curpal >= 0 THEN result = curpal
-  EXIT DO
- END IF
- 
- FOR i = 0 TO 9
-  textcolor uilook(uiMenuItem), 0
-  IF top + i = curpal THEN textcolor uilook(uiSelectedItem + tog), 0
-  SELECT CASE top + i
-   CASE IS >= 0
-    printstr STR$(top + i), 4, 5 + i * 20, dpage
-    o = LEN(XSTR$(top + i)) * 8
-    IF top + i = curpal THEN
-     edgebox o - 1, 1 + i * 20, 114, 18, uilook(uiBackground), uilook(uiMenuitem), dpage
-    END IF
-    FOR j = 0 TO 15
-     c = pal16(i * 8 + j \ 2)
-     IF (j AND 1) = 1 THEN
-      c = (c \ 256)
-     ELSE
-      c = (c AND &HFF)
-     END IF
-     rectangle o + j * 7, 2 + i * 20, 5, 16, c, dpage
-    NEXT j
-    IF top + i <> curpal THEN
-     FOR k = 0 TO usepic - 1
-      loadsprite buffer(), 0, picx + k * (picw * pich \ 2), picy, picw, pich, picpage
-      drawsprite buffer(), 0, pal16(), i * 16, o + 140 + (k * picw), i * 20 - (pich \ 2 - 10), dpage
-     NEXT k
-    END IF
-   CASE 0
-    printstr "Cancel", 4, 5 + i * 20, dpage
-  END SELECT
- NEXT i
- IF curpal >= 0 THEN '--write current pic on top
-  o = LEN(XSTR$(curpal)) * 8
-  FOR k = 0 TO usepic - 1
-   loadsprite buffer(), 0, picx + k * (picw * pich \ 2), picy, picw, pich, picpage
-   drawsprite buffer(), 0, pal16(), (curpal - top) * 16, o + 120 + (k * picw), (curpal - top) * 20 - (pich \ 2 - 10), dpage
-  NEXT k
- END IF
- 
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-pal16browse = result
-EXIT FUNCTION
-
-onscreenpals:
-FOR i = 0 TO 9
- getpal16 pal16(), i, top + i
-NEXT i
-RETRACE
 
 END FUNCTION
 

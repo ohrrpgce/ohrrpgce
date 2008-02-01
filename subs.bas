@@ -19,7 +19,6 @@ DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(
 DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
 DECLARE SUB addcaption (caption$(), indexer%, cap$)
 DECLARE SUB testflexmenu ()
-DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE SUB herotags (BYREF hero AS HeroDef)
 DECLARE SUB testanimpattern (tastuf%(), taset%)

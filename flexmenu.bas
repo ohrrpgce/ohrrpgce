@@ -5,7 +5,6 @@
 '
 DEFINT A-Z
 '$DYNAMIC
-DECLARE FUNCTION pal16browse% (curpal%, usepic%, picx%, picy%, picw%, pich%, picpage%)
 DECLARE SUB clearallpages ()
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
 DECLARE SUB addcaption (caption$(), indexer%, cap$)

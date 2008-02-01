@@ -27,5 +27,6 @@ DECLARE FUNCTION load_item_name (it AS INTEGER, hidden AS INTEGER, offbyone AS I
 DECLARE FUNCTION textbox_preview_line(boxnum AS INTEGER) AS STRING
 DECLARE SUB onetimetog(BYREF tagnum AS INTEGER)
 DECLARE SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
+DECLARE FUNCTION pal16browse (curpal AS INTEGER, usepic AS INTEGER, picx AS INTEGER, picy AS INTEGER, picw AS INTEGER, pich AS INTEGER, picpage AS INTEGER) AS INTEGER
 
 #endif
