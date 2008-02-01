@@ -2396,3 +2396,54 @@ FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS INTEGER
  debug "No room to append """ & caption & """ to menu " & menu.name 
  RETURN -1 'failure
 END FUNCTION
+
+SUB write_npc_int (npcdata AS NPCType, intoffset AS INTEGER, n AS INTEGER)
+ '--intoffset is the integer offset, same as appears in the .N lump documentation
+ WITH npcdata
+  SELECT CASE intoffset
+   CASE 0: .picture = n
+   CASE 1: .palette = n
+   CASE 2: .movetype = n
+   CASE 3: .speed = n
+   CASE 4: .textbox = n
+   CASE 5: .facetype = n
+   CASE 6: .item = n
+   CASE 7: .pushtype = n
+   CASE 8: .activation = n
+   CASE 9: .tag1 = n
+   CASE 10: .tag2 = n
+   CASE 11: .usetag = n
+   CASE 12: .script = n
+   CASE 13: .scriptarg = n
+   CASE 14: .vehicle = n
+   CASE ELSE
+    debug "write_npc_int: " & intoffset & " is an invalid integer offset"
+  END SELECT
+ END WITH
+END SUB
+
+FUNCTION read_npc_int (npcdata AS NPCType, intoffset AS INTEGER) AS INTEGER
+ '--intoffset is the integer offset, same as appears in the .N lump documentation
+ WITH npcdata
+  SELECT CASE intoffset
+   CASE 0: RETURN .picture
+   CASE 1: RETURN .palette
+   CASE 2: RETURN .movetype
+   CASE 3: RETURN .speed
+   CASE 4: RETURN .textbox
+   CASE 5: RETURN .facetype
+   CASE 6: RETURN .item
+   CASE 7: RETURN .pushtype
+   CASE 8: RETURN .activation
+   CASE 9: RETURN .tag1
+   CASE 10: RETURN .tag2
+   CASE 11: RETURN .usetag
+   CASE 12: RETURN .script
+   CASE 13: RETURN .scriptarg
+   CASE 14: RETURN .vehicle
+   CASE ELSE
+    debug "read_npc_int: " & intoffset & " is an invalid integer offset"
+  END SELECT
+ END WITH
+ RETURN 0
+END FUNCTION

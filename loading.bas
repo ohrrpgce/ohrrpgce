@@ -31,6 +31,7 @@ SUB LoadNPCD(file as string, dat() as NPCType)
   NEXT i
 END SUB
 
+'Prefer write_npc_int instead in the future, as it lacks pointer thoughtcrime
 SUB SetNPCD(npcd AS NPCType, offset AS INTEGER, value AS INTEGER)
   IF offset >= 0 and offset <= 14 THEN
     (@npcd.picture)[offset] = value
@@ -39,6 +40,7 @@ SUB SetNPCD(npcd AS NPCType, offset AS INTEGER, value AS INTEGER)
   END IF
 END SUB
 
+'Prefer read_npc_int instead in the future, as it lacks pointer thoughtcrime
 FUNCTION GetNPCD(npcd AS NPCType, offset AS INTEGER) AS INTEGER
   IF offset >= 0 and offset <= 14 THEN
     RETURN (@npcd.picture)[offset]

@@ -937,7 +937,7 @@ IF sayer >= 0 THEN
    setScriptArg 1, (sayer + 1) * -1 'reference
   END IF
  END IF
- vehuse = npcs(npc(sayer).id - 1).vechicle
+ vehuse = npcs(npc(sayer).id - 1).vehicle
  IF vehuse THEN '---activate a vehicle---
   setpicstuf buffer(), 80, -1
   loadset game + ".veh", vehuse - 1, 0

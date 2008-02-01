@@ -509,9 +509,15 @@ SUB keyboardsetup ()
 END SUB
 
 SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
- DIM spritepreview AS Frame PTR
- DIM pal16 AS palette16 PTR
- 
+ DIM i AS INTEGER
+
+ DIM npcdata AS NPCtype
+ FOR i = 0 to 14
+  write_npc_int npcdata, i, npc(npcid * 15 + i)
+ NEXT i
+
+ DIM spritebuf(800)
+
  DIM itemname AS STRING
  DIM boxpreview AS STRING
  DIM scrname AS STRING
@@ -519,7 +525,6 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
  DIM caption AS STRING
  DIM appearstring AS STRING
 
- DIM i AS INTEGER
  DIM walk AS INTEGER = 0
  DIM tog AS INTEGER = 0
 
@@ -604,53 +609,75 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
  usetype(1, 1) = " Face Player"
  usetype(2, 1) = " Do Not Face Player"
 
- spritepreview = sprite_load(game & ".pt4", npc(npcid * 15 + 0), 8, 20, 20)
- pal16 = palette16_load(game & ".pal", npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0))
+ npcdata.sprite = sprite_load(game & ".pt4", npcdata.picture, 8, 20, 20)
+ npcdata.pal = palette16_load(game & ".pal", npcdata.palette, 4, npcdata.picture)
 
- itemname = load_item_name(npc(npcid * 15 + 6), 0, 0)
- boxpreview = textbox_preview_line(npc(npcid * 15 + 4))
- scrname = scriptname$(npc(npcid * 15 + 12), plottrigger)
- vehiclename = load_vehicle_name(npc(npcid * 15 + 14) - 1)
+ itemname = load_item_name(npcdata.item, 0, 0)
+ boxpreview = textbox_preview_line(npcdata.textbox)
+ scrname = scriptname$(npcdata.script, plottrigger)
+ vehiclename = load_vehicle_name(npcdata.vehicle - 1)
 
  setkeys
  DO
   setwait 100
   setkeys
   tog = tog XOR 1
-  IF npc(npcid * 15 + 2) > 0 THEN walk = walk + 1: IF walk > 3 THEN walk = 0
+  IF npcdata.movetype > 0 THEN walk = walk + 1: IF walk > 3 THEN walk = 0
   IF keyval(1) > 1 THEN EXIT DO
   usemenu state
   SELECT CASE state.pt
-   CASE 12'--script
-    IF enter_or_space() THEN
-     scrname = scriptbrowse$(npc(npcid * 15 + 12), plottrigger, "NPC use plotscript")
-    ELSEIF scrintgrabber(npc(npcid * 15 + 12), 0, 0, 75, 77, 1, plottrigger) THEN
-     scrname = scriptname$(npc(npcid * 15 + 12), plottrigger)
+   CASE 0'--picture
+    IF intgrabber(npcdata.picture, lnpc(state.pt), unpc(state.pt)) THEN
+     npcdata.sprite = sprite_load(game & ".pt4", npcdata.picture, 8, 20, 20)
+     npcdata.pal = palette16_load(game & ".pal", npcdata.palette, 4, npcdata.picture)
     END IF
+   CASE 1'--palette
+    IF intgrabber(npcdata.palette, lnpc(state.pt), unpc(state.pt)) THEN
+     npcdata.pal = palette16_load(game & ".pal", npcdata.palette, 4, npcdata.picture)
+    END IF
+    IF enter_or_space() THEN
+     setpicstuf spritebuf(), 1600, 2 'FIXME temporary, until pal16browse is re-written
+     loadset game & ".pt4", npcdata.picture, 5 * npcid
+     npcdata.palette = pal16browse(npcdata.palette, 8, 0, 5 * npcid, 20, 20, 2)
+     npcdata.pal = palette16_load(game & ".pal", npcdata.palette, 4, npcdata.picture)
+    END IF
+   CASE 2
+    intgrabber(npcdata.movetype, lnpc(state.pt), unpc(state.pt))
+   CASE 3
+    intgrabber(npcdata.speed, lnpc(state.pt), unpc(state.pt))
+   CASE 4
+    IF intgrabber(npcdata.textbox, lnpc(state.pt), unpc(state.pt)) THEN
+     boxpreview = textbox_preview_line(npcdata.textbox)
+    END IF
+   CASE 5
+    intgrabber(npcdata.facetype, lnpc(state.pt), unpc(state.pt))
+   CASE 6
+    IF intgrabber(npcdata.item, lnpc(state.pt), unpc(state.pt)) THEN
+     itemname = load_item_name(npcdata.item, 0, 0)
+    END IF
+   CASE 7
+    intgrabber(npcdata.pushtype, lnpc(state.pt), unpc(state.pt))
+   CASE 8
+    intgrabber(npcdata.activation, lnpc(state.pt), unpc(state.pt))
+   CASE 9'--tag conditionals
+    tag_grabber npcdata.tag1
+   CASE 10'--tag conditionals
+    tag_grabber npcdata.tag2
    CASE 11'--one-time-use tag
     IF keyval(75) > 1 OR keyval(77) > 1 OR enter_or_space() THEN
-     onetimetog npc(npcid * 15 + 11)
+     onetimetog npcdata.usetag
     END IF
-   CASE 2 TO 8, IS > 12'--simple integers
-    IF intgrabber(npc(npcid * 15 + state.pt), lnpc(state.pt), unpc(state.pt)) THEN
-     IF state.pt = 6 THEN itemname = load_item_name(npc(npcid * 15 + 6), 0, 0)
-     IF state.pt = 4 THEN boxpreview = textbox_preview_line(npc(npcid * 15 + 4))
-     IF state.pt = 14 THEN vehiclename = load_vehicle_name(npc(npcid * 15 + 14) - 1)
-    END IF
-   CASE 9, 10'--tag conditionals
-    tag_grabber npc(npcid * 15 + state.pt)
-   CASE 1'--palette
-    IF intgrabber(npc(npcid * 15 + state.pt), lnpc(state.pt), unpc(state.pt)) THEN
-     pal16 = palette16_load(game & ".pal", npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0))
-    END IF
+   CASE 12'--script
     IF enter_or_space() THEN
-     npc(npcid * 15 + state.pt) = pal16browse(npc(npcid * 15 + state.pt), 8, 0, 5 * npcid, 20, 20, 2)
-     pal16 = palette16_load(game & ".pal", npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0))
+     scrname = scriptbrowse$(npcdata.script, plottrigger, "NPC use plotscript")
+    ELSEIF scrintgrabber(npcdata.script, 0, 0, 75, 77, 1, plottrigger) THEN
+     scrname = scriptname$(npcdata.script, plottrigger)
     END IF
-   CASE 0'--picture
-    IF intgrabber(npc(npcid * 15 + state.pt), lnpc(state.pt), unpc(state.pt)) = 1 THEN
-     spritepreview = sprite_load(game & ".pt4", npc(npcid * 15 + 0), 8, 20, 20)
-     pal16 = palette16_load(game & ".pal", npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0))
+   CASE 13
+    intgrabber(npcdata.scriptarg, lnpc(state.pt), unpc(state.pt))
+   CASE 14
+    IF intgrabber(npcdata.vehicle, lnpc(state.pt), unpc(state.pt)) THEN
+     vehiclename = load_vehicle_name(npcdata.vehicle - 1)
     END IF
    CASE -1' previous menu
     IF enter_or_space() THEN EXIT DO
@@ -661,36 +688,42 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
   FOR i = 0 TO 14
    textcolor uilook(uiMenuItem), 0
    IF state.pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
-   caption = " " & npc(npcid * 15 + i)
+   caption = " " & read_npc_int(npcdata, i)
    SELECT CASE i
     CASE 1
-     caption = " " & defaultint$(npc(npcid * 15 + i))
+     caption = " " & defaultint$(npcdata.palette)
     CASE 2
-     caption = " = " & movetype(npc(npcid * 15 + i))
+     caption = " = " & movetype(npcdata.movetype)
     CASE 3
-     caption = " " & stepi(npc(npcid * 15 + i))
+     caption = " " & stepi(npcdata.speed)
     CASE 5
-     caption = usetype(npc(npcid * 15 + i), 1)
+     caption = usetype(npcdata.facetype, 1)
     CASE 6
      caption = " " & itemname
     CASE 7
-     caption = pushtype(npc(npcid * 15 + i))
+     caption = pushtype(npcdata.pushtype)
     CASE 8
-     caption = usetype(npc(npcid * 15 + i), 0)
-    CASE 9, 10
-     IF npc(npcid * 15 + i) THEN
-      caption = " " & ABS(npc(npcid * 15 + i)) & " = " & onoroff$(npc(npcid * 15 + i)) & " (" & load_tag_name(ABS(npc(npcid * 15 + i))) & ")"
+     caption = usetype(npcdata.activation, 0)
+    CASE 9
+     IF npcdata.tag1 THEN
+      caption = " " & ABS(npcdata.tag1) & " = " & onoroff$(npcdata.tag1) & " (" & load_tag_name(ABS(npcdata.tag1)) & ")"
+     ELSE
+      caption = " 0 (N/A)"
+     END IF
+    CASE 10
+     IF npcdata.tag2 THEN
+      caption = " " & ABS(npcdata.tag2) & " = " & onoroff$(npcdata.tag2) & " (" & load_tag_name(ABS(npcdata.tag2)) & ")"
      ELSE
       caption = " 0 (N/A)"
      END IF
     CASE 11
-     IF npc(npcid * 15 + i) THEN caption = " Only Once (tag " & (1000 + npc(npcid * 15 + i)) & ")" ELSE caption = " Repeatedly"
+     IF npcdata.usetag THEN caption = " Only Once (tag " & (1000 + npcdata.usetag) & ")" ELSE caption = " Repeatedly"
     CASE 12 'script
      caption = scrname
     CASE 13 'script arg
-     IF npc(npcid * 15 + 12) = 0 THEN caption = " N/A"
+     IF npcdata.script = 0 THEN caption = " N/A"
     CASE 14 'vehicle
-     IF npc(npcid * 15 + 14) <= 0 THEN
+     IF npcdata.vehicle <= 0 THEN
       caption = "No"
      ELSE
       caption = vehiclename
@@ -699,11 +732,11 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
    printstr menucaption(i) + caption, 0, 8 + (8 * i), dpage
   NEXT i
   edgebox 9, 139, 22, 22, uilook(uiDisabledItem), uilook(uiText), dpage
-  sprite_draw spritepreview + 4 + (walk \ 2), pal16, 10, 140, 1, YES, dpage
-  appearstring = "Appears if tag " & ABS(npc(npcid * 15 + 9)) & " = " & onoroff$(npc(npcid * 15 + 9)) & " and tag " & ABS(npc(npcid * 15 + 10)) & " = " & onoroff$(npc(npcid * 15 + 10))
-  IF npc(npcid * 15 + 9) <> 0 AND npc(npcid * 15 + 10) = 0 THEN appearstring = "Appears if tag " & ABS(npc(npcid * 15 + 9)) & " = " & onoroff$(npc(npcid * 15 + 9))
-  IF npc(npcid * 15 + 9) = 0 AND npc(npcid * 15 + 10) <> 0 THEN appearstring = "Appears if tag " & ABS(npc(npcid * 15 + 10)) & " = " & onoroff$(npc(npcid * 15 + 10))
-  IF npc(npcid * 15 + 9) = 0 AND npc(npcid * 15 + 10) = 0 THEN appearstring = "Appears all the time"
+  sprite_draw npcdata.sprite + 4 + (walk \ 2), npcdata.pal, 10, 140, 1, YES, dpage
+  appearstring = "Appears if tag " & ABS(npcdata.tag1) & " = " & onoroff$(npcdata.tag1) & " and tag " & ABS(npcdata.tag2) & " = " & onoroff$(npcdata.tag2)
+  IF npcdata.tag1 <> 0 AND npcdata.tag2 = 0 THEN appearstring = "Appears if tag " & ABS(npcdata.tag1) & " = " & onoroff$(npcdata.tag1)
+  IF npcdata.tag1 = 0 AND npcdata.tag2 <> 0 THEN appearstring = "Appears if tag " & ABS(npcdata.tag2) & " = " & onoroff$(npcdata.tag2)
+  IF npcdata.tag1 = 0 AND npcdata.tag2 = 0 THEN appearstring = "Appears all the time"
   textcolor uilook(uiSelectedItem2), 0
   printstr appearstring, 0, 190, dpage
   textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
@@ -713,6 +746,10 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
   clearpage dpage
   dowait
  LOOP
+
+ FOR i = 0 to 14
+  npc(npcid * 15 + i) = read_npc_int(npcdata, i)
+ NEXT i
 END SUB
 
 FUNCTION load_vehicle_name(vehID AS INTEGER) AS STRING

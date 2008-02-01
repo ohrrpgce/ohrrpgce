@@ -787,7 +787,7 @@ SUB savemapstate_npcd(mapnum, prefix$)
    put #fh, ,.usetag
    put #fh, ,.script
    put #fh, ,.scriptarg
-   put #fh, ,.vechicle
+   put #fh, ,.vehicle
   end with
  next
  CLOSE #fh
@@ -867,7 +867,7 @@ SUB loadmapstate_npcd (mapnum, prefix$, dontfallback = 0)
     get #fh, ,.usetag
     get #fh, ,.script
     get #fh, ,.scriptarg
-    get #fh, ,.vechicle
+    get #fh, ,.vehicle
    end with
   next
   CLOSE #fh
