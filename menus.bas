@@ -503,7 +503,7 @@ DO
   END IF
  END IF
  FOR i = 0 TO menusize
-  IF pt = i THEN textcolor 14 + tog, 0 ELSE textcolor 7, 0
+  IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0 ELSE textcolor uilook(uiMenuItem), 0
   printstr menu$(i) + scrname$(i), 0, i * 8, dpage
  NEXT i
  SWAP vpage, dpage
@@ -1117,11 +1117,11 @@ DO
   END IF
  NEXT i
 
- textcolor 7, 0
+ textcolor uilook(uiText), 0
  printstr "Pick a " + scrtype$, 0, 0, dpage
  standardmenu scriptnames(), scriptmax, 21, pt, top, 8, 10, dpage, 0
  IF iddisplay THEN
-  textcolor 7, 1
+  textcolor uilook(uiMenuItem), uilook(uiHighlight)
   printstr STR$(id), 8, 190, dpage
  END IF
 
@@ -1419,14 +1419,14 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 OR keyval(28) > 1 THEN EXIT DO
  strgrabber pas$, 17
- textcolor 7, 0
+ textcolor uilook(uiMenuItem), 0
  printstr "You can require a password for this", 0, 0, dpage
  printstr "game to be opened in " + CUSTOMEXE, 0, 8, dpage
  printstr "This does not encrypt your file, and", 0, 16, dpage
  printstr "should only be considered weak security", 0, 24, dpage
  printstr "PASSWORD", 30, 64, dpage
  IF LEN(pas$) THEN
-  textcolor 14 + tog, 1
+  textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
   printstr pas$, 30, 74, dpage
  ELSE
   printstr "(NONE SET)", 30, 74, dpage
