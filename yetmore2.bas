@@ -188,7 +188,7 @@ SUB drawnpcs
     else
      sprite_draw npcs(o).sprite + (2 * npc(i).dir) + npc(i).frame \ 2, npcs(o).pal, drawnpcX, drawnpcY - z, 1, -1, dpage
     end if
-    'edgeprint STR$(i), drawnpcX, drawnpcY + gmap(11) - z, 15, dpage
+    'edgeprint STR$(i), drawnpcX, drawnpcY + gmap(11) - z, uilook(uiText), dpage
    END IF
   END IF
  NEXT i

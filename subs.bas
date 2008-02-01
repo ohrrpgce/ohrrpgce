@@ -921,11 +921,11 @@ DO
   IF a(34) = 0 THEN menu$(7) = menu$(7) & " no animation" ELSE menu$(7) = menu$(7) & " " & (a(34) + 1)
   menu$(8) = "Backdrop Speed: " & a(35)
   FOR i = 0 TO 5
-   col = 7: IF csr2 + 6 = i THEN col = 14 + tog
+   col = uilook(uiMenuItem): IF csr2 + 6 = i THEN col = uilook(uiSelectedItem + tog)
    edgeprint menu$(i + 3), 1, 1 + (i * 10), col, dpage
   NEXT i
   FOR i = 0 TO 7
-   col = 7: IF csr2 = i THEN col = 14 + tog
+   col = uilook(uiMenuItem): IF csr2 = i THEN col = uilook(uiSelectedItem + tog)
    edgeprint "Enemy:" + ename(i), 1, 61 + (i * 10), col, dpage
   NEXT i
  END IF
@@ -979,6 +979,8 @@ end sub
 
 SUB formsprite(z() as integer, w() as integer, a() as integer, h() as integer, pal16() as integer, byval csr2 as integer)
  dim as integer insertval, searchval, i
+ static flash as integer = 0
+ flash = (flash + 1) MOD 256
  FOR i = 0 TO 7
   z(i) = i
  NEXT
@@ -998,7 +1000,7 @@ SUB formsprite(z() as integer, w() as integer, a() as integer, h() as integer, p
   IF a(z(i) * 4 + 0) > 0 THEN
    loadsprite buffer(), 0, 0, z(i) * 10, w(z(i)), w(z(i)), 3
    drawsprite buffer(), 0, pal16(), 16 * z(i), a(z(i) * 4 + 1), a(z(i) * 4 + 2), dpage
-   IF csr2 = z(i) THEN textcolor INT(RND * 255), 0: printstr CHR$(25), a(z(i) * 4 + 1) + (w(z(i)) * .5) - 4, a(z(i) * 4 + 2), dpage
+   IF csr2 = z(i) THEN textcolor flash, 0: printstr CHR$(25), a(z(i) * 4 + 1) + (w(z(i)) * .5) - 4, a(z(i) * 4 + 2), dpage
   END IF
  NEXT
 END SUB

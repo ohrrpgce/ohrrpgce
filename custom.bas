@@ -1314,11 +1314,11 @@ END FUNCTION
 SUB move_unwritable_rpg(BYREF filetolump$)
  clearpage vpage
  centerbox 160, 100, 310, 50, 3, vpage
- edgeprint filetolump$, 10, 80, 15, vpage
- edgeprint "is not writable. Saving to:", 10, 90, 15, vpage
+ edgeprint filetolump$, 10, 80, uilook(uiText), vpage
+ edgeprint "is not writable. Saving to:", 10, 90, uilook(uiText), vpage
  filetolump$ = homedir & SLASH & trimpath$(filetolump$)
- edgeprint filetolump$, 10, 100, 15, vpage
- edgeprint "[Press Any Key]", 10, 110, 15, vpage
+ edgeprint filetolump$, 10, 100, uilook(uiText), vpage
+ edgeprint "[Press Any Key]", 10, 110, uilook(uiText), vpage
  setvispage vpage
  w = getkey
 END SUB

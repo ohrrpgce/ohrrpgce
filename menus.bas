@@ -1343,9 +1343,9 @@ DO
  IF enter_or_space() THEN
   IF gcsr = 0 THEN EXIT DO
  END IF
- col = 7: IF gcsr = 0 THEN col = 14 + tog
+ col = uilook(uiMenuItem): IF gcsr = 0 THEN col = uilook(uiSelectedItem + tog)
  edgeprint "Go Back", 1, 1, col, dpage
- col = 7: IF gcsr = 1 THEN col = 14 + tog
+ col = uilook(uiMenuItem): IF gcsr = 1 THEN col = uilook(uiSelectedItem + tog)
  edgeprint CHR$(27) + "Browse" + CHR$(26), 1, 11, col, dpage
  SWAP vpage, dpage
  setvispage vpage

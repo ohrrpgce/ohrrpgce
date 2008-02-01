@@ -212,7 +212,7 @@ DO
   END IF
  END IF
  FOR i = 0 TO 5
-  col = 7: IF i = csr THEN col = 14 + tog
+  col = uilook(uiMenuItem): IF i = csr THEN col = uilook(uiSelectedItem + tog)
   edgeprint menu$(i), 1, 1 + 10 * i, col, dpage
  NEXT i
  SWAP vpage, dpage
@@ -1194,7 +1194,7 @@ DO
  GOSUB spritescreen
  rectangle 4, 156, 208, 32, uilook(uiDisabledItem), dpage
  FOR i = 0 TO 2
-  c = 7: IF i = pcsr THEN c = 14 + tog
+  c = uilook(uiMenuItem): IF i = pcsr THEN c = uilook(uiSelectedItem + tog)
   edgeprint pmenu$(i), 8, 160 + (i * 8), c, dpage
  NEXT i
  SWAP vpage, dpage

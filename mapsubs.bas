@@ -1303,7 +1303,7 @@ SUB mapedit_resize(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEG
  y = 0
  mapx = 0
  mapy = 0
- edgeprint "Aligning and truncating doors", 0, yout * 10, 15, vpage: yout += 1
+ edgeprint "Aligning and truncating doors", 0, yout * 10, uilook(uiText), vpage: yout += 1
  DIM i AS INTEGER
  FOR i = 0 TO 99
   doors(i).x -= spot.x
@@ -1312,7 +1312,7 @@ SUB mapedit_resize(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEG
    setbit(doors(i).bits(),0,0,0)
   END IF
  NEXT
- edgeprint "Aligning and truncating NPCs", 0, yout * 10, 15, vpage: setvispage vpage: yout += 1
+ edgeprint "Aligning and truncating NPCs", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
  FOR i = 0 TO 299
   npc(i + 0) = npc(i + 0) - spot.x
   npc(i + 300) = npc(i + 300) - spot.y
@@ -1632,7 +1632,7 @@ SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS I
 END SUB
 
 SUB resizetiledata (array(), x_off, y_off, new_width, new_height, yout, page, layers)
- edgeprint "Resizing Map...", 0, yout * 10, 15, page
+ edgeprint "Resizing Map...", 0, yout * 10, uilook(uiText), page
  yout += 1
  setvispage page
 ' debug "sizemar"
