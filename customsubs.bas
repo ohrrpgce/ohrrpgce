@@ -436,6 +436,7 @@ FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) 
   copypage holdscreen(), dpage
   dowait
  LOOP
+ setkeys
 
  RETURN result
 END FUNCTION
