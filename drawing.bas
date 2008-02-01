@@ -475,7 +475,7 @@ drawanimrange:
 x = 0: y = 0
 FOR i = 0 TO 159
  IF i < tastuf(0 + 20 * taset) OR i > tastuf(0 + 20 * taset) + 47 THEN
-  fuzzyrect x * 20, y * 20, 20, 20, 15, dpage
+  fuzzyrect x * 20, y * 20, 20, 20, uilook(uiText), dpage
  END IF
  x = x + 1: IF x > 15 THEN x = 0: y = y + 1
 NEXT i

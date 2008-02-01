@@ -390,8 +390,7 @@ END IF
 #ENDIF
 
 IF autorungame = 0 THEN
- rectangle 4, 3, 312, 14, 9, vpage
- rectangle 5, 4, 310, 12, 1, vpage
+ edgeboxstyle 4, 3, 312, 14, 0, vpage
 END IF
 
 edgeprint "Loading...", xstring("Loading...", 160), 6, uilook(uiText), vpage

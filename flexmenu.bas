@@ -84,8 +84,7 @@ getnames sname$(), 32
 DIM workpal(7)
 
 clearallpages
-rectangle 259, 139, 52, 52, 7, 3
-rectangle 260, 140, 50, 50, 8, 3
+edgebox 259, 139, 52, 52, uilook(uiDisabledItem), uilook(uiMenuItem), 3
 
 '----------------------------------------------------------
 '--bitsets
