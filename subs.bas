@@ -35,7 +35,7 @@ DECLARE SUB maptile (font%())
 DECLARE FUNCTION isStringField(mnu%)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
-DECLARE sub formsprite(z() as integer, w() as integer, a() as integer, h() as integer, pal16() as integer, byval csr2 as integer, byval flash as integer)
+DECLARE sub formsprite(z() as integer, w() as integer, a() as integer, h() as integer, pal16() as integer, byval csr2 as integer)
 DECLARE sub loadform(a() as integer, pt as integer)
 DECLARE sub saveform(a() as integer, pt as integer)
 DECLARE sub formpics(ename() as string, a() as integer, b() as integer, s() as integer, w() as integer, h() as integer, pal16() as integer)
@@ -97,8 +97,7 @@ previewsize(1) = 50
 previewsize(2) = 80
 
 clearallpages
-rectangle 219, 99, 82, 82, 7, 3
-rectangle 220, 100, 80, 80, 8, 3
+edgebox 219, 99, 82, 82, uilook(uiDisabledItem), uilook(uiMenuItem), 3
 
 '-------------------------------------------------------------------------
 
@@ -619,7 +618,7 @@ DO
  standardmenu dispmenu$(), state, 0, 0, dpage
  IF keyval(56) > 0 THEN 'holding ALT
   tmp$ = readbadbinstring$(recbuf(), EnDatName, 15, 0) & " " & recindex
-  textcolor 15, 1
+  textcolor uilook(uiText), uilook(uiHighlight)
   printstr tmp$, 320 - LEN(tmp$) * 8, 0, dpage
  END IF
 
@@ -698,7 +697,7 @@ SUB formation
 clearallpages
 
 DIM a(40), b(160), c(24), s(7), w(7), h(7), menu$(10), max(10), min(10), z(7), bmenu$(22), pal16(64)
-dim as integer flash, col, csr, bcsr, csr2, csr3, tog, pt, gptr, i, o, movpix
+dim as integer col, csr, bcsr, csr2, csr3, tog, pt, gptr, i, o, movpix
 
 DIM as string ename(7)
 
@@ -771,7 +770,7 @@ DO
   END IF
   IF pt >= 0 THEN
    '--preview form
-   formsprite(z(),w(),a(),h(),pal16(),csr2,flash)
+   formsprite z(),w(),a(),h(),pal16(),-1
   END IF
  END IF
  bmenu$(1) = CHR(27) & "Formation Set " & (gptr + 1) & CHR(26)
@@ -832,7 +831,6 @@ DO
  setwait timing(), 90
  setkeys
  tog = tog XOR 1
- flash = flash + 1: IF flash > 14 THEN flash = -13
  IF csr3 = 1 THEN
   '--enemy positioning mode
   IF keyval(1) > 1 OR enter_or_space() THEN setkeys: csr3 = 0
@@ -904,9 +902,9 @@ DO
    END IF
   END IF
  END IF
- formsprite(z(),w(),a(),h(),pal16(),csr2,flash)
+ formsprite z(),w(),a(),h(),pal16(),csr2
  FOR i = 0 TO 3
-  rectangle 240 + i * 8, 75 + i * 22, 32, 40, 18 + i * 2, dpage
+  edgeboxstyle 240 + i * 8, 75 + i * 22, 32, 40, 0, dpage
  NEXT i
  IF csr3 = 0 THEN
   menu$(4) = CHR(27) + "formation " & pt & CHR(26)
@@ -979,7 +977,7 @@ sub formpics(ename() as string, a() as integer, b() as integer, s() as integer, 
  NEXT i
 end sub
 
-sub formsprite(z() as integer, w() as integer, a() as integer, h() as integer, pal16() as integer, byval csr2 as integer, byval flash as integer)
+SUB formsprite(z() as integer, w() as integer, a() as integer, h() as integer, pal16() as integer, byval csr2 as integer)
  dim as integer insertval, searchval, i
  FOR i = 0 TO 7
   z(i) = i
@@ -1000,10 +998,10 @@ sub formsprite(z() as integer, w() as integer, a() as integer, h() as integer, p
   IF a(z(i) * 4 + 0) > 0 THEN
    loadsprite buffer(), 0, 0, z(i) * 10, w(z(i)), w(z(i)), 3
    drawsprite buffer(), 0, pal16(), 16 * z(i), a(z(i) * 4 + 1), a(z(i) * 4 + 2), dpage
-   IF csr2 = z(i) THEN textcolor 176 + ABS(flash), 0: printstr CHR$(25), a(z(i) * 4 + 1) + (w(z(i)) * .5) - 4, a(z(i) * 4 + 2), dpage
+   IF csr2 = z(i) THEN textcolor INT(RND * 255), 0: printstr CHR$(25), a(z(i) * 4 + 1) + (w(z(i)) * .5) - 4, a(z(i) * 4 + 2), dpage
   END IF
  NEXT
-end sub
+END SUB
 
 SUB herodata
 DIM names(100) AS STRING, menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), pal16(16), elemtype$(2)
@@ -1155,10 +1153,10 @@ DO
    bctr = listnum
   END IF
  END IF
- textcolor 7, 0: IF bctr = -1 THEN textcolor 14 + tog, 0
+ textcolor uilook(uiMenuItem), 0: IF bctr = -1 THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr "Previous Menu", 0, 0, dpage
  FOR i = 0 TO 3
-  textcolor 7, 0: IF bctr = i THEN textcolor 14 + tog, 0
+  textcolor uilook(uiMenuItem), 0: IF bctr = i THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr "Type " & i & " Spells: " & opt$(her.list_type(i)), 0, 8 + i * 8, dpage
  NEXT i
  SWAP vpage, dpage
@@ -1332,18 +1330,18 @@ DO
   END IF
   IF changed THEN GOSUB smi
  END IF
- textcolor 7, 0
- IF 0 = bctr THEN textcolor 14 + tog, 0
+ textcolor uilook(uiMenuItem), 0
+ IF 0 = bctr THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr bmenu$(0), 8, 0, dpage
- textcolor 11, 0
+ textcolor uilook(uiDescription), 0
  printstr "LEVEL ZERO", 8, 12, dpage
  printstr "LEVEL NINETY-NINE", 160, 12, dpage
  FOR i = 0 TO 11
-  textcolor 7, 0
-  IF 1 + i * 2 = bctr THEN textcolor 14 + tog, 0
+  textcolor uilook(uiMenuItem), 0
+  IF 1 + i * 2 = bctr THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr bmenu$(1 + i * 2), 8, 20 + i * 8, dpage
-  textcolor 7, 0
-  IF 2 + i * 2 = bctr THEN textcolor 14 + tog, 0
+  textcolor uilook(uiMenuItem), 0
+  IF 2 + i * 2 = bctr THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr bmenu$(2 + i * 2), 160, 20 + i * 8, dpage
  NEXT i
  IF bctr > 0 THEN GOSUB graph
@@ -1405,11 +1403,11 @@ DO
    GOSUB setsticky
   END IF
  END IF
- textcolor 10, 0: printstr UCASE$(opt$(her.list_type(listnum))), 300 - LEN(opt$(her.list_type(listnum))) * 8, 0, dpage
- textcolor 7, 0: IF bctr = 0 THEN textcolor 14 + tog, 0
+ textcolor uilook(uiDescription), 0: printstr UCASE$(opt$(her.list_type(listnum))), 300 - LEN(opt$(her.list_type(listnum))) * 8, 0, dpage
+ textcolor uilook(uiMenuItem), 0: IF bctr = 0 THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr "Previous Menu", 0, 0, dpage
  FOR i = 1 TO 24
-  textcolor 7, 0: IF bctr = i THEN textcolor 14 + tog, 0
+  textcolor uilook(uiMenuItem), 0: IF bctr = i THEN textcolor uilook(uiSelectedItem + tog), 0
   temp1$ = attack$(i)
   WITH her.spell_lists(listnum, i-1)
    IF .attack > 0 THEN
@@ -1419,9 +1417,9 @@ DO
     temp2$ = ""
    END IF
   END WITH
-  textcolor 7, 0: IF bctr = i AND colcsr = 0 THEN textcolor 14 + tog, 0 + sticky
+  textcolor uilook(uiMenuItem), 0: IF bctr = i AND colcsr = 0 THEN textcolor uilook(uiSelectedItem + tog), IIF(sticky, uilook(uiHighlight), 0)
   printstr temp1$, 0, 8 * i, dpage
-  textcolor 7, 0: IF bctr = i AND colcsr = 1 THEN textcolor 14 + tog, 0 + sticky
+  textcolor uilook(uiMenuItem), 0: IF bctr = i AND colcsr = 1 THEN textcolor uilook(uiSelectedItem + tog), IIF(sticky, uilook(uiHighlight), 0)
   printstr temp2$, 160, 8 * i, dpage
  NEXT i
  SWAP vpage, dpage
@@ -1452,7 +1450,7 @@ RETRACE
 
 graph:
 o = INT((bctr - 1) / 2)
-textcolor 7, 0
+textcolor uilook(uiMenuItem), 0
 printstr names(nof(o)), 310 - LEN(names(nof(o))) * 8, 180, dpage
 FOR i = 0 TO 99 STEP 4
  ii = (.8 * i / 50) * i
@@ -1461,7 +1459,7 @@ FOR i = 0 TO 99 STEP 4
  ii = ii * ((n99 - n0) / 100) + n0
  ii = large(ii, 0)
  j = (ii) * (100 / max(bctr))
- rectangle 290 + (i / 4), 176 - j, 1, j + 1, 7, dpage
+ rectangle 290 + (i / 4), 176 - j, 1, j + 1, uilook(uiMenuItem), dpage
 NEXT i
 RETRACE
 
@@ -1549,8 +1547,8 @@ DO
    tag_grabber .active_tag, 0
  END SELECT
  FOR i = 0 TO 4
-  textcolor 7, 0
-  IF pt = i THEN textcolor 14 + tog, 0
+  textcolor uilook(uiMenuItem), 0
+  IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
   tagnum = 0
   SELECT CASE i
    CASE 1
@@ -1779,18 +1777,18 @@ DO
   generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$(), workpal(), frame
  END IF
  FOR i = 0 TO 20
-  textcolor 7, 0
-  IF pt = i THEN textcolor 14 + tog, 0
+  textcolor uilook(uiMenuItem), 0
+  IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
   IF (i >= 18 AND a(49) = 0) OR ((i = 16 OR i = 17) AND a(49) <> 1) THEN
-   textcolor 8, 0
-   IF pt = i THEN textcolor 6 + tog, 0
+   textcolor uilook(uiDisabledItem), 0
+   IF pt = i THEN textcolor uilook(uiSelectedDisabled + tog), 0
   END IF
   printstr menu$(i), 0, i * 8, dpage
  NEXT i
  IF a(49) = 1 THEN
   loadsprite buffer(), 0, (1-frame) * 288, 0, 24, 24, 2
   drawsprite buffer(), 0, workpal(), 0, 280, 160, dpage
-  textcolor 7, 0
+  textcolor uilook(uiMenuItem), 0
   IF frame = 0 THEN printstr "<",280,152,dpage
   printstr "" & (1 - frame),281,152,dpage
   IF frame = 1 THEN printstr ">",296,152,dpage
@@ -1820,12 +1818,12 @@ DO
  IF ptr2 >= 0 THEN
   intgrabber a(54 + ptr2), sbmax(ptr2) * -1, sbmax(ptr2)
  END IF
- textcolor 7, 0
- IF ptr2 = -1 THEN textcolor 14 + tog, 0
+ textcolor uilook(uiMenuItem), 0
+ IF ptr2 = -1 THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr "Previous Menu", 0, 0, dpage
  FOR i = 0 TO 11
-  textcolor 7, 0
-  IF ptr2 = i THEN textcolor 14 + tog, 0
+  textcolor uilook(uiMenuItem), 0
+  IF ptr2 = i THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr names(nof(i)) + " Bonus: " & a(54 + i), 0, 8 + i * 8, dpage
  NEXT i
  SWAP vpage, dpage
@@ -1943,8 +1941,8 @@ DO
  usemenu cur, top, 0, 35, 7
  IF enter_or_space() THEN edit_npc cur, npc()
  FOR i = top TO top + 7
-  textcolor 7, 0
-  IF cur = i THEN textcolor 14 + tog, 0
+  textcolor uilook(uiMenuItem), 0
+  IF cur = i THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr "" & i, 0, ((i - top) * 25), dpage
   loadsprite spritebuf(), 0, 800, 5 * i, 20, 20, 2
   drawsprite spritebuf(), 0, pal16(), 16 * i, 32, ((i - top) * 25), dpage
