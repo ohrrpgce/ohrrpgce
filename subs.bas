@@ -1941,7 +1941,12 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
  usemenu cur, top, 0, 35, 7
- IF enter_or_space() THEN edit_npc cur, npc()
+ IF enter_or_space() THEN
+  edit_npc cur, npc()
+  setpicstuf spritebuf(), 1600, 2
+  loadset game & ".pt4", npc(cur * 15 + 0), 5 * cur
+  getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0)
+ END IF
  FOR i = top TO top + 7
   textcolor uilook(uiMenuItem), 0
   IF cur = i THEN textcolor uilook(uiSelectedItem + tog), 0

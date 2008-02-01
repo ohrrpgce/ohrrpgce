@@ -509,8 +509,8 @@ SUB keyboardsetup ()
 END SUB
 
 SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
- DIM spritebuf(800) AS INTEGER
- DIM pal16(288) AS INTEGER
+ DIM spritepreview AS Frame PTR
+ DIM pal16 AS palette16 PTR
  
  DIM itemname AS STRING
  DIM boxpreview AS STRING
@@ -604,9 +604,8 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
  usetype(1, 1) = " Face Player"
  usetype(2, 1) = " Do Not Face Player"
 
- setpicstuf spritebuf(), 1600, 2
- loadset game & ".pt4", npc(npcid * 15 + 0), 5 * npcid
- getpal16 pal16(), npcid, npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0)
+ spritepreview = sprite_load(game & ".pt4", npc(npcid * 15 + 0), 8, 20, 20)
+ pal16 = palette16_load(game & ".pal", npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0))
 
  itemname = load_item_name(npc(npcid * 15 + 6), 0, 0)
  boxpreview = textbox_preview_line(npc(npcid * 15 + 4))
@@ -642,17 +641,16 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
     tag_grabber npc(npcid * 15 + state.pt)
    CASE 1'--palette
     IF intgrabber(npc(npcid * 15 + state.pt), lnpc(state.pt), unpc(state.pt)) THEN
-     getpal16 pal16(), npcid, npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0)
+     pal16 = palette16_load(game & ".pal", npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0))
     END IF
     IF enter_or_space() THEN
      npc(npcid * 15 + state.pt) = pal16browse(npc(npcid * 15 + state.pt), 8, 0, 5 * npcid, 20, 20, 2)
-     getpal16 pal16(), npcid, npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0) 
+     pal16 = palette16_load(game & ".pal", npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0))
     END IF
    CASE 0'--picture
     IF intgrabber(npc(npcid * 15 + state.pt), lnpc(state.pt), unpc(state.pt)) = 1 THEN
-     setpicstuf spritebuf(), 1600, 2
-     loadset game & ".pt4", npc(npcid * 15 + 0), 5 * npcid
-     getpal16 pal16(), npcid, npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0)
+     spritepreview = sprite_load(game & ".pt4", npc(npcid * 15 + 0), 8, 20, 20)
+     pal16 = palette16_load(game & ".pal", npc(npcid * 15 + 1), 4, npc(npcid * 15 + 0))
     END IF
    CASE -1' previous menu
     IF enter_or_space() THEN EXIT DO
@@ -701,8 +699,7 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
    printstr menucaption(i) + caption, 0, 8 + (8 * i), dpage
   NEXT i
   edgebox 9, 139, 22, 22, uilook(uiDisabledItem), uilook(uiText), dpage
-  loadsprite spritebuf(), 0, 800 + (200 * INT(walk / 2)), 5 * npcid, 20, 20, 2
-  drawsprite spritebuf(), 0, pal16(), 16 * npcid, 10, 140, dpage
+  sprite_draw spritepreview + 4 + (walk \ 2), pal16, 10, 140, 1, YES, dpage
   appearstring = "Appears if tag " & ABS(npc(npcid * 15 + 9)) & " = " & onoroff$(npc(npcid * 15 + 9)) & " and tag " & ABS(npc(npcid * 15 + 10)) & " = " & onoroff$(npc(npcid * 15 + 10))
   IF npc(npcid * 15 + 9) <> 0 AND npc(npcid * 15 + 10) = 0 THEN appearstring = "Appears if tag " & ABS(npc(npcid * 15 + 9)) & " = " & onoroff$(npc(npcid * 15 + 9))
   IF npc(npcid * 15 + 9) = 0 AND npc(npcid * 15 + 10) <> 0 THEN appearstring = "Appears if tag " & ABS(npc(npcid * 15 + 10)) & " = " & onoroff$(npc(npcid * 15 + 10))
