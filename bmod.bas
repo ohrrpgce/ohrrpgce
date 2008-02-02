@@ -1430,6 +1430,7 @@ RETRACE
 
 ifdead:
 deadguyhp = bstat(deadguy).cur.hp
+
 IF is_enemy(deadguy) THEN
  isenemy = 1
  enemynum = deadguy - 4
@@ -1441,15 +1442,8 @@ ELSE
  formslotused = -1
 END IF
 IF deadguyhp = 0 THEN deadguycount = deadguycount + 1
-IF deadguyhp = 0 and formslotused <> 0 THEN
- '--deadguy is really dead
- IF bslot(deadguy).death_sfx = 0 THEN
-  IF gen(genDefaultDeathSFX) > 0 THEN
-   playsfx gen(genDefaultDeathSFX) - 1
-  END IF
- ELSEIF bslot(deadguy).death_sfx > 0 THEN
-  playsfx bslot(deadguy).death_sfx - 1
- END IF
+IF deadguyhp = 0 AND formslotused <> 0 THEN
+ '--deadguy is really dead (includes already-dead)
  bslot(deadguy).vis = 0
  ready(deadguy) = 0
  godo(deadguy) = 0
@@ -1466,6 +1460,13 @@ IF deadguyhp = 0 and formslotused <> 0 THEN
  '-- if it is a dead enemy's turn, cancel ai
  IF them = deadguy THEN them = -1
  IF isenemy THEN '------PLUNDER AND EXPERIENCE AND ITEMS------
+  IF bslot(deadguy).death_sfx = 0 THEN
+   IF gen(genDefaultDeathSFX) > 0 THEN
+    playsfx gen(genDefaultDeathSFX) - 1
+   END IF
+  ELSEIF bslot(deadguy).death_sfx > 0 THEN
+   playsfx bslot(deadguy).death_sfx - 1
+  END IF
   GOSUB spawnally
   IF formslotused > 0 THEN
    plunder& = plunder& + es(enemynum, 56)

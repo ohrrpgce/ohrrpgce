@@ -7,6 +7,7 @@ WHAT IS NEW?
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged
     * Custom now respects your chosen UI colors everywhere [James Paige]
+    * Bug 590: default death sound effect played after every hit
 
   * New Plotscripting Commands
 
