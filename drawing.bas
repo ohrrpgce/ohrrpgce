@@ -635,7 +635,7 @@ DIM workpal(8 * (atatime + 1))
 DIM poffset(large(sets, atatime))
 DIM AS INTEGER do_paste = 0
 DIM AS INTEGER paste_transparent = 0
-spritefile$ = game + ".pt" + STR$(fileset)
+spritefile$ = game & ".pt" & fileset
 
 gotm = setmouse(mouse())
 GOSUB initmarea
@@ -886,7 +886,7 @@ IF keyval(25) > 1 OR (zone = 19 AND mouse(3) > 0) THEN '--call palette browser
  stosprite placer(), 0, num * size, soff * (pt - top), 3
  '--save current palette
  storepal16 workpal(), pt - top, poffset(pt)
- poffset(pt) = pal16browse(poffset(pt), 1, num * size, soff * (pt - top), xw, yw, 3)
+ poffset(pt) = pal16browse(poffset(pt), fileset, pt, perset, xw, yw)
  getpal16 workpal(), pt - top, poffset(pt)
 END IF
 '--UNDO

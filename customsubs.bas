@@ -515,8 +515,6 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
   write_npc_int npcdata, i, npc(npcid * 15 + i)
  NEXT i
 
- DIM spritebuf(800)
-
  DIM itemname AS STRING
  DIM boxpreview AS STRING
  DIM scrname AS STRING
@@ -635,9 +633,7 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
      npcdata.pal = palette16_load(game & ".pal", npcdata.palette, 4, npcdata.picture)
     END IF
     IF enter_or_space() THEN
-     setpicstuf spritebuf(), 1600, 2 'FIXME temporary, until pal16browse is re-written
-     loadset game & ".pt4", npcdata.picture, 5 * npcid
-     npcdata.palette = pal16browse(npcdata.palette, 8, 0, 5 * npcid, 20, 20, 2)
+     npcdata.palette = pal16browse(npcdata.palette, 4, npcdata.picture, 8, 20, 20)
      npcdata.pal = palette16_load(game & ".pal", npcdata.palette, 4, npcdata.picture)
     END IF
    CASE 2
@@ -807,9 +803,10 @@ SUB onetimetog(BYREF tagnum AS INTEGER)
  setbit gen(), 106, gen(105), 1
 END SUB
 
-FUNCTION pal16browse (BYVAL curpal AS INTEGER, usepic AS INTEGER, picx AS INTEGER, picy AS INTEGER, picw AS INTEGER, pich AS INTEGER, picpage AS INTEGER) AS INTEGER
+FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL picnum AS INTEGER, BYVAL picframes AS INTEGER, BYVAL picw AS INTEGER, BYVAL pich AS INTEGER) AS INTEGER
 
- DIM pal16(80)
+ DIM sprite(9) AS Frame PTR
+ DIM pal16(9) AS Palette16 PTR
 
  DIM AS INTEGER i, o, j, k
  DIM c AS INTEGER
@@ -817,7 +814,7 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, usepic AS INTEGER, picx AS INTEGE
  DIM state AS MenuState
  state.need_update = YES
  state.pt = large(curpal, 0)
- state.top = large(curpal - 1, -1)
+ state.top = curpal - 1
  state.first = -1
  state.size = 9
 
@@ -838,6 +835,8 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, usepic AS INTEGER, picx AS INTEGE
   state.last = i + 1
  NEXT i
 
+ state.top = bound(state.top, state.first, large(state.last - state.size, state.first))
+
  setkeys
  DO
   setwait timing(), 100
@@ -845,19 +844,21 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, usepic AS INTEGER, picx AS INTEGE
   state.tog = state.tog XOR 1
   IF keyval(1) > 1 THEN RETURN curpal
   IF usemenu(state) THEN state.need_update = YES
-  IF intgrabber(curpal, 0, gen(genMaxPal) + 1, 51, 52) THEN
-   state.top = bound(state.top, state.pt - 8, state.pt - 1)
+  IF intgrabber(state.pt, state.first, state.last, 51, 52) THEN
    state.need_update = YES
   END IF
   IF enter_or_space() THEN
    IF state.pt >= 0 THEN RETURN state.pt
-   EXIT DO
+   RETURN curpal
   END IF
 
   IF state.need_update THEN
    state.need_update = NO
+   state.top = bound(state.top, state.pt - state.size, state.pt)
+   state.top = bound(state.top, state.first, large(state.last - state.size, state.first))
    FOR i = 0 TO 9
-    getpal16 pal16(), i, state.top + i
+    sprite(i) = sprite_load(game & ".pt" & picset, picnum, picframes, picw, pich)
+    pal16(i) = palette16_load(game + ".pal", state.top + i, picset, picnum)
    NEXT i
   END IF
 
@@ -871,14 +872,17 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, usepic AS INTEGER, picx AS INTEGE
       edgebox o - 1, 1 + i * 20, 114, 18, uilook(uiBackground), uilook(uiMenuitem), dpage
      END IF
      FOR j = 0 TO 15
-      c = peek8bit(pal16(), i* 16 + j)
-      rectangle o + j * 7, 2 + i * 20, 5, 16, c, dpage
+      IF pal16(i) THEN
+       c = pal16(i)->col(j)
+       rectangle o + j * 7, 2 + i * 20, 5, 16, c, dpage
+      END IF
      NEXT j
      IF state.top + i <> state.pt THEN
-      FOR k = 0 TO usepic - 1
-       loadsprite buffer(), 0, picx + k * (picw * pich \ 2), picy, picw, pich, picpage
-       drawsprite buffer(), 0, pal16(), i * 16, o + 140 + (k * picw), i * 20 - (pich \ 2 - 10), dpage
-      NEXT k
+      IF pal16(i) THEN
+       FOR k = 0 TO picframes - 1
+        sprite_draw sprite(i) + k, pal16(i), o + 140 + (k * picw), i * 20 - (pich \ 2 - 10), 1, YES, dpage
+       NEXT k
+      END IF
      END IF
      printstr "" & (state.top + i), 4, 5 + i * 20, dpage
     CASE ELSE
@@ -886,11 +890,13 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, usepic AS INTEGER, picx AS INTEGE
    END SELECT
   NEXT i
   IF state.pt >= 0 THEN '--write current pic on top
-   o = LEN("" & curpal) * 8
-   FOR k = 0 TO usepic - 1
-    loadsprite buffer(), 0, picx + k * (picw * pich \ 2), picy, picw, pich, picpage
-    drawsprite buffer(), 0, pal16(), (state.pt - state.top) * 16, o + 120 + (k * picw), (state.pt - state.top) * 20 - (pich \ 2 - 10), dpage
-   NEXT k
+   i = state.pt - state.top
+   o = LEN(" " & state.pt) * 8
+   IF pal16(i) THEN
+    FOR k = 0 TO picframes - 1
+     sprite_draw sprite(i) + k, pal16(i), o + 130 + (k * picw), i * 20 - (pich \ 2 - 10), 1, YES, dpage
+    NEXT k
+   END IF
   END IF
  
   SWAP vpage, dpage

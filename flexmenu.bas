@@ -907,7 +907,7 @@ DO
     setactivemenu workmenu(), tagMenu(), state
     needupdatemenu = 1
    CASE AtkPal
-    recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), 3, 0, 0, 50, 50, 2)
+    recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), 6, recbuf(AtkDatPic), 3, 50, 50)
     needupdatemenu = 1
    CASE AtkBitAct
     'merge the two blocks of bitsets into the buffer

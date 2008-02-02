@@ -599,7 +599,7 @@ DO
     setactivemenu workmenu(), atkMenu(), state
     GOSUB EnUpdateMenu
    CASE EnMenuPal
-    recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), 1, 0, 0, previewsize(recbuf(EnDatPicSize)), previewsize(recbuf(EnDatPicSize)), 2)
+    recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), recbuf(EnDatPicSize) + 1, recbuf(EnDatPic), 1, previewsize(recbuf(EnDatPicSize)), previewsize(recbuf(EnDatPicSize)))
     GOSUB EnUpdateMenu
    CASE EnMenuBitsetAct
     editbitset recbuf(), EnDatBitset, 61, ebit$()
@@ -1234,9 +1234,9 @@ DO
   END SELECT
   IF enter_or_space() THEN
    IF bctr = 2 THEN
-    her.sprite_pal = pal16browse(her.sprite_pal, 8, 0, 0, 32, 40, 2)
+    her.sprite_pal = pal16browse(her.sprite_pal, 0, her.sprite, 8, 32, 40)
    ELSEIF bctr = 4 THEN
-    her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, 8, 0, 16, 20, 20, 2)
+    her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, 4, her.walk_sprite, 8, 20, 20)
    END IF
    GOSUB heropics
   END IF
@@ -1736,7 +1736,7 @@ DO
    END IF
   END IF
   IF pt = 10 THEN '--palette picker
-   a(46 + (pt - 3)) = pal16browse(a(53), 2, 0, 0, 24, 24, 2)
+   a(46 + (pt - 3)) = pal16browse(a(53), 5, a(52), 2, 24, 24)
    getpal16 workpal(), 0, a(53), 5, a(52)
    need_update = YES
   END IF
