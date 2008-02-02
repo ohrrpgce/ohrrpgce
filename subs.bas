@@ -1922,6 +1922,7 @@ SUB npcdef (npc(), pt)
 
 DIM spritebuf(800) AS INTEGER
 DIM pal16(288) AS INTEGER
+DIM boxpreview(35) AS STRING
 
 clearpage 0: clearpage 1
 setvispage vpage
@@ -1932,6 +1933,7 @@ setpicstuf spritebuf(), 1600, 2
 FOR i = 0 TO 35
  loadset game & ".pt4", npc(i * 15 + 0), 5 * i
  getpal16 pal16(), i, npc(i * 15 + 1), 4, npc(i * 15 + 0)
+ boxpreview(i) = textbox_preview_line(npc(i * 15 + 4))
 NEXT i
 setkeys
 DO
@@ -1947,11 +1949,16 @@ DO
   getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0)
  END IF
  FOR i = top TO top + 7
+  IF cur = i THEN edgebox 0, (i - top) * 25, 320, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
   textcolor uilook(uiMenuItem), 0
   IF cur = i THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr "" & i, 0, ((i - top) * 25), dpage
+  printstr "" & i, 0, ((i - top) * 25) + 5, dpage
   loadsprite spritebuf(), 0, 800, 5 * i, 20, 20, 2
-  drawsprite spritebuf(), 0, pal16(), 16 * i, 32, ((i - top) * 25), dpage
+  drawsprite spritebuf(), 0, pal16(), 16 * i, 32, ((i - top) * 25) + 1, dpage
+  textcolor uilook(uiMenuItem), uilook(uiHighlight)
+  IF cur = i THEN textcolor uilook(uiText), uilook(uiHighlight)
+  printstr boxpreview(i), 56, ((i - top) * 25) + 5, dpage
+  print
  NEXT
  SWAP vpage, dpage
  setvispage vpage
