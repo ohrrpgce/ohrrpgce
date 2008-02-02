@@ -178,7 +178,7 @@ END IF
 END SUB
 
 SUB centerbox (x, y, w, h, c, p)
-IF c < 0 OR c > 14 THEN debug "Warning: invalid box style " & c & " in centerbox"
+IF c < 0 OR c > 15 THEN debug "Warning: invalid box style " & c & " in centerbox"
 tbc = uiTextBox + (2 * (c - 1))
 rectangle x - INT(w * .5), y - INT(h * .5), w, h, uilook(tbc), p
 rectangle x - INT(w * .5), y - INT(h * .5), w, 1, uilook(tbc + 1), p
