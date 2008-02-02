@@ -1947,6 +1947,7 @@ DO
   setpicstuf spritebuf(), 1600, 2
   loadset game & ".pt4", npc(cur * 15 + 0), 5 * cur
   getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0)
+  boxpreview(cur) = textbox_preview_line(npc(cur * 15 + 4))
  END IF
  FOR i = top TO top + 7
   IF cur = i THEN edgebox 0, (i - top) * 25, 320, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
