@@ -290,11 +290,7 @@ presentsong = -1
 gen(60) = 0'--leave joystick calibration enabled
 'fpstimer! = TIMER
 
-FOR i = 1 TO 15
- master(i).r = SGN(i AND 4) * 168 + SGN(i AND 8) * 87
- master(i).g = SGN(i AND 2) * 168 + SGN(i AND 8) * 87
- master(i).b = SGN(i AND 1) * 168 + SGN(i AND 8) * 87
-NEXT i
+load_default_master_palette master()
 'get default ui colours
 LoadUIColors uilook()
 
