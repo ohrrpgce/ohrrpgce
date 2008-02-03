@@ -213,7 +213,7 @@ pt = 0
 make_top_map_menu maptop, topmenu$()
 setkeys
 DO
- setwait 110
+ setwait 55
  setkeys
  IF keyval(1) > 1 THEN EXIT DO
  oldtop = maptop
@@ -385,7 +385,7 @@ FOR i = 0 TO 4
 NEXT i
 setkeys
 DO
- setwait 110
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -525,7 +525,7 @@ doorlinkid = 0
 
 setkeys
 DO
- setwait 110
+ setwait 90
  setkeys
  if keyval(scCtrl) = 0 AND keyval(scAlt) = 0 then
 	 IF keyval(59) > 1 THEN
@@ -1002,7 +1002,7 @@ LOOP
 pickblock:
 setkeys
 DO
- setwait 110
+ setwait 55
  setkeys
  IF keyval(28) > 1 OR keyval(1) > 1 THEN menu = usetile(layer): EXIT DO
  IF keyval(72) > 0 AND tilepick.y > 0 THEN tilepick.y -= 1: usetile(layer) = usetile(layer) - 16

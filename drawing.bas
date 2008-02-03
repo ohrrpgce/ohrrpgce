@@ -667,7 +667,7 @@ GOSUB loadalluc
 
 setkeys
 DO
- setwait 110
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -832,7 +832,7 @@ GOSUB spedbak
 loadsprite placer(), 0, num * size, soff * (pt - top), xw, yw, 3
 setkeys
 DO
- setwait 110
+ setwait 90
  setkeys
  IF gotm THEN
   readmouse mouse()
@@ -1726,7 +1726,7 @@ NEXT j
 '---EDIT BLOCK---
 setkeys
 DO
- setwait 110
+ setwait 90
  setkeys
  IF ts.gotmouse THEN
   readmouse mouse()
