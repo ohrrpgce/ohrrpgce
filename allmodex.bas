@@ -1420,27 +1420,12 @@ SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
 
 end SUB
 
-SUB setwait (b() as integer, BYVAL t as integer)
+SUB setwait (BYVAL t as integer)
 't is a value in milliseconds which, in the original, is used to set the event
 'frequency and is also used to set the wait time, but the resolution of the
 'dos timer means that the latter is always truncated to the last multiple of
-'55 milliseconds.
-	dim millis as integer
-	dim secs as double
-	millis = (t \ 55) * 55
-
-	secs = millis / 1000
-	waittime = timer + secs
-	waitset = 1
-end SUB
-
-SUB setwait (BYVAL t as integer)
-	dim millis as integer
-	dim secs as double
-	millis = (t \ 55) * 55
-
-	secs = millis / 1000
-	waittime = timer + secs
+'55 milliseconds. We won't do this anymore.
+	waittime = timer + t / 1000
 	waitset = 1
 end SUB
 

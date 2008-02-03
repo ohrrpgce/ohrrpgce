@@ -66,7 +66,7 @@ pt = -1
 '---MAIN LOOP---
 setkeys
 DO
- setwait timing(), 80
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -152,7 +152,7 @@ FUNCTION inputfilename$ (query$, ext$, default$)
 filename$ = default$
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN inputfilename$ = "": EXIT DO

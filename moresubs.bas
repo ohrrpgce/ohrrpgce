@@ -202,7 +202,7 @@ disabled = 10
 
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -578,7 +578,7 @@ IF hero(acsr) THEN info$ = names(acsr) ELSE info$ = ""
 MenuSound gen(genAcceptSFX)
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  tog = tog XOR 1
  playtimer
@@ -1085,7 +1085,7 @@ copypage dpage, vpage
 setvispage vpage
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  tog = tog XOR 1
  playtimer
@@ -1169,7 +1169,7 @@ IF isfile(exepath$ + SLASH + "joyset.ini") THEN
  LOOP
  CLOSE #fh
  '--wait a little to make sure the buttons clear
- setwait timing(), speedcontrol
+ setwait speedcontrol
  dowait
  gen(60) = 1
 ELSE
@@ -1215,7 +1215,7 @@ END IF
 
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  playtimer
  control
@@ -1964,7 +1964,7 @@ menusound gen(genAcceptSFX)
 
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  tog = tog XOR 1
  playtimer
@@ -2070,7 +2070,7 @@ inncost$ = readglobalstring$(143, "THE INN COSTS", 20)
 youhave$ = readglobalstring$(145, "You have", 20)
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  tog = tog XOR 1
  playtimer

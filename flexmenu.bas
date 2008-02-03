@@ -828,7 +828,7 @@ needupdatemenu = 1
 setupsound
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN
@@ -1269,7 +1269,7 @@ detail.min_chars = 36
 
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  
  IF state.active = NO THEN EXIT DO
@@ -1649,7 +1649,7 @@ SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
 
  setkeys
  DO
-  setwait timing(), 100
+  setwait 55
   setkeys
  
   IF keyval(1) > 1 THEN EXIT DO
@@ -1679,7 +1679,7 @@ SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
  DIM y AS INTEGER
  setkeys
  DO
-  setwait timing(), 100
+  setwait 55
   setkeys
   tog = tog XOR 1
  

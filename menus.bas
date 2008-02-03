@@ -102,7 +102,7 @@ GOSUB vehmenu
 
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -331,7 +331,7 @@ END IF
 
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
 
@@ -489,7 +489,7 @@ menusize = 3
 setkeys
 DO
  tog = tog XOR 1
- setwait timing(), 100
+ setwait 55
  setkeys
  IF keyval(1) > 1 THEN EXIT DO
  usemenu pt, 0, 0, menusize, 24
@@ -538,7 +538,7 @@ SUB generalsfxmenu ()
   setkeys
   DO
     tog = tog XOR 1
-    setwait timing(), 100
+    setwait 55
     setkeys
     accept = enter_or_space()
     cancel = keyval(1) > 1
@@ -593,7 +593,7 @@ GOSUB getsonginfo
 
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  IF keyval(1) > 1 THEN EXIT DO
 
@@ -819,7 +819,7 @@ GOSUB getsfxinfo
 
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  IF keyval(1) > 1 THEN EXIT DO
 
@@ -1086,7 +1086,7 @@ clearpage 0
 clearpage 1
 setkeys
 DO
- setwait timing(), 90
+ setwait 55
  setkeys
  IF keyval(1) > 1 THEN
   scriptbrowse$ = temp$
@@ -1158,7 +1158,7 @@ clearpage 2
 clearpage 3
 setkeys
 DO
- setwait timing(), 55
+ setwait 55
  setkeys
  tog = tog XOR 1
 
@@ -1329,7 +1329,7 @@ loadpage game + ".mxs", gen(1), 2
 setkeys
 gcsr = 0
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -1414,7 +1414,7 @@ SUB inputpasw(pas$)
 DIM tog AS INTEGER = 0
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 OR keyval(28) > 1 THEN EXIT DO

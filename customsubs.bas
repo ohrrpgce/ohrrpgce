@@ -67,7 +67,7 @@ IF state.pt >= 1 THEN thisname = load_tag_name(state.pt + 1)
 DIM tog AS INTEGER = 0
 setkeys
 DO
- setwait 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -186,7 +186,7 @@ offset.y = 100 - ((last \ linesize) * 9) \ 2
 DIM tog AS INTEGER = 0
 setkeys
 DO
- setwait 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETURN ""
@@ -248,7 +248,7 @@ SUB ui_color_editor(palnum AS INTEGER)
  DIM tog AS INTEGER = 0
  setkeys
  DO
-  setwait 100
+  setwait 55
   setkeys
   tog = tog XOR 1
   IF keyval(1) > 1 THEN EXIT DO
@@ -325,7 +325,7 @@ FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
  cursor = xy_from_int(start_color, 16, 16)
  setkeys
  DO
-  setwait 100
+  setwait 55
   setkeys
   tog = (tog + 1) MOD 256
   IF keyval(1) > 1 THEN RETURN start_color
@@ -371,7 +371,7 @@ FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
  clearpage vpage
  setkeys
  DO
-  setwait 80
+  setwait 55
   setkeys
   IF keyval(1) > 1 THEN RETURN -1   'cancel
   IF enter_or_space() THEN EXIT DO
@@ -409,7 +409,7 @@ FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) 
  
  setkeys
  DO
-  setwait 100
+  setwait 55
   setkeys
 
   IF keyval(1) > 1 THEN
@@ -616,7 +616,7 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
 
  setkeys
  DO
-  setwait 100
+  setwait 55
   setkeys
   tog = tog XOR 1
   IF npcdata.movetype > 0 THEN walk = walk + 1: IF walk > 3 THEN walk = 0
@@ -839,7 +839,7 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
 
  setkeys
  DO
-  setwait timing(), 100
+  setwait 55
   setkeys
   state.tog = state.tog XOR 1
   IF keyval(1) > 1 THEN RETURN curpal

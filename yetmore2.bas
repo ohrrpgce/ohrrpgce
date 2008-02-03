@@ -656,7 +656,7 @@ SUB verquit
  ptr2 = 0
  setkeys
  DO
-  setwait timing(), speedcontrol
+  setwait speedcontrol
   setkeys
   tog = tog XOR 1
   playtimer
@@ -694,7 +694,7 @@ IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
 fademusic fmvol
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  control
  IF carray(5) > 1 THEN

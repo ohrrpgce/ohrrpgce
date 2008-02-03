@@ -7,6 +7,9 @@
 '' usage: bam2mid <infile> [<outfile>]
 '' <outfile> defaults to <infile>.mid if not specified.
 ''
+'' To compile:
+''        fbc -lang deprecated bam2mid.bas
+''
 
 option explicit
 

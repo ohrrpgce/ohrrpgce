@@ -89,7 +89,7 @@ changed = 1
 
 setkeys
 DO
- setwait 80
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO

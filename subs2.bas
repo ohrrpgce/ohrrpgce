@@ -490,7 +490,7 @@ menu$(2) = "import compiled plotscripts (.hs)"
 pt = 0
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -659,7 +659,7 @@ top = 0
 pt = 0
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -686,7 +686,7 @@ EXIT SUB
 typestat:
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 OR keyval(28) > 1 OR keyval(72) > 1 OR keyval(80) > 1 THEN RETRACE
@@ -721,7 +721,7 @@ pt = 0
 
 setkeys
 DO
- setwait timing(), 90
+ setwait 55
  setkeys
  usemenu pt, 0, 0, num, 22
  IF keyval(1) > 1 THEN
@@ -804,7 +804,7 @@ csr = 0
 GOSUB loadlines
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -926,7 +926,7 @@ GOSUB shopar
 GOSUB itemar
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
@@ -1039,7 +1039,7 @@ tchoice:
 menu$(0) = "Go Back"
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
@@ -1099,7 +1099,7 @@ y = 0
 insert = -1
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
@@ -1153,7 +1153,7 @@ menu$(9) = "Restore Music:"
 GOSUB refresh
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE

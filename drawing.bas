@@ -168,7 +168,7 @@ loadpage game + f$, pt, 2
 
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(29) > 0 AND keyval(14) > 1 THEN
@@ -230,7 +230,7 @@ csr2 = 0
 setpal pmask()
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN setpal master(): RETRACE
@@ -328,7 +328,7 @@ taptr = 0
 
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -372,7 +372,7 @@ tilemode:
 GOSUB tilemodemenu
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN tmode = 0: RETRACE
@@ -418,7 +418,7 @@ menu$(3) = "Set Animation Pattern"
 menu$(5) = "Test Animations"
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN savetanim pagenum, tastuf(): RETRACE
@@ -455,7 +455,7 @@ RETRACE
 setanimrange:
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 OR enter_or_space() THEN RETRACE
@@ -531,7 +531,7 @@ context = 0
 index = 0
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  SELECT CASE context
@@ -667,7 +667,7 @@ GOSUB loadalluc
 
 setkeys
 DO
- setwait timing(), 120
+ setwait 110
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -832,7 +832,7 @@ GOSUB spedbak
 loadsprite placer(), 0, num * size, soff * (pt - top), xw, yw, 3
 setkeys
 DO
- setwait timing(), 110
+ setwait 110
  setkeys
  IF gotm THEN
   readmouse mouse()
@@ -1079,7 +1079,7 @@ IF srcbmp$ = "" THEN RETRACE
 pcsr = 0
 setkeys
 DO
- setwait timing(), 110
+ setwait 110
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
@@ -1120,7 +1120,7 @@ edjx = small(320, bmpd(1))
 edjy = small(200, bmpd(2))
 setkeys
 DO
- setwait timing(), 110
+ setwait 110
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN 
@@ -1458,7 +1458,7 @@ GOSUB setupsample
 
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  
@@ -1593,7 +1593,7 @@ loadpage mapfile$, pagenum, 3
 bnum = 0
 setkeys
 DO
- setwait timing(), 120
+ setwait 110
  setkeys
  copypage 3, dpage
  IF ts.gotmouse THEN
@@ -1726,7 +1726,7 @@ NEXT j
 '---EDIT BLOCK---
 setkeys
 DO
- setwait timing(), 120
+ setwait 110
  setkeys
  IF ts.gotmouse THEN
   readmouse mouse()
@@ -2058,7 +2058,7 @@ clearpage 2
 loadpage game + ".mxs", ts.cutfrom, 2
 setkeys
 DO
- setwait timing(), 120
+ setwait 110
  setkeys
  tog = tog XOR 1
  ts.delay = large(ts.delay - 1, 0)

@@ -119,7 +119,7 @@ GOSUB curinfo
 
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  tog = tog XOR 1
  IF tog THEN walk = loopvar(walk, 0, 15, 1)
@@ -481,7 +481,7 @@ copypage vpage, holdscreen()
 MenuSound gen(genAcceptSFX)
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  tog = tog XOR 1
  playtimer
@@ -852,7 +852,7 @@ wtogl = 0
 menusound gen(genAcceptSFX)
 
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  tog = tog XOR 1
  wtogl = loopvar(wtogl, 0, 3, 1)
@@ -1290,7 +1290,7 @@ pt = 0
 
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT SUB
@@ -1455,7 +1455,7 @@ END IF
 IF needf = 0 THEN MenuSound gen(genAcceptSFX)
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  tog = tog XOR 1
  walk = walk XOR tog
@@ -1528,7 +1528,7 @@ allow = 0
 MenuSound gen(genAcceptSFX)
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  tog = tog XOR 1
  playtimer
@@ -1638,7 +1638,7 @@ GOSUB sellinfostr
 quit = 0
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  tog = tog XOR 1
  playtimer
@@ -1811,7 +1811,7 @@ csr = 0
 menusound gen(genAcceptSFX)
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  tog = tog XOR 1
  wtogl = loopvar(wtogl, 0, 3, 1)
@@ -2138,7 +2138,7 @@ copypage vpage, holdscreen()
 menusound gen(genAcceptSFX)
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  tog = tog XOR 1
  playtimer

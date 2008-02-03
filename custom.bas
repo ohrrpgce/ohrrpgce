@@ -102,7 +102,6 @@ REDIM gen(360)
 REDIM buffer(16384)
 REDIM master(255) as RGBcolor
 REDIM uilook(uiColors)
-REDIM timing(4)
 REDIM keyv(55, 3)
 DIM font(1024), joy(4)
 DIM menu$(22), rpg$(3), npcn(1500), npcstat(1500)
@@ -228,7 +227,7 @@ quitnow = 0
 setkeys
 GOSUB setmainmenu
 DO:
- setwait timing(), 90
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN
@@ -347,7 +346,7 @@ rpg$(2) = "EXIT PROGRAM"
 
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN GOTO finis
@@ -391,7 +390,7 @@ LOOP
 a$ = a$ + STR$(i)
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  usemenu temp, 0, 0, 2, 2
@@ -510,7 +509,7 @@ clearpage 0
 clearpage 1
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(28) > 1 THEN
@@ -694,7 +693,7 @@ pt = -1 * linesize
 
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  SELECT CASE mode
@@ -843,7 +842,7 @@ exportfont:
 setkeys
 newfont$ = "newfont"
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -942,7 +941,7 @@ li = 6
 csr = 0
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -1055,7 +1054,7 @@ GOSUB itstrsh
 GOSUB stufmenu
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE

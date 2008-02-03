@@ -4,7 +4,7 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 ' To compile:
-'        fbc unlump.bas util.bas
+'        fbc -lang deprecated unlump.bas util.bas
 '
 '$DYNAMIC
 DEFINT A-Z
@@ -18,7 +18,7 @@ DECLARE SUB readscatter (s$, lhold%, array%(), start%)
 'DECLARE FUNCTION readpassword$ ()
 
 'assembly subs and functions
-DECLARE SUB setwait (b(), BYVAL t)
+DECLARE SUB setwait (BYVAL t)
 DECLARE SUB dowait ()
 DECLARE SUB setbit (b(), BYVAL w, BYVAL b, BYVAL v)
 DECLARE FUNCTION readbit (b(), BYVAL w, BYVAL b)

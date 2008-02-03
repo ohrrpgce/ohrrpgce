@@ -530,7 +530,7 @@ GOSUB EnLoadSub
 
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN     'ESC
@@ -705,7 +705,7 @@ menu$(1) = "Edit Individual Formations..."
 menu$(2) = "Construct Formation Sets..."
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -736,7 +736,7 @@ GOSUB loadfset
 GOSUB lpreviewform
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN
@@ -827,7 +827,7 @@ setkeys
 menu$(3) = "Previous Menu"
 
 DO
- setwait timing(), 90
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF csr3 = 1 THEN
@@ -1045,7 +1045,7 @@ GOSUB thishero
 
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  GOSUB movesmall
@@ -1107,7 +1107,7 @@ heromenu:
 bmenu$(0) = "Previous Menu": bctr = 0
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
@@ -1140,7 +1140,7 @@ opt$(2) = "Random Effects"
 opt$(3) = "Item Consuming (not implemented)"
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
@@ -1183,7 +1183,7 @@ setkeys
 frame = 0
 DO
  GOSUB genheromenu
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  GOSUB movesmall
@@ -1312,7 +1312,7 @@ FOR i = 23 TO 24: max(i) = 10: NEXT i
 GOSUB smi
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
@@ -1362,7 +1362,7 @@ FOR o = 1 TO 24
 NEXT o
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF sticky THEN
@@ -1530,7 +1530,7 @@ WITH hero
 pt = 0
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -1619,7 +1619,7 @@ DIM caption AS STRING
 load_item_names item$()
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -1710,7 +1710,7 @@ need_update = NO
 
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
@@ -1808,7 +1808,7 @@ statbon:
 ptr2 = 0
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
@@ -1937,7 +1937,7 @@ FOR i = 0 TO 35
 NEXT i
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO

@@ -101,7 +101,7 @@ DIM pt AS INTEGER = 0
 need_update = YES
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN
@@ -213,7 +213,7 @@ pt = 0
 make_top_map_menu maptop, topmenu$()
 setkeys
 DO
- setwait timing(), 120
+ setwait 110
  setkeys
  IF keyval(1) > 1 THEN EXIT DO
  oldtop = maptop
@@ -269,7 +269,7 @@ list$(11) = "Re-load Default Passability"
 list$(12) = "Map name:"
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN
@@ -385,7 +385,7 @@ FOR i = 0 TO 4
 NEXT i
 setkeys
 DO
- setwait timing(), 120
+ setwait 110
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
@@ -525,7 +525,7 @@ doorlinkid = 0
 
 setkeys
 DO
- setwait timing(), 120
+ setwait 110
  setkeys
  if keyval(scCtrl) = 0 AND keyval(scAlt) = 0 then
 	 IF keyval(59) > 1 THEN
@@ -1002,7 +1002,7 @@ LOOP
 pickblock:
 setkeys
 DO
- setwait timing(), 120
+ setwait 110
  setkeys
  IF keyval(28) > 1 OR keyval(1) > 1 THEN menu = usetile(layer): EXIT DO
  IF keyval(72) > 0 AND tilepick.y > 0 THEN tilepick.y -= 1: usetile(layer) = usetile(layer) - 16
@@ -1036,7 +1036,7 @@ layermenu:
 	csr2 = 0
 	
 	DO 
-		setwait timing(), 100
+		setwait 55
 		setkeys
 	 	tog = tog XOR 1
 
@@ -1372,7 +1372,7 @@ SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, e
 
  setkeys
  DO
-  setwait 100
+  setwait 55
   setkeys
   state.tog = state.tog XOR 1
   IF keyval(1) > 1 THEN
@@ -1464,7 +1464,7 @@ SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doo
 
  setkeys
  DO
-  setwait 100
+  setwait 55
   setkeys
   state.tog = state.tog XOR 1
   IF preview_delay > 0 THEN
@@ -1677,7 +1677,7 @@ resize_rezoom_mini_map zoom, wide, high, tempx, tempy, tempw, temph, minimap(), 
 GOSUB buildmenu
 setkeys
 DO
- setwait timing(), 100
+ setwait 55
  setkeys
  tog = tog xor 1
  IF keyval(1) > 1 THEN EXIT DO

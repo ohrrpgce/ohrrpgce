@@ -141,7 +141,7 @@ copypage 2, dpage
 '--main battle loop----------------------------------------------------------
 setkeys
 DO
- setwait timing(), speedcontrol
+ setwait speedcontrol
  setkeys
  tog = tog XOR 1
  playtimer
