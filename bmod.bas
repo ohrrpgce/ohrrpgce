@@ -1095,37 +1095,47 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    IF inflict(who, targ, bstat(), bslot(), harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
     '--attack succeeded
     IF readbit(atk(), 65, 12) THEN
-     '--cancel target's attack
-     godo(targ) = 0
+     '--try to cancel target's attack
+     IF godo(targ) > 0 THEN
+      'Check if the attack is cancelable
+      loadattackdata atktemp(), godo(targ) - 1
+      IF readbit(atktemp(), 65, 13) = 0 THEN
+       'Okay to cancel target's attack
+       godo(targ) = 0
+      END IF
+     ELSE
+      'just cancel the attack (FIXME: is this needed? What is the meaning of a negative godo value?)
+      godo(targ) = 0
+     END IF
     END IF
-	IF readbit(atk(), 20, 50) = 1 THEN
-	 es(targ - 4, 56) = 0
-	 es(targ - 4, 57) = 0
-	 es(targ - 4, 59) = 0
-	 es(targ - 4, 61) = 0
-	END IF
-	IF readbit(atk(), 20, 63) = 1 THEN
-	 'force heroes to run away
-	 IF checkNoRunBit(bstat(), ebits(), bslot()) THEN
-	  alert$ = cannotrun$
-	  alert = 10
-	 ELSE
-	  away = 1
-	 END IF
-	END IF
-	checkTagCond atk(60), 2, atk(59), atk(61)
-	checkTagCond atk(63), 2, atk(62), atk(64)
-	IF bstat(targ).cur.hp = 0 THEN
-	 checkTagCond atk(60), 4, atk(59), atk(61)
-	 checkTagCond atk(63), 4, atk(62), atk(64)
-	END IF
+    IF readbit(atk(), 20, 50) = 1 THEN
+     es(targ - 4, 56) = 0
+     es(targ - 4, 57) = 0
+     es(targ - 4, 59) = 0
+     es(targ - 4, 61) = 0
+    END IF
+    IF readbit(atk(), 20, 63) = 1 THEN
+    'force heroes to run away
+     IF checkNoRunBit(bstat(), ebits(), bslot()) THEN
+      alert$ = cannotrun$
+      alert = 10
+     ELSE
+      away = 1
+     END IF
+    END IF
+    checkTagCond atk(60), 2, atk(59), atk(61)
+    checkTagCond atk(63), 2, atk(62), atk(64)
+    IF bstat(targ).cur.hp = 0 THEN
+     checkTagCond atk(60), 4, atk(59), atk(61)
+     checkTagCond atk(63), 4, atk(62), atk(64)
+    END IF
 
     IF trytheft(who, targ, atk(), es()) THEN
      GOSUB checkitemusability
     END IF
    ELSE
-	checkTagCond atk(60), 3, atk(59), atk(61)
-	checkTagCond atk(63), 3, atk(62), atk(64)
+    checkTagCond atk(60), 3, atk(59), atk(61)
+    checkTagCond atk(63), 3, atk(62), atk(64)
    END IF
    tdwho = targ
    GOSUB triggerfade
@@ -1134,7 +1144,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     bslot(targ).vis = 1
     bslot(targ).dissolve = 0
    END IF
-   IF is_enemy(targ) THEN GOSUB sponhit
+   IF is_enemy(targ) AND readbit(atk(), 65, 14) = 0 THEN GOSUB sponhit
    IF conmp = 1 THEN
     '--if the attack costs MP, we want to actually consume MP
     IF atk(8) > 0 THEN bstat(who).cur.mp = large(bstat(who).cur.mp - focuscost(atk(8), bstat(who).cur.foc), 0)
