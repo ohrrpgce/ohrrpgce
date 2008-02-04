@@ -942,10 +942,10 @@ END IF
 poke8bit workpal(), (pt - top) * 16 + col, curcol
 IF keyval(56) = 0 THEN
  fixmouse = 0
- IF keyval(72) > 0 THEN y = large(0, y - 1): fixmouse = 1
- IF keyval(80) > 0 THEN y = small(yw - 1, y + 1): fixmouse = 1
- IF keyval(75) > 0 THEN x = large(0, x - 1): fixmouse = 1
- IF keyval(77) > 0 THEN x = small(xw - 1, x + 1): fixmouse = 1
+ IF keyval(72) AND 5 THEN y = large(0, y - 1): fixmouse = 1
+ IF keyval(80) AND 5 THEN y = small(yw - 1, y + 1): fixmouse = 1
+ IF keyval(75) AND 5 THEN x = large(0, x - 1): fixmouse = 1
+ IF keyval(77) AND 5 THEN x = small(xw - 1, x + 1): fixmouse = 1
  IF fixmouse THEN
   IF zone = 1 THEN
    zox = x * zoom + INT(zoom / 2)
@@ -1602,10 +1602,10 @@ DO
  END IF
  IF keyval(1) > 1 THEN storepage mapfile$, pagenum, 3: EXIT DO
  IF tmode <> 2 OR keyval(29) = 0 THEN
-  IF keyval(75) > 0 THEN IF bnum > 0 THEN bnum = bnum - 1: IF ts.gotmouse THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
-  IF keyval(77) > 0 THEN IF bnum < 159 THEN bnum = bnum + 1: IF ts.gotmouse THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
-  IF keyval(72) > 0 THEN IF bnum > 15 THEN bnum = bnum - 16: IF ts.gotmouse THEN mouse(1) = mouse(1) - 20: movemouse mouse(0), mouse(1)
-  IF keyval(80) > 0 THEN IF bnum < 144 THEN bnum = bnum + 16: IF ts.gotmouse THEN mouse(1) = mouse(1) + 20: movemouse mouse(0), mouse(1)
+  IF keyval(75) AND 5 THEN IF bnum > 0 THEN bnum = bnum - 1: IF ts.gotmouse THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
+  IF keyval(77) AND 5 THEN IF bnum < 159 THEN bnum = bnum + 1: IF ts.gotmouse THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
+  IF keyval(72) AND 5 THEN IF bnum > 15 THEN bnum = bnum - 16: IF ts.gotmouse THEN mouse(1) = mouse(1) - 20: movemouse mouse(0), mouse(1)
+  IF keyval(80) AND 5 THEN IF bnum < 144 THEN bnum = bnum + 16: IF ts.gotmouse THEN mouse(1) = mouse(1) + 20: movemouse mouse(0), mouse(1)
  END IF
  IF ts.gotmouse THEN
   bnum = INT(mouse(1) / 20) * 16 + INT(mouse(0) / 20)
@@ -1746,10 +1746,10 @@ DO
  END IF
  IF keyval(56) = 0 THEN
   fixmouse = 0
-  IF keyval(75) > 0 THEN ts.x = large(ts.x - 1, 0): fixmouse = 1
-  IF keyval(77) > 0 THEN ts.x = small(ts.x + 1, 19): fixmouse = 1
-  IF keyval(72) > 0 THEN ts.y = large(ts.y - 1, 0): fixmouse = 1
-  IF keyval(80) > 0 THEN ts.y = small(ts.y + 1, 19): fixmouse = 1
+  IF keyval(75) AND 5 THEN ts.x = large(ts.x - 1, 0): fixmouse = 1
+  IF keyval(77) AND 5 THEN ts.x = small(ts.x + 1, 19): fixmouse = 1
+  IF keyval(72) AND 5 THEN ts.y = large(ts.y - 1, 0): fixmouse = 1
+  IF keyval(80) AND 5 THEN ts.y = small(ts.y + 1, 19): fixmouse = 1
   IF fixmouse THEN
    zox = ts.x * 10 + 5
    zoy = ts.y * 8 + 4
@@ -2074,10 +2074,10 @@ DO
   EXIT DO
  END IF
  inc = 1: IF keyval(56) > 0 THEN inc = 20
- IF keyval(72) > 0 THEN ts.y = large(ts.y - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
- IF keyval(80) > 0 THEN ts.y = small(ts.y + inc, 180): IF ts.gotmouse THEN movemouse ts.x, ts.y
- IF keyval(75) > 0 THEN ts.x = large(ts.x - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
- IF keyval(77) > 0 THEN ts.x = small(ts.x + inc, 300): IF ts.gotmouse THEN movemouse ts.x, ts.y
+ IF keyval(72) AND 5 THEN ts.y = large(ts.y - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
+ IF keyval(80) AND 5 THEN ts.y = small(ts.y + inc, 180): IF ts.gotmouse THEN movemouse ts.x, ts.y
+ IF keyval(75) AND 5 THEN ts.x = large(ts.x - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
+ IF keyval(77) AND 5 THEN ts.x = small(ts.x + inc, 300): IF ts.gotmouse THEN movemouse ts.x, ts.y
  IF enter_or_space() OR (mouse(3) > 0 AND ts.zone < 11) THEN
   IF ts.delay = 0 THEN
    setkeys

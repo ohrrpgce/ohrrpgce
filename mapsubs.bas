@@ -804,18 +804,18 @@ DO
   yrate = 1
  END IF
  IF keyval(56) = 0 AND keyval(29) = 0 THEN
-  IF keyval(72) > 0 THEN y = large(y - yrate, 0): IF y < INT(mapy / 20) THEN mapy = y * 20
-  IF keyval(80) > 0 THEN y = small(y + yrate, high - 1): IF y > INT(mapy / 20) + 8 THEN mapy = y * 20 - 160
-  IF keyval(75) > 0 THEN x = large(x - xrate, 0): IF x < INT(mapx / 20) THEN mapx = x * 20
-  IF keyval(77) > 0 THEN x = small(x + xrate, wide - 1): IF x > INT(mapx / 20) + 14 THEN mapx = x * 20 - 280
+  IF keyval(72) AND 5 THEN y = large(y - yrate, 0): IF y < INT(mapy / 20) THEN mapy = y * 20
+  IF keyval(80) AND 5 THEN y = small(y + yrate, high - 1): IF y > INT(mapy / 20) + 8 THEN mapy = y * 20 - 160
+  IF keyval(75) AND 5 THEN x = large(x - xrate, 0): IF x < INT(mapx / 20) THEN mapx = x * 20
+  IF keyval(77) AND 5 THEN x = small(x + xrate, wide - 1): IF x > INT(mapx / 20) + 14 THEN mapx = x * 20 - 280
  END IF
  IF keyval(56) > 0 AND keyval(29) = 0 THEN
   oldrelx = x - mapx / 20
   oldrely = y - mapy / 20
-  IF keyval(72) > 0 THEN mapy = large(mapy - 20 * yrate, 0)
-  IF keyval(80) > 0 THEN mapy = small(mapy + 20 * yrate, high * 20 - 180)
-  IF keyval(75) > 0 THEN mapx = large(mapx - 20 * xrate, 0)
-  IF keyval(77) > 0 THEN mapx = small(mapx + 20 * xrate, wide * 20 - 300)
+  IF keyval(72) AND 5 THEN mapy = large(mapy - 20 * yrate, 0)
+  IF keyval(80) AND 5 THEN mapy = small(mapy + 20 * yrate, high * 20 - 180)
+  IF keyval(75) AND 5 THEN mapx = large(mapx - 20 * xrate, 0)
+  IF keyval(77) AND 5 THEN mapx = small(mapx + 20 * xrate, wide * 20 - 300)
   x = mapx / 20 + oldrelx
   y = mapy / 20 + oldrely
  END IF
@@ -1002,19 +1002,19 @@ LOOP
 pickblock:
 setkeys
 DO
- setwait 55
+ setwait 80
  setkeys
  IF keyval(28) > 1 OR keyval(1) > 1 THEN menu = usetile(layer): EXIT DO
- IF keyval(72) > 0 AND tilepick.y > 0 THEN tilepick.y -= 1: usetile(layer) = usetile(layer) - 16
- IF keyval(80) > 0 AND tilepick.y < 9 THEN tilepick.y += 1: usetile(layer) = usetile(layer) + 16
- IF keyval(75) > 0 AND tilepick.x > 0 THEN tilepick.x -= 1: usetile(layer) = usetile(layer) - 1
- IF keyval(77) > 0 AND tilepick.x < 15 THEN tilepick.x += 1: usetile(layer) = usetile(layer) + 1
- IF keyval(51) > 0 AND usetile(layer) > 0 THEN
+ IF (keyval(72) AND 5) AND tilepick.y > 0 THEN tilepick.y -= 1: usetile(layer) = usetile(layer) - 16
+ IF (keyval(80) AND 5) AND tilepick.y < 9 THEN tilepick.y += 1: usetile(layer) = usetile(layer) + 16
+ IF (keyval(75) AND 5) AND tilepick.x > 0 THEN tilepick.x -= 1: usetile(layer) = usetile(layer) - 1
+ IF (keyval(77) AND 5) AND tilepick.x < 15 THEN tilepick.x += 1: usetile(layer) = usetile(layer) + 1
+ IF (keyval(51) AND 5) AND usetile(layer) > 0 THEN
   usetile(layer) -= 1
   tilepick.x -= 1
   IF tilepick.x < 0 THEN tilepick.x = 15: tilepick.y -= 1
  END IF
- IF keyval(52) > 0 AND usetile(layer) < 159 THEN
+ IF (keyval(52) AND 5) AND usetile(layer) < 159 THEN
   usetile(layer) += 1
   tilepick.x += 1
   IF tilepick.x > 15 THEN tilepick.x = 0: tilepicky += 1
