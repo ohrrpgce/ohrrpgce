@@ -807,8 +807,19 @@ SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL pa
 
 END SUB
 
+FUNCTION keyval2 (BYVAL a as integer) as integer
+'except for special keys (like -1), each key reports 3 bits:
+'
+'bit 0: key was down at the last setkeys call
+'bit 1: keypress event (either new keypress, or key-repeat) during last setkey-setkey interval
+'bit 2: new keypress during last setkey-setkey interval
+
+	keyval2 = keybd(a)
+END FUNCTION
+
 FUNCTION keyval (BYVAL a as integer) as integer
-	keyval = keybd(a)
+	'until all keyval usage is safe for the 3rd bit
+	keyval = keybd(a) AND 3
 end FUNCTION
 
 FUNCTION waitforanykey (modkeys=-1) as integer
@@ -879,25 +890,16 @@ SUB debug_screen_page(p AS INTEGER)
 END SUB
 
 SUB setkeys ()
-'Quite nasty. Moved all this functionality from keyval() because this
-'is where it seems to happen in the original.
-'I have rewritten this to use steps (frames based on the 55ms DOS timer)
-'rather than raw time. It makes the maths a bit simpler. The way the
-'rest of the code is structured means we need to emulate the original
-'functionality of clearing the event until a repeat fires. I do this
-'by stalling for 3 steps on a new keypress and 1 step on a repeat.
-'1 step means the event will fire once per step, but won't fire many
-'times in one frame (which is a problem, setkeys() is often called
-'more than once per frame, particularly when new screens are brought
-'up). - sb 2006-01-27
+'Updates the keybd array (which keyval() wraps) to reflect new keypresses
+'since the last call, also clears all keypress events (except key-is-down)
+'
+'keysteps is the delay (number of setkeys calls) while a key is held down
+'until it triggers another keypress (repeat) event: 7 on initial press, 1
+'after every repeat event
+'
+'Note that currently key repeat events are triggered every 25ms, not every
+'setkeys call
 
-'Actual key state goes in keybd array for retrieval via keyval().
-
-'In the asm version, setkeys copies over the real key state array
-'(which is built using an interrupt handler) to the state array used
-'by keyval and then reduces new key presses to held keys, all of
-'which now happens in the backend, which may rely on a polling thread
-'or keyboard event callback as needed. - tmc
 	dim a as integer
 	mutexlock keybdmutex
 	for a = 0 to &h7f
@@ -941,21 +943,23 @@ sub pollingthread(byval unused as threadbs)
 		'set key state for every key
 		'highest scancode in fbgfx.bi is &h79, no point overdoing it
 		for a = 0 to &h7f
-			if keybdstate(a) and 4 then
-				'decide whether to fire a new key event, otherwise the keystate is preserved as 1
-				if keysteps(a) <= 0 then
-					if keysteps(a) = -1 then
-						'this is a new keypress
-						keysteps(a) = 7
-					else
-						keysteps(a) = 1
-					end if
-					keybdstate(a) = 3
-				else
-					keybdstate(a) = keybdstate(a) and 3
+			if keybdstate(a) and 8 then
+				'clear the bit that io_updatekeys sets
+				keybdstate(a) = keybdstate(a) and 7
+
+				'decide whether to fire a new key event, otherwise the keystate is preserved
+				if keysteps(a) = -1 then
+					'this is a new keypress
+					keysteps(a) = 7
+					keybdstate(a) = keybdstate(a) or 6 'key was triggered, new keypress
+				elseif keysteps(a) = 0 then
+					'trigger repeat
+					keysteps(a) = 1
+					keybdstate(a) = keybdstate(a) or 2 'key was triggered
 				end if
+				keybdstate(a) = keybdstate(a) or 1 'key is pressed
 			else
-				keybdstate(a) = keybdstate(a) and 2 'no longer pressed, but was seen
+				keybdstate(a) = keybdstate(a) and 6 'no longer pressed, but was seen
 				keysteps(a) = -1 '-1 means it's a new press next time
 			end if
 		next

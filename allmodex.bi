@@ -33,6 +33,7 @@ DECLARE SUB loadsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h,
 DECLARE SUB bigsprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page, BYVAL trans = -1)
 DECLARE SUB hugesprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page, BYVAL trans = -1)
 DECLARE FUNCTION keyval (BYVAL a)
+DECLARE FUNCTION keyval2 (BYVAL a) 
 DECLARE FUNCTION getkey ()
 DECLARE FUNCTION waitforanykey (modkeys=-1) as integer
 DECLARE SUB setkeys ()
