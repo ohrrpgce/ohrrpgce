@@ -1070,7 +1070,7 @@ SELECT CASE AS CONST id
   stopsong
  CASE 30'--keyval
   IF retvals(0) >= 0 AND retvals(0) < 256 THEN
-   scriptret = keyval(retvals(0))
+   scriptret = keyval(retvals(0)) AND 3
   END IF
  CASE 31'--rank in caterpillar
   scriptret = rankincaterpillar(retvals(0))

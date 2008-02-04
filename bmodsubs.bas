@@ -179,20 +179,22 @@ SUB control
 '  4=use
 '  5=menu
 '  6=run
-'  7=
-'  8=
+'  7=<nothing> (not used anywhere)
+'  8=??? (not used anywhere)
+'  9=<nothing> (not used anywhere)
+'  10-13=last CARRAY(0-3) (not used outside of this SUB)
 
 '  CSETUP()
-'  0=up 1=down 2=left 3=right                13=oldmouse X
-'  4=useA                                    14=oldmouse Y
-'  5=useB                                    15=showmouse
+'  0=up 1=down 2=left 3=right                13=oldmouse X (???)
+'  4=useA                                    14=oldmouse Y (???)
+'  5=useB                                    15=showmouse (???)
 '  6=useC
 '  7=menuA                                      MOUSEMODE
 '  8=menuB                                      0=map
 '  9=runA                                       1=click only
 '  10=runB
 '  11=calibrate
-'  12=
+'  12=??? (comma)
 
 STATIC joyuse, joymenu
 
@@ -202,7 +204,7 @@ IF keyval(-1) OR (keyval(73) > 0 AND keyval(81) > 0 AND keyval(1) > 1) THEN
 END IF
 
 'alt-enter toggle windowed
-if keyval(&h38) > 0 and keyval(&h1c) > 0 then
+if keyval(56) > 0 and keyval(28) > 0 then
 	togglewindowed
 end if
 
@@ -218,11 +220,11 @@ EXIT SUB
 
 keyboard:
 FOR i = 0 TO 3
- carray(i) = keyval(csetup(i)): carray(15) = carray(15) - 1
+ carray(i) = keyval(csetup(i))
 NEXT i
-carray(4) = large(large(keyval(csetup(4)), keyval(csetup(5))), keyval(csetup(6))): carray(15) = carray(15) - 1
-carray(5) = large(keyval(csetup(7)), keyval(csetup(8))): carray(15) = carray(15) - 1
-carray(6) = large(keyval(csetup(9)), keyval(csetup(10))): carray(15) = carray(15) - 1
+carray(4) = keyval(csetup(4)) OR keyval(csetup(5)) OR keyval(csetup(6))
+carray(5) = keyval(csetup(7)) OR keyval(csetup(8))
+carray(6) = keyval(csetup(9)) OR keyval(csetup(10))
 '--gen(60) is the calibration disabler flag
 IF gen(60) = 0 AND keyval(29) > 0 AND keyval(csetup(11)) > 1 THEN
  calibrate
@@ -230,7 +232,7 @@ IF gen(60) = 0 AND keyval(29) > 0 AND keyval(csetup(11)) > 1 THEN
   gotj(i) = readjoy(joy(), i)
  NEXT i
 END IF
-carray(8) = keyval(csetup(12)): carray(15) = carray(15) - 1
+carray(8) = keyval(csetup(12))
 RETRACE
 
 joystick:

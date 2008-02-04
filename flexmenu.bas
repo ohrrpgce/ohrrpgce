@@ -840,7 +840,7 @@ DO
  END IF
 
  '--CTRL+BACKSPACE
- IF keyval(29) > 0 AND keyval(14) THEN
+ IF keyval(29) > 0 AND keyval(14) > 0 THEN
   cropafter recindex, gen(34), 0, game + ".dt6", 80, 1
   '--this is a hack to detect if it is safe to erase the extended data
   '--in the second file

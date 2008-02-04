@@ -545,7 +545,7 @@ DO
 	 END IF
  else
   for i = 0 to 2
-  	if keyval(scAlt) AND keyval(sc1 + i) then
+  	if keyval(scAlt) > 0 AND keyval(sc1 + i) > 0 then
   		clearkey(sc1 + i)
   		togglelayerenabled(gmap(), i)
   		if not layerisenabled(gmap(), i) then
@@ -555,7 +555,7 @@ DO
   		end if
   	end if
   	#IFNDEF __FB_LINUX__
-  	if keyval(scCtrl) AND keyval(scF1 + i) then
+  	if keyval(scCtrl) > 0 AND keyval(scF1 + i) > 0 then
   		clearkey(scF1 + i)
 	 		if layerisenabled(gmap(), i) then togglelayervisible(visible(), i)
   	end if

@@ -245,7 +245,7 @@ DIM prefsdir as string
 DIM timers(15) as timer
 DIM fatal
 
-DIM keyv(55, 1), csetup(20), carray(20)
+DIM keyv(55, 1), csetup(12), carray(13)
 DIM mouse(3)
 DIM joy(14), gotj(2)
 
@@ -684,7 +684,7 @@ DO
    IF keyval(74) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = XSTR$(speedcontrol)
    IF keyval(78) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = XSTR$(speedcontrol)
   END IF
-  IF keyval(29) > 0 AND keyval(32) THEN scriptout$ = scriptstate$
+  IF keyval(29) > 0 AND keyval(32) > 0 THEN scriptout$ = scriptstate$
   IF keyval(41) > 1 then map_draw_mode = not map_draw_mode
  END IF
  IF wantloadgame > 0 THEN

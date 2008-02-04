@@ -808,7 +808,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- IF keyval(29) > 0 AND keyval(14) THEN
+ IF keyval(29) > 0 AND keyval(14) > 0 THEN
   GOSUB savelines
   cropafter pt, gen(39), 0, game + ".say", 400, 1
   GOSUB loadlines

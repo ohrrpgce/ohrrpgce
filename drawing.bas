@@ -744,7 +744,7 @@ DO
   changepal poffset(pt), 1, workpal(), pt - top
  END IF
  '--copying
- IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN 
+ IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83) > 0) OR (keyval(29) > 0 AND keyval(46) > 1) THEN 
   loadsprite spriteclip(), 0, num * size, soff * (pt - top), xw, yw, 3
   paste = 1
   clippedw = xw
@@ -892,7 +892,7 @@ END IF
 '--UNDO
 IF (keyval(29) > 0 AND keyval(44) > 1) OR (zone = 20 AND mouse(3) > 0) THEN GOSUB readundospr
 '--COPY (CTRL+INS,SHIFT+DEL,CTRL+C)
-IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN
+IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83) > 0) OR (keyval(29) > 0 AND keyval(46) > 1) THEN
  clippedw = xw
  clippedh = yw
  stosprite placer(), 0, num * size, soff * (pt - top), 3
@@ -1128,10 +1128,11 @@ DO
   GOSUB spedbak
   RETRACE
  END IF
- IF keyval(72) > 0 THEN gy = large(gy - (1 + (keyval(56) * 8)), 1)
- IF keyval(80) > 0 THEN gy = small(gy + (1 + (keyval(56) * 8)), edjy)
- IF keyval(75) > 0 THEN gx = large(gx - (1 + (keyval(56) * 8)), 1)
- IF keyval(77) > 0 THEN gx = small(gx + (1 + (keyval(56) * 8)), edjx)
+ IF keyval(56) THEN movespeed = 9 ELSE movespeed = 1
+ IF keyval(72) > 0 THEN gy = large(gy - movespeed, 1)
+ IF keyval(80) > 0 THEN gy = small(gy + movespeed, edjy)
+ IF keyval(75) > 0 THEN gx = large(gx - movespeed, 1)
+ IF keyval(77) > 0 THEN gx = small(gx + movespeed, edjx)
  IF enter_or_space() THEN EXIT DO
  putpixel gx, gy, 15 + tog, dpage
  edgeprint "Pick Background Color", 0, 190, 7, dpage
@@ -1619,7 +1620,7 @@ DO
    END IF
   NEXT i
  END IF
- IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN tilecopy cutnpaste(), ts
+ IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83) > 0) OR (keyval(29) > 0 AND keyval(46) > 1) THEN tilecopy cutnpaste(), ts
  IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN tilepaste cutnpaste(), ts
  IF (keyval(29) > 0 AND keyval(20) > 1) THEN tiletranspaste cutnpaste(), ts
  ts.tilex = bnum AND 15

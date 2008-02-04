@@ -542,7 +542,7 @@ DO
  END IF
 
  '--CTRL+BACKSPACE
- IF keyval(29) > 0 AND keyval(14) THEN
+ IF keyval(29) > 0 AND keyval(14) > 0 THEN
   cropafter recindex, gen(36), 0, game + ".dt1", 320, 1
  END IF
 
@@ -845,7 +845,7 @@ DO
    saveform(a(),pt)
    RETRACE
   END IF
-  IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, gen(37), 0, game + ".for", 80, 1
+  IF keyval(29) > 0 AND keyval(14) > 0 THEN cropafter pt, gen(37), 0, game + ".for", 80, 1
   usemenu csr2, -6, -6, 7, 25
   IF enter_or_space() THEN
    IF csr2 = -6 THEN
@@ -1050,7 +1050,7 @@ DO
  tog = tog XOR 1
  GOSUB movesmall
  IF keyval(1) > 1 THEN EXIT DO
- IF keyval(29) > 0 AND keyval(14) THEN
+ IF keyval(29) > 0 AND keyval(14) > 0 THEN
   cropafter pt, gen(35), -1, game + ".dt0", 636, 1
  END IF
  usemenu csr, 0, 0, 8, 24
@@ -1623,7 +1623,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- IF keyval(29) > 0 AND keyval(14) AND csr >= 0 THEN
+ IF keyval(29) > 0 AND keyval(14) > 0 AND csr >= 0 THEN
   cropafter csr, gen(genMaxItem), 0, game + ".itm", 200, 1
   load_item_names item$()
  END IF
@@ -1977,7 +1977,7 @@ SUB stredit (s$, maxl)
 STATIC clip$
 
 '--copy support
-IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN clip$ = s$
+IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83) > 0) OR (keyval(29) > 0 AND keyval(46) > 1) THEN clip$ = s$
 
 '--paste support
 IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN s$ = LEFT$(clip$, maxl)

@@ -807,19 +807,14 @@ SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL pa
 
 END SUB
 
-FUNCTION keyval2 (BYVAL a as integer) as integer
+FUNCTION keyval (BYVAL a as integer) as integer
 'except for special keys (like -1), each key reports 3 bits:
 '
 'bit 0: key was down at the last setkeys call
 'bit 1: keypress event (either new keypress, or key-repeat) during last setkey-setkey interval
 'bit 2: new keypress during last setkey-setkey interval
 
-	keyval2 = keybd(a)
-END FUNCTION
-
-FUNCTION keyval (BYVAL a as integer) as integer
-	'until all keyval usage is safe for the 3rd bit
-	keyval = keybd(a) AND 3
+	keyval = keybd(a)
 end FUNCTION
 
 FUNCTION waitforanykey (modkeys=-1) as integer

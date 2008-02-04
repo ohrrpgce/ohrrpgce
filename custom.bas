@@ -733,7 +733,7 @@ DO
  END SELECT
  IF mode >= 0 THEN
   '--copy and paste support
-  IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83)) OR (keyval(29) > 0 AND keyval(46) > 1) THEN GOSUB copychar
+  IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83) > 0) OR (keyval(29) > 0 AND keyval(46) > 1) THEN GOSUB copychar
   IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN GOSUB pastechar
  END IF
 
@@ -945,7 +945,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- IF keyval(29) > 0 AND keyval(14) THEN cropafter pt, gen(97), 0, game + ".sho", 40, 1: GOSUB menugen
+ IF keyval(29) > 0 AND keyval(14) > 0 THEN cropafter pt, gen(97), 0, game + ".sho", 40, 1: GOSUB menugen
  usemenu csr, 0, 0, li, 24
  IF csr = 1 THEN
   IF pt = gen(97) AND keyval(77) > 1 THEN
