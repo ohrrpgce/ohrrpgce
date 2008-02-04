@@ -25,6 +25,8 @@ DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTE
 
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
+DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
+DECLARE SUB spawn_on_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, es(), atktype(), formdata(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$())
 
 'these are the battle global variables
 DIM as string battlecaption
@@ -1477,7 +1479,7 @@ IF deadguyhp = 0 AND formslotused <> 0 THEN
   ELSEIF bslot(deadguy).death_sfx > 0 THEN
    playsfx bslot(deadguy).death_sfx - 1
   END IF
-  GOSUB spawnally
+  spawn_on_death deadguy, deadguycount, es(), atktype(), formdata(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
   IF formslotused > 0 THEN
    plunder& = plunder& + es(enemynum, 56)
    IF plunder& > 1000000000 THEN plunder& = 1000000000
@@ -1544,39 +1546,6 @@ FOR i = 0 TO 8
   EXIT FOR
  END IF
 NEXT i
-RETRACE
-
-spawnally:
-IF is_enemy(deadguy) THEN
- IF es(deadguy - 4, 80) > 0 AND atktype(0) = 1 THEN ' spawn on non-elemental death
-  FOR j = 1 TO es(deadguy - 4, 91)
-   slot = -1
-   FOR k = 7 TO 0 STEP -1
-    IF formdata(k * 4) = 0 THEN slot = k
-   NEXT k
-   IF slot > -1 THEN
-    formdata(slot * 4) = es(deadguy - 4, 80)
-    deadguycount = deadguycount - 1
-    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
-   END IF
-  NEXT j
-  es(deadguy - 4, 80) = 0
- END IF
- IF es(deadguy - 4, 79) > 0 THEN ' spawn on elemental death
-  FOR j = 1 TO es(deadguy - 4, 91)
-   slot = -1
-   FOR k = 7 TO 0 STEP -1
-    IF formdata(k * 4) = 0 THEN slot = k
-   NEXT k
-   IF slot > -1 THEN
-    formdata(slot * 4) = es(deadguy - 4, 79)
-    deadguycount = deadguycount - 1
-    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
-   END IF
-  NEXT j
-  es(deadguy - 4, 79) = 0
- END IF
-END IF
 RETRACE
 
 itemmenu:
@@ -2505,4 +2474,43 @@ FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
   IF bslot(i).dissolve > 0 THEN count += 1
  NEXT i
  RETURN count
+END FUNCTION
+
+SUB spawn_on_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, es(), atktype(), formdata(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$())
+'atktype() is an old hack for elemental checking. It can be replaced by
+'passing the attack (if any) to this sub
+ IF NOT is_enemy(deadguy) THEN EXIT SUB ' Only works for enemies
+ DIM slot AS INTEGER
+ DIM i AS INTEGER
+ IF es(deadguy - 4, 80) > 0 AND atktype(0) = 1 THEN ' spawn on non-elemental death
+  FOR i = 1 TO es(deadguy - 4, 91)
+   slot = find_empty_enemy_slot(formdata())
+   IF slot > -1 THEN
+    formdata(slot * 4) = es(deadguy - 4, 80)
+    deadguycount = deadguycount - 1
+    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
+   END IF
+  NEXT i
+  es(deadguy - 4, 80) = 0
+ END IF
+ IF es(deadguy - 4, 79) > 0 THEN ' spawn on elemental death (FIXME: verify, does this really only happen on elemental death?)
+  FOR i = 1 TO es(deadguy - 4, 91)
+   slot = find_empty_enemy_slot(formdata())
+   IF slot > -1 THEN
+    formdata(slot * 4) = es(deadguy - 4, 79)
+    deadguycount = deadguycount - 1
+    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
+   END IF
+  NEXT i
+  es(deadguy - 4, 79) = 0
+ END IF
+END SUB
+
+FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
+ 'Returns index of last empty slot, or -1 if none was found
+ DIM i AS INTEGER
+ FOR i = 7 TO 0 STEP -1
+  IF formdata(i * 4) = 0 THEN RETURN i
+ NEXT i
+ RETURN -1
 END FUNCTION
