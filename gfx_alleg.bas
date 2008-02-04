@@ -172,7 +172,7 @@ sub io_updatekeys(keybd() as integer)
 	dim a as integer
 	for a = 0 to &h7f
 		if key(a) then
-			keybd(scantrans(a)) = keybd(scantrans(a)) or 4
+			keybd(scantrans(a)) = keybd(scantrans(a)) or 8
 		end if
 	next
 end sub

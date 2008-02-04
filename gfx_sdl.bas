@@ -313,7 +313,7 @@ SUB io_updatekeys(keybd() as integer)
     IF keystate[a] THEN
       'print "OHRkey=" & scantrans(a) & " SDLkey=" & a & " " & *SDL_GetKeyName(a)
       IF scantrans(a) THEN
-        keybd(scantrans(a)) = keybd(scantrans(a)) OR 4
+        keybd(scantrans(a)) = keybd(scantrans(a)) OR 8
       END IF
     END IF
   NEXT

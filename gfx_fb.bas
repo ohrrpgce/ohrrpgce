@@ -295,7 +295,7 @@ sub io_updatekeys(keybd() as integer)
 	dim as integer a
 	for a = 0 to &h7f
 		if multikey(a) then
-			keybd(a) = keybd(a) or 4
+			keybd(a) = keybd(a) or 8
 		end if
 	next
 end sub
