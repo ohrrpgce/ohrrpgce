@@ -26,7 +26,7 @@ DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTE
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
-DECLARE SUB spawn_on_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), ext$(), bits(), bstat(), ebits(), batname$())
+DECLARE SUB spawn_on_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), ext$(), bits(), bstat() AS BattleStats, ebits(), batname$())
 
 'these are the battle global variables
 DIM as string battlecaption
@@ -2476,7 +2476,7 @@ FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
  RETURN count
 END FUNCTION
 
-SUB spawn_on_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), ext$(), bits(), bstat(), ebits(), batname$())
+SUB spawn_on_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), ext$(), bits(), bstat() AS BattleStats, ebits(), batname$())
 'atktype() is an old hack for elemental checking. It will be replaced with killing_attack eventually
  'killing_attack is the id+1 of the attack that killed the target or 0 if the target died without a specific attack
  IF NOT is_enemy(deadguy) THEN EXIT SUB ' Only works for enemies
