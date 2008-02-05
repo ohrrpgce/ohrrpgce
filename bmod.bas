@@ -26,7 +26,7 @@ DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTE
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
-DECLARE SUB spawn_on_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, es(), atktype(), formdata(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$())
+DECLARE SUB spawn_on_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), ext$(), bits(), bstat(), ebits(), batname$())
 
 'these are the battle global variables
 DIM as string battlecaption
@@ -1479,7 +1479,7 @@ IF deadguyhp = 0 AND formslotused <> 0 THEN
   ELSEIF bslot(deadguy).death_sfx > 0 THEN
    playsfx bslot(deadguy).death_sfx - 1
   END IF
-  spawn_on_death deadguy, deadguycount, es(), atktype(), formdata(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
+  spawn_on_death deadguy, deadguycount, 0, es(), atktype(), formdata(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
   IF formslotused > 0 THEN
    plunder& = plunder& + es(enemynum, 56)
    IF plunder& > 1000000000 THEN plunder& = 1000000000
@@ -2476,9 +2476,9 @@ FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
  RETURN count
 END FUNCTION
 
-SUB spawn_on_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, es(), atktype(), formdata(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$())
-'atktype() is an old hack for elemental checking. It can be replaced by
-'passing the attack (if any) to this sub
+SUB spawn_on_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), ext$(), bits(), bstat(), ebits(), batname$())
+'atktype() is an old hack for elemental checking. It will be replaced with killing_attack eventually
+ 'killing_attack is the id+1 of the attack that killed the target or 0 if the target died without a specific attack
  IF NOT is_enemy(deadguy) THEN EXIT SUB ' Only works for enemies
  DIM slot AS INTEGER
  DIM i AS INTEGER
