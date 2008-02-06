@@ -27,6 +27,7 @@ DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTE
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), ext$(), bits(), bstat() AS BattleStats, ebits(), batname$())
+DECLARE SUB check_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, BYVAL killing_attack AS INTEGER,BYVAL who AS INTEGER, BYREF you AS INTEGER, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF plunder AS LONG, BYREF exper AS LONG, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), ext$(), bits(), ebits(), batname$(), found(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 
 'these are the battle global variables
 DIM as string battlecaption
@@ -55,6 +56,7 @@ DIM dead, mapsong
 DIM spellcount AS INTEGER '--only used in heromenu GOSUB block
 DIM listslot AS INTEGER
 DIM nmenu(3,5) as integer 'new battle menu
+DIM plunder& = 0
 
 DIM autotmask(11) ' A list of true/false values indicating
               ' which targets are valid for the currently targetting attack
@@ -1430,104 +1432,14 @@ RETRACE
 fulldeathcheck:
 deadguycount = 0
 FOR deadguy = 4 TO 11
- GOSUB ifdead
+ check_death deadguy, deadguycount, 0, who, you, them, mset, noifdead, plunder&, exper&, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), ext$(), bits(), ebits(), batname$(), found(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
 NEXT deadguy
 IF deadguycount >= 8 THEN dead = 1
 deadguycount = 0
 FOR deadguy = 0 TO 3
- GOSUB ifdead
+ check_death deadguy, deadguycount, 0, who, you, them, mset, noifdead, plunder&, exper&, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), ext$(), bits(), ebits(), batname$(), found(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
 NEXT deadguy
 IF deadguycount = 4 THEN dead = 2
-RETRACE
-
-ifdead:
-deadguyhp = bstat(deadguy).cur.hp
-
-IF is_enemy(deadguy) THEN
- isenemy = 1
- enemynum = deadguy - 4
- formslotused = formdata((deadguy - 4) * 4)
- IF bstat(deadguy).cur.hp > 0 AND bslot(deadguy).hero_untargetable <> 0 THEN deadguycount = deadguycount + 1
-ELSE
- isenemy = 0
- enemynum = -1
- formslotused = -1
-END IF
-IF deadguyhp = 0 THEN deadguycount = deadguycount + 1
-IF deadguyhp = 0 AND formslotused <> 0 THEN
- '--deadguy is really dead (includes already-dead)
- bslot(deadguy).vis = 0
- ready(deadguy) = 0
- godo(deadguy) = 0
- bslot(deadguy).d = 0
- '--reset poison/regen/stun/mute
- WITH bstat(deadguy)
-  .cur.poison = .max.poison
-  .cur.regen  = .max.regen
-  .cur.stun   = .max.stun
-  .cur.mute   = .max.mute
- END WITH
- '-- if it is a dead hero's turn, cancel menu
- IF you = deadguy THEN you = -1: mset = 0
- '-- if it is a dead enemy's turn, cancel ai
- IF them = deadguy THEN them = -1
- IF isenemy THEN '------PLUNDER AND EXPERIENCE AND ITEMS------
-  IF bslot(deadguy).death_sfx = 0 THEN
-   IF gen(genDefaultDeathSFX) > 0 THEN
-    playsfx gen(genDefaultDeathSFX) - 1
-   END IF
-  ELSEIF bslot(deadguy).death_sfx > 0 THEN
-   playsfx bslot(deadguy).death_sfx - 1
-  END IF
-  spawn_on_death deadguy, deadguycount, 0, es(), atktype(), formdata(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
-  IF formslotused > 0 THEN
-   plunder& = plunder& + es(enemynum, 56)
-   IF plunder& > 1000000000 THEN plunder& = 1000000000
-   exper& = exper& + es(enemynum, 57)
-   IF exper& > 1000000 THEN exper& = 1000000
-   IF INT(RND * 100) < es(enemynum, 59) THEN '---GET ITEMS FROM FOES-----
-    FOR j = 0 TO 16
-     IF found(j, 1) = 0 THEN found(j, 0) = es(enemynum, 58): found(j, 1) = 1: EXIT FOR
-     IF found(j, 0) = es(enemynum, 58) THEN found(j, 1) = found(j, 1) + 1: EXIT FOR
-    NEXT j
-   ELSE '------END NORMAL ITEM---------------
-    IF INT(RND * 100) < es(enemynum, 61) THEN
-     FOR j = 0 TO 16
-      IF found(j, 1) = 0 THEN found(j, 0) = es(enemynum, 60): found(j, 1) = 1: EXIT FOR
-      IF found(j, 0) = es(enemynum, 60) THEN found(j, 1) = found(j, 1) + 1: EXIT FOR
-     NEXT j
-    END IF '---END RARE ITEM-------------
-   END IF '----END GET ITEMS----------------
-  END IF
-  ' remove dead enemy from formation
-  formdata((deadguy - 4) * 4) = 0
- END IF'------------END PLUNDER-------------------
- IF noifdead = 0 THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
-  tcount = tcount - 1
-  FOR j = 0 TO 11
-   '--Search through each hero and enemy to see if any of them are targetting the
-   '--guy who just died
-   t(j, 12) = -1
-   FOR k = 0 TO 11
-    '--sort dead target away
-    IF t(j, k) = deadguy AND readbit(ltarg(), j, deadguy) = 0 THEN SWAP t(j, k), t(j, k + 1)
-   NEXT k
-   IF t(j, 0) = -1 AND who <> j AND godo(j) > 0 THEN
-    'if no targets left, a-to-re-target
-    loadattackdata buffer(), godo(j) - 1
-    get_valid_targs autotmask(), j, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
-    autotarget t(), autotmask(), j, buffer(), bslot(), bstat()
-   END IF
-   IF tmask(deadguy) = 1 THEN tmask(deadguy) = 0
-   IF targs(deadguy) = 1 THEN targs(deadguy) = 0
-  NEXT j
-  IF tptr = deadguy THEN
-   WHILE tmask(tptr) = 0
-    tptr = tptr + 1: IF tptr > 11 THEN ptarg = 0: RETRACE
-   WEND
-  END IF
- END IF  '----END ONLY WHEN NOIFDEAD = 0
-END IF  '----END (deadguy) IS DEAD
 RETRACE
 
 sponhit:
@@ -1952,7 +1864,7 @@ FOR i = 0 TO 11
    bslot(i).dissolve -= 1
    IF bslot(i).dissolve = 0 THEN
     'formdata((i-4) * 4) = 0 'disabled to fix bug 184
-    'make dead enemy invisible (the ifdead code will actually do the final removal)
+    'make dead enemy invisible (the check_death code will actually do the final removal)
     bslot(i).vis = 0
    END IF
   END IF
@@ -2182,7 +2094,7 @@ IF bos = 0 THEN
  NEXT i
  deadguycount = 0
  FOR deadguy = 4 TO 11
-  GOSUB ifdead
+  check_death deadguy, deadguycount, 0, who, you, them, mset, noifdead, plunder&, exper&, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), ext$(), bits(), ebits(), batname$(), found(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
  NEXT deadguy
  IF deadguycount = 8 THEN dead = 1
 END IF
@@ -2467,6 +2379,9 @@ SUB anim_setdir(who, d)
  pushw 21: pushw who: pushw d
 END SUB
 
+'FIXME: This affexts the rest of the file. Move it up as above functions are cleaned up
+OPTION EXPLICIT
+
 FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
  DIM i AS INTEGER
  DIM count AS INTEGER = 0
@@ -2514,3 +2429,95 @@ FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
  NEXT i
  RETURN -1
 END FUNCTION
+
+SUB check_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, BYVAL killing_attack AS INTEGER,BYVAL who AS INTEGER, BYREF you AS INTEGER, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF plunder AS LONG, BYREF exper AS LONG, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), ext$(), bits(), ebits(), batname$(), found(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
+ DIM enemynum AS INTEGER
+ DIM formslotused AS INTEGER
+
+ DIM AS INTEGER j,k 'for loop counters
+
+ IF is_enemy(deadguy) THEN
+  enemynum = deadguy - 4
+  formslotused = formdata((deadguy - 4) * 4)
+  IF bstat(deadguy).cur.hp > 0 AND bslot(deadguy).hero_untargetable <> 0 THEN deadguycount = deadguycount + 1
+ ELSE
+  enemynum = -1
+  formslotused = -1
+ END IF
+ IF bstat(deadguy).cur.hp = 0 THEN deadguycount = deadguycount + 1
+ IF bstat(deadguy).cur.hp <> 0 THEN EXIT SUB
+ IF formslotused = 0 THEN EXIT SUB
+ '--deadguy is really dead (includes already dead and empty hero slots??)
+ bslot(deadguy).vis = 0
+ ready(deadguy) = 0
+ godo(deadguy) = 0
+ bslot(deadguy).d = 0
+ '--reset poison/regen/stun/mute
+ WITH bstat(deadguy)
+  .cur.poison = .max.poison
+  .cur.regen  = .max.regen
+  .cur.stun   = .max.stun
+  .cur.mute   = .max.mute
+ END WITH
+ '-- if it is a dead hero's turn, cancel menu
+ IF you = deadguy THEN you = -1: mset = 0
+ '-- if it is a dead enemy's turn, cancel ai
+ IF them = deadguy THEN them = -1
+ IF is_enemy(deadguy) THEN '------PLUNDER AND EXPERIENCE AND ITEMS------
+  IF bslot(deadguy).death_sfx = 0 THEN
+   IF gen(genDefaultDeathSFX) > 0 THEN
+    playsfx gen(genDefaultDeathSFX) - 1
+   END IF
+  ELSEIF bslot(deadguy).death_sfx > 0 THEN
+   playsfx bslot(deadguy).death_sfx - 1
+  END IF
+  spawn_on_death deadguy, deadguycount, 0, es(), atktype(), formdata(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
+  IF formslotused > 0 THEN
+   plunder = plunder + es(enemynum, 56)
+   IF plunder > 1000000000 THEN plunder = 1000000000
+   exper = exper + es(enemynum, 57)
+   IF exper > 1000000 THEN exper = 1000000
+   IF INT(RND * 100) < es(enemynum, 59) THEN '---GET ITEMS FROM FOES-----
+    FOR j = 0 TO 16
+     IF found(j, 1) = 0 THEN found(j, 0) = es(enemynum, 58): found(j, 1) = 1: EXIT FOR
+     IF found(j, 0) = es(enemynum, 58) THEN found(j, 1) = found(j, 1) + 1: EXIT FOR
+    NEXT j
+   ELSE '------END NORMAL ITEM---------------
+    IF INT(RND * 100) < es(enemynum, 61) THEN
+     FOR j = 0 TO 16
+      IF found(j, 1) = 0 THEN found(j, 0) = es(enemynum, 60): found(j, 1) = 1: EXIT FOR
+      IF found(j, 0) = es(enemynum, 60) THEN found(j, 1) = found(j, 1) + 1: EXIT FOR
+     NEXT j
+    END IF '---END RARE ITEM-------------
+   END IF '----END GET ITEMS----------------
+  END IF
+  ' remove dead enemy from formation
+  formdata((deadguy - 4) * 4) = 0
+ END IF'------------END PLUNDER-------------------
+ IF noifdead = 0 THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
+  tcount = tcount - 1
+  FOR j = 0 TO 11
+   '--Search through each hero and enemy to see if any of them are targetting the
+   '--guy who just died
+   t(j, 12) = -1
+   FOR k = 0 TO 11
+    '--sort dead target away
+    IF t(j, k) = deadguy AND readbit(ltarg(), j, deadguy) = 0 THEN SWAP t(j, k), t(j, k + 1)
+   NEXT k
+   IF t(j, 0) = -1 AND who <> j AND godo(j) > 0 THEN
+    'if no targets left, auto-re-target
+    loadattackdata buffer(), godo(j) - 1
+    get_valid_targs autotmask(), j, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
+    autotarget t(), autotmask(), j, buffer(), bslot(), bstat()
+   END IF
+   IF tmask(deadguy) = 1 THEN tmask(deadguy) = 0
+   IF targs(deadguy) = 1 THEN targs(deadguy) = 0
+  NEXT j
+  IF tptr = deadguy THEN
+   WHILE tmask(tptr) = 0
+    tptr = tptr + 1: IF tptr > 11 THEN ptarg = 0: EXIT SUB
+   WEND
+  END IF
+ END IF  '----END ONLY WHEN NOIFDEAD = 0
+END SUB'retrace
