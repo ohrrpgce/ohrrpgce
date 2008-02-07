@@ -763,10 +763,10 @@ DO
  IF do_paste THEN
   do_paste = 0
   loadsprite placer(), 0, num * size, soff * (pt - top), xw, yw, 3
-  rectangle 0, 0, xw, yw, uilook(uiBackground), dpage
+  rectangle 0, 0, xw, yw, 0, dpage
   drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
   IF NOT paste_transparent THEN
-   rectangle 0, 0, clippedw, clippedh, uilook(uiBackground), dpage
+   rectangle 0, 0, clippedw, clippedh, 0, dpage
   END IF
   drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
   getsprite placer(), 0, 0, 0, xw, yw, dpage
@@ -811,7 +811,7 @@ rectangle 4 + (num * (xw + 1)), (pt - top) * (yw + 5), xw + 2, yw + 2, uilook(ui
 FOR i = top TO small(top + atatime, sets)
  picslot = i - top
  FOR o = 0 TO perset - 1
-  rectangle 5 + (o * (xw + 1)), 1 + (picslot * (yw + 5)), xw, yw, uilook(uiBackground), dpage
+  rectangle 5 + (o * (xw + 1)), 1 + (picslot * (yw + 5)), xw, yw, 0, dpage
   loadsprite placer(), 0, size * o, soff * picslot, xw, yw, 3
   drawsprite placer(), 0, workpal(), (i - top) * 16, 5 + (o * (xw + 1)), 1 + (picslot * (yw + 5)), dpage
  NEXT o
@@ -855,7 +855,7 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  'blank the sprite area
- rectangle 239, 119, xw, yw, uilook(uiBackground), dpage
+ rectangle 239, 119, xw, yw, 0, dpage
  dowait
 LOOP
 j = pt
@@ -901,17 +901,17 @@ IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AN
 END IF
 '--PASTE (SHIFT+INS,CTRL+V)
 IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN
- rectangle 0, 0, xw, yw, uilook(uiBackground), dpage
+ rectangle 0, 0, xw, yw, 0, dpage
  drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
- rectangle x, y, clippedw, clippedh, uilook(uiBackground), dpage
- drawsprite spriteclip(), 0, nulpal(), 0, x, y, dpage
+ rectangle 0, 0, clippedw, clippedh, 0, dpage
+ drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
  getsprite placer(), 0, 0, 0, xw, yw, dpage
 END IF
 '--TRANSPARENT PASTE (CTRL+T)
 IF (keyval(29) > 0 AND keyval(20) > 1) AND paste = 1 THEN
- rectangle 0, 0, xw, yw, uilook(uiBackground), dpage
+ rectangle 0, 0, xw, yw, 0, dpage
  drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
- drawsprite spriteclip(), 0, nulpal(), 0, x, y, dpage
+ drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
  getsprite placer(), 0, 0, 0, xw, yw, dpage
 END IF
 '--COPY PALETTE (ALT+C)
@@ -1049,10 +1049,10 @@ IF keyval(28) > 1 OR (zone = 1 AND mouse(2) = 2) THEN
 END IF
 IF keyval(14) > 1 OR (zone = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, nulpal(), 0, 239, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
 IF keyval(58) > 0 THEN
- IF keyval(72) > 0 THEN rectangle 239, 119, xw, yw, uilook(uiBackground), dpage: drawsprite placer(), 0, nulpal(), 0, 239, 118, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
- IF keyval(80) > 0 THEN rectangle 239, 119, xw, yw, uilook(uiBackground), dpage: drawsprite placer(), 0, nulpal(), 0, 239, 120, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
- IF keyval(75) > 0 THEN rectangle 239, 119, xw, yw, uilook(uiBackground), dpage: drawsprite placer(), 0, nulpal(), 0, 238, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
- IF keyval(77) > 0 THEN rectangle 239, 119, xw, yw, uilook(uiBackground), dpage: drawsprite placer(), 0, nulpal(), 0, 240, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+ IF keyval(72) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 118, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+ IF keyval(80) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 120, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+ IF keyval(75) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 238, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+ IF keyval(77) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 240, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
 END IF
 IF keyval(23) > 1 OR (zone = 13 AND mouse(3) > 0) THEN GOSUB import16
 RETRACE
@@ -1060,11 +1060,11 @@ RETRACE
 spedbak:
 clearpage 2
 rectangle 3, 0, xw * zoom + 2, yw * zoom + 2, uilook(uiText), 2
-rectangle 4, 1, xw * zoom, yw * zoom, uilook(uiBackground), 2
+rectangle 4, 1, xw * zoom, yw * zoom, 0, 2
 rectangle 245, 109, 67, 8, uilook(uiText), 2
-rectangle 246, 110, 65, 6, uilook(uiBackground), 2
+rectangle 246, 110, 65, 6, 0, 2
 rectangle 238, 118, xw + 2, yw + 2, uilook(uiText), 2
-rectangle 239, 119, xw, yw, uilook(uiBackground), 2
+rectangle 239, 119, xw, yw, 0, 2
 area(0, 2) = xw * zoom
 area(0, 3) = yw * zoom
 area(13, 2) = xw
@@ -1171,7 +1171,7 @@ RETRACE
 floodfill:
 GOSUB writeundospr
 rectangle 238, 118, xw + 2, yw + 2, uilook(uiHighlight), dpage
-rectangle 239, 119, xw, yw, uilook(uiBackground), dpage
+rectangle 239, 119, xw, yw, 0, dpage
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 paintat 239 + x, 119 + y, col, dpage, buffer(), 16384
 getsprite placer(), 0, 239, 119, xw, yw, dpage
@@ -1683,7 +1683,7 @@ NEXT i
 END SUB
 
 SUB writeundoblock (mover(), state AS TileEditState)
-rectangle 270, 16 + (state.undo * 21), 8, 8, uilook(uiBackground), 2
+rectangle 270, 16 + (state.undo * 21), 8, 8, 0, 2
 state.undo = loopvar(state.undo, 0, 5, 1)
 copymapblock mover(), state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
 textcolor uilook(uiMenuItem), 0
@@ -1693,7 +1693,7 @@ END SUB
 
 SUB readundoblock (mover(), state AS TileEditState)
 FOR j = 0 TO 5
- rectangle 270, 16 + (j * 21), 8, 8, uilook(uiBackground), 2
+ rectangle 270, 16 + (j * 21), 8, 8, 0, 2
 NEXT j
 copymapblock mover(), 280, 10 + (state.undo * 21), 2, state.tilex * 20, state.tiley * 20, 3
 textcolor uilook(uiMenuItem), 0
