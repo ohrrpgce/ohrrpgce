@@ -62,7 +62,7 @@ end type
 
 
 'extern
-extern tmpdir
+extern tmpdir as string
 
 declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 
