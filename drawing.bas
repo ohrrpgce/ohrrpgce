@@ -903,15 +903,15 @@ END IF
 IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN
  rectangle 0, 0, xw, yw, 0, dpage
  drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
- rectangle 0, 0, clippedw, clippedh, 0, dpage
- drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
+ rectangle x, y, clippedw, clippedh, 0, dpage
+ drawsprite spriteclip(), 0, nulpal(), 0, x, y, dpage
  getsprite placer(), 0, 0, 0, xw, yw, dpage
 END IF
 '--TRANSPARENT PASTE (CTRL+T)
 IF (keyval(29) > 0 AND keyval(20) > 1) AND paste = 1 THEN
  rectangle 0, 0, xw, yw, 0, dpage
  drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
- drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
+ drawsprite spriteclip(), 0, nulpal(), 0, x, y, dpage
  getsprite placer(), 0, 0, 0, xw, yw, dpage
 END IF
 '--COPY PALETTE (ALT+C)
