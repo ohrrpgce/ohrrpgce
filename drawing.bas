@@ -10,7 +10,7 @@ DEFINT A-Z
 
 'basic subs and functions
 DECLARE SUB picktiletoedit (tmode%, pagenum%, mapfile$)
-DECLARE SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea, shortk(), cursor(), icon$(), toolname$())
+DECLARE SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea, shortk(), cursor(), icon$(), toolname$(), toolarea())
 DECLARE SUB tilecut (ts AS TileEditState, mouse(), area() AS MouseArea)
 DECLARE SUB refreshtileedit (mover%(), state AS TileEditState)
 DECLARE SUB writeundoblock (mover%(), state AS TileEditState)
@@ -630,7 +630,7 @@ END SUB
 
 SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, fileset, font())
 STATIC default$, spriteclip(1600), clippedpal, clippedw, clippedh, paste
-DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40), mouse(4), area(20) AS MouseArea, tool$(5), icon$(5), shortk(5), cursor(5)
+DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40), mouse(4), area(20) AS MouseArea, tool$(5), icon$(5), shortk(5), cursor(5), toolarea(5)
 DIM workpal(8 * (atatime + 1))
 DIM poffset(large(sets, atatime))
 DIM AS INTEGER do_paste = 0
@@ -652,12 +652,12 @@ debug_palettes = 0
 pmenu$(0) = "Overwrite Current Palette"
 pmenu$(1) = "Import Without Palette"
 pmenu$(2) = "Cancel Import"
-tool$(0) = "Draw": icon$(0) = CHR$(3): shortk(0) = 32: cursor(0) = 0
-tool$(1) = "Box ": icon$(1) = CHR$(4): shortk(1) = 48: cursor(1) = 1
-tool$(2) = "Line": icon$(2) = CHR$(5): shortk(2) = 38: cursor(2) = 2
-tool$(3) = "Fill": icon$(3) = "F":     shortk(3) = 33: cursor(3) = 3
-tool$(4) = "Oval": icon$(4) = "O":     shortk(4) = 24: cursor(4) = 2
-tool$(5) = "Air ": icon$(5) = "A":     shortk(5) = 30: cursor(5) = 3
+tool$(0) = "Draw": icon$(0) = CHR$(3): shortk(0) = 32: cursor(0) = 0: toolarea(0) = 6
+tool$(1) = "Box ": icon$(1) = CHR$(4): shortk(1) = 48: cursor(1) = 1: toolarea(1) = 7
+tool$(2) = "Line": icon$(2) = CHR$(5): shortk(2) = 38: cursor(2) = 2: toolarea(2) = 8
+tool$(3) = "Fill": icon$(3) = "F":     shortk(3) = 33: cursor(3) = 3: toolarea(3) = 9
+tool$(4) = "Oval": icon$(4) = "O":     shortk(4) = 24: cursor(4) = 2: toolarea(4) = 10
+tool$(5) = "Air ": icon$(5) = "A":     shortk(5) = 30: cursor(5) = 3: toolarea(5) = 11
 
 FOR i = 0 TO 15
  poke8bit nulpal(), i, i
@@ -1286,7 +1286,7 @@ FOR i = 0 TO 5
  IF tool = i THEN t1 = uilook(uiText): t2 = uilook(uiMenuItem)
  IF zone - 7 = i THEN t2 = uilook(uiSelectedDisabled)
  textcolor t1, t2
- printstr icon$(i), 90 + i * 12, 190, dpage
+ printstr icon$(i), area(toolarea(i)).x, area(toolarea(i)).y, dpage
 NEXT i
 textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF zone = 4 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
 printstr CHR$(7), 182, 190, dpage
@@ -1368,7 +1368,7 @@ area(5).h = 8
 area(5).hidecursor = NO
 'TOOL BUTTONS
 FOR i = 0 TO 5
- area(6 + i).x = 90 + i * 12
+ area(6 + i).x = 80 + i * 10
  area(6 + i).y = 190
  area(6 + i).w = 8
  area(6 + i).h = 10
@@ -1503,18 +1503,18 @@ END SUB
 
 SUB picktiletoedit (tmode, pagenum, mapfile$)
 STATIC cutnpaste(19, 19), oldpaste
-DIM ts AS TileEditState, mover(12), mouse(4), area(20) AS MouseArea, toolname$(5), icon$(5), shortk(5), cursor(5)
+DIM ts AS TileEditState, mover(12), mouse(4), area(20) AS MouseArea, toolname$(5), icon$(7), shortk(5), cursor(5), toolarea(7)
 ts.gotmouse = setmouse(mouse())
 ts.canpaste = oldpaste
 ts.drawcursor = 1
 ts.airsize = 5
 ts.mist = 10
-toolname$(0) = "Draw": icon$(0) = CHR$(3): shortk(0) = 32: cursor(0) = 0
-toolname$(1) = "Box ": icon$(1) = CHR$(4): shortk(1) = 48: cursor(1) = 1
-toolname$(2) = "Line": icon$(2) = CHR$(5): shortk(2) = 38: cursor(2) = 2
-toolname$(3) = "Fill": icon$(3) = "F":     shortk(3) = 33: cursor(3) = 3
-toolname$(4) = "Oval": icon$(4) = "O":     shortk(4) = 24: cursor(4) = 2
-toolname$(5) = "Air ": icon$(5) = "A":     shortk(5) = 30: cursor(5) = 3
+toolname$(0) = "Draw": icon$(0) = CHR$(3): shortk(0) = 32: cursor(0) = 0: toolarea(0) = 2
+toolname$(1) = "Box ": icon$(1) = CHR$(4): shortk(1) = 48: cursor(1) = 1: toolarea(1) = 3
+toolname$(2) = "Line": icon$(2) = CHR$(5): shortk(2) = 38: cursor(2) = 2: toolarea(2) = 4
+toolname$(3) = "Fill": icon$(3) = "F":     shortk(3) = 33: cursor(3) = 3: toolarea(3) = 5
+toolname$(4) = "Oval": icon$(4) = "O":     shortk(4) = 24: cursor(4) = 2: toolarea(4) = 6
+toolname$(5) = "Air ": icon$(5) = "A":     shortk(5) = 30: cursor(5) = 3: toolarea(5) = 7
 area(0).x = 60
 area(0).y = 0
 area(0).w = 200
@@ -1628,7 +1628,7 @@ DO
  IF enter_or_space() OR mouse(3) > 0 THEN
   setkeys
   IF tmode = 0 THEN
-   editmaptile ts, mover(), mouse(), area(), shortk(), cursor(), icon$(), toolname$()
+   editmaptile ts, mover(), mouse(), area(), shortk(), cursor(), icon$(), toolname$(), toolarea()
   END IF
   IF tmode = 1 THEN
    tilecut ts, mouse(), area()
@@ -1701,7 +1701,7 @@ printstr ">", 270, 16 + (state.undo * 21), 2
 refreshtileedit mover(), state
 END SUB
 
-SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea, shortk(), cursor(), icon$(), toolname$())
+SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea, shortk(), cursor(), icon$(), toolname$(), toolarea())
 ts.justpainted = 0
 ts.undo = 0
 ts.allowundo = 0
@@ -1862,7 +1862,7 @@ DO
   IF ts.tool = i THEN t1 = uilook(uiText): t2 = uilook(uiMenuItem)
   IF ts.zone - 3 = i THEN t2 = uilook(uiSelectedDisabled)
   textcolor t1, t2
-  printstr icon$(i), 4 + i * 9, 32, dpage
+  printstr icon$(i), area(toolarea(i)).x, area(toolarea(i)).y, dpage
  NEXT i
  FOR i = 0 TO 3
   textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ts.zone = 13 + i THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
