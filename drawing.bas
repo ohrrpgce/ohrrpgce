@@ -10,7 +10,7 @@ DEFINT A-Z
 
 'basic subs and functions
 DECLARE SUB picktiletoedit (tmode%, pagenum%, mapfile$)
-DECLARE SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea, shortk(), cursor(), icon$(), toolname$(), toolarea())
+DECLARE SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea, toolinfo() AS ToolInfoType)
 DECLARE SUB tilecut (ts AS TileEditState, mouse(), area() AS MouseArea)
 DECLARE SUB refreshtileedit (mover%(), state AS TileEditState)
 DECLARE SUB writeundoblock (mover%(), state AS TileEditState)
@@ -630,7 +630,8 @@ END SUB
 
 SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, fileset, font())
 STATIC default$, spriteclip(1600), clippedpal, clippedw, clippedh, paste
-DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40), mouse(4), area(20) AS MouseArea, tool$(5), icon$(5), shortk(5), cursor(5), toolarea(5)
+DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40), mouse(4), area(20) AS MouseArea
+DIM toolinfo(5) AS ToolInfoType
 DIM workpal(8 * (atatime + 1))
 DIM poffset(large(sets, atatime))
 DIM AS INTEGER do_paste = 0
@@ -652,13 +653,48 @@ debug_palettes = 0
 pmenu$(0) = "Overwrite Current Palette"
 pmenu$(1) = "Import Without Palette"
 pmenu$(2) = "Cancel Import"
-tool$(0) = "Draw": icon$(0) = CHR$(3): shortk(0) = 32: cursor(0) = 0: toolarea(0) = 6
-tool$(1) = "Box ": icon$(1) = CHR$(4): shortk(1) = 48: cursor(1) = 1: toolarea(1) = 7
-tool$(2) = "Line": icon$(2) = CHR$(5): shortk(2) = 38: cursor(2) = 2: toolarea(2) = 8
-tool$(3) = "Fill": icon$(3) = "F":     shortk(3) = 33: cursor(3) = 3: toolarea(3) = 9
-tool$(4) = "Oval": icon$(4) = "O":     shortk(4) = 24: cursor(4) = 2: toolarea(4) = 10
-tool$(5) = "Air ": icon$(5) = "A":     shortk(5) = 30: cursor(5) = 3: toolarea(5) = 11
-
+WITH toolinfo(0)
+ .name = "Draw"
+ .icon = CHR(3)
+ .shortcut = 32
+ .cursor = 0
+ .areanum = 6
+END WITH
+WITH toolinfo(1)
+ .name = "Box"
+ .icon = CHR(4)
+ .shortcut = 48
+ .cursor = 1
+ .areanum = 7
+END WITH
+WITH toolinfo(2)
+ .name = "Line"
+ .icon = CHR(5)
+ .shortcut = 38
+ .cursor = 2
+ .areanum = 8
+END WITH
+WITH toolinfo(3)
+ .name = "Fill"
+ .icon = "F"
+ .shortcut = 33
+ .cursor = 3
+ .areanum = 9
+END WITH
+WITH toolinfo(4)
+ .name = "Oval"
+ .icon = "O"
+ .shortcut = 24
+ .cursor = 2
+ .areanum = 10
+END WITH
+WITH toolinfo(5)
+ .name = "Air"
+ .icon = "A"
+ .shortcut = 30
+ .cursor = 3
+ .areanum = 11
+END WITH
 FOR i = 0 TO 15
  poke8bit nulpal(), i, i
 NEXT i
@@ -1038,10 +1074,10 @@ IF ovalstep = 1 THEN
  radius = large(ABS(x - bx), ABS(y - by))
 END IF
 FOR i = 0 TO 5
- IF (mouse(3) > 0 AND zone = 7 + i) OR keyval(shortk(i)) > 1 THEN
+ IF (mouse(3) > 0 AND zone = 7 + i) OR keyval(toolinfo(i).shortcut) > 1 THEN
   tool = i
   GOSUB resettool
-  dcsr = cursor(i) + 1
+  dcsr = toolinfo(i).cursor + 1
  END IF
 NEXT i
 IF keyval(28) > 1 OR (zone = 1 AND mouse(2) = 2) THEN
@@ -1280,13 +1316,13 @@ END IF
 putpixel 239 + x, 119 + y, tog * 15, dpage
 textcolor uilook(uiMenuItem), 0
 printstr info$(num), 0, 182, dpage
-printstr "Tool:" + tool$(tool), 0, 190, dpage
+printstr "Tool:" & toolinfo(tool).name, 0, 190, dpage
 FOR i = 0 TO 5
  t1 = uilook(uiMenuItem): t2 = uilook(uiDisabledItem)
  IF tool = i THEN t1 = uilook(uiText): t2 = uilook(uiMenuItem)
  IF zone - 7 = i THEN t2 = uilook(uiSelectedDisabled)
  textcolor t1, t2
- printstr icon$(i), area(toolarea(i)).x, area(toolarea(i)).y, dpage
+ printstr toolinfo(i).icon, area(toolinfo(i).areanum).x, area(toolinfo(i).areanum).y, dpage
 NEXT i
 textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF zone = 4 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
 printstr CHR$(7), 182, 190, dpage
@@ -1503,18 +1539,55 @@ END SUB
 
 SUB picktiletoedit (tmode, pagenum, mapfile$)
 STATIC cutnpaste(19, 19), oldpaste
-DIM ts AS TileEditState, mover(12), mouse(4), area(20) AS MouseArea, toolname$(5), icon$(7), shortk(5), cursor(5), toolarea(7)
+DIM ts AS TileEditState, mover(12), mouse(4), area(20) AS MouseArea
+DIM toolinfo(5) AS ToolInfoType
 ts.gotmouse = setmouse(mouse())
 ts.canpaste = oldpaste
 ts.drawcursor = 1
 ts.airsize = 5
 ts.mist = 10
-toolname$(0) = "Draw": icon$(0) = CHR$(3): shortk(0) = 32: cursor(0) = 0: toolarea(0) = 2
-toolname$(1) = "Box ": icon$(1) = CHR$(4): shortk(1) = 48: cursor(1) = 1: toolarea(1) = 3
-toolname$(2) = "Line": icon$(2) = CHR$(5): shortk(2) = 38: cursor(2) = 2: toolarea(2) = 4
-toolname$(3) = "Fill": icon$(3) = "F":     shortk(3) = 33: cursor(3) = 3: toolarea(3) = 5
-toolname$(4) = "Oval": icon$(4) = "O":     shortk(4) = 24: cursor(4) = 2: toolarea(4) = 6
-toolname$(5) = "Air ": icon$(5) = "A":     shortk(5) = 30: cursor(5) = 3: toolarea(5) = 7
+WITH toolinfo(0)
+ .name = "Draw"
+ .icon = CHR(3)
+ .shortcut = 32
+ .cursor = 0
+ .areanum = 2
+END WITH
+WITH toolinfo(1)
+ .name = "Box"
+ .icon = CHR(4)
+ .shortcut = 48
+ .cursor = 1
+ .areanum = 3
+END WITH
+WITH toolinfo(2)
+ .name = "Line"
+ .icon = CHR(5)
+ .shortcut = 38
+ .cursor = 2
+ .areanum = 4
+END WITH
+WITH toolinfo(3)
+ .name = "Fill"
+ .icon = "F"
+ .shortcut = 33
+ .cursor = 3
+ .areanum = 5
+END WITH
+WITH toolinfo(4)
+ .name = "Oval"
+ .icon = "O"
+ .shortcut = 24
+ .cursor = 2
+ .areanum = 6
+END WITH
+WITH toolinfo(5)
+ .name = "Air"
+ .icon = "A"
+ .shortcut = 30
+ .cursor = 3
+ .areanum = 7
+END WITH
 area(0).x = 60
 area(0).y = 0
 area(0).w = 200
@@ -1628,7 +1701,7 @@ DO
  IF enter_or_space() OR mouse(3) > 0 THEN
   setkeys
   IF tmode = 0 THEN
-   editmaptile ts, mover(), mouse(), area(), shortk(), cursor(), icon$(), toolname$(), toolarea()
+   editmaptile ts, mover(), mouse(), area(), toolinfo()
   END IF
   IF tmode = 1 THEN
    tilecut ts, mouse(), area()
@@ -1701,7 +1774,7 @@ printstr ">", 270, 16 + (state.undo * 21), 2
 refreshtileedit mover(), state
 END SUB
 
-SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea, shortk(), cursor(), icon$(), toolname$(), toolarea())
+SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea, toolinfo() AS ToolInfoType)
 ts.justpainted = 0
 ts.undo = 0
 ts.allowundo = 0
@@ -1760,7 +1833,7 @@ DO
  END IF 
  '---KEYBOARD SHORTCUTS FOR TOOLS------------
  FOR i = 0 TO 5
-  IF keyval(shortk(i)) > 1 THEN ts.tool = i: ts.hold = 0: ts.drawcursor = cursor(i) + 1
+  IF keyval(toolinfo(i).shortcut) > 1 THEN ts.tool = i: ts.hold = 0: ts.drawcursor = toolinfo(i).cursor + 1
  NEXT i
  '----------
  IF keyval(51) > 1 OR (keyval(56) > 0 AND keyval(75) > 0) THEN
@@ -1795,7 +1868,7 @@ DO
   CASE 3 TO 8
    IF mouse(3) = 1 THEN
     ts.tool = ts.zone - 3
-    ts.drawcursor = cursor(ts.tool) + 1
+    ts.drawcursor = toolinfo(ts.tool).cursor + 1
     ts.hold = 0
    END IF
   CASE 13 TO 16
@@ -1854,7 +1927,7 @@ DO
    ellipse 65 + ts.hox * 10, 4 + ts.hoy * 8, radius, ts.curcolor, dpage, 0, 0
  END SELECT
  textcolor uilook(uiText), uilook(uiHighlight)
- printstr toolname$(ts.tool), 8, 8, dpage
+ printstr toolinfo(ts.tool).name, 8, 8, dpage
  printstr "Tool", 8, 16, dpage
  printstr "Undo", 274, 1, dpage
  FOR i = 0 TO 5
@@ -1862,7 +1935,7 @@ DO
   IF ts.tool = i THEN t1 = uilook(uiText): t2 = uilook(uiMenuItem)
   IF ts.zone - 3 = i THEN t2 = uilook(uiSelectedDisabled)
   textcolor t1, t2
-  printstr icon$(i), area(toolarea(i)).x, area(toolarea(i)).y, dpage
+  printstr toolinfo(i).icon, area(toolinfo(i).areanum).x, area(toolinfo(i).areanum).y, dpage
  NEXT i
  FOR i = 0 TO 3
   textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ts.zone = 13 + i THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)

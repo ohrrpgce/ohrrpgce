@@ -400,6 +400,14 @@ TYPE MouseArea
   hidecursor AS INTEGER
 END TYPE
 
+TYPE ToolInfoType
+  name AS STRING
+  icon AS STRING
+  shortcut AS INTEGER
+  cursor AS INTEGER
+  areanum AS INTEGER
+END TYPE
+
 'it's not possible to include utils.bi in here, because of compat.bi
 #ifndef UTIL_BI
 TYPE Stack
