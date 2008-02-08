@@ -10,8 +10,8 @@ DEFINT A-Z
 
 'basic subs and functions
 DECLARE SUB picktiletoedit (tmode%, pagenum%, mapfile$)
-DECLARE SUB editmaptile (ts AS TileEditState, mover%(), mouse%(), area%(), shortk%(), cursor%(), icon$(), toolname$())
-DECLARE SUB tilecut (ts AS TileEditState, mouse%(), area%())
+DECLARE SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea, shortk(), cursor(), icon$(), toolname$())
+DECLARE SUB tilecut (ts AS TileEditState, mouse(), area() AS MouseArea)
 DECLARE SUB refreshtileedit (mover%(), state AS TileEditState)
 DECLARE SUB writeundoblock (mover%(), state AS TileEditState)
 DECLARE SUB readundoblock (mover%(), state AS TileEditState)
@@ -33,7 +33,7 @@ DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE SUB setanimpattern (tastuf%(), taset%)
 DECLARE SUB editbitset (array%(), wof%, last%, name() AS STRING)
-DECLARE FUNCTION mouseover% (mouse%(), zox%, zoy%, zcsr%, area%())
+DECLARE FUNCTION mouseover% (mouse%(), zox%, zoy%, zcsr%, area() AS MouseArea)
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
@@ -482,15 +482,15 @@ RETRACE
 
 END SUB
 
-FUNCTION mouseover (mouse(), zox, zoy, zcsr, area())
+FUNCTION mouseover (mouse(), zox, zoy, zcsr, area() AS MouseArea)
 
 FOR i = 20 TO 0 STEP -1
- IF area(i, 2) <> 0 AND area(i, 3) <> 0 THEN
-  IF mouse(0) >= area(i, 0) AND mouse(0) < area(i, 0) + area(i, 2) THEN
-   IF mouse(1) >= area(i, 1) AND mouse(1) < area(i, 1) + area(i, 3) THEN
-    zox = mouse(0) - area(i, 0)
-    zoy = mouse(1) - area(i, 1)
-    zcsr = area(i, 4)
+ IF area(i).w <> 0 AND area(i).h <> 0 THEN
+  IF mouse(0) >= area(i).x AND mouse(0) < area(i).x + area(i).w THEN
+   IF mouse(1) >= area(i).y AND mouse(1) < area(i).y + area(i).h THEN
+    zox = mouse(0) - area(i).x
+    zoy = mouse(1) - area(i).y
+    zcsr = area(i).hidecursor
     mouseover = i + 1
     EXIT FUNCTION
    END IF 'Y OKAY---
@@ -630,7 +630,7 @@ END SUB
 
 SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, fileset, font())
 STATIC default$, spriteclip(1600), clippedpal, clippedw, clippedh, paste
-DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40), mouse(4), area(20, 4), tool$(5), icon$(5), shortk(5), cursor(5)
+DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40), mouse(4), area(20) AS MouseArea, tool$(5), icon$(5), shortk(5), cursor(5)
 DIM workpal(8 * (atatime + 1))
 DIM poffset(large(sets, atatime))
 DIM AS INTEGER do_paste = 0
@@ -950,15 +950,15 @@ IF keyval(56) = 0 THEN
   IF zone = 1 THEN
    zox = x * zoom + INT(zoom / 2)
    zoy = y * zoom + INT(zoom / 2)
-   mouse(0) = area(0,0) + zox 
-   mouse(1) = area(0,1) + zoy
+   mouse(0) = area(0).x + zox 
+   mouse(1) = area(0).y + zoy
    movemouse mouse(0), mouse(1)
   END IF 
   IF zone = 14 THEN
    zox = x
    zoy = y
-   mouse(0) = area(13,0) + zox 
-   mouse(1) = area(13,1) + zoy
+   mouse(0) = area(13).y + zox 
+   mouse(1) = area(13).y + zoy
    movemouse mouse(0), mouse(1)
   END IF
  END IF
@@ -1065,10 +1065,10 @@ rectangle 245, 109, 67, 8, uilook(uiText), 2
 rectangle 246, 110, 65, 6, 0, 2
 rectangle 238, 118, xw + 2, yw + 2, uilook(uiText), 2
 rectangle 239, 119, xw, yw, 0, 2
-area(0, 2) = xw * zoom
-area(0, 3) = yw * zoom
-area(13, 2) = xw
-area(13, 3) = yw
+area(0).w = xw * zoom
+area(0).h = yw * zoom
+area(13).w = xw
+area(13).h = yw
 RETRACE
 
 import16:
@@ -1333,93 +1333,93 @@ initmarea:
 '3 height
 '4 cursor
 'DRAWING ZONE
-area(0, 0) = 4
-area(0, 1) = 1
-area(0, 4) = -1
+area(0).x = 4
+area(0).y = 1
+area(0).hidecursor = YES
 'PALETTE ZONE
-area(1, 0) = 248
-area(1, 1) = 111
-area(1, 2) = 64
-area(1, 3) = 6
-area(1, 4) = 0
+area(1).x = 248
+area(1).y = 111
+area(1).w = 64
+area(1).h = 6
+area(1).hidecursor = NO
 'MASTER PAL ZONE
-area(2, 0) = 248
-area(2, 1) = 1
-area(2, 2) = 64
-area(2, 3) = 96
-area(2, 4) = 0
+area(2).x = 248
+area(2).y = 1
+area(2).w = 64
+area(2).h = 96
+area(2).hidecursor = NO
 'FLIP BUTTON
-area(3, 0) = 182
-area(3, 1) = 190
-area(3, 2) = 8
-area(3, 3) = 10
-area(3, 4) = 0
+area(3).x = 182
+area(3).y = 190
+area(3).w = 8
+area(3).h = 10
+area(3).hidecursor = NO
 'PREV PAL BUTTON
-area(4, 0) = 248
-area(4, 1) = 100
-area(4, 2) = 8
-area(4, 3) = 8
-area(4, 4) = 0
+area(4).x = 248
+area(4).y = 100
+area(4).w = 8
+area(4).h = 8
+area(4).hidecursor = NO
 'NEXT PAL BUTTON
-area(5, 0) = 304
-area(5, 1) = 100
-area(5, 2) = 8
-area(5, 3) = 8
-area(5, 4) = 0
+area(5).x = 304
+area(5).y = 100
+area(5).w = 8
+area(5).h = 8
+area(5).hidecursor = NO
 'TOOL BUTTONS
 FOR i = 0 TO 5
- area(6 + i, 0) = 90 + i * 12
- area(6 + i, 1) = 190
- area(6 + i, 2) = 8
- area(6 + i, 3) = 10
- area(6 + i, 4) = 0
+ area(6 + i).x = 90 + i * 12
+ area(6 + i).y = 190
+ area(6 + i).w = 8
+ area(6 + i).h = 10
+ area(6 + i).hidecursor = NO
 NEXT i
 'IMPORT BUTTON
-area(12, 0) = 194
-area(12, 1) = 190
-area(12, 2) = 8
-area(12, 3) = 10
-area(12, 4) = 0
+area(12).x = 194
+area(12).y = 190
+area(12).w = 8
+area(12).h = 10
+area(12).hidecursor = NO
 'SMALL DRAWING AREA
-area(13, 0) = 239
-area(13, 1) = 119
-area(13, 4) = -1
+area(13).x = 239
+area(13).y = 119
+area(13).hidecursor = YES
 'LESS AIRBRUSH AREA
-area(14, 0) = 210
-area(14, 1) = 182
-area(14, 2) = 8
-area(14, 3) = 8
-area(14, 4) = 0
+area(14).x = 210
+area(14).y = 182
+area(14).w = 8
+area(14).h = 8
+area(14).hidecursor = NO
 'LESS AIRBRUSH MIST
-area(15, 0) = 210
-area(15, 1) = 190
-area(15, 2) = 8
-area(15, 3) = 8
-area(15, 4) = 0
+area(15).x = 210
+area(15).y = 190
+area(15).w = 8
+area(15).h = 8
+area(15).hidecursor = NO
 'MORE AIRBRUSH AREA
-area(16, 0) = 266
-area(16, 1) = 182
-area(16, 2) = 8
-area(16, 3) = 8
-area(16, 4) = 0
+area(16).x = 266
+area(16).y = 182
+area(16).w = 8
+area(16).h = 8
+area(16).hidecursor = NO
 'MORE AIRBRUSH MIST
-area(17, 0) = 266
-area(17, 1) = 190
-area(17, 2) = 8
-area(17, 3) = 8
-area(17, 4) = 0
+area(17).x = 266
+area(17).y = 190
+area(17).w = 8
+area(17).h = 8
+area(17).hidecursor = NO
 'PALETTE NUMBER
-area(18, 0) = 256
-area(18, 1) = 100
-area(18, 2) = 48
-area(18, 3) = 8
-area(18, 4) = 0
+area(18).x = 256
+area(18).y = 100
+area(18).w = 48
+area(18).h = 8
+area(18).hidecursor = NO
 'UNDO BUTTON
-area(19, 0) = 170
-area(19, 1) = 182
-area(19, 2) = 32
-area(19, 3) = 8
-area(19, 4) = 0
+area(19).x = 170
+area(19).y = 182
+area(19).w = 32
+area(19).h = 8
+area(19).hidecursor = NO
 RETRACE
 
 savealluc:
@@ -1503,7 +1503,7 @@ END SUB
 
 SUB picktiletoedit (tmode, pagenum, mapfile$)
 STATIC cutnpaste(19, 19), oldpaste
-DIM ts AS TileEditState, mover(12), mouse(4), area(20, 4), toolname$(5), icon$(5), shortk(5), cursor(5)
+DIM ts AS TileEditState, mover(12), mouse(4), area(20) AS MouseArea, toolname$(5), icon$(5), shortk(5), cursor(5)
 ts.gotmouse = setmouse(mouse())
 ts.canpaste = oldpaste
 ts.drawcursor = 1
@@ -1515,59 +1515,59 @@ toolname$(2) = "Line": icon$(2) = CHR$(5): shortk(2) = 38: cursor(2) = 2
 toolname$(3) = "Fill": icon$(3) = "F":     shortk(3) = 33: cursor(3) = 3
 toolname$(4) = "Oval": icon$(4) = "O":     shortk(4) = 24: cursor(4) = 2
 toolname$(5) = "Air ": icon$(5) = "A":     shortk(5) = 30: cursor(5) = 3
-area(0, 0) = 60
-area(0, 1) = 0
-area(0, 2) = 200
-area(0, 3) = 160
-area(0, 4) = -1
-area(1, 0) = 0
-area(1, 1) = 160
-area(1, 2) = 320
-area(1, 3) = 32
+area(0).x = 60
+area(0).y = 0
+area(0).w = 200
+area(0).h = 160
+area(0).hidecursor = YES
+area(1).x = 0
+area(1).y = 160
+area(1).w = 320
+area(1).h = 32
 FOR i = 0 TO 5
- area(2 + i, 0) = 4 + i * 9
- area(2 + i, 1) = 32
- area(2 + i, 2) = 8
- area(2 + i, 3) = 8
+ area(2 + i).x = 4 + i * 9
+ area(2 + i).y = 32
+ area(2 + i).w = 8
+ area(2 + i).h = 8
 NEXT i
 FOR i = 0 TO 3
- area(12 + i, 0) = 4 + i * 9
- area(12 + i, 1) = 42
- area(12 + i, 2) = 8
- area(12 + i, 3) = 8
+ area(12 + i).x = 4 + i * 9
+ area(12 + i).y = 42
+ area(12 + i).w = 8
+ area(12 + i).h = 8
 NEXT i
-area(10, 0) = 8
-area(10, 1) = 190
-area(10, 2) = 32
-area(10, 3) = 10
-area(11, 0) = 280
-area(11, 1) = 190
-area(11, 2) = 32
-area(11, 3) = 10
+area(10).x = 8
+area(10).y = 190
+area(10).w = 32
+area(10).h = 10
+area(11).x = 280
+area(11).y = 190
+area(11).w = 32
+area(11).h = 10
 'LESS AIRBRUSH AREA
-area(16, 0) = 12
-area(16, 1) = 60
-area(16, 2) = 8
-area(16, 3) = 8
-area(16, 4) = 0
+area(16).x = 12
+area(16).y = 60
+area(16).w = 8
+area(16).h = 8
+area(16).hidecursor = NO
 'LESS AIRBRUSH MIST
-area(17, 0) = 12
-area(17, 1) = 76
-area(17, 2) = 8
-area(17, 3) = 8
-area(17, 4) = 0
+area(17).x = 12
+area(17).y = 76
+area(17).w = 8
+area(17).h = 8
+area(17).hidecursor = NO
 'MORE AIRBRUSH AREA
-area(18, 0) = 36
-area(18, 1) = 60
-area(18, 2) = 8
-area(18, 3) = 8
-area(18, 4) = 0
+area(18).x = 36
+area(18).y = 60
+area(18).w = 8
+area(18).h = 8
+area(18).hidecursor = NO
 'MORE AIRBRUSH MIST
-area(19, 0) = 36
-area(19, 1) = 76
-area(19, 2) = 8
-area(19, 3) = 8
-area(19, 4) = 0
+area(19).x = 36
+area(19).y = 76
+area(19).w = 8
+area(19).h = 8
+area(19).hidecursor = NO
 DIM pastogkey(7), defaults(160), bitmenu$(10)
 IF tmode = 2 THEN
  pastogkey(0) = 72
@@ -1701,15 +1701,15 @@ printstr ">", 270, 16 + (state.undo * 21), 2
 refreshtileedit mover(), state
 END SUB
 
-SUB editmaptile (ts AS TileEditState, mover(), mouse(), area(), shortk(), cursor(), icon$(), toolname$())
+SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea, shortk(), cursor(), icon$(), toolname$())
 ts.justpainted = 0
 ts.undo = 0
 ts.allowundo = 0
 ts.delay = 3
 zox = ts.x * 10 + 5
 zoy = ts.y * 8 + 4
-mouse(0) = area(0,0) + zox
-mouse(1) = area(0,1) + zoy
+mouse(0) = area(0).x + zox
+mouse(1) = area(0).y + zoy
 movemouse mouse(0), mouse(1)
 clearpage 2
 FOR i = 0 TO 5
@@ -1753,8 +1753,8 @@ DO
   IF fixmouse THEN
    zox = ts.x * 10 + 5
    zoy = ts.y * 8 + 4
-   mouse(0) = area(0,0) + zox
-   mouse(1) = area(0,1) + zoy
+   mouse(0) = area(0).x + zox
+   mouse(1) = area(0).y + zoy
    movemouse mouse(0), mouse(1)
   END IF
  END IF 
@@ -2050,7 +2050,7 @@ refreshtileedit mover(), ts
 rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 END SUB
 
-SUB tilecut (ts AS TileEditState, mouse(), area())
+SUB tilecut (ts AS TileEditState, mouse(), area() AS MouseArea)
 IF ts.gotmouse THEN
  movemouse ts.x, ts.y
 END IF

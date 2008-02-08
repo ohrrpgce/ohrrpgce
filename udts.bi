@@ -392,6 +392,14 @@ TYPE TextBox
   music       AS INTEGER     ' +1
 END TYPE
 
+TYPE MouseArea
+  x AS INTEGER
+  y AS INTEGER
+  w AS INTEGER
+  h AS INTEGER
+  hidecursor AS INTEGER
+END TYPE
+
 'it's not possible to include utils.bi in here, because of compat.bi
 #ifndef UTIL_BI
 TYPE Stack
