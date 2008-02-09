@@ -8,6 +8,26 @@
 #include "allmodex.bi"
 #include "common.bi"
 
+
+Type BrowseMenuEntry
+	kind as integer
+	filename as string
+	caption as string
+	about as string
+End type
+
+Type BrowseMenuState
+	nowdir as string
+	tmp as string
+	treesize as integer   'last entry
+	limit as integer
+	viewsize as integer
+	special as integer
+	ranalready as integer
+	meter as integer
+	drivesshown as integer  'number of drive entries (plus 1 for refresh)
+End Type
+
 'Subs and functions only used locally
 DECLARE SUB draw_browse_meter(br AS BrowseMenuState)
 DECLARE SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
@@ -67,8 +87,6 @@ IF needf = 1 THEN
  setpal temppal()
 END IF
 
-drivetotal = drivelist(drive$())
-
 IF remember$ = "" THEN remember$ = curdir$ + SLASH
 IF default$ = "" THEN
  br.nowdir = remember$
@@ -76,11 +94,13 @@ ELSE
  br.nowdir = default$
 END IF
 
-If br.special = 7 THEN br.viewsize = 16 ELSE br.viewsize = 17
+IF br.special = 7 THEN br.viewsize = 16 ELSE br.viewsize = 17
 
 treeptr = 0
 treetop = 0
 br.treesize = 0
+br.drivesshown = 0
+getdrivenames = 0  'whether to fetch names of all drives, on if hit F5
 
 br.ranalready = 0
 GOSUB context
@@ -117,7 +137,7 @@ DO
     END IF
    CASE 1, 4
     br.nowdir = ""
-    FOR i = drivetotal TO treeptr
+    FOR i = br.drivesshown TO treeptr
      br.nowdir = br.nowdir + tree(i).filename
     NEXT i
     GOSUB context
@@ -147,6 +167,12 @@ DO
     EXIT FOR
    END IF
   NEXT i
+ END IF
+ IF keyval(63) > 1 THEN  'F5
+  'refresh
+  br.drivesshown = 0
+  getdrivenames = 1
+  GOSUB context
  END IF
  edgeboxstyle 4, 3, 312, 14, 0, dpage
  edgeprint br.nowdir, 8, 6, uilook(uiText), dpage
@@ -253,44 +279,62 @@ IF tree(treeptr).kind = 4 THEN alert$ = "Root"
 RETRACE
 
 context:
+'for progress meter
+IF br.ranalready THEN rectangle 5, 32 + br.viewsize * 9, 310, 12, uilook(uiTextbox + 0), vpage
+br.meter = 0
+
 'erase old list
-FOR i = 0 TO br.limit
+IF getdrivenames THEN br.treesize = -1 ELSE br.treesize = br.drivesshown - 1
+FOR i = br.treesize + 1 TO br.limit
  tree(i).filename = ""
  tree(i).caption = ""
  tree(i).about = ""
  tree(i).kind = 0
 NEXT i
-'for progress meter
-IF br.ranalready THEN rectangle 5, 32 + br.viewsize * 9, 310, 12, uilook(uiTextbox + 0), vpage
-br.meter = 0
-br.treesize = 0
+
+#IFNDEF __FB_LINUX__
+ '--Drive list
+ IF br.drivesshown = 0 THEN
+  '--Refresh drives option
+  'br.treesize += 1
+  'tree(br.treesize).filename = ""
+  'tree(br.treesize).caption = "Refresh drives list"
+  'tree(br.treesize).kind = 5
+
+  drivetotal = drivelist(drive$())
+  FOR i = 0 TO drivetotal - 1
+   br.treesize += 1
+   tree(br.treesize).filename = drive$(i)
+   tree(br.treesize).caption = drive$(i)
+   tree(br.treesize).kind = 0
+   IF getdrivenames THEN
+'    IF isremovable(drive$(i)) THEN
+'     tree(br.treesize).caption += " (removable)"
+'    ELSE
+     tree(br.treesize).caption += " " + drivelabel$(drive$(i))
+'    END IF
+   END IF
+   draw_browse_meter br
+
+  NEXT i
+  'could add My Documents to drives list here
+ END IF
+#ENDIF
+br.drivesshown = br.treesize + 1
+getdrivenames = 0
+
 IF br.nowdir = "" THEN
 ELSE
  draw_browse_meter br
  a$ = br.nowdir
- '--Drive list
-#IFNDEF __FB_LINUX__
-  FOR i = 0 TO drivetotal - 1
-   tree(br.treesize).filename = drive$(i)
-   tree(br.treesize).kind = 0
-   IF isremovable(drive$(i)) THEN
-    tree(br.treesize).caption = drive$(i) + " (removable)"
-   ELSE
-    IF hasmedia(drive$(i)) THEN
-     tree(br.treesize).caption = drive$(i) + " <" + drivelabel$(drive$(i)) + ">"
-    ELSE
-     tree(br.treesize).caption = drive$(i) + " (not ready)"
-    END IF
-    draw_browse_meter br
-   END IF
-   br.treesize += 1
-  NEXT i
-  'could add My Documents to drives list here
-#ENDIF
+
  '--Current drive
- tree(br.treesize).filename = MID$(a$, 1, INSTR(a$, SLASH))
+ br.treesize += 1
+ b$ = MID$(a$, 1, INSTR(a$, SLASH))
+ tree(br.treesize).filename = b$
+ tree(br.treesize).kind = 4
 #IFNDEF __FB_LINUX__
- IF hasmedia(tree(br.treesize).filename) = 0 THEN
+ IF hasmedia(b$) = 0 THEN
   'Somebody pulled out the disk
   changed = 0
   alert$ = "Disk not readable"
@@ -300,11 +344,16 @@ ELSE
   br.nowdir = ""
   RETRACE
  END IF
+ FOR i = 0 TO br.drivesshown - 1
+  IF tree(i).filename = b$ THEN
+   tmpname$ = drivelabel$(b$)
+   IF LEN(tmpname$) THEN tree(i).caption = b$ + " " + tmpname$
+   tree(br.treesize).caption = tree(i).caption
+   EXIT FOR
+  END IF
+ NEXT
 #ENDIF
  a$ = MID$(a$, INSTR$(a$, SLASH) + 1)
- tree(br.treesize).kind = 4
- tmpname$ = drivelabel$(tree(br.treesize).filename)
- IF LEN(tmpname$) THEN tree(br.treesize).caption = tree(br.treesize).filename + " <" + tmpname$ + ">"
  '--Directories
  b$ = ""
  DO UNTIL a$ = "" OR br.treesize >= br.limit
@@ -314,10 +363,10 @@ ELSE
 #IFNDEF __FB_LINUX__
    'Special handling of My Documents in Windows
    IF b$ = "My Documents\" OR b$ = "MYDOCU~1\" THEN
-    FOR i = br.treesize to drivetotal STEP -1
+    FOR i = br.treesize TO br.drivesshown STEP -1
      b$ = tree(i).filename + b$
     NEXT i
-    br.treesize = drivetotal - 1
+    br.treesize = br.drivesshown - 1
     tree(br.treesize + 1).caption = "My Documents\"
    END IF
 #ENDIF
@@ -415,10 +464,10 @@ NEXT
 '--set cursor
 treeptr = 0
 treetop = 0
-FOR i = drivetotal TO br.treesize
+FOR i = br.drivesshown TO br.treesize
  IF tree(i).kind = 1 OR tree(i).kind = 4 THEN treeptr = i
 NEXT i
-FOR i = br.treesize TO 1 STEP -1
+FOR i = br.treesize TO br.drivesshown STEP -1
  IF tree(i).kind = 3 THEN treeptr = i
 NEXT i
 treetop = bound(treetop, treeptr - (br.viewsize + 2), treeptr)

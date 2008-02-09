@@ -337,24 +337,6 @@ Type HeroDef
 	hand_b_y as integer
 End Type
 
-Type BrowseMenuEntry
-	filename as string
-	caption as string
-	about as string
-	kind as integer
-End type
-
-Type BrowseMenuState
-	nowdir as string
-	tmp as string
-	treesize as integer
-	limit as integer
-	viewsize as integer
-	special as integer
-	ranalready as integer
-	meter as integer
-End Type
-
 TYPE TextBox
   text(7) AS STRING
   instead_tag AS INTEGER
