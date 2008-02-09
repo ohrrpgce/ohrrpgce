@@ -15,6 +15,9 @@ WHAT IS NEW?
     * Bug 585: Curative items used wrong attack after being arranged
     * Custom now respects your chosen UI colors everywhere [James Paige]
     * Bug 590: default death sound effect played after every hit
+    * Attempting to display a blank global text string, or the "fail"
+      message in certain cases, would crash under Linux, and "fail"
+      wouldn't display under Windows [Ralph Versteegen]
 
   * New Plotscripting Commands
 

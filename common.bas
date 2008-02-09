@@ -2107,15 +2107,17 @@ FUNCTION readglobalstring$ (index, default$, maxlen)
 fh = FREEFILE
 OPEN game + ".stt" FOR BINARY AS #fh
 
-a$ = CHR$(0)
-GET #fh, 1 + index * 11, a$
-namelen = 0: IF a$ <> "" THEN namelen = ASC(a$)
+DIM namelen AS UBYTE
+GET #fh, 1 + index * 11, namelen
+IF maxlen < namelen THEN namelen = maxlen
 
-IF index * 11 + namelen > LOF(fh) THEN
+IF index * 11 + namelen + 1 > LOF(fh) THEN
  result$ = default$
+ELSEIF namelen > 0 THEN
+ result$ = STRING$(namelen, 0)
+ GET #fh, index * 11 + 2, result$
 ELSE
- result$ = STRING$(small(namelen, maxlen), CHR$(0))
- GET #fh, 2 + index * 11, result$
+ result$ = ""
 END IF
 
 CLOSE #fh

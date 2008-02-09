@@ -508,19 +508,19 @@ IF atk(5) <> 4 THEN
  END IF
 
  IF readbit(atk(),65,1) = 1 AND bstat(t).cur.poison < bstat(t).max.poison THEN
-  harm$(t) = readglobalstring$(121, "fail", 20)
+  harm$(t) = readglobalstring$(122, "fail", 20)
   EXIT FUNCTION
  END IF
  IF readbit(atk(),65,2) = 1 AND bstat(t).cur.regen < bstat(t).max.regen THEN
-  harm$(t) = readglobalstring$(121, "fail", 20)
+  harm$(t) = readglobalstring$(122, "fail", 20)
   EXIT FUNCTION
  END IF
  IF readbit(atk(),65,3) = 1 AND bstat(t).cur.stun <> bstat(t).max.stun THEN
-  harm$(t) = readglobalstring$(121, "fail", 20)
+  harm$(t) = readglobalstring$(122, "fail", 20)
   EXIT FUNCTION
  END IF
  IF readbit(atk(),65,4) = 1 AND bstat(t).cur.mute <> bstat(t).max.mute THEN
-  harm$(t) = readglobalstring$(121, "fail", 20)
+  harm$(t) = readglobalstring$(122, "fail", 20)
   EXIT FUNCTION
  END IF
 
