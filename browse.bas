@@ -173,6 +173,15 @@ DO
   br.drivesshown = 0
   getdrivenames = 1
   GOSUB context
+  changed = 1
+ END IF
+ IF keyval(14) > 1 THEN 'backspace
+  'go up a directory
+  FOR i = LEN(br.nowdir) - 1 TO 1 STEP -1
+   IF br.nowdir[i - 1] = ASC(SLASH) THEN br.nowdir = LEFT$(br.nowdir, i) : EXIT FOR
+  NEXT
+  GOSUB context
+  changed = 1
  END IF
  edgeboxstyle 4, 3, 312, 14, 0, dpage
  edgeprint br.nowdir, 8, 6, uilook(uiText), dpage

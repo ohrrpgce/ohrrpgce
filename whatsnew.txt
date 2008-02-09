@@ -6,6 +6,10 @@ WHAT IS NEW?
     * Mark/Clone brush tool in the sprite editor. Mark a rectangular
       region of a sprite and then use the clone tool to duplicate it
       [James Paige]
+    * Press F5 in the browser to refresh the listing, and to fetch the
+      names of all drives (under Windows); this is no longer done
+      automatically as it was too slow.
+      Press backspace to go up a directory. [Ralph Versteegen]
 
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged
