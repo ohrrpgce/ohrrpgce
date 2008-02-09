@@ -484,7 +484,7 @@ END SUB
 
 FUNCTION mouseover (mouse(), zox, zoy, zcsr, area() AS MouseArea)
 
-FOR i = 20 TO 0 STEP -1
+FOR i = 22 TO 0 STEP -1
  IF area(i).w <> 0 AND area(i).h <> 0 THEN
   IF mouse(0) >= area(i).x AND mouse(0) < area(i).x + area(i).w THEN
    IF mouse(1) >= area(i).y AND mouse(1) < area(i).y + area(i).h THEN
@@ -629,9 +629,10 @@ RETRACE
 END SUB
 
 SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, fileset, font())
-STATIC default$, spriteclip(1600), clippedpal, clippedw, clippedh, paste
-DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40), mouse(4), area(20) AS MouseArea
-DIM toolinfo(5) AS ToolInfoType
+STATIC default$, spriteclip(1602), clippedpal, clippedw, clippedh, paste
+STATIC clonebuf(1600) AS INTEGER, clonemarked AS INTEGER = NO
+DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40), mouse(4), area(22) AS MouseArea
+DIM toolinfo(7) AS ToolInfoType
 DIM workpal(8 * (atatime + 1))
 DIM poffset(large(sets, atatime))
 DIM AS INTEGER do_paste = 0
@@ -694,6 +695,20 @@ WITH toolinfo(5)
  .shortcut = 30
  .cursor = 3
  .areanum = 11
+END WITH
+WITH toolinfo(6)
+ .name = "Mark"
+ .icon = "M"
+ .shortcut = 50
+ .cursor = 2
+ .areanum = 21
+END WITH
+WITH toolinfo(7)
+ .name = "Clone"
+ .icon = "C"
+ .shortcut = 46
+ .cursor = 3
+ .areanum = 22
 END WITH
 FOR i = 0 TO 15
  poke8bit nulpal(), i, i
@@ -939,15 +954,14 @@ END IF
 IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN
  rectangle 0, 0, xw, yw, 0, dpage
  drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
- rectangle x, y, clippedw, clippedh, 0, dpage
- drawsprite spriteclip(), 0, nulpal(), 0, x, y, dpage
+ drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage, 0
  getsprite placer(), 0, 0, 0, xw, yw, dpage
 END IF
 '--TRANSPARENT PASTE (CTRL+T)
 IF (keyval(29) > 0 AND keyval(20) > 1) AND paste = 1 THEN
  rectangle 0, 0, xw, yw, 0, dpage
  drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
- drawsprite spriteclip(), 0, nulpal(), 0, x, y, dpage
+ drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
  getsprite placer(), 0, 0, 0, xw, yw, dpage
 END IF
 '--COPY PALETTE (ALT+C)
@@ -1068,13 +1082,41 @@ IF ((zone = 1 OR zone = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(57) > 
    END IF
   CASE 5'---Spray
    GOSUB sprayspot
+  CASE 6'---Mark
+   IF mouse(3) > 0 OR keyval(57) > 1 THEN
+    IF box THEN
+     box = 0
+     drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
+     getsprite clonebuf(), 0, 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, dpage
+     clonemarked = YES
+     tool = 7 ' auto-select the clone tool after marking
+    ELSE
+     box = 1: bx = x: by = y
+    END IF
+   END IF
+  CASE 7'---Draw
+   IF mouse(3) > 0 OR keyval(57) > 1 THEN
+    IF clonemarked THEN
+     IF oldx = -1 AND oldy = -1 THEN
+      GOSUB writeundospr
+     END IF
+     drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
+     drawsprite clonebuf(), 0, nulpal(), 0, 239 + x - (clonebuf(0) \ 2), 119 + y - (clonebuf(1) \ 2), dpage
+     getsprite placer(), 0, 239, 119, xw, yw, dpage
+     oldx = x
+     oldy = y
+    ELSE
+     tool = 6 ' select selection tool if clone is not available
+     box = 1: bx = x: by = y
+    END IF
+   END IF
  END SELECT
 END IF
 IF ovalstep = 1 THEN
  radius = large(ABS(x - bx), ABS(y - by))
 END IF
-FOR i = 0 TO 5
- IF (mouse(3) > 0 AND zone = 7 + i) OR keyval(toolinfo(i).shortcut) > 1 THEN
+FOR i = 0 TO 7
+ IF (mouse(3) > 0 AND zone = toolinfo(i).areanum + 1) OR keyval(toolinfo(i).shortcut) > 1 THEN
   tool = i
   GOSUB resettool
   dcsr = toolinfo(i).cursor + 1
@@ -1291,13 +1333,13 @@ NEXT
 IF zoom = 4 THEN hugesprite placer(), workpal(), (pt - top) * 16, 4, 1, dpage, 0
 IF zoom = 2 THEN bigsprite placer(), workpal(), (pt - top) * 16, 4, 1, dpage, 0
 curcol = peek8bit(workpal(), col + (pt - top) * 16)
-IF box = 1 THEN
+IF box = 1 AND tool = 1THEN
  rectangle 4 + small(x, bx) * zoom, 1 + small(y, by) * zoom, (ABS(x - bx) + 1) * zoom, (ABS(y - by) + 1) * zoom, curcol, dpage
  rectangle 4 + bx * zoom, 1 + by * zoom, zoom, zoom, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
 END IF
 rectangle 4 + (x * zoom), 1 + (y * zoom), zoom, zoom, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
 drawsprite placer(), 0, workpal(), (pt - top) * 16, 239, 119, dpage, 0
-IF box = 1 THEN
+IF box = 1 AND tool = 1 THEN
  rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, curcol, dpage
  putpixel 239 + bx, 119 + by, tog * 15, dpage
 END IF
@@ -1313,14 +1355,26 @@ IF tool = 5 THEN
  ellipse 239 + x, 119 + y, airsize / 2, curcol, dpage, 0, 0
  ellipse 5 + (x * zoom), 2 + (y * zoom), (airsize / 2) * zoom, curcol, dpage, 0, 0
 END IF
+IF box = 1 AND tool = 6 AND tog = 0 THEN
+ IF tool = 6 THEN curcol = INT(RND * 255) ' Random color when marking a clone region
+ emptybox 4 + small(x, bx) * zoom, 1 + small(y, by) * zoom, (ABS(x - bx) + 1) * zoom, (ABS(y - by) + 1) * zoom, curcol, zoom, dpage
+ emptybox 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, curcol, 1, dpage
+END IF
+IF tool = 7 AND clonemarked = YES AND tog = 0 THEN
+ tempx = x - (clonebuf(0) \ 2)
+ tempy = y - (clonebuf(1) \ 2)
+ IF zoom = 4 THEN hugesprite clonebuf(), workpal(), (pt - top) * 16, 4 + tempx * zoom, 1 + tempy * zoom, dpage
+ IF zoom = 2 THEN bigsprite clonebuf(), workpal(), (pt - top) * 16, 4 + tempx * zoom, 1 + tempy * zoom, dpage
+ drawsprite clonebuf(), 0, workpal(), (pt - top) * 16, 239 + tempx, 119 + tempy, dpage
+END IF
 putpixel 239 + x, 119 + y, tog * 15, dpage
 textcolor uilook(uiMenuItem), 0
 printstr info$(num), 0, 182, dpage
 printstr "Tool:" & toolinfo(tool).name, 0, 190, dpage
-FOR i = 0 TO 5
+FOR i = 0 TO 7
  t1 = uilook(uiMenuItem): t2 = uilook(uiDisabledItem)
  IF tool = i THEN t1 = uilook(uiText): t2 = uilook(uiMenuItem)
- IF zone - 7 = i THEN t2 = uilook(uiSelectedDisabled)
+ IF zone = toolinfo(i).areanum + 1 THEN t2 = uilook(uiSelectedDisabled)
  textcolor t1, t2
  printstr toolinfo(i).icon, area(toolinfo(i).areanum).x, area(toolinfo(i).areanum).y, dpage
 NEXT i
@@ -1363,11 +1417,6 @@ END IF
 RETRACE
 
 initmarea:
-'0 x
-'1 y
-'2 width
-'3 height
-'4 cursor
 'DRAWING ZONE
 area(0).x = 4
 area(0).y = 1
@@ -1402,7 +1451,7 @@ area(5).y = 100
 area(5).w = 8
 area(5).h = 8
 area(5).hidecursor = NO
-'TOOL BUTTONS
+'TOOL BUTTONS (more below at 21,22)
 FOR i = 0 TO 5
  area(6 + i).x = 80 + i * 10
  area(6 + i).y = 190
@@ -1456,6 +1505,13 @@ area(19).y = 182
 area(19).w = 32
 area(19).h = 8
 area(19).hidecursor = NO
+FOR i = 0 TO 1
+ area(21 + i).x = 140 + i * 10
+ area(21 + i).y = 190
+ area(21 + i).w = 8
+ area(21 + i).h = 10
+ area(21 + i).hidecursor = NO
+NEXT i
 RETRACE
 
 savealluc:
@@ -1539,8 +1595,8 @@ END SUB
 
 SUB picktiletoedit (tmode, pagenum, mapfile$)
 STATIC cutnpaste(19, 19), oldpaste
-DIM ts AS TileEditState, mover(12), mouse(4), area(20) AS MouseArea
-DIM toolinfo(5) AS ToolInfoType
+DIM ts AS TileEditState, mover(12), mouse(4), area(22) AS MouseArea
+DIM toolinfo(7) AS ToolInfoType
 ts.gotmouse = setmouse(mouse())
 ts.canpaste = oldpaste
 ts.drawcursor = 1
@@ -1588,6 +1644,20 @@ WITH toolinfo(5)
  .cursor = 3
  .areanum = 7
 END WITH
+'WITH toolinfo(6)
+' .name = "Mark"
+' .icon = "M"
+' .shortcut = 50
+' .cursor = 3
+' .areanum = 21
+'END WITH
+'WITH toolinfo(7)
+' .name = "Clone"
+' .icon = "C"
+' .shortcut = 46
+' .cursor = 3
+' .areanum = 22
+'END WITH
 area(0).x = 60
 area(0).y = 0
 area(0).w = 200
@@ -1597,6 +1667,7 @@ area(1).x = 0
 area(1).y = 160
 area(1).w = 320
 area(1).h = 32
+'TOOLS (more at 21,22)
 FOR i = 0 TO 5
  area(2 + i).x = 4 + i * 9
  area(2 + i).y = 32
@@ -1641,6 +1712,12 @@ area(19).y = 76
 area(19).w = 8
 area(19).h = 8
 area(19).hidecursor = NO
+FOR i = 0 TO 1
+ area(21 + i).x = 40 + i * 9
+ area(21 + i).y = 42
+ area(21 + i).w = 8
+ area(21 + i).h = 8
+NEXT i
 DIM pastogkey(7), defaults(160), bitmenu$(10)
 IF tmode = 2 THEN
  pastogkey(0) = 72
@@ -1832,7 +1909,7 @@ DO
   END IF
  END IF 
  '---KEYBOARD SHORTCUTS FOR TOOLS------------
- FOR i = 0 TO 5
+ FOR i = 0 TO 7
   IF keyval(toolinfo(i).shortcut) > 1 THEN ts.tool = i: ts.hold = 0: ts.drawcursor = toolinfo(i).cursor + 1
  NEXT i
  '----------
@@ -1930,7 +2007,7 @@ DO
  printstr toolinfo(ts.tool).name, 8, 8, dpage
  printstr "Tool", 8, 16, dpage
  printstr "Undo", 274, 1, dpage
- FOR i = 0 TO 5
+ FOR i = 0 TO 5    'FIXME 7 when mark/clone enabled
   t1 = uilook(uiMenuItem): t2 = uilook(uiDisabledItem)
   IF ts.tool = i THEN t1 = uilook(uiText): t2 = uilook(uiMenuItem)
   IF ts.zone - 3 = i THEN t2 = uilook(uiSelectedDisabled)
@@ -2074,6 +2151,26 @@ SELECT CASE ts.tool
    NEXT j
   NEXT i
   refreshtileedit mover(), ts
+ CASE 6'---MARK
+  IF mouseclick > 0 OR keyval(57) > 1 THEN
+   IF ts.hold = 1 THEN
+    'FIXME: save mark buffer here
+    refreshtileedit mover(), ts
+    ts.hold = 0
+    ts.tool = 7 ' auto-select the clone tool after marking
+   ELSE
+    ts.hold = 1
+    ts.hox = ts.x
+    ts.hoy = ts.y
+   END IF
+  END IF
+ CASE 7'---CLONE
+  IF ts.justpainted = 0 THEN writeundoblock mover(), ts
+  ts.justpainted = 3
+  'FIXME: draw marked buffer here
+  'putpixel 280 + ts.x, 10 + (ts.undo * 21) + ts.y, ts.curcolor, 2
+  'rectangle ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 1, 1, ts.curcolor, 3
+  'rectangle 60 + ts.x * 10, ts.y * 8, 10, 8, ts.curcolor, 2
 END SELECT
 END SUB
 

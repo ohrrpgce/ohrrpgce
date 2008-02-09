@@ -38,6 +38,7 @@ DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
 DECLARE SUB edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO)
 DECLARE SUB edgebox (x, y, w, h, col, bordercol, p, fuzzy=NO)
+DECLARE SUB emptybox (x, y, w, h, col, thick, p)
 DECLARE FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTEGER
 DECLARE FUNCTION scriptname$ (num%, trigger% = 0)
 DECLARE Function seconds2str(byval sec as integer, byval f as string = "%m:%S") as string

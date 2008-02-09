@@ -3,6 +3,9 @@ WHAT IS NEW?
 ??? ?? 2008 [werewaffle]
 
   * New Features
+    * Mark/Clone brush tool in the sprite editor. Mark a rectangular
+      region of a sprite and then use the clone tool to duplicate it
+      [James Paige]
 
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged

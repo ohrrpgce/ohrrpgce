@@ -187,6 +187,17 @@ rectangle x - INT(w * .5), y - INT(h * .5), 1, h, uilook(tbc + 1), p
 rectangle x + (w - INT(w * .5)), y - INT(h * .5), 1, h + 1, uilook(tbc + 1), p
 END SUB
 
+SUB emptybox (x, y, w, h, col, thick, p)
+ rectangle x, y, w, thick, col, p
+ IF h > 0 THEN
+  rectangle x, y + h - thick, w, thick, col, p
+ END IF
+ rectangle x, y, thick, h, col, p
+ IF w > 0 THEN
+  rectangle x + w - thick, y, thick, h, col, p
+ END IF
+END SUB
+
 SUB edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO)
  edgebox x, y, w, h, uilook(uiTextBox + 2 * boxstyle), uilook(uiTextBox + 2 * boxstyle + 1), p, fuzzy
 END SUB
