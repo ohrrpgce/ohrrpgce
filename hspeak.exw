@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Gf 2008-02-11 Give user another chance on missing Y key :P
 --3Ge 2007-07-01 String conversion rewrite to allow more whitespace
 --3Gd 2007-07-01 Allow constants for new syntax default args
 --3Gc 2007-05-29 Handle empty paratheses correctly, and use
@@ -89,7 +90,7 @@ constant true=1
 constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
-constant COMPILER_SUB_VERSION="Ge"
+constant COMPILER_SUB_VERSION="Gf"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -477,16 +478,20 @@ procedure init()
       --found the -y command line arg, overwrite automatically
       key='y'
     else
-      --prompt the user to overwrite
-      wrap_print("file "&COLBWHI&"%s"&COLWHI&" already exists. Overwrite it? (Y/N)",{dest_file})
-      key=timeless_wait_key()
-      color_print(" "&COLYEL&"%s"&COLWHI&"\n",{key})
-    end if
-    if hs_lower(key)='y' then
-    elsif hs_lower(key)='n' then
-      simple_error("output file overwrite canceled by user")
-    else  
-      simple_error(sprintf(COLYEL&"%s"&COLWHI&"? "&COLYEL&"%s"&COLWHI&"!? How is that Y or N?",{key,hs_upper(key)}))
+      while true do
+        --prompt the user to overwrite
+        wrap_print("file "&COLBWHI&"%s"&COLWHI&" already exists. Overwrite it? (Y/N)",{dest_file})
+        key=timeless_wait_key()
+        color_print(" "&COLYEL&"%s"&COLWHI&"\n",{key})
+
+        if hs_lower(key)='y' then
+          exit
+        elsif hs_lower(key)='n' then
+          simple_error("output file overwrite canceled by user")
+        else  
+          wrap_print(COLYEL&"%s"&COLWHI&"? "&COLYEL&"%s"&COLWHI&"!? How is that Y or N?",{key,hs_upper(key)})
+        end if
+      end while
     end if
   end if
   --why the alpha-tree? because the reserved-word list can get HUGE.
