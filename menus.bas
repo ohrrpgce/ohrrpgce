@@ -1295,10 +1295,10 @@ IF f$ <> "" THEN
  END IF
  'get a default set of ui colours - nearest match to the current
  nearestui activepalette, master(), uilook()
- savepalette master(), palnum
- SaveUIColors uilook(), palnum
 
  IF palnum > gen(genMaxMasterPal) THEN gen(genMaxMasterPal) = palnum
+ savepalette master(), palnum
+ SaveUIColors uilook(), palnum
  RETURN -1
 END IF
 RETURN 0
