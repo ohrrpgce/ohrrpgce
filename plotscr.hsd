@@ -504,7 +504,7 @@ script, last ascii, begin
 end
 
 script, input string, str=0, max len=40, useexist=0, center=-654321, positionx=160, positiony=110, begin
-  variable(done, key, show,c)
+  variable(done, key, show)
   if(useexist) else(clear string(str))
   trim string(str,1,maxlen)
   show:=getstringbit(str,0)==0
