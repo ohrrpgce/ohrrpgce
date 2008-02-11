@@ -33,7 +33,7 @@ DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE SUB setanimpattern (tastuf%(), taset%)
 DECLARE SUB editbitset (array%(), wof%, last%, name() AS STRING)
-DECLARE FUNCTION mouseover% (mouse%(), zox%, zoy%, zcsr%, area() AS MouseArea)
+DECLARE FUNCTION mouseover% (mouse%(), BYREF zox, BYREF zoy, BYREF zcsr, area() AS MouseArea)
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
@@ -46,8 +46,8 @@ DECLARE SUB importmasterpal (f$, palnum%)
 DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 
 'Local SUBs and FUNCTIONS
-DECLARE SUB loadwuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
-DECLARE SUB savewuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
+DECLARE SUB loadwuc(spritefile AS STRING, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
+DECLARE SUB savewuc(spritefile AS STRING, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
 DECLARE SUB init_sprite_zones(area() AS MouseArea)
 
 #include "compat.bi"
@@ -485,7 +485,7 @@ RETRACE
 
 END SUB
 
-FUNCTION mouseover (mouse(), zox, zoy, zcsr, area() AS MouseArea)
+FUNCTION mouseover (mouse(), BYREF zox, BYREF zoy, BYREF zcsr, area() AS MouseArea)
 
 FOR i = 22 TO 0 STEP -1
  IF area(i).w <> 0 AND area(i).h <> 0 THEN
@@ -998,12 +998,12 @@ DO
   END IF
  END IF
  IF keyval(56) = 0 THEN
-  fixmouse = 0
-  IF keyval(75) AND 5 THEN ts.x = large(ts.x - 1, 0): fixmouse = 1
-  IF keyval(77) AND 5 THEN ts.x = small(ts.x + 1, 19): fixmouse = 1
-  IF keyval(72) AND 5 THEN ts.y = large(ts.y - 1, 0): fixmouse = 1
-  IF keyval(80) AND 5 THEN ts.y = small(ts.y + 1, 19): fixmouse = 1
-  IF fixmouse THEN
+  ts.fixmouse = NO
+  IF keyval(75) AND 5 THEN ts.x = large(ts.x - 1, 0): ts.fixmouse = YES
+  IF keyval(77) AND 5 THEN ts.x = small(ts.x + 1, 19): ts.fixmouse = YES
+  IF keyval(72) AND 5 THEN ts.y = large(ts.y - 1, 0): ts.fixmouse = YES
+  IF keyval(80) AND 5 THEN ts.y = small(ts.y + 1, 19): ts.fixmouse = YES
+  IF ts.fixmouse THEN
    zox = ts.x * 10 + 5
    zoy = ts.y * 8 + 4
    mouse(0) = area(0).x + zox
@@ -1111,10 +1111,10 @@ DO
  printstr "Tool", 8, 16, dpage
  printstr "Undo", 274, 1, dpage
  FOR i = 0 TO 5    'FIXME 7 when mark/clone enabled
-  t1 = uilook(uiMenuItem): t2 = uilook(uiDisabledItem)
-  IF ts.tool = i THEN t1 = uilook(uiText): t2 = uilook(uiMenuItem)
-  IF ts.zone - 3 = i THEN t2 = uilook(uiSelectedDisabled)
-  textcolor t1, t2
+  fgcol = uilook(uiMenuItem): bgcol = uilook(uiDisabledItem)
+  IF ts.tool = i THEN fgcol = uilook(uiText): bgcol = uilook(uiMenuItem)
+  IF ts.zone - 3 = i THEN bgcol = uilook(uiSelectedDisabled)
+  textcolor fgcol, bgcol
   printstr toolinfo(i).icon, area(toolinfo(i).areanum).x, area(toolinfo(i).areanum).y, dpage
  NEXT i
  FOR i = 0 TO 3
@@ -1429,61 +1429,64 @@ IF ts.canpaste THEN
 END IF 
 END SUB
 
-SUB loadwuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
-getpal16 workpal(), j - top, poffset(j)
-IF j <= sets THEN
- setpicstuf buffer(), size * perset, 2
- loadset spritefile$, large(j, 0), 0
- FOR o = 0 TO (perset - 1)
-  loadsprite placer(), 0, size * o, 0, xw, yw, 2
-  stosprite placer(), 0, size * o, soff * (j - top), 3
- NEXT o
-END IF
-END SUB
-
-SUB savewuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
-IF j <= sets THEN
- setpicstuf buffer(), size * perset, 2
- FOR o = 0 TO (perset - 1)
-  loadsprite placer(), 0, size * o, soff * (j - top), xw, yw, 3
-  stosprite placer(), 0, size * o, 0, 2
- NEXT o
- storeset spritefile$, large(j, 0), 0
-END IF
-END SUB
+OPTION EXPLICIT '======== FIXME: move this up as code gets cleaned up =====================
 
 SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, fileset, font())
 STATIC default$, spriteclip(1602), clippedpal, clippedw, clippedh, paste
 STATIC clonebuf(1600) AS INTEGER, clonemarked AS INTEGER = NO
-DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40), mouse(4), area(22) AS MouseArea
+DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40), mouse(4)
 DIM toolinfo(7) AS ToolInfoType
 DIM workpal(8 * (atatime + 1))
 DIM poffset(large(sets, atatime))
 DIM AS INTEGER do_paste = 0
 DIM AS INTEGER paste_transparent = 0
-DIM AS INTEGER box = 0
 DIM AS INTEGER ovalstep = 0
 DIM AS INTEGER drl = 0
-spritefile$ = game & ".pt" & fileset
-DIM ss AS SpriteEditState
+DIM AS INTEGER debug_palettes = 0
+DIM temppos AS XYPair
+'FOR Loop counters
+DIM AS INTEGER i, j, o
 
-gotm = setmouse(mouse())
+DIM spritefile AS STRING
+spritefile = game & ".pt" & fileset
+
+DIM area(22) AS MouseArea
 init_sprite_zones area()
 
+DIM ss AS SpriteEditState
 WITH ss
+ .framenum = 0
  .x = 0
  .y = 0
+ .zone.x = 0
+ .zone.y = 0
+ .hold = NO
+ .gotmouse = setmouse(mouse())
+ .drawcursor = 1
+ .tool = 0
+ .airsize = 5
+ .mist = 10
 END WITH
 
-tool = 0
-airsize = 5
-mist = 10
-pt = 0
-icsr = 0
-itop = 0
-dcsr = 1
-zox = 0: zoy = 0
-debug_palettes = 0
+DIM state AS MenuState
+WITH state
+ .pt = 0
+ .top = 0
+END WITH
+
+'FIXME: these are used in import16 GOSUB block, move these there when that gets SUBified
+DIM palstate AS MenuState 
+DIM c AS INTEGER
+DIM srcbmp AS STRING
+DIM pickpos AS XYPair
+DIM picksize AS XYPair
+DIM pixelval AS INTEGER
+DIM movespeed AS INTEGER
+
+'FIXME: these are used in spritescreen GOSUB block, move these there when that gets SUBified
+DIM bgcol AS INTEGER
+DIM fgcol AS INTEGER
+
 pmenu$(0) = "Overwrite Current Palette"
 pmenu$(1) = "Import Without Palette"
 pmenu$(2) = "Cancel Import"
@@ -1553,11 +1556,11 @@ setkeys
 DO
  setwait 55
  setkeys
- tog = tog XOR 1
+ state.tog = state.tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) > 1 THEN
   GOSUB savealluc
-  cropafter pt, sets, 0, spritefile$, size * perset, 1
+  cropafter state.pt, sets, 0, spritefile, size * perset, 1
   clearpage 3
   GOSUB loadalluc
  END IF
@@ -1568,68 +1571,68 @@ DO
  END IF
  IF keyval(73) > 1 THEN
   GOSUB savealluc
-  pt = large(pt - atatime, 0)
-  top = pt
+  state.pt = large(state.pt - atatime, 0)
+  state.top = state.pt
   GOSUB loadalluc
  END IF
  IF keyval(81) > 1 THEN
   GOSUB savealluc
-  top = large(small(pt, sets - atatime), 0)
-  pt = small(pt + atatime, sets)
+  state.top = large(small(state.pt, sets - atatime), 0)
+  state.pt = small(state.pt + atatime, sets)
   GOSUB loadalluc
  END IF
  IF keyval(71) > 1 THEN
   GOSUB savealluc
-  pt = 0
-  top = 0
+  state.pt = 0
+  state.top = 0
   GOSUB loadalluc
  END IF
  IF keyval(79) > 1 THEN
   GOSUB savealluc
-  pt = sets
-  top = large(small(pt, sets - atatime), 0)
+  state.pt = sets
+  state.top = large(small(state.pt, sets - atatime), 0)
   GOSUB loadalluc
  END IF
  IF keyval(72) > 1 THEN
-  pt = large(pt - 1, 0)
-  IF pt < top THEN
+  state.pt = large(state.pt - 1, 0)
+  IF state.pt < state.top THEN
    GOSUB savealluc
-   top = pt
+   state.top = state.pt
    GOSUB loadalluc
   END IF
  END IF
- IF keyval(80) > 1 AND pt < 32767 THEN
-  pt = pt + 1
-  IF needaddset(pt, sets, "graphics") THEN
+ IF keyval(80) > 1 AND state.pt < 32767 THEN
+  state.pt = state.pt + 1
+  IF needaddset(state.pt, sets, "graphics") THEN
    '--Add a new blank sprite set
    setpicstuf buffer(), size * perset, -1
    FOR i = 0 TO (size * perset) / 2
     buffer(i) = 0
    NEXT i
-   storeset spritefile$, pt, 0
+   storeset spritefile, state.pt, 0
    '-- re-size the array that stores the default palette offset
    REDIM PRESERVE poffset(large(sets, atatime))
    '--add a new blank default palette
-   poffset(pt) = 0
+   poffset(state.pt) = 0
    GOSUB loadalluc
   END IF
-  IF pt > top + atatime THEN
+  IF state.pt > state.top + atatime THEN
    GOSUB savealluc
-   top = top + 1
+   state.top = state.top + 1
    GOSUB loadalluc
   END IF
  END IF
- IF keyval(75) > 1 THEN num = large(num - 1, 0)
- IF keyval(77) > 1 THEN num = small(num + 1, perset - 1)
+ IF keyval(75) > 1 THEN ss.framenum = large(ss.framenum - 1, 0)
+ IF keyval(77) > 1 THEN ss.framenum = small(ss.framenum + 1, perset - 1)
  IF keyval(26) > 1 THEN
-  changepal poffset(pt), -1, workpal(), pt - top
+  changepal poffset(state.pt), -1, workpal(), state.pt - state.top
  END IF
  IF keyval(27) > 1 THEN
-  changepal poffset(pt), 1, workpal(), pt - top
+  changepal poffset(state.pt), 1, workpal(), state.pt - state.top
  END IF
  '--copying
  IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83) > 0) OR (keyval(29) > 0 AND keyval(46) > 1) THEN 
-  loadsprite spriteclip(), 0, num * size, soff * (pt - top), xw, yw, 3
+  loadsprite spriteclip(), 0, ss.framenum * size, soff * (state.pt - state.top), xw, yw, 3
   paste = 1
   clippedw = xw
   clippedh = yw
@@ -1646,7 +1649,7 @@ DO
  END IF
  IF do_paste THEN
   do_paste = 0
-  loadsprite placer(), 0, num * size, soff * (pt - top), xw, yw, 3
+  loadsprite placer(), 0, ss.framenum * size, soff * (state.pt - state.top), xw, yw, 3
   rectangle 0, 0, xw, yw, 0, dpage
   drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
   IF NOT paste_transparent THEN
@@ -1654,27 +1657,26 @@ DO
   END IF
   drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
   getsprite placer(), 0, 0, 0, xw, yw, dpage
-  stosprite placer(), 0, num * size, soff * (pt - top), 3
-  savewuc(spritefile$, pt, top, sets, xw,yw, soff, perset, size, placer(), workpal(), poffset())
+  stosprite placer(), 0, ss.framenum * size, soff * (state.pt - state.top), 3
+  savewuc(spritefile, state.pt, state.top, sets, xw,yw, soff, perset, size, placer(), workpal(), poffset())
  END IF
  IF keyval(59) > 1 THEN
   debug_palettes = debug_palettes XOR 1
  END IF
  'draw sprite sets
  rectangle 0, 0, 320, 200, uilook(uiDisabledItem), dpage
- rectangle 4 + (num * (xw + 1)), (pt - top) * (yw + 5), xw + 2, yw + 2, uilook(uiText), dpage
- FOR i = top TO small(top + atatime, sets)
-  picslot = i - top
+ rectangle 4 + (ss.framenum * (xw + 1)), (state.pt - state.top) * (yw + 5), xw + 2, yw + 2, uilook(uiText), dpage
+ FOR i = state.top TO small(state.top + atatime, sets)
   FOR o = 0 TO perset - 1
-   rectangle 5 + (o * (xw + 1)), 1 + (picslot * (yw + 5)), xw, yw, 0, dpage
-   loadsprite placer(), 0, size * o, soff * picslot, xw, yw, 3
-   drawsprite placer(), 0, workpal(), (i - top) * 16, 5 + (o * (xw + 1)), 1 + (picslot * (yw + 5)), dpage
+   rectangle 5 + (o * (xw + 1)), 1 + ((i - state.top) * (yw + 5)), xw, yw, 0, dpage
+   loadsprite placer(), 0, size * o, soff * (i - state.top), xw, yw, 3
+   drawsprite placer(), 0, workpal(), (i - state.top) * 16, 5 + (o * (xw + 1)), 1 + ((i - state.top) * (yw + 5)), dpage
   NEXT o
  NEXT i
  textcolor uilook(uiMenuItem), 0
- printstr "Palette" + XSTR$(poffset(pt)), 320 - (LEN("Palette" + XSTR$(poffset(pt))) * 8), 0, dpage
+ printstr "Palette " & poffset(state.pt), 320 - (LEN("Palette " & poffset(state.pt)) * 8), 0, dpage
  FOR i = 0 TO 15
-  rectangle 271 + i * 3, 8, 3, 8, peek8bit(workpal(), (pt - top) * 16 + i), dpage
+  rectangle 271 + i * 3, 8, 3, 8, peek8bit(workpal(), (state.pt - state.top) * 16 + i), dpage
  NEXT i
  IF debug_palettes THEN
    FOR j = 0 TO atatime
@@ -1683,14 +1685,14 @@ DO
      NEXT i
    NEXT j
  END IF
- printstr "Set" + XSTR$(pt), 320 - (LEN("Set" + XSTR$(pt)) * 8), 16, dpage
- printstr info$(num), 320 - (LEN(info$(num)) * 8), 24, dpage
+ printstr "Set " & state.pt, 320 - (LEN("Set " & state.pt) * 8), 16, dpage
+ printstr info$(ss.framenum), 320 - (LEN(info$(ss.framenum)) * 8), 24, dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
  dowait
 LOOP
-changepal poffset(pt), 0, workpal(), pt - top
+changepal poffset(state.pt), 0, workpal(), state.pt - state.top
 GOSUB savealluc
 savedefaultpals fileset, poffset(), sets
 clearpage 0
@@ -1701,31 +1703,31 @@ EXIT SUB
 'GOSUB GOSUB
 
 spriteage:
-undodepth = 0
-undoptr = 0
-undomax = (32000 \ size) - 1
+ss.undodepth = 0
+ss.undoslot = 0
+ss.undomax = (32000 \ size) - 1
 GOSUB spedbak
-loadsprite placer(), 0, num * size, soff * (pt - top), xw, yw, 3
+loadsprite placer(), 0, ss.framenum * size, soff * (state.pt - state.top), xw, yw, 3
 setkeys
 DO
  setwait 90
  setkeys
- IF gotm THEN
+ IF ss.gotmouse THEN
   readmouse mouse()
-  zcsr = 0
-  zone = mouseover(mouse(), zox, zoy, zcsr, area())
+  ss.zonecursor = 0
+  ss.zonenum = mouseover(mouse(), ss.zone.x, ss.zone.y, ss.zonecursor, area())
  END IF
  IF keyval(1) > 1 THEN
-  IF box OR drl OR ovalstep THEN
+  IF ss.hold = YES OR drl = 1 OR ovalstep > 0 THEN
    GOSUB resettool
   ELSE
-   stosprite placer(), 0, num * size, soff * (pt - top), 3
+   stosprite placer(), 0, ss.framenum * size, soff * (state.pt - state.top), 3
    GOSUB resettool
    EXIT DO
   END IF
  END IF
  GOSUB sprctrl
- tog = tog XOR 1
+ state.tog = state.tog XOR 1
  copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
  GOSUB spritescreen
  SWAP vpage, dpage
@@ -1734,45 +1736,45 @@ DO
  rectangle 239, 119, xw, yw, 0, dpage
  dowait
 LOOP
-j = pt
-savewuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
-changepal poffset(pt), 0, workpal(), pt - top
+j = state.pt
+savewuc(spritefile, j, state.top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
+changepal poffset(state.pt), 0, workpal(), state.pt - state.top
 RETRACE
 
 sprctrl:
 IF mouse(2) = 0 THEN
- oldx = -1
- oldy = -1
+ ss.lastpos.x = -1
+ ss.lastpos.y = -1
 END IF
-IF keyval(4) > 1 THEN setvispage 3: w = getkey
-IF keyval(41) > 1 THEN hideptr = hideptr XOR 1
+IF keyval(4) > 1 THEN setvispage 3: waitforanykey
+IF keyval(41) > 1 THEN ss.hidemouse = ss.hidemouse XOR 1
 IF keyval(51) > 1 AND col > 0 THEN col = col - 1
 IF keyval(52) > 1 AND col < 15 THEN col = col + 1
-IF zone = 2 THEN
- IF mouse(3) > 0 THEN col = small(INT(zox / 4), 15)
+IF ss.zonenum = 2 THEN
+ IF mouse(3) > 0 THEN col = small(INT(ss.zone.x / 4), 15)
 END IF
-IF keyval(26) > 1 OR (zone = 5 AND mouse(3) > 0) THEN
- changepal poffset(pt), -1, workpal(), pt - top
+IF keyval(26) > 1 OR (ss.zonenum = 5 AND mouse(3) > 0) THEN
+ changepal poffset(state.pt), -1, workpal(), state.pt - state.top
 END IF
-IF keyval(27) > 1 OR (zone = 6 AND mouse(3) > 0) THEN
- changepal poffset(pt), 1, workpal(), pt - top
+IF keyval(27) > 1 OR (ss.zonenum = 6 AND mouse(3) > 0) THEN
+ changepal poffset(state.pt), 1, workpal(), state.pt - state.top
 END IF
-IF keyval(25) > 1 OR (zone = 19 AND mouse(3) > 0) THEN '--call palette browser
+IF keyval(25) > 1 OR (ss.zonenum = 19 AND mouse(3) > 0) THEN '--call palette browser
  '--write changes so far
- stosprite placer(), 0, num * size, soff * (pt - top), 3
+ stosprite placer(), 0, ss.framenum * size, soff * (state.pt - state.top), 3
  '--save current palette
- storepal16 workpal(), pt - top, poffset(pt)
- poffset(pt) = pal16browse(poffset(pt), fileset, pt, perset, xw, yw)
- getpal16 workpal(), pt - top, poffset(pt)
+ storepal16 workpal(), state.pt - state.top, poffset(state.pt)
+ poffset(state.pt) = pal16browse(poffset(state.pt), fileset, state.pt, perset, xw, yw)
+ getpal16 workpal(), state.pt - state.top, poffset(state.pt)
 END IF
 '--UNDO
-IF (keyval(29) > 0 AND keyval(44) > 1) OR (zone = 20 AND mouse(3) > 0) THEN GOSUB readundospr
+IF (keyval(29) > 0 AND keyval(44) > 1) OR (ss.zonenum = 20 AND mouse(3) > 0) THEN GOSUB readundospr
 '--COPY (CTRL+INS,SHIFT+DEL,CTRL+C)
 IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83) > 0) OR (keyval(29) > 0 AND keyval(46) > 1) THEN
  clippedw = xw
  clippedh = yw
- stosprite placer(), 0, num * size, soff * (pt - top), 3
- loadsprite spriteclip(), 0, num * size, soff * (pt - top), xw, yw, 3
+ stosprite placer(), 0, ss.framenum * size, soff * (state.pt - state.top), 3
+ loadsprite spriteclip(), 0, ss.framenum * size, soff * (state.pt - state.top), xw, yw, 3
  paste = 1
 END IF
 '--PASTE (SHIFT+INS,CTRL+V)
@@ -1792,7 +1794,7 @@ END IF
 '--COPY PALETTE (ALT+C)
 IF keyval(56) > 0 AND keyval(46) > 1 THEN
  FOR i = 0 TO 7
-  pclip(i) = workpal(i + (pt - top) * 8)
+  pclip(i) = workpal(i + (state.pt - state.top) * 8)
  NEXT
  clippedpal = 1
 END IF
@@ -1800,86 +1802,88 @@ END IF
 IF keyval(56) > 0 AND keyval(47) > 1 THEN
  IF clippedpal THEN
   FOR i = 0 TO 8
-   workpal(i + (pt - top) * 8) = pclip(i)
+   workpal(i + (state.pt - state.top) * 8) = pclip(i)
   NEXT
  END IF
 END IF
-curcol = peek8bit(workpal(), (pt - top) * 16 + col)
+ss.curcolor = peek8bit(workpal(), (state.pt - state.top) * 16 + col)
 IF keyval(56) > 0 THEN
- IF keyval(72) > 0 AND curcol > 15 THEN curcol -= 16
- IF keyval(80) > 0 AND curcol < 240 THEN curcol += 16
- IF keyval(75) > 0 AND curcol > 0 THEN curcol -= 1
- IF keyval(77) > 0 AND curcol < 255 THEN curcol += 1
+ IF keyval(72) > 0 AND ss.curcolor > 15 THEN ss.curcolor -= 16
+ IF keyval(80) > 0 AND ss.curcolor < 240 THEN ss.curcolor += 16
+ IF keyval(75) > 0 AND ss.curcolor > 0 THEN ss.curcolor -= 1
+ IF keyval(77) > 0 AND ss.curcolor < 255 THEN ss.curcolor += 1
 END IF
-IF mouse(3) = 1 AND zone = 3 THEN 'AND col > 0 THEN
- curcol = INT(INT(zoy / 6) * 16) + INT(zox / 4)
+IF mouse(3) = 1 AND ss.zonenum = 3 THEN 'AND col > 0 THEN
+ ss.curcolor = INT(INT(ss.zone.y / 6) * 16) + INT(ss.zone.x / 4)
 END IF
-poke8bit workpal(), (pt - top) * 16 + col, curcol
+poke8bit workpal(), (state.pt - state.top) * 16 + col, ss.curcolor
 IF keyval(56) = 0 THEN
- fixmouse = 0
  WITH ss
-  IF keyval(72) AND 5 THEN .y = large(0, .y - 1): fixmouse = 1
-  IF keyval(80) AND 5 THEN .y = small(yw - 1, .y + 1): fixmouse = 1
-  IF keyval(75) AND 5 THEN .x = large(0, .x - 1): fixmouse = 1
-  IF keyval(77) AND 5 THEN .x = small(xw - 1, .x + 1): fixmouse = 1
+  .fixmouse = NO
+  IF keyval(72) AND 5 THEN .y = large(0, .y - 1):      .fixmouse = YES
+  IF keyval(80) AND 5 THEN .y = small(yw - 1, .y + 1): .fixmouse = YES
+  IF keyval(75) AND 5 THEN .x = large(0, .x - 1):      .fixmouse = YES
+  IF keyval(77) AND 5 THEN .x = small(xw - 1, .x + 1): .fixmouse = YES
  END WITH
- IF fixmouse THEN
-  IF zone = 1 THEN
-   zox = ss.x * zoom + INT(zoom / 2)
-   zoy = ss.y * zoom + INT(zoom / 2)
-   mouse(0) = area(0).x + zox 
-   mouse(1) = area(0).y + zoy
+ IF ss.fixmouse THEN
+  IF ss.zonenum = 1 THEN
+   ss.zone.x = ss.x * zoom + INT(zoom / 2)
+   ss.zone.y = ss.y * zoom + INT(zoom / 2)
+   mouse(0) = area(0).x + ss.zone.x 
+   mouse(1) = area(0).y + ss.zone.y
    movemouse mouse(0), mouse(1)
   END IF 
-  IF zone = 14 THEN
-   zox = ss.x
-   zoy = ss.y
-   mouse(0) = area(13).y + zox 
-   mouse(1) = area(13).y + zoy
+  IF ss.zonenum = 14 THEN
+   ss.zone.x = ss.x
+   ss.zone.y = ss.y
+   mouse(0) = area(13).y + ss.zone.x 
+   mouse(1) = area(13).y + ss.zone.y
    movemouse mouse(0), mouse(1)
   END IF
  END IF
 END IF
-IF zone = 1 THEN
- ss.x = INT(zox / zoom)
- ss.y = INT(zoy / zoom)
+IF ss.zonenum = 1 THEN
+ ss.x = INT(ss.zone.x / zoom)
+ ss.y = INT(ss.zone.y / zoom)
 END IF
-IF tool = 5 THEN '--adjust airbrush
+IF ss.tool = 5 THEN '--adjust airbrush
  IF mouse(3) = 1 OR mouse(2) = 1 THEN
-  IF zone = 15 THEN airsize = large(airsize - 1, 1)
-  IF zone = 17 THEN airsize = small(airsize + 1, 80)
-  IF zone = 16 THEN mist = large(mist - 1, 1)
-  IF zone = 18 THEN mist = small(mist + 1, 99)
+  IF ss.zonenum = 15 THEN ss.airsize = large(ss.airsize - 1, 1)
+  IF ss.zonenum = 17 THEN ss.airsize = small(ss.airsize + 1, 80)
+  IF ss.zonenum = 16 THEN ss.mist = large(ss.mist - 1, 1)
+  IF ss.zonenum = 18 THEN ss.mist = small(ss.mist + 1, 99)
  END IF
  IF keyval(12) > 1 OR keyval(74) > 1 THEN
   IF keyval(29) > 0 THEN
-   mist = large(mist - 1, 1)
+   ss.mist = large(ss.mist - 1, 1)
   ELSE
-   airsize = large(airsize - 1, 1)
+   ss.airsize = large(ss.airsize - 1, 1)
   END IF
  END IF
  IF keyval(13) > 1 OR keyval(78) > 1 THEN
   IF keyval(29) > 0 THEN
-   mist = small(mist + 1, 99)
+   ss.mist = small(ss.mist + 1, 99)
   ELSE
-   airsize = small(airsize + 1, 80)
+   ss.airsize = small(ss.airsize + 1, 80)
   END IF
  END IF
 END IF
-IF zone = 14 THEN
- ss.x = zox
- ss.y = zoy
+IF ss.zonenum = 14 THEN
+ ss.x = ss.zone.x
+ ss.y = ss.zone.y
 END IF
-IF ((zone = 1 OR zone = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(57) > 0 THEN
- SELECT CASE tool
+IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(57) > 0 THEN
+ SELECT CASE ss.tool
   CASE 0'---Draw
    GOSUB putdot
   CASE 1'---Box
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
-    IF box THEN
-     box = 0: GOSUB drawsquare
+    IF ss.hold THEN
+     ss.hold = NO: GOSUB drawsquare
     ELSE
-     box = 1: bx = ss.x: by = ss.y
+     ss.hold = YES
+     ss.holdpos.x = ss.x
+     ss.holdpos.y = ss.y
     END IF
    END IF
   CASE 2'---Line
@@ -1887,7 +1891,9 @@ IF ((zone = 1 OR zone = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(57) > 
     IF drl THEN
      drl = 0: GOSUB straitline
     ELSE
-     drl = 1: bx = ss.x: by = ss.y
+     drl = 1
+     ss.holdpos.x = ss.x
+     ss.holdpos.y = ss.y
     END IF
    END IF
   CASE 3'---Fill
@@ -1898,9 +1904,11 @@ IF ((zone = 1 OR zone = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(57) > 
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
     SELECT CASE ovalstep
      CASE 0'--start oval
-      bx = ss.x: by = ss.y
-      squishx = 0: squishy = 0
-      radius = 0
+      ss.holdpos.x = ss.x
+      ss.holdpos.y = ss.y
+      ss.squish.x = 0
+      ss.squish.y = 0
+      ss.radius = 0
       ovalstep = 1
      CASE 1'--draw the oval
       GOSUB drawoval
@@ -1911,59 +1919,63 @@ IF ((zone = 1 OR zone = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(57) > 
    GOSUB sprayspot
   CASE 6'---Mark
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
-    IF box THEN
-     box = 0
+    IF ss.hold THEN
+     ss.hold = NO
      drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-     getsprite clonebuf(), 0, 239 + small(ss.x, bx), 119 + small(ss.y, by), ABS(ss.x - bx) + 1, ABS(ss.y - by) + 1, dpage
+     getsprite clonebuf(), 0, 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, dpage
      clonemarked = YES
-     tool = 7 ' auto-select the clone tool after marking
+     ss.tool = 7 ' auto-select the clone tool after marking
     ELSE
-     box = 1: bx = ss.x: by = ss.y
+     ss.hold = YES
+     ss.holdpos.x = ss.x
+     ss.holdpos.y = ss.y
     END IF
    END IF
-  CASE 7'---Draw
+  CASE 7'---Clone brush
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
     IF clonemarked THEN
-     IF oldx = -1 AND oldy = -1 THEN
+     IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
       GOSUB writeundospr
      END IF
      drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
      drawsprite clonebuf(), 0, nulpal(), 0, 239 + ss.x - (clonebuf(0) \ 2), 119 + ss.y - (clonebuf(1) \ 2), dpage
      getsprite placer(), 0, 239, 119, xw, yw, dpage
-     oldx = ss.x
-     oldy = ss.y
+     ss.lastpos.x = ss.x
+     ss.lastpos.y = ss.y
     ELSE
-     tool = 6 ' select selection tool if clone is not available
-     box = 1: bx = ss.x: by = ss.y
+     ss.tool = 6 ' select selection tool if clone is not available
+     ss.hold = YES
+     ss.holdpos.x = ss.x
+     ss.holdpos.y = ss.y
     END IF
    END IF
  END SELECT
 END IF
 IF ovalstep = 1 THEN
- radius = large(ABS(ss.x - bx), ABS(ss.y - by))
+ ss.radius = large(ABS(ss.x - ss.holdpos.x), ABS(ss.y - ss.holdpos.y))
 END IF
 FOR i = 0 TO 7
- IF (mouse(3) > 0 AND zone = toolinfo(i).areanum + 1) OR keyval(toolinfo(i).shortcut) > 1 THEN
-  tool = i
+ IF (mouse(3) > 0 AND ss.zonenum = toolinfo(i).areanum + 1) OR keyval(toolinfo(i).shortcut) > 1 THEN
+  ss.tool = i
   GOSUB resettool
-  dcsr = toolinfo(i).cursor + 1
+  ss.drawcursor = toolinfo(i).cursor + 1
  END IF
 NEXT i
-IF keyval(28) > 1 OR (zone = 1 AND mouse(2) = 2) THEN
+IF keyval(28) > 1 OR (ss.zonenum = 1 AND mouse(2) = 2) THEN
  drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage: col = readpixel(239 + ss.x, 119 + ss.y, dpage)
 END IF
-IF keyval(14) > 1 OR (zone = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, nulpal(), 0, 239, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+IF keyval(14) > 1 OR (ss.zonenum = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, nulpal(), 0, 239, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
 IF keyval(58) > 0 THEN
  IF keyval(72) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 118, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
  IF keyval(80) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 120, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
  IF keyval(75) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 238, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
  IF keyval(77) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 240, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
 END IF
-IF keyval(23) > 1 OR (zone = 13 AND mouse(3) > 0) THEN GOSUB import16
+IF keyval(23) > 1 OR (ss.zonenum = 13 AND mouse(3) > 0) THEN GOSUB import16
 RETRACE
 
 resettool:
-box = 0
+ss.hold = NO
 drl = 0
 ovalstep = 0
 RETRACE
@@ -1983,33 +1995,36 @@ area(13).h = yw
 RETRACE
 
 import16:
-srcbmp$ = browse$(2, default$, "*.bmp", "")
-IF srcbmp$ = "" THEN RETRACE
+'FIXME: several things such as srcbmp and palstate are DIMed near the top of sprite()
+'       move them here when import16 gets SUBified
+srcbmp = browse$(2, default$, "*.bmp", "")
+IF srcbmp = "" THEN RETRACE
 '--------------------
 'DECIDE ABOUT PALETTE
-pcsr = 0
+palstate.pt = 0
+palstate.last = 2
 setkeys
 DO
  setwait 110
  setkeys
- tog = tog XOR 1
+ palstate.tog = palstate.tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
  IF keyval(75) > 1 OR keyval(26) > 1 THEN
-  changepal poffset(pt), -1, workpal(), pt - top
+  changepal poffset(state.pt), -1, workpal(), state.pt - state.top
  END IF
  IF keyval(77) > 1 OR keyval(27) > 1 THEN
-  changepal poffset(pt), 1, workpal(), pt - top
+  changepal poffset(state.pt), 1, workpal(), state.pt - state.top
  END IF
- usemenu pcsr, 0, 0, 2, 24
+ usemenu palstate
  IF enter_or_space() THEN
-  IF pcsr = 2 THEN RETRACE
+  IF palstate.pt = 2 THEN RETRACE
   EXIT DO
  END IF
  GOSUB spritescreen
  rectangle 4, 156, 208, 32, uilook(uiDisabledItem), dpage
  FOR i = 0 TO 2
-  c = uilook(uiMenuItem): IF i = pcsr THEN c = uilook(uiSelectedItem + tog)
-  edgeprint pmenu$(i), 8, 160 + (i * 8), c, dpage
+  col = uilook(uiMenuItem): IF i = palstate.pt THEN col = uilook(uiSelectedItem + palstate.tog)
+  edgeprint pmenu$(i), 8, 160 + (i * 8), col, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -2020,32 +2035,32 @@ LOOP
 clearpage dpage
 clearpage 2
 
-loadbmp srcbmp$, 1, 1, 2
+loadbmp srcbmp, 1, 1, 2
 
 '---------------------
 'PICK BACKGROUND COLOR
-gx = 1
-gy = 1
-temp = bmpinfo(srcbmp$, bmpd())
-edjx = small(320, bmpd(1))
-edjy = small(200, bmpd(2))
+pickpos.x = 1
+pickpos.y = 1
+bmpinfo srcbmp, bmpd()
+picksize.x = small(320, bmpd(1))
+picksize.y = small(200, bmpd(2))
 setkeys
 DO
  setwait 110
  setkeys
- tog = tog XOR 1
+ palstate.tog = palstate.tog XOR 1
  IF keyval(1) > 1 THEN 
  '--Cancel
   GOSUB spedbak
   RETRACE
  END IF
  IF keyval(56) THEN movespeed = 9 ELSE movespeed = 1
- IF keyval(72) > 0 THEN gy = large(gy - movespeed, 1)
- IF keyval(80) > 0 THEN gy = small(gy + movespeed, edjy)
- IF keyval(75) > 0 THEN gx = large(gx - movespeed, 1)
- IF keyval(77) > 0 THEN gx = small(gx + movespeed, edjx)
+ IF keyval(72) > 0 THEN pickpos.y = large(pickpos.y - movespeed, 1)
+ IF keyval(80) > 0 THEN pickpos.y = small(pickpos.y + movespeed, picksize.y)
+ IF keyval(75) > 0 THEN pickpos.x = large(pickpos.x - movespeed, 1)
+ IF keyval(77) > 0 THEN pickpos.x = small(pickpos.x + movespeed, picksize.x)
  IF enter_or_space() THEN EXIT DO
- putpixel gx, gy, 15 + tog, dpage
+ putpixel pickpos.x, pickpos.y, uilook(uiSelectedItem + 1), dpage
  edgeprint "Pick Background Color", 0, 190, 7, dpage
  SWAP vpage, dpage
  setvispage vpage
@@ -2054,25 +2069,25 @@ DO
 LOOP
 
 '--picked a transparent pixel
-temp = readpixel(gx, gy, 2)
+pixelval = readpixel(pickpos.x, pickpos.y, 2)
 '--swap the transparent pixels to 0
-FOR i = 1 TO edjx
- FOR o = 1 TO edjy
-  IF readpixel(i, o, 2) = temp THEN
+FOR i = 1 TO picksize.x
+ FOR o = 1 TO picksize.y
+  IF readpixel(i, o, 2) = pixelval THEN
    putpixel i, o, 0, 2
   ELSE
    IF readpixel(i, o, 2) = 0 THEN
-    putpixel i, o, temp, 2
+    putpixel i, o, pixelval, 2
    END IF
   END IF
  NEXT o
 NEXT i
 '--swap the transparent palette entry to 0
-IF pcsr = 0 THEN
- convertbmppal srcbmp$, master(), workpal(), 8 * (pt - top)
+IF palstate.pt = 0 THEN
+ convertbmppal srcbmp, master(), workpal(), 8 * (state.pt - state.top)
  'swap black with the transparent color
- poke8bit workpal(), temp + (pt - top) * 16, peek8bit(workpal(), 0 + (pt - top) * 16)
- poke8bit workpal(), 0 + (pt - top) * 16, 0
+ poke8bit workpal(), pixelval + (state.pt - state.top) * 16, peek8bit(workpal(), 0 + (state.pt - state.top) * 16)
+ poke8bit workpal(), 0 + (state.pt - state.top) * 16, 0
 END IF
 '--read the sprite
 getsprite placer(), 0, 1, 1, xw, yw, 2
@@ -2089,158 +2104,158 @@ getsprite placer(), 0, 239, 119, xw, yw, dpage
 RETRACE
 
 sprayspot:
-IF oldx = -1 AND oldy = -1 THEN GOSUB writeundospr
+IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-airbrush 239 + ss.x, 119 + ss.y, airsize, mist, col, dpage
+airbrush 239 + ss.x, 119 + ss.y, ss.airsize, ss.mist, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
-oldx = ss.x
-oldy = ss.y
+ss.lastpos.x = ss.x
+ss.lastpos.y = ss.y
 RETRACE
 
 writeundospr:
-stosprite placer(), 0, undoptr * size, 100, 3
-undoptr = loopvar(undoptr, 0, undomax, 1)
-undodepth = small(undodepth + 1, undomax + 1)
+stosprite placer(), 0, ss.undoslot * size, 100, 3
+ss.undoslot = loopvar(ss.undoslot, 0, ss.undomax, 1)
+ss.undodepth = small(ss.undodepth + 1, ss.undomax + 1)
 RETRACE
 
 readundospr:
-IF undodepth > 0 THEN
- undodepth = undodepth - 1
- undoptr = loopvar(undoptr, 0, undomax, -1)
- loadsprite placer(), 0, undoptr * size, 100, xw, yw, 3
+IF ss.undodepth > 0 THEN
+ ss.undodepth = ss.undodepth - 1
+ ss.undoslot = loopvar(ss.undoslot, 0, ss.undomax, -1)
+ loadsprite placer(), 0, ss.undoslot * size, 100, xw, yw, 3
 END IF
 RETRACE
 
 putdot:
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-IF oldx = -1 AND oldy = -1 THEN
+IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
  GOSUB writeundospr
  putpixel 239 + ss.x, 119 + ss.y, col, dpage
 ELSE
- drawline 239 + ss.x, 119 + ss.y, 239 + oldx, 119 + oldy, col, dpage
+ drawline 239 + ss.x, 119 + ss.y, 239 + ss.lastpos.x, 119 + ss.lastpos.y, col, dpage
 END IF
 getsprite placer(), 0, 239, 119, xw, yw, dpage
-oldx = ss.x
-oldy = ss.y
+ss.lastpos.x = ss.x
+ss.lastpos.y = ss.y
 RETRACE
 
 drawoval:
 GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-ellipse 239 + bx, 119 + by, radius, col, dpage, squishx, squishy
+ellipse 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.radius, col, dpage, ss.squish.x, ss.squish.y
 getsprite placer(), 0, 239, 119, xw, yw, dpage
 RETRACE
 
 drawsquare:
 GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-rectangle 239 + small(ss.x, bx), 119 + small(ss.y, by), ABS(ss.x - bx) + 1, ABS(ss.y - by) + 1, col, dpage
+rectangle 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
 RETRACE
 
 straitline:
 GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-drawline 239 + ss.x, 119 + ss.y, 239 + bx, 119 + by, col, dpage
+drawline 239 + ss.x, 119 + ss.y, 239 + ss.holdpos.x, 119 + ss.holdpos.y, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
 RETRACE
 
 spritescreen:
-curcol = peek8bit(workpal(), col + (pt - top) * 16)
-rectangle 247 + ((curcol - (INT(curcol / 16) * 16)) * 4), 0 + (INT(curcol / 16) * 6), 5, 7, uilook(uiText), dpage
+ss.curcolor = peek8bit(workpal(), col + (state.pt - state.top) * 16)
+rectangle 247 + ((ss.curcolor - (INT(ss.curcolor / 16) * 16)) * 4), 0 + (INT(ss.curcolor / 16) * 6), 5, 7, uilook(uiText), dpage
 FOR i = 0 TO 15
  FOR o = 0 TO 15
   rectangle 248 + (i * 4), 1 + (o * 6), 3, 5, o * 16 + i, dpage
  NEXT o
 NEXT i
-textcolor uilook(uiText), uilook(uiDisabledItem): IF zone = 5 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+textcolor uilook(uiText), uilook(uiDisabledItem): IF ss.zonenum = 5 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
 printstr CHR$(27), 248, 100, dpage
-textcolor uilook(uiText), uilook(uiDisabledItem): IF zone = 6 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+textcolor uilook(uiText), uilook(uiDisabledItem): IF ss.zonenum = 6 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
 printstr CHR$(26), 304, 100, dpage
 textcolor uilook(uiText), 0
-printstr LEFT$(" Pal", 4 - (LEN(XSTR$(poffset(pt))) - 3)) + XSTR$(poffset(pt)), 248, 100, dpage
+printstr LEFT$(" Pal", 4 - (LEN(XSTR$(poffset(state.pt))) - 3)) + XSTR$(poffset(state.pt)), 248, 100, dpage
 rectangle 247 + (col * 4), 110, 5, 7, uilook(uiText), dpage
 FOR i = 0 TO 15
- rectangle 248 + (i * 4), 111, 3, 5, peek8bit(workpal(), i + (pt - top) * 16), dpage
+ rectangle 248 + (i * 4), 111, 3, 5, peek8bit(workpal(), i + (state.pt - state.top) * 16), dpage
 NEXT
-IF zoom = 4 THEN hugesprite placer(), workpal(), (pt - top) * 16, 4, 1, dpage, 0
-IF zoom = 2 THEN bigsprite placer(), workpal(), (pt - top) * 16, 4, 1, dpage, 0
-curcol = peek8bit(workpal(), col + (pt - top) * 16)
-IF box = 1 AND tool = 1THEN
- rectangle 4 + small(ss.x, bx) * zoom, 1 + small(ss.y, by) * zoom, (ABS(ss.x - bx) + 1) * zoom, (ABS(ss.y - by) + 1) * zoom, curcol, dpage
- rectangle 4 + bx * zoom, 1 + by * zoom, zoom, zoom, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
+IF zoom = 4 THEN hugesprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
+IF zoom = 2 THEN bigsprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
+ss.curcolor = peek8bit(workpal(), col + (state.pt - state.top) * 16)
+IF ss.hold = YES AND ss.tool = 1 THEN
+ rectangle 4 + small(ss.x, ss.holdpos.x) * zoom, 1 + small(ss.y, ss.holdpos.y) * zoom, (ABS(ss.x - ss.holdpos.x) + 1) * zoom, (ABS(ss.y - ss.holdpos.y) + 1) * zoom, ss.curcolor, dpage
+ rectangle 4 + ss.holdpos.x * zoom, 1 + ss.holdpos.y * zoom, zoom, zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
 END IF
-rectangle 4 + (ss.x * zoom), 1 + (ss.y * zoom), zoom, zoom, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
-drawsprite placer(), 0, workpal(), (pt - top) * 16, 239, 119, dpage, 0
-IF box = 1 AND tool = 1 THEN
- rectangle 239 + small(ss.x, bx), 119 + small(ss.y, by), ABS(ss.x - bx) + 1, ABS(ss.y - by) + 1, curcol, dpage
- putpixel 239 + bx, 119 + by, tog * 15, dpage
+rectangle 4 + (ss.x * zoom), 1 + (ss.y * zoom), zoom, zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
+drawsprite placer(), 0, workpal(), (state.pt - state.top) * 16, 239, 119, dpage, 0
+IF ss.hold = YES AND ss.tool = 1 THEN
+ rectangle 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, dpage
+ putpixel 239 + ss.holdpos.x, 119 + ss.holdpos.y, state.tog * 15, dpage
 END IF
 IF drl = 1 THEN
- drawline 239 + ss.x, 119 + ss.y, 239 + bx, 119 + by, curcol, dpage
- drawline 5 + (ss.x * zoom), 2 + (ss.y * zoom), 5 + (bx * zoom), 2 + (by * zoom), curcol, dpage
+ drawline 239 + ss.x, 119 + ss.y, 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.curcolor, dpage
+ drawline 5 + (ss.x * zoom), 2 + (ss.y * zoom), 5 + (ss.holdpos.x * zoom), 2 + (ss.holdpos.y * zoom), ss.curcolor, dpage
 END IF
 IF ovalstep > 0 THEN
- ellipse 239 + bx, 119 + by, radius, curcol, dpage, squishx, squishy
- ellipse 5 + (bx * zoom), 2 + (by * zoom), radius * zoom, curcol, dpage, squishx, squishy
+ ellipse 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.radius, ss.curcolor, dpage, ss.squish.x, ss.squish.y
+ ellipse 5 + (ss.holdpos.x * zoom), 2 + (ss.holdpos.y * zoom), ss.radius * zoom, ss.curcolor, dpage, ss.squish.x, ss.squish.y
 END IF
-IF tool = 5 THEN
- ellipse 239 + ss.x, 119 + ss.y, airsize / 2, curcol, dpage, 0, 0
- ellipse 5 + (ss.x * zoom), 2 + (ss.y * zoom), (airsize / 2) * zoom, curcol, dpage, 0, 0
+IF ss.tool = 5 THEN
+ ellipse 239 + ss.x, 119 + ss.y, ss.airsize / 2, ss.curcolor, dpage, 0, 0
+ ellipse 5 + (ss.x * zoom), 2 + (ss.y * zoom), (ss.airsize / 2) * zoom, ss.curcolor, dpage, 0, 0
 END IF
-IF box = 1 AND tool = 6 AND tog = 0 THEN
- IF tool = 6 THEN curcol = INT(RND * 255) ' Random color when marking a clone region
- emptybox 4 + small(ss.x, bx) * zoom, 1 + small(ss.y, by) * zoom, (ABS(ss.x - bx) + 1) * zoom, (ABS(ss.y - by) + 1) * zoom, curcol, zoom, dpage
- emptybox 239 + small(ss.x, bx), 119 + small(ss.y, by), ABS(ss.x - bx) + 1, ABS(ss.y - by) + 1, curcol, 1, dpage
+IF ss.hold = YES AND ss.tool = 6 AND state.tog = 0 THEN
+ IF ss.tool = 6 THEN ss.curcolor = INT(RND * 255) ' Random color when marking a clone region
+ emptybox 4 + small(ss.x, ss.holdpos.x) * zoom, 1 + small(ss.y, ss.holdpos.y) * zoom, (ABS(ss.x - ss.holdpos.x) + 1) * zoom, (ABS(ss.y - ss.holdpos.y) + 1) * zoom, ss.curcolor, zoom, dpage
+ emptybox 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, 1, dpage
 END IF
-IF tool = 7 AND clonemarked = YES AND tog = 0 THEN
- tempx = ss.x - (clonebuf(0) \ 2)
- tempy = ss.y - (clonebuf(1) \ 2)
- IF zoom = 4 THEN hugesprite clonebuf(), workpal(), (pt - top) * 16, 4 + tempx * zoom, 1 + tempy * zoom, dpage
- IF zoom = 2 THEN bigsprite clonebuf(), workpal(), (pt - top) * 16, 4 + tempx * zoom, 1 + tempy * zoom, dpage
- drawsprite clonebuf(), 0, workpal(), (pt - top) * 16, 239 + tempx, 119 + tempy, dpage
+IF ss.tool = 7 AND clonemarked = YES AND state.tog = 0 THEN
+ temppos.x = ss.x - (clonebuf(0) \ 2)
+ temppos.y = ss.y - (clonebuf(1) \ 2)
+ IF zoom = 4 THEN hugesprite clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * zoom, 1 + temppos.y * zoom, dpage
+ IF zoom = 2 THEN bigsprite clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * zoom, 1 + temppos.y * zoom, dpage
+ drawsprite clonebuf(), 0, workpal(), (state.pt - state.top) * 16, 239 + temppos.x, 119 + temppos.y, dpage
 END IF
-putpixel 239 + ss.x, 119 + ss.y, tog * 15, dpage
+putpixel 239 + ss.x, 119 + ss.y, state.tog * 15, dpage
 textcolor uilook(uiMenuItem), 0
-printstr info$(num), 0, 182, dpage
-printstr "Tool:" & toolinfo(tool).name, 0, 190, dpage
+printstr info$(ss.framenum), 0, 182, dpage
+printstr "Tool:" & toolinfo(ss.tool).name, 0, 190, dpage
 FOR i = 0 TO 7
- t1 = uilook(uiMenuItem): t2 = uilook(uiDisabledItem)
- IF tool = i THEN t1 = uilook(uiText): t2 = uilook(uiMenuItem)
- IF zone = toolinfo(i).areanum + 1 THEN t2 = uilook(uiSelectedDisabled)
- textcolor t1, t2
+ fgcol = uilook(uiMenuItem): bgcol = uilook(uiDisabledItem)
+ IF ss.tool = i THEN fgcol = uilook(uiText): bgcol = uilook(uiMenuItem)
+ IF ss.zonenum = toolinfo(i).areanum + 1 THEN bgcol = uilook(uiSelectedDisabled)
+ textcolor fgcol, bgcol
  printstr toolinfo(i).icon, area(toolinfo(i).areanum).x, area(toolinfo(i).areanum).y, dpage
 NEXT i
-textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF zone = 4 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ss.zonenum = 4 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
 printstr CHR$(7), 182, 190, dpage
-textcolor uilook(uiMenuitem), uilook(uiDisabledItem): IF zone = 13 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+textcolor uilook(uiMenuitem), uilook(uiDisabledItem): IF ss.zonenum = 13 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
 printstr "I", 194, 190, dpage
-IF undodepth = 0 THEN
+IF ss.undodepth = 0 THEN
  textcolor uilook(uiBackground), uilook(uiDisabledItem)
 ELSE
  textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
 END IF
-IF zone = 20 AND undodepth > 0 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+IF ss.zonenum = 20 AND ss.undodepth > 0 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
 printstr "UNDO", 170, 182, dpage
-IF tool = 5 THEN
+IF ss.tool = 5 THEN
  textcolor uilook(uiMenuItem), 0
- printstr "SIZE" + STR$(airsize), 218, 182, dpage
- printstr "MIST" + STR$(mist), 218, 190, dpage
- textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF zone = 15 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+ printstr "SIZE" & ss.airsize, 218, 182, dpage
+ printstr "MIST" & ss.mist, 218, 190, dpage
+ textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ss.zonenum = 15 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
  printstr CHR$(27), 210, 182, dpage
- textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF zone = 16 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+ textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ss.zonenum = 16 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
  printstr CHR$(27), 210, 190, dpage
- textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF zone = 17 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+ textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ss.zonenum = 17 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
  printstr CHR$(26), 266, 182, dpage
- textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF zone = 18 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+ textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ss.zonenum = 18 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
  printstr CHR$(26), 266, 190, dpage
 END IF
-IF gotm THEN
- c = zcsr
+IF ss.gotmouse THEN
+ c = ss.zonecursor
  IF c = -1 THEN
-  IF hideptr THEN c = -2 ELSE c = dcsr
+  IF ss.hidemouse THEN c = -2 ELSE c = ss.drawcursor
  END IF
- IF tog THEN
+ IF state.tog THEN
   textcolor uilook(uiText), 0
  ELSE
   textcolor uilook(uiDescription), 0
@@ -2250,113 +2265,139 @@ END IF
 RETRACE
 
 savealluc:
-FOR j = top TO top + atatime
-	savewuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset()) 
+FOR j = state.top TO state.top + atatime
+ savewuc(spritefile, j, state.top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset()) 
 NEXT j
 RETRACE
 
 loadalluc:
-FOR j = top TO top + atatime
- loadwuc(spritefile$, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
+FOR j = state.top TO state.top + atatime
+ loadwuc(spritefile, j, state.top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
 NEXT
 RETRACE
 
 END SUB '----END of sprite()
 
 SUB init_sprite_zones(area() AS MouseArea)
-'DRAWING ZONE
-area(0).x = 4
-area(0).y = 1
-area(0).hidecursor = YES
-'PALETTE ZONE
-area(1).x = 248
-area(1).y = 111
-area(1).w = 64
-area(1).h = 6
-area(1).hidecursor = NO
-'MASTER PAL ZONE
-area(2).x = 248
-area(2).y = 1
-area(2).w = 64
-area(2).h = 96
-area(2).hidecursor = NO
-'FLIP BUTTON
-area(3).x = 182
-area(3).y = 190
-area(3).w = 8
-area(3).h = 10
-area(3).hidecursor = NO
-'PREV PAL BUTTON
-area(4).x = 248
-area(4).y = 100
-area(4).w = 8
-area(4).h = 8
-area(4).hidecursor = NO
-'NEXT PAL BUTTON
-area(5).x = 304
-area(5).y = 100
-area(5).w = 8
-area(5).h = 8
-area(5).hidecursor = NO
-'TOOL BUTTONS (more below at 21,22)
-FOR i = 0 TO 5
- area(6 + i).x = 80 + i * 10
- area(6 + i).y = 190
- area(6 + i).w = 8
- area(6 + i).h = 10
- area(6 + i).hidecursor = NO
-NEXT i
-'IMPORT BUTTON
-area(12).x = 194
-area(12).y = 190
-area(12).w = 8
-area(12).h = 10
-area(12).hidecursor = NO
-'SMALL DRAWING AREA
-area(13).x = 239
-area(13).y = 119
-area(13).hidecursor = YES
-'LESS AIRBRUSH AREA
-area(14).x = 210
-area(14).y = 182
-area(14).w = 8
-area(14).h = 8
-area(14).hidecursor = NO
-'LESS AIRBRUSH MIST
-area(15).x = 210
-area(15).y = 190
-area(15).w = 8
-area(15).h = 8
-area(15).hidecursor = NO
-'MORE AIRBRUSH AREA
-area(16).x = 266
-area(16).y = 182
-area(16).w = 8
-area(16).h = 8
-area(16).hidecursor = NO
-'MORE AIRBRUSH MIST
-area(17).x = 266
-area(17).y = 190
-area(17).w = 8
-area(17).h = 8
-area(17).hidecursor = NO
-'PALETTE NUMBER
-area(18).x = 256
-area(18).y = 100
-area(18).w = 48
-area(18).h = 8
-area(18).hidecursor = NO
-'UNDO BUTTON
-area(19).x = 170
-area(19).y = 182
-area(19).w = 32
-area(19).h = 8
-area(19).hidecursor = NO
-FOR i = 0 TO 1
- area(21 + i).x = 140 + i * 10
- area(21 + i).y = 190
- area(21 + i).w = 8
- area(21 + i).h = 10
- area(21 + i).hidecursor = NO
-NEXT i
+ DIM i AS INTEGER
+ 'DRAWING ZONE
+ area(0).x = 4
+ area(0).y = 1
+ area(0).hidecursor = YES
+ 'PALETTE ZONE
+ area(1).x = 248
+ area(1).y = 111
+ area(1).w = 64
+ area(1).h = 6
+ area(1).hidecursor = NO
+ 'MASTER PAL ZONE
+ area(2).x = 248
+ area(2).y = 1
+ area(2).w = 64
+ area(2).h = 96
+ area(2).hidecursor = NO
+ 'FLIP BUTTON
+ area(3).x = 182
+ area(3).y = 190
+ area(3).w = 8
+ area(3).h = 10
+ area(3).hidecursor = NO
+ 'PREV PAL BUTTON
+ area(4).x = 248
+ area(4).y = 100
+ area(4).w = 8
+ area(4).h = 8
+ area(4).hidecursor = NO
+ 'NEXT PAL BUTTON
+ area(5).x = 304
+ area(5).y = 100
+ area(5).w = 8
+ area(5).h = 8
+ area(5).hidecursor = NO
+ 'TOOL BUTTONS (more below at 21,22)
+ FOR i = 0 TO 5
+  area(6 + i).x = 80 + i * 10
+  area(6 + i).y = 190
+  area(6 + i).w = 8
+  area(6 + i).h = 10
+  area(6 + i).hidecursor = NO
+ NEXT i
+ 'IMPORT BUTTON
+ area(12).x = 194
+ area(12).y = 190
+ area(12).w = 8
+ area(12).h = 10
+ area(12).hidecursor = NO
+ 'SMALL DRAWING AREA
+ area(13).x = 239
+ area(13).y = 119
+ area(13).hidecursor = YES
+ 'LESS AIRBRUSH AREA
+ area(14).x = 210
+ area(14).y = 182
+ area(14).w = 8
+ area(14).h = 8
+ area(14).hidecursor = NO
+ 'LESS AIRBRUSH MIST
+ area(15).x = 210
+ area(15).y = 190
+ area(15).w = 8
+ area(15).h = 8
+ area(15).hidecursor = NO
+ 'MORE AIRBRUSH AREA
+ area(16).x = 266
+ area(16).y = 182
+ area(16).w = 8
+ area(16).h = 8
+ area(16).hidecursor = NO
+ 'MORE AIRBRUSH MIST
+ area(17).x = 266
+ area(17).y = 190
+ area(17).w = 8
+ area(17).h = 8
+ area(17).hidecursor = NO
+ 'PALETTE NUMBER
+ area(18).x = 256
+ area(18).y = 100
+ area(18).w = 48
+ area(18).h = 8
+ area(18).hidecursor = NO
+ 'UNDO BUTTON
+ area(19).x = 170
+ area(19).y = 182
+ area(19).w = 32
+ area(19).h = 8
+ area(19).hidecursor = NO
+ FOR i = 0 TO 1
+  area(21 + i).x = 140 + i * 10
+  area(21 + i).y = 190
+  area(21 + i).w = 8
+  area(21 + i).h = 10
+  area(21 + i).hidecursor = NO
+ NEXT i
+END SUB
+
+SUB loadwuc(spritefile AS STRING, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
+ DIM i AS INTEGER
+ getpal16 workpal(), j - top, poffset(j)
+ IF j <= sets THEN
+  setpicstuf buffer(), size * perset, 2
+  loadset spritefile, large(j, 0), 0
+  FOR i = 0 TO (perset - 1)
+   loadsprite placer(), 0, size * i, 0, xw, yw, 2
+   stosprite placer(), 0, size * i, soff * (j - top), 3
+  NEXT i
+ END IF
+END SUB
+
+SUB savewuc(spritefile AS STRING, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
+ DIM i AS INTEGER
+ IF j <= sets THEN
+  setpicstuf buffer(), size * perset, 2
+  FOR i = 0 TO (perset - 1)
+   loadsprite placer(), 0, size * i, soff * (j - top), xw, yw, 3
+   stosprite placer(), 0, size * i, 0, 2
+  NEXT i
+  storeset spritefile, large(j, 0), 0
+ END IF
 END SUB

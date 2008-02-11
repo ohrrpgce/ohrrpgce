@@ -251,32 +251,57 @@ Type TilesetData field=1
 End Type
 
 TYPE TileEditState
- x as INTEGER
- y as INTEGER
- tilex as INTEGER
- tiley as INTEGER
- gotmouse as INTEGER
- drawcursor as INTEGER
- tool as INTEGER
- curcolor as INTEGER
- hidemouse as INTEGER
- airsize as INTEGER
- mist as INTEGER
- undo as INTEGER
- allowundo as INTEGER
- zone as INTEGER
- justpainted as INTEGER
- hold as INTEGER
- hox as INTEGER
- hoy as INTEGER
- cutfrom as INTEGER
- canpaste as INTEGER
- delay as INTEGER
+ x AS INTEGER
+ y AS INTEGER
+ tilex AS INTEGER
+ tiley AS INTEGER
+ gotmouse AS INTEGER
+ drawcursor AS INTEGER
+ tool AS INTEGER
+ curcolor AS INTEGER
+ hidemouse AS INTEGER
+ airsize AS INTEGER
+ mist AS INTEGER
+ undo AS INTEGER
+ allowundo AS INTEGER
+ zone AS INTEGER
+ justpainted AS INTEGER
+ hold AS INTEGER
+ hox AS INTEGER
+ hoy AS INTEGER
+ cutfrom AS INTEGER
+ canpaste AS INTEGER
+ delay AS INTEGER
+ fixmouse AS INTEGER
 END TYPE
 
 TYPE SpriteEditState
+ '--sprite set state
+ framenum AS INTEGER
+ 
+ '--sprite editor state
  x AS INTEGER
  y AS INTEGER
+ lastpos AS XYPair
+ zonenum AS INTEGER
+ zone AS XYPair
+ zonecursor AS INTEGER
+ gotmouse AS INTEGER
+ drawcursor AS INTEGER
+ tool AS INTEGER
+ curcolor AS INTEGER
+ hidemouse AS INTEGER
+ airsize AS INTEGER
+ mist AS INTEGER
+ hold AS INTEGER
+ holdpos AS XYPair
+ radius AS INTEGER
+ squish AS XYPair '--For non-round elipses. Not implemented yet
+ undodepth AS INTEGER
+ undoslot AS INTEGER
+ undomax AS INTEGER
+ fixmouse AS INTEGER
+ movespeed AS INTEGER
 END TYPE
 
 Type TileAnimState
