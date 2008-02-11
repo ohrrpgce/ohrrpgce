@@ -274,6 +274,11 @@ TYPE TileEditState
  delay as INTEGER
 END TYPE
 
+TYPE SpriteEditState
+ x AS INTEGER
+ y AS INTEGER
+END TYPE
+
 Type TileAnimState
  cycle AS INTEGER
  pt AS INTEGER

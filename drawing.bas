@@ -638,9 +638,16 @@ DIM poffset(large(sets, atatime))
 DIM AS INTEGER do_paste = 0
 DIM AS INTEGER paste_transparent = 0
 spritefile$ = game & ".pt" & fileset
+DIM ss AS SpriteEditState
 
 gotm = setmouse(mouse())
 GOSUB initmarea
+
+WITH ss
+ .x = 0
+ .y = 0
+END WITH
+
 tool = 0
 airsize = 5
 mist = 10
@@ -648,7 +655,6 @@ pt = 0
 icsr = 0
 itop = 0
 dcsr = 1
-x = 0: y = 0
 zox = 0: zoy = 0
 debug_palettes = 0
 pmenu$(0) = "Overwrite Current Palette"
@@ -992,21 +998,23 @@ END IF
 poke8bit workpal(), (pt - top) * 16 + col, curcol
 IF keyval(56) = 0 THEN
  fixmouse = 0
- IF keyval(72) AND 5 THEN y = large(0, y - 1): fixmouse = 1
- IF keyval(80) AND 5 THEN y = small(yw - 1, y + 1): fixmouse = 1
- IF keyval(75) AND 5 THEN x = large(0, x - 1): fixmouse = 1
- IF keyval(77) AND 5 THEN x = small(xw - 1, x + 1): fixmouse = 1
+ WITH ss
+  IF keyval(72) AND 5 THEN .y = large(0, .y - 1): fixmouse = 1
+  IF keyval(80) AND 5 THEN .y = small(yw - 1, .y + 1): fixmouse = 1
+  IF keyval(75) AND 5 THEN .x = large(0, .x - 1): fixmouse = 1
+  IF keyval(77) AND 5 THEN .x = small(xw - 1, .x + 1): fixmouse = 1
+ END WITH
  IF fixmouse THEN
   IF zone = 1 THEN
-   zox = x * zoom + INT(zoom / 2)
-   zoy = y * zoom + INT(zoom / 2)
+   zox = ss.x * zoom + INT(zoom / 2)
+   zoy = ss.y * zoom + INT(zoom / 2)
    mouse(0) = area(0).x + zox 
    mouse(1) = area(0).y + zoy
    movemouse mouse(0), mouse(1)
   END IF 
   IF zone = 14 THEN
-   zox = x
-   zoy = y
+   zox = ss.x
+   zoy = ss.y
    mouse(0) = area(13).y + zox 
    mouse(1) = area(13).y + zoy
    movemouse mouse(0), mouse(1)
@@ -1014,8 +1022,8 @@ IF keyval(56) = 0 THEN
  END IF
 END IF
 IF zone = 1 THEN
- x = INT(zox / zoom)
- y = INT(zoy / zoom)
+ ss.x = INT(zox / zoom)
+ ss.y = INT(zoy / zoom)
 END IF
 IF tool = 5 THEN '--adjust airbrush
  IF mouse(3) = 1 OR mouse(2) = 1 THEN
@@ -1040,8 +1048,8 @@ IF tool = 5 THEN '--adjust airbrush
  END IF
 END IF
 IF zone = 14 THEN
- x = zox
- y = zoy
+ ss.x = zox
+ ss.y = zoy
 END IF
 IF ((zone = 1 OR zone = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(57) > 0 THEN
  SELECT CASE tool
@@ -1052,7 +1060,7 @@ IF ((zone = 1 OR zone = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(57) > 
     IF box THEN
      box = 0: GOSUB drawsquare
     ELSE
-     box = 1: bx = x: by = y
+     box = 1: bx = ss.x: by = ss.y
     END IF
    END IF
   CASE 2'---Line
@@ -1060,7 +1068,7 @@ IF ((zone = 1 OR zone = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(57) > 
     IF drl THEN
      drl = 0: GOSUB straitline
     ELSE
-     drl = 1: bx = x: by = y
+     drl = 1: bx = ss.x: by = ss.y
     END IF
    END IF
   CASE 3'---Fill
@@ -1071,7 +1079,7 @@ IF ((zone = 1 OR zone = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(57) > 
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
     SELECT CASE ovalstep
      CASE 0'--start oval
-      bx = x: by = y
+      bx = ss.x: by = ss.y
       squishx = 0: squishy = 0
       radius = 0
       ovalstep = 1
@@ -1087,11 +1095,11 @@ IF ((zone = 1 OR zone = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(57) > 
     IF box THEN
      box = 0
      drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-     getsprite clonebuf(), 0, 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, dpage
+     getsprite clonebuf(), 0, 239 + small(ss.x, bx), 119 + small(ss.y, by), ABS(ss.x - bx) + 1, ABS(ss.y - by) + 1, dpage
      clonemarked = YES
      tool = 7 ' auto-select the clone tool after marking
     ELSE
-     box = 1: bx = x: by = y
+     box = 1: bx = ss.x: by = ss.y
     END IF
    END IF
   CASE 7'---Draw
@@ -1101,19 +1109,19 @@ IF ((zone = 1 OR zone = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(57) > 
       GOSUB writeundospr
      END IF
      drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-     drawsprite clonebuf(), 0, nulpal(), 0, 239 + x - (clonebuf(0) \ 2), 119 + y - (clonebuf(1) \ 2), dpage
+     drawsprite clonebuf(), 0, nulpal(), 0, 239 + ss.x - (clonebuf(0) \ 2), 119 + ss.y - (clonebuf(1) \ 2), dpage
      getsprite placer(), 0, 239, 119, xw, yw, dpage
-     oldx = x
-     oldy = y
+     oldx = ss.x
+     oldy = ss.y
     ELSE
      tool = 6 ' select selection tool if clone is not available
-     box = 1: bx = x: by = y
+     box = 1: bx = ss.x: by = ss.y
     END IF
    END IF
  END SELECT
 END IF
 IF ovalstep = 1 THEN
- radius = large(ABS(x - bx), ABS(y - by))
+ radius = large(ABS(ss.x - bx), ABS(ss.y - by))
 END IF
 FOR i = 0 TO 7
  IF (mouse(3) > 0 AND zone = toolinfo(i).areanum + 1) OR keyval(toolinfo(i).shortcut) > 1 THEN
@@ -1123,7 +1131,7 @@ FOR i = 0 TO 7
  END IF
 NEXT i
 IF keyval(28) > 1 OR (zone = 1 AND mouse(2) = 2) THEN
- drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage: col = readpixel(239 + x, 119 + y, dpage)
+ drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage: col = readpixel(239 + ss.x, 119 + ss.y, dpage)
 END IF
 IF keyval(14) > 1 OR (zone = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, nulpal(), 0, 239, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
 IF keyval(58) > 0 THEN
@@ -1251,17 +1259,17 @@ GOSUB writeundospr
 rectangle 238, 118, xw + 2, yw + 2, uilook(uiHighlight), dpage
 rectangle 239, 119, xw, yw, 0, dpage
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-paintat 239 + x, 119 + y, col, dpage, buffer(), 16384
+paintat 239 + ss.x, 119 + ss.y, col, dpage, buffer(), 16384
 getsprite placer(), 0, 239, 119, xw, yw, dpage
 RETRACE
 
 sprayspot:
 IF oldx = -1 AND oldy = -1 THEN GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-airbrush 239 + x, 119 + y, airsize, mist, col, dpage
+airbrush 239 + ss.x, 119 + ss.y, airsize, mist, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
-oldx = x
-oldy = y
+oldx = ss.x
+oldy = ss.y
 RETRACE
 
 writeundospr:
@@ -1282,13 +1290,13 @@ putdot:
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 IF oldx = -1 AND oldy = -1 THEN
  GOSUB writeundospr
- putpixel 239 + x, 119 + y, col, dpage
+ putpixel 239 + ss.x, 119 + ss.y, col, dpage
 ELSE
- drawline 239 + x, 119 + y, 239 + oldx, 119 + oldy, col, dpage
+ drawline 239 + ss.x, 119 + ss.y, 239 + oldx, 119 + oldy, col, dpage
 END IF
 getsprite placer(), 0, 239, 119, xw, yw, dpage
-oldx = x
-oldy = y
+oldx = ss.x
+oldy = ss.y
 RETRACE
 
 drawoval:
@@ -1301,14 +1309,14 @@ RETRACE
 drawsquare:
 GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, col, dpage
+rectangle 239 + small(ss.x, bx), 119 + small(ss.y, by), ABS(ss.x - bx) + 1, ABS(ss.y - by) + 1, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
 RETRACE
 
 straitline:
 GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-drawline 239 + x, 119 + y, 239 + bx, 119 + by, col, dpage
+drawline 239 + ss.x, 119 + ss.y, 239 + bx, 119 + by, col, dpage
 getsprite placer(), 0, 239, 119, xw, yw, dpage
 RETRACE
 
@@ -1334,40 +1342,40 @@ IF zoom = 4 THEN hugesprite placer(), workpal(), (pt - top) * 16, 4, 1, dpage, 0
 IF zoom = 2 THEN bigsprite placer(), workpal(), (pt - top) * 16, 4, 1, dpage, 0
 curcol = peek8bit(workpal(), col + (pt - top) * 16)
 IF box = 1 AND tool = 1THEN
- rectangle 4 + small(x, bx) * zoom, 1 + small(y, by) * zoom, (ABS(x - bx) + 1) * zoom, (ABS(y - by) + 1) * zoom, curcol, dpage
+ rectangle 4 + small(ss.x, bx) * zoom, 1 + small(ss.y, by) * zoom, (ABS(ss.x - bx) + 1) * zoom, (ABS(ss.y - by) + 1) * zoom, curcol, dpage
  rectangle 4 + bx * zoom, 1 + by * zoom, zoom, zoom, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
 END IF
-rectangle 4 + (x * zoom), 1 + (y * zoom), zoom, zoom, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
+rectangle 4 + (ss.x * zoom), 1 + (ss.y * zoom), zoom, zoom, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
 drawsprite placer(), 0, workpal(), (pt - top) * 16, 239, 119, dpage, 0
 IF box = 1 AND tool = 1 THEN
- rectangle 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, curcol, dpage
+ rectangle 239 + small(ss.x, bx), 119 + small(ss.y, by), ABS(ss.x - bx) + 1, ABS(ss.y - by) + 1, curcol, dpage
  putpixel 239 + bx, 119 + by, tog * 15, dpage
 END IF
 IF drl = 1 THEN
- drawline 239 + x, 119 + y, 239 + bx, 119 + by, curcol, dpage
- drawline 5 + (x * zoom), 2 + (y * zoom), 5 + (bx * zoom), 2 + (by * zoom), curcol, dpage
+ drawline 239 + ss.x, 119 + ss.y, 239 + bx, 119 + by, curcol, dpage
+ drawline 5 + (ss.x * zoom), 2 + (ss.y * zoom), 5 + (bx * zoom), 2 + (by * zoom), curcol, dpage
 END IF
 IF ovalstep > 0 THEN
  ellipse 239 + bx, 119 + by, radius, curcol, dpage, squishx, squishy
  ellipse 5 + (bx * zoom), 2 + (by * zoom), radius * zoom, curcol, dpage, squishx, squishy
 END IF
 IF tool = 5 THEN
- ellipse 239 + x, 119 + y, airsize / 2, curcol, dpage, 0, 0
- ellipse 5 + (x * zoom), 2 + (y * zoom), (airsize / 2) * zoom, curcol, dpage, 0, 0
+ ellipse 239 + ss.x, 119 + ss.y, airsize / 2, curcol, dpage, 0, 0
+ ellipse 5 + (ss.x * zoom), 2 + (ss.y * zoom), (airsize / 2) * zoom, curcol, dpage, 0, 0
 END IF
 IF box = 1 AND tool = 6 AND tog = 0 THEN
  IF tool = 6 THEN curcol = INT(RND * 255) ' Random color when marking a clone region
- emptybox 4 + small(x, bx) * zoom, 1 + small(y, by) * zoom, (ABS(x - bx) + 1) * zoom, (ABS(y - by) + 1) * zoom, curcol, zoom, dpage
- emptybox 239 + small(x, bx), 119 + small(y, by), ABS(x - bx) + 1, ABS(y - by) + 1, curcol, 1, dpage
+ emptybox 4 + small(ss.x, bx) * zoom, 1 + small(ss.y, by) * zoom, (ABS(ss.x - bx) + 1) * zoom, (ABS(ss.y - by) + 1) * zoom, curcol, zoom, dpage
+ emptybox 239 + small(ss.x, bx), 119 + small(ss.y, by), ABS(ss.x - bx) + 1, ABS(ss.y - by) + 1, curcol, 1, dpage
 END IF
 IF tool = 7 AND clonemarked = YES AND tog = 0 THEN
- tempx = x - (clonebuf(0) \ 2)
- tempy = y - (clonebuf(1) \ 2)
+ tempx = ss.x - (clonebuf(0) \ 2)
+ tempy = ss.y - (clonebuf(1) \ 2)
  IF zoom = 4 THEN hugesprite clonebuf(), workpal(), (pt - top) * 16, 4 + tempx * zoom, 1 + tempy * zoom, dpage
  IF zoom = 2 THEN bigsprite clonebuf(), workpal(), (pt - top) * 16, 4 + tempx * zoom, 1 + tempy * zoom, dpage
  drawsprite clonebuf(), 0, workpal(), (pt - top) * 16, 239 + tempx, 119 + tempy, dpage
 END IF
-putpixel 239 + x, 119 + y, tog * 15, dpage
+putpixel 239 + ss.x, 119 + ss.y, tog * 15, dpage
 textcolor uilook(uiMenuItem), 0
 printstr info$(num), 0, 182, dpage
 printstr "Tool:" & toolinfo(tool).name, 0, 190, dpage
