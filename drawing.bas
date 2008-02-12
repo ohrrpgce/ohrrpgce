@@ -1066,7 +1066,7 @@ DO
    NEXT i
   END IF
  END IF
- IF ts.tool = 5 THEN '--adjust airbrush
+ IF ts.tool = airbrush_tool THEN '--adjust airbrush
   IF mouse(3) = 1 OR mouse(2) = 1 THEN
    IF ts.zone = 17 THEN ts.airsize = large(ts.airsize - 1, 1)
    IF ts.zone = 19 THEN ts.airsize = small(ts.airsize + 1, 30)
@@ -1094,7 +1094,7 @@ DO
  rectangle cx * 10 + 4, cy * 4 + 162, 3, 1, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
  rectangle 60 + ts.x * 10, ts.y * 8, 10, 8, readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3), dpage
  rectangle ts.x * 10 + 64, ts.y * 8 + 3, 3, 2, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
- IF ts.tool = 5 THEN
+ IF ts.tool = airbrush_tool THEN
   ellipse 64 + ts.x * 10, 3 + ts.y * 8, (ts.airsize * 9) / 2, ts.curcolor, dpage, 0, 0
  END IF
  SELECT CASE ts.hold
@@ -1121,7 +1121,7 @@ DO
   textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ts.zone = 13 + i THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
   printstr CHR$(7 + i), 4 + i * 9, 42, dpage
  NEXT i
- IF ts.tool = 5 THEN
+ IF ts.tool = airbrush_tool THEN
   textcolor uilook(uiMenuItem), 0
   printstr "SIZE", 12, 52, dpage
   printstr XSTR$(ts.airsize), 12, 60, dpage
@@ -1162,13 +1162,13 @@ END SUB
 SUB clicktile (mover(), ts AS TileEditState, mouseclick)
 IF ts.delay > 0 THEN EXIT SUB
 SELECT CASE ts.tool
- CASE 0'---DRAW
+ CASE draw_tool
   IF ts.justpainted = 0 THEN writeundoblock mover(), ts
   ts.justpainted = 3
   putpixel 280 + ts.x, 10 + (ts.undo * 21) + ts.y, ts.curcolor, 2
   rectangle ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 1, 1, ts.curcolor, 3
   rectangle 60 + ts.x * 10, ts.y * 8, 10, 8, ts.curcolor, 2
- CASE 1'---BOX
+ CASE box_tool
   IF mouseclick > 0 OR keyval(57) > 1 THEN
    IF ts.hold = 1 THEN
     writeundoblock mover(), ts
@@ -1181,7 +1181,7 @@ SELECT CASE ts.tool
     ts.hoy = ts.y
    END IF
   END IF
- CASE 2'---LINE
+ CASE line_tool
   IF mouseclick > 0 OR keyval(57) > 1 THEN
    IF ts.hold = 2 THEN
     writeundoblock mover(), ts
@@ -1194,7 +1194,7 @@ SELECT CASE ts.tool
     ts.hoy = ts.y
    END IF
   END IF
- CASE 3'---FILL
+ CASE fill_tool
   IF mouseclick > 0 OR keyval(57) > 1 THEN
    writeundoblock mover(), ts
    rectangle 0, 0, 22, 22, ts.curcolor, dpage
@@ -1212,7 +1212,7 @@ SELECT CASE ts.tool
    refreshtileedit mover(), ts
    rectangle 0, 0, 22, 22, uilook(uiBackground), dpage
   END IF
- CASE 4'---OVAL
+ CASE oval_tool
   IF mouseclick > 0 OR keyval(57) > 1 THEN
    IF ts.hold = 3 THEN
     writeundoblock mover(), ts
@@ -1238,7 +1238,7 @@ SELECT CASE ts.tool
     ts.hoy = ts.y
    END IF
   END IF
- CASE 5'---AIR
+ CASE airbrush_tool
   IF ts.justpainted = 0 THEN writeundoblock mover(), ts
   ts.justpainted = 3
   rectangle 19, 119, 22, 22, uilook(uiText), dpage
@@ -1254,20 +1254,20 @@ SELECT CASE ts.tool
    NEXT j
   NEXT i
   refreshtileedit mover(), ts
- CASE 6'---MARK
+ CASE mark_tool
   IF mouseclick > 0 OR keyval(57) > 1 THEN
    IF ts.hold = 1 THEN
     'FIXME: save mark buffer here
     refreshtileedit mover(), ts
     ts.hold = 0
-    ts.tool = 7 ' auto-select the clone tool after marking
+    ts.tool = clone_tool ' auto-select the clone tool after marking
    ELSE
     ts.hold = 1
     ts.hox = ts.x
     ts.hoy = ts.y
    END IF
   END IF
- CASE 7'---CLONE
+ CASE clone_tool
   IF ts.justpainted = 0 THEN writeundoblock mover(), ts
   ts.justpainted = 3
   'FIXME: draw marked buffer here
@@ -1461,7 +1461,7 @@ WITH ss
  .hold = NO
  .gotmouse = setmouse(mouse())
  .drawcursor = 1
- .tool = 0
+ .tool = draw_tool
  .airsize = 5
  .mist = 10
 END WITH
@@ -1844,7 +1844,7 @@ IF ss.zonenum = 1 THEN
  ss.x = INT(ss.zone.x / zoom)
  ss.y = INT(ss.zone.y / zoom)
 END IF
-IF ss.tool = 5 THEN '--adjust airbrush
+IF ss.tool = airbrush_tool THEN '--adjust airbrush
  IF mouse(3) = 1 OR mouse(2) = 1 THEN
   IF ss.zonenum = 15 THEN ss.airsize = large(ss.airsize - 1, 1)
   IF ss.zonenum = 17 THEN ss.airsize = small(ss.airsize + 1, 80)
@@ -1872,9 +1872,9 @@ IF ss.zonenum = 14 THEN
 END IF
 IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(57) > 0 THEN
  SELECT CASE ss.tool
-  CASE 0'---Draw
+  CASE draw_tool
    GOSUB putdot
-  CASE 1'---Box
+  CASE box_tool
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
     IF ss.hold THEN
      ss.hold = NO: GOSUB drawsquare
@@ -1884,7 +1884,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
      ss.holdpos.y = ss.y
     END IF
    END IF
-  CASE 2'---Line
+  CASE line_tool
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
     IF ss.hold = YES THEN
      ss.hold = NO
@@ -1895,11 +1895,11 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
      ss.holdpos.y = ss.y
     END IF
    END IF
-  CASE 3'---Fill
+  CASE fill_tool
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
     GOSUB floodfill
    END IF
-  CASE 4'---Oval
+  CASE oval_tool
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
     IF ss.hold = NO THEN
      '--start oval
@@ -1914,9 +1914,9 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
      ss.hold = NO
     END IF
    END IF
-  CASE 5'---Spray
+  CASE airbrush_tool
    GOSUB sprayspot
-  CASE 6'---Mark
+  CASE mark_tool
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
     IF ss.hold THEN
      ss.hold = NO
@@ -1925,14 +1925,14 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
      ss.holdpos.x = clonebuf(0) \ 2
      ss.holdpos.y = clonebuf(1) \ 2
      clonemarked = YES
-     ss.tool = 7 ' auto-select the clone tool after marking
+     ss.tool = clone_tool ' auto-select the clone tool after marking
     ELSE
      ss.hold = YES
      ss.holdpos.x = ss.x
      ss.holdpos.y = ss.y
     END IF
    END IF
-  CASE 7'---Clone brush
+  CASE clone_tool
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
     IF clonemarked THEN
      IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
@@ -1944,7 +1944,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
      ss.lastpos.x = ss.x
      ss.lastpos.y = ss.y
     ELSE
-     ss.tool = 6 ' select selection tool if clone is not available
+     ss.tool = mark_tool ' select selection tool if clone is not available
      ss.hold = YES
      ss.holdpos.x = ss.x
      ss.holdpos.y = ss.y
@@ -1952,7 +1952,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
    END IF
  END SELECT
 END IF
-IF ss.hold = YES AND ss.tool = 4 THEN
+IF ss.hold = YES AND ss.tool = oval_tool THEN
  ss.radius = large(ABS(ss.x - ss.holdpos.x), ABS(ss.y - ss.holdpos.y))
 END IF
 FOR i = 0 TO 7
@@ -1962,7 +1962,7 @@ FOR i = 0 TO 7
   ss.drawcursor = toolinfo(i).cursor + 1
  END IF
 NEXT i
-IF ss.tool = 7 THEN
+IF ss.tool = clone_tool THEN
  ' For clone brush tool, enter/right-click moves the handle point
  IF ss.readjust THEN
   IF keyval(28) = 0 AND mouse(2) = 0 THEN ' click or key release
@@ -2204,34 +2204,34 @@ NEXT
 IF zoom = 4 THEN hugesprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
 IF zoom = 2 THEN bigsprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
 ss.curcolor = peek8bit(workpal(), col + (state.pt - state.top) * 16)
-IF ss.hold = YES AND ss.tool = 1 THEN
+IF ss.hold = YES AND ss.tool = box_tool THEN
  rectangle 4 + small(ss.x, ss.holdpos.x) * zoom, 1 + small(ss.y, ss.holdpos.y) * zoom, (ABS(ss.x - ss.holdpos.x) + 1) * zoom, (ABS(ss.y - ss.holdpos.y) + 1) * zoom, ss.curcolor, dpage
  rectangle 4 + ss.holdpos.x * zoom, 1 + ss.holdpos.y * zoom, zoom, zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
 END IF
 rectangle 4 + (ss.x * zoom), 1 + (ss.y * zoom), zoom, zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
 drawsprite placer(), 0, workpal(), (state.pt - state.top) * 16, 239, 119, dpage, 0
-IF ss.hold = YES AND ss.tool = 1 THEN
+IF ss.hold = YES AND ss.tool = box_tool THEN
  rectangle 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, dpage
  putpixel 239 + ss.holdpos.x, 119 + ss.holdpos.y, state.tog * 15, dpage
 END IF
-IF ss.hold = YES AND ss.tool = 2 THEN
+IF ss.hold = YES AND ss.tool = line_tool THEN
  drawline 239 + ss.x, 119 + ss.y, 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.curcolor, dpage
  drawline 5 + (ss.x * zoom), 2 + (ss.y * zoom), 5 + (ss.holdpos.x * zoom), 2 + (ss.holdpos.y * zoom), ss.curcolor, dpage
 END IF
-IF ss.hold = YES AND ss.tool = 4 THEN
+IF ss.hold = YES AND ss.tool = oval_tool THEN
  ellipse 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.radius, ss.curcolor, dpage, ss.squish.x, ss.squish.y
  ellipse 5 + (ss.holdpos.x * zoom), 2 + (ss.holdpos.y * zoom), ss.radius * zoom, ss.curcolor, dpage, ss.squish.x, ss.squish.y
 END IF
-IF ss.tool = 5 THEN
+IF ss.tool = airbrush_tool THEN
  ellipse 239 + ss.x, 119 + ss.y, ss.airsize / 2, ss.curcolor, dpage, 0, 0
  ellipse 5 + (ss.x * zoom), 2 + (ss.y * zoom), (ss.airsize / 2) * zoom, ss.curcolor, dpage, 0, 0
 END IF
-IF ss.hold = YES AND ss.tool = 6 AND state.tog = 0 THEN
- IF ss.tool = 6 THEN ss.curcolor = INT(RND * 255) ' Random color when marking a clone region
+IF ss.hold = YES AND ss.tool = mark_tool AND state.tog = 0 THEN
+ ss.curcolor = INT(RND * 255) ' Random color when marking a clone region
  emptybox 4 + small(ss.x, ss.holdpos.x) * zoom, 1 + small(ss.y, ss.holdpos.y) * zoom, (ABS(ss.x - ss.holdpos.x) + 1) * zoom, (ABS(ss.y - ss.holdpos.y) + 1) * zoom, ss.curcolor, zoom, dpage
  emptybox 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, 1, dpage
 END IF
-IF ss.tool = 7 AND clonemarked = YES AND state.tog = 0 THEN
+IF ss.tool = clone_tool AND clonemarked = YES AND state.tog = 0 THEN
  temppos.x = ss.x - ss.holdpos.x
  temppos.y = ss.y - ss.holdpos.y
  IF ss.readjust THEN
@@ -2264,7 +2264,7 @@ ELSE
 END IF
 IF ss.zonenum = 20 AND ss.undodepth > 0 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
 printstr "UNDO", 170, 182, dpage
-IF ss.tool = 5 THEN
+IF ss.tool = airbrush_tool THEN
  textcolor uilook(uiMenuItem), 0
  printstr "SIZE" & ss.airsize, 218, 182, dpage
  printstr "MIST" & ss.mist, 218, 190, dpage
