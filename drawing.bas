@@ -1042,39 +1042,59 @@ DO
  IF keyval(57) > 0 THEN clicktile mover(), ts, mouse(3), clone
  IF keyval(28) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
  IF keyval(58) > 0 THEN scrolltile mover(), ts
- IF ts.gotmouse THEN
-  SELECT CASE ts.zone   
-  CASE 1
-   ts.x = INT(zox / 10)
-   ts.y = INT(zoy / 8)
-   IF mouse(2) = 2 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
-   IF mouse(2) = 1 THEN clicktile mover(), ts, mouse(3), clone
-  CASE 2
-   IF mouse(2) > 0 AND mouse(3) = 1 THEN
-    ts.curcolor = ((zoy \ 4) * 16) + ((zox MOD 160) \ 10) + (zox \ 160) * 128
+ SELECT CASE ts.zone   
+ CASE 1
+  ts.x = INT(zox / 10)
+  ts.y = INT(zoy / 8)
+  IF ts.tool = clone_tool THEN
+   ' For clone brush tool, enter/right-click moves the handle point
+   IF ts.readjust THEN
+    IF keyval(28) = 0 AND mouse(2) = 0 THEN ' click or key release
+     ts.readjust = NO
+     ts.hox += (ts.x - ts.adjustpos.x)
+     ts.hoy += (ts.y - ts.adjustpos.y)
+     ts.adjustpos.x = 0
+     ts.adjustpos.y = 0
+    END IF
+   ELSE
+    IF (keyval(28) AND 5) OR mouse(2) = 2 THEN
+     ts.readjust = YES
+     ts.adjustpos.x = ts.x
+     ts.adjustpos.y = ts.y
+    END IF
    END IF
-  CASE 13 TO 16
-   IF mouse(3) = 1 THEN fliptile mover(), ts
-  END SELECT
-  FOR i = 0 TO 7
-   IF toolinfo(i).areanum = ts.zone - 1 THEN
-    IF mouse(3) = 1 THEN
-     ts.tool = i
-     ts.drawcursor = toolinfo(ts.tool).cursor + 1
+  ELSE
+   'for all other tools, pick a color
+   IF mouse(2) = 2 THEN
+    ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
+   END IF
+  END IF
+  IF mouse(2) = 1 THEN clicktile mover(), ts, mouse(3), clone
+ CASE 2
+  IF mouse(2) > 0 AND mouse(3) = 1 THEN
+   ts.curcolor = ((zoy \ 4) * 16) + ((zox MOD 160) \ 10) + (zox \ 160) * 128
+  END IF
+ CASE 13 TO 16
+  IF mouse(3) = 1 THEN fliptile mover(), ts
+ END SELECT
+ FOR i = 0 TO 7
+  IF toolinfo(i).areanum = ts.zone - 1 THEN
+   IF mouse(3) = 1 THEN
+    ts.tool = i
+    ts.drawcursor = toolinfo(ts.tool).cursor + 1
+   END IF
+  END IF
+ NEXT i
+ '--mouse over undo
+ IF mouse(0) >= 280 AND mouse(0) < 300 THEN
+  FOR i = 0 TO 5
+   IF mouse(1) >= (10 + (i * 21)) AND mouse(1) < (30 + (i * 21)) THEN
+    IF mouse(3) = 1 AND ts.allowundo THEN
+     ts.undo = i
+     readundoblock mover(), ts
     END IF
    END IF
   NEXT i
-  '--mouse over undo
-  IF mouse(0) >= 280 AND mouse(0) < 300 THEN
-   FOR i = 0 TO 5
-    IF mouse(1) >= (10 + (i * 21)) AND mouse(1) < (30 + (i * 21)) THEN
-     IF mouse(3) = 1 AND ts.allowundo THEN
-      ts.undo = i
-      readundoblock mover(), ts
-     END IF
-    END IF
-   NEXT i
-  END IF
  END IF
  IF ts.tool = airbrush_tool THEN '--adjust airbrush
   IF mouse(3) = 1 OR mouse(2) = 1 THEN
@@ -1107,12 +1127,16 @@ DO
  IF ts.tool = airbrush_tool THEN
   ellipse 64 + ts.x * 10, 3 + ts.y * 8, (ts.airsize * 9) / 2, ts.curcolor, dpage, 0, 0
  END IF
- IF ts.tool = clone_tool THEN
+ IF ts.tool = clone_tool AND tog = 0 THEN
   IF clone.exists = YES THEN
    FOR i = 0 TO clone.size.y - 1
     FOR j = 0 TO clone.size.x - 1
      spot.x = ts.x - ts.hox + j
      spot.y = ts.y - ts.hoy + i
+     IF ts.readjust = YES THEN
+      spot.x -= (ts.x - ts.adjustpos.x)
+      spot.y -= (ts.y - ts.adjustpos.y)
+     END IF
      IF spot.x >= 0 AND spot.x <= 19 AND spot.y >= 0 AND spot.y <= 19 AND clone.buf(j, i) > 0 THEN
       rectangle 60 + spot.x * 10, 0 + spot.y * 8, 10, 8, clone.buf(j, i), dpage
      END IF
@@ -1295,6 +1319,9 @@ SELECT CASE ts.tool
     NEXT i
     ts.hox = clone.size.x \ 2
     ts.hoy = clone.size.y \ 2
+    ts.readjust = NO
+    ts.adjustpos.x = 0
+    ts.adjustpos.y = 0
     clone.exists = YES
     refreshtileedit mover(), ts
     ts.hold = NO
@@ -1311,8 +1338,8 @@ SELECT CASE ts.tool
   IF clone.exists = YES THEN
    FOR i = 0 TO clone.size.y - 1
     FOR j = 0 TO clone.size.x - 1
-     spot.x = ts.x - ts.hox + j
-     spot.y = ts.y - ts.hoy + i
+     spot.x = ts.x - ts.hox + j + ts.adjustpos.x
+     spot.y = ts.y - ts.hoy + i + ts.adjustpos.y
      IF spot.x >= 0 AND spot.x <= 19 AND spot.y >= 0 AND spot.y <= 19 AND clone.buf(j, i) > 0 THEN
       putpixel ts.tilex * 20 + spot.x, ts.tiley * 20 + spot.y, clone.buf(j, i), 3
      END IF
@@ -1792,7 +1819,7 @@ changepal poffset(state.pt), 0, workpal(), state.pt - state.top
 RETRACE
 
 sprctrl:
-IF mouse(2) = 0 THEN
+IF mouse(2) = 0 AND keyval(57) = 0 THEN
  ss.lastpos.x = -1
  ss.lastpos.y = -1
 END IF

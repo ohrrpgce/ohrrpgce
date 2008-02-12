@@ -279,6 +279,8 @@ TYPE TileEditState
  canpaste AS INTEGER
  delay AS INTEGER
  fixmouse AS INTEGER
+ readjust AS INTEGER
+ adjustpos AS XYPair
 END TYPE
 
 TYPE SpriteEditState
