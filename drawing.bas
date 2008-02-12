@@ -10,14 +10,14 @@ DEFINT A-Z
 
 'basic subs and functions
 DECLARE SUB picktiletoedit (tmode%, pagenum%, mapfile$)
-DECLARE SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea, toolinfo() AS ToolInfoType)
+DECLARE SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea)
 DECLARE SUB tilecut (ts AS TileEditState, mouse(), area() AS MouseArea)
 DECLARE SUB refreshtileedit (mover%(), state AS TileEditState)
 DECLARE SUB writeundoblock (mover%(), state AS TileEditState)
 DECLARE SUB readundoblock (mover%(), state AS TileEditState)
 DECLARE SUB fliptile (mover%(), ts AS TileEditState)
 DECLARE SUB scrolltile (mover%(), ts AS TileEditState)
-DECLARE SUB clicktile (mover%(), ts AS TileEditState, mouseclick%)
+DECLARE SUB clicktile (mover(), ts AS TileEditState, mouseclick, BYREF clone AS TileCloneBuffer)
 DECLARE SUB tilecopy (cutnpaste%(), ts AS TileEditState)
 DECLARE SUB tilepaste (cutnpaste%(), ts AS TileEditState)
 DECLARE SUB tiletranspaste (cutnpaste%(), ts AS TileEditState)
@@ -699,68 +699,11 @@ END SUB
 SUB picktiletoedit (tmode, pagenum, mapfile$)
 STATIC cutnpaste(19, 19), oldpaste
 DIM ts AS TileEditState, mover(12), mouse(4), area(22) AS MouseArea
-DIM toolinfo(7) AS ToolInfoType
 ts.gotmouse = setmouse(mouse())
 ts.canpaste = oldpaste
 ts.drawcursor = 1
 ts.airsize = 5
 ts.mist = 10
-WITH toolinfo(0)
- .name = "Draw"
- .icon = CHR(3)
- .shortcut = 32
- .cursor = 0
- .areanum = 2
-END WITH
-WITH toolinfo(1)
- .name = "Box"
- .icon = CHR(4)
- .shortcut = 48
- .cursor = 1
- .areanum = 3
-END WITH
-WITH toolinfo(2)
- .name = "Line"
- .icon = CHR(5)
- .shortcut = 38
- .cursor = 2
- .areanum = 4
-END WITH
-WITH toolinfo(3)
- .name = "Fill"
- .icon = "F"
- .shortcut = 33
- .cursor = 3
- .areanum = 5
-END WITH
-WITH toolinfo(4)
- .name = "Oval"
- .icon = "O"
- .shortcut = 24
- .cursor = 2
- .areanum = 6
-END WITH
-WITH toolinfo(5)
- .name = "Air"
- .icon = "A"
- .shortcut = 30
- .cursor = 3
- .areanum = 7
-END WITH
-'WITH toolinfo(6)
-' .name = "Mark"
-' .icon = "M"
-' .shortcut = 50
-' .cursor = 3
-' .areanum = 21
-'END WITH
-'WITH toolinfo(7)
-' .name = "Clone"
-' .icon = "C"
-' .shortcut = 46
-' .cursor = 3
-' .areanum = 22
-'END WITH
 area(0).x = 60
 area(0).y = 0
 area(0).w = 200
@@ -881,7 +824,7 @@ DO
  IF enter_or_space() OR mouse(3) > 0 THEN
   setkeys
   IF tmode = 0 THEN
-   editmaptile ts, mover(), mouse(), area(), toolinfo()
+   editmaptile ts, mover(), mouse(), area()
   END IF
   IF tmode = 1 THEN
    tilecut ts, mouse(), area()
@@ -954,7 +897,68 @@ printstr ">", 270, 16 + (state.undo * 21), 2
 refreshtileedit mover(), state
 END SUB
 
-SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea, toolinfo() AS ToolInfoType)
+SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea)
+STATIC clone AS TileCloneBuffer
+DIM spot AS XYPair
+
+DIM toolinfo(7) AS ToolInfoType
+WITH toolinfo(0)
+ .name = "Draw"
+ .icon = CHR(3)
+ .shortcut = 32
+ .cursor = 0
+ .areanum = 2
+END WITH
+WITH toolinfo(1)
+ .name = "Box"
+ .icon = CHR(4)
+ .shortcut = 48
+ .cursor = 1
+ .areanum = 3
+END WITH
+WITH toolinfo(2)
+ .name = "Line"
+ .icon = CHR(5)
+ .shortcut = 38
+ .cursor = 2
+ .areanum = 4
+END WITH
+WITH toolinfo(3)
+ .name = "Fill"
+ .icon = "F"
+ .shortcut = 33
+ .cursor = 3
+ .areanum = 5
+END WITH
+WITH toolinfo(4)
+ .name = "Oval"
+ .icon = "O"
+ .shortcut = 24
+ .cursor = 2
+ .areanum = 6
+END WITH
+WITH toolinfo(5)
+ .name = "Air"
+ .icon = "A"
+ .shortcut = 30
+ .cursor = 3
+ .areanum = 7
+END WITH
+WITH toolinfo(6)
+ .name = "Mark"
+ .icon = "M"
+ .shortcut = 50
+ .cursor = 3
+ .areanum = 21
+END WITH
+WITH toolinfo(7)
+ .name = "Clone"
+ .icon = "C"
+ .shortcut = 46
+ .cursor = 3
+ .areanum = 22
+END WITH
+
 ts.justpainted = 0
 ts.undo = 0
 ts.allowundo = 0
@@ -991,8 +995,8 @@ DO
  ts.delay = large(ts.delay - 1, 0)
  ts.justpainted = large(ts.justpainted - 1, 0)
  IF keyval(1) > 1 THEN
-  IF ts.hold THEN
-   ts.hold = 0
+  IF ts.hold = YES THEN
+   ts.hold = NO
   ELSE
    EXIT DO
   END IF
@@ -1013,7 +1017,11 @@ DO
  END IF 
  '---KEYBOARD SHORTCUTS FOR TOOLS------------
  FOR i = 0 TO 7
-  IF keyval(toolinfo(i).shortcut) > 1 THEN ts.tool = i: ts.hold = 0: ts.drawcursor = toolinfo(i).cursor + 1
+  IF keyval(toolinfo(i).shortcut) > 1 THEN
+   ts.tool = i
+   ts.hold = NO
+   ts.drawcursor = toolinfo(i).cursor + 1
+  END IF
  NEXT i
  '----------
  IF keyval(51) > 1 OR (keyval(56) > 0 AND keyval(75) > 0) THEN
@@ -1031,7 +1039,7 @@ DO
   ts.undo = loopvar(ts.undo, 0, 5, -1)
   readundoblock mover(), ts
  END IF
- IF keyval(57) > 0 THEN clicktile mover(), ts, mouse(3)
+ IF keyval(57) > 0 THEN clicktile mover(), ts, mouse(3), clone
  IF keyval(28) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
  IF keyval(58) > 0 THEN scrolltile mover(), ts
  IF ts.gotmouse THEN
@@ -1040,20 +1048,22 @@ DO
    ts.x = INT(zox / 10)
    ts.y = INT(zoy / 8)
    IF mouse(2) = 2 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
-   IF mouse(2) = 1 THEN clicktile mover(), ts, mouse(3)
+   IF mouse(2) = 1 THEN clicktile mover(), ts, mouse(3), clone
   CASE 2
    IF mouse(2) > 0 AND mouse(3) = 1 THEN
     ts.curcolor = ((zoy \ 4) * 16) + ((zox MOD 160) \ 10) + (zox \ 160) * 128
    END IF
-  CASE 3 TO 8
-   IF mouse(3) = 1 THEN
-    ts.tool = ts.zone - 3
-    ts.drawcursor = toolinfo(ts.tool).cursor + 1
-    ts.hold = 0
-   END IF
   CASE 13 TO 16
    IF mouse(3) = 1 THEN fliptile mover(), ts
-  END SELECT 
+  END SELECT
+  FOR i = 0 TO 7
+   IF toolinfo(i).areanum = ts.zone - 1 THEN
+    IF mouse(3) = 1 THEN
+     ts.tool = i
+     ts.drawcursor = toolinfo(ts.tool).cursor + 1
+    END IF
+   END IF
+  NEXT i
   '--mouse over undo
   IF mouse(0) >= 280 AND mouse(0) < 300 THEN
    FOR i = 0 TO 5
@@ -1097,23 +1107,40 @@ DO
  IF ts.tool = airbrush_tool THEN
   ellipse 64 + ts.x * 10, 3 + ts.y * 8, (ts.airsize * 9) / 2, ts.curcolor, dpage, 0, 0
  END IF
- SELECT CASE ts.hold
-  CASE 1
-   rectangle 60 + small(ts.x, ts.hox) * 10, small(ts.y, ts.hoy) * 8, (ABS(ts.x - ts.hox) + 1) * 10, (ABS(ts.y - ts.hoy) + 1) * 8, ts.curcolor, dpage
-  CASE 2
-   drawline 65 + ts.x * 10, 4 + ts.y * 8, 65 + ts.hox * 10, 4 + ts.hoy * 8, ts.curcolor, dpage
-  CASE 3
-   radius = large(ABS(ts.hox - ts.x), ABS(ts.hoy - ts.y)) * 9
-   ellipse 65 + ts.hox * 10, 4 + ts.hoy * 8, radius, ts.curcolor, dpage, 0, 0
- END SELECT
+ IF ts.tool = clone_tool THEN
+  IF clone.exists = YES THEN
+   FOR i = 0 TO clone.size.y - 1
+    FOR j = 0 TO clone.size.x - 1
+     spot.x = ts.x - ts.hox + j
+     spot.y = ts.y - ts.hoy + i
+     IF spot.x >= 0 AND spot.x <= 19 AND spot.y >= 0 AND spot.y <= 19 AND clone.buf(j, i) > 0 THEN
+      rectangle 60 + spot.x * 10, 0 + spot.y * 8, 10, 8, clone.buf(j, i), dpage
+     END IF
+    NEXT j
+   NEXT i
+  END IF
+ END IF
+ IF ts.hold = YES THEN
+  SELECT CASE ts.tool
+   CASE box_tool
+    rectangle 60 + small(ts.x, ts.hox) * 10, small(ts.y, ts.hoy) * 8, (ABS(ts.x - ts.hox) + 1) * 10, (ABS(ts.y - ts.hoy) + 1) * 8, ts.curcolor, dpage
+   CASE line_tool
+    drawline 65 + ts.x * 10, 4 + ts.y * 8, 65 + ts.hox * 10, 4 + ts.hoy * 8, ts.curcolor, dpage
+   CASE oval_tool
+    radius = large(ABS(ts.hox - ts.x), ABS(ts.hoy - ts.y)) * 9
+    ellipse 65 + ts.hox * 10, 4 + ts.hoy * 8, radius, ts.curcolor, dpage, 0, 0
+   CASE mark_tool
+    IF tog = 0 THEN emptybox 60 + small(ts.x, ts.hox) * 10, small(ts.y, ts.hoy) * 8, (ABS(ts.x - ts.hox) + 1) * 10, (ABS(ts.y - ts.hoy) + 1) * 8, INT(RND * 10), 10, dpage
+  END SELECT
+ END IF
  textcolor uilook(uiText), uilook(uiHighlight)
  printstr toolinfo(ts.tool).name, 8, 8, dpage
  printstr "Tool", 8, 16, dpage
  printstr "Undo", 274, 1, dpage
- FOR i = 0 TO 5    'FIXME 7 when mark/clone enabled
+ FOR i = 0 TO 7
   fgcol = uilook(uiMenuItem): bgcol = uilook(uiDisabledItem)
   IF ts.tool = i THEN fgcol = uilook(uiText): bgcol = uilook(uiMenuItem)
-  IF ts.zone - 3 = i THEN bgcol = uilook(uiSelectedDisabled)
+  IF ts.zone - 1 = toolinfo(i).areanum THEN bgcol = uilook(uiSelectedDisabled)
   textcolor fgcol, bgcol
   printstr toolinfo(i).icon, area(toolinfo(i).areanum).x, area(toolinfo(i).areanum).y, dpage
  NEXT i
@@ -1159,7 +1186,9 @@ IF ts.gotmouse THEN
 END IF
 END SUB
 
-SUB clicktile (mover(), ts AS TileEditState, mouseclick)
+SUB clicktile (mover(), ts AS TileEditState, mouseclick, BYREF clone AS TileCloneBuffer)
+DIM spot AS XYPair
+
 IF ts.delay > 0 THEN EXIT SUB
 SELECT CASE ts.tool
  CASE draw_tool
@@ -1170,26 +1199,26 @@ SELECT CASE ts.tool
   rectangle 60 + ts.x * 10, ts.y * 8, 10, 8, ts.curcolor, 2
  CASE box_tool
   IF mouseclick > 0 OR keyval(57) > 1 THEN
-   IF ts.hold = 1 THEN
+   IF ts.hold = YES THEN
     writeundoblock mover(), ts
     rectangle small(ts.tilex * 20 + ts.x, ts.tilex * 20 + ts.hox), small(ts.tiley * 20 + ts.y, ts.tiley * 20 + ts.hoy), ABS(ts.x - ts.hox) + 1, ABS(ts.y - ts.hoy) + 1, ts.curcolor, 3
     refreshtileedit mover(), ts
-    ts.hold = 0
+    ts.hold = NO
    ELSE
-    ts.hold = 1
+    ts.hold = YES
     ts.hox = ts.x
     ts.hoy = ts.y
    END IF
   END IF
  CASE line_tool
   IF mouseclick > 0 OR keyval(57) > 1 THEN
-   IF ts.hold = 2 THEN
+   IF ts.hold = YES THEN
     writeundoblock mover(), ts
     drawline ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, ts.tilex * 20 + ts.hox, ts.tiley * 20 + ts.hoy, ts.curcolor, 3
     refreshtileedit mover(), ts
-    ts.hold = 0
+    ts.hold = NO
    ELSE
-    ts.hold = 2
+    ts.hold = YES
     ts.hox = ts.x
     ts.hoy = ts.y
    END IF
@@ -1214,7 +1243,7 @@ SELECT CASE ts.tool
   END IF
  CASE oval_tool
   IF mouseclick > 0 OR keyval(57) > 1 THEN
-   IF ts.hold = 3 THEN
+   IF ts.hold = YES THEN
     writeundoblock mover(), ts
     radius = large(ABS(ts.hox - ts.x), ABS(ts.hoy - ts.y))
     rectangle 0, 0, 22, 22, uilook(uiText), dpage
@@ -1231,9 +1260,9 @@ SELECT CASE ts.tool
     NEXT i
     refreshtileedit mover(), ts
     rectangle 0, 0, 22, 22, uilook(uiBackground), dpage
-    ts.hold = 0
+    ts.hold = NO
    ELSE
-    ts.hold = 3
+    ts.hold = YES
     ts.hox = ts.x
     ts.hoy = ts.y
    END IF
@@ -1256,13 +1285,22 @@ SELECT CASE ts.tool
   refreshtileedit mover(), ts
  CASE mark_tool
   IF mouseclick > 0 OR keyval(57) > 1 THEN
-   IF ts.hold = 1 THEN
-    'FIXME: save mark buffer here
+   IF ts.hold = YES THEN
+    clone.size.x = ABS(ts.x - ts.hox) + 1
+    clone.size.y = ABS(ts.y - ts.hoy) + 1
+    FOR i = 0 TO clone.size.y - 1
+     FOR j = 0 TO clone.size.x - 1
+      clone.buf(j, i) = readpixel(small(ts.tilex * 20 + ts.x, ts.tilex * 20 + ts.hox) + j, small(ts.tiley * 20 + ts.y, ts.tiley * 20 + ts.hoy) + i, 3)
+     NEXT j
+    NEXT i
+    ts.hox = clone.size.x \ 2
+    ts.hoy = clone.size.y \ 2
+    clone.exists = YES
     refreshtileedit mover(), ts
-    ts.hold = 0
+    ts.hold = NO
     ts.tool = clone_tool ' auto-select the clone tool after marking
    ELSE
-    ts.hold = 1
+    ts.hold = YES
     ts.hox = ts.x
     ts.hoy = ts.y
    END IF
@@ -1270,10 +1308,24 @@ SELECT CASE ts.tool
  CASE clone_tool
   IF ts.justpainted = 0 THEN writeundoblock mover(), ts
   ts.justpainted = 3
-  'FIXME: draw marked buffer here
-  'putpixel 280 + ts.x, 10 + (ts.undo * 21) + ts.y, ts.curcolor, 2
-  'rectangle ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 1, 1, ts.curcolor, 3
-  'rectangle 60 + ts.x * 10, ts.y * 8, 10, 8, ts.curcolor, 2
+  IF clone.exists = YES THEN
+   FOR i = 0 TO clone.size.y - 1
+    FOR j = 0 TO clone.size.x - 1
+     spot.x = ts.x - ts.hox + j
+     spot.y = ts.y - ts.hoy + i
+     IF spot.x >= 0 AND spot.x <= 19 AND spot.y >= 0 AND spot.y <= 19 AND clone.buf(j, i) > 0 THEN
+      putpixel ts.tilex * 20 + spot.x, ts.tiley * 20 + spot.y, clone.buf(j, i), 3
+     END IF
+    NEXT j
+   NEXT i
+   refreshtileedit mover(), ts
+  ELSE
+   'if no clone buffer, switch to mark tool
+   ts.tool = mark_tool
+   ts.hold = YES
+   ts.hox = ts.x
+   ts.hoy = ts.y
+  END IF
 END SELECT
 END SUB
 

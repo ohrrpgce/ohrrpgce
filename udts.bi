@@ -250,6 +250,12 @@ Type TilesetData field=1
 	TransColor as Integer
 End Type
 
+TYPE TileCloneBuffer
+ exists AS INTEGER
+ buf(19,19) AS UBYTE
+ size AS XYPair
+END TYPE
+
 TYPE TileEditState
  x AS INTEGER
  y AS INTEGER
