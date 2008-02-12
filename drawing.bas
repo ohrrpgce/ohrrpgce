@@ -1923,6 +1923,8 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
      ss.hold = NO
      drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
      getsprite clonebuf(), 0, 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, dpage
+     ss.holdpos.x = clonebuf(0) \ 2
+     ss.holdpos.y = clonebuf(1) \ 2
      clonemarked = YES
      ss.tool = 7 ' auto-select the clone tool after marking
     ELSE
@@ -1938,7 +1940,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
       GOSUB writeundospr
      END IF
      drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-     drawsprite clonebuf(), 0, nulpal(), 0, 239 + ss.x - (clonebuf(0) \ 2), 119 + ss.y - (clonebuf(1) \ 2), dpage
+     drawsprite clonebuf(), 0, nulpal(), 0, 239 + ss.x - ss.holdpos.x, 119 + ss.y - ss.holdpos.y, dpage
      getsprite placer(), 0, 239, 119, xw, yw, dpage
      ss.lastpos.x = ss.x
      ss.lastpos.y = ss.y
@@ -1961,8 +1963,29 @@ FOR i = 0 TO 7
   ss.drawcursor = toolinfo(i).cursor + 1
  END IF
 NEXT i
-IF keyval(28) > 1 OR (ss.zonenum = 1 AND mouse(2) = 2) THEN
- drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage: col = readpixel(239 + ss.x, 119 + ss.y, dpage)
+IF ss.tool = 7 THEN
+ ' For clone brush tool, enter/right-click moves the handle point
+ IF ss.readjust THEN
+  IF keyval(28) = 0 AND mouse(2) = 0 THEN ' click or key release
+   ss.readjust = NO
+   ss.holdpos.x += (ss.x - ss.adjustpos.x)
+   ss.holdpos.y += (ss.y - ss.adjustpos.y)
+   ss.adjustpos.x = 0
+   ss.adjustpos.y = 0
+  END IF
+ ELSE
+  IF (keyval(28) AND 5) OR mouse(2) = 2 THEN
+   ss.readjust = YES
+   ss.adjustpos.x = ss.x
+   ss.adjustpos.y = ss.y
+  END IF
+ END IF
+ELSE
+ ' For all other tools, pick a color
+ IF keyval(28) > 1 OR (ss.zonenum = 1 AND mouse(2) = 2) THEN
+  drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
+  col = readpixel(239 + ss.x, 119 + ss.y, dpage)
+ END IF
 END IF
 IF keyval(14) > 1 OR (ss.zonenum = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, nulpal(), 0, 239, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
 IF keyval(58) > 0 THEN
@@ -1978,6 +2001,9 @@ resettool:
 ss.hold = NO
 drl = 0
 ovalstep = 0
+ss.readjust = NO
+ss.adjustpos.x = 0
+ss.adjustpos.y = 0
 RETRACE
 
 spedbak:
@@ -2209,8 +2235,12 @@ IF ss.hold = YES AND ss.tool = 6 AND state.tog = 0 THEN
  emptybox 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, 1, dpage
 END IF
 IF ss.tool = 7 AND clonemarked = YES AND state.tog = 0 THEN
- temppos.x = ss.x - (clonebuf(0) \ 2)
- temppos.y = ss.y - (clonebuf(1) \ 2)
+ temppos.x = ss.x - ss.holdpos.x
+ temppos.y = ss.y - ss.holdpos.y
+ IF ss.readjust THEN
+  temppos.x += (ss.adjustpos.x - ss.x)
+  temppos.y += (ss.adjustpos.y - ss.y)
+ END IF
  IF zoom = 4 THEN hugesprite clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * zoom, 1 + temppos.y * zoom, dpage
  IF zoom = 2 THEN bigsprite clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * zoom, 1 + temppos.y * zoom, dpage
  drawsprite clonebuf(), 0, workpal(), (state.pt - state.top) * 16, 239 + temppos.x, 119 + temppos.y, dpage

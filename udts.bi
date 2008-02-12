@@ -302,6 +302,8 @@ TYPE SpriteEditState
  undomax AS INTEGER
  fixmouse AS INTEGER
  movespeed AS INTEGER
+ readjust AS INTEGER
+ adjustpos AS XYPair
 END TYPE
 
 Type TileAnimState
