@@ -1440,8 +1440,6 @@ DIM workpal(8 * (atatime + 1))
 DIM poffset(large(sets, atatime))
 DIM AS INTEGER do_paste = 0
 DIM AS INTEGER paste_transparent = 0
-DIM AS INTEGER ovalstep = 0
-DIM AS INTEGER drl = 0
 DIM AS INTEGER debug_palettes = 0
 DIM temppos AS XYPair
 'FOR Loop counters
@@ -1718,7 +1716,7 @@ DO
   ss.zonenum = mouseover(mouse(), ss.zone.x, ss.zone.y, ss.zonecursor, area())
  END IF
  IF keyval(1) > 1 THEN
-  IF ss.hold = YES OR drl = 1 OR ovalstep > 0 THEN
+  IF ss.hold = YES THEN
    GOSUB resettool
   ELSE
    stosprite placer(), 0, ss.framenum * size, soff * (state.pt - state.top), 3
@@ -1888,10 +1886,11 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
    END IF
   CASE 2'---Line
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
-    IF drl THEN
-     drl = 0: GOSUB straitline
+    IF ss.hold = YES THEN
+     ss.hold = NO
+     GOSUB straitline
     ELSE
-     drl = 1
+     ss.hold = YES
      ss.holdpos.x = ss.x
      ss.holdpos.y = ss.y
     END IF
@@ -1902,18 +1901,18 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
    END IF
   CASE 4'---Oval
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
-    SELECT CASE ovalstep
-     CASE 0'--start oval
-      ss.holdpos.x = ss.x
-      ss.holdpos.y = ss.y
-      ss.squish.x = 0
-      ss.squish.y = 0
-      ss.radius = 0
-      ovalstep = 1
-     CASE 1'--draw the oval
-      GOSUB drawoval
-      ovalstep = 0
-    END SELECT
+    IF ss.hold = NO THEN
+     '--start oval
+     ss.holdpos.x = ss.x
+     ss.holdpos.y = ss.y
+     ss.squish.x = 0
+     ss.squish.y = 0
+     ss.radius = 0
+     ss.hold = YES
+    ELSE
+     GOSUB drawoval
+     ss.hold = NO
+    END IF
    END IF
   CASE 5'---Spray
    GOSUB sprayspot
@@ -1953,7 +1952,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
    END IF
  END SELECT
 END IF
-IF ovalstep = 1 THEN
+IF ss.hold = YES AND ss.tool = 4 THEN
  ss.radius = large(ABS(ss.x - ss.holdpos.x), ABS(ss.y - ss.holdpos.y))
 END IF
 FOR i = 0 TO 7
@@ -1999,8 +1998,6 @@ RETRACE
 
 resettool:
 ss.hold = NO
-drl = 0
-ovalstep = 0
 ss.readjust = NO
 ss.adjustpos.x = 0
 ss.adjustpos.y = 0
@@ -2217,11 +2214,11 @@ IF ss.hold = YES AND ss.tool = 1 THEN
  rectangle 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, dpage
  putpixel 239 + ss.holdpos.x, 119 + ss.holdpos.y, state.tog * 15, dpage
 END IF
-IF drl = 1 THEN
+IF ss.hold = YES AND ss.tool = 2 THEN
  drawline 239 + ss.x, 119 + ss.y, 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.curcolor, dpage
  drawline 5 + (ss.x * zoom), 2 + (ss.y * zoom), 5 + (ss.holdpos.x * zoom), 2 + (ss.holdpos.y * zoom), ss.curcolor, dpage
 END IF
-IF ovalstep > 0 THEN
+IF ss.hold = YES AND ss.tool = 4 THEN
  ellipse 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.radius, ss.curcolor, dpage, ss.squish.x, ss.squish.y
  ellipse 5 + (ss.holdpos.x * zoom), 2 + (ss.holdpos.y * zoom), ss.radius * zoom, ss.curcolor, dpage, ss.squish.x, ss.squish.y
 END IF
