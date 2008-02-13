@@ -896,7 +896,6 @@ END SUB
 SUB DefaultUIColors (colarray() AS INTEGER)
  'Default UI for NeoTA's new Master palette
  'for the filepicker before loading a game.
- 'FIXME: also used when resetting default ui colors in custom, but that may be wrong!
  DIM uidef(uiColors) = {0,144,80,110,240,102,144,244,215,242,67,212, _
                         215,240,0,220,110,0,242,40,211,221,83,90,182, _
                         173,100,159,115,60,132,156,98,105,48,160,70, _
@@ -905,36 +904,25 @@ SUB DefaultUIColors (colarray() AS INTEGER)
  FOR i = 0 TO uiColors
   colarray(i) = uidef(i)
  NEXT
-
-'This code here is probably the solution to the above-mentioned FIXME
  'DIM hexstring AS STRING
  'FOR i = 0 TO uiColors
  ' hexstring += "&h" & hex(master(uidef(i)).col, 6) & ","
  'NEXT
  'debug "defaults: " & hexstring
+END SUB
 
-' DIM AS INTEGER fixeddefaults(uiColors) = {&h000000,&hABABAB,&h575757,&hFFFF57,&hFFFFFF,&hAB5700,&hABABAB,_
-'        &h0000AB,&h00AB00,&h00005B,&h000097,&h005F00,&h009300,&hFFFFFF,&h000000,&h57FF57,&hFFFF57,&h000000,_
-'        &h00005B,&h6F6FFF,&h004B00,&h8FFF8F,&h530000,&hFF7F7F,&h004343,&h7BFFFF,&h5B5B00,&hFFFF83,&h570057,_
-'        &hFF7FFF,&h432B00,&hFF7F5B,&h3F2700,&hDF8F00,&h3F271F,&hDF8B6F,&hAF2BAF,&h2BAFAF,&h9B179B,&h179B9B,_
-'        &h870087,&h008787,&h730073,&h007373,&h5F005F,&h005F5F,&h232323,&hC3C3C3}
-
-' IF wantolddefaults THEN
-'  FOR i = 0 TO uiColors
-'   colarray(i) = uidef(i)
-'  NEXT
-' ELSE
-'  FOR i = 0 TO uiColors
-'   IF fixeddefaults(i) = master(uidef(i)).col THEN
-'    colarray(i) = uidef(i)
-'   ELSE
-'    DIM temp AS RGBcolor
-'    temp.col = fixeddefaults(i)
-'    colarray(i) = nearcolor(master(), temp.r, temp.g, temp.b)
-'   END IF
-'  NEXT
-' END IF
-
+SUB GuessDefaultUIColors (colarray() AS INTEGER)
+ DIM AS INTEGER fixeddefaults(uiColors) = {&h000000,&hA39FB3,&h4F5B5B,&hFFFF63,&hFFFFFF,&h8F6B00,&hA39FB3,_
+       &h003B97,&h238B23,&h001F4B,&h17338B,&h174F17,&h238B23,&hFFFFFF,&h000000,&h6BEB63,&hFFFF63,&h000000,_
+       &h001F4B,&h8387D3,&h133F13,&h9BFB93,&h530000,&hFF7F7F,&h4F7B57,&hD3FB8F,&h5F4700,&hF3EB8B,&h471747,_
+       &hDF93FF,&h77372F,&hD3A763,&h2F2300,&hD7A300,&h2F372F,&hBBABC3,&h237BD3,&h0F235B,&h3FB33B,&h0F330F,_
+       &hBF0000,&h370000,&hFFDF33,&hCF8317,&h8337AF,&h5F1F5F,&hFFFFFF,&h4F5B5B}
+ DIM i AS INTEGER
+ DIM temp AS RGBcolor
+ FOR i = 0 TO uiColors
+  temp.col = fixeddefaults(i)
+  colarray(i) = nearcolor(master(), temp.r, temp.g, temp.b)
+ NEXT
 END SUB
 
 SUB LoadUIColors (colarray() AS INTEGER, palnum AS INTEGER=-1)

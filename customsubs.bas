@@ -234,7 +234,7 @@ SUB ui_color_editor(palnum AS INTEGER)
  sample_state.active = YES
  init_menu_state sample_state, sample_menu
 
- DefaultUIColors default_colors()
+ GuessDefaultUIColors default_colors()
 
  LoadUIColors uilook(), palnum
 
