@@ -881,7 +881,9 @@ SUB SaveVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
  storeset file, record, 0
 END SUB
 
-SUB DefaultUIColors (colarray() AS INTEGER)
+SUB OldDefaultUIColors (colarray() AS INTEGER)
+ 'Default UI for Classic OHR master palette
+ 'for upgrading old games that lak an uilook.bin file
  DIM uidef(uiColors) = {0,7,8,14,15,6,7,1,2,18,21,35,37,15,240,10,14,240, _
         18,28,34,44,50,60,66,76,82,92,98,108,114,124,130,140, _
         146,156,162,172,178,188,194,204,210,220,226,236,242,252}
@@ -889,8 +891,22 @@ SUB DefaultUIColors (colarray() AS INTEGER)
  FOR i = 0 TO uiColors
   colarray(i) = uidef(i)
  NEXT
+END SUB
 
+SUB DefaultUIColors (colarray() AS INTEGER)
+ 'Default UI for NeoTA's new Master palette
+ 'for the filepicker before loading a game.
+ 'FIXME: also used when resetting default ui colors in custom, but that may be wrong!
+ DIM uidef(uiColors) = {0,144,80,110,240,102,144,244,215,242,67,212, _
+                        215,240,0,220,110,0,242,40,211,221,83,90,182, _
+                        173,100,159,115,60,132,156,98,105,48,160,70, _
+                        66,217,210,87,82,108,232,54,116,240,80}
+ DIM i AS INTEGER
+ FOR i = 0 TO uiColors
+  colarray(i) = uidef(i)
+ NEXT
 
+'This code here is probably the solution to the above-mentioned FIXME
  'DIM hexstring AS STRING
  'FOR i = 0 TO uiColors
  ' hexstring += "&h" & hex(master(uidef(i)).col, 6) & ","

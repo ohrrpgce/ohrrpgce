@@ -10,6 +10,7 @@ WHAT IS NEW?
       names of all drives (under Windows); this is no longer done
       automatically as it was too slow.
       Press backspace to go up a directory. [Ralph Versteegen]
+    * New default Master Palette for new games. [NeoTA, Everybody]
 
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged

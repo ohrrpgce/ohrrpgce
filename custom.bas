@@ -212,11 +212,22 @@ END IF
 xbload game + ".fnt", font(), "Font not loaded"
 '--loadgen, upgrade, resave
 xbload game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
+
+'Load palette and uicolors to display messages while upgrading
 activepalette = gen(genMasterPal)
 loadpalette master(), activepalette
 setpal master()
 LoadUIColors uilook(), activepalette
+
+'upgrade obsolete RPG files
 upgrade font()
+
+'Load palette and uicolors again (because the upgrade routine may have changed them)
+activepalette = gen(genMasterPal)
+loadpalette master(), activepalette
+setpal master()
+LoadUIColors uilook(), activepalette
+
 setfont font()
 
 menumode = 0

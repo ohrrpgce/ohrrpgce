@@ -1764,7 +1764,7 @@ CLOSE #ff
 IF uirecords < gen(genMaxMasterPal) + 1 THEN
  upgrade_message "Adding default UI colors..."
  DIM defaultcols(uiColors)
- DefaultUIColors defaultcols()
+ OldDefaultUIColors defaultcols()
  FOR i = uirecords TO gen(genMaxMasterPal)
   SaveUIColors defaultcols(), i
  NEXT
