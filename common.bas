@@ -2373,20 +2373,57 @@ SUB save_tag_name (tagname AS STRING, index AS INTEGER)
  storeset game + ".tmn", index, 0
 END SUB
 
-SUB load_default_master_palette (master_palette_array() AS RGBColor)
- DIM palfile AS STRING
- palfile = finddatafile("ohrrpgce.mas")
- IF palfile <> "" THEN
-  xbload palfile, buffer(), "load_default_master_palette: xbload error"
-  convertpalette buffer(), master()
- ELSE
-  debug "default master palette ohrrpgce.mas is missing"
-  FOR i = 1 TO 15
-   master(i).r = SGN(i AND 4) * 168 + SGN(i AND 8) * 87
-   master(i).g = SGN(i AND 2) * 168 + SGN(i AND 8) * 87
-   master(i).b = SGN(i AND 1) * 168 + SGN(i AND 8) * 87
-  NEXT i
- END IF
+SUB dump_master_palette_as_hex (master_palette() AS RGBColor)
+ DIM i AS INTEGER
+ DIM hexstring AS STRING = "DIM colorcodes(255) AS INTEGER = {"
+ FOR i = 0 to 255
+  hexstring = hexstring & "&h" & hex(master_palette(i).col, 6)
+  IF i <> 255 THEN hexstring = hexstring & ","
+  IF LEN(hexstring) > 88 THEN
+   hexstring = hexstring & "_"
+   debug hexstring
+   hexstring = ""
+  END IF
+ NEXT i
+ hexstring = hexstring & "}"
+ debug hexstring
+END SUB
+
+SUB load_default_master_palette (master_palette() AS RGBColor)
+ 'To regenerate this if the default master palette changes, use dump_master_palette_as_hex
+ DIM colorcodes(255) AS INTEGER = {&h000000,&h232323,&h332F2B,&h3F3B37,&h4F4B3F,&h5F5747,_
+        &h736B57,&h877F63,&h9B8F6F,&hAFA377,&hC7B783,&hDBC78B,&hEBD797,&hFFBF3B,&hFF9F47,_
+        &hFB7F53,&h0F0F0F,&h131313,&h2B2727,&h43333B,&h5B3F53,&h6F476F,&h83577B,&h936787,_
+        &hA3778F,&hB38B97,&hC39FA3,&hD3B3B3,&hE3CBC7,&hEFDFD7,&hF7E7E7,&hFBF3F3,&h1F231F,_
+        &h0F0F1F,&h1F233F,&h2B335F,&h3B437F,&h4B539B,&h5B63B3,&h6B77C7,&h8387D3,&h9793DF,_
+        &hAFA3EB,&hC3BBF3,&hD3CFF7,&hE3DFFF,&hEFEBFF,&hF7F7FF,&h2F372F,&h170B1F,&h2B133B,_
+        &h431B57,&h572773,&h6F2F93,&h8337AF,&h9743CB,&hAF4BE7,&hC357FF,&hCB6BFF,&hD77FFF,_
+        &hDF93FF,&hEBA7FF,&hF3BBFF,&hFFCFFF,&h43473F,&h070F27,&h0F235B,&h17338B,&h1B47AF,_
+        &h1F5FC3,&h237BD3,&h2397DF,&h27B3E7,&h27CFF3,&h27EFFB,&h3FFFFB,&h77FFFB,&hA3FFFF,_
+        &hC7FFFF,&hE7FFFF,&h4F5B5B,&h170000,&h370000,&h530000,&h6B0000,&h870000,&hA30000,_
+        &hBF0000,&hDF2F2F,&hFB5F5F,&hFF7F7F,&hFF9F9F,&hFFBBBB,&hFFD3D3,&hFFE3E3,&hFFF3F3,_
+        &h5F6B77,&h170F00,&h2F2300,&h473700,&h5F4700,&h775B00,&h8F6B00,&hA77F00,&hBF8F00,_
+        &hD7A300,&hEFB300,&hFFC70F,&hFFDF33,&hFFEF4F,&hFFFF63,&hFFFFB7,&h737F8F,&h170717,_
+        &h2F0F2F,&h471747,&h5F1F5F,&h7B2B7B,&h933393,&hAB3FA3,&hC74BB3,&hE35BBF,&hFF67CF,_
+        &hFF8BDB,&hFFAFE3,&hFFC7EF,&hFFDBF3,&hFFEFFB,&h8B8FA3,&h1B0B07,&h3F170B,&h5B271B,_
+        &h77372F,&h93473F,&hAF5753,&hBF6767,&hD3777B,&hE7878F,&hF793A3,&hFFABB7,&hFFC3CB,_
+        &hFFD7DF,&hFFE7EB,&hFFF7F7,&hA39FB3,&h0B0B0F,&h131B23,&h1B2733,&h373B47,&h4F4B4B,_
+        &h63534B,&h775B4B,&h8B634B,&h9F6B4B,&hB3774F,&hC38F57,&hD3A763,&hDFC373,&hEBD77F,_
+        &hF3EB8B,&hBBABC3,&h0B1307,&h172B13,&h23431F,&h2B5B2B,&h476B2B,&h67772B,&h7B873B,_
+        &h93974F,&hA3AB63,&hAFBF6F,&hBFD37B,&hCBE787,&hD3FB8F,&hDFFFA7,&hF3FFDB,&hCFBFD3,_
+        &h0F0F0F,&h232323,&h373333,&h4B4F3F,&h436743,&h4F7B57,&h5B8F67,&h67A77F,&h6FBB97,_
+        &h77CFB3,&h7FE7D3,&h87FBF3,&hA7FFFB,&hC7FFFF,&hE7FFFF,&hDBD3DF,&h171313,&h332727,_
+        &h4F3B37,&h6B4F47,&h836353,&h9B7363,&hAF876F,&hC3977B,&hD7A787,&hE3B797,&hEFC3A3,_
+        &hF7D3B7,&hFBE3CF,&hFBEFE3,&hFFF7F3,&hE7E3EB,&h0B230B,&h0F330F,&h133F13,&h174F17,_
+        &h1B631B,&h1F771F,&h238B23,&h379F37,&h3FB33B,&h47C73F,&h67DB5F,&h6BEB63,&h9BFB93,_
+        &hCFFFCB,&hE7FFEB,&hEFEBF3,&h1B0B0B,&h371B17,&h532B1F,&h6B3B27,&h874B2B,&h9F5B33,_
+        &hB76F27,&hCF8317,&hDF9B17,&hE7AF33,&hEFC353,&hF3D773,&hF7E79B,&hFBEFBF,&hFFF7E3,_
+        &hFFFFFF,&h000F23,&h001F4B,&h002F6F,&h003B97,&h004BBF,&h005BE3,&h076FFF,&h278BFF,_
+        &h43ABFF,&h63C7FF,&h87D7FF,&hABE3FF,&hC7EBFF,&hDBF3FF,&hEFFBFF}
+ DIM i AS INTEGER
+ FOR i = 0 TO 255
+  master_palette(i).col = colorcodes(i)
+ NEXT i
 END SUB
 
 FUNCTION enter_or_space () AS INTEGER

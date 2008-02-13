@@ -62,7 +62,6 @@ support\cp game.exe tmpdist
 support\cp custom.exe tmpdist
 support\cp hspeak.exe tmpdist
 support\cp ohrrpgce.new tmpdist
-support\cp ohrrpgce.mas tmpdist
 support\cp plotscr.hsd tmpdist
 support\cp scancode.hsi tmpdist
 support\cp README-game.txt tmpdist
@@ -92,7 +91,6 @@ del tmpdist\*.???
 support\cp game.exe tmpdist
 support\cp custom.exe tmpdist
 support\cp hspeak.exe tmpdist
-support\cp ohrrpgce.mas tmpdist
 support\cp ohrrpgce.new tmpdist
 support\cp README-custom.txt tmpdist
 support\cp LICENSE.txt tmpdist

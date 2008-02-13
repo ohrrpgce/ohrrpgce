@@ -200,10 +200,8 @@ safekill workingdir + SLASH + "__danger.tmp"
 
 IF hsfile$ <> "" THEN GOTO hsimport
 
-IF NOT isfile(game + ".mas") AND NOT isfile(workingdir + SLASH + "palettes.bin") THEN 
- palfile$ = finddatafile("ohrrpgce.mas")
- IF palfile$ = "" THEN fatalerror "RPG master palette and ohrrpgce.mas missing"
- copyfile palfile$, game + ".mas"
+IF NOT isfile(game + ".mas") AND NOT isfile(workingdir + SLASH + "palettes.bin") THEN
+ debug "Warning: " & game & ".mas does not exist (which should never happen)"
 END IF
 IF NOT isfile(game + ".fnt") THEN
  getdefaultfont font()
