@@ -92,9 +92,11 @@ dim shared anim2 as integer
 dim shared waittime as double
 dim shared waitset as integer
 
-dim shared keybd(-1 to 255) as integer  'keyval array
+dim shared keybd(-1 to 127) as integer  'keyval array
 dim shared keybdstate(127) as integer  '"real"time array
 dim shared keysteps(127) as integer
+dim shared keyrepeatwait as integer = 8
+dim shared keyrepeatrate as integer = 1
 
 dim shared keybdmutex as intptr  'controls access to keybdstate(), mouseflags and mouselastflags
 dim shared keybdthread as intptr   'id of the polling thread
@@ -142,7 +144,7 @@ sub setmodex()
 	for i = 0 to 127
 		keybd(i) = 0
 		keybdstate(i) = 0
- 		keysteps(i) = -1
+ 		keysteps(i) = 0
 	next
 	endpollthread = 0
 	mouselastflags = 0
@@ -807,14 +809,50 @@ SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL pa
 
 END SUB
 
-FUNCTION keyval (BYVAL a as integer) as integer
+'FIXME DELETEME
+'--This code is for screen page debugging, and will be removed in the future!
+DECLARE SUB debug_screen_page(p AS INTEGER)
+SUB debug_screen_page(p AS INTEGER)
+	dim caption as string
+	dim k as integer
+	copypage p, vpage
+	caption = "Screen Page: "
+	IF p = dpage THEN
+		caption = caption & "drawing page"
+	else
+	caption = caption & p
+	end if
+	edgeprint caption, 0, 0, uilook(uiText), vpage
+	edgeprint "B:blank, W:whiteout, N:Nukepicstuf", 0, 190, uilook(uiText), vpage
+	setvispage vpage
+	k = waitforanykey(NO)
+	if k = 48 then clearpage p
+	if k = 17 then rectangle 0, 0, 320, 200, 15, p
+	if k = 49 then
+		dim x as integer
+		dim c as integer
+		c = 1
+		for x = 2 to 319
+			rectangle x, 0, 1, 200, c, p
+			c = (c + 1) MOD 255
+		next x
+	end if
+	clearkey (k)
+END SUB
+
+FUNCTION keyval (BYVAL a as integer, BYVAL rwait as integer = 0, BYVAL rrate as integer = 0) as integer
 'except for special keys (like -1), each key reports 3 bits:
 '
 'bit 0: key was down at the last setkeys call
 'bit 1: keypress event (either new keypress, or key-repeat) during last setkey-setkey interval
 'bit 2: new keypress during last setkey-setkey interval
 
-	keyval = keybd(a)
+        IF a >= 0 THEN
+		IF rwait = 0 THEN rwait = keyrepeatwait
+		IF rrate = 0 THEN rrate = keyrepeatrate
+		IF keysteps(a) >= rwait AND ((keysteps(a) - rwait - 1) MOD rrate = 0) THEN RETURN keybd(a) or 2
+	END IF
+	RETURN keybd(a)
 end FUNCTION
 
 FUNCTION waitforanykey (modkeys=-1) as integer
@@ -853,44 +891,17 @@ FUNCTION getkey () as integer
 	getkey = key
 end FUNCTION
 
-'FIXME DELETEME
-'--This code is for screen page debugging, and will be removed in the future!
-DECLARE SUB debug_screen_page(p AS INTEGER)
-SUB debug_screen_page(p AS INTEGER)
-	dim caption as string
-	dim k as integer
-	copypage p, vpage
-	caption = "Screen Page: "
-	IF p = dpage THEN
-		caption = caption & "drawing page"
-	else
-	caption = caption & p
-	end if
-	edgeprint caption, 0, 0, uilook(uiText), vpage
-	edgeprint "B:blank, W:whiteout, N:Nukepicstuf", 0, 190, uilook(uiText), vpage
-	setvispage vpage
-	k = waitforanykey(NO)
-	if k = 48 then clearpage p
-	if k = 17 then rectangle 0, 0, 320, 200, 15, p
-	if k = 49 then
-		dim x as integer
-		dim c as integer
-		c = 1
-		for x = 2 to 319
-			rectangle x, 0, 1, 200, c, p
-			c = (c + 1) MOD 255
-		next x
-	end if
-	clearkey (k)
+SUB setkeyrepeat (rwait as integer = 8, rrate as integer = 1)
+	keyrepeatwait = rwait
+	keyrepeatrate = rrate
 END SUB
 
 SUB setkeys ()
 'Updates the keybd array (which keyval() wraps) to reflect new keypresses
 'since the last call, also clears all keypress events (except key-is-down)
 '
-'keysteps is the delay (number of setkeys calls) while a key is held down
-'until it triggers another keypress (repeat) event: 7 on initial press, 1
-'after every repeat event
+'keysteps is the number of setkeys calls that a key has been down, used
+'for flexible key-repeat
 '
 'Note that currently key repeat events are triggered every 25ms, not every
 'setkeys call
@@ -899,8 +910,8 @@ SUB setkeys ()
 	mutexlock keybdmutex
 	for a = 0 to &h7f
 		keybd(a) = keybdstate(a)
-		if keysteps(a) > 0 then
-			keysteps(a) -= 1
+		if keybd(a) and 1 then
+			keysteps(a) += 1
 		end if
 		keybdstate(a) = keybdstate(a) and 1
 	next
@@ -926,6 +937,7 @@ end SUB
 
 SUB clearkey(byval k as integer)
 	keybd(k) = 0
+	keysteps(k) = 0
 end sub
 
 sub pollingthread(byval unused as threadbs)
@@ -943,19 +955,14 @@ sub pollingthread(byval unused as threadbs)
 				keybdstate(a) = keybdstate(a) and 7
 
 				'decide whether to fire a new key event, otherwise the keystate is preserved
-				if keysteps(a) = -1 then
+				if keysteps(a) = 0 then
 					'this is a new keypress
-					keysteps(a) = 7
 					keybdstate(a) = keybdstate(a) or 6 'key was triggered, new keypress
-				elseif keysteps(a) = 0 then
-					'trigger repeat
-					keysteps(a) = 1
-					keybdstate(a) = keybdstate(a) or 2 'key was triggered
 				end if
 				keybdstate(a) = keybdstate(a) or 1 'key is pressed
 			else
 				keybdstate(a) = keybdstate(a) and 6 'no longer pressed, but was seen
-				keysteps(a) = -1 '-1 means it's a new press next time
+				keysteps(a) = 0 '0 means it's a new press next time
 			end if
 		next
 		io_getmouse dummy, dummy, dummy, buttons
