@@ -306,11 +306,6 @@ setfont font()
 
 keyboardsetup
 
-textcolor uilook(uiText), 0
-FOR i = 0 TO 31
- plotstr(i).Col = uilook(uiText)
-NEXT i
-
 'DEBUG debug "init sound"
 setupmusic
 setupsound
@@ -441,6 +436,11 @@ DO' This loop encloses the playable game for a specific RPG file
 
 loadpalette master(), gen(genMasterPal)
 LoadUIColors uilook(), gen(genMasterPal)
+
+textcolor uilook(uiText), 0
+FOR i = 0 TO 31
+ plotstr(i).Col = uilook(uiText)
+NEXT i
 
 initgamedefaults
 fatal = 0: abortg = 0
