@@ -24,6 +24,7 @@
 #include "bitmap.bi"
 #include "util.bi"
 #include "const.bi"
+#include "scancodes.bi"
 
 option explicit
 
@@ -97,6 +98,7 @@ dim shared keybdstate(127) as integer  '"real"time array
 dim shared keysteps(127) as integer
 dim shared keyrepeatwait as integer = 8
 dim shared keyrepeatrate as integer = 1
+dim shared diagonalhack as integer
 
 dim shared keybdmutex as intptr  'controls access to keybdstate(), mouseflags and mouselastflags
 dim shared keybdthread as intptr   'id of the polling thread
@@ -847,12 +849,21 @@ FUNCTION keyval (BYVAL a as integer, BYVAL rwait as integer = 0, BYVAL rrate as 
 'bit 1: keypress event (either new keypress, or key-repeat) during last setkey-setkey interval
 'bit 2: new keypress during last setkey-setkey interval
 
+	DIM result as integer = keybd(a)
         IF a >= 0 THEN
 		IF rwait = 0 THEN rwait = keyrepeatwait
 		IF rrate = 0 THEN rrate = keyrepeatrate
-		IF keysteps(a) >= rwait AND ((keysteps(a) - rwait - 1) MOD rrate = 0) THEN RETURN keybd(a) or 2
+
+		'awful hack to avoid arrow keys firely alternatively with rrate > 1
+		DIM arrowkey as integer = 0
+		IF a = scLeft OR a = scRight OR a = scUp OR a = scDown THEN arrowkey = -1
+		IF arrowkey AND diagonalhack <> -1 THEN RETURN (result AND 5) OR (diagonalhack AND keybd(a) > 0)
+		IF keysteps(a) >= rwait THEN
+			IF ((keysteps(a) - rwait - 1) MOD rrate = 0) THEN result OR= 2
+			IF arrowkey THEN diagonalhack = result AND 2
+		END IF
 	END IF
-	RETURN keybd(a)
+	RETURN result
 end FUNCTION
 
 FUNCTION waitforanykey (modkeys=-1) as integer
@@ -925,6 +936,9 @@ SUB setkeys ()
 	END IF
 
 	mutexunlock keybdmutex
+
+	'reset arrow key fire state
+	diagonalhack = -1
 
 	'FIXME DELETEME
 	'--This code is for screen page debugging, and will be removed in the future!
