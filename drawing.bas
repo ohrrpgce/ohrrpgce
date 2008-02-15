@@ -790,7 +790,7 @@ loadpage mapfile$, pagenum, 3
 bnum = 0
 setkeys
 DO
- setwait 110
+ setwait 55
  setkeys
  copypage 3, dpage
  IF ts.gotmouse THEN
@@ -798,10 +798,10 @@ DO
  END IF
  IF keyval(1) > 1 THEN storepage mapfile$, pagenum, 3: EXIT DO
  IF tmode <> 2 OR keyval(29) = 0 THEN
-  IF keyval(75) AND 5 THEN IF bnum > 0 THEN bnum = bnum - 1: IF ts.gotmouse THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
-  IF keyval(77) AND 5 THEN IF bnum < 159 THEN bnum = bnum + 1: IF ts.gotmouse THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
-  IF keyval(72) AND 5 THEN IF bnum > 15 THEN bnum = bnum - 16: IF ts.gotmouse THEN mouse(1) = mouse(1) - 20: movemouse mouse(0), mouse(1)
-  IF keyval(80) AND 5 THEN IF bnum < 144 THEN bnum = bnum + 16: IF ts.gotmouse THEN mouse(1) = mouse(1) + 20: movemouse mouse(0), mouse(1)
+  IF slowkey(75, 2) THEN IF bnum > 0 THEN bnum = bnum - 1: IF ts.gotmouse THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
+  IF slowkey(77, 2) THEN IF bnum < 159 THEN bnum = bnum + 1: IF ts.gotmouse THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
+  IF slowkey(72, 2) THEN IF bnum > 15 THEN bnum = bnum - 16: IF ts.gotmouse THEN mouse(1) = mouse(1) - 20: movemouse mouse(0), mouse(1)
+  IF slowkey(80, 2) THEN IF bnum < 144 THEN bnum = bnum + 16: IF ts.gotmouse THEN mouse(1) = mouse(1) + 20: movemouse mouse(0), mouse(1)
  END IF
  IF ts.gotmouse THEN
   bnum = INT(mouse(1) / 20) * 16 + INT(mouse(0) / 20)
@@ -984,7 +984,7 @@ NEXT j
 '---EDIT BLOCK---
 setkeys
 DO
- setwait 90
+ setwait 37
  setkeys
  IF ts.gotmouse THEN
   readmouse mouse()
@@ -1003,10 +1003,10 @@ DO
  END IF
  IF keyval(56) = 0 THEN
   ts.fixmouse = NO
-  IF keyval(75) AND 5 THEN ts.x = large(ts.x - 1, 0): ts.fixmouse = YES
-  IF keyval(77) AND 5 THEN ts.x = small(ts.x + 1, 19): ts.fixmouse = YES
-  IF keyval(72) AND 5 THEN ts.y = large(ts.y - 1, 0): ts.fixmouse = YES
-  IF keyval(80) AND 5 THEN ts.y = small(ts.y + 1, 19): ts.fixmouse = YES
+  IF slowkey(75, 3) THEN ts.x = large(ts.x - 1, 0): ts.fixmouse = YES
+  IF slowkey(77, 3) THEN ts.x = small(ts.x + 1, 19): ts.fixmouse = YES
+  IF slowkey(72, 3) THEN ts.y = large(ts.y - 1, 0): ts.fixmouse = YES
+  IF slowkey(80, 3) THEN ts.y = small(ts.y + 1, 19): ts.fixmouse = YES
   IF ts.fixmouse THEN
    zox = ts.x * 10 + 5
    zoy = ts.y * 8 + 4
@@ -1024,16 +1024,16 @@ DO
   END IF
  NEXT i
  '----------
- IF keyval(51) > 1 OR (keyval(56) > 0 AND keyval(75) > 0) THEN
+ IF keyval(51) > 1 OR (keyval(56) > 0 AND keyval(75, 6, 2) > 1) THEN
   ts.curcolor = (ts.curcolor + 255) MOD 256
   IF ts.curcolor MOD 16 = 15 THEN ts.curcolor = (ts.curcolor + 144) MOD 256
  END IF
- IF keyval(52) > 1 OR (keyval(56) > 0 AND keyval(77) > 0) THEN
+ IF keyval(52) > 1 OR (keyval(56) > 0 AND keyval(77, 6, 2) > 1) THEN
   ts.curcolor += 1
   IF ts.curcolor MOD 16 = 0 THEN ts.curcolor = (ts.curcolor + 112) MOD 256
  END IF
- IF keyval(56) > 0 AND keyval(72) > 0 THEN ts.curcolor = (ts.curcolor + 240) MOD 256
- IF keyval(56) > 0 AND keyval(80) > 0 THEN ts.curcolor = (ts.curcolor + 16) MOD 256
+ IF keyval(56) > 0 AND keyval(72, 6, 2) > 1 THEN ts.curcolor = (ts.curcolor + 240) MOD 256
+ IF keyval(56) > 0 AND keyval(80, 6, 2) > 1 THEN ts.curcolor = (ts.curcolor + 16) MOD 256
  IF keyval(41) > 1 THEN ts.hidemouse = ts.hidemouse XOR 1
  IF keyval(29) > 0 AND keyval(44) > 1 AND ts.allowundo THEN
   ts.undo = loopvar(ts.undo, 0, 5, -1)
@@ -1787,7 +1787,7 @@ GOSUB spedbak
 loadsprite placer(), 0, ss.framenum * size, soff * (state.pt - state.top), xw, yw, 3
 setkeys
 DO
- setwait 90
+ setwait 55
  setkeys
  IF ss.gotmouse THEN
   readmouse mouse()
@@ -1885,10 +1885,10 @@ IF keyval(56) > 0 AND keyval(47) > 1 THEN
 END IF
 ss.curcolor = peek8bit(workpal(), (state.pt - state.top) * 16 + col)
 IF keyval(56) > 0 THEN
- IF keyval(72) > 0 AND ss.curcolor > 15 THEN ss.curcolor -= 16
- IF keyval(80) > 0 AND ss.curcolor < 240 THEN ss.curcolor += 16
- IF keyval(75) > 0 AND ss.curcolor > 0 THEN ss.curcolor -= 1
- IF keyval(77) > 0 AND ss.curcolor < 255 THEN ss.curcolor += 1
+ IF keyval(72) > 1 AND ss.curcolor > 15 THEN ss.curcolor -= 16
+ IF keyval(80) > 1 AND ss.curcolor < 240 THEN ss.curcolor += 16
+ IF keyval(75) > 1 AND ss.curcolor > 0 THEN ss.curcolor -= 1
+ IF keyval(77) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1
 END IF
 IF mouse(3) = 1 AND ss.zonenum = 3 THEN 'AND col > 0 THEN
  ss.curcolor = INT(INT(ss.zone.y / 6) * 16) + INT(ss.zone.x / 4)
@@ -1897,10 +1897,10 @@ poke8bit workpal(), (state.pt - state.top) * 16 + col, ss.curcolor
 IF keyval(56) = 0 THEN
  WITH ss
   .fixmouse = NO
-  IF keyval(72) AND 5 THEN .y = large(0, .y - 1):      .fixmouse = YES
-  IF keyval(80) AND 5 THEN .y = small(yw - 1, .y + 1): .fixmouse = YES
-  IF keyval(75) AND 5 THEN .x = large(0, .x - 1):      .fixmouse = YES
-  IF keyval(77) AND 5 THEN .x = small(xw - 1, .x + 1): .fixmouse = YES
+  IF slowkey(72, 2) THEN .y = large(0, .y - 1):      .fixmouse = YES
+  IF slowkey(80, 2) THEN .y = small(yw - 1, .y + 1): .fixmouse = YES
+  IF slowkey(75, 2) THEN .x = large(0, .x - 1):      .fixmouse = YES
+  IF slowkey(77, 2) THEN .x = small(xw - 1, .x + 1): .fixmouse = YES
  END WITH
  IF ss.fixmouse THEN
   IF ss.zonenum = 1 THEN

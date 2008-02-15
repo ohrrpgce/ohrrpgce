@@ -13,6 +13,8 @@ WHAT IS NEW?
     * New default Master Palette for new games. [NeoTA, Everybody]
     * ohrrpgce.mas is no longer required at all, not even for
       custom [James Paige]
+    * The mouse is more useable for drawing now; key responsiveness
+      improvements [Ralph Versteegen]
 
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged

@@ -525,7 +525,7 @@ doorlinkid = 0
 
 setkeys
 DO
- setwait 90
+ setwait 55
  setkeys
  if keyval(scCtrl) = 0 AND keyval(scAlt) = 0 then
 	 IF keyval(59) > 1 THEN
@@ -804,18 +804,18 @@ DO
   yrate = 1
  END IF
  IF keyval(56) = 0 AND keyval(29) = 0 THEN
-  IF keyval(72) AND 5 THEN y = large(y - yrate, 0): IF y < INT(mapy / 20) THEN mapy = y * 20
-  IF keyval(80) AND 5 THEN y = small(y + yrate, high - 1): IF y > INT(mapy / 20) + 8 THEN mapy = y * 20 - 160
-  IF keyval(75) AND 5 THEN x = large(x - xrate, 0): IF x < INT(mapx / 20) THEN mapx = x * 20
-  IF keyval(77) AND 5 THEN x = small(x + xrate, wide - 1): IF x > INT(mapx / 20) + 14 THEN mapx = x * 20 - 280
+  IF slowkey(72, 2) THEN y = large(y - yrate, 0): IF y < INT(mapy / 20) THEN mapy = y * 20
+  IF slowkey(80, 2) THEN y = small(y + yrate, high - 1): IF y > INT(mapy / 20) + 8 THEN mapy = y * 20 - 160
+  IF slowkey(75, 2) THEN x = large(x - xrate, 0): IF x < INT(mapx / 20) THEN mapx = x * 20
+  IF slowkey(77, 2) THEN x = small(x + xrate, wide - 1): IF x > INT(mapx / 20) + 14 THEN mapx = x * 20 - 280
  END IF
  IF keyval(56) > 0 AND keyval(29) = 0 THEN
   oldrelx = x - mapx / 20
   oldrely = y - mapy / 20
-  IF keyval(72) AND 5 THEN mapy = large(mapy - 20 * yrate, 0)
-  IF keyval(80) AND 5 THEN mapy = small(mapy + 20 * yrate, high * 20 - 180)
-  IF keyval(75) AND 5 THEN mapx = large(mapx - 20 * xrate, 0)
-  IF keyval(77) AND 5 THEN mapx = small(mapx + 20 * xrate, wide * 20 - 300)
+  IF slowkey(72, 2) THEN mapy = large(mapy - 20 * yrate, 0)
+  IF slowkey(80, 2) THEN mapy = small(mapy + 20 * yrate, high * 20 - 180)
+  IF slowkey(75, 2) THEN mapx = large(mapx - 20 * xrate, 0)
+  IF slowkey(77, 2) THEN mapx = small(mapx + 20 * xrate, wide * 20 - 300)
   x = mapx / 20 + oldrelx
   y = mapy / 20 + oldrely
  END IF
