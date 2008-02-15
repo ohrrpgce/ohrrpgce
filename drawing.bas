@@ -1007,7 +1007,7 @@ DO
   IF slowkey(77, 3) THEN ts.x = small(ts.x + 1, 19): ts.fixmouse = YES
   IF slowkey(72, 3) THEN ts.y = large(ts.y - 1, 0): ts.fixmouse = YES
   IF slowkey(80, 3) THEN ts.y = small(ts.y + 1, 19): ts.fixmouse = YES
-  IF ts.fixmouse THEN
+  IF ts.fixmouse AND ts.zone = 1 THEN
    zox = ts.x * 10 + 5
    zoy = ts.y * 8 + 4
    mouse(0) = area(0).x + zox
@@ -1913,7 +1913,7 @@ IF keyval(56) = 0 THEN
   IF ss.zonenum = 14 THEN
    ss.zone.x = ss.x
    ss.zone.y = ss.y
-   mouse(0) = area(13).y + ss.zone.x 
+   mouse(0) = area(13).x + ss.zone.x 
    mouse(1) = area(13).y + ss.zone.y
    movemouse mouse(0), mouse(1)
   END IF
