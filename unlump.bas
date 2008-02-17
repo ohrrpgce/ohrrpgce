@@ -143,7 +143,7 @@ IF isfile(dest$ + SLASH + "archinym.lmp") THEN
 END IF
 
 unlumpfile lump$, game + ".gen", dest$ + SLASH, buffer()
-xbload dest$ + SLASH + game + ".gen", buffer(), "unable to open general data"
+xbload dest$ + SLASH + LCASE(game) + ".gen", buffer(), "unable to open general data"
 
 KILL dest$ + SLASH + game + ".gen"
 
@@ -267,9 +267,6 @@ NEXT i
 END FUNCTION
 
 SUB xbload (f$, array(), e$)
-
-    ' Linux compat demands lowercase lump names
-    f$ = lcase(f$)
 
 	IF isfile(f$) THEN
 		DIM ff%, byt as UByte, seg AS Short, offset AS Short, length AS Short

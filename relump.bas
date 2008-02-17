@@ -114,7 +114,7 @@ ELSE
  game ="ohrrpgce"
 END IF
 
-xbload src$ + SLASH + game + ".gen", buffer(), "unable to open general data"
+xbload src$ + SLASH + LCASE(game) + ".gen", buffer(), "unable to open general data"
 
 passokay = -1
 
@@ -248,9 +248,6 @@ NEXT i
 END FUNCTION
 
 SUB xbload (f$, array(), e$)
-
-    ' Linux compat demands lowercase lump names
-    f$ = lcase(f$)
 
 	IF isfile(f$) THEN
 		DIM ff%, byt as UByte, seg AS Short, offset AS Short, length AS Short
