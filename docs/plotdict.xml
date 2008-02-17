@@ -198,14 +198,14 @@ advance text box # "hit spacebar"</example>
 		<command id="waitfortextbox">
 			<cannon>wait for text box</cannon>
 			<shortname>wait for text box</shortname>
-			<description>Makes the script wait until there is no text box displaying on the screen. Useful to know when to move on after using a <ref>showtextbox</ref> command</description>
+			<description>Makes the script wait until there is no text box displaying on the screen. Useful to know when to move on after using a <ref>showtextbox</ref> command.</description>
 			<example>show text box(2) # Show a text box
 wait for text box # wait until the player continues</example>
 		</command>
-		<command id="wait for menu">
-			<cannon>wait for menu(menu handle)</cannon>
+		<command id="waitformenu">
+			<cannon>wait for menu (menu handle)</cannon>
 			<shortname>wait for menu</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), causes the script to wait until that menu has been closed</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), causes the script to wait until that menu has been closed.</description>
 		</command>
 		<command id="waitforhero">
 			<cannon>wait for hero (who)</cannon>
@@ -217,7 +217,7 @@ wait for hero (me) # wait until he stops</example>
 		<command id="waitforkey">
 			<cannon>wait for key (key)</cannon>
 			<shortname>wait for key</shortname>
-			<description>Waits for the player to press a key. You can use the follwing constants: <ref>anykey</ref>, <ref>upkey</ref>, <ref>downkey</ref>, <ref>leftkey</ref>, <ref>rightkey</ref>, <ref>usekey</ref>, <ref>cancelkey</ref>, or <ref>menukey</ref>. If you do not specify, then <ref>anykey</ref> will be used. If and only if anykey is used, waitforkey will return the scancode of the key that was pressed.</description>
+			<description>Waits for the player to press a key. You can use the following constants: <ref>anykey</ref>, <ref>upkey</ref>, <ref>downkey</ref>, <ref>leftkey</ref>, <ref>rightkey</ref>, <ref>usekey</ref>, <ref>cancelkey</ref>, or <ref>menukey</ref>. If you do not specify, then <ref>anykey</ref> will be used. These are not scancodes, and can not be mixed with scancodes! Use <ref>waitforscancode</ref> if you want to use scancodes or wait for other keys. <p>usekey</p> will wait for Space, Ctrl or Enter; and <p>cancelkey</p> and <p>menukey</p> both wait for Alt or Esc. If and only if anykey is used, waitforkey will return the scancode of the key that was pressed.</description>
 			<example>show text box(623) # "press cancel!"
 wait for key(cancel key)</example>
 		</command>
@@ -246,7 +246,7 @@ wait for camera # wait until he&apos;s on screen</example>
 		<command id="waitforall">
 			<cannon>wait for all</cannon>
 			<shortname>wait for all</shortname>
-			<description>Waits for any camera motion to stop, waits for all heros to stop walking, and if <ref>suspendnpcs</ref> is active, waits for all NPCs to stop walking.</description>
+			<description>Waits for any camera motion to stop, waits for all heroes to stop walking, and if <ref>suspendnpcs</ref> is active, waits for all NPCs to stop walking.</description>
 			<example># do a bunch of things all at once
 wait for all # wait until everything is done</example>
 		</command>
@@ -283,7 +283,7 @@ resume NPCs</example>
 		<command id="suspendobstruction">
 			<cannon>suspend obstruction</cannon>
 			<shortname>suspend obstruction</shortname>
-			<description>Allows heros to walk through NPCs, allows NPCs to walk through heros, and allows NPCs to walk through each other. Use <ref>resumeobstruction</ref> to restore normal obstruction behavior.</description>
+			<description>Allows heroes to walk through NPCs, allows NPCs to walk through heroes, and allows NPCs to walk through each other. Use <ref>resumeobstruction</ref> to restore normal obstruction behavior.</description>
 			<example>suspend obstruction
 # walk through things
 resume obstruction</example>
@@ -297,7 +297,7 @@ resume obstruction</example>
 		<command id="suspendherowalls">
 			<cannon>suspend hero walls</cannon>
 			<shortname>suspend hero walls</shortname>
-			<description>Allows heros to walk through walls. Use <ref>resumeherowalls</ref> to restore normal wall behavior.</description>
+			<description>Allows heroes to walk through walls. Use <ref>resumeherowalls</ref> to restore normal wall behavior.</description>
 			<example>suspend hero walls # hero is now a ghost
 # walk through things
 resume hero walls # back to mortality...</example>
@@ -325,15 +325,15 @@ resume NPC walls # back to mortality...</example>
 		<command id="suspendcaterpillar">
 			<cannon>suspend caterpillar</cannon>
 			<shortname>suspend caterpillar</shortname>
-			<description>Stops your other heros from following the leader. This is useful when you want to control them individually with <ref>walkhero</ref> commands. In earlier versions this was misspelled as suspend catapillar. The old spelling still works for backwards compatability.</description>
+			<description>Stops your other heroes from following the leader. This is useful when you want to control them individually with <ref>walkhero</ref> commands. In earlier versions this was misspelled as suspend catapillar. The old spelling still works for backwards compatability.</description>
 			<example>suspend caterpillar # cutscene
-# move heros, probably fight a battle or two...
+# move heroes, probably fight a battle or two...
 resume caterpillar # normal game again.</example>
 		</command>
 		<command id="resumecaterpillar">
 			<cannon>resume caterpillar</cannon>
 			<shortname>resume caterpillar</shortname>
-			<description>Reverses the <ref>suspendcaterpillar</ref> command, and makes your other heros follow the leader as normal. In earlier versions this was misspelled as resume catapillar. The old spelling still works for backwards compatability.</description>
+			<description>Reverses the <ref>suspendcaterpillar</ref> command, and makes your other heroes follow the leader as normal. In earlier versions this was misspelled as resume catapillar. The old spelling still works for backwards compatability.</description>
 			<example c="suspendcaterpillar" />
 		</command>
 		<command id="suspendcatapillar">
@@ -371,7 +371,7 @@ resume random enemies # back to normal</example>
 		<command id="suspendboxadvance">
 			<cannon>suspend box advance</cannon>
 			<shortname>suspend box advance</shortname>
-			<description>Prevents the player from advancing or clearing text boxes by pressing keys. While this is active, the only way to make a text box advance is with the <ref>advancetextbox</ref> command. Be very careful with this command, since you do not want to leave the player stuck on a text box forever.</description>
+			<description>Prevents the player from advancing or clearing text boxes by pressing keys. While this is active, the only way to make a text box advance is with the <ref>advancetextbox</ref> command (or <ref>showtextbox</ref>). Useful for cut scenes that play out like a movie, where the player just watches the dialogue unfold. Be very careful with this command, since you do not want to leave the player stuck on a text box forever.</description>
 			<example>suspend box advance # stop players from mucking things up
 show text box(2) # Show a text box
 wait(45) # Wait about 3 seconds
@@ -387,12 +387,12 @@ resume box advance # go back to normal</example>
 		<command id="suspendoverlay">
 			<cannon>suspend overlay</cannon>
 			<shortname>suspend overlay</shortname>
-			<description>Prevents overhead tiles from being drawn over heros and NPCs.</description>
+			<description>Draws old-style overhead tiles under heroes and NPCs instead of over them. This does not affect the drawing of normal layers. You might still find this useful for creating bridges or catwalks that can be walked on or passed under. Undo with <ref>resumeoverlay</ref>.</description>
 		</command>
 		<command id="resumeoverlay">
 			<cannon>resume overlay</cannon>
 			<shortname>resume overlay</shortname>
-			<description>Causes overhead tiles to be drawn over heros and NPCs as normal.</description>
+			<description>Undoes the <ref>suspendoverlay</ref> command, causing overhead tiles to be drawn over heroes and NPCs as normal.</description>
 		</command>
 		<command id="suspendmapmusic">
 			<cannon>suspend map music</cannon>
@@ -424,11 +424,11 @@ play song (get ambient music)</example>
 			<description>Causes ambient music to automatically start playing when you enter a map again after a <ref>suspendmapmusic</ref> command.</description>
 		</command>
 	</section>
-	<section title="Moving Heros">
+	<section title="Moving Heroes">
 		<command id="walkhero">
 			<cannon>walk hero (who, direction, distance)</cannon>
 			<shortname>walk hero</shortname>
-			<description>Makes the specified hero move in the specified direction for the specified number of tiles. The first argument tells who to move. Use <ref>me</ref> or numbers 0-3. The second argument is the direction. Use the constants: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. The third argument is the number of tiles to move. If you leave out the third argument, the hero will move one tile. Walk hero is usually used with the <ref>waitforhero</ref> command. You should normally use the <ref>suspendplayer</ref> command before moving heros, and if you want to move heros other than the leader, you should use the <ref>suspendcaterpillar</ref> command.</description>
+			<description>Makes the specified hero move in the specified direction for the specified number of tiles. The first argument tells who to move. Use <ref>me</ref> or numbers 0-3. The second argument is the direction. Use the constants: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. The third argument is the number of tiles to move. If you leave out the third argument, the hero will move one tile. Walk hero is usually used with the <ref>waitforhero</ref> command. You should normally use the <ref>suspendplayer</ref> command before moving heroes, and if you want to move heroes other than the leader, you should use the <ref>suspendcaterpillar</ref> command.</description>
 			<example>suspend player # stop player
 walk hero(me,up,3) # move him up 3 tiles
 resume player # ok, done</example>
@@ -498,14 +498,26 @@ resume player # ok, done</example>
 			<description>Returns <ref>true</ref> if the specified hero (by position in the caterpillar) is currently walking. Returns <ref>false</ref> if the hero is standing still.</description>
 		</command>
 		<command id="puthero">
-			<cannon>put hero (who,x,y)</cannon>
+			<cannon>put hero (who, x, y)</cannon>
 			<shortname>put hero</shortname>
-			<description>Moves a hero to a precise location on the map. The first argument is the her&apos;s position in the walkabout party. The second and third arguments are the X,Y pixel position relative to the top left corner of the map. Be aware that using this command can mis-align your hero with the tile-grid, preventing it from walking normally. To position the hero by tile, use the <ref>setheroposition</ref> command.</description>
+			<description>Moves a hero to a precise location on the map. The first argument is the hero&apos;s position in the walkabout party. The second and third arguments are the X,Y pixel position of the top left corner of the hero walkabout sprite, relative to the top left corner of the map. Be aware that using this command can misalign your hero with the tile-grid, preventing it from walking normally. To position the hero by tile, use the <ref>setheroposition</ref> command. Normally you will use this command to escape the tile-based movement system.</description>
+			<example># This script will make the hero jump in an arch 15 pixels high 2 tiles to the right,
+# but it won't animate it. You can use setheroframe or setheropicture to do that.
+variable (i, jump)
+suspend player
+set hero direction (me, right)
+jump := -5
+for (i, 0, 10) do (
+  put hero (me, hero pixel X (me) + 4, hero pixel Y (me) + jump)
+  jump += 1
+  wait
+)
+resume player</example>
 		</command>
 	</section>
 	<section title="Moving NPCs">
 		<command id="npcreference">
-			<cannon>NPC reference (ID,copy)</cannon>
+			<cannon>NPC reference (ID, copy)</cannon>
 			<shortname>NPC reference</shortname>
 			<description>What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you dont specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. If you plan on using the same NPC reference many times in a script you can store it in a <ref>variable</ref>. If the NPC with the ID you asked for (or the NPC copy you asked for with ID you asked for) is not found on the map then NPC reference will return <ref>false</ref>.</description>
 			<example>include,plotscr.hsd
@@ -542,7 +554,7 @@ end</example>
 			</seealso>
 		</command>
 		<command id="npcatspot">
-			<cannon>NPC at spot (x,y,number)</cannon>
+			<cannon>NPC at spot (x, y, number)</cannon>
 			<shortname>NPC at spot</shortname>
 			<description>This command returns a reference to the NPC at the given X and Y coordinate on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom most NPC, which is number 0). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile. <note>An NPC's tile is the tile its top left corner is on.</note></description>
 			<seealso>
@@ -550,7 +562,7 @@ end</example>
 			</seealso>
 		</command>
 		<command id="npcatpixel">
-			<cannon>NPC at pixel (x,y,number)</cannon>
+			<cannon>NPC at pixel (x, y, number)</cannon>
 			<shortname>NPC at pixel</shortname>
 			<description>This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile.</description>
 			<seealso>
@@ -558,17 +570,17 @@ end</example>
 			</seealso>
 		</command>
 		<command id="walknpc">
-			<cannon>walk NPC (who,direction,distance)</cannon>
+			<cannon>walk NPC (who, direction, distance)</cannon>
 			<shortname>walk NPC</shortname>
 			<description>Makes the specified NPC move in the specified direction for the specified number of tiles. The first argument tells who to move. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The second argument is the direction. Use the constants: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. The third argument is the number of tiles to move. If you leave out the third argument, the NPC will move one tile. walk NPC is usually used with the <ref>waitfornpc</ref> command. You should normally use the <ref>suspendnpcs</ref> command before moving NPCs to prevent their automatic movements from interfering with your scripted movements.</description>
 		</command>
 		<command id="setnpcdirection">
-			<cannon>set NPC direction (who,direction)</cannon>
+			<cannon>set NPC direction (who, direction)</cannon>
 			<shortname>set NPC direction</shortname>
 			<description>Makes the specified NPC face in the specified direction. The following constants are avaialable for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will turn.</description>
 		</command>
 		<command id="setnpcframe">
-			<cannon>set NPC frame (who,frame)</cannon>
+			<cannon>set NPC frame (who, frame)</cannon>
 			<shortname>set NPC frame</shortname>
 			<description>Sets the walking frame of the specified NPC to 0 or 1. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will change.</description>
             <seealso>
@@ -576,27 +588,27 @@ end</example>
             </seealso>
 		</command>
 		<command id="setnpcposition">
-			<cannon>set NPC position (who,X,Y)</cannon>
+			<cannon>set NPC position (who, X, Y)</cannon>
 			<shortname>set NPC position</shortname>
 			<description>Instantly moves the specified NPC to an X,Y position on the map. The coordinates are in units of tiles. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will be moved.</description>
 		</command>
 		<command id="walknpctox">
-			<cannon>walk NPC to X (who,X)</cannon>
+			<cannon>walk NPC to X (who, X)</cannon>
 			<shortname>walk NPC to X</shortname>
 			<description>Makes the specified NPC walk to a given X coordinate on the map. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will move.</description>
 		</command>
 		<command id="walknpctoy">
-			<cannon>walk NPC to Y (who,Y)</cannon>
+			<cannon>walk NPC to Y (who, Y)</cannon>
 			<shortname>walk NPC to Y</shortname>
 			<description>Makes the specified NPC walk to a given Y coordinate on the map. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will move.</description>
 		</command>
 		<command id="checknpcwall">
-			<cannon>check NPC wall (who,direction)</cannon>
+			<cannon>check NPC wall (who, direction)</cannon>
 			<shortname>check NPC wall</shortname>
 			<description>Returns true if there is a wall blocking the NPC from moving in the specified direction. No actual movement takes place.</description>
 		</command>
 		<command id="setnpcspeed">
-			<cannon>set NPC speed (who,speed)</cannon>
+			<cannon>set NPC speed (who, speed)</cannon>
 			<shortname>set NPC speed</shortname>
 			<description>Changes the walking speed of the specified NPC. If you do not specify a speed, the NPC&apos;s speed will return to the default, 4. Be careful with using speeds that do not divide evenly into 20, because tiles are 20 pixels in size, and an irregular walking speed may cause the NPC to become misaligned with the tiles.<lb/>Normally you would only give an NPC ID number to set NPC speed, but if you want to use an <ref>npcreference</ref> it will still work. Just remember that set NPC speed changes every copy of the NPC on the map, not just the specific one you referenced.</description>
 		</command>
@@ -866,7 +878,7 @@ end</example>
 		<command id="lockhero">
 			<cannon>lock hero (who)</cannon>
 			<shortname>lock hero</shortname>
-			<description>Locking a hero prevents the player from moving the hero on the party menu. Locked heros in the active party cannot be moved into the reserve, and locked heros in the reserve are completely hidden. Also prevents a hero from being moved by <ref>swapinhero</ref> or <ref>swapouthero</ref>. Use the constants defined in your HSI file. They are in the form of hero:name</description>
+			<description>Locking a hero prevents the player from moving the hero on the party menu. Locked heroes in the active party cannot be moved into the reserve, and locked heroes in the reserve are completely hidden. Also prevents a hero from being moved by <ref>swapinhero</ref> or <ref>swapouthero</ref>. Use the constants defined in your HSI file. They are in the form of hero:name</description>
 		</command>
 		<command id="unlockhero">
 			<cannon>unlock hero (who)</cannon>
@@ -876,12 +888,12 @@ end</example>
 		<command id="swapbyname">
 			<cannon>swap by name (name,name)</cannon>
 			<shortname>swap by name</shortname>
-			<description>Swaps two named heros in your party no matter what position they are in. Use the names defined in your HSI file in the form hero:name</description>
+			<description>Swaps two named heroes in your party no matter what position they are in. Use the names defined in your HSI file in the form hero:name</description>
 		</command>
 		<command id="swapbyposition">
 			<cannon>swap by position (position,position)</cannon>
 			<shortname>swap by position</shortname>
-			<description>Swaps two heros in your party based on their positions in the party</description>
+			<description>Swaps two heroes in your party based on their positions in the party</description>
 		</command>
 		<command id="getitem">
 			<cannon>get item (item,number)</cannon>
@@ -2060,7 +2072,7 @@ end</example>
 		<command id="pickhero">
 			<cannon>pick hero</cannon>
 			<shortname>pick hero</shortname>
-			<description>Pops up a hero-picker box that lets you choose one of the heros in your active party. The return value is the position in the party of the hero you picked.</description>
+			<description>Pops up a hero-picker box that lets you choose one of the heroes in your active party. The return value is the position in the party of the hero you picked.</description>
 		</command>
 		<command id="renamehero">
 			<cannon>rename hero(who)</cannon>
@@ -2525,22 +2537,22 @@ end</example></description>
 		<command id="setheropicture">
 			<cannon>set hero picture (who,picture,type)</cannon>
 			<shortname>set hero picture</shortname>
-			<description>Permanently changes a hero&apos;s picture. The first argument is the heros position in the party as returned by <ref>findhero</ref>. The second argument is the index number of the picture to use, and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the heros battle picture or their walkabout picture. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+			<description>Permanently changes a hero&apos;s picture. The first argument is the hero's position in the party as returned by <ref>findhero</ref>. The second argument is the index number of the picture to use, and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
 		</command>
 		<command id="setheropalette">
 			<cannon>set hero palette (who,palette,type)</cannon>
 			<shortname>set hero palette</shortname>
-			<description>Permanently changes a hero&apos;s 16-color palette. The first argument is the heros position in the party as returned by <ref>findhero</ref>. The second argument is the index number of the 16-color palette to use, and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the heros battle palette or their walkabout palette. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+			<description>Permanently changes a hero&apos;s 16-color palette. The first argument is the hero's position in the party as returned by <ref>findhero</ref>. The second argument is the index number of the 16-color palette to use, and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
 		</command>
 		<command id="getheropicture">
 			<cannon>get hero picture (who,type)</cannon>
 			<shortname>get hero picture</shortname>
-			<description>A function that returns the index number of a hero&apos;s picture. The first argument is the heros position in the party as returned by <ref>findhero</ref>. The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are checking the heros battle picture or their walkabout picture. If the second argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+			<description>A function that returns the index number of a hero&apos;s picture. The first argument is the hero's position in the party as returned by <ref>findhero</ref>. The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are checking the hero's battle picture or their walkabout picture. If the second argument is left out, <ref>outsidebattle</ref> is assumed.</description>
 		</command>
 		<command id="getheropalette">
 			<cannon>get hero palette (who,type)</cannon>
 			<shortname>get hero palette</shortname>
-			<description>A function that returns the index number of a hero&apos;s 16-color palette. The first argument is the heros position in the party as returned by <ref>findhero</ref>. The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are checking the heros battle palette or their walkabout palette. If the second argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+			<description>A function that returns the index number of a hero&apos;s 16-color palette. The first argument is the hero's position in the party as returned by <ref>findhero</ref>. The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are checking the hero's battle palette or their walkabout palette. If the second argument is left out, <ref>outsidebattle</ref> is assumed.</description>
 		</command>
 		<command id="alternpc">
 			<cannon>alter NPC (who,NPCstat,value)</cannon>
@@ -2632,7 +2644,7 @@ end</example>
 		<command id="drawnpcsaboveheroes">
 			<cannon>draw NPCs above heroes (setting)</cannon>
 			<shortname>draw NPCs above heroes</shortname>
-			<description>Sets whether NPCs are drawn above heros or the default of beneath. The effect goes away if you change maps or fight a battle.</description>
+			<description>Sets whether NPCs are drawn above heroes or the default of beneath. The effect goes away if you change maps or fight a battle.</description>
 		</command>
 		<command id="setmapedgemode">
 			<cannon>set map edge mode (mode, default tile)</cannon>
@@ -2647,7 +2659,7 @@ end</example>
 		<command id="findhero">
 			<cannon>find hero (who)</cannon>
 			<shortname>find hero</shortname>
-			<description>Searches through your party to see if the specified hero is there, and returns the position where the hero was found, or -1 if the hero was not found. Use the names defined in your HSI file in the format hero:name. Not only does this tell you if a hero is in your party, but you can also use it to tell whether or not the hero is in your active party. find hero will return 0,1,2 or 3 if the hero is in the active party, but it will return a number 4 or higher if the hero is in the reserve.</description>
+			<description>Searches through your (battle) party to see if the specified hero is there, and returns the position where the hero was found, or -1 if the hero was not found. The position in the party is needed by most commands operating on heroes. You can use the names defined in your HSI file in the format hero:name for the ID number of the hero (as it has in the Edit Hero Stats menu). Not only does this tell you if a hero is in your party, but you can also use it to tell whether or not the hero is in your active party. find hero will return 0, 1, 2 or 3 if the hero is in the active party, and 4 or higher if the hero is in the reserve. Note that position in the battle party is not the same as position in the caterpillar: the leader is not necessarily hero 0. The opposite to find hero is <ref>herobyslot</ref>.</description>
 			<seealso>
 				<ref>rankincaterpillar</ref>
 			</seealso>
@@ -2787,12 +2799,12 @@ end</example>
 		<command id="setinnnorevivemode">
 			<cannon>set inn no revive mode (state)</cannon>
 			<shortname>set inn no revive mode</shortname>
-			<description>Sets whether or not inns restore dead heros to life. If the argument is <ref>off</ref> then dead heros are restored by inns. If the argument is <ref>on</ref> then dead heros remain dead in inns.</description>
+			<description>Sets whether or not inns restore dead heroes to life. If the argument is <ref>off</ref> then dead heroes are restored by inns. If the argument is <ref>on</ref> then dead heroes remain dead in inns.</description>
 		</command>
 		<command id="setfullheroswapmode">
 			<cannon>set full hero swap mode (state)</cannon>
 			<shortname>set full hero swap mode</shortname>
-			<description>Sets whether or not you can swap heros in and out of your active party from the menu. If the argument is <ref>off</ref> then the "Order" menu will be available. If the argument is <ref>on</ref> then the "Team" menu will be available.</description>
+			<description>Sets whether or not you can swap heroes in and out of your active party from the menu. If the argument is <ref>off</ref> then the "Order" menu will be available. If the argument is <ref>on</ref> then the "Team" menu will be available.</description>
 		</command>
 		<command id="hidebattlereadymeter">
 			<cannon>hide battle ready meter (state)</cannon>
