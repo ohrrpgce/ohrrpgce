@@ -9,7 +9,6 @@ maintainer = '"OHRRPGCE Development Team" <ohrrpgce@lists.motherhamster.org>'
 
 prefix = "../"
 files = [
-  prefix + "ohrrpgce.mas",
   prefix + "ohrrpgce.new",
   prefix + "README-game.txt",
   prefix + "README-custom.txt",

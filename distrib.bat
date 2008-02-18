@@ -126,6 +126,8 @@ mkdir tmpdist\import\Music
 support\cp import\Music\*.* tmpdist\import\Music
 mkdir "tmpdist\import\Sound Effects"
 support\cp import/"Sound Effects"/*.ogg tmpdist/import/"Sound Effects"
+mkdir "tmpdist\import\Master Palettes"
+support\cp import/"Master Palettes"/*.bmp tmpdist/import/"Master Palettes"
 
 cd tmpdist
 ..\support\zip -9 -q -r ..\distrib\ohrrpgce.zip *.* -x *.svn*
