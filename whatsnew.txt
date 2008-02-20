@@ -29,6 +29,8 @@ Feb ?? 2008 [werewaffle]
       blacks out all UI colours.
     * unlump and relump on Linux now correctly handle uppercase
       rpgdirs [James Paige]
+    * Bug 605: array-out-of-bounds when playing sound effects when
+      no more sound effect slots are free [James Paige]
 
   * New Plotscripting Commands
 

@@ -491,16 +491,21 @@ function LoadSound overload(byval f as string,  byval num as integer = -1) as in
 	if (sfx = NULL) then return -1
 	
 	slot=next_free_slot()
-   	with sfx_slots(slot)
-    	.used = 1
-   		.effectID = num
-    	.buf = sfx
-    	.playing = 0
-    	.paused = 0
-	end with
 
-  	return slot 'yup, that's all
-  
+	if slot = -1 then
+		debug "LoadSound(""" & f & """, " & num & ") no more sound slots available"
+	else
+		with sfx_slots(slot)
+			.used = 1
+			.effectID = num
+			.buf = sfx
+			.playing = 0
+			.paused = 0
+		end with
+	end if
+
+	return slot 'yup, that's all
+
 end function
 
 'Unloads a sound loaded in a slot. TAKES A CACHE SLOT, NOT AN SFX ID NUMBER!
