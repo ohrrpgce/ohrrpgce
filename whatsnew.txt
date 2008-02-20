@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-??? ?? 2008 [werewaffle]
+Feb ?? 2008 [werewaffle]
 
   * New Features
     * Mark/Clone brush tool in the sprite editor an the maptile editor.
@@ -15,6 +15,8 @@ WHAT IS NEW?
       custom [James Paige]
     * The mouse is more useable for drawing now; key responsiveness
       improvements [Ralph Versteegen]
+    * New attack bitset, "Can't be canceled by other attacks" [James]
+    * New attack bitset, "Do not trigger spawning on hit" [James]
 
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged

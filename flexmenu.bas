@@ -140,7 +140,8 @@ atkbit$(75) = "Reset Mute register"
 atkbit$(76) = "Cancel target's attack"
 atkbit$(77) = "Can't be canceled by other attacks"
 atkbit$(78) = "Do not trigger spawning on hit"
-atkbit$(79) = "Do not trigger spawning on kill"
+'--Disabled for Werewaffle release since not implemented yet
+'atkbit$(79) = "Do not trigger spawning on kill"
 '             ^---------------------------------------^
 '               the amount of room you have (39 chars)
 
