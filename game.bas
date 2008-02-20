@@ -387,13 +387,13 @@ END IF
 edgeprint "Loading...", xstring("Loading...", 160), 6, uilook(uiText), vpage
 setvispage vpage 'refresh
 
-debug "Playing game " & trimpath$(sourcerpg) & " (" & getdisplayname$(" ") & ") " & DATE & " " & TIME
-
 '---GAME SELECTED, PREPARING TO PLAY---
 DIM lumpbuf(16383)
 IF usepreunlump = 0 THEN
  unlump sourcerpg, workingdir + SLASH, lumpbuf()
 END IF
+
+debug "Playing game " & trimpath$(sourcerpg) & " (" & getdisplayname$(" ") & ") " & DATE & " " & TIME
 
 dim gmap(dimbinsize(4)) 'this must be declared here, after the binsize file exists!
 
