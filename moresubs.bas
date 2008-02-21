@@ -1349,6 +1349,8 @@ NEXT i
 END SUB
 
 SUB rpgversion (v)
+'This sub only really matters for read-only pre-unlumped rpgdirs.
+'All other games will be updated to the latest version in the update() sub
 current = 6
 'last added midi music, change shop stuff and song name formats
 
