@@ -154,7 +154,7 @@ DECLARE sub dotimerafterbattle()
 DECLARE FUNCTION loadscript% (n%)
 DECLARE SUB resetinterpreter ()
 DECLARE SUB killallscripts ()
-DECLARE SUB reloadscript (index, updatestats = -1)
+DECLARE SUB reloadscript (si as ScriptInst, updatestats = -1)
 DECLARE FUNCTION count_sav(filename AS STRING) AS INTEGER
 DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
 DECLARE FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
@@ -1543,24 +1543,25 @@ RETRACE
 '--script(4096), heap(2048), global(1024), scrat(128), nowscript
 interpret:
 IF nowscript >= 0 THEN
- SELECT CASE scrat(nowscript).state
+WITH scrat(nowscript)
+ SELECT CASE .state
   CASE IS < stnone
    scripterr "illegally suspended script"
-   scrat(nowscript).state = ABS(scrat(nowscript).state)
+   .state = ABS(.state)
   CASE stnone
-   scripterr "script" + XSTR$(nowscript) + " became stateless"
+   scripterr "script " & nowscript & " became stateless"
   CASE stwait
    '--evaluate wait conditions
-   SELECT CASE scrat(nowscript).curvalue
+   SELECT CASE .curvalue
     CASE 15, 35, 61'--use door, use NPC, teleport to map
-     scrat(nowscript).state = streturn
+     .state = streturn
     CASE 16'--fight formation
      scriptret = wonbattle
-     scrat(nowscript).state = streturn
+     .state = streturn
     CASE 1'--wait number of ticks
-     scrat(nowscript).waitarg = scrat(nowscript).waitarg - 1
-     IF scrat(nowscript).waitarg < 1 THEN
-      scrat(nowscript).state = streturn
+     .waitarg -= 1
+     IF .waitarg < 1 THEN
+      .state = streturn
      END IF
     CASE 2'--wait for all
      n = 0
@@ -1575,62 +1576,62 @@ IF nowscript >= 0 THEN
      END IF
      IF gen(cameramode) = pancam OR gen(cameramode) = focuscam THEN n = 1
      IF n = 0 THEN
-      scrat(nowscript).state = streturn
+      .state = streturn
      END IF
     CASE 3'--wait for hero
-     IF scrat(nowscript).waitarg < 0 OR scrat(nowscript).waitarg > 3 THEN
-      scripterr "waiting for nonexistant hero" + XSTR$(scrat(nowscript).waitarg)
-      scrat(nowscript).state = streturn
+     IF .waitarg < 0 OR .waitarg > 3 THEN
+      scripterr "waiting for nonexistant hero " & .waitarg
+      .state = streturn
      ELSE
-      IF xgo(scrat(nowscript).waitarg) = 0 AND ygo(scrat(nowscript).waitarg) = 0 THEN
-       scrat(nowscript).state = streturn
+      IF xgo(.waitarg) = 0 AND ygo(.waitarg) = 0 THEN
+       .state = streturn
       END IF
      END IF
     CASE 4'--wait for NPC
-     npcref = getnpcref(scrat(nowscript).waitarg, 0)
+     npcref = getnpcref(.waitarg, 0)
      IF npcref >= 0 THEN
       IF npc(npcref).xgo = 0 AND npc(npcref).ygo = 0 THEN
-       scrat(nowscript).state = streturn
+       .state = streturn
       END IF
      ELSE
       '--no reference found, why wait for a non-existant npc?
-      scrat(nowscript).state = streturn
+      .state = streturn
      END IF
     CASE 9'--wait for key
-     IF scrat(nowscript).waitarg >= 0 AND scrat(nowscript).waitarg <= 5 THEN
-      IF carray(scrat(nowscript).waitarg) > 1 THEN
-       scrat(nowscript).state = streturn
+     IF .waitarg >= 0 AND .waitarg <= 5 THEN
+      IF carray(.waitarg) > 1 THEN
+       .state = streturn
       END IF
      ELSE
       FOR i = 0 TO 5
        IF carray(i) > 1 THEN
         scriptret = csetup(i)
-        scrat(nowscript).state = streturn
+        .state = streturn
        END IF
       NEXT i
       FOR i = 1 TO 127
        IF keyval(i) > 1 THEN
         scriptret = i
-        scrat(nowscript).state = streturn
+        .state = streturn
        END IF
       NEXT i
      END IF
     CASE 244'--wait for scancode
-     IF keyval(scrat(nowscript).waitarg) > 1 THEN
-      scrat(nowscript).state = streturn
+     IF keyval(.waitarg) > 1 THEN
+      .state = streturn
      END IF
     CASE 42'--wait for camera
-     IF gen(cameramode) <> pancam AND gen(cameramode) <> focuscam THEN scrat(nowscript).state = streturn
+     IF gen(cameramode) <> pancam AND gen(cameramode) <> focuscam THEN .state = streturn
     CASE 59'--wait for text box
      IF showsay = 0 OR readbit(gen(), 44, suspendboxadvance) = 1 THEN
-      scrat(nowscript).state = streturn
+      .state = streturn
      END IF
     CASE 73, 234'--game over, quit from loadmenu
     CASE ELSE
-     scripterr "illegal wait substate" + XSTR$(scrat(nowscript).curvalue)
-     scrat(nowscript).state = streturn
+     scripterr "illegal wait substate " & .curvalue
+     .state = streturn
    END SELECT
-   IF scrat(nowscript).state = streturn THEN
+   IF .state = streturn THEN
     '--this allows us to resume the script without losing a game cycle
     wantimmediate = -1
    END IF
@@ -1642,7 +1643,7 @@ IF nowscript >= 0 THEN
   IF nowscript < 0 THEN
    debug "wantimmediate ended on nowscript = -1"
   ELSE
-   debug "wantimmediate would have skipped wait on command " & scrat(nowscript).curvalue & " in " & scriptname$(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
+   debug "wantimmediate would have skipped wait on command " & .curvalue & " in " & scriptname$(.id) & ", state = " & .state
    debug "needf = " & needf
   END IF
   wantimmediate = 0 'change to -1 to reenable bug
@@ -1652,6 +1653,7 @@ IF nowscript >= 0 THEN
   wantimmediate = 0
   GOTO interpret
  END IF
+END WITH
 END IF
 '--do spawned text boxes, battles, etc.
 IF wantbox > 0 THEN
@@ -1698,7 +1700,7 @@ RETRACE
 
 interpretloop:
 DIM tmpstate, tmpcase  'tmpstart, tmpend, tmpstep, tmpnow, tmpvar
-reloadscript(nowscript)
+reloadscript scrat(nowscript)
 DO
 WITH scrat(nowscript)
  SELECT CASE .state
@@ -2011,7 +2013,8 @@ sfunctions:
 DIM menuslot AS INTEGER = 0
 DIM mislot AS INTEGER = 0
 scriptret = 0
-SELECT CASE scrat(nowscript).curkind
+WITH scrat(nowscript)
+SELECT CASE .curkind
  '---MATH----------------------------------------------------------------------
  CASE tymath
   scriptmath
@@ -2019,18 +2022,18 @@ SELECT CASE scrat(nowscript).curkind
  CASE tyfunct
   'the only commands that belong at the top level are the ones that need
   'access to main-module top-level global variables or GOSUBs
-  SELECT CASE AS CONST scrat(nowscript).curvalue
+  SELECT CASE AS CONST .curvalue
    CASE 11'--Show Text Box (box)
     wantbox = retvals(0)
    CASE 15'--use door
     wantdoor = retvals(0) + 1
-    scrat(nowscript).waitarg = 0
-    scrat(nowscript).state = stwait
+    .waitarg = 0
+    .state = stwait
    CASE 16'--fight formation
     IF retvals(0) >= 0 AND retvals(0) <= gen(37) THEN
      wantbattle = retvals(0) + 1
-     scrat(nowscript).waitarg = 0
-     scrat(nowscript).state = stwait
+     .waitarg = 0
+     .state = stwait
     ELSE
      scriptret = -1
     END IF
@@ -2061,8 +2064,8 @@ SELECT CASE scrat(nowscript).curkind
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
      wantusenpc = npcref + 1
-     scrat(nowscript).waitarg = 0
-     scrat(nowscript).state = stwait
+     .waitarg = 0
+     .state = stwait
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxShop) THEN
@@ -2106,15 +2109,15 @@ SELECT CASE scrat(nowscript).curkind
       caty(i) = retvals(2) * 20
      NEXT i
      wantteleport = 1
-     scrat(nowscript).waitarg = 0
-     scrat(nowscript).state = stwait
+     .waitarg = 0
+     .state = stwait
     END IF
    CASE 63, 169'--resume random enemies
     setbit gen(), 44, suspendrandomenemies, 0
     foep = range(100, 60)
    CASE 73'--game over
     abortg = 1
-    scrat(nowscript).state = stwait
+    .state = stwait
    CASE 77'--show value
     scriptout$ = STR$(retvals(0))
    CASE 78'--alter NPC
@@ -2148,10 +2151,10 @@ SELECT CASE scrat(nowscript).curkind
     GOSUB nextsay
    CASE 97'--read map block
     setmapdata scroll(), pass(), 0, 0
-    IF scrat(nowscript).curargc = 2 THEN retvals(2) = 0
+    IF .curargc = 2 THEN retvals(2) = 0
     scriptret = readmapblock(bound(retvals(0), 0, scroll(0)-1), bound(retvals(1), 0, scroll(1)-1), bound(retvals(2), 0, 2))
    CASE 98'--write map block
-    IF scrat(nowscript).curargc = 3 THEN retvals(3) = 0
+    IF .curargc = 3 THEN retvals(3) = 0
     setmapdata scroll(), pass(), 0, 0
     setmapblock bound(retvals(0), 0, scroll(0)-1), bound(retvals(1), 0, scroll(1)-1), bound(retvals(3),0,2), bound(retvals(2), 0, 255)
    CASE 99'--read pass block
@@ -2180,7 +2183,7 @@ SELECT CASE scrat(nowscript).curkind
    CASE 155, 170'--save menu
     'ID 155 is a backcompat hack
     scriptret = picksave(0) + 1
-    IF scriptret > 0 AND (retvals(0) OR scrat(nowscript).curvalue = 155) THEN
+    IF scriptret > 0 AND (retvals(0) OR .curvalue = 155) THEN
      savegame scriptret - 1, map, foep, stat(), stock()
     END IF
     reloadnpc stat()
@@ -2194,7 +2197,7 @@ SELECT CASE scrat(nowscript).curkind
     IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
      IF checksaveslot(retvals(0)) = 3 THEN
       wantloadgame = retvals(0)
-      scrat(nowscript).state = stwait
+      .state = stwait
      END IF
     END IF
    CASE 210'--show string
@@ -2207,11 +2210,11 @@ SELECT CASE scrat(nowscript).curkind
     IF retvals(0) THEN
      IF scriptret = -1 THEN
       abortg = 2  'don't go straight back to loadmenu!
-      scrat(nowscript).state = stwait
+      .state = stwait
       fadeout 0, 0, 0
      ELSEIF scriptret > 0 THEN
       wantloadgame = scriptret
-      scrat(nowscript).state = stwait
+      .state = stwait
      END IF
     END IF
    CASE 245'--save map state
@@ -2468,13 +2471,14 @@ SELECT CASE scrat(nowscript).curkind
      END IF
     END IF
    CASE ELSE '--try all the scripts implemented in subs
-    scriptnpc scrat(nowscript).curvalue
-    scriptmisc scrat(nowscript).curvalue
-    scriptadvanced scrat(nowscript).curvalue
-    scriptstat scrat(nowscript).curvalue, stat()
+    scriptnpc .curvalue
+    scriptmisc .curvalue
+    scriptadvanced .curvalue
+    scriptstat .curvalue, stat()
     '---------
   END SELECT
 END SELECT
+END WITH
 RETRACE
 
 FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER

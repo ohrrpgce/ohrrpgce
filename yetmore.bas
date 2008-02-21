@@ -5,6 +5,22 @@
 '
 '$DYNAMIC
 DEFINT A-Z
+
+#include "compat.bi"
+#include "allmodex.bi"
+#include "common.bi"
+#include "gglobals.bi"
+#include "const.bi"
+#include "scrconst.bi"
+#include "uiconst.bi"
+#include "loading.bi"
+
+
+'FIXME: this should not be called directly here. needs wrapping in allmodex.bi
+'Mike: why? it's already wrapped in gfx_*.bas
+#include "gfx.bi"
+
+
 'basic subs and functions
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION str2lng& (stri$)
@@ -77,7 +93,7 @@ DECLARE SUB loadglobalvars (slot%, first%, last%)
 DECLARE SUB saveglobalvars (slot%, first%, last%)
 DECLARE FUNCTION loadscript% (n%)
 DECLARE SUB killallscripts ()
-DECLARE SUB reloadscript (index, updatestats = -1)
+DECLARE SUB reloadscript (si as ScriptInst, updatestats = -1)
 DECLARE FUNCTION localvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION mathvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION backcompat_sound_id (id AS INTEGER)
@@ -88,19 +104,6 @@ DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING, minimum AS INTE
 DECLARE FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
 
-#include "compat.bi"
-#include "allmodex.bi"
-#include "common.bi"
-#include "gglobals.bi"
-#include "const.bi"
-#include "scrconst.bi"
-#include "uiconst.bi"
-#include "loading.bi"
-
-
-'FIXME: this should not be called directly here. needs wrapping in allmodex.bi
-'Mike: why? it's already wrapped in gfx_*.bas
-#include "gfx.bi"
 
 'these variables hold information used by breakpoint to step to the desired position
 DIM SHARED waitforscript, waitfordepth, stepmode, lastscriptnum
@@ -455,7 +458,7 @@ IF nowscript < 0 THEN
  functiondone = 1'--no scripts are running anymore
 ELSE
  'check if script needs reloading
- reloadscript (nowscript)
+ reloadscript scrat(nowscript)
  IF scrat(nowscript).state < 0 THEN
   '--suspended script is resumed
   scrat(nowscript).state = ABS(scrat(nowscript).state)
@@ -1587,7 +1590,7 @@ SELECT CASE AS CONST id
  CASE 233'--get song name
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 THEN plotstr(retvals(0)).s = getsongname$(retvals(1))
  CASE 235'--key is pressed
-  SELECT CASE AS CONST retvals(0)
+  SELECT CASE retvals(0)
   CASE 1 TO 127 'keyboard
    IF keyval(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   CASE 128 TO 147 'joystick
@@ -1737,7 +1740,7 @@ SELECT CASE AS CONST id
  CASE 266'--extractcolor
   dim c as rgbcolor
   c.col = retvals(0)
-  SELECT CASE as const retvals(1)
+  SELECT CASE retvals(1)
    CASE 0
     scriptret = c.r
    CASE 1
@@ -2083,7 +2086,7 @@ IF mode > 1 AND viewmode = 0 THEN
 END IF
 
 IF mode > 1 AND viewmode = 1 THEN
- reloadscript selectedscript
+ reloadscript scrat(selectedscript)
  WITH scrat(selectedscript)
   IF script(.scrnum).vars = 0 THEN
    edgeprint "Has no variables", 0, ol, uilook(uiText), page
@@ -2252,7 +2255,7 @@ END IF
 
 'just incase was swapped out above
 IF nowscript >= 0 THEN
- reloadscript nowscript
+ reloadscript scrat(nowscript)
 END IF
 END SUB
 
@@ -2777,7 +2780,7 @@ FUNCTION scriptstate$ (targetscript)
  memcpy(@(laststate),@(state),LEN(state))
 
  'so we can grab extra data on the current script
- reloadscript nowscript, 0
+ reloadscript scrat(nowscript), 0
 
  'debug "state = " & state.state
  'debug "depth = " & state.depth

@@ -1005,15 +1005,15 @@ SUB resetinterpreter
  freescripts(0)
 END SUB
 
-SUB reloadscript (index, updatestats)
- IF scrat(index).scrnum = -1 THEN
-  scrat(index).scrnum = loadscript(scrat(index).id)
-  IF scrat(nowscript).scrnum = -1 THEN killallscripts: EXIT SUB
-  script(scrat(nowscript).scrnum).refcount += 1
-  IF updatestats THEN script(scrat(nowscript).scrnum).totaluse += 1
+SUB reloadscript (si as ScriptInst, updatestats)
+ IF si.scrnum = -1 THEN
+  si.scrnum = loadscript(si.id)
+  IF si.scrnum = -1 THEN killallscripts: EXIT SUB
+  script(si.scrnum).refcount += 1
+  IF updatestats THEN script(si.scrnum).totaluse += 1
  END IF
  IF updatestats THEN 
   scriptctr += 1
-  script(scrat(nowscript).scrnum).lastuse = scriptctr
+  script(si.scrnum).lastuse = scriptctr
  END IF
 END SUB
