@@ -1275,7 +1275,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
 	CASE 21 'setdir(who, d)
 	 ww = popw
 	 tmp1 = popw
-	 debug "blsot(" & ww & ").d = " & tmp1
+	 'debug "blsot(" & ww & ").d = " & tmp1
 	 bslot(ww).d = tmp1
  END SELECT
 LOOP UNTIL wf <> 0 OR anim = -1

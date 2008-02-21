@@ -36,8 +36,6 @@ DECLARE SUB scriptdump (s$)
 DECLARE FUNCTION vehpass% (n%, tile%, default%)
 DECLARE FUNCTION readfoemap% (x%, y%, wide%, high%, fh%)
 DECLARE FUNCTION playtime$ (d%, h%, m%)
-DECLARE FUNCTION functiondone% ()
-DECLARE FUNCTION functionread% ()
 DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION countitem% (it%)
 DECLARE FUNCTION movdivis% (xygo%)
@@ -471,42 +469,42 @@ END IF
 
 END FUNCTION
 
-FUNCTION functionread
+FUNCTION functionread (si as ScriptInst)
 'returns false normally, true when it should terminate
-DIM as integer ptr cmdptr = script(scrat(nowscript).scrnum).ptr + scrat(nowscript).ptr
+DIM as integer ptr cmdptr = script(si.scrnum).ptr + si.ptr
 functionread = 0
 scriptret = 0'--default returnvalue is zero
-scrat(nowscript).curkind = cmdptr[0]
-scrat(nowscript).curvalue = cmdptr[1]
-scrat(nowscript).curargc = cmdptr[2]
-scrat(nowscript).curargn = 0
+si.curkind = cmdptr[0]
+si.curvalue = cmdptr[1]
+si.curargc = cmdptr[2]
+si.curargn = 0
 
-IF scrat(nowscript).curkind = tyflow OR scrat(nowscript).curkind >= tymath THEN
+IF si.curkind = tyflow OR si.curkind >= tymath THEN
  '+5 just-in-case for extra state stuff pushed to stack (atm just switch, +1 ought to be sufficient)
- checkoverflow(scrst, scrat(nowscript).curargc + 5)
+ checkoverflow(scrst, si.curargc + 5)
 END IF
 
 'scriptdump "functionread"
-SELECT CASE scrat(nowscript).curkind
+SELECT CASE si.curkind
  CASE tystop
   scripterr "interpretloop encountered noop"
   killallscripts
   functionread = -1
   EXIT FUNCTION
  CASE tynumber
-  scriptret = scrat(nowscript).curvalue
-  scrat(nowscript).state = streturn'---return
+  scriptret = si.curvalue
+  si.state = streturn'---return
  CASE tyglobal
-  scriptret = global(bound(scrat(nowscript).curvalue, 0, 1024))
-  scrat(nowscript).state = streturn'---return
+  scriptret = global(bound(si.curvalue, 0, 1024))
+  si.state = streturn'---return
  CASE tylocal
-  scriptret = heap(scrat(nowscript).heap + scrat(nowscript).curvalue)'--get from heap
-  scrat(nowscript).state = streturn'---return
+  scriptret = heap(si.heap + si.curvalue)'--get from heap
+  si.state = streturn'---return
   '--flow control would be a special case
  CASE tymath, tyfunct, tyscript, tyflow
-  scrat(nowscript).state = stnext '---function
+  si.state = stnext '---function
  CASE ELSE
-  scripterr "Illegal statement type" + XSTR$(scrat(nowscript).curkind)
+  scripterr "Illegal statement type" + XSTR$(si.curkind)
 END SELECT
 END FUNCTION
 
@@ -2266,70 +2264,70 @@ gen(cameraArg3) = 5
 
 END SUB
 
-SUB subdoarg
-scrat(nowscript).depth += 1
+SUB subdoarg (si AS ScriptInst)
+si.depth += 1
 checkoverflow(scrst, 5)
-pushs(scrst, scrat(nowscript).ptr)
-pushs(scrst, scrat(nowscript).curkind)
-pushs(scrst, scrat(nowscript).curvalue)
-pushs(scrst, scrat(nowscript).curargc)
-pushs(scrst, scrat(nowscript).curargn)
+pushs(scrst, si.ptr)
+pushs(scrst, si.curkind)
+pushs(scrst, si.curvalue)
+pushs(scrst, si.curargc)
+pushs(scrst, si.curargn)
 '--set script pointer to new offset
-scrat(nowscript).ptr = script(scrat(nowscript).scrnum).ptr[scrat(nowscript).ptr + 3 + scrat(nowscript).curargn]
-scrat(nowscript).state = stread '---read new statement
+si.ptr = script(si.scrnum).ptr[si.ptr + 3 + si.curargn]
+si.state = stread '---read new statement
 END SUB
 
-SUB subreturn
-scrat(nowscript).depth -= 1
-IF scrat(nowscript).depth < 0 THEN
- scrat(nowscript).state = stdone
+SUB subreturn (si AS ScriptInst)
+si.depth -= 1
+IF si.depth < 0 THEN
+ si.state = stdone
 ELSE
- pops(scrst, scrat(nowscript).curargn)
- pops(scrst, scrat(nowscript).curargc)
- pops(scrst, scrat(nowscript).curvalue)
- pops(scrst, scrat(nowscript).curkind)
- pops(scrst, scrat(nowscript).ptr)
+ pops(scrst, si.curargn)
+ pops(scrst, si.curargc)
+ pops(scrst, si.curvalue)
+ pops(scrst, si.curkind)
+ pops(scrst, si.ptr)
  '--push return value
  pushs(scrst, scriptret)
- scrat(nowscript).curargn += 1
- scrat(nowscript).state = stnext'---try next arg
+ si.curargn += 1
+ si.state = stnext'---try next arg
 END IF
 END SUB
 
-SUB unwindtodo (levels)
+SUB unwindtodo (si AS ScriptInst, levels)
 'unwinds the stack until the specified number of dos have been stripped
 'leaves the interpreter as if the last do block had successfully finished
 'this means repeat in the case of for and while loops
 'note: we assume the calling command has popped its args
 
 WHILE levels > 0
- scrat(nowscript).depth -= 1
- IF scrat(nowscript).depth < 0 THEN
-  scrat(nowscript).state = stdone
+ si.depth -= 1
+ IF si.depth < 0 THEN
+  si.state = stdone
   EXIT SUB
  END IF
 
- pops(scrst, scrat(nowscript).curargn)
- pops(scrst, scrat(nowscript).curargc)
- pops(scrst, scrat(nowscript).curvalue)
- pops(scrst, scrat(nowscript).curkind)
- pops(scrst, scrat(nowscript).ptr)
+ pops(scrst, si.curargn)
+ pops(scrst, si.curargc)
+ pops(scrst, si.curvalue)
+ pops(scrst, si.curkind)
+ pops(scrst, si.ptr)
 
- IF scrat(nowscript).curkind = tyflow AND scrat(nowscript).curvalue = flowdo THEN
+ IF si.curkind = tyflow AND si.curvalue = flowdo THEN
   levels -= 1
   'first pop do's evaluated arguments before stopping
  END IF
 
  'pop arguments
- IF scrat(nowscript).curkind = tyflow AND scrat(nowscript).curvalue = flowswitch THEN
+ IF si.curkind = tyflow AND si.curvalue = flowswitch THEN
   'unlike all other flow, switch stack usage != argn
   scrst.pos -= 2 'state, matching value
  ELSE
-  scrst.pos -= scrat(nowscript).curargn
+  scrst.pos -= si.curargn
  END IF
 WEND
 'return to normality
-subreturn
+subreturn si
 
 END SUB
 

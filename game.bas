@@ -68,11 +68,11 @@ DECLARE FUNCTION vehpass% (n%, tile%, default%)
 DECLARE SUB initgame ()
 DECLARE FUNCTION readfoemap% (x%, y%, wide%, high%, fh%)
 DECLARE SUB playtimer ()
-DECLARE FUNCTION functiondone% ()
-DECLARE FUNCTION functionread% ()
-DECLARE SUB subreturn ()
-DECLARE SUB subdoarg ()
-DECLARE SUB unwindtodo (levels%)
+DECLARE FUNCTION functiondone ()
+DECLARE FUNCTION functionread (si as ScriptInst)
+DECLARE SUB subreturn (si as ScriptInst)
+DECLARE SUB subdoarg (si as ScriptInst)
+DECLARE SUB unwindtodo (si as ScriptInst, levels%)
 DECLARE SUB resetgame (map%, foep%, stat%(), stock%(), showsay%, scriptout$, sayenh%())
 DECLARE FUNCTION countitem% (it%)
 DECLARE SUB scriptmath ()
@@ -1700,166 +1700,169 @@ interpretloop:
 DIM tmpstate, tmpcase  'tmpstart, tmpend, tmpstep, tmpnow, tmpvar
 reloadscript(nowscript)
 DO
- SELECT CASE scrat(nowscript).state
+WITH scrat(nowscript)
+ SELECT CASE .state
   CASE stwait'---begin waiting for something
    EXIT DO
   CASE stdoarg'---do argument
-   subdoarg
+   subdoarg scrat(nowscript)
   CASE stread'---read statement
    '--FIRST STATE
    '--sets stnext for a function, or streturn for others
-   IF functionread THEN EXIT DO
+   IF functionread(scrat(nowscript)) THEN EXIT DO
    IF scrwatch AND breakstread THEN breakpoint scrwatch, 3
   CASE streturn'---return
    '--sets stdone if done with entire script, stnext otherwise
-   subreturn
+   subreturn scrat(nowscript)
   CASE stnext'---check if all args are done
    IF scrwatch AND breakstnext THEN breakpoint scrwatch, 1
-   IF scrat(nowscript).curargn >= scrat(nowscript).curargc THEN
+   IF .curargn >= .curargc THEN
     '--pop return values of each arg
     '--evaluate function, math, script, whatever
     '--scriptret would be set here, pushed at return
-    SELECT CASE scrat(nowscript).curkind
+    SELECT CASE .curkind
      CASE tystop
-      scripterr "stnext encountered noop " & scrat(nowscript).curvalue & " at " & scrat(nowscript).ptr & " in " & nowscript
+      scripterr "stnext encountered noop " & .curvalue & " at " & .ptr & " in " & nowscript
       killallscripts
       EXIT DO
      CASE tymath, tyfunct
       '--complete math and functions, nice and easy.
-      FOR i = scrat(nowscript).curargc - 1 TO 0 STEP -1
+      FOR i = .curargc - 1 TO 0 STEP -1
        pops(scrst, retvals(i))
       NEXT i
       GOSUB sfunctions
+      '--nowscript might be changed
       '--unless you have switched to wait mode, return
       IF scrat(nowscript).state = stnext THEN scrat(nowscript).state = streturn'---return
      CASE tyflow
       '--finish flow control? tricky!
-      SELECT CASE scrat(nowscript).curvalue
+      SELECT CASE .curvalue
        CASE flowwhile'--repeat or terminate while
-        SELECT CASE scrat(nowscript).curargn
+        SELECT CASE .curargn
          CASE 2
           '--if a while statement finishes normally (argn is 2) then it repeats.
           scrst.pos -= 2
-          scrat(nowscript).curargn = 0
+          .curargn = 0
          CASE ELSE
-          scripterr "while fell out of bounds, landed on " & scrat(nowscript).curargn
+          scripterr "while fell out of bounds, landed on " & .curargn
           killallscripts
           EXIT DO
         END SELECT
        CASE flowfor'--repeat or terminate for
-        SELECT CASE scrat(nowscript).curargn
+        SELECT CASE .curargn
          CASE 5
           '--normal for termination means repeat
           scrst.pos -= 1
-          GOSUB incrementflow
-          scrat(nowscript).curargn = 4
+          tmpvar = reads(scrst, -3)
+          writescriptvar tmpvar, readscriptvar(tmpvar) + reads(scrst, 0)
+          .curargn = 4
          CASE ELSE
-          scripterr "for fell out of bounds, landed on " & scrat(nowscript).curargn
+          scripterr "for fell out of bounds, landed on " & .curargn
           killallscripts
           EXIT DO
         END SELECT
        CASE flowreturn
-        pops(scrst, scrat(nowscript).ret)
-        scrat(nowscript).state = streturn'---return
+        pops(scrst, .ret)
+        .state = streturn'---return
        CASE flowbreak
         pops(scrst, temp)
-        unwindtodo(temp)
+        unwindtodo(scrat(nowscript), temp)
         '--for and while need to be broken
-        IF scrat(nowscript).curkind = tyflow AND (scrat(nowscript).curvalue = flowfor OR scrat(nowscript).curvalue = flowwhile) THEN
+        IF .curkind = tyflow AND (.curvalue = flowfor OR .curvalue = flowwhile) THEN
          GOSUB dumpandreturn
         END IF
        CASE flowcontinue
         pops(scrst, temp)
-        unwindtodo(temp)
-        IF scrat(nowscript).curkind = tyflow AND scrat(nowscript).curvalue = flowswitch THEN
+        unwindtodo(scrat(nowscript), temp)
+        IF .curkind = tyflow AND .curvalue = flowswitch THEN
          '--set state to 2
          scrst.pos -= 2
          pushs(scrst, 2)
          pushs(scrst, 0) '-- dummy value
-        ELSEIF NOT (scrat(nowscript).curkind = tyflow AND (scrat(nowscript).curvalue = flowfor OR scrat(nowscript).curvalue = flowwhile)) THEN
+        ELSEIF NOT (.curkind = tyflow AND (.curvalue = flowfor OR .curvalue = flowwhile)) THEN
          '--if this do isn't a for's or while's, then just repeat it, discarding the returned value
          scrst.pos -= 1
-         scrat(nowscript).curargn = scrat(nowscript).curargn - 1
+         .curargn -= 1
         END IF
        CASE flowexit
-        unwindtodo(9999)
+        unwindtodo(scrat(nowscript), 9999)
        CASE flowexitreturn
-        pops(scrst, scrat(nowscript).ret)
-        unwindtodo(9999)
+        pops(scrst, .ret)
+        unwindtodo(scrat(nowscript), 9999)
        CASE flowswitch
         scrst.pos -= 3
         scriptret = 0
-        scrat(nowscript).state = streturn
+        .state = streturn
        CASE ELSE
         '--do, then, etc... terminate normally
         scriptret = -1
         GOSUB dumpandreturn
       END SELECT
-      'scrat(nowscript).state = streturn'---return
+      '.state = streturn'---return
      CASE tyscript
-      rsr = runscript(scrat(nowscript).curvalue, nowscript + 1, 0, "indirect", 0)
+      rsr = runscript(.curvalue, nowscript + 1, 0, "indirect", 0)
       IF rsr = 1 THEN
        '--fill heap with return values
-       FOR i = scrat(nowscript - 1).curargc - 1 TO 0 STEP -1
+       FOR i = .curargc - 1 TO 0 STEP -1   '--careful...
         pops(scrst, temp)
         setScriptArg i, temp
        NEXT i
       END IF
       IF rsr = 0 THEN
-       scrat(nowscript).state = streturn'---return
+       .state = streturn'---return
       END IF
      CASE ELSE
-      scripterr "illegal kind " & scrat(nowscript).curkind & " " & scrat(nowscript).curvalue & " in stnext"
+      scripterr "illegal kind " & .curkind & " " & .curvalue & " in stnext"
       killallscripts
       EXIT DO
     END SELECT
    ELSE
-    IF scrat(nowscript).curargn = 0 THEN
+    IF .curargn = 0 THEN
      '--always need to execute the first argument
-     scrat(nowscript).state = stdoarg
+     .state = stdoarg
     ELSE 
      '--flow control and logical math are special, for all else, do next arg
-     SELECT CASE scrat(nowscript).curkind
+     SELECT CASE .curkind
       CASE tymath
-       SELECT CASE scrat(nowscript).curvalue
+       SELECT CASE .curvalue
         CASE 20'--logand
          IF reads(scrst, 0) THEN
-          scrat(nowscript).state = stdoarg'---call 2nd argument
+          .state = stdoarg'---call 2nd argument
          ELSE
           '--shortcut evaluate to false
           scriptret = 0
           '--pop all args
-          scrst.pos -= scrat(nowscript).curargn
-          scrat(nowscript).state = streturn'---return
+          scrst.pos -= .curargn
+          .state = streturn'---return
          END IF
         CASE 21'--logor
          IF reads(scrst, 0) THEN
           '--shortcut evaluate to true
           scriptret = 1
           '--pop all args
-          scrst.pos -= scrat(nowscript).curargn
-          scrat(nowscript).state = streturn'---return
+          scrst.pos -= .curargn
+          .state = streturn'---return
          ELSE
-          scrat(nowscript).state = stdoarg'---call 2nd argument
+          .state = stdoarg'---call 2nd argument
          END IF
         CASE ELSE
-         scrat(nowscript).state = stdoarg'---call argument
+         .state = stdoarg'---call argument
        END SELECT
       CASE tyflow
-       SELECT CASE scrat(nowscript).curvalue
+       SELECT CASE .curvalue
         CASE flowif'--we got an if!
-         SELECT CASE scrat(nowscript).curargn
+         SELECT CASE .curargn
           CASE 0
-           scrat(nowscript).state = stdoarg'---call conditional
+           .state = stdoarg'---call conditional
           CASE 1
            IF reads(scrst, 0) THEN
             'scrst.pos -= 1
-            scrat(nowscript).state = stdoarg'---call then block
+            .state = stdoarg'---call then block
            ELSE
-            scrat(nowscript).curargn = 2
+            .curargn = 2
             '--if-else needs one extra thing on the stack to account for the then that didnt get used.
             pushs(scrst, 0)
-            scrat(nowscript).state = stdoarg'---call else block
+            .state = stdoarg'---call else block
            END IF
           CASE 2
            '--finished then but not at end of argument list: skip else
@@ -1868,24 +1871,24 @@ DO
            scripterr "if statement overstepped bounds"
          END SELECT
         CASE flowwhile'--we got a while!
-         SELECT CASE scrat(nowscript).curargn
+         SELECT CASE .curargn
           CASE 0
-           scrat(nowscript).state = stdoarg'---call condition
+           .state = stdoarg'---call condition
           CASE 1
            IF reads(scrst, 0) THEN
-            scrat(nowscript).state = stdoarg'---call do block
+            .state = stdoarg'---call do block
             '--don't pop: number of words on stack should equal argn (for simplicity when unwinding stack)
            ELSE
             '--break while
             scrst.pos -= 1
             scriptret = 0
-            scrat(nowscript).state = streturn'---return
+            .state = streturn'---return
            END IF
           CASE ELSE
           scripterr "while statement has jumped the curb"
          END SELECT
         CASE flowfor'--we got a for!
-         SELECT CASE scrat(nowscript).curargn
+         SELECT CASE .curargn
           '--argn 0 is var
           '--argn 1 is start
           '--argn 2 is end
@@ -1894,12 +1897,12 @@ DO
           '--argn 5 is repeat (normal termination)
           CASE 0, 1, 3
            '--get var, start, and later step
-           scrat(nowscript).state = stdoarg
+           .state = stdoarg
           CASE 2
            '--set variable to start val before getting end
            writescriptvar reads(scrst, -1), reads(scrst, 0)
            '---now get end value
-           scrat(nowscript).state = stdoarg
+           .state = stdoarg
           CASE 4
            IF scrwatch AND breakloopbrch THEN breakpoint scrwatch, 5
            tmpstep = reads(scrst, 0)
@@ -1911,22 +1914,22 @@ DO
             '--breakout
             scrst.pos -= 4
             scriptret = 0
-            scrat(nowscript).state = streturn'---return
+            .state = streturn'---return
            ELSE
-            scrat(nowscript).state = stdoarg'---execute the do block
+            .state = stdoarg'---execute the do block
            END IF
           CASE ELSE
            scripterr "for statement is being difficult"
          END SELECT
         CASE flowswitch
-         IF scrat(nowscript).curargn = 0 THEN
+         IF .curargn = 0 THEN
           '--get expression to match
-          scrat(nowscript).state = stdoarg
-         ELSEIF scrat(nowscript).curargn = 1 THEN
+          .state = stdoarg
+         ELSEIF .curargn = 1 THEN
           '--set up state - push a 0: not fallen in
           '--assume first statement is a case, run it
           pushs(scrst, 0)
-          scrat(nowscript).state = stdoarg
+          .state = stdoarg
          ELSE
           pops(scrst, tmpcase)
           pops(scrst, tmpstate)
@@ -1941,38 +1944,37 @@ DO
            '--after successfully running a do block, pop off matching value and exit
            scrst.pos -= 1
            scriptret = 0
-           scrat(nowscript).state = streturn'---return
+           .state = streturn'---return
           ELSEIF tmpstate = 2 THEN
            '--continue encountered, fall back in
            tmpstate = 1
            doseek = 1 '--search for a do
           END IF
 
-          DIM tmpptr as integer ptr
-          IF doseek THEN tmpptr = script(scrat(nowscript).scrnum).ptr
+          DIM tmpptr as integer ptr = script(.scrnum).ptr
           WHILE doseek
-           tmpkind = tmpptr[tmpptr[scrat(nowscript).curargn + scrat(nowscript).ptr + 3]]
+           tmpkind = tmpptr[tmpptr[.curargn + .ptr + 3]]
 
-           IF (tmpstate = 1 AND tmpkind = tyflow) OR (tmpstate = 0 AND (tmpkind <> tyflow OR scrat(nowscript).curargn = scrat(nowscript).curargc - 1)) THEN
+           IF (tmpstate = 1 AND tmpkind = tyflow) OR (tmpstate = 0 AND (tmpkind <> tyflow OR .curargn = .curargc - 1)) THEN
             '--fall into a do, execute a case, or run default (last arg)
-            scrat(nowscript).state = stdoarg
+            .state = stdoarg
             pushs(scrst, tmpstate)
             EXIT WHILE
            END IF
-           IF scrat(nowscript).curargn >= scrat(nowscript).curargc THEN
+           IF .curargn >= .curargc THEN
             scrst.pos -= 1
             scriptret = 0
-            scrat(nowscript).state = streturn'---return
+            .state = streturn'---return
             EXIT WHILE
            END IF
-           scrat(nowscript).curargn = scrat(nowscript).curargn + 1
+           .curargn += 1
           WEND
          END IF
         CASE ELSE
-         scrat(nowscript).state = stdoarg'---call argument
+         .state = stdoarg'---call argument
        END SELECT
       CASE ELSE
-       scrat(nowscript).state = stdoarg'---call argument
+       .state = stdoarg'---call argument
      END SELECT
     END IF
    END IF
@@ -1994,12 +1996,8 @@ DO
    END SELECT
    IF scrwatch AND breakstnext THEN breakpoint scrwatch, 2
  END SELECT
+END WITH
 LOOP
-RETRACE
-
-incrementflow:
-tmpvar = reads(scrst, -3)
-writescriptvar tmpvar, readscriptvar(tmpvar) + reads(scrst, 0)
 RETRACE
 
 dumpandreturn:
@@ -2013,7 +2011,7 @@ sfunctions:
 DIM menuslot AS INTEGER = 0
 DIM mislot AS INTEGER = 0
 scriptret = 0
-SELECT CASE AS CONST scrat(nowscript).curkind
+SELECT CASE scrat(nowscript).curkind
  '---MATH----------------------------------------------------------------------
  CASE tymath
   scriptmath
@@ -2021,7 +2019,7 @@ SELECT CASE AS CONST scrat(nowscript).curkind
  CASE tyfunct
   'the only commands that belong at the top level are the ones that need
   'access to main-module top-level global variables or GOSUBs
-  SELECT CASE scrat(nowscript).curvalue
+  SELECT CASE AS CONST scrat(nowscript).curvalue
    CASE 11'--Show Text Box (box)
     wantbox = retvals(0)
    CASE 15'--use door
