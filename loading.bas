@@ -898,8 +898,8 @@ SUB DefaultUIColors (colarray() AS INTEGER)
  'for the filepicker before loading a game.
  DIM uidef(uiColors) = {0,144,80,110,240,102,144,244,215,242,67,212, _
                         215,240,0,220,110,0,242,40,211,221,83,90,182, _
-                        173,100,159,115,60,132,156,98,105,48,160,70, _
-                        66,217,210,87,82,108,232,54,116,240,80}
+                        173,100,159,115,60,132,156,98,105,195,204,70, _
+                        66,217,210,87,82,108,232,54,116,48,160}
  DIM i AS INTEGER
  FOR i = 0 TO uiColors
   colarray(i) = uidef(i)
@@ -912,11 +912,11 @@ SUB DefaultUIColors (colarray() AS INTEGER)
 END SUB
 
 SUB GuessDefaultUIColors (colarray() AS INTEGER)
- DIM AS INTEGER fixeddefaults(uiColors) = {&h000000,&hA39FB3,&h4F5B5B,&hFFFF63,&hFFFFFF,&h8F6B00,&hA39FB3,_
-       &h003B97,&h238B23,&h001F4B,&h17338B,&h174F17,&h238B23,&hFFFFFF,&h000000,&h6BEB63,&hFFFF63,&h000000,_
-       &h001F4B,&h8387D3,&h133F13,&h9BFB93,&h530000,&hFF7F7F,&h4F7B57,&hD3FB8F,&h5F4700,&hF3EB8B,&h471747,_
-       &hDF93FF,&h77372F,&hD3A763,&h2F2300,&hD7A300,&h2F372F,&hBBABC3,&h237BD3,&h0F235B,&h3FB33B,&h0F330F,_
-       &hBF0000,&h370000,&hFFDF33,&hCF8317,&h8337AF,&h5F1F5F,&hFFFFFF,&h4F5B5B}
+ DIM AS INTEGER fixeddefaults(uiColors) = {&h000000,&hA19CB0,&h4F595A,&hFFFC62,&hFFFFFF,&h8E6B00,&hA19CB0,_
+       &h003B95,&h228B22,&h001D48,&h153289,&h154C15,&h228B22,&hFFFFFF,&h000000,&h6BEB61,&hFFFC62,&h000000,_
+       &h001D48,&h8084D0,&h123D12,&h98FA90,&h500000,&hFF7F7F,&h4F7A54,&hD3F88E,&h5E4600,&hF1EA89,&h471747,_
+       &hDF90FF,&h76352C,&hD3A560,&h2D2200,&hD7A100,&h4D3836,&hF6D2B6,&h2179D3,&h0E2059,&h3CB23A,&h0E300E,_
+       &hBF0000,&h340000,&hFFDD30,&hCD8316,&h8236AC,&h5F1F5F,&h2F342E,&hBAABC1}
  DIM i AS INTEGER
  DIM temp AS RGBcolor
  FOR i = 0 TO uiColors
