@@ -69,7 +69,7 @@ DECLARE SUB initgame ()
 DECLARE FUNCTION readfoemap% (x%, y%, wide%, high%, fh%)
 DECLARE SUB playtimer ()
 DECLARE FUNCTION functiondone ()
-DECLARE FUNCTION functionread (si as ScriptInst)
+DECLARE SUB subread (si as ScriptInst)
 DECLARE SUB subreturn (si as ScriptInst)
 DECLARE SUB subdoarg (si as ScriptInst)
 DECLARE SUB unwindtodo (si as ScriptInst, levels%)
@@ -1710,12 +1710,12 @@ WITH scrat(nowscript)
   CASE stwait'---begin waiting for something
    EXIT DO
   CASE stdoarg'---do argument
+   '--evaluate an arg, either directly or by changing state. stnext next
    subdoarg scrat(nowscript)
   CASE stread'---read statement
    '--FIRST STATE
-   '--sets stnext for a function, or streturn for others
-   IF functionread(scrat(nowscript)) THEN EXIT DO
-   IF scrwatch AND breakstread THEN breakpoint scrwatch, 3
+   '--just load the first command
+   subread scrat(nowscript)
   CASE streturn'---return
    '--sets stdone if done with entire script, stnext otherwise
    subreturn scrat(nowscript)
@@ -2000,6 +2000,10 @@ WITH scrat(nowscript)
      END IF
    END SELECT
    IF scrwatch AND breakstnext THEN breakpoint scrwatch, 2
+  CASE sterror'---some error has occurred, crash and burn
+   '--note that there's no thought out plan for handling errors
+   killallscripts
+   EXIT DO
  END SELECT
 END WITH
 LOOP

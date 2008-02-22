@@ -472,44 +472,71 @@ END IF
 
 END FUNCTION
 
-FUNCTION functionread (si as ScriptInst)
-'returns false normally, true when it should terminate
+SUB subread (si as ScriptInst)
+'this sets up a new script by reading the root command (which should be do)
 DIM as integer ptr cmdptr = script(si.scrnum).ptr + si.ptr
-functionread = 0
 scriptret = 0'--default returnvalue is zero
 si.curkind = cmdptr[0]
 si.curvalue = cmdptr[1]
 si.curargc = cmdptr[2]
 si.curargn = 0
+si.state = stnext
 
-IF si.curkind = tyflow OR si.curkind >= tymath THEN
- '+5 just-in-case for extra state stuff pushed to stack (atm just switch, +1 ought to be sufficient)
- checkoverflow(scrst, si.curargc + 5)
+'+5 just-in-case for extra state stuff pushed to stack (atm just switch, +1 ought to be sufficient)
+checkoverflow(scrst, si.curargc + 5)
+
+IF si.curkind <> tyflow THEN
+ scripterr "Root script command not flow, but " & si.curkind
+ si.state = sterror
 END IF
+END SUB
 
-'scriptdump "functionread"
-SELECT CASE si.curkind
- CASE tystop
-  scripterr "interpretloop encountered noop"
-  killallscripts
-  functionread = -1
-  EXIT FUNCTION
+SUB subdoarg (si AS ScriptInst)
+DIM as integer ptr dataptr = script(si.scrnum).ptr
+DIM as integer     tempptr = dataptr[si.ptr + 3 + si.curargn]
+DIM as integer ptr cmdptr  = dataptr + tempptr
+
+si.state = stnext
+
+SELECT CASE cmdptr[0]
  CASE tynumber
-  scriptret = si.curvalue
-  si.state = streturn'---return
+  scriptret = cmdptr[1]
  CASE tyglobal
-  scriptret = global(bound(si.curvalue, 0, 1024))
-  si.state = streturn'---return
+  scriptret = global(bound(cmdptr[1], 0, 1024))
  CASE tylocal
-  scriptret = heap(si.heap + si.curvalue)'--get from heap
-  si.state = streturn'---return
+  scriptret = heap(si.heap + cmdptr[1])'--get from heap
   '--flow control would be a special case
- CASE tymath, tyfunct, tyscript, tyflow
-  si.state = stnext '---function
+ CASE IS >= tymath, tyflow
+  si.depth += 1
+  '5 for state + args + 5 just-in-case for extra state stuff pushed to stack (atm just switch, +1 ought to be sufficient)
+  checkoverflow(scrst, 10 + cmdptr[2])
+  pushs(scrst, si.ptr)
+  pushs(scrst, si.curkind)
+  pushs(scrst, si.curvalue)
+  pushs(scrst, si.curargc)
+  pushs(scrst, si.curargn)
+  si.ptr = tempptr
+  si.curkind = cmdptr[0]
+  si.curvalue = cmdptr[1]
+  si.curargc = cmdptr[2]
+  si.curargn = 0
+  scriptret = 0'--default returnvalue is zero
+
+  'this breakpoint is a perfect duplicate of breakstnext, but originally it also caught
+  'streturn on evaluating numbers, locals and globals
+  'IF scrwatch AND breakstread THEN breakpoint scrwatch, 3
+  'scriptdump "subdoarg"
+  EXIT SUB
  CASE ELSE
-  scripterr "Illegal statement type" + XSTR$(si.curkind)
+  scripterr "Illegal statement type " & si.curkind
+  si.state = sterror
+  EXIT SUB
 END SELECT
-END FUNCTION
+
+'--push return value
+pushs(scrst, scriptret)
+si.curargn += 1
+END SUB
 
 FUNCTION gethighbyte (n)
 RETURN n SHL 8
@@ -2266,19 +2293,6 @@ gen(cameramode) = pancam
 gen(cameraArg2) = 1
 gen(cameraArg3) = 5
 
-END SUB
-
-SUB subdoarg (si AS ScriptInst)
-si.depth += 1
-checkoverflow(scrst, 5)
-pushs(scrst, si.ptr)
-pushs(scrst, si.curkind)
-pushs(scrst, si.curvalue)
-pushs(scrst, si.curargc)
-pushs(scrst, si.curargn)
-'--set script pointer to new offset
-si.ptr = script(si.scrnum).ptr[si.ptr + 3 + si.curargn]
-si.state = stread '---read new statement
 END SUB
 
 SUB subreturn (si AS ScriptInst)

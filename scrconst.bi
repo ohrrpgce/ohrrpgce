@@ -15,8 +15,9 @@ CONST streturn = 3
 CONST stnext = 4
 CONST stdoarg = 5
 CONST stdone = 6
+CONST sterror = 7
 '--SCRIPT STATEMENT TYPES---
-CONST tystop = 0    '0 terminate script
+CONST tystop = 0    '0 terminate script (not really legal)
 CONST tynumber = 1  '1 literal number
 CONST tyflow = 2    '2 flow control
 CONST tyglobal = 3  '3 global variable
