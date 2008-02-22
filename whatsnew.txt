@@ -31,6 +31,7 @@ Feb ?? 2008 [werewaffle]
       rpgdirs [James Paige]
     * Bug 605: array-out-of-bounds when playing sound effects when
       no more sound effect slots are free [James Paige]
+    * Bug 577: Memory corruption when opening sub-menus [James Paige]
 
   * New Plotscripting Commands
 

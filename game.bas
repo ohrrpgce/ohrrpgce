@@ -2753,6 +2753,7 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
  DIM slot AS INTEGER
  DIM activated AS INTEGER
  DIM menu_handle AS INTEGER
+ DIM open_other_menu AS INTEGER = -1
  menu_text_box = 0
  IF topmenu >= 0 THEN
   IF menus(topmenu).no_controls = YES THEN EXIT SUB
@@ -2827,7 +2828,7 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
       END SELECT
      CASE 2 ' Menu
       mstates(topmenu).active = NO
-      add_menu .sub_t
+      open_other_menu = .sub_t
      CASE 3 ' Text box
       menu_text_box = .sub_t
      CASE 4 ' Run Script
@@ -2849,10 +2850,12 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTE
      remove_menu find_menu_handle(menu_handle)
      carray(4) = 0
      setkeys '--Discard the  keypress that triggered the menu item that closed the menu
-     EXIT SUB
     END IF
    END IF
   END WITH
+  IF open_other_menu >= 0 THEN
+   add_menu open_other_menu
+  END IF
  END IF
 END SUB
 
