@@ -163,7 +163,7 @@ DECLARE SUB bring_menu_forward (slot AS INTEGER)
 DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
 DECLARE FUNCTION menus_allow_player () AS INTEGER
 DECLARE FUNCTION allowed_to_open_main_menu () AS INTEGER
-DECLARE SUB player_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
+DECLARE SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
 DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB check_menu_tags ()
 DECLARE FUNCTION game_usemenu (state AS MenuState)
@@ -211,8 +211,8 @@ tmpdir = aquiretempdir$
 
 'Mixed global and module variables
 DIM font(1024), buffer(16384), pal16(448), music(16384)
-DIM gen(360), saytag(21), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev(40, 1) AS LONG, names(40), veh(21)
-DIM eqstuf(40, 4), stock(99, 49), choose$(1), chtag(1), saybit(0), sayenh(6), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), say$(7), hmask(3), herobits(59, 3), itembits(maxMaxItems, 3)
+DIM gen(360), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev(40, 1), names(40), veh(21)
+DIM eqstuf(40, 4), stock(99, 49), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), hmask(3), herobits(59, 3), itembits(maxMaxItems, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4)
 
 dim map_draw_mode as integer = -1
@@ -228,7 +228,10 @@ DIM topmenu AS INTEGER = -1
 dim door(99) as door, doorlinks(199) as doorlink
 
 'shared module variables
-DIM SHARED cycle(1), cycptr(1), cycskip(1), tastuf(40), stat(40, 1, 16)
+DIM SHARED cycle(1), cycptr(1), cycskip(1), tastuf(40), stat(40, 1, 16), needf
+DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
+'textbox stuff (needs moving into a udt)
+DIM SHARED choosep, say, sayer, showsay, say$(7), saytag(21), saybit(0), sayenh(6), choose$(1), chtag(1)
 
 'global variables
 DIM scroll(), pass()
@@ -238,9 +241,9 @@ DIM inventory(inventoryMax) as InventSlot
 DIM npcs(npcdMax) as NPCType
 DIM npc(300) as NPCInst
 DIM didgo(0 TO 3)
-DIM shared mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, usepreunlump, lastsaveslot, abortg, foemaph, presentsong, framex, framey
+DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, usepreunlump, lastsaveslot, abortg, foemaph, presentsong, framex, framey
 DIM AS STRING tmpdir, exename, game, sourcerpg, savefile, workingdir
-DIM gold AS LONG
+DIM gold
 DIM prefsdir as string
 DIM timers(15) as timer
 DIM fatal
@@ -489,7 +492,7 @@ ELSE
  clearpage 1
  addhero 1, 0, stat()
  IF gen(41) > 0 THEN
-  rsr = runscript(gen(41), nowscript + 1, -1, "newgame", plottrigger)
+  runscript(gen(41), nowscript + 1, -1, "newgame", plottrigger)
  END IF
 END IF
 
@@ -522,7 +525,7 @@ DO
    init_menu_state mstates(i), menus(i)
   END IF
  NEXT i
- player_menu_keys menu_text_box, wantloadgame, stat(), catx(), caty(), tastuf(), map, foep, stock()
+ player_menu_keys menu_text_box, stat(), catx(), caty(), tastuf(), map, foep, stock()
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
   say = menu_text_box
@@ -592,7 +595,7 @@ DO
   tmp = vehiclestuff(pasx, pasy, foep, vehedge, showsay)
   SELECT CASE tmp
    CASE IS < 0
-    rsr = runscript(ABS(tmp), nowscript + 1, -1, "vehicle", plottrigger)
+    runscript(ABS(tmp), nowscript + 1, -1, "vehicle", plottrigger)
    CASE 1
     add_menu 0
     menusound gen(genAcceptSFX)
@@ -1044,7 +1047,7 @@ END IF
 '---JUMP TO NEXT TEXT BOX--------
 IF istag(saytag(11), 0) THEN
  IF saytag(12) < 0 THEN
-  rsr = runscript(ABS(saytag(12)), nowscript + 1, -1, "textbox", plottrigger)
+  runscript(ABS(saytag(12)), nowscript + 1, -1, "textbox", plottrigger)
  ELSE
   say = saytag(12)
   loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
@@ -2749,7 +2752,7 @@ FUNCTION menus_allow_player () AS INTEGER
  RETURN menus(topmenu).suspend_player = NO
 END FUNCTION
 
-SUB player_menu_keys (BYREF menu_text_box AS INTEGER, BYREF wantloadgame AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
+SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
  DIM slot AS INTEGER
  DIM activated AS INTEGER
  DIM menu_handle AS INTEGER

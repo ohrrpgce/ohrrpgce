@@ -14,25 +14,25 @@ CONST STACK_SIZE_INC = 512 ' in integers
 
 'DECLARE SUB debug (str$)
 
-FUNCTION bound (n, lowest, highest)
+FUNCTION bound (BYVAL n, BYVAL lowest, BYVAL highest)
 bound = n
 IF n < lowest THEN bound = lowest
 IF n > highest THEN bound = highest
 END FUNCTION
 
-FUNCTION large (n1, n2)
+FUNCTION large (BYVAL n1, BYVAL n2)
 large = n1
 IF n2 > n1 THEN large = n2
 END FUNCTION
 
-FUNCTION loopvar (value, min, max, inc)
+FUNCTION loopvar (BYVAL value, BYVAL min, BYVAL max, BYVAL inc)
 a = value + inc
-IF a > max THEN a = a - ((max - min) + 1): loopvar = a: EXIT FUNCTION
-IF a < min THEN a = a + ((max - min) + 1): loopvar = a: EXIT FUNCTION
+IF a > max THEN loopvar = a - ((max - min) + 1): EXIT FUNCTION
+IF a < min THEN loopvar = a + ((max - min) + 1): EXIT FUNCTION
 loopvar = a
 END FUNCTION
 
-FUNCTION small (n1, n2)
+FUNCTION small (BYVAL n1, BYVAL n2)
 small = n1
 IF n2 < n1 THEN small = n2
 END FUNCTION

@@ -42,11 +42,11 @@ EXTERN eqstuf() as integer
 EXTERN lmp() as integer
 EXTERN bmenu() as integer
 EXTERN spell() as integer
-EXTERN exlev() AS LONG
+EXTERN exlev() as integer
 EXTERN herobits()
 EXTERN itembits()
 EXTERN hmask() as integer
-EXTERN gold AS LONG
+EXTERN gold as integer
 EXTERN nativehbits() as integer
 
 'Map state globals

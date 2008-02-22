@@ -7,10 +7,10 @@
 #IFNDEF UTIL_BI
 #DEFINE UTIL_BI
 
-declare function bound (n, lowest, highest)
-declare function large (n1, n2)
-declare function loopvar (var, min, max, inc)
-declare function small (n1, n2)
+declare function bound (byval n, byval lowest, byval highest)
+declare function large (byval n1, byval n2)
+declare function loopvar (byval var, byval min, byval max, byval inc)
+declare function small (byval n1, byval n2)
 declare function trimpath$ (filename$)
 declare function trimfilename$ (filename$)
 declare function trimextension$ (filename$)

@@ -97,7 +97,7 @@ DECLARE SUB reloadscript (si as ScriptInst, updatestats = -1)
 DECLARE FUNCTION localvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION mathvariablename$ (value%, scriptargs%)
 DECLARE FUNCTION backcompat_sound_id (id AS INTEGER)
-DECLARE SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat(), exlev() AS LONG)
+DECLARE SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat(), exlev())
 DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
 DECLARE SUB limitcamera ()
 DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING, minimum AS INTEGER=0) AS INTEGER
@@ -971,8 +971,6 @@ debug indent$ + "argc   =" + XSTR$(scrat(nowscript).curargc)
 END SUB
 
 SUB scriptmisc (id)
- fbdim temp16 'required for FB to fix get and put
- dim her as herodef
 'contains a whole mess of scripting commands that do not depend on
 'any main-module level local variables or GOSUBs, and therefore
 'can be moved out here to save memory
@@ -1291,17 +1289,20 @@ SELECT CASE AS CONST id
    debug "can learn spell: fail on empty party slot " & partyslot
   ELSE
    IF retvals(1) > 0 THEN
-    loadherodata @her, heroID
+    DIM her as herodef ptr
+    her = Allocate(sizeof(herodef))
+    loadherodata her, heroID
     FOR i = 0 TO 3
      FOR j = 0 TO 23
       IF spell(partyslot, i, j) = 0 THEN
-       IF her.spell_lists(i,j).attack = retvals(1) AND her.spell_lists(i,j).learned = retvals(2) THEN
+       IF her->spell_lists(i,j).attack = retvals(1) AND her->spell_lists(i,j).learned = retvals(2) THEN
         scriptret = 1
         EXIT FOR
        END IF
       END IF
      NEXT j
     NEXT i
+    Deallocate(her)
    END IF
   END IF
  CASE 133'--hero by slot
