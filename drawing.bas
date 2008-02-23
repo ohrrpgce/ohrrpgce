@@ -59,8 +59,6 @@ DECLARE SUB init_sprite_zones(area() AS MouseArea)
 
 #include "const.bi"
 
-dim shared col as integer
-
 REM $STATIC
 SUB airbrush (x, y, d, m, c, p)
 'airbrush thanks to Ironhoof (Russel Hamrick)
@@ -1516,6 +1514,7 @@ STATIC clonebuf(1600) AS INTEGER, clonemarked AS INTEGER = NO
 DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40), mouse(4)
 DIM toolinfo(7) AS ToolInfoType
 DIM workpal(8 * (atatime + 1))
+DIM AS INTEGER col = 1
 DIM poffset(large(sets, atatime))
 DIM AS INTEGER do_paste = 0
 DIM AS INTEGER paste_transparent = 0
