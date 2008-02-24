@@ -43,9 +43,9 @@ option nokeyword setmouse
 'use nearly-as-fast assembly version (one extra jump)
 
 option nokeyword gosub
-#define gosub _gosub_beta(__LINE__)
+#define gosub _gosub_beta(__LINE__,__FUNCTION_NQ__)
 'the "if 1 then else" is used to place a label after the goto
-#define _gosub_beta(a) asm : call __gosub_lab##a end asm : if 1 then else asm : __gosub_lab##a: end asm : goto
+#define _gosub_beta(a,b) asm : call _osub_##b##_line_##a end asm : if 1 then else asm : gosub_##b##_line_##a: end asm : goto
 #define retrace asm ret
 #define retrievestate
 #define rememberstate
