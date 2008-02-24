@@ -39,21 +39,20 @@ option nokeyword setmouse
 #define rememberstate
 #define crt_jmp_buf byte
 
-#else
+#elseif 1
 'use nearly-as-fast assembly version (one extra jump)
 
 option nokeyword gosub
 #define gosub _gosub_beta(__LINE__,__FUNCTION_NQ__)
-'the "if 1 then else" is used to place a label after the goto
-#define _gosub_beta(a,b) asm : call _osub_##b##_line_##a end asm : if 1 then else asm : gosub_##b##_line_##a: end asm : goto
+'the "if 0 then" is used to place a label after the goto
+#define _gosub_beta(a,b) asm : call gosub_##b##_line_##a end asm : if 0 then asm : gosub_##b##_line_##a: end asm : goto
 #define retrace asm ret
 #define retrievestate
 #define rememberstate
 #define crt_jmp_buf byte
 
-#endif
+#else  'choose GOSUB workaround
 
-#if 0
 'alternative to above blocks, use this code on non x86 platforms
 'use a setjmp/longjmp kludge
 
@@ -79,7 +78,7 @@ option nokeyword gosub
 '#DEFINE CLEAROBJ(OBJ) memset(@(OBJ),0,LEN(OBJ))
 '#DEFINE COPYOBJ(TO,FROM) memcpy(@(TO),@(FROM),LEN(FROM))
 
-#endif
+#endif  'choose GOSUB workaround
 
 #ifdef __FB_LINUX__
 #define LINUX -1
