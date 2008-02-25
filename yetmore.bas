@@ -1095,8 +1095,10 @@ SELECT CASE AS CONST id
  CASE 29'--stop song
   stopsong
  CASE 30'--keyval
-  IF retvals(0) >= 0 AND retvals(0) < 256 THEN
+  IF retvals(0) >= 0 AND retvals(0) < 127 THEN
    scriptret = keyval(retvals(0)) AND 3
+  ELSE
+   debug "invalid scancode keyval(" & retvals(0) & ")"
   END IF
  CASE 31'--rank in caterpillar
   scriptret = rankincaterpillar(retvals(0))

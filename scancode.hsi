@@ -124,6 +124,7 @@ define constant,begin
 93,key:CONTEXT
 
 #keys >= 128 are NOT scan codes, per se, but for other devices (mouse, joystick)
+# note that these only work for key is pressed, not for keyval
 128,joy:button 1
 129,joy:button 2
 130,joy:button 3
