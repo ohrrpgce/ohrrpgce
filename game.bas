@@ -545,8 +545,6 @@ DO
   IF allowed_to_open_main_menu() THEN
    add_menu 0
    menusound gen(genAcceptSFX)
-   evalitemtag
-   npcplot
   END IF
  END IF
  IF showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(6) = 0 AND menus_allow_player() THEN
@@ -599,9 +597,6 @@ DO
    CASE 1
     add_menu 0
     menusound gen(genAcceptSFX)
-    evalherotag stat()
-    evalitemtag
-    npcplot
    CASE IS > 1
     say = tmp - 1
     loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
@@ -2275,9 +2270,6 @@ SELECT CASE .curkind
     scriptret = wrappass(npc(npcref).x \ 20, npc(npcref).y \ 20, tempxgo, tempygo, 0)
    CASE 267'--main menu
     add_menu 0
-    evalherotag stat()
-    evalitemtag
-    npcplot
    CASE 274'--open menu
     IF bound_arg(retvals(0), 0, gen(genMaxMenu), "open menu", "menu ID") THEN
      scriptret = add_menu(retvals(0), (retvals(1) <> 0))
@@ -2761,6 +2753,7 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), ta
  DIM activated AS INTEGER
  DIM menu_handle AS INTEGER
  DIM open_other_menu AS INTEGER = -1
+ DIM updatetags AS INTEGER = NO
  menu_text_box = 0
  IF topmenu >= 0 THEN
   IF menus(topmenu).no_controls = YES THEN EXIT SUB
@@ -2774,6 +2767,10 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), ta
    remove_menu topmenu
    menusound gen(genCancelSFX)
    fatal = checkfordeath(stat())
+   'update any change tags
+   evalherotag stat()
+   evalitemtag
+   npcplot
    EXIT SUB
   END IF
   activated = NO
@@ -2798,19 +2795,19 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), ta
         END IF
        CASE 1 ' spell
         slot = onwho(readglobalstring$(106, "Whose Spells?", 20), 0)
-        IF slot >= 0 THEN spells slot, stat()
+        IF slot >= 0 THEN spells slot, stat() : updatetags = YES
        CASE 2 ' status
         slot = onwho(readglobalstring$(104, "Whose Status?", 20), 0)
-        IF slot >= 0 THEN status slot, stat()
+        IF slot >= 0 THEN status slot, stat() : updatetags = YES
        CASE 3 ' equip
         slot = onwho(readglobalstring$(108, "Equip Whom?", 20), 0)
-        IF slot >= 0 THEN equip slot, stat()
+        IF slot >= 0 THEN equip slot, stat() : updatetags = YES
        CASE 4 ' order
-        heroswap 0, stat()
+        heroswap 0, stat() : updatetags = YES
        CASE 5 ' team
-        heroswap 1, stat()
+        heroswap 1, stat() : updatetags = YES
        CASE 6 ' order/team
-        heroswap readbit(gen(), 101, 5), stat()
+        heroswap readbit(gen(), 101, 5), stat() : updatetags = YES
        CASE 7,12 ' map
         minimap catx(0), caty(0), tastuf()
        CASE 8,13 ' save
@@ -2858,6 +2855,11 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), ta
      carray(4) = 0
      setkeys '--Discard the  keypress that triggered the menu item that closed the menu
     END IF
+   END IF
+   IF updatetags THEN
+    evalherotag stat()
+    evalitemtag
+    npcplot
    END IF
   END WITH
   IF open_other_menu >= 0 THEN

@@ -32,6 +32,8 @@ Feb ?? 2008 [werewaffle]
     * Bug 605: array-out-of-bounds when playing sound effects when
       no more sound effect slots are free [James Paige]
     * Bug 577: Memory corruption when opening sub-menus [James Paige]
+    * Bug 608: New menus were checking equipment tags when the menu
+      opened instead of when the menu closed
 
   * New Plotscripting Commands
 
