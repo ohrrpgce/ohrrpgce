@@ -50,6 +50,11 @@ del custom*.exe
 call make.bat fb silence
 call nightly-gfx-music fb silence
 
+del game*.exe
+del custom*.exe
+call make.bat fb sdl -g -exx
+call nightly-gfx-music fb sdl -debug
+
 Echo upload plotdict.xml
 pscp -i C:\progra~1\putty\id_rsa.ppk docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
 
