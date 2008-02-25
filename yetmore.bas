@@ -167,14 +167,26 @@ END IF '---end if > 0
 END SUB
 
 FUNCTION checksaveslot (slot)
-  fbdim checkslot
-  sg$ = savefile
-  savh = FREEFILE
-  OPEN sg$ FOR BINARY AS #savh
-  GET #savh, 1 + 60000 * (slot - 1), checkslot
-  CLOSE #savh
-  checksaveslot = checkslot
+ DIM AS SHORT saveversion
+ sg$ = savefile
+ savh = FREEFILE
+ OPEN sg$ FOR BINARY AS #savh
+ GET #savh, 1 + 60000 * slot, saveversion
+ CLOSE #savh
+ checksaveslot = saveversion
 END FUNCTION
+
+SUB erasesaveslot (slot)
+ DIM AS SHORT saveversion = 0
+ sg$ = savefile
+ IF fileisreadable(sg$) = 0 THEN EXIT SUB
+ savh = FREEFILE
+ OPEN sg$ FOR BINARY AS #savh
+ IF LOF(savh) > 60000 * slot THEN
+  PUT #savh, 1 + 60000 * slot, saveversion
+ END IF
+ CLOSE #savh
+END SUB
 
 SUB doihavebits
 dim her as herodef
@@ -1352,7 +1364,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 171'--saveslotused
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
-   IF checksaveslot(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
+   IF checksaveslot(retvals(0) - 1) = 3 THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 172'--importglobals
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
@@ -1379,15 +1391,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 175'--deletesave
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
-   IF checksaveslot(retvals(0)) THEN
-    fbdim savver ' for FB
-    sg$ = savefile
-    savh = FREEFILE
-    OPEN sg$ FOR BINARY AS #savh
-    savver = 0
-    PUT #savh, 1 + 60000 * (retvals(0) - 1), savver
-    CLOSE #savh
-   END IF
+   erasesaveslot retvals(0) - 1
   END IF
  CASE 176'--runscriptbyid
   IF NOT (isfile(tmpdir & retvals(0) & ".hsx") OR isfile(tmpdir & retvals(0) & ".hsz")) THEN
