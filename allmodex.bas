@@ -3225,42 +3225,94 @@ sub setclip(l as integer, t as integer, r as integer, b as integer)
 end sub
 
 sub drawohr(byref spr as frame, x as integer, y as integer, scale as integer, trans as integer = -1)
-	dim sptr as ubyte ptr
-	dim as integer tx, ty
-	dim as integer i, j, pix, spix
-
-	'assume wrkpage
-	sptr = spage(wrkpage)
+	dim as integer i, j
+	dim as ubyte ptr maskp, srcp
+	dim as ubyte ptr sptr, sptr2
+	dim as integer srclineinc
+	dim as integer startx, starty, endx, endy
 
 	if scale = 0 then scale = 1
 
-	'checking the clip region should really be outside the loop,
-	'I think, but we'll see how this works
-	ty = y
-	for i = 0 to (spr.h * scale) - 1
-		tx = x
-		for j = 0 to (spr.w * scale) - 1
-			'check bounds
-			if not (tx < clipl or tx > clipr or ty < clipt or ty > clipb) then
-				'ok to draw pixel
-				pix = (ty * 320) + tx
-				spix = ((i \ scale) * spr.w) + (j \ scale)
-				'check mask
-				if spr.mask <> 0 and trans then
-					'not really sure whether to leave the masks like
-					'this or change them above, this is the wrong
-					'way round, really. perhaps.
-					if spr.mask[spix] = 0 then
-						sptr[pix] = spr.image[spix]
-					end if
-				else
-					sptr[pix] = spr.image[spix]
-				end if
-			end if
-			tx += 1
-		next
-		ty += 1
-	next
+	if scale <> 1 then
+		' isn't code dpulication convenient?
+		sprite_draw @spr, NULL, x, y, scale, trans, wrkpage
+		exit sub
+	end if
+
+	maskp = spr.mask
+	srcp = spr.image
+
+	startx = x
+	endx = x + spr.w - 1
+	starty = y
+	endy = y + spr.h - 1
+
+    srclineinc = 0
+
+	if startx < clipl then
+		srclineinc = (clipl - startx)
+		srcp += srclineinc
+		maskp += srclineinc
+		startx = clipl
+	end if
+
+	if starty < clipt then
+		srcp += (clipt - starty) * spr.w
+		maskp += (clipt - starty) * spr.w
+		starty = clipt
+	end if
+
+	if endx > clipr then
+		srclineinc += endx - clipr
+		endx = clipr
+	end if
+
+	if endy > clipb then
+		endy = clipb
+	end if
+
+	if starty > endy or startx > endx then exit sub
+
+	'assume wrkpage
+	sptr = spage(wrkpage) + startx + starty * 320
+
+	if scale = 1 then
+		if spr.mask = 0 or trans = 0 then
+			for i = starty to endy
+				memcpy(sptr, srcp, endx - startx + 1)
+				srcp += spr.w
+				sptr += 320
+			next
+		else
+			for i = starty to endy
+				'a little loop unrolling
+				for j = endx - startx to 3 step -4
+					'this is surprisingly slow
+					'*cast(integer ptr, sptr) = (*cast(integer ptr, srcp) and not *cast(integer ptr, maskp)) or (*cast(integer ptr, sptr) and *cast(integer ptr, maskp))
+					if maskp[0] = 0 then sptr[0] = srcp[0]
+					if maskp[1] = 0 then sptr[1] = srcp[1]
+					if maskp[2] = 0 then sptr[2] = srcp[2]
+					if maskp[3] = 0 then sptr[3] = srcp[3]
+					maskp += 4
+					srcp += 4
+					sptr += 4
+				next
+				while j >= 0
+					if *maskp = 0 then *sptr = *srcp
+					maskp += 1
+					srcp += 1
+					sptr += 1
+					j -= 1
+				wend
+
+				sptr += 319 - endx + startx
+				maskp += srclineinc
+				srcp += srclineinc
+			next
+		end if
+	else
+		'see above
+	end if
 
 end sub
 
@@ -3282,7 +3334,7 @@ sub grabrect(page as integer, x as integer, y as integer, w as integer, h as int
 			if not (px < 0 or px > 319 or py < 0 or py > 199) then
 				ibuf[l] = sptr[(py * 320) + px]
 				if tbuf then
-					if ibuf[l] = 0 then tbuf[l] = 1 else tbuf[l] = 0
+					if ibuf[l] = 0 then tbuf[l] = &hff else tbuf[l] = 0
 				end if
 			else
 				ibuf[l] = 0
