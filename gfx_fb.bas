@@ -10,6 +10,10 @@ option explicit
 #include "fbgfx.bi"
 #include "gfx.bi"
 
+#include once "crt.bi"
+#undef abort
+#undef strlen
+
 'subs only used internally
 declare sub gfx_screenres()		'set screen res, etc
 
@@ -58,29 +62,45 @@ end sub
 sub gfx_showpage(byval raw as ubyte ptr)
 'takes a pointer to raw 8-bit data at 320x200
 	dim rptr as ubyte ptr
+	dim as integer mult = 1
 	dim as integer w, h, i, j
 	dim as integer fx, fy, p0, p1, p2, p3, p4, pstep'for 2x/3x filtering
 
 	screenlock
+
+	for i = 2 to zoom
+		mult = mult shl 8 + 1
+	next
+
+	rptr = raw
+
 	if depth = 8 then
 		dim sptr as ubyte ptr
-		sptr = screenptr
-		sptr += (screen_buffer_offset * 320 * zoom)
-		for h = 0 to 200 - 1
-			'repeat row zoom times
-			for i = 0 to zoom - 1
-				'set start of row
-				rptr = raw + (320 * h)
-				for w = 0 to 320 - 1
-					'zoom sptrs for each rptr
-					for j = 0 to zoom - 1
-						*sptr = *rptr
-						sptr += 1
-					next
-					rptr += 1
+		sptr = screenptr + (screen_buffer_offset * 320 * zoom)
+
+		if zoom = 1 then
+			memcpy sptr, rptr, 320 * 200
+		else
+			for h = 0 to 200 - 1
+				for w = 320 / 4 - 1 to 0 step -1
+					'could just multiple by &h1010101, but FB produces truly daft code for multiplication by constants
+					*cast(integer ptr, sptr) = rptr[0] * mult
+					sptr += zoom
+					*cast(integer ptr, sptr) = rptr[1] * mult
+					sptr += zoom
+					*cast(integer ptr, sptr) = rptr[2] * mult
+					sptr += zoom
+					*cast(integer ptr, sptr) = rptr[3] * mult
+					sptr += zoom
+					rptr += 4
+				next
+				'repeat row zoom times
+				for i = 2 to zoom
+					memcpy sptr, sptr - 320 * zoom, 320 * zoom
+					sptr += 320 * zoom
 				next
 			next
-		next
+		end if
 		if smooth = 1 and (zoom = 2 or zoom = 3) then
 			'added for 2x/3x filtering
 			if screenmodex > 640 then pstep = 1 else pstep = 2
@@ -106,19 +126,19 @@ sub gfx_showpage(byval raw as ubyte ptr)
 		xptr += (screen_buffer_offset * 320 * zoom)
 		for h = 0 to 200 - 1
 			'repeat row zoom times
-			for i = 0 to zoom - 1
-				'set start of row
-				rptr = raw + (320 * h)
-				for w = 0 to 320 - 1
-					'get colour
-					pixel = truepal(*rptr)
-					'zoom sptrs for each rptr
-					for j = 0 to zoom - 1
-						*xptr = pixel
-						xptr += 1
-					next
-					rptr += 1
+			for w = 0 to 320 - 1
+				'get colour
+				pixel = truepal(*rptr)
+				'zoom sptrs for each rptr
+				for j = zoom to 1 step -1
+					*xptr = pixel
+					xptr += 1
 				next
+				rptr += 1
+			next
+			for i = 2 to zoom
+				memcpy xptr, xptr - 320 * zoom, 4 * 320 * zoom
+				xptr += 320 * zoom
 			next
 		next
 		if smooth = 1 and (zoom = 2 or zoom = 3) then
