@@ -503,21 +503,30 @@ IF si.curkind <> tyflow THEN
 END IF
 END SUB
 
-SUB subdoarg (si AS ScriptInst)
+SUB subdoarg (si as ScriptInst)
+'read/load arguments, evaluating immediate values, in a depth-first manner, until either:
+'-all args for a command have been pushed, stnext to evaluate
+'-certain flow & math commands need special logic after every evaluated arg, stnext to handle
+si.state = stnext
+
 DIM as integer ptr dataptr = script(si.scrnum).ptr
+
+quickrepeat:
 DIM as integer     tempptr = dataptr[si.ptr + 3 + si.curargn]
 DIM as integer ptr cmdptr  = dataptr + tempptr
 
-si.state = stnext
-
 SELECT CASE cmdptr[0]
  CASE tynumber
-  scriptret = cmdptr[1]
+  pushs(scrst, cmdptr[1])
  CASE tyglobal
-  scriptret = global(bound(cmdptr[1], 0, 1024))
+  IF cmdptr[1] < 0 OR cmdptr[1] > 1024 THEN
+   scripterr "Illegal global variable id " & cmdptr[1]
+   si.state = sterror
+   EXIT SUB
+  END IF
+  pushs(scrst, global(cmdptr[1]))
  CASE tylocal
-  scriptret = heap(si.heap + cmdptr[1])'--get from heap
-  '--flow control would be a special case
+  pushs(scrst, heap(si.heap + cmdptr[1]))
  CASE IS >= tymath, tyflow
   si.depth += 1
   '5 for state + args + 5 just-in-case for extra state stuff pushed to stack (atm just switch, +1 ought to be sufficient)
@@ -536,18 +545,26 @@ SELECT CASE cmdptr[0]
 
   'this breakpoint is a perfect duplicate of breakstnext, but originally it also caught
   'streturn on evaluating numbers, locals and globals
+  'edit: it's moved about even more now. needs rewriting
   'IF scrwatch AND breakstread THEN breakpoint scrwatch, 3
   'scriptdump "subdoarg"
-  EXIT SUB
+
+
+  'even for flow, first arg always needs evaluation, so don't leave yet!
+  'EXIT SUB
+  IF si.curargc = 0 THEN EXIT SUB
+  GOTO quickrepeat
  CASE ELSE
   scripterr "Illegal statement type " & si.curkind
   si.state = sterror
   EXIT SUB
 END SELECT
 
-'--push return value
-pushs(scrst, scriptret)
 si.curargn += 1
+IF si.curargn >= si.curargc THEN EXIT SUB
+IF si.curkind = tyflow THEN IF si.curvalue = flowif OR si.curvalue >= flowfor THEN EXIT SUB
+IF si.curkind = tymath THEN IF si.curvalue >= 20 THEN EXIT SUB
+GOTO quickrepeat
 END SUB
 
 FUNCTION gethighbyte (n)
@@ -2315,6 +2332,10 @@ ELSE
  pushs(scrst, scriptret)
  si.curargn += 1
  si.state = stnext'---try next arg
+ IF si.curargn >= si.curargc THEN EXIT SUB
+ IF si.curkind = tyflow THEN IF si.curvalue = flowif OR si.curvalue >= flowfor THEN EXIT SUB
+ IF si.curkind = tymath THEN IF si.curvalue >= 20 THEN EXIT SUB
+ si.state = stdoarg
 END IF
 END SUB
 

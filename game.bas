@@ -1702,18 +1702,6 @@ reloadscript scrat(nowscript)
 DO
 WITH scrat(nowscript)
  SELECT CASE .state
-  CASE stwait'---begin waiting for something
-   EXIT DO
-  CASE stdoarg'---do argument
-   '--evaluate an arg, either directly or by changing state. stnext next
-   subdoarg scrat(nowscript)
-  CASE stread'---read statement
-   '--FIRST STATE
-   '--just load the first command
-   subread scrat(nowscript)
-  CASE streturn'---return
-   '--sets stdone if done with entire script, stnext otherwise
-   subreturn scrat(nowscript)
   CASE stnext'---check if all args are done
    IF scrwatch AND breakstnext THEN breakpoint scrwatch, 1
    IF .curargn >= .curargc THEN
@@ -1795,7 +1783,6 @@ WITH scrat(nowscript)
         .state = streturn
        CASE ELSE
         '--do, then, etc... terminate normally
-        scriptret = -1
         GOSUB dumpandreturn
       END SELECT
       '.state = streturn'---return
@@ -1978,6 +1965,18 @@ WITH scrat(nowscript)
      END SELECT
     END IF
    END IF
+  CASE streturn'---return
+   '--sets stdone if done with entire script, stnext otherwise
+   subreturn scrat(nowscript)
+  CASE stdoarg'---do argument
+   '--evaluate an arg, either directly or by changing state. stnext will be next
+   subdoarg scrat(nowscript)
+  CASE stread'---read statement
+   '--FIRST STATE
+   '--just load the first command
+   subread scrat(nowscript)
+  CASE stwait'---begin waiting for something
+   EXIT DO
   CASE stdone'---script terminates
    '--if resuming a supended script, restore its state (normally stwait)
    '--if returning a value to a calling script, set streturn
