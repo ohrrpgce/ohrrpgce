@@ -1776,6 +1776,7 @@ FOR i = 0 TO 11
     quickinflict harm, i, hc(), hx(), hy(), bslot(), harm$(), bstat()
     tdwho = i
     GOSUB triggerfade
+    '--WARNING: WITH pointer probably corrupted
     GOSUB dieWOboss
     GOSUB fulldeathcheck
    END IF
@@ -1794,6 +1795,7 @@ FOR i = 0 TO 11
     quickinflict heal, i, hc(), hx(), hy(), bslot(), harm$(), bstat()
     tdwho = i
     GOSUB triggerfade
+    '--WARNING: WITH pointer probably corrupted
     GOSUB dieWOboss
     GOSUB fulldeathcheck
    END IF

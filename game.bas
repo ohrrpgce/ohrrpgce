@@ -1413,6 +1413,7 @@ FOR o = 0 TO 199
    afterbat = 0
    IF oldmap = map THEN samemap = -1
    GOSUB preparemap
+   '--WARNING: WITH pointer probably corrupted
    foep = range(100, 60)
    EXIT FOR
   END IF
@@ -1636,12 +1637,13 @@ WITH scrat(nowscript)
   CASE ELSE
    '--interpret script
    GOSUB interpretloop
+   '--WARNING: WITH pointer probably corrupted
  END SELECT
  IF wantimmediate = -2 THEN
   IF nowscript < 0 THEN
    debug "wantimmediate ended on nowscript = -1"
   ELSE
-   debug "wantimmediate would have skipped wait on command " & .curvalue & " in " & scriptname$(.id) & ", state = " & .state
+   debug "wantimmediate would have skipped wait on command " & scrat(nowscript).curvalue & " in " & scriptname$(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
    debug "needf = " & needf
   END IF
   wantimmediate = 0 'change to -1 to reenable bug
@@ -1719,6 +1721,7 @@ WITH scrat(nowscript)
        pops(scrst, retvals(i))
       NEXT i
       GOSUB sfunctions
+      '--WARNING: WITH pointer probably corrupted
       '--nowscript might be changed
       '--unless you have switched to wait mode, return
       IF scrat(nowscript).state = stnext THEN scrat(nowscript).state = streturn'---return
@@ -1758,6 +1761,7 @@ WITH scrat(nowscript)
         '--for and while need to be broken
         IF .curkind = tyflow AND (.curvalue = flowfor OR .curvalue = flowwhile) THEN
          GOSUB dumpandreturn
+         '--WARNING: WITH pointer probably corrupted
         END IF
        CASE flowcontinue
         pops(scrst, temp)
@@ -1784,6 +1788,7 @@ WITH scrat(nowscript)
        CASE ELSE
         '--do, then, etc... terminate normally
         GOSUB dumpandreturn
+        '--WARNING: WITH pointer probably corrupted
       END SELECT
       '.state = streturn'---return
      CASE tyscript
@@ -1854,6 +1859,7 @@ WITH scrat(nowscript)
           CASE 2
            '--finished then but not at end of argument list: skip else
            GOSUB dumpandreturn
+           '--WARNING: WITH pointer probably corrupted
           CASE ELSE
            scripterr "if statement overstepped bounds"
          END SELECT
@@ -2150,6 +2156,7 @@ SELECT CASE .curkind
     scriptret = map
    CASE 86'--advance text box
     GOSUB nextsay
+    '--WARNING: WITH pointer probably corrupted
    CASE 97'--read map block
     setmapdata scroll(), pass(), 0, 0
     IF .curargc = 2 THEN retvals(2) = 0
