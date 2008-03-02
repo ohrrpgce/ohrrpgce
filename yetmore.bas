@@ -1897,12 +1897,16 @@ SELECT CASE AS CONST id
   scriptret = 0
   found = 0
   FOR i = 0 TO 299
-   IF npc(i).x \ 20 = retvals(0) AND npc(i).y \ 20 = retvals(1) and npc(i).id > 0 THEN
-    IF found = retvals(2) THEN
-     scriptret = (i + 1) * -1
-     EXIT FOR
+   IF npc(i).id > 0 THEN
+    IF npc(i).x \ 20 = retvals(0) THEN 
+     IF npc(i).y \ 20 = retvals(1) THEN
+      IF found = retvals(2) THEN
+       scriptret = (i + 1) * -1
+       EXIT FOR
+      END IF
+      found = found + 1
+     END IF
     END IF
-    found = found + 1
    END IF
   NEXT i
   IF retvals(2) = -1 THEN scriptret = found
@@ -1949,12 +1953,16 @@ SELECT CASE AS CONST id
   scriptret = 0
   found = 0
   FOR i = 0 TO 299
-   IF npc(i).id > 0 AND npc(i).x <= retvals(0) AND npc(i).x > (retvals(0) - 20) AND npc(i).y <= retvals(1) AND npc(i).y > (retvals(1) - 20) THEN
-    IF found = retvals(2) THEN
-     scriptret = (i + 1) * -1
-     EXIT FOR
+   IF npc(i).id > 0 THEN 
+    IF npc(i).x <= retvals(0) AND npc(i).x > (retvals(0) - 20) THEN 
+     IF npc(i).y <= retvals(1) AND npc(i).y > (retvals(1) - 20) THEN
+      IF found = retvals(2) THEN
+       scriptret = (i + 1) * -1
+       EXIT FOR
+      END IF
+      found = found + 1
+     END IF
     END IF
-    found = found + 1
    END IF
   NEXT i
   IF retvals(2) = -1 THEN scriptret = found
