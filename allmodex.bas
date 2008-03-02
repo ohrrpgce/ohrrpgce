@@ -46,7 +46,7 @@ end type
 'add page? or assume workpage? (all pages for clip?)
 declare SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer=1, BYVAL trans as integer = -1)
 declare sub setclip(l as integer=0, t as integer=0, r as integer=319, b as integer=199)
-declare sub drawohr(byref spr as frame, x as integer, y as integer, scale as integer=1, trans as integer = -1)
+declare sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer = -1)
 declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 declare SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
@@ -483,7 +483,7 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer
 				end if
 
 				'draw it on the map
-				drawohr(*tbuf, tx, ty,,trans)
+				drawohr(*tbuf, , tx, ty, , trans)
 				lasttile = todraw
 			end if
 
@@ -597,7 +597,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 		nib = nib and 3	'= mod 4, but possibly more efficient
 	next
 	'now draw the image
-	drawohr(hspr,x,y, scale)
+	drawohr(hspr, , x, y, scale)
 
 	deallocate(hspr.image)
 	deallocate(hspr.mask)
@@ -685,7 +685,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	next
 
 	'now draw the image
-	drawohr(hspr,x,y)
+	drawohr(hspr, , x, y)
 	deallocate(hspr.image)
 	deallocate(hspr.mask)
 end SUB
@@ -3224,18 +3224,22 @@ sub setclip(l as integer, t as integer, r as integer, b as integer)
 	clipb = b
 end sub
 
-sub drawohr(byref spr as frame, x as integer, y as integer, scale as integer, trans as integer = -1)
+'truthfully, this should not exist. everything it does could be done by the fbgfx or SDL libraries much better and faster
+'scaling (which neither library support) is done in sprite_draw instead
+sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer = -1)
 	dim as integer i, j
 	dim as ubyte ptr maskp, srcp
 	dim as ubyte ptr sptr, sptr2
 	dim as integer srclineinc
 	dim as integer startx, starty, endx, endy
 
+	if page = -1 then page = wrkpage
+
 	if scale = 0 then scale = 1
 
 	if scale <> 1 then
-		' isn't code dpulication convenient?
-		sprite_draw @spr, NULL, x, y, scale, trans, wrkpage
+		' isn't code duplication convenient?
+		sprite_draw @spr, NULL, x, y, scale, trans, page
 		exit sub
 	end if
 
@@ -3273,11 +3277,41 @@ sub drawohr(byref spr as frame, x as integer, y as integer, scale as integer, tr
 
 	if starty > endy or startx > endx then exit sub
 
-	'assume wrkpage
-	sptr = spage(wrkpage) + startx + starty * 320
+	sptr = spage(page) + startx + starty * 320
 
 	if scale = 1 then
-		if spr.mask = 0 or trans = 0 then
+		if pal <> 0 then
+			'I think that a sprite will always have a mask allocated, but this isn't assumed anywhere, so be safe
+			if spr.mask = 0 then
+				spr.mask = callocate(spr.w * spr.h)
+				maskp = spr.mask
+				trans = 0
+			end if
+
+			for i = starty to endy
+				'loop unrolling copied from below, but not nearly as effective
+				for j = endx - startx to 3 step -4
+					if maskp[0] = 0 then sptr[0] = pal->col(srcp[0])
+					if maskp[1] = 0 then sptr[1] = pal->col(srcp[1])
+					if maskp[2] = 0 then sptr[2] = pal->col(srcp[2])
+					if maskp[3] = 0 then sptr[3] = pal->col(srcp[3])
+					maskp += 4
+					srcp += 4
+					sptr += 4
+				next
+				while j >= 0
+					if *maskp = 0 then *sptr = *srcp
+					maskp += 1
+					srcp += 1
+					sptr += 1
+					j -= 1
+				wend
+
+				sptr += 319 - endx + startx
+				maskp += srclineinc
+				srcp += srclineinc
+			next
+		elseif spr.mask = 0 or trans = 0 then
 			for i = starty to endy
 				memcpy(sptr, srcp, endx - startx + 1)
 				srcp += spr.w
@@ -3709,7 +3743,9 @@ end function
 ' draws a sprite to a page. scale must be greater than 1. if trans is false, the
 ' mask will be wholly ignored (and, trans will be forced to false if the mask
 ' doesn't even exist)
-sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer = wrkpage)
+' This is only used for scaled drawing (nearly never)! (which still needs cleanup)
+' drawohr is used for everything else, since these subs have otherwise identical function
+sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
 	dim sptr as ubyte ptr
 	dim as integer tx, ty
 	dim as integer sx, sy, pix, spix
@@ -3718,12 +3754,16 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 		debug "trying to draw null sprite"
 		exit sub
 	end if
-	
+
+	if scale = 0 then scale = 1
+	if scale = 1 then
+		drawohr *spr, pal, x, y, scale, trans, page
+		exit sub
+	end if
+
 	'assume wrkpage
 	sptr = spage(page)
 
-	if scale = 0 then scale = 1
-	
 	if spr->mask = 0 then trans = 0 'no mask? no transparency.
 	
 	if trans then trans = -1
