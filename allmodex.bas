@@ -185,40 +185,25 @@ sub restoremode()
 end sub
 
 SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer)
-	dim i as integer
-	'inefficient, could be improved with memcpy
-	for i = 0 to (320 * 200) - 1
-		spage(page2)[i] = spage(page1)[i]
-	next
+	memcpy(spage(page2), spage(page1), 320 * 200)
 end sub
 
 SUB copypage (BYVAL page1 as integer, page2() as ubyte)
 	if ubound(page2) < (320*200) - 1 then
 		debug "page2 buffer too small " & ubound(page2)
 	end if
-	dim i as integer
-	for i = 0 to (320 * 200) - 1
-		page2(i) = spage(page1)[i]
-	next
+	memcpy(@page2(0), spage(page1), 320 * 200)
 END SUB
 
 SUB copypage (page1() as ubyte, BYVAL page2 as integer)
 	if ubound(page1) < (320*200) - 1 then
 		debug "page1 buffer too small " & ubound(page1)
 	end if
-	dim i as integer
-	for i = 0 to (320 * 200) - 1
-		spage(page2)[i] = page1(i)
-	next
+	memcpy(spage(page2), @page1(0), 320 * 200)
 END SUB
 
 SUB clearpage (BYVAL page as integer)
-	dim i as integer
-
-	'inefficient, could be improved with memcpy
-	for i = 0 to (320 * 200) - 1
-		spage(page)[i] = 0
-	next
+	memset(spage(page), 0, 320 * 200)
 	wrkpage = page
 end SUB
 
