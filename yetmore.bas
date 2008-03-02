@@ -255,7 +255,7 @@ DO WHILE start < LEN(text$)
     CASE "V": '--global variable by ID
      '--defaults blank if out-of-range
      insert$ = ""
-     IF arg >= 0 AND arg <= 1024 THEN
+     IF arg >= 0 AND arg <= 4095 THEN
       insert$ = STR$(global(arg))
      END IF
     CASE "S": '--string variable by ID
@@ -519,7 +519,7 @@ SELECT CASE cmdptr[0]
  CASE tynumber
   pushs(scrst, cmdptr[1])
  CASE tyglobal
-  IF cmdptr[1] < 0 OR cmdptr[1] > 1024 THEN
+  IF cmdptr[1] < 0 OR cmdptr[1] > 4095 THEN
    scripterr "Illegal global variable id " & cmdptr[1]
    si.state = sterror
    EXIT SUB
@@ -1282,16 +1282,16 @@ SELECT CASE AS CONST id
  CASE 109'--grey scale palette
   greyscalepal
  CASE 114'--read global
-  IF retvals(0) >= 0 AND retvals(0) <= 1024 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= 4095 THEN
    scriptret = global(retvals(0))
   ELSE
-   scripterr "Cannot read global" + XSTR$(retvals(0)) + ". out of range"
+   scripterr "Cannot read global " & retvals(0) & ". out of range"
   END IF
  CASE 115'--write global
-  IF retvals(0) >= 0 AND retvals(0) <= 1024 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= 4095 THEN
    global(retvals(0)) = retvals(1)
   ELSE
-   scripterr "Cannot write global" + XSTR$(retvals(0)) + ". out of range"
+   scripterr "Cannot write global " & retvals(0) & ". out of range"
   END IF
  CASE 116'--hero is walking
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN

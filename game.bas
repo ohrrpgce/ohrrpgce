@@ -256,7 +256,7 @@ DIM backcompat_sound_slot_mode
 DIM backcompat_sound_slots(7)
 
 DIM nowscript, scriptret, scriptctr, numloadedscr, totalscrmem
-DIM heap(2048), global(1024), retvals(32)
+DIM heap(2048), global(4095), retvals(32)
 DIM scrat(128) as ScriptInst
 DIM script(128) as ScriptData
 DIM plotstr(31) as Plotstring
@@ -1539,7 +1539,7 @@ afterload = 0
 RETRACE
 
 '--this is what we have dimed for scripts
-'--script(4096), heap(2048), global(1024), scrat(128), nowscript
+'--script(4096), heap(2048), global(4095), scrat(128), nowscript
 interpret:
 IF nowscript >= 0 THEN
 WITH scrat(nowscript)

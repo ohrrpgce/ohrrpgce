@@ -949,6 +949,10 @@ NEXT i
 FOR i = 0 TO 1024
  global(i) or= buffer(z) shl 16: z = z + 1
 NEXT i
+FOR i = 1025 TO 4095
+ global(i) = buffer(z): z = z + 1
+ global(i) or= buffer(z) shl 16: z = z + 1
+NEXT i
 
 '---BLOODY BACKWARD COMPATABILITY---
 'fix doors...
@@ -1184,10 +1188,10 @@ FUNCTION readscriptvar (id)
 SELECT CASE id
  CASE IS < 0 'local variable
   readscriptvar = heap(scrat(nowscript).heap + ABS(id) - 1)
- CASE 0 TO 1024 'global variable
+ CASE 0 TO 4095 'global variable
   readscriptvar = global(id)
  CASE ELSE
-  scripterr "Cannot read global" + XSTR$(id) + ". out of range"
+  scripterr "Cannot read global " & id & ". out of range"
 END SELECT
 
 END FUNCTION
@@ -1306,7 +1310,7 @@ FOR i = 0 TO 99
  NEXT o
 NEXT i
 flusharray hmask(), 3, 0
-flusharray global(), 1024, 0
+flusharray global(), 4095, 0
 flusharray veh(), 21, 0
 flusharray sayenh(), 6, 0
 
@@ -1797,8 +1801,10 @@ NEXT i
 FOR i = 0 TO 1024
  buffer(z) = global(i) shr 16: z = z + 1
 NEXT
-
-' z = 7540 here
+FOR i = 1025 TO 4095
+ buffer(z) = global(i): z = z + 1
+ buffer(z) = global(i) shr 16: z = z + 1
+NEXT i
 
 setpicstuf buffer(), 30000, -1
 sg$ = savefile

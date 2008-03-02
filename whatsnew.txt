@@ -35,7 +35,9 @@ Feb ?? 2008 [werewaffle]
     * Bug 608: New menus were checking equipment tags when the menu
       opened instead of when the menu closed
 
-  * New Plotscripting Commands
+  * New Plotscripting Stuff
+    * You can now have up to 4096 global variables (global ID numbers
+      0-4095) [James Paige]
 
   * Stuff only Developers Will Notice
 

@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Gg 2008-03-01 Raise global variable limits
 --3Gf 2008-02-11 Give user another chance on missing Y key :P
 --3Ge 2007-07-01 String conversion rewrite to allow more whitespace
 --3Gd 2007-07-01 Allow constants for new syntax default args
@@ -90,7 +91,7 @@ constant true=1
 constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
-constant COMPILER_SUB_VERSION="Gf"
+constant COMPILER_SUB_VERSION="Gg"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -988,7 +989,7 @@ procedure create_global(integer id,sequence name,integer line)
   if at then
     src_error(sprintf("global variable ID "&COLYEL&"%d"&COLRED&" is already defined as "&COLYEL&"%s"&COLRED,{id,global_list[PAIR_NAME][at]}),line)
   else
-    if id>=0 and id<=1024 then
+    if id>=0 and id<=4095 then
       global_list[PAIR_NUM]=append(global_list[PAIR_NUM],id)
       global_list[PAIR_NAME]=append(global_list[PAIR_NAME],name)
       global_list[GLB_LINE]=append(global_list[GLB_LINE],line)
