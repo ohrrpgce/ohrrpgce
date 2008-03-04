@@ -13,8 +13,8 @@ Feb ?? 2008 [werewaffle]
     * New default Master Palette for new games. [NeoTA, Everybody]
     * ohrrpgce.mas is no longer required at all, not even for
       custom [James Paige]
-    * The mouse is more useable for drawing now; key responsiveness
-      improvements [Ralph Versteegen]
+    * (Unfinished) The mouse is more useable for drawing now; key
+      responsiveness improvements [Ralph Versteegen]
     * New attack bitset, "Can't be canceled by other attacks" [James]
     * New attack bitset, "Do not trigger spawning on hit" [James]
 
@@ -34,6 +34,8 @@ Feb ?? 2008 [werewaffle]
     * Bug 577: Memory corruption when opening sub-menus [James Paige]
     * Bug 608: New menus were checking equipment tags when the menu
       opened instead of when the menu closed
+    * Bug 612: Problems with animating tiles on a map, including
+      potentially corrupting the map [Ralph Versteegen]
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers

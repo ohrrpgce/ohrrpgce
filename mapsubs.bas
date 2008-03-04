@@ -644,19 +644,17 @@ DO
     IF keyval(2 + i) > 1 THEN
      newtile = -1
      old = readmapblock(x, y, layer)
-     IF old > 159 + (i * 48) THEN
+     IF old >= 160 + i * 48 AND old < 160 + i * 48 + 48 THEN
       newtile = (old - (160 + (i * 48))) + tastuf(i * 20)
-     ELSE
-      IF old >= tastuf(i * 20) AND old < tastuf(i * 20) + 48 THEN
-       newtile = 160 + (i * 48) + (old - tastuf(i * 20))
-      END IF
+     ELSEIF old >= tastuf(i * 20) AND old < tastuf(i * 20) + 48 THEN
+      newtile = 160 + (i * 48) + (old - tastuf(i * 20))
      END IF
      IF newtile >= 0 THEN
       IF keyval(29) = 0 THEN
        setmapblock x, y, layer, newtile
       ELSE
-       FOR tx = 0 TO map(0)
-        FOR ty = 0 TO map(1)
+       FOR tx = 0 TO map(0) - 1
+        FOR ty = 0 TO map(1) - 1
          IF readmapblock(tx, ty, layer) = old THEN setmapblock tx, ty, layer, newtile
         NEXT ty
        NEXT tx
@@ -1235,6 +1233,8 @@ END SUB
 SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, mapname AS STRING)
  IF map(0) = pass(0) AND map(0) = emap(0) AND map(1) = pass(1) AND map(1) = emap(1) THEN EXIT SUB
  '--Map's X and Y do not match
+ wide = map(0)
+ high = map(1)
  clearpage vpage
  DIM j AS INTEGER
  j = 0
@@ -1248,9 +1248,10 @@ SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INT
  printstr " FoeMap " & emap(0) & "*" & emap(1) & " tiles", 0, j * 8, vpage: j += 1
  j += 1
  printstr "Fixing to " & wide & "*" & high, 0, j * 8, vpage: j += 1
- wide = large(map(0), large(pass(0), emap(0)))
- high = large(map(1), large(pass(1), emap(1)))
- map(0) = wide: map(1) = high
+ 'A map's size might be due to corruption, besides, the tilemap is far away the most important
+ 'wide = large(map(0), large(pass(0), emap(0)))
+ 'high = large(map(1), large(pass(1), emap(1)))
+ 'map(0) = wide: map(1) = high
  pass(0) = wide: pass(1) = high
  emap(0) = wide: emap(1) = high
  savetiledata maplumpname$(mapnum, "t"), map(), 3
