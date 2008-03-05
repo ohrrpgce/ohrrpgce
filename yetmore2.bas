@@ -553,7 +553,7 @@ IF gen(50) THEN
  EXIT SUB
 END IF
 
-loadpage game + ".til", gmap(0), 3
+'loadpage game + ".til", gmap(0), 3
 
 END SUB
 
@@ -687,7 +687,6 @@ END SUB
 
 FUNCTION titlescr
 titlescr = -1 ' default return true for success
-clearpage 3
 loadpage game + ".mxs", gen(genTitle), 3
 needf = 2
 IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1

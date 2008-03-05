@@ -249,6 +249,7 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
+unloadtileset
 EXIT SUB
 
 whattodo:
@@ -291,6 +292,7 @@ DO
   IF csr = 3 THEN
    GOSUB gmapdata
    loadpage game + ".til", gmap(0), 3
+   loadtileset 3
   END IF
   IF csr = 4 THEN mapedit_delete pt, wide, high, x, y, mapx, mapy, layer, map(), pass(), emap(), npc(), npcstat(), doors(), link()
   IF csr = 5 THEN mapedit_linkdoors pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
@@ -1191,9 +1193,10 @@ SUB new_blank_map (map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap(
 END SUB
 
 SUB mapedit_loadmap (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tastuf() AS INTEGER, tanim_state() AS TileAnimState, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS INTEGER, mapname AS STRING)
- loadrecord gmap(), game & ".map", getbinsize(binMAP) / 2, mapnum
+ loadrecord gmap(), game & ".map", dimbinsize(binMAP), mapnum
  visible(0) = &b111   'default all layers to visible, if they're enabled too, of course
  loadpage game & ".til", gmap(0), 3
+ loadtileset 3
  loadtanim gmap(0), tastuf()
  FOR i = 0 TO 1
   WITH tanim_state(i)
@@ -1594,10 +1597,11 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors() as do
  END IF
  '-----------------EXIT DOOR
  destmap = link(cur).dest_map
- loadrecord gmap2(), game + ".map", dimbinsize(4), destmap
+ loadrecord gmap2(), game + ".map", dimbinsize(binMAP), destmap
  deserdoors game + ".dox", destdoor(), destmap
  LoadTiledata maplumpname$(destmap, "t"), map(), 3, tempw, temph
  loadpage game + ".til", gmap2(0), 3
+ loadtileset 3
  
  loadtanim gmap2(0), anim()
  setanim anim(0), anim(20)
@@ -1619,6 +1623,7 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors() as do
  END IF
  '-----------------RESET DATA
  loadpage game + ".til", gmap(0), 3
+ loadtileset 3
  LoadTiledata maplumpname$(curmap, "t"), map(), 3, tempw, temph
 END SUB
 

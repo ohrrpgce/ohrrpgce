@@ -58,6 +58,9 @@ DECLARE FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, byval l as i
 declare function matchmask(match as string, mask as string) as integer
 declare function calcblock(byval x as integer, byval y as integer, byval l as integer, byval t as integer) as integer
 
+'internal allmodex use only sprite functions
+declare sub sprite_delete(byval f as frame ptr ptr)
+
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
@@ -89,6 +92,8 @@ dim shared map_y as integer
 
 dim shared anim1 as integer
 dim shared anim2 as integer
+
+dim shared tileset as Frame ptr
 
 dim shared waittime as double
 dim shared waitset as integer
@@ -124,9 +129,6 @@ dim shared as integer clipl, clipt, clipr, clipb
 
 dim shared intpal(0 to 255) as RGBcolor	'current palette
 dim shared updatepal as integer  'setpal called, load new palette at next setvispage
-
-'global sprite buffer, to allow reuse without allocate/deallocate
-dim shared tbuf as frame ptr = null
 
 sub setmodex()
 	dim i as integer
@@ -173,14 +175,8 @@ sub restoremode()
 		deallocate(spage(i))
 	next
 
-	'clean up tile buffer
-	if tbuf <> null then
-		'mask should always be null, but no harm in future-proofing
-		if tbuf->mask <> null then	deallocate tbuf->mask
-		if tbuf->image <> null then	deallocate tbuf->image
-		deallocate tbuf
-		tbuf = null
-	end if
+	sprite_delete @tileset
+
 	releasestack
 end sub
 
@@ -393,12 +389,8 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer
 	dim calc as integer
 	dim ty as integer
 	dim tx as integer
-	dim tpx as integer
-	dim tpy as integer
 	dim todraw as integer
-	dim tpage as integer
-	'this is static to allow optimised reuse
-	static lasttile as integer
+	dim tileframe as frame
 	
 	if wrkpage <> p then
 		wrkpage = p
@@ -425,20 +417,10 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer
 	xoff = -calc
 	xstart = xpos
 
-	if tbuf = null then
-		'create tile buffer
-		tbuf = callocate(sizeof(frame))
-		tbuf->w = 20
-		tbuf->h = 20
-		tbuf->mask = callocate(20 * 20)
-		tbuf->image = callocate(20 * 20)
-	end if
-	
-	'debug trans & " " & tbuf->mask
-	'force it to be cleared for each redraw
-	lasttile = -1
+	'debug trans
 
-	tpage = 3
+	tileframe.w = 20
+	tileframe.h = 20
 
 	'screen is 16 * 10 tiles, which means we need to draw 17x11
 	'to allow for partial tiles
@@ -458,18 +440,11 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer
 
 			'get the tile
 			if (todraw >= 0) then
-				if todraw <> lasttile then
-					tpx = (todraw mod 16) * 20
-					tpy = (todraw \ 16) * 20
-					'page 3 is the tileset page (#define??)
-					'get and put don't take a page argument, so I'll
-					'have to toggle the work page, not sure that's efficient
-					grabrect(3, tpx, tpy, 20, 20, tbuf->image, tbuf->mask)
-				end if
+				tileframe.image = tileset->image + todraw * 20 * 20
+				tileframe.mask = tileset->mask + todraw * 20 * 20
 
 				'draw it on the map
-				drawohr(*tbuf, , tx, ty, , trans)
-				lasttile = todraw
+				drawohr(tileframe, , tx, ty, , trans)
 			end if
 
 			tx = tx + 20
@@ -3214,7 +3189,7 @@ end sub
 sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer = -1)
 	dim as integer i, j
 	dim as ubyte ptr maskp, srcp
-	dim as ubyte ptr sptr, sptr2
+	dim as ubyte ptr sptr
 	dim as integer srclineinc
 	dim as integer startx, starty, endx, endy
 
@@ -3335,7 +3310,44 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 
 end sub
 
+sub unloadtileset
+	sprite_delete @tileset
+end sub
+
+sub loadtileset(byval page as integer)
+	if tileset = null then
+		tileset = callocate(sizeof(frame))
+		tileset->w = 20
+		tileset->h = 160 * 20
+		tileset->mask = callocate(160 * 20 * 20)
+		tileset->image = callocate(160 * 20 * 20)
+	end if
+
+	dim as ubyte ptr maskp = tileset->mask
+	dim as ubyte ptr sptr = tileset->image
+	dim as ubyte ptr srcp
+	dim tilex, tiley, px, py
+
+	for tiley = 0 to 9
+		for tilex = 0 to 15
+			srcp = spage(page) + tilex * 20 + tiley * 320 * 20
+			for py = 0 to 19
+				for px = 0 to 19
+					*sptr = *srcp
+					if *srcp = 0 then *maskp = &hff else *maskp = 0
+					sptr += 1
+					srcp += 1
+					maskp += 1
+				next
+				srcp += 320 - 20
+			next
+		next
+	next
+end sub
+
 sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
+'this isn't used anywhere anymore, was used to grab tiles from the tileset videopage before loadtileset
+'maybe some possible future use?
 'ibuf should be pre-allocated
 	dim sptr as ubyte ptr
 	dim as integer i, j, px, py, l

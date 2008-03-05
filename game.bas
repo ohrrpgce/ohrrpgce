@@ -2078,7 +2078,6 @@ SELECT CASE .curkind
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxShop) THEN
      shop retvals(0), needf, stock(), stat(), map, foep, tastuf()
      reloadnpc stat()
-     loadpage game + ".til", gmap(0), 3
     END IF
    CASE 55'--get default weapon
     IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
@@ -2177,6 +2176,7 @@ SELECT CASE .curkind
       retvals(0) = gmap(0)
      END IF
      loadpage game + ".til", retvals(0), 3
+     loadtileset 3
      loadtanim retvals(0), tastuf()
      FOR i = 0 TO 1
       cycle(i) = 0
@@ -2512,6 +2512,7 @@ END FUNCTION
 SUB loadmap_gmap(mapnum)
  loadrecord gmap(), game + ".map", getbinsize(4) / 2, mapnum
  loadpage game + ".til", gmap(0), 3
+ loadtileset 3
  loadtanim gmap(0), tastuf()
  FOR i = 0 TO 1
   cycle(i) = 0

@@ -637,6 +637,8 @@ DIM tanim_state(1) AS TileAnimState
 clearpage vpage
 clearpage dpage
 
+loadtileset 3
+
 sample(0) = 3
 sample(1) = 3
 buffer(0) = 16
@@ -681,6 +683,7 @@ DO
  
  dowait
 LOOP
+unloadtileset
 EXIT SUB
 
 setupsample:
