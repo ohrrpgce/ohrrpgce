@@ -9,8 +9,8 @@ option explicit
 #include "util.bi"
 #include "music.bi"
 #include once "sdl_common.bi"
-DIM SHARED sdl_init_done AS INTEGER = 0
-DIM SHARED sdl_audio_only AS INTEGER = 0
+DIM sdl_init_done AS INTEGER = 0
+DIM sdl_audio_only AS INTEGER = 0
 
 'extern
 declare sub debug(s$)

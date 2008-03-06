@@ -3211,7 +3211,7 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 	starty = y
 	endy = y + spr.h - 1
 
-    srclineinc = 0
+	srclineinc = 0
 
 	if startx < clipl then
 		srclineinc = (clipl - startx)
@@ -3260,7 +3260,7 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 					sptr += 4
 				next
 				while j >= 0
-					if *maskp = 0 then *sptr = *srcp
+					if maskp[0] = 0 then sptr[0] = pal->col(srcp[0])
 					maskp += 1
 					srcp += 1
 					sptr += 1
