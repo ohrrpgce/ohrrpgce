@@ -19,6 +19,7 @@ Feb ?? 2008 [werewaffle]
     * New attack bitset, "Do not trigger spawning on hit" [James]
     * *Vastly* reduced CPU usage due to allmodex and gfx_fb graphics
       code rewrites [Ralph Versteegen]
+    * Holding down the F12 key takes a screenshot every frame [James]
 
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged

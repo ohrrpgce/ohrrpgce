@@ -210,7 +210,7 @@ end if
 
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
 
-IF keyval(88) > 1 THEN snapshot
+IF keyval(88) > 0 THEN snapshot
 
 IF keyval(69) = 0 THEN ' no controls while PAUSE is pressed, because of its scancode wierdness
  GOSUB keyboard
