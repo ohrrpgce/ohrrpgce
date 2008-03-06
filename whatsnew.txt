@@ -17,6 +17,8 @@ Feb ?? 2008 [werewaffle]
       responsiveness improvements [Ralph Versteegen]
     * New attack bitset, "Can't be canceled by other attacks" [James]
     * New attack bitset, "Do not trigger spawning on hit" [James]
+    * *Vastly* reduced CPU usage due to allmodex and gfx_fb graphics
+      code rewrites [Ralph Versteegen]
 
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged

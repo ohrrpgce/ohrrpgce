@@ -104,18 +104,30 @@ sub gfx_showpage(byval raw as ubyte ptr)
 		if smooth = 1 and (zoom = 2 or zoom = 3) then
 			'added for 2x/3x filtering
 			if screenmodex > 640 then pstep = 1 else pstep = 2
-			sptr = screenptr
+			sptr = screenptr + (screen_buffer_offset * 320 * zoom)
+			dim as ubyte ptr sptr1, sptr2, sptr3
 			for fy = 1 to (screenmodey - 2) step pstep
-			for fx = 1 to (screenmodex - 2)
-			p0 = *(sptr +(fy * screenmodex) + fx)'point(fx,fy)'peek is faster than point
-			p1 = *(sptr +((fy-1) * screenmodex) + (fx-1))'point(fx-1,fy-1)'nw
-			p2 = *(sptr +((fy-1) * screenmodex) + (fx+1))'point(fx+1,fy-1)'ne
-			p3 = *(sptr +((fy+1) * screenmodex) + (fx+1))'point(fx+1,fy+1)'se
-			p4 = *(sptr +((fy+1) * screenmodex) + (fx-1))'point(fx-1,fy+1)'sw
-			if p1 = p3 then p0 = p1
-			if p2 = p4 then p0 = p2
-			*(sptr + (fy * screenmodex) + fx) = p0'pset(fx,fy),p0'poke is faster than pset
-			next fx
+				sptr1 = sptr + ((fy - 1) * screenmodex) + 1  '(1,0)
+				sptr2 = sptr1 + screenmodex '(1,1)
+				sptr3 = sptr2 + screenmodex '(1,2)
+				for fx = (screenmodex - 2) to 1 step -1
+					'p0=point(fx,fy)
+					'p1=point(fx-1,fy-1)'nw
+					'p2=point(fx+1,fy-1)'ne
+					'p3=point(fx+1,fy+1)'se
+					'p4=point(fx-1,fy+1)'sw
+					'if p1 = p3 then p0 = p1
+					'if p2 = p4 then p0 = p2
+					if sptr1[1] = sptr3[-1] then
+						sptr2[0] = sptr1[1]
+					else
+						if sptr1[-1] = sptr3[1] then sptr2[0] = sptr1[-1]
+					end if
+					'pset(fx,fy),p0
+					sptr1 += 1
+					sptr2 += 1
+					sptr3 += 1
+				next fx
 			next fy
 		end if
 	else
@@ -142,22 +154,34 @@ sub gfx_showpage(byval raw as ubyte ptr)
 			next
 		next
 		if smooth = 1 and (zoom = 2 or zoom = 3) then
-			'this is duplicated from the 8-bit smoothing code only because I know of no
+			'this is duplicated from the 8-bit smoothing code because there is no
 			'way to write this code as a function that would accept both ubyte ptr and integer ptr
 			'added for 2x/3x filtering
 			if screenmodex > 640 then pstep = 1 else pstep = 2
-			xptr = screenptr
+			xptr = screenptr + (screen_buffer_offset * 320 * zoom)
+			dim as integer ptr xptr1, xptr2, xptr3
 			for fy = 1 to (screenmodey - 2) step pstep
-			for fx = 1 to (screenmodex - 2)
-			p0 = *(xptr +(fy * screenmodex) + fx)'point(fx,fy)'peek is faster than point
-			p1 = *(xptr +((fy-1) * screenmodex) + (fx-1))'point(fx-1,fy-1)'nw
-			p2 = *(xptr +((fy-1) * screenmodex) + (fx+1))'point(fx+1,fy-1)'ne
-			p3 = *(xptr +((fy+1) * screenmodex) + (fx+1))'point(fx+1,fy+1)'se
-			p4 = *(xptr +((fy+1) * screenmodex) + (fx-1))'point(fx-1,fy+1)'sw
-			if p1 = p3 then p0 = p1
-			if p2 = p4 then p0 = p2
-			*(xptr + (fy * screenmodex) + fx) = p0'pset(fx,fy),p0'poke is faster than pset
-			next fx
+				xptr1 = xptr + ((fy - 1) * screenmodex) + 1  '(1,0)
+				xptr2 = xptr1 + screenmodex '(1,1)
+				xptr3 = xptr2 + screenmodex '(1,2)
+				for fx = (screenmodex - 2) to 1 step -1
+					'p0=point(fx,fy)
+					'p1=point(fx-1,fy-1)'nw
+					'p2=point(fx+1,fy-1)'ne
+					'p3=point(fx+1,fy+1)'se
+					'p4=point(fx-1,fy+1)'sw
+					'if p1 = p3 then p0 = p1
+					'if p2 = p4 then p0 = p2
+					if xptr1[1] = xptr3[-1] then
+						xptr2[0] = xptr1[1]
+					else
+						if xptr1[-1] = xptr3[1] then xptr2[0] = xptr1[-1]
+					end if
+					'pset(fx,fy),p0
+					xptr1 += 1
+					xptr2 += 1
+					xptr3 += 1
+				next fx
 			next fy
 		end if
 	end if
