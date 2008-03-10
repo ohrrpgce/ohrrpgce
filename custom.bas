@@ -896,6 +896,7 @@ END SUB
 SUB shopdata
 DIM names(32) AS STRING, a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
 DIM her AS HeroDef' Used to get hero name for default stuff name
+DIM item_tmp(99) ' This is only used for loading the default buy/sell price for items
 
 maxcount = 32: pt = 0: it$ = "-NONE-": sn$ = ""
 havestuf = 0
@@ -1126,8 +1127,9 @@ DO
       SELECT CASE b(17)
        CASE 0' This is an item
         thing$ = load_item_name(b(18),1,1)
-        b(24) = buffer(46) ' default buy price
-        b(27) = INT(buffer(46) / 2) ' default sell price
+        loaditemdata item_tmp(), b(18)
+        b(24) = item_tmp(46) ' default buy price
+        b(27) = INT(item_tmp(46) / 2) ' default sell price
        CASE 1
         loadherodata @her, b(18)
         thing$ = her.name

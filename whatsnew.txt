@@ -40,6 +40,8 @@ Feb ?? 2008 [werewaffle]
       opened instead of when the menu closed
     * Bug 612: Problems with animating tiles on a map, including
       potentially corrupting the map [Ralph Versteegen]
+    * Bug 603: Shops ignore default item value for buy/sell prices
+      [James Paige]
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers
