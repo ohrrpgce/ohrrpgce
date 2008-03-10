@@ -913,6 +913,7 @@ FOR t = 4 TO 5: carray(t) = 0: NEXT t
 EXIT FUNCTION
 
 infostr:
+info$ = ""
 IF sel >= 0 AND ic = -1 THEN
  IF inventory(sel).used THEN
   info$ = readglobalstring$(41, "Discard", 10) + " " + inventory(sel).text

@@ -45,7 +45,7 @@ bstackstart = stackpos
 
 battle = 1
 DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24),  p(24), of(24), ext$(7), ctr(11)
-DIM ready(11), batname$(11), menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), godo(11), delay(11), cycle(24), walk(3), aframe(11, 11)
+DIM ready(11), batname$(11), menu$(3, 5), menubits(2), mend(3), itemd$, spel$(23), speld$(23), spel(23), cost$(23), godo(11), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(24), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
@@ -492,8 +492,15 @@ IF carray(4) > 1 THEN
     flusharray carray(), 7, 0
    END IF
   END IF
- ELSEIF nmenu(you, pt) = -10 THEN
-  mset = 2: iptr = 0: itop = 0
+ ELSEIF nmenu(you, pt) = -10 THEN '--items menu
+  mset = 2
+  iptr = 0
+  itop = 0
+  itemd$ = ""
+  IF inventory(iptr).used THEN
+   loaditemdata buffer(), inventory(iptr).id
+   itemd$ = readbadbinstring$(buffer(), 9, 35, 0)
+  END IF
  END IF
 END IF
 RETRACE
@@ -1466,6 +1473,7 @@ IF carray(5) > 1 THEN
  flusharray carray(), 7, 0
  icons(you) = -1 '--is this right?
 END IF
+oldiptr = iptr
 IF carray(0) > 1 AND iptr > 2 THEN iptr = iptr - 3
 IF carray(1) > 1 AND iptr <= inventoryMax - 3 THEN iptr = iptr + 3
 IF keyval(73) > 1 THEN
@@ -1487,6 +1495,15 @@ END IF
 '--scroll when past top or bottom
 IF iptr < itop THEN itop = itop - 3
 IF iptr > itop + 26 THEN itop = itop + 3
+
+IF oldiptr <> iptr THEN
+ IF inventory(iptr).used THEN
+  loaditemdata buffer(), inventory(iptr).id
+  itemd$ = readbadbinstring$(buffer(), 9, 35, 0)
+ ELSE
+  itemd$ = ""
+ END IF
+END IF
 
 IF carray(4) > 1 THEN
  IF readbit(iuse(), 0, iptr) = 1 THEN
@@ -1732,13 +1749,16 @@ IF vdance = 0 THEN 'only display interface till you win
     printstr cost$(sptr), 308 - LEN(cost$(sptr)) * 8, 90, dpage
    END IF
   END IF
-  IF mset = 2 THEN
-   centerbox 160, 45, 304, 80, 1, dpage
+  IF mset = 2 THEN '--draw item menu
+   centerbox 160, 43, 304, 78, 1, dpage
    FOR i = itop TO itop + 26
     textcolor uilook(uiDisabledItem - readbit(iuse(), 0, i)), 0
     IF iptr = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(iuse(), 0, i)) + tog), uilook(uiHighlight)
     printstr inventory(i).text, 20 + 96 * (i MOD 3), 8 + 8 * ((i - itop) \ 3), dpage
    NEXT i
+   centerbox 160, 88, 304, 12, 1, dpage
+   textcolor uilook(uiDescription), 0
+   printstr itemd$, 12, 85, dpage
   END IF
   IF ptarg > 0 THEN
    FOR i = 0 TO 11
