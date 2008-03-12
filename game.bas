@@ -85,7 +85,6 @@ DECLARE SUB evalitemtag ()
 DECLARE SUB evalherotag (stat%())
 DECLARE SUB tagdisplay ()
 DECLARE SUB rpgversion (v%)
-DECLARE SUB cycletile (cycle%(), tastuf%(), pt%(), skip%())
 DECLARE SUB loaddoor (map%, door() as door)
 DECLARE FUNCTION findhero% (who%, f%, l%, d%)
 DECLARE SUB doswap (s%, d%, stat%())
@@ -228,8 +227,8 @@ DIM topmenu AS INTEGER = -1
 dim door(99) as door, doorlinks(199) as doorlink
 
 'shared module variables
-DIM SHARED tileset as Frame ptr
-DIM SHARED cycle(1), cycptr(1), cycskip(1), tastuf(40), stat(40, 1, 16), needf
+DIM SHARED tileset as Frame ptr, tanim_state(1) AS TileAnimState, tastuf(40)
+DIM SHARED stat(40, 1, 16), needf
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
 'textbox stuff (needs moving into a udt)
 DIM SHARED choosep, say, sayer, showsay, say$(7), saytag(21), saybit(0), sayenh(6), choose$(1), chtag(1)
@@ -813,8 +812,8 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
  '---NORMAL DISPLAY---
  'DEBUG debug "normal display"
  setmapdata scroll(), pass(), 0, 0
- setanim tastuf(0) + cycle(0), tastuf(20) + cycle(1)
- cycletile cycle(), tastuf(), cycptr(), cycskip()
+ setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
+ cycletile tanim_state(), tastuf()
  'DEBUG debug "drawmap"
  overlay = 1
  IF readbit(gen(), 44, suspendoverlay) THEN overlay = 0
@@ -2180,9 +2179,11 @@ SELECT CASE .curkind
      loadtileset tileset, 3
      loadtanim retvals(0), tastuf()
      FOR i = 0 TO 1
-      cycle(i) = 0
-      cycptr(i) = 0
-      cycskip(i) = 0
+     WITH tanim_state(i)
+      .cycle = 0
+      .pt = 0
+      .skip = 0
+     END WITH
      NEXT i
     END IF
    CASE 151'--show mini map
@@ -2244,11 +2245,11 @@ SELECT CASE .curkind
     deletemapstate map, retvals(0), "map"
    CASE 253'--settileanimationoffset
     IF retvals(0) = 0 OR retvals(0) = 1 THEN
-     cycle(retvals(0)) = retvals(1) MOD 160
+     tanim_state(retvals(0)).cycle = retvals(1) MOD 160
     END IF
    CASE 254'--gettileanimationoffset
     IF retvals(0) = 0 OR retvals(0) = 1 THEN
-     scriptret = cycle(retvals(0))
+     scriptret = tanim_state(retvals(0)).cycle
     END IF
    CASE 255'--animationstarttile
     IF retvals(0) < 160 THEN
@@ -2516,9 +2517,11 @@ SUB loadmap_gmap(mapnum)
  loadtileset tileset, 3
  loadtanim gmap(0), tastuf()
  FOR i = 0 TO 1
-  cycle(i) = 0
-  cycptr(i) = 0
-  cycskip(i) = 0
+  WITH tanim_state(i)
+   .cycle = 0
+   .pt = 0
+   .skip = 0
+  END WITH
  NEXT i
  correctbackdrop
  SELECT CASE gmap(5) '--outer edge wrapping

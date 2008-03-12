@@ -451,45 +451,6 @@ FUNCTION needaddset (BYREF pt AS INTEGER, BYREF check AS INTEGER, what AS STRING
  RETURN NO
 END FUNCTION
 
-SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
- 'Note that although this is almost the same as the cycletile in game, it does not handle tags
- DIM i AS INTEGER
- DIM notstuck AS INTEGER
- FOR i = 0 TO 1
-  WITH tanim_state(i)
-   .skip = large(.skip - 1, 0)
-   IF .skip = 0 THEN
-    notstuck = 10
-    DO
-     SELECT CASE tastuf(2 + 20 * i + .pt)
-      CASE 0
-       .pt = 0
-       .cycle = 0
-      CASE 1
-       .cycle = .cycle - tastuf(11 + 20 * i + .pt) * 16
-       .pt = loopvar(.pt, 0, 8, 1)
-      CASE 2
-       .cycle = .cycle + tastuf(11 + 20 * i + .pt) * 16
-       .pt = loopvar(.pt, 0, 8, 1)
-      CASE 3
-       .cycle = .cycle + tastuf(11 + 20 * i + .pt)
-       .pt = loopvar(.pt, 0, 8, 1)
-      CASE 4
-       .cycle = .cycle - tastuf(11 + 20 * i + .pt)
-       .pt = loopvar(.pt, 0, 8, 1)
-      CASE 5
-       .skip = tastuf(11 + 20 * i + .pt)
-       .pt = loopvar(.pt, 0, 8, 1)
-      CASE ELSE
-       .pt = loopvar(.pt, 0, 8, 1)
-     END SELECT
-     notstuck = large(notstuck - 1, 0)
-    LOOP WHILE notstuck AND .skip = 0
-   END IF
-  END WITH
- NEXT i
-END SUB
-
 SUB keyboardsetup ()
  'There is a different implementation of this in yetmore2 for GAME
  DIM keyconst(207) AS STRING = {"1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/", _

@@ -21,6 +21,7 @@
 
 #IFDEF IS_GAME
 DECLARE SUB embedtext (text$, limit=0)
+DECLARE FUNCTION istag (num, zero)
 #ENDIF
 
 SUB edgeprint (s$, x, y, c, p)
@@ -1318,6 +1319,56 @@ END SUB
 SUB savetanim (n, tastuf())
 setpicstuf tastuf(), 80, -1
 storeset game + ".tap", n, 0
+END SUB
+
+SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
+ DIM i AS INTEGER
+ DIM notstuck AS INTEGER
+ FOR i = 0 TO 1
+#IFDEF IS_GAME
+  IF istag(tastuf(1 + 20 * i), 0) THEN CONTINUE FOR
+#ENDIF
+  WITH tanim_state(i)
+   .skip = large(.skip - 1, 0)
+   IF .skip = 0 THEN
+    notstuck = 10
+    DO
+     SELECT CASE tastuf(2 + 20 * i + .pt)
+      CASE 0
+       IF .pt <> 0 THEN .cycle = 0  'this is done for the tile animation plotscript commands
+       .pt = 0
+      CASE 1
+       .cycle = .cycle - tastuf(11 + 20 * i + .pt) * 16
+       .pt = loopvar(.pt, 0, 8, 1)
+      CASE 2
+       .cycle = .cycle + tastuf(11 + 20 * i + .pt) * 16
+       .pt = loopvar(.pt, 0, 8, 1)
+      CASE 3
+       .cycle = .cycle + tastuf(11 + 20 * i + .pt)
+       .pt = loopvar(.pt, 0, 8, 1)
+      CASE 4
+       .cycle = .cycle - tastuf(11 + 20 * i + .pt)
+       .pt = loopvar(.pt, 0, 8, 1)
+      CASE 5
+       .skip = tastuf(11 + 20 * i + .pt)
+       .pt = loopvar(.pt, 0, 8, 1)
+#IFDEF IS_GAME
+      CASE 6
+       IF istag(tastuf(11 + 20 * i + .pt), 0) THEN
+        .pt = loopvar(.pt, 0, 8, 1)
+       ELSE
+        .pt = 0
+        .cycle = 0
+       END IF
+#ENDIF
+      CASE ELSE
+       .pt = loopvar(.pt, 0, 8, 1)
+     END SELECT
+     notstuck = large(notstuck - 1, 0)
+    LOOP WHILE notstuck AND .skip = 0
+   END IF
+  END WITH
+ NEXT i
 END SUB
 
 'Write old password format (backcompat only)

@@ -311,51 +311,6 @@ NEXT o
 countitem = total
 END FUNCTION
 
-SUB cycletile (cycle(), tastuf(), pt(), skip())
-
-FOR i = 0 TO 1
- IF NOT istag(tastuf(1 + 20 * i), 0) THEN
-  skip(i) = large(skip(i) - 1, 0)
-  IF skip(i) = 0 THEN
-   notstuck = 10
-   DO
-    SELECT CASE tastuf(2 + 20 * i + pt(i))
-     CASE 0
-      IF pt(i) <> 0 THEN cycle(i) = 0
-      pt(i) = 0
-     CASE 1
-      cycle(i) = cycle(i) - tastuf(11 + 20 * i + pt(i)) * 16
-      pt(i) = loopvar(pt(i), 0, 8, 1)
-     CASE 2
-      cycle(i) = cycle(i) + tastuf(11 + 20 * i + pt(i)) * 16
-      pt(i) = loopvar(pt(i), 0, 8, 1)
-     CASE 3
-      cycle(i) = cycle(i) + tastuf(11 + 20 * i + pt(i))
-      pt(i) = loopvar(pt(i), 0, 8, 1)
-     CASE 4
-      cycle(i) = cycle(i) - tastuf(11 + 20 * i + pt(i))
-      pt(i) = loopvar(pt(i), 0, 8, 1)
-     CASE 5
-      skip(i) = tastuf(11 + 20 * i + pt(i))
-      pt(i) = loopvar(pt(i), 0, 8, 1)
-     CASE 6
-      IF istag(tastuf(11 + 20 * i + pt(i)), 0) THEN
-       pt(i) = loopvar(pt(i), 0, 8, 1)
-      ELSE
-       pt(i) = 0
-       cycle(i) = 0
-      END IF
-     CASE ELSE
-      pt(i) = loopvar(pt(i), 0, 8, 1)
-    END SELECT
-    notstuck = large(notstuck - 1, 0)
-   LOOP WHILE notstuck AND skip(i) = 0
-  END IF
- END IF
-NEXT i
-
-END SUB
-
 SUB delitem (it, amount)
 FOR o = 0 TO inventoryMax
  IF inventory(o).used AND it - 1 = inventory(o).id THEN

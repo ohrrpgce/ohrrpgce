@@ -79,6 +79,7 @@ DECLARE FUNCTION getmapname$ (m)
 DECLARE FUNCTION createminimap (array() AS INTEGER, map() AS INTEGER, tastuf() AS INTEGER, tilesetpage AS INTEGER, zoom AS INTEGER = -1) AS INTEGER
 DECLARE SUB loadtanim (n, tastuf())
 DECLARE SUB savetanim (n, tastuf())
+DECLARE SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
 DECLARE SUB writescatter (s$, lhold%, start%)
 DECLARE SUB readscatter (s$, lhold%, start%)
 DECLARE FUNCTION finddatafile$(filename$)

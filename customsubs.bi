@@ -20,7 +20,6 @@ DECLARE FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
 DECLARE FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
 DECLARE FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
 DECLARE FUNCTION needaddset (BYREF pt AS INTEGER, BYREF check AS INTEGER, what AS STRING) AS INTEGER
-DECLARE SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
 DECLARE SUB keyboardsetup ()
 DECLARE FUNCTION load_vehicle_name(vehID AS INTEGER) AS STRING
 DECLARE FUNCTION load_item_name (it AS INTEGER, hidden AS INTEGER, offbyone AS INTEGER) AS STRING

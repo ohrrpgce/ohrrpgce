@@ -13,7 +13,6 @@ declare function averagelev (stat())
 declare sub calibrate
 declare function consumeitem (index)
 declare function countitem (it)
-declare sub cycletile (cycle(), tastuf(), pt(), skip())
 declare sub delitem (it, amount)
 declare sub doswap (s, d, stat())
 declare sub drawsay (saybit(), sayenh(), say$(), showsay, choose$(), choosep)
