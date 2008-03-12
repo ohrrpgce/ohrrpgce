@@ -1,0 +1,6 @@
+[mysql]
+host=localhost
+user=bugzilla
+passwd=
+database=bugzilla
+table_prefix=
