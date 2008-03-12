@@ -633,11 +633,12 @@ SUB testanimpattern (tastuf(), taset)
 
 DIM sample(7)
 DIM tanim_state(1) AS TileAnimState
+DIM tileset as Frame ptr = NULL
 
 clearpage vpage
 clearpage dpage
 
-loadtileset 3
+loadtileset tileset, 3
 
 sample(0) = 3
 sample(1) = 3
@@ -667,12 +668,12 @@ DO
  setvispage vpage
  '--draw available animating tiles--
  setmapdata buffer(), buffer(), 10, 130
- drawmap 0, -10, 0, 0, dpage
+ drawmap 0, -10, 0, 0, tileset, dpage
  '--draw sample--
  setmapdata sample(), sample(), 100, 40
  setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
  cycletile tanim_state(), tastuf()
- drawmap -130, -100, 0, 0, dpage
+ drawmap -130, -100, 0, 0, tileset, dpage
  '--Draw cursor--
  y = INT(csr / 16)
  x = csr - y * 16
@@ -683,7 +684,7 @@ DO
  
  dowait
 LOOP
-unloadtileset
+unloadtileset tileset
 EXIT SUB
 
 setupsample:

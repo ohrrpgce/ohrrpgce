@@ -93,8 +93,6 @@ dim shared map_y as integer
 dim shared anim1 as integer
 dim shared anim2 as integer
 
-dim shared tileset as Frame ptr
-
 dim shared waittime as double
 dim shared waitset as integer
 
@@ -174,8 +172,6 @@ sub restoremode()
 	for i = 0 to 3
 		deallocate(spage(i))
 	next
-
-	sprite_delete @tileset
 
 	releasestack
 end sub
@@ -377,7 +373,7 @@ FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, 
 	readblock = block
 end FUNCTION
 
-SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer, BYVAL p as integer, byval trans as integer = 0)
+SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, byval trans as integer = 0)
 	dim sptr as ubyte ptr
 	dim plane as integer
 
@@ -440,8 +436,8 @@ SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer
 
 			'get the tile
 			if (todraw >= 0) then
-				tileframe.image = tileset->image + todraw * 20 * 20
-				tileframe.mask = tileset->mask + todraw * 20 * 20
+				tileframe.image = tilesetsprite->image + todraw * 20 * 20
+				tileframe.mask = tilesetsprite->mask + todraw * 20 * 20
 
 				'draw it on the map
 				drawohr(tileframe, , tx, ty, , trans)
@@ -3310,11 +3306,11 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 
 end sub
 
-sub unloadtileset
+sub unloadtileset(byref tileset as Frame ptr)
 	sprite_delete @tileset
 end sub
 
-sub loadtileset(byval page as integer)
+sub loadtileset(byref tileset as Frame ptr, byval page as integer)
 	if tileset = null then
 		tileset = callocate(sizeof(frame))
 		tileset->w = 20

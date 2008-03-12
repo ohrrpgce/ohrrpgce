@@ -85,6 +85,9 @@ DECLARE SUB show_minimap(map() AS INTEGER, tastuf() AS INTEGER)
 #include "scancodes.bi"
 #include "loading.bi"
 
+'Module level variables
+DIM SHARED tileset as Frame ptr = NULL
+
 REM $STATIC
 
 FUNCTION addmaphow () AS INTEGER
@@ -249,7 +252,7 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-unloadtileset
+unloadtileset tileset
 EXIT SUB
 
 whattodo:
@@ -292,7 +295,7 @@ DO
   IF csr = 3 THEN
    GOSUB gmapdata
    loadpage game + ".til", gmap(0), 3
-   loadtileset 3
+   loadtileset tileset, 3
   END IF
   IF csr = 4 THEN mapedit_delete pt, wide, high, x, y, mapx, mapy, layer, map(), pass(), emap(), npc(), npcstat(), doors(), link()
   IF csr = 5 THEN mapedit_linkdoors pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
@@ -494,7 +497,7 @@ DO
   '--show default edge tile
   setmapdata sampmap(), sampmap(), 180, 0
   setmapblock 0, 0, 0, gmap(6)
-  drawmap 0, -180, 0, 0, dpage
+  drawmap 0, -180, 0, 0, tileset, dpage
   rectangle 20, 180, 300, 20, uilook(uiBackground), dpage
  END IF
  
@@ -850,7 +853,7 @@ DO
  '--draw menubar
  IF editmode = 0 THEN
   setmapdata menubar(), pass(), 0, 180
-  drawmap menubarstart(layer) * 20, 0, 0, 0, dpage
+  drawmap menubarstart(layer) * 20, 0, 0, 0, tileset, dpage
  ELSE
   rectangle 0, 0, 320, 20, uilook(uiBackground), dpage
  END IF
@@ -869,19 +872,19 @@ DO
 			if i = 2 then jigx = -1: jigy = -1
 		end if
 		if i = 0 then
-			drawmap mapx + jigx, mapy + jigy - 20, 0, 1, dpage, 0
+			drawmap mapx + jigx, mapy + jigy - 20, 0, 1, tileset, dpage, 0
 		elseif i = 1 then
-			drawmap mapx + jigx, mapy + jigy - 20, 1, 0, dpage, 1
+			drawmap mapx + jigx, mapy + jigy - 20, 1, 0, tileset, dpage, 1
 		elseif i = 2 then
-			drawmap mapx + jigx, mapy + jigy - 20, 2, 0, dpage, 1
+			drawmap mapx + jigx, mapy + jigy - 20, 2, 0, tileset, dpage, 1
 		end if
 	end if
  next
  if layerisvisible(visible(), 0) AND layerisenabled(gmap(), 0) then
 	if readbit(jiggle(), 0, 0) and tog then
-		drawmap mapx + 1, mapy - 20, 0, 2, dpage, 0
+		drawmap mapx + 1, mapy - 20, 0, 2, tileset, dpage, 0
 	else
-		drawmap mapx, mapy - 20, 0, 2, dpage, 0
+		drawmap mapx, mapy - 20, 0, 2, tileset, dpage, 0
 	end if
  end if
  
@@ -1196,7 +1199,7 @@ SUB mapedit_loadmap (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INT
  loadrecord gmap(), game & ".map", dimbinsize(binMAP), mapnum
  visible(0) = &b111   'default all layers to visible, if they're enabled too, of course
  loadpage game & ".til", gmap(0), 3
- loadtileset 3
+ loadtileset tileset, 3
  loadtanim gmap(0), tastuf()
  FOR i = 0 TO 1
   WITH tanim_state(i)
@@ -1573,6 +1576,7 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors() as do
  DIM caption$
  DIM destdoor(99) as door
  DIM gmap2(dimbinsize(4)), anim(40)
+ DIM secondtileset as Frame ptr
  
  clearpage 2
  IF link(cur).source = -1 THEN EXIT SUB
@@ -1587,7 +1591,7 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors() as do
   dmy = small(large(dmy, 0), map(1) * 20 - 100)
   FOR i = 0 to 2
    IF LayerIsEnabled(gmap(), i) THEN
-     drawmap dmx, dmy, i, 0, 2, i <> 0
+     drawmap dmx, dmy, i, 0, tileset, 2, i <> 0
    END IF
   NEXT i
   edgebox doors(link(cur).source).x * 20 - dmx, doors(link(cur).source).y * 20 - dmy - 20, 20, 20, uilook(uiMenuItem), uilook(uiBackground), 2
@@ -1601,7 +1605,7 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors() as do
  deserdoors game + ".dox", destdoor(), destmap
  LoadTiledata maplumpname$(destmap, "t"), map(), 3, tempw, temph
  loadpage game + ".til", gmap2(0), 3
- loadtileset 3
+ loadtileset secondtileset, 3
  
  loadtanim gmap2(0), anim()
  setanim anim(0), anim(20)
@@ -1613,7 +1617,7 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors() as do
   dmy = small(large(dmy, 0), map(1) * 20 - 100)
   FOR i = 0 to 2
    IF LayerIsEnabled(gmap2(), i) THEN
-     drawmap dmx, dmy - 100, i, 0, 2, i <> 0
+     drawmap dmx, dmy - 100, i, 0, secondtileset, 2, i <> 0
    END IF
   NEXT i
   edgebox destdoor(link(cur).dest).x * 20 - dmx, destdoor(link(cur).dest).y * 20 - dmy + 80, 20, 20, uilook(uiMenuItem), uilook(uiBackground), 2
@@ -1622,9 +1626,8 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), doors() as do
   printstr caption$, destdoor(link(cur).dest).x * 20 - dmx + 10 - (4 * LEN(caption$)), destdoor(link(cur).dest).y * 20 - dmy + 86, 2
  END IF
  '-----------------RESET DATA
- loadpage game + ".til", gmap(0), 3
- loadtileset 3
  LoadTiledata maplumpname$(curmap, "t"), map(), 3, tempw, temph
+ unloadtileset secondtileset
 END SUB
 
 SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS INTEGER, defaults() AS INTEGER, tastuf() AS INTEGER)

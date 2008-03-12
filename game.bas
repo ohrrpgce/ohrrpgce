@@ -228,6 +228,7 @@ DIM topmenu AS INTEGER = -1
 dim door(99) as door, doorlinks(199) as doorlink
 
 'shared module variables
+DIM SHARED tileset as Frame ptr
 DIM SHARED cycle(1), cycptr(1), cycskip(1), tastuf(40), stat(40, 1, 16), needf
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
 'textbox stuff (needs moving into a udt)
@@ -817,8 +818,8 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
  'DEBUG debug "drawmap"
  overlay = 1
  IF readbit(gen(), 44, suspendoverlay) THEN overlay = 0
- drawmap mapx, mapy, 0, overlay, dpage, 0
- if readbit(gmap(), 19, 0) then drawmap mapx, mapy, 1, 0, dpage, 1
+ drawmap mapx, mapy, 0, overlay, tileset, dpage, 0
+ if readbit(gmap(), 19, 0) then drawmap mapx, mapy, 1, 0, tileset, dpage, 1
  'DEBUG debug "draw npcs and heroes"
  IF gmap(16) = 1 THEN
   cathero
@@ -828,8 +829,8 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
   cathero
  END IF
  'DEBUG debug "drawoverhead"
- if readbit(gmap(), 19, 1) then drawmap mapx, mapy, 2, 0, dpage, 1
- IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 0, 2, dpage
+ if readbit(gmap(), 19, 1) then drawmap mapx, mapy, 2, 0, tileset, dpage, 1
+ IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 0, 2, tileset, dpage
 ELSE '---END NORMAL DISPLAY---
  'DEBUG debug "backdrop display"
  copypage 3, dpage
@@ -2176,7 +2177,7 @@ SELECT CASE .curkind
       retvals(0) = gmap(0)
      END IF
      loadpage game + ".til", retvals(0), 3
-     loadtileset 3
+     loadtileset tileset, 3
      loadtanim retvals(0), tastuf()
      FOR i = 0 TO 1
       cycle(i) = 0
@@ -2512,7 +2513,7 @@ END FUNCTION
 SUB loadmap_gmap(mapnum)
  loadrecord gmap(), game + ".map", getbinsize(4) / 2, mapnum
  loadpage game + ".til", gmap(0), 3
- loadtileset 3
+ loadtileset tileset, 3
  loadtanim gmap(0), tastuf()
  FOR i = 0 TO 1
   cycle(i) = 0
