@@ -707,7 +707,7 @@ DO
       link_one_door pt, doorlinkid, link(), doors(), map(), pass(), gmap()
      ELSE
       doorlinkid = find_last_used_doorlink(link()) + 1
-      IF doorlinkid > 0 AND doorlinkid <= UBOUND(link) THEN
+      IF doorlinkid >= 0 AND doorlinkid <= UBOUND(link) THEN
        link(doorlinkid).source = doorid
        link_one_door pt, doorlinkid, link(), doors(), map(), pass(), gmap()
       END IF
