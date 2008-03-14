@@ -373,7 +373,14 @@ FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, 
 	readblock = block
 end FUNCTION
 
-SUB drawmap (BYVAL x, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, byval trans as integer = 0)
+SUB drawmap (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer, BYVAL tileset as TilesetData ptr, BYVAL p as integer, byval trans as integer = 0)
+	'overrides setanim
+	anim1 = tileset->tastuf(0) + tileset->anim(0).cycle
+	anim2 = tileset->tastuf(20) + tileset->anim(1).cycle
+	drawmap x, y, l, t, tileset->spr, p, trans
+END SUB
+
+SUB drawmap (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, byval trans as integer = 0)
 	dim sptr as ubyte ptr
 	dim plane as integer
 

@@ -39,7 +39,8 @@ Feb ?? 2008 [werewaffle]
     * Bug 608: New menus were checking equipment tags when the menu
       opened instead of when the menu closed
     * Bug 612: Problems with animating tiles on a map, including
-      potentially corrupting the map [Ralph Versteegen]
+      potentially corrupting the map.
+      And changing the tileset didn't reload tile animations [Ralph]
     * Bug 603: Shops ignore default item value for buy/sell prices
       [James Paige]
 

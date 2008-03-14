@@ -227,7 +227,7 @@ DIM topmenu AS INTEGER = -1
 dim door(99) as door, doorlinks(199) as doorlink
 
 'shared module variables
-DIM SHARED tileset as Frame ptr, tanim_state(1) AS TileAnimState, tastuf(40)
+DIM SHARED tilesets(0) as TilesetData ptr
 DIM SHARED stat(40, 1, 16), needf
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
 'textbox stuff (needs moving into a udt)
@@ -525,7 +525,7 @@ DO
    init_menu_state mstates(i), menus(i)
   END IF
  NEXT i
- player_menu_keys menu_text_box, stat(), catx(), caty(), tastuf(), map, foep, stock()
+ player_menu_keys menu_text_box, stat(), catx(), caty(), tilesets(0)->tastuf(), map, foep, stock()
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
   say = menu_text_box
@@ -623,7 +623,7 @@ DO
     ygo(0) = 0
    END IF
   ELSE
-   IF keyval(59) > 1 AND showsay = 0 THEN minimap catx(0), caty(0), tastuf()
+   IF keyval(59) > 1 AND showsay = 0 THEN minimap catx(0), caty(0), tilesets(0)->tastuf()
   END IF
   IF keyval(60) > 1 AND showsay = 0 THEN
    savegame 32, map, foep, stat(), stock()
@@ -781,6 +781,7 @@ LOOP ' This is the end of the DO that encloses a specific RPG file
 
 'resetg
 IF autorungame THEN exitprogram (NOT abortg)
+unloadtilesetdata tilesets(0)
 resetinterpreter
 cleanuptemp
 fademusic 0
@@ -812,13 +813,13 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
  '---NORMAL DISPLAY---
  'DEBUG debug "normal display"
  setmapdata scroll(), pass(), 0, 0
- setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
- cycletile tanim_state(), tastuf()
+ 'setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
+ cycletile tilesets(0)->anim(), tilesets(0)->tastuf()
  'DEBUG debug "drawmap"
  overlay = 1
  IF readbit(gen(), 44, suspendoverlay) THEN overlay = 0
- drawmap mapx, mapy, 0, overlay, tileset, dpage, 0
- if readbit(gmap(), 19, 0) then drawmap mapx, mapy, 1, 0, tileset, dpage, 1
+ drawmap mapx, mapy, 0, overlay, tilesets(0), dpage, 0
+ if readbit(gmap(), 19, 0) then drawmap mapx, mapy, 1, 0, tilesets(0), dpage, 1
  'DEBUG debug "draw npcs and heroes"
  IF gmap(16) = 1 THEN
   cathero
@@ -828,8 +829,8 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
   cathero
  END IF
  'DEBUG debug "drawoverhead"
- if readbit(gmap(), 19, 1) then drawmap mapx, mapy, 2, 0, tileset, dpage, 1
- IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 0, 2, tileset, dpage
+ if readbit(gmap(), 19, 1) then drawmap mapx, mapy, 2, 0, tilesets(0), dpage, 1
+ IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 0, 2, tilesets(0), dpage
 ELSE '---END NORMAL DISPLAY---
  'DEBUG debug "backdrop display"
  copypage 3, dpage
@@ -1007,7 +1008,7 @@ END IF
 '---SHOP/INN/SAVE/ETC------------
 IF istag(saytag(7), 0) THEN
  IF saytag(8) > 0 THEN
-  shop saytag(8) - 1, needf, stock(), stat(), map, foep, tastuf()
+  shop saytag(8) - 1, needf, stock(), stat(), map, foep, tilesets(0)->tastuf()
   reloadnpc stat()
  END IF
  inn = 0
@@ -2076,7 +2077,7 @@ SELECT CASE .curkind
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxShop) THEN
-     shop retvals(0), needf, stock(), stat(), map, foep, tastuf()
+     shop retvals(0), needf, stock(), stat(), map, foep, tilesets(0)->tastuf()
      reloadnpc stat()
     END IF
    CASE 55'--get default weapon
@@ -2175,19 +2176,10 @@ SELECT CASE .curkind
      IF retvals(0) < 0 THEN
       retvals(0) = gmap(0)
      END IF
-     loadpage game + ".til", retvals(0), 3
-     loadtileset tileset, 3
-     loadtanim retvals(0), tastuf()
-     FOR i = 0 TO 1
-     WITH tanim_state(i)
-      .cycle = 0
-      .pt = 0
-      .skip = 0
-     END WITH
-     NEXT i
+     loadtilesetdata tilesets(0), retvals(0)
     END IF
    CASE 151'--show mini map
-    minimap catx(0), caty(0), tastuf()
+    minimap catx(0), caty(0), tilesets(0)->tastuf()
    CASE 153'--items menu
     wantbox = items(stat())
    CASE 155, 170'--save menu
@@ -2245,17 +2237,17 @@ SELECT CASE .curkind
     deletemapstate map, retvals(0), "map"
    CASE 253'--settileanimationoffset
     IF retvals(0) = 0 OR retvals(0) = 1 THEN
-     tanim_state(retvals(0)).cycle = retvals(1) MOD 160
+     tilesets(0)->anim(retvals(0)).cycle = retvals(1) MOD 160
     END IF
    CASE 254'--gettileanimationoffset
     IF retvals(0) = 0 OR retvals(0) = 1 THEN
-     scriptret = tanim_state(retvals(0)).cycle
+     scriptret = tilesets(0)->anim(retvals(0)).cycle
     END IF
    CASE 255'--animationstarttile
     IF retvals(0) < 160 THEN
      scriptret = retvals(0)
     ELSEIF retvals(0) >= 160 AND retvals(0) < 256 THEN
-     scriptret = tastuf(((retvals(0) - 160) \ 48) * 20) + (retvals(0) - 160) MOD 48
+     scriptret = tilesets(0)->tastuf(((retvals(0) - 160) \ 48) * 20) + (retvals(0) - 160) MOD 48
     END IF
    CASE 258'--checkherowall
     IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
@@ -2513,16 +2505,7 @@ END FUNCTION
 
 SUB loadmap_gmap(mapnum)
  loadrecord gmap(), game + ".map", getbinsize(4) / 2, mapnum
- loadpage game + ".til", gmap(0), 3
- loadtileset tileset, 3
- loadtanim gmap(0), tastuf()
- FOR i = 0 TO 1
-  WITH tanim_state(i)
-   .cycle = 0
-   .pt = 0
-   .skip = 0
-  END WITH
- NEXT i
+ loadtilesetdata tilesets(0), gmap(0)
  correctbackdrop
  SELECT CASE gmap(5) '--outer edge wrapping
   CASE 0, 1'--crop edges or wrap

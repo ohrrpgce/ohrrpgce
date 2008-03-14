@@ -80,6 +80,8 @@ DECLARE FUNCTION createminimap (array() AS INTEGER, map() AS INTEGER, tastuf() A
 DECLARE SUB loadtanim (n, tastuf())
 DECLARE SUB savetanim (n, tastuf())
 DECLARE SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
+DECLARE SUB loadtilesetdata (BYREF tileset AS TilesetData ptr, BYVAL tilesetnum AS INTEGER)
+DECLARE SUB unloadtilesetdata (BYREF tileset AS TilesetData ptr)
 DECLARE SUB writescatter (s$, lhold%, start%)
 DECLARE SUB readscatter (s$, lhold%, start%)
 DECLARE FUNCTION finddatafile$(filename$)

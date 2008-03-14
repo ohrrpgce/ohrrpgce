@@ -2550,3 +2550,49 @@ FUNCTION read_npc_int (npcdata AS NPCType, intoffset AS INTEGER) AS INTEGER
  END WITH
  RETURN 0
 END FUNCTION
+
+SUB loadtilesetdata (BYREF tileset AS TilesetData ptr, BYVAL tilesetnum AS INTEGER)
+'tileset may already be loaded
+'note that tile animation data is NOT reset if the old tileset was the same
+
+ IF tileset <> NULL THEN
+  IF tileset->num = tilesetnum THEN EXIT SUB
+  tileset->refcount -= 1
+  IF tileset->refcount = 0 THEN
+   unloadtileset tileset->spr
+   Deallocate(tileset)
+  END IF
+  tileset = NULL
+ END IF
+
+ IF tileset = NULL THEN
+  tileset = Callocate(sizeof(TilesetData))
+  tileset->refcount = 1
+ END IF
+
+ WITH *tileset
+  loadpage game + ".til", tilesetnum, 3
+  loadtileset .spr, 3
+  .num = tilesetnum
+
+  loadtanim tilesetnum, .tastuf()
+  FOR i = 0 TO 1
+   WITH .anim(i)
+    .cycle = 0
+    .pt = 0
+    .skip = 0
+   END WITH
+  NEXT
+ END WITH
+END SUB
+
+SUB unloadtilesetdata (BYREF tileset AS TilesetData ptr)
+ IF tileset <> NULL THEN
+  tileset->refcount -= 1
+  IF tileset->refcount <= 0 THEN
+   unloadtileset tileset->spr
+   Deallocate(tileset)
+  END IF
+  tileset = NULL
+ END IF
+END SUB

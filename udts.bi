@@ -246,10 +246,6 @@ UNION RGBcolor
 		END TYPE
 END UNION
 
-Type TilesetData field=1
-	TransColor as Integer
-End Type
-
 TYPE TileCloneBuffer
  exists AS INTEGER
  buf(19,19) AS UBYTE
@@ -319,6 +315,14 @@ Type TileAnimState
  pt AS INTEGER
  skip AS INTEGER
 END Type
+
+Type TilesetData
+  num as integer
+  refcount as integer  'exists (and unused) in spr too, but using that one would be tacky
+  spr as Frame ptr     '(uncached) could be a Frame, but sprite_delete doesn't like that
+  anim(1) as TileAnimState
+  tastuf(40) as integer
+End Type
 
 Type Door
 	as integer x, y
