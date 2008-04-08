@@ -1384,6 +1384,13 @@ SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
 	f = freefile
 	open fil$ for binary access read as #f
 
+	if lof(f) < (i + 1) * 64000 then
+		debug "loadpage: wanted page " & i & "; " & fil$ & " is only " & lof(f) & " bytes"
+		clearpage p
+		close #f
+		exit sub
+	end if
+
 	'skip to index
 	seek #f, (i*64000) + 1
 

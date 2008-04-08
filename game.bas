@@ -162,7 +162,7 @@ DECLARE SUB bring_menu_forward (slot AS INTEGER)
 DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
 DECLARE FUNCTION menus_allow_player () AS INTEGER
 DECLARE FUNCTION allowed_to_open_main_menu () AS INTEGER
-DECLARE SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
+DECLARE SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tilesets() AS TilesetData ptr, map, foep, stock())
 DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB check_menu_tags ()
 DECLARE FUNCTION game_usemenu (state AS MenuState)
@@ -227,7 +227,7 @@ DIM topmenu AS INTEGER = -1
 dim door(99) as door, doorlinks(199) as doorlink
 
 'shared module variables
-DIM SHARED tilesets(0) as TilesetData ptr
+DIM SHARED tilesets(2) as TilesetData ptr
 DIM SHARED stat(40, 1, 16), needf
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
 'textbox stuff (needs moving into a udt)
@@ -525,7 +525,7 @@ DO
    init_menu_state mstates(i), menus(i)
   END IF
  NEXT i
- player_menu_keys menu_text_box, stat(), catx(), caty(), tilesets(0)->tastuf(), map, foep, stock()
+ player_menu_keys menu_text_box, stat(), catx(), caty(), tilesets(), map, foep, stock()
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
   say = menu_text_box
@@ -781,7 +781,7 @@ LOOP ' This is the end of the DO that encloses a specific RPG file
 
 'resetg
 IF autorungame THEN exitprogram (NOT abortg)
-unloadtilesetdata tilesets(0)
+unloadmaptilesets tilesets()
 resetinterpreter
 cleanuptemp
 fademusic 0
@@ -814,12 +814,12 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
  'DEBUG debug "normal display"
  setmapdata scroll(), pass(), 0, 0
  'setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
- cycletile tilesets(0)->anim(), tilesets(0)->tastuf()
+ 'cycletile tilesets(0)->anim(), tilesets(0)->tastuf()
  'DEBUG debug "drawmap"
  overlay = 1
  IF readbit(gen(), 44, suspendoverlay) THEN overlay = 0
  drawmap mapx, mapy, 0, overlay, tilesets(0), dpage, 0
- if readbit(gmap(), 19, 0) then drawmap mapx, mapy, 1, 0, tilesets(0), dpage, 1
+ IF readbit(gmap(), 19, 0) THEN drawmap mapx, mapy, 1, 0, tilesets(1), dpage, 1
  'DEBUG debug "draw npcs and heroes"
  IF gmap(16) = 1 THEN
   cathero
@@ -829,8 +829,9 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
   cathero
  END IF
  'DEBUG debug "drawoverhead"
- if readbit(gmap(), 19, 1) then drawmap mapx, mapy, 2, 0, tilesets(0), dpage, 1
+ IF readbit(gmap(), 19, 1) THEN drawmap mapx, mapy, 2, 0, tilesets(2), dpage, 1
  IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 0, 2, tilesets(0), dpage
+ animatetilesets tilesets()
 ELSE '---END NORMAL DISPLAY---
  'DEBUG debug "backdrop display"
  copypage 3, dpage
@@ -2176,7 +2177,9 @@ SELECT CASE .curkind
      IF retvals(0) < 0 THEN
       retvals(0) = gmap(0)
      END IF
-     loadtilesetdata tilesets(0), retvals(0)
+     loadtilesetdata tilesets(), 0, retvals(0)
+     loadtilesetdata tilesets(), 1, retvals(0)
+     loadtilesetdata tilesets(), 2, retvals(0)
     END IF
    CASE 151'--show mini map
     minimap catx(0), caty(0), tilesets(0)->tastuf()
@@ -2505,7 +2508,7 @@ END FUNCTION
 
 SUB loadmap_gmap(mapnum)
  loadrecord gmap(), game + ".map", getbinsize(4) / 2, mapnum
- loadtilesetdata tilesets(0), gmap(0)
+ loadmaptilesets tilesets(), gmap()
  correctbackdrop
  SELECT CASE gmap(5) '--outer edge wrapping
   CASE 0, 1'--crop edges or wrap
@@ -2742,7 +2745,7 @@ FUNCTION menus_allow_player () AS INTEGER
  RETURN menus(topmenu).suspend_player = NO
 END FUNCTION
 
-SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tastuf(), map, foep, stock())
+SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tilesets() AS TilesetData ptr, map, foep, stock())
  DIM slot AS INTEGER
  DIM activated AS INTEGER
  DIM menu_handle AS INTEGER
@@ -2803,7 +2806,7 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), ta
        CASE 6 ' order/team
         heroswap readbit(gen(), 101, 5), stat() : updatetags = YES
        CASE 7,12 ' map
-        minimap catx(0), caty(0), tastuf()
+        minimap catx(0), caty(0), tilesets(0)->tastuf()
        CASE 8,13 ' save
         slot = picksave(0)
         IF slot >= 0 THEN savegame slot, map, foep, stat(), stock()

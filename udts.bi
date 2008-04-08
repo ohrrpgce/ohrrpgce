@@ -434,6 +434,13 @@ TYPE ToolInfoType
   areanum AS INTEGER
 END TYPE
 
+'yuck. FB has multidimensional arrays, why doesn't it let us utilise 'em? would like to write
+'DIM defaults(2,160)
+'loadpasdefaults defaults(i), foo
+TYPE DefArray
+ a(160) AS INTEGER  '161 elements required
+END TYPE
+
 'it's not possible to include utils.bi in here, because of compat.bi
 #ifndef UTIL_BI
 TYPE Stack

@@ -1321,6 +1321,15 @@ setpicstuf tastuf(), 80, -1
 storeset game + ".tap", n, 0
 END SUB
 
+SUB animatetilesets (tilesets() AS TilesetData ptr)
+ FOR i = 0 TO UBOUND(tilesets)
+  FOR j = 0 TO i - 1
+   IF tilesets(i) = tilesets(j) THEN CONTINUE FOR, FOR
+  NEXT
+  cycletile tilesets(i)->anim(), tilesets(i)->tastuf()
+ NEXT
+END SUB
+
 SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
  DIM i AS INTEGER
  DIM notstuck AS INTEGER
@@ -2551,30 +2560,46 @@ FUNCTION read_npc_int (npcdata AS NPCType, intoffset AS INTEGER) AS INTEGER
  RETURN 0
 END FUNCTION
 
-SUB loadtilesetdata (BYREF tileset AS TilesetData ptr, BYVAL tilesetnum AS INTEGER)
-'tileset may already be loaded
-'note that tile animation data is NOT reset if the old tileset was the same
-
+SUB unloadtilesetdata (BYREF tileset AS TilesetData ptr)
  IF tileset <> NULL THEN
-  IF tileset->num = tilesetnum THEN EXIT SUB
   tileset->refcount -= 1
   IF tileset->refcount = 0 THEN
+   'debug "unloading tileset " & tileset->num
    unloadtileset tileset->spr
    Deallocate(tileset)
   END IF
   tileset = NULL
  END IF
+END SUB
 
- IF tileset = NULL THEN
-  tileset = Callocate(sizeof(TilesetData))
-  tileset->refcount = 1
+SUB maptilesetsprint (tilesets() AS TilesetData ptr)
+ FOR i = 0 TO UBOUND(tilesets)
+  IF tilesets(i) = NULL THEN
+   debug i & ": NULL"
+  ELSE 
+   debug i & ": " & tilesets(i)->num & "  ref: " & tilesets(i)->refcount
+  END IF
+ NEXT
+END SUB
+
+SUB loadtilesetdata (BYREF tileset AS TilesetData ptr, BYVAL tilesetnum AS INTEGER)
+'tileset may already be loaded
+'note that tile animation data is NOT reset if the old tileset was the same	
+
+ IF tileset <> NULL THEN
+  IF tileset->num = tilesetnum THEN EXIT SUB
+  unloadtilesetdata tileset
  END IF
 
+ tileset = Callocate(sizeof(TilesetData))
+
  WITH *tileset
+  .num = tilesetnum
+  .refcount = 1
+  'debug "loading tileset " & tilesetnum
+
   loadpage game + ".til", tilesetnum, 3
   loadtileset .spr, 3
-  .num = tilesetnum
-
   loadtanim tilesetnum, .tastuf()
   FOR i = 0 TO 1
    WITH .anim(i)
@@ -2586,13 +2611,56 @@ SUB loadtilesetdata (BYREF tileset AS TilesetData ptr, BYVAL tilesetnum AS INTEG
  END WITH
 END SUB
 
-SUB unloadtilesetdata (BYREF tileset AS TilesetData ptr)
- IF tileset <> NULL THEN
-  tileset->refcount -= 1
-  IF tileset->refcount <= 0 THEN
-   unloadtileset tileset->spr
-   Deallocate(tileset)
+SUB loadtilesetdata (tilesets() AS TilesetData ptr, BYVAL layer AS INTEGER, BYVAL tilesetnum AS INTEGER)
+ FOR i = 0 TO UBOUND(tilesets)
+  IF i <> layer AND tilesets(i) <> NULL THEN
+   IF tilesets(i)->num = tilesetnum THEN
+
+    unloadtilesetdata tilesets(layer)
+    tilesets(layer) = tilesets(i)
+    tilesets(layer)->refcount += 1
+    EXIT SUB
+   END IF
   END IF
-  tileset = NULL
- END IF
+ NEXT
+
+ loadtilesetdata tilesets(layer), tilesetnum
+END SUB
+
+SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER)
+'tilesets() may contain already loaded tilesets. In this case, we can reuse them
+'but this mechanism is crude, tilesets might be freed then reloaded (code to fix commented)
+
+' REDIM tilesets(0 TO 2 * UBOUND(tilesets) + 1)
+' FOR i = 0 TO 2
+'  IF tilesets(i) <> NULL THEN tilesets(UBOUND(tilesets) - i) = tilesets(i): tilesets(i)->refcount += 1
+' NEXT
+
+ FOR i = 0 TO 2
+' IF gmap( ) <> 0 THEN
+'  set = gmap( ) - 1
+' ELSE
+   set = gmap(0)
+' END IF
+
+  loadtilesetdata tilesets(), i, set
+ NEXT
+
+ FOR i = 0 TO 2
+'  unloadtilesetdata tilesets(UBOUND(tilesets - i))
+  FOR j = 0 TO 1
+   WITH tilesets(i)->anim(j)
+    .cycle = 0
+    .pt = 0
+    .skip = 0
+   END WITH
+  NEXT
+ NEXT
+' REDIM PRESERVE tilesets(UBOUND(tilesets) \ 2)
+END SUB
+
+SUB unloadmaptilesets (tilesets() AS TilesetData ptr)
+ FOR i = 0 TO UBOUND(tilesets)
+  unloadtilesetdata tilesets(i)
+ NEXT
 END SUB
