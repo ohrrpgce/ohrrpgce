@@ -145,25 +145,30 @@ END SUB
 
 SUB importbmp (f$, cap$, count)
 STATIC default$
-DIM menu$(10), submenu$(2), palmapping(255), bmpd(4)
+DIM palmapping(255), bmpd(4)
 DIM pmask(255) as RGBcolor, temppal(255) as RGBcolor
-csr = 0
-pt = 0
+DIM menu$(6), submenu$(2)
+DIM mstate as MenuState
+mstate.size = 24
+mstate.last = UBOUND(menu$)
+menu$(0) = "Return to Main Menu"
+menu$(1) = CHR$(27) + "Browse 0" + CHR$(26)
+menu$(2) = "Replace current " + cap$
+menu$(3) = "Append a new " + cap$
+menu$(4) = "Disable palette colors for import"
+menu$(5) = "Export " + cap$ + " as BMP"
+menu$(6) = "Full screen view"
+submenu$(0) = "Import with current Master Palette"
+submenu$(1) = "Import with new Master Palette"
+submenu$(2) = "Do not remap colours"
+
+pt = 0 'backdrop number
 
 IF count = 0 THEN count = 1
 clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-menu$(0) = "Return to Main Menu"
-menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
-menu$(2) = "Replace current " + cap$
-menu$(3) = "Append a new " + cap$
-menu$(4) = "Disable palette colors for import"
-menu$(5) = "Export current " + cap$ + " as BMP"
-submenu$(0) = "Import with current Master Palette"
-submenu$(1) = "Import with new Master Palette"
-submenu$(2) = "Do not remap colours"
 loadpalette pmask(), activepalette
 loadpage game + f$, pt, 2
 
@@ -171,30 +176,27 @@ setkeys
 DO
  setwait 55
  setkeys
- tog = tog XOR 1
  IF keyval(29) > 0 AND keyval(14) > 1 THEN
   this = count - 1
   cropafter pt, this, 3, game + f$, -1, 1
   count = this + 1
  END IF
  IF keyval(1) > 1 THEN EXIT DO
- usemenu csr, 0, 0, 5, 24
- IF csr = 1 THEN
-  IF intgrabber(pt, 0, count - 1) THEN
-   menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
-   loadpage game + f$, pt, 2
-  END IF
+ usemenu mstate
+ IF intgrabber(pt, 0, count - 1) THEN
+  menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
+  loadpage game + f$, pt, 2
  END IF
  IF enter_or_space() THEN
-  IF csr = 0 THEN EXIT DO
-  IF csr = 2 THEN
+  IF mstate.pt = 0 THEN EXIT DO
+  IF mstate.pt = 2 THEN
    srcbmp$ = browse$(3, default$, "*.bmp", "")
    IF srcbmp$ <> "" THEN
     GOSUB bimport
    END IF
    loadpage game + f$, pt, 2
   END IF
-  IF csr = 3 AND count < 32767 THEN
+  IF mstate.pt = 3 AND count < 32767 THEN
    srcbmp$ = browse$(3, default$, "*.bmp", "")
    IF srcbmp$ <> "" THEN
     oldpt = pt
@@ -205,16 +207,15 @@ DO
    menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
    loadpage game + f$, pt, 2
   END IF
-  IF csr = 4 THEN GOSUB disable
-  IF csr = 5 THEN
+  IF mstate.pt = 4 THEN GOSUB disable
+  IF mstate.pt = 5 THEN
    outfile$ = inputfilename$("Name of file to export to?", ".bmp", trimpath$(game) & " " & cap$ & pt)
    IF outfile$ <> "" THEN screenshot outfile$ & ".bmp", 2, master()
   END IF
  END IF
- FOR i = 0 TO 5
-  col = uilook(uiMenuItem): IF i = csr THEN col = uilook(uiSelectedItem + tog)
-  edgeprint menu$(i), 1, 1 + 10 * i, col, dpage
- NEXT i
+ IF mstate.pt <> 6 THEN
+  standardmenu menu$(), mstate, 0, 0, dpage, -1
+ END IF
  SWAP vpage, dpage
  setvispage vpage
  copypage 2, dpage

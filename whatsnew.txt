@@ -21,6 +21,7 @@ Feb ?? 2008 [werewaffle]
       code rewrites [Ralph Versteegen]
     * Holding down the F12 key takes a screenshot every frame [James]
     * Item descriptions show in-battle too [Ralph Versteegen]
+    * Full view option in backdrop & tileset import/export menus
 
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged
