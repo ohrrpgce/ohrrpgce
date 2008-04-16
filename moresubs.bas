@@ -1370,6 +1370,15 @@ IF newcall AND index > 0 THEN
  END IF
 END IF
 
+'--store current command data in scrat (used outside of the inner interpreter)
+IF nowscript >= 0 THEN
+ WITH scrat(nowscript)
+  .curkind = curcmd->kind
+  .curvalue = curcmd->value
+  .curargc = curcmd->argc
+ END WITH
+END IF
+
 WITH scrat(index)
  '-- Load the script (or return the reference if already loaded)
  .scrnum = loadscript(n)
@@ -1390,6 +1399,8 @@ WITH scrat(index)
  .ret = 0
  .depth = 0
  .id = n
+ .scrdata = script(.scrnum).ptr
+ curcmd = cast(ScriptCommand ptr, .scrdata + .ptr) 'just in case it's needed before subread is run
  
  scrat(index + 1).heap = .heap + script(.scrnum).vars
 
@@ -1813,7 +1824,7 @@ SUB scripterr (e$)
 END SUB
 
 SUB scriptmath
-SELECT CASE scrat(nowscript).curvalue
+SELECT CASE AS CONST curcmd->value
  CASE 0' random
   lowest& = retvals(0)
   highest& = retvals(1)

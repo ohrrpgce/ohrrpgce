@@ -208,35 +208,42 @@ TYPE Plotstring
 END TYPE
 
 TYPE ScriptInst
-'  off as integer        'position of the script in the buffer
   scrnum as integer     'slot number in script() array
+  scrdata as integer ptr 'convenience pointer to script(.scrnum).ptr
   heap as integer       'position of the script's local vars in the buffer
   state as integer      'what the script is doing right now
-  ptr as integer        'the execution pointer
-'  vars as integer       'variable (including arguments) count
+  ptr as integer        'the execution pointer (in int32's from the start of the script data)
   ret as integer        'the scripts current return value
-  curkind as integer    'kind of current statement
-  curvalue as integer   'value of current stament
-  curargc as integer    'number of args for current statement
   curargn as integer    'current arg for current statement
   depth as integer      'stack depth of current script
   id as integer         'id number of current script
   waitarg as integer    'wait state argument
-'  size as integer       'amount the script takes up in the buffer
-'  args as integer       'number of arguments
-'  strtable as integer   'pointer to string table
+
+  'these 3 items are only current/correct for inactive scripts. The active script's current
+  'command is pointed to by the curcmd (ScriptCommand ptr) global, and copied here
+  'when a script is stopped (either suspended, or interpretloop is left)
+  curkind as integer    'kind of current statement
+  curvalue as integer   'value of current statement
+  curargc as integer    'number of args for current statement
 END TYPE
 
 TYPE ScriptData
   id as integer         'id number of script  (set to 0 to mark as unused slot)
   refcount as integer   'number of ScriptInst pointing to this data
-  totaluse as integer   'total number of times this script has been requests since loaded
+  totaluse as integer   'total number of times this script has been requested since loading
   lastuse as integer
   ptr as integer ptr    'pointer to allocated memory
   size as integer       'amount the script takes up in the buffer
   vars as integer       'variable (including arguments) count
   args as integer       'number of arguments
   strtable as integer   'pointer to string table (offset from start of script data in long ints)
+END TYPE
+
+TYPE ScriptCommand
+  kind as integer
+  value as integer
+  argc as integer
+  args(999) as integer
 END TYPE
 
 UNION RGBcolor

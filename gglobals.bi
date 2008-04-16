@@ -82,6 +82,7 @@ EXTERN numloadedscr as integer
 EXTERN totalscrmem as integer
 EXTERN scriptctr as integer
 EXTERN scrst as Stack
+EXTERN curcmd as ScriptCommand ptr
 
 'Script string globals
 'EXTERN plotstring() as string

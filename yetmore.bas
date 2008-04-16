@@ -471,6 +471,7 @@ IF nowscript < 0 THEN
 ELSE
  'check if script needs reloading
  reloadscript scrat(nowscript)
+ curcmd = cast(ScriptCommand ptr, scrat(nowscript).scrdata + scrat(nowscript).ptr)
  IF scrat(nowscript).state < 0 THEN
   '--suspended script is resumed
   scrat(nowscript).state = ABS(scrat(nowscript).state)
@@ -485,20 +486,17 @@ END IF
 END FUNCTION
 
 SUB subread (si as ScriptInst)
-'this sets up a new script by reading the root command (which should be do)
-DIM as integer ptr cmdptr = script(si.scrnum).ptr + si.ptr
+'this sets up a new script by preparing to run at the root command (which should be do)
+curcmd = cast(ScriptCommand ptr, si.scrdata + si.ptr)
 scriptret = 0'--default returnvalue is zero
-si.curkind = cmdptr[0]
-si.curvalue = cmdptr[1]
-si.curargc = cmdptr[2]
 si.curargn = 0
 si.state = stnext
 
 '+5 just-in-case for extra state stuff pushed to stack (atm just switch, +1 ought to be sufficient)
-checkoverflow(scrst, si.curargc + 5)
+checkoverflow(scrst, curcmd->argc + 5)
 
-IF si.curkind <> tyflow THEN
- scripterr "Root script command not flow, but " & si.curkind
+IF curcmd->kind <> tyflow THEN
+ scripterr "Root script command not flow, but " & curcmd->kind
  si.state = sterror
 END IF
 END SUB
@@ -509,37 +507,31 @@ SUB subdoarg (si as ScriptInst)
 '-certain flow & math commands need special logic after every evaluated arg, stnext to handle
 si.state = stnext
 
-DIM as integer ptr dataptr = script(si.scrnum).ptr
+DIM as integer ptr dataptr = si.scrdata
 
 quickrepeat:
-DIM as integer     tempptr = dataptr[si.ptr + 3 + si.curargn]
-DIM as integer ptr cmdptr  = dataptr + tempptr
+DIM as ScriptCommand ptr cmdptr = cast(ScriptCommand ptr, dataptr + curcmd->args(si.curargn))
 
-SELECT CASE cmdptr[0]
+SELECT CASE cmdptr->kind
  CASE tynumber
-  pushs(scrst, cmdptr[1])
+  pushs(scrst, cmdptr->value)
  CASE tyglobal
-  IF cmdptr[1] < 0 OR cmdptr[1] > 4095 THEN
-   scripterr "Illegal global variable id " & cmdptr[1]
+  IF cmdptr->value < 0 OR cmdptr->value > 4095 THEN
+   scripterr "Illegal global variable id " & cmdptr->value
    si.state = sterror
    EXIT SUB
   END IF
-  pushs(scrst, global(cmdptr[1]))
+  pushs(scrst, global(cmdptr->value))
  CASE tylocal
-  pushs(scrst, heap(si.heap + cmdptr[1]))
+  pushs(scrst, heap(si.heap + cmdptr->value))
  CASE IS >= tymath, tyflow
   si.depth += 1
-  '5 for state + args + 5 just-in-case for extra state stuff pushed to stack (atm just switch, +1 ought to be sufficient)
-  checkoverflow(scrst, 10 + cmdptr[2])
+  '2 for state + args + 5 just-in-case for extra state stuff pushed to stack (atm just switch, +1 ought to be sufficient)
+  checkoverflow(scrst, 7 + cmdptr->argc)
   pushs(scrst, si.ptr)
-  pushs(scrst, si.curkind)
-  pushs(scrst, si.curvalue)
-  pushs(scrst, si.curargc)
   pushs(scrst, si.curargn)
-  si.ptr = tempptr
-  si.curkind = cmdptr[0]
-  si.curvalue = cmdptr[1]
-  si.curargc = cmdptr[2]
+  curcmd = cmdptr
+  si.ptr = (cast(integer, cmdptr) - cast(integer, dataptr)) shr 2
   si.curargn = 0
   scriptret = 0'--default returnvalue is zero
 
@@ -552,18 +544,18 @@ SELECT CASE cmdptr[0]
 
   'even for flow, first arg always needs evaluation, so don't leave yet!
   'EXIT SUB
-  IF si.curargc = 0 THEN EXIT SUB
+  IF curcmd->argc = 0 THEN EXIT SUB
   GOTO quickrepeat
  CASE ELSE
-  scripterr "Illegal statement type " & si.curkind
+  scripterr "Illegal statement type " & cmdptr->kind
   si.state = sterror
   EXIT SUB
 END SELECT
 
 si.curargn += 1
-IF si.curargn >= si.curargc THEN EXIT SUB
-IF si.curkind = tyflow THEN IF si.curvalue = flowif OR si.curvalue >= flowfor THEN EXIT SUB
-IF si.curkind = tymath THEN IF si.curvalue >= 20 THEN EXIT SUB
+IF si.curargn >= curcmd->argc THEN EXIT SUB
+IF curcmd->kind = tyflow THEN IF curcmd->value = flowif OR curcmd->value >= flowfor THEN EXIT SUB
+IF curcmd->kind = tymath THEN IF curcmd->value >= 20 THEN EXIT SUB
 GOTO quickrepeat
 END SUB
 
@@ -992,7 +984,7 @@ END SUB
 
 SUB scriptdump (s$)
 
-DIM statestr$(6)
+DIM statestr$(7)
 statestr$(0) = "none"
 statestr$(1) = "wait"
 statestr$(2) = "read"
@@ -1000,6 +992,7 @@ statestr$(3) = "return"
 statestr$(4) = "next"
 statestr$(5) = "doarg"
 statestr$(6) = "done"
+statestr$(7) = "error"
 
 IF scrat(nowscript).depth >= 0 THEN
   indent$ = STRING$(scrat(nowscript).depth, " ")
@@ -1008,21 +1001,21 @@ ELSE
 END IF
 
 SELECT CASE scrat(nowscript).state
- CASE 0 TO 6
-   state$ = " " + statestr$(scrat(nowscript).state)
+ CASE 0 TO 7
+   state$ = statestr$(scrat(nowscript).state)
  CASE ELSE
-   state$ = XSTR$(scrat(nowscript).state)
+   state$ = "illegal: " & scrat(nowscript).state
 END SELECT
 
 debug indent$ + "[" + s$ + "]"
-debug indent$ + "script =" + XSTR$(nowscript)
-debug indent$ + "id     =" + XSTR$(scrat(nowscript).id)
-debug indent$ + "ptr    =" + XSTR$(scrat(nowscript).ptr)
-debug indent$ + "state  =" + state$
-debug indent$ + "kind   =" + XSTR$(scrat(nowscript).curkind)
-debug indent$ + "value  =" + XSTR$(scrat(nowscript).curvalue)
-debug indent$ + "argn   =" + XSTR$(scrat(nowscript).curargn)
-debug indent$ + "argc   =" + XSTR$(scrat(nowscript).curargc)
+debug indent$ + "script = " & nowscript
+debug indent$ + "id     = " & scrat(nowscript).id & " " & scriptname$(scrat(nowscript).id)
+debug indent$ + "ptr    = " & scrat(nowscript).ptr
+debug indent$ + "state  = " & state$
+debug indent$ + "kind   = " & curcmd->kind
+debug indent$ + "value  = " & curcmd->value
+debug indent$ + "argn   = " & scrat(nowscript).curargn
+debug indent$ + "argc   = " & curcmd->argc
 
 END SUB
 
@@ -1418,7 +1411,7 @@ SELECT CASE AS CONST id
    rsr = runscript(retvals(0), nowscript + 1, 0, "indirect", 0)
    IF rsr = 1 THEN
     '--fill heap with return values
-    FOR i = 1 TO scrat(nowscript - 1).curargc - 1  'flexible argument number!
+    FOR i = 1 TO scrat(nowscript - 1).curargc - 1  'flexible argument number! (note that argc has been saved here by runscript)
      setScriptArg i - 1, retvals(i)
     NEXT i
    END IF
@@ -1747,11 +1740,11 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 THEN gold = retvals(0)
  CASE 251'--setstringfromtable
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND script(scrat(nowscript).scrnum).strtable THEN
-   plotstr(retvals(0)).s = read32bitstring$(script(scrat(nowscript).scrnum).ptr + script(scrat(nowscript).scrnum).strtable + retvals(1))
+   plotstr(retvals(0)).s = read32bitstring$(scrat(nowscript).scrdata + script(scrat(nowscript).scrnum).strtable + retvals(1))
   END IF
  CASE 252'--appendstringfromtable
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND script(scrat(nowscript).scrnum).strtable THEN
-   plotstr(retvals(0)).s += read32bitstring$(script(scrat(nowscript).scrnum).ptr + script(scrat(nowscript).scrnum).strtable + retvals(1))
+   plotstr(retvals(0)).s += read32bitstring$(scrat(nowscript).scrdata + script(scrat(nowscript).scrnum).strtable + retvals(1))
   END IF
  CASE 256'--suspendmapmusic
   setbit gen(), 44, suspendambientmusic, 1
@@ -2050,24 +2043,24 @@ SELECT CASE stepmode
  CASE stependscript
   GOTO breakin
  CASE stepscript
-'  IF callspot = 1 THEN IF scrat(nowscript).curkind = tyscript THEN GOTO breakin
+'  IF callspot = 1 THEN IF curcmd->kind = tyscript THEN GOTO breakin
 '  IF callspot = 2 THEN GOTO breakin
   IF lastscriptnum <> nowscript THEN GOTO breakin
  CASE stepargsdone, stepup, stepnext
   IF callspot = 1 THEN
-   IF scrat(nowscript).curargn < scrat(nowscript).curargc OR scrat(nowscript).curargn = 0 THEN EXIT SUB
-   IF scrat(nowscript).curkind = tyflow AND scrat(nowscript).curvalue = flowif THEN EXIT SUB
+   IF scrat(nowscript).curargn < curcmd->argc OR scrat(nowscript).curargn = 0 THEN EXIT SUB
+   IF curcmd->kind = tyflow AND curcmd->value = flowif THEN EXIT SUB
   END IF
   GOTO breakin
 END SELECT
 
 'IF callspot = 1 THEN 'stnext
-'' IF (mode AND 4) AND scrat(nowscript).curkind <> tyscript THEN EXIT SUB
+'' IF (mode AND 4) AND curcmd->kind <> tyscript THEN EXIT SUB
 ' 'only used to print off evaluated list of arguments
-'' IF ((mode AND breakreadcmd) <> 0) AND (scrat(nowscript).curargn < scrat(nowscript).curargc OR scrat(nowscript).curargn = 0) THEN EXIT SUB
-' IF scrat(nowscript).curargn < scrat(nowscript).curargc OR scrat(nowscript).curargn = 0 THEN EXIT SUB
+'' IF ((mode AND breakreadcmd) <> 0) AND (scrat(nowscript).curargn < curcmd->argc OR scrat(nowscript).curargn = 0) THEN EXIT SUB
+' IF scrat(nowscript).curargn < curcmd->argc OR scrat(nowscript).curargn = 0 THEN EXIT SUB
 '' IF (mode AND breakargsdone) THEN EXIT SUB
-' IF scrat(nowscript).curkind = tyflow AND scrat(nowscript).curvalue = flowif THEN EXIT SUB
+' IF curcmd->kind = tyflow AND curcmd->value = flowif THEN EXIT SUB
 'END IF
 
 'END STEPPING LOGIC
@@ -2087,6 +2080,14 @@ SUB scriptwatcher (mode, drawloop)
 STATIC localsscroll, globalsscroll
 STATIC selectedscript, bottom, viewmode, lastscript
 'viewmode: 0 = script state, 1 = local variables, 2 = global variables
+
+IF nowscript >= 0 THEN
+ WITH scrat(nowscript)
+  .curkind = curcmd->kind
+  .curvalue = curcmd->value
+  .curargc = curcmd->argc
+ END WITH
+END IF
 
 'debug "watch mode=" & mode & " callspot = " & callspot & " stepmode = " & stepmode _
 '      & " curscript = " & nowscript & " curdepth = " & scrat(nowscript).depth & " waitscr = " & waitforscript & " waitdepth = " & waitfordepth
@@ -2332,17 +2333,15 @@ IF si.depth < 0 THEN
  si.state = stdone
 ELSE
  pops(scrst, si.curargn)
- pops(scrst, si.curargc)
- pops(scrst, si.curvalue)
- pops(scrst, si.curkind)
  pops(scrst, si.ptr)
+ curcmd = cast(ScriptCommand ptr, si.scrdata + si.ptr)
  '--push return value
  pushs(scrst, scriptret)
  si.curargn += 1
  si.state = stnext'---try next arg
- IF si.curargn >= si.curargc THEN EXIT SUB
- IF si.curkind = tyflow THEN IF si.curvalue = flowif OR si.curvalue >= flowfor THEN EXIT SUB
- IF si.curkind = tymath THEN IF si.curvalue >= 20 THEN EXIT SUB
+ IF si.curargn >= curcmd->argc THEN EXIT SUB
+ IF curcmd->kind = tyflow THEN IF curcmd->value = flowif OR curcmd->value >= flowfor THEN EXIT SUB
+ IF curcmd->kind = tymath THEN IF curcmd->value >= 20 THEN EXIT SUB
  si.state = stdoarg
 END IF
 END SUB
@@ -2361,18 +2360,16 @@ WHILE levels > 0
  END IF
 
  pops(scrst, si.curargn)
- pops(scrst, si.curargc)
- pops(scrst, si.curvalue)
- pops(scrst, si.curkind)
  pops(scrst, si.ptr)
+ curcmd = cast(ScriptCommand ptr, si.scrdata + si.ptr)
 
- IF si.curkind = tyflow AND si.curvalue = flowdo THEN
+ IF curcmd->kind = tyflow AND curcmd->value = flowdo THEN
   levels -= 1
   'first pop do's evaluated arguments before stopping
  END IF
 
  'pop arguments
- IF si.curkind = tyflow AND si.curvalue = flowswitch THEN
+ IF curcmd->kind = tyflow AND curcmd->value = flowswitch THEN
   'unlike all other flow, switch stack usage != argn
   scrst.pos -= 2 'state, matching value
  ELSE
@@ -2752,11 +2749,12 @@ END SUB
 
 SUB readstackcommand (state as ScriptInst, stk as Stack, i)
  state.curargn = reads(stk, i)
- state.curargc = reads(stk, i - 1)
- state.curvalue = reads(stk, i - 2)
- state.curkind = reads(stk, i - 3)
- state.ptr = reads(stk, i - 4)
- i -= 5
+ state.ptr = reads(stk, i - 1)
+ DIM cmdptr as ScriptCommand ptr = cast(ScriptCommand ptr, state.scrdata + state.ptr)
+ state.curkind = cmdptr->kind
+ state.curvalue = cmdptr->value
+ state.curargc = cmdptr->argc
+ i -= 2
 END SUB
 
 FUNCTION localvariablename$ (value, scriptargs)
@@ -2788,6 +2786,8 @@ FUNCTION mathvariablename$ (value, scriptargs)
 END FUNCTION
 
 FUNCTION scriptstate$ (targetscript)
+ IF nowscript <= -1 THEN EXIT FUNCTION
+
  IF targetscript = -1 OR targetscript = nowscript THEN
   recurse = 2
  ELSE
@@ -2827,6 +2827,9 @@ FUNCTION scriptstate$ (targetscript)
  'macro disabled for fb 0.15 compat
  'copyobj(state, scrat(wasscript))
  memcpy(@(state),@(scrat(wasscript)),LEN(scrat(wasscript)))
+ state.curkind = curcmd->kind
+ state.curvalue = curcmd->value
+ state.curargc = curcmd->argc
  memcpy(@(laststate),@(state),LEN(state))
 
  'so we can grab extra data on the current script
@@ -2965,11 +2968,12 @@ FUNCTION scriptstate$ (targetscript)
     'load next script
     wasscript -= 1
     IF wasscript = targetscript THEN outstr$ = ""
-    IF wasscript < targetscript THEN EXIT DO
+    IF wasscript < targetscript THEN IF recurse <> 2 THEN EXIT DO
     IF wasscript < 0 THEN EXIT DO
     'macro disabled for fb 0.15 compat
     'copyobj(state, scrat(wasscript))
     memcpy(@(state),@(scrat(wasscript)),LEN(scrat(wasscript)))
+    reloadscript state, 0
     IF scrat(wasscript).state < 0 THEN
      IF recurse = 2 OR recurse = 3 THEN
       'deal with state   (can only be wait? - goto streturn)
@@ -3007,6 +3011,8 @@ FUNCTION scriptstate$ (targetscript)
  IF stkpos > stkbottom AND wasscript < 0 THEN scripterr "state corrupt; stack garbage " & (stkpos - stkbottom)
 
  scriptstate$ = TRIM$(outstr$)
+
+ reloadscript scrat(nowscript)
 END FUNCTION
 
 FUNCTION backcompat_sound_id (id AS INTEGER)

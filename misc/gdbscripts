@@ -1,3 +1,11 @@
+define gdbdoesnotsupportcomments
+end
+document gdbdoesnotsupportcomments
+	type "source misc/gdbscripts" to load
+	type "help pel" and "help parray" for help
+	requires gdb 6.6 (or prehaps earlier)
+end
+
 define pel
 	set $data = ((int*)&$arg0)
 	set $dimno = 0

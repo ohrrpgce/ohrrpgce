@@ -261,6 +261,7 @@ DIM scrat(128) as ScriptInst
 DIM script(128) as ScriptData
 DIM plotstr(31) as Plotstring
 DIM scrst as Stack
+DIM curcmd as ScriptCommand ptr
 
 'DEBUG debug "Thestart"
 DO 'This is a big loop that encloses the entire program. The loop is only reached when resetting the game
@@ -1708,28 +1709,33 @@ WITH scrat(nowscript)
  SELECT CASE .state
   CASE stnext'---check if all args are done
    IF scrwatch AND breakstnext THEN breakpoint scrwatch, 1
-   IF .curargn >= .curargc THEN
+   IF .curargn >= curcmd->argc THEN
     '--pop return values of each arg
     '--evaluate function, math, script, whatever
     '--scriptret would be set here, pushed at return
-    SELECT CASE .curkind
+    SELECT CASE curcmd->kind
      CASE tystop
-      scripterr "stnext encountered noop " & .curvalue & " at " & .ptr & " in " & nowscript
+      scripterr "stnext encountered noop " & curcmd->value & " at " & .ptr & " in " & nowscript
       killallscripts
       EXIT DO
      CASE tymath, tyfunct
       '--complete math and functions, nice and easy.
-      FOR i = .curargc - 1 TO 0 STEP -1
+      FOR i = curcmd->argc - 1 TO 0 STEP -1
        pops(scrst, retvals(i))
       NEXT i
-      GOSUB sfunctions
-      '--WARNING: WITH pointer probably corrupted
-      '--nowscript might be changed
-      '--unless you have switched to wait mode, return
-      IF scrat(nowscript).state = stnext THEN scrat(nowscript).state = streturn'---return
+      IF curcmd->kind = tymath THEN
+       scriptmath
+       .state = streturn
+      ELSE
+       GOSUB sfunctions
+       '--WARNING: WITH pointer probably corrupted
+       '--nowscript might be changed
+       '--unless you have switched to wait mode, return
+       IF scrat(nowscript).state = stnext THEN scrat(nowscript).state = streturn'---return
+      END IF
      CASE tyflow
       '--finish flow control? tricky!
-      SELECT CASE .curvalue
+      SELECT CASE curcmd->value
        CASE flowwhile'--repeat or terminate while
         SELECT CASE .curargn
          CASE 2
@@ -1761,19 +1767,19 @@ WITH scrat(nowscript)
         pops(scrst, temp)
         unwindtodo(scrat(nowscript), temp)
         '--for and while need to be broken
-        IF .curkind = tyflow AND (.curvalue = flowfor OR .curvalue = flowwhile) THEN
+        IF curcmd->kind = tyflow AND (curcmd->value = flowfor OR curcmd->value = flowwhile) THEN
          GOSUB dumpandreturn
          '--WARNING: WITH pointer probably corrupted
         END IF
        CASE flowcontinue
         pops(scrst, temp)
         unwindtodo(scrat(nowscript), temp)
-        IF .curkind = tyflow AND .curvalue = flowswitch THEN
+        IF curcmd->kind = tyflow AND curcmd->value = flowswitch THEN
          '--set state to 2
          scrst.pos -= 2
          pushs(scrst, 2)
          pushs(scrst, 0) '-- dummy value
-        ELSEIF NOT (.curkind = tyflow AND (.curvalue = flowfor OR .curvalue = flowwhile)) THEN
+        ELSEIF NOT (curcmd->kind = tyflow AND (curcmd->value = flowfor OR curcmd->value = flowwhile)) THEN
          '--if this do isn't a for's or while's, then just repeat it, discarding the returned value
          scrst.pos -= 1
          .curargn -= 1
@@ -1794,10 +1800,10 @@ WITH scrat(nowscript)
       END SELECT
       '.state = streturn'---return
      CASE tyscript
-      rsr = runscript(.curvalue, nowscript + 1, 0, "indirect", 0)
+      rsr = runscript(curcmd->value, nowscript + 1, 0, "indirect", 0)
       IF rsr = 1 THEN
        '--fill heap with return values
-       FOR i = .curargc - 1 TO 0 STEP -1   '--careful...
+       FOR i = .curargc - 1 TO 0 STEP -1   '--be VERY careful... runscript set curargc, WITH points to nowscript-1
         pops(scrst, temp)
         setScriptArg i, temp
        NEXT i
@@ -1806,7 +1812,7 @@ WITH scrat(nowscript)
        .state = streturn'---return
       END IF
      CASE ELSE
-      scripterr "illegal kind " & .curkind & " " & .curvalue & " in stnext"
+      scripterr "illegal kind " & curcmd->kind & " " & curcmd->value & " in stnext"
       killallscripts
       EXIT DO
     END SELECT
@@ -1816,9 +1822,9 @@ WITH scrat(nowscript)
      .state = stdoarg
     ELSE 
      '--flow control and logical math are special, for all else, do next arg
-     SELECT CASE .curkind
+     SELECT CASE curcmd->kind
       CASE tymath
-       SELECT CASE .curvalue
+       SELECT CASE curcmd->value
         CASE 20'--logand
          IF reads(scrst, 0) THEN
           .state = stdoarg'---call 2nd argument
@@ -1843,7 +1849,7 @@ WITH scrat(nowscript)
          .state = stdoarg'---call argument
        END SELECT
       CASE tyflow
-       SELECT CASE .curvalue
+       SELECT CASE curcmd->value
         CASE flowif'--we got an if!
          SELECT CASE .curargn
           CASE 0
@@ -1946,17 +1952,16 @@ WITH scrat(nowscript)
            doseek = 1 '--search for a do
           END IF
 
-          DIM tmpptr as integer ptr = script(.scrnum).ptr
           WHILE doseek
-           tmpkind = tmpptr[tmpptr[.curargn + .ptr + 3]]
+           tmpkind = .scrdata[curcmd->args(.curargn)]
 
-           IF (tmpstate = 1 AND tmpkind = tyflow) OR (tmpstate = 0 AND (tmpkind <> tyflow OR .curargn = .curargc - 1)) THEN
+           IF (tmpstate = 1 AND tmpkind = tyflow) OR (tmpstate = 0 AND (tmpkind <> tyflow OR .curargn = curcmd->argc - 1)) THEN
             '--fall into a do, execute a case, or run default (last arg)
             .state = stdoarg
             pushs(scrst, tmpstate)
             EXIT WHILE
            END IF
-           IF .curargn >= .curargc THEN
+           IF .curargn >= curcmd->argc THEN
             scrst.pos -= 1
             scriptret = 0
             .state = streturn'---return
@@ -1984,6 +1989,9 @@ WITH scrat(nowscript)
    '--just load the first command
    subread scrat(nowscript)
   CASE stwait'---begin waiting for something
+   .curkind = curcmd->kind
+   .curvalue = curcmd->value
+   .curargc = curcmd->argc
    EXIT DO
   CASE stdone'---script terminates
    '--if resuming a supended script, restore its state (normally stwait)
@@ -2023,15 +2031,9 @@ DIM menuslot AS INTEGER = 0
 DIM mislot AS INTEGER = 0
 scriptret = 0
 WITH scrat(nowscript)
-SELECT CASE .curkind
- '---MATH----------------------------------------------------------------------
- CASE tymath
-  scriptmath
-  '---FUNCTIONS-----------------------------------------------------------------
- CASE tyfunct
   'the only commands that belong at the top level are the ones that need
   'access to main-module top-level global variables or GOSUBs
-  SELECT CASE AS CONST .curvalue
+  SELECT CASE AS CONST curcmd->value
    CASE 11'--Show Text Box (box)
     wantbox = retvals(0)
    CASE 15'--use door
@@ -2160,10 +2162,10 @@ SELECT CASE .curkind
     '--WARNING: WITH pointer probably corrupted
    CASE 97'--read map block
     setmapdata scroll(), pass(), 0, 0
-    IF .curargc = 2 THEN retvals(2) = 0
+    IF curcmd->argc = 2 THEN retvals(2) = 0
     scriptret = readmapblock(bound(retvals(0), 0, scroll(0)-1), bound(retvals(1), 0, scroll(1)-1), bound(retvals(2), 0, 2))
    CASE 98'--write map block
-    IF .curargc = 3 THEN retvals(3) = 0
+    IF curcmd->argc = 3 THEN retvals(3) = 0
     setmapdata scroll(), pass(), 0, 0
     setmapblock bound(retvals(0), 0, scroll(0)-1), bound(retvals(1), 0, scroll(1)-1), bound(retvals(3),0,2), bound(retvals(2), 0, 255)
    CASE 99'--read pass block
@@ -2188,7 +2190,7 @@ SELECT CASE .curkind
    CASE 155, 170'--save menu
     'ID 155 is a backcompat hack
     scriptret = picksave(0) + 1
-    IF scriptret > 0 AND (retvals(0) OR .curvalue = 155) THEN
+    IF scriptret > 0 AND (retvals(0) OR curcmd->value = 155) THEN
      savegame scriptret - 1, map, foep, stat(), stock()
     END IF
     reloadnpc stat()
@@ -2473,13 +2475,12 @@ SELECT CASE .curkind
      END IF
     END IF
    CASE ELSE '--try all the scripts implemented in subs
-    scriptnpc .curvalue
-    scriptmisc .curvalue
-    scriptadvanced .curvalue
-    scriptstat .curvalue, stat()
+    scriptnpc curcmd->value
+    scriptmisc curcmd->value
+    scriptadvanced curcmd->value
+    scriptstat curcmd->value, stat()
     '---------
   END SELECT
-END SELECT
 END WITH
 RETRACE
 
