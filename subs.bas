@@ -1959,7 +1959,6 @@ DO
   textcolor uilook(uiMenuItem), uilook(uiHighlight)
   IF cur = i THEN textcolor uilook(uiText), uilook(uiHighlight)
   printstr boxpreview(i), 56, ((i - top) * 25) + 5, dpage
-  print
  NEXT
  SWAP vpage, dpage
  setvispage vpage
