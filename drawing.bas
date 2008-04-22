@@ -1336,6 +1336,7 @@ SELECT CASE ts.tool
    END IF
   END IF
  CASE clone_tool
+ IF mouseclick > 0 OR keyval(57) > 1 THEN
   IF ts.justpainted = 0 THEN writeundoblock mover(), ts
   ts.justpainted = 3
   IF clone.exists = YES THEN
@@ -1356,6 +1357,7 @@ SELECT CASE ts.tool
    ts.hox = ts.x
    ts.hoy = ts.y
   END IF
+ END IF
 END SELECT
 END SUB
 
