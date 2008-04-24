@@ -604,10 +604,6 @@ IF atk(5) <> 4 THEN
   IF readbit(atk(), 20, 62) = 0 THEN h& = 1 ELSE h& = 0
  END IF
 
- IF readbit(atk(), 20, 0) = 1 THEN h& = ABS(h&) * -1 'cure bit
- IF readbit(tbits(), 0, 54) THEN h& = ABS(h&)        'zombie
- IF cure = 1 THEN h& = ABS(h&) * -1                  'absorb
-
  'backcompat MP-targstat
  IF readbit(atk(), 20, 60) THEN
   IF targstat = 0 THEN targstat = 1
@@ -621,26 +617,31 @@ IF atk(5) <> 4 THEN
  chp& = bstat(t).cur.sta(targstat)
  mhp& = bstat(t).max.sta(targstat)
  IF readbit(atk(), 65, 5) = 1 THEN
+  'percentage attacks do damage
+  'FIXME: see bug 134 about moving this block up the function. This should be base damage?
   SELECT CASE atk(5)
    CASE 5'% of max
     h& = mhp& + (atk(11) * mhp& / 100)
    CASE 6'% of cur
     h& = chp& + (atk(11) * chp& / 100)
   END SELECT
+ END IF
+
  IF readbit(atk(), 20, 0) = 1 THEN h& = ABS(h&) * -1 'cure bit
  IF readbit(tbits(), 0, 54) THEN h& = ABS(h&)        'zombie
- IF cure = 1 THEN h& = ABS(h&) * -1                  'absorb
- ELSE
+ IF cure = 1 THEN h& = ABS(h&) * -1                  'elemental absorb
+
+ IF readbit(atk(), 65, 5) = 0 THEN
+  'percentage attacks set stat
+  'and by set, we really mean set, ignore nearly all attack settings,
+  'that's my interpretation of intent anyway - TMC
   SELECT CASE atk(5)
    CASE 5'% of max
     h& = chp& - (mhp& + (atk(11) * mhp& / 100))
    CASE 6'% of cur
     h& = chp& - (chp& + (atk(11) * chp& / 100))
   END SELECT
- IF readbit(atk(), 20, 0) = 1 THEN h& = ABS(h&) * -1 'cure bit
- IF readbit(tbits(), 0, 54) THEN h& = ABS(h&)        'zombie
- IF cure = 1 THEN h& = ABS(h&) * -1                  'absorb
-END IF
+ END IF
 
  'inflict
  IF readbit(atk(), 20, 51) = 0 THEN
@@ -649,9 +650,9 @@ END IF
    IF h& < -gen(genDamageCap) THEN h& = -gen(genDamageCap)
   END IF
   h = h&
-  
+
   bstat(t).cur.sta(targstat) = safesubtract(bstat(t).cur.sta(targstat), h)
- IF readbit(atk(), 20, 2) THEN
+  IF readbit(atk(), 20, 2) THEN
    '--drain
    IF readbit(atk(), 20, 56) = 0 THEN
     harm$(w) = STR$(ABS(h))
