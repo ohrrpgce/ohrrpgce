@@ -627,6 +627,9 @@ IF atk(5) <> 4 THEN
    CASE 6'% of cur
     h& = chp& + (atk(11) * chp& / 100)
   END SELECT
+ IF readbit(atk(), 20, 0) = 1 THEN h& = ABS(h&) * -1 'cure bit
+ IF readbit(tbits(), 0, 54) THEN h& = ABS(h&)        'zombie
+ IF cure = 1 THEN h& = ABS(h&) * -1                  'absorb
  ELSE
   SELECT CASE atk(5)
    CASE 5'% of max
@@ -634,7 +637,11 @@ IF atk(5) <> 4 THEN
    CASE 6'% of cur
     h& = chp& - (chp& + (atk(11) * chp& / 100))
   END SELECT
- END IF
+ IF readbit(atk(), 20, 0) = 1 THEN h& = ABS(h&) * -1 'cure bit
+ IF readbit(tbits(), 0, 54) THEN h& = ABS(h&)        'zombie
+ IF cure = 1 THEN h& = ABS(h&) * -1                  'absorb
+END IF
+
  'inflict
  IF readbit(atk(), 20, 51) = 0 THEN
   IF gen(genDamageCap) > 0 THEN
@@ -642,8 +649,9 @@ IF atk(5) <> 4 THEN
    IF h& < -gen(genDamageCap) THEN h& = -gen(genDamageCap)
   END IF
   h = h&
+  
   bstat(t).cur.sta(targstat) = safesubtract(bstat(t).cur.sta(targstat), h)
-  IF readbit(atk(), 20, 2) THEN
+ IF readbit(atk(), 20, 2) THEN
    '--drain
    IF readbit(atk(), 20, 56) = 0 THEN
     harm$(w) = STR$(ABS(h))
