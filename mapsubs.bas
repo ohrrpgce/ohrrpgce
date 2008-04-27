@@ -1773,13 +1773,13 @@ SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEG
  IF tempy < 0 THEN th -= tempy
  zoom = bound(small(320 \ tw, 200 \ th), 1, 20)
  IF zoom <> lastzoom THEN
-  createminimap minimap(), map(), tilesets(0)->tastuf(), 3, zoom
+  createminimap minimap(), map(), tilesets(), zoom
  END IF
 END SUB
 
 SUB show_minimap(map() AS INTEGER, tilesets() AS TilesetData ptr)
  REDIM minimap(0,0) AS INTEGER
- createminimap minimap(), map(), tilesets(0)->tastuf(), 3
+ createminimap minimap(), map(), tilesets()
 
  clearpage vpage
  DIM AS INTEGER i, j

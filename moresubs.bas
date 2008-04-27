@@ -29,7 +29,7 @@ DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION countitem% (it%)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
-DECLARE SUB minimap (x%, y%, tastuf%())
+DECLARE SUB minimap (x%, y%, tilesets() as TilesetData ptr)
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE FUNCTION useinn (inn%, price%, needf%, stat%(), holdscreen() AS UBYTE)
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
@@ -971,10 +971,10 @@ ELSE
 END IF
 END SUB
 
-SUB minimap (x, y, tastuf())
+SUB minimap (x, y, tilesets() as TilesetData ptr)
  REDIM mini(0, 0) AS INTEGER
  DIM zoom AS INTEGER
- zoom = createminimap(mini(), scroll(), tastuf(), 3)
+ zoom = createminimap(mini(), scroll(), tilesets())
 
  DIM minisize AS XYPair
  minisize.x = UBOUND(mini, 1)
@@ -1906,7 +1906,7 @@ END IF
 
 END FUNCTION
 
-SUB shop (id, needf, stock(), stat(), map, foep, tastuf())
+SUB shop (id, needf, stock(), stat(), map, foep, tilesets() AS TilesetData ptr)
 
 DIM storebuf(40), menu$(10), menuid(10)
 DIM holdscreen(DIMSCREENPAGE) AS UBYTE
@@ -1958,7 +1958,7 @@ DO
    buystuff id, 1, storebuf(), stock(), stat()
   END IF
   IF menuid(pt) = 6 THEN '--MAP
-   minimap catx(0), caty(0), tastuf()
+   minimap catx(0), caty(0), tilesets()
   END IF
   IF menuid(pt) = 7 THEN '--TEAM
    heroswap 1, stat()

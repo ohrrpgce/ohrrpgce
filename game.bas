@@ -92,8 +92,8 @@ DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE SUB patcharray (array%(), n$, max%)
 DECLARE SUB drawsay (saybit%(), sayenh%(), say$(), showsay%, choose$(), choosep%)
-DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, tastuf%())
-DECLARE SUB minimap (x%, y%, tastuf%())
+DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, tilesets() AS TilesetData ptr)
+DECLARE SUB minimap (x%, y%, tilesets() AS TilesetData ptr)
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE FUNCTION useinn (inn%, price%, needf%, stat%(), holdscreen() AS UBYTE)
 DECLARE SUB itstr (i%)
@@ -624,7 +624,7 @@ DO
     ygo(0) = 0
    END IF
   ELSE
-   IF keyval(59) > 1 AND showsay = 0 THEN minimap catx(0), caty(0), tilesets(0)->tastuf()
+   IF keyval(59) > 1 AND showsay = 0 THEN minimap catx(0), caty(0), tilesets()
   END IF
   IF keyval(60) > 1 AND showsay = 0 THEN
    savegame 32, map, foep, stat(), stock()
@@ -1010,7 +1010,7 @@ END IF
 '---SHOP/INN/SAVE/ETC------------
 IF istag(saytag(7), 0) THEN
  IF saytag(8) > 0 THEN
-  shop saytag(8) - 1, needf, stock(), stat(), map, foep, tilesets(0)->tastuf()
+  shop saytag(8) - 1, needf, stock(), stat(), map, foep, tilesets()
   reloadnpc stat()
  END IF
  inn = 0
@@ -2080,7 +2080,7 @@ WITH scrat(nowscript)
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxShop) THEN
-     shop retvals(0), needf, stock(), stat(), map, foep, tilesets(0)->tastuf()
+     shop retvals(0), needf, stock(), stat(), map, foep, tilesets()
      reloadnpc stat()
     END IF
    CASE 55'--get default weapon
@@ -2184,7 +2184,7 @@ WITH scrat(nowscript)
      loadtilesetdata tilesets(), 2, retvals(0)
     END IF
    CASE 151'--show mini map
-    minimap catx(0), caty(0), tilesets(0)->tastuf()
+    minimap catx(0), caty(0), tilesets()
    CASE 153'--items menu
     wantbox = items(stat())
    CASE 155, 170'--save menu
@@ -2807,7 +2807,7 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), ti
        CASE 6 ' order/team
         heroswap readbit(gen(), 101, 5), stat() : updatetags = YES
        CASE 7,12 ' map
-        minimap catx(0), caty(0), tilesets(0)->tastuf()
+        minimap catx(0), caty(0), tilesets()
        CASE 8,13 ' save
         slot = picksave(0)
         IF slot >= 0 THEN savegame slot, map, foep, stat(), stock()

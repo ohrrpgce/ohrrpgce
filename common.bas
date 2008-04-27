@@ -957,7 +957,7 @@ array2str nameread(), 1, a$
 RETURN a$
 END FUNCTION
 
-FUNCTION createminimap (array() AS INTEGER, map() AS INTEGER, tastuf() AS INTEGER, tilesetpage AS INTEGER, zoom AS INTEGER = -1) AS INTEGER
+FUNCTION createminimap (array() AS INTEGER, map() AS INTEGER, tilesets() AS TilesetData ptr, zoom AS INTEGER = -1) AS INTEGER
  'return value is zoom level
  'we don't have any sprite struct, so redim array() (dynamic array) and pass back the pixel data
 
@@ -976,18 +976,19 @@ FUNCTION createminimap (array() AS INTEGER, map() AS INTEGER, tastuf() AS INTEGE
   FOR j = 0 TO zoom * map(1) - 1
    tx = i \ zoom
    ty = j \ zoom
-   x = INT(((i MOD zoom) + rand) * fraction)
-   y = INT(((j MOD zoom) + rand) * fraction)
-   'over the top layer support
+   x = INT(((i MOD zoom) + RND) * fraction)
+   y = INT(((j MOD zoom) + RND) * fraction)
+   'layers but not overhead tiles
    FOR k = 2 TO 0 STEP -1
     block = readmapblock(tx, ty, k)
     IF block = 0 AND k > 0 THEN CONTINUE FOR
-    IF block > 207 THEN block = (block - 207) + tastuf(20)
-    IF block > 159 THEN block = (block - 159) + tastuf(0)
-    mx = (block MOD 16) * 20
-    my = (block \ 16) * 20
-    array(i,j) = readpixel(mx + x, my + y, tilesetpage)
-    IF array(i,j) <> 0 THEN EXIT FOR
+
+    WITH *tilesets(k)
+     IF block > 207 THEN block = (block - 48 + .tastuf(20) + .anim(1).cycle) MOD 160
+     IF block > 159 THEN block = (block + .tastuf(0) + .anim(0).cycle) MOD 160
+     array(i, j) = .spr->image[block * 400 + y * 20 + x]
+     IF array(i, j) <> 0 THEN EXIT FOR
+    END WITH
    NEXT
   NEXT
  NEXT
