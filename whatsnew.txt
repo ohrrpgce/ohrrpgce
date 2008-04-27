@@ -44,8 +44,8 @@ Feb ?? 2008 [werewaffle]
       And changing the tileset didn't reload tile animations [Ralph]
     * Bug 603: Shops ignore default item value for buy/sell prices
       [James Paige]
-    * Bug 625, and 66: Curing and absorbing support for % based damage
-      [Yuriy, Ralph]
+    * Bug 625: 'Damage instead of set' % based attacks now respect
+      the cure and harmed by cure bitsets [Yuriy, Ralph]
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers
