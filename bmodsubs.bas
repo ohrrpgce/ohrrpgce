@@ -460,8 +460,7 @@ END SUB
 FUNCTION inflict (w, t, bstat() AS BattleStats, bslot() AS BattleSprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
 
 DIM tbits(4)
-
-dim h&
+DIM h = 0
 
 'failure by default
 inflict = 0
@@ -564,17 +563,17 @@ IF atk(5) <> 4 THEN
  END IF
 
  'calc harm
- h& = (a * am!) - (d * dm!)
+ h = (a * am!) - (d * dm!)
 
  'elementals
  FOR i = 0 TO 7
   IF readbit(atk(), 20, 5 + i) = 1 THEN
-   IF readbit(tbits(), 0, 0 + i) = 1 THEN h& = h& * 2   'weakness
-   IF readbit(tbits(), 0, 8 + i) = 1 THEN h& = h& * .12 'resistance
+   IF readbit(tbits(), 0, 0 + i) = 1 THEN h = h * 2   'weakness
+   IF readbit(tbits(), 0, 8 + i) = 1 THEN h = h * .12 'resistance
    IF readbit(tbits(), 0, 16 + i) = 1 THEN cure = 1   'absorb
   END IF
   IF readbit(atk(), 20, 13 + i) = 1 THEN
-   IF is_enemy(t) AND readbit(tbits(), 0, 24 + i) = 1 THEN h& = h& * 1.8
+   IF is_enemy(t) AND readbit(tbits(), 0, 24 + i) = 1 THEN h = h * 1.8
   END IF
   IF readbit(atk(), 20, 21 + i) = 1 THEN
    IF readbit(tbits(), 0, 8 + i) = 1 THEN
@@ -591,17 +590,17 @@ IF atk(5) <> 4 THEN
  NEXT i
 
  'extra damage
- h& = h& + (h& / 100) * atk(11)
+ h = h + (h / 100) * atk(11)
 
  'randomize
- IF readbit(atk(), 20, 61) = 0 THEN h& = rangel(h&,20)
+ IF readbit(atk(), 20, 61) = 0 THEN h = rangel(h,20)
 
  'spread damage
- IF readbit(atk(), 20, 1) = 1 THEN h& = h& / (tcount + 1)
+ IF readbit(atk(), 20, 1) = 1 THEN h = h / (tcount + 1)
 
  'cap out
- IF h& <= 0 THEN
-  IF readbit(atk(), 20, 62) = 0 THEN h& = 1 ELSE h& = 0
+ IF h <= 0 THEN
+  IF readbit(atk(), 20, 62) = 0 THEN h = 1 ELSE h = 0
  END IF
 
  'backcompat MP-targstat
@@ -614,22 +613,24 @@ IF atk(5) <> 4 THEN
  rematkrstat = bstat(w).cur.sta(targstat)
 
  'pre-calculate percentage damage for display
- chp& = bstat(t).cur.sta(targstat)
- mhp& = bstat(t).max.sta(targstat)
+ chp = bstat(t).cur.sta(targstat)
+ mhp = bstat(t).max.sta(targstat)
  IF readbit(atk(), 65, 5) = 1 THEN
   'percentage attacks do damage
   'FIXME: see bug 134 about moving this block up the function. This should be base damage?
   SELECT CASE atk(5)
    CASE 5'% of max
-    h& = mhp& + (atk(11) * mhp& / 100)
+    h = mhp + (atk(11) * mhp / 100)
+    cure = 0
    CASE 6'% of cur
-    h& = chp& + (atk(11) * chp& / 100)
+    h = chp + (atk(11) * chp / 100)
+    cure = 0
   END SELECT
  END IF
 
- IF readbit(atk(), 20, 0) = 1 THEN h& = ABS(h&) * -1 'cure bit
- IF readbit(tbits(), 0, 54) THEN h& = ABS(h&)        'zombie
- IF cure = 1 THEN h& = ABS(h&) * -1                  'elemental absorb
+ IF readbit(atk(), 20, 0) = 1 THEN h = ABS(h) * -1 'cure bit
+ IF readbit(tbits(), 0, 54) THEN h = ABS(h)        'zombie
+ IF cure = 1 THEN h = ABS(h) * -1                  'elemental absorb
 
  IF readbit(atk(), 65, 5) = 0 THEN
   'percentage attacks set stat
@@ -637,19 +638,18 @@ IF atk(5) <> 4 THEN
   'that's my interpretation of intent anyway - TMC
   SELECT CASE atk(5)
    CASE 5'% of max
-    h& = chp& - (mhp& + (atk(11) * mhp& / 100))
+    h = chp - (mhp + (atk(11) * mhp / 100))
    CASE 6'% of cur
-    h& = chp& - (chp& + (atk(11) * chp& / 100))
+    h = chp - (chp + (atk(11) * chp / 100))
   END SELECT
  END IF
 
  'inflict
  IF readbit(atk(), 20, 51) = 0 THEN
   IF gen(genDamageCap) > 0 THEN
-   IF h& > gen(genDamageCap) THEN h& = gen(genDamageCap)
-   IF h& < -gen(genDamageCap) THEN h& = -gen(genDamageCap)
+   IF h > gen(genDamageCap) THEN h = gen(genDamageCap)
+   IF h < -gen(genDamageCap) THEN h = -gen(genDamageCap)
   END IF
-  h = h&
 
   bstat(t).cur.sta(targstat) = safesubtract(bstat(t).cur.sta(targstat), h)
   IF readbit(atk(), 20, 2) THEN
