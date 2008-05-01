@@ -76,6 +76,46 @@ END IF
 
 END FUNCTION
 
+FUNCTION usemenu (state AS MenuState, enabled() AS INTEGER)
+'a version for menus with unselectable items, skip items for which enabled = 0
+
+WITH state
+ oldptr = .pt
+ oldtop = .top
+ d = 0
+
+ IF keyval(72) > 1 THEN d = -1   'UP
+ IF keyval(80) > 1 THEN d = 1    'DOWN
+ IF keyval(73) > 1 THEN            'PGUP
+  .pt = large(.pt - .size, .first)
+  WHILE enabled(.pt) = 0 AND .pt > 0 : .pt = loopvar(.pt, .first, .last, -1) : WEND
+  IF enabled(.pt) = 0 THEN d = 1
+ END IF
+ IF keyval(81) > 1 THEN            'PGDN
+  .pt = small(.pt + .size, .last)
+  WHILE enabled(.pt) = 0 AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
+  IF enabled(.pt) = 0 THEN d = -1
+ END IF
+ IF keyval(71) > 1 THEN .pt = .last : d = 1    'HOME
+ IF keyval(79) > 1 THEN .pt = .first : d = -1    'END
+
+ IF d THEN 
+  DO
+   .top = bound(.top, .pt - .size, .pt)
+   .pt = loopvar(.pt, .first, .last, d)
+  LOOP WHILE enabled(.pt) = 0
+ END IF
+ .top = bound(.top, .pt - .size, .pt)
+
+ IF oldptr = .pt AND oldtop = .top THEN
+  usemenu = 0
+ ELSE
+  usemenu = 1
+ END IF
+END WITH
+END FUNCTION
+
+
 FUNCTION soundfile$ (sfxnum%)
 	DIM as string sfxbase
 
@@ -1017,7 +1057,7 @@ readshopname$ = readbadgenericname$(shopnum, game + ".sho", 40, 0, 15, 0)
 END FUNCTION
 
 FUNCTION getsongname$ (num AS INTEGER, prefixnum AS INTEGER = 0)
-DIM songd(dimbinsize(2)) AS INTEGER
+DIM songd(dimbinsize(binSONGDATA)) AS INTEGER
 DIM s AS STRING
 IF num = -1 THEN RETURN "-none-"
 s = ""
@@ -1029,7 +1069,7 @@ RETURN s
 END FUNCTION
 
 FUNCTION getsfxname$ (num AS INTEGER)
-DIM sfxd(dimbinsize(3))
+DIM sfxd(dimbinsize(binSFXDATA))
 setpicstuf sfxd(), curbinsize(3), -1
 loadset workingdir + SLASH + "sfxdata.bin", num, 0
 getsfxname$ = readbinstring$ (sfxd(), 0, 30)
