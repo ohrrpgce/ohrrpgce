@@ -90,7 +90,7 @@ DECLARE FUNCTION findhero% (who%, f%, l%, d%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE SUB heroswap (iAll%, stat%())
-DECLARE SUB patcharray (array%(), n$, max%)
+DECLARE SUB patcharray (array%(), n$)
 DECLARE SUB drawsay (saybit%(), sayenh%(), say$(), showsay%, choose$(), choosep%)
 DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, tilesets() AS TilesetData ptr)
 DECLARE SUB minimap (x%, y%, tilesets() AS TilesetData ptr)
@@ -675,8 +675,8 @@ DO
     setbit gen(), 101, 9, 0
    END IF
   END IF
-  IF keyval(66) > 1 THEN patcharray gen(), "gen", 104
-  IF keyval(67) > 1 THEN patcharray gmap(), "gmap", 20
+  IF keyval(66) > 1 THEN patcharray gen(), "gen"
+  IF keyval(67) > 1 THEN patcharray gmap(), "gmap"
   IF keyval(68) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): showtags = 0
   IF keyval(87) > 1 THEN ghost = ghost XOR 1
   IF keyval(29) > 0 THEN

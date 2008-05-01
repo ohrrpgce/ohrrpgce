@@ -1270,7 +1270,7 @@ END IF
 
 END SUB
 
-SUB patcharray (array(), n$, max)
+SUB patcharray (array(), n$)
 
 DIM num$(2), hexk(15)
 
@@ -1297,15 +1297,15 @@ DO
  IF keyval(1) > 1 THEN EXIT SUB
  IF keyval(72) > 1 THEN csr = large(0, csr - 1)
  IF keyval(80) > 1 THEN csr = small(2, csr + 1)
- IF csr = 0 THEN intgrabber pt, 0, max
+ IF csr = 0 THEN intgrabber pt, 0, UBOUND(array)
  IF csr = 1 THEN intgrabber array(pt), -32768, 32767
  IF csr = 2 THEN
   FOR i = 0 TO 15
    IF keyval(hexk(i)) > 1 THEN setbit array(), pt, i, readbit(array(), pt, i) XOR 1
   NEXT i
  END IF
- num$(0) = n$ + "(" + STR$(ABS(pt)) + ")"
- num$(1) = "value =" + XSTR$(array(pt))
+ num$(0) = n$ & "(" & ABS(pt) & ")"
+ num$(1) = "value = " & array(pt)
  num$(2) = ""
  FOR i = 0 TO 15
   IF readbit(array(), pt, i) THEN
