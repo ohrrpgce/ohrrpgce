@@ -68,6 +68,7 @@ DECLARE SUB mapedit_resize(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high 
 DECLARE SUB mapedit_delete(mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, BYREF layer AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr)
 DECLARE SUB mapedit_linkdoors (mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, npc() AS INTEGER, npcstat() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+DECLARE SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, defaults() AS DefArray, startlayer AS INTEGER = -1)
 DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
 DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
@@ -146,7 +147,7 @@ animadjust = pic
 END FUNCTION
 
 SUB mapmaker (font(), npc(), npcstat())
-DIM menubar(82), cursor(600), mode$(12), list$(12), temp$(12), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(-1 TO 20), gdmax(20), gdmin(20), sampmap(2), cursorpal(8), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
+DIM menubar(82), cursor(600), mode$(12), list$(13), temp$(12), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(0 TO 20), gdmax(20), gdmin(20), sampmap(2), cursorpal(8), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
 DIM her AS HeroDef
 DIM tilesets(2) as TilesetData ptr
 DIM defaults(2) as DefArray
@@ -256,18 +257,19 @@ whattodo:
 x = 0: y = 0: mapx = 0: mapy = 0
 csr = 0
 list$(0) = "Return to Map Menu"
-list$(1) = "Resize Map..."
-list$(2) = "Edit NPCs..."
-list$(3) = "Edit General Map Data..."
-list$(4) = "Erase Map Data"
-list$(5) = "Link Doors..."
-list$(6) = "Edit Tilemap..."
-list$(7) = "Edit Wallmap..."
-list$(8) = "Place Doors..."
-list$(9) = "Place NPCs..."
-list$(10) = "Edit Foemap..."
-list$(11) = "Re-load Default Passability"
-list$(12) = "Map name:"
+list$(1) = "Edit General Map Data..."
+list$(2) = "Resize Map..."
+list$(3) = "Edit Layers..."
+list$(4) = "Edit NPCs..."
+list$(5) = "Edit Tilemap..."
+list$(6) = "Edit Wallmap..."
+list$(7) = "Place Doors..."
+list$(8) = "Place NPCs..."
+list$(9) = "Edit Foemap..."
+list$(10) = "Link Doors..."
+list$(11) = "Erase Map Data"
+list$(12) = "Re-load Default Passability"
+list$(13) = "Map name:"
 setkeys
 DO
  setwait 55
@@ -277,25 +279,28 @@ DO
   mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
   RETRACE
  END IF
- usemenu csr, 0, 0, 12, 24
+ usemenu csr, 0, 0, 13, 24
  IF enter_or_space() THEN
   IF csr = 0 THEN
    mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
    RETRACE
   END IF
   IF csr = 1 THEN
-   mapedit_resize pt, wide, high, x, y, mapx, mapy, map(), pass(), emap(), gmap(), tilesets(), npc(), npcstat(), doors(), link(), mapname$
-  END IF
-  IF csr = 2 THEN
-   npcdef npcstat(), pt
-  END IF
-  IF csr = 3 THEN
    GOSUB gmapdata
   END IF
-  IF csr = 4 THEN mapedit_delete pt, wide, high, x, y, mapx, mapy, layer, map(), pass(), emap(), npc(), npcstat(), doors(), link()
-  IF csr = 5 THEN mapedit_linkdoors pt, map(), pass(), emap(), gmap(), tilesets(), npc(), npcstat(), doors(), link(), mapname$
-  IF csr > 5 AND csr < 11 THEN editmode = csr - 6: GOSUB mapping
-  IF csr = 11 THEN
+  IF csr = 2 THEN
+   mapedit_resize pt, wide, high, x, y, mapx, mapy, map(), pass(), emap(), gmap(), tilesets(), npc(), npcstat(), doors(), link(), mapname$
+  END IF
+  IF csr = 3 THEN
+   mapedit_layers gmap(), visible(), tilesets(), defaults()
+  END IF
+  IF csr = 4 THEN
+   npcdef npcstat(), pt
+  END IF
+  IF csr >= 5 AND csr <= 9 THEN editmode = csr - 5: GOSUB mapping
+  IF csr = 10 THEN mapedit_linkdoors pt, map(), pass(), emap(), gmap(), tilesets(), npc(), npcstat(), doors(), link(), mapname$
+  IF csr = 11 THEN mapedit_delete pt, wide, high, x, y, mapx, mapy, layer, map(), pass(), emap(), npc(), npcstat(), doors(), link()
+  IF csr = 12 THEN
    '--reload default passability
    temp$(0) = "No, Nevermind. No passability changes"
    temp$(1) = "Set default passability for whole map"
@@ -308,11 +313,11 @@ DO
    END IF
   END IF
  END IF
- IF csr = 12 THEN strgrabber mapname$, 39
- list$(12) = "Map name:" + mapname$
- IF LEN(list$(12)) > 40 THEN list$(12) = mapname$
+ IF csr = 13 THEN strgrabber mapname$, 39
+ list$(13) = "Map name:" + mapname$
+ IF LEN(list$(13)) > 40 THEN list$(13) = mapname$
  
- standardmenu list$(), 12, 12, csr, 0, 0, 0, dpage, 0
+ standardmenu list$(), 13, 13, csr, 0, 0, 0, dpage, 0
  
  SWAP vpage, dpage
  setvispage vpage
@@ -323,8 +328,7 @@ LOOP
 gmapdata:
 gmapmax = 18
 gd = 0
-gd$(-1) = "Previous Menu"
-gd$(0) = "Map Tileset:"
+gd$(0) = "Previous Menu"
 gd$(1) = "Ambient Music:"
 gd$(2) = "Minimap Available:"
 gd$(3) = "Save Anywhere:"
@@ -343,7 +347,6 @@ gd$(15) = "On-Keypress Script:"
 gd$(16) = "Walkabout Layering:"
 gd$(17) = "NPC Data:"
 gd$(18) = "Tile Data:"
-gdmax(0) = gen(genMaxTile):            gdmin(0) = 0
 gdmax(1) = gen(genMaxSong) + 1:        gdmin(1) = -1
 gdmax(2) = 1:                              gdmin(2) = 0
 gdmax(3) = 1:                              gdmin(3) = 0
@@ -370,7 +373,7 @@ gmapscrof(3) = 14
 gmapscrof(4) = 15
 
 IF gmap(16) > 1 THEN gmap(16) = 0
-FOR i = 0 TO gmapmax
+FOR i = 1 TO gmapmax
  gmap(i) = bound(gmap(i), gdmin(i), gdmax(i))
 NEXT i
 FOR i = 0 TO 4
@@ -382,9 +385,9 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- usemenu gd, 0, -1, gmapmax, 24
+ usemenu gd, 0, 0, gmapmax, 24
  SELECT CASE gd
-  CASE -1
+  CASE 0
    IF enter_or_space() THEN EXIT DO
   CASE 1
    zintgrabber(gmap(gd), gdmin(gd) - 1, gdmax(gd) - 1) 'song is optional
@@ -404,11 +407,9 @@ DO
    intgrabber gmap(gd), gdmin(gd), gdmax(gd)
  END SELECT
  scri = 0
- FOR i = -1 TO gmapmax
+ FOR i = 0 TO gmapmax
   xtemp$ = ""
   SELECT CASE i
-   CASE 0, 9
-    xtemp$ = XSTR$(gmap(i))
    CASE 1
     IF gmap(1) = 0 THEN
      xtemp$ = " -silence-"
@@ -445,6 +446,8 @@ DO
     ELSE
      xtemp$ = XSTR$(gmap(i))
     END IF
+   CASE 9
+    xtemp$ = XSTR$(gmap(i))
    CASE 10
     IF gmap(i) = 0 THEN
      xtemp$ = " none"
@@ -473,13 +476,13 @@ DO
      CASE 1
       xtemp$ = " Remember state when leaving"
      CASE 2
-      xtemp$ = " Always load afresh from RPG"
+      xtemp$ = " Ignore saved state, load anew"
     END SELECT
   END SELECT
   textcolor uilook(uiMenuItem), 0
   IF i = gd THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr gd$(i) + xtemp$, 0, 8 + (8 * i), dpage
-  IF i = 10 THEN rectangle 4 + (8 * LEN(gd$(i) + xtemp$)), 8 + (8 * i), 8, 8, gmap(i), dpage
+  printstr gd$(i) + xtemp$, 0, 8 * i, dpage
+  IF i = 10 THEN rectangle 4 + (8 * LEN(gd$(i) + xtemp$)), 8 * i, 8, 8, gmap(i), dpage
  NEXT i
  IF gmap(5) = 2 THEN
   '--show default edge tile
@@ -494,11 +497,6 @@ DO
  clearpage dpage
  dowait
 LOOP
-'tilesets might have changed
-loadmaptilesets tilesets(), gmap()
-FOR i = 0 TO 2
- loadpasdefaults defaults(i).a(), tilesets(i)->num
-NEXT
 RETRACE
 
 mapping:
@@ -523,49 +521,49 @@ setkeys
 DO
  setwait 55
  setkeys
+ IF keyval(1) > 1 THEN RETRACE
  if keyval(scCtrl) = 0 AND keyval(scAlt) = 0 then
-	 IF keyval(59) > 1 THEN
-	  editmode = 0
-	 END IF
-	 IF keyval(60) > 1 THEN
-	  editmode = 1
-	 END IF
-	 IF keyval(61) > 1 THEN
-	  editmode = 2
-	 END IF
-	 IF keyval(62) > 1 THEN
-	  editmode = 3
-	 END IF
-	 IF keyval(63) > 1 THEN
-	  editmode = 4
-	 END IF
+  IF keyval(59) > 1 THEN
+   editmode = 0
+  END IF
+  IF keyval(60) > 1 THEN
+   editmode = 1
+  END IF
+  IF keyval(61) > 1 THEN
+   editmode = 2
+  END IF
+  IF keyval(62) > 1 THEN
+   editmode = 3
+  END IF
+  IF keyval(63) > 1 THEN
+   editmode = 4
+  END IF
  else
   for i = 0 to 2
-  	if keyval(scAlt) > 0 AND keyval(sc1 + i) > 0 then
-  		clearkey(sc1 + i)
-  		togglelayerenabled(gmap(), i)
-  		if not layerisenabled(gmap(), i) then
-  			if layer = i then
-  				do until layerisenabled(gmap(), layer): layer -= 1: loop
-  			end if
-  		end if
-  	end if
-  	#IFNDEF __FB_LINUX__
-  	if keyval(scCtrl) > 0 AND keyval(scF1 + i) > 0 then
-  		clearkey(scF1 + i)
-	 		if layerisenabled(gmap(), i) then togglelayervisible(visible(), i)
-  	end if
-  	#ENDIF
- 	next
- 	
- 	if keyval(scTilde) then
- 		togglelayervisible(visible(), layer)
- 		clearkey(scTilde)
- 	end if
+   if keyval(scAlt) > 0 AND keyval(sc1 + i) > 0 then
+    clearkey(sc1 + i)
+    togglelayerenabled(gmap(), i)
+    if not layerisenabled(gmap(), i) then
+     if layer = i then
+      do until layerisenabled(gmap(), layer): layer -= 1: loop
+     end if
+    end if
+   end if
+   #IFNDEF __FB_LINUX__
+   if keyval(scCtrl) > 0 AND keyval(scF1 + i) > 0 then
+    clearkey(scF1 + i)
+    if layerisenabled(gmap(), i) then togglelayervisible(visible(), i)
+   end if
+   #ENDIF
+  next
+  
+  if keyval(scTilde) then
+   togglelayervisible(visible(), layer)
+   clearkey(scTilde)
+  end if
  end if
  
- IF keyval(29) > 0 AND keyval(38) > 1 THEN gosub layermenu'ctrl-L
- IF keyval(1) > 1 THEN RETRACE
+ IF keyval(29) > 0 AND keyval(38) > 1 THEN mapedit_layers gmap(), visible(), tilesets(), defaults(), layer  'ctrl-L
  IF keyval(15) > 1 THEN tiny = tiny XOR 1
  IF keyval(14) > 1 THEN
    'delete tile
@@ -993,6 +991,9 @@ LOOP
 
 pickblock:
 setkeys
+menubar(0) = 16
+menubar(1) = 10
+setmapdata menubar(), pass(), 0, 0
 DO
  setwait 80
  setkeys
@@ -1012,81 +1013,16 @@ DO
   IF tilepick.x > 15 THEN tilepick.x = 0: tilepicky += 1
  END IF
  tog = tog XOR 1
+ drawmap 0, 0, 0, 0, tilesets(layer), dpage
  loadsprite cursor(), 0, 0, 0, 20, 20, 2
  drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, tilepick.x * 20, tilepick.y * 20, dpage
- copypage dpage, vpage
- copypage 3, dpage
- setvispage vpage
+' copypage dpage, vpage
+ setvispage dpage
  dowait
 LOOP
+menubar(0) = 160
+menubar(1) = 1
 update_tilepicker tilepick, layer, usetile(), menubarstart()
-RETRACE
-
-layermenu:
-
-	gosub makelayermenu
-	csr2 = 0
-	
-	DO 
-		setwait 55
-		setkeys
-	 	tog = tog XOR 1
-
-		IF keyval(1) > 1 THEN clearkey(1): EXIT DO
-		usemenu(csr2, 0, 0, 3, 22)
-		
-		select case csr2
-		case 0
-			IF enter_or_space() THEN
-				clearkey(57) 'clear repeats
-				clearkey(28)
-    		EXIT DO
-   		END IF
-   	case 1 to 3
-   		IF enter_or_space() THEN
-   			ToggleLayerEnabled(gmap(), csr2 - 1)
-   			gosub makelayermenu
-   		end if
-   		IF layerisenabled(gmap(), csr2-1) AND (keyval(75) > 1 OR keyval(77) > 1) THEN
-   			togglelayervisible(visible(), csr2-1)
-   			gosub makelayermenu
-   		end if
-
-		end select
-		
-		FOR i = 0 TO 3
-			if layerisenabled(gmap(), i - 1) then
-				textcolor uilook(uiMenuItem), 0
-				if csr2 = i then textcolor uilook(uiSelectedItem + tog), 0
-			else
-				textcolor uilook(uiSelectedDisabled), 0
-		  	IF csr2 = i THEN textcolor uilook(uiSelectedDisabled + tog), 0		 
-			end if
-		  printstr menu$(i), 0, i * 8, dpage
-		NEXT i
-		
-		SWAP vpage, dpage
- 		setvispage vpage
- 		clearpage dpage
- 		dowait
-
-	LOOP
-	
-RETRACE
-
-makelayermenu:
-menu$(0) = "Go back"
-menu$(1) = "Bottom Layer "
-menu$(2) = "Middle Layer "
-menu$(3) = "Top Layer    "
-
-for i = 0 to 2
-	if layerisvisible(visible(),i) then
-		menu$(i+1) = menu$(i+1) & "(Visible)"
-	else
-		menu$(i+1) = menu$(i+1) & "(Invisible)"
-	end if
-next
 RETRACE
 
 '----
@@ -1117,6 +1053,170 @@ RETRACE
 '32  vehicle B
 '64  harm tile
 '128 overhead
+END SUB
+
+SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, defaults() AS DefArray, startlayer AS INTEGER)
+ DIM state AS MenuState
+ DIM menu$(10)
+ DIM enabled(10) AS INTEGER
+ DIM itemcol(10) AS INTEGER
+
+ DIM backpage, currentset
+ currentset = -1
+ clearpage 2
+
+ state.pt = (startlayer + 1) * 3
+ state.top = 0
+ state.last = UBOUND(menu$)
+ state.size = 19
+
+ GOSUB makelayermenu
+ DO 
+  setwait 55
+  setkeys
+  tog = tog XOR 1
+
+'  IF keyval(1) > 1 THEN clearkey(1): EXIT DO
+  IF keyval(1) > 1 THEN EXIT DO
+
+  IF usemenu(state, enabled()) THEN
+   state.need_update = YES
+  END IF
+
+  layerno = (state.pt - 2) \ 3
+  IF state.pt <= 1 THEN layerno = -1
+
+  SELECT CASE state.pt
+   CASE 0
+    IF enter_or_space() THEN
+'    clearkey(57) 'clear repeats
+'    clearkey(28)
+     EXIT DO
+    END IF
+   case 1
+    intgrabber gmap(0), 0, gen(genMaxTile)
+    state.need_update = YES
+   CASE 3,6,9
+    IF enter_or_space() THEN
+     ToggleLayerEnabled(gmap(), layerno)
+     state.need_update = YES
+    END IF
+    IF layerisenabled(gmap(), layerno) AND (keyval(75) > 1 OR keyval(77) > 1) THEN
+     ToggleLayerVisible(visible(), layerno)
+     state.need_update = YES
+    END IF
+   CASE 4,7,10
+    zintgrabber gmap(22 + layerno), -1, gen(genMaxTile)
+    state.need_update = YES
+  END SELECT
+
+  IF state.need_update THEN
+   state.need_update = NO
+   GOSUB makelayermenu
+  END IF
+
+  copypage backpage, dpage
+
+  SELECT CASE layerno
+   CASE 0
+    edgeprint "  Opaque       Underneath NPCs/Heroes", 0, 190, uilook(uiText), dpage
+   CASE 1
+    edgeprint "  Transparent  Underneath NPCs/Heroes", 0, 190, uilook(uiText), dpage
+   CASE 2
+    edgeprint "  Transparent  Above NPCs/Heroes", 0, 190, uilook(uiText), dpage
+  END SELECT
+  
+  FOR i = state.top TO state.top + state.size
+   IF i <= state.last THEN
+    col = itemcol(i)
+    'IF enabled(i) = 0 THEN col = uilook(uiDisabledItem)
+    IF state.pt = i THEN col = uilook(uiSelectedItem + tog)
+    edgeprint menu$(i), 0, (i - state.top) * 9, col, dpage
+   END IF
+  NEXT
+
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ clearpage dpage
+ loadmaptilesets tilesets(), gmap()
+ FOR i = 0 TO 2
+  loadpasdefaults defaults(i).a(), tilesets(i)->num
+ NEXT
+
+ EXIT SUB
+
+updateback:
+ wantset = currentset
+ SELECT CASE state.pt
+  CASE 1
+   wantset = gmap(0)
+   backpage = 3
+  CASE 4,7,10
+   wantset = gmap(22 + (state.pt - 2) \ 3) - 1
+   IF wantset = -1 THEN wantset = gmap(0)
+   backpage = 3
+  CASE ELSE
+   backpage = 2
+ END SELECT
+ IF wantset <> currentset THEN
+  loadpage game + ".til", wantset, 3
+  currentset = wantset
+ END IF
+ RETRACE
+
+makelayermenu:
+ flusharray enabled(), UBOUND(enabled), YES
+ flusharray itemcol(), UBOUND(itemcol), uilook(uiMenuItem)
+ menu$(0) = "Go back"
+ menu$(1) = "Default tileset: "
+' menu$(1) = "Bottom Layer "
+' menu$(2) = "Middle Layer "
+' menu$(3) = "Top Layer    "
+ 
+ needdefault = NO
+ 
+ temp = 2
+ FOR i = 0 TO 2
+  enabled(temp) = NO
+  menu$(temp) = "Layer " & i
+  temp += 1
+
+  IF layerisenabled(gmap(), i) THEN
+   IF layerisvisible(visible(), i) THEN
+    menu$(temp) = " Enabled (" & CHR$(27) & "Visible in editor" & CHR$(26) & ")"
+    itemcol(temp - 1) = uilook(uiSelectedDisabled)
+   ELSE
+    menu$(temp) = " Enabled (" & CHR$(27) & "Invisible in editor" & CHR$(26) & ")"
+    itemcol(temp - 1) = uilook(uiDisabledItem)
+   END IF
+  ELSE
+   menu$(temp) = " Disabled in-game"
+   itemcol(temp - 1) = uilook(uiDisabledItem)
+  END IF
+  temp += 1
+
+  IF gmap(22 + i) = 0 THEN
+   menu$(temp) = " Tileset: Default"
+   needdefault = YES
+  ELSE
+   menu$(temp) = " Tileset: " & gmap(22 + i) - 1
+  END IF
+  temp += 1
+ NEXT
+ 
+ IF needdefault THEN
+  menu$(1) += STR$(gmap(0))
+ ELSE
+  menu$(1) += "(Not used)"
+  enabled(1) = NO
+  itemcol(1) = uilook(uiDisabledItem)
+ END IF
+
+ GOSUB updateback
+ RETRACE
+
 END SUB
 
 FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER

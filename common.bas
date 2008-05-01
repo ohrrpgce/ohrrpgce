@@ -712,7 +712,7 @@ FUNCTION curbinsize (id)
  IF id = 1 THEN RETURN 84  '.stf
  IF id = 2 THEN RETURN 32  'songdata.bin
  IF id = 3 THEN RETURN 34  'sfxdata.bin
- IF id = 4 THEN RETURN 44  '.map
+ IF id = 4 THEN RETURN 50  '.map
  IF id = 5 THEN RETURN 48  'menus.bin
  IF id = 6 THEN RETURN 64  'menuitem.bin
  IF id = 7 THEN RETURN 96  'uicolors.bin
@@ -2678,11 +2678,11 @@ SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER)
 ' NEXT
 
  FOR i = 0 TO 2
-' IF gmap( ) <> 0 THEN
-'  set = gmap( ) - 1
-' ELSE
+  IF gmap(22 + i) <> 0 THEN
+   set = gmap(22 + i) - 1
+  ELSE
    set = gmap(0)
-' END IF
+  END IF
 
   loadtilesetdata tilesets(), i, set
  NEXT
