@@ -152,7 +152,7 @@ define function, begin
 141,npcpixely,1,0           # (who) get npc pixel y
 142,camerapixelx,0          #? get camera pixel x
 143,camerapixely,0          #? get camera pixel y
-144,loadtileset,1,-1        # load a new tileset for the current map
+144,loadtileset,2,-1,-1     # load a new tileset for the current map
 145,pickhero,0              # lets you manually pick a hero
 146,renameherobyslot,1,0    # lets you manually rename a hero
 147,readgeneral,1,0         # directly read from the in-memory array of general game data
@@ -258,10 +258,10 @@ define function, begin
 249,partymoney,0              #retrieves amount of gold
 250,setmoney,1,0              #sets amount of gold
 251,setstringfromtable,2,0,0  #string support function
-252,appendstringfromtable,2,0,0 #string support function
-253,settileanimationoffset,2,0,0 #get offset from starting tile (animation pattern 0/1, offset)
-254,gettileanimationoffset,1,0 #get offset from starting tile (animation pattern 0/1)
-255,animationstarttile,1,0    #tile number which this tile starts its animation pattern off as (id of a tile)
+252,appendstringfromtable,2,0,0      #string support function
+253,settileanimationoffset,3,0,0,0   #set offset from starting tile (animation pattern 0/1, offset, layer)
+254,gettileanimationoffset,2,0,0     #get offset from starting tile (animation pattern 0/1, layer)
+255,animationstarttile,2,0,0  #tile number which this tile starts its animation pattern off as (id of a tile, layer)
 256,suspendmapmusic,0         #prevent ambient music from playing on entering a map
 257,resumemapmusic,0          #reverse above
 258,checkherowall,2,0,0       #check passability in a direction relative to a hero
@@ -311,6 +311,8 @@ define function, begin
 302,menuisopen,1,0            #menu is open(menu handle) # return true as long as the handle is still valid
 303,menuitemslot,1,0          #menu item slot(menu item handle) returns a menu slot number
 304,outsidebattlecure,3,0,0,-1 #out of battle cure(attack ID, target, attacker)
+305,changetileset,2,-1,-1     #similar to loadtileset. (tileset,layer)
+306,layertileset,1,0          #layer tileset(layer) returns tileset number in use
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
@@ -531,9 +533,9 @@ script, input string, str=0, max len=40, useexist=0, center=-654321, positionx=1
   if(show) then(hide string)
 end
 
-script,currentdisplaytile,tile,begin
+script,currentdisplaytile,tile,layer=0,begin
   if(tile>=160) then(
-    return(animationstarttile(tile)+gettileanimationoffset((tile--160)/48))
+    return(animationstarttile(tile,layer)+gettileanimationoffset((tile--160)/48,layer))
   ) else(return(tile))
 end
 
@@ -1179,4 +1181,5 @@ define constant, begin
 1,align:right
 -1,align:top
 1,align:bottom
+-1,tileset:default
 end

@@ -2668,7 +2668,7 @@ SUB loadtilesetdata (tilesets() AS TilesetData ptr, BYVAL layer AS INTEGER, BYVA
  loadtilesetdata tilesets(layer), tilesetnum
 END SUB
 
-SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER)
+SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER, BYVAL resetanimations AS INTEGER = YES)
 'tilesets() may contain already loaded tilesets. In this case, we can reuse them
 'but this mechanism is crude, tilesets might be freed then reloaded (code to fix commented)
 
@@ -2689,13 +2689,15 @@ SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER)
 
  FOR i = 0 TO 2
 '  unloadtilesetdata tilesets(UBOUND(tilesets - i))
-  FOR j = 0 TO 1
-   WITH tilesets(i)->anim(j)
-    .cycle = 0
-    .pt = 0
-    .skip = 0
-   END WITH
-  NEXT
+  IF resetanimations THEN
+   FOR j = 0 TO 1
+    WITH tilesets(i)->anim(j)
+     .cycle = 0
+     .pt = 0
+     .skip = 0
+    END WITH
+   NEXT
+  END IF
  NEXT
 ' REDIM PRESERVE tilesets(UBOUND(tilesets) \ 2)
 END SUB

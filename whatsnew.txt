@@ -52,6 +52,9 @@ Feb ?? 2008 [werewaffle]
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers
       0-4095) [James Paige]
+    * loadtileset, gettileanimationoffset, settileanimationoffset,
+      animationstarttile, currentdisplaytile now take layer arguments.
+      "change tileset" and "layer tileset" also added for layer tilesets
 
   * Stuff only Developers Will Notice
 

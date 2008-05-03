@@ -2175,13 +2175,39 @@ WITH scrat(nowscript)
     setmapdata scroll(), pass(), 0, 0
     setpassblock bound(retvals(0), 0, pass(0)-1), bound(retvals(1), 0, pass(1)-1), bound(retvals(2), 0, 255)
    CASE 144'--load tileset
+    'version that doesn't modify gmap
     IF retvals(0) <= gen(genMaxTile) THEN
-     IF retvals(0) < 0 THEN
-      retvals(0) = gmap(0)
+     IF retvals(1) < 0 OR curcmd->argc <= 1 THEN
+      '0 or 1 args given
+      IF retvals(0) < 0 THEN
+       'reload all defaults
+       loadmaptilesets tilesets(), gmap(), NO
+      ELSE
+       'change default
+       IF gmap(22) = 0 THEN loadtilesetdata tilesets(), 0, retvals(0)
+       IF gmap(23) = 0 THEN loadtilesetdata tilesets(), 1, retvals(0)
+       IF gmap(24) = 0 THEN loadtilesetdata tilesets(), 2, retvals(0)
+      END IF
+     ELSEIF retvals(1) >= 0 AND retvals(1) <= 2 AND retvals(0) >= 0 THEN
+      'load tileset for an individual layer. 
+      loadtilesetdata tilesets(), retvals(1), retvals(0)
      END IF
-     loadtilesetdata tilesets(), 0, retvals(0)
-     loadtilesetdata tilesets(), 1, retvals(0)
-     loadtilesetdata tilesets(), 2, retvals(0)
+    END IF
+   CASE 305'--change tileset
+    'this version of load tileset modifies gmap() for persistent (given map state saving) effects
+    IF retvals(0) <= gen(genMaxTile) THEN
+     IF retvals(1) < 0 THEN
+      IF retvals(0) < 0 THEN
+       'reload all defaults
+      ELSE
+       'change default
+       gmap(0) = retvals(0)
+      END IF
+     ELSEIF retvals(1) >= 0 AND retvals(1) <= 2 THEN
+      'load tileset for an individual layer
+      gmap(22 + retvals(1)) = large(0, retvals(0) + 1)
+     END IF
+     loadmaptilesets tilesets(), gmap(), NO
     END IF
    CASE 151'--show mini map
     minimap catx(0), caty(0), tilesets()
@@ -2241,18 +2267,21 @@ WITH scrat(nowscript)
    CASE 248'--delete map state
     deletemapstate map, retvals(0), "map"
    CASE 253'--settileanimationoffset
-    IF retvals(0) = 0 OR retvals(0) = 1 THEN
-     tilesets(0)->anim(retvals(0)).cycle = retvals(1) MOD 160
+    IF curcmd->argc < 3 THEN retvals(2) = 0
+    IF (retvals(0) = 0 OR retvals(0) = 1) AND retvals(2) >= 0 AND retvals(2) <= 2 THEN
+     tilesets(retvals(2))->anim(retvals(0)).cycle = retvals(1) MOD 160
     END IF
    CASE 254'--gettileanimationoffset
-    IF retvals(0) = 0 OR retvals(0) = 1 THEN
-     scriptret = tilesets(0)->anim(retvals(0)).cycle
+    IF curcmd->argc < 2 THEN retvals(1) = 0
+    IF (retvals(0) = 0 OR retvals(0) = 1) AND retvals(1) >= 0 AND retvals(1) <= 2 THEN
+     scriptret = tilesets(retvals(1))->anim(retvals(0)).cycle
     END IF
    CASE 255'--animationstarttile
+    IF curcmd->argc < 2 THEN retvals(1) = 0
     IF retvals(0) < 160 THEN
      scriptret = retvals(0)
-    ELSEIF retvals(0) >= 160 AND retvals(0) < 256 THEN
-     scriptret = tilesets(0)->tastuf(((retvals(0) - 160) \ 48) * 20) + (retvals(0) - 160) MOD 48
+    ELSEIF retvals(0) < 256 AND retvals(1) >= 0 AND retvals(1) <= 2 THEN
+     scriptret = tilesets(retvals(1))->tastuf(((retvals(0) - 160) \ 48) * 20) + (retvals(0) - 160) MOD 48
     END IF
    CASE 258'--checkherowall
     IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
@@ -2473,6 +2502,10 @@ WITH scrat(nowscript)
        scriptret = ABS(outside_battle_cure(retvals(0), retvals(1), retvals(2), stat(), 0))
       END IF
      END IF
+    END IF
+   CASE 306'--layer tileset
+    IF retvals(0) >= 0 AND retvals(0) <= 2 THEN
+     scriptret = tilesets(retvals(0))->num
     END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc curcmd->value

@@ -1929,7 +1929,16 @@ end</example>
 		<command id="getmaptileset">
 			<cannon>get map tileset</cannon>
 			<shortname>get map tileset</shortname>
-			<description>Returns the ID number of the default tileset for the map. <ref>loadtileset</ref> does NOT affect the value returned by this function.</description>
+			<description>Returns the ID number of the default tileset for the map. <ref>loadtileset</ref> does not affect the value returned by this function, but <ref>changetileset</ref> does. So you might need to use <ref>layertileset</ref> to find the actual currently in-use tileset.</description>
+		</command>
+		<command id="layertileset">
+			<cannon>layer tileset (layer)</cannon>
+			<shortname>layer tileset</shortname>
+			<description>Returns the ID number of the tileset that a certain tilemap layer is currently using.</description>
+			<seealso>
+				<ref>changetileset</ref>
+				<ref>getmaptileset</ref>
+			</seealso>
 		</command>
 		<command id="daysofplay">
 			<cannon>days of play</cannon>
@@ -2277,22 +2286,32 @@ write pass block(15,3,pass)
 # impassable on all directions</example>
 		</command>
 		<command id="loadtileset">
-			<cannon>load tileset (set)</cannon>
+			<cannon>load tileset (tileset, layer)</cannon>
 			<shortname>load tileset</shortname>
-			<description>Loads a different tileset for the currently displaying map. The argument is the ID number of the tileset to load. To restore the map&apos;s default tileset, use load tileset with no arguments.</description>
+			<description>Temporarily loads a different default or layer tileset for the currently displaying map.<lb/>Use <p>load tileset</p> (with no arguments) to restore the old tilesets after using load tileset (this has no effect after <ref>changetileset</ref>).<lb/>Use <p>load tileset (tileset)</p> to load a new default tileset. <p>tileset</p> is the ID number of the tileset to load. This affects tilesets for all layers that are set to 'Tileset: default'. This effectively changes the map's tileset if you haven't done anything fancy with layer tilesets.<lb/>Use <p>load tileset (tileset, layer)</p> to load in a new a tileset for a single layer. <p>layer</p> is the layer number (0-2) to target.<note>This command has a temporary effect: even if the map state is saved, the new tilesets will not persist if you leave the map and come back. <ref>changetileset</ref> is a more powerful command for this.</note></description>
 			<seealso>
 				<ref>getmaptileset</ref>
+				<ref>layertileset</ref>
+			</seealso>
+		</command>
+		<command id="changetileset">
+			<cannon>change tileset (tileset, layer)</cannon>
+			<shortname>change tileset</shortname>
+			<description>An alternative to <ref>loadtileset</ref>: Changes and loads in the default or a map layer tileset for the current map. <p>tileset</p> is the ID number of the tileset to load. You can use the constant <p>tileset:default</p> to set a layer to use the default tileset. <p>layer</p> is the layer number (0-2) to change, or the constant <p>tileset:default</p> which changes the default tileset. It defaults to <p>tileset:default</p> if omitted. <p>change tileset</p> with no arguments restores the set tilesets after using load tileset. Unlike load tileset, this command's effects last to the next time you come back to this map if you save the map state (either tilemap or npcs, or general map settings via <ref>savemapstate</ref>). To undo the effects, you'll need to use <ref>resetmapstate</ref></description>
+			<seealso>
+				<ref>getmaptileset</ref>
+				<ref>layertileset</ref>
 			</seealso>
 		</command>
 		<command id="currentdisplaytile">
-			<cannon>current display tile (tile number)</cannon>
+			<cannon>current display tile (tile number, layer)</cannon>
 			<shortname>current display tile</shortname>
-			<description>Returns the tile number from the tileset, in the range 0-159, that a given tile (read with <ref>readmapblock</ref>) is currently displayed as, taking the tile animation patterns into account.</description>
+			<description>Returns the tile number from the tileset, in the range 0-159, that a given tile (read with <ref>readmapblock</ref>, which returns a value greater than 159 for animated tiles) is currently displayed as, taking the tile animation patterns into account. Because different layers can have different tilesets, you might need to specify the layer the tile is from; otherwise layer 0 is assumed.</description>
 		</command>
 		<command id="animationstarttile">
-			<cannon>animation start tile (tile number)</cannon>
+			<cannon>animation start tile (tile number, layer)</cannon>
 			<shortname>animation start tile</shortname>
-			<description>Returns the tile number on the tileset (in the range 0-159) that this tile is displayed as at the start of its animation pattern (offset 0) if it has one, else just returns the tile number. The <p>tile number</p> argument is typically returned from <ref>readmapblock</ref>. In effect, this is what the tile number would be if you had not set the tile as animated in the tilemap editor.</description>
+			<description>Returns the tile number on the tileset (in the range 0-159) that this tile is displayed as at the start of its animation pattern (offset 0) if it is animated, else just returns the tile number. The <p>tile number</p> argument is typically returned from <ref>readmapblock</ref>. In effect, the result is what the tile number would be if you had not set the tile as animated in the tilemap editor. Because different layers can have different tilesets, you might need to specify the layer the tile is from; otherwise layer 0 is assumed.</description>
 			<seealso>
 				<ref>currentdisplaytile</ref>
 			</seealso>
@@ -2980,23 +2999,23 @@ end</example>
 			<description>Deletes temporary map state files for the current map, so that if the map is set to load NPC or tile data it will load the original data from the game files when it is entered. <p>whichdata</p> is a set of bits in the <ref>savemapstate</ref> format to determine what exactly to delete. The default is mapstate:all.</description>
 		</command>
 		<command id="gettileanimationoffset">
-			<cannon>get tile animation offset (animation pattern)</cannon>
+			<cannon>get tile animation offset (animation pattern, layer)</cannon>
 			<shortname>get tile animation offset</shortname>
-			<description>Returns the offset from the starting tile that the <p>animation pattern</p> (either 0 or 1) is currently at. For example, if the pattern has stepped 1 to the right, the offset is 1, if it has moved down 2 and 1 to the left, it is 31 (2 * 16 - 1).</description>
+			<description>Returns the offset from the starting tile that the <p>animation pattern</p> (either 0 or 1) of the tileset in use by the <p>layer</p> (0 to 2) is currently at. For example, if the pattern has stepped 1 to the right, the offset is 1, if it has moved down 2 and 1 to the left, it is 31 (2 * 16 - 1). Because different layers can have different tilesets, you might need to specify the layer with the tileset to examine; otherwise layer 0 is assumed.<note>Layers that use the same tileset do NOT have different copies of the tileset. Layers with the same tileset will always have the same tile animation offsets.</note></description>
 			<seealso>
 				<ref>readmapblock</ref>
 			<ref>animationstarttile</ref>
 			</seealso>
 		</command>
 		<command id="settileanimationoffset">
-			<cannon>set tile animation offset (animation pattern, offset)</cannon>
+			<cannon>set tile animation offset (animation pattern, offset, layer)</cannon>
 			<shortname>set tile animation offset</shortname>
-			<description>Sets the offset from the starting tile that an <p>animation pattern</p> (either 0 or 1) is currently at. If there is a pattern defined, it will continue to step left, right, up and down from the offset you give it, until the end of the animation is reached, when the offset is reset to 0.</description>
+			<description>Sets the offset from the starting tile that an <p>animation pattern</p> (either 0 or 1) of a tileset in use by a <p>layer</p> (0 to 2) is currently at. If there is a pattern defined, it will continue to step left, right, up and down from the offset you give it, until the end of the animation is reached, when the offset is reset to 0. Because different layers can have different tilesets, you might need to specify the layer with the tileset to examine; otherwise layer 0 is assumed. <note>Layers that use the same tileset do NOT have different copies of the tileset. Layers with the same tileset will always have the same tile animation offsets, you can not change them independently.</note></description>
 		</command>
 		<command id="milliseconds">
 			<cannon>milliseconds</cannon>
 			<shortname>milliseconds</shortname>
-            <description>Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's uptime).</description>
+            <description>Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's uptime or any random value).</description>
         </command>
 	</section>
 	<section title="Predefined Constants">
