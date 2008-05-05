@@ -738,7 +738,7 @@ FOR i = 0 TO npcdMax
  setpicstuf buffer(), 1600, 2
  with npcs(i)
   loadset game + ".pt4", .picture, 20 + (5 * i)
-  getpal16 pal16(), 4 + i, .palette, 4, npcs(i).picture
+  getpal16 pal16(), 4 + i, .palette, 4, .picture
   if .sprite then sprite_unload(@.sprite)
   if .pal then palette16_unload(@.pal)
   .sprite = sprite_load(game + ".pt4", .picture, 8, 20, 20)

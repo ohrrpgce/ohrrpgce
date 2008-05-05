@@ -32,6 +32,11 @@ type Frame
 	refcount as integer
 end type
 
+TYPE GraphicPair
+	sprite as frame ptr
+	pal as palette16 ptr
+END TYPE
+
 TYPE MenuSet
   menufile  AS STRING
   itemfile AS STRING

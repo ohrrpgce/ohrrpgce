@@ -3672,6 +3672,7 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 	'no memory? shucks.
 	if ret = 0 then
 		close #f
+		debug "Could not create sprite frames, no memory"
 		return 0
 	end if
 	

@@ -1331,7 +1331,8 @@ END SUB
 
 FUNCTION picksave (loading)
 
-DIM full(3), herosname$(3), mapname$(3), svtime$(3), lev$(3), id(3, 3), tstat(3, 1, 16), pic(3, 3), confirm$(1), menu$(1)
+DIM full(3), herosname$(3), mapname$(3), svtime$(3), lev$(3), id(3, 3), tstat(3, 1, 16), confirm$(1), menu$(1)
+DIM sprites(3, 3) AS GraphicPair
 DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 
 '--if loading is 2, that means fade the screen in, and loadmenu
@@ -1419,21 +1420,15 @@ FOR i = 0 TO 3
    IF id(i, o) >= 0 THEN
     '--hero pic and palette
     IF picpalmagic = 4444 THEN
-     pic(i, o) = tstat(o, 0, 14)
-     getpal16 pal16(), 40 + (i * 4) + o, tstat(o, 0, 15), 0, pic(i, o)
+     sprites(i, o).sprite = sprite_load(game & ".pt0", tstat(o, 0, 14), 8, 32, 40)
+     sprites(i, o).pal = palette16_load(game & ".pal", tstat(o, 0, 15), 0, tstat(o, 0, 14))
     ELSE
      '--backcompat
      dim her as herodef
      loadherodata @her, id(i,o) - 1
-     pic(i, o) = her.sprite
-     getpal16 pal16(), 40 + (i * 4) + o, her.sprite_pal, 0, pic(i, o)
+     sprites(i, o).sprite = sprite_load(game & ".pt0", her.sprite, 8, 32, 40)
+     sprites(i, o).pal = palette16_load(game & ".pal", her.sprite_pal, 0, her.sprite)
     END IF
-    setpicstuf buffer(), 5120, 2
-    loadset game + ".pt0", pic(i, o), 0
-    loadsprite buffer(), 0, 0, 0, 32, 40, 2
-    stosprite buffer(), 0, 0, 16 + (i * 16) + (o * 4), 2
-    loadsprite buffer(), 0, 0, 2, 32, 40, 2
-    stosprite buffer(), 0, 0, 16 + (i * 16) + (o * 4) + 2, 2
    END IF
   NEXT o
   mapname$(i) = getmapname$(map)
@@ -1447,9 +1442,8 @@ IF loading THEN
   IF full(i) = 1 THEN nofull = 1
  NEXT i
  IF nofull = 0 THEN 
-  IF loading = 2 THEN clearpage 2
   picksave = -1
-  EXIT FUNCTION
+  GOTO freesprites
  END IF
 END IF
 
@@ -1518,10 +1512,16 @@ DO
  IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
-IF loading = 2 THEN
- clearpage 2
-END IF
+
+freesprites:
+IF loading = 2 THEN clearpage 2
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
+FOR i = 0 TO 3
+ FOR o = 0 TO 3
+  sprite_unload(@sprites(i, o).sprite)
+  palette16_unload(@sprites(i, o).pal)
+ NEXT
+NEXT
 EXIT FUNCTION
 
 confirm:
@@ -1577,10 +1577,7 @@ FOR i = 0 TO 3
  IF full(i) = 1 THEN
   FOR o = 0 TO 3
    IF id(i, o) > 0 THEN
-    temp = 16 + (i * 16) + (o * 4)
-    IF cursor = i THEN temp = temp + (2 * walk)
-    loadsprite buffer(), 0, 0, temp, 32, 40, 2
-    drawsprite buffer(), 0, pal16(), (40 + (i * 4) + o) * 16, 140 + (o * 42), 20 + i * 44, dpage
+    sprite_draw sprites(i, o).sprite + iif(cursor = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 20 + i * 44, 1, -1, dpage
    END IF
   NEXT o
   col = uilook(uiMenuItem)
