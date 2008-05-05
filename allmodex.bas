@@ -185,22 +185,22 @@ sub restoremode()
 	releasestack
 end sub
 
-SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer)
-	memcpy(spage(page2), spage(page1), 320 * 200)
+SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer, BYVAL y as integer = 0, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
+	memcpy(spage(page2) + 320 * top, spage(page1) + 320 * y, 320 * (bottom - top + 1))
 end sub
 
-SUB copypage (BYVAL page1 as integer, page2() as ubyte)
+SUB copypage (BYVAL page1 as integer, page2() as ubyte, BYVAL y as integer = 0, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
 	if ubound(page2) < (320*200) - 1 then
 		debug "page2 buffer too small " & ubound(page2)
 	end if
-	memcpy(@page2(0), spage(page1), 320 * 200)
+	memcpy(@page2(0) + 320 * top, spage(page1) + 320 * y, 320 * (bottom - top + 1))
 END SUB
 
-SUB copypage (page1() as ubyte, BYVAL page2 as integer)
+SUB copypage (page1() as ubyte, BYVAL page2 as integer, BYVAL y as integer = 0, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
 	if ubound(page1) < (320*200) - 1 then
 		debug "page1 buffer too small " & ubound(page1)
 	end if
-	memcpy(spage(page2), @page1(0), 320 * 200)
+	memcpy(spage(page2) + 320 * top, @page1(0) + 320 * y, 320 * (bottom - top + 1))
 END SUB
 
 SUB clearpage (BYVAL page as integer)
@@ -1438,7 +1438,7 @@ SUB setwait (BYVAL t as integer)
 'frequency and is also used to set the wait time, but the resolution of the
 'dos timer means that the latter is always truncated to the last multiple of
 '55 milliseconds. We won't do this anymore. Try to make the target framerate.
-	waittime = bound(waittime + t / 1000, 0.017, timer + t / 667)
+	waittime = bound(waittime + t / 1000, timer + 0.017, timer + t / 667)
 	waitset = 1
 end SUB
 

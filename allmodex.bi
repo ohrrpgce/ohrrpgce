@@ -9,9 +9,9 @@
 'Library routines
 DECLARE SUB setmodex ()
 DECLARE SUB restoremode ()
-DECLARE SUB copypage OVERLOAD (BYVAL page1, BYVAL page2)
-DECLARE SUB copypage OVERLOAD (BYVAL page1 as integer, page2() as ubyte)
-DECLARE SUB copypage OVERLOAD (page1() as ubyte, BYVAL page2 as integer)
+DECLARE SUB copypage OVERLOAD (BYVAL page1, BYVAL page2, BYVAL y = 0, BYVAL top = 0, BYVAL bottom = 199)
+DECLARE SUB copypage OVERLOAD (BYVAL page1 as integer, page2() as ubyte, BYVAL y = 0, BYVAL top = 0, BYVAL bottom = 199)
+DECLARE SUB copypage OVERLOAD (page1() as ubyte, BYVAL page2 as integer, BYVAL y = 0, BYVAL top = 0, BYVAL bottom = 199)
 DECLARE SUB clearpage (BYVAL page)
 DECLARE SUB setvispage (BYVAL page)
 DECLARE SUB setpal (pal() as RGBcolor)
