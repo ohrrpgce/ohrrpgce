@@ -103,6 +103,7 @@ DECLARE SUB limitcamera ()
 DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING, minimum AS INTEGER=0) AS INTEGER
 DECLARE FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
+DECLARE SUB MenuSound(byval s as integer)
 
 
 'these variables hold information used by breakpoint to step to the desired position
@@ -697,6 +698,7 @@ NEXT j
 
 '--the bitset that determines whether the choicebox is enabled
 saybit(0) = boxbuf(174)
+IF readbit(saybit(), 0, 0) THEN MenuSound gen(genAcceptSFX)
 
 '--load box appearance into sayenh()
 FOR j = 0 TO 6

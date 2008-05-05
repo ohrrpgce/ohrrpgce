@@ -1480,11 +1480,11 @@ DO
  END IF
  IF carray(4) > 1 THEN
   IF cursor = -2 THEN
-   MenuSound gen(genAcceptSFX)
+   MenuSound gen(genCancelSFX)
    picksave = cursor
    EXIT DO
   ELSEIF cursor = -1 THEN
-   MenuSound gen(genCancelSFX)
+   MenuSound gen(genAcceptSFX)
    picksave = cursor
    EXIT DO
   ELSE

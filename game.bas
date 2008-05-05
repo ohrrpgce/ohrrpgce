@@ -603,8 +603,8 @@ DO
   END SELECT
  END IF
  IF showsay = 1 THEN
-  IF carray(0) > 1 THEN choosep = 0
-  IF carray(1) > 1 THEN choosep = 1
+  IF carray(0) > 1 AND choosep = 1 THEN choosep = 0: MenuSound gen(genCursorSFX)
+  IF carray(1) > 1 AND choosep = 0 THEN choosep = 1: MenuSound gen(genCursorSFX)
  END IF
  'DEBUG debug "setmapdata pass"
  setmapdata pass(), pass(), 0, 0
@@ -966,6 +966,7 @@ IF sayenh(4) > 0 THEN
 END IF
 '---IF MADE A CHOICE---
 IF readbit(saybit(), 0, 0) THEN
+ MenuSound gen(genAcceptSFX)
  IF ABS(chtag(choosep)) > 1 THEN setbit tag(), 0, ABS(chtag(choosep)), SGN(SGN(chtag(choosep)) + 1)
 END IF
 '---RESET MUSIC----

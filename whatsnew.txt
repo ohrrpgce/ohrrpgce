@@ -52,6 +52,7 @@ Feb ?? 2008 [werewaffle]
       [James Paige]
     * Bug 625: 'Damage instead of set' % based attacks now respect
       the cure and harmed by cure bitsets [Yuriy, Ralph]
+    * More missing/wrong menu sound effects
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers
