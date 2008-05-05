@@ -24,6 +24,10 @@ Feb ?? 2008 [werewaffle]
     * Full view option in backdrop & tileset import/export menus
     * Fancy improved Map Layers menu (still also available by Ctrl-L)
     * Each tilemap layer can now use a different tileset. [Ralph]
+    * You can cut from tilesets as well as backdrops; hit enter or
+      middle click to quickly cut a tile or sequence of tiles; hold
+      down shift to keep the cut box 20x20 tile aligned while moving
+      the mouse.
 
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged

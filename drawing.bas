@@ -378,21 +378,21 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN tmode = 0: RETRACE
- usemenu tmode, 0, 0, 4, 24
+ usemenu tmode, 0, 0, 5, 24
  IF enter_or_space() THEN
   SELECT CASE tmode
-   CASE 0, 1, 2
+   CASE 0, 1, 2, 3
     picktiletoedit tmode, pagenum, mapfile$
-   CASE 3
+   CASE 4
     GOSUB tileanim
     setkeys
     GOSUB tilemodemenu
-   CASE 4
+   CASE 5
     tmode = 0
     RETRACE
   END SELECT
  END IF
- FOR i = 0 TO 4
+ FOR i = 0 TO 5
   c = uilook(uiMenuItem)
   IF tmode = i THEN c = uilook(uiSelectedItem + tog)
   edgeprint menu$(i), 10, 8 * (i + 1), c, dpage
@@ -404,10 +404,11 @@ DO
 LOOP
 tilemodemenu:
 menu$(0) = "Draw Tiles"
-menu$(1) = "Cut Tiles"
-menu$(2) = "Set Default Passability"
-menu$(3) = "Define Tile Animation"
-menu$(4) = "Cancel"
+menu$(1) = "Cut Tiles from Tilesets"
+menu$(2) = "Cut Tiles from Backdrops"
+menu$(3) = "Set Default Passability"
+menu$(4) = "Define Tile Animation"
+menu$(5) = "Cancel"
 RETRACE
 
 tileanim:
@@ -768,7 +769,7 @@ FOR i = 0 TO 1
  area(21 + i).h = 8
 NEXT i
 DIM pastogkey(7), defaults(160), bitmenu$(10)
-IF tmode = 2 THEN
+IF tmode = 3 THEN
  pastogkey(0) = 72
  pastogkey(1) = 77
  pastogkey(2) = 80
@@ -800,7 +801,7 @@ DO
   readmouse mouse()
  END IF
  IF keyval(1) > 1 THEN storepage mapfile$, pagenum, 3: EXIT DO
- IF tmode <> 2 OR keyval(29) = 0 THEN
+ IF tmode <> 3 OR keyval(29) = 0 THEN
   IF slowkey(75, 2) THEN IF bnum > 0 THEN bnum = bnum - 1: IF ts.gotmouse THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
   IF slowkey(77, 2) THEN IF bnum < 159 THEN bnum = bnum + 1: IF ts.gotmouse THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
   IF slowkey(72, 2) THEN IF bnum > 15 THEN bnum = bnum - 16: IF ts.gotmouse THEN mouse(1) = mouse(1) - 20: movemouse mouse(0), mouse(1)
@@ -809,7 +810,7 @@ DO
  IF ts.gotmouse THEN
   bnum = INT(mouse(1) / 20) * 16 + INT(mouse(0) / 20)
  END IF
- IF tmode = 2 THEN
+ IF tmode = 3 THEN
   '--pass mode shortcuts
   FOR i = 0 TO 7
    IF keyval(29) > 0 OR i > 3 THEN
@@ -830,14 +831,21 @@ DO
    editmaptile ts, mover(), mouse(), area()
   END IF
   IF tmode = 1 THEN
+   ts.cuttileset = YES
+   ts.cutfrom = small(ts.cutfrom, gen(genMaxTile) - 1)
    tilecut ts, mouse(), area()
   END IF 
   IF tmode = 2 THEN
+   ts.cuttileset = NO
+   ts.cutfrom = small(ts.cutfrom, gen(genMaxBackdrop))
+   tilecut ts, mouse(), area()
+  END IF 
+  IF tmode = 3 THEN
    editbitset defaults(), bnum, 7, bitmenu$()
   END IF
  END IF
  tog = tog XOR 1
- IF tmode = 2 THEN
+ IF tmode = 3 THEN
   FOR o = 0 TO 9
    FOR i = 0 TO 15
     IF (defaults(i + o * 16) AND 1) THEN rectangle i * 20, o * 20, 20, 3, uilook(uiMenuItem + tog), dpage
@@ -865,7 +873,7 @@ DO
  setvispage vpage
  dowait
 LOOP
-IF tmode = 2 THEN
+IF tmode = 3 THEN
  savepasdefaults defaults(), pagenum
 END IF
 oldpaste = ts.canpaste
@@ -1413,7 +1421,7 @@ IF ts.gotmouse THEN
 END IF
 ts.delay = 3
 clearpage 2
-loadpage game + ".mxs", ts.cutfrom, 2
+IF ts.cuttileset THEN loadpage game + ".til", ts.cutfrom, 2 ELSE loadpage game + ".mxs", ts.cutfrom, 2
 setkeys
 DO
  setwait 110
@@ -1424,8 +1432,13 @@ DO
   readmouse mouse()
   zcsr = 0
   ts.zone = mouseover(mouse(), 0, 0, zcsr, area())
-  ts.x = small(mouse(0), 300)
-  ts.y = small(mouse(1), 180)
+  IF keyval(42) OR keyval(54) THEN 'shift
+   ts.x = mouse(0) - mouse(0) MOD 20
+   ts.y = mouse(1) - mouse(1) MOD 20
+  ELSE
+   ts.x = small(mouse(0), 300)
+   ts.y = small(mouse(1), 180)
+  END IF
  END IF
  IF keyval(1) > 1 THEN
   EXIT DO
@@ -1437,21 +1450,38 @@ DO
  IF keyval(77) AND 5 THEN ts.x = small(ts.x + inc, 300): IF ts.gotmouse THEN movemouse ts.x, ts.y
  IF enter_or_space() OR (mouse(3) > 0 AND ts.zone < 11) THEN
   IF ts.delay = 0 THEN
-   setkeys
    FOR i = 0 TO 19
     FOR j = 0 TO 19
      putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(ts.x + i, ts.y + j, 2), 3
     NEXT j
    NEXT i
-   EXIT DO
+   IF keyval(28) > 1 OR (mouse(3) AND 4) THEN 'enter or middle click
+    ts.tiley = (ts.tiley + (ts.tilex + 1) \ 16) MOD 10
+    ts.tilex = (ts.tilex + 1) AND 15
+    setvispage 3
+    dowait
+    setwait 55
+    ts.x += 20
+    IF ts.x > 300 THEN
+     ts.x = 0
+     ts.y += 20
+     IF ts.y > 180 THEN ts.y = 0
+    END IF
+    IF ts.gotmouse THEN movemouse ts.x, ts.y
+   ELSE
+    EXIT DO
+   END IF
   END IF
  END IF
  '---PICK BACKGROUND PAGE------
  oldcut = ts.cutfrom
- intgrabber ts.cutfrom, 0, gen(genMaxBackdrop) - 1, 51, 52
- IF ts.zone = 11 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, gen(genMaxBackdrop) - 1, -1)
- IF ts.zone = 12 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, gen(genMaxBackdrop) - 1, 1)
- IF oldcut <> ts.cutfrom THEN loadpage game + ".mxs", ts.cutfrom, 2
+ IF ts.cuttileset THEN maxset = gen(genMaxTile) ELSE maxset = gen(genMaxBackdrop) - 1
+ intgrabber ts.cutfrom, 0, maxset, 51, 52
+ IF ts.zone = 11 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, -1)
+ IF ts.zone = 12 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, 1)
+ IF oldcut <> ts.cutfrom THEN
+  IF ts.cuttileset THEN loadpage game + ".til", ts.cutfrom, 2 ELSE loadpage game + ".mxs", ts.cutfrom, 2
+ END IF
  '----
  drawline ts.x, ts.y, ts.x + 19, ts.y, 10 + tog * 5, dpage
  drawline ts.x, ts.y, ts.x, ts.y + 19, 10 + tog * 5, dpage
