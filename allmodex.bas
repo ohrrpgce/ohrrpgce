@@ -128,6 +128,11 @@ dim shared as integer clipl, clipt, clipr, clipb
 dim shared intpal(0 to 255) as RGBcolor	'current palette
 dim shared updatepal as integer  'setpal called, load new palette at next setvispage
 
+dim shared fpsframes as integer = 0
+dim shared fpstime as double = 0.0
+dim shared fpsstring as string
+dim shared showfps as integer = 0
+
 sub setmodex()
 	dim i as integer
 
@@ -157,6 +162,10 @@ sub setmodex()
 
 	io_init
 	mouserect(0,319,0,199)
+
+	fpstime = TIMER
+	fpsframes = 0
+	fpsstring = ""
 end sub
 
 sub restoremode()
@@ -200,7 +209,17 @@ SUB clearpage (BYVAL page as integer)
 end SUB
 
 SUB setvispage (BYVAL page as integer)
-  'the fb backend may freeze up if they collide with the polling thread (why???)
+	fpsframes += 1
+	if timer > fpstime + 1 then
+		fpsstring = "fps:" & INT(10 * fpsframes / (timer - fpstime)) / 10
+		fpstime = timer
+		fpsframes = 0
+	end if
+	if showfps then
+		edgeprint fpsstring, 255, 190, uilook(uiText), page
+	end if
+
+	'the fb backend may freeze up if they collide with the polling thread (why???)
 	mutexlock keybdmutex
 	if updatepal then
 		gfx_setpal(intpal())
@@ -903,6 +922,10 @@ SUB setkeys ()
 	'reset arrow key fire state
 	diagonalhack = -1
 
+	if keyval(scCtrl) > 0 and keyval(scTilde) and 4 then
+		showfps xor= 1
+	end if
+
 	'FIXME DELETEME
 	'--This code is for screen page debugging, and will be removed in the future!
 	if keyval(70) > 0 then 'Scroll-lock
@@ -1414,8 +1437,8 @@ SUB setwait (BYVAL t as integer)
 't is a value in milliseconds which, in the original, is used to set the event
 'frequency and is also used to set the wait time, but the resolution of the
 'dos timer means that the latter is always truncated to the last multiple of
-'55 milliseconds. We won't do this anymore.
-	waittime = timer + t / 1000
+'55 milliseconds. We won't do this anymore. Try to make the target framerate.
+	waittime = bound(waittime + t / 1000, 0.017, timer + t / 667)
 	waitset = 1
 end SUB
 

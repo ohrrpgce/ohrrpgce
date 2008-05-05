@@ -292,7 +292,6 @@ dpage = 1: vpage = 0
 speedcontrol = 55
 presentsong = -1
 gen(60) = 0'--leave joystick calibration enabled
-'fpstimer! = TIMER
 
 load_default_master_palette master()
 'get default ui colours
@@ -848,13 +847,6 @@ END IF
 FOR i = 0 TO topmenu
  draw_menu menus(i), mstates(i), dpage
 NEXT i
-'--FPS
-'framecount = framecount + 1
-'IF fpstimer! + 1 < TIMER THEN
-'  scriptout$ = "FPS" + XSTR$(framecount)
-'  fpstimer! = TIMER
-'  framecount = 0
-'END IF
 edgeprint scriptout$, 0, 190, uilook(uiText), dpage
 showplotstrings
 IF showtags > 0 THEN tagdisplay

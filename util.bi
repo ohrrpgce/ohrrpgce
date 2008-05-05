@@ -7,7 +7,8 @@
 #IFNDEF UTIL_BI
 #DEFINE UTIL_BI
 
-declare function bound (byval n, byval lowest, byval highest)
+declare function bound overload (byval n, byval lowest, byval highest)
+declare function bound overload (byval n as double, byval lowest as double, byval highest as double) as double
 declare function large (byval n1, byval n2)
 declare function loopvar (byval var, byval min, byval max, byval inc)
 declare function small (byval n1, byval n2)

@@ -20,6 +20,12 @@ IF n < lowest THEN bound = lowest
 IF n > highest THEN bound = highest
 END FUNCTION
 
+FUNCTION bound (BYVAL n AS DOUBLE, BYVAL lowest AS DOUBLE, BYVAL highest AS DOUBLE) AS DOUBLE
+bound = n
+IF n < lowest THEN bound = lowest
+IF n > highest THEN bound = highest
+END FUNCTION
+
 FUNCTION large (BYVAL n1, BYVAL n2)
 large = n1
 IF n2 > n1 THEN large = n2

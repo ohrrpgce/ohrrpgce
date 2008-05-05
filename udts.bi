@@ -279,6 +279,7 @@ TYPE TileEditState
  hox AS INTEGER
  hoy AS INTEGER
  cutfrom AS INTEGER
+ cuttileset AS INTEGER
  canpaste AS INTEGER
  delay AS INTEGER
  fixmouse AS INTEGER
