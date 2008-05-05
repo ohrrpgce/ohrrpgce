@@ -1420,7 +1420,7 @@ IF ts.gotmouse THEN
  movemouse ts.x, ts.y
 END IF
 ts.delay = 3
-clearpage 2
+previewticks = 0
 IF ts.cuttileset THEN loadpage game + ".til", ts.cutfrom, 2 ELSE loadpage game + ".mxs", ts.cutfrom, 2
 setkeys
 DO
@@ -1458,9 +1458,6 @@ DO
    IF keyval(28) > 1 OR (mouse(3) AND 4) THEN 'enter or middle click
     ts.tiley = (ts.tiley + (ts.tilex + 1) \ 16) MOD 10
     ts.tilex = (ts.tilex + 1) AND 15
-    setvispage 3
-    dowait
-    setwait 55
     ts.x += 20
     IF ts.x > 300 THEN
      ts.x = 0
@@ -1468,6 +1465,7 @@ DO
      IF ts.y > 180 THEN ts.y = 0
     END IF
     IF ts.gotmouse THEN movemouse ts.x, ts.y
+    previewticks = 6
    ELSE
     EXIT DO
    END IF
@@ -1483,10 +1481,26 @@ DO
   IF ts.cuttileset THEN loadpage game + ".til", ts.cutfrom, 2 ELSE loadpage game + ".mxs", ts.cutfrom, 2
  END IF
  '----
- drawline ts.x, ts.y, ts.x + 19, ts.y, 10 + tog * 5, dpage
- drawline ts.x, ts.y, ts.x, ts.y + 19, 10 + tog * 5, dpage
- drawline ts.x + 19, ts.y + 19, ts.x + 19, ts.y, 10 + tog * 5, dpage
- drawline ts.x + 19, ts.y + 19, ts.x, ts.y + 19, 10 + tog * 5, dpage
+ IF previewticks THEN
+  previewy = bound(ts.tiley * 20 - 20, 0, 140)
+  IF ts.y < 100 THEN
+   'tileset preview at bottom of screen
+   copypage 2, dpage, 0, 0, 139
+   copypage 3, dpage, previewy, 141, 199
+   rectangle 0, 139, 320, 2, uilook(uiSelectedItem + tog), dpage
+   drawbox ts.tilex * 20, 141 + ts.tiley * 20 - previewy, 20, 20, uilook(uiSelectedItem + tog), dpage
+  ELSE
+   copypage 3, dpage, bound(ts.tiley * 20 - 20, 0, 140), 0, 59
+   copypage 2, dpage, 59, 59, 199
+   rectangle 0, 59, 320, 2, uilook(uiSelectedItem + tog), dpage
+   drawbox ts.tilex * 20, ts.tiley * 20 - previewy, 20, 20, uilook(uiSelectedItem + tog), dpage
+  END IF
+  previewticks -= 1
+ ELSE
+  copypage 2, dpage
+ END IF
+
+ drawbox ts.x, ts.y, 20, 20, iif(tog, uilook(uiText), uilook(uiDescription)), dpage
  textcolor uilook(uiMenuItem + tog), 1
  IF ts.zone = 11 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
  printstr "Prev", 8, 190, dpage
@@ -1506,7 +1520,6 @@ DO
  END IF
  SWAP dpage, vpage
  setvispage vpage
- copypage 2, dpage
  dowait
 LOOP
 IF ts.gotmouse THEN
