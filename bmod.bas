@@ -267,7 +267,7 @@ DO
  copypage 2, dpage
  IF needf = 1 THEN
   needf = 0
-  IF formdata(33) >= 0 THEN fademusic fmvol
+  IF formdata(33) > 0 THEN fademusic fmvol
   fadein
   setkeys
  END IF

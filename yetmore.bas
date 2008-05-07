@@ -1429,22 +1429,20 @@ SELECT CASE AS CONST id
  CASE 188'--setmusicvolume
   fmvol = bound(retvals(0), 0, 255) \ 16
   setfmvol fmvol
- CASE 189'--get formation song
+ CASE 189, 307'--get formation song
   fh = FREEFILE
-  IF retvals(0) >= 0 AND retvals(0) < gen(genMaxFormation) THEN
-   OPEN game + ".for" FOR BINARY AS #fh
-   'GET #fh,clng(retvals(0)) * 80 + 66,scriptret
-   scriptret = readshort(fh,clng(retvals(0)) * 80 + 67)
+  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) THEN
+   OPEN tmpdir & "for.tmp" FOR BINARY AS #fh
+   scriptret = readshort(fh, retvals(0) * 80 + 67)
+   IF id = 307 THEN scriptret -= 1
    CLOSE #fh
-  ELSE
-   scriptret = -1
   END IF
  CASE 190'--set formation song
+  'set formation song never worked, so don't bother with backwards compatibility
   fh = FREEFILE
-  IF retvals(0) >= 0 AND retvals(0) < gen(genMaxFormation) AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxSong) THEN
-   OPEN game + ".for" FOR BINARY AS #fh
-   'GET #fh,clng(retvals(0)) * 80 + 66,scriptret
-   WriteShort fh,clng(retvals(0)) * 80 + 65,retvals(1)
+  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) AND retvals(1) >= -2 AND retvals(1) <= gen(genMaxSong) THEN
+   OPEN tmpdir & "for.tmp" FOR BINARY AS #fh
+   WriteShort fh, retvals(0) * 80 + 67, retvals(1) + 1
    CLOSE #fh
   ELSE
    scriptret = -1

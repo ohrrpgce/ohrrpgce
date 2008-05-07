@@ -53,6 +53,8 @@ Feb ?? 2008 [werewaffle]
     * Bug 625: 'Damage instead of set' % based attacks now respect
       the cure and harmed by cure bitsets [Yuriy, Ralph]
     * More missing/wrong menu sound effects
+    * Battle Music: silence now works again
+    * set formation song now actually works [Ralph]
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers
@@ -60,6 +62,9 @@ Feb ?? 2008 [werewaffle]
     * loadtileset, gettileanimationoffset, settileanimationoffset,
       animationstarttile, currentdisplaytile now take layer arguments.
       "change tileset" and "layer tileset" also added for layer tilesets
+    * Changed get formation song and set formation song have to not use
+      a +1 offset for songs, and can handle "same as map" song. This
+      only affects recompiled scripts [Ralph]
 
   * Stuff only Developers Will Notice
 

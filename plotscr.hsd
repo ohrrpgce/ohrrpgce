@@ -195,7 +195,7 @@ define function, begin
 186,spellslearnt,2,0,0      # number spells and spell ids hero learnt at last battle/giveexperience command.
 187,getmusicvolume,0        # music volume on a scale of 0-255 regardless of implementation
 188,setmusicvolume,1,128    # set music volume on a scale of 0-255
-189,getformationsong,1,0	# returns the song associated with a given formation
+#189,getformationsong,1,0	# returns the song associated with a given formation + 1   (obsoleted by opcode 307)
 190,setformationsong,2,0,0	# sets the song associated with a given formation
 191,heroframe,1,0           # get hero walkabout frame
 192,npcframe,1,0            # get npc walkabout frame
@@ -313,6 +313,7 @@ define function, begin
 304,outsidebattlecure,3,0,0,-1 #out of battle cure(attack ID, target, attacker)
 305,changetileset,2,-1,-1     #similar to loadtileset. (tileset,layer)
 306,layertileset,1,0          #layer tileset(layer) returns tileset number in use
+307,getformationsong,1,0      #returns the song associated with a given formation
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
@@ -667,7 +668,8 @@ end
 
 script, set ambient music, song=-1, begin
   write gmap(1,song + 1)
-  if (song >= 0) then (play song (song)) else (stop song)
+  if (song >= 0) then (play song (song))
+  else (if (song == -1) then (stop song))
 end
 
 script,allow minimap,setting=1,begin
@@ -1182,4 +1184,7 @@ define constant, begin
 -1,align:top
 1,align:bottom
 -1,tileset:default
+-1,song:silence
+-2,song:same as map
+-2,song:same as last map
 end

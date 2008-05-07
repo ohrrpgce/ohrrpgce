@@ -970,7 +970,7 @@ end</example>
 		<command id="setambientmusic">
 			<cannon>set ambient music (song)</cannon>
 			<shortname>set ambient music</shortname>
-			<description>Plays a song and sets it as the map's ambient music, that is the song that is played when you enter the map (if you call <ref>savemapstate</ref> with mapstate:all or mapstate:mapsettings) or after a textbox with 'restore music' set. Unless you save the mapstate, the effect goes away if you change maps or fight a battle. Calling set ambient music with no argument stops the music and disables the ambient music.</description>
+			<description>Plays a song and sets it as the map's ambient music, that is the song that is played when you enter the map (if you call <ref>savemapstate</ref> with mapstate:all or mapstate:mapsettings) or after a textbox with 'restore music' set. Unless you save the mapstate, the effect goes away if you change maps or fight a battle. You can use the constants <ref>song:silence</ref> and <ref>song:sameaslastmap</ref> for <p>song</p>, the deault is silence.</description>
 			<seealso>
 				<ref>playsong</ref>
 			</seealso>
@@ -978,7 +978,7 @@ end</example>
 		<command id="getambientmusic">
 			<cannon>get ambient music</cannon>
 			<shortname>get ambient music</shortname>
-			<description>Returns the song number of the map's ambient music.</description>
+			<description>Returns the song number of the map's ambient music, either a song ID or the constants <ref>song:silence</ref> or <ref>song:sameaslastmap</ref>.</description>
 			<seealso>
 				<ref>currentsong</ref>
 			</seealso>
@@ -2178,7 +2178,7 @@ end</example>
 		<command id="getformationsong">
 			<cannon>get formation song (formation)</cannon>
 			<shortname>get formation song</shortname>
-			<description>Returns the song associated with <p>formation</p>. If there is none, it will return 0, otherwise it will return the song number + 1. If there is an error (such as <p>formation</p> not existing), it will return -1.</description>
+			<description>Returns the song associated with <p>formation</p>. Compare the result with the constants of the form <p>song:songname</p> from your exported .hsi file, or the special constants <ref>song:silence</ref> or <ref>song:sameasmap</ref>.</description>
 			<seealso>
 				<ref>setformationsong</ref>
 			</seealso>
@@ -2186,7 +2186,7 @@ end</example>
 		<command id="setformationsong">
 			<cannon>set formation song (formation, song)</cannon>
 			<shortname>set formation song</shortname>
-			<description>Sets an enemy formation to use <p>song</p> as its music. Use 0 for none, or the song number + 1 for a song.<lb/>Note: Formation data changes are temporary. They are not saved in the save game.</description>
+			<description>Changes an enemy formation to use <p>song</p> as its music. Use the constants of the form <p>song:songname</p> from your exported .hsi file, or the special constants <ref>song:silence</ref> or <ref>song:sameasmap</ref>.<lb/>Note: Formation data changes are temporary. They are not saved in the save game.</description>
 			<seealso>
 				<ref>getformationsong</ref>
 			</seealso>
@@ -3325,6 +3325,20 @@ end</example>
 		  <cannon>timer flag: menu</cannon>
 		  <shortname>timer flag: menu</shortname>
 		  <description>Pass to <ref>settimer</ref> in the <p>flags</p> field to indicate that the timer should run while the player is in the menu. Otherwise, it will be paused while the player is in the main menu.</description>
+		</command>
+		<command id="song:silence">
+		  <cannon>song: silence</cannon>
+		  <shortname>song: silence</shortname>
+		  <description>Used with <ref>setformationsong</ref> and <ref>getformationsong</ref> to indicate an enemy formation without music. Used by <ref>setambientmusic</ref> and <ref>getambientmusic</ref> for a silent map.</description>
+		</command>
+		<command id="song:sameaslastmap">
+		  <cannon>song: same as last map</cannon>
+		  <shortname>song: same as last map</shortname>
+		  <description>Used with <ref>setformationsong</ref> and <ref>getformationsong</ref> to indicate an enemy formation which uses the same music as the map. Used by <ref>setambientmusic</ref> and <ref>getambientmusic</ref> for a map that continues with the last map's music.</description>
+		</command>
+		<command id="song:sameasmap">
+			<alias>song:sameaslastmap</alias>
+			<shortname>song: same as map</shortname>
 		</command>
 	</section>
 </plotscript>
