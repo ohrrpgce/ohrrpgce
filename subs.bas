@@ -816,9 +816,9 @@ RETRACE
 editform:
 '--???  well, you see..
 max(1) = gen(genMaxBackdrop) - 1   'genMaxBackdrop is number of backdrops, but is necessary
-max(2) = gen(genMaxSong) + 1   'genMaxSongs is number of last song, but is optional
-max(3) = 50
-max(4) = 1000
+max(2) = 50
+max(3) = 1000
+max(4) = gen(genMaxSong) + 1   'genMaxSongs is number of last song, but is optional
 pt = 0: csr2 = -6: csr3 = 0
 loadform(a(),pt)
 formpics(ename(), a(), b(), s(), w(), h(), pal16())
@@ -854,20 +854,26 @@ DO
    END IF
    IF csr2 >= 0 THEN IF a(csr2 * 4 + 0) > 0 THEN csr3 = 1
   END IF
-  IF (csr2 >= -5 AND csr2 <= -4) OR (csr2 >= -1 AND csr2 < 0) THEN
-   IF intgrabber(a(36 + csr2), 0, max(csr2 + 5)) THEN
+  IF csr2 = -4 THEN 'background
+   IF intgrabber(a(32), 0, max(csr2 + 5)) THEN
     saveform(a(),pt)
     loadform(a(),pt)
    END IF
   END IF
-  IF csr2 = -3 THEN
-   IF zintgrabber(a(36 + csr2), -2, max(csr2 + 5)) THEN
+  IF csr2 = -3 THEN 'backdrop frames
+   IF xintgrabber(a(34), 2, max(csr2 + 5), 0, 0) THEN
     saveform(a(),pt)
     loadform(a(),pt)
    END IF
   END IF
-  IF csr2 = -2 THEN
-   IF xintgrabber(a(36 + csr2), 2, max(csr2 + 5), 0, 0) THEN
+  IF csr2 = -2 THEN 'background ticks
+   IF intgrabber(a(35), 0, max(csr2 + 5)) THEN
+    saveform(a(),pt)
+    loadform(a(),pt)
+   END IF
+  END IF
+  IF csr2 = -1 THEN 'formation music
+   IF zintgrabber(a(33), -2, max(csr2 + 5)) THEN
     saveform(a(),pt)
     loadform(a(),pt)
    END IF
@@ -908,19 +914,20 @@ DO
  IF csr3 = 0 THEN
   menu$(4) = CHR(27) + "formation " & pt & CHR(26)
   menu$(5) = "Backdrop screen: " & a(32)
-  menu$(6) = "Battle Music:"
+  IF a(34) = 0 THEN menu$(6) = "Backdrop Animation: none" ELSE menu$(6) = "Background Frames: " & (a(34) + 1) & " frames"
+  menu$(7) = " Ticks per Background Frame: " & a(35)
+  IF a(34) = 0 THEN menu$(7) = " Ticks per Background Frame: -NA-"
+  menu$(8) = "Battle Music:"
   IF a(33) = -1 THEN
-    menu$(6) = menu$(6) & " -same music as map-"
+    menu$(8) = menu$(8) & " -same music as map-"
   ELSEIF a(33) = 0 THEN
-    menu$(6) = menu$(6) & " -silence-"
+    menu$(8) = menu$(8) & " -silence-"
   ELSEIF a(33) > 0 THEN
-    menu$(6) = menu$(6) & " " & (a(33) - 1) & " " & getsongname$(a(33) - 1)
+    menu$(8) = menu$(8) & " " & (a(33) - 1) & " " & getsongname$(a(33) - 1)
   END IF
-  menu$(7) = "Backdrop Frames:"
-  IF a(34) = 0 THEN menu$(7) = menu$(7) & " no animation" ELSE menu$(7) = menu$(7) & " " & (a(34) + 1)
-  menu$(8) = "Backdrop Speed: " & a(35)
   FOR i = 0 TO 5
    col = uilook(uiMenuItem): IF csr2 + 6 = i THEN col = uilook(uiSelectedItem + tog)
+   IF i = 4 AND a(34) = 0 THEN col = uilook(uiDisabledItem): IF csr2 + 6 = i THEN col = uilook(uiSelectedDisabled + tog)
    edgeprint menu$(i + 3), 1, 1 + (i * 10), col, dpage
   NEXT i
   FOR i = 0 TO 7
