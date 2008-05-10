@@ -230,6 +230,13 @@ FOR i = 0 TO gen(genMaxMenu)
 NEXT i
 setvispage 0
 
+printstr "enemy names", 0, pl * 8, 0: pl = pl + 1
+isunique "", u$(), 1
+FOR i = 0 TO gen(genMaxEnemy)
+ writeconstant fh, i, readenemyname$(i), u$(), "enemy"
+NEXT i
+setvispage 0
+
 PRINT #fh, "end"
 CLOSE #fh
 
