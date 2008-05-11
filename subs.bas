@@ -820,6 +820,8 @@ max(2) = 50
 max(3) = 1000
 max(4) = gen(genMaxSong) + 1   'genMaxSongs is number of last song, but is optional
 pt = 0: csr2 = -6: csr3 = 0
+bgwait = 0
+bgctr = 0
 loadform(a(),pt)
 formpics(ename(), a(), b(), s(), w(), h(), pal16())
 setkeys
@@ -856,42 +858,43 @@ DO
   END IF
   IF csr2 = -4 THEN 'background
    IF intgrabber(a(32), 0, max(csr2 + 5)) THEN
-    saveform(a(),pt)
-    loadform(a(),pt)
+    loadpage game + ".mxs", a(32), 2
+    bgwait = 0
+    bgctr = 0
    END IF
   END IF
   IF csr2 = -3 THEN 'backdrop frames
    IF xintgrabber(a(34), 2, max(csr2 + 5), 0, 0) THEN
-    saveform(a(),pt)
-    loadform(a(),pt)
+    IF bgctr > a(34) THEN
+     bgctr = 0
+     loadpage game + ".mxs", a(32), 2
+    END IF
    END IF
   END IF
   IF csr2 = -2 THEN 'background ticks
    IF intgrabber(a(35), 0, max(csr2 + 5)) THEN
-    saveform(a(),pt)
-    loadform(a(),pt)
+    bgwait = 0
    END IF
   END IF
   IF csr2 = -1 THEN 'formation music
-   IF zintgrabber(a(33), -2, max(csr2 + 5)) THEN
-    saveform(a(),pt)
-    loadform(a(),pt)
-   END IF
+   zintgrabber(a(33), -2, max(csr2 + 5))
   END IF
   IF csr2 = -5 THEN '---SELECT A DIFFERENT FORMATION
    dim as integer remptr = pt
-   IF intgrabber(pt, 0, gen(37), 51, 52) THEN
-    SWAP pt, remptr
-    saveform(a(),pt)
-    SWAP pt, remptr
+   IF intgrabber(pt, 0, gen(genMaxFormation), 51, 52) THEN
+    saveform(a(),remptr)
     loadform(a(),pt)
     formpics(ename(), a(), b(), s(), w(), h(), pal16())
+    bgwait = 0
+    bgctr = 0
    END IF
    IF keyval(75) > 1 AND pt > 0 THEN
     saveform(a(),pt)
     pt = large(pt - 1, 0)
     loadform(a(),pt)
     formpics(ename(), a(), b(), s(), w(), h(), pal16())
+    bgwait = 0
+    bgctr = 0
    END IF
    IF keyval(77) > 1 AND pt < 32767 THEN
     saveform(a(),pt)
@@ -899,24 +902,47 @@ DO
     IF needaddset(pt, gen(37), "formation") THEN GOSUB clearformation
     loadform(a(),pt)
     formpics(ename(), a(), b(), s(), w(), h(), pal16())
+    bgwait = 0
+    bgctr = 0
    END IF
   END IF'--DONE SELECTING DIFFERENT FORMATION
   IF csr2 >= 0 THEN
+   oldenemy = a(csr2 * 4)
    IF zintgrabber(a(csr2 * 4 + 0), -1, gen(36)) THEN
+    'this would treat the x/y position as being the bottom middle of enemies, but that changing spawning in slots
+    'a(csr2 * 4 + 1) += w(csr2) \ 2
+    'a(csr2 * 4 + 2) += h(csr2)
     formpics(ename(), a(), b(), s(), w(), h(), pal16())
+    'default to middle of field
+    IF oldenemy = 0 AND a(csr2 * 4 + 1) = 0 AND a(csr2 * 4 + 2) = 0 THEN
+     a(csr2 * 4 + 1) = 70
+     a(csr2 * 4 + 2) = 95
+    END IF
+    'a(csr2 * 4 + 1) -= w(csr2) \ 2
+    'a(csr2 * 4 + 2) -= h(csr2)
    END IF
   END IF
  END IF
+
+ IF a(34) > 0 AND a(35) > 0 THEN
+  bgwait = (bgwait + 1) MOD a(35)
+  IF bgwait = 0 THEN
+   bgctr = loopvar(bgctr, 0, a(34), 1)
+   loadpage game + ".mxs", (bgctr + a(32)) MOD gen(genMaxBackdrop), 2
+  END IF
+ END IF
+ copypage 2, dpage
+
  formsprite z(),w(),a(),h(),pal16(),csr2
  FOR i = 0 TO 3
   edgeboxstyle 240 + i * 8, 75 + i * 22, 32, 40, 0, dpage
  NEXT i
  IF csr3 = 0 THEN
-  menu$(4) = CHR(27) + "formation " & pt & CHR(26)
-  menu$(5) = "Backdrop screen: " & a(32)
-  IF a(34) = 0 THEN menu$(6) = "Backdrop Animation: none" ELSE menu$(6) = "Background Frames: " & (a(34) + 1) & " frames"
-  menu$(7) = " Ticks per Background Frame: " & a(35)
-  IF a(34) = 0 THEN menu$(7) = " Ticks per Background Frame: -NA-"
+  menu$(4) = CHR(27) + "Formation " & pt & CHR(26)
+  menu$(5) = "Backdrop: " & a(32)
+  IF a(34) = 0 THEN menu$(6) = "Backdrop Animation: none" ELSE menu$(6) = "Backdrop Animation: " & (a(34) + 1) & " frames"
+  menu$(7) = " Ticks per Backdrop Frame: " & a(35)
+  IF a(34) = 0 THEN menu$(7) = " Ticks per Backdrop Frame: -NA-"
   menu$(8) = "Battle Music:"
   IF a(33) = -1 THEN
     menu$(8) = menu$(8) & " -same music as map-"
@@ -937,7 +963,6 @@ DO
  END IF
  SWAP vpage, dpage
  setvispage vpage
- copypage 2, dpage
  dowait
 LOOP
 
@@ -979,6 +1004,8 @@ sub formpics(ename() as string, a() as integer, b() as integer, s() as integer, 
    IF b(55) = 2 THEN s(i) = 3200: w(i) = 80: h(i) = 80: f = ".pt3"
    setpicstuf buffer(), s(i), 3
    loadset game + f, b(53), i * 10
+  ELSE
+   w(i) = 0: h(i) = 0
   END IF
  NEXT i
 end sub

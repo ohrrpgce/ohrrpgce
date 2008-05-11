@@ -157,7 +157,7 @@ DO
   bgspeed = loopvar(bgspeed, 0, formdata(35), 1)
   IF bgspeed = 0 THEN
    curbg = loopvar(curbg, formdata(32), formdata(32) + formdata(34), 1)
-   loadpage game + ".mxs", curbg, 2
+   loadpage game + ".mxs", curbg MOD gen(genMaxBackdrop), 2
   END IF
  END IF
 
