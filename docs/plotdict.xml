@@ -1614,7 +1614,7 @@ end</example>
 		<command id="setmenuitembit">
 			<cannon>set menu item bit(menu item handle, bit, value)</cannon>
 			<shortname>set menu item bit</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and bit number <p>bit</p>, Set the bitset is ON or OFF depending on <p>value</p>. You can use constants for the <p>bit</p> bit number in the form of <p>menu item bit:Hide when disabled</p> and <p>menu item bit:Close menu if selected</p></description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and bit number <p>bit</p>, Set the bitset is ON or OFF depending on <p>value</p>. You can use constants for the <p>bit</p> bit number in the form of <p>menu item bit:Hide when disabled</p> and <p>menu item bit:close menu when selected</p></description>
 		</command>
 		<command id="getmenuitemextra">
 			<cannon>get menu item extra(menu item handle, extra)</cannon>
@@ -1770,7 +1770,7 @@ end</example>
 			</seealso>
 		</command>
 		<command id="setmenutextalign">
-			<cannon>set menu anchor text align(menu handle, new align)</cannon>
+			<cannon>set menu text align(menu handle, new align)</cannon>
 			<shortname>set menu text align</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the text alingment of the menu. The <p>new align</p> can be <p>align:center</p>, <p>align:left</p> or <p>align:right</p></description>
 			<seealso>
