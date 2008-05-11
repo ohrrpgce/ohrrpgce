@@ -1632,6 +1632,7 @@ WITH scrat(nowscript)
    END IF
   CASE ELSE
    '--interpret script
+   reloadscript scrat(nowscript)
    GOSUB interpretloop
    '--WARNING: WITH pointer probably corrupted
  END SELECT
@@ -1696,9 +1697,8 @@ RETRACE
 
 interpretloop:
 DIM tmpstate, tmpcase  'tmpstart, tmpend, tmpstep, tmpnow, tmpvar
-reloadscript scrat(nowscript)
-DO
 WITH scrat(nowscript)
+DO
  SELECT CASE .state
   CASE stnext'---check if all args are done
    IF scrwatch AND breakstnext THEN breakpoint scrwatch, 1
@@ -1725,6 +1725,7 @@ WITH scrat(nowscript)
        '--nowscript might be changed
        '--unless you have switched to wait mode, return
        IF scrat(nowscript).state = stnext THEN scrat(nowscript).state = streturn'---return
+       GOTO interpretloop 'new WITH pointer
       END IF
      CASE tyflow
       '--finish flow control? tricky!
@@ -1804,6 +1805,7 @@ WITH scrat(nowscript)
       IF rsr = 0 THEN
        .state = streturn'---return
       END IF
+      GOTO interpretloop 'new WITH pointer
      CASE ELSE
       scripterr "illegal kind " & curcmd->kind & " " & curcmd->value & " in stnext"
       killallscripts
@@ -1816,31 +1818,6 @@ WITH scrat(nowscript)
     ELSE 
      '--flow control and logical math are special, for all else, do next arg
      SELECT CASE curcmd->kind
-      CASE tymath
-       SELECT CASE curcmd->value
-        CASE 20'--logand
-         IF reads(scrst, 0) THEN
-          .state = stdoarg'---call 2nd argument
-         ELSE
-          '--shortcut evaluate to false
-          scriptret = 0
-          '--pop all args
-          scrst.pos -= .curargn
-          .state = streturn'---return
-         END IF
-        CASE 21'--logor
-         IF reads(scrst, 0) THEN
-          '--shortcut evaluate to true
-          scriptret = 1
-          '--pop all args
-          scrst.pos -= .curargn
-          .state = streturn'---return
-         ELSE
-          .state = stdoarg'---call 2nd argument
-         END IF
-        CASE ELSE
-         .state = stdoarg'---call argument
-       END SELECT
       CASE tyflow
        SELECT CASE curcmd->value
         CASE flowif'--we got an if!
@@ -1966,6 +1943,31 @@ WITH scrat(nowscript)
         CASE ELSE
          .state = stdoarg'---call argument
        END SELECT
+      CASE tymath
+       SELECT CASE curcmd->value
+        CASE 20'--logand
+         IF reads(scrst, 0) THEN
+          .state = stdoarg'---call 2nd argument
+         ELSE
+          '--shortcut evaluate to false
+          scriptret = 0
+          '--pop all args
+          scrst.pos -= .curargn
+          .state = streturn'---return
+         END IF
+        CASE 21'--logor
+         IF reads(scrst, 0) THEN
+          '--shortcut evaluate to true
+          scriptret = 1
+          '--pop all args
+          scrst.pos -= .curargn
+          .state = streturn'---return
+         ELSE
+          .state = stdoarg'---call 2nd argument
+         END IF
+        CASE ELSE
+         .state = stdoarg'---call argument
+       END SELECT
       CASE ELSE
        .state = stdoarg'---call argument
      END SELECT
@@ -2003,13 +2005,14 @@ WITH scrat(nowscript)
      END IF
    END SELECT
    IF scrwatch AND breakstnext THEN breakpoint scrwatch, 2
+   GOTO interpretloop 'new WITH pointer
   CASE sterror'---some error has occurred, crash and burn
    '--note that there's no thought out plan for handling errors
    killallscripts
    EXIT DO
  END SELECT
-END WITH
 LOOP
+END WITH
 RETRACE
 
 dumpandreturn:
