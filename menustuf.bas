@@ -64,7 +64,15 @@ DECLARE SUB setshopstock (id, recordsize, stock(), storebuf(), stufbuf())
 
 REM $STATIC
 SUB buystuff (id, shoptype, storebuf(), stock(), stat())
-DIM b(dimbinsize(1) * 50), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walks(15), hpal(8), tradestf(3, 1)
+DIM b(dimbinsize(1) * 50), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walks(15), tradestf(3, 1)
+DIM is_equipable AS INTEGER
+DIM itembuf(99) AS INTEGER
+DIM hiresprite AS Frame PTR
+DIM hirepal AS Palette16 PTR
+DIM herosprite(3) AS Frame PTR
+DIM heropal(3) AS Palette16 PTR
+DIM heroframe AS INTEGER
+DIM heropos AS XYPair
 DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 recordsize = curbinsize(1) / 2 ' get size in INTs
 
@@ -84,6 +92,13 @@ anda$ = readglobalstring$(81, "and a", 10)
 andsome$ = readglobalstring$(153, "and", 10)
 eqprefix$ = readglobalstring$(99, "Equip:", 10)
 noroom$ = readglobalstring$(100, "No Room in Party", 20)
+
+FOR i = 0 TO 3
+ herosprite(i) = sprite_load(game & ".pt0", stat(i, 0, 14), 8, 32, 40)
+ IF herosprite(i) = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & stat(i,0,14)
+ heropal(i) = palette16_load(game & ".pal", stat(i, 0, 15), 0, stat(i, 0, 14))
+ IF heropal(i) = 0 THEN debug "Failed to load palette for hero (#" & i & ")"
+NEXT i
 
 FOR i = 0 TO 10 STEP 2
  walks(i) = 1
@@ -217,9 +232,30 @@ DO
   edgeprint XSTR$(stock(id, pt) - 1) + " " + instock$ + " ", xstring(XSTR$(stock(id, pt) - 1) + " in stock ", 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
  END IF
  IF showhero > -1 THEN
+  'This happens only if a hireable hero is selected
   centerbox 240, 130, 36, 44, 4, dpage
-  loadsprite buffer(), 0, 640 * walks(walk), 0, 32, 40, 2
-  drawsprite buffer(), 0, hpal(), 0, 224, 110, dpage
+  sprite_draw(hiresprite + walks(walk), hirepal, 224, 110, 1, -1, dpage)
+ END IF
+ IF is_equipable THEN
+  FOR i = 0 TO 3
+   heropos.x = 170 + i * 36
+   heropos.y = 130
+   heroframe = 0
+   col = 0
+   IF hero(i) > 0 THEN
+    'If there is a hero in this slot
+    IF readbit(itembuf(), 66, hero(i) - 1) <> 0 THEN
+     '-- animation heroes when this item is equipable
+     heroframe = walks(walk)
+     col = 3
+    END IF
+   END IF
+   edgeboxstyle heropos.x - 1, heropos.y - 2, 34, 44, col, dpage
+   IF hero(i) > 0 THEN
+    'If there is a hero in this slot
+    sprite_draw(herosprite(i) + heroframe, heropal(i), heropos.x, heropos.y, 1, -1, dpage)
+   END IF
+  NEXT i
  END IF
  '-----LEFT PANEL-------------------------------------------
  o = 0
@@ -254,6 +290,13 @@ DO
  copypage holdscreen(), dpage
  dowait
 LOOP
+'Unload the sprites used to display the heroes
+FOR i = 0 TO 3
+ sprite_unload(@herosprite(i))
+ palette16_unload(@heropal(i))
+NEXT i
+sprite_unload(@hiresprite)
+palette16_unload(@hirepal)
 vishero stat()
 EXIT SUB
 
@@ -289,6 +332,7 @@ curinfo:
 tradingitems = 0
 xtralines = 0
 showhero = -1
+is_equipable = NO
 price$ = ""
 price2$ = ""
 eqinfo$ = ""
@@ -325,10 +369,12 @@ IF LEN(price$) > 38 THEN
  xtralines = 1
 END IF
 IF b(pt * recordsize + 17) = 0 THEN
- loaditemdata buffer(), b(pt * recordsize + 18)
- IF buffer(49) = 1 THEN eqinfo$ = eqprefix$ + " " + wepslot$
- IF buffer(49) > 1 THEN eqinfo$ = eqprefix$ + " " + sname$(23 + buffer(49))
- info1$ = readbadbinstring$(buffer(), 9, 35, 0)
+ 'This is an item
+ loaditemdata itembuf(), b(pt * recordsize + 18)
+ 'The itembuf remains and is used later to show equipability.
+ IF itembuf(49) = 1 THEN eqinfo$ = eqprefix$ + " " + wepslot$
+ IF itembuf(49) > 1 THEN eqinfo$ = eqprefix$ + " " + sname$(23 + itembuf(49))
+ info1$ = readbadbinstring$(itembuf(), 9, 35, 0)
  IF LEN(info1$) > 17 THEN
   FOR o = 18 TO 1 STEP -1
    IF MID$(info1$, o, 1) = " " OR MID$(info1$, o, 1) = "-" OR MID$(info1$, o, 1) = "," OR MID$(info1$, o, 1) = "." THEN EXIT FOR
@@ -340,6 +386,10 @@ IF b(pt * recordsize + 17) = 0 THEN
   IF RIGHT$(info1$, 1) = " " THEN info1$ = LEFT$(info1$, LEN(info1$) - 1)
   info1$ = LEFT$(info1$, 18)
  END IF
+ IF itembuf(49) > 0 THEN
+  'This item is equippable
+  is_equipable = YES
+ END IF
 END IF
 IF b(pt * recordsize + 17) = 1 THEN
  'hire
@@ -350,9 +400,13 @@ IF b(pt * recordsize + 17) = 1 THEN
  temp$ = XSTR$(atlevel(her.def_level, her.lev0.hp, her.lev99.hp) + wbuf(54 + 0))
  eqinfo$ = RIGHT$(temp$, LEN(temp$) - 1) + " " + sname$(0)
  showhero = her.sprite
- getpal16 hpal(), 0, her.sprite_pal, 0, showhero
- setpicstuf buffer(), 5120, 2
- loadset game + ".pt0", showhero, 0
+ 
+ 'Load the sprite for the hireable hero
+ hiresprite = sprite_load(game & ".pt0", showhero, 8, 32, 40)
+ IF hiresprite = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & showhero
+ hirepal = palette16_load(game & ".pal", her.sprite_pal, 0, showhero)
+ IF hirepal = 0 THEN debug "Failed to load palette for hireable hero (#" & her.sprite_pal & ")"
+
  IF eslot = 0 THEN info1$ = noroom$
 END IF
 RETRACE

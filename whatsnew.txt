@@ -29,6 +29,8 @@ Feb ?? 2008 [werewaffle]
       down shift to keep the cut box 20x20 tile aligned while moving
       the mouse. [Ralph]
     * Formation editor improvements; animations are shown now [Ralph]
+    * Shops display whether or not your heroes can equip weapons or
+      armor [James]
 
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged
