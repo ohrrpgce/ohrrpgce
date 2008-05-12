@@ -2865,7 +2865,16 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), ti
      CASE 4 ' Run Script
       rsr = runscript(.sub_t, nowscript + 1, YES, "menuitem", plottrigger)
       IF rsr = 1 THEN
-       setScriptArg 0, .handle
+       IF menus(topmenu).allow_gameplay THEN
+        'Normally, pass a menu item handle
+        setScriptArg 0, .handle
+       ELSE
+        'but if this menu suspends gameplay, then a handle will always be invalid
+        'by the time the script runs, so pass the extra values instead.
+        setScriptArg 0, .extra(0)
+        setScriptArg 1, .extra(1)
+        setScriptArg 2, .extra(2)
+       END IF
       END IF
     END SELECT
    END IF
