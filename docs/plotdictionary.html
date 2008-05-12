@@ -89,7 +89,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<p>This is a listing of all the plotscripting commands implemented as of September 14, 2007.</p>
+<p>This is a listing of all the plotscripting commands implemented as of November 17, 2007.</p>
 <p>In addition to reading this document, I also recommend you check out Plotscripting Tutorial and the HamsterSpeak Specification</p>
 <hr>
 <h2>Commands by Category</h2>
@@ -100,7 +100,7 @@
 	
 		<a href="#Suspend%20and%20Resume">Suspend and Resume</a><br>
 	
-		<a href="#Moving%20Heros">Moving Heros</a><br>
+		<a href="#Moving%20Heroes">Moving Heroes</a><br>
 	
 		<a href="#Moving%20NPCs">Moving NPCs</a><br>
 	
@@ -119,6 +119,8 @@
 		<a href="#Mouse%20Functions">Mouse Functions</a><br>
 	
 		<a href="#String%20Functions">String Functions</a><br>
+	
+		<a href="#Menu%20Functions">Menu Functions</a><br>
 	
 		<a href="#Misc%20Functions">Misc Functions</a><br>
 	
@@ -145,6 +147,9 @@
 		<a href="#about-addhero">add hero (who)</a><br>
 		
 	
+		<a href="#about-addmenuitem">addmenuitem(menu handle)</a><br>
+		
+	
 		<a href="#about-advancetextbox">advance text box</a><br>
 		
 	
@@ -160,7 +165,7 @@
 		<a href="#about-and">value,and,value</a><br>
 		
 	
-		<a href="#about-animationstarttile">animation start tile (tile number)</a><br>
+		<a href="#about-animationstarttile">animation start tile (tile number, layer)</a><br>
 		
 	
 		
@@ -187,7 +192,13 @@
 		<a href="#about-booleanconstants">Boolean Constants</a><br>
 		
 	
+		<a href="#about-bottommenu">bottom menu</a><br>
+		
+	
 		<a href="#about-break">break</a><br>
+		
+	
+		<a href="#about-bringmenuforward">bring menu forward(menu handle)</a><br>
 		
 	
 		<a href="#about-camerafollowshero">camera follows hero (who)</a><br>
@@ -220,19 +231,25 @@
 		<a href="#about-changenpcid">change NPC ID (reference,new ID)</a><br>
 		
 	
+		<a href="#about-changetileset">change tileset (tileset, layer)</a><br>
+		
+	
 		<a href="#about-checkequipment">check equipment (hero,slot)</a><br>
 		
 	
 		<a href="#about-checkherowall">check hero wall (who,direction)</a><br>
 		
 	
-		<a href="#about-checknpcwall">check NPC wall (who,direction)</a><br>
+		<a href="#about-checknpcwall">check NPC wall (who, direction)</a><br>
 		
 	
 		<a href="#about-checktag">check tag (tag)</a><br>
 		
 	
 		<a href="#about-clearstring">clear string(ID)</a><br>
+		
+	
+		<a href="#about-closemenu">close menu(menu handle)</a><br>
 		
 	
 		
@@ -256,13 +273,16 @@
 		<a href="#about-copystring">copy string (dest, source)</a><br>
 		
 	
+		<a href="#about-createmenu">create menu</a><br>
+		
+	
 		<a href="#about-createnpc">create NPC (ID,X,Y,direction)</a><br>
 		
 	
 		<a href="#about-crop">crop</a><br>
 		
 	
-		<a href="#about-currentdisplaytile">current display tile (tile number)</a><br>
+		<a href="#about-currentdisplaytile">current display tile (tile number, layer)</a><br>
 		
 	
 		<a href="#about-currentmap">current map</a><br>
@@ -299,6 +319,9 @@
 		
 	
 		<a href="#about-deletemapstate">delete map state (whichdata)</a><br>
+		
+	
+		<a href="#about-deletemenuitem">deletemenuitem(menu item handle)</a><br>
 		
 	
 		<a href="#about-deletesave">delete save (slot)</a><br>
@@ -391,6 +414,15 @@
 		<a href="#about-findhero">find hero (who)</a><br>
 		
 	
+		<a href="#about-findmenuid">find menu ID(menu ID)</a><br>
+		
+	
+		<a href="#about-findmenuitemcaption">find menu item caption(menu handle, string ID, search after handle, visible only)</a><br>
+		
+	
+		<a href="#about-firstmenuitem">first menu item(menu handle)</a><br>
+		
+	
 		
 		<a href="#about-numericconstants">five</a><br>
 	
@@ -481,6 +513,9 @@
 		<a href="#about-getitemname">get item name (ID, item)</a><br>
 		
 	
+		<a href="#about-getlevelmp">get level MP (who, mp level slot)</a><br>
+		
+	
 		<a href="#about-getloadscript">get load script</a><br>
 		
 	
@@ -491,6 +526,69 @@
 		
 	
 		<a href="#about-getmaptileset">get map tileset</a><br>
+		
+	
+		<a href="#about-getmenuanchorx">get menu anchor x(menu handle)</a><br>
+		
+	
+		<a href="#about-getmenuanchory">get menu anchor y(menu handle)</a><br>
+		
+	
+		<a href="#about-getmenubit">get menu bit(menu handle, bit)</a><br>
+		
+	
+		<a href="#about-getmenuborder">get menu border(menu handle)</a><br>
+		
+	
+		<a href="#about-getmenuboxstyle">get menu boxstyle(menu handle)</a><br>
+		
+	
+		<a href="#about-getmenuid">get menu ID(menu handle)</a><br>
+		
+	
+		<a href="#about-getmenuitembit">get menu item bit(menu item handle, bit)</a><br>
+		
+	
+		<a href="#about-getmenuitemcaption">get menu item caption(menu item handle, string ID)</a><br>
+		
+	
+		<a href="#about-getmenuitemextra">get menu item extra(menu item handle, extra)</a><br>
+		
+	
+		<a href="#about-getmenuitemsettag">get menu item settag(menu item handle)</a><br>
+		
+	
+		<a href="#about-getmenuitemsubtype">get menu item subtype(menu item handle)</a><br>
+		
+	
+		<a href="#about-getmenuitemtag">get menu item tag(menu item handle, whichtag)</a><br>
+		
+	
+		<a href="#about-getmenuitemtogtag">get menu item togtag(menu item handle)</a><br>
+		
+	
+		<a href="#about-getmenuitemtype">get menu item type(menu item handle)</a><br>
+		
+	
+		<a href="#about-getmenumaxchars">get menu max chars(menu handle)</a><br>
+		
+	
+		<a href="#about-getmenumaxrows">get menu max rows(menu handle)</a><br>
+		
+	
+		<a href="#about-getmenuminchars">get menu min chars(menu handle)</a><br>
+		
+	
+		<a href="#about-getmenuoffsetx">get menu offset x(menu handle)</a><br>
+		
+	
+		<a href="#about-getmenuoffsety">get menu offset y(menu handle)</a><br>
+		
+	
+		<a href="#about-getmenutextalign">get menu text align(menu handle)</a><br>
+		
+	
+		<a href="#about-getmenutextcolor">get menu textcolor(menu handle)</a><br>
 		
 	
 		<a href="#about-getmoney">get money (amount)</a><br>
@@ -508,7 +606,7 @@
 		<a href="#about-getsongname">get song name (ID, song)</a><br>
 		
 	
-		<a href="#about-gettileanimationoffset">get tile animation offset (animation pattern)</a><br>
+		<a href="#about-gettileanimationoffset">get tile animation offset (animation pattern, layer)</a><br>
 		
 	
 		<a href="#about-getvictorymusic">get victory music</a><br>
@@ -628,6 +726,9 @@
 		<a href="#about-lastsaveslot">last save slot</a><br>
 		
 	
+		<a href="#about-layertileset">layer tileset (layer)</a><br>
+		
+	
 		<a href="#about-leader">leader</a><br>
 		
 	
@@ -658,7 +759,7 @@
 		<a href="#about-loadpalette">load palette (palette number)</a><br>
 		
 	
-		<a href="#about-loadtileset">load tileset (set)</a><br>
+		<a href="#about-loadtileset">load tileset (tileset, layer)</a><br>
 		
 	
 		<a href="#about-lockhero">lock hero (who)</a><br>
@@ -691,6 +792,15 @@
 		<a href="#about-me">me</a><br>
 		
 	
+		<a href="#about-menu%20is%20open">menu is open(menu handle)</a><br>
+		
+	
+		<a href="#about-menuitembyslot">menu item by slot(menu handle, slot, visible only)</a><br>
+		
+	
+		<a href="#about-menuitemslot">menu item slot(menu item handle)</a><br>
+		
+	
 		
 		<a href="#about-keyconstants">menu key</a><br>
 	
@@ -721,6 +831,12 @@
 		<a href="#about-multiply">number * number</a><br>
 		
 	
+		<a href="#about-nextmenu">next menu(menu handle)</a><br>
+		
+	
+		<a href="#about-nextmenuitem">next menu item(menu item handle, visible only)</a><br>
+		
+	
 		
 		<a href="#about-numericconstants">nine</a><br>
 	
@@ -736,10 +852,10 @@
 		<a href="#about-notequal">number &lt;&gt; number</a><br>
 		
 	
-		<a href="#about-npcatpixel">NPC at pixel (x,y,number)</a><br>
+		<a href="#about-npcatpixel">NPC at pixel (x, y, number)</a><br>
 		
 	
-		<a href="#about-npcatspot">NPC at spot (x,y,number)</a><br>
+		<a href="#about-npcatspot">NPC at spot (x, y, number)</a><br>
 		
 	
 		<a href="#about-npccopycount">NPC copy count (ID)</a><br>
@@ -763,7 +879,7 @@
 		<a href="#about-npcpixely">NPC pixel Y (who)</a><br>
 		
 	
-		<a href="#about-npcreference">NPC reference (ID,copy)</a><br>
+		<a href="#about-npcreference">NPC reference (ID, copy)</a><br>
 		
 	
 		<a href="#about-npcx">NPC X (who)</a><br>
@@ -784,6 +900,9 @@
 		
 		<a href="#about-numericconstants">one</a><br>
 	
+		<a href="#about-openmenu">open menu (ID, allow duplicate)</a><br>
+		
+	
 		<a href="#about-or">value,or,value</a><br>
 		
 	
@@ -793,10 +912,16 @@
 		<a href="#about-outsidebattle">outside battle</a><br>
 		
 	
+		<a href="#about-outsidebattlecure">outside battle cure (attack, target, attacker)</a><br>
+		
+	
 		
 		<a href="#about-tileconstants">overhead tile</a><br>
 	
 		<a href="#about-pancamera">pan camera (direction,distance,pixelstep)</a><br>
+		
+	
+		<a href="#about-parentmenu">parent menu(menu item handle)</a><br>
 		
 	
 		<a href="#about-party">party</a><br>
@@ -820,13 +945,22 @@
 		<a href="#about-playsound">play sound (num,loop,preempt)</a><br>
 		
 	
+		<a href="#about-plotscript">plotscript, name, argumentnames (statements)</a><br>
+		
+	
 		<a href="#about-positionstring">positionstring (ID, x, y)</a><br>
+		
+	
+		<a href="#about-previousmenu">previous menu(menu handle)</a><br>
+		
+	
+		<a href="#about-previousmenuitem">previous menu item(menu item handle, visible only)</a><br>
 		
 	
 		<a href="#about-putcamera">put camera (x,y)</a><br>
 		
 	
-		<a href="#about-puthero">put hero (who,x,y)</a><br>
+		<a href="#about-puthero">put hero (who, x, y)</a><br>
 		
 	
 		<a href="#about-putmouse">put mouse (X,Y)</a><br>
@@ -958,6 +1092,12 @@
 		<a href="#about-secondsofplay">seconds of play</a><br>
 		
 	
+		<a href="#about-selectedmenuitem">selected menu item(menu handle)</a><br>
+		
+	
+		<a href="#about-selectmenuitem">select menu item(menu item handle)</a><br>
+		
+	
 		<a href="#about-setambientmusic">set ambient music (song)</a><br>
 		
 	
@@ -1057,10 +1197,73 @@
 		<a href="#about-setinsteadofbattlescript">set instead of battle script (id)</a><br>
 		
 	
+		<a href="#about-setlevelmp">set level MP (who, mp level slot, new value)</a><br>
+		
+	
 		<a href="#about-setloadscript">set load script (id)</a><br>
 		
 	
 		<a href="#about-setmapedgemode">set map edge mode (mode, default tile)</a><br>
+		
+	
+		<a href="#about-setmenuanchorx">set menu anchor x(menu handle, new anchor)</a><br>
+		
+	
+		<a href="#about-setmenuanchory">set menu anchor y(menu handle, new anchor)</a><br>
+		
+	
+		<a href="#about-setmenubit">set menu bit(menu handle, bit, value)</a><br>
+		
+	
+		<a href="#about-setmenuborder">set menu border(menu handle, new border)</a><br>
+		
+	
+		<a href="#about-setmenuboxstyle">set menu boxstyle(menu handle, new box style)</a><br>
+		
+	
+		<a href="#about-setmenuitembit">set menu item bit(menu item handle, bit, value)</a><br>
+		
+	
+		<a href="#about-setmenuitemcaption">set menu item caption(menu item handle, string ID)</a><br>
+		
+	
+		<a href="#about-setmenuitemextra">set menu item extra(menu item handle, extra, num)</a><br>
+		
+	
+		<a href="#about-setmenuitemsettag">set menu item settag(menu item handle, new settag)</a><br>
+		
+	
+		<a href="#about-setmenuitemsubtype">set menu item subtype(menu item handle, new subtype)</a><br>
+		
+	
+		<a href="#about-setmenuitemtag">set menu item tag(menu item handle, new tag, whichtag)</a><br>
+		
+	
+		<a href="#about-setmenuitemtogtag">set menu item togtag(menu item handle, new settag)</a><br>
+		
+	
+		<a href="#about-setmenuitemtype">set menu item type(menu item handle, new type)</a><br>
+		
+	
+		<a href="#about-setmenumaxchars">set menu max chars(menu handle, new max)</a><br>
+		
+	
+		<a href="#about-setmenumaxrows">set menu max rows(menu handle, new max rows)</a><br>
+		
+	
+		<a href="#about-setmenuminchars">set menu min chars(menu handle, new min)</a><br>
+		
+	
+		<a href="#about-setmenuoffsetx">set menu offset x(menu handle, new x)</a><br>
+		
+	
+		<a href="#about-setmenuoffsety">set menu offset y(menu handle, new y)</a><br>
+		
+	
+		<a href="#about-setmenutextalign">set menu text align(menu handle, new align)</a><br>
+		
+	
+		<a href="#about-setmenutextcolor">set menu textcolor(menu handle, new textcolor)</a><br>
 		
 	
 		<a href="#about-setminutesofplay">set minutes of play (min)</a><br>
@@ -1078,19 +1281,19 @@
 		<a href="#about-setnompleveluprestore">set no MP level up restore (state)</a><br>
 		
 	
-		<a href="#about-setnpcdirection">set NPC direction (who,direction)</a><br>
+		<a href="#about-setnpcdirection">set NPC direction (who, direction)</a><br>
 		
 	
 		<a href="#about-setnpcextra">set NPC extra (who,which, value)</a><br>
 		
 	
-		<a href="#about-setnpcframe">set NPC frame (who,frame)</a><br>
+		<a href="#about-setnpcframe">set NPC frame (who, frame)</a><br>
 		
 	
-		<a href="#about-setnpcposition">set NPC position (who,X,Y)</a><br>
+		<a href="#about-setnpcposition">set NPC position (who, X, Y)</a><br>
 		
 	
-		<a href="#about-setnpcspeed">set NPC speed (who,speed)</a><br>
+		<a href="#about-setnpcspeed">set NPC speed (who, speed)</a><br>
 		
 	
 		<a href="#about-setonkeypressscript">set on keypress script (id)</a><br>
@@ -1102,7 +1305,7 @@
 		<a href="#about-settag">set tag (tag,value)</a><br>
 		
 	
-		<a href="#about-settileanimationoffset">set tile animation offset (animation pattern, offset)</a><br>
+		<a href="#about-settileanimationoffset">set tile animation offset (animation pattern, offset, layer)</a><br>
 		
 	
 		<a href="#about-settimer">set timer (id, count, speed, trigger, string, flags)</a><br>
@@ -1143,6 +1346,15 @@
 	
 		
 		<a href="#about-numericconstants">six</a><br>
+	
+		<a href="#about-song:sameaslastmap">song: same as last map</a><br>
+		
+	
+		
+		<a href="#about-song:sameaslastmap">song: same as map</a><br>
+	
+		<a href="#about-song:silence">song: silence</a><br>
+		
 	
 		<a href="#about-soundisplaying">sound is playing (num)</a><br>
 		
@@ -1246,6 +1458,9 @@
 		<a href="#about-swapinhero">swap in hero (who)</a><br>
 		
 	
+		<a href="#about-swapmenuitems">swap menu items(handle1, handle2)</a><br>
+		
+	
 		<a href="#about-swapouthero">swap out hero (who)</a><br>
 		
 	
@@ -1304,6 +1519,9 @@
 		
 	
 		<a href="#about-timerflag:menu">timer flag: menu</a><br>
+		
+	
+		<a href="#about-topmenu">top menu</a><br>
 		
 	
 		<a href="#about-totalexperience">total experience (who)</a><br>
@@ -1375,6 +1593,9 @@
 		<a href="#about-waitforkey">wait for key (key)</a><br>
 		
 	
+		<a href="#about-waitformenu">wait for menu (menu handle)</a><br>
+		
+	
 		<a href="#about-waitfornpc">wait for NPC (who)</a><br>
 		
 	
@@ -1393,13 +1614,13 @@
 		<a href="#about-walkherotoy">walk hero to y (who,x)</a><br>
 		
 	
-		<a href="#about-walknpc">walk NPC (who,direction,distance)</a><br>
+		<a href="#about-walknpc">walk NPC (who, direction, distance)</a><br>
 		
 	
-		<a href="#about-walknpctox">walk NPC to X (who,X)</a><br>
+		<a href="#about-walknpctox">walk NPC to X (who, X)</a><br>
 		
 	
-		<a href="#about-walknpctoy">walk NPC to Y (who,Y)</a><br>
+		<a href="#about-walknpctoy">walk NPC to Y (who, Y)</a><br>
 		
 	
 		
@@ -1450,30 +1671,34 @@
 		<font color="#f06060" size="4">Declarations</font>
 		<p></p>
 		
-		<a name="about-definescript"></a>
+		<a name="about-plotscript"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">define script (id,name,arguments)</font></b><br>
-			The define script command names a script, and associates it with an ID number. Every script must have a unique ID number for your game to call it directly (scripts that will only be called indirectly, by other scripts can use the special ID autonumber). The first argument is the <span class="param">ID number</span>. It is a number between 1 and 16383. If you try to give two individual scripts the same <span class="param">ID number</span>, your script file will not compile. The next argument is the <span class="param">name</span> of the script. this is the same name that will used later in your script command. The third argument is the number of arguments that the script can accept. If it doesnt need any arguments (most scripts dont) then use <a href="#about-none" class="ref">none</a>. If there are arguments, you then follow the argument count with default values for each argument.
-			<pre># example of a simple script definition
-define script (1,my first script,none)</pre>
-<pre># example of a script definition with arguments. this script
-# has three arguments, all of which default to zero if they
-# are not specified
-define script (2,my fancy script,3,0,0,0)</pre>
+		<b><font color="yellow">plotscript, name, argumentnames (statements)</font></b><br>
+			The plotscript command contains a list of commands that can be triggered directly by an event in your game. Plotscript starts with the keyword plotscript, a comma, and then the name of the plotscript. If there are any arguments to the script, you list their names separated by commas after the name of the script with default values. Then comes the text of the script. It is enclosed in <a href="#about-begin" class="ref">begin</a> and <a href="#about-begin" class="ref">end</a> statements. Scripts that are defined as plotscripts can be called directly from events in your game, or by name within other scripts.
+			<pre># example of a simple script
+plotscript,my first script,begin
+	# commands go here
+end</pre>
+<pre># example of a script with arguments
+plotscript,my fancy script,fe=0,fi=0,fo=0,begin
+	# commands go here,
+	# and they can use the aruments fe, fi, and fo
+	# that where passed to the script
+end</pre>
 			
 		</tt></p>
 		<a name="about-script"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">script, name, argumentnames (statements)</font></b><br>
-			The script command contains the actual source code of a plotscript. every script command must have a corresponding <a href="#about-definescript" class="ref">define script</a> statement. Script starts with the keyword script, a comma, and then the name of the script. If there are any arguments to the script, you list their names separated by commas after the name of the script. Then comes the text of the script. It is usually enclosed in <a href="#about-begin" class="ref">begin</a> and <a href="#about-begin" class="ref">end</a> statements.
+			The script command contains a list of commands. Script starts with the keyword script, a comma, and then the name of the script. If there are any arguments to the script, you list their names separated by commas after the name of the script with default values. Then comes the text of the script. It is enclosed in <a href="#about-begin" class="ref">begin</a> and <a href="#about-begin" class="ref">end</a> statements. Scripts that are defined as script cannot be called directly from events in your game. They can only be called by name within other scripts. To make a script that can be run directly from your game, use <a href="#about-plotscript" class="ref">plotscript</a>.
 			<pre># example of a simple script
 script,my first script,begin
 	# commands go here
 end</pre>
 <pre># example of a script with arguments
-script,my fancy script,fe,fi,fo,begin
+script,my fancy script,fe=0,fi=0,fo=0,begin
 	# commands go here,
 	# and they can use the aruments fe, fi, and fo
 	# that where passed to the script
@@ -1515,6 +1740,21 @@ variable+=1 # add one to it</pre>
 include, mygame.hsi # constants particular to my game</pre>
 			
 		</tt></p>
+		<a name="about-definescript"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">define script (id,name,arguments)</font></b><br>
+			<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">This declaration is available for backwards compatability, but it is not required anymore. See <a href="#about-script" class="ref">script</a> and <a href="#about-plotscript" class="ref">plotscript</a> instead.<br clear="all">
+</div> The define script command names an old-style script, and associates it with an ID number. Old scripts used to require a unique ID number. The first argument is the <span class="param">ID number</span>. It is a number between 1 and 16383. If you try to give two individual scripts the same <span class="param">ID number</span>, your script file will not compile. The next argument is the <span class="param">name</span> of the script. this is the same name that will used later in your script command. The third argument is the number of arguments that the script can accept. If it doesnt need any arguments (most scripts don't) then use <a href="#about-none" class="ref">none</a>. If there are arguments, you then follow the argument count with default values for each argument.
+			<pre># example of a simple script definition
+define script (1,my first script,none)</pre>
+<pre># example of a script definition with arguments. this script
+# has three arguments, all of which default to zero if they
+# are not specified
+define script (2,my fancy script,3,0,0,0)</pre>
+			
+		</tt></p>
 
 		<hr>
 	
@@ -1537,9 +1777,17 @@ advance text box # "hit spacebar"</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">wait for text box</font></b><br>
-			Makes the script wait until there is no text box displaying on the screen. Useful to know when to move on after using a <a href="#about-showtextbox" class="ref">show text box</a> command
+			Makes the script wait until there is no text box displaying on the screen. Useful to know when to move on after using a <a href="#about-showtextbox" class="ref">show text box</a> command.
 			<pre>show text box(2) # Show a text box
 wait for text box # wait until the player continues</pre>
+			
+		</tt></p>
+		<a name="about-waitformenu"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">wait for menu (menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), causes the script to wait until that menu has been closed.
+			
 			
 		</tt></p>
 		<a name="about-waitforhero"></a>
@@ -1555,7 +1803,7 @@ wait for hero (me) # wait until he stops</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">wait for key (key)</font></b><br>
-			Waits for the player to press a key. You can use the follwing constants: <a href="#about-keyconstants" class="ref">any key</a>, <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, <a href="#about-keyconstants" class="ref">left key</a>, <a href="#about-keyconstants" class="ref">right key</a>, <a href="#about-keyconstants" class="ref">use key</a>, <a href="#about-keyconstants" class="ref">cancel key</a>, or <a href="#about-keyconstants" class="ref">menu key</a>. If you do not specify, then <a href="#about-keyconstants" class="ref">any key</a> will be used.
+			Waits for the player to press a key. You can use the following constants: <a href="#about-keyconstants" class="ref">any key</a>, <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, <a href="#about-keyconstants" class="ref">left key</a>, <a href="#about-keyconstants" class="ref">right key</a>, <a href="#about-keyconstants" class="ref">use key</a>, <a href="#about-keyconstants" class="ref">cancel key</a>, or <a href="#about-keyconstants" class="ref">menu key</a>. If you do not specify, then <a href="#about-keyconstants" class="ref">any key</a> will be used. These are not scancodes, and can not be mixed with scancodes! Use <a href="#about-waitforscancode" class="ref">wait for scancode</a> if you want to use scancodes or wait for other keys. <span class="param">usekey</span> will wait for Space, Ctrl or Enter; and <span class="param">cancelkey</span> and <span class="param">menukey</span> both wait for Alt or Esc. If and only if anykey is used, waitforkey will return the scancode of the key that was pressed.
 			<pre>show text box(623) # "press cancel!"
 wait for key(cancel key)</pre>
 			
@@ -1593,7 +1841,7 @@ wait for camera # wait until he's on screen</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">wait for all</font></b><br>
-			Waits for any camera motion to stop, waits for all heros to stop walking, and if <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> is active, waits for all NPCs to stop walking.
+			Waits for any camera motion to stop, waits for all heroes to stop walking, and if <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> is active, waits for all NPCs to stop walking.
 			<pre># do a bunch of things all at once
 wait for all # wait until everything is done</pre>
 			
@@ -1650,7 +1898,7 @@ resume NPCs</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">suspend obstruction</font></b><br>
-			Allows heros to walk through NPCs, allows NPCs to walk through heros, and allows NPCs to walk through each other. Use <a href="#about-resumeobstruction" class="ref">resume obstruction</a> to restore normal obstruction behavior.
+			Allows heroes to walk through NPCs, allows NPCs to walk through heroes, and allows NPCs to walk through each other. Use <a href="#about-resumeobstruction" class="ref">resume obstruction</a> to restore normal obstruction behavior.
 			<pre>suspend obstruction
 # walk through things
 resume obstruction</pre>
@@ -1670,7 +1918,7 @@ resume obstruction</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">suspend hero walls</font></b><br>
-			Allows heros to walk through walls. Use <a href="#about-resumeherowalls" class="ref">resume hero walls</a> to restore normal wall behavior.
+			Allows heroes to walk through walls. Use <a href="#about-resumeherowalls" class="ref">resume hero walls</a> to restore normal wall behavior.
 			<pre>suspend hero walls # hero is now a ghost
 # walk through things
 resume hero walls # back to mortality...</pre>
@@ -1710,9 +1958,9 @@ resume NPC walls # back to mortality...</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">suspend caterpillar</font></b><br>
-			Stops your other heros from following the leader. This is useful when you want to control them individually with <a href="#about-walkhero" class="ref">walk hero</a> commands. In earlier versions this was misspelled as suspend catapillar. The old spelling still works for backwards compatability.
+			Stops your other heroes from following the leader. This is useful when you want to control them individually with <a href="#about-walkhero" class="ref">walk hero</a> commands. In earlier versions this was misspelled as suspend catapillar. The old spelling still works for backwards compatability.
 			<pre>suspend caterpillar # cutscene
-# move heros, probably fight a battle or two...
+# move heroes, probably fight a battle or two...
 resume caterpillar # normal game again.</pre>
 			
 		</tt></p>
@@ -1720,9 +1968,9 @@ resume caterpillar # normal game again.</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">resume caterpillar</font></b><br>
-			Reverses the <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> command, and makes your other heros follow the leader as normal. In earlier versions this was misspelled as resume catapillar. The old spelling still works for backwards compatability.
+			Reverses the <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> command, and makes your other heroes follow the leader as normal. In earlier versions this was misspelled as resume catapillar. The old spelling still works for backwards compatability.
 			<pre>suspend caterpillar # cutscene
-# move heros, probably fight a battle or two...
+# move heroes, probably fight a battle or two...
 resume caterpillar # normal game again.</pre>
 			
 		</tt></p>
@@ -1778,7 +2026,7 @@ resume random enemies # back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">suspend box advance</font></b><br>
-			Prevents the player from advancing or clearing text boxes by pressing keys. While this is active, the only way to make a text box advance is with the <a href="#about-advancetextbox" class="ref">advance text box</a> command. Be very careful with this command, since you do not want to leave the player stuck on a text box forever.
+			Prevents the player from advancing or clearing text boxes by pressing keys. While this is active, the only way to make a text box advance is with the <a href="#about-advancetextbox" class="ref">advance text box</a> command (or <a href="#about-showtextbox" class="ref">show text box</a>). Useful for cut scenes that play out like a movie, where the player just watches the dialogue unfold. Be very careful with this command, since you do not want to leave the player stuck on a text box forever.
 			<pre>suspend box advance # stop players from mucking things up
 show text box(2) # Show a text box
 wait(45) # Wait about 3 seconds
@@ -1802,7 +2050,7 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">suspend overlay</font></b><br>
-			Prevents overhead tiles from being drawn over heros and NPCs.
+			Draws old-style overhead tiles under heroes and NPCs instead of over them. This does not affect the drawing of normal layers. You might still find this useful for creating bridges or catwalks that can be walked on or passed under. Undo with <a href="#about-resumeoverlay" class="ref">resume overlay</a>.
 			
 			
 		</tt></p>
@@ -1810,7 +2058,7 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">resume overlay</font></b><br>
-			Causes overhead tiles to be drawn over heros and NPCs as normal.
+			Undoes the <a href="#about-suspendoverlay" class="ref">suspend overlay</a> command, causing overhead tiles to be drawn over heroes and NPCs as normal.
 			
 			
 		</tt></p>
@@ -1852,16 +2100,16 @@ play song (get ambient music)</pre>
 
 		<hr>
 	
-		<a name="Moving%20Heros"></a>
+		<a name="Moving%20Heroes"></a>
 
-		<font color="#f06060" size="4">Moving Heros</font>
+		<font color="#f06060" size="4">Moving Heroes</font>
 		<p></p>
 		
 		<a name="about-walkhero"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">walk hero (who, direction, distance)</font></b><br>
-			Makes the specified hero move in the specified direction for the specified number of tiles. The first argument tells who to move. Use <a href="#about-me" class="ref">me</a> or numbers 0-3. The second argument is the direction. Use the constants: <a href="#about-directionconstants" class="ref">north</a>, <a href="#about-directionconstants" class="ref">south</a>, <a href="#about-directionconstants" class="ref">east</a>, <a href="#about-directionconstants" class="ref">west</a>, <a href="#about-directionconstants" class="ref">up</a>, <a href="#about-directionconstants" class="ref">down</a>, <a href="#about-directionconstants" class="ref">left</a>, or <a href="#about-directionconstants" class="ref">right</a>. The third argument is the number of tiles to move. If you leave out the third argument, the hero will move one tile. Walk hero is usually used with the <a href="#about-waitforhero" class="ref">wait for hero</a> command. You should normally use the <a href="#about-suspendplayer" class="ref">suspend player</a> command before moving heros, and if you want to move heros other than the leader, you should use the <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> command.
+			Makes the specified hero move in the specified direction for the specified number of tiles. The first argument tells who to move. Use <a href="#about-me" class="ref">me</a> or numbers 0-3. The second argument is the direction. Use the constants: <a href="#about-directionconstants" class="ref">north</a>, <a href="#about-directionconstants" class="ref">south</a>, <a href="#about-directionconstants" class="ref">east</a>, <a href="#about-directionconstants" class="ref">west</a>, <a href="#about-directionconstants" class="ref">up</a>, <a href="#about-directionconstants" class="ref">down</a>, <a href="#about-directionconstants" class="ref">left</a>, or <a href="#about-directionconstants" class="ref">right</a>. The third argument is the number of tiles to move. If you leave out the third argument, the hero will move one tile. Walk hero is usually used with the <a href="#about-waitforhero" class="ref">wait for hero</a> command. You should normally use the <a href="#about-suspendplayer" class="ref">suspend player</a> command before moving heroes, and if you want to move heroes other than the leader, you should use the <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> command.
 			<pre>suspend player # stop player
 walk hero(me,up,3) # move him up 3 tiles
 resume player # ok, done</pre>
@@ -1966,9 +2214,20 @@ resume player # ok, done</pre>
 		<a name="about-puthero"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">put hero (who,x,y)</font></b><br>
-			Moves a hero to a precise location on the map. The first argument is the her's position in the walkabout party. The second and third arguments are the X,Y pixel position relative to the top left corner of the map. Be aware that using this command can mis-align your hero with the tile-grid, preventing it from walking normally. To position the hero by tile, use the <a href="#about-setheroposition" class="ref">set hero position</a> command.
-			
+		<b><font color="yellow">put hero (who, x, y)</font></b><br>
+			Moves a hero to a precise location on the map. The first argument is the hero's position in the walkabout party. The second and third arguments are the X,Y pixel position of the top left corner of the hero walkabout sprite, relative to the top left corner of the map. Be aware that using this command can misalign your hero with the tile-grid, preventing it from walking normally. To position the hero by tile, use the <a href="#about-setheroposition" class="ref">set hero position</a> command. Normally you will use this command to escape the tile-based movement system.
+			<pre># This script will make the hero jump in an arch 15 pixels high 2 tiles to the right,
+# but it won't animate it. You can use setheroframe or setheropicture to do that.
+variable (i, jump)
+suspend player
+set hero direction (me, right)
+jump := -5
+for (i, 0, 10) do (
+  put hero (me, hero pixel X (me) + 4, hero pixel Y (me) + jump)
+  jump += 1
+  wait
+)
+resume player</pre>
 			
 		</tt></p>
 
@@ -1982,14 +2241,13 @@ resume player # ok, done</pre>
 		<a name="about-npcreference"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">NPC reference (ID,copy)</font></b><br>
+		<b><font color="yellow">NPC reference (ID, copy)</font></b><br>
 			What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you dont specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. If you plan on using the same NPC reference many times in a script you can store it in a <a href="#about-variable" class="ref">variable</a>. If the NPC with the ID you asked for (or the NPC copy you asked for with ID you asked for) is not found on the map then NPC reference will return <a href="#about-booleanconstants" class="ref">false</a>.
 			<pre>include,plotscr.hsd
-define script(1,ref example,none)
 
 #---NPC reference example---
 
-script,ref example,begin
+plotscript,ref example,begin
 
   variable(Fred)
 
@@ -2023,7 +2281,7 @@ end</pre>
 		<a name="about-npcatspot"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">NPC at spot (x,y,number)</font></b><br>
+		<b><font color="yellow">NPC at spot (x, y, number)</font></b><br>
 			This command returns a reference to the NPC at the given X and Y coordinate on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom most NPC, which is number 0). You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile. <div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">An NPC's tile is the tile its top left corner is on.<br clear="all">
 </div>
@@ -2033,7 +2291,7 @@ end</pre>
 		<a name="about-npcatpixel"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">NPC at pixel (x,y,number)</font></b><br>
+		<b><font color="yellow">NPC at pixel (x, y, number)</font></b><br>
 			This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile.
 			
 			<br><br>See also: <ul class="seealso"><li><a href="#about-npcreference" class="ref">NPC reference</a></li></ul>
@@ -2041,7 +2299,7 @@ end</pre>
 		<a name="about-walknpc"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">walk NPC (who,direction,distance)</font></b><br>
+		<b><font color="yellow">walk NPC (who, direction, distance)</font></b><br>
 			Makes the specified NPC move in the specified direction for the specified number of tiles. The first argument tells who to move. You can use an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The second argument is the direction. Use the constants: <a href="#about-directionconstants" class="ref">north</a>, <a href="#about-directionconstants" class="ref">south</a>, <a href="#about-directionconstants" class="ref">east</a>, <a href="#about-directionconstants" class="ref">west</a>, <a href="#about-directionconstants" class="ref">up</a>, <a href="#about-directionconstants" class="ref">down</a>, <a href="#about-directionconstants" class="ref">left</a>, or <a href="#about-directionconstants" class="ref">right</a>. The third argument is the number of tiles to move. If you leave out the third argument, the NPC will move one tile. walk NPC is usually used with the <a href="#about-waitfornpc" class="ref">wait for NPC</a> command. You should normally use the <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> command before moving NPCs to prevent their automatic movements from interfering with your scripted movements.
 			
 			
@@ -2049,7 +2307,7 @@ end</pre>
 		<a name="about-setnpcdirection"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">set NPC direction (who,direction)</font></b><br>
+		<b><font color="yellow">set NPC direction (who, direction)</font></b><br>
 			Makes the specified NPC face in the specified direction. The following constants are avaialable for direction: <a href="#about-directionconstants" class="ref">north</a>, <a href="#about-directionconstants" class="ref">south</a>, <a href="#about-directionconstants" class="ref">east</a>, <a href="#about-directionconstants" class="ref">west</a>, <a href="#about-directionconstants" class="ref">up</a>, <a href="#about-directionconstants" class="ref">down</a>, <a href="#about-directionconstants" class="ref">left</a>, or <a href="#about-directionconstants" class="ref">right</a>. You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number to specify which NPC will turn.
 			
 			
@@ -2057,7 +2315,7 @@ end</pre>
 		<a name="about-setnpcframe"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">set NPC frame (who,frame)</font></b><br>
+		<b><font color="yellow">set NPC frame (who, frame)</font></b><br>
 			Sets the walking frame of the specified NPC to 0 or 1. You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number to specify which NPC will change.
 			
 			<br><br>See also: <ul class="seealso"><li><a href="#about-npcframe" class="ref">NPC frame</a></li></ul>
@@ -2065,7 +2323,7 @@ end</pre>
 		<a name="about-setnpcposition"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">set NPC position (who,X,Y)</font></b><br>
+		<b><font color="yellow">set NPC position (who, X, Y)</font></b><br>
 			Instantly moves the specified NPC to an X,Y position on the map. The coordinates are in units of tiles. You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number to specify which NPC will be moved.
 			
 			
@@ -2073,7 +2331,7 @@ end</pre>
 		<a name="about-walknpctox"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">walk NPC to X (who,X)</font></b><br>
+		<b><font color="yellow">walk NPC to X (who, X)</font></b><br>
 			Makes the specified NPC walk to a given X coordinate on the map. You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number to specify which NPC will move.
 			
 			
@@ -2081,7 +2339,7 @@ end</pre>
 		<a name="about-walknpctoy"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">walk NPC to Y (who,Y)</font></b><br>
+		<b><font color="yellow">walk NPC to Y (who, Y)</font></b><br>
 			Makes the specified NPC walk to a given Y coordinate on the map. You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number to specify which NPC will move.
 			
 			
@@ -2089,7 +2347,7 @@ end</pre>
 		<a name="about-checknpcwall"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">check NPC wall (who,direction)</font></b><br>
+		<b><font color="yellow">check NPC wall (who, direction)</font></b><br>
 			Returns true if there is a wall blocking the NPC from moving in the specified direction. No actual movement takes place.
 			
 			
@@ -2097,7 +2355,7 @@ end</pre>
 		<a name="about-setnpcspeed"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">set NPC speed (who,speed)</font></b><br>
+		<b><font color="yellow">set NPC speed (who, speed)</font></b><br>
 			Changes the walking speed of the specified NPC. If you do not specify a speed, the NPC's speed will return to the default, 4. Be careful with using speeds that do not divide evenly into 20, because tiles are 20 pixels in size, and an irregular walking speed may cause the NPC to become misaligned with the tiles.<br>Normally you would only give an NPC ID number to set NPC speed, but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work. Just remember that set NPC speed changes every copy of the NPC on the map, not just the specific one you referenced.
 			
 			
@@ -2126,11 +2384,10 @@ end</pre>
 		<b><font color="yellow">NPC copy count (ID)</font></b><br>
 			This command tells you how many copys of a particular NPC ID exist on the map. This can be very useful if you want apply the same action to each copy of an NPC on the map.
 			<pre>include,plotscr.hsd
-define script(1,every NPC example,none)
 
 #---NPC copy count example---
 
-script,every NPC example,begin
+plotscript,every NPC example,begin
 
   variable(loop,guard count,current guard)
 
@@ -2277,9 +2534,9 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">fight formation (number)</font></b><br>
-			Starts a battle with the numbered enemy formation. This command returns <a href="#about-booleanconstants" class="ref">false</a> if you lost or ran from battle, or <a href="#about-booleanconstants" class="ref">true</a> if you won. (This command implies a one-tick <a href="#about-wait" class="ref">wait</a>)
+			Starts a battle with the numbered enemy formation. This command returns <a href="#about-booleanconstants" class="ref">false</a> if you lost or ran from battle, or <a href="#about-booleanconstants" class="ref">true</a> if you won. However, if you lose the battle, the game will still end as normal unless you set a death script. (This command implies a one-tick <a href="#about-wait" class="ref">wait</a>)
 			
-			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-setdeathscript" class="ref">set death script</a></li></ul>
 		</tt></p>
 		<a name="about-usenpc"></a>
 		<p>
@@ -2518,7 +2775,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">lock hero (who)</font></b><br>
-			Locking a hero prevents the player from moving the hero on the party menu. Locked heros in the active party cannot be moved into the reserve, and locked heros in the reserve are completely hidden. Also prevents a hero from being moved by <a href="#about-swapinhero" class="ref">swap in hero</a> or <a href="#about-swapouthero" class="ref">swap out hero</a>. Use the constants defined in your HSI file. They are in the form of hero:name
+			Locking a hero prevents the player from moving the hero on the party menu. Locked heroes in the active party cannot be moved into the reserve, and locked heroes in the reserve are completely hidden. Also prevents a hero from being moved by <a href="#about-swapinhero" class="ref">swap in hero</a> or <a href="#about-swapouthero" class="ref">swap out hero</a>. Use the constants defined in your HSI file. They are in the form of hero:name
 			
 			
 		</tt></p>
@@ -2534,7 +2791,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">swap by name (name,name)</font></b><br>
-			Swaps two named heros in your party no matter what position they are in. Use the names defined in your HSI file in the form hero:name
+			Swaps two named heroes in your party no matter what position they are in. Use the names defined in your HSI file in the form hero:name
 			
 			
 		</tt></p>
@@ -2542,7 +2799,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">swap by position (position,position)</font></b><br>
-			Swaps two heros in your party based on their positions in the party
+			Swaps two heroes in your party based on their positions in the party
 			
 			
 		</tt></p>
@@ -2670,7 +2927,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set ambient music (song)</font></b><br>
-			Plays a song and sets it as the map's ambient music, that is the song that is played when you enter the map (if you call <a href="#about-savemapstate" class="ref">save map state</a> with mapstate:all or mapstate:mapsettings) or after a textbox with 'restore music' set. Unless you save the mapstate, the effect goes away if you change maps or fight a battle. Calling set ambient music with no argument stops the music and disables the ambient music.
+			Plays a song and sets it as the map's ambient music, that is the song that is played when you enter the map (if you call <a href="#about-savemapstate" class="ref">save map state</a> with mapstate:all or mapstate:mapsettings) or after a textbox with 'restore music' set. Unless you save the mapstate, the effect goes away if you change maps or fight a battle. You can use the constants <a href="#about-song:silence" class="ref">song: silence</a> and <a href="#about-song:sameaslastmap" class="ref">song: same as last map</a> for <span class="param">song</span>, the deault is silence.
 			
 			<br><br>See also: <ul class="seealso"><li><a href="#about-playsong" class="ref">play song</a></li></ul>
 		</tt></p>
@@ -2678,7 +2935,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get ambient music</font></b><br>
-			Returns the song number of the map's ambient music.
+			Returns the song number of the map's ambient music, either a song ID or the constants <a href="#about-song:silence" class="ref">song: silence</a> or <a href="#about-song:sameaslastmap" class="ref">song: same as last map</a>.
 			
 			<br><br>See also: <ul class="seealso"><li><a href="#about-currentsong" class="ref">current song</a></li></ul>
 		</tt></p>
@@ -2720,7 +2977,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">load palette (palette number)</font></b><br>
-			Loads a different master palette (one of the palettes on the "View Master Palettes..." menu). Use this if a backdrop or entire map was imported/drawn with a palette other than the default. Changes do not take effect until you call <a href="#about-updatepalette" class="ref">update palette</a> or <a href="#about-fadescreenin" class="ref">fade screen in</a>.
+			Loads a different master palette (one of the palettes on the "View Master Palettes..." menu), and the user interface colors for that palette. Use this if a backdrop or entire map was imported/drawn with a palette other than the default. Changes to the palette do not take effect until you call <a href="#about-updatepalette" class="ref">update palette</a> or <a href="#about-fadescreenin" class="ref">fade screen in</a>, however the UI colors are changed immediately.
 			
 			
 		</tt></p>
@@ -2752,7 +3009,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">reset palette</font></b><br>
-			Reloads the default master palette, undoing any changes you have made with other palette-altering commands such as <a href="#about-tweakpalette" class="ref">tweak palette</a> or <a href="#about-greyscalepalette" class="ref">greyscale palette</a> Changes do not take effect until you call <a href="#about-updatepalette" class="ref">update palette</a> or <a href="#about-fadescreenin" class="ref">fade screen in</a>
+			Reloads the default master palette and its user interface colors, undoing any changes you have made with other palette-altering commands such as <a href="#about-tweakpalette" class="ref">tweak palette</a> or <a href="#about-greyscalepalette" class="ref">greyscale palette</a> Changes to the palette do not take effect until you call <a href="#about-updatepalette" class="ref">update palette</a> or <a href="#about-fadescreenin" class="ref">fade screen in</a>, however the UI colors are changed immediately.
 			
 			
 		</tt></p>
@@ -2912,9 +3169,8 @@ end</pre>
 		<tt>
 		<b><font color="yellow">spells learnt (hero,number)</font></b><br>
 			Used to return the id numbers of spells the hero learnt from the last battle, <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command. (Returns only the spells learnt from the very last battle or command). If the second argument is <a href="#about-getcount" class="ref">get count</a> then the number of spells that the hero learnt is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learnt:
-			<pre>define script (autonumber, print learnt spells, 1, 0)
-# the following script uses strings 0, 1, 2 for its use (will be overwritten)
-script, print learnt spells, who, begin
+			<pre># the following script uses strings 0, 1, 2 for its use (will be overwritten)
+plotscript, print learnt spells, who=0, begin
   variable(i)
   get hero name (1, who) # construct the static part of the text in string 1
   $1+" learnt spell "
@@ -2927,6 +3183,14 @@ script, print learnt spells, who, begin
   )
   hide string (0)
 end</pre>
+			
+		</tt></p>
+		<a name="about-outsidebattlecure"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">outside battle cure (attack, target, attacker)</font></b><br>
+			Uses an attack on a hero outside of battle as if you had used it from an item or cast it as a spell. In spite of the name, it works for both cure spells and damage spells. The first argument, <span class="param">attack</span> is the ID number of the attack to use, or the name from your HSI file in the form atk:name. The second argument, <span class="param">target</span> is the position in the party of the hero to cure (or harm). The third optional argument, <span class="param">attacker</span> is the position in the party of the hero who is using the attack. If this argument is ommitted or set to -1, then the average stats of the active party will be used, just like when the attack is used from an item. The return value is <a href="#about-booleanconstants" class="ref">true</a> if the cure/attack succeeded, and <a href="#about-booleanconstants" class="ref">false</a> if it did nothing.
+			
 			
 		</tt></p>
 
@@ -2945,11 +3209,10 @@ end</pre>
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">Running this command does not draw a cursor on screen - your script must do this itself by placing an npc at the appropriate location.<br clear="all">
 </div> Here is an example:
 			<pre>include,plotscr.hsd
-define script(1,displaymouse,none)
 
 #Mouse cursor example
 
-script, display mouse, begin
+plotscript, display mouse, begin
 
   #start up the mouse
   init mouse
@@ -3129,7 +3392,7 @@ end</pre>
 		<tt>
 		<b><font color="yellow">get hero name (ID, hero)</font></b><br>
 			This command will take the name of hero #<span class="param">hero</span>, and stick it in string #<span class="param">ID</span>, overwriting its contents. <div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">Remember that this command expects the hero's position in the party, not the hero:name constants nor the hero's position in the walkabout party. If you want to get the name of a hero according to their position in the walkabout party, you should use <a href="#hero%20by%20rank" class="undef">hero by rank</a> and <a href="#find%20hero" class="undef">find hero</a><br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">Remember that this command expects the hero's position in the party, not the hero:name constants nor the hero's position in the walkabout party. If you want to get the name of a hero according to their position in the walkabout party, you should use <a href="#about-herobyrank" class="ref">hero by rank</a> and <a href="#about-findhero" class="ref">find hero</a><br clear="all">
 </div>
 			<pre># This example gets the name of the leader and stores it in string ID 1
 
@@ -3302,6 +3565,590 @@ get hero name (1,find hero(hero by rank(0)))
 
 		<hr>
 	
+		<a name="Menu%20Functions"></a>
+
+		<font color="#f06060" size="4">Menu Functions</font>
+		<p></p>
+		
+		<a name="about-openmenu"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">open menu (ID, allow duplicate)</font></b><br>
+			Opens the menu specified by <span class="param">ID</span>. You can also use the constants defined in your HSI file in the form menu:name. The menu will be opened on top of any menus that are already open. The optional second argument <span class="param">allow duplicates</span> can be <a href="#about-booleanconstants" class="ref">true</a> if you want to be able to open more than one copy of the same menu at the same time. The return value is a menu handle that you should store in a variable for use with other menu-related commands.
+			
+			
+		</tt></p>
+		<a name="about-createmenu"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">create menu</font></b><br>
+			Create a new empty menu. You can add menu items to it with the <a href="#about-addmenuitem" class="ref">add menu item</a> command. The return value is a menu handle that you should save in a variable for use with other menu related commands. Menus created with this command have the "Allow gameplay" bitset turned on by default.
+			
+			
+		</tt></p>
+		<a name="about-closemenu"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">close menu(menu handle)</font></b><br>
+			Close a menu. The argument is a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a> or <a href="#about-topmenu" class="ref">top menu</a>)
+			
+			
+		</tt></p>
+		<a name="about-topmenu"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">top menu</font></b><br>
+			Return a menu handle for the topmost menu. Returns <a href="#about-booleanconstants" class="ref">false</a> if no menus are open
+			
+			
+		</tt></p>
+		<a name="about-bottommenu"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">bottom menu</font></b><br>
+			Return a menu handle for the bottom menu (the menu underneath all other open menus). Returns <a href="#about-booleanconstants" class="ref">false</a> if no menus are open
+			
+			
+		</tt></p>
+		<a name="about-previousmenu"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">previous menu(menu handle)</font></b><br>
+			Return a menu handle for the menu beneath the one specified by <span class="param">menu handle</span>, or false if there is no menu underneath
+			<pre>variable(menu)
+menu := topmenu
+while(menu) do, begin
+ # do things to each menu
+ menu := previous menu(menu)
+end</pre>
+			
+		</tt></p>
+		<a name="about-nextmenu"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">next menu(menu handle)</font></b><br>
+			Return a menu handle for the menu on top of the one specified by <span class="param">menu handle</span>, or false if there is no menu on top
+			<pre>variable(menu)
+menu := bottom menu
+while(menu) do, begin
+ # do things to each menu
+ menu := next menu(menu)
+end</pre>
+			
+		</tt></p>
+		<a name="about-bringmenuforward"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">bring menu forward(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one return by <a href="#about-bottommenu" class="ref">bottom menu</a>), move the menu to the top of all other open menus
+			
+			
+		</tt></p>
+		<a name="about-findmenuid"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">find menu ID(menu ID)</font></b><br>
+			Given a <span class="param">menu ID</span> number or a constant in the form of <span class="param">menu:name</span>, Check to see if it is already open, and return a menu handle to it.
+			
+			
+		</tt></p>
+		<a name="about-menu%20is%20open"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">menu is open(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <span class="param">open menu</span>), Check to see if it is already open, and return <a href="#about-booleanconstants" class="ref">true</a> if it is, or <a href="#about-booleanconstants" class="ref">false</a> if it is not
+			
+			
+		</tt></p>
+		<a name="about-addmenuitem"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">addmenuitem(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-createmenu" class="ref">create menu</a>), Add a new menu item to the end of the menu. Returns a menu item handle, which you can store in a variable for use with commands like <a href="#about-setmenuitemcaption" class="ref">set menu item caption</a> or <a href="#about-setmenuitemtype" class="ref">set menu item type</a>.
+			
+			
+		</tt></p>
+		<a name="about-deletemenuitem"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">deletemenuitem(menu item handle)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a> or <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), delete the menu item from the menu.
+			
+			
+		</tt></p>
+		<a name="about-selectmenuitem"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">select menu item(menu item handle)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), Move the menu selection cursor to point to that menu item
+			
+			
+		</tt></p>
+		<a name="about-selectedmenuitem"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">selected menu item(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return a menu item handle for the menu item that is currently selected
+			
+			
+		</tt></p>
+		<a name="about-firstmenuitem"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">first menu item(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return a menu item handle for the menu item at the top of the menu.
+			
+			
+		</tt></p>
+		<a name="about-menuitembyslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">menu item by slot(menu handle, slot, visible only)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return a menu item handle for the menu item at the position specified by <span class="param">slot</span>. The first slot in the menu is 0. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-menuitemslot" class="ref">menu item slot</a></li></ul>
+		</tt></p>
+		<a name="about-menuitemslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">menu item slot(menu item handle)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), Return a the slot number of the menu item. The first slot in the menu is 0.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-menuitembyslot" class="ref">menu item by slot</a></li></ul>
+		</tt></p>
+		<a name="about-nextmenuitem"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">next menu item(menu item handle, visible only)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return a menu item handle for the menu item below the specified one, or <a href="#about-booleanconstants" class="ref">false</a> there is no next menu item. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item
+			<pre>variable(mi)
+mi := first menu item
+while(mi) do, begin
+  # do things to each menu item
+  mi := next menu item(mi)
+end
+</pre>
+			
+		</tt></p>
+		<a name="about-previousmenuitem"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">previous menu item(menu item handle, visible only)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return a menu item handle for the menu item above the specified one, or <a href="#about-booleanconstants" class="ref">false</a> there is no previous menu item. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item
+			<pre>variable(m)
+m := previous menu item(selected menu item)</pre>
+			
+		</tt></p>
+		<a name="about-findmenuitemcaption"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">find menu item caption(menu handle, string ID, search after handle, visible only)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), and a string identified by <span class="param">string ID</span>, Search the menu for a menu item with a label that is the same as the string, and return a handle to the matching menu item. The optional third argument <span class="param">search after handle</span> is a menu item handle to start searching after instead of searching from the top of the menu. The optional fourth argument <span class="param">visible only</span> is a <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a> value that determines whether or not to include hidden items. it defaults to <a href="#about-booleanconstants" class="ref">true</a>.
+			<pre>variable(menu, mi)
+menu := open menu(menu:test menu)
+$0="Puppies"
+mi := find menu item caption(menu, 0)
+while(mi) do, begin
+ # do something to each menu item labelled "Puppies"
+ mi := find menu item(menu, 0, mi)
+end</pre>
+			
+		</tt></p>
+		<a name="about-getmenuitemcaption"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu item caption(menu item handle, string ID)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), take the caption and copy it into the string identified by <span class="param">string ID</span>
+			
+			
+		</tt></p>
+		<a name="about-setmenuitemcaption"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu item caption(menu item handle, string ID)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Replace the caption with the string identified by <span class="param">string ID</span>
+			
+			
+		</tt></p>
+		<a name="about-getmenuitemtype"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu item type(menu item handle)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return the type of the menu item
+			
+			
+		</tt></p>
+		<a name="about-setmenuitemtype"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu item type(menu item handle, new type)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Change the type of the menu item to <span class="param">new type</span>. Available constants are: <span class="param">menutype:label</span>,<span class="param">menutype:special</span>, <span class="param">menutype:menu</span>, <span class="param">menutype:textbox</span>, and <span class="param">menutype:script</span>
+			
+			
+		</tt></p>
+		<a name="about-getmenuitemsubtype"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu item subtype(menu item handle)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return the subtype of the menu item. The meaning of the subtype varies depending on the type.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-setmenuitemsubtype" class="ref">set menu item subtype</a></li></ul>
+		</tt></p>
+		<a name="about-setmenuitemsubtype"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu item subtype(menu item handle, new subtype)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Change the subtype of the menu item to <span class="param">new subtype</span>. The meaning of the subtype varies depending on the type of the menu item. For menutype:special you can use constants like: <span class="param">menuspecial:items</span>, <span class="param">menuspecial:spells</span>, <span class="param">menuspecial:status</span>, <span class="param">menuspecial:equip</span>, <span class="param">menuspecial:order</span>, <span class="param">menuspecial:team</span>, <span class="param">menuspecial:orderteam</span>, <span class="param">menuspecial:map</span>, <span class="param">menuspecial:save</span>, <span class="param">menuspecial:load</span>, <span class="param">menuspecial:quit</span>,  and <span class="param">menuspecial:volume</span>. For menutype:textbox you can use the textbox's ID number. For menutype:menu you can use the menu's ID number or a menu:name constant from your HSI file. For menutype:script you can use script references in the form @scriptname
+			
+			
+		</tt></p>
+		<a name="about-getmenuitemtag"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu item tag(menu item handle, whichtag)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and a tag number <span class="param">whichtag</span> which can be 1 or 2, Return the a tag required for the menu item to be available. The tag number will be positive if the tag needs to be ON, or negative if the tag needs to be OFF
+			
+			
+		</tt></p>
+		<a name="about-setmenuitemtag"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu item tag(menu item handle, new tag, whichtag)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and a tag number <span class="param">whichtag</span> which can be 1 or 2, Set the tag required for the menu item to <span class="param">new tag</span>. Use a positive number if the tag needs to be turned ON, and a negative number if the tag needs to be turned OFF
+			
+			
+		</tt></p>
+		<a name="about-getmenuitemsettag"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu item settag(menu item handle)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return the number of the tag that will be set when the menu item is selected. The tag number will be positive if the tag will be set ON, or negative if the tag will be set OFF
+			
+			
+		</tt></p>
+		<a name="about-setmenuitemsettag"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu item settag(menu item handle, new settag)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Change the tag that will be set when the menu item is selected. Use a positive number if the tag should be turned ON, and a negative number if the tag should be turned OFF
+			
+			
+		</tt></p>
+		<a name="about-getmenuitemtogtag"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu item togtag(menu item handle)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return the number of the tag that will be toggled when the menu item is selected. (The tag number will always be a positive number)
+			
+			
+		</tt></p>
+		<a name="about-setmenuitemtogtag"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu item togtag(menu item handle, new settag)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Change the tag that will be toggled when the menu item is selected. (the tag number will always be positive)
+			
+			
+		</tt></p>
+		<a name="about-getmenuitembit"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu item bit(menu item handle, bit)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and bit number <span class="param">bit</span>, Return <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menu item bit:Hide when disabled</span> and <span class="param">menu item bit:Close menu if selected</span>
+			
+			
+		</tt></p>
+		<a name="about-setmenuitembit"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu item bit(menu item handle, bit, value)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and bit number <span class="param">bit</span>, Set the bitset is ON or OFF depending on <span class="param">value</span>. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menu item bit:Hide when disabled</span> and <span class="param">menu item bit:close menu when selected</span>
+			
+			
+		</tt></p>
+		<a name="about-getmenuitemextra"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu item extra(menu item handle, extra)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and an <span class="param">extra</span> data number which can be 0, 1, or 2, Return the the number stored in the extra data space. This extra data has no meaning of its own, and is just useful for advanced menu scripting.
+			
+			
+		</tt></p>
+		<a name="about-setmenuitemextra"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu item extra(menu item handle, extra, num)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and an <span class="param">extra</span> data number which can be 0, 1, or 2, Change the number stored in the extra data space to <span class="param">num</span>. This extra data has no meaning of its own, and is just useful for advanced menu scripting.
+			
+			
+		</tt></p>
+		<a name="about-getmenubit"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu bit(menu handle, bit)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>), and bit number <span class="param">bit</span>, Return <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menubit:translucent box</span> <span class="param">menubit:never show scrollbar</span> <span class="param">menubit:allow gameplay</span> <span class="param">menubit:suspend player even if gameplay allowed</span> <span class="param">menubit:no box</span> <span class="param">menubit:no close</span> <span class="param">menubit:no controls</span> <span class="param">menubit:prevent main menu</span>
+			
+			
+		</tt></p>
+		<a name="about-setmenubit"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu bit(menu handle, bit, value)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>), and bit number <span class="param">bit</span>, Set the bitset is ON or OFF depending on <span class="param">value</span>. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menubit:translucent box</span> <span class="param">menubit:never show scrollbar</span> <span class="param">menubit:allow gameplay</span> <span class="param">menubit:suspend player even if gameplay allowed</span> <span class="param">menubit:no box</span> <span class="param">menubit:no close</span> <span class="param">menubit:no controls</span> <span class="param">menubit:no close</span> <span class="param">menubit:no controls</span> <span class="param">menubit:prevent main menu</span>
+			
+			
+		</tt></p>
+		<a name="about-parentmenu"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">parent menu(menu item handle)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return a menu handle for the menu that the menu item belongs to.
+			
+			
+		</tt></p>
+		<a name="about-getmenuid"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu ID(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-parentmenu" class="ref">parent menu</a>), Return a the ID number of the menu, or -1 if the men was created with the <a href="#about-createmenu" class="ref">create menu</a> command.
+			
+			
+		</tt></p>
+		<a name="about-swapmenuitems"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">swap menu items(handle1, handle2)</font></b><br>
+			Given two menu item handles (for example, the ones returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a> and <a href="#about-nextmenuitem" class="ref">next menu item</a>) switch the positions of the two menu items. Note that this works both to rearrange menu items within one menu, or to move menu items between different menus
+			
+			
+		</tt></p>
+		<a name="about-getmenuboxstyle"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu boxstyle(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return a the boxstyle of the menu. This will be a number from 0 to 15
+			
+			
+		</tt></p>
+		<a name="about-setmenuboxstyle"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu boxstyle(menu handle, new box style)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the boxstyle of the menu. <span class="param">new box style</span> will be a number from 0 to 15
+			
+			
+		</tt></p>
+		<a name="about-getmenutextcolor"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu textcolor(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return a the text color of the menu. This will be a number from 0 to 255
+			
+			
+		</tt></p>
+		<a name="about-setmenutextcolor"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu textcolor(menu handle, new textcolor)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the text color of the menu. <span class="param">new textcolor</span> will be a number from 0 to 255. 0 is the default color.
+			
+			
+		</tt></p>
+		<a name="about-getmenumaxrows"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu max rows(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return a max rows to display of the menu, or 0 if the menu is auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.
+			
+			
+		</tt></p>
+		<a name="about-setmenumaxrows"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu max rows(menu handle, new max rows)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the max rows to display of the menu to <span class="param">new max rows</span>. Use 0 if you want the menu to be auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.
+			
+			
+		</tt></p>
+		<a name="about-getmenuoffsetx"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu offset x(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the x offset position of the menu in pixels relative to the center of the screen.
+			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-getmenuoffsety" class="ref">get menu offset y</a>, </li>
+<li>
+<a href="#about-setmenuoffsetx" class="ref">set menu offset x</a>, </li>
+<li><a href="#about-setmenuoffsety" class="ref">set menu offset y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getmenuoffsety"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu offset y(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the y offset position of the menu in pixels relative to the center of the screen.
+			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-getmenuoffsetx" class="ref">get menu offset x</a>, </li>
+<li>
+<a href="#about-setmenuoffsetx" class="ref">set menu offset x</a>, </li>
+<li><a href="#about-setmenuoffsety" class="ref">set menu offset y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setmenuoffsetx"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu offset x(menu handle, new x)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the x offset position of the menu in pixels relative to the center of the screen.
+			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-getmenuoffsetx" class="ref">get menu offset x</a>, </li>
+<li>
+<a href="#about-getmenuoffsety" class="ref">get menu offset y</a>, </li>
+<li><a href="#about-setmenuoffsety" class="ref">set menu offset y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setmenuoffsety"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu offset y(menu handle, new y)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the y offset position of the menu in pixels relative to the center of the screen.
+			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-getmenuoffsetx" class="ref">get menu offset x</a>, </li>
+<li>
+<a href="#about-getmenuoffsety" class="ref">get menu offset y</a>, </li>
+<li><a href="#about-setmenuoffsetx" class="ref">set menu offset x</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getmenuanchorx"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu anchor x(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the x anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>
+			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-getmenuanchory" class="ref">get menu anchor y</a>, </li>
+<li>
+<a href="#about-setmenuanchorx" class="ref">set menu anchor x</a>, </li>
+<li><a href="#about-setmenuanchory" class="ref">set menu anchor y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getmenuanchory"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu anchor y(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the y anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>
+			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-getmenuanchorx" class="ref">get menu anchor x</a>, </li>
+<li>
+<a href="#about-setmenuanchorx" class="ref">set menu anchor x</a>, </li>
+<li><a href="#about-setmenuanchory" class="ref">set menu anchor y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setmenuanchorx"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu anchor x(menu handle, new anchor)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the horizontal x anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>
+			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-getmenuanchorx" class="ref">get menu anchor x</a>, </li>
+<li>
+<a href="#about-getmenuanchory" class="ref">get menu anchor y</a>, </li>
+<li><a href="#about-setmenuanchory" class="ref">set menu anchor y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setmenuanchory"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu anchor y(menu handle, new anchor)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the vertical y anchor position of the menu. Change the horizontal x anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>
+			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-getmenuanchorx" class="ref">get menu anchor x</a>, </li>
+<li>
+<a href="#about-getmenuanchory" class="ref">get menu anchor y</a>, </li>
+<li><a href="#about-setmenuanchorx" class="ref">set menu anchor x</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getmenutextalign"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu text align(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the text alignment of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-setmenutextalign" class="ref">set menu text align</a></li></ul>
+		</tt></p>
+		<a name="about-setmenutextalign"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu text align(menu handle, new align)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the text alingment of the menu. The <span class="param">new align</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-getmenutextalign" class="ref">get menu text align</a></li></ul>
+		</tt></p>
+		<a name="about-getmenuminchars"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu min chars(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the minimum width of the menu in chars, or 0 for menus that have their width autodetected.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-setmenuminchars" class="ref">set menu min chars</a></li></ul>
+		</tt></p>
+		<a name="about-setmenuminchars"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu min chars(menu handle, new min)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the minimum width of the menu in chars, or use 0 to make the menu width autodetected.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-getmenuminchars" class="ref">get menu min chars</a></li></ul>
+		</tt></p>
+		<a name="about-getmenumaxchars"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu max chars(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the maximum width of the menu in chars, or 0 for menus that do not have a maximum.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-setmenumaxchars" class="ref">set menu max chars</a></li></ul>
+		</tt></p>
+		<a name="about-setmenumaxchars"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu max chars(menu handle, new max)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the maximum width of the menu in chars, or use 0 for no maximum
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-getmenumaxchars" class="ref">get menu max chars</a></li></ul>
+		</tt></p>
+		<a name="about-getmenuborder"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu border(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the border thickness of the menu in pixels. Positive numbers indicate a thicker border. Negative numbers indicate a thinner border.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-setmenuborder" class="ref">set menu border</a></li></ul>
+		</tt></p>
+		<a name="about-setmenuborder"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu border(menu handle, new border)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the border thickness of the menu in pixels. Positive numbers will result in a thicker border. Negative numbers will result in a thinner border.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-getmenuborder" class="ref">get menu border</a></li></ul>
+		</tt></p>
+
+		<hr>
+	
 		<a name="Misc%20Functions"></a>
 
 		<font color="#f06060" size="4">Misc Functions</font>
@@ -3447,9 +4294,21 @@ get hero name (1,find hero(hero by rank(0)))
 		<p>
 		<tt>
 		<b><font color="yellow">get map tileset</font></b><br>
-			Returns the ID number of the default tileset for the map. <a href="#about-loadtileset" class="ref">load tileset</a> does NOT affect the value returned by this function.
+			Returns the ID number of the default tileset for the map. <a href="#about-loadtileset" class="ref">load tileset</a> does not affect the value returned by this function, but <a href="#about-changetileset" class="ref">change tileset</a> does. So you might need to use <a href="#about-layertileset" class="ref">layer tileset</a> to find the actual currently in-use tileset.
 			
 			
+		</tt></p>
+		<a name="about-layertileset"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">layer tileset (layer)</font></b><br>
+			Returns the ID number of the tileset that a certain tilemap layer is currently using.
+			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-changetileset" class="ref">change tileset</a>, </li>
+<li><a href="#about-getmaptileset" class="ref">get map tileset</a></li>
+</ul>
 		</tt></p>
 		<a name="about-daysofplay"></a>
 		<p>
@@ -3772,7 +4631,7 @@ get hero name (1,find hero(hero by rank(0)))
 		<p>
 		<tt>
 		<b><font color="yellow">pick hero</font></b><br>
-			Pops up a hero-picker box that lets you choose one of the heros in your active party. The return value is the position in the party of the hero you picked.
+			Pops up a hero-picker box that lets you choose one of the heroes in your active party. The return value is the position in the party of the hero you picked.
 			
 			
 		</tt></p>
@@ -3904,7 +4763,7 @@ get hero name (1,find hero(hero by rank(0)))
 		<p>
 		<tt>
 		<b><font color="yellow">get formation song (formation)</font></b><br>
-			Returns the song associated with <span class="param">formation</span>. If there is none, it will return 0, otherwise it will return the song number + 1. If there is an error (such as <span class="param">formation</span> not existing), it will return -1.
+			Returns the song associated with <span class="param">formation</span>. Compare the result with the constants of the form <span class="param">song:songname</span> from your exported .hsi file, or the special constants <a href="#about-song:silence" class="ref">song: silence</a> or <a href="#about-song:sameaslastmap" class="ref">song: same as map</a>.
 			
 			<br><br>See also: <ul class="seealso"><li><a href="#about-setformationsong" class="ref">set formation song</a></li></ul>
 		</tt></p>
@@ -3912,7 +4771,7 @@ get hero name (1,find hero(hero by rank(0)))
 		<p>
 		<tt>
 		<b><font color="yellow">set formation song (formation, song)</font></b><br>
-			Sets an enemy formation to use <span class="param">song</span> as its music. Use 0 for none, or the song number + 1 for a song.<br>Note: Formation data changes are temporary. They are not saved in the save game.
+			Changes an enemy formation to use <span class="param">song</span> as its music. Use the constants of the form <span class="param">song:songname</span> from your exported .hsi file, or the special constants <a href="#about-song:silence" class="ref">song: silence</a> or <a href="#about-song:sameaslastmap" class="ref">song: same as map</a>.<br>Note: Formation data changes are temporary. They are not saved in the save game.
 			
 			<br><br>See also: <ul class="seealso"><li><a href="#about-getformationsong" class="ref">get formation song</a></li></ul>
 		</tt></p>
@@ -3959,7 +4818,7 @@ if (herolevelled (find hero (hero: Bob))) then (
 		<tt>
 		<b><font color="yellow">set timer (id, count, speed, trigger, string, flags)</font></b><br>
 			Sets the settings for a given timer (<span class="param">id</span>), and starts it. <span class="param">Count</span> is the length of the timer. While it's running, the count will go down by one every <span class="param">speed</span> ticks. I.e., if you set speed to 18, it will count down once every 18 ticks.<br>
-<span class="param">trigger</span> is what happens when the timer runs out. You can use the constant <a href="#about-timer:gameover" class="ref">timer: game over</a> to indicate that the game should end, or specify a plotscript (in the form "@my script") to have that run.<br>
+<span class="param">trigger</span> is what happens when the timer runs out. You can use the constant <a href="#about-timer:gameover" class="ref">timer: game over</a> to indicate that the game should end, or specify a plotscript (in the form "@my script") to have that run. A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one.<br>
 By default, a timer will not show up on screen. However, you can bind a timer to a string using the <span class="param">string</span> parameter. Pass it the id of a string, and that string will be updated every time the timer counts down. You are responsible for displaying and positioning the string.<br>
 A timer also has a few other options in the form of <span class="param">flags</span>. You can pass any combination of these flags: <a href="#about-timerflag:critical" class="ref">timer flag: critical</a> to have the timer end a battle, if it runs out during it, <a href="#about-timerflag:battle" class="ref">timer flag: battle</a> to have it count down during a battle in the first place or <a href="#about-timerflag:menu" class="ref">timer flag: menu</a> to have it count down while the player is in a menu (i.e. the main menu).
 <div style="background-color:#EFF;" class="note">
@@ -4042,24 +4901,42 @@ write pass block(15,3,pass)
 		<a name="about-loadtileset"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">load tileset (set)</font></b><br>
-			Loads a different tileset for the currently displaying map. The argument is the ID number of the tileset to load. To restore the map's default tileset, use load tileset with no arguments.
+		<b><font color="yellow">load tileset (tileset, layer)</font></b><br>
+			Temporarily loads a different default or layer tileset for the currently displaying map.<br>Use <span class="param">load tileset</span> (with no arguments) to restore the old tilesets after using load tileset (this has no effect after <a href="#about-changetileset" class="ref">change tileset</a>).<br>Use <span class="param">load tileset (tileset)</span> to load a new default tileset. <span class="param">tileset</span> is the ID number of the tileset to load. This affects tilesets for all layers that are set to 'Tileset: default'. This effectively changes the map's tileset if you haven't done anything fancy with layer tilesets.<br>Use <span class="param">load tileset (tileset, layer)</span> to load in a new a tileset for a single layer. <span class="param">layer</span> is the layer number (0-2) to target.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">This command has a temporary effect: even if the map state is saved, the new tilesets will not persist if you leave the map and come back. <a href="#about-changetileset" class="ref">change tileset</a> is a more powerful command for this.<br clear="all">
+</div>
 			
-			<br><br>See also: <ul class="seealso"><li><a href="#about-getmaptileset" class="ref">get map tileset</a></li></ul>
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-getmaptileset" class="ref">get map tileset</a>, </li>
+<li><a href="#about-layertileset" class="ref">layer tileset</a></li>
+</ul>
+		</tt></p>
+		<a name="about-changetileset"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">change tileset (tileset, layer)</font></b><br>
+			An alternative to <a href="#about-loadtileset" class="ref">load tileset</a>: Changes and loads in the default or a map layer tileset for the current map. <span class="param">tileset</span> is the ID number of the tileset to load. You can use the constant <span class="param">tileset:default</span> to set a layer to use the default tileset. <span class="param">layer</span> is the layer number (0-2) to change, or the constant <span class="param">tileset:default</span> which changes the default tileset. It defaults to <span class="param">tileset:default</span> if omitted. <span class="param">change tileset</span> with no arguments restores the set tilesets after using load tileset. Unlike load tileset, this command's effects last to the next time you come back to this map if you save the map state (either tilemap or npcs, or general map settings via <a href="#about-savemapstate" class="ref">save map state</a>). To undo the effects, you'll need to use <a href="#about-resetmapstate" class="ref">reset map state</a>
+			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-getmaptileset" class="ref">get map tileset</a>, </li>
+<li><a href="#about-layertileset" class="ref">layer tileset</a></li>
+</ul>
 		</tt></p>
 		<a name="about-currentdisplaytile"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">current display tile (tile number)</font></b><br>
-			Returns the tile number from the tileset, in the range 0-159, that a given tile (read with <a href="#about-readmapblock" class="ref">read map block</a>) is currently displayed as, taking the tile animation patterns into account.
+		<b><font color="yellow">current display tile (tile number, layer)</font></b><br>
+			Returns the tile number from the tileset, in the range 0-159, that a given tile (read with <a href="#about-readmapblock" class="ref">read map block</a>, which returns a value greater than 159 for animated tiles) is currently displayed as, taking the tile animation patterns into account. Because different layers can have different tilesets, you might need to specify the layer the tile is from; otherwise layer 0 is assumed.
 			
 			
 		</tt></p>
 		<a name="about-animationstarttile"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">animation start tile (tile number)</font></b><br>
-			Returns the tile number on the tileset (in the range 0-159) that this tile is displayed as at the start of its animation pattern (offset 0) if it has one, else just returns the tile number. The <span class="param">tile number</span> argument is typically returned from <a href="#about-readmapblock" class="ref">read map block</a>. In effect, this is what the tile number would be if you had not set the tile as animated in the tilemap editor.
+		<b><font color="yellow">animation start tile (tile number, layer)</font></b><br>
+			Returns the tile number on the tileset (in the range 0-159) that this tile is displayed as at the start of its animation pattern (offset 0) if it is animated, else just returns the tile number. The <span class="param">tile number</span> argument is typically returned from <a href="#about-readmapblock" class="ref">read map block</a>. In effect, the result is what the tile number would be if you had not set the tile as animated in the tilemap editor. Because different layers can have different tilesets, you might need to specify the layer the tile is from; otherwise layer 0 is assumed.
 			
 			<br><br>See also: <ul class="seealso"><li><a href="#about-currentdisplaytile" class="ref">current display tile</a></li></ul>
 		</tt></p>
@@ -4355,7 +5232,7 @@ end</pre>
 		<b><font color="yellow">return(value)</font></b><br>
 			Sets the value to be returned by the script. This is only useful when the script has been called as a function from another script. It is irrelevant to scripts called directly from your RPG. This command does NOT cause the script to terminate, it just sets the return value. If return is used more than once in the same script, only the last one executed matters
 			
-			<br><br>See also: <ul class="seealso"><li><a href="#exit%20returning" class="undef">exit returning</a></li></ul>
+			<br><br>See also: <ul class="seealso"><li><a href="#about-exitreturning" class="ref">exit returning</a></li></ul>
 		</tt></p>
 		<a name="about-exitreturning"></a>
 		<p>
@@ -4366,7 +5243,7 @@ end</pre>
 			<br><br>See also: <ul class="seealso">
 <li>
 <a href="#about-return" class="ref">return</a>, </li>
-<li><a href="#about-exit%20script" class="ref">script</a></li>
+<li><a href="#about-exitscript" class="ref">exit script</a></li>
 </ul>
 		</tt></p>
 		<a name="about-exitscript"></a>
@@ -4375,7 +5252,7 @@ end</pre>
 		<b><font color="yellow">exit script</font></b><br>
 			Causes the script to end immediately
 			
-			<br><br>See also: <ul class="seealso"><li><a href="#exit%20returning" class="undef">exit returning</a></li></ul>
+			<br><br>See also: <ul class="seealso"><li><a href="#about-exitreturning" class="ref">exit returning</a></li></ul>
 		</tt></p>
 		<a name="about-break"></a>
 		<p>
@@ -4431,7 +5308,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set hero picture (who,picture,type)</font></b><br>
-			Permanently changes a hero's picture. The first argument is the heros position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is the index number of the picture to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the heros battle picture or their walkabout picture. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.
+			Permanently changes a hero's picture. The first argument is the hero's position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is the index number of the picture to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.
 			
 			
 		</tt></p>
@@ -4439,7 +5316,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set hero palette (who,palette,type)</font></b><br>
-			Permanently changes a hero's 16-color palette. The first argument is the heros position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is the index number of the 16-color palette to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the heros battle palette or their walkabout palette. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.
+			Permanently changes a hero's 16-color palette. The first argument is the hero's position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is the index number of the 16-color palette to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.
 			
 			
 		</tt></p>
@@ -4447,7 +5324,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get hero picture (who,type)</font></b><br>
-			A function that returns the index number of a hero's picture. The first argument is the heros position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are checking the heros battle picture or their walkabout picture. If the second argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.
+			A function that returns the index number of a hero's picture. The first argument is the hero's position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are checking the hero's battle picture or their walkabout picture. If the second argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.
 			
 			
 		</tt></p>
@@ -4455,7 +5332,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get hero palette (who,type)</font></b><br>
-			A function that returns the index number of a hero's 16-color palette. The first argument is the heros position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are checking the heros battle palette or their walkabout palette. If the second argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.
+			A function that returns the index number of a hero's 16-color palette. The first argument is the hero's position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are checking the hero's battle palette or their walkabout palette. If the second argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.
 			
 			
 		</tt></p>
@@ -4486,7 +5363,7 @@ end</pre>
 <li>NPCwhenactivated:donotfaceplayer</li>
 </ul>
 </li>
-<li>Alter NPC (who,NPCstat:give item,item number)</li>
+<li>Alter NPC (who,NPCstat:give item,item number + 1) ... Note that the item number is offset + 1. A zero means no item.</li>
 <li>Alter NPC (who,NPCstat:pushability,pushability code)<br>Available pushability codes<ul>
 <li>NPCpush:off</li>
 <li>NPCpush:full</li>
@@ -4509,9 +5386,8 @@ end</pre>
 <li>Alter NPC (who,NPCstat:vehicle,vehicle ID)</li>
 </ul>Normally you would only give an NPC ID number to alter NPC, but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work. Just remember that alter NPC changes every copy of the NPC on the map, not just the specific one you referenced.<br>A good way to make use of Alter NPC is to wrap it in your own script. For example:
 			<pre># Example AlterNPC wrapper for changing NPC appearance
-Define Script (autonumber,change NPC,3,0,0,0)
 
-script,change NPC,who,picture,palette,begin
+plotscript,change NPC,who=0,picture=0,palette=0,begin
   Alter NPC(who,NPCstat:picture,picture)
   Alter NPC(who,NPCstat:palette,palette)
 end</pre>
@@ -4521,7 +5397,9 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">read NPC (who,NPCstat)</font></b><br>
-			Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <a href="#about-alternpc" class="ref">alter NPC</a>
+			Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <a href="#about-alternpc" class="ref">alter NPC</a>. <div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">If you use this command to read the give item number, the result is offset + 1. A zero means no item.<br clear="all">
+</div>
 			
 			
 		</tt></p>
@@ -4641,7 +5519,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">draw NPCs above heroes (setting)</font></b><br>
-			Sets whether NPCs are drawn above heros or the default of beneath. The effect goes away if you change maps or fight a battle.
+			Sets whether NPCs are drawn above heroes or the default of beneath. The effect goes away if you change maps or fight a battle.
 			
 			
 		</tt></p>
@@ -4665,7 +5543,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">find hero (who)</font></b><br>
-			Searches through your party to see if the specified hero is there, and returns the position where the hero was found, or -1 if the hero was not found. Use the names defined in your HSI file in the format hero:name. Not only does this tell you if a hero is in your party, but you can also use it to tell whether or not the hero is in your active party. find hero will return 0,1,2 or 3 if the hero is in the active party, but it will return a number 4 or higher if the hero is in the reserve.
+			Searches through your (battle) party to see if the specified hero is there, and returns the position where the hero was found, or -1 if the hero was not found. The position in the party is needed by most commands operating on heroes. You can use the names defined in your HSI file in the format hero:name for the ID number of the hero (as it has in the Edit Hero Stats menu). Not only does this tell you if a hero is in your party, but you can also use it to tell whether or not the hero is in your active party. find hero will return 0, 1, 2 or 3 if the hero is in the active party, and 4 or higher if the hero is in the reserve. Note that position in the battle party is not the same as position in the caterpillar: the leader is not necessarily hero 0. The opposite to find hero is <a href="#about-herobyslot" class="ref">hero by slot</a>.
 			
 			<br><br>See also: <ul class="seealso"><li><a href="#about-rankincaterpillar" class="ref">rank in caterpillar</a></li></ul>
 		</tt></p>
@@ -4785,6 +5663,22 @@ end</pre>
 <li><a href="#about-spellslearnt" class="ref">spells learnt</a></li>
 </ul>
 		</tt></p>
+		<a name="about-getlevelmp"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get level MP (who, mp level slot)</font></b><br>
+			Returns a hero's level MP (FF1-style MP). The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">mp level slot</span> is a number from 0 to 7 that represents a row of spells in the hero's spell list.
+			
+			
+		</tt></p>
+		<a name="about-setlevelmp"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set level MP (who, mp level slot, new value)</font></b><br>
+			Changes a hero's level MP (FF1-style MP). The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">mp level slot</span> is a number from 0 to 7 that represents a row of spells in the hero's spell list. The argument <span class="param">new value</span> is the new number of level MP points. Each point represents one spell from that row.
+			
+			
+		</tt></p>
 		<a name="about-readglobal"></a>
 		<p>
 		<tt>
@@ -4837,7 +5731,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set inn no revive mode (state)</font></b><br>
-			Sets whether or not inns restore dead heros to life. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then dead heros are restored by inns. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then dead heros remain dead in inns.
+			Sets whether or not inns restore dead heroes to life. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then dead heroes are restored by inns. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then dead heroes remain dead in inns.
 			
 			
 		</tt></p>
@@ -4845,7 +5739,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set full hero swap mode (state)</font></b><br>
-			Sets whether or not you can swap heros in and out of your active party from the menu. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then the "Order" menu will be available. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the "Team" menu will be available.
+			Sets whether or not you can swap heroes in and out of your active party from the menu. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then the "Order" menu will be available. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the "Team" menu will be available.
 			
 			
 		</tt></p>
@@ -4926,22 +5820,18 @@ end</pre>
 		<tt>
 		<b><font color="yellow">import globals (slot, first, last)</font></b><br>
 			Loads a range of globals from a saved game, overwriting the current globals in that range. First and Last are the id numbers of the globals at the beginning and end of the range. First defaults to 0, and Last defaults to 1024 if both are not given. <br>To read a single global from a save slot without overwriting any, use the form 'var := import globals (slot, id)'<br>import globals and <a href="#about-exportglobals" class="ref">export globals</a> can be used to save and retrieve info about a saved game without loading it, and also to store variables that any game the player starts can use, like in the following example:
-			<pre>define script (21, game finished, none)
-
-define script (22, check game finished, none)
-
-global variable (100, game completed)
+			<pre>global variable (100, game completed)
 global variable (101, hours to complete)
 global variable (102, minutes to complete)
 
-script, game finished, begin
+plotscript, game finished, begin
   game complete := true
   hours to complete := hours of play
   minutes to complete := minutes of play
   export globals (5, 100, 102) #special slot that the player can not load, which we can use for anything
 end
 
-script, check game finished, begin
+plotscript, check game finished, begin
   import globals (5, 100, 102) #copy saved values into globals 100, 101, 102
   if (game completed) then (
     show textbox (105) #"you have previously finished this game in ${V101} hours and ${V102} minutes"
@@ -4964,7 +5854,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">run script by ID (id, argument1, argument2, argument3...)</font></b><br>
-			To making switching between scripts easier, you can call a script by its ID number. Pass arguments after the ID as normal. The script can also return a value as normal. -1 is returned if the script does not exist. Yuo can pass up to 31 arguments to the script.<div style="background-color:#EFF;" class="note">
+			To making switching between scripts easier, you can call a script by its ID number. Pass arguments after the ID as normal. The script can also return a value as normal. -1 is returned if the script does not exist. You can pass up to 31 arguments to the script.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">No check on the correct number of arguments can be performed, so default arguments are not used.<br clear="all">
 </div>
 			<pre>plotscript,scriptcallingtest,begin
@@ -5018,8 +5908,7 @@ trace(1) # writes "TRACE: i = 1" to G_DEBUG.TXT</pre>
 <li>mapstate:tilemap</li>
 <li>mapstate:passmap</li>
 </ul>The default is mapstate:all. <br>If <span class="param">customid</span> is passed, it is used to save the state in a separate state file with an id number of <span class="param">customid</span> which can only be loaded with <a href="#about-loadmapstate" class="ref">load map state</a>. There are 32 available slots for use: 0 - 31.<br>Note that mapstate:mapsettings (also saved by mapstate:all) is special in that if you save it, it will always be loaded when the map is loaded regardless of settings. It saves all the settings found in the General Map Settings menu like the tileset, ambient music, footoffset, map trigger scripts, and so forth.
-			<pre>define script (1, generic menu screen, none)
-script, generic menu screen, begin
+			<pre>plotscript, generic menu screen, begin
   variable (remember map, remember x, remember y)
   remember map := current map
   remember x := hero x
@@ -5076,8 +5965,10 @@ end</pre>
 		<a name="about-gettileanimationoffset"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">get tile animation offset (animation pattern)</font></b><br>
-			Returns the offset from the starting tile that the <span class="param">animation pattern</span> (either 0 or 1) is currently at. For example, if the pattern has stepped 1 to the right, the offset is 1, if it has moved down 2 and 1 to the left, it is 31 (2 * 16 - 1).
+		<b><font color="yellow">get tile animation offset (animation pattern, layer)</font></b><br>
+			Returns the offset from the starting tile that the <span class="param">animation pattern</span> (either 0 or 1) of the tileset in use by the <span class="param">layer</span> (0 to 2) is currently at. For example, if the pattern has stepped 1 to the right, the offset is 1, if it has moved down 2 and 1 to the left, it is 31 (2 * 16 - 1). Because different layers can have different tilesets, you might need to specify the layer with the tileset to examine; otherwise layer 0 is assumed.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">Layers that use the same tileset do NOT have different copies of the tileset. Layers with the same tileset will always have the same tile animation offsets.<br clear="all">
+</div>
 			
 			<br><br>See also: <ul class="seealso">
 <li>
@@ -5088,8 +5979,10 @@ end</pre>
 		<a name="about-settileanimationoffset"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">set tile animation offset (animation pattern, offset)</font></b><br>
-			Sets the offset from the starting tile that an <span class="param">animation pattern</span> (either 0 or 1) is currently at. If there is a pattern defined, it will continue to step left, right, up and down from the offset you give it, until the end of the animation is reached, when the offset is reset to 0.
+		<b><font color="yellow">set tile animation offset (animation pattern, offset, layer)</font></b><br>
+			Sets the offset from the starting tile that an <span class="param">animation pattern</span> (either 0 or 1) of a tileset in use by a <span class="param">layer</span> (0 to 2) is currently at. If there is a pattern defined, it will continue to step left, right, up and down from the offset you give it, until the end of the animation is reached, when the offset is reset to 0. Because different layers can have different tilesets, you might need to specify the layer with the tileset to examine; otherwise layer 0 is assumed. <div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">Layers that use the same tileset do NOT have different copies of the tileset. Layers with the same tileset will always have the same tile animation offsets, you can not change them independently.<br clear="all">
+</div>
 			
 			
 		</tt></p>
@@ -5097,7 +5990,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">milliseconds</font></b><br>
-			Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's uptime).
+			Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's uptime or any random value).
 			
 			
 		</tt></p>
@@ -5370,7 +6263,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">none</font></b><br>
-			none is a constant that means the same as zero. It is normally used in <a href="#about-definescript" class="ref">define script</a> commands for scripts that do not have any arguments
+			none is a constant that means the same as zero.
 			
 			
 		</tt></p>
@@ -5378,7 +6271,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">autonumber</font></b><br>
-			autonumber is a constant that is used as the ID number in <a href="#about-definescript" class="ref">define script</a> commands for scripts that do not need to be called directly from the OHRRPGCE. Autonumber scripts are only called from within other scripts.
+			autonumber is a constant that is used as the ID number in old-style <a href="#about-definescript" class="ref">define script</a> commands. This is not needed anymore. Use <a href="#about-script" class="ref">script</a> instead.
 			
 			
 		</tt></p>
@@ -5625,9 +6518,32 @@ end</pre>
 			
 			
 		</tt></p>
+		<a name="about-song:silence"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">song: silence</font></b><br>
+			Used with <a href="#about-setformationsong" class="ref">set formation song</a> and <a href="#about-getformationsong" class="ref">get formation song</a> to indicate an enemy formation without music. Used by <a href="#about-setambientmusic" class="ref">set ambient music</a> and <a href="#about-getambientmusic" class="ref">get ambient music</a> for a silent map.
+			
+			
+		</tt></p>
+		<a name="about-song:sameaslastmap"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">song: same as last map</font></b><br>
+			Used with <a href="#about-setformationsong" class="ref">set formation song</a> and <a href="#about-getformationsong" class="ref">get formation song</a> to indicate an enemy formation which uses the same music as the map. Used by <a href="#about-setambientmusic" class="ref">set ambient music</a> and <a href="#about-getambientmusic" class="ref">get ambient music</a> for a map that continues with the last map's music.
+			
+			
+		</tt></p>
+		<a name="about-song:sameasmap"></a>
+		<p>
+		<tt>
+		
+				<b><font color="yellow">song: same as map</font></b><br>
+				See <a href="#about-song:sameaslastmap">song: same as last map</a>
+			</tt></p>
 
 		<hr>
-	<p>Stats: There are 435 commands in this file, of which 51 are only references to other commands.</p>
+	<p>Stats: There are 508 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
