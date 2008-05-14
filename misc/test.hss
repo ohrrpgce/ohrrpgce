@@ -35,7 +35,7 @@ define script(28,mapchangerkeylistener,none)
 # globals 0 to 4 are used
 global variable (1024,highval)
 
-global variable (5, layer)
+global variable (5, mylayer)
 global variable (6, tileset)
 
 script,makesuseofretvals,begin
@@ -375,34 +375,50 @@ end
 #not used anywhere
 script, map changer key listener, begin
   if (key is pressed(key:s)) then (
+    $15=" write map block"
+    trace(15)
     write map block (hero x, hero y, read map block (hero x, hero y) xor, 3)
   )
   if (key is pressed(key:a)) then (
+    $15=" save map state"
+    trace(15)
     save map state
   )
   if (key is pressed(key:g)) then (
+    $15=" save map state (mapstate:mapsettings)"
+    trace(15)
     save map state (mapstate:mapsettings)
   )
   if (key is pressed(key:minus)) then (
+    $15=" save map state (mapstate:npcs, 3)"
+    trace(15)
     save map state(mapstate:npcs, 3)
   )
   if (key is pressed(key:plus)) then (
+    $15=" load map state(mapstate:all, 3)"
+    trace(15)
     load map state(mapstate:all, 3)
   )
   if (key is pressed(key:l)) then (
+    $15=" load map state"
+    trace(15)
     load map state
   )
   if (key is pressed(key:r)) then (
+    $15=" reset map state"
+    trace(15)
     reset map state
   )
   if (key is pressed(key:d)) then (
+    $15=" reset map state (mapstate:all)"
+    trace(15)
     reset map state (mapstate:all)
   )
 
-  if (key is pressed(key:numpad0)) then (layer := -1)
-  if (key is pressed(key:numpad1)) then (layer := 0)
-  if (key is pressed(key:numpad2)) then (layer := 1)
-  if (key is pressed(key:numpad3)) then (layer := 2)
+  if (key is pressed(key:numpad0)) then (mylayer := -1)
+  if (key is pressed(key:numpad1)) then (mylayer := 0)
+  if (key is pressed(key:numpad2)) then (mylayer := 1)
+  if (key is pressed(key:numpad3)) then (mylayer := 2)
 
   #Nb: TEST.RPG comes with only 1 tileset
   if (key is pressed(key:tilde)) then (tileset := tileset:default)
@@ -412,26 +428,26 @@ script, map changer key listener, begin
   if (key is pressed(key:3)) then (tileset := 3)
   if (key is pressed(key:4)) then (tileset := 4)
 
-  $31 = "selected layer: "
-  append number (31, layer)
-  $31 + " selected tileset: "  
+  $31 = "layer: "
+  append number (31, mylayer)
+  $31 + " tileset: "  
   append number (31, tileset)
   show string (31)
 
   if (key is pressed(key:c)) then (
-    change tileset (tileset, layer)
+    change tileset (tileset, mylayer)
   )
   if (key is pressed(key:t)) then (
-    load tileset (tileset, layer)
+    load tileset (tileset, mylayer)
   )
   if (key is pressed(key:z)) then (
     $31 = "layer "
-    append number (31, layer)
+    append number (31, mylayer)
     $31 + " using tileset "
-    if (layer == -1) then (
+    if (mylayer == -1) then (
       append number (31, get map tileset)
     ) else (
-      append number (31, layer tileset (layer))
+      append number (31, layer tileset (mylayer))
     )
     show string (31)
   )
