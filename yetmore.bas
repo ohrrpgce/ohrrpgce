@@ -1630,7 +1630,9 @@ SELECT CASE AS CONST id
   Writeshort f, (CLNG(bound(retvals(0), 0, gen(genMaxEnemy))) * CLNG(320)) + (bound(retvals(1), 0, 159) * 2) + 1, retvals(2)
   CLOSE #f
  CASE 232'--trace
-  debug "TRACE: " + plotstr(bound(retvals(0),0,31)).s
+  IF bound_plotstr(retvals(0), "trace") THEN
+   debug "TRACE: " + plotstr(retvals(0)).s
+  END IF
  CASE 233'--get song name
   IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 THEN plotstr(retvals(0)).s = getsongname$(retvals(1))
  CASE 235'--key is pressed
