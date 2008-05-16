@@ -3729,12 +3729,11 @@ end function
 sub sprite_unload(byval p as frame ptr ptr)
 	if p = 0 then exit sub
 	if *p = 0 then exit sub
-	if (*p)->refcount = -1 then
-		'sprite_delete(p)
-	else
-		(*p)->refcount -= 1
-		*p = 0
+	(*p)->refcount -= 1
+	if (*p)->refcount = 0 then
+		sprite_delete(p)
 	end if
+	*p = 0
 end sub
 
 function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as frame ptr
