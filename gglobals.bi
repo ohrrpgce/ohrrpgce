@@ -93,6 +93,7 @@ EXTERN curcmd as ScriptCommand ptr
 EXTERN plotstr() as Plotstring
 
 'Battle globals
+EXTERN lastformation as integer
 EXTERN battlecaption as string
 EXTERN battlecaptime as integer
 EXTERN battlecapdelay as integer

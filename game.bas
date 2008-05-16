@@ -179,6 +179,7 @@ DECLARE FUNCTION assign_menu_item_handle (BYREF mi AS MenuDefItem) AS INTEGER
 DECLARE FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
 DECLARE FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER, visible_only AS INTEGER=YES) AS INTEGER
 DECLARE FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING, mislot AS INTEGER=0, visible_only AS INTEGER=YES) AS INTEGER
+DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -247,6 +248,7 @@ DIM gold
 DIM prefsdir as string
 DIM timers(15) as timer
 DIM fatal
+DIM lastformation
 
 DIM keyv(55, 1), csetup(12), carray(13)
 DIM mouse(3)
@@ -448,6 +450,7 @@ NEXT i
 initgamedefaults
 fatal = 0: abortg = 0
 foep = range(100, 60)
+lastformation = -1
 map = gen(104)
 lastmap = -1
 choosep = 0
@@ -705,32 +708,23 @@ DO
   temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
   IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
   IF temp > 0 THEN
-   setpicstuf buffer(), 50, -1
-   loadset game + ".efs", temp - 1, 0
-   FOR i = 0 TO INT(RND * range(19, 27))
-    foenext = loopvar(foenext, 0, 19, 1)
-    breakout = 0
-    DO WHILE buffer(1 + foenext) = 0
-     breakout = breakout + 1
-     IF breakout > 40 THEN EXIT FOR
-     foenext = loopvar(foenext, 0, 19, 1)
-    LOOP
-   NEXT i
-   batform = buffer(1 + foenext) - 1
-   IF gmap(13) <= 0 THEN
-    '--normal battle
-    fatal = 0
-    remembermusic = presentsong
-    wonbattle = battle(batform, fatal, stat())
-    dotimerafterbattle
-    afterbat = 1
-    GOSUB preparemap
-    needf = 2
-   ELSE
-    rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle", plottrigger)
-    IF rsr = 1 THEN
-     setScriptArg 0, batform
-     setScriptArg 1, temp
+   batform = random_formation(temp - 1)
+   IF batform >= 0 THEN
+    IF gmap(13) <= 0 THEN
+     '--normal battle
+     fatal = 0
+     remembermusic = presentsong
+     wonbattle = battle(batform, fatal, stat())
+     dotimerafterbattle
+     afterbat = 1
+     GOSUB preparemap
+     needf = 2
+    ELSE
+     rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle", plottrigger)
+     IF rsr = 1 THEN
+      setScriptArg 0, batform
+      setScriptArg 1, temp
+     END IF
     END IF
    END IF
    foep = range(100, 60)
@@ -2540,6 +2534,17 @@ FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
  RETURN bound_arg(n, 0, UBOUND(plotstr), cmd, "string ID")
 END FUNCTION
 
+FUNCTION bound_formation(form AS INTEGER, cmd AS STRING) AS INTEGER
+ RETURN bound_arg(form, 0, gen(genMaxFormation), cmd, "formation ID")
+END FUNCTION
+
+FUNCTION bound_formation_slot(form AS INTEGER, slot AS INTEGER, cmd AS STRING) AS INTEGER
+ IF bound_arg(form, 0, gen(genMaxFormation), cmd, "formation ID") THEN
+  RETURN bound_arg(slot, 0, 7, cmd, "formation slot")
+ END IF
+ RETURN NO
+END FUNCTION
+
 SUB loadmap_gmap(mapnum)
  loadrecord gmap(), game + ".map", getbinsize(4) / 2, mapnum
  loadmaptilesets tilesets(), gmap()
@@ -3075,4 +3080,24 @@ FUNCTION allowed_to_open_main_menu () AS INTEGER
   IF menus(i).prevent_main_menu = YES THEN RETURN NO
  NEXT i
  RETURN YES
+END FUNCTION
+
+FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
+ DIM formset(24)
+ DIM AS INTEGER i, num
+ STATIC foenext AS INTEGER = 0
+ loadrecord formset(), game + ".efs", 25, set
+ FOR i = 1 TO 20
+  IF formset(i) THEN num += 1
+ NEXT
+ IF num = 0 THEN RETURN -1
+
+ 'surprisingly, this is actually slightly effective at reducing the rate of the
+ 'same slot being picked consecutively, so I'll leave it be for now
+ FOR i = 0 TO INT(RND * range(19, 27))
+  DO 
+   foenext = loopvar(foenext, 0, 19, 1)
+  LOOP WHILE formset(1 + foenext) = 0
+ NEXT
+ RETURN formset(1 + foenext) - 1
 END FUNCTION

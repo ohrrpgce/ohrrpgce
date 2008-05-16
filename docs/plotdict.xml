@@ -115,7 +115,7 @@ have to do it manually, but you MUST do it. Remember: 1 indent = 1 tab.
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript lastmodified="November 17, 2007">
+<plotscript lastmodified="right now">
 	<section title="Declarations">
 		<command id="plotscript">
 			<cannon>plotscript, name, argumentnames (statements)</cannon>
@@ -519,7 +519,7 @@ resume player</example>
 		<command id="npcreference">
 			<cannon>NPC reference (ID, copy)</cannon>
 			<shortname>NPC reference</shortname>
-			<description>What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you dont specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. If you plan on using the same NPC reference many times in a script you can store it in a <ref>variable</ref>. If the NPC with the ID you asked for (or the NPC copy you asked for with ID you asked for) is not found on the map then NPC reference will return <ref>false</ref>.</description>
+			<description>What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you dont specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. Copies are counted starting from zero; you can see the copy number of NPCs in the Map Editor if you placed them in Custom.<lb/> If you plan on using the same NPC reference many times in a script you can store it in a <ref>variable</ref>. If the NPC with the ID you asked for (or the NPC copy you asked for with ID you asked for) is not found on the map then NPC reference will return <ref>false</ref>.</description>
 			<example>include,plotscr.hsd
 
 #---NPC reference example---
@@ -551,6 +551,7 @@ end</example>
 				<ref>npcatspot</ref>
 				<ref>npcatpixel</ref>
 				<ref>createnpc</ref>
+				<ref>npccopycount</ref>
 			</seealso>
 		</command>
 		<command id="npcatspot">
@@ -2107,90 +2108,6 @@ end</example>
 			<shortname>save slot used</shortname>
 			<description>Returns whether a game has been saved in the save slot. Use if you, for example, don&apos;t want to overwrite a saved game with <ref>saveinslot</ref>.</description>
 		</command>
-		<command id="getenemystat">
-			<cannon>get enemy stat(enemy, stat)</cannon>
-			<shortname>get enemy stat</shortname>
-			<description>Returns the selected stat from the selected enemy. The first argument is the number of the enemy whose stats you want to check. The second argument is the name of the stat that you want to check. The names of the stats are also defined in your HSI file in the form stat:name. </description>
-			<seealso>
-				<ref>setenemystat</ref>
-				<ref>getherostat</ref>
-				<ref>setherostat</ref>
-			</seealso>
-		</command>
-		<command id="setenemystat">
-			<cannon>set enemy stat(enemy, stat, value)</cannon>
-			<shortname>set enemy stat</shortname>
-			<description>Sets the selected stat of the selected enemy to the value you supply. The first argument is the number of the enemy whose stats you want to set. The second argument is the name of the stat that you want to set. The names of the stats are also defined in your HSI file in the form stat:name. The third is the new value of the stat. <lb/>Note: Enemy stat changes are temporary. They are not saved in the save game.</description>
-			<seealso>
-				<ref>getenemystat</ref>
-				<ref>getherostat</ref>
-				<ref>setherostat</ref>
-			</seealso>
-		</command>
-		<command id="getenemyname">
-			<cannon>get enemy name (enemyid, stringid)</cannon>
-			<shortname>get enemy name</shortname>
-			<description>Lets you use the enemy name in a string.  The first argument is the number of the enemy you want to get the name from, second argument is the number of the string that you want to store the name of the enemy.</description>
-			<seealso>
-				<ref>setenemyname</ref>
-			</seealso>
-		</command>
-		<command id="setenemyname">
-			<cannon>set enemy name (enemyid, stringid)</cannon>
-			<shortname>set enemy name</shortname>
-			<description>Lets you set the enemy name from a string, the string length cannot be more then 16 characters, if it is more then 16 the name will be truncated.  The first argument is the number of the enemy's name you want to change, second argument is the number of the string that you supply the name of the enemy from. <lb/>Note: Enemy name changes are temporary. They are not saved in the save game.</description>
-			<seealso>
-				<ref>getenemyname</ref>
-			</seealso>
-		</command>
-		<command id="getenemyappearance">
-			<cannon>get enemy appearance (enemyid, appearance)</cannon>
-			<shortname>get enemy appearance</shortname>
-			<description>Returns data on the appearance of a enemy. Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size. You can use the following constants for appearance: <li>enemy:picture</li><li>enemy:palette</li><li>enemy:picturesize</li> <lb/>You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large</description>
-			<seealso>
-				<ref>setenemyappearance</ref>
-			</seealso>
-		</command>
-		<command id="setenemyappearance">
-			<cannon>set enemy appearance (enemyid, appearance,value)</cannon>
-			<shortname>set enemy appearance</shortname>
-			<description>Lets you change an enemy's appearance.  Enemyid is the number of the enemy's appearance that you want to change, appearance is one of the constants given in <ref>getenemyappearance</ref>. Value can is the new number that you want to assign, constants enemysize:small, enemysize:medium, or enemysize:large when changing picture size, or palette number when changing palette. <lb/>Note: Enemy appearance changes are temporary. They are not saved in the save game.</description>
-			<seealso>
-				<ref>getenemyappearance</ref>
-			</seealso>
-		</command>
-		<command id="readenemydata">
-			<cannon>read enemy data (enemyid, data)</cannon>
-			<shortname>read enemy data</shortname>
-			<description>Returns the enemy's reward values. Enemyid is the number of enemy, data is a predefined constant defining the data you want returned. Use the following constants:<li>enemy:gold</li><li>enemy:experience</li><li>enemy:item</li><li>enemy:itempercent</li><li>enemy:rareitem</li><li>enemy:rareitempercent</li><li>stealability</li><li>stealableitem</li><li>stealableitemchance</li><li>stealablerareitem</li><li>stealablerareitemchance</li></description>
-			<seealso>
-				<ref>writeenemydata</ref>
-			</seealso>
-		</command>
-		<command id="writeenemydata">
-			<cannon>write enemy data (enemyid, data, value)</cannon>
-			<shortname>write enemy data</shortname>
-			<description>Lets you set items of an enemy's data. Enemyid is the number of enemy, data is a predefined constant for the data you want to change. Value is the new value given to that setting. Use the same constants as are given at <ref>readenemydata</ref>.<lb/>Note: Enemy data changes are temporary. They are not saved in the save game.</description>
-			<seealso>
-				<ref>readenemydata</ref>
-			</seealso>
-		</command>
-		<command id="getformationsong">
-			<cannon>get formation song (formation)</cannon>
-			<shortname>get formation song</shortname>
-			<description>Returns the song associated with <p>formation</p>. Compare the result with the constants of the form <p>song:songname</p> from your exported .hsi file, or the special constants <ref>song:silence</ref> or <ref>song:sameasmap</ref>.</description>
-			<seealso>
-				<ref>setformationsong</ref>
-			</seealso>
-		</command>
-		<command id="setformationsong">
-			<cannon>set formation song (formation, song)</cannon>
-			<shortname>set formation song</shortname>
-			<description>Changes an enemy formation to use <p>song</p> as its music. Use the constants of the form <p>song:songname</p> from your exported .hsi file, or the special constants <ref>song:silence</ref> or <ref>song:sameasmap</ref>.<lb/>Note: Formation data changes are temporary. They are not saved in the save game.</description>
-			<seealso>
-				<ref>getformationsong</ref>
-			</seealso>
-		</command>
 		<command id="herolevelled">
 			<cannon>hero levelled (who)</cannon>
 			<shortname>hero levelled</shortname>
@@ -2249,6 +2166,217 @@ set timer (0, 300, 15, timer: game over, 0, timerflag: battle)</example>
 	    <description>Returns the count of a given timer.</description>
 	    <seealso><ref>settimer</ref></seealso>
 	  </command>
+	</section>
+	<section title="Enemy and Formation Functions">
+		<command id="getenemystat">
+			<cannon>get enemy stat(enemy, stat)</cannon>
+			<shortname>get enemy stat</shortname>
+			<description>Returns the selected stat from the selected enemy. The first argument is the number of the enemy whose stats you want to check. The second argument is the name of the stat that you want to check. The names of the stats are also defined in your HSI file in the form stat:name. </description>
+			<seealso>
+				<ref>setenemystat</ref>
+				<ref>getherostat</ref>
+				<ref>setherostat</ref>
+			</seealso>
+		</command>
+		<command id="setenemystat">
+			<cannon>set enemy stat(enemy, stat, value)</cannon>
+			<shortname>set enemy stat</shortname>
+			<description>Sets the selected stat of the selected enemy to the value you supply. The first argument is the number of the enemy whose stats you want to set. The second argument is the name of the stat that you want to set. The names of the stats are also defined in your HSI file in the form stat:name. The third is the new value of the stat.<note>Enemy stat changes are temporary. They are not saved in the game save.</note></description>
+			<seealso>
+				<ref>getenemystat</ref>
+				<ref>getherostat</ref>
+				<ref>setherostat</ref>
+			</seealso>
+		</command>
+		<command id="getenemyname">
+			<cannon>get enemy name (enemyid, stringid)</cannon>
+			<shortname>get enemy name</shortname>
+			<description>Lets you use the enemy name in a string.  The first argument is the number of the enemy you want to get the name from, second argument is the number of the string that you want to store the name of the enemy.</description>
+			<seealso>
+				<ref>setenemyname</ref>
+			</seealso>
+		</command>
+		<command id="setenemyname">
+			<cannon>set enemy name (enemyid, stringid)</cannon>
+			<shortname>set enemy name</shortname>
+			<description>Lets you set the enemy name from a string, the string length cannot be more then 16 characters, if it is more then 16 the name will be truncated.  The first argument is the number of the enemy's name you want to change, second argument is the number of the string that you supply the name of the enemy from.<note>Enemy name changes are temporary. They are not saved in the game save.</note></description>
+			<seealso>
+				<ref>getenemyname</ref>
+			</seealso>
+		</command>
+		<command id="getenemyappearance">
+			<cannon>get enemy appearance (enemyid, appearance)</cannon>
+			<shortname>get enemy appearance</shortname>
+			<description>Returns data on the appearance of a enemy. Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size. You can use the following constants for appearance: <li>enemy:picture</li><li>enemy:palette</li><li>enemy:picturesize</li> <lb/>You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large</description>
+			<seealso>
+				<ref>setenemyappearance</ref>
+			</seealso>
+		</command>
+		<command id="setenemyappearance">
+			<cannon>set enemy appearance (enemyid, appearance,value)</cannon>
+			<shortname>set enemy appearance</shortname>
+			<description>Lets you change an enemy's appearance.  Enemyid is the number of the enemy's appearance that you want to change, appearance is one of the constants given in <ref>getenemyappearance</ref>. Value can is the new number that you want to assign, constants enemysize:small, enemysize:medium, or enemysize:large when changing picture size, or palette number when changing palette.<note>Enemy appearance changes are temporary. They are not saved in the save game.</note></description>
+			<seealso>
+				<ref>getenemyappearance</ref>
+			</seealso>
+		</command>
+		<command id="readenemydata">
+			<cannon>read enemy data (enemyid, data)</cannon>
+			<shortname>read enemy data</shortname>
+			<description>Returns the enemy's reward values. Enemyid is the number of enemy, data is a predefined constant defining the data you want returned. Use the following constants:<li>enemy:gold</li><li>enemy:experience</li><li>enemy:item</li><li>enemy:itempercent</li><li>enemy:rareitem</li><li>enemy:rareitempercent</li><li>stealability</li><li>stealableitem</li><li>stealableitemchance</li><li>stealablerareitem</li><li>stealablerareitemchance</li></description>
+			<seealso>
+				<ref>writeenemydata</ref>
+			</seealso>
+		</command>
+		<command id="writeenemydata">
+			<cannon>write enemy data (enemyid, data, value)</cannon>
+			<shortname>write enemy data</shortname>
+			<description>Lets you set items of an enemy's data. Enemyid is the number of enemy, data is a predefined constant for the data you want to change. Value is the new value given to that setting. Use the same constants as are given at <ref>readenemydata</ref>.<note>Enemy data changes are temporary. They are not saved in saved games.</note></description>
+			<seealso>
+				<ref>readenemydata</ref>
+			</seealso>
+		</command>
+		<command id="addenemytoformation">
+			<cannon>add enemy to formation (formation, enemy id, x, y, slot)</cannon>
+			<shortname>add enemy to formation</shortname>
+			<description>Adds an enemy with given <p>enemy id</p> (use the constants of the form <p>enemy:name</p> in your exported .hsi file) to the specified <p>formation</p>. <p>x</p> (up to 230) and <p>y</p> (up to 199) give the position of the center of the bottom edge of the enemy - approximately where it appears to stand. <p>slot</p> (0 to 7) is an optional argument, if given then the enemy is created in the suggested slot if empty. Otherwise it's put in the first empty slot. The actual slot number used is returned, or -1 if the enemy couldn't be added.<note>Changes to enemy formations are temporary: they are not saved in save files.</note></description>
+			<seealso>
+				<ref>deleteenemyfromformation</ref>
+			</seealso>
+		</command>
+		<command id="deleteenemyfromformation">
+			<cannon>delete enemy from formation (formation, slot)</cannon>
+			<shortname>delete enemy from formation</shortname>
+			<description>Deletes an enemy in the given <p>slot</p> (as returned by <ref>findenemyinformation</ref> for example) in the <p>formation</p>.<note>Changes to enemy formations are temporary: they are not saved in save files.</note></description>
+			<seealso>
+				<ref>addenemytoformation</ref>
+			</seealso>
+		</command>
+		<command id="findenemyinformation">
+			<cannon>find enemy in formation (formation, enemy id, copy number)</cannon>
+			<shortname>find enemy in formation</shortname>
+			<description>Searchs for an enemy in a formation, returning the slot number, or -1 if not found. <p>copy number</p> is optional, use 0 or greater specify which enemy to return if there is more than one, or the constant <ref>getcount</ref>. The first (searching the slots sequentially) enemy copy is number 0. The number of specified enemies in the formation is returned if the constant get count is used. <p>enemy id</p> can be either an enemy id, or the constant <p>any enemy</p>, which searches for any enemy (the first enemy in the formation by default), or the total number of enemies with <ref>getcount</ref>.</description>
+			<example>plotscript, look at formation, formation, begin
+  # In this example, we'll pick a random enemy from a formation, and check if there are any plips.
+  # You'll need an enemy named plip to try this out, or change the "enemy:plip" constant below to something else
+  variable (number of enemies, random enemy slot)
+
+  # The total number of enemies
+  number of enemies := find enemy in formation (formation, any enemy, get count)
+  # Pick an enemy at random
+  random enemy slot := find enemy in formation (formation, any enemy, random(0, number of enemies -- 1))
+
+  $30 = "There is a "
+  # Here we append the enemy's name to string 30
+  get enemy name (formation slot enemy (formation, random enemy slot), 30)
+  $30 + " in this formation"
+  show string (30)
+
+  # Let's check whether there is at least one plip in this formation
+  variable (number, plip slot)
+  number := find enemy in formation (formation, enemy:plip, get count)
+  if (number >> 0) then (
+    # We'll put a string onscreen where the plip appears in battle
+    $31 = "Plip!"
+    plip slot := find enemy in formation (formation, enemy:plip)
+    center string at (31, formation slot x (formation, plip slot), formation slot y (formation, plip slot) -- 20)
+  )
+end
+</example>
+			<seealso>
+				<ref>deleteenemyfromformation</ref>
+				<ref>formationslotenemy</ref>
+				<ref>formationslotx</ref>
+				<ref>formationsloty</ref>
+			</seealso>
+		</command>
+		<command id="formationslotenemy">
+			<cannon>formation slot enemy (formation, slot)</cannon>
+			<shortname>formation slot enemy</shortname>
+			<description>Returns the ID number of the enemy in the specified formation slot (0 to 7), or -1 if the slot is empty.</description>
+			<seealso>
+				<ref>findenemyinformation</ref>
+			</seealso>
+		</command>
+		<command id="formationslotx">
+			<cannon>formation slot x (formation, slot)</cannon>
+			<shortname>formation slot x</shortname>
+			<description>Returns the x position of the center of the enemy in the specified formation slot (0 to 7). An enemies position is the center of the bottom edge of the enemy - approximately where it appears to stand.</description>
+			<seealso>
+				<ref>findenemyinformation</ref>
+			</seealso>
+		</command>
+		<command id="formationsloty">
+			<cannon>formation slot y (formation, slot)</cannon>
+			<shortname>formation slot y</shortname>
+			<description>Returns the y position of the bottom edge of the enemy sprite in the specified formation slot (0 to 7). An enemies position is the center of the bottom edge of the enemy - approximately where it appears to stand.</description>
+			<seealso>
+				<ref>findenemyinformation</ref>
+			</seealso>
+		</command>
+		<command id="setformationbackground">
+			<cannon>set formation background (formation, background, animation frames, animation ticks)</cannon>
+			<shortname>set formation background</shortname>
+			<description>Sets the background and the background animation for a <p>formation</p>. The animation arguments do not need to be given, producing a static background. <p>animation frames</p>, optional, is the number of frames (1 to 50) to use for the background animation. 1 is non-animating. <p>animation ticks</p>, also optional, is the number of ticks to display each backdrop for. The engine normally (but not reliably) runs at 18 ticks per second.<note>Changes to enemy formations are temporary: they are not saved in save files.</note></description>
+			<seealso>
+				<ref>getformationbackground</ref>
+			</seealso>
+		</command>
+		<command id="getformationbackground">
+			<cannon>get formation background (formation, background)</cannon>
+			<shortname>get formation background</shortname>
+			<description>Gets the background used by a <p>formation</p>. If the backdrop is animated, this returns the ID of the first backdrop (the one set in Custom).</description>
+			<seealso>
+				<ref>setformationbackground</ref>
+			</seealso>
+		</command>
+		<command id="setformationsong">
+			<cannon>set formation song (formation, song)</cannon>
+			<shortname>set formation song</shortname>
+			<description>Changes an enemy formation to use <p>song</p> as its music. Use the constants of the form <p>song:songname</p> from your exported .hsi file, or the special constants <ref>song:silence</ref> or <ref>song:sameasmap</ref><note>Changes to enemy formations are temporary: they are not saved in save files.</note></description>
+			<seealso>
+				<ref>getformationsong</ref>
+			</seealso>
+		</command>
+		<command id="getformationsong">
+			<cannon>get formation song (formation)</cannon>
+			<shortname>get formation song</shortname>
+			<description>Returns the song associated with <p>formation</p>. Compare the result with the constants of the form <p>song:songname</p> from your exported .hsi file, or the special constants <ref>song:silence</ref> or <ref>song:sameasmap</ref>.</description>
+			<seealso>
+				<ref>setformationsong</ref>
+			</seealso>
+		</command>
+		<command id="lastformation">
+			<cannon>last formation</cannon>
+			<shortname>last formation</shortname>
+			<description>Returns the last formation fought. If the player hasn't fought any formations yet (since starting or loading the game), it returns -1.</description>
+		</command>
+
+		<command id="randomformation">
+			<cannon>random formation (formation set)</cannon>
+			<shortname>random formation</shortname>
+			<description>Picks a formation randomly from the given <p>formation set</p> (1 to 255).</description>
+			<seealso>
+				<ref>formationprobability</ref>
+			</seealso>
+		</command>
+		<command id="formationsetfrequency">
+			<cannon>formation set frequency (formation set)</cannon>
+			<shortname>formation set frequency</shortname>
+			<description>Returns the formation frequency (from 0 to 99) of a <p>formation set</p> (1 to 255). Note that the frequency is not actually a probability (as a percentage) of a battle occuring each step, but is roughly the number of battles per 80 steps, spaced semi-randomly.</description>
+			<seealso>
+				<ref>randomformation</ref>
+			</seealso>
+		</command>
+		<command id="formationprobability">
+			<cannon>formation probability (formation set, formation)</cannon>
+			<shortname>formation probability</shortname>
+			<description>Returns the probability of a particular <p>formation</p> in a <p>formation set</p> being fought, as a percentage from 0 to 100. This does take the number of times the formation appears in the formation set into account.</description>
+			<seealso>
+				<ref>randomformation</ref>
+				<ref>random</ref>
+			</seealso>
+		</command>
 	</section>
 	<section title="Tweaking Maps">
 		<command id="readmapblock">
@@ -3232,7 +3360,7 @@ end</example>
 		<command id="getcount">
 			<cannon>get count</cannon>
 			<shortname>get count</shortname>
-			<description>When passed to <ref>npcatpixel</ref> or <ref>npcatspot</ref>, they return the number of NPCs at that spot. With <ref>spellslearnt</ref> returns the number of spells a hero learnt.</description>
+			<description>When passed to <ref>npcatpixel</ref> or <ref>npcatspot</ref>, they return the number of NPCs at that spot. With <ref>spellslearnt</ref> returns the number of spells a hero learnt. With <ref>findenemyinformation</ref>, returns the number of enemies, or the number of some kind of enemy in the formation.</description>
 		</command>
 		<command id="tileconstants">
 			<cannon>Tile Constants</cannon>
@@ -3342,4 +3470,5 @@ end</example>
 		</command>
 	</section>
 </plotscript>
+
 

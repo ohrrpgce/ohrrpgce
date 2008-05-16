@@ -40,6 +40,8 @@ FUNCTION battle (form, fatal, exstat())
 
 REMEMBERSTATE
 
+lastformation = form
+
 '--prepare stack
 bstackstart = stackpos
 

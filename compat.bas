@@ -236,6 +236,16 @@ FUNCTION ReadShort(fh as integer,p as long=-1) as short
 	return ret
 END FUNCTION
 
+FUNCTION ReadShort(filename as string, p as integer) as short
+	DIM ret as short
+	DIM fh as integer
+	fh = FREEFILE
+	OPEN filename for binary access read as #fh
+	GET #fh, p, ret
+	CLOSE #fh
+	return ret
+END FUNCTION
+
 FUNCTION ReadByte(fh as integer,p as long=-1) as ubyte
 	DIM ret as ubyte
 	IF p = -1 THEN
@@ -256,6 +266,14 @@ Sub WriteShort(fh as integer,p as long, v as short)
 	ELSEIF p >= 0 THEN
 		PUT #fh,p,v
 	END IF
+END SUB
+
+Sub WriteShort(filename as string, p as integer, v as integer)
+	DIM fh as integer
+	fh = FREEFILE
+	OPEN filename FOR BINARY AS #fh
+	PUT #fh, p, cshort(v)
+	CLOSE #fh
 END SUB
 
 Sub WriteByte(fh as integer,v as ubyte, p as long=-1)

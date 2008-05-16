@@ -103,7 +103,10 @@ DECLARE SUB limitcamera ()
 DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING, minimum AS INTEGER=0) AS INTEGER
 DECLARE FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
+DECLARE FUNCTION bound_formation(form AS INTEGER, cmd AS STRING) AS INTEGER
+DECLARE FUNCTION bound_formation_slot(form AS INTEGER, slot AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE SUB MenuSound(byval s as integer)
+DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
 
 
 'these variables hold information used by breakpoint to step to the desired position
@@ -1801,6 +1804,98 @@ SELECT CASE AS CONST id
   END IF
  CASE 273'--milliseconds
   scriptret = fmod((TIMER * 1000) + 2147483648.0, 4294967296.0) - 2147483648.0
+ CASE 308'--add enemy to formation (formation, enemy id, x, y, slot = -1)
+  scriptret = -1
+  IF bound_formation(retvals(0), "add enemy to formation") AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxEnemy) THEN
+   loadrecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
+   temp = -1
+   FOR i = 0 TO 7
+    IF buffer(i * 4) = 0 THEN temp = i: EXIT FOR
+   NEXT
+   IF retvals(4) >= 0 AND retvals(4) <= 7 THEN
+    IF buffer(retvals(4) * 4) = 0 THEN temp = retvals(4)
+   END IF
+   IF temp >= 0 THEN
+    szindex = ReadShort(tmpdir & "dt1.tmp", retvals(1) * 320 + 111) 'picture size
+    IF szindex = 0 THEN size = 34
+    IF szindex = 1 THEN size = 50
+    IF szindex = 2 THEN size = 80
+    buffer(temp * 4) = retvals(1) + 1
+    buffer(temp * 4 + 1) = large( (small(retvals(2), 230) - size / 2) , 0)  'approximately the 0 - 250 limit of the formation editor
+    buffer(temp * 4 + 2) = large( (small(retvals(3), 199) - size) , 0)
+   END IF
+   storerecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
+   scriptret = temp
+  END IF
+ CASE 309'--find enemy in formation (formation, enemy id, number)
+  IF bound_formation(retvals(0), "find enemy in formation") THEN
+   loadrecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
+   temp = 0
+   scriptret = -1
+   FOR i = 0 TO 7
+    IF buffer(i * 4) > 0 AND (retvals(1) = buffer(i * 4) - 1 OR retvals(1) = -1) THEN
+     IF retvals(2) = temp THEN scriptret = i: EXIT FOR
+     temp += 1
+    END IF
+   NEXT
+   IF retvals(2) = -1 THEN scriptret = temp
+  END IF
+ CASE 310'--delete enemy from formation (formation, slot)
+  IF bound_formation_slot(retvals(0), retvals(1), "delete enemy from formation") THEN
+   WriteShort tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 1, 0
+  END IF
+ CASE 311'--formation slot enemy (formation, slot)
+  scriptret = -1
+  IF bound_formation_slot(retvals(0), retvals(1), "formation slot enemy") THEN
+   scriptret = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 1) - 1
+  END IF
+ CASE 312, 313'--formation slot x (formation, slot), formation slot y (formation, slot)
+  IF bound_formation_slot(retvals(0), retvals(1), "formation slot x/y") THEN
+   temp = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 1) 'enemy id + 1
+   scriptret = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + (id - 311) * 2 + 1) 'x or y
+   'now find the position of the bottom center of the enemy sprite
+   IF temp THEN
+    temp = ReadShort(tmpdir & "dt1.tmp", (temp - 1) * 320 + 111) 'picture size
+    IF temp = 0 THEN size = 34
+    IF temp = 1 THEN size = 50
+    IF temp = 2 THEN size = 80
+    IF id = 312 THEN scriptret += size \ 2 ELSE scriptret += size
+   END IF
+  END IF
+ CASE 314'--set formation background (formation, background, animation frames, animation ticks)
+  IF bound_formation(retvals(0), "set formation background") AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxBackdrop) - 1 THEN 
+   loadrecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
+   buffer(32) = retvals(1)
+   buffer(34) = bound(retvals(2) - 1, 0, 49)
+   buffer(35) = bound(retvals(3), 0, 1000)
+   storerecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
+  END IF
+ CASE 315'--get formation background (formation)
+  IF bound_formation(retvals(0), "get formation background") THEN
+   scriptret = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 32 + 1)
+  END IF
+ CASE 316'--last formation
+  scriptret = lastformation
+ CASE 317'--random formation (formation set)
+  IF retvals(0) >= 1 AND retvals(0) <= 255 THEN
+   scriptret = random_formation(retvals(0) - 1)
+  END IF
+ CASE 318'--formation set frequency (formation set)
+  IF retvals(0) >= 1 AND retvals(0) <= 255 THEN
+   scriptret = ReadShort(game + ".efs", (retvals(0) - 1) * 50 + 1)
+  END IF
+ CASE 319'--formation probability (formation set, formation)
+  IF retvals(0) >= 1 AND retvals(0) <= 255 THEN
+   loadrecord buffer(), game + ".efs", 25, retvals(0) - 1
+   temp = 0
+   scriptret = 0
+   FOR i = 1 TO 20
+    IF buffer(i) = retvals(1) + 1 THEN scriptret += 1
+    IF buffer(i) > 0 THEN temp += 1
+   NEXT
+   'probability in percentage points
+   IF temp > 0 THEN scriptret = (scriptret * 100) / temp
+  END IF
 END SELECT
 
 EXIT SUB

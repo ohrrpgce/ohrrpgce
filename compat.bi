@@ -113,9 +113,11 @@ DECLARE function commandlinearg(argnum as integer) as string
 DECLARE SUB romfontchar (font%(), char%)
 DECLARE SUB makedir (dirname$)
 DECLARE SUB setwindowtitle (title as string)
-DECLARE FUNCTION ReadShort(fh as integer,p as long=-1) as short
-DECLARE Sub WriteShort overload(fh as integer,p as long, v as integer)
-DECLARE Sub WriteShort(fh as integer,p as long, v as short)
+DECLARE FUNCTION ReadShort overload (fh as integer,p as long=-1) as short
+DECLARE FUNCTION ReadShort overload (filename as string, p as integer) as short
+DECLARE Sub WriteShort overload (fh as integer,p as long, v as integer)
+DECLARE Sub WriteShort overload (fh as integer,p as long, v as short)
+DECLARE Sub WriteShort overload (filename as string, p as integer, v as integer)
 DECLARE FUNCTION ReadVStr(fh as integer, le as integer) as string
 DECLARE Sub WriteVStr(fh as integer, le as integer, s as string)
 DECLARE SUB WriteByte(fh as integer,v as ubyte, p as long=-1)

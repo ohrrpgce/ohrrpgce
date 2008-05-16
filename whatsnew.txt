@@ -71,6 +71,11 @@ Feb ?? 2008 [werewaffle]
     * Changed get formation song and set formation song have to not use
       a +1 offset for songs, and can handle "same as map" song. This
       only affects recompiled scripts [Ralph]
+    * add enemy to formation, delete enemy from formation,
+      find enemy in formation, formation slot enemy, formation slot x,
+      formation slot y, get formation background, set formation background,
+      last formation, formation set frequency, formation probability,
+      random formation [Ralph]
 
   * Stuff only Developers Will Notice
 

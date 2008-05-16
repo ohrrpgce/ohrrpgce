@@ -314,6 +314,19 @@ define function, begin
 305,changetileset,2,-1,-1     #similar to loadtileset. (tileset,layer)
 306,layertileset,1,0          #layer tileset(layer) returns tileset number in use
 307,getformationsong,1,0      #returns the song associated with a given formation
+308,addenemytoformation,5,0,0,85,95,-1 #add enemy to formation(formation, enemy id, x, y, slot = -1) returns slot or -1
+309,findenemyinformation,3,0,0,0       #find enemy in formation(formation, enemy id, number) returns slot or -1 
+310,deleteenemyfromformation,2,0,0     #delete enemy from formation(formation, slot)
+311,formationslotenemy,2,0,0  #formation slot enemy (formation, slot) returns enemy in slot
+312,formationslotx,2,0,0      #formation slot x(formation, slot) returns x of enemy in slot
+313,formationsloty,2,0,0      #formation slot y(formation, slot) returns y of enemy in slot
+314,setformationbackground,4,0,0,1,0   #set formation background(formation, background, animation frames, animation ticks)
+315,getformationbackground,1,0 #get formation background(formation) returns background number
+316,lastformation,0           #last formation fought
+317,randomformation,1,0       #pick a formation from a formation set
+318,formationsetfrequency,1,0 #returns (as percentage) set frequency
+319,formationprobability,2,0,0 #returns (as percentage) formation being picked from formation set probability
+
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
@@ -534,9 +547,9 @@ script, input string, str=0, max len=40, useexist=0, center=-654321, positionx=1
   if(show) then(hide string)
 end
 
-script,currentdisplaytile,tile,layer=0,begin
+script,currentdisplaytile,tile,layernumber=0,begin
   if(tile>=160) then(
-    return(animationstarttile(tile,layer)+gettileanimationoffset((tile--160)/48,layer))
+    return(animationstarttile(tile,layernumber)+gettileanimationoffset((tile--160)/48,layernumber))
   ) else(return(tile))
 end
 
@@ -1187,4 +1200,5 @@ define constant, begin
 -1,song:silence
 -2,song:same as map
 -2,song:same as last map
+-1,any enemy
 end
