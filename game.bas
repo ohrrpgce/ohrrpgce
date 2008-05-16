@@ -2249,7 +2249,7 @@ WITH scrat(nowscript)
    CASE 245'--save map state
     IF retvals(1) > -1 AND retvals(1) <= 31 THEN
      savemapstate retvals(1), retvals(0), "state"
-    ELSEIF retvals(1) = -1 THEN
+    ELSEIF retvals(1) = 255 THEN
      savemapstate map, retvals(0), "map"
     END IF
    CASE 246'--load map state
@@ -2259,7 +2259,7 @@ WITH scrat(nowscript)
       'load NPC graphics because loadmapstate_npcd was just called
       reloadnpc stat()
      END IF
-    ELSEIF retvals(1) = -1 THEN
+    ELSEIF retvals(1) = 255 THEN
      loadmapstate map, retvals(0), "map"
     END IF
    CASE 247'--reset map state
