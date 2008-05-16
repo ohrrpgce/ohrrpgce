@@ -871,11 +871,6 @@ SUB loadmapstate_npcd (mapnum, prefix$, dontfallback = 0)
   next
   CLOSE #fh
  END IF
-
- for i = 0 to 35
-  npcs(i).sprite = 0
-  npcs(i).pal = 0
- next
 END SUB
 
 SUB loadmapstate_tilemap (mapnum, prefix$, dontfallback = 0)

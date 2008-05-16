@@ -2255,6 +2255,10 @@ WITH scrat(nowscript)
    CASE 246'--load map state
     IF retvals(1) > -1 AND retvals(1) <= 31 THEN
      loadmapstate retvals(1), retvals(0), "state", -1
+     IF retvals(0) AND 4 THEN
+      'load NPC graphics because loadmapstate_npcd was just called
+      reloadnpc stat()
+     END IF
     ELSEIF retvals(1) = -1 THEN
      loadmapstate map, retvals(0), "map"
     END IF
