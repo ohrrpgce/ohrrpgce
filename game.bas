@@ -228,14 +228,15 @@ DIM topmenu AS INTEGER = -1
 dim door(99) as door, doorlinks(199) as doorlink
 
 'shared module variables
-DIM SHARED tilesets(2) as TilesetData ptr
-DIM SHARED stat(40, 1, 16), needf
+DIM SHARED needf
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
 'textbox stuff (needs moving into a udt)
 DIM SHARED choosep, say, sayer, showsay, say$(7), saytag(21), saybit(0), sayenh(6), choose$(1), chtag(1)
 
 'global variables
+DIM stat(40, 1, 16)
 DIM scroll(), pass()
+DIM tilesets(2) as TilesetData ptr
 DIM master(255) as RGBcolor
 DIM uilook(uiColors)
 DIM inventory(inventoryMax) as InventSlot
@@ -1451,9 +1452,6 @@ ELSE
  loadmap_passmap map
 END IF
 
-'--as soon as we know the dimentions of the map, enforce hero position boundaries
-cropposition catx(0), caty(0), 20
-
 IF afterbat = 0 THEN
  showmapname = gmap(4)
  IF gmap(17) < 2 THEN
@@ -1464,10 +1462,6 @@ IF afterbat = 0 THEN
   loadmap_npcl map
  END IF
 END IF
-'load NPC graphics
-reloadnpc stat()
-'Evaluate whether NPCs should appear or disappear based on tags
-npcplot
 
 IF isfile(maplumpname$(map, "e")) THEN
  CLOSE #foemaph
@@ -1504,6 +1498,7 @@ IF veh(0) AND samemap THEN
 END IF
 sayer = -1
 
+'Why are these here? Seems like superstition
 evalherotag stat()
 evalitemtag
 IF afterbat = 0 THEN
@@ -2249,10 +2244,6 @@ WITH scrat(nowscript)
    CASE 246'--load map state
     IF retvals(1) > -1 AND retvals(1) <= 31 THEN
      loadmapstate retvals(1), retvals(0), "state", -1
-     IF retvals(0) AND 4 THEN
-      'load NPC graphics because loadmapstate_npcd was just called
-      reloadnpc stat()
-     END IF
     ELSEIF retvals(1) = 255 THEN
      loadmapstate map, retvals(0), "map"
     END IF
@@ -2547,6 +2538,7 @@ END FUNCTION
 
 SUB loadmap_gmap(mapnum)
  loadrecord gmap(), game + ".map", getbinsize(4) / 2, mapnum
+
  loadmaptilesets tilesets(), gmap()
  correctbackdrop
  SELECT CASE gmap(5) '--outer edge wrapping
@@ -2559,14 +2551,25 @@ END SUB
 
 SUB loadmap_npcl(mapnum)
  LoadNPCL maplumpname$(mapnum, "l"), npc(), 300
+
+ 'Evaluate whether NPCs should appear or disappear based on tags
+ npcplot
 END SUB
 
 SUB loadmap_npcd(mapnum)
  LoadNPCD maplumpname$(mapnum, "n"), npcs()
+
+ 'Evaluate whether NPCs should appear or disappear based on tags
+ npcplot
+ 'load NPC graphics
+ reloadnpc stat()
 END SUB
 
 SUB loadmap_tilemap(mapnum)
  LoadTileData maplumpname$(mapnum, "t"), scroll(), 3
+
+ '--as soon as we know the dimensions of the map, enforce hero position boundaries
+ cropposition catx(0), caty(0), 20
 END SUB
 
 SUB loadmap_passmap(mapnum)
@@ -2589,9 +2592,6 @@ SUB loadmaplumps (mapnum, loadmask)
  END IF
  IF loadmask AND 16 THEN
   loadmap_passmap mapnum
- END IF
- IF loadmask AND (2 OR 4) THEN
-  npcplot
  END IF
 END SUB
 

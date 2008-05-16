@@ -87,6 +87,8 @@ DECLARE SUB savemapstate_passmap(mapnum%, prefix$)
 DECLARE SUB freescripts (mem%)
 DECLARE FUNCTION loadscript% (n%)
 DECLARE SUB limitcamera ()
+DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
+DECLARE SUB npcplot ()
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -824,11 +826,20 @@ SUB loadmapstate_gmap (mapnum, prefix$, dontfallback = 0)
  filebase$ = mapstatetemp$(mapnum, prefix$)
  IF NOT isfile(filebase$ + "_map.tmp") THEN
   IF dontfallback = 0 THEN loadmap_gmap mapnum
- ELSE
-  OPEN filebase$ + "_map.tmp" FOR BINARY AS #fh
-  GET #fh, , gmap()
-  CLOSE #fh
+  EXIT SUB
  END IF
+ OPEN filebase$ + "_map.tmp" FOR BINARY AS #fh
+ GET #fh, , gmap()
+ CLOSE #fh
+
+ loadmaptilesets tilesets(), gmap()
+ correctbackdrop
+ SELECT CASE gmap(5) '--outer edge wrapping
+  CASE 0, 1'--crop edges or wrap
+   setoutside -1
+  CASE 2
+   setoutside gmap(6)
+ END SELECT
 END SUB
 
 SUB loadmapstate_npcl (mapnum, prefix$, dontfallback = 0)
@@ -836,11 +847,14 @@ SUB loadmapstate_npcl (mapnum, prefix$, dontfallback = 0)
  filebase$ = mapstatetemp$(mapnum, prefix$)
  IF NOT isfile(filebase$ + "_l.tmp") THEN
   IF dontfallback = 0 THEN loadmap_npcl mapnum
- ELSE
-  OPEN filebase$ + "_l.tmp" FOR BINARY AS #fh
-  GET #fh, , npc()
-  CLOSE #fh
+  EXIT SUB
  END IF
+ OPEN filebase$ + "_l.tmp" FOR BINARY AS #fh
+ GET #fh, , npc()
+ CLOSE #fh
+
+ 'Evaluate whether NPCs should appear or disappear based on tags
+ npcplot
 END SUB
 
 SUB loadmapstate_npcd (mapnum, prefix$, dontfallback = 0)
@@ -848,29 +862,34 @@ SUB loadmapstate_npcd (mapnum, prefix$, dontfallback = 0)
  filebase$ = mapstatetemp$(mapnum, prefix$)
  IF NOT isfile(filebase$ + "_n.tmp") THEN
   IF dontfallback = 0 THEN loadmap_npcd mapnum
- ELSE
-  OPEN filebase$ + "_n.tmp" FOR BINARY AS #fh
-  for i = lbound(npcs) to ubound(npcs)
-   with npcs(i)
-    get #fh, ,.picture
-    get #fh, ,.palette
-    get #fh, ,.movetype
-    get #fh, ,.speed
-    get #fh, ,.textbox
-    get #fh, ,.facetype
-    get #fh, ,.item
-    get #fh, ,.pushtype
-    get #fh, ,.activation
-    get #fh, ,.tag1
-    get #fh, ,.tag2
-    get #fh, ,.usetag
-    get #fh, ,.script
-    get #fh, ,.scriptarg
-    get #fh, ,.vehicle
-   end with
-  next
-  CLOSE #fh
+  EXIT SUB
  END IF
+ OPEN filebase$ + "_n.tmp" FOR BINARY AS #fh
+ for i = lbound(npcs) to ubound(npcs)
+  with npcs(i)
+   get #fh, ,.picture
+   get #fh, ,.palette
+   get #fh, ,.movetype
+   get #fh, ,.speed
+   get #fh, ,.textbox
+   get #fh, ,.facetype
+   get #fh, ,.item
+   get #fh, ,.pushtype
+   get #fh, ,.activation
+   get #fh, ,.tag1
+   get #fh, ,.tag2
+   get #fh, ,.usetag
+   get #fh, ,.script
+   get #fh, ,.scriptarg
+   get #fh, ,.vehicle
+  end with
+ next
+ CLOSE #fh
+
+ 'Evaluate whether NPCs should appear or disappear based on tags
+ npcplot
+ 'load NPC graphics
+ reloadnpc stat()
 END SUB
 
 SUB loadmapstate_tilemap (mapnum, prefix$, dontfallback = 0)
@@ -888,6 +907,10 @@ SUB loadmapstate_tilemap (mapnum, prefix$, dontfallback = 0)
   CLOSE #fh
   IF mapsize(0) = propersize(0) AND mapsize(1) = propersize(1) THEN
    loadtiledata filebase$ + "_t.tmp", scroll(), 3
+
+   '--as soon as we know the dimensions of the map, enforce hero position boundaries
+   cropposition catx(0), caty(0), 20
+
   ELSE
    IF dontfallback = 0 THEN loadmap_tilemap mapnum
   END IF
