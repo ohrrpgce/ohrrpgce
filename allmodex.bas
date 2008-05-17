@@ -3729,9 +3729,10 @@ end function
 sub sprite_unload(byval p as frame ptr ptr)
 	if p = 0 then exit sub
 	if *p = 0 then exit sub
-	(*p)->refcount -= 1
-	if (*p)->refcount = 0 then
-		sprite_delete(p)
+	if (*p)->refcount = -1 then
+		'sprite_delete(p)
+	else
+		(*p)->refcount -= 1
 	end if
 	*p = 0
 end sub

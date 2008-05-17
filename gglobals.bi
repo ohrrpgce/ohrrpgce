@@ -38,6 +38,7 @@ EXTERN veh() as integer
 
 'Hero globals
 EXTERN hero() as integer
+EXTERN stat()
 EXTERN eqstuf() as integer
 EXTERN lmp() as integer
 EXTERN bmenu() as integer
@@ -56,6 +57,7 @@ EXTERN pass() as integer
 EXTERN as integer mapx, mapy
 EXTERN framex as integer
 EXTERN framey as integer
+EXTERN tilesets() as TilesetData ptr
 
 'Hero walkabout globals
 EXTERN as integer catx(), caty(), catz(), catd()
