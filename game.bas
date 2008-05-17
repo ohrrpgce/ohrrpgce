@@ -1461,6 +1461,9 @@ IF afterbat = 0 THEN
   loadmap_npcd map
   loadmap_npcl map
  END IF
+ELSE
+ 'reload hero graphics after a battle
+ vishero stat()
 END IF
 
 IF isfile(maplumpname$(map, "e")) THEN
