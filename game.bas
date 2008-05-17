@@ -2492,6 +2492,9 @@ WITH scrat(nowscript)
     IF retvals(0) >= 0 AND retvals(0) <= 2 THEN
      scriptret = tilesets(retvals(0))->num
     END IF
+   CASE 320'--current text box
+    scriptret = -1
+    IF showsay > 0 THEN scriptret = say
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc curcmd->value
     scriptmisc curcmd->value

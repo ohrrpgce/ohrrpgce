@@ -716,6 +716,11 @@ wait for text box # wait until the player continues</example>
 			<description>Advances a text box just as if the player had pressed a key. For use while <ref>suspendboxadvance</ref> is active.</description>
 			<example c="suspendboxadvance" />
 		</command>
+		<command id="currenttextbox">
+			<cannon>current text box</cannon>
+			<shortname>current text box</shortname>
+			<description>Returns the number of the currently displayed text box, or -1 if there's none.</description>
+		</command>
 	</section>
 	<section title="Triggering and Showing Stuff">
 		<command id="fightformation">

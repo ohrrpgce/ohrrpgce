@@ -76,6 +76,7 @@ Feb ?? 2008 [werewaffle]
       formation slot y, get formation background, set formation background,
       last formation, formation set frequency, formation probability,
       random formation [Ralph]
+    * current text box
 
   * Stuff only Developers Will Notice
 
