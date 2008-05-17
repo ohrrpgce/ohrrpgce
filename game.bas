@@ -606,7 +606,7 @@ DO
     loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
   END SELECT
  END IF
- IF showsay = 1 THEN
+ IF showsay = 1 AND readbit(saybit(), 0, 0) THEN
   IF carray(0) > 1 AND choosep = 1 THEN choosep = 0: MenuSound gen(genCursorSFX)
   IF carray(1) > 1 AND choosep = 0 THEN choosep = 1: MenuSound gen(genCursorSFX)
  END IF
