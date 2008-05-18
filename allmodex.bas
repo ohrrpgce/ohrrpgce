@@ -3641,17 +3641,20 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 	
 	dim ret as frame ptr
 	dim hashstring as string = trimpath(fi) & "#" & rec 'we assume that all sprites in the same file are the same size
-	'debug "Loading: " & hashstring
+	
+	if hashstring = "test.pt0#0" then
+		dim tmp as integer = 0
+	end if
 	
 	ret = sprite_find_cache(hashstring)
 	
-	if ret then
+	if sprite_is_valid(ret) then
 		ret->refcount += 1
 		'debug("Pulled cached copy: " & hashstring & "(" & ret->refcount & ")")
 		return ret
 	end if
 	
-	'debug "Must load from disk"
+	'debug "Must load " & hashstring & " from disk"
 	
 	'first, we do a bit of math:
 	dim frsize as integer = wid * hei / 2
@@ -3675,6 +3678,8 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 		debug "Could not create sprite frames, no memory"
 		return 0
 	end if
+	
+	ret->cache = hashstring
 	
 	'find the right sprite (remember, it's base-1)
 	seek #f, recsize * rec + 1
@@ -3729,12 +3734,38 @@ end function
 sub sprite_unload(byval p as frame ptr ptr)
 	if p = 0 then exit sub
 	if *p = 0 then exit sub
-	if (*p)->refcount = -1 then
-		'sprite_delete(p)
-	else
-		(*p)->refcount -= 1
+	'debug("Unloading " & (*p)->cache & "(" & (*p)->refcount & ")")
+	(*p)->refcount -= 1
+	if (*p)->refcount <= 0 then
+		'debug("Zap!")
+		dim tmp as frame ptr
+		sprite_delete(p)
 	end if
 	*p = 0
+end sub
+
+function sprite_is_valid(byval p as frame ptr) as integer
+	if p = 0 then return 0
+	
+	if p->refcount <> -1234 and p->refcount <= 0 then return 0
+	
+	'this is an arbitrary test, and in theory, could cause a false-negative, but I can't concieve of 100 thousand references to the same sprite.
+	if p->refcount > 100000 then return 0
+	
+	if p->w < 0 or p->h < 0 then return 0
+	
+	if p->mask = 0 or p->image = 0 then return 0
+	
+	if p->mask = &hBAADF00D or p->image = &hBAADF00D then return 0
+	if p->mask = &hFEEEFEEE or p->image = &hFEEEFEEE then return 0
+	
+	return -1
+end function
+
+sub sprite_crash_invalid(byval p as frame ptr)
+	dim temp as integer = 0 'we're using this to crash :D
+	
+	if not sprite_is_valid(p) then print *cptr(integer ptr, 0)
 end sub
 
 function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as frame ptr
@@ -3742,13 +3773,13 @@ function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as fra
 	
 	if p = 0 then return 0
 	
-	ret = allocate(sizeof(frame))
+	ret = callocate(sizeof(frame))
 	
 	if ret = 0 then return 0
 	
 	ret->w = p->w
 	ret->h = p->h
-	ret->refcount = -1 'that is, it's not refcounted
+	ret->refcount = -1234 'that is, it's not refcounted
 	if p->image then
 		ret->image = callocate(ret->w * ret->h)
 		if clr = 0 then
@@ -3766,8 +3797,16 @@ function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as fra
 		end if
 	end if
 	
+	ret->cache = p->cache
+	
 	return ret
 	
+end function
+
+function sprite_reference(byval p as frame ptr) as frame ptr
+	if p = 0 then return 0
+	p->refcount += 1
+	return p
 end function
 
 'Public:
