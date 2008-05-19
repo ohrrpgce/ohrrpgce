@@ -403,9 +403,7 @@ FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) 
  IF defaultval = NO  THEN state.pt = 1 
 
  'Keep whatever was on the screen already as a background
- DIM holdscreen(DIMSCREENPAGE) AS UBYTE
  copypage vpage, dpage
- copypage vpage, holdscreen()
  
  setkeys
  DO
@@ -427,12 +425,11 @@ FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) 
   
   usemenu state
 
-  centerbox 160, 70, small(16 + LEN(capt) * 8, 320), 16, 2, dpage
-  edgeprint capt, xstring(capt, 160), 65, uilook(uiMenuItem), dpage
-  draw_menu menu, state, dpage
-  SWAP vpage, dpage
-  setvispage vpage
-  copypage holdscreen(), dpage
+  centerbox 160, 70, small(16 + LEN(capt) * 8, 320), 16, 2, 0
+  edgeprint capt, xstring(capt, 160), 65, uilook(uiMenuItem), 0
+  draw_menu menu, state, 0
+  setvispage 0
+  copypage 1, 0
   dowait
  LOOP
  setkeys

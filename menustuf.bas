@@ -73,11 +73,11 @@ DIM herosprite(3) AS Frame PTR
 DIM heropal(3) AS Palette16 PTR
 DIM heroframe AS INTEGER
 DIM heropos AS XYPair
-DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 recordsize = curbinsize(1) / 2 ' get size in INTs
 
 '--Preserve background for display beneath the buy menu
-copypage vpage, holdscreen()
+holdscreen = allocatepage
+copypage vpage, holdscreen
 
 getnames sname$()
 buytype$(0, 0) = readglobalstring$(85, "Trade for", 20) + " "
@@ -119,7 +119,7 @@ NEXT o
 total = 0
 setshopstock id, recordsize, stock(), storebuf(), b()
 GOSUB stufmask
-IF total = 0 THEN EXIT SUB
+IF total = 0 THEN GOTO cleanupquit
 
 price$ = "": xtralines = 0: price2$ = ""
 info1$ = "": info2$ = ""
@@ -209,7 +209,7 @@ DO
     pt = 0
     DO WHILE readbit(vmask(), 0, pt) = 1
      pt = pt + 1
-     IF pt > storebuf(16) THEN EXIT SUB
+     IF pt > storebuf(16) THEN GOTO cleanupquit
     LOOP
     EXIT DO
    END IF
@@ -287,9 +287,11 @@ DO
  END IF
  SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen(), dpage
+ copypage holdscreen, dpage
  dowait
 LOOP
+
+cleanupquit:
 'Unload the sprites used to display the heroes
 FOR i = 0 TO 3
  sprite_unload(@herosprite(i))
@@ -297,6 +299,7 @@ FOR i = 0 TO 3
 NEXT i
 sprite_unload(@hiresprite)
 palette16_unload(@hirepal)
+freepage holdscreen
 vishero stat()
 EXIT SUB
 
@@ -495,7 +498,7 @@ SUB equip (pt, stat())
 
 '--dim stuff
 DIM sname$(40), sno(11), eq(199), toff(4), tlim(4), m$(4), menu$(6), stb(11)
-DIM holdscreen(DIMSCREENPAGE) AS UBYTE
+DIM holdscreen = allocatepage
 
 '--get names
 getnames sname$()
@@ -529,7 +532,7 @@ GOSUB setupeq
 
 '--prepare the backdrop
 'preserve the background behind the equip menu
-copypage vpage, holdscreen()
+copypage vpage, holdscreen
 
 '--main loop
 MenuSound gen(genAcceptSFX)
@@ -686,9 +689,10 @@ DO
  END IF
  SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen(), dpage
+ copypage holdscreen, dpage
  dowait
 LOOP
+freepage holdscreen
 MenuSound gen(genCancelSFX)
 EXIT SUB
 
@@ -875,9 +879,9 @@ special$(-1) = rpad$(readglobalstring$(37, "TRASH", 10), " ", 11)
 
 REMEMBERSTATE
 
-DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 '--Preserve background for display beneath the item menu
-copypage vpage, holdscreen()
+holdscreen = allocatepage
+copypage vpage, holdscreen
 
 FOR i = 0 TO 2
  setbit iuse(), 0, i, 1
@@ -959,11 +963,12 @@ DO
  END IF
  SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen(), dpage
+ copypage holdscreen, dpage
  dowait
 LOOP
 menusound gen(genCancelSFX)
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
+freepage holdscreen
 EXIT FUNCTION
 
 infostr:
@@ -1051,6 +1056,7 @@ IF pick = 0 THEN
      IF itemdata(73) = 1 THEN dummy = consumeitem(ic)
      items = itemdata(51) * -1
      MenuSound gen(genAcceptSFX)
+     freepage holdscreen
      RETRIEVESTATE
      EXIT FUNCTION
     END IF
@@ -1387,10 +1393,9 @@ FUNCTION picksave (loading)
 
 DIM full(3), herosname$(3), mapname$(3), svtime$(3), lev$(3), id(3, 3), tstat(3, 1, 16), confirm$(1), menu$(1)
 DIM sprites(3, 3) AS GraphicPair
-DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 
-'--if loading is 2, that means fade the screen in, and loadmenu
-'--loading 2 uses page 3 as background and overwrites it. loading 0+1 use dpage and preserve page 3. All wipe page 2
+'--loading 0 is the save menu, 1 is load menu, and 2 is load with no titlescreen. it fades the screen in
+'--loading 0+1 use dpage as background, loading 2 uses none. pages 2 and 3 are preserved
 '--terribly sorry for the dirtyness
 needf = 0
 IF loading = 2 THEN
@@ -1413,10 +1418,12 @@ ELSE
  menuwidth = 8 * large(LEN(confirm$(0)), LEN(confirm$(1)))
 END IF
 
+holdscreen = allocatepage
 IF loading < 2 THEN
  '--preserve background for display beneath the save/load picker
- copypage vpage, holdscreen()
+ copypage vpage, holdscreen
 END IF
+'otherwise, holdscreen is black
 
 FOR i = 0 TO 3
  sg$ = savefile
@@ -1557,7 +1564,7 @@ DO
  GOSUB drawmenugosub
  SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen(), dpage
+ copypage holdscreen, dpage
  IF needf = 1 THEN   'the titlescreen might be skipped and with it the fading in
   needf = 0
   fademusic fmvol
@@ -1568,7 +1575,7 @@ DO
 LOOP
 
 freesprites:
-IF loading = 2 THEN clearpage 2
+freepage holdscreen
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
 FOR i = 0 TO 3
  FOR o = 0 TO 3
@@ -1607,7 +1614,7 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen(), dpage
+ copypage holdscreen, dpage
  dowait
 LOOP
 
@@ -1660,11 +1667,11 @@ END FUNCTION
 
 SUB sellstuff (id, storebuf(), stock(), stat())
 DIM b(dimbinsize(1) * 50), sname$(40), permask(15), price(200)
-DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 recordsize = curbinsize(1) / 2 ' get size in INTs
 
 '--preserve background for display under sell menu
-copypage vpage, holdscreen()
+holdscreen = allocatepage
+copypage vpage, holdscreen
 
 getnames sname$()
 
@@ -1717,10 +1724,10 @@ DO
  END IF
  SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen(), dpage
+ copypage holdscreen, dpage
  dowait
 LOOP
-vishero stat()
+freepage holdscreen
 EXIT SUB
 
 sellinfostr:
@@ -1842,7 +1849,6 @@ REMEMBERSTATE
 
 DIM sname$(40), menu$(4), mi(4), mtype(5), spel$(24), speld$(24), cost$(24), spel(24), canuse(24), targt(24), spid(5)
 dim her as herodef
-DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 
 getnames sname$()
 
@@ -1858,7 +1864,9 @@ mset = 0
 
 GOSUB splname
 '--Preserve background for display beneath the spells menu
-copypage vpage, holdscreen()
+holdscreen = allocatepage
+copypage vpage, holdscreen
+
 csr = 0
 menusound gen(genAcceptSFX)
 setkeys
@@ -1930,7 +1938,7 @@ DO
 
  SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen(), dpage
+ copypage holdscreen, dpage
  dowait
 LOOP
 
@@ -2008,13 +2016,7 @@ RETRACE
 scontrol:
 IF pick = 0 THEN '--picking which spell list
  IF mset = 0 THEN
-  IF carray(5) > 1 THEN
-   menusound gen(genCancelSFX)
-   setkeys
-   FOR i = 0 TO 7: carray(i) = 0: NEXT i
-   RETRIEVESTATE
-   EXIT SUB
-  END IF
+  IF carray(5) > 1 THEN GOTO exitpoint
   IF carray(2) > 1 THEN
    DO
     pt = loopvar(pt, 0, 3, -1)
@@ -2040,13 +2042,7 @@ IF pick = 0 THEN '--picking which spell list
    GOSUB curspellist
   END IF
   IF carray(4) > 1 THEN
-   IF mi(csr) = -1 THEN
-    menusound gen(genCancelSFX)
-    setkeys
-    FOR i = 0 TO 7: carray(i) = 0: NEXT i
-    RETRIEVESTATE
-    EXIT SUB
-   END IF
+   IF mi(csr) = -1 THEN GOTO exitpoint
    menusound gen(genAcceptSFX)
    mset = 1: sptr = 0
   END IF
@@ -2149,12 +2145,19 @@ ELSE
 END IF
 RETRACE
 
+exitpoint:
+menusound gen(genCancelSFX)
+setkeys
+FOR i = 0 TO 7: carray(i) = 0: NEXT i
+freepage holdscreen
+RETRIEVESTATE
+EXIT SUB
+
 END SUB
 
 SUB status (pt, stat())
 DIM sname$(40), sno(9), mtype(5), hbits(3, 4), thishbits(4), elemtype$(2), info$(25)
 dim her as herodef
-DIM holdscreen(DIMSCREENPAGE) AS UBYTE
 
 getnames sname$()
 sname$(33) = readglobalstring$(33, "Experience", 10)
@@ -2185,7 +2188,8 @@ lastinfo = 0
 
 GOSUB nextstat
 '--Preserve background for display under status menu
-copypage vpage, holdscreen()
+holdscreen = allocatepage
+copypage vpage, holdscreen
 
 menusound gen(genAcceptSFX)
 setkeys
@@ -2197,6 +2201,7 @@ DO
  control
  IF carray(5) > 1 THEN
  	menusound gen(genCancelSFX)
+	freepage holdscreen
  	FOR t = 4 TO 5
  		carray(t) = 0
  	NEXT t
@@ -2283,7 +2288,7 @@ DO
 
  SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen(), dpage
+ copypage holdscreen, dpage
  dowait
 LOOP
 

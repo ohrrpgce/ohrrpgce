@@ -834,6 +834,7 @@ END SUB
 
 SUB fatalerror (e$)
 #IFDEF IS_GAME
+debug "fatal error:" + e$
 setvispage 0
 centerbox 160, 100, 300, 180, 3, 0
 edgeprint e$, xstring(e$, 160), 20, uilook(uiText), 0
@@ -2070,8 +2071,8 @@ SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
     sbar.wide = 4
     sbar.high = .high - 4
     WITH sbar
-     rectangle .x, .y, .wide, .high, uilook(uiBackground), dpage
-     rectangle .x, .y + .high / count * (state.top), .wide, .high / count * (state.size+1) , uilook(uiTextBox + menu.boxstyle * 2 + 1), dpage
+     rectangle .x, .y, .wide, .high, uilook(uiBackground), page
+     rectangle .x, .y + .high / count * (state.top), .wide, .high / count * (state.size+1) , uilook(uiTextBox + menu.boxstyle * 2 + 1), page
     END WITH
    END IF
   END IF
@@ -2094,14 +2095,14 @@ SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
      cap = get_menu_item_caption(menu.items(elem), menu)
      position_menu_item menu, cap, i, where
      IF .t = 1 AND .sub_t = 11 THEN ' volume meter
-      edgeboxstyle where.x, where.y, fmvol * 3, 10, menu.boxstyle, dpage
+      edgeboxstyle where.x, where.y, fmvol * 3, 10, menu.boxstyle, page
      END IF
-     edgeprint cap, where.x, where.y, col, dpage
+     edgeprint cap, where.x, where.y, col, page
     ELSE
      IF menu.edit_mode = YES THEN
       cap = "[NEW MENU ITEM]"
       position_menu_item menu, cap, i, where
-      edgeprint cap, where.x, where.y, col, dpage
+      edgeprint cap, where.x, where.y, col, page
      END IF
      EXIT FOR ' Give up after we find the first non-existant item (which will always be sorted to the end)
     END IF

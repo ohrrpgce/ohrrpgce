@@ -31,7 +31,7 @@ DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE SUB minimap (x%, y%, tilesets() as TilesetData ptr)
 DECLARE SUB heroswap (iAll%, stat%())
-DECLARE FUNCTION useinn (inn%, price%, needf%, stat%(), holdscreen() AS UBYTE)
+DECLARE FUNCTION useinn (inn%, price%, needf%, stat%(), holdscreen)
 DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
 DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
 DECLARE SUB scripterr (e$)
@@ -510,10 +510,9 @@ END IF
 END SUB
 
 SUB heroswap (iAll%, stat())
-DIM holdscreen(DIMSCREENPAGE) AS UBYTE
-
 '--Preserve background for display beneath the hero swapper
-copypage vpage, holdscreen()
+holdscreen = allocatepage
+copypage vpage, holdscreen
 
 DIM swindex(40), swname$(40)
 
@@ -618,11 +617,12 @@ DO
  GOSUB showswapmenu
  SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen(), dpage
+ copypage holdscreen, dpage
  dowait
 LOOP
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
 MenuSound gen(genCancelSFX)
+freepage holdscreen
 EXIT SUB
 
 refreshemenu:
@@ -1909,10 +1909,6 @@ END FUNCTION
 SUB shop (id, needf, stock(), stat(), map, foep, tilesets() AS TilesetData ptr)
 
 DIM storebuf(40), menu$(10), menuid(10)
-DIM holdscreen(DIMSCREENPAGE) AS UBYTE
-
-'--Preserve background for display beneath top-level shop menu
-copypage vpage, holdscreen()
 
 FOR i = 0 TO 7
  menuid(i) = i
@@ -1936,6 +1932,10 @@ last = last + 1: menu$(last) = readglobalstring$(74, "Exit", 10)
 
 menusound gen(genAcceptSFX)
 
+'--Preserve background for display beneath top-level shop menu
+holdscreen = allocatepage
+copypage vpage, holdscreen
+
 setkeys
 DO
  setwait speedcontrol
@@ -1945,9 +1945,9 @@ DO
  control
  IF carray(0) > 1 THEN pt = large(pt - 1, 0) : menusound gen(genCursorSFX)
  IF carray(1) > 1 THEN pt = small(pt + 1, last) : menusound gen(genCursorSFX)
- IF carray(5) > 1 THEN EXIT DO
+ IF carray(5) > 1 THEN menusound gen(genCancelSFX) : EXIT DO
  IF carray(4) > 1 OR autopick THEN
-  IF pt = last THEN EXIT DO
+  IF pt = last THEN menusound gen(genCancelSFX) : EXIT DO
   IF menuid(pt) = 0 THEN '--BUY
    buystuff id, 0, storebuf(), stock(), stat()
   END IF
@@ -1972,11 +1972,10 @@ DO
   IF menuid(pt) = 5 THEN '--SAVE
    temp = picksave(0)
    IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
-   vishero stat()
   END IF
   IF menuid(pt) = 3 THEN '--INN
    inn = 0
-   IF useinn(inn, storebuf(18), needf, stat(), holdscreen()) THEN
+   IF useinn(inn, storebuf(18), needf, stat(), holdscreen) THEN
     IF inn = 0 THEN
      innRestore stat()
     END IF
@@ -1993,7 +1992,7 @@ DO
     END IF
    END IF
   END IF
-  IF autopick THEN EXIT SUB
+  IF autopick THEN EXIT DO
  END IF
  h = (last + 2) * 10
  centerbox 160, 104 + (h * .5), 96, h, 1, dpage
@@ -2005,13 +2004,13 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen(), dpage
+ copypage holdscreen, dpage
  IF needf = 1 THEN needf = 0: fadein: setkeys
  IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
-menusound gen(genCancelSFX)
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
+freepage holdscreen
 EXIT SUB
 
 initshop:
@@ -2030,7 +2029,7 @@ NEXT i
 RETRACE
 END SUB
 
-FUNCTION useinn (inn, price, needf, stat(), holdscreen() AS UBYTE)
+FUNCTION useinn (inn, price, needf, stat(), holdscreen)
 DIM menu$(1), sname$(40)
 DIM AS INTEGER i, y
 
@@ -2079,7 +2078,7 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen(), dpage
+ copypage holdscreen, dpage
  IF needf = 1 THEN needf = 0: fadein: setkeys
  IF needf > 1 THEN needf = needf - 1
  dowait

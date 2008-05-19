@@ -95,7 +95,7 @@ DECLARE SUB drawsay (saybit%(), sayenh%(), say$(), showsay%, choose$(), choosep%
 DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, tilesets() AS TilesetData ptr)
 DECLARE SUB minimap (x%, y%, tilesets() AS TilesetData ptr)
 DECLARE FUNCTION onwho% (w$, alone)
-DECLARE FUNCTION useinn (inn%, price%, needf%, stat%(), holdscreen() AS UBYTE)
+DECLARE FUNCTION useinn (inn, price, needf, stat(), holdscreen)
 DECLARE SUB itstr (i%)
 DECLARE SUB control ()
 DECLARE FUNCTION picksave% (load%)
@@ -480,7 +480,6 @@ ELSE
  IF readbit(gen(), genBits, 12) = 0 THEN
   IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
   fademusic fmvol
-  clearpage 3
   temp = picksave(2)
  END IF
 END IF
@@ -1003,14 +1002,14 @@ IF istag(saytag(7), 0) THEN
  END IF
  inn = 0
  IF saytag(8) < 0 THEN
-  DIM holdscreen(DIMSCREENPAGE) AS UBYTE
+  DIM holdscreen = allocatepage
   '--Preserve background for display beneath the top-level shop menu
-  copypage vpage, holdscreen()
-  IF useinn(inn, ABS(saytag(8)), needf, stat(), holdscreen()) THEN
+  copypage vpage, holdscreen
+  IF useinn(inn, ABS(saytag(8)), needf, stat(), holdscreen) THEN
    fadeout 0, 0, 80
    needf = 1
   END IF
-  ERASE holdscreen
+  freepage holdscreen
  END IF
  IF saytag(8) <= 0 AND inn = 0 THEN
   innRestore stat()
@@ -2207,7 +2206,6 @@ WITH scrat(nowscript)
     IF scriptret > 0 AND (retvals(0) OR curcmd->value = 155) THEN
      savegame scriptret - 1, map, foep, stat(), stock()
     END IF
-    reloadnpc stat()
    CASE 166'--save in slot
     IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
      savegame retvals(0) - 1, map, foep, stat(), stock()
@@ -2227,7 +2225,6 @@ WITH scrat(nowscript)
     END IF
    CASE 234'--load menu
     scriptret = picksave(1) + 1
-    reloadnpc stat()
     IF retvals(0) THEN
      IF scriptret = -1 THEN
       abortg = 2  'don't go straight back to loadmenu!
@@ -2855,10 +2852,8 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), ti
        CASE 8,13 ' save
         slot = picksave(0)
         IF slot >= 0 THEN savegame slot, map, foep, stat(), stock()
-        reloadnpc stat()
        CASE 9 ' load
         slot = picksave(1)
-        reloadnpc stat()
         IF slot >= 0 THEN
          wantloadgame = slot + 1
          FOR i = topmenu TO 0 STEP -1

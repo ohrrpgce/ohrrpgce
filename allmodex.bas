@@ -76,7 +76,7 @@ declare sub pollingthread(byval as threadbs)
 
 dim shared vispage as integer
 dim shared wrkpage as integer
-dim shared spage(0 to 3) as ubyte ptr
+dim shared spage(0 to 6) as ubyte ptr  'up to 6 used at once, so far
 
 dim shared bptr as integer ptr	' buffer
 dim shared bsize as integer
@@ -140,6 +140,7 @@ sub setmodex()
 	for i = 0 to 3
 		spage(i) = callocate(320 * 200)
 	next
+	'other spage slots are for temporary pages
 	setclip
 
 	gfx_init
@@ -178,30 +179,45 @@ sub restoremode()
 	mutexdestroy keybdmutex
 
 	'clear up software gfx
-	for i = 0 to 3
-		deallocate(spage(i))
+	for i = 0 to ubound(spage)
+		if spage(i) then
+			deallocate(spage(i))
+			spage(i) = NULL
+		end if
 	next
 
 	releasestack
 end sub
 
+FUNCTION allocatepage() as integer
+	dim i as integer
+
+	for i = 0 to ubound(spage)
+		if spage(i) = NULL then
+			spage(i) = callocate(320 * 200)
+			if spage(i) = NULL then fatalerror "Unable to allocate temp video page"
+			return i
+		end if
+	next
+
+	fatalerror "Max number of temp video pages exceeded"
+END FUNCTION
+
+SUB freepage (BYVAL page as integer)
+	if spage(page) = NULL then
+		debug "Tried to free unallocated page " & page
+	end if
+
+	deallocate(spage(page))
+	spage(page) = NULL
+	if wrkpage = page then
+		wrkpage = 0
+	end if
+END SUB
+
 SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer, BYVAL y as integer = 0, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
 	memcpy(spage(page2) + 320 * top, spage(page1) + 320 * y, 320 * (bottom - top + 1))
 end sub
-
-SUB copypage (BYVAL page1 as integer, page2() as ubyte, BYVAL y as integer = 0, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
-	if ubound(page2) < (320*200) - 1 then
-		debug "page2 buffer too small " & ubound(page2)
-	end if
-	memcpy(@page2(0) + 320 * top, spage(page1) + 320 * y, 320 * (bottom - top + 1))
-END SUB
-
-SUB copypage (page1() as ubyte, BYVAL page2 as integer, BYVAL y as integer = 0, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
-	if ubound(page1) < (320*200) - 1 then
-		debug "page1 buffer too small " & ubound(page1)
-	end if
-	memcpy(spage(page2) + 320 * top, @page1(0) + 320 * y, 320 * (bottom - top + 1))
-END SUB
 
 SUB clearpage (BYVAL page as integer)
 	memset(spage(page), 0, 320 * 200)

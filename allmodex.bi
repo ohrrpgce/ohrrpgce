@@ -9,9 +9,9 @@
 'Library routines
 DECLARE SUB setmodex ()
 DECLARE SUB restoremode ()
-DECLARE SUB copypage OVERLOAD (BYVAL page1, BYVAL page2, BYVAL y = 0, BYVAL top = 0, BYVAL bottom = 199)
-DECLARE SUB copypage OVERLOAD (BYVAL page1 as integer, page2() as ubyte, BYVAL y = 0, BYVAL top = 0, BYVAL bottom = 199)
-DECLARE SUB copypage OVERLOAD (page1() as ubyte, BYVAL page2 as integer, BYVAL y = 0, BYVAL top = 0, BYVAL bottom = 199)
+DECLARE FUNCTION allocatepage() as integer
+DECLARE SUB freepage (BYVAL page as integer)
+DECLARE SUB copypage (BYVAL page1, BYVAL page2, BYVAL y = 0, BYVAL top = 0, BYVAL bottom = 199)
 DECLARE SUB clearpage (BYVAL page)
 DECLARE SUB setvispage (BYVAL page)
 DECLARE SUB setpal (pal() as RGBcolor)
@@ -148,7 +148,5 @@ declare sub sprite_crash_invalid(byval p as frame ptr)
 declare function palette16_load(byval fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
 declare sub palette16_unload(byval p as palette16 ptr ptr)
 declare sub palette16_empty_cache()
-
-CONST DIMSCREENPAGE = 320 * 200 - 1
 
 #ENDIF
