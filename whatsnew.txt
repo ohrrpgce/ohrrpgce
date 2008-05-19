@@ -61,6 +61,8 @@ Feb ?? 2008 [werewaffle]
     * More missing/wrong menu sound effects
     * Battle Music: silence now works again
     * set formation song now actually works [Ralph]
+    * Bug 586: Textbox backdrop can become the tileset with showtextbox
+      without advancetextbox
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers

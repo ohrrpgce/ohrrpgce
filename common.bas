@@ -2640,8 +2640,10 @@ SUB loadtilesetdata (BYREF tileset AS TilesetData ptr, BYVAL tilesetnum AS INTEG
   .refcount = 1
   'debug "loading tileset " & tilesetnum
 
-  loadpage game + ".til", tilesetnum, 3
-  loadtileset .spr, 3
+  dim page = allocatepage
+  loadpage game + ".til", tilesetnum, page
+  loadtileset .spr, page
+  freepage page
   loadtanim tilesetnum, .tastuf()
   FOR i = 0 TO 1
    WITH .anim(i)
