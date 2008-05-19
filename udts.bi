@@ -30,6 +30,7 @@ type Frame
 	image as ubyte ptr
 	mask as ubyte ptr
 	refcount as integer
+	cache as string
 end type
 
 TYPE GraphicPair
