@@ -1041,6 +1041,7 @@ END SUB
 SUB herodata
 DIM names(100) AS STRING, menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), pal16(16), elemtype$(2)
 DIM AS HeroDef her, blankhero
+DIM previewframe AS INTEGER
 wd = 1: wc = 0: wx = 0: wy = 0: hmax = 32
 leftkey = 0: rightkey = 0
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
@@ -1052,7 +1053,7 @@ getnames names(), hmax
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
-frame = -1
+previewframe = -1
 
 pt = 0
 csr = 1
@@ -1214,19 +1215,19 @@ min(8) = -100:max(8) = 100
 min(9) = -100:max(9) = 100
 it$ = load_item_name(her.def_weapon, 0, 1)
 setkeys
-frame = 0
+previewframe = 0
 DO
  GOSUB genheromenu
  setwait 55
  setkeys
  tog = tog XOR 1
  GOSUB movesmall
- IF keyval(1) > 1 THEN frame = -1: RETRACE
- IF (keyval(52) > 1 AND frame = 0) OR (keyval(51) > 1 AND frame = 1) THEN
-  frame = frame xor 1
+ IF keyval(1) > 1 THEN previewframe = -1: RETRACE
+ IF (keyval(52) > 1 AND previewframe = 0) OR (keyval(51) > 1 AND previewframe = 1) THEN
+  previewframe = previewframe xor 1
  END IF
  usemenu bctr, 0, 0, 9, 24
- IF enter_or_space() AND bctr = 0 THEN frame = -1: RETRACE
+ IF enter_or_space() AND bctr = 0 THEN previewframe = -1: RETRACE
  IF bctr > 0 THEN
   SELECT CASE bctr
    CASE 1
@@ -1254,13 +1255,13 @@ DO
    CASE 7
     intgrabber her.max_name_len, min(bctr), max(bctr)
    CASE 8
-    IF frame = 0 THEN
+    IF previewframe = 0 THEN
       intgrabber her.hand_a_x, min(bctr), max(bctr)
     ELSE
       intgrabber her.hand_b_x, min(bctr), max(bctr)
     END IF
    CASE 9
-    IF frame = 0 THEN
+    IF previewframe = 0 THEN
       intgrabber her.hand_a_y, min(bctr), max(bctr)
     ELSE
       intgrabber her.hand_b_y, min(bctr), max(bctr)
@@ -1286,16 +1287,16 @@ DO
 LOOP
 
 heropreview:
-IF frame <> -1 THEN
- loadsprite buffer(), 0, 640 * (frame + 2), 0, 32, 40, 2
+IF previewframe <> -1 THEN
+ loadsprite buffer(), 0, 640 * (previewframe + 2), 0, 32, 40, 2
 ELSE
  loadsprite buffer(), 0, 640 * tog, 0, 32, 40, 2
 END IF
 drawsprite buffer(), 0, pal16(), 0, 250, 25, dpage
 loadsprite buffer(), 0, (wd * 400) + (200 * tog), 16, 20, 20, 2
 drawsprite buffer(), 0, pal16(), 16, 230 + wx, 5 + wy, dpage
-IF frame <> -1 THEN
- IF frame = 0 THEN
+IF previewframe <> -1 THEN
+ IF previewframe = 0 THEN
   handx = her.hand_a_x
   handy = her.hand_a_y
  ELSE
@@ -1306,9 +1307,9 @@ IF frame <> -1 THEN
  drawline 250 + handx,23 + handy,250 + handx, 24 + handy,14 + tog,dpage
  drawline 251 + handx,25 + handy,252 + handx, 25 + handy,14 + tog,dpage
  drawline 250 + handx,26 + handy,250 + handx, 27 + handy,14 + tog,dpage
- printstr "" & frame,256,18,dpage
- IF frame = 1 THEN printstr "<",256,18,dpage
- IF frame = 0 THEN printstr ">",272,18,dpage
+ printstr "" & previewframe,256,18,dpage
+ IF previewframe = 1 THEN printstr "<",256,18,dpage
+ IF previewframe = 0 THEN printstr ">",272,18,dpage
 END IF
 
 RETRACE
@@ -1327,10 +1328,10 @@ IF her.max_name_len THEN
 ELSE
  bmenu$(7) = bmenu$(7) & "default"
 END IF
-IF frame = 0 THEN
+IF previewframe = 0 THEN
  bmenu$(8) = "Hand X: " & her.hand_a_x
  bmenu$(9) = "Hand Y: " & her.hand_a_y
-ELSEIF frame = 1 THEN
+ELSEIF previewframe = 1 THEN
  bmenu$(8) = "Hand X: " & her.hand_b_x
  bmenu$(9) = "Hand Y: " & her.hand_b_y
 END IF
