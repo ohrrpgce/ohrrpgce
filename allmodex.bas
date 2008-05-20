@@ -544,8 +544,8 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	'create sprite
 	hspr.w = sw
 	hspr.h = sh
-	hspr.image = allocate(sw * sh)
-	hspr.mask = allocate(sw * sh)
+	hspr.image = callocate(sw * sh)
+	hspr.mask = callocate(sw * sh)
 	dspr = hspr.image
 	dmsk = hspr.mask
 
@@ -629,8 +629,8 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	'create sprite
 	hspr.w = sw
 	hspr.h = sh
-	hspr.image = allocate(sw * sh)
-	hspr.mask = allocate(sw * sh)
+	hspr.image = callocate(sw * sh)
+	hspr.mask = callocate(sw * sh)
 	dspr = hspr.image
 	dmsk = hspr.mask
 	dspr = dspr + sw - 1 'jump to last column
@@ -966,7 +966,7 @@ sub pollingthread(byval unused as threadbs)
 		'set key state for every key
 		'highest scancode in fbgfx.bi is &h79, no point overdoing it
 		for a = 0 to &h7f
-			if keybdstate(a) and 8 then
+		if keybdstate(a) and 8 then
 				'clear the bit that io_updatekeys sets
 				keybdstate(a) = keybdstate(a) and 7
 
@@ -1313,7 +1313,7 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 	'prevent infinite loop if you fill with the same colour
 	if tcol = c then exit sub
 
-	queue = allocate(sizeof(node))
+	queue = callocate(sizeof(node))
 	queue->x = x
 	queue->y = y
 	queue->nextnode = null
@@ -1339,7 +1339,7 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 				if queue->y > 0 then
 					'north
 					if readpixel(i, queue->y-1, page) = tcol then
-						tail->nextnode = allocate(sizeof(node))
+						tail->nextnode = callocate(sizeof(node))
 						tail = tail->nextnode
 						tail->x = i
 						tail->y = queue->y-1
@@ -1349,7 +1349,7 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 				if queue->y < 199 then
 					'south
 					if readpixel(i, queue->y+1, page) = tcol then
-						tail->nextnode = allocate(sizeof(node))
+						tail->nextnode = callocate(sizeof(node))
 						tail = tail->nextnode
 						tail->x = i
 						tail->y = queue->y+1
@@ -1921,7 +1921,7 @@ SUB unlumpfile (lump$, fmask$, path$)
 
 	if len(path$) > 0 and right(path$, 1) <> SLASH then path$ = path$ & SLASH
 
-	bufr = allocate(16383)
+	bufr = callocate(16383)
 	if bufr = null then
 		close #lf
 		exit sub
@@ -2118,7 +2118,7 @@ SUB lumpfiles (listf$, lump$, path$)
 		exit sub
 	end if
 
-	bufr = allocate(16000)
+	bufr = callocate(16000)
 
 	'get file to lump
 	do until eof(fl)
@@ -2327,12 +2327,12 @@ SUB copyfile (s$, d$)
 	size = lof(fi)
 
 	if size < 16000 then
-		bufr = allocate(size)
+		bufr = callocate(size)
 		'copy a chunk of file
 		fget(fi, , bufr, size)
 		fput(fo, , bufr, size)
 	else
-		bufr = allocate(16000)
+		bufr = callocate(16000)
 
 		'write lump
 		while size > 0
@@ -2543,7 +2543,7 @@ SUB str2array (s$, arr() as integer, BYVAL o as integer)
 end SUB
 
 SUB setupstack ()
-	stackbottom = allocate(32768)
+	stackbottom = callocate(32768)
 	if (stackbottom = 0) then
 		'oh dear
 		debug "Not enough memory for stack"
@@ -3111,7 +3111,7 @@ FUNCTION loadbmppal (f$, pal() as RGBcolor)
 		'not a bitmap
 		close #bf
 		exit function
-	end if
+7	end if
 
 	get #bf, , info
 
@@ -3444,13 +3444,19 @@ function isawav(fi$) as integer
   open fi$ for binary as #f
 
   get #f,,chnk_ID
-  if chnk_ID <> _RIFF then return 0 'not even a RIFF file
+  if chnk_ID <> _RIFF then
+		close #f
+		return 0 'not even a RIFF file
+	end if
 
   get #f,,chnk_size 'don't care
 
   get #f,,chnk_ID
 
-  if chnk_ID <> _WAVE then return 0 'not a WAVE file, pffft
+  if chnk_ID <> _WAVE then
+		close #f
+		return 0 'not a WAVE file, pffft
+	end if
 
   'is this good enough? meh, sure.
   close #f
@@ -3626,6 +3632,7 @@ sub sprite_add_cache(byval s as string, byval p as frame ptr, byval fr as intege
 				exit sub
 			elseif .s = s then
 				.p->refcount = 0
+				debug("Overwiting old sprite: " + s)
 				.p = p
 				.p->refcount = 1
 				exit sub
@@ -3658,19 +3665,20 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 	dim ret as frame ptr
 	dim hashstring as string = trimpath(fi) & "#" & rec 'we assume that all sprites in the same file are the same size
 	
-	if hashstring = "test.pt0#0" then
-		dim tmp as integer = 0
-	end if
-	
 	ret = sprite_find_cache(hashstring)
 	
 	if sprite_is_valid(ret) then
 		ret->refcount += 1
-		'debug("Pulled cached copy: " & hashstring & "(" & ret->refcount & ")")
+		debug("Pulled cached copy: " & hashstring & "(" & ret->refcount & ") (0x" & hex(ret) & ")")
+		sprite_crash_invalid(ret)
 		return ret
 	end if
 	
-	'debug "Must load " & hashstring & " from disk"
+	debug "Must load " & hashstring & " from disk"
+	
+	if hashstring = "test.pt0#0" then
+		dim tmp as integer = 1
+	end if
 	
 	'first, we do a bit of math:
 	dim frsize as integer = wid * hei / 2
@@ -3711,8 +3719,8 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 			.h = hei
 			
 			'although it's a four-bit sprite, it IS an 8-bit bitmap.
-			.image = allocate(wid * hei)
-			.mask = allocate(wid * hei)
+			.image = callocate(wid * hei)
+			.mask = callocate(wid * hei)
 			
 			for x = 0 to wid - 1
 				for y = 0 to hei - 1
@@ -3779,9 +3787,15 @@ function sprite_is_valid(byval p as frame ptr) as integer
 end function
 
 sub sprite_crash_invalid(byval p as frame ptr)
-	dim temp as integer = 0 'we're using this to crash :D
 	
-	if not sprite_is_valid(p) then print *cptr(integer ptr, 0)
+	if not sprite_is_valid(p) then
+		#if false
+		print *cptr(integer ptr, 0)
+		#else
+		debug("Invalid sprite: " & p->cache & " (0x" & hex(p) & ")")
+		#endif
+	end if
+	
 end sub
 
 function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as frame ptr

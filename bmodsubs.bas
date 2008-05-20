@@ -764,7 +764,7 @@ IF bslot(4 + i).vis = 1 THEN
  with bslot(4 + i)
   .sprite_num = 1
   .sprites = sprite_load(game + ext$(i), es(i, 53), 1, .w, .h)
-  if .sprites = 0 then debug "Failed to load enemy sprite (#" & i & ")"
+  if not sprite_is_valid(.sprites) then debug "Failed to load enemy sprite (#" & i & ")"
   .pal = palette16_load(game + ".pal", es(i, 54), 1 + es(i, 55), es(i, 53))
   if .pal = 0 then debug "Failed to load palette (#" & (4+i) & ")"
   
@@ -780,6 +780,8 @@ IF bslot(4 + i).vis = 1 THEN
  FOR o = 1 TO es(i, 0)
   batname$(4 + i) = batname$(4 + i) + CHR$(es(i, o))
  NEXT o
+ELSE
+ bslot(4 + i).sprites = 0
 END IF
 END SUB
 

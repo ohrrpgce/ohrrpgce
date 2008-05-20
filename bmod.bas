@@ -535,7 +535,7 @@ FOR i = 12 TO 23
 		sprite_unload(@.sprites)
 		palette16_unload(@.pal)
 		.sprites = sprite_load(game + ".pt6", atk(0), 3, 50, 50)
-		if .sprites = 0 then debug "Failed to load attack sprites (#" & i & ")"
+		if not sprite_is_valid(.sprites) then debug "Failed to load attack sprites (#" & i & ")"
 		.pal = palette16_load(game + ".pal", atk(1), 6, atk(0))
 		if .pal = 0 then debug "Failed to load palette (#" & i & ")"
  end with
@@ -583,7 +583,7 @@ IF is_hero(who) THEN
  with bslot(24)
   .sprite_num = 2
   .sprites = sprite_load(game & ".pt5", exstat(who, 0, 13), 2, 24, 24)
-  if .sprites = 0 then debug "Could not load weapon sprite: " & game & ".pt5#" & exstat(who, 0, 13)
+  if not sprite_is_valid(.sprites) then debug "Could not load weapon sprite: " & game & ".pt5#" & exstat(who, 0, 13)
   .pal = palette16_load(game + ".pal", exstat(who, 1, 13), 5, exstat(who, 0, 13))
   if .pal = 0 then debug "Failed to load palette (#" & 24 & ")"
   .frame = 0
@@ -1927,16 +1927,28 @@ FOR i = 0 TO 24
 				wardsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
 			END IF
 		else
+			dim w as BattleSprite ptr
+			w = @bslot(zbuf(i))
 			with bslot(zbuf(i))
 				dim spr as frame ptr, custspr as integer
 				custspr = 0
 				spr = .sprites
+				
+				if .sprites = 0 then continue for
+				
+				debug(str(zbuf(i)))
+				sprite_crash_invalid(spr)
+				
 				if .frame < .sprite_num then spr += .frame
+				
+				sprite_crash_invalid(spr)
 				
 				if .d then
 					spr = sprite_flip_horiz(spr)
 					custspr = -1
 				end if
+				
+				sprite_crash_invalid(spr)
 				
 				if is_enemy(zbuf(i)) and .dissolve > 0 and eflee(zbuf(i)) = 0 then
 					dim as integer dtype, dtime
@@ -2016,6 +2028,12 @@ loadall:
 setpicstuf formdata(), 80, -1
 loadset tmpdir & "for.tmp", form, 0
 
+for i = 0 to 24
+	bslot(i).frame = 0
+	bslot(i).sprites = 0
+	bslot(i).pal = 0
+next
+
 mapsong = presentsong
 IF formdata(33) = 0 THEN fademusic 0
 IF formdata(33) > 0 THEN wrappedsong formdata(33) - 1
@@ -2051,7 +2069,7 @@ FOR i = 0 TO 3
    'load hero sprites
    .sprite_num = 8
    .sprites = sprite_load(game & ".pt0", exstat(i, 0, 14), .sprite_num, 32, 40)
-   if .sprites = 0 then debug "Couldn't load hero sprite: " & game & ".pt0#" & exstat(i,0,14)
+   if not sprite_is_valid(.sprites) then debug "Couldn't load hero sprite: " & game & ".pt0#" & exstat(i,0,14)
    .pal = palette16_load(game + ".pal", exstat(i, 0, 15), 0, exstat(i, 0, 14))
    if .pal = 0 then debug "Failed to load palette (#" & i & ")"
    .frame = 0
@@ -2076,6 +2094,8 @@ FOR i = 0 TO 3
    IF nmenu(i, o) = -10 THEN menu$(i, o) = readglobalstring$(34, "Item", 10): mend(i) = o
    WHILE LEN(menu$(i, o)) < 10: menu$(i, o) = menu$(i, o) + " ": WEND
   NEXT o
+ ELSE
+  BSLOT(I).sprites = 0
  END IF
 NEXT i
 FOR i = 0 TO 7
