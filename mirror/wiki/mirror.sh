@@ -77,10 +77,14 @@ echo ${URL} > url.txt
 echo "compressing..."
 tar -jcf mirror.tar.bz2 ./*
 
+echo "uploading stable to dreamhost..."
+scp -p mirror.tar.bz2 james_paige@motherhamster.org:tmp/
+ssh james_paige@motherhamster.org sh script/ohrrpgce-mirror.sh
+
 echo "uploading mirror..."
 scp -p mirror.tar.bz2 james_paige@motherhamster.org:mirror.motherhamster.org/
 ssh james_paige@motherhamster.org mirror.motherhamster.org/expand.sh wiki
 
-echo "uploading stable to dreamhost..."
-scp -p mirror.tar.bz2 james_paige@motherhamster.org:tmp/
-ssh james_paige@motherhamster.org sh script/ohrrpgce-mirror.sh
+echo "uploading mirror to sourceforge"
+scp -p mirror.tar.bz2 bob_the_hamster@shell.sourceforge.net:tmp/
+ssh bob_the_hamster@shell.sourceforge.net sh script/ohrrpgce-mirror.sh
