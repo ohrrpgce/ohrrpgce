@@ -3575,6 +3575,20 @@ end type
 redim shared sprcache(50) as SpriteCache
 
 'Private
+' seeks a cache string, and removes it from the cache. It does not free it or
+' do any sort of memory management, it just removes it from the cache.
+sub sprite_remove_cache(byval s as string)
+	dim i as integer
+	for i = 0 to ubound(sprcache)
+		if sprcache(i).s = s then
+			sprcache(i).s = ""
+			sprcache(i).p = 0
+			exit sub
+		end if
+	next
+end sub
+
+'Private
 ' unconditionally frees a sprite from memory.
 ' takes a pointer to a pointer so that the pointer can also be nulled, so it
 ' will not be used again accidentally.
@@ -3586,6 +3600,7 @@ sub sprite_delete(byval f as frame ptr ptr)
 		.image = 0
 		if .mask <> 0 then deallocate(.mask)
 		.mask = 0
+		sprite_remove_cache(.cache)
 	end with
 	deallocate(*f)
 	*f = 0

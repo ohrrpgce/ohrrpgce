@@ -1936,19 +1936,19 @@ FOR i = 0 TO 24
 				
 				if .sprites = 0 then continue for
 				
-				debug(str(zbuf(i)))
-				sprite_crash_invalid(spr)
+				'debug(str(zbuf(i)))
+				'sprite_crash_invalid(spr)
 				
 				if .frame < .sprite_num then spr += .frame
 				
-				sprite_crash_invalid(spr)
+				'sprite_crash_invalid(spr)
 				
 				if .d then
 					spr = sprite_flip_horiz(spr)
 					custspr = -1
 				end if
 				
-				sprite_crash_invalid(spr)
+				'sprite_crash_invalid(spr)
 				
 				if is_enemy(zbuf(i)) and .dissolve > 0 and eflee(zbuf(i)) = 0 then
 					dim as integer dtype, dtime
