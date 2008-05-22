@@ -1287,10 +1287,15 @@ NEXT i
 'delete temp files that are part of the game state
 deletetemps
 
+'doesn't unload scripts: not needed
 killallscripts
 
-sprite_empty_cache()
-palette16_empty_cache()
+FOR i = 0 TO npcdMax
+ WITH npcs(i)
+  sprite_unload(@.sprite)
+  palette16_unload(@.pal)
+ END WITH
+NEXT i
 
 END SUB
 

@@ -410,8 +410,6 @@ LoadGEN
 '--upgrade obsolete RPG files (if possible)
 upgrade font()
 
-makebackups 'make a few backup lumps
-
 if isfile(game + ".hsp") then unlump game + ".hsp", tmpdir, lumpbuf()
 ERASE lumpbuf
 
@@ -774,9 +772,13 @@ LOOP
 LOOP ' This is the end of the DO that encloses a specific RPG file
 
 'resetg
+
+'checks for leaks and deallocates them
+sprite_empty_cache()
+palette16_empty_cache()
 IF autorungame THEN exitprogram (NOT abortg)
 unloadmaptilesets tilesets()
-resetinterpreter
+resetinterpreter 'unload scripts
 cleanuptemp
 fademusic 0
 fadeout 0, 0, 0

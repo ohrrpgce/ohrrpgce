@@ -966,7 +966,7 @@ sub pollingthread(byval unused as threadbs)
 		'set key state for every key
 		'highest scancode in fbgfx.bi is &h79, no point overdoing it
 		for a = 0 to &h7f
-		if keybdstate(a) and 8 then
+			if keybdstate(a) and 8 then
 				'clear the bit that io_updatekeys sets
 				keybdstate(a) = keybdstate(a) and 7
 
@@ -3111,7 +3111,7 @@ FUNCTION loadbmppal (f$, pal() as RGBcolor)
 		'not a bitmap
 		close #bf
 		exit function
-7	end if
+	end if
 
 	get #bf, , info
 
@@ -3621,11 +3621,13 @@ sub sprite_empty_cache()
 	dim i as integer
 	for i = 0 to ubound(sprcache)
 		with sprcache(i)
-			'if .p <> 0 or .s <> "" then debug i & ": " & .p & ", " & .s
 			if .p <> 0 then
+				debug "warning: leaked sprite: " & .s & " with " & .p->refcount & " references"
 				sprite_delete(@.p)
-				.s = ""
+			elseif .s <> "" then
+				debug "warning: phantom cached sprite " & .s
 			end if
+			.s = ""
 		end with
 	next
 end sub
@@ -3647,7 +3649,7 @@ sub sprite_add_cache(byval s as string, byval p as frame ptr, byval fr as intege
 				exit sub
 			elseif .s = s then
 				.p->refcount = 0
-				debug("Overwiting old sprite: " + s)
+				'debug("Overwiting old sprite: " + s)
 				.p = p
 				.p->refcount = 1
 				exit sub
@@ -3684,16 +3686,16 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 	
 	if sprite_is_valid(ret) then
 		ret->refcount += 1
-		debug("Pulled cached copy: " & hashstring & "(" & ret->refcount & ") (0x" & hex(ret) & ")")
-		sprite_crash_invalid(ret)
+		'debug("Pulled cached copy: " & hashstring & "(" & ret->refcount & ") (0x" & hex(ret) & ")")
+		'sprite_crash_invalid(ret)
 		return ret
 	end if
 	
-	debug "Must load " & hashstring & " from disk"
+	'debug "Must load " & hashstring & " from disk"
 	
-	if hashstring = "test.pt0#0" then
-		dim tmp as integer = 1
-	end if
+	'if hashstring = "test.pt0#0" then
+	'	dim tmp as integer = 1
+	'end if
 	
 	'first, we do a bit of math:
 	dim frsize as integer = wid * hei / 2
@@ -4211,15 +4213,18 @@ sub Palette16_delete(byval f as Palette16 ptr ptr)
 end sub
 
 'Completely empty the palette16 cache
+'Unlike the sprite cache, palettes aren't uncached when they hit 0 references
 sub Palette16_empty_cache()
 	dim i as integer
 	for i = 0 to ubound(palcache)
 		with palcache(i)
-			'if .p <> 0 or .s <> "" then debug i & ": " & .p & ", " & .s
 			if .p <> 0 then
+				'debug "warning: leaked palette: " & .s & " with " & .p->refcount & " references"
 				Palette16_delete(@.p)
-				.s = ""
+			'elseif .s <> "" then
+				'debug "warning: phantom cached palette " & .s
 			end if
+			.s = ""
 		end with
 	next
 end sub
