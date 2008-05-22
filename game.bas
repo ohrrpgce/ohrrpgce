@@ -229,6 +229,7 @@ dim door(99) as door, doorlinks(199) as doorlink
 
 'shared module variables
 DIM SHARED needf
+DIM SHARED harmtileflash = NO
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
 'textbox stuff (needs moving into a udt)
 DIM SHARED choosep, say, sayer, showsay, say$(7), saytag(21), saybit(0), sayenh(6), choose$(1), chtag(1)
@@ -828,6 +829,10 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
  IF readbit(gmap(), 19, 1) THEN drawmap mapx, mapy, 2, 0, tilesets(2), dpage, 1
  IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 0, 2, tilesets(0), dpage
  animatetilesets tilesets()
+ IF harmtileflash = YES THEN
+  rectangle 0, 0, 320, 200, gmap(10), dpage
+  harmtileflash = NO
+ END IF
 ELSE '---END NORMAL DISPLAY---
  'DEBUG debug "backdrop display"
  copypage 3, dpage
@@ -1166,8 +1171,7 @@ FOR whoi = 0 TO 3
     IF o < 4 THEN
      stat(o, 0, 0) = bound(stat(o, 0, 0) - gmap(9), 0, stat(o, 1, 0))
      IF gmap(10) THEN
-      rectangle 0, 0, 320, 200, gmap(10), vpage
-      setvispage vpage
+      harmtileflash = YES
      END IF
     END IF
     '--check for death
