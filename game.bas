@@ -1374,10 +1374,15 @@ RETRACE
 
 opendoor:
 IF veh(0) AND readbit(veh(), 9, 3) = 0 AND dforce = 0 THEN RETRACE
+IF dforce THEN
+ doori = dforce - 1
+ dforce = 0
+ IF readbit(door(doori).bits(),0,0) = 0 THEN RETRACE
+ GOTO thrudoor
+END IF
 FOR doori = 0 TO 99
  IF readbit(door(doori).bits(),0,0) THEN
-  IF (door(doori).x = INT(catx(0) / 20) AND door(doori).y = INT(caty(0) / 20)+1) OR dforce - 1 = doori THEN
-   dforce = 0
+  IF door(doori).x = catx(0) \ 20 AND door(doori).y = (caty(0) \ 20) + 1 THEN
    GOSUB thrudoor
    EXIT FOR
   END IF
