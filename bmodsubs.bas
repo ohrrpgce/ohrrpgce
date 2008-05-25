@@ -984,8 +984,7 @@ SUB updatestatslevelup (i, exstat(), bstat() AS BattleStats, allowforget)
 ' allowforget = forget spells if level dropped below requirement
 
 'wipe learnmask for this hero
-'for heroes not in the active party, 5th hero is used for spell bitsets (oob only)
-FOR o = small(i, 4) * 6 TO small(i, 4) * 6 + 5
+FOR o = i * 6 TO i * 6 + 5
  learnmask(o) = 0
 NEXT
 
@@ -1042,7 +1041,7 @@ IF exstat(i, 1, 12) THEN
     '--if slot is empty and slot accepts a spell and learn-by-level condition is true
     IF spell(i, j, o) = 0 AND .attack > 0 AND .learned - 1 <= exstat(i, 0, 12) AND .learned > 0 THEN
      spell(i, j, o) = .attack
-     setbit learnmask(), 0, small(i, 4) * 96 + j * 24 + o, 1
+     setbit learnmask(), 0, i * 96 + j * 24 + o, 1
     END IF
     IF allowforget THEN
      '--plotscripts may lower level, forget spells if drop below requirement and know the spell specified
@@ -1059,11 +1058,11 @@ END IF
 END SUB
 
 SUB giveheroexperience (i, exstat(), exper&)
- 'experience
+ 'reset levels gained
+ exstat(i, 1, 12) = 0
  IF hero(i) > 0 AND exstat(i, 0, 12) < 99 THEN
   exlev(i, 0) = exlev(i, 0) + exper&
   'levelups
-  exstat(i, 1, 12) = 0
   WHILE exlev(i, 0) >= exlev(i, 1) AND exstat(i, 0, 12) < 99
    exlev(i, 0) = exlev(i, 0) - exlev(i, 1)
    exstat(i, 0, 12) = exstat(i, 0, 12) + 1 'current level
@@ -1099,7 +1098,7 @@ SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat(), exl
  exstat(who, 1, 12) -= temp
  IF lostlevels THEN
   'didn't learn spells, wipe mask
-  FOR i = small(who, 4) * 6 TO small(who, 4) * 6 + 5
+  FOR i = who * 6 TO who * 6 + 5
    learnmask(i) = 0
   NEXT
  END IF

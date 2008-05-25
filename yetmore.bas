@@ -284,7 +284,6 @@ END SUB
 SUB scriptstat (id, stat())
 'contains an assortment of scripting commands that
 'depend on access to the hero stat array stat()
-STATIC spellmaskhero
 DIM dummystats(40, 1, 1) 'just need HP and MP
 
 SELECT CASE AS CONST id
@@ -380,7 +379,6 @@ SELECT CASE AS CONST id
   heroswap 1, stat()
  CASE 183'--setherolevel (who, what, allow forgetting spells)
   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
-   spellmaskhero = retvals(0)  'used for spells learnt
    stat(retvals(0), 1, 12) = retvals(1) - stat(retvals(0), 0, 12)
    stat(retvals(0), 0, 12) = retvals(1)
    exlev(retvals(0), 1) = exptolevel(retvals(1))
@@ -388,12 +386,13 @@ SELECT CASE AS CONST id
    updatestatslevelup retvals(0), stat(), dummystats(), retvals(2) 'updates stats and spells
   END IF
  CASE 184'--give experience (who, how much)
-  spellmaskhero = retvals(0)  'used for spells learnt
   IF retvals(0) = -1 AND liveherocount(stat()) > 0 THEN retvals(1) = retvals(1) / liveherocount(stat())
   FOR i = 0 TO 40
    IF i = retvals(0) OR (retvals(0) = -1 AND i <= 3) THEN
     'give the XP to the hero only if it is alive if party is target
     IF retvals(0) <> -1 OR stat(i, 0, 0) > 0 THEN giveheroexperience i, stat(), retvals(1)
+    'dead heroes should be recorded as not gaining levels.
+    stat(i, 1, 12) = 0
     updatestatslevelup i, stat(), dummystats(), 0
    END IF
   NEXT i
@@ -401,9 +400,8 @@ SELECT CASE AS CONST id
   scriptret = stat(bound(retvals(0), 0, 40), 1, 12)
  CASE 186'--spells learnt
   found = 0
-  IF retvals(0) >= 0 AND (retvals(0) <= 3 OR retvals(0) = spellmaskhero) THEN
-   effectivehero = small(retvals(0), 4)  'if the hero num was greater than 3, use hero 4's learnmask slots
-   FOR i = effectivehero * 96 TO effectivehero * 96 + 95
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   FOR i = retvals(0) * 96 TO retvals(0) * 96 + 95
     IF readbit(learnmask(), 0, i) THEN
      IF retvals(1) = found THEN
       scriptret = spell(retvals(0), (i \ 24) MOD 4, i MOD 24) - 1
@@ -433,7 +431,6 @@ SELECT CASE AS CONST id
   END IF
  CASE 272'--setexperience  (who, what, allowforget)
   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN
-   spellmaskhero = retvals(0)  'used for spells learnt
    setheroexperience retvals(0), retvals(1), retvals(2), stat(), exlev()
   END IF
 END SELECT

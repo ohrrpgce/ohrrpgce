@@ -63,8 +63,11 @@ Feb ?? 2008 [werewaffle]
     * set formation song now actually works [Ralph]
     * Bug 586: Textbox backdrop can become the tileset with showtextbox
       without advancetextbox
-    * Bug 432: "Use door" sometimes goes through the door you are
+    * Bug 432: "use door" sometimes goes through the door you are
       standing on instead of the intended one [Ralph]
+    * Bug 481: "hero levelled" and "spells learnt" doesn't reset after
+      running from battle. Also some other problems with inactive heroes
+      not reporting from the very last command/battle only [Ralph]
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers

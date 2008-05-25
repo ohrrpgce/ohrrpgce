@@ -31,7 +31,7 @@ DECLARE SUB check_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, BYVAL
 
 'these are the battle global variables
 DIM as string battlecaption
-dim as integer battlecaptime, battlecapdelay, bstackstart, learnmask(29)
+dim as integer battlecaptime, battlecapdelay, bstackstart, learnmask(245) '6 shorts of bits per hero
 
 dim shared battle_draw_style as integer = 0'0 = new, 1 = old
 
@@ -2094,6 +2094,12 @@ FOR i = 0 TO 3
    IF nmenu(i, o) = -10 THEN menu$(i, o) = readglobalstring$(34, "Item", 10): mend(i) = o
    WHILE LEN(menu$(i, o)) < 10: menu$(i, o) = menu$(i, o) + " ": WEND
   NEXT o
+
+  'wipe spells learnt and levels gained
+  FOR o = i * 6 TO i * 6 + 5
+   learnmask(o) = 0
+  NEXT
+  exstat(i, 1, 12) = 0
  ELSE
   BSLOT(I).sprites = 0
  END IF

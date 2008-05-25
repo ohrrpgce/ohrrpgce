@@ -150,6 +150,11 @@ stat(slot, 1, 12) = 0
 exlev(slot, 0) = 0
 exlev(slot, 1) = exptolevel(her.def_level)
 
+'--clear learnmask slots (just to be really thorough)
+FOR i = slot * 6 TO slot * 6 + 5
+ learnmask(i) = 0
+NEXT
+
 '--heros are added unlocked
 setbit hmask(), 0, who - 1, 0
 
@@ -365,6 +370,11 @@ NEXT i
 FOR i = 0 TO 1
  SWAP exlev(s, i), exlev(d, i)
 NEXT i
+
+'--Learnt spells flags
+FOR i = 0 TO 5
+ SWAP learnmask(s * 6 + i), learnmask(d * 6 + i)
+NEXT
 
 '--name
 SWAP names(s), names(d)

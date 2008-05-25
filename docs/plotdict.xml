@@ -1151,7 +1151,7 @@ end</example>
 		<command id="spellslearnt">
 			<cannon>spells learnt (hero,number)</cannon>
 			<shortname>spells learnt</shortname>
-			<description>Used to return the id numbers of spells the hero learnt from the last battle, <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command. (Returns only the spells learnt from the very last battle or command). If the second argument is <ref>getcount</ref> then the number of spells that the hero learnt is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learnt:</description>
+			<description>Used to return the id numbers of spells the hero learnt from the last battle (for heroes in the active battle party) or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that involved this hero. If the second argument is <ref>getcount</ref> then the number of spells that the hero learnt is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learnt:</description>
 			<example># the following script uses strings 0, 1, 2 for its use (will be overwritten)
 plotscript, print learnt spells, who=0, begin
   variable(i)
@@ -2116,12 +2116,12 @@ end</example>
 		<command id="herolevelled">
 			<cannon>hero levelled (who)</cannon>
 			<shortname>hero levelled</shortname>
-			<description>Returns the number of levels the specified hero (use result from <ref>findhero</ref>) gained from only the very last battle, <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:</description>
+			<description>Returns the number of levels the specified hero (use result from <ref>findhero</ref>) gained from only the very last battle or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that targetted this hero (or the active battle party if the hero is in it) - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:</description>
 			<example>give experience (party, 50)
 if (herolevelled (find hero (hero: Bob))) then (
   $31="Bob gained "
   append number(31, hero levelled (find hero (hero: Bob)))
-  $31+" levels!"
+  $31+" level(s)!"
   show textbox (233) # ${S31} :show string 31
 )</example>
 		</command>
@@ -2894,7 +2894,7 @@ end</example>
 		<command id="setexperience">
 			<cannon>set experience (who, experience, allowforget)</cannon>
 			<shortname>set experience</shortname>
-			<description>Sets a hero&apos;s total experience and updates their level and spell list. The argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. To decrease a hero&apos;s level without forgetting spells, pass false as the optional third argument.</description>
+			<description>Sets a hero&apos;s total experience and updates their experience level, stats and spell list. The argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. To decrease a hero&apos;s level without forgetting spells which are learnt at a certain experience level, pass false as the optional third argument.</description>
 			<seealso>
 				<ref>setherolevel</ref>
 				<ref>totalexperience</ref>
