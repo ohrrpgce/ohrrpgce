@@ -583,15 +583,19 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
   SELECT CASE state.pt
    CASE 0'--picture
     IF intgrabber(npcdata.picture, lnpc(state.pt), unpc(state.pt)) THEN
+     sprite_unload @npcdata.sprite
+     palette16_unload @npcdata.pal
      npcdata.sprite = sprite_load(game & ".pt4", npcdata.picture, 8, 20, 20)
      npcdata.pal = palette16_load(game & ".pal", npcdata.palette, 4, npcdata.picture)
     END IF
    CASE 1'--palette
     IF intgrabber(npcdata.palette, lnpc(state.pt), unpc(state.pt)) THEN
+     palette16_unload @npcdata.pal
      npcdata.pal = palette16_load(game & ".pal", npcdata.palette, 4, npcdata.picture)
     END IF
     IF enter_or_space() THEN
      npcdata.palette = pal16browse(npcdata.palette, 4, npcdata.picture, 8, 20, 20)
+     palette16_unload @npcdata.pal
      npcdata.pal = palette16_load(game & ".pal", npcdata.palette, 4, npcdata.picture)
     END IF
    CASE 2
@@ -703,6 +707,9 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
  FOR i = 0 to 14
   npc(npcid * 15 + i) = read_npc_int(npcdata, i)
  NEXT i
+
+ sprite_unload @npcdata.sprite
+ palette16_unload @npcdata.pal
 END SUB
 
 FUNCTION load_vehicle_name(vehID AS INTEGER) AS STRING
@@ -776,8 +783,7 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
  state.first = -1
  state.size = 9
 
- clearpage vpage
- setvispage vpage
+ clearpage dpage
 
  '--get last pal
  setpicstuf buffer(), 16, -1
@@ -800,14 +806,14 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
   setwait 55
   setkeys
   state.tog = state.tog XOR 1
-  IF keyval(1) > 1 THEN RETURN curpal
+  IF keyval(1) > 1 THEN EXIT DO
   IF usemenu(state) THEN state.need_update = YES
   IF intgrabber(state.pt, state.first, state.last, 51, 52) THEN
    state.need_update = YES
   END IF
   IF enter_or_space() THEN
-   IF state.pt >= 0 THEN RETURN state.pt
-   RETURN curpal
+   IF state.pt >= 0 THEN curpal = state.pt
+   EXIT DO
   END IF
 
   IF state.need_update THEN
@@ -815,6 +821,8 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
    state.top = bound(state.top, state.pt - state.size, state.pt)
    state.top = bound(state.top, state.first, large(state.last - state.size, state.first))
    FOR i = 0 TO 9
+    sprite_unload @sprite(i)
+    palette16_unload @pal16(i)
     sprite(i) = sprite_load(game & ".pt" & picset, picnum, picframes, picw, pich)
     pal16(i) = palette16_load(game + ".pal", state.top + i, picset, picnum)
    NEXT i
@@ -862,4 +870,10 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
   clearpage dpage
   dowait
  LOOP
+
+ FOR i = 0 TO 9
+  sprite_unload @sprite(i)
+  palette16_unload @pal16(i)
+ NEXT
+ RETURN curpal
 END FUNCTION

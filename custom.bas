@@ -553,6 +553,9 @@ restoremode
 SYSTEM
 
 finis:
+'catch sprite leaks
+sprite_empty_cache
+palette16_empty_cache
 GOSUB cleanupfiles
 setvispage 0
 clearpage 0
