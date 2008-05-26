@@ -582,8 +582,10 @@ IF is_hero(who) THEN
  
  with bslot(24)
   .sprite_num = 2
+  sprite_unload @.sprites
   .sprites = sprite_load(game & ".pt5", exstat(who, 0, 13), 2, 24, 24)
   if not sprite_is_valid(.sprites) then debug "Could not load weapon sprite: " & game & ".pt5#" & exstat(who, 0, 13)
+  palette16_unload @.pal
   .pal = palette16_load(game + ".pal", exstat(who, 1, 13), 5, exstat(who, 0, 13))
   if .pal = 0 then debug "Failed to load palette (#" & 24 & ")"
   .frame = 0

@@ -405,8 +405,10 @@ IF b(pt * recordsize + 17) = 1 THEN
  showhero = her.sprite
  
  'Load the sprite for the hireable hero
+ sprite_unload @hiresprite
  hiresprite = sprite_load(game & ".pt0", showhero, 8, 32, 40)
  IF hiresprite = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & showhero
+ palette16_unload @hirepal
  hirepal = palette16_load(game & ".pal", her.sprite_pal, 0, showhero)
  IF hirepal = 0 THEN debug "Failed to load palette for hireable hero (#" & her.sprite_pal & ")"
 
