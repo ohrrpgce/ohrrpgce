@@ -1654,7 +1654,7 @@ Sub ToggleLayerEnabled(gmap() as integer, byval l as integer)
 end sub
 
 SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), tilesets() as TilesetData ptr, doors() as door, link() as doorlink, gmap())
- DIM as integer dmx, dmy, i, tempw, temph
+ DIM as integer dmx, dmy, i
  DIM caption$
  DIM destdoor(99) as door
  DIM gmap2(dimbinsize(4))
@@ -1686,7 +1686,8 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), tilesets() as
  destmap = link(cur).dest_map
  loadrecord gmap2(), game + ".map", dimbinsize(binMAP), destmap
  deserdoors game + ".dox", destdoor(), destmap
- LoadTiledata maplumpname$(destmap, "t"), map(), 3, tempw, temph
+ LoadTiledata maplumpname$(destmap, "t"), map(), 3
+ LoadTiledata maplumpname$(destmap, "p"), pass()
 ' loadmaptilesets othertilesets(), gmap2()
  loadmaptilesets tilesets(), gmap2()
 
@@ -1710,7 +1711,8 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), tilesets() as
   printstr caption$, destdoor(link(cur).dest).x * 20 - dmx + 10 - (4 * LEN(caption$)), destdoor(link(cur).dest).y * 20 - dmy + 86, 2
  END IF
  '-----------------RESET DATA
- LoadTiledata maplumpname$(curmap, "t"), map(), 3, tempw, temph
+ LoadTiledata maplumpname$(curmap, "t"), map(), 3
+ LoadTiledata maplumpname$(curmap, "p"), pass()
  loadmaptilesets tilesets(), gmap()
 END SUB
 

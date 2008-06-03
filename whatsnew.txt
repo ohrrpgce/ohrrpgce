@@ -68,6 +68,7 @@ Feb ?? 2008 [werewaffle]
     * Bug 481: "hero levelled" and "spells learnt" doesn't reset after
       running from battle. Also some other problems with inactive heroes
       not reporting from the very last command/battle only [Ralph]
+    * Bug 637: Crash when editing doorlinks [Ralph]
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers
