@@ -2746,7 +2746,8 @@ end</example>
 		<command id="setonkeypressscript">
 			<cannon>set on keypress script (id)</cannon>
 			<shortname>set on keypress script</shortname>
-			<description>Changes the script that is run when you press a key. The argument is the script&apos;s ID number, NOT the script&apos;s name. Calling set on keypress script with no argument disables the keypress script. The effect goes away if you change maps or fight a battle.</description>
+			<description>Changes the script that is run when you press a key. The argument is the script&apos;s name preceded by an @ sign. You can also use the ID number for old-style scripts. Calling set on keypress script with no argument disables the keypress script. The effect goes away if you change maps or fight a battle.</description>
+			<example>set on keypress script(@keyhandlerscript)</example>
 		</command>
 		<command id="getonkeypressscript">
 			<cannon>get on keypress script</cannon>
