@@ -832,12 +832,12 @@ DO
   END IF
   IF tmode = 1 THEN
    ts.cuttileset = YES
-   ts.cutfrom = small(ts.cutfrom, gen(genMaxTile) - 1)
+   ts.cutfrom = small(ts.cutfrom, gen(genMaxTile))
    tilecut ts, mouse(), area()
   END IF 
   IF tmode = 2 THEN
    ts.cuttileset = NO
-   ts.cutfrom = small(ts.cutfrom, gen(genMaxBackdrop))
+   ts.cutfrom = small(ts.cutfrom, gen(genMaxBackdrop) - 1)
    tilecut ts, mouse(), area()
   END IF 
   IF tmode = 3 THEN
