@@ -7,20 +7,10 @@
 DEFINT A-Z
 'basic subs and functions
 DECLARE SUB exitprogram (needfade%)
-DECLARE FUNCTION safesubtract% (number%, minus%)
-DECLARE FUNCTION safemultiply% (number%, by!)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
-DECLARE FUNCTION trytheft% (who%, targ%, atk%(), es%())
-DECLARE SUB setbatcap (cap$, captime%, capdelay%)
-DECLARE FUNCTION checktheftchance% (item%, itemP%, rareitem%, rareitemP%)
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE SUB wrappedsong (songnumber%)
-DECLARE FUNCTION targetmaskcount% (tmask%())
-DECLARE FUNCTION randomally% (who%)
-DECLARE FUNCTION randomfoe% (who%)
-DECLARE FUNCTION countai% (ai%, them%, es%())
 DECLARE SUB calibrate ()
-DECLARE SUB control ()
 DECLARE SUB getitem (getit%, num%)
 DECLARE SUB getnames (stat$())
 DECLARE SUB resetlmp (slot%, lev%)
@@ -32,12 +22,8 @@ DECLARE SUB delitem (it%, num%)
 DECLARE FUNCTION countitem% (it%)
 
 
-DECLARE FUNCTION is_hero(who%)
-DECLARE FUNCTION is_enemy(who%)
-DECLARE FUNCTION is_attack(who%)
-DECLARE FUNCTION is_weapon(who%)
-
 #include "bmod.bi"
+#include "bmodsubs.bi"
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -47,20 +33,10 @@ DECLARE FUNCTION is_weapon(who%)
 #include "uiconst.bi"
 #include "udts.bi"
 
-DECLARE SUB loadfoe (i, formdata(), es(), bslot() as battlesprite, p(), ext$(), bits(), bstat() AS BattleStats, ebits(), batname$())
-DECLARE FUNCTION inflict (w, t, bstat() AS BattleStats, bslot() as battlesprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
-DECLARE SUB smartarrowmask (inrange(), pt, d, axis, bslot() as battlesprite, tmask())
-DECLARE FUNCTION visibleandalive (o, bstat() AS BattleStats, bslot() as battlesprite)
-DECLARE FUNCTION enemycount (bslot() as battlesprite, bstat() AS BattleStats)
-DECLARE FUNCTION targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats)
-DECLARE FUNCTION targetable (attacker, target, ebits(), bslot() as battlesprite)
-DECLARE FUNCTION atkallowed (atkbuf(), attacker, spclass, lmplev, bstat() AS BattleStats)
-DECLARE FUNCTION liveherocount (bstat() AS BattleStats)
 
 DECLARE SUB confirm_auto_spread (who, confirmtarg(), tmask())
 DECLARE SUB confirm_auto_focus (who, confirmtarg(), tmask(), atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
 DECLARE SUB confirm_auto_first (who, confirmtarg(), tmask())
-DECLARE FUNCTION find_preferred_target(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
 
 DECLARE FUNCTION quick_battle_distance(who1, who2, bslot() AS BattleSprite)
 DECLARE FUNCTION battle_distance(who1, who2, bslot() AS BattleSprite)
@@ -718,7 +694,8 @@ NEXT o
 liveherocount = i
 END FUNCTION
 
-SUB loadfoe (i, formdata(), es(), bslot() AS BattleSprite, p(), ext$(), bits(), bstat() AS BattleStats, ebits(), batname$())
+FUNCTION loadfoe (i, formdata(), es(), bslot() AS BattleSprite, p(), ext$(), bits(), bstat() AS BattleStats, ebits(), batname$(), allow_dead = NO)
+'return true if the enemy was successfully spawned
 IF formdata(i * 4) > 0 THEN
  loadenemydata buffer(), formdata(i * 4) - 1, -1
  FOR o = 0 TO 160
@@ -727,6 +704,23 @@ IF formdata(i * 4) > 0 THEN
  FOR o = 0 TO 4
   ebits(i * 5 + o) = buffer(74 + o)
  NEXT o
+ IF allow_dead = NO THEN
+  'enemies which would die instantly are not allowed to spawn
+  'die without boss?
+  IF readbit(ebits(), i * 5, 58) = 1 THEN
+   boss = 0
+   FOR j = 4 TO 11
+    '--is it a boss?
+    IF readbit(ebits(), (j - 4) * 5, 56) = 1 THEN
+     '-- is it alive?
+     IF bstat(j).cur.hp > 0 THEN boss = 1
+    END IF
+   NEXT j
+   IF boss = 0 THEN formdata(i * 4) = 0: RETURN 0
+  END IF
+  '0 hp?
+  IF es(i, 62) <= 0 THEN formdata(i * 4) = 0: RETURN 0
+ END IF
  WITH bslot(4 + i)
   .basex = formdata(i * 4 + 1)
   .basey = formdata(i * 4 + 2)
@@ -783,7 +777,8 @@ IF bslot(4 + i).vis = 1 THEN
 ELSE
  bslot(4 + i).sprites = 0
 END IF
-END SUB
+RETURN YES
+END FUNCTION
 
 FUNCTION randomally (who)
 IF is_hero(who) THEN

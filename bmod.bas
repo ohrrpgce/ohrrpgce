@@ -27,6 +27,8 @@ DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTE
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), ext$(), bits(), bstat() AS BattleStats, ebits(), batname$())
+DECLARE SUB dieWOboss(bstat() AS BattleStats, bslot() AS BattleSprite, eflee(), ebits())
+DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, eflee(), ebits())
 DECLARE SUB check_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, BYVAL killing_attack AS INTEGER,BYVAL who AS INTEGER, BYREF you AS INTEGER, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF plunder AS LONG, BYREF exper AS LONG, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), ext$(), bits(), ebits(), batname$(), found(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 
 'these are the battle global variables
@@ -167,7 +169,8 @@ DO
   '--debug keys
   IF keyval(62) > 1 THEN away = 11 ' Instant-cheater-running
   IF keyval(63) > 1 THEN exper& = 1000000  'Million experience!
-  IF keyval(41) > 1 THEN battle_draw_style = (battle_draw_style + 1) mod 2
+  IF keyval(87) > 1 THEN vis = vis XOR 1  'Draw debug info
+  IF keyval(41) > 1 THEN battle_draw_style = (battle_draw_style + 1) mod 2 'Switch between old and new sprite code
  END IF
  IF keyval(69) > 1 THEN GOSUB pgame '--PAUSE
  '--running away
@@ -195,7 +198,6 @@ DO
    EXIT DO
   END IF
  END IF
- IF keyval(87) > 1 AND readbit(gen(), 101, 8) = 0 THEN vis = vis XOR 1
  IF anim >= 0 AND aset = 0 AND vdance = 0 THEN GOSUB atkscript
  IF anim >= 0 AND aset = 1 AND vdance = 0 AND away = 0 THEN GOSUB action
  GOSUB animate
@@ -1152,8 +1154,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     checkTagCond atk(60), 3, atk(59), atk(61)
     checkTagCond atk(63), 3, atk(62), atk(64)
    END IF
-   tdwho = targ
-   GOSUB triggerfade
+   triggerfade targ, bstat(), bslot(), eflee(), ebits()
    IF bstat(targ).cur.hp > 0 THEN
     '---REVIVE---
     bslot(targ).vis = 1
@@ -1328,60 +1329,7 @@ IF atk(36) = 0 THEN
  battlecaptime = 0
  battlecapdelay = 0
 END IF
-GOSUB dieWOboss
 GOSUB fulldeathcheck
-RETRACE
-
-dieWOboss:
-bosses = 0
-'--count bosses
-FOR j = 4 TO 11
- '--is it a boss?
- IF readbit(ebits(), (j - 4) * 5, 56) = 1 THEN
-  '-- is it alive?
-  IF bstat(j).cur.hp > 0 THEN
-   bosses = bosses + 1
-  END IF
- END IF
-NEXT j
-'--if there are no bossess...
-IF bosses = 0 THEN
- '--for each foe...
- FOR j = 4 TO 11
-  '--should it die without a boss?
-  IF readbit(ebits(), (j - 4) * 5, 58) = 1 THEN
-   '-- is it still alive?
-   IF bstat(j).cur.hp > 0 THEN
-    '--trigger death fade
-    tdwho = j
-    bstat(tdwho).cur.hp = 0
-    GOSUB triggerfade
-   END IF
-  END IF
- NEXT j
-END IF
-RETRACE
-
-triggerfade:
-'If the target is really dead...
-IF bstat(tdwho).cur.hp = 0 THEN
- 'the number of ticks it takes the enemy to fade away is equal to half its width
- 'bslot(tdwho).dissolve = bslot(tdwho).w * .5
- if bslot(tdwho).deathtime = 0 then
-  bslot(tdwho).dissolve = bslot(tdwho).w / 2
- else
-  bslot(tdwho).dissolve = bslot(tdwho).deathtime
- end if
- IF is_enemy(tdwho) THEN
-  '--flee as alternative to death
-  IF readbit(ebits(), (tdwho - 4) * 5, 59) = 1 THEN
-   eflee(tdwho) = 1
-   'the number of ticks it takes an enemy to run away is based on its distance
-   'from the left side of the screen and its width. Enemys flee at 10 pixels per tick
-   bslot(tdwho).dissolve = (bslot(tdwho).w + bslot(tdwho).x) / 10
-  END IF
- END IF
-END IF
 RETRACE
 
 setuptarg: '--identify valid targets (heroes only)
@@ -1441,6 +1389,7 @@ ptarg = 2
 RETRACE
 
 fulldeathcheck:
+dieWOboss bstat(), bslot(), eflee(), ebits()
 deadguycount = 0
 FOR deadguy = 4 TO 11
  check_death deadguy, deadguycount, 0, who, you, them, mset, noifdead, plunder&, exper&, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), ext$(), bits(), ebits(), batname$(), found(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
@@ -1798,11 +1747,9 @@ FOR i = 0 TO 11
     harm = .max.poison - .cur.poison
     harm = range(harm, 20)
     quickinflict harm, i, hc(), hx(), hy(), bslot(), harm$(), bstat()
-    tdwho = i
-    GOSUB triggerfade
-    '--WARNING: WITH pointer probably corrupted
-    GOSUB dieWOboss
+    triggerfade i, bstat(), bslot(), eflee(), ebits()
     GOSUB fulldeathcheck
+    '--WARNING: WITH pointer probably corrupted
    END IF
   END IF
  END WITH
@@ -1817,11 +1764,9 @@ FOR i = 0 TO 11
     heal = heal * -1
     heal = range(heal, 20)
     quickinflict heal, i, hc(), hx(), hy(), bslot(), harm$(), bstat()
-    tdwho = i
-    GOSUB triggerfade
-    '--WARNING: WITH pointer probably corrupted
-    GOSUB dieWOboss
+    triggerfade i, bstat(), bslot(), eflee(), ebits()
     GOSUB fulldeathcheck
+    '--WARNING: WITH pointer probably corrupted
    END IF
   END IF
  END WITH
@@ -1939,18 +1884,13 @@ FOR i = 0 TO 24
 				if .sprites = 0 then continue for
 				
 				'debug(str(zbuf(i)))
-				'sprite_crash_invalid(spr)
 				
 				if .frame < .sprite_num then spr += .frame
-				
-				'sprite_crash_invalid(spr)
 				
 				if .d then
 					spr = sprite_flip_horiz(spr)
 					custspr = -1
 				end if
-				
-				'sprite_crash_invalid(spr)
 				
 				if is_enemy(zbuf(i)) and .dissolve > 0 and eflee(zbuf(i)) = 0 then
 					dim as integer dtype, dtime
@@ -2107,7 +2047,7 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 FOR i = 0 TO 7
- loadfoe i, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
+ loadfoe i, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$(), YES
 NEXT i
 FOR i = 0 TO 11
  ctr(i) = INT(RND * 500)
@@ -2131,25 +2071,7 @@ FOR i = 0 TO 3
 NEXT i
 bslot(24).w = 24
 bslot(24).h = 24
-bos = 0
-FOR i = 4 TO 11
- IF readbit(ebits(), (i - 4) * 5, 56) = 1 THEN bos = 1
-NEXT i
-IF bos = 0 THEN
- FOR i = 4 TO 11
-  ' check the "die without boss" bitset
-  IF readbit(ebits(), (i - 4) * 5, 58) = 1 THEN
-   tdwho = i
-   bstat(tdwho).cur.hp = 0
-   GOSUB triggerfade
-  END IF
- NEXT i
- deadguycount = 0
- FOR deadguy = 4 TO 11
-  check_death deadguy, deadguycount, 0, who, you, them, mset, noifdead, plunder&, exper&, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), ext$(), bits(), ebits(), batname$(), found(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
- NEXT deadguy
- IF deadguycount = 8 THEN dead = 1
-END IF
+GOSUB fulldeathcheck
 RETRACE
 
 victory: '------------------------------------------------------------------
@@ -2454,8 +2376,9 @@ SUB spawn_on_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, killing_at
    slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 80)
-    deadguycount = deadguycount - 1
-    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
+    IF loadfoe(slot, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()) THEN
+     deadguycount -= 1
+    END IF
    END IF
   NEXT i
   es(deadguy - 4, 80) = 0
@@ -2465,8 +2388,9 @@ SUB spawn_on_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, killing_at
    slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 79)
-    deadguycount = deadguycount - 1
-    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
+    IF loadfoe(slot, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()) THEN
+     deadguycount -= 1
+    END IF
    END IF
   NEXT i
   es(deadguy - 4, 79) = 0
@@ -2481,6 +2405,57 @@ FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
  NEXT i
  RETURN -1
 END FUNCTION
+
+SUB dieWOboss(bstat() AS BattleStats, bslot() AS BattleSprite, eflee(), ebits())
+ DIM AS INTEGER j, bosses = 0
+ '--count bosses
+ FOR j = 4 TO 11
+  '--is it a boss?
+  IF readbit(ebits(), (j - 4) * 5, 56) = 1 THEN
+   '-- is it alive?
+   IF bstat(j).cur.hp > 0 THEN
+    bosses = bosses + 1
+   END IF
+  END IF
+ NEXT j
+ '--if there are no bossess...
+ IF bosses = 0 THEN
+  '--for each foe...
+  FOR j = 4 TO 11
+   '--should it die without a boss?
+   IF readbit(ebits(), (j - 4) * 5, 58) = 1 THEN
+    '-- is it still alive?
+    IF bstat(j).cur.hp > 0 THEN
+     '--trigger death fade
+     bstat(j).cur.hp = 0
+     triggerfade j, bstat(), bslot(), eflee(), ebits()
+    END IF
+   END IF
+  NEXT j
+ END IF
+END SUB
+
+SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, eflee(), ebits())
+ 'If the target is really dead...
+ IF bstat(who).cur.hp = 0 THEN
+  'the number of ticks it takes the enemy to fade away is equal to half its width
+  'bslot(who).dissolve = bslot(who).w * .5
+  if bslot(who).deathtime = 0 then
+   bslot(who).dissolve = bslot(who).w / 2
+  else
+   bslot(who).dissolve = bslot(who).deathtime
+  end if
+  IF is_enemy(who) THEN
+   '--flee as alternative to death
+   IF readbit(ebits(), (who - 4) * 5, 59) = 1 THEN
+    eflee(who) = 1
+    'the number of ticks it takes an enemy to run away is based on its distance
+    'from the left side of the screen and its width. Enemys flee at 10 pixels per tick
+    bslot(who).dissolve = (bslot(who).w + bslot(who).x) / 10
+   END IF
+  END IF
+ END IF
+END SUB
 
 SUB check_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, BYVAL killing_attack AS INTEGER,BYVAL who AS INTEGER, BYREF you AS INTEGER, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF plunder AS LONG, BYREF exper AS LONG, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), ext$(), bits(), ebits(), batname$(), found(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.

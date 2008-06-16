@@ -26,7 +26,7 @@ declare function getheropos(h,f,isy)'or x?
 declare sub heroanim (who, atk(), bslot() as battlesprite, t())
 declare function inflict (w, t, bstat() AS BattleStats, bslot() as battlesprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
 declare function liveherocount (bstat() AS BattleStats)
-declare sub loadfoe (i, formdata(), es(), bslot() as battlesprite, p(), ext$(), bits(), bstat() AS BattleStats, ebits(), batname$())
+declare function loadfoe (i, formdata(), es(), bslot() as battlesprite, p(), ext$(), bits(), bstat() AS BattleStats, ebits(), batname$(), allow_dead = NO)
 declare function randomally (who)
 declare function randomfoe (who)
 declare sub retreat (who, atk(), bslot() as battlesprite, t())

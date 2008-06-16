@@ -69,6 +69,8 @@ Feb ?? 2008 [werewaffle]
       running from battle. Also some other problems with inactive heroes
       not reporting from the very last command/battle only [Ralph]
     * Bug 637: Crash when editing doorlinks [Ralph]
+    * Bug 639: Enemies could spawn with 0hp or 'Die Without Boss' and no
+      bosses and not die. Now such enemies do not spawn at all. [Ralph]
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers
