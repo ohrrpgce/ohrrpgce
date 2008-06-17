@@ -335,10 +335,7 @@ IF targenemycount(bslot(), bstat()) = 1 THEN ai = 2
 'spawn allys when alone
 IF ai = 2 AND es(them - 4, 81) THEN
  FOR j = 1 TO es(them - 4, 91)
-  slot = -1
-  FOR k = 7 TO 0 STEP -1
-   IF formdata(k * 4) = 0 THEN slot = k
-  NEXT k
+  slot = find_empty_enemy_slot(formdata())
   IF slot > -1 THEN
    formdata(slot * 4) = es(them - 4, 81)
    loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
@@ -1406,10 +1403,7 @@ sponhit:
 FOR i = 0 TO 8
  IF es(targ - 4, 82 + i) > 0 AND atktype(i) = 1 THEN
   FOR j = 1 TO es(targ - 4, 91)
-   slot = -1
-   FOR k = 7 TO 0 STEP -1
-    IF formdata(k * 4) = 0 THEN slot = k
-   NEXT k
+   slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(targ - 4, 82 + i)
     loadfoe slot, formdata(), es(), bslot(), p(), ext$(), bits(), bstat(), ebits(), batname$()
@@ -2398,9 +2392,9 @@ SUB spawn_on_death(deadguy AS INTEGER, BYREF deadguycount AS INTEGER, killing_at
 END SUB
 
 FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
- 'Returns index of last empty slot, or -1 if none was found
+ 'Returns index of first empty slot, or -1 if none was found
  DIM i AS INTEGER
- FOR i = 7 TO 0 STEP -1
+ FOR i = 0 TO 7
   IF formdata(i * 4) = 0 THEN RETURN i
  NEXT i
  RETURN -1
