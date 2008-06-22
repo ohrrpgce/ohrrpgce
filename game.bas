@@ -389,6 +389,8 @@ END IF
 
 IF autorungame = 0 THEN
  edgeboxstyle 4, 3, 312, 14, 0, vpage
+ELSE
+ setpal master()
 END IF
 
 edgeprint "Loading...", xstring("Loading...", 160), 6, uilook(uiText), vpage

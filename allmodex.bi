@@ -12,7 +12,7 @@ DECLARE SUB restoremode ()
 DECLARE FUNCTION allocatepage() as integer
 DECLARE SUB freepage (BYVAL page as integer)
 DECLARE SUB copypage (BYVAL page1, BYVAL page2, BYVAL y = 0, BYVAL top = 0, BYVAL bottom = 199)
-DECLARE SUB clearpage (BYVAL page)
+DECLARE SUB clearpage (BYVAL page, BYVAL top = 0, BYVAL bottom = 199, BYVAL colour = 0)
 DECLARE SUB setvispage (BYVAL page)
 DECLARE SUB setpal (pal() as RGBcolor)
 DECLARE SUB fadeto (BYVAL red, BYVAL green, BYVAL blue)

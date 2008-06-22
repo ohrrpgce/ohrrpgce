@@ -316,12 +316,11 @@ SUB importscripts (f$)
 
  setpicstuf buffer(), 7, -1
  loadset f$, 0, 0
- clearpage vpage
+ reset_console
  IF buffer(0) = 21320 AND buffer(1) = 0 THEN
 
   copyfile f$, game + ".hsp"
   textcolor uilook(uiMenuItem), 0
-  textx = 0: texty = 0
   unlumpfile(game + ".hsp", "scripts.bin", tmpdir)
   IF isfile(tmpdir & "scripts.bin") THEN
    dotbin = -1
@@ -411,20 +410,9 @@ SUB importscripts (f$)
    END IF
 
    'display progress
-   IF textx + LEN(names) + 1 >= 40 THEN
-    textx = 0
-    texty = texty + 1
-    IF texty > 23 THEN
-     setvispage vpage 'force refresh
-     clearpage vpage
-     texty = 0
-    END IF
-   END IF
-
    IF id < 16384 OR trigger > 0 THEN
     viscount = viscount + 1
-    printstr names + ",", textx * 8, texty * 8, vpage
-    textx = textx + LEN(names) + 2
+    append_message names & ", "
    END IF
   LOOP
 
@@ -446,7 +434,9 @@ SUB importscripts (f$)
 
   CLOSE #fptr
   IF dotbin THEN safekill tmpdir & "scripts.bin" ELSE safekill tmpdir & "scripts.txt"
-  edgeprint "imported" + XSTR$(viscount) + " scripts", 0, 180, uilook(uiText), vpage
+  
+  textcolor uilook(uiText), 0
+  show_message "imported " & viscount & " scripts"
 
  ELSE
   texty = 0
@@ -457,8 +447,8 @@ SUB importscripts (f$)
   printstr "you just give your script a name that", 0, texty * 8, vpage: texty = texty + 1
   printstr "ends in .hs and hoped it would work?", 0, texty * 8, vpage: texty = texty + 1
   printstr "Use hspeak.exe to create real .hs files", 0, texty * 8, vpage: texty = texty + 1
+  setvispage vpage 'force refresh for FB
  END IF
- setvispage vpage 'force refresh for FB
  w = getkey
 END SUB
 

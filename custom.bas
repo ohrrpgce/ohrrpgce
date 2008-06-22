@@ -135,7 +135,7 @@ DIM attack_frame_captions(2) AS STRING = {"First Frame","Middle Frame","Last Fra
 
 keyboardsetup
 
-dpage = 1: vpage = 0: Rate = 160
+dpage = 1: vpage = 0
 game = ""
 gamefile = ""
 hsfile$ = ""
@@ -170,11 +170,10 @@ setwindowtitle "OHRRPGCE - " + gamefile
 
 GOSUB checkpass
 
-clearpage 0
-setvispage 0
+clearpage vpage
 textcolor uilook(uiText), 0
-printstr "UNLUMPING DATA: please wait.", 0, 0, 0
-setvispage 0
+printstr "UNLUMPING DATA: please wait.", 0, 0, vpage
+setvispage vpage
 
 touchfile workingdir + SLASH + "__danger.tmp"
 
@@ -212,10 +211,10 @@ xbload game + ".fnt", font(), "Font not loaded"
 xbload game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
 
 'Load palette and uicolors to display messages while upgrading
-activepalette = gen(genMasterPal)
-loadpalette master(), activepalette
+load_default_master_palette master()
 setpal master()
-LoadUIColors uilook(), activepalette
+'get default ui colours
+LoadUIColors uilook()
 
 'upgrade obsolete RPG files
 upgrade font()

@@ -24,6 +24,15 @@ DECLARE SUB embedtext (text$, limit=0)
 DECLARE FUNCTION istag (num, zero)
 #ENDIF
 
+'a primitive system for printing messages that scroll
+TYPE ConsoleData
+ AS INTEGER x = 0, y = 0, top = 0, bottom = 199, c = 0
+END TYPE
+DIM SHARED console AS ConsoleData
+
+'don't black out the screen to show upgrade messages if there aren't any
+DIM SHARED upgrademessages AS INTEGER
+
 SUB edgeprint (s$, x, y, c, p)
 textcolor uilook(uiOutline), 0
 printstr s$, x, y + 1, p
@@ -1335,22 +1344,46 @@ SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 4)
 END SUB
 
 SUB upgrade_message (s AS STRING)
- STATIC already = 0
- IF NOT already THEN
-  already = -1
+ IF NOT upgrademessages THEN
+  upgrademessages = -1
+  reset_console 20, 199
   upgrade_message "Auto-Updating obsolete RPG file"
  END IF
  debug "rpgfix:" & s
  show_message(s)
 END SUB
 
+SUB reset_console (top AS INTEGER = 0, bottom AS INTEGER = 199, c AS INTEGER = 0)
+ WITH console
+  .top = top
+  .bottom = bottom
+  .x = 0
+  .y = top
+  .c = c
+  clearpage vpage, .top, .bottom, c
+ END WITH
+END SUB
+
 SUB show_message (s AS STRING)
- STATIC y = 0
- IF y = 0 THEN clearpage vpage
- printstr s, 0, y * 8, vpage
- setvispage vpage
- y += 1
- IF y >= 25 THEN y = 0
+ WITH console
+  IF .x > 0 THEN .x = 0 : .y += 8
+  append_message s
+ END WITH
+END SUB
+
+SUB append_message (s AS STRING)
+ WITH console
+  IF .x > 0 AND LEN(s) * 8 + .x > 320 THEN .x = 0 : .y += 8
+  IF .y >= .bottom - 8 THEN
+   'scroll page up 2 lines
+   copypage vpage, vpage, .top + 16, .top, .bottom
+   clearpage vpage, .bottom - 15, .bottom
+   .y -= 16
+  END IF
+  printstr s, .x, .y, vpage
+  .x += LEN(s) * 8
+  setvispage vpage
+ END WITH
 END SUB
 
 SUB loadtanim (n, tastuf())
@@ -1556,6 +1589,8 @@ END FUNCTION
 SUB upgrade (font())
 DIM pal16(8)
 
+upgrademessages = 0
+
 IF NOT fileiswriteable(workingdir + SLASH + "writetest.tmp") THEN
  upgrade_message workingdir & " not writable"
  upgrade_message "Making no attempt to upgrade"
@@ -1591,7 +1626,7 @@ IF gen(genVersion) = 1 THEN
  getdefaultfont font()
  xbsave game + ".fnt", font(), 2048
  setfont font()
- upgrade_message "rpgfix:Making AniMaptiles Backward Compatable"
+ upgrade_message "rpgfix:Making AniMaptiles Backward Compatible"
  FOR i = 0 TO 39
   buffer(i) = 0
  NEXT i

@@ -216,11 +216,17 @@ SUB freepage (BYVAL page as integer)
 END SUB
 
 SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer, BYVAL y as integer = 0, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
-	memcpy(spage(page2) + 320 * top, spage(page1) + 320 * y, 320 * (bottom - top + 1))
+	dim lines as integer
+	top = bound(top, 0, 199)
+	y = bound(y, 0, 199)
+	lines = bound(bottom - top + 1, 0, small(200 - y, 200 - top))
+	memmove(spage(page2) + 320 * top, spage(page1) + 320 * y, 320 * lines)
 end sub
 
-SUB clearpage (BYVAL page as integer)
-	memset(spage(page), 0, 320 * 200)
+SUB clearpage (BYVAL page as integer, BYVAL top as integer = 0, BYVAL bottom as integer = 199, BYVAL colour as integer = 0)
+	top = bound(top, 0, 199)
+	bottom = bound(bottom, top, 199)
+	memset(spage(page) + 320 * top, colour, 320 * (bottom - top + 1))
 	wrkpage = page
 end SUB
 

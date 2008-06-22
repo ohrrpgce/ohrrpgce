@@ -119,8 +119,9 @@ DECLARE SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGE
 DECLARE FUNCTION intgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
 DECLARE FUNCTION zintgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
 DECLARE FUNCTION xintgrabber (n AS INTEGER, pmin AS INTEGER, pmax AS INTEGER, nmin AS INTEGER, nmax AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
-DECLARE SUB upgrade_message (s AS STRING)
+DECLARE SUB reset_console (top AS INTEGER = 0, bottom AS INTEGER = 199, c AS INTEGER = 0)
 DECLARE SUB show_message (s AS STRING)
+DECLARE SUB append_message (s AS STRING)
 
 DECLARE SUB position_menu (menu AS MenuDef)
 DECLARE SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
