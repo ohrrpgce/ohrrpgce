@@ -386,10 +386,10 @@ LOOP
 RETRACE
 
 cleanup:
-rpg$(0) = "RECOVER IT"
-rpg$(1) = "ERASE IT"
-rpg$(2) = "DO NOTHING"
-temp = 0
+rpg$(0) = "DO NOTHING"
+rpg$(1) = "RECOVER IT"
+rpg$(2) = "ERASE IT"
+clean_choice = 0
 a$ = "recovered"
 i = 0
 DO WHILE isfile("recovered" + STR$(i) + ".bak")
@@ -401,9 +401,9 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- usemenu temp, 0, 0, 2, 2
+ usemenu clean_choice, 0, 0, 2, 2
  IF enter_or_space() THEN
-  IF temp = 0 THEN
+  IF clean_choice = 1 THEN
    IF isfile(workingdir + SLASH + "__danger.tmp") THEN
     textcolor uilook(uiSelectedItem), uilook(uiHighlight) 'FIXME: new uilook for warning text colors?
     printstr "Data is corrupt, not safe to relump", 0, 100, vpage
@@ -429,8 +429,8 @@ DO
     RETRACE
    END IF '---END RELUMP
   END IF
-  IF temp = 1 THEN RETRACE
-  IF temp = 2 THEN nocleanup = 1: RETRACE
+  IF clean_choice = 2 THEN RETRACE
+  IF clean_choice = 0 THEN nocleanup = 1: RETRACE
  END IF
  textcolor uilook(uiSelectedDisabled), 0
  printstr "A game was found unlumped", 0, 0, dpage
@@ -439,13 +439,13 @@ DO
  printstr "that another copy of " + CUSTOMEXE + " is", 0, 56, dpage
  printstr "already running in the background.", 0, 64, dpage
 
- standardmenu rpg$(), 2, 2, temp, 0, 0, 8, dpage, 0
+ standardmenu rpg$(), 2, 2, clean_choice, 0, 0, 8, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
  dowait
-LOOP'a$
+LOOP
 
 makeworkingdir:
 IF NOT isdir(workingdir) THEN
