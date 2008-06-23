@@ -1624,7 +1624,7 @@ SUB edit_menu_bits (menu AS MenuDef)
  
  bitname(0) = "Translucent box"
  bitname(1) = "Never show scrollbar"
- bitname(2) = "Allow gameplay"
+ bitname(2) = "Allow gameplay & scripts"
  bitname(3) = "Suspend player even if gameplay allowed"
  bitname(4) = "No box"
  bitname(5) = "Cancel button doesn't close menu"
