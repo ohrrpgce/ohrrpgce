@@ -850,7 +850,6 @@ sub sound_free(byval num as integer)
 end sub
 
 function sound_playing(byval num as integer,  byval s as integer = 0) as integer
-  dim stat as integer
   dim slot as integer
   if not s then slot = SoundSlot(num) else slot = num
   if slot = -1 then return 0
