@@ -2268,9 +2268,6 @@ FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
  DIM cap AS STRING
  DIM menutemp AS MenuDef
  cap = mi.caption
- #IFDEF IS_GAME
- embedtext cap
- #ENDIF
  IF LEN(cap) = 0 THEN
   'No caption, use the default
   SELECT CASE mi.t
@@ -2289,6 +2286,9 @@ FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
   END SELECT
  END IF
  IF menu.edit_mode = YES AND LEN(TRIM(cap)) = 0 THEN cap = "[BLANK]" 
+ #IFDEF IS_GAME
+  embedtext cap
+ #ENDIF
  IF menu.max_chars > 0 THEN ' Crop overlength
   IF menu.align = 1 THEN ' right align
    cap = RIGHT(cap, menu.max_chars)
