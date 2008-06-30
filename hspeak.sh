@@ -7,4 +7,4 @@ if [ ! -d "${EUDIR}" ] ; then
 fi
 export PATH=${PATH}:${EUDIR}/bin
 export TERM=ansi
-exu hspeak.exw $*
+exu hspeak.exw "$@"
