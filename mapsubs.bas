@@ -44,6 +44,7 @@ DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
+DECLARE SUB paint_map_area(oldTile%, x%, y%, layer%, usetile%(), map%(), pass%(), defaults() AS DefArray, tilesets%(), defpass%)
 
 DECLARE Function LayerIsVisible(vis() as integer, byval l as integer) as integer
 DECLARE Function LayerIsEnabled(gmap() as integer, byval l as integer) as integer
@@ -615,6 +616,10 @@ DO
       IF readmapblock(tx, ty, layer) = old THEN setmapblock tx, ty, layer, usetile(layer)
      NEXT tx
     NEXT ty
+   END IF
+   IF keyval(25) > 1 AND keyval(29) > 0 THEN' Ctrl+P to paint a continuous section of maptiles
+    old = readmapblock(x, y, layer)
+    paint_map_area old, x, y, layer, usetile(), map(), pass(), defaults(), tilesets(), defpass
    END IF
    IF keyval(29) > 0 AND keyval(36) > 1 THEN
      setbit jiggle(), 0, layer, (readbit(jiggle(), 0, layer) XOR 1)
@@ -1910,4 +1915,17 @@ FOR i = 0 TO 24
    topmenu$(i) = ""
  END SELECT
 NEXT i
+END SUB
+
+'recursively iterate through all contiguous maptiles, changing if the area continues, and stopping if it is blocked by a different kind of maptile
+SUB paint_map_area(oldTile, x, y, layer, usetile(), map(), pass(), defaults() AS DefArray, tilesets(), defpass)
+IF (y < map(1)) AND (y >= 0) AND (x < map(0)) AND (x >= 0) AND (oldTile = readmapblock(x, y, layer)) AND (oldTile <> usetile(layer)) THEN
+ setmapblock x, y, layer, usetile(layer)
+ IF defpass THEN calculatepassblock x, y, map(), pass(), defaults(), tilesets()
+ 
+ paint_map_area oldTile, x + 1, y, layer, usetile(), map(), pass(), defaults(), tilesets(), defpass
+ paint_map_area oldTile, x - 1, y, layer, usetile(), map(), pass(), defaults(), tilesets(), defpass
+ paint_map_area oldTile, x, y + 1, layer, usetile(), map(), pass(), defaults(), tilesets(), defpass
+ paint_map_area oldTile, x, y - 1, layer, usetile(), map(), pass(), defaults(), tilesets(), defpass
+END IF
 END SUB

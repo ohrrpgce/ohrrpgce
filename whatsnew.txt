@@ -1,8 +1,13 @@
 WHAT IS NEW?
 
-Feb ?? 2008 [werewaffle]
+July ?? 2008 [werewaffle]
 
   * New Features
+    * While editing the tilemap of a map, use Ctrl+P to fill in the
+      current maptile and all maptiles of the same type touching
+      the current maptile with the selected maptile. This is analogous
+      in functionality to the paint can tool in most modern drawing
+      programs. [Cameron Wilkin]
     * Mark/Clone brush tool in the sprite editor and the maptile editor.
       Mark a rectangular region of a sprite and then use the clone tool
       to duplicate it. [James Paige]
