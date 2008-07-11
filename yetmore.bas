@@ -389,6 +389,8 @@ SELECT CASE AS CONST id
   IF retvals(0) = -1 AND liveherocount(stat()) > 0 THEN retvals(1) = retvals(1) / liveherocount(stat())
   FOR i = 0 TO 40
    IF i = retvals(0) OR (retvals(0) = -1 AND i <= 3) THEN
+    'dead heroes should be recorded as not gaining levels.
+    stat(i, 1, 12) = 0
     'give the XP to the hero only if it is alive if party is target
     IF retvals(0) <> -1 OR stat(i, 0, 0) > 0 THEN giveheroexperience i, stat(), retvals(1)
     updatestatslevelup i, stat(), dummystats(), 0
