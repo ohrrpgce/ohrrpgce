@@ -682,10 +682,12 @@ DO
   IF keyval(66) > 1 THEN patcharray gen(), "gen"
   IF keyval(67) > 1 THEN patcharray gmap(), "gmap"
   IF keyval(68) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): showtags = 0
-  IF keyval(87) > 1 THEN debug_npcs
-  IF keyval(29) > 0 THEN
+  IF keyval(29) > 0 THEN ' holding CTRL
    IF keyval(74) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = XSTR$(speedcontrol)
    IF keyval(78) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = XSTR$(speedcontrol)
+   IF keyval(87) > 1 THEN ghost = ghost XOR 1
+  ELSE ' not holding CTRL
+   IF keyval(87) > 1 THEN debug_npcs
   END IF
   IF keyval(29) > 0 AND keyval(32) > 0 THEN scriptout$ = scriptstate$
   IF keyval(41) > 1 then map_draw_mode = not map_draw_mode
