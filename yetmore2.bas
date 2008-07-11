@@ -1034,3 +1034,23 @@ SUB reloadscript (si as ScriptInst, updatestats)
   script(si.scrnum).lastuse = scriptctr
  END IF
 END SUB
+
+SUB debug_npcs ()
+ debug "NPC types:"
+ FOR i AS INTEGER = 0 TO 35
+  debug " ID " & i & ": pic=" & npcs(i).picture & " pal=" & npcs(i).palette
+ NEXT
+ debug "NPC instances:"
+ FOR i AS INTEGER = 0 TO 299
+  WITH npc(i)
+   IF .id <> 0 THEN
+    DIM AS INTEGER drawX, drawY
+    IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawX, drawY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+     debug " " & i & ": ID=" & SGN(.id) * (ABS(.id) - 1) & " x=" & .x & " y=" & .y & " screenx=" & drawX & " screeny=" & drawY
+    ELSE
+     debug " " & i & ": ID=" & SGN(.id) * (ABS(.id) - 1) & " x=" & .x & " y=" & .y
+    END IF
+   END IF
+  END WITH
+ NEXT
+END SUB

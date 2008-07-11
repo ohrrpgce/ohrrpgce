@@ -180,6 +180,7 @@ DECLARE FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
 DECLARE FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER, visible_only AS INTEGER=YES) AS INTEGER
 DECLARE FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING, mislot AS INTEGER=0, visible_only AS INTEGER=YES) AS INTEGER
 DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
+DECLARE SUB debug_npcs ()
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -681,7 +682,7 @@ DO
   IF keyval(66) > 1 THEN patcharray gen(), "gen"
   IF keyval(67) > 1 THEN patcharray gmap(), "gmap"
   IF keyval(68) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): showtags = 0
-  IF keyval(87) > 1 THEN ghost = ghost XOR 1
+  IF keyval(87) > 1 THEN debug_npcs
   IF keyval(29) > 0 THEN
    IF keyval(74) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = XSTR$(speedcontrol)
    IF keyval(78) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = XSTR$(speedcontrol)

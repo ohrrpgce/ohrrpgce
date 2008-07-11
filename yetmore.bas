@@ -2020,18 +2020,32 @@ SELECT CASE AS CONST id
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= npcdMax THEN
    FOR i = 299 TO 0 STEP -1
-    IF npc(i).id = 0 THEN
-     npc(i).id = retvals(0) + 1
-     cropposition retvals(1), retvals(2), 1
-     npc(i).x = retvals(1) * 20
-     npc(i).y = retvals(2) * 20
-     npc(i).dir = ABS(retvals(3)) MOD 4
-     npc(i).xgo = 0
-     npc(i).ygo = 0
-     scriptret = (i + 1) * -1
-     EXIT FOR
+    IF npc(i).id = 0 THEN EXIT FOR
+   NEXT
+   'for backwards compatibility with games that max out the number of NPCs, try to overwrite tag-disabled NPCs
+   'delete this bit once we raise the NPC limit
+   IF i = -1 THEN
+    FOR i = 299 TO 0 STEP -1
+     IF npc(i).id <= 0 THEN EXIT FOR
+    NEXT
+    'I don't want to raise a scripterr here, again because it probably happens in routine in games like SoJ
+    debug "create NPC: trying to create NPC id " & retvals(0) & " at " & retvals(1)*20 & "," & retvals(2)*20
+    IF i = -1 THEN 
+     debug "create NPC error: couldn't create NPC: too many NPCs exist"
+    ELSE
+     debug "create NPC warning: had to overwrite tag-disabled NPC id " & ABS(npc(i).id)-1 & " at " & npc(i).x & "," & npc(i).y & ": too many NPCs exist"
     END IF
-   NEXT i
+   END IF
+   IF i > -1 THEN
+    npc(i).id = retvals(0) + 1
+    cropposition retvals(1), retvals(2), 1
+    npc(i).x = retvals(1) * 20
+    npc(i).y = retvals(2) * 20
+    npc(i).dir = ABS(retvals(3)) MOD 4
+    npc(i).xgo = 0
+    npc(i).ygo = 0
+    scriptret = (i + 1) * -1
+   END IF
   END IF
  CASE 126 '--destroy NPC
   npcref = getnpcref(retvals(0), 0)
