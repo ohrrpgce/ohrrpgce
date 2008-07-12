@@ -39,6 +39,9 @@ July ?? 2008 [werewaffle]
     * Menu scripts on menus with the "suspend gameplay" bit turned on
       receive extra menu data as arguments. (Menu scripts on normal
       menus still receive a menu item handle) [James]
+    * Debug keys: Ctrl+F11 to display NPC id and reference numbers.
+      Ctrl +/- for changing the framerate work again. Ctrl+~ to see
+      the FPS - this works everywhere. [Ralph]
 
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged
