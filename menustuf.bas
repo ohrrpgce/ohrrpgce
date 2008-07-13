@@ -1050,7 +1050,12 @@ IF pick = 0 THEN
       MenuSound gen(genCancelSFX)
      END IF
      pick = 1
-     spred = 0
+     spred = 0 ' Default to focused
+     IF ttype = 1 THEN ' Spread (but not optional spread) defaults to spread
+      FOR i = 0 TO 3
+       IF chkOOBtarg(i, wptr, stat()) THEN spred = spred + 1
+      NEXT i
+     END IF
      MenuSound gen(genAcceptSFX)
      RETRACE
     END IF
