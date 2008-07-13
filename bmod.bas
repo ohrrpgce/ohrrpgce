@@ -2257,6 +2257,7 @@ END SUB
 
 SUB quickinflict (harm, targ, hc(), hx(), hy(), bslot() AS BattleSprite, harm$(), bstat() AS BattleStats)
 '--quick damage infliction to hp. no bells and whistles
+DIM max_bound AS INTEGER
 hc(targ) = 7
 hx(targ) = bslot(targ).x + (bslot(targ).w * .5)
 hy(targ) = bslot(targ).y + (bslot(targ).h * .5)
@@ -2268,7 +2269,8 @@ END IF
 
 if gen(genDamageCap) > 0 THEN harm = small(harm, gen(genDamageCap))
 
-bstat(targ).cur.hp = bound(bstat(targ).cur.hp - harm, 0, bstat(targ).max.hp)
+max_bound = large(bstat(targ).cur.hp, bstat(targ).max.hp)
+bstat(targ).cur.hp = bound(bstat(targ).cur.hp - harm, 0, max_bound)
 END SUB
 
 SUB anim_end()
