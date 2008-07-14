@@ -13,6 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Gh 2008-07-14 Disable warnings for unused variables by default, and
+--               Add -u option to enable warnings for unused variables.
 --3Gg 2008-03-01 Raise global variable limits
 --3Gf 2008-02-11 Give user another chance on missing Y key :P
 --3Ge 2007-07-01 String conversion rewrite to allow more whitespace
@@ -91,7 +93,7 @@ constant true=1
 constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
-constant COMPILER_SUB_VERSION="Gg"
+constant COMPILER_SUB_VERSION="Gh"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -417,6 +419,7 @@ procedure check_arg_count(sequence args)
     color_print("   -s print the name of each script as it is compiled\n",{})
     color_print("     -a same as -s, but including autonumbered scripts\n",{})
     color_print("   -w suppress minor warnings\n",{})
+    color_print("   -u show warnings for unused variables\n",{})
     color_print("   -y overwrite the destination file without asking\n",{})
     color_print("   -z write error messages to hs_error.htm\n",{})
     wrap_print("\nFor more info about Hamsterspeak visit "&COLBWHI&"http://HamsterRepublic.com/ohrrpgce"&COLWHI&"\n",{})
@@ -2461,23 +2464,27 @@ end function
 ---------------------------------------------------------------------------
 
 procedure warn_unused_locals(sequence vars)
-  for i=1 to length(vars) do
-    if not find(vars[i][CMD_TEXT],used_locals) then
-      src_warn(sprintf("local variable "&COLYEL&"%s"&COLRED&" is never used",{vars[i][CMD_TEXT]}),vars[i][CMD_LINE])
-    end if
-  end for
+  if find('u',optlist) then
+    for i=1 to length(vars) do
+      if not find(vars[i][CMD_TEXT],used_locals) then
+        src_warn(sprintf("local variable "&COLYEL&"%s"&COLRED&" is never used",{vars[i][CMD_TEXT]}),vars[i][CMD_LINE])
+      end if
+    end for
+  end if
 end procedure
 
 ---------------------------------------------------------------------------
 
 procedure warn_unused_globals()
   integer at
-  for i=1 to length(global_list[PAIR_NUM]) do
-    at=find(global_list[PAIR_NAME][i],used_globals)
-    if not at then
-      src_warn(sprintf("global variable "&COLYEL&"%s"&COLRED&" ID "&COLYEL&"%d"&COLRED&" is never used",{global_list[PAIR_NAME][i],global_list[PAIR_NUM][i]}),global_list[GLB_LINE][i])
-    end if
-  end for
+  if find('u',optlist) then
+    for i=1 to length(global_list[PAIR_NUM]) do
+      at=find(global_list[PAIR_NAME][i],used_globals)
+      if not at then
+        src_warn(sprintf("global variable "&COLYEL&"%s"&COLRED&" ID "&COLYEL&"%d"&COLRED&" is never used",{global_list[PAIR_NAME][i],global_list[PAIR_NUM][i]}),global_list[GLB_LINE][i])
+      end if
+    end for
+  end if
 end procedure
 
 ---------------------------------------------------------------------------
