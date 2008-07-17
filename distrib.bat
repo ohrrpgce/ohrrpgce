@@ -112,9 +112,10 @@ support\cp support\LICENSE-madplay.txt tmpdist\support
 support\cp support\oggenc.exe tmpdist\support
 support\cp support\LICENSE-oggenc.txt tmpdist\support
 support\cp vikings.rpg tmpdist
-support\cp ..\games\vikings\vikings.hss tmpdist
-support\cp ..\games\vikings\vikings.hsi tmpdist
-support\cp ..\games\vikings\utility.hsi tmpdist
+mkdir "tmpdist\Vikings script files"
+support\cp "..\games\vikings\Vikings script files\viking.txt" "tmpdist\Vikings script files"
+support\cp "..\games\vikings\Vikings script files\viking.hsi" "tmpdist\Vikings script files"
+support\cp "..\games\vikings\Vikings script files\utility.lib" "tmpdist\Vikings script files"
 support\cp ..\games\vikings\README-vikings.txt tmpdist
 
 mkdir tmpdist\import
@@ -155,6 +156,7 @@ DEL tmpdist\*.???
 RMDIR /s /q tmpdist\support
 RMDIR /s /q tmpdist\import
 RMDIR /s /q tmpdist\docs
+RMDIR /s /q "tmpdist\Vikings script files"
 CD tmpdist
 %SVN% info .. | ..\support\grep "^URL:" | ..\support\sed s/"^URL: "/"SET REPOSITORY="/ > svnrepo.bat
 CALL svnrepo.bat

@@ -64,10 +64,8 @@ cp -p LICENSE-binary.txt tmp
 cp -p whatsnew.txt tmp
 
 echo "  Including Vikings of Midgard"
-cp -p vikings.rpg tmpdist
-cp -p ../games/vikings/vikings.hss tmp
-cp -p ../games/vikings/vikings.hsi tmp
-cp -p ../games/vikings/utility.hsi tmp
+cp -p vikings.rpg tmp
+cp -pr "../games/vikings/Vikings script files" tmp
 cp -p ../games/vikings/README-vikings.txt tmp
 
 echo "  Including import"
