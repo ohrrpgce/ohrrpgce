@@ -694,8 +694,7 @@ NEXT o
 liveherocount = i
 END FUNCTION
 
-FUNCTION loadfoe (i, formdata(), es(), bslot() AS BattleSprite, p(), ext$(), bits(), bstat() AS BattleStats, ebits(), batname$(), allow_dead = NO)
-'return true if the enemy was successfully spawned
+SUB loadfoe (i, formdata(), es(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), batname$(), BYREF plunder AS INTEGER, BYREF exper AS INTEGER, found(), allow_dead = NO)
 IF formdata(i * 4) > 0 THEN
  loadenemydata buffer(), formdata(i * 4) - 1, -1
  FOR o = 0 TO 160
@@ -705,21 +704,15 @@ IF formdata(i * 4) > 0 THEN
   ebits(i * 5 + o) = buffer(74 + o)
  NEXT o
  IF allow_dead = NO THEN
-  'enemies which would die instantly are not allowed to spawn
-  'die without boss?
-  IF readbit(ebits(), i * 5, 58) = 1 THEN
-   boss = 0
-   FOR j = 4 TO 11
-    '--is it a boss?
-    IF readbit(ebits(), (j - 4) * 5, 56) = 1 THEN
-     '-- is it alive?
-     IF bstat(j).cur.hp > 0 THEN boss = 1
-    END IF
-   NEXT j
-   IF boss = 0 THEN formdata(i * 4) = 0: RETURN 0
+  'enemies which spawn already-dead should be killed off immediately
+  'die without boss or 0 hp?
+  IF dieWOboss(4 + i, bstat(), ebits()) OR es(i, 62) <= 0 THEN
+   'rewards and spawn enemies on death
+   'enemy is only partially constructed, but already have everything needed.
+   DIM atktype(8) 'regular "spawn on death"
+   dead_enemy 4 + i, plunder, exper, bstat(), bslot(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), found()
+   EXIT SUB
   END IF
-  '0 hp?
-  IF es(i, 62) <= 0 THEN formdata(i * 4) = 0: RETURN 0
  END IF
  WITH bslot(4 + i)
   .basex = formdata(i * 4 + 1)
@@ -733,17 +726,14 @@ IF formdata(i * 4) > 0 THEN
   .deathtype = es(i, 22)
   .deathtime = es(i, 23)
   IF es(i, 55) = 0 THEN
-   ext$(i) = ".pt1"
    .w = 34
    .h = 34
   END IF
   IF es(i, 55) = 1 THEN
-   ext$(i) = ".pt2"
    .w = 50
    .h = 50
   END IF
   IF es(i, 55) = 2 THEN
-   ext$(i) = ".pt3"
    .w = 80
    .h = 80
   END IF
@@ -754,10 +744,13 @@ IF formdata(i * 4) > 0 THEN
 END IF
 IF bslot(4 + i).vis = 1 THEN
  setpicstuf buffer(), (bslot(4 + i).w * bslot(4 + i).h) * .5, 3
- loadset game + ext$(i), es(i, 53), 64 + i * 10
+ IF es(i, 55) = 0 THEN ext$ = ".pt1"
+ IF es(i, 55) = 1 THEN ext$ = ".pt2"
+ IF es(i, 55) = 2 THEN ext$ = ".pt3"
+ loadset game + ext$, es(i, 53), 64 + i * 10
  with bslot(4 + i)
   .sprite_num = 1
-  .sprites = sprite_load(game + ext$(i), es(i, 53), 1, .w, .h)
+  .sprites = sprite_load(game + ext$, es(i, 53), 1, .w, .h)
   if not sprite_is_valid(.sprites) then debug "Failed to load enemy sprite (#" & i & ")"
   .pal = palette16_load(game + ".pal", es(i, 54), 1 + es(i, 55), es(i, 53))
   if .pal = 0 then debug "Failed to load palette (#" & (4+i) & ")"
@@ -777,8 +770,7 @@ IF bslot(4 + i).vis = 1 THEN
 ELSE
  bslot(4 + i).sprites = 0
 END IF
-RETURN YES
-END FUNCTION
+END SUB
 
 FUNCTION randomally (who)
 IF is_hero(who) THEN

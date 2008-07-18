@@ -50,8 +50,8 @@ July ?? 2008 [werewaffle]
     * Attempting to display a blank global text string, or the "fail"
       message in certain cases, would crash under Linux, and "fail"
       wouldn't display under Windows [Ralph Versteegen]
-    * Importing a screen/tileset with a new master palette no longer
-      blacks out all UI colours.
+    * Importing a new master palette could black out or fails to
+      remap UI colours. [Ralph]
     * unlump and relump on Linux now correctly handle uppercase
       rpgdirs [James Paige]
     * Bug 605: array-out-of-bounds when playing sound effects when
@@ -73,12 +73,12 @@ July ?? 2008 [werewaffle]
       without advancetextbox
     * Bug 432: "use door" sometimes goes through the door you are
       standing on instead of the intended one [Ralph]
-    * Bug 481: "hero levelled" and "spells learnt" doesn't reset after
+    * Bug 481: "hero levelled" and "spells learnt" don't reset after
       running from battle. Also some other problems with inactive heroes
       not reporting from the very last command/battle only [Ralph]
     * Bug 637: Crash when editing doorlinks [Ralph]
-    * Bug 639: Enemies could spawn with 0hp or 'Die Without Boss' and no
-      bosses and not die. Now such enemies do not spawn at all. [Ralph]
+    * Bug 639: Enemies which spawn with 0hp or 'Die Without Boss' and no
+      bosses now die immediately, without being shown. [Ralph]
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers
