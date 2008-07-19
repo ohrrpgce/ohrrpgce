@@ -1,0 +1,13 @@
+break fb_ErrorThrowEx
+echo                Running...\n
+run
+if $_exitcode == 0
+	echo No crash here\n
+	quit	
+else
+	echo Non-zero exit code!\n
+	source gdbcmds2
+end
+
+
+

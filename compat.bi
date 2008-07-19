@@ -8,12 +8,33 @@
 #IFNDEF COMPAT_BI
 #DEFINE COMPAT_BI
 
+'version strings
 #IFDEF IS_GAME
 #INCLUDE "gver.txt"
 #ENDIF
 #IFDEF IS_CUSTOM
 #INCLUDE "cver.txt"
 #ENDIF
+
+#IF __FB_DEBUG__
+ #DEFINE _GSTR & " -g"
+#ELSE
+ #DEFINE _GSTR
+#ENDIF
+#IF __FB_ERR__
+ #DEFINE _ESTR & " -exx"
+#ELSE
+ #DEFINE _ESTR
+#ENDIF
+#IFDEF __FB_LINUX__
+ #DEFINE _PSTR & " Linux"
+#ELSEIF defined(__FB_WIN32__)
+ #DEFINE _PSTR & " Win32"
+#ELSE
+ #DEFINE _PSTR & " Other"
+#ENDIF
+CONST build_info$ = "" _GSTR _ESTR _PSTR
+
 
 option nokeyword getkey
 option nokeyword setmouse

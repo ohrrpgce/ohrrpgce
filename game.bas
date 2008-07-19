@@ -195,9 +195,9 @@ DECLARE SUB npc_debug_display ()
 
 DECLARE FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INTEGER, stat() AS INTEGER, spread AS INTEGER) AS INTEGER
 
-'DEBUG debug "started debug session "+date$+" "+time$
-
 REMEMBERSTATE
+
+debug long_version$ & build_info$
 
 'DEBUG debug "randomize timer"
 RANDOMIZE TIMER
@@ -2382,7 +2382,7 @@ WITH scrat(nowscript)
    CASE 286'--set menu item caption
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF bound_menuslot_and_mislot(menuslot, mislot, "set menu item caption") THEN
-     IF bound_plotstr(retvals(1), "get menu item caption") THEN
+     IF bound_plotstr(retvals(1), "set menu item caption") THEN
       menus(menuslot).items(mislot).caption = plotstr(retvals(1)).s
      END IF
     END IF

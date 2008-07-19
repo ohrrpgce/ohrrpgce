@@ -57,7 +57,7 @@ call nightly-gfx-music fb sdl -debug
 
 del game*.exe
 del custom*.exe
-call make.bat fb sdl -g -exx
+call make.bat fb sdl -g -exx -s console
 call nightly-gfx-music fb sdl -debug-exx
 
 Echo upload plotdict.xml

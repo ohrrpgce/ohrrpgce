@@ -1,0 +1,3 @@
+echo Dumping state\n
+bt full
+quit
