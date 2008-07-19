@@ -212,6 +212,7 @@ NEXT
 
 maptop = 0
 pt = 0
+csr = 0
 make_top_map_menu maptop, topmenu$()
 setkeys
 DO
@@ -256,11 +257,10 @@ EXIT SUB
 
 whattodo:
 x = 0: y = 0: mapx = 0: mapy = 0
-csr = 0
 list$(0) = "Return to Map Menu"
 list$(1) = "Edit General Map Data..."
 list$(2) = "Resize Map..."
-list$(3) = "Edit Layers..."
+list$(3) = "Layers and Tilesets..."
 list$(4) = "Edit NPCs..."
 list$(5) = "Edit Tilemap..."
 list$(6) = "Edit Wallmap..."
