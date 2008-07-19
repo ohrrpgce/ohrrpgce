@@ -1898,17 +1898,9 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$)
 #endif
 END SUB
 
-SUB unlump (lump$, ulpath$, buffer() as integer)
-	unlumpfile(lump$, "", ulpath$)
-end SUB
-
 SUB unlump (lump$, ulpath$)
 	unlumpfile(lump$, "", ulpath$)
 end SUB
-
-SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
-	unlumpfile(lump$, fmask$, path$)
-end sub
 
 SUB unlumpfile (lump$, fmask$, path$)
 	dim lf as integer
@@ -2095,10 +2087,6 @@ FUNCTION islumpfile (lump$, fmask$)
 
 	close #lf
 end FUNCTION
-
-SUB lumpfiles (listf$, lump$, path$, buffer())
-  lumpfiles(listf$, lump$, path$)
-end sub
 
 SUB lumpfiles (listf$, lump$, path$)
 	dim as integer lf, fl, tl	'lumpfile, filelist, tolump

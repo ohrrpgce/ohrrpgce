@@ -7,7 +7,7 @@
       (goto-char (point-min))
       (while (< (point) (point-max))
         ;consider one sub/function or toplevel at a time
-        (narrow-to-region (point) (or (re-search-forward "^end \\(sub\\|function\\)$\\|\\(^sub \\|^function \\)" nil t) (point-max)))
+        (narrow-to-region (point) (or (re-search-forward "^end \\(sub\\|function\\)\\|\\(^sub \\|^function \\)" nil t) (point-max)))
         (goto-char (point-min))
         ;place a label and goto for each gosub
         (while (re-search-forward "^[^'\n]*gosub " nil 0)

@@ -399,9 +399,8 @@ edgeprint "Loading...", xstring("Loading...", 160), 6, uilook(uiText), vpage
 setvispage vpage 'refresh
 
 '---GAME SELECTED, PREPARING TO PLAY---
-DIM lumpbuf(16383)
 IF usepreunlump = 0 THEN
- unlump sourcerpg, workingdir + SLASH, lumpbuf()
+ unlump sourcerpg, workingdir + SLASH
 END IF
 
 debug "Playing game " & trimpath$(sourcerpg) & " (" & getdisplayname$(" ") & ") " & DATE & " " & TIME
@@ -415,8 +414,7 @@ LoadGEN
 '--upgrade obsolete RPG files (if possible)
 upgrade font()
 
-if isfile(game + ".hsp") then unlump game + ".hsp", tmpdir, lumpbuf()
-ERASE lumpbuf
+if isfile(game + ".hsp") then unlump game + ".hsp", tmpdir
 
 fadeout 0, 0, 0
 needf = 1
@@ -507,7 +505,7 @@ doihavebits
 evalherotag stat()
 needf = 1
 force_npc_check = YES
-DIM menu_text_box AS INTEGER = 0
+menu_text_box = 0
 
 'DEBUG debug "pre-call movement"
 setmapdata pass(), pass(), 0, 0

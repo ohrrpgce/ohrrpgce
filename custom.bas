@@ -189,9 +189,7 @@ IF isdir(gamefile) THEN
  CLOSE #fh
  KILL "filelist.tmp"
 ELSE
- DIM lumpbuf(16383)
- unlump gamefile, workingdir + SLASH, lumpbuf()
- ERASE lumpbuf
+ unlump gamefile, workingdir + SLASH
 END IF
 game = workingdir + SLASH + game
 verifyrpg
@@ -1261,9 +1259,7 @@ FUNCTION newRPGfile (template$, newrpg$)
  copyfile template$, newrpg$
  printstr "Unlumping", 0, 60, vpage
  setvispage vpage 'refresh
- DIM lumpbuf(16383)
- unlump newrpg$, workingdir + SLASH, lumpbuf()
- ERASE lumpbuf
+ unlump newrpg$, workingdir + SLASH
  '--create archinym information lump
  fh = FREEFILE
  OPEN workingdir + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
@@ -1301,10 +1297,8 @@ ELSE
  IF NOT fileiswriteable(filetolump$) THEN
   move_unwritable_rpg filetolump$
  END IF
- DIM lumpbuf(16383)
- lumpfiles "temp.lst", filetolump$, workingdir + SLASH, lumpbuf()
+ lumpfiles "temp.lst", filetolump$, workingdir + SLASH
  safekill "temp.lst"
- ERASE lumpbuf
 END IF
 END SUB
 
