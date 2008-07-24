@@ -249,7 +249,7 @@ TYPE ScriptCommand
   kind as integer
   value as integer
   argc as integer
-  args(999) as integer
+  args(9999) as integer
 END TYPE
 
 UNION RGBcolor
