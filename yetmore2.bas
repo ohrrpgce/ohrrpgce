@@ -1066,7 +1066,7 @@ SUB npc_debug_display ()
     IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawX, drawY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
      textcolor uilook(uiText), 0
      'the numbers can overlap quite badly, try to squeeze them in
-     temp = STR$(.id)
+     temp = STR$(.id - 1)
      printstr MID$(temp, 1, 1), drawX, drawY + 4, dpage
      printstr MID$(temp, 2, 1), drawX + 7, drawY + 4, dpage
      printstr MID$(temp, 3, 1), drawX + 14, drawY + 4, dpage
