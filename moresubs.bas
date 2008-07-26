@@ -1456,15 +1456,17 @@ FUNCTION loadscript (n)
  NEXT
 
  '--load the script from file
- IF isfile(tmpdir & n & ".hsz") THEN
-  scriptfile$ = tmpdir & n & ".hsz"
- ELSEIF isfile(tmpdir & n & ".hsx") THEN
-  scriptfile$ = tmpdir & n & ".hsx"
- END IF
-
+ scriptfile$ = tmpdir & n & ".hsz"
  IF NOT isfile(scriptfile$) THEN
-  scripterr "script id " & n & " does not exist"
-  RETURN -1
+  scriptfile$ = tmpdir & n & ".hsx"
+  IF NOT isfile(scriptfile$) THEN
+   '--because TMC once suggested that preunlumping the .hsp lump would be a good way to reduce (SoJ) loading time
+   scriptfile$ = workingdir & SLASH & n & ".hsx"
+   IF NOT isfile(scriptfile$) THEN
+    scripterr "script id " & n & " does not exist"
+    RETURN -1
+   END IF
+  END IF
  END IF
 
  '--may have to free some loaded scripts before we have a free script() slot

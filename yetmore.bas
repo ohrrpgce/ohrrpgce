@@ -1406,17 +1406,12 @@ SELECT CASE AS CONST id
    erasesaveslot retvals(0) - 1
   END IF
  CASE 176'--runscriptbyid
-  IF NOT (isfile(tmpdir & retvals(0) & ".hsx") OR isfile(tmpdir & retvals(0) & ".hsz")) THEN
-   retvals(0) = decodetrigger(retvals(0), plottrigger)  'possible to get ahold of triggers
-  END IF
-  IF isfile(tmpdir & retvals(0) & ".hsx") OR isfile(tmpdir & retvals(0) & ".hsz") THEN
-   rsr = runscript(retvals(0), nowscript + 1, 0, "indirect", 0)
-   IF rsr = 1 THEN
-    '--fill heap with return values
-    FOR i = 1 TO scrat(nowscript - 1).curargc - 1  'flexible argument number! (note that argc has been saved here by runscript)
-     setScriptArg i - 1, retvals(i)
-    NEXT i
-   END IF
+  rsr = runscript(retvals(0), nowscript + 1, 0, "indirect", plottrigger) 'possible to get ahold of triggers
+  IF rsr = 1 THEN
+   '--fill heap with return values
+   FOR i = 1 TO scrat(nowscript - 1).curargc - 1  'flexible argument number! (note that argc has been saved here by runscript)
+    setScriptArg i - 1, retvals(i)
+   NEXT i
   ELSE
    scriptret = -1
   END IF
