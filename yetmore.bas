@@ -511,11 +511,6 @@ si.state = stnext
 DIM as integer ptr dataptr = si.scrdata
 
 quickrepeat:
-IF si.curargn > UBOUND(curcmd->args) THEN
- debug "Argument list exceeds static buffer size!"
- debug "si.curargn = " & si.curargn
- debug "UBOUND(curcmd->args) = " & UBOUND(curcmd->args)
-END IF
 DIM as ScriptCommand ptr cmdptr = cast(ScriptCommand ptr, dataptr + curcmd->args(si.curargn))
 
 SELECT CASE cmdptr->kind
