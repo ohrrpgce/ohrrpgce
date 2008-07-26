@@ -1642,17 +1642,20 @@ IF vdance = 0 THEN 'only display interface till you win
    '--hp--
    edgeprint STR$(bstat(i).cur.hp) + "/" + STR$(bstat(i).max.hp), 136, 5 + i * 10, col, dpage
    WITH bstat(i)
+    indicatorpos = 217
     'poison indicator
     IF .cur.poison < .max.poison THEN
-     edgeprint CHR$(gen(genPoison)), 209, 5 + i * 10, col, dpage
+     edgeprint CHR$(gen(genPoison)), indicatorpos, 5 + i * 10, col, dpage
+     indicatorpos -= 8
     END IF
     'stun indicator
     IF .cur.stun < .max.stun THEN
-     edgeprint CHR$(gen(genStun)), 217, 5 + i * 10, col, dpage
+     edgeprint CHR$(gen(genStun)), indicatorpos, 5 + i * 10, col, dpage
+     indicatorpos -= 8
     END IF
     'mute indicator
     IF .cur.mute < .max.mute THEN
-     edgeprint CHR$(gen(genMute)), 217, 5 + i * 10, col, dpage
+     edgeprint CHR$(gen(genMute)), indicatorpos, 5 + i * 10, col, dpage
     END IF
    END WITH
   END IF
