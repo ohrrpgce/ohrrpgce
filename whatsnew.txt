@@ -79,6 +79,9 @@ July ?? 2008 [werewaffle]
     * Bug 637: Crash when editing doorlinks [Ralph]
     * Bug 639: Enemies which spawn with 0hp or 'Die Without Boss' and no
       bosses now die immediately, without being shown. [Ralph]
+    * If you try to use a tile with multiple NPCs on it, the bottommost 
+      use-activation NPC is triggered instead of failing if the
+      bottommost NPC isn't usable. [Ralph]
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers

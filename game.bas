@@ -559,6 +559,7 @@ DO
     IF carray(2) > 0 THEN xgo(0) = 20: catd(0) = 3: EXIT DO
     IF carray(3) > 0 THEN xgo(0) = -20: catd(0) = 1: EXIT DO
     IF carray(4) > 1 AND veh(0) = 0 THEN
+     sayer = -1
      auto = 0
      GOSUB usething
     END IF
@@ -860,6 +861,9 @@ IF scrwatch THEN scriptwatcher scrwatch, -1
 RETRACE
 
 usething:
+'auto = 0: normal use, sayer = -1
+'auto = 1: touch and step-on, sayer set
+'auto = 2: scripted, sayer set
 IF auto = 0 THEN
  ux = catx(0)
  uy = caty(0)
@@ -875,6 +879,8 @@ IF sayer < 0 THEN
     'would <= 19 do?
     'LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
     IF npc(j).id > 0 AND (j <> veh(5) OR veh(0) = 0) THEN 'A
+     '--Step-on NPCs cannot be used
+     IF auto = 0 AND npcs(npc(j).id - 1).activation = 2 THEN CONTINUE DO
      nx = npc(j).x
      ny = npc(j).y
      nd = npc(j).dir
@@ -909,8 +915,6 @@ IF sayer < 0 THEN
   END IF
 END IF
 IF sayer >= 0 THEN
- '--Step-on NPCs cannot be used
- IF auto = 0 AND npcs(npc(sayer).id - 1).activation = 2 THEN sayer = -1 : RETRACE
  getit = npcs(npc(sayer).id - 1).item
  IF getit THEN getitem getit, 1
  '---DIRECTION CHANGING-----------------------
