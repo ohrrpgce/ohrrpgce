@@ -205,6 +205,14 @@ DO
   printstr CHR(f(i)), offset.x + (i MOD linesize) * 9, offset.y + (i \ linesize) * 9, dpage
  NEXT i
 
+ textcolor uilook(uiMenuItem), 0
+ printstr "ASCII " & f(pt), 78, 190, dpage
+ FOR i = 2 TO 53
+  IF f(pt) = keyv(i, 2) THEN printstr "ALT+" + UCASE$(CHR$(keyv(i, 0))), 178, 190, dpage
+  IF f(pt) = keyv(i, 3) THEN printstr "ALT+SHIFT+" + UCASE$(CHR$(keyv(i, 0))), 178, 190, dpage
+ NEXT i
+ IF f(pt) = 32 THEN printstr "SPACE", 178, 190, dpage
+
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage

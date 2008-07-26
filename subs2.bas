@@ -1130,6 +1130,7 @@ DO
  printstr "${H#} = Name of hero ID #", 0, 144, dpage
  printstr "${V#} = Global Plotscript Variable ID #", 0, 152, dpage
  printstr "${S#} = Insert String Variable with ID #", 0, 160, dpage
+ printstr "CTRL+SPACE: choose an extended character", 0, 176, dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
