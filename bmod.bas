@@ -1398,7 +1398,7 @@ FOR deadguy = 0 TO 11
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
- IF bstat(deadguy).cur.hp = 0 OR bslot(deadguy).hero_untargetable <> 0 THEN deadguycount += 1
+ IF bstat(deadguy).cur.hp = 0 OR bslot(deadguy).hero_untargetable OR bslot(deadguy).death_unneeded THEN deadguycount += 1
 NEXT
 IF deadguycount >= 8 THEN dead = 1
 deadguycount = 0

@@ -42,6 +42,7 @@ July ?? 2008 [werewaffle]
     * Debug keys: Ctrl+F11 to display NPC id and reference numbers.
       Ctrl +/- for changing the framerate work again. Ctrl+~ to see
       the FPS - this works everywhere. [Ralph]
+    * New enemy bitset, "Win battle even if alive" [Ralph]
 
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged

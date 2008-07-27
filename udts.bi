@@ -157,6 +157,7 @@ TYPE BattleSprite
   vis AS INTEGER
   hero_untargetable AS INTEGER
   enemy_untargetable AS INTEGER
+  death_unneeded AS INTEGER
   dissolve AS INTEGER
   attack_succeeded AS INTEGER
   sprites as Frame ptr 'the graphic set

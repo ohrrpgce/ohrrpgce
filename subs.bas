@@ -101,7 +101,7 @@ edgebox 219, 99, 82, 82, uilook(uiDisabledItem), uilook(uiMenuItem), 3
 '-------------------------------------------------------------------------
 
 '--bitsets
-DIM ebit$(61)
+DIM ebit$(62)
 
 FOR i = 0 TO 7
  ebit$(0 + i) = elemtype$(0) & " " & names(17 + i)
@@ -120,6 +120,7 @@ ebit$(58) = "Die Without Boss"
 ebit$(59) = "Flee instead of Die"
 ebit$(60) = "Untargetable by Enemies"
 ebit$(61) = "Untargetable by Heros"
+ebit$(62) = "Win battle even if alive"
 
 '-------------------------------------------------------------------------
 
@@ -602,7 +603,7 @@ DO
     recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), recbuf(EnDatPicSize) + 1, recbuf(EnDatPic), 1, previewsize(recbuf(EnDatPicSize)), previewsize(recbuf(EnDatPicSize)))
     GOSUB EnUpdateMenu
    CASE EnMenuBitsetAct
-    editbitset recbuf(), EnDatBitset, 61, ebit$()
+    editbitset recbuf(), EnDatBitset, 62, ebit$()
   END SELECT
  END IF
 

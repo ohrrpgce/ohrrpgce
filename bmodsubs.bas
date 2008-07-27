@@ -737,6 +737,7 @@ IF formdata(i * 4) > 0 THEN
    .w = 80
    .h = 80
   END IF
+  .death_unneeded = readbit(ebits(), i * 5, 62)
   .hero_untargetable = readbit(ebits(), i * 5, 61)
   .enemy_untargetable = readbit(ebits(), i * 5, 60)
   .death_sfx = es(i, 24)
