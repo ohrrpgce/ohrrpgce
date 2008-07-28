@@ -83,6 +83,9 @@ July ?? 2008 [werewaffle]
     * If you try to use a tile with multiple NPCs on it, the bottommost 
       use-activation NPC is triggered instead of failing if the
       bottommost NPC isn't usable. [Ralph]
+    * Fixed the bug that prevented you from using the joystick buttons
+      to confirm certain prompts, for example, when learning a spell
+      from an item [James]
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers

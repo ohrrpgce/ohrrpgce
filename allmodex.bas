@@ -887,6 +887,7 @@ end FUNCTION
 
 FUNCTION getkey () as integer
 	dim i as integer, key as integer
+  dim as integer joybutton = 0, joyx = 0, joyy = 0, sleepjoy = 3
 	key = 0
 
 	setkeys
@@ -900,6 +901,13 @@ FUNCTION getkey () as integer
 				exit do
 			end if
 		next
+    if sleepjoy > 0 then
+      sleepjoy -= 1
+    elseif io_readjoysane(0, joybutton, joyx, joyy) then
+      for i = 16 to 1 step -1
+        if joybutton and (i ^ 2) then key = 127 + i
+      next i
+    end if
 		sleep 50
 	loop while key = 0
 
