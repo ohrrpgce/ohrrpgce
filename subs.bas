@@ -1343,7 +1343,7 @@ bctr = 0
 bmenu$(0) = "Previous Menu"
 FOR i = 1 TO 24: min(i) = 0: max(i) = 999: NEXT
 FOR i = 1 TO 4: max(i) = 9999: NEXT i
-FOR i = 19 TO 22: max(i) = 100: NEXT i
+FOR i = 21 TO 22: max(i) = 100: NEXT i
 FOR i = 23 TO 24: max(i) = 10: NEXT i
 GOSUB smi
 setkeys
