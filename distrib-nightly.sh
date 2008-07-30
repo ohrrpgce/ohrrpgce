@@ -41,3 +41,19 @@ echo uploading plotscripting docs
 scp -p wip/docs/plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
 scp -p wip/docs/htmlplot.xsl james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
 
+echo Now we go to build the linux nightlies
+
+cd ..
+
+if [ ! -d ohrrpgce-build ] ; then
+  echo nightly snapshot not found, checking out from svn...
+  svn checkout svn://gilgamesh.HamsterRepublic.com/ohrrpgce ./ohrrpgce-build
+fi
+
+cd ohrrpgce-build/wip
+
+./distrib.sh
+
+mv distrib/ohrrpgce-linux-*-wip.tar.bz2 distrib/ohrrpgce-linux-wip.tar.bz2
+scp -p distrib/ohrrpgce-linux-wip.tar.bz2 james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+rm distrib/ohrrpgce-linux-wip.tar.bz2

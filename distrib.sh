@@ -51,7 +51,6 @@ cp -p hspeak.exw tmp
 cp -p hsspiffy.e tmp
 
 echo "  Including support files"
-cp -p ohrrpgce.mas tmp
 cp -p ohrrpgce.new tmp
 cp -p plotscr.hsd tmp
 cp -p scancode.hsi tmp
