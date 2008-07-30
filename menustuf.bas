@@ -132,6 +132,7 @@ DO UNTIL readbit(vmask(), 0, pt) = 0
 LOOP
 GOSUB curinfo
 
+menusound gen(genAcceptSFX)
 setkeys
 DO
  setwait speedcontrol
@@ -141,6 +142,7 @@ DO
  playtimer
  control
  IF carray(0) > 1 THEN
+  menusound gen(genCursorSFX)
   DO
    pt = pt - 1
    IF pt < 0 THEN
@@ -154,6 +156,7 @@ DO
   GOSUB curinfo
  END IF
  IF carray(1) > 1 THEN
+  menusound gen(genCursorSFX)
   DO
    pt = pt + 1
    IF pt > storebuf(16) THEN
@@ -179,12 +182,14 @@ DO
     NEXT
    END IF '-------END TRADE IN ITEM----------------------------
    IF b(pt * recordsize + 17) = 0 THEN '---BUY ITEM-------------------
+    menusound gen(genBuySFX)
     getitem b(pt * recordsize + 18) + 1, 1
     acol = 4
     alert = 10
     alert$ = purchased$ + " " + stuf$(pt)
    END IF '-------END IF ITEM-------------------------------------
    IF b(pt * recordsize + 17) = 1 THEN '---HIRE HERO------------------
+    menusound gen(genHireSFX)
     FOR i = 37 TO 0 STEP -1
      IF hero(i) = 0 THEN slot = i
     NEXT i
@@ -198,6 +203,7 @@ DO
    evalherotag stat()
    evalitemtag
   ELSE ' WHEN CANNOT AFFORD------------------------------------
+   menusound gen(genCantBuySFX)
    acol = 3
    alert = 10
    alert$ = buytype$(1, shoptype) + stuf$(pt)
@@ -300,6 +306,7 @@ NEXT i
 sprite_unload(@hiresprite)
 palette16_unload(@hirepal)
 freepage holdscreen
+menusound gen(genCancelSFX)
 vishero stat()
 EXIT SUB
 
@@ -1048,6 +1055,7 @@ IF pick = 0 THEN
      IF getOOBtarg(1, wptr, itemdata(51) - 1, stat()) = NO THEN
       'Failed to get a target
       MenuSound gen(genCancelSFX)
+      RETRACE
      END IF
      pick = 1
      spred = 0 ' Default to focused
@@ -1125,6 +1133,7 @@ ELSE
  END IF
  IF ttype = 2 THEN
   IF carray(2) > 1 OR carray(3) > 1 THEN
+   MenuSound gen(genCursorSFX)
    IF spred = 0 THEN
     FOR i = 0 TO 3
      IF chkOOBtarg(i, atkIDs(ic), stat()) THEN spred = spred + 1
@@ -1145,11 +1154,14 @@ ELSE
    didlearn = trylearn(wptr, atk, 0)
    '--announce learn
    IF didlearn = 1 THEN
+    menusound gen(genItemLearnSFX)
     tmp$ = names(wptr) + " " + readglobalstring$(124, "learned", 10) + " " + readattackname$(atk - 1)
     centerbox 160, 100, small(LEN(tmp$) * 8 + 16, 320), 24, 1, vpage
     edgeprint tmp$, large(xstring(tmp$, 160), 0), 95, uilook(uiText), vpage
     setvispage vpage
     dummy = getkey
+   ELSE
+    menusound gen(genCantLearnSFX)
    END IF
   END IF
   '--do (cure) attack outside of battle
@@ -1159,7 +1171,9 @@ ELSE
   END IF 'itemtemp(51) > 0
   IF itemtemp(73) = 1 AND (didcure OR didlearn = 1) THEN
    IF consumeitem(ic) THEN
-    setbit iuse(), 0, 3 + ic, 0: pick = 0: GOSUB infostr
+    setbit iuse(), 0, 3 + ic, 0
+    pick = 0
+    GOSUB infostr
    END IF
   END IF
  END IF ' SPACE or ENTER
@@ -1698,6 +1712,7 @@ alert = 0
 alert$ = ""
 info$ = ""
 
+menusound gen(genAcceptSFX)
 GOSUB refreshs
 
 GOSUB sellinfostr
@@ -1735,6 +1750,7 @@ DO
  dowait
 LOOP
 freepage holdscreen
+menusound gen(genCancelSFX)
 EXIT SUB
 
 sellinfostr:
@@ -1764,47 +1780,55 @@ RETRACE
 
 keysell:
 IF carray(5) > 1 THEN quit = 1
-IF carray(4) > 1 AND readbit(permask(), 0, ic) = 0 AND inventory(ic).used THEN
- alert = 10
- alert$ = sold$ + " " + LEFT$(inventory(ic).text, 8)
- 'inventory(ic).text = RTRIM$(inventory(ic).text)   '??? There's an itstr(ic) right down there
- 'INCREMENT GOLD-----------
- gold = gold + price(ic)
- IF gold > 2000000000 THEN gold = 2000000000
- IF gold < 0 THEN gold = 0
- 'CHECK FOR SPECIAL CASES---------
- FOR i = 0 TO storebuf(16)
-  IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
-   'SET SELL BIT---
-   IF b(i * recordsize + 23) <> 0 THEN setbit tag(), 0, ABS(b(i * recordsize + 23)), SGN(SGN(b(i * recordsize + 23)) + 1)
-   'ADD TRADED ITEM-----------
-   IF b(i * recordsize + 28) > 0 THEN getitem b(i * recordsize + 28), b(i * recordsize + 29) + 1
-   'INCREMENT STOCK-------
-   IF b(i * recordsize + 26) > 0 THEN
-    IF b(i * recordsize + 26) = 1 THEN stock(id, i) = -1
-    IF b(i * recordsize + 26) = 2 AND stock(id, i) > 0 THEN stock(id, i) = stock(id, i) + 1
+IF carray(4) > 1  AND inventory(ic).used THEN
+ IF readbit(permask(), 0, ic) = 0 THEN
+  menusound gen(genSellSFX)
+  alert = 10
+  alert$ = sold$ + " " + LEFT$(inventory(ic).text, 8)
+  'inventory(ic).text = RTRIM$(inventory(ic).text)   '??? There's an itstr(ic) right down there
+  'INCREMENT GOLD-----------
+  gold = gold + price(ic)
+  IF gold > 2000000000 THEN gold = 2000000000
+  IF gold < 0 THEN gold = 0
+  'CHECK FOR SPECIAL CASES---------
+  FOR i = 0 TO storebuf(16)
+   IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
+    'SET SELL BIT---
+    IF b(i * recordsize + 23) <> 0 THEN setbit tag(), 0, ABS(b(i * recordsize + 23)), SGN(SGN(b(i * recordsize + 23)) + 1)
+    'ADD TRADED ITEM-----------
+    IF b(i * recordsize + 28) > 0 THEN getitem b(i * recordsize + 28), b(i * recordsize + 29) + 1
+    'INCREMENT STOCK-------
+    IF b(i * recordsize + 26) > 0 THEN
+     IF b(i * recordsize + 26) = 1 THEN stock(id, i) = -1
+     IF b(i * recordsize + 26) = 2 AND stock(id, i) > 0 THEN stock(id, i) = stock(id, i) + 1
+    END IF
    END IF
-  END IF
- NEXT i
- 'DECREMENT ITEM-----------
- dummy = consumeitem(ic)
- 'UPDATE ITEM POSESSION TAGS--------
- evalitemtag
- 'REFRESH DISPLAY--------
- GOSUB refreshs
- GOSUB sellinfostr
+  NEXT i
+  'DECREMENT ITEM-----------
+  dummy = consumeitem(ic)
+  'UPDATE ITEM POSESSION TAGS--------
+  evalitemtag
+  'REFRESH DISPLAY--------
+  GOSUB refreshs
+  GOSUB sellinfostr
+ ELSE
+  menusound gen(genCantSellSFX)
+ END IF
 END IF
 IF carray(0) > 1 AND ic >= 3 THEN
+ menusound gen(genCursorSFX)
  ic = ic - 3
  GOSUB sellinfostr
  IF ic < top THEN top = top - 3
 END IF
 IF carray(1) > 1 AND ic <= inventoryMax - 3 THEN
+ menusound gen(genCursorSFX)
  ic = ic + 3
  GOSUB sellinfostr
  IF ic > top + 62 THEN top = top + 3
 END IF
 IF carray(2) > 1 THEN
+ menusound gen(genCursorSFX)
  IF ic MOD 3 > 0 THEN
   ic = ic - 1
   GOSUB sellinfostr
@@ -1814,6 +1838,7 @@ IF carray(2) > 1 THEN
  END IF
 END IF
 IF carray(3) > 1 THEN
+ menusound gen(genCursorSFX)
  IF ic MOD 3 < 2 THEN
   ic = ic + 1
   GOSUB sellinfostr

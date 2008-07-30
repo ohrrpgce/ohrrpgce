@@ -94,6 +94,13 @@ CONST genCancelSFX = 174        ' "       "
 CONST genCursorSFX = 175        ' "       "
 CONST genTextboxLetter = 176    'Text box 'click'
 CONST genBits2 = 177            'More general bitsets
+CONST genItemLearnSFX = 179     'learn spell oob item
+CONST genCantLearnSFX = 180     'hero couldn't learn spell from item
+CONST genBuySFX = 181           'buy item from shop
+CONST genHireSFX = 182          'hire from shop
+CONST genSellSFX = 183          'sell item to shop
+CONST genCantBuySFX = 184       'can't afford item/hire
+CONST genCantSellSFX = 185      'unsellable item
 CONST genScatterTableHead = 199 'old password scattertable head
 
 '---Format fix bits
@@ -105,6 +112,7 @@ CONST fixDefaultDissolveEnemy = 4'Initialized Enemy dissolves to default in DT1
 CONST fixPushNPCBugCompat = 5    'Turned on the Simulate pushable NPC obstruction bug bitset
 CONST fixDefaultMaxItem = 6      'Stored default max item id in GEN
 CONST fixBlankDoorLinks = 7      'Marked redundant blank doorlinks as unused
+CONST fixShopSounds = 8	         'Set genItemLearnSFX..genCantSellSFX to defaults
 
 '---Sizes (replaceable with variables when suitable)
 CONST npcdMax = 35

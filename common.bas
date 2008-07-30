@@ -2046,6 +2046,18 @@ IF getfixbit(fixBlankDoorLinks) = 0 THEN
  NEXT i
 END IF
 
+IF getfixbit(fixShopSounds) = 0 THEN
+ upgrade_message "Set default soundeffects..."
+ setfixbit(fixShopSounds, 1)
+ gen(genItemLearnSFX) = gen(genAcceptSFX)
+ gen(genCantLearnSFX) = gen(genCancelSFX)
+ gen(genBuySFX) = gen(genAcceptSFX)
+ gen(genHireSFX) = gen(genAcceptSFX)
+ gen(genSellSFX) = gen(genAcceptSFX)
+ gen(genCantBuySFX) = gen(genCancelSFX)
+ gen(genCantSellSFX) = gen(genCancelSFX)
+END IF
+
 'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)
 xbsave game + ".gen", gen(), 1000
 

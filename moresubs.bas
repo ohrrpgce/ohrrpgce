@@ -1200,7 +1200,7 @@ DO
  setvispage vpage
  dowait
 LOOP
-
+menusound gen(genAcceptSFX)
 gen(60) = rememberjoycal '-- restore joystick calibration setting
 
 IF needfadeout = 1 THEN
@@ -2058,6 +2058,7 @@ menu$(0) = readglobalstring$(49, "Pay", 10)
 menu$(1) = readglobalstring$(50, "Cancel", 10)
 inncost$ = readglobalstring$(143, "THE INN COSTS", 20)
 youhave$ = readglobalstring$(145, "You have", 20)
+menusound gen(genAcceptSFX)
 setkeys
 DO
  setwait speedcontrol
@@ -2065,13 +2066,23 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF carray(5) > 1 THEN inn = 1: EXIT DO
- IF carray(0) > 1 OR carray(1) > 1 OR carray(2) > 1 OR carray(3) > 1 THEN inn = inn XOR 1
+ IF carray(5) > 1 THEN
+  inn = 1 '?? Remember cursor position maybe?
+  menusound gen(genCancelSFX)
+  EXIT DO
+ END IF
+ IF carray(0) > 1 OR carray(1) > 1 OR carray(2) > 1 OR carray(3) > 1 THEN
+  menusound gen(genCursorSFX)
+  inn = inn XOR 1
+ END IF
  IF carray(4) > 1 THEN
   IF inn = 0 AND gold >= price THEN
    gold = gold - price
    useinn = -1
+   menusound gen(genAcceptSFX)
    EXIT DO
+  ELSE
+   menusound gen(genCancelSFX)
   END IF
   IF inn = 1 THEN EXIT DO
  END IF
@@ -2100,7 +2111,6 @@ DO
  IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
-
 END FUNCTION
 
 SUB snapshot

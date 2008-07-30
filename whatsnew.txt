@@ -43,6 +43,8 @@ July ?? 2008 [werewaffle]
       Ctrl +/- for changing the framerate work again. Ctrl+~ to see
       the FPS - this works everywhere. [Ralph]
     * New enemy bitset, "Win battle even if alive" [Ralph]
+    * New sound effect triggers: Learnt from item, Can't learn, Buy,
+      Hire, Sell, Can't Buy, Can't Sell [Ralph]
 
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged
@@ -67,7 +69,8 @@ July ?? 2008 [werewaffle]
       [James Paige]
     * Bug 625: 'Damage instead of set' % based attacks now respect
       the cure and harmed by cure bitsets [Yuriy, Ralph]
-    * More missing/wrong menu sound effects
+    * Just about all missing sound effects added (any more missing?),
+      some wrong ones fixed [Ralph]
     * Battle Music: silence now works again
     * set formation song now actually works [Ralph]
     * Bug 586: Textbox backdrop can become the tileset with showtextbox
