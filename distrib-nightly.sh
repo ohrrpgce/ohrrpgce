@@ -57,3 +57,7 @@ cd ohrrpgce-build/wip
 mv distrib/ohrrpgce-linux-*-wip.tar.bz2 distrib/ohrrpgce-linux-wip.tar.bz2
 scp -p distrib/ohrrpgce-linux-wip.tar.bz2 james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 rm distrib/ohrrpgce-linux-wip.tar.bz2
+
+mv distrib/ohrrpgce_*.wip-*_i386.deb distrib/ohrrpgce_wip_i386.deb
+scp -p distrib/ohrrpgce_wip_i386.deb james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+rm distrib/ohrrpgce_wip_i386.deb
