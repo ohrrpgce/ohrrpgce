@@ -89,6 +89,8 @@ July ?? 2008 [werewaffle]
     * Fixed the bug that prevented you from using the joystick buttons
       to confirm certain prompts, for example, when learning a spell
       from an item [James]
+    * Fixed Bug 650: One-time-use NPCs and tag-disabled NPCs no longer
+      block pushable NPCs [James]
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers
