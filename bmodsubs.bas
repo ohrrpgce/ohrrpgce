@@ -894,6 +894,7 @@ END IF
 END SUB
 
 FUNCTION targetable (attacker, target, ebits(), bslot() AS BattleSprite)
+'this function is orphaned and probably too inaccurate to be useful
 targetable = 0
 IF is_hero(target) THEN
  'target is hero
@@ -1194,14 +1195,17 @@ FOR i = 0 TO 3
  IF readbit(atkbuf(), 20, 45 + i) THEN tmask(i) = 0
 NEXT i
 
-'enforce untargetability
-FOR i = 0 TO 11
- IF is_hero(who) THEN
-  IF bslot(i).hero_untargetable <> 0 THEN tmask(i) = 0
- ELSEIF is_enemy(who) THEN
-  IF bslot(i).enemy_untargetable <> 0 THEN tmask(i) = 0
- END IF
-NEXT i
+'target:self overrides enemy untargetable bit
+IF atkbuf(3) <> 2 THEN
+ 'enforce untargetability
+ FOR i = 0 TO 11
+  IF is_hero(who) THEN
+   IF bslot(i).hero_untargetable <> 0 THEN tmask(i) = 0
+  ELSEIF is_enemy(who) THEN
+   IF bslot(i).enemy_untargetable <> 0 THEN tmask(i) = 0
+  END IF
+ NEXT i
+END IF
 
 END SUB
 

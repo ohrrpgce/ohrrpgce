@@ -91,6 +91,8 @@ July ?? 2008 [werewaffle]
       from an item [James]
     * Fixed Bug 650: One-time-use NPCs and tag-disabled NPCs no longer
       block pushable NPCs [James]
+    * Bug 379: Enemies couldn't use Target: Self attacks if they had
+      "Untargetable by Enemies" set [Ralph]
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers
