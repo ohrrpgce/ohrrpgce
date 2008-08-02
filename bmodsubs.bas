@@ -475,9 +475,14 @@ IF atk(5) <> 4 THEN
  dm! = .25
  IF atk(6) = 1 THEN dm! = .5
  IF atk(6) = 2 THEN dm! = 1
- IF atk(6) = 3 THEN dm! = 0
- IF atk(6) = 4 THEN a = bstat(w).cur.mag : d = bstat(t).cur.wil : dm! = 1.25
- IF range(a, 75) < range(d * dm!, 75) THEN
+ IF atk(6) = 4 THEN dm! = 1.25
+ IF atk(6) = 4 OR atk(6) = 7 OR atk(6) = 8 THEN a = bstat(w).cur.mag : d = bstat(t).cur.wil
+
+ attackhit = range(a, 75) >= range(d * dm!, 75)
+ IF atk(6) = 3 THEN attackhit = 1
+ IF atk(6) = 5 OR atk(6) = 7 THEN attackhit = RND * 100 < (a * (100 - d)) / 100 
+ IF atk(6) = 6 OR atk(6) = 8 THEN attackhit = RND * 100 < a
+ IF attackhit = 0 THEN
   harm$(t) = readglobalstring$(120, "miss", 20)
   EXIT FUNCTION
  END IF

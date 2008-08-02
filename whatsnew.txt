@@ -45,6 +45,8 @@ July ?? 2008 [werewaffle]
     * New enemy bitset, "Win battle even if alive" [Ralph]
     * New sound effect triggers: Learnt from item, Can't learn, Buy,
       Hire, Sell, Can't Buy, Can't Sell [Ralph]
+    * New aim math options for purely percentage based aim/dodge rates:
+      Aim%, Aim% * (100-Dog)%, Mag%, Mag% * (100-Mag)%  [Adam Perry]
 
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged

@@ -260,13 +260,17 @@ addcaption caption$(), capindex, "Set = N% of Max"
 addcaption caption$(), capindex, "Set = N% of Current"
 
 CONST AtkLimAimEq = 6
-max(AtkLimAimEq) = 4
+max(AtkLimAimEq) = 8
 AtkCapAimEq = capindex
 addcaption caption$(), capindex, "Normal: " + sname$(3) + "*4 ~ " + sname$(6)
 addcaption caption$(), capindex, "Poor: " + sname$(3) + "*2 ~ " + sname$(6)
 addcaption caption$(), capindex, "Bad: " + sname$(3) + " ~ " + sname$(6)
 addcaption caption$(), capindex, "Never Misses"
 addcaption caption$(), capindex, "Magic: " + sname$(29) + " ~ " + sname$(30) + "*1.25"
+addcaption caption$(), capindex, "Percentage: " + sname$(3) + "% * " + sname$(6) + "%"
+addcaption caption$(), capindex, "Percentage: " + sname$(3) + "%"
+addcaption caption$(), capindex, "Percentage: " + sname$(29) + "% * " + sname$(30) + "%"
+addcaption caption$(), capindex, "Percentage: " + sname$(29) + "%"
 
 CONST AtkLimBaseAtk = 7
 max(AtkLimBaseAtk) = 20
