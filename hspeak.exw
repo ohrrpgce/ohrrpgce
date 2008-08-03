@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Gi 2008-08-03 Disallow orphaned then() and else(), a common mistake
 --3Gh 2008-07-14 Disable warnings for unused variables by default, and
 --               Add -u option to enable warnings for unused variables.
 --3Gg 2008-03-01 Raise global variable limits
@@ -93,7 +94,7 @@ constant true=1
 constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
-constant COMPILER_SUB_VERSION="Gh"
+constant COMPILER_SUB_VERSION="Gi"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -1727,8 +1728,8 @@ end function
 
 ---------------------------------------------------------------------------
 
---parse the script tree and make if absorb then and else, for and while absorb do, check arg(count)s of flow statements
-function normalize_flow_control(sequence tree,sequence vars)
+--parse the script tree and make if absorb then and else, for and while absorb do, switch absorb stuff, check correctness of flow statements
+function normalize_flow_control(sequence tree,sequence vars,sequence parent)
   integer ptr
   sequence s
   integer line
@@ -1781,6 +1782,14 @@ function normalize_flow_control(sequence tree,sequence vars)
       else
         --no room for then or else
         src_error(COLYEL&"if"&COLRED&" does not have "&COLYEL&"then"&COLRED&" or "&COLYEL&"else"&COLRED,line)  
+      end if
+    elsif compare("then",s)=0 then
+      if compare("if",parent)!=0 or ptr!=2 then
+        src_error(COLYEL&"then"&COLRED&" should follow an "&COLYEL&"if"&COLRED,line)  
+      end if
+    elsif compare("else",s)=0 then
+      if compare("if",parent)!=0 or ptr!=3 then
+        src_error(COLYEL&"else"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED,line)  
       end if
     elsif compare("while",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>1 then
@@ -1926,7 +1935,7 @@ function normalize_flow_control(sequence tree,sequence vars)
     elsif compare("case",s)=0 then
       src_error(sprintf(COLYEL&"case"&COLRED&" is not allowed outside of "&COLYEL&"switch"&COLRED,{}),line)
     end if
-    tree[ptr][TREE_BRANCHES]=normalize_flow_control(tree[ptr][TREE_BRANCHES],vars)
+    tree[ptr][TREE_BRANCHES]=normalize_flow_control(tree[ptr][TREE_BRANCHES],vars,tree[ptr][TREE_TRUNK][CMD_TEXT])
     ptr+=1
   end while
   return(tree)  
@@ -2501,7 +2510,7 @@ procedure compile_a_script(integer id,sequence trigger_data,sequence name_data,s
   used_locals={}
   script_tree=compile_commands(script_data,local_vars)
   script_tree=convert_operators(script_tree)
-  script_tree=normalize_flow_control(script_tree,local_vars)
+  script_tree=normalize_flow_control(script_tree,local_vars,"")
   script_tree=normalize_arguments(script_tree,local_vars)
   script_tree=collapse_floaty_brackets(script_tree)
   if not fast_mode then
