@@ -54,7 +54,7 @@ sub music_init()
 		audio_rate = MIX_DEFAULT_FREQUENCY
 		audio_format = MIX_DEFAULT_FORMAT
 		audio_channels = 2
-		audio_buffers = 4096
+		audio_buffers = 1536  'despite the documentation, non power of 2 buffer size works, and pygame even does it
 		
 		if sdl_init_done = 0 then
 			SDL_Init(SDL_INIT_AUDIO)
