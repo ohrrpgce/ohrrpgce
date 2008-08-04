@@ -1,0 +1,748 @@
+# HamsterSpeak constant definitions for Viking.RPG
+
+define constant, begin
+2,tag:YesNo
+3,tag:Talked to once
+4,tag:Talked to twice
+5,tag:Selected the hero
+6,tag:Ironwood Forest
+7,tag:Warrior
+8,tag:Ranger
+9,tag:Valkyrie
+10,tag:Berserker
+11,tag:Brigand
+12,tag:Skald
+13,tag:Shaman
+14,tag:Missionary
+15,tag:Forest Revives
+16,tag:ShubNiggurath
+17,tag:Tulzcha
+18,tag:Bena sings
+19,tag:Fire Stone
+20,tag:Have Mithril
+21,tag:Spoke to sheep Ranch
+22,tag:Got Mi'La
+23,tag:Sheep Ranch Finish
+24,tag:Ice Box
+25,tag:Water Box
+26,tag:Trapbox
+27,tag:Fight Dagon
+28,tag:Ice stone
+29,tag:OdinJotun
+30,tag:odinsouth
+31,tag:Odinnorth
+32,tag:Painting1
+33,tag:Painting2
+34,tag:Painting3
+35,tag:Painting4
+36,tag:Painting5
+37,tag:Fenpicture
+38,tag:Talk to Freki
+39,tag:Proof for Loki
+40,tag:Loki aquitted
+41,tag:defeat Cthulhu
+42,tag:last gemstone get
+43,tag:Agree to follo MGarm
+44,tag:Meteor
+45,tag:Speak with Freya
+46,tag:Fight Hel
+47,tag:Annoy Midgardsorm
+48,tag:Beat Snake
+49,tag:Beat Fenrisulf
+50,tag:SPRINT
+51,tag:DASH
+52,tag:WARRIORLEAD
+53,tag:VALKYRIELEAD
+54,tag:RANGERLEAD
+55,tag:BERSERKERLEAD
+56,tag:BRIGANDLEAD
+57,tag:SKALDLEAD
+58,tag:SHAMANLEAD
+59,tag:MISSIONARYLEAD
+60,tag:HERODEAD
+61,tag:Beat Niddhogg
+62,tag:Beat Surt
+63,tag:Beat Airship
+64,tag:Beat Lunaris
+65,tag:Beat Managarm
+66,tag:Beat Sericyon
+67,tag:DARKMATTER
+68,tag:learn of Sericyon
+69,tag:Odin's Last Scene
+70,tag:Kyle dies
+71,tag:Azathoth appears
+72,tag:DO NOT DIE
+73,tag:CTHULHU1
+74,tag:CTHULHU2
+75,tag:CTHULHU3
+76,tag:CTHULHU4
+77,tag:HATI
+78,tag:Odinspeech
+79,tag:Warriorget
+80,tag:Missionaryget
+81,tag:Shamanget
+82,tag:Rangerget
+83,tag:Return Crystal
+84,tag:Valkyrieget
+85,tag:Talk to Loki
+86,tag:dogero1
+87,tag:dogero2
+88,tag:Skaldget
+89,tag:berserkerget
+97,tag:stole the apple
+98,tag:Box prize
+99,tag:Jint
+100,tag:FrekiiceCavern
+101,tag:Thule1
+102,tag:Thule2
+103,tag:Have icestone
+104,tag:BeforeAlfheim
+105,tag:HATI2
+106,tag:TRIANGLE
+107,tag:Hench1
+108,tag:Hench2
+109,tag:Hench3
+110,tag:Hench4
+111,tag:Hench5
+112,tag:Hench6
+113,tag:AlfheimFinish
+114,tag:TriangleDies
+115,tag:BurnOver
+116,tag:HeroesRegained
+117,tag:Jotun1
+118,tag:stairs
+119,tag:gahn
+120,tag:jo
+121,tag:orlock
+122,tag:WORLDOFRUIN
+123,tag:GATE1
+124,tag:AddFox
+125,tag:Bramreturns
+126,tag:Frumpyreturns
+127,tag:Photoheal1
+128,tag:Siphon1
+129,tag:Lifedrain1
+130,tag:Crush1
+131,tag:Maim1
+132,tag:Dissolve1
+133,tag:Greenfire1
+134,tag:Purplhaze1
+135,tag:Icewave1
+136,tag:Explode1
+137,tag:Barrier1
+138,tag:Supernova1
+139,tag:RenardinParty
+140,tag:Frumpyover
+141,tag:HelAlive
+142,tag:DefeatHel
+143,tag:FrekiLead
+144,tag:Frekiinparty
+145,tag:ROACHES
+146,tag:FORCE
+147,tag:WERERED
+148,tag:WarriorInParty
+149,tag:MUSH
+150,tag:ValkyrieInParty
+151,tag:BerserkerInParty
+152,tag:Got antidotes
+153,tag:SkaldInParty
+154,tag:ShamanInParty
+155,tag:MissionaryInParty
+156,tag:Hildabackstory
+157,tag:Hildareturns
+158,tag:Housemaster
+159,tag:Gnipaover
+160,tag:Frumling
+161,tag:Frumawak
+162,tag:Frumnurs
+163,tag:Frumlife
+164,tag:sublime
+165,tag:FENRIRBREAK
+166,tag:HaveBrising
+167,tag:Meet God
+168,tag:ThorLake1
+169,tag:FindDrownDwarf
+170,tag:ThorLake2
+171,tag:deactivated
+1,song:Asgard
+2,song:piano02
+3,song:song04
+4,song:forest01
+5,song:forest02
+6,song:Musphel01
+7,song:Musphel02
+8,song:Niffleheim01
+9,song:Niffleheim02
+10,song:Moogle1  Against Insurmountab
+11,song:TheElementsAnimus
+12,song:Bydlo Cart Remastered
+13,song:Old Castle Remastered
+14,song:Jotunheim01
+15,song:GodsOfSpite
+16,song:VikingsofMidgard
+17,song:Moogle1  Rising Courage
+18,song:Arab Dance Remastered
+19,song:Jotunheim Castle of Vileness
+20,song:So Near
+21,song:Jeremy Jacobs  Helheim's Ruin
+22,song:21  The Long Silence
+23,song:The Final Battle
+24,song:The Chamber
+25,song:Mega Boss Battle
+26,song:Unfortunate End
+27,song:26  boss01
+28,song:Sleeptime
+29,song:Vile
+30,song:31  Animated Elements
+31,song:Panopticon
+32,song:The Finale
+33,song:greenergrass
+34,song:Cave Exploration
+35,song:FenrirLunaris  Tocatta and B
+36,song:sorcerer
+37,song:Towards Odds Impassible
+38,song:Requiem Animus
+39,song:MrTriangleBossTheme
+40,song:Ride of the Valkyries
+41,song:thule1
+42,song:SOJ Battle
+43,song:Moogle1  An Infernal Scheme
+44,song:Moogle1  Enemy's Lair The
+1,sfx:Cancel8Bit
+2,sfx:ChargedLightningAttack8Bit
+3,sfx:ChargedSonicBoomAttack8Bit
+4,sfx:Collision8Bit
+5,sfx:Confirm8Bit
+6,sfx:Crush8Bit
+7,sfx:Heal8Bit
+8,sfx:MediumExplosion8Bit
+9,sfx:Menu8Bit
+10,sfx:Metal_Hit
+11,sfx:Select8Bit
+12,sfx:Slash8Bit
+13,sfx:SmallExplosion8Bit
+14,sfx:Soft_Airy_Swish
+15,sfx:Ice crash
+16,sfx:Beam Attack
+17,sfx:Blizzard Loop
+18,sfx:Electricity
+19,sfx:Growl
+20,sfx:laser gun
+21,sfx:Nuclear
+22,sfx:Roar
+23,sfx:wind
+24,sfx:baa
+25,sfx:bubbles
+26,sfx:lightning
+27,sfx:WARNING
+28,sfx:earthquake
+0,hero:Freki
+1,hero:Kitt
+2,hero:Styrge
+3,hero:Hilda
+4,hero:Olaf
+5,hero:Bram
+6,hero:Eric
+7,hero:Night
+8,hero:Frumpy
+9,hero:Renard
+10,hero:Xephes
+11,hero:Dragon
+1,item:Mead
+2,item:Herbs
+3,item:Honey
+4,item:Return
+5,item:Mithril
+6,item:Dagger
+7,item:Gladius
+8,item:Ulfsang
+9,item:Dragon
+10,item:Serpent
+11,item:Woodman
+12,item:Flame
+13,item:Frosty
+14,item:Cursed
+15,item:Antler
+16,item:Hammer
+17,item:Hamster
+18,item:Adamant
+19,item:Thunder
+20,item:Lucifer
+21,item:Spear
+22,item:Valkyre
+23,item:Dragon2
+24,item:Zeus
+25,item:Gungnir
+26,item:Wooden
+27,item:Priest
+28,item:Mithril2
+29,item:Mage
+30,item:Cleric
+31,item:Winter
+32,item:Diamond
+33,item:Warlock
+34,item:Lunar
+35,item:Levatin
+36,item:Boken
+37,item:Rapier
+38,item:Scimtar
+39,item:Flame2
+40,item:Giant
+41,item:IBrand
+42,item:Excalbr
+43,item:Katana
+44,item:Blood
+45,item:Holy
+46,item:Defend
+47,item:Jade
+48,item:Ragnrok
+49,item:Zetsabr
+50,item:Leather
+51,item:Wooden2
+52,item:Poet's
+53,item:Hood
+54,item:Iron
+55,item:Viking
+56,item:Wizard
+57,item:Mitre
+58,item:War
+59,item:Crusade
+60,item:Glipnir
+61,item:Sorcery
+62,item:Crystal
+63,item:Vest
+64,item:Chain
+65,item:Elven
+66,item:Wooden3
+67,item:Steel
+68,item:Plate
+69,item:Knight
+70,item:Paladin
+71,item:Robe
+72,item:Rogue
+73,item:Wizard2
+74,item:Dancer
+75,item:Crystal2
+76,item:Power
+77,item:Sorcery2
+78,item:Ring
+79,item:Gold
+80,item:Proring
+81,item:Crystal3
+82,item:Wooden4
+83,item:Iron2
+84,item:Viking2
+85,item:Crystal4
+86,item:Cape
+87,item:Cloak
+88,item:Procape
+89,item:Hero
+90,item:Circlet
+91,item:Chain2
+92,item:Hamster2
+93,item:Kyle
+94,item:Moogle
+95,item:Triangl
+96,item:Mila
+97,item:Meteor
+98,item:Lute
+99,item:Guitar
+100,item:Glass
+101,item:Kokoro
+102,item:Wolfy
+103,item:Ultra
+104,item:Berserk
+105,item:Bard
+106,item:Thief
+107,item:Valkyre2
+108,item:Warrior
+109,item:Saintly
+110,item:Daemon
+111,item:Nevok
+112,item:DMatter
+113,item:Panacea
+114,item:VICTORY
+115,item:Apple
+116,item:Soma
+117,item:Dash
+118,item:Chicken
+119,item:Bravery
+120,item:Longnus
+121,item:Dart
+122,item:Kunai
+123,item:Shurken
+124,item:Flame3
+125,item:Raijin
+126,item:Tsunami
+127,item:Blink
+128,item:Assasin
+129,item:Amatrsu
+130,item:RestBag
+131,item:Vigor
+132,item:Claws
+133,item:NoDachi
+134,item:Okami
+135,item:Masmune
+136,item:Broad
+137,item:Durandl
+138,item:ClmSols
+139,item:Sickle
+140,item:Darknes
+141,item:Bloody
+142,item:Death
+143,item:Benedct
+144,item:Erusazu
+145,item:IStone
+146,item:Cider
+147,item:Cosmos
+148,item:Xclsior
+149,item:Flame4
+150,item:Frost
+151,item:Thunder2
+152,item:Aegis
+153,item:Mask
+154,item:Love
+155,item:Fuku
+156,item:Nurse
+157,item:RingPop
+158,item:Leather2
+159,item:Mush
+160,item:Bone
+161,item:Fur
+162,item:Scale
+163,item:Powder
+164,item:Iron3
+165,item:Brising
+166,item:Wood
+167,item:Silver
+168,item:Gold2
+169,item:Ruby
+170,item:Saphire
+171,item:Topaz
+172,item:Diamond2
+173,item:Adamant2
+174,item:Ruby2
+175,item:Saphire2
+176,item:Topaz2
+177,item:Diamond3
+178,item:Adamant3
+179,item:Crystal5
+180,item:Stealth
+181,item:Runic
+182,item:Void
+183,item:Skirmsh
+184,item:Brigand
+185,item:Warrior2
+186,item:Priest2
+187,item:Shaman
+188,item:Ranger
+189,item:Berserk2
+190,item:Bard2
+191,item:Valkyre3
+192,item:Beast
+193,item:Necro
+194,item:Dragon3
+195,item:Coral
+196,item:Manslay
+0,stat:HP
+1,stat:MP
+2,stat: Attack
+3,stat: Accuracy
+4,stat: Defense
+5,stat: Evasion
+6,stat: Magic
+7,stat: Wisdom
+8,stat: Speed
+9,stat: Vigor
+10,stat: Soul
+11,stat: Attacks
+1,slot:Weapon
+2,slot: Head
+3,slot: Body
+4,slot: Hand
+5,slot: Extra
+0,map:Midgard
+1,map:Valhalla
+2,map:The book of ages
+3,map:Midgard Interiors
+4,map:Ironwood Forest
+5,map:Ironwood Forest2
+6,map:Musphel Desert
+7,map:Surt's Lair
+8,map:Niffleheim Glacier
+9,map:Niffleheim Melted
+10,map:Caves
+11,map:Ice cavern
+12,map:Ice cavern Melt
+13,map:Helheim
+14,map:Jotunheim
+15,map:Mt Jotun
+16,map:Vile Castle
+17,map:Thule
+18,map:Forbidden Zone
+19,map:Midgard Timestop
+20,map:Forbidden Zone II
+21,map:Shore of the Midgarsorm
+22,map:Panopticon Tower Ext
+23,map:Hellheim Buildings
+24,map:Lyngvi Island
+25,map:Panopticon Tower
+26,map:The Crystal Abyss
+27,map:Valhalla Renewed
+28,map:the tower scene opening
+29,map:Credits
+30,map:Thule2
+31,map:Ulfherjar Home
+32,map:Surt's Lair Tunnels
+33,map:Nidavellir Field
+34,map:Svartalfheim
+35,map:Box Challenge
+36,map:OHR House
+37,map:House of Songs
+38,map:Alfheim
+39,map:Alfheim Insides
+40,map:Castlevania
+41,map:Chasing the Guinea Pig
+42,map:Inside the Tent
+43,map:Gnipahellir Cave
+44,map:World of Shapes
+45,map:Boundless Ocean
+46,map:Coral Lake
+1,atk:Attack
+2,atk:Recover
+3,atk:Mana
+4,atk:Lifepotion
+5,atk:Attack2
+6,atk:Attack3
+7,atk:Attack4
+8,atk:Scratch
+9,atk:Cover
+10,atk:Coverhurt
+11,atk:Eagle Eye
+12,atk:Jump
+13,atk:Land
+14,atk:Buildup
+15,atk:Refresh
+16,atk:Blessing
+17,atk:Steal
+18,atk:Focus
+19,atk:Care
+20,atk:Care2
+21,atk:Care3
+22,atk:Life
+23,atk:Raise
+24,atk:Force
+25,atk:Force2
+26,atk:Secure
+27,atk:Nurse
+28,atk:Nurse2
+29,atk:Sublime
+30,atk:Antidote
+31,atk:Lingue
+32,atk:Ease
+33,atk:esleep
+34,atk:eslow
+35,atk:epoison
+36,atk:emute
+37,atk:eblind
+38,atk:Acme
+39,atk:Ember
+40,atk:Shocker
+41,atk:Chiller
+42,atk:Slumber
+43,atk:Venomer
+44,atk:Hinder
+45,atk:Sunder
+46,atk:Thunder
+47,atk:Winter
+48,atk:Silencer
+49,atk:Drainer
+50,atk:Emboger
+51,atk:Reaper
+52,atk:Flare
+53,atk:Meteor
+54,atk:Dark Cut
+55,atk:Sacrifice
+56,atk:sac2
+57,atk:Mana Rage
+58,atk:mana2
+59,atk:Quick Hit
+60,atk:Slash All
+61,atk:HP Strike
+62,atk:Weaksmash
+63,atk:Spinslash
+64,atk:Owl Eye
+65,atk:Manslayer
+66,atk:Magemash
+67,atk:Mechbane
+68,atk:Were Bust
+69,atk:Drakedoom
+70,atk:Valiant
+71,atk:valdie
+72,atk:Wind
+73,atk:Smoke
+74,atk:Ice Age
+75,atk:Inspire
+76,atk:Silence
+77,atk:RagnaROCK
+78,atk:Pilfer
+79,atk:Backstab
+80,atk:Flee
+81,atk:Haste
+82,atk:Mesmerize
+83,atk:Quick
+84,atk:GreenFire
+85,atk:too cold
+87,atk:Tattack
+88,atk:Triangleup
+89,atk:PurplHaze
+90,atk:Ice Wave
+91,atk:Meteo1
+92,atk:Meteo2
+93,atk:Meteo3
+94,atk:Meteo4
+95,atk:yogrid1
+96,atk:yogrid2
+97,atk:yogrid3
+98,atk:yogrid4
+99,atk:yogrid5
+100,atk:yogrid6
+101,atk:yogrid7
+102,atk:Bandage
+103,atk:Unvenom
+104,atk:Rockslide
+105,atk:Attack5
+106,atk:Attack6
+107,atk:Defender
+108,atk:Defender2
+109,atk:Kyledefstr
+110,atk:kyledefup
+111,atk:Firesmash
+112,atk:Boltslash
+113,atk:Icebrand
+114,atk:Panacea
+115,atk:pana2
+116,atk:Beam
+117,atk:SuperNova
+118,atk:Ultima2
+119,atk:Azascratch
+120,atk:azascrat2
+121,atk:Attack7
+122,atk:Attack8
+123,atk:yogrid8
+124,atk:Shield
+125,atk:Iron Will
+126,atk:ironwill2
+127,atk:Rally
+128,atk:Idun Poem
+129,atk:Attack9
+130,atk:Attack10
+131,atk:Attack11
+132,atk:Dart
+133,atk:Kunai
+134,atk:Shuriken
+135,atk:Flame
+136,atk:Raijin
+137,atk:Tsunami
+138,atk:Smoke2
+139,atk:Assassin
+140,atk:Banzai
+141,atk:Prokove
+142,atk:WildSheep
+143,atk:Surlaw
+144,atk:Bob
+145,atk:sheeprush1
+146,atk:Sheeprush2
+147,atk:Vigorup
+148,atk:SHADOWS
+149,atk:Hasteall
+150,atk:Time Stop
+151,atk:Nurse3
+152,atk:Awake
+153,atk:Believe
+154,atk:believe2
+155,atk:believe3
+156,atk:believe4
+157,atk:believe5
+158,atk:believe6
+159,atk:Care4
+160,atk:AllRaise
+161,atk:Miracle
+162,atk:Charge
+163,atk:Rush
+164,atk:Rush2
+165,atk:Mugen2
+166,atk:9999999999
+167,atk:Infinity
+168,atk:Crush
+169,atk:Siphon
+170,atk:Siphon2
+171,atk:Lifedrain
+172,atk:Drain2
+173,atk:Maim
+174,atk:Photoheal
+175,atk:Dissolve
+176,atk:Explode
+177,atk:Explode2
+178,atk:Explode3
+179,atk:ExplodeLas
+180,atk:Barrier
+181,atk:Helspeek
+182,atk:helspe2
+183,atk:Helspe3
+184,atk:Helspe4
+185,atk:Helspe5
+186,atk:Helspe6
+187,atk:Helspe7
+188,atk:Hel attack
+189,atk:helSummon
+190,atk:AttackLead
+191,atk:Assist me
+192,atk:enemyloss1
+193,atk:assistflee
+194,atk:assistheal
+195,atk:Cider
+196,atk:MISSILES
+197,atk:Penance1
+198,atk:Penance2
+199,atk:LearnPhoto
+200,atk:LearnSipho
+201,atk:LearnDrain
+202,atk:learnCrush
+203,atk:LearnMaim
+204,atk:learnDisso
+205,atk:LearnGreen
+206,atk:LearnPurp
+207,atk:Learnicewa
+208,atk:LearnExplo
+209,atk:LearnBarri
+210,atk:LearnSuper
+211,atk:Coral
+212,atk:Giant
+213,atk:Manslayer2
+1,shop:Valhalla Weapon
+2,shop:Valhalla Tools
+3,shop:Valhalla Armor
+4,shop:Guild
+5,shop:Caravan
+6,shop:Thule Weapons
+7,shop:Thule Armor
+8,shop:Orchy's arms
+9,shop:Sell
+10,shop:Thule Inn
+11,shop:Valhalla Inn
+12,shop:Panopticon Inn
+13,shop:Crystal Abyss
+14,shop:Hell's Merchant
+15,shop:Alfheim Inn
+16,shop:Alfheim Weapons
+17,shop:Alfheim Armor
+18,shop:Alfheim Tools
+19,shop:Free Inn
+20,shop:Azerith's Cider
+21,shop:Geri's Supplies
+22,shop:Fox's Horrors
+23,shop:Herbalist
+24,shop:Rachel's Shop
+25,shop:Before Combat
+end

@@ -37,7 +37,7 @@ ECHO   Lumping Vikings of Midgard
 IF NOT EXIST vikings.rpg GOTO SKIPDELVIKING
 DEL vikings.rpg
 :SKIPDELVIKING
-relump ..\games\vikings\vikings.rpgdir vikings.rpg > NUL
+relump vikings\vikings.rpgdir vikings.rpg > NUL
 IF NOT EXIST vikings.rpg GOTO NORPG
 
 CALL update-import.bat 
@@ -113,10 +113,10 @@ support\cp support\oggenc.exe tmpdist\support
 support\cp support\LICENSE-oggenc.txt tmpdist\support
 support\cp vikings.rpg tmpdist
 mkdir "tmpdist\Vikings script files"
-support\cp "..\games\vikings\Vikings script files\viking.txt" "tmpdist\Vikings script files"
-support\cp "..\games\vikings\Vikings script files\viking.hsi" "tmpdist\Vikings script files"
-support\cp "..\games\vikings\Vikings script files\utility.lib" "tmpdist\Vikings script files"
-support\cp ..\games\vikings\README-vikings.txt tmpdist
+support\cp "vikings\Vikings script files\viking.txt" "tmpdist\Vikings script files"
+support\cp "vikings\Vikings script files\viking.hsi" "tmpdist\Vikings script files"
+support\cp "vikings\Vikings script files\utility.lib" "tmpdist\Vikings script files"
+support\cp "vikings\README-vikings.txt" tmpdist
 
 mkdir tmpdist\import
 mkdir tmpdist\import\background
