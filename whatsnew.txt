@@ -18,7 +18,7 @@ July ?? 2008 [werewaffle]
     * New default Master Palette for new games. [NeoTA, Everybody]
     * ohrrpgce.mas is no longer required at all, not even for
       custom [James Paige]
-    * New attack bitset, "Can't be canceled by other attacks" [James]
+    * New attack bitset, "Can't be cancelled by other attacks" [James]
     * New attack bitset, "Do not trigger spawning on hit" [James]
     * *Vastly* reduced CPU usage due to allmodex and gfx_fb graphics
       code rewrites [Ralph Versteegen]
@@ -192,8 +192,11 @@ Jan 21 2008 [voxhumana]
       [James]
 
   * New Plotscripting Commands
+    * There are **71** new commands for manipulating customisable menus,
+      too many to list! [James Paige]
     * get victory music
     * outside battle cure
+    * get level mp, set level mp [James Paige]
 
   * Stuff only Developers Will Notice
     * BattleStats UDT [James Paige]
@@ -424,6 +427,14 @@ Sept 21 2007 [ubersetzung]
       on Linux) [James Paige]
     * Added UDTs for Hero data [Mike]
     * Fixed browse$ to use UDTs [James]
+
+August 03 2006 [hasta-la-qb+]
+  * Okay, we lied. The last update wasn't nearly stable enough to
+    be the final DOS version.
+
+  * Fixed bug 220: "Hero plotscripting commands broken" [Ralph Versteegen]
+  * Backported Ralph Versteegen's thread safety fixes [James Paige]
+  * Backported unlump.exe and relump.exe [James Paige]
 
 July 09 2006 [hasta-la-qb]
   * This is the final version to support a real DOS version (GAME-QB and
