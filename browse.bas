@@ -20,7 +20,6 @@ Type BrowseMenuState
 	nowdir as string
 	tmp as string
 	treesize as integer   'last entry
-	limit as integer
 	viewsize as integer
 	special as integer
 	ranalready as integer
@@ -39,7 +38,6 @@ STATIC remember$
 browse$ = ""
 
 DIM br AS BrowseMenuState
-br.limit = 255
 br.tmp = tmp$
 br.special = special
 
@@ -48,13 +46,13 @@ br.special = special
 'special=2   16 color BMP
 'special=3   background
 'special=4   master palette (*.mas, 8 bit *.bmp, 16x16 24 bit *.bmp) (fmask$ is ignored)
-'special=5   any supported music (currently *.bam and *.mid, *.ogg, *.mp3 and mod format)  (fmask$ is ignored)
+'special=5   any supported music (currently *.bam, *.mid, *.ogg, *.mp3, *.mod, *.xm, *.it, *.s3m formats)  (fmask$ is ignored)
 'special=6   any supported SFX (currently *.ogg, *.wav, *.mp3) (fmask$ is ignored)
 'special=7   RPG files
 mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
 
-DIM tree(br.limit) AS BrowseMenuEntry
+REDIM tree(255) AS BrowseMenuEntry
 DIM drive$(26), catfg(6), catbg(6), bmpd(4), f = -1
 
 'tree().kind contains the type of each object in the menu
@@ -294,7 +292,7 @@ br.meter = 0
 
 'erase old list
 IF getdrivenames THEN br.treesize = -1 ELSE br.treesize = br.drivesshown - 1
-FOR i = br.treesize + 1 TO br.limit
+FOR i = br.treesize + 1 TO UBOUND(tree)
  tree(i).filename = ""
  tree(i).caption = ""
  tree(i).about = ""
@@ -334,7 +332,6 @@ getdrivenames = 0
 
 IF br.nowdir = "" THEN
 ELSE
- draw_browse_meter br
  a$ = br.nowdir
 
  '--Current drive
@@ -365,7 +362,7 @@ ELSE
  a$ = MID$(a$, INSTR$(a$, SLASH) + 1)
  '--Directories
  b$ = ""
- DO UNTIL a$ = "" OR br.treesize >= br.limit
+ DO UNTIL a$ = ""
   b$ = b$ + LEFT$(a$, 1)
   a$ = RIGHT$(a$, LEN(a$) - 1)
   IF RIGHT$(b$, 1) = SLASH THEN
@@ -380,18 +377,19 @@ ELSE
    END IF
 #ENDIF
    br.treesize = br.treesize + 1
+   IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
    tree(br.treesize).filename = b$
    tree(br.treesize).kind = 1
    b$ = ""
-   draw_browse_meter br
   END IF
  LOOP
  '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
  findfiles br.nowdir + ALLFILES, 16, br.tmp + "hrbrowse.tmp"
  fh = FREEFILE
  OPEN br.tmp + "hrbrowse.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh) OR br.treesize >= br.limit
+ DO UNTIL EOF(fh)
   br.treesize = br.treesize + 1
+  IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
   tree(br.treesize).kind = 2
   LINE INPUT #fh, tree(br.treesize).filename
   IF tree(br.treesize).filename = "." OR tree(br.treesize).filename = ".." OR RIGHT$(tree(br.treesize).filename, 4) = ".tmp" THEN br.treesize = br.treesize - 1
@@ -448,16 +446,18 @@ NEXT
 '--alphabetize
 FOR i = sortstart TO br.treesize - 1
  FOR j = br.treesize TO i + 1 STEP -1
-  FOR k = 0 TO small(LEN(tree(i).caption), LEN(tree(j).caption))
-   chara = ASC(LCASE$(CHR$(tree(i).caption[k])))
-   charb = ASC(LCASE$(CHR$(tree(j).caption[k])))
+  k = 0
+  DO
+   chara = tolower(tree(i).caption[k])
+   charb = tolower(tree(j).caption[k])
    IF chara < charb THEN
-    EXIT FOR
+    EXIT DO
    ELSEIF chara > charb THEN
     SWAP tree(i), tree(j)
-    EXIT FOR
+    EXIT DO
    END IF
-  NEXT
+   k += 1
+  LOOP WHILE chara OR charb
  NEXT
 NEXT
 
@@ -500,8 +500,9 @@ findfiles br.nowdir + anycase$(wildcard$), attrib, filelist$
 
 fh = FREEFILE
 OPEN filelist$ FOR INPUT AS #fh
-DO UNTIL EOF(fh) OR br.treesize >= br.limit
+DO UNTIL EOF(fh)
  br.treesize = br.treesize + 1
+ IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
  tree(br.treesize).kind = 3
  LINE INPUT #fh, tree(br.treesize).filename
  f = br.nowdir & tree(br.treesize).filename
@@ -583,6 +584,7 @@ safekill filelist$
 END SUB
 
 SUB draw_browse_meter(br AS BrowseMenuState)
+IF br.treesize AND 15 THEN EXIT SUB
 WITH br
  IF .ranalready THEN
   .meter = small(.meter + 1, 308)

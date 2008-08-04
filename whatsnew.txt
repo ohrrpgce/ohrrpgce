@@ -14,7 +14,8 @@ July ?? 2008 [werewaffle]
     * Press F5 in the browser to refresh the listing, and to fetch the
       names of all drives (under Windows); this is no longer done
       automatically as it was too slow.
-      Press backspace to go up a directory. [Ralph Versteegen]
+      Press backspace to go up a directory.
+      Also sped up, and removed 255 file limit. [Ralph Versteegen]
     * New default Master Palette for new games. [NeoTA, Everybody]
     * ohrrpgce.mas is no longer required at all, not even for
       custom [James Paige]
