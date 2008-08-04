@@ -1412,6 +1412,7 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
 
  usemenu mstate
 
+ IF mstate.pt >= 0 AND mstate.pt <= UBOUND(menudata.items) THEN
  WITH menudata.items(mstate.pt)
   IF .exists THEN
    strgrabber .caption, 38
@@ -1452,6 +1453,7 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
    END IF
   END IF
  END WITH
+ END IF' above block only runs with a valid mstate.pt
 
  IF record = 0 THEN
   IF keyval(29) > 0 AND keyval(19) > 1 THEN
