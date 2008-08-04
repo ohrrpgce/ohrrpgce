@@ -52,12 +52,15 @@ fi
 
 cd ohrrpgce-build/wip
 
+svn cleanup
+svn update
+
 ./distrib.sh
 
 mv distrib/ohrrpgce-linux-*-wip.tar.bz2 distrib/ohrrpgce-linux-wip.tar.bz2
 scp -p distrib/ohrrpgce-linux-wip.tar.bz2 james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 rm distrib/ohrrpgce-linux-wip.tar.bz2
 
-mv distrib/ohrrpgce_*.wip-*_i386.deb distrib/ohrrpgce_wip_i386.deb
-scp -p distrib/ohrrpgce_wip_i386.deb james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
-rm distrib/ohrrpgce_wip_i386.deb
+ssh james_paige@motherhamster.org rm "HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce_*.deb"
+scp -p distrib/ohrrpgce_*.wip-*_i386.deb james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+rm distrib/ohrrpgce_*.deb
