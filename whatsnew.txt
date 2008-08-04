@@ -97,6 +97,8 @@ July ?? 2008 [werewaffle]
     * Bug 379: Enemies couldn't use Target: Self attacks if they had
       "Untargetable by Enemies" set [Ralph]
     * Sound effects should hopefully be less laggy now (music_sdl)
+    * Fixed Bug 626 Bitsets altered (memory corruption) after reaching
+      maximum number of Menu Items [James]
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers
