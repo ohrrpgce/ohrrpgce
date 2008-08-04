@@ -8,7 +8,7 @@ package_name = "vikings-of-midgard"
 maintainer = '"Fenrir Lunaris & OHR Developers" <ohrrpgce@lists.motherhamster.org>'
 depends = "ohrrpgce (>=2008.07)"
 
-prefix = "../../games/vikings/"
+prefix = "../vikings/"
 relump(prefix + "vikings.rpgdir", "vikings.rpg")
 files = [
   "vikings.rpg",
