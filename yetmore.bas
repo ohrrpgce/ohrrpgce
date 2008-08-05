@@ -2355,6 +2355,7 @@ NEXT i
 
 
 IF mode > 1 AND drawloop = 0 THEN
+ setpal master()
  setvispage page
  w = getkey
  IF w = 68 THEN mode = 0: clearkey(68) 'f10
@@ -2375,7 +2376,7 @@ IF mode > 1 AND drawloop = 0 THEN
  END IF
  IF w = 13 OR w = 78 THEN '+
   IF viewmode = 1 THEN localsscroll = small(large(script(scrat(selectedscript).scrnum).vars - 11, 0), localsscroll + 4): GOTO redraw
-  IF viewmode = 2 THEN globalsscroll = small(1005, globalsscroll + 12): GOTO redraw
+  IF viewmode = 2 THEN globalsscroll = small(4076, globalsscroll + 12): GOTO redraw
  END IF
 
  'stepping
@@ -2960,7 +2961,7 @@ FUNCTION scriptstate$ (targetscript)
     outstr$ += "," & reads(scrst, stkpos - 2)
     outstr$ += "," & reads(scrst, stkpos - 1)
     outstr$ += "," & reads(scrst, stkpos) & ")"
-   ELSEIF state.curargn >= state.curargc AND (state.curkind <> tyflow OR flowtype(state.curvalue) = 1) THEN
+   ELSEIF state.curargn >= state.curargc AND iif(state.curkind <> tyflow, 1, flowtype(state.curvalue) = 1) THEN
     'print the evaluated list of arguments from the stack if they are all done
     outstr$ = "("
     IF state.curkind = tymath AND state.curvalue >= 16 AND state.curvalue <= 18 THEN
