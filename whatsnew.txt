@@ -99,6 +99,7 @@ July ?? 2008 [werewaffle]
     * Sound effects should hopefully be less laggy now (music_sdl)
     * Fixed Bug 626 Bitsets altered (memory corruption) after reaching
       maximum number of Menu Items [James]
+    * Preferred target weak/strong stat setting now works [Ralph]
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers

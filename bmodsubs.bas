@@ -1292,11 +1292,11 @@ DIM search AS INTEGER
 DIM found AS INTEGER
 DIM prefstat AS INTEGER
  
-IF atkbuf(101) = 0 THEN
+IF atkbuf(100) = 0 THEN
  'Weak/Strong pref stat defaults to target stat
  prefstat = atkbuf(18)
 ELSE
- prefstat = atkbuf(101) - 1
+ prefstat = atkbuf(100) - 1
 END IF
 
 SELECT CASE atkbuf(19) ' Preferred target type

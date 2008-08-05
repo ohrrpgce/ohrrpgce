@@ -1214,8 +1214,10 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    NEXT i
    IF bstat(targ).cur.hp = 0 AND o < 8 AND anim > -1 THEN'
     '--if the target is already dead, auto-pick a new target
-    get_valid_targs autotmask(), who, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
-    autotarget t(), autotmask(), who, buffer(), bslot(), bstat()
+    '--FIXME: why are we doing this after the attack? Does this even do anything?
+    '--       it was passing garbage attack data at least some of the time until r2104
+    get_valid_targs autotmask(), who, atk(), bslot(), bstat(), revenge(), revengemask(), targmem()
+    autotarget t(), autotmask(), who, atk(), bslot(), bstat()
    END IF
   CASE 11 'setz(who,z)
    ww = popw
