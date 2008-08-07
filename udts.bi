@@ -159,6 +159,7 @@ TYPE BattleSprite
   enemy_untargetable AS INTEGER
   death_unneeded AS INTEGER
   dissolve AS INTEGER
+  flee AS INTEGER
   attack_succeeded AS INTEGER
   sprites as Frame ptr 'the graphic set
   sprite_num AS INTEGER 'how many frames

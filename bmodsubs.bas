@@ -727,7 +727,9 @@ IF formdata(i * 4) > 0 THEN
   p(4 + i) = 44 + i
   getpal16 pal16(), 44 + i, es(i, 54), 1 + es(i, 55), es(i, 53)
   .vis = 1
+  .d = 0
   .dissolve = 0
+  .flee = 0
   .deathtype = es(i, 22)
   .deathtime = es(i, 23)
   IF es(i, 55) = 0 THEN

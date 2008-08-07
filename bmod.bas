@@ -27,7 +27,7 @@ DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTE
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), batname$(), BYREF plunder AS INTEGER, BYREF exper AS INTEGER, found())
-DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, eflee(), ebits())
+DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
 DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER,BYVAL who AS INTEGER, BYREF you AS INTEGER, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF plunder AS INTEGER, BYREF exper AS INTEGER, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), found(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 
 'these are the battle global variables
@@ -49,7 +49,7 @@ bstackstart = stackpos
 battle = 1
 DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24),  p(24), of(24), ctr(11)
 DIM ready(11), batname$(11), menu$(3, 5), menubits(2), mend(3), itemd$, spel$(23), speld$(23), spel(23), cost$(23), godo(11), delay(11), cycle(24), walk(3), aframe(11, 11)
-DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), eflee(24), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
+DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
 DIM bslot(24) AS BattleSprite
@@ -1051,7 +1051,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     bslot(i).y = bslot(i).basey
    NEXT i
    FOR i = 0 TO 7
-    IF eflee(4 + i) = 0 THEN
+    IF bslot(4 + i).flee = 0 THEN
      bslot(4 + i).x = bslot(4 + i).basex
      bslot(4 + i).y = bslot(4 + i).basey
     END IF
@@ -1150,7 +1150,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     checkTagCond atk(60), 3, atk(59), atk(61)
     checkTagCond atk(63), 3, atk(62), atk(64)
    END IF
-   triggerfade targ, bstat(), bslot(), eflee(), ebits()
+   triggerfade targ, bstat(), bslot(), ebits()
    IF bstat(targ).cur.hp > 0 THEN
     '---REVIVE---
     bslot(targ).vis = 1
@@ -1391,7 +1391,7 @@ FOR deadguy = 4 TO 11
  IF bstat(deadguy).cur.hp > 0 THEN
   'this enemy hasn't just spawned; it should fade out
   IF dieWOboss(deadguy, bstat(), ebits()) THEN
-   triggerfade deadguy, bstat(), bslot(), eflee(), ebits()
+   triggerfade deadguy, bstat(), bslot(), ebits()
   END IF
  END IF
 NEXT
@@ -1755,7 +1755,7 @@ FOR i = 0 TO 11
     harm = .max.poison - .cur.poison
     harm = range(harm, 20)
     quickinflict harm, i, hc(), hx(), hy(), bslot(), harm$(), bstat()
-    triggerfade i, bstat(), bslot(), eflee(), ebits()
+    triggerfade i, bstat(), bslot(), ebits()
     GOSUB fulldeathcheck
     '--WARNING: WITH pointer probably corrupted
    END IF
@@ -1772,7 +1772,7 @@ FOR i = 0 TO 11
     heal = heal * -1
     heal = range(heal, 20)
     quickinflict heal, i, hc(), hx(), hy(), bslot(), harm$(), bstat()
-    triggerfade i, bstat(), bslot(), eflee(), ebits()
+    triggerfade i, bstat(), bslot(), ebits()
     GOSUB fulldeathcheck
     '--WARNING: WITH pointer probably corrupted
    END IF
@@ -1831,7 +1831,7 @@ FOR i = 0 TO 11
  IF bslot(i).dissolve > 0 THEN
   'ENEMIES DEATH THROES
   IF is_enemy(i) THEN
-   IF eflee(i) = 0 THEN
+   IF bslot(i).flee = 0 THEN
     'not running away, normal fade
     FOR ii = 0 TO bslot(i).w * .5
      putpixel INT(RND * (bslot(i).h * bslot(i).w * .5)), 64 + 10 * (i - 4), 0, 3
@@ -1900,7 +1900,7 @@ FOR i = 0 TO 24
 					custspr = -1
 				end if
 				
-				if is_enemy(zbuf(i)) and .dissolve > 0 and eflee(zbuf(i)) = 0 then
+				if is_enemy(zbuf(i)) and .dissolve > 0 and .flee = 0 then
 					dim as integer dtype, dtime
 					if .deathtype = 0 then dtype = gen(genEnemyDissolve) else dtype = .deathtype - 1
 					if .deathtime = 0 then dtime = spr->w/2 else dtime = .deathtime
@@ -2085,7 +2085,7 @@ bslot(24).h = 24
 'or might that be expected behaviour in some games?
 FOR i = 0 TO 7
  IF bstat(i).cur.hp <= 0 THEN
-  triggerfade i, bstat(), bslot(), eflee(), ebits()
+  triggerfade i, bstat(), bslot(), ebits()
  END IF
 NEXT i
 GOSUB fulldeathcheck
@@ -2441,7 +2441,7 @@ FUNCTION dieWOboss(BYVAL who, bstat() AS BattleStats, ebits())
  END IF
 END FUNCTION
 
-SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, eflee(), ebits())
+SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
  'If the target is really dead...
  IF bstat(who).cur.hp = 0 THEN
   'the number of ticks it takes the enemy to fade away is equal to half its width
@@ -2454,7 +2454,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, efle
   IF is_enemy(who) THEN
    '--flee as alternative to death
    IF readbit(ebits(), (who - 4) * 5, 59) = 1 THEN
-    eflee(who) = 1
+    bslot(who).flee = 1
     'the number of ticks it takes an enemy to run away is based on its distance
     'from the left side of the screen and its width. Enemys flee at 10 pixels per tick
     bslot(who).dissolve = (bslot(who).w + bslot(who).x) / 10
@@ -2472,6 +2472,8 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER,BYVAL who AS
  END IF
  IF bstat(deadguy).cur.hp <> 0 THEN EXIT SUB
  '--deadguy is really dead (includes already dead and empty hero slots??)
+ 'Death animation is not done yet here, so be cautios about what gets cleand up here.
+ 'Full cleanup of bslot() records belongs in loadfoe
  bslot(deadguy).vis = 0
  ready(deadguy) = 0
  godo(deadguy) = 0
