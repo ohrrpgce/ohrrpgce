@@ -40,7 +40,9 @@ July ?? 2008 [werewaffle]
     * Menu scripts on menus with the "suspend gameplay" bit turned on
       receive extra menu data as arguments. (Menu scripts on normal
       menus still receive a menu item handle) [James]
-    * Debug keys: Ctrl+F11 to display NPC id and reference numbers.
+    * Debug keys: Ctrl+F1 lets you teleport to any position on any map
+      instantly, using an easy minimap. Hold shift to speed about.
+      Ctrl+F11 to overlay NPC id and (negated) reference numbers.
       Ctrl +/- for changing the framerate work again. Ctrl+~ to see
       the FPS - this works everywhere. [Ralph]
     * New enemy bitset, "Win battle even if alive" [Ralph]

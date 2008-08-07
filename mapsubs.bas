@@ -74,8 +74,8 @@ DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
 DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS INTEGER
-DECLARE SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, minimap() AS INTEGER, map() AS INTEGER, tilesets() AS TilesetData ptr)
-DECLARE SUB show_minimap(map() AS INTEGER, tilesets() AS TilesetData ptr)
+DECLARE SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, minimap() AS UBYTE, map() AS INTEGER, tilesets() AS TilesetData ptr)
+DECLARE SUB show_minimap(map() AS UBYTE, tilesets() AS TilesetData ptr)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1766,7 +1766,7 @@ END SUB
 
 SUB resizemapmenu (map(), tilesets() as TilesetData ptr, byref tempw, byref temph, byref tempx, byref tempy)
  'returns the new size and offset in passed args, or -1 width to cancel
-REDIM minimap(0,0)
+REDIM minimap(0,0) AS UBYTE
 DIM menu$(6), tog, csr = 1, zoom = 0
 wide = map(0)
 high = map(1)
@@ -1885,7 +1885,7 @@ SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEG
 END SUB
 
 SUB show_minimap(map() AS INTEGER, tilesets() AS TilesetData ptr)
- REDIM minimap(0,0) AS INTEGER
+ REDIM minimap(0,0) AS UBYTE
  createminimap minimap(), map(), tilesets()
 
  clearpage vpage

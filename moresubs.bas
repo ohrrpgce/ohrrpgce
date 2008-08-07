@@ -63,6 +63,7 @@ DECLARE SUB killallscripts ()
 DECLARE SUB remove_menu (record AS INTEGER)
 DECLARE FUNCTION herocount () AS INTEGER
 DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
+DECLARE SUB teleporttooltend (mini() AS UBYTE, tilemap(), tilesets() AS TilesetData ptr, BYREF zoom as integer, BYVAL map as integer, BYREF mapsize AS XYPair, BYREF minisize AS XYPair, BYREF offset AS XYPair)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -72,6 +73,7 @@ DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
 #include "scrconst.bi"
 #include "uiconst.bi"
 #include "loading.bi"
+#include "scancodes.bi"
 
 REM $STATIC
 SUB addhero (who, slot, stat(), forcelevel=-1)
@@ -982,7 +984,7 @@ END IF
 END SUB
 
 SUB minimap (x, y, tilesets() as TilesetData ptr)
- REDIM mini(0, 0) AS INTEGER
+ REDIM mini(0, 0) AS UBYTE
  DIM zoom AS INTEGER
  zoom = createminimap(mini(), scroll(), tilesets())
 
@@ -994,7 +996,7 @@ SUB minimap (x, y, tilesets() as TilesetData ptr)
  offset.x = 160 - minisize.x / 2
  offset.y = 100 - minisize.y / 2
 
- edgeboxstyle offset.x - 2, offset.y - 2, minisize.x + 6, minisize.y + 6, 0, vpage
+ edgeboxstyle offset.x - 2, offset.y - 2, minisize.x + 4, minisize.y + 4, 0, vpage
  DIM AS INTEGER tx, ty
  FOR tx = 0 TO minisize.x - 1
   FOR ty = 0 TO minisize.y - 1
@@ -1026,6 +1028,156 @@ SUB minimap (x, y, tilesets() as TilesetData ptr)
  flusharray carray(), 7, 0
  MenuSound gen(genCancelSFX)
 END SUB
+
+FUNCTION teleporttool (BYREF map as integer, tilesets() as TilesetData ptr)
+ REDIM tilemap(2) AS INTEGER
+ REDIM mini(0, 0) AS UBYTE
+ DIM zoom AS INTEGER
+ DIM i AS INTEGER
+
+ DIM mapsize AS XYPair
+ DIM minisize AS XYPair 'pixels
+ DIM offset AS XYPair
+
+ 'We don't bother reloading tilesets and tilemaps if not changing map
+ teleporttooltend mini(), scroll(), tilesets(), zoom, -1, mapsize, minisize, offset
+
+ DIM dest AS XYPair
+ dest.x = catx(0) \ 20
+ dest.y = caty(0) \ 20
+
+ DIM camera AS XYPair 'in pixels
+ camera.x = bound(dest.x * zoom - minisize.x \ 2, 0, mapsize.x * zoom - minisize.x)
+ camera.y = bound(dest.y * zoom - minisize.y \ 2, 0, mapsize.y * zoom - minisize.y)
+
+ DIM menu(1) AS STRING
+ menu(0) = "Teleport to map... " & map & " " & getmapname$(map)
+ menu(1) = "Teleport to position... X = " & dest.x & " Y = " & dest.y
+
+ DIM state AS MenuState
+ state.pt = 1
+ state.top = 0
+ state.size = 22
+ state.first = 0
+ state.last = UBOUND(menu)
+
+ DIM preview_delay AS INTEGER = 0
+ DIM pickpoint AS INTEGER = NO
+ DIM destmap AS INTEGER = map
+
+
+ teleporttool = 0
+
+ copypage vpage, 3
+ GOSUB redraw
+
+ MenuSound gen(genAcceptSFX)
+ setkeys
+ DO
+  setwait speedcontrol
+  setkeys
+  state.tog = state.tog XOR 1
+
+  IF preview_delay > 0 THEN
+   preview_delay -= 1
+   IF preview_delay = 0 THEN
+    teleporttooltend mini(), tilemap(), tilesets(), zoom, destmap, mapsize, minisize, offset
+    dest.x = small(dest.x, mapsize.x - 1)
+    dest.y = small(dest.y, mapsize.y - 1)
+    camera.x = bound(dest.x * zoom - minisize.x \ 2, 0, mapsize.x * zoom - minisize.x)
+    camera.y = bound(dest.y * zoom - minisize.y \ 2, 0, mapsize.y * zoom - minisize.y)
+    GOSUB redraw
+   END IF
+  END IF
+
+  control
+  IF pickpoint = NO THEN
+   usemenu state
+   IF carray(5) > 1 THEN loadmaptilesets tilesets(), gmap(): EXIT DO 'cancel
+   IF state.pt = 0 THEN
+    IF intgrabber(destmap, 0, gen(genMaxMap)) THEN
+     preview_delay = 7
+     menu(0) = "Map " & destmap & " " & getmapname$(destmap)
+    END IF
+   END IF
+   IF enter_or_space() THEN pickpoint = YES
+  ELSE
+   IF carray(4) > 1 THEN 'confirm and teleport
+    IF map <> destmap THEN teleporttool = -1
+    map = destmap
+    FOR i = 0 TO 15
+     catx(i) = dest.x * 20
+     caty(i) = dest.y * 20
+    NEXT
+    EXIT DO
+   END IF
+   IF carray(5) > 1 THEN pickpoint = NO
+   
+   IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
+    xrate = 8
+    yrate = 5
+   ELSE
+    xrate = 1
+    yrate = 1
+   END IF
+
+   IF slowkey(72, 1) THEN dest.y = large(dest.y - yrate, 0)
+   IF slowkey(80, 1) THEN dest.y = small(dest.y + yrate, mapsize.y - 1)
+   IF slowkey(75, 1) THEN dest.x = large(dest.x - xrate, 0)
+   IF slowkey(77, 1) THEN dest.x = small(dest.x + xrate, mapsize.x - 1)
+
+   DIM temp AS XYPair = camera
+   camera.x = bound(camera.x, (dest.x + 1) * zoom + 40 - minisize.x, dest.x * zoom - 40)  'follow dest
+   camera.y = bound(camera.y, (dest.y + 1) * zoom + 30 - minisize.y, dest.y * zoom - 30)
+   camera.x = bound(camera.x, 0, mapsize.x * zoom - minisize.x)  'bound to map edges
+   camera.y = bound(camera.y, 0, mapsize.y * zoom - minisize.y)
+   IF temp.x <> camera.x OR temp.y <> camera.y THEN GOSUB redraw
+
+   menu(1) = "Position X = " & dest.x & " Y = " & dest.y
+  END IF
+
+  copypage vpage, dpage
+  rectangle offset.x + dest.x * zoom - camera.x, offset.y + dest.y * zoom - camera.y, zoom, zoom, uilook(uiSelectedItem) * state.tog, dpage
+  standardmenu menu(), state, 0, 182, dpage, YES, pickpoint=YES
+  setvispage dpage
+  dowait
+ LOOP
+ setkeys
+ flusharray carray(), 7, 0
+ MenuSound gen(genCancelSFX)
+ EXIT FUNCTION
+
+redraw:
+ 'reblit the minimap to a spare page
+ copypage 3, vpage
+ edgeboxstyle offset.x - 2, offset.y - 2, minisize.x + 4, minisize.y + 4, 0, vpage
+ FOR ty = 0 TO minisize.y - 1
+  FOR tx = 0 TO minisize.x - 1
+   putpixel offset.x + tx, offset.y + ty, mini(tx + camera.x, ty + camera.y), vpage
+  NEXT
+ NEXT
+ RETRACE
+
+END FUNCTION
+
+SUB teleporttooltend (mini() AS UBYTE, tilemap(), tilesets() AS TilesetData ptr, BYREF zoom, BYVAL map, mapsize AS XYPair, minisize AS XYPair, offset AS XYPair)
+ IF map > -1 THEN
+  DIM gmap2(dimbinsize(binMAP)) AS INTEGER
+  loadtiledata maplumpname$(map, "t"), tilemap(), 3
+  loadrecord gmap2(), game + ".map", dimbinsize(binMAP), map
+  loadmaptilesets tilesets(), gmap2()
+ END IF
+ 'minimum zoom level to make tiles easy to pick
+ zoom = bound(small(320 \ tilemap(0), 200 \ tilemap(1)), 5, 20)
+ createminimap(mini(), tilemap(), tilesets(), zoom)
+ mapsize.x = tilemap(0)
+ mapsize.y = tilemap(1)
+ offset.x = large(160 - UBOUND(mini, 1) / 2, 0)
+ offset.y = large(100 - UBOUND(mini, 2) / 2, 0)
+ minisize.x = 320 - offset.x * 2
+ minisize.y = 200 - offset.y * 2
+END SUB
+
 
 FUNCTION movdivis (xygo)
 IF (xygo \ 20) * 20 = xygo AND xygo <> 0 THEN

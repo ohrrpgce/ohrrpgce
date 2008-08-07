@@ -1007,7 +1007,7 @@ array2str nameread(), 1, a$
 RETURN a$
 END FUNCTION
 
-FUNCTION createminimap (array() AS INTEGER, map() AS INTEGER, tilesets() AS TilesetData ptr, zoom AS INTEGER = -1) AS INTEGER
+FUNCTION createminimap (array() AS UBYTE, map() AS INTEGER, tilesets() AS TilesetData ptr, zoom AS INTEGER = -1) AS INTEGER
  'return value is zoom level
  'we don't have any sprite struct, so redim array() (dynamic array) and pass back the pixel data
 
@@ -1016,7 +1016,7 @@ FUNCTION createminimap (array() AS INTEGER, map() AS INTEGER, tilesets() AS Tile
    zoom = bound(small(320 \ map(0), 200 \ map(1)), 1, 20)
  END IF
 
- REDIM array(zoom * map(0) - 1, zoom * map(1) - 1)
+ REDIM array(zoom * map(0) - 1, zoom * map(1) - 1) AS UBYTE
  DIM AS SINGLE fraction, rand
  fraction = 20 / zoom
  rand = RND

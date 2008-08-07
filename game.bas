@@ -94,6 +94,7 @@ DECLARE SUB patcharray (array%(), n$)
 DECLARE SUB drawsay (saybit%(), sayenh%(), say$(), showsay%, choose$(), choosep%)
 DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, tilesets() AS TilesetData ptr)
 DECLARE SUB minimap (x%, y%, tilesets() AS TilesetData ptr)
+DECLARE FUNCTION teleporttool (BYREF map as integer, tilesets() as TilesetData ptr)
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE FUNCTION useinn (inn, price, needf, stat(), holdscreen)
 DECLARE SUB itstr (i%)
@@ -620,16 +621,6 @@ DO
  IF readbit(gen(), 101, 8) = 0 THEN
   '--debugging keys
   'DEBUG debug "evaluate debugging keys"
-  IF keyval(41) > 0 THEN
-   IF keyval(59) > 1 THEN
-    catx(0) = (catx(0) \ 20) * 20
-    caty(0) = (caty(0) \ 20) * 20
-    xgo(0) = 0
-    ygo(0) = 0
-   END IF
-  ELSE
-   IF keyval(59) > 1 AND showsay = 0 THEN minimap catx(0), caty(0), tilesets()
-  END IF
   IF keyval(60) > 1 AND showsay = 0 THEN
    savegame 32, map, foep, stat(), stock()
   END IF
@@ -637,7 +628,7 @@ DO
    wantloadgame = 33
   END IF
   IF keyval(62) > 1 THEN showtags = showtags XOR 1: scrwatch = 0 
-  IF keyval(63) > 1 THEN
+  IF keyval(29) = 0 AND keyval(63) > 1 THEN 'F5
    SELECT CASE gen(cameramode)
     CASE herocam
      IF gen(cameraArg) < 15 THEN
@@ -649,6 +640,12 @@ DO
      gen(cameramode) = herocam
      gen(cameraArg) = 0
    END SELECT
+  END IF
+  IF keyval(29) > 0 AND keyval(63) > 1 THEN  'CTRL + F5
+   catx(0) = (catx(0) \ 20) * 20
+   caty(0) = (caty(0) \ 20) * 20
+   xgo(0) = 0
+   ygo(0) = 0
   END IF
   IF keyval(64) > 0 AND gen(cameramode) <> pancam THEN
    '--only permit movement when not already panning
@@ -683,13 +680,18 @@ DO
   IF keyval(67) > 1 THEN patcharray gmap(), "gmap"
   IF keyval(68) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): showtags = 0
   IF keyval(29) > 0 THEN ' holding CTRL
-   IF keyval(78) > 1 OR keyval(13) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = XSTR$(speedcontrol)
-   IF keyval(74) > 1 OR keyval(12) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = XSTR$(speedcontrol)
-   IF keyval(87) > 1 THEN shownpcinfo = shownpcinfo XOR 1
+   IF keyval(59) > 1 AND showsay = 0 THEN 
+    IF teleporttool(map, tilesets()) THEN GOSUB preparemap  'CTRL + F1
+   END IF
+   IF showtags = 0 THEN
+    IF keyval(78) > 1 OR keyval(13) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = XSTR$(speedcontrol) 'CTRL + +
+    IF keyval(74) > 1 OR keyval(12) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = XSTR$(speedcontrol)'CTRL + -
+   END IF
+   IF keyval(87) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
   ELSE ' not holding CTRL
-   IF keyval(87) > 1 THEN ghost = ghost XOR 1
+   IF keyval(59) > 1 AND showsay = 0 THEN minimap catx(0), caty(0), tilesets() 'F1
+   IF keyval(87) > 1 THEN ghost = ghost XOR 1 'F11
   END IF
-  IF keyval(29) > 0 AND keyval(32) > 0 THEN scriptout$ = scriptstate$
   IF keyval(41) > 1 then map_draw_mode = not map_draw_mode
  END IF
  IF wantloadgame > 0 THEN
