@@ -75,7 +75,7 @@ DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door)
 DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS INTEGER
 DECLARE SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, minimap() AS UBYTE, map() AS INTEGER, tilesets() AS TilesetData ptr)
-DECLARE SUB show_minimap(map() AS UBYTE, tilesets() AS TilesetData ptr)
+DECLARE SUB show_minimap(map() AS INTEGER, tilesets() AS TilesetData ptr)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1870,7 +1870,7 @@ RETRACE
 
 END SUB
 
-SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, minimap() AS INTEGER, map() AS INTEGER, tilesets() AS TilesetData ptr)
+SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, minimap() AS UBYTE, map() AS INTEGER, tilesets() AS TilesetData ptr)
  DIM lastzoom AS INTEGER
  lastzoom = zoom
  DIM AS INTEGER tw, th
