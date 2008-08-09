@@ -637,6 +637,7 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
     anim_absmove 12 + i, INT(RND * 270), INT(RND * 150), 6, 6
    END IF
   NEXT i
+  if atk(99) > 0  then anim_sound(atk(99) - 1)
   anim_wait 2
   IF atk(15) = 3 THEN
    anim_wait 3
@@ -657,7 +658,6 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
    NEXT i
    anim_waitforall
   END IF
-  if atk(99) > 0  then anim_sound(atk(99) - 1)
   FOR i = 0 TO tcount
    anim_inflict t(who, i)
    temp = 3: IF is_enemy(t(who, i)) THEN temp = -3
