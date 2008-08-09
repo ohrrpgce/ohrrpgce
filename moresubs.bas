@@ -1096,7 +1096,7 @@ FUNCTION teleporttool (BYREF map as integer, tilesets() as TilesetData ptr)
    IF carray(5) > 1 THEN loadmaptilesets tilesets(), gmap(): EXIT DO 'cancel
    IF state.pt = 0 THEN
     IF intgrabber(destmap, 0, gen(genMaxMap)) THEN
-     preview_delay = 7
+     preview_delay = 12
      menu(0) = "Map " & destmap & " " & getmapname$(destmap)
     END IF
    END IF
