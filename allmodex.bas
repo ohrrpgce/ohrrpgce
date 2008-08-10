@@ -94,6 +94,7 @@ dim shared anim1 as integer
 dim shared anim2 as integer
 
 dim shared waittime as double
+dim shared flagtime as double = 0.0
 dim shared waitset as integer
 
 dim shared keybd(-1 to 127) as integer  'keyval array
@@ -1463,17 +1464,24 @@ SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
 
 end SUB
 
-SUB setwait (BYVAL t as integer)
+SUB setwait (BYVAL t as integer, BYVAL flagt as integer = 0)
 't is a value in milliseconds which, in the original, is used to set the event
 'frequency and is also used to set the wait time, but the resolution of the
 'dos timer means that the latter is always truncated to the last multiple of
 '55 milliseconds. We won't do this anymore. Try to make the target framerate.
 	waittime = bound(waittime + t / 1000, timer + 0.017, timer + t / 667)
+	if timer > flagtime then
+		flagtime = bound(flagtime + flagt / 1000, timer + 0.017, timer + flagt / 667)
+	end if
+	if flagt = 0 then
+		flagt = t
+	end if
 	waitset = 1
 end SUB
 
-SUB dowait ()
+FUNCTION dowait () as integer
 'wait until alarm time set in setwait()
+'returns true if the flag time has passed (since the last time it was passed)
 'In freebasic, sleep is in 1000ths, and a value of less than 100 will not
 'be exited by a keypress, so sleep for 5ms until timer > waittime.
 	dim i as integer
@@ -1485,7 +1493,8 @@ SUB dowait ()
 	else
 		debug "dowait called without setwait"
 	end if
-end SUB
+	return timer >= flagtime
+end FUNCTION
 
 SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 	dim col as integer
