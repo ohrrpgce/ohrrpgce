@@ -109,7 +109,6 @@ DIM menu$(22), rpg$(3), npcn(1500), npcstat(1500)
 DIM game as string, gamefile as string, insert, activepalette
 DIM vpage, dpage, fadestate
 DIM fmvol
-fmvol = getfmvol
 
 dim shared trit as string 'to fix an undefined variable error
 
@@ -196,6 +195,10 @@ verifyrpg
 safekill workingdir + SLASH + "__danger.tmp"
 
 IF hsfile$ <> "" THEN GOTO hsimport
+
+setupmusic
+fmvol = getfmvol
+setfmvol fmvol ' *shrug*
 
 IF NOT isfile(game + ".mas") AND NOT isfile(workingdir + SLASH + "palettes.bin") THEN
  debug "Warning: " & game & ".mas does not exist (which should never happen)"
@@ -566,6 +569,7 @@ setvispage 0 'force a refresh
 w = getkey
 'closefile
 CHDIR curdir$
+closemusic
 restoremode
 END
 

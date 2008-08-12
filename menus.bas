@@ -578,8 +578,6 @@ END SUB
 SUB importsong ()
 STATIC default$
 DIM oggtemp AS STRING
-setupmusic
-setfmvol getfmvol
 clearpage 0
 clearpage 1
 clearpage 2
@@ -658,8 +656,6 @@ clearpage 1
 clearpage 2
 clearpage 3
 pausesong
-closemusic
-
 EXIT SUB
 
 getsonginfo:
@@ -804,7 +800,6 @@ SUB importsfx ()
 STATIC default$
 DIM oggtemp AS STRING
 
-setupsound
 clearpage 0
 clearpage 1
 clearpage 2
@@ -891,7 +886,6 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-closesound
 
 EXIT SUB
 

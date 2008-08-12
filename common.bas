@@ -878,6 +878,7 @@ setvispage 0 'refresh
 w = getkey
 
 IF w = 1 THEN
+ closemusic
  restoremode
 
  touchfile workingdir + SLASH + "__danger.tmp"
