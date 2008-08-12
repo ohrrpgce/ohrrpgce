@@ -208,6 +208,16 @@ processcommandline
 '---get temp dir---
 tmpdir = aquiretempdir$
 
+'DEBUG debug "set mode-X"
+setmodex
+
+'DEBUG debug "init sound"
+setupmusic
+setupsound
+'resetfm
+'setfmvol 7
+fmvol = getfmvol
+
 'DEBUG debug "dim (almost) everything"
 
 '$dynamic
@@ -271,7 +281,7 @@ DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
 
 'DEBUG debug "Thestart"
-DO 'This is a big loop that encloses the entire program. The loop is only reached when resetting the game
+DO 'This is a big loop that encloses the entire program (more than it should). The loop is only reached when resetting the game
 
 'DEBUG debug "setup directories"
 
@@ -307,8 +317,6 @@ LoadUIColors uilook()
 'DEBUG debug "load font"
 getdefaultfont font()
 
-'DEBUG debug "set mode-X"
-setmodex
 setwindowtitle "O.H.R.RPG.C.E"
 
 'DEBUG debug "apply font"
@@ -316,12 +324,6 @@ setfont font()
 
 keyboardsetup
 
-'DEBUG debug "init sound"
-setupmusic
-setupsound
-'resetfm
-'setfmvol 7
-fmvol = getfmvol
 setfmvol 0
 
 'DEBUG debug "set up default controls"
@@ -790,11 +792,11 @@ resetinterpreter 'unload scripts
 cleanuptemp
 fademusic 0
 fadeout 0, 0, 0
-closemusic
-closesound
 'closefile
-setfmvol fmvol
-restoremode
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
 RETRIEVESTATE
 LOOP ' This is the end of the DO that encloses the entire program.
 

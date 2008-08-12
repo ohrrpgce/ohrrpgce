@@ -628,6 +628,8 @@ fademusic 0
 IF needfade THEN fadeout 0, 0, 0
 quitcleanup
 'DEBUG debug "Restore Old Graphics Mode"
+closemusic
+setfmvol fmvol
 restoremode
 'DEBUG debug "Terminate NOW (boom!)"
 SYSTEM
