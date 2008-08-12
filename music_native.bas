@@ -405,6 +405,7 @@ sub music_setvolume(vol as integer)
 end sub
 
 function music_getvolume() as integer
+'Note: this doesn't seem to work
 	music_getvolume = getvolmidi
 end function
 
@@ -427,7 +428,7 @@ sub fade_daemon(byval targetvol as integer)
 	if music_vol > targetvol then vstep = -1
 	for i = music_vol to targetvol step vstep
 		music_setvolume(i)
-		sleep 10
+		sleep 100
 	next
 	fade_thread = 0
 end sub

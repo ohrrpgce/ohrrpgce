@@ -2092,7 +2092,7 @@ GOSUB fulldeathcheck
 RETRACE
 
 victory: '------------------------------------------------------------------
-IF gen(3) > 0 THEN wrappedsong gen(3) - 1
+IF gen(3) > 0 THEN fademusic fmvol: wrappedsong gen(3) - 1
 gold = gold + plunder
 IF gold > 1000000000 THEN gold = 1000000000
 IF liveherocount(bstat()) > 0 THEN exper = exper / liveherocount(bstat())
