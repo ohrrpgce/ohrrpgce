@@ -69,7 +69,7 @@ SUB airbrush (x, y, d, m, c, p)
 ' mist_amount sets how many pixels to place i put 100 and it ran fast so
 ' it works EXCELLENTLY with a mouse on the DTE =)
 
-FOR count = 1 TO m
+FOR count = 1 TO RND * m
  x2 = RND * d
  y2 = RND * d
  r = d \ 2
@@ -707,7 +707,7 @@ ts.gotmouse = setmouse(mouse())
 ts.canpaste = oldpaste
 ts.drawcursor = 1
 ts.airsize = 5
-ts.mist = 10
+ts.mist = 4
 area(0).x = 60
 area(0).y = 0
 area(0).w = 200
@@ -970,6 +970,8 @@ WITH toolinfo(7)
  .areanum = 22
 END WITH
 
+tog = 0
+tick = 0
 ts.justpainted = 0
 ts.undo = 0
 ts.allowundo = 0
@@ -993,16 +995,17 @@ FOR j = 0 TO 7
  NEXT i
 NEXT j
 '---EDIT BLOCK---
+setkeyrepeat 25, 5
 setkeys
 DO
- setwait 37
+ setwait 17, 70
  setkeys
  IF ts.gotmouse THEN
   readmouse mouse()
   zcsr = 0
   ts.zone = mouseover(mouse(), zox, zoy, zcsr, area())
  END IF
- tog = tog XOR 1
+
  ts.delay = large(ts.delay - 1, 0)
  ts.justpainted = large(ts.justpainted - 1, 0)
  IF keyval(1) > 1 THEN
@@ -1014,10 +1017,10 @@ DO
  END IF
  IF keyval(56) = 0 THEN
   ts.fixmouse = NO
-  IF slowkey(75, 3) THEN ts.x = large(ts.x - 1, 0): ts.fixmouse = YES
-  IF slowkey(77, 3) THEN ts.x = small(ts.x + 1, 19): ts.fixmouse = YES
-  IF slowkey(72, 3) THEN ts.y = large(ts.y - 1, 0): ts.fixmouse = YES
-  IF slowkey(80, 3) THEN ts.y = small(ts.y + 1, 19): ts.fixmouse = YES
+  IF slowkey(75, 6) THEN ts.x = large(ts.x - 1, 0): ts.fixmouse = YES
+  IF slowkey(77, 6) THEN ts.x = small(ts.x + 1, 19): ts.fixmouse = YES
+  IF slowkey(72, 6) THEN ts.y = large(ts.y - 1, 0): ts.fixmouse = YES
+  IF slowkey(80, 6) THEN ts.y = small(ts.y + 1, 19): ts.fixmouse = YES
   IF ts.fixmouse AND ts.zone = 1 THEN
    zox = ts.x * 10 + 5
    zoy = ts.y * 8 + 4
@@ -1035,16 +1038,16 @@ DO
   END IF
  NEXT i
  '----------
- IF keyval(51) > 1 OR (keyval(56) > 0 AND keyval(75, 6, 2) > 1) THEN
+ IF keyval(51) > 1 OR (keyval(56) > 0 AND keyval(75) > 1) THEN
   ts.curcolor = (ts.curcolor + 255) MOD 256
   IF ts.curcolor MOD 16 = 15 THEN ts.curcolor = (ts.curcolor + 144) MOD 256
  END IF
- IF keyval(52) > 1 OR (keyval(56) > 0 AND keyval(77, 6, 2) > 1) THEN
+ IF keyval(52) > 1 OR (keyval(56) > 0 AND keyval(77) > 1) THEN
   ts.curcolor += 1
   IF ts.curcolor MOD 16 = 0 THEN ts.curcolor = (ts.curcolor + 112) MOD 256
  END IF
- IF keyval(56) > 0 AND keyval(72, 6, 2) > 1 THEN ts.curcolor = (ts.curcolor + 240) MOD 256
- IF keyval(56) > 0 AND keyval(80, 6, 2) > 1 THEN ts.curcolor = (ts.curcolor + 16) MOD 256
+ IF keyval(56) > 0 AND keyval(72) > 1 THEN ts.curcolor = (ts.curcolor + 240) MOD 256
+ IF keyval(56) > 0 AND keyval(80) > 1 THEN ts.curcolor = (ts.curcolor + 16) MOD 256
  IF keyval(41) > 1 THEN ts.hidemouse = ts.hidemouse XOR 1
  IF keyval(29) > 0 AND keyval(44) > 1 AND ts.allowundo THEN
   ts.undo = loopvar(ts.undo, 0, 5, -1)
@@ -1109,10 +1112,10 @@ DO
  END IF
  IF ts.tool = airbrush_tool THEN '--adjust airbrush
   IF mouse(3) = 1 OR mouse(2) = 1 THEN
-   IF ts.zone = 17 THEN ts.airsize = large(ts.airsize - 1, 1)
-   IF ts.zone = 19 THEN ts.airsize = small(ts.airsize + 1, 30)
-   IF ts.zone = 18 THEN ts.mist = large(ts.mist - 1, 1)
-   IF ts.zone = 20 THEN ts.mist = small(ts.mist + 1, 99)
+   IF ts.zone = 17 THEN ts.airsize = large(ts.airsize - tick, 1)
+   IF ts.zone = 19 THEN ts.airsize = small(ts.airsize + tick, 30)
+   IF ts.zone = 18 THEN ts.mist = large(ts.mist - tick, 1)
+   IF ts.zone = 20 THEN ts.mist = small(ts.mist + tick, 99)
   END IF
   IF keyval(12) > 1 OR keyval(74) > 1 THEN
    IF keyval(29) > 0 THEN
@@ -1214,8 +1217,10 @@ DO
  SWAP dpage, vpage
  setvispage vpage
  copypage 2, dpage
- dowait
+ tick = 0
+ IF dowait THEN tick = 1: tog = tog XOR 1
 LOOP
+setkeyrepeat
 IF ts.gotmouse THEN
  movemouse ts.tilex * 20 + 10, ts.tiley * 20 + 10
 END IF
@@ -1570,6 +1575,7 @@ DIM AS INTEGER do_paste = 0
 DIM AS INTEGER paste_transparent = 0
 DIM AS INTEGER debug_palettes = 0
 DIM temppos AS XYPair
+DIM AS INTEGER tick = 0
 'FOR Loop counters
 DIM AS INTEGER i, j, o
 
@@ -1591,7 +1597,7 @@ WITH ss
  .drawcursor = 1
  .tool = draw_tool
  .airsize = 5
- .mist = 10
+ .mist = 4
 END WITH
 
 DIM state AS MenuState
@@ -1834,9 +1840,10 @@ ss.undoslot = 0
 ss.undomax = (32000 \ size) - 1
 GOSUB spedbak
 loadsprite placer(), 0, ss.framenum * size, soff * (state.pt - state.top), xw, yw, 3
+setkeyrepeat 25, 5
 setkeys
 DO
- setwait 55
+ setwait 17, 70
  setkeys
  IF ss.gotmouse THEN
   readmouse mouse()
@@ -1853,15 +1860,16 @@ DO
   END IF
  END IF
  GOSUB sprctrl
- state.tog = state.tog XOR 1
  copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
  GOSUB spritescreen
  SWAP vpage, dpage
  setvispage vpage
  'blank the sprite area
  rectangle 239, 119, xw, yw, 0, dpage
- dowait
+ tick = 0
+ IF dowait THEN tick = 1: state.tog = state.tog XOR 1
 LOOP
+setkeyrepeat
 j = state.pt
 savewuc(spritefile, j, state.top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
 changepal poffset(state.pt), 0, workpal(), state.pt - state.top
@@ -1946,10 +1954,10 @@ poke8bit workpal(), (state.pt - state.top) * 16 + col, ss.curcolor
 IF keyval(56) = 0 THEN
  WITH ss
   .fixmouse = NO
-  IF slowkey(72, 2) THEN .y = large(0, .y - 1):      .fixmouse = YES
-  IF slowkey(80, 2) THEN .y = small(yw - 1, .y + 1): .fixmouse = YES
-  IF slowkey(75, 2) THEN .x = large(0, .x - 1):      .fixmouse = YES
-  IF slowkey(77, 2) THEN .x = small(xw - 1, .x + 1): .fixmouse = YES
+  IF slowkey(72, 6) THEN .y = large(0, .y - 1):      .fixmouse = YES
+  IF slowkey(80, 6) THEN .y = small(yw - 1, .y + 1): .fixmouse = YES
+  IF slowkey(75, 6) THEN .x = large(0, .x - 1):      .fixmouse = YES
+  IF slowkey(77, 6) THEN .x = small(xw - 1, .x + 1): .fixmouse = YES
  END WITH
  IF ss.fixmouse THEN
   IF ss.zonenum = 1 THEN
@@ -1974,10 +1982,10 @@ IF ss.zonenum = 1 THEN
 END IF
 IF ss.tool = airbrush_tool THEN '--adjust airbrush
  IF mouse(3) = 1 OR mouse(2) = 1 THEN
-  IF ss.zonenum = 15 THEN ss.airsize = large(ss.airsize - 1, 1)
-  IF ss.zonenum = 17 THEN ss.airsize = small(ss.airsize + 1, 80)
-  IF ss.zonenum = 16 THEN ss.mist = large(ss.mist - 1, 1)
-  IF ss.zonenum = 18 THEN ss.mist = small(ss.mist + 1, 99)
+  IF ss.zonenum = 15 THEN ss.airsize = large(ss.airsize - tick, 1)
+  IF ss.zonenum = 17 THEN ss.airsize = small(ss.airsize + tick, 80)
+  IF ss.zonenum = 16 THEN ss.mist = large(ss.mist - tick, 1)
+  IF ss.zonenum = 18 THEN ss.mist = small(ss.mist + tick, 99)
  END IF
  IF keyval(12) > 1 OR keyval(74) > 1 THEN
   IF keyval(29) > 0 THEN
@@ -2121,7 +2129,10 @@ IF keyval(58) > 0 THEN
  IF keyval(75) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 238, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
  IF keyval(77) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 240, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
 END IF
-IF keyval(23) > 1 OR (ss.zonenum = 13 AND mouse(3) > 0) THEN GOSUB import16
+IF keyval(23) > 1 OR (ss.zonenum = 13 AND mouse(3) > 0) THEN
+ GOSUB import16
+ setkeyrepeat 25, 5
+END IF
 RETRACE
 
 resettool:
@@ -2148,6 +2159,7 @@ RETRACE
 import16:
 'FIXME: several things such as srcbmp and palstate are DIMed near the top of sprite()
 '       move them here when import16 gets SUBified
+setkeyrepeat
 srcbmp = browse$(2, default$, "*.bmp", "")
 IF srcbmp = "" THEN RETRACE
 '--------------------

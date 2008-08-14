@@ -50,6 +50,8 @@ July ?? 2008 [werewaffle]
       Hire, Sell, Can't Buy, Can't Sell [Ralph]
     * New aim math options for purely percentage based aim/dodge rates:
       Aim%, Aim% * (100-Dog)%, Mag%, Mag% * (100-Mag)%  [Adam Perry]
+    * The mouse is usable for drawing now: the frame rate in the sprite
+      editors has been maximised (used to be 9fps!) [Ralph]
 
   * Bugfixes
     * Bug 585: Curative items used wrong attack after being arranged
