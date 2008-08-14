@@ -660,11 +660,11 @@ DO
      END IF
     END IF
    NEXT i
-   IF keyval(51) > 0 AND usetile(layer) > 0 THEN
+   IF keyval(51) > 1 AND usetile(layer) > 0 THEN
     usetile(layer) = usetile(layer) - 1
     update_tilepicker tilepick, layer, usetile(), menubarstart()
    END IF
-   IF keyval(52) > 0 AND usetile(layer) < 159 THEN
+   IF keyval(52) > 1 AND usetile(layer) < 159 THEN
     usetile(layer) = usetile(layer) + 1
     update_tilepicker tilepick, layer, usetile(), menubarstart()
    END IF
@@ -760,12 +760,12 @@ DO
      IF temp >= 0 THEN npc(temp + 0) = x: npc(temp + 300) = y + 1: npc(temp + 600) = nptr + 1: npc(temp + 900) = nd
     END IF
    END IF
-   IF keyval(51) > 0 THEN nptr = nptr - 1: IF nptr < 0 THEN nptr = 35
-   IF keyval(52) > 0 THEN nptr = nptr + 1: IF nptr > 35 THEN nptr = 0
+   IF keyval(51) > 1 THEN nptr = nptr - 1: IF nptr < 0 THEN nptr = 35
+   IF keyval(52) > 1 THEN nptr = nptr + 1: IF nptr > 35 THEN nptr = 0
    '---FOEMODE--------
   CASE 4
-   IF keyval(51) > 0 THEN foe = loopvar(foe, 0, 255, -1)
-   IF keyval(52) > 0 THEN foe = loopvar(foe, 0, 255, 1)
+   IF keyval(51) > 1 THEN foe = loopvar(foe, 0, 255, -1)
+   IF keyval(52) > 1 THEN foe = loopvar(foe, 0, 255, 1)
    IF keyval(57) > 0 THEN
     setmapdata emap(), pass(), 20, 0
     setmapblock x, y, 0, foe
