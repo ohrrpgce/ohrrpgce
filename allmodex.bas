@@ -855,7 +855,7 @@ FUNCTION keyval (BYVAL a as integer, BYVAL rwait as integer = 0, BYVAL rrate as 
 'bit 2: new keypress during last setkey-setkey interval
 
 	DIM result as integer = keybd(a)
-        IF a >= 0 THEN
+	IF a >= 0 THEN
 		IF rwait = 0 THEN rwait = keyrepeatwait
 		IF rrate = 0 THEN rrate = keyrepeatrate
 
@@ -888,7 +888,7 @@ end FUNCTION
 
 FUNCTION getkey () as integer
 	dim i as integer, key as integer
-  dim as integer joybutton = 0, joyx = 0, joyy = 0, sleepjoy = 3
+	dim as integer joybutton = 0, joyx = 0, joyy = 0, sleepjoy = 3
 	key = 0
 
 	setkeys
@@ -902,13 +902,13 @@ FUNCTION getkey () as integer
 				exit do
 			end if
 		next
-    if sleepjoy > 0 then
-      sleepjoy -= 1
-    elseif io_readjoysane(0, joybutton, joyx, joyy) then
-      for i = 16 to 1 step -1
-        if joybutton and (i ^ 2) then key = 127 + i
-      next i
-    end if
+		if sleepjoy > 0 then
+			sleepjoy -= 1
+		elseif io_readjoysane(0, joybutton, joyx, joyy) then
+			for i = 16 to 1 step -1
+				if joybutton and (i ^ 2) then key = 127 + i
+			next i
+		end if
 		sleep 50
 	loop while key = 0
 
@@ -968,7 +968,7 @@ end SUB
 
 SUB clearkey(byval k as integer)
 	keybd(k) = 0
-	keysteps(k) = 0
+	keysteps(k) = 1
 end sub
 
 sub pollingthread(byval unused as threadbs)

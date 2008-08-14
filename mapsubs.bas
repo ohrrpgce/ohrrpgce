@@ -541,7 +541,7 @@ DO
   END IF
  else
   for i = 0 to 2
-   if keyval(scAlt) > 0 AND keyval(sc1 + i) > 0 then
+   if keyval(scAlt) > 0 AND keyval(sc1 + i) > 1 then
     clearkey(sc1 + i)
     togglelayerenabled(gmap(), i)
     if not layerisenabled(gmap(), i) then
@@ -551,14 +551,14 @@ DO
     end if
    end if
    #IFNDEF __FB_LINUX__
-   if keyval(scCtrl) > 0 AND keyval(scF1 + i) > 0 then
+   if keyval(scCtrl) > 0 AND keyval(scF1 + i) > 1 then
     clearkey(scF1 + i)
     if layerisenabled(gmap(), i) then togglelayervisible(visible(), i)
    end if
    #ENDIF
   next
   
-  if keyval(scTilde) then
+  if keyval(scTilde) > 1 then
    togglelayervisible(visible(), layer)
    clearkey(scTilde)
   end if
@@ -1081,8 +1081,7 @@ SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS Tiles
   setkeys
   tog = tog XOR 1
 
-'  IF keyval(1) > 1 THEN clearkey(1): EXIT DO
-  IF keyval(1) > 1 THEN EXIT DO
+  IF keyval(1) > 1 THEN clearkey(1): EXIT DO
 
   IF usemenu(state, enabled()) THEN
    state.need_update = YES
@@ -1094,8 +1093,6 @@ SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS Tiles
   SELECT CASE state.pt
    CASE 0
     IF enter_or_space() THEN
-'    clearkey(57) 'clear repeats
-'    clearkey(28)
      EXIT DO
     END IF
    case 1
