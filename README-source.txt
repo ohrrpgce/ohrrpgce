@@ -6,8 +6,8 @@ code :)
 http://HamsterRepublic.com/ohrrpgce/source.php for more information 
 -----------------------------------------------------------------------------
 WINDOWS/LINUX:
-  Recommends FreeBasic version 0.18.3b
-  Requires minimum FreeBasic version 0.17b
+  Recommends FreeBasic version 0.18.6b
+  Requires minimum FreeBasic version 0.18.0b
   Download FreeBasic from http://freebasic.net/
   Building HSpeak requires any version Euphoria http://www.RapidEuphoria.com/
 -----------------------------------------------------------------------------
