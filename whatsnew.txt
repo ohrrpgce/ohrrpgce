@@ -1,5 +1,18 @@
 WHAT IS NEW?
 
+???? ?? 200? [xocolatl]
+
+  * New Features
+
+  * Bugfixes
+
+  * New Plotscripting Stuff
+    * get hero speed [MCW]
+
+  * Vikings of Midgard
+
+  * Stuff only Developers Will Notice
+
 August 16 2008 [werewaffle]
 
   * New Features
@@ -15,7 +28,7 @@ August 16 2008 [werewaffle]
       names of all drives (under Windows); this is no longer done
       automatically as it was too slow.
       Press backspace to go up a directory.
-      Also sped up, and removed 255 file limit. [Ralph Versteegen]
+      Also sped up, and removed the 255 file limit. [Ralph Versteegen]
     * New default Master Palette for new games. [NeoTA, Everybody]
     * ohrrpgce.mas is no longer required at all, not even for
       custom [James Paige]
@@ -60,7 +73,7 @@ August 16 2008 [werewaffle]
     * Attempting to display a blank global text string, or the "fail"
       message in certain cases, would crash under Linux, and "fail"
       wouldn't display under Windows [Ralph Versteegen]
-    * Importing a new master palette could black out or fails to
+    * Importing a new master palette could black out or fail to
       remap UI colours. [Ralph]
     * unlump and relump on Linux now correctly handle uppercase
       rpgdirs [James Paige]

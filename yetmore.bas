@@ -1888,6 +1888,10 @@ SELECT CASE AS CONST id
    'probability in percentage points
    IF temp > 0 THEN scriptret = (scriptret * 100) / temp
   END IF
+ CASE 321'--get hero speed (hero)
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   scriptret = herospeed(retvals(0))
+  END IF
 END SELECT
 
 EXIT SUB

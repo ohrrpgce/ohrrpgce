@@ -443,9 +443,9 @@ resume player # ok, done</example>
 			<cannon>set hero frame (who, frame)</cannon>
 			<shortname>set hero frame</shortname>
 			<description>Sets the walking frame of the specified hero to 0 or 1.</description>
-            <seealso>
-                <ref>heroframe</ref>
-            </seealso>
+			<seealso>
+				<ref>heroframe</ref>
+			</seealso>
 		</command>
 		<command id="setheroposition">
 			<cannon>set hero position (who, x, y)</cannon>
@@ -476,6 +476,9 @@ resume player # ok, done</example>
 			<cannon>set hero speed (who, speed)</cannon>
 			<shortname>set hero speed</shortname>
 			<description>Changes the walking speed of the specified hero. If you do not specify a speed, the hero&apos;s speed will return to the default, 4. Be careful with using speeds that do not divide evenly into 20, because tiles are 20 pixels in size, and an irregular walking speed may cause your hero to become misaligned with the tiles.</description>
+			<seealso>
+				<ref>getherospeed</ref>
+			</seealso>
 		</command>
 		<command id="usedoor">
 			<cannon>use door (number)</cannon>
@@ -1865,32 +1868,40 @@ end</example>
 			<shortname>NPC X</shortname>
 			<description>Returns the specified NPC&apos;s X position in tiles. Note that an NPC's tile is the tile its top left corner is on.</description>
 			<seealso>
-		        <ref>npcatspot</ref>
-            </seealso>
-        </command>
+				<ref>npcatspot</ref>
+			</seealso>
+		</command>
 		<command id="npcy">
 			<cannon>NPC Y (who)</cannon>
 			<shortname>NPC Y</shortname>
 			<description>Returns the specified NPC&apos;s Y position in tiles. Note that an NPC's tile is the tile its top left corner is on.</description>
 			<seealso>
-		        <ref>npcatspot</ref>
-            </seealso>
-        </command>
+				<ref>npcatspot</ref>
+			</seealso>
+		</command>
 		<command id="herodirection">
 			<cannon>hero direction (who)</cannon>
 			<shortname>hero direction</shortname>
 			<description>Returns the specified hero&apos;s direction.</description>
-        </command>
+		</command>
 		<command id="heroframe">
 			<cannon>hero frame (who)</cannon>
 			<shortname>hero frame</shortname>
 			<description>Returns the walking frame (0 or 1) of the specified hero.</description>
 		</command>
+		<command id="getherospeed">
+			<cannon>get hero speed (who)</cannon>
+			<shortname>get hero speed</shortname>
+			<description>Returns the walking speed of the specified hero, in pixels per tick.</description>
+			<seealso>
+				<ref>setherospeed</ref>
+			</seealso>
+		</command>
 		<command id="npcdirection">
 			<cannon>NPC direction (who)</cannon>
 			<shortname>NPC direction</shortname>
 			<description>Returns the specified NPC&apos;s direction.</description>
-        </command>
+		</command>
 		<command id="npcframe">
 			<cannon>NPC frame (who)</cannon>
 			<shortname>NPC frame</shortname>
