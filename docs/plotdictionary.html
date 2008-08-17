@@ -89,7 +89,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<p>This is a listing of all the plotscripting commands implemented as of November 17, 2007.</p>
+<p>This is a listing of all the plotscripting commands implemented as of right now.</p>
 <p>In addition to reading this document, I also recommend you check out Plotscripting Tutorial and the HamsterSpeak Specification</p>
 <hr>
 <h2>Commands by Category</h2>
@@ -124,6 +124,8 @@
 	
 		<a href="#Misc%20Functions">Misc Functions</a><br>
 	
+		<a href="#Enemy%20and%20Formation%20Functions">Enemy and Formation Functions</a><br>
+	
 		<a href="#Tweaking%20Maps">Tweaking Maps</a><br>
 	
 		<a href="#Working%20with%20Tags">Working with Tags</a><br>
@@ -142,6 +144,9 @@
 <h2>Alphabetical Index</h2>
 <p>
 		<a href="#about-add">number + number</a><br>
+		
+	
+		<a href="#about-addenemytoformation">add enemy to formation (formation, enemy id, x, y, slot)</a><br>
 		
 	
 		<a href="#about-addhero">add hero (who)</a><br>
@@ -294,6 +299,9 @@
 		<a href="#about-currentstat">current stat</a><br>
 		
 	
+		<a href="#about-currenttextbox">current text box</a><br>
+		
+	
 		<a href="#about-daysofplay">days of play</a><br>
 		
 	
@@ -310,6 +318,9 @@
 		
 	
 		<a href="#about-deletechar">delete char (ID, position)</a><br>
+		
+	
+		<a href="#about-deleteenemyfromformation">delete enemy from formation (formation, slot)</a><br>
 		
 	
 		<a href="#about-deletehero">delete hero (who)</a><br>
@@ -411,6 +422,9 @@
 		<a href="#about-fightformation">fight formation (number)</a><br>
 		
 	
+		<a href="#about-findenemyinformation">find enemy in formation (formation, enemy id, copy number)</a><br>
+		
+	
 		<a href="#about-findhero">find hero (who)</a><br>
 		
 	
@@ -436,6 +450,21 @@
 		
 	
 		<a href="#about-forgetspell">forget spell (hero,attack)</a><br>
+		
+	
+		<a href="#about-formationprobability">formation probability (formation set, formation)</a><br>
+		
+	
+		<a href="#about-formationsetfrequency">formation set frequency (formation set)</a><br>
+		
+	
+		<a href="#about-formationslotenemy">formation slot enemy (formation, slot)</a><br>
+		
+	
+		<a href="#about-formationslotx">formation slot x (formation, slot)</a><br>
+		
+	
+		<a href="#about-formationsloty">formation slot y (formation, slot)</a><br>
 		
 	
 		
@@ -478,6 +507,9 @@
 		
 	
 		<a href="#about-getfootoffset">get foot offset</a><br>
+		
+	
+		<a href="#about-getformationbackground">get formation background (formation, background)</a><br>
 		
 	
 		<a href="#about-getformationsong">get formation song (formation)</a><br>
@@ -721,6 +753,9 @@
 		
 	
 		<a href="#about-lastascii">last ascii</a><br>
+		
+	
+		<a href="#about-lastformation">last formation</a><br>
 		
 	
 		<a href="#about-lastsaveslot">last save slot</a><br>
@@ -972,6 +1007,9 @@
 		<a href="#about-random">random (lownumber, highnumber)</a><br>
 		
 	
+		<a href="#about-randomformation">random formation (formation set)</a><br>
+		
+	
 		<a href="#about-rankincaterpillar">rank in caterpillar (who)</a><br>
 		
 	
@@ -1144,6 +1182,9 @@
 		
 	
 		<a href="#about-setfootoffset">set foot offset (offset)</a><br>
+		
+	
+		<a href="#about-setformationbackground">set formation background (formation, background, animation frames, animation ticks)</a><br>
 		
 	
 		<a href="#about-setformationsong">set formation song (formation, song)</a><br>
@@ -2242,7 +2283,7 @@ resume player</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">NPC reference (ID, copy)</font></b><br>
-			What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you dont specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. If you plan on using the same NPC reference many times in a script you can store it in a <a href="#about-variable" class="ref">variable</a>. If the NPC with the ID you asked for (or the NPC copy you asked for with ID you asked for) is not found on the map then NPC reference will return <a href="#about-booleanconstants" class="ref">false</a>.
+			What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you dont specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. Copies are counted starting from zero; you can see the copy number of NPCs in the Map Editor if you placed them in Custom.<br> If you plan on using the same NPC reference many times in a script you can store it in a <a href="#about-variable" class="ref">variable</a>. If the NPC with the ID you asked for (or the NPC copy you asked for with ID you asked for) is not found on the map then NPC reference will return <a href="#about-booleanconstants" class="ref">false</a>.
 			<pre>include,plotscr.hsd
 
 #---NPC reference example---
@@ -2275,7 +2316,9 @@ end</pre>
 <a href="#about-npcatspot" class="ref">NPC at spot</a>, </li>
 <li>
 <a href="#about-npcatpixel" class="ref">NPC at pixel</a>, </li>
-<li><a href="#about-createnpc" class="ref">create NPC</a></li>
+<li>
+<a href="#about-createnpc" class="ref">create NPC</a>, </li>
+<li><a href="#about-npccopycount" class="ref">NPC copy count</a></li>
 </ul>
 		</tt></p>
 		<a name="about-npcatspot"></a>
@@ -2520,6 +2563,14 @@ show text box(2) # Show a text box
 wait(45) # Wait about 3 seconds
 advance text box # "hit spacebar"
 resume box advance # go back to normal</pre>
+			
+		</tt></p>
+		<a name="about-currenttextbox"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">current text box</font></b><br>
+			Returns the number of the currently displayed text box, or -1 if there's none.
+			
 			
 		</tt></p>
 
@@ -3168,7 +3219,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">spells learnt (hero,number)</font></b><br>
-			Used to return the id numbers of spells the hero learnt from the last battle, <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command. (Returns only the spells learnt from the very last battle or command). If the second argument is <a href="#about-getcount" class="ref">get count</a> then the number of spells that the hero learnt is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learnt:
+			Used to return the id numbers of spells the hero learnt from the last battle (for heroes in the active battle party) or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that involved this hero. If the second argument is <a href="#about-getcount" class="ref">get count</a> then the number of spells that the hero learnt is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learnt:
 			<pre># the following script uses strings 0, 1, 2 for its use (will be overwritten)
 plotscript, print learnt spells, who=0, begin
   variable(i)
@@ -4671,120 +4722,16 @@ end</pre>
 			
 			
 		</tt></p>
-		<a name="about-getenemystat"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">get enemy stat(enemy, stat)</font></b><br>
-			Returns the selected stat from the selected enemy. The first argument is the number of the enemy whose stats you want to check. The second argument is the name of the stat that you want to check. The names of the stats are also defined in your HSI file in the form stat:name. 
-			
-			<br><br>See also: <ul class="seealso">
-<li>
-<a href="#about-setenemystat" class="ref">set enemy stat</a>, </li>
-<li>
-<a href="#about-getherostat" class="ref">get hero stat</a>, </li>
-<li><a href="#about-setherostat" class="ref">set hero stat</a></li>
-</ul>
-		</tt></p>
-		<a name="about-setenemystat"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">set enemy stat(enemy, stat, value)</font></b><br>
-			Sets the selected stat of the selected enemy to the value you supply. The first argument is the number of the enemy whose stats you want to set. The second argument is the name of the stat that you want to set. The names of the stats are also defined in your HSI file in the form stat:name. The third is the new value of the stat. <br>Note: Enemy stat changes are temporary. They are not saved in the save game.
-			
-			<br><br>See also: <ul class="seealso">
-<li>
-<a href="#about-getenemystat" class="ref">get enemy stat</a>, </li>
-<li>
-<a href="#about-getherostat" class="ref">get hero stat</a>, </li>
-<li><a href="#about-setherostat" class="ref">set hero stat</a></li>
-</ul>
-		</tt></p>
-		<a name="about-getenemyname"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">get enemy name (enemyid, stringid)</font></b><br>
-			Lets you use the enemy name in a string.  The first argument is the number of the enemy you want to get the name from, second argument is the number of the string that you want to store the name of the enemy.
-			
-			<br><br>See also: <ul class="seealso"><li><a href="#about-setenemyname" class="ref">set enemy name</a></li></ul>
-		</tt></p>
-		<a name="about-setenemyname"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">set enemy name (enemyid, stringid)</font></b><br>
-			Lets you set the enemy name from a string, the string length cannot be more then 16 characters, if it is more then 16 the name will be truncated.  The first argument is the number of the enemy's name you want to change, second argument is the number of the string that you supply the name of the enemy from. <br>Note: Enemy name changes are temporary. They are not saved in the save game.
-			
-			<br><br>See also: <ul class="seealso"><li><a href="#about-getenemyname" class="ref">get enemy name</a></li></ul>
-		</tt></p>
-		<a name="about-getenemyappearance"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">get enemy appearance (enemyid, appearance)</font></b><br>
-			Returns data on the appearance of a enemy. Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size. You can use the following constants for appearance: <li>enemy:picture</li>
-<li>enemy:palette</li>
-<li>enemy:picturesize</li> <br>You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large
-			
-			<br><br>See also: <ul class="seealso"><li><a href="#about-setenemyappearance" class="ref">set enemy appearance</a></li></ul>
-		</tt></p>
-		<a name="about-setenemyappearance"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">set enemy appearance (enemyid, appearance,value)</font></b><br>
-			Lets you change an enemy's appearance.  Enemyid is the number of the enemy's appearance that you want to change, appearance is one of the constants given in <a href="#about-getenemyappearance" class="ref">get enemy appearance</a>. Value can is the new number that you want to assign, constants enemysize:small, enemysize:medium, or enemysize:large when changing picture size, or palette number when changing palette. <br>Note: Enemy appearance changes are temporary. They are not saved in the save game.
-			
-			<br><br>See also: <ul class="seealso"><li><a href="#about-getenemyappearance" class="ref">get enemy appearance</a></li></ul>
-		</tt></p>
-		<a name="about-readenemydata"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">read enemy data (enemyid, data)</font></b><br>
-			Returns the enemy's reward values. Enemyid is the number of enemy, data is a predefined constant defining the data you want returned. Use the following constants:<li>enemy:gold</li>
-<li>enemy:experience</li>
-<li>enemy:item</li>
-<li>enemy:itempercent</li>
-<li>enemy:rareitem</li>
-<li>enemy:rareitempercent</li>
-<li>stealability</li>
-<li>stealableitem</li>
-<li>stealableitemchance</li>
-<li>stealablerareitem</li>
-<li>stealablerareitemchance</li>
-			
-			<br><br>See also: <ul class="seealso"><li><a href="#about-writeenemydata" class="ref">write enemy data</a></li></ul>
-		</tt></p>
-		<a name="about-writeenemydata"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">write enemy data (enemyid, data, value)</font></b><br>
-			Lets you set items of an enemy's data. Enemyid is the number of enemy, data is a predefined constant for the data you want to change. Value is the new value given to that setting. Use the same constants as are given at <a href="#about-readenemydata" class="ref">read enemy data</a>.<br>Note: Enemy data changes are temporary. They are not saved in the save game.
-			
-			<br><br>See also: <ul class="seealso"><li><a href="#about-readenemydata" class="ref">read enemy data</a></li></ul>
-		</tt></p>
-		<a name="about-getformationsong"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">get formation song (formation)</font></b><br>
-			Returns the song associated with <span class="param">formation</span>. Compare the result with the constants of the form <span class="param">song:songname</span> from your exported .hsi file, or the special constants <a href="#about-song:silence" class="ref">song: silence</a> or <a href="#about-song:sameaslastmap" class="ref">song: same as map</a>.
-			
-			<br><br>See also: <ul class="seealso"><li><a href="#about-setformationsong" class="ref">set formation song</a></li></ul>
-		</tt></p>
-		<a name="about-setformationsong"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">set formation song (formation, song)</font></b><br>
-			Changes an enemy formation to use <span class="param">song</span> as its music. Use the constants of the form <span class="param">song:songname</span> from your exported .hsi file, or the special constants <a href="#about-song:silence" class="ref">song: silence</a> or <a href="#about-song:sameaslastmap" class="ref">song: same as map</a>.<br>Note: Formation data changes are temporary. They are not saved in the save game.
-			
-			<br><br>See also: <ul class="seealso"><li><a href="#about-getformationsong" class="ref">get formation song</a></li></ul>
-		</tt></p>
 		<a name="about-herolevelled"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">hero levelled (who)</font></b><br>
-			Returns the number of levels the specified hero (use result from <a href="#about-findhero" class="ref">find hero</a>) gained from only the very last battle, <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:
+			Returns the number of levels the specified hero (use result from <a href="#about-findhero" class="ref">find hero</a>) gained from only the very last battle or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that targetted this hero (or the active battle party if the hero is in it) - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:
 			<pre>give experience (party, 50)
 if (herolevelled (find hero (hero: Bob))) then (
   $31="Bob gained "
   append number(31, hero levelled (find hero (hero: Bob)))
-  $31+" levels!"
+  $31+" level(s)!"
   show textbox (233) # ${S31} :show string 31
 )</pre>
 			
@@ -4848,6 +4795,268 @@ set timer (0, 300, 15, timer: game over, 0, timerflag: battle)</pre>
 			Returns the count of a given timer.
 			
 			<br><br>See also: <ul class="seealso"><li><a href="#about-settimer" class="ref">set timer</a></li></ul>
+		</tt></p>
+
+		<hr>
+	
+		<a name="Enemy%20and%20Formation%20Functions"></a>
+
+		<font color="#f06060" size="4">Enemy and Formation Functions</font>
+		<p></p>
+		
+		<a name="about-getenemystat"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get enemy stat(enemy, stat)</font></b><br>
+			Returns the selected stat from the selected enemy. The first argument is the number of the enemy whose stats you want to check. The second argument is the name of the stat that you want to check. The names of the stats are also defined in your HSI file in the form stat:name. 
+			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-setenemystat" class="ref">set enemy stat</a>, </li>
+<li>
+<a href="#about-getherostat" class="ref">get hero stat</a>, </li>
+<li><a href="#about-setherostat" class="ref">set hero stat</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setenemystat"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set enemy stat(enemy, stat, value)</font></b><br>
+			Sets the selected stat of the selected enemy to the value you supply. The first argument is the number of the enemy whose stats you want to set. The second argument is the name of the stat that you want to set. The names of the stats are also defined in your HSI file in the form stat:name. The third is the new value of the stat.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">Enemy stat changes are temporary. They are not saved in the game save.<br clear="all">
+</div>
+			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-getenemystat" class="ref">get enemy stat</a>, </li>
+<li>
+<a href="#about-getherostat" class="ref">get hero stat</a>, </li>
+<li><a href="#about-setherostat" class="ref">set hero stat</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getenemyname"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get enemy name (enemyid, stringid)</font></b><br>
+			Lets you use the enemy name in a string.  The first argument is the number of the enemy you want to get the name from, second argument is the number of the string that you want to store the name of the enemy.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-setenemyname" class="ref">set enemy name</a></li></ul>
+		</tt></p>
+		<a name="about-setenemyname"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set enemy name (enemyid, stringid)</font></b><br>
+			Lets you set the enemy name from a string, the string length cannot be more then 16 characters, if it is more then 16 the name will be truncated.  The first argument is the number of the enemy's name you want to change, second argument is the number of the string that you supply the name of the enemy from.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">Enemy name changes are temporary. They are not saved in the game save.<br clear="all">
+</div>
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-getenemyname" class="ref">get enemy name</a></li></ul>
+		</tt></p>
+		<a name="about-getenemyappearance"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get enemy appearance (enemyid, appearance)</font></b><br>
+			Returns data on the appearance of a enemy. Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size. You can use the following constants for appearance: <li>enemy:picture</li>
+<li>enemy:palette</li>
+<li>enemy:picturesize</li> <br>You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-setenemyappearance" class="ref">set enemy appearance</a></li></ul>
+		</tt></p>
+		<a name="about-setenemyappearance"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set enemy appearance (enemyid, appearance,value)</font></b><br>
+			Lets you change an enemy's appearance.  Enemyid is the number of the enemy's appearance that you want to change, appearance is one of the constants given in <a href="#about-getenemyappearance" class="ref">get enemy appearance</a>. Value can is the new number that you want to assign, constants enemysize:small, enemysize:medium, or enemysize:large when changing picture size, or palette number when changing palette.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">Enemy appearance changes are temporary. They are not saved in the save game.<br clear="all">
+</div>
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-getenemyappearance" class="ref">get enemy appearance</a></li></ul>
+		</tt></p>
+		<a name="about-readenemydata"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">read enemy data (enemyid, data)</font></b><br>
+			Returns the enemy's reward values. Enemyid is the number of enemy, data is a predefined constant defining the data you want returned. Use the following constants:<li>enemy:gold</li>
+<li>enemy:experience</li>
+<li>enemy:item</li>
+<li>enemy:itempercent</li>
+<li>enemy:rareitem</li>
+<li>enemy:rareitempercent</li>
+<li>stealability</li>
+<li>stealableitem</li>
+<li>stealableitemchance</li>
+<li>stealablerareitem</li>
+<li>stealablerareitemchance</li>
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-writeenemydata" class="ref">write enemy data</a></li></ul>
+		</tt></p>
+		<a name="about-writeenemydata"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">write enemy data (enemyid, data, value)</font></b><br>
+			Lets you set items of an enemy's data. Enemyid is the number of enemy, data is a predefined constant for the data you want to change. Value is the new value given to that setting. Use the same constants as are given at <a href="#about-readenemydata" class="ref">read enemy data</a>.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">Enemy data changes are temporary. They are not saved in saved games.<br clear="all">
+</div>
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-readenemydata" class="ref">read enemy data</a></li></ul>
+		</tt></p>
+		<a name="about-addenemytoformation"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">add enemy to formation (formation, enemy id, x, y, slot)</font></b><br>
+			Adds an enemy with given <span class="param">enemy id</span> (use the constants of the form <span class="param">enemy:name</span> in your exported .hsi file) to the specified <span class="param">formation</span>. <span class="param">x</span> (up to 230) and <span class="param">y</span> (up to 199) give the position of the center of the bottom edge of the enemy - approximately where it appears to stand. <span class="param">slot</span> (0 to 7) is an optional argument, if given then the enemy is created in the suggested slot if empty. Otherwise it's put in the first empty slot. The actual slot number used is returned, or -1 if the enemy couldn't be added.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">Changes to enemy formations are temporary: they are not saved in save files.<br clear="all">
+</div>
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-deleteenemyfromformation" class="ref">delete enemy from formation</a></li></ul>
+		</tt></p>
+		<a name="about-deleteenemyfromformation"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">delete enemy from formation (formation, slot)</font></b><br>
+			Deletes an enemy in the given <span class="param">slot</span> (as returned by <a href="#about-findenemyinformation" class="ref">find enemy in formation</a> for example) in the <span class="param">formation</span>.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">Changes to enemy formations are temporary: they are not saved in save files.<br clear="all">
+</div>
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-addenemytoformation" class="ref">add enemy to formation</a></li></ul>
+		</tt></p>
+		<a name="about-findenemyinformation"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">find enemy in formation (formation, enemy id, copy number)</font></b><br>
+			Searchs for an enemy in a formation, returning the slot number, or -1 if not found. <span class="param">copy number</span> is optional, use 0 or greater specify which enemy to return if there is more than one, or the constant <a href="#about-getcount" class="ref">get count</a>. The first (searching the slots sequentially) enemy copy is number 0. The number of specified enemies in the formation is returned if the constant get count is used. <span class="param">enemy id</span> can be either an enemy id, or the constant <span class="param">any enemy</span>, which searches for any enemy (the first enemy in the formation by default), or the total number of enemies with <a href="#about-getcount" class="ref">get count</a>.
+			<pre>plotscript, look at formation, formation, begin
+  # In this example, we'll pick a random enemy from a formation, and check if there are any plips.
+  # You'll need an enemy named plip to try this out, or change the "enemy:plip" constant below to something else
+  variable (number of enemies, random enemy slot)
+
+  # The total number of enemies
+  number of enemies := find enemy in formation (formation, any enemy, get count)
+  # Pick an enemy at random
+  random enemy slot := find enemy in formation (formation, any enemy, random(0, number of enemies -- 1))
+
+  $30 = "There is a "
+  # Here we append the enemy's name to string 30
+  get enemy name (formation slot enemy (formation, random enemy slot), 30)
+  $30 + " in this formation"
+  show string (30)
+
+  # Let's check whether there is at least one plip in this formation
+  variable (number, plip slot)
+  number := find enemy in formation (formation, enemy:plip, get count)
+  if (number &gt;&gt; 0) then (
+    # We'll put a string onscreen where the plip appears in battle
+    $31 = "Plip!"
+    plip slot := find enemy in formation (formation, enemy:plip)
+    center string at (31, formation slot x (formation, plip slot), formation slot y (formation, plip slot) -- 20)
+  )
+end
+</pre>
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-deleteenemyfromformation" class="ref">delete enemy from formation</a>, </li>
+<li>
+<a href="#about-formationslotenemy" class="ref">formation slot enemy</a>, </li>
+<li>
+<a href="#about-formationslotx" class="ref">formation slot x</a>, </li>
+<li><a href="#about-formationsloty" class="ref">formation slot y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-formationslotenemy"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">formation slot enemy (formation, slot)</font></b><br>
+			Returns the ID number of the enemy in the specified formation slot (0 to 7), or -1 if the slot is empty.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-findenemyinformation" class="ref">find enemy in formation</a></li></ul>
+		</tt></p>
+		<a name="about-formationslotx"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">formation slot x (formation, slot)</font></b><br>
+			Returns the x position of the center of the enemy in the specified formation slot (0 to 7). An enemies position is the center of the bottom edge of the enemy - approximately where it appears to stand.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-findenemyinformation" class="ref">find enemy in formation</a></li></ul>
+		</tt></p>
+		<a name="about-formationsloty"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">formation slot y (formation, slot)</font></b><br>
+			Returns the y position of the bottom edge of the enemy sprite in the specified formation slot (0 to 7). An enemies position is the center of the bottom edge of the enemy - approximately where it appears to stand.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-findenemyinformation" class="ref">find enemy in formation</a></li></ul>
+		</tt></p>
+		<a name="about-setformationbackground"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set formation background (formation, background, animation frames, animation ticks)</font></b><br>
+			Sets the background and the background animation for a <span class="param">formation</span>. The animation arguments do not need to be given, producing a static background. <span class="param">animation frames</span>, optional, is the number of frames (1 to 50) to use for the background animation. 1 is non-animating. <span class="param">animation ticks</span>, also optional, is the number of ticks to display each backdrop for. The engine normally (but not reliably) runs at 18 ticks per second.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">Changes to enemy formations are temporary: they are not saved in save files.<br clear="all">
+</div>
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-getformationbackground" class="ref">get formation background</a></li></ul>
+		</tt></p>
+		<a name="about-getformationbackground"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get formation background (formation, background)</font></b><br>
+			Gets the background used by a <span class="param">formation</span>. If the backdrop is animated, this returns the ID of the first backdrop (the one set in Custom).
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-setformationbackground" class="ref">set formation background</a></li></ul>
+		</tt></p>
+		<a name="about-setformationsong"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set formation song (formation, song)</font></b><br>
+			Changes an enemy formation to use <span class="param">song</span> as its music. Use the constants of the form <span class="param">song:songname</span> from your exported .hsi file, or the special constants <a href="#about-song:silence" class="ref">song: silence</a> or <a href="#about-song:sameaslastmap" class="ref">song: same as map</a><div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left">Changes to enemy formations are temporary: they are not saved in save files.<br clear="all">
+</div>
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-getformationsong" class="ref">get formation song</a></li></ul>
+		</tt></p>
+		<a name="about-getformationsong"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get formation song (formation)</font></b><br>
+			Returns the song associated with <span class="param">formation</span>. Compare the result with the constants of the form <span class="param">song:songname</span> from your exported .hsi file, or the special constants <a href="#about-song:silence" class="ref">song: silence</a> or <a href="#about-song:sameaslastmap" class="ref">song: same as map</a>.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-setformationsong" class="ref">set formation song</a></li></ul>
+		</tt></p>
+		<a name="about-lastformation"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">last formation</font></b><br>
+			Returns the last formation fought. If the player hasn't fought any formations yet (since starting or loading the game), it returns -1.
+			
+			
+		</tt></p>
+		<a name="about-randomformation"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">random formation (formation set)</font></b><br>
+			Picks a formation randomly from the given <span class="param">formation set</span> (1 to 255).
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-formationprobability" class="ref">formation probability</a></li></ul>
+		</tt></p>
+		<a name="about-formationsetfrequency"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">formation set frequency (formation set)</font></b><br>
+			Returns the formation frequency (from 0 to 99) of a <span class="param">formation set</span> (1 to 255). Note that the frequency is not actually a probability (as a percentage) of a battle occuring each step, but is roughly the number of battles per 80 steps, spaced semi-randomly.
+			
+			<br><br>See also: <ul class="seealso"><li><a href="#about-randomformation" class="ref">random formation</a></li></ul>
+		</tt></p>
+		<a name="about-formationprobability"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">formation probability (formation set, formation)</font></b><br>
+			Returns the probability of a particular <span class="param">formation</span> in a <span class="param">formation set</span> being fought, as a percentage from 0 to 100. This does take the number of times the formation appears in the formation set into account.
+			
+			<br><br>See also: <ul class="seealso">
+<li>
+<a href="#about-randomformation" class="ref">random formation</a>, </li>
+<li><a href="#about-random" class="ref">random</a></li>
+</ul>
 		</tt></p>
 
 		<hr>
@@ -5383,7 +5592,7 @@ end</pre>
 </li>
 <li>Alter NPC (who,NPCstat:script,script ID)</li>
 <li>Alter NPC (who,NPCstat:script argument,number)</li>
-<li>Alter NPC (who,NPCstat:vehicle,vehicle ID)</li>
+<li>Alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li>
 </ul>Normally you would only give an NPC ID number to alter NPC, but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work. Just remember that alter NPC changes every copy of the NPC on the map, not just the specific one you referenced.<br>A good way to make use of Alter NPC is to wrap it in your own script. For example:
 			<pre># Example AlterNPC wrapper for changing NPC appearance
 
@@ -5439,8 +5648,8 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set on keypress script (id)</font></b><br>
-			Changes the script that is run when you press a key. The argument is the script's ID number, NOT the script's name. Calling set on keypress script with no argument disables the keypress script. The effect goes away if you change maps or fight a battle.
-			
+			Changes the script that is run when you press a key. The argument is the script's name preceded by an @ sign. You can also use the ID number for old-style scripts. Calling set on keypress script with no argument disables the keypress script. The effect goes away if you change maps or fight a battle.
+			<pre>set on keypress script(@keyhandlerscript)</pre>
 			
 		</tt></p>
 		<a name="about-getonkeypressscript"></a>
@@ -5651,7 +5860,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set experience (who, experience, allowforget)</font></b><br>
-			Sets a hero's total experience and updates their level and spell list. The argument is the position of the hero you want to check in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. To decrease a hero's level without forgetting spells, pass false as the optional third argument.
+			Sets a hero's total experience and updates their experience level, stats and spell list. The argument is the position of the hero you want to check in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. To decrease a hero's level without forgetting spells which are learnt at a certain experience level, pass false as the optional third argument.
 			
 			<br><br>See also: <ul class="seealso">
 <li>
@@ -6362,7 +6571,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get count</font></b><br>
-			When passed to <a href="#about-npcatpixel" class="ref">NPC at pixel</a> or <a href="#about-npcatspot" class="ref">NPC at spot</a>, they return the number of NPCs at that spot. With <a href="#about-spellslearnt" class="ref">spells learnt</a> returns the number of spells a hero learnt.
+			When passed to <a href="#about-npcatpixel" class="ref">NPC at pixel</a> or <a href="#about-npcatspot" class="ref">NPC at spot</a>, they return the number of NPCs at that spot. With <a href="#about-spellslearnt" class="ref">spells learnt</a> returns the number of spells a hero learnt. With <a href="#about-findenemyinformation" class="ref">find enemy in formation</a>, returns the number of enemies, or the number of some kind of enemy in the formation.
 			
 			
 		</tt></p>
@@ -6543,7 +6752,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 508 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 521 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
