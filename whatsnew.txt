@@ -121,9 +121,12 @@ August 16 2008 [werewaffle]
       random formation [Ralph]
     * current text box
 
-  * Stuff only Developers Will Notice
-
   * Vikings of Midgard
+    * New and updated locations
+    * New heroes and abilities
+    * New and improved graphics
+    * Characters now join the party through story events rather than being
+      hired in the pub.
 
 Jan 21 2008 [voxhumana]
 
