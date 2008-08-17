@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-July ?? 2008 [werewaffle]
+August 16 2008 [werewaffle]
 
   * New Features
     * While editing the tilemap of a map, use Ctrl+P to fill in the

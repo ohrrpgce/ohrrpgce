@@ -50,6 +50,7 @@ DECLARE SUB loadwuc(spritefile AS STRING, j, top, sets, xw,yw, soff, perset, siz
 DECLARE SUB savewuc(spritefile AS STRING, j, top, sets, xw,yw, soff, perset, size,placer(), workpal(), poffset())
 DECLARE SUB init_sprite_zones(area() AS MouseArea)
 
+#include "scancodes.bi"
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
@@ -1055,7 +1056,7 @@ DO
  END IF
  IF keyval(57) > 0 THEN clicktile mover(), ts, mouse(3), clone
  IF keyval(28) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
- IF keyval(58) > 0 THEN scrolltile mover(), ts
+ IF keyval(scCapslock) > 0 THEN scrolltile mover(), ts
  SELECT CASE ts.zone   
  CASE 1
   ts.x = INT(zox / 10)
@@ -1377,10 +1378,10 @@ END SUB
 SUB scrolltile (mover(), ts AS TileEditState)
 rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 shiftx = 0: shifty = 0
-IF keyval(72) > 0 THEN shifty = -1
-IF keyval(80) > 0 THEN shifty = 1
-IF keyval(75) > 0 THEN shiftx = -1
-IF keyval(77) > 0 THEN shiftx = 1
+IF slowkey(72, 6) THEN shifty = -1
+IF slowkey(80, 6) THEN shifty = 1
+IF slowkey(75, 6) THEN shiftx = -1
+IF slowkey(77, 6) THEN shiftx = 1
 FOR i = 0 TO 19
  FOR j = 0 TO 19
   tempx = (i + shiftx + 20) MOD 20
@@ -2123,11 +2124,11 @@ ELSE
  END IF
 END IF
 IF keyval(14) > 1 OR (ss.zonenum = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, nulpal(), 0, 239, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
-IF keyval(58) > 0 THEN
- IF keyval(72) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 118, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
- IF keyval(80) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 120, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
- IF keyval(75) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 238, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
- IF keyval(77) > 0 THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 240, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+IF keyval(scCapslock) > 0 THEN
+ IF slowkey(72, 6) THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 118, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+ IF slowkey(80, 6) THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 120, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+ IF slowkey(75, 6) THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 238, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
+ IF slowkey(77, 6) THEN rectangle 239, 119, xw, yw, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 240, 119, dpage: getsprite placer(), 0, 239, 119, xw, yw, dpage
 END IF
 IF keyval(23) > 1 OR (ss.zonenum = 13 AND mouse(3) > 0) THEN
  GOSUB import16
