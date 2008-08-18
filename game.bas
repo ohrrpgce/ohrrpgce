@@ -792,7 +792,7 @@ resetinterpreter 'unload scripts
 cleanuptemp
 fademusic 0
 fadeout 0, 0, 0
-'closefile
+stopsong
 clearpage 0
 clearpage 1
 clearpage 2
