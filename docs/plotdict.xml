@@ -2570,10 +2570,10 @@ write pass block(15,3,pass)
 			<description>Returns the bitwise AND of both values. In other words, for each bit in each value, they are compared to see if either (but not both!) bit is "1". If ONE is, the result bit is set to 1. Otherwise, it's set to 0.</description>
 			<seealso><ref>logicalxor</ref></seealso>
 		</command>
-	  <command id="logicaland">
+		<command id="logicaland">
 			<cannon>value &amp;&amp; value</cannon>
 			<shortname>&amp;&amp;</shortname>
-            <description>Returns true if both of the values are true (non-zero). If either of them is false, and returns false. This command uses shortcut evaluation: if the first argument is false, the second argument is never evaluated.</description>
+			<description>Returns true if both of the values are true (non-zero). If either of them is false, and returns false. This command uses shortcut evaluation: if the first argument is false, the second argument is never evaluated.</description>
 		</command>
 		<command id="logicalor">
 			<cannon>value || value</cannon>
@@ -2584,6 +2584,11 @@ write pass block(15,3,pass)
 			<cannon>value ^^ value</cannon>
 			<shortname>^^</shortname>
 			<description>Returns true if one, but not both of the values are true (non-zero). If both of them are true, or both of them are false, ^^ returns false.</description>
+		</command>
+		<command id="not">
+			<cannon>not (value)</cannon>
+			<shortname>not</shortname>
+			<description>Returns the logical complement/negation of a value. That is, it returns true (1) if the value is false (0), or false (0) if the value is true (non-zero).</description>
 		</command>
 	</section>
 	<section title="Flow Control">
