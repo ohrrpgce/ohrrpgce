@@ -553,6 +553,7 @@ restoremode
 SYSTEM
 
 finis:
+closemusic
 'catch sprite leaks
 sprite_empty_cache
 palette16_empty_cache
@@ -569,7 +570,6 @@ setvispage 0 'force a refresh
 w = getkey
 'closefile
 CHDIR curdir$
-closemusic
 restoremode
 END
 
