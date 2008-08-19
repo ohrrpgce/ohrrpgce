@@ -17,6 +17,7 @@ declare sub music_setvolume(vol as integer)
 declare function music_getvolume() as integer
 declare sub music_fade(targetvol as integer)
 declare sub sound_init
+declare sub sound_reset
 declare sub sound_close
 declare sub sound_debug(s$, byval sample as integer, byval slot as integer)
 declare sub sound_dump(s$, slot as integer)

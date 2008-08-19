@@ -44,6 +44,7 @@ declare sub music_fade(targetvol as integer)
 
 declare sub sound_init()
 declare sub sound_close()
+declare sub sound_reset()
 
 'parameter s is 0 if num is an OHR sound number, -1 if it's a slot number (returned from loadSound)
 declare sub sound_play(byval num as integer, byval loopcount as integer,  byval s as integer = 0)

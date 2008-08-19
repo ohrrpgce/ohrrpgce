@@ -300,17 +300,18 @@ sub sound_init
   	sound_inited = 1
 end sub
 
-sub sound_close
-  	'trying to free something that's already freed... bad!
-  	if sound_inited = 0 then exit sub
-  
- 	dim i as integer
+sub sound_reset
+	dim i as integer
+	'trying to free something that's already freed... bad!
+	if sound_inited = 0 then exit sub
+	for i = 0 to ubound(sfx_slots)
+		UnloadSound(i)
+	next
+end sub
 
-    for i = 0 to ubound(sfx_slots)
-    	UnloadSound(i)
-  	next
-  
-  	sound_inited = 0
+sub sound_close
+	sound_reset()
+	sound_inited = 0
 end sub
 
 
@@ -422,7 +423,6 @@ sub sound_free(byval num as integer)
     end with
   next
 end sub
-
 
 function sound_playing(byval num as integer, byval s as integer=0) as integer
 	dim slot as integer

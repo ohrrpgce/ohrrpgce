@@ -784,6 +784,7 @@ LOOP ' This is the end of the DO that encloses a specific RPG file
 'checks for leaks and deallocates them
 sprite_empty_cache()
 palette16_empty_cache()
+resetsfx()
 IF autorungame THEN exitprogram (NOT abortg)
 unloadmaptilesets tilesets()
 resetinterpreter 'unload scripts
