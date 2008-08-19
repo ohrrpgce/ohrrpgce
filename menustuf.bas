@@ -1026,6 +1026,7 @@ IF pick = 0 THEN
     '--swap the selected item and the item under the cursor
     itemmenuswap inventory(), atkIDs(), iuse(), permask(), ic, sel
     sel = -4
+    GOSUB infostr
     MenuSound gen(genAcceptSFX)
     RETRACE
    END IF
