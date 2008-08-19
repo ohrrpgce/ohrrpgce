@@ -773,10 +773,7 @@ sub sound_close
 end sub
 
 sub sound_reset
-  'FIXME: this does not seem to actually work yet :(
   dim i as integer = 0
-  'trying to free something that's already freed... bad!
-  if sound_inited <> 0 then exit sub
   for i = 0 to Ubound(SoundPool)
     UnloadSound(i)
   next
