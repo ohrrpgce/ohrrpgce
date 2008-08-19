@@ -13,6 +13,14 @@ WHAT IS NEW?
 
   * Stuff only Developers Will Notice
 
+August 20 2008 [werewaffle+]
+
+  * Bugfixes
+    * Bug 669: Music continues to play when you exit back to the game
+      browsing screen
+    * Bug 670: Sound effect cache not flushed on game exit
+    * Bug 671: Lingering ogg file prevents playing.tmp cleanup
+
 August 16 2008 [werewaffle]
 
   * New Features
