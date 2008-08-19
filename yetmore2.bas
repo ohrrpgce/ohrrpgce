@@ -8,7 +8,6 @@ DEFINT A-Z
 'basic subs and functions
 DECLARE SUB verquit ()
 DECLARE SUB playtimer ()
-DECLARE SUB quitcleanup ()
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
@@ -626,10 +625,31 @@ SUB exitprogram (needfade)
 fademusic 0
 'DEBUG debug "fade screen"
 IF needfade THEN fadeout 0, 0, 0
-quitcleanup
-'DEBUG debug "Restore Old Graphics Mode"
+
+'DEBUG debug "Cleanup Routine"
+'--open files
+'DEBUG debug "Close foemap handle"
+CLOSE #foemaph
+
+'--script stack
+'DEBUG debug "Release script stack"
+releasestack
+destroystack(scrst)
+
+'--reset audio
 closemusic
+'DEBUG debug "Restore original FM volume"
 setfmvol fmvol
+
+'--working files
+'DEBUG debug "Kill working files"
+cleanuptemp
+RMDIR tmpdir + "playing.tmp"
+RMDIR tmpdir
+'DEBUG debug "Remove working directory"
+IF usepreunlump = 0 THEN RMDIR workingdir
+
+'DEBUG debug "Restore Old Graphics Mode"
 restoremode
 'DEBUG debug "Terminate NOW (boom!)"
 SYSTEM

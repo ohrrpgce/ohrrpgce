@@ -3475,15 +3475,6 @@ function isawav(fi$) as integer
 
 end function
 
-
-SUB setupsound ()
-	setupmusic
-end SUB
-
-SUB closesound ()
- 	closemusic
-end SUB
-
 SUB playsfx (BYVAL num, BYVAL l=0)
   sound_play(num,l)
 end sub

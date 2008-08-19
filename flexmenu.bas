@@ -833,7 +833,6 @@ needupdatemenu = 1
 '------------------------------------------------------------------------
 '--main loop
 
-setupsound
 setkeys
 DO
  setwait 55
@@ -969,7 +968,6 @@ LOOP
 saveattackdata recbuf(), recindex
 
 clearallpages
-closesound
 
 EXIT SUB
 

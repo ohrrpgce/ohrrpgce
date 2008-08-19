@@ -16,7 +16,6 @@ DECLARE SUB setScriptArg (arg%, value%)
 DECLARE SUB showplotstrings ()
 DECLARE SUB innRestore (stat%())
 DECLARE SUB exitprogram (needfade%)
-DECLARE SUB quitcleanup ()
 DECLARE FUNCTION wrappass (x%, y%, xgo%, ygo%, isveh%)
 DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, unitsize%)
 DECLARE SUB aheadxy (x%, y%, direction%, distance%)
@@ -213,7 +212,6 @@ setmodex
 
 'DEBUG debug "init sound"
 setupmusic
-setupsound
 'resetfm
 'setfmvol 7
 fmvol = getfmvol
