@@ -2285,6 +2285,10 @@ SUB closemusic ()
 	sound_close
 end SUB
 
+SUB resetsfx ()
+	sound_reset
+end SUB
+
 SUB loadsong (f$)
 	'check for extension
 	dim ext as string

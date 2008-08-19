@@ -758,7 +758,6 @@ sub sound_init
 end sub
 
 sub sound_close
-  dim i as integer = 0
   sound_inited -= 1
   'debug "sound close = " & sound_inited
 
@@ -766,15 +765,22 @@ sub sound_close
   if sound_inited <> 0 then exit sub
 '  debug "sound_close"
 
-  for i = 0 to Ubound(SoundPool)
-    UnloadSound(i)
-  next
+  sound_reset()
 
   AudClose()
 
   'music_close
 end sub
 
+sub sound_reset
+  'FIXME: this does not seem to actually work yet :(
+  dim i as integer = 0
+  'trying to free something that's already freed... bad!
+  if sound_inited <> 0 then exit sub
+  for i = 0 to Ubound(SoundPool)
+    UnloadSound(i)
+  next
+end sub
 
 sub sound_play(byval num as integer, byval l as integer,  byval s as integer = 0)
   'debug ">>sound_play(" & num & ", " & l & ")"

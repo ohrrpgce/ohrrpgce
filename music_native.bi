@@ -32,6 +32,7 @@ declare sub playbackthread(dummy as integer)
 declare sub updatedelay(byref delay as double, tempo as integer)
 declare sub sound_init
 declare sub sound_close
+declare sub sound_reset
 declare sub sound_play(byval num as integer, byval l as integer)
 declare sub sound_pause(byval num as integer)
 declare sub sound_stop(byval num as integer)
