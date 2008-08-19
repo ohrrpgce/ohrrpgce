@@ -115,8 +115,6 @@ DECLARE SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)
 DECLARE FUNCTION readjoy (joybuf(), BYVAL jnum)
 #DEFINE slowkey(key, fraction) (keyval((key), (fraction), (fraction)) > 1)
 
-DECLARE SUB setupsound ()
-DECLARE SUB closesound ()
 DECLARE SUB playsfx (BYVAL num, BYVAL l=0) 'l is loop count. -1 for infinite loop
 DECLARE SUB stopsfx (BYVAL num)
 DECLARE SUB pausesfx (BYVAL num)

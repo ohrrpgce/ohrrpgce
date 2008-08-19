@@ -842,33 +842,6 @@ END IF
 
 END SUB
 
-SUB quitcleanup
-'DEBUG debug "Cleanup Routine"
-'--open files
-'DEBUG debug "Close foemap handle"
-CLOSE #foemaph
-'--script stack
-'DEBUG debug "Release script stack"
-releasestack
-destroystack(scrst)
-'--working files
-'DEBUG debug "Kill working files"
-
-'DEBUG debug "Unload BAM player"
-closemusic
-closesound
-'DEBUG debug "Restore original FM volume"
-setfmvol fmvol
-
-cleanuptemp
-RMDIR tmpdir + "playing.tmp"
-RMDIR tmpdir
-
-'DEBUG debug "Remove working directory"
-IF usepreunlump = 0 THEN RMDIR workingdir
-
-END SUB
-
 FUNCTION rankincaterpillar (heroid)
 result = -1
 o = 0
