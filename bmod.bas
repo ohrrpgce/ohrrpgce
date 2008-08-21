@@ -2221,11 +2221,15 @@ RETRACE
 
 END FUNCTION
 
+'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
+OPTION EXPLICIT
+
 FUNCTION checkNoRunBit (bstat() AS BattleStats, ebits(), bslot() AS BattleSprite)
- checkNoRunBit = 0
+ DIM i AS INTEGER
  FOR i = 4 TO 11
-  IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND readbit(ebits(), (i - 4) * 5, 57) = 1 THEN checkNoRunBit = 1
+  IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND readbit(ebits(), (i - 4) * 5, 57) = 1 THEN RETURN 1
  NEXT i
+ RETURN 0
 END FUNCTION
 
 SUB checkTagCond (t, check, tg, tagand)
@@ -2245,6 +2249,8 @@ END IF
 END FUNCTION
 
 SUB herobattlebits (bitbuf(), who)
+DIM i AS INTEGER
+DIM j AS INTEGER
 
 '--native bits
 FOR i = 0 TO 4
@@ -2265,6 +2271,8 @@ END SUB
 
 SUB invertstack
 '--this is a hack so I can use the stack like a fifo
+DIM i AS INTEGER
+DIM stackdepth AS INTEGER
 
 stackdepth = (stackpos - bstackstart) \ 2
 
@@ -2371,9 +2379,6 @@ END SUB
 SUB anim_setdir(who, d)
  pushw 21: pushw who: pushw d
 END SUB
-
-'FIXME: This affexts the rest of the file. Move it up as above functions are cleaned up
-OPTION EXPLICIT
 
 FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
  DIM i AS INTEGER
