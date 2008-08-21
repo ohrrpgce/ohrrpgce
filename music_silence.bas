@@ -32,6 +32,8 @@ sub sound_init() : end sub
 
 sub sound_close() : end sub
 
+sub sound_reset() : end sub
+
 sub sound_play(byval num as integer, byval loopcount as integer,  byval s as integer = 0) : end sub
 
 sub sound_pause(byval num as integer,  byval s as integer = 0) : end sub
