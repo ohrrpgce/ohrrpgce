@@ -29,6 +29,7 @@ DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), batname$(), BYREF plunder AS INTEGER, BYREF exper AS INTEGER, found())
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
 DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER,BYVAL who AS INTEGER, BYREF you AS INTEGER, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF plunder AS INTEGER, BYREF exper AS INTEGER, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), found(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+DECLARE SUB checkitemusability(iuse() AS INTEGER)
 
 'these are the battle global variables
 DIM as string battlecaption
@@ -108,7 +109,7 @@ FOR i = 0 TO 11
  icons(i) = -1
  revenge(i) = -1
 NEXT i
-GOSUB checkitemusability
+checkitemusability iuse()
 'hc(0-11) is harm count... hc(12-23) is harm color... I know, tacky :(
 FOR i = 0 TO 11
  hc(i + 12) = 15
@@ -1144,7 +1145,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     END IF
 
     IF trytheft(who, targ, atk(), es()) THEN
-     GOSUB checkitemusability
+     checkitemusability iuse()
     END IF
    ELSE
     checkTagCond atk(60), 3, atk(59), atk(61)
@@ -2202,15 +2203,6 @@ SELECT CASE vdance
 END SELECT
 RETRACE
 
-checkitemusability:
-FOR i = 0 TO inventoryMax
- IF inventory(i).used THEN
-  loaditemdata buffer(), inventory(i).id
-  IF buffer(47) > 0 THEN setbit iuse(), 0, i, 1
- END IF
-NEXT i
-RETRACE
-
 'afflictions
 '12=poison
 '13=regen
@@ -2223,6 +2215,19 @@ END FUNCTION
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
+
+SUB checkitemusability(iuse() AS INTEGER)
+ 'Iterate through the iuse() bitfield and mark any items that are usable
+ DIM i AS INTEGER
+ DIM itemtemp(100) AS INTEGER
+
+ FOR i = 0 TO inventoryMax
+  IF inventory(i).used THEN
+   loaditemdata itemtemp(), inventory(i).id
+   IF itemtemp(47) > 0 THEN setbit iuse(), 0, i, 1
+  END IF
+ NEXT i
+END SUB
 
 FUNCTION checkNoRunBit (bstat() AS BattleStats, ebits(), bslot() AS BattleSprite)
  DIM i AS INTEGER
