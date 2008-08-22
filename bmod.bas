@@ -28,7 +28,7 @@ DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), batname$(), BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF you AS INTEGER, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_victory_state (BYREF vic AS VictoryState)
@@ -94,7 +94,7 @@ alert = 0
 alert$ = ""
 
 fadeout 240, 240, 240
-vpage = 0: dpage = 1: needf = 1: anim = -1: you = -1: them = -1: fiptr = 0
+vpage = 0: dpage = 1: needf = 1: anim = -1: them = -1: fiptr = 0
 reset_battle_state bat
 reset_victory_state vic
 reset_rewards_state rew
@@ -214,10 +214,10 @@ DO
   END IF
  END IF
  yn = loopvar(yn, 0, 3, 1)
- IF you = -1 THEN
+ IF bat.hero_turn = -1 THEN
   '--if it is no heros turn, check to see if anyone is alive and ready
   IF ready(yn) = 1 AND bstat(yn).cur.hp > 0 AND dead = 0 THEN
-   you = yn
+   bat.hero_turn = yn
    pt = 0
    mset = 0
   END IF
@@ -228,12 +228,12 @@ DO
  END IF
  IF vic.state = 0 THEN
   IF them >= 0 THEN GOSUB enemyai
-  IF you >= 0 AND ptarg = 0 THEN
+  IF bat.hero_turn >= 0 AND ptarg = 0 THEN
    IF mset = 2 THEN GOSUB itemmenu
    IF mset = 1 THEN GOSUB spellmenu
    IF mset = 0 THEN GOSUB heromenu
   END IF
-  IF you >= 0 AND ptarg > 0 THEN GOSUB picktarg
+  IF bat.hero_turn >= 0 AND ptarg > 0 THEN GOSUB picktarg
  END IF
  GOSUB sprite
  GOSUB display
@@ -408,38 +408,38 @@ RETRACE
 
 heromenu: '-----------------------------------------------------------------
 FOR i = 0 TO 5
- setbit menubits(), 0, you*4+i, 0
- IF nmenu(you, i) > 0 THEN
+ setbit menubits(), 0, bat.hero_turn * 4 + i, 0
+ IF nmenu(bat.hero_turn, i) > 0 THEN
   'IF foo then
-   IF wepatkid <> nmenu(you, i) THEN
-    wepatkid = nmenu(you, i)
+   IF wepatkid <> nmenu(bat.hero_turn, i) THEN
+    wepatkid = nmenu(bat.hero_turn, i)
     loadattackdata wepatk(), wepatkid - 1
    END IF
    IF readbit(wepatk(), 65, 6) THEN
-    IF atkallowed(wepatk(), you, 0, 0, bstat()) = 0 THEN
-     setbit menubits(), 0, you*4+i, 1
+    IF atkallowed(wepatk(), bat.hero_turn, 0, 0, bstat()) = 0 THEN
+     setbit menubits(), 0, bat.hero_turn * 4 + i, 1
     END IF
    END IF
   'END IF
  END IF
 NEXT i
-IF carray(5) > 1 THEN yn = you: you = -1: RETRACE
-IF carray(0) > 1 THEN pt = pt - 1: IF pt < 0 THEN pt = mend(you)
-IF carray(1) > 1 THEN pt = pt + 1: IF pt > mend(you) THEN pt = 0
+IF carray(5) > 1 THEN yn = bat.hero_turn: bat.hero_turn = -1: RETRACE
+IF carray(0) > 1 THEN pt = pt - 1: IF pt < 0 THEN pt = mend(bat.hero_turn)
+IF carray(1) > 1 THEN pt = pt + 1: IF pt > mend(bat.hero_turn) THEN pt = 0
 IF carray(4) > 1 THEN
- IF nmenu(you, pt) > 0 THEN 'simple attack
-  IF readbit(menubits(), 0, you*4+pt) = 0 THEN
-   godo(you) = nmenu(you, pt)
-   loadattackdata buffer(), godo(you) - 1
-   delay(you) = large(buffer(16), 1)
+ IF nmenu(bat.hero_turn, pt) > 0 THEN 'simple attack
+  IF readbit(menubits(), 0, bat.hero_turn * 4 + pt) = 0 THEN
+   godo(bat.hero_turn) = nmenu(bat.hero_turn, pt)
+   loadattackdata buffer(), godo(bat.hero_turn) - 1
+   delay(bat.hero_turn) = large(buffer(16), 1)
    ptarg = 1
    flusharray carray(), 7, 0
    RETRACE
   END IF
  END IF
- IF nmenu(you, pt) < 0 AND nmenu(you, pt) >= -4 THEN '--this is a spell list
-  listslot = (nmenu(you, pt) + 1) * -1
-  IF st(you).list_type(listslot) < 2 THEN '--the type of this spell list is one that displays a menu
+ IF nmenu(bat.hero_turn, pt) < 0 AND nmenu(bat.hero_turn, pt) >= -4 THEN '--this is a spell list
+  listslot = (nmenu(bat.hero_turn, pt) + 1) * -1
+  IF st(bat.hero_turn).list_type(listslot) < 2 THEN '--the type of this spell list is one that displays a menu
    '--init spell menu
    mset = 1: sptr = 0
    FOR i = 0 TO 23 '-- loop through the spell list setting up menu items for each
@@ -448,34 +448,34 @@ IF carray(4) > 1 THEN
     cost$(i) = ""
     spel(i) = -1
     setbit spelmask(), 0, i, 0
-    IF spell(you, listslot, i) > 0 THEN '--there is a spell in this slot
+    IF spell(bat.hero_turn, listslot, i) > 0 THEN '--there is a spell in this slot
      spellcount += 1
-     spel(i) = spell(you, listslot, i) - 1
+     spel(i) = spell(bat.hero_turn, listslot, i) - 1
      loadattackdata atktemp(), spel(i)
      spel$(i) = readbadbinstring$(atktemp(), 24, 10, 1)
      speld$(i) = readbinstring$(atktemp(), 73, 38)
-     IF st(you).list_type(listslot) = 0 THEN
+     IF st(bat.hero_turn).list_type(listslot) = 0 THEN
       '--regular MP
-      cost$(i) = XSTR$(focuscost(atktemp(8), bstat(you).cur.foc)) + " " + mpname$ + " " + STR$(bstat(you).cur.mp) + "/" + STR$(bstat(you).max.mp)
+      cost$(i) = XSTR$(focuscost(atktemp(8), bstat(bat.hero_turn).cur.foc)) + " " + mpname$ + " " + STR$(bstat(bat.hero_turn).cur.mp) + "/" + STR$(bstat(bat.hero_turn).max.mp)
      END IF
-     IF st(you).list_type(listslot) = 1 THEN
+     IF st(bat.hero_turn).list_type(listslot) = 1 THEN
       '--level MP
-      cost$(i) = "Level" + XSTR$(INT(i / 3) + 1) + ":  " + XSTR$(lmp(you, INT(i / 3)))
+      cost$(i) = "Level" + XSTR$(INT(i / 3) + 1) + ":  " + XSTR$(lmp(bat.hero_turn, INT(i / 3)))
      END IF
-     IF atkallowed(atktemp(), you, st(you).list_type(listslot), INT(i / 3), bstat()) THEN
+     IF atkallowed(atktemp(), bat.hero_turn, st(bat.hero_turn).list_type(listslot), INT(i / 3), bstat()) THEN
       '-- check whether or not the spell is allowed
       setbit spelmask(), 0, i, 1
      END IF
     END IF
     spel$(i) = rpad$(spel$(i), " ", 10) '-- pad the spell menu caption
    NEXT i
-  ELSEIF st(you).list_type(listslot) = 2 THEN '-- this is a random spell list
+  ELSEIF st(bat.hero_turn).list_type(listslot) = 2 THEN '-- this is a random spell list
    spellcount = 0
    FOR i = 0 TO 23 '-- loop through the spell list storing attack ID numbers
     spel(i) = -1
-    IF spell(you, listslot, i) > 0 THEN '--there is a spell in this slot
+    IF spell(bat.hero_turn, listslot, i) > 0 THEN '--there is a spell in this slot
      spellcount += 1
-     spel(i) = spell(you, listslot, i) - 1
+     spel(i) = spell(bat.hero_turn, listslot, i) - 1
     END IF
    NEXT i
    IF spellcount > 0 THEN '-- don't attempt to pick randomly from an empty list
@@ -487,14 +487,14 @@ IF carray(4) > 1 THEN
       ol = ol + 1
      LOOP UNTIL spel(rptr) > -1 OR ol > 999 '--loop until we have found a spell (or give up after 999 tries)
     NEXT i
-    godo(you) = spel(rptr) + 1
-    loadattackdata buffer(), godo(you) - 1
-    delay(you) = large(buffer(16), 1)
+    godo(bat.hero_turn) = spel(rptr) + 1
+    loadattackdata buffer(), godo(bat.hero_turn) - 1
+    delay(bat.hero_turn) = large(buffer(16), 1)
     ptarg = 1
     flusharray carray(), 7, 0
    END IF
   END IF
- ELSEIF nmenu(you, pt) = -10 THEN '--items menu
+ ELSEIF nmenu(bat.hero_turn, pt) = -10 THEN '--items menu
   mset = 2
   iptr = 0
   itop = 0
@@ -1342,17 +1342,17 @@ firsttarg = 0
 tptr = 0
 FOR i = 0 TO 11
  targs(i) = 0 ' clear list of selected targets
- t(you, i) = -1 'clear list of confirmed targets
+ t(bat.hero_turn, i) = -1 'clear list of confirmed targets
 NEXT i
 
 'load attack
-loadattackdata buffer(), godo(you) - 1
+loadattackdata buffer(), godo(bat.hero_turn) - 1
 
 noifdead = 0
-ltarg(you) = 0
+ltarg(bat.hero_turn) = 0
 
-get_valid_targs tmask(), you, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
-noifdead = attack_can_hit_dead(you, buffer())
+get_valid_targs tmask(), bat.hero_turn, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
+noifdead = attack_can_hit_dead(bat.hero_turn, buffer())
 
 '--attacks that can target all should default to the first enemy
 IF buffer(3) = 3 THEN
@@ -1377,7 +1377,7 @@ IF buffer(4) = 2 THEN aim = 1: spred = 1
 IF buffer(4) = 3 THEN randomtarg = -1
 IF buffer(4) = 4 THEN firsttarg = -1
 
-tptr = find_preferred_target(tmask(), you, buffer(), bslot(), bstat())
+tptr = find_preferred_target(tmask(), bat.hero_turn, buffer(), bslot(), bstat())
 'fail if no targets are found
 IF tptr = -1 THEN
  ptarg = 0
@@ -1398,7 +1398,7 @@ FOR deadguy = 4 TO 11
  END IF
 NEXT
 FOR deadguy = 0 TO 11
- check_death deadguy, 0, bat, you, them, mset, noifdead, rew, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
+ check_death deadguy, 0, bat, them, mset, noifdead, rew, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -1431,7 +1431,7 @@ itemmenu:
 IF carray(5) > 1 THEN
  mset = 0
  flusharray carray(), 7, 0
- icons(you) = -1 '--is this right?
+ icons(bat.hero_turn) = -1 '--is this right?
 END IF
 oldiptr = iptr
 IF carray(0) > 1 AND iptr > 2 THEN iptr = iptr - 3
@@ -1468,11 +1468,11 @@ END IF
 IF carray(4) > 1 THEN
  IF readbit(iuse(), 0, iptr) = 1 THEN
   loaditemdata buffer(), inventory(iptr).id
-  icons(you) = -1: IF buffer(73) = 1 THEN icons(you) = iptr
+  icons(bat.hero_turn) = -1: IF buffer(73) = 1 THEN icons(bat.hero_turn) = iptr
   temp = buffer(47)
   loadattackdata buffer(), temp - 1
-  godo(you) = temp
-  delay(you) = large(buffer(16), 1)
+  godo(bat.hero_turn) = temp
+  delay(bat.hero_turn) = large(buffer(16), 1)
   ptarg = 1
   mset = 0
   flusharray carray(), 7, 0
@@ -1510,13 +1510,13 @@ IF carray(4) > 1 THEN
  IF spel(sptr) > -1 THEN
   '--list-entry is non-empty
   loadattackdata atktemp(), spel(sptr)
-  IF atkallowed(atktemp(), you, st(you).list_type(listslot), INT(sptr / 3), bstat()) THEN
+  IF atkallowed(atktemp(), bat.hero_turn, st(bat.hero_turn).list_type(listslot), INT(sptr / 3), bstat()) THEN
    '--attack is allowed
    '--if lmp then set lmp consume flag
-   IF st(you).list_type(listslot) = 1 THEN conlmp(you) = INT(sptr / 3) + 1
+   IF st(bat.hero_turn).list_type(listslot) = 1 THEN conlmp(bat.hero_turn) = INT(sptr / 3) + 1
    '--queue attack
-   godo(you) = spel(sptr) + 1
-   delay(you) = large(atktemp(16), 1)
+   godo(bat.hero_turn) = spel(sptr) + 1
+   delay(bat.hero_turn) = large(atktemp(16), 1)
    '--exit spell menu
    ptarg = 1: mset = 0
    flusharray carray(), 7, 0
@@ -1529,8 +1529,8 @@ picktarg: '-----------------------------------------------------------
 
 'cancel
 IF carray(5) > 1 THEN
- godo(you) = 0
- conlmp(you) = 0
+ godo(bat.hero_turn) = 0
+ conlmp(bat.hero_turn) = 0
  ptarg = 0
  flusharray carray(), 7, 0
  RETRACE
@@ -1540,11 +1540,11 @@ IF ptarg = 1 THEN GOSUB setuptarg
 
 'autotarget
 IF ptarg = 3 THEN
- get_valid_targs autotmask(), you, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
- autotarget t(), autotmask(), you, buffer(), bslot(), bstat()
- ctr(you) = 0
- ready(you) = 0
- you = -1
+ get_valid_targs autotmask(), bat.hero_turn, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
+ autotarget t(), autotmask(), bat.hero_turn, buffer(), bslot(), bstat()
+ ctr(bat.hero_turn) = 0
+ ready(bat.hero_turn) = 0
+ bat.hero_turn = -1
  ptarg = 0
  RETRACE
 END IF
@@ -1600,13 +1600,13 @@ targs(tptr) = 1
 o = 0
 FOR i = 0 TO 11
  IF targs(i) = 1 THEN
-  t(you, o) = i: o = o + 1
-  IF noifdead THEN setbit ltarg(), you, i, 1
+  t(bat.hero_turn, o) = i: o = o + 1
+  IF noifdead THEN setbit ltarg(), bat.hero_turn, i, 1
  END IF
 NEXT i
-ctr(you) = 0
-ready(you) = 0
-you = -1
+ctr(bat.hero_turn) = 0
+ready(bat.hero_turn) = 0
+bat.hero_turn = -1
 ptarg = 0
 noifdead = 0
 RETRACE
@@ -1641,7 +1641,7 @@ IF vic.state = 0 THEN 'only display interface till you win
     rectangle 137, 5 + i * 10, lifemeter(i), 9, col, dpage
    END IF
    '--name--
-   col = uilook(uiMenuItem): IF i = you THEN col = uilook(uiSelectedItem + tog)
+   col = uilook(uiMenuItem): IF i = bat.hero_turn THEN col = uilook(uiSelectedItem + tog)
    edgeprint batname$(i), 128 - LEN(batname$(i)) * 8, 5 + i * 10, col, dpage
    '--hp--
    edgeprint STR$(bstat(i).cur.hp) + "/" + STR$(bstat(i).max.hp), 136, 5 + i * 10, col, dpage
@@ -1673,24 +1673,24 @@ IF vic.state = 0 THEN 'only display interface till you win
    edgeprint battlecaption, xstring(battlecaption, 160), 182, uilook(uiText), dpage
   END IF
  END IF
- IF you >= 0 THEN
-  centerbox 268, 5 + (4 * (mend(you) + 2)), 88, 8 * (mend(you) + 2), 1, dpage
-  FOR i = 0 TO mend(you)
+ IF bat.hero_turn >= 0 THEN
+  centerbox 268, 5 + (4 * (mend(bat.hero_turn) + 2)), 88, 8 * (mend(bat.hero_turn) + 2), 1, dpage
+  FOR i = 0 TO mend(bat.hero_turn)
    bg = 0
    fg = uilook(uiMenuItem)
    IF pt = i THEN
      fg = uilook(uiSelectedItem + tog)
      bg = uilook(uiHighlight)
    END IF
-   IF readbit(menubits(), 0, you*4+i) THEN
+   IF readbit(menubits(), 0, bat.hero_turn * 4 + i) THEN
      fg = uilook(uiDisabledItem)
      IF pt = i THEN fg = uilook(uiSelectedDisabled + tog)
    END IF
    textcolor fg, bg
-   printstr menu$(you, i), 228, 9 + i * 8, dpage
+   printstr menu$(bat.hero_turn, i), 228, 9 + i * 8, dpage
   NEXT i
   IF ptarg = 0 AND readbit(gen(), genBits, 14) = 0 THEN
-   edgeprint CHR$(24), bslot(you).x + (bslot(you).w / 2) - 4, bslot(you).y - 5 + (tog * 2), uilook(uiSelectedItem + tog), dpage
+   edgeprint CHR$(24), bslot(bat.hero_turn).x + (bslot(bat.hero_turn).w / 2) - 4, bslot(bat.hero_turn).y - 5 + (tog * 2), uilook(uiSelectedItem + tog), dpage
   END IF
   IF mset = 1 THEN '--draw spell menu
    centerbox 160, 52, 310, 94, 1, dpage
@@ -1739,14 +1739,14 @@ meters:
 IF away = 1 THEN RETRACE
 '--if a menu is up, and pause-on-menus is ON then no time passes (as long as at least one visible targetable enemy is alive)
 isdeepmenu = (mset > 0 AND readbit(gen(), genBits, 0))
-isbattlemenu = (mset >= 0 AND you >= 0 AND readbit(gen(), genBits, 13))
+isbattlemenu = (mset >= 0 AND bat.hero_turn >= 0 AND readbit(gen(), genBits, 13))
 isenemytargs = (targenemycount(bslot(), bstat()) > 0)
 IF (isdeepmenu OR isbattlemenu) AND isenemytargs THEN RETRACE
 
 FOR i = 0 TO 11
 
  'delays for attacks already selected
- IF you <> i THEN delay(i) = large(delay(i) - 1, 0)
+ IF bat.hero_turn <> i THEN delay(i) = large(delay(i) - 1, 0)
 
  '--poison
  WITH bstat(i)
@@ -1798,7 +1798,7 @@ IF TIMER > laststun + 1 THEN
   bstat(i).cur.stun = small(bstat(i).cur.stun + 1, bstat(i).max.stun)
   IF bstat(i).cur.stun < bstat(i).max.stun THEN
    ready(i) = 0
-   IF you = i THEN you = -1
+   IF bat.hero_turn = i THEN bat.hero_turn = -1
    IF them = i THEN them = -1
   END IF
  NEXT i
@@ -2223,6 +2223,7 @@ SUB reset_battle_state (BYREF bat AS BattleState)
  'This could become a constructor for BattleState when we support the -lang fb dialect
  WITH bat
   .acting = 0
+  .hero_turn = -1
  END WITH
 END SUB
 
@@ -2520,7 +2521,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebit
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF you AS INTEGER, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
@@ -2543,7 +2544,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   .cur.mute   = .max.mute
  END WITH
  '-- if it is a dead hero's turn, cancel menu
- IF you = deadguy THEN you = -1: mset = 0
+ IF bat.hero_turn = deadguy THEN bat.hero_turn = -1: mset = 0
  '-- if it is a dead enemy's turn, cancel ai
  IF them = deadguy THEN them = -1
  IF is_enemy(deadguy) THEN '------PLUNDER AND EXPERIENCE AND ITEMS------

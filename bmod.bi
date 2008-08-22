@@ -14,7 +14,8 @@
 'This type controls the state of the battle engine, for example,
 'who's turn it is, what each character is doing, and targetting information
 TYPE BattleState
- acting AS INTEGER  'The hero or enemy who is currently taking their turn to act
+ acting AS INTEGER    'Hero or enemy who is currently taking their turn to act
+ hero_turn AS INTEGER 'Hero currently selecting an attack
 END TYPE
 
 'This type controls the visual state of the victory display
