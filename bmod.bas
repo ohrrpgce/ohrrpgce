@@ -23,6 +23,36 @@ DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTE
 #INCLUDE "const.bi"
 #INCLUDE "uiconst.bi"
 
+'--local const and types only used in this module
+
+'This type controls the visual state of the victory display
+CONST vicGOLDEXP = 1
+CONST vicLEVELUP = 2
+CONST vicSPELLS  = 3
+CONST vicITEMS   = 4
+'negative are non-displaying exit states
+CONST vicEXITDELAY = -1
+CONST vicEXIT    = -2
+TYPE VictoryState
+ state AS INTEGER 'vicSTATENAME or 0 for none
+ box AS INTEGER   'NO when not displaying a box, YES when displaying a box
+ showlearn AS INTEGER 'NO when not showing spell learning, YES when already showing a learned spell
+ learnwho AS INTEGER 'battle slot of hero currently displaying learned spells
+ learnlist AS INTEGER 'spell list of hero currently displaying learned spells
+ learnslot AS INTEGER 'spell list slot of hero currently displaying learned spells
+ item_name AS STRING 'name of currently displaying found item or "" for none
+ found_index AS INTEGER 'index into the found() array that lists items found in this battle
+ gold_caption AS STRING
+ exp_caption AS STRING
+ item_caption AS STRING
+ plural_item_caption AS STRING
+ gold_name AS STRING
+ exp_name AS STRING
+ level_up_caption AS STRING
+ levels_up_caption AS STRING
+ learned_caption AS STRING
+END TYPE
+
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
@@ -30,6 +60,8 @@ DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, es(), 
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
 DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER,BYVAL who AS INTEGER, BYREF you AS INTEGER, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF plunder AS INTEGER, BYREF exper AS INTEGER, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), found(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
+DECLARE SUB reset_victory_state (BYREF vic AS VictoryState)
+DECLARE SUB show_victory (BYREF vic AS VictoryState, plunder AS INTEGER, exper AS INTEGER, exstat() AS INTEGER, batname() AS STRING, found() AS INTEGER)
 
 'these are the battle global variables
 DIM as string battlecaption
@@ -55,6 +87,7 @@ DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), atktyp
 DIM laststun AS DOUBLE
 DIM bslot(24) AS BattleSprite
 DIM bstat(11) AS BattleStats
+DIM vic AS VictoryState
 DIM as double timinga, timingb
 DIM dead, mapsong
 DIM spellcount AS INTEGER '--only used in heromenu GOSUB block
@@ -75,18 +108,9 @@ timinga = 0
 timingb = 0
 
 mpname$ = readglobalstring(1, "MP", 10)
-goldname$ = readglobalstring(32, "Gold", 10)
-expname$ = readglobalstring(33, "Exp", 10)
 cancelspell$ = readglobalstring$(51, "(CANCEL)", 10)
 pause$ = readglobalstring$(54, "PAUSE", 10)
-learned$ = " " + readglobalstring$(124, "learned", 10) + " "
-goldcap$ = readglobalstring$(125, "Found", 10)
-expcap$ = readglobalstring$(126, "Gained", 10)
-foundcap$ = readglobalstring$(139, "Found a", 20)
-foundpcap$ = readglobalstring$(141, "Found", 20)
 cannotrun$ = readglobalstring$(147, "CANNOT RUN!", 20)
-level1up$ = readglobalstring$(149, "Level up for", 20)
-levelXup$ = readglobalstring$(151, "levels for", 20)
 
 battlecaptime = 0
 battlecapdelay = 0
@@ -97,7 +121,8 @@ alert$ = ""
 
 fadeout 240, 240, 240
 vpage = 0: dpage = 1: needf = 1: anim = -1: you = -1: them = -1: fiptr = 0
-vdance = 0: drawvicbox = 0: aset = 0: wf = 0: noifdead = 0
+reset_victory_state vic
+aset = 0: wf = 0: noifdead = 0
 
 ptarg = 0 ' ptarg=0 means hero not currently picking a target
           ' ptarg>0 means hero picking a target
@@ -198,11 +223,11 @@ DO
    EXIT DO
   END IF
  END IF
- IF anim >= 0 AND aset = 0 AND vdance = 0 THEN GOSUB atkscript
- IF anim >= 0 AND aset = 1 AND vdance = 0 AND away = 0 THEN GOSUB action
+ IF anim >= 0 AND aset = 0 AND vic.state = 0 THEN GOSUB atkscript
+ IF anim >= 0 AND aset = 1 AND vic.state = 0 AND away = 0 THEN GOSUB action
  GOSUB animate
  na = loopvar(na, 0, 11, 1)
- IF anim = -1 AND vdance = 0 THEN
+ IF anim = -1 AND vic.state = 0 THEN
   GOSUB meters
   IF godo(na) > 0 AND delay(na) = 0 THEN
    '--next attacker has an attack selected and the delay is over
@@ -225,7 +250,7 @@ DO
  IF them = -1 THEN
   IF ready(en) = 1 AND bstat(en).cur.hp > 0 AND dead = 0 THEN them = en
  END IF
- IF vdance = 0 THEN
+ IF vic.state = 0 THEN
   IF them >= 0 THEN GOSUB enemyai
   IF you >= 0 AND ptarg = 0 THEN
    IF mset = 2 THEN GOSUB itemmenu
@@ -236,13 +261,13 @@ DO
  END IF
  GOSUB sprite
  GOSUB display
- IF vdance = -1 THEN vdance = -2
- IF vdance > 0 THEN GOSUB vicdance
+ IF vic.state = vicEXITDELAY THEN vic.state = vicEXIT
+ IF vic.state > 0 THEN show_victory vic, plunder, exper, exstat(), batname$(), found()
  IF vis = 1 THEN GOSUB seestuff
- IF dead = 1 AND vdance = 0 THEN
+ IF dead = 1 AND vic.state = 0 THEN
   IF count_dissolving_enemies(bslot()) = 0 THEN GOSUB victory
  END IF
- IF vdance = -2 THEN EXIT DO 'normal victory exit
+ IF vic.state = vicEXIT THEN EXIT DO 'normal victory exit
  IF dead = 2 THEN
   fatal = 1
   EXIT DO
@@ -1046,7 +1071,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
   CASE 0 '--end()
    FOR i = 0 TO 3
     '--enforce weak picture
-    IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vdance = 0 THEN of(i) = 6: bslot(i).frame = 6
+    IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vic.state = 0 THEN of(i) = 6: bslot(i).frame = 6
     '--re-enforce party's X/Y positions...
     bslot(i).x = bslot(i).basex
     bslot(i).y = bslot(i).basey
@@ -1611,7 +1636,7 @@ noifdead = 0
 RETRACE
 
 display:
-IF vdance = 0 THEN 'only display interface till you win
+IF vic.state = 0 THEN 'only display interface till you win
  FOR i = 0 TO 3
   IF hero(i) > 0 THEN
    IF readbit(gen(), 101, 6) = 0 THEN
@@ -1731,7 +1756,7 @@ IF vdance = 0 THEN 'only display interface till you win
    NEXT i
   END IF
  END IF
-END IF'--end if vdance=0
+END IF'--end if vic.state = 0
 RETRACE
 
 meters:
@@ -1809,8 +1834,8 @@ RETRACE
 animate:
 FOR i = 0 TO 3
  IF walk(i) = 1 THEN of(i) = of(i) XOR tog : bslot(i).frame = bslot(i).frame xor tog
- IF who <> i AND bstat(i).cur.hp < bstat(i).max.hp / 5 AND vdance = 0 THEN of(i) = 6 : bslot(i).frame = 6
- IF vdance > 0 AND bstat(i).cur.hp > 0 AND tog = 0 THEN
+ IF who <> i AND bstat(i).cur.hp < bstat(i).max.hp / 5 AND vic.state = 0 THEN of(i) = 6 : bslot(i).frame = 6
+ IF vic.state > 0 AND bstat(i).cur.hp > 0 AND tog = 0 THEN
   IF of(i) = 0 THEN of(i) = 2 ELSE of(i) = 0
   if bslot(i).frame = 0 then bslot(i).frame = 2 else bslot(i).frame = 0
  END IF
@@ -2069,7 +2094,7 @@ NEXT i
 curbg = formdata(32)
 loadpage game + ".mxs", curbg, 2
 FOR i = 0 TO 3
- IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vdance = 0 THEN of(i) = 6 : bslot(i).frame = 6
+ IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vic.state = 0 THEN of(i) = 6 : bslot(i).frame = 6
  IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN
   '--hero starts the battle dead
   bslot(i).dissolve = 1 'Keeps the dead hero from vanishing
@@ -2101,106 +2126,7 @@ FOR i = 0 TO 3
  IF bstat(i).cur.hp > 0 THEN giveheroexperience i, exstat(), exper
  updatestatslevelup i, exstat(), bstat(), 0
 NEXT i
-vdance = 1
-RETRACE
-
-vicdance:
-IF drawvicbox THEN centerfuz 160, 30, 280, 50, 1, dpage
-SELECT CASE vdance
- CASE 1
-  '--print acquired gold and experience
-  IF plunder > 0 OR exper > 0 THEN drawvicbox = 1: centerfuz 160, 30, 280, 50, 1, dpage
-  IF plunder > 0 THEN
-   temp$ = goldcap$ & " " & plunder & " " & goldname$ & "!"
-   edgeprint temp$, xstring(temp$, 160), 16, uilook(uiText), dpage
-  END IF
-  IF exper > 0 THEN
-   temp$ = expcap$ & " " & exper & " " & expname$ & "!"
-   edgeprint temp$, xstring(temp$, 160), 28, uilook(uiText), dpage
-  END IF
-  IF carray(4) > 1 OR carray(5) > 1 OR (plunder = 0 AND exper = 0) THEN
-   vdance = 2
-  END IF
- CASE 2
-  '--print levelups
-  o = 0
-  FOR i = 0 TO 3
-   IF o = 0 AND exstat(i, 1, 12) THEN centerfuz 160, 30, 280, 50, 1, dpage: drawvicbox = 1
-   SELECT CASE exstat(i, 1, 12)
-    CASE 1
-     temp$ = level1up$ + " " + batname$(i)
-     edgeprint temp$, xstring(temp$, 160), 12 + i * 10, uilook(uiText), dpage
-     o = 1
-    CASE IS > 1
-     temp$ = STR$(exstat(i, 1, 12)) + " " + levelXup$ + " " + batname$(i)
-     edgeprint temp$, xstring(temp$, 160), 12 + i * 10, uilook(uiText), dpage
-     o = 1
-   END SELECT
-  NEXT i
-  IF o = 0 OR (carray(4) > 1 OR carray(5) > 1) THEN
-   vdance = 3
-   showlearn = 0
-   learnwho = 0: learnlist = 0: learnslot = -1
-  END IF
- CASE 3
-  '--print learned spells, one at a time
-  IF showlearn = 0 THEN '--Not showing a spell yet. find the next one
-   DO
-    learnslot = learnslot + 1
-    IF learnslot > 23 THEN learnslot = 0: learnlist = learnlist + 1
-    IF learnlist > 3 THEN learnlist = 0: learnwho = learnwho + 1
-    IF learnwho > 3 THEN ' We have iterated through all spell lists for all heroes, time to move on
-     vdance = 4
-     found$ = ""
-     fptr = 0
-     drawvicbox = 0
-     EXIT DO
-    END IF
-    IF readbit(learnmask(), 0, learnwho * 96 + learnlist * 24 + learnslot) THEN
-     'found a learned spell
-     found$ = batname$(learnwho) + learned$
-     found$ = found$ & readattackname$(spell(learnwho, learnlist, learnslot) -1)
-     showlearn = 1
-     drawvicbox = 1
-     EXIT DO
-    END IF
-   LOOP
-  ELSE' Found a learned spell to display, show it until a keypress
-   IF carray(4) > 1 OR carray(5) > 1 THEN
-    showlearn = 0 ' hide the display (which causes us to search for the next learned spell)
-   END IF
-   edgeprint found$, xstring(found$, 160), 22, uilook(uiText), dpage
-  END IF
- CASE 4
-  '--print found items, one at a time
-  '--check to see if we are currently displaying a gotten item
-  IF found$ = "" THEN
-   '--if not, check to see if there are any more gotten items to display
-   IF found(fptr, 1) = 0 THEN vdance = -1: RETRACE
-   '--get the item name
-   found$ = readitemname$(found(fptr, 0))
-   '--actually aquire the item
-   getitem found(fptr, 0) + 1, found(fptr, 1)
-  END IF
-  '--if the present item is gotten, show the caption
-  IF found(fptr, 1) = 1 THEN
-   temp$ = foundcap$ + " " + found$
-  ELSE
-   temp$ = foundpcap$ + XSTR$(found(fptr, 1)) + " " + found$
-  END IF
-  IF LEN(temp$) THEN centerfuz 160, 30, 280, 50, 1, dpage
-  edgeprint temp$, xstring(temp$, 160), 22, uilook(uiText), dpage
-  '--check for a keypress
-  IF carray(4) > 1 OR carray(5) > 1 THEN
-   IF found(fptr, 1) = 0 THEN
-    '--if there are no further items, exit
-    vdance = -1
-   ELSE
-    '--otherwize, increment the findpointer and reset the caption
-    fptr = fptr + 1: found$ = ""
-   END IF
-  END IF
-END SELECT
+vic.state = vicGOLDEXP
 RETRACE
 
 'afflictions
@@ -2215,6 +2141,132 @@ END FUNCTION
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
+
+SUB show_victory (BYREF vic AS VictoryState, plunder AS INTEGER, exper AS INTEGER, exstat() AS INTEGER, batname() AS STRING, found() AS INTEGER)
+DIM tempstr AS STRING
+DIM AS INTEGER i, o
+IF vic.box THEN centerfuz 160, 30, 280, 50, 1, dpage
+SELECT CASE vic.state
+ CASE vicGOLDEXP
+  '--print acquired gold and experience
+  IF plunder > 0 OR exper > 0 THEN vic.box = YES: centerfuz 160, 30, 280, 50, 1, dpage
+  IF plunder > 0 THEN
+   tempstr = vic.gold_caption & " " & plunder & " " & vic.gold_name & "!"
+   edgeprint tempstr, xstring(tempstr, 160), 16, uilook(uiText), dpage
+  END IF
+  IF exper > 0 THEN
+   tempstr = vic.exp_caption & " " & exper & " " & vic.exp_name & "!"
+   edgeprint tempstr, xstring(tempstr, 160), 28, uilook(uiText), dpage
+  END IF
+  IF carray(4) > 1 OR carray(5) > 1 OR (plunder = 0 AND exper = 0) THEN
+   vic.state = vicLEVELUP
+  END IF
+ CASE vicLEVELUP
+  '--print levelups
+  o = 0
+  FOR i = 0 TO 3
+   IF o = 0 AND exstat(i, 1, 12) THEN centerfuz 160, 30, 280, 50, 1, dpage: vic.box = YES
+   SELECT CASE exstat(i, 1, 12)
+    CASE 1
+     tempstr = vic.level_up_caption & " " & batname(i)
+    CASE IS > 1
+     tempstr = exstat(i, 1, 12) & " " & vic.levels_up_caption & " " & batname(i)
+   END SELECT
+   IF exstat(i, 1, 12) > 0 THEN
+    edgeprint tempstr, xstring(tempstr, 160), 12 + i * 10, uilook(uiText), dpage
+    o = 1
+   END IF
+  NEXT i
+  IF o = 0 OR (carray(4) > 1 OR carray(5) > 1) THEN
+   vic.state = vicSPELLS
+   vic.showlearn = NO
+   vic.learnwho = 0
+   vic.learnlist = 0
+   vic.learnslot = -1
+  END IF
+ CASE vicSPELLS
+  '--print learned spells, one at a time
+  IF vic.showlearn = NO THEN '--Not showing a spell yet. find the next one
+   DO
+    vic.learnslot = vic.learnslot + 1
+    IF vic.learnslot > 23 THEN vic.learnslot = 0: vic.learnlist = vic.learnlist + 1
+    IF vic.learnlist > 3 THEN vic.learnlist = 0: vic.learnwho = vic.learnwho + 1
+    IF vic.learnwho > 3 THEN ' We have iterated through all spell lists for all heroes, time to move on
+     vic.state = vicITEMS
+     vic.item_name = ""
+     vic.found_index = 0
+     vic.box = NO
+     EXIT DO
+    END IF
+    IF readbit(learnmask(), 0, vic.learnwho * 96 + vic.learnlist * 24 + vic.learnslot) THEN
+     'found a learned spell
+     vic.item_name = batname(vic.learnwho) + vic.learned_caption
+     vic.item_name = vic.item_name & readattackname$(spell(vic.learnwho, vic.learnlist, vic.learnslot) -1)
+     vic.showlearn = YES
+     vic.box = YES
+     EXIT DO
+    END IF
+   LOOP
+  ELSE' Found a learned spell to display, show it until a keypress
+   IF carray(4) > 1 OR carray(5) > 1 THEN
+    vic.showlearn = NO ' hide the display (which causes us to search for the next learned spell)
+   END IF
+   edgeprint vic.item_name, xstring(vic.item_name, 160), 22, uilook(uiText), dpage
+  END IF
+ CASE vicITEMS
+  '--print found items, one at a time
+  '--check to see if we are currently displaying a gotten item
+  IF vic.item_name = "" THEN
+   '--if not, check to see if there are any more gotten items to display
+   IF found(vic.found_index, 1) = 0 THEN vic.state = -1: EXIT SUB
+   '--get the item name
+   vic.item_name = readitemname$(found(vic.found_index, 0))
+   '--actually aquire the item
+   getitem found(vic.found_index, 0) + 1, found(vic.found_index, 1)
+  END IF
+  '--if the present item is gotten, show the caption
+  IF found(vic.found_index, 1) = 1 THEN
+   tempstr = vic.item_caption & " " & vic.item_name
+  ELSE
+   tempstr = vic.plural_item_caption & " " & found(vic.found_index, 1) & " " & vic.item_name
+  END IF
+  IF LEN(tempstr) THEN centerfuz 160, 30, 280, 50, 1, dpage
+  edgeprint tempstr, xstring(tempstr, 160), 22, uilook(uiText), dpage
+  '--check for a keypress
+  IF carray(4) > 1 OR carray(5) > 1 THEN
+   IF found(vic.found_index, 1) = 0 THEN
+    '--if there are no further items, exit
+    vic.state = -1
+   ELSE
+    '--otherwize, increment the findpointer and reset the caption
+    vic.found_index = vic.found_index + 1: vic.item_name = ""
+   END IF
+  END IF
+END SELECT
+END SUB
+
+SUB reset_victory_state (BYREF vic AS VictoryState)
+ WITH vic
+  .state = 0
+  .box = NO
+  .showlearn = NO
+  .learnwho = 0
+  .learnlist = 0
+  .learnslot = -1
+  .item_name = ""
+  .found_index = 0
+  '--Cache some global strings here
+  .gold_caption = readglobalstring$(125, "Found", 10)
+  .exp_caption  = readglobalstring$(126, "Gained", 10)
+  .item_caption = readglobalstring$(139, "Found a", 20)
+  .plural_item_caption = readglobalstring$(141, "Found", 20)
+  .gold_name    = readglobalstring(32, "Gold", 10)
+  .exp_name     = readglobalstring(33, "Exp", 10)
+  .level_up_caption  = readglobalstring$(149, "Level up for", 20)
+  .levels_up_caption = readglobalstring$(151, "levels for", 20)
+  .learned_caption = " " + readglobalstring$(124, "learned", 10) + " "
+ END WITH
+END SUB
 
 SUB checkitemusability(iuse() AS INTEGER)
  'Iterate through the iuse() bitfield and mark any items that are usable
