@@ -34,9 +34,9 @@ DECLARE FUNCTION countitem% (it%)
 #include "udts.bi"
 #INCLUDE "battle_udts.bi"
 
-DECLARE SUB confirm_auto_spread (who, confirmtarg(), tmask())
-DECLARE SUB confirm_auto_focus (who, confirmtarg(), tmask(), atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
-DECLARE SUB confirm_auto_first (who, confirmtarg(), tmask())
+DECLARE SUB confirm_auto_spread (who, tmask(), bslot() AS BattleSprite)
+DECLARE SUB confirm_auto_focus (who, tmask(), atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
+DECLARE SUB confirm_auto_first (who, tmask(), bslot() AS BattleSprite)
 
 DECLARE FUNCTION quick_battle_distance(who1, who2, bslot() AS BattleSprite)
 DECLARE FUNCTION battle_distance(who1, who2, bslot() AS BattleSprite)
@@ -62,7 +62,7 @@ FUNCTION is_weapon(who)
  RETURN 0
 END FUNCTION
 
-SUB advance (who, atk(), bslot() AS BattleSprite, t())
+SUB advance (who, atk(), bslot() AS BattleSprite)
 d = 1 ' Hero
 IF is_enemy(who) THEN d = -1 ' Enemy
 
@@ -74,13 +74,13 @@ IF is_hero(who) THEN
  END IF
 END IF
 IF atk(14) = 2 THEN ' Dash in
- yt = (bslot(t(who, 0)).h - bslot(who).h) + 2
+ yt = (bslot(bslot(who).t(0)).h - bslot(who).h) + 2
  anim_walktoggle who
- anim_absmove who, bslot(t(who, 0)).x + bslot(t(who, 0)).w * d, bslot(t(who, 0)).y + yt, 6, 6
+ anim_absmove who, bslot(bslot(who).t(0)).x + bslot(bslot(who).t(0)).w * d, bslot(bslot(who).t(0)).y + yt, 6, 6
  anim_waitforall
 END IF
 IF atk(14) = 8 THEN ' Teleport
- anim_setpos who, bslot(t(who, 0)).x + bslot(t(who, 0)).w * d, bslot(t(who, 0)).y + (bslot(t(who, 0)).h - (bslot(who).h)), 0
+ anim_setpos who, bslot(bslot(who).t(0)).x + bslot(bslot(who).t(0)).w * d, bslot(bslot(who).t(0)).y + (bslot(bslot(who).t(0)).h - (bslot(who).h)), 0
 END IF
 
 END SUB
@@ -308,7 +308,7 @@ NEXT i
 RETURN o
 END FUNCTION
 
-SUB etwitch (who, atk(), bslot() AS BattleSprite, t())
+SUB etwitch (who, atk(), bslot() AS BattleSprite)
 
 IF atk(14) < 2 THEN' twitch
  anim_setz who, 2
@@ -332,7 +332,7 @@ END IF
 IF atk(14) = 5 THEN' drop
  anim_setz who, 200
  anim_appear who
- anim_setpos who, bslot(t(who, 0)).x, bslot(t(who, 0)).y, 0
+ anim_setpos who, bslot(bslot(who).t(0)).x, bslot(bslot(who).t(0)).y, 0
  anim_zmove who, -10, 20
  anim_waitforall
 END IF
@@ -359,7 +359,7 @@ Function GetHeroPos(h,f,isY)'or x?
  CLOSE #FH
 End Function
 
-SUB heroanim (who, atk(), bslot() AS BattleSprite, t())
+SUB heroanim (who, atk(), bslot() AS BattleSprite)
 hx = 0:hy = 0:wx = 0: wy = 0: xt = 0: yt = 0
 IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN ' strike, cast, dash, standing cast, teleport
  anim_setframe who, 0
@@ -424,8 +424,8 @@ IF atk(14) = 5 THEN ' Land
  anim_setz who, 200
  anim_setframe who, 2
  anim_appear who
- anim_setcenter who, t(who, 0), 0, 0
- anim_align who, t(who, 0), dirDown, 0
+ anim_setcenter who, bslot(who).t(0), 0, 0
+ anim_align who, bslot(who).t(0), dirDown, 0
  anim_zmove who, -10, 20
  anim_waitforall
  anim_setframe who, 5
@@ -796,7 +796,7 @@ ELSE
 END IF
 END FUNCTION
 
-SUB retreat (who, atk(), bslot() AS BattleSprite, t())
+SUB retreat (who, atk(), bslot() AS BattleSprite)
 
 IF is_enemy(who) THEN
  IF atk(14) = 2 OR atk(14) = 5 THEN
@@ -1228,13 +1228,13 @@ END SELECT
 RETURN NO
 END FUNCTION
 
-SUB autotarget (confirmtarg(), tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
+SUB autotarget (tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
 
 DIM i AS INTEGER
 
 'flush the targeting space for this attacker
 FOR i = 0 TO 11
- confirmtarg(who, i) = -1
+ bslot(who).t(i) = -1
 NEXT i
 
 targetptr = 0
@@ -1242,45 +1242,45 @@ targetptr = 0
 SELECT CASE atkbuf(4)
 
  CASE 0, 3: '--focus and random focus
-  confirm_auto_focus who, confirmtarg(), tmask(), atkbuf(), bslot(), bstat()
+  confirm_auto_focus who, tmask(), atkbuf(), bslot(), bstat()
 
  CASE 1: '--spread attack
-  confirm_auto_spread who, confirmtarg(), tmask()
+  confirm_auto_spread who, tmask(), bslot()
 
  CASE 2: '-- optional spread
   IF INT(RND * 100) < 33 THEN
-   confirm_auto_spread who, confirmtarg(), tmask()
+   confirm_auto_spread who, tmask(), bslot()
   ELSE
-   confirm_auto_focus who, confirmtarg(), tmask(), atkbuf(), bslot(), bstat()
+   confirm_auto_focus who, tmask(), atkbuf(), bslot(), bstat()
   END IF
 
  CASE 4: '--first target
-  confirm_auto_first who, confirmtarg(), tmask()
+  confirm_auto_first who, tmask(), bslot()
 
 END SELECT
 
 END SUB
 
-SUB confirm_auto_spread (who, confirmtarg(), tmask())
+SUB confirm_auto_spread (who, tmask(), bslot() AS BattleSprite)
  DIM i AS INTEGER
  DIM targetptr AS INTEGER = 0
  FOR i = 0 TO 11
   IF tmask(i) <> 0 THEN
-   confirmtarg(who, targetptr) = i
+   bslot(who).t(targetptr) = i
    targetptr = targetptr + 1
   END IF
  NEXT i
 END SUB
 
-SUB confirm_auto_focus (who, confirmtarg(), tmask(), atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
- confirmtarg(who, 0) = find_preferred_target(tmask(), who, atkbuf(), bslot(), bstat())
+SUB confirm_auto_focus (who, tmask(), atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
+ bslot(who).t(0) = find_preferred_target(tmask(), who, atkbuf(), bslot(), bstat())
 END SUB
 
-SUB confirm_auto_first (who, confirmtarg(), tmask())
+SUB confirm_auto_first (who, tmask(), bslot() AS BattleSprite)
  DIM i AS INTEGER
  FOR i = 0 TO 11
   IF tmask(i) <> 0 THEN
-   confirmtarg(who, 0) = i
+   bslot(who).t(0) = i
    EXIT SUB
   END IF
  NEXT i
