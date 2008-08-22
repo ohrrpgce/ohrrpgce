@@ -28,7 +28,7 @@ DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), batname$(), BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_victory_state (BYREF vic AS VictoryState)
@@ -219,7 +219,7 @@ DO
   IF ready(bat.next_hero) = 1 AND bstat(bat.next_hero).cur.hp > 0 AND dead = 0 THEN
    bat.hero_turn = bat.next_hero
    pt = 0
-   mset = 0
+   bat.menu_mode = batMENUHERO
   END IF
  END IF
  bat.next_enemy = loopvar(bat.next_enemy, 4, 11, 1)
@@ -229,9 +229,9 @@ DO
  IF vic.state = 0 THEN
   IF bat.enemy_turn >= 0 THEN GOSUB enemyai
   IF bat.hero_turn >= 0 AND ptarg = 0 THEN
-   IF mset = 2 THEN GOSUB itemmenu
-   IF mset = 1 THEN GOSUB spellmenu
-   IF mset = 0 THEN GOSUB heromenu
+   IF bat.menu_mode = batMENUITEM THEN GOSUB itemmenu
+   IF bat.menu_mode = batMENUSPELL THEN GOSUB spellmenu
+   IF bat.menu_mode = batMENUHERO THEN GOSUB heromenu
   END IF
   IF bat.hero_turn >= 0 AND ptarg > 0 THEN GOSUB picktarg
  END IF
@@ -441,7 +441,7 @@ IF carray(4) > 1 THEN
   listslot = (nmenu(bat.hero_turn, pt) + 1) * -1
   IF st(bat.hero_turn).list_type(listslot) < 2 THEN '--the type of this spell list is one that displays a menu
    '--init spell menu
-   mset = 1: sptr = 0
+   bat.menu_mode = batMENUSPELL: sptr = 0
    FOR i = 0 TO 23 '-- loop through the spell list setting up menu items for each
     spel$(i) = ""
     speld$(i) = ""
@@ -495,7 +495,7 @@ IF carray(4) > 1 THEN
    END IF
   END IF
  ELSEIF nmenu(bat.hero_turn, pt) = -10 THEN '--items menu
-  mset = 2
+  bat.menu_mode = batMENUITEM
   iptr = 0
   itop = 0
   itemd$ = ""
@@ -1398,7 +1398,7 @@ FOR deadguy = 4 TO 11
  END IF
 NEXT
 FOR deadguy = 0 TO 11
- check_death deadguy, 0, bat, mset, noifdead, rew, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
+ check_death deadguy, 0, bat, noifdead, rew, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -1429,7 +1429,7 @@ RETRACE
 
 itemmenu:
 IF carray(5) > 1 THEN
- mset = 0
+ bat.menu_mode = batMENUHERO
  flusharray carray(), 7, 0
  icons(bat.hero_turn) = -1 '--is this right?
 END IF
@@ -1474,7 +1474,7 @@ IF carray(4) > 1 THEN
   godo(bat.hero_turn) = temp
   delay(bat.hero_turn) = large(buffer(16), 1)
   ptarg = 1
-  mset = 0
+  bat.menu_mode = batMENUHERO
   flusharray carray(), 7, 0
  END IF
 END IF
@@ -1482,7 +1482,7 @@ RETRACE
 
 spellmenu:
 IF carray(5) > 1 THEN '--cancel
- mset = 0
+ bat.menu_mode = batMENUHERO
  flusharray carray(), 7, 0
 END IF
 IF carray(0) > 1 THEN
@@ -1501,7 +1501,7 @@ IF carray(4) > 1 THEN
  '--use selected spell
  IF sptr = 24 THEN
   '--used cancel
-  mset = 0
+  bat.menu_mode = batMENUHERO
   flusharray carray(), 7, 0
   RETRACE
  END IF
@@ -1518,7 +1518,7 @@ IF carray(4) > 1 THEN
    godo(bat.hero_turn) = spel(sptr) + 1
    delay(bat.hero_turn) = large(atktemp(16), 1)
    '--exit spell menu
-   ptarg = 1: mset = 0
+   ptarg = 1: bat.menu_mode = batMENUHERO
    flusharray carray(), 7, 0
   END IF
  END IF
@@ -1692,7 +1692,7 @@ IF vic.state = 0 THEN 'only display interface till you win
   IF ptarg = 0 AND readbit(gen(), genBits, 14) = 0 THEN
    edgeprint CHR$(24), bslot(bat.hero_turn).x + (bslot(bat.hero_turn).w / 2) - 4, bslot(bat.hero_turn).y - 5 + (tog * 2), uilook(uiSelectedItem + tog), dpage
   END IF
-  IF mset = 1 THEN '--draw spell menu
+  IF bat.menu_mode = batMENUSPELL THEN '--draw spell menu
    centerbox 160, 52, 310, 94, 1, dpage
    IF sptr < 24 THEN
     IF speld$(sptr) <> "" THEN rectangle 5, 74, 311, 1, uilook(uiTextBox + 1), dpage
@@ -1712,7 +1712,7 @@ IF vic.state = 0 THEN 'only display interface till you win
     printstr cost$(sptr), 308 - LEN(cost$(sptr)) * 8, 90, dpage
    END IF
   END IF
-  IF mset = 2 THEN '--draw item menu
+  IF bat.menu_mode = batMENUITEM THEN '--draw item menu
    centerbox 160, 43, 304, 78, 1, dpage
    FOR i = itop TO itop + 26
     textcolor uilook(uiDisabledItem - readbit(iuse(), 0, i)), 0
@@ -1738,8 +1738,8 @@ RETRACE
 meters:
 IF away = 1 THEN RETRACE
 '--if a menu is up, and pause-on-menus is ON then no time passes (as long as at least one visible targetable enemy is alive)
-isdeepmenu = (mset > 0 AND readbit(gen(), genBits, 0))
-isbattlemenu = (mset >= 0 AND bat.hero_turn >= 0 AND readbit(gen(), genBits, 13))
+isdeepmenu = (bat.menu_mode > 0 AND readbit(gen(), genBits, 0))
+isbattlemenu = (bat.menu_mode >= 0 AND bat.hero_turn >= 0 AND readbit(gen(), genBits, 13))
 isenemytargs = (targenemycount(bslot(), bstat()) > 0)
 IF (isdeepmenu OR isbattlemenu) AND isenemytargs THEN RETRACE
 
@@ -2227,6 +2227,7 @@ SUB reset_battle_state (BYREF bat AS BattleState)
   .enemy_turn = -1
   .next_hero = 0
   .next_enemy = 0
+  .menu_mode = batMENUHERO
  END WITH
 END SUB
 
@@ -2524,7 +2525,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebit
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
@@ -2547,7 +2548,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   .cur.mute   = .max.mute
  END WITH
  '-- if it is a dead hero's turn, cancel menu
- IF bat.hero_turn = deadguy THEN bat.hero_turn = -1: mset = 0
+ IF bat.hero_turn = deadguy THEN bat.hero_turn = -1: bat.menu_mode = batMENUHERO
  '-- if it is a dead enemy's turn, cancel ai
  IF bat.enemy_turn = deadguy THEN bat.enemy_turn = -1
  IF is_enemy(deadguy) THEN '------PLUNDER AND EXPERIENCE AND ITEMS------

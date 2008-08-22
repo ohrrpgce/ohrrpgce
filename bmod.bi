@@ -19,16 +19,13 @@ TYPE BattleState
  enemy_turn AS INTEGER 'Enemy currently selecting an attack
  next_hero AS INTEGER  'counter that controls which ready hero will get their turn next
  next_enemy AS INTEGER 'counter that controls which ready enemy will get their turn next
+ menu_mode AS INTEGER  'batMENUHERO batMENUSPELL or batMENUITEM
 END TYPE
+CONST batMENUHERO = 0
+CONST batMENUSPELL = 1
+CONST batMENUITEM = 2
 
 'This type controls the visual state of the victory display
-CONST vicGOLDEXP = 1
-CONST vicLEVELUP = 2
-CONST vicSPELLS  = 3
-CONST vicITEMS   = 4
-'negative are non-displaying exit states
-CONST vicEXITDELAY = -1
-CONST vicEXIT    = -2
 TYPE VictoryState
  state AS INTEGER 'vicSTATENAME or 0 for none
  box AS INTEGER   'NO when not displaying a box, YES when displaying a box
@@ -48,6 +45,13 @@ TYPE VictoryState
  levels_up_caption AS STRING
  learned_caption AS STRING
 END TYPE
+CONST vicGOLDEXP = 1
+CONST vicLEVELUP = 2
+CONST vicSPELLS  = 3
+CONST vicITEMS   = 4
+'negative are non-displaying exit states
+CONST vicEXITDELAY = -1
+CONST vicEXIT    = -2
 
 'This type is just used by RewardState
 TYPE RewardsStateItem
