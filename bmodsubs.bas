@@ -32,7 +32,7 @@ DECLARE FUNCTION countitem% (it%)
 #include "const.bi"
 #include "uiconst.bi"
 #include "udts.bi"
-
+#INCLUDE "battle_udts.bi"
 
 DECLARE SUB confirm_auto_spread (who, confirmtarg(), tmask())
 DECLARE SUB confirm_auto_focus (who, confirmtarg(), tmask(), atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)

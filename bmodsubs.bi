@@ -8,6 +8,7 @@
 #DEFINE BMODSUBS_BI
 
 #INCLUDE "udts.bi"
+#INCLUDE "battle_udts.bi"
 
 declare function is_hero(who)
 declare function is_enemy(who)

@@ -139,66 +139,6 @@ TYPE InventSlot
   text as string	'text field which shows up in inventory, blank if empty
 END TYPE
 
-TYPE BattleSprite
-  basex AS INTEGER
-  basey AS INTEGER
-  x AS INTEGER
-  y AS INTEGER
-  z AS INTEGER
-  w AS INTEGER
-  h AS INTEGER
-  d AS INTEGER
-  xmov AS INTEGER
-  ymov AS INTEGER
-  zmov AS INTEGER
-  xspeed AS INTEGER
-  yspeed AS INTEGER
-  zspeed AS INTEGER
-  vis AS INTEGER
-  hero_untargetable AS INTEGER
-  enemy_untargetable AS INTEGER
-  death_unneeded AS INTEGER
-  dissolve AS INTEGER
-  flee AS INTEGER
-  attack_succeeded AS INTEGER
-  sprites as Frame ptr 'the graphic set
-  sprite_num AS INTEGER 'how many frames
-  frame AS INTEGER 'the current frame
-  pal as palette16 ptr 'yeah
-  deathtype AS INTEGER 'for enemies (0 = default, otherwise is type + 1)
-  deathtime AS INTEGER '0 = default, otherwise is time + 1
-  death_sfx AS INTEGER '0 = default, -1 = none, >0 = sfx ID + 1
-  ready AS INTEGER ' YES if the hero or enemy can have a turn, NO if they are not ready yet
-  attack AS INTEGER ' ID number +1 of the attack that this hero or enemy is going to do next
-END TYPE
-
-UNION BattleStatsSingle
-  TYPE
-    hp AS INTEGER   '0
-    mp AS INTEGER   '1
-    str AS INTEGER  '2
-    acc AS INTEGER  '3
-    def AS INTEGER  '4
-    dog AS INTEGER  '5
-    mag AS INTEGER  '6
-    wil AS INTEGER  '7
-    spd AS INTEGER  '8
-    ctr AS INTEGER  '9
-    foc AS INTEGER  '10
-    hits AS INTEGER '11
-    poison AS INTEGER
-    regen AS INTEGER
-    stun AS INTEGER
-    mute AS INTEGER
-  END TYPE
-  sta(15) AS INTEGER
-End UNION
-
-TYPE BattleStats
-  cur AS BattleStatsSingle
-  max AS BattleStatsSingle
-END TYPE
-
 TYPE Timer
   count as integer
   speed as integer

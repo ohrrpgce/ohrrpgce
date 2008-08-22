@@ -22,6 +22,8 @@ DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTE
 #INCLUDE "gglobals.bi"
 #INCLUDE "const.bi"
 #INCLUDE "uiconst.bi"
+#INCLUDE "udts.bi"
+#INCLUDE "battle_udts.bi"
 
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
