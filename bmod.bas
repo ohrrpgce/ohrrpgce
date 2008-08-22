@@ -28,7 +28,7 @@ DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), batname$(), BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_targetting (BYREF bat AS BattleState)
@@ -55,7 +55,7 @@ bstackstart = stackpos
 
 battle = 1
 DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24),  p(24), of(24), ctr(11)
-DIM ready(11), batname$(11), menu$(3, 5), menubits(2), mend(3), itemd$, spel$(23), speld$(23), spel(23), cost$(23), godo(11), delay(11), cycle(24), walk(3), aframe(11, 11)
+DIM batname$(11), menu$(3, 5), menubits(2), mend(3), itemd$, spel$(23), speld$(23), spel(23), cost$(23), godo(11), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), ltarg(11), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
@@ -218,7 +218,7 @@ DO
  bat.next_hero = loopvar(bat.next_hero, 0, 3, 1)
  IF bat.hero_turn = -1 THEN
   '--if it is no heros turn, check to see if anyone is alive and ready
-  IF ready(bat.next_hero) = 1 AND bstat(bat.next_hero).cur.hp > 0 AND dead = 0 THEN
+  IF bslot(bat.next_hero).ready = YES AND bstat(bat.next_hero).cur.hp > 0 AND dead = 0 THEN
    bat.hero_turn = bat.next_hero
    pt = 0
    bat.menu_mode = batMENUHERO
@@ -226,7 +226,7 @@ DO
  END IF
  bat.next_enemy = loopvar(bat.next_enemy, 4, 11, 1)
  IF bat.enemy_turn = -1 THEN
-  IF ready(bat.next_enemy) = 1 AND bstat(bat.next_enemy).cur.hp > 0 AND dead = 0 THEN bat.enemy_turn = bat.next_enemy
+  IF bslot(bat.next_enemy).ready = YES AND bstat(bat.next_enemy).cur.hp > 0 AND dead = 0 THEN bat.enemy_turn = bat.next_enemy
  END IF
  IF vic.state = 0 THEN
   IF bat.enemy_turn >= 0 THEN GOSUB enemyai
@@ -376,7 +376,7 @@ DO
     'inadequate MP was the reason for the failure
     'MP-idiot loses its turn
     IF readbit(ebits(), (bat.enemy_turn - 4) * 5, 55) THEN
-      ready(bat.enemy_turn) = 0
+      bslot(bat.enemy_turn).ready = NO
       ctr(bat.enemy_turn) = 0
       bat.enemy_turn = -1
       RETRACE
@@ -401,7 +401,7 @@ get_valid_targs autotmask(), bat.enemy_turn, atktemp(), bslot(), bstat(), reveng
 autotarget t(), autotmask(), bat.enemy_turn, atktemp(), bslot(), bstat()
 
 'ready for next attack
-ready(bat.enemy_turn) = 0
+bslot(bat.enemy_turn).ready = NO
 ctr(bat.enemy_turn) = 0
 bat.enemy_turn = -1
 
@@ -1403,7 +1403,7 @@ FOR deadguy = 4 TO 11
  END IF
 NEXT
 FOR deadguy = 0 TO 11
- check_death deadguy, 0, bat, rew, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
+ check_death deadguy, 0, bat, rew, bstat(), bslot(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -1548,7 +1548,7 @@ IF ptarg = 3 THEN
  get_valid_targs autotmask(), bat.hero_turn, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
  autotarget t(), autotmask(), bat.hero_turn, buffer(), bslot(), bstat()
  ctr(bat.hero_turn) = 0
- ready(bat.hero_turn) = 0
+ bslot(bat.hero_turn).ready = NO
  bat.hero_turn = -1
  ptarg = 0
  RETRACE
@@ -1610,7 +1610,7 @@ FOR i = 0 TO 11
  END IF
 NEXT i
 ctr(bat.hero_turn) = 0
-ready(bat.hero_turn) = 0
+bslot(bat.hero_turn).ready = NO
 bat.hero_turn = -1
 ptarg = 0
 bat.targ.hit_dead = NO
@@ -1622,7 +1622,7 @@ IF vic.state = 0 THEN 'only display interface till you win
   IF hero(i) > 0 THEN
    IF readbit(gen(), 101, 6) = 0 THEN
     '--speed meter--
-    col = uilook(uiTimeBar): IF ready(i) = 1 THEN col = uilook(uiTimeBarFull)
+    col = uilook(uiTimeBar): IF bslot(i).ready = YES THEN col = uilook(uiTimeBarFull)
     centerfuz 66, 9 + i * 10, 131, 10, 1, dpage
     IF bstat(i).cur.hp > 0 THEN
      j = ctr(i) / 7.7
@@ -1787,10 +1787,10 @@ FOR i = 0 TO 11
  END WITH
 
  '--if not doing anything, not dying, not ready, and not stunned
- IF godo(i) = 0 AND bslot(i).dissolve = 0 AND ready(i) = 0 AND bstat(i).cur.stun = bstat(i).max.stun THEN
+ IF godo(i) = 0 AND bslot(i).dissolve = 0 AND bslot(i).ready = NO AND bstat(i).cur.stun = bstat(i).max.stun THEN
   '--increment ctr by speed
   ctr(i) = small(1000, ctr(i) + bstat(i).cur.spd)
-  IF ctr(i) = 1000 AND wf = 0 THEN ready(i) = 1
+  IF ctr(i) = 1000 AND wf = 0 THEN bslot(i).ready = YES
  END IF
 
 NEXT i
@@ -1802,7 +1802,7 @@ IF TIMER > laststun + 1 THEN
   bstat(i).cur.mute = small(bstat(i).cur.mute + 1, bstat(i).max.mute)
   bstat(i).cur.stun = small(bstat(i).cur.stun + 1, bstat(i).max.stun)
   IF bstat(i).cur.stun < bstat(i).max.stun THEN
-   ready(i) = 0
+   bslot(i).ready = NO
    IF bat.hero_turn = i THEN bat.hero_turn = -1
    IF bat.enemy_turn = i THEN bat.enemy_turn = -1
   END IF
@@ -1969,7 +1969,7 @@ IF flee > 4 THEN
   IF bstat(i).cur.hp THEN bslot(i).d = 1
   walk(i) = 1
   godo(i) = 0
-  ready(i) = 0
+  bslot(i).ready = NO
   ctr(i) = large(0, ctr(i) - bstat(i).cur.spd * 2)
  NEXT i
  IF carray(6) = 0 THEN flee = 0: FOR i = 0 TO 3: bslot(i).d = 0: walk(i) = 0: NEXT i
@@ -1977,7 +1977,7 @@ IF flee > 4 THEN
  FOR i = 4 TO 11
   temp = temp + bstat(i).cur.spd
  NEXT i
- IF RND * temp < flee THEN away = 1: flee = 2: FOR i = 0 TO 3: ctr(i) = 0: ready(i) = 0: NEXT i
+ IF RND * temp < flee THEN away = 1: flee = 2: FOR i = 0 TO 3: ctr(i) = 0: bslot(i).ready = NO: NEXT i
 END IF
 RETRACE
 
@@ -2537,7 +2537,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebit
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
@@ -2549,7 +2549,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
  'Death animation is not done yet here, so be cautios about what gets cleand up here.
  'Full cleanup of bslot() records belongs in loadfoe
  bslot(deadguy).vis = 0
- ready(deadguy) = 0
+ bslot(deadguy).ready = NO
  godo(deadguy) = 0
  bslot(deadguy).d = 0
  '--reset poison/regen/stun/mute
