@@ -31,8 +31,9 @@ DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSpri
 DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER,BYVAL who AS INTEGER, BYREF you AS INTEGER, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_victory_state (BYREF vic AS VictoryState)
-DECLARE SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, exstat() AS INTEGER, batname() AS STRING)
 DECLARE SUB reset_rewards_state (BYREF rew AS RewardsState)
+DECLARE SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, exstat() AS INTEGER, batname() AS STRING)
+DECLARE SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bstat() As BattleStats, exstat() AS INTEGER)
 
 'these are the battle global variables
 DIM as string battlecaption
@@ -237,7 +238,7 @@ DO
  IF vic.state > 0 THEN show_victory vic, rew, exstat(), batname$()
  IF vis = 1 THEN GOSUB seestuff
  IF dead = 1 AND vic.state = 0 THEN
-  IF count_dissolving_enemies(bslot()) = 0 THEN GOSUB victory
+  IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory vic, rew, bstat(), exstat()
  END IF
  IF vic.state = vicEXIT THEN EXIT DO 'normal victory exit
  IF dead = 2 THEN
@@ -2089,30 +2090,28 @@ NEXT i
 GOSUB fulldeathcheck
 RETRACE
 
-victory: '------------------------------------------------------------------
-IF gen(3) > 0 THEN fademusic fmvol: wrappedsong gen(3) - 1
-gold = gold + rew.plunder
-IF gold > 1000000000 THEN gold = 1000000000
-IF liveherocount(bstat()) > 0 THEN rew.exper = rew.exper / liveherocount(bstat())
-FOR i = 0 TO 3
- IF bstat(i).cur.hp > 0 THEN giveheroexperience i, exstat(), rew.exper
- updatestatslevelup i, exstat(), bstat(), 0
-NEXT i
-vic.state = vicGOLDEXP
-RETRACE
-
-'afflictions
-'12=poison
-'13=regen
-'14=stun
-'15=limit (?)
-'16=unused
-'17=unused
-
 END FUNCTION
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
+
+SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bstat() As BattleStats, exstat() AS INTEGER)
+ DIM i AS INTEGER
+ '--Play the victory music
+ IF gen(genVictMus) > 0 THEN fademusic fmvol: wrappedsong gen(genVictMus) - 1
+ '--Collect gold (and cap out at 1 billion max)
+ gold = gold + rew.plunder
+ IF gold > 1000000000 THEN gold = 1000000000
+ '--Divide experience by heroes
+ IF liveherocount(bstat()) > 0 THEN rew.exper = rew.exper / liveherocount(bstat())
+ '--Collect experience and apply levelups
+ FOR i = 0 TO 3
+  IF bstat(i).cur.hp > 0 THEN giveheroexperience i, exstat(), rew.exper
+  updatestatslevelup i, exstat(), bstat(), 0
+ NEXT i
+ '--Trigger the display of end-of-battle rewards
+ vic.state = vicGOLDEXP
+END SUB
 
 SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, exstat() AS INTEGER, batname() AS STRING)
 DIM tempstr AS STRING
