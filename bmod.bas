@@ -28,7 +28,7 @@ DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), batname$(), BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_victory_state (BYREF vic AS VictoryState)
@@ -94,7 +94,7 @@ alert = 0
 alert$ = ""
 
 fadeout 240, 240, 240
-vpage = 0: dpage = 1: needf = 1: anim = -1: them = -1: fiptr = 0
+vpage = 0: dpage = 1: needf = 1: anim = -1: fiptr = 0
 reset_battle_state bat
 reset_victory_state vic
 reset_rewards_state rew
@@ -223,11 +223,11 @@ DO
   END IF
  END IF
  en = loopvar(en, 4, 11, 1)
- IF them = -1 THEN
-  IF ready(en) = 1 AND bstat(en).cur.hp > 0 AND dead = 0 THEN them = en
+ IF bat.enemy_turn = -1 THEN
+  IF ready(en) = 1 AND bstat(en).cur.hp > 0 AND dead = 0 THEN bat.enemy_turn = en
  END IF
  IF vic.state = 0 THEN
-  IF them >= 0 THEN GOSUB enemyai
+  IF bat.enemy_turn >= 0 THEN GOSUB enemyai
   IF bat.hero_turn >= 0 AND ptarg = 0 THEN
    IF mset = 2 THEN GOSUB itemmenu
    IF mset = 1 THEN GOSUB spellmenu
@@ -328,17 +328,17 @@ enemyai: '-------------------------------------------------------------------
 ai = 0
 
 'if HP is less than 20% go into desperation mode
-IF bstat(them).cur.hp < bstat(them).max.hp / 5 THEN ai = 1
+IF bstat(bat.enemy_turn).cur.hp < bstat(bat.enemy_turn).max.hp / 5 THEN ai = 1
 
 'if targetable enemy count is 1, go into alone mode
 IF targenemycount(bslot(), bstat()) = 1 THEN ai = 2
 
 'spawn allys when alone
-IF ai = 2 AND es(them - 4, 81) THEN
- FOR j = 1 TO es(them - 4, 91)
+IF ai = 2 AND es(bat.enemy_turn - 4, 81) THEN
+ FOR j = 1 TO es(bat.enemy_turn - 4, 91)
   slot = find_empty_enemy_slot(formdata())
   IF slot > -1 THEN
-   formdata(slot * 4) = es(them - 4, 81)
+   formdata(slot * 4) = es(bat.enemy_turn - 4, 81)
    loadfoe slot, formdata(), es(), bslot(), p(), bits(), bstat(), ebits(), batname$(), rew
   END IF
  NEXT j
@@ -346,37 +346,37 @@ END IF
 
 'make sure that the current ai set is valid
 'otherwise fall back on another
-IF countai(ai, them, es()) = 0 THEN
+IF countai(ai, bat.enemy_turn, es()) = 0 THEN
  ai = 0
- IF bstat(them).cur.hp < bstat(them).max.hp / 5 THEN
+ IF bstat(bat.enemy_turn).cur.hp < bstat(bat.enemy_turn).max.hp / 5 THEN
   ai = 1
-  IF countai(ai, them, es()) = 0 THEN ai = 0
+  IF countai(ai, bat.enemy_turn, es()) = 0 THEN ai = 0
  END IF
 END IF
 
 'if no valid ai set is available, the enemy loses its turn
-IF countai(ai, them, es()) = 0 THEN them = -1: RETRACE
+IF countai(ai, bat.enemy_turn, es()) = 0 THEN bat.enemy_turn = -1: RETRACE
 
 'pick a random attack
 lim = 0
 DO
- godo(them) = es(them - 4, 92 + (ai * 5) + INT(RND * 5))
- IF godo(them) > 0 THEN
+ godo(bat.enemy_turn) = es(bat.enemy_turn - 4, 92 + (ai * 5) + INT(RND * 5))
+ IF godo(bat.enemy_turn) > 0 THEN
   'load the data for this attack
-  loadattackdata atktemp(), godo(them) - 1
-  IF atkallowed(atktemp(), them, 0, 0, bstat()) THEN
+  loadattackdata atktemp(), godo(bat.enemy_turn) - 1
+  IF atkallowed(atktemp(), bat.enemy_turn, 0, 0, bstat()) THEN
    'this attack is good, continue on to target selection
    EXIT DO
   ELSE
    'this attack is unusable
-   godo(them) = 0
-   IF bstat(them).cur.mp - atktemp(8) < 0 THEN
+   godo(bat.enemy_turn) = 0
+   IF bstat(bat.enemy_turn).cur.mp - atktemp(8) < 0 THEN
     'inadequate MP was the reason for the failure
     'MP-idiot loses its turn
-    IF readbit(ebits(), (them - 4) * 5, 55) THEN
-      ready(them) = 0
-      ctr(them) = 0
-      them = -1
+    IF readbit(ebits(), (bat.enemy_turn - 4) * 5, 55) THEN
+      ready(bat.enemy_turn) = 0
+      ctr(bat.enemy_turn) = 0
+      bat.enemy_turn = -1
       RETRACE
     END IF
    END IF
@@ -387,21 +387,21 @@ DO
  lim = lim + 1
  IF lim > 99 THEN
   'give up eventually
-  them = -1
+  bat.enemy_turn = -1
   RETRACE
  END IF
 LOOP
 
 'get the delay to wait for this attack
-delay(them) = atktemp(16)
+delay(bat.enemy_turn) = atktemp(16)
 
-get_valid_targs autotmask(), them, atktemp(), bslot(), bstat(), revenge(), revengemask(), targmem()
-autotarget t(), autotmask(), them, atktemp(), bslot(), bstat()
+get_valid_targs autotmask(), bat.enemy_turn, atktemp(), bslot(), bstat(), revenge(), revengemask(), targmem()
+autotarget t(), autotmask(), bat.enemy_turn, atktemp(), bslot(), bstat()
 
 'ready for next attack
-ready(them) = 0
-ctr(them) = 0
-them = -1
+ready(bat.enemy_turn) = 0
+ctr(bat.enemy_turn) = 0
+bat.enemy_turn = -1
 
 RETRACE
 
@@ -1398,7 +1398,7 @@ FOR deadguy = 4 TO 11
  END IF
 NEXT
 FOR deadguy = 0 TO 11
- check_death deadguy, 0, bat, them, mset, noifdead, rew, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
+ check_death deadguy, 0, bat, mset, noifdead, rew, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -1799,7 +1799,7 @@ IF TIMER > laststun + 1 THEN
   IF bstat(i).cur.stun < bstat(i).max.stun THEN
    ready(i) = 0
    IF bat.hero_turn = i THEN bat.hero_turn = -1
-   IF them = i THEN them = -1
+   IF bat.enemy_turn = i THEN bat.enemy_turn = -1
   END IF
  NEXT i
  laststun = TIMER
@@ -2224,6 +2224,7 @@ SUB reset_battle_state (BYREF bat AS BattleState)
  WITH bat
   .acting = 0
   .hero_turn = -1
+  .enemy_turn = -1
  END WITH
 END SUB
 
@@ -2521,7 +2522,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebit
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
@@ -2546,7 +2547,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
  '-- if it is a dead hero's turn, cancel menu
  IF bat.hero_turn = deadguy THEN bat.hero_turn = -1: mset = 0
  '-- if it is a dead enemy's turn, cancel ai
- IF them = deadguy THEN them = -1
+ IF bat.enemy_turn = deadguy THEN bat.enemy_turn = -1
  IF is_enemy(deadguy) THEN '------PLUNDER AND EXPERIENCE AND ITEMS------
   IF bslot(deadguy).death_sfx = 0 THEN
    IF gen(genDefaultDeathSFX) > 0 THEN
