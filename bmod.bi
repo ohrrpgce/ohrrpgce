@@ -11,6 +11,12 @@
 
 '--local const and types only used in this module
 
+'This type controls the state of the battle engine, for example,
+'who's turn it is, what each character is doing, and targetting information
+TYPE BattleState
+ acting AS INTEGER  'The hero or enemy who is currently taking their turn to act
+END TYPE
+
 'This type controls the visual state of the victory display
 CONST vicGOLDEXP = 1
 CONST vicLEVELUP = 2
@@ -38,7 +44,6 @@ TYPE VictoryState
  levels_up_caption AS STRING
  learned_caption AS STRING
 END TYPE
-
 
 'This type is just used by RewardState
 TYPE RewardsStateItem
