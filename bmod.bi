@@ -17,6 +17,8 @@ TYPE BattleState
  acting AS INTEGER     'Hero or enemy who is currently taking their turn to act
  hero_turn AS INTEGER  'Hero currently selecting an attack
  enemy_turn AS INTEGER 'Enemy currently selecting an attack
+ next_hero AS INTEGER  'counter that controls which ready hero will get their turn next
+ next_enemy AS INTEGER 'counter that controls which ready enemy will get their turn next
 END TYPE
 
 'This type controls the visual state of the victory display

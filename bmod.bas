@@ -213,18 +213,18 @@ DO
    godo(na) = 0
   END IF
  END IF
- yn = loopvar(yn, 0, 3, 1)
+ bat.next_hero = loopvar(bat.next_hero, 0, 3, 1)
  IF bat.hero_turn = -1 THEN
   '--if it is no heros turn, check to see if anyone is alive and ready
-  IF ready(yn) = 1 AND bstat(yn).cur.hp > 0 AND dead = 0 THEN
-   bat.hero_turn = yn
+  IF ready(bat.next_hero) = 1 AND bstat(bat.next_hero).cur.hp > 0 AND dead = 0 THEN
+   bat.hero_turn = bat.next_hero
    pt = 0
    mset = 0
   END IF
  END IF
- en = loopvar(en, 4, 11, 1)
+ bat.next_enemy = loopvar(bat.next_enemy, 4, 11, 1)
  IF bat.enemy_turn = -1 THEN
-  IF ready(en) = 1 AND bstat(en).cur.hp > 0 AND dead = 0 THEN bat.enemy_turn = en
+  IF ready(bat.next_enemy) = 1 AND bstat(bat.next_enemy).cur.hp > 0 AND dead = 0 THEN bat.enemy_turn = bat.next_enemy
  END IF
  IF vic.state = 0 THEN
   IF bat.enemy_turn >= 0 THEN GOSUB enemyai
@@ -423,7 +423,7 @@ FOR i = 0 TO 5
   'END IF
  END IF
 NEXT i
-IF carray(5) > 1 THEN yn = bat.hero_turn: bat.hero_turn = -1: RETRACE
+IF carray(5) > 1 THEN bat.next_hero = bat.hero_turn: bat.hero_turn = -1: RETRACE
 IF carray(0) > 1 THEN pt = pt - 1: IF pt < 0 THEN pt = mend(bat.hero_turn)
 IF carray(1) > 1 THEN pt = pt + 1: IF pt > mend(bat.hero_turn) THEN pt = 0
 IF carray(4) > 1 THEN
@@ -2225,6 +2225,8 @@ SUB reset_battle_state (BYREF bat AS BattleState)
   .acting = 0
   .hero_turn = -1
   .enemy_turn = -1
+  .next_hero = 0
+  .next_enemy = 0
  END WITH
 END SUB
 
