@@ -699,7 +699,7 @@ NEXT o
 liveherocount = i
 END FUNCTION
 
-SUB loadfoe (i, formdata(), es(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), batname$(), BYREF rew AS RewardsState, allow_dead = NO)
+SUB loadfoe (i, formdata(), es(), BYREF bat AS BattleState, bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), batname$(), BYREF rew AS RewardsState, allow_dead = NO)
 IF formdata(i * 4) > 0 THEN
  loadenemydata buffer(), formdata(i * 4) - 1, -1
  FOR o = 0 TO 160
@@ -715,7 +715,7 @@ IF formdata(i * 4) > 0 THEN
    'rewards and spawn enemies on death
    'enemy is only partially constructed, but already have everything needed.
    DIM atktype(8) 'regular "spawn on death"
-   dead_enemy 4 + i, rew, bstat(), bslot(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$()
+   dead_enemy 4 + i, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits(), ebits(), batname$()
    EXIT SUB
   END IF
  END IF

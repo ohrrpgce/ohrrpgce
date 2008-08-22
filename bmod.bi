@@ -11,6 +11,13 @@
 
 '--local const and types only used in this module
 
+'This type stores the state of the currently animating attack
+TYPE AttackState
+ '--Elementals are stored in AttackState just for the benefit of elemental spawning
+ non_elemental AS INTEGER 'YES or NO
+ elemental(7) AS INTEGER  'YES or NO for each element
+END TYPE
+
 'This type stores the state of target selection.
 TYPE TargettingState
  hit_dead AS INTEGER 'YES if this is a "Life" spell, or NO for all other attacks
@@ -26,6 +33,7 @@ TYPE BattleState
  next_enemy AS INTEGER 'counter that controls which ready enemy will get their turn next
  menu_mode AS INTEGER  'batMENUHERO batMENUSPELL or batMENUITEM
  targ AS TargettingState
+ atk AS AttackState
 END TYPE
 CONST batMENUHERO = 0
 CONST batMENUSPELL = 1
@@ -99,5 +107,5 @@ DECLARE SUB anim_align2(who, target, edgex, edgey, offx, offy)
 DECLARE SUB anim_relmove(who, tox, toy, xspeed, yspeed)
 DECLARE SUB anim_setdir(who, d)
 DECLARE FUNCTION dieWOboss(BYVAL who, bstat() AS BattleStats, ebits())
-DECLARE SUB dead_enemy(deadguy AS INTEGER, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), atktype(), formdata(), p(), bits(), ebits(), batname$())
+DECLARE SUB dead_enemy(deadguy AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), batname$())
 #ENDIF
