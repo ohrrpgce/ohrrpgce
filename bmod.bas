@@ -23,45 +23,16 @@ DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTE
 #INCLUDE "const.bi"
 #INCLUDE "uiconst.bi"
 
-'--local const and types only used in this module
-
-'This type controls the visual state of the victory display
-CONST vicGOLDEXP = 1
-CONST vicLEVELUP = 2
-CONST vicSPELLS  = 3
-CONST vicITEMS   = 4
-'negative are non-displaying exit states
-CONST vicEXITDELAY = -1
-CONST vicEXIT    = -2
-TYPE VictoryState
- state AS INTEGER 'vicSTATENAME or 0 for none
- box AS INTEGER   'NO when not displaying a box, YES when displaying a box
- showlearn AS INTEGER 'NO when not showing spell learning, YES when already showing a learned spell
- learnwho AS INTEGER 'battle slot of hero currently displaying learned spells
- learnlist AS INTEGER 'spell list of hero currently displaying learned spells
- learnslot AS INTEGER 'spell list slot of hero currently displaying learned spells
- item_name AS STRING 'name of currently displaying found item or "" for none
- found_index AS INTEGER 'index into the found() array that lists items found in this battle
- gold_caption AS STRING
- exp_caption AS STRING
- item_caption AS STRING
- plural_item_caption AS STRING
- gold_name AS STRING
- exp_name AS STRING
- level_up_caption AS STRING
- levels_up_caption AS STRING
- learned_caption AS STRING
-END TYPE
-
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
-DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), batname$(), BYREF plunder AS INTEGER, BYREF exper AS INTEGER, found())
+DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), batname$(), BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER,BYVAL who AS INTEGER, BYREF you AS INTEGER, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF plunder AS INTEGER, BYREF exper AS INTEGER, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), found(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER,BYVAL who AS INTEGER, BYREF you AS INTEGER, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_victory_state (BYREF vic AS VictoryState)
-DECLARE SUB show_victory (BYREF vic AS VictoryState, plunder AS INTEGER, exper AS INTEGER, exstat() AS INTEGER, batname() AS STRING, found() AS INTEGER)
+DECLARE SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, exstat() AS INTEGER, batname() AS STRING)
+DECLARE SUB reset_rewards_state (BYREF rew AS RewardsState)
 
 'these are the battle global variables
 DIM as string battlecaption
@@ -82,7 +53,7 @@ bstackstart = stackpos
 battle = 1
 DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24),  p(24), of(24), ctr(11)
 DIM ready(11), batname$(11), menu$(3, 5), menubits(2), mend(3), itemd$, spel$(23), speld$(23), spel(23), cost$(23), godo(11), delay(11), cycle(24), walk(3), aframe(11, 11)
-DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), ltarg(11), found(16, 1), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
+DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), atktype(8), iuse(15), icons(11), ebits(40), ltarg(11), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
 ), targmem(23), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
 DIM bslot(24) AS BattleSprite
@@ -93,7 +64,7 @@ DIM dead, mapsong
 DIM spellcount AS INTEGER '--only used in heromenu GOSUB block
 DIM listslot AS INTEGER
 DIM nmenu(3,5) as integer 'new battle menu
-DIM plunder = 0
+DIM rew AS RewardsState
 
 DIM autotmask(11) ' A list of true/false values indicating
               ' which targets are valid for the currently targetting attack
@@ -122,6 +93,7 @@ alert$ = ""
 fadeout 240, 240, 240
 vpage = 0: dpage = 1: needf = 1: anim = -1: you = -1: them = -1: fiptr = 0
 reset_victory_state vic
+reset_rewards_state rew
 aset = 0: wf = 0: noifdead = 0
 
 ptarg = 0 ' ptarg=0 means hero not currently picking a target
@@ -193,7 +165,7 @@ DO
  IF readbit(gen(), 101, 8) = 0 THEN
   '--debug keys
   IF keyval(62) > 1 THEN away = 11 ' Instant-cheater-running
-  IF keyval(63) > 1 THEN exper = 1000000  'Million experience!
+  IF keyval(63) > 1 THEN rew.exper = 1000000  'Million experience!
   IF keyval(87) > 1 THEN vis = vis XOR 1  'Draw debug info
   IF keyval(41) > 1 THEN battle_draw_style = (battle_draw_style + 1) mod 2 'Switch between old and new sprite code
  END IF
@@ -262,7 +234,7 @@ DO
  GOSUB sprite
  GOSUB display
  IF vic.state = vicEXITDELAY THEN vic.state = vicEXIT
- IF vic.state > 0 THEN show_victory vic, plunder, exper, exstat(), batname$(), found()
+ IF vic.state > 0 THEN show_victory vic, rew, exstat(), batname$()
  IF vis = 1 THEN GOSUB seestuff
  IF dead = 1 AND vic.state = 0 THEN
   IF count_dissolving_enemies(bslot()) = 0 THEN GOSUB victory
@@ -363,7 +335,7 @@ IF ai = 2 AND es(them - 4, 81) THEN
   slot = find_empty_enemy_slot(formdata())
   IF slot > -1 THEN
    formdata(slot * 4) = es(them - 4, 81)
-   loadfoe slot, formdata(), es(), bslot(), p(), bits(), bstat(), ebits(), batname$(), plunder, exper, found()
+   loadfoe slot, formdata(), es(), bslot(), p(), bits(), bstat(), ebits(), batname$(), rew
   END IF
  NEXT j
 END IF
@@ -1422,7 +1394,7 @@ FOR deadguy = 4 TO 11
  END IF
 NEXT
 FOR deadguy = 0 TO 11
- check_death deadguy, 0, who, you, them, mset, noifdead, plunder, exper, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), found(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
+ check_death deadguy, 0, who, you, them, mset, noifdead, rew, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -1443,7 +1415,7 @@ FOR i = 0 TO 8
    slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(targ - 4, 82 + i)
-    loadfoe slot, formdata(), es(), bslot(), p(), bits(), bstat(), ebits(), batname$(), plunder, exper, found()
+    loadfoe slot, formdata(), es(), bslot(), p(), bits(), bstat(), ebits(), batname$(), rew
    END IF
   NEXT j
   EXIT FOR
@@ -2081,7 +2053,7 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 FOR i = 0 TO 7
- loadfoe i, formdata(), es(), bslot(), p(), bits(), bstat(), ebits(), batname$(), plunder, exper, found(), YES
+ loadfoe i, formdata(), es(), bslot(), p(), bits(), bstat(), ebits(), batname$(), rew, YES
 NEXT i
 FOR i = 0 TO 11
  ctr(i) = INT(RND * 500)
@@ -2119,11 +2091,11 @@ RETRACE
 
 victory: '------------------------------------------------------------------
 IF gen(3) > 0 THEN fademusic fmvol: wrappedsong gen(3) - 1
-gold = gold + plunder
+gold = gold + rew.plunder
 IF gold > 1000000000 THEN gold = 1000000000
-IF liveherocount(bstat()) > 0 THEN exper = exper / liveherocount(bstat())
+IF liveherocount(bstat()) > 0 THEN rew.exper = rew.exper / liveherocount(bstat())
 FOR i = 0 TO 3
- IF bstat(i).cur.hp > 0 THEN giveheroexperience i, exstat(), exper
+ IF bstat(i).cur.hp > 0 THEN giveheroexperience i, exstat(), rew.exper
  updatestatslevelup i, exstat(), bstat(), 0
 NEXT i
 vic.state = vicGOLDEXP
@@ -2142,23 +2114,23 @@ END FUNCTION
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
 
-SUB show_victory (BYREF vic AS VictoryState, plunder AS INTEGER, exper AS INTEGER, exstat() AS INTEGER, batname() AS STRING, found() AS INTEGER)
+SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, exstat() AS INTEGER, batname() AS STRING)
 DIM tempstr AS STRING
 DIM AS INTEGER i, o
 IF vic.box THEN centerfuz 160, 30, 280, 50, 1, dpage
 SELECT CASE vic.state
  CASE vicGOLDEXP
   '--print acquired gold and experience
-  IF plunder > 0 OR exper > 0 THEN vic.box = YES: centerfuz 160, 30, 280, 50, 1, dpage
-  IF plunder > 0 THEN
-   tempstr = vic.gold_caption & " " & plunder & " " & vic.gold_name & "!"
+  IF rew.plunder > 0 OR rew.exper > 0 THEN vic.box = YES: centerfuz 160, 30, 280, 50, 1, dpage
+  IF rew.plunder > 0 THEN
+   tempstr = vic.gold_caption & " " & rew.plunder & " " & vic.gold_name & "!"
    edgeprint tempstr, xstring(tempstr, 160), 16, uilook(uiText), dpage
   END IF
-  IF exper > 0 THEN
-   tempstr = vic.exp_caption & " " & exper & " " & vic.exp_name & "!"
+  IF rew.exper > 0 THEN
+   tempstr = vic.exp_caption & " " & rew.exper & " " & vic.exp_name & "!"
    edgeprint tempstr, xstring(tempstr, 160), 28, uilook(uiText), dpage
   END IF
-  IF carray(4) > 1 OR carray(5) > 1 OR (plunder = 0 AND exper = 0) THEN
+  IF carray(4) > 1 OR carray(5) > 1 OR (rew.plunder = 0 AND rew.exper = 0) THEN
    vic.state = vicLEVELUP
   END IF
  CASE vicLEVELUP
@@ -2218,23 +2190,23 @@ SELECT CASE vic.state
   '--check to see if we are currently displaying a gotten item
   IF vic.item_name = "" THEN
    '--if not, check to see if there are any more gotten items to display
-   IF found(vic.found_index, 1) = 0 THEN vic.state = -1: EXIT SUB
+   IF rew.found(vic.found_index).num = 0 THEN vic.state = vicEXITDELAY: EXIT SUB
    '--get the item name
-   vic.item_name = readitemname$(found(vic.found_index, 0))
+   vic.item_name = readitemname$(rew.found(vic.found_index).id)
    '--actually aquire the item
-   getitem found(vic.found_index, 0) + 1, found(vic.found_index, 1)
+   getitem rew.found(vic.found_index).id + 1, rew.found(vic.found_index).num
   END IF
   '--if the present item is gotten, show the caption
-  IF found(vic.found_index, 1) = 1 THEN
+  IF rew.found(vic.found_index).num = 1 THEN
    tempstr = vic.item_caption & " " & vic.item_name
   ELSE
-   tempstr = vic.plural_item_caption & " " & found(vic.found_index, 1) & " " & vic.item_name
+   tempstr = vic.plural_item_caption & " " & rew.found(vic.found_index).num & " " & vic.item_name
   END IF
   IF LEN(tempstr) THEN centerfuz 160, 30, 280, 50, 1, dpage
   edgeprint tempstr, xstring(tempstr, 160), 22, uilook(uiText), dpage
   '--check for a keypress
   IF carray(4) > 1 OR carray(5) > 1 THEN
-   IF found(vic.found_index, 1) = 0 THEN
+   IF rew.found(vic.found_index).num = 0 THEN
     '--if there are no further items, exit
     vic.state = -1
    ELSE
@@ -2245,7 +2217,21 @@ SELECT CASE vic.state
 END SELECT
 END SUB
 
+SUB reset_rewards_state (BYREF rew AS RewardsState)
+ 'This could become a constructor for RewardsState when we support the -lang fb dialect
+ DIM i AS INTEGER
+ WITH rew
+  .plunder = 0
+  .exper = 0
+  FOR i = 0 TO UBOUND(.found)
+   .found(i).id = 0
+   .found(i).num = 0
+  NEXT i
+ END WITH
+END SUB
+
 SUB reset_victory_state (BYREF vic AS VictoryState)
+ 'This could become a constructor for VictoryState when we support the -lang fb dialect
  WITH vic
   .state = 0
   .box = NO
@@ -2446,7 +2432,7 @@ FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
  RETURN count
 END FUNCTION
 
-SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), batname$(), BYREF plunder AS INTEGER, BYREF exper AS INTEGER, found())
+SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), batname$(), BYREF rew AS RewardsState)
 'atktype() is an old hack for elemental checking. It will be replaced with killing_attack eventually
  'killing_attack is the id+1 of the attack that killed the target or 0 if the target died without a specific attack
  IF NOT is_enemy(deadguy) THEN EXIT SUB ' Only works for enemies
@@ -2457,7 +2443,7 @@ SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, es(), atktype(
    slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 80)
-    loadfoe(slot, formdata(), es(), bslot(), p(), bits(), bstat(), ebits(), batname$(), plunder, exper, found())
+    loadfoe(slot, formdata(), es(), bslot(), p(), bits(), bstat(), ebits(), batname$(), rew)
    END IF
   NEXT i
   es(deadguy - 4, 80) = 0
@@ -2467,7 +2453,7 @@ SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, es(), atktype(
    slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 79)
-    loadfoe(slot, formdata(), es(), bslot(), p(), bits(), bstat(), ebits(), batname$(), plunder, exper, found())
+    loadfoe(slot, formdata(), es(), bslot(), p(), bits(), bstat(), ebits(), batname$(), rew)
    END IF
   NEXT i
   es(deadguy - 4, 79) = 0
@@ -2525,7 +2511,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebit
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER,BYVAL who AS INTEGER, BYREF you AS INTEGER, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF plunder AS INTEGER, BYREF exper AS INTEGER, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), found(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER,BYVAL who AS INTEGER, BYREF you AS INTEGER, BYREF them AS INTEGER, BYREF mset AS INTEGER, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
@@ -2559,7 +2545,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER,BYVAL who AS
   ELSEIF bslot(deadguy).death_sfx > 0 THEN
    playsfx bslot(deadguy).death_sfx - 1
   END IF
-  dead_enemy deadguy, plunder, exper, bstat(), bslot(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), found()
+  dead_enemy deadguy, rew, bstat(), bslot(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$()
  END IF'------------END PLUNDER-------------------
  IF noifdead = 0 THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
   tcount = tcount - 1
@@ -2588,27 +2574,27 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER,BYVAL who AS
  END IF  '----END ONLY WHEN NOIFDEAD = 0
 END SUB
 
-SUB dead_enemy(deadguy AS INTEGER, BYREF plunder AS INTEGER, BYREF exper AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), found())
+SUB dead_enemy(deadguy AS INTEGER, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), atktype(), formdata(), p(), bits(), ebits(), batname$())
  '--give rewards, spawn enemies, clear formdata slot, but NO other cleanup!
  DIM AS INTEGER j
  DIM enemynum AS INTEGER = deadguy - 4
  '--spawn enemies before freeing the formdata slot to avoid infinite loops. however this might need to be changed to fix morphing enemies?
- spawn_on_death deadguy, 0, es(), atktype(), formdata(), bslot(), p(), bits(), bstat(), ebits(), batname$(), plunder, exper, found()
+ spawn_on_death deadguy, 0, es(), atktype(), formdata(), bslot(), p(), bits(), bstat(), ebits(), batname$(), rew
  IF formdata(enemynum * 4) > 0 THEN
-  plunder = plunder + es(enemynum, 56)
-  IF plunder > 1000000000 THEN plunder = 1000000000
-  exper = exper + es(enemynum, 57)
-  IF exper > 1000000 THEN exper = 1000000
+  rew.plunder = rew.plunder + es(enemynum, 56)
+  IF rew.plunder > 1000000000 THEN rew.plunder = 1000000000
+  rew.exper = rew.exper + es(enemynum, 57)
+  IF rew.exper > 1000000 THEN rew.exper = 1000000
   IF INT(RND * 100) < es(enemynum, 59) THEN '---GET ITEMS FROM FOES-----
    FOR j = 0 TO 16
-    IF found(j, 1) = 0 THEN found(j, 0) = es(enemynum, 58): found(j, 1) = 1: EXIT FOR
-    IF found(j, 0) = es(enemynum, 58) THEN found(j, 1) = found(j, 1) + 1: EXIT FOR
+    IF rew.found(j).num = 0 THEN rew.found(j).id = es(enemynum, 58): rew.found(j).num = 1: EXIT FOR
+    IF rew.found(j).id = es(enemynum, 58) THEN rew.found(j).num = rew.found(j).num + 1: EXIT FOR
    NEXT j
   ELSE '------END NORMAL ITEM---------------
    IF INT(RND * 100) < es(enemynum, 61) THEN
     FOR j = 0 TO 16
-     IF found(j, 1) = 0 THEN found(j, 0) = es(enemynum, 60): found(j, 1) = 1: EXIT FOR
-     IF found(j, 0) = es(enemynum, 60) THEN found(j, 1) = found(j, 1) + 1: EXIT FOR
+     IF rew.found(j).num = 0 THEN rew.found(j).id = es(enemynum, 60): rew.found(j).num = 1: EXIT FOR
+     IF rew.found(j).id = es(enemynum, 60) THEN rew.found(j).num = rew.found(j).num + 1: EXIT FOR
     NEXT j
    END IF '---END RARE ITEM-------------
   END IF '----END GET ITEMS----------------
