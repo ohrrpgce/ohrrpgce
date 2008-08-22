@@ -1220,13 +1220,13 @@ FUNCTION attack_can_hit_dead(who, atkbuf())
 
 SELECT CASE atkbuf(3)
  CASE 4 'ally-including-dead (hero only)
-  IF is_hero(who) THEN RETURN 1
+  IF is_hero(who) THEN RETURN YES
  CASE 10 'dead-ally (hero only)
-  IF is_hero(who) THEN RETURN 1
+  IF is_hero(who) THEN RETURN YES
 END SELECT
 
-RETURN 0
-END FUNCTION'noifdead
+RETURN NO
+END FUNCTION
 
 SUB autotarget (confirmtarg(), tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
 

@@ -11,6 +11,11 @@
 
 '--local const and types only used in this module
 
+'This type controls the state of target selection.
+TYPE TargettingState
+ hit_dead AS INTEGER 'YES if this is a "Life" spell, or NO for all other attacks
+END TYPE
+
 'This type controls the state of the battle engine, for example,
 'who's turn it is, what each character is doing, and targetting information
 TYPE BattleState
@@ -20,6 +25,7 @@ TYPE BattleState
  next_hero AS INTEGER  'counter that controls which ready hero will get their turn next
  next_enemy AS INTEGER 'counter that controls which ready enemy will get their turn next
  menu_mode AS INTEGER  'batMENUHERO batMENUSPELL or batMENUITEM
+ targ AS TargettingState
 END TYPE
 CONST batMENUHERO = 0
 CONST batMENUSPELL = 1

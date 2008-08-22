@@ -28,9 +28,10 @@ DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), batname$(), BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
+DECLARE SUB reset_targetting (BYREF bat AS BattleState)
 DECLARE SUB reset_victory_state (BYREF vic AS VictoryState)
 DECLARE SUB reset_rewards_state (BYREF rew AS RewardsState)
 DECLARE SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, exstat() AS INTEGER, batname() AS STRING)
@@ -98,7 +99,7 @@ vpage = 0: dpage = 1: needf = 1: anim = -1: fiptr = 0
 reset_battle_state bat
 reset_victory_state vic
 reset_rewards_state rew
-aset = 0: wf = 0: noifdead = 0
+aset = 0: wf = 0
 
 ptarg = 0 ' ptarg=0 means hero not currently picking a target
           ' ptarg>0 means hero picking a target
@@ -1348,11 +1349,11 @@ NEXT i
 'load attack
 loadattackdata buffer(), godo(bat.hero_turn) - 1
 
-noifdead = 0
+bat.targ.hit_dead = NO
 ltarg(bat.hero_turn) = 0
 
 get_valid_targs tmask(), bat.hero_turn, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
-noifdead = attack_can_hit_dead(bat.hero_turn, buffer())
+bat.targ.hit_dead = attack_can_hit_dead(bat.hero_turn, buffer())
 
 '--attacks that can target all should default to the first enemy
 IF buffer(3) = 3 THEN
@@ -1398,7 +1399,7 @@ FOR deadguy = 4 TO 11
  END IF
 NEXT
 FOR deadguy = 0 TO 11
- check_death deadguy, 0, bat, noifdead, rew, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
+ check_death deadguy, 0, bat, rew, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -1601,14 +1602,14 @@ o = 0
 FOR i = 0 TO 11
  IF targs(i) = 1 THEN
   t(bat.hero_turn, o) = i: o = o + 1
-  IF noifdead THEN setbit ltarg(), bat.hero_turn, i, 1
+  IF bat.targ.hit_dead THEN setbit ltarg(), bat.hero_turn, i, 1
  END IF
 NEXT i
 ctr(bat.hero_turn) = 0
 ready(bat.hero_turn) = 0
 bat.hero_turn = -1
 ptarg = 0
-noifdead = 0
+bat.targ.hit_dead = NO
 RETRACE
 
 display:
@@ -2229,6 +2230,13 @@ SUB reset_battle_state (BYREF bat AS BattleState)
   .next_enemy = 0
   .menu_mode = batMENUHERO
  END WITH
+ reset_targetting bat
+END SUB
+
+SUB reset_targetting (BYREF bat AS BattleState)
+ WITH bat.targ
+  .hit_dead = NO
+ END WITH
 END SUB
 
 SUB reset_rewards_state (BYREF rew AS RewardsState)
@@ -2525,7 +2533,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebit
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, noifdead AS INTEGER, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
@@ -2561,7 +2569,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   END IF
   dead_enemy deadguy, rew, bstat(), bslot(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$()
  END IF'------------END PLUNDER-------------------
- IF noifdead = 0 THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
+ IF bat.targ.hit_dead = NO THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
   tcount = tcount - 1
   FOR j = 0 TO 11
    '--Search through each hero and enemy to see if any of them are targetting the
@@ -2585,7 +2593,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
     tptr = tptr + 1: IF tptr > 11 THEN ptarg = 0: EXIT SUB
    WEND
   END IF
- END IF  '----END ONLY WHEN NOIFDEAD = 0
+ END IF  '----END ONLY WHEN bat.targ.hit_dead = 0
 END SUB
 
 SUB dead_enemy(deadguy AS INTEGER, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), atktype(), formdata(), p(), bits(), ebits(), batname$())
