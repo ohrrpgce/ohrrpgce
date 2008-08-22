@@ -11,12 +11,12 @@
 
 '--local const and types only used in this module
 
-'This type controls the state of target selection.
+'This type stores the state of target selection.
 TYPE TargettingState
  hit_dead AS INTEGER 'YES if this is a "Life" spell, or NO for all other attacks
 END TYPE
 
-'This type controls the state of the battle engine, for example,
+'This type stores the state of the battle engine, for example,
 'who's turn it is, what each character is doing, and targetting information
 TYPE BattleState
  acting AS INTEGER     'Hero or enemy who is currently taking their turn to act
@@ -31,7 +31,7 @@ CONST batMENUHERO = 0
 CONST batMENUSPELL = 1
 CONST batMENUITEM = 2
 
-'This type controls the visual state of the victory display
+'This type stores the visual state of the victory display
 TYPE VictoryState
  state AS INTEGER 'vicSTATENAME or 0 for none
  box AS INTEGER   'NO when not displaying a box, YES when displaying a box
@@ -82,7 +82,7 @@ declare sub quickinflict (harm, targ, hc(), hx(), hy(), bslot() as battlesprite,
 DECLARE SUB anim_end()
 DECLARE SUB anim_wait(ticks%)
 DECLARE SUB anim_waitforall()
-DECLARE SUB anim_inflict(who%)
+DECLARE SUB anim_inflict(who AS INTEGER, target_count AS INTEGER)
 DECLARE SUB anim_disappear(who%)
 DECLARE SUB anim_appear(who%)
 DECLARE SUB anim_setframe(who%, frame%)

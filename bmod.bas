@@ -28,7 +28,7 @@ DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, es(), atktype(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), batname$(), BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_targetting (BYREF bat AS BattleState)
@@ -69,6 +69,7 @@ DIM spellcount AS INTEGER '--only used in heromenu GOSUB block
 DIM listslot AS INTEGER
 DIM nmenu(3,5) as integer 'new battle menu
 DIM rew AS RewardsState
+DIM tcount AS INTEGER 'FIXME: This is used locally in atkscript and action GOSUB blocks. Move DIMs there when those are SUBified
 
 DIM autotmask(11) ' A list of true/false values indicating
               ' which targets are valid for the currently targetting attack
@@ -509,6 +510,7 @@ END IF
 RETRACE
 
 atkscript: '---------------------------------------------------------------
+tcount = 0 'This should be dimmed locally when this is SUBified
 '--check for item consumption
 IF icons(bat.acting) >= 0 THEN
  IF inventory(icons(bat.acting)).used = 0 THEN
@@ -604,7 +606,7 @@ IF atk(15) = 10 THEN
   IF is_hero(bat.acting) THEN heroanim bat.acting, atk(), bslot(), t()
   IF is_enemy(bat.acting) THEN etwitch bat.acting, atk(), bslot(), t()
   FOR i = 0 TO tcount
-   anim_inflict t(bat.acting,i)
+   anim_inflict t(bat.acting, i), tcount
   NEXT i
   anim_disappear 24
  NEXT j
@@ -662,7 +664,7 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
    anim_waitforall
   END IF
   FOR i = 0 TO tcount
-   anim_inflict t(bat.acting, i)
+   anim_inflict t(bat.acting, i), tcount
    temp = 3: IF is_enemy(t(bat.acting, i)) THEN temp = -3
    anim_setmove t(bat.acting, i), temp, 0, 2, 0
    if is_hero(t(bat.acting, i)) then
@@ -718,7 +720,7 @@ IF atk(15) = 7 THEN
    anim_absmove 12, bslot(t(bat.acting, i)).x + xt, bslot(t(bat.acting, i)).y + yt, 5, 5
    anim_waitforall
    'inflict damage
-   anim_inflict t(bat.acting, i)
+   anim_inflict t(bat.acting, i), tcount
    'make the target flinch back
    targetflinch = 3: IF is_enemy(t(bat.acting, i)) THEN targetflinch = -3
    anim_setmove t(bat.acting, i), targetflinch, 0, 2, 0
@@ -803,7 +805,7 @@ IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
   anim_disappear 24
   anim_setframe bat.acting, 0
   FOR i = 0 TO tcount
-   anim_inflict t(bat.acting, i)
+   anim_inflict t(bat.acting, i), tcount
    temp = 3: IF is_enemy(t(bat.acting, i)) THEN temp = -3
    anim_setmove t(bat.acting, i), temp, 0, 2, 0
    if is_hero(t(bat.acting, i)) then
@@ -857,7 +859,7 @@ IF atk(15) = 9 THEN
   anim_setframe bat.acting, 0
   anim_waitforall
   FOR i = 0 TO tcount
-   anim_inflict t(bat.acting, i)
+   anim_inflict t(bat.acting, i), tcount
    temp = 3: IF is_enemy(t(bat.acting, i)) THEN temp = -3
    anim_setmove t(bat.acting, i), temp, 0, 2, 0
    if is_hero(t(bat.acting, i)) then
@@ -921,7 +923,7 @@ IF atk(15) = 4 AND tcount = 0 THEN
   anim_disappear 24
   anim_setframe bat.acting, 0
   FOR i = 0 TO tcount
-   anim_inflict t(bat.acting, i)
+   anim_inflict t(bat.acting, i), tcount
    temp = 3: IF is_enemy(t(bat.acting, i)) THEN temp = -3
    anim_setmove t(bat.acting, i), temp, 0, 2, 0
    if is_hero(t(bat.acting, i)) then
@@ -976,7 +978,7 @@ IF atk(15) = 5 THEN
   anim_disappear 24
   anim_setframe bat.acting, 0
   FOR i = 0 TO tcount
-   anim_inflict t(bat.acting, i)
+   anim_inflict t(bat.acting, i), tcount
    temp = 3: IF is_enemy(t(bat.acting, i)) THEN temp = -3
    anim_setmove t(bat.acting, i), temp, 0, 2, 0
    if is_hero(t(bat.acting, i)) then
@@ -1032,6 +1034,7 @@ aset = 1
 RETRACE
 
 action:
+tcount = 0 'This should be dimmed locally when this is SUBified
 IF wf > 0 THEN wf = wf - 1: IF wf > 0 THEN RETRACE
 IF wf = -1 THEN
  wf = 0
@@ -1103,8 +1106,9 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    bslot(ww).ymov = tmp4
   CASE 9 'waitforall()
    wf = -1
-  CASE 10 'inflict(targ)
+  CASE 10 'inflict(targ, target_count)
    targ = popw
+   tcount = popw
    'set tag, if there is one
    checkTagCond atk(60), 1, atk(59), atk(61)
    checkTagCond atk(63), 1, atk(62), atk(64)
@@ -1399,7 +1403,7 @@ FOR deadguy = 4 TO 11
  END IF
 NEXT
 FOR deadguy = 0 TO 11
- check_death deadguy, 0, bat, rew, tcount, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
+ check_death deadguy, 0, bat, rew, bstat(), bslot(), ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -2373,8 +2377,8 @@ SUB anim_end()
  pushw 0
 END SUB
 
-SUB anim_inflict(who)
- pushw 10: pushw who
+SUB anim_inflict(who AS INTEGER, target_count AS INTEGER)
+ pushw 10: pushw who: pushw target_count
 END SUB
 
 SUB anim_disappear(who)
@@ -2533,7 +2537,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebit
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, BYREF tcount AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, ready(), godo(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$(), t(), autotmask(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
@@ -2570,7 +2574,6 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   dead_enemy deadguy, rew, bstat(), bslot(), es(), atktype(), formdata(), p(), bits(), ebits(), batname$()
  END IF'------------END PLUNDER-------------------
  IF bat.targ.hit_dead = NO THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
-  tcount = tcount - 1
   FOR j = 0 TO 11
    '--Search through each hero and enemy to see if any of them are targetting the
    '--guy who just died
@@ -2593,7 +2596,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
     tptr = tptr + 1: IF tptr > 11 THEN ptarg = 0: EXIT SUB
    WEND
   END IF
- END IF  '----END ONLY WHEN bat.targ.hit_dead = 0
+ END IF  '----END ONLY WHEN bat.targ.hit_dead = NO
 END SUB
 
 SUB dead_enemy(deadguy AS INTEGER, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), atktype(), formdata(), p(), bits(), ebits(), batname$())
