@@ -5,6 +5,7 @@
 'so as to prevent them from cluttering up the global udts.bi file
 
 TYPE BattleSprite
+  name AS STRING
   basex AS INTEGER
   basey AS INTEGER
   x AS INTEGER
