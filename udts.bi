@@ -169,6 +169,7 @@ TYPE BattleSprite
   deathtime AS INTEGER '0 = default, otherwise is time + 1
   death_sfx AS INTEGER '0 = default, -1 = none, >0 = sfx ID + 1
   ready AS INTEGER ' YES if the hero or enemy can have a turn, NO if they are not ready yet
+  attack AS INTEGER ' ID number +1 of the attack that this hero or enemy is going to do next
 END TYPE
 
 UNION BattleStatsSingle
