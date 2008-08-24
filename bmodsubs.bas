@@ -699,23 +699,23 @@ NEXT o
 liveherocount = i
 END FUNCTION
 
-SUB loadfoe (i, formdata(), es(), BYREF bat AS BattleState, bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), BYREF rew AS RewardsState, allow_dead = NO)
+SUB loadfoe (i, formdata(), es(), BYREF bat AS BattleState, bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead = NO)
 IF formdata(i * 4) > 0 THEN
  loadenemydata buffer(), formdata(i * 4) - 1, -1
  FOR o = 0 TO 160
   es(i, o) = buffer(o)
  NEXT o
  FOR o = 0 TO 4
-  ebits(i * 5 + o) = buffer(74 + o)
+  bslot(4 + i).ebits(o) = buffer(74 + o)
  NEXT o
  IF allow_dead = NO THEN
   'enemies which spawn already-dead should be killed off immediately
   'die without boss or 0 hp?
-  IF dieWOboss(4 + i, bstat(), ebits()) OR es(i, 62) <= 0 THEN
+  IF dieWOboss(4 + i, bstat(), bslot()) OR es(i, 62) <= 0 THEN
    'rewards and spawn enemies on death
    'enemy is only partially constructed, but already have everything needed.
    DIM atktype(8) 'regular "spawn on death"
-   dead_enemy 4 + i, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits(), ebits()
+   dead_enemy 4 + i, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits()
    EXIT SUB
   END IF
  END IF
@@ -744,9 +744,9 @@ IF formdata(i * 4) > 0 THEN
    .w = 80
    .h = 80
   END IF
-  .death_unneeded = readbit(ebits(), i * 5, 62)
-  .hero_untargetable = readbit(ebits(), i * 5, 61)
-  .enemy_untargetable = readbit(ebits(), i * 5, 60)
+  .death_unneeded = readbit(bslot(4 + i).ebits(), 0, 62)
+  .hero_untargetable = readbit(bslot(4 + i).ebits(), 0, 61)
+  .enemy_untargetable = readbit(bslot(4 + i).ebits(), 0, 60)
   .death_sfx = es(i, 24)
   .revenge = -1
   FOR o = 0 TO 11
@@ -906,7 +906,7 @@ ELSE
 END IF
 END SUB
 
-FUNCTION targetable (attacker, target, ebits(), bslot() AS BattleSprite)
+FUNCTION targetable (attacker, target, bslot() AS BattleSprite)
 'this function is orphaned and probably too inaccurate to be useful
 targetable = 0
 IF is_hero(target) THEN
