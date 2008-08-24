@@ -433,7 +433,7 @@ END IF
 
 END SUB
 
-FUNCTION inflict (w, t, bstat() AS BattleStats, bslot() AS BattleSprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), targmem(), revengeharm(), repeatharm())
+FUNCTION inflict (w, t, bstat() AS BattleStats, bslot() AS BattleSprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revengeharm(), repeatharm())
 
 DIM tbits(4)
 DIM h = 0
@@ -443,13 +443,13 @@ inflict = 0
 bslot(w).attack_succeeded = 0
 
 'remember this target
-setbit targmem(), w, t, 1
+bslot(w).last_targs(t) = YES
 
 'stored targs
-IF readbit(atk(), 20, 52) THEN setbit targmem(), w + 12, t, 1
+IF readbit(atk(), 20, 52) THEN bslot(w).stored_targs(t) = YES
 IF readbit(atk(), 20, 53) THEN
  FOR i = 0 TO 11
-  setbit targmem(), w + 12, i, 0
+  bslot(w).stored_targs(i) = NO
  NEXT i
 END IF
 
@@ -1115,7 +1115,7 @@ FOR i = 0 TO 3
 NEXT i
 END SUB
 
-SUB get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, targmem())
+SUB get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
 
 DIM i AS INTEGER
 
@@ -1177,12 +1177,16 @@ SELECT CASE atkbuf(3)
 
  CASE 8 'previous
   FOR i = 0 TO 11
-   tmask(i) = (readbit(targmem(), who, i) AND bslot(i).vis)
+   IF bslot(who).last_targs(i) = YES AND bslot(i).vis <> 0 THEN
+    tmask(i) = 1
+   END IF
   NEXT i
 
  CASE 9 'stored
   FOR i = 0 TO 11
-   tmask(i) = (readbit(targmem(), who + 12, i) AND bslot(i).vis)
+   IF bslot(who).stored_targs(i) = YES AND bslot(i).vis <> 0 THEN
+    tmask(i) = 1
+   END IF
   NEXT i
 
  CASE 10 'dead-ally (hero only)
@@ -1230,14 +1234,14 @@ END SELECT
 RETURN NO
 END FUNCTION
 
-SUB autotarget (who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, targmem())
+SUB autotarget (who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
 
 DIM tmask(11) ' A list of true/false values indicating
               ' which targets are valid for the currently targetting attack
 
 DIM i AS INTEGER
 
-get_valid_targs tmask(), who, atkbuf(), bslot(), bstat(), targmem()
+get_valid_targs tmask(), who, atkbuf(), bslot(), bstat()
 
 'flush the targeting space for this attacker
 FOR i = 0 TO 11
