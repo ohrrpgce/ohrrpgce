@@ -30,7 +30,7 @@ DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_targetting (BYREF bat AS BattleState)
@@ -59,7 +59,7 @@ bstackstart = stackpos
 battle = 1
 DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24),  p(24), of(24), ctr(11)
 DIM menu$(3, 5), menubits(2), mend(3), itemd$, spel$(23), speld$(23), spel(23), cost$(23), delay(11), cycle(24), walk(3), aframe(11, 11)
-DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), iuse(15), icons(11), ebits(40), ltarg(11), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11), targmem(23), prtimer(11,1), spelmask(1)
+DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), iuse(15), icons(11), ebits(40), ltarg(11), lifemeter(3), revengemask(11), revengeharm(11), repeatharm(11), targmem(23), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
 DIM bat AS BattleState
 DIM bslot(24) AS BattleSprite
@@ -104,7 +104,7 @@ ptarg = 0 ' ptarg=0 means hero not currently picking a target
 
 FOR i = 0 TO 11
  icons(i) = -1
- revenge(i) = -1
+ bslot(i).revenge = -1
 NEXT i
 checkitemusability iuse()
 'hc(0-11) is harm count... hc(12-23) is harm color... I know, tacky :(
@@ -391,7 +391,7 @@ LOOP
 'get the delay to wait for this attack
 delay(bat.enemy_turn) = atktemp(16)
 
-autotarget bat.enemy_turn, atktemp(), bslot(), bstat(), revenge(), revengemask(), targmem()
+autotarget bat.enemy_turn, atktemp(), bslot(), bstat(), revengemask(), targmem()
 
 'ready for next attack
 bslot(bat.enemy_turn).ready = NO
@@ -1105,7 +1105,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    'set tag, if there is one
    checkTagCond atk(60), 1, atk(59), atk(61)
    checkTagCond atk(63), 1, atk(62), atk(64)
-   IF inflict(bat.acting, targ, bstat(), bslot(), harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
+   IF inflict(bat.acting, targ, bstat(), bslot(), harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revengemask(), targmem(), revengeharm(), repeatharm()) THEN
     '--attack succeeded
     IF readbit(atk(), 65, 12) THEN
      '--try to cancel target's attack
@@ -1216,7 +1216,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     '--if the target is already dead, auto-pick a new target
     '--FIXME: why are we doing this after the attack? Does this even do anything?
     '--       it was passing garbage attack data at least some of the time until r2104
-    autotarget bat.acting, atk(), bslot(), bstat(), revenge(), revengemask(), targmem()
+    autotarget bat.acting, atk(), bslot(), bstat(), revengemask(), targmem()
    END IF
   CASE 11 'setz(who,z)
    ww = popw
@@ -1311,7 +1311,7 @@ IF anim = -1 THEN
   IF o < 8 THEN
    IF buffer(4) <> atk(4) OR buffer(3) <> atk(3) THEN
     'if the chained attack has a different target class/type then re-target
-    autotarget bat.acting, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
+    autotarget bat.acting, buffer(), bslot(), bstat(), revengemask(), targmem()
    END IF
   END IF
  END IF
@@ -1347,7 +1347,7 @@ loadattackdata buffer(), bslot(bat.hero_turn).attack - 1
 bat.targ.hit_dead = NO
 ltarg(bat.hero_turn) = 0
 
-get_valid_targs bat.targ.mask(), bat.hero_turn, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
+get_valid_targs bat.targ.mask(), bat.hero_turn, buffer(), bslot(), bstat(), revengemask(), targmem()
 bat.targ.hit_dead = attack_can_hit_dead(bat.hero_turn, buffer())
 
 '--attacks that can target all should default to the first enemy
@@ -1394,7 +1394,7 @@ FOR deadguy = 4 TO 11
  END IF
 NEXT
 FOR deadguy = 0 TO 11
- check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits(), ebits(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg()
+ check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits(), ebits(), revengemask(), targmem(), tptr, ptarg, ltarg()
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -1541,7 +1541,7 @@ IF ptarg = 1 THEN GOSUB setuptarg
 
 'autotarget
 IF ptarg = 3 THEN
- autotarget bat.hero_turn, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
+ autotarget bat.hero_turn, buffer(), bslot(), bstat(), revengemask(), targmem()
  ctr(bat.hero_turn) = 0
  bslot(bat.hero_turn).ready = NO
  bat.hero_turn = -1
@@ -2543,7 +2543,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebit
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
@@ -2591,7 +2591,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
    IF bslot(j).t(0) = -1 AND bat.acting <> j AND bslot(j).attack > 0 THEN
     'if no targets left, auto-re-target
     loadattackdata buffer(), bslot(j).attack - 1
-    autotarget j, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
+    autotarget j, buffer(), bslot(), bstat(), revengemask(), targmem()
    END IF
    IF bat.targ.mask(deadguy) = 1 THEN bat.targ.mask(deadguy) = 0
    IF bat.targ.selected(deadguy) = 1 THEN bat.targ.selected(deadguy) = 0

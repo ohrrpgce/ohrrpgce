@@ -433,7 +433,7 @@ END IF
 
 END SUB
 
-FUNCTION inflict (w, t, bstat() AS BattleStats, bslot() AS BattleSprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revenge(), revengemask(), targmem(), revengeharm(), repeatharm())
+FUNCTION inflict (w, t, bstat() AS BattleStats, bslot() AS BattleSprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revengemask(), targmem(), revengeharm(), repeatharm())
 
 DIM tbits(4)
 DIM h = 0
@@ -665,7 +665,7 @@ IF atk(5) <> 4 THEN
  'remember revenge data
  IF remtargstat > bstat(t).cur.sta(targstat) THEN
   setbit revengemask(), t, w, 1
-  revenge(t) = w
+  bslot(t).revenge = w
   revengeharm(t) = remtargstat - bstat(t).cur.sta(targstat)
   repeatharm(w) = remtargstat - bstat(t).cur.sta(targstat)
  END IF
@@ -1115,7 +1115,7 @@ FOR i = 0 TO 3
 NEXT i
 END SUB
 
-SUB get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, revenge(), revengemask(), targmem())
+SUB get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, revengemask(), targmem())
 
 DIM i AS INTEGER
 
@@ -1164,8 +1164,8 @@ SELECT CASE atkbuf(3)
   tmask(who) = 0
 
  CASE 6 'revenge-one
-  IF revenge(who) >= 0 THEN
-   tmask(revenge(who)) = bslot(revenge(who)).vis
+  IF bslot(who).revenge >= 0 THEN
+   tmask(bslot(who).revenge) = bslot(bslot(who).revenge).vis
   END IF
 
  CASE 7 'revenge-all
@@ -1228,14 +1228,14 @@ END SELECT
 RETURN NO
 END FUNCTION
 
-SUB autotarget (who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, revenge(), revengemask(), targmem())
+SUB autotarget (who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, revengemask(), targmem())
 
 DIM tmask(11) ' A list of true/false values indicating
               ' which targets are valid for the currently targetting attack
 
 DIM i AS INTEGER
 
-get_valid_targs tmask(), who, atkbuf(), bslot(), bstat(), revenge(), revengemask(), targmem()
+get_valid_targs tmask(), who, atkbuf(), bslot(), bstat(), revengemask(), targmem()
 
 'flush the targeting space for this attacker
 FOR i = 0 TO 11
