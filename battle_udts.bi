@@ -79,6 +79,7 @@ END TYPE
 
 'This type stores the state of target selection.
 TYPE TargettingState
+  mode AS INTEGER         'targNONE targSETUP targMANUAL targAUTO
   pointer AS INTEGER      'Slot number of the currently selected (but not yet chosen) target slot
   hit_dead AS INTEGER     'YES if this is a "Life" spell, or NO for all other attacks
   mask(11) AS INTEGER     'For the currently targetting hero, a list of 1/0 values indicating
@@ -86,6 +87,11 @@ TYPE TargettingState
   selected(11) AS INTEGER 'For the currently targetting hero, a list of 1/0 values indicating
                           ' which targets from .mask() are currently selected.
 END TYPE
+'.mode > 0 means hero picking a target
+CONST targNONE   = 0 'means hero not currently picking a target
+CONST targSETUP  = 1 'means targetting needs set-up
+CONST targMANUAL = 2 'means normal manual targetting
+CONST targAUTO   = 3 'means autotargeting
 
 'This type stores the state of the battle engine, for example,
 'who's turn it is, what each character is doing, and targetting information

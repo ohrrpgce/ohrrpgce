@@ -30,7 +30,7 @@ DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), BYREF ptarg AS INTEGER, ltarg())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), ltarg())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_targetting (BYREF bat AS BattleState)
@@ -95,12 +95,6 @@ reset_battle_state bat
 reset_victory_state vic
 reset_rewards_state rew
 aset = 0: wf = 0
-
-ptarg = 0 ' ptarg=0 means hero not currently picking a target
-          ' ptarg>0 means hero picking a target
-          ' ptarg=1 means targetting needs set-up
-          ' ptarg=2 means normal manual targetting
-          ' ptarg=3 means autotargeting
 
 FOR i = 0 TO 11
  icons(i) = -1
@@ -224,12 +218,12 @@ DO
  END IF
  IF vic.state = 0 THEN
   IF bat.enemy_turn >= 0 THEN GOSUB enemyai
-  IF bat.hero_turn >= 0 AND ptarg = 0 THEN
+  IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
    IF bat.menu_mode = batMENUITEM THEN GOSUB itemmenu
    IF bat.menu_mode = batMENUSPELL THEN GOSUB spellmenu
    IF bat.menu_mode = batMENUHERO THEN GOSUB heromenu
   END IF
-  IF bat.hero_turn >= 0 AND ptarg > 0 THEN GOSUB picktarg
+  IF bat.hero_turn >= 0 AND bat.targ.mode > targNONE THEN GOSUB picktarg
  END IF
  GOSUB sprite
  GOSUB display
@@ -427,7 +421,7 @@ IF carray(4) > 1 THEN
    bslot(bat.hero_turn).attack = nmenu(bat.hero_turn, pt)
    loadattackdata buffer(), bslot(bat.hero_turn).attack - 1
    delay(bat.hero_turn) = large(buffer(16), 1)
-   ptarg = 1
+   bat.targ.mode = targSETUP
    flusharray carray(), 7, 0
    RETRACE
   END IF
@@ -485,7 +479,7 @@ IF carray(4) > 1 THEN
     bslot(bat.hero_turn).attack = spel(rptr) + 1
     loadattackdata buffer(), bslot(bat.hero_turn).attack - 1
     delay(bat.hero_turn) = large(buffer(16), 1)
-    ptarg = 1
+    bat.targ.mode = targSETUP
     flusharray carray(), 7, 0
    END IF
   END IF
@@ -1359,13 +1353,13 @@ END IF
 
 'fail if there are no targets
 IF targetmaskcount(bat.targ.mask()) = 0 THEN
- ptarg = 0
+ bat.targ.mode = targNONE
  RETRACE
 END IF
 
 'autoattack
 IF readbit(buffer(), 20, 54) THEN
- ptarg = 3
+ bat.targ.mode = targAUTO
  RETRACE
 END IF
 
@@ -1378,12 +1372,12 @@ IF buffer(4) = 4 THEN firsttarg = -1
 bat.targ.pointer = find_preferred_target(bat.targ.mask(), bat.hero_turn, buffer(), bslot(), bstat())
 'fail if no targets are found
 IF bat.targ.pointer = -1 THEN
- ptarg = 0
+ bat.targ.mode = targNONE
  RETRACE
 END IF
 
 'ready to choose bat.targ.selected() from bat.targ.mask()
-ptarg = 2
+bat.targ.mode = targMANUAL
 RETRACE
 
 fulldeathcheck:
@@ -1396,7 +1390,7 @@ FOR deadguy = 4 TO 11
  END IF
 NEXT
 FOR deadguy = 0 TO 11
- check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits(), ebits(), ptarg, ltarg()
+ check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits(), ebits(), ltarg()
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -1476,7 +1470,7 @@ IF carray(4) > 1 THEN
   loadattackdata buffer(), temp - 1
   bslot(bat.hero_turn).attack = temp
   delay(bat.hero_turn) = large(buffer(16), 1)
-  ptarg = 1
+  bat.targ.mode = targSETUP
   bat.menu_mode = batMENUHERO
   flusharray carray(), 7, 0
  END IF
@@ -1521,7 +1515,7 @@ IF carray(4) > 1 THEN
    bslot(bat.hero_turn).attack = spel(sptr) + 1
    delay(bat.hero_turn) = large(atktemp(16), 1)
    '--exit spell menu
-   ptarg = 1: bat.menu_mode = batMENUHERO
+   bat.targ.mode = targSETUP: bat.menu_mode = batMENUHERO
    flusharray carray(), 7, 0
   END IF
  END IF
@@ -1534,20 +1528,20 @@ picktarg: '-----------------------------------------------------------
 IF carray(5) > 1 THEN
  bslot(bat.hero_turn).attack = 0
  conlmp(bat.hero_turn) = 0
- ptarg = 0
+ bat.targ.mode = targNONE
  flusharray carray(), 7, 0
  RETRACE
 END IF
 
-IF ptarg = 1 THEN GOSUB setuptarg
+IF bat.targ.mode = targSETUP THEN GOSUB setuptarg
 
 'autotarget
-IF ptarg = 3 THEN
+IF bat.targ.mode = targAUTO THEN
  autotarget bat.hero_turn, buffer(), bslot(), bstat()
  ctr(bat.hero_turn) = 0
  bslot(bat.hero_turn).ready = NO
  bat.hero_turn = -1
- ptarg = 0
+ bat.targ.mode = targNONE
  RETRACE
 END IF
 
@@ -1609,7 +1603,7 @@ NEXT i
 ctr(bat.hero_turn) = 0
 bslot(bat.hero_turn).ready = NO
 bat.hero_turn = -1
-ptarg = 0
+bat.targ.mode = targNONE
 bat.targ.hit_dead = NO
 RETRACE
 
@@ -1691,7 +1685,7 @@ IF vic.state = 0 THEN 'only display interface till you win
    textcolor fg, bg
    printstr menu$(bat.hero_turn, i), 228, 9 + i * 8, dpage
   NEXT i
-  IF ptarg = 0 AND readbit(gen(), genBits, 14) = 0 THEN
+  IF bat.targ.mode = targNONE AND readbit(gen(), genBits, 14) = 0 THEN
    edgeprint CHR$(24), bslot(bat.hero_turn).x + (bslot(bat.hero_turn).w / 2) - 4, bslot(bat.hero_turn).y - 5 + (tog * 2), uilook(uiSelectedItem + tog), dpage
   END IF
   IF bat.menu_mode = batMENUSPELL THEN '--draw spell menu
@@ -1725,7 +1719,7 @@ IF vic.state = 0 THEN 'only display interface till you win
    textcolor uilook(uiDescription), 0
    printstr itemd$, 12, 85, dpage
   END IF
-  IF ptarg > 0 THEN
+  IF bat.targ.mode > targNONE THEN
    FOR i = 0 TO 11
     IF bat.targ.selected(i) = 1 OR bat.targ.pointer = i THEN
      edgeprint CHR$(24), bslot(i).x + (bslot(i).w / 2) - 4, bslot(i).y - 6, uilook(uiSelectedItem + tog), dpage
@@ -2545,7 +2539,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebit
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), BYREF ptarg AS INTEGER, ltarg())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), ltarg())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
@@ -2600,7 +2594,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   NEXT j
   IF bat.targ.pointer = deadguy THEN
    WHILE bat.targ.mask(bat.targ.pointer) = 0
-    bat.targ.pointer = bat.targ.pointer + 1: IF bat.targ.pointer > 11 THEN ptarg = 0: EXIT SUB
+    bat.targ.pointer = bat.targ.pointer + 1: IF bat.targ.pointer > 11 THEN bat.targ.mode = targNONE: EXIT SUB
    WEND
   END IF
  END IF  '----END ONLY WHEN bat.targ.hit_dead = NO
