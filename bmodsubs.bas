@@ -860,13 +860,13 @@ battlecaptime = captime
 battlecapdelay = capdelay
 END SUB
 
-SUB smartarrowmask (inrange(), pt, d, axis, bslot() AS BattleSprite, targ AS TargettingState)
+SUB smartarrowmask (inrange(), d, axis, bslot() AS BattleSprite, targ AS TargettingState)
 FOR i = 0 TO 11
  IF targ.mask(i) THEN
   IF axis THEN
-   distance = (bslot(i).y - bslot(pt).y) * d
+   distance = (bslot(i).y - bslot(targ.pointer).y) * d
   ELSE
-   distance = (bslot(i).x - bslot(pt).x) * d
+   distance = (bslot(i).x - bslot(targ.pointer).x) * d
   END IF
   IF distance > 0 THEN
    setbit inrange(), 0, i, 1
@@ -875,19 +875,19 @@ FOR i = 0 TO 11
 NEXT i
 END SUB
 
-SUB smartarrows (pt, d, axis, bslot() AS BattleSprite, targ AS TargettingState, spred)
+SUB smartarrows (d, axis, bslot() AS BattleSprite, BYREF targ AS TargettingState, spred)
 DIM inrange(0)
 inrange(0) = 0
-smartarrowmask inrange(), pt, d, axis, bslot(), targ
+smartarrowmask inrange(), d, axis, bslot(), targ
 IF inrange(0) THEN
  best = 999
- newptr = pt
+ newptr = targ.pointer
  FOR i = 0 TO 11
   IF readbit(inrange(), 0, i) THEN
    IF axis THEN
-    distance = (bslot(i).y - bslot(pt).y) * d
+    distance = (bslot(i).y - bslot(targ.pointer).y) * d
    ELSE
-    distance = (bslot(i).x - bslot(pt).y) * d
+    distance = (bslot(i).x - bslot(targ.pointer).y) * d
    END IF
    IF distance < best THEN
     best = distance
@@ -895,7 +895,7 @@ IF inrange(0) THEN
    END IF
   END IF
  NEXT i
- pt = newptr
+ targ.pointer = newptr
 ELSE
  IF spred = 1 THEN
   FOR i = 0 TO 11

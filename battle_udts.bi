@@ -79,6 +79,7 @@ END TYPE
 
 'This type stores the state of target selection.
 TYPE TargettingState
+  pointer AS INTEGER      'Slot number of the currently selected (but not yet chosen) target slot
   hit_dead AS INTEGER     'YES if this is a "Life" spell, or NO for all other attacks
   mask(11) AS INTEGER     'For the currently targetting hero, a list of 1/0 values indicating
                           'which targets are valid for the currently targetting attack

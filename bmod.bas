@@ -30,7 +30,7 @@ DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), BYREF ptarg AS INTEGER, ltarg())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_targetting (BYREF bat AS BattleState)
@@ -1337,7 +1337,7 @@ spred = 0
 aim = 0
 randomtarg = 0
 firsttarg = 0
-tptr = 0
+bat.targ.pointer = 0
 FOR i = 0 TO 11
  bat.targ.selected(i) = 0 ' clear list of selected targets
  bslot(bat.hero_turn).t(i) = -1 'clear list of confirmed targets
@@ -1354,7 +1354,7 @@ bat.targ.hit_dead = attack_can_hit_dead(bat.hero_turn, buffer())
 
 '--attacks that can target all should default to the first enemy
 IF buffer(3) = 3 THEN
- tptr = 4
+ bat.targ.pointer = 4
 END IF
 
 'fail if there are no targets
@@ -1375,9 +1375,9 @@ IF buffer(4) = 2 THEN aim = 1: spred = 1
 IF buffer(4) = 3 THEN randomtarg = -1
 IF buffer(4) = 4 THEN firsttarg = -1
 
-tptr = find_preferred_target(bat.targ.mask(), bat.hero_turn, buffer(), bslot(), bstat())
+bat.targ.pointer = find_preferred_target(bat.targ.mask(), bat.hero_turn, buffer(), bslot(), bstat())
 'fail if no targets are found
-IF tptr = -1 THEN
+IF bat.targ.pointer = -1 THEN
  ptarg = 0
  RETRACE
 END IF
@@ -1396,7 +1396,7 @@ FOR deadguy = 4 TO 11
  END IF
 NEXT
 FOR deadguy = 0 TO 11
- check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits(), ebits(), tptr, ptarg, ltarg()
+ check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits(), ebits(), ptarg, ltarg()
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -1558,18 +1558,18 @@ END IF
 'random target
 IF randomtarg THEN
  FOR i = 0 TO INT(RND * 2)
-  tptr = loopvar(tptr, 0, 11, 1)
-  WHILE bat.targ.mask(tptr) = 0
-   tptr = loopvar(tptr, 0, 11, 1)
+  bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
+  WHILE bat.targ.mask(bat.targ.pointer) = 0
+   bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
   WEND
  NEXT i
 END IF
 
 'first target
 IF firsttarg THEN
- tptr = 0
- WHILE bat.targ.mask(tptr) = 0
-  tptr = loopvar(tptr, 0, 11, 1)
+ bat.targ.pointer = 0
+ WHILE bat.targ.mask(bat.targ.pointer) = 0
+  bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
  WEND
 END IF
 
@@ -1582,23 +1582,23 @@ IF spred = 2 AND (carray(2) > 1 OR carray(3) > 1) AND randomtarg = 0 AND firstta
 END IF
 IF aim = 1 AND spred < 2 AND randomtarg = 0 AND firsttarg = 0 THEN
  IF carray(0) > 1 THEN
-  smartarrows tptr, -1, 1, bslot(), bat.targ, 0
+  smartarrows -1, 1, bslot(), bat.targ, 0
  END IF
  IF carray(1) > 1 THEN
-  smartarrows tptr, 1, 1, bslot(), bat.targ, 0
+  smartarrows 1, 1, bslot(), bat.targ, 0
  END IF
  IF carray(2) > 1 THEN
-  smartarrows tptr, -1, 0, bslot(), bat.targ, spred
+  smartarrows -1, 0, bslot(), bat.targ, spred
  END IF
  IF carray(3) > 1 THEN
-  smartarrows tptr, 1, 0, bslot(), bat.targ, spred
+  smartarrows 1, 0, bslot(), bat.targ, spred
  END IF
 END IF
 IF carray(4) > 1 THEN GOSUB gottarg
 RETRACE
 
 gottarg: '-----------------------------------------------------------------
-bat.targ.selected(tptr) = 1
+bat.targ.selected(bat.targ.pointer) = 1
 o = 0
 FOR i = 0 TO 11
  IF bat.targ.selected(i) = 1 THEN
@@ -1727,7 +1727,7 @@ IF vic.state = 0 THEN 'only display interface till you win
   END IF
   IF ptarg > 0 THEN
    FOR i = 0 TO 11
-    IF bat.targ.selected(i) = 1 OR tptr = i THEN
+    IF bat.targ.selected(i) = 1 OR bat.targ.pointer = i THEN
      edgeprint CHR$(24), bslot(i).x + (bslot(i).w / 2) - 4, bslot(i).y - 6, uilook(uiSelectedItem + tog), dpage
      edgeprint bslot(i).name, xstring(bslot(i).name, bslot(i).x + (bslot(i).w / 2)), bslot(i).y - 16, uilook(uiSelectedItem + tog), dpage
     END IF
@@ -2545,7 +2545,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebit
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), BYREF ptarg AS INTEGER, ltarg())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
@@ -2598,9 +2598,9 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
    IF bat.targ.mask(deadguy) = 1 THEN bat.targ.mask(deadguy) = 0
    IF bat.targ.selected(deadguy) = 1 THEN bat.targ.selected(deadguy) = 0
   NEXT j
-  IF tptr = deadguy THEN
-   WHILE bat.targ.mask(tptr) = 0
-    tptr = tptr + 1: IF tptr > 11 THEN ptarg = 0: EXIT SUB
+  IF bat.targ.pointer = deadguy THEN
+   WHILE bat.targ.mask(bat.targ.pointer) = 0
+    bat.targ.pointer = bat.targ.pointer + 1: IF bat.targ.pointer > 11 THEN ptarg = 0: EXIT SUB
    WEND
   END IF
  END IF  '----END ONLY WHEN bat.targ.hit_dead = NO
