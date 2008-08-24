@@ -30,7 +30,7 @@ DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), ltarg())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_targetting (BYREF bat AS BattleState)
@@ -59,7 +59,7 @@ bstackstart = stackpos
 battle = 1
 DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24),  p(24), of(24), ctr(11)
 DIM menu$(3, 5), menubits(2), mend(3), itemd$, spel$(23), speld$(23), spel(23), cost$(23), delay(11), cycle(24), walk(3), aframe(11, 11)
-DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), iuse(15), icons(11), ebits(40), ltarg(11), lifemeter(3), revengeharm(11), repeatharm(11), prtimer(11,1), spelmask(1)
+DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), iuse(15), icons(11), ebits(40), lifemeter(3), revengeharm(11), repeatharm(11), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
 DIM bat AS BattleState
 DIM bslot(24) AS BattleSprite
@@ -532,7 +532,9 @@ FOR i = 12 TO 23
 NEXT i
 tcount = -1: pdir = 0: conmp = 1
 IF is_enemy(bat.acting) THEN pdir = 1
-ltarg(bat.acting) = 0
+FOR i = 0 TO 11
+ bslot(bat.acting).keep_dead_targs(i) = NO
+NEXT i
 'CANNOT HIT INVISIBLE FOES
 FOR i = 0 TO 11
  IF bslot(bat.acting).t(i) > -1 THEN
@@ -1341,7 +1343,9 @@ NEXT i
 loadattackdata buffer(), bslot(bat.hero_turn).attack - 1
 
 bat.targ.hit_dead = NO
-ltarg(bat.hero_turn) = 0
+FOR i = 0 to 11
+ bslot(bat.hero_turn).keep_dead_targs(i) = NO
+NEXT i
 
 get_valid_targs bat.targ.mask(), bat.hero_turn, buffer(), bslot(), bstat()
 bat.targ.hit_dead = attack_can_hit_dead(bat.hero_turn, buffer())
@@ -1390,7 +1394,7 @@ FOR deadguy = 4 TO 11
  END IF
 NEXT
 FOR deadguy = 0 TO 11
- check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits(), ebits(), ltarg()
+ check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits(), ebits()
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -1597,7 +1601,7 @@ o = 0
 FOR i = 0 TO 11
  IF bat.targ.selected(i) = 1 THEN
   bslot(bat.hero_turn).t(o) = i: o = o + 1
-  IF bat.targ.hit_dead THEN setbit ltarg(), bat.hero_turn, i, 1
+  IF bat.targ.hit_dead THEN bslot(bat.hero_turn).keep_dead_targs(i) = YES
  END IF
 NEXT i
 ctr(bat.hero_turn) = 0
@@ -2539,7 +2543,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebit
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), ltarg())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
@@ -2582,7 +2586,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
    bslot(j).t(12) = -1
    FOR k = 0 TO 11
     '--sort dead target away
-    IF bslot(j).t(k) = deadguy AND readbit(ltarg(), j, deadguy) = 0 THEN SWAP bslot(j).t(k), bslot(j).t(k + 1)
+    IF bslot(j).t(k) = deadguy AND bslot(j).keep_dead_targs(deadguy) = NO THEN SWAP bslot(j).t(k), bslot(j).t(k + 1)
    NEXT k
    IF bslot(j).t(0) = -1 AND bat.acting <> j AND bslot(j).attack > 0 THEN
     'if no targets left, auto-re-target

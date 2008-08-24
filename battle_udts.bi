@@ -41,6 +41,7 @@ TYPE BattleSprite
   revengemask(11) AS INTEGER  'YES for each hero or enemy who has damaged this hero/enemy at least once, otherwise NO
   last_targs(11) AS INTEGER   'YES for each target previously hit by this hero/enemy, otherwise NO
   stored_targs(11) AS INTEGER 'YES for each stored target for ths hero/enemy, otherwise NO
+  keep_dead_targs(11) AS INTEGER 'YES to mark targets of attacks that can target the dead (used in sorting of .t)
 END TYPE
 
 UNION BattleStatsSingle
