@@ -25,7 +25,7 @@ declare sub etwitch (who, atk(), bslot() as battlesprite)
 declare function getweaponpos(w,f,isy)'or x?
 declare function getheropos(h,f,isy)'or x?
 declare sub heroanim (who, atk(), bslot() as battlesprite)
-declare function inflict (w, t, bstat() AS BattleStats, bslot() as battlesprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revengemask(), targmem(), revengeharm(), repeatharm())
+declare function inflict (w, t, bstat() AS BattleStats, bslot() as battlesprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), targmem(), revengeharm(), repeatharm())
 declare function liveherocount (bstat() AS BattleStats)
 declare sub loadfoe (i, formdata(), es(), BYREF bat AS BattleState, bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), BYREF rew AS RewardsState, allow_dead = NO)
 declare function randomally (who)
@@ -46,9 +46,9 @@ declare sub giveheroexperience (i, exstat(), exper&)
 declare function visibleandalive (o, bstat() AS BattleStats, bslot() as battlesprite)
 declare sub writestats (exstat(), bstat() AS BattleStats)
 
-declare sub get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, revengemask(), targmem())
+declare sub get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, targmem())
 declare function attack_can_hit_dead(who, atkbuf())
-declare sub autotarget (who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, revengemask(), targmem())
+declare sub autotarget (who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, targmem())
 declare function find_preferred_target(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
 
 #ENDIF

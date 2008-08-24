@@ -433,7 +433,7 @@ END IF
 
 END SUB
 
-FUNCTION inflict (w, t, bstat() AS BattleStats, bslot() AS BattleSprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revengemask(), targmem(), revengeharm(), repeatharm())
+FUNCTION inflict (w, t, bstat() AS BattleStats, bslot() AS BattleSprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), targmem(), revengeharm(), repeatharm())
 
 DIM tbits(4)
 DIM h = 0
@@ -664,7 +664,7 @@ IF atk(5) <> 4 THEN
 
  'remember revenge data
  IF remtargstat > bstat(t).cur.sta(targstat) THEN
-  setbit revengemask(), t, w, 1
+  bslot(t).revengemask(w) = YES
   bslot(t).revenge = w
   revengeharm(t) = remtargstat - bstat(t).cur.sta(targstat)
   repeatharm(w) = remtargstat - bstat(t).cur.sta(targstat)
@@ -1115,7 +1115,7 @@ FOR i = 0 TO 3
 NEXT i
 END SUB
 
-SUB get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, revengemask(), targmem())
+SUB get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, targmem())
 
 DIM i AS INTEGER
 
@@ -1170,7 +1170,9 @@ SELECT CASE atkbuf(3)
 
  CASE 7 'revenge-all
   FOR i = 0 TO 11
-   tmask(i) = (readbit(revengemask(), who, i) AND bslot(i).vis)
+   IF bslot(who).revengemask(i) = YES AND bslot(i).vis <> 0 THEN
+    tmask(i) = 1
+   END IF
   NEXT i
 
  CASE 8 'previous
@@ -1228,14 +1230,14 @@ END SELECT
 RETURN NO
 END FUNCTION
 
-SUB autotarget (who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, revengemask(), targmem())
+SUB autotarget (who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, targmem())
 
 DIM tmask(11) ' A list of true/false values indicating
               ' which targets are valid for the currently targetting attack
 
 DIM i AS INTEGER
 
-get_valid_targs tmask(), who, atkbuf(), bslot(), bstat(), revengemask(), targmem()
+get_valid_targs tmask(), who, atkbuf(), bslot(), bstat(), targmem()
 
 'flush the targeting space for this attacker
 FOR i = 0 TO 11

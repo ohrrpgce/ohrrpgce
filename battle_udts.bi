@@ -38,6 +38,7 @@ TYPE BattleSprite
   attack AS INTEGER ' ID number +1 of the attack that this hero or enemy is going to do next
   t(12) AS INTEGER  ' Currently selected target slots. -1 means no target. Targets must be sorted to the beginning if the list changes 
   revenge AS INTEGER ' ID of last hero or enemy who damaged this hero or enemy, or -1 for none
+  revengemask(11) AS INTEGER 'YES for each hero or enemy who has damaged this hero/enemy at least once, otherwise NO
 END TYPE
 
 UNION BattleStatsSingle
