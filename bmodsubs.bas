@@ -1228,9 +1228,14 @@ END SELECT
 RETURN NO
 END FUNCTION
 
-SUB autotarget (tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
+SUB autotarget (who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats, revenge(), revengemask(), targmem())
+
+DIM tmask(11) ' A list of true/false values indicating
+              ' which targets are valid for the currently targetting attack
 
 DIM i AS INTEGER
+
+get_valid_targs tmask(), who, atkbuf(), bslot(), bstat(), revenge(), revengemask(), targmem()
 
 'flush the targeting space for this attacker
 FOR i = 0 TO 11
