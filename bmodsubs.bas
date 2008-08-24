@@ -748,6 +748,12 @@ IF formdata(i * 4) > 0 THEN
   .hero_untargetable = readbit(ebits(), i * 5, 61)
   .enemy_untargetable = readbit(ebits(), i * 5, 60)
   .death_sfx = es(i, 24)
+  .revenge = -1
+  FOR o = 0 TO 11
+   .revengemask(o) = NO
+   .last_targs(o) = NO
+   .stored_targs(o) = NO
+  NEXT o
  END WITH
 END IF
 IF bslot(4 + i).vis = 1 THEN
