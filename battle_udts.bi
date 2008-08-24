@@ -75,7 +75,9 @@ END TYPE
 
 'This type stores the state of target selection.
 TYPE TargettingState
- hit_dead AS INTEGER 'YES if this is a "Life" spell, or NO for all other attacks
+  hit_dead AS INTEGER 'YES if this is a "Life" spell, or NO for all other attacks
+  mask(11) AS INTEGER 'For the currently targetting hero, a list of true/false values indicating
+                      'which targets are valid for the currently targetting attack
 END TYPE
 
 'This type stores the state of the battle engine, for example,

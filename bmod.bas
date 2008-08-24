@@ -30,7 +30,7 @@ DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), targs())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_targetting (BYREF bat AS BattleState)
@@ -59,8 +59,7 @@ bstackstart = stackpos
 battle = 1
 DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24),  p(24), of(24), ctr(11)
 DIM menu$(3, 5), menubits(2), mend(3), itemd$, spel$(23), speld$(23), spel(23), cost$(23), delay(11), cycle(24), walk(3), aframe(11, 11)
-DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), iuse(15), icons(11), ebits(40), ltarg(11), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11 _
-), targmem(23), prtimer(11,1), spelmask(1)
+DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), iuse(15), icons(11), ebits(40), ltarg(11), lifemeter(3), revenge(11), revengemask(11), revengeharm(11), repeatharm(11), targmem(23), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
 DIM bat AS BattleState
 DIM bslot(24) AS BattleSprite
@@ -75,10 +74,8 @@ DIM rew AS RewardsState
 DIM tcount AS INTEGER 'FIXME: This is used locally in atkscript and action GOSUB blocks. Move DIMs there when those are SUBified
 DIM atktype(8) AS INTEGER 'FIXME: this used locally in sponhit: move the DIM there when SUBifiying it
 
-DIM tmask(11) ' For the currently targetting hero, a list of true/false values indicating
-              ' which targets are valid for the currently targetting attack
 DIM targs(11) ' For the currently targetting hero, a list of true/false valuse indicating
-              ' which targets from tmask() are currently selected.
+              ' which targets from bat.targ.mask() are currently selected.
 
 timinga = 0
 timingb = 0
@@ -1353,7 +1350,7 @@ loadattackdata buffer(), bslot(bat.hero_turn).attack - 1
 bat.targ.hit_dead = NO
 ltarg(bat.hero_turn) = 0
 
-get_valid_targs tmask(), bat.hero_turn, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
+get_valid_targs bat.targ.mask(), bat.hero_turn, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
 bat.targ.hit_dead = attack_can_hit_dead(bat.hero_turn, buffer())
 
 '--attacks that can target all should default to the first enemy
@@ -1362,7 +1359,7 @@ IF buffer(3) = 3 THEN
 END IF
 
 'fail if there are no targets
-IF targetmaskcount(tmask()) = 0 THEN
+IF targetmaskcount(bat.targ.mask()) = 0 THEN
  ptarg = 0
  RETRACE
 END IF
@@ -1374,19 +1371,19 @@ IF readbit(buffer(), 20, 54) THEN
 END IF
 
 IF buffer(4) = 0 THEN aim = 1
-IF buffer(4) = 1 THEN FOR i = 0 TO 11: targs(i) = tmask(i): NEXT i
+IF buffer(4) = 1 THEN FOR i = 0 TO 11: targs(i) = bat.targ.mask(i): NEXT i
 IF buffer(4) = 2 THEN aim = 1: spred = 1
 IF buffer(4) = 3 THEN randomtarg = -1
 IF buffer(4) = 4 THEN firsttarg = -1
 
-tptr = find_preferred_target(tmask(), bat.hero_turn, buffer(), bslot(), bstat())
+tptr = find_preferred_target(bat.targ.mask(), bat.hero_turn, buffer(), bslot(), bstat())
 'fail if no targets are found
 IF tptr = -1 THEN
  ptarg = 0
  RETRACE
 END IF
 
-'ready to choose targs() from tmask()
+'ready to choose targs() from bat.targ.mask()
 ptarg = 2
 RETRACE
 
@@ -1400,7 +1397,7 @@ FOR deadguy = 4 TO 11
  END IF
 NEXT
 FOR deadguy = 0 TO 11
- check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits(), ebits(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), tmask(), targs()
+ check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits(), ebits(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), targs()
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -1555,7 +1552,7 @@ IF ptarg = 3 THEN
  RETRACE
 END IF
 
-IF targetmaskcount(tmask()) = 0 THEN
+IF targetmaskcount(bat.targ.mask()) = 0 THEN
  RETRACE
 END IF
 
@@ -1563,7 +1560,7 @@ END IF
 IF randomtarg THEN
  FOR i = 0 TO INT(RND * 2)
   tptr = loopvar(tptr, 0, 11, 1)
-  WHILE tmask(tptr) = 0
+  WHILE bat.targ.mask(tptr) = 0
    tptr = loopvar(tptr, 0, 11, 1)
   WEND
  NEXT i
@@ -1572,7 +1569,7 @@ END IF
 'first target
 IF firsttarg THEN
  tptr = 0
- WHILE tmask(tptr) = 0
+ WHILE bat.targ.mask(tptr) = 0
   tptr = loopvar(tptr, 0, 11, 1)
  WEND
 END IF
@@ -1586,16 +1583,16 @@ IF spred = 2 AND (carray(2) > 1 OR carray(3) > 1) AND randomtarg = 0 AND firstta
 END IF
 IF aim = 1 AND spred < 2 AND randomtarg = 0 AND firsttarg = 0 THEN
  IF carray(0) > 1 THEN
-  smartarrows tptr, -1, 1, bslot(), targs(), tmask(), 0
+  smartarrows tptr, -1, 1, bslot(), targs(), bat.targ.mask(), 0
  END IF
  IF carray(1) > 1 THEN
-  smartarrows tptr, 1, 1, bslot(), targs(), tmask(), 0
+  smartarrows tptr, 1, 1, bslot(), targs(), bat.targ.mask(), 0
  END IF
  IF carray(2) > 1 THEN
-  smartarrows tptr, -1, 0, bslot(), targs(), tmask(), spred
+  smartarrows tptr, -1, 0, bslot(), targs(), bat.targ.mask(), spred
  END IF
  IF carray(3) > 1 THEN
-  smartarrows tptr, 1, 0, bslot(), targs(), tmask(), spred
+  smartarrows tptr, 1, 0, bslot(), targs(), bat.targ.mask(), spred
  END IF
 END IF
 IF carray(4) > 1 THEN GOSUB gottarg
@@ -1941,7 +1938,7 @@ FOR i = 0 TO 11
  IF is_hero(i) THEN c = uilook(uiSelectedItem)
  rectangle 0, 80 + (i * 10), ctr(i) / 10, 4, c, dpage
  IF is_enemy(i) THEN edgeprint XSTR$(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
- info$ = "v=" & bslot(i).vis & " dly=" & delay(i) & " tm=" & tmask(i) & " hp=" & bstat(i).cur.hp & " dis=" & bslot(i).dissolve
+ info$ = "v=" & bslot(i).vis & " dly=" & delay(i) & " tm=" & bat.targ.mask(i) & " hp=" & bstat(i).cur.hp & " dis=" & bslot(i).dissolve
  IF is_enemy(i) THEN  info$ = info$ & " fm=" & formdata((i-4)*4) 
  edgeprint info$, 20, 80 + i * 10, c, dpage
 NEXT i
@@ -2549,7 +2546,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebit
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), tmask(), targs())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), targs())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
@@ -2599,11 +2596,11 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
     loadattackdata buffer(), bslot(j).attack - 1
     autotarget j, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
    END IF
-   IF tmask(deadguy) = 1 THEN tmask(deadguy) = 0
+   IF bat.targ.mask(deadguy) = 1 THEN bat.targ.mask(deadguy) = 0
    IF targs(deadguy) = 1 THEN targs(deadguy) = 0
   NEXT j
   IF tptr = deadguy THEN
-   WHILE tmask(tptr) = 0
+   WHILE bat.targ.mask(tptr) = 0
     tptr = tptr + 1: IF tptr > 11 THEN ptarg = 0: EXIT SUB
    WEND
   END IF
