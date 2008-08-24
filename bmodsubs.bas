@@ -854,9 +854,9 @@ battlecaptime = captime
 battlecapdelay = capdelay
 END SUB
 
-SUB smartarrowmask (inrange(), pt, d, axis, bslot() AS BattleSprite, tmask())
+SUB smartarrowmask (inrange(), pt, d, axis, bslot() AS BattleSprite, targ AS TargettingState)
 FOR i = 0 TO 11
- IF tmask(i) THEN
+ IF targ.mask(i) THEN
   IF axis THEN
    distance = (bslot(i).y - bslot(pt).y) * d
   ELSE
@@ -869,10 +869,10 @@ FOR i = 0 TO 11
 NEXT i
 END SUB
 
-SUB smartarrows (pt, d, axis, bslot() AS BattleSprite, targ(), tmask(), spred)
+SUB smartarrows (pt, d, axis, bslot() AS BattleSprite, targ AS TargettingState, spred)
 DIM inrange(0)
 inrange(0) = 0
-smartarrowmask inrange(), pt, d, axis, bslot(), tmask()
+smartarrowmask inrange(), pt, d, axis, bslot(), targ
 IF inrange(0) THEN
  best = 999
  newptr = pt
@@ -893,7 +893,7 @@ IF inrange(0) THEN
 ELSE
  IF spred = 1 THEN
   FOR i = 0 TO 11
-   targ(i) = tmask(i)
+   targ.selected(i) = targ.mask(i)
   NEXT i
   spred = 2
  END IF

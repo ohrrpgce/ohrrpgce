@@ -1580,16 +1580,16 @@ IF spred = 2 AND (carray(2) > 1 OR carray(3) > 1) AND randomtarg = 0 AND firstta
 END IF
 IF aim = 1 AND spred < 2 AND randomtarg = 0 AND firsttarg = 0 THEN
  IF carray(0) > 1 THEN
-  smartarrows tptr, -1, 1, bslot(), bat.targ.selected(), bat.targ.mask(), 0
+  smartarrows tptr, -1, 1, bslot(), bat.targ, 0
  END IF
  IF carray(1) > 1 THEN
-  smartarrows tptr, 1, 1, bslot(), bat.targ.selected(), bat.targ.mask(), 0
+  smartarrows tptr, 1, 1, bslot(), bat.targ, 0
  END IF
  IF carray(2) > 1 THEN
-  smartarrows tptr, -1, 0, bslot(), bat.targ.selected(), bat.targ.mask(), spred
+  smartarrows tptr, -1, 0, bslot(), bat.targ, spred
  END IF
  IF carray(3) > 1 THEN
-  smartarrows tptr, 1, 0, bslot(), bat.targ.selected(), bat.targ.mask(), spred
+  smartarrows tptr, 1, 0, bslot(), bat.targ, spred
  END IF
 END IF
 IF carray(4) > 1 THEN GOSUB gottarg
