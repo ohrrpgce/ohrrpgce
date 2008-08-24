@@ -30,7 +30,7 @@ DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, ebits(), BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebits())
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), targs())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_targetting (BYREF bat AS BattleState)
@@ -73,9 +73,6 @@ DIM nmenu(3,5) as integer 'new battle menu
 DIM rew AS RewardsState
 DIM tcount AS INTEGER 'FIXME: This is used locally in atkscript and action GOSUB blocks. Move DIMs there when those are SUBified
 DIM atktype(8) AS INTEGER 'FIXME: this used locally in sponhit: move the DIM there when SUBifiying it
-
-DIM targs(11) ' For the currently targetting hero, a list of true/false valuse indicating
-              ' which targets from bat.targ.mask() are currently selected.
 
 timinga = 0
 timingb = 0
@@ -1340,7 +1337,7 @@ randomtarg = 0
 firsttarg = 0
 tptr = 0
 FOR i = 0 TO 11
- targs(i) = 0 ' clear list of selected targets
+ bat.targ.selected(i) = 0 ' clear list of selected targets
  bslot(bat.hero_turn).t(i) = -1 'clear list of confirmed targets
 NEXT i
 
@@ -1371,7 +1368,7 @@ IF readbit(buffer(), 20, 54) THEN
 END IF
 
 IF buffer(4) = 0 THEN aim = 1
-IF buffer(4) = 1 THEN FOR i = 0 TO 11: targs(i) = bat.targ.mask(i): NEXT i
+IF buffer(4) = 1 THEN FOR i = 0 TO 11: bat.targ.selected(i) = bat.targ.mask(i): NEXT i
 IF buffer(4) = 2 THEN aim = 1: spred = 1
 IF buffer(4) = 3 THEN randomtarg = -1
 IF buffer(4) = 4 THEN firsttarg = -1
@@ -1383,7 +1380,7 @@ IF tptr = -1 THEN
  RETRACE
 END IF
 
-'ready to choose targs() from bat.targ.mask()
+'ready to choose bat.targ.selected() from bat.targ.mask()
 ptarg = 2
 RETRACE
 
@@ -1397,7 +1394,7 @@ FOR deadguy = 4 TO 11
  END IF
 NEXT
 FOR deadguy = 0 TO 11
- check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits(), ebits(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg(), targs()
+ check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits(), ebits(), revenge(), revengemask(), targmem(), tptr, ptarg, ltarg()
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -1576,33 +1573,33 @@ END IF
 
 IF spred = 2 AND (carray(2) > 1 OR carray(3) > 1) AND randomtarg = 0 AND firsttarg = 0 THEN
  FOR i = 0 TO 11
-  targs(i) = 0
+  bat.targ.selected(i) = 0
  NEXT i
  spred = 1
  flusharray carray(), 7, 0
 END IF
 IF aim = 1 AND spred < 2 AND randomtarg = 0 AND firsttarg = 0 THEN
  IF carray(0) > 1 THEN
-  smartarrows tptr, -1, 1, bslot(), targs(), bat.targ.mask(), 0
+  smartarrows tptr, -1, 1, bslot(), bat.targ.selected(), bat.targ.mask(), 0
  END IF
  IF carray(1) > 1 THEN
-  smartarrows tptr, 1, 1, bslot(), targs(), bat.targ.mask(), 0
+  smartarrows tptr, 1, 1, bslot(), bat.targ.selected(), bat.targ.mask(), 0
  END IF
  IF carray(2) > 1 THEN
-  smartarrows tptr, -1, 0, bslot(), targs(), bat.targ.mask(), spred
+  smartarrows tptr, -1, 0, bslot(), bat.targ.selected(), bat.targ.mask(), spred
  END IF
  IF carray(3) > 1 THEN
-  smartarrows tptr, 1, 0, bslot(), targs(), bat.targ.mask(), spred
+  smartarrows tptr, 1, 0, bslot(), bat.targ.selected(), bat.targ.mask(), spred
  END IF
 END IF
 IF carray(4) > 1 THEN GOSUB gottarg
 RETRACE
 
 gottarg: '-----------------------------------------------------------------
-targs(tptr) = 1
+bat.targ.selected(tptr) = 1
 o = 0
 FOR i = 0 TO 11
- IF targs(i) = 1 THEN
+ IF bat.targ.selected(i) = 1 THEN
   bslot(bat.hero_turn).t(o) = i: o = o + 1
   IF bat.targ.hit_dead THEN setbit ltarg(), bat.hero_turn, i, 1
  END IF
@@ -1728,7 +1725,7 @@ IF vic.state = 0 THEN 'only display interface till you win
   END IF
   IF ptarg > 0 THEN
    FOR i = 0 TO 11
-    IF targs(i) = 1 OR tptr = i THEN
+    IF bat.targ.selected(i) = 1 OR tptr = i THEN
      edgeprint CHR$(24), bslot(i).x + (bslot(i).w / 2) - 4, bslot(i).y - 6, uilook(uiSelectedItem + tog), dpage
      edgeprint bslot(i).name, xstring(bslot(i).name, bslot(i).x + (bslot(i).w / 2)), bslot(i).y - 16, uilook(uiSelectedItem + tog), dpage
     END IF
@@ -2546,7 +2543,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite, ebit
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg(), targs())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits(), ebits(), revenge(), revengemask(), targmem(), BYREF tptr AS INTEGER, BYREF ptarg AS INTEGER, ltarg())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
@@ -2597,7 +2594,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
     autotarget j, buffer(), bslot(), bstat(), revenge(), revengemask(), targmem()
    END IF
    IF bat.targ.mask(deadguy) = 1 THEN bat.targ.mask(deadguy) = 0
-   IF targs(deadguy) = 1 THEN targs(deadguy) = 0
+   IF bat.targ.selected(deadguy) = 1 THEN bat.targ.selected(deadguy) = 0
   NEXT j
   IF tptr = deadguy THEN
    WHILE bat.targ.mask(tptr) = 0
