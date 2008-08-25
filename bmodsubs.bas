@@ -610,7 +610,7 @@ IF atk(5) <> 4 THEN
  END IF
 
  IF readbit(atk(), 20, 0) = 1 THEN h = ABS(h) * -1 'cure bit
- IF readbit(tbits(), 0, 54) THEN h = ABS(h)        'zombie
+ IF bslot(t).harmed_by_cure = YES THEN h = ABS(h)  'zombie
  IF cure = 1 THEN h = ABS(h) * -1                  'elemental absorb
 
  IF readbit(atk(), 65, 5) = 0 THEN
@@ -700,7 +700,7 @@ liveherocount = i
 END FUNCTION
 
 SUB loadfoe (i, formdata(), es(), BYREF bat AS BattleState, bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead = NO)
-DIM tempbits(1) AS INTEGER
+DIM tempbits(4) AS INTEGER ' This is a hack because readbit doesn't work on double-index arrays
 IF formdata(i * 4) > 0 THEN
  loadenemydata buffer(), formdata(i * 4) - 1, -1
  FOR o = 0 TO 160
@@ -779,21 +779,24 @@ IF bslot(4 + i).vis = 1 THEN
  FOR o = 0 TO 4
   bits(4 + i, o) = es(i, 74 + o)
  NEXT o
- 'Copy elemental bits from es() to bslot()
- tempbits(0) = es(i, 74 + o)
- tempbits(1) = es(i, 75 + o)
- FOR o = 0 TO 7
-  WITH bslot(4 + i)
+ 'Copy elemental bits and other bits from es() to bslot()
+ FOR o = 0 TO 4
+  tempbits(o) = es(i, 74 + o)
+ NEXT o
+ WITH bslot(4 + i)
+  .harmed_by_cure = NO
+  IF readbit(tempbits(), 0, 54) <> 0 THEN .harmed_by_cure = YES
+  FOR o = 0 TO 7
    .weak(o) = NO
    .strong(o) = NO
    .absorb(o) = NO
    .enemytype(o) = NO
-   IF readbit(tempbits(0), 0, o)     <> 0 THEN .weak(o) = YES
-   IF readbit(tempbits(0), 0, 8 + o) <> 0 THEN .strong(o) = YES
-   IF readbit(tempbits(0), 0, 16 + o)<> 0 THEN .absorb(o) = YES
-   IF readbit(tempbits(0), 0, 24 + o)<> 0 THEN .enemytype(o) = YES
-  END WITH
- NEXT o
+   IF readbit(tempbits(), 0, o)     <> 0 THEN .weak(o) = YES
+   IF readbit(tempbits(), 0, 8 + o) <> 0 THEN .strong(o) = YES
+   IF readbit(tempbits(), 0, 16 + o)<> 0 THEN .absorb(o) = YES
+   IF readbit(tempbits(), 0, 24 + o)<> 0 THEN .enemytype(o) = YES
+  NEXT o
+ END WITH
  bslot(4 + i).name = ""
  FOR o = 1 TO es(i, 0)
   bslot(4 + i).name = bslot(4 + i).name + CHR$(es(i, o))

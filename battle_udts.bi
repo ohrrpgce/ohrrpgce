@@ -46,6 +46,7 @@ TYPE BattleSprite
   strong(7) AS INTEGER    'YES/NO for strength to each element
   absorb(7) AS INTEGER    'YES/NO to absorb each element
   enemytype(7) AS INTEGER 'YES/NO for membership in each enemy type
+  harmed_by_cure AS INTEGER 'YES/NO
   ebits(4) AS INTEGER 'Enemy bitsets. All zero if this is a hero
 END TYPE
 
