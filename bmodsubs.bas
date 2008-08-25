@@ -713,6 +713,10 @@ IF formdata(i * 4) > 0 THEN
  WITH bslot(4 + i)
   .harmed_by_cure = xreadbit(tempbits(), 54)
   .mp_idiot = xreadbit(tempbits(), 55)
+  .is_boss = xreadbit(tempbits(), 56)
+  .unescapable = xreadbit(tempbits(), 57)
+  .die_without_boss = xreadbit(tempbits(), 58)
+  .flee_instead_of_die = xreadbit(tempbits(), 59)
   FOR o = 0 TO 7
    .weak(o) = xreadbit(tempbits(), o)
    .strong(o) = xreadbit(tempbits(), 8 + o)

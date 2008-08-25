@@ -2273,7 +2273,7 @@ END SUB
 FUNCTION checkNoRunBit (bstat() AS BattleStats, bslot() AS BattleSprite)
  DIM i AS INTEGER
  FOR i = 4 TO 11
-  IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND readbit(bslot(i).ebits(), 0, 57) = 1 THEN RETURN 1
+  IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND bslot(i).unescapable = YES THEN RETURN 1
  NEXT i
  RETURN 0
 END FUNCTION
@@ -2498,7 +2498,7 @@ FUNCTION dieWOboss(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite)
  '--count bosses
  FOR j = 4 TO 11
   '--is it a boss?
-  IF readbit(bslot(j).ebits(), 0, 56) = 1 THEN
+  IF bslot(j).is_boss = YES THEN
    '-- is it alive?
    IF bstat(j).cur.hp > 0 THEN
     RETURN NO
@@ -2507,7 +2507,7 @@ FUNCTION dieWOboss(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite)
  NEXT j
  '--if there are no bossess...
  '--should it die without a boss?
- IF readbit(bslot(who).ebits(), 0, 58) = 1 THEN
+ IF bslot(who).die_without_boss = YES THEN
   bstat(who).cur.hp = 0
   RETURN YES
  END IF
@@ -2525,7 +2525,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite)
   end if
   IF is_enemy(who) THEN
    '--flee as alternative to death
-   IF readbit(bslot(who).ebits(), 0, 59) = 1 THEN
+   IF bslot(who).flee_instead_of_die = YES THEN
     bslot(who).flee = 1
     'the number of ticks it takes an enemy to run away is based on its distance
     'from the left side of the screen and its width. Enemys flee at 10 pixels per tick

@@ -51,6 +51,10 @@ TYPE BattleSprite
   enemytype(7)   AS INTEGER 'YES/NO for membership in each enemy type
   harmed_by_cure AS INTEGER 'YES/NO
   mp_idiot       AS INTEGER 'YES/NO for turn loss when using MP-consuming attacks after MP runs out
+  is_boss        AS INTEGER 'YES/NO
+  unescapable    AS INTEGER 'YES/NO
+  die_without_boss    AS INTEGER 'YES/NO
+  flee_instead_of_die AS INTEGER 'YES/NO
   ebits(4)       AS INTEGER 'Enemy bitsets. All zero if this is a hero
 END TYPE
 
