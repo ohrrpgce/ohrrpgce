@@ -28,9 +28,9 @@ DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTE
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
-DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, p(), bstat() AS BattleStats, BYREF rew AS RewardsState)
+DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite)
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_targetting (BYREF bat AS BattleState)
@@ -44,8 +44,6 @@ DECLARE SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState
 DIM as string battlecaption
 dim as integer battlecaptime, battlecapdelay, bstackstart, learnmask(245) '6 shorts of bits per hero
 
-dim shared battle_draw_style as integer = 0'0 = new, 1 = old
-
 REM $STATIC
 FUNCTION battle (form, fatal, exstat())
 
@@ -57,7 +55,7 @@ lastformation = form
 bstackstart = stackpos
 
 battle = 1
-DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24),  p(24), of(24), ctr(11)
+DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24), of(24), ctr(11)
 DIM menu$(3, 5), menubits(2), mend(3), itemd$, spel$(23), speld$(23), spel(23), cost$(23), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), iuse(15), icons(11), lifemeter(3), revengeharm(11), repeatharm(11), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
@@ -161,7 +159,6 @@ DO
   IF keyval(62) > 1 THEN away = 11 ' Instant-cheater-running
   IF keyval(63) > 1 THEN rew.exper = 1000000  'Million experience!
   IF keyval(87) > 1 THEN vis = vis XOR 1  'Draw debug info
-  IF keyval(41) > 1 THEN battle_draw_style = (battle_draw_style + 1) mod 2 'Switch between old and new sprite code
  END IF
  IF keyval(69) > 1 THEN GOSUB pgame '--PAUSE
  '--running away
@@ -329,7 +326,7 @@ IF ai = 2 AND es(bat.enemy_turn - 4, 81) THEN
   slot = find_empty_enemy_slot(formdata())
   IF slot > -1 THEN
    formdata(slot * 4) = es(bat.enemy_turn - 4, 81)
-   loadfoe slot, formdata(), es(), bat, bslot(), p(), bstat(), rew
+   loadfoe slot, formdata(), es(), bat, bslot(), bstat(), rew
   END IF
  NEXT j
 END IF
@@ -507,14 +504,9 @@ IF icons(bat.acting) >= 0 THEN
 END IF
 '--load attack
 loadattackdata atk(), anim
-'--load picture
-setpicstuf buffer(), 3750, 3
-loadset game + ".pt6", atk(0), 144
 
 '--load palette
-getpal16 pal16(), 53, atk(1), 6, atk(0)
 FOR i = 12 TO 23
- p(i) = 53
  of(i) = 0
  cycle(i) = -1
  bslot(i).z = 0
@@ -569,11 +561,6 @@ NEXT i
 'DEBUG debug "begin script construction"
 IF is_hero(bat.acting) THEN
  'load weapon sprites
- setpicstuf buffer(), 576, 3
- loadset game + ".pt5" , exstat(bat.acting, 0, 13), 156
- p(24) = 52
- getpal16 pal16(), 52, exstat(bat.acting, 1, 13), 5, exstat(bat.acting, 0, 13)
- 
  with bslot(24)
   .sprite_num = 2
   sprite_unload @.sprites
@@ -1394,7 +1381,7 @@ FOR deadguy = 4 TO 11
  END IF
 NEXT
 FOR deadguy = 0 TO 11
- check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata(), p()
+ check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata()
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -1420,7 +1407,7 @@ FOR i = 0 TO 8
    slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(targ - 4, 82 + i)
-    loadfoe slot, formdata(), es(), bat, bslot(), p(), bstat(), rew
+    loadfoe slot, formdata(), es(), bat, bslot(), bstat(), rew
    END IF
   NEXT j
   EXIT FOR
@@ -1872,18 +1859,6 @@ FOR o = 1 TO 24
 NEXT
 FOR i = 0 TO 24
 	IF (bslot(zbuf(i)).vis = 1 OR bslot(zbuf(i)).dissolve > 0) THEN
-		if battle_draw_style = 1 then
-			temp = 64 + (zbuf(i) - 4) * 10
-			IF is_hero(zbuf(i)) THEN temp = zbuf(i) * 16
-			IF is_attack(zbuf(i)) THEN temp = 144
-			IF is_weapon(zbuf(i)) THEN temp = 156
-			loadsprite buffer(), 0, of(zbuf(i)) * (bslot(zbuf(i)).w * bslot(zbuf(i)).h * .5), temp, bslot(zbuf(i)).w, bslot(zbuf(i)).h, 3
-			IF bslot(zbuf(i)).d = 0 THEN
-				drawsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
-			ELSE
-				wardsprite buffer(), 0, pal16(), p(zbuf(i)) * 16, bslot(zbuf(i)).x, bslot(zbuf(i)).y - bslot(zbuf(i)).z, dpage
-			END IF
-		else
 			dim w as BattleSprite ptr
 			w = @bslot(zbuf(i))
 			with bslot(zbuf(i))
@@ -1916,7 +1891,6 @@ FOR i = 0 TO 24
 					sprite_unload(@spr)
 				end if
 			end with
-		end if
 	END IF
 NEXT i
 FOR i = 0 TO 11
@@ -2007,9 +1981,6 @@ FOR i = 0 TO 3
    newm += 1
   NEXT oldm
   
-  setpicstuf buffer(), 5120, 3
-  loadset game + ".pt0", exstat(i, 0, 14), i * 16
-  getpal16 pal16(), 40 + i, exstat(i, 0, 15), 0, exstat(i, 0, 14)
   WITH bslot(i)
    .basex = (240 + i * 8)
    .basey = (82 + i * 20)
@@ -2017,7 +1988,6 @@ FOR i = 0 TO 3
    .y =  .basey
    .w = 32
    .h = 40
-   p(i) = 40 + i
    .vis = 1
    'load hero sprites
    .sprite_num = 8
@@ -2058,7 +2028,7 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 FOR i = 0 TO 7
- loadfoe i, formdata(), es(), bat, bslot(), p(), bstat(), rew, YES
+ loadfoe i, formdata(), es(), bat, bslot(), bstat(), rew, YES
 NEXT i
 FOR i = 0 TO 11
  ctr(i) = INT(RND * 500)
@@ -2491,7 +2461,7 @@ FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
  RETURN count
 END FUNCTION
 
-SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, p(), bstat() AS BattleStats, BYREF rew AS RewardsState)
+SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState)
  'killing_attack is the id+1 of the attack that killed the target or 0 if the target died without a specific attack
  IF NOT is_enemy(deadguy) THEN EXIT SUB ' Only works for enemies
  DIM slot AS INTEGER
@@ -2501,7 +2471,7 @@ SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS B
    slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 80)
-    loadfoe(slot, formdata(), es(), bat, bslot(), p(), bstat(), rew)
+    loadfoe(slot, formdata(), es(), bat, bslot(), bstat(), rew)
    END IF
   NEXT i
   es(deadguy - 4, 80) = 0
@@ -2511,7 +2481,7 @@ SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS B
    slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 79)
-    loadfoe(slot, formdata(), es(), bat, bslot(), p(), bstat(), rew)
+    loadfoe(slot, formdata(), es(), bat, bslot(), bstat(), rew)
    END IF
   NEXT i
   es(deadguy - 4, 79) = 0
@@ -2569,7 +2539,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite)
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
@@ -2603,7 +2573,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   ELSEIF bslot(deadguy).death_sfx > 0 THEN
    playsfx bslot(deadguy).death_sfx - 1
   END IF
-  dead_enemy deadguy, bat, rew, bstat(), bslot(), es(), formdata(), p()
+  dead_enemy deadguy, bat, rew, bstat(), bslot(), es(), formdata()
  END IF'------------END PLUNDER-------------------
  IF bat.targ.hit_dead = NO THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
   FOR j = 0 TO 11
@@ -2630,12 +2600,12 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
  END IF  '----END ONLY WHEN bat.targ.hit_dead = NO
 END SUB
 
-SUB dead_enemy(deadguy AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p())
+SUB dead_enemy(deadguy AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata())
  '--give rewards, spawn enemies, clear formdata slot, but NO other cleanup!
  DIM AS INTEGER j
  DIM enemynum AS INTEGER = deadguy - 4
  '--spawn enemies before freeing the formdata slot to avoid infinite loops. however this might need to be changed to fix morphing enemies?
- spawn_on_death deadguy, 0, bat, es(), formdata(), bslot(), p(), bstat(), rew
+ spawn_on_death deadguy, 0, bat, es(), formdata(), bslot(), bstat(), rew
  IF formdata(enemynum * 4) > 0 THEN
   rew.plunder = rew.plunder + es(enemynum, 56)
   IF rew.plunder > 1000000000 THEN rew.plunder = 1000000000

@@ -694,7 +694,7 @@ NEXT o
 liveherocount = i
 END FUNCTION
 
-SUB loadfoe (i, formdata(), es(), BYREF bat AS BattleState, bslot() AS BattleSprite, p(), bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead = NO)
+SUB loadfoe (i, formdata(), es(), BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead = NO)
 DIM tempbits(4) AS INTEGER ' This is a hack because readbit doesn't work on double-index arrays
 IF formdata(i * 4) > 0 THEN
  loadenemydata buffer(), formdata(i * 4) - 1, -1
@@ -711,7 +711,7 @@ IF formdata(i * 4) > 0 THEN
    'rewards and spawn enemies on death
    'enemy is only partially constructed, but already have everything needed.
    DIM atktype(8) 'regular "spawn on death"
-   dead_enemy 4 + i, bat, rew, bstat(), bslot(), es(), formdata(), p()
+   dead_enemy 4 + i, bat, rew, bstat(), bslot(), es(), formdata()
    EXIT SUB
   END IF
  END IF
@@ -720,8 +720,6 @@ IF formdata(i * 4) > 0 THEN
   .basey = formdata(i * 4 + 2)
   .x = bslot(4 + i).basex
   .y = bslot(4 + i).basey
-  p(4 + i) = 44 + i
-  getpal16 pal16(), 44 + i, es(i, 54), 1 + es(i, 55), es(i, 53)
   .vis = 1
   .d = 0
   .dissolve = 0
@@ -753,11 +751,9 @@ IF formdata(i * 4) > 0 THEN
  END WITH
 END IF
 IF bslot(4 + i).vis = 1 THEN
- setpicstuf buffer(), (bslot(4 + i).w * bslot(4 + i).h) * .5, 3
  IF es(i, 55) = 0 THEN ext$ = ".pt1"
  IF es(i, 55) = 1 THEN ext$ = ".pt2"
  IF es(i, 55) = 2 THEN ext$ = ".pt3"
- loadset game + ext$, es(i, 53), 64 + i * 10
  with bslot(4 + i)
   .sprite_num = 1
   .sprites = sprite_load(game + ext$, es(i, 53), 1, .w, .h)

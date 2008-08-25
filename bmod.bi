@@ -38,5 +38,5 @@ DECLARE SUB anim_align2(who, target, edgex, edgey, offx, offy)
 DECLARE SUB anim_relmove(who, tox, toy, xspeed, yspeed)
 DECLARE SUB anim_setdir(who, d)
 DECLARE FUNCTION dieWOboss(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite)
-DECLARE SUB dead_enemy(deadguy AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p())
+DECLARE SUB dead_enemy(deadguy AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata())
 #ENDIF
