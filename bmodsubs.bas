@@ -433,9 +433,8 @@ END IF
 
 END SUB
 
-FUNCTION inflict (w, t, bstat() AS BattleStats, bslot() AS BattleSprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revengeharm(), repeatharm())
+FUNCTION inflict (w, t, bstat() AS BattleStats, bslot() AS BattleSprite, harm$(), hc(), hx(), hy(), atk(), tcount, revengeharm(), repeatharm())
 
-DIM tbits(4)
 DIM h = 0
 
 'failure by default
@@ -452,10 +451,6 @@ IF readbit(atk(), 20, 53) THEN
   bslot(w).stored_targs(i) = NO
  NEXT i
 END IF
-
-FOR i = 0 TO 4
- tbits(i) = bits(t, i)
-NEXT i
 
 'no damage
 IF atk(5) <> 4 THEN
@@ -699,7 +694,7 @@ NEXT o
 liveherocount = i
 END FUNCTION
 
-SUB loadfoe (i, formdata(), es(), BYREF bat AS BattleState, bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead = NO)
+SUB loadfoe (i, formdata(), es(), BYREF bat AS BattleState, bslot() AS BattleSprite, p(), bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead = NO)
 DIM tempbits(4) AS INTEGER ' This is a hack because readbit doesn't work on double-index arrays
 IF formdata(i * 4) > 0 THEN
  loadenemydata buffer(), formdata(i * 4) - 1, -1
@@ -716,7 +711,7 @@ IF formdata(i * 4) > 0 THEN
    'rewards and spawn enemies on death
    'enemy is only partially constructed, but already have everything needed.
    DIM atktype(8) 'regular "spawn on death"
-   dead_enemy 4 + i, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits()
+   dead_enemy 4 + i, bat, rew, bstat(), bslot(), es(), formdata(), p()
    EXIT SUB
   END IF
  END IF
@@ -774,10 +769,6 @@ IF bslot(4 + i).vis = 1 THEN
  FOR o = 0 TO 11
   bstat(4 + i).cur.sta(o) = es(i, 62 + o)
   bstat(4 + i).max.sta(o) = es(i, 62 + o)
- NEXT o
- 'Grab all bits (FIXME:this will go away later)
- FOR o = 0 TO 4
-  bits(4 + i, o) = es(i, 74 + o)
  NEXT o
  'Copy elemental bits and other bits from es() to bslot()
  FOR o = 0 TO 4

@@ -28,9 +28,9 @@ DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTE
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
-DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, BYREF rew AS RewardsState)
+DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, p(), bstat() AS BattleStats, BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite)
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p())
 DECLARE SUB checkitemusability(iuse() AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_targetting (BYREF bat AS BattleState)
@@ -59,7 +59,7 @@ bstackstart = stackpos
 battle = 1
 DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24),  p(24), of(24), ctr(11)
 DIM menu$(3, 5), menubits(2), mend(3), itemd$, spel$(23), speld$(23), spel(23), cost$(23), delay(11), cycle(24), walk(3), aframe(11, 11)
-DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), bits(11, 4), iuse(15), icons(11), lifemeter(3), revengeharm(11), repeatharm(11), prtimer(11,1), spelmask(1)
+DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), iuse(15), icons(11), lifemeter(3), revengeharm(11), repeatharm(11), prtimer(11,1), spelmask(1)
 DIM laststun AS DOUBLE
 DIM bat AS BattleState
 DIM bslot(24) AS BattleSprite
@@ -329,7 +329,7 @@ IF ai = 2 AND es(bat.enemy_turn - 4, 81) THEN
   slot = find_empty_enemy_slot(formdata())
   IF slot > -1 THEN
    formdata(slot * 4) = es(bat.enemy_turn - 4, 81)
-   loadfoe slot, formdata(), es(), bat, bslot(), p(), bits(), bstat(), rew
+   loadfoe slot, formdata(), es(), bat, bslot(), p(), bstat(), rew
   END IF
  NEXT j
 END IF
@@ -1103,7 +1103,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    'set tag, if there is one
    checkTagCond atk(60), 1, atk(59), atk(61)
    checkTagCond atk(63), 1, atk(62), atk(64)
-   IF inflict(bat.acting, targ, bstat(), bslot(), harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revengeharm(), repeatharm()) THEN
+   IF inflict(bat.acting, targ, bstat(), bslot(), harm$(), hc(), hx(), hy(), atk(), tcount, revengeharm(), repeatharm()) THEN
     '--attack succeeded
     IF readbit(atk(), 65, 12) THEN
      '--try to cancel target's attack
@@ -1394,7 +1394,7 @@ FOR deadguy = 4 TO 11
  END IF
 NEXT
 FOR deadguy = 0 TO 11
- check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits()
+ check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata(), p()
 NEXT
 deadguycount = 0
 FOR deadguy = 4 TO 11
@@ -1420,7 +1420,7 @@ FOR i = 0 TO 8
    slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(targ - 4, 82 + i)
-    loadfoe slot, formdata(), es(), bat, bslot(), p(), bits(), bstat(), rew
+    loadfoe slot, formdata(), es(), bat, bslot(), p(), bstat(), rew
    END IF
   NEXT j
   EXIT FOR
@@ -2032,7 +2032,7 @@ FOR i = 0 TO 3
    bstat(i).cur.sta(o) = exstat(i, 0, o)
    bstat(i).max.sta(o) = exstat(i, 1, o)
   NEXT o
-  herobattlebits bslot(), bits(), i
+  herobattlebits bslot(), i
   bslot(i).name = names(i)
   FOR o = 0 TO 5
    menu$(i, o) = ""
@@ -2058,7 +2058,7 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 FOR i = 0 TO 7
- loadfoe i, formdata(), es(), bat, bslot(), p(), bits(), bstat(), rew, YES
+ loadfoe i, formdata(), es(), bat, bslot(), p(), bstat(), rew, YES
 NEXT i
 FOR i = 0 TO 11
  ctr(i) = INT(RND * 500)
@@ -2346,9 +2346,10 @@ NEXT j
 
 END SUB
 
-SUB herobattlebits (bslot() AS BattleSprite, bitbuf(), who)
+SUB herobattlebits (bslot() AS BattleSprite, who)
 DIM i AS INTEGER
-DIM tempbits(1) AS INTEGER
+DIM bitbuf(11, 4) AS INTEGER ' Temporary buffer for getting bits. FIXME: remove this eventually
+DIM tempbits(1) AS INTEGER  ' Temporary buffer for reading bits
 
 herobattlebits_raw bitbuf(), who
 
@@ -2490,7 +2491,7 @@ FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
  RETURN count
 END FUNCTION
 
-SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, BYREF rew AS RewardsState)
+SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, p(), bstat() AS BattleStats, BYREF rew AS RewardsState)
  'killing_attack is the id+1 of the attack that killed the target or 0 if the target died without a specific attack
  IF NOT is_enemy(deadguy) THEN EXIT SUB ' Only works for enemies
  DIM slot AS INTEGER
@@ -2500,7 +2501,7 @@ SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS B
    slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 80)
-    loadfoe(slot, formdata(), es(), bat, bslot(), p(), bits(), bstat(), rew)
+    loadfoe(slot, formdata(), es(), bat, bslot(), p(), bstat(), rew)
    END IF
   NEXT i
   es(deadguy - 4, 80) = 0
@@ -2510,7 +2511,7 @@ SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS B
    slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 79)
-    loadfoe(slot, formdata(), es(), bat, bslot(), p(), bits(), bstat(), rew)
+    loadfoe(slot, formdata(), es(), bat, bslot(), p(), bstat(), rew)
    END IF
   NEXT i
   es(deadguy - 4, 79) = 0
@@ -2568,7 +2569,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite)
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p())
 'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
@@ -2602,7 +2603,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   ELSEIF bslot(deadguy).death_sfx > 0 THEN
    playsfx bslot(deadguy).death_sfx - 1
   END IF
-  dead_enemy deadguy, bat, rew, bstat(), bslot(), es(), formdata(), p(), bits()
+  dead_enemy deadguy, bat, rew, bstat(), bslot(), es(), formdata(), p()
  END IF'------------END PLUNDER-------------------
  IF bat.targ.hit_dead = NO THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
   FOR j = 0 TO 11
@@ -2629,12 +2630,12 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
  END IF  '----END ONLY WHEN bat.targ.hit_dead = NO
 END SUB
 
-SUB dead_enemy(deadguy AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p(), bits())
+SUB dead_enemy(deadguy AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata(), p())
  '--give rewards, spawn enemies, clear formdata slot, but NO other cleanup!
  DIM AS INTEGER j
  DIM enemynum AS INTEGER = deadguy - 4
  '--spawn enemies before freeing the formdata slot to avoid infinite loops. however this might need to be changed to fix morphing enemies?
- spawn_on_death deadguy, 0, bat, es(), formdata(), bslot(), p(), bits(), bstat(), rew
+ spawn_on_death deadguy, 0, bat, es(), formdata(), bslot(), p(), bstat(), rew
  IF formdata(enemynum * 4) > 0 THEN
   rew.plunder = rew.plunder + es(enemynum, 56)
   IF rew.plunder > 1000000000 THEN rew.plunder = 1000000000

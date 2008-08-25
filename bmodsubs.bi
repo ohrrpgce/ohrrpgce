@@ -25,9 +25,9 @@ declare sub etwitch (who, atk(), bslot() as battlesprite)
 declare function getweaponpos(w,f,isy)'or x?
 declare function getheropos(h,f,isy)'or x?
 declare sub heroanim (who, atk(), bslot() as battlesprite)
-declare function inflict (w, t, bstat() AS BattleStats, bslot() as battlesprite, harm$(), hc(), hx(), hy(), atk(), tcount, bits(), revengeharm(), repeatharm())
+declare function inflict (w, t, bstat() AS BattleStats, bslot() as battlesprite, harm$(), hc(), hx(), hy(), atk(), tcount, revengeharm(), repeatharm())
 declare function liveherocount (bstat() AS BattleStats)
-declare sub loadfoe (i, formdata(), es(), BYREF bat AS BattleState, bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead = NO)
+declare sub loadfoe (i, formdata(), es(), BYREF bat AS BattleState, bslot() AS BattleSprite, p(), bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead = NO)
 declare function randomally (who)
 declare function randomfoe (who)
 declare sub retreat (who, atk(), bslot() as battlesprite)
