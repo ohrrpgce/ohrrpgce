@@ -701,9 +701,32 @@ IF formdata(i * 4) > 0 THEN
  FOR o = 0 TO 160
   es(i, o) = buffer(o)
  NEXT o
+ 'Copy bits to .ebits() FIXME: this will go away later
  FOR o = 0 TO 4
   bslot(4 + i).ebits(o) = buffer(74 + o)
  NEXT o
+ 
+ 'Copy elemental bits and other bits from es() to bslot()
+ FOR o = 0 TO 4
+  tempbits(o) = es(i, 74 + o)
+ NEXT o
+ WITH bslot(4 + i)
+  .harmed_by_cure = NO
+  IF readbit(tempbits(), 0, 54) <> 0 THEN .harmed_by_cure = YES
+  .mp_idiot = NO
+  IF readbit(tempbits(), 0, 55) <> 0 THEN .mp_idiot = YES
+  FOR o = 0 TO 7
+   .weak(o) = NO
+   .strong(o) = NO
+   .absorb(o) = NO
+   .enemytype(o) = NO
+   IF readbit(tempbits(), 0, o)     <> 0 THEN .weak(o) = YES
+   IF readbit(tempbits(), 0, 8 + o) <> 0 THEN .strong(o) = YES
+   IF readbit(tempbits(), 0, 16 + o)<> 0 THEN .absorb(o) = YES
+   IF readbit(tempbits(), 0, 24 + o)<> 0 THEN .enemytype(o) = YES
+  NEXT o
+ END WITH
+ 
  IF allow_dead = NO THEN
   'enemies which spawn already-dead should be killed off immediately
   'die without boss or 0 hp?
@@ -766,24 +789,6 @@ IF bslot(4 + i).vis = 1 THEN
   bstat(4 + i).cur.sta(o) = es(i, 62 + o)
   bstat(4 + i).max.sta(o) = es(i, 62 + o)
  NEXT o
- 'Copy elemental bits and other bits from es() to bslot()
- FOR o = 0 TO 4
-  tempbits(o) = es(i, 74 + o)
- NEXT o
- WITH bslot(4 + i)
-  .harmed_by_cure = NO
-  IF readbit(tempbits(), 0, 54) <> 0 THEN .harmed_by_cure = YES
-  FOR o = 0 TO 7
-   .weak(o) = NO
-   .strong(o) = NO
-   .absorb(o) = NO
-   .enemytype(o) = NO
-   IF readbit(tempbits(), 0, o)     <> 0 THEN .weak(o) = YES
-   IF readbit(tempbits(), 0, 8 + o) <> 0 THEN .strong(o) = YES
-   IF readbit(tempbits(), 0, 16 + o)<> 0 THEN .absorb(o) = YES
-   IF readbit(tempbits(), 0, 24 + o)<> 0 THEN .enemytype(o) = YES
-  NEXT o
- END WITH
  bslot(4 + i).name = ""
  FOR o = 1 TO es(i, 0)
   bslot(4 + i).name = bslot(4 + i).name + CHR$(es(i, o))

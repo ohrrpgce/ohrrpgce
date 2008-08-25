@@ -360,7 +360,7 @@ DO
    IF bstat(bat.enemy_turn).cur.mp - atktemp(8) < 0 THEN
     'inadequate MP was the reason for the failure
     'MP-idiot loses its turn
-    IF readbit(bslot(bat.enemy_turn).ebits(), 0, 55) THEN
+    IF bslot(bat.enemy_turn).mp_idiot = YES THEN
       bslot(bat.enemy_turn).ready = NO
       ctr(bat.enemy_turn) = 0
       bat.enemy_turn = -1

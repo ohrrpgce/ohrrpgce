@@ -34,20 +34,24 @@ TYPE BattleSprite
   deathtype AS INTEGER 'for enemies (0 = default, otherwise is type + 1)
   deathtime AS INTEGER '0 = default, otherwise is time + 1
   death_sfx AS INTEGER '0 = default, -1 = none, >0 = sfx ID + 1
-  ready AS INTEGER  ' YES if the hero or enemy can have a turn, NO if they are not ready yet
-  attack AS INTEGER ' ID number +1 of the attack that this hero or enemy is going to do next
-  t(12) AS INTEGER  ' Currently selected target slots. -1 means no target. Targets must be sorted to the beginning if the list changes 
-  revenge AS INTEGER ' ID of last hero or enemy who damaged this hero or enemy, or -1 for none
-  revengemask(11) AS INTEGER  'YES for each hero or enemy who has damaged this hero/enemy at least once, otherwise NO
-  last_targs(11) AS INTEGER   'YES for each target previously hit by this hero/enemy, otherwise NO
-  stored_targs(11) AS INTEGER 'YES for each stored target for ths hero/enemy, otherwise NO
+  '--Turn-taking
+  ready  AS INTEGER  ' YES if the hero or enemy can have a turn, NO if they are not ready yet
+  attack AS INTEGER  ' ID number +1 of the attack that this hero or enemy is going to do next
+  '--Targetting
+  t(12)               AS INTEGER 'Currently selected target slots. -1 means no target. Targets must be sorted to the beginning if the list changes 
+  revenge             AS INTEGER 'ID of last hero or enemy who damaged this hero or enemy, or -1 for none
+  revengemask(11)     AS INTEGER 'YES for each hero or enemy who has damaged this hero/enemy at least once, otherwise NO
+  last_targs(11)      AS INTEGER 'YES for each target previously hit by this hero/enemy, otherwise NO
+  stored_targs(11)    AS INTEGER 'YES for each stored target for ths hero/enemy, otherwise NO
   keep_dead_targs(11) AS INTEGER 'YES to mark targets of attacks that can target the dead (used in sorting of .t)
-  weak(7) AS INTEGER      'YES/NO for weakness to each element
-  strong(7) AS INTEGER    'YES/NO for strength to each element
-  absorb(7) AS INTEGER    'YES/NO to absorb each element
-  enemytype(7) AS INTEGER 'YES/NO for membership in each enemy type
+  '--Bitsets
+  weak(7)        AS INTEGER 'YES/NO for weakness to each element
+  strong(7)      AS INTEGER 'YES/NO for strength to each element
+  absorb(7)      AS INTEGER 'YES/NO to absorb each element
+  enemytype(7)   AS INTEGER 'YES/NO for membership in each enemy type
   harmed_by_cure AS INTEGER 'YES/NO
-  ebits(4) AS INTEGER 'Enemy bitsets. All zero if this is a hero
+  mp_idiot       AS INTEGER 'YES/NO for turn loss when using MP-consuming attacks after MP runs out
+  ebits(4)       AS INTEGER 'Enemy bitsets. All zero if this is a hero
 END TYPE
 
 UNION BattleStatsSingle
