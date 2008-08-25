@@ -2032,7 +2032,7 @@ FOR i = 0 TO 3
    bstat(i).cur.sta(o) = exstat(i, 0, o)
    bstat(i).max.sta(o) = exstat(i, 1, o)
   NEXT o
-  herobattlebits bits(), i
+  herobattlebits bslot(), bits(), i
   bslot(i).name = names(i)
   FOR o = 0 TO 5
    menu$(i, o) = ""
@@ -2324,7 +2324,8 @@ ELSE
 END IF
 END FUNCTION
 
-SUB herobattlebits (bitbuf(), who)
+SUB herobattlebits_raw (bitbuf(), who)
+'This loads into a bit buffer. It is used both here and in the status menu
 DIM i AS INTEGER
 DIM j AS INTEGER
 
@@ -2333,7 +2334,7 @@ FOR i = 0 TO 4
  bitbuf(who, i) = nativehbits(who, i)
 NEXT i
 
-'--equipment bits
+'--merge equipment bits
 FOR j = 0 TO 4
  IF eqstuf(who, j) > 0 THEN
   loaditemdata buffer(), eqstuf(who, j) - 1
@@ -2342,6 +2343,30 @@ FOR j = 0 TO 4
   NEXT i
  END IF
 NEXT j
+
+END SUB
+
+SUB herobattlebits (bslot() AS BattleSprite, bitbuf(), who)
+DIM i AS INTEGER
+DIM tempbits(1) AS INTEGER
+
+herobattlebits_raw bitbuf(), who
+
+'--Copy elemental bits to bslot()
+tempbits(0) = bitbuf(who, 0)
+tempbits(1) = bitbuf(who, 1)
+FOR i = 0 TO 7
+ WITH bslot(who)
+  .weak(i) = NO
+  .strong(i) = NO
+  .absorb(i) = NO
+  .enemytype(i) = NO
+  IF readbit(tempbits(), 0, i)     <> 0 THEN .weak(i) = YES
+  IF readbit(tempbits(), 0, 8 + i) <> 0 THEN .strong(i) = YES
+  IF readbit(tempbits(), 0, 16 + i)<> 0 THEN .absorb(i) = YES
+  IF readbit(tempbits(), 0, 24 + i)<> 0 THEN .enemytype(i) = YES
+ END WITH
+NEXT i
 
 END SUB
 

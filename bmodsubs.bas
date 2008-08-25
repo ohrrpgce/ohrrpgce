@@ -549,21 +549,21 @@ IF atk(5) <> 4 THEN
  'elementals
  FOR i = 0 TO 7
   IF readbit(atk(), 20, 5 + i) = 1 THEN
-   IF readbit(tbits(), 0, 0 + i) = 1 THEN h = h * 2   'weakness
-   IF readbit(tbits(), 0, 8 + i) = 1 THEN h = h * .12 'resistance
-   IF readbit(tbits(), 0, 16 + i) = 1 THEN cure = 1   'absorb
+   IF bslot(t).weak(i) = YES THEN h = h * 2   'weakness
+   IF bslot(t).strong(i) = YES THEN h = h * .12 'resistance
+   IF bslot(t).absorb(i) = YES THEN cure = 1    'absorb
   END IF
   IF readbit(atk(), 20, 13 + i) = 1 THEN
-   IF is_enemy(t) AND readbit(tbits(), 0, 24 + i) = 1 THEN h = h * 1.8
+   IF is_enemy(t) AND bslot(t).enemytype(i) = YES THEN h = h * 1.8
   END IF
   IF readbit(atk(), 20, 21 + i) = 1 THEN
-   IF readbit(tbits(), 0, 8 + i) = 1 THEN
+   IF bslot(t).strong(i) = YES THEN
     harm$(t) = readglobalstring$(122, "fail", 20)
     EXIT FUNCTION
    END IF
   END IF
   IF readbit(atk(), 20, 29 + i) = 1 THEN
-   IF is_enemy(t) AND readbit(tbits(), 0, 24 + i) = 1 THEN
+   IF is_enemy(t) AND bslot(t).enemytype(i) = YES THEN
     harm$(t) = readglobalstring$(122, "fail", 20)
     EXIT FUNCTION
    END IF
@@ -700,6 +700,7 @@ liveherocount = i
 END FUNCTION
 
 SUB loadfoe (i, formdata(), es(), BYREF bat AS BattleState, bslot() AS BattleSprite, p(), bits(), bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead = NO)
+DIM tempbits(1) AS INTEGER
 IF formdata(i * 4) > 0 THEN
  loadenemydata buffer(), formdata(i * 4) - 1, -1
  FOR o = 0 TO 160
@@ -774,8 +775,24 @@ IF bslot(4 + i).vis = 1 THEN
   bstat(4 + i).cur.sta(o) = es(i, 62 + o)
   bstat(4 + i).max.sta(o) = es(i, 62 + o)
  NEXT o
+ 'Grab all bits (FIXME:this will go away later)
  FOR o = 0 TO 4
   bits(4 + i, o) = es(i, 74 + o)
+ NEXT o
+ 'Copy elemental bits from es() to bslot()
+ tempbits(0) = es(i, 74 + o)
+ tempbits(1) = es(i, 75 + o)
+ FOR o = 0 TO 7
+  WITH bslot(4 + i)
+   .weak(o) = NO
+   .strong(o) = NO
+   .absorb(o) = NO
+   .enemytype(o) = NO
+   IF readbit(tempbits(0), 0, o)     <> 0 THEN .weak(o) = YES
+   IF readbit(tempbits(0), 0, 8 + o) <> 0 THEN .strong(o) = YES
+   IF readbit(tempbits(0), 0, 16 + o)<> 0 THEN .absorb(o) = YES
+   IF readbit(tempbits(0), 0, 24 + o)<> 0 THEN .enemytype(o) = YES
+  END WITH
  NEXT o
  bslot(4 + i).name = ""
  FOR o = 1 TO es(i, 0)

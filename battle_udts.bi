@@ -42,6 +42,10 @@ TYPE BattleSprite
   last_targs(11) AS INTEGER   'YES for each target previously hit by this hero/enemy, otherwise NO
   stored_targs(11) AS INTEGER 'YES for each stored target for ths hero/enemy, otherwise NO
   keep_dead_targs(11) AS INTEGER 'YES to mark targets of attacks that can target the dead (used in sorting of .t)
+  weak(7) AS INTEGER      'YES/NO for weakness to each element
+  strong(7) AS INTEGER    'YES/NO for strength to each element
+  absorb(7) AS INTEGER    'YES/NO to absorb each element
+  enemytype(7) AS INTEGER 'YES/NO for membership in each enemy type
   ebits(4) AS INTEGER 'Enemy bitsets. All zero if this is a hero
 END TYPE
 

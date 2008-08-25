@@ -9,7 +9,7 @@ DEFINT A-Z
 DECLARE FUNCTION focuscost% (cost%, focus%)
 DECLARE SUB renamehero (who%)
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
-DECLARE SUB herobattlebits (bitbuf%(), who%)
+DECLARE SUB herobattlebits_raw (bitbuf(), who%)
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE FUNCTION rpad$ (s$, pad$, size%)
@@ -2212,7 +2212,7 @@ sno(9) = 4
 
 '--calculate bitsets with equipment
 FOR i = 0 TO 3
- herobattlebits hbits(), i
+ herobattlebits_raw hbits(), i
 NEXT i
 
 mode = 0
