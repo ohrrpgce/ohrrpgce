@@ -152,6 +152,8 @@ DECLARE FUNCTION enter_or_space () AS INTEGER
 DECLARE SUB write_npc_int (npcdata AS NPCType, intoffset AS INTEGER, n AS INTEGER)
 DECLARE FUNCTION read_npc_int (npcdata AS NPCType, intoffset AS INTEGER) AS INTEGER
 
+DECLARE FUNCTION xreadbit (bitarray() AS INTEGER, bitoffset AS INTEGER, intoffset AS INTEGER=0) AS INTEGER
+
 'Global variables
 EXTERN as string game, tmpdir, exename, workingdir
 EXTERN uilook() as integer

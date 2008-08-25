@@ -2328,14 +2328,10 @@ tempbits(0) = bitbuf(who, 0)
 tempbits(1) = bitbuf(who, 1)
 FOR i = 0 TO 7
  WITH bslot(who)
-  .weak(i) = NO
-  .strong(i) = NO
-  .absorb(i) = NO
-  .enemytype(i) = NO
-  IF readbit(tempbits(), 0, i)     <> 0 THEN .weak(i) = YES
-  IF readbit(tempbits(), 0, 8 + i) <> 0 THEN .strong(i) = YES
-  IF readbit(tempbits(), 0, 16 + i)<> 0 THEN .absorb(i) = YES
-  IF readbit(tempbits(), 0, 24 + i)<> 0 THEN .enemytype(i) = YES
+  .weak(i) = xreadbit(tempbits(), i)
+  .strong(i) = xreadbit(tempbits(), 8 + i)
+  .absorb(i) = xreadbit(tempbits(), 16 + i)
+  .enemytype(i) = xreadbit(tempbits(), 24 + i)
  END WITH
 NEXT i
 

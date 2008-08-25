@@ -711,19 +711,13 @@ IF formdata(i * 4) > 0 THEN
   tempbits(o) = es(i, 74 + o)
  NEXT o
  WITH bslot(4 + i)
-  .harmed_by_cure = NO
-  IF readbit(tempbits(), 0, 54) <> 0 THEN .harmed_by_cure = YES
-  .mp_idiot = NO
-  IF readbit(tempbits(), 0, 55) <> 0 THEN .mp_idiot = YES
+  .harmed_by_cure = xreadbit(tempbits(), 54)
+  .mp_idiot = xreadbit(tempbits(), 55)
   FOR o = 0 TO 7
-   .weak(o) = NO
-   .strong(o) = NO
-   .absorb(o) = NO
-   .enemytype(o) = NO
-   IF readbit(tempbits(), 0, o)     <> 0 THEN .weak(o) = YES
-   IF readbit(tempbits(), 0, 8 + o) <> 0 THEN .strong(o) = YES
-   IF readbit(tempbits(), 0, 16 + o)<> 0 THEN .absorb(o) = YES
-   IF readbit(tempbits(), 0, 24 + o)<> 0 THEN .enemytype(o) = YES
+   .weak(o) = xreadbit(tempbits(), o)
+   .strong(o) = xreadbit(tempbits(), 8 + o)
+   .absorb(o) = xreadbit(tempbits(), 16 + o)
+   .enemytype(o) = xreadbit(tempbits(), 24 + o)
   NEXT o
  END WITH
  

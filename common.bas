@@ -2758,3 +2758,8 @@ SUB unloadmaptilesets (tilesets() AS TilesetData ptr)
   unloadtilesetdata tilesets(i)
  NEXT
 END SUB
+
+FUNCTION xreadbit (bitarray() AS INTEGER, bitoffset AS INTEGER, intoffset AS INTEGER=0) AS INTEGER
+ 'This is a wrapper for readbit that returns YES/NO and accepts a default arg of zero for the integer offset
+ RETURN readbit(bitarray(), intoffset, bitoffset) <> 0 
+END FUNCTION
