@@ -507,6 +507,13 @@ END IF
 '--load attack
 loadattackdata atk(), bat.atk.id
 
+IF readbit(atk(), 65, 17) <> 0 THEN
+ 'The "Re-check costs after attack delay" is on, so cancel the attack if we can't afford it now
+ IF atkallowed(atk(), bat.acting, 0, 0, bstat()) = NO THEN
+  bat.atk.id = -1: RETRACE
+ END IF
+END IF
+
 '--load palette
 FOR i = 12 TO 23
  of(i) = 0

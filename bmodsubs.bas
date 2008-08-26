@@ -93,21 +93,18 @@ FUNCTION atkallowed (atkbuf(), attacker, spclass, lmplev, bstat() AS BattleStats
 
 '--check for mutedness
 IF readbit(atkbuf(),65,0) = 1 AND bstat(attacker).cur.mute < bstat(attacker).max.mute THEN
- atkallowed = 0
- EXIT FUNCTION
+ RETURN NO
 END IF
 
 '--check for sufficient mp
 IF bstat(attacker).cur.mp - focuscost(atkbuf(8), bstat(attacker).cur.foc) < 0 THEN
- atkallowed = 0
- EXIT FUNCTION
+ RETURN NO
 END IF
 
 '--check for level-MP (heroes only)
 IF attacker <= 3 AND spclass = 1 THEN
  IF lmp(attacker, lmplev) - 1 < 0 THEN
-  atkallowed = 0
-  EXIT FUNCTION
+  RETURN NO
  END IF
 END IF
 
@@ -120,15 +117,14 @@ FOR i = 0 to 2
     IF attacker <= 3 THEN ' Only hero items are checked right now
       IF countitem(itemid) < itemcount THEN
         'yes, this still works for adding items.
-        atkallowed = 0
-        EXIT FUNCTION
+        RETURN NO
       END IF
     END IF
   END IF
 NEXT i
 
 '--succeed
-atkallowed = -1
+RETURN YES
 
 END FUNCTION
 
