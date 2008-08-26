@@ -4,6 +4,7 @@ WHAT IS NEW?
 
   * New Features
     * New attack bitset "Don't trigger spawning on kill" [James]
+    * New attack bitset "Check costs when used as an item" [James]
 
   * Bugfixes
 

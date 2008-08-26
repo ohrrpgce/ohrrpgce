@@ -31,7 +31,7 @@ DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
 DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite)
 DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata())
-DECLARE SUB checkitemusability(iuse() AS INTEGER)
+DECLARE SUB checkitemusability(iuse() AS INTEGER, bstat() AS BattleStats, who AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_targetting (BYREF bat AS BattleState)
 DECLARE SUB reset_attack (BYREF bat AS BattleState)
@@ -99,7 +99,7 @@ FOR i = 0 TO 11
  icons(i) = -1
  bslot(i).revenge = -1
 NEXT i
-checkitemusability iuse()
+
 'hc(0-11) is harm count... hc(12-23) is harm color... I know, tacky :(
 FOR i = 0 TO 11
  hc(i + 12) = 15
@@ -485,6 +485,7 @@ IF carray(4) > 1 THEN
   bat.menu_mode = batMENUITEM
   iptr = 0
   itop = 0
+  checkitemusability iuse(), bstat(), bat.hero_turn
   itemd$ = ""
   IF inventory(iptr).used THEN
    loaditemdata buffer(), inventory(iptr).id
@@ -1132,7 +1133,9 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     END IF
 
     IF trytheft(bat.acting, targ, atk(), es()) THEN
-     checkitemusability iuse()
+     IF bat.hero_turn >= 0 THEN
+      checkitemusability iuse(), bstat(), bat.hero_turn
+     END IF
     END IF
    ELSE
     checkTagCond atk(60), 3, atk(59), atk(61)
@@ -2268,15 +2271,28 @@ SUB reset_victory_state (BYREF vic AS VictoryState)
  END WITH
 END SUB
 
-SUB checkitemusability(iuse() AS INTEGER)
+SUB checkitemusability(iuse() AS INTEGER, bstat() AS BattleStats, who AS INTEGER)
  'Iterate through the iuse() bitfield and mark any items that are usable
  DIM i AS INTEGER
- DIM itemtemp(100) AS INTEGER
+ DIM itembuf(99) AS INTEGER
+ DIM atkbuf(40 + dimbinsize(binATTACK)) AS INTEGER
 
  FOR i = 0 TO inventoryMax
+  setbit iuse(), 0, i, 0 ' Default each slot to unusable
   IF inventory(i).used THEN
-   loaditemdata itemtemp(), inventory(i).id
-   IF itemtemp(47) > 0 THEN setbit iuse(), 0, i, 1
+   loaditemdata itembuf(), inventory(i).id
+   IF itembuf(47) > 0 THEN ' This item is usable in battle
+    loadattackdata atkbuf(), itembuf(47) - 1
+    IF readbit(atkbuf(), 65, 16) THEN
+     '--This attack has the bitset that requires cost checking when used from an item
+     IF atkallowed(atkbuf(), who, 0, 0, bstat()) THEN
+      setbit iuse(), 0, i, 1
+     END IF
+    ELSE
+     '--No cost checking for this item
+     setbit iuse(), 0, i, 1
+    END IF
+   END IF
   END IF
  NEXT i
 END SUB
