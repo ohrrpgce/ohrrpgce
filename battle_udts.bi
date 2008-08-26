@@ -116,12 +116,17 @@ TYPE BattleState
  next_hero AS INTEGER  'counter that controls which ready hero will get their turn next
  next_enemy AS INTEGER 'counter that controls which ready enemy will get their turn next
  menu_mode AS INTEGER  'batMENUHERO batMENUSPELL or batMENUITEM
+ death_mode AS INTEGER 'deathNOBODY deathENEMIES deathHEROES
  targ AS TargettingState
  atk AS AttackState
 END TYPE
 CONST batMENUHERO = 0
 CONST batMENUSPELL = 1
 CONST batMENUITEM = 2
+'--Used by the .deathmode member
+CONST deathNOBODY  = 0
+CONST deathENEMIES = 1
+CONST deathHEROES  = 2
 
 'This type stores the visual state of the victory display
 TYPE VictoryState

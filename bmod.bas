@@ -39,6 +39,7 @@ DECLARE SUB reset_victory_state (BYREF vic AS VictoryState)
 DECLARE SUB reset_rewards_state (BYREF rew AS RewardsState)
 DECLARE SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, exstat() AS INTEGER, bslot() AS BattleSprite)
 DECLARE SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bstat() As BattleStats, exstat() AS INTEGER)
+DECLARE SUB fulldeathcheck (bat AS BattleState, bslot() AS BattleSprite, bstat() As BattleStats, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
 
 'these are the battle global variables
 DIM as string battlecaption
@@ -64,7 +65,7 @@ DIM bslot(24) AS BattleSprite
 DIM bstat(11) AS BattleStats
 DIM vic AS VictoryState
 DIM as double timinga, timingb
-DIM dead, mapsong
+DIM mapsong
 DIM spellcount AS INTEGER '--only used in heromenu GOSUB block
 DIM listslot AS INTEGER
 DIM nmenu(3,5) as integer 'new battle menu
@@ -203,7 +204,7 @@ DO
  bat.next_hero = loopvar(bat.next_hero, 0, 3, 1)
  IF bat.hero_turn = -1 THEN
   '--if it is no heros turn, check to see if anyone is alive and ready
-  IF bslot(bat.next_hero).ready = YES AND bstat(bat.next_hero).cur.hp > 0 AND dead = 0 THEN
+  IF bslot(bat.next_hero).ready = YES AND bstat(bat.next_hero).cur.hp > 0 AND bat.death_mode = deathNOBODY THEN
    bat.hero_turn = bat.next_hero
    pt = 0
    bat.menu_mode = batMENUHERO
@@ -211,7 +212,7 @@ DO
  END IF
  bat.next_enemy = loopvar(bat.next_enemy, 4, 11, 1)
  IF bat.enemy_turn = -1 THEN
-  IF bslot(bat.next_enemy).ready = YES AND bstat(bat.next_enemy).cur.hp > 0 AND dead = 0 THEN bat.enemy_turn = bat.next_enemy
+  IF bslot(bat.next_enemy).ready = YES AND bstat(bat.next_enemy).cur.hp > 0 AND bat.death_mode = deathNOBODY THEN bat.enemy_turn = bat.next_enemy
  END IF
  IF vic.state = 0 THEN
   IF bat.enemy_turn >= 0 THEN GOSUB enemyai
@@ -227,11 +228,11 @@ DO
  IF vic.state = vicEXITDELAY THEN vic.state = vicEXIT
  IF vic.state > 0 THEN show_victory vic, rew, exstat(), bslot()
  IF vis = 1 THEN GOSUB seestuff
- IF dead = 1 AND vic.state = 0 THEN
+ IF bat.death_mode = deathENEMIES AND vic.state = 0 THEN
   IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory vic, rew, bstat(), exstat()
  END IF
  IF vic.state = vicEXIT THEN EXIT DO 'normal victory exit
- IF dead = 2 THEN
+ IF bat.death_mode = deathHEROES THEN
   fatal = 1
   EXIT DO
  END IF
@@ -1310,7 +1311,7 @@ IF atk(36) = 0 THEN
  battlecaptime = 0
  battlecapdelay = 0
 END IF
-GOSUB fulldeathcheck
+fulldeathcheck bat, bslot(), bstat(), rew, es(), formdata()
 RETRACE
 
 setuptarg: '--identify valid targets (heroes only)
@@ -1369,30 +1370,6 @@ END IF
 
 'ready to choose bat.targ.selected() from bat.targ.mask()
 bat.targ.mode = targMANUAL
-RETRACE
-
-fulldeathcheck:
-FOR deadguy = 4 TO 11
- IF bstat(deadguy).cur.hp > 0 THEN
-  'this enemy hasn't just spawned; it should fade out
-  IF dieWOboss(deadguy, bstat(), bslot()) THEN
-   triggerfade deadguy, bstat(), bslot()
-  END IF
- END IF
-NEXT
-FOR deadguy = 0 TO 11
- check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata()
-NEXT
-deadguycount = 0
-FOR deadguy = 4 TO 11
- IF bstat(deadguy).cur.hp = 0 OR bslot(deadguy).hero_untargetable = YES OR bslot(deadguy).death_unneeded = YES THEN deadguycount += 1
-NEXT
-IF deadguycount >= 8 THEN dead = 1
-deadguycount = 0
-FOR deadguy = 0 TO 3
- IF bstat(deadguy).cur.hp = 0 THEN deadguycount += 1
-NEXT deadguy
-IF deadguycount = 4 THEN dead = 2
 RETRACE
 
 sponhit:
@@ -1745,7 +1722,7 @@ FOR i = 0 TO 11
     harm = range(harm, 20)
     quickinflict harm, i, hc(), hx(), hy(), bslot(), harm$(), bstat()
     triggerfade i, bstat(), bslot()
-    GOSUB fulldeathcheck
+    fulldeathcheck bat, bslot(), bstat(), rew, es(), formdata()
     '--WARNING: WITH pointer probably corrupted
    END IF
   END IF
@@ -1762,7 +1739,7 @@ FOR i = 0 TO 11
     heal = range(heal, 20)
     quickinflict heal, i, hc(), hx(), hy(), bslot(), harm$(), bstat()
     triggerfade i, bstat(), bslot()
-    GOSUB fulldeathcheck
+    fulldeathcheck bat, bslot(), bstat(), rew, es(), formdata()
     '--WARNING: WITH pointer probably corrupted
    END IF
   END IF
@@ -2061,13 +2038,41 @@ FOR i = 0 TO 7
   triggerfade i, bstat(), bslot()
  END IF
 NEXT i
-GOSUB fulldeathcheck
+fulldeathcheck bat, bslot(), bstat(), rew, es(), formdata()
 RETRACE
 
 END FUNCTION
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
+
+SUB fulldeathcheck (bat AS BattleState, bslot() AS BattleSprite, bstat() As BattleStats, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
+ '--Runs check_death on all enemies, checks all heroes for death, and sets bat.death_mode if necessary
+ DIM deadguy AS INTEGER
+ DIM dead_enemies AS INTEGER
+ DIM dead_heroes AS INTEGER
+ FOR deadguy = 4 TO 11
+  IF bstat(deadguy).cur.hp > 0 THEN
+   'this enemy hasn't just spawned; it should fade out
+   IF dieWOboss(deadguy, bstat(), bslot()) THEN
+    triggerfade deadguy, bstat(), bslot()
+   END IF
+  END IF
+ NEXT
+ FOR deadguy = 0 TO 11
+  check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata()
+ NEXT
+ dead_enemies = 0
+ FOR deadguy = 4 TO 11
+  IF bstat(deadguy).cur.hp = 0 OR bslot(deadguy).hero_untargetable = YES OR bslot(deadguy).death_unneeded = YES THEN dead_enemies += 1
+ NEXT
+ IF dead_enemies >= 8 THEN bat.death_mode = deathENEMIES
+ dead_heroes = 0
+ FOR deadguy = 0 TO 3
+  IF bstat(deadguy).cur.hp = 0 THEN dead_heroes += 1
+ NEXT deadguy
+ IF dead_heroes = 4 THEN bat.death_mode = deathHEROES
+END SUB
 
 SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bstat() As BattleStats, exstat() AS INTEGER)
  DIM i AS INTEGER
