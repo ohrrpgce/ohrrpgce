@@ -701,10 +701,6 @@ IF formdata(i * 4) > 0 THEN
  FOR o = 0 TO 160
   es(i, o) = buffer(o)
  NEXT o
- 'Copy bits to .ebits() FIXME: this will go away later
- FOR o = 0 TO 4
-  bslot(4 + i).ebits(o) = buffer(74 + o)
- NEXT o
  
  'Copy elemental bits and other bits from es() to bslot()
  FOR o = 0 TO 4

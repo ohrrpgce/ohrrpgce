@@ -55,7 +55,6 @@ TYPE BattleSprite
   enemy_untargetable  AS INTEGER 'YES/NO
   hero_untargetable   AS INTEGER 'YES/NO
   death_unneeded AS INTEGER 'YES/NO
-  ebits(4)       AS INTEGER 'Enemy bitsets. All zero if this is a hero
 END TYPE
 
 UNION BattleStatsSingle
