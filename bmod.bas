@@ -89,7 +89,7 @@ alert = 0
 alert$ = ""
 
 fadeout 240, 240, 240
-vpage = 0: dpage = 1: needf = 1: anim = -1: fiptr = 0
+vpage = 0: dpage = 1: needf = 1: fiptr = 0
 reset_battle_state bat
 reset_victory_state vic
 reset_rewards_state rew
@@ -187,15 +187,15 @@ DO
    EXIT DO
   END IF
  END IF
- IF anim >= 0 AND aset = 0 AND vic.state = 0 THEN GOSUB atkscript
- IF anim >= 0 AND aset = 1 AND vic.state = 0 AND away = 0 THEN GOSUB action
+ IF bat.atk.id >= 0 AND aset = 0 AND vic.state = 0 THEN GOSUB atkscript
+ IF bat.atk.id >= 0 AND aset = 1 AND vic.state = 0 AND away = 0 THEN GOSUB action
  GOSUB animate
  na = loopvar(na, 0, 11, 1)
- IF anim = -1 AND vic.state = 0 THEN
+ IF bat.atk.id = -1 AND vic.state = 0 THEN
   GOSUB meters
   IF bslot(na).attack > 0 AND delay(na) = 0 THEN
    '--next attacker has an attack selected and the delay is over
-   anim = bslot(na).attack - 1
+   bat.atk.id = bslot(na).attack - 1
    bat.acting = na
    aset = 0
    bslot(na).attack = 0
@@ -500,11 +500,11 @@ tcount = 0 'This should be dimmed locally when this is SUBified
 IF icons(bat.acting) >= 0 THEN
  IF inventory(icons(bat.acting)).used = 0 THEN
   '--abort if item is gone
-  anim = -1: RETRACE
+  bat.atk.id = -1: RETRACE
  END IF
 END IF
 '--load attack
-loadattackdata atk(), anim
+loadattackdata atk(), bat.atk.id
 
 '--load palette
 FOR i = 12 TO 23
@@ -553,7 +553,7 @@ FOR i = 0 TO 7
  IF readbit(atk(), 20, 5 + i) = 1 THEN bat.atk.elemental(i) = YES: bat.atk.non_elemental = NO
 NEXT i
 'ABORT IF TARGETLESS
-IF tcount = -1 THEN anim = -1: RETRACE
+IF tcount = -1 THEN bat.atk.id = -1: RETRACE
 'Kill old target history
 FOR i = 0 TO 11
  bslot(bat.acting).last_targs(i) = NO
@@ -1041,13 +1041,13 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
      bslot(4 + i).y = bslot(4 + i).basey
     END IF
    NEXT i
-   anim = -1
+   bat.atk.id = -1
   CASE 1 '???()
    FOR i = 0 TO 3
     formdata(i * 4 + 1) = bslot(4 + i).x
     formdata(i * 4 + 2) = bslot(4 + i).y
    NEXT i
-   anim = -1
+   bat.atk.id = -1
   CASE 2 'setmove(who,xm,ym,xstep,ystep)
    ww = popw
    bslot(ww).xmov = popw
@@ -1193,12 +1193,12 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    FOR i = 0 TO 3
     IF bstat(i).cur.hp = 0 THEN o = o + 1
    NEXT i
-   IF o = 4 THEN anim = -1
+   IF o = 4 THEN bat.atk.id = -1
    o = 0
    FOR i = 4 TO 11
     IF bstat(i).cur.hp = 0 THEN o = o + 1
    NEXT i
-   IF bstat(targ).cur.hp = 0 AND o < 8 AND anim > -1 THEN'
+   IF bstat(targ).cur.hp = 0 AND o < 8 AND bat.atk.id > -1 THEN'
     '--if the target is already dead, auto-pick a new target
     '--FIXME: why are we doing this after the attack? Does this even do anything?
     '--       it was passing garbage attack data at least some of the time until r2104
@@ -1273,9 +1273,9 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
 	 'debug "blsot(" & ww & ").d = " & tmp1
 	 bslot(ww).d = tmp1
  END SELECT
-LOOP UNTIL wf <> 0 OR anim = -1
+LOOP UNTIL wf <> 0 OR bat.atk.id = -1
 
-IF anim = -1 THEN
+IF bat.atk.id = -1 THEN
  GOSUB afterdone
  '--clean up stack
  'DEBUG debug "discarding" + XSTR$((stackpos - bstackstart) \ 2) + " from stack"
@@ -1288,7 +1288,7 @@ IF anim = -1 THEN
    bslot(bat.acting).attack = atk(12)
    delay(bat.acting) = buffer(16)
   ELSE
-   anim = atk(12) - 1: aset = 0: bslot(bat.acting).attack = 0
+   bat.atk.id = atk(12) - 1: aset = 0: bslot(bat.acting).attack = 0
   END IF
   o = 0
   FOR i = 4 TO 11
@@ -1585,7 +1585,7 @@ IF vic.state = 0 THEN 'only display interface till you win
     centerfuz 66, 9 + i * 10, 131, 10, 1, dpage
     IF bstat(i).cur.hp > 0 THEN
      j = ctr(i) / 7.7
-     IF delay(i) > 0 OR bslot(i).attack > 0 OR (anim >= 0 AND bat.acting = i) THEN
+     IF delay(i) > 0 OR bslot(i).attack > 0 OR (bat.atk.id >= 0 AND bat.acting = i) THEN
       col = uilook(uiTimeBar)
       j = 130
      END IF
@@ -2218,6 +2218,7 @@ END SUB
 SUB reset_attack (BYREF bat AS BattleState)
  DIM i AS INTEGER
  WITH bat.atk
+  .id = -1
   .non_elemental = NO
   FOR i = 0 TO UBOUND(.elemental)
   .elemental(i) = NO

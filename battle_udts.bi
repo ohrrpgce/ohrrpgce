@@ -86,6 +86,7 @@ END TYPE
 
 'This type stores the state of the currently animating attack
 TYPE AttackState
+ id AS INTEGER            'Attack ID or -1 for none
  '--Elementals are stored in AttackState just for the benefit of elemental spawning
  non_elemental AS INTEGER 'YES or NO
  elemental(7) AS INTEGER  'YES or NO for each element
