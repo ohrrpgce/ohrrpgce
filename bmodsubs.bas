@@ -731,7 +731,7 @@ IF formdata(i * 4) > 0 THEN
    'rewards and spawn enemies on death
    'enemy is only partially constructed, but already have everything needed.
    DIM atktype(8) 'regular "spawn on death"
-   dead_enemy 4 + i, bat, rew, bstat(), bslot(), es(), formdata()
+   dead_enemy 4 + i, -1, bat, rew, bstat(), bslot(), es(), formdata()
    EXIT SUB
   END IF
  END IF

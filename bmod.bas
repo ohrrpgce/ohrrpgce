@@ -39,7 +39,7 @@ DECLARE SUB reset_victory_state (BYREF vic AS VictoryState)
 DECLARE SUB reset_rewards_state (BYREF rew AS RewardsState)
 DECLARE SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, exstat() AS INTEGER, bslot() AS BattleSprite)
 DECLARE SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bstat() As BattleStats, exstat() AS INTEGER)
-DECLARE SUB fulldeathcheck (bat AS BattleState, bslot() AS BattleSprite, bstat() As BattleStats, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
+DECLARE SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, bstat() As BattleStats, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
 
 'these are the battle global variables
 DIM as string battlecaption
@@ -1008,6 +1008,8 @@ IF atk(37) AND atk(36) >= 0 THEN
 END IF
 'DEBUG debug "stackpos =" + XSTR$((stackpos - bstackstart) \ 2)
 invertstack
+'--Remember the attack ID for later call to fulldeathcheck
+bat.atk.was_id = bat.atk.id
 '--aset indicates that animation is set and that we should proceed to "action"
 aset = 1
 RETRACE
@@ -1311,7 +1313,8 @@ IF atk(36) = 0 THEN
  battlecaptime = 0
  battlecapdelay = 0
 END IF
-fulldeathcheck bat, bslot(), bstat(), rew, es(), formdata()
+fulldeathcheck bat.atk.was_id, bat, bslot(), bstat(), rew, es(), formdata()
+bat.atk.was_id = -1
 RETRACE
 
 setuptarg: '--identify valid targets (heroes only)
@@ -1722,7 +1725,7 @@ FOR i = 0 TO 11
     harm = range(harm, 20)
     quickinflict harm, i, hc(), hx(), hy(), bslot(), harm$(), bstat()
     triggerfade i, bstat(), bslot()
-    fulldeathcheck bat, bslot(), bstat(), rew, es(), formdata()
+    fulldeathcheck -1, bat, bslot(), bstat(), rew, es(), formdata()
     '--WARNING: WITH pointer probably corrupted
    END IF
   END IF
@@ -1739,7 +1742,7 @@ FOR i = 0 TO 11
     heal = range(heal, 20)
     quickinflict heal, i, hc(), hx(), hy(), bslot(), harm$(), bstat()
     triggerfade i, bstat(), bslot()
-    fulldeathcheck bat, bslot(), bstat(), rew, es(), formdata()
+    fulldeathcheck -1, bat, bslot(), bstat(), rew, es(), formdata()
     '--WARNING: WITH pointer probably corrupted
    END IF
   END IF
@@ -2038,7 +2041,7 @@ FOR i = 0 TO 7
   triggerfade i, bstat(), bslot()
  END IF
 NEXT i
-fulldeathcheck bat, bslot(), bstat(), rew, es(), formdata()
+fulldeathcheck -1, bat, bslot(), bstat(), rew, es(), formdata()
 RETRACE
 
 END FUNCTION
@@ -2046,8 +2049,9 @@ END FUNCTION
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
 
-SUB fulldeathcheck (bat AS BattleState, bslot() AS BattleSprite, bstat() As BattleStats, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
+SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, bstat() As BattleStats, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
  '--Runs check_death on all enemies, checks all heroes for death, and sets bat.death_mode if necessary
+ 'killing_attack is the attack ID that was just used, or -1 for none
  DIM deadguy AS INTEGER
  DIM dead_enemies AS INTEGER
  DIM dead_heroes AS INTEGER
@@ -2060,7 +2064,7 @@ SUB fulldeathcheck (bat AS BattleState, bslot() AS BattleSprite, bstat() As Batt
   END IF
  NEXT
  FOR deadguy = 0 TO 11
-  check_death deadguy, 0, bat, rew, bstat(), bslot(), es(), formdata()
+  check_death deadguy, killing_attack, bat, rew, bstat(), bslot(), es(), formdata()
  NEXT
  dead_enemies = 0
  FOR deadguy = 4 TO 11
@@ -2219,6 +2223,7 @@ SUB reset_attack (BYREF bat AS BattleState)
  DIM i AS INTEGER
  WITH bat.atk
   .id = -1
+  .was_id = -1
   .non_elemental = NO
   FOR i = 0 TO UBOUND(.elemental)
   .elemental(i) = NO
@@ -2464,10 +2469,19 @@ FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 END FUNCTION
 
 SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState)
- 'killing_attack is the id+1 of the attack that killed the target or 0 if the target died without a specific attack
- IF NOT is_enemy(deadguy) THEN EXIT SUB ' Only works for enemies
+ 'killing_attack is the id of the attack that killed the target or -1 if the target died without a specific attack
+ DIM atkbuf(40 + dimbinsize(binATTACK))
  DIM slot AS INTEGER
  DIM i AS INTEGER
+ IF NOT is_enemy(deadguy) THEN EXIT SUB ' Only works for enemies
+ IF killing_attack >= 0 THEN
+  'This death is the result of an attack
+  loadattackdata atkbuf(), killing_attack
+  IF readbit(atkbuf(), 65, 15) <> 0 THEN
+   'This attack had the "Do not trigger spawning on death" bitset
+   EXIT SUB
+  END IF
+ END IF
  IF es(deadguy - 4, 80) > 0 AND bat.atk.non_elemental = YES THEN ' spawn on non-elemental death
   FOR i = 1 TO es(deadguy - 4, 91)
    slot = find_empty_enemy_slot(formdata())
@@ -2542,7 +2556,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite)
 END SUB
 
 SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata())
-'killing_attack is not used yet, but will contain attack id + 1 or 0 when no attack is relevant.
+'killing_attack is not used yet, but will contain attack id or -1 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
 
  IF is_enemy(deadguy) THEN
@@ -2575,7 +2589,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   ELSEIF bslot(deadguy).death_sfx > 0 THEN
    playsfx bslot(deadguy).death_sfx - 1
   END IF
-  dead_enemy deadguy, bat, rew, bstat(), bslot(), es(), formdata()
+  dead_enemy deadguy, killing_attack, bat, rew, bstat(), bslot(), es(), formdata()
  END IF'------------END PLUNDER-------------------
  IF bat.targ.hit_dead = NO THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
   FOR j = 0 TO 11
@@ -2602,12 +2616,13 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
  END IF  '----END ONLY WHEN bat.targ.hit_dead = NO
 END SUB
 
-SUB dead_enemy(deadguy AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata())
+SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata())
  '--give rewards, spawn enemies, clear formdata slot, but NO other cleanup!
+ 'killing_attack is the id of the attack that killed the target or -1 if the target died without a specific attack
  DIM AS INTEGER j
  DIM enemynum AS INTEGER = deadguy - 4
  '--spawn enemies before freeing the formdata slot to avoid infinite loops. however this might need to be changed to fix morphing enemies?
- spawn_on_death deadguy, 0, bat, es(), formdata(), bslot(), bstat(), rew
+ spawn_on_death deadguy, killing_attack, bat, es(), formdata(), bslot(), bstat(), rew
  IF formdata(enemynum * 4) > 0 THEN
   rew.plunder = rew.plunder + es(enemynum, 56)
   IF rew.plunder > 1000000000 THEN rew.plunder = 1000000000

@@ -86,7 +86,8 @@ END TYPE
 
 'This type stores the state of the currently animating attack
 TYPE AttackState
- id AS INTEGER            'Attack ID or -1 for none
+ id AS INTEGER            'Attack ID of the chosen attack or -1 for none. Cleared when animation finishes
+ was_id AS INTEGER        'Attack ID of the animating attack. Cleared after fulldeathcheck is finished
  '--Elementals are stored in AttackState just for the benefit of elemental spawning
  non_elemental AS INTEGER 'YES or NO
  elemental(7) AS INTEGER  'YES or NO for each element

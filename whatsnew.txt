@@ -3,6 +3,7 @@ WHAT IS NEW?
 ???? ?? 200? [xocolatl]
 
   * New Features
+    * New attack bitset "Don't trigger spawning on kill" [James]
 
   * Bugfixes
 
