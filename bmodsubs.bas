@@ -303,7 +303,7 @@ END FUNCTION
 FUNCTION targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats)
 o = 0
 FOR i = 4 TO 11
- IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND bslot(i).hero_untargetable = 0 THEN o = o + 1
+ IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND bslot(i).hero_untargetable = NO THEN o = o + 1
 NEXT i
 RETURN o
 END FUNCTION
@@ -717,6 +717,9 @@ IF formdata(i * 4) > 0 THEN
   .unescapable = xreadbit(tempbits(), 57)
   .die_without_boss = xreadbit(tempbits(), 58)
   .flee_instead_of_die = xreadbit(tempbits(), 59)
+  .enemy_untargetable = xreadbit(tempbits(), 60)
+  .hero_untargetable = xreadbit(tempbits(), 61)
+  .death_unneeded = xreadbit(tempbits(), 62)
   FOR o = 0 TO 7
    .weak(o) = xreadbit(tempbits(), o)
    .strong(o) = xreadbit(tempbits(), 8 + o)
@@ -759,9 +762,6 @@ IF formdata(i * 4) > 0 THEN
    .w = 80
    .h = 80
   END IF
-  .death_unneeded = readbit(bslot(4 + i).ebits(), 0, 62)
-  .hero_untargetable = readbit(bslot(4 + i).ebits(), 0, 61)
-  .enemy_untargetable = readbit(bslot(4 + i).ebits(), 0, 60)
   .death_sfx = es(i, 24)
   .revenge = -1
   FOR o = 0 TO 11
@@ -925,10 +925,10 @@ IF is_hero(target) THEN
 ELSE
  'target is enemy
  IF is_hero(attacker) THEN
-  IF bslot(target).hero_untargetable = 0 THEN targetable = 1
+  IF bslot(target).hero_untargetable = NO THEN targetable = 1
  END IF
  IF is_enemy(attacker) THEN
-  IF bslot(target).enemy_untargetable = 0 THEN targetable = 1
+  IF bslot(target).enemy_untargetable = NO THEN targetable = 1
  END IF
 END IF
 END FUNCTION
@@ -1229,9 +1229,9 @@ IF atkbuf(3) <> 2 THEN
  'enforce untargetability
  FOR i = 0 TO 11
   IF is_hero(who) THEN
-   IF bslot(i).hero_untargetable <> 0 THEN tmask(i) = 0
+   IF bslot(i).hero_untargetable = YES THEN tmask(i) = 0
   ELSEIF is_enemy(who) THEN
-   IF bslot(i).enemy_untargetable <> 0 THEN tmask(i) = 0
+   IF bslot(i).enemy_untargetable = YES THEN tmask(i) = 0
   END IF
  NEXT i
 END IF

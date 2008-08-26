@@ -21,9 +21,6 @@ TYPE BattleSprite
   yspeed AS INTEGER
   zspeed AS INTEGER
   vis AS INTEGER
-  hero_untargetable AS INTEGER
-  enemy_untargetable AS INTEGER
-  death_unneeded AS INTEGER
   dissolve AS INTEGER
   flee AS INTEGER
   attack_succeeded AS INTEGER
@@ -55,6 +52,9 @@ TYPE BattleSprite
   unescapable    AS INTEGER 'YES/NO
   die_without_boss    AS INTEGER 'YES/NO
   flee_instead_of_die AS INTEGER 'YES/NO
+  enemy_untargetable  AS INTEGER 'YES/NO
+  hero_untargetable   AS INTEGER 'YES/NO
+  death_unneeded AS INTEGER 'YES/NO
   ebits(4)       AS INTEGER 'Enemy bitsets. All zero if this is a hero
 END TYPE
 
