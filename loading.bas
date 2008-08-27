@@ -1042,7 +1042,7 @@ SUB LoadTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
  END WITH
 END SUB
 
-SUB SaveTextBox (boxbuf() AS INTEGER, record AS INTEGER)
+SUB SaveTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
  IF UBOUND(boxbuf) < dimbinsize(binSAY) THEN debug "SaveTextBox: boxbuf too small:" & UBOUND(boxbuf) : EXIT SUB
  IF record < 0 OR record > gen(genMaxTextBox) THEN debug "SaveTextBox: invalid record: " & record : EXIT SUB
 
@@ -1050,6 +1050,12 @@ SUB SaveTextBox (boxbuf() AS INTEGER, record AS INTEGER)
  filename = game & ".say"
 
  DIM i AS INTEGER
+
+ 'FIXME: not all elements are saved here yet. They will be added as direct boxbuf() access is phased out
+ WITH box
+  
+ END WITH
+
  DIM f AS INTEGER
  f = FREEFILE
  OPEN filename FOR BINARY AS #f

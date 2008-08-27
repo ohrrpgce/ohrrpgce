@@ -1281,7 +1281,7 @@ FOR i = 0 TO 1
  WHILE LEN(choice$(i)) < 15: choice$(i) = choice$(i) + CHR$(0): WEND
  str2array choice$(i), boxbuf(), 349 + (i * 18)
 NEXT i
-SaveTextBox boxbuf(), pt
+SaveTextBox box, boxbuf(), pt
 RETRACE
 
 clearlines:
@@ -1295,7 +1295,7 @@ FOR i = 0 TO 199
    boxbuf(i) = 0
  END SELECT
 NEXT i
-SaveTextBox boxbuf(), pt
+SaveTextBox box, boxbuf(), pt
 RETRACE
 
 seektextbox:

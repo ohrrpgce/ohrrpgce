@@ -63,6 +63,6 @@ declare Sub OldDefaultUIColors (colarray() AS INTEGER)
 declare Sub GuessDefaultUIColors (colarray() AS INTEGER)
 
 declare Sub LoadTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
-declare Sub SaveTextBox (boxbuf() AS INTEGER, record AS INTEGER)
+declare Sub SaveTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
 
 #ENDIF

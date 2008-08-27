@@ -1609,7 +1609,7 @@ IF gen(genVersion) = 0 THEN
   LoadTextBox box, boxbuf(), o
   temp$ = STRING$(68, 0)
   str2array temp$, boxbuf(), 331
-  SaveTextBox boxbuf(), o
+  SaveTextBox box, boxbuf(), o
  NEXT o
 END IF
 IF gen(genVersion) = 1 THEN
