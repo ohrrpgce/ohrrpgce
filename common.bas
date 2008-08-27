@@ -1604,8 +1604,9 @@ IF gen(genVersion) = 0 THEN
  gen(genVersion) = 1
  upgrade_message "Flushing New Text Data..."
  DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
+ DIM box AS TextBox 'FIXME: not used yet!
  FOR o = 0 TO 999
-  LoadTextBox boxbuf(), o
+  LoadTextBox box, boxbuf(), o
   temp$ = STRING$(68, 0)
   str2array temp$, boxbuf(), 331
   SaveTextBox boxbuf(), o

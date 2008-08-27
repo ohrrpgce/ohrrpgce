@@ -364,12 +364,12 @@ TYPE TextBox
   item        AS INTEGER
   choice_enabled AS INTEGER
   no_box      AS INTEGER
-  translucent AS INTEGER
+  opaque      AS INTEGER
   restore_music AS INTEGER
   choice(1)   AS STRING
-  choice_tag  AS INTEGER
+  choice_tag(1) AS INTEGER
   vertical_offset AS INTEGER ' in 4-pixel increments
-  box_shrink  AS INTEGER     ' in 4-pixel increments
+  shrink      AS INTEGER     ' in 4-pixel increments
   textcolor   AS INTEGER     ' 0=default
   boxstyle    AS INTEGER
   backdrop    AS INTEGER     ' +1

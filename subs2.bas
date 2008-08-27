@@ -745,6 +745,7 @@ END FUNCTION
 SUB textage
 DIM m$(10), x$(8), cond(21), ct(-1 TO 21), menu$(21), a(318), order(21), grey(21), choice$(1), max(8), min(8), buf(16384), h$(2), tagmn$, gcsr, tcur
 DIM boxbuf(dimbinsize(binSAY)) 
+DIM box AS TextBox 'FIXME: this is not actually used yet!
 pt = 1
 
 order(0) = 0:      grey(0) = -1
@@ -1240,7 +1241,7 @@ NEXT i
 RETRACE
 
 loadlines:
-LoadTextBox boxbuf(), pt
+LoadTextBox box, boxbuf(), pt
 temp$ = STRING$(42, 0)
 array2str boxbuf(), 305, temp$
 str2array temp$, cond(), 0
@@ -1285,7 +1286,7 @@ RETRACE
 
 clearlines:
 '--this inits a new text box, and copies in values from text box 0 for defaults
-LoadTextBox boxbuf(), 0
+LoadTextBox box, boxbuf(), 0
 FOR i = 0 TO 199
  SELECT CASE i
   CASE 174, 193, 195, 196
@@ -1309,7 +1310,7 @@ DO
   w = getkey
   EXIT DO
  END IF
- LoadTextBox boxbuf(), pt
+ LoadTextBox box, boxbuf(), pt
  foundstr = 0
  FOR i = 0 TO 7
   tmp$ = STRING$(38, 0)

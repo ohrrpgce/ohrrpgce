@@ -966,7 +966,7 @@ SUB SaveUIColors (colarray() AS INTEGER, palnum AS INTEGER)
  CLOSE f
 END SUB
 
-SUB LoadTextBox (boxbuf() AS INTEGER, record AS INTEGER)
+SUB LoadTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
  IF UBOUND(boxbuf) < dimbinsize(binSAY) THEN debug "LoadTextBox: boxbuf too small:" & UBOUND(boxbuf) : EXIT SUB
  IF record < 0 OR record > gen(genMaxTextBox) THEN debug "LoadTextBox: invalid record: " & record : EXIT SUB
 
@@ -982,6 +982,64 @@ SUB LoadTextBox (boxbuf() AS INTEGER, record AS INTEGER)
   boxbuf(i) = ReadShort(f)
  NEXT i
  CLOSE #f
+
+ '--Populate TextBox object
+ WITH box
+  '--Load lines of text
+  FOR i = 0 TO 7
+   .text(i) = STRING(38, 0)
+   array2str boxbuf(), i * 38, .text(i)
+   .text(i) = RTRIM(.text(i), CHR(0)) '--Trim off any trailing ASCII zeroes
+  NEXT i
+  '--Gather conditional data
+  '--transpose conditional data from its dumb-as-toast non-int-aligned location
+  DIM condtemp AS STRING
+  DIM condbuf(20) AS INTEGER
+  condtemp = STRING(42, 0)
+  array2str boxbuf(), 305, condtemp
+  str2array condtemp, condbuf(), 0
+  '--store conditional data
+  .instead_tag = condbuf(0)
+  .instead     = condbuf(1)
+  .settag_tag  = condbuf(2)
+  .settag1     = condbuf(3)
+  .settag2     = condbuf(4)
+  .battle_tag  = condbuf(5)
+  .battle      = condbuf(6)
+  .shop_tag    = condbuf(7)
+  .shop        = condbuf(8)
+  .hero_tag    = condbuf(9)
+  .hero_addrem = condbuf(10)
+  .hero_swap   = condbuf(11)
+  .hero_lock   = condbuf(12)
+  .after_tag   = condbuf(13)
+  .after       = condbuf(14)
+  .money_tag   = condbuf(15)
+  .money       = condbuf(16)
+  .door_tag    = condbuf(17)
+  .door        = condbuf(18)
+  .item_tag    = condbuf(19)
+  .item        = condbuf(20)
+  '--Get box bitsets
+  .choice_enabled = xreadbit(boxbuf(), 0, 174)
+  .no_box         = xreadbit(boxbuf(), 1, 174)
+  .opaque         = xreadbit(boxbuf(), 2, 174)
+  .restore_music  = xreadbit(boxbuf(), 3, 174)
+  '--Get choicebox data
+  FOR i = 0 TO 1
+   .choice(i) = STRING(15, 0)
+   array2str boxbuf(), 349 + (i * 18), .choice(i)
+   .choice(i) = RTRIM(.choice(i), CHR(0)) 'Trim off trailing ASCII zeroes
+   .choice_tag(i) = boxbuf(182 + (i * 9))
+  NEXT i
+  '--Get box appearance
+  .vertical_offset = boxbuf(193)
+  .shrink          = boxbuf(194)
+  .textcolor       = boxbuf(195) ' 0=default
+  .boxstyle        = boxbuf(196)
+  .backdrop        = boxbuf(197) ' +1
+  .music           = boxbuf(198) ' +1
+ END WITH
 END SUB
 
 SUB SaveTextBox (boxbuf() AS INTEGER, record AS INTEGER)

@@ -749,13 +749,12 @@ END FUNCTION
 FUNCTION textbox_preview_line(boxnum AS INTEGER) AS STRING
  IF boxnum <= 0 OR boxnum > gen(genMaxTextBox) THEN RETURN ""
  DIM boxbuf(dimbinsize(binSAY))
- LoadTextBox boxbuf(), boxnum
+ DIM box AS TextBox
+ LoadTextBox box, boxbuf(), boxnum
  DIM s AS STRING
  DIM i AS INTEGER
  FOR i = 0 TO 7
-  s = STRING$(38, 0)
-  array2str boxbuf(), i * 38, s
-  s = TRIM(s)
+  s= TRIM(box.text(i))
   IF LEN(s) > 0 THEN RETURN s 
  NEXT i
  RETURN "" 

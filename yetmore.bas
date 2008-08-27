@@ -642,13 +642,14 @@ END SUB
 SUB loadsay (choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh())
 DIM temp$
 DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
+DIM box AS TextBox 'FIXME: this is not actually used yet!
 
 loadsaybegin:
 gen(58) = 0
 choosep = 0
 
 '--load data from the textbox lump
-LoadTextBox boxbuf(), say
+LoadTextBox box, boxbuf(), say
 
 '--read in the lines of text
 FOR j = 0 TO 7
@@ -1661,11 +1662,11 @@ SELECT CASE AS CONST id
  CASE 240'-- string from textbox
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
    DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
+   DIM box AS TextBox
    retvals(1) = bound(retvals(1),0,gen(genMaxTextbox))
    retvals(2) = bound(retvals(2),0,7)
-   LoadTextBox boxbuf(), retvals(1)
-   plotstr(retvals(0)).s = string$(38,0)
-   array2str boxbuf() , retvals(2) * 38 , plotstr(retvals(0)).s
+   LoadTextBox box, boxbuf(), retvals(1)
+   plotstr(retvals(0)).s = box.text(retvals(2))
    IF NOT retvals(3) THEN embedtext plotstr(retvals(0)).s
    plotstr(retvals(0)).s = trim$(plotstr(retvals(0)).s)
   END IF
