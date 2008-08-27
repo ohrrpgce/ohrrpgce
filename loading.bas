@@ -1053,6 +1053,11 @@ SUB SaveTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
 
  'FIXME: not all elements are saved here yet. They will be added as direct boxbuf() access is phased out
  WITH box
+  'Transcribe lines of text into the buffer
+  FOR i = 0 TO 7
+   WHILE LEN(.text(i)) < 38: .text(i) = .text(i) & CHR(0): WEND
+   str2array .text(i), boxbuf(), i * 38
+  NEXT i
   
  END WITH
 

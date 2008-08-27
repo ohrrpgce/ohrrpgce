@@ -743,7 +743,7 @@ clearpage 1
 END FUNCTION
 
 SUB textage
-DIM m$(10), x$(8), cond(21), ct(-1 TO 21), menu$(21), a(318), order(21), grey(21), choice$(1), max(8), min(8), buf(16384), h$(2), tagmn$, gcsr, tcur
+DIM m$(10), cond(21), ct(-1 TO 21), menu$(21), a(318), order(21), grey(21), choice$(1), max(8), min(8), buf(16384), h$(2), tagmn$, gcsr, tcur
 DIM boxbuf(dimbinsize(binSAY)) 
 DIM box AS TextBox 'FIXME: this is not actually used yet!
 pt = 1
@@ -879,7 +879,7 @@ DO
  END IF
  '--Draw text lines
  FOR i = 0 TO 7
-  edgeprint x$(i), 8, 100 + i * 10, uilook(uiText), dpage
+  edgeprint box.text(i), 8, 100 + i * 10, uilook(uiText), dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1104,7 +1104,7 @@ DO
  IF keyval(28) > 1 AND y < 7 THEN y = y + 1
  IF usemenu(y, 0, 0, 7, 24) THEN insert = -1
  IF y <= 7 AND y >= 0 THEN
-  stredit x$(y), 38
+  stredit box.text(y), 38
  END IF
  'Display the box
  IF readbit(boxbuf(), 174, 1) = 0 THEN
@@ -1119,7 +1119,7 @@ DO
    printstr " ", 8 + insert * 8, 8 + i * 10, dpage
    textcolor uilook(uiSelectedItem + tog), 0
   END IF
-  printstr x$(i), 8, 8 + i * 10, dpage
+  printstr box.text(i), 8, 8 + i * 10, dpage
  NEXT i
  textcolor uilook(uiSelectedItem + tog), 0
  printstr "-", 0, 8 + y * 10, dpage
@@ -1236,7 +1236,7 @@ END IF
 FOR i = 0 TO 7
  col = uilook(uiText)
  IF boxbuf(195) > 0 THEN col = boxbuf(195)
- edgeprint x$(i), 8, 8 + (boxbuf(193) * 4) + i * 10, col, dpage
+ edgeprint box.text(i), 8, 8 + (boxbuf(193) * 4) + i * 10, col, dpage
 NEXT i
 RETRACE
 
@@ -1255,11 +1255,6 @@ FOR i = 0 TO 21
  IF ct(i) = 6 THEN cond(i) = bound(cond(i), -gen(genMaxItem) - 1, gen(genMaxItem) + 1)
  IF ct(i) = 7 THEN cond(i) = bound(cond(i), -32767, gen(genMaxTextbox))
 NEXT i
-FOR i = 0 TO 7
- x$(i) = STRING$(38, 0)
- array2str boxbuf(), i * 38, x$(i)
- WHILE RIGHT$(x$(i), 1) = CHR$(0): x$(i) = LEFT$(x$(i), LEN(x$(i)) - 1): WEND
-NEXT i
 FOR i = 0 TO 1
  choice$(i) = STRING$(15, 0)
  array2str boxbuf(), 349 + (i * 18), choice$(i)
@@ -1270,10 +1265,6 @@ search$ = ""
 RETRACE
 
 savelines:
-FOR i = 0 TO 7
- WHILE LEN(x$(i)) < 38: x$(i) = x$(i) + CHR$(0): WEND
- str2array x$(i), boxbuf(), i * 38
-NEXT i
 temp$ = STRING$(42, 0)
 array2str cond(), 0, temp$
 str2array temp$, boxbuf(), 305
