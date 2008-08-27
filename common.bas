@@ -1603,12 +1603,35 @@ IF gen(genVersion) = 0 THEN
  upgrade_message "Ancient Pre-1999 format (1)"
  gen(genVersion) = 1
  upgrade_message "Flushing New Text Data..."
- DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
- DIM box AS TextBox 'FIXME: not used yet!
+ DIM boxbuf(dimbinsize(binSAY)) AS INTEGER 'FIXME: remove this later
+ DIM box AS TextBox 'FIXME: not fully used yet!
  FOR o = 0 TO 999
   LoadTextBox box, boxbuf(), o
   temp$ = STRING$(68, 0)
   str2array temp$, boxbuf(), 331
+  'Zero out the data members that contained random garbage before 1999
+  WITH box
+   .money_tag      = 0
+   .money          = 0
+   .door_tag       = 0
+   .door           = 0
+   .item_tag       = 0
+   .item           = 0
+   .choice_enabled = NO
+   .no_box         = NO
+   .opaque         = NO
+    .restore_music  = NO
+   .choice(0)      = ""
+   .choice_tag(0)  = 0
+   .choice(1)      = ""
+   .choice_tag(1)  = 0
+   .vertical_offset = 0
+   .shrink         = 0
+   .textcolor      = 0
+   .boxstyle       = 0
+   .backdrop       = 0
+   .music          = 0
+  END WITH
   SaveTextBox box, boxbuf(), o
  NEXT o
 END IF
