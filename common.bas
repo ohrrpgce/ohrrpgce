@@ -2787,3 +2787,12 @@ FUNCTION xreadbit (bitarray() AS INTEGER, bitoffset AS INTEGER, intoffset AS INT
  'This is a wrapper for readbit that returns YES/NO and accepts a default arg of zero for the integer offset
  RETURN readbit(bitarray(), intoffset, bitoffset) <> 0 
 END FUNCTION
+
+FUNCTION getheroname (hero_id AS INTEGER) AS STRING
+ DIM her AS HeroDef
+ IF hero_id >= 0 THEN
+  loadherodata @her, hero_id
+  RETURN her.name
+ END IF
+ RETURN ""
+END FUNCTION

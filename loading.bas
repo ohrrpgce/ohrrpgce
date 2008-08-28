@@ -998,28 +998,28 @@ SUB LoadTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
   condtemp = STRING(42, 0)
   array2str boxbuf(), 305, condtemp
   str2array condtemp, condbuf(), 0
-  '--store conditional data
-  .instead_tag = condbuf(0)
-  .instead     = condbuf(1)
-  .settag_tag  = condbuf(2)
-  .settag1     = condbuf(3)
-  .settag2     = condbuf(4)
-  .battle_tag  = condbuf(5)
-  .battle      = condbuf(6)
-  .shop_tag    = condbuf(7)
-  .shop        = condbuf(8)
-  .hero_tag    = condbuf(9)
-  .hero_addrem = condbuf(10)
-  .hero_swap   = condbuf(11)
-  .hero_lock   = condbuf(12)
-  .after_tag   = condbuf(13)
-  .after       = condbuf(14)
-  .money_tag   = condbuf(15)
-  .money       = condbuf(16)
-  .door_tag    = condbuf(17)
-  .door        = condbuf(18)
-  .item_tag    = condbuf(19)
-  .item        = condbuf(20)
+  '--Get conditional data
+  .instead_tag = bound(condbuf(0), -999, 999)
+  .instead     = bound(condbuf(1), -32767, gen(genMaxTextbox))
+  .settag_tag  = bound(condbuf(2), -999, 999)
+  .settag1     = bound(condbuf(3), -999, 999)
+  .settag2     = bound(condbuf(4), -999, 999)
+  .battle_tag  = bound(condbuf(5), -999, 999)
+  .battle      = bound(condbuf(6), 0, gen(genMaxFormation))
+  .shop_tag    = bound(condbuf(7), -999, 999)
+  .shop        = bound(condbuf(8), -32000, gen(genMaxShop) + 1)
+  .hero_tag    = bound(condbuf(9), -999, 999)
+  .hero_addrem = bound(condbuf(10), -99, 99)
+  .after_tag   = bound(condbuf(11), -999, 999)
+  .after       = bound(condbuf(12), -32767, gen(genMaxTextbox))
+  .money_tag   = bound(condbuf(13), -999, 999)
+  .money       = bound(condbuf(14), -32000, 32000)
+  .door_tag    = bound(condbuf(15), -999, 999)
+  .door        = bound(condbuf(16), 0, 199)
+  .item_tag    = bound(condbuf(17), -999, 999)
+  .item        = bound(condbuf(18), -gen(genMaxItem) - 1, gen(genMaxItem) + 1)
+  .hero_swap   = bound(condbuf(19), -99, 99)
+  .hero_lock   = bound(condbuf(20), -99, 99)
   '--Get box bitsets
   .choice_enabled = xreadbit(boxbuf(), 0, 174)
   .no_box         = xreadbit(boxbuf(), 1, 174)
@@ -1053,11 +1053,38 @@ SUB SaveTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
 
  'FIXME: not all elements are saved here yet. They will be added as direct boxbuf() access is phased out
  WITH box
-  'Transcribe lines of text into the buffer
+  '--Transcribe lines of text into the buffer
   FOR i = 0 TO 7
    WHILE LEN(.text(i)) < 38: .text(i) = .text(i) & CHR(0): WEND
    str2array .text(i), boxbuf(), i * 38
   NEXT i
+  '--Transcribe conditional data
+  DIM condbuf(20) AS INTEGER
+  condbuf(0) = .instead_tag
+  condbuf(1) = .instead
+  condbuf(2) = .settag_tag
+  condbuf(3) = .settag1
+  condbuf(4) = .settag2
+  condbuf(5) = .battle_tag
+  condbuf(6) = .battle
+  condbuf(7) = .shop_tag
+  condbuf(8) = .shop
+  condbuf(9) = .hero_tag
+  condbuf(10) = .hero_addrem
+  condbuf(11) = .after_tag
+  condbuf(12) = .after
+  condbuf(13) = .money_tag
+  condbuf(14) = .money
+  condbuf(15) = .door_tag
+  condbuf(16) = .door
+  condbuf(17) = .item_tag
+  condbuf(18) = .item
+  condbuf(19) = .hero_swap
+  condbuf(20) = .hero_lock
+  DIM condtemp AS STRING
+  condtemp = STRING(42, 0)
+  array2str condbuf(), 0, condtemp
+  str2array condtemp, boxbuf(), 305
   
  END WITH
 

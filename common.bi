@@ -153,6 +153,7 @@ DECLARE SUB write_npc_int (npcdata AS NPCType, intoffset AS INTEGER, n AS INTEGE
 DECLARE FUNCTION read_npc_int (npcdata AS NPCType, intoffset AS INTEGER) AS INTEGER
 
 DECLARE FUNCTION xreadbit (bitarray() AS INTEGER, bitoffset AS INTEGER, intoffset AS INTEGER=0) AS INTEGER
+DECLARE FUNCTION getheroname (hero_id AS INTEGER) AS STRING
 
 'Global variables
 EXTERN as string game, tmpdir, exename, workingdir
