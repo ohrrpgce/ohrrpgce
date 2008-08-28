@@ -1342,18 +1342,19 @@ FOR i = 0 TO buffer(0)
 NEXT
 END SUB
 
-SUB writeconstant (filehandle, num, names AS STRING, unique$(), prefix$)
-'prints to already-open filehandle 1
-a$ = exclusive(names, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _'~")
-WHILE NOT isunique(a$, unique$(), 0): a$ = numbertail(a$): WEND
-IF a$ <> "" THEN
- a$ = STR$(num) + "," + prefix$ + ":" + a$
- PRINT #filehandle, a$
-END IF
-END SUB
-
 '--FIXME: This affects the rest of the file. Move this up as subs and functions are cleaned up
 OPTION EXPLICIT
+
+SUB writeconstant (filehandle AS INTEGER, num AS INTEGER, names AS STRING, unique() AS STRING, prefix AS STRING)
+ 'prints a hamsterspeak constant to already-open filehandle
+ DIM s AS STRING
+ s = exclusive(names, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _'~")
+ WHILE NOT isunique(s, unique(), 0): s = numbertail(s): WEND
+ IF s <> "" THEN
+  s = num & "," & prefix & ":" & s
+  PRINT #filehandle, s
+ END IF
+END SUB
 
 SUB write_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS INTEGER, num AS INTEGER)
  WITH box
