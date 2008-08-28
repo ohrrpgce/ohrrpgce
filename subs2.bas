@@ -1328,22 +1328,24 @@ FUNCTION textbox_condition_caption(tag AS INTEGER) AS STRING
  RETURN "If tag " & ABS(tag) & " = " + onoroff$(tag) & " (" & load_tag_name(tag) & ")"
 END FUNCTION
 
-SUB verifyrpg
-
-xbload game + ".gen", buffer(), "General data is missing!"
-
-FOR i = 0 TO buffer(0)
- IF NOT isfile(maplumpname$(i, "t")) THEN fatalerror "map" + filenum$(i) + " tilemap is missing!"
- IF NOT isfile(maplumpname$(i, "p")) THEN fatalerror "map" + filenum$(i) + " passmap is missing!"
- IF NOT isfile(maplumpname$(i, "e")) THEN fatalerror "map" + filenum$(i) + " foemap is missing!"
- IF NOT isfile(maplumpname$(i, "l")) THEN fatalerror "map" + filenum$(i) + " NPClocations are missing!"
- IF NOT isfile(maplumpname$(i, "n")) THEN fatalerror "map" + filenum$(i) + " NPCdefinitions are missing!"
- IF NOT isfile(maplumpname$(i, "d")) THEN fatalerror "map" + filenum$(i) + " doorlinks are missing!"
-NEXT
-END SUB
-
 '--FIXME: This affects the rest of the file. Move this up as subs and functions are cleaned up
 OPTION EXPLICIT
+
+SUB verifyrpg
+
+ DIM gentmp(360)
+ xbload game + ".gen", gentmp(), "General data is missing!"
+
+ DIM i AS INTEGER
+ FOR i = 0 TO gentmp(genMaxMap)
+  IF NOT isfile(maplumpname$(i, "t")) THEN fatalerror "map" + filenum$(i) + " tilemap is missing!"
+  IF NOT isfile(maplumpname$(i, "p")) THEN fatalerror "map" + filenum$(i) + " passmap is missing!"
+  IF NOT isfile(maplumpname$(i, "e")) THEN fatalerror "map" + filenum$(i) + " foemap is missing!"
+  IF NOT isfile(maplumpname$(i, "l")) THEN fatalerror "map" + filenum$(i) + " NPClocations are missing!"
+  IF NOT isfile(maplumpname$(i, "n")) THEN fatalerror "map" + filenum$(i) + " NPCdefinitions are missing!"
+  IF NOT isfile(maplumpname$(i, "d")) THEN fatalerror "map" + filenum$(i) + " doorlinks are missing!"
+ NEXT
+END SUB
 
 SUB writeconstant (filehandle AS INTEGER, num AS INTEGER, names AS STRING, unique() AS STRING, prefix AS STRING)
  'prints a hamsterspeak constant to already-open filehandle
