@@ -376,6 +376,10 @@ TYPE TextBox
   music       AS INTEGER     ' +1
 END TYPE
 
+TYPE TextBoxState
+  box AS TextBox '--Contains the data about the content of the textbox
+END TYPE
+
 TYPE MouseArea
   x AS INTEGER
   y AS INTEGER

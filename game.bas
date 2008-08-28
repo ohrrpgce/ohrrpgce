@@ -28,7 +28,7 @@ DECLARE FUNCTION getfilelist% (wildcard$)
 DECLARE SUB scriptadvanced (id%)
 DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%, showsay%)
 DECLARE FUNCTION checkfordeath (stat())
-DECLARE SUB loadsay (choosep%, say%, sayer%, showsay%, remembermusic%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
+DECLARE SUB loadsay (BYREF txt AS TextBoxState, choosep%, say%, sayer%, showsay%, remembermusic%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
 DECLARE SUB correctbackdrop ()
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
 DECLARE FUNCTION isonscreen% (x%, y%)
@@ -115,7 +115,7 @@ DECLARE FUNCTION range% (n%, r%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
-DECLARE SUB forcedismount (choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
+DECLARE SUB forcedismount (BYREF txt AS TextBoxState, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
 DECLARE SUB drawnpcs ()
@@ -244,6 +244,7 @@ DIM SHARED harmtileflash = NO
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
 'textbox stuff (needs moving into a udt)
 DIM SHARED choosep, say, sayer, showsay, say$(7), saytag(21), saybit(0), sayenh(6), choose$(1), chtag(1)
+DIM SHARED txt AS TextBoxState
 
 'global variables
 DIM stat(40, 1, 16)
@@ -534,7 +535,7 @@ DO
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
   say = menu_text_box
-  loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+  loadsay txt, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
  END IF
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
@@ -605,7 +606,7 @@ DO
     menusound gen(genAcceptSFX)
    CASE IS > 1
     say = tmp - 1
-    loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+    loadsay txt, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
   END SELECT
  END IF
  IF showsay = 1 AND readbit(saybit(), 0, 0) THEN
@@ -961,7 +962,7 @@ IF sayer >= 0 THEN
   CASE 0
    sayer = -1
   CASE IS > 0
-   loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+   loadsay txt, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
  END SELECT
  evalherotag stat()
  evalitemtag
@@ -1054,7 +1055,7 @@ IF istag(saytag(11), 0) THEN
   runscript(ABS(saytag(12)), nowscript + 1, -1, "textbox", plottrigger)
  ELSE
   say = saytag(12)
-  loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+  loadsay txt, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
   RETRACE
  END IF
 END IF
@@ -1499,7 +1500,7 @@ END IF
 loaddoor map, door()
 
 IF afterbat = 0 AND samemap = 0 THEN
- forcedismount choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
+ forcedismount txt, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
 END IF
 IF afterbat = 0 AND afterload = 0 THEN
  FOR i = 0 TO 15
@@ -1670,7 +1671,7 @@ END IF
 '--do spawned text boxes, battles, etc.
 IF wantbox > 0 THEN
  say = wantbox
- loadsay choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+ loadsay txt, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
  wantbox = 0
 END IF
 IF wantdoor > 0 THEN
@@ -2081,7 +2082,7 @@ WITH scrat(nowscript)
     gen(50) = 0
     correctbackdrop
    CASE 34'--dismount vehicle
-    forcedismount choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
+    forcedismount txt, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
    CASE 35'--use NPC
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN

@@ -639,17 +639,16 @@ FOR o = 0 TO 10 STEP 5
 NEXT o
 END SUB
 
-SUB loadsay (choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh())
+SUB loadsay (BYREF txt AS TextBoxState, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh())
 DIM temp$
 DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
-DIM box AS TextBox 'FIXME: this is not actually used yet!
 
 loadsaybegin:
 gen(58) = 0
 choosep = 0
 
 '--load data from the textbox lump
-LoadTextBox box, boxbuf(), say
+LoadTextBox txt.box, boxbuf(), say
 
 '--read in the lines of text
 FOR j = 0 TO 7
