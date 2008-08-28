@@ -863,8 +863,8 @@ DO
  standardmenu m$(), 7, 7, csr, 0, 0, 0, dpage, 0
 
  '--Draw box
- IF readbit(boxbuf(), 174, 1) = 0 THEN
-  edgeboxstyle 4, 96, 312, 88 - (boxbuf(194) * 4), boxbuf(196), dpage, (readbit(boxbuf(), 174, 2) = 0)
+ IF box.no_box = NO THEN
+  edgeboxstyle 4, 96, 312, 88 - (boxbuf(194) * 4), boxbuf(196), dpage, (box.opaque = NO)
  END IF
  '--Draw text lines
  FOR i = 0 TO 7
@@ -1056,10 +1056,10 @@ DO
  usemenu tcur, 0, 0, 5, 24
  IF enter_or_space() THEN
   IF tcur = 0 THEN RETRACE
-  IF tcur = 1 THEN setbit boxbuf(), 174, 0, (readbit(boxbuf(), 174, 0) XOR 1)
+  IF tcur = 1 THEN box.choice_enabled = (NOT box.choice_enabled)
  END IF
  IF tcur = 1 THEN
-  IF keyval(75) > 1 OR keyval(77) > 1 THEN setbit boxbuf(), 174, 0, (readbit(boxbuf(), 174, 0) XOR 1)
+  IF keyval(75) > 1 OR keyval(77) > 1 THEN box.choice_enabled = (NOT box.choice_enabled)
  END IF
  FOR i = 0 TO 1
   IF tcur = 2 + (i * 2) THEN strgrabber box.choice(i), 15
@@ -1076,7 +1076,7 @@ DO
 LOOP
 
 tcmenu:
-IF readbit(boxbuf(), 174, 0) THEN menu$(1) = "Choice = Enabled" ELSE menu$(1) = "Choice = Disabled"
+IF box.choice_enabled THEN menu$(1) = "Choice = Enabled" ELSE menu$(1) = "Choice = Disabled"
 FOR i = 0 TO 1
  menu$(2 + (i * 2)) = "Option " & i & " text:" + box.choice(i)
  IF box.choice_tag(i) THEN
@@ -1102,8 +1102,8 @@ DO
   stredit box.text(y), 38
  END IF
  'Display the box
- IF readbit(boxbuf(), 174, 1) = 0 THEN
-  edgeboxstyle 4, 4, 312, 88, boxbuf(196), dpage, (readbit(boxbuf(), 174, 2) = 0)
+ IF box.no_box = NO THEN
+  edgeboxstyle 4, 4, 312, 88, boxbuf(196), dpage, (box.opaque = NO)
  END IF
  'Display the lines in the box
  FOR i = 0 TO 7
@@ -1154,16 +1154,20 @@ DO
  usemenu gcsr, 0, 0, 9, 24
  IF enter_or_space() THEN
   IF gcsr = 0 THEN RETRACE
-  FOR i = 0 TO 2
-   IF gcsr = 7 + i THEN setbit boxbuf(), 174, 1 + i, (readbit(boxbuf(), 174, 1 + i) XOR 1)
-  NEXT i
+  SELECT CASE gcsr
+   CASE 7: box.no_box = (NOT box.no_box)
+   CASE 8: box.opaque = (NOT box.opaque)
+   CASE 9: box.restore_music = (NOT box.restore_music)
+  END SELECT
   IF gcsr = 3 THEN boxbuf(192 + gcsr) = color_browser_256(boxbuf(192 + gcsr))
  END IF
- FOR i = 0 TO 2
-  IF gcsr = 7 + i THEN
-   IF keyval(75) > 1 OR keyval(77) > 1 THEN setbit boxbuf(), 174, 1 + i, (readbit(boxbuf(), 174, 1 + i) XOR 1)
-  END IF
- NEXT i
+ IF keyval(75) > 1 OR keyval(77) > 1 THEN
+  SELECT CASE gcsr
+   CASE 7: box.no_box = (NOT box.no_box)
+   CASE 8: box.opaque = (NOT box.opaque)
+   CASE 9: box.restore_music = (NOT box.restore_music)
+  END SELECT
+ END IF
  FOR i = 0 TO 3
   IF gcsr = 1 + i THEN
    IF intgrabber(boxbuf(193 + i), min(i), max(i)) THEN GOSUB refresh
@@ -1191,12 +1195,11 @@ DO
     temp$ = menu$(i) + " NONE"
    END IF
   END IF
-  IF i > 6 AND i < 9 THEN
-   IF readbit(boxbuf(), 174, -6 + i) THEN temp$ = temp$ + " NO" ELSE temp$ = temp$ + " YES"
-  END IF
-  IF i = 9 THEN
-   IF readbit(boxbuf(), 174, -6 + i) THEN temp$ = temp$ + " YES" ELSE temp$ = temp$ + " NO"
-  END IF
+  SELECT CASE i
+   CASE 7: IF box.no_box THEN temp$ = temp$ & " NO" ELSE temp$ = temp$ & " YES"
+   CASE 8: IF box.opaque THEN temp$ = temp$ & " NO" ELSE temp$ = temp$ & " YES"
+   CASE 9: IF box.restore_music THEN temp$ = temp$ & " YES" ELSE temp$ = temp$ & " NO"
+  END SELECT
   edgeprint temp$, 0, i * 10, col, dpage
  NEXT i
  SWAP vpage, dpage
@@ -1225,8 +1228,8 @@ END IF
 RETRACE
 
 previewbox:
-IF readbit(boxbuf(), 174, 1) = 0 THEN
- edgeboxstyle 4, 4 + (boxbuf(193) * 4), 312, 88 - (boxbuf(194) * 4), boxbuf(196), dpage, (readbit(boxbuf(), 174, 2) = 0)
+IF box.no_box = NO THEN
+ edgeboxstyle 4, 4 + (boxbuf(193) * 4), 312, 88 - (boxbuf(194) * 4), boxbuf(196), dpage, (box.opaque = NO)
 END IF
 FOR i = 0 TO 7
  col = uilook(uiText)

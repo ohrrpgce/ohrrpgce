@@ -1085,6 +1085,15 @@ SUB SaveTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
   condtemp = STRING(42, 0)
   array2str condbuf(), 0, condtemp
   str2array condtemp, boxbuf(), 305
+  '--Save bitsets
+  setbit boxbuf(), 174, 0, .choice_enabled
+  setbit boxbuf(), 174, 1, .no_box
+  setbit boxbuf(), 174, 2, .opaque
+  setbit boxbuf(), 174, 3, .restore_music
+  setbit boxbuf(), 174, 4, NO 'Unused
+  setbit boxbuf(), 174, 5, NO 'Unused
+  setbit boxbuf(), 174, 6, NO 'Unused
+  setbit boxbuf(), 174, 7, NO 'Unused
   '--Transcribe choice text
   FOR i = 0 TO 1
    WHILE LEN(.choice(i)) < 15: .choice(i) = .choice(i) & CHR(0): WEND
