@@ -1042,8 +1042,8 @@ SUB LoadTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
  END WITH
 END SUB
 
-SUB SaveTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
- IF UBOUND(boxbuf) < dimbinsize(binSAY) THEN debug "SaveTextBox: boxbuf too small:" & UBOUND(boxbuf) : EXIT SUB
+SUB SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
+ DIM boxbuf(dimbinsize(binSAY))
  IF record < 0 OR record > gen(genMaxTextBox) THEN debug "SaveTextBox: invalid record: " & record : EXIT SUB
 
  DIM filename AS STRING
@@ -1101,7 +1101,13 @@ SUB SaveTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
    'Also save choice tags
    boxbuf(182 + (i * 9)) = .choice_tag(i)
   NEXT i
-
+  '--Save box appearance
+  boxbuf(193) = .vertical_offset
+  boxbuf(194) = .shrink
+  boxbuf(195) = .textcolor ' 0=default
+  boxbuf(196) = .boxstyle
+  boxbuf(197) = .backdrop  ' +1
+  boxbuf(198) = .music     ' +1
  END WITH
 
  DIM f AS INTEGER
@@ -1112,4 +1118,54 @@ SUB SaveTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
   WriteShort f, -1, boxbuf(i)
  NEXT i
  CLOSE #f
+END SUB
+
+SUB ClearTextBox (BYREF box AS TextBox)
+ DIM i AS INTEGER
+ '--Erase members of TextBox object
+ WITH box
+  '--Load lines of text
+  FOR i = 0 TO 7
+   .text(i) = ""
+  NEXT i
+  '--Erase conditional data
+  .instead_tag = 0
+  .instead     = 0
+  .settag_tag  = 0
+  .settag1     = 0
+  .settag2     = 0
+  .battle_tag  = 0
+  .battle      = 0
+  .shop_tag    = 0
+  .shop        = 0
+  .hero_tag    = 0
+  .hero_addrem = 0
+  .after_tag   = 0
+  .after       = 0
+  .money_tag   = 0
+  .money       = 0
+  .door_tag    = 0
+  .door        = 0
+  .item_tag    = 0
+  .item        = 0
+  .hero_swap   = 0
+  .hero_lock   = 0
+  '--Clear box bitsets
+  .choice_enabled = NO
+  .no_box         = NO
+  .opaque         = NO
+  .restore_music  = NO
+  '--Clear choicebox data
+  FOR i = 0 TO 1
+   .choice(i) = ""
+   .choice_tag(i) = 0
+  NEXT i
+  '--Clear box appearance
+  .vertical_offset = 0
+  .shrink          = 0
+  .textcolor       = 0
+  .boxstyle        = 0
+  .backdrop        = 0
+  .music           = 0
+ END WITH
 END SUB

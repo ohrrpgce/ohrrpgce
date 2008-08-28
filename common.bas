@@ -1604,7 +1604,7 @@ IF gen(genVersion) = 0 THEN
  gen(genVersion) = 1
  upgrade_message "Flushing New Text Data..."
  DIM boxbuf(dimbinsize(binSAY)) AS INTEGER 'FIXME: remove this later
- DIM box AS TextBox 'FIXME: not fully used yet!
+ DIM box AS TextBox
  FOR o = 0 TO 999
   LoadTextBox box, boxbuf(), o
   temp$ = STRING$(68, 0)
@@ -1632,7 +1632,7 @@ IF gen(genVersion) = 0 THEN
    .backdrop       = 0
    .music          = 0
   END WITH
-  SaveTextBox box, boxbuf(), o
+  SaveTextBox box, o
  NEXT o
 END IF
 IF gen(genVersion) = 1 THEN

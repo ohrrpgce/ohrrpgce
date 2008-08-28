@@ -751,8 +751,9 @@ END FUNCTION
 
 SUB textage
 DIM m$(10), menu$(20), grey(20), max(8), min(8), buf(16384), h$(2), tagmn$, gcsr, tcur
-DIM boxbuf(dimbinsize(binSAY)) 
-DIM box AS TextBox 'FIXME: this is not actually used yet!
+DIM boxbuf(dimbinsize(binSAY))
+DIM box AS TextBox
+DIM boxcopier AS TextBox ' FIXME: Move this to clearlines when it gets SUBified
 pt = 1
 
 'This array tells which rows in the conditional editor are grey
@@ -864,7 +865,7 @@ DO
 
  '--Draw box
  IF box.no_box = NO THEN
-  edgeboxstyle 4, 96, 312, 88 - (boxbuf(194) * 4), boxbuf(196), dpage, (box.opaque = NO)
+  edgeboxstyle 4, 96, 312, 88 - box.shrink * 4, box.boxstyle, dpage, (box.opaque = NO)
  END IF
  '--Draw text lines
  FOR i = 0 TO 7
@@ -1103,12 +1104,12 @@ DO
  END IF
  'Display the box
  IF box.no_box = NO THEN
-  edgeboxstyle 4, 4, 312, 88, boxbuf(196), dpage, (box.opaque = NO)
+  edgeboxstyle 4, 4, 312, 88, box.boxstyle, dpage, (box.opaque = NO)
  END IF
  'Display the lines in the box
  FOR i = 0 TO 7
   textcolor uilook(uiText), 0
-  IF boxbuf(195) > 0 THEN textcolor boxbuf(195), 0
+  IF box.textcolor > 0 THEN textcolor box.textcolor, 0
   IF y = i THEN
    textcolor uilook(uiText), uilook(uiHighlight + tog)
    printstr " ", 8 + insert * 8, 8 + i * 10, dpage
@@ -1144,7 +1145,12 @@ menu$(6) = "Music:"
 menu$(7) = "Show Box:"
 menu$(8) = "Translucent:"
 menu$(9) = "Restore Music:"
-GOSUB refresh
+'Show backdrop
+clearpage 2
+IF box.backdrop > 0 THEN
+ loadpage game + ".mxs", box.backdrop - 1, 2
+END IF
+
 setkeys
 DO
  setwait 55
@@ -1153,13 +1159,13 @@ DO
  IF keyval(1) > 1 THEN RETRACE
  usemenu gcsr, 0, 0, 9, 24
  IF enter_or_space() THEN
-  IF gcsr = 0 THEN RETRACE
   SELECT CASE gcsr
+   CASE 0: RETRACE ' Exit the appearance menu
+   CASE 3: box.textcolor = color_browser_256(box.textcolor)
    CASE 7: box.no_box = (NOT box.no_box)
    CASE 8: box.opaque = (NOT box.opaque)
    CASE 9: box.restore_music = (NOT box.restore_music)
   END SELECT
-  IF gcsr = 3 THEN boxbuf(192 + gcsr) = color_browser_256(boxbuf(192 + gcsr))
  END IF
  IF keyval(75) > 1 OR keyval(77) > 1 THEN
   SELECT CASE gcsr
@@ -1168,34 +1174,31 @@ DO
    CASE 9: box.restore_music = (NOT box.restore_music)
   END SELECT
  END IF
- FOR i = 0 TO 3
-  IF gcsr = 1 + i THEN
-   IF intgrabber(boxbuf(193 + i), min(i), max(i)) THEN GOSUB refresh
-  END IF
- NEXT i
- FOR i = 4 TO 5
-  IF gcsr = 1 + i THEN
-   IF zintgrabber(boxbuf(193 + i), min(i), max(i)) THEN GOSUB refresh
-  END IF
- NEXT i
+ SELECT CASE gcsr
+  CASE 1: intgrabber(box.vertical_offset, 0, 27 + box.shrink)
+  CASE 2: intgrabber(box.shrink, 0, 21)
+  CASE 3: intgrabber(box.textcolor, 0, 255)
+  CASE 4: intgrabber(box.boxstyle, 0, 14)
+  CASE 5:
+   IF zintgrabber(box.backdrop, -1, gen(genMaxBackdrop) - 1) THEN
+    clearpage 2
+    IF box.backdrop > 0 THEN
+     loadpage game + ".mxs", box.backdrop - 1, 2
+    END IF
+   END IF
+  CASE 6: zintgrabber(box.music, -1, gen(genMaxSong))
+ END SELECT
  GOSUB previewbox
  FOR i = 0 TO 9
   col = uilook(uimenuItem): IF i = gcsr THEN col = uilook(uiSelectedItem + tog)
   temp$ = menu$(i)
-  IF i > 0 AND i <= 4 THEN
-   temp$ = temp$ + XSTR$(boxbuf(192 + i))
-  END IF
-  IF i >= 5 AND i <= 6 THEN '-- backdrop and songs have "none" as an option
-   IF boxbuf(192 + i) THEN
-    temp$ = menu$(i) + XSTR$(boxbuf(192 + i) - 1)
-    IF i = 6 THEN
-     temp$ = temp$ + " " + getsongname$(boxbuf(192 + i) - 1)
-    END IF
-   ELSE
-    temp$ = menu$(i) + " NONE"
-   END IF
-  END IF
   SELECT CASE i
+   CASE 1: temp$ = temp$ & box.vertical_offset
+   CASE 2: temp$ = temp$ & box.shrink
+   CASE 3: temp$ = temp$ & box.textcolor
+   CASE 4: temp$ = temp$ & box.boxstyle
+   CASE 5: IF box.backdrop THEN temp$ = temp$ & box.backdrop - 1 ELSE temp$ = temp$ & " NONE"
+   CASE 6: IF box.music THEN temp$ = temp$ & getsongname$(box.music - 1) ELSE  temp$ = temp$ & " NONE"
    CASE 7: IF box.no_box THEN temp$ = temp$ & " NO" ELSE temp$ = temp$ & " YES"
    CASE 8: IF box.opaque THEN temp$ = temp$ & " NO" ELSE temp$ = temp$ & " YES"
    CASE 9: IF box.restore_music THEN temp$ = temp$ & " YES" ELSE temp$ = temp$ & " NO"
@@ -1208,33 +1211,14 @@ DO
  dowait
 LOOP
 
-refresh:
-clearpage 2
-min(0) = 0
-max(0) = 27 + boxbuf(194)
-min(1) = 0
-max(1) = 21
-min(2) = 0
-max(2) = 255
-min(3) = 0
-max(3) = 14
-min(4) = -1
-max(4) = gen(genMaxBackdrop) - 1
-min(5) = -1
-max(5) = gen(genMaxSong)
-IF boxbuf(197) > 0 THEN
- loadpage game + ".mxs", boxbuf(197) - 1, 2
-END IF
-RETRACE
-
 previewbox:
 IF box.no_box = NO THEN
- edgeboxstyle 4, 4 + (boxbuf(193) * 4), 312, 88 - (boxbuf(194) * 4), boxbuf(196), dpage, (box.opaque = NO)
+ edgeboxstyle 4, 4 + box.vertical_offset * 4, 312, 88 - box.shrink * 4, box.boxstyle, dpage, (box.opaque = NO)
 END IF
 FOR i = 0 TO 7
  col = uilook(uiText)
- IF boxbuf(195) > 0 THEN col = boxbuf(195)
- edgeprint box.text(i), 8, 8 + (boxbuf(193) * 4) + i * 10, col, dpage
+ IF box.textcolor > 0 THEN col = box.textcolor
+ edgeprint box.text(i), 8, 8 + box.vertical_offset * 4 + i * 10, col, dpage
 NEXT i
 RETRACE
 
@@ -1245,21 +1229,21 @@ search$ = ""
 RETRACE
 
 savelines:
-SaveTextBox box, boxbuf(), pt
+SaveTextBox box, pt
 RETRACE
 
 clearlines:
 '--this inits a new text box, and copies in values from text box 0 for defaults
-LoadTextBox box, boxbuf(), 0
-FOR i = 0 TO 199
- SELECT CASE i
-  CASE 174, 193, 195, 196
-   '--these are the ones we preserve
-  CASE ELSE
-   boxbuf(i) = 0
- END SELECT
-NEXT i
-SaveTextBox box, boxbuf(), pt
+ClearTextBox box
+LoadTextBox boxcopier, boxbuf(), 0
+box.no_box          = boxcopier.no_box
+box.opaque          = boxcopier.opaque
+box.restore_music   = boxcopier.restore_music
+box.vertical_offset = boxcopier.vertical_offset
+box.shrink          = boxcopier.shrink
+box.textcolor       = boxcopier.textcolor
+box.boxstyle        = boxcopier.boxstyle
+SaveTextBox box, pt
 RETRACE
 
 seektextbox:
@@ -1277,15 +1261,11 @@ DO
  LoadTextBox box, boxbuf(), pt
  foundstr = 0
  FOR i = 0 TO 7
-  tmp$ = STRING$(38, 0)
-  array2str boxbuf(), i * 38, tmp$
-  WHILE RIGHT$(tmp$, 1) = CHR$(0): tmp$ = LEFT$(tmp$, LEN(tmp$) - 1): WEND
-  IF INSTR(UCASE$(tmp$), UCASE$(search$)) > 0 THEN foundstr = 1
+  IF INSTR(UCASE(box.text(i)), UCASE(search$)) > 0 THEN foundstr = 1
  NEXT i
  IF foundstr = 1 THEN EXIT DO
  pt = pt + 1
 LOOP
-
 RETRACE
 
 'See wiki for .SAY file format docs
