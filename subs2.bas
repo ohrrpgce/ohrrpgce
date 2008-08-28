@@ -973,10 +973,10 @@ DO
   textcolor uilook(uiMenuItem), 0
   IF grey(i) = YES THEN
    c = uilook(uiSelectedDisabled)
-   SELECT CASE box_conditional_type_by_menu_index(i)
-    CASE condEXIT
+   SELECT CASE read_box_conditional_by_menu_index(box, i)
+    CASE -1 ' Check tag 1=OFF always true
      c = uilook(uiHighlight)
-    CASE condTAG
+    CASE 0 ' Check tag 0 never true
      c = uilook(uiDisabledItem)
    END SELECT
    rectangle 0, (i + 1) * 9, 320, 8, c, dpage
