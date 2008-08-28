@@ -750,7 +750,7 @@ clearpage 1
 END FUNCTION
 
 SUB textage
-DIM m$(10), menu$(20), grey(20), choice$(1), max(8), min(8), buf(16384), h$(2), tagmn$, gcsr, tcur
+DIM m$(10), menu$(20), grey(20), max(8), min(8), buf(16384), h$(2), tagmn$, gcsr, tcur
 DIM boxbuf(dimbinsize(binSAY)) 
 DIM box AS TextBox 'FIXME: this is not actually used yet!
 pt = 1
@@ -1073,8 +1073,8 @@ DO
   IF keyval(75) > 1 OR keyval(77) > 1 THEN setbit boxbuf(), 174, 0, (readbit(boxbuf(), 174, 0) XOR 1)
  END IF
  FOR i = 0 TO 1
-  IF tcur = 2 + (i * 2) THEN strgrabber choice$(i), 15
-  IF tcur = 3 + (i * 2) THEN tag_grabber boxbuf(182 + (i * 9))
+  IF tcur = 2 + (i * 2) THEN strgrabber box.choice(i), 15
+  IF tcur = 3 + (i * 2) THEN tag_grabber box.choice_tag(i)
  NEXT i
  GOSUB tcmenu
  
@@ -1089,9 +1089,9 @@ LOOP
 tcmenu:
 IF readbit(boxbuf(), 174, 0) THEN menu$(1) = "Choice = Enabled" ELSE menu$(1) = "Choice = Disabled"
 FOR i = 0 TO 1
- menu$(2 + (i * 2)) = "Option" + XSTR$(i) + " text:" + choice$(i)
- IF boxbuf(182 + (i * 9)) THEN
-  menu$(3 + (i * 2)) = "Set tag" + XSTR$(ABS(boxbuf(182 + (i * 9)))) + " = " + onoroff$(boxbuf(182 + (i * 9))) + " (" + load_tag_name(ABS(boxbuf(182 + (i * 9)))) + ")"
+ menu$(2 + (i * 2)) = "Option " & i & " text:" + box.choice(i)
+ IF box.choice_tag(i) THEN
+  menu$(3 + (i * 2)) = "Set tag " & ABS(box.choice_tag(i)) & " = " & onoroff$(box.choice_tag(i)) & " (" & load_tag_name(ABS(box.choice_tag(i))) & ")"
  ELSE
   menu$(3 + (i * 2)) = "Set tag 0 (none)"
  END IF
@@ -1261,20 +1261,11 @@ RETRACE
 
 loadlines:
 LoadTextBox box, boxbuf(), pt
-FOR i = 0 TO 1
- choice$(i) = STRING$(15, 0)
- array2str boxbuf(), 349 + (i * 18), choice$(i)
- WHILE RIGHT$(choice$(i), 1) = CHR$(0): choice$(i) = LEFT$(choice$(i), LEN(choice$(i)) - 1): WEND
-NEXT i
 GOSUB nextboxline
 search$ = ""
 RETRACE
 
 savelines:
-FOR i = 0 TO 1
- WHILE LEN(choice$(i)) < 15: choice$(i) = choice$(i) + CHR$(0): WEND
- str2array choice$(i), boxbuf(), 349 + (i * 18)
-NEXT i
 SaveTextBox box, boxbuf(), pt
 RETRACE
 
@@ -1321,15 +1312,15 @@ RETRACE
 'See wiki for .SAY file format docs
 END SUB
 
+'--FIXME: This affects the rest of the file. Move this up as subs and functions are cleaned up
+OPTION EXPLICIT
+
 FUNCTION textbox_condition_caption(tag AS INTEGER) AS STRING
  IF tag = 0 THEN RETURN "Never do the following"
  IF tag = 1 THEN RETURN "If tag 1 = ON [Never]"
  IF tag = -1 THEN RETURN "Always do the following"
  RETURN "If tag " & ABS(tag) & " = " + onoroff$(tag) & " (" & load_tag_name(tag) & ")"
 END FUNCTION
-
-'--FIXME: This affects the rest of the file. Move this up as subs and functions are cleaned up
-OPTION EXPLICIT
 
 SUB verifyrpg
 

@@ -1085,7 +1085,14 @@ SUB SaveTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
   condtemp = STRING(42, 0)
   array2str condbuf(), 0, condtemp
   str2array condtemp, boxbuf(), 305
-  
+  '--Transcribe choice text
+  FOR i = 0 TO 1
+   WHILE LEN(.choice(i)) < 15: .choice(i) = .choice(i) & CHR(0): WEND
+   str2array .choice(i), boxbuf(), 349 + (i * 18)
+   'Also save choice tags
+   boxbuf(182 + (i * 9)) = .choice_tag(i)
+  NEXT i
+
  END WITH
 
  DIM f AS INTEGER
