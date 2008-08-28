@@ -908,9 +908,6 @@ RETRACE
 
 conditions:
 cur = 0
-GOSUB heroar
-GOSUB shopar
-GOSUB itemar
 GOSUB textcmenu
 setkeys
 DO
@@ -960,9 +957,6 @@ DO
   IF num <> read_box_conditional_by_menu_index(box, cur) THEN
    'The value has changed
    write_box_conditional_by_menu_index(box, cur, num)
-   GOSUB heroar
-   GOSUB shopar
-   GOSUB itemar
    GOSUB textcmenu
   END IF
  END IF
@@ -992,11 +986,6 @@ DO
  dowait
 LOOP
 
-itemar:
-item$ = ""
-IF box.item <> 0 THEN item$ = load_item_name(ABS(box.item), 0, 0)
-RETRACE
-
 textcmenu:
 menu$(0) = textbox_condition_caption(box.instead_tag)
 SELECT CASE box.instead
@@ -1021,30 +1010,30 @@ menu$(8) = " fight enemy formation " & box.battle
 menu$(9) = textbox_condition_caption(box.item_tag)
 SELECT CASE box.item
  CASE 0 :      menu$(10) = " do not add/remove items"
- CASE IS > 0 : menu$(10) = " add one " & item$
- CASE IS < 0 : menu$(10) = " remove one " & item$
+ CASE IS > 0 : menu$(10) = " add one " & load_item_name(ABS(box.item), 0, 0)
+ CASE IS < 0 : menu$(10) = " remove one " & load_item_name(ABS(box.item), 0, 0)
 END SELECT
 menu$(11) = textbox_condition_caption(box.shop_tag)
 SELECT CASE box.shop
- CASE IS > 0 : menu$(12) = " go to shop " & box.shop & " " & shop$
+ CASE IS > 0 : menu$(12) = " go to shop " & box.shop & " " & readshopname$(box.shop - 1)
  CASE IS < 0 : menu$(12) = " go to an Inn that costs " & -box.shop & "$"
  CASE 0 :      menu$(12) = " restore Hp and Mp [select shop here]"
 END SELECT
 menu$(13) = textbox_condition_caption(box.hero_tag)
 SELECT CASE box.hero_addrem
  CASE 0 :      menu$(14) = " do not add/remove heros"
- CASE IS > 0 : menu$(14) = " add " & h$(0) & " to party"
- CASE IS < 0 : menu$(14) = " remove " & h$(0) & " from party"
+ CASE IS > 0 : menu$(14) = " add " & getheroname(ABS(box.hero_addrem) - 1) & " to party"
+ CASE IS < 0 : menu$(14) = " remove " & getheroname(ABS(box.hero_addrem) - 1) & " from party"
 END SELECT
 SELECT CASE box.hero_swap
  CASE 0 :      menu$(15) = " do not swap in/out heros"
- CASE IS > 0 : menu$(15) = " swap in " & h$(1)
- CASE IS < 0 : menu$(15) = " swap out " & h$(1)
+ CASE IS > 0 : menu$(15) = " swap in " & getheroname(ABS(box.hero_swap) - 1)
+ CASE IS < 0 : menu$(15) = " swap out " & getheroname(ABS(box.hero_swap) - 1)
 END SELECT
 SELECT CASE box.hero_lock
  CASE 0 :      menu$(16) = " do not unlock/lock heros"
- CASE IS > 0 : menu$(16) = " unlock " & h$(2)
- CASE IS < 0 : menu$(16) = " lock " & h$(2)
+ CASE IS > 0 : menu$(16) = " unlock " & getheroname(ABS(box.hero_lock) - 1)
+ CASE IS < 0 : menu$(16) = " lock " & getheroname(ABS(box.hero_lock) - 1)
 END SELECT
 menu$(17) = textbox_condition_caption(box.door_tag)
 menu$(18) = " instantly use door " & box.door
@@ -1096,19 +1085,6 @@ FOR i = 0 TO 1
   menu$(3 + (i * 2)) = "Set tag 0 (none)"
  END IF
 NEXT i
-RETRACE
-
-heroar:
-h$(0) = getheroname(ABS(box.hero_addrem) - 1)
-h$(1) = getheroname(ABS(box.hero_swap) - 1)
-h$(2) = getheroname(ABS(box.hero_lock) - 1)
-RETRACE
-
-shopar:
-shop$ = ""
-IF box.shop > 0 THEN
- shop$ = readshopname$(box.shop - 1)
-END IF
 RETRACE
 
 picktext:
