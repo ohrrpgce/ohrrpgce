@@ -639,7 +639,8 @@ FOR o = 0 TO 10 STEP 5
 NEXT o
 END SUB
 
-SUB loadsay (BYREF txt AS TextBoxState, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh())
+SUB loadsay (BYREF txt AS TextBoxState, choosep, say, sayer, showsay, remembermusic, saytag(), choose$(), chtag(), saybit(), sayenh())
+DIM j AS INTEGER
 DIM temp$
 DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
 
@@ -650,14 +651,8 @@ choosep = 0
 '--load data from the textbox lump
 LoadTextBox txt.box, boxbuf(), say
 
-'--read in the lines of text
 FOR j = 0 TO 7
- say$(j) = STRING$(38, 0)
- array2str boxbuf(), j * 38, say$(j)
-NEXT j
-
-FOR j = 0 TO 7
- embedtext say$(j), 38
+ embedtext txt.box.text(j), 38
 NEXT j
 
 '-- get the block of data used for conditionals

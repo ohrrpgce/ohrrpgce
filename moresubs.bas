@@ -397,7 +397,7 @@ vishero stat()
 'hero(40), bmenu(40,5), spell(40,3,23), stat(40,1,13), lmp(40,7), exlev(40,1), names(40), eqstuf(40,4)
 END SUB
 
-SUB drawsay (saybit(), sayenh(), say$(), showsay, choose$(), choosep)
+SUB drawsay (txt AS TextBoxState, saybit(), sayenh(), showsay, choose$(), choosep)
 STATIC tog AS INTEGER
 tog = tog XOR 1
 IF readbit(saybit(), 0, 1) = 0 THEN
@@ -409,13 +409,13 @@ IF readbit(saybit(), 0, 1) = 0 THEN
 END IF
 col = uilook(uiText): IF sayenh(2) > 0 THEN col = sayenh(2)
 FOR i = 0 TO 8 - showsay
- edgeprint say$(i), 7, (8 + i * 10) + (sayenh(0) * 4), col, dpage
+ edgeprint txt.box.text(i), 7, (8 + i * 10) + (sayenh(0) * 4), col, dpage
 NEXT i
 
 IF showsay > 1 THEN
 	showsay = showsay - 1
 	if showsay <= 7 then
-		if trim(say$(7 - showsay)) <> "" then menusound gen(genTextboxLetter)
+		if trim(txt.box.text(7 - showsay)) <> "" then menusound gen(genTextboxLetter)
 	end if
 END IF
 	

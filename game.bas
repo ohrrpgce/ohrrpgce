@@ -28,7 +28,7 @@ DECLARE FUNCTION getfilelist% (wildcard$)
 DECLARE SUB scriptadvanced (id%)
 DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%, showsay%)
 DECLARE FUNCTION checkfordeath (stat())
-DECLARE SUB loadsay (BYREF txt AS TextBoxState, choosep%, say%, sayer%, showsay%, remembermusic%, say$(), saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
+DECLARE SUB loadsay (BYREF txt AS TextBoxState, choosep%, say%, sayer%, showsay%, remembermusic%, saytag%(), choose$(), chtag%(), saybit%(), sayenh%())
 DECLARE SUB correctbackdrop ()
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
 DECLARE FUNCTION isonscreen% (x%, y%)
@@ -90,7 +90,7 @@ DECLARE SUB doswap (s%, d%, stat%())
 DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE SUB patcharray (array%(), n$)
-DECLARE SUB drawsay (saybit%(), sayenh%(), say$(), showsay%, choose$(), choosep%)
+DECLARE SUB drawsay (txt AS TextBoxState, saybit%(), sayenh%(), showsay%, choose$(), choosep%)
 DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, tilesets() AS TilesetData ptr)
 DECLARE SUB minimap (x%, y%, tilesets() AS TilesetData ptr)
 DECLARE FUNCTION teleporttool (BYREF map as integer, tilesets() as TilesetData ptr)
@@ -115,7 +115,7 @@ DECLARE FUNCTION range% (n%, r%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
-DECLARE SUB forcedismount (BYREF txt AS TextBoxState, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
+DECLARE SUB forcedismount (BYREF txt AS TextBoxState, choosep, say, sayer, showsay, remembermusic, saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep)
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
 DECLARE SUB drawnpcs ()
@@ -243,7 +243,7 @@ DIM SHARED needf
 DIM SHARED harmtileflash = NO
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
 'textbox stuff (needs moving into a udt)
-DIM SHARED choosep, say, sayer, showsay, say$(7), saytag(21), saybit(0), sayenh(6), choose$(1), chtag(1)
+DIM SHARED choosep, say, sayer, showsay, saytag(21), saybit(0), sayenh(6), choose$(1), chtag(1)
 DIM SHARED txt AS TextBoxState
 
 'global variables
@@ -535,7 +535,7 @@ DO
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
   say = menu_text_box
-  loadsay txt, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+  loadsay txt, choosep, say, sayer, showsay, remembermusic, saytag(), choose$(), chtag(), saybit(), sayenh()
  END IF
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
@@ -606,7 +606,7 @@ DO
     menusound gen(genAcceptSFX)
    CASE IS > 1
     say = tmp - 1
-    loadsay txt, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+    loadsay txt, choosep, say, sayer, showsay, remembermusic, saytag(), choose$(), chtag(), saybit(), sayenh()
   END SELECT
  END IF
  IF showsay = 1 AND readbit(saybit(), 0, 0) THEN
@@ -847,7 +847,7 @@ ELSE '---END NORMAL DISPLAY---
  copypage 3, dpage
 END IF '---END BACKDROP DISPLAY---
 'DEBUG debug "text box"
-IF showsay > 0 THEN drawsay saybit(), sayenh(), say$(), showsay, choose$(), choosep
+IF showsay > 0 THEN drawsay txt, saybit(), sayenh(), showsay, choose$(), choosep
 'DEBUG debug "map name"
 IF showmapname > 0 AND gmap(4) >= showmapname THEN
  showmapname = showmapname - 1: edgeprint mapname$, xstring(mapname$, 160), 180, uilook(uiText), dpage
@@ -962,7 +962,7 @@ IF sayer >= 0 THEN
   CASE 0
    sayer = -1
   CASE IS > 0
-   loadsay txt, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+   loadsay txt, choosep, say, sayer, showsay, remembermusic, saytag(), choose$(), chtag(), saybit(), sayenh()
  END SELECT
  evalherotag stat()
  evalitemtag
@@ -1055,7 +1055,7 @@ IF istag(saytag(11), 0) THEN
   runscript(ABS(saytag(12)), nowscript + 1, -1, "textbox", plottrigger)
  ELSE
   say = saytag(12)
-  loadsay txt, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+  loadsay txt, choosep, say, sayer, showsay, remembermusic, saytag(), choose$(), chtag(), saybit(), sayenh()
   RETRACE
  END IF
 END IF
@@ -1500,7 +1500,7 @@ END IF
 loaddoor map, door()
 
 IF afterbat = 0 AND samemap = 0 THEN
- forcedismount txt, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
+ forcedismount txt, choosep, say, sayer, showsay, remembermusic, saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
 END IF
 IF afterbat = 0 AND afterload = 0 THEN
  FOR i = 0 TO 15
@@ -1671,7 +1671,7 @@ END IF
 '--do spawned text boxes, battles, etc.
 IF wantbox > 0 THEN
  say = wantbox
- loadsay txt, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh()
+ loadsay txt, choosep, say, sayer, showsay, remembermusic, saytag(), choose$(), chtag(), saybit(), sayenh()
  wantbox = 0
 END IF
 IF wantdoor > 0 THEN
@@ -2082,7 +2082,7 @@ WITH scrat(nowscript)
     gen(50) = 0
     correctbackdrop
    CASE 34'--dismount vehicle
-    forcedismount txt, choosep, say, sayer, showsay, remembermusic, say$(), saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
+    forcedismount txt, choosep, say, sayer, showsay, remembermusic, saytag(), choose$(), chtag(), saybit(), sayenh(), catd(), foep
    CASE 35'--use NPC
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
