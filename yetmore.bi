@@ -7,7 +7,6 @@
 #IFNDEF YETMORE_BI
 #DEFINE YETMORE_BI
 
-declare sub arslhero (saytag(), stat())
 declare function checksaveslot (slot)
 declare function cropplotstr (s$)
 declare sub doihavebits

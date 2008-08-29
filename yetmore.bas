@@ -114,28 +114,28 @@ DIM SHARED waitforscript, waitfordepth, stepmode, lastscriptnum
 
 
 REM $STATIC
-SUB arslhero (saytag(), stat())
+SUB add_rem_swap_lock_hero (box AS TextBox, stat())
 '---ADD/REMOVE/SWAP/LOCK
 '---ADD---
-IF saytag(10) > 0 THEN
+IF box.hero_addrem > 0 THEN
  i = findhero(0, 0, 40, 1)
  IF i > -1 THEN
-  addhero saytag(10), i, stat()
+  addhero box.hero_addrem, i, stat()
   vishero stat()
  END IF
 END IF '---end if > 0
 '---REMOVE---
-IF saytag(10) < 0 THEN
+IF box.hero_addrem < 0 THEN
  IF howmanyh(0, 40) > 1 THEN
-  i = findhero(ABS(saytag(10)), 0, 40, 1)
+  i = findhero(-box.hero_addrem, 0, 40, 1)
   IF i > -1 THEN hero(i) = 0
   IF howmanyh(0, 3) = 0 THEN forceparty stat()
  END IF
 END IF '---end if < 0
 vishero stat()
 '---SWAP-IN---
-IF saytag(19) > 0 THEN
- i = findhero(ABS(saytag(19)), 40, 0, -1)
+IF box.hero_swap > 0 THEN
+ i = findhero(box.hero_swap, 40, 0, -1)
  IF i > -1 THEN
   FOR o = 0 TO 3
    IF hero(o) = 0 THEN
@@ -146,8 +146,8 @@ IF saytag(19) > 0 THEN
  END IF
 END IF '---end if > 0
 '---SWAP-OUT---
-IF saytag(19) < 0 THEN
- i = findhero(ABS(saytag(19)), 0, 40, 1)
+IF box.hero_swap < 0 THEN
+ i = findhero(-box.hero_swap, 0, 40, 1)
  IF i > -1 THEN
   FOR o = 40 TO 4 STEP -1
    IF hero(o) = 0 THEN
@@ -159,13 +159,13 @@ IF saytag(19) < 0 THEN
  END IF
 END IF '---end if < 0
 '---UNLOCK HERO---
-IF saytag(20) > 0 THEN
- temp = findhero(ABS(saytag(20)), 0, 40, 1)
+IF box.hero_lock > 0 THEN
+ temp = findhero(box.hero_lock, 0, 40, 1)
  IF temp > -1 THEN setbit hmask(), 0, temp, 0
 END IF '---end if > 0
 '---LOCK HERO---
-IF saytag(20) < 0 THEN
- temp = findhero(ABS(saytag(20)), 0, 40, 1)
+IF box.hero_lock < 0 THEN
+ temp = findhero(-box.hero_lock, 0, 40, 1)
  IF temp > -1 THEN setbit hmask(), 0, temp, 1
 END IF '---end if > 0
 END SUB
@@ -637,81 +637,6 @@ FOR o = 0 TO 10 STEP 5
   catd(i) = catd(o)
  NEXT i
 NEXT o
-END SUB
-
-SUB loadsay (BYREF txt AS TextBoxState, choosep, say, sayer, showsay, remembermusic, saytag(), choose$(), chtag(), saybit(), sayenh())
-DIM j AS INTEGER
-DIM temp$
-DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
-
-loadsaybegin:
-gen(58) = 0
-choosep = 0
-
-'--load data from the textbox lump
-LoadTextBox txt.box, boxbuf(), say
-
-FOR j = 0 TO 7
- embedtext txt.box.text(j), 38
-NEXT j
-
-'-- get the block of data used for conditionals
-temp$ = STRING$(42, 0)
-array2str boxbuf(), 305, temp$
-str2array temp$, boxbuf(), 0
-
-'-- store the conditionals data in saytag()
-FOR j = 0 TO 20
- saytag(j) = boxbuf(j)
-NEXT j
-
-'-- evaluate "instead" conditionals
-IF istag(saytag(0), 0) THEN
- '--do something else instead
- IF saytag(1) < 0 THEN
-  rsr = runscript(ABS(saytag(1)), nowscript + 1, -1, "instead", plottrigger)
-  sayer = -1
-  EXIT SUB
- ELSE
-  IF say <> saytag(1) THEN say = saytag(1): GOTO loadsaybegin
- END IF
-END IF
-
-'-- set tags indicating the text box has been seen.
-IF istag(saytag(2), 0) THEN
- IF ABS(saytag(3)) > 1 THEN setbit tag(), 0, ABS(saytag(3)), SGN(SGN(saytag(3)) + 1)
- IF ABS(saytag(4)) > 1 THEN setbit tag(), 0, ABS(saytag(4)), SGN(SGN(saytag(4)) + 1)
-END IF
-
-'-- load choicebox data
-FOR j = 0 TO 1
- choose$(j) = STRING$(15, 0)
- array2str boxbuf(), 349 + (j * 18), choose$(j)
- WHILE RIGHT$(choose$(j), 1) = CHR$(0): choose$(j) = LEFT$(choose$(j), LEN(choose$(j)) - 1): WEND
- chtag(j) = boxbuf(182 + (j * 9))
-NEXT j
-
-'--the bitset that determines whether the choicebox is enabled
-saybit(0) = boxbuf(174)
-IF readbit(saybit(), 0, 0) THEN MenuSound gen(genAcceptSFX)
-
-'--load box appearance into sayenh()
-FOR j = 0 TO 6
- sayenh(j) = boxbuf(193 + j)
-NEXT j
-'-- update backdrop if necessary
-IF sayenh(4) > 0 THEN
- gen(58) = sayenh(4)
- correctbackdrop
-END IF
-'-- change music if necessary
-IF sayenh(5) > 0 THEN
- remembermusic = presentsong
- wrappedsong sayenh(5) - 1
-END IF
-
-showsay = 8
-
 END SUB
 
 SUB npcplot
@@ -3100,3 +3025,71 @@ FUNCTION backcompat_sound_id (id AS INTEGER)
    RETURN id
   END IF
 END FUNCTION
+
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
+SUB loadsay (BYREF txt AS TextBoxState, choosep, say, sayer, showsay, remembermusic, choose$(), chtag(), saybit(), sayenh())
+DIM j AS INTEGER
+DIM rsr AS INTEGER
+DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
+
+loadsaybegin:
+gen(genTextboxBackdrop) = 0
+choosep = 0
+
+'--load data from the textbox lump
+LoadTextBox txt.box, boxbuf(), say
+
+FOR j = 0 TO 7
+ embedtext txt.box.text(j), 38
+NEXT j
+
+'-- evaluate "instead" conditionals
+IF istag(txt.box.instead_tag, 0) THEN
+ '--do something else instead
+ IF txt.box.instead < 0 THEN
+  rsr = runscript(-txt.box.instead, nowscript + 1, -1, "instead", plottrigger)
+  sayer = -1
+  EXIT SUB
+ ELSE
+  IF say <> txt.box.instead THEN say = txt.box.instead: GOTO loadsaybegin
+ END IF
+END IF
+
+'-- set tags indicating the text box has been seen.
+IF istag(txt.box.settag_tag, 0) THEN
+ IF ABS(txt.box.settag1) > 1 THEN setbit tag(), 0, ABS(txt.box.settag1), SGN(SGN(txt.box.settag1) + 1)
+ IF ABS(txt.box.settag2) > 1 THEN setbit tag(), 0, ABS(txt.box.settag2), SGN(SGN(txt.box.settag2) + 1)
+END IF
+
+'-- load choicebox data
+FOR j = 0 TO 1
+ choose$(j) = STRING$(15, 0)
+ array2str boxbuf(), 349 + (j * 18), choose$(j)
+ WHILE RIGHT$(choose$(j), 1) = CHR$(0): choose$(j) = LEFT$(choose$(j), LEN(choose$(j)) - 1): WEND
+ chtag(j) = boxbuf(182 + (j * 9))
+NEXT j
+
+'--the bitset that determines whether the choicebox is enabled
+saybit(0) = boxbuf(174)
+IF readbit(saybit(), 0, 0) THEN MenuSound gen(genAcceptSFX)
+
+'--load box appearance into sayenh()
+FOR j = 0 TO 6
+ sayenh(j) = boxbuf(193 + j)
+NEXT j
+'-- update backdrop if necessary
+IF sayenh(4) > 0 THEN
+ gen(58) = sayenh(4)
+ correctbackdrop
+END IF
+'-- change music if necessary
+IF sayenh(5) > 0 THEN
+ remembermusic = presentsong
+ wrappedsong sayenh(5) - 1
+END IF
+
+showsay = 8
+
+END SUB
