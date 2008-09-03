@@ -744,11 +744,13 @@ DO
     NEXT i
    END IF
    nd = -1
-   IF slowkey(72, 12) THEN nd = 0
-   IF slowkey(77, 12) THEN nd = 1
-   IF slowkey(80, 12) THEN nd = 2
-   IF slowkey(75, 12) THEN nd = 3
-   IF keyval(57) > 1 OR (keyval(29) > 0 AND nd > -1) THEN
+   IF keyval(29) > 0 THEN
+    IF slowkey(72, 12) THEN nd = 0
+    IF slowkey(77, 12) THEN nd = 1
+    IF slowkey(80, 12) THEN nd = 2
+    IF slowkey(75, 12) THEN nd = 3
+   END IF
+   IF keyval(57) > 1 OR nd > -1 THEN
     temp = 0
     IF nd = -1 THEN
      FOR i = 0 TO 299
