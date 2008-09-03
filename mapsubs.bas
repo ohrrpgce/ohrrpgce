@@ -161,7 +161,10 @@ DIM as integer layer
 DIM as integer jiggle(0)
 DIM as integer visible(0) = {&b111} 'used as bitsets
 
+'FIXME: heroimg is a hack and should be replaced with a GraphicPair object
 DIM heroimg(102), heropal(8)
+
+DIM npc_img(35) AS GraphicPair
 
 REDIM map(2) ' dummy empty map data, will be resized later
 REDIM pass(2)
@@ -503,15 +506,22 @@ RETRACE
 mapping:
 clearpage 2
 '--load hero graphics--
+'FIXME this is a hack. heroimg() should be replaced with a Frame object
 loadherodata @her, 0
 loadrecord heroimg(), game + ".pt4", 100, her.walk_sprite * 8 + 4
 fixspriterecord heroimg(), 20, 20
 getpal16 heropal(), 0, her.walk_sprite_pal, 4, her.walk_sprite
 '--load NPC graphics--
 FOR i = 0 TO 35
+ 'FIXME: remove this setpicstuf later
  setpicstuf buffer(), 1600, 2
  loadset game + ".pt4", npcstat(i * 15 + 0), 5 * i
  getpal16 pal16(), i, npcstat(i * 15 + 1), 4, npcstat(i * 15 + 0)
+ 'Load the picture and palette
+ WITH npc_img(i)
+  .sprite = sprite_load(game + ".pt4", npcstat(i * 15 + 0), 8, 20, 20)
+  .pal    = palette16_load(game + ".pal", npcstat(i * 15 + 1), 4, npcstat(i * 15 + 0))
+ END WITH
 NEXT i
 defpass = 1
 IF readbit(gen(), genBits, 15) THEN defpass = 0 ' option to default the defaults to OFF
@@ -522,7 +532,7 @@ setkeys
 DO
  setwait 55
  setkeys
- IF keyval(1) > 1 THEN RETRACE
+ IF keyval(1) > 1 THEN EXIT DO
  if keyval(scCtrl) = 0 AND keyval(scAlt) = 0 then
   IF keyval(59) > 1 THEN
    editmode = 0
@@ -927,8 +937,9 @@ DO
   FOR i = 0 TO 299
    IF npc(i + 600) > 0 THEN
     IF npc(i + 0) >= INT(mapx / 20) AND npc(i + 0) < INT(mapx / 20) + 16 AND npc(i + 300) > INT(mapy / 20) AND npc(i + 300) <= INT(mapy / 20) + 9 THEN
-     loadsprite cursor(), 0, 400 * npc(i + 900) + (200 * INT(walk / 2)), 5 * (npc(i + 600) - 1), 20, 20, 2
-     drawsprite cursor(), 0, pal16(), 16 * (npc(i + 600) - 1), npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy, dpage
+     WITH npc_img(npc(i + 600) - 1)
+      sprite_draw .sprite + (2 * npc(i + 900)) + walk \ 2, .pal, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy, 1, -1, dpage
+     END WITH
      textcolor uilook(uiSelectedItem + tog), 0
      xtemp$ = STR$(npc(i + 600) - 1)
      printstr xtemp$, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy + 3, dpage
@@ -993,6 +1004,14 @@ DO
  setvispage vpage
  dowait
 LOOP
+'Unload NPC graphics
+FOR i = 0 TO 35
+ WITH npc_img(i)
+  if .sprite then sprite_unload(@.sprite)
+  if .pal then palette16_unload(@.pal)
+ END WITH
+NEXT i
+RETRACE '--end of mapping GOSUB block
 
 pickblock:
 setkeys
