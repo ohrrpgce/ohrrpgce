@@ -3030,7 +3030,7 @@ END FUNCTION
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB loadsay (BYREF txt AS TextBoxState, say)
+SUB loadsay (BYREF txt AS TextBoxState, box_id)
 DIM j AS INTEGER
 DIM rsr AS INTEGER
 DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
@@ -3040,7 +3040,7 @@ DO '--This loop is where we find which box will be displayed right now
  txt.choice_cursor = 0
 
  '--load data from the textbox lump
- LoadTextBox txt.box, boxbuf(), say
+ LoadTextBox txt.box, boxbuf(), box_id
 
  FOR j = 0 TO 7
   embedtext txt.box.text(j), 38
@@ -3054,8 +3054,8 @@ DO '--This loop is where we find which box will be displayed right now
    txt.sayer = -1
    EXIT SUB
   ELSE
-   IF say <> txt.box.instead THEN
-    say = txt.box.instead
+   IF box_id <> txt.box.instead THEN
+    box_id = txt.box.instead
     CONTINUE DO' Skip back to the top of the loop and get another box
    END IF
   END IF
@@ -3063,6 +3063,9 @@ DO '--This loop is where we find which box will be displayed right now
  
  EXIT DO'--We have the box we want to display, proceed
 LOOP
+
+'--Store box ID number for later reference
+txt.id = box_id
 
 '-- set tags indicating the text box has been seen.
 IF istag(txt.box.settag_tag, 0) THEN

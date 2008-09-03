@@ -377,7 +377,8 @@ TYPE TextBox
 END TYPE
 
 TYPE TextBoxState
-  box AS TextBox '--Contains the data about the content of the textbox
+  id             AS INTEGER 'ID Number of the current box or -1 for none
+  box            AS TextBox '--Contains the data about the content of the textbox
   showing        AS INTEGER 'YES or NO
   fully_shown    AS INTEGER 'YES or NO. All lines have been displayed, player is allowed to advance
   choice_cursor  AS INTEGER

@@ -28,7 +28,7 @@ DECLARE FUNCTION getfilelist% (wildcard$)
 DECLARE SUB scriptadvanced (id%)
 DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%, BYREF txt AS TextBoxState)
 DECLARE FUNCTION checkfordeath (stat())
-DECLARE SUB loadsay (BYREF txt AS TextBoxState, say%)
+DECLARE SUB loadsay (BYREF txt AS TextBoxState, box_id AS INTEGER)
 DECLARE SUB correctbackdrop ()
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
 DECLARE FUNCTION isonscreen% (x%, y%)
@@ -115,7 +115,7 @@ DECLARE FUNCTION range% (n%, r%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
-DECLARE SUB forcedismount (BYREF txt AS TextBoxState, say, catd(), foep)
+DECLARE SUB forcedismount (BYREF txt AS TextBoxState, catd(), foep)
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
 DECLARE SUB drawnpcs ()
@@ -241,7 +241,6 @@ DIM SHARED needf
 DIM SHARED harmtileflash = NO
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
 'textbox stuff (needs moving into a udt)
-DIM SHARED say
 DIM SHARED txt AS TextBoxState
 
 'global variables
@@ -474,6 +473,7 @@ txt.showing = NO
 txt.fully_shown = NO
 txt.show_lines = 0
 txt.sayer = -1
+txt.id = -1
 
 temp = -1
 IF readbit(gen(), genBits, 11) = 0 THEN
@@ -535,8 +535,7 @@ DO
  player_menu_keys menu_text_box, stat(), catx(), caty(), tilesets(), map, foep, stock()
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
-  say = menu_text_box
-  loadsay txt, say
+  loadsay txt, menu_text_box
  END IF
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
@@ -606,8 +605,7 @@ DO
     add_menu 0
     menusound gen(genAcceptSFX)
    CASE IS > 1
-    say = tmp - 1
-    loadsay txt, say
+    loadsay txt, tmp - 1
   END SELECT
  END IF
  IF txt.fully_shown = YES AND txt.box.choice_enabled THEN
@@ -958,16 +956,15 @@ IF txt.sayer >= 0 THEN
    IF veh(14) > 1 THEN setbit tag(), 0, veh(14), 1
   END IF
  END IF
- say = npcs(npc(txt.sayer).id - 1).textbox
- SELECT CASE say
+ SELECT CASE npcs(npc(txt.sayer).id - 1).textbox
   CASE 0
    txt.sayer = -1
   CASE IS > 0
-   loadsay txt, say
+   loadsay txt, npcs(npc(txt.sayer).id - 1).textbox
  END SELECT
  evalherotag stat()
  evalitemtag
- IF say = 0 THEN
+ IF txt.id = -1 THEN
   npcplot
  END IF
 END IF
@@ -1055,8 +1052,7 @@ IF istag(txt.box.after_tag, 0) THEN
  IF txt.box.after < 0 THEN
   runscript(-txt.box.after, nowscript + 1, -1, "textbox", plottrigger)
  ELSE
-  say = txt.box.after
-  loadsay txt, say
+  loadsay txt, txt.box.after
   RETRACE
  END IF
 END IF
@@ -1079,6 +1075,7 @@ END IF
 txt.showing = NO
 txt.fully_shown = NO
 txt.sayer = -1
+txt.id = -1
 setkeys
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
 RETRACE
@@ -1499,7 +1496,7 @@ END IF
 loaddoor map, door()
 
 IF afterbat = 0 AND samemap = 0 THEN
- forcedismount txt, say, catd(), foep
+ forcedismount txt, catd(), foep
 END IF
 IF afterbat = 0 AND afterload = 0 THEN
  FOR i = 0 TO 15
@@ -1669,8 +1666,7 @@ END WITH
 END IF
 '--do spawned text boxes, battles, etc.
 IF wantbox > 0 THEN
- say = wantbox
- loadsay txt, say
+ loadsay txt, wantbox
  wantbox = 0
 END IF
 IF wantdoor > 0 THEN
@@ -2081,7 +2077,7 @@ WITH scrat(nowscript)
     gen(50) = 0
     correctbackdrop
    CASE 34'--dismount vehicle
-    forcedismount txt, say, catd(), foep
+    forcedismount txt, catd(), foep
    CASE 35'--use NPC
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
@@ -2516,7 +2512,7 @@ WITH scrat(nowscript)
     END IF
    CASE 320'--current text box
     scriptret = -1
-    IF txt.showing = YES THEN scriptret = say
+    IF txt.showing = YES THEN scriptret = txt.id
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc curcmd->value
     scriptmisc curcmd->value

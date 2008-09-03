@@ -21,7 +21,6 @@ declare sub greyscalepal
 declare function herobyrank (slot)
 declare sub initgame
 declare sub interpolatecat
-declare sub loadsaytobuffer (say)
 declare sub npcplot
 declare sub onkeyscript (scriptnum)
 declare function partybyrank (slot)
