@@ -78,7 +78,7 @@ DECLARE FUNCTION range% (n%, r%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
-DECLARE SUB loadsay (BYREF txt AS TextBoxState, choosep%, say%, sayer%, showsay%, remembermusic%, choose$(), chtag%(), saybit%(), sayenh%())
+DECLARE SUB loadsay (BYREF txt AS TextBoxState, say%, sayer%, showsay%, remembermusic%, sayenh%())
 DECLARE SUB cathero ()
 DECLARE SUB readjoysettings ()
 DECLARE SUB loadmap_gmap(mapnum%)
@@ -191,7 +191,7 @@ SUB drawnpcs
  NEXT i
 END SUB
 
-SUB forcedismount (BYREF txt AS TextBoxState, choosep, say, sayer, showsay, remembermusic, choose$(), chtag(), saybit(), sayenh(), catd(), foep)
+SUB forcedismount (BYREF txt AS TextBoxState, say, sayer, showsay, remembermusic, sayenh(), catd(), foep)
 IF veh(0) THEN
  '--clear vehicle on loading new map--
  IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) = 0 THEN
@@ -209,7 +209,7 @@ IF veh(0) THEN
  END IF
  IF veh(16) > 0 THEN
   say = veh(16)
-  loadsay txt, choosep, say, sayer, showsay, remembermusic, choose$(), chtag(), saybit(), sayenh()
+  loadsay txt, say, sayer, showsay, remembermusic, sayenh()
  END IF
  IF veh(16) < 0 THEN
   rsr = runscript(ABS(veh(16)), nowscript + 1, -1, "dismount", plottrigger)

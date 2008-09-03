@@ -397,11 +397,11 @@ vishero stat()
 'hero(40), bmenu(40,5), spell(40,3,23), stat(40,1,13), lmp(40,7), exlev(40,1), names(40), eqstuf(40,4)
 END SUB
 
-SUB drawsay (txt AS TextBoxState, saybit(), sayenh(), showsay, choose$(), choosep)
+SUB drawsay (txt AS TextBoxState, sayenh(), showsay)
 STATIC tog AS INTEGER
 tog = tog XOR 1
-IF readbit(saybit(), 0, 1) = 0 THEN
- IF readbit(saybit(), 0, 2) = 0 THEN
+IF txt.box.no_box = NO THEN
+ IF txt.box.opaque = NO THEN
   centerfuz 160, 48 + (sayenh(0) * 4) - (sayenh(1) * 2), 312, 88 - (sayenh(1) * 4), sayenh(3) + 1, dpage
  ELSE
   centerbox 160, 48 + (sayenh(0) * 4) - (sayenh(1) * 2), 312, 88 - (sayenh(1) * 4), sayenh(3) + 1, dpage
@@ -418,14 +418,14 @@ IF showsay > 1 THEN
 		if trim(txt.box.text(7 - showsay)) <> "" then menusound gen(genTextboxLetter)
 	end if
 END IF
-	
-IF readbit(saybit(), 0, 0) THEN
+
+IF txt.box.choice_enabled THEN
  tempy = 100 + (sayenh(0) * 4) - (sayenh(1) * 4)
  IF tempy > 160 THEN tempy = 20
- centerbox 160, tempy + 12, 10 + large(LEN(choose$(0)) * 8, LEN(choose$(1)) * 8), 24, sayenh(3) + 1, dpage
+ centerbox 160, tempy + 12, 10 + large(LEN(txt.box.choice(0)) * 8, LEN(txt.box.choice(1)) * 8), 24, sayenh(3) + 1, dpage
  FOR i = 0 TO 1
-  col = uilook(uiMenuItem): IF choosep = i THEN col = uilook(uiSelectedItem + tog)
-  edgeprint choose$(i), xstring(choose$(i), 160), tempy + 2 + (i * 10), col, dpage
+  col = uilook(uiMenuItem): IF txt.choice_cursor = i THEN col = uilook(uiSelectedItem + tog)
+  edgeprint txt.box.choice(i), xstring(txt.box.choice(i), 160), tempy + 2 + (i * 10), col, dpage
  NEXT i
 END IF
 END SUB

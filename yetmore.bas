@@ -3030,14 +3030,14 @@ END FUNCTION
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB loadsay (BYREF txt AS TextBoxState, choosep, say, sayer, showsay, remembermusic, choose$(), chtag(), saybit(), sayenh())
+SUB loadsay (BYREF txt AS TextBoxState, say, sayer, showsay, remembermusic, sayenh())
 DIM j AS INTEGER
 DIM rsr AS INTEGER
 DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
 
 DO '--This loop is where we find which box will be displayed right now
  gen(genTextboxBackdrop) = 0
- choosep = 0
+ txt.choice_cursor = 0
 
  '--load data from the textbox lump
  LoadTextBox txt.box, boxbuf(), say
@@ -3070,17 +3070,8 @@ IF istag(txt.box.settag_tag, 0) THEN
  IF ABS(txt.box.settag2) > 1 THEN setbit tag(), 0, ABS(txt.box.settag2), SGN(SGN(txt.box.settag2) + 1)
 END IF
 
-'-- load choicebox data
-FOR j = 0 TO 1
- choose$(j) = STRING$(15, 0)
- array2str boxbuf(), 349 + (j * 18), choose$(j)
- WHILE RIGHT$(choose$(j), 1) = CHR$(0): choose$(j) = LEFT$(choose$(j), LEN(choose$(j)) - 1): WEND
- chtag(j) = boxbuf(182 + (j * 9))
-NEXT j
-
 '--the bitset that determines whether the choicebox is enabled
-saybit(0) = boxbuf(174)
-IF readbit(saybit(), 0, 0) THEN MenuSound gen(genAcceptSFX)
+IF txt.box.choice_enabled THEN MenuSound gen(genAcceptSFX)
 
 '--load box appearance into sayenh()
 FOR j = 0 TO 6

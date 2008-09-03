@@ -28,7 +28,7 @@ DECLARE FUNCTION getfilelist% (wildcard$)
 DECLARE SUB scriptadvanced (id%)
 DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%, showsay%)
 DECLARE FUNCTION checkfordeath (stat())
-DECLARE SUB loadsay (BYREF txt AS TextBoxState, choosep%, say%, sayer%, showsay%, remembermusic%, choose$(), chtag%(), saybit%(), sayenh%())
+DECLARE SUB loadsay (BYREF txt AS TextBoxState, say%, sayer%, showsay%, remembermusic%, sayenh%())
 DECLARE SUB correctbackdrop ()
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
 DECLARE FUNCTION isonscreen% (x%, y%)
@@ -90,7 +90,7 @@ DECLARE SUB doswap (s%, d%, stat%())
 DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE SUB patcharray (array%(), n$)
-DECLARE SUB drawsay (txt AS TextBoxState, saybit%(), sayenh%(), showsay%, choose$(), choosep%)
+DECLARE SUB drawsay (txt AS TextBoxState, sayenh%(), showsay%)
 DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, tilesets() AS TilesetData ptr)
 DECLARE SUB minimap (x%, y%, tilesets() AS TilesetData ptr)
 DECLARE FUNCTION teleporttool (BYREF map as integer, tilesets() as TilesetData ptr)
@@ -115,7 +115,7 @@ DECLARE FUNCTION range% (n%, r%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
-DECLARE SUB forcedismount (BYREF txt AS TextBoxState, choosep, say, sayer, showsay, remembermusic, choose$(), chtag(), saybit(), sayenh(), catd(), foep)
+DECLARE SUB forcedismount (BYREF txt AS TextBoxState, say, sayer, showsay, remembermusic, sayenh(), catd(), foep)
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
 DECLARE SUB drawnpcs ()
@@ -241,7 +241,7 @@ DIM SHARED needf
 DIM SHARED harmtileflash = NO
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
 'textbox stuff (needs moving into a udt)
-DIM SHARED choosep, say, sayer, showsay, saybit(0), sayenh(6), choose$(1), chtag(1)
+DIM SHARED say, sayer, showsay, sayenh(6)
 DIM SHARED txt AS TextBoxState
 
 'global variables
@@ -455,7 +455,7 @@ foep = range(100, 60)
 lastformation = -1
 map = gen(104)
 lastmap = -1
-choosep = 0
+txt.choice_cursor = 0
 sayer = 0
 remembermusic = -1
 scrwatch = 0
@@ -533,7 +533,7 @@ DO
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
   say = menu_text_box
-  loadsay txt, choosep, say, sayer, showsay, remembermusic, choose$(), chtag(), saybit(), sayenh()
+  loadsay txt, say, sayer, showsay, remembermusic, sayenh()
  END IF
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
@@ -604,12 +604,12 @@ DO
     menusound gen(genAcceptSFX)
    CASE IS > 1
     say = tmp - 1
-    loadsay txt, choosep, say, sayer, showsay, remembermusic, choose$(), chtag(), saybit(), sayenh()
+    loadsay txt, say, sayer, showsay, remembermusic, sayenh()
   END SELECT
  END IF
- IF showsay = 1 AND readbit(saybit(), 0, 0) THEN
-  IF carray(0) > 1 AND choosep = 1 THEN choosep = 0: MenuSound gen(genCursorSFX)
-  IF carray(1) > 1 AND choosep = 0 THEN choosep = 1: MenuSound gen(genCursorSFX)
+ IF showsay = 1 AND txt.box.choice_enabled THEN
+  IF carray(0) > 1 AND txt.choice_cursor = 1 THEN txt.choice_cursor = 0: MenuSound gen(genCursorSFX)
+  IF carray(1) > 1 AND txt.choice_cursor = 0 THEN txt.choice_cursor = 1: MenuSound gen(genCursorSFX)
  END IF
  'DEBUG debug "setmapdata pass"
  setmapdata pass(), pass(), 0, 0
@@ -844,7 +844,7 @@ ELSE '---END NORMAL DISPLAY---
  copypage 3, dpage
 END IF '---END BACKDROP DISPLAY---
 'DEBUG debug "text box"
-IF showsay > 0 THEN drawsay txt, saybit(), sayenh(), showsay, choose$(), choosep
+IF showsay > 0 THEN drawsay txt, sayenh(), showsay
 'DEBUG debug "map name"
 IF showmapname > 0 AND gmap(4) >= showmapname THEN
  showmapname = showmapname - 1: edgeprint mapname$, xstring(mapname$, 160), 180, uilook(uiText), dpage
@@ -959,7 +959,7 @@ IF sayer >= 0 THEN
   CASE 0
    sayer = -1
   CASE IS > 0
-   loadsay txt, choosep, say, sayer, showsay, remembermusic, choose$(), chtag(), saybit(), sayenh()
+   loadsay txt, say, sayer, showsay, remembermusic, sayenh()
  END SELECT
  evalherotag stat()
  evalitemtag
@@ -976,12 +976,12 @@ IF sayenh(4) > 0 THEN
  correctbackdrop
 END IF
 '---IF MADE A CHOICE---
-IF readbit(saybit(), 0, 0) THEN
+IF txt.box.choice_enabled THEN
  MenuSound gen(genAcceptSFX)
- IF ABS(chtag(choosep)) > 1 THEN setbit tag(), 0, ABS(chtag(choosep)), SGN(SGN(chtag(choosep)) + 1)
+ IF ABS(txt.box.choice_tag(txt.choice_cursor)) > 1 THEN setbit tag(), 0, ABS(txt.box.choice_tag(txt.choice_cursor)), SGN(SGN(txt.box.choice_tag(txt.choice_cursor)) + 1)
 END IF
 '---RESET MUSIC----
-IF readbit(saybit(), 0, 3) THEN
+IF txt.box.restore_music THEN
  IF gmap(1) > 0 THEN
   wrappedsong gmap(1) - 1
  ELSEIF gmap(1) = 0 THEN
@@ -1052,7 +1052,7 @@ IF istag(txt.box.after_tag, 0) THEN
   runscript(-txt.box.after, nowscript + 1, -1, "textbox", plottrigger)
  ELSE
   say = txt.box.after
-  loadsay txt, choosep, say, sayer, showsay, remembermusic, choose$(), chtag(), saybit(), sayenh()
+  loadsay txt, say, sayer, showsay, remembermusic, sayenh()
   RETRACE
  END IF
 END IF
@@ -1497,7 +1497,7 @@ END IF
 loaddoor map, door()
 
 IF afterbat = 0 AND samemap = 0 THEN
- forcedismount txt, choosep, say, sayer, showsay, remembermusic, choose$(), chtag(), saybit(), sayenh(), catd(), foep
+ forcedismount txt, say, sayer, showsay, remembermusic, sayenh(), catd(), foep
 END IF
 IF afterbat = 0 AND afterload = 0 THEN
  FOR i = 0 TO 15
@@ -1668,7 +1668,7 @@ END IF
 '--do spawned text boxes, battles, etc.
 IF wantbox > 0 THEN
  say = wantbox
- loadsay txt, choosep, say, sayer, showsay, remembermusic, choose$(), chtag(), saybit(), sayenh()
+ loadsay txt, say, sayer, showsay, remembermusic, sayenh()
  wantbox = 0
 END IF
 IF wantdoor > 0 THEN
@@ -2079,7 +2079,7 @@ WITH scrat(nowscript)
     gen(50) = 0
     correctbackdrop
    CASE 34'--dismount vehicle
-    forcedismount txt, choosep, say, sayer, showsay, remembermusic, choose$(), chtag(), saybit(), sayenh(), catd(), foep
+    forcedismount txt, say, sayer, showsay, remembermusic, sayenh(), catd(), foep
    CASE 35'--use NPC
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN

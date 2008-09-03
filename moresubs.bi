@@ -15,7 +15,7 @@ declare function consumeitem (index)
 declare function countitem (it)
 declare sub delitem (it, amount)
 declare sub doswap (s, d, stat())
-declare sub drawsay (txt AS TextBoxState, saybit(), sayenh(), showsay, choose$(), choosep)
+declare sub drawsay (txt AS TextBoxState, sayenh(), showsay)
 declare sub evalherotag (stat())
 declare sub evalitemtag
 declare function findhero (who, f, l, d)

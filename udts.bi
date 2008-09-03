@@ -378,6 +378,7 @@ END TYPE
 
 TYPE TextBoxState
   box AS TextBox '--Contains the data about the content of the textbox
+  choice_cursor AS INTEGER
 END TYPE
 
 TYPE MouseArea
