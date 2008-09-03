@@ -513,10 +513,6 @@ fixspriterecord heroimg(), 20, 20
 getpal16 heropal(), 0, her.walk_sprite_pal, 4, her.walk_sprite
 '--load NPC graphics--
 FOR i = 0 TO 35
- 'FIXME: remove this setpicstuf later
- setpicstuf buffer(), 1600, 2
- loadset game + ".pt4", npcstat(i * 15 + 0), 5 * i
- getpal16 pal16(), i, npcstat(i * 15 + 1), 4, npcstat(i * 15 + 0)
  'Load the picture and palette
  WITH npc_img(i)
   .sprite = sprite_load(game + ".pt4", npcstat(i * 15 + 0), 8, 20, 20)
@@ -965,8 +961,9 @@ DO
  
  '--npc placement cursor--
  IF editmode = 3 THEN
-  loadsprite cursor(), 0, (walk * 400), nptr * 5, 20, 20, 2
-  drawsprite cursor(), 0, pal16(), 16 * nptr, (x * 20) - mapx, (y * 20) - mapy + 20, dpage
+  WITH npc_img(nptr)
+   sprite_draw .sprite + (2 * walk), .pal, x * 20 - mapx, y * 20 - mapy + 20, 1, -1, dpage
+  END WITH
   textcolor uilook(uiSelectedItem + tog), 0
   xtemp$ = STR$(nptr)
   printstr xtemp$, (x * 20) - mapx, (y * 20) - mapy + 28, dpage
