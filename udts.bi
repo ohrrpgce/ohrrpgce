@@ -383,6 +383,7 @@ TYPE TextBoxState
   choice_cursor  AS INTEGER
   remember_music AS INTEGER
   show_lines     AS INTEGER 'Number of lines currently on display
+  sayer          AS INTEGER 'The NPC reference who triggered this textbox as a positive number, or -1 for none
 END TYPE
 
 TYPE MouseArea

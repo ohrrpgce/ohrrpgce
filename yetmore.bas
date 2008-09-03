@@ -3030,7 +3030,7 @@ END FUNCTION
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB loadsay (BYREF txt AS TextBoxState, say, sayer)
+SUB loadsay (BYREF txt AS TextBoxState, say)
 DIM j AS INTEGER
 DIM rsr AS INTEGER
 DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
@@ -3051,7 +3051,7 @@ DO '--This loop is where we find which box will be displayed right now
   '--do something else instead
   IF txt.box.instead < 0 THEN
    rsr = runscript(-txt.box.instead, nowscript + 1, -1, "instead", plottrigger)
-   sayer = -1
+   txt.sayer = -1
    EXIT SUB
   ELSE
    IF say <> txt.box.instead THEN

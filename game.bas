@@ -28,7 +28,7 @@ DECLARE FUNCTION getfilelist% (wildcard$)
 DECLARE SUB scriptadvanced (id%)
 DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%, BYREF txt AS TextBoxState)
 DECLARE FUNCTION checkfordeath (stat())
-DECLARE SUB loadsay (BYREF txt AS TextBoxState, say%, sayer%)
+DECLARE SUB loadsay (BYREF txt AS TextBoxState, say%)
 DECLARE SUB correctbackdrop ()
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
 DECLARE FUNCTION isonscreen% (x%, y%)
@@ -115,7 +115,7 @@ DECLARE FUNCTION range% (n%, r%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
-DECLARE SUB forcedismount (BYREF txt AS TextBoxState, say, sayer, catd(), foep)
+DECLARE SUB forcedismount (BYREF txt AS TextBoxState, say, catd(), foep)
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
 DECLARE SUB drawnpcs ()
@@ -241,7 +241,7 @@ DIM SHARED needf
 DIM SHARED harmtileflash = NO
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
 'textbox stuff (needs moving into a udt)
-DIM SHARED say, sayer
+DIM SHARED say
 DIM SHARED txt AS TextBoxState
 
 'global variables
@@ -455,7 +455,6 @@ foep = range(100, 60)
 lastformation = -1
 map = gen(104)
 lastmap = -1
-sayer = 0
 remembermusic = -1
 scrwatch = 0
 menu_set.menufile = workingdir & SLASH & "menus.bin"
@@ -474,6 +473,7 @@ txt.choice_cursor = 0
 txt.showing = NO
 txt.fully_shown = NO
 txt.show_lines = 0
+txt.sayer = -1
 
 temp = -1
 IF readbit(gen(), genBits, 11) = 0 THEN
@@ -536,7 +536,7 @@ DO
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
   say = menu_text_box
-  loadsay txt, say, sayer
+  loadsay txt, say
  END IF
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
@@ -562,7 +562,7 @@ DO
     IF carray(2) > 0 THEN xgo(0) = 20: catd(0) = 3: EXIT DO
     IF carray(3) > 0 THEN xgo(0) = -20: catd(0) = 1: EXIT DO
     IF carray(4) > 1 AND veh(0) = 0 THEN
-     sayer = -1
+     txt.sayer = -1
      auto = 0
      GOSUB usething
     END IF
@@ -607,7 +607,7 @@ DO
     menusound gen(genAcceptSFX)
    CASE IS > 1
     say = tmp - 1
-    loadsay txt, say, sayer
+    loadsay txt, say
   END SELECT
  END IF
  IF txt.fully_shown = YES AND txt.box.choice_enabled THEN
@@ -866,17 +866,17 @@ IF scrwatch THEN scriptwatcher scrwatch, -1
 RETRACE
 
 usething:
-'auto = 0: normal use, sayer = -1
-'auto = 1: touch and step-on, sayer set
-'auto = 2: scripted, sayer set
+'auto = 0: normal use, txt.sayer = -1
+'auto = 1: touch and step-on, txt.sayer set to +NPC reference
+'auto = 2: scripted, txt.sayer set to +NPC reference
 IF auto = 0 THEN
  ux = catx(0)
  uy = caty(0)
  wrapaheadxy ux, uy, catd(0), 20, 20
 END IF
-IF sayer < 0 THEN
+IF txt.sayer < 0 THEN
   IF auto <> 2 THEN 'find the NPC to trigger the hard way
-   sayer = -1
+   txt.sayer = -1
    j = -1
    DO
     j = j + 1
@@ -916,32 +916,32 @@ IF sayer < 0 THEN
     END IF
    LOOP
    'UNTIL wraptouch(npcl(j), npcl(j + 300), ux, uy, 15) AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
-   sayer = j
+   txt.sayer = j
   END IF
 END IF
-IF sayer >= 0 THEN
- getit = npcs(npc(sayer).id - 1).item
+IF txt.sayer >= 0 THEN
+ getit = npcs(npc(txt.sayer).id - 1).item
  IF getit THEN getitem getit, 1
  '---DIRECTION CHANGING-----------------------
  recalld = -1
- IF auto <> 2 AND npcs(npc(sayer).id - 1).facetype < 2 THEN
-  recalld = npc(sayer).dir
-  npc(sayer).dir = catd(0)
-  npc(sayer).dir = loopvar(npc(sayer).dir, 0, 3, 1): npc(sayer).dir = loopvar(npc(sayer).dir, 0, 3, 1)
+ IF auto <> 2 AND npcs(npc(txt.sayer).id - 1).facetype < 2 THEN
+  recalld = npc(txt.sayer).dir
+  npc(txt.sayer).dir = catd(0)
+  npc(txt.sayer).dir = loopvar(npc(txt.sayer).dir, 0, 3, 1): npc(txt.sayer).dir = loopvar(npc(txt.sayer).dir, 0, 3, 1)
  END IF
- IF npcs(npc(sayer).id - 1).usetag > 0 THEN
+ IF npcs(npc(txt.sayer).id - 1).usetag > 0 THEN
   '--One-time-use tag
-  setbit tag(), 0, 1000 + npcs(npc(sayer).id - 1).usetag, 1
+  setbit tag(), 0, 1000 + npcs(npc(txt.sayer).id - 1).usetag, 1
  END IF
- IF npcs(npc(sayer).id - 1).script > 0 THEN
+ IF npcs(npc(txt.sayer).id - 1).script > 0 THEN
   '--summon a script directly from an NPC
-  rsr = runscript(npcs(npc(sayer).id - 1).script, nowscript + 1, -1, "NPC", plottrigger)
+  rsr = runscript(npcs(npc(txt.sayer).id - 1).script, nowscript + 1, -1, "NPC", plottrigger)
   IF rsr = 1 THEN
-   setScriptArg 0, npcs(npc(sayer).id - 1).scriptarg
-   setScriptArg 1, (sayer + 1) * -1 'reference
+   setScriptArg 0, npcs(npc(txt.sayer).id - 1).scriptarg
+   setScriptArg 1, (txt.sayer + 1) * -1 'reference
   END IF
  END IF
- vehuse = npcs(npc(sayer).id - 1).vehicle
+ vehuse = npcs(npc(txt.sayer).id - 1).vehicle
  IF vehuse THEN '---activate a vehicle---
   setpicstuf buffer(), 80, -1
   loadset game + ".veh", vehuse - 1, 0
@@ -951,19 +951,19 @@ IF sayer >= 0 THEN
    FOR i = 0 TO 7: veh(i) = 0: NEXT i
    FOR i = 8 TO 21: veh(i) = buffer(i): NEXT i
    veh(0) = -1
-   veh(5) = sayer
+   veh(5) = txt.sayer
    veh(7) = herospeed(0)
    herospeed(0) = 10
    setbit veh(), 6, 0, 1 '--trigger mounting sequence
    IF veh(14) > 1 THEN setbit tag(), 0, veh(14), 1
   END IF
  END IF
- say = npcs(npc(sayer).id - 1).textbox
+ say = npcs(npc(txt.sayer).id - 1).textbox
  SELECT CASE say
   CASE 0
-   sayer = -1
+   txt.sayer = -1
   CASE IS > 0
-   loadsay txt, say, sayer
+   loadsay txt, say
  END SELECT
  evalherotag stat()
  evalitemtag
@@ -1056,7 +1056,7 @@ IF istag(txt.box.after_tag, 0) THEN
   runscript(-txt.box.after, nowscript + 1, -1, "textbox", plottrigger)
  ELSE
   say = txt.box.after
-  loadsay txt, say, sayer
+  loadsay txt, say
   RETRACE
  END IF
 END IF
@@ -1065,10 +1065,10 @@ evalitemtag
 '---DONE EVALUATING CONDITIONALS--------
 vishero stat()
 npcplot
-IF sayer >= 0 AND recalld <> -1 THEN
- IF npc(sayer).id > 0 THEN
-  IF npcs(npc(sayer).id - 1).facetype = 1 THEN
-   npc(sayer).dir = recalld
+IF txt.sayer >= 0 AND recalld <> -1 THEN
+ IF npc(txt.sayer).id > 0 THEN
+  IF npcs(npc(txt.sayer).id - 1).facetype = 1 THEN
+   npc(txt.sayer).dir = recalld
   END IF
  END IF
 END IF
@@ -1078,7 +1078,7 @@ IF txt.box.backdrop > 0 THEN
 END IF
 txt.showing = NO
 txt.fully_shown = NO
-sayer = -1
+txt.sayer = -1
 setkeys
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
 RETRACE
@@ -1127,7 +1127,7 @@ FOR whoi = 0 TO 3
          ux = npc(i).x
          uy = npc(i).y
          auto = 1
-         sayer = i
+         txt.sayer = i
          GOSUB usething
         END IF
        END IF '---autoactivate
@@ -1208,7 +1208,7 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR force_npc_ch
        ux = npc(i).x
        uy = npc(i).y
        auto = 1
-       sayer = i
+       txt.sayer = i
        GOSUB usething
       END IF'---YOU ARE ON NPC---
      END IF ' ---NPC IS PASSABLE---
@@ -1254,7 +1254,7 @@ FOR o = 0 TO 299
   ELSE
    movetype = npcs(id).movetype
    speedset = npcs(id).speed
-   IF movetype > 0 AND (speedset > 0 OR movetype = 8) AND sayer <> o AND readbit(gen(), 44, suspendnpcs) = 0 THEN
+   IF movetype > 0 AND (speedset > 0 OR movetype = 8) AND txt.sayer <> o AND readbit(gen(), 44, suspendnpcs) = 0 THEN
     IF npc(o).xgo = 0 AND npc(o).ygo = 0 THEN
      'RANDOM WANDER---
      IF movetype = 1 THEN
@@ -1372,7 +1372,7 @@ IF npcs(id).activation = 1 AND txt.showing = NO THEN
   ux = npc(o).x
   uy = npc(o).y
   auto = 1
-  sayer = o
+  txt.sayer = o
   GOSUB usething
  END IF
 END IF
@@ -1499,7 +1499,7 @@ END IF
 loaddoor map, door()
 
 IF afterbat = 0 AND samemap = 0 THEN
- forcedismount txt, say, sayer, catd(), foep
+ forcedismount txt, say, catd(), foep
 END IF
 IF afterbat = 0 AND afterload = 0 THEN
  FOR i = 0 TO 15
@@ -1522,7 +1522,7 @@ IF veh(0) AND samemap THEN
  herospeed(0) = veh(8)
  IF herospeed(0) = 3 THEN herospeed(0) = 10
 END IF
-sayer = -1
+txt.sayer = -1
 
 'Why are these here? Seems like superstition
 evalherotag stat()
@@ -1670,7 +1670,7 @@ END IF
 '--do spawned text boxes, battles, etc.
 IF wantbox > 0 THEN
  say = wantbox
- loadsay txt, say, sayer
+ loadsay txt, say
  wantbox = 0
 END IF
 IF wantdoor > 0 THEN
@@ -1703,7 +1703,7 @@ IF wantteleport > 0 THEN
  foep = range(100, 60)
 END IF
 IF wantusenpc > 0 THEN
- sayer = wantusenpc - 1
+ txt.sayer = wantusenpc - 1
  wantusenpc = 0
  auto = 2
  GOSUB usething
@@ -2081,7 +2081,7 @@ WITH scrat(nowscript)
     gen(50) = 0
     correctbackdrop
    CASE 34'--dismount vehicle
-    forcedismount txt, say, sayer, catd(), foep
+    forcedismount txt, say, catd(), foep
    CASE 35'--use NPC
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
