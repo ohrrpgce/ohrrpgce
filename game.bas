@@ -921,9 +921,9 @@ IF txt.sayer >= 0 THEN
  getit = npcs(npc(txt.sayer).id - 1).item
  IF getit THEN getitem getit, 1
  '---DIRECTION CHANGING-----------------------
- recalld = -1
+ txt.old_dir = -1
  IF auto <> 2 AND npcs(npc(txt.sayer).id - 1).facetype < 2 THEN
-  recalld = npc(txt.sayer).dir
+  txt.old_dir = npc(txt.sayer).dir
   npc(txt.sayer).dir = catd(0)
   npc(txt.sayer).dir = loopvar(npc(txt.sayer).dir, 0, 3, 1): npc(txt.sayer).dir = loopvar(npc(txt.sayer).dir, 0, 3, 1)
  END IF
@@ -1061,10 +1061,10 @@ evalitemtag
 '---DONE EVALUATING CONDITIONALS--------
 vishero stat()
 npcplot
-IF txt.sayer >= 0 AND recalld <> -1 THEN
+IF txt.sayer >= 0 AND txt.old_dir <> -1 THEN
  IF npc(txt.sayer).id > 0 THEN
   IF npcs(npc(txt.sayer).id - 1).facetype = 1 THEN
-   npc(txt.sayer).dir = recalld
+   npc(txt.sayer).dir = txt.old_dir
   END IF
  END IF
 END IF
