@@ -3030,7 +3030,7 @@ END FUNCTION
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB loadsay (BYREF txt AS TextBoxState, say, sayer, showsay, remembermusic, sayenh())
+SUB loadsay (BYREF txt AS TextBoxState, say, sayer, showsay, remembermusic)
 DIM j AS INTEGER
 DIM rsr AS INTEGER
 DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
@@ -3073,19 +3073,15 @@ END IF
 '--the bitset that determines whether the choicebox is enabled
 IF txt.box.choice_enabled THEN MenuSound gen(genAcceptSFX)
 
-'--load box appearance into sayenh()
-FOR j = 0 TO 6
- sayenh(j) = boxbuf(193 + j)
-NEXT j
 '-- update backdrop if necessary
-IF sayenh(4) > 0 THEN
- gen(58) = sayenh(4)
+IF txt.box.backdrop > 0 THEN
+ gen(genTextboxBackdrop) = txt.box.backdrop
  correctbackdrop
 END IF
 '-- change music if necessary
-IF sayenh(5) > 0 THEN
+IF txt.box.music > 0 THEN
  remembermusic = presentsong
- wrappedsong sayenh(5) - 1
+ wrappedsong txt.box.music - 1
 END IF
 
 showsay = 8

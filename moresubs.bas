@@ -397,19 +397,19 @@ vishero stat()
 'hero(40), bmenu(40,5), spell(40,3,23), stat(40,1,13), lmp(40,7), exlev(40,1), names(40), eqstuf(40,4)
 END SUB
 
-SUB drawsay (txt AS TextBoxState, sayenh(), showsay)
+SUB drawsay (txt AS TextBoxState, showsay)
 STATIC tog AS INTEGER
 tog = tog XOR 1
 IF txt.box.no_box = NO THEN
  IF txt.box.opaque = NO THEN
-  centerfuz 160, 48 + (sayenh(0) * 4) - (sayenh(1) * 2), 312, 88 - (sayenh(1) * 4), sayenh(3) + 1, dpage
+  centerfuz 160, 48 + (txt.box.vertical_offset * 4) - (txt.box.shrink * 2), 312, 88 - (txt.box.shrink * 4), txt.box.boxstyle + 1, dpage
  ELSE
-  centerbox 160, 48 + (sayenh(0) * 4) - (sayenh(1) * 2), 312, 88 - (sayenh(1) * 4), sayenh(3) + 1, dpage
+  centerbox 160, 48 + (txt.box.vertical_offset * 4) - (txt.box.shrink * 2), 312, 88 - (txt.box.shrink * 4), txt.box.boxstyle + 1, dpage
  END IF '---TO FUZZ OR NOT TO FUZZ?-----
 END IF
-col = uilook(uiText): IF sayenh(2) > 0 THEN col = sayenh(2)
+col = uilook(uiText): IF txt.box.textcolor > 0 THEN col = txt.box.textcolor
 FOR i = 0 TO 8 - showsay
- edgeprint txt.box.text(i), 7, (8 + i * 10) + (sayenh(0) * 4), col, dpage
+ edgeprint txt.box.text(i), 7, (8 + i * 10) + (txt.box.vertical_offset * 4), col, dpage
 NEXT i
 
 IF showsay > 1 THEN
@@ -420,9 +420,9 @@ IF showsay > 1 THEN
 END IF
 
 IF txt.box.choice_enabled THEN
- tempy = 100 + (sayenh(0) * 4) - (sayenh(1) * 4)
+ tempy = 100 + (txt.box.vertical_offset * 4) - (txt.box.shrink * 4)
  IF tempy > 160 THEN tempy = 20
- centerbox 160, tempy + 12, 10 + large(LEN(txt.box.choice(0)) * 8, LEN(txt.box.choice(1)) * 8), 24, sayenh(3) + 1, dpage
+ centerbox 160, tempy + 12, 10 + large(LEN(txt.box.choice(0)) * 8, LEN(txt.box.choice(1)) * 8), 24, txt.box.boxstyle + 1, dpage
  FOR i = 0 TO 1
   col = uilook(uiMenuItem): IF txt.choice_cursor = i THEN col = uilook(uiSelectedItem + tog)
   edgeprint txt.box.choice(i), xstring(txt.box.choice(i), 160), tempy + 2 + (i * 10), col, dpage
@@ -1361,7 +1361,7 @@ END IF
 
 END SUB
 
-SUB resetgame (map, foep, stat(), stock(), showsay, scriptout$, sayenh())
+SUB resetgame (map, foep, stat(), stock(), showsay, scriptout$,BYREF txt AS TextBoxState)
 map = 0
 catx(0) = 0
 caty(0) = 0
@@ -1429,7 +1429,7 @@ NEXT i
 flusharray hmask(), 3, 0
 flusharray global(), 4095, 0
 flusharray veh(), 21, 0
-flusharray sayenh(), 6, 0
+ClearTextBox txt.box
 
 FOR i = 0 TO 31
  with plotstr(i)
