@@ -226,8 +226,6 @@ DIM gen(360), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), fo
 DIM eqstuf(40, 4), stock(99, 49), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), hmask(3), herobits(59, 3), itembits(maxMaxItems, 3)
 DIM mapname$, catermask(0), nativehbits(40, 4)
 
-dim map_draw_mode as integer = -1
-
 'Old Menu data
 DIM menu$(9), mi(9)
 'New Menu Data
@@ -693,7 +691,6 @@ DO
    IF keyval(59) > 1 AND showsay = 0 THEN minimap catx(0), caty(0), tilesets() 'F1
    IF keyval(87) > 1 THEN ghost = ghost XOR 1 'F11
   END IF
-  IF keyval(41) > 1 then map_draw_mode = not map_draw_mode
  END IF
  IF wantloadgame > 0 THEN
   'DEBUG debug "loading game slot" + XSTR$(wantloadgame - 1)
@@ -2151,8 +2148,6 @@ WITH scrat(nowscript)
        IF retvals(2) < 0 OR retvals(2) > gen(genMaxNPCPic) THEN
         writesafe = 0
        ELSE
-        setpicstuf buffer(), 1600, 2
-        loadset game + ".pt4", retvals(2), 20 + (5 * retvals(0))
         if npcs(retvals(0)).sprite then sprite_unload(@npcs(retvals(0)).sprite)
         npcs(retvals(0)).sprite = sprite_load(game + ".pt4", retvals(2), 8, 20, 20)
        END IF

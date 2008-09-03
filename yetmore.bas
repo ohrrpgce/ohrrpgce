@@ -2635,6 +2635,7 @@ vehpass = v
 END FUNCTION
 
 SUB vishero (stat())
+'FIXME: this needs to be rewritten to use Frame objects rather than a screen page
 o = 0
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
