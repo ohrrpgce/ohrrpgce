@@ -3030,7 +3030,7 @@ END FUNCTION
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB loadsay (BYREF txt AS TextBoxState, say, sayer, showsay, remembermusic)
+SUB loadsay (BYREF txt AS TextBoxState, say, sayer, showsay)
 DIM j AS INTEGER
 DIM rsr AS INTEGER
 DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
@@ -3080,7 +3080,7 @@ IF txt.box.backdrop > 0 THEN
 END IF
 '-- change music if necessary
 IF txt.box.music > 0 THEN
- remembermusic = presentsong
+ txt.remember_music = presentsong
  wrappedsong txt.box.music - 1
 END IF
 

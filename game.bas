@@ -28,7 +28,7 @@ DECLARE FUNCTION getfilelist% (wildcard$)
 DECLARE SUB scriptadvanced (id%)
 DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%, showsay%)
 DECLARE FUNCTION checkfordeath (stat())
-DECLARE SUB loadsay (BYREF txt AS TextBoxState, say%, sayer%, showsay%, remembermusic%)
+DECLARE SUB loadsay (BYREF txt AS TextBoxState, say%, sayer%, showsay%)
 DECLARE SUB correctbackdrop ()
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
 DECLARE FUNCTION isonscreen% (x%, y%)
@@ -115,7 +115,7 @@ DECLARE FUNCTION range% (n%, r%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
-DECLARE SUB forcedismount (BYREF txt AS TextBoxState, say, sayer, showsay, remembermusic, catd(), foep)
+DECLARE SUB forcedismount (BYREF txt AS TextBoxState, say, sayer, showsay, catd(), foep)
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
 DECLARE SUB drawnpcs ()
@@ -533,7 +533,7 @@ DO
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
   say = menu_text_box
-  loadsay txt, say, sayer, showsay, remembermusic
+  loadsay txt, say, sayer, showsay
  END IF
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
@@ -604,7 +604,7 @@ DO
     menusound gen(genAcceptSFX)
    CASE IS > 1
     say = tmp - 1
-    loadsay txt, say, sayer, showsay, remembermusic
+    loadsay txt, say, sayer, showsay
   END SELECT
  END IF
  IF showsay = 1 AND txt.box.choice_enabled THEN
@@ -959,7 +959,7 @@ IF sayer >= 0 THEN
   CASE 0
    sayer = -1
   CASE IS > 0
-   loadsay txt, say, sayer, showsay, remembermusic
+   loadsay txt, say, sayer, showsay
  END SELECT
  evalherotag stat()
  evalitemtag
@@ -987,7 +987,7 @@ IF txt.box.restore_music THEN
  ELSEIF gmap(1) = 0 THEN
   stopsong
  ELSE
-  IF remembermusic > -1 THEN wrappedsong remembermusic ELSE stopsong
+  IF txt.remember_music > -1 THEN wrappedsong txt.remember_music ELSE stopsong
  END IF
 END IF
 '---GAIN/LOSE CASH-----
@@ -1052,7 +1052,7 @@ IF istag(txt.box.after_tag, 0) THEN
   runscript(-txt.box.after, nowscript + 1, -1, "textbox", plottrigger)
  ELSE
   say = txt.box.after
-  loadsay txt, say, sayer, showsay, remembermusic
+  loadsay txt, say, sayer, showsay
   RETRACE
  END IF
 END IF
@@ -1494,7 +1494,7 @@ END IF
 loaddoor map, door()
 
 IF afterbat = 0 AND samemap = 0 THEN
- forcedismount txt, say, sayer, showsay, remembermusic, catd(), foep
+ forcedismount txt, say, sayer, showsay, catd(), foep
 END IF
 IF afterbat = 0 AND afterload = 0 THEN
  FOR i = 0 TO 15
@@ -1665,7 +1665,7 @@ END IF
 '--do spawned text boxes, battles, etc.
 IF wantbox > 0 THEN
  say = wantbox
- loadsay txt, say, sayer, showsay, remembermusic
+ loadsay txt, say, sayer, showsay
  wantbox = 0
 END IF
 IF wantdoor > 0 THEN
@@ -2076,7 +2076,7 @@ WITH scrat(nowscript)
     gen(50) = 0
     correctbackdrop
    CASE 34'--dismount vehicle
-    forcedismount txt, say, sayer, showsay, remembermusic, catd(), foep
+    forcedismount txt, say, sayer, showsay, catd(), foep
    CASE 35'--use NPC
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
