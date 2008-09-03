@@ -397,7 +397,7 @@ vishero stat()
 'hero(40), bmenu(40,5), spell(40,3,23), stat(40,1,13), lmp(40,7), exlev(40,1), names(40), eqstuf(40,4)
 END SUB
 
-SUB drawsay (txt AS TextBoxState, showsay)
+SUB drawsay (txt AS TextBoxState)
 STATIC tog AS INTEGER
 tog = tog XOR 1
 IF txt.box.no_box = NO THEN
@@ -408,15 +408,18 @@ IF txt.box.no_box = NO THEN
  END IF '---TO FUZZ OR NOT TO FUZZ?-----
 END IF
 col = uilook(uiText): IF txt.box.textcolor > 0 THEN col = txt.box.textcolor
-FOR i = 0 TO 8 - showsay
+FOR i = 0 TO txt.show_lines
  edgeprint txt.box.text(i), 7, (8 + i * 10) + (txt.box.vertical_offset * 4), col, dpage
 NEXT i
 
-IF showsay > 1 THEN
-	showsay = showsay - 1
-	if showsay <= 7 then
-		if trim(txt.box.text(7 - showsay)) <> "" then menusound gen(genTextboxLetter)
-	end if
+IF txt.show_lines < 7 THEN
+ txt.show_lines = txt.show_lines + 1
+ IF txt.show_lines > 1 THEN
+  IF trim(txt.box.text(txt.show_lines)) <> "" THEN menusound gen(genTextboxLetter)
+ END IF
+ IF txt.show_lines >= 7 THEN
+  txt.fully_shown = YES
+ END IF
 END IF
 
 IF txt.box.choice_enabled THEN
@@ -1361,7 +1364,7 @@ END IF
 
 END SUB
 
-SUB resetgame (map, foep, stat(), stock(), showsay, scriptout$,BYREF txt AS TextBoxState)
+SUB resetgame (map, foep, stat(), stock(), scriptout$,BYREF txt AS TextBoxState)
 map = 0
 catx(0) = 0
 caty(0) = 0
@@ -1371,7 +1374,6 @@ foep = 0
 mapx = 0
 mapy = 0
 gold = 0
-showsay = 0
 scriptout$ = ""
 '--return gen to defaults
 xbload game + ".gen", gen(), "General data is missing from " + game
@@ -1430,6 +1432,9 @@ flusharray hmask(), 3, 0
 flusharray global(), 4095, 0
 flusharray veh(), 21, 0
 ClearTextBox txt.box
+txt.showing = NO
+txt.fully_shown = NO
+txt.show_lines = 0
 
 FOR i = 0 TO 31
  with plotstr(i)

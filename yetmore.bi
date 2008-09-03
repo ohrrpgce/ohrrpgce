@@ -42,7 +42,7 @@ declare sub subreturn
 declare sub unwindtodo (levels)
 declare sub templockexplain
 declare sub tweakpalette
-declare function vehiclestuff (disx, disy, foep, vehedge, showsay)
+declare function vehiclestuff (disx, disy, foep, vehedge, BYREF txt AS TextBoxState)
 declare function vehpass (n, tile, default)
 declare sub vishero (stat())
 declare sub wrapaheadxy (x, y, direction, distance, unitsize)

@@ -26,9 +26,9 @@ DECLARE SUB templockexplain ()
 DECLARE SUB cleanuptemp ()
 DECLARE FUNCTION getfilelist% (wildcard$)
 DECLARE SUB scriptadvanced (id%)
-DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%, showsay%)
+DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%, BYREF txt AS TextBoxState)
 DECLARE FUNCTION checkfordeath (stat())
-DECLARE SUB loadsay (BYREF txt AS TextBoxState, say%, sayer%, showsay%)
+DECLARE SUB loadsay (BYREF txt AS TextBoxState, say%, sayer%)
 DECLARE SUB correctbackdrop ()
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
 DECLARE FUNCTION isonscreen% (x%, y%)
@@ -72,7 +72,7 @@ DECLARE SUB subread (si as ScriptInst)
 DECLARE SUB subreturn (si as ScriptInst)
 DECLARE SUB subdoarg (si as ScriptInst)
 DECLARE SUB unwindtodo (si as ScriptInst, levels%)
-DECLARE SUB resetgame (map%, foep%, stat%(), stock%(), showsay%, scriptout$,BYREF txt AS TextBoxState)
+DECLARE SUB resetgame (map%, foep%, stat%(), stock%(), scriptout$,BYREF txt AS TextBoxState)
 DECLARE FUNCTION countitem% (it%)
 DECLARE SUB scriptmath ()
 DECLARE FUNCTION movdivis% (xygo%)
@@ -90,7 +90,7 @@ DECLARE SUB doswap (s%, d%, stat%())
 DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE SUB patcharray (array%(), n$)
-DECLARE SUB drawsay (txt AS TextBoxState, showsay%)
+DECLARE SUB drawsay (txt AS TextBoxState)
 DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, tilesets() AS TilesetData ptr)
 DECLARE SUB minimap (x%, y%, tilesets() AS TilesetData ptr)
 DECLARE FUNCTION teleporttool (BYREF map as integer, tilesets() as TilesetData ptr)
@@ -115,7 +115,7 @@ DECLARE FUNCTION range% (n%, r%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
-DECLARE SUB forcedismount (BYREF txt AS TextBoxState, say, sayer, showsay, catd(), foep)
+DECLARE SUB forcedismount (BYREF txt AS TextBoxState, say, sayer, catd(), foep)
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
 DECLARE SUB drawnpcs ()
@@ -241,7 +241,7 @@ DIM SHARED needf
 DIM SHARED harmtileflash = NO
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
 'textbox stuff (needs moving into a udt)
-DIM SHARED say, sayer, showsay
+DIM SHARED say, sayer
 DIM SHARED txt AS TextBoxState
 
 'global variables
@@ -455,7 +455,6 @@ foep = range(100, 60)
 lastformation = -1
 map = gen(104)
 lastmap = -1
-txt.choice_cursor = 0
 sayer = 0
 remembermusic = -1
 scrwatch = 0
@@ -470,7 +469,11 @@ wantbattle = 0
 wantteleport = 0
 wantusenpc = 0
 wantloadgame = 0
-showsay = 0
+
+txt.choice_cursor = 0
+txt.showing = NO
+txt.fully_shown = NO
+txt.show_lines = 0
 
 temp = -1
 IF readbit(gen(), genBits, 11) = 0 THEN
@@ -533,7 +536,7 @@ DO
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
   say = menu_text_box
-  loadsay txt, say, sayer, showsay
+  loadsay txt, say, sayer
  END IF
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
@@ -545,13 +548,13 @@ DO
  'DEBUG debug "increment script timers"
  dotimer(0)
  'DEBUG debug "keyboard handling"
- IF carray(5) > 1 AND showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(0) = 0 AND xgo(0) = 0 AND ygo(0) = 0 THEN
+ IF carray(5) > 1 AND txt.showing = NO AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(0) = 0 AND xgo(0) = 0 AND ygo(0) = 0 THEN
   IF allowed_to_open_main_menu() THEN
    add_menu 0
    menusound gen(genAcceptSFX)
   END IF
  END IF
- IF showsay = 0 AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(6) = 0 AND menus_allow_player() THEN
+ IF txt.showing = NO AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(6) = 0 AND menus_allow_player() THEN
   IF xgo(0) = 0 AND ygo(0) = 0 THEN
    DO
     IF carray(0) > 0 THEN ygo(0) = 20: catd(0) = 0: EXIT DO
@@ -568,7 +571,7 @@ DO
   END IF
  END IF
  'debug "before nextsay:"
- IF carray(4) > 1 AND showsay = 1 AND readbit(gen(), 44, suspendboxadvance) = 0 THEN
+ IF carray(4) > 1 AND txt.fully_shown = YES AND readbit(gen(), 44, suspendboxadvance) = 0 THEN
   GOSUB nextsay
  END IF
  'debug "after nextsay:"
@@ -595,7 +598,7 @@ DO
      IF pasx < 0 THEN pasx = (scroll(0) - 1) : vehedge = 1
    END SELECT
   END IF
-  tmp = vehiclestuff(pasx, pasy, foep, vehedge, showsay)
+  tmp = vehiclestuff(pasx, pasy, foep, vehedge, txt)
   SELECT CASE tmp
    CASE IS < 0
     runscript(ABS(tmp), nowscript + 1, -1, "vehicle", plottrigger)
@@ -604,10 +607,10 @@ DO
     menusound gen(genAcceptSFX)
    CASE IS > 1
     say = tmp - 1
-    loadsay txt, say, sayer, showsay
+    loadsay txt, say, sayer
   END SELECT
  END IF
- IF showsay = 1 AND txt.box.choice_enabled THEN
+ IF txt.fully_shown = YES AND txt.box.choice_enabled THEN
   IF carray(0) > 1 AND txt.choice_cursor = 1 THEN txt.choice_cursor = 0: MenuSound gen(genCursorSFX)
   IF carray(1) > 1 AND txt.choice_cursor = 0 THEN txt.choice_cursor = 1: MenuSound gen(genCursorSFX)
  END IF
@@ -620,10 +623,10 @@ DO
  IF readbit(gen(), 101, 8) = 0 THEN
   '--debugging keys
   'DEBUG debug "evaluate debugging keys"
-  IF keyval(60) > 1 AND showsay = 0 THEN
+  IF keyval(60) > 1 AND txt.showing = NO THEN
    savegame 32, map, foep, stat(), stock()
   END IF
-  IF keyval(61) > 1 AND showsay = 0 THEN
+  IF keyval(61) > 1 AND txt.showing = NO THEN
    wantloadgame = 33
   END IF
   IF keyval(62) > 1 THEN showtags = showtags XOR 1: scrwatch = 0 
@@ -679,7 +682,7 @@ DO
   IF keyval(67) > 1 THEN patcharray gmap(), "gmap"
   IF keyval(68) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): showtags = 0
   IF keyval(29) > 0 THEN ' holding CTRL
-   IF keyval(59) > 1 AND showsay = 0 THEN 
+   IF keyval(59) > 1 AND txt.showing = NO THEN 
     IF teleporttool(map, tilesets()) THEN GOSUB preparemap  'CTRL + F1
    END IF
    IF showtags = 0 THEN
@@ -688,7 +691,7 @@ DO
    END IF
    IF keyval(87) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
   ELSE ' not holding CTRL
-   IF keyval(59) > 1 AND showsay = 0 THEN minimap catx(0), caty(0), tilesets() 'F1
+   IF keyval(59) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0), tilesets() 'F1
    IF keyval(87) > 1 THEN ghost = ghost XOR 1 'F11
   END IF
  END IF
@@ -696,7 +699,7 @@ DO
   'DEBUG debug "loading game slot" + XSTR$(wantloadgame - 1)
   temp = wantloadgame - 1
   wantloadgame = 0
-  resetgame map, foep, stat(), stock(), showsay, scriptout$, txt
+  resetgame map, foep, stat(), stock(), scriptout$, txt
   initgamedefaults
   fademusic 0
   stopsong
@@ -737,7 +740,8 @@ DO
  'DEBUG debug "check for death (fatal = " & fatal & ")"
  IF fatal = 1 THEN
   '--this is what happens when you die in battle
-  showsay = 0
+  txt.showing = NO
+  txt.fully_shown = NO
   IF gen(42) > 0 THEN
    rsr = runscript(gen(42), nowscript + 1, -1, "death", plottrigger)
    IF rsr = 1 THEN
@@ -751,7 +755,7 @@ DO
  END IF' end menus_allow_gameplay
  GOSUB displayall
  IF fatal = 1 OR abortg > 0 THEN
-  resetgame map, foep, stat(), stock(), showsay, scriptout$, txt
+  resetgame map, foep, stat(), stock(), scriptout$, txt
   'if skip loadmenu and title bits set, quit
   IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_sav(savefile) = 0) THEN
    EXIT DO, DO ' To game select screen (quit the gameplay and RPG file loops, allowing the program loop to cycle)
@@ -844,7 +848,7 @@ ELSE '---END NORMAL DISPLAY---
  copypage 3, dpage
 END IF '---END BACKDROP DISPLAY---
 'DEBUG debug "text box"
-IF showsay > 0 THEN drawsay txt, showsay
+IF txt.showing = YES THEN drawsay txt
 'DEBUG debug "map name"
 IF showmapname > 0 AND gmap(4) >= showmapname THEN
  showmapname = showmapname - 1: edgeprint mapname$, xstring(mapname$, 160), 180, uilook(uiText), dpage
@@ -959,7 +963,7 @@ IF sayer >= 0 THEN
   CASE 0
    sayer = -1
   CASE IS > 0
-   loadsay txt, say, sayer, showsay
+   loadsay txt, say, sayer
  END SELECT
  evalherotag stat()
  evalitemtag
@@ -1052,7 +1056,7 @@ IF istag(txt.box.after_tag, 0) THEN
   runscript(-txt.box.after, nowscript + 1, -1, "textbox", plottrigger)
  ELSE
   say = txt.box.after
-  loadsay txt, say, sayer, showsay
+  loadsay txt, say, sayer
   RETRACE
  END IF
 END IF
@@ -1072,7 +1076,8 @@ IF txt.box.backdrop > 0 THEN
  gen(genTextboxBackdrop) = 0
  correctbackdrop
 END IF
-showsay = 0
+txt.showing = NO
+txt.fully_shown = NO
 sayer = -1
 setkeys
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
@@ -1362,7 +1367,7 @@ ELSE
 END IF
 IF cropmovement(npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN GOSUB hitwall
 nogo:
-IF npcs(id).activation = 1 AND showsay = 0 THEN
+IF npcs(id).activation = 1 AND txt.showing = NO THEN
  IF wraptouch(npc(o).x, npc(o).y, catx(0), caty(0), 20) THEN
   ux = npc(o).x
   uy = npc(o).y
@@ -1494,7 +1499,7 @@ END IF
 loaddoor map, door()
 
 IF afterbat = 0 AND samemap = 0 THEN
- forcedismount txt, say, sayer, showsay, catd(), foep
+ forcedismount txt, say, sayer, catd(), foep
 END IF
 IF afterbat = 0 AND afterload = 0 THEN
  FOR i = 0 TO 15
@@ -1628,7 +1633,7 @@ WITH scrat(nowscript)
     CASE 42'--wait for camera
      IF gen(cameramode) <> pancam AND gen(cameramode) <> focuscam THEN .state = streturn
     CASE 59'--wait for text box
-     IF showsay = 0 OR readbit(gen(), 44, suspendboxadvance) = 1 THEN
+     IF txt.showing = NO OR readbit(gen(), 44, suspendboxadvance) = 1 THEN
       .state = streturn
      END IF
     CASE 73, 234'--game over, quit from loadmenu
@@ -1665,7 +1670,7 @@ END IF
 '--do spawned text boxes, battles, etc.
 IF wantbox > 0 THEN
  say = wantbox
- loadsay txt, say, sayer, showsay
+ loadsay txt, say, sayer
  wantbox = 0
 END IF
 IF wantdoor > 0 THEN
@@ -2076,7 +2081,7 @@ WITH scrat(nowscript)
     gen(50) = 0
     correctbackdrop
    CASE 34'--dismount vehicle
-    forcedismount txt, say, sayer, showsay, catd(), foep
+    forcedismount txt, say, sayer, catd(), foep
    CASE 35'--use NPC
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
@@ -2511,7 +2516,7 @@ WITH scrat(nowscript)
     END IF
    CASE 320'--current text box
     scriptret = -1
-    IF showsay > 0 THEN scriptret = say
+    IF txt.showing = YES THEN scriptret = say
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc curcmd->value
     scriptmisc curcmd->value

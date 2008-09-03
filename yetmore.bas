@@ -33,7 +33,7 @@ DECLARE FUNCTION herobyrank% (slot%)
 DECLARE FUNCTION rankincaterpillar% (heroid%)
 DECLARE SUB embedtext (text$, limit=0)
 DECLARE SUB renamehero (who%)
-DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%, showsay%)
+DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%, BYREF txt AS TextBoxState)
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
 DECLARE SUB correctbackdrop ()
 DECLARE FUNCTION gethighbyte% (n%)
@@ -2399,7 +2399,7 @@ FOR i = bound(retvals(3), 0, 255) TO bound(retvals(4), 0, 255)
 NEXT i
 END SUB
 
-FUNCTION vehiclestuff (disx, disy, foep, vehedge, showsay)
+FUNCTION vehiclestuff (disx, disy, foep, vehedge, BYREF txt AS TextBoxState)
 STATIC aheadx, aheady
 
 result = 0
@@ -2507,7 +2507,7 @@ IF readbit(veh(), 6, 5) THEN '--ahead
  GOSUB vehscramble
 END IF
 IF veh(6) = 0 THEN
- IF showsay = 0 AND readbit(gen(), 44, suspendplayer) = 0 THEN
+ IF txt.showing = NO AND readbit(gen(), 44, suspendplayer) = 0 THEN
   FOR i = 0 TO 1
    IF carray(4 + i) > 1 AND xgo(0) = 0 AND ygo(0) = 0 THEN
     SELECT CASE veh(12 + i)
@@ -2531,7 +2531,7 @@ IF veh(6) = 0 THEN
  END IF
 END IF'--normal
 
-vehiclestuff = result
+RETURN result
 
 EXIT FUNCTION
 
@@ -3030,7 +3030,7 @@ END FUNCTION
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB loadsay (BYREF txt AS TextBoxState, say, sayer, showsay)
+SUB loadsay (BYREF txt AS TextBoxState, say, sayer)
 DIM j AS INTEGER
 DIM rsr AS INTEGER
 DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
@@ -3084,6 +3084,8 @@ IF txt.box.music > 0 THEN
  wrappedsong txt.box.music - 1
 END IF
 
-showsay = 8
+txt.showing = YES
+txt.fully_shown = NO
+txt.show_lines = 0
 
 END SUB

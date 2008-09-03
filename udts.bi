@@ -378,8 +378,11 @@ END TYPE
 
 TYPE TextBoxState
   box AS TextBox '--Contains the data about the content of the textbox
+  showing        AS INTEGER 'YES or NO
+  fully_shown    AS INTEGER 'YES or NO. All lines have been displayed, player is allowed to advance
   choice_cursor  AS INTEGER
   remember_music AS INTEGER
+  show_lines     AS INTEGER 'Number of lines currently on display
 END TYPE
 
 TYPE MouseArea
