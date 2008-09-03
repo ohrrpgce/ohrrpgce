@@ -3035,28 +3035,34 @@ DIM j AS INTEGER
 DIM rsr AS INTEGER
 DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
 
-loadsaybegin:
-gen(genTextboxBackdrop) = 0
-choosep = 0
+DO '--This loop is where we find which box will be displayed right now
+ gen(genTextboxBackdrop) = 0
+ choosep = 0
 
-'--load data from the textbox lump
-LoadTextBox txt.box, boxbuf(), say
+ '--load data from the textbox lump
+ LoadTextBox txt.box, boxbuf(), say
 
-FOR j = 0 TO 7
- embedtext txt.box.text(j), 38
-NEXT j
+ FOR j = 0 TO 7
+  embedtext txt.box.text(j), 38
+ NEXT j
 
-'-- evaluate "instead" conditionals
-IF istag(txt.box.instead_tag, 0) THEN
- '--do something else instead
- IF txt.box.instead < 0 THEN
-  rsr = runscript(-txt.box.instead, nowscript + 1, -1, "instead", plottrigger)
-  sayer = -1
-  EXIT SUB
- ELSE
-  IF say <> txt.box.instead THEN say = txt.box.instead: GOTO loadsaybegin
+ '-- evaluate "instead" conditionals
+ IF istag(txt.box.instead_tag, 0) THEN
+  '--do something else instead
+  IF txt.box.instead < 0 THEN
+   rsr = runscript(-txt.box.instead, nowscript + 1, -1, "instead", plottrigger)
+   sayer = -1
+   EXIT SUB
+  ELSE
+   IF say <> txt.box.instead THEN
+    say = txt.box.instead
+    CONTINUE DO' Skip back to the top of the loop and get another box
+   END IF
+  END IF
  END IF
-END IF
+ 
+ EXIT DO'--We have the box we want to display, proceed
+LOOP
 
 '-- set tags indicating the text box has been seen.
 IF istag(txt.box.settag_tag, 0) THEN
