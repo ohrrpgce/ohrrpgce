@@ -3,6 +3,7 @@ WHAT IS NEW?
 ???? ?? 200? [xocolatl]
 
   * New Features
+    * New text box conditional to display menus [James]
     * New attack bitsets
       * "Don't trigger spawning on kill" [James]
       * "Check costs when used as an item" [James]

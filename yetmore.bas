@@ -107,11 +107,10 @@ DECLARE FUNCTION bound_formation(form AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_formation_slot(form AS INTEGER, slot AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE SUB MenuSound(byval s as integer)
 DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
-
+DECLARE FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
 
 'these variables hold information used by breakpoint to step to the desired position
 DIM SHARED waitforscript, waitfordepth, stepmode, lastscriptnum
-
 
 REM $STATIC
 SUB add_rem_swap_lock_hero (box AS TextBox, stat())
@@ -3060,7 +3059,7 @@ DO '--This loop is where we find which box will be displayed right now
    END IF
   END IF
  END IF
- 
+
  EXIT DO'--We have the box we want to display, proceed
 LOOP
 
@@ -3073,7 +3072,7 @@ IF istag(txt.box.settag_tag, 0) THEN
  IF ABS(txt.box.settag2) > 1 THEN setbit tag(), 0, ABS(txt.box.settag2), SGN(SGN(txt.box.settag2) + 1)
 END IF
 
-'--the bitset that determines whether the choicebox is enabled
+'--make a sound if the choicebox is enabled
 IF txt.box.choice_enabled THEN MenuSound gen(genAcceptSFX)
 
 '-- update backdrop if necessary
@@ -3085,6 +3084,11 @@ END IF
 IF txt.box.music > 0 THEN
  txt.remember_music = presentsong
  wrappedsong txt.box.music - 1
+END IF
+
+'-- evaluate menu conditionals
+IF istag(txt.box.menu_tag, 0) THEN
+ add_menu txt.box.menu
 END IF
 
 txt.showing = YES
