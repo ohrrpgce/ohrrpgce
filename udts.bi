@@ -78,6 +78,7 @@ TYPE MenuDef
   no_close         AS INTEGER ' Bitset 5
   no_controls      AS INTEGER ' Bitset 6
   prevent_main_menu AS INTEGER ' Bitset 7
+  advance_textbox  AS INTEGER ' Bitset 8
   rect      AS RectType
   offset    AS XYPair
   anchor    AS XYPair

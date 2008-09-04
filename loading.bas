@@ -817,19 +817,21 @@ SUB MenuBitsToArray (menu AS MenuDef, bits() AS INTEGER)
   setbit bits(), 0, 5, .no_close
   setbit bits(), 0, 6, .no_controls
   setbit bits(), 0, 7, .prevent_main_menu
+  setbit bits(), 0, 8, .advance_textbox
  END WITH
 END SUB
 
 SUB MenuBitsFromArray (menu AS MenuDef, bits() AS INTEGER)
  WITH menu
-  .translucent    = (readbit(bits(), 0, 0) <> 0)
-  .no_scrollbar   = (readbit(bits(), 0, 1) <> 0)
-  .allow_gameplay = (readbit(bits(), 0, 2) <> 0)
-  .suspend_player = (readbit(bits(), 0, 3) <> 0)
-  .no_box         = (readbit(bits(), 0, 4) <> 0)
-  .no_close       = (readbit(bits(), 0, 5) <> 0)
-  .no_controls    = (readbit(bits(), 0, 6) <> 0)
-  .prevent_main_menu = (readbit(bits(), 0, 7) <> 0)
+  .translucent    = xreadbit(bits(), 0)
+  .no_scrollbar   = xreadbit(bits(), 1)
+  .allow_gameplay = xreadbit(bits(), 2)
+  .suspend_player = xreadbit(bits(), 3)
+  .no_box         = xreadbit(bits(), 4)
+  .no_close       = xreadbit(bits(), 5)
+  .no_controls    = xreadbit(bits(), 6)
+  .prevent_main_menu = xreadbit(bits(), 7)
+  .advance_textbox   = xreadbit(bits(), 8)
  END WITH
 END SUB
 

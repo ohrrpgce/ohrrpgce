@@ -1624,7 +1624,7 @@ FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRI
 END FUNCTION
 
 SUB edit_menu_bits (menu AS MenuDef)
- DIM bitname(7) AS STRING
+ DIM bitname(8) AS STRING
  DIM bits(0) AS INTEGER
  
  bitname(0) = "Translucent box"
@@ -1635,6 +1635,7 @@ SUB edit_menu_bits (menu AS MenuDef)
  bitname(5) = "Cancel button doesn't close menu"
  bitname(6) = "No player control of menu"
  bitname(7) = "Prevent main menu activation"
+ bitname(8) = "Advance text box when menu closes"
 
  MenuBitsToArray menu, bits()
  editbitset bits(), 0, UBOUND(bitname), bitname()
