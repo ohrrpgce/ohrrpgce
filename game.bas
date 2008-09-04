@@ -182,6 +182,7 @@ DECLARE FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING,
 DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
 DECLARE SUB debug_npcs ()
 DECLARE SUB npc_debug_display ()
+DECLARE SUB prepare_map (map AS INTEGER, lastmap AS INTEGER, samemap AS INTEGER, showmapname AS INTEGER, wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER, remembermusic AS INTEGER, mapname AS STRING, door() AS Door, BYREF txt AS TextBoxState, foep AS INTEGER)
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -275,6 +276,8 @@ DIM script(128) as ScriptData
 DIM plotstr(31) as Plotstring
 DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
+
+DIM AS INTEGER samemap, showmapname, wonbattle, afterbat, afterload
 
 'DEBUG debug "Thestart"
 DO 'This is a big loop that encloses the entire program (more than it should). The loop is only reached when resetting the game
@@ -503,7 +506,7 @@ ELSE
  END IF
 END IF
 
-GOSUB preparemap
+prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
 doihavebits
 evalherotag stat()
 needf = 1
@@ -681,7 +684,9 @@ DO
   IF keyval(68) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): showtags = 0
   IF keyval(29) > 0 THEN ' holding CTRL
    IF keyval(59) > 1 AND txt.showing = NO THEN 
-    IF teleporttool(map, tilesets()) THEN GOSUB preparemap  'CTRL + F1
+    IF teleporttool(map, tilesets()) THEN 'CTRL + F1
+     prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+    END IF
    END IF
    IF showtags = 0 THEN
     IF keyval(78) > 1 OR keyval(13) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = XSTR$(speedcontrol) 'CTRL + +
@@ -706,7 +711,7 @@ DO
   force_npc_check = YES
   lastmap = -1
   GOSUB doloadgame
-  GOSUB preparemap
+  prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
  END IF
  'DEBUG debug "random enemies"
  IF foep = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (veh(0) = 0 OR veh(11) > -1) THEN
@@ -722,7 +727,7 @@ DO
      wonbattle = battle(batform, fatal, stat())
      dotimerafterbattle
      afterbat = 1
-     GOSUB preparemap
+     prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
      needf = 2
     ELSE
      rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle", plottrigger)
@@ -1003,7 +1008,7 @@ IF istag(txt.box.battle_tag, 0) THEN
  remembermusic = presentsong
  wonbattle = battle(txt.box.battle, fatal, stat())
  afterbat = 1
- GOSUB preparemap
+ prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
  foep = range(100, 60)
  needf = 1
 END IF
@@ -1423,127 +1428,13 @@ FOR o = 0 TO 199
    needf = 2
    afterbat = 0
    IF oldmap = map THEN samemap = -1
-   GOSUB preparemap
-   '--WARNING: WITH pointer probably corrupted
+   prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
    foep = range(100, 60)
    EXIT FOR
   END IF
  END IF
  end with
 NEXT o
-RETRACE
-
-preparemap:
-'DEBUG debug "in preparemap"
-'save data from old map
-IF lastmap > -1 THEN
- IF gmap(17) = 1 THEN
-  savemapstate_npcd lastmap, "map"
-  savemapstate_npcl lastmap, "map"
- END IF
- IF gmap(18) = 1 THEN
-  savemapstate_tilemap lastmap, "map"
-  savemapstate_passmap lastmap, "map"
- END IF
-END IF
-lastmap = map
-
-'load gmap
-loadmapstate_gmap map, "map"
-
-'Play map music
-IF readbit(gen(), 44, suspendambientmusic) = 0 THEN
- IF gmap(1) > 0 THEN
-  wrappedsong gmap(1) - 1
- ELSEIF gmap(1) = 0 THEN
-  stopsong
- ELSEIF gmap(1) = -1 AND afterbat THEN
-  IF remembermusic > -1 THEN wrappedsong remembermusic ELSE stopsong
- END IF
-END IF
-
-mapname$ = getmapname$(map)
-
-IF gmap(18) < 2 THEN
- loadmapstate_tilemap map, "map"
- loadmapstate_passmap map, "map"
-ELSE
- loadmap_tilemap map
- loadmap_passmap map
-END IF
-
-IF afterbat = 0 THEN
- showmapname = gmap(4)
- IF gmap(17) < 2 THEN
-  loadmapstate_npcd map, "map"
-  loadmapstate_npcl map, "map"
- ELSE
-  loadmap_npcd map
-  loadmap_npcl map
- END IF
-ELSE
- 'reload hero graphics after a battle
- vishero stat()
-END IF
-
-IF isfile(maplumpname$(map, "e")) THEN
- CLOSE #foemaph
- foemaph = FREEFILE
- OPEN maplumpname$(map, "e") FOR BINARY AS #foemaph
-ELSE
- fatalerror "Oh no! Map" + STR$(map) + " foemap is missing"
-END IF
-loaddoor map, door()
-
-IF afterbat = 0 AND samemap = 0 THEN
- forcedismount txt, catd(), foep
-END IF
-IF afterbat = 0 AND afterload = 0 THEN
- FOR i = 0 TO 15
-  catx(i) = catx(0)
-  caty(i) = caty(0)
-  catd(i) = catd(0)
-  catz(i) = 0
- NEXT i
-END IF
-IF afterload THEN
- interpolatecat
- xgo(0) = 0
- ygo(0) = 0
- herospeed(0) = 4
-END IF
-IF veh(0) AND samemap THEN
- FOR i = 0 TO 3
-  catz(i) = veh(21)
- NEXT i
- herospeed(0) = veh(8)
- IF herospeed(0) = 3 THEN herospeed(0) = 10
-END IF
-txt.sayer = -1
-
-'Why are these here? Seems like superstition
-evalherotag stat()
-evalitemtag
-IF afterbat = 0 THEN
- IF gmap(7) > 0 THEN
-  rsr = runscript(gmap(7), nowscript + 1, -1, "map", plottrigger)
-  IF rsr = 1 THEN
-   setScriptArg 0, gmap(8)
-  END IF
- END IF
-ELSE
- IF gmap(12) > 0 THEN
-  rsr = runscript(gmap(12), nowscript + 1, -1, "afterbattle", plottrigger)
-  IF rsr = 1 THEN
-   '--afterbattle script gets one arg telling if you won or ran
-   setScriptArg 0, wonbattle
-  END IF
- END IF
-END IF
-afterbat = 0
-samemap = 0
-afterload = 0
-'DEBUG debug "end of preparemap"
 RETRACE
 
 '--this is what we have dimed for scripts
@@ -1687,7 +1578,7 @@ IF wantbattle > 0 THEN
  wonbattle = battle(wantbattle - 1, fatal, stat())
  wantbattle = 0
  afterbat = 1
- GOSUB preparemap
+ prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
  foep = range(100, 60)
  needf = 3
  setkeys
@@ -1695,7 +1586,7 @@ END IF
 IF wantteleport > 0 THEN
  wantteleport = 0
  afterbat = 0
- GOSUB preparemap
+ prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
  foep = range(100, 60)
 END IF
 IF wantusenpc > 0 THEN
@@ -3127,3 +3018,118 @@ FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
  NEXT
  RETURN formset(1 + foenext) - 1
 END FUNCTION
+
+SUB prepare_map (map AS INTEGER, lastmap AS INTEGER, samemap AS INTEGER, showmapname AS INTEGER, wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER, remembermusic AS INTEGER, mapname AS STRING, door() AS Door, BYREF txt AS TextBoxState, foep AS INTEGER)
+ 'DEBUG debug "in preparemap"
+ DIM i AS INTEGER
+ 'save data from old map
+ IF lastmap > -1 THEN
+  IF gmap(17) = 1 THEN
+   savemapstate_npcd lastmap, "map"
+   savemapstate_npcl lastmap, "map"
+  END IF
+  IF gmap(18) = 1 THEN
+   savemapstate_tilemap lastmap, "map"
+   savemapstate_passmap lastmap, "map"
+  END IF
+ END IF
+ lastmap = map
+
+ 'load gmap
+ loadmapstate_gmap map, "map"
+
+ 'Play map music
+ IF readbit(gen(), genSuspendBits, suspendambientmusic) = 0 THEN
+  IF gmap(1) > 0 THEN
+   wrappedsong gmap(1) - 1
+  ELSEIF gmap(1) = 0 THEN
+   stopsong
+  ELSEIF gmap(1) = -1 AND afterbat THEN
+   IF remembermusic > -1 THEN wrappedsong remembermusic ELSE stopsong
+  END IF
+ END IF
+
+ mapname = getmapname$(map)
+
+ IF gmap(18) < 2 THEN
+  loadmapstate_tilemap map, "map"
+  loadmapstate_passmap map, "map"
+ ELSE
+  loadmap_tilemap map
+  loadmap_passmap map
+ END IF
+
+ IF afterbat = 0 THEN
+  showmapname = gmap(4)
+  IF gmap(17) < 2 THEN
+   loadmapstate_npcd map, "map"
+   loadmapstate_npcl map, "map"
+  ELSE
+   loadmap_npcd map
+   loadmap_npcl map
+  END IF
+ ELSE
+  'reload hero graphics after a battle
+  vishero stat()
+ END IF
+
+ IF isfile(maplumpname$(map, "e")) THEN
+  CLOSE #foemaph
+  foemaph = FREEFILE
+  OPEN maplumpname$(map, "e") FOR BINARY AS #foemaph
+ ELSE
+  fatalerror "Oh no! Map " & map & " foemap is missing"
+ END IF
+ loaddoor map, door()
+
+ IF afterbat = 0 AND samemap = 0 THEN
+  forcedismount txt, catd(), foep
+ END IF
+ IF afterbat = 0 AND afterload = 0 THEN
+  FOR i = 0 TO 15
+   catx(i) = catx(0)
+   caty(i) = caty(0)
+   catd(i) = catd(0)
+   catz(i) = 0
+  NEXT i
+ END IF
+ IF afterload THEN
+  interpolatecat
+  xgo(0) = 0
+  ygo(0) = 0
+  herospeed(0) = 4
+ END IF
+ IF veh(0) AND samemap THEN
+  FOR i = 0 TO 3
+   catz(i) = veh(21)
+  NEXT i
+  herospeed(0) = veh(8)
+  IF herospeed(0) = 3 THEN herospeed(0) = 10
+ END IF
+ txt.sayer = -1
+
+ 'Why are these here? Seems like superstition
+ evalherotag stat()
+ evalitemtag
+ DIM rsr AS INTEGER
+ IF afterbat = 0 THEN
+  IF gmap(7) > 0 THEN
+   rsr = runscript(gmap(7), nowscript + 1, -1, "map", plottrigger)
+   IF rsr = 1 THEN
+    setScriptArg 0, gmap(8)
+   END IF
+  END IF
+ ELSE
+  IF gmap(12) > 0 THEN
+   rsr = runscript(gmap(12), nowscript + 1, -1, "afterbattle", plottrigger)
+   IF rsr = 1 THEN
+    '--afterbattle script gets one arg telling if you won or ran
+    setScriptArg 0, wonbattle
+   END IF
+  END IF
+ END IF
+ afterbat = 0
+ samemap = 0
+ afterload = 0
+ 'DEBUG debug "end of preparemap"
+END SUB
