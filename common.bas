@@ -1625,12 +1625,14 @@ IF gen(genVersion) = 0 THEN
    .choice_tag(0)  = 0
    .choice(1)      = ""
    .choice_tag(1)  = 0
+   .menu_tag       = 0
    .vertical_offset = 0
    .shrink         = 0
    .textcolor      = 0
    .boxstyle       = 0
    .backdrop       = 0
    .music          = 0
+   .menu           = 0
   END WITH
   SaveTextBox box, o
  NEXT o
@@ -2795,4 +2797,13 @@ FUNCTION getheroname (hero_id AS INTEGER) AS STRING
   RETURN her.name
  END IF
  RETURN ""
+END FUNCTION
+
+FUNCTION getmenuname(record AS INTEGER) AS STRING
+ DIM menu_set AS MenuSet
+ menu_set.menufile = workingdir + SLASH + "menus.bin"
+ menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
+ DIM menu AS MenuDef
+ LoadMenuData menu_set, menu, record, NO
+ RETURN menu.name
 END FUNCTION

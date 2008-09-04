@@ -154,6 +154,7 @@ DECLARE FUNCTION read_npc_int (npcdata AS NPCType, intoffset AS INTEGER) AS INTE
 
 DECLARE FUNCTION xreadbit (bitarray() AS INTEGER, bitoffset AS INTEGER, intoffset AS INTEGER=0) AS INTEGER
 DECLARE FUNCTION getheroname (hero_id AS INTEGER) AS STRING
+DECLARE FUNCTION getmenuname(record AS INTEGER) AS STRING
 
 'Global variables
 EXTERN as string game, tmpdir, exename, workingdir

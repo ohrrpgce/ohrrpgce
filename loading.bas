@@ -1020,6 +1020,8 @@ SUB LoadTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
   .item        = bound(condbuf(18), -gen(genMaxItem) - 1, gen(genMaxItem) + 1)
   .hero_swap   = bound(condbuf(19), -99, 99)
   .hero_lock   = bound(condbuf(20), -99, 99)
+  .menu_tag    = bound(boxbuf(192), -999, 999)
+  .menu        = bound(boxbuf(199), 0 ,gen(genMaxMenu))
   '--Get box bitsets
   .choice_enabled = xreadbit(boxbuf(), 0, 174)
   .no_box         = xreadbit(boxbuf(), 1, 174)
@@ -1085,6 +1087,8 @@ SUB SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
   condtemp = STRING(42, 0)
   array2str condbuf(), 0, condtemp
   str2array condtemp, boxbuf(), 305
+  boxbuf(192) = .menu_tag
+  boxbuf(199) = .menu
   '--Save bitsets
   setbit boxbuf(), 174, 0, .choice_enabled
   setbit boxbuf(), 174, 1, .no_box
@@ -1150,6 +1154,8 @@ SUB ClearTextBox (BYREF box AS TextBox)
   .item        = 0
   .hero_swap   = 0
   .hero_lock   = 0
+  .menu_tag    = 0
+  .menu        = 0
   '--Clear box bitsets
   .choice_enabled = NO
   .no_box         = NO

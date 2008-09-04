@@ -46,7 +46,7 @@ DECLARE SUB maptile (font%())
 DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
-DECLARE FUNCTION textbox_condition_caption(tag AS INTEGER) AS STRING
+DECLARE FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = "") AS STRING
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -72,6 +72,7 @@ CONST condMONEY  = 4
 CONST condDOOR   = 5
 CONST condITEM   = 6
 CONST condBOX    = 7
+CONST condMENU   = 8
 
 dim shared shop as string
 
@@ -129,7 +130,6 @@ SUB exportnames ()
 
 DIM u$(1024), names(32) AS STRING, stat$(11)
 DIM her AS HeroDef
-DIM menu AS MenuDef
 DIM menu_set AS MenuSet
 menu_set.menufile = workingdir & SLASH & "menus.bin"
 menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
@@ -241,8 +241,7 @@ setvispage 0
 printstr "menu names", 0, pl * 8, 0: pl = pl + 1
 isunique "", u$(), 1
 FOR i = 0 TO gen(genMaxMenu)
- LoadMenuData menu_set, menu, i, NO
- writeconstant fh, i, menu.name, u$(), "menu"
+ writeconstant fh, i, getmenuname(i), u$(), "menu"
 NEXT i
 setvispage 0
 
@@ -750,13 +749,18 @@ clearpage 1
 END FUNCTION
 
 SUB textage
-DIM m$(10), menu$(20), grey(20), max(8), min(8), buf(16384), h$(2), tagmn$, gcsr, tcur
+DIM m$(10), menu$(-1 TO 22), grey(-1 TO 22), h$(2), tagmn$, gcsr, tcur
 DIM boxbuf(dimbinsize(binSAY))
 DIM box AS TextBox
 DIM boxcopier AS TextBox ' FIXME: Move this to clearlines when it gets SUBified
 pt = 1
 
+DIM state AS MenuState 'FIXME: only used in conditionals GOSUB block, move this here when that is SUBified
+state.top = -1
+state.pt = 0
+
 'This array tells which rows in the conditional editor are grey
+grey(-1) = NO
 grey(0) = YES
 grey(1) = NO
 grey(2) = YES
@@ -778,6 +782,8 @@ grey(17) = YES
 grey(18) = NO
 grey(19) = YES
 grey(20) = NO
+grey(21) = YES 'Menu Tag
+grey(22) = NO
 
 m$(0) = "Return to Main Menu"
 m$(1) = "Text Box"
@@ -908,7 +914,11 @@ END SELECT
 RETRACE
 
 conditions:
-cur = 0
+
+state.first = -1
+state.last = 22
+state.size = 21
+
 GOSUB textcmenu
 setkeys
 DO
@@ -917,7 +927,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
  IF enter_or_space() THEN
-  SELECT CASE cur
+  SELECT CASE state.pt
    CASE -1 '--Previous menu
     RETRACE
    CASE 1 '--instead script
@@ -931,13 +941,13 @@ DO
   END SELECT
   GOSUB textcmenu
  END IF
- usemenu cur, 0, -1, 20, 24
+ usemenu state
  IF keyval(83) > 1 THEN ' Pressed the delete key
-  write_box_conditional_by_menu_index box, cur, 0
+  write_box_conditional_by_menu_index box, state.pt, 0
  END IF
- IF cur >= 0 THEN
-  num = read_box_conditional_by_menu_index(box, cur)
-  SELECT CASE box_conditional_type_by_menu_index(cur)
+ IF state.pt >= 0 THEN
+  num = read_box_conditional_by_menu_index(box, state.pt)
+  SELECT CASE box_conditional_type_by_menu_index(state.pt)
    CASE condTAG
     tag_grabber num
    CASE condBATTLE
@@ -954,17 +964,16 @@ DO
     xintgrabber num, 0, gen(genMaxItem), 0, -gen(genMaxItem)
    CASE condBOX
     scrintgrabber num, 0, gen(genMaxTextbox), 75, 77, -1, plottrigger
+   CASE condMENU
+    intgrabber num, 0, gen(genMaxMenu)
   END SELECT
-  IF num <> read_box_conditional_by_menu_index(box, cur) THEN
+  IF num <> read_box_conditional_by_menu_index(box, state.pt) THEN
    'The value has changed
-   write_box_conditional_by_menu_index(box, cur, num)
+   write_box_conditional_by_menu_index(box, state.pt, num)
    GOSUB textcmenu
   END IF
  END IF
- textcolor uilook(uiMenuItem), 0
- IF cur = -1 THEN textcolor uilook(uiSelectedItem + tog), 0
- printstr "Go Back", 0, 0, dpage
- FOR i = 0 TO 20
+ FOR i = state.top TO state.top + state.size
   textcolor uilook(uiMenuItem), 0
   IF grey(i) = YES THEN
    c = uilook(uiSelectedDisabled)
@@ -974,12 +983,12 @@ DO
     CASE 0 ' Check tag 0 never true
      c = uilook(uiDisabledItem)
    END SELECT
-   rectangle 0, (i + 1) * 9, 320, 8, c, dpage
+   rectangle 0, (i - state.top) * 9, 320, 8, c, dpage
   ELSE
    IF read_box_conditional_by_menu_index(box, i) = 0 THEN textcolor uilook(uiDisabledItem), 0
   END IF
-  IF i = cur THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr menu$(i), 0, (i + 1) * 9, dpage
+  IF i = state.pt THEN textcolor uilook(uiSelectedItem + tog), 0
+  printstr menu$(i), 0, (i - state.top) * 9, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -988,7 +997,8 @@ DO
 LOOP
 
 textcmenu:
-menu$(0) = textbox_condition_caption(box.instead_tag)
+menu$(-1) = "Go Back"
+menu$(0) = textbox_condition_caption(box.instead_tag, "INSTEAD")
 SELECT CASE box.instead
  CASE 0
   menu$(1) = " use [text box or script] instead"
@@ -997,30 +1007,30 @@ SELECT CASE box.instead
  CASE IS > 0
   menu$(1) = " jump to text box " & box.instead & " instead"
 END SELECT
-menu$(2) = textbox_condition_caption(box.settag_tag)
+menu$(2) = textbox_condition_caption(box.settag_tag, "SETTAG")
 menu$(3) = tag_condition_caption(box.settag1, " set tag", "unchangeable", "unchangeable", "unchangeable")
 menu$(4) = tag_condition_caption(box.settag2, " set tag", "unchangeable", "unchangeable", "unchangeable")
-menu$(5) = textbox_condition_caption(box.money_tag)
+menu$(5) = textbox_condition_caption(box.money_tag, "MONEY")
 IF box.money < 0 THEN
  menu$(6) = " lose " & ABS(box.money) & "$"
 ELSE
  menu$(6) = " gain " & ABS(box.money) & "$"
 END IF
-menu$(7) = textbox_condition_caption(box.battle_tag)
+menu$(7) = textbox_condition_caption(box.battle_tag, "BATTLE")
 menu$(8) = " fight enemy formation " & box.battle
-menu$(9) = textbox_condition_caption(box.item_tag)
+menu$(9) = textbox_condition_caption(box.item_tag, "ITEM")
 SELECT CASE box.item
  CASE 0 :      menu$(10) = " do not add/remove items"
  CASE IS > 0 : menu$(10) = " add one " & load_item_name(ABS(box.item), 0, 0)
  CASE IS < 0 : menu$(10) = " remove one " & load_item_name(ABS(box.item), 0, 0)
 END SELECT
-menu$(11) = textbox_condition_caption(box.shop_tag)
+menu$(11) = textbox_condition_caption(box.shop_tag, "SHOP")
 SELECT CASE box.shop
  CASE IS > 0 : menu$(12) = " go to shop " & box.shop & " " & readshopname$(box.shop - 1)
  CASE IS < 0 : menu$(12) = " go to an Inn that costs " & -box.shop & "$"
  CASE 0 :      menu$(12) = " restore Hp and Mp [select shop here]"
 END SELECT
-menu$(13) = textbox_condition_caption(box.hero_tag)
+menu$(13) = textbox_condition_caption(box.hero_tag, "HEROES")
 SELECT CASE box.hero_addrem
  CASE 0 :      menu$(14) = " do not add/remove heros"
  CASE IS > 0 : menu$(14) = " add " & getheroname(ABS(box.hero_addrem) - 1) & " to party"
@@ -1036,13 +1046,15 @@ SELECT CASE box.hero_lock
  CASE IS > 0 : menu$(16) = " unlock " & getheroname(ABS(box.hero_lock) - 1)
  CASE IS < 0 : menu$(16) = " lock " & getheroname(ABS(box.hero_lock) - 1)
 END SELECT
-menu$(17) = textbox_condition_caption(box.door_tag)
+menu$(17) = textbox_condition_caption(box.door_tag, "DOOR")
 menu$(18) = " instantly use door " & box.door
-menu$(19) = textbox_condition_caption(box.after_tag)
+menu$(19) = textbox_condition_caption(box.menu_tag, "MENU")
+menu$(20) = " open menu " & box.menu & " " & getmenuname(box.menu)
+menu$(21) = textbox_condition_caption(box.after_tag, "AFTER")
 SELECT CASE box.after
- CASE 0 :      menu$(20) = " use [text box or script] next"
- CASE IS < 0 : menu$(20) = " run " & scriptname$(-box.after, plottrigger) & " next"
- CASE IS > 0 : menu$(20) = " jump to text box " & box.after & " next"
+ CASE 0 :      menu$(22) = " use [text box or script] next"
+ CASE IS < 0 : menu$(22) = " run " & scriptname$(-box.after, plottrigger) & " next"
+ CASE IS > 0 : menu$(22) = " jump to text box " & box.after & " next"
 END SELECT
 RETRACE
 
@@ -1274,11 +1286,12 @@ END SUB
 '--FIXME: This affects the rest of the file. Move this up as subs and functions are cleaned up
 OPTION EXPLICIT
 
-FUNCTION textbox_condition_caption(tag AS INTEGER) AS STRING
- IF tag = 0 THEN RETURN "Never do the following"
- IF tag = 1 THEN RETURN "If tag 1 = ON [Never]"
- IF tag = -1 THEN RETURN "Always do the following"
- RETURN "If tag " & ABS(tag) & " = " + onoroff$(tag) & " (" & load_tag_name(tag) & ")"
+FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = "") AS STRING
+ IF LEN(prefix) > 0 THEN prefix = prefix & ": "
+ IF tag = 0 THEN RETURN prefix & "Never do the following"
+ IF tag = 1 THEN RETURN prefix & "If tag 1 = ON [Never]"
+ IF tag = -1 THEN RETURN prefix & "Always do the following"
+ RETURN prefix & "If tag " & ABS(tag) & " = " + onoroff$(tag) & " (" & load_tag_name(tag) & ")"
 END FUNCTION
 
 SUB verifyrpg
@@ -1330,8 +1343,10 @@ SUB write_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS INTEG
    CASE 16: .hero_lock   = num
    CASE 17: .door_tag    = num
    CASE 18: .door        = num
-   CASE 19: .after_tag   = num
-   CASE 20: .after       = num
+   CASE 19: .menu_tag    = num
+   CASE 20: .menu        = num
+   CASE 21: .after_tag   = num
+   CASE 22: .after       = num
   END SELECT
  END WITH
 END SUB
@@ -1358,8 +1373,10 @@ FUNCTION read_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS I
    CASE 16: RETURN .hero_lock
    CASE 17: RETURN .door_tag
    CASE 18: RETURN .door
-   CASE 19: RETURN .after_tag
-   CASE 20: RETURN .after
+   CASE 19: RETURN .menu_tag
+   CASE 20: RETURN .menu
+   CASE 21: RETURN .after_tag
+   CASE 22: RETURN .after
   END SELECT
  END WITH
 END FUNCTION
@@ -1367,13 +1384,14 @@ END FUNCTION
 FUNCTION box_conditional_type_by_menu_index(menuindex AS INTEGER) AS INTEGER
  SELECT CASE menuindex
   CASE -1      : RETURN condEXIT
-  CASE 1, 20   : RETURN condBOX
+  CASE 1, 22   : RETURN condBOX
   CASE 6       : RETURN condMONEY
   CASE 8       : RETURN condBATTLE
   CASE 10      : RETURN condITEM
   CASE 12      : RETURN condSHOP
   CASE 14,15,16: RETURN condHERO
   CASE 18      : RETURN condDOOR
+  CASE 20      : RETURN condMENU
   CASE ELSE    : RETURN condTAG
  END SELECT
 END FUNCTION

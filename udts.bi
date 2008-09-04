@@ -362,6 +362,8 @@ TYPE TextBox
   door        AS INTEGER
   item_tag    AS INTEGER
   item        AS INTEGER
+  menu_tag    AS INTEGER
+  menu        AS INTEGER
   choice_enabled AS INTEGER
   no_box      AS INTEGER
   opaque      AS INTEGER
