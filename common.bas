@@ -2134,21 +2134,8 @@ SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
   IF menu.no_box = NO THEN
    edgeboxstyle .x, .y, .wide, .high, menu.boxstyle, page, menu.translucent
   END IF
-  'Draw scrollbar
-  IF (state.top > 0 OR state.last > state.top + state.size) AND menu.no_scrollbar = NO THEN
-   DIM count AS INTEGER
-   count = count_menu_items(menu)
-   IF count > 0 THEN
-    DIM sbar AS RectType
-    sbar.x = .x + .wide - 6
-    sbar.y = .y + 2
-    sbar.wide = 4
-    sbar.high = .high - 4
-    WITH sbar
-     rectangle .x, .y, .wide, .high, uilook(uiBackground), page
-     rectangle .x, .y + .high / count * (state.top), .wide, .high / count * (state.size+1) , uilook(uiTextBox + menu.boxstyle * 2 + 1), page
-    END WITH
-   END IF
+  IF menu.no_scrollbar = NO THEN
+   draw_scrollbar state, menu, page
   END IF
  END WITH
 
@@ -2807,3 +2794,30 @@ FUNCTION getmenuname(record AS INTEGER) AS STRING
  LoadMenuData menu_set, menu, record, NO
  RETURN menu.name
 END FUNCTION
+
+SUB draw_scrollbar(state AS MenuState, menu AS MenuDef, page AS INTEGER)
+ draw_scrollbar state, menu.rect, count_menu_items(menu), menu.boxstyle, page
+END SUB
+
+SUB draw_scrollbar(state AS MenuState, rect AS RectType, count AS INTEGER, boxstyle AS INTEGER, page AS INTEGER)
+ IF (state.top > 0 OR state.last > state.top + state.size) THEN
+  IF count > 0 THEN
+   DIM sbar AS RectType
+   sbar.x = rect.x + rect.wide - 6
+   sbar.y = rect.y + 2
+   sbar.wide = 4
+   sbar.high = rect.high - 4
+   WITH sbar
+    rectangle .x, .y, .wide, .high, uilook(uiBackground), page
+    rectangle .x, .y + .high / count * (state.top), .wide, .high / count * (state.size+1) , uilook(uiTextBox + boxstyle * 2 + 1), page
+   END WITH
+  END IF
+ END IF
+END SUB
+
+SUB draw_fullscreen_scrollbar(state AS MenuState, count AS INTEGER, boxstyle AS INTEGER, page AS INTEGER)
+ DIM rect AS RectType
+ rect.wide = 320
+ rect.high = 200
+ draw_scrollbar state, rect, count, boxstyle, page
+END SUB

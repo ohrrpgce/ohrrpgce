@@ -156,6 +156,10 @@ DECLARE FUNCTION xreadbit (bitarray() AS INTEGER, bitoffset AS INTEGER, intoffse
 DECLARE FUNCTION getheroname (hero_id AS INTEGER) AS STRING
 DECLARE FUNCTION getmenuname(record AS INTEGER) AS STRING
 
+DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, rect AS RectType, count AS INTEGER, boxstyle AS INTEGER, page AS INTEGER)
+DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, menu AS MenuDef, page AS INTEGER)
+DECLARE SUB draw_fullscreen_scrollbar(state AS MenuState, count AS INTEGER, boxstyle AS INTEGER, page AS INTEGER)
+
 'Global variables
 EXTERN as string game, tmpdir, exename, workingdir
 EXTERN uilook() as integer

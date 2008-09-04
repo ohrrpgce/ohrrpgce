@@ -983,13 +983,14 @@ DO
     CASE 0 ' Check tag 0 never true
      c = uilook(uiDisabledItem)
    END SELECT
-   rectangle 0, (i - state.top) * 9, 320, 8, c, dpage
+   rectangle 0, (i - state.top) * 9, 312, 8, c, dpage
   ELSE
    IF read_box_conditional_by_menu_index(box, i) = 0 THEN textcolor uilook(uiDisabledItem), 0
   END IF
   IF i = state.pt THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr menu$(i), 0, (i - state.top) * 9, dpage
  NEXT i
+ draw_fullscreen_scrollbar state, UBOUND(menu$) + 1, 0, dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
