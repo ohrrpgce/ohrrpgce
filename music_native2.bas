@@ -13,6 +13,7 @@ option explicit
 #include "compat.bi"
 #include "util.bi"
 
+
 '#IFNDEF USE_ALLEGRO
 #IFDEF __FB_LINUX__
 	'???
@@ -27,6 +28,7 @@ option explicit
 
 #undef rectangle
 #undef copyfile
+#undef opaque
 #include once "allmodex.bi"
 
 #include once "common.bi"
@@ -67,7 +69,7 @@ extern tmpdir as string
 declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 
 
-DECLARE sub fade_daemon(byval targetvol as integer)
+DECLARE sub fade_daemon(byval targetvol as any ptr)
 DECLARE Sub UpdateDelay(BYREF delay as integer, tempo as integer)
 DECLARE Sub StreamCallback(Byval handle as HMIDIOUT, byval umsg as Uinteger, byval dwInstance as UInteger, byval dwParam1 as UInteger, byval dwParam2 as UInteger)
 DECLARE Sub PrepareNextBeat(byval unused as integer)
@@ -908,11 +910,11 @@ sub music_fade(targetvol as integer)
 	fade_thread = threadcreate(@fade_daemon, cast(intptr, targetvol))
 end sub
 
-sub fade_daemon(byval targetvol as integer)
+sub fade_daemon(byval targetvol as any ptr)
 	dim vstep as integer = 1
 	dim i as integer
-	if music_vol > targetvol then vstep = -1
-	for i = music_vol to targetvol step vstep
+	if music_vol > cint(targetvol) then vstep = -1
+	for i = music_vol to cint(targetvol) step vstep
 		music_setvolume(i)
 		sleep 10
 	next

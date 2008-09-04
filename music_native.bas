@@ -12,6 +12,7 @@ option explicit
 'glup
 #include "compat.bi"
 #include "util.bi"
+#undef opaque
 
 'uncomment this to try allegro
 '#DEFINE USE_ALLEGRO
@@ -58,6 +59,7 @@ option explicit
 #undef regtype
 #undef isfile
 #undef min
+#undef opaque
 #include once "allmodex.bi"
 
 #include once "common.bi"
@@ -95,8 +97,8 @@ extern tmpdir as string
 declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 
 
-DECLARE Sub PlayBackThread(dummy as integer)
-DECLARE sub fade_daemon(byval targetvol as integer)
+DECLARE Sub PlayBackThread(byval dummy as any ptr)
+DECLARE sub fade_daemon(byval targetvol as any ptr)
 DECLARE Sub UpdateDelay(BYREF delay as double, tempo as integer)
 
 
@@ -422,11 +424,11 @@ sub music_fade(targetvol as integer)
 	fade_thread = threadcreate (@fade_daemon, cast(intptr, targetvol))
 end sub
 
-sub fade_daemon(byval targetvol as integer)
+sub fade_daemon(byval targetvol as any ptr)
 	dim vstep as integer = 1
 	dim i as integer
-	if music_vol > targetvol then vstep = -1
-	for i = music_vol to targetvol step vstep
+	if music_vol > cint(targetvol) then vstep = -1
+	for i = music_vol to cint(targetvol) step vstep
 		music_setvolume(i)
 		sleep 100
 	next
@@ -448,7 +450,7 @@ end sub
 
 
 
-Sub PlayBackThread(dummy as integer)
+Sub PlayBackThread(byval dummy as any ptr)
 dim curtime as double, curevent as MIDI_EVENT ptr, starttime as double, delta as double, tempo as integer, delay as double
 dim played as integer, carry as double, pauseflag as integer
 dim labels(15) as MIDI_EVENT ptr, jumpcount(15) as integer, choruswas as MIDI_EVENT ptr
