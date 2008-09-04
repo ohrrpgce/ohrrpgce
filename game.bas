@@ -2523,6 +2523,9 @@ WITH scrat(nowscript)
 END WITH
 RETRACE
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER
  RETURN bound_arg(itemID, 0, gen(genMaxItem), cmd, "item ID")
 END FUNCTION
@@ -2642,6 +2645,7 @@ END SUB
 
 SUB dotimer(byval l as integer)
   dim i as integer
+  dim rsr as integer
   for i = 0 to 15
     with timers(i)
       if .speed > 0 then
@@ -2806,6 +2810,7 @@ FUNCTION menus_allow_player () AS INTEGER
 END FUNCTION
 
 SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tilesets() AS TilesetData ptr, map, foep, stock())
+ DIM i AS INTEGER
  DIM slot AS INTEGER
  DIM activated AS INTEGER
  DIM menu_handle AS INTEGER
@@ -2891,6 +2896,7 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), ti
      CASE 3 ' Text box
       menu_text_box = .sub_t
      CASE 4 ' Run Script
+      DIM rsr AS INTEGER
       rsr = runscript(.sub_t, nowscript + 1, YES, "menuitem", plottrigger)
       IF rsr = 1 THEN
        IF menus(topmenu).allow_gameplay THEN
@@ -3076,6 +3082,7 @@ FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER, visibl
 END FUNCTION
 
 FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING, mislot AS INTEGER=0, visible_only AS INTEGER=YES) AS INTEGER
+ DIM i AS INTEGER
  DIM cap AS STRING
  WITH menus(menuslot)
   FOR i = mislot TO UBOUND(.items)
