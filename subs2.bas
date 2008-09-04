@@ -523,7 +523,11 @@ END SUB
 
 SUB statname
 max = 122
-DIM stat$(max), names(max) AS STRING, maxlen(max)
+DIM stat$(-1 TO max), names(-1 TO max) AS STRING, maxlen(max)
+DIM state AS MenuState
+DIM rect AS RectType
+rect.wide = 320
+rect.high = 192
 clearpage 0
 clearpage 1
 
@@ -543,6 +547,7 @@ FOR i = 0 TO max
  END SELECT
 NEXT i
 
+names(-1) = "Back to Previous Menu" : stat$(-1) = ""
 names(0) = "Health Points"
 names(1) = "Spell Points"
 names(2) = "Attack Power"
@@ -658,20 +663,30 @@ names(122) = "minutes":                stat$(122) = readglobalstring$(159, "minu
 'NOTE: if you add global strings here, be sure to update the limit-checking on
 'the implementation of the "get global string" plotscripting command
 
-top = 0
-pt = 0
+state.top = -1
+state.pt = -1
+state.first = -1
+state.last = max
+state.size = 22
 setkeys
 DO
  setwait 55
  setkeys
- tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- usemenu pt, top, 0, max, 22
- strgrabber stat$(pt), maxlen(pt)
- IF keyval(28) > 1 THEN GOSUB typestat
+ usemenu state
+ IF state.pt = -1 THEN
+  IF enter_or_space() THEN EXIT DO
+ ELSE
+  strgrabber stat$(state.pt), maxlen(state.pt)
+ END IF
  
- standardmenu names(), max, 22, pt, top, 0, 0, dpage, 0
- standardmenu stat$(), max, 22, pt, top, 232, 0, dpage, 0
+ standardmenu names(), state, 0, 0, dpage
+ standardmenu stat$(), state, 232, 0, dpage
+ draw_scrollbar state, rect, max + 1, 0, dpage
+ IF state.pt >= 0 THEN
+  edgeboxstyle 160 - (maxlen(state.pt) * 4), 191, 8 * maxlen(state.pt) + 4, 8, 0, dpage
+  edgeprint stat$(state.pt), 162 - (maxlen(state.pt) * 4), 191, uilook(uiText), dpage
+ END IF
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -685,35 +700,6 @@ NEXT i
 clearpage 0
 clearpage 1
 EXIT SUB
-
-typestat:
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 OR keyval(28) > 1 OR keyval(72) > 1 OR keyval(80) > 1 THEN RETRACE
- strgrabber stat$(pt), maxlen(pt)
- 
- FOR i = top TO top + 22
-  textcolor uilook(uiMenuItem), 0
-  IF i = pt THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr names(i), 0, (i - top) * 8, dpage
-  xpos = 232
-  IF i = pt THEN
-   textcolor uilook(uiText), uilook(uiHighlight)
-   'FB0.16b throws up if you put these together, WHY??
-   tempstr$ = stat$(i)
-   xpos = 312 - (8 *  LEN(tempstr$))
-  END IF
-  printstr stat$(i), xpos, (i - top) * 8, dpage
- NEXT i
- 
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
 
 END SUB
 
