@@ -183,7 +183,8 @@ DECLARE FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING,
 DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
 DECLARE SUB debug_npcs ()
 DECLARE SUB npc_debug_display ()
-DECLARE SUB prepare_map (showmapname AS INTEGER, wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER, remembermusic AS INTEGER, mapname AS STRING, door() AS Door, BYREF txt AS TextBoxState, foep AS INTEGER)
+DECLARE SUB prepare_map (wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER, remembermusic AS INTEGER, door() AS Door, BYREF txt AS TextBoxState, foep AS INTEGER)
+DECLARE SUB reset_map_state (map AS MapModeState)
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -226,7 +227,7 @@ fmvol = getfmvol
 DIM font(1024), buffer(16384), pal16(448), music(16384)
 DIM gen(360), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev(40, 1), names(40), veh(21)
 DIM eqstuf(40, 4), stock(99, 49), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), hmask(3), herobits(59, 3), itembits(maxMaxItems, 3)
-DIM mapname$, catermask(0), nativehbits(40, 4)
+DIM catermask(0), nativehbits(40, 4)
 
 'Old Menu data
 DIM menu$(9), mi(9)
@@ -279,7 +280,7 @@ DIM plotstr(31) as Plotstring
 DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
 
-DIM AS INTEGER showmapname, wonbattle, afterbat, afterload
+DIM AS INTEGER wonbattle, afterbat, afterload
 
 'DEBUG debug "Thestart"
 DO 'This is a big loop that encloses the entire program (more than it should). The loop is only reached when resetting the game
@@ -457,8 +458,7 @@ initgamedefaults
 fatal = 0: abortg = 0
 foep = range(100, 60)
 lastformation = -1
-gam.map.id = gen(genStartMap)
-gam.map.lastmap = -1
+reset_map_state gam.map
 remembermusic = -1
 scrwatch = 0
 menu_set.menufile = workingdir & SLASH & "menus.bin"
@@ -508,7 +508,7 @@ ELSE
  END IF
 END IF
 
-prepare_map showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
 doihavebits
 evalherotag stat()
 needf = 1
@@ -671,13 +671,10 @@ DO
     setdebugpan
    END IF
   END IF
-  IF keyval(65) > 1 THEN
-   showmapname = 15
+  IF keyval(65) > 1 THEN 'Toggle level-up bug
    IF readbit(gen(), 101, 9) = 0 THEN
-    mapname$ = "levelup bug enabled"
     setbit gen(), 101, 9, 1
    ELSE
-    mapname$ = "levelup bug disabled"
     setbit gen(), 101, 9, 0
    END IF
   END IF
@@ -687,7 +684,7 @@ DO
   IF keyval(29) > 0 THEN ' holding CTRL
    IF keyval(59) > 1 AND txt.showing = NO THEN 
     IF teleporttool(tilesets()) THEN 'CTRL + F1
-     prepare_map showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+     prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
     END IF
    END IF
    IF showtags = 0 THEN
@@ -713,7 +710,7 @@ DO
   force_npc_check = YES
   game.map.lastmap = -1
   GOSUB doloadgame
-  prepare_map showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+  prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
  END IF
  'DEBUG debug "random enemies"
  IF foep = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (veh(0) = 0 OR veh(11) > -1) THEN
@@ -729,7 +726,7 @@ DO
      wonbattle = battle(batform, fatal, stat())
      dotimerafterbattle
      afterbat = 1
-     prepare_map showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+     prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
      needf = 2
     ELSE
      rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle", plottrigger)
@@ -855,10 +852,11 @@ END IF '---END BACKDROP DISPLAY---
 'DEBUG debug "text box"
 IF txt.showing = YES THEN drawsay txt
 'DEBUG debug "map name"
-IF showmapname > 0 AND gmap(4) >= showmapname THEN
- showmapname = showmapname - 1: edgeprint mapname$, xstring(mapname$, 160), 180, uilook(uiText), dpage
+IF gam.map.showname > 0 AND gmap(4) >= gam.map.showname THEN
+ gam.map.showname -= 1
+ edgeprint gam.map.name, xstring(gam.map.name, 160), 180, uilook(uiText), dpage
 ELSE
- showmapname = 0
+ gam.map.showname = 0
 END IF
 FOR i = 0 TO topmenu
  draw_menu menus(i), mstates(i), dpage
@@ -1010,7 +1008,7 @@ IF istag(txt.box.battle_tag, 0) THEN
  remembermusic = presentsong
  wonbattle = battle(txt.box.battle, fatal, stat())
  afterbat = 1
- prepare_map showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+ prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
  foep = range(100, 60)
  needf = 1
 END IF
@@ -1428,7 +1426,7 @@ FOR o = 0 TO 199
    needf = 2
    afterbat = 0
    IF oldmap = gam.map.id THEN gam.map.same = YES
-   prepare_map showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+   prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
    foep = range(100, 60)
    EXIT FOR
   END IF
@@ -1578,7 +1576,7 @@ IF wantbattle > 0 THEN
  wonbattle = battle(wantbattle - 1, fatal, stat())
  wantbattle = 0
  afterbat = 1
- prepare_map showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+ prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
  foep = range(100, 60)
  needf = 3
  setkeys
@@ -1586,7 +1584,7 @@ END IF
 IF wantteleport > 0 THEN
  wantteleport = 0
  afterbat = 0
- prepare_map showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+ prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
  foep = range(100, 60)
 END IF
 IF wantusenpc > 0 THEN
@@ -3019,7 +3017,7 @@ FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
  RETURN formset(1 + foenext) - 1
 END FUNCTION
 
-SUB prepare_map (showmapname AS INTEGER, wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER, remembermusic AS INTEGER, mapname AS STRING, door() AS Door, BYREF txt AS TextBoxState, foep AS INTEGER)
+SUB prepare_map (wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER, remembermusic AS INTEGER, door() AS Door, BYREF txt AS TextBoxState, foep AS INTEGER)
  'DEBUG debug "in preparemap"
  DIM i AS INTEGER
  'save data from old map
@@ -3049,7 +3047,7 @@ SUB prepare_map (showmapname AS INTEGER, wonbattle AS INTEGER, afterbat AS INTEG
   END IF
  END IF
 
- mapname = getmapname$(gam.map.id)
+ gam.map.name = getmapname$(gam.map.id)
 
  IF gmap(18) < 2 THEN
   loadmapstate_tilemap gam.map.id, "map"
@@ -3060,7 +3058,7 @@ SUB prepare_map (showmapname AS INTEGER, wonbattle AS INTEGER, afterbat AS INTEG
  END IF
 
  IF afterbat = 0 THEN
-  showmapname = gmap(4)
+  gam.map.showname = gmap(4)
   IF gmap(17) < 2 THEN
    loadmapstate_npcd gam.map.id, "map"
    loadmapstate_npcl gam.map.id, "map"
@@ -3132,4 +3130,12 @@ SUB prepare_map (showmapname AS INTEGER, wonbattle AS INTEGER, afterbat AS INTEG
  gam.map.same = NO
  afterload = 0
  'DEBUG debug "end of preparemap"
+END SUB
+
+SUB reset_map_state (map AS MapModeState)
+ map.id = gen(genStartMap)
+ map.lastmap = -1
+ map.same = NO
+ map.showname = 0
+ map.name = ""
 END SUB
