@@ -5,7 +5,9 @@
 'so as to prevent them from cluttering up the global udts.bi file
 
 TYPE MapModeState
-  id AS INTEGER
+  id      AS INTEGER
+  lastmap AS INTEGER 'ID of the last loaded map
+  same    AS INTEGER 'YES/NO flag that indicates when your are moving through a same-map door
 END TYPE
 
 TYPE GameState
