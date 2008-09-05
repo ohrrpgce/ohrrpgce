@@ -7,6 +7,7 @@
 DEFINT A-Z
 
 #include "udts.bi"
+#include "game_udts.bi"
 
 'basic subs and functions
 DECLARE SUB verquit ()
@@ -72,7 +73,7 @@ DECLARE SUB subread (si as ScriptInst)
 DECLARE SUB subreturn (si as ScriptInst)
 DECLARE SUB subdoarg (si as ScriptInst)
 DECLARE SUB unwindtodo (si as ScriptInst, levels%)
-DECLARE SUB resetgame (map%, foep%, stat%(), stock%(), scriptout$,BYREF txt AS TextBoxState)
+DECLARE SUB resetgame (foep%, stat%(), stock%(), scriptout$,BYREF txt AS TextBoxState)
 DECLARE FUNCTION countitem% (it%)
 DECLARE SUB scriptmath ()
 DECLARE FUNCTION movdivis% (xygo%)
@@ -91,16 +92,16 @@ DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE SUB patcharray (array%(), n$)
 DECLARE SUB drawsay (txt AS TextBoxState)
-DECLARE SUB shop (id%, needf%, stock%(), stat%(), map%, foep%, tilesets() AS TilesetData ptr)
+DECLARE SUB shop (id%, needf%, stock%(), stat%(), foep%, tilesets() AS TilesetData ptr)
 DECLARE SUB minimap (x%, y%, tilesets() AS TilesetData ptr)
-DECLARE FUNCTION teleporttool (BYREF map as integer, tilesets() as TilesetData ptr)
+DECLARE FUNCTION teleporttool (tilesets() as TilesetData ptr)
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE FUNCTION useinn (inn, price, needf, stat(), holdscreen)
 DECLARE SUB itstr (i%)
 DECLARE SUB control ()
 DECLARE FUNCTION picksave% (load%)
-DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock())
-DECLARE SUB loadgame (slot%, map%, foep%, stat%(), stock())
+DECLARE SUB savegame (slot%, foep%, stat%(), stock())
+DECLARE SUB loadgame (slot%, foep%, stat%(), stock())
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB delitem (it%, num%)
@@ -162,7 +163,7 @@ DECLARE SUB bring_menu_forward (slot AS INTEGER)
 DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
 DECLARE FUNCTION menus_allow_player () AS INTEGER
 DECLARE FUNCTION allowed_to_open_main_menu () AS INTEGER
-DECLARE SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tilesets() AS TilesetData ptr, map, foep, stock())
+DECLARE SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tilesets() AS TilesetData ptr, foep, stock())
 DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB check_menu_tags ()
 DECLARE FUNCTION game_usemenu (state AS MenuState)
@@ -182,7 +183,7 @@ DECLARE FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING,
 DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
 DECLARE SUB debug_npcs ()
 DECLARE SUB npc_debug_display ()
-DECLARE SUB prepare_map (map AS INTEGER, lastmap AS INTEGER, samemap AS INTEGER, showmapname AS INTEGER, wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER, remembermusic AS INTEGER, mapname AS STRING, door() AS Door, BYREF txt AS TextBoxState, foep AS INTEGER)
+DECLARE SUB prepare_map (lastmap AS INTEGER, samemap AS INTEGER, showmapname AS INTEGER, wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER, remembermusic AS INTEGER, mapname AS STRING, door() AS Door, BYREF txt AS TextBoxState, foep AS INTEGER)
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -245,6 +246,7 @@ DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
 DIM SHARED txt AS TextBoxState
 
 'global variables
+DIM gam AS GameState
 DIM stat(40, 1, 16)
 DIM scroll(), pass()
 DIM tilesets(2) as TilesetData ptr
@@ -455,7 +457,7 @@ initgamedefaults
 fatal = 0: abortg = 0
 foep = range(100, 60)
 lastformation = -1
-map = gen(104)
+gam.map.id = gen(genStartMap)
 lastmap = -1
 remembermusic = -1
 scrwatch = 0
@@ -506,7 +508,7 @@ ELSE
  END IF
 END IF
 
-prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+prepare_map lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
 doihavebits
 evalherotag stat()
 needf = 1
@@ -535,7 +537,7 @@ DO
    init_menu_state mstates(i), menus(i)
   END IF
  NEXT i
- player_menu_keys menu_text_box, stat(), catx(), caty(), tilesets(), map, foep, stock()
+ player_menu_keys menu_text_box, stat(), catx(), caty(), tilesets(), foep, stock()
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
   loadsay txt, menu_text_box
@@ -625,7 +627,7 @@ DO
   '--debugging keys
   'DEBUG debug "evaluate debugging keys"
   IF keyval(60) > 1 AND txt.showing = NO THEN
-   savegame 32, map, foep, stat(), stock()
+   savegame 32, foep, stat(), stock()
   END IF
   IF keyval(61) > 1 AND txt.showing = NO THEN
    wantloadgame = 33
@@ -684,8 +686,8 @@ DO
   IF keyval(68) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): showtags = 0
   IF keyval(29) > 0 THEN ' holding CTRL
    IF keyval(59) > 1 AND txt.showing = NO THEN 
-    IF teleporttool(map, tilesets()) THEN 'CTRL + F1
-     prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+    IF teleporttool(tilesets()) THEN 'CTRL + F1
+     prepare_map lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
     END IF
    END IF
    IF showtags = 0 THEN
@@ -702,7 +704,7 @@ DO
   'DEBUG debug "loading game slot" + XSTR$(wantloadgame - 1)
   temp = wantloadgame - 1
   wantloadgame = 0
-  resetgame map, foep, stat(), stock(), scriptout$, txt
+  resetgame foep, stat(), stock(), scriptout$, txt
   initgamedefaults
   fademusic 0
   stopsong
@@ -711,7 +713,7 @@ DO
   force_npc_check = YES
   lastmap = -1
   GOSUB doloadgame
-  prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+  prepare_map lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
  END IF
  'DEBUG debug "random enemies"
  IF foep = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (veh(0) = 0 OR veh(11) > -1) THEN
@@ -727,7 +729,7 @@ DO
      wonbattle = battle(batform, fatal, stat())
      dotimerafterbattle
      afterbat = 1
-     prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+     prepare_map lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
      needf = 2
     ELSE
      rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle", plottrigger)
@@ -758,7 +760,7 @@ DO
  END IF' end menus_allow_gameplay
  GOSUB displayall
  IF fatal = 1 OR abortg > 0 THEN
-  resetgame map, foep, stat(), stock(), scriptout$, txt
+  resetgame foep, stat(), stock(), scriptout$, txt
   'if skip loadmenu and title bits set, quit
   IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_sav(savefile) = 0) THEN
    EXIT DO, DO ' To game select screen (quit the gameplay and RPG file loops, allowing the program loop to cycle)
@@ -805,7 +807,7 @@ RETRIEVESTATE
 LOOP ' This is the end of the DO that encloses the entire program.
 
 doloadgame:
-loadgame temp, map, foep, stat(), stock()
+loadgame temp, foep, stat(), stock()
 afterload = -1
 IF gen(57) > 0 THEN
  rsr = runscript(gen(57), nowscript + 1, -1, "loadgame", plottrigger)
@@ -1008,7 +1010,7 @@ IF istag(txt.box.battle_tag, 0) THEN
  remembermusic = presentsong
  wonbattle = battle(txt.box.battle, fatal, stat())
  afterbat = 1
- prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+ prepare_map lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
  foep = range(100, 60)
  needf = 1
 END IF
@@ -1020,7 +1022,7 @@ END IF
 '---SHOP/INN/SAVE/ETC------------
 IF istag(txt.box.shop_tag, 0) THEN
  IF txt.box.shop > 0 THEN
-  shop txt.box.shop - 1, needf, stock(), stat(), map, foep, tilesets()
+  shop txt.box.shop - 1, needf, stock(), stat(), foep, tilesets()
   reloadnpc stat()
  END IF
  inn = 0
@@ -1407,10 +1409,8 @@ RETRACE
 
 thrudoor:
 samemap = 0
-oldmap = map
-'--load link data into buffer() -- Take care not to clobber it!
-'xbload maplumpname$(map, "d"), buffer(), "Oh no! Map" + STR$(map) + " doorlinks missing"
-deserdoorlinks(maplumpname(map,"d"), doorlinks())
+oldmap = gam.map.id
+deserdoorlinks(maplumpname(gam.map.id,"d"), doorlinks())
 
 FOR o = 0 TO 199
  with doorlinks(o)
@@ -1419,16 +1419,16 @@ FOR o = 0 TO 199
   bad = 1
   IF istag(.tag1, -1) AND istag(.tag2, -1) THEN bad = 0
   IF bad = 0 THEN
-   map = .dest_map
+   gam.map.id = .dest_map
    destdoor = .dest
-   deserdoors game + ".dox", door(), map
+   deserdoors game + ".dox", door(), gam.map.id
    catx(0) = door(destdoor).x * 20
    caty(0) = (door(destdoor).y - 1) * 20
    fadeout 0, 0, 0
    needf = 2
    afterbat = 0
-   IF oldmap = map THEN samemap = -1
-   prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+   IF oldmap = gam.map.id THEN samemap = -1
+   prepare_map lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
    foep = range(100, 60)
    EXIT FOR
   END IF
@@ -1578,7 +1578,7 @@ IF wantbattle > 0 THEN
  wonbattle = battle(wantbattle - 1, fatal, stat())
  wantbattle = 0
  afterbat = 1
- prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+ prepare_map lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
  foep = range(100, 60)
  needf = 3
  setkeys
@@ -1586,7 +1586,7 @@ END IF
 IF wantteleport > 0 THEN
  wantteleport = 0
  afterbat = 0
- prepare_map map, lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
+ prepare_map lastmap, samemap, showmapname, wonbattle, afterbat, afterload, remembermusic, mapname$, door(), txt, foep
  foep = range(100, 60)
 END IF
 IF wantusenpc > 0 THEN
@@ -1978,7 +1978,7 @@ WITH scrat(nowscript)
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxShop) THEN
-     shop retvals(0), needf, stock(), stat(), map, foep, tilesets()
+     shop retvals(0), needf, stock(), stat(), foep, tilesets()
      reloadnpc stat()
     END IF
    CASE 55'--get default weapon
@@ -2011,7 +2011,7 @@ WITH scrat(nowscript)
     END IF
    CASE 61'--teleport to map
     IF retvals(0) >= 0 AND retvals(0) <= gen(0) THEN
-     map = retvals(0)
+     gam.map.id = retvals(0)
      FOR i = 0 TO 3
       catx(i) = retvals(1) * 20
       caty(i) = retvals(2) * 20
@@ -2052,7 +2052,7 @@ WITH scrat(nowscript)
    CASE 79'--show no value
     scriptout$ = ""
    CASE 80'--current map
-    scriptret = map
+    scriptret = gam.map.id
    CASE 86'--advance text box
     GOSUB nextsay
     '--WARNING: WITH pointer probably corrupted
@@ -2113,11 +2113,11 @@ WITH scrat(nowscript)
     'ID 155 is a backcompat hack
     scriptret = picksave(0) + 1
     IF scriptret > 0 AND (retvals(0) OR curcmd->value = 155) THEN
-     savegame scriptret - 1, map, foep, stat(), stock()
+     savegame scriptret - 1, foep, stat(), stock()
     END IF
    CASE 166'--save in slot
     IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
-     savegame retvals(0) - 1, map, foep, stat(), stock()
+     savegame retvals(0) - 1, foep, stat(), stock()
     END IF
    CASE 167'--last save slot
     scriptret = lastsaveslot
@@ -2148,18 +2148,18 @@ WITH scrat(nowscript)
     IF retvals(1) > -1 AND retvals(1) <= 31 THEN
      savemapstate retvals(1), retvals(0), "state"
     ELSEIF retvals(1) = 255 THEN
-     savemapstate map, retvals(0), "map"
+     savemapstate gam.map.id, retvals(0), "map"
     END IF
    CASE 246'--load map state
     IF retvals(1) > -1 AND retvals(1) <= 31 THEN
      loadmapstate retvals(1), retvals(0), "state", -1
     ELSEIF retvals(1) = 255 THEN
-     loadmapstate map, retvals(0), "map"
+     loadmapstate gam.map.id, retvals(0), "map"
     END IF
    CASE 247'--reset map state
-    loadmaplumps map, retvals(0)
+    loadmaplumps gam.map.id, retvals(0)
    CASE 248'--delete map state
-    deletemapstate map, retvals(0), "map"
+    deletemapstate gam.map.id, retvals(0), "map"
    CASE 253'--settileanimationoffset
     IF curcmd->argc < 3 THEN retvals(2) = 0
     IF (retvals(0) = 0 OR retvals(0) = 1) AND retvals(2) >= 0 AND retvals(2) <= 2 THEN
@@ -2700,7 +2700,7 @@ FUNCTION menus_allow_player () AS INTEGER
  RETURN menus(topmenu).suspend_player = NO
 END FUNCTION
 
-SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tilesets() AS TilesetData ptr, map, foep, stock())
+SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tilesets() AS TilesetData ptr, foep, stock())
  DIM i AS INTEGER
  DIM slot AS INTEGER
  DIM activated AS INTEGER
@@ -2765,7 +2765,7 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), ti
         minimap catx(0), caty(0), tilesets()
        CASE 8,13 ' save
         slot = picksave(0)
-        IF slot >= 0 THEN savegame slot, map, foep, stat(), stock()
+        IF slot >= 0 THEN savegame slot, foep, stat(), stock()
        CASE 9 ' load
         slot = picksave(1)
         IF slot >= 0 THEN
@@ -3019,7 +3019,7 @@ FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
  RETURN formset(1 + foenext) - 1
 END FUNCTION
 
-SUB prepare_map (map AS INTEGER, lastmap AS INTEGER, samemap AS INTEGER, showmapname AS INTEGER, wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER, remembermusic AS INTEGER, mapname AS STRING, door() AS Door, BYREF txt AS TextBoxState, foep AS INTEGER)
+SUB prepare_map (lastmap AS INTEGER, samemap AS INTEGER, showmapname AS INTEGER, wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER, remembermusic AS INTEGER, mapname AS STRING, door() AS Door, BYREF txt AS TextBoxState, foep AS INTEGER)
  'DEBUG debug "in preparemap"
  DIM i AS INTEGER
  'save data from old map
@@ -3033,10 +3033,10 @@ SUB prepare_map (map AS INTEGER, lastmap AS INTEGER, samemap AS INTEGER, showmap
    savemapstate_passmap lastmap, "map"
   END IF
  END IF
- lastmap = map
+ lastmap = gam.map.id
 
  'load gmap
- loadmapstate_gmap map, "map"
+ loadmapstate_gmap gam.map.id, "map"
 
  'Play map music
  IF readbit(gen(), genSuspendBits, suspendambientmusic) = 0 THEN
@@ -3049,38 +3049,38 @@ SUB prepare_map (map AS INTEGER, lastmap AS INTEGER, samemap AS INTEGER, showmap
   END IF
  END IF
 
- mapname = getmapname$(map)
+ mapname = getmapname$(gam.map.id)
 
  IF gmap(18) < 2 THEN
-  loadmapstate_tilemap map, "map"
-  loadmapstate_passmap map, "map"
+  loadmapstate_tilemap gam.map.id, "map"
+  loadmapstate_passmap gam.map.id, "map"
  ELSE
-  loadmap_tilemap map
-  loadmap_passmap map
+  loadmap_tilemap gam.map.id
+  loadmap_passmap gam.map.id
  END IF
 
  IF afterbat = 0 THEN
   showmapname = gmap(4)
   IF gmap(17) < 2 THEN
-   loadmapstate_npcd map, "map"
-   loadmapstate_npcl map, "map"
+   loadmapstate_npcd gam.map.id, "map"
+   loadmapstate_npcl gam.map.id, "map"
   ELSE
-   loadmap_npcd map
-   loadmap_npcl map
+   loadmap_npcd gam.map.id
+   loadmap_npcl gam.map.id
   END IF
  ELSE
   'reload hero graphics after a battle
   vishero stat()
  END IF
 
- IF isfile(maplumpname$(map, "e")) THEN
+ IF isfile(maplumpname$(gam.map.id, "e")) THEN
   CLOSE #foemaph
   foemaph = FREEFILE
-  OPEN maplumpname$(map, "e") FOR BINARY AS #foemaph
+  OPEN maplumpname$(gam.map.id, "e") FOR BINARY AS #foemaph
  ELSE
-  fatalerror "Oh no! Map " & map & " foemap is missing"
+  fatalerror "Oh no! Map " & gam.map.id & " foemap is missing"
  END IF
- loaddoor map, door()
+ loaddoor gam.map.id, door()
 
  IF afterbat = 0 AND samemap = 0 THEN
   forcedismount txt, catd(), foep

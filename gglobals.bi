@@ -5,6 +5,7 @@
 '
 
 #include "udts.bi"
+#include "game_udts.bi"
 
 'Misc game globals
 EXTERN sourcerpg as string
@@ -30,6 +31,7 @@ EXTERN as integer gotj(), joy()
 EXTERN as integer mouse()
 
 'Game state globals
+EXTERN gam AS GameState
 EXTERN tag() as integer
 EXTERN global() as integer
 

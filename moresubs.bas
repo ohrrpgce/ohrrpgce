@@ -32,7 +32,7 @@ DECLARE FUNCTION onwho% (w$, alone)
 DECLARE SUB minimap (x%, y%, tilesets() as TilesetData ptr)
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE FUNCTION useinn (inn%, price%, needf%, stat%(), holdscreen)
-DECLARE SUB savegame (slot%, map%, foep%, stat%(), stock%())
+DECLARE SUB savegame (slot%, foep%, stat%(), stock%())
 DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
 DECLARE SUB scripterr (e$)
 DECLARE SUB itstr (i%)
@@ -734,24 +734,15 @@ RETURN 0
 END FUNCTION
 
 SUB loaddoor (map, door() as door)
-'--clobbers buffer!
 IF gen(95) < 2 THEN
  '--obsolete doors
 ELSE
  '--THE RIGHT WAY--
- 'setpicstuf buffer(), 600, -1
- 'loadset game + ".dox", map, 0
- 'FOR i = 0 TO 99
-'  door(i) = buffer(i)
-  'door(100 + i) = buffer(100 + i)
-  'setbit door(), 200, i, buffer(200 + i)
- 'NEXT i
- 
  DeSerDoors(game + ".dox", door(), map)
 END IF
 END SUB
 
-SUB loadgame (slot, map, foep, stat(), stock())
+SUB loadgame (slot, foep, stat(), stock())
 
 DIM gmaptmp(dimbinsize(4))
 
@@ -764,8 +755,8 @@ loadset sg$, slot * 2, 0
 
 savver = buffer(0)
 IF savver < 2 OR savver > 3 THEN EXIT SUB
-map = buffer(1)
-loadrecord gmaptmp(), game + ".map", getbinsize(4) / 2, map
+gam.map.id = buffer(1)
+loadrecord gmaptmp(), game + ".map", getbinsize(4) / 2, gam.map.id
 catx(0) = buffer(2) + gmaptmp(20) * 20
 caty(0) = buffer(3) + gmaptmp(21) * 20
 catd(0) = buffer(4)
@@ -957,9 +948,9 @@ IF nativebitmagicnum <> 4444 THEN
 END IF
 
 'ALL THE STUFF THAT MUST BE SAVED
-'map,x,y,d,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
+'gam.map.id,x,y,d,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
 'ALL THE STUFF THAT MUST BE PASSED
-'slot,map,x,y,d,foep,gold,stat(),bmenu(),spell(),lmp(),exlev(),item(),item$()
+'slot,x,y,d,foep,gold,stat(),bmenu(),spell(),lmp(),exlev(),item(),item$()
 '30000
 END SUB
 
@@ -1032,7 +1023,7 @@ SUB minimap (x, y, tilesets() as TilesetData ptr)
  MenuSound gen(genCancelSFX)
 END SUB
 
-FUNCTION teleporttool (BYREF map as integer, tilesets() as TilesetData ptr)
+FUNCTION teleporttool (tilesets() as TilesetData ptr)
  REDIM tilemap(2) AS INTEGER
  REDIM mini(0, 0) AS UBYTE
  DIM zoom AS INTEGER
@@ -1054,7 +1045,7 @@ FUNCTION teleporttool (BYREF map as integer, tilesets() as TilesetData ptr)
  camera.y = bound(dest.y * zoom - minisize.y \ 2, 0, mapsize.y * zoom - minisize.y)
 
  DIM menu(1) AS STRING
- menu(0) = "Teleport to map... " & map & " " & getmapname$(map)
+ menu(0) = "Teleport to map... " & gam.map.id & " " & getmapname$(gam.map.id)
  menu(1) = "Teleport to position... X = " & dest.x & " Y = " & dest.y
 
  DIM state AS MenuState
@@ -1066,7 +1057,7 @@ FUNCTION teleporttool (BYREF map as integer, tilesets() as TilesetData ptr)
 
  DIM preview_delay AS INTEGER = 0
  DIM pickpoint AS INTEGER = NO
- DIM destmap AS INTEGER = map
+ DIM destmap AS INTEGER = gam.map.id
 
 
  teleporttool = 0
@@ -1106,8 +1097,8 @@ FUNCTION teleporttool (BYREF map as integer, tilesets() as TilesetData ptr)
    IF enter_or_space() THEN pickpoint = YES
   ELSE
    IF carray(4) > 1 THEN 'confirm and teleport
-    IF map <> destmap THEN teleporttool = -1
-    map = destmap
+    IF gam.map.id <> destmap THEN teleporttool = -1
+    gam.map.id = destmap
     FOR i = 0 TO 15
      catx(i) = dest.x * 20
      caty(i) = dest.y * 20
@@ -1364,8 +1355,8 @@ END IF
 
 END SUB
 
-SUB resetgame (map, foep, stat(), stock(), scriptout$,BYREF txt AS TextBoxState)
-map = 0
+SUB resetgame (foep, stat(), stock(), scriptout$,BYREF txt AS TextBoxState)
+gam.map.id = 0
 catx(0) = 0
 caty(0) = 0
 catd(0) = 0
@@ -1781,7 +1772,7 @@ NEXT
 
 END SUB
 
-SUB savegame (slot, map, foep, stat(), stock())
+SUB savegame (slot, foep, stat(), stock())
 
 DIM gmaptmp(dimbinsize(4))
 
@@ -1791,8 +1782,8 @@ FOR i = 0 TO 16000
 NEXT i
 
 buffer(0) = 3        'SAVEGAME VERSION NUMBER
-buffer(1) = map
-loadrecord gmaptmp(), game + ".map", getbinsize(4) / 2, map
+buffer(1) = gam.map.id
+loadrecord gmaptmp(), game + ".map", getbinsize(4) / 2, gam.map.id
 buffer(2) = catx(0) - gmaptmp(20) * 20
 buffer(3) = caty(0) - gmaptmp(21) * 20
 buffer(4) = catd(0)
@@ -1952,9 +1943,9 @@ storeset sg$, slot * 2 + 1, 0
 
 
 'ALL THE STUFF THAT MUST BE SAVED
-'map,x,y,d,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
+'gam.map.id,x,y,d,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
 'ALL THE STUFF THAT MUST BE PASSED
-'slot,map,x,y,d,foep,gold,stat(),bmenu(),spell(),lmp(),exlev(),item(),item$()
+'slot,x,y,d,foep,gold,stat(),bmenu(),spell(),lmp(),exlev(),item(),item$()
 '30000
 END SUB
 
@@ -2080,7 +2071,7 @@ END IF
 
 END FUNCTION
 
-SUB shop (id, needf, stock(), stat(), map, foep, tilesets() AS TilesetData ptr)
+SUB shop (id, needf, stock(), stat(), foep, tilesets() AS TilesetData ptr)
 
 DIM storebuf(40), menu$(10), menuid(10)
 
@@ -2145,7 +2136,7 @@ DO
   END IF
   IF menuid(pt) = 5 THEN '--SAVE
    temp = picksave(0)
-   IF temp >= 0 THEN savegame temp, map, foep, stat(), stock()
+   IF temp >= 0 THEN savegame temp, foep, stat(), stock()
   END IF
   IF menuid(pt) = 3 THEN '--INN
    inn = 0
