@@ -33,7 +33,7 @@ DECLARE FUNCTION herobyrank% (slot%)
 DECLARE FUNCTION rankincaterpillar% (heroid%)
 DECLARE SUB embedtext (text$, limit=0)
 DECLARE SUB renamehero (who%)
-DECLARE FUNCTION vehiclestuff% (disx%, disy%, foep%, vehedge%, BYREF txt AS TextBoxState)
+DECLARE FUNCTION vehiclestuff% (disx%, disy%, vehedge%, BYREF txt AS TextBoxState)
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
 DECLARE SUB correctbackdrop ()
 DECLARE FUNCTION gethighbyte% (n%)
@@ -57,7 +57,7 @@ DECLARE FUNCTION countitem% (it%)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE SUB heroswap (iAll%, stat%())
-DECLARE SUB savegame (slot%, foep%, stat%(), stock%())
+DECLARE SUB savegame (slot%, stat%(), stock%())
 DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
 DECLARE SUB scripterr (e$)
 DECLARE SUB itstr (i%)
@@ -2398,7 +2398,7 @@ FOR i = bound(retvals(3), 0, 255) TO bound(retvals(4), 0, 255)
 NEXT i
 END SUB
 
-FUNCTION vehiclestuff (disx, disy, foep, vehedge, BYREF txt AS TextBoxState)
+FUNCTION vehiclestuff (disx, disy, vehedge, BYREF txt AS TextBoxState)
 STATIC aheadx, aheady
 
 result = 0
@@ -2497,7 +2497,7 @@ IF readbit(veh(), 6, 4) THEN '--clear
   catd(i) = catd(0)
   catz(i) = 0
  NEXT i
- foep = range(100, 60)
+ gam.random_battle_countdown = range(100, 60)
 END IF
 IF readbit(veh(), 6, 5) THEN '--ahead
  targx = aheadx

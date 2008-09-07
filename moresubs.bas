@@ -32,7 +32,7 @@ DECLARE FUNCTION onwho% (w$, alone)
 DECLARE SUB minimap (x%, y%, tilesets() as TilesetData ptr)
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE FUNCTION useinn (inn%, price%, needf%, stat%(), holdscreen)
-DECLARE SUB savegame (slot%, foep%, stat%(), stock%())
+DECLARE SUB savegame (slot%, stat%(), stock%())
 DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
 DECLARE SUB scripterr (e$)
 DECLARE SUB itstr (i%)
@@ -742,7 +742,7 @@ ELSE
 END IF
 END SUB
 
-SUB loadgame (slot, foep, stat(), stock())
+SUB loadgame (slot, stat(), stock())
 
 DIM gmaptmp(dimbinsize(4))
 
@@ -760,7 +760,7 @@ loadrecord gmaptmp(), game + ".map", getbinsize(4) / 2, gam.map.id
 catx(0) = buffer(2) + gmaptmp(20) * 20
 caty(0) = buffer(3) + gmaptmp(21) * 20
 catd(0) = buffer(4)
-foep = buffer(5)
+gam.random_battle_countdown = buffer(5)
 'leader = buffer(6)
 mapx = buffer(7)
 mapy = buffer(8)
@@ -948,9 +948,9 @@ IF nativebitmagicnum <> 4444 THEN
 END IF
 
 'ALL THE STUFF THAT MUST BE SAVED
-'gam.map.id,x,y,d,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
+'gam.map.id,x,y,d,gam.random_battle_countdown,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
 'ALL THE STUFF THAT MUST BE PASSED
-'slot,x,y,d,foep,gold,stat(),bmenu(),spell(),lmp(),exlev(),item(),item$()
+'slot,x,y,d,gold,stat(),bmenu(),spell(),lmp(),exlev(),item(),item$()
 '30000
 END SUB
 
@@ -1355,12 +1355,12 @@ END IF
 
 END SUB
 
-SUB resetgame (foep, stat(), stock(), scriptout$,BYREF txt AS TextBoxState)
+SUB resetgame (stat(), stock(), scriptout$,BYREF txt AS TextBoxState)
 gam.map.id = 0
 catx(0) = 0
 caty(0) = 0
 catd(0) = 0
-foep = 0
+gam.random_battle_countdown = 0
 'leader = 0
 mapx = 0
 mapy = 0
@@ -1772,7 +1772,7 @@ NEXT
 
 END SUB
 
-SUB savegame (slot, foep, stat(), stock())
+SUB savegame (slot, stat(), stock())
 
 DIM gmaptmp(dimbinsize(4))
 
@@ -1787,7 +1787,7 @@ loadrecord gmaptmp(), game + ".map", getbinsize(4) / 2, gam.map.id
 buffer(2) = catx(0) - gmaptmp(20) * 20
 buffer(3) = caty(0) - gmaptmp(21) * 20
 buffer(4) = catd(0)
-buffer(5) = foep
+buffer(5) = gam.random_battle_countdown
 buffer(6) = 0    'was leader
 buffer(7) = mapx
 buffer(8) = mapy
@@ -1943,9 +1943,9 @@ storeset sg$, slot * 2 + 1, 0
 
 
 'ALL THE STUFF THAT MUST BE SAVED
-'gam.map.id,x,y,d,foep,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
+'gam.map.id,x,y,d,gam.random_battle_countdown,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
 'ALL THE STUFF THAT MUST BE PASSED
-'slot,x,y,d,foep,gold,stat(),bmenu(),spell(),lmp(),exlev(),item(),item$()
+'slot,x,y,d,gold,stat(),bmenu(),spell(),lmp(),exlev(),item(),item$()
 '30000
 END SUB
 
@@ -2071,7 +2071,7 @@ END IF
 
 END FUNCTION
 
-SUB shop (id, needf, stock(), stat(), foep, tilesets() AS TilesetData ptr)
+SUB shop (id, needf, stock(), stat(), tilesets() AS TilesetData ptr)
 
 DIM storebuf(40), menu$(10), menuid(10)
 
@@ -2136,7 +2136,7 @@ DO
   END IF
   IF menuid(pt) = 5 THEN '--SAVE
    temp = picksave(0)
-   IF temp >= 0 THEN savegame temp, foep, stat(), stock()
+   IF temp >= 0 THEN savegame temp, stat(), stock()
   END IF
   IF menuid(pt) = 3 THEN '--INN
    inn = 0

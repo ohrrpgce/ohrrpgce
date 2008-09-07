@@ -16,7 +16,7 @@ TYPE GameState
   map AS MapModeState
   wonbattle AS INTEGER 'Indicates the status of the last battle, 1 for victory 0 for running away
   remembermusic AS INTEGER 'Remembers music from before battle starts
-
+  random_battle_countdown AS INTEGER
 END TYPE
 
 #ENDIF

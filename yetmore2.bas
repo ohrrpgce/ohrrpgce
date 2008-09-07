@@ -56,7 +56,7 @@ DECLARE FUNCTION countitem% (it%)
 DECLARE FUNCTION movdivis% (xygo%)
 DECLARE FUNCTION onwho% (w$, alone)
 DECLARE SUB heroswap (iAll%, stat%())
-DECLARE SUB savegame (slot%, foep%, stat%(), stock%())
+DECLARE SUB savegame (slot%, stat%(), stock%())
 DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
 DECLARE SUB scripterr (e$)
 DECLARE SUB itstr (i%)
@@ -191,7 +191,7 @@ SUB drawnpcs
  NEXT i
 END SUB
 
-SUB forcedismount (BYREF txt AS TextBoxState, catd(), foep)
+SUB forcedismount (BYREF txt AS TextBoxState, catd())
 IF veh(0) THEN
  '--clear vehicle on loading new map--
  IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) = 0 THEN
@@ -223,7 +223,7 @@ IF veh(0) THEN
   catx(i) = catx(0)
   caty(i) = caty(0)
  NEXT i
- foep = range(100, 60)
+ gam.random_battle_countdown = range(100, 60)
 END IF
 END SUB
 
