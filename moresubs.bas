@@ -733,12 +733,12 @@ IF num < 0 AND ret = 0 THEN RETURN -1
 RETURN 0
 END FUNCTION
 
-SUB loaddoor (map, door() as door)
+SUB loaddoor (map)
 IF gen(95) < 2 THEN
  '--obsolete doors
 ELSE
  '--THE RIGHT WAY--
- DeSerDoors(game + ".dox", door(), map)
+ DeSerDoors(game + ".dox", gam.map.door(), map)
 END IF
 END SUB
 

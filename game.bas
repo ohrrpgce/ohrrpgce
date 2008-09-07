@@ -85,7 +85,7 @@ DECLARE SUB evalitemtag ()
 DECLARE SUB evalherotag (stat%())
 DECLARE SUB tagdisplay ()
 DECLARE SUB rpgversion (v%)
-DECLARE SUB loaddoor (map%, door() as door)
+DECLARE SUB loaddoor (map%)
 DECLARE FUNCTION findhero% (who%, f%, l%, d%)
 DECLARE SUB doswap (s%, d%, stat%())
 DECLARE FUNCTION howmanyh% (f%, l%)
@@ -183,7 +183,7 @@ DECLARE FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING,
 DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
 DECLARE SUB debug_npcs ()
 DECLARE SUB npc_debug_display ()
-DECLARE SUB prepare_map (door() AS Door, BYREF txt AS TextBoxState, afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
+DECLARE SUB prepare_map (BYREF txt AS TextBoxState, afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
 DECLARE SUB reset_game_state ()
 DECLARE SUB reset_map_state (map AS MapModeState)
 
@@ -237,8 +237,6 @@ DIM menu_set AS MenuSet
 DIM menus(0) AS MenuDef 'This is an array because it will eventually be a stack of heirarchial menus
 DIM mstates(0) AS MenuState
 DIM topmenu AS INTEGER = -1
-
-dim door(99) as door, doorlinks(199) as doorlink
 
 'shared module variables
 DIM SHARED needf
@@ -496,7 +494,7 @@ fadeout 0, 0, 0
 IF temp = -2 THEN EXIT DO 'resetg
 IF temp >= 0 THEN
  GOSUB doloadgame
- prepare_map door(), txt, NO, YES 'Special case if this is called right after GOSUB doloadgame
+ prepare_map txt, NO, YES 'Special case if this is called right after GOSUB doloadgame
 ELSE
  clearpage 0
  clearpage 1
@@ -504,7 +502,7 @@ ELSE
  IF gen(41) > 0 THEN
   runscript(gen(41), nowscript + 1, -1, "newgame", plottrigger)
  END IF
- prepare_map door(), txt
+ prepare_map txt
 END IF
 
 doihavebits
@@ -682,7 +680,7 @@ DO
   IF keyval(29) > 0 THEN ' holding CTRL
    IF keyval(59) > 1 AND txt.showing = NO THEN 
     IF teleporttool(tilesets()) THEN 'CTRL + F1
-     prepare_map door(), txt
+     prepare_map txt
     END IF
    END IF
    IF showtags = 0 THEN
@@ -708,7 +706,7 @@ DO
   force_npc_check = YES
   game.map.lastmap = -1
   GOSUB doloadgame
-  prepare_map door(), txt, NO, YES
+  prepare_map txt, NO, YES
  END IF
  'DEBUG debug "random enemies"
  IF gam.random_battle_countdown = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (veh(0) = 0 OR veh(11) > -1) THEN
@@ -722,7 +720,7 @@ DO
      fatal = 0
      gam.wonbattle = battle(batform, fatal, stat())
      dotimerafterbattle
-     prepare_map door(), txt, YES
+     prepare_map txt, YES
      needf = 2
     ELSE
      rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle", plottrigger)
@@ -1001,7 +999,7 @@ END IF
 IF istag(txt.box.battle_tag, 0) THEN
  fatal = 0
  gam.wonbattle = battle(txt.box.battle, fatal, stat())
- prepare_map door(), txt, YES
+ prepare_map txt, YES
  gam.random_battle_countdown = range(100, 60)
  needf = 1
 END IF
@@ -1385,12 +1383,12 @@ IF veh(0) AND readbit(veh(), 9, 3) = 0 AND dforce = 0 THEN RETRACE
 IF dforce THEN
  doori = dforce - 1
  dforce = 0
- IF readbit(door(doori).bits(),0,0) = 0 THEN RETRACE
+ IF readbit(gam.map.door(doori).bits(),0,0) = 0 THEN RETRACE
  GOTO thrudoor
 END IF
 FOR doori = 0 TO 99
- IF readbit(door(doori).bits(),0,0) THEN
-  IF door(doori).x = catx(0) \ 20 AND door(doori).y = (caty(0) \ 20) + 1 THEN
+ IF readbit(gam.map.door(doori).bits(),0,0) THEN
+  IF gam.map.door(doori).x = catx(0) \ 20 AND gam.map.door(doori).y = (caty(0) \ 20) + 1 THEN
    GOSUB thrudoor
    EXIT FOR
   END IF
@@ -1401,10 +1399,10 @@ RETRACE
 thrudoor:
 gam.map.same = NO
 oldmap = gam.map.id
-deserdoorlinks(maplumpname(gam.map.id,"d"), doorlinks())
+deserdoorlinks(maplumpname(gam.map.id,"d"), gam.map.doorlinks())
 
 FOR o = 0 TO 199
- with doorlinks(o)
+ with gam.map.doorlinks(o)
  IF doori = .source THEN
   'PLOT CHECKING FOR DOORS
   bad = 1
@@ -1412,13 +1410,13 @@ FOR o = 0 TO 199
   IF bad = 0 THEN
    gam.map.id = .dest_map
    destdoor = .dest
-   deserdoors game + ".dox", door(), gam.map.id
-   catx(0) = door(destdoor).x * 20
-   caty(0) = (door(destdoor).y - 1) * 20
+   deserdoors game + ".dox", gam.map.door(), gam.map.id
+   catx(0) = gam.map.door(destdoor).x * 20
+   caty(0) = (gam.map.door(destdoor).y - 1) * 20
    fadeout 0, 0, 0
    needf = 2
    IF oldmap = gam.map.id THEN gam.map.same = YES
-   prepare_map door(), txt
+   prepare_map txt
    gam.random_battle_countdown = range(100, 60)
    EXIT FOR
   END IF
@@ -1566,14 +1564,14 @@ IF wantbattle > 0 THEN
  fatal = 0
  gam.wonbattle = battle(wantbattle - 1, fatal, stat())
  wantbattle = 0
- prepare_map door(), txt, YES
+ prepare_map txt, YES
  gam.random_battle_countdown = range(100, 60)
  needf = 3
  setkeys
 END IF
 IF wantteleport > 0 THEN
  wantteleport = 0
- prepare_map door(), txt
+ prepare_map txt
  gam.random_battle_countdown = range(100, 60)
 END IF
 IF wantusenpc > 0 THEN
@@ -3006,7 +3004,7 @@ FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
  RETURN formset(1 + foenext) - 1
 END FUNCTION
 
-SUB prepare_map (door() AS Door, BYREF txt AS TextBoxState, afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
+SUB prepare_map (BYREF txt AS TextBoxState, afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
  'DEBUG debug "in preparemap"
  DIM i AS INTEGER
  'save data from old map
@@ -3067,7 +3065,7 @@ SUB prepare_map (door() AS Door, BYREF txt AS TextBoxState, afterbat AS INTEGER=
  ELSE
   fatalerror "Oh no! Map " & gam.map.id & " foemap is missing"
  END IF
- loaddoor gam.map.id, door()
+ loaddoor gam.map.id
 
  IF afterbat = NO AND gam.map.same = NO THEN
   forcedismount txt, catd()

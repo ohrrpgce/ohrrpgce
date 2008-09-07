@@ -10,6 +10,8 @@ TYPE MapModeState
   same     AS INTEGER 'YES/NO flag that indicates when your are moving through a same-map door
   showname AS INTEGER
   name     AS STRING
+  door(99) AS Door
+  doorlinks(199) AS doorlink
 END TYPE
 
 TYPE GameState
