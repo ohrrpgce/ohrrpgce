@@ -186,6 +186,8 @@ DECLARE SUB npc_debug_display ()
 DECLARE SUB prepare_map (BYREF txt AS TextBoxState, afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
 DECLARE SUB reset_game_state ()
 DECLARE SUB reset_map_state (map AS MapModeState)
+DECLARE SUB opendoor (dforce AS INTEGER=0)
+DECLARE SUB thrudoor (door_id AS INTEGER)
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -1048,8 +1050,7 @@ END IF
 IF istag(txt.box.hero_tag, 0) THEN add_rem_swap_lock_hero txt.box, stat()
 '---FORCE DOOR------
 IF istag(txt.box.door_tag, 0) THEN
- dforce = txt.box.door + 1
- GOSUB opendoor
+ opendoor txt.box.door + 1
  IF needf = 0 THEN
   temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
   IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
@@ -1225,7 +1226,7 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR force_npc_ch
   NEXT i
  END IF
  IF didgo(0) = 1 THEN 'only check doors if the hero really moved, not just if force_npc_check = YES
-  GOSUB opendoor
+  opendoor
  END IF
  IF needf = 0 THEN
   temp = readfoemap(catx(0) \ 20, caty(0) \ 20, scroll(0), scroll(1), foemaph)
@@ -1393,53 +1394,6 @@ IF npcs(id).movetype = 4 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, -1)
 IF npcs(id).movetype = 5 THEN npc(o).dir = INT(RND * 4)
 RETRACE
 
-opendoor:
-IF veh(0) AND readbit(veh(), 9, 3) = 0 AND dforce = 0 THEN RETRACE
-IF dforce THEN
- doori = dforce - 1
- dforce = 0
- IF readbit(gam.map.door(doori).bits(),0,0) = 0 THEN RETRACE
- GOTO thrudoor
-END IF
-FOR doori = 0 TO 99
- IF readbit(gam.map.door(doori).bits(),0,0) THEN
-  IF gam.map.door(doori).x = catx(0) \ 20 AND gam.map.door(doori).y = (caty(0) \ 20) + 1 THEN
-   GOSUB thrudoor
-   EXIT FOR
-  END IF
- END IF
-NEXT doori
-RETRACE
-
-thrudoor:
-gam.map.same = NO
-oldmap = gam.map.id
-deserdoorlinks(maplumpname(gam.map.id,"d"), gam.map.doorlinks())
-
-FOR o = 0 TO 199
- with gam.map.doorlinks(o)
- IF doori = .source THEN
-  'PLOT CHECKING FOR DOORS
-  bad = 1
-  IF istag(.tag1, -1) AND istag(.tag2, -1) THEN bad = 0
-  IF bad = 0 THEN
-   gam.map.id = .dest_map
-   destdoor = .dest
-   deserdoors game + ".dox", gam.map.door(), gam.map.id
-   catx(0) = gam.map.door(destdoor).x * 20
-   caty(0) = (gam.map.door(destdoor).y - 1) * 20
-   fadeout 0, 0, 0
-   needf = 2
-   IF oldmap = gam.map.id THEN gam.map.same = YES
-   prepare_map txt
-   gam.random_battle_countdown = range(100, 60)
-   EXIT FOR
-  END IF
- END IF
- end with
-NEXT o
-RETRACE
-
 interpret:
 IF nowscript >= 0 THEN
 WITH scrat(nowscript)
@@ -1562,9 +1516,8 @@ IF wantbox > 0 THEN
  wantbox = 0
 END IF
 IF wantdoor > 0 THEN
- dforce = wantdoor
+ opendoor wantdoor
  wantdoor = 0
- GOSUB opendoor
  IF needf = 0 THEN
   temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
   IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
@@ -3142,4 +3095,55 @@ SUB reset_map_state (map AS MapModeState)
  map.same = NO
  map.showname = 0
  map.name = ""
+END SUB
+
+SUB opendoor (dforce AS INTEGER=0)
+ 'dforce is the ID number +1 of the door to force, or 0 if we are going to search for a mathcing door
+ DIM door_id AS INTEGER
+ IF veh(0) AND readbit(veh(), 9, 3) = 0 AND dforce = 0 THEN EXIT SUB 'Doors are disabled by a vehicle
+ IF dforce THEN
+  door_id = dforce - 1
+  IF readbit(gam.map.door(door_id).bits(),0,0) = 0 THEN EXIT SUB 'Door is disabled
+  thrudoor door_id
+  EXIT SUB
+ END IF
+ FOR door_id = 0 TO 99
+  IF readbit(gam.map.door(door_id).bits(),0,0) THEN 'Door is enabled
+   IF gam.map.door(door_id).x = catx(0) \ 20 AND gam.map.door(door_id).y = (caty(0) \ 20) + 1 THEN
+    thrudoor door_id
+    EXIT SUB
+   END IF
+  END IF
+ NEXT door_id
+ 'No doors found
+END SUB
+
+SUB thrudoor (door_id AS INTEGER)
+ 'FIXME: needf is accessed here. It is module shared, should probably become a member of gam
+ DIM oldmap AS INTEGER
+ DIM i AS INTEGER
+ DIM destdoor AS INTEGER
+ gam.map.same = NO
+ oldmap = gam.map.id
+ deserdoorlinks(maplumpname(gam.map.id,"d"), gam.map.doorlinks())
+
+ FOR i = 0 TO 199
+  WITH gam.map.doorlinks(i)
+   IF door_id = .source THEN
+    IF istag(.tag1, -1) AND istag(.tag2, -1) THEN 'Check tags to make sure this door is okay
+     gam.map.id = .dest_map
+     destdoor = .dest
+     deserdoors game + ".dox", gam.map.door(), gam.map.id
+     catx(0) = gam.map.door(destdoor).x * 20
+     caty(0) = (gam.map.door(destdoor).y - 1) * 20
+     fadeout 0, 0, 0
+     needf = 2
+     IF oldmap = gam.map.id THEN gam.map.same = YES
+     prepare_map txt
+     gam.random_battle_countdown = range(100, 60)
+     EXIT FOR
+    END IF
+   END IF
+  END WITH
+ NEXT i
 END SUB
