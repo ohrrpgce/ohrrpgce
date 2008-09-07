@@ -14,6 +14,7 @@ END TYPE
 
 TYPE GameState
   map AS MapModeState
+  wonbattle AS INTEGER 'Indicates the status of the last battle, 1 for victory 0 for running away
 END TYPE
 
 #ENDIF

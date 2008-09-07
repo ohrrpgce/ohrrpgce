@@ -183,7 +183,8 @@ DECLARE FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING,
 DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
 DECLARE SUB debug_npcs ()
 DECLARE SUB npc_debug_display ()
-DECLARE SUB prepare_map (wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER, remembermusic AS INTEGER, door() AS Door, BYREF txt AS TextBoxState, foep AS INTEGER)
+DECLARE SUB prepare_map (remembermusic AS INTEGER, door() AS Door, BYREF txt AS TextBoxState, foep AS INTEGER, afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
+DECLARE SUB reset_game_state ()
 DECLARE SUB reset_map_state (map AS MapModeState)
 
 '---INCLUDE FILES---
@@ -279,8 +280,6 @@ DIM script(128) as ScriptData
 DIM plotstr(31) as Plotstring
 DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
-
-DIM AS INTEGER wonbattle, afterbat, afterload
 
 'DEBUG debug "Thestart"
 DO 'This is a big loop that encloses the entire program (more than it should). The loop is only reached when resetting the game
@@ -455,10 +454,10 @@ FOR i = 0 TO 31
 NEXT i
 
 initgamedefaults
+reset_game_state
 fatal = 0: abortg = 0
 foep = range(100, 60)
 lastformation = -1
-reset_map_state gam.map
 remembermusic = -1
 scrwatch = 0
 menu_set.menufile = workingdir & SLASH & "menus.bin"
@@ -499,6 +498,7 @@ fadeout 0, 0, 0
 IF temp = -2 THEN EXIT DO 'resetg
 IF temp >= 0 THEN
  GOSUB doloadgame
+ prepare_map remembermusic, door(), txt, foep, NO, YES 'Special case if this is called right after GOSUB doloadgame
 ELSE
  clearpage 0
  clearpage 1
@@ -506,9 +506,9 @@ ELSE
  IF gen(41) > 0 THEN
   runscript(gen(41), nowscript + 1, -1, "newgame", plottrigger)
  END IF
+ prepare_map remembermusic, door(), txt, foep
 END IF
 
-prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
 doihavebits
 evalherotag stat()
 needf = 1
@@ -684,7 +684,7 @@ DO
   IF keyval(29) > 0 THEN ' holding CTRL
    IF keyval(59) > 1 AND txt.showing = NO THEN 
     IF teleporttool(tilesets()) THEN 'CTRL + F1
-     prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
+     prepare_map remembermusic, door(), txt, foep
     END IF
    END IF
    IF showtags = 0 THEN
@@ -710,7 +710,7 @@ DO
   force_npc_check = YES
   game.map.lastmap = -1
   GOSUB doloadgame
-  prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
+  prepare_map remembermusic, door(), txt, foep, NO, YES
  END IF
  'DEBUG debug "random enemies"
  IF foep = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (veh(0) = 0 OR veh(11) > -1) THEN
@@ -723,10 +723,9 @@ DO
      '--normal battle
      fatal = 0
      remembermusic = presentsong
-     wonbattle = battle(batform, fatal, stat())
+     gam.wonbattle = battle(batform, fatal, stat())
      dotimerafterbattle
-     afterbat = 1
-     prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
+     prepare_map remembermusic, door(), txt, foep, YES
      needf = 2
     ELSE
      rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle", plottrigger)
@@ -805,7 +804,6 @@ LOOP ' This is the end of the DO that encloses the entire program.
 
 doloadgame:
 loadgame temp, foep, stat(), stock()
-afterload = -1
 IF gen(57) > 0 THEN
  rsr = runscript(gen(57), nowscript + 1, -1, "loadgame", plottrigger)
  IF rsr = 1 THEN
@@ -1006,9 +1004,8 @@ END IF
 IF istag(txt.box.battle_tag, 0) THEN
  fatal = 0
  remembermusic = presentsong
- wonbattle = battle(txt.box.battle, fatal, stat())
- afterbat = 1
- prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
+ gam.wonbattle = battle(txt.box.battle, fatal, stat())
+ prepare_map remembermusic, door(), txt, foep, YES
  foep = range(100, 60)
  needf = 1
 END IF
@@ -1424,9 +1421,8 @@ FOR o = 0 TO 199
    caty(0) = (door(destdoor).y - 1) * 20
    fadeout 0, 0, 0
    needf = 2
-   afterbat = 0
    IF oldmap = gam.map.id THEN gam.map.same = YES
-   prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
+   prepare_map remembermusic, door(), txt, foep
    foep = range(100, 60)
    EXIT FOR
   END IF
@@ -1452,7 +1448,7 @@ WITH scrat(nowscript)
     CASE 15, 35, 61'--use door, use NPC, teleport to map
      .state = streturn
     CASE 16'--fight formation
-     scriptret = wonbattle
+     scriptret = gam.wonbattle
      .state = streturn
     CASE 1'--wait number of ticks
      .waitarg -= 1
@@ -1573,18 +1569,16 @@ END IF
 IF wantbattle > 0 THEN
  fatal = 0
  remembermusic = presentsong
- wonbattle = battle(wantbattle - 1, fatal, stat())
+ gam.wonbattle = battle(wantbattle - 1, fatal, stat())
  wantbattle = 0
- afterbat = 1
- prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
+ prepare_map remembermusic, door(), txt, foep, YES
  foep = range(100, 60)
  needf = 3
  setkeys
 END IF
 IF wantteleport > 0 THEN
  wantteleport = 0
- afterbat = 0
- prepare_map wonbattle, afterbat, afterload, remembermusic, door(), txt, foep
+ prepare_map remembermusic, door(), txt, foep
  foep = range(100, 60)
 END IF
 IF wantusenpc > 0 THEN
@@ -3017,7 +3011,7 @@ FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
  RETURN formset(1 + foenext) - 1
 END FUNCTION
 
-SUB prepare_map (wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER, remembermusic AS INTEGER, door() AS Door, BYREF txt AS TextBoxState, foep AS INTEGER)
+SUB prepare_map (remembermusic AS INTEGER, door() AS Door, BYREF txt AS TextBoxState, foep AS INTEGER, afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
  'DEBUG debug "in preparemap"
  DIM i AS INTEGER
  'save data from old map
@@ -3042,7 +3036,7 @@ SUB prepare_map (wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER
    wrappedsong gmap(1) - 1
   ELSEIF gmap(1) = 0 THEN
    stopsong
-  ELSEIF gmap(1) = -1 AND afterbat THEN
+  ELSEIF gmap(1) = -1 AND afterbat = YES THEN
    IF remembermusic > -1 THEN wrappedsong remembermusic ELSE stopsong
   END IF
  END IF
@@ -3057,7 +3051,7 @@ SUB prepare_map (wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER
   loadmap_passmap gam.map.id
  END IF
 
- IF afterbat = 0 THEN
+ IF afterbat = NO THEN
   gam.map.showname = gmap(4)
   IF gmap(17) < 2 THEN
    loadmapstate_npcd gam.map.id, "map"
@@ -3080,10 +3074,10 @@ SUB prepare_map (wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER
  END IF
  loaddoor gam.map.id, door()
 
- IF afterbat = 0 AND gam.map.same = NO THEN
+ IF afterbat = NO AND gam.map.same = NO THEN
   forcedismount txt, catd(), foep
  END IF
- IF afterbat = 0 AND afterload = 0 THEN
+ IF afterbat = NO AND afterload = NO THEN
   FOR i = 0 TO 15
    catx(i) = catx(0)
    caty(i) = caty(0)
@@ -3091,7 +3085,7 @@ SUB prepare_map (wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER
    catz(i) = 0
   NEXT i
  END IF
- IF afterload THEN
+ IF afterload = YES THEN
   interpolatecat
   xgo(0) = 0
   ygo(0) = 0
@@ -3110,7 +3104,7 @@ SUB prepare_map (wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER
  evalherotag stat()
  evalitemtag
  DIM rsr AS INTEGER
- IF afterbat = 0 THEN
+ IF afterbat = NO THEN
   IF gmap(7) > 0 THEN
    rsr = runscript(gmap(7), nowscript + 1, -1, "map", plottrigger)
    IF rsr = 1 THEN
@@ -3122,14 +3116,17 @@ SUB prepare_map (wonbattle AS INTEGER, afterbat AS INTEGER, afterload AS INTEGER
    rsr = runscript(gmap(12), nowscript + 1, -1, "afterbattle", plottrigger)
    IF rsr = 1 THEN
     '--afterbattle script gets one arg telling if you won or ran
-    setScriptArg 0, wonbattle
+    setScriptArg 0, gam.wonbattle
    END IF
   END IF
  END IF
- afterbat = 0
  gam.map.same = NO
- afterload = 0
  'DEBUG debug "end of preparemap"
+END SUB
+
+SUB reset_game_state ()
+ reset_map_state(gam.map)
+ gam.wonbattle = NO
 END SUB
 
 SUB reset_map_state (map AS MapModeState)
