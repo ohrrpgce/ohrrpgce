@@ -2040,7 +2040,6 @@ WITH scrat(nowscript)
        END IF
       END IF
       IF retvals(1) = 1 THEN
-       getpal16 pal16(), 4 + retvals(0), retvals(2), 4, npcs(retvals(0)).picture
        if npcs(retvals(0)).pal then palette16_unload(@npcs(retvals(0)).pal)
        npcs(retvals(0)).pal = palette16_load(game + ".pal", retvals(2), 4, npcs(retvals(0)).picture)
       END IF
