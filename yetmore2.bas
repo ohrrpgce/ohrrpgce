@@ -102,7 +102,7 @@ DECLARE SUB npcplot ()
 REM $STATIC
 SUB cathero
 
-DIM zsort(3)
+DIM zsort(3), catermask(0)
 
 '--if riding a vehicle and not mounting and not hiding leader and not hiding party then exit
 IF veh(0) AND readbit(veh(), 6, 0) = 0 AND readbit(veh(), 6, 4) = 0 AND readbit(veh(), 6, 5) = 0 AND readbit(veh(), 9, 4) = 0 AND readbit(veh(), 9, 5) = 0 THEN EXIT SUB

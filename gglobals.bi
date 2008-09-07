@@ -13,7 +13,6 @@ EXTERN prefsdir as string ' currently only used by Linux
 EXTERN savefile as string
 EXTERN timing() as integer
 EXTERN pal16() as integer
-EXTERN names() as string
 EXTERN speedcontrol as integer
 EXTERN deferpaint as integer
 EXTERN presentsong as integer
@@ -33,13 +32,13 @@ EXTERN as integer mouse()
 'Game state globals
 EXTERN gam AS GameState
 EXTERN tag() as integer
-EXTERN global() as integer
 
 'Vehicle globals
 EXTERN veh() as integer
 
 'Hero globals
 EXTERN hero() as integer
+EXTERN names() as string
 EXTERN stat()
 EXTERN eqstuf() as integer
 EXTERN lmp() as integer
@@ -49,7 +48,6 @@ EXTERN exlev() as integer
 EXTERN herobits()
 EXTERN itembits()
 EXTERN hmask() as integer
-EXTERN gold as integer
 EXTERN nativehbits() as integer
 
 'Map state globals
@@ -66,7 +64,6 @@ EXTERN as integer catx(), caty(), catz(), catd()
 EXTERN herospeed() as integer
 EXTERN as integer xgo(), ygo()
 EXTERN wtog() as integer
-EXTERN catermask() as integer
 
 'NPC globals
 EXTERN npcs() as NPCType
@@ -74,9 +71,11 @@ EXTERN npc() as NPCInst
 
 'Item globals
 EXTERN inventory() as InventSlot
+EXTERN gold as integer
 
 'Script globals
 EXTERN script() as ScriptData
+EXTERN global() as integer
 EXTERN heap() as integer
 EXTERN scrat() as ScriptInst
 EXTERN retvals() as integer
@@ -89,11 +88,6 @@ EXTERN scrst as Stack
 EXTERN curcmd as ScriptCommand ptr
 
 'Script string globals
-'EXTERN plotstring() as string
-'EXTERN plotstrX(), plotstrY()
-'EXTERN plotstrCol()
-'EXTERN plotstrBGCol()
-'EXTERN plotstrBits()
 EXTERN plotstr() as Plotstring
 
 'Battle globals

@@ -224,45 +224,58 @@ fmvol = getfmvol
 
 '$dynamic
 
-'Mixed global and module variables
-DIM font(1024), buffer(16384), pal16(448), music(16384)
-DIM gen(360), tag(127), hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), foef(254), exlev(40, 1), names(40), veh(21)
-DIM eqstuf(40, 4), stock(99, 49), catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), hmask(3), herobits(59, 3), itembits(maxMaxItems, 3)
-DIM catermask(0), nativehbits(40, 4)
-
-'Old Menu data
-DIM menu$(9), mi(9)
-'New Menu Data
-DIM menu_set AS MenuSet
-DIM menus(0) AS MenuDef 'This is an array because it will eventually be a stack of heirarchial menus
-DIM mstates(0) AS MenuState
-DIM topmenu AS INTEGER = -1
+'Module local variables
+DIM font(1024)
+DIM didgo(0 TO 3)
+DIM foef(254)
+DIM stock(99, 49)
 
 'shared module variables
 DIM SHARED needf
 DIM SHARED harmtileflash = NO
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
-'textbox stuff (needs moving into a udt)
 DIM SHARED txt AS TextBoxState
 
 'global variables
 DIM gam AS GameState
+DIM gen(360)
+DIM tag(127)
+
 DIM stat(40, 1, 16)
+DIM hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), exlev(40, 1), names(40), herobits(59, 3), itembits(maxMaxItems, 3), nativehbits(40, 4)
+DIM eqstuf(40, 4)
+DIM catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), hmask(3)
+
 DIM scroll(), pass()
 DIM tilesets(2) as TilesetData ptr
+
 DIM master(255) as RGBcolor
 DIM uilook(uiColors)
+
+DIM pal16(448)
+DIM buffer(16384)
+
 DIM inventory(inventoryMax) as InventSlot
+DIM gold
+
 DIM npcs(npcdMax) as NPCType
 DIM npc(300) as NPCInst
-DIM didgo(0 TO 3)
+
 DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, usepreunlump, lastsaveslot, abortg, foemaph, presentsong, framex, framey
 DIM AS STRING tmpdir, exename, game, sourcerpg, savefile, workingdir
-DIM gold
+
+'Menu Data
+DIM menu_set AS MenuSet
+DIM menus(0) AS MenuDef 'This is an array because it holds a stack of heirarchial menus (resized as required)
+DIM mstates(0) AS MenuState
+DIM topmenu AS INTEGER = -1
+
 DIM prefsdir as string
 DIM timers(15) as timer
 DIM fatal
 DIM lastformation
+
+DIM veh(21)
 
 DIM keyv(55, 1), csetup(12), carray(13)
 DIM mouse(3)
@@ -278,6 +291,8 @@ DIM script(128) as ScriptData
 DIM plotstr(31) as Plotstring
 DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
+
+'End global variables
 
 'DEBUG debug "Thestart"
 DO 'This is a big loop that encloses the entire program (more than it should). The loop is only reached when resetting the game
@@ -1425,8 +1440,6 @@ FOR o = 0 TO 199
 NEXT o
 RETRACE
 
-'--this is what we have dimed for scripts
-'--script(4096), heap(2048), global(4095), scrat(128), nowscript
 interpret:
 IF nowscript >= 0 THEN
 WITH scrat(nowscript)
