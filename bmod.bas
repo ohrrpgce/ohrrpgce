@@ -73,6 +73,9 @@ DIM rew AS RewardsState
 DIM tcount AS INTEGER 'FIXME: This is used locally in atkscript and action GOSUB blocks. Move DIMs there when those are SUBified
 DIM atktype(8) AS INTEGER 'FIXME: this used locally in sponhit: move the DIM there when SUBifiying it
 
+'Remember the music that was playing on the map so that the prepare_map() sub can restart it later
+gam.remembermusic = presentsong
+
 timinga = 0
 timingb = 0
 
