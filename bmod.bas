@@ -11,7 +11,8 @@ DEFINT A-Z
 #include "bmodsubs.bi"
 #include "game.bi"
 #INCLUDE "allmodex.bi"
-#include "yetmore.bi"
+DECLARE SUB wrappedsong (songnumber)
+DECLARE SUB playtimer
 DECLARE SUB getitem (getit, num)
 DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
 DECLARE SUB delitem (it, amount)
