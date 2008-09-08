@@ -75,7 +75,7 @@ DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
-DECLARE SUB loadsay (BYREF txt AS TextBoxState, box_id AS INTEGER)
+DECLARE SUB loadsay (box_id AS INTEGER)
 DECLARE SUB cathero ()
 DECLARE SUB readjoysettings ()
 DECLARE SUB loadmap_gmap(mapnum%)
@@ -188,7 +188,7 @@ SUB drawnpcs
  NEXT i
 END SUB
 
-SUB forcedismount (BYREF txt AS TextBoxState, catd())
+SUB forcedismount (catd())
 IF veh(0) THEN
  '--clear vehicle on loading new map--
  IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) = 0 THEN
@@ -205,7 +205,7 @@ IF veh(0) THEN
   END SELECT
  END IF
  IF veh(16) > 0 THEN
-  loadsay txt, veh(16)
+  loadsay veh(16)
  END IF
  IF veh(16) < 0 THEN
   rsr = runscript(ABS(veh(16)), nowscript + 1, -1, "dismount", plottrigger)

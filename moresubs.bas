@@ -395,7 +395,7 @@ vishero stat()
 'hero(40), bmenu(40,5), spell(40,3,23), stat(40,1,13), lmp(40,7), exlev(40,1), names(40), eqstuf(40,4)
 END SUB
 
-SUB drawsay (txt AS TextBoxState)
+SUB drawsay ()
 STATIC tog AS INTEGER
 tog = tog XOR 1
 IF txt.box.no_box = NO THEN
@@ -1343,7 +1343,7 @@ END IF
 
 END SUB
 
-SUB resetgame (stat(), scriptout$,BYREF txt AS TextBoxState)
+SUB resetgame (stat(), scriptout$)
 gam.map.id = 0
 catx(0) = 0
 caty(0) = 0

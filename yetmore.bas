@@ -33,7 +33,7 @@ DECLARE FUNCTION herobyrank% (slot%)
 DECLARE FUNCTION rankincaterpillar% (heroid%)
 DECLARE SUB embedtext (text$, limit=0)
 DECLARE SUB renamehero (who%)
-DECLARE FUNCTION vehiclestuff% (disx%, disy%, vehedge%, BYREF txt AS TextBoxState)
+DECLARE FUNCTION vehiclestuff% (disx%, disy%, vehedge%)
 DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
 DECLARE SUB correctbackdrop ()
 DECLARE FUNCTION gethighbyte% (n%)
@@ -2396,7 +2396,7 @@ FOR i = bound(retvals(3), 0, 255) TO bound(retvals(4), 0, 255)
 NEXT i
 END SUB
 
-FUNCTION vehiclestuff (disx, disy, vehedge, BYREF txt AS TextBoxState)
+FUNCTION vehiclestuff (disx, disy, vehedge)
 STATIC aheadx, aheady
 
 result = 0
@@ -3027,7 +3027,7 @@ END FUNCTION
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB loadsay (BYREF txt AS TextBoxState, box_id)
+SUB loadsay (box_id)
 DIM j AS INTEGER
 DIM rsr AS INTEGER
 DIM boxbuf(dimbinsize(binSAY)) AS INTEGER

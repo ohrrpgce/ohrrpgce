@@ -27,9 +27,9 @@ DECLARE SUB templockexplain ()
 DECLARE SUB cleanuptemp ()
 DECLARE FUNCTION getfilelist% (wildcard$)
 DECLARE SUB scriptadvanced (id%)
-DECLARE FUNCTION vehiclestuff% (disx%, disy%, vehedge%, BYREF txt AS TextBoxState)
+DECLARE FUNCTION vehiclestuff% (disx%, disy%, vehedge%)
 DECLARE FUNCTION checkfordeath (stat())
-DECLARE SUB loadsay (BYREF txt AS TextBoxState, box_id AS INTEGER)
+DECLARE SUB loadsay (box_id AS INTEGER)
 DECLARE SUB correctbackdrop ()
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
 DECLARE FUNCTION isonscreen% (x%, y%)
@@ -72,7 +72,7 @@ DECLARE SUB subread (si as ScriptInst)
 DECLARE SUB subreturn (si as ScriptInst)
 DECLARE SUB subdoarg (si as ScriptInst)
 DECLARE SUB unwindtodo (si as ScriptInst, levels%)
-DECLARE SUB resetgame (stat%(), scriptout$,BYREF txt AS TextBoxState)
+DECLARE SUB resetgame (stat%(), scriptout$)
 DECLARE FUNCTION countitem% (it%)
 DECLARE SUB scriptmath ()
 DECLARE FUNCTION movdivis% (xygo%)
@@ -90,7 +90,7 @@ DECLARE SUB doswap (s%, d%, stat%())
 DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE SUB patcharray (array%(), n$)
-DECLARE SUB drawsay (txt AS TextBoxState)
+DECLARE SUB drawsay ()
 DECLARE SUB shop (id%, needf%, stat%(), tilesets() AS TilesetData ptr)
 DECLARE SUB minimap (x%, y%, tilesets() AS TilesetData ptr)
 DECLARE FUNCTION teleporttool (tilesets() as TilesetData ptr)
@@ -114,7 +114,7 @@ DECLARE FUNCTION atlevel% (now%, a0%, a99%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION checksaveslot (slot%)
 DECLARE SUB defaultc ()
-DECLARE SUB forcedismount (BYREF txt AS TextBoxState, catd())
+DECLARE SUB forcedismount (catd())
 DECLARE SUB makebackups
 DECLARE SUB setmapxy ()
 DECLARE SUB drawnpcs ()
@@ -181,12 +181,12 @@ DECLARE FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING,
 DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
 DECLARE SUB debug_npcs ()
 DECLARE SUB npc_debug_display ()
-DECLARE SUB prepare_map (BYREF txt AS TextBoxState, afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
+DECLARE SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
 DECLARE SUB reset_game_state ()
 DECLARE SUB reset_map_state (map AS MapModeState)
 DECLARE SUB opendoor (dforce AS INTEGER=0)
 DECLARE SUB thrudoor (door_id AS INTEGER)
-DECLARE SUB advance_text_box (BYREF txt AS TextBoxState)
+DECLARE SUB advance_text_box ()
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -233,10 +233,10 @@ DIM didgo(0 TO 3)
 DIM SHARED needf
 DIM SHARED harmtileflash = NO
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
-DIM SHARED txt AS TextBoxState
 
 'global variables
 DIM gam AS GameState
+DIM txt AS TextBoxState
 DIM gen(360)
 DIM tag(127)
 
@@ -508,7 +508,7 @@ fadeout 0, 0, 0
 IF temp = -2 THEN EXIT DO 'resetg
 IF temp >= 0 THEN
  GOSUB doloadgame
- prepare_map txt, NO, YES 'Special case if this is called right after GOSUB doloadgame
+ prepare_map NO, YES 'Special case if this is called right after GOSUB doloadgame
 ELSE
  clearpage 0
  clearpage 1
@@ -516,7 +516,7 @@ ELSE
  IF gen(41) > 0 THEN
   runscript(gen(41), nowscript + 1, -1, "newgame", plottrigger)
  END IF
- prepare_map txt
+ prepare_map
 END IF
 
 doihavebits
@@ -550,7 +550,7 @@ DO
  player_menu_keys menu_text_box, stat(), catx(), caty(), tilesets()
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
-  loadsay txt, menu_text_box
+  loadsay menu_text_box
  END IF
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
@@ -586,7 +586,7 @@ DO
  END IF
  'debug "before advance_text_box:"
  IF carray(4) > 1 AND txt.fully_shown = YES AND readbit(gen(), 44, suspendboxadvance) = 0 THEN
-  advance_text_box txt
+  advance_text_box
  END IF
  'debug "after advance_text_box:"
  IF veh(0) THEN
@@ -612,7 +612,7 @@ DO
      IF pasx < 0 THEN pasx = (scroll(0) - 1) : vehedge = 1
    END SELECT
   END IF
-  tmp = vehiclestuff(pasx, pasy, vehedge, txt)
+  tmp = vehiclestuff(pasx, pasy, vehedge)
   SELECT CASE tmp
    CASE IS < 0
     runscript(ABS(tmp), nowscript + 1, -1, "vehicle", plottrigger)
@@ -620,7 +620,7 @@ DO
     add_menu 0
     menusound gen(genAcceptSFX)
    CASE IS > 1
-    loadsay txt, tmp - 1
+    loadsay tmp - 1
   END SELECT
  END IF
  IF txt.fully_shown = YES AND txt.box.choice_enabled THEN
@@ -694,7 +694,7 @@ DO
   IF keyval(29) > 0 THEN ' holding CTRL
    IF keyval(59) > 1 AND txt.showing = NO THEN 
     IF teleporttool(tilesets()) THEN 'CTRL + F1
-     prepare_map txt
+     prepare_map
     END IF
    END IF
    IF showtags = 0 THEN
@@ -711,7 +711,7 @@ DO
   'DEBUG debug "loading game slot" + XSTR$(wantloadgame - 1)
   temp = wantloadgame - 1
   wantloadgame = 0
-  resetgame stat(), scriptout$, txt
+  resetgame stat(), scriptout$
   initgamedefaults
   fademusic 0
   stopsong
@@ -720,7 +720,7 @@ DO
   force_npc_check = YES
   game.map.lastmap = -1
   GOSUB doloadgame
-  prepare_map txt, NO, YES
+  prepare_map NO, YES
  END IF
  'DEBUG debug "random enemies"
  IF gam.random_battle_countdown = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (veh(0) = 0 OR veh(11) > -1) THEN
@@ -734,7 +734,7 @@ DO
      fatal = 0
      gam.wonbattle = battle(batform, fatal, stat())
      dotimerafterbattle
-     prepare_map txt, YES
+     prepare_map YES
      needf = 2
     ELSE
      rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle", plottrigger)
@@ -765,7 +765,7 @@ DO
  END IF' end menus_allow_gameplay
  GOSUB displayall
  IF fatal = 1 OR abortg > 0 THEN
-  resetgame stat(), scriptout$, txt
+  resetgame stat(), scriptout$
   'if skip loadmenu and title bits set, quit
   IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_sav(savefile) = 0) THEN
    EXIT DO, DO ' To game select screen (quit the gameplay and RPG file loops, allowing the program loop to cycle)
@@ -857,7 +857,7 @@ ELSE '---END NORMAL DISPLAY---
  copypage 3, dpage
 END IF '---END BACKDROP DISPLAY---
 'DEBUG debug "text box"
-IF txt.showing = YES THEN drawsay txt
+IF txt.showing = YES THEN drawsay
 'DEBUG debug "map name"
 IF gam.map.showname > 0 AND gmap(4) >= gam.map.showname THEN
  gam.map.showname -= 1
@@ -972,7 +972,7 @@ IF txt.sayer >= 0 THEN
   CASE 0
    txt.sayer = -1
   CASE IS > 0
-   loadsay txt, npcs(npc(txt.sayer).id - 1).textbox
+   loadsay npcs(npc(txt.sayer).id - 1).textbox
  END SELECT
  evalherotag stat()
  evalitemtag
@@ -1402,7 +1402,7 @@ END WITH
 END IF
 '--do spawned text boxes, battles, etc.
 IF wantbox > 0 THEN
- loadsay txt, wantbox
+ loadsay wantbox
  wantbox = 0
 END IF
 IF wantdoor > 0 THEN
@@ -1420,14 +1420,14 @@ IF wantbattle > 0 THEN
  fatal = 0
  gam.wonbattle = battle(wantbattle - 1, fatal, stat())
  wantbattle = 0
- prepare_map txt, YES
+ prepare_map YES
  gam.random_battle_countdown = range(100, 60)
  needf = 3
  setkeys
 END IF
 IF wantteleport > 0 THEN
  wantteleport = 0
- prepare_map txt
+ prepare_map
  gam.random_battle_countdown = range(100, 60)
 END IF
 IF wantusenpc > 0 THEN
@@ -1809,7 +1809,7 @@ WITH scrat(nowscript)
     gen(50) = 0
     correctbackdrop
    CASE 34'--dismount vehicle
-    forcedismount txt, catd()
+    forcedismount catd()
    CASE 35'--use NPC
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
@@ -1894,7 +1894,7 @@ WITH scrat(nowscript)
    CASE 80'--current map
     scriptret = gam.map.id
    CASE 86'--advance text box
-    advance_text_box txt
+    advance_text_box
    CASE 97'--read map block
     setmapdata scroll(), pass(), 0, 0
     IF curcmd->argc = 2 THEN retvals(2) = 0
@@ -2858,7 +2858,7 @@ FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
  RETURN formset(1 + foenext) - 1
 END FUNCTION
 
-SUB prepare_map (BYREF txt AS TextBoxState, afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
+SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
  'DEBUG debug "in preparemap"
  DIM i AS INTEGER
  'save data from old map
@@ -2922,7 +2922,7 @@ SUB prepare_map (BYREF txt AS TextBoxState, afterbat AS INTEGER=NO, afterload AS
  loaddoor gam.map.id
 
  IF afterbat = NO AND gam.map.same = NO THEN
-  forcedismount txt, catd()
+  forcedismount catd()
  END IF
  IF afterbat = NO AND afterload = NO THEN
   FOR i = 0 TO 15
@@ -3028,7 +3028,7 @@ SUB thrudoor (door_id AS INTEGER)
      fadeout 0, 0, 0
      needf = 2
      IF oldmap = gam.map.id THEN gam.map.same = YES
-     prepare_map txt
+     prepare_map
      gam.random_battle_countdown = range(100, 60)
      EXIT FOR
     END IF
@@ -3037,7 +3037,7 @@ SUB thrudoor (door_id AS INTEGER)
  NEXT i
 END SUB
 
-SUB advance_text_box (BYREF txt AS TextBoxState)
+SUB advance_text_box ()
  IF txt.box.backdrop > 0 THEN
   '--backdrop needs resetting
   gen(genTextboxBackdrop) = 0
@@ -3074,7 +3074,7 @@ SUB advance_text_box (BYREF txt AS TextBoxState)
  IF istag(txt.box.battle_tag, 0) THEN
   fatal = 0
   gam.wonbattle = battle(txt.box.battle, fatal, stat())
-  prepare_map txt, YES
+  prepare_map YES
   gam.random_battle_countdown = range(100, 60)
   needf = 1
  END IF
@@ -3123,7 +3123,7 @@ SUB advance_text_box (BYREF txt AS TextBoxState)
   IF txt.box.after < 0 THEN
    runscript(-txt.box.after, nowscript + 1, -1, "textbox", plottrigger)
   ELSE
-   loadsay txt, txt.box.after
+   loadsay txt.box.after
    EXIT SUB
   END IF
  END IF
