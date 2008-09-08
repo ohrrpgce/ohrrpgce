@@ -2595,6 +2595,9 @@ FUNCTION enter_or_space () AS INTEGER
  RETURN keyval(28) > 1 OR keyval(57) > 1
 END FUNCTION
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS INTEGER=0, sub_t AS INTEGER=0)
  DIM i AS INTEGER
  FOR i = 0 TO UBOUND(menu.items)
@@ -2676,6 +2679,7 @@ SUB unloadtilesetdata (BYREF tileset AS TilesetData ptr)
 END SUB
 
 SUB maptilesetsprint (tilesets() AS TilesetData ptr)
+ DIM i AS INTEGER
  FOR i = 0 TO UBOUND(tilesets)
   IF tilesets(i) = NULL THEN
    debug i & ": NULL"
@@ -2706,6 +2710,7 @@ SUB loadtilesetdata (BYREF tileset AS TilesetData ptr, BYVAL tilesetnum AS INTEG
   loadtileset .spr, page
   freepage page
   loadtanim tilesetnum, .tastuf()
+  DIM i AS INTEGER
   FOR i = 0 TO 1
    WITH .anim(i)
     .cycle = 0
@@ -2717,6 +2722,7 @@ SUB loadtilesetdata (BYREF tileset AS TilesetData ptr, BYVAL tilesetnum AS INTEG
 END SUB
 
 SUB loadtilesetdata (tilesets() AS TilesetData ptr, BYVAL layer AS INTEGER, BYVAL tilesetnum AS INTEGER)
+ DIM i AS INTEGER
  FOR i = 0 TO UBOUND(tilesets)
   IF i <> layer AND tilesets(i) <> NULL THEN
    IF tilesets(i)->num = tilesetnum THEN
@@ -2741,14 +2747,17 @@ SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER, BYVAL res
 '  IF tilesets(i) <> NULL THEN tilesets(UBOUND(tilesets) - i) = tilesets(i): tilesets(i)->refcount += 1
 ' NEXT
 
+ DIM AS INTEGER i, j
+ DIM tileset AS INTEGER
+
  FOR i = 0 TO 2
   IF gmap(22 + i) <> 0 THEN
-   set = gmap(22 + i) - 1
+   tileset = gmap(22 + i) - 1
   ELSE
-   set = gmap(0)
+   tileset = gmap(0)
   END IF
 
-  loadtilesetdata tilesets(), i, set
+  loadtilesetdata tilesets(), i, tileset
  NEXT
 
  FOR i = 0 TO 2
@@ -2767,6 +2776,7 @@ SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER, BYVAL res
 END SUB
 
 SUB unloadmaptilesets (tilesets() AS TilesetData ptr)
+ DIM i AS INTEGER
  FOR i = 0 TO UBOUND(tilesets)
   unloadtilesetdata tilesets(i)
  NEXT
