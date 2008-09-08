@@ -186,7 +186,7 @@ DECLARE SUB reset_game_state ()
 DECLARE SUB reset_map_state (map AS MapModeState)
 DECLARE SUB opendoor (dforce AS INTEGER=0)
 DECLARE SUB thrudoor (door_id AS INTEGER)
-DECLARE SUB advance_text_box (BYREF txt AS TextBoxState, foef() AS INTEGER)
+DECLARE SUB advance_text_box (BYREF txt AS TextBoxState)
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -228,7 +228,6 @@ fmvol = getfmvol
 'Module local variables
 DIM font(1024)
 DIM didgo(0 TO 3)
-DIM foef(254)
 
 'shared module variables
 DIM SHARED needf
@@ -442,7 +441,7 @@ setfont font()
 setpicstuf buffer(), 50, -1
 FOR i = 0 TO 254
  loadset game + ".efs", i, 0
- foef(i) = buffer(0)
+ gam.foe_freq(i) = buffer(0)
 NEXT i
 j = 0
 
@@ -587,7 +586,7 @@ DO
  END IF
  'debug "before advance_text_box:"
  IF carray(4) > 1 AND txt.fully_shown = YES AND readbit(gen(), 44, suspendboxadvance) = 0 THEN
-  advance_text_box txt, foef()
+  advance_text_box txt
  END IF
  'debug "after advance_text_box:"
  IF veh(0) THEN
@@ -1122,7 +1121,7 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR force_npc_ch
  IF needf = 0 THEN
   temp = readfoemap(catx(0) \ 20, caty(0) \ 20, scroll(0), scroll(1), foemaph)
   IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
-  IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - foef(temp - 1), 0)
+  IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
   setmapdata scroll(), pass(), 0, 0
  END IF
  IF gmap(14) > 0 THEN
@@ -1412,7 +1411,7 @@ IF wantdoor > 0 THEN
  IF needf = 0 THEN
   temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
   IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
-  IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - foef(temp - 1), 0)
+  IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
   setmapdata scroll(), pass(), 0, 0
  END IF
  setmapxy
@@ -1895,7 +1894,7 @@ WITH scrat(nowscript)
    CASE 80'--current map
     scriptret = gam.map.id
    CASE 86'--advance text box
-    advance_text_box txt, foef()
+    advance_text_box txt
    CASE 97'--read map block
     setmapdata scroll(), pass(), 0, 0
     IF curcmd->argc = 2 THEN retvals(2) = 0
@@ -3038,7 +3037,7 @@ SUB thrudoor (door_id AS INTEGER)
  NEXT i
 END SUB
 
-SUB advance_text_box (BYREF txt AS TextBoxState, foef() AS INTEGER)
+SUB advance_text_box (BYREF txt AS TextBoxState)
  IF txt.box.backdrop > 0 THEN
   '--backdrop needs resetting
   gen(genTextboxBackdrop) = 0
@@ -3114,7 +3113,7 @@ SUB advance_text_box (BYREF txt AS TextBoxState, foef() AS INTEGER)
    DIM temp AS INTEGER
    temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
    IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
-   IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - foef(temp - 1), 0)
+   IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
    setmapdata scroll(), pass(), 0, 0
   END IF
   setmapxy

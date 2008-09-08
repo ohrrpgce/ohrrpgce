@@ -20,6 +20,7 @@ TYPE GameState
   remembermusic AS INTEGER 'Remembers music from before battle starts
   random_battle_countdown AS INTEGER
   stock(99, 49) AS INTEGER 'Keeps track of available inventory at each shop
+  foe_freq(254) AS INTEGER 'A cache of the fight frequency for each formation set
 END TYPE
 
 #ENDIF
