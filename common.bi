@@ -160,6 +160,8 @@ DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, rect AS RectType, count
 DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, menu AS MenuDef, page AS INTEGER)
 DECLARE SUB draw_fullscreen_scrollbar(state AS MenuState, count AS INTEGER, boxstyle AS INTEGER, page AS INTEGER)
 
+DECLARE FUNCTION range (number AS INTEGER, percent AS INTEGER) AS INTEGER
+
 'Global variables
 EXTERN as string game, tmpdir, exename, workingdir
 EXTERN uilook() as integer

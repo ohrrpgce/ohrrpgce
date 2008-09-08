@@ -2821,3 +2821,9 @@ SUB draw_fullscreen_scrollbar(state AS MenuState, count AS INTEGER, boxstyle AS 
  rect.high = 200
  draw_scrollbar state, rect, count, boxstyle, page
 END SUB
+
+FUNCTION range (number AS INTEGER, percent AS INTEGER) AS INTEGER
+ DIM a AS INTEGER
+ a = (number / 100) * percent
+ RETURN number + INT(RND * (a * 2)) - a
+END FUNCTION

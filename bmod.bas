@@ -13,8 +13,9 @@ DEFINT A-Z
 #INCLUDE "allmodex.bi"
 #include "menustuf.bi"
 #include "yetmore.bi"
-#include "moresubs.bi"
 DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
+DECLARE SUB delitem (it, amount)
+DECLARE FUNCTION consumeitem (index)
 
 'misc
 #include "common.bi"

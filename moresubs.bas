@@ -9,7 +9,6 @@ DEFINT A-Z
 #include "udts.bi"
 
 'basic subs and functions
-DECLARE FUNCTION rangel% (n&, r%)
 DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE SUB innRestore (stat%())
@@ -51,7 +50,6 @@ DECLARE SUB resetlmp (slot%, lev%)
 DECLARE FUNCTION battle (form%, fatal%, exstat%())
 DECLARE SUB addhero (who, slot, stat(), forcelevel=-1)
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
-DECLARE FUNCTION range% (n%, r%)
 DECLARE SUB snapshot ()
 DECLARE FUNCTION exptolevel& (level%)
 DECLARE SUB deletetemps ()
@@ -1240,16 +1238,6 @@ LOOP
 setkeys
 flusharray carray(), 7, 0
 
-END FUNCTION
-
-FUNCTION range (n, r)
-a = (n / 100) * r
-range = n + INT(RND * (a * 2)) - a
-END FUNCTION
-
-FUNCTION rangel (n&, r)
-a = (n& / 100) * r
-rangel = n& + INT(RND * (a * 2)) - a
 END FUNCTION
 
 SUB readjoysettings

@@ -15,8 +15,6 @@ DECLARE SUB getitem (getit%, num%)
 DECLARE SUB getnames (stat$())
 DECLARE SUB resetlmp (slot%, lev%)
 DECLARE FUNCTION atlevel% (now%, a0%, a99%)
-DECLARE FUNCTION range% (n%, r%)
-DECLARE FUNCTION rangel% (n&, r%)
 DECLARE SUB snapshot ()
 DECLARE SUB delitem (it%, num%)
 DECLARE FUNCTION countitem% (it%)
@@ -565,7 +563,7 @@ IF atk(5) <> 4 THEN
  h = h + (h / 100) * atk(11)
 
  'randomize
- IF readbit(atk(), 20, 61) = 0 THEN h = rangel(h,20)
+ IF readbit(atk(), 20, 61) = 0 THEN h = range(h,20)
 
  'spread damage
  IF readbit(atk(), 20, 1) = 1 THEN h = h / (tcount + 1)
