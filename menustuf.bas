@@ -12,7 +12,6 @@ DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
 DECLARE SUB herobattlebits_raw (bitbuf(), who%)
 DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
 DECLARE FUNCTION gethighbyte% (n%)
-DECLARE FUNCTION rpad$ (s$, pad$, size%)
 DECLARE SUB vishero (stat%())
 DECLARE SUB doequip (toequip%, who%, where%, defwep%, stat%())
 DECLARE FUNCTION playtime$ (d%, h%, m%)
@@ -513,8 +512,8 @@ m$(0) = readglobalstring$(38, "Weapon", 10)
 FOR i = 0 TO 3
  m$(i + 1) = sname$(25 + i)
 NEXT i
-menu$(5) = rpad$(readglobalstring$(39, "-REMOVE-", 8), " ", 8)
-menu$(6) = rpad$(readglobalstring$(40, "-EXIT-", 8), " ", 8)
+menu$(5) = rpad(readglobalstring$(39, "-REMOVE-", 8), " ", 8)
+menu$(6) = rpad(readglobalstring$(40, "-EXIT-", 8), " ", 8)
 unequipone$ = readglobalstring$(110, "Nothing", 10)
 
 '--stat name offsets
@@ -768,7 +767,7 @@ setpicstuf buffer(), 200, -1
 FOR i = 0 TO 4
  menu$(i) = "        "
  IF eqstuf(pt, i) > 0 THEN
-  menu$(i) = rpad$(readitemname$(eqstuf(pt, i) - 1), " ", 8)
+  menu$(i) = rpad(readitemname$(eqstuf(pt, i) - 1), " ", 8)
  END IF
 NEXT i
 o = 0
@@ -880,9 +879,9 @@ DIM iuse(15), atkIDs(inventoryMax), permask(15), special$(-3 TO -1)
 DIM autosort_changed AS INTEGER = 0
 'bit 0 of iuse, permask, correspond to item -3
 
-special$(-3) = rpad$(readglobalstring$(35, "DONE", 10), " ", 11)
-special$(-2) = rpad$(readglobalstring$(36, "AUTOSORT", 10), " ", 11)
-special$(-1) = rpad$(readglobalstring$(37, "TRASH", 10), " ", 11)
+special$(-3) = rpad(readglobalstring$(35, "DONE", 10), " ", 11)
+special$(-2) = rpad(readglobalstring$(36, "AUTOSORT", 10), " ", 11)
+special$(-1) = rpad(readglobalstring$(37, "TRASH", 10), " ", 11)
 
 REMEMBERSTATE
 
@@ -1213,7 +1212,7 @@ IF inventory(i).used = 0 THEN
  inventory(i).text = SPACE$(11)
 ELSE
  inventory(i).text = readitemname$(inventory(i).id)
- inventory(i).text = rpad$(inventory(i).text, " ", 8) + CHR$(1) + RIGHT$(XSTR$(inventory(i).num), 2)
+ inventory(i).text = rpad(inventory(i).text, " ", 8) + CHR$(1) + RIGHT$(XSTR$(inventory(i).num), 2)
 END IF
 END SUB
 
@@ -1679,12 +1678,6 @@ RETRACE
 
 END FUNCTION
 
-FUNCTION rpad$ (s$, pad$, size)
-result$ = LEFT$(s$, size)
-WHILE LEN(result$) < size: result$ = result$ + pad$: WEND
-rpad$ = result$
-END FUNCTION
-
 SUB sellstuff (id, storebuf(), stat())
 DIM b(dimbinsize(1) * 50), sname$(40), permask(15), price(200)
 recordsize = curbinsize(1) / 2 ' get size in INTs
@@ -2030,14 +2023,14 @@ FOR o = 0 TO 5
   '--if non-null...
   IF menu$(last) <> "" THEN
    '--right-pad the name
-   menu$(last) = rpad$(menu$(last), " ", 10)
+   menu$(last) = rpad(menu$(last), " ", 10)
    '--increment the spell-list counter because
    '--we only (currently) care about non-null-named spell lists
    last = last + 1
   END IF
  END IF
 NEXT o
-menu$(last) = rpad$(readglobalstring$(46, "Exit", 10), " ", 10)
+menu$(last) = rpad(readglobalstring$(46, "Exit", 10), " ", 10)
 mi(last) = -1
 mtype(last) = -1
 IF csr > last THEN csr = last

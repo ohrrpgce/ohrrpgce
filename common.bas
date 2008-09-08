@@ -2827,3 +2827,10 @@ FUNCTION range (number AS INTEGER, percent AS INTEGER) AS INTEGER
  a = (number / 100) * percent
  RETURN number + INT(RND * (a * 2)) - a
 END FUNCTION
+
+FUNCTION rpad (s AS STRING, pad_char AS STRING, size AS INTEGER) AS STRING
+ DIM result AS STRING
+ result = LEFT(s, size)
+ WHILE LEN(result) < size: result = result & pad_char: WEND
+ RETURN result
+END FUNCTION

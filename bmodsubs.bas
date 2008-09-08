@@ -7,7 +7,6 @@
 DEFINT A-Z
 'basic subs and functions
 DECLARE SUB exitprogram (needfade%)
-DECLARE FUNCTION rpad$ (s$, pad$, size%)
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE SUB wrappedsong (songnumber%)
 DECLARE SUB calibrate ()

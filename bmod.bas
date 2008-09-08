@@ -11,8 +11,8 @@ DEFINT A-Z
 #include "bmodsubs.bi"
 #include "game.bi"
 #INCLUDE "allmodex.bi"
-#include "menustuf.bi"
 #include "yetmore.bi"
+DECLARE SUB getitem (getit, num)
 DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
 DECLARE SUB delitem (it, amount)
 DECLARE FUNCTION consumeitem (index)
@@ -458,7 +458,7 @@ IF carray(4) > 1 THEN
       setbit spelmask(), 0, i, 1
      END IF
     END IF
-    spel$(i) = rpad$(spel$(i), " ", 10) '-- pad the spell menu caption
+    spel$(i) = rpad(spel$(i), " ", 10) '-- pad the spell menu caption
    NEXT i
   ELSEIF st(bat.hero_turn).list_type(listslot) = 2 THEN '-- this is a random spell list
    spellcount = 0
