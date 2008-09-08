@@ -19,6 +19,7 @@ TYPE GameState
   wonbattle AS INTEGER 'Indicates the status of the last battle, 1 for victory 0 for running away
   remembermusic AS INTEGER 'Remembers music from before battle starts
   random_battle_countdown AS INTEGER
+  stock(99, 49) AS INTEGER 'Keeps track of available inventory at each shop
 END TYPE
 
 #ENDIF

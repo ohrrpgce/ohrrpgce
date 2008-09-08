@@ -22,8 +22,8 @@ DECLARE SUB writescriptvar (BYVAL id%, BYVAL newval%)
 DECLARE FUNCTION readscriptvar% (id%)
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE SUB vishero (stat%())
-DECLARE SUB sellstuff (id%, storebuf%(), stock%(), stat%())
-DECLARE SUB buystuff (id%, shoptype%, storebuf%(), stock%(), stat%())
+DECLARE SUB sellstuff (id%, storebuf%(), stat%())
+DECLARE SUB buystuff (id%, shoptype%, storebuf%(), stat%())
 DECLARE SUB playtimer ()
 DECLARE FUNCTION averagelev% (stat%())
 DECLARE FUNCTION countitem% (it%)
@@ -32,7 +32,7 @@ DECLARE FUNCTION onwho% (w$, alone)
 DECLARE SUB minimap (x%, y%, tilesets() as TilesetData ptr)
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE FUNCTION useinn (inn%, price%, needf%, stat%(), holdscreen)
-DECLARE SUB savegame (slot%, stat%(), stock%())
+DECLARE SUB savegame (slot%, stat%())
 DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
 DECLARE SUB scripterr (e$)
 DECLARE SUB itstr (i%)
@@ -742,7 +742,7 @@ ELSE
 END IF
 END SUB
 
-SUB loadgame (slot, stat(), stock())
+SUB loadgame (slot, stat())
 
 DIM gmaptmp(dimbinsize(4))
 
@@ -871,7 +871,7 @@ z = 0
 
 FOR i = 0 TO 99
  FOR o = 0 TO 49
-  stock(i, o) = buffer(z): z = z + 1
+  gam.stock(i, o) = buffer(z): z = z + 1
  NEXT o
 NEXT i
 FOR i = 0 TO 3
@@ -1355,7 +1355,7 @@ END IF
 
 END SUB
 
-SUB resetgame (stat(), stock(), scriptout$,BYREF txt AS TextBoxState)
+SUB resetgame (stat(), scriptout$,BYREF txt AS TextBoxState)
 gam.map.id = 0
 catx(0) = 0
 caty(0) = 0
@@ -1416,7 +1416,7 @@ NEXT i
 
 FOR i = 0 TO 99
  FOR o = 0 TO 49
-  stock(i, o) = 0
+  gam.stock(i, o) = 0
  NEXT o
 NEXT i
 flusharray hmask(), 3, 0
@@ -1772,7 +1772,7 @@ NEXT
 
 END SUB
 
-SUB savegame (slot, stat(), stock())
+SUB savegame (slot, stat())
 
 DIM gmaptmp(dimbinsize(4))
 
@@ -1894,7 +1894,7 @@ z = 0
 
 FOR i = 0 TO 99
  FOR o = 0 TO 49
-  buffer(z) = stock(i, o): z = z + 1
+  buffer(z) = gam.stock(i, o): z = z + 1
  NEXT o
 NEXT i
 FOR i = 0 TO 3
@@ -2071,7 +2071,7 @@ END IF
 
 END FUNCTION
 
-SUB shop (id, needf, stock(), stat(), tilesets() AS TilesetData ptr)
+SUB shop (id, needf, stat(), tilesets() AS TilesetData ptr)
 
 DIM storebuf(40), menu$(10), menuid(10)
 
@@ -2114,13 +2114,13 @@ DO
  IF carray(4) > 1 OR autopick THEN
   IF pt = last THEN menusound gen(genCancelSFX) : EXIT DO
   IF menuid(pt) = 0 THEN '--BUY
-   buystuff id, 0, storebuf(), stock(), stat()
+   buystuff id, 0, storebuf(), stat()
   END IF
   IF menuid(pt) = 1 THEN '--SELL
-   sellstuff id, storebuf(), stock(), stat()
+   sellstuff id, storebuf(), stat()
   END IF
   IF menuid(pt) = 2 THEN '--HIRE
-   buystuff id, 1, storebuf(), stock(), stat()
+   buystuff id, 1, storebuf(), stat()
   END IF
   IF menuid(pt) = 6 THEN '--MAP
    minimap catx(0), caty(0), tilesets()
@@ -2136,7 +2136,7 @@ DO
   END IF
   IF menuid(pt) = 5 THEN '--SAVE
    temp = picksave(0)
-   IF temp >= 0 THEN savegame temp, stat(), stock()
+   IF temp >= 0 THEN savegame temp, stat()
   END IF
   IF menuid(pt) = 3 THEN '--INN
    inn = 0

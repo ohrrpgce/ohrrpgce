@@ -73,7 +73,7 @@ DECLARE SUB subread (si as ScriptInst)
 DECLARE SUB subreturn (si as ScriptInst)
 DECLARE SUB subdoarg (si as ScriptInst)
 DECLARE SUB unwindtodo (si as ScriptInst, levels%)
-DECLARE SUB resetgame (stat%(), stock%(), scriptout$,BYREF txt AS TextBoxState)
+DECLARE SUB resetgame (stat%(), scriptout$,BYREF txt AS TextBoxState)
 DECLARE FUNCTION countitem% (it%)
 DECLARE SUB scriptmath ()
 DECLARE FUNCTION movdivis% (xygo%)
@@ -92,7 +92,7 @@ DECLARE FUNCTION howmanyh% (f%, l%)
 DECLARE SUB heroswap (iAll%, stat%())
 DECLARE SUB patcharray (array%(), n$)
 DECLARE SUB drawsay (txt AS TextBoxState)
-DECLARE SUB shop (id%, needf%, stock%(), stat%(), tilesets() AS TilesetData ptr)
+DECLARE SUB shop (id%, needf%, stat%(), tilesets() AS TilesetData ptr)
 DECLARE SUB minimap (x%, y%, tilesets() AS TilesetData ptr)
 DECLARE FUNCTION teleporttool (tilesets() as TilesetData ptr)
 DECLARE FUNCTION onwho% (w$, alone)
@@ -100,8 +100,8 @@ DECLARE FUNCTION useinn (inn, price, needf, stat(), holdscreen)
 DECLARE SUB itstr (i%)
 DECLARE SUB control ()
 DECLARE FUNCTION picksave% (load%)
-DECLARE SUB savegame (slot%, stat%(), stock())
-DECLARE SUB loadgame (slot%, stat%(), stock())
+DECLARE SUB savegame (slot%, stat%())
+DECLARE SUB loadgame (slot%, stat%())
 DECLARE SUB equip (pt%, stat%())
 DECLARE FUNCTION items% (stat%())
 DECLARE SUB delitem (it%, num%)
@@ -163,7 +163,7 @@ DECLARE SUB bring_menu_forward (slot AS INTEGER)
 DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
 DECLARE FUNCTION menus_allow_player () AS INTEGER
 DECLARE FUNCTION allowed_to_open_main_menu () AS INTEGER
-DECLARE SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tilesets() AS TilesetData ptr, stock())
+DECLARE SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tilesets() AS TilesetData ptr)
 DECLARE FUNCTION getdisplayname$ (default$)
 DECLARE SUB check_menu_tags ()
 DECLARE FUNCTION game_usemenu (state AS MenuState)
@@ -188,7 +188,7 @@ DECLARE SUB reset_game_state ()
 DECLARE SUB reset_map_state (map AS MapModeState)
 DECLARE SUB opendoor (dforce AS INTEGER=0)
 DECLARE SUB thrudoor (door_id AS INTEGER)
-DECLARE SUB advance_text_box (BYREF txt AS TextBoxState, stock() AS INTEGER, foef() AS INTEGER)
+DECLARE SUB advance_text_box (BYREF txt AS TextBoxState, foef() AS INTEGER)
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -231,7 +231,6 @@ fmvol = getfmvol
 DIM font(1024)
 DIM didgo(0 TO 3)
 DIM foef(254)
-DIM stock(99, 49)
 
 'shared module variables
 DIM SHARED needf
@@ -551,7 +550,7 @@ DO
    init_menu_state mstates(i), menus(i)
   END IF
  NEXT i
- player_menu_keys menu_text_box, stat(), catx(), caty(), tilesets(), stock()
+ player_menu_keys menu_text_box, stat(), catx(), caty(), tilesets()
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
   loadsay txt, menu_text_box
@@ -590,7 +589,7 @@ DO
  END IF
  'debug "before advance_text_box:"
  IF carray(4) > 1 AND txt.fully_shown = YES AND readbit(gen(), 44, suspendboxadvance) = 0 THEN
-  advance_text_box txt, stock(), foef()
+  advance_text_box txt, foef()
  END IF
  'debug "after advance_text_box:"
  IF veh(0) THEN
@@ -641,7 +640,7 @@ DO
   '--debugging keys
   'DEBUG debug "evaluate debugging keys"
   IF keyval(60) > 1 AND txt.showing = NO THEN
-   savegame 32, stat(), stock()
+   savegame 32, stat()
   END IF
   IF keyval(61) > 1 AND txt.showing = NO THEN
    wantloadgame = 33
@@ -715,7 +714,7 @@ DO
   'DEBUG debug "loading game slot" + XSTR$(wantloadgame - 1)
   temp = wantloadgame - 1
   wantloadgame = 0
-  resetgame stat(), stock(), scriptout$, txt
+  resetgame stat(), scriptout$, txt
   initgamedefaults
   fademusic 0
   stopsong
@@ -769,7 +768,7 @@ DO
  END IF' end menus_allow_gameplay
  GOSUB displayall
  IF fatal = 1 OR abortg > 0 THEN
-  resetgame stat(), stock(), scriptout$, txt
+  resetgame stat(), scriptout$, txt
   'if skip loadmenu and title bits set, quit
   IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_sav(savefile) = 0) THEN
    EXIT DO, DO ' To game select screen (quit the gameplay and RPG file loops, allowing the program loop to cycle)
@@ -816,7 +815,7 @@ RETRIEVESTATE
 LOOP ' This is the end of the DO that encloses the entire program.
 
 doloadgame:
-loadgame temp, stat(), stock()
+loadgame temp, stat()
 IF gen(57) > 0 THEN
  rsr = runscript(gen(57), nowscript + 1, -1, "loadgame", plottrigger)
  IF rsr = 1 THEN
@@ -1823,7 +1822,7 @@ WITH scrat(nowscript)
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxShop) THEN
-     shop retvals(0), needf, stock(), stat(), tilesets()
+     shop retvals(0), needf, stat(), tilesets()
      reloadnpc stat()
     END IF
    CASE 55'--get default weapon
@@ -1898,7 +1897,7 @@ WITH scrat(nowscript)
    CASE 80'--current map
     scriptret = gam.map.id
    CASE 86'--advance text box
-    advance_text_box txt, stock(), foef()
+    advance_text_box txt, foef()
    CASE 97'--read map block
     setmapdata scroll(), pass(), 0, 0
     IF curcmd->argc = 2 THEN retvals(2) = 0
@@ -1956,11 +1955,11 @@ WITH scrat(nowscript)
     'ID 155 is a backcompat hack
     scriptret = picksave(0) + 1
     IF scriptret > 0 AND (retvals(0) OR curcmd->value = 155) THEN
-     savegame scriptret - 1, stat(), stock()
+     savegame scriptret - 1, stat()
     END IF
    CASE 166'--save in slot
     IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
-     savegame retvals(0) - 1, stat(), stock()
+     savegame retvals(0) - 1, stat()
     END IF
    CASE 167'--last save slot
     scriptret = lastsaveslot
@@ -2543,7 +2542,7 @@ FUNCTION menus_allow_player () AS INTEGER
  RETURN menus(topmenu).suspend_player = NO
 END FUNCTION
 
-SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tilesets() AS TilesetData ptr, stock())
+SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tilesets() AS TilesetData ptr)
  DIM i AS INTEGER
  DIM slot AS INTEGER
  DIM activated AS INTEGER
@@ -2608,7 +2607,7 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), ti
         minimap catx(0), caty(0), tilesets()
        CASE 8,13 ' save
         slot = picksave(0)
-        IF slot >= 0 THEN savegame slot, stat(), stock()
+        IF slot >= 0 THEN savegame slot, stat()
        CASE 9 ' load
         slot = picksave(1)
         IF slot >= 0 THEN
@@ -3041,7 +3040,7 @@ SUB thrudoor (door_id AS INTEGER)
  NEXT i
 END SUB
 
-SUB advance_text_box (BYREF txt AS TextBoxState, stock() AS INTEGER, foef() AS INTEGER)
+SUB advance_text_box (BYREF txt AS TextBoxState, foef() AS INTEGER)
  IF txt.box.backdrop > 0 THEN
   '--backdrop needs resetting
   gen(genTextboxBackdrop) = 0
@@ -3090,7 +3089,7 @@ SUB advance_text_box (BYREF txt AS TextBoxState, stock() AS INTEGER, foef() AS I
  '---SHOP/INN/SAVE/ETC------------
  IF istag(txt.box.shop_tag, 0) THEN
   IF txt.box.shop > 0 THEN
-   shop txt.box.shop - 1, needf, stock(), stat(), tilesets()
+   shop txt.box.shop - 1, needf, stat(), tilesets()
    reloadnpc stat()
   END IF
   DIM inn AS INTEGER = 0

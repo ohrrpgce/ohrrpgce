@@ -60,10 +60,10 @@ DECLARE FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacke
 
 '--SUBs and FUNCTIONS only used locally
 DECLARE SUB loadtrades(index, tradestf(), b(), recordsize)
-DECLARE SUB setshopstock (id, recordsize, stock(), storebuf(), stufbuf())
+DECLARE SUB setshopstock (id, recordsize, storebuf(), stufbuf())
 
 REM $STATIC
-SUB buystuff (id, shoptype, storebuf(), stock(), stat())
+SUB buystuff (id, shoptype, storebuf(), stat())
 DIM b(dimbinsize(1) * 50), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walks(15), tradestf(3, 1)
 DIM is_equipable AS INTEGER
 DIM itembuf(99) AS INTEGER
@@ -117,7 +117,7 @@ FOR o = 0 TO storebuf(16)
 NEXT o
 
 total = 0
-setshopstock id, recordsize, stock(), storebuf(), b()
+setshopstock id, recordsize, storebuf(), b()
 GOSUB stufmask
 IF total = 0 THEN GOTO cleanupquit
 
@@ -171,7 +171,7 @@ DO
  IF carray(5) > 1 THEN EXIT DO
  IF carray(4) > 1 THEN '---PRESS ENTER---------------------
   IF readbit(emask(), 0, pt) = 0 THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
-   IF stock(id, pt) > 1 THEN stock(id, pt) = stock(id, pt) - 1
+   IF gam.stock(id, pt) > 1 THEN gam.stock(id, pt) = gam.stock(id, pt) - 1
    IF b(pt * recordsize + 22) THEN setbit tag(), 0, ABS(b(pt * recordsize + 22)), SGN(SGN(b(pt * recordsize + 22)) + 1)
    gold = gold - b(pt * recordsize + 24)
    IF tradingitems THEN '---TRADE IN ITEMS----------
@@ -234,8 +234,8 @@ DO
  IF info1$ <> "" THEN edgeprint info1$, xstring(info1$, 240), 30 + o * 10, uilook(uiDisabledItem), dpage: o = o + 1
  IF info2$ <> "" THEN edgeprint info2$, xstring(info2$, 240), 30 + o * 10, uilook(uiDisabledItem), dpage: o = o + 1
  IF eqinfo$ <> "" THEN edgeprint eqinfo$, xstring(eqinfo$, 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
- IF stock(id, pt) > 1 THEN
-  edgeprint XSTR$(stock(id, pt) - 1) + " " + instock$ + " ", xstring(XSTR$(stock(id, pt) - 1) + " in stock ", 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
+ IF gam.stock(id, pt) > 1 THEN
+  edgeprint (gam.stock(id, pt) - 1) & " " & instock$ & " ", xstring((gam.stock(id, pt) - 1) & " " & instock$ & " ", 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
  END IF
  IF showhero > -1 THEN
   'This happens only if a hireable hero is selected
@@ -322,7 +322,7 @@ FOR i = 0 TO 3
 NEXT i
 FOR i = 0 TO storebuf(16)
  '--for each shop-thing
- IF stock(id, i) = 1 THEN setbit vmask(), 0, i, 1
+ IF gam.stock(id, i) = 1 THEN setbit vmask(), 0, i, 1
  IF b(i * recordsize + 17) = (shoptype XOR 1) THEN setbit vmask(), 0, i, 1
  IF NOT istag(b(i * recordsize + 20), -1) THEN setbit vmask(), 0, i, 1
  IF b(i * recordsize + 24) > gold THEN setbit emask(), 0, i, 1
@@ -424,15 +424,15 @@ END IF
 RETRACE
 END SUB
 
-SUB setshopstock (id, recordsize, stock(), storebuf(), stufbuf())
+SUB setshopstock (id, recordsize, storebuf(), stufbuf())
 DIM i AS INTEGER
 FOR i = 0 TO storebuf(16)
  '--for each shop-stuff
- IF stock(id, i) = 0 THEN
+ IF gam.stock(id, i) = 0 THEN
   '--if unloaded, reload stock
-  stock(id, i) = stufbuf(i * recordsize + 19)
+  gam.stock(id, i) = stufbuf(i * recordsize + 19)
   '--zero means unloaded, 1 means no-stock, 2+n means 1+n in stock
-  IF stock(id, i) > -1 THEN stock(id, i) = stock(id, i) + 1
+  IF gam.stock(id, i) > -1 THEN gam.stock(id, i) = gam.stock(id, i) + 1
  END IF
 NEXT i
 END SUB
@@ -1687,7 +1687,7 @@ WHILE LEN(result$) < size: result$ = result$ + pad$: WEND
 rpad$ = result$
 END FUNCTION
 
-SUB sellstuff (id, storebuf(), stock(), stat())
+SUB sellstuff (id, storebuf(), stat())
 DIM b(dimbinsize(1) * 50), sname$(40), permask(15), price(200)
 recordsize = curbinsize(1) / 2 ' get size in INTs
 
@@ -1800,8 +1800,8 @@ IF carray(4) > 1  AND inventory(ic).used THEN
     IF b(i * recordsize + 28) > 0 THEN getitem b(i * recordsize + 28), b(i * recordsize + 29) + 1
     'INCREMENT STOCK-------
     IF b(i * recordsize + 26) > 0 THEN
-     IF b(i * recordsize + 26) = 1 THEN stock(id, i) = -1
-     IF b(i * recordsize + 26) = 2 AND stock(id, i) > 0 THEN stock(id, i) = stock(id, i) + 1
+     IF b(i * recordsize + 26) = 1 THEN gam.stock(id, i) = -1
+     IF b(i * recordsize + 26) = 2 AND gam.stock(id, i) > 0 THEN gam.stock(id, i) = gam.stock(id, i) + 1
     END IF
    END IF
   NEXT i
@@ -1871,7 +1871,7 @@ RETRACE
 
 selstock:
 FOR i = 0 TO storebuf(16)
- IF stock(id, i) = 0 THEN stock(id, i) = b(i * recordsize + 19): IF stock(id, i) > -1 THEN stock(id, i) = stock(id, i) + 1
+ IF gam.stock(id, i) = 0 THEN gam.stock(id, i) = b(i * recordsize + 19): IF gam.stock(id, i) > -1 THEN gam.stock(id, i) = gam.stock(id, i) + 1
 NEXT i
 RETRACE
 

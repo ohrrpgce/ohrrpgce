@@ -7,7 +7,7 @@
 #IFNDEF MENUSTUF_BI
 #DEFINE MENUSTUF_BI
 
-declare sub buystuff (id, shoptype, storebuf(), stock(), stat())
+declare sub buystuff (id, shoptype, storebuf(), stat())
 declare sub doequip (toequip, who, where, defwep, stat())
 declare sub equip (pt, stat())
 declare sub getitem (getit, num)
@@ -20,7 +20,7 @@ declare sub patcharray (array(), n$, max)
 declare function picksave (loading)
 declare function rpad$ (s$, pad$, size)
 declare sub savetemppage (page)
-declare sub sellstuff (id, storebuf(), stock(), stat())
+declare sub sellstuff (id, storebuf(), stat())
 declare sub spells (pt, stat())
 declare sub status (pt, stat())
 declare function trylearn (who, atk, learntype)
