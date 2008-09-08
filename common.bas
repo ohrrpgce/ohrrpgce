@@ -842,14 +842,22 @@ END IF
 END SUB
 
 SUB fatalerror (e$)
+DIM ypos AS INTEGER
 #IFDEF IS_GAME
 debug "fatal error:" + e$
 setvispage 0
-centerbox 160, 100, 300, 180, 3, 0
-edgeprint e$, xstring(e$, 160), 20, uilook(uiText), 0
-edgeprint "Press ESC to cleanly close the program", 15, 40, uilook(uiMenuItem), 0
-edgeprint "or any other key to ignore the", 15, 50, uilook(uiMenuItem), 0
-edgeprint "error and try to continue playing.", 15, 60, uilook(uiMenuItem), 0
+centerbox 160, 100, 310, 180, 3, 0
+ypos = 20
+DO WHILE LEN(e$) > 38
+ edgeprint LEFT(e$, 38), 8, ypos, uilook(uiText), 0
+ e$ = MID(e$, 38)
+ ypos += 10
+LOOP
+edgeprint e$, 8, ypos, uilook(uiText), 0
+ypos += 15
+edgeprint "Press ESC to cleanly close the program", 8, ypos, uilook(uiMenuItem), 0
+edgeprint "or any other key to ignore the", 8, ypos + 10, uilook(uiMenuItem), 0
+edgeprint "error and try to continue playing.", 8, ypos + 20, uilook(uiMenuItem), 0
 
 setvispage 0 'refresh
 w = getkey
@@ -864,15 +872,21 @@ END IF
 #IFDEF IS_CUSTOM
 debug "fatal error:" + e$
 textcolor uilook(uiText), 0
-FOR i = 0 TO 1
- clearpage i
- printstr e$, 0, 0, i
- printstr "an error has occured. Press ESC to", 0, 16, i
- printstr "close " + CUSTOMEXE + " or press any other", 0, 24, i
- printstr "key to try to continue. If the", 0, 32, i
- printstr "error keeps happening, send e-mail to", 0, 40, i
- printstr "ohrrpgce-crash@HamsterRepublic.com", 0, 48, i
-NEXT i
+clearpage 0
+
+ypos = 0
+DO WHILE LEN(e$) > 38
+ edgeprint LEFT(e$, 38), 0, ypos, uilook(uiText), 0
+ e$ = MID(e$, 38)
+ ypos += 8
+LOOP
+printstr e$, 0, ypos, 0
+ypos += 16
+printstr "an error has occured. Press ESC to", 0, ypos, 0
+printstr "close " + CUSTOMEXE + " or press any other", 0, ypos + 8, 0
+printstr "key to try to continue. If the",             0, ypos + 16, 0
+printstr "error keeps happening, send e-mail to",      0, ypos + 24, 0
+printstr "ohrrpgce-crash@HamsterRepublic.com",         0, ypos + 32, 0
 setvispage 0 'refresh
 
 w = getkey
