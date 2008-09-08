@@ -188,6 +188,7 @@ DECLARE SUB reset_game_state ()
 DECLARE SUB reset_map_state (map AS MapModeState)
 DECLARE SUB opendoor (dforce AS INTEGER=0)
 DECLARE SUB thrudoor (door_id AS INTEGER)
+DECLARE SUB advance_text_box (BYREF txt AS TextBoxState, stock() AS INTEGER, foef() AS INTEGER)
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -587,11 +588,11 @@ DO
    LOOP
   END IF
  END IF
- 'debug "before nextsay:"
+ 'debug "before advance_text_box:"
  IF carray(4) > 1 AND txt.fully_shown = YES AND readbit(gen(), 44, suspendboxadvance) = 0 THEN
-  GOSUB nextsay
+  advance_text_box txt, stock(), foef()
  END IF
- 'debug "after nextsay:"
+ 'debug "after advance_text_box:"
  IF veh(0) THEN
   'DEBUG debug "evaluate vehicles"
   setmapdata pass(), pass(), 0, 0
@@ -983,113 +984,6 @@ IF txt.sayer >= 0 THEN
   npcplot
  END IF
 END IF
-RETRACE
-
-nextsay:
-IF txt.box.backdrop > 0 THEN
- '--backdrop needs resetting
- gen(genTextboxBackdrop) = 0
- correctbackdrop
-END IF
-'---IF MADE A CHOICE---
-IF txt.box.choice_enabled THEN
- MenuSound gen(genAcceptSFX)
- IF ABS(txt.box.choice_tag(txt.choice_cursor)) > 1 THEN setbit tag(), 0, ABS(txt.box.choice_tag(txt.choice_cursor)), SGN(SGN(txt.box.choice_tag(txt.choice_cursor)) + 1)
-END IF
-'---RESET MUSIC----
-IF txt.box.restore_music THEN
- IF gmap(1) > 0 THEN
-  wrappedsong gmap(1) - 1
- ELSEIF gmap(1) = 0 THEN
-  stopsong
- ELSE
-  IF txt.remember_music > -1 THEN wrappedsong txt.remember_music ELSE stopsong
- END IF
-END IF
-'---GAIN/LOSE CASH-----
-IF istag(txt.box.money_tag, 0) THEN
- gold = gold + txt.box.money
- IF gold > 2000000000 THEN gold = 2000000000
- IF gold < 0 THEN gold = 0
-END IF
-'---SPAWN BATTLE--------
-IF istag(txt.box.battle_tag, 0) THEN
- fatal = 0
- gam.wonbattle = battle(txt.box.battle, fatal, stat())
- prepare_map txt, YES
- gam.random_battle_countdown = range(100, 60)
- needf = 1
-END IF
-'---GAIN/LOSE ITEM--------
-IF istag(txt.box.item_tag, 0) THEN
- IF txt.box.item > 0 THEN getitem txt.box.item, 1
- IF txt.box.item < 0 THEN delitem -txt.box.item, 1
-END IF
-'---SHOP/INN/SAVE/ETC------------
-IF istag(txt.box.shop_tag, 0) THEN
- IF txt.box.shop > 0 THEN
-  shop txt.box.shop - 1, needf, stock(), stat(), tilesets()
-  reloadnpc stat()
- END IF
- inn = 0
- IF txt.box.shop < 0 THEN
-  DIM holdscreen = allocatepage
-  '--Preserve background for display beneath the top-level shop menu
-  copypage vpage, holdscreen
-  IF useinn(inn, -txt.box.shop, needf, stat(), holdscreen) THEN
-   fadeout 0, 0, 80
-   needf = 1
-  END IF
-  freepage holdscreen
- END IF
- IF txt.box.shop <= 0 AND inn = 0 THEN
-  innRestore stat()
- END IF
-END IF
-'---ADD/REMOVE/SWAP/LOCK HERO-----------------
-IF istag(txt.box.hero_tag, 0) THEN add_rem_swap_lock_hero txt.box, stat()
-'---FORCE DOOR------
-IF istag(txt.box.door_tag, 0) THEN
- opendoor txt.box.door + 1
- IF needf = 0 THEN
-  temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
-  IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
-  IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - foef(temp - 1), 0)
-  setmapdata scroll(), pass(), 0, 0
- END IF
- setmapxy
-END IF
-'---JUMP TO NEXT TEXT BOX--------
-IF istag(txt.box.after_tag, 0) THEN
- IF txt.box.after < 0 THEN
-  runscript(-txt.box.after, nowscript + 1, -1, "textbox", plottrigger)
- ELSE
-  loadsay txt, txt.box.after
-  RETRACE
- END IF
-END IF
-evalherotag stat()
-evalitemtag
-'---DONE EVALUATING CONDITIONALS--------
-vishero stat()
-npcplot
-IF txt.sayer >= 0 AND txt.old_dir <> -1 THEN
- IF npc(txt.sayer).id > 0 THEN
-  IF npcs(npc(txt.sayer).id - 1).facetype = 1 THEN
-   npc(txt.sayer).dir = txt.old_dir
-  END IF
- END IF
-END IF
-IF txt.box.backdrop > 0 THEN
- gen(genTextboxBackdrop) = 0
- correctbackdrop
-END IF
-txt.showing = NO
-txt.fully_shown = NO
-txt.sayer = -1
-txt.id = -1
-setkeys
-FOR i = 0 TO 7: carray(i) = 0: NEXT i
 RETRACE
 
 movement:
@@ -2004,8 +1898,7 @@ WITH scrat(nowscript)
    CASE 80'--current map
     scriptret = gam.map.id
    CASE 86'--advance text box
-    GOSUB nextsay
-    '--WARNING: WITH pointer probably corrupted
+    advance_text_box txt, stock(), foef()
    CASE 97'--read map block
     setmapdata scroll(), pass(), 0, 0
     IF curcmd->argc = 2 THEN retvals(2) = 0
@@ -3146,4 +3039,118 @@ SUB thrudoor (door_id AS INTEGER)
    END IF
   END WITH
  NEXT i
+END SUB
+
+SUB advance_text_box (BYREF txt AS TextBoxState, stock() AS INTEGER, foef() AS INTEGER)
+ IF txt.box.backdrop > 0 THEN
+  '--backdrop needs resetting
+  gen(genTextboxBackdrop) = 0
+  correctbackdrop
+ END IF
+ '---IF MADE A CHOICE---
+ IF txt.box.choice_enabled THEN
+  MenuSound gen(genAcceptSFX)
+  IF ABS(txt.box.choice_tag(txt.choice_cursor)) > 1 THEN
+   setbit tag(), 0, ABS(txt.box.choice_tag(txt.choice_cursor)), SGN(SGN(txt.box.choice_tag(txt.choice_cursor)) + 1)
+  END IF
+ END IF
+ '---RESET MUSIC----
+ IF txt.box.restore_music THEN
+  IF gmap(1) > 0 THEN
+   wrappedsong gmap(1) - 1
+  ELSEIF gmap(1) = 0 THEN
+   stopsong
+  ELSE
+   IF txt.remember_music > -1 THEN
+    wrappedsong txt.remember_music
+   ELSE
+    stopsong
+   END IF
+  END IF
+ END IF
+ '---GAIN/LOSE CASH-----
+ IF istag(txt.box.money_tag, 0) THEN
+  gold = gold + txt.box.money
+  IF gold > 2000000000 THEN gold = 2000000000
+  IF gold < 0 THEN gold = 0
+ END IF
+ '---SPAWN BATTLE--------
+ IF istag(txt.box.battle_tag, 0) THEN
+  fatal = 0
+  gam.wonbattle = battle(txt.box.battle, fatal, stat())
+  prepare_map txt, YES
+  gam.random_battle_countdown = range(100, 60)
+  needf = 1
+ END IF
+ '---GAIN/LOSE ITEM--------
+ IF istag(txt.box.item_tag, 0) THEN
+  IF txt.box.item > 0 THEN getitem txt.box.item, 1
+  IF txt.box.item < 0 THEN delitem -txt.box.item, 1
+ END IF
+ '---SHOP/INN/SAVE/ETC------------
+ IF istag(txt.box.shop_tag, 0) THEN
+  IF txt.box.shop > 0 THEN
+   shop txt.box.shop - 1, needf, stock(), stat(), tilesets()
+   reloadnpc stat()
+  END IF
+  DIM inn AS INTEGER = 0
+  IF txt.box.shop < 0 THEN
+   DIM holdscreen = allocatepage
+   '--Preserve background for display beneath the top-level shop menu
+   copypage vpage, holdscreen
+   IF useinn(inn, -txt.box.shop, needf, stat(), holdscreen) THEN
+    fadeout 0, 0, 80
+    needf = 1
+   END IF
+   freepage holdscreen
+  END IF
+  IF txt.box.shop <= 0 AND inn = 0 THEN
+   innRestore stat()
+  END IF
+ END IF
+ '---ADD/REMOVE/SWAP/LOCK HERO-----------------
+ IF istag(txt.box.hero_tag, 0) THEN add_rem_swap_lock_hero txt.box, stat()
+ '---FORCE DOOR------
+ IF istag(txt.box.door_tag, 0) THEN
+  opendoor txt.box.door + 1
+  IF needf = 0 THEN
+   DIM temp AS INTEGER
+   temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
+   IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
+   IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - foef(temp - 1), 0)
+   setmapdata scroll(), pass(), 0, 0
+  END IF
+  setmapxy
+ END IF
+ '---JUMP TO NEXT TEXT BOX--------
+ IF istag(txt.box.after_tag, 0) THEN
+  IF txt.box.after < 0 THEN
+   runscript(-txt.box.after, nowscript + 1, -1, "textbox", plottrigger)
+  ELSE
+   loadsay txt, txt.box.after
+   EXIT SUB
+  END IF
+ END IF
+ evalherotag stat()
+ evalitemtag
+ '---DONE EVALUATING CONDITIONALS--------
+ vishero stat()
+ npcplot
+ IF txt.sayer >= 0 AND txt.old_dir <> -1 THEN
+  IF npc(txt.sayer).id > 0 THEN
+   IF npcs(npc(txt.sayer).id - 1).facetype = 1 THEN
+    npc(txt.sayer).dir = txt.old_dir
+   END IF
+  END IF
+ END IF
+ IF txt.box.backdrop > 0 THEN
+  gen(genTextboxBackdrop) = 0
+  correctbackdrop
+ END IF
+ txt.showing = NO
+ txt.fully_shown = NO
+ txt.sayer = -1
+ txt.id = -1
+ setkeys
+ flusharray carray(), 7, 0
 END SUB
