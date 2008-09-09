@@ -2511,6 +2511,14 @@ END FUNCTION
 SUB remove_menu (slot AS INTEGER)
  IF slot < 0 OR slot > UBOUND(menus) THEN debug "remove_menu: invalid slot " & slot : EXIT SUB
  bring_menu_forward slot
+ IF txt.fully_shown = YES AND menus(topmenu).advance_textbox = YES THEN
+  'Advance an open text box.
+  'Because this could open other menus, take care to remember this menu's handle
+  DIM remember_handle AS INTEGER = menus(topmenu).handle
+  advance_text_box
+  slot = find_menu_handle(remember_handle)
+  bring_menu_forward slot
+ END IF
  ClearMenuData menus(topmenu)
  topmenu = topmenu - 1
  IF topmenu >=0 THEN

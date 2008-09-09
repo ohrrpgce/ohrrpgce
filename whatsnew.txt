@@ -4,6 +4,8 @@ WHAT IS NEW?
 
   * New Features
     * New text box conditional to display menus [James]
+    * New menu bitset to advance any open text box when the menu
+      closes [James]
     * New attack bitsets
       * "Don't trigger spawning on kill" [James]
       * "Check costs when used as an item" [James]
@@ -17,6 +19,8 @@ WHAT IS NEW?
   * Vikings of Midgard
 
   * Stuff only Developers Will Notice
+    * Many old variables re-organized into types
+    * Many GOSUB blocks converted to SUBs (many still remain)
 
 August 20 2008 [werewaffle+]
 
