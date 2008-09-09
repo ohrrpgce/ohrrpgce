@@ -18,7 +18,7 @@ SUB LoadNPCD(file as string, dat() as NPCType)
   OPEN file FOR BINARY AS #f
   SEEK #f, 8
 
-  FOR i = 0 TO npcdMax
+  FOR i = 0 TO max_npc_defs
     FOR j = 0 TO 14
       SetNPCD(dat(i), j, ReadShort(f, -1))
     NEXT
@@ -26,7 +26,7 @@ SUB LoadNPCD(file as string, dat() as NPCType)
 
   CLOSE #f
 
-  FOR i = 0 TO npcdMax
+  FOR i = 0 TO max_npc_defs
     IF dat(i).speed = 3 THEN dat(i).speed = 10
   NEXT i
 END SUB
@@ -52,7 +52,7 @@ END FUNCTION
 SUB CleanNPCD(dat() as NPCType)
   DIM i AS INTEGER, j AS INTEGER
 
-  FOR i = 0 TO npcdMax
+  FOR i = 0 TO max_npc_defs
     FOR j = 0 TO 14
       SetNPCD(dat(i), j, 0)
     NEXT

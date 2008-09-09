@@ -577,7 +577,7 @@ SUB guessdefaultpals(fileset, poffset(), sets)
    IF found = 0 THEN
     FOR mapi = 0 TO gen(genMaxMap)
      xbload maplumpname$(mapi, "n"), npcbuf(), "npcstat lump " & mapi & " is missing"
-     FOR j = 0 to 35
+     FOR j = 0 to max_npc_defs
       IF npcbuf(15 * j + 0) = i THEN
        poffset(i) = npcbuf(15 * j + 1)
        found = 1

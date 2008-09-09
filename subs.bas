@@ -1087,7 +1087,7 @@ DO
  GOSUB movesmall
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) > 0 THEN
-  cropafter pt, gen(35), -1, game + ".dt0", 636, 1
+  cropafter pt, gen(genMaxHero), -1, game + ".dt0", 636, 1
  END IF
  usemenu csr, 0, 0, 8, 24
  IF enter_or_space() THEN
@@ -1101,7 +1101,7 @@ DO
  END IF
  IF csr = 1 THEN
   remptr = pt
-  IF intgrabber(pt, 0, gen(35), 51, 52) THEN
+  IF intgrabber(pt, 0, gen(genMaxHero), 51, 52) THEN
    SWAP pt, remptr
    GOSUB lasthero
    SWAP pt, remptr
@@ -1115,7 +1115,7 @@ DO
   IF keyval(77) > 1 AND pt < 59 THEN
    GOSUB lasthero
    pt = pt + 1
-   IF needaddset(pt, gen(35), "hero") THEN GOSUB clearhero
+   IF needaddset(pt, gen(genMaxHero), "hero") THEN GOSUB clearhero
    GOSUB thishero
   END IF
  END IF
@@ -1958,7 +1958,7 @@ SUB npcdef (npc(), pt)
 
 DIM spritebuf(800) AS INTEGER
 DIM pal16(288) AS INTEGER
-DIM boxpreview(35) AS STRING
+DIM boxpreview(max_npc_defs) AS STRING
 
 clearpage 0: clearpage 1
 setvispage vpage
@@ -1966,7 +1966,7 @@ setvispage vpage
 csr = 0
 cur = 0: top = 0
 setpicstuf spritebuf(), 1600, 2
-FOR i = 0 TO 35
+FOR i = 0 TO max_npc_defs
  loadset game & ".pt4", npc(i * 15 + 0), 5 * i
  getpal16 pal16(), i, npc(i * 15 + 1), 4, npc(i * 15 + 0)
  boxpreview(i) = textbox_preview_line(npc(i * 15 + 4))
@@ -1977,7 +1977,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
- usemenu cur, top, 0, 35, 7
+ usemenu cur, top, 0, max_npc_defs, 7
  IF enter_or_space() THEN
   edit_npc cur, npc()
   setpicstuf spritebuf(), 1600, 2

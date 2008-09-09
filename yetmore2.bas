@@ -750,7 +750,7 @@ END FUNCTION
 
 SUB reloadnpc (stat())
 vishero stat()
-FOR i = 0 TO npcdMax
+FOR i = 0 TO max_npc_defs
  setpicstuf buffer(), 1600, 2
  with npcs(i)
   if .sprite then sprite_unload(@.sprite)
@@ -1049,7 +1049,7 @@ END SUB
 
 SUB debug_npcs ()
  debug "NPC types:"
- FOR i AS INTEGER = 0 TO 35
+ FOR i AS INTEGER = 0 TO max_npc_defs
   debug " ID " & i & ": pic=" & npcs(i).picture & " pal=" & npcs(i).palette
  NEXT
  debug "NPC instances:"

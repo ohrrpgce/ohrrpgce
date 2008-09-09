@@ -115,7 +115,7 @@ CONST fixBlankDoorLinks = 7      'Marked redundant blank doorlinks as unused
 CONST fixShopSounds = 8	         'Set genItemLearnSFX..genCantSellSFX to defaults
 
 '---Sizes (replaceable with variables when suitable)
-CONST npcdMax = 35
+CONST max_npc_defs = 35
 CONST maxMaxItems = 254 'max number of items
 CONST inventoryMax = 197	'last inventory slot num (3 doesn't divide into 200)
 CONST scriptmemMax = 65536    'in 4-byte ints (256kb)

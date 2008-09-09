@@ -148,7 +148,7 @@ animadjust = pic
 END FUNCTION
 
 SUB mapmaker (font(), npc(), npcstat())
-DIM menubar(82), cursor(600), mode$(12), list$(13), temp$(12), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(0 TO 20), gdmax(20), gdmin(20), sampmap(2), cursorpal(8), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(35)
+DIM menubar(82), cursor(600), mode$(12), list$(13), temp$(12), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(0 TO 20), gdmax(20), gdmin(20), sampmap(2), cursorpal(8), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(max_npc_defs)
 DIM her AS HeroDef
 DIM tilesets(2) as TilesetData ptr
 DIM defaults(2) as DefArray
@@ -164,7 +164,7 @@ DIM as integer visible(0) = {&b111} 'used as bitsets
 'FIXME: heroimg is a hack and should be replaced with a GraphicPair object
 DIM heroimg(102), heropal(8)
 
-DIM npc_img(35) AS GraphicPair
+DIM npc_img(max_npc_defs) AS GraphicPair
 
 REDIM map(2) ' dummy empty map data, will be resized later
 REDIM pass(2)
@@ -512,7 +512,7 @@ loadrecord heroimg(), game + ".pt4", 100, her.walk_sprite * 8 + 4
 fixspriterecord heroimg(), 20, 20
 getpal16 heropal(), 0, her.walk_sprite_pal, 4, her.walk_sprite
 '--load NPC graphics--
-FOR i = 0 TO 35
+FOR i = 0 TO max_npc_defs
  'Load the picture and palette
  WITH npc_img(i)
   .sprite = sprite_load(game + ".pt4", npcstat(i * 15 + 0), 8, 20, 20)
@@ -768,8 +768,8 @@ DO
      IF temp >= 0 THEN npc(temp + 0) = x: npc(temp + 300) = y + 1: npc(temp + 600) = nptr + 1: npc(temp + 900) = nd
     END IF
    END IF
-   IF keyval(51) > 1 THEN nptr = nptr - 1: IF nptr < 0 THEN nptr = 35
-   IF keyval(52) > 1 THEN nptr = nptr + 1: IF nptr > 35 THEN nptr = 0
+   IF keyval(51) > 1 THEN nptr = nptr - 1: IF nptr < 0 THEN nptr = max_npc_defs
+   IF keyval(52) > 1 THEN nptr = nptr + 1: IF nptr > max_npc_defs THEN nptr = 0
    '---FOEMODE--------
   CASE 4
    IF keyval(51) > 1 THEN foe = loopvar(foe, 0, 255, -1)
@@ -928,7 +928,7 @@ DO
 
  '--npc display--
  IF editmode = 3 THEN
-  FOR i = 0 to 35
+  FOR i = 0 to max_npc_defs
    npcnum(i) = 0
   NEXT
   walk = walk + 1: IF walk > 3 THEN walk = 0
@@ -1004,7 +1004,7 @@ DO
  dowait
 LOOP
 'Unload NPC graphics
-FOR i = 0 TO 35
+FOR i = 0 TO max_npc_defs
  WITH npc_img(i)
   if .sprite then sprite_unload(@.sprite)
   if .pal then palette16_unload(@.pal)

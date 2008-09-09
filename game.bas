@@ -257,7 +257,7 @@ DIM buffer(16384)
 DIM inventory(inventoryMax) as InventSlot
 DIM gold
 
-DIM npcs(npcdMax) as NPCType
+DIM npcs(max_npc_defs) as NPCType
 DIM npc(300) as NPCInst
 
 DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, usepreunlump, lastsaveslot, abortg, foemaph, presentsong, framex, framey
@@ -1872,7 +1872,7 @@ WITH scrat(nowscript)
    CASE 78'--alter NPC
     IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
      IF retvals(0) < 0 AND retvals(0) >= -300 THEN retvals(0) = ABS(npc(ABS(retvals(0) + 1)).id) - 1
-     IF retvals(0) >= 0 AND retvals(0) <= npcdMax THEN
+     IF retvals(0) >= 0 AND retvals(0) <= max_npc_defs THEN
       writesafe = 1
       IF retvals(1) = 0 THEN
        IF retvals(2) < 0 OR retvals(2) > gen(genMaxNPCPic) THEN

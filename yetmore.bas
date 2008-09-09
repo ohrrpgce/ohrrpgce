@@ -191,7 +191,7 @@ END SUB
 
 SUB doihavebits
 dim her as herodef
-FOR i = 0 TO large(gen(35), 59)
+FOR i = 0 TO large(gen(genMaxHero), 59)
  loadherodata @her, i
  herobits(i, 0) = her.have_tag    'have hero tag
  herobits(i, 1) = her.alive_tag   'is alive tag
@@ -568,7 +568,7 @@ SELECT CASE seekid
   getnpcref = (seekid + 1) * -1
   EXIT FUNCTION
 
- CASE 0 TO npcdMax 'ID
+ CASE 0 TO max_npc_defs 'ID
   found = 0
   FOR i = 0 TO 299
    IF npc(i).id - 1 = seekid THEN
@@ -929,7 +929,7 @@ SELECT CASE AS CONST id
    GOSUB setwaitstate
   END IF
  CASE 4'--wait for NPC
-  IF retvals(0) >= -300 AND retvals(0) <= npcdMax THEN
+  IF retvals(0) >= -300 AND retvals(0) <= max_npc_defs THEN
    GOSUB setwaitstate
   END IF
  CASE 5'--suspend npcs
@@ -1855,7 +1855,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 120'--NPC reference
   scriptret = 0
-  IF retvals(0) >= 0 AND retvals(0) < 36 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= max_npc_defs THEN
    found = 0
    FOR i = 0 TO 299
     IF npc(i).id - 1 = retvals(0) THEN
@@ -1893,7 +1893,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 123'--NPC copy count
   scriptret = 0
-  IF retvals(0) >= 0 AND retvals(0) <= npcdMax THEN
+  IF retvals(0) >= 0 AND retvals(0) <= max_npc_defs THEN
    FOR i = 0 TO 299
     IF npc(i).id - 1 = retvals(0) THEN
      scriptret = scriptret + 1
@@ -1902,10 +1902,10 @@ SELECT CASE AS CONST id
   END IF
  CASE 124'--change NPC ID
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= npcdMax THEN npc(npcref).id = retvals(1) + 1
+  IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= max_npc_defs THEN npc(npcref).id = retvals(1) + 1
  CASE 125'--create NPC
   scriptret = 0
-  IF retvals(0) >= 0 AND retvals(0) <= npcdMax THEN
+  IF retvals(0) >= 0 AND retvals(0) <= max_npc_defs THEN
    FOR i = 299 TO 0 STEP -1
     IF npc(i).id = 0 THEN EXIT FOR
    NEXT
@@ -1956,7 +1956,7 @@ SELECT CASE AS CONST id
   IF retvals(2) = -1 THEN scriptret = found
  CASE 182'--read NPC
   IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
-   IF retvals(0) >= 0 AND retvals(0) <= npcdMax THEN
+   IF retvals(0) >= 0 AND retvals(0) <= max_npc_defs THEN
     scriptret = GetNPCD(npcs(retvals(0)), retvals(1))
    ELSE
     npcref = getnpcref(retvals(0), 0)
