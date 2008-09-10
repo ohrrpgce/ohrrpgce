@@ -112,12 +112,13 @@ CONST fixDefaultDissolveEnemy = 4'Initialized Enemy dissolves to default in DT1
 CONST fixPushNPCBugCompat = 5    'Turned on the Simulate pushable NPC obstruction bug bitset
 CONST fixDefaultMaxItem = 6      'Stored default max item id in GEN
 CONST fixBlankDoorLinks = 7      'Marked redundant blank doorlinks as unused
-CONST fixShopSounds = 8	         'Set genItemLearnSFX..genCantSellSFX to defaults
+CONST fixShopSounds = 8          'Set genItemLearnSFX..genCantSellSFX to defaults
+CONST fixExtendedNPCs = 9        'Initialized blank NPC data at the end of .N## lumps 
 
 '---Sizes (replaceable with variables when suitable)
-CONST max_npc_defs = 35
+CONST max_npc_defs = 99
 CONST maxMaxItems = 254 'max number of items
-CONST inventoryMax = 197	'last inventory slot num (3 doesn't divide into 200)
+CONST inventoryMax = 197 'last inventory slot num (3 doesn't divide into 200)
 CONST scriptmemMax = 65536    'in 4-byte ints (256kb)
 
 '--- Binary files in BINSIZE.BIN for getbinsize()

@@ -26,8 +26,8 @@ DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB fontedit (font%(), gamedir$)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE SUB resizetiledata (array%(), xoff%, yoff%, neww%, newh%, yout%, page%, layer%)
-DECLARE SUB mapmaker (font%(), npc%(), npcstat%())
-DECLARE SUB npcdef (npc%(), pt%)
+DECLARE SUB mapmaker (font%())
+DECLARE SUB npcdef (npc%(), npc_img() AS GraphicPair, pt%)
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
 DECLARE SUB shopdata ()
 DECLARE SUB importsong ()
@@ -147,7 +147,8 @@ IF pic >= 160 THEN pic = (pic - 160) + tastuf(0)
 animadjust = pic
 END FUNCTION
 
-SUB mapmaker (font(), npc(), npcstat())
+SUB mapmaker (font())
+DIM npc(1500), npcstat(1500)
 DIM menubar(82), cursor(600), mode$(12), list$(13), temp$(12), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(0 TO 20), gdmax(20), gdmin(20), sampmap(2), cursorpal(8), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(max_npc_defs)
 DIM her AS HeroDef
 DIM tilesets(2) as TilesetData ptr
@@ -274,6 +275,16 @@ list$(10) = "Link Doors..."
 list$(11) = "Erase Map Data"
 list$(12) = "Re-load Default Passability"
 list$(13) = "Map name:"
+
+'--load NPC graphics--
+FOR i = 0 TO max_npc_defs
+ 'Load the picture and palette
+ WITH npc_img(i)
+  .sprite = sprite_load(game + ".pt4", npcstat(i * 15 + 0), 8, 20, 20)
+  .pal    = palette16_load(game + ".pal", npcstat(i * 15 + 1), 4, npcstat(i * 15 + 0))
+ END WITH
+NEXT i
+
 setkeys
 DO
  setwait 55
@@ -281,13 +292,13 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN
   mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
-  RETRACE
+  EXIT DO
  END IF
  usemenu csr, 0, 0, 13, 24
  IF enter_or_space() THEN
   IF csr = 0 THEN
    mapedit_savemap pt, map(), pass(), emap(), gmap(), npc(), npcstat(), doors(), link(), mapname$
-   RETRACE
+   EXIT DO
   END IF
   IF csr = 1 THEN
    GOSUB gmapdata
@@ -299,7 +310,7 @@ DO
    mapedit_layers gmap(), visible(), tilesets(), defaults()
   END IF
   IF csr = 4 THEN
-   npcdef npcstat(), pt
+   npcdef npcstat(), npc_img(), pt
   END IF
   IF csr >= 5 AND csr <= 9 THEN editmode = csr - 5: GOSUB mapping
   IF csr = 10 THEN mapedit_linkdoors pt, map(), pass(), emap(), gmap(), tilesets(), npc(), npcstat(), doors(), link(), mapname$
@@ -328,6 +339,14 @@ DO
  clearpage dpage
  dowait
 LOOP
+'Unload NPC graphics
+FOR i = 0 TO max_npc_defs
+ WITH npc_img(i)
+  if .sprite then sprite_unload(@.sprite)
+  if .pal then palette16_unload(@.pal)
+ END WITH
+NEXT i
+RETRACE
 
 gmapdata:
 gmapmax = 18
@@ -511,14 +530,6 @@ loadherodata @her, 0
 loadrecord heroimg(), game + ".pt4", 100, her.walk_sprite * 8 + 4
 fixspriterecord heroimg(), 20, 20
 getpal16 heropal(), 0, her.walk_sprite_pal, 4, her.walk_sprite
-'--load NPC graphics--
-FOR i = 0 TO max_npc_defs
- 'Load the picture and palette
- WITH npc_img(i)
-  .sprite = sprite_load(game + ".pt4", npcstat(i * 15 + 0), 8, 20, 20)
-  .pal    = palette16_load(game + ".pal", npcstat(i * 15 + 1), 4, npcstat(i * 15 + 0))
- END WITH
-NEXT i
 defpass = 1
 IF readbit(gen(), genBits, 15) THEN defpass = 0 ' option to default the defaults to OFF
 doorid = 0
@@ -1003,13 +1014,6 @@ DO
  setvispage vpage
  dowait
 LOOP
-'Unload NPC graphics
-FOR i = 0 TO max_npc_defs
- WITH npc_img(i)
-  if .sprite then sprite_unload(@.sprite)
-  if .pal then palette16_unload(@.pal)
- END WITH
-NEXT i
 RETRACE '--end of mapping GOSUB block
 
 pickblock:

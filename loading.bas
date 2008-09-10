@@ -31,6 +31,26 @@ SUB LoadNPCD(file as string, dat() as NPCType)
   NEXT i
 END SUB
 
+SUB SaveNPCD(file as string, dat() as NPCType)
+  DIM i AS INTEGER, j AS INTEGER, f AS INTEGER
+  f = FREEFILE
+  OPEN file FOR BINARY AS #f
+  SEEK #f, 8
+
+  FOR i = 0 TO max_npc_defs
+    FOR j = 0 TO 14
+      IF j = 3 AND dat(i).speed = 10 THEN
+        '--Special case for speed = 10 (gets stored as 3)
+        WriteShort f, -1, 3
+      ELSE
+        WriteShort f, -1, read_npc_int(dat(i), j)
+      END IF
+    NEXT
+  NEXT
+
+  CLOSE #f
+END SUB
+
 'Prefer write_npc_int instead in the future, as it lacks pointer thoughtcrime
 SUB SetNPCD(npcd AS NPCType, offset AS INTEGER, value AS INTEGER)
   IF offset >= 0 and offset <= 14 THEN
@@ -56,6 +76,7 @@ SUB CleanNPCD(dat() as NPCType)
     FOR j = 0 TO 14
       SetNPCD(dat(i), j, 0)
     NEXT
+    dat(i).palette = -1 'Set cleared palette to default instead of zero
   NEXT
 END SUB
 

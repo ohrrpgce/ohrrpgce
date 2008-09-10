@@ -1954,10 +1954,8 @@ SUB load_item_names (item_strings() AS STRING)
  NEXT i
 END SUB
 
-SUB npcdef (npc(), pt)
+SUB npcdef (npc(), npc_img() AS GraphicPair, pt)
 
-DIM spritebuf(800) AS INTEGER
-DIM pal16(288) AS INTEGER
 DIM boxpreview(max_npc_defs) AS STRING
 
 clearpage 0: clearpage 1
@@ -1965,10 +1963,7 @@ setvispage vpage
 
 csr = 0
 cur = 0: top = 0
-setpicstuf spritebuf(), 1600, 2
 FOR i = 0 TO max_npc_defs
- loadset game & ".pt4", npc(i * 15 + 0), 5 * i
- getpal16 pal16(), i, npc(i * 15 + 1), 4, npc(i * 15 + 0)
  boxpreview(i) = textbox_preview_line(npc(i * 15 + 4))
 NEXT i
 setkeys
@@ -1980,9 +1975,14 @@ DO
  usemenu cur, top, 0, max_npc_defs, 7
  IF enter_or_space() THEN
   edit_npc cur, npc()
-  setpicstuf spritebuf(), 1600, 2
-  loadset game & ".pt4", npc(cur * 15 + 0), 5 * cur
-  getpal16 pal16(), cur, npc(cur * 15 + 1), 4, npc(cur * 15 + 0)
+  '--Having edited the NPC, we must re-load the picture and palette
+  WITH npc_img(cur)
+   IF .sprite THEN sprite_unload(@.sprite)
+   .sprite = sprite_load(game + ".pt4", npc(cur * 15 + 0), 8, 20, 20)
+   IF .pal THEN palette16_unload(@.pal)
+   .pal = palette16_load(game + ".pal", npc(cur * 15 + 1), 4, npc(cur * 15 + 0))
+  END WITH
+  '--Update box preview line
   boxpreview(cur) = textbox_preview_line(npc(cur * 15 + 4))
  END IF
  FOR i = top TO top + 7
@@ -1990,12 +1990,13 @@ DO
   textcolor uilook(uiMenuItem), 0
   IF cur = i THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr "" & i, 0, ((i - top) * 25) + 5, dpage
-  loadsprite spritebuf(), 0, 800, 5 * i, 20, 20, 2
-  drawsprite spritebuf(), 0, pal16(), 16 * i, 32, ((i - top) * 25) + 1, dpage
+  WITH npc_img(i)
+   sprite_draw .sprite + 4, .pal, 32, (i - top) * 25, 1, -1, dpage
+  END WITH
   textcolor uilook(uiMenuItem), uilook(uiHighlight)
   IF cur = i THEN textcolor uilook(uiText), uilook(uiHighlight)
   printstr boxpreview(i), 56, ((i - top) * 25) + 5, dpage
- NEXT
+ NEXT i
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage

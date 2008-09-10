@@ -26,7 +26,7 @@ DECLARE SUB fontedit (font%())
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%)
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
-DECLARE SUB mapmaker (font%(), npcn%(), npcstat%())
+DECLARE SUB mapmaker (font%())
 DECLARE SUB npcdef (npcn%(), pt%)
 DECLARE SUB editbitset (array%(), wof%, last%, names() AS STRING)
 DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
@@ -104,7 +104,7 @@ REDIM master(255) as RGBcolor
 REDIM uilook(uiColors)
 REDIM keyv(55, 3)
 DIM font(1024), joy(4)
-DIM menu$(22), rpg$(3), npcn(1500), npcstat(1500)
+DIM menu$(22), rpg$(3)
 'more global variables
 DIM game as string, gamefile as string, insert, activepalette
 DIM vpage, dpage, fadestate
@@ -253,7 +253,7 @@ DO:
   SELECT CASE menumode
    CASE 0'--normal mode
     IF pt = 0 THEN pt = 0: menumode = 1: GOSUB setgraphicmenu
-    IF pt = 1 THEN mapmaker font(), npcn(), npcstat()
+    IF pt = 1 THEN mapmaker font()
     IF pt = 2 THEN statname
     IF pt = 3 THEN herodata
     IF pt = 4 THEN enemydata

@@ -2099,6 +2099,38 @@ IF getfixbit(fixShopSounds) = 0 THEN
  gen(genCantSellSFX) = gen(genCancelSFX)
 END IF
 
+IF getfixbit(fixExtendedNPCs) = 0 THEN
+ upgrade_message "Initialize extended NPC data..."
+ setfixbit(fixExtendedNPCs, 1)
+ DIM npctemp(99) AS NPCType
+ FOR i = 0 TO gen(genMaxMap)
+  LoadNPCD maplumpname$(i, "n"), npctemp()
+  FOR j = 36 TO 99
+   ' These are the garbage data left over from somewhere in the late 90's when
+   ' James decided to make the .N lumps big enough to hold 100 NPC definitions
+   ' even though there was only enough memory available for 36 NPC sprites at a time
+   WITH npctemp(j)
+    .picture    = 0
+    .palette    = -1 'Default palette
+    .movetype   = 0
+    .speed      = 0
+    .textbox    = 0
+    .facetype   = 0
+    .item       = 0
+    .pushtype   = 0
+    .activation = 0
+    .tag1       = 0
+    .tag2       = 0
+    .usetag     = 0
+    .script     = 0
+    .scriptarg  = 0
+    .vehicle    = 0
+   END WITH
+  NEXT j
+  SaveNPCD maplumpname$(i, "n"), npctemp()
+ NEXT i
+END IF
+
 'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)
 xbsave game + ".gen", gen(), 1000
 

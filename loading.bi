@@ -7,7 +7,8 @@
 #IFNDEF LOADING_BI
 #DEFINE LOADING_BI
 
-declare sub loadnpcd(file as string, dat() as npctype)
+DECLARE SUB LoadNPCD(file as string, dat() as NPCType)
+DECLARE SUB SaveNPCD(file as string, dat() as NPCType)
 declare sub setnpcd(npcd as npctype, offset as integer, value as integer)
 declare function getnpcd(npcd as npctype, offset as integer) as integer
 declare sub cleannpcd(dat() as npctype)
