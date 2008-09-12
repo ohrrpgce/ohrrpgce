@@ -50,7 +50,7 @@ DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 DECLARE SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
 DECLARE SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
 DECLARE SUB init_sprite_zones(area() AS MouseArea)
-DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), clonemarked, info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
+DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
 
 #include "scancodes.bi"
 #include "compat.bi"
@@ -1568,7 +1568,8 @@ OPTION EXPLICIT '======== FIXME: move this up as code gets cleaned up ==========
 
 SUB sprite (xw, yw, sets, perset, soff, atatime, info$(), zoom, fileset, font())
 STATIC default$, spriteclip(1602), clippedpal, clippedw, clippedh, paste
-STATIC clonebuf(1600) AS INTEGER, clonemarked AS INTEGER = NO
+STATIC clonebuf(1600) AS INTEGER
+STATIC ss_save AS SpriteEditStatic
 
 DIM mouse(4)
 
@@ -1870,7 +1871,7 @@ DO
  END IF
  GOSUB sprctrl
  copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
- spriteedit_display ss, state, placer(), workpal(), poffset(), clonebuf(), clonemarked, info$(), toolinfo(), area(), mouse()
+ spriteedit_display ss, ss_save, state, placer(), workpal(), poffset(), clonebuf(), info$(), toolinfo(), area(), mouse()
  SWAP vpage, dpage
  setvispage vpage
  'blank the sprite area
@@ -2069,7 +2070,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
      getsprite clonebuf(), 0, 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, dpage
      ss.holdpos.x = clonebuf(0) \ 2
      ss.holdpos.y = clonebuf(1) \ 2
-     clonemarked = YES
+     ss_save.clonemarked = YES
      ss.tool = clone_tool ' auto-select the clone tool after marking
     ELSE
      ss.hold = YES
@@ -2079,7 +2080,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
    END IF
   CASE clone_tool
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
-    IF clonemarked THEN
+    IF ss_save.clonemarked THEN
      IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
       GOSUB writeundospr
      END IF
@@ -2192,7 +2193,7 @@ DO
   IF palstate.pt = 2 THEN RETRACE
   EXIT DO
  END IF
- spriteedit_display ss, state, placer(), workpal(), poffset(), clonebuf(), clonemarked, info$(), toolinfo(), area(), mouse()
+ spriteedit_display ss, ss_save, state, placer(), workpal(), poffset(), clonebuf(), info$(), toolinfo(), area(), mouse()
  rectangle 4, 156, 208, 32, uilook(uiDisabledItem), dpage
  FOR i = 0 TO 2
   coltemp = uilook(uiMenuItem): IF i = palstate.pt THEN coltemp = uilook(uiSelectedItem + palstate.tog)
@@ -2346,7 +2347,7 @@ RETRACE
 
 END SUB '----END of sprite()
 
-SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), clonemarked, info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
+SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
  ss.curcolor = peek8bit(workpal(), ss.palindex + (state.pt - state.top) * 16)
  rectangle 247 + ((ss.curcolor - (INT(ss.curcolor / 16) * 16)) * 4), 0 + (INT(ss.curcolor / 16) * 6), 5, 7, uilook(uiText), dpage
  DIM AS INTEGER i, o
@@ -2396,7 +2397,7 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer()
   emptybox 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, 1, dpage
  END IF
  DIM temppos AS XYPair
- IF ss.tool = clone_tool AND clonemarked = YES AND state.tog = 0 THEN
+ IF ss.tool = clone_tool AND ss_save.clonemarked = YES AND state.tog = 0 THEN
   temppos.x = ss.x - ss.holdpos.x
   temppos.y = ss.y - ss.holdpos.y
   IF ss.readjust THEN

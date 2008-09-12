@@ -4,6 +4,10 @@
 'This file contains UDTs that only get used in custom mode, and not in game,
 'so as to prevent them from cluttering up the global udts.bi file
 
+TYPE SpriteEditStatic
+  clonemarked AS INTEGER
+END TYPE
+
 TYPE SpriteEditState
   '--sprite set state
   framenum AS INTEGER
