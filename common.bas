@@ -33,6 +33,10 @@ DIM SHARED console AS ConsoleData
 'don't black out the screen to show upgrade messages if there aren't any
 DIM SHARED upgrademessages AS INTEGER
 
+'Allocate the Box Border Cache
+DIM SHARED box_border_cache_loaded AS INTEGER = NO
+DIM SHARED box_border_cache(14) AS GraphicPair
+
 SUB edgeprint (s$, x, y, c, p)
 textcolor uilook(uiOutline), 0
 printstr s$, x, y + 1, p
@@ -248,23 +252,106 @@ SUB emptybox (x, y, w, h, col, thick, p)
  END IF
 END SUB
 
-SUB edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO)
- edgebox x, y, w, h, uilook(uiTextBox + 2 * boxstyle), uilook(uiTextBox + 2 * boxstyle + 1), p, fuzzy
+SUB load_box_border_cache()
+ DIM i AS INTEGER
+ DIM index AS INTEGER
+ FOR i = 0 TO 14
+  WITH box_border_cache(i)
+   IF .sprite THEN sprite_unload(@.sprite)
+   IF .pal THEN palette16_unload(@.pal)
+   index = uilook(uiTextBoxFrame + i) - 1
+   IF index >= 0 THEN
+    .sprite = sprite_load(game & ".pt7", index, 16, 16, 16)
+    .pal = palette16_load(game + ".pal", -1, 7, index)
+   END IF
+  END WITH
+ NEXT i
+ box_border_cache_loaded = YES
 END SUB
 
-SUB edgebox (x, y, w, h, col, bordercol, p, fuzzy=NO)
+SUB clear_box_border_cache()
+ DIM i AS INTEGER
+ FOR i = 0 TO 14
+  WITH box_border_cache(i)
+   IF .sprite THEN sprite_unload(@.sprite)
+   IF .pal THEN palette16_unload(@.pal)
+  END WITH
+ NEXT i
+ box_border_cache_loaded = NO
+END SUB
+
+SUB center_edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
+ edgeboxstyle x - w / 2, y - h / 2, w, h, boxstyle, p, fuzzy, supress_borders
+END SUB
+
+SUB edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
+ DIM textcol   AS INTEGER = uilook(uiTextBox + 2 * boxstyle)
+ DIM bordercol AS INTEGER = uilook(uiTextBox + 2 * boxstyle + 1)
+ DIM borders AS INTEGER = boxstyle
+ IF supress_borders THEN borders = -1
+ edgebox x, y, w, h, textcol, bordercol, p, fuzzy, borders
+END SUB
+
+SUB edgebox (x, y, w, h, col, bordercol, p, fuzzy=NO, border=-1)
 IF fuzzy THEN
  fuzzyrect x, y, w, h, col, p
 ELSE
  rectangle x, y, w, h, col, p
 END IF
-rectangle x       , y        , w, 1, bordercol, p
+'--Simple line border
+'Top edge
+rectangle x, y, w, 1, bordercol, p
+'Bottom edge
 IF h > 0 THEN
- rectangle x       , y + h - 1, w, 1, bordercol, p
+ rectangle x, y + h - 1, w, 1, bordercol, p
 END IF
-rectangle x       , y        , 1, h, bordercol, p
+'Left Edge
+rectangle x, y, 1, h, bordercol, p
+'Right Edge
 IF w > 0 THEN
- rectangle x + w - 1, y        , 1, h, bordercol, p
+ rectangle x + w - 1, y, 1, h, bordercol, p
+END IF
+IF border >= 0 and border <= 14 THEN
+ '--Graphical Border
+ IF box_border_cache_loaded = NO THEN load_box_border_cache
+ DIM i AS INTEGER
+ WITH box_border_cache(border)
+  IF .sprite THEN ' Only proceed if a sprite is actually selected
+   'Draw edges
+   '--Top and bottom edges
+   FOR i = x + 8 TO x + w - 24 STEP 16
+    sprite_draw .sprite + 2, .pal, i, y - 8, 1, YES, p
+    sprite_draw .sprite + 13, .pal, i, y + h - 8, 1, YES, p
+   NEXT i
+   '--Left and right edges
+   FOR i = y + 8 TO y + h - 24 STEP 16
+    sprite_draw .sprite + 7, .pal, x - 8, i, 1, YES, p
+    sprite_draw .sprite + 8, .pal, x + w - 8, i, 1, YES, p
+   NEXT i
+   'Draw corners
+   sprite_draw .sprite, .pal, x - 8, y - 8, 1, YES, p
+   sprite_draw .sprite + 4, .pal, x + w - 8, y - 8, 1, YES, p
+   sprite_draw .sprite + 11, .pal, x - 8, y + h - 8, 1, YES, p
+   sprite_draw .sprite + 15, .pal, x + w - 8, y + h - 8, 1, YES, p
+   'Draw end-pieces
+   IF w >= 16 THEN
+    '--Top end pieces
+    sprite_draw .sprite + 3, .pal, x + w - 24, y - 8, 1, YES, p
+    sprite_draw .sprite + 1, .pal, x + 8, y - 8, 1, YES, p
+    '--Bottom end pieces
+    sprite_draw .sprite + 14, .pal, x + w - 24, y + h - 8, 1, YES, p
+    sprite_draw .sprite + 12, .pal, x + 8, y + h - 8, 1, YES, p
+   END IF
+   IF h >= 16 THEN
+    '--Left side end pieces
+    sprite_draw .sprite + 9, .pal, x - 8, y + h - 24, 1, YES, p
+    sprite_draw .sprite + 5, .pal, x - 8, y + 8, 1, YES, p
+    '--Right side end pieces
+    sprite_draw .sprite + 10, .pal, x + w - 8, y + h - 24, 1, YES, p
+    sprite_draw .sprite + 6, .pal, x + w - 8, y + 8, 1, YES, p
+   END IF
+  END IF
+ END WITH
 END IF
 END SUB
 
@@ -724,7 +811,7 @@ FUNCTION curbinsize (id)
  IF id = 4 THEN RETURN 50  '.map
  IF id = 5 THEN RETURN 48  'menus.bin
  IF id = 6 THEN RETURN 64  'menuitem.bin
- IF id = 7 THEN RETURN 96  'uicolors.bin
+ IF id = 7 THEN RETURN 126  'uicolors.bin
  IF id = 8 THEN RETURN 400 '.say
  RETURN 0
 END FUNCTION
@@ -2202,7 +2289,7 @@ SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
      cap = get_menu_item_caption(menu.items(elem), menu)
      position_menu_item menu, cap, i, where
      IF .t = 1 AND .sub_t = 11 THEN ' volume meter
-      edgeboxstyle where.x, where.y, fmvol * 3, 10, menu.boxstyle, page
+      edgeboxstyle where.x, where.y, fmvol * 3, 10, menu.boxstyle, page, NO, YES
      END IF
      edgeprint cap, where.x, where.y, col, page
     ELSE

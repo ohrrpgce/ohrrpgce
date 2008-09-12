@@ -74,6 +74,7 @@ CONST genMaxMasterPal = 79      'max master palette number
 CONST genMaxMenu = 80           'max menu def in MENUS.BIN
 CONST genMaxMenuItem = 81       'max menu item def in MENUITEM.BIN
 CONST genMaxItem = 82           'max item in .ITM
+CONST genMaxBoxBorder = 83      'max box borders in .PT7
 CONST genPW2Offset = 93         'old password offset
 CONST genPW2Length = 94         'old password length
 CONST genVersion = 95           'RPG file format version(6 is the latest)

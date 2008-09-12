@@ -265,16 +265,26 @@ SUB ui_color_editor(palnum AS INTEGER)
   index = state.pt - 1
 
   IF enter_or_space() THEN
-   IF state.pt = 0 THEN EXIT DO
-   uilook(index) = color_browser_256(uilook(index))
-   make_ui_color_editor_menu color_menu(), uilook() 
-  END IF
-
-  IF state.pt > 0 THEN
-   IF intgrabber(uilook(index), 0, 255) THEN
-    make_ui_color_editor_menu color_menu(), uilook()
+   IF state.pt = 0 THEN
+    EXIT DO
+   ELSEIF state.pt < uiTextBoxFrame THEN
+    'Color browser
+    uilook(index) = color_browser_256(uilook(index))
+    make_ui_color_editor_menu color_menu(), uilook() 
    END IF
   END IF
+
+  SELECT CASE index
+   CASE 0 TO 47
+    IF intgrabber(uilook(index), 0, 255) THEN
+     make_ui_color_editor_menu color_menu(), uilook()
+    END IF
+   CASE 48 TO 62
+    IF zintgrabber(uilook(index), -1, gen(genMaxBoxBorder)) THEN
+     make_ui_color_editor_menu color_menu(), uilook()
+     clear_box_border_cache
+    END IF
+  END SELECT
 
   IF keyval(29) > 0 AND keyval(32) > 1 THEN ' Ctrl+D
    uilook(index) = default_colors(index)
@@ -284,17 +294,19 @@ SUB ui_color_editor(palnum AS INTEGER)
   '--update sample according to what you have highlighted
   sample_menu.boxstyle = 0
   sample_state.pt = 0
-  SELECT CASE state.pt - 1
+  SELECT CASE index
    CASE 5,6 ' selected disabled
     sample_state.pt = 2
    CASE 18 TO 47
     sample_menu.boxstyle = INT((state.pt - 19) / 2)
+   CASE 48 TO 62
+    sample_menu.boxstyle = index - 48
   END SELECT
 
   draw_menu sample_menu, sample_state, dpage
   standardmenu color_menu(), state, 10, 0, dpage
   FOR i = state.top TO state.top + state.size
-   IF i > 0 THEN
+   IF i > 0  AND i <= 48 THEN
     rectangle 0, 8 * (i - state.top), 8, 8, uilook(i - 1), dpage
    END IF
   NEXT i
@@ -320,8 +332,9 @@ SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)
   m(1 + i) = cap(i) & ": " & colors(i)
  NEXT i
  FOR i = 0 TO 14
-  m(19 + i*2) = "Box style " & i & " color:" & colors(18 + i*2)
-  m(19 + i*2 + 1) = "Box style " & i & " border:" & colors(18 + i*2 + 1)
+  m(19 + i*2) = "Box style " & i & " color:  " & colors(18 + i*2)
+  m(19 + i*2 + 1) = "Box style " & i & " border: " & colors(18 + i*2 + 1)
+  m(49 + i) = "Box style " & i & " border image: " & zero_default(colors(48 + i), "none", -1)
  NEXT i
 END SUB
 

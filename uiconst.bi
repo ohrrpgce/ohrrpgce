@@ -5,7 +5,7 @@
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
-CONST uiColors = 47				'last color entry
+CONST uiColors = 62				'last color entry
 
 CONST uiBackground = 0          'background colour (not for transparent! transparent is always 0)
 CONST uiMenuItem = 1			'normal menu item
@@ -25,6 +25,6 @@ CONST uiDescription = 15		'Spell description
 CONST uiGold = 16				'Total cash
 CONST uiShadow = 17				'Vehicle shadow
 CONST uiTextBox = 18			'Text box styles, 15 * (bg & border)
-
+CONST uiTextBoxFrame = 48			'Text box border picture set, 15 ints
 
 #ENDIF

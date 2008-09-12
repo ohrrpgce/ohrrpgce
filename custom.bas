@@ -29,7 +29,7 @@ DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE SUB mapmaker (font%())
 DECLARE SUB npcdef (npcn%(), pt%)
 DECLARE SUB editbitset (array%(), wof%, last%, names() AS STRING)
-DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
+DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, atatime%, info$(), zoom%, fileset%, font%())
 DECLARE SUB shopdata ()
 DECLARE SUB importsong ()
 DECLARE SUB importsfx ()
@@ -131,6 +131,7 @@ DIM hero_frame_captions(7) AS STRING = {"Standing","Stepping","Attack A","Attack
 DIM enemy_frame_captions(0) AS STRING = {"Enemy (facing right)"}
 DIM weapon_frame_captions(1) AS STRING = {"Frame 1","Frame 2"}
 DIM attack_frame_captions(2) AS STRING = {"First Frame","Middle Frame","Last Frame"}
+DIM box_border_captions(15) AS STRING = {"Top Left Corner","Top Edge Left","Top Edge","Top Edge Right","Top Right Corner","Left Edge Top","Right Edge Top","Left Edge","Right Edge","Left Edge Bottom","Right Edge Bottom","Bottom Left Corner","Bottom Edge Left","Bottom Edge","Bottom Edge Right","Bottom Right Corner"}
 
 keyboardsetup
 
@@ -277,13 +278,13 @@ DO:
    CASE 1'--graphics mode
     IF pt = 0 THEN pt = 0: menumode = 0: GOSUB setmainmenu
     IF pt = 1 THEN maptile font()
-    IF pt = 2 THEN sprite 20, 20, gen(genMaxNPCPic),    8, 5, 0, 7, walkabout_frame_captions(), 200, 4, 4, font()
-    IF pt = 3 THEN sprite 32, 40, gen(genMaxHeroPic),   8, 16, 0, 3, hero_frame_captions(), 640, 4, 0, font()
-    IF pt = 4 THEN sprite 34, 34, gen(genMaxEnemy1Pic), 1, 2, 0, 4, enemy_frame_captions(), 578, 4, 1, font()
-    IF pt = 5 THEN sprite 50, 50, gen(genMaxEnemy2Pic), 1, 4, 1, 2, enemy_frame_captions(), 1250, 2, 2, font()
-    IF pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, 10, 2, 1, enemy_frame_captions(), 3200, 2, 3, font()
-    IF pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, 12, 0, 2, attack_frame_captions(), 1250, 2, 6, font()
-    IF pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, 0, 5, weapon_frame_captions(), 288, 4, 5, font()
+    IF pt = 2 THEN sprite 20, 20, gen(genMaxNPCPic),    8, 5, 7, walkabout_frame_captions(),  4, 4, font()
+    IF pt = 3 THEN sprite 32, 40, gen(genMaxHeroPic),   8, 16, 3, hero_frame_captions(), 4, 0, font()
+    IF pt = 4 THEN sprite 34, 34, gen(genMaxEnemy1Pic), 1, 2, 4, enemy_frame_captions(), 4, 1, font()
+    IF pt = 5 THEN sprite 50, 50, gen(genMaxEnemy2Pic), 1, 4, 2, enemy_frame_captions(), 2, 2, font()
+    IF pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, 10, 1, enemy_frame_captions(), 2, 3, font()
+    IF pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, 12, 2, attack_frame_captions(), 2, 6, font()
+    IF pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, 5, weapon_frame_captions(), 4, 5, font()
     IF pt = 9 THEN importbmp ".mxs", "screen", gen(100)
     IF pt = 10 THEN
      gen(33) = gen(33) + 1
@@ -291,6 +292,10 @@ DO:
      gen(33) = gen(33) - 1
     END IF
     IF pt = 11 THEN ui_color_editor(activepalette)
+    IF pt = 12 THEN
+     sprite 16, 16, gen(genMaxBoxBorder), 16, 7, 8, box_border_captions(), 4, 7, font()
+     clear_box_border_cache
+    END IF
   END SELECT
   '--always resave the .GEN lump after any menu
   xbsave game + ".gen", gen(), 1000
@@ -332,7 +337,7 @@ menu$(18) = "Quit Editing"
 RETRACE
 
 setgraphicmenu:
-mainmax = 11
+mainmax = 12
 menu$(0) = "Back to the main menu"
 menu$(1) = "Edit Maptiles"
 menu$(2) = "Draw Walkabout Graphics"
@@ -345,6 +350,7 @@ menu$(8) = "Draw Weapons"
 menu$(9) = "Import/Export Screens"
 menu$(10) = "Import/Export Full Maptile Sets"
 menu$(11) = "Change User-Interface Colors"
+menu$(12) = "Draw Box Edges"
 RETRACE
 
 chooserpg:
@@ -554,6 +560,7 @@ SYSTEM
 
 finis:
 closemusic
+clear_box_border_cache
 'catch sprite leaks
 sprite_empty_cache
 palette16_empty_cache

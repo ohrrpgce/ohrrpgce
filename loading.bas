@@ -942,10 +942,14 @@ SUB GuessDefaultUIColors (colarray() AS INTEGER)
        &hBF0000,&h340000,&hFFDD30,&hCD8316,&h8236AC,&h5F1F5F,&h2F342E,&hBAABC1}
  DIM i AS INTEGER
  DIM temp AS RGBcolor
- FOR i = 0 TO uiColors
+ FOR i = 0 TO 47
   temp.col = fixeddefaults(i)
   colarray(i) = nearcolor(master(), temp.r, temp.g, temp.b)
  NEXT
+ FOR i = 48 TO 62
+  'Box border pictures default to zero (none)
+  colarray(i) = 0
+ NEXT i
 END SUB
 
 SUB LoadUIColors (colarray() AS INTEGER, palnum AS INTEGER=-1)

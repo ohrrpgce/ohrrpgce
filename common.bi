@@ -37,8 +37,9 @@ DECLARE FUNCTION readbadgenericname$ (index%, filename$, recsize%, offset%, size
 DECLARE SUB copylump(package$, lump$, dest$, ignoremissing AS INTEGER = 0)
 DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
 DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
-DECLARE SUB edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO)
-DECLARE SUB edgebox (x, y, w, h, col, bordercol, p, fuzzy=NO)
+DECLARE SUB edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
+DECLARE SUB center_edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
+DECLARE SUB edgebox (x, y, w, h, col, bordercol, p, fuzzy=NO, border=-1)
 DECLARE SUB emptybox (x, y, w, h, col, thick, p)
 DECLARE FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTEGER
 DECLARE FUNCTION scriptname$ (num%, trigger% = 0)
@@ -162,6 +163,9 @@ DECLARE SUB draw_fullscreen_scrollbar(state AS MenuState, count AS INTEGER, boxs
 
 DECLARE FUNCTION range (number AS INTEGER, percent AS INTEGER) AS INTEGER
 DECLARE FUNCTION rpad (s AS STRING, pad_char AS STRING, size AS INTEGER) AS STRING
+
+DECLARE SUB load_box_border_cache()
+DECLARE SUB clear_box_border_cache()
 
 'Global variables
 EXTERN as string game, tmpdir, exename, workingdir

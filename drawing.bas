@@ -1564,9 +1564,10 @@ END SUB
 
 OPTION EXPLICIT '======== FIXME: move this up as code gets cleaned up =====================
 
-SUB sprite (xw, yw, sets, perset, soff, foff, atatime, info$(), size, zoom, fileset, font())
+SUB sprite (xw, yw, sets, perset, soff, atatime, info$(), zoom, fileset, font())
 STATIC default$, spriteclip(1602), clippedpal, clippedw, clippedh, paste
 STATIC clonebuf(1600) AS INTEGER, clonemarked AS INTEGER = NO
+DIM size AS INTEGER = xw * yw / 2
 DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40), mouse(4)
 DIM toolinfo(7) AS ToolInfoType
 DIM workpal(8 * (atatime + 1))

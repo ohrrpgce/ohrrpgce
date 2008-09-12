@@ -185,7 +185,7 @@ FUNCTION sign_string(n AS INTEGER, neg_str AS STRING, zero_str AS STRING, pos_st
  RETURN zero_str
 END FUNCTION
 
-FUNCTION zero_default(n, zerocaption AS STRING="default") AS STRING
+FUNCTION zero_default(n, zerocaption AS STRING="default", displayoffset AS INTEGER = 0) AS STRING
  IF n = 0 THEN RETURN zerocaption
- RETURN "" & n
+ RETURN "" & (n + displayoffset)
 END FUNCTION

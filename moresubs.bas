@@ -399,11 +399,7 @@ SUB drawsay ()
 STATIC tog AS INTEGER
 tog = tog XOR 1
 IF txt.box.no_box = NO THEN
- IF txt.box.opaque = NO THEN
-  centerfuz 160, 48 + (txt.box.vertical_offset * 4) - (txt.box.shrink * 2), 312, 88 - (txt.box.shrink * 4), txt.box.boxstyle + 1, dpage
- ELSE
-  centerbox 160, 48 + (txt.box.vertical_offset * 4) - (txt.box.shrink * 2), 312, 88 - (txt.box.shrink * 4), txt.box.boxstyle + 1, dpage
- END IF '---TO FUZZ OR NOT TO FUZZ?-----
+ center_edgeboxstyle 160, 48 + (txt.box.vertical_offset * 4) - (txt.box.shrink * 2), 312, 88 - (txt.box.shrink * 4), txt.box.boxstyle, dpage, (txt.box.opaque = NO)
 END IF
 col = uilook(uiText): IF txt.box.textcolor > 0 THEN col = txt.box.textcolor
 FOR i = 0 TO txt.show_lines
@@ -1442,6 +1438,8 @@ FOR i = 0 TO max_npc_defs
   palette16_unload(@.pal)
  END WITH
 NEXT i
+
+clear_box_border_cache
 
 END SUB
 
