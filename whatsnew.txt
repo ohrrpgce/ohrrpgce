@@ -3,6 +3,7 @@ WHAT IS NEW?
 ???? ?? 200? [xocolatl]
 
   * New Features
+    * Draw your own graphical Text Box borders [James]
     * NPC-per-map limit raised from 36 to 100 [James]
     * New text box conditional to display menus [James]
     * New menu bitset to advance any open text box when the menu
