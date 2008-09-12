@@ -17,7 +17,7 @@
 #include "common.bi"
 
 #include "music.bi"
-#include "loading.bi
+#include "loading.bi"
 
 #IFDEF IS_GAME
 DECLARE SUB embedtext (text$, limit=0)
@@ -1222,7 +1222,7 @@ END IF
 
 END FUNCTION
 
-FUNCTION zintgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER=75, more AS INTEGER=77)
+FUNCTION zintgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
 '--adjust for entries that are offset by +1
 '--what a hack!
 '--all entries <= 0 are special options not meant to be enumerated
