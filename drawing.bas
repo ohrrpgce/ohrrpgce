@@ -50,6 +50,7 @@ DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 DECLARE SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, BYREF sb AS SpriteBrowseState, soff,placer(), workpal(), poffset())
 DECLARE SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, BYREF sb AS SpriteBrowseState, soff, placer(), workpal(), poffset())
 DECLARE SUB init_sprite_zones(area() AS MouseArea)
+DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), col, zoom, clonemarked, info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
 
 #include "scancodes.bi"
 #include "compat.bi"
@@ -1587,7 +1588,6 @@ DIM poffset(large(sets, atatime))
 DIM AS INTEGER do_paste = 0
 DIM AS INTEGER paste_transparent = 0
 DIM AS INTEGER debug_palettes = 0
-DIM temppos AS XYPair
 DIM AS INTEGER tick = 0
 'FOR Loop counters
 DIM AS INTEGER i, j, o
@@ -1627,10 +1627,6 @@ DIM pickpos AS XYPair
 DIM picksize AS XYPair
 DIM pixelval AS INTEGER
 DIM movespeed AS INTEGER
-
-'FIXME: these are used in spritescreen GOSUB block, move these there when that gets SUBified
-DIM bgcol AS INTEGER
-DIM fgcol AS INTEGER
 
 pmenu$(0) = "Overwrite Current Palette"
 pmenu$(1) = "Import Without Palette"
@@ -1874,7 +1870,7 @@ DO
  END IF
  GOSUB sprctrl
  copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
- GOSUB spritescreen
+ spriteedit_display ss, state, placer(), workpal(), poffset(), clonebuf(), col, zoom, clonemarked, info$(), toolinfo(), area(), mouse()
  SWAP vpage, dpage
  setvispage vpage
  'blank the sprite area
@@ -2196,7 +2192,7 @@ DO
   IF palstate.pt = 2 THEN RETRACE
   EXIT DO
  END IF
- GOSUB spritescreen
+ spriteedit_display ss, state, placer(), workpal(), poffset(), clonebuf(), col, zoom, clonemarked, info$(), toolinfo(), area(), mouse()
  rectangle 4, 156, 208, 32, uilook(uiDisabledItem), dpage
  FOR i = 0 TO 2
   col = uilook(uiMenuItem): IF i = palstate.pt THEN col = uilook(uiSelectedItem + palstate.tog)
@@ -2336,114 +2332,6 @@ drawline 239 + ss.x, 119 + ss.y, 239 + ss.holdpos.x, 119 + ss.holdpos.y, col, dp
 getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
 RETRACE
 
-spritescreen:
-ss.curcolor = peek8bit(workpal(), col + (state.pt - state.top) * 16)
-rectangle 247 + ((ss.curcolor - (INT(ss.curcolor / 16) * 16)) * 4), 0 + (INT(ss.curcolor / 16) * 6), 5, 7, uilook(uiText), dpage
-FOR i = 0 TO 15
- FOR o = 0 TO 15
-  rectangle 248 + (i * 4), 1 + (o * 6), 3, 5, o * 16 + i, dpage
- NEXT o
-NEXT i
-textcolor uilook(uiText), uilook(uiDisabledItem): IF ss.zonenum = 5 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
-printstr CHR$(27), 248, 100, dpage
-textcolor uilook(uiText), uilook(uiDisabledItem): IF ss.zonenum = 6 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
-printstr CHR$(26), 304, 100, dpage
-textcolor uilook(uiText), 0
-printstr LEFT$(" Pal", 4 - (LEN(XSTR$(poffset(state.pt))) - 3)) + XSTR$(poffset(state.pt)), 248, 100, dpage
-rectangle 247 + (col * 4), 110, 5, 7, uilook(uiText), dpage
-FOR i = 0 TO 15
- rectangle 248 + (i * 4), 111, 3, 5, peek8bit(workpal(), i + (state.pt - state.top) * 16), dpage
-NEXT
-IF zoom = 4 THEN hugesprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
-IF zoom = 2 THEN bigsprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
-ss.curcolor = peek8bit(workpal(), col + (state.pt - state.top) * 16)
-IF ss.hold = YES AND ss.tool = box_tool THEN
- rectangle 4 + small(ss.x, ss.holdpos.x) * zoom, 1 + small(ss.y, ss.holdpos.y) * zoom, (ABS(ss.x - ss.holdpos.x) + 1) * zoom, (ABS(ss.y - ss.holdpos.y) + 1) * zoom, ss.curcolor, dpage
- rectangle 4 + ss.holdpos.x * zoom, 1 + ss.holdpos.y * zoom, zoom, zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
-END IF
-rectangle 4 + (ss.x * zoom), 1 + (ss.y * zoom), zoom, zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
-drawsprite placer(), 0, workpal(), (state.pt - state.top) * 16, 239, 119, dpage, 0
-IF ss.hold = YES AND ss.tool = box_tool THEN
- rectangle 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, dpage
- putpixel 239 + ss.holdpos.x, 119 + ss.holdpos.y, state.tog * 15, dpage
-END IF
-IF ss.hold = YES AND ss.tool = line_tool THEN
- drawline 239 + ss.x, 119 + ss.y, 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.curcolor, dpage
- drawline 5 + (ss.x * zoom), 2 + (ss.y * zoom), 5 + (ss.holdpos.x * zoom), 2 + (ss.holdpos.y * zoom), ss.curcolor, dpage
-END IF
-IF ss.hold = YES AND ss.tool = oval_tool THEN
- ellipse 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.radius, ss.curcolor, dpage, ss.squish.x, ss.squish.y
- ellipse 5 + (ss.holdpos.x * zoom), 2 + (ss.holdpos.y * zoom), ss.radius * zoom, ss.curcolor, dpage, ss.squish.x, ss.squish.y
-END IF
-IF ss.tool = airbrush_tool THEN
- ellipse 239 + ss.x, 119 + ss.y, ss.airsize / 2, ss.curcolor, dpage, 0, 0
- ellipse 5 + (ss.x * zoom), 2 + (ss.y * zoom), (ss.airsize / 2) * zoom, ss.curcolor, dpage, 0, 0
-END IF
-IF ss.hold = YES AND ss.tool = mark_tool AND state.tog = 0 THEN
- ss.curcolor = INT(RND * 255) ' Random color when marking a clone region
- emptybox 4 + small(ss.x, ss.holdpos.x) * zoom, 1 + small(ss.y, ss.holdpos.y) * zoom, (ABS(ss.x - ss.holdpos.x) + 1) * zoom, (ABS(ss.y - ss.holdpos.y) + 1) * zoom, ss.curcolor, zoom, dpage
- emptybox 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, 1, dpage
-END IF
-IF ss.tool = clone_tool AND clonemarked = YES AND state.tog = 0 THEN
- temppos.x = ss.x - ss.holdpos.x
- temppos.y = ss.y - ss.holdpos.y
- IF ss.readjust THEN
-  temppos.x += (ss.adjustpos.x - ss.x)
-  temppos.y += (ss.adjustpos.y - ss.y)
- END IF
- IF zoom = 4 THEN hugesprite clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * zoom, 1 + temppos.y * zoom, dpage
- IF zoom = 2 THEN bigsprite clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * zoom, 1 + temppos.y * zoom, dpage
- drawsprite clonebuf(), 0, workpal(), (state.pt - state.top) * 16, 239 + temppos.x, 119 + temppos.y, dpage
-END IF
-putpixel 239 + ss.x, 119 + ss.y, state.tog * 15, dpage
-textcolor uilook(uiMenuItem), 0
-printstr info$(ss.framenum), 0, 182, dpage
-printstr "Tool:" & toolinfo(ss.tool).name, 0, 190, dpage
-FOR i = 0 TO 7
- fgcol = uilook(uiMenuItem): bgcol = uilook(uiDisabledItem)
- IF ss.tool = i THEN fgcol = uilook(uiText): bgcol = uilook(uiMenuItem)
- IF ss.zonenum = toolinfo(i).areanum + 1 THEN bgcol = uilook(uiSelectedDisabled)
- textcolor fgcol, bgcol
- printstr toolinfo(i).icon, area(toolinfo(i).areanum).x, area(toolinfo(i).areanum).y, dpage
-NEXT i
-textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ss.zonenum = 4 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
-printstr CHR$(7), 182, 190, dpage
-textcolor uilook(uiMenuitem), uilook(uiDisabledItem): IF ss.zonenum = 13 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
-printstr "I", 194, 190, dpage
-IF ss.undodepth = 0 THEN
- textcolor uilook(uiBackground), uilook(uiDisabledItem)
-ELSE
- textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
-END IF
-IF ss.zonenum = 20 AND ss.undodepth > 0 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
-printstr "UNDO", 170, 182, dpage
-IF ss.tool = airbrush_tool THEN
- textcolor uilook(uiMenuItem), 0
- printstr "SIZE" & ss.airsize, 218, 182, dpage
- printstr "MIST" & ss.mist, 218, 190, dpage
- textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ss.zonenum = 15 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
- printstr CHR$(27), 210, 182, dpage
- textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ss.zonenum = 16 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
- printstr CHR$(27), 210, 190, dpage
- textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ss.zonenum = 17 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
- printstr CHR$(26), 266, 182, dpage
- textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ss.zonenum = 18 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
- printstr CHR$(26), 266, 190, dpage
-END IF
-IF ss.gotmouse THEN
- c = ss.zonecursor
- IF c = -1 THEN
-  IF ss.hidemouse THEN c = -2 ELSE c = ss.drawcursor
- END IF
- IF state.tog THEN
-  textcolor uilook(uiText), 0
- ELSE
-  textcolor uilook(uiDescription), 0
- END IF
- printstr CHR$(2 + c), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
-END IF
-RETRACE
-
 savealluc:
 FOR j = state.top TO state.top + atatime
  spriteedit_save_what_you_see(spritefile, j, state.top, sets, sb, soff, placer(), workpal(), poffset()) 
@@ -2457,6 +2345,127 @@ NEXT
 RETRACE
 
 END SUB '----END of sprite()
+
+SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), col, zoom, clonemarked, info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
+ ss.curcolor = peek8bit(workpal(), col + (state.pt - state.top) * 16)
+ rectangle 247 + ((ss.curcolor - (INT(ss.curcolor / 16) * 16)) * 4), 0 + (INT(ss.curcolor / 16) * 6), 5, 7, uilook(uiText), dpage
+ DIM AS INTEGER i, o
+ FOR i = 0 TO 15
+  FOR o = 0 TO 15
+   rectangle 248 + (i * 4), 1 + (o * 6), 3, 5, o * 16 + i, dpage
+  NEXT o
+ NEXT i
+ textcolor uilook(uiText), uilook(uiDisabledItem): IF ss.zonenum = 5 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+ printstr CHR(27), 248, 100, dpage
+ textcolor uilook(uiText), uilook(uiDisabledItem): IF ss.zonenum = 6 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+ printstr CHR(26), 304, 100, dpage
+ textcolor uilook(uiText), 0
+ printstr LEFT(" Pal", 4 - (LEN(STR(poffset(state.pt))) - 3)) & poffset(state.pt), 248, 100, dpage
+ rectangle 247 + (col * 4), 110, 5, 7, uilook(uiText), dpage
+ FOR i = 0 TO 15
+  rectangle 248 + (i * 4), 111, 3, 5, peek8bit(workpal(), i + (state.pt - state.top) * 16), dpage
+ NEXT
+ IF zoom = 4 THEN hugesprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
+ IF zoom = 2 THEN bigsprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
+ ss.curcolor = peek8bit(workpal(), col + (state.pt - state.top) * 16)
+ IF ss.hold = YES AND ss.tool = box_tool THEN
+  rectangle 4 + small(ss.x, ss.holdpos.x) * zoom, 1 + small(ss.y, ss.holdpos.y) * zoom, (ABS(ss.x - ss.holdpos.x) + 1) * zoom, (ABS(ss.y - ss.holdpos.y) + 1) * zoom, ss.curcolor, dpage
+  rectangle 4 + ss.holdpos.x * zoom, 1 + ss.holdpos.y * zoom, zoom, zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
+ END IF
+ rectangle 4 + (ss.x * zoom), 1 + (ss.y * zoom), zoom, zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
+ drawsprite placer(), 0, workpal(), (state.pt - state.top) * 16, 239, 119, dpage, 0
+ IF ss.hold = YES AND ss.tool = box_tool THEN
+  rectangle 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, dpage
+  putpixel 239 + ss.holdpos.x, 119 + ss.holdpos.y, state.tog * 15, dpage
+ END IF
+ IF ss.hold = YES AND ss.tool = line_tool THEN
+  drawline 239 + ss.x, 119 + ss.y, 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.curcolor, dpage
+  drawline 5 + (ss.x * zoom), 2 + (ss.y * zoom), 5 + (ss.holdpos.x * zoom), 2 + (ss.holdpos.y * zoom), ss.curcolor, dpage
+ END IF
+ IF ss.hold = YES AND ss.tool = oval_tool THEN
+  ellipse 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.radius, ss.curcolor, dpage, ss.squish.x, ss.squish.y
+  ellipse 5 + (ss.holdpos.x * zoom), 2 + (ss.holdpos.y * zoom), ss.radius * zoom, ss.curcolor, dpage, ss.squish.x, ss.squish.y
+ END IF
+ IF ss.tool = airbrush_tool THEN
+  ellipse 239 + ss.x, 119 + ss.y, ss.airsize / 2, ss.curcolor, dpage, 0, 0
+  ellipse 5 + (ss.x * zoom), 2 + (ss.y * zoom), (ss.airsize / 2) * zoom, ss.curcolor, dpage, 0, 0
+ END IF
+ IF ss.hold = YES AND ss.tool = mark_tool AND state.tog = 0 THEN
+  ss.curcolor = INT(RND * 255) ' Random color when marking a clone region
+  emptybox 4 + small(ss.x, ss.holdpos.x) * zoom, 1 + small(ss.y, ss.holdpos.y) * zoom, (ABS(ss.x - ss.holdpos.x) + 1) * zoom, (ABS(ss.y - ss.holdpos.y) + 1) * zoom, ss.curcolor, zoom, dpage
+  emptybox 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, 1, dpage
+ END IF
+ DIM temppos AS XYPair
+ IF ss.tool = clone_tool AND clonemarked = YES AND state.tog = 0 THEN
+  temppos.x = ss.x - ss.holdpos.x
+  temppos.y = ss.y - ss.holdpos.y
+  IF ss.readjust THEN
+   temppos.x += (ss.adjustpos.x - ss.x)
+   temppos.y += (ss.adjustpos.y - ss.y)
+  END IF
+ IF zoom = 4 THEN hugesprite clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * zoom, 1 + temppos.y * zoom, dpage
+ IF zoom = 2 THEN bigsprite clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * zoom, 1 + temppos.y * zoom, dpage
+  drawsprite clonebuf(), 0, workpal(), (state.pt - state.top) * 16, 239 + temppos.x, 119 + temppos.y, dpage
+ END IF
+ putpixel 239 + ss.x, 119 + ss.y, state.tog * 15, dpage
+ textcolor uilook(uiMenuItem), 0
+ printstr info$(ss.framenum), 0, 182, dpage
+ printstr "Tool:" & toolinfo(ss.tool).name, 0, 190, dpage
+ DIM bgcol AS INTEGER
+ DIM fgcol AS INTEGER
+ FOR i = 0 TO 7
+  fgcol = uilook(uiMenuItem)
+  bgcol = uilook(uiDisabledItem)
+  IF ss.tool = i THEN
+   fgcol = uilook(uiText)
+   bgcol = uilook(uiMenuItem)
+  END IF
+  IF ss.zonenum = toolinfo(i).areanum + 1 THEN bgcol = uilook(uiSelectedDisabled)
+  textcolor fgcol, bgcol
+  printstr toolinfo(i).icon, area(toolinfo(i).areanum).x, area(toolinfo(i).areanum).y, dpage
+ NEXT i
+ textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
+ IF ss.zonenum = 4 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+ printstr CHR(7), 182, 190, dpage
+ textcolor uilook(uiMenuitem), uilook(uiDisabledItem)
+ IF ss.zonenum = 13 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+ printstr "I", 194, 190, dpage
+ IF ss.undodepth = 0 THEN
+  textcolor uilook(uiBackground), uilook(uiDisabledItem)
+ ELSE
+  textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
+ END IF
+ IF ss.zonenum = 20 AND ss.undodepth > 0 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+ printstr "UNDO", 170, 182, dpage
+ IF ss.tool = airbrush_tool THEN
+  textcolor uilook(uiMenuItem), 0
+  printstr "SIZE" & ss.airsize, 218, 182, dpage
+  printstr "MIST" & ss.mist, 218, 190, dpage
+  textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
+  IF ss.zonenum = 15 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+  printstr CHR(27), 210, 182, dpage
+  textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
+  IF ss.zonenum = 16 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+  printstr CHR(27), 210, 190, dpage
+  textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
+  IF ss.zonenum = 17 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+  printstr CHR(26), 266, 182, dpage
+  textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
+  IF ss.zonenum = 18 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+  printstr CHR(26), 266, 190, dpage
+ END IF
+ IF ss.gotmouse THEN
+  IF ss.zonecursor = -1 THEN
+   IF ss.hidemouse THEN ss.zonecursor = -2 ELSE ss.zonecursor = ss.drawcursor
+  END IF
+  IF state.tog THEN
+   textcolor uilook(uiText), 0
+  ELSE
+   textcolor uilook(uiDescription), 0
+  END IF
+  printstr CHR(2 + ss.zonecursor), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
+ END IF
+END SUB
 
 SUB init_sprite_zones(area() AS MouseArea)
  DIM i AS INTEGER
