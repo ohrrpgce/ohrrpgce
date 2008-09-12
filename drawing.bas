@@ -47,8 +47,8 @@ DECLARE SUB importmasterpal (f$, palnum%)
 DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 
 'Local SUBs and FUNCTIONS
-DECLARE SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, BYREF sb AS SpriteBrowseState, soff,placer(), workpal(), poffset())
-DECLARE SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, BYREF sb AS SpriteBrowseState, soff, placer(), workpal(), poffset())
+DECLARE SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
+DECLARE SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
 DECLARE SUB init_sprite_zones(area() AS MouseArea)
 DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), zoom, clonemarked, info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
 
@@ -1570,36 +1570,21 @@ SUB sprite (xw, yw, sets, perset, soff, atatime, info$(), zoom, fileset, font())
 STATIC default$, spriteclip(1602), clippedpal, clippedw, clippedh, paste
 STATIC clonebuf(1600) AS INTEGER, clonemarked AS INTEGER = NO
 
-DIM sb AS SpriteBrowseState
-WITH sb
- .wide = xw
- .high = yw
- .perset = perset
- .size = .wide * .high / 2
- .setsize = .size * .perset
-END WITH
-
-DIM sprites(atatime) AS Frame
-DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40), mouse(4)
-DIM toolinfo(7) AS ToolInfoType
-DIM workpal(8 * (atatime + 1))
-DIM poffset(large(sets, atatime))
-DIM AS INTEGER do_paste = 0
-DIM AS INTEGER paste_transparent = 0
-DIM AS INTEGER debug_palettes = 0
-DIM AS INTEGER tick = 0
-'FOR Loop counters
-DIM AS INTEGER i, j, o
-
-DIM spritefile AS STRING
-spritefile = game & ".pt" & fileset
+DIM mouse(4)
 
 DIM area(22) AS MouseArea
 init_sprite_zones area()
 
 DIM ss AS SpriteEditState
 WITH ss
+ '--Sets
  .framenum = 0
+ .wide = xw
+ .high = yw
+ .perset = perset
+ .size = .wide * .high / 2
+ .setsize = .size * .perset
+ '--Editor
  .x = 0
  .y = 0
  .zone.x = 0
@@ -1612,6 +1597,21 @@ WITH ss
  .mist = 4
  .palindex = 1
 END WITH
+
+DIM sprites(atatime) AS Frame
+DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40)
+DIM toolinfo(7) AS ToolInfoType
+DIM workpal(8 * (atatime + 1))
+DIM poffset(large(sets, atatime))
+DIM AS INTEGER do_paste = 0
+DIM AS INTEGER paste_transparent = 0
+DIM AS INTEGER debug_palettes = 0
+DIM AS INTEGER tick = 0
+'FOR Loop counters
+DIM AS INTEGER i, j, o
+
+DIM spritefile AS STRING
+spritefile = game & ".pt" & fileset
 
 DIM state AS MenuState
 WITH state
@@ -1701,7 +1701,7 @@ DO
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) > 1 THEN
   GOSUB savealluc
-  cropafter state.pt, sets, 0, spritefile, sb.setsize, 1
+  cropafter state.pt, sets, 0, spritefile, ss.setsize, 1
   clearpage 3
   GOSUB loadalluc
  END IF
@@ -1746,8 +1746,8 @@ DO
   state.pt = state.pt + 1
   IF needaddset(state.pt, sets, "graphics") THEN
    '--Add a new blank sprite set
-   setpicstuf buffer(), sb.setsize, -1
-   FOR i = 0 TO sb.setsize / 2
+   setpicstuf buffer(), ss.setsize, -1
+   FOR i = 0 TO ss.setsize / 2
     buffer(i) = 0
    NEXT i
    storeset spritefile, state.pt, 0
@@ -1764,7 +1764,7 @@ DO
   END IF
  END IF
  IF keyval(75) > 1 THEN ss.framenum = large(ss.framenum - 1, 0)
- IF keyval(77) > 1 THEN ss.framenum = small(ss.framenum + 1, sb.perset - 1)
+ IF keyval(77) > 1 THEN ss.framenum = small(ss.framenum + 1, ss.perset - 1)
  IF keyval(26) > 1 THEN
   changepal poffset(state.pt), -1, workpal(), state.pt - state.top
  END IF
@@ -1773,10 +1773,10 @@ DO
  END IF
  '--copying
  IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83) > 0) OR (keyval(29) > 0 AND keyval(46) > 1) THEN 
-  loadsprite spriteclip(), 0, ss.framenum * sb.size, soff * (state.pt - state.top), sb.wide, sb.high, 3
+  loadsprite spriteclip(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), ss.wide, ss.high, 3
   paste = 1
-  clippedw = sb.wide
-  clippedh = sb.high
+  clippedw = ss.wide
+  clippedh = ss.high
  END IF
  '--pasting
  do_paste = 0
@@ -1790,28 +1790,28 @@ DO
  END IF
  IF do_paste THEN
   do_paste = 0
-  loadsprite placer(), 0, ss.framenum * sb.size, soff * (state.pt - state.top), sb.wide, sb.high, 3
-  rectangle 0, 0, sb.wide, sb.high, 0, dpage
+  loadsprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), ss.wide, ss.high, 3
+  rectangle 0, 0, ss.wide, ss.high, 0, dpage
   drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
   IF NOT paste_transparent THEN
    rectangle 0, 0, clippedw, clippedh, 0, dpage
   END IF
   drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
-  getsprite placer(), 0, 0, 0, sb.wide, sb.high, dpage
-  stosprite placer(), 0, ss.framenum * sb.size, soff * (state.pt - state.top), 3
-  spriteedit_save_what_you_see(spritefile, state.pt, state.top, sets, sb, soff, placer(), workpal(), poffset())
+  getsprite placer(), 0, 0, 0, ss.wide, ss.high, dpage
+  stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
+  spriteedit_save_what_you_see(spritefile, state.pt, state.top, sets, ss, soff, placer(), workpal(), poffset())
  END IF
  IF keyval(59) > 1 THEN
   debug_palettes = debug_palettes XOR 1
  END IF
  'draw sprite sets
  rectangle 0, 0, 320, 200, uilook(uiDisabledItem), dpage
- rectangle 4 + (ss.framenum * (sb.wide + 1)), (state.pt - state.top) * (sb.high + 5), sb.wide + 2, sb.high + 2, uilook(uiText), dpage
+ rectangle 4 + (ss.framenum * (ss.wide + 1)), (state.pt - state.top) * (ss.high + 5), ss.wide + 2, ss.high + 2, uilook(uiText), dpage
  FOR i = state.top TO small(state.top + atatime, sets)
-  FOR o = 0 TO sb.perset - 1
-   rectangle 5 + (o * (sb.wide + 1)), 1 + ((i - state.top) * (sb.high + 5)), sb.wide, sb.high, 0, dpage
-   loadsprite placer(), 0, sb.size * o, soff * (i - state.top), sb.wide, sb.high, 3
-   drawsprite placer(), 0, workpal(), (i - state.top) * 16, 5 + (o * (sb.wide + 1)), 1 + ((i - state.top) * (sb.high + 5)), dpage
+  FOR o = 0 TO ss.perset - 1
+   rectangle 5 + (o * (ss.wide + 1)), 1 + ((i - state.top) * (ss.high + 5)), ss.wide, ss.high, 0, dpage
+   loadsprite placer(), 0, ss.size * o, soff * (i - state.top), ss.wide, ss.high, 3
+   drawsprite placer(), 0, workpal(), (i - state.top) * 16, 5 + (o * (ss.wide + 1)), 1 + ((i - state.top) * (ss.high + 5)), dpage
   NEXT o
  NEXT i
  textcolor uilook(uiMenuItem), 0
@@ -1846,9 +1846,9 @@ EXIT SUB
 spriteage:
 ss.undodepth = 0
 ss.undoslot = 0
-ss.undomax = (32000 \ sb.size) - 1
+ss.undomax = (32000 \ ss.size) - 1
 GOSUB spedbak
-loadsprite placer(), 0, ss.framenum * sb.size, soff * (state.pt - state.top), sb.wide, sb.high, 3
+loadsprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), ss.wide, ss.high, 3
 setkeyrepeat 25, 5
 setkeys
 DO
@@ -1863,7 +1863,7 @@ DO
   IF ss.hold = YES THEN
    GOSUB resettool
   ELSE
-   stosprite placer(), 0, ss.framenum * sb.size, soff * (state.pt - state.top), 3
+   stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
    GOSUB resettool
    EXIT DO
   END IF
@@ -1874,13 +1874,13 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  'blank the sprite area
- rectangle 239, 119, sb.wide, sb.high, 0, dpage
+ rectangle 239, 119, ss.wide, ss.high, 0, dpage
  tick = 0
  IF dowait THEN tick = 1: state.tog = state.tog XOR 1
 LOOP
 setkeyrepeat
 j = state.pt
-spriteedit_save_what_you_see(spritefile, j, state.top, sets, sb, soff, placer(), workpal(), poffset())
+spriteedit_save_what_you_see(spritefile, j, state.top, sets, ss, soff, placer(), workpal(), poffset())
 changepal poffset(state.pt), 0, workpal(), state.pt - state.top
 RETRACE
 
@@ -1904,35 +1904,35 @@ IF keyval(27) > 1 OR (ss.zonenum = 6 AND mouse(3) > 0) THEN
 END IF
 IF keyval(25) > 1 OR (ss.zonenum = 19 AND mouse(3) > 0) THEN '--call palette browser
  '--write changes so far
- stosprite placer(), 0, ss.framenum * sb.size, soff * (state.pt - state.top), 3
+ stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
  '--save current palette
  storepal16 workpal(), state.pt - state.top, poffset(state.pt)
- poffset(state.pt) = pal16browse(poffset(state.pt), fileset, state.pt, sb.perset, sb.wide, sb.high)
+ poffset(state.pt) = pal16browse(poffset(state.pt), fileset, state.pt, ss.perset, ss.wide, ss.high)
  getpal16 workpal(), state.pt - state.top, poffset(state.pt)
 END IF
 '--UNDO
 IF (keyval(29) > 0 AND keyval(44) > 1) OR (ss.zonenum = 20 AND mouse(3) > 0) THEN GOSUB readundospr
 '--COPY (CTRL+INS,SHIFT+DEL,CTRL+C)
 IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83) > 0) OR (keyval(29) > 0 AND keyval(46) > 1) THEN
- clippedw = sb.wide
- clippedh = sb.high
- stosprite placer(), 0, ss.framenum * sb.size, soff * (state.pt - state.top), 3
- loadsprite spriteclip(), 0, ss.framenum * sb.size, soff * (state.pt - state.top), sb.wide, sb.high, 3
+ clippedw = ss.wide
+ clippedh = ss.high
+ stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
+ loadsprite spriteclip(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), ss.wide, ss.high, 3
  paste = 1
 END IF
 '--PASTE (SHIFT+INS,CTRL+V)
 IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN
- rectangle 0, 0, sb.wide, sb.high, 0, dpage
+ rectangle 0, 0, ss.wide, ss.high, 0, dpage
  drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
  drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage, 0
- getsprite placer(), 0, 0, 0, sb.wide, sb.high, dpage
+ getsprite placer(), 0, 0, 0, ss.wide, ss.high, dpage
 END IF
 '--TRANSPARENT PASTE (CTRL+T)
 IF (keyval(29) > 0 AND keyval(20) > 1) AND paste = 1 THEN
- rectangle 0, 0, sb.wide, sb.high, 0, dpage
+ rectangle 0, 0, ss.wide, ss.high, 0, dpage
  drawsprite placer(), 0, nulpal(), 0, 0, 0, dpage
  drawsprite spriteclip(), 0, nulpal(), 0, 0, 0, dpage
- getsprite placer(), 0, 0, 0, sb.wide, sb.high, dpage
+ getsprite placer(), 0, 0, 0, ss.wide, ss.high, dpage
 END IF
 '--COPY PALETTE (ALT+C)
 IF keyval(56) > 0 AND keyval(46) > 1 THEN
@@ -1964,9 +1964,9 @@ IF keyval(56) = 0 THEN
  WITH ss
   .fixmouse = NO
   IF slowkey(72, 6) THEN .y = large(0, .y - 1):      .fixmouse = YES
-  IF slowkey(80, 6) THEN .y = small(sb.high - 1, .y + 1): .fixmouse = YES
+  IF slowkey(80, 6) THEN .y = small(ss.high - 1, .y + 1): .fixmouse = YES
   IF slowkey(75, 6) THEN .x = large(0, .x - 1):      .fixmouse = YES
-  IF slowkey(77, 6) THEN .x = small(sb.wide - 1, .x + 1): .fixmouse = YES
+  IF slowkey(77, 6) THEN .x = small(ss.wide - 1, .x + 1): .fixmouse = YES
  END WITH
  IF ss.fixmouse THEN
   IF ss.zonenum = 1 THEN
@@ -2085,7 +2085,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
      END IF
      drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
      drawsprite clonebuf(), 0, nulpal(), 0, 239 + ss.x - ss.holdpos.x, 119 + ss.y - ss.holdpos.y, dpage
-     getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
+     getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
      ss.lastpos.x = ss.x
      ss.lastpos.y = ss.y
     ELSE
@@ -2131,12 +2131,12 @@ ELSE
   ss.palindex = readpixel(239 + ss.x, 119 + ss.y, dpage)
  END IF
 END IF
-IF keyval(14) > 1 OR (ss.zonenum = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, nulpal(), 0, 239, 119, dpage: getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
+IF keyval(14) > 1 OR (ss.zonenum = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, nulpal(), 0, 239, 119, dpage: getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
 IF keyval(scCapslock) > 0 THEN
- IF slowkey(72, 6) THEN rectangle 239, 119, sb.wide, sb.high, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 118, dpage: getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
- IF slowkey(80, 6) THEN rectangle 239, 119, sb.wide, sb.high, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 120, dpage: getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
- IF slowkey(75, 6) THEN rectangle 239, 119, sb.wide, sb.high, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 238, 119, dpage: getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
- IF slowkey(77, 6) THEN rectangle 239, 119, sb.wide, sb.high, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 240, 119, dpage: getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
+ IF slowkey(72, 6) THEN rectangle 239, 119, ss.wide, ss.high, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 118, dpage: getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
+ IF slowkey(80, 6) THEN rectangle 239, 119, ss.wide, ss.high, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 120, dpage: getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
+ IF slowkey(75, 6) THEN rectangle 239, 119, ss.wide, ss.high, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 238, 119, dpage: getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
+ IF slowkey(77, 6) THEN rectangle 239, 119, ss.wide, ss.high, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 240, 119, dpage: getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
 END IF
 IF keyval(23) > 1 OR (ss.zonenum = 13 AND mouse(3) > 0) THEN
  GOSUB import16
@@ -2153,16 +2153,16 @@ RETRACE
 
 spedbak:
 clearpage 2
-rectangle 3, 0, sb.wide * zoom + 2, sb.high * zoom + 2, uilook(uiText), 2
-rectangle 4, 1, sb.wide * zoom, sb.high * zoom, 0, 2
+rectangle 3, 0, ss.wide * zoom + 2, ss.high * zoom + 2, uilook(uiText), 2
+rectangle 4, 1, ss.wide * zoom, ss.high * zoom, 0, 2
 rectangle 245, 109, 67, 8, uilook(uiText), 2
 rectangle 246, 110, 65, 6, 0, 2
-rectangle 238, 118, sb.wide + 2, sb.high + 2, uilook(uiText), 2
-rectangle 239, 119, sb.wide, sb.high, 0, 2
-area(0).w = sb.wide * zoom
-area(0).h = sb.high * zoom
-area(13).w = sb.wide
-area(13).h = sb.high
+rectangle 238, 118, ss.wide + 2, ss.high + 2, uilook(uiText), 2
+rectangle 239, 119, ss.wide, ss.high, 0, 2
+area(0).w = ss.wide * zoom
+area(0).h = ss.high * zoom
+area(13).w = ss.wide
+area(13).h = ss.high
 RETRACE
 
 import16:
@@ -2262,30 +2262,30 @@ IF palstate.pt = 0 THEN
  poke8bit workpal(), 0 + (state.pt - state.top) * 16, 0
 END IF
 '--read the sprite
-getsprite placer(), 0, 1, 1, sb.wide, sb.high, 2
+getsprite placer(), 0, 1, 1, ss.wide, ss.high, 2
 GOSUB spedbak
 RETRACE
 
 floodfill:
 GOSUB writeundospr
-rectangle 238, 118, sb.wide + 2, sb.high + 2, uilook(uiHighlight), dpage
-rectangle 239, 119, sb.wide, sb.high, 0, dpage
+rectangle 238, 118, ss.wide + 2, ss.high + 2, uilook(uiHighlight), dpage
+rectangle 239, 119, ss.wide, ss.high, 0, dpage
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 paintat 239 + ss.x, 119 + ss.y, ss.palindex, dpage, buffer(), 16384
-getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
+getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
 RETRACE
 
 sprayspot:
 IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 airbrush 239 + ss.x, 119 + ss.y, ss.airsize, ss.mist, ss.palindex, dpage
-getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
+getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
 ss.lastpos.x = ss.x
 ss.lastpos.y = ss.y
 RETRACE
 
 writeundospr:
-stosprite placer(), 0, ss.undoslot * sb.size, 100, 3
+stosprite placer(), 0, ss.undoslot * ss.size, 100, 3
 ss.undoslot = loopvar(ss.undoslot, 0, ss.undomax, 1)
 ss.undodepth = small(ss.undodepth + 1, ss.undomax + 1)
 RETRACE
@@ -2294,7 +2294,7 @@ readundospr:
 IF ss.undodepth > 0 THEN
  ss.undodepth = ss.undodepth - 1
  ss.undoslot = loopvar(ss.undoslot, 0, ss.undomax, -1)
- loadsprite placer(), 0, ss.undoslot * sb.size, 100, sb.wide, sb.high, 3
+ loadsprite placer(), 0, ss.undoslot * ss.size, 100, ss.wide, ss.high, 3
 END IF
 RETRACE
 
@@ -2306,7 +2306,7 @@ IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
 ELSE
  drawline 239 + ss.x, 119 + ss.y, 239 + ss.lastpos.x, 119 + ss.lastpos.y, ss.palindex, dpage
 END IF
-getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
+getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
 ss.lastpos.x = ss.x
 ss.lastpos.y = ss.y
 RETRACE
@@ -2315,32 +2315,32 @@ drawoval:
 GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 ellipse 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.radius, ss.palindex, dpage, ss.squish.x, ss.squish.y
-getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
+getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
 RETRACE
 
 drawsquare:
 GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 rectangle 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.palindex, dpage
-getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
+getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
 RETRACE
 
 straitline:
 GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 drawline 239 + ss.x, 119 + ss.y, 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.palindex, dpage
-getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
+getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
 RETRACE
 
 savealluc:
 FOR j = state.top TO state.top + atatime
- spriteedit_save_what_you_see(spritefile, j, state.top, sets, sb, soff, placer(), workpal(), poffset()) 
+ spriteedit_save_what_you_see(spritefile, j, state.top, sets, ss, soff, placer(), workpal(), poffset()) 
 NEXT j
 RETRACE
 
 loadalluc:
 FOR j = state.top TO state.top + atatime
- spriteedit_load_what_you_see(spritefile, j, state.top, sets, sb, soff, placer(), workpal(), poffset())
+ spriteedit_load_what_you_see(spritefile, j, state.top, sets, ss, soff, placer(), workpal(), poffset())
 NEXT
 RETRACE
 
@@ -2566,26 +2566,26 @@ SUB init_sprite_zones(area() AS MouseArea)
  NEXT i
 END SUB
 
-SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, BYREF sb AS SpriteBrowseState, soff, placer(), workpal(), poffset())
+SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
  DIM i AS INTEGER
  getpal16 workpal(), j - top, poffset(j)
  IF j <= sets THEN
-  setpicstuf buffer(), sb.setsize, 2
+  setpicstuf buffer(), ss.setsize, 2
   loadset spritefile, large(j, 0), 0
-  FOR i = 0 TO (sb.perset - 1)
-   loadsprite placer(), 0, sb.size * i, 0, sb.wide, sb.high, 2
-   stosprite placer(), 0, sb.size * i, soff * (j - top), 3
+  FOR i = 0 TO (ss.perset - 1)
+   loadsprite placer(), 0, ss.size * i, 0, ss.wide, ss.high, 2
+   stosprite placer(), 0, ss.size * i, soff * (j - top), 3
   NEXT i
  END IF
 END SUB
 
-SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, BYREF sb AS SpriteBrowseState, soff, placer(), workpal(), poffset())
+SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
  DIM i AS INTEGER
  IF j <= sets THEN
-  setpicstuf buffer(), sb.setsize, 2
-  FOR i = 0 TO (sb.perset - 1)
-   loadsprite placer(), 0, sb.size * i, soff * (j - top), sb.wide, sb.high, 3
-   stosprite placer(), 0, sb.size * i, 0, 2
+  setpicstuf buffer(), ss.setsize, 2
+  FOR i = 0 TO (ss.perset - 1)
+   loadsprite placer(), 0, ss.size * i, soff * (j - top), ss.wide, ss.high, 3
+   stosprite placer(), 0, ss.size * i, 0, 2
   NEXT i
   storeset spritefile, large(j, 0), 0
  END IF

@@ -4,17 +4,14 @@
 'This file contains UDTs that only get used in custom mode, and not in game,
 'so as to prevent them from cluttering up the global udts.bi file
 
-TYPE SpriteBrowseState
+TYPE SpriteEditState
+  '--sprite set state
+  framenum AS INTEGER
   wide AS INTEGER
   high AS INTEGER
   perset AS INTEGER
   size AS INTEGER ' In bytes, two pixels per byte
   setsize AS INTEGER ' In bytes, two pixels per byte
-END TYPE
-
-TYPE SpriteEditState
-  '--sprite set state
-  framenum AS INTEGER
  
   '--sprite editor state
   x AS INTEGER
