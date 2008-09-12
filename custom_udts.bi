@@ -14,6 +14,7 @@ TYPE SpriteEditState
   setsize AS INTEGER ' In bytes, two pixels per byte
  
   '--sprite editor state
+  zoom AS INTEGER
   x AS INTEGER
   y AS INTEGER
   lastpos AS XYPair

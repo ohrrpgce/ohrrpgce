@@ -50,7 +50,7 @@ DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 DECLARE SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
 DECLARE SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
 DECLARE SUB init_sprite_zones(area() AS MouseArea)
-DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), zoom, clonemarked, info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
+DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), clonemarked, info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
 
 #include "scancodes.bi"
 #include "compat.bi"
@@ -1577,13 +1577,13 @@ init_sprite_zones area()
 
 DIM ss AS SpriteEditState
 WITH ss
- '--Sets
  .framenum = 0
  .wide = xw
  .high = yw
  .perset = perset
  .size = .wide * .high / 2
  .setsize = .size * .perset
+ .zoom = zoom
  '--Editor
  .x = 0
  .y = 0
@@ -1870,7 +1870,7 @@ DO
  END IF
  GOSUB sprctrl
  copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
- spriteedit_display ss, state, placer(), workpal(), poffset(), clonebuf(), zoom, clonemarked, info$(), toolinfo(), area(), mouse()
+ spriteedit_display ss, state, placer(), workpal(), poffset(), clonebuf(), clonemarked, info$(), toolinfo(), area(), mouse()
  SWAP vpage, dpage
  setvispage vpage
  'blank the sprite area
@@ -1970,8 +1970,8 @@ IF keyval(56) = 0 THEN
  END WITH
  IF ss.fixmouse THEN
   IF ss.zonenum = 1 THEN
-   ss.zone.x = ss.x * zoom + INT(zoom / 2)
-   ss.zone.y = ss.y * zoom + INT(zoom / 2)
+   ss.zone.x = ss.x * ss.zoom + INT(ss.zoom / 2)
+   ss.zone.y = ss.y * ss.zoom + INT(ss.zoom / 2)
    mouse(0) = area(0).x + ss.zone.x 
    mouse(1) = area(0).y + ss.zone.y
    movemouse mouse(0), mouse(1)
@@ -1986,8 +1986,8 @@ IF keyval(56) = 0 THEN
  END IF
 END IF
 IF ss.zonenum = 1 THEN
- ss.x = INT(ss.zone.x / zoom)
- ss.y = INT(ss.zone.y / zoom)
+ ss.x = INT(ss.zone.x / ss.zoom)
+ ss.y = INT(ss.zone.y / ss.zoom)
 END IF
 IF ss.tool = airbrush_tool THEN '--adjust airbrush
  IF mouse(3) = 1 OR mouse(2) = 1 THEN
@@ -2153,14 +2153,14 @@ RETRACE
 
 spedbak:
 clearpage 2
-rectangle 3, 0, ss.wide * zoom + 2, ss.high * zoom + 2, uilook(uiText), 2
-rectangle 4, 1, ss.wide * zoom, ss.high * zoom, 0, 2
+rectangle 3, 0, ss.wide * ss.zoom + 2, ss.high * ss.zoom + 2, uilook(uiText), 2
+rectangle 4, 1, ss.wide * ss.zoom, ss.high * ss.zoom, 0, 2
 rectangle 245, 109, 67, 8, uilook(uiText), 2
 rectangle 246, 110, 65, 6, 0, 2
 rectangle 238, 118, ss.wide + 2, ss.high + 2, uilook(uiText), 2
 rectangle 239, 119, ss.wide, ss.high, 0, 2
-area(0).w = ss.wide * zoom
-area(0).h = ss.high * zoom
+area(0).w = ss.wide * ss.zoom
+area(0).h = ss.high * ss.zoom
 area(13).w = ss.wide
 area(13).h = ss.high
 RETRACE
@@ -2192,7 +2192,7 @@ DO
   IF palstate.pt = 2 THEN RETRACE
   EXIT DO
  END IF
- spriteedit_display ss, state, placer(), workpal(), poffset(), clonebuf(), zoom, clonemarked, info$(), toolinfo(), area(), mouse()
+ spriteedit_display ss, state, placer(), workpal(), poffset(), clonebuf(), clonemarked, info$(), toolinfo(), area(), mouse()
  rectangle 4, 156, 208, 32, uilook(uiDisabledItem), dpage
  FOR i = 0 TO 2
   coltemp = uilook(uiMenuItem): IF i = palstate.pt THEN coltemp = uilook(uiSelectedItem + palstate.tog)
@@ -2346,7 +2346,7 @@ RETRACE
 
 END SUB '----END of sprite()
 
-SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), zoom, clonemarked, info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
+SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), clonemarked, info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
  ss.curcolor = peek8bit(workpal(), ss.palindex + (state.pt - state.top) * 16)
  rectangle 247 + ((ss.curcolor - (INT(ss.curcolor / 16) * 16)) * 4), 0 + (INT(ss.curcolor / 16) * 6), 5, 7, uilook(uiText), dpage
  DIM AS INTEGER i, o
@@ -2365,14 +2365,14 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer()
  FOR i = 0 TO 15
   rectangle 248 + (i * 4), 111, 3, 5, peek8bit(workpal(), i + (state.pt - state.top) * 16), dpage
  NEXT
- IF zoom = 4 THEN hugesprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
- IF zoom = 2 THEN bigsprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
+ IF ss.zoom = 4 THEN hugesprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
+ IF ss.zoom = 2 THEN bigsprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
  ss.curcolor = peek8bit(workpal(), ss.palindex + (state.pt - state.top) * 16)
  IF ss.hold = YES AND ss.tool = box_tool THEN
-  rectangle 4 + small(ss.x, ss.holdpos.x) * zoom, 1 + small(ss.y, ss.holdpos.y) * zoom, (ABS(ss.x - ss.holdpos.x) + 1) * zoom, (ABS(ss.y - ss.holdpos.y) + 1) * zoom, ss.curcolor, dpage
-  rectangle 4 + ss.holdpos.x * zoom, 1 + ss.holdpos.y * zoom, zoom, zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
+  rectangle 4 + small(ss.x, ss.holdpos.x) * ss.zoom, 1 + small(ss.y, ss.holdpos.y) * ss.zoom, (ABS(ss.x - ss.holdpos.x) + 1) * ss.zoom, (ABS(ss.y - ss.holdpos.y) + 1) * ss.zoom, ss.curcolor, dpage
+  rectangle 4 + ss.holdpos.x * ss.zoom, 1 + ss.holdpos.y * ss.zoom, ss.zoom, ss.zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
  END IF
- rectangle 4 + (ss.x * zoom), 1 + (ss.y * zoom), zoom, zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
+ rectangle 4 + (ss.x * ss.zoom), 1 + (ss.y * ss.zoom), ss.zoom, ss.zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
  drawsprite placer(), 0, workpal(), (state.pt - state.top) * 16, 239, 119, dpage, 0
  IF ss.hold = YES AND ss.tool = box_tool THEN
   rectangle 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, dpage
@@ -2380,19 +2380,19 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer()
  END IF
  IF ss.hold = YES AND ss.tool = line_tool THEN
   drawline 239 + ss.x, 119 + ss.y, 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.curcolor, dpage
-  drawline 5 + (ss.x * zoom), 2 + (ss.y * zoom), 5 + (ss.holdpos.x * zoom), 2 + (ss.holdpos.y * zoom), ss.curcolor, dpage
+  drawline 5 + (ss.x * ss.zoom), 2 + (ss.y * ss.zoom), 5 + (ss.holdpos.x * ss.zoom), 2 + (ss.holdpos.y * ss.zoom), ss.curcolor, dpage
  END IF
  IF ss.hold = YES AND ss.tool = oval_tool THEN
   ellipse 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.radius, ss.curcolor, dpage, ss.squish.x, ss.squish.y
-  ellipse 5 + (ss.holdpos.x * zoom), 2 + (ss.holdpos.y * zoom), ss.radius * zoom, ss.curcolor, dpage, ss.squish.x, ss.squish.y
+  ellipse 5 + (ss.holdpos.x * ss.zoom), 2 + (ss.holdpos.y * ss.zoom), ss.radius * ss.zoom, ss.curcolor, dpage, ss.squish.x, ss.squish.y
  END IF
  IF ss.tool = airbrush_tool THEN
   ellipse 239 + ss.x, 119 + ss.y, ss.airsize / 2, ss.curcolor, dpage, 0, 0
-  ellipse 5 + (ss.x * zoom), 2 + (ss.y * zoom), (ss.airsize / 2) * zoom, ss.curcolor, dpage, 0, 0
+  ellipse 5 + (ss.x * ss.zoom), 2 + (ss.y * ss.zoom), (ss.airsize / 2) * ss.zoom, ss.curcolor, dpage, 0, 0
  END IF
  IF ss.hold = YES AND ss.tool = mark_tool AND state.tog = 0 THEN
   ss.curcolor = INT(RND * 255) ' Random color when marking a clone region
-  emptybox 4 + small(ss.x, ss.holdpos.x) * zoom, 1 + small(ss.y, ss.holdpos.y) * zoom, (ABS(ss.x - ss.holdpos.x) + 1) * zoom, (ABS(ss.y - ss.holdpos.y) + 1) * zoom, ss.curcolor, zoom, dpage
+  emptybox 4 + small(ss.x, ss.holdpos.x) * ss.zoom, 1 + small(ss.y, ss.holdpos.y) * ss.zoom, (ABS(ss.x - ss.holdpos.x) + 1) * ss.zoom, (ABS(ss.y - ss.holdpos.y) + 1) * ss.zoom, ss.curcolor, ss.zoom, dpage
   emptybox 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, 1, dpage
  END IF
  DIM temppos AS XYPair
@@ -2403,8 +2403,8 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer()
    temppos.x += (ss.adjustpos.x - ss.x)
    temppos.y += (ss.adjustpos.y - ss.y)
   END IF
- IF zoom = 4 THEN hugesprite clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * zoom, 1 + temppos.y * zoom, dpage
- IF zoom = 2 THEN bigsprite clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * zoom, 1 + temppos.y * zoom, dpage
+ IF ss.zoom = 4 THEN hugesprite clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, dpage
+ IF ss.zoom = 2 THEN bigsprite clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, dpage
   drawsprite clonebuf(), 0, workpal(), (state.pt - state.top) * 16, 239 + temppos.x, 119 + temppos.y, dpage
  END IF
  putpixel 239 + ss.x, 119 + ss.y, state.tog * 15, dpage
