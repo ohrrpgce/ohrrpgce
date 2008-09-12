@@ -26,7 +26,8 @@ TYPE SpriteEditState
   gotmouse AS INTEGER
   drawcursor AS INTEGER
   tool AS INTEGER
-  curcolor AS INTEGER
+  curcolor AS INTEGER ' Index in master palette
+  palindex AS INTEGER ' Index in 16 color palette
   hidemouse AS INTEGER
   airsize AS INTEGER
   mist AS INTEGER

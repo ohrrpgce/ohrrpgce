@@ -50,7 +50,7 @@ DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 DECLARE SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, BYREF sb AS SpriteBrowseState, soff,placer(), workpal(), poffset())
 DECLARE SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, BYREF sb AS SpriteBrowseState, soff, placer(), workpal(), poffset())
 DECLARE SUB init_sprite_zones(area() AS MouseArea)
-DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), col, zoom, clonemarked, info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
+DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), zoom, clonemarked, info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
 
 #include "scancodes.bi"
 #include "compat.bi"
@@ -1583,7 +1583,6 @@ DIM sprites(atatime) AS Frame
 DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40), mouse(4)
 DIM toolinfo(7) AS ToolInfoType
 DIM workpal(8 * (atatime + 1))
-DIM AS INTEGER col = 1
 DIM poffset(large(sets, atatime))
 DIM AS INTEGER do_paste = 0
 DIM AS INTEGER paste_transparent = 0
@@ -1611,6 +1610,7 @@ WITH ss
  .tool = draw_tool
  .airsize = 5
  .mist = 4
+ .palindex = 1
 END WITH
 
 DIM state AS MenuState
@@ -1621,7 +1621,7 @@ END WITH
 
 'FIXME: these are used in import16 GOSUB block, move these there when that gets SUBified
 DIM palstate AS MenuState 
-DIM c AS INTEGER
+DIM coltemp AS INTEGER
 DIM srcbmp AS STRING
 DIM pickpos AS XYPair
 DIM picksize AS XYPair
@@ -1870,7 +1870,7 @@ DO
  END IF
  GOSUB sprctrl
  copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
- spriteedit_display ss, state, placer(), workpal(), poffset(), clonebuf(), col, zoom, clonemarked, info$(), toolinfo(), area(), mouse()
+ spriteedit_display ss, state, placer(), workpal(), poffset(), clonebuf(), zoom, clonemarked, info$(), toolinfo(), area(), mouse()
  SWAP vpage, dpage
  setvispage vpage
  'blank the sprite area
@@ -1891,10 +1891,10 @@ IF mouse(2) = 0 AND keyval(57) = 0 THEN
 END IF
 IF keyval(4) > 1 THEN setvispage 3: waitforanykey
 IF keyval(41) > 1 THEN ss.hidemouse = ss.hidemouse XOR 1
-IF keyval(51) > 1 AND col > 0 THEN col = col - 1
-IF keyval(52) > 1 AND col < 15 THEN col = col + 1
+IF keyval(51) > 1 AND ss.palindex > 0 THEN ss.palindex -= 1
+IF keyval(52) > 1 AND ss.palindex < 15 THEN ss.palindex += 1
 IF ss.zonenum = 2 THEN
- IF mouse(3) > 0 THEN col = small(INT(ss.zone.x / 4), 15)
+ IF mouse(3) > 0 THEN ss.palindex = small(INT(ss.zone.x / 4), 15)
 END IF
 IF keyval(26) > 1 OR (ss.zonenum = 5 AND mouse(3) > 0) THEN
  changepal poffset(state.pt), -1, workpal(), state.pt - state.top
@@ -1949,17 +1949,17 @@ IF keyval(56) > 0 AND keyval(47) > 1 THEN
   NEXT
  END IF
 END IF
-ss.curcolor = peek8bit(workpal(), (state.pt - state.top) * 16 + col)
+ss.curcolor = peek8bit(workpal(), (state.pt - state.top) * 16 + ss.palindex)
 IF keyval(56) > 0 THEN
  IF keyval(72) > 1 AND ss.curcolor > 15 THEN ss.curcolor -= 16
  IF keyval(80) > 1 AND ss.curcolor < 240 THEN ss.curcolor += 16
  IF keyval(75) > 1 AND ss.curcolor > 0 THEN ss.curcolor -= 1
  IF keyval(77) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1
 END IF
-IF mouse(3) = 1 AND ss.zonenum = 3 THEN 'AND col > 0 THEN
+IF mouse(3) = 1 AND ss.zonenum = 3 THEN
  ss.curcolor = INT(INT(ss.zone.y / 6) * 16) + INT(ss.zone.x / 4)
 END IF
-poke8bit workpal(), (state.pt - state.top) * 16 + col, ss.curcolor
+poke8bit workpal(), (state.pt - state.top) * 16 + ss.palindex, ss.curcolor
 IF keyval(56) = 0 THEN
  WITH ss
   .fixmouse = NO
@@ -2128,7 +2128,7 @@ ELSE
  ' For all other tools, pick a color
  IF keyval(28) > 1 OR (ss.zonenum = 1 AND mouse(2) = 2) THEN
   drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-  col = readpixel(239 + ss.x, 119 + ss.y, dpage)
+  ss.palindex = readpixel(239 + ss.x, 119 + ss.y, dpage)
  END IF
 END IF
 IF keyval(14) > 1 OR (ss.zonenum = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, nulpal(), 0, 239, 119, dpage: getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
@@ -2192,11 +2192,11 @@ DO
   IF palstate.pt = 2 THEN RETRACE
   EXIT DO
  END IF
- spriteedit_display ss, state, placer(), workpal(), poffset(), clonebuf(), col, zoom, clonemarked, info$(), toolinfo(), area(), mouse()
+ spriteedit_display ss, state, placer(), workpal(), poffset(), clonebuf(), zoom, clonemarked, info$(), toolinfo(), area(), mouse()
  rectangle 4, 156, 208, 32, uilook(uiDisabledItem), dpage
  FOR i = 0 TO 2
-  col = uilook(uiMenuItem): IF i = palstate.pt THEN col = uilook(uiSelectedItem + palstate.tog)
-  edgeprint pmenu$(i), 8, 160 + (i * 8), col, dpage
+  coltemp = uilook(uiMenuItem): IF i = palstate.pt THEN coltemp = uilook(uiSelectedItem + palstate.tog)
+  edgeprint pmenu$(i), 8, 160 + (i * 8), coltemp, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -2271,14 +2271,14 @@ GOSUB writeundospr
 rectangle 238, 118, sb.wide + 2, sb.high + 2, uilook(uiHighlight), dpage
 rectangle 239, 119, sb.wide, sb.high, 0, dpage
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-paintat 239 + ss.x, 119 + ss.y, col, dpage, buffer(), 16384
+paintat 239 + ss.x, 119 + ss.y, ss.palindex, dpage, buffer(), 16384
 getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
 RETRACE
 
 sprayspot:
 IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-airbrush 239 + ss.x, 119 + ss.y, ss.airsize, ss.mist, col, dpage
+airbrush 239 + ss.x, 119 + ss.y, ss.airsize, ss.mist, ss.palindex, dpage
 getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
 ss.lastpos.x = ss.x
 ss.lastpos.y = ss.y
@@ -2302,9 +2302,9 @@ putdot:
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
 IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
  GOSUB writeundospr
- putpixel 239 + ss.x, 119 + ss.y, col, dpage
+ putpixel 239 + ss.x, 119 + ss.y, ss.palindex, dpage
 ELSE
- drawline 239 + ss.x, 119 + ss.y, 239 + ss.lastpos.x, 119 + ss.lastpos.y, col, dpage
+ drawline 239 + ss.x, 119 + ss.y, 239 + ss.lastpos.x, 119 + ss.lastpos.y, ss.palindex, dpage
 END IF
 getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
 ss.lastpos.x = ss.x
@@ -2314,21 +2314,21 @@ RETRACE
 drawoval:
 GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-ellipse 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.radius, col, dpage, ss.squish.x, ss.squish.y
+ellipse 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.radius, ss.palindex, dpage, ss.squish.x, ss.squish.y
 getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
 RETRACE
 
 drawsquare:
 GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-rectangle 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, col, dpage
+rectangle 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.palindex, dpage
 getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
 RETRACE
 
 straitline:
 GOSUB writeundospr
 drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-drawline 239 + ss.x, 119 + ss.y, 239 + ss.holdpos.x, 119 + ss.holdpos.y, col, dpage
+drawline 239 + ss.x, 119 + ss.y, 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.palindex, dpage
 getsprite placer(), 0, 239, 119, sb.wide, sb.high, dpage
 RETRACE
 
@@ -2346,8 +2346,8 @@ RETRACE
 
 END SUB '----END of sprite()
 
-SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), col, zoom, clonemarked, info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
- ss.curcolor = peek8bit(workpal(), col + (state.pt - state.top) * 16)
+SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), zoom, clonemarked, info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
+ ss.curcolor = peek8bit(workpal(), ss.palindex + (state.pt - state.top) * 16)
  rectangle 247 + ((ss.curcolor - (INT(ss.curcolor / 16) * 16)) * 4), 0 + (INT(ss.curcolor / 16) * 6), 5, 7, uilook(uiText), dpage
  DIM AS INTEGER i, o
  FOR i = 0 TO 15
@@ -2361,13 +2361,13 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, state AS MenuState, placer()
  printstr CHR(26), 304, 100, dpage
  textcolor uilook(uiText), 0
  printstr LEFT(" Pal", 4 - (LEN(STR(poffset(state.pt))) - 3)) & poffset(state.pt), 248, 100, dpage
- rectangle 247 + (col * 4), 110, 5, 7, uilook(uiText), dpage
+ rectangle 247 + (ss.palindex * 4), 110, 5, 7, uilook(uiText), dpage
  FOR i = 0 TO 15
   rectangle 248 + (i * 4), 111, 3, 5, peek8bit(workpal(), i + (state.pt - state.top) * 16), dpage
  NEXT
  IF zoom = 4 THEN hugesprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
  IF zoom = 2 THEN bigsprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
- ss.curcolor = peek8bit(workpal(), col + (state.pt - state.top) * 16)
+ ss.curcolor = peek8bit(workpal(), ss.palindex + (state.pt - state.top) * 16)
  IF ss.hold = YES AND ss.tool = box_tool THEN
   rectangle 4 + small(ss.x, ss.holdpos.x) * zoom, 1 + small(ss.y, ss.holdpos.y) * zoom, (ABS(ss.x - ss.holdpos.x) + 1) * zoom, (ABS(ss.y - ss.holdpos.y) + 1) * zoom, ss.curcolor, dpage
   rectangle 4 + ss.holdpos.x * zoom, 1 + ss.holdpos.y * zoom, zoom, zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
