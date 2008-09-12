@@ -50,7 +50,7 @@ DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 DECLARE SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
 DECLARE SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
 DECLARE SUB init_sprite_zones(area() AS MouseArea)
-DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
+DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
 
 #include "scancodes.bi"
 #include "compat.bi"
@@ -1568,7 +1568,6 @@ OPTION EXPLICIT '======== FIXME: move this up as code gets cleaned up ==========
 
 SUB sprite (xw, yw, sets, perset, soff, atatime, info$(), zoom, fileset, font())
 STATIC default$, spriteclip(1602), clippedpal, clippedw, clippedh, paste
-STATIC clonebuf(1600) AS INTEGER
 STATIC ss_save AS SpriteEditStatic
 
 DIM mouse(4)
@@ -1871,7 +1870,7 @@ DO
  END IF
  GOSUB sprctrl
  copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
- spriteedit_display ss, ss_save, state, placer(), workpal(), poffset(), clonebuf(), info$(), toolinfo(), area(), mouse()
+ spriteedit_display ss, ss_save, state, placer(), workpal(), poffset(), info$(), toolinfo(), area(), mouse()
  SWAP vpage, dpage
  setvispage vpage
  'blank the sprite area
@@ -2067,9 +2066,9 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
     IF ss.hold THEN
      ss.hold = NO
      drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-     getsprite clonebuf(), 0, 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, dpage
-     ss.holdpos.x = clonebuf(0) \ 2
-     ss.holdpos.y = clonebuf(1) \ 2
+     getsprite ss_save.clonebuf(), 0, 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, dpage
+     ss.holdpos.x = ss_save.clonebuf(0) \ 2
+     ss.holdpos.y = ss_save.clonebuf(1) \ 2
      ss_save.clonemarked = YES
      ss.tool = clone_tool ' auto-select the clone tool after marking
     ELSE
@@ -2085,7 +2084,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
       GOSUB writeundospr
      END IF
      drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-     drawsprite clonebuf(), 0, nulpal(), 0, 239 + ss.x - ss.holdpos.x, 119 + ss.y - ss.holdpos.y, dpage
+     drawsprite ss_save.clonebuf(), 0, nulpal(), 0, 239 + ss.x - ss.holdpos.x, 119 + ss.y - ss.holdpos.y, dpage
      getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
      ss.lastpos.x = ss.x
      ss.lastpos.y = ss.y
@@ -2193,7 +2192,7 @@ DO
   IF palstate.pt = 2 THEN RETRACE
   EXIT DO
  END IF
- spriteedit_display ss, ss_save, state, placer(), workpal(), poffset(), clonebuf(), info$(), toolinfo(), area(), mouse()
+ spriteedit_display ss, ss_save, state, placer(), workpal(), poffset(), info$(), toolinfo(), area(), mouse()
  rectangle 4, 156, 208, 32, uilook(uiDisabledItem), dpage
  FOR i = 0 TO 2
   coltemp = uilook(uiMenuItem): IF i = palstate.pt THEN coltemp = uilook(uiSelectedItem + palstate.tog)
@@ -2347,7 +2346,7 @@ RETRACE
 
 END SUB '----END of sprite()
 
-SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), clonebuf(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
+SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
  ss.curcolor = peek8bit(workpal(), ss.palindex + (state.pt - state.top) * 16)
  rectangle 247 + ((ss.curcolor - (INT(ss.curcolor / 16) * 16)) * 4), 0 + (INT(ss.curcolor / 16) * 6), 5, 7, uilook(uiText), dpage
  DIM AS INTEGER i, o
@@ -2404,9 +2403,9 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
    temppos.x += (ss.adjustpos.x - ss.x)
    temppos.y += (ss.adjustpos.y - ss.y)
   END IF
- IF ss.zoom = 4 THEN hugesprite clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, dpage
- IF ss.zoom = 2 THEN bigsprite clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, dpage
-  drawsprite clonebuf(), 0, workpal(), (state.pt - state.top) * 16, 239 + temppos.x, 119 + temppos.y, dpage
+ IF ss.zoom = 4 THEN hugesprite ss_save.clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, dpage
+ IF ss.zoom = 2 THEN bigsprite ss_save.clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, dpage
+  drawsprite ss_save.clonebuf(), 0, workpal(), (state.pt - state.top) * 16, 239 + temppos.x, 119 + temppos.y, dpage
  END IF
  putpixel 239 + ss.x, 119 + ss.y, state.tog * 15, dpage
  textcolor uilook(uiMenuItem), 0

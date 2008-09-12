@@ -3248,8 +3248,7 @@ sub setclip(l as integer, t as integer, r as integer, b as integer)
 	clipb = b
 end sub
 
-'truthfully, this should not exist. everything it does could be done by the fbgfx or SDL libraries much better and faster
-'scaling (which neither library support) is done in sprite_draw instead
+'FIXME: this is only used inside allmodex.bas, and could be replaced with draw_sprite
 sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer = -1)
 	dim as integer i, j
 	dim as ubyte ptr maskp, srcp
@@ -3866,8 +3865,6 @@ end function
 ' draws a sprite to a page. scale must be greater than 1. if trans is false, the
 ' mask will be wholly ignored (and, trans will be forced to false if the mask
 ' doesn't even exist)
-' This is only used for scaled drawing (nearly never)! (which still needs cleanup)
-' drawohr is used for everything else, since these subs have otherwise identical function
 sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
 	dim sptr as ubyte ptr
 	dim as integer tx, ty

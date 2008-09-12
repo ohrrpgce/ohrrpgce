@@ -6,6 +6,7 @@
 
 TYPE SpriteEditStatic
   clonemarked AS INTEGER
+  clonebuf(1600) AS INTEGER
 END TYPE
 
 TYPE SpriteEditState
