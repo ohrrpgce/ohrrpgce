@@ -936,7 +936,7 @@ DO
 
  formsprite z(),w(),a(),h(),pal16(),csr2
  FOR i = 0 TO 3
-  edgeboxstyle 240 + i * 8, 75 + i * 22, 32, 40, 0, dpage
+  edgeboxstyle 240 + i * 8, 75 + i * 22, 32, 40, 0, dpage, NO, YES
  NEXT i
  IF csr3 = 0 THEN
   menu$(4) = CHR(27) + "Formation " & pt & CHR(26)
