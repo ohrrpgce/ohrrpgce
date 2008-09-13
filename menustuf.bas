@@ -253,7 +253,7 @@ DO
      col = 3
     END IF
    END IF
-   edgeboxstyle heropos.x - 1, heropos.y - 2, 34, 44, col, dpage
+   edgeboxstyle heropos.x - 1, heropos.y - 2, 34, 44, col, dpage, , YES
    IF hero(i) > 0 THEN
     'If there is a hero in this slot
     sprite_draw(herosprite(i) + heroframe, heropal(i), heropos.x, heropos.y, 1, -1, dpage)

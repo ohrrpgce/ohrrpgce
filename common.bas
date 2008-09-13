@@ -231,14 +231,10 @@ ELSE
 END IF
 END SUB
 
+'Backwards compatability wrapper
 SUB centerbox (x, y, w, h, c, p)
-IF c < 0 OR c > 15 THEN debug "Warning: invalid box style " & c & " in centerbox"
-tbc = uiTextBox + (2 * (c - 1))
-rectangle x - INT(w * .5), y - INT(h * .5), w, h, uilook(tbc), p
-rectangle x - INT(w * .5), y - INT(h * .5), w, 1, uilook(tbc + 1), p
-rectangle x - INT(w * .5), y + (h - INT(h * .5)), w, 1, uilook(tbc + 1), p
-rectangle x - INT(w * .5), y - INT(h * .5), 1, h, uilook(tbc + 1), p
-rectangle x + (w - INT(w * .5)), y - INT(h * .5), 1, h + 1, uilook(tbc + 1), p
+ IF c < 0 OR c > 15 THEN debug "Warning: invalid box style " & c & " in centerbox"
+ center_edgeboxstyle x, y, w, h, c - 1, p
 END SUB
 
 SUB emptybox (x, y, w, h, col, thick, p)
@@ -356,12 +352,8 @@ END IF
 END SUB
 
 SUB centerfuz (x, y, w, h, c, p)
-tbc = uiTextBox + (2 * (c - 1))
-fuzzyrect x - INT(w * .5), y - INT(h * .5), w, h, uilook(tbc), p
-rectangle x - INT(w * .5), y - INT(h * .5), w, 1, uilook(tbc + 1), p
-rectangle x - INT(w * .5), y + (h - INT(h * .5)), w, 1, uilook(tbc + 1), p
-rectangle x - INT(w * .5), y - INT(h * .5), 1, h, uilook(tbc + 1), p
-rectangle x + (w - INT(w * .5)), y - INT(h * .5), 1, h + 1, uilook(tbc + 1), p
+ IF c < 0 OR c > 15 THEN debug "Warning: invalid box style " & c & " in centerbox"
+ center_edgeboxstyle x, y, w, h, c - 1, p, YES
 END SUB
 
 FUNCTION readbinstring$ (array(), offset, maxlen)

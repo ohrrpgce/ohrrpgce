@@ -1600,7 +1600,7 @@ IF vic.state = 0 THEN 'only display interface till you win
    IF readbit(gen(), 101, 6) = 0 THEN
     '--speed meter--
     col = uilook(uiTimeBar): IF bslot(i).ready = YES THEN col = uilook(uiTimeBarFull)
-    centerfuz 66, 9 + i * 10, 131, 10, 1, dpage
+    edgeboxstyle 1, 4 + i * 10, 132, 11, 0, dpage, YES, YES
     IF bstat(i).cur.hp > 0 THEN
      j = ctr(i) / 7.7
      IF delay(i) > 0 OR bslot(i).attack > 0 OR (bat.atk.id >= 0 AND bat.acting = i) THEN
@@ -1619,7 +1619,7 @@ IF vic.state = 0 THEN 'only display interface till you win
      lifemeter(i) = 87
      col = uiLook(uiHealthBar + tog)
     END IF
-    centerfuz 180, 9 + i * 10, 88, 10, 1, dpage
+    edgeboxstyle 136, 4 + i * 10, 89, 11, 0, dpage, YES, YES
     rectangle 137, 5 + i * 10, lifemeter(i), 9, col, dpage
    END IF
    '--name--
