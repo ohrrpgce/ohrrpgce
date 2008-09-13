@@ -1680,8 +1680,15 @@ readpassword$ = p$
 
 END FUNCTION
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 SUB upgrade (font())
 DIM pal16(8)
+DIM AS INTEGER i, j, o, p, y
+DIM temp$, temp
+DIM fh AS INTEGER
+DIM pas$, rpas$
 
 upgrademessages = 0
 
@@ -1770,6 +1777,7 @@ IF gen(genVersion) = 1 THEN
  FOR i = 0 TO 14
   savetanim i, buffer()
  NEXT i
+ DIM tx AS INTEGER, ty AS INTEGER
  FOR i = 0 TO gen(genMaxMap)
   upgrade_message " map " & i
   XBLOAD maplumpname$(i, "t"), buffer(), "Map not loaded"
@@ -1854,8 +1862,8 @@ IF gen(genVersion) = 4 THEN
  xbload game + ".pal", buffer(), "16-color palletes missing from " + game
  KILL game + ".pal"
  '--find last used palette
- last = 99
- foundpal = 0
+ DIM last AS INTEGER = 99
+ DIM foundpal AS INTEGER = 0
  FOR j = 99 TO 0 STEP -1
   FOR i = 0 TO 7
    IF buffer(j * 8 + i) <> 0 THEN
@@ -1912,7 +1920,7 @@ END IF
 IF NOT isfile(game + ".veh") THEN
  upgrade_message "add vehicle data"
  '--make sure vehicle lump is present
- template$ = finddatafile("ohrrpgce.new")
+ DIM template$ = finddatafile("ohrrpgce.new")
  IF template$ <> "" THEN
   unlumpfile(template$, "ohrrpgce.veh", tmpdir)
   copyfile tmpdir & SLASH & "ohrrpgce.veh", game & ".veh"
@@ -1951,9 +1959,9 @@ IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
  DIM song$(99)
  fh = FREEFILE
  OPEN game + ".sng" FOR BINARY AS #fh
- temp& = LOF(fh)
+ temp = LOF(fh)
  CLOSE #fh
- IF temp& > 0 THEN
+ IF temp > 0 THEN
   fh = FREEFILE
   OPEN game + ".sng" FOR INPUT AS #fh
   FOR i = 0 TO 99
@@ -2016,9 +2024,9 @@ updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
 gen(genMaxMasterPal) = large(gen(genMaxMasterPal), 0)
 
 '--give each palette a default ui color set
-ff = FREEFILE
+DIM ff AS INTEGER = FREEFILE
 OPEN workingdir + SLASH + "uicolors.bin" FOR BINARY AS #ff
-uirecords = LOF(ff) \ getbinsize(binUICOLORS)
+DIM uirecords AS INTEGER = LOF(ff) \ getbinsize(binUICOLORS)
 CLOSE #ff
 IF uirecords < gen(genMaxMasterPal) + 1 THEN
  upgrade_message "Adding default UI colors..."
@@ -2227,6 +2235,8 @@ END SUB
 
 SUB standardmenu (menu$(), size, vis, pt, top, x, y, page, edge=NO)
 STATIC tog
+DIM i AS INTEGER
+DIM col AS INTEGER
 
 tog = tog XOR 1
 
@@ -2394,25 +2404,26 @@ FUNCTION count_menu_items (menu AS MenuDef)
 END FUNCTION
 
 FUNCTION readglobalstring$ (index, default$, maxlen)
-fh = FREEFILE
+DIM fh AS INTEGER = FREEFILE
 OPEN game + ".stt" FOR BINARY AS #fh
 
 DIM namelen AS UBYTE
 GET #fh, 1 + index * 11, namelen
 IF maxlen < namelen THEN namelen = maxlen
 
+DIM result AS STRING
 IF index * 11 + namelen + 1 > LOF(fh) THEN
- result$ = default$
+ result = default$
 ELSEIF namelen > 0 THEN
- result$ = STRING$(namelen, 0)
- GET #fh, index * 11 + 2, result$
+ result = STRING$(namelen, 0)
+ GET #fh, index * 11 + 2, result
 ELSE
- result$ = ""
+ result = ""
 END IF
 
 CLOSE #fh
 
-RETURN result$
+RETURN result
 END FUNCTION
 
 FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
@@ -2719,9 +2730,6 @@ END SUB
 FUNCTION enter_or_space () AS INTEGER
  RETURN keyval(28) > 1 OR keyval(57) > 1
 END FUNCTION
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS INTEGER=0, sub_t AS INTEGER=0)
  DIM i AS INTEGER
