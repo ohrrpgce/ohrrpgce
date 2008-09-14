@@ -325,7 +325,7 @@ IF border >= 0 and border <= 14 THEN
     sprite_draw .sprite + 8, .pal, x + w - 8, i, 1, YES, p
    NEXT i
    'Draw end-pieces
-   IF w >= 16 THEN
+   IF w > 16 THEN
     '--Top end pieces
     sprite_draw .sprite + 3, .pal, x + w - 24, y - 8, 1, YES, p
     sprite_draw .sprite + 1, .pal, x + 8, y - 8, 1, YES, p
@@ -333,7 +333,7 @@ IF border >= 0 and border <= 14 THEN
     sprite_draw .sprite + 14, .pal, x + w - 24, y + h - 8, 1, YES, p
     sprite_draw .sprite + 12, .pal, x + 8, y + h - 8, 1, YES, p
    END IF
-   IF h >= 16 THEN
+   IF h > 16 THEN
     '--Left side end pieces
     sprite_draw .sprite + 9, .pal, x - 8, y + h - 24, 1, YES, p
     sprite_draw .sprite + 5, .pal, x - 8, y + 8, 1, YES, p
