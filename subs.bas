@@ -55,6 +55,7 @@ DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
 DECLARE SUB load_item_names (item_strings() AS STRING)
 DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
 DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, workpal() AS INTEGER, frame AS INTEGER)
+DECLARE FUNCTION step_estimate(freq AS INTEGER, low AS INTEGER, high AS INTEGER, infix AS STRING="-", suffix AS STRING= "", zero AS STRING="never") AS STRING
 
 REM $STATIC
 
@@ -774,7 +775,7 @@ DO
   END IF
  END IF
  bmenu$(1) = CHR(27) & "Formation Set " & (gptr + 1) & CHR(26)
- bmenu$(2) = "Battle Frequency: " & c(0)
+ bmenu$(2) = "Battle Frequency: " & c(0) & " (" & step_estimate(c(0), 60, 100, "-", " steps") & ")"
  FOR i = 3 TO 22
   bmenu$(i) = "Formation " & c(i - 2) - 1
   IF c(i - 2) = 0 THEN bmenu$(i) = "Empty"
@@ -2080,3 +2081,12 @@ END SUB
 
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+FUNCTION step_estimate(freq AS INTEGER, low AS INTEGER, high AS INTEGER, infix AS STRING="-", suffix AS STRING= "", zero AS STRING="never") AS STRING
+ IF freq = 0 THEN RETURN zero
+ DIM low_est  AS INTEGER = INT(low / freq)
+ DIM high_est AS INTEGER = INT(high / freq)
+ RETURN low_est & infix & high_est & suffix
+END FUNCTION
+
+
