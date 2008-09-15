@@ -623,6 +623,7 @@ IF isfile(workingdir + SLASH + "archinym.lmp") THEN
 END IF
 displayname$ = getdisplayname$(sourcerpg)
 setwindowtitle displayname$
+clear_box_border_cache
 END SUB
 
 SUB interpolatecat
