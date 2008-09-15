@@ -46,6 +46,7 @@ wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/common/IEFixes.js h
 wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE60Fixes.css http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE60Fixes.css
 wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE70Fixes.css http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE70Fixes.css
 wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/Opera7Fixes.css http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/Opera7Fixes.css
+wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/KHTMLFixes.css http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/KHTMLFixes.css
 
 rm backblue.gif fade.gif cookies.txt hts-log.txt > /dev/null 2>&1
 rm -R hts-cache > /dev/null 2>&1
