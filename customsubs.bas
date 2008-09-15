@@ -897,3 +897,22 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
  NEXT
  RETURN curpal
 END FUNCTION
+
+FUNCTION step_estimate(freq AS INTEGER, low AS INTEGER, high AS INTEGER, infix AS STRING="-", suffix AS STRING= "", zero AS STRING="never") AS STRING
+ IF freq = 0 THEN RETURN zero
+ DIM low_est  AS INTEGER = INT(low / freq)
+ DIM high_est AS INTEGER = INT(high / freq)
+ RETURN low_est & infix & high_est & suffix
+END FUNCTION
+
+FUNCTION speed_estimate(speed AS INTEGER, suffix AS STRING=" seconds", zero AS STRING="infinity") AS STRING
+ IF speed = 0 THEN RETURN zero
+ DIM ticks AS INTEGER = INT(1000 / speed)
+ DIM result AS STRING
+ result = STR(INT(ticks * 10 \ 18) / 10)
+ 'Special case for dumb floating point math freak-outs
+ WHILE INSTR(result, ".") AND RIGHT(result, 2) = "99"
+  result = LEFT(result, LEN(result) - 1)
+ WEND
+ RETURN result & suffix
+END FUNCTION

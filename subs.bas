@@ -55,7 +55,6 @@ DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
 DECLARE SUB load_item_names (item_strings() AS STRING)
 DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
 DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, workpal() AS INTEGER, frame AS INTEGER)
-DECLARE FUNCTION step_estimate(freq AS INTEGER, low AS INTEGER, high AS INTEGER, infix AS STRING="-", suffix AS STRING= "", zero AS STRING="never") AS STRING
 
 REM $STATIC
 
@@ -340,6 +339,7 @@ FOR i = 0 TO 11
  menuoff(EnMenuStat + i) = EnDatStat + i
  menulimits(EnMenuStat + i) = EnLimStat + i
 NEXT i
+menutype(EnMenuStat + 8) = 15 'Speed should show turn-time estimate
 
 CONST EnMenuSpawnDeath = 30
 menu$(EnMenuSpawnDeath) = "Spawn on Death:"
@@ -1383,6 +1383,11 @@ DO
   printstr bmenu$(2 + i * 2), 160, 20 + i * 8, dpage
  NEXT i
  IF bctr > 0 THEN GOSUB graph
+ IF (bctr - 1) \ 2 = 8 THEN 'Speed
+  textcolor uilook(uiDescription), 0
+  printstr "Lev0:  1 turn every " & speed_estimate(her.Lev0.spd), 0, 182, dpage
+  printstr "Lev99: 1 turn every " & speed_estimate(her.Lev99.spd), 0, 190, dpage
+ END IF
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -2082,11 +2087,5 @@ END SUB
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-FUNCTION step_estimate(freq AS INTEGER, low AS INTEGER, high AS INTEGER, infix AS STRING="-", suffix AS STRING= "", zero AS STRING="never") AS STRING
- IF freq = 0 THEN RETURN zero
- DIM low_est  AS INTEGER = INT(low / freq)
- DIM high_est AS INTEGER = INT(high / freq)
- RETURN low_est & infix & high_est & suffix
-END FUNCTION
 
 
