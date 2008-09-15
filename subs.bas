@@ -2077,3 +2077,6 @@ END IF
 s$ = pre$ + post$
 
 END SUB
+
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT

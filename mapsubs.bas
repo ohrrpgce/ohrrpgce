@@ -172,6 +172,8 @@ REDIM emap(2)
 
 DIM tilepick AS XYPair
 
+DIM foe AS INTEGER = 0 ' Formation number for foemapping mode
+
 textcolor uilook(uiText), 0
 
 wide = 0: high = 0: nptr = 0
@@ -582,7 +584,7 @@ DO
  
  IF keyval(29) > 0 AND keyval(38) > 1 THEN mapedit_layers gmap(), visible(), tilesets(), defaults(), layer  'ctrl-L
  IF keyval(15) > 1 THEN tiny = tiny XOR 1
- IF keyval(14) > 1 THEN
+ IF keyval(29) > 0 AND keyval(14) > 1 THEN
    'delete tile
    setmapdata map(), pass(), 20, 0
    FOR i = 0 TO 2
@@ -778,12 +780,10 @@ DO
      IF temp >= 0 THEN npc(temp + 0) = x: npc(temp + 300) = y + 1: npc(temp + 600) = nptr + 1: npc(temp + 900) = nd
     END IF
    END IF
-   IF keyval(51) > 1 THEN nptr = nptr - 1: IF nptr < 0 THEN nptr = max_npc_defs
-   IF keyval(52) > 1 THEN nptr = nptr + 1: IF nptr > max_npc_defs THEN nptr = 0
+   intgrabber(nptr, 0, max_npc_defs, 51, 52)
    '---FOEMODE--------
   CASE 4
-   IF keyval(51) > 1 THEN foe = loopvar(foe, 0, 255, -1)
-   IF keyval(52) > 1 THEN foe = loopvar(foe, 0, 255, 1)
+   intgrabber(foe, 0, 255, 51, 52)
    IF keyval(57) > 0 THEN
     setmapdata emap(), pass(), 20, 0
     setmapblock x, y, 0, foe

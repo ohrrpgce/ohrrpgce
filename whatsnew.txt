@@ -3,6 +3,10 @@ WHAT IS NEW?
 ???? ?? 200? [xocolatl]
 
   * New Features
+    * You can now type in NPC numbers in NPC placement mode in the
+      map editor [James]
+    * You can now type in formation set numbers in foemapping mode
+      in the map editor [James]
     * Draw your own graphical Text Box borders [James]
     * NPC-per-map limit raised from 36 to 100 [James]
     * New text box conditional to display menus [James]

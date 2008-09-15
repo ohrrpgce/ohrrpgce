@@ -2566,6 +2566,9 @@ SUB init_sprite_zones(area() AS MouseArea)
  NEXT i
 END SUB
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
  DIM i AS INTEGER
  getpal16 workpal(), j - top, poffset(j)
