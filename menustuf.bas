@@ -633,7 +633,7 @@ DO
 
  '--display
  centerfuz 160, 100, 304, 184, 1, dpage
- centerbox 84, 16, 140, 20, 4, dpage
+ centerbox 84, 18, 140, 16, 4, dpage
  centerbox 84, 100, 140, 130, 4, dpage
  centerbox 236, 75, 80, 78, 4, dpage
  edgeprint names(pt), 84 - LEN(names(pt)) * 4, 12, uilook(uiText), dpage
@@ -666,7 +666,7 @@ DO
    printstr menu$(i), 204, 45 + i * 9, dpage
   NEXT i
   IF csr < 5 THEN
-   centerbox 236, 20, (LEN(m$(csr)) + 2) * 8, 20, 4, dpage
+   centerbox 236, 22, (LEN(m$(csr)) + 2) * 8, 16, 4, dpage
    edgeprint m$(csr), 236 - (LEN(m$(csr)) * 4), 16, uilook(uiText), dpage
   END IF
  END IF
