@@ -945,8 +945,8 @@ DO
   END IF
   printstr display$, 20 + 96 * ((i + 3) MOD 3), 12 + 8 * ((i - top) \ 3), dpage
  NEXT i
- centerfuz 160, 180, 312, 20, 4, dpage
- edgeprint info$, xstring(info$, 160), 175, uilook(uiText), dpage
+ centerfuz 160, 184, 312, 16, 4, dpage
+ edgeprint info$, xstring(info$, 160), 179, uilook(uiText), dpage
  IF pick = 1 THEN
   centerbox 160, 47, 160, 88, 2, dpage
   IF spred = 0 AND wptr >= 0 THEN
