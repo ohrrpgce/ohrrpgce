@@ -71,7 +71,7 @@ DECLARE SUB getpal16 (array(), aoffset, foffset, autotype=-1, sprite=0)
 DECLARE SUB storepal16 (array(), aoffset, foffset)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION xstring (s$, x)
-DECLARE FUNCTION defaultint$ (n)
+DECLARE FUNCTION defaultint (n AS INTEGER, default_caption AS STRING="default") AS STRING
 DECLARE SUB poke8bit (array16(), index, val8)
 DECLARE FUNCTION peek8bit (array16(), index)
 DECLARE SUB loadpalette(pal() as RGBcolor, palnum%)

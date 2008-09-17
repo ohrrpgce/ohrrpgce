@@ -56,6 +56,9 @@ DECLARE SUB load_item_names (item_strings() AS STRING)
 DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
 DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, workpal() AS INTEGER, frame AS INTEGER)
 
+DECLARE SUB update_hero_appearance_menu(menu() AS STRING, her AS HeroDef, it$, previewframe)
+DECLARE SUB update_hero_preview_pics(her AS HeroDef, pal16())
+
 REM $STATIC
 
 SUB clearallpages
@@ -1221,7 +1224,7 @@ it$ = load_item_name(her.def_weapon, 0, 1)
 setkeys
 previewframe = 0
 DO
- GOSUB genheromenu
+ update_hero_appearance_menu bmenu$(), her, it$, previewframe
  setwait 55
  setkeys
  tog = tog XOR 1
@@ -1236,19 +1239,19 @@ DO
   SELECT CASE bctr
    CASE 1
     IF intgrabber(her.sprite, min(bctr), max(bctr)) THEN
-      GOSUB heropics
+     update_hero_preview_pics her, pal16()
     END IF
    CASE 2
     IF intgrabber(her.sprite_pal, min(bctr), max(bctr)) THEN
-      GOSUB heropics
+     update_hero_preview_pics her, pal16()
     END IF
    CASE 3
     IF intgrabber(her.walk_sprite, min(bctr), max(bctr)) THEN
-      GOSUB heropics
+     update_hero_preview_pics her, pal16()
     END IF
    CASE 4
     IF intgrabber(her.walk_sprite_pal, min(bctr), max(bctr)) THEN
-      GOSUB heropics
+     update_hero_preview_pics her, pal16()
     END IF
    CASE 5
     intgrabber her.def_level, min(bctr), max(bctr)
@@ -1272,11 +1275,11 @@ DO
     END IF
    CASE 10
     IF intgrabber(her.portrait, min(bctr), max(bctr)) THEN
-      GOSUB heropics
+     update_hero_preview_pics her, pal16()
     END IF
    CASE 11
     IF intgrabber(her.portrait_pal, min(bctr), max(bctr)) THEN
-      GOSUB heropics
+     update_hero_preview_pics her, pal16()
     END IF
   END SELECT
   IF enter_or_space() THEN
@@ -1287,7 +1290,7 @@ DO
    ELSEIF bctr = 11 THEN
     her.portrait_pal = pal16browse(her.portrait_pal, 8, her.portrait, 1, 50, 50)
    END IF
-   GOSUB heropics
+   update_hero_preview_pics her, pal16()
   END IF
  END IF
 
@@ -1321,36 +1324,11 @@ IF previewframe <> -1 THEN
  drawline 250 + handx,23 + handy,250 + handx, 24 + handy,14 + tog,dpage
  drawline 251 + handx,25 + handy,252 + handx, 25 + handy,14 + tog,dpage
  drawline 250 + handx,26 + handy,250 + handx, 27 + handy,14 + tog,dpage
- printstr "" & previewframe,256,18,dpage
+ printstr STR(previewframe), 264, 18, dpage
  IF previewframe = 1 THEN printstr "<",256,18,dpage
  IF previewframe = 0 THEN printstr ">",272,18,dpage
 END IF
 
-RETRACE
-
-genheromenu:
-bmenu$(1) = "Battle Picture: " & her.sprite
-bmenu$(2) = "Battle Palette: " & defaultint$(her.sprite_pal)
-bmenu$(3) = "Walkabout Picture: " & her.walk_sprite
-bmenu$(4) = "Walkabout Palette: " & defaultint$(her.walk_sprite_pal)
-bmenu$(5) = "Base Level: " & her.def_level
-IF her.def_level < 0 THEN bmenu$(5) = "Base Level: Party Average"
-bmenu$(6) = "Default Weapon: " & it$
-bmenu$(7) = "Max Name Length: "
-IF her.max_name_len THEN
- bmenu$(7) = bmenu$(7) & her.max_name_len
-ELSE
- bmenu$(7) = bmenu$(7) & "default"
-END IF
-IF previewframe = 0 THEN
- bmenu$(8) = "Hand X: " & her.hand_a_x
- bmenu$(9) = "Hand Y: " & her.hand_a_y
-ELSEIF previewframe = 1 THEN
- bmenu$(8) = "Hand X: " & her.hand_b_x
- bmenu$(9) = "Hand Y: " & her.hand_b_y
-END IF
-bmenu$(10) = "Portrait Picture: " & her.portrait
-bmenu$(11) = "Portrait Palette: " & her.portrait_pal
 RETRACE
 
 levstats:
@@ -1557,19 +1535,10 @@ FOR i = 0 TO 3
 NEXT i
 menu$(2) = "Name:" + nam$
 menu$(1) = CHR(27) + "Pick Hero " & pt & CHR(26)
-GOSUB heropics
+update_hero_preview_pics her, pal16()
 RETRACE
 
-heropics:
-setpicstuf buffer(), 5120, 2
-loadset game + ".pt0", her.sprite, 0
-getpal16 pal16(), 0, her.sprite_pal, 0, her.sprite
-setpicstuf buffer(), 1600, 2
-loadset game + ".pt4", her.walk_sprite, 16
-getpal16 pal16(), 1, her.walk_sprite_pal, 4, her.walk_sprite
-RETRACE
-
-END SUB
+END SUB 'End of herodata
 
 SUB herotags (BYREF hero AS HeroDef)
 DIM tagnum AS INTEGER
@@ -2102,4 +2071,32 @@ END SUB
 OPTION EXPLICIT
 
 
+SUB update_hero_appearance_menu(menu() AS STRING, her AS HeroDef, it$, previewframe)
+ menu(1) = "Battle Picture: " & her.sprite
+ menu(2) = "Battle Palette: " & defaultint(her.sprite_pal)
+ menu(3) = "Walkabout Picture: " & her.walk_sprite
+ menu(4) = "Walkabout Palette: " & defaultint(her.walk_sprite_pal)
+ menu(5) = "Base Level: " & her.def_level
+ IF her.def_level < 0 THEN menu(5) = "Base Level: Party Average"
+ menu(6) = "Default Weapon: " & it$
+ menu(7) = "Max Name Length: " & zero_default(her.max_name_len)
+ IF previewframe = 0 THEN
+  menu(8) = "Hand X: " & her.hand_a_x
+  menu(9) = "Hand Y: " & her.hand_a_y
+ ELSEIF previewframe = 1 THEN
+   menu(8) = "Hand X: " & her.hand_b_x
+   menu(9) = "Hand Y: " & her.hand_b_y
+ END IF
+ menu(10) = "Portrait Picture: " & her.portrait
+ menu(11) = "Portrait Palette: " & her.portrait_pal
+END SUB
 
+SUB update_hero_preview_pics(her AS HeroDef, pal16())
+'FIXME: replace this with GraphicPair
+ setpicstuf buffer(), 5120, 2
+ loadset game + ".pt0", her.sprite, 0
+ getpal16 pal16(), 0, her.sprite_pal, 0, her.sprite
+ setpicstuf buffer(), 1600, 2
+ loadset game + ".pt4", her.walk_sprite, 16
+ getpal16 pal16(), 1, her.walk_sprite_pal, 4, her.walk_sprite
+END SUB
