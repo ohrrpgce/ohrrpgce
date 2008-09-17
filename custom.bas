@@ -353,7 +353,7 @@ menu$(9) = "Import/Export Screens"
 menu$(10) = "Import/Export Full Maptile Sets"
 menu$(11) = "Change User-Interface Colors"
 menu$(12) = "Draw Box Edges"
-menu$(13) = "Draw Portrait Graphics"
+menu$(13) = "Draw Portrait Graphics    50x50"
 RETRACE
 
 chooserpg:
