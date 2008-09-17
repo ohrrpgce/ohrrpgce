@@ -256,6 +256,8 @@ Type HeroDef
 	sprite_pal as integer
 	walk_sprite as integer
 	walk_sprite_pal as integer
+	portrait as integer
+	portrait_pal as integer
 	def_level as integer
 	def_weapon as integer
 	Lev0 as stats

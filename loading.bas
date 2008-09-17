@@ -509,14 +509,14 @@ Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
 				.spell_lists(i,j).learned = readshort(f)
 			next
 		next
-		readshort(f) 'unused
+		.portrait = readshort(f)
 		for i = 0 to 2
 			.bits(i) = readShort(f)
 		next
 		for i = 0 to 3
 			.list_name(i) = ReadVStr(f,10)
 		next
-		readshort(f) 'unused
+		.portrait_pal = readshort(f)
 		for i = 0 to 3
 			.list_type(i) = readshort(f)
 		next
@@ -562,14 +562,14 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
 				writeshort(f,-1,.spell_lists(i,j).learned)
 			next
 		next
-		writeshort(f,-1,0) 'unused
+		writeshort(f,-1,.portrait)
 		for i = 0 to 2
 			writeshort(f,-1,.bits(i))
 		next
 		for i = 0 to 3
 			WriteVStr(f,10, .list_name(i))
 		next
-		writeshort(f,-1,0) 'unused
+		writeshort(f,-1,.portrait_pal)
 		for i = 0 to 3
 			writeshort(f,-1,.list_type(i))
 		next

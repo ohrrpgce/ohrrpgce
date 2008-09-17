@@ -75,6 +75,7 @@ CONST genMaxMenu = 80           'max menu def in MENUS.BIN
 CONST genMaxMenuItem = 81       'max menu item def in MENUITEM.BIN
 CONST genMaxItem = 82           'max item in .ITM
 CONST genMaxBoxBorder = 83      'max box borders in .PT7
+CONST genMaxPortrait = 84       'max portrait graphics in .PT8
 CONST genPW2Offset = 93         'old password offset
 CONST genPW2Length = 94         'old password length
 CONST genVersion = 95           'RPG file format version(6 is the latest)
@@ -115,6 +116,7 @@ CONST fixDefaultMaxItem = 6      'Stored default max item id in GEN
 CONST fixBlankDoorLinks = 7      'Marked redundant blank doorlinks as unused
 CONST fixShopSounds = 8          'Set genItemLearnSFX..genCantSellSFX to defaults
 CONST fixExtendedNPCs = 9        'Initialized blank NPC data at the end of .N## lumps 
+CONST fixHeroPortrait = 10       'Initialize hero portrait data
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 99

@@ -783,6 +783,7 @@ END IF
 END SUB
 
 FUNCTION defbinsize (id)
+ 'returns the default size in BYTES to use for getbinsize() when no BINSIZE data is available at all
  IF id = 0 THEN RETURN 0  'attack.bin
  IF id = 1 THEN RETURN 64 '.stf
  IF id = 2 THEN RETURN 0  'songdata.bin
@@ -796,6 +797,7 @@ FUNCTION defbinsize (id)
 END FUNCTION
 
 FUNCTION curbinsize (id)
+ 'returns the correct size in BYTES for of the records for the version you are running
  IF id = 0 THEN RETURN 122 'attack.bin
  IF id = 1 THEN RETURN 84  '.stf
  IF id = 2 THEN RETURN 32  'songdata.bin
@@ -803,13 +805,13 @@ FUNCTION curbinsize (id)
  IF id = 4 THEN RETURN 50  '.map
  IF id = 5 THEN RETURN 48  'menus.bin
  IF id = 6 THEN RETURN 64  'menuitem.bin
- IF id = 7 THEN RETURN 126  'uicolors.bin
+ IF id = 7 THEN RETURN 126 'uicolors.bin
  IF id = 8 THEN RETURN 400 '.say
  RETURN 0
 END FUNCTION
 
 FUNCTION getbinsize (id)
-
+'returns the current size in BYTES of the records in the specific binary file you are working with
 IF isfile(workingdir + SLASH + "binsize.bin") THEN
  fbdim recordsize
  fh = FREEFILE
@@ -2215,6 +2217,18 @@ IF getfixbit(fixExtendedNPCs) = 0 THEN
    END WITH
   NEXT j
   SaveNPCD maplumpname$(i, "n"), npctemp()
+ NEXT i
+END IF
+
+IF getfixbit(fixHeroPortrait) = 0 THEN
+ upgrade_message "Initialize hero portrait data..."
+ setfixbit(fixHeroPortrait, 1)
+ DIM her AS HeroDef
+ FOR i = 0 TO gen(genMaxHero)
+  loadherodata @her, i
+  her.portrait = -1 'Disable
+  her.portrait_pal = -1 'Default
+  saveherodata @her, i
  NEXT i
 END IF
 

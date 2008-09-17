@@ -1215,6 +1215,8 @@ min(6) = 0: max(6) = gen(genMaxItem)
 min(7) = 0: max(7) = 16
 min(8) = -100:max(8) = 100
 min(9) = -100:max(9) = 100
+min(10) = -1:max(10) = gen(genMaxPortrait)
+min(11) = -1: max(11) = 32767
 it$ = load_item_name(her.def_weapon, 0, 1)
 setkeys
 previewframe = 0
@@ -1268,12 +1270,22 @@ DO
     ELSE
       intgrabber her.hand_b_y, min(bctr), max(bctr)
     END IF
+   CASE 10
+    IF intgrabber(her.portrait, min(bctr), max(bctr)) THEN
+      GOSUB heropics
+    END IF
+   CASE 11
+    IF intgrabber(her.portrait_pal, min(bctr), max(bctr)) THEN
+      GOSUB heropics
+    END IF
   END SELECT
   IF enter_or_space() THEN
    IF bctr = 2 THEN
     her.sprite_pal = pal16browse(her.sprite_pal, 0, her.sprite, 8, 32, 40)
    ELSEIF bctr = 4 THEN
     her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, 4, her.walk_sprite, 8, 20, 20)
+   ELSEIF bctr = 11 THEN
+    her.portrait_pal = pal16browse(her.portrait_pal, 8, her.portrait, 1, 50, 50)
    END IF
    GOSUB heropics
   END IF
@@ -1337,6 +1349,8 @@ ELSEIF previewframe = 1 THEN
  bmenu$(8) = "Hand X: " & her.hand_b_x
  bmenu$(9) = "Hand Y: " & her.hand_b_y
 END IF
+bmenu$(10) = "Portrait Picture: " & her.portrait
+bmenu$(11) = "Portrait Palette: " & her.portrait_pal
 RETRACE
 
 levstats:

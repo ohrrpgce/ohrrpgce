@@ -25,7 +25,6 @@ DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, you
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE SUB npcdef (npc%(), pt%)
 DECLARE SUB editbitset (array%(), wof%, last%, name() AS STRING)
-DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, foff%, atatime%, info$(), size%, zoom%, fileset%, font%())
 DECLARE SUB shopdata ()
 DECLARE SUB importsong ()
 DECLARE SUB gendata ()

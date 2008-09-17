@@ -1566,7 +1566,7 @@ END SUB
 
 OPTION EXPLICIT '======== FIXME: move this up as code gets cleaned up =====================
 
-SUB sprite (xw, yw, sets, perset, soff, atatime, info$(), zoom, fileset, font())
+SUB sprite (xw, yw, sets, BYREF perset, soff, atatime, info$(), zoom, fileset, font())
 STATIC default$, spriteclip(1602), clippedpal, clippedw, clippedh, paste
 STATIC ss_save AS SpriteEditStatic
 

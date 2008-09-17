@@ -29,7 +29,7 @@ DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE SUB mapmaker (font%())
 DECLARE SUB npcdef (npcn%(), pt%)
 DECLARE SUB editbitset (array%(), wof%, last%, names() AS STRING)
-DECLARE SUB sprite (xw%, yw%, sets%, perset%, soff%, atatime%, info$(), zoom%, fileset%, font%())
+DECLARE SUB sprite (xw, yw, sets, BYREF perset, soff, atatime, info$(), zoom, fileset, font())
 DECLARE SUB shopdata ()
 DECLARE SUB importsong ()
 DECLARE SUB importsfx ()
@@ -132,6 +132,7 @@ DIM enemy_frame_captions(0) AS STRING = {"Enemy (facing right)"}
 DIM weapon_frame_captions(1) AS STRING = {"Frame 1","Frame 2"}
 DIM attack_frame_captions(2) AS STRING = {"First Frame","Middle Frame","Last Frame"}
 DIM box_border_captions(15) AS STRING = {"Top Left Corner","Top Edge Left","Top Edge","Top Edge Right","Top Right Corner","Left Edge Top","Right Edge Top","Left Edge","Right Edge","Left Edge Bottom","Right Edge Bottom","Bottom Left Corner","Bottom Edge Left","Bottom Edge","Bottom Edge Right","Bottom Right Corner"}
+DIM portrait_captions(0) AS STRING = {"Character Portrait"}
 
 keyboardsetup
 
@@ -296,6 +297,7 @@ DO:
      sprite 16, 16, gen(genMaxBoxBorder), 16, 7, 8, box_border_captions(), 4, 7, font()
      clear_box_border_cache
     END IF
+    IF pt = 13 THEN sprite 50, 50, gen(genMaxPortrait), 1, 2, 4, portrait_captions(), 2, 8, font()
   END SELECT
   '--always resave the .GEN lump after any menu
   xbsave game + ".gen", gen(), 1000
@@ -337,7 +339,7 @@ menu$(18) = "Quit Editing"
 RETRACE
 
 setgraphicmenu:
-mainmax = 12
+mainmax = 13
 menu$(0) = "Back to the main menu"
 menu$(1) = "Edit Maptiles"
 menu$(2) = "Draw Walkabout Graphics"
@@ -351,6 +353,7 @@ menu$(9) = "Import/Export Screens"
 menu$(10) = "Import/Export Full Maptile Sets"
 menu$(11) = "Change User-Interface Colors"
 menu$(12) = "Draw Box Edges"
+menu$(13) = "Draw Portrait Graphics"
 RETRACE
 
 chooserpg:
