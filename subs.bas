@@ -57,8 +57,8 @@ DECLARE SUB load_item_names (item_strings() AS STRING)
 DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
 DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, workpal() AS INTEGER, frame AS INTEGER)
 
-DECLARE SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef, it$)
-DECLARE SUB update_hero_preview_pics(her AS HeroDef, pal16())
+DECLARE SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef)
+DECLARE SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef, pal16())
 
 REM $STATIC
 
@@ -1224,8 +1224,9 @@ min(11) = -1: max(11) = 32767
 it$ = load_item_name(her.def_weapon, 0, 1)
 setkeys
 st.previewframe = 0
+update_hero_appearance_menu st, bmenu$(), her
+st.changed = NO
 DO
- update_hero_appearance_menu st, bmenu$(), her, it$
  setwait 55
  setkeys
  tog = tog XOR 1
@@ -1233,6 +1234,7 @@ DO
  IF keyval(1) > 1 THEN st.previewframe = -1: RETRACE
  IF (keyval(52) > 1 AND st.previewframe = 0) OR (keyval(51) > 1 AND st.previewframe = 1) THEN
   st.previewframe = st.previewframe xor 1
+  st.changed = YES
  END IF
  usemenu bctr, 0, 0, 9, 24
  IF enter_or_space() AND bctr = 0 THEN st.previewframe = -1: RETRACE
@@ -1240,47 +1242,59 @@ DO
   SELECT CASE bctr
    CASE 1
     IF intgrabber(her.sprite, min(bctr), max(bctr)) THEN
-     update_hero_preview_pics her, pal16()
+     update_hero_preview_pics st, her, pal16()
     END IF
    CASE 2
     IF intgrabber(her.sprite_pal, min(bctr), max(bctr)) THEN
-     update_hero_preview_pics her, pal16()
+     update_hero_preview_pics st, her, pal16()
     END IF
    CASE 3
     IF intgrabber(her.walk_sprite, min(bctr), max(bctr)) THEN
-     update_hero_preview_pics her, pal16()
+     update_hero_preview_pics st, her, pal16()
     END IF
    CASE 4
     IF intgrabber(her.walk_sprite_pal, min(bctr), max(bctr)) THEN
-     update_hero_preview_pics her, pal16()
+     update_hero_preview_pics st, her, pal16()
     END IF
    CASE 5
-    intgrabber her.def_level, min(bctr), max(bctr)
+    IF intgrabber(her.def_level, min(bctr), max(bctr)) THEN
+     st.changed = YES
+    END IF
    CASE 6
     IF intgrabber(her.def_weapon, min(bctr), max(bctr)) THEN
-      it$ = load_item_name(her.def_weapon, 0, 1)
+     st.changed = YES
     END IF
    CASE 7
-    intgrabber her.max_name_len, min(bctr), max(bctr)
+    IF intgrabber(her.max_name_len, min(bctr), max(bctr)) THEN
+     st.changed = YES
+    END IF
    CASE 8
     IF st.previewframe = 0 THEN
-      intgrabber her.hand_a_x, min(bctr), max(bctr)
+     IF intgrabber(her.hand_a_x, min(bctr), max(bctr)) THEN
+      st.changed = YES
+     END IF
     ELSE
-      intgrabber her.hand_b_x, min(bctr), max(bctr)
+     IF intgrabber(her.hand_b_x, min(bctr), max(bctr)) THEN
+      st.changed = YES
+     END IF
     END IF
    CASE 9
     IF st.previewframe = 0 THEN
-      intgrabber her.hand_a_y, min(bctr), max(bctr)
+     IF intgrabber(her.hand_a_y, min(bctr), max(bctr)) THEN
+      st.changed = YES
+     END IF
     ELSE
-      intgrabber her.hand_b_y, min(bctr), max(bctr)
+     IF intgrabber(her.hand_b_y, min(bctr), max(bctr)) THEN
+      st.changed = YES
+     END IF
     END IF
    CASE 10
     IF intgrabber(her.portrait, min(bctr), max(bctr)) THEN
-     update_hero_preview_pics her, pal16()
+     update_hero_preview_pics st, her, pal16()
     END IF
    CASE 11
     IF intgrabber(her.portrait_pal, min(bctr), max(bctr)) THEN
-     update_hero_preview_pics her, pal16()
+     update_hero_preview_pics st, her, pal16()
     END IF
   END SELECT
   IF enter_or_space() THEN
@@ -1291,9 +1305,11 @@ DO
    ELSEIF bctr = 11 THEN
     her.portrait_pal = pal16browse(her.portrait_pal, 8, her.portrait, 1, 50, 50)
    END IF
-   update_hero_preview_pics her, pal16()
+   update_hero_preview_pics st, her, pal16()
   END IF
  END IF
+
+ IF st.changed THEN update_hero_appearance_menu st, bmenu$(), her
 
  standardmenu bmenu$(), 9, 22, bctr, 0, 8, 0, dpage, 0
 
@@ -1536,7 +1552,7 @@ FOR i = 0 TO 3
 NEXT i
 menu$(2) = "Name:" + nam$
 menu$(1) = CHR(27) + "Pick Hero " & pt & CHR(26)
-update_hero_preview_pics her, pal16()
+update_hero_preview_pics st, her, pal16()
 RETRACE
 
 END SUB 'End of herodata
@@ -2072,14 +2088,14 @@ END SUB
 OPTION EXPLICIT
 
 
-SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef, it$)
+SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef)
  menu(1) = "Battle Picture: " & her.sprite
  menu(2) = "Battle Palette: " & defaultint(her.sprite_pal)
  menu(3) = "Walkabout Picture: " & her.walk_sprite
  menu(4) = "Walkabout Palette: " & defaultint(her.walk_sprite_pal)
  menu(5) = "Base Level: " & her.def_level
  IF her.def_level < 0 THEN menu(5) = "Base Level: Party Average"
- menu(6) = "Default Weapon: " & it$
+ menu(6) = "Default Weapon: " & load_item_name(her.def_weapon, 0, 1)
  menu(7) = "Max Name Length: " & zero_default(her.max_name_len)
  IF st.previewframe = 0 THEN
   menu(8) = "Hand X: " & her.hand_a_x
@@ -2090,9 +2106,10 @@ SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her
  END IF
  menu(10) = "Portrait Picture: " & her.portrait
  menu(11) = "Portrait Palette: " & her.portrait_pal
+ st.changed = NO
 END SUB
 
-SUB update_hero_preview_pics(her AS HeroDef, pal16())
+SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef, pal16())
 'FIXME: replace this with GraphicPair
  setpicstuf buffer(), 5120, 2
  loadset game + ".pt0", her.sprite, 0
@@ -2100,4 +2117,5 @@ SUB update_hero_preview_pics(her AS HeroDef, pal16())
  setpicstuf buffer(), 1600, 2
  loadset game + ".pt4", her.walk_sprite, 16
  getpal16 pal16(), 1, her.walk_sprite_pal, 4, her.walk_sprite
+ st.changed = YES
 END SUB

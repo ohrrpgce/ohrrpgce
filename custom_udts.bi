@@ -82,6 +82,7 @@ TYPE TileEditState
 END TYPE
 
 TYPE HeroEditState
+  changed AS INTEGER
   previewframe AS INTEGER
 END TYPE
 
