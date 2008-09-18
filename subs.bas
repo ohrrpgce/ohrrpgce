@@ -58,7 +58,10 @@ DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
 DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, workpal() AS INTEGER, frame AS INTEGER)
 
 DECLARE SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef)
-DECLARE SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef, pal16())
+DECLARE SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef)
+DECLARE SUB animate_hero_preview(BYREF st AS HeroEditState)
+DECLARE SUB clear_hero_preview_pics(BYREF st AS HeroEditState)
+DECLARE SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
 
 REM $STATIC
 
@@ -1045,10 +1048,16 @@ SUB formsprite(z() as integer, w() as integer, a() as integer, h() as integer, p
 END SUB
 
 SUB herodata
-DIM names(100) AS STRING, menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), pal16(16), elemtype$(2)
+DIM names(100) AS STRING, menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), elemtype$(2)
 DIM AS HeroDef her, blankhero
 DIM st AS HeroEditState
-wd = 1: wc = 0: wx = 0: wy = 0: hmax = 32
+WITH st
+ .preview_walk_direction = 1
+ .preview_steps = 0
+ .preview_walk_pos.x = 0
+ .preview_walk_pos.y = 0
+END WITH
+hmax = 32
 leftkey = 0: rightkey = 0
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
 clearpage 0
@@ -1089,7 +1098,7 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- GOSUB movesmall
+ animate_hero_preview st
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) > 0 THEN
   cropafter pt, gen(genMaxHero), -1, game + ".dt0", 636, 1
@@ -1131,13 +1140,14 @@ DO
 
  standardmenu menu$(), 8, 22, csr, 0, 0, 0, dpage, 0
 
- GOSUB heropreview
+ draw_hero_preview st, her
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
  dowait
 LOOP
 GOSUB lasthero
+clear_hero_preview_pics st
 clearpage 0
 clearpage 1
 clearpage 2
@@ -1230,7 +1240,7 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- GOSUB movesmall
+ animate_hero_preview st
  IF keyval(1) > 1 THEN st.previewframe = -1: RETRACE
  IF (keyval(52) > 1 AND st.previewframe = 0) OR (keyval(51) > 1 AND st.previewframe = 1) THEN
   st.previewframe = st.previewframe xor 1
@@ -1242,19 +1252,19 @@ DO
   SELECT CASE bctr
    CASE 1
     IF intgrabber(her.sprite, min(bctr), max(bctr)) THEN
-     update_hero_preview_pics st, her, pal16()
+     st.changed = YES
     END IF
    CASE 2
     IF intgrabber(her.sprite_pal, min(bctr), max(bctr)) THEN
-     update_hero_preview_pics st, her, pal16()
+     st.changed = YES
     END IF
    CASE 3
     IF intgrabber(her.walk_sprite, min(bctr), max(bctr)) THEN
-     update_hero_preview_pics st, her, pal16()
+     st.changed = YES
     END IF
    CASE 4
     IF intgrabber(her.walk_sprite_pal, min(bctr), max(bctr)) THEN
-     update_hero_preview_pics st, her, pal16()
+     st.changed = YES
     END IF
    CASE 5
     IF intgrabber(her.def_level, min(bctr), max(bctr)) THEN
@@ -1290,11 +1300,11 @@ DO
     END IF
    CASE 10
     IF intgrabber(her.portrait, min(bctr), max(bctr)) THEN
-     update_hero_preview_pics st, her, pal16()
+     st.changed = YES
     END IF
    CASE 11
     IF intgrabber(her.portrait_pal, min(bctr), max(bctr)) THEN
-     update_hero_preview_pics st, her, pal16()
+     st.changed = YES
     END IF
   END SELECT
   IF enter_or_space() THEN
@@ -1305,7 +1315,7 @@ DO
    ELSEIF bctr = 11 THEN
     her.portrait_pal = pal16browse(her.portrait_pal, 8, her.portrait, 1, 50, 50)
    END IF
-   update_hero_preview_pics st, her, pal16()
+   st.changed = YES
   END IF
  END IF
 
@@ -1313,40 +1323,12 @@ DO
 
  standardmenu bmenu$(), 9, 22, bctr, 0, 8, 0, dpage, 0
 
- GOSUB heropreview
+ draw_hero_preview st, her
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
  dowait
 LOOP
-
-heropreview:
-IF st.previewframe <> -1 THEN
- loadsprite buffer(), 0, 640 * (st.previewframe + 2), 0, 32, 40, 2
-ELSE
- loadsprite buffer(), 0, 640 * tog, 0, 32, 40, 2
-END IF
-drawsprite buffer(), 0, pal16(), 0, 250, 25, dpage
-loadsprite buffer(), 0, (wd * 400) + (200 * tog), 16, 20, 20, 2
-drawsprite buffer(), 0, pal16(), 16, 230 + wx, 5 + wy, dpage
-IF st.previewframe <> -1 THEN
- IF st.previewframe = 0 THEN
-  handx = her.hand_a_x
-  handy = her.hand_a_y
- ELSE
-  handx = her.hand_b_x
-  handy = her.hand_b_y
- END IF
- drawline 248 + handx,25 + handy,249 + handx, 25 + handy,14 + tog,dpage
- drawline 250 + handx,23 + handy,250 + handx, 24 + handy,14 + tog,dpage
- drawline 251 + handx,25 + handy,252 + handx, 25 + handy,14 + tog,dpage
- drawline 250 + handx,26 + handy,250 + handx, 27 + handy,14 + tog,dpage
- printstr STR(st.previewframe), 264, 18, dpage
- IF st.previewframe = 1 THEN printstr "<",256,18,dpage
- IF st.previewframe = 0 THEN printstr ">",272,18,dpage
-END IF
-
-RETRACE
 
 levstats:
 bctr = 0
@@ -1522,14 +1504,6 @@ FOR i = 0 TO 11
 NEXT i
 RETRACE
 
-movesmall:
-wc = wc + 1: IF wc >= 15 THEN wc = 0: wd = wd + 1: IF wd > 3 THEN wd = 0
-IF wd = 0 THEN wy = wy - 4
-IF wd = 1 THEN wx = wx + 4
-IF wd = 2 THEN wy = wy + 4
-IF wd = 3 THEN wx = wx - 4
-RETRACE
-
 clearhero:
 blankhero.sprite_pal = -1      'default battle palette
 blankhero.walk_sprite_pal = -1 'default walkabout palette
@@ -1552,7 +1526,7 @@ FOR i = 0 TO 3
 NEXT i
 menu$(2) = "Name:" + nam$
 menu$(1) = CHR(27) + "Pick Hero " & pt & CHR(26)
-update_hero_preview_pics st, her, pal16()
+update_hero_preview_pics st, her
 RETRACE
 
 END SUB 'End of herodata
@@ -2106,16 +2080,77 @@ SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her
  END IF
  menu(10) = "Portrait Picture: " & her.portrait
  menu(11) = "Portrait Palette: " & her.portrait_pal
+ update_hero_preview_pics st, her
  st.changed = NO
 END SUB
 
-SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef, pal16())
-'FIXME: replace this with GraphicPair
- setpicstuf buffer(), 5120, 2
- loadset game + ".pt0", her.sprite, 0
- getpal16 pal16(), 0, her.sprite_pal, 0, her.sprite
- setpicstuf buffer(), 1600, 2
- loadset game + ".pt4", her.walk_sprite, 16
- getpal16 pal16(), 1, her.walk_sprite_pal, 4, her.walk_sprite
- st.changed = YES
+SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef)
+ clear_hero_preview_pics st
+ WITH st
+  .battle.sprite    = sprite_load(game & ".pt0", her.sprite, 8, 32, 40)
+  .battle.pal       = palette16_load(game & ".pal", her.sprite_pal, 0, her.sprite)
+  .walkabout.sprite = sprite_load(game & ".pt4", her.walk_sprite, 8, 20, 20)
+  .walkabout.pal    = palette16_load(game & ".pal", her.walk_sprite_pal, 4, her.walk_sprite)
+  IF her.portrait >= 0 THEN
+   .portrait.sprite = sprite_load(game & ".pt8", her.portrait, 1, 50, 50)
+   .portrait.pal    = palette16_load(game & ".pal", her.portrait_pal, 8, her.portrait)
+  END IF
+ END WITH
+END SUB
+
+SUB clear_hero_preview_pics(BYREF st AS HeroEditState)
+ WITH st
+  IF .battle.sprite    THEN sprite_unload    @.battle.sprite
+  IF .battle.pal       THEN palette16_unload @.battle.pal
+  IF .walkabout.sprite THEN sprite_unload    @.walkabout.sprite
+  IF .walkabout.pal    THEN palette16_unload @.walkabout.pal
+  IF .portrait.sprite  THEN sprite_unload    @.portrait.sprite
+  IF .portrait.pal     THEN palette16_unload @.portrait.pal
+ END WITH
+END SUB
+
+SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
+ STATIC tog AS INTEGER
+ tog = tog XOR 1
+ 
+ DIM frame AS INTEGER
+ IF st.previewframe <> -1 THEN
+  frame = st.previewframe + 2
+ ELSE
+  frame = tog
+ END IF
+ sprite_draw st.battle.sprite + frame, st.battle.pal, 250, 25,,,dpage
+ frame = st.preview_walk_direction * 2 + tog
+ sprite_draw st.walkabout.sprite + frame, st.walkabout.pal, 230 + st.preview_walk_pos.x, 5 + st.preview_walk_pos.y,,,dpage
+ DIM hand AS XYPair
+ IF st.previewframe <> -1 THEN
+  IF st.previewframe = 0 THEN
+   hand.x = her.hand_a_x
+   hand.y = her.hand_a_y
+  ELSE
+   hand.x = her.hand_b_x
+   hand.y = her.hand_b_y
+  END IF
+  drawline 248 + hand.x,25 + hand.y,249 + hand.x, 25 + hand.y,14 + tog, dpage
+  drawline 250 + hand.x,23 + hand.y,250 + hand.x, 24 + hand.y,14 + tog, dpage
+  drawline 251 + hand.x,25 + hand.y,252 + hand.x, 25 + hand.y,14 + tog, dpage
+  drawline 250 + hand.x,26 + hand.y,250 + hand.x, 27 + hand.y,14 + tog, dpage
+  printstr STR(st.previewframe), 264, 18, dpage
+  IF st.previewframe = 1 THEN printstr "<", 256, 18, dpage
+  IF st.previewframe = 0 THEN printstr ">", 272, 18, dpage
+ END IF
+END SUB
+
+SUB animate_hero_preview(BYREF st AS HeroEditState)
+ WITH st
+  .preview_steps += 1
+  IF .preview_steps >= 15 THEN
+   .preview_steps = 0
+   .preview_walk_direction = loopvar(.preview_walk_direction, 0, 3, 1)
+  END IF
+  IF .preview_walk_direction = 0 THEN .preview_walk_pos.y -= 4
+  IF .preview_walk_direction = 1 THEN .preview_walk_pos.x += 4
+  IF .preview_walk_direction = 2 THEN .preview_walk_pos.y += 4
+  IF .preview_walk_direction = 3 THEN .preview_walk_pos.x -= 4
+ END WITH
 END SUB

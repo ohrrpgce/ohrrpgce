@@ -84,6 +84,12 @@ END TYPE
 TYPE HeroEditState
   changed AS INTEGER
   previewframe AS INTEGER
+  battle    AS GraphicPair
+  walkabout AS GraphicPair
+  portrait  AS GraphicPair
+  preview_steps AS INTEGER
+  preview_walk_direction AS INTEGER
+  preview_walk_pos AS XYPair
 END TYPE
 
 #ENDIF
