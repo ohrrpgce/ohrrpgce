@@ -297,7 +297,7 @@ DO:
      sprite 16, 16, gen(genMaxBoxBorder), 16, 7, 8, box_border_captions(), 4, 7, font()
      clear_box_border_cache
     END IF
-    IF pt = 13 THEN sprite 50, 50, gen(genMaxPortrait), 1, 2, 4, portrait_captions(), 2, 8, font()
+    IF pt = 13 THEN sprite 50, 50, gen(genMaxPortrait), 1, 4, 2, portrait_captions(), 2, 8, font()
   END SELECT
   '--always resave the .GEN lump after any menu
   xbsave game + ".gen", gen(), 1000
