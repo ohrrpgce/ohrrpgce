@@ -9,6 +9,7 @@ DEFINT A-Z
 
 #include "const.bi"
 #include "udts.bi"
+#include "custom_udts.bi"
 
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
@@ -56,7 +57,7 @@ DECLARE SUB load_item_names (item_strings() AS STRING)
 DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
 DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, workpal() AS INTEGER, frame AS INTEGER)
 
-DECLARE SUB update_hero_appearance_menu(menu() AS STRING, her AS HeroDef, it$, previewframe)
+DECLARE SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef, it$)
 DECLARE SUB update_hero_preview_pics(her AS HeroDef, pal16())
 
 REM $STATIC
@@ -1046,7 +1047,7 @@ END SUB
 SUB herodata
 DIM names(100) AS STRING, menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), pal16(16), elemtype$(2)
 DIM AS HeroDef her, blankhero
-DIM previewframe AS INTEGER
+DIM st AS HeroEditState
 wd = 1: wc = 0: wx = 0: wy = 0: hmax = 32
 leftkey = 0: rightkey = 0
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
@@ -1058,7 +1059,7 @@ getnames names(), hmax
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
-previewframe = -1
+st.previewframe = -1
 
 pt = 0
 csr = 1
@@ -1222,19 +1223,19 @@ min(10) = -1:max(10) = gen(genMaxPortrait)
 min(11) = -1: max(11) = 32767
 it$ = load_item_name(her.def_weapon, 0, 1)
 setkeys
-previewframe = 0
+st.previewframe = 0
 DO
- update_hero_appearance_menu bmenu$(), her, it$, previewframe
+ update_hero_appearance_menu st, bmenu$(), her, it$
  setwait 55
  setkeys
  tog = tog XOR 1
  GOSUB movesmall
- IF keyval(1) > 1 THEN previewframe = -1: RETRACE
- IF (keyval(52) > 1 AND previewframe = 0) OR (keyval(51) > 1 AND previewframe = 1) THEN
-  previewframe = previewframe xor 1
+ IF keyval(1) > 1 THEN st.previewframe = -1: RETRACE
+ IF (keyval(52) > 1 AND st.previewframe = 0) OR (keyval(51) > 1 AND st.previewframe = 1) THEN
+  st.previewframe = st.previewframe xor 1
  END IF
  usemenu bctr, 0, 0, 9, 24
- IF enter_or_space() AND bctr = 0 THEN previewframe = -1: RETRACE
+ IF enter_or_space() AND bctr = 0 THEN st.previewframe = -1: RETRACE
  IF bctr > 0 THEN
   SELECT CASE bctr
    CASE 1
@@ -1262,13 +1263,13 @@ DO
    CASE 7
     intgrabber her.max_name_len, min(bctr), max(bctr)
    CASE 8
-    IF previewframe = 0 THEN
+    IF st.previewframe = 0 THEN
       intgrabber her.hand_a_x, min(bctr), max(bctr)
     ELSE
       intgrabber her.hand_b_x, min(bctr), max(bctr)
     END IF
    CASE 9
-    IF previewframe = 0 THEN
+    IF st.previewframe = 0 THEN
       intgrabber her.hand_a_y, min(bctr), max(bctr)
     ELSE
       intgrabber her.hand_b_y, min(bctr), max(bctr)
@@ -1304,16 +1305,16 @@ DO
 LOOP
 
 heropreview:
-IF previewframe <> -1 THEN
- loadsprite buffer(), 0, 640 * (previewframe + 2), 0, 32, 40, 2
+IF st.previewframe <> -1 THEN
+ loadsprite buffer(), 0, 640 * (st.previewframe + 2), 0, 32, 40, 2
 ELSE
  loadsprite buffer(), 0, 640 * tog, 0, 32, 40, 2
 END IF
 drawsprite buffer(), 0, pal16(), 0, 250, 25, dpage
 loadsprite buffer(), 0, (wd * 400) + (200 * tog), 16, 20, 20, 2
 drawsprite buffer(), 0, pal16(), 16, 230 + wx, 5 + wy, dpage
-IF previewframe <> -1 THEN
- IF previewframe = 0 THEN
+IF st.previewframe <> -1 THEN
+ IF st.previewframe = 0 THEN
   handx = her.hand_a_x
   handy = her.hand_a_y
  ELSE
@@ -1324,9 +1325,9 @@ IF previewframe <> -1 THEN
  drawline 250 + handx,23 + handy,250 + handx, 24 + handy,14 + tog,dpage
  drawline 251 + handx,25 + handy,252 + handx, 25 + handy,14 + tog,dpage
  drawline 250 + handx,26 + handy,250 + handx, 27 + handy,14 + tog,dpage
- printstr STR(previewframe), 264, 18, dpage
- IF previewframe = 1 THEN printstr "<",256,18,dpage
- IF previewframe = 0 THEN printstr ">",272,18,dpage
+ printstr STR(st.previewframe), 264, 18, dpage
+ IF st.previewframe = 1 THEN printstr "<",256,18,dpage
+ IF st.previewframe = 0 THEN printstr ">",272,18,dpage
 END IF
 
 RETRACE
@@ -2071,7 +2072,7 @@ END SUB
 OPTION EXPLICIT
 
 
-SUB update_hero_appearance_menu(menu() AS STRING, her AS HeroDef, it$, previewframe)
+SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef, it$)
  menu(1) = "Battle Picture: " & her.sprite
  menu(2) = "Battle Palette: " & defaultint(her.sprite_pal)
  menu(3) = "Walkabout Picture: " & her.walk_sprite
@@ -2080,10 +2081,10 @@ SUB update_hero_appearance_menu(menu() AS STRING, her AS HeroDef, it$, previewfr
  IF her.def_level < 0 THEN menu(5) = "Base Level: Party Average"
  menu(6) = "Default Weapon: " & it$
  menu(7) = "Max Name Length: " & zero_default(her.max_name_len)
- IF previewframe = 0 THEN
+ IF st.previewframe = 0 THEN
   menu(8) = "Hand X: " & her.hand_a_x
   menu(9) = "Hand Y: " & her.hand_a_y
- ELSEIF previewframe = 1 THEN
+ ELSEIF st.previewframe = 1 THEN
    menu(8) = "Hand X: " & her.hand_b_x
    menu(9) = "Hand Y: " & her.hand_b_y
  END IF

@@ -81,4 +81,8 @@ TYPE TileEditState
   adjustpos AS XYPair
 END TYPE
 
+TYPE HeroEditState
+  previewframe AS INTEGER
+END TYPE
+
 #ENDIF
