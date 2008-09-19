@@ -92,4 +92,10 @@ TYPE HeroEditState
   preview_walk_pos AS XYPair
 END TYPE
 
+TYPE TextboxEditState
+  id AS INTEGER
+  portrait AS GraphicPair
+  search AS STRING
+END TYPE
+
 #ENDIF

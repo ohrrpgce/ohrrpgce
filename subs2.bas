@@ -16,6 +16,7 @@ TYPE triggerset
 END TYPE
 
 #include "udts.bi"
+#include "custom_udts.bi"
 #include "const.bi"
 
 'basic subs and functions
@@ -62,6 +63,7 @@ DECLARE SUB write_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex 
 DECLARE FUNCTION read_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS INTEGER) AS INTEGER
 DECLARE FUNCTION box_conditional_type_by_menu_index(menuindex AS INTEGER) AS INTEGER
 DECLARE SUB update_textbox_editor_main_menu (BYREF box AS TextBox, m$())
+DECLARE SUB textbox_edit_load (BYREF box AS TextBox, BYREF st AS TextboxEditState, m$())
 
 'These are used in the TextBox conditional editor
 CONST condEXIT   = -1
@@ -739,7 +741,11 @@ SUB textage
 DIM m$(10), menu$(-1 TO 22), grey(-1 TO 22), h$(2), tagmn$, gcsr, tcur
 DIM box AS TextBox
 DIM boxcopier AS TextBox ' FIXME: Move this to clearlines when it gets SUBified
-pt = 1
+DIM st AS TextboxEditState
+WITH st
+ .id = 1
+ .search = ""
+END WITH
 
 DIM state AS MenuState 'FIXME: only used in conditionals GOSUB block, move this here when that is SUBified
 state.top = -1
@@ -779,9 +785,8 @@ m$(4) = "Edit Choice"
 m$(5) = "Box Appearance"
 m$(6) = "Next:"
 m$(7) = "Text Search:"
-search$ = ""
 csr = 0
-GOSUB loadlines
+textbox_edit_load box, st, m$()
 setkeys
 DO
  setwait 55
@@ -789,36 +794,36 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) > 0 THEN
-  SaveTextBox box, pt
-  cropafter pt, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY), 1
-  GOSUB loadlines
+  SaveTextBox box, st.id
+  cropafter st.id, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY), 1
+  textbox_edit_load box, st, m$()
  END IF
  usemenu csr, 0, 0, 7, 24
- remptr = pt
+ remptr = st.id
  SELECT CASE csr
   CASE 7'textsearch
-   strgrabber search$, 36
+   strgrabber st.search, 36
   CASE 6'quickchainer
    IF scrintgrabber(box.after, 0, gen(genMaxTextbox), 75, 77, -1, plottrigger) THEN
     update_textbox_editor_main_menu box, m$()
    END IF'--modify next
   CASE ELSE '--not using the quick textbox chainer
-   IF intgrabber(pt, 0, gen(39), 51, 52) THEN
-    SWAP pt, remptr
-    SaveTextBox box, pt
-    SWAP pt, remptr
-    GOSUB loadlines
+   IF intgrabber(st.id, 0, gen(genMaxTextBox), 51, 52) THEN
+    SWAP st.id, remptr
+    SaveTextBox box, st.id
+    SWAP st.id, remptr
+    textbox_edit_load box, st, m$()
    END IF
-   IF keyval(75) > 1 AND pt > 0 THEN
-    SaveTextBox box, pt
-    pt = pt - 1
-    GOSUB loadlines
+   IF keyval(75) > 1 AND st.id > 0 THEN
+    SaveTextBox box, st.id
+    st.id = st.id - 1
+    textbox_edit_load box, st, m$()
    END IF
-   IF keyval(77) > 1 AND pt < 32767 THEN
-    SaveTextBox box, pt
-    pt = pt + 1
-    IF needaddset(pt, gen(39), "text box") THEN GOSUB clearlines
-    GOSUB loadlines
+   IF keyval(77) > 1 AND st.id < 32767 THEN
+    SaveTextBox box, st.id
+    st.id = st.id + 1
+    IF needaddset(st.id, gen(genMaxTextBox), "text box") THEN GOSUB clearlines
+    textbox_edit_load box, st, m$()
    END IF'--next/add text box
  END SELECT
  IF enter_or_space() THEN
@@ -832,9 +837,9 @@ DO
   IF csr = 5 THEN GOSUB groovybox
   IF csr = 6 THEN
    IF box.after > 0 THEN
-    SaveTextBox box, pt
-    pt = box.after
-    GOSUB loadlines
+    SaveTextBox box, st.id
+    st.id = box.after
+    textbox_edit_load box, st, m$()
    ELSE
     temptrig = ABS(box.after)
     dummy$ = scriptbrowse$(temptrig, plottrigger, "textbox plotscript")
@@ -843,15 +848,15 @@ DO
    END IF
   END IF
   IF csr = 7 AND keyval(28) > 1 THEN
-   SaveTextBox box, pt
+   SaveTextBox box, st.id
    GOSUB seektextbox
-   GOSUB loadlines
+   textbox_edit_load box, st, m$()
   END IF
  END IF
  textcolor uilook(uiMenuItem), 0
  IF csr = 1 THEN textcolor uilook(uiSelectedItem + tog), 0
- printstr XSTR$(pt), 64, 8, dpage
- m$(7) = "Text Search:" + search$
+ printstr XSTR$(st.id), 64, 8, dpage
+ m$(7) = "Text Search:" + st.search
  
  standardmenu m$(), 7, 7, csr, 0, 0, 0, dpage, 0
 
@@ -872,7 +877,7 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-SaveTextBox box, pt
+SaveTextBox box, st.id
 EXIT SUB
 
 conditions:
@@ -1095,7 +1100,7 @@ DO
  textcolor uilook(uiSelectedItem + tog), 0
  printstr "-", 0, 8 + y * 10, dpage
  textcolor uilook(uiText), 0
- printstr "Text Box" + XSTR$(pt), 0, 100, dpage
+ printstr "Text Box " & st.id, 0, 100, dpage
  printstr "${C0} = Leader's name", 0, 120, dpage
  printstr "${C#} = Hero name at caterpillar slot #", 0, 128, dpage
  printstr "${P#} = Hero name at party slot #", 0, 136, dpage
@@ -1197,12 +1202,6 @@ FOR i = 0 TO 7
 NEXT i
 RETRACE
 
-loadlines:
-LoadTextBox box, pt
-update_textbox_editor_main_menu box, m$()
-search$ = ""
-RETRACE
-
 clearlines:
 '--this inits a new text box, and copies in values from text box 0 for defaults
 ClearTextBox box
@@ -1214,28 +1213,28 @@ box.vertical_offset = boxcopier.vertical_offset
 box.shrink          = boxcopier.shrink
 box.textcolor       = boxcopier.textcolor
 box.boxstyle        = boxcopier.boxstyle
-SaveTextBox box, pt
+SaveTextBox box, st.id
 RETRACE
 
 seektextbox:
-remptr = pt
-pt = pt + 1
+remptr = st.id
+st.id = st.id + 1
 DO
- IF pt > gen(39) THEN pt = 0
- IF pt = remptr THEN
+ IF st.id > gen(genMaxTextBox) THEN st.id = 0
+ IF st.id = remptr THEN
   edgeboxstyle 115, 90, 100, 20, 0, vpage
   edgeprint "Not found.", 120, 95, uilook(uiText), vpage
   setvispage vpage
   w = getkey
   EXIT DO
  END IF
- LoadTextBox box, pt
+ LoadTextBox box, st.id
  foundstr = 0
  FOR i = 0 TO 7
-  IF INSTR(UCASE(box.text(i)), UCASE(search$)) > 0 THEN foundstr = 1
+  IF INSTR(UCASE(box.text(i)), UCASE(st.search)) > 0 THEN foundstr = 1
  NEXT i
  IF foundstr = 1 THEN EXIT DO
- pt = pt + 1
+ st.id = st.id + 1
 LOOP
 RETRACE
 
@@ -1244,6 +1243,12 @@ END SUB
 
 '--FIXME: This affects the rest of the file. Move this up as subs and functions are cleaned up
 OPTION EXPLICIT
+
+SUB textbox_edit_load (BYREF box AS TextBox, BYREF st AS TextboxEditState, m$())
+ LoadTextBox box, st.id
+ update_textbox_editor_main_menu box, m$()
+ st.search = ""
+END SUB
 
 SUB update_textbox_editor_main_menu (BYREF box AS TextBox, m$())
  IF box.after = 0 THEN
