@@ -10,6 +10,7 @@ DEFINT A-Z
 #include "const.bi"
 #include "udts.bi"
 #include "custom_udts.bi"
+#include "scancodes.bi"
 
 DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION str2int% (stri$)
@@ -62,6 +63,7 @@ DECLARE SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef)
 DECLARE SUB animate_hero_preview(BYREF st AS HeroEditState)
 DECLARE SUB clear_hero_preview_pics(BYREF st AS HeroEditState)
 DECLARE SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
+DECLARE SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
 
 REM $STATIC
 
@@ -1106,7 +1108,7 @@ DO
  usemenu csr, 0, 0, 8, 24
  IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
-  IF csr = 3 THEN GOSUB picnpal
+  IF csr = 3 THEN hero_appearance_editor st, her
   IF csr = 4 THEN GOSUB levstats
   IF csr = 5 THEN GOSUB speltypes '--spell list contents
   IF csr = 6 THEN GOSUB heromenu '--spell list names
@@ -1211,119 +1213,6 @@ DO
   textcolor uilook(uiMenuItem), 0: IF bctr = i THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr "Type " & i & " Spells: " & opt$(her.list_type(i)), 0, 8 + i * 8, dpage
  NEXT i
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-
-picnpal:
-bctr = 0
-bmenu$(0) = "Previous Menu"
-min(1) = 0: max(1) = gen(genMaxHeroPic)
-min(2) = -1: max(2) = 32767
-min(3) = 0: max(3) = gen(genMaxNPCPic)
-min(4) = -1: max(4) = 32767
-min(5) = -1: max(5) = 99
-min(6) = 0: max(6) = gen(genMaxItem)
-min(7) = 0: max(7) = 16
-min(8) = -100:max(8) = 100
-min(9) = -100:max(9) = 100
-min(10) = -1:max(10) = gen(genMaxPortrait)
-min(11) = -1: max(11) = 32767
-it$ = load_item_name(her.def_weapon, 0, 1)
-setkeys
-st.previewframe = 0
-update_hero_appearance_menu st, bmenu$(), her
-st.changed = NO
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- animate_hero_preview st
- IF keyval(1) > 1 THEN st.previewframe = -1: RETRACE
- IF (keyval(52) > 1 AND st.previewframe = 0) OR (keyval(51) > 1 AND st.previewframe = 1) THEN
-  st.previewframe = st.previewframe xor 1
-  st.changed = YES
- END IF
- usemenu bctr, 0, 0, 9, 24
- IF enter_or_space() AND bctr = 0 THEN st.previewframe = -1: RETRACE
- IF bctr > 0 THEN
-  SELECT CASE bctr
-   CASE 1
-    IF intgrabber(her.sprite, min(bctr), max(bctr)) THEN
-     st.changed = YES
-    END IF
-   CASE 2
-    IF intgrabber(her.sprite_pal, min(bctr), max(bctr)) THEN
-     st.changed = YES
-    END IF
-   CASE 3
-    IF intgrabber(her.walk_sprite, min(bctr), max(bctr)) THEN
-     st.changed = YES
-    END IF
-   CASE 4
-    IF intgrabber(her.walk_sprite_pal, min(bctr), max(bctr)) THEN
-     st.changed = YES
-    END IF
-   CASE 5
-    IF intgrabber(her.def_level, min(bctr), max(bctr)) THEN
-     st.changed = YES
-    END IF
-   CASE 6
-    IF intgrabber(her.def_weapon, min(bctr), max(bctr)) THEN
-     st.changed = YES
-    END IF
-   CASE 7
-    IF intgrabber(her.max_name_len, min(bctr), max(bctr)) THEN
-     st.changed = YES
-    END IF
-   CASE 8
-    IF st.previewframe = 0 THEN
-     IF intgrabber(her.hand_a_x, min(bctr), max(bctr)) THEN
-      st.changed = YES
-     END IF
-    ELSE
-     IF intgrabber(her.hand_b_x, min(bctr), max(bctr)) THEN
-      st.changed = YES
-     END IF
-    END IF
-   CASE 9
-    IF st.previewframe = 0 THEN
-     IF intgrabber(her.hand_a_y, min(bctr), max(bctr)) THEN
-      st.changed = YES
-     END IF
-    ELSE
-     IF intgrabber(her.hand_b_y, min(bctr), max(bctr)) THEN
-      st.changed = YES
-     END IF
-    END IF
-   CASE 10
-    IF intgrabber(her.portrait, min(bctr), max(bctr)) THEN
-     st.changed = YES
-    END IF
-   CASE 11
-    IF intgrabber(her.portrait_pal, min(bctr), max(bctr)) THEN
-     st.changed = YES
-    END IF
-  END SELECT
-  IF enter_or_space() THEN
-   IF bctr = 2 THEN
-    her.sprite_pal = pal16browse(her.sprite_pal, 0, her.sprite, 8, 32, 40)
-   ELSEIF bctr = 4 THEN
-    her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, 4, her.walk_sprite, 8, 20, 20)
-   ELSEIF bctr = 11 THEN
-    her.portrait_pal = pal16browse(her.portrait_pal, 8, her.portrait, 1, 50, 50)
-   END IF
-   st.changed = YES
-  END IF
- END IF
-
- IF st.changed THEN update_hero_appearance_menu st, bmenu$(), her
-
- standardmenu bmenu$(), 9, 22, bctr, 0, 8, 0, dpage, 0
-
- draw_hero_preview st, her
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -2153,4 +2042,127 @@ SUB animate_hero_preview(BYREF st AS HeroEditState)
   IF .preview_walk_direction = 2 THEN .preview_walk_pos.y += 4
   IF .preview_walk_direction = 3 THEN .preview_walk_pos.x -= 4
  END WITH
+END SUB
+
+SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
+ DIM state AS MenuState
+ WITH state
+  .pt = 0
+  .last = 9
+  .size = 24
+ END WITH
+ 
+ DIM menu(11) AS STRING
+ DIM min(11) AS INTEGER
+ DIM max(11) AS INTEGER
+ menu(0) = "Previous Menu"
+ min(1) = 0: max(1) = gen(genMaxHeroPic)
+ min(2) = -1: max(2) = 32767
+ min(3) = 0: max(3) = gen(genMaxNPCPic)
+ min(4) = -1: max(4) = 32767
+ min(5) = -1: max(5) = 99
+ min(6) = 0: max(6) = gen(genMaxItem)
+ min(7) = 0: max(7) = 16
+ min(8) = -100:max(8) = 100
+ min(9) = -100:max(9) = 100
+ min(10) = -1:max(10) = gen(genMaxPortrait)
+ min(11) = -1: max(11) = 32767
+ 
+ st.previewframe = 0
+ update_hero_appearance_menu st, menu(), her
+ st.changed = NO
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  state.tog = state.tog XOR 1
+  animate_hero_preview st
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF (keyval(scPeriod) > 1 AND st.previewframe = 0) OR (keyval(scComma) > 1 AND st.previewframe = 1) THEN
+   st.previewframe = st.previewframe XOR 1
+   st.changed = YES
+  END IF
+  usemenu state
+  IF enter_or_space() AND state.pt = 0 THEN EXIT DO
+  IF state.pt > 0 THEN
+   SELECT CASE state.pt
+    CASE 1
+     IF intgrabber(her.sprite, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 2
+     IF intgrabber(her.sprite_pal, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 3
+     IF intgrabber(her.walk_sprite, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 4
+     IF intgrabber(her.walk_sprite_pal, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 5
+     IF intgrabber(her.def_level, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 6
+     IF intgrabber(her.def_weapon, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 7
+     IF intgrabber(her.max_name_len, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 8
+     IF st.previewframe = 0 THEN
+      IF intgrabber(her.hand_a_x, min(state.pt), max(state.pt)) THEN
+       st.changed = YES
+      END IF
+     ELSE
+      IF intgrabber(her.hand_b_x, min(state.pt), max(state.pt)) THEN
+       st.changed = YES
+      END IF
+     END IF
+    CASE 9
+     IF st.previewframe = 0 THEN
+      IF intgrabber(her.hand_a_y, min(state.pt), max(state.pt)) THEN
+       st.changed = YES
+      END IF
+     ELSE
+      IF intgrabber(her.hand_b_y, min(state.pt), max(state.pt)) THEN
+       st.changed = YES
+      END IF
+     END IF
+    CASE 10
+     IF intgrabber(her.portrait, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 11
+     IF intgrabber(her.portrait_pal, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+   END SELECT
+   IF enter_or_space() THEN
+    SELECT CASE state.pt
+     CASE 2
+      her.sprite_pal = pal16browse(her.sprite_pal, 0, her.sprite, 8, 32, 40)
+     CASE 4
+      her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, 4, her.walk_sprite, 8, 20, 20)
+     CASE 11
+      her.portrait_pal = pal16browse(her.portrait_pal, 8, her.portrait, 1, 50, 50)
+    END SELECT
+    st.changed = YES
+   END IF
+  END IF
+
+  IF st.changed THEN update_hero_appearance_menu st, menu(), her
+  standardmenu menu(), state, 8, 0, dpage
+  draw_hero_preview st, her
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+ st.previewframe = -1
 END SUB
