@@ -314,6 +314,11 @@ TYPE TextBox
   boxstyle    AS INTEGER
   backdrop    AS INTEGER     ' +1
   music       AS INTEGER     ' +1
+  portrait_box  AS INTEGER
+  portrait_type AS INTEGER
+  portrait_id   AS INTEGER
+  portrait_pal  AS INTEGER
+  portrait_pos  AS XYPair
 END TYPE
 
 TYPE TextBoxState

@@ -117,6 +117,7 @@ CONST fixBlankDoorLinks = 7      'Marked redundant blank doorlinks as unused
 CONST fixShopSounds = 8          'Set genItemLearnSFX..genCantSellSFX to defaults
 CONST fixExtendedNPCs = 9        'Initialized blank NPC data at the end of .N## lumps 
 CONST fixHeroPortrait = 10       'Initialize hero portrait data
+CONST fixTextBoxPortrait = 11    'Initialize text box portrait data
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 99

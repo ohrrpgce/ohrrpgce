@@ -1578,11 +1578,10 @@ SELECT CASE AS CONST id
   END IF
  CASE 240'-- string from textbox
   IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
-   DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
    DIM box AS TextBox
    retvals(1) = bound(retvals(1),0,gen(genMaxTextbox))
    retvals(2) = bound(retvals(2),0,7)
-   LoadTextBox box, boxbuf(), retvals(1)
+   LoadTextBox box, retvals(1)
    plotstr(retvals(0)).s = box.text(retvals(2))
    IF NOT retvals(3) THEN embedtext plotstr(retvals(0)).s
    plotstr(retvals(0)).s = trim$(plotstr(retvals(0)).s)
@@ -3031,14 +3030,13 @@ OPTION EXPLICIT
 SUB loadsay (box_id)
 DIM j AS INTEGER
 DIM rsr AS INTEGER
-DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
 
 DO '--This loop is where we find which box will be displayed right now
  gen(genTextboxBackdrop) = 0
  txt.choice_cursor = 0
 
  '--load data from the textbox lump
- LoadTextBox txt.box, boxbuf(), box_id
+ LoadTextBox txt.box, box_id
 
  FOR j = 0 TO 7
   embedtext txt.box.text(j), 38

@@ -993,8 +993,8 @@ SUB SaveUIColors (colarray() AS INTEGER, palnum AS INTEGER)
  CLOSE f
 END SUB
 
-SUB LoadTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
- IF UBOUND(boxbuf) < dimbinsize(binSAY) THEN debug "LoadTextBox: boxbuf too small:" & UBOUND(boxbuf) : EXIT SUB
+SUB LoadTextBox (BYREF box AS TextBox, record AS INTEGER)
+ DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
  IF record < 0 OR record > gen(genMaxTextBox) THEN debug "LoadTextBox: invalid record: " & record : EXIT SUB
 
  DIM filename AS STRING
@@ -1054,6 +1054,7 @@ SUB LoadTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
   .no_box         = xreadbit(boxbuf(), 1, 174)
   .opaque         = xreadbit(boxbuf(), 2, 174)
   .restore_music  = xreadbit(boxbuf(), 3, 174)
+  .portrait_box   = xreadbit(boxbuf(), 4, 174)
   '--Get choicebox data
   FOR i = 0 TO 1
    .choice(i) = STRING(15, 0)
@@ -1068,6 +1069,12 @@ SUB LoadTextBox (BYREF box AS TextBox, boxbuf() AS INTEGER, record AS INTEGER)
   .boxstyle        = boxbuf(196)
   .backdrop        = boxbuf(197) ' +1
   .music           = boxbuf(198) ' +1
+  '--Get portrait data
+  .portrait_type   = boxbuf(200)
+  .portrait_id     = boxbuf(201)
+  .portrait_pal    = boxbuf(202)
+  .portrait_pos.x  = boxbuf(203)
+  .portrait_pos.y  = boxbuf(204)
  END WITH
 END SUB
 
@@ -1121,7 +1128,7 @@ SUB SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
   setbit boxbuf(), 174, 1, .no_box
   setbit boxbuf(), 174, 2, .opaque
   setbit boxbuf(), 174, 3, .restore_music
-  setbit boxbuf(), 174, 4, NO 'Unused
+  setbit boxbuf(), 174, 4, .portrait_box
   setbit boxbuf(), 174, 5, NO 'Unused
   setbit boxbuf(), 174, 6, NO 'Unused
   setbit boxbuf(), 174, 7, NO 'Unused
@@ -1139,6 +1146,12 @@ SUB SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
   boxbuf(196) = .boxstyle
   boxbuf(197) = .backdrop  ' +1
   boxbuf(198) = .music     ' +1
+  '--Save portrait data
+  boxbuf(200) = .portrait_type
+  boxbuf(201) = .portrait_id
+  boxbuf(202) = .portrait_pal
+  boxbuf(203) = .portrait_pos.x
+  boxbuf(204) = .portrait_pos.y
  END WITH
 
  DIM f AS INTEGER

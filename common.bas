@@ -806,7 +806,7 @@ FUNCTION curbinsize (id)
  IF id = 5 THEN RETURN 48  'menus.bin
  IF id = 6 THEN RETURN 64  'menuitem.bin
  IF id = 7 THEN RETURN 126 'uicolors.bin
- IF id = 8 THEN RETURN 400 '.say
+ IF id = 8 THEN RETURN 410 '.say
  RETURN 0
 END FUNCTION
 
@@ -1705,12 +1705,9 @@ IF gen(genVersion) = 0 THEN
  upgrade_message "Ancient Pre-1999 format (1)"
  gen(genVersion) = 1
  upgrade_message "Flushing New Text Data..."
- DIM boxbuf(dimbinsize(binSAY)) AS INTEGER 'FIXME: remove this later
  DIM box AS TextBox
  FOR o = 0 TO 999
-  LoadTextBox box, boxbuf(), o
-  temp$ = STRING$(68, 0)
-  str2array temp$, boxbuf(), 331
+  LoadTextBox box, o
   'Zero out the data members that contained random garbage before 1999
   WITH box
    .money_tag      = 0
@@ -1908,7 +1905,6 @@ IF gen(genVersion) = 5 THEN
  gen(genVersion) = 6
 END IF
 
-
 IF NOT isfile(workingdir + SLASH + "archinym.lmp") THEN
  upgrade_message "generate default archinym.lmp"
  '--create archinym information lump
@@ -2021,6 +2017,7 @@ IF NOT isfile(workingdir + SLASH + "menuitem.bin") THEN
  SaveMenuData menu_set, menu, 0
 END IF
 updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
+updaterecordlength game & ".say", binSAY
 
 'sanity-check gen(genMaxMasterPal)
 gen(genMaxMasterPal) = large(gen(genMaxMasterPal), 0)
@@ -2229,6 +2226,18 @@ IF getfixbit(fixHeroPortrait) = 0 THEN
   her.portrait = -1 'Disable
   her.portrait_pal = -1 'Default
   saveherodata @her, i
+ NEXT i
+END IF
+
+IF getfixbit(fixTextBoxPortrait) = 0 THEN
+ upgrade_message "Initialize text box portrait data..."
+ setfixbit(fixTextBoxPortrait, 1)
+ DIM box AS TextBox
+ FOR i = 0 TO gen(genMaxTextBox)
+  LoadTextBox box, i
+  box.portrait_pal = -1 'Default palette
+  box.portrait_box = YES 'default portrait box on
+  SaveTextBox box, i
  NEXT i
 END IF
 

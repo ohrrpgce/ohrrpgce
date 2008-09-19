@@ -736,7 +736,6 @@ END FUNCTION
 
 SUB textage
 DIM m$(10), menu$(-1 TO 22), grey(-1 TO 22), h$(2), tagmn$, gcsr, tcur
-DIM boxbuf(dimbinsize(binSAY))
 DIM box AS TextBox
 DIM boxcopier AS TextBox ' FIXME: Move this to clearlines when it gets SUBified
 pt = 1
@@ -790,7 +789,7 @@ DO
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) > 0 THEN
   GOSUB savelines
-  cropafter pt, gen(39), 0, game + ".say", 400, 1
+  cropafter pt, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY), 1
   GOSUB loadlines
  END IF
  usemenu csr, 0, 0, 7, 24
@@ -1222,7 +1221,7 @@ NEXT i
 RETRACE
 
 loadlines:
-LoadTextBox box, boxbuf(), pt
+LoadTextBox box, pt
 GOSUB nextboxline
 search$ = ""
 RETRACE
@@ -1234,7 +1233,7 @@ RETRACE
 clearlines:
 '--this inits a new text box, and copies in values from text box 0 for defaults
 ClearTextBox box
-LoadTextBox boxcopier, boxbuf(), 0
+LoadTextBox boxcopier, 0
 box.no_box          = boxcopier.no_box
 box.opaque          = boxcopier.opaque
 box.restore_music   = boxcopier.restore_music
@@ -1257,7 +1256,7 @@ DO
   w = getkey
   EXIT DO
  END IF
- LoadTextBox box, boxbuf(), pt
+ LoadTextBox box, pt
  foundstr = 0
  FOR i = 0 TO 7
   IF INSTR(UCASE(box.text(i)), UCASE(search$)) > 0 THEN foundstr = 1
