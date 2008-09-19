@@ -64,6 +64,8 @@ DECLARE FUNCTION read_box_conditional_by_menu_index(BYREF box AS TextBox, menuin
 DECLARE FUNCTION box_conditional_type_by_menu_index(menuindex AS INTEGER) AS INTEGER
 DECLARE SUB update_textbox_editor_main_menu (BYREF box AS TextBox, m$())
 DECLARE SUB textbox_edit_load (BYREF box AS TextBox, BYREF st AS TextboxEditState, m$())
+DECLARE SUB textbox_edit_preview (BYREF box AS TextBox)
+DECLARE SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
 
 'These are used in the TextBox conditional editor
 CONST condEXIT   = -1
@@ -834,7 +836,7 @@ DO
    update_textbox_editor_main_menu box, m$()
   END IF
   IF csr = 4 THEN GOSUB tchoice
-  IF csr = 5 THEN GOSUB groovybox
+  IF csr = 5 THEN textbox_appearance_editor box, st
   IF csr = 6 THEN
    IF box.after > 0 THEN
     SaveTextBox box, st.id
@@ -878,6 +880,10 @@ clearpage 1
 clearpage 2
 clearpage 3
 SaveTextBox box, st.id
+WITH st.portrait
+ IF .sprite THEN sprite_unload @.sprite
+ IF .pal    THEN palette16_unload @.pal
+END WITH
 EXIT SUB
 
 conditions:
@@ -1114,94 +1120,6 @@ DO
  dowait
 LOOP
 
-groovybox:
-menu$(0) = "Go Back"
-menu$(1) = "Position:"
-menu$(2) = "Shrink:"
-menu$(3) = "Textcolor:"
-menu$(4) = "Bordercolor:"
-menu$(5) = "Backdrop:"
-menu$(6) = "Music:"
-menu$(7) = "Show Box:"
-menu$(8) = "Translucent:"
-menu$(9) = "Restore Music:"
-'Show backdrop
-clearpage 2
-IF box.backdrop > 0 THEN
- loadpage game + ".mxs", box.backdrop - 1, 2
-END IF
-
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN RETRACE
- usemenu gcsr, 0, 0, 9, 24
- IF enter_or_space() THEN
-  SELECT CASE gcsr
-   CASE 0: RETRACE ' Exit the appearance menu
-   CASE 3: box.textcolor = color_browser_256(box.textcolor)
-   CASE 7: box.no_box = (NOT box.no_box)
-   CASE 8: box.opaque = (NOT box.opaque)
-   CASE 9: box.restore_music = (NOT box.restore_music)
-  END SELECT
- END IF
- IF keyval(75) > 1 OR keyval(77) > 1 THEN
-  SELECT CASE gcsr
-   CASE 7: box.no_box = (NOT box.no_box)
-   CASE 8: box.opaque = (NOT box.opaque)
-   CASE 9: box.restore_music = (NOT box.restore_music)
-  END SELECT
- END IF
- SELECT CASE gcsr
-  CASE 1: intgrabber(box.vertical_offset, 0, 27 + box.shrink)
-  CASE 2: intgrabber(box.shrink, 0, 21)
-  CASE 3: intgrabber(box.textcolor, 0, 255)
-  CASE 4: intgrabber(box.boxstyle, 0, 14)
-  CASE 5:
-   IF zintgrabber(box.backdrop, -1, gen(genMaxBackdrop) - 1) THEN
-    clearpage 2
-    IF box.backdrop > 0 THEN
-     loadpage game + ".mxs", box.backdrop - 1, 2
-    END IF
-   END IF
-  CASE 6: zintgrabber(box.music, -1, gen(genMaxSong))
- END SELECT
- GOSUB previewbox
- FOR i = 0 TO 9
-  col = uilook(uimenuItem): IF i = gcsr THEN col = uilook(uiSelectedItem + tog)
-  temp$ = menu$(i)
-  SELECT CASE i
-   CASE 1: temp$ = temp$ & box.vertical_offset
-   CASE 2: temp$ = temp$ & box.shrink
-   CASE 3: temp$ = temp$ & box.textcolor
-   CASE 4: temp$ = temp$ & box.boxstyle
-   CASE 5: IF box.backdrop THEN temp$ = temp$ & box.backdrop - 1 ELSE temp$ = temp$ & " NONE"
-   CASE 6: IF box.music THEN temp$ = temp$ & getsongname$(box.music - 1) ELSE  temp$ = temp$ & " NONE"
-   CASE 7: IF box.no_box THEN temp$ = temp$ & " NO" ELSE temp$ = temp$ & " YES"
-   CASE 8: IF box.opaque THEN temp$ = temp$ & " NO" ELSE temp$ = temp$ & " YES"
-   CASE 9: IF box.restore_music THEN temp$ = temp$ & " YES" ELSE temp$ = temp$ & " NO"
-  END SELECT
-  edgeprint temp$, 0, i * 10, col, dpage
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- copypage 2, dpage
- dowait
-LOOP
-
-previewbox:
-IF box.no_box = NO THEN
- edgeboxstyle 4, 4 + box.vertical_offset * 4, 312, 88 - box.shrink * 4, box.boxstyle, dpage, (box.opaque = NO)
-END IF
-FOR i = 0 TO 7
- col = uilook(uiText)
- IF box.textcolor > 0 THEN col = box.textcolor
- edgeprint box.text(i), 8, 8 + box.vertical_offset * 4 + i * 10, col, dpage
-NEXT i
-RETRACE
-
 clearlines:
 '--this inits a new text box, and copies in values from text box 0 for defaults
 ClearTextBox box
@@ -1241,13 +1159,27 @@ RETRACE
 'See wiki for .SAY file format docs
 END SUB
 
-'--FIXME: This affects the rest of the file. Move this up as subs and functions are cleaned up
+'======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB textbox_edit_preview (BYREF box AS TextBox)
+ IF box.no_box = NO THEN
+  edgeboxstyle 4, 4 + box.vertical_offset * 4, 312, 88 - box.shrink * 4, box.boxstyle, dpage, (box.opaque = NO)
+ END IF
+ DIM col AS INTEGER
+ DIM i AS INTEGER
+ FOR i = 0 TO 7
+  col = uilook(uiText)
+  IF box.textcolor > 0 THEN col = box.textcolor
+  edgeprint box.text(i), 8, 8 + box.vertical_offset * 4 + i * 10, col, dpage
+ NEXT i
+END SUB
 
 SUB textbox_edit_load (BYREF box AS TextBox, BYREF st AS TextboxEditState, m$())
  LoadTextBox box, st.id
  update_textbox_editor_main_menu box, m$()
  st.search = ""
+ load_text_box_portrait box, st.portrait
 END SUB
 
 SUB update_textbox_editor_main_menu (BYREF box AS TextBox, m$())
@@ -1384,4 +1316,93 @@ FUNCTION box_conditional_type_by_menu_index(menuindex AS INTEGER) AS INTEGER
  END SELECT
 END FUNCTION
 
+SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
+ DIM menu(9) AS STRING
+ menu(0) = "Go Back"
+ menu(1) = "Position:"
+ menu(2) = "Shrink:"
+ menu(3) = "Textcolor:"
+ menu(4) = "Bordercolor:"
+ menu(5) = "Backdrop:"
+ menu(6) = "Music:"
+ menu(7) = "Show Box:"
+ menu(8) = "Translucent:"
+ menu(9) = "Restore Music:"
 
+ DIM state AS MenuState
+ state.size= 20
+ state.last = UBOUND(menu)
+ 
+ 'Show backdrop
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+ IF box.backdrop > 0 THEN
+  loadpage game & ".mxs", box.backdrop - 1, holdscreen
+ END IF
+
+ DIM i AS INTEGER
+ DIM col AS INTEGER
+ DIM menutemp AS STRING
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  state.tog = state.tog XOR 1
+  IF keyval(1) > 1 THEN EXIT DO
+  usemenu state
+  IF enter_or_space() THEN
+   SELECT CASE state.pt
+    CASE 0: EXIT DO ' Exit the appearance menu
+    CASE 3: box.textcolor = color_browser_256(box.textcolor)
+    CASE 7: box.no_box = (NOT box.no_box)
+    CASE 8: box.opaque = (NOT box.opaque)
+    CASE 9: box.restore_music = (NOT box.restore_music)
+   END SELECT
+  END IF
+  IF keyval(75) > 1 OR keyval(77) > 1 THEN
+   SELECT CASE state.pt
+    CASE 7: box.no_box = (NOT box.no_box)
+    CASE 8: box.opaque = (NOT box.opaque)
+    CASE 9: box.restore_music = (NOT box.restore_music)
+   END SELECT
+  END IF
+  SELECT CASE state.pt
+   CASE 1: intgrabber(box.vertical_offset, 0, 27 + box.shrink)
+   CASE 2: intgrabber(box.shrink, 0, 21)
+   CASE 3: intgrabber(box.textcolor, 0, 255)
+   CASE 4: intgrabber(box.boxstyle, 0, 14)
+   CASE 5:
+    IF zintgrabber(box.backdrop, -1, gen(genMaxBackdrop) - 1) THEN
+     clearpage holdscreen
+     IF box.backdrop > 0 THEN
+      loadpage game & ".mxs", box.backdrop - 1, holdscreen
+     END IF
+    END IF
+   CASE 6: zintgrabber(box.music, -1, gen(genMaxSong))
+  END SELECT
+  textbox_edit_preview box
+  FOR i = 0 TO 9
+   col = uilook(uimenuItem)
+   IF i = state.pt THEN col = uilook(uiSelectedItem + state.tog)
+   menutemp = menu(i)
+   SELECT CASE i
+    CASE 1: menutemp = menutemp & box.vertical_offset
+    CASE 2: menutemp = menutemp & box.shrink
+    CASE 3: menutemp = menutemp & box.textcolor
+    CASE 4: menutemp = menutemp & box.boxstyle
+    CASE 5: IF box.backdrop THEN menutemp = menutemp & box.backdrop - 1 ELSE menutemp = menutemp & " NONE"
+    CASE 6: IF box.music THEN menutemp = menutemp & getsongname$(box.music - 1) ELSE  menutemp = menutemp & " NONE"
+    CASE 7: IF box.no_box THEN menutemp = menutemp & " NO" ELSE menutemp = menutemp & " YES"
+    CASE 8: IF box.opaque THEN menutemp = menutemp & " NO" ELSE menutemp = menutemp & " YES"
+    CASE 9: IF box.restore_music THEN menutemp = menutemp & " YES" ELSE menutemp = menutemp & " NO"
+   END SELECT
+   edgeprint menutemp, 0, i * 10, col, dpage
+  NEXT i
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage holdscreen, dpage
+  dowait
+ LOOP
+ freepage holdscreen
+END SUB

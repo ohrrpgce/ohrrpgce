@@ -3093,3 +3093,34 @@ txt.fully_shown = NO
 txt.show_lines = 0
 
 END SUB
+
+SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
+ 'WARNING: There is another version of this in customsubs.bas
+ 'If you update this here, make sure to update that one too!
+ DIM img_id AS INTEGER = -1
+ DIM pal_id AS INTEGER = -1
+ DIM hero_id AS INTEGER = -1
+ DIM her AS HeroDef
+ WITH gfx
+  IF .sprite THEN sprite_unload @.sprite
+  IF .pal    THEN palette16_unload @.pal
+  SELECT CASE box.portrait_type
+   CASE 1' Fixed ID number
+    img_id = box.portrait_id
+    pal_id = box.portrait_pal
+   CASE 2' Hero by caterpillar
+    hero_id = herobyrank(box.portrait_id)
+   CASE 2' Hero by party slot
+    hero_id = hero(box.portrait_id) - 1
+  END SELECT
+  IF hero_id >= 0 THEN
+   loadherodata @her, hero_id
+   img_id = her.portrait
+   pal_id = her.portrait_pal
+  END IF
+  IF img_id >= 0 THEN
+   .sprite = sprite_load(game & ".pt8", box.portrait_id, 1, 50, 50)
+   .pal    = palette16_load(game & ".pal", box.portrait_pal, 8, box.portrait_id)
+  END IF
+ END WITH
+END SUB
