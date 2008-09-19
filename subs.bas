@@ -1967,8 +1967,8 @@ SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her
    menu(8) = "Hand X: " & her.hand_b_x
    menu(9) = "Hand Y: " & her.hand_b_y
  END IF
- menu(10) = "Portrait Picture: " & her.portrait
- menu(11) = "Portrait Palette: " & her.portrait_pal
+ menu(10) = "Portrait Picture: " & defaultint(her.portrait, "None")
+ menu(11) = "Portrait Palette: " & defaultint(her.portrait_pal)
  update_hero_preview_pics st, her
  st.changed = NO
 END SUB
@@ -2028,6 +2028,7 @@ SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
   IF st.previewframe = 1 THEN printstr "<", 256, 18, dpage
   IF st.previewframe = 0 THEN printstr ">", 272, 18, dpage
  END IF
+ sprite_draw st.portrait.sprite, st.portrait.pal, 240, 110,,,dpage
 END SUB
 
 SUB animate_hero_preview(BYREF st AS HeroEditState)
@@ -2045,12 +2046,6 @@ SUB animate_hero_preview(BYREF st AS HeroEditState)
 END SUB
 
 SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
- DIM state AS MenuState
- WITH state
-  .pt = 0
-  .last = 9
-  .size = 24
- END WITH
  
  DIM menu(11) AS STRING
  DIM min(11) AS INTEGER
@@ -2066,8 +2061,15 @@ SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
  min(8) = -100:max(8) = 100
  min(9) = -100:max(9) = 100
  min(10) = -1:max(10) = gen(genMaxPortrait)
- min(11) = -1: max(11) = 32767
- 
+ min(11) = -1:max(11) = 32767
+
+ DIM state AS MenuState
+ WITH state
+  .pt = 0
+  .last = UBOUND(menu)
+  .size = 24
+ END WITH
+
  st.previewframe = 0
  update_hero_appearance_menu st, menu(), her
  st.changed = NO
