@@ -2181,7 +2181,8 @@ END SUB
 
 SUB status (pt, stat())
 DIM sname$(40), sno(9), mtype(5), hbits(3, 4), thishbits(4), elemtype$(2), info$(25)
-dim her as herodef
+DIM her AS HeroDef
+DIM portrait AS GraphicPair
 
 getnames sname$()
 sname$(33) = readglobalstring$(33, "Experience", 10)
@@ -2223,14 +2224,7 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF carray(5) > 1 THEN
- 	menusound gen(genCancelSFX)
-	freepage holdscreen
- 	FOR t = 4 TO 5
- 		carray(t) = 0
- 	NEXT t
- 	EXIT SUB
- END IF
+ IF carray(5) > 1 THEN EXIT DO
  IF carray(4) > 1 THEN mode = loopvar(mode, 0, 2, 1): menusound gen(genCursorSFX)
  IF carray(2) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): GOSUB nextstat
  IF carray(3) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): GOSUB nextstat
@@ -2238,8 +2232,7 @@ DO
  IF carray(1) > 1 THEN top = small(top + 1, large(0, lastinfo - 11)): menusound gen(genCursorSFX)
 
  centerfuz 160, 100, 304, 184, 1, dpage
- centerbox 160, 36, 260, 40, 4, dpage
-
+ centerbox 160, 36, 292, 40, 4, dpage
  SELECT CASE mode
   CASE 0
    centerbox 84, 120, 140, 120, 4, dpage
@@ -2247,11 +2240,15 @@ DO
   CASE 1, 2
    centerbox 160, 120, 292, 120, 4, dpage
  END SELECT
+ IF her.portrait >= 0 THEN
+  edgeboxstyle 262, 8, 50, 50, 3, dpage
+  sprite_draw portrait.sprite, portrait.pal, 262, 8,,,dpage
+ END IF
 
- edgeprint names(pt), 160 - LEN(names(pt)) * 4, 20, uilook(uiText), dpage
- edgeprint sname$(34) + XSTR$(stat(pt, 0, 12)), 160 - LEN(sname$(34) + STR$(stat(pt, 0, 12))) * 4, 30, uilook(uiText), dpage
+ edgeprint names(pt), 142 - LEN(names(pt)) * 4, 20, uilook(uiText), dpage
+ edgeprint sname$(34) + XSTR$(stat(pt, 0, 12)), 142 - LEN(sname$(34) + STR$(stat(pt, 0, 12))) * 4, 30, uilook(uiText), dpage
  temp$ = STR$(exlev(pt, 1) - exlev(pt, 0)) + " " + sname$(33) + " " + readglobalstring$(47, "for next", 10) + " " + sname$(34)
- edgeprint temp$, 160 - LEN(temp$) * 4, 40, uilook(uiText), dpage
+ edgeprint temp$, 142 - LEN(temp$) * 4, 40, uilook(uiText), dpage
 
  SELECT CASE mode
   CASE 0
@@ -2315,6 +2312,14 @@ DO
  copypage holdscreen, dpage
  dowait
 LOOP
+menusound gen(genCancelSFX)
+IF portrait.sprite THEN sprite_unload @portrait.sprite
+IF portrait.pal    THEN palette16_unload @portrait.pal
+freepage holdscreen
+FOR t = 4 TO 5
+ carray(t) = 0
+NEXT t
+EXIT SUB
 
 nextstat: '--loads the hero who's ID is held in pt
 '--load the hero data lump only to get the spell list types
@@ -2349,6 +2354,13 @@ IF lastinfo = 0 THEN info$(lastinfo) = readglobalstring$(130, "No Elemental Effe
 FOR i = lastinfo TO 25
  info$(i) = ""
 NEXT i
+
+IF portrait.sprite THEN sprite_unload @portrait.sprite
+IF portrait.pal    THEN palette16_unload @portrait.pal
+IF her.portrait >= 0 THEN
+ portrait.sprite = sprite_load(game & ".pt8", her.portrait, 1, 50, 50)
+ portrait.pal    = palette16_load(game & ".pal", her.portrait_pal, 8, her.portrait)
+END IF
 RETRACE
 
 END SUB
