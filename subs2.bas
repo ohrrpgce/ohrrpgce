@@ -61,6 +61,7 @@ DECLARE FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = ""
 DECLARE SUB write_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS INTEGER, num AS INTEGER)
 DECLARE FUNCTION read_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS INTEGER) AS INTEGER
 DECLARE FUNCTION box_conditional_type_by_menu_index(menuindex AS INTEGER) AS INTEGER
+DECLARE SUB update_textbox_editor_main_menu (BYREF box AS TextBox, m$())
 
 'These are used in the TextBox conditional editor
 CONST condEXIT   = -1
@@ -788,7 +789,7 @@ DO
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
  IF keyval(29) > 0 AND keyval(14) > 0 THEN
-  GOSUB savelines
+  SaveTextBox box, pt
   cropafter pt, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY), 1
   GOSUB loadlines
  END IF
@@ -799,22 +800,22 @@ DO
    strgrabber search$, 36
   CASE 6'quickchainer
    IF scrintgrabber(box.after, 0, gen(genMaxTextbox), 75, 77, -1, plottrigger) THEN
-    GOSUB nextboxline 
+    update_textbox_editor_main_menu box, m$()
    END IF'--modify next
   CASE ELSE '--not using the quick textbox chainer
    IF intgrabber(pt, 0, gen(39), 51, 52) THEN
     SWAP pt, remptr
-    GOSUB savelines
+    SaveTextBox box, pt
     SWAP pt, remptr
     GOSUB loadlines
    END IF
    IF keyval(75) > 1 AND pt > 0 THEN
-    GOSUB savelines
+    SaveTextBox box, pt
     pt = pt - 1
     GOSUB loadlines
    END IF
    IF keyval(77) > 1 AND pt < 32767 THEN
-    GOSUB savelines
+    SaveTextBox box, pt
     pt = pt + 1
     IF needaddset(pt, gen(39), "text box") THEN GOSUB clearlines
     GOSUB loadlines
@@ -825,24 +826,24 @@ DO
   IF csr = 2 THEN GOSUB picktext
   IF csr = 3 THEN
    GOSUB conditions
-   GOSUB nextboxline
+   update_textbox_editor_main_menu box, m$()
   END IF
   IF csr = 4 THEN GOSUB tchoice
   IF csr = 5 THEN GOSUB groovybox
   IF csr = 6 THEN
    IF box.after > 0 THEN
-    GOSUB savelines
+    SaveTextBox box, pt
     pt = box.after
     GOSUB loadlines
    ELSE
     temptrig = ABS(box.after)
     dummy$ = scriptbrowse$(temptrig, plottrigger, "textbox plotscript")
     box.after = -temptrig
-    GOSUB nextboxline
+    update_textbox_editor_main_menu box, m$()
    END IF
   END IF
   IF csr = 7 AND keyval(28) > 1 THEN
-   GOSUB savelines
+   SaveTextBox box, pt
    GOSUB seektextbox
    GOSUB loadlines
   END IF
@@ -871,32 +872,8 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-GOSUB savelines
+SaveTextBox box, pt
 EXIT SUB
-
-nextboxline:
-IF box.after = 0 THEN
- box.after_tag = 0
-ELSE
- IF box.after_tag = 0 THEN box.after_tag = -1 ' Set "After" text box conditional to "Always"
-END IF
-SELECT CASE box.after_tag
- CASE 0
-  m$(6) = "Next: None Selected"
- CASE -1
-  IF box.after >= 0 THEN
-   m$(6) = "Next: Box " & box.after
-  ELSE
-   m$(6) = "Next: script " & scriptname$(ABS(box.after), plottrigger)
-  END IF
- CASE ELSE
-  IF box.after >= 0 THEN
-   m$(6) = "Next: Box " & box.after & " (conditional)"
-  ELSE
-   m$(6) = "Next: script " & scriptname$(ABS(box.after), plottrigger) & " (conditional)"
-  END IF
-END SELECT
-RETRACE
 
 conditions:
 
@@ -1222,12 +1199,8 @@ RETRACE
 
 loadlines:
 LoadTextBox box, pt
-GOSUB nextboxline
+update_textbox_editor_main_menu box, m$()
 search$ = ""
-RETRACE
-
-savelines:
-SaveTextBox box, pt
 RETRACE
 
 clearlines:
@@ -1271,6 +1244,30 @@ END SUB
 
 '--FIXME: This affects the rest of the file. Move this up as subs and functions are cleaned up
 OPTION EXPLICIT
+
+SUB update_textbox_editor_main_menu (BYREF box AS TextBox, m$())
+ IF box.after = 0 THEN
+  box.after_tag = 0
+ ELSE
+  IF box.after_tag = 0 THEN box.after_tag = -1 ' Set "After" text box conditional to "Always"
+ END IF
+ SELECT CASE box.after_tag
+  CASE 0
+   m$(6) = "Next: None Selected"
+  CASE -1
+   IF box.after >= 0 THEN
+    m$(6) = "Next: Box " & box.after
+   ELSE
+    m$(6) = "Next: script " & scriptname$(ABS(box.after), plottrigger)
+   END IF
+  CASE ELSE
+   IF box.after >= 0 THEN
+    m$(6) = "Next: Box " & box.after & " (conditional)"
+   ELSE
+    m$(6) = "Next: script " & scriptname$(ABS(box.after), plottrigger) & " (conditional)"
+   END IF
+ END SELECT
+END SUB
 
 FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = "") AS STRING
  IF LEN(prefix) > 0 THEN prefix = prefix & ": "
