@@ -607,15 +607,16 @@ IF atk(15) = 10 THEN
 END IF
 '----------------------------NORMAL, DROP, SPREAD-RING, and SCATTER
 IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THEN
+ atkimgdirection = 0: IF readbit(atk(), 20, 3) = 0 THEN atkimgdirection = pdir
  FOR i = 0 TO tcount
   yt = (bslot(bslot(bat.acting).t(i)).h - 50) + 2
   xt = 0: IF bslot(bat.acting).t(i) = bat.acting AND is_hero(bat.acting) AND atk(14) <> 7 THEN xt = -20
-  anim_setpos 12 + i, bslot(bslot(bat.acting).t(i)).x + xt, bslot(bslot(bat.acting).t(i)).y + yt, pdir
+  anim_setpos 12 + i, bslot(bslot(bat.acting).t(i)).x + xt, bslot(bslot(bat.acting).t(i)).y + yt, atkimgdirection
   IF atk(15) = 3 THEN
    anim_setz 12 + i, 180
   END IF
   IF atk(15) = 4 THEN
-   anim_setpos 12 + i, bslot(bslot(bat.acting).t(i)).x + xt, bslot(bslot(bat.acting).t(i)).y + yt - bslot(bslot(bat.acting).t(i)).w, pdir
+   anim_setpos 12 + i, bslot(bslot(bat.acting).t(i)).x + xt, bslot(bslot(bat.acting).t(i)).y + yt - bslot(bslot(bat.acting).t(i)).w, atkimgdirection
   END IF
  NEXT i
  advance bat.acting, atk(), bslot()
@@ -947,13 +948,15 @@ END IF
 IF atk(15) = 5 THEN
  yt = bslot(bslot(bat.acting).t(0)).y + (bslot(bslot(bat.acting).t(0)).h - 50) + 2
  advance bat.acting, atk(), bslot()
+ 'calculate the direction the wave sprite should be facing
+ atkimgdirection = 0: IF readbit(atk(), 20, 3) = 0 THEN atkimgdirection = pdir
  FOR j = 1 TO numhits
   FOR i = 0 TO 11
    temp = -50: IF is_hero(bat.acting) THEN temp = 320
    IF tcount > 0 OR atk(4) = 1 THEN
-    anim_setpos 12 + i, temp, i * 15, pdir
+    anim_setpos 12 + i, temp, i * 15, atkimgdirection
    ELSE
-    anim_setpos 12 + i, temp, yt, pdir
+    anim_setpos 12 + i, temp, yt, atkimgdirection
    END IF
   NEXT i
   IF is_hero(bat.acting) THEN heroanim bat.acting, atk(), bslot()
