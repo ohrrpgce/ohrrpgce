@@ -792,7 +792,10 @@ LOOP
 LOOP ' This is the end of the DO that encloses a specific RPG file
 
 'resetg
-
+WITH txt.portrait
+ IF .sprite THEN sprite_unload @.sprite
+ IF .pal    THEN palette16_unload @.pal
+END WITH
 'checks for leaks and deallocates them
 sprite_empty_cache()
 palette16_empty_cache()
@@ -3151,6 +3154,10 @@ SUB advance_text_box ()
   gen(genTextboxBackdrop) = 0
   correctbackdrop
  END IF
+ WITH txt.portrait
+  IF .sprite THEN sprite_unload @.sprite
+  IF .pal    THEN palette16_unload @.pal
+ END WITH
  txt.showing = NO
  txt.fully_shown = NO
  txt.sayer = -1

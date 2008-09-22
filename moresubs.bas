@@ -398,8 +398,11 @@ END SUB
 SUB drawsay ()
 STATIC tog AS INTEGER
 tog = tog XOR 1
+DIM voffset AS INTEGER
+voffset = txt.box.vertical_offset * 4
+
 IF txt.box.no_box = NO THEN
- center_edgeboxstyle 160, 48 + (txt.box.vertical_offset * 4) - (txt.box.shrink * 2), 312, 88 - (txt.box.shrink * 4), txt.box.boxstyle, dpage, (txt.box.opaque = NO)
+ edgeboxstyle 4, 4 + voffset, 312, 88 - (txt.box.shrink * 4), txt.box.boxstyle, dpage, (txt.box.opaque = NO)
 END IF
 col = uilook(uiText): IF txt.box.textcolor > 0 THEN col = txt.box.textcolor
 FOR i = 0 TO txt.show_lines
@@ -415,6 +418,13 @@ IF txt.show_lines < 7 THEN
   txt.fully_shown = YES
  END IF
 END IF
+
+WITH txt.portrait
+ IF .sprite THEN
+  IF txt.box.portrait_box THEN edgeboxstyle 4 + txt.box.portrait_pos.x, 4 + txt.box.portrait_pos.y + voffset, 50, 50, txt.box.boxstyle, dpage, YES
+  sprite_draw .sprite, .pal, 4 + txt.box.portrait_pos.x, 4 + txt.box.portrait_pos.y + voffset,,,dpage
+ END IF
+END WITH
 
 IF txt.box.choice_enabled THEN
  tempy = 100 + (txt.box.vertical_offset * 4) - (txt.box.shrink * 4)

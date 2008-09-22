@@ -106,6 +106,7 @@ DECLARE FUNCTION bound_formation_slot(form AS INTEGER, slot AS INTEGER, cmd AS S
 DECLARE SUB MenuSound(byval s as integer)
 DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
 DECLARE FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
+DECLARE SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
 
 'these variables hold information used by breakpoint to step to the desired position
 DIM SHARED waitforscript, waitfordepth, stepmode, lastscriptnum
@@ -3087,6 +3088,9 @@ END IF
 IF istag(txt.box.menu_tag, 0) THEN
  add_menu txt.box.menu
 END IF
+
+'--Get the portrait
+load_text_box_portrait txt.box, txt.portrait
 
 txt.showing = YES
 txt.fully_shown = NO

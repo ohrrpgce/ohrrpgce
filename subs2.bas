@@ -860,7 +860,7 @@ DO
  END IF
  textcolor uilook(uiMenuItem), 0
  IF csr = 1 THEN textcolor uilook(uiSelectedItem + tog), 0
- printstr STR(st.id), 64, 8, dpage
+ printstr STR(st.id), 72, 8, dpage
  m$(7) = "Text Search:" + st.search
  
  standardmenu m$(), 7, 7, csr, 0, 0, 0, dpage, 0

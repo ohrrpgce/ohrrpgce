@@ -23,4 +23,17 @@ TYPE GameState
   foe_freq(254) AS INTEGER 'A cache of the fight frequency for each formation set
 END TYPE
 
+TYPE TextBoxState
+  id             AS INTEGER 'ID Number of the current box or -1 for none
+  box            AS TextBox '--Contains the data about the content of the textbox
+  showing        AS INTEGER 'YES or NO
+  fully_shown    AS INTEGER 'YES or NO. All lines have been displayed, player is allowed to advance
+  choice_cursor  AS INTEGER
+  remember_music AS INTEGER
+  show_lines     AS INTEGER 'Number of lines currently on display
+  sayer          AS INTEGER 'The NPC reference who triggered this textbox as a positive number, or -1 for none
+  old_dir        AS INTEGER 'For NPCs that return to their previos direction after speaking
+  portrait       AS GraphicPair
+END TYPE
+
 #ENDIF
