@@ -147,6 +147,7 @@ DECLARE SUB save_tag_name (tagname AS STRING, index AS INTEGER)
 DECLARE FUNCTION tag_condition_caption(n AS INTEGER, prefix AS STRING="Tag", zerocap AS STRING="", onecap AS STRING="", negonecap AS STRING="") AS STRING
 DECLARE FUNCTION tag_set_caption(n AS INTEGER, prefix AS STRING="Set Tag") AS STRING
 DECLARE FUNCTION onoroff (n AS INTEGER) AS STRING
+DECLARE FUNCTION yesorno (n AS INTEGER, yes_cap AS STRING="YES", no_cap AS STRING="NO") AS STRING
 
 DECLARE FUNCTION enter_or_space () AS INTEGER
 

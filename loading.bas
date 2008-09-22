@@ -1005,7 +1005,7 @@ SUB LoadTextBox (BYREF box AS TextBox, record AS INTEGER)
  f = FREEFILE
  OPEN filename FOR BINARY ACCESS READ AS #f
  SEEK #f, record * getbinsize(binSAY) + 1
- FOR i = 0 TO 199
+ FOR i = 0 TO dimbinsize(binSAY) - 1
   boxbuf(i) = ReadShort(f)
  NEXT i
  CLOSE #f
@@ -1158,7 +1158,7 @@ SUB SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
  f = FREEFILE
  OPEN filename FOR BINARY AS #f
  SEEK #f, record * getbinsize(binSAY) + 1
- FOR i = 0 TO 199
+ FOR i = 0 TO dimbinsize(binSAY) - 1
   WriteShort f, -1, boxbuf(i)
  NEXT i
  CLOSE #f

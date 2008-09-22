@@ -281,6 +281,10 @@ SUB center_edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
 END SUB
 
 SUB edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
+ IF boxstyle < 0 OR boxstyle > 14 THEN
+  debug "edgeboxstyle: invalid boxstyle " & boxstyle
+  EXIT SUB
+ END IF
  DIM textcol   AS INTEGER = uilook(uiTextBox + 2 * boxstyle)
  DIM bordercol AS INTEGER = uilook(uiTextBox + 2 * boxstyle + 1)
  DIM borders AS INTEGER = boxstyle
@@ -2236,7 +2240,6 @@ IF getfixbit(fixTextBoxPortrait) = 0 THEN
  FOR i = 0 TO gen(genMaxTextBox)
   LoadTextBox box, i
   box.portrait_pal = -1 'Default palette
-  box.portrait_box = YES 'default portrait box on
   SaveTextBox box, i
  NEXT i
 END IF
@@ -2678,6 +2681,11 @@ END FUNCTION
 FUNCTION onoroff (n AS INTEGER) AS STRING
  IF n >= 0 THEN RETURN "ON"
  RETURN "OFF"
+END FUNCTION
+
+FUNCTION yesorno (n AS INTEGER, yes_cap AS STRING="YES", no_cap AS STRING="NO") AS STRING
+ IF n THEN RETURN yes_cap
+ RETURN no_cap
 END FUNCTION
 
 FUNCTION load_tag_name (index AS INTEGER) AS STRING

@@ -18,6 +18,7 @@ END TYPE
 #include "udts.bi"
 #include "custom_udts.bi"
 #include "const.bi"
+#include "scancodes.bi"
 
 'basic subs and functions
 DECLARE SUB stredit (s$, maxl%)
@@ -64,8 +65,10 @@ DECLARE FUNCTION read_box_conditional_by_menu_index(BYREF box AS TextBox, menuin
 DECLARE FUNCTION box_conditional_type_by_menu_index(menuindex AS INTEGER) AS INTEGER
 DECLARE SUB update_textbox_editor_main_menu (BYREF box AS TextBox, m$())
 DECLARE SUB textbox_edit_load (BYREF box AS TextBox, BYREF st AS TextboxEditState, m$())
-DECLARE SUB textbox_edit_preview (BYREF box AS TextBox)
+DECLARE SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState)
 DECLARE SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
+DECLARE SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBox, BYREF st AS TextboxEditState)
+DECLARE SUB textbox_position_portrait (BYREF box AS TextBox, BYREF st AS TextboxEditState, holdscreen AS INTEGER)
 
 'These are used in the TextBox conditional editor
 CONST condEXIT   = -1
@@ -857,7 +860,7 @@ DO
  END IF
  textcolor uilook(uiMenuItem), 0
  IF csr = 1 THEN textcolor uilook(uiSelectedItem + tog), 0
- printstr XSTR$(st.id), 64, 8, dpage
+ printstr STR(st.id), 64, 8, dpage
  m$(7) = "Text Search:" + st.search
  
  standardmenu m$(), 7, 7, csr, 0, 0, 0, dpage, 0
@@ -1162,7 +1165,7 @@ END SUB
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB textbox_edit_preview (BYREF box AS TextBox)
+SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState)
  IF box.no_box = NO THEN
   edgeboxstyle 4, 4 + box.vertical_offset * 4, 312, 88 - box.shrink * 4, box.boxstyle, dpage, (box.opaque = NO)
  END IF
@@ -1173,6 +1176,12 @@ SUB textbox_edit_preview (BYREF box AS TextBox)
   IF box.textcolor > 0 THEN col = box.textcolor
   edgeprint box.text(i), 8, 8 + box.vertical_offset * 4 + i * 10, col, dpage
  NEXT i
+ IF box.portrait_box THEN
+  edgeboxstyle 4 + box.portrait_pos.x, 4 + box.vertical_offset * 4  + box.portrait_pos.y, 50, 50, box.boxstyle, dpage, YES
+ END IF
+ WITH st.portrait
+  IF .sprite THEN sprite_draw .sprite, .pal, 4 + box.portrait_pos.x, 4 + box.vertical_offset * 4  + box.portrait_pos.y,,,dpage
+ END WITH
 END SUB
 
 SUB textbox_edit_load (BYREF box AS TextBox, BYREF st AS TextboxEditState, m$())
@@ -1316,22 +1325,37 @@ FUNCTION box_conditional_type_by_menu_index(menuindex AS INTEGER) AS INTEGER
  END SELECT
 END FUNCTION
 
-SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
- DIM menu(9) AS STRING
- menu(0) = "Go Back"
- menu(1) = "Position:"
- menu(2) = "Shrink:"
- menu(3) = "Textcolor:"
- menu(4) = "Bordercolor:"
- menu(5) = "Backdrop:"
- menu(6) = "Music:"
- menu(7) = "Show Box:"
- menu(8) = "Translucent:"
- menu(9) = "Restore Music:"
+SUB textbox_position_portrait (BYREF box AS TextBox, BYREF st AS TextboxEditState, holdscreen AS INTEGER)
+ DIM speed AS INTEGER = 1
+ DIM tog AS INTEGER = 0
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  tog = tog XOR 1
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF enter_or_space() THEN EXIT DO
+  speed = 1
+  IF keyval(scLeftShift) OR keyval(scRightShift) THEN speed = 10
+  IF keyval(scLeft)  > 0 THEN box.portrait_pos.x -= speed
+  IF keyval(scRight) > 0 THEN box.portrait_pos.x += speed
+  IF keyval(scUp)    > 0 THEN box.portrait_pos.y -= speed
+  IF keyval(scDown)  > 0 THEN box.portrait_pos.y += speed
+  textbox_edit_preview box, st
+  edgeprint "Arrow keys to move, space to confirm", 0, 190, uilook(uiSelectedItem + tog), dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage holdscreen, dpage
+  dowait
+ LOOP
+END SUB
 
+SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
+ DIM menu(14) AS STRING
  DIM state AS MenuState
  state.size= 20
  state.last = UBOUND(menu)
+ state.need_update = YES
  
  'Show backdrop
  DIM holdscreen AS INTEGER
@@ -1342,7 +1366,6 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
 
  DIM i AS INTEGER
  DIM col AS INTEGER
- DIM menutemp AS STRING
 
  setkeys
  DO
@@ -1358,46 +1381,60 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
     CASE 7: box.no_box = (NOT box.no_box)
     CASE 8: box.opaque = (NOT box.opaque)
     CASE 9: box.restore_music = (NOT box.restore_music)
+    CASE 12:
+     IF box.portrait_type = 1 THEN
+      box.portrait_pal = pal16browse(box.portrait_pal, 8, box.portrait_id, 1, 50, 50)
+     END IF
+    CASE 13: box.portrait_box = (NOT box.portrait_box)
+    CASE 14: textbox_position_portrait box, st, holdscreen
    END SELECT
+   state.need_update = YES
   END IF
   IF keyval(75) > 1 OR keyval(77) > 1 THEN
    SELECT CASE state.pt
     CASE 7: box.no_box = (NOT box.no_box)
     CASE 8: box.opaque = (NOT box.opaque)
     CASE 9: box.restore_music = (NOT box.restore_music)
+    CASE 13: box.portrait_box = (NOT box.portrait_box)
    END SELECT
+   state.need_update = YES
   END IF
   SELECT CASE state.pt
-   CASE 1: intgrabber(box.vertical_offset, 0, 27 + box.shrink)
-   CASE 2: intgrabber(box.shrink, 0, 21)
-   CASE 3: intgrabber(box.textcolor, 0, 255)
-   CASE 4: intgrabber(box.boxstyle, 0, 14)
+   CASE 1: state.need_update = intgrabber(box.vertical_offset, 0, 27 + box.shrink)
+   CASE 2: state.need_update = intgrabber(box.shrink, 0, 21)
+   CASE 3: state.need_update = intgrabber(box.textcolor, 0, 255)
+   CASE 4: state.need_update = intgrabber(box.boxstyle, 0, 14)
    CASE 5:
     IF zintgrabber(box.backdrop, -1, gen(genMaxBackdrop) - 1) THEN
+     state.need_update = YES
      clearpage holdscreen
      IF box.backdrop > 0 THEN
       loadpage game & ".mxs", box.backdrop - 1, holdscreen
      END IF
     END IF
-   CASE 6: zintgrabber(box.music, -1, gen(genMaxSong))
+   CASE 6: state.need_update = zintgrabber(box.music, -1, gen(genMaxSong))
+   CASE 10:
+    state.need_update = intgrabber(box.portrait_type, 0, 3)
+   CASE 11:
+    SELECT CASE box.portrait_type
+     CASE 1: state.need_update = intgrabber(box.portrait_id, 0, gen(genMaxPortrait))
+     CASE 2: state.need_update = intgrabber(box.portrait_id, 0, 3)
+     CASE 3: state.need_update = intgrabber(box.portrait_id, 0, 40)
+    END SELECT
+   CASE 12:
+    IF box.portrait_type = 1 THEN
+     state.need_update = intgrabber(box.portrait_pal, -1, gen(genMaxPal))
+    END IF
   END SELECT
-  textbox_edit_preview box
-  FOR i = 0 TO 9
+  IF state.need_update THEN
+   state.need_update = NO
+   update_textbox_appearance_editor_menu menu(), box, st
+  END IF
+  textbox_edit_preview box, st
+  FOR i = 0 TO 14
    col = uilook(uimenuItem)
    IF i = state.pt THEN col = uilook(uiSelectedItem + state.tog)
-   menutemp = menu(i)
-   SELECT CASE i
-    CASE 1: menutemp = menutemp & box.vertical_offset
-    CASE 2: menutemp = menutemp & box.shrink
-    CASE 3: menutemp = menutemp & box.textcolor
-    CASE 4: menutemp = menutemp & box.boxstyle
-    CASE 5: IF box.backdrop THEN menutemp = menutemp & box.backdrop - 1 ELSE menutemp = menutemp & " NONE"
-    CASE 6: IF box.music THEN menutemp = menutemp & getsongname$(box.music - 1) ELSE  menutemp = menutemp & " NONE"
-    CASE 7: IF box.no_box THEN menutemp = menutemp & " NO" ELSE menutemp = menutemp & " YES"
-    CASE 8: IF box.opaque THEN menutemp = menutemp & " NO" ELSE menutemp = menutemp & " YES"
-    CASE 9: IF box.restore_music THEN menutemp = menutemp & " YES" ELSE menutemp = menutemp & " NO"
-   END SELECT
-   edgeprint menutemp, 0, i * 10, col, dpage
+   edgeprint menu(i), 0, i * 10, col, dpage
   NEXT i
   SWAP vpage, dpage
   setvispage vpage
@@ -1405,4 +1442,65 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
   dowait
  LOOP
  freepage holdscreen
+END SUB
+
+SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBox, BYREF st AS TextboxEditState)
+ menu(0) = "Go Back"
+ menu(1) = "Position:"
+ menu(2) = "Shrink:"
+ menu(3) = "Textcolor:"
+ menu(4) = "Bordercolor:"
+ menu(5) = "Backdrop:"
+ menu(6) = "Music:"
+ menu(7) = "Show Box:"
+ menu(8) = "Translucent:"
+ menu(9) = "Restore Music:"
+ menu(10) = "Portrait type:"
+ menu(11) = "Portrait ID:"
+ menu(12) = "Portrait Palette:"
+ menu(13) = "Portrait Box:"
+ menu(14) = "Position Portrait..."
+ DIM menutemp AS STRING
+ DIM i AS INTEGER
+ FOR i = 0 TO 14
+  menutemp = ""
+  SELECT CASE i
+   CASE 1: menutemp = "" & box.vertical_offset
+   CASE 2: menutemp = "" & box.shrink
+   CASE 3: menutemp = "" & box.textcolor
+   CASE 4: menutemp = "" & box.boxstyle
+   CASE 5: IF box.backdrop THEN menutemp = "" & box.backdrop - 1 ELSE menutemp = "NONE"
+   CASE 6: IF box.music THEN menutemp = getsongname$(box.music - 1) ELSE menutemp = "NONE"
+   CASE 7: menutemp = yesorno(NOT box.no_box)
+   CASE 8: menutemp = yesorno(NOT box.opaque)
+   CASE 9: menutemp = yesorno(box.restore_music)
+   CASE 10:
+    SELECT CASE box.portrait_type
+     CASE 0: menutemp = "NONE"
+     CASE 1: menutemp = "Fixed"
+     CASE 2: menutemp = "Hero (by caterpillar order)"
+     CASE 3: menutemp = "Hero (by party order)"
+    END SELECT
+   CASE 11:
+    menutemp = STR(box.portrait_id)
+    SELECT CASE box.portrait_type
+     CASE 0: menutemp = menutemp & " (N/A)"
+     CASE 2: IF box.portrait_id = 0 THEN menutemp = menutemp & " (Leader)"
+     CASE 3: IF box.portrait_id > 3 THEN menutemp = menutemp & " (Reserve)"
+     CASE ELSE: menutemp = "" & box.portrait_id
+    END SELECT
+   CASE 12:
+    menutemp = defaultint(box.portrait_pal)
+    SELECT CASE box.portrait_type
+     CASE 0: menutemp = menutemp & " (N/A)"
+     CASE 1:
+     CASE ELSE: menutemp = menutemp & " (N/A, see hero editor)"
+    END SELECT
+   CASE 13: menutemp = yesorno(box.portrait_box)
+   CASE 14:
+  END SELECT
+  IF LEN(menutemp) THEN menutemp = " " & menutemp
+  menu(i) = menu(i) & menutemp
+ NEXT i
+ load_text_box_portrait box, st.portrait
 END SUB

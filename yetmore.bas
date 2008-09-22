@@ -3110,8 +3110,10 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
     pal_id = box.portrait_pal
    CASE 2' Hero by caterpillar
     hero_id = herobyrank(box.portrait_id)
-   CASE 2' Hero by party slot
-    hero_id = hero(box.portrait_id) - 1
+   CASE 3' Hero by party slot
+    IF box.portrait_id >= 0 AND box.portrait_id <= UBOUND(hero) THEN
+     hero_id = hero(box.portrait_id) - 1
+    END IF
   END SELECT
   IF hero_id >= 0 THEN
    loadherodata @her, hero_id
@@ -3119,8 +3121,8 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
    pal_id = her.portrait_pal
   END IF
   IF img_id >= 0 THEN
-   .sprite = sprite_load(game & ".pt8", box.portrait_id, 1, 50, 50)
-   .pal    = palette16_load(game & ".pal", box.portrait_pal, 8, box.portrait_id)
+   .sprite = sprite_load(game & ".pt8", img_id, 1, 50, 50)
+   .pal    = palette16_load(game & ".pal", pal_id, 8, img_id)
   END IF
  END WITH
 END SUB

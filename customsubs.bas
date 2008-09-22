@@ -934,15 +934,15 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
     loadherodata @her, 0
     img_id = her.portrait
     pal_id = her.portrait_pal
-   CASE 2' Hero by party slot
+   CASE 3' Hero by party slot
     'In custom, no party exists, so preview using the first hero
     loadherodata @her, 0
     img_id = her.portrait
     pal_id = her.portrait_pal
   END SELECT
   IF img_id >= 0 THEN
-   .sprite = sprite_load(game & ".pt8", box.portrait_id, 1, 50, 50)
-   .pal    = palette16_load(game & ".pal", box.portrait_pal, 8, box.portrait_id)
+   .sprite = sprite_load(game & ".pt8", img_id, 1, 50, 50)
+   .pal    = palette16_load(game & ".pal", pal_id, 8, img_id)
   END IF
  END WITH
 END SUB
