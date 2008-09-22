@@ -252,226 +252,6 @@ RETRACE
 
 END SUB
 
-SUB gendata ()
-STATIC default$
-CONST maxMenu = 32
-DIM m$(maxMenu), max(maxMenu), bitname$(18)
-DIM names(32) AS STRING, stat$(11), menutop
-DIM changed AS INTEGER = YES
-getnames names(), 32
-stat$(0) = names(0)
-stat$(1) = names(1)
-stat$(2) = names(2)
-stat$(3) = names(3)
-stat$(4) = names(5)
-stat$(5) = names(6)
-stat$(6) = names(29)
-stat$(7) = names(30)
-stat$(8) = names(8)
-stat$(9) = names(7)
-stat$(10) = names(31)
-stat$(11) = names(4)
-
-IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
-IF gen(genStun) <= 0 THEN gen(genStun) = 159
-IF gen(genMute) <= 0 THEN gen(genMute) = 163
-last = maxMenu
-m$(0) = "Return to Main Menu"
-m$(1) = "Preference Bitsets..."
-m$(8) = "Special Sound Effects..."
-m$(9) = "Password For Editing..."
-m$(10) = "Pick Title Screen..."
-m$(12) = "Special PlotScripts..."
-m$(15) = "View Master Palettes..."
-max(1) = 1
-max(2) = 320
-max(3) = 200
-max(4) = gen(genMaxMap)
-max(5) = gen(genMaxSong)
-max(6) = gen(genMaxSong)
-max(7) = gen(genMaxSong)
-max(9) = 0
-max(11) = 32000
-max(16) = 255 'poison
-max(17) = 255 'stun
-max(18) = 255 'mute
-max(19) = 32767
-FOR i = 20 to 21 'shut up (~snicker~)
- max(i) = 9999 'HP + MP
-NEXT
-FOR i = 22 to 29
- max(i) = 999 'Regular stats
-NEXT
-max(30) = 100 'MP~
-max(31) = 20  'Extra Hits
-max(32) = 3   'Default Enemy Dissolve type
-
-pas$ = ""
-aboutline$ = ""
-longname$ = ""
-csr = 0
-
-IF gen(5) >= 256 THEN
- '--new simple format
- pas$ = readpassword$
-ELSE
- '--old scattertable format
- readscatter pas$, gen(94), 200
- pas$ = rotascii(pas$, gen(93) * -1)
-END IF
-IF isfile(workingdir + SLASH + "browse.txt") THEN
- setpicstuf buffer(), 40, -1
- loadset workingdir + SLASH + "browse.txt", 0, 0
- longname$ = STRING$(bound(buffer(0), 0, 38), " ")
- array2str buffer(), 2, longname$
- loadset workingdir + SLASH + "browse.txt", 1, 0
- aboutline$ = STRING$(bound(buffer(0), 0, 38), " ")
- array2str buffer(), 2, aboutline$
-END IF
-
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
-
- IF changed THEN
-  generate_gen_menu m$(), longname$, aboutline$, stat$()
-  changed = NO
- END IF
-
- IF keyval(1) > 1 THEN
-  EXIT DO
- END IF
- usemenu csr, menutop, 0, last, 22
- changed = NO
- IF enter_or_space() THEN
-  IF csr = 0 THEN EXIT DO
-  IF csr = 1 THEN
-   bitname$(0) = "Pause on Battle Sub-menus"
-   bitname$(1) = "Enable Caterpillar Party"
-   bitname$(2) = "Don't Restore HP on Levelup"
-   bitname$(3) = "Don't Restore MP on Levelup"
-   bitname$(4) = "Inns Don't Revive Dead Heroes"
-   bitname$(5) = "Hero Swapping Always Available"
-   bitname$(6) = "Hide Ready-meter in Battle"
-   bitname$(7) = "Hide Health-meter in Battle"
-   bitname$(8) = "Disable Debugging Keys"
-   bitname$(9) = "Simulate Old Levelup Bug"
-   bitname$(10) = "Permit double-triggering of scripts"
-   bitname$(11) = "Skip title screen"
-   bitname$(12) = "Skip load screen"
-   bitname$(13) = "Pause on All Battle Menus"
-   bitname$(14) = "Disable Hero's Battle Cursor"
-   bitname$(15) = "Default passability disabled by default"
-   bitname$(16) = "Simulate Pushable NPC obstruction bug"
-   bitname$(17) = "Disable ESC key running from battle"
-   DIM bittemp(1) AS INTEGER
-   bittemp(0) = gen(genBits)
-   bittemp(1) = gen(genBits2)
-   editbitset bittemp(), 0, 18, bitname$()
-   gen(genBits) = bittemp(0)
-   gen(genBits2) = bittemp(1)
-  END IF
-  IF csr = 8 THEN generalsfxmenu
-  IF csr = 10 THEN titlescreenbrowse
-  IF csr = 12 THEN generalscriptsmenu
-  IF csr = 15 THEN masterpalettemenu
-  IF csr = 9 THEN inputpasw pas$
- IF csr = 16 THEN
-  d$ = charpicker$
-  IF d$ <> "" THEN
-   gen(genPoison) = ASC(d$)
-   changed = YES
-  END IF
- END IF
- IF csr = 17 THEN
-  d$ = charpicker$
-  IF d$ <> "" THEN
-  gen(genStun) = ASC(d$)
-   changed = YES
-  END IF
- END IF
- IF csr = 18 THEN
-  d$ = charpicker$
-  IF d$ <> "" THEN
-  gen(genMute) = ASC(d$)
-   changed = YES
-  END IF
- END IF
-
- END IF
- IF csr > 1 AND csr <= 4 THEN
-  IF intgrabber(gen(100 + csr), 0, max(csr)) THEN changed = YES
- END IF
- IF csr > 4 AND csr < 8 THEN
-  IF zintgrabber(gen(csr - 3), -1, max(csr)) THEN changed = YES
- END IF
- IF csr = 11 THEN
-  IF intgrabber(gen(96), 0, max(csr)) THEN changed = YES
- END IF
- IF csr = 13 THEN
-  IF strgrabber(longname$, 38) THEN changed = YES
- END IF
- IF csr = 14 THEN
-  IF strgrabber(aboutline$, 38) THEN changed = YES
- END IF
- IF csr = 16 THEN
-  IF intgrabber(gen(genPoison), 32, max(csr)) THEN changed = YES
- END IF
- IF csr = 17 THEN
-  IF intgrabber(gen(genStun), 32, max(csr)) THEN changed = YES
- END IF
- IF csr = 18 THEN
-  IF intgrabber(gen(genMute), 32, max(csr)) THEN changed = YES
- END IF
- IF csr = 19 THEN
-  IF intgrabber(gen(genDamageCap), 0, max(csr)) THEN changed = YES
- END IF
- IF csr >= 20 AND csr <= 31 THEN
-  IF intgrabber(gen(genStatCap + (csr - 20)), 0, max(csr)) THEN changed = YES
- END IF
- IF csr = 32 THEN
-  IF intgrabber(gen(genEnemyDissolve), 0, max(csr)) THEN changed = YES
- END IF
-
- standardmenu m$(), last, 22, csr, menutop, 0, 0, dpage, 0
-
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-GOSUB savepass
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
-EXIT SUB
-
-savepass:
-
-newpas$ = pas$
-writepassword newpas$
-
-'--also write old scattertable format, for backwards
-'-- compatability with older versions of game.exe
-gen(93) = INT(RND * 250) + 1
-oldpas$ = rotascii(pas$, gen(93))
-writescatter oldpas$, gen(94), 200
-
-'--write long name and about line
-setpicstuf buffer(), 40, -1
-buffer(0) = bound(LEN(longname$), 0, 38)
-str2array longname$, buffer(), 2
-storeset workingdir + SLASH + "browse.txt", 0, 0
-buffer(0) = bound(LEN(aboutline$), 0, 38)
-str2array aboutline$, buffer(), 2
-storeset workingdir + SLASH + "browse.txt", 1, 0
-RETRACE
-
-END SUB
-
 SUB generalscriptsmenu ()
 DIM menu$(3), scrname$(3)
 DIM scriptgenoff(3) = {0, 41, 42, 57}
@@ -1448,3 +1228,238 @@ FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
   CASE ELSE: RETURN n & " Invalid!"
  END SELECT
 END FUNCTION
+
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
+SUB gendata ()
+ STATIC default$
+ CONST maxMenu = 34
+ DIM m$(maxMenu)
+ DIM max(maxMenu)
+ DIM bitname(18) AS STRING
+ DIM names(32) AS STRING
+ DIM stat$(11)
+ DIM d$
+ DIM i AS INTEGER
+
+ DIM state AS MenuState
+ WITH state
+  .size = 24
+  .last = maxMenu
+  .need_update = YES
+ END WITH
+
+ DIM rect AS RectType
+ rect.wide = 320
+ rect.high = 200
+
+ getnames names(), 32
+ stat$(0) = names(0)
+ stat$(1) = names(1)
+ stat$(2) = names(2)
+ stat$(3) = names(3)
+ stat$(4) = names(5)
+ stat$(5) = names(6)
+ stat$(6) = names(29)
+ stat$(7) = names(30)
+ stat$(8) = names(8)
+ stat$(9) = names(7)
+ stat$(10) = names(31)
+ stat$(11) = names(4)
+
+ IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
+ IF gen(genStun) <= 0 THEN gen(genStun) = 159
+ IF gen(genMute) <= 0 THEN gen(genMute) = 163
+ 
+ m$(0) = "Return to Main Menu"
+ m$(1) = "Preference Bitsets..."
+ m$(8) = "Special Sound Effects..."
+ m$(9) = "Password For Editing..."
+ m$(10) = "Pick Title Screen..."
+ m$(12) = "Special PlotScripts..."
+ m$(15) = "View Master Palettes..."
+ m$(33) = "Export text boxes..."
+ m$(34) = "Import text boxes..."
+ max(1) = 1
+ max(2) = 320
+ max(3) = 200
+ max(4) = gen(genMaxMap)
+ max(5) = gen(genMaxSong)
+ max(6) = gen(genMaxSong)
+ max(7) = gen(genMaxSong)
+ max(9) = 0
+ max(11) = 32000
+ max(16) = 255 'poison
+ max(17) = 255 'stun
+ max(18) = 255 'mute
+ max(19) = 32767
+ FOR i = 20 to 21 'shut up (~snicker~)
+  max(i) = 9999 'HP + MP
+ NEXT
+ FOR i = 22 to 29
+  max(i) = 999 'Regular stats
+ NEXT
+ max(30) = 100 'MP~
+ max(31) = 20  'Extra Hits
+ max(32) = 3   'Default Enemy Dissolve type
+
+ DIM pas$ = ""
+ DIM aboutline$ = ""
+ DIM longname$ = ""
+
+ IF gen(genPassVersion) >= 256 THEN
+  '--new simple format
+  pas$ = readpassword$
+ ELSE
+  '--old scattertable format
+  readscatter pas$, gen(genPW2Length), 200
+  pas$ = rotascii(pas$, gen(genPW2Offset) * -1)
+ END IF
+ IF isfile(workingdir + SLASH + "browse.txt") THEN
+  setpicstuf buffer(), 40, -1
+  loadset workingdir + SLASH + "browse.txt", 0, 0
+  longname$ = STRING$(bound(buffer(0), 0, 38), " ")
+  array2str buffer(), 2, longname$
+  loadset workingdir + SLASH + "browse.txt", 1, 0
+  aboutline$ = STRING$(bound(buffer(0), 0, 38), " ")
+  array2str buffer(), 2, aboutline$
+ END IF
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  state.tog = state.tog XOR 1
+
+  IF state.need_update THEN
+   generate_gen_menu m$(), longname$, aboutline$, stat$()
+   state.need_update = NO
+  END IF
+
+  IF keyval(1) > 1 THEN
+   EXIT DO
+  END IF
+  usemenu state
+  IF enter_or_space() THEN
+   IF state.pt = 0 THEN EXIT DO
+   IF state.pt = 1 THEN
+    bitname(0) = "Pause on Battle Sub-menus"
+    bitname(1) = "Enable Caterpillar Party"
+    bitname(2) = "Don't Restore HP on Levelup"
+    bitname(3) = "Don't Restore MP on Levelup"
+    bitname(4) = "Inns Don't Revive Dead Heroes"
+    bitname(5) = "Hero Swapping Always Available"
+    bitname(6) = "Hide Ready-meter in Battle"
+    bitname(7) = "Hide Health-meter in Battle"
+    bitname(8) = "Disable Debugging Keys"
+    bitname(9) = "Simulate Old Levelup Bug"
+    bitname(10) = "Permit double-triggering of scripts"
+    bitname(11) = "Skip title screen"
+    bitname(12) = "Skip load screen"
+    bitname(13) = "Pause on All Battle Menus"
+    bitname(14) = "Disable Hero's Battle Cursor"
+    bitname(15) = "Default passability disabled by default"
+    bitname(16) = "Simulate Pushable NPC obstruction bug"
+    bitname(17) = "Disable ESC key running from battle"
+    DIM bittemp(1) AS INTEGER
+    bittemp(0) = gen(genBits)
+    bittemp(1) = gen(genBits2)
+    editbitset bittemp(), 0, 18, bitname()
+    gen(genBits) = bittemp(0)
+    gen(genBits2) = bittemp(1)
+   END IF
+   IF state.pt = 8 THEN generalsfxmenu
+   IF state.pt = 10 THEN titlescreenbrowse
+   IF state.pt = 12 THEN generalscriptsmenu
+   IF state.pt = 15 THEN masterpalettemenu
+   IF state.pt = 9 THEN inputpasw pas$
+   IF state.pt = 16 THEN
+    d$ = charpicker$
+    IF d$ <> "" THEN
+     gen(genPoison) = ASC(d$)
+     state.need_update = YES
+    END IF
+   END IF
+   IF state.pt = 17 THEN
+    d$ = charpicker$
+    IF d$ <> "" THEN
+    gen(genStun) = ASC(d$)
+     state.need_update = YES
+    END IF
+   END IF
+   IF state.pt = 18 THEN
+    d$ = charpicker$
+    IF d$ <> "" THEN
+    gen(genMute) = ASC(d$)
+     state.need_update = YES
+    END IF
+   END IF
+
+  END IF
+  IF state.pt > 1 AND state.pt <= 4 THEN
+   IF intgrabber(gen(100 + state.pt), 0, max(state.pt)) THEN state.need_update = YES
+  END IF
+  IF state.pt > 4 AND state.pt < 8 THEN
+   IF zintgrabber(gen(state.pt - 3), -1, max(state.pt)) THEN state.need_update = YES
+  END IF
+  IF state.pt = 11 THEN
+   IF intgrabber(gen(96), 0, max(state.pt)) THEN state.need_update = YES
+  END IF
+  IF state.pt = 13 THEN
+   IF strgrabber(longname$, 38) THEN state.need_update = YES
+  END IF
+  IF state.pt = 14 THEN
+   IF strgrabber(aboutline$, 38) THEN state.need_update = YES
+  END IF
+  IF state.pt = 16 THEN
+    IF intgrabber(gen(genPoison), 32, max(state.pt)) THEN state.need_update = YES
+  END IF
+  IF state.pt = 17 THEN
+   IF intgrabber(gen(genStun), 32, max(state.pt)) THEN state.need_update = YES
+  END IF
+  IF state.pt = 18 THEN
+   IF intgrabber(gen(genMute), 32, max(state.pt)) THEN state.need_update = YES
+  END IF
+  IF state.pt = 19 THEN
+   IF intgrabber(gen(genDamageCap), 0, max(state.pt)) THEN state.need_update = YES
+  END IF
+  IF state.pt >= 20 AND state.pt <= 31 THEN
+   IF intgrabber(gen(genStatCap + (state.pt - 20)), 0, max(state.pt)) THEN state.need_update = YES
+  END IF
+  IF state.pt = 32 THEN
+   IF intgrabber(gen(genEnemyDissolve), 0, max(state.pt)) THEN state.need_update = YES
+  END IF
+
+  draw_scrollbar state, rect, state.last, 0, dpage
+  standardmenu m$(), state, 0, 0, dpage, 0
+
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+ 
+ DIM newpas$ = pas$
+ writepassword newpas$
+
+ '--also write old scattertable format, for backwards
+ '-- compatability with older versions of game.exe
+ gen(genPW2Offset) = INT(RND * 250) + 1
+ DIM oldpas$ = rotascii(pas$, gen(genPW2Offset))
+ writescatter oldpas$, gen(genPW2Length), 200
+
+ '--write long name and about line
+ setpicstuf buffer(), 40, -1
+ buffer(0) = bound(LEN(longname$), 0, 38)
+ str2array longname$, buffer(), 2
+ storeset workingdir + SLASH + "browse.txt", 0, 0
+ buffer(0) = bound(LEN(aboutline$), 0, 38)
+ str2array aboutline$, buffer(), 2
+ storeset workingdir + SLASH + "browse.txt", 1, 0
+ 
+ clearpage 0
+ clearpage 1
+ clearpage 2
+ clearpage 3
+END SUB
