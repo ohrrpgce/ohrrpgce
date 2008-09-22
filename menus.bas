@@ -38,9 +38,7 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
-DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filesize$ (file$)
-DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 DECLARE SUB generalscriptsmenu ()
 DECLARE SUB generalsfxmenu ()
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
@@ -561,7 +559,7 @@ IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
  IF choice = 1 THEN ext$ = ".bam" : songfile$ = bamfile$
  IF choice = 2 THEN RETRACE
 END IF
-outfile$ = inputfilename$(query$, ext$)
+outfile$ = inputfilename(query$, ext$)
 IF outfile$ = "" THEN RETRACE
 copyfile songfile$, outfile$ + ext$
 RETRACE
@@ -744,7 +742,7 @@ RETRACE
 
 exportsfx:
 query$ = "Name of file to export to?"
-outfile$ = inputfilename$(query$, ext$)
+outfile$ = inputfilename(query$, ext$)
 IF outfile$ = "" THEN RETRACE
 copyfile sfxfile$, outfile$ + ext$
 RETRACE
@@ -1240,6 +1238,8 @@ SUB gendata ()
  DIM bitname(18) AS STRING
  DIM names(32) AS STRING
  DIM stat$(11)
+ DIM box_text_file AS STRING
+ DIM overwrite AS INTEGER = NO
  DIM d$
  DIM i AS INTEGER
 
@@ -1395,7 +1395,29 @@ SUB gendata ()
      state.need_update = YES
     END IF
    END IF
-
+   IF state.pt = 33 THEN
+    box_text_file = inputfilename("Filename for TextBox Export?", ".txt",,NO)
+    IF box_text_file <> "" THEN
+     box_text_file = box_text_file & ".txt"
+     overwrite = YES
+     IF isfile(box_text_file) THEN
+      overwrite = yesno("File already exists, overwrite?", NO)
+     END IF
+     IF overwrite THEN
+      IF export_textboxes(box_text_file) THEN
+       notification "Successfully exported " & box_text_file
+      ELSE
+       notification "Failed to export " & box_text_file
+      END IF
+     END IF
+    END IF
+   END IF
+   IF state.pt = 34 THEN
+    IF yesno("Are you sure? Boxes will be overwritten", NO) THEN
+     box_text_file = browse(0, "", "*.txt", tmpdir, 0)
+     'import_textboxes box_text_file
+    END IF
+   END IF
   END IF
   IF state.pt > 1 AND state.pt <= 4 THEN
    IF intgrabber(gen(100 + state.pt), 0, max(state.pt)) THEN state.need_update = YES

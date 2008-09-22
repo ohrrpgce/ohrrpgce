@@ -946,3 +946,89 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
   END IF
  END WITH
 END SUB
+
+FUNCTION fixfilename (s AS STRING) AS STRING
+ 'Makes sure that a string cannot contain any chars unsafe for filenames
+ DIM result AS STRING = ""
+ DIM ch AS STRING
+ DIM ascii AS INTEGER
+ DIM i AS INTEGER
+ FOR i = 1 TO LEN(s)
+  ch = MID(s, i, 1)
+  ascii = ASC(ch)
+  SELECT CASE ascii
+   CASE 32, 48 TO 57, 65 TO 90, 97 TO 122, 95, 126, 45
+    result = result & ch
+  END SELECT
+ NEXT i
+ RETURN result
+END FUNCTION
+
+FUNCTION inputfilename (query AS STRING, ext AS STRING, default AS STRING="", check_for_existing AS INTEGER=YES) AS STRING
+ DIM filename AS STRING = default
+ DIM alert AS STRING
+ DIM alert_time AS INTEGER = 0
+ DIM tog AS INTEGER
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  tog = tog XOR 1
+  IF keyval(1) > 1 THEN RETURN ""
+  strgrabber filename, 40
+  filename = fixfilename(filename)
+  IF keyval(28) > 1 THEN
+   filename = TRIM(filename)
+   IF check_for_existing AND isfile(filename & ext) AND filename <> "" THEN
+    alert = filename & ext & " already exists"
+    alert_time = 30
+   ELSE
+    IF filename <> "" THEN RETURN filename
+   END IF
+  END IF
+  textcolor uilook(uiText), 0
+  printstr query, 160 - LEN(query) * 4, 20, dpage
+  IF alert_time > 0 THEN printstr alert, 160 - LEN(alert) * 4, 40, dpage: alert_time =- 1
+  textcolor uilook(uiSelectedItem + tog), 1
+  printstr filename, 160 - LEN(filename & ext) * 4 , 30, dpage
+  textcolor uilook(uiText), uilook(uiHighlight)
+  printstr ext, 160 + (LEN(filename) - LEN(ext)) * 4 , 30, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+END FUNCTION
+
+FUNCTION export_textboxes (filename AS STRING) AS INTEGER
+ DIM fh AS INTEGER = FREEFILE
+ IF OPEN(filename FOR OUTPUT AS #fh) THEN debug "export_textboxes: Failed to open " & filename : RETURN NO
+ DIM box AS TextBox
+ DIM blank AS INTEGER
+ DIM AS INTEGER i, j, k
+ FOR i = 0 TO gen(genMaxTextBox)
+  LoadTextBox box, i
+  '--Write the header guide
+  PRINT #fh, "======================================"
+  '--Write the box number and separator
+  PRINT #fh, "Box " & i
+  PRINT #fh, "--------------------------------------"
+  blank = 0
+  FOR j = 0 TO 7
+   IF box.text(j) = "" THEN
+    blank += 1
+   ELSE
+    FOR k = 1 TO blank
+     PRINT #fh, ""
+    NEXT k
+    blank = 0
+    PRINT #fh, box.text(j)
+   END IF
+  NEXT j
+ NEXT i
+ CLOSE #fh
+ RETURN YES
+END FUNCTION
+
+'SUB import_textboxes (filename AS STRING)
+'END SUB

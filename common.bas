@@ -3008,3 +3008,33 @@ FUNCTION rpad (s AS STRING, pad_char AS STRING, size AS INTEGER) AS STRING
  WHILE LEN(result) < size: result = result & pad_char: WEND
  RETURN result
 END FUNCTION
+
+SUB notification (show_msg AS STRING)
+ DIM msg AS STRING = show_msg
+ DIM ypos AS INTEGER
+ DIM high AS INTEGER = 16
+
+ 'Find the height
+ DO WHILE LEN(msg) > 38
+  msg = MID(msg, 38)
+  high += 8
+ LOOP
+
+ msg = show_msg
+ 
+ setvispage 0
+ edgeprint msg, 8, ypos, uilook(uiText), 0
+
+ edgeboxstyle 4, 4, 312, high, 2, 0
+
+ ypos = 8
+ DO WHILE LEN(msg) > 38
+  edgeprint LEFT(msg, 38), 8, ypos, uilook(uiText), 0
+  msg = MID(msg, 38)
+  ypos += 8
+ LOOP
+ edgeprint msg, 8, ypos, uilook(uiText), 0
+
+ setvispage 0 'refresh
+ waitforanykey
+END SUB

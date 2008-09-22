@@ -22,7 +22,6 @@ DECLARE SUB clicktile (mover(), ts AS TileEditState, mouseclick, BYREF clone AS 
 DECLARE SUB tilecopy (cutnpaste%(), ts AS TileEditState)
 DECLARE SUB tilepaste (cutnpaste%(), ts AS TileEditState)
 DECLARE SUB tiletranspaste (cutnpaste%(), ts AS TileEditState)
-DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB copymapblock (buf%(), sx%, sy%, sp%, dx%, dy%, dp%)
 DECLARE SUB changepal (palval%, palchange%, workpal%(), aindex%)
@@ -44,7 +43,6 @@ DECLARE SUB statname ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE SUB importmasterpal (f$, palnum%)
-DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 
 'Local SUBs and FUNCTIONS
 DECLARE SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
@@ -212,7 +210,7 @@ DO
   END IF
   IF mstate.pt = 4 THEN GOSUB disable
   IF mstate.pt = 5 THEN
-   outfile$ = inputfilename$("Name of file to export to?", ".bmp", trimpath$(game) & " " & cap$ & pt)
+   outfile$ = inputfilename("Name of file to export to?", ".bmp", trimpath$(game) & " " & cap$ & pt)
    IF outfile$ <> "" THEN screenshot outfile$ & ".bmp", 2, master()
   END IF
  END IF

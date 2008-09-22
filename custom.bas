@@ -9,7 +9,6 @@ DEFINT A-Z
 #include "const.bi"
 
 'basic subs and functions
-DECLARE SUB fixfilename (s$)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE SUB importbmp (f$, cap$, count%)
@@ -45,7 +44,6 @@ DECLARE SUB textage ()
 DECLARE SUB menu_editor ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
-DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 DECLARE FUNCTION newRPGfile (template$, newrpg$)
 DECLARE SUB dolumpfiles (filetolump$)
 DECLARE FUNCTION readarchinym$ ()
@@ -371,7 +369,7 @@ DO
  usemenu csr, top, 0, last, 20
  IF enter_or_space() THEN
   IF csr = 0 THEN
-   game = inputfilename$("Filename of New Game?", ".rpg")
+   game = inputfilename("Filename of New Game?", ".rpg")
    IF game <> "" THEN
      IF NOT newRPGfile(finddatafile("ohrrpgce.new"), game + ".rpg") THEN GOTO finis
      gamefile = game + ".rpg"
@@ -625,19 +623,6 @@ FUNCTION filenum$ (n)
   filenum$ = STR$(n)
  END IF
 END FUNCTION
-
-SUB fixfilename (s$)
-result$ = ""
-FOR i = 1 TO LEN(s$)
- char$ = MID$(s$, i, 1)
- ascii = ASC(char$)
- SELECT CASE ascii
-  CASE 32, 48 TO 57, 65 TO 90, 97 TO 122, 95, 126, 45
-   result$ = result$ + char$
- END SELECT
-NEXT
-s$ = result$
-END SUB
 
 SUB fixorder (f$)
 

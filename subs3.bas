@@ -30,8 +30,6 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
-DECLARE SUB fixfilename (s$)
-DECLARE FUNCTION inputfilename$ (query$, ext$, default$ = "")
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
 #include "compat.bi"
@@ -146,35 +144,6 @@ IF isfile(file$) THEN
 ELSE
  filesize$ = "N/A"
 END IF
-END FUNCTION
-
-FUNCTION inputfilename$ (query$, ext$, default$)
-filename$ = default$
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN inputfilename$ = "": EXIT DO
- strgrabber filename$, 40
- fixfilename filename$
- IF keyval(28) > 1 THEN
-  filename$ = TRIM$(filename$)
-  IF isfile(filename$ + ext$) AND filename$ <> "" THEN alert$ = filename$ + ext$ + " already exists": alert = 30: filename$ = ""
-  IF filename$ <> "" THEN inputfilename$ = filename$: EXIT DO
- END IF
- textcolor uilook(uiText), 0
- printstr query$, 160 - LEN(query$) * 4, 20, dpage
- IF alert > 0 THEN printstr alert$, 160 - LEN(alert$) * 4, 40, dpage: alert = alert - 1
- textcolor uilook(uiSelectedItem + tog), 1
- printstr filename$, 160 - (LEN(filename$) + LEN(ext$)) * 4 , 30, dpage
- textcolor uilook(uiText), uilook(uiHighlight)
- printstr ext$, 160 + (LEN(filename$) - LEN(ext$)) * 4 , 30, dpage
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
 END FUNCTION
 
 FUNCTION numbertail$ (s$)

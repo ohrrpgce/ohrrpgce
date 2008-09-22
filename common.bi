@@ -168,6 +168,8 @@ DECLARE FUNCTION rpad (s AS STRING, pad_char AS STRING, size AS INTEGER) AS STRI
 DECLARE SUB load_box_border_cache()
 DECLARE SUB clear_box_border_cache()
 
+DECLARE SUB notification (show_msg AS STRING)
+
 'Global variables
 EXTERN as string game, tmpdir, exename, workingdir
 EXTERN uilook() as integer

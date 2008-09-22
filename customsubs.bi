@@ -30,5 +30,8 @@ DECLARE FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, 
 DECLARE FUNCTION step_estimate(freq AS INTEGER, low AS INTEGER, high AS INTEGER, infix AS STRING="-", suffix AS STRING= "", zero AS STRING="never") AS STRING
 DECLARE FUNCTION speed_estimate(speed AS INTEGER, suffix AS STRING=" seconds", zero AS STRING="infinity") AS STRING
 DECLARE SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
+DECLARE FUNCTION fixfilename (s AS STRING) AS STRING
+DECLARE FUNCTION inputfilename (query AS STRING, ext AS STRING, default AS STRING="", check_for_existing AS INTEGER=YES) AS STRING
+DECLARE FUNCTION export_textboxes (filename AS STRING) AS INTEGER
 
 #endif
