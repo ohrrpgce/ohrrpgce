@@ -65,7 +65,7 @@ DECLARE FUNCTION read_box_conditional_by_menu_index(BYREF box AS TextBox, menuin
 DECLARE FUNCTION box_conditional_type_by_menu_index(menuindex AS INTEGER) AS INTEGER
 DECLARE SUB update_textbox_editor_main_menu (BYREF box AS TextBox, m$())
 DECLARE SUB textbox_edit_load (BYREF box AS TextBox, BYREF st AS TextboxEditState, m$())
-DECLARE SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState)
+DECLARE SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState, override_y AS INTEGER=-1, suppress_text AS INTEGER=NO)
 DECLARE SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
 DECLARE SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBox, BYREF st AS TextboxEditState)
 DECLARE SUB textbox_position_portrait (BYREF box AS TextBox, BYREF st AS TextboxEditState, holdscreen AS INTEGER)
@@ -866,13 +866,7 @@ DO
  standardmenu m$(), 7, 7, csr, 0, 0, 0, dpage, 0
 
  '--Draw box
- IF box.no_box = NO THEN
-  edgeboxstyle 4, 96, 312, 88 - box.shrink * 4, box.boxstyle, dpage, (box.opaque = NO)
- END IF
- '--Draw text lines
- FOR i = 0 TO 7
-  edgeprint box.text(i), 8, 100 + i * 10, uilook(uiText), dpage
- NEXT i
+ textbox_edit_preview box, st, 96
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -1092,9 +1086,7 @@ DO
   stredit box.text(y), 38
  END IF
  'Display the box
- IF box.no_box = NO THEN
-  edgeboxstyle 4, 4, 312, 88, box.boxstyle, dpage, (box.opaque = NO)
- END IF
+ textbox_edit_preview box, st, 4, YES
  'Display the lines in the box
  FOR i = 0 TO 7
   textcolor uilook(uiText), 0
@@ -1165,22 +1157,30 @@ END SUB
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState)
- IF box.no_box = NO THEN
-  edgeboxstyle 4, 4 + box.vertical_offset * 4, 312, 88 - box.shrink * 4, box.boxstyle, dpage, (box.opaque = NO)
+SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState, override_y AS INTEGER=-1, suppress_text AS INTEGER=NO)
+ DIM ypos AS INTEGER
+ IF override_y >= 0 THEN
+  ypos = override_y
+ ELSE
+  ypos = 4 + box.vertical_offset * 4
  END IF
- DIM col AS INTEGER
- DIM i AS INTEGER
- FOR i = 0 TO 7
-  col = uilook(uiText)
-  IF box.textcolor > 0 THEN col = box.textcolor
-  edgeprint box.text(i), 8, 8 + box.vertical_offset * 4 + i * 10, col, dpage
- NEXT i
+ IF box.no_box = NO THEN
+  edgeboxstyle 4, ypos, 312, 88 - box.shrink * 4, box.boxstyle, dpage, (box.opaque = NO)
+ END IF
+ IF suppress_text = NO THEN
+  DIM col AS INTEGER
+  DIM i AS INTEGER
+  FOR i = 0 TO 7
+   col = uilook(uiText)
+   IF box.textcolor > 0 THEN col = box.textcolor
+   edgeprint box.text(i), 8, 4 + ypos + i * 10, col, dpage
+  NEXT i
+ END IF
  IF box.portrait_box THEN
-  edgeboxstyle 4 + box.portrait_pos.x, 4 + box.vertical_offset * 4  + box.portrait_pos.y, 50, 50, box.boxstyle, dpage, YES
+  edgeboxstyle 4 + box.portrait_pos.x, ypos  + box.portrait_pos.y, 50, 50, box.boxstyle, dpage, YES
  END IF
  WITH st.portrait
-  IF .sprite THEN sprite_draw .sprite, .pal, 4 + box.portrait_pos.x, 4 + box.vertical_offset * 4  + box.portrait_pos.y,,,dpage
+  IF .sprite THEN sprite_draw .sprite, .pal, 4 + box.portrait_pos.x, ypos + box.portrait_pos.y,,,dpage
  END WITH
 END SUB
 
