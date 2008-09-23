@@ -3016,25 +3016,24 @@ SUB notification (show_msg AS STRING)
 
  'Find the height
  DO WHILE LEN(msg) > 38
-  msg = MID(msg, 38)
+  msg = MID(msg, 39)
   high += 8
  LOOP
 
  msg = show_msg
  
- setvispage 0
- edgeprint msg, 8, ypos, uilook(uiText), 0
+ edgeprint msg, 8, ypos, uilook(uiText), vpage
 
- edgeboxstyle 4, 4, 312, high, 2, 0
+ edgeboxstyle 4, 4, 312, high, 2, vpage
 
  ypos = 8
  DO WHILE LEN(msg) > 38
-  edgeprint LEFT(msg, 38), 8, ypos, uilook(uiText), 0
-  msg = MID(msg, 38)
+  edgeprint LEFT(msg, 38), 8, ypos, uilook(uiText), vpage
+  msg = MID(msg, 39)
   ypos += 8
  LOOP
- edgeprint msg, 8, ypos, uilook(uiText), 0
+ edgeprint msg, 8, ypos, uilook(uiText), vpage
 
- setvispage 0 'refresh
+ setvispage vpage 'refresh
  waitforanykey
 END SUB

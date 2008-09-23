@@ -1232,14 +1232,12 @@ OPTION EXPLICIT
 
 SUB gendata ()
  STATIC default$
- CONST maxMenu = 34
+ CONST maxMenu = 32
  DIM m$(maxMenu)
  DIM max(maxMenu)
  DIM bitname(18) AS STRING
  DIM names(32) AS STRING
  DIM stat$(11)
- DIM box_text_file AS STRING
- DIM overwrite AS INTEGER = NO
  DIM d$
  DIM i AS INTEGER
 
@@ -1279,8 +1277,6 @@ SUB gendata ()
  m$(10) = "Pick Title Screen..."
  m$(12) = "Special PlotScripts..."
  m$(15) = "View Master Palettes..."
- m$(33) = "Export text boxes..."
- m$(34) = "Import text boxes..."
  max(1) = 1
  max(2) = 320
  max(3) = 200
@@ -1393,29 +1389,6 @@ SUB gendata ()
     IF d$ <> "" THEN
     gen(genMute) = ASC(d$)
      state.need_update = YES
-    END IF
-   END IF
-   IF state.pt = 33 THEN
-    box_text_file = inputfilename("Filename for TextBox Export?", ".txt",,NO)
-    IF box_text_file <> "" THEN
-     box_text_file = box_text_file & ".txt"
-     overwrite = YES
-     IF isfile(box_text_file) THEN
-      overwrite = yesno("File already exists, overwrite?", NO)
-     END IF
-     IF overwrite THEN
-      IF export_textboxes(box_text_file) THEN
-       notification "Successfully exported " & box_text_file
-      ELSE
-       notification "Failed to export " & box_text_file
-      END IF
-     END IF
-    END IF
-   END IF
-   IF state.pt = 34 THEN
-    IF yesno("Are you sure? Boxes will be overwritten", NO) THEN
-     box_text_file = browse(0, "", "*.txt", tmpdir, 0)
-     'import_textboxes box_text_file
     END IF
    END IF
   END IF

@@ -995,7 +995,11 @@ END SUB
 
 SUB LoadTextBox (BYREF box AS TextBox, record AS INTEGER)
  DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
- IF record < 0 OR record > gen(genMaxTextBox) THEN debug "LoadTextBox: invalid record: " & record : EXIT SUB
+ IF record < 0 OR record > gen(genMaxTextBox) THEN
+  debug "LoadTextBox: invalid record: " & record
+  IF record <> 0 THEN LoadTextBox box, 0
+  EXIT SUB
+ END IF
 
  DIM filename AS STRING
  filename = game & ".say"

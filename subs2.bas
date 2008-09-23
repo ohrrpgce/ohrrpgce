@@ -756,6 +756,13 @@ DIM state AS MenuState 'FIXME: only used in conditionals GOSUB block, move this 
 state.top = -1
 state.pt = 0
 
+'--For the import/export support
+DIM box_text_file AS STRING
+DIM overwrite AS INTEGER = NO
+DIM remember_boxcount AS INTEGER
+DIM backup_say AS STRING
+DIM import_warn AS STRING = ""
+
 'This array tells which rows in the conditional editor are grey
 grey(-1) = NO
 grey(0) = YES
@@ -790,6 +797,8 @@ m$(4) = "Edit Choice"
 m$(5) = "Box Appearance"
 m$(6) = "Next:"
 m$(7) = "Text Search:"
+m$(8) = "Export text boxes..."
+m$(9) = "Import text boxes..."
 csr = 0
 textbox_edit_load box, st, m$()
 setkeys
@@ -803,7 +812,7 @@ DO
   cropafter st.id, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY), 1
   textbox_edit_load box, st, m$()
  END IF
- usemenu csr, 0, 0, 7, 24
+ usemenu csr, 0, 0, 9, 24
  remptr = st.id
  SELECT CASE csr
   CASE 7'textsearch
@@ -857,13 +866,56 @@ DO
    GOSUB seektextbox
    textbox_edit_load box, st, m$()
   END IF
+  IF csr = 8 THEN '--Export textboxes to a .TXT file
+   box_text_file = inputfilename("Filename for TextBox Export?", ".txt",,NO)
+   IF box_text_file <> "" THEN
+    box_text_file = box_text_file & ".txt"
+    overwrite = YES
+    IF isfile(box_text_file) THEN
+     overwrite = yesno("File already exists, overwrite?", NO)
+    END IF
+    IF overwrite THEN
+     IF export_textboxes(box_text_file) THEN
+      notification "Successfully exported " & box_text_file
+     ELSE
+      notification "Failed to export " & box_text_file
+     END IF
+    END IF
+   END IF
+  END IF
+  IF csr = 9 THEN '-- Import text boxes from a .TXT file
+   SaveTextBox box, st.id
+   IF yesno("Are you sure? Boxes will be overwritten", NO) THEN
+    box_text_file = browse(0, "", "*.txt", tmpdir, 0)
+    clearpage vpage
+    backup_say = tmpdir & "backup-textbox-lump.say"
+    '--make a backup copy of the .say lump
+    copyfile game & ".say", backup_say
+    IF NOT isfile(backup_say) THEN
+     notification "unable to save a backup copy of the text box data to " & backup_say
+    ELSE
+     '--Backup was successfuly, okay to proceed
+     remember_boxcount = gen(genMaxTextbox)
+     import_warn = ""
+     IF import_textboxes(box_text_file, import_warn) THEN
+      notification "Successfully imported """ & box_text_file & """." & import_warn
+     ELSE
+      'Failure! Reset, revert, abort, run-away!
+      gen(genMaxTextBox) = remember_boxcount
+      copyfile backup_say, game & ".say"
+      notification "Import failed, restoring backup. " & import_warn
+     END IF
+    END IF
+    LoadTextBox box, st.id
+   END IF
+  END IF
  END IF
  textcolor uilook(uiMenuItem), 0
  IF csr = 1 THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr STR(st.id), 72, 8, dpage
  m$(7) = "Text Search:" + st.search
  
- standardmenu m$(), 7, 7, csr, 0, 0, 0, dpage, 0
+ standardmenu m$(), 9, 9, csr, 0, 0, 0, dpage, 0
 
  '--Draw box
  textbox_edit_preview box, st, 96

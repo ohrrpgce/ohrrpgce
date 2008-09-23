@@ -19,6 +19,9 @@
 DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
 DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
+'Subs and functions only used here
+DECLARE SUB import_textboxes_warn (BYREF warn AS STRING, s AS STRING)
+
 OPTION EXPLICIT
 
 FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=999) AS INTEGER
@@ -1030,5 +1033,116 @@ FUNCTION export_textboxes (filename AS STRING) AS INTEGER
  RETURN YES
 END FUNCTION
 
-'SUB import_textboxes (filename AS STRING)
-'END SUB
+SUB import_textboxes_warn (BYREF warn AS STRING, s AS STRING)
+ debug "import_textboxes: " & s
+ IF warn <> "" THEN warn = warn & " "
+ warn = warn & s
+END SUB
+
+FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
+ DIM fh AS INTEGER = FREEFILE
+ IF OPEN(filename FOR INPUT AS #fh) THEN
+  import_textboxes_warn warn, "Failed to open """ & filename & """."
+  RETURN NO
+ END IF
+ DIM warn_length AS INTEGER = 0
+ DIM warn_skip AS INTEGER = 0
+ DIM warn_append AS INTEGER = 0
+ DIM box AS TextBox
+ DIM index AS INTEGER = 0
+ DIM getindex AS INTEGER = 0 
+ DIM mode AS INTEGER = 0
+ DIM s AS STRING
+ DIM firstline AS INTEGER = YES
+ DIM line_number AS INTEGER = 0
+ DIM boxlines AS INTEGER = 0
+ DIM i AS INTEGER
+ DO WHILE NOT EOF(fh)
+  line_number += 1
+  LINE INPUT #1, s
+  IF firstline THEN
+   IF s <> STRING(38, "=") THEN
+    import_textboxes_warn warn, filename & " is not a valid text box file. Expected header row, found """ & s & """."
+    CLOSE #fh
+    RETURN NO
+   END IF
+   firstline = NO
+   CONTINUE DO
+  END IF
+  IF LEN(s) > 38 THEN
+   warn_length += 1
+   debug "import_textboxes: line " & line_number & ": line too long (" & LEN(s) & ")"
+   s = LEFT(s, 38)
+  END IF
+  SELECT CASE mode
+   CASE 0 '--Seek box number
+    IF LEFT(s, 4) = "Box " THEN
+     getindex = VALINT(MID(s, 5))
+     IF getindex > index THEN
+      warn_skip += 1
+      debug "import_textboxes: line " & line_number & ": box ID " & index & " is not in the txt file"
+     END IF
+     IF getindex < index THEN
+      debug "import_textboxes: line " & line_number & ": box ID numbers out-of-order. Expected " & index & ", but found " & getindex
+     END IF
+     index = getindex
+     mode = 1
+    ELSE
+     import_textboxes_warn warn, "line " & line_number & ": expected Box # but found """ & s & """."
+     CLOSE #fh
+     RETURN NO
+    END IF
+   CASE 1 '--Seek divider
+    IF s = STRING(38, "-") THEN
+     LoadTextBox box, index
+     boxlines = 0
+     mode = 2
+    ELSE
+     import_textboxes_warn warn, "line " & line_number & ": expected divider line but found """ & s & """."
+     CLOSE #fh
+     RETURN NO
+    END IF
+   CASE 2 '--Text lines
+    IF s = STRING(38, "=") THEN
+     FOR i = boxlines TO 7
+      box.text(i) = ""
+     NEXT i
+     IF index > gen(genMaxTextbox) THEN
+      warn_append += index - gen(genMaxTextbox)
+      gen(genMaxTextbox) = index
+     END IF
+     SaveTextBox box, index
+     index += 1
+     boxlines = 0
+     mode = 0
+    ELSE
+     IF boxlines >= 8 THEN
+      import_textboxes_warn warn, "line " & line_number & ": too many lines in box " & index & ". Overflowed with """ & s & """."
+      CLOSE #fh
+      RETURN NO
+     END IF
+     box.text(boxlines) = s
+     boxlines += 1
+    END IF
+  END SELECT
+ LOOP
+ IF mode = 2 THEN'--Save the last box
+  FOR i = boxlines TO 7
+   box.text(i) = ""
+  NEXT i
+  IF index > gen(genMaxTextbox) THEN
+   warn_append += index - gen(genMaxTextbox)
+   gen(genMaxTextbox) = index
+  END IF
+  SaveTextBox box, index
+ ELSE
+  import_textboxes_warn warn, "line " & line_number & ": txt file ended unexpectedly."
+  CLOSE #fh
+  RETURN NO
+ END IF
+ IF warn_length > 0 THEN import_textboxes_warn warn, warn_length & " lines were too long."
+ IF warn_skip > 0   THEN import_textboxes_warn warn, warn_skip & " box ID numbers were not in the txt file."
+ IF warn_append > 0 THEN import_textboxes_warn warn, warn_append & " new boxes were appended."
+ CLOSE #fh
+ RETURN YES
+END FUNCTION
