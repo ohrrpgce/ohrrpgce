@@ -69,7 +69,6 @@ extern tmpdir as string
 declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 
 
-DECLARE sub fade_daemon(byval targetvol as any ptr)
 DECLARE Sub UpdateDelay(BYREF delay as integer, tempo as integer)
 DECLARE Sub StreamCallback(Byval handle as HMIDIOUT, byval umsg as Uinteger, byval dwInstance as UInteger, byval dwParam1 as UInteger, byval dwParam2 as UInteger)
 DECLARE Sub PrepareNextBeat(byval unused as integer)
@@ -87,7 +86,6 @@ dim shared music_song as MIDI_EVENT ptr = NULL
 dim shared song_ptr as MIDI_EVENT ptr = NULL
 
 dim shared orig_vol as integer = -1
-dim shared fade_thread as intptr
 dim shared inited_once as integer = 0
 
 dim shared device as any ptr
@@ -705,10 +703,6 @@ sub music_close()
 		music_playing = 0
 		music_paused = 0
 
-		if fade_thread then
-			threadwait fade_thread
-		end if
-
 		if music_song <> 0 then
 		  FreeMidiEventList(music_song)
 		  music_song = 0
@@ -896,31 +890,6 @@ function music_getvolume() as integer
   'music_vol = v
   return music_vol
 end function
-
-sub music_fade(targetvol as integer)
-''Unlike the original version, this will pause everything else while it
-''fades, so make sure it doesn't take too long
-
-'lies, now it fades with a thread
-	dim I as integer
-
-	if fade_thread then
-		threadwait fade_thread
-	end if
-	fade_thread = threadcreate(@fade_daemon, cast(intptr, targetvol))
-end sub
-
-sub fade_daemon(byval targetvol as any ptr)
-	dim vstep as integer = 1
-	dim i as integer
-	if music_vol > cint(targetvol) then vstep = -1
-	for i = music_vol to cint(targetvol) step vstep
-		music_setvolume(i)
-		sleep 10
-	next
-	fade_thread = 0
-end sub
-
 
 #include "audwrap/audwrap.bi"
 Declare Function SoundSlot(byval num as integer) as integer

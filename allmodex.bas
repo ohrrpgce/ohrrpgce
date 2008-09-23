@@ -2310,10 +2310,6 @@ SUB resumesong ()
 	music_resume
 end SUB
 
-SUB fademusic (BYVAL vol as integer)
-	music_fade(vol)
-end SUB
-
 FUNCTION getfmvol () as integer
 	getfmvol = music_getvolume
 end FUNCTION

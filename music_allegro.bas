@@ -179,20 +179,6 @@ function music_getvolume() as integer
 	music_getvolume = music_vol
 end function
 
-sub music_fade(targetvol as integer)
-'Unlike the original version, this will pause everything else while it
-'fades, so make sure it doesn't take too long
-	dim vstep as integer = 1
-	dim i as integer
-	
-	if music_vol > targetvol then vstep = -1
-	for i = music_vol to targetvol step vstep
-		music_setvolume(i)
-		sleep 10
-	next	
-end sub
-
-
 TYPE sound_effect
   used as integer 'whether this slot is free
   

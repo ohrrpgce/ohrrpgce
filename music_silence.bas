@@ -26,8 +26,6 @@ function music_getvolume() as integer
 	return 8
 end function
 
-sub music_fade(targetvol as integer) : end sub
-
 sub sound_init() : end sub
 
 sub sound_close() : end sub

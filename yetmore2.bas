@@ -613,8 +613,6 @@ END SUB
 SUB exitprogram (needfade)
 
 'DEBUG debug "Exiting Program"
-'DEBUG debug "fade music"
-fademusic 0
 'DEBUG debug "fade screen"
 IF needfade THEN fadeout 0, 0, 0
 
@@ -631,7 +629,6 @@ destroystack(scrst)
 '--reset audio
 closemusic
 'DEBUG debug "Restore original FM volume"
-setfmvol fmvol
 
 '--working files
 'DEBUG debug "Kill working files"
@@ -706,7 +703,6 @@ titlescr = -1 ' default return true for success
 loadpage game + ".mxs", gen(genTitle), 3
 needf = 2
 IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
-fademusic fmvol
 setkeys
 DO
  setwait speedcontrol
@@ -740,7 +736,6 @@ DO
  copypage 3, dpage
  IF needf = 1 THEN
   needf = 0
-  fademusic fmvol
   fadein
  END IF
  IF needf > 1 THEN needf = needf - 1

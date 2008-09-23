@@ -198,7 +198,6 @@ IF hsfile$ <> "" THEN GOTO hsimport
 
 setupmusic
 fmvol = getfmvol
-setfmvol fmvol ' *shrug*
 
 IF NOT isfile(game + ".mas") AND NOT isfile(workingdir + SLASH + "palettes.bin") THEN
  debug "Warning: " & game & ".mas does not exist (which should never happen)"

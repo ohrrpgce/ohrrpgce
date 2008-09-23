@@ -32,6 +32,9 @@ WHAT IS NEW?
   * Stuff only Developers Will Notice
     * Many old variables re-organized into types
     * Many GOSUB blocks converted to SUBs (many still remain)
+    * The code to automatically fade songs in and out has been
+      removed. It wasn't cool enough to warrant the headaches
+      it caused [James]
 
 August 20 2008 [werewaffle+]
 

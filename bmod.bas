@@ -265,7 +265,6 @@ DO
  copypage 2, dpage
  IF needf = 1 THEN
   needf = 0
-  IF formdata(33) > 0 THEN fademusic fmvol
   fadein
   setkeys
  END IF
@@ -289,8 +288,6 @@ IF (stackpos - bstackstart) \ 2 < 0 THEN
  '--the top of the stack has been corrupted.
  fatalerror "bstack underflow" + XSTR$(stackpos) + XSTR$(bstackstart)
 END IF
-
-IF (formdata(33) >= 0 AND formdata(33) - 1 <> mapsong) OR (gen(3) > 0 AND fatal = 0) THEN fademusic 0
 
 fadeout 0, 0, 0
 
@@ -1960,7 +1957,6 @@ for i = 0 to 24
 next
 
 mapsong = presentsong
-IF formdata(33) = 0 THEN fademusic 0
 IF formdata(33) > 0 THEN wrappedsong formdata(33) - 1
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
@@ -2099,7 +2095,7 @@ END SUB
 SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bstat() As BattleStats, exstat() AS INTEGER)
  DIM i AS INTEGER
  '--Play the victory music
- IF gen(genVictMus) > 0 THEN fademusic fmvol: wrappedsong gen(genVictMus) - 1
+ IF gen(genVictMus) > 0 THEN wrappedsong gen(genVictMus) - 1
  '--Collect gold (and cap out at 1 billion max)
  gold = gold + rew.plunder
  IF gold > 1000000000 THEN gold = 1000000000

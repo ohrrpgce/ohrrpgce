@@ -98,7 +98,6 @@ declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 
 
 DECLARE Sub PlayBackThread(byval dummy as any ptr)
-DECLARE sub fade_daemon(byval targetvol as any ptr)
 DECLARE Sub UpdateDelay(BYREF delay as double, tempo as integer)
 
 
@@ -111,7 +110,6 @@ dim shared music_playing as integer
 dim shared music_song as MIDI_EVENT ptr = NULL
 dim shared orig_vol as integer = -1
 dim shared playback_thread as intptr
-dim shared fade_thread as intptr
 dim shared inited_once as integer = 0
 
 dim shared sound_song as integer = -1'if it's not a midi
@@ -254,10 +252,6 @@ sub music_close()
 	if music_on <> 0 then exit sub
 		music_playing = 0
 		music_paused = 0
-
-		if fade_thread then
-			threadwait fade_thread
-		end if
 
 		if playback_thread then threadWait playback_thread: playback_Thread = 0
 
@@ -411,32 +405,6 @@ function music_getvolume() as integer
 	music_getvolume = getvolmidi
 end function
 
-sub music_fade(targetvol as integer)
-''Unlike the original version, this will pause everything else while it
-''fades, so make sure it doesn't take too long
-
-'lies, now it fades with a thread
-	dim I as integer
-
-	if fade_thread then
-		threadwait fade_thread
-	end if
-	fade_thread = threadcreate (@fade_daemon, cast(intptr, targetvol))
-end sub
-
-sub fade_daemon(byval targetvol as any ptr)
-	dim vstep as integer = 1
-	dim i as integer
-	if music_vol > cint(targetvol) then vstep = -1
-	for i = music_vol to cint(targetvol) step vstep
-		music_setvolume(i)
-		sleep 100
-	next
-	fade_thread = 0
-end sub
-
-
-
 Sub dumpdata(m as MIDI_EVENT ptr)
 	dim d$, i as integer
 
@@ -447,8 +415,6 @@ Sub dumpdata(m as MIDI_EVENT ptr)
 	'debug d$
 
 end sub
-
-
 
 Sub PlayBackThread(byval dummy as any ptr)
 dim curtime as double, curevent as MIDI_EVENT ptr, starttime as double, delta as double, tempo as integer, delay as double

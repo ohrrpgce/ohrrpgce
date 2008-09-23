@@ -217,8 +217,6 @@ setmodex
 
 'DEBUG debug "init sound"
 setupmusic
-'resetfm
-'setfmvol 7
 fmvol = getfmvol
 
 'DEBUG debug "dim (almost) everything"
@@ -336,8 +334,6 @@ setwindowtitle "O.H.R.RPG.C.E"
 setfont font()
 
 keyboardsetup
-
-setfmvol 0
 
 'DEBUG debug "set up default controls"
 defaultc
@@ -497,12 +493,10 @@ ELSE
  readjoysettings
  IF readbit(gen(), genBits, 12) = 0 THEN
   IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
-  fademusic fmvol
   temp = picksave(2)
  END IF
 END IF
 'DEBUG debug "picked save slot"+XSTR$(temp)
-fademusic 0
 stopsong
 fadeout 0, 0, 0
 IF temp = -2 THEN EXIT DO 'resetg
@@ -713,7 +707,6 @@ DO
   wantloadgame = 0
   resetgame stat(), scriptout$
   initgamedefaults
-  fademusic 0
   stopsong
   fadeout 0, 0, 0
   needf = 1
@@ -780,7 +773,6 @@ DO
  'DEBUG debug "needf"+XSTR$(needf)
  IF needf = 1 AND fatal = 0 THEN
   needf = 0
-  fademusic fmvol
   fadein
   setkeys
  END IF
@@ -804,7 +796,6 @@ IF autorungame THEN exitprogram (NOT abortg)
 unloadmaptilesets tilesets()
 resetinterpreter 'unload scripts
 cleanuptemp
-fademusic 0
 fadeout 0, 0, 0
 stopsong
 clearpage 0

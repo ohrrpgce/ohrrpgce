@@ -1586,7 +1586,6 @@ DO
  copypage holdscreen, dpage
  IF needf = 1 THEN   'the titlescreen might be skipped and with it the fading in
   needf = 0
-  fademusic fmvol
   fadein
  END IF
  IF needf > 1 THEN needf = needf - 1

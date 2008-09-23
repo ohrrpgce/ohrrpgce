@@ -39,7 +39,6 @@ declare sub music_stop()
 
 declare sub music_setvolume(vol as integer)
 declare function music_getvolume() as integer
-declare sub music_fade(targetvol as integer)
 
 
 declare sub sound_init()

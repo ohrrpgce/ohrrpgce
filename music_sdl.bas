@@ -251,21 +251,6 @@ function music_getvolume() as integer
 	end if
 end function
 
-sub music_fade(targetvol as integer)
-'Unlike the original version, this will pause everything else while it
-'fades, so make sure it doesn't take too long
-	dim vstep as integer = 1
-	dim i as integer
-	dim cvol as integer
-	
-	cvol = music_getvolume
-	if cvol > targetvol then vstep = -1
-	for i = cvol to targetvol step vstep
-		music_setvolume(i)
-		sleep 10
-	next	
-end sub
-
 '------------ Sound effects --------------
 
 DECLARE sub SDL_done_playing cdecl(byval channel as integer)
