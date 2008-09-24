@@ -867,21 +867,29 @@ DO
    textbox_edit_load box, st, m$()
   END IF
   IF csr = 8 THEN '--Export textboxes to a .TXT file
-   box_text_file = inputfilename("Filename for TextBox Export?", ".txt",,NO)
-   IF box_text_file <> "" THEN
-    box_text_file = box_text_file & ".txt"
-    overwrite = YES
-    IF isfile(box_text_file) THEN
-     overwrite = yesno("File already exists, overwrite?", NO)
-    END IF
-    IF overwrite THEN
-     IF export_textboxes(box_text_file) THEN
-      notification "Successfully exported " & box_text_file
-     ELSE
-      notification "Failed to export " & box_text_file
+   STATIC metadata(2) AS INTEGER
+   DIM metadatalabels(2) AS STRING
+   metadatalabels(0) = "Conditionals"
+   metadatalabels(1) = "Choices"
+   metadatalabels(2) = "Appearance"
+   
+   IF askwhatmetadata(metadata(), metadatalabels()) = YES THEN
+    box_text_file = inputfilename("Filename for TextBox Export?", ".txt",,NO)
+    IF box_text_file <> "" THEN
+     box_text_file = box_text_file & ".txt"
+     overwrite = YES
+     IF isfile(box_text_file) THEN
+      overwrite = yesno("File already exists, overwrite?", NO)
      END IF
-    END IF
-   END IF
+     IF overwrite THEN
+      IF export_textboxes(box_text_file, metadata()) THEN
+       notification "Successfully exported " & box_text_file
+      ELSE
+       notification "Failed to export " & box_text_file
+      END IF '--export_textboxes
+     END IF '--overwrite
+    END IF '--box_text_file <> ""
+   END IF '--metadata
   END IF
   IF csr = 9 THEN '-- Import text boxes from a .TXT file
    SaveTextBox box, st.id

@@ -1003,7 +1003,51 @@ FUNCTION inputfilename (query AS STRING, ext AS STRING, default AS STRING="", ch
  LOOP
 END FUNCTION
 
-FUNCTION export_textboxes (filename AS STRING) AS INTEGER
+FUNCTION askwhatmetadata (metadata() AS INTEGER, metadatalabels() AS STRING) AS INTEGER
+ DIM tog AS INTEGER
+ 
+ DIM state AS MenuState
+ state.size = UBOUND(metadata) + 1
+ state.first = -1
+ state.last = UBOUND(metadata)
+ state.top = -1
+ state.pt = -1
+ 
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  usemenu state
+  tog = tog XOR 1
+  IF keyval(1) > 1 THEN RETURN NO
+  
+  IF keyval(28) > 1 THEN
+   IF state.pt = -1 THEN RETURN YES
+   IF metadata(state.pt) = NO THEN metadata(state.pt) = YES ELSE metadata(state.pt) = NO
+  END IF
+  
+  textcolor uilook(uiText), 0
+  printstr "Choose what metadata to include:", 4, 4, dpage
+  
+  IF state.pt <> -1 THEN textcolor uilook(uiText), 0 ELSE textcolor uilook(uiSelectedItem + tog), 1
+  printstr "Done", 4, 4 + 9, dpage
+  FOR i AS INTEGER = 0 TO UBOUND(metadatalabels)
+   IF state.pt = i THEN
+    IF metadata(i) = YES THEN textcolor uilook(uiSelectedItem + tog), 1 ELSE textcolor uilook(uiSelectedDisabled), 1
+   ELSE
+    IF metadata(i) = YES THEN textcolor uilook(uiText), 0 ELSE textcolor uilook(uiDisabledItem), 0
+   END IF
+   printstr metadatalabels(i), 4, 4 + 18 + i * 9, dpage
+  NEXT
+  
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+END FUNCTION
+
+FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
  DIM fh AS INTEGER = FREEFILE
  IF OPEN(filename FOR OUTPUT AS #fh) THEN debug "export_textboxes: Failed to open " & filename : RETURN NO
  DIM box AS TextBox
@@ -1013,8 +1057,50 @@ FUNCTION export_textboxes (filename AS STRING) AS INTEGER
   LoadTextBox box, i
   '--Write the header guide
   PRINT #fh, "======================================"
-  '--Write the box number and separator
+  '--Write the box number and metadata
   PRINT #fh, "Box " & i
+    
+  IF metadata(0) THEN '--box conditionals
+   IF box.instead_tag <> 0 THEN
+    PRINT #fh, "Instead Tag: " & box.instead_tag & " (" & tag_condition_caption(box.instead_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Instead Box: " & box.instead
+   END IF
+   IF box.settag_tag <> 0 THEN
+    PRINT #fh, "Set Tag: " & box.settag_tag & " (" & tag_condition_caption(box.settag_tag, , "Impossible", "Never", "Always") & ")"
+    IF box.settag1 <> 0 THEN PRINT #fh, "Set Tag 1: " & box.settag1 & " (" & tag_condition_caption(box.settag1, , "Impossible", "Never", "Always") & ")"
+    IF box.settag2 <> 0 THEN PRINT #fh, "Set Tag 2: " & box.settag2 & " (" & tag_condition_caption(box.settag2, , "Impossible", "Never", "Always") & ")"
+   END IF
+   IF box.battle_tag <> 0 THEN
+    PRINT #fh, "Battle Tag: " & box.battle_tag & " (" & tag_condition_caption(box.battle_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Battle: " & box.battle
+   END IF
+   IF box.shop_tag <> 0 THEN
+    PRINT #fh, "Shop Tag: " & box.shop_tag & " (" & tag_condition_caption(box.shop_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Shop: " & box.shop;
+    if(box.shop = 0) THEN PRINT #fh, " (Restore HP/MP)"
+    if(box.shop < 0) THEN PRINT #fh, " (Inn for $" & (box.shop * -1) & ")"
+    if(box.shop > 0) THEN PRINT #fh, " (" & readshopname$(box.shop - 1) & ")"
+   END IF
+  END IF
+  
+  IF metadata(2) THEN '--box appearance
+   PRINT #fh, "Size: " & (21 - box.shrink)
+   IF box.portrait_box <> NO OR box.portrait_type <> 0 THEN
+    IF box.portrait_box = NO THEN
+     PRINT #fh, "Portrait Box: NO"
+    ELSE
+     PRINT #fh, "Portrait Box: YES"
+    END IF
+   END IF
+   IF box.portrait_type <> 0 THEN
+    PRINT #fh, "Portrait Type: " & box.portrait_type
+    PRINT #fh, "Portrait ID: " & box.portrait_id
+    IF box.portrait_pal <> -1 THEN PRINT #fh, "Portrait Palette: " & box.portrait_pal
+    PRINT #fh, "Portrait X: " & box.portrait_pos.X
+    PRINT #fh, "Portrait Y: " & box.portrait_pos.Y
+   END IF
+  END IF
+  '--Write the separator
   PRINT #fh, "--------------------------------------"
   blank = 0
   FOR j = 0 TO 7
@@ -1069,11 +1155,6 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
    firstline = NO
    CONTINUE DO
   END IF
-  IF LEN(s) > 38 THEN
-   warn_length += 1
-   debug "import_textboxes: line " & line_number & ": line too long (" & LEN(s) & ")"
-   s = LEFT(s, 38)
-  END IF
   SELECT CASE mode
    CASE 0 '--Seek box number
     IF LEFT(s, 4) = "Box " THEN
@@ -1086,6 +1167,8 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
       debug "import_textboxes: line " & line_number & ": box ID numbers out-of-order. Expected " & index & ", but found " & getindex
      END IF
      index = getindex
+     LoadTextBox box, index
+     boxlines = 0
      mode = 1
     ELSE
      import_textboxes_warn warn, "line " & line_number & ": expected Box # but found """ & s & """."
@@ -1094,13 +1177,62 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
     END IF
    CASE 1 '--Seek divider
     IF s = STRING(38, "-") THEN
-     LoadTextBox box, index
-     boxlines = 0
      mode = 2
     ELSE
-     import_textboxes_warn warn, "line " & line_number & ": expected divider line but found """ & s & """."
-     CLOSE #fh
-     RETURN NO
+     IF INSTR(s, ":") THEN '--metadata, probably
+      dim t as string, v as string
+      t = LCASE(LEFT(s, instr(s, ":") - 1))
+      v = TRIM(MID(s, instr(s, ":") + 1))
+      SELECT CASE t
+       CASE "size"
+        if VALINT(v) > 21 THEN
+         debug "Box size too large, capping"
+         box.shrink = 0
+        ELSE
+         box.shrink = 21 - VALINT(v)
+        END IF
+       CASE "potrait box"
+        IF LCASE(v) = "yes" THEN
+         box.portrait_box = YES
+        ELSEIF LCASE(v) = "no" THEN
+         box.portrait_box = NO
+        ELSE
+         debug "Unknown value for 'Portrait Box' field"
+        END IF
+       CASE "portrait type"
+        box.portrait_type = VALINT(v)
+       CASE "portrait id"
+        box.portrait_id = VALINT(v)
+       CASE "portrait x"
+        box.portrait_pos.x = VALINT(v)
+       CASE "portrait y"
+        box.portrait_pos.y = VALINT(v)
+       CASE "portrait palette"
+        box.portrait_pal = VALINT(v)
+       CASE "instead tag"
+        box.instead_tag = VALINT(v)
+       CASE "instead box"
+        box.instead = VALINT(v)
+       CASE "set tag"
+        box.settag_tag = VALINT(v)
+       CASE "set tag 1"
+        box.settag1 = VALINT(v)
+       CASE "set tag 2"
+        box.settag2 = VALINT(v)
+       CASE "battle tag"
+        box.battle_tag = VALINT(v)
+       CASE "battle"
+        box.battle = VALINT(v)
+       CASE "shop tag"
+        box.shop_tag = VALINT(v)
+       CASE "shop"
+        box.shop = VALINT(v)
+       CASE ELSE
+        import_textboxes_warn warn, "line " & line_number & ": expected divider line but found """ & s & """."
+        CLOSE #fh
+        RETURN NO
+      END SELECT
+     END IF
     END IF
    CASE 2 '--Text lines
     IF s = STRING(38, "=") THEN
@@ -1120,6 +1252,11 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
       import_textboxes_warn warn, "line " & line_number & ": too many lines in box " & index & ". Overflowed with """ & s & """."
       CLOSE #fh
       RETURN NO
+     END IF
+     IF LEN(s) > 38 THEN '--this should be down here
+      warn_length += 1
+      debug "import_textboxes: line " & line_number & ": line too long (" & LEN(s) & ")"
+      s = LEFT(s, 38)
      END IF
      box.text(boxlines) = s
      boxlines += 1
