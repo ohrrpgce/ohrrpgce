@@ -1063,8 +1063,23 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
   IF metadata(0) THEN '--box conditionals
    IF box.instead_tag <> 0 THEN
     PRINT #fh, "Instead Tag: " & box.instead_tag & " (" & tag_condition_caption(box.instead_tag, , "Impossible", "Never", "Always") & ")"
-    PRINT #fh, "Instead Box: " & box.instead
+    PRINT #fh, "Instead Box: " & box.instead;
+    IF box.instead < 0 THEN
+     PRINT #fh, " (Plotscript " & scriptname$(box.instead * -1, plottrigger) & ")"
+    ELSE
+     PRINT #fh, " (Textbox)"
+    END IF
    END IF
+   IF box.after_tag <> 0 THEN
+    PRINT #fh, "Next Tag: " & box.after_tag & " (" & tag_condition_caption(box.after_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Next Box: " & box.after;
+    IF box.after < 0 THEN
+     PRINT #fh, " (Plotscript " & scriptname$(box.after * -1, plottrigger) & ")"
+    ELSE
+     PRINT #fh, " (Textbox)"
+    END IF
+   END IF
+   
    IF box.settag_tag <> 0 THEN
     PRINT #fh, "Set Tag: " & box.settag_tag & " (" & tag_condition_caption(box.settag_tag, , "Impossible", "Never", "Always") & ")"
     IF box.settag1 <> 0 THEN PRINT #fh, "Set Tag 1: " & box.settag1 & " (" & tag_condition_caption(box.settag1, , "Impossible", "Never", "Always") & ")"
@@ -1081,7 +1096,63 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
     if(box.shop < 0) THEN PRINT #fh, " (Inn for $" & (box.shop * -1) & ")"
     if(box.shop > 0) THEN PRINT #fh, " (" & readshopname$(box.shop - 1) & ")"
    END IF
+   IF box.hero_tag <> 0 THEN
+    PRINT #fh, "Hero Tag: " & box.hero_tag & " (" & tag_condition_caption(box.hero_tag, , "Impossible", "Never", "Always") & ")"
+    
+    IF box.hero_addrem <> 0 THEN
+     PRINT #fh, "Hero Add: " & box.hero_addrem;
+     IF box.hero_addrem < 0 THEN
+      PRINT #fh, " (Remove " & getheroname((box.hero_addrem * -1) - 1) & ")"
+     ELSE
+      PRINT #fh, " (Add " & getheroname(box.hero_addrem - 1) & ")"
+     END IF
+    END IF
+    
+    IF box.hero_swap <> 0 THEN
+     PRINT #fh, "Hero Swap: " & box.hero_swap;
+     IF box.hero_swap < 0 THEN
+      PRINT #fh, " (Swap Out " & getheroname((box.hero_swap * -1) - 1) & ")"
+     ELSE
+      PRINT #fh, " (Swap In " & getheroname(box.hero_swap - 1) & ")"
+     END IF
+    END IF
+    
+    IF box.hero_lock <> 0 THEN
+     PRINT #fh, "Hero Lock: " & box.hero_lock;
+     IF box.hero_lock < 0 THEN
+      PRINT #fh, " (Lock " & getheroname((box.hero_lock * -1) - 1) & ")"
+     ELSE
+      PRINT #fh, " (Unlock " & getheroname(box.hero_lock - 1) & ")"
+     END IF
+    END IF
+    
+   END IF
+   
+   IF box.money_tag <> 0 THEN
+    PRINT #fh, "Money Tag: " & box.money_tag & " (" & tag_condition_caption(box.money_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Money: " & box.money
+   END IF
+   
+   IF box.door_tag <> 0 THEN
+    PRINT #fh, "Door Tag: " & box.door_tag & " (" & tag_condition_caption(box.door_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Door: " & box.door
+   END IF
+   
+   IF box.item_tag <> 0 THEN
+    PRINT #fh, "Item Tag: " & box.item_tag & " (" & tag_condition_caption(box.item_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Item: " & box.item;
+    IF box.item < 0 THEN
+     PRINT #fh, " (Remove " & readitemname$((box.item * -1) - 1) & ")"
+    ELSE
+     PRINT #fh, " (Add " & readitemname$(box.item - 1) & ")"
+    END IF
+   END IF
   END IF
+  
+  IF box.menu_tag <> 0 THEN
+    PRINT #fh, "Menu Tag: " & box.menu_tag & " (" & tag_condition_caption(box.menu_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Menu: " & box.menu
+   END IF
   
   IF metadata(2) THEN '--box appearance
    PRINT #fh, "Size: " & (21 - box.shrink)
@@ -1227,6 +1298,34 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
         box.shop_tag = VALINT(v)
        CASE "shop"
         box.shop = VALINT(v)
+       CASE "item tag"
+        box.item_tag = VALINT(v)
+       CASE "item"
+        box.item = VALINT(v)
+       CASE "money tag"
+        box.money_tag = VALINT(v)
+       CASE "money"
+        box.money = VALINT(v)
+       CASE "door tag"
+        box.door_tag = VALINT(v)
+       CASE "door"
+        box.door_tag = VALINT(v)
+       CASE "hero tag"
+        box.hero_tag = VALINT(v)
+       CASE "hero add"
+        box.hero_addrem = VALINT(v)
+       CASE "hero swap"
+        box.hero_swap = VALINT(v)
+       CASE "hero lock"
+        box.hero_lock = VALINT(v)
+       CASE "menu tag"
+        box.menu_tag = VALINT(v)
+       CASE "menu"
+        box.menu_tag = VALINT(v)
+       CASE "next tag"
+        box.instead_tag = VALINT(v)
+       CASE "next box"
+        box.instead = VALINT(v)
        CASE ELSE
         import_textboxes_warn warn, "line " & line_number & ": expected divider line but found """ & s & """."
         CLOSE #fh
