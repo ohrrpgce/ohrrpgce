@@ -1,14 +1,21 @@
-REM *WARNING* Do not schedule this batch file to be automatically
-REM run from the same copy of the sources that it updates. That
-REM would be equivalent to allowing any developer with write access
-REM to the repository full control of your computer. Instead schedule
-REM this script to be run from a manually updated copy, and pay
-REM attention to changes to it.
+REM *WARNING* Scheduling this batch file to be automatically
+REM run is equivalent to allowing any developer with write access
+REM to the repository full control of your build computer. Thank
+REM goodness James trusts the other devs ;)
 
 cd c:\nightly\ohrrpgce
 svn cleanup
 svn update
 svn info > svninfo.txt
+
+CALL distrib.bat
+CALL distver.bat
+pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERCODE%.exe james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce-wip-win-installer.exe
+
+del game*.exe
+del custom*.exe
+call make.bat fb sdl
+call nightly-gfx-music fb sdl
 
 del game*.exe
 del custom*.exe
@@ -19,11 +26,6 @@ del game*.exe
 del custom*.exe
 call make.bat fb native2
 call nightly-gfx-music fb native2
-
-del game*.exe
-del custom*.exe
-call make.bat fb sdl
-call nightly-gfx-music fb sdl
 
 del game*.exe
 del custom*.exe
