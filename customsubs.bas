@@ -1383,7 +1383,7 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
    gen(genMaxTextbox) = index
   END IF
   SaveTextBox box, index
- ELSEIF mode = 0 '--this... is not good
+ ELSEIF mode = 0 THEN '--this... is not good
   import_textboxes_warn warn, "line " & line_number & ": txt file ended unexpectedly."
   CLOSE #fh
   RETURN NO
