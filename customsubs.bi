@@ -35,5 +35,6 @@ DECLARE FUNCTION inputfilename (query AS STRING, ext AS STRING, default AS STRIN
 DECLARE FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
 DECLARE FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
 DECLARE FUNCTION askwhatmetadata (metadata() AS INTEGER, metadatalabels() AS STRING) AS INTEGER
+DECLARE FUNCTION str2bool(q AS STRING, default AS INTEGER = NO, invert AS INTEGER = NO) AS INTEGER
 
 #endif

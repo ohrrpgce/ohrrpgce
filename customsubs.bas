@@ -1153,15 +1153,35 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
     PRINT #fh, "Menu Tag: " & box.menu_tag & " (" & tag_condition_caption(box.menu_tag, , "Impossible", "Never", "Always") & ")"
     PRINT #fh, "Menu: " & box.menu
    END IF
+   
+  IF metadata(2) THEN '--choices
+   IF box.choice_enabled THEN
+    PRINT #fh, "Choice Enabled: YES"
+    PRINT #fh, "Choice 1: " & box.choice(0)
+    PRINT #fh, "Choice 1 Tag: " & box.choice_tag(0) & " (" & tag_condition_caption(box.choice_tag(0), , "Do Nothing", "Never", "Always") & ")"
+    PRINT #fh, "Choice 2: " & box.choice(1)
+    PRINT #fh, "Choice 2 Tag: " & box.choice_tag(1) & " (" & tag_condition_caption(box.choice_tag(1), , "Do Nothing", "Never", "Always") & ")"
+    
+   END IF
+  END IF
   
   IF metadata(3) THEN '--box appearance
    PRINT #fh, "Size: " & (21 - box.shrink)
+   PRINT #fh, "Position: " & box.vertical_offset
+   PRINT #fh, "Text Color: " & box.textcolor '--AARGH.
+   PRINT #fh, "Border Color: " & box.boxstyle '--AARGH AGAIN.
+   PRINT #fh, "Backdrop: " & box.backdrop
+   IF box.music > 0 THEN
+    PRINT #fh, "Music: " & box.music & " (" & getsongname$(box.music - 1) & ")"
+   ELSE
+    PRINT #fh, "Music: " & box.music & " (None)"
+   END IF
+   PRINT #fh, "Restore Music: " & yesorno(box.restore_music)
+   PRINT #fh, "Show Box: " & yesorno(NOT box.no_box) '--argh, double negatives
+   PRINT #fh, "Translucent: " & yesorno(NOT box.opaque) '--  "       "      "
+   
    IF box.portrait_box <> NO OR box.portrait_type <> 0 THEN
-    IF box.portrait_box = NO THEN
-     PRINT #fh, "Portrait Box: NO"
-    ELSE
-     PRINT #fh, "Portrait Box: YES"
-    END IF
+    PRINT #fh, "Portrait Box: " & yesorno(box.portrait_box)
    END IF
    IF box.portrait_type <> 0 THEN
     PRINT #fh, "Portrait Type: " & box.portrait_type
@@ -1171,6 +1191,8 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
     PRINT #fh, "Portrait Y: " & box.portrait_pos.Y
    END IF
   END IF
+  
+  
   
   IF metadata(0) THEN '--box text
    '--Write the separator
@@ -1275,13 +1297,7 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
          box.shrink = 21 - VALINT(v)
         END IF
        CASE "potrait box"
-        IF LCASE(v) = "yes" THEN
-         box.portrait_box = YES
-        ELSEIF LCASE(v) = "no" THEN
-         box.portrait_box = NO
-        ELSE
-         debug "Unknown value for 'Portrait Box' field"
-        END IF
+        box.portrait_box = str2bool(v, NO)
        CASE "portrait type"
         box.portrait_type = VALINT(v)
        CASE "portrait id"
@@ -1335,9 +1351,36 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
        CASE "menu"
         box.menu_tag = VALINT(v)
        CASE "next tag"
-        box.instead_tag = VALINT(v)
+        box.after_tag = VALINT(v)
        CASE "next box"
-        box.instead = VALINT(v)
+        box.after = VALINT(v)
+       CASE "choice enabled"
+        box.choice_enabled = str2bool(v)
+       CASE "choice 1"
+        box.choice(0) = TRIM(v)
+       CASE "choice 2"
+        box.choice(1) = TRIM(v)
+       CASE "choice 1 tag"
+        box.choice_tag(0) = VALINT(v)
+       CASE "choice 2 tag"
+        box.choice_tag(1) = VALINT(v)
+       CASE "position"
+        box.vertical_offset = VALINT(v)
+       CASE "text color"
+        box.textcolor = VALINT(v)
+       CASE "border color"
+        box.boxstyle = VALINT(v)
+       CASE "backdrop"
+        box.backdrop = VALINT(v)
+       CASE "music"
+        box.music = VALINT(v)
+       CASE "restore music"
+        box.restore_music = str2bool(v)
+       CASE "show box"
+        box.no_box = str2bool(v,,YES)
+       CASE "translucent"
+        box.opaque = str2bool(v,,YES)
+        
        CASE ELSE
         import_textboxes_warn warn, "line " & line_number & ": expected divider line but found """ & s & """."
         CLOSE #fh
@@ -1393,4 +1436,14 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
  IF warn_append > 0 THEN import_textboxes_warn warn, warn_append & " new boxes were appended."
  CLOSE #fh
  RETURN YES
+END FUNCTION
+
+FUNCTION str2bool(q AS STRING, default AS INTEGER = NO, invert AS INTEGER = NO) AS INTEGER
+ IF LCASE(LEFT(TRIM(q), 3)) = "yes" THEN
+  IF invert THEN RETURN NO ELSE RETURN YES
+ END IF
+ IF LCASE(LEFT(TRIM(q), 2)) = "no" THEN
+  IF invert THEN RETURN YES ELSE RETURN NO
+ END IF
+ RETURN default
 END FUNCTION
