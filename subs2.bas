@@ -867,8 +867,8 @@ DO
    textbox_edit_load box, st, m$()
   END IF
   IF csr = 8 THEN '--Export textboxes to a .TXT file
-   STATIC metadata(2) AS INTEGER
-   DIM metadatalabels(2) AS STRING
+   STATIC metadata(3) AS INTEGER
+   DIM metadatalabels(3) AS STRING
    metadatalabels(0) = "Text"
    metadata(0) = YES '--by default, export text
    metadatalabels(1) = "Conditionals"
