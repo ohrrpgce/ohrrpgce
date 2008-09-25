@@ -1060,7 +1060,7 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
   '--Write the box number and metadata
   PRINT #fh, "Box " & i
     
-  IF metadata(0) THEN '--box conditionals
+  IF metadata(1) THEN '--box conditionals
    IF box.instead_tag <> 0 THEN
     PRINT #fh, "Instead Tag: " & box.instead_tag & " (" & tag_condition_caption(box.instead_tag, , "Impossible", "Never", "Always") & ")"
     PRINT #fh, "Instead Box: " & box.instead;
@@ -1154,7 +1154,7 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
     PRINT #fh, "Menu: " & box.menu
    END IF
   
-  IF metadata(2) THEN '--box appearance
+  IF metadata(3) THEN '--box appearance
    PRINT #fh, "Size: " & (21 - box.shrink)
    IF box.portrait_box <> NO OR box.portrait_type <> 0 THEN
     IF box.portrait_box = NO THEN
@@ -1171,20 +1171,23 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
     PRINT #fh, "Portrait Y: " & box.portrait_pos.Y
    END IF
   END IF
-  '--Write the separator
-  PRINT #fh, "--------------------------------------"
-  blank = 0
-  FOR j = 0 TO 7
-   IF box.text(j) = "" THEN
-    blank += 1
-   ELSE
-    FOR k = 1 TO blank
-     PRINT #fh, ""
-    NEXT k
-    blank = 0
-    PRINT #fh, box.text(j)
-   END IF
-  NEXT j
+  
+  IF metadata(0) THEN '--box text
+   '--Write the separator
+   PRINT #fh, "--------------------------------------"
+   blank = 0
+   FOR j = 0 TO 7
+    IF box.text(j) = "" THEN
+     blank += 1
+    ELSE
+     FOR k = 1 TO blank
+      PRINT #fh, ""
+     NEXT k
+     blank = 0
+     PRINT #fh, box.text(j)
+    END IF
+   NEXT j
+  END IF
  NEXT i
  CLOSE #fh
  RETURN YES
@@ -1249,6 +1252,15 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
    CASE 1 '--Seek divider
     IF s = STRING(38, "-") THEN
      mode = 2
+    ELSEIF s = STRING(38, "=") THEN '--no text
+     IF index > gen(genMaxTextbox) THEN
+      warn_append += index - gen(genMaxTextbox)
+      gen(genMaxTextbox) = index
+     END IF
+     SaveTextBox box, index
+     index += 1
+     mode = 0
+     boxlines = 0
     ELSE
      IF INSTR(s, ":") THEN '--metadata, probably
       dim t as string, v as string
@@ -1371,7 +1383,7 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
    gen(genMaxTextbox) = index
   END IF
   SaveTextBox box, index
- ELSE
+ ELSEIF mode = 0 '--this... is not good
   import_textboxes_warn warn, "line " & line_number & ": txt file ended unexpectedly."
   CLOSE #fh
   RETURN NO

@@ -869,9 +869,11 @@ DO
   IF csr = 8 THEN '--Export textboxes to a .TXT file
    STATIC metadata(2) AS INTEGER
    DIM metadatalabels(2) AS STRING
-   metadatalabels(0) = "Conditionals"
-   metadatalabels(1) = "Choices"
-   metadatalabels(2) = "Appearance"
+   metadatalabels(0) = "Text"
+   metadata(0) = YES '--by default, export text
+   metadatalabels(1) = "Conditionals"
+   metadatalabels(2) = "Choices"
+   metadatalabels(3) = "Appearance"
    
    IF askwhatmetadata(metadata(), metadatalabels()) = YES THEN
     box_text_file = inputfilename("Filename for TextBox Export?", ".txt",,NO)
