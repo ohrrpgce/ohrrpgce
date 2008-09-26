@@ -1960,13 +1960,8 @@ SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her
  IF her.def_level < 0 THEN menu(5) = "Base Level: Party Average"
  menu(6) = "Default Weapon: " & load_item_name(her.def_weapon, 0, 1)
  menu(7) = "Max Name Length: " & zero_default(her.max_name_len)
- IF st.previewframe = 0 THEN
-  menu(8) = "Hand X: " & her.hand_a_x
-  menu(9) = "Hand Y: " & her.hand_a_y
- ELSEIF st.previewframe = 1 THEN
-   menu(8) = "Hand X: " & her.hand_b_x
-   menu(9) = "Hand Y: " & her.hand_b_y
- END IF
+ menu(8) = "Hand position A..."
+ menu(9) = "Hand position B..."
  menu(10) = "Portrait Picture: " & defaultint(her.portrait, "None")
  menu(11) = "Portrait Palette: " & defaultint(her.portrait_pal)
  update_hero_preview_pics st, her
@@ -2024,11 +2019,8 @@ SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
   drawline 250 + hand.x,23 + hand.y,250 + hand.x, 24 + hand.y,14 + tog, dpage
   drawline 251 + hand.x,25 + hand.y,252 + hand.x, 25 + hand.y,14 + tog, dpage
   drawline 250 + hand.x,26 + hand.y,250 + hand.x, 27 + hand.y,14 + tog, dpage
-  printstr STR(st.previewframe), 264, 18, dpage
-  IF st.previewframe = 1 THEN printstr "<", 256, 18, dpage
-  IF st.previewframe = 0 THEN printstr ">", 272, 18, dpage
  END IF
- sprite_draw st.portrait.sprite, st.portrait.pal, 240, 110,,,dpage
+ IF st.portrait.sprite THEN sprite_draw st.portrait.sprite, st.portrait.pal, 240, 110,,,dpage
 END SUB
 
 SUB animate_hero_preview(BYREF st AS HeroEditState)
@@ -2070,7 +2062,6 @@ SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
   .size = 24
  END WITH
 
- st.previewframe = 0
  update_hero_appearance_menu st, menu(), her
  st.changed = NO
  setkeys
@@ -2080,11 +2071,10 @@ SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
   state.tog = state.tog XOR 1
   animate_hero_preview st
   IF keyval(scEsc) > 1 THEN EXIT DO
-  IF (keyval(scPeriod) > 1 AND st.previewframe = 0) OR (keyval(scComma) > 1 AND st.previewframe = 1) THEN
-   st.previewframe = st.previewframe XOR 1
-   st.changed = YES
-  END IF
   usemenu state
+  st.previewframe = -1
+  IF state.pt = 8 THEN st.previewframe = 0
+  IF state.pt = 9 THEN st.previewframe = 1
   IF enter_or_space() AND state.pt = 0 THEN EXIT DO
   IF state.pt > 0 THEN
    SELECT CASE state.pt
@@ -2116,26 +2106,6 @@ SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
      IF intgrabber(her.max_name_len, min(state.pt), max(state.pt)) THEN
       st.changed = YES
      END IF
-    CASE 8
-     IF st.previewframe = 0 THEN
-      IF intgrabber(her.hand_a_x, min(state.pt), max(state.pt)) THEN
-       st.changed = YES
-      END IF
-     ELSE
-      IF intgrabber(her.hand_b_x, min(state.pt), max(state.pt)) THEN
-       st.changed = YES
-      END IF
-     END IF
-    CASE 9
-     IF st.previewframe = 0 THEN
-      IF intgrabber(her.hand_a_y, min(state.pt), max(state.pt)) THEN
-       st.changed = YES
-      END IF
-     ELSE
-      IF intgrabber(her.hand_b_y, min(state.pt), max(state.pt)) THEN
-       st.changed = YES
-      END IF
-     END IF
     CASE 10
      IF intgrabber(her.portrait, min(state.pt), max(state.pt)) THEN
       st.changed = YES
@@ -2151,6 +2121,10 @@ SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
       her.sprite_pal = pal16browse(her.sprite_pal, 0, her.sprite, 8, 32, 40)
      CASE 4
       her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, 4, her.walk_sprite, 8, 20, 20)
+     CASE 8
+      xy_position_on_sprite st.battle, her.hand_a_x, her.hand_a_y, 2, 32, 40, "hand position (for weapon)"
+     CASE 9
+      xy_position_on_sprite st.battle, her.hand_b_x, her.hand_b_y, 3, 32, 40, "hand position (for weapon)"
      CASE 11
       her.portrait_pal = pal16browse(her.portrait_pal, 8, her.portrait, 1, 50, 50)
     END SELECT

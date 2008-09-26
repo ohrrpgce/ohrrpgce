@@ -3,6 +3,7 @@ WHAT IS NEW?
 ???? ?? 200? [xocolatl]
 
   * New Features
+    * Visual placement of hero's hand positions [James]
     * Text boxes can be exported as a .TXT file, edited with
        your favorite text editor or spellchecker, and then
        re-imported back into your game [James, Mike]
