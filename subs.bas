@@ -56,7 +56,7 @@ DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
 
 DECLARE SUB load_item_names (item_strings() AS STRING)
 DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
-DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, workpal() AS INTEGER, frame AS INTEGER)
+DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING)
 
 DECLARE SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef)
 DECLARE SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef)
@@ -1489,9 +1489,10 @@ EXIT SUB
 END SUB
 
 SUB itemdata
-DIM names(100) AS STRING, a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), eqst$(5), max(18), min(18), sbmax(11), workpal(8), elemtype$(2), frame
+DIM names(100) AS STRING, a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), eqst$(5), max(18), min(18), sbmax(11), elemtype$(2), frame
 DIM item$(maxMaxItems)
 DIM her AS HeroDef ' This is only used in equipbit
+DIM wep_img AS GraphicPair 'This is only used in edititem
 imax = 32
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
 clearpage 0
@@ -1605,11 +1606,12 @@ max(14) = 999
 max(15) = 999
 
 loaditemdata a(), csr
-generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$(), workpal(), frame
+generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$()
 
-setpicstuf buffer(), 576, 2
-loadset game + ".pt5", a(52), 0
-getpal16 workpal(), 0, a(53), 5, a(52)
+IF wep_img.sprite THEN sprite_unload @wep_img.sprite
+IF wep_img.pal    THEN palette16_unload @wep_img.pal
+wep_img.sprite = sprite_load(game & ".pt5", a(52), 2, 24, 24)
+wep_img.pal    = palette16_load(game & ".pal", a(53), 5, a(52))
 
 need_update = NO
 
@@ -1618,15 +1620,22 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETRACE
- IF (keyval(51) > 1 AND frame = 0) OR (keyval(52) > 1 AND frame = 1) THEN
-  frame = frame XOR 1
-  need_update = YES
- END IF
+ IF keyval(1) > 1 THEN EXIT DO
  usemenu pt, 0, 0, 20, 24
+ frame = 0
+ IF pt = 16 THEN frame = 1
+ IF pt = 17 THEN frame = 0
  IF enter_or_space() THEN
-  IF pt = 0 THEN RETRACE
+  IF pt = 0 THEN EXIT DO
   IF a(49) > 0 THEN
+   IF pt = 16 THEN
+    xy_position_on_sprite wep_img, a(80), a(81), 0, 24, 24, "weapon handle position"
+    need_update = YES
+   END IF
+   IF pt = 17 THEN
+    xy_position_on_sprite wep_img, a(78), a(79), 1, 24, 24, "weapon handle position"
+    need_update = YES
+   END IF
    IF pt = 18 THEN
     GOSUB statbon
     need_update = YES
@@ -1642,7 +1651,6 @@ DO
   END IF
   IF pt = 10 THEN '--palette picker
    a(46 + (pt - 3)) = pal16browse(a(53), 5, a(52), 2, 24, 24)
-   getpal16 workpal(), 0, a(53), 5, a(52)
    need_update = YES
   END IF
  END IF
@@ -1673,14 +1681,14 @@ DO
    IF tag_grabber(a(74 + (pt - 12)), 0) THEN
     need_update = YES
    END IF
-  CASE 16, 17
-   IF intgrabber(a(78 + (pt - 16) + frame * 2), -100, 100) THEN
-    need_update = YES
-   END IF
  END SELECT
  IF need_update THEN
   need_update = NO
-  generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$(), workpal(), frame
+  generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$()
+  IF wep_img.sprite THEN sprite_unload @wep_img.sprite
+  IF wep_img.pal    THEN palette16_unload @wep_img.pal
+  wep_img.sprite = sprite_load(game & ".pt5", a(52), 2, 24, 24)
+  wep_img.pal    = palette16_load(game & ".pal", a(53), 5, a(52))
  END IF
  FOR i = 0 TO 20
   textcolor uilook(uiMenuItem), 0
@@ -1692,22 +1700,21 @@ DO
   printstr menu$(i), 0, i * 8, dpage
  NEXT i
  IF a(49) = 1 THEN
-  loadsprite buffer(), 0, (1-frame) * 288, 0, 24, 24, 2
-  drawsprite buffer(), 0, workpal(), 0, 280, 160, dpage
+  sprite_draw wep_img.sprite + 1 - frame, wep_img.pal, 280, 160,,,dpage
   textcolor uilook(uiMenuItem), 0
-  IF frame = 0 THEN printstr "<",280,152,dpage
-  printstr "" & (1 - frame),281,152,dpage
-  IF frame = 1 THEN printstr ">",296,152,dpage
-   drawline 278 + a(78 + frame * 2),160 + a(79 + frame * 2),279 + a(78 + frame * 2), 160 + a(79 + frame * 2),14 + tog,dpage
-   drawline 280 + a(78 + frame * 2),158 + a(79 + frame * 2),280 + a(78 + frame * 2), 159 + a(79 + frame * 2),14 + tog,dpage
-   drawline 281 + a(78 + frame * 2),160 + a(79 + frame * 2),282 + a(78 + frame * 2), 160 + a(79 + frame * 2),14 + tog,dpage
-   drawline 280 + a(78 + frame * 2),161 + a(79 + frame * 2),280 + a(78 + frame * 2), 162 + a(79 + frame * 2),14 + tog,dpage
+  drawline 278 + a(78 + frame * 2),160 + a(79 + frame * 2),279 + a(78 + frame * 2), 160 + a(79 + frame * 2),14 + tog,dpage
+  drawline 280 + a(78 + frame * 2),158 + a(79 + frame * 2),280 + a(78 + frame * 2), 159 + a(79 + frame * 2),14 + tog,dpage
+  drawline 281 + a(78 + frame * 2),160 + a(79 + frame * 2),282 + a(78 + frame * 2), 160 + a(79 + frame * 2),14 + tog,dpage
+  drawline 280 + a(78 + frame * 2),161 + a(79 + frame * 2),280 + a(78 + frame * 2), 162 + a(79 + frame * 2),14 + tog,dpage
  END IF
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
  dowait
 LOOP
+IF wep_img.sprite THEN sprite_unload @wep_img.sprite
+IF wep_img.pal    THEN palette16_unload @wep_img.pal
+RETRACE
 
 statbon:
 ptr2 = 0
@@ -1771,7 +1778,7 @@ RETRACE
 
 END SUB
 
-SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, workpal() AS INTEGER, frame AS INTEGER)
+SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING)
  menu(1) = "Name:" & item_name
  menu(2) = "Info:" & info_string
  menu(3) = "Value: " & itembuf(46)
@@ -1794,20 +1801,11 @@ SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTE
  menu(13) = "is in inventory TAG " & itembuf(75) & " " & load_tag_name(itembuf(75))
  menu(14) = "is equipped TAG " & itembuf(76) & " " & load_tag_name(itembuf(76))
  menu(15) = "eqpt by active hero TAG " & itembuf(77) & " " & load_tag_name(itembuf(77))
- menu(16) = "Handle X: "
- menu(17) = "Handle Y: "
- IF itembuf(49) = 1 THEN
-  menu(16) = menu(16) & " " & itembuf(78 + frame * 2)
-  menu(17) = menu(17) & " " & itembuf(79 + frame * 2)
- ELSE
-  menu(16) = menu(16) & "N/A"
-  menu(17) = menu(17) & "N/A"
- END IF
- IF pt = 9 OR pt = 10 THEN
-  'oldframe = frame
-  setpicstuf buffer(), 576, 2
-  loadset game + ".pt5", itembuf(52), 0
-  getpal16 workpal(), 0, itembuf(53), 5, itembuf(52)
+ menu(16) = "Handle position A..."
+ menu(17) = "Handle position B..."
+ IF itembuf(49) <> 1 THEN
+  menu(16) = menu(16) & " N/A"
+  menu(17) = menu(17) & " N/A"
  END IF
 END SUB'
 

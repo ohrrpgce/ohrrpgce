@@ -333,6 +333,7 @@ END IF
 END SUB
 
 Function GetWeaponPos(w,f,isY)'or x?
+ 'FIXME: Ack! Lets just make handle position a member of bslot()
  dim fh
  IF w >= 0 THEN
   fh = FREEFILE
@@ -344,6 +345,7 @@ Function GetWeaponPos(w,f,isY)'or x?
 End Function
 
 Function GetHeroPos(h,f,isY)'or x?
+ 'FIXME: Ack! Lets just make hand position a member of bslot()
  dim fh
  fh = FREEFILE
  OPEN game + ".dt0" FOR BINARY AS #fh

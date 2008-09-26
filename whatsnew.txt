@@ -3,7 +3,8 @@ WHAT IS NEW?
 ???? ?? 200? [xocolatl]
 
   * New Features
-    * Visual placement of hero's hand positions [James]
+    * Visual placement of hero's hand positions and weapon's
+      handle positions. [James]
     * Text boxes can be exported as a .TXT file, edited with
        your favorite text editor or spellchecker, and then
        re-imported back into your game [James, Mike]
@@ -24,6 +25,8 @@ WHAT IS NEW?
       * "Re-check costs after attack delay" [James]
 
   * Bugfixes
+    * bug 678: Ogg music problems in game with werewaffle version
+      [James]
 
   * New Plotscripting Stuff
     * get hero speed [MCW]
