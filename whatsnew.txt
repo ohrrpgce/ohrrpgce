@@ -3,9 +3,9 @@ WHAT IS NEW?
 ???? ?? 200? [xocolatl]
 
   * New Features
-    * Text boxes can be exported as a .TXT file. Edit them with
+    * Text boxes can be exported as a .TXT file, edited with
        your favorite text editor or spellchecker, and then
-       re-imported back into your game [James]
+       re-imported back into your game [James, Mike]
     * Character portraits! You can now draw 50x50 pictures for
       heroes and NPCs that can be displayed in text boxes [James]
     * You can now type in NPC numbers in NPC placement mode in the
