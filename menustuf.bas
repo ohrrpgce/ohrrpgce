@@ -1902,7 +1902,7 @@ DO
  control
  GOSUB scontrol
  centerfuz 160, 100, 312, 184, 1, dpage 'outer box
- centerbox 206, 36, 200, 20, 2, dpage   'name box
+ centerbox 206, 36, 200, 16, 2, dpage   'name box
  centerbox 60, 50, 82, 60, 2, dpage     'menu box
  centerbox 160, 133, 308, 94, 2, dpage  'spell list
  rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), dpage 'divider 2
