@@ -353,6 +353,19 @@ TYPE Stack
 END TYPE
 #endif
 
+TYPE PlotSprite
+ used as integer
+ sprite as Frame Ptr
+ pal as Palette16 Ptr
+ spr_type as integer 'hero, walkabout, etc...
+ spr_num as integer
+ frame as integer
+ frames as integer
+ visible as integer
+ x as integer
+ y as integer
+END TYPE
+
 'Documentation of veh() in game, which is different from the VEH lump
 '0 is true (-1) if in/mounting/dismounting a vehicle
 '1-4 unused

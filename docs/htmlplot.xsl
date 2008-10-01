@@ -171,7 +171,7 @@
 		</p>
 	</xsl:template>
 
-	<xsl:template match="description"><xsl:apply-templates /></xsl:template>
+	<xsl:template match="description"><xsl:apply-templates /><br/></xsl:template>
 	<xsl:template match="ul"><ul><xsl:apply-templates /></ul></xsl:template>
 	<xsl:template match="li"><li><xsl:apply-templates /></li></xsl:template>
 
@@ -198,7 +198,7 @@
 			</xsl:if>
 		</xsl:if>
 	</xsl:template>
-	<xsl:template match="seealso"><br /><br />See also: <ul class="seealso"><xsl:apply-templates select="ref" mode="seealso"/></ul></xsl:template>
+	<xsl:template match="seealso"><br />See also: <ul class="seealso"><xsl:apply-templates select="ref" mode="seealso"/></ul></xsl:template>
 	<xsl:template match="ref" mode="seealso"><li><xsl:if test='count(id(.))=0'>
 			<a href="#{.}" class="undef"><xsl:value-of select='.' /></a>
 		</xsl:if>

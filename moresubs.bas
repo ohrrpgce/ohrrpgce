@@ -1451,6 +1451,22 @@ NEXT i
 
 clear_box_border_cache
 
+FOR i = 0 to UBOUND(plot_sprites)
+ WITH plot_sprites(i)
+  IF .used THEN
+   sprite_unload(@.sprite)
+   palette16_unload(@.pal)
+   .frames = 0
+   .frame = 0
+   .x = 0
+   .y = 0
+   .visible = 0
+   .spr_type = 0
+   .spr_num = 0
+  END IF
+ END WITH
+NEXT
+
 END SUB
 
 SUB resetlmp (slot, lev)

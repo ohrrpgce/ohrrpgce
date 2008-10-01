@@ -107,6 +107,7 @@ DECLARE SUB MenuSound(byval s as integer)
 DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
 DECLARE FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
 DECLARE SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
+DECLARE SUB grow_plotsprites
 
 'these variables hold information used by breakpoint to step to the desired position
 DIM SHARED waitforscript, waitfordepth, stepmode, lastscriptnum
@@ -1779,6 +1780,144 @@ SELECT CASE AS CONST id
  CASE 321'--get hero speed (hero)
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    scriptret = herospeed(retvals(0))
+  END IF
+ CASE 322'--load hero sprite
+  IF retvals(0) >= 0 AND retvals(0) <= 59 THEN
+   FOR i = 0 to UBOUND(plot_sprites)
+    IF plot_sprites(i).used = NO THEN
+     with plot_sprites(i)
+      .sprite = sprite_load(game & ".pt0", retvals(0), 8, 32, 40)
+      IF .sprite = 0 THEN
+       debug "Couldn't load hero sprite #" & retvals(0)
+       EXIT SUB
+      END IF
+      .pal = palette16_load(game + ".pal", retvals(1), 0, retvals(0))
+      IF .pal = 0 THEN
+       debug "Couldn't load hero palette for sprite #" & retvals(0)
+       sprite_unload(@.sprite)
+       EXIT SUB
+      END IF
+      .used = YES
+      .x = 0
+      .y = 0
+      .frame = 0
+      .frames = 8
+      .visible = NO
+      .spr_type = 0
+      .spr_num = retvals(0)
+     end with
+     scriptret = i
+     EXIT SUB
+    END IF
+   NEXT
+   grow_plotsprites
+   with plot_sprites(i)
+    .sprite = sprite_load(game & ".pt0", retvals(0), 8, 32, 40)
+    IF .sprite = 0 THEN
+     debug "Couldn't load hero sprite #" & retvals(0)
+     EXIT SUB
+    END IF
+    .pal = palette16_load(game + ".pal", retvals(1), 0, retvals(0))
+    IF .pal = 0 THEN
+     debug "Couldn't load hero palette for sprite #" & retvals(0)
+     sprite_unload(@.sprite)
+     EXIT SUB
+    END IF
+    .used = YES
+    .x = 0
+    .y = 0
+    .frames = 8
+    .frame = 0
+    .visible = NO
+    .spr_type = 0
+    .spr_num = retvals(0)
+   end with
+   scriptret = i
+  END IF
+ CASE 323'--free sprite
+  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(plot_sprites) THEN
+   IF plot_sprites(retvals(0)).used THEN
+    WITH plot_sprites(retvals(0))
+     .used = NO
+     .x = 0
+     .y = 0
+     .visible = NO
+     .frame = 0
+     .spr_type = 0
+     .spr_num = 0
+     .frames = 0
+     palette16_unload(@.pal)
+     sprite_unload(@.sprite)
+    END WITH
+   END IF
+  END IF
+ CASE 324 '--place sprite
+  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(plot_sprites) THEN
+   IF plot_sprites(retvals(0)).used THEN
+    WITH plot_sprites(retvals(0))
+     .x = retvals(1)
+     .y = retvals(2)
+    END WITH
+   END IF
+  END IF
+ CASE 325 '--set sprite visible
+  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(plot_sprites) THEN
+   IF plot_sprites(retvals(0)).used THEN
+    WITH plot_sprites(retvals(0))
+     .visible = retvals(1)
+    END WITH
+   END IF
+  END IF
+ CASE 326 '--set sprite palette
+  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(plot_sprites) THEN
+   IF plot_sprites(retvals(0)).used THEN
+    WITH plot_sprites(retvals(0))
+     dim tmppal as palette16 ptr 
+     tmppal = palette16_load(game + ".pal", retvals(1), .spr_type, .spr_num)
+     IF tmppal = 0 THEN
+      debug "Couldn't load hero palette #" & retvals(1)
+      EXIT SUB
+     END IF
+     palette16_unload(@.pal)
+     .pal = tmppal
+    END WITH
+   END IF
+  END IF
+ CASE 327 '--replace hero sprite
+  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(plot_sprites) AND retvals(1) >= 0 AND retvals(1) <= 59 THEN
+   IF plot_sprites(retvals(0)).used THEN
+    WITH plot_sprites(retvals(0))
+     dim tmpspr as frame ptr
+     tmpspr = sprite_load(game & ".pt0", retvals(1), 8, 32, 40)
+     IF tmpspr = 0 THEN
+      debug "Couldn't load hero sprite #" & retvals(1)
+      EXIT SUB
+     END IF
+     sprite_unload(@.sprite)
+     .sprite = tmpspr
+     .spr_type = 0
+     .spr_num = retvals(1)
+     .frames = 8
+     IF retvals(2) > -2 THEN
+      dim tmppal as palette16 ptr
+      tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
+      IF tmppal = 0 THEN
+       debug "Couldn't load hero palette #" & retvals(2)
+       EXIT SUB
+      END IF
+      palette16_unload(@.pal)
+      .pal = tmppal
+     END IF
+    END WITH
+   END IF
+  END IF
+ CASE 328 '--set sprite frame
+  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(plot_sprites) AND retvals(1) >= 0 AND retvals(1) <= 59 THEN
+   IF plot_sprites(retvals(0)).used AND retvals(1) >= 0 AND retvals(1) < plot_sprites(retvals(0)).frames THEN
+    plot_sprites(retvals(0)).frame = retvals(1)
+    WITH plot_sprites(retvals(0))
+    END WITH
+   END IF
   END IF
 END SELECT
 

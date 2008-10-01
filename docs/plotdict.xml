@@ -1836,7 +1836,56 @@ end</example>
 		</command>
 
 	</section>
-
+	
+	<section title="Sprite Functions">
+		<command id="loadherosprite">
+			<cannon>load hero sprite (num, palette)</cannon>
+			<shortname>load hero sprite</shortname>
+			<description>Loads hero battle sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>Do not load a sprite onto another sprite that has not been freed. Either use <ref>freesprite</ref> first, or use <ref>replaceherosprite</ref>!</warn></description>
+			<seealso>
+				<ref>replaceherosprite</ref>
+				<ref>freesprite</ref>
+			</seealso>
+		</command>
+		<command id="replaceherosprite">
+			<cannon>replace hero sprite (ID, num, palette)</cannon>
+			<shortname>load hero sprite</shortname>
+			<description>Loads hero battle sprite #<p>num</p> with palette <p>palette</p> into sprite #<p>ID</p>. As with <ref>loadherosprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadherosprite</ref>.</note></description>
+			<seealso>
+				<ref>loadherosprite</ref>
+				<ref>freesprite</ref>
+			</seealso>
+		</command>
+		<command id="freesprite">
+			<cannon>free sprite (ID)</cannon>
+			<shortname>free sprite</shortname>
+			<description>Unloads a sprite loaded by any of the "load x sprite" functions.</description>
+			<seealso>
+				<ref>loadherosprite</ref>
+			</seealso>
+		</command>
+		<command id="placesprite">
+			<cannon>place sprite (ID, x, y)</cannon>
+			<shortname>place sprite</shortname>
+			<description>Moves sprite #<p>ID</p> to position (<p>x</p>, <p>y</p>).</description>
+		</command>
+		<command id="setspritevisible">
+			<cannon>set sprite visible (ID, vis)</cannon>
+			<shortname>set sprite visible</shortname>
+			<description>Makes sprite #<p>ID</p> invisible or visible, according to <p>vis</p>. By default, a sprite is invisible (<ref>off</ref>), and must be made visible (<ref>on</ref>).</description>
+		</command>
+		<command id="setspritepalette">
+			<cannon>set sprite palette (ID, num)</cannon>
+			<shortname>set sprite palette</shortname>
+			<description>Changes the palette of sprite #<p>ID</p> to be <p>num</p>. If <p>num</p> is -1 or omitted, the default palette for that sprite is loaded.</description>
+		</command>
+		<command id="setspriteframe">
+			<cannon>set sprite frame (ID, num)</cannon>
+			<shortname>set sprite frame</shortname>
+			<description>Changes the frame of sprite #<p>ID</p> to be <p>num</p>. If <p>num</p> is less than 0, or greater than or equal to the number of frames, nothing will change.</description>
+		</command>
+	</section>
+	
 	<section title="Misc Functions">
 		<command id="random">
 			<cannon>random (lownumber, highnumber)</cannon>

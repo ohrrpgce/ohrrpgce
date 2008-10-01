@@ -23,6 +23,7 @@ WHAT IS NEW?
       * "Don't trigger spawning on kill" [James]
       * "Check costs when used as an item" [James]
       * "Re-check costs after attack delay" [James]
+    * Plotscripting can now load sprites, and place them on screen. [Mike]
 
   * Bugfixes
     * bug 678: Ogg music problems in game with werewaffle version
@@ -30,6 +31,8 @@ WHAT IS NEW?
 
   * New Plotscripting Stuff
     * get hero speed [MCW]
+    * load hero sprite, replace hero sprite, place sprite, set sprite
+      palette, set sprite visible, free sprite [Mike]
 
   * Vikings of Midgard
 

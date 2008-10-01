@@ -187,6 +187,7 @@ DECLARE SUB reset_map_state (map AS MapModeState)
 DECLARE SUB opendoor (dforce AS INTEGER=0)
 DECLARE SUB thrudoor (door_id AS INTEGER)
 DECLARE SUB advance_text_box ()
+DECLARE SUB draw_plotsprites
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -288,6 +289,9 @@ DIM script(128) as ScriptData
 DIM plotstr(31) as Plotstring
 DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
+
+DIM plot_sprites() AS PlotSprite
+REDIM plot_sprites(15)
 
 'End global variables
 
@@ -841,6 +845,7 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
  'DEBUG debug "drawoverhead"
  IF readbit(gmap(), 19, 1) THEN drawmap mapx, mapy, 2, 0, tilesets(2), dpage, 1
  IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 0, 2, tilesets(0), dpage
+ draw_plotsprites
  animatetilesets tilesets()
  IF harmtileflash = YES THEN
   rectangle 0, 0, 320, 200, gmap(10), dpage
@@ -3155,4 +3160,21 @@ SUB advance_text_box ()
  txt.id = -1
  setkeys
  flusharray carray(), 7, 0
+END SUB
+
+SUB grow_plotsprites
+ REDIM PRESERVE plot_sprites(UBOUND(plot_sprites) + 5)
+END SUB
+
+SUB draw_plotsprites
+ DIM i as integer
+ FOR i = 0 to UBOUND(plot_sprites)
+  IF plot_sprites(i).used THEN
+   WITH plot_sprites(i)
+    IF .visible THEN
+     sprite_draw(.sprite + .frame, .pal, .x, .y, 1, YES, dpage)
+    END IF
+   END WITH
+  END IF
+ NEXT
 END SUB

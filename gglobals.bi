@@ -106,3 +106,6 @@ EXTERN menus() as MenuDef
 EXTERN mstates() as MenuState
 EXTERN menu_set as MenuSet
 EXTERN topmenu as INTEGER
+
+'Plotsprite globals
+EXTERN plot_sprites() as PlotSprite
