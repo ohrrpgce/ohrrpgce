@@ -108,6 +108,8 @@ DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
 DECLARE FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
 DECLARE SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
 DECLARE SUB grow_plotsprites
+DECLARE FUNCTION valid_plotsprite(byval s as integer, byval cmd as string) as integer
+
 
 'these variables hold information used by breakpoint to step to the desired position
 DIM SHARED waitforscript, waitfordepth, stepmode, lastscriptnum
@@ -1782,7 +1784,7 @@ SELECT CASE AS CONST id
    scriptret = herospeed(retvals(0))
   END IF
  CASE 322'--load hero sprite
-  IF retvals(0) >= 0 AND retvals(0) <= 59 THEN
+  IF bound_arg(retvals(0), 0, gen(genMaxHeroPic), "load hero sprite", "sprite number") THEN
    FOR i = 0 to UBOUND(plot_sprites)
     IF plot_sprites(i).used = NO THEN
      with plot_sprites(i)
@@ -1835,88 +1837,76 @@ SELECT CASE AS CONST id
    scriptret = i
   END IF
  CASE 323'--free sprite
-  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(plot_sprites) THEN
-   IF plot_sprites(retvals(0)).used THEN
-    WITH plot_sprites(retvals(0))
-     .used = NO
-     .x = 0
-     .y = 0
-     .visible = NO
-     .frame = 0
-     .spr_type = 0
-     .spr_num = 0
-     .frames = 0
-     palette16_unload(@.pal)
-     sprite_unload(@.sprite)
-    END WITH
-   END IF
+  IF valid_plotsprite(retvals(0), "free sprite") THEN
+   WITH plot_sprites(retvals(0))
+    .used = NO
+    .x = 0
+    .y = 0
+    .visible = NO
+    .frame = 0
+    .spr_type = 0
+    .spr_num = 0
+    .frames = 0
+    palette16_unload(@.pal)
+    sprite_unload(@.sprite)
+   END WITH
   END IF
  CASE 324 '--place sprite
-  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(plot_sprites) THEN
-   IF plot_sprites(retvals(0)).used THEN
-    WITH plot_sprites(retvals(0))
-     .x = retvals(1)
-     .y = retvals(2)
-    END WITH
-   END IF
+  IF valid_plotsprite(retvals(0), "place sprite") THEN
+   WITH plot_sprites(retvals(0))
+    .x = retvals(1)
+    .y = retvals(2)
+   END WITH
   END IF
  CASE 325 '--set sprite visible
-  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(plot_sprites) THEN
-   IF plot_sprites(retvals(0)).used THEN
-    WITH plot_sprites(retvals(0))
-     .visible = retvals(1)
-    END WITH
-   END IF
+  IF valid_plotsprite(retvals(0), "set sprite visible") THEN
+   WITH plot_sprites(retvals(0))
+    .visible = retvals(1)
+   END WITH
   END IF
  CASE 326 '--set sprite palette
-  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(plot_sprites) THEN
-   IF plot_sprites(retvals(0)).used THEN
-    WITH plot_sprites(retvals(0))
-     dim tmppal as palette16 ptr 
-     tmppal = palette16_load(game + ".pal", retvals(1), .spr_type, .spr_num)
+  IF valid_plotsprite(retvals(0), "set sprite palette") THEN
+   WITH plot_sprites(retvals(0))
+    dim tmppal as palette16 ptr 
+    tmppal = palette16_load(game + ".pal", retvals(1), .spr_type, .spr_num)
+    IF tmppal = 0 THEN
+     debug "Couldn't load hero palette #" & retvals(1)
+     EXIT SUB
+    END IF
+    palette16_unload(@.pal)
+    .pal = tmppal
+   END WITH
+  END IF
+ CASE 327 '--replace hero sprite
+  IF valid_plotsprite(retvals(0), "replace hero sprite") AND bound_arg(retvals(1), 0, gen(genMaxHeroPic), "replace hero sprite", "sprite number") THEN
+   WITH plot_sprites(retvals(0))
+    dim tmpspr as frame ptr
+    tmpspr = sprite_load(game & ".pt0", retvals(1), 8, 32, 40)
+    IF tmpspr = 0 THEN
+     debug "Couldn't load hero sprite #" & retvals(1)
+     EXIT SUB
+    END IF
+    sprite_unload(@.sprite)
+    .sprite = tmpspr
+    .spr_type = 0
+    .spr_num = retvals(1)
+    .frames = 8
+    IF retvals(2) > -2 THEN
+     dim tmppal as palette16 ptr
+     tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
      IF tmppal = 0 THEN
-      debug "Couldn't load hero palette #" & retvals(1)
+      debug "Couldn't load hero palette #" & retvals(2)
       EXIT SUB
      END IF
      palette16_unload(@.pal)
      .pal = tmppal
-    END WITH
-   END IF
-  END IF
- CASE 327 '--replace hero sprite
-  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(plot_sprites) AND retvals(1) >= 0 AND retvals(1) <= 59 THEN
-   IF plot_sprites(retvals(0)).used THEN
-    WITH plot_sprites(retvals(0))
-     dim tmpspr as frame ptr
-     tmpspr = sprite_load(game & ".pt0", retvals(1), 8, 32, 40)
-     IF tmpspr = 0 THEN
-      debug "Couldn't load hero sprite #" & retvals(1)
-      EXIT SUB
-     END IF
-     sprite_unload(@.sprite)
-     .sprite = tmpspr
-     .spr_type = 0
-     .spr_num = retvals(1)
-     .frames = 8
-     IF retvals(2) > -2 THEN
-      dim tmppal as palette16 ptr
-      tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
-      IF tmppal = 0 THEN
-       debug "Couldn't load hero palette #" & retvals(2)
-       EXIT SUB
-      END IF
-      palette16_unload(@.pal)
-      .pal = tmppal
-     END IF
-    END WITH
-   END IF
+    END IF
+   END WITH
   END IF
  CASE 328 '--set sprite frame
-  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(plot_sprites) AND retvals(1) >= 0 AND retvals(1) <= 59 THEN
-   IF plot_sprites(retvals(0)).used AND retvals(1) >= 0 AND retvals(1) < plot_sprites(retvals(0)).frames THEN
+  IF valid_plotsprite(retvals(0), "set sprite frame") THEN
+   IF bound_arg(retvals(1), 0, plot_sprites(retvals(0)).frames, "set sprite frame", "frame number") THEN
     plot_sprites(retvals(0)).frame = retvals(1)
-    WITH plot_sprites(retvals(0))
-    END WITH
    END IF
   END IF
 END SELECT
@@ -3268,3 +3258,18 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
   END IF
  END WITH
 END SUB
+
+
+FUNCTION valid_plotsprite(byval s as integer, byval cmd as string) as integer
+ IF bound_arg(s, 0, UBOUND(plot_sprites), cmd, "sprite ID") THEN
+  IF plot_sprites(s).used = 0 THEN
+   debug cmd & ": invalid sprite ID " & s
+   RETURN NO
+  ELSE
+   'anything else?
+   RETURN YES
+  END IF
+ END IF
+ 
+ RETURN NO
+END FUNCTION
