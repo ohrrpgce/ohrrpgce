@@ -963,7 +963,7 @@ DO
     col = uilook(uiMenuItem): IF i = wptr THEN col = uilook(uiSelectedItem + tog)
     tstat = atktemp(18)
     IF tstat = 0 or tstat = 1 THEN
-     temp$ = STR$(ABS(stat(i, 0, tstat))) + "/" + STR$(ABS(stat(i, 1, tstat)))
+     temp$ = STR$(ABS(stat(i, 0, tstat))) & "/" & STR$(ABS(stat(i, 1, tstat)))
     ELSE
      temp$ = STR$(ABS(stat(i, 0, tstat)))
     END IF
@@ -1875,7 +1875,7 @@ END SUB
 SUB spells (pt, stat())
 REMEMBERSTATE
 
-DIM sname$(40), menu$(4), mi(4), mtype(5), spel$(24), speld$(24), cost$(24), spel(24), canuse(24), targt(24), spid(5)
+DIM sname$(40), menu$(4), mi(4), mtype(5), spel$(24), speld$(24), cost$(24), spel(24), canuse(24), targt(24), spid(5), tstat(24)
 dim her as herodef
 
 getnames sname$()
@@ -1956,7 +1956,11 @@ DO
     wt = 0: IF wptr = i THEN wt = INT(wtogl / 2)
     loadsprite buffer(), 0, 200 * ((2 * 2) + wt), o * 5, 20, 20, 2
     drawsprite buffer(), 0, pal16(), o * 16, 125, 8 + i * 20, dpage
-    temp$ = ABS(stat(i, 0, 0)) & "/" & ABS(stat(i, 1, 0))
+    IF tstat(sptr) = 0 or tstat(sptr) = 1 THEN
+     temp$ = STR$(ABS(stat(i, 0, tstat(sptr)))) & "/" & STR$(ABS(stat(i, 1, tstat(sptr))))
+    ELSE
+     temp$ = STR$(ABS(stat(i, 0, tstat(sptr))))
+    END IF
     col = uilook(uiMenuItem): IF i = wptr THEN col = uilook(uiSelectedItem + tog)
     edgeprint temp$, 155, 16 + i * 20, col, dpage
     o = o + 1
@@ -1973,13 +1977,14 @@ LOOP
 curspellist:
 IF mtype(csr) < 0 THEN RETRACE
 FOR i = 0 TO 23
- spel$(i) = "": speld$(i) = "": cost$(i) = "": spel(i) = -1: canuse(i) = 0: targt(i) = 0
+ spel$(i) = "": speld$(i) = "": cost$(i) = "": spel(i) = -1: canuse(i) = 0: targt(i) = 0: tstat(i) = 0
  IF spell(pt, spid(csr), i) > 0 THEN
   spel(i) = spell(pt, spid(csr), i) - 1
   loadattackdata buffer(), spel(i)
   IF readbit(buffer(), 20, 59) = 1 THEN
    canuse(i) = buffer(3) + 1
    targt(i) = buffer(4)
+   tstat(i) = buffer(18)
   END IF
   cost = focuscost(buffer(8), stat(pt, 0, 10))
   IF mtype(csr) = 0 AND stat(pt, 0, 1) < cost THEN canuse(i) = 0
