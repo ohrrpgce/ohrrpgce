@@ -86,6 +86,8 @@
 					  padding:5px;
 					  color:black;
 					  margin:3px;
+					  min-height: 48 px;
+					  height: 48 px;
 					}
 
 					div.note a {
@@ -94,6 +96,11 @@
 
 					div.note .param, div.note .key {
 					  color: #888800;
+					}
+					
+					.icon {
+						float:left;
+						padding-right: 5px;
 					}
 ]]>
 				</style>
@@ -209,13 +216,13 @@
 	<xsl:template match="p"><span class="param"><xsl:apply-templates /></span></xsl:template>
 
 	<xsl:template match="note">
-<div style="background-color:#EFF;" class="note"><img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" style="float:left"/><xsl:apply-templates /><br clear="all" /></div></xsl:template>
+<div style="background-color:#EFF;" class="note"><img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon"/><xsl:apply-templates /><br clear="all" /></div></xsl:template>
 
 <xsl:template match="warn">
-<div style="background-color:#FFE;" class="note"><img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" style="float:left"/><xsl:apply-templates /><br clear="all" /></div></xsl:template>
+<div style="background-color:#FFE;" class="note"><img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon"/><xsl:apply-templates /><br clear="all" /></div></xsl:template>
 
 <xsl:template match="danger">
-<div style="background-color:#FEE;" class="note"><img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" style="float:left"/><xsl:apply-templates /><br clear="all" /></div></xsl:template>
+<div style="background-color:#FEE;" class="note"><img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon"/><xsl:apply-templates /><br clear="all" /></div></xsl:template>
 
 </xsl:stylesheet>
 
