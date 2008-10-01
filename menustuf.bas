@@ -961,7 +961,12 @@ DO
     loadsprite buffer(), 0, 200 * ((2 * 2) + wt), o * 5, 20, 20, 2
     drawsprite buffer(), 0, pal16(), o * 16, 89, 8 + i * 20, dpage
     col = uilook(uiMenuItem): IF i = wptr THEN col = uilook(uiSelectedItem + tog)
-    temp$ = STR$(ABS(stat(i, 0, 0))) + "/" + STR$(ABS(stat(i, 1, 0)))
+    tstat = atktemp(18)
+    IF tstat = 0 or tstat = 1 THEN
+     temp$ = STR$(ABS(stat(i, 0, tstat))) + "/" + STR$(ABS(stat(i, 1, tstat)))
+    ELSE
+     temp$ = STR$(ABS(stat(i, 0, tstat)))
+    END IF
     edgeprint temp$, 119, 16 + i * 20, col, dpage
     o = o + 1
    END IF
@@ -1909,7 +1914,7 @@ DO
  FOR i = 0 TO last
   IF mi(i) >= 0 AND csr = i THEN
    FOR o = 0 TO 23
-   	'Note: this will give yellow when canuse is -1 (is it ever?), orig would give blue
+    'Note: this will give yellow when canuse is -1 (is it ever?), orig would give blue
     textcolor uilook(uiDisabledItem - SGN(canuse(o))), 0
     IF sptr = o AND mset = 1 THEN
      IF canuse(o) > 0 THEN 
