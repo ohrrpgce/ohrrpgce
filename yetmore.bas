@@ -1820,6 +1820,7 @@ SELECT CASE AS CONST id
     .spr_type = 0
     .spr_num = 0
     .frames = 0
+    .frame = 0
     palette16_unload(@.pal)
     sprite_unload(@.sprite)
    END WITH
@@ -1864,6 +1865,7 @@ SELECT CASE AS CONST id
     .spr_type = 0
     .spr_num = retvals(1)
     .frames = 8
+    if .frame >= .frames then .frame = 0
     IF retvals(2) > -2 THEN
      dim tmppal as palette16 ptr
      tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
@@ -1921,6 +1923,7 @@ SELECT CASE AS CONST id
     .spr_type = 4
     .spr_num = retvals(1)
     .frames = 8
+    if .frame >= .frames then .frame = 0
     IF retvals(2) > -2 THEN
      dim tmppal as palette16 ptr
      tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
@@ -1972,6 +1975,7 @@ SELECT CASE AS CONST id
     .spr_type = 5
     .spr_num = retvals(1)
     .frames = 2
+    if .frame >= .frames then .frame = 0
     IF retvals(2) > -2 THEN
      dim tmppal as palette16 ptr
      tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
@@ -2023,6 +2027,7 @@ SELECT CASE AS CONST id
     .spr_type = 1
     .spr_num = retvals(1)
     .frames = 1
+    if .frame >= .frames then .frame = 0
     IF retvals(2) > -2 THEN
      dim tmppal as palette16 ptr
      tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
@@ -2074,6 +2079,7 @@ SELECT CASE AS CONST id
     .spr_type = 2
     .spr_num = retvals(1)
     .frames = 1
+    if .frame >= .frames then .frame = 0
     IF retvals(2) > -2 THEN
      dim tmppal as palette16 ptr
      tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
@@ -2125,6 +2131,7 @@ SELECT CASE AS CONST id
     .spr_type = 3
     .spr_num = retvals(1)
     .frames = 1
+    if .frame >= .frames then .frame = 0
     IF retvals(2) > -2 THEN
      dim tmppal as palette16 ptr
      tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
@@ -2176,6 +2183,7 @@ SELECT CASE AS CONST id
     .spr_type = 6
     .spr_num = retvals(1)
     .frames = 3
+    if .frame >= .frames then .frame = 0
     IF retvals(2) > -2 THEN
      dim tmppal as palette16 ptr
      tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
@@ -2227,6 +2235,7 @@ SELECT CASE AS CONST id
     .spr_type = 7
     .spr_num = retvals(1)
     .frames = 16
+    if .frame >= .frames then .frame = 0 'this is, theoretically, impossible
     IF retvals(2) > -2 THEN
      dim tmppal as palette16 ptr
      tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
@@ -2278,6 +2287,7 @@ SELECT CASE AS CONST id
     .spr_type = 8
     .spr_num = retvals(1)
     .frames = 1
+    if .frame >= .frames then .frame = 0
     IF retvals(2) > -2 THEN
      dim tmppal as palette16 ptr
      tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
