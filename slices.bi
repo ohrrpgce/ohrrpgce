@@ -8,9 +8,12 @@
 
 #include "udts.bi"
 
+DECLARE Sub SetupGameSlices
+DECLARE Sub DestroyGameSlices
 DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
 DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr)
 
 EXTERN Slices() as Slice ptr
+EXTERN AS Slice Ptr RootSlice, MapSlice, ScriptSpriteSlice, TextboxSlice, MenuSlice, ScriptStringSlice
 
 #endif

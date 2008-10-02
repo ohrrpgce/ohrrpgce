@@ -17,8 +17,39 @@
 #include "slices.bi"
 
 DIM Slices(100) as Slice Ptr
+DIM AS Slice Ptr RootSlice, MapSlice, ScriptSpriteSlice, TextboxSlice, MenuSlice, ScriptStringSlice
 'add other slice tables here
 
+Sub SetupGameSlices
+ RootSlice = NewSlice
+ 
+ MapSlice = NewSlice(RootSlice)
+ ScriptSpriteSlice = NewSlice(RootSlice)
+ TextBoxSlice = NewSlice(RootSlice)
+ MenuSlice = NewSlice(RootSlice)
+ ScriptStringSlice = NewSlice(RootSlice)
+
+ 'if RootSlice->FirstChild = MapSlice AND _
+ '   RootSlice->FirstChild->NextSibling = ScriptSpriteSlice AND _
+ '   RootSlice->FirstChild->NextSibling->NextSibling = TextBoxSlice AND _
+ '   RootSlice->FirstChild->NextSibling->NextSibling->NextSibling = MenuSlice AND _
+ '   RootSlice->FirstChild->NextSibling->NextSibling->NextSibling->NextSibling = ScriptStringSlice THEN
+ ' debug "Sanity checks, passed!"
+ 'end if
+End Sub
+
+Sub DestroyGameSlices
+ if RootSlice then
+  DeleteSlice(@MapSlice)
+  DeleteSlice(@ScriptSpriteSlice)
+  DeleteSlice(@TextBoxSlice)
+  DeleteSlice(@MenuSlice)
+  DeleteSlice(@ScriptStringSlice)
+ 
+  DeleteSlice(@RootSlice)
+ end if
+ 
+End Sub
 
 'Creates a new Slice object, and optionally, adds it to the heirarchy somewhere
 Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
@@ -45,16 +76,18 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  return ret
 End Function
 
+'Deletes a slice, and any children (and their children (and their...))
 Sub DeleteSlice(Byval s as Slice ptr ptr)
  if s = 0 then exit sub  'can't do anything
  if *s = 0 then exit sub 'already freed
  
  dim sl as slice ptr = *s
  
- dim as slice ptr nxt, prv, par
+ dim as slice ptr nxt, prv, par, ch
  nxt = sl->NextSibling
  prv = sl->PrevSibling
  par = sl->Parent
+ ch = sl->FirstChild
  
  if nxt then
   nxt->PrevSibling = prv
@@ -69,6 +102,13 @@ Sub DeleteSlice(Byval s as Slice ptr ptr)
   par->NumChildren -= 1
  end if
  
+ 'next, delete our children
+ do while ch <> 0
+  nxt = ch->NextSibling
+  DeleteSlice(@ch)
+  ch = nxt
+ loop
+ 
  'finally, we need to remove ourself from the global slice table
  for i as integer = lbound(Slices) to ubound(Slices)
   if Slices(i) = sl then
@@ -80,6 +120,4 @@ Sub DeleteSlice(Byval s as Slice ptr ptr)
  
  delete sl
  *s = 0
- 
- 
 End Sub

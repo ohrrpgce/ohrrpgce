@@ -72,6 +72,7 @@ DECLARE SUB teleporttooltend (mini() AS UBYTE, tilemap(), tilesets() AS TilesetD
 #include "uiconst.bi"
 #include "loading.bi"
 #include "scancodes.bi"
+#include "slices.bi"
 
 REM $STATIC
 SUB addhero (who, slot, stat(), forcelevel=-1)
@@ -1466,6 +1467,9 @@ FOR i = 0 to UBOUND(plot_sprites)
   END IF
  END WITH
 NEXT
+
+DestroyGameSlices
+SetupGameSlices
 
 END SUB
 

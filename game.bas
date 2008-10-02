@@ -9,6 +9,7 @@ DEFINT A-Z
 #include "udts.bi"
 #include "game_udts.bi"
 
+
 'basic subs and functions
 DECLARE SUB verquit ()
 DECLARE SUB keyboardsetup ()
@@ -198,6 +199,7 @@ DECLARE SUB draw_plotsprites
 #include "scrconst.bi"
 #include "uiconst.bi"
 #include "loading.bi"
+#include "slices.bi"
 
 DECLARE FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INTEGER, stat() AS INTEGER, spread AS INTEGER) AS INTEGER
 
@@ -454,6 +456,7 @@ resetinterpreter
 releasestack
 setupstack
 
+SetupGameSlices
 'beginplay
 DO' This loop encloses the playable game for a specific RPG file
 
@@ -806,6 +809,7 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
+DestroyGameSlices
 RETRIEVESTATE
 LOOP ' This is the end of the DO that encloses the entire program.
 
