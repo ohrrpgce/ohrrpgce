@@ -333,8 +333,26 @@ define function, begin
 324,place sprite, 3, 0, 0, 0  #move a sprite(id, x, y)
 325,set sprite visible,2,0,0  #change sprite visibilty(id, vis)
 326,set sprite palette,2,0,0  #set sprite palette(id, pal)
-327,replaceherosprite,3,0,0,-1#replaces the sprite with a hero sprite (id, num, pal)
-328,set sprite frame,2,0,0    #what it says on the tin(id, num)
+327,replaceherosprite,3,0,0,-1 #replaces the sprite with a hero sprite (id, num, pal)
+328,setspriteframe,2,0,0      #what it says on the tin(id, num)
+329,loadwalkaboutsprite,2,0,-1 #load walkabout sprite (number, palette)
+330,replacewalkaboutsprite,3,0,0,-1 #replaces the sprite with a walkabout sprite (id, num, pal)
+331,loadweaponsprite,2,0,-1   #load weapon sprite (number, palette)
+332,replaceweaponsprite,3,0,0,-1 #replaces the sprite with a weapon sprite (id, num, pal)
+333,loadsmallenemysprite,3,0,0,-1  #load enemy sprite (number, palette)
+334,replacesmallenemysprite,4,0,0,0,-1 #replaces the sprite with an enemy sprite (id, num, pal)
+335,loadmediumenemysprite,3,0,0,-1  #load enemy sprite (number, palette)
+336,replacemediumenemysprite,4,0,0,0,-1 #replaces the sprite with an enemy sprite (id, num, pal)
+337,loadlargeenemysprite,3,0,0,-1  #load enemy sprite (number, palette)
+338,replacelargeenemysprite,4,0,0,0,-1 #replaces the sprite with an enemy sprite (id, num, pal)
+339,loadattacksprite,2,0,-1   #load attack sprite (number, palette)
+340,replaceattacksprite,3,0,0,-1 #replaces the sprite with an attack sprite (id, num, pal)
+341,loadbordersprite,2,0,-1   #load a textbox border (number, palette)
+342,replacebordersprite,3,0,0,-1 #replaces the sprite with a textbox border (id, num, pal)
+343,loadportraitsprite,2,0,-1 #load a character portrait (number, palette)
+344,replaceportraitsprite,3,0,0,-1 #replaces the sprite with a character portrait (id, num, pal)
+345,clonesprite,2,0, 0        #returns a copy of the given sprite(ID, pal)
+
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
@@ -997,6 +1015,18 @@ script, get menu item extra, handle=0, extra=0, begin
   if(extra >= 0 && extra <= 2) then, begin
     exit returning(read menu item int(handle, 29+extra))
   end
+end
+
+script, load enemy sprite, size, number, pal = -1, begin
+  if(size == EnemySize:small) then(return(load small enemy sprite(number, pal)))
+  if(size == EnemySize:medium) then(return(load medium enemy sprite(number, pal)))
+  if(size == EnemySize:large) then(return(load large enemy sprite(number, pal)))
+end
+
+script, replace enemy sprite, ID, size, number, pal = -1, begin
+  if(size == EnemySize:small) then(return(replace small enemy sprite(ID, number, pal)))
+  if(size == EnemySize:medium) then(return(replace medium enemy sprite(ID, number, pal)))
+  if(size == EnemySize:large) then(return(replace large enemy sprite(ID, number, pal)))
 end
 
 #--------------------------------------------------------------------------

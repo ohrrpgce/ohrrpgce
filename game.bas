@@ -3162,13 +3162,18 @@ SUB advance_text_box ()
  flusharray carray(), 7, 0
 END SUB
 
-SUB grow_plotsprites
- REDIM PRESERVE plot_sprites(UBOUND(plot_sprites) + 5)
-END SUB
-
-SUB draw_plotsprites
+FUNCTION grow_plotsprites AS INTEGER
  DIM i as integer
  FOR i = 0 to UBOUND(plot_sprites)
+  IF plot_sprites(i).used = NO THEN RETURN i
+ NEXT
+ 
+ REDIM PRESERVE plot_sprites(UBOUND(plot_sprites) * 1.1 + 5)
+ RETURN i
+END FUNCTION
+
+SUB draw_plotsprites
+ FOR i as integer = 0 to UBOUND(plot_sprites)
   IF plot_sprites(i).used THEN
    WITH plot_sprites(i)
     IF .visible THEN
