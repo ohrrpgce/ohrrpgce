@@ -1,5 +1,10 @@
 WHAT IS NEW?
 
+???? ?? 20?? [Ypsiliform]
+
+  * New Features
+    * Plotscripting can now load sprites, and place them on screen. [Mike]
+
 October 02 2008 [xocolatl]
 
   * New Features
@@ -23,7 +28,6 @@ October 02 2008 [xocolatl]
       * "Don't trigger spawning on kill" [James]
       * "Check costs when used as an item" [James]
       * "Re-check costs after attack delay" [James]
-    * Plotscripting can now load sprites, and place them on screen. [Mike]
 
   * Bugfixes
     * bug 678: Ogg music problems in game with werewaffle version
