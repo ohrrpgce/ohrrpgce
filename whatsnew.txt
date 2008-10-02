@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-???? ?? 200? [xocolatl]
+October 02 2008 [xocolatl]
 
   * New Features
     * Visual placement of hero's hand positions and weapon's
@@ -30,8 +30,6 @@ WHAT IS NEW?
 
   * New Plotscripting Stuff
     * get hero speed [MCW]
-
-  * Vikings of Midgard
 
   * Stuff only Developers Will Notice
     * Many old variables re-organized into types
