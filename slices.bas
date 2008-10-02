@@ -6,6 +6,7 @@
 '
 '$DYNAMIC
 
+option explicit
 
 #include "allmodex.bi"
 #include "common.bi"
@@ -17,36 +18,31 @@
 #include "slices.bi"
 
 DIM Slices(100) as Slice Ptr
-DIM AS Slice Ptr RootSlice, MapSlice, ScriptSpriteSlice, TextboxSlice, MenuSlice, ScriptStringSlice
+
+Dim SliceTable as SliceTable_
+
 'add other slice tables here
 
 Sub SetupGameSlices
- RootSlice = NewSlice
+ SliceTable.Root = NewSlice
  
- MapSlice = NewSlice(RootSlice)
- ScriptSpriteSlice = NewSlice(RootSlice)
- TextBoxSlice = NewSlice(RootSlice)
- MenuSlice = NewSlice(RootSlice)
- ScriptStringSlice = NewSlice(RootSlice)
+ SliceTable.Map = NewSlice(SliceTable.Root)
+ SliceTable.ScriptSprite = NewSlice(SliceTable.Root)
+ SliceTable.TextBox = NewSlice(SliceTable.Root)
+ SliceTable.Menu = NewSlice(SliceTable.Root)
+ SliceTable.ScriptString = NewSlice(SliceTable.Root)
 
- 'if RootSlice->FirstChild = MapSlice AND _
- '   RootSlice->FirstChild->NextSibling = ScriptSpriteSlice AND _
- '   RootSlice->FirstChild->NextSibling->NextSibling = TextBoxSlice AND _
- '   RootSlice->FirstChild->NextSibling->NextSibling->NextSibling = MenuSlice AND _
- '   RootSlice->FirstChild->NextSibling->NextSibling->NextSibling->NextSibling = ScriptStringSlice THEN
- ' debug "Sanity checks, passed!"
- 'end if
 End Sub
 
 Sub DestroyGameSlices
- if RootSlice then
-  DeleteSlice(@MapSlice)
-  DeleteSlice(@ScriptSpriteSlice)
-  DeleteSlice(@TextBoxSlice)
-  DeleteSlice(@MenuSlice)
-  DeleteSlice(@ScriptStringSlice)
+ if SliceTable.Root then
+  DeleteSlice(@SliceTable.Map)
+  DeleteSlice(@SliceTable.ScriptSprite)
+  DeleteSlice(@SliceTable.TextBox)
+  DeleteSlice(@SliceTable.Menu)
+  DeleteSlice(@SliceTable.ScriptString)
  
-  DeleteSlice(@RootSlice)
+  DeleteSlice(@SliceTable.Root)
  end if
  
 End Sub
@@ -82,6 +78,9 @@ Sub DeleteSlice(Byval s as Slice ptr ptr)
  if *s = 0 then exit sub 'already freed
  
  dim sl as slice ptr = *s
+ 
+ 'first thing's first.
+ if sl->Dispose <> 0 then sl->Dispose(sl)
  
  dim as slice ptr nxt, prv, par, ch
  nxt = sl->NextSibling
@@ -121,3 +120,38 @@ Sub DeleteSlice(Byval s as Slice ptr ptr)
  delete sl
  *s = 0
 End Sub
+
+Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ 
+ dim rect as RectangleSliceData ptr = cptr(RectangleSliceData ptr, sl->SliceData)
+ 
+ edgebox sl->x, sl->y, sl->width, sl->height, rect->bgcol , rect->fgcol, p, rect->transparent, rect->border
+end sub
+
+Sub DisposeRectangleSlice(byval sl as slice ptr)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ dim rect as RectangleSliceData ptr = cptr(RectangleSliceData ptr, sl->SliceData)
+ delete rect
+ sl->SliceData = 0
+end sub
+
+Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
+ dim ret as Slice ptr
+ ret = NewSlice(parent)
+ if ret = 0 then 
+  debug "Out of memory?!"
+  return 0
+ end if
+ 
+ dim d as RectangleSliceData ptr = new RectangleSliceData(dat) 'cool! I didn't know you could do this!
+ 
+ ret->SliceType = slRectangle
+ ret->SliceData = d
+ ret->Draw = @DrawRectangleSlice
+ ret->Dispose = @DisposeRectangleSlice
+ 
+ return ret
+end function

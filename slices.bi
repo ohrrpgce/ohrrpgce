@@ -13,7 +13,24 @@ DECLARE Sub DestroyGameSlices
 DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
 DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr)
 
+TYPE SliceTable_
+  root AS Slice Ptr
+  map  AS Slice Ptr
+  scriptsprite AS Slice Ptr
+  textbox AS Slice Ptr
+  menu AS Slice Ptr
+  scriptstring AS Slice Ptr
+END TYPE
+
+TYPE RectangleSliceData
+ fgcol as integer
+ bgcol as integer
+ transparent as integer
+ border as integer
+ 
+END TYPE
+
 EXTERN Slices() as Slice ptr
-EXTERN AS Slice Ptr RootSlice, MapSlice, ScriptSpriteSlice, TextboxSlice, MenuSlice, ScriptStringSlice
+EXTERN AS SliceTable_ SliceTable
 
 #endif
