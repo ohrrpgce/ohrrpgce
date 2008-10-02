@@ -366,6 +366,16 @@ TYPE PlotSprite
  y as integer
 END TYPE
 
+TYPE Slice
+  Parent as Slice Ptr
+  FirstChild as Slice Ptr
+  NextSibling as Slice Ptr
+  PrevSibling as Slice Ptr
+  NumChildren as Integer
+  'whatever else
+  
+END TYPE
+
 'Documentation of veh() in game, which is different from the VEH lump
 '0 is true (-1) if in/mounting/dismounting a vehicle
 '1-4 unused
