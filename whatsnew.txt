@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-???? ?? 200? [xocolatl]
+October 02 2008 [xocolatl]
 
   * New Features
     * Visual placement of hero's hand positions and weapon's
@@ -33,8 +33,6 @@ WHAT IS NEW?
     * get hero speed [MCW]
     * load hero sprite, replace hero sprite, place sprite, set sprite
       palette, set sprite visible, free sprite [Mike]
-
-  * Vikings of Midgard
 
   * Stuff only Developers Will Notice
     * Many old variables re-organized into types
