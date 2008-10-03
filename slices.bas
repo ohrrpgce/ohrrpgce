@@ -146,7 +146,8 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
   return 0
  end if
  
- dim d as RectangleSliceData ptr = new RectangleSliceData(dat) 'cool! I didn't know you could do this!
+ dim d as RectangleSliceData ptr = new RectangleSliceData
+ *d = dat
  
  ret->SliceType = slRectangle
  ret->SliceData = d

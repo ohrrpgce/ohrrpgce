@@ -372,6 +372,7 @@ END TYPE
 Enum SliceTypes
  slSpecial
  slRectangle
+ slSprite
 End Enum
 
 Type SliceFwd as Slice
