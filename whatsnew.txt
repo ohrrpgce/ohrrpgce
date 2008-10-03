@@ -5,9 +5,29 @@ WHAT IS NEW?
   * New Features
     * Plotscripting can now load sprites, and place them on screen. [Mike]
 
+  * Bugfixes
+
+  * New Plotscripting Stuff
+
+  * Vikings of Midgard
+
+  * Stuff only Developers Will Notice
+    * New slice routines for rectangular objects of various styles that
+      can be organized into a tree and positioned and sized relative to
+      one another. [Mike]
+
+October 03 2008 [xocolatl+]
+
+  * Vikings of Midgard
+    * Character portraits [Fenrir-Lunaris]
+    * New spell quests [Fenrir-Lunaris]
+    * Other minor fixes [Fenrir-Lunaris]
+
 October 02 2008 [xocolatl]
 
   * New Features
+    * Spells and items used outside of battle now display their
+      target stat instead of always displaying HP [Mike]
     * Visual placement of hero's hand positions and weapon's
       handle positions. [James]
     * Text boxes can be exported as a .TXT file, edited with
