@@ -171,13 +171,27 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
  if sl->SliceData = 0 then exit sub
  
  dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
-
+ dim d as string
+ if dat->wrap then
+  d = wordwrap(dat->s, int(sl->width / 8) - 1)
+ else
+  d = dat->s
+ end if
+ 
+ 'this ugly hack is because printstr doesn't do new lines :@
+ dim lines() as string
+ split(d, lines())
  if dat->outline then 
-  edgeprint dat->s, sl->screenx, sl->screeny, dat->col, p
+  for i as integer = 0 to ubound(lines)
+   edgeprint lines(i), sl->screenx, sl->screeny + i * 10, dat->col, p
+  next
  else
   textcolor dat->col, 0
-  printstr dat->s, sl->screenx, sl->screeny, p
+  for i as integer = 0 to ubound(lines)
+   printstr lines(i), sl->screenx, sl->screeny + i * 10, p
+  next
  end if
+ exit sub
 end sub
 
 Sub DisposeTextSlice(byval sl as slice ptr)
@@ -235,28 +249,54 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
  'first, draw this slice
  if s->Visible then
   'calc it's X,Y
-  
-  SELECT CASE s->Attach
-   CASE slParent
-    s->ScreenX = s->X + s->parent->ScreenX
-    s->ScreenY = s->Y + s->parent->ScreenY
-   case slScreen
-    s->ScreenX = s->X
-    s->ScreenY = s->Y
-   case slSlice
-    s->ScreenX = s->X + s->Attached->ScreenX 
-    s->ScreenY = s->Y + s->Attached->ScreenY
-   case else '???
-    s->ScreenX = s->X
-    s->ScreenY = s->Y
-  END SELECT
-  
-  if s->Draw <> 0 THEN s->Draw(s, page)
-  'draw its children
-  dim ch as slice ptr = s->FirstChild
-  do while ch <> 0
-   DrawSlice(ch, page)
-   ch = ch->NextSibling
-  Loop
+  with *s
+   IF .Fill then
+    SELECT CASE .Attach
+     CASE slParent
+      .ScreenX = .X + .parent->ScreenX + .parent->PaddingLeft
+      .ScreenY = .Y + .parent->ScreenY + .parent->PaddingTop
+      .Width = .parent->Width - .parent->paddingleft - .parent->paddingRight
+      .height = .parent->height - .parent->paddingtop - .parent->paddingbottom
+     case slScreen
+      .ScreenX = .X
+      .ScreenY = .Y
+      .Width = 320
+      .height = 200
+     case slSlice
+      .ScreenX = .X + .Attached->ScreenX 
+      .ScreenY = .Y + .Attached->ScreenY
+      .Width = .Attached->Width - .Attached->paddingleft - .Attached->paddingRight
+      .height = .Attached->height - .Attached->paddingtop - .Attached->paddingbottom
+     case else '???
+      .ScreenX = .X
+      .ScreenY = .Y
+      .Width = 320
+      .height = 200
+    END SELECT
+   ELSE
+    SELECT CASE .Attach
+     CASE slParent
+      .ScreenX = .X + .parent->ScreenX + .parent->PaddingLeft
+      .ScreenY = .Y + .parent->ScreenY + .parent->PaddingTop
+     case slScreen
+      .ScreenX = .X
+      .ScreenY = .Y
+     case slSlice
+      .ScreenX = .X + .Attached->ScreenX 
+      .ScreenY = .Y + .Attached->ScreenY
+     case else '???
+      .ScreenX = .X
+      .ScreenY = .Y
+    END SELECT
+   END IF
+   
+   if .Draw <> 0 THEN .Draw(s, page)
+   'draw its children
+   dim ch as slice ptr = .FirstChild
+   do while ch <> 0
+    DrawSlice(ch, page)
+    ch = ch->NextSibling
+   Loop
+  end with
  end if
 end sub

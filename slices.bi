@@ -41,6 +41,10 @@ TYPE Slice
   Height as integer
   Visible as integer
   
+  as integer PaddingTop, PaddingLeft, PaddingRight, PaddingBottom
+  
+  Fill as integer
+  
   Attach as AttachTypes
   Union
    Attached as Slice ptr
@@ -76,6 +80,7 @@ Type TextSliceData
  col as integer
  outline as integer
  s as String
+ wrap as integer
  'Declare constructor(byval st as string, byval col as integer = -1, byval ol as integer = YES)
 End Type
 

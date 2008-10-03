@@ -22,6 +22,8 @@ declare function rotascii (s as string, o as integer) as string
 declare function escape_string(s as string, chars as string) as string
 declare function sign_string(n as integer, neg_str as string, zero_str as string, pos_str as string) as string
 declare function zero_default(n as integer, zerocaption AS STRING="default", displayoffset AS INTEGER = 0) as string
+declare Function wordwrap(Byval inp as string, byval width as integer, byval sep as string = chr(10), byval unknown as integer = 0) as string
+declare sub split(in as string, ret() as string, sep as string = chr(10))
 
 'also appears in udts.bi
 #ifndef Stack
@@ -40,5 +42,6 @@ declare sub checkoverflow (st as Stack, byval amount as integer = 1)
 'read from a stack offset from the last push (eg. 0 is last int pushed, -1 is previous)
 #define reads(stack, off) stack.pos[(off) - 1]
 #define checkunderflow(stack, amount) ((stack).pos - (amount) < (stack).bottom)
+
 
 #ENDIF

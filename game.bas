@@ -3072,18 +3072,31 @@ SUB slice_test_suite ()
   test_rect_data.bgcol = uilook(uiMenuItem)
   
   testslice1 = NewRectangleSlice(SliceTable.Map, test_rect_data)
-  testslice1->X = 10
-  testslice1->Y = 20
-  testslice1->Width = 100
-  testslice1->Height = 75
-  testslice1->Visible = YES
+  with *testslice1
+   .X = 4
+   .Y = 20
+   .Width = 312
+   .Height = 80
+   .Visible = YES
+   .PaddingTop = 4
+   .Paddingleft = 4
+   .Paddingright = 4
+   .Paddingbottom = 4
+  end with
+  
   
   dim test_text_data AS TextSliceData
-  test_text_data.s = "Test!"
+  test_text_data.s = "James: G'morning Bob, looks like we may have some work to do today. All kinds of battle noises have been coming from the castle. Go check it out, and then come back and tell me what's going on over there."
   test_text_data.col = uilook(uiText)
   test_text_data.outline = YES
+  test_text_data.wrap = YES
+  
+  
   testslice2 = NewTextSlice(testslice1, test_text_data)
-  testslice2->Visible = YES
+  with *testslice2
+   .Visible = YES
+   .Fill = YES
+  end with
   
   first = YES
  END IF

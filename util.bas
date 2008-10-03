@@ -14,7 +14,7 @@ CONST STACK_SIZE_INC = 512 ' in integers
 
 'DECLARE SUB debug (str$)
 
-FUNCTION bound (BYVAL n, BYVAL lowest, BYVAL highest)
+FUNCTION bound (BYVAL n as integer, BYVAL lowest as integer, BYVAL highest as integer) as integer
 bound = n
 IF n < lowest THEN bound = lowest
 IF n > highest THEN bound = highest
@@ -26,102 +26,103 @@ IF n < lowest THEN bound = lowest
 IF n > highest THEN bound = highest
 END FUNCTION
 
-FUNCTION large (BYVAL n1, BYVAL n2)
+FUNCTION large (BYVAL n1 as integer, BYVAL n2 as integer) as integer
 large = n1
 IF n2 > n1 THEN large = n2
 END FUNCTION
 
-FUNCTION loopvar (BYVAL value, BYVAL min, BYVAL max, BYVAL inc)
-a = value + inc
+FUNCTION loopvar (BYVAL value as integer, BYVAL min as integer, BYVAL max as integer, BYVAL inc as integer) as integer
+dim as integer a = value + inc
 IF a > max THEN loopvar = a - ((max - min) + 1): EXIT FUNCTION
 IF a < min THEN loopvar = a + ((max - min) + 1): EXIT FUNCTION
 loopvar = a
 END FUNCTION
 
-FUNCTION small (BYVAL n1, BYVAL n2)
+FUNCTION small (BYVAL n1 as integer, BYVAL n2 as integer) as integer
 small = n1
 IF n2 < n1 THEN small = n2
 END FUNCTION
 
-FUNCTION trimpath$ (filename$)
+FUNCTION trimpath(filename as string) as string
 'return the filename without path
 dim i as integer
-for i = 0 to len(filename$) -1 
-	if filename$[i] = asc("\") or filename$[i] = asc("/") then filename$[i] = asc(SLASH)
+for i = 0 to len(filename) -1 
+	if filename[i] = asc("\") or filename[i] = asc("/") then filename[i] = asc(SLASH)
 next
-IF INSTR(filename$,SLASH) = 0 THEN RETURN filename$
-FOR i = LEN(filename$) TO 1 STEP -1
- IF MID$(filename$, i, 1) = SLASH THEN i += 1 : EXIT FOR
+IF INSTR(filename,SLASH) = 0 THEN RETURN filename
+FOR i = LEN(filename) TO 1 STEP -1
+ IF MID(filename, i, 1) = SLASH THEN i += 1 : EXIT FOR
 NEXT
-RETURN MID$(filename$, i)
+RETURN MID(filename, i)
 END FUNCTION
 
-FUNCTION trimfilename$ (filename$)
+FUNCTION trimfilename (filename as string) as string
 'return the path without the filename
 dim i as integer
-for i = 0 to len(filename$) -1 
-	if filename$[i] = asc("\") or filename$[i] = asc("/") then filename$[i] = asc(SLASH)
+for i = 0 to len(filename) -1 
+	if filename[i] = asc("\") or filename[i] = asc("/") then filename[i] = asc(SLASH)
 next
-IF INSTR(filename$,SLASH) = 0 THEN RETURN ""
-FOR i = LEN(filename$) TO 1 STEP -1
- IF MID$(filename$, i, 1) = SLASH THEN i -= 1 : EXIT FOR
+IF INSTR(filename,SLASH) = 0 THEN RETURN ""
+FOR i = LEN(filename) TO 1 STEP -1
+ IF MID(filename, i, 1) = SLASH THEN i -= 1 : EXIT FOR
 NEXT
-RETURN MID$(filename$, 1, i)
+RETURN MID(filename, 1, i)
 END FUNCTION
 
-FUNCTION trimextension$ (filename$)
+FUNCTION trimextension (filename as string) as string
 'return the filename without extension
-IF INSTR(filename$,".") = 0 THEN RETURN filename$
-FOR i = LEN(filename$) TO 1 STEP -1
- IF MID$(filename$, i, 1) = "." THEN i -= 1 : EXIT FOR
+dim as integer i
+IF INSTR(filename,".") = 0 THEN RETURN filename
+FOR i = LEN(filename) TO 1 STEP -1
+ IF MID(filename, i, 1) = "." THEN i -= 1 : EXIT FOR
 NEXT
-RETURN MID$(filename$, 1, i)
+RETURN MID(filename, 1, i)
 END FUNCTION
 
-FUNCTION justextension$ (filename$)
+FUNCTION justextension (filename as string) as string
 'return only the extension (everything after the *last* period)
-FOR i = LEN(filename$) TO 1 STEP -1
- char$ = MID$(filename$, i, 1)
- IF char$ = "." THEN RETURN RIGHT$(filename$, LEN(filename$) - i)
- IF char$ = SLASH THEN RETURN ""
+FOR i as integer = LEN(filename) TO 1 STEP -1
+ dim as string char = MID(filename, i, 1)
+ IF char = "." THEN RETURN RIGHT(filename, LEN(filename) - i)
+ IF char = SLASH THEN RETURN ""
 NEXT
 RETURN ""
 END FUNCTION
 
-FUNCTION anycase$ (filename$)
+FUNCTION anycase (filename as string) as string
  'make a filename case-insensitive
 #IFDEF __FB_LINUX__
  DIM ascii AS INTEGER
- result$ = ""
- FOR i = 1 TO LEN(filename$)
-  ascii = ASC(MID$(filename$, i, 1))
+ dim as string result = ""
+ FOR i as integer = 1 TO LEN(filename)
+  ascii = ASC(MID(filename, i, 1))
   IF ascii >= 65 AND ascii <= 90 THEN
-   result$ = result$ + "[" + CHR$(ascii) + CHR$(ascii + 32) + "]"
+   result = result + "[" + CHR(ascii) + CHR(ascii + 32) + "]"
   ELSEIF ascii >= 97 AND ascii <= 122 THEN
-   result$ = result$ + "[" + CHR$(ascii - 32) + CHR$(ascii) + "]"
+   result = result + "[" + CHR(ascii - 32) + CHR(ascii) + "]"
   ELSE
-   result$ = result$ + CHR$(ascii)
+   result = result + CHR(ascii)
   END IF
  NEXT i
- RETURN result$
+ RETURN result
 #ELSE
  'Windows filenames are always case-insenstitive
- RETURN filename$
+ RETURN filename
 #ENDIF
 END FUNCTION
 
-SUB touchfile (filename$)
-fh = FREEFILE
-OPEN filename$ FOR BINARY AS #fh
+SUB touchfile (filename as string)
+dim as integer fh = FREEFILE
+OPEN filename FOR BINARY AS #fh
 CLOSE #fh
 END SUB
 
-FUNCTION rotascii$ (s$, o)
-temp$ = ""
-FOR i = 1 TO LEN(s$)
- temp$ = temp$ + CHR$(loopvar(ASC(MID$(s$, i, 1)), 0, 255, o))
-NEXT i
-rotascii$ = temp$
+FUNCTION rotascii (s as string, o as integer) as string
+ dim as string temp = ""
+ FOR i as integer = 1 TO LEN(s)
+  temp = temp + CHR(loopvar(ASC(MID(s, i, 1)), 0, 255, o))
+ NEXT i
+ RETURN temp
 END FUNCTION
 
 FUNCTION escape_string(s AS STRING, chars AS STRING) AS STRING
@@ -185,7 +186,69 @@ FUNCTION sign_string(n AS INTEGER, neg_str AS STRING, zero_str AS STRING, pos_st
  RETURN zero_str
 END FUNCTION
 
-FUNCTION zero_default(n, zerocaption AS STRING="default", displayoffset AS INTEGER = 0) AS STRING
+FUNCTION zero_default(n as integer, zerocaption AS STRING="default", displayoffset AS INTEGER = 0) AS STRING
  IF n = 0 THEN RETURN zerocaption
  RETURN "" & (n + displayoffset)
 END FUNCTION
+
+Function wordwrap(Byval in as string, byval wid as integer, byval sep as string, byval unknown as integer = 0) as string
+ dim as string ret
+ if len(in) <= wid then return in
+ 
+ dim as integer i, j
+ do
+  for i = 1 to small(wid + 1, len(in))
+   if mid(in, i, 1) = sep then
+    ret &= left(in, i - 1) & sep
+    in = mid(in, i + 1)
+    continue do
+   end if
+  next
+  
+  if i > len(in) then
+   ret &= in
+   in = ""
+   exit do
+  end if
+  
+  
+  
+  for j = i - 1 to 1 step -1
+   if mid(in, j, 1) = " " then
+    'bingo!
+    ret &= left(in, j - 1) & sep
+    in = mid(in, j + 1)
+    continue do
+   end if
+  next
+  if j = 0 then 'words too long, we need to cut it off
+   ret &= left(in, wid) & sep
+   in = mid(in, wid + 1)
+  end if
+ loop while in <> ""
+ 
+ return ret
+ 
+end function
+
+sub split(in as string, ret() as string, sep as string = chr(10))
+ redim ret(0)
+ dim as integer i = 0, i2 = 1, j = 0
+ i = instr(i2, in, sep)
+ if i = 0 then
+  ret(0) = in
+  exit sub
+ end if
+ do
+  redim preserve ret(j) 
+  if i = 0 then 
+   ret(j) = mid(in, i2 + 1)
+   exit do
+  else
+   ret(j) = mid(in, i2, i - i2)
+  end if
+  i2 = i + 1
+  i = instr(i2 + 1, in, sep)
+  j+=1
+ loop
+end sub
