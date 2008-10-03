@@ -161,8 +161,6 @@ DIM curcmd as ScriptCommand ptr
 DIM plot_sprites() AS PlotSprite
 REDIM plot_sprites(15)
 
-DIM slice_debug AS INTEGER = NO
-
 'End global variables
 
 'DEBUG debug "Thestart"
@@ -748,7 +746,6 @@ showplotstrings
 IF shownpcinfo THEN npc_debug_display
 IF showtags > 0 THEN tagdisplay
 IF scrwatch THEN scriptwatcher scrwatch, -1
-'IF slice_debug = YES THEN slice_test_suite
 RETRACE
 
 usething:
