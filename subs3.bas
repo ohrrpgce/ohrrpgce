@@ -131,11 +131,11 @@ IF isfile(file$) THEN
  CLOSE #ff
 
  units$ = " B"
- split = 0
- IF size > 1024 THEN split = 1 : units$ = " KB"
- IF size > 1048576 THEN split = 1 : size = size / 1024 : units$ = " MB"
+ spl = 0
+ IF size > 1024 THEN spl = 1 : units$ = " KB"
+ IF size > 1048576 THEN spl = 1 : size = size / 1024 : units$ = " MB"
  fsize$ = STR$(size)
- IF split <> 0 THEN
+ IF spl <> 0 THEN
   size = size / 102.4
   fsize$ = STR$(size \ 10)
   IF size < 1000 THEN fsize$ = fsize$ + "." + STR$(size MOD 10)
