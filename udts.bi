@@ -366,42 +366,4 @@ TYPE PlotSprite
  y as integer
 END TYPE
 
-'=================================================
-'  Slice stuff be here!
-'=================================================
-Enum SliceTypes
- slSpecial
- slRectangle
- slSprite
-End Enum
-
-Type SliceFwd as Slice
-Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
-Type SliceDispose as Sub(Byval as SliceFwd ptr)
-
-TYPE Slice
-  Parent as Slice Ptr
-  FirstChild as Slice Ptr
-  NextSibling as Slice Ptr
-  PrevSibling as Slice Ptr
-  NumChildren as Integer
-  
-  X as integer
-  Y as integer
-  Width as integer
-  Height as integer
-  
-  Draw as SliceDraw
-  Dispose as SliceDispose
-  SliceData as any ptr
-  SliceType as SliceTypes
-  
-  'whatever else
-  
-END TYPE
-
-'=================================================
-'  No more slice stuff!
-'=================================================
-
 #ENDIF

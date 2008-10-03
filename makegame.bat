@@ -1,14 +1,17 @@
 @echo off
 if "%1"=="~" goto noparam
 if "%1"=="" goto noparam
+if Not exist "gfx_%1.bas" goto noparam2
 set OHRGFX=%1
 shift
 if "%1"=="" goto noparam
+if Not exist "music_%1.bas" goto noparam2
 set OHRMUSIC=%1
 
 :noparam
-
 shift
+
+:noparam2
 
 IF "%OHRGFX%"=="" set OHRGFX=fb
 IF "%OHRMUSIC%"=="" set OHRMUSIC=sdl

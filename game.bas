@@ -704,7 +704,7 @@ DO
     IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = XSTR$(speedcontrol) 'CTRL + +
     IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = XSTR$(speedcontrol)'CTRL + -
    END IF
-   IF keyval(scF8) > 1 THEN slice_debug = NOT(slice_debug) 
+   IF keyval(scF8) > 1 THEN slice_test_suite
    IF keyval(scF11) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
   ELSE ' not holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0), tilesets()
@@ -854,7 +854,10 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
  'DEBUG debug "drawoverhead"
  IF readbit(gmap(), 19, 1) THEN drawmap mapx, mapy, 2, 0, tilesets(2), dpage, 1
  IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 0, 2, tilesets(0), dpage
- draw_plotsprites
+ 'draw_plotsprites
+ 
+ DrawSlice(SliceTable.Root, dpage)
+ 
  animatetilesets tilesets()
  IF harmtileflash = YES THEN
   rectangle 0, 0, 320, 200, gmap(10), dpage
@@ -881,7 +884,7 @@ showplotstrings
 IF shownpcinfo THEN npc_debug_display
 IF showtags > 0 THEN tagdisplay
 IF scrwatch THEN scriptwatcher scrwatch, -1
-IF slice_debug = YES THEN slice_test_suite
+'IF slice_debug = YES THEN slice_test_suite
 RETRACE
 
 usething:
@@ -3196,7 +3199,7 @@ END SUB
 
 SUB slice_test_suite ()
  STATIC testslice AS Slice Ptr = 0
- STATIC test_rect_data AS RectangleSliceData
+ dim test_rect_data AS RectangleSliceData
  IF testslice = 0 THEN
   test_rect_data.fgcol = uilook(uiDisabledItem)
   test_rect_data.bgcol = uilook(uiMenuItem)
@@ -3205,6 +3208,8 @@ SUB slice_test_suite ()
   testslice->Y = 20
   testslice->Width = 100
   testslice->Height = 75
+  testslice->Visible = YES
+  debug "Created test slice"
  END IF
- testslice->Draw(testslice, dpage)
+ 'testslice->Draw(testslice, dpage)
 END SUB

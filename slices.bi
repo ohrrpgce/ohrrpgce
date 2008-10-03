@@ -8,10 +8,37 @@
 
 #include "udts.bi"
 
-DECLARE Sub SetupGameSlices
-DECLARE Sub DestroyGameSlices
-DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
-DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr)
+Enum SliceTypes
+ slSpecial = 0
+ slRectangle = 1
+ slSprite = 2
+End Enum
+
+Type SliceFwd as Slice
+Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
+Type SliceDispose as Sub(Byval as SliceFwd ptr)
+
+TYPE Slice
+  Parent as Slice Ptr
+  FirstChild as Slice Ptr
+  NextSibling as Slice Ptr
+  PrevSibling as Slice Ptr
+  NumChildren as Integer
+  
+  X as integer
+  Y as integer
+  Width as integer
+  Height as integer
+  Visible as integer
+  
+  Draw as SliceDraw
+  Dispose as SliceDispose
+  SliceData as any ptr
+  SliceType as SliceTypes
+  
+  'whatever else
+  
+END TYPE
 
 TYPE SliceTable_
   root AS Slice Ptr
@@ -29,6 +56,13 @@ TYPE RectangleSliceData
  border as integer
  
 END TYPE
+
+
+DECLARE Sub SetupGameSlices
+DECLARE Sub DestroyGameSlices
+DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
+DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr)
+DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
 

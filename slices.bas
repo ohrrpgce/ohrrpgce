@@ -25,12 +25,17 @@ Dim SliceTable as SliceTable_
 
 Sub SetupGameSlices
  SliceTable.Root = NewSlice
- 
+ SliceTable.Root->Visible = YES
  SliceTable.Map = NewSlice(SliceTable.Root)
+ SliceTable.Map->Visible = YES
  SliceTable.ScriptSprite = NewSlice(SliceTable.Root)
+ SliceTable.ScriptSprite->Visible = YES
  SliceTable.TextBox = NewSlice(SliceTable.Root)
+ SliceTable.TextBox->Visible = YES
  SliceTable.Menu = NewSlice(SliceTable.Root)
+ SliceTable.Menu->Visible = YES
  SliceTable.ScriptString = NewSlice(SliceTable.Root)
+ SliceTable.ScriptString->Visible = YES
 
 End Sub
 
@@ -156,3 +161,16 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
  
  return ret
 end function
+
+Sub DrawSlice(byval s as slice ptr, byval page as integer)
+ 'first, draw this slice
+ if s->Visible then
+  if s->Draw <> 0 THEN s->Draw(s, page)
+  'draw its children
+  dim ch as slice ptr = s->FirstChild
+  do while ch <> 0
+   DrawSlice(ch, page)
+   ch = ch->NextSibling
+  Loop
+ end if
+end sub
