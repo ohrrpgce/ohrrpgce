@@ -67,6 +67,7 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  ret->SliceType = slSpecial
  ret->Visible = YES
  ret->Attached = parent
+ ret->Attach = slSlice
  
  return ret
 End Function
@@ -226,7 +227,7 @@ Sub DrawStyleRectangleSlice(byval sl as slice ptr, byval p as integer)
  
  dim rect as StyleRectangleSliceData ptr = cptr(StyleRectangleSliceData ptr, sl->SliceData)
  
- edgeboxstyle sl->x, sl->y, sl->width, sl->height, rect->style, p, rect->transparent, rect->border
+ edgeboxstyle sl->screenx, sl->screeny, sl->width, sl->height, rect->style, p, rect->transparent, rect->border
 end sub
 
 Sub DisposeStyleRectangleSlice(byval sl as slice ptr)
@@ -264,8 +265,10 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
  
  dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
  dim d as string
- if dat->wrap then
+ if dat->wrap AND sl->width > 7 then
   d = wordwrap(dat->s, int(sl->width / 8))
+ elseif dat->wrap AND sl->width <= 7 then
+  d = wordwrap(dat->s, int((320 - sl->X) / 8))
  else
   d = dat->s
  end if

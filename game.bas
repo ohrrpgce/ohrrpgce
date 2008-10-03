@@ -3093,7 +3093,9 @@ SUB slice_test_suite ()
   testslice2 = NewTextSlice(testslice1, test_text_data)
   with *testslice2
    .Visible = YES
-   .Fill = YES
+   .Fill = NO
+   .Width = 300
+   
   end with
 
   dim test_stylerect_data AS StyleRectangleSliceData
@@ -3107,6 +3109,7 @@ SUB slice_test_suite ()
    .Y = 120
    .Width = 30
    .Height = 30
+   .Fill = YES
   end with
   
   first = YES
