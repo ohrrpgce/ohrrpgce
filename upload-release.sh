@@ -6,7 +6,6 @@ scp -p distrib/ohrrpgce-linux-x86-${TODAY}-${CODE}.tar.bz2 james_paige@motherham
 
 DEBTODAY=`date "+%Y.%m.%d"`
 SVNREV=`svn info | grep "^Revision:" | sed -e "s/Revision: //"`
-BRANCH=`svn info | grep "^URL:" | sed -e "s/URL: .*\///"`
-scp -p distrib/*_${DEBTODAY}.${BRANCH}-${SVNREV}_i386.deb james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/archive/debian/
+scp -p distrib/*_${DEBTODAY}.${CODE}-${SVNREV}_i386.deb james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/archive/debian/
 
 scp -p whatsnew.txt james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/
