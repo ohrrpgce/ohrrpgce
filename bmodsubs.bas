@@ -31,35 +31,35 @@ DECLARE FUNCTION countitem% (it%)
 #include "udts.bi"
 #INCLUDE "battle_udts.bi"
 
-DECLARE SUB confirm_auto_spread (who, tmask(), bslot() AS BattleSprite)
-DECLARE SUB confirm_auto_focus (who, tmask(), atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
-DECLARE SUB confirm_auto_first (who, tmask(), bslot() AS BattleSprite)
+DECLARE SUB confirm_auto_spread (who as integer, tmask() as integer, bslot() AS BattleSprite)
+DECLARE SUB confirm_auto_focus (who as integer, tmask() as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats)
+DECLARE SUB confirm_auto_first (who as integer, tmask() as integer, bslot() AS BattleSprite)
 
-DECLARE FUNCTION quick_battle_distance(who1, who2, bslot() AS BattleSprite)
-DECLARE FUNCTION battle_distance(who1, who2, bslot() AS BattleSprite)
+DECLARE FUNCTION quick_battle_distance(who1 as integer, who2 as integer, bslot() AS BattleSprite)
+DECLARE FUNCTION battle_distance(who1 as integer, who2 as integer, bslot() AS BattleSprite)
 
 REM $STATIC
-FUNCTION is_hero(who)
+FUNCTION is_hero(who as integer) as integer
  IF who >= 0 AND who <= 3 THEN RETURN -1
  RETURN 0
 END FUNCTION
 
-FUNCTION is_enemy(who)
+FUNCTION is_enemy(who as integer) as integer
  IF who >= 4 AND who <= 11 THEN RETURN -1
  RETURN 0
 END FUNCTION
 
-FUNCTION is_attack(who)
+FUNCTION is_attack(who as integer) as integer
  IF who >= 12 AND who <= 23 THEN RETURN -1
  RETURN 0
 END FUNCTION
 
-FUNCTION is_weapon(who)
+FUNCTION is_weapon(who as integer) as integer
  IF who = 24 THEN RETURN -1
  RETURN 0
 END FUNCTION
 
-SUB advance (who, atk(), bslot() AS BattleSprite)
+SUB advance (who as integer, atk() as integer, bslot() AS BattleSprite)
 d = 1 ' Hero
 IF is_enemy(who) THEN d = -1 ' Enemy
 
@@ -82,7 +82,7 @@ END IF
 
 END SUB
 
-FUNCTION atkallowed (atkbuf(), attacker, spclass, lmplev, bstat() AS BattleStats)
+FUNCTION atkallowed (atkbuf() as integer, attacker as integer, spclass as integer, lmplev as integer, bstat() AS BattleStats) as integer
 '--atkbuf   = attack data
 '--attacker = hero or enemy who is attacking
 '--spclass  = 0 for normal attacks, 1 for level-MP spells
@@ -125,7 +125,7 @@ RETURN YES
 
 END FUNCTION
 
-FUNCTION checktheftchance (item, itemP, rareitem, rareitemP)
+FUNCTION checktheftchance (item as integer, itemP as integer, rareitem as integer, rareitemP as integer) as integer
 IF RND * 100 < itemP THEN
  '--success!
  getitem item + 1, 1
@@ -277,7 +277,7 @@ RETRACE
 
 END SUB
 
-FUNCTION countai (ai, them, es())
+FUNCTION countai (ai as integer, them as integer, es() as integer) as integer
 o = 0
 FOR i = 0 TO 4
  IF es(them - 4, 92 + (ai * 5) + i) > 0 THEN o = o + 1
@@ -285,7 +285,7 @@ NEXT i
 countai = o
 END FUNCTION
 
-FUNCTION enemycount (bslot() AS BattleSprite, bstat() AS BattleStats)
+FUNCTION enemycount (bslot() AS BattleSprite, bstat() AS BattleStats) as integer
 o = 0
 FOR i = 4 TO 11
  IF bstat(i).cur.hp > 0 THEN o = o + 1
@@ -293,7 +293,7 @@ NEXT i
 RETURN o
 END FUNCTION
 
-FUNCTION targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats)
+FUNCTION targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats) as integer
 o = 0
 FOR i = 4 TO 11
  IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND bslot(i).hero_untargetable = NO THEN o = o + 1
@@ -301,7 +301,7 @@ NEXT i
 RETURN o
 END FUNCTION
 
-SUB etwitch (who, atk(), bslot() AS BattleSprite)
+SUB etwitch (who as integer, atk() as integer, bslot() AS BattleSprite)
 
 IF atk(14) < 2 THEN' twitch
  anim_setz who, 2
@@ -332,7 +332,7 @@ END IF
 
 END SUB
 
-Function GetWeaponPos(w,f,isY)'or x?
+Function GetWeaponPos(w as integer,f as integer,isY as integer) as integer'or x?
  'FIXME: Ack! Lets just make handle position a member of bslot()
  dim fh
  IF w >= 0 THEN
@@ -344,7 +344,7 @@ Function GetWeaponPos(w,f,isY)'or x?
  END IF
 End Function
 
-Function GetHeroPos(h,f,isY)'or x?
+Function GetHeroPos(h as integer,f as integer,isY as integer) as integer'or x?
  'FIXME: Ack! Lets just make hand position a member of bslot()
  dim fh
  fh = FREEFILE
@@ -354,7 +354,7 @@ Function GetHeroPos(h,f,isY)'or x?
  CLOSE #FH
 End Function
 
-SUB heroanim (who, atk(), bslot() AS BattleSprite)
+SUB heroanim (who as integer, atk() as integer, bslot() AS BattleSprite)
 hx = 0:hy = 0:wx = 0: wy = 0: xt = 0: yt = 0
 IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN ' strike, cast, dash, standing cast, teleport
  anim_setframe who, 0
@@ -428,7 +428,7 @@ END IF
 
 END SUB
 
-FUNCTION inflict (w, t, bstat() AS BattleStats, bslot() AS BattleSprite, harm$(), hc(), hx(), hy(), atk(), tcount, revengeharm(), repeatharm())
+FUNCTION inflict (w as integer, t as integer, bstat() AS BattleStats, bslot() AS BattleSprite, harm() as string, hc() as integer, hx() as integer, hy() as integer, atk() as integer, tcount as integer, revengeharm() as integer, repeatharm() as integer) as integer
 
 DIM h = 0
 
@@ -681,7 +681,7 @@ bslot(w).attack_succeeded = 1
 
 END FUNCTION
 
-FUNCTION liveherocount (bstat() AS BattleStats)
+FUNCTION liveherocount (bstat() AS BattleStats) as integer
 i = 0
 FOR o = 0 TO 3
  IF hero(o) > 0 AND bstat(o).cur.hp > 0 THEN i = i + 1
@@ -689,7 +689,7 @@ NEXT o
 liveherocount = i
 END FUNCTION
 
-SUB loadfoe (i, formdata(), es(), BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead = NO)
+SUB loadfoe (i as integer, formdata() as integer, es() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead as integer = NO)
 DIM tempbits(4) AS INTEGER ' This is a hack because readbit doesn't work on double-index arrays
 IF formdata(i * 4) > 0 THEN
  loadenemydata buffer(), formdata(i * 4) - 1, -1
@@ -787,7 +787,7 @@ ELSE
 END IF
 END SUB
 
-FUNCTION randomally (who)
+FUNCTION randomally (who as integer) as integer
 IF is_hero(who) THEN
  randomally = INT(RND * 4)
 ELSE
@@ -795,7 +795,7 @@ ELSE
 END IF
 END FUNCTION
 
-FUNCTION randomfoe (who)
+FUNCTION randomfoe (who as integer) as integer
 IF is_enemy(who) THEN
  randomfoe = INT(RND * 4)
 ELSE
@@ -803,7 +803,7 @@ ELSE
 END IF
 END FUNCTION
 
-SUB retreat (who, atk(), bslot() AS BattleSprite)
+SUB retreat (who as integer, atk() as integer, bslot() AS BattleSprite)
 
 IF is_enemy(who) THEN
  IF atk(14) = 2 OR atk(14) = 5 THEN
@@ -835,7 +835,7 @@ END IF
 
 END SUB
 
-FUNCTION safesubtract (number, minus)
+FUNCTION safesubtract (number as integer, minus as integer) as integer
 longnumber& = number
 longminus& = minus
 longresult& = longnumber& - longminus&
@@ -845,23 +845,23 @@ result = longresult&
 safesubtract = result
 END FUNCTION
 
-FUNCTION safemultiply (number, by!)
-longnumber& = number
-longby! = by!
-longresult& = longnumber& * longby!
-IF longresult& > 32767 THEN longresult& = 32767
-IF longresult& < -32768 THEN longresult& = -32768
-result = longresult&
-safemultiply = result
+FUNCTION safemultiply (number as integer, by as single) as integer
+ dim as integer longnumber = number
+ dim as single longby = by
+ dim as integer longresult = longnumber * longby
+ IF longresult > 32767 THEN longresult = 32767
+ IF longresult < -32768 THEN longresult = -32768
+ result = longresult
+ return result
 END FUNCTION
 
-SUB setbatcap (cap$, captime, capdelay)
-battlecaption = cap$
+SUB setbatcap (cap as string, captime as integer, capdelay as integer)
+battlecaption = cap
 battlecaptime = captime
 battlecapdelay = capdelay
 END SUB
 
-SUB smartarrowmask (inrange(), d, axis, bslot() AS BattleSprite, targ AS TargettingState)
+SUB smartarrowmask (inrange() as integer, d as integer, axis as integer, bslot() AS BattleSprite, targ AS TargettingState)
 FOR i = 0 TO 11
  IF targ.mask(i) THEN
   IF axis THEN
@@ -876,7 +876,7 @@ FOR i = 0 TO 11
 NEXT i
 END SUB
 
-SUB smartarrows (d, axis, bslot() AS BattleSprite, BYREF targ AS TargettingState, spred)
+SUB smartarrows (d as integer, axis as integer, bslot() AS BattleSprite, BYREF targ AS TargettingState, spred as integer)
 DIM inrange(0)
 inrange(0) = 0
 smartarrowmask inrange(), d, axis, bslot(), targ
@@ -907,7 +907,7 @@ ELSE
 END IF
 END SUB
 
-FUNCTION targetable (attacker, target, bslot() AS BattleSprite)
+FUNCTION targetable (attacker as integer, target as integer, bslot() AS BattleSprite) as integer
 'this function is orphaned and probably too inaccurate to be useful
 targetable = 0
 IF is_hero(target) THEN
@@ -924,7 +924,7 @@ ELSE
 END IF
 END FUNCTION
 
-FUNCTION targetmaskcount (tmask())
+FUNCTION targetmaskcount (tmask() as integer) as integer
 n = 0
 FOR i = 0 TO 11
  IF tmask(i) THEN n = n + 1
@@ -932,14 +932,14 @@ NEXT i
 targetmaskcount = n
 END FUNCTION
 
-SUB traceshow (s$)
+SUB traceshow (s as string)
 textcolor uilook(uiText), uilook(uiOutline)
 s$ = s$ + STRING$(40 - LEN(s$), " ")
 printstr s$, 0, 191, 0
 printstr s$, 0, 191, 1
 END SUB
 
-FUNCTION trytheft (who, targ, atk(), es())
+FUNCTION trytheft (who as integer, targ as integer, atk() as integer, es() as integer) as integer
 trytheft = 0'--return false by default
 IF is_hero(who) AND is_enemy(targ) THEN
  '--a hero is attacking an enemy
@@ -968,7 +968,7 @@ IF is_hero(who) AND is_enemy(targ) THEN
 END IF
 END FUNCTION
 
-FUNCTION exptolevel (level) as integer
+FUNCTION exptolevel (level as integer) as integer
 ' cp needed to level: calling with level 0 returns xp to lvl 1
 ' HINT: Customisation goes here :)
 
@@ -980,7 +980,7 @@ FUNCTION exptolevel (level) as integer
  return exper
 END FUNCTION
 
-SUB updatestatslevelup (i, exstat(), bstat() AS BattleStats, allowforget)
+SUB updatestatslevelup (i as integer, exstat() as integer, bstat() AS BattleStats, allowforget as integer)
 ' i = who
 ' exstat = external stats
 ' stat = in-battle stats
@@ -1075,7 +1075,7 @@ SUB giveheroexperience (i as integer, exstat() as integer, exper as integer)
  END IF
 END SUB
 
-SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat(), exlev() AS LONG)
+SUB setheroexperience (BYVAL who as integer, BYVAL amount as integer, BYVAL allowforget as integer, exstat() as integer, exlev() AS LONG)
  'unlike giveheroexperience, this can cause delevelling
  DIM dummystats(40) AS BattleStats
 
@@ -1107,11 +1107,11 @@ SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat(), exl
  END IF
 END SUB
 
-FUNCTION visibleandalive (o, bstat() AS BattleStats, bslot() AS BattleSprite)
+FUNCTION visibleandalive (o as integer, bstat() AS BattleStats, bslot() AS BattleSprite) as integer
 visibleandalive = (bslot(o).vis = 1 AND bstat(o).cur.hp > 0)
 END FUNCTION
 
-SUB writestats (exstat(), bstat() AS BattleStats)
+SUB writestats (exstat() as integer, bstat() AS BattleStats)
 setpicstuf buffer(), 636, -1
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
@@ -1229,7 +1229,7 @@ END IF
 
 END SUB
 
-FUNCTION attack_can_hit_dead(who, atkbuf())
+FUNCTION attack_can_hit_dead(who as integer, atkbuf() as integer) as integer
 
 SELECT CASE atkbuf(3)
  CASE 4 'ally-including-dead (hero only)
@@ -1304,7 +1304,7 @@ SUB confirm_auto_first (who, tmask(), bslot() AS BattleSprite)
  NEXT i
 END SUB
 
-FUNCTION find_preferred_target(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
+FUNCTION find_preferred_target(tmask() as integer, who as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats) as integer
 
 DIM i AS INTEGER
 DIM best AS INTEGER

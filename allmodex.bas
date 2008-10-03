@@ -371,7 +371,7 @@ SUB setpassblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
 	setblock(x, y, v, 0, pptr)
 END SUB
 
-FUNCTION readpassblock (BYVAL x as integer, BYVAL y as integer)
+FUNCTION readpassblock (BYVAL x as integer, BYVAL y as integer) as integer
 	return readblock(x, y, 0, pptr)
 END FUNCTION
 
@@ -1759,7 +1759,7 @@ SUB fixspriterecord (buf() as integer, w as integer, h as integer)
  
 END SUB
 
-FUNCTION loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
+FUNCTION loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1) as integer
 'common sense alternative to loadset, setpicstuf
 'loads 16bit records in an array
 'buf() = buffer to load shorts into, starting at buf(0)
@@ -1785,7 +1785,7 @@ FUNCTION loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
  loadrecord = 1
 END FUNCTION
 
-FUNCTION loadrecord (buf() as integer, filen$, recordsize as integer, record as integer = 0)
+FUNCTION loadrecord (buf() as integer, filen$, recordsize as integer, record as integer = 0) as integer
 'wrapper for above
 	dim f as integer
 	dim i as integer
@@ -2034,7 +2034,7 @@ SUB unlumpfile (lump$, fmask$, path$)
 
 end SUB
 
-FUNCTION islumpfile (lump$, fmask$)
+FUNCTION islumpfile (lump$, fmask$) as integer
 	dim lf as integer
 	dim dat as ubyte
 	dim size as integer
@@ -3104,7 +3104,7 @@ SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, b
 
 end sub
 
-FUNCTION loadbmppal (f$, pal() as RGBcolor)
+FUNCTION loadbmppal (f$, pal() as RGBcolor) as integer
 'loads the palette of a 4-bit or 8-bit bmp into pal
 'returns the number of bits
 	dim header as BITMAPFILEHEADER
@@ -3175,7 +3175,7 @@ SUB convertbmppal (f$, mpal() as RGBcolor, pal(), BYVAL o)
 	end if
 END SUB
 
-FUNCTION bmpinfo (f$, dat())
+FUNCTION bmpinfo (f$, dat()) as integer
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim bf as integer
@@ -3490,11 +3490,11 @@ SUB freesfx (BYVAL num)
   sound_free(num)
 end sub
 
-Function sfxisplaying(BYVAL num)
+Function sfxisplaying(BYVAL num) as integer
   return sound_playing(num)
 end Function
 
-Function fileisreadable(f$)
+Function fileisreadable(f$) as integer
 	dim fh as integer, err_code as integer
 	fh = freefile
 	err_code = open(f$ for binary access read as #fh)
@@ -3509,7 +3509,7 @@ Function fileisreadable(f$)
 	return -1
 end Function
 
-Function fileiswriteable(f$)
+Function fileiswriteable(f$) as integer
 	dim fh as integer
 	fh = freefile
 	if open (f$ for binary access read write as #fh) = 2 then
@@ -3520,7 +3520,7 @@ Function fileiswriteable(f$)
 	return -1
 end Function
 
-FUNCTION getmusictype (file$)
+FUNCTION getmusictype (file$) as integer
 
 	if file$ = "" then
 	  'no further checking for blank names

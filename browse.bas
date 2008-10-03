@@ -33,9 +33,9 @@ DECLARE SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMen
 DECLARE FUNCTION validmusicfile (file$, as integer = FORMAT_BAM AND FORMAT_MIDI)
 DECLARE FUNCTION show_mp3_info() AS STRING
 
-FUNCTION browse$ (special, default$, fmask$, tmp$, needf)
+FUNCTION browse (special, default$, fmask$, tmp$, needf) as string
 STATIC remember$
-browse$ = ""
+browse = ""
 
 DIM br AS BrowseMenuState
 br.tmp = tmp$
@@ -143,7 +143,7 @@ DO
     br.nowdir = br.nowdir + tree(treeptr).filename + SLASH
     GOSUB context
    CASE 3
-    browse$ = br.nowdir + tree(treeptr).filename
+    browse = br.nowdir + tree(treeptr).filename
     EXIT DO
   END SELECT
  END IF

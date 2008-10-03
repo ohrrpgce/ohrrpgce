@@ -48,7 +48,7 @@ DIM as string battlecaption
 dim as integer battlecaptime, battlecapdelay, bstackstart, learnmask(245) '6 shorts of bits per hero
 
 REM $STATIC
-FUNCTION battle (form, fatal, exstat())
+FUNCTION battle (form, fatal, exstat()) as integer
 
 REMEMBERSTATE
 
@@ -2308,7 +2308,7 @@ SUB checkitemusability(iuse() AS INTEGER, bstat() AS BattleStats, who AS INTEGER
  NEXT i
 END SUB
 
-FUNCTION checkNoRunBit (bstat() AS BattleStats, bslot() AS BattleSprite)
+FUNCTION checkNoRunBit (bstat() AS BattleStats, bslot() AS BattleSprite) as integer
  DIM i AS INTEGER
  FOR i = 4 TO 11
   IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND bslot(i).unescapable = YES THEN RETURN 1
@@ -2324,7 +2324,7 @@ SUB checkTagCond (t, check, tg, tagand)
  END IF
 END SUB
 
-FUNCTION focuscost (cost, focus)
+FUNCTION focuscost (cost, focus) as integer
 IF focus > 0 THEN
  focuscost = cost - INT(cost / (100 / focus))
 ELSE
@@ -2540,7 +2540,7 @@ FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
  RETURN -1
 END FUNCTION
 
-FUNCTION dieWOboss(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite)
+FUNCTION dieWOboss(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite) as integer
  DIM AS INTEGER j
  '--count bosses
  FOR j = 4 TO 11

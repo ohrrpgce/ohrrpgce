@@ -2591,7 +2591,7 @@ SUB check_menu_tags ()
  NEXT j
 END SUB
 
-FUNCTION game_usemenu (state AS MenuState)
+FUNCTION game_usemenu (state AS MenuState) as integer
  DIM oldptr AS INTEGER
  DIM oldtop AS INTEGER
 

@@ -326,46 +326,46 @@ Sub WriteByteStr(fh as integer, le as integer, s as string)
 	next
 end sub
 
-function xstr$(x as integer)
+function xstr (x as integer) as string
 	if x >= 0 then
-		xstr$ = " " + str$(x)
+		xstr = " " + str(x)
 	else
-		xstr$ = str$(x)
+		xstr = str(x)
 	end if
 end function
 
-function xstr$(x as short)
+function xstr(x as short) as string
 	if x >= 0 then
-		xstr$ = " " + str$(x)
+		xstr = " " + str(x)
 	else
-		xstr$ = str$(x)
+		xstr = str(x)
 	end if
 end function
 
-function xstr$(x as single)
+function xstr(x as single) as string
 	if x >= 0 then
-		xstr$ = " " + str$(x)
+		xstr = " " + str(x)
 	else
-		xstr$ = str$(x)
+		xstr = str(x)
 	end if
 end function
 
-function xstr$(x as double)
+function xstr(x as double) as string
 	if x >= 0 then
-		xstr$ = " " + str$(x)
+		xstr = " " + str(x)
 	else
-		xstr$ = str$(x)
+		xstr = str(x)
 	end if
 end function
 
-function xstr$(x as long)
+function xstr(x as long) as string
 	if x >= 0 then
-		xstr$ = " " + str$(x)
+		xstr = " " + str(x)
 	else
-		xstr$ = str$(x)
+		xstr = str(x)
 	end if
 end function
 
-function intstr$(x as integer)
-    intstr$ = str$(x)
+function intstr(x as integer) as string
+ intstr = str(x)
 end function

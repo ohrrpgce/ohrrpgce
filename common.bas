@@ -21,7 +21,7 @@
 
 #IFDEF IS_GAME
 DECLARE SUB embedtext (text$, limit=0)
-DECLARE FUNCTION istag (num, zero)
+DECLARE FUNCTION istag (num, zero) as integer
 #ENDIF
 
 'a primitive system for printing messages that scroll
@@ -62,13 +62,13 @@ SUB safekill (f$)
 IF isfile(f$) THEN KILL f$
 END SUB
 
-FUNCTION usemenu (state AS MenuState)
+FUNCTION usemenu (state AS MenuState) as integer
  WITH state
   RETURN usemenu(.pt, .top, .first, .last, .size)
  END WITH
 END FUNCTION
 
-FUNCTION usemenu (pt, top, first, last, size)
+FUNCTION usemenu (pt, top, first, last, size) as integer
 
 oldptr = pt
 oldtop = top
@@ -89,7 +89,7 @@ END IF
 
 END FUNCTION
 
-FUNCTION usemenu (state AS MenuState, enabled() AS INTEGER)
+FUNCTION usemenu (state AS MenuState, enabled() AS INTEGER) as integer
 'a version for menus with unselectable items, skip items for which enabled = 0
 
 WITH state
@@ -129,7 +129,7 @@ END WITH
 END FUNCTION
 
 
-FUNCTION soundfile$ (sfxnum%)
+FUNCTION soundfile (sfxnum%) as string
 	DIM as string sfxbase
 
 	sfxbase = workingdir & SLASH & "sfx" & sfxnum%
@@ -188,7 +188,7 @@ SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
  storeset f$, 0, 0
 END SUB
 
-FUNCTION aquiretempdir$ ()
+FUNCTION aquiretempdir () as string
 #IFNDEF __FB_LINUX__
 'Windows only behavior
 tmp$ = environ$("TEMP")
@@ -360,7 +360,7 @@ SUB centerfuz (x, y, w, h, c, p)
  center_edgeboxstyle x, y, w, h, c - 1, p, YES
 END SUB
 
-FUNCTION readbinstring$ (array(), offset, maxlen)
+FUNCTION readbinstring (array(), offset, maxlen) as string
 
 result$ = ""
 strlen = bound(array(offset), 0, maxlen)
@@ -381,7 +381,7 @@ DO WHILE LEN(result$) < strlen
 
 LOOP
 
-readbinstring$ = result$
+return result$
 END FUNCTION
 
 SUB writebinstring (savestr$, array(), offset, maxlen)
@@ -406,7 +406,7 @@ NEXT
 
 END SUB
 
-FUNCTION readbadbinstring$ (array(), offset, maxlen, skipword=0)
+FUNCTION readbadbinstring (array(), offset, maxlen, skipword=0) as string
 result$ = ""
 strlen = bound(array(offset), 0, maxlen)
 
@@ -422,7 +422,7 @@ FOR i = 1 TO strlen
  END IF
 NEXT i
 
-readbadbinstring$ = result$
+return result$
 END FUNCTION
 
 SUB writebadbinstring (savestr$, array(), offset, maxlen, skipword=0)
@@ -440,27 +440,27 @@ NEXT i
 
 END SUB
 
-FUNCTION read32bitstring$ (array(), offset)
+FUNCTION read32bitstring (array(), offset) as string
 result$ = ""
 word = array(offset + 1)
 FOR i = 1 TO array(offset)
  result$ += CHR$(word AND 255)
  IF i MOD 4 = 0 THEN word = array(offset + i \ 4 + 1) ELSE word = word SHR 8
 NEXT
-read32bitstring$ = result$
+return result$
 END FUNCTION
 
-FUNCTION read32bitstring$ (stringptr as integer ptr)
+FUNCTION read32bitstring (stringptr as integer ptr) as string
 result$ = ""
 word = stringptr[1]
 FOR i = 1 TO stringptr[0]
  result$ += CHR$(word AND 255)
  IF i MOD 4 = 0 THEN word = stringptr[i \ 4 + 1] ELSE word = word SHR 8
 NEXT
-read32bitstring$ = result$
+return result$
 END FUNCTION
 
-FUNCTION readbadgenericname$ (index, filename$, recsize, offset, size, skip)
+FUNCTION readbadgenericname (index, filename$, recsize, offset, size, skip) as string
 
 '--clobbers buffer!
 
@@ -472,7 +472,7 @@ IF index >= 0 THEN
  result$ = readbadbinstring$(buffer(), offset, size, skip)
 END IF
 
-readbadgenericname = result$
+return result$
 
 END FUNCTION
 
@@ -484,7 +484,7 @@ FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTE
  END IF
 END FUNCTION
 
-FUNCTION scriptname$ (num, trigger = 0)
+FUNCTION scriptname (num, trigger = 0) as string
 #ifdef IS_GAME
  'remember script names!
  STATIC cachenum, cacheids(24), cachenames(24) as string, gamename$
@@ -527,13 +527,13 @@ ELSE
 END IF
 
 theend:
-scriptname$ = a$
 #ifdef IS_GAME
  IF cachenum = 25 THEN cachenum = 0
  cacheids(cachenum) = num
  cachenames(cachenum) = a$
  cachenum += 1
 #endif
+return a$
 END FUNCTION
 
 Function seconds2str(byval sec as integer, byval f as string = "%m:%S") as string
@@ -574,7 +574,7 @@ Function seconds2str(byval sec as integer, byval f as string = "%m:%S") as strin
   return ret
 end function
 
-FUNCTION getdefaultpal(fileset, index)
+FUNCTION getdefaultpal(fileset, index) as integer
  DIM v AS SHORT
  f$ = workingdir & SLASH & "defpal" & fileset & ".bin"
  IF isfile(f$) THEN
@@ -786,7 +786,7 @@ IF size > 0 THEN
 END IF
 END SUB
 
-FUNCTION defbinsize (id)
+FUNCTION defbinsize (id) as integer
  'returns the default size in BYTES to use for getbinsize() when no BINSIZE data is available at all
  IF id = 0 THEN RETURN 0  'attack.bin
  IF id = 1 THEN RETURN 64 '.stf
@@ -800,7 +800,7 @@ FUNCTION defbinsize (id)
  RETURN 0
 END FUNCTION
 
-FUNCTION curbinsize (id)
+FUNCTION curbinsize (id) as integer
  'returns the correct size in BYTES for of the records for the version you are running
  IF id = 0 THEN RETURN 122 'attack.bin
  IF id = 1 THEN RETURN 84  '.stf
@@ -814,7 +814,7 @@ FUNCTION curbinsize (id)
  RETURN 0
 END FUNCTION
 
-FUNCTION getbinsize (id)
+FUNCTION getbinsize (id) as integer
 'returns the current size in BYTES of the records in the specific binary file you are working with
 IF isfile(workingdir + SLASH + "binsize.bin") THEN
  fbdim recordsize
@@ -834,7 +834,7 @@ END IF
 END FUNCTION
 
 'INTS, not bytes!
-FUNCTION dimbinsize (id)
+FUNCTION dimbinsize (id) as integer
  'curbinsize is size supported by current version of engine
  'getbinsize is size of data in RPG file
  dimbinsize = large(curbinsize(id), getbinsize(id)) / 2
@@ -849,11 +849,11 @@ PUT #fh, 1 + id * 2, size16
 CLOSE #fh
 END SUB
 
-FUNCTION maplumpname$ (map, oldext$)
+FUNCTION maplumpname (map, oldext$) as string
  IF map < 100 THEN
-  maplumpname$ = game & "." & oldext$ & RIGHT$("0" & map, 2)
+  return game & "." & oldext$ & RIGHT$("0" & map, 2)
  ELSE
-  maplumpname$ = workingdir & SLASH & map & "." & oldext$
+  return workingdir & SLASH & map & "." & oldext$
  END IF
 END FUNCTION
 
@@ -1002,8 +1002,8 @@ END IF
 #ENDIF
 END SUB
 
-FUNCTION xstring (s$, x)
-xstring = small(large(x - LEN(s$) * 4, 0), 319 - LEN(s$) * 8)
+FUNCTION xstring (s$, x) as integer
+ return small(large(x - LEN(s$) * 4, 0), 319 - LEN(s$) * 8)
 END FUNCTION
 
 FUNCTION defaultint (n AS INTEGER, default_caption AS STRING="default") AS STRING
@@ -1028,7 +1028,7 @@ SUB poke8bit (array16(), index, val8)
  array16(index \ 2) = element
 END SUB
 
-FUNCTION peek8bit (array16(), index)
+FUNCTION peek8bit (array16(), index) as integer
  element = array16(index \ 2)
  IF index AND 1 THEN
   RETURN (element AND &hFF00) SHR 8
@@ -1099,7 +1099,7 @@ FOR i = 0 TO 255
 NEXT
 END SUB
 
-FUNCTION getmapname$ (m)
+FUNCTION getmapname (m) as string
 DIM nameread(39)
 loadrecord nameread(), game + ".mn", 40, m
 a$ = STRING$(small((nameread(0) AND 255), 39), " ")
@@ -1146,27 +1146,27 @@ FUNCTION createminimap (array() AS UBYTE, map() AS INTEGER, tilesets() AS Tilese
  RETURN zoom
 END FUNCTION
 
-FUNCTION readattackname$ (index)
+FUNCTION readattackname (index) as string
 '--clobbers buffer!!!
-readattackname$ = readbadgenericname$(index, game + ".dt6", 80, 24, 10, 1)
+ return readbadgenericname(index, game + ".dt6", 80, 24, 10, 1)
 END FUNCTION
 
-FUNCTION readenemyname$ (index)
-'--clobbers buffer!!!
-readenemyname$ = readbadgenericname$(index, game + ".dt1", 320, 0, 16, 0)
+FUNCTION readenemyname (index) as string
+ '--clobbers buffer!!!
+ readenemyname = readbadgenericname(index, game + ".dt1", 320, 0, 16, 0)
 END FUNCTION
 
-FUNCTION readitemname$ (index)
-'--clobbers buffer!!!
-readitemname$ = readbadgenericname$(index, game + ".itm", 200, 0, 8, 0)
+FUNCTION readitemname (index) as string
+ '--clobbers buffer!!!
+ readitemname = readbadgenericname(index, game + ".itm", 200, 0, 8, 0)
 END FUNCTION
 
-FUNCTION readshopname$ (shopnum)
-'clobbers buffer!
-readshopname$ = readbadgenericname$(shopnum, game + ".sho", 40, 0, 15, 0)
+FUNCTION readshopname (shopnum) as string
+ 'clobbers buffer!
+ readshopname = readbadgenericname(shopnum, game + ".sho", 40, 0, 15, 0)
 END FUNCTION
 
-FUNCTION getsongname$ (num AS INTEGER, prefixnum AS INTEGER = 0)
+FUNCTION getsongname (num AS INTEGER, prefixnum AS INTEGER = 0) as string
 DIM songd(dimbinsize(binSONGDATA)) AS INTEGER
 DIM s AS STRING
 IF num = -1 THEN RETURN "-none-"
@@ -1178,11 +1178,11 @@ s = s & readbinstring$ (songd(), 0, 30)
 RETURN s
 END FUNCTION
 
-FUNCTION getsfxname$ (num AS INTEGER)
+FUNCTION getsfxname (num AS INTEGER) as string
 DIM sfxd(dimbinsize(binSFXDATA))
 setpicstuf sfxd(), curbinsize(3), -1
 loadset workingdir + SLASH + "sfxdata.bin", num, 0
-getsfxname$ = readbinstring$ (sfxd(), 0, 30)
+return readbinstring (sfxd(), 0, 30)
 END FUNCTION
 
 FUNCTION intgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
@@ -1590,7 +1590,7 @@ s$ = LEFT$(s$, INT((lhold + 1) / 8))
 
 END SUB
 
-FUNCTION finddatafile$(filename$)
+FUNCTION finddatafile(filename$) as string
 'Current dir
 IF isfile(filename$) THEN RETURN filename$
 'same folder as executable
@@ -1665,7 +1665,7 @@ str2array p$, gen(), 14
 
 END SUB
 
-FUNCTION readpassword$
+FUNCTION readpassword as string
 
 '--read a 17-byte string from GEN at word offset 7
 '--(Note that array2str uses the byte offset not the word offset)
@@ -1682,7 +1682,7 @@ FOR i = 1 TO 17
  IF ASC(c$) >= 32 THEN p$ = p$ + c$
 NEXT i
 
-readpassword$ = p$
+return p$
 
 END FUNCTION
 
@@ -2404,7 +2404,7 @@ SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
  state.top = bound(state.top, 0, large(state.last - state.size, 0))
 END SUB
 
-FUNCTION find_empty_menu_item (menu AS MenuDef)
+FUNCTION find_empty_menu_item (menu AS MenuDef) as integer
  DIM i AS INTEGER
  FOR i = 0 TO UBOUND(menu.items)
   WITH menu.items(i)
@@ -2414,7 +2414,7 @@ FUNCTION find_empty_menu_item (menu AS MenuDef)
  RETURN -1
 END FUNCTION
 
-FUNCTION count_menu_items (menu AS MenuDef)
+FUNCTION count_menu_items (menu AS MenuDef) as integer
  DIM i AS INTEGER
  DIM count AS INTEGER = 0
  FOR i = 0 TO UBOUND(menu.items)
@@ -2429,7 +2429,7 @@ FUNCTION count_menu_items (menu AS MenuDef)
  RETURN count
 END FUNCTION
 
-FUNCTION readglobalstring$ (index, default$, maxlen)
+FUNCTION readglobalstring (index, default$, maxlen) as string
 DIM fh AS INTEGER = FREEFILE
 OPEN game + ".stt" FOR BINARY AS #fh
 
@@ -2553,7 +2553,7 @@ SUB create_default_menu(menu AS MenuDef)
  menu.min_chars = 14
 END SUB
 
-FUNCTION read_menu_int (menu AS MenuDef, intoffset AS INTEGER)
+FUNCTION read_menu_int (menu AS MenuDef, intoffset AS INTEGER) as integer
  '--This function allows read access to integers in a menu for the plotscripting interface
  '--intoffset is the integer offset, same as appears in the MENUS.BIN lump documentation
  DIM bits(0) AS INTEGER
@@ -2606,7 +2606,7 @@ SUB write_menu_int (menu AS MenuDef, intoffset AS INTEGER, n AS INTEGER)
  END WITH
 END SUB
 
-FUNCTION read_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER)
+FUNCTION read_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER) as integer
  '--This function allows read access to integers in a menu item for the plotscripting interface
  '--intoffset is the integer offset, same as appears in the MENUITEM.BIN lump documentation
  DIM bits(0) AS INTEGER
@@ -2762,7 +2762,7 @@ FUNCTION enter_or_space () AS INTEGER
  RETURN keyval(28) > 1 OR keyval(57) > 1
 END FUNCTION
 
-FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS INTEGER=0, sub_t AS INTEGER=0)
+FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS INTEGER=0, sub_t AS INTEGER=0) as integer
  DIM i AS INTEGER
  FOR i = 0 TO UBOUND(menu.items)
   WITH menu.items(i)
