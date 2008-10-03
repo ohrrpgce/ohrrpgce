@@ -12,6 +12,7 @@ Enum SliceTypes
  slSpecial = 0
  slRectangle = 1
  slSprite = 2
+ slText
 End Enum
 
 Type SliceFwd as Slice
@@ -54,8 +55,15 @@ TYPE RectangleSliceData
  bgcol as integer
  transparent as integer
  border as integer
- 
+ 'Declare constructor (byval bgcol as integer, byval transparent as integer = YES, byval fgcol as integer = -1, byval border as integer = -1)
 END TYPE
+
+Type TextSliceData
+ col as integer
+ outline as integer
+ s as String
+ 'Declare constructor(byval st as string, byval col as integer = -1, byval ol as integer = YES)
+End Type
 
 
 DECLARE Sub SetupGameSlices

@@ -3,8 +3,8 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-'$DYNAMIC
-DEFINT A-Z
+'!$DYNAMIC
+'DEFINT A-Z
 
 #include "udts.bi"
 #include "game_udts.bi"
@@ -12,160 +12,29 @@ DEFINT A-Z
 #include "slices.bi"
 
 'basic subs and functions
-DECLARE SUB verquit ()
-DECLARE SUB keyboardsetup ()
-DECLARE SUB cathero ()
-DECLARE SUB setScriptArg (arg%, value%)
-DECLARE SUB showplotstrings ()
-DECLARE SUB innRestore (stat%())
-DECLARE SUB exitprogram (needfade%)
-DECLARE FUNCTION wrappass (x%, y%, xgo%, ygo%, isveh%)
-DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, unitsize%)
-DECLARE SUB aheadxy (x%, y%, direction%, distance%)
-DECLARE SUB wrapxy (x%, y%, wide%, high%)
-DECLARE FUNCTION framewalkabout% (x%, y%, framex%, framey%, mapwide%, maphigh%, wrapmode%)
-DECLARE SUB initgamedefaults ()
-DECLARE SUB templockexplain ()
-DECLARE SUB cleanuptemp ()
-DECLARE FUNCTION getfilelist% (wildcard$)
-DECLARE SUB scriptadvanced (id%)
-DECLARE FUNCTION vehiclestuff% (disx%, disy%, vehedge%)
-DECLARE FUNCTION checkfordeath (stat())
-DECLARE SUB loadsay (box_id AS INTEGER)
-DECLARE SUB correctbackdrop ()
-DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
-DECLARE FUNCTION isonscreen% (x%, y%)
-DECLARE SUB readjoysettings ()
-DECLARE FUNCTION settingstring% (searchee$, setting$, result$)
-DECLARE SUB interpolatecat ()
-DECLARE SUB setdebugpan ()
-DECLARE SUB writescriptvar (BYVAL id%, BYVAL newval%)
-DECLARE FUNCTION readscriptvar% (id%)
-DECLARE FUNCTION gethighbyte% (n%)
-DECLARE SUB wrappedsong (songnumber%)
-DECLARE SUB stopsong ()
-DECLARE SUB scriptmisc (id%)
-DECLARE SUB scriptcam (id%)
-DECLARE SUB scriptnpc (id%)
-DECLARE SUB scriptstat (id%, stat%())
-DECLARE FUNCTION getnpcref% (seekid%, offset%)
-DECLARE SUB suspendresume (id%)
-DECLARE SUB scriptwatcher (mode%, drawloop%)
-DECLARE SUB breakpoint (mode%, callspot%)
-DECLARE SUB onkeyscript (scriptnum%)
-DECLARE SUB scriptpalette (id%)
-DECLARE SUB greyscalepal ()
-DECLARE SUB tweakpalette ()
-DECLARE SUB add_rem_swap_lock_hero (box AS TextBox, stat%())
-DECLARE SUB forceparty (stat%())
-DECLARE SUB doequip (toequip%, who%, where%, defwep%, stat%())
-DECLARE SUB scriptdump (s$)
-DECLARE SUB getitem (getit%, num%)
-DECLARE SUB doihavebits ()
-DECLARE SUB npcplot ()
-DECLARE SUB vishero (stat%())
-DECLARE SUB reloadnpc (stat%())
-DECLARE FUNCTION vehpass% (n%, tile%, default%)
-DECLARE SUB initgame ()
-DECLARE FUNCTION readfoemap% (x%, y%, wide%, high%, fh%)
-DECLARE SUB playtimer ()
-DECLARE FUNCTION functiondone ()
-DECLARE SUB subread (si as ScriptInst)
-DECLARE SUB subreturn (si as ScriptInst)
-DECLARE SUB subdoarg (si as ScriptInst)
-DECLARE SUB unwindtodo (si as ScriptInst, levels%)
-DECLARE SUB resetgame (stat%(), scriptout$)
-DECLARE FUNCTION countitem% (it%)
-DECLARE SUB scriptmath ()
-DECLARE FUNCTION movdivis% (xygo%)
-DECLARE SUB scripterr (e$)
-DECLARE SUB calibrate ()
-DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
-DECLARE FUNCTION istag% (num%, zero%)
-DECLARE SUB evalitemtag ()
-DECLARE SUB evalherotag (stat%())
-DECLARE SUB tagdisplay ()
-DECLARE SUB rpgversion (v%)
-DECLARE SUB loaddoor (map%)
-DECLARE FUNCTION findhero% (who%, f%, l%, d%)
-DECLARE SUB doswap (s%, d%, stat%())
-DECLARE FUNCTION howmanyh% (f%, l%)
-DECLARE SUB heroswap (iAll%, stat%())
-DECLARE SUB patcharray (array%(), n$)
-DECLARE SUB drawsay ()
-DECLARE SUB shop (id%, needf%, stat%(), tilesets() AS TilesetData ptr)
-DECLARE SUB minimap (x%, y%, tilesets() AS TilesetData ptr)
-DECLARE FUNCTION teleporttool (tilesets() as TilesetData ptr)
-DECLARE FUNCTION onwho% (w$, alone)
-DECLARE FUNCTION useinn (inn, price, needf, stat(), holdscreen)
-DECLARE SUB itstr (i%)
-DECLARE SUB control ()
-DECLARE FUNCTION picksave% (load%)
-DECLARE SUB savegame (slot%, stat%())
-DECLARE SUB loadgame (slot%, stat%())
-DECLARE SUB equip (pt%, stat%())
-DECLARE FUNCTION items% (stat%())
-DECLARE SUB delitem (it%, num%)
-DECLARE SUB spells (pt%, stat%())
-DECLARE SUB status (pt%, stat%())
-DECLARE SUB getnames (stat$())
-DECLARE SUB resetlmp (slot%, lev%)
-DECLARE FUNCTION battle (form%, fatal%, exstat%())
-DECLARE SUB addhero (who, slot, stat(), forcelevel=-1)
-DECLARE FUNCTION atlevel% (now%, a0%, a99%)
-DECLARE SUB snapshot ()
-DECLARE FUNCTION checksaveslot (slot%)
-DECLARE SUB defaultc ()
-DECLARE SUB forcedismount (catd())
-DECLARE SUB makebackups
-DECLARE SUB setmapxy ()
-DECLARE SUB drawnpcs ()
-DECLARE FUNCTION wrapcollision (xa%, ya%, xgoa%, ygoa%, xb%, yb%, xgob%, ygob%)
-DECLARE FUNCTION cropmovement (x%, y%, xgo%, ygo%)
-DECLARE FUNCTION wraptouch (x1%, y1%, x2%, y2%, distance%)
-DECLARE FUNCTION titlescr% ()
-DECLARE SUB loadmap_gmap(mapnum%)
-DECLARE SUB loadmap_npcl(mapnum%)
-DECLARE SUB loadmap_npcd(mapnum%)
-DECLARE SUB loadmap_tilemap(mapnum%)
-DECLARE SUB loadmap_passmap(mapnum%)
-DECLARE SUB loadmaplumps (mapnum%, loadmask%)
-DECLARE SUB savemapstate_gmap(mapnum%, prefix$)
-DECLARE SUB savemapstate_npcl(mapnum%, prefix$)
-DECLARE SUB savemapstate_npcd(mapnum%, prefix$)
-DECLARE SUB savemapstate_tilemap(mapnum%, prefix$)
-DECLARE SUB savemapstate_passmap(mapnum%, prefix$)
-DECLARE SUB savemapstate (mapnum%, savemask%, prefix$)
-DECLARE SUB loadmapstate_gmap (mapnum%, prefix$, dontfallback% = 0)
-DECLARE SUB loadmapstate_npcl (mapnum%, prefix$, dontfallback% = 0)
-DECLARE SUB loadmapstate_npcd (mapnum%, prefix$, dontfallback% = 0)
-DECLARE SUB loadmapstate_tilemap (mapnum%, prefix$, dontfallback% = 0)
-DECLARE SUB loadmapstate_passmap (mapnum%, prefix$, dontfallback% = 0)
-DECLARE SUB loadmapstate (mapnum%, loadmask%, prefix$, dontfallback% = 0)
-DECLARE SUB deletemapstate (mapnum%, killmask%, prefix$)
-DECLARE SUB deletetemps ()
-DECLARE FUNCTION scriptstate$ (targetscript% = -1)
-DECLARE Sub MenuSound(byval s as integer)
 DECLARE SUB LoadGen
-DECLARE SUB dotimer(byval l as integer)
-DECLARE function dotimerbattle() as integer
-DECLARE function dotimermenu() as integer
-DECLARE sub dotimerafterbattle()
-DECLARE FUNCTION loadscript% (n%)
-DECLARE SUB resetinterpreter ()
-DECLARE SUB killallscripts ()
-DECLARE SUB reloadscript (si as ScriptInst, updatestats = -1)
-DECLARE FUNCTION count_sav(filename AS STRING) AS INTEGER
-DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
-DECLARE FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
-DECLARE SUB remove_menu (slot AS INTEGER)
-DECLARE SUB bring_menu_forward (slot AS INTEGER)
+DECLARE SUB reset_game_state ()
+DECLARE SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
+DECLARE SUB check_menu_tags ()
+
+DECLARE SUB reset_map_state (map AS MapModeState)
+DECLARE SUB opendoor (dforce AS INTEGER=0)
+DECLARE SUB thrudoor (door_id AS INTEGER)
+DECLARE SUB advance_text_box ()
+DECLARE SUB draw_plotsprites
+DECLARE SUB slice_test_suite ()
 DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
 DECLARE FUNCTION menus_allow_player () AS INTEGER
 DECLARE FUNCTION allowed_to_open_main_menu () AS INTEGER
 DECLARE SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tilesets() AS TilesetData ptr)
-DECLARE FUNCTION getdisplayname$ (default$)
-DECLARE SUB check_menu_tags ()
+DECLARE SUB dotimer(byval l as integer)
+DECLARE Sub MenuSound(byval s as integer)
+DECLARE FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
+DECLARE SUB remove_menu (slot AS INTEGER)
+DECLARE SUB bring_menu_forward (slot AS INTEGER)
+DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
+DECLARE sub dotimerafterbattle()
+DECLARE FUNCTION count_sav(filename AS STRING) AS INTEGER
 DECLARE FUNCTION game_usemenu (state AS MenuState)
 DECLARE FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING, minimum AS INTEGER=0) AS INTEGER
@@ -180,17 +49,7 @@ DECLARE FUNCTION assign_menu_item_handle (BYREF mi AS MenuDefItem) AS INTEGER
 DECLARE FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
 DECLARE FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER, visible_only AS INTEGER=YES) AS INTEGER
 DECLARE FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING, mislot AS INTEGER=0, visible_only AS INTEGER=YES) AS INTEGER
-DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
-DECLARE SUB debug_npcs ()
-DECLARE SUB npc_debug_display ()
-DECLARE SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
-DECLARE SUB reset_game_state ()
-DECLARE SUB reset_map_state (map AS MapModeState)
-DECLARE SUB opendoor (dforce AS INTEGER=0)
-DECLARE SUB thrudoor (door_id AS INTEGER)
-DECLARE SUB advance_text_box ()
-DECLARE SUB draw_plotsprites
-DECLARE SUB slice_test_suite ()
+DECLARE SUB loadmaplumps (mapnum as integer, loadmask as integer)
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -202,12 +61,17 @@ DECLARE SUB slice_test_suite ()
 #include "uiconst.bi"
 #include "loading.bi"
 #include "slices.bi"
+#include "yetmore.bi"
+#include "yetmore2.bi"
+#include "moresubs.bi"
+#include "menustuf.bi"
+#include "bmodsubs.bi"
+#include "bmod.bi"
 
-DECLARE FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INTEGER, stat() AS INTEGER, spread AS INTEGER) AS INTEGER
 
 REMEMBERSTATE
 
-debug long_version$ & build_info$
+debug long_version & build_info
 
 'DEBUG debug "randomize timer"
 RANDOMIZE TIMER
@@ -425,7 +289,7 @@ IF usepreunlump = 0 THEN
  unlump sourcerpg, workingdir + SLASH
 END IF
 
-debug "Playing game " & trimpath$(sourcerpg) & " (" & getdisplayname$(" ") & ") " & DATE & " " & TIME
+debug "Playing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
 dim gmap(dimbinsize(4)) 'this must be declared here, after the binsize file exists!
 
@@ -3198,18 +3062,22 @@ SUB draw_plotsprites
 END SUB
 
 SUB slice_test_suite ()
- STATIC testslice AS Slice Ptr = 0
- dim test_rect_data AS RectangleSliceData
- IF testslice = 0 THEN
+ STATIC first as integer
+ 
+ IF first = 0 THEN
+  dim test_rect_data AS RectangleSliceData
+  dim testslice AS Slice Ptr
   test_rect_data.fgcol = uilook(uiDisabledItem)
   test_rect_data.bgcol = uilook(uiMenuItem)
-  testslice = NewRectangleSlice(SliceTable.root, test_rect_data)
+  testslice = NewRectangleSlice(SliceTable.Map, test_rect_data)
   testslice->X = 10
   testslice->Y = 20
   testslice->Width = 100
   testslice->Height = 75
   testslice->Visible = YES
-  debug "Created test slice"
+  
+  
+  
+  first = YES
  END IF
- 'testslice->Draw(testslice, dpage)
 END SUB

@@ -11,120 +11,120 @@ DECLARE SUB setmodex ()
 DECLARE SUB restoremode ()
 DECLARE FUNCTION allocatepage() as integer
 DECLARE SUB freepage (BYVAL page as integer)
-DECLARE SUB copypage (BYVAL page1, BYVAL page2, BYVAL y = 0, BYVAL top = 0, BYVAL bottom = 199)
-DECLARE SUB clearpage (BYVAL page, BYVAL top = 0, BYVAL bottom = 199, BYVAL colour = 0)
-DECLARE SUB setvispage (BYVAL page)
+DECLARE SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer, BYVAL y as integer = 0, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
+DECLARE SUB clearpage (BYVAL page as integer, BYVAL top as integer = 0, BYVAL bottom as integer = 199, BYVAL colour as integer = 0)
+DECLARE SUB setvispage (BYVAL page as integer)
 DECLARE SUB setpal (pal() as RGBcolor)
-DECLARE SUB fadeto (BYVAL red, BYVAL green, BYVAL blue)
+DECLARE SUB fadeto (BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
 DECLARE SUB fadetopal (pal() as RGBcolor)
-DECLARE SUB loadtileset (BYREF tileset as Frame ptr, BYVAL page)
+DECLARE SUB loadtileset (BYREF tileset as Frame ptr, BYVAL page as integer)
 DECLARE SUB unloadtileset (BYREF tileset as Frame ptr)
-DECLARE SUB setmapdata (array(), pas(), BYVAL t, BYVAL b)
-DECLARE SUB setmapblock (BYVAL x, BYVAL y, byval l, BYVAL v)
-DECLARE FUNCTION readmapblock (BYVAL x, BYVAL y, byval l)
-DECLARE SUB setpassblock (BYVAL x, BYVAL y, BYVAL v)
-DECLARE FUNCTION readpassblock (BYVAL x, BYVAL y)
-DECLARE SUB drawmap overload (BYVAL x, BYVAL y, BYVAL l, BYVAL t, BYVAL tileset as TilesetData ptr, BYVAL p, byval trans as integer = 0)
-DECLARE SUB drawmap (BYVAL x, BYVAL y, BYVAL l, BYVAL t, BYVAL tilesetsprite as Frame ptr, BYVAL p, byval trans as integer = 0)
-DECLARE SUB setanim (BYVAL cycle1, BYVAL cycle2)
-DECLARE SUB setoutside (BYVAL defaulttile)
-DECLARE SUB drawsprite (pic(), BYVAL picoff, pal(), BYVAL po, BYVAL x, BYVAL y, BYVAL page, BYVAL trans = -1)
-DECLARE SUB wardsprite (pic(), BYVAL picoff, pal(), BYVAL po, BYVAL x, BYVAL y, BYVAL page, BYVAL trans = -1)
-DECLARE SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL page)
-DECLARE SUB stosprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL page)
-DECLARE SUB loadsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL page)
-DECLARE SUB bigsprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page, BYVAL trans = -1)
-DECLARE SUB hugesprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page, BYVAL trans = -1)
-DECLARE SUB putpixel (BYVAL x, BYVAL y, BYVAL c, BYVAL p)
-DECLARE FUNCTION readpixel (BYVAL x, BYVAL y, BYVAL p)
-DECLARE SUB rectangle (BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL c, BYVAL p)
-DECLARE SUB fuzzyrect (BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL c, BYVAL p)
-DECLARE SUB drawline (BYVAL x1, BYVAL y1, BYVAL x2, BYVAL y2, BYVAL c, BYVAL p)
-DECLARE SUB paintat (BYVAL x, BYVAL y, BYVAL c, BYVAL page, buf(), BYVAL max)
-DECLARE SUB storepage (fil$, BYVAL i, BYVAL p)
-DECLARE SUB loadpage (fil$, BYVAL i, BYVAL p)
-DECLARE SUB setwait (BYVAL t, BYVAL flagt = 0)
+DECLARE SUB setmapdata (array() as integer, pas() as integer, BYVAL t as integer, BYVAL b as integer)
+DECLARE SUB setmapblock (BYVAL x as integer, BYVAL y as integer, byval l as integer, BYVAL v as integer)
+DECLARE FUNCTION readmapblock (BYVAL x as integer, BYVAL y as integer, byval l as integer) as integer
+DECLARE SUB setpassblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
+DECLARE FUNCTION readpassblock (BYVAL x as integer, BYVAL y as integer) as integer
+DECLARE SUB drawmap overload (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer, BYVAL tileset as TilesetData ptr, BYVAL p as integer, byval trans as integer = 0)
+DECLARE SUB drawmap (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, byval trans as integer = 0)
+DECLARE SUB setanim (BYVAL cycle1 as integer, BYVAL cycle2 as integer)
+DECLARE SUB setoutside (BYVAL defaulttile as integer)
+DECLARE SUB drawsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans as integer = -1)
+DECLARE SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans as integer = -1)
+DECLARE SUB getsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL page as integer)
+DECLARE SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer)
+DECLARE SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL page as integer)
+DECLARE SUB bigsprite  (pic() as integer, pal() as integer, BYVAL p as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans as integer = -1)
+DECLARE SUB hugesprite (pic() as integer, pal() as integer, BYVAL p as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans as integer = -1)
+DECLARE SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
+DECLARE FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) as integer
+DECLARE SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
+DECLARE SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
+DECLARE SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYVAL y2 as integer, BYVAL c as integer, BYVAL p as integer)
+DECLARE SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL page as integer, buf() as integer, BYVAL max as integer)
+DECLARE SUB storepage (fil as string, BYVAL i as integer, BYVAL p as integer)
+DECLARE SUB loadpage (fil as string, BYVAL i as integer, BYVAL p as integer)
+DECLARE SUB setwait (BYVAL t as integer, BYVAL flagt as integer = 0)
 DECLARE FUNCTION dowait () as integer
-DECLARE SUB printstr (s$, BYVAL x, BYVAL y, BYVAL p)
-DECLARE SUB textcolor (BYVAL f, BYVAL b)
-DECLARE SUB setfont (f())
-DECLARE SUB setbit (b(), BYVAL w, BYVAL b, BYVAL v)
-DECLARE FUNCTION readbit (b(), BYVAL w, BYVAL b)
-DECLARE SUB storeset (fil$, BYVAL i, BYVAL l)
-DECLARE SUB loadset (fil$, BYVAL i, BYVAL l)
-DECLARE SUB setpicstuf (buf(), BYVAL b, BYVAL p)
-DECLARE FUNCTION loadrecord overload (buf(), fh, recordsize, record = -1)
-DECLARE FUNCTION loadrecord overload (buf(), filename$, recordsize, record = 0)
-DECLARE SUB storerecord overload (buf(), fh, recordsize, record = -1)
-DECLARE SUB storerecord overload (buf(), filename$, recordsize, record = 0)
-DECLARE SUB fixspriterecord (buf(), w, h)
-DECLARE SUB bitmap2page (pal() as RGBcolor, bmp$, BYVAL p)
-DECLARE SUB findfiles overload(fmask$, BYVAL attrib, outfile$, buf())
-DECLARE SUB findfiles (fmask$, BYVAL attrib, outfile$)
-DECLARE SUB lumpfiles (listf$, lump$, path$)
-DECLARE SUB unlump(lump$, ulpath$)
-DECLARE SUB unlumpfile(lump$, fmask$, path$)
-DECLARE FUNCTION islumpfile (lump$, fmask$)
-DECLARE FUNCTION isfile (n$)
-DECLARE FUNCTION isdir (sDir$)
-DECLARE FUNCTION drivelist (d$())
-DECLARE FUNCTION drivelabel$ (drive$)
-DECLARE FUNCTION isremovable (drive$)
-DECLARE FUNCTION hasmedia (drive$)
+DECLARE SUB printstr (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
+DECLARE SUB textcolor (BYVAL f as integer, BYVAL b as integer)
+DECLARE SUB setfont (f() as integer)
+DECLARE SUB setbit (b() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as integer)
+DECLARE FUNCTION readbit (b() as integer, BYVAL w as integer, BYVAL b as integer) as integer
+DECLARE SUB storeset (fil as string, BYVAL i as integer, BYVAL l as integer)
+DECLARE SUB loadset (fil as string, BYVAL i as integer, BYVAL l as integer)
+DECLARE SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
+DECLARE FUNCTION loadrecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1) as integer
+DECLARE FUNCTION loadrecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0) as integer
+DECLARE SUB storerecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
+DECLARE SUB storerecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0)
+DECLARE SUB fixspriterecord (buf() as integer, w as integer, h as integer)
+DECLARE SUB bitmap2page (pal() as RGBcolor, bmp as string, BYVAL p as integer)
+DECLARE SUB findfiles overload(fmask as string, BYVAL attrib as integer, outfile as string, buf() as integer)
+DECLARE SUB findfiles (fmask as string, BYVAL attrib as integer, outfile as string)
+DECLARE SUB lumpfiles (listf as string, lump as string, path as string)
+DECLARE SUB unlump(lump as string, ulpath as string)
+DECLARE SUB unlumpfile(lump as string, fmask as string, path as string)
+DECLARE FUNCTION islumpfile (lump as string, fmask as string) as integer
+DECLARE FUNCTION isfile (n as string) as integer
+DECLARE FUNCTION isdir (sDir as string) as integer
+DECLARE FUNCTION drivelist (d() as string) as integer
+DECLARE FUNCTION drivelabel (drive as string) as string
+DECLARE FUNCTION isremovable (drive as string) as integer
+DECLARE FUNCTION hasmedia (drive as string) as integer
 DECLARE SUB setupmusic
 DECLARE SUB closemusic ()
-DECLARE SUB loadsong (f$)
+DECLARE SUB loadsong (f as string)
 DECLARE SUB pausesong ()
 DECLARE SUB resumesong ()
-DECLARE FUNCTION getfmvol ()
-DECLARE SUB setfmvol (BYVAL vol)
-DECLARE SUB copyfile (s$, d$)
-DECLARE SUB screenshot (f$, BYVAL p, maspal() as RGBcolor)
-DECLARE SUB loadbmp (f$, BYVAL x, BYVAL y, BYVAL p)
-DECLARE SUB bitmap2pal (bmp$, pal() as RGBcolor)
-DECLARE FUNCTION loadbmppal (f$, pal() as RGBcolor)
-DECLARE SUB convertbmppal (f$, mpal() as RGBcolor, pal(), BYVAL o)
+DECLARE FUNCTION getfmvol () as integer
+DECLARE SUB setfmvol (BYVAL vol as integer)
+DECLARE SUB copyfile (s as string, d as string)
+DECLARE SUB screenshot (f as string, BYVAL p as integer, maspal() as RGBcolor)
+DECLARE SUB loadbmp (f as string, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
+DECLARE SUB bitmap2pal (bmp as string, pal() as RGBcolor)
+DECLARE FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
+DECLARE SUB convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, BYVAL o as integer)
 DECLARE FUNCTION nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
-DECLARE FUNCTION bmpinfo (f$, dat())
-DECLARE SUB array2str (arr(), BYVAL o, s$)
-DECLARE SUB str2array (s$, arr(), BYVAL o)
+DECLARE FUNCTION bmpinfo (f as string, dat() as integer) as integer
+DECLARE SUB array2str (arr() as integer, BYVAL o as integer, s as string)
+DECLARE SUB str2array (s as string, arr() as integer, BYVAL o as integer)
 DECLARE SUB setupstack ()
-DECLARE SUB pushw (BYVAL word)
-DECLARE FUNCTION popw ()
-DECLARE SUB pushdw (BYVAL word)
-DECLARE FUNCTION popdw ()
+DECLARE SUB pushw (BYVAL word as integer)
+DECLARE FUNCTION popw () as integer
+DECLARE SUB pushdw (BYVAL word as integer)
+DECLARE FUNCTION popdw () as integer
 DECLARE SUB releasestack ()
-DECLARE FUNCTION stackpos ()
-DECLARE FUNCTION readstackdw (BYVAL off)
-DECLARE SUB drawbox(BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL c, BYVAL p)
-DECLARE FUNCTION isawav(fi$)
-DECLARE FUNCTION fileisreadable(f$)
-DECLARE FUNCTION fileiswriteable(f$)
+DECLARE FUNCTION stackpos () as integer
+DECLARE FUNCTION readstackdw (BYVAL off as integer) as integer
+DECLARE SUB drawbox(BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
+DECLARE FUNCTION isawav(fi as string) as integer
+DECLARE FUNCTION fileisreadable(f as string) as integer
+DECLARE FUNCTION fileiswriteable(f as string) as integer
 
-DECLARE FUNCTION keyval (BYVAL a, BYVAL rwait = 0, BYVAL rrate = 0) as integer
-DECLARE FUNCTION getkey ()
-DECLARE FUNCTION waitforanykey (modkeys = -1) as integer
+DECLARE FUNCTION keyval (BYVAL a as integer, BYVAL rwait as integer = 0, BYVAL rrate as integer = 0) as integer
+DECLARE FUNCTION getkey () as integer
+DECLARE FUNCTION waitforanykey (modkeys as integer = -1) as integer
 DECLARE SUB setkeyrepeat (rwait as integer = 8, rrate as integer = 1)
 DECLARE SUB setkeys ()
 DECLARE SUB clearkey (byval k as integer)
-DECLARE FUNCTION setmouse (mbuf())
-DECLARE SUB readmouse (mbuf())
-DECLARE SUB movemouse (BYVAL x, BYVAL y)
-DECLARE SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)
-DECLARE FUNCTION readjoy (joybuf(), BYVAL jnum)
+DECLARE FUNCTION setmouse (mbuf() as integer) as integer
+DECLARE SUB readmouse (mbuf() as integer)
+DECLARE SUB movemouse (BYVAL x as integer, BYVAL y as integer)
+DECLARE SUB mouserect (BYVAL xmin as integer, BYVAL xmax as integer, BYVAL ymin as integer, BYVAL ymax as integer)
+DECLARE FUNCTION readjoy (joybuf() as integer, BYVAL jnum as integer) as integer
 #DEFINE slowkey(key, fraction) (keyval((key), (fraction), (fraction)) > 1)
 
 DECLARE SUB resetsfx ()
-DECLARE SUB playsfx (BYVAL num, BYVAL l=0) 'l is loop count. -1 for infinite loop
-DECLARE SUB stopsfx (BYVAL num)
-DECLARE SUB pausesfx (BYVAL num)
-DECLARE SUB freesfx (BYVAL num) ' only used by custom's importing interface
-DECLARE FUNCTION sfxisplaying (BYVAL num)
-DECLARE FUNCTION getmusictype (file$)
-'DECLARE SUB getsfxvol (BYVAL num)
-'DECLARE SUB setsfxvol (BYVAL num, BYVAL vol)
+DECLARE SUB playsfx (BYVAL num as integer, BYVAL l as integer=0) 'l is loop count. -1 for infinite loop
+DECLARE SUB stopsfx (BYVAL num as integer)
+DECLARE SUB pausesfx (BYVAL num as integer)
+DECLARE SUB freesfx (BYVAL num as integer) ' only used by custom's importing interface
+DECLARE FUNCTION sfxisplaying (BYVAL num as integer) as integer
+DECLARE FUNCTION getmusictype (file as string) as integer
+'DECLARE SUB getsfxvol (BYVAL num as integer)
+'DECLARE SUB setsfxvol (BYVAL num as integer, BYVAL vol as integer)
 
-'DECLARE FUNCTION getsoundvol ()
+'DECLARE FUNCTION getsoundvol () as integer
 'DECLARE SUB setsoundvol (BYVAL vol)
 
 'new sprite functions

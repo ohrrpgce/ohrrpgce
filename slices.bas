@@ -162,6 +162,26 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
  return ret
 end function
 
+/'
+Constructor RectangleSliceData (byval bg as integer = -1, byval tr as integer = YES, byval fg as integer = -1, byval bor as integer = 0)
+ with this
+  .bgcol = bg
+  if fgcol = -1 then
+   .fgcol = uilook(uiTextBoxFrame)
+  else
+   .fgcol = fg
+  end if
+  if bgcol = -1 then
+   .bgcol = uilook(uiTextBox)
+  else
+   .bgcol = fg
+  end if
+  .border = bor
+  .transparent = tr
+ end with
+End Constructor
+'/
+
 Sub DrawSlice(byval s as slice ptr, byval page as integer)
  'first, draw this slice
  if s->Visible then

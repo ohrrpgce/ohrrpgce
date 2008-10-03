@@ -33,11 +33,11 @@
 #ELSE
  #DEFINE _PSTR & " Other"
 #ENDIF
-CONST build_info$ = "" _GSTR _ESTR _PSTR
+CONST build_info as string = "" _GSTR _ESTR _PSTR
 
 
-option nokeyword getkey
-option nokeyword setmouse
+#undef getkey
+#undef setmouse
 
 'included only for $inclib?
 #include once "crt.bi"
@@ -63,7 +63,7 @@ option nokeyword setmouse
 #elseif 1
 'use nearly-as-fast assembly version (one extra jump)
 
-option nokeyword gosub
+#undef gosub
 #define gosub _gosub_beta(__LINE__,__FUNCTION_NQ__)
 'the "if 0 then" is used to place a label after the goto
 #define _gosub_beta(a,b) asm : call gosub_##b##_line_##a end asm : if 0 then asm : gosub_##b##_line_##a: end asm : goto
@@ -116,23 +116,23 @@ option nokeyword gosub
 #endif
 #define ISDOS 0
 
-declare function xstr$ overload (x as integer)
-declare function xstr$ (x as short)
-declare function xstr$ (x as single)
-declare function xstr$ (x as double)
-declare function xstr$ (x as long)
-declare function intstr$ (x as integer)
+declare function xstr overload (x as integer) as string
+declare function xstr (x as short) as string
+declare function xstr (x as single) as string
+declare function xstr (x as double) as string
+declare function xstr (x as long) as string
+declare function intstr (x as integer) as string
 
 DECLARE SUB getdefaultfont (font() as integer)
-DECLARE SUB xbload (f$, array%(), e$)
-DECLARE SUB xbsave (f$, array%(), bsize%)
+DECLARE SUB xbload (f as string, array() as integer, e as string)
+DECLARE SUB xbsave (f as string, array() as integer, bsize as integer)
 DECLARE SUB crashexplain ()
 declare sub togglewindowed()
 declare sub processcommandline()
 DECLARE function commandlineargcount() as integer
 DECLARE function commandlinearg(argnum as integer) as string
-DECLARE SUB romfontchar (font%(), char%)
-DECLARE SUB makedir (dirname$)
+DECLARE SUB romfontchar (font() as integer, char as integer)
+DECLARE SUB makedir (dirname as string)
 DECLARE SUB setwindowtitle (title as string)
 DECLARE FUNCTION ReadShort overload (fh as integer,p as long=-1) as short
 DECLARE FUNCTION ReadShort overload (filename as string, p as integer) as short
