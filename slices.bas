@@ -172,15 +172,19 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
  
  dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
  dim d as string
+ debug "1: " & dat->s
  if dat->wrap then
   d = wordwrap(dat->s, int(sl->width / 8) - 1)
  else
   d = dat->s
  end if
- 
+ debug "2a: " & dat->s
+ debug "2b: " & d
  'this ugly hack is because printstr doesn't do new lines :@
  dim lines() as string
  split(d, lines())
+ debug "3a: " & dat->s
+ debug "3b: " & d
  if dat->outline then 
   for i as integer = 0 to ubound(lines)
    edgeprint lines(i), sl->screenx, sl->screeny + i * 10, dat->col, p

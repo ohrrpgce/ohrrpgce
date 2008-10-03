@@ -191,8 +191,9 @@ FUNCTION zero_default(n as integer, zerocaption AS STRING="default", displayoffs
  RETURN "" & (n + displayoffset)
 END FUNCTION
 
-Function wordwrap(Byval in as string, byval wid as integer, byval sep as string, byval unknown as integer = 0) as string
- dim as string ret
+Function wordwrap(Byval z as string, byval wid as integer, byval sep as string, byval unknown as integer = 0) as string
+ dim as string ret, in
+ in = z
  if len(in) <= wid then return in
  
  dim as integer i, j
@@ -231,9 +232,10 @@ Function wordwrap(Byval in as string, byval wid as integer, byval sep as string,
  
 end function
 
-sub split(in as string, ret() as string, sep as string = chr(10))
+sub split(byval z as string, ret() as string, sep as string = chr(10))
  redim ret(0)
  dim as integer i = 0, i2 = 1, j = 0
+ dim as string in = z
  i = instr(i2, in, sep)
  if i = 0 then
   ret(0) = in
@@ -242,13 +244,13 @@ sub split(in as string, ret() as string, sep as string = chr(10))
  do
   redim preserve ret(j) 
   if i = 0 then 
-   ret(j) = mid(in, i2 + 1)
+   ret(j) = mid(in, i2)
    exit do
   else
    ret(j) = mid(in, i2, i - i2)
   end if
   i2 = i + 1
-  i = instr(i2 + 1, in, sep)
+  i = instr(i2, in, sep)
   j+=1
  loop
 end sub

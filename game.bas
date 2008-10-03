@@ -3100,6 +3100,8 @@ SUB slice_test_suite ()
   
   first = YES
  END IF
- if keyval(scLeft) > 1 then testslice1->X -= 1
- if keyval(scRight) > 1 then testslice1->X += 1
+ if keyval(scLeft) > 1 then testslice1->X -= 2
+ if keyval(scRight) > 1 then testslice1->X += 2
+ if keyval(scUp) > 1 then testslice1->Y -= 2
+ if keyval(scDown) > 1 then testslice1->Y += 2
 END SUB
