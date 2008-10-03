@@ -100,6 +100,20 @@ define script (82,Josh,none)
 define script (83,Walrus,none) 
 define script (84,Surlaw,none)
 define script (85,Deactivated,none)
+define script (86,triangle1,none)
+define script (87,triangle2,none)
+define script (88,fiends1,none)
+define script (89,fiends2,none)
+define script (90,Hatifinal,none)
+define script (91,zidane,none)
+define script (92,EricSILENCE,none)
+
+
+
+
+
+
+
 
 
 
@@ -141,18 +155,18 @@ if (check equipment ((find hero(hero:Bram)),1) == 118) 	then 	( Add To Stat ((fi
 
 
 #Bluemagic time now, yes?
-if (checktag(tag:Photoheal1 == on)) 	then 	(write spell((find hero(hero:Renard)),1,0,atk:Photoheal))
-if (checktag(tag:Siphon1 == on)) 	then 	(write spell((find hero(hero:Renard)),1,1,atk:Siphon))
-if (checktag(tag:Lifedrain1 == on)) 	then 	(write spell((find hero(hero:Renard)),1,2,atk:Lifedrain))
-if (checktag(tag:Crush1 == on)) 	then 	(write spell((find hero(hero:Renard)),1,3,atk:Crush))
-if (checktag(tag:Maim1 == on)) 		then 	(write spell((find hero(hero:Renard)),1,4,atk:Maim))
-if (checktag(tag:Dissolve1 == on)) 	then 	(write spell((find hero(hero:Renard)),1,5,atk:Dissolve))
-if (checktag(tag:Greenfire1 == on)) 	then 	(write spell((find hero(hero:Renard)),1,6,atk:Greenfire))
-if (checktag(tag:Purplhaze1 == on)) 	then 	(write spell((find hero(hero:Renard)),1,7,atk:Purplhaze))
-if (checktag(tag:Icewave1 == on)) 	then 	(write spell((find hero(hero:Renard)),1,8,atk:Icewave))
-if (checktag(tag:Explode1 == on)) 	then 	(write spell((find hero(hero:Renard)),1,9,atk:Explode))
-if (checktag(tag:Barrier1 == on)) 	then 	(write spell((find hero(hero:Renard)),1,10,atk:Barrier))
-if (checktag(tag:Supernova1 == on)) 	then 	(write spell((find hero(hero:Renard)),1,12,atk:Supernova))
+if (checktag(tag:Photoheal1)) 	then 	(write spell((find hero(hero:Renard)),1,0,atk:Photoheal))
+if (checktag(tag:Siphon1)) 	then 	(write spell((find hero(hero:Renard)),1,1,atk:Siphon))
+if (checktag(tag:Lifedrain1)) 	then 	(write spell((find hero(hero:Renard)),1,2,atk:Lifedrain))
+if (checktag(tag:Crush1)) 	then 	(write spell((find hero(hero:Renard)),1,3,atk:Crush))
+if (checktag(tag:Maim1)) 	then 	(write spell((find hero(hero:Renard)),1,4,atk:Maim))
+if (checktag(tag:Dissolve1)) 	then 	(write spell((find hero(hero:Renard)),1,5,atk:Dissolve))
+if (checktag(tag:Greenfire1)) 	then 	(write spell((find hero(hero:Renard)),1,6,atk:Greenfire))
+if (checktag(tag:Purplhaze1)) 	then 	(write spell((find hero(hero:Renard)),1,7,atk:Purplhaze))
+if (checktag(tag:Icewave1)) 	then 	(write spell((find hero(hero:Renard)),1,8,atk:Icewave))
+if (checktag(tag:Explode1)) 	then 	(write spell((find hero(hero:Renard)),1,9,atk:Explode))
+if (checktag(tag:Barrier1)) 	then 	(write spell((find hero(hero:Renard)),1,10,atk:Barrier))
+if (checktag(tag:Supernova1)) 	then 	(write spell((find hero(hero:Renard)),1,12,atk:Supernova))
 
 end
 
@@ -2375,6 +2389,14 @@ script,Bramget,begin
  use door (0)
  resume player
  resume box advance
+ #Let's equip Bram with her initial gear!
+
+ force equip ((find hero (hero:Bram)),1,197)
+ force equip ((find hero (hero:Bram)),2,205)
+ force equip ((find hero (hero:Bram)),3,208)
+ force equip ((find hero (hero:Bram)),4,211)
+ 
+
 end
 
 script,warriorget,begin
@@ -2460,6 +2482,10 @@ script,warriorget,begin
  walk NPC (17,left,1)
  wait (4)
  resume obstruction
+ force equip ((find hero (hero:Kitt)),1,198)
+ force equip ((find hero (hero:Kitt)),2,206)
+ force equip ((find hero (hero:Kitt)),3,209)
+ force equip ((find hero (hero:Kitt)),4,210)
  wait (1)
  set tag(79,on)
  wait (3)
@@ -2559,8 +2585,13 @@ script,missionaryget,begin
  wait for camera
  camera follows hero (me)
  add hero (hero:Frumpy)
+ wait (1)
  resume player
  resume box advance
+ force equip ((find hero (hero:Frumpy)),1,199)
+ force equip ((find hero (hero:Frumpy)),2,205)
+ force equip ((find hero (hero:Frumpy)),3,207)
+ force equip ((find hero (hero:Frumpy)),4,212)
 end
 
 script,shamanget,begin
@@ -2768,6 +2799,10 @@ script,shamanget,begin
  set tag (81,on)
  resume player
  resume box advance
+ force equip ((find hero (hero:Night)),1,200)
+ force equip ((find hero (hero:Night)),2,205)
+ force equip ((find hero (hero:Night)),3,207)
+ force equip ((find hero (hero:Night)),4,212)
 end
 
 script,rangerget,begin
@@ -2828,6 +2863,10 @@ script,rangerget,begin
  set tag (82,on)
  resume player
  resume box advance
+ force equip ((find hero (hero:Styrge)),1,201)
+ force equip ((find hero (hero:Styrge)),2,206)
+ force equip ((find hero (hero:Styrge)),3,208)
+ force equip ((find hero (hero:Styrge)),4,211)
 end
 
 script,westernpit,begin
@@ -3019,6 +3058,10 @@ script,valkyrieget,begin
  resume caterpillar
  resume player
  resume box advance
+ force equip ((find hero (hero:Hilda)),1,204)
+ force equip ((find hero (hero:Hilda)),2,206)
+ force equip ((find hero (hero:Hilda)),3,209)
+ force equip ((find hero (hero:Hilda)),4,210)
 end
 
 script,grinlow,begin
@@ -3354,6 +3397,10 @@ script,skaldget,begin
  resume player
  resume random enemies
  resume box advance
+ force equip ((find hero (hero:Eric)),1,203)
+ force equip ((find hero (hero:Eric)),2,205)
+ force equip ((find hero (hero:Eric)),3,208)
+ force equip ((find hero (hero:Eric)),4,211)
 end
 
 script,whalepunch,begin
@@ -3734,6 +3781,10 @@ script,berserkerget,begin
  resume box advance
  resume random enemies
  camera follows hero (me)
+ force equip ((find hero (hero:Olaf)),1,202)
+ force equip ((find hero (hero:Olaf)),2,203)
+ force equip ((find hero (hero:Olaf)),3,209)
+ force equip ((find hero (hero:Olaf)),4,210)
 end
 
 script,randomboxpuzzle,begin
@@ -7432,6 +7483,9 @@ script,finalbrising,begin
  set caterpillar mode (off)
  resume box advance
  resume player
+ force equip ((find hero (hero:Renard)),2,203)
+ force equip ((find hero (hero:Renard)),3,209)
+ force equip ((find hero (hero:Renard)),4,210)
 end
 
 script,BramReturns,begin
@@ -11139,3 +11193,1377 @@ script,Deactivated,begin
 end
 
 
+script,triangle1,begin
+ suspend player
+ suspend box advance
+ 
+
+ focus camera (8,14,4)
+ wait for camera
+ wait (3)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ show text box (1469)
+ wait (7)
+ wait for key (use key)
+ advance text box
+
+ walk NPC (0,down,7)
+ wait (3)
+ walk NPC (2,left,1)
+ wait for NPC (2)
+ wait (3)
+ set NPC direction (2,up)
+ set NPC frame (2,1)
+ wait (1)
+ set  NPC frame (2,0)
+ wait (1)
+ set  NPC frame (2,1)
+ wait (1)
+ set  NPC frame (2,0)
+ wait (1)
+ show text box (1470)
+ wait (7)
+ wait for key (use key)
+ advance text box
+
+
+
+
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ show text box (1471)
+ wait (7)
+ wait for key (use key)
+ advance text box
+
+
+
+ walk hero (me,down,2)
+ walk NPC (2,up,2)
+ wait for hero (me)
+ set hero direction (me,right)
+ set NPC direction (2,left)
+ set NPC frame (2,1)
+ wait (1)
+ set  NPC frame (2,0)
+ wait (1)
+ set  NPC frame (2,1)
+ wait (1)
+ set  NPC frame (2,0)
+ wait (1)
+ show text box (1472)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ show text box (1473)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ show text box (1474)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC direction (2,down)
+ wait (5)
+ set NPC direction (2,right)
+ wait (5)
+ set NPC frame (2,1)
+ wait (1)
+ set  NPC frame (2,0)
+ wait (1)
+ set  NPC frame (2,1)
+ wait (1)
+ set  NPC frame (2,0)
+ wait (1)
+ show text box (1475)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ show text box (1476)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC frame (2,1)
+ wait (1)
+ set  NPC frame (2,0)
+ wait (1)
+ set  NPC frame (2,1)
+ wait (1)
+ set  NPC frame (2,0)
+ wait (1)
+ show text box (1477)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ suspend obstruction
+ wait (1)
+ walk NPC (2,left,1)
+ wait for NPC (2)
+ camera follows hero (me)
+ unlock hero (hero:Styrge)
+ set tag (tag:Styrgerejoins,on)
+ resume box advance
+ resume player
+ resume obstruction
+end
+
+script,triangle2,begin
+ suspend player
+ suspend box advance
+ suspend NPCs
+ focus camera (53,26,4)
+ wait for camera
+ swap by position (0, find hero (hero:Styrge))
+ wait (1)
+ set caterpillar mode (on)
+ set hero position (1, 53, 29)
+ set hero position (2, 53, 29)
+ set hero position (3, 53, 29)
+ wait (1)
+ suspend caterpillar 
+ walk hero (1,left,1)
+ walk hero (2,right,1)
+ walk hero (me,up,1)
+ wait for hero (me)
+ set hero direction (1,up)
+ set hero direction (2,up)
+
+ wait (3)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ show text box (1478)
+ wait (7)
+ wait for key (use key)
+ advance text box
+  set NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ set  NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ show text box (1479)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ wait (5)
+ set NPC direction (9,left)
+ wait (5)
+ set NPC direction (9,down)
+ show text box (1480)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ show text box (1481)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ set  NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ show text box (1482)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ #MrT should morph into Guilt now
+
+
+ fade screen out (63,63,63)
+ wait (1)
+ Alter NPC (9,NPCstat:picture,4)
+ Alter NPC (9,NPCstat:palette,147)
+ wait (1)
+ fade screen in
+ wait (5)
+
+
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ show text box (1483)
+ wait (7)
+ wait for key (use key)
+ advance text box
+
+ set NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ set  NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ show text box (1484)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ show text box (1485)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ show text box (1486)
+ wait (7)
+ wait for key (use key)
+ advance text box
+
+ set NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ set  NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ show text box (1487)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ walk NPC (9,down,1)
+ wait for NPC (9)
+ set NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ set  NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ show text box (1488)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ walk hero (me,up,1)
+ wait for hero (me)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ show text box (1489)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ show text box (1490)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ fade screen out
+ wait (1)
+ show text box (1491)
+ wait (1)
+ fade screen in
+ wait (7)
+ wait for key (usekey)
+ show text box (1492)
+ wait (7)
+ wait for key (use key)
+ fade screen out
+ wait (1)
+ advance text box
+ wait (1)
+ fade screen in
+ wait (3)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ show text box (1493)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ show text box (1494)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ set  NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ show text box (1495)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ walk hero (1,up,1)
+ wait for hero (1)
+ set hero frame (1,1)
+ wait (1)
+ set hero frame (1,0)
+ wait (1)
+ set hero frame (1,1)
+ wait (1)
+ set hero frame (1,0)
+ wait (1)
+ show text box (1496)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ set  NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ show text box (1497)
+ wait (7)
+ wait for key (use key)
+ advance text box
+
+
+ walk hero (2,up,1)
+ wait for hero (2)
+ set hero frame (2,1)
+ wait (1)
+ set hero frame (2,0)
+ wait (1)
+ set hero frame (2,1)
+ wait (1)
+ set hero frame (2,0)
+ wait (1)
+ show text box (1498)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ set  NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ show text box (1499)
+ wait (7)
+ wait for key (use key)
+ advance text box
+
+ walk hero (3,up,1)
+ wait for hero (3)
+ set hero frame (3,1)
+ wait (1)
+ set hero frame (3,0)
+ wait (1)
+ set hero frame (3,1)
+ wait (1)
+ set hero frame (3,0)
+ wait (1)
+ show text box (1500)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC direction (9,left)
+ wait (5)
+ set NPC direction (9,up)
+ wait (5)
+ set NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ set  NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ show text box (1501)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ show text box (1502)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ set  NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ show text box (1503)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC direction (9,left)
+ wait (3)
+ set NPC direction (9,down)
+ wait (3)
+ show text box (1504)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ #The new boss fight effect!
+ show text box (1361)
+ tweak palette (30,-10,-10)
+ fade screen in
+ play sound (sfx:WARNING,false,true) 
+ wait (10)
+ reset palette
+ fade screen in
+ advance textbox
+
+
+ Variable (var1) 
+ Variable (var2) 
+ #This next script part was originally done by Mad Cacti.
+ #Truthfully, I have no idea what's going on here.
+ #Seriously.  But you should always try to indicate to the player that something BIG is coming.
+ wait (3) 
+ For (var1,0,2,1) 
+ Do(for(var2,0,255,1) 
+ Do(Write color (var2,var1,63--read color (var2,var1)))) 
+ Fade screen in 
+ wait (1)
+ reset palette
+ #After the nifty color inverting takes place, we've got a battle to fight!  
+ fight formation (193)
+ set tag (tag:Guiltdefeated,on)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ show text box (1505)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ tweak palette (10,10,10)
+ play sound (sfx:Heal8Bit,false,true)
+ force equip (0,slot:weapon,item:Cosmos)
+ wait (1)
+ delete item (item:Cursed,1)
+ wait (1)
+ reset palette
+ fade screen in
+ show text box (1506)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ wait (5)
+ fade screen out (63,63,63)
+ wait (2)
+ focus camera (50,15,4)
+ wait for camera
+ set caterpillar mode (off)
+ resume caterpillar
+ set hero position (me, 47, 15)
+ set hero direction (me,right)
+ fade screen in
+ show text box (1507)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ show text box (1508)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ show text box (1509)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ show text box (1510)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ wait (5)
+ fade screen out
+ wait (1)
+ camera follows hero (me)
+ wait (1)
+ use door (2)
+
+ resume box advance
+ resume NPCs
+ resume player
+end
+
+script,fiends1,begin
+ suspend player
+ suspend box advance
+ focus camera (9,79,4)
+ wait for camera
+ wait (5)
+ show text box (1511)
+ wait (7)
+ wait for key (use key)
+ advance text box
+
+ focus camera (9,85,4)
+ wait for camera
+ camera follows hero (me)
+ resume box advance
+ resume player
+end
+
+script,fiends2,begin
+ suspend player
+ suspend box advance
+ wait (5)
+ set hero direction (me,left)
+ wait (5)
+ set hero direction (me,right)
+ wait (5)
+ set hero direction (me,left)
+ wait (5)
+ set hero direction (me,right)
+ wait (5)
+ set hero direction (me,left)
+ wait (5)
+ set hero direction (me,right)
+ wait (5)
+ set hero direction (me,down)
+ show text box (1512)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ resume box advance
+ resume player
+end
+
+script,Hatifinal,begin
+ suspend player
+ suspend NPCs
+ suspend box advance
+
+ set NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ set  NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ show text box (1513)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ show text box (1514)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ set  NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ show text box (1515)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ wait (5)
+ set NPC direction (9,right)
+ wait (5)
+ set NPC direction (9,up)
+ wait (5)
+ set NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ set  NPC frame (9,1)
+ wait (1)
+ set  NPC frame (9,0)
+ wait (1)
+ show text box (1516)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ set hero frame (me,1)
+ wait (1)
+ set hero frame (me,0)
+ wait (1)
+ show text box (1517)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ show text box (1518)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC direction (9,right)
+ show text box (1519)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ show text box (1520)
+ wait (7)
+ wait for key (use key)
+ advance text box
+#hati goes to the moon now
+ 
+
+ play sound (sfx:wind,false,true)
+ fade screen out (63,63,63)
+ wait (15)
+ swap by position (0, find hero (hero:Night))
+ swap out hero (hero:Kitt)
+ swap out hero (hero:Styrge)
+ swap out hero (hero:Bram)
+ swap out hero (hero:Eric)
+ swap out hero (hero:Hilda)
+ swap out hero (hero:Olaf)
+
+ swap out hero (hero:Frumpy)
+ swap out hero (hero:Freki)
+ swap out hero (hero:Renard)
+ swap out hero (hero:Xephes)
+ swap out hero (hero:Dragon)
+ wait (5)
+ use door (6)
+ wait (3)
+ walk NPC (0,right,3)
+ wait for NPC (0)
+ wait (5)
+ set NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ set  NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ show text box (1521)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ wait (5)
+ set NPC direction (0,up)
+ wait (10)
+ set NPC direction (0,right)
+ wait (3)
+ set NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ set  NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ show text box (1522)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ wait (10)
+ stop song
+ walk NPC (0,right,1)
+ wait for NPC (0)
+ wait (3)
+ set NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ set  NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ show text box (1523)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ wait (10)
+ play song (song:Towards Odds Impassible)
+ wait (10)
+ set NPC direction (1,right)
+ wait (10)
+ set NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ set  NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ show text box (1524)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ show text box (1525)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC direction (1,down)
+ wait (3)
+ set NPC direction (1,left)
+ wait (3)
+ set NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ set  NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ show text box (1526)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ walk NPC (1,left,1)
+ show text box (1527)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ wait (5)
+ walk NPC (0,right,1)
+ wait for NPC (0)
+ wait (3)
+ set NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ set  NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ show text box (1528)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ set  NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ show text box (1529)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ set  NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ show text box (1530)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC direction (0,down)
+ wait (3)
+ set NPC direction (0,left)
+ wait (3)
+ set NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ set  NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ show text box (1531)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ show text box (1532)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ show text box (1533)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ walk NPC (1,left,1)
+ wait for NPC (1)
+ set NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ set  NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ show text box (1534)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC direction (0,down)
+ wait (3)
+ set NPC direction (0,right)
+ wait (3)
+ set NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ set  NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ show text box (1535)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ fade screen out
+ wait (2)
+ set NPC position (0, 14, 6)
+ set NPC position (1, 13, 6)
+ set NPC direction (0,left)
+ set NPC direction (1,right)
+ wait (2)
+ fade screen in
+ wait (5)
+ set NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ set  NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ set NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ set  NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ set NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ set  NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ set NPC frame (0,1)
+ wait (1)
+ set NPC direction (1,up)
+ wait (7)
+ set NPC direction (1,right)
+ wait (5)
+ fade screen out
+ wait (2)
+ set NPC position (0, 2, 8)
+ set NPC position (1, 2, 7)
+ set NPC direction (0,up)
+ set NPC direction (1,down)
+ wait (2)
+ fade screen in
+ wait (5)
+ walk NPC (5,up,4)
+ wait (5)
+ set NPC direction (0,right)
+ set NPC direction (1,right)
+ wait for NPC (5)
+ play sound (sfx:Beam Attack,false,true)
+ wait (10)
+ set NPC direction (0,up)
+ set NPC direction (1,down)
+ wait (10) 
+ set NPC direction (0,right)
+ set NPC direction (1,right)
+ wait (3)
+ walk NPC (0,right,1)
+ walk NPC (1,right,1)
+ wait for NPC (0)
+ walk NPC (5,right,1)
+ wait for NPC (5)
+ wait (3)
+ set NPC direction (0,up)
+ set NPC direction (1,down)
+ wait (10) 
+ set NPC direction (0,right)
+ set NPC direction (1,right)
+ wait (3)
+ set NPC frame (5,1)
+ wait (1)
+ set  NPC frame (5,0)
+ wait (1)
+ set  NPC frame (5,1)
+ wait (1)
+ set  NPC frame (5,0)
+ wait (1)
+ play sound (sfx:Beam Attack,false,true)
+ wait (10)
+ walk NPC (0,right,5)
+ walk NPC (1,right,1)
+ walk NPC (5,right,5)
+ wait for NPC (5)
+ walk NPC (5,down,4)
+ wait (3)
+ set NPC direction (0,down)
+ wait for NPC (5)
+ wait (3)
+ fade screen out
+ wait (2)
+ set NPC position (0, 7, 5)
+ set NPC position (1, 8, 5)
+ set NPC direction (0,up)
+ set NPC direction (1,up) 
+ set NPC position (3, 0, 2)
+ set NPC direction (3,right)
+ wait (2)
+ fade screen in
+ wait (2)
+ walk NPC (3,right,3)
+ wait for NPC (3)
+ walk NPC (3,right,2)
+ walk NPC (3,up,1)
+ wait for NPC (3)
+ walk NPC (3,right,3)
+ wait for NPC (3)
+ walk NPC (3,right,2)
+ walk NPC (3,down,1)
+ wait for NPC (3)
+ walk NPC (3,right,3)
+ wait for NPC (3)
+ wait (5)
+ Alter NPC (3,NPCstat:move speed,5)
+ set NPC position (4, 15, 2)
+ wait (3)
+ walk NPC (3,left,10)
+ walk NPC (4,left,10)
+ wait for NPC (3)
+ fade screen out
+ wait (2)
+ set NPC position (0, 12, 4)
+ set NPC position (1, 8, 5)
+ set NPC direction (0,left)
+ set NPC direction (1,right) 
+ wait (2)
+ set NPC position (3, 0, 11)
+ set NPC position (4, 1, 11)
+ wait (2)
+ fade screen in
+ Alter NPC (0,NPCstat:move speed,2)
+ Alter NPC (1,NPCstat:move speed,2)
+ wait (5)
+ walk NPC (0,up,2)
+ set NPC direction (0,left)
+ wait for NPC (0)
+ wait (2)
+ walk NPC (0,down,2)
+ set NPC direction (0,left)
+ wait for NPC (0)
+ wait (5)
+ walk NPC (1,up,2)
+ set NPC direction (1,right)
+ wait for NPC (1)
+ wait (2)
+ walk NPC (1,down,2)
+ set NPC direction (1,right)
+ wait for NPC (1)
+ wait (5)
+ walk NPC (0,up,2)
+ set NPC direction (0,left)
+ wait for NPC (0)
+ wait (2)
+ walk NPC (0,down,2)
+ set NPC direction (0,left)
+ wait for NPC (0)
+ wait (5)
+ walk NPC (1,up,2)
+ set NPC direction (1,right)
+ wait for NPC (1)
+ wait (2)
+ walk NPC (1,down,2)
+ set NPC direction (1,right)
+ wait for NPC (1)
+ wait (5)
+ walk NPC (0,up,4)
+ set NPC direction (0,left)
+ wait for NPC (0)
+ wait (5)
+ set NPC direction (0,down)
+ wait (2)
+ Alter NPC (0,NPCstat:move speed,4)
+ Alter NPC (1,NPCstat:move speed,5)
+ walk NPC (1,right,4)
+ wait for NPC (1)
+ set NPC direction (1,up)
+ wait (5)
+ set NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ set  NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1) 
+ walk NPC (1,up,2)
+ wait for NPC (1)
+ wait (1)
+ walk NPC (1,down,2)
+ set NPC direction (1,up)
+ wait for NPC (1)
+ wait (1) 
+ walk NPC (1,up,2)
+ wait for NPC (1)
+ wait (1)
+ walk NPC (1,down,2)
+ set NPC direction (1,up)
+ wait for NPC (1)
+ wait (1) 
+ walk NPC (1,up,2)
+ wait for NPC (1)
+ wait (1)
+ walk NPC (1,down,2)
+ set NPC direction (1,up)
+ wait for NPC (1)
+ fade screen out
+ wait (2)
+ set NPC position (0, 7, 6)
+ set NPC position (1, 8, 6)
+ set NPC direction (0,up)
+ set NPC direction (1,up)
+ wait (2)
+ fade screen in
+ wait (2)
+ walk NPC (1,up,1)
+ wait for NPC (1)
+
+ set NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ set  NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ show text box (1536)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ set  NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ show text box (1537)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ wait (3)
+ set NPC direction (1,left)
+ wait (3)
+ set NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ set  NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ show text box (1538)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ walk NPC (0,up,1)
+ wait for NPC (0)
+ set NPC direction (0,right)
+ set NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ set  NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ show text box (1539)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ set  NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ show text box (1540)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ set  NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ show text box (1541)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ #The new boss fight effect!
+ show text box (1361)
+ tweak palette (30,-10,-10)
+ fade screen in
+ play sound (sfx:WARNING,false,true) 
+ wait (10)
+ reset palette
+ fade screen in
+ advance textbox
+
+
+ Variable (var1) 
+ Variable (var2) 
+ #This next script part was originally done by Mad Cacti.
+ #Truthfully, I have no idea what's going on here.
+ #Seriously.  But you should always try to indicate to the player that something BIG is coming.
+ wait (3) 
+ For (var1,0,2,1) 
+ Do(for(var2,0,255,1) 
+ Do(Write color (var2,var1,63--read color (var2,var1)))) 
+ Fade screen in 
+ wait (1)
+ reset palette
+ #After the nifty color inverting takes place, we've got a battle to fight!  
+ fight formation (195)
+
+ wait (3)
+ tweak palette (10,0,0)
+ update palette
+ play sound (sfx:ChargedSonicBoomAttack8Bit,false,true)
+ wait (10)
+ reset palette
+ fade screen in
+ show text box (1542)
+ wait (7)
+ wait for key (use key)
+ advance text box
+
+ teach spell ((find hero(hero:Night)),atk:Flare)
+ set NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ set  NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ show text box (1543)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ set  NPC frame (1,1)
+ wait (1)
+ set  NPC frame (1,0)
+ wait (1)
+ show text box (1544)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ set NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ set  NPC frame (0,1)
+ wait (1)
+ set  NPC frame (0,0)
+ wait (1)
+ show text box (1545)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ wait (5)
+ fade screen out (63,63,63)
+ wait (15)
+
+ wait (5)
+ walk hero (me,right,1)
+ wait (5)
+ use door (1)
+ wait (2)
+ fade screen in
+ wait (1)
+ show text box (1050)
+ wait (7)
+ wait for key (use key)
+ advance text box
+
+resume player
+resume box advance
+end
+
+
+
+
+script,zidane,begin
+ show textbox (1547)
+ wait (16)
+ walk hero (me,down,3)
+ walk NPC (25,down,3)
+ wait for NPC (2)
+ walk NPC (25,up,3)
+ wait for NPC (2)
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+script,EricSILENCE,begin
+ suspend player
+ suspend box advance
+ swap by position (0, find hero (hero:Eric))
+ wait (1)
+ show text box (1577)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ show text box (1578)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+ set hero direction (me,down)
+ wait (10)
+ set hero z (me,5)
+ wait (2)
+ set hero z (me,10)
+ wait (2)
+ set hero z (me,5)
+ wait (2)
+ set hero z (me,0)
+ wait (2)
+ set hero direction (me,up)
+ wait (5)
+ show text box (1579)
+ wait (7)
+ wait for key (usekey)
+ advance text box
+
+
+ wait (1)
+ set tag (tag:EricSilen,on)
+ wait (1)
+ fade screen in
+ wait (2)
+ tweak palette (10,0,0)
+ update palette
+
+ teach spell ((find hero(hero:Eric)),atk:Silence)
+ wait (10)
+ reset palette
+ fade screen in
+ show text box (1580)
+ wait (7)
+ wait for key (use key)
+ advance text box
+ fade screen out (63,63,63)
+ wait (1)
+ resume box advance
+ wait (2)
+ fade screen in
+ wait (2)
+ resume player
+end

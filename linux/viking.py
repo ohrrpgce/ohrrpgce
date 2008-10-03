@@ -12,7 +12,7 @@ prefix = "../vikings/"
 relump(prefix + "vikings.rpgdir", "vikings.rpg")
 files = [
   "vikings.rpg",
-  prefix + "README-vikings.txt",
+  prefix + "Viking README.rtf",
   prefix + "Vikings script files/viking.txt",
   prefix + "Vikings script files/viking.hsi",
   prefix + "Vikings script files/utility.lib"]
