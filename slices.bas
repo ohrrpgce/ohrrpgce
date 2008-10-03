@@ -183,24 +183,17 @@ end function
 
 '==Special slice types=========================================================
 
-Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
+#macro SpecialSlice(n)
+Declare Sub Draw##n##Slice(byval sl as slice ptr, byval p as integer)
+Sub Dispose##n##Slice(byval sl as slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- 
- dim rect as RectangleSliceData ptr = cptr(RectangleSliceData ptr, sl->SliceData)
- 
- edgebox sl->x, sl->y, sl->width, sl->height, rect->bgcol , rect->fgcol, p, rect->transparent, rect->border
-end sub
-
-Sub DisposeRectangleSlice(byval sl as slice ptr)
- if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- dim rect as RectangleSliceData ptr = cptr(RectangleSliceData ptr, sl->SliceData)
- delete rect
+ dim dat as n##SliceData ptr = cptr(n##SliceData ptr, sl->SliceData)
+ delete dat
  sl->SliceData = 0
 end sub
 
-Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
+Function New##n##Slice(byval parent as Slice ptr, byref dat as n##SliceData) as slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
  if ret = 0 then 
@@ -208,62 +201,37 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
   return 0
  end if
  
- dim d as RectangleSliceData ptr = new RectangleSliceData
+ dim d as n##SliceData ptr = new n##SliceData
  *d = dat
  
- ret->SliceType = slRectangle
+ ret->SliceType = sl##n
  ret->SliceData = d
- ret->Draw = @DrawRectangleSlice
- ret->Dispose = @DisposeRectangleSlice
+ ret->Draw = @Draw##n##Slice
+ ret->Dispose = @Dispose##n##Slice
  
  return ret
 end function
 
-'------------------------------------------------------------------------------
-
-Sub DrawStyleRectangleSlice(byval sl as slice ptr, byval p as integer)
+Sub Draw##n##Slice(byval sl as slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  
- dim rect as StyleRectangleSliceData ptr = cptr(StyleRectangleSliceData ptr, sl->SliceData)
- 
- edgeboxstyle sl->screenx, sl->screeny, sl->width, sl->height, rect->style, p, rect->transparent, rect->border
-end sub
+ dim dat as n##SliceData ptr = cptr(n##SliceData ptr, sl->SliceData) 
 
-Sub DisposeStyleRectangleSlice(byval sl as slice ptr)
- if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- dim rect as StyleRectangleSliceData ptr = cptr(StyleRectangleSliceData ptr, sl->SliceData)
- delete rect
- sl->SliceData = 0
-end sub
+#endmacro
 
-Function NewStyleRectangleSlice(byval parent as Slice ptr, byref dat as StyleRectangleSliceData) as slice ptr
- dim ret as Slice ptr
- ret = NewSlice(parent)
- if ret = 0 then 
-  debug "Out of memory?!"
-  return 0
- end if
- 
- dim d as StyleRectangleSliceData ptr = new StyleRectangleSliceData
- *d = dat
- 
- ret->SliceType = slStyleRectangle
- ret->SliceData = d
- ret->Draw = @DrawStyleRectangleSlice
- ret->Dispose = @DisposeStyleRectangleSlice
- 
- return ret
-end function
+#define EndSpecialSlice end sub
 
-'------------------------------------------------------------------------------
 
-Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
- if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- 
- dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+SpecialSlice(Rectangle)
+ edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol , dat->fgcol, p, dat->transparent, dat->border
+EndSpecialSlice
+
+SpecialSlice(StyleRectangle)
+ edgeboxstyle sl->screenx, sl->screeny, sl->width, sl->height, dat->style , p, dat->transparent, dat->border
+EndSpecialSlice
+
+SpecialSlice(Text)
  dim d as string
  if dat->wrap AND sl->width > 7 then
   d = wordwrap(dat->s, int(sl->width / 8))
@@ -285,35 +253,7 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
    printstr lines(i), sl->screenx, sl->screeny + i * 10, p
   next
  end if
- exit sub
-end sub
-
-Sub DisposeTextSlice(byval sl as slice ptr)
- if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
- delete dat
- sl->SliceData = 0
-end sub
-
-Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
- dim ret as Slice ptr
- ret = NewSlice(parent)
- if ret = 0 then 
-  debug "Out of memory?!"
-  return 0
- end if
- 
- dim d as TextSliceData ptr = new TextSliceData
- *d = dat
- 
- ret->SliceType = slText
- ret->SliceData = d
- ret->Draw = @DrawTextSlice
- ret->Dispose = @DisposeTextSlice
- 
- return ret
-end function
+EndSpecialSlice
 
 '==Epic prophecy of the construcinator=========================================
 /'
