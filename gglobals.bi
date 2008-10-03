@@ -22,7 +22,7 @@ EXTERN abortg as integer
 EXTERN usepreunlump as integer
 EXTERN fatal as integer
 EXTERN backcompat_sound_slot_mode as integer
-EXTERN backcompat_sound_slots()
+EXTERN backcompat_sound_slots() as integer
 
 'Input handling globals
 EXTERN as integer carray(), csetup()
@@ -40,14 +40,14 @@ EXTERN veh() as integer
 'Hero globals
 EXTERN hero() as integer
 EXTERN names() as string
-EXTERN stat()
+EXTERN stat() as integer
 EXTERN eqstuf() as integer
 EXTERN lmp() as integer
 EXTERN bmenu() as integer
 EXTERN spell() as integer
 EXTERN exlev() as integer
-EXTERN herobits()
-EXTERN itembits()
+EXTERN herobits() as integer
+EXTERN itembits() as integer
 EXTERN hmask() as integer
 EXTERN nativehbits() as integer
 

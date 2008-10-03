@@ -12,101 +12,101 @@
 #include "browse.bi"
 #include "const.bi"
 
-DECLARE SUB edgeprint (s$, x%, y%, c%, p%)
+DECLARE SUB edgeprint (s as string, x as integer, y as integer, c as integer, p as integer)
 DECLARE SUB fadein ()
-DECLARE SUB fadeout (red%, green%, blue%)
-DECLARE FUNCTION usemenu OVERLOAD (pt, top, first, last, size)
-DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState)
-DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState, enabled() AS INTEGER)
-DECLARE SUB standardmenu OVERLOAD (menu$(), state AS MenuState, x, y, page, edge=NO, hidecursor=NO)
-DECLARE SUB standardmenu OVERLOAD (menu$(), size, vis, pt, top, x, y, page, edge=NO)
-DECLARE SUB debug (s$)
-DECLARE SUB visible_debug (s$)
-DECLARE FUNCTION soundfile$ (sfxnum%)
-DECLARE SUB safekill (f$)
+DECLARE SUB fadeout (red as integer, green as integer, blue as integer)
+DECLARE FUNCTION usemenu OVERLOAD (pt as integer, top as integer, first as integer, last as integer, size as integer) as integer
+DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState) as integer
+DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState, enabled() AS INTEGER) as integer
+DECLARE SUB standardmenu OVERLOAD (menu() as string, state AS MenuState, x as integer, y as integer, page as integer, edge as integer=NO, hidecursor as integer=NO)
+DECLARE SUB standardmenu OVERLOAD (menu() as string, size as integer, vis as integer, pt as integer, top as integer, x as integer, y as integer, page as integer, edge as integer=NO)
+DECLARE SUB debug (s as string)
+DECLARE SUB visible_debug (s as string)
+DECLARE FUNCTION soundfile (sfxnum as integer) as string
+DECLARE SUB safekill (f as string)
 DECLARE FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
 DECLARE SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
-DECLARE FUNCTION aquiretempdir$ ()
-DECLARE SUB writebinstring (savestr$, array%(), offset%, maxlen%)
-DECLARE SUB writebadbinstring (savestr$, array(), offset, maxlen, skipword=0)
-DECLARE FUNCTION readbinstring$ (array%(), offset%, maxlen%)
-DECLARE FUNCTION readbadbinstring$ (array(), offset, maxlen, skipword=0)
-DECLARE FUNCTION read32bitstring$ overload (array%(), offset%)
-DECLARE FUNCTION read32bitstring$ overload (strptr as integer ptr)
-DECLARE FUNCTION readbadgenericname$ (index%, filename$, recsize%, offset%, size%, skip%)
-DECLARE SUB copylump(package$, lump$, dest$, ignoremissing AS INTEGER = 0)
-DECLARE SUB centerfuz (x%, y%, w%, h%, c%, p%)
-DECLARE SUB centerbox (x%, y%, w%, h%, c%, p%)
-DECLARE SUB edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
-DECLARE SUB center_edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
-DECLARE SUB edgebox (x, y, w, h, col, bordercol, p, fuzzy=NO, border=-1)
-DECLARE SUB emptybox (x, y, w, h, col, thick, p)
+DECLARE FUNCTION aquiretempdir () as string
+DECLARE SUB writebinstring (savestr as string, array() as integer, offset as integer, maxlen as integer)
+DECLARE SUB writebadbinstring (savestr as string, array() as integer, offset as integer, maxlen as integer, skipword as integer=0)
+DECLARE FUNCTION readbinstring (array() as integer, offset as integer, maxlen as integer) as string
+DECLARE FUNCTION readbadbinstring (array() as integer, offset as integer, maxlen as integer, skipword as integer=0) as string
+DECLARE FUNCTION read32bitstring overload (array() as integer, offset as integer) as string
+DECLARE FUNCTION read32bitstring overload (strptr as integer ptr) as string
+DECLARE FUNCTION readbadgenericname (index as integer, filename as string, recsize as integer, offset as integer, size as integer, skip as integer) as string
+DECLARE SUB copylump(package as string, lump as string, dest as string, ignoremissing AS INTEGER = 0)
+DECLARE SUB centerfuz (x as integer, y as integer, w as integer, h as integer, c as integer, p as integer)
+DECLARE SUB centerbox (x as integer, y as integer, w as integer, h as integer, c as integer, p as integer)
+DECLARE SUB edgeboxstyle (x as integer, y as integer, w as integer, h as integer, boxstyle as integer, p as integer, fuzzy as integer=NO, supress_borders as integer=NO)
+DECLARE SUB center_edgeboxstyle (x as integer, y as integer, w as integer, h as integer, boxstyle as integer, p as integer, fuzzy as integer=NO, supress_borders as integer=NO)
+DECLARE SUB edgebox (x as integer, y as integer, w as integer, h as integer, col as integer, bordercol as integer, p as integer, fuzzy as integer=NO, border as integer=-1)
+DECLARE SUB emptybox (x as integer, y as integer, w as integer, h as integer, col as integer, thick as integer, p as integer)
 DECLARE FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTEGER
-DECLARE FUNCTION scriptname$ (num%, trigger% = 0)
-DECLARE Function seconds2str(byval sec as integer, byval f as string = "%m:%S") as string
+DECLARE FUNCTION scriptname (num as integer, trigger as integer = 0) as string
+DECLARE Function seconds2str(byval sec as integer, byval f as string = " %m: %S") as string
 DECLARE SUB loaddefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
 DECLARE SUB savedefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
 DECLARE SUB guessdefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
-DECLARE FUNCTION getdefaultpal(fileset, index)
-DECLARE SUB flusharray (array%(), size%, value%)
-DECLARE SUB setbinsize (id, size)
-DECLARE FUNCTION curbinsize (id)
-DECLARE FUNCTION defbinsize (id)
-DECLARE FUNCTION getbinsize (id)
-DECLARE FUNCTION dimbinsize (id)
-DECLARE SUB loadherodata (hero as herodef ptr, index)
-DECLARE SUB saveherodata (hero as herodef ptr, index)
-DECLARE SUB loadenemydata (array(), index, altfile = 0)
-DECLARE SUB saveenemydata (array(), index, altfile = 0)
-DECLARE SUB loaditemdata (array(), index)
-DECLARE SUB saveitemdata (array(), index)
-DECLARE SUB loadoldattackdata (array(), index)
-DECLARE SUB saveoldattackdata (array(), index)
-DECLARE SUB loadnewattackdata (array(), index)
-DECLARE SUB savenewattackdata (array(), index)
-DECLARE SUB loadattackdata (array(), index)
-DECLARE SUB saveattackdata (array(), index)
-DECLARE FUNCTION maplumpname$ (map, oldext$)
-DECLARE SUB getpal16 (array(), aoffset, foffset, autotype=-1, sprite=0)
-DECLARE SUB storepal16 (array(), aoffset, foffset)
-DECLARE SUB fatalerror (e$)
-DECLARE FUNCTION xstring (s$, x)
+DECLARE FUNCTION getdefaultpal(fileset as integer, index as integer) as integer
+DECLARE SUB flusharray (array() as integer, size as integer, value as integer)
+DECLARE SUB setbinsize (id as integer, size as integer)
+DECLARE FUNCTION curbinsize (id as integer) as integer
+DECLARE FUNCTION defbinsize (id as integer) as integer
+DECLARE FUNCTION getbinsize (id as integer) as integer
+DECLARE FUNCTION dimbinsize (id as integer) as integer
+DECLARE SUB loadherodata (hero as herodef ptr, index as integer)
+DECLARE SUB saveherodata (hero as herodef ptr, index as integer)
+DECLARE SUB loadenemydata (array() as integer, index as integer, altfile as integer = 0)
+DECLARE SUB saveenemydata (array() as integer, index as integer, altfile as integer = 0)
+DECLARE SUB loaditemdata (array() as integer, index as integer)
+DECLARE SUB saveitemdata (array() as integer, index as integer)
+DECLARE SUB loadoldattackdata (array() as integer, index as integer)
+DECLARE SUB saveoldattackdata (array() as integer, index as integer)
+DECLARE SUB loadnewattackdata (array() as integer, index as integer)
+DECLARE SUB savenewattackdata (array() as integer, index as integer)
+DECLARE SUB loadattackdata (array() as integer, index as integer)
+DECLARE SUB saveattackdata (array() as integer, index as integer)
+DECLARE FUNCTION maplumpname (map as integer, oldext as string) as string
+DECLARE SUB getpal16 (array() as integer, aoffset as integer, foffset as integer, autotype as integer=-1, sprite as integer=0)
+DECLARE SUB storepal16 (array() as integer, aoffset as integer, foffset as integer)
+DECLARE SUB fatalerror (e as string)
+DECLARE FUNCTION xstring (s as string, x as integer) as integer
 DECLARE FUNCTION defaultint (n AS INTEGER, default_caption AS STRING="default") AS STRING
-DECLARE SUB poke8bit (array16(), index, val8)
-DECLARE FUNCTION peek8bit (array16(), index)
-DECLARE SUB loadpalette(pal() as RGBcolor, palnum%)
-DECLARE SUB savepalette(pal() as RGBcolor, palnum%)
-DECLARE SUB convertpalette(oldpal%(), newpal() as RGBcolor)
-DECLARE FUNCTION getmapname$ (m)
+DECLARE SUB poke8bit (array16() as integer, index as integer, val8 as integer)
+DECLARE FUNCTION peek8bit (array16() as integer, index as integer) as integer
+DECLARE SUB loadpalette(pal() as RGBcolor, palnum as integer)
+DECLARE SUB savepalette(pal() as RGBcolor, palnum as integer)
+DECLARE SUB convertpalette(oldpal() as integer, newpal() as RGBcolor)
+DECLARE FUNCTION getmapname (m as integer) as string
 DECLARE FUNCTION createminimap (array() AS UBYTE, map() AS INTEGER, tilesets() AS TilesetData ptr, zoom AS INTEGER = -1) AS INTEGER
-DECLARE SUB loadtanim (n, tastuf())
-DECLARE SUB savetanim (n, tastuf())
+DECLARE SUB loadtanim (n as integer, tastuf() as integer)
+DECLARE SUB savetanim (n as integer, tastuf() as integer)
 DECLARE SUB animatetilesets (tilesets() AS TilesetData ptr)
 DECLARE SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
 DECLARE SUB loadtilesetdata OVERLOAD (BYREF tileset AS TilesetData ptr, BYVAL tilesetnum AS INTEGER)
 DECLARE SUB loadtilesetdata OVERLOAD (tilesets() AS TilesetData ptr, BYVAL layer AS INTEGER, BYVAL tilesetnum AS INTEGER)
 DECLARE SUB unloadtilesetdata (BYREF tileset AS TilesetData ptr)
-DECLARE SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER, BYVAL resetanimations = YES)
+DECLARE SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER, BYVAL resetanimations as integer = YES)
 DECLARE SUB unloadmaptilesets (tilesets() AS TilesetData ptr)
-DECLARE SUB writescatter (s$, lhold%, start%)
-DECLARE SUB readscatter (s$, lhold%, start%)
-DECLARE FUNCTION finddatafile$(filename$)
-DECLARE SUB updaterecordlength (lumpf$, bindex AS INTEGER)
-DECLARE SUB writepassword (p$)
-DECLARE FUNCTION readpassword$ ()
-DECLARE SUB upgrade (font%())
-DECLARE FUNCTION readglobalstring$ (index, default$, maxlen)
+DECLARE SUB writescatter (s as string, lhold as integer, start as integer)
+DECLARE SUB readscatter (s as string, lhold as integer, start as integer)
+DECLARE FUNCTION finddatafile(filename as string) as string
+DECLARE SUB updaterecordlength (lumpf as string, bindex AS INTEGER)
+DECLARE SUB writepassword (p as string)
+DECLARE FUNCTION readpassword () as string
+DECLARE SUB upgrade (font() as integer)
+DECLARE FUNCTION readglobalstring (index as integer, default as string, maxlen as integer) as string
 DECLARE SUB load_default_master_palette (master_palette() AS RGBColor)
 DECLARE SUB dump_master_palette_as_hex (master_palette() AS RGBColor)
 
-DECLARE FUNCTION readattackname$ (index%)
-DECLARE FUNCTION readenemyname$ (index%)
-DECLARE FUNCTION readitemname$ (index%)
-DECLARE FUNCTION readshopname$ (shopnum%)
-DECLARE FUNCTION getsongname$ (num AS INTEGER, prefixnum AS INTEGER = 0)
-DECLARE FUNCTION getsfxname$ (num AS INTEGER)
+DECLARE FUNCTION readattackname (index as integer) as string
+DECLARE FUNCTION readenemyname (index as integer) as string
+DECLARE FUNCTION readitemname (index as integer) as string
+DECLARE FUNCTION readshopname (shopnum as integer) as string
+DECLARE FUNCTION getsongname  (num AS INTEGER, prefixnum AS INTEGER = 0)as string
+DECLARE FUNCTION getsfxname (num AS INTEGER) as string
 
-DECLARE SUB playsongnum (songnum%)
+DECLARE SUB playsongnum (songnum as integer)
 
 DECLARE FUNCTION find_helper_app (appname AS STRING) AS STRING
 DECLARE FUNCTION find_madplay () AS STRING
@@ -127,18 +127,18 @@ DECLARE SUB append_message (s AS STRING)
 DECLARE SUB position_menu (menu AS MenuDef)
 DECLARE SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
 DECLARE SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
-DECLARE FUNCTION count_menu_items (menu AS MenuDef)
-DECLARE FUNCTION find_empty_menu_item (menu AS MenuDef)
+DECLARE FUNCTION count_menu_items (menu AS MenuDef) as integer
+DECLARE FUNCTION find_empty_menu_item (menu AS MenuDef) as integer
 DECLARE FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
 DECLARE FUNCTION get_special_menu_caption(subtype AS INTEGER, edit_mode AS INTEGER= NO) AS STRING
 DECLARE SUB create_default_menu(menu AS MenuDef)
 DECLARE FUNCTION anchor_point(anchor AS INTEGER, size AS INTEGER) AS INTEGER
-DECLARE FUNCTION read_menu_int (menu AS MenuDef, intoffset AS INTEGER)
+DECLARE FUNCTION read_menu_int (menu AS MenuDef, intoffset AS INTEGER) as integer
 DECLARE SUB write_menu_int (menu AS MenuDef, intoffset AS INTEGER, n AS INTEGER)
-DECLARE FUNCTION read_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER)
+DECLARE FUNCTION read_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER) as integer
 DECLARE SUB write_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER, n AS INTEGER)
 DECLARE SUB position_menu_item (menu AS MenuDef, cap AS STRING, i AS INTEGER, BYREF where AS XYPair)
-DECLARE FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS INTEGER=0, sub_t AS INTEGER=0)
+DECLARE FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS INTEGER=0, sub_t AS INTEGER=0) as integer
 
 DECLARE FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, cmd AS STRING, argname AS STRING) AS INTEGER
 

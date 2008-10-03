@@ -1,57 +1,57 @@
 #ifndef YETMORE_BI
 #define YETMORE_BI
 
-DECLARE SUB add_rem_swap_lock_hero (box AS TextBox, stat())
-DECLARE FUNCTION checksaveslot (slot)
-DECLARE SUB erasesaveslot (slot)
+DECLARE SUB add_rem_swap_lock_hero (box AS TextBox, stat() as integer)
+DECLARE FUNCTION checksaveslot (slot as integer) as integer
+DECLARE SUB erasesaveslot (slot as integer)
 DECLARE SUB doihavebits
-DECLARE SUB embedtext (text$, limit=0)
-DECLARE SUB scriptstat (id, stat())
-DECLARE SUB forceparty (stat())
-DECLARE FUNCTION functiondone
+DECLARE SUB embedtext (text as string, limit as integer=0)
+DECLARE SUB scriptstat (id as integer, stat() as integer)
+DECLARE SUB forceparty (stat() as integer)
+DECLARE FUNCTION functiondone as integer
 DECLARE SUB subread (si as ScriptInst)
 DECLARE SUB subdoarg (si as ScriptInst)
-DECLARE FUNCTION gethighbyte (n)
-DECLARE FUNCTION getnpcref (seekid, offset)
+DECLARE FUNCTION gethighbyte (n as integer) as integer
+DECLARE FUNCTION getnpcref (seekid as integer, offset as integer) as integer
 DECLARE SUB greyscalepal
-DECLARE FUNCTION herobyrank (slot)
+DECLARE FUNCTION herobyrank (slot as integer) as integer
 DECLARE SUB initgame
 DECLARE SUB interpolatecat
 DECLARE SUB npcplot
-DECLARE SUB onkeyscript (scriptnum)
-DECLARE FUNCTION partybyrank (slot)
-DECLARE FUNCTION playtime$ (d, h, m)
+DECLARE SUB onkeyscript (scriptnum as integer)
+DECLARE FUNCTION partybyrank (slot as integer) as integer
+DECLARE FUNCTION playtime (d as integer, h as integer, m as integer) as string
 DECLARE SUB playtimer
-DECLARE FUNCTION rankincaterpillar (heroid)
-DECLARE FUNCTION readfoemap (x, y, wide, high, fh)
-DECLARE SUB scriptadvanced (id)
-DECLARE SUB scriptdump (s$)
-DECLARE SUB scriptmisc (id)
-DECLARE SUB scriptnpc (id)
-DECLARE SUB breakpoint (mode, callspot)
-DECLARE SUB scriptwatcher (mode, drawloop)
+DECLARE FUNCTION rankincaterpillar (heroid as integer) as integer
+DECLARE FUNCTION readfoemap (x as integer, y as integer, wide as integer, high as integer, fh as integer) as integer
+DECLARE SUB scriptadvanced (id as integer)
+DECLARE SUB scriptdump (s as string)
+DECLARE SUB scriptmisc (id as integer)
+DECLARE SUB scriptnpc (id as integer)
+DECLARE SUB breakpoint (mode as integer, callspot as integer)
+DECLARE SUB scriptwatcher (mode as integer, drawloop as integer)
 DECLARE SUB setdebugpan
 DECLARE SUB subreturn (si AS ScriptInst)
-DECLARE SUB unwindtodo (si AS ScriptInst, levels)
+DECLARE SUB unwindtodo (si AS ScriptInst, levels as integer)
 DECLARE SUB templockexplain
 DECLARE SUB tweakpalette
-DECLARE FUNCTION vehiclestuff (disx, disy, vehedge)
-DECLARE FUNCTION vehpass (n, tile, default)
-DECLARE SUB vishero (stat())
-DECLARE SUB wrapaheadxy (x, y, direction, distance, unitsize)
-DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
-DECLARE FUNCTION wrappass (x, y, xgo, ygo, isveh)
-DECLARE FUNCTION wrapcollision (xa, ya, xgoa, ygoa, xb, yb, xgob, ygob)
-DECLARE FUNCTION wraptouch (x1, y1, x2, y2, distance)
-DECLARE SUB wrappedsong (songnumber)
+DECLARE FUNCTION vehiclestuff (disx as integer, disy as integer, vehedge as integer) as integer
+DECLARE FUNCTION vehpass (n as integer, tile as integer, default as integer) as integer
+DECLARE SUB vishero (stat() as integer)
+DECLARE SUB wrapaheadxy (x as integer, y as integer, direction as integer, distance as integer, unitsize as integer)
+DECLARE SUB cropposition (BYREF x as integer, BYREF y as integer, unitsize as integer)
+DECLARE FUNCTION wrappass (x as integer, y as integer, xgo as integer, ygo as integer, isveh as integer) as integer
+DECLARE FUNCTION wrapcollision (xa as integer, ya as integer, xgoa as integer, ygoa as integer, xb as integer, yb as integer, xgob as integer, ygob as integer) as integer
+DECLARE FUNCTION wraptouch (x1 as integer, y1 as integer, x2 as integer, y2 as integer, distance as integer) as integer
+DECLARE SUB wrappedsong (songnumber as integer)
 DECLARE SUB stopsong
-DECLARE SUB wrapxy (x, y, wide, high)
-DECLARE SUB readstackcommand (state as ScriptInst, stk as Stack, i)
-DECLARE FUNCTION localvariablename$ (value, scriptargs)
-DECLARE FUNCTION mathvariablename$ (value, scriptargs)
-DECLARE FUNCTION scriptstate$ (targetscript)
-DECLARE FUNCTION backcompat_sound_id (id AS INTEGER)
-DECLARE SUB loadsay (box_id)
+DECLARE SUB wrapxy (x as integer, y as integer, wide as integer, high as integer)
+DECLARE SUB readstackcommand (state as ScriptInst, stk as Stack, i as integer)
+DECLARE FUNCTION localvariablename (value as integer, scriptargs as integer) as string
+DECLARE FUNCTION mathvariablename (value as integer, scriptargs as integer) as string
+DECLARE FUNCTION scriptstate (targetscript as integer) as string
+DECLARE FUNCTION backcompat_sound_id (id AS INTEGER) as integer
+DECLARE SUB loadsay (box_id as integer)
 DECLARE SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
 DECLARE FUNCTION valid_plotsprite(byval s as integer, byval cmd as string) as integer
 

@@ -7,21 +7,21 @@
 #IFNDEF UTIL_BI
 #DEFINE UTIL_BI
 
-declare function bound overload (byval n, byval lowest, byval highest)
+declare function bound overload (byval n AS INTEGER, byval lowest AS INTEGER, byval highest AS INTEGER) AS INTEGER
 declare function bound overload (byval n as double, byval lowest as double, byval highest as double) as double
-declare function large (byval n1, byval n2)
-declare function loopvar (byval var, byval min, byval max, byval inc)
-declare function small (byval n1, byval n2)
-declare function trimpath$ (filename$)
-declare function trimfilename$ (filename$)
-declare function trimextension$ (filename$)
-declare function justextension$ (filename$)
-declare function anycase$ (filename$)
-declare sub touchfile (filename$)
-declare function rotascii$ (s$, o)
+declare function large (byval n1 AS INTEGER, byval n2 AS INTEGER) AS INTEGER
+declare function loopvar (byval var AS INTEGER, byval min AS INTEGER, byval max AS INTEGER, byval inc AS INTEGER) AS INTEGER
+declare function small (byval n1 AS INTEGER, byval n2 AS INTEGER) AS INTEGER
+declare function trimpath (filename as string) as string
+declare function trimfilename (filename as string) as string
+declare function trimextension (filename as string) as string
+declare function justextension (filename as string) as string
+declare function anycase (filename as string) as string
+declare sub touchfile (filename as string)
+declare function rotascii (s as string, o as integer) as string
 declare function escape_string(s as string, chars as string) as string
 declare function sign_string(n as integer, neg_str as string, zero_str as string, pos_str as string) as string
-declare function zero_default(n, zerocaption AS STRING="default", displayoffset AS INTEGER = 0) as string
+declare function zero_default(n as integer, zerocaption AS STRING="default", displayoffset AS INTEGER = 0) as string
 
 'also appears in udts.bi
 #ifndef Stack

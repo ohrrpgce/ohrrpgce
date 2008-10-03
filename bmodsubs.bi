@@ -10,45 +10,45 @@
 #INCLUDE "udts.bi"
 #INCLUDE "battle_udts.bi"
 
-declare function is_hero(who)
-declare function is_enemy(who)
-declare function is_attack(who)
-declare function is_weapon(who)
-declare sub advance (who, atk(), bslot() as battlesprite)
-declare function atkallowed (atkbuf(), attacker, spclass, lmplev, bstat() AS BattleStats)
-declare function checktheftchance (item, itemp, rareitem, rareitemp)
+declare function is_hero(who as integer) as integer
+declare function is_enemy(who as integer) as integer
+declare function is_attack(who as integer) as integer
+declare function is_weapon(who as integer) as integer
+declare sub advance (who as integer, atk() as integer, bslot() as battlesprite)
+declare function atkallowed (atkbuf() as integer, attacker as integer, spclass as integer, lmplev as integer, bstat() AS BattleStats) as integer
+declare function checktheftchance (item as integer, itemp as integer, rareitem as integer, rareitemp as integer) as integer
 declare sub control
-declare function countai (ai, them, es())
-declare function enemycount (bslot() as battlesprite, bstat() AS BattleStats)
-declare function targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats)
-declare sub etwitch (who, atk(), bslot() as battlesprite)
-declare function getweaponpos(w,f,isy)'or x?
-declare function getheropos(h,f,isy)'or x?
-declare sub heroanim (who, atk(), bslot() as battlesprite)
-declare function inflict (w, t, bstat() AS BattleStats, bslot() as battlesprite, harm$(), hc(), hx(), hy(), atk(), tcount, revengeharm(), repeatharm())
-declare function liveherocount (bstat() AS BattleStats)
-declare sub loadfoe (i, formdata(), es(), BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead = NO)
-declare function randomally (who)
-declare function randomfoe (who)
-declare sub retreat (who, atk(), bslot() as battlesprite)
-declare function safesubtract (number, minus)
-declare function safemultiply (number, by!)
-declare sub setbatcap (cap$, captime, capdelay)
-declare sub smartarrowmask (inrange(), d, axis, bslot() as battlesprite, targ AS TargettingState)
-declare sub smartarrows (d, axis, bslot() as battlesprite, BYREF targ AS TargettingState, spred)
-declare function targetable (attacker, target, bslot() as battlesprite)
-declare function targetmaskcount (tmask())
-declare sub traceshow (s$)
-declare function trytheft (who, targ, atk(), es())
-declare function exptolevel& (level)
-declare sub updatestatslevelup (i, exstat(), bstat() AS BattleStats, allowforget)
-declare sub giveheroexperience (i, exstat(), exper&)
-declare function visibleandalive (o, bstat() AS BattleStats, bslot() as battlesprite)
-declare sub writestats (exstat(), bstat() AS BattleStats)
+declare function countai (ai as integer, them as integer, es() as integer) as integer
+declare function enemycount (bslot() as battlesprite, bstat() AS BattleStats) as integer
+declare function targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats) as integer
+declare sub etwitch (who as integer, atk() as integer, bslot() as battlesprite)
+declare function getweaponpos(w as integer,f as integer,isy as integer) as integer'or x?
+declare function getheropos(h as integer,f as integer,isy as integer) as integer'or x?
+declare sub heroanim (who as integer, atk() as integer, bslot() as battlesprite)
+declare function inflict (w as integer, as integer, bstat() AS BattleStats, bslot() as battlesprite, harm() as string, hc() as integer, hx() as integer, hy() as integer, atk() as integer, tcount as integer, revengeharm() as integer, repeatharm() as integer) as integer
+declare function liveherocount (bstat() AS BattleStats) as integer
+declare sub loadfoe (i as integer, formdata() as integer, es() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead as integer = NO)
+declare function randomally (who as integer) as integer
+declare function randomfoe (who as integer) as integer
+declare sub retreat (who as integer, atk() as integer, bslot() as battlesprite)
+declare function safesubtract (number as integer, minus as integer) as integer
+declare function safemultiply (number as integer, by as single) as integer
+declare sub setbatcap (cap as string, captime as integer, capdelay as integer)
+declare sub smartarrowmask (inrange() as integer, d as integer, axis as integer, bslot() as battlesprite, targ AS TargettingState)
+declare sub smartarrows (d as integer, axis as integer, bslot() as battlesprite, BYREF targ AS TargettingState, spred as integer)
+declare function targetable (attacker as integer, target as integer, bslot() as battlesprite) as integer
+declare function targetmaskcount (tmask() as integer) as integer
+declare sub traceshow (s as string)
+declare function trytheft (who as integer, targ as integer, atk() as integer, es() as integer) as integer
+declare function exptolevel (level as integer) as integer
+declare sub updatestatslevelup (i as integer, exstat() as integer, bstat() AS BattleStats, allowforget as integer)
+declare sub giveheroexperience (i as integer, exstat() as integer, exper as integer)
+declare function visibleandalive (o as integer, bstat() AS BattleStats, bslot() as battlesprite) as integer
+declare sub writestats (exstat() as integer, bstat() AS BattleStats)
 
-declare sub get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
-declare function attack_can_hit_dead(who, atkbuf())
-declare sub autotarget (who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
-declare function find_preferred_target(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
+declare sub get_valid_targs(tmask() as integer, who as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats)
+declare function attack_can_hit_dead(who as integer, atkbuf() as integer) as integer
+declare sub autotarget (who as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats)
+declare function find_preferred_target(tmask() as integer, who as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats) as integer
 
 #ENDIF
