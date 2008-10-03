@@ -968,16 +968,16 @@ IF is_hero(who) AND is_enemy(targ) THEN
 END IF
 END FUNCTION
 
-FUNCTION exptolevel& (level)
+FUNCTION exptolevel (level) as integer
 ' cp needed to level: calling with level 0 returns xp to lvl 1
 ' HINT: Customisation goes here :)
 
- exper& = 30
- FOR o = 1 TO level
-  exper& = exper& * 1.2 + 5
-  IF exper& > 1000000 THEN exper& = 1000000
- NEXT o
- exptolevel = exper&
+ dim exper as integer = 30
+ FOR o as integer = 1 TO level
+  exper = exper * 1.2 + 5
+  IF exper > 1000000 THEN exper = 1000000
+ NEXT
+ return exper
 END FUNCTION
 
 SUB updatestatslevelup (i, exstat(), bstat() AS BattleStats, allowforget)
@@ -1060,11 +1060,11 @@ END IF
 
 END SUB
 
-SUB giveheroexperience (i, exstat(), exper&)
+SUB giveheroexperience (i as integer, exstat() as integer, exper as integer)
  'reset levels gained
  exstat(i, 1, 12) = 0
  IF hero(i) > 0 AND exstat(i, 0, 12) < 99 THEN
-  exlev(i, 0) = exlev(i, 0) + exper&
+  exlev(i, 0) = exlev(i, 0) + exper
   'levelups
   WHILE exlev(i, 0) >= exlev(i, 1) AND exstat(i, 0, 12) < 99
    exlev(i, 0) = exlev(i, 0) - exlev(i, 1)
