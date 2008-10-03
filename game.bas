@@ -8,7 +8,8 @@ DEFINT A-Z
 
 #include "udts.bi"
 #include "game_udts.bi"
-
+#include "scancodes.bi"
+#include "slices.bi"
 
 'basic subs and functions
 DECLARE SUB verquit ()
@@ -189,6 +190,7 @@ DECLARE SUB opendoor (dforce AS INTEGER=0)
 DECLARE SUB thrudoor (door_id AS INTEGER)
 DECLARE SUB advance_text_box ()
 DECLARE SUB draw_plotsprites
+DECLARE SUB slice_test_suite ()
 
 '---INCLUDE FILES---
 #include "compat.bi"
@@ -294,6 +296,8 @@ DIM curcmd as ScriptCommand ptr
 
 DIM plot_sprites() AS PlotSprite
 REDIM plot_sprites(15)
+
+DIM slice_debug AS INTEGER = NO
 
 'End global variables
 
@@ -689,23 +693,24 @@ DO
     setbit gen(), 101, 9, 0
    END IF
   END IF
-  IF keyval(66) > 1 THEN patcharray gen(), "gen"
-  IF keyval(67) > 1 THEN patcharray gmap(), "gmap"
-  IF keyval(68) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): showtags = 0
-  IF keyval(29) > 0 THEN ' holding CTRL
-   IF keyval(59) > 1 AND txt.showing = NO THEN 
+  IF keyval(scF10) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): showtags = 0
+  IF keyval(scCtrl) > 0 THEN ' holding CTRL
+   IF keyval(scF1) > 1 AND txt.showing = NO THEN 
     IF teleporttool(tilesets()) THEN 'CTRL + F1
      prepare_map
     END IF
    END IF
    IF showtags = 0 THEN
-    IF keyval(78) > 1 OR keyval(13) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = XSTR$(speedcontrol) 'CTRL + +
-    IF keyval(74) > 1 OR keyval(12) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = XSTR$(speedcontrol)'CTRL + -
+    IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = XSTR$(speedcontrol) 'CTRL + +
+    IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = XSTR$(speedcontrol)'CTRL + -
    END IF
-   IF keyval(87) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
+   IF keyval(scF8) > 1 THEN slice_debug = NOT(slice_debug) 
+   IF keyval(scF11) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
   ELSE ' not holding CTRL
-   IF keyval(59) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0), tilesets() 'F1
-   IF keyval(87) > 1 THEN ghost = ghost XOR 1 'F11
+   IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0), tilesets()
+   IF keyval(scF8) > 1 THEN patcharray gen(), "gen"
+   IF keyval(scF9) > 1 THEN patcharray gmap(), "gmap"
+   IF keyval(scF11) > 1 THEN ghost = ghost XOR 1
   END IF
  END IF
  IF wantloadgame > 0 THEN
@@ -876,6 +881,7 @@ showplotstrings
 IF shownpcinfo THEN npc_debug_display
 IF showtags > 0 THEN tagdisplay
 IF scrwatch THEN scriptwatcher scrwatch, -1
+IF slice_debug = YES THEN slice_test_suite
 RETRACE
 
 usething:
@@ -3186,4 +3192,19 @@ SUB draw_plotsprites
    END WITH
   END IF
  NEXT
+END SUB
+
+SUB slice_test_suite ()
+ STATIC testslice AS Slice Ptr = 0
+ STATIC test_rect_data AS RectangleSliceData
+ IF testslice = 0 THEN
+  test_rect_data.fgcol = uilook(uiDisabledItem)
+  test_rect_data.bgcol = uilook(uiMenuItem)
+  testslice = NewRectangleSlice(SliceTable.root, test_rect_data)
+  testslice->X = 10
+  testslice->Y = 20
+  testslice->Width = 100
+  testslice->Height = 75
+ END IF
+ testslice->Draw(testslice, dpage)
 END SUB

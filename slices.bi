@@ -30,6 +30,8 @@ TYPE RectangleSliceData
  
 END TYPE
 
+DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
+
 EXTERN Slices() as Slice ptr
 EXTERN AS SliceTable_ SliceTable
 
