@@ -25,17 +25,18 @@ Dim SliceTable as SliceTable_
 
 Sub SetupGameSlices
  SliceTable.Root = NewSlice
- SliceTable.Root->Visible = YES
+ SliceTable.Root->Attach = slScreen
+ SliceTable.Root->SliceType = slRoot
+ 
  SliceTable.Map = NewSlice(SliceTable.Root)
- SliceTable.Map->Visible = YES
+ 
  SliceTable.ScriptSprite = NewSlice(SliceTable.Root)
- SliceTable.ScriptSprite->Visible = YES
+ 
  SliceTable.TextBox = NewSlice(SliceTable.Root)
- SliceTable.TextBox->Visible = YES
+ 
  SliceTable.Menu = NewSlice(SliceTable.Root)
- SliceTable.Menu->Visible = YES
+ 
  SliceTable.ScriptString = NewSlice(SliceTable.Root)
- SliceTable.ScriptString->Visible = YES
 
 End Sub
 
@@ -71,8 +72,11 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
   end if
   
   parent->NumChildren += 1
-  
+  ret->parent = parent
  end if
+ 
+ ret->SliceType = slSpecial
+ ret->Visible = YES
  
  return ret
 End Function
@@ -162,7 +166,52 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
  return ret
 end function
 
+Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ 
+ dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+
+ if dat->outline then 
+  edgeprint dat->s, sl->screenx, sl->screeny, dat->col, p
+ else
+  textcolor dat->col, 0
+  printstr dat->s, sl->screenx, sl->screeny, p
+ end if
+end sub
+
+Sub DisposeTextSlice(byval sl as slice ptr)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+ delete dat
+ sl->SliceData = 0
+end sub
+
+Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
+ dim ret as Slice ptr
+ ret = NewSlice(parent)
+ if ret = 0 then 
+  debug "Out of memory?!"
+  return 0
+ end if
+ 
+ dim d as TextSliceData ptr = new TextSliceData
+ *d = dat
+ 
+ ret->SliceType = slText
+ ret->SliceData = d
+ ret->Draw = @DrawTextSlice
+ ret->Dispose = @DisposeTextSlice
+ 
+ return ret
+end function
+
 /'
+
+AND SO THE PROPHECY WAS SPOKEN:
+
+WHEN SO THE SOURCE IS COMPILED WITH -LANG FB, THEN THE LEGENDARY CONSTRUCTORS SHALL BE BORN
 Constructor RectangleSliceData (byval bg as integer = -1, byval tr as integer = YES, byval fg as integer = -1, byval bor as integer = 0)
  with this
   .bgcol = bg
@@ -185,6 +234,23 @@ End Constructor
 Sub DrawSlice(byval s as slice ptr, byval page as integer)
  'first, draw this slice
  if s->Visible then
+  'calc it's X,Y
+  
+  SELECT CASE s->Attach
+   CASE slParent
+    s->ScreenX = s->X + s->parent->ScreenX
+    s->ScreenY = s->Y + s->parent->ScreenY
+   case slScreen
+    s->ScreenX = s->X
+    s->ScreenY = s->Y
+   case slSlice
+    s->ScreenX = s->X + s->Attached->ScreenX 
+    s->ScreenY = s->Y + s->Attached->ScreenY
+   case else '???
+    s->ScreenX = s->X
+    s->ScreenY = s->Y
+  END SELECT
+  
   if s->Draw <> 0 THEN s->Draw(s, page)
   'draw its children
   dim ch as slice ptr = s->FirstChild

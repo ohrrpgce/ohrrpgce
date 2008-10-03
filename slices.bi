@@ -9,10 +9,17 @@
 #include "udts.bi"
 
 Enum SliceTypes
- slSpecial = 0
- slRectangle = 1
- slSprite = 2
+ slRoot
+ slSpecial
+ slRectangle
+ slSprite
  slText
+End Enum
+
+Enum AttachTypes
+ slParent
+ slSlice
+ slScreen
 End Enum
 
 Type SliceFwd as Slice
@@ -26,11 +33,18 @@ TYPE Slice
   PrevSibling as Slice Ptr
   NumChildren as Integer
   
-  X as integer
+  X as integer 'the X,Y relative to whatever the slice is attached to
   Y as integer
+  ScreenX as integer 'the actual X,Y, updated every frame
+  ScreenY as integer
   Width as integer
   Height as integer
   Visible as integer
+  
+  Attach as AttachTypes
+  Union
+   Attached as Slice ptr
+  End Union
   
   Draw as SliceDraw
   Dispose as SliceDispose
@@ -73,6 +87,7 @@ DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr)
 DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
+DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
 
 EXTERN Slices() as Slice ptr
 EXTERN AS SliceTable_ SliceTable

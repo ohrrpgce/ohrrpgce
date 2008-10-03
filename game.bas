@@ -3063,21 +3063,30 @@ END SUB
 
 SUB slice_test_suite ()
  STATIC first as integer
- 
+ STATIC testslice1 as Slice Ptr
+ STATIC testslice2 as Slice Ptr
  IF first = 0 THEN
   dim test_rect_data AS RectangleSliceData
-  dim testslice AS Slice Ptr
+  
   test_rect_data.fgcol = uilook(uiDisabledItem)
   test_rect_data.bgcol = uilook(uiMenuItem)
-  testslice = NewRectangleSlice(SliceTable.Map, test_rect_data)
-  testslice->X = 10
-  testslice->Y = 20
-  testslice->Width = 100
-  testslice->Height = 75
-  testslice->Visible = YES
   
+  testslice1 = NewRectangleSlice(SliceTable.Map, test_rect_data)
+  testslice1->X = 10
+  testslice1->Y = 20
+  testslice1->Width = 100
+  testslice1->Height = 75
+  testslice1->Visible = YES
   
+  dim test_text_data AS TextSliceData
+  test_text_data.s = "Test!"
+  test_text_data.col = uilook(uiText)
+  test_text_data.outline = YES
+  testslice2 = NewTextSlice(testslice1, test_text_data)
+  testslice2->Visible = YES
   
   first = YES
  END IF
+ if keyval(scLeft) > 1 then testslice1->X -= 1
+ if keyval(scRight) > 1 then testslice1->X += 1
 END SUB
