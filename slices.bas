@@ -290,25 +290,25 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
    IF .Fill then
     SELECT CASE .Attach
      case slScreen
-      .ScreenX = .X
-      .ScreenY = .Y
+      .ScreenX = 0
+      .ScreenY = 0
       .Width = 320
       .height = 200
      case slSlice
       if .Attached then
-       .ScreenX = .X + .Attached->ScreenX + .Attached->paddingleft
-       .ScreenY = .Y + .Attached->ScreenY + .Attached->paddingtop
+       .ScreenX = .Attached->ScreenX + .Attached->paddingleft
+       .ScreenY = .Attached->ScreenY + .Attached->paddingtop
        .Width = .Attached->Width - .Attached->paddingleft - .Attached->paddingRight
        .height = .Attached->height - .Attached->paddingtop - .Attached->paddingbottom
       elseif .parent then
        .Attached = .parent
-       .ScreenX = .X + .Parent->ScreenX + .Parent->paddingleft
-       .ScreenY = .Y + .Parent->ScreenY + .Parent->paddingtop
+       .ScreenX = .Parent->ScreenX + .Parent->paddingleft
+       .ScreenY = .Parent->ScreenY + .Parent->paddingtop
        .Width = .Parent->Width - .Parent->paddingleft - .Parent->paddingRight
        .height = .Parent->height - .Parent->paddingtop - .Parent->paddingbottom
       else
-      .ScreenX = .X
-      .ScreenY = .Y
+      .ScreenX = 0
+      .ScreenY = 0
       .Width = 320
       .height = 200
       end if
