@@ -404,20 +404,4 @@ END TYPE
 '  No more slice stuff!
 '=================================================
 
-'Documentation of veh() in game, which is different from the VEH lump
-'0 is true (-1) if in/mounting/dismounting a vehicle
-'1-4 unused
-'5 is the npc ref of the vehicle
-'6 contains (a second set of) bitsets describing what the vehicle is doing
-'veh(6)==0 is checked to see if something vehicle related is happening
-''bit 0 scrambling/mounting
-''bit 1 rising
-''bit 2 falling
-''bit 3 initiate dismount
-''bit 4 clear - set to clean up to officially end vehicle use
-''bit 5 ahead - set while getting off (dismount ahead only)
-'7 remembers the speed of the leader 
-'8-21 are copied from VEH
-
-
 #ENDIF
