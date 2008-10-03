@@ -215,6 +215,8 @@ load_default_master_palette master()
 setpal master()
 'get default ui colours
 LoadUIColors uilook()
+'reset box border cache which might have been populated by the file browser
+clear_box_border_cache
 
 'upgrade obsolete RPG files
 upgrade font()
