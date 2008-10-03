@@ -3071,10 +3071,11 @@ SUB slice_test_suite ()
   
   testslice1 = NewRectangleSlice(SliceTable.Map, test_rect_data)
   with *testslice1
-   .X = 4
-   .Y = 20
-   .Width = 312
-   .Height = 80
+   
+   .Width = 100
+   .Height = 150
+   .X = 160 - .Width / 2
+   .Y = 100 - .Height / 2
    .Visible = YES
    .PaddingTop = 4
    .Paddingleft = 4
@@ -3083,33 +3084,38 @@ SUB slice_test_suite ()
   end with
   
   
-  dim test_text_data AS TextSliceData
-  test_text_data.s = "James: G'morning Bob, looks like we may have some work to do today. All kinds of battle noises have been coming from the castle. Go check it out, and then come back and tell me what's going on over there."
-  test_text_data.col = uilook(uiText)
-  test_text_data.outline = YES
-  test_text_data.wrap = YES
+  dim test_menu_data AS MenuSliceData
   
-  
-  testslice2 = NewTextSlice(testslice1, test_text_data)
+  testslice2 = NewMenuSlice(testslice1, test_menu_data)
   with *testslice2
    .Visible = YES
-   .Fill = NO
-   .Width = 300
-   
+   .Fill = YES
   end with
 
-  dim test_stylerect_data AS StyleRectangleSliceData
-  test_stylerect_data.style = 1 ' second style, (green in default games)
-  test_stylerect_data.transparent = YES
+  dim test_menuitem_data AS MenuItemSliceData
+  with test_menuitem_data
+   .caption = "Test"
+  end with
   
-  testslice3 = NewStyleRectangleSlice(testslice1, test_stylerect_data)
+  testslice3 = NewMenuItemSlice(testslice2, test_menuitem_data)
   with *testslice3
    .Visible = Yes
-   .X = 160
-   .Y = 120
-   .Width = 30
-   .Height = 30
-   .Fill = YES
+   .Y = 0
+   .X = 0
+  end with
+  test_menuitem_data.caption = "Test 2"
+  testslice3 = NewMenuItemSlice(testslice2, test_menuitem_data)
+  with *testslice3
+   .Visible = Yes
+   .Y = 10
+   .X = 0
+  end with
+  test_menuitem_data.caption = "Test 3"
+  testslice3 = NewMenuItemSlice(testslice2, test_menuitem_data)
+  with *testslice3
+   .Visible = Yes
+   .Y = 20
+   .X = 0
   end with
   
   first = YES

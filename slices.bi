@@ -15,6 +15,8 @@ Enum SliceTypes
  slStyleRectangle
  slSprite
  slText
+ slMenu
+ slMenuItem
 End Enum
 
 Enum AttachTypes
@@ -91,6 +93,17 @@ Type TextSliceData
  'Declare constructor(byval st as string, byval col as integer = -1, byval ol as integer = YES)
 End Type
 
+Type MenuSliceData
+ selected as integer
+ tog as integer
+End Type
+
+Type MenuItemSliceData
+ ordinal as integer
+ caption as string
+ disabled as integer
+End Type
+
 
 DECLARE Sub SetupGameSlices
 DECLARE Sub DestroyGameSlices
@@ -103,8 +116,61 @@ DECLARE Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
 DECLARE Function NewStyleRectangleSlice(byval parent as Slice ptr, byref dat as StyleRectangleSliceData) as slice ptr
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
+DECLARE Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as slice ptr
+DECLARE Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceData) as slice ptr
 
 EXTERN Slices() as Slice ptr
 EXTERN AS SliceTable_ SliceTable
+
+
+'NEW SLICE TYPE TEMPLATE
+'INSTRUCTIONS: Copy the following block into Slices.bas.
+' Then, select the block, and use Find and Replace to switch
+' <TYPENAME> with whatever name you need. Then, add the drawing code to
+' Draw<TYPENAME>Slice.
+/'
+'==START OF <TYPENAME>SLICEDATA
+Sub Dispose<TYPENAME>Slice(byval sl as slice ptr)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ dim dat as <TYPENAME>SliceData ptr = cptr(<TYPENAME>SliceData ptr, sl->SliceData)
+ delete dat
+ sl->SliceData = 0
+end sub
+
+Sub Draw<TYPENAME>Slice(byval sl as slice ptr, byval p as integer)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ 
+ dim dat as <TYPENAME>SliceData ptr = cptr(<TYPENAME>SliceData ptr, sl->SliceData)
+
+ '''DRAWING CODE GOES HERE!
+end sub
+
+Function Get<TYPENAME>SliceData(byval sl as slice ptr) as <TYPENAME>SliceData ptr
+ return sl->SliceData
+End Function
+
+Function New<TYPENAME>Slice(byval parent as Slice ptr, byref dat as <TYPENAME>SliceData) as slice ptr
+ dim ret as Slice ptr
+ ret = NewSlice(parent)
+ if ret = 0 then 
+  debug "Out of memory?!"
+  return 0
+ end if
+ 
+ dim d as <TYPENAME>SliceData ptr = new <TYPENAME>SliceData
+ *d = dat
+ 
+ ret->SliceType = sl<TYPENAME>
+ ret->SliceData = d
+ ret->Draw = @Draw<TYPENAME>Slice
+ ret->Dispose = @Dispose<TYPENAME>Slice
+ 
+ return ret
+end function
+'==END OF <TYPENAME>SLICEDATA
+'/
+
 
 #endif
