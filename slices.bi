@@ -12,6 +12,7 @@ Enum SliceTypes
  slRoot
  slSpecial
  slRectangle
+ slStyleRectangle
  slSprite
  slText
 End Enum
@@ -75,6 +76,13 @@ TYPE RectangleSliceData
  'Declare constructor (byval bgcol as integer, byval transparent as integer = YES, byval fgcol as integer = -1, byval border as integer = -1)
 END TYPE
 
+TYPE StyleRectangleSliceData
+ style as integer
+ transparent as integer
+ border as integer
+ 'Declare constructor (byval bgcol as integer, byval transparent as integer = YES, byval style as integer = 0)
+END TYPE
+
 Type TextSliceData
  col as integer
  outline as integer
@@ -93,6 +101,7 @@ DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
 DECLARE Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
+DECLARE Function NewStyleRectangleSlice(byval parent as Slice ptr, byref dat as StyleRectangleSliceData) as slice ptr
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
 
 EXTERN Slices() as Slice ptr

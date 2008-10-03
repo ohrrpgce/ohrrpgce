@@ -17,11 +17,15 @@ option explicit
 
 #include "slices.bi"
 
+'==============================================================================
+
 DIM Slices(100) as Slice Ptr
 
 Dim SliceTable as SliceTable_
 
 'add other slice tables here
+
+'==General slice code==========================================================
 
 Sub SetupGameSlices
  SliceTable.Root = NewSlice
@@ -176,6 +180,8 @@ Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integ
  return yes
 end function
 
+'==Special slice types=========================================================
+
 Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
@@ -211,6 +217,46 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
  
  return ret
 end function
+
+'------------------------------------------------------------------------------
+
+Sub DrawStyleRectangleSlice(byval sl as slice ptr, byval p as integer)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ 
+ dim rect as StyleRectangleSliceData ptr = cptr(StyleRectangleSliceData ptr, sl->SliceData)
+ 
+ edgeboxstyle sl->x, sl->y, sl->width, sl->height, rect->style, p, rect->transparent, rect->border
+end sub
+
+Sub DisposeStyleRectangleSlice(byval sl as slice ptr)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ dim rect as StyleRectangleSliceData ptr = cptr(StyleRectangleSliceData ptr, sl->SliceData)
+ delete rect
+ sl->SliceData = 0
+end sub
+
+Function NewStyleRectangleSlice(byval parent as Slice ptr, byref dat as StyleRectangleSliceData) as slice ptr
+ dim ret as Slice ptr
+ ret = NewSlice(parent)
+ if ret = 0 then 
+  debug "Out of memory?!"
+  return 0
+ end if
+ 
+ dim d as StyleRectangleSliceData ptr = new StyleRectangleSliceData
+ *d = dat
+ 
+ ret->SliceType = slStyleRectangle
+ ret->SliceData = d
+ ret->Draw = @DrawStyleRectangleSlice
+ ret->Dispose = @DisposeStyleRectangleSlice
+ 
+ return ret
+end function
+
+'------------------------------------------------------------------------------
 
 Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
  if sl = 0 then exit sub
@@ -266,6 +312,7 @@ Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as 
  return ret
 end function
 
+'==Epic prophecy of the construcinator=========================================
 /'
 
 AND SO THE PROPHECY WAS SPOKEN:
@@ -289,6 +336,8 @@ Constructor RectangleSliceData (byval bg as integer = -1, byval tr as integer = 
  end with
 End Constructor
 '/
+
+'==General slice display=======================================================
 
 Sub DrawSlice(byval s as slice ptr, byval page as integer)
  'first, draw this slice

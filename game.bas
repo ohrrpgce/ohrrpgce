@@ -3062,6 +3062,7 @@ SUB slice_test_suite ()
  STATIC first as integer
  STATIC testslice1 as Slice Ptr
  STATIC testslice2 as Slice Ptr
+ STATIC testslice3 as Slice Ptr
  IF first = 0 THEN
   dim test_rect_data AS RectangleSliceData
   
@@ -3093,6 +3094,19 @@ SUB slice_test_suite ()
   with *testslice2
    .Visible = YES
    .Fill = YES
+  end with
+
+  dim test_stylerect_data AS StyleRectangleSliceData
+  test_stylerect_data.style = 1 ' second style, (green in default games)
+  test_stylerect_data.transparent = YES
+  
+  testslice3 = NewStyleRectangleSlice(testslice1, test_stylerect_data)
+  with *testslice3
+   .Visible = Yes
+   .X = 160
+   .Y = 120
+   .Width = 30
+   .Height = 30
   end with
   
   first = YES
