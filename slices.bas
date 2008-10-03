@@ -58,25 +58,11 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  dim ret as Slice Ptr
  ret = new Slice
  
- if parent then
-  if parent->FirstChild = 0 then
-   parent->FirstChild = ret
-  else
-   dim s as slice ptr
-   s = parent->FirstChild
-   do while s->NextSibling <> 0
-    s = s->NextSibling
-   loop
-   s->NextSibling = ret
-   ret->PrevSibling = s
-  end if
-  
-  parent->NumChildren += 1
-  ret->parent = parent
- end if
+ setSliceParent(ret, parent)
  
  ret->SliceType = slSpecial
  ret->Visible = YES
+ ret->Attached = parent
  
  return ret
 End Function
@@ -130,6 +116,66 @@ Sub DeleteSlice(Byval s as Slice ptr ptr)
  *s = 0
 End Sub
 
+Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
+ 'first, remove the slice from its existing parent
+ dim as slice ptr nxt, prv, par, ch
+ nxt = sl->NextSibling
+ prv = sl->PrevSibling
+ par = sl->Parent
+ 
+ if nxt then
+  nxt->PrevSibling = prv
+ end if
+ if prv then
+  nxt->NextSibling = nxt
+ end if
+ if par then
+  if par->FirstChild = sl then
+   par->FirstChild = nxt
+  end if
+  par->NumChildren -= 1
+ end if
+ 
+ sl->NextSibling = 0
+ sl->PrevSibling = 0
+ sl->Parent = 0
+ 
+ 'then, add ourselves to the new parent
+ if parent then
+  if verifySliceLineage(sl, parent) then
+   if parent->FirstChild = 0 then
+    parent->FirstChild = sl
+   else
+    dim s as slice ptr
+    s = parent->FirstChild
+    do while s->NextSibling <> 0
+     s = s->NextSibling
+    loop
+    s->NextSibling = sl
+    sl->PrevSibling = s
+   end if
+   
+   parent->NumChildren += 1
+   sl->parent = parent
+  else
+   debug "Detected inbreeding in slice system!"
+  end if
+ end if
+ 
+end sub
+
+'this function ensures that we can't set a slice to be a child of itself (or, a child of a child of itself, etc)
+Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
+ dim s as slice ptr
+ if sl = 0 then return no
+ s = parent
+ do while s <> 0
+  if s = sl then return no
+  s = s->parent
+ loop
+ return yes
+end function
+
 Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
@@ -173,7 +219,7 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
  dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
  dim d as string
  if dat->wrap then
-  d = wordwrap(dat->s, int(sl->width / 8) - 1)
+  d = wordwrap(dat->s, int(sl->width / 8))
  else
   d = dat->s
  end if
@@ -251,41 +297,47 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
   with *s
    IF .Fill then
     SELECT CASE .Attach
-     CASE slParent
-      .ScreenX = .X + .parent->ScreenX + .parent->PaddingLeft
-      .ScreenY = .Y + .parent->ScreenY + .parent->PaddingTop
-      .Width = .parent->Width - .parent->paddingleft - .parent->paddingRight
-      .height = .parent->height - .parent->paddingtop - .parent->paddingbottom
      case slScreen
       .ScreenX = .X
       .ScreenY = .Y
       .Width = 320
       .height = 200
      case slSlice
-      .ScreenX = .X + .Attached->ScreenX 
-      .ScreenY = .Y + .Attached->ScreenY
-      .Width = .Attached->Width - .Attached->paddingleft - .Attached->paddingRight
-      .height = .Attached->height - .Attached->paddingtop - .Attached->paddingbottom
-     case else '???
+      if .Attached then
+       .ScreenX = .X + .Attached->ScreenX + .Attached->paddingleft
+       .ScreenY = .Y + .Attached->ScreenY + .Attached->paddingtop
+       .Width = .Attached->Width - .Attached->paddingleft - .Attached->paddingRight
+       .height = .Attached->height - .Attached->paddingtop - .Attached->paddingbottom
+      elseif .parent then
+       .Attached = .parent
+       .ScreenX = .X + .Parent->ScreenX + .Parent->paddingleft
+       .ScreenY = .Y + .Parent->ScreenY + .Parent->paddingtop
+       .Width = .Parent->Width - .Parent->paddingleft - .Parent->paddingRight
+       .height = .Parent->height - .Parent->paddingtop - .Parent->paddingbottom
+      else
       .ScreenX = .X
       .ScreenY = .Y
       .Width = 320
       .height = 200
+      end if
     END SELECT
    ELSE
     SELECT CASE .Attach
-     CASE slParent
-      .ScreenX = .X + .parent->ScreenX + .parent->PaddingLeft
-      .ScreenY = .Y + .parent->ScreenY + .parent->PaddingTop
      case slScreen
       .ScreenX = .X
       .ScreenY = .Y
      case slSlice
-      .ScreenX = .X + .Attached->ScreenX 
-      .ScreenY = .Y + .Attached->ScreenY
-     case else '???
-      .ScreenX = .X
-      .ScreenY = .Y
+      if .Attached then
+       .ScreenX = .X + .Attached->ScreenX + .Attached->paddingleft
+       .ScreenY = .Y + .Attached->ScreenY + .Attached->paddingtop
+      elseif .parent then
+       .Attached = .parent
+       .ScreenX = .X + .parent->ScreenX + .Parent->paddingleft
+       .ScreenY = .Y + .parent->ScreenY + .Parent->paddingtop
+      else
+       .ScreenX = .X
+       .ScreenY = .Y
+      end if
     END SELECT
    END IF
    

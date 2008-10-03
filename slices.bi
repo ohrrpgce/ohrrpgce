@@ -17,7 +17,6 @@ Enum SliceTypes
 End Enum
 
 Enum AttachTypes
- slParent
  slSlice
  slScreen
 End Enum
@@ -90,6 +89,8 @@ DECLARE Sub DestroyGameSlices
 DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
 DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr)
 DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
+DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
+DECLARE Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
