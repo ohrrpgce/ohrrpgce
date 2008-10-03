@@ -164,6 +164,10 @@ define constant, begin
 169,tag:FindDrownDwarf
 170,tag:ThorLake2
 171,tag:deactivated
+172,tag:styrgerejoins
+173,tag:Guiltdefeated
+174,tag:Ericsilen
+175,tag:Condensation
 1,song:Asgard
 2,song:piano02
 3,song:song04
@@ -208,6 +212,8 @@ define constant, begin
 42,song:SOJ Battle
 43,song:Moogle1  An Infernal Scheme
 44,song:Moogle1  Enemy's Lair The
+45,song:Clorinda_False_Adieu
+46,song:Setu Firestorm  Buddha
 1,sfx:Cancel8Bit
 2,sfx:ChargedLightningAttack8Bit
 3,sfx:ChargedSonicBoomAttack8Bit
@@ -310,7 +316,7 @@ define constant, begin
 60,item:Glipnir
 61,item:Sorcery
 62,item:Crystal
-63,item:Vest
+63,item:Leather2
 64,item:Chain
 65,item:Elven
 66,item:Wooden3
@@ -325,15 +331,15 @@ define constant, begin
 75,item:Crystal2
 76,item:Power
 77,item:Sorcery2
-78,item:Ring
+78,item:Iron2
 79,item:Gold
 80,item:Proring
 81,item:Crystal3
 82,item:Wooden4
-83,item:Iron2
+83,item:Iron3
 84,item:Viking2
 85,item:Crystal4
-86,item:Cape
+86,item:Mantle
 87,item:Cloak
 88,item:Procape
 89,item:Hero
@@ -405,13 +411,13 @@ define constant, begin
 155,item:Fuku
 156,item:Nurse
 157,item:RingPop
-158,item:Leather2
+158,item:Leather3
 159,item:Mush
 160,item:Bone
 161,item:Fur
 162,item:Scale
 163,item:Powder
-164,item:Iron3
+164,item:Iron4
 165,item:Brising
 166,item:Wood
 167,item:Silver
@@ -444,6 +450,22 @@ define constant, begin
 194,item:Dragon3
 195,item:Coral
 196,item:Manslay
+197,item:Knife
+198,item:Long
+199,item:Healer
+200,item:Shaman2
+201,item:Axe
+202,item:Maul
+203,item:Epee
+204,item:Javelin
+205,item:Cloth
+206,item:Helm
+207,item:Cloth2
+208,item:Vest
+209,item:Mail
+210,item:Buckler
+211,item:Cape
+212,item:Ring
 0,stat:HP
 1,stat:MP
 2,stat: Attack
@@ -508,6 +530,8 @@ define constant, begin
 44,map:World of Shapes
 45,map:Boundless Ocean
 46,map:Coral Lake
+47,map:The Blue Marble
+48,map:Arfenhouse
 1,atk:Attack
 2,atk:Recover
 3,atk:Mana
@@ -572,8 +596,8 @@ define constant, begin
 62,atk:Weaksmash
 63,atk:Spinslash
 64,atk:Owl Eye
-65,atk:Manslayer
-66,atk:Magemash
+65,atk:GiantDoom
+66,atk:ManSlayer
 67,atk:Mechbane
 68,atk:Were Bust
 69,atk:Drakedoom
@@ -720,6 +744,14 @@ define constant, begin
 211,atk:Coral
 212,atk:Giant
 213,atk:Manslayer2
+214,atk:HP LEFT
+215,atk:5
+216,atk:4
+217,atk:3
+218,atk:2
+219,atk:1
+220,atk:Megaflare
+221,atk:Megaflprep
 1,shop:Valhalla Weapon
 2,shop:Valhalla Tools
 3,shop:Valhalla Armor
@@ -745,4 +777,204 @@ define constant, begin
 23,shop:Herbalist
 24,shop:Rachel's Shop
 25,shop:Before Combat
+1,enemy:Damned
+2,enemy:Troll
+3,enemy:Flame Giant
+4,enemy:Frost Giant
+5,enemy:Privateer
+6,enemy:Vagabond
+7,enemy:Mage
+8,enemy:Triangle Fighter
+9,enemy:Hoarfrost
+10,enemy:Tindalos
+11,enemy:Hel
+12,enemy:Zombie
+13,enemy:Wight
+14,enemy:Shade
+15,enemy:Dragon Knight
+16,enemy:Shadow Ninja
+17,enemy:Ornithopter
+18,enemy:Gullinbursti
+19,enemy:Skidbladnir
+20,enemy:Naglfar
+21,enemy:NEOSkidbladnir
+22,enemy:Drake
+23,enemy:Red Dragon
+24,enemy:Snow Dragon
+25,enemy:Midgardsorm
+26,enemy:Dark Dragon
+27,enemy:Garm
+28,enemy:Skoll
+29,enemy:Hati
+30,enemy:Managarm
+31,enemy:Fenrisulf
+32,enemy:Midgar1
+33,enemy:Midgar2
+34,enemy:Nagl1
+35,enemy:Nagl2
+36,enemy:Airsh1
+37,enemy:Airsh2
+38,enemy:Fen1
+39,enemy:Fen2
+40,enemy:Velius
+41,enemy:Delvire
+42,enemy:Sasha
+43,enemy:Siva
+44,enemy:Alex
+45,enemy:Kotaru
+46,enemy:Mushroomer
+47,enemy:Ogre
+48,enemy:Kirpa
+49,enemy:Ettin
+50,enemy:Necromancer
+51,enemy:Fighting Machine
+52,enemy:Shu1
+53,enemy:Shu2
+54,enemy:ShubNiggurath
+55,enemy:Tulzcha
+56,enemy:cold
+57,enemy:Cthulhu
+58,enemy:Dagtail
+59,enemy:Dagon
+60,enemy:Dagon2
+61,enemy:Azathoth
+66,enemy:Sericyon
+71,enemy:Lich
+72,enemy:Vederfolnir
+73,enemy:YogSothoth
+74,enemy:YogSothoth2
+75,enemy:YogSothoth3
+76,enemy:YogSothoth4
+77,enemy:YogSothoth5
+78,enemy:YogSothoth6
+79,enemy:YogSothoth7
+80,enemy:Dogero
+81,enemy:Mi'La
+82,enemy:Johan
+83,enemy:Pyrus
+84,enemy:Yoghint
+85,enemy:Patroller
+86,enemy:Enforcer
+87,enemy:Sapient
+88,enemy:Kothyl
+89,enemy:Defender
+90,enemy:Flametongue
+91,enemy:Icebrand
+92,enemy:Thundersaber
+93,enemy:Kyle
+96,enemy:Azahelp
+97,enemy:Minion
+98,enemy:Walthrosian Fish
+99,enemy:Super Walrus
+100,enemy:Chewie
+101,enemy:Bob the Hamster
+102,enemy:Josh of the Dead
+103,enemy:Crimson Berserk
+104,enemy:Rell
+105,enemy:Chainsaw Jack
+106,enemy:Broaste
+107,enemy:Left Paw
+108,enemy:Right Paw
+109,enemy:Joseph
+110,enemy:Slither
+111,enemy:Button
+112,enemy:Neke
+113,enemy:Gahn
+114,enemy:Seraph
+115,enemy:Wild Sheep
+116,enemy:Grinlow
+117,enemy:Jade
+118,enemy:Grin1
+119,enemy:Grin2
+120,enemy:Charbile
+121,enemy:Berserker
+122,enemy:Plip
+123,enemy:Odin
+124,enemy:Thor
+125,enemy:Loki
+126,enemy:Master H
+127,enemy:Giant of Mahboot
+128,enemy:jint1
+129,enemy:jint2
+131,enemy:Aboleth
+132,enemy:Bloodless
+133,enemy:Langolier
+134,enemy:Invisable Man
+135,enemy:Kothyl Drone
+136,enemy:Josh the ReDead
+137,enemy:Skeleton
+138,enemy:Cora
+139,enemy:Savarus
+140,enemy:Shuuichi
+141,enemy:Thellos
+142,enemy:Zidane
+143,enemy:Vellan
+144,enemy:Cthulhu Reborn
+145,enemy:Reaper
+146,enemy:Frankenstein
+147,enemy:Mummy
+148,enemy:Warg
+149,enemy:Werewolf
+150,enemy:Succubus
+151,enemy:Monterey Penguin
+152,enemy:Unspeakable Durr
+153,enemy:Flying Polyp
+154,enemy:Triangle Man
+155,enemy:Cultist
+156,enemy:Utgard Cat
+157,enemy:Dracula
+158,enemy:Count Orlock
+159,enemy:Death Goddess
+160,enemy:Death goddess su
+161,enemy:Yuk
+162,enemy:Gelatinous Cube
+163,enemy:Tabasco Slime
+164,enemy:Ice Cream
+165,enemy:Red Hood
+166,enemy:Cactus
+167,enemy:FFH Thief
+168,enemy:FFH Fighter
+169,enemy:Mushman
+170,enemy:Sirius
+171,enemy:Berserker2
+172,enemy:Missionary
+173,enemy:Cleric
+174,enemy:Priest
+175,enemy:Bishop
+176,enemy:Priestess
+177,enemy:Rachel
+178,enemy:Prophet
+179,enemy:Photoheal
+180,enemy:Siphon
+181,enemy:Lifedrain
+182,enemy:Crush
+183,enemy:Maim
+184,enemy:Dissolve
+185,enemy:Greenfire
+186,enemy:Purplehaze
+187,enemy:Ice Wave
+188,enemy:Explode
+189,enemy:Barrier
+190,enemy:Supernova
+191,enemy:Marilith
+192,enemy:Ryclos
+193,enemy:Shayna
+194,enemy:blud1
+195,enemy:blud2
+196,enemy:KyeVen
+197,enemy:Squid
+198,enemy:Sahaguin
+199,enemy:Grue
+200,enemy:Beelzebub
+201,enemy:Deactivated
+202,enemy:Square Boy
+203,enemy:Rectangle Girl
+204,enemy:Circle Woman
+205,enemy:Grandpa Diamond
+206,enemy:Guilt
+207,enemy:Elements Animus
+208,enemy:Elements Animus2
+209,enemy:Elements Animus3
+210,enemy:Elements Animus4
+211,enemy:Hati2
 end
