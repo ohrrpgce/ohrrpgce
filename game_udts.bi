@@ -36,4 +36,10 @@ TYPE TextBoxState
   portrait       AS GraphicPair
 END TYPE
 
+TYPE EquipMenuState
+  default_weapon      AS INTEGER 'item ID + 1
+  default_weapon_name AS STRING
+  unequip_caption     AS STRING
+END TYPE
+
 #ENDIF

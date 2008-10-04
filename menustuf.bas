@@ -50,6 +50,7 @@ DECLARE Sub MenuSound(byval s as integer)
 #include "gglobals.bi"
 #include "const.bi"
 #include "uiconst.bi"
+#include "game_udts.bi"
 
 DECLARE FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
 DECLARE FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk AS INTEGER, stat() AS INTEGER, recheck AS INTEGER=NO) AS INTEGER
@@ -58,6 +59,7 @@ DECLARE FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacke
 '--SUBs and FUNCTIONS only used locally
 DECLARE SUB loadtrades(index, tradestf(), b(), recordsize)
 DECLARE SUB setshopstock (id, recordsize, storebuf(), stufbuf())
+DECLARE SUB equip_menu_setup (BYVAL who AS INTEGER, BYREF st AS EquipMenuState, menu$(), eq(), toff(), tlim())
 
 REM $STATIC
 SUB buystuff (id, shoptype, storebuf(), stat())
@@ -505,6 +507,7 @@ SUB equip (pt, stat())
 '--dim stuff
 DIM sname$(40), sno(11), eq(199), toff(4), tlim(4), m$(4), menu$(6), stb(11)
 DIM holdscreen = allocatepage
+DIM st AS EquipMenuState
 
 '--get names
 getnames sname$()
@@ -514,7 +517,6 @@ FOR i = 0 TO 3
 NEXT i
 menu$(5) = rpad(readglobalstring$(39, "-REMOVE-", 8), " ", 8)
 menu$(6) = rpad(readglobalstring$(40, "-EXIT-", 8), " ", 8)
-unequipone$ = readglobalstring$(110, "Nothing", 10)
 
 '--stat name offsets
 sno(0) = 0
@@ -531,10 +533,13 @@ sno(10) = 31
 sno(11) = 4
 
 '--initialize
-dw = 0
-dw$ = ""
+WITH st
+ .default_weapon = 0
+ .default_weapon_name = ""
+ .unequip_caption = rpad(readglobalstring$(110, "Nothing", 10), " ", 11)
+END WITH
 mset = 0
-GOSUB setupeq
+equip_menu_setup pt, st, menu$(), eq(), toff(), tlim()
 
 '--prepare the backdrop
 'preserve the background behind the equip menu
@@ -554,12 +559,12 @@ DO
   IF carray(5) > 1 THEN FOR t = 4 TO 5: carray(t) = 0: NEXT t: EXIT DO
   IF carray(2) > 1 THEN
    DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0
-   GOSUB setupeq
+   equip_menu_setup pt, st, menu$(), eq(), toff(), tlim()
    MenuSound gen(genCursorSFX)
   END IF
   IF carray(3) > 1 THEN
    DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0
-   GOSUB setupeq
+   equip_menu_setup pt, st, menu$(), eq(), toff(), tlim()
    MenuSound gen(genCursorSFX)
   END IF
   IF carray(0) > 1 THEN
@@ -588,9 +593,9 @@ DO
     MenuSound gen(genCancelSFX)
     '--unequip all
     FOR csr = 0 TO 4
-     unequip pt, csr, dw, stat(), 1
+     unequip pt, csr, st.default_weapon, stat(), 1
     NEXT csr
-    GOSUB setupeq
+    equip_menu_setup pt, st, menu$(), eq(), toff(), tlim()
     csr = 5
     'UPDATE ITEM POSESSION BITSETS
     evalitemtag
@@ -619,7 +624,7 @@ DO
   IF carray(4) > 1 THEN
    IF csr2 = toff(csr) + tlim(csr) + 1 THEN
     '--unequip
-    unequip pt, csr, dw, stat(), 1
+    unequip pt, csr, st.default_weapon, stat(), 1
     GOSUB EquBacktomenuSub
     MenuSound gen(genCancelSFX)
    ELSE
@@ -680,9 +685,9 @@ DO
     IF i = toff(csr) + tlim(csr) + 1 THEN
      '--unequip option
      IF csr = 0 THEN
-      printstr dw$, 192, 28 + (i - top) * 8, dpage
+      printstr st.default_weapon_name, 192, 28 + (i - top) * 8, dpage
      ELSE
-      printstr unequipone$, 192, 28 + (i - top) * 8, dpage
+      printstr st.unequip_caption, 192, 28 + (i - top) * 8, dpage
      END IF
     ELSE
      '--all done!
@@ -710,7 +715,7 @@ IF csr2 = toff(csr) + tlim(csr) + 1 THEN
  IF csr = 0 THEN
   '--special handling for weapon
   '--load the default weapon info and continue as normal
-  lb = dw
+  lb = st.default_weapon
  ELSE
   'non-weapon unequip sets lb -1 to warn to skip that step
   lb = -1
@@ -746,8 +751,8 @@ NEXT i
 RETRACE
 
 newequip:
-unequip pt, csr, dw, stat(), 0
-doequip ie, pt, csr, dw, stat()
+unequip pt, csr, st.default_weapon, stat(), 0
+doequip ie, pt, csr, st.default_weapon, stat()
 GOSUB EquBacktomenuSub
 RETRACE
 
@@ -756,56 +761,9 @@ mset = 0
 FOR i = 0 TO 11
  stb(i) = 0
 NEXT i
-GOSUB setupeq
+equip_menu_setup pt, st, menu$(), eq(), toff(), tlim()
 RETRACE
 
-setupeq:
-dw = stat(pt, 0, 16)
-dw$ = rpad(readitemname$(dw - 1), " ", 11)
-
-setpicstuf buffer(), 200, -1
-FOR i = 0 TO 4
- menu$(i) = "        "
- IF eqstuf(pt, i) > 0 THEN
-  menu$(i) = rpad(readitemname$(eqstuf(pt, i) - 1), " ", 8)
- END IF
-NEXT i
-o = 0
-FOR i = 0 TO inventoryMax
- IF inventory(i).used THEN
-  '--load item data
-  loaditemdata buffer(), inventory(i).id
-  IF buffer(49) > 0 THEN
-   '--if this item is equipable
-   IF readbit(buffer(), 66, hero(pt) - 1) THEN
-    '--if this item is equipable by this hero
-    'eq low is item number
-    'eq high is equip slot
-    eq(o) = i + (buffer(49) * 256)
-    o = o + 1
-   END IF
-  END IF
- END IF
-NEXT i
-
-'--sort by equip slot, right?
-j = 0
-FOR k = 1 TO 5
- toff(k - 1) = j
- FOR i = o TO 0 STEP -1
-  WHILE INT(eq(j) / 256) = k: j = j + 1: WEND
-  IF i <= j THEN EXIT FOR
-  IF INT(eq(i) / 256) = k THEN SWAP eq(i), eq(j): j = j + 1
- NEXT i
- tlim(k - 1) = j - toff(k - 1) - 1
-NEXT k
-
-'clip off the high byte?
-FOR i = 0 TO toff(4) + tlim(4)
- eq(i) = (eq(i) AND 255)
-NEXT i
-
-RETRACE
 END SUB
 
 SUB getitem (getit, num)
@@ -2453,6 +2411,9 @@ FOR i = 0 TO ol - 1
 NEXT i
 END SUB
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
  DIM i AS INTEGER
  DIM n AS INTEGER = 0
@@ -2478,3 +2439,55 @@ FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INT
  END IF
  RETURN didcure
 END FUNCTION
+
+SUB equip_menu_setup (BYVAL who AS INTEGER, BYREF st AS EquipMenuState, menu$(), eq(), toff(), tlim())
+ st.default_weapon = stat(who, 0, 16)
+ st.default_weapon_name = rpad(readitemname(st.default_weapon - 1), " ", 11)
+ IF LEN(TRIM(st.default_weapon_name)) = 0 THEN
+  st.default_weapon_name = st.unequip_caption
+ END IF
+
+ setpicstuf buffer(), 200, -1
+ FOR i AS INTEGER = 0 TO 4
+  menu$(i) = "        "
+  IF eqstuf(who, i) > 0 THEN
+   menu$(i) = rpad(readitemname(eqstuf(who, i) - 1), " ", 8)
+  END IF
+ NEXT i
+ DIM itembuf(99) AS INTEGER
+ DIM eq_slot AS INTEGER = 0
+ FOR i AS INTEGER = 0 TO inventoryMax
+  IF inventory(i).used THEN
+   '--load item data
+   loaditemdata itembuf(), inventory(i).id
+   IF itembuf(49) > 0 THEN
+    '--if this item is equipable
+    IF readbit(itembuf(), 66, hero(who) - 1) THEN
+     '--if this item is equipable by this hero
+     'eq low is item number
+     'eq high is equip slot
+     eq(eq_slot) = i + (itembuf(49) * 256)
+     eq_slot = eq_slot + 1
+    END IF
+   END IF
+  END IF
+ NEXT i
+
+ '--sort by equip slot, right?
+ DIM j AS INTEGER = 0
+  FOR k AS INTEGER = 1 TO 5
+   toff(k - 1) = j
+   FOR i AS INTEGER = eq_slot TO 0 STEP -1
+    WHILE INT(eq(j) / 256) = k: j = j + 1: WEND
+   IF i <= j THEN EXIT FOR
+   IF INT(eq(i) / 256) = k THEN SWAP eq(i), eq(j): j = j + 1
+  NEXT i
+  tlim(k - 1) = j - toff(k - 1) - 1
+ NEXT k
+
+ 'clip off the high byte?
+ FOR i AS INTEGER = 0 TO toff(4) + tlim(4)
+  eq(i) = (eq(i) AND 255)
+ NEXT i
+END SUB
+
