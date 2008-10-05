@@ -27,6 +27,7 @@ End Enum
 Type SliceFwd as Slice
 Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
 Type SliceDispose as Sub(Byval as SliceFwd ptr)
+Type SliceUpdate as Sub(Byval as SliceFwd ptr)
 
 TYPE Slice
   Parent as Slice Ptr
@@ -43,6 +44,9 @@ TYPE Slice
   Height as integer
   Visible as integer
   
+  AlignHoriz as integer
+  AlignVert as integer
+  
   as integer PaddingTop, PaddingLeft, PaddingRight, PaddingBottom
   
   Fill as integer
@@ -54,6 +58,7 @@ TYPE Slice
   
   Draw as SliceDraw
   Dispose as SliceDispose
+  Update as SliceUpdate
   SliceData as any ptr
   SliceType as SliceTypes
   
@@ -89,6 +94,7 @@ Type TextSliceData
  col as integer
  outline as integer
  s as String
+ 'lines() as string
  wrap as integer
  'Declare constructor(byval st as string, byval col as integer = -1, byval ol as integer = YES)
 End Type

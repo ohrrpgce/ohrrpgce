@@ -254,3 +254,13 @@ sub split(byval z as string, ret() as string, sep as string = chr(10))
   j+=1
  loop
 end sub
+
+function textwidth(byval z as string) as integer
+ dim lines() as string
+ split(z, lines())
+ dim ret as integer = 0
+ for i as integer = 0 to ubound(lines)
+  if len(lines(i)) > ret then ret = len(lines(i))
+ next
+ return ret * 8
+end function

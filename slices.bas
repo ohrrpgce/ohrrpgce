@@ -4,9 +4,13 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 'Except, this module isn't very crappy
 '
-'$DYNAMIC
 
-option explicit
+#ifdef __FB_LANG__
+  #if __FB_LANG__ <> "fb"
+'$DYNAMIC
+    Option Explicit
+  #endif
+#endif
 
 #include "allmodex.bi"
 #include "common.bi"
@@ -19,13 +23,18 @@ option explicit
 
 '==============================================================================
 
-DIM Slices(100) as Slice Ptr
+REDIM Slices(100) as Slice Ptr
 
 Dim SliceTable as SliceTable_
 
 'add other slice tables here
 
 '==General slice code==========================================================
+
+'stub functions:
+Sub DrawNullSlice(byval s as slice ptr, byval p as integer) : end sub
+Sub DisposeNullSlice(byval s as slice ptr) : end sub
+Sub UpdateNullSlice(byval s as slice ptr) : end sub
 
 Sub SetupGameSlices
  SliceTable.Root = NewSlice
@@ -68,6 +77,10 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  ret->Visible = YES
  ret->Attached = parent
  ret->Attach = slSlice
+ 
+ ret->Draw = @DrawNullSlice
+ ret->Dispose = @DisposeNullSlice
+ ret->Update = @UpdateNullSlice
  
  return ret
 End Function
@@ -183,6 +196,7 @@ end function
 
 '==Special slice types=========================================================
 
+'--Rectangle--------------------------------------------------------------
 Sub DisposeRectangleSlice(byval sl as slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
@@ -218,14 +232,13 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
  return ret
 end function
 
-
-
-
 Function GetRectangleSliceData(byval sl as slice ptr) as RectangleSliceData ptr
  return sl->SliceData
 End Function
 
 
+
+'--StyleRectangle---------------------------------------------------------
 Sub DisposeStyleRectangleSlice(byval sl as slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
@@ -265,6 +278,9 @@ Function NewStyleRectangleSlice(byval parent as Slice ptr, byref dat as StyleRec
  return ret
 end function
 
+
+
+'--Text-------------------------------------------------------------------
 Sub DisposeTextSlice(byval sl as slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
@@ -301,6 +317,16 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
  end if
 end sub
 
+Sub UpdateTextSlice(byval sl as slice ptr)
+ dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+ 
+ if dat->Wrap = NO then
+  sl->Width = textWidth(dat->s)
+ else
+  'split(wordwrap(dat->s, sl->Width / 8), dat->lines())
+ end if
+end sub
+
 Function GetTextSliceData(byval sl as slice ptr) as TextSliceData ptr
  return sl->SliceData
 End Function
@@ -320,11 +346,17 @@ Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as 
  ret->SliceData = d
  ret->Draw = @DrawTextSlice
  ret->Dispose = @DisposeTextSlice
+ ret->Update = @UpdateTextSlice
+ 
+ ret->Width = textwidth(d->s)
+ 'split(d->s, d->lines())
  
  return ret
 end function
 
-'==START OF MenuSLICEDATA
+
+
+'--Menu-------------------------------------------------------------------
 Sub DisposeMenuSlice(byval sl as slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
@@ -364,9 +396,10 @@ Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as 
  
  return ret
 end function
-'==END OF MenuSLICEDATA
 
-'==START OF MENUITEMSLICEDATA
+
+
+'--MenuItem---------------------------------------------------------------
 Sub DisposeMenuItemSlice(byval sl as slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
@@ -397,6 +430,12 @@ Sub DrawMenuItemSlice(byval sl as slice ptr, byval p as integer)
  end with
 end sub
 
+Sub UpdateMenuItemSlice(byval sl as slice ptr)
+ dim dat as MenuItemSliceData ptr = cptr(MenuItemSliceData ptr, sl->SliceData)
+ 
+ sl->Width = textWidth(dat->caption)
+end sub
+
 Function GetMenuItemSliceData(byval sl as slice ptr) as MenuItemSliceData ptr
  return sl->SliceData
 End Function
@@ -421,7 +460,6 @@ Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceD
  
  return ret
 end function
-'==END OF MENUITEMSLICEDATA
 
 
 '==Epic prophecy of the construcinator=========================================

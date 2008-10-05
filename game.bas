@@ -716,7 +716,7 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
  'DEBUG debug "drawoverhead"
  IF readbit(gmap(), 19, 1) THEN drawmap mapx, mapy, 2, 0, tilesets(2), dpage, 1
  IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 0, 2, tilesets(0), dpage
- 'draw_plotsprites
+ draw_plotsprites
  
  DrawSlice(SliceTable.Root, dpage)
  
