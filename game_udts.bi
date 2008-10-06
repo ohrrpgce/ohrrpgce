@@ -36,10 +36,17 @@ TYPE TextBoxState
   portrait       AS GraphicPair
 END TYPE
 
+TYPE EquippableList
+  count AS INTEGER
+  offset(199) AS INTEGER 'Index into the inventory, or -1 for nothing
+END TYPE
+
 TYPE EquipMenuState
   default_weapon      AS INTEGER 'item ID + 1
   default_weapon_name AS STRING
   unequip_caption     AS STRING
+  eq(4)               AS EquippableList
 END TYPE
+
 
 #ENDIF
