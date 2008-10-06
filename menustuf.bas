@@ -60,6 +60,8 @@ DECLARE FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacke
 DECLARE SUB loadtrades(index, tradestf(), b(), recordsize)
 DECLARE SUB setshopstock (id, recordsize, storebuf(), stufbuf())
 DECLARE SUB equip_menu_setup (BYVAL who AS INTEGER, BYREF st AS EquipMenuState, menu$())
+DECLARE SUB equip_menu_do_equip(BYVAL item AS INTEGER, BYVAL who AS INTEGER, BYVAL slot AS INTEGER, BYREF st AS EquipMenuState, menu$())
+DECLARE SUB equip_menu_back_to_menu(who, BYREF st AS EquipMenuState, menu$())
 
 REM $STATIC
 SUB buystuff (id, shoptype, storebuf(), stat())
@@ -505,7 +507,7 @@ END SUB
 SUB equip (pt, stat())
 
 '--dim stuff
-DIM sname$(40), sno(11), m$(4), menu$(6), stb(11)
+DIM sname$(40), sno(11), m$(4), menu$(6)
 DIM holdscreen = allocatepage
 DIM st AS EquipMenuState
 
@@ -534,11 +536,11 @@ sno(11) = 4
 
 '--initialize
 WITH st
+ .mode = 0
  .default_weapon = 0
  .default_weapon_name = ""
  .unequip_caption = rpad(readglobalstring$(110, "Nothing", 10), " ", 11)
 END WITH
-mset = 0
 equip_menu_setup pt, st, menu$()
 
 '--prepare the backdrop
@@ -554,7 +556,7 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF mset = 0 THEN
+ IF st.mode = 0 THEN
   '--primary menu
   IF carray(5) > 1 THEN FOR t = 4 TO 5: carray(t) = 0: NEXT t: EXIT DO
   IF carray(2) > 1 THEN
@@ -580,7 +582,7 @@ DO
     '--change equipment
     IF st.eq(csr).count > 0 OR eqstuf(pt, csr) > 0 THEN
      '--switch to change equipment mode
-     mset = 1
+     st.mode = 1
      top = 0
      csr2 = 0
      GOSUB stbonus
@@ -605,8 +607,8 @@ DO
  ELSE
   '--change equip menu
   IF carray(5) > 1 THEN
-   mset = 0
-   FOR i = 0 TO 11: stb(i) = 0: NEXT i
+   st.mode = 0
+   flusharray st.stat_bonus(), 11, 0
    MenuSound gen(genCancelSFX)
   END IF
   IF carray(0) > 1 THEN
@@ -625,12 +627,12 @@ DO
    IF csr2 = st.eq(csr).count THEN
     '--unequip
     unequip pt, csr, st.default_weapon, stat(), 1
-    GOSUB EquBacktomenuSub
+    equip_menu_back_to_menu pt, st, menu$()
     MenuSound gen(genCancelSFX)
    ELSE
     '--normal equip
     ie = inventory(st.eq(csr).offset(csr2)).id + 1
-    GOSUB newequip
+    equip_menu_do_equip ie, pt, csr, st, menu$()
     MenuSound gen(genAcceptSFX)
    END IF
   END IF
@@ -644,20 +646,20 @@ DO
  edgeprint names(pt), 84 - LEN(names(pt)) * 4, 12, uilook(uiText), dpage
  FOR i = 0 TO 11
   temp$ = ""
-  IF stb(i) > 0 THEN temp$ = temp$ & "+" & stb(i)
-  IF stb(i) < 0 THEN temp$ = temp$ & stb(i)
+  IF st.stat_bonus(i) > 0 THEN temp$ = temp$ & "+" & st.stat_bonus(i)
+  IF st.stat_bonus(i) < 0 THEN temp$ = temp$ & st.stat_bonus(i)
   edgeprint sname$(sno(i)) & temp$, 20, 42 + i * 10, uilook(uiMenuItem), dpage
   col = uilook(uiMenuItem)
-  IF stb(i) < 0 THEN col = uilook(uiDisabledItem)
-  IF stb(i) > 0 THEN col = uilook(uiSelectedItem + tog)
+  IF st.stat_bonus(i) < 0 THEN col = uilook(uiDisabledItem)
+  IF st.stat_bonus(i) > 0 THEN col = uilook(uiSelectedItem + tog)
   IF gen(genStatCap + i) > 0 THEN
-   temp$ = XSTR$(small(stat(pt, 1, i) + stb(i), gen(genStatCap + i)))
+   temp$ = XSTR$(small(stat(pt, 1, i) + st.stat_bonus(i), gen(genStatCap + i)))
   ELSE
-   temp$ = XSTR$(stat(pt, 1, i) + stb(i))
+   temp$ = XSTR$(stat(pt, 1, i) + st.stat_bonus(i))
   END IF
   edgeprint temp$, 148 - LEN(temp$) * 8, 42 + i * 10, col, dpage
  NEXT i
- IF mset = 0 THEN
+ IF st.mode = 0 THEN
   '--main menu display
   FOR i = 0 TO 6
    textcolor uilook(uiMenuItem), uilook(uiHighlight)
@@ -677,7 +679,7 @@ DO
    edgeprint m$(csr), 236 - (LEN(m$(csr)) * 4), 16, uilook(uiText), dpage
   END IF
  END IF
- IF mset = 1 THEN
+ IF st.mode = 1 THEN
   '--change equipment menu
   centerbox 236, 100, 96, 152, 4, dpage
   FOR i = top TO top + 17
@@ -730,40 +732,26 @@ END IF
 IF lb = -1 THEN
  '--nothing to load!
  FOR i = 0 TO 11
-  stb(i) = 0
+  st.stat_bonus(i) = 0
  NEXT i
 ELSE
  loaditemdata buffer(), lb - 1
  FOR i = 0 TO 11
-  stb(i) = buffer(54 + i)
+  st.stat_bonus(i) = buffer(54 + i)
  NEXT i
 END IF
 
 IF eqstuf(pt, csr) > 0 THEN
  loaditemdata buffer(), eqstuf(pt, csr) - 1
  FOR i = 0 TO 11
-  stb(i) = stb(i) - buffer(54 + i)
+  st.stat_bonus(i) = st.stat_bonus(i) - buffer(54 + i)
  NEXT i
 END IF
 
 FOR i = 0 to 11
- IF gen(genStatCap + i) > 0 THEN stb(i) = small(stb(i), gen(genStatCap + i))
+ IF gen(genStatCap + i) > 0 THEN st.stat_bonus(i) = small(st.stat_bonus(i), gen(genStatCap + i))
 NEXT i
 
-RETRACE
-
-newequip:
-unequip pt, csr, st.default_weapon, stat(), 0
-doequip ie, pt, csr, st.default_weapon, stat()
-GOSUB EquBacktomenuSub
-RETRACE
-
-EquBacktomenuSub:
-mset = 0
-FOR i = 0 TO 11
- stb(i) = 0
-NEXT i
-equip_menu_setup pt, st, menu$()
 RETRACE
 
 END SUB
@@ -2487,3 +2475,14 @@ SUB equip_menu_setup (BYVAL who AS INTEGER, BYREF st AS EquipMenuState, menu$())
 
 END SUB
 
+SUB equip_menu_do_equip(BYVAL item AS INTEGER, BYVAL who AS INTEGER, BYVAL slot AS INTEGER, BYREF st AS EquipMenuState, menu$())
+ unequip who, slot, st.default_weapon, stat(), 0
+ doequip item, who, slot, st.default_weapon, stat()
+ equip_menu_back_to_menu who, st, menu$()
+END SUB
+
+SUB equip_menu_back_to_menu(who, BYREF st AS EquipMenuState, menu$())
+ st.mode = 0
+ flusharray st.stat_bonus(), 11, 0
+ equip_menu_setup who, st, menu$()
+END SUB
