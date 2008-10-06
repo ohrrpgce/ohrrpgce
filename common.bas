@@ -698,7 +698,9 @@ SUB guessdefaultpals(fileset, poffset(), sets)
  END SELECT
 END SUB
 
-SUB flusharray (array(), size, value)
+SUB flusharray (array(), BYVAL size AS INTEGER=-1, BYVAL value AS INTEGER=0)
+'If size is -1, then flush the entire array
+IF size = -1 THEN size = UBOUND(array)
 FOR i = 0 TO size
  array(i) = value
 NEXT i

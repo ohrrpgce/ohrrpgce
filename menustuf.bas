@@ -62,6 +62,7 @@ DECLARE SUB setshopstock (id, recordsize, storebuf(), stufbuf())
 DECLARE SUB equip_menu_setup (BYVAL who AS INTEGER, BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_do_equip(BYVAL item AS INTEGER, BYVAL who AS INTEGER, BYVAL slot AS INTEGER, BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_back_to_menu(who, BYREF st AS EquipMenuState, menu$())
+DECLARE SUB equip_menu_stat_bonus(BYVAL who AS INTEGER, csr2, csr, BYREF st AS EquipMenuState)
 
 REM $STATIC
 SUB buystuff (id, shoptype, storebuf(), stat())
@@ -585,7 +586,7 @@ DO
      st.mode = 1
      top = 0
      csr2 = 0
-     GOSUB stbonus
+     equip_menu_stat_bonus pt, csr2, csr, st
      MenuSound gen(genAcceptSFX)
     END IF
     'UPDATE ITEM POSESION BITSETS
@@ -608,18 +609,18 @@ DO
   '--change equip menu
   IF carray(5) > 1 THEN
    st.mode = 0
-   flusharray st.stat_bonus(), 11, 0
+   flusharray st.stat_bonus()
    MenuSound gen(genCancelSFX)
   END IF
   IF carray(0) > 1 THEN
    csr2 = large(csr2 - 1, 0)
-   GOSUB stbonus
+   equip_menu_stat_bonus pt, csr2, csr, st
    IF csr2 < top THEN top = top - 1
    MenuSound gen(genCursorSFX)
   END IF
   IF carray(1) > 1 THEN
    csr2 = small(csr2 + 1, st.eq(csr).count)
-   GOSUB stbonus
+   equip_menu_stat_bonus pt, csr2, csr, st
    IF csr2 > top + 17 THEN top = top + 1
    MenuSound gen(genCursorSFX)
   END IF
@@ -709,50 +710,6 @@ DO
 LOOP
 freepage holdscreen
 MenuSound gen(genCancelSFX)
-EXIT SUB
-
-stbonus:
-'--load stat bonuses of currently hovered weapon for display
-
-IF csr2 = st.eq(csr).count THEN
- '--unequip
- IF csr = 0 THEN
-  '--special handling for weapon
-  '--load the default weapon info and continue as normal
-  lb = st.default_weapon
- ELSE
-  'non-weapon unequip sets lb -1 to warn to skip that step
-  lb = -1
- END IF
-ELSE
- '--equip
- lb = inventory(st.eq(csr).offset(csr2)).id + 1
-END IF
-
-IF lb = -1 THEN
- '--nothing to load!
- FOR i = 0 TO 11
-  st.stat_bonus(i) = 0
- NEXT i
-ELSE
- loaditemdata buffer(), lb - 1
- FOR i = 0 TO 11
-  st.stat_bonus(i) = buffer(54 + i)
- NEXT i
-END IF
-
-IF eqstuf(pt, csr) > 0 THEN
- loaditemdata buffer(), eqstuf(pt, csr) - 1
- FOR i = 0 TO 11
-  st.stat_bonus(i) = st.stat_bonus(i) - buffer(54 + i)
- NEXT i
-END IF
-
-FOR i = 0 to 11
- IF gen(genStatCap + i) > 0 THEN st.stat_bonus(i) = small(st.stat_bonus(i), gen(genStatCap + i))
-NEXT i
-
-RETRACE
 
 END SUB
 
@@ -2483,6 +2440,50 @@ END SUB
 
 SUB equip_menu_back_to_menu(who, BYREF st AS EquipMenuState, menu$())
  st.mode = 0
- flusharray st.stat_bonus(), 11, 0
+ flusharray st.stat_bonus()
  equip_menu_setup who, st, menu$()
+END SUB
+
+SUB equip_menu_stat_bonus(BYVAL who AS INTEGER, csr2, csr, BYREF st AS EquipMenuState)
+ '--load stat bonuses of currently hovered weapon for display
+
+ DIM item AS INTEGER = 0 ' Will be set to item ID + 1
+
+ IF csr2 = st.eq(csr).count THEN
+  '--unequip
+  IF csr = 0 THEN
+   '--special handling for weapon
+   '--load the default weapon info and continue as normal
+   item = st.default_weapon
+  ELSE
+   'non-weapon unequip sets item to 0 to warn to skip that step
+   item = 0
+  END IF
+ ELSE
+  '--equip
+  item = inventory(st.eq(csr).offset(csr2)).id + 1
+ END IF
+
+ DIM itembuf(99)
+ IF item = 0 THEN
+  '--nothing to load!
+  flusharray st.stat_bonus()
+ ELSE
+  loaditemdata itembuf(), item - 1
+  FOR i AS INTEGER = 0 TO 11
+   st.stat_bonus(i) = itembuf(54 + i)
+  NEXT i
+ END IF
+
+ IF eqstuf(who, csr) > 0 THEN
+  loaditemdata itembuf(), eqstuf(who, csr) - 1
+  FOR i AS INTEGER = 0 TO 11
+   st.stat_bonus(i) = st.stat_bonus(i) - itembuf(54 + i)
+  NEXT i
+ END IF
+
+ FOR i AS INTEGER = 0 to 11
+  IF gen(genStatCap + i) > 0 THEN st.stat_bonus(i) = small(st.stat_bonus(i), gen(genStatCap + i))
+ NEXT i
+
 END SUB

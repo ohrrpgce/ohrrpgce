@@ -48,7 +48,7 @@ DECLARE SUB loaddefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS I
 DECLARE SUB savedefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
 DECLARE SUB guessdefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
 DECLARE FUNCTION getdefaultpal(fileset as integer, index as integer) as integer
-DECLARE SUB flusharray (array() as integer, size as integer, value as integer)
+DECLARE SUB flusharray (array(), BYVAL size AS INTEGER=-1, BYVAL value AS INTEGER=0)
 DECLARE SUB setbinsize (id as integer, size as integer)
 DECLARE FUNCTION curbinsize (id as integer) as integer
 DECLARE FUNCTION defbinsize (id as integer) as integer
