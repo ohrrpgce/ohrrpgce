@@ -4,6 +4,7 @@ WHAT IS NEW?
 
   * New Features
     * Plotscripting can now load sprites, and place them on screen. [Mike]
+    * Limit on maximum items has been raised from 254 to 32000 [James]
 
   * Bugfixes
 

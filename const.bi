@@ -121,7 +121,7 @@ CONST fixTextBoxPortrait = 11    'Initialize text box portrait data
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 99
-CONST maxMaxItems = 254 'max number of items
+CONST maxMaxItems = 32000 'max number of items
 CONST inventoryMax = 197 'last inventory slot num (3 doesn't divide into 200)
 CONST scriptmemMax = 65536    'in 4-byte ints (256kb)
 
