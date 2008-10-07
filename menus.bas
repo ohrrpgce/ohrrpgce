@@ -450,11 +450,8 @@ ELSE
  IF isfile(game + "." + STR$(snum)) THEN ext$ = ".bam" : songfile$ = game + "." + STR$(snum) : songtype$ = "Bob's Adlib Music (BAM)"
 END IF
 bamfile$ = songfile$
-IF isfile(temp$ + ".mid") THEN
-  ext$ = ".mid"
-  songfile$ = temp$ + ext$
-  songtype$ = "MIDI Music (MID)"
-ELSEIF isfile(temp$ + ".ogg") THEN
+
+IF isfile(temp$ + ".ogg") THEN
  ext$ = ".ogg"
  songfile$ = temp$ + ext$
  songtype$ = "OGG Vorbis (OGG)"
@@ -478,6 +475,10 @@ ELSEIF isfile(temp$ + ".mp3") THEN ' Obsolete. only present in some Ubersetzung 
  ext$ = ".mp3"
  songfile$ = temp$ + ext$
  songtype$ = "MPEG Layer III (MP3) OBSOLETE"
+ELSEIF isfile(temp$ + ".mid") THEN
+  ext$ = ".mid"
+  songfile$ = temp$ + ext$
+  songtype$ = "MIDI Music (MID)"
 END IF
 '--add more formats here
 

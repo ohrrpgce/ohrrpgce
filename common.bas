@@ -1334,9 +1334,8 @@ SUB playsongnum (songnum%)
 
 	songbase$ = workingdir & SLASH & "song" & songnum%
   songfile$ = ""
-  IF isfile(songbase$ & ".mid") THEN
-    songfile$ = songbase$ & ".mid"
-  ELSEIF isfile(songbase$ & ".mp3") THEN
+  
+  IF isfile(songbase$ & ".mp3") THEN
     songfile$ = songbase$ & ".mp3"
   ELSEIF isfile(songbase$ & ".ogg") THEN
     songfile$ = songbase$ & ".ogg"
@@ -1348,6 +1347,8 @@ SUB playsongnum (songnum%)
     songfile$ = songbase$ & ".s3m"
   ELSEIF isfile(songbase$ & ".it") THEN
     songfile$ = songbase$ & ".it"
+  ELSEIF isfile(songbase$ & ".mid") THEN
+    songfile$ = songbase$ & ".mid"
   ELSEIF isfile(songbase$ & ".bam") THEN
     songfile$ = songbase$ & ".bam"
   ELSEIF isfile(game & "." & songnum%) THEN
