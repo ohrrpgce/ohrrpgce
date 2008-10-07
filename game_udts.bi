@@ -43,6 +43,9 @@ END TYPE
 
 TYPE EquipMenuState
   mode                AS INTEGER '0=picking slot 1=picking equipment to put in slot
+  who                 AS INTEGER
+  slot                AS INTEGER
+  eq_cursor           AS MenuState
   default_weapon      AS INTEGER 'item ID + 1
   default_weapon_name AS STRING
   unequip_caption     AS STRING
