@@ -505,215 +505,6 @@ END IF
 
 END SUB
 
-SUB equip (who, stat())
-
-'--dim stuff
-DIM sname$(40), sno(11), m$(4), menu$(6)
-DIM holdscreen = allocatepage
-DIM st AS EquipMenuState
-
-'--get names
-getnames sname$()
-m$(0) = readglobalstring$(38, "Weapon", 10)
-FOR i = 0 TO 3
- m$(i + 1) = sname$(25 + i)
-NEXT i
-menu$(5) = rpad(readglobalstring$(39, "-REMOVE-", 8), " ", 8)
-menu$(6) = rpad(readglobalstring$(40, "-EXIT-", 8), " ", 8)
-
-'--stat name offsets
-sno(0) = 0
-sno(1) = 1
-sno(2) = 2
-sno(3) = 3
-sno(4) = 5
-sno(5) = 6
-sno(6) = 29
-sno(7) = 30
-sno(8) = 8
-sno(9) = 7
-sno(10) = 31
-sno(11) = 4
-
-'--initialize
-WITH st
- .mode = 0
- .who = who
- .eq_cursor.size = 17
- .default_weapon = 0
- .default_weapon_name = ""
- .unequip_caption = rpad(readglobalstring$(110, "Nothing", 10), " ", 11)
-END WITH
-equip_menu_setup st, menu$()
-
-'--prepare the backdrop
-'preserve the background behind the equip menu
-copypage vpage, holdscreen
-
-'--main loop
-MenuSound gen(genAcceptSFX)
-setkeys
-DO
- setwait speedcontrol
- setkeys
- tog = tog XOR 1
- playtimer
- control
- IF st.mode = 0 THEN
-  '--primary menu
-  IF carray(5) > 1 THEN FOR t = 4 TO 5: carray(t) = 0: NEXT t: EXIT DO
-  IF carray(2) > 1 THEN 'Left: previous hero
-   DO: st.who = loopvar(st.who, 0, 3, -1): LOOP UNTIL hero(st.who) > 0
-   equip_menu_setup st, menu$()
-   MenuSound gen(genCursorSFX)
-  END IF
-  IF carray(3) > 1 THEN 'Right: next hero
-   DO: st.who = loopvar(st.who, 0, 3, 1): LOOP UNTIL hero(st.who) > 0
-   equip_menu_setup st, menu$()
-   MenuSound gen(genCursorSFX)
-  END IF
-  IF carray(0) > 1 THEN 'Up: slot cursor up
-   st.slot = loopvar(st.slot, 0, 6, - 1)
-   MenuSound gen(genCursorSFX)
-  END IF
-  IF carray(1) > 1 THEN 'Down slot cursor down
-   st.slot = loopvar(st.slot, 0, 6, 1)
-   MenuSound gen(genCursorSFX)
-  END IF
-  IF carray(4) > 1 THEN
-   IF st.slot < 5 THEN
-    '--change equipment
-    IF st.eq(st.slot).count > 0 OR eqstuf(st.who, st.slot) > 0 THEN
-     '--switch to change equipment mode
-     st.mode = 1
-     st.eq_cursor.pt = 0
-     st.eq_cursor.top = 0
-     equip_menu_stat_bonus st
-     MenuSound gen(genAcceptSFX)
-    END IF
-    'UPDATE ITEM POSESION BITSETS
-    evalitemtag
-   END IF
-   IF st.slot = 5 THEN
-    MenuSound gen(genCancelSFX)
-    '--unequip all
-    FOR i AS INTEGER = 0 TO 4
-     unequip st.who, i, st.default_weapon, stat(), 1
-    NEXT i
-    equip_menu_setup st, menu$()
-    'UPDATE ITEM POSESSION BITSETS
-    evalitemtag
-   END IF
-   IF st.slot = 6 THEN carray(4) = 0: EXIT DO
-  END IF
- ELSE
-  '--change equip menu
-  IF carray(5) > 1 THEN
-   st.mode = 0
-   flusharray st.stat_bonus()
-   MenuSound gen(genCancelSFX)
-  END IF
-  IF carray(0) > 1 THEN
-   st.eq_cursor.pt = large(st.eq_cursor.pt - 1, 0)
-   IF st.eq_cursor.pt < st.eq_cursor.top THEN st.eq_cursor.top -= 1
-   equip_menu_stat_bonus st
-   MenuSound gen(genCursorSFX)
-  END IF
-  IF carray(1) > 1 THEN
-   st.eq_cursor.pt = small(st.eq_cursor.pt + 1, st.eq(st.slot).count)
-   IF st.eq_cursor.pt > st.eq_cursor.top + st.eq_cursor.size THEN st.eq_cursor.top += 1
-   equip_menu_stat_bonus st
-   MenuSound gen(genCursorSFX)
-  END IF
-  IF carray(4) > 1 THEN
-   IF st.eq_cursor.pt = st.eq(st.slot).count THEN
-    '--unequip
-    unequip st.who, st.slot, st.default_weapon, stat(), 1
-    equip_menu_back_to_menu st, menu$()
-    MenuSound gen(genCancelSFX)
-   ELSE
-    '--normal equip
-    ie = inventory(st.eq(st.slot).offset(st.eq_cursor.pt)).id + 1
-    equip_menu_do_equip ie, st, menu$()
-    MenuSound gen(genAcceptSFX)
-   END IF
-  END IF
- END IF
-
- '--display
- centerfuz 160, 100, 304, 184, 1, dpage
- centerbox 84, 18, 140, 16, 4, dpage
- centerbox 84, 100, 140, 130, 4, dpage
- centerbox 236, 75, 80, 78, 4, dpage
- edgeprint names(st.who), 84 - LEN(names(st.who)) * 4, 12, uilook(uiText), dpage
- FOR i = 0 TO 11
-  temp$ = ""
-  IF st.stat_bonus(i) > 0 THEN temp$ = temp$ & "+" & st.stat_bonus(i)
-  IF st.stat_bonus(i) < 0 THEN temp$ = temp$ & st.stat_bonus(i)
-  edgeprint sname$(sno(i)) & temp$, 20, 42 + i * 10, uilook(uiMenuItem), dpage
-  col = uilook(uiMenuItem)
-  IF st.stat_bonus(i) < 0 THEN col = uilook(uiDisabledItem)
-  IF st.stat_bonus(i) > 0 THEN col = uilook(uiSelectedItem + tog)
-  IF gen(genStatCap + i) > 0 THEN
-   temp$ = XSTR$(small(stat(st.who, 1, i) + st.stat_bonus(i), gen(genStatCap + i)))
-  ELSE
-   temp$ = XSTR$(stat(st.who, 1, i) + st.stat_bonus(i))
-  END IF
-  edgeprint temp$, 148 - LEN(temp$) * 8, 42 + i * 10, col, dpage
- NEXT i
- IF st.mode = 0 THEN
-  '--main menu display
-  FOR i = 0 TO 6
-   textcolor uilook(uiMenuItem), uilook(uiHighlight)
-   IF i < 5 THEN
-    IF eqstuf(st.who, i) = 0 AND st.eq(i).count = 0 THEN textcolor uilook(uiMenuItem), uilook(uiTextBox)
-   END IF
-   IF st.slot = i THEN
-    textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight + tog)
-    IF i < 5 THEN
-      IF st.eq(i).count = 0 THEN textcolor uilook(uiSelectedItem), uilook(uiHighlight2)
-    END IF
-   END IF
-   printstr menu$(i), 204, 45 + i * 9, dpage
-  NEXT i
-  IF st.slot < 5 THEN
-   centerbox 236, 22, (LEN(m$(st.slot)) + 2) * 8, 16, 4, dpage
-   edgeprint m$(st.slot), 236 - (LEN(m$(st.slot)) * 4), 16, uilook(uiText), dpage
-  END IF
- END IF
- IF st.mode = 1 THEN
-  '--change equipment menu
-  centerbox 236, 100, 96, 152, 4, dpage
-  FOR i = st.eq_cursor.top TO st.eq_cursor.top + st.eq_cursor.size
-   textcolor uilook(uiMenuItem), 0
-   IF i = st.eq_cursor.pt THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2)
-   IF i >= st.eq(st.slot).count THEN
-    IF i = st.eq(st.slot).count THEN
-     '--unequip option
-     IF st.slot = 0 THEN
-      printstr st.default_weapon_name, 192, 28 + (i - st.eq_cursor.top) * 8, dpage
-     ELSE
-      printstr st.unequip_caption, 192, 28 + (i - st.eq_cursor.top) * 8, dpage
-     END IF
-    ELSE
-     '--all done!
-     EXIT FOR
-    END IF
-   ELSE
-    printstr inventory(st.eq(st.slot).offset(i)).text, 192, 28 + (i - st.eq_cursor.top) * 8, dpage
-   END IF
-  NEXT i
- END IF
- SWAP vpage, dpage
- setvispage vpage
- copypage holdscreen, dpage
- dowait
-LOOP
-freepage holdscreen
-MenuSound gen(genCancelSFX)
-
-END SUB
-
 SUB getitem (getit, num)
 
 numitems = num
@@ -2387,6 +2178,225 @@ FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INT
  END IF
  RETURN didcure
 END FUNCTION
+
+SUB equip (who, stat())
+
+'--dim stuff
+DIM sname$(40), sno(11), m$(4), menu$(6)
+DIM holdscreen = allocatepage
+DIM st AS EquipMenuState
+
+DIM i AS INTEGER
+DIM tog AS INTEGER = 0
+DIM stat_caption AS STRING
+DIM col AS INTEGER
+DIM item_id AS INTEGER
+
+'--get names
+getnames sname$()
+m$(0) = readglobalstring$(38, "Weapon", 10)
+FOR i = 0 TO 3
+ m$(i + 1) = sname$(25 + i)
+NEXT i
+menu$(5) = rpad(readglobalstring$(39, "-REMOVE-", 8), " ", 8)
+menu$(6) = rpad(readglobalstring$(40, "-EXIT-", 8), " ", 8)
+
+'--stat name offsets
+sno(0) = 0
+sno(1) = 1
+sno(2) = 2
+sno(3) = 3
+sno(4) = 5
+sno(5) = 6
+sno(6) = 29
+sno(7) = 30
+sno(8) = 8
+sno(9) = 7
+sno(10) = 31
+sno(11) = 4
+
+'--initialize
+WITH st
+ .mode = 0
+ .who = who
+ .eq_cursor.size = 17
+ .default_weapon = 0
+ .default_weapon_name = ""
+ .unequip_caption = rpad(readglobalstring$(110, "Nothing", 10), " ", 11)
+END WITH
+equip_menu_setup st, menu$()
+
+'--prepare the backdrop
+'preserve the background behind the equip menu
+copypage vpage, holdscreen
+
+'--main loop
+MenuSound gen(genAcceptSFX)
+setkeys
+DO
+ setwait speedcontrol
+ setkeys
+ tog = tog XOR 1
+ playtimer
+ control
+ IF st.mode = 0 THEN
+  '--primary menu
+  IF carray(5) > 1 THEN
+   carray(4) = 0
+   carray(5) = 0
+   EXIT DO
+  END IF
+  IF carray(2) > 1 THEN 'Left: previous hero
+   DO: st.who = loopvar(st.who, 0, 3, -1): LOOP UNTIL hero(st.who) > 0
+   equip_menu_setup st, menu$()
+   MenuSound gen(genCursorSFX)
+  END IF
+  IF carray(3) > 1 THEN 'Right: next hero
+   DO: st.who = loopvar(st.who, 0, 3, 1): LOOP UNTIL hero(st.who) > 0
+   equip_menu_setup st, menu$()
+   MenuSound gen(genCursorSFX)
+  END IF
+  IF carray(0) > 1 THEN 'Up: slot cursor up
+   st.slot = loopvar(st.slot, 0, 6, - 1)
+   MenuSound gen(genCursorSFX)
+  END IF
+  IF carray(1) > 1 THEN 'Down slot cursor down
+   st.slot = loopvar(st.slot, 0, 6, 1)
+   MenuSound gen(genCursorSFX)
+  END IF
+  IF carray(4) > 1 THEN
+   IF st.slot < 5 THEN
+    '--change equipment
+    IF st.eq(st.slot).count > 0 OR eqstuf(st.who, st.slot) > 0 THEN
+     '--switch to change equipment mode
+     st.mode = 1
+     st.eq_cursor.pt = 0
+     st.eq_cursor.top = 0
+     equip_menu_stat_bonus st
+     MenuSound gen(genAcceptSFX)
+    END IF
+    'UPDATE ITEM POSESION BITSETS
+    evalitemtag
+   END IF
+   IF st.slot = 5 THEN
+    MenuSound gen(genCancelSFX)
+    '--unequip all
+    FOR i AS INTEGER = 0 TO 4
+     unequip st.who, i, st.default_weapon, stat(), 1
+    NEXT i
+    equip_menu_setup st, menu$()
+    'UPDATE ITEM POSESSION BITSETS
+    evalitemtag
+   END IF
+   IF st.slot = 6 THEN carray(4) = 0: EXIT DO
+  END IF
+ ELSE
+  '--change equip menu
+  IF carray(5) > 1 THEN
+   st.mode = 0
+   flusharray st.stat_bonus()
+   MenuSound gen(genCancelSFX)
+  END IF
+  IF carray(0) > 1 THEN
+   st.eq_cursor.pt = large(st.eq_cursor.pt - 1, 0)
+   IF st.eq_cursor.pt < st.eq_cursor.top THEN st.eq_cursor.top -= 1
+   equip_menu_stat_bonus st
+   MenuSound gen(genCursorSFX)
+  END IF
+  IF carray(1) > 1 THEN
+   st.eq_cursor.pt = small(st.eq_cursor.pt + 1, st.eq(st.slot).count)
+   IF st.eq_cursor.pt > st.eq_cursor.top + st.eq_cursor.size THEN st.eq_cursor.top += 1
+   equip_menu_stat_bonus st
+   MenuSound gen(genCursorSFX)
+  END IF
+  IF carray(4) > 1 THEN
+   IF st.eq_cursor.pt = st.eq(st.slot).count THEN
+    '--unequip
+    unequip st.who, st.slot, st.default_weapon, stat(), 1
+    equip_menu_back_to_menu st, menu$()
+    MenuSound gen(genCancelSFX)
+   ELSE
+    '--normal equip
+    item_id = inventory(st.eq(st.slot).offset(st.eq_cursor.pt)).id
+    equip_menu_do_equip item_id + 1, st, menu$()
+    MenuSound gen(genAcceptSFX)
+   END IF
+  END IF
+ END IF
+
+ '--display
+ centerfuz 160, 100, 304, 184, 1, dpage
+ centerbox 84, 18, 140, 16, 4, dpage
+ centerbox 84, 100, 140, 130, 4, dpage
+ centerbox 236, 75, 80, 78, 4, dpage
+ edgeprint names(st.who), 84 - LEN(names(st.who)) * 4, 12, uilook(uiText), dpage
+ FOR i = 0 TO 11
+  stat_caption = ""
+  IF st.stat_bonus(i) > 0 THEN stat_caption = stat_caption & "+" & st.stat_bonus(i)
+  IF st.stat_bonus(i) < 0 THEN stat_caption = stat_caption & st.stat_bonus(i)
+  edgeprint sname$(sno(i)) & stat_caption, 20, 42 + i * 10, uilook(uiMenuItem), dpage
+  col = uilook(uiMenuItem)
+  IF st.stat_bonus(i) < 0 THEN col = uilook(uiDisabledItem)
+  IF st.stat_bonus(i) > 0 THEN col = uilook(uiSelectedItem + tog)
+  IF gen(genStatCap + i) > 0 THEN
+   stat_caption = XSTR$(small(stat(st.who, 1, i) + st.stat_bonus(i), gen(genStatCap + i)))
+  ELSE
+   stat_caption = XSTR$(stat(st.who, 1, i) + st.stat_bonus(i))
+  END IF
+  edgeprint stat_caption, 148 - LEN(stat_caption) * 8, 42 + i * 10, col, dpage
+ NEXT i
+ IF st.mode = 0 THEN
+  '--main menu display
+  FOR i = 0 TO 6
+   textcolor uilook(uiMenuItem), uilook(uiHighlight)
+   IF i < 5 THEN
+    IF eqstuf(st.who, i) = 0 AND st.eq(i).count = 0 THEN textcolor uilook(uiMenuItem), uilook(uiTextBox)
+   END IF
+   IF st.slot = i THEN
+    textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight + tog)
+    IF i < 5 THEN
+      IF st.eq(i).count = 0 THEN textcolor uilook(uiSelectedItem), uilook(uiHighlight2)
+    END IF
+   END IF
+   printstr menu$(i), 204, 45 + i * 9, dpage
+  NEXT i
+  IF st.slot < 5 THEN
+   centerbox 236, 22, (LEN(m$(st.slot)) + 2) * 8, 16, 4, dpage
+   edgeprint m$(st.slot), 236 - (LEN(m$(st.slot)) * 4), 16, uilook(uiText), dpage
+  END IF
+ END IF
+ IF st.mode = 1 THEN
+  '--change equipment menu
+  centerbox 236, 100, 96, 152, 4, dpage
+  FOR i = st.eq_cursor.top TO st.eq_cursor.top + st.eq_cursor.size
+   textcolor uilook(uiMenuItem), 0
+   IF i = st.eq_cursor.pt THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2)
+   IF i >= st.eq(st.slot).count THEN
+    IF i = st.eq(st.slot).count THEN
+     '--unequip option
+     IF st.slot = 0 THEN
+      printstr st.default_weapon_name, 192, 28 + (i - st.eq_cursor.top) * 8, dpage
+     ELSE
+      printstr st.unequip_caption, 192, 28 + (i - st.eq_cursor.top) * 8, dpage
+     END IF
+    ELSE
+     '--all done!
+     EXIT FOR
+    END IF
+   ELSE
+    printstr inventory(st.eq(st.slot).offset(i)).text, 192, 28 + (i - st.eq_cursor.top) * 8, dpage
+   END IF
+  NEXT i
+ END IF
+ SWAP vpage, dpage
+ setvispage vpage
+ copypage holdscreen, dpage
+ dowait
+LOOP
+freepage holdscreen
+MenuSound gen(genCancelSFX)
+
+END SUB
 
 SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
  st.default_weapon = stat(st.who, 0, 16)
