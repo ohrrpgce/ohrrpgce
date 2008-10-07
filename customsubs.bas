@@ -1297,7 +1297,7 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
         ELSE
          box.shrink = 21 - VALINT(v)
         END IF
-       CASE "potrait box"
+       CASE "portrait box"
         box.portrait_box = str2bool(v, NO)
        CASE "portrait type"
         box.portrait_type = VALINT(v)
