@@ -65,6 +65,8 @@ DECLARE SUB clear_hero_preview_pics(BYREF st AS HeroEditState)
 DECLARE SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
 DECLARE SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
 
+DECLARE SUB item_editor_equipbits(itembuf())
+
 REM $STATIC
 
 SUB clearallpages
@@ -1491,7 +1493,6 @@ END SUB
 SUB itemdata
 DIM names(100) AS STRING, a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), eqst$(5), max(18), min(18), sbmax(11), elemtype$(2), frame
 DIM item$(maxMaxItems)
-DIM her AS HeroDef ' This is only used in equipbit
 DIM wep_img AS GraphicPair 'This is only used in edititem
 imax = 32
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
@@ -1645,7 +1646,7 @@ DO
     need_update = YES
    END IF
    IF pt = 20 THEN
-    GOSUB equipbit
+    item_editor_equipbits a()
     need_update = YES
    END IF
   END IF
@@ -1765,15 +1766,6 @@ FOR i = 0 TO 7
  ibit$(i + 16) = elemtype$(2) + " " + names(17 + i)
 NEXT i
 editbitset a(), 70, 23, ibit$()
-RETRACE
-
-equipbit:
-'"DIM her AS HeroDef" is only used here but is dimmed at the top of the itemdata sub to avoid branch crossing
-FOR i = 0 TO 59
- loadherodata @her, i
- ibit$(i) = "Equipable by " + her.name
-NEXT i
-editbitset a(), 66, 59, ibit$()
 RETRACE
 
 END SUB
@@ -1948,6 +1940,7 @@ END SUB
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
+'--Hero Editor stuff---------------------------------------------------
 
 SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef)
  menu(1) = "Battle Picture: " & her.sprite
@@ -2139,4 +2132,15 @@ SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
   dowait
  LOOP
  st.previewframe = -1
+END SUB
+
+'--Item Editor stuff---------------------------------------------------
+
+SUB item_editor_equipbits(itembuf())
+ 'equipbit:
+ DIM ibit(-1 TO maxMaxHero) AS STRING
+ FOR i AS INTEGER = 0 TO gen(genMaxHero)
+  ibit(i) = "Equipable by " & getheroname(i)
+ NEXT i
+ editbitset itembuf(), 66, gen(genMaxHero), ibit()
 END SUB

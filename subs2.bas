@@ -112,13 +112,16 @@ IF bytes >= 0 THEN
   storeset tmpdir & "_cropped.tmp", i, 0
  NEXT i
  IF flushafter THEN
+  'FIXME: this flushafter hack only exists for the .DT0 lump,
+  ' out of fear that some code with read hero data past the end of the file.
+  ' after cleanup of all hero code has confurmed this fear is unfounded, we can
+  ' eliminate this hack entirely
   flusharray buffer(), INT(bytes / 2) + 1, 0
   FOR i = index + 1 TO limit
    storeset tmpdir & "_cropped.tmp", i, 0
   NEXT i
- ELSE
-  limit = index
  END IF
+ limit = index
  
 ELSE '--use pages instead of sets
  FOR i = 0 TO index
