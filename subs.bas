@@ -64,6 +64,8 @@ DECLARE SUB animate_hero_preview(BYREF st AS HeroEditState)
 DECLARE SUB clear_hero_preview_pics(BYREF st AS HeroEditState)
 DECLARE SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
 DECLARE SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
+DECLARE SUB hero_editor_equipment_list (BYVAL hero_id AS INTEGER, BYREF her AS HeroDef)
+DECLARE SUB hero_editor_equipbits (BYVAL hero_id AS INTEGER, BYVAL equip_type AS INTEGER)
 
 DECLARE SUB item_editor_equipbits(itembuf())
 
@@ -1052,7 +1054,7 @@ SUB formsprite(z() as integer, w() as integer, a() as integer, h() as integer, p
 END SUB
 
 SUB herodata
-DIM names(100) AS STRING, menu$(8), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), elemtype$(2)
+DIM names(100) AS STRING, menu$(9), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), elemtype$(2)
 DIM AS HeroDef her, blankhero
 DIM st AS HeroEditState
 WITH st
@@ -1094,6 +1096,7 @@ menu$(5) = "Edit Spell Lists..."
 menu$(6) = "Name Spell Lists..."
 menu$(7) = "Bitsets..."
 menu$(8) = "Hero Tags..."
+menu$(9) = "Equipment..."
 nam$ = ""
 GOSUB thishero
 
@@ -1107,7 +1110,7 @@ DO
  IF keyval(29) > 0 AND keyval(14) > 0 THEN
   cropafter pt, gen(genMaxHero), -1, game + ".dt0", 636, 1
  END IF
- usemenu csr, 0, 0, 8, 24
+ usemenu csr, 0, 0, 9, 24
  IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 3 THEN hero_appearance_editor st, her
@@ -1116,6 +1119,7 @@ DO
   IF csr = 6 THEN GOSUB heromenu '--spell list names
   IF csr = 7 THEN editbitset her.bits(), 0, 26, hbit$()
   IF csr = 8 THEN herotags her
+  IF csr = 9 THEN hero_editor_equipment_list pt, her
  END IF
  IF csr = 1 THEN
   remptr = pt
@@ -1142,7 +1146,7 @@ DO
   menu$(2) = "Name:" + nam$
  END IF
 
- standardmenu menu$(), 8, 22, csr, 0, 0, 0, dpage, 0
+ standardmenu menu$(), 9, 22, csr, 0, 0, 0, dpage, 0
 
  draw_hero_preview st, her
  SWAP vpage, dpage
@@ -2134,10 +2138,64 @@ SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
  st.previewframe = -1
 END SUB
 
+SUB hero_editor_equipment_list (BYVAL hero_id AS INTEGER, BYREF her AS HeroDef)
+ DIM menu(5) AS STRING
+ DIM state AS MenuState
+ WITH state
+  .last = 5
+  .size = 22
+ END WITH
+ menu(0) = "Previous menu"
+ menu(1) = her.name & "'s " & readglobalstring(38, "Weapon", 10) & " items"
+ FOR i AS INTEGER = 0 TO 3
+  menu(2+i) = her.name & "'s " & readglobalstring(25+i, "Armor " & (1+i), 10) & " items"
+ NEXT i
+ 
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  state.tog = state.tog XOR 1
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  usemenu state
+  IF enter_or_space() THEN
+   hero_editor_equipbits hero_id, state.pt
+  END IF
+  standardmenu menu(), state, 0, 0, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+END SUB
+
+SUB hero_editor_equipbits (BYVAL hero_id AS INTEGER, BYVAL equip_type AS INTEGER)
+ '--equip_type is 0 for none (which would be silly) 1 for weapons and 2-5 for armor
+ DIM tempbits(gen(genMaxItem) \ 16 + 1) AS INTEGER 
+ DIM itemname(gen(genMaxItem)) AS STRING
+ DIM item_id(gen(genMaxItem)) AS INTEGER
+ DIM itembuf(99) AS INTEGER
+ DIM nextbit AS INTEGER = 0
+ FOR i AS INTEGER = 0 TO gen(genMaxItem)
+  loaditemdata itembuf(), i
+  IF itembuf(49) = equip_type THEN
+   itemname(nextbit) = readitemname(i)
+   item_id(nextbit) = i
+   setbit tempbits(), 0, nextbit, readbit(itembuf(), 66, hero_id)
+   nextbit += 1
+  END IF
+ NEXT i
+ editbitset tempbits(), 0, nextbit-1, itemname()
+ FOR i AS INTEGER = 0 TO nextbit-1
+  loaditemdata itembuf(), item_id(i)
+  setbit itembuf(), 66, hero_id, readbit(tempbits(), 0, i)
+  saveitemdata itembuf(), item_id(i)
+ NEXT i
+END SUB
+
 '--Item Editor stuff---------------------------------------------------
 
 SUB item_editor_equipbits(itembuf())
- 'equipbit:
  DIM ibit(-1 TO maxMaxHero) AS STRING
  FOR i AS INTEGER = 0 TO gen(genMaxHero)
   ibit(i) = "Equipable by " & getheroname(i)
