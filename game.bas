@@ -143,7 +143,7 @@ DIM lastformation
 
 DIM veh(21)
 
-DIM keyv(55, 1), csetup(12), carray(13)
+DIM csetup(12), carray(13)
 DIM mouse(3)
 DIM joy(14), gotj(2)
 

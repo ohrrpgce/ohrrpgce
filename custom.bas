@@ -99,7 +99,6 @@ REDIM gen(360)
 REDIM buffer(16384)
 REDIM master(255) as RGBcolor
 REDIM uilook(uiColors)
-REDIM keyv(55, 3)
 DIM font(1024), joy(4)
 DIM menu$(22), rpg$(3)
 'more global variables

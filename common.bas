@@ -19,6 +19,11 @@
 #include "music.bi"
 #include "loading.bi"
 
+'keyv() is a global declared in common.bi
+'It is populated in keyboardsetup() which has
+'different implementations in custom and game
+REDIM keyv(55, 3)
+
 #IFDEF IS_GAME
 DECLARE SUB embedtext (text$, limit=0)
 DECLARE FUNCTION istag (num, zero) as integer
