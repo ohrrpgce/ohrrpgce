@@ -1022,7 +1022,7 @@ DO
   IF i = state.pt THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr menu$(i), 0, (i - state.top) * 9, dpage
  NEXT i
- draw_fullscreen_scrollbar state, UBOUND(menu$) + 1, 0, dpage
+ draw_fullscreen_scrollbar state, , dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage

@@ -2997,10 +2997,11 @@ SUB draw_scrollbar(state AS MenuState, rect AS RectType, count AS INTEGER, boxst
  END IF
 END SUB
 
-SUB draw_fullscreen_scrollbar(state AS MenuState, count AS INTEGER, boxstyle AS INTEGER=0, page AS INTEGER)
+SUB draw_fullscreen_scrollbar(state AS MenuState, boxstyle AS INTEGER=0, page AS INTEGER)
  DIM rect AS RectType
  rect.wide = 320
  rect.high = 200
+ DIM count AS INTEGER = state.last + -state.first
  draw_scrollbar state, rect, count, boxstyle, page
 END SUB
 

@@ -28,7 +28,7 @@ FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=99
  IF enter_or_space() THEN
   DIM browse_tag AS INTEGER
   browse_tag = tagnames(n, YES)
-  IF browse_tag >= 2 THEN
+  IF browse_tag >= 2 OR browse_tag <= 2 THEN
    n = browse_tag
    RETURN YES
   END IF
@@ -101,6 +101,7 @@ DO
   END IF
  END IF
 
+ draw_fullscreen_scrollbar state, ,dpage
  standardmenu menu(), state, 0, 0, dpage
 
  SWAP vpage, dpage
@@ -1633,7 +1634,7 @@ SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER,
   ELSE
    IF enter_or_space() THEN EXIT DO
   END IF
-  draw_fullscreen_scrollbar state, UBOUND(menu) + 1, 0, dpage
+  draw_fullscreen_scrollbar state, , dpage
   FOR i AS INTEGER = state.top TO small(state.top + state.size, state.last)
    IF i >= 0 THEN
     col = IIF(readbit(array(), wof, bits(i)), uilook(uiMenuItem), uilook(uiDisabledItem))
@@ -1810,7 +1811,7 @@ FUNCTION scriptbrowse (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, s
    END IF
   NEXT i
 
-  draw_fullscreen_scrollbar state, state.last,,dpage
+  draw_fullscreen_scrollbar state, , dpage
   textcolor uilook(uiText), 0
   printstr "Pick a " + scrtype$, 0, 0, dpage
   standardmenu scriptnames(), state, 8, 10, dpage, 0
