@@ -20,7 +20,6 @@ DECLARE FUNCTION isunique% (s$, u$(), r%)
 DECLARE FUNCTION exclude$ (s$, x$)
 DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE SUB editbitset (array%(), wof%, last%, names() AS STRING)
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
@@ -41,62 +40,6 @@ DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL m
 #include "scrconst.bi"
 
 REM $STATIC
-SUB editbitset (array(), wof, last, names() AS STRING)
-
-'---DIM AND INIT---
-pt = -1
-top = -1
-
-dim menu$(-1 to last), bits(-1 to last), count
-
-pt = 0
-FOR i = 0 to last
- IF names(i) <> "" THEN
-  menu$(pt) = names(i)
-  bits(pt) = i
-  pt = pt + 1
- END IF
-NEXT
-
-count = pt
-pt = -1
-
-'---MAIN LOOP---
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
- usemenu pt, top, -1, count-1, 24
- IF pt >= 0 THEN
-  IF keyval(75) > 1 OR keyval(51) > 1 THEN setbit array(), wof, bits(pt), 0
-  IF keyval(77) > 1 OR keyval(52) > 1 THEN setbit array(), wof, bits(pt), 1
-  IF enter_or_space() THEN setbit array(), wof, bits(pt), readbit(array(), wof, bits(pt)) XOR 1
- ELSE
-  IF enter_or_space() THEN EXIT DO
- END IF
- FOR i = top TO small(top + 24, count-1)
-  c = IIF(readbit(array(), wof, bits(i)), uilook(uiMenuItem), uilook(uiDisabledItem))
-  IF pt = i THEN c = IIF(readbit(array(), wof, bits(i)), uilook(uiSelectedItem + tog), uilook(uiSelectedDisabled + tog))
-  textcolor c, 0
-  IF i >= 0 THEN
-   printstr menu$(i), 8, (i - top) * 8, dpage
-  ELSE
-   IF c = uilook(uiDisabledItem) THEN c = uilook(uiMenuItem)
-   textcolor c, 0
-   printstr "Previous Menu", 8, (i - top) * 8, dpage
-  END IF
- NEXT i
- ' printstr XSTR$(pt) + XSTR$(top) + XSTR$(last), 160, 0, dpage
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-'---TERMINATE---
-
-END SUB
 
 FUNCTION exclude$ (s$, x$)
 outf$ = ""

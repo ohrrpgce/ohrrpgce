@@ -24,7 +24,6 @@ DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%)
 DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE SUB npcdef (npc%(), pt%)
-DECLARE SUB editbitset (array%(), wof%, last%, name() AS STRING)
 DECLARE SUB shopdata ()
 DECLARE SUB importsong ()
 DECLARE SUB gendata ()
@@ -56,10 +55,6 @@ DECLARE SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
 DECLARE SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menu_set AS MenuSet)
 DECLARE SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS MenuDef, record AS INTEGER)
 DECLARE SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS MenuDef, mi AS MenuDefItem)
-DECLARE SUB edit_menu_bits (menu AS MenuDef)
-DECLARE SUB edit_menu_item_bits (mi AS MenuDefItem)
-DECLARE SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
-DECLARE SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
 DECLARE FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRING
 
 DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
@@ -1627,96 +1622,3 @@ FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRI
  RETURN s
 END FUNCTION
 
-SUB edit_menu_bits (menu AS MenuDef)
- DIM bitname(8) AS STRING
- DIM bits(0) AS INTEGER
- 
- bitname(0) = "Translucent box"
- bitname(1) = "Never show scrollbar"
- bitname(2) = "Allow gameplay & scripts"
- bitname(3) = "Suspend player even if gameplay allowed"
- bitname(4) = "No box"
- bitname(5) = "Cancel button doesn't close menu"
- bitname(6) = "No player control of menu"
- bitname(7) = "Prevent main menu activation"
- bitname(8) = "Advance text box when menu closes"
-
- MenuBitsToArray menu, bits()
- editbitset bits(), 0, UBOUND(bitname), bitname()
- MenuBitsFromArray menu, bits()  
-END SUB
-
-SUB edit_menu_item_bits (mi AS MenuDefItem)
- DIM bitname(1) AS STRING
- DIM bits(0) AS INTEGER
- 
- bitname(0) = "Hide if disabled"
- bitname(1) = "Close menu if selected"
-
- MenuItemBitsToArray mi, bits()
- editbitset bits(), 0, UBOUND(bitname), bitname()
- MenuItemBitsFromArray mi, bits()  
-END SUB
-
-SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
- DIM shift AS INTEGER
-
- setkeys
- DO
-  setwait 55
-  setkeys
- 
-  IF keyval(1) > 1 THEN EXIT DO
-  
-  shift = ABS(keyval(42) > 0 OR keyval(54) > 0)
-  WITH menu.offset
-   IF keyval(72) > 1 THEN .y -= 1 + 9 * shift
-   IF keyval(80) > 1 THEN .y += 1 + 9 * shift
-   IF keyval(75) > 1 THEN .x -= 1 + 9 * shift
-   IF keyval(77) > 1 THEN .x += 1 + 9 * shift
-  END WITH
- 
-  draw_menu menu, mstate, dpage
-  edgeprint "Offset=" & menu.offset.x & "," & menu.offset.y, 0, 0, uilook(uiDisabledItem), dpage
-  edgeprint "Arrows to re-position, ESC to exit", 0, 191, uilook(uiDisabledItem), dpage
-  
-  SWAP vpage, dpage
-  setvispage vpage
-  clearpage dpage
-  dowait
- LOOP
-END SUB
-
-SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
- DIM tog AS INTEGER = 0
- DIM x AS INTEGER
- DIM y AS INTEGER
- setkeys
- DO
-  setwait 55
-  setkeys
-  tog = tog XOR 1
- 
-  IF keyval(1) > 1 THEN EXIT DO
-  
-  WITH menu.anchor
-   IF keyval(72) > 1 THEN .y = bound(.y - 1, -1, 1)
-   IF keyval(80) > 1 THEN .y = bound(.y + 1, -1, 1)
-   IF keyval(75) > 1 THEN .x = bound(.x - 1, -1, 1)
-   IF keyval(77) > 1 THEN .x = bound(.x + 1, -1, 1)
-  END WITH
- 
-  draw_menu menu, mstate, dpage
-  WITH menu
-   x = .rect.x - 2 + anchor_point(.anchor.x, .rect.wide)
-   y = .rect.y - 2 + anchor_point(.anchor.y, .rect.high)
-   edgebox x, y, 5, 5, 2 + tog, dpage, NO 
-  END WITH
-  edgeprint "Arrows to re-position, ESC to exit", 0, 191, uilook(uiDisabledItem), dpage
-  
-  SWAP vpage, dpage
-  setvispage vpage
-  clearpage dpage
-  dowait
- LOOP
-END SUB

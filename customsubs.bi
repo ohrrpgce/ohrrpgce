@@ -37,5 +37,10 @@ DECLARE FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS 
 DECLARE FUNCTION askwhatmetadata (metadata() AS INTEGER, metadatalabels() AS STRING) AS INTEGER
 DECLARE FUNCTION str2bool(q AS STRING, default AS INTEGER = NO, invert AS INTEGER = NO) AS INTEGER
 DECLARE SUB xy_position_on_sprite (spr AS GraphicPair, BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL frame AS INTEGER, BYVAL wide AS INTEGER, byval high AS INTEGER, caption AS STRING)
+DECLARE SUB edit_menu_bits (menu AS MenuDef)
+DECLARE SUB edit_menu_item_bits (mi AS MenuDefItem)
+DECLARE SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
+DECLARE SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
+DECLARE SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER, names() AS STRING)
 
 #endif
