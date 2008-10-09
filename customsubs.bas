@@ -37,80 +37,81 @@ FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=99
 END FUNCTION
 
 FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
-DIM state AS MenuState
-DIM thisname AS STRING
-IF gen(genMaxTagname) < 1 THEN gen(genMaxTagname) = 1
-DIM menu(gen(genMaxTagname)) AS STRING
-IF picktag THEN
- menu(0) = "Cancel"
-ELSE
- menu(0) = "Previous Menu"
-END IF
-DIM i AS INTEGER
-FOR i = 2 TO gen(genMaxTagname) + 1
- 'Load all tag names plus the first blank name
- menu(i - 1) = "Tag " & i & ":" & load_tag_name(i)
-NEXT i
-
-clearpage 0
-clearpage 1
-
-DIM tagsign AS INTEGER
-tagsign = SGN(starttag)
-IF tagsign = 0 THEN tagsign = 1
-
-state.size = 24
-state.last = gen(genMaxTagname)
-
-state.pt = 0
-IF ABS(starttag) >= 2 THEN state.pt = small(ABS(starttag) - 1, gen(genMaxTagName))
-IF state.pt >= 1 THEN thisname = load_tag_name(state.pt + 1)
-
-DIM tog AS INTEGER = 0
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
- IF usemenu(state) THEN
-  IF state.pt >= 1 AND state.pt <= gen(genMaxTagName) THEN
-   thisname = load_tag_name(state.pt + 1)
-  ELSE
-   thisname = ""
-  END IF
+ DIM state AS MenuState
+ DIM thisname AS STRING
+ DIM remembertag AS INTEGER = starttag
+ IF gen(genMaxTagname) < 1 THEN gen(genMaxTagname) = 1
+ DIM menu(gen(genMaxTagname)) AS STRING
+ IF picktag THEN
+  menu(0) = "Cancel"
+ ELSE
+  menu(0) = "Previous Menu"
  END IF
- IF state.pt = 0 AND enter_or_space() THEN EXIT DO
- IF state.pt > 0 AND state.pt <= gen(genMaxTagName) THEN
-  IF picktag THEN
-   IF keyval(28) > 1 THEN
-    RETURN (state.pt + 1) * tagsign
+ DIM i AS INTEGER
+ FOR i = 2 TO gen(genMaxTagname) + 1
+  'Load all tag names plus the first blank name
+  menu(i - 1) = "Tag " & i & ":" & load_tag_name(i)
+ NEXT i
+
+ clearpage 0
+ clearpage 1
+
+ DIM tagsign AS INTEGER
+ tagsign = SGN(starttag)
+ IF tagsign = 0 THEN tagsign = 1
+
+ state.size = 24
+ state.last = gen(genMaxTagname)
+
+ state.pt = 0
+ IF ABS(starttag) >= 2 THEN state.pt = small(ABS(starttag) - 1, gen(genMaxTagName))
+ IF state.pt >= 1 THEN thisname = load_tag_name(state.pt + 1)
+
+ DIM tog AS INTEGER = 0
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  tog = tog XOR 1
+  IF keyval(1) > 1 THEN EXIT DO
+  IF usemenu(state) THEN
+   IF state.pt >= 1 AND state.pt <= gen(genMaxTagName) THEN
+    thisname = load_tag_name(state.pt + 1)
+   ELSE
+    thisname = ""
    END IF
   END IF
-  IF strgrabber(thisname, 20) THEN
-   save_tag_name thisname, state.pt + 1
-   menu(state.pt) = "Tag " & state.pt + 1 & ":" & thisname
-   IF state.pt = gen(genMaxTagName) THEN
-    IF gen(genMaxTagName) < 999 THEN
-     gen(genMaxTagName) += 1
-     REDIM PRESERVE menu(gen(genMaxTagName)) AS STRING
-     menu(gen(genMaxTagName)) = "Tag " & gen(genMaxTagName) + 1 & ":"
-     state.last += 1
+  IF state.pt = 0 AND enter_or_space() THEN EXIT DO
+  IF state.pt > 0 AND state.pt <= gen(genMaxTagName) THEN
+   IF picktag THEN
+    IF keyval(28) > 1 THEN
+     RETURN (state.pt + 1) * tagsign
+    END IF
+   END IF
+   IF strgrabber(thisname, 20) THEN
+    save_tag_name thisname, state.pt + 1
+    menu(state.pt) = "Tag " & state.pt + 1 & ":" & thisname
+    IF state.pt = gen(genMaxTagName) THEN
+     IF gen(genMaxTagName) < 999 THEN
+      gen(genMaxTagName) += 1
+      REDIM PRESERVE menu(gen(genMaxTagName)) AS STRING
+      menu(gen(genMaxTagName)) = "Tag " & gen(genMaxTagName) + 1 & ":"
+      state.last += 1
+     END IF
     END IF
    END IF
   END IF
- END IF
 
- draw_fullscreen_scrollbar state, ,dpage
- standardmenu menu(), state, 0, 0, dpage
+  draw_fullscreen_scrollbar state, ,dpage
+  standardmenu menu(), state, 0, 0, dpage
 
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
 
-RETURN 0
+ RETURN remembertag
 END FUNCTION
 
 FUNCTION strgrabber (s AS STRING, maxl AS INTEGER) AS INTEGER
