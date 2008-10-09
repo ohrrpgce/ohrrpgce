@@ -36,8 +36,6 @@ DECLARE SUB statname ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE FUNCTION isStringField(mnu%)
-DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
-DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
 #include "compat.bi"
 #include "allmodex.bi"

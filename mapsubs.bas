@@ -41,8 +41,6 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
-DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
-DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 DECLARE SUB paint_map_area(oldTile%, x%, y%, layer%, usetile%(), map%(), pass%(), defaults() AS DefArray, tilesets%(), defpass%)
 
 DECLARE Function LayerIsVisible(vis() as integer, byval l as integer) as integer

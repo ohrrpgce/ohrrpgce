@@ -16,12 +16,10 @@
 
 #include "customsubs.bi"
 
-'Subs and functions defined elsewhere
-DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
-DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
-
 'Subs and functions only used here
 DECLARE SUB import_textboxes_warn (BYREF warn AS STRING, s AS STRING)
+DECLARE SUB seekscript (BYREF temp AS INTEGER, BYVAL seekdir AS INTEGER, BYVAL triggertype AS INTEGER)
+
 
 OPTION EXPLICIT
 
@@ -1652,4 +1650,297 @@ SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER,
   clearpage dpage
   dowait
  LOOP
+END SUB
+
+FUNCTION scriptbrowse (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, scrtype AS STRING) AS STRING
+ DIM localbuf(20)
+ REDIM scriptnames(0) AS STRING, scriptids(0)
+ DIM numberedlast AS INTEGER = 0
+ DIM firstscript AS INTEGER = 0
+ DIM scriptmax AS INTEGER = 0
+ 
+ DIM chara AS INTEGER
+ DIM charb AS INTEGER
+ 
+ DIM fh AS INTEGER
+ DIM i AS INTEGER
+ DIM j AS INTEGER
+
+ DIM tempstr AS STRING
+  tempstr = scriptname(trigger, triggertype)
+ IF tempstr <> "[none]" AND LEFT$(tempstr, 1) = "[" THEN firstscript = 2 ELSE firstscript = 1
+
+ IF triggertype = 1 THEN
+  'plotscripts
+  fh = FREEFILE
+  OPEN workingdir + SLASH + "plotscr.lst" FOR BINARY AS #fh
+  'numberedlast = firstscript + LOF(fh) \ 40 - 1
+  numberedlast = firstscript + gen(40) - 1
+
+  REDIM scriptnames(numberedlast) AS STRING, scriptids(numberedlast)
+
+  i = firstscript
+  FOR j AS INTEGER = firstscript TO numberedlast
+   loadrecord localbuf(), fh, 20
+   IF localbuf(0) < 16384 THEN
+    scriptids(i) = localbuf(0)
+    scriptnames(i) = STR$(localbuf(0)) + " " + readbinstring(localbuf(), 1, 36)
+    i += 1
+   END IF
+  NEXT
+  numberedlast = i - 1
+
+  CLOSE #fh
+ END IF
+
+ fh = FREEFILE
+ OPEN workingdir + SLASH + "lookup" + STR$(triggertype) + ".bin" FOR BINARY AS #fh
+ scriptmax = numberedlast + LOF(fh) \ 40
+
+ IF scriptmax < firstscript THEN
+  RETURN "[no scripts]"
+ END IF
+
+ ' 0 to firstscript - 1 are special options (none, current script)
+ ' firstscript to numberedlast are oldstyle numbered scripts
+ ' numberedlast + 1 to scriptmax are newstyle trigger scripts
+ REDIM PRESERVE scriptnames(scriptmax), scriptids(scriptmax)
+ scriptnames(0) = "[none]"
+ scriptids(0) = 0
+ IF firstscript = 2 THEN
+  scriptnames(1) = tempstr
+  scriptids(1) = trigger
+ END IF
+
+ i = numberedlast + 1
+ FOR j AS INTEGER = numberedlast + 1 TO scriptmax
+  loadrecord localbuf(), fh, 20
+  IF localbuf(0) <> 0 THEN
+   scriptids(i) = 16384 + j - (numberedlast + 1)
+   scriptnames(i) = readbinstring(localbuf(), 1, 36)
+   i += 1
+  END IF
+ NEXT
+ scriptmax = i - 1
+
+ CLOSE #fh
+
+ 'insertion sort numbered scripts by id
+ FOR i = firstscript + 1 TO numberedlast
+  FOR j AS INTEGER = i - 1 TO firstscript STEP -1
+   IF scriptids(j + 1) < scriptids(j) THEN
+    SWAP scriptids(j + 1), scriptids(j)
+    SWAP scriptnames(j + 1), scriptnames(j)
+   ELSE
+    EXIT FOR
+   END IF
+  NEXT
+ NEXT
+
+ 'sort trigger scripts by name
+ FOR i = numberedlast + 1 TO scriptmax - 1
+  FOR j AS INTEGER = scriptmax TO i + 1 STEP -1
+   FOR k AS INTEGER = 0 TO small(LEN(scriptnames(i)), LEN(scriptnames(j)))
+    chara = ASC(LCASE$(CHR$(scriptnames(i)[k])))
+    charb = ASC(LCASE$(CHR$(scriptnames(j)[k])))
+    IF chara < charb THEN
+     EXIT FOR
+    ELSEIF chara > charb THEN
+     SWAP scriptids(i), scriptids(j)
+     SWAP scriptnames(i), scriptnames(j)
+     EXIT FOR
+     END IF
+   NEXT
+  NEXT
+ NEXT
+
+ DIM state AS MenuState
+ WITH state
+  .pt = 0
+  .last = scriptmax
+  .size = 22
+ END WITH
+
+ IF firstscript = 2 THEN
+  state.pt = 1
+ ELSE
+  FOR i = 1 TO scriptmax
+   IF trigger = scriptids(i) THEN state.pt = i: EXIT FOR
+  NEXT
+ END IF
+ state.top = large(0, small(state.pt - 10, scriptmax - 21))
+ DIM id AS INTEGER = scriptids(state.pt)
+ DIM iddisplay AS INTEGER = 0
+ clearpage 0
+ clearpage 1
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(1) > 1 THEN
+   RETURN tempstr
+  END IF
+  IF enter_or_space() THEN EXIT DO
+  IF scriptids(state.pt) < 16384 THEN
+   IF intgrabber(id, 0, 16383) THEN
+    iddisplay = -1
+    FOR i = 0 TO numberedlast
+     IF id = scriptids(i) THEN state.pt = i
+    NEXT
+   END IF
+  END IF
+  IF usemenu(state) THEN
+   IF scriptids(state.pt) < 16384 THEN
+    id = scriptids(state.pt)
+   ELSE
+    id = 0
+    iddisplay = 0
+   END IF
+  END IF
+  FOR i = 12 TO 53
+   IF keyval(i) > 1 AND keyv(i, 0) > 0 THEN
+    j = state.pt + 1
+    FOR ctr AS INTEGER = numberedlast + 1 TO scriptmax
+     IF j > scriptmax THEN j = numberedlast + 1
+     tempstr$ = LCASE$(scriptnames(j))
+     IF tempstr$[0] = keyv(i, 0) THEN state.pt = j: EXIT FOR
+     j += 1
+    NEXT
+    EXIT FOR
+   END IF
+  NEXT i
+
+  draw_fullscreen_scrollbar state, state.last,,dpage
+  textcolor uilook(uiText), 0
+  printstr "Pick a " + scrtype$, 0, 0, dpage
+  standardmenu scriptnames(), state, 8, 10, dpage, 0
+  IF iddisplay THEN
+   textcolor uilook(uiMenuItem), uilook(uiHighlight)
+   printstr STR$(id), 8, 190, dpage
+  END IF
+
+  SWAP dpage, vpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+ clearpage 0
+ clearpage 1
+
+ trigger = scriptids(state.pt)
+ IF scriptids(state.pt) < 16384 THEN
+  RETURN MID(scriptnames(state.pt), INSTR(scriptnames(state.pt), " ") + 1)
+ ELSE
+  RETURN scriptnames(state.pt)
+ END IF
+
+END FUNCTION
+
+FUNCTION scrintgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL less AS INTEGER=75, BYVAL more AS INTEGER=77, BYVAL scriptside AS INTEGER, BYVAL triggertype AS INTEGER) AS INTEGER
+ 'script side is 1 or -1: on which side of zero are the scripts
+ 'min or max on side of scripts is ignored
+
+ DIM temp AS INTEGER = n
+ IF scriptside < 0 THEN
+  temp = -n
+  SWAP less, more
+  min = -min
+  max = -max
+  SWAP min, max
+ END IF
+
+ DIM seekdir AS INTEGER = 0
+ IF keyval(more) > 1 THEN
+  seekdir = 1
+ ELSEIF keyval(less) > 1 THEN
+  seekdir = -1
+ END IF
+
+ DIM scriptscroll AS INTEGER = NO
+ IF seekdir <> 0 THEN
+  scriptscroll = NO
+  IF temp = min AND seekdir = -1 THEN
+   temp = -1
+   scriptscroll = YES
+  ELSEIF (temp = 0 AND seekdir = 1) OR temp > 0 THEN
+   scriptscroll = YES
+  END IF
+  IF scriptscroll THEN
+   'scroll through scripts
+   seekscript temp, seekdir, triggertype
+   IF temp = -1 THEN temp = min
+  ELSE
+   'regular scroll
+   temp += seekdir
+  END IF
+ ELSE
+  IF (temp > 0 AND temp < 16384) OR (temp = 0 AND scriptside = 1) THEN
+   'if a number is entered, don't seek to the next script, allow "[id]" to display instead
+   IF intgrabber(temp, 0, 16383, 0, 0) THEN
+    'if temp starts off greater than gen(genMaxRegularScript) then don't disturb it
+    temp = small(temp, gen(genMaxRegularScript))
+   END IF
+  ELSEIF temp < 0 OR (temp = 0 AND scriptside = -1) THEN
+   intgrabber(temp, min, 0, 0, 0)
+  END IF
+ END IF
+
+ IF keyval(scDelete) > 1 THEN temp = 0
+ IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN temp = bound(-temp, min, gen(genMaxRegularScript))
+
+ temp = temp * SGN(scriptside)
+ scrintgrabber = (temp <> n) ' Returns true if BYREF n has changed
+ n = temp
+END FUNCTION
+
+SUB seekscript (BYREF temp AS INTEGER, BYVAL seekdir AS INTEGER, BYVAL triggertype AS INTEGER)
+ 'temp = -1 means scroll to last script
+ 'returns 0 when scrolled past first script, -1 when went past last
+
+ DIM buf(19), plotids(gen(43))
+ DIM recordsloaded AS INTEGER = 0
+ DIM screxists AS INTEGER = 0
+
+ DIM fh AS INTEGER = FREEFILE
+ OPEN workingdir & SLASH & "lookup" & triggertype & ".bin" FOR BINARY AS #fh
+ DIM triggernum AS INTEGER = LOF(fh) \ 40
+ IF temp = -1 THEN temp = triggernum + 16384
+
+ DO
+  temp += seekdir
+  IF temp > gen(43) AND temp < 16384 THEN
+   IF seekdir > 0 THEN
+    temp = 16384
+   ELSEIF triggertype = plottrigger THEN
+    temp = gen(43)
+   ELSE
+    temp = 0
+   END IF
+  END IF
+  IF temp <= 0 THEN EXIT DO
+  IF temp >= triggernum + 16384 THEN
+   temp = -1
+   EXIT DO
+  END IF
+  'check script exists, else keep looking
+  IF temp < 16384 AND triggertype = plottrigger THEN
+   IF plotids(temp) THEN
+    screxists = -1
+   ELSE
+    WHILE recordsloaded < gen(40)
+     loadrecord buf(), workingdir + SLASH + "plotscr.lst", 20, recordsloaded
+     recordsloaded += 1
+     IF buf(0) = temp THEN screxists = -1: EXIT WHILE
+     IF buf(0) <= gen(43) THEN plotids(buf(0)) = -1
+    WEND
+   END IF
+  END IF
+  IF temp >= 16384 THEN
+   loadrecord buf(), fh, 20, temp - 16384
+   IF buf(0) THEN screxists = -1
+  END IF
+  IF screxists THEN EXIT DO
+ LOOP
+
+ CLOSE fh
 END SUB

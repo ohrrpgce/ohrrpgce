@@ -45,8 +45,6 @@ DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
 DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
-DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
-DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 DECLARE FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = "") AS STRING
 
 #include "compat.bi"
@@ -968,7 +966,7 @@ DO
     temptrig = large(-box.instead, 0)
     dummy$ = scriptbrowse$(temptrig, plottrigger, "instead of textbox plotscript")
     box.instead = -temptrig
-   CASE 20 '--after script
+   CASE 22 '--after script
     temptrig = large(-box.after, 0)
     dummy$ = scriptbrowse$(temptrig, plottrigger, "after textbox plotscript")
     box.after = -temptrig

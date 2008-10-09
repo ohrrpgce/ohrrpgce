@@ -29,7 +29,6 @@ DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
-DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -116,114 +115,6 @@ END IF
 
 numbertail$ = outf$
 
-END FUNCTION
-
-SUB seekscript (temp, seekdir, triggertype)
-'temp = -1 means scroll to last script
-'returns 0 when scrolled past first script, -1 when went past last
-
- DIM buf(19), plotids(gen(43))
- recordsloaded = 0
- screxists = 0
-
- fh = FREEFILE
- OPEN workingdir + SLASH + "lookup" + STR$(triggertype) + ".bin" FOR BINARY AS #fh
- triggernum = LOF(fh) \ 40
- IF temp = -1 THEN temp = triggernum + 16384
-
- DO
-  temp += seekdir
-  IF temp > gen(43) AND temp < 16384 THEN
-   IF seekdir > 0 THEN
-    temp = 16384
-   ELSEIF triggertype = plottrigger THEN
-    temp = gen(43)
-   ELSE
-    temp = 0
-   END IF
-  END IF
-  IF temp <= 0 THEN EXIT DO
-  IF temp >= triggernum + 16384 THEN
-   temp = -1
-   EXIT DO
-  END IF
-  'check script exists, else keep looking
-  IF temp < 16384 AND triggertype = plottrigger THEN
-   IF plotids(temp) THEN
-    screxists = -1
-   ELSE
-    WHILE recordsloaded < gen(40)
-     loadrecord buf(), workingdir + SLASH + "plotscr.lst", 20, recordsloaded
-     recordsloaded += 1
-     IF buf(0) = temp THEN screxists = -1: EXIT WHILE
-     IF buf(0) <= gen(43) THEN plotids(buf(0)) = -1
-    WEND
-   END IF
-  END IF
-  IF temp >= 16384 THEN
-   loadrecord buf(), fh, 20, temp - 16384
-   IF buf(0) THEN screxists = -1
-  END IF
-  IF screxists THEN EXIT DO
- LOOP
-
- CLOSE fh
-END SUB
-
-FUNCTION scrintgrabber (n, BYVAL min, BYVAL max, BYVAL less, BYVAL more, scriptside, triggertype)
-'script side is 1 or -1: on which side of zero are the scripts
-'min or max on side of scripts is ignored
-
-temp = n
-IF scriptside < 0 THEN
- temp = -n
- SWAP less, more
- min = -min
- max = -max
- SWAP min, max
-END IF
-
-seekdir = 0
-IF keyval(more) > 1 THEN
- seekdir = 1
-ELSEIF keyval(less) > 1 THEN
- seekdir = -1
-END IF
-
-IF seekdir THEN
- scriptscroll = 0
- IF temp = min AND seekdir = -1 THEN
-  temp = -1
-  scriptscroll = -1
- ELSEIF (temp = 0 AND seekdir = 1) OR temp > 0 THEN
-  scriptscroll = -1
- END IF
- IF scriptscroll THEN
-  'scroll through scripts
-  seekscript temp, seekdir, triggertype
-  IF temp = -1 THEN temp = min
- ELSE
-  'regular scroll
-  temp += seekdir
- END IF
-ELSE
- IF (temp > 0 AND temp < 16384) OR (temp = 0 AND scriptside = 1) THEN
-  'if a number is entered, don't seek to the next script, allow "[id]" to display instead
-  IF intgrabber(temp, 0, 16383, 0, 0) THEN
-   'if temp starts off greater than gen(43) then don't disturb it
-   temp = small(temp, gen(43))
-  END IF
- ELSEIF temp < 0 OR (temp = 0 AND scriptside = -1) THEN
-  intgrabber(temp, min, 0, 0, 0)
- END IF
-END IF
-
-IF keyval(83) > 1 THEN temp = 0
-IF keyval(12) > 1 OR keyval(74) > 1 THEN temp = bound(-temp, min, gen(43))
-
-temp = temp * SGN(scriptside)
-scrintgrabber = (temp <> n)
-n = temp
 END FUNCTION
 
 FUNCTION str2int (stri$)

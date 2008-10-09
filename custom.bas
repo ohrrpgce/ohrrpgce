@@ -47,8 +47,6 @@ DECLARE FUNCTION newRPGfile (template$, newrpg$)
 DECLARE SUB dolumpfiles (filetolump$)
 DECLARE FUNCTION readarchinym$ ()
 DECLARE SUB importscripts (f$)
-DECLARE FUNCTION scriptbrowse$ (trigger%, triggertype%, scrtype$)
-DECLARE FUNCTION scrintgrabber (n%, BYVAL min%, BYVAL max%, BYVAL less%, BYVAL more%, scriptside%, triggertype%)
 DECLARE SUB move_unwritable_rpg(BYREF filetolump$)
 
 #include "compat.bi"
