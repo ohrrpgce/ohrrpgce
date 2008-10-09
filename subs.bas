@@ -2158,7 +2158,11 @@ SUB hero_editor_equipment_list (BYVAL hero_id AS INTEGER, BYREF her AS HeroDef)
   IF keyval(scEsc) > 1 THEN EXIT DO
   usemenu state
   IF enter_or_space() THEN
-   hero_editor_equipbits hero_id, state.pt
+   IF state.pt = 0 THEN
+    EXIT DO
+   ELSE
+    hero_editor_equipbits hero_id, state.pt
+   END IF
   END IF
   standardmenu menu(), state, 0, 0, dpage
   SWAP vpage, dpage
