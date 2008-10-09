@@ -55,7 +55,6 @@ DECLARE SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
 DECLARE SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menu_set AS MenuSet)
 DECLARE SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS MenuDef, record AS INTEGER)
 DECLARE SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS MenuDef, mi AS MenuDefItem)
-DECLARE FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRING
 
 DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
 
@@ -1608,17 +1607,4 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
   append_menu_item detail, "Extra data " & i & ": " & mi.extra(i)
  NEXT i
 END SUB
-
-FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRING
- DIM s AS STRING
- s = prefix
- IF LEN(s) > 0 THEN s = s & " "
- s = s & ABS(n)
- SELECT CASE n
-  CASE 0: s = s & " (N/A)"
-  CASE 1, -1: s = s & " (unchangeable)"
-  CASE IS > 1: s = s & " (" & load_tag_name(n) & ")"
- END SELECT
- RETURN s
-END FUNCTION
 

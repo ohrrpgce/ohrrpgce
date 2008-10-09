@@ -1578,6 +1578,19 @@ SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
  LOOP
 END SUB
 
+FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRING
+ DIM s AS STRING
+ s = prefix
+ IF LEN(s) > 0 THEN s = s & " "
+ s = s & ABS(n)
+ SELECT CASE n
+  CASE 0: s = s & " (N/A)"
+  CASE 1, -1: s = s & " (unchangeable)"
+  CASE IS > 1: s = s & " (" & load_tag_name(n) & ")"
+ END SELECT
+ RETURN s
+END FUNCTION
+
 SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER, names() AS STRING)
 
  '---DIM AND INIT---
