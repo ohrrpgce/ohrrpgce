@@ -66,6 +66,8 @@ DECLARE SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditS
 DECLARE SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
 DECLARE SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBox, BYREF st AS TextboxEditState)
 DECLARE SUB textbox_position_portrait (BYREF box AS TextBox, BYREF st AS TextboxEditState, holdscreen AS INTEGER)
+DECLARE SUB textbox_seek(BYREF box AS TextBox, BYREF st AS TextboxEditState)
+DECLARE SUB textbox_create_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS TextBox, BYREF st AS TextboxEditState)
 
 'These are used in the TextBox conditional editor
 CONST condEXIT   = -1
@@ -745,7 +747,6 @@ END FUNCTION
 SUB textage
 DIM m$(10), menu$(-1 TO 22), grey(-1 TO 22), h$(2), tagmn$, gcsr, tcur
 DIM box AS TextBox
-DIM boxcopier AS TextBox ' FIXME: Move this to clearlines when it gets SUBified
 DIM st AS TextboxEditState
 WITH st
  .id = 1
@@ -836,9 +837,20 @@ DO
    IF keyval(77) > 1 AND st.id < 32767 THEN
     SaveTextBox box, st.id
     st.id = st.id + 1
-    IF needaddset(st.id, gen(genMaxTextBox), "text box") THEN GOSUB clearlines
+    IF needaddset(st.id, gen(genMaxTextBox), "text box") THEN
+     textbox_create_from_box 0, box, st
+    END IF
     textbox_edit_load box, st, m$()
    END IF'--next/add text box
+   IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND gen(genMaxTextBox) < 32767 THEN
+    SaveTextBox box, st.id
+    IF yesno("Create a textbox like this one?") THEN
+     gen(genMaxTextBox) += 1
+     st.id = gen(genMaxTextBox)
+     textbox_create_from_box remptr, box, st
+    END IF
+    textbox_edit_load box, st, m$()
+   END IF
  END SELECT
  IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
@@ -862,8 +874,7 @@ DO
    END IF
   END IF
   IF csr = 7 AND keyval(28) > 1 THEN
-   SaveTextBox box, st.id
-   GOSUB seektextbox
+   textbox_seek box, st
    textbox_edit_load box, st, m$()
   END IF
   IF csr = 8 THEN '--Export textboxes to a .TXT file
@@ -925,10 +936,13 @@ DO
  printstr STR(st.id), 72, 8, dpage
  m$(7) = "Text Search:" + st.search
  
- standardmenu m$(), 9, 9, csr, 0, 0, 0, dpage, 0
-
  '--Draw box
  textbox_edit_preview box, st, 96
+
+ standardmenu m$(), 9, 9, csr, 0, 0, 0, dpage, YES
+ textcolor uilook(uiText), uilook(uiHighlight)
+ printstr "+ to create", 232, 0, dpage
+
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -1176,42 +1190,6 @@ DO
  clearpage dpage
  dowait
 LOOP
-
-clearlines:
-'--this inits a new text box, and copies in values from text box 0 for defaults
-ClearTextBox box
-LoadTextBox boxcopier, 0
-box.no_box          = boxcopier.no_box
-box.opaque          = boxcopier.opaque
-box.restore_music   = boxcopier.restore_music
-box.vertical_offset = boxcopier.vertical_offset
-box.shrink          = boxcopier.shrink
-box.textcolor       = boxcopier.textcolor
-box.boxstyle        = boxcopier.boxstyle
-SaveTextBox box, st.id
-RETRACE
-
-seektextbox:
-remptr = st.id
-st.id = st.id + 1
-DO
- IF st.id > gen(genMaxTextBox) THEN st.id = 0
- IF st.id = remptr THEN
-  edgeboxstyle 115, 90, 100, 20, 0, vpage
-  edgeprint "Not found.", 120, 95, uilook(uiText), vpage
-  setvispage vpage
-  w = getkey
-  EXIT DO
- END IF
- LoadTextBox box, st.id
- foundstr = 0
- FOR i = 0 TO 7
-  IF INSTR(UCASE(box.text(i)), UCASE(st.search)) > 0 THEN foundstr = 1
- NEXT i
- IF foundstr = 1 THEN EXIT DO
- st.id = st.id + 1
-LOOP
-RETRACE
 
 'See wiki for .SAY file format docs
 END SUB
@@ -1511,7 +1489,7 @@ SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBo
  menu(1) = "Position:"
  menu(2) = "Shrink:"
  menu(3) = "Textcolor:"
- menu(4) = "Bordercolor:"
+ menu(4) = "Box style:"
  menu(5) = "Backdrop:"
  menu(6) = "Music:"
  menu(7) = "Show Box:"
@@ -1571,3 +1549,50 @@ SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBo
  NEXT i
  load_text_box_portrait box, st.portrait
 END SUB
+
+SUB textbox_seek(BYREF box AS TextBox, BYREF st AS TextboxEditState)
+ SaveTextBox box, st.id
+ DIM remember_id AS INTEGER = st.id
+ st.id += 1
+ DIM foundstr AS INTEGER = NO
+ DO
+  IF st.id > gen(genMaxTextBox) THEN st.id = 0
+  IF st.id = remember_id THEN
+   edgeboxstyle 115, 90, 100, 20, 0, vpage
+   edgeprint "Not found.", 120, 95, uilook(uiText), vpage
+   setvispage vpage
+   waitforanykey
+   EXIT DO
+  END IF
+  LoadTextBox box, st.id
+  foundstr = NO
+  FOR i AS INTEGER = 0 TO UBOUND(box.text)
+   IF INSTR(UCASE(box.text(i)), UCASE(st.search)) > 0 THEN foundstr = YES
+  NEXT i
+  IF foundstr THEN EXIT DO
+  st.id += 1
+ LOOP
+END SUB
+
+SUB textbox_create_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS TextBox, BYREF st AS TextboxEditState)
+ '--this inits a new text box, and copies in values from text box 0 for defaults
+ DIM boxcopier AS TextBox
+ ClearTextBox box
+ LoadTextBox boxcopier, template_box_id
+ WITH box
+  .no_box          = boxcopier.no_box
+  .opaque          = boxcopier.opaque
+  .restore_music   = boxcopier.restore_music
+  .vertical_offset = boxcopier.vertical_offset
+  .shrink          = boxcopier.shrink
+  .textcolor       = boxcopier.textcolor
+  .boxstyle        = boxcopier.boxstyle
+  .portrait_type   = boxcopier.portrait_type
+  .portrait_id     = boxcopier.portrait_id
+  .portrait_pal    = boxcopier.portrait_pal
+  .portrait_pos.x  = boxcopier.portrait_pos.x
+  .portrait_pos.y  = boxcopier.portrait_pos.y
+ END WITH
+ SaveTextBox box, st.id
+END SUB
+

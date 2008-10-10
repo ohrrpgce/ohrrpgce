@@ -1212,10 +1212,16 @@ SUB ClearTextBox (BYREF box AS TextBox)
   NEXT i
   '--Clear box appearance
   .vertical_offset = 0
-  .shrink          = 0
+  .shrink          = -1
   .textcolor       = 0
   .boxstyle        = 0
   .backdrop        = 0
   .music           = 0
+  '--Clear character portrait
+  .portrait_type = 0
+  .portrait_id = 0
+  .portrait_pal = -1
+  .portrait_pos.x = 0
+  .portrait_pos.y = 0
  END WITH
 END SUB

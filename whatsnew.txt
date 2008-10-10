@@ -10,7 +10,9 @@ WHAT IS NEW?
       convenient way to choose which items a hero can equip without
       needing to go back to the item editor [James]
     * Text box "shrink" can now be set to Auto, so the vertical size
-      of the box is determined by the text in it. [James] 
+      of the box is determined by the text in it. [James]
+    * Press + in the text box editor to create a new box with the same
+      style as the current box [James]
 
   * Bugfixes
 
