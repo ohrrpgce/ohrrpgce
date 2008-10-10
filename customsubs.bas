@@ -1022,7 +1022,7 @@ FUNCTION askwhatmetadata (metadata() AS INTEGER, metadatalabels() AS STRING) AS 
   tog = tog XOR 1
   IF keyval(1) > 1 THEN RETURN NO
   
-  IF keyval(28) > 1 THEN
+  IF enter_or_space() THEN
    IF state.pt = -1 THEN RETURN YES
    IF metadata(state.pt) = NO THEN metadata(state.pt) = YES ELSE metadata(state.pt) = NO
   END IF
@@ -1167,7 +1167,11 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
   END IF
   
   IF metadata(3) THEN '--box appearance
-   PRINT #fh, "Size: " & (21 - box.shrink)
+   IF box.shrink = -1 THEN
+    PRINT #fh, "Size: auto"
+   ELSE
+    PRINT #fh, "Size: " & (21 - box.shrink)
+   END IF
    PRINT #fh, "Position: " & box.vertical_offset
    PRINT #fh, "Text Color: " & box.textcolor '--AARGH.
    PRINT #fh, "Border Color: " & box.boxstyle '--AARGH AGAIN.
@@ -1291,7 +1295,9 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
       v = TRIM(MID(s, instr(s, ":") + 1))
       SELECT CASE t
        CASE "size"
-        if VALINT(v) > 21 THEN
+        IF LCASE(v) = "auto" THEN
+         box.shrink = -1
+        ELSEIF VALINT(v) > 21 THEN
          debug "Box size too large, capping"
          box.shrink = 0
         ELSE

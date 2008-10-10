@@ -1227,7 +1227,7 @@ SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState, ov
   ypos = 4 + box.vertical_offset * 4
  END IF
  IF box.no_box = NO THEN
-  edgeboxstyle 4, ypos, 312, 88 - box.shrink * 4, box.boxstyle, dpage, (box.opaque = NO)
+  edgeboxstyle 4, ypos, 312, get_text_box_height(box), box.boxstyle, dpage, (box.opaque = NO)
  END IF
  IF suppress_text = NO THEN
   DIM col AS INTEGER
@@ -1235,7 +1235,7 @@ SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState, ov
   FOR i = 0 TO 7
    col = uilook(uiText)
    IF box.textcolor > 0 THEN col = box.textcolor
-   edgeprint box.text(i), 8, 4 + ypos + i * 10, col, dpage
+   edgeprint box.text(i), 8, 3 + ypos + i * 10, col, dpage
   NEXT i
  END IF
  IF box.portrait_box THEN
@@ -1462,8 +1462,8 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
    state.need_update = YES
   END IF
   SELECT CASE state.pt
-   CASE 1: state.need_update = intgrabber(box.vertical_offset, 0, 27 + box.shrink)
-   CASE 2: state.need_update = intgrabber(box.shrink, 0, 21)
+   CASE 1: state.need_update = intgrabber(box.vertical_offset, 0, 49)
+   CASE 2: state.need_update = intgrabber(box.shrink, -1, 21)
    CASE 3: state.need_update = intgrabber(box.textcolor, 0, 255)
    CASE 4: state.need_update = intgrabber(box.boxstyle, 0, 14)
    CASE 5:
@@ -1528,7 +1528,12 @@ SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBo
   menutemp = ""
   SELECT CASE i
    CASE 1: menutemp = "" & box.vertical_offset
-   CASE 2: menutemp = "" & box.shrink
+   CASE 2:
+    IF box.shrink = -1 THEN
+     menutemp = "Auto"
+    ELSE
+     menutemp = "" & box.shrink
+    END IF
    CASE 3: menutemp = "" & box.textcolor
    CASE 4: menutemp = "" & box.boxstyle
    CASE 5: IF box.backdrop THEN menutemp = "" & box.backdrop - 1 ELSE menutemp = "NONE"

@@ -3,11 +3,14 @@ WHAT IS NEW?
 ???? ?? 20?? [Ypsiliform]
 
   * New Features
-    * Plotscripting can now load sprites, and place them on screen. [Mike]
+    * Plotscripting can now load sprites, and place them on screen.
+      [Mike]
     * Limit on maximum items has been raised from 254 to 32000 [James]
     * The hero editor now has an "Equipment" submenu which provides a
       convenient way to choose which items a hero can equip without
-      needing to go back to the item editor [James] 
+      needing to go back to the item editor [James]
+    * Text box "shrink" can now be set to Auto, so the vertical size
+      of the box is determined by the text in it. [James] 
 
   * Bugfixes
 

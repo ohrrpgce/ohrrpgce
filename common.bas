@@ -3046,3 +3046,16 @@ SUB notification (show_msg AS STRING)
  setvispage vpage 'refresh
  waitforanykey
 END SUB
+
+FUNCTION get_text_box_height(BYREF box AS TextBox) AS INTEGER
+ IF box.shrink >= 0 THEN RETURN 88 - box.shrink * 4
+ FOR i AS INTEGER = UBOUND(box.text) TO 0 STEP -1
+  IF LEN(TRIM(box.text(i))) > 0 THEN
+   DIM vsize AS INTEGER = 20 + i * 10
+   IF vsize < 32 AND vsize > 24 THEN RETURN 32
+   IF vsize <= 24 THEN RETURN 16
+   RETURN vsize
+  END IF
+ NEXT i
+ RETURN 88
+END FUNCTION

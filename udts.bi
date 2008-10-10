@@ -309,7 +309,7 @@ TYPE TextBox
   choice(1)   AS STRING
   choice_tag(1) AS INTEGER
   vertical_offset AS INTEGER ' in 4-pixel increments
-  shrink      AS INTEGER     ' in 4-pixel increments
+  shrink      AS INTEGER     ' in 4-pixel increments, -1 is "Auto"
   textcolor   AS INTEGER     ' 0=default
   boxstyle    AS INTEGER
   backdrop    AS INTEGER     ' +1
