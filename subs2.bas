@@ -68,6 +68,7 @@ DECLARE SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box A
 DECLARE SUB textbox_position_portrait (BYREF box AS TextBox, BYREF st AS TextboxEditState, holdscreen AS INTEGER)
 DECLARE SUB textbox_seek(BYREF box AS TextBox, BYREF st AS TextboxEditState)
 DECLARE SUB textbox_create_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS TextBox, BYREF st AS TextboxEditState)
+DECLARE SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
 
 'These are used in the TextBox conditional editor
 CONST condEXIT   = -1
@@ -854,7 +855,7 @@ DO
  END SELECT
  IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
-  IF csr = 2 THEN GOSUB picktext
+  IF csr = 2 THEN textbox_line_editor box, st
   IF csr = 3 THEN
    GOSUB conditions
    update_textbox_editor_main_menu box, m$()
@@ -1146,50 +1147,6 @@ FOR i = 0 TO 1
  END IF
 NEXT i
 RETRACE
-
-picktext:
-y = 0
-insert = -1
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN RETRACE
- IF keyval(28) > 1 AND y < 7 THEN y = y + 1
- IF usemenu(y, 0, 0, 7, 24) THEN insert = -1
- IF y <= 7 AND y >= 0 THEN
-  stredit box.text(y), 38
- END IF
- 'Display the box
- textbox_edit_preview box, st, 4, YES
- 'Display the lines in the box
- FOR i = 0 TO 7
-  textcolor uilook(uiText), 0
-  IF box.textcolor > 0 THEN textcolor box.textcolor, 0
-  IF y = i THEN
-   textcolor uilook(uiText), uilook(uiHighlight + tog)
-   printstr " ", 8 + insert * 8, 8 + i * 10, dpage
-   textcolor uilook(uiSelectedItem + tog), 0
-  END IF
-  printstr box.text(i), 8, 8 + i * 10, dpage
- NEXT i
- textcolor uilook(uiSelectedItem + tog), 0
- printstr "-", 0, 8 + y * 10, dpage
- textcolor uilook(uiText), 0
- printstr "Text Box " & st.id, 0, 100, dpage
- printstr "${C0} = Leader's name", 0, 120, dpage
- printstr "${C#} = Hero name at caterpillar slot #", 0, 128, dpage
- printstr "${P#} = Hero name at party slot #", 0, 136, dpage
- printstr "${H#} = Name of hero ID #", 0, 144, dpage
- printstr "${V#} = Global Plotscript Variable ID #", 0, 152, dpage
- printstr "${S#} = Insert String Variable with ID #", 0, 160, dpage
- printstr "CTRL+SPACE: choose an extended character", 0, 176, dpage
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
 
 'See wiki for .SAY file format docs
 END SUB
@@ -1596,3 +1553,51 @@ SUB textbox_create_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS Te
  SaveTextBox box, st.id
 END SUB
 
+SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
+ DIM state AS MenuState
+ WITH state
+  state.size = 22
+  state.last = UBOUND(box.text)
+ END WITH
+ insert = -1
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  state.tog = state.tog XOR 1
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scEnter) > 1 AND state.pt < state.last THEN state.pt += 1
+  IF usemenu(state) THEN insert = -1
+  IF state.pt <= state.last AND state.pt >= state.first THEN
+   stredit box.text(state.pt), 38
+  END IF
+  'Display the box
+  textbox_edit_preview box, st, 4, YES
+  'Display the lines in the box
+  FOR i AS INTEGER = state.first TO state.last
+   textcolor uilook(uiText), 0
+   IF box.textcolor > 0 THEN textcolor box.textcolor, 0
+   IF state.pt = i THEN
+    textcolor uilook(uiText), uilook(uiHighlight + state.tog)
+    printstr " ", 8 + insert * 8, 8 + i * 10, dpage
+    textcolor uilook(uiSelectedItem + state.tog), 0
+   END IF
+   printstr box.text(i), 8, 8 + i * 10, dpage
+  NEXT i
+  textcolor uilook(uiSelectedItem + state.tog), 0
+  printstr "-", 0, 8 + state.pt * 10, dpage
+  textcolor uilook(uiText), 0
+  printstr "Text Box " & st.id, 0, 100, dpage
+  printstr "${C0} = Leader's name", 0, 120, dpage
+  printstr "${C#} = Hero name at caterpillar slot #", 0, 128, dpage
+  printstr "${P#} = Hero name at party slot #", 0, 136, dpage
+  printstr "${H#} = Name of hero ID #", 0, 144, dpage
+  printstr "${V#} = Global Plotscript Variable ID #", 0, 152, dpage
+  printstr "${S#} = Insert String Variable with ID #", 0, 160, dpage
+  printstr "CTRL+SPACE: choose an extended character", 0, 176, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+END SUB
