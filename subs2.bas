@@ -69,6 +69,7 @@ DECLARE SUB textbox_position_portrait (BYREF box AS TextBox, BYREF st AS Textbox
 DECLARE SUB textbox_seek(BYREF box AS TextBox, BYREF st AS TextboxEditState)
 DECLARE SUB textbox_create_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS TextBox, BYREF st AS TextboxEditState)
 DECLARE SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
+DECLARE SUB textbox_copy_style_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS TextBox, BYREF st AS TextboxEditState)
 
 'These are used in the TextBox conditional editor
 CONST condEXIT   = -1
@@ -802,6 +803,7 @@ m$(7) = "Text Search:"
 m$(8) = "Export text boxes..."
 m$(9) = "Import text boxes..."
 csr = 0
+style_clip = 0
 textbox_edit_load box, st, m$()
 setkeys
 DO
@@ -823,7 +825,13 @@ DO
    IF scrintgrabber(box.after, 0, gen(genMaxTextbox), 75, 77, -1, plottrigger) THEN
     update_textbox_editor_main_menu box, m$()
    END IF'--modify next
-  CASE ELSE '--not using the quick textbox chainer
+  CASE ELSE '--not using the quick textbox chainer nor the search
+   IF keyval(scAlt) > 0 AND keyval(scC) > 1 THEN style_clip = st.id
+   IF keyval(scAlt) > 0 AND keyval(scV) > 1 THEN
+    IF yesno("Copy box " & style_clip & "'s style to this box") THEN
+     textbox_copy_style_from_box style_clip, box, st
+    END IF
+   END IF
    IF intgrabber(st.id, 0, gen(genMaxTextBox), 51, 52) THEN
     SWAP st.id, remptr
     SaveTextBox box, st.id
@@ -940,9 +948,11 @@ DO
  '--Draw box
  textbox_edit_preview box, st, 96
 
- standardmenu m$(), 9, 9, csr, 0, 0, 0, dpage, YES
  textcolor uilook(uiText), uilook(uiHighlight)
  printstr "+ to create", 232, 0, dpage
+ printstr "ALT+C copy style", 192, 8, dpage
+ IF style_clip >0 THEN printstr "ALT+V paste style", 184, 16, dpage
+ standardmenu m$(), 9, 9, csr, 0, 0, 0, dpage, YES
 
  SWAP vpage, dpage
  setvispage vpage
@@ -1532,9 +1542,14 @@ SUB textbox_seek(BYREF box AS TextBox, BYREF st AS TextboxEditState)
 END SUB
 
 SUB textbox_create_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS TextBox, BYREF st AS TextboxEditState)
- '--this inits a new text box, and copies in values from text box 0 for defaults
- DIM boxcopier AS TextBox
+ '--this inits a new text box, and copies in values from another box for defaults
  ClearTextBox box
+ textbox_copy_style_from_box template_box_id, box, st
+END SUB
+
+SUB textbox_copy_style_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS TextBox, BYREF st AS TextboxEditState)
+ '--copies in styles values from another box for defaults
+ DIM boxcopier AS TextBox
  LoadTextBox boxcopier, template_box_id
  WITH box
   .no_box          = boxcopier.no_box

@@ -13,6 +13,7 @@ WHAT IS NEW?
       of the box is determined by the text in it. [James]
     * Press + in the text box editor to create a new box with the same
       style as the current box [James]
+    * ALT+C and ALT+V to copy/paste text box styles [James]
 
   * Bugfixes
 
