@@ -98,4 +98,9 @@ TYPE TextboxEditState
   search AS STRING
 END TYPE
 
+TYPE TextboxConnectNode
+  lines(2) AS STRING
+  id AS INTEGER
+END TYPE
+
 #ENDIF

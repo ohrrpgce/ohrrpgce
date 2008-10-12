@@ -767,6 +767,10 @@ FUNCTION textbox_preview_line(boxnum AS INTEGER) AS STRING
  IF boxnum <= 0 OR boxnum > gen(genMaxTextBox) THEN RETURN ""
  DIM box AS TextBox
  LoadTextBox box, boxnum
+ RETURN textbox_preview_line(box)
+END FUNCTION
+
+FUNCTION textbox_preview_line(box AS TextBox) AS STRING
  DIM s AS STRING
  DIM i AS INTEGER
  FOR i = 0 TO 7

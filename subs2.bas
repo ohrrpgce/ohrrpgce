@@ -46,6 +46,7 @@ DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
 DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
 DECLARE FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = "") AS STRING
+DECLARE FUNCTION textbox_condition_short_caption(tag AS INTEGER) AS STRING
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -70,6 +71,10 @@ DECLARE SUB textbox_seek(BYREF box AS TextBox, BYREF st AS TextboxEditState)
 DECLARE SUB textbox_create_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS TextBox, BYREF st AS TextboxEditState)
 DECLARE SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
 DECLARE SUB textbox_copy_style_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS TextBox, BYREF st AS TextboxEditState)
+DECLARE SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState)
+DECLARE SUB textbox_connection_captions(BYREF node AS TextboxConnectNode, id AS INTEGER, tag AS INTEGER, box AS TextBox, topcation AS STRING, use_tag AS INTEGER = YES)
+DECLARE SUB textbox_connection_draw_node(BYREF node AS TextboxConnectNode, x AS INTEGER, y AS INTEGER, selected AS INTEGER)
+DECLARE SUB textbox_choice_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
 
 'These are used in the TextBox conditional editor
 CONST condEXIT   = -1
@@ -800,8 +805,9 @@ m$(4) = "Edit Choice"
 m$(5) = "Box Appearance"
 m$(6) = "Next:"
 m$(7) = "Text Search:"
-m$(8) = "Export text boxes..."
-m$(9) = "Import text boxes..."
+m$(8) = "Connected Boxes..."
+m$(9) = "Export text boxes..."
+m$(10) = "Import text boxes..."
 csr = 0
 style_clip = 0
 textbox_edit_load box, st, m$()
@@ -816,7 +822,7 @@ DO
   cropafter st.id, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY), 1
   textbox_edit_load box, st, m$()
  END IF
- usemenu csr, 0, 0, 9, 24
+ usemenu csr, 0, 0, 10, 24
  remptr = st.id
  SELECT CASE csr
   CASE 7'textsearch
@@ -868,7 +874,7 @@ DO
    GOSUB conditions
    update_textbox_editor_main_menu box, m$()
   END IF
-  IF csr = 4 THEN GOSUB tchoice
+  IF csr = 4 THEN textbox_choice_editor box, st
   IF csr = 5 THEN textbox_appearance_editor box, st
   IF csr = 6 THEN
    IF box.after > 0 THEN
@@ -886,7 +892,10 @@ DO
    textbox_seek box, st
    textbox_edit_load box, st, m$()
   END IF
-  IF csr = 8 THEN '--Export textboxes to a .TXT file
+  IF csr = 8 THEN
+   textbox_connections box, st
+  END IF
+  IF csr = 9 THEN '--Export textboxes to a .TXT file
    STATIC metadata(3) AS INTEGER
    DIM metadatalabels(3) AS STRING
    metadatalabels(0) = "Text"
@@ -913,7 +922,7 @@ DO
     END IF '--box_text_file <> ""
    END IF '--metadata
   END IF
-  IF csr = 9 THEN '-- Import text boxes from a .TXT file
+  IF csr = 10 THEN '-- Import text boxes from a .TXT file
    SaveTextBox box, st.id
    IF yesno("Are you sure? Boxes will be overwritten", NO) THEN
     box_text_file = browse(0, "", "*.txt", tmpdir, 0)
@@ -952,7 +961,7 @@ DO
  printstr "+ to create", 232, 0, dpage
  printstr "ALT+C copy style", 192, 8, dpage
  IF style_clip >0 THEN printstr "ALT+V paste style", 184, 16, dpage
- standardmenu m$(), 9, 9, csr, 0, 0, 0, dpage, YES
+ standardmenu m$(), 10, 10, csr, 0, 0, 0, dpage, YES
 
  SWAP vpage, dpage
  setvispage vpage
@@ -1116,48 +1125,6 @@ SELECT CASE box.after
 END SELECT
 RETRACE
 
-tchoice:
-menu$(0) = "Go Back"
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(1) > 1 THEN RETRACE
- usemenu tcur, 0, 0, 5, 24
- IF enter_or_space() THEN
-  IF tcur = 0 THEN RETRACE
-  IF tcur = 1 THEN box.choice_enabled = (NOT box.choice_enabled)
- END IF
- IF tcur = 1 THEN
-  IF keyval(75) > 1 OR keyval(77) > 1 THEN box.choice_enabled = (NOT box.choice_enabled)
- END IF
- FOR i = 0 TO 1
-  IF tcur = 2 + (i * 2) THEN strgrabber box.choice(i), 15
-  IF tcur = 3 + (i * 2) THEN tag_grabber box.choice_tag(i)
- NEXT i
- GOSUB tcmenu
- 
- standardmenu menu$(), 5, 5, tcur, 0, 0, 8, dpage, 0
- 
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-
-tcmenu:
-IF box.choice_enabled THEN menu$(1) = "Choice = Enabled" ELSE menu$(1) = "Choice = Disabled"
-FOR i = 0 TO 1
- menu$(2 + (i * 2)) = "Option " & i & " text:" + box.choice(i)
- IF box.choice_tag(i) THEN
-  menu$(3 + (i * 2)) = "Set tag " & ABS(box.choice_tag(i)) & " = " & onoroff$(box.choice_tag(i)) & " (" & load_tag_name(ABS(box.choice_tag(i))) & ")"
- ELSE
-  menu$(3 + (i * 2)) = "Set tag 0 (none)"
- END IF
-NEXT i
-RETRACE
-
 'See wiki for .SAY file format docs
 END SUB
 
@@ -1228,6 +1195,13 @@ FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = "") AS STR
  IF tag = 1 THEN RETURN prefix & "If tag 1 = ON [Never]"
  IF tag = -1 THEN RETURN prefix & "Always do the following"
  RETURN prefix & "If tag " & ABS(tag) & " = " + onoroff$(tag) & " (" & load_tag_name(tag) & ")"
+END FUNCTION
+
+FUNCTION textbox_condition_short_caption(tag AS INTEGER) AS STRING
+ IF tag = 0 THEN RETURN "NEVER"
+ IF tag = 1 THEN RETURN "NEVER(1)"
+ IF tag = -1 THEN RETURN "ALWAYS"
+ RETURN "IF TAG " & ABS(tag) & "=" + UCASE(onoroff$(tag))
 END FUNCTION
 
 SUB verifyrpg
@@ -1615,4 +1589,214 @@ SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
   clearpage dpage
   dowait
  LOOP
+END SUB
+
+SUB textbox_choice_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
+ 'tchoice:
+ DIM state AS MenuState
+ WITH state
+  .last = 5
+  .size = 24
+ END WITH
+ DIM menu(5) AS STRING
+ menu(0) = "Go Back"
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  state.tog = state.tog XOR 1
+  IF keyval(scEsc) > 1 THEN EXIT SUB
+  usemenu state
+  IF enter_or_space() THEN
+   IF state.pt = 0 THEN EXIT SUB
+   IF state.pt = 1 THEN box.choice_enabled = (NOT box.choice_enabled)
+  END IF
+  IF state.pt = 1 THEN
+   IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN box.choice_enabled = (NOT box.choice_enabled)
+  END IF
+  FOR i AS INTEGER = 0 TO 1
+   IF state.pt = 2 + (i * 2) THEN strgrabber box.choice(i), 15
+   IF state.pt = 3 + (i * 2) THEN tag_grabber box.choice_tag(i)
+  NEXT i
+  IF box.choice_enabled THEN menu(1) = "Choice = Enabled" ELSE menu(1) = "Choice = Disabled"
+  FOR i AS INTEGER = 0 TO 1
+   menu(2 + (i * 2)) = "Option " & i & " text:" + box.choice(i)
+   IF box.choice_tag(i) THEN
+    menu(3 + (i * 2)) = "Set tag " & ABS(box.choice_tag(i)) & " = " & onoroff(box.choice_tag(i)) & " (" & load_tag_name(ABS(box.choice_tag(i))) & ")"
+   ELSE
+    menu(3 + (i * 2)) = "Set tag 0 (none)"
+   END IF
+  NEXT i
+ 
+  standardmenu menu(), state, 0, 8, dpage
+ 
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+END SUB
+
+SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState)
+ SaveTextBox box, st.id
+ DIM do_search AS INTEGER = YES
+ REDIM prev(5) AS TextboxConnectNode
+ DIM current AS TextboxConnectNode
+ REDIM nxt(1) AS TextboxConnectNode
+
+ DIM column AS INTEGER = 1
+ DIM col_limit_left AS INTEGER = 1
+ DIM col_limit_right AS INTEGER = 1
+ 
+ DIM state AS MenuState
+ state.size = 6
+ DIM nxt_state AS MenuState
+ nxt_state.size = 2
+ DIM searchbox AS TextBox
+ 
+ DIM y AS INTEGER
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF do_search THEN
+   column = 1
+   col_limit_left = 1
+   col_limit_right = 1
+   '--Current box
+   textbox_connection_captions current, st.id, 0, box, "BOX", NO
+   '--Next boxes
+   nxt_state.last = -1
+   nxt_state.pt = 0
+   nxt_state.top = 0
+   REDIM nxt(1) AS TextboxConnectNode
+   IF box.instead_tag <> 0 THEN
+    nxt_state.last += 1
+    LoadTextBox searchbox, box.instead
+    textbox_connection_captions nxt(nxt_state.last), box.instead, box.instead_tag, searchbox, "INSTEAD"
+    col_limit_right = 2
+   END IF
+   IF box.after_tag <> 0 THEN
+    nxt_state.last += 1
+    LoadTextBox searchbox, box.after
+    textbox_connection_captions nxt(nxt_state.last), box.after, box.after_tag, searchbox, "AFTER"
+    col_limit_right = 2
+   END IF
+   '--Previous boxes
+   state.last = -1
+   state.pt = 0
+   state.top = 0
+   FOR i AS INTEGER = 0 TO gen(genMaxTextBox)
+    LoadTextBox searchbox, i
+    WITH searchbox
+     IF .instead = st.id AND .instead_tag <> 0 THEN
+      state.last += 1
+      IF UBOUND(prev) < state.last THEN
+       REDIM PRESERVE prev(UBOUND(prev) + 10)
+      END IF
+      textbox_connection_captions prev(state.last), i, .instead_tag, searchbox, "REPLACES"
+      col_limit_left = 0
+     END IF
+     IF .after = st.id AND .after_tag <> 0 THEN
+      state.last += 1
+      IF UBOUND(prev) < state.last THEN
+       REDIM PRESERVE prev(UBOUND(prev) + 10)
+      END IF
+      textbox_connection_captions prev(state.last), i, .after_tag, searchbox, "BEFORE"
+      col_limit_left = 0
+     END IF
+    END WITH
+   NEXT i
+   do_search = NO
+  END IF
+  IF keyval(scEsc) > 1 THEN EXIT SUB
+  '--Horizontal column navigation
+  IF keyval(scLeft) > 1 THEN column = loopvar(column, col_limit_left, col_limit_right, -1)
+  IF keyval(scRight) > 1 THEN column = loopvar(column, col_limit_left, col_limit_right, 1)
+  '--Vertical navigation within selected column
+  SELECT CASE column
+   CASE 0 'Previous
+    usemenu state
+    IF enter_or_space() THEN
+     IF prev(state.pt).id >= 0 THEN
+      st.id = prev(state.pt).id
+      LoadTextBox box, st.id
+      do_search = YES
+     END IF
+    END IF
+   CASE 1 'Current
+    IF enter_or_space() THEN EXIT SUB
+   CASE 2 'Next
+    usemenu nxt_state
+    IF enter_or_space() THEN
+     IF nxt(nxt_state.pt).id >= 0 THEN
+      st.id = nxt(nxt_state.pt).id
+      LoadTextBox box, st.id
+      do_search = YES
+     END IF
+    END IF
+  END SELECT
+  '--Draw box preview
+  textbox_edit_preview box, st, 96
+  '--Draw previous
+  IF state.last >= 0 THEN
+   FOR i AS INTEGER = state.top TO small(state.last, state.top + state.size)
+    y = (i - state.top) * 25
+    textbox_connection_draw_node prev(i), 0, y, (column = 0 AND state.pt = i)
+   NEXT i
+  ELSE
+   edgeprint "No Previous", 0, 0, uilook(uiMenuItem), dpage
+  END IF
+  '--Draw current
+  y = 10 * large(nxt_state.last, 0)
+  textbox_connection_draw_node current, 106, y, (column = 1)
+  '--Draw next
+  IF nxt_state.last >= 0 THEN
+   FOR i AS INTEGER = nxt_state.top TO small(nxt_state.last, nxt_state.top + nxt_state.size)
+    y = (i - nxt_state.top) * 25
+    textbox_connection_draw_node nxt(i), 212, y, (column = 2 AND nxt_state.pt = i)
+   NEXT i
+  ELSE
+   edgeprint "No Next", 212, 0, uilook(uiMenuItem), dpage
+  END IF
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+END SUB
+
+SUB textbox_connection_captions(BYREF node AS TextboxConnectNode, id AS INTEGER, tag AS INTEGER, box AS TextBox, topcation AS STRING, use_tag AS INTEGER = YES)
+ DIM preview_line AS STRING
+ IF id >= 0 THEN
+  node.lines(0) = topcation & " " & id
+  preview_line = textbox_preview_line(box)
+  IF use_tag THEN
+   node.lines(1) = textbox_condition_short_caption(tag)
+   node.lines(2) = LEFT(textbox_preview_line(box), 13)
+  ELSE
+   node.lines(1) = LEFT(preview_line, 13)
+   node.lines(2) = MID(preview_line, 13, 13)
+  END IF
+ ELSE
+  node.lines(0) = topcation & " " & "SCRIPT"
+  preview_line = scriptname(ABS(id), plottrigger)
+  node.lines(1) = LEFT(preview_line, 13)
+  node.lines(2) = MID(preview_line, 13, 13)
+ END IF
+ node.id = id
+END SUB
+
+SUB textbox_connection_draw_node(BYREF node AS TextboxConnectNode, x AS INTEGER, y AS INTEGER, selected AS INTEGER)
+ STATIC tog AS INTEGER = 0
+ edgeboxstyle x, y, 104, 26, 0, dpage, (NOT selected), YES
+ textcolor uilook(uiMenuItem), 0
+ IF selected THEN
+  textcolor uilook(uiSelectedItem + tog), 0
+  tog = tog XOR 1
+ END IF
+ FOR i AS INTEGER = 0 TO 2
+  printstr node.lines(i), x + 1, y + i * 8 + 1, dpage
+ NEXT i
 END SUB
