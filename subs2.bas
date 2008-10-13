@@ -71,7 +71,7 @@ DECLARE SUB textbox_seek(BYREF box AS TextBox, BYREF st AS TextboxEditState)
 DECLARE SUB textbox_create_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS TextBox, BYREF st AS TextboxEditState)
 DECLARE SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
 DECLARE SUB textbox_copy_style_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS TextBox, BYREF st AS TextboxEditState)
-DECLARE SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState)
+DECLARE SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState, menu() AS STRING)
 DECLARE SUB textbox_connection_captions(BYREF node AS TextboxConnectNode, id AS INTEGER, tag AS INTEGER, box AS TextBox, topcation AS STRING, use_tag AS INTEGER = YES)
 DECLARE SUB textbox_connection_draw_node(BYREF node AS TextboxConnectNode, x AS INTEGER, y AS INTEGER, selected AS INTEGER)
 DECLARE SUB textbox_choice_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
@@ -893,7 +893,7 @@ DO
    textbox_edit_load box, st, m$()
   END IF
   IF csr = 8 THEN
-   textbox_connections box, st
+   textbox_connections box, st, m$()
   END IF
   IF csr = 9 THEN '--Export textboxes to a .TXT file
    STATIC metadata(3) AS INTEGER
@@ -1637,12 +1637,13 @@ SUB textbox_choice_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
  LOOP
 END SUB
 
-SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState)
+SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState, menu() AS STRING)
+'FIXME: menu() should be moved to become a member of st, then we wouldn't have to pass it around
  SaveTextBox box, st.id
  DIM do_search AS INTEGER = YES
  REDIM prev(5) AS TextboxConnectNode
  DIM current AS TextboxConnectNode
- REDIM nxt(1) AS TextboxConnectNode
+ REDIM nxt(2) AS TextboxConnectNode
 
  DIM column AS INTEGER = 1
  DIM col_limit_left AS INTEGER = 1
@@ -1654,6 +1655,10 @@ SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState)
  nxt_state.size = 2
  DIM searchbox AS TextBox
  
+ DIM nxt_add_type AS INTEGER
+ DIM remember_insert AS INTEGER
+ DIM remember_insert_tag AS INTEGER
+ 
  DIM y AS INTEGER
 
  setkeys
@@ -1663,26 +1668,31 @@ SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState)
   IF do_search THEN
    column = 1
    col_limit_left = 1
-   col_limit_right = 1
+   col_limit_right = 2
    '--Current box
    textbox_connection_captions current, st.id, 0, box, "BOX", NO
    '--Next boxes
    nxt_state.last = -1
    nxt_state.pt = 0
    nxt_state.top = 0
-   REDIM nxt(1) AS TextboxConnectNode
+   REDIM nxt(2) AS TextboxConnectNode
    IF box.instead_tag <> 0 THEN
     nxt_state.last += 1
     LoadTextBox searchbox, box.instead
     textbox_connection_captions nxt(nxt_state.last), box.instead, box.instead_tag, searchbox, "INSTEAD"
-    col_limit_right = 2
    END IF
    IF box.after_tag <> 0 THEN
     nxt_state.last += 1
     LoadTextBox searchbox, box.after
     textbox_connection_captions nxt(nxt_state.last), box.after, box.after_tag, searchbox, "AFTER"
-    col_limit_right = 2
    END IF
+   nxt_state.last += 1
+   WITH nxt(nxt_state.last)
+    .add = YES
+    .lines(0) = " INSERT A"
+    .lines(1) = " NEW BOX"
+    .style = 1
+   END WITH
    '--Previous boxes
    state.last = -1
    state.pt = 0
@@ -1721,7 +1731,7 @@ SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState)
     IF enter_or_space() THEN
      IF prev(state.pt).id >= 0 THEN
       st.id = prev(state.pt).id
-      LoadTextBox box, st.id
+      textbox_edit_load box, st, menu()
       do_search = YES
      END IF
     END IF
@@ -1730,10 +1740,47 @@ SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState)
    CASE 2 'Next
     usemenu nxt_state
     IF enter_or_space() THEN
-     IF nxt(nxt_state.pt).id >= 0 THEN
-      st.id = nxt(nxt_state.pt).id
-      LoadTextBox box, st.id
-      do_search = YES
+     IF nxt(nxt_state.pt).add THEN
+      'Add a box
+      nxt_add_type = twochoice("Add a new box?", "After this box", "Instead of this box", 0, -1)
+      IF nxt_add_type >= 0 THEN
+       '--Add a box
+       gen(genMaxTextbox) += 1
+       IF nxt_add_type = 0 THEN
+        '--an after box
+        remember_insert = box.after
+        remember_insert_tag = box.after_tag
+        box.after_tag = -1
+        box.after = gen(genMaxTextbox)
+       ELSEIF nxt_add_type = 1 THEN
+        '--an instead box
+        remember_insert = box.instead
+        remember_insert_tag = box.instead_tag
+        box.instead_tag = -1
+        box.instead = gen(genMaxTextbox)
+       END IF
+       SaveTextBox box, st.id
+       st.id = gen(genMaxTextBox)
+       textbox_create_from_box 0, box, st
+       'Having added the new box, now we insert it into the existing chain
+       IF nxt_add_type = 0 THEN
+        box.after = remember_insert
+        box.after_tag = remember_insert_tag
+       ELSEIF nxt_add_type = 1 THEN
+        box.instead = remember_insert
+        box.instead_tag = remember_insert_tag
+       END IF
+       SaveTextBox box, st.id
+       textbox_edit_load box, st, menu()
+       do_search = YES
+      END IF
+     ELSE
+      'Navigate to a box
+      IF nxt(nxt_state.pt).id >= 0 THEN
+       st.id = nxt(nxt_state.pt).id
+       textbox_edit_load box, st, menu()
+       do_search = YES
+      END IF
      END IF
     END IF
   END SELECT
@@ -1790,7 +1837,7 @@ END SUB
 
 SUB textbox_connection_draw_node(BYREF node AS TextboxConnectNode, x AS INTEGER, y AS INTEGER, selected AS INTEGER)
  STATIC tog AS INTEGER = 0
- edgeboxstyle x, y, 104, 26, 0, dpage, (NOT selected), YES
+ edgeboxstyle x, y, 104, 26, node.style, dpage, (NOT selected), YES
  textcolor uilook(uiMenuItem), 0
  IF selected THEN
   textcolor uilook(uiSelectedItem + tog), 0

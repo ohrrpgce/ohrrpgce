@@ -100,7 +100,9 @@ END TYPE
 
 TYPE TextboxConnectNode
   lines(2) AS STRING
-  id AS INTEGER
+  id AS INTEGER 'ID of box or < 0 for script
+  style AS INTEGER
+  add AS INTEGER 'NO normally. YES if this is for adding a new box
 END TYPE
 
 #ENDIF

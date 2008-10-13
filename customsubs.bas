@@ -414,18 +414,29 @@ FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
  RETURN 0
 END FUNCTION
 
-FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
+FUNCTION yesno(capt AS STRING, BYVAL defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
+ IF defaultval = YES THEN
+  defaultval = 0
+ ELSEIF defaultval = NO THEN
+  defaultval = 1
+ END IF
+ DIM result AS INTEGER
+ result = twochoice(capt, "Yes", "No", defaultval, escval)
+ IF result = 0 THEN RETURN YES
+ IF result = 1 THEN RETURN NO
+END FUNCTION
+
+FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
  DIM state AS MenuState
  DIM menu AS MenuDef
  DIM result AS INTEGER
 
- append_menu_item menu, "Yes"
- append_menu_item menu, "No"
+ append_menu_item menu, strA
+ append_menu_item menu, strB
 
  state.active = YES
  init_menu_state state, menu
- IF defaultval = YES THEN state.pt = 0
- IF defaultval = NO  THEN state.pt = 1 
+ state.pt = defaultval
 
  'Keep whatever was on the screen already as a background
  copypage vpage, dpage
@@ -441,8 +452,7 @@ FUNCTION yesno(capt AS STRING, defaultval AS INTEGER=YES, escval AS INTEGER=NO) 
   END IF
 
   IF enter_or_space() THEN
-   IF state.pt = 0 THEN result = YES
-   IF state.pt = 1 THEN result = NO
+   result = state.pt
    state.active = NO
   END IF
 
