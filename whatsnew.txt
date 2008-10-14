@@ -18,6 +18,8 @@ WHAT IS NEW?
       [James]
 
   * Bugfixes
+    * Bug 684: Lower half of inventory screen gets deleted when you
+      load [James]
 
   * New Plotscripting Stuff
 
