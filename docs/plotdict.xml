@@ -150,7 +150,7 @@ end</example>
 		<command id="globalvariable">
 			<cannon>global variable (id,name)</cannon>
 			<shortname>global variable</shortname>
-			<description>Creates a global variable that can be used in any script. The first argument to the global variable declaration is a unique ID number. The second argument is the name of the variable. The ID number for a global variable is a number from 0 to 1024. Each global variable must have a unique number, but this number will not conflict with the ID numbers you use for scripts. It is all right to have a script and a global variable with the same ID number. See also <ref>variable</ref></description>
+			<description>Creates a global variable that can be used in any script. The first argument to the global variable declaration is a unique ID number. The second argument is the name of the variable. The ID number for a global variable is a number from 0 to 4095. Each global variable must have a unique number, but this number will not conflict with the ID numbers you use for scripts. It is all right to have a script and a global variable with the same ID number. See also <ref>variable</ref></description>
 			<example># any script can read and set the value of a global
 global variable(1,mini game score)</example>
 		</command>
