@@ -918,7 +918,8 @@ FOR i = 1025 TO 4095
  global(i) or= buffer(z) shl 16: z = z + 1
 NEXT i
 IF inv_mode = 1 THEN ' Read 16-bit inventory data from newer SAV files
- LoadInventory16Bit inventory(), z, buffer(), 100, 197
+ IF inventoryMax <> 356 THEN debug "Warning: inventoryMax=" & inventoryMax & ", does not fit in old SAV format"
+ LoadInventory16Bit inventory(), z, buffer(), 100, 356
 END IF
 rebuild_inventory_captions inventory()
 
@@ -1950,7 +1951,8 @@ FOR i = 1025 TO 4095
  buffer(z) = global(i) shr 16: z = z + 1
 NEXT i
 'Store the rest of 16-bit inventory
-SaveInventory16Bit inventory(), z, buffer(), 100, 197
+IF inventoryMax <> 356 THEN debug "Warning: inventoryMax=" & inventoryMax & ", does not fit in old SAV format"
+SaveInventory16Bit inventory(), z, buffer(), 100, 356
 
 setpicstuf buffer(), 30000, -1
 sg$ = savefile
