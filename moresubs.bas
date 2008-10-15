@@ -445,7 +445,7 @@ FOR i = 3 TO 0 STEP -1
  IF hero(i) > 0 THEN leader = hero(i) - 1
 NEXT i
 
-FOR i = 0 TO large(gen(genMaxHero), 59) '--for each available hero
+FOR i = 0 TO small(gen(genMaxHero), 59) '--for each available hero
  FOR j = 0 TO 3
   IF herobits(i, j) > 1 THEN setbit tag(), 0, herobits(i, j), 0
  NEXT j
@@ -748,7 +748,6 @@ END IF
 END SUB
 
 SUB loadgame (slot, stat())
-
 DIM gmaptmp(dimbinsize(4))
 
 '--return gen to defaults
