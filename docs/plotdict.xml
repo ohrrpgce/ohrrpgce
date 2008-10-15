@@ -1897,6 +1897,16 @@ end</example>
 			<shortname>inventory</shortname>
 			<description>Returns a count of how many of the specified item are in your inventory. If you do not have the item, it returns <ref>zero</ref> or <ref>false</ref>. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name</description>
 		</command>
+		<command id="get inventory size">
+			<cannon>get inventory size</cannon>
+			<shortname>get inventory size</shortname>
+			<description>Returns a count of how many inventory slots are available.</description>
+		</command>
+		<command id="set inventory size">
+			<cannon>set inventory size(new size)</cannon>
+			<shortname>set inventory size</shortname>
+			<description>Changes the number of inventory slots that are available. Use the constant <p>inv:max</p> to restore the maximum value. The number you use will be rounded down to the nearest multiple of 3. Changes made to the inventory size are not saved in your save-game, so if you want them to persist after loading you should use an on-load script to re-apply the changes.</description>
+		</command>
 		<command id="leader">
 			<cannon>leader</cannon>
 			<shortname>leader</shortname>

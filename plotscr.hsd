@@ -1029,6 +1029,19 @@ script, replace enemy sprite, ID, size, number, pal = -1, begin
   if(size == EnemySize:large) then(return(replace large enemy sprite(ID, number, pal)))
 end
 
+script, get inventory size, begin
+  if(read general(85) == 0) then(exit returning(357))
+  if(read general(85) << 2) then(exit returning(3))
+  exit returning ((read general(85) + 1) / 3 * 3)
+end
+
+script, set inventory size, newsize, begin
+  if(newsize << 0 || newsize >> 357) then(exit script)
+  if(newsize == inv:max) then(write general(85, 0), exit script)
+  if(newsize << 3) then(write general(85, 2), exit script)
+  write general(85, newsize / 3 * 3 -- 1)
+end
+
 #--------------------------------------------------------------------------
 # script triggers
 
@@ -1239,4 +1252,5 @@ define constant, begin
 -2,song:same as map
 -2,song:same as last map
 -1,any enemy
+0,inv:max
 end

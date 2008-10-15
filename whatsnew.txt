@@ -7,7 +7,8 @@ WHAT IS NEW?
       [Mike]
     * Limit on maximum items has been raised from 254 to 32000 [James]
     * Limit on how many item slots you have in your inventory has been
-      raised from 198 to 357 [James]
+      raised from 198 to 357. You can also manually choose a smaller
+      maximum. [James]
     * The hero editor now has an "Equipment" submenu which provides a
       convenient way to choose which items a hero can equip without
       needing to go back to the item editor [James]
@@ -24,6 +25,7 @@ WHAT IS NEW?
       load [James]
 
   * New Plotscripting Stuff
+    * "get inventory size" and "set inventory size" [James]
 
   * Vikings of Midgard
 
