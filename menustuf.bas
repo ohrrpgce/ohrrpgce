@@ -509,7 +509,7 @@ SUB getitem (getit, num)
 
 numitems = num
 
-FOR i = 0 TO inventoryMax
+FOR i = 0 TO last_inv_slot()
  ' Loop through all inventory slots looking for a slot that already
  ' contains the item we are adding. If found increment that slot
  room = 99 - inventory(i).num
@@ -525,7 +525,7 @@ FOR i = 0 TO inventoryMax
   END IF
  END IF
 NEXT
-FOR i = 0 TO inventoryMax
+FOR i = 0 TO last_inv_slot()
  'loop through each inventory slot looking for an empty slot to populate 
  IF inventory(i).used = 0 THEN
   inventory(i).used = -1
@@ -589,7 +589,7 @@ copypage vpage, holdscreen
 FOR i = 0 TO 2
  setbit iuse(), 0, i, 1
 NEXT i
-FOR i = 0 TO inventoryMax
+FOR i = 0 TO last_inv_slot()
  atkIDs(i) = -1
  IF inventory(i).used THEN
   loaditemdata itemtemp(), inventory(i).id
@@ -623,7 +623,7 @@ END WITH
 DIM state AS MenuState
 WITH state
  .first = -1
- .last = INT(inventoryMax / 3)
+ .last = INT(last_inv_slot() / 3)
  .size = 21
 END WITH
 
@@ -643,7 +643,7 @@ DO
  GOSUB itcontrol
  IF quit THEN EXIT DO
  edgeboxstyle rect.x, rect.y, rect.wide, rect.high, 0, dpage
- FOR i = top TO top + 62
+ FOR i = top TO small(top + 62, last_inv_slot())
   textcolor uilook(uiDisabledItem), 0
   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSelectedDisabled), 0
@@ -815,7 +815,7 @@ IF pick = 0 THEN
   GOSUB infostr
   IF ic < top THEN top = top - 3
  END IF
- IF carray(1) > 1 AND ic <= inventoryMax - 3 THEN
+ IF carray(1) > 1 AND ic <= last_inv_slot() - 3 THEN
   menusound gen(genCursorSFX)
   ic = ic + 3
   GOSUB infostr
@@ -835,7 +835,7 @@ IF pick = 0 THEN
   IF ((ic + 3) MOD 3) = 2 THEN ' the +3 adjust for the first negative row
    ic = ic - 2
   ELSE
-   IF ic < inventoryMax THEN ic = ic + 1
+   IF ic < last_inv_slot() THEN ic = ic + 1
   END IF
   GOSUB infostr
  END IF
@@ -908,8 +908,8 @@ RETRACE
 
 autosort:
 autosort_changed = 0
-FOR i = 0 TO inventoryMax - 1
- FOR o = i + 1 TO inventoryMax
+FOR i = 0 TO last_inv_slot() - 1
+ FOR o = i + 1 TO last_inv_slot()
   IF inventory(i).used = 0 AND inventory(o).used THEN
    itemmenuswap inventory(), atkIDs(), iuse(), permask(), i, o
    autosort_changed = -1
@@ -917,8 +917,8 @@ FOR i = 0 TO inventoryMax - 1
   END IF
  NEXT o
 NEXT i
-FOR i = 0 TO inventoryMax - 1
- FOR o = i + 1 TO inventoryMax
+FOR i = 0 TO last_inv_slot() - 1
+ FOR o = i + 1 TO last_inv_slot()
   IF readbit(iuse(), 0, 3 + i) = 0 AND readbit(iuse(), 0, 3 + o) = 1 THEN
    itemmenuswap inventory(), atkIDs(), iuse(), permask(), i, o
    autosort_changed = -1
@@ -1540,7 +1540,7 @@ IF carray(0) > 1 AND ic >= 3 THEN
  GOSUB sellinfostr
  IF ic < top THEN top = top - 3
 END IF
-IF carray(1) > 1 AND ic <= inventoryMax - 3 THEN
+IF carray(1) > 1 AND ic <= last_inv_slot() - 3 THEN
  menusound gen(genCursorSFX)
  ic = ic + 3
  GOSUB sellinfostr
@@ -1569,7 +1569,7 @@ END IF
 RETRACE
 
 refreshs:
-FOR i = 0 TO inventoryMax
+FOR i = 0 TO last_inv_slot()
  IF inventory(i).used THEN
   loaditemdata buffer(), inventory(i).id
   IF buffer(73) = 2 THEN setbit permask(), 0, i, 1
@@ -2441,7 +2441,7 @@ SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
  
  'erase the tables of equippables
  FOR i AS INTEGER = 0 TO 4
-  FOR j AS INTEGER = 0 TO inventoryMax
+  FOR j AS INTEGER = 0 TO last_inv_slot()
    st.eq(i).offset(j) = -1
   NEXT j
   st.eq(i).count = 0
@@ -2449,7 +2449,7 @@ SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
  
  DIM itembuf(99) AS INTEGER
  DIM eq_slot AS INTEGER = 0
- FOR i AS INTEGER = 0 TO inventoryMax
+ FOR i AS INTEGER = 0 TO last_inv_slot()
   IF inventory(i).used THEN
    '--load item data
    loaditemdata itembuf(), inventory(i).id

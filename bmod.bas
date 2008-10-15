@@ -1418,7 +1418,7 @@ IF carray(5) > 1 THEN
 END IF
 oldiptr = iptr
 IF carray(0) > 1 AND iptr > 2 THEN iptr = iptr - 3
-IF carray(1) > 1 AND iptr <= inventoryMax - 3 THEN iptr = iptr + 3
+IF carray(1) > 1 AND iptr <= last_inv_slot() - 3 THEN iptr = iptr + 3
 IF keyval(73) > 1 THEN
  iptr = iptr - 27: itop = itop - 27
  IF itop < 0 THEN itop = 0
@@ -1427,12 +1427,12 @@ END IF
 IF keyval(81) > 1 THEN
  iptr = iptr + 27: itop = itop + 27
  IF itop > 171 THEN itop = 171
- WHILE iptr > inventoryMax: iptr = iptr - 3: WEND
+ WHILE iptr > last_inv_slot(): iptr = iptr - 3: WEND
 END IF
 IF carray(2) > 1 AND iptr > 0 THEN
  iptr = iptr - 1
 END IF
-IF carray(3) > 1 AND iptr < inventoryMax THEN
+IF carray(3) > 1 AND iptr < last_inv_slot() THEN
  iptr = iptr + 1
 END IF
 '--scroll when past top or bottom
@@ -1696,7 +1696,7 @@ IF vic.state = 0 THEN 'only display interface till you win
   END IF
   IF bat.menu_mode = batMENUITEM THEN '--draw item menu
    centerbox 160, 43, 304, 78, 1, dpage
-   FOR i = itop TO itop + 26
+   FOR i = itop TO small(itop + 26, last_inv_slot())
     textcolor uilook(uiDisabledItem - readbit(iuse(), 0, i)), 0
     IF iptr = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(iuse(), 0, i)) + tog), uilook(uiHighlight)
     printstr inventory(i).text, 20 + 96 * (i MOD 3), 8 + 8 * ((i - itop) \ 3), dpage

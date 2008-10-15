@@ -309,7 +309,7 @@ END FUNCTION
 
 FUNCTION countitem (it)
 total = 0
-FOR o = 0 TO inventoryMax
+FOR o = 0 TO last_inv_slot()
  IF inventory(o).used AND it - 1 = inventory(o).id THEN
   total += inventory(o).num
  END IF
@@ -318,7 +318,7 @@ countitem = total
 END FUNCTION
 
 SUB delitem (it, amount)
-FOR o = 0 TO inventoryMax
+FOR o = 0 TO last_inv_slot()
  IF inventory(o).used AND it - 1 = inventory(o).id THEN
   IF inventory(o).num <= amount THEN
    amount -= inventory(o).num
@@ -475,7 +475,7 @@ FOR i = 0 TO maxMaxItems
 NEXT i
 
 'search inventory slots
-FOR j = 0 TO inventoryMax
+FOR j = 0 TO last_inv_slot()
  'get item ID
  id = inventory(j).id
  IF inventory(j).used THEN 'there is an item in this slot

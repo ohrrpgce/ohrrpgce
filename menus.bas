@@ -987,6 +987,11 @@ FOR i = 0 to 11
  IF gen(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + "None" ELSE m$(20 + i) = m$(20 + i) & gen(genStatCap + i)
 NEXT
 m$(32) = "Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
+IF gen(genMaxInventory) = 0 THEN
+ m$(33) = "Inventory Slots: default (" & INT(last_inv_slot() / 3) & " rows)"
+ELSE
+ m$(33) = "Inventory Slots: " & gen(genMaxInventory) & " (" & INT(last_inv_slot() / 3) & " rows)"
+END IF
 END SUB
 
 SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
@@ -1066,7 +1071,7 @@ OPTION EXPLICIT
 
 SUB gendata ()
  STATIC default$
- CONST maxMenu = 32
+ CONST maxMenu = 33
  DIM m$(maxMenu)
  DIM max(maxMenu)
  DIM bitname(18) AS STRING
@@ -1081,10 +1086,6 @@ SUB gendata ()
   .last = maxMenu
   .need_update = YES
  END WITH
-
- DIM rect AS RectType
- rect.wide = 320
- rect.high = 200
 
  getnames names(), 32
  stat$(0) = names(0)
@@ -1133,6 +1134,7 @@ SUB gendata ()
  max(30) = 100 'MP~
  max(31) = 20  'Extra Hits
  max(32) = 3   'Default Enemy Dissolve type
+ max(33) = inventoryMax
 
  DIM pas$ = ""
  DIM aboutline$ = ""
@@ -1259,8 +1261,11 @@ SUB gendata ()
   IF state.pt = 32 THEN
    IF intgrabber(gen(genEnemyDissolve), 0, max(state.pt)) THEN state.need_update = YES
   END IF
+  IF state.pt = 33 THEN
+   IF intgrabber(gen(genMaxInventory), 0, max(state.pt)) THEN state.need_update = YES
+  END IF
 
-  draw_scrollbar state, rect, state.last, 0, dpage
+  draw_fullscreen_scrollbar state, , dpage
   standardmenu m$(), state, 0, 0, dpage, 0
 
   SWAP vpage, dpage

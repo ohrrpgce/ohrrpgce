@@ -171,7 +171,7 @@ DECLARE SUB clear_box_border_cache()
 DECLARE SUB notification (show_msg AS STRING)
 
 DECLARE FUNCTION get_text_box_height(BYREF box AS TextBox) AS INTEGER
-
+DECLARE FUNCTION last_inv_slot() AS INTEGER
 
 'Global variables
 EXTERN as string game, tmpdir, exename, workingdir

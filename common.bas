@@ -3059,3 +3059,8 @@ FUNCTION get_text_box_height(BYREF box AS TextBox) AS INTEGER
  NEXT i
  RETURN 88
 END FUNCTION
+
+FUNCTION last_inv_slot() AS INTEGER
+ IF gen(genMaxInventory) = 0 THEN RETURN inventoryMax
+ RETURN large(INT((gen(genMaxInventory) + 1) / 3), 1) * 3 -1
+END FUNCTION
