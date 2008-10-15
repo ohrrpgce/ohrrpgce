@@ -2441,7 +2441,7 @@ SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
  
  'erase the tables of equippables
  FOR i AS INTEGER = 0 TO 4
-  FOR j AS INTEGER = 0 TO 199
+  FOR j AS INTEGER = 0 TO inventoryMax
    st.eq(i).offset(j) = -1
   NEXT j
   st.eq(i).count = 0

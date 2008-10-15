@@ -954,11 +954,7 @@ IF nativebitmagicnum <> 4444 THEN
  NEXT sl
 END IF
 
-'ALL THE STUFF THAT MUST BE SAVED
-'gam.map.id,x,y,d,gam.random_battle_countdown,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
-'ALL THE STUFF THAT MUST BE PASSED
-'slot,x,y,d,gold,stat(),bmenu(),spell(),lmp(),exlev(),item(),item$()
-'30000
+'See http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/index.php/SAV for docs
 END SUB
 
 SUB loadglobalvars (slot, first, last)
@@ -1960,12 +1956,7 @@ setpicstuf buffer(), 30000, -1
 sg$ = savefile
 storeset sg$, slot * 2 + 1, 0
 
-
-'ALL THE STUFF THAT MUST BE SAVED
-'gam.map.id,x,y,d,gam.random_battle_countdown,gold,gen(500),npcl(2100),tag(126),hero(40),stat(40,1,13),bmenu(40,5),spell(40,3,23),lmp(40,7),exlev(40,1),names(40),item(-3 to 199),item$(-3 to 199),eqstuf(40,4)
-'ALL THE STUFF THAT MUST BE PASSED
-'slot,x,y,d,gold,stat(),bmenu(),spell(),lmp(),exlev(),item(),item$()
-'30000
+'See http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/index.php/SAV for docs
 END SUB
 
 SUB saveglobalvars (slot, first, last)

@@ -38,7 +38,7 @@ END TYPE
 
 TYPE EquippableList
   count AS INTEGER
-  offset(199) AS INTEGER 'Index into the inventory, or -1 for nothing
+  offset(inventoryMax) AS INTEGER 'Index into the inventory, or -1 for nothing
 END TYPE
 
 TYPE EquipMenuState
