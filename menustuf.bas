@@ -606,6 +606,27 @@ NEXT i
 ic = -3: top = -3: sel = -4: wptr = 0: spred = 0: pick = 0
 info$ = ""
 
+DIM rect AS RectType
+WITH rect
+ .x = 8
+ .y = 5
+ .wide = 304
+ .high = 180
+END WITH
+DIM scrollrect AS RectType
+WITH scrollrect
+ .x = 20
+ .y = 12
+ .wide = 287
+ .high = 168
+END WITH
+DIM state AS MenuState
+WITH state
+ .first = -1
+ .last = INT(inventoryMax / 3)
+ .size = 21
+END WITH
+
 GOSUB infostr
 setkeys
 quit = 0
@@ -621,7 +642,7 @@ DO
  control
  GOSUB itcontrol
  IF quit THEN EXIT DO
- centerbox 160, 92, 304, 176, 1, dpage
+ edgeboxstyle rect.x, rect.y, rect.wide, rect.high, 0, dpage
  FOR i = top TO top + 62
   textcolor uilook(uiDisabledItem), 0
   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
@@ -642,8 +663,8 @@ DO
   END IF
   printstr display$, 20 + 96 * ((i + 3) MOD 3), 12 + 8 * ((i - top) \ 3), dpage
  NEXT i
- centerfuz 160, 184, 312, 16, 4, dpage
- edgeprint info$, xstring(info$, 160), 179, uilook(uiText), dpage
+ centerfuz 160, 192, 312, 16, 4, dpage
+ edgeprint info$, xstring(info$, 160), 187, uilook(uiText), dpage
  IF pick = 1 THEN
   centerbox 160, 47, 160, 88, 2, dpage
   IF spred = 0 AND wptr >= 0 THEN
@@ -669,6 +690,11 @@ DO
    END IF
   NEXT i
  END IF
+ WITH state
+  state.top = INT(top / 3)
+  state.pt = INT(ic / 3)
+ END WITH
+ draw_scrollbar state, scrollrect, state.last + 1, 0, dpage
  SWAP vpage, dpage
  setvispage vpage
  copypage holdscreen, dpage
