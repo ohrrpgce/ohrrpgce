@@ -988,9 +988,9 @@ FOR i = 0 to 11
 NEXT
 m$(32) = "Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
 IF gen(genMaxInventory) = 0 THEN
- m$(33) = "Inventory Slots: default (" & INT(last_inv_slot() / 3) & " rows)"
+ m$(33) = "Inventory Slots: default (" & INT(last_inv_slot() / 3) + 1 & " rows)"
 ELSE
- m$(33) = "Inventory Slots: " & gen(genMaxInventory) & " (" & INT(last_inv_slot() / 3) & " rows)"
+ m$(33) = "Inventory Slots: 0-" & gen(genMaxInventory) & " (" & INT(last_inv_slot() / 3) + 1 & " rows)"
 END IF
 END SUB
 

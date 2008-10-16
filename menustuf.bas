@@ -572,9 +572,12 @@ FUNCTION items (stat())
 DIM itemdata(100) AS INTEGER
 DIM itemtemp(100) AS INTEGER
 DIM atktemp(40 + dimbinsize(binATTACK)) AS INTEGER
-DIM iuse(15), atkIDs(inventoryMax), permask(15), special$(-3 TO -1)
+DIM iuse((inventoryMax + 3) / 16) 'bit 0 of iuse, permask, correspond to item -3
+DIM permask((inventoryMax + 3) / 16)
+DIM atkIDs(inventoryMax)
+DIM special$(-3 TO -1)
 DIM autosort_changed AS INTEGER = 0
-'bit 0 of iuse, permask, correspond to item -3
+
 
 special$(-3) = rpad(readglobalstring$(35, "DONE", 10), " ", 11)
 special$(-2) = rpad(readglobalstring$(36, "AUTOSORT", 10), " ", 11)

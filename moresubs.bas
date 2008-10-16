@@ -74,6 +74,10 @@ DECLARE SUB teleporttooltend (mini() AS UBYTE, tilemap(), tilesets() AS TilesetD
 #include "scancodes.bi"
 #include "slices.bi"
 
+'--Local subs and functions
+DECLARE SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
+
+
 REM $STATIC
 SUB addhero (who, slot, stat(), forcelevel=-1)
 DIM wbuf(100), thishbits(4)
@@ -747,6 +751,10 @@ ELSE
 END IF
 END SUB
 
+SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
+ 'debug "SAV:" & LEFT(caption & STRING(20, " "), 20) & " int=" & z + slot * 15000
+END SUB
+
 SUB loadgame (slot, stat())
 DIM gmaptmp(dimbinsize(4))
 
@@ -777,6 +785,7 @@ NEXT i
 gold = str2lng&(temp$)
 
 z = 34
+show_load_index z, "gen"
 FOR i = 0 TO 500
  SELECT CASE i
   'Only certain gen() values should be read from the saved game.
@@ -787,19 +796,25 @@ FOR i = 0 TO 500
  z = z + 1
 NEXT i
 
+show_load_index z, "npcl"
 DeserNPCL npc(),z,buffer(),300,gmaptmp(20),gmaptmp(21)
+show_load_index z, "unused"
 z=z+1 'fix an old bug
 
+show_load_index z, "tags"
 FOR i = 0 TO 126
  tag(i) = buffer(z): z = z + 1
 NEXT i
+show_load_index z, "heroes"
 FOR i = 0 TO 40
  hero(i) = buffer(z): z = z + 1
 NEXT i
+show_load_index z, "unused a"
 FOR i = 0 TO 500
  '--used to be the useless a() buffer
  dummy = buffer(z): z = z + 1
 NEXT i
+show_load_index z, "stats"
 FOR i = 0 TO 40
  FOR o = 0 TO 1
   FOR j = 0 TO 13
@@ -807,11 +822,13 @@ FOR i = 0 TO 40
   NEXT j
  NEXT o
 NEXT i
+show_load_index z, "bmenu"
 FOR i = 0 TO 40
  FOR o = 0 TO 5
   bmenu(i, o) = buffer(z): z = z + 1
  NEXT o
 NEXT i
+show_load_index z, "spell"
 FOR i = 0 TO 40
  FOR o = 0 TO 3
   FOR j = 0 TO 23
@@ -820,11 +837,13 @@ FOR i = 0 TO 40
   z = z + 1'--skip extra data
  NEXT o
 NEXT i
+show_load_index z, "lmp"
 FOR i = 0 TO 40
  FOR o = 0 TO 7
   lmp(i, o) = buffer(z): z = z + 1
  NEXT o
 NEXT i
+show_load_index z, "exlev"
 FOR i = 0 TO 40
  FOR o = 0 TO 1
   temp$ = ""
@@ -836,6 +855,7 @@ FOR i = 0 TO 40
   exlev(i, o) = str2lng&(temp$)
  NEXT o
 NEXT i
+show_load_index z, "names"
 FOR i = 0 TO 40
  temp$ = ""
  FOR j = 0 TO 16
@@ -846,8 +866,11 @@ FOR i = 0 TO 40
  names(i) = temp$
 NEXT i
 
+show_load_index z, "inv_mode"
 DIM inv_mode AS INTEGER
 inv_mode = buffer(z)
+debug "inv_mode = " & inv_mode
+show_load_index z, "inv 8bit"
 IF inv_mode = 0 THEN ' Read 8-bit inventory data from old SAV files
  DeserInventory8Bit inventory(), z, buffer()
 ELSE
@@ -855,15 +878,18 @@ ELSE
  z = 14595
 END IF
 
+show_load_index z, "eqstuff"
 FOR i = 0 TO 40
  FOR o = 0 TO 4
   eqstuf(i, o) = buffer(z): z = z + 1
  NEXT o
 NEXT i
 
+show_load_index z, "inv 16bit"
 IF inv_mode = 1 THEN ' Read 16-bit inventory data from newer SAV files
  LoadInventory16Bit inventory(), z, buffer(), 0, 99
 END IF
+show_load_index z, "after inv 16bit"
 
 'RECORD 2
 
@@ -872,27 +898,34 @@ loadset sg$, slot * 2 + 1, 0
 
 z = 0
 
+show_load_index z, "stock", 1
 FOR i = 0 TO 99
  FOR o = 0 TO 49
   gam.stock(i, o) = buffer(z): z = z + 1
  NEXT o
 NEXT i
+show_load_index z, "hmask", 1
 FOR i = 0 TO 3
  hmask(i) = buffer(z): z = z + 1
 NEXT i
+show_load_index z, "cathero", 1
 FOR i = 1 TO 3
  catx(i * 5) = buffer(z) + gmaptmp(20) * 20: z = z + 1
  caty(i * 5) = buffer(z) + gmaptmp(21) * 20: z = z + 1
  catd(i * 5) = buffer(z): z = z + 1
 NEXT i
+show_load_index z, "globals low", 1
 FOR i = 0 TO 1024
  global(i) = buffer(z): z = z + 1
 NEXT i
+show_load_index z, "veh", 1
 FOR i = 0 TO 21
  veh(i) = buffer(z): z = z + 1
 NEXT i
 '--picture and palette
+show_load_index z, "picpal magic", 1
 picpalmagicnum = buffer(z): z = z + 1
+show_load_index z, "picpalwep", 1
 FOR i = 0 TO 40
  FOR o = 0 TO 1
   FOR j = 14 TO 16
@@ -902,7 +935,9 @@ FOR i = 0 TO 40
  NEXT o
 NEXT i
 'native hero bitsets
+show_load_index z, "hbit magic", 1
 nativebitmagicnum = buffer(z): z = z + 1
+show_load_index z, "hbits", 1
 FOR i = 0 TO 40
  FOR o = 0 TO 4
   IF nativebitmagicnum = 4444 THEN nativehbits(i, o) = buffer(z)
@@ -910,17 +945,24 @@ FOR i = 0 TO 40
  NEXT o
 NEXT i
 'top global variable bits
+show_load_index z, "global high", 1
 FOR i = 0 TO 1024
  global(i) or= buffer(z) shl 16: z = z + 1
 NEXT i
+show_load_index z, "global ext", 1
 FOR i = 1025 TO 4095
  global(i) = buffer(z): z = z + 1
  global(i) or= buffer(z) shl 16: z = z + 1
 NEXT i
+show_load_index z, "inv 16bit ext", 1
 IF inv_mode = 1 THEN ' Read 16-bit inventory data from newer SAV files
- IF inventoryMax <> 356 THEN debug "Warning: inventoryMax=" & inventoryMax & ", does not fit in old SAV format"
- LoadInventory16Bit inventory(), z, buffer(), 100, 356
+ IF inventoryMax <> 599 THEN debug "Warning: inventoryMax=" & inventoryMax & ", does not fit in old SAV format"
+ LoadInventory16Bit inventory(), z, buffer(), 100, 599
+ELSE
+ 'skip this section for old saves
+ z = 29680 - 15000
 END IF
+show_load_index z, "unused", 1
 rebuild_inventory_captions inventory()
 
 '---BLOODY BACKWARD COMPATABILITY---
@@ -1951,8 +1993,8 @@ FOR i = 1025 TO 4095
  buffer(z) = global(i) shr 16: z = z + 1
 NEXT i
 'Store the rest of 16-bit inventory
-IF inventoryMax <> 356 THEN debug "Warning: inventoryMax=" & inventoryMax & ", does not fit in old SAV format"
-SaveInventory16Bit inventory(), z, buffer(), 100, 356
+IF inventoryMax <> 599 THEN debug "Warning: inventoryMax=" & inventoryMax & ", does not fit in old SAV format"
+SaveInventory16Bit inventory(), z, buffer(), 100, 599
 
 setpicstuf buffer(), 30000, -1
 sg$ = savefile

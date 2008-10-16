@@ -124,7 +124,7 @@ CONST fixTextBoxPortrait = 11    'Initialize text box portrait data
 CONST max_npc_defs = 99
 CONST maxMaxItems = 32000 'max number of items
 CONST maxMaxHero = 59 'This is the max value possible for gen(genMaxHero) 'FIXME: not used everywhere
-CONST inventoryMax = 356 'last inventory slot num (divisible by 3 when you count the zero)
+CONST inventoryMax = 599 'last inventory slot num (divisible by 3 when you count the zero)
 CONST scriptmemMax = 65536    'in 4-byte ints (256kb)
 
 '--- Binary files in BINSIZE.BIN for getbinsize()
