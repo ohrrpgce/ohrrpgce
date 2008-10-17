@@ -869,7 +869,6 @@ NEXT i
 show_load_index z, "inv_mode"
 DIM inv_mode AS INTEGER
 inv_mode = buffer(z)
-debug "inv_mode = " & inv_mode
 show_load_index z, "inv 8bit"
 IF inv_mode = 0 THEN ' Read 8-bit inventory data from old SAV files
  DeserInventory8Bit inventory(), z, buffer()

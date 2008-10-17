@@ -195,7 +195,7 @@ END SUB
 
 SUB doihavebits
 dim her as herodef
-FOR i = 0 TO large(gen(genMaxHero), 59)
+FOR i = 0 TO small(gen(genMaxHero), 59)
  loadherodata @her, i
  herobits(i, 0) = her.have_tag    'have hero tag
  herobits(i, 1) = her.alive_tag   'is alive tag

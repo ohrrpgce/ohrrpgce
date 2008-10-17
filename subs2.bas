@@ -699,7 +699,7 @@ DO
  
  standardmenu names(), state, 0, 0, dpage
  standardmenu stat$(), state, 232, 0, dpage
- draw_scrollbar state, rect, max + 1, 0, dpage
+ draw_scrollbar state, rect, , dpage
  IF state.pt >= 0 THEN
   edgeboxstyle 160 - (maxlen(state.pt) * 4), 191, 8 * maxlen(state.pt) + 4, 8, 0, dpage, NO, YES
   edgeprint stat$(state.pt), 162 - (maxlen(state.pt) * 4), 191, uilook(uiText), dpage

@@ -2981,17 +2981,25 @@ SUB draw_scrollbar(state AS MenuState, menu AS MenuDef, page AS INTEGER)
  draw_scrollbar state, menu.rect, count_menu_items(menu), menu.boxstyle, page
 END SUB
 
+SUB draw_scrollbar(state AS MenuState, rect AS RectType, boxstyle AS INTEGER=0, page AS INTEGER)
+ DIM count AS INTEGER = state.last - state.first + 1
+ draw_scrollbar state, rect, count, boxstyle, page
+END SUB
+
 SUB draw_scrollbar(state AS MenuState, rect AS RectType, count AS INTEGER, boxstyle AS INTEGER=0, page AS INTEGER)
- IF (state.top > 0 OR state.last > state.top + state.size) THEN
+ IF (state.top > state.first OR count >= state.size) AND count > 0 THEN
   IF count > 0 THEN
    DIM sbar AS RectType
+   DIM slider AS RectType
    sbar.x = rect.x + rect.wide - 6
    sbar.y = rect.y + 2
    sbar.wide = 4
    sbar.high = rect.high - 4
    WITH sbar
+    slider.y = ((.high * 200) / count * (state.top - state.first)) / 200
+    slider.high = ((.high * 200) / (count - 1) * state.size) / 200
     rectangle .x, .y, .wide, .high, uilook(uiBackground), page
-    rectangle .x, .y + .high / count * (state.top), .wide, .high / count * (state.size+1) , uilook(uiTextBox + boxstyle * 2 + 1), page
+    rectangle .x, .y + slider.y, .wide, slider.high, uilook(uiTextBox + boxstyle * 2 + 1), page
    END WITH
   END IF
  END IF
@@ -3001,8 +3009,7 @@ SUB draw_fullscreen_scrollbar(state AS MenuState, boxstyle AS INTEGER=0, page AS
  DIM rect AS RectType
  rect.wide = 320
  rect.high = 200
- DIM count AS INTEGER = state.last + -state.first
- draw_scrollbar state, rect, count, boxstyle, page
+ draw_scrollbar state, rect, boxstyle, page
 END SUB
 
 FUNCTION range (number AS INTEGER, percent AS INTEGER) AS INTEGER

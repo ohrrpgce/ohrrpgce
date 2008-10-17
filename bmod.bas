@@ -26,6 +26,7 @@ DECLARE FUNCTION consumeitem (index)
 #INCLUDE "uiconst.bi"
 #INCLUDE "udts.bi"
 #INCLUDE "battle_udts.bi"
+#INCLUDE "scancodes.bi"
 
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
@@ -60,7 +61,8 @@ bstackstart = stackpos
 battle = 1
 DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24), of(24), ctr(11)
 DIM menu$(3, 5), menubits(2), mend(3), itemd$, spel$(23), speld$(23), spel(23), cost$(23), delay(11), cycle(24), walk(3), aframe(11, 11)
-DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), iuse(15), icons(11), lifemeter(3), revengeharm(11), repeatharm(11), prtimer(11,1), spelmask(1)
+DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), icons(11), lifemeter(3), revengeharm(11), repeatharm(11), prtimer(11,1), spelmask(1)
+DIM iuse(inventoryMax / 16) AS INTEGER
 DIM laststun AS DOUBLE
 DIM bat AS BattleState
 DIM bslot(24) AS BattleSprite
@@ -74,6 +76,20 @@ DIM nmenu(3,5) as integer 'new battle menu
 DIM rew AS RewardsState
 DIM tcount AS INTEGER 'FIXME: This is used locally in atkscript and action GOSUB blocks. Move DIMs there when those are SUBified
 DIM atktype(8) AS INTEGER 'FIXME: this used locally in sponhit: move the DIM there when SUBifiying it
+DIM inv_height AS INTEGER 'FIXME: this is only used in display:
+DIM inv_scroll AS MenuState 'FIXME: this is only used in display:
+WITH inv_scroll
+ .first = 0
+ .last = INT(last_inv_slot() / 3)
+ .size = 8
+END WITH
+DIM inv_scroll_rect AS RectType 'FIXME: this is only used in display:
+WITH inv_scroll_rect
+ .x = 20
+ .y = 8
+ .wide = 292
+ '.high set later
+END WITH
 
 'Remember the music that was playing on the map so that the prepare_map() sub can restart it later
 gam.remembermusic = presentsong
@@ -1419,16 +1435,6 @@ END IF
 oldiptr = iptr
 IF carray(0) > 1 AND iptr > 2 THEN iptr = iptr - 3
 IF carray(1) > 1 AND iptr <= last_inv_slot() - 3 THEN iptr = iptr + 3
-IF keyval(73) > 1 THEN
- iptr = iptr - 27: itop = itop - 27
- IF itop < 0 THEN itop = 0
- WHILE iptr < 0: iptr = iptr + 3: WEND
-END IF
-IF keyval(81) > 1 THEN
- iptr = iptr + 27: itop = itop + 27
- IF itop > 171 THEN itop = 171
- WHILE iptr > last_inv_slot(): iptr = iptr - 3: WEND
-END IF
 IF carray(2) > 1 AND iptr > 0 THEN
  iptr = iptr - 1
 END IF
@@ -1694,16 +1700,29 @@ IF vic.state = 0 THEN 'only display interface till you win
     printstr cost$(sptr), 308 - LEN(cost$(sptr)) * 8, 90, dpage
    END IF
   END IF
+  'if keyval(scS) > 1 then gen(genMaxInventory) += 3
+  'if keyval(scA) > 1 then gen(genMaxInventory) -= 3
   IF bat.menu_mode = batMENUITEM THEN '--draw item menu
-   centerbox 160, 43, 304, 78, 1, dpage
+   inv_height = small(78, 8 + INT((last_inv_slot() + 1) / 3) * 8)
+   WITH inv_scroll
+    .top = INT(itop / 3)
+    .pt = INT(iptr / 3)
+    .last = INT(last_inv_slot() / 3)
+   END WITH
+   WITH inv_scroll_rect
+    .high = inv_height - 10
+   END WITH
+   edgeboxstyle 8, 4, 304, inv_height, 0, dpage
+   draw_scrollbar inv_scroll, inv_scroll_rect, inv_scroll.last, , dpage
    FOR i = itop TO small(itop + 26, last_inv_slot())
+    if i < lbound(inventory) or i > ubound(inventory) then continue for
     textcolor uilook(uiDisabledItem - readbit(iuse(), 0, i)), 0
     IF iptr = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(iuse(), 0, i)) + tog), uilook(uiHighlight)
     printstr inventory(i).text, 20 + 96 * (i MOD 3), 8 + 8 * ((i - itop) \ 3), dpage
    NEXT i
-   centerbox 160, 88, 304, 12, 1, dpage
+   edgeboxstyle 8, 4 + inv_height, 304, 16, 0, dpage, YES
    textcolor uilook(uiDescription), 0
-   printstr itemd$, 12, 85, dpage
+   printstr itemd$, 12, 8 + inv_height, dpage
   END IF
   IF bat.targ.mode > targNONE THEN
    FOR i = 0 TO 11

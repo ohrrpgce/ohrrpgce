@@ -614,7 +614,7 @@ WITH rect
  .x = 8
  .y = 5
  .wide = 304
- .high = 180
+ .high = small(180, 12 + (INT((last_inv_slot() + 1) / 3) + 1) * 8)
 END WITH
 DIM scrollrect AS RectType
 WITH scrollrect
@@ -627,7 +627,7 @@ DIM state AS MenuState
 WITH state
  .first = -1
  .last = INT(last_inv_slot() / 3)
- .size = 21
+ .size = 20
 END WITH
 
 GOSUB infostr
@@ -697,7 +697,7 @@ DO
   state.top = INT(top / 3)
   state.pt = INT(ic / 3)
  END WITH
- draw_scrollbar state, scrollrect, state.last + 1, 0, dpage
+ draw_scrollbar state, scrollrect, , dpage
  SWAP vpage, dpage
  setvispage vpage
  copypage holdscreen, dpage
