@@ -1435,6 +1435,14 @@ END IF
 oldiptr = iptr
 IF carray(0) > 1 AND iptr > 2 THEN iptr = iptr - 3
 IF carray(1) > 1 AND iptr <= last_inv_slot() - 3 THEN iptr = iptr + 3
+IF keyval(scPageUp) > 1 THEN
+ iptr -= (inv_scroll.size+1) * 3
+ WHILE iptr < 0: iptr += 3: WEND
+END IF
+IF keyval(scPageDown) > 1 THEN
+ iptr += (inv_scroll.size+1) * 3
+ WHILE iptr > last_inv_slot(): iptr -= 3: WEND
+END IF
 IF carray(2) > 1 AND iptr > 0 THEN
  iptr = iptr - 1
 END IF
@@ -1442,8 +1450,8 @@ IF carray(3) > 1 AND iptr < last_inv_slot() THEN
  iptr = iptr + 1
 END IF
 '--scroll when past top or bottom
-IF iptr < itop THEN itop = itop - 3
-IF iptr > itop + 26 THEN itop = itop + 3
+WHILE iptr < itop : itop = itop - 3 : WEND
+WHILE iptr >= itop + (inv_scroll.size+1) * 3 : itop = itop + 3 : WEND
 
 IF oldiptr <> iptr THEN
  IF inventory(iptr).used THEN

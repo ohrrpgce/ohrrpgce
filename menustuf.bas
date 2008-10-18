@@ -51,6 +51,7 @@ DECLARE Sub MenuSound(byval s as integer)
 #include "const.bi"
 #include "uiconst.bi"
 #include "game_udts.bi"
+#include "scancodes.bi"
 
 DECLARE FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
 DECLARE FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk AS INTEGER, stat() AS INTEGER, recheck AS INTEGER=NO) AS INTEGER
@@ -841,6 +842,16 @@ IF pick = 0 THEN
    IF ic < last_inv_slot() THEN ic = ic + 1
   END IF
   GOSUB infostr
+ END IF
+ IF keyval(scPageUp) > 1 THEN
+  ic -= (state.size+1) * 3
+  WHILE ic < 0: ic += 3: WEND
+  WHILE ic < top : top = top - 3 : WEND
+ END IF
+ IF keyval(scPageDown) > 1 THEN
+  ic += (state.size+1) * 3
+  WHILE ic > last_inv_slot(): ic -= 3: WEND
+  WHILE ic >= top + (state.size+1) * 3 : top = top + 3 : WEND
  END IF
 ELSE
  IF carray(5) > 1 THEN
