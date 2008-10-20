@@ -105,4 +105,9 @@ TYPE TextboxConnectNode
   add AS INTEGER 'NO normally. YES if this is for adding a new box
 END TYPE
 
+TYPE MapEditState
+  npc_def(99) AS NPCType
+  npc_inst(299) AS NPCInst
+END TYPE
+
 #ENDIF

@@ -500,13 +500,8 @@ SUB keyboardsetup ()
  keyv(40, 1) = 34
 END SUB
 
-SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
+SUB edit_npc (BYREF npcdata AS NPCType)
  DIM i AS INTEGER
-
- DIM npcdata AS NPCtype
- FOR i = 0 to 14
-  write_npc_int npcdata, i, npc(npcid * 15 + i)
- NEXT i
 
  DIM itemname AS STRING
  DIM boxpreview AS STRING
@@ -738,10 +733,6 @@ SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
   clearpage dpage
   dowait
  LOOP
-
- FOR i = 0 to 14
-  npc(npcid * 15 + i) = read_npc_int(npcdata, i)
- NEXT i
 
  sprite_unload @npcdata.sprite
  palette16_unload @npcdata.pal

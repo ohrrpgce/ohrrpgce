@@ -1814,7 +1814,7 @@ SUB load_item_names (item_strings() AS STRING)
  NEXT i
 END SUB
 
-SUB npcdef (npc(), npc_img() AS GraphicPair, pt)
+SUB npcdef (npc() AS NPCType, npc_img() AS GraphicPair, pt)
 
 DIM boxpreview(max_npc_defs) AS STRING
 
@@ -1824,7 +1824,7 @@ setvispage vpage
 csr = 0
 cur = 0: top = 0
 FOR i = 0 TO max_npc_defs
- boxpreview(i) = textbox_preview_line(npc(i * 15 + 4))
+ boxpreview(i) = textbox_preview_line(npc(i).textbox)
 NEXT i
 setkeys
 DO
@@ -1834,16 +1834,16 @@ DO
  IF keyval(1) > 1 THEN EXIT DO
  usemenu cur, top, 0, max_npc_defs, 7
  IF enter_or_space() THEN
-  edit_npc cur, npc()
+  edit_npc npc(cur)
   '--Having edited the NPC, we must re-load the picture and palette
   WITH npc_img(cur)
    IF .sprite THEN sprite_unload(@.sprite)
-   .sprite = sprite_load(game + ".pt4", npc(cur * 15 + 0), 8, 20, 20)
+   .sprite = sprite_load(game + ".pt4", npc(cur).picture, 8, 20, 20)
    IF .pal THEN palette16_unload(@.pal)
-   .pal = palette16_load(game + ".pal", npc(cur * 15 + 1), 4, npc(cur * 15 + 0))
+   .pal = palette16_load(game + ".pal", npc(cur).palette, 4, npc(cur).picture)
   END WITH
   '--Update box preview line
-  boxpreview(cur) = textbox_preview_line(npc(cur * 15 + 4))
+  boxpreview(cur) = textbox_preview_line(npc(cur).textbox)
  END IF
  FOR i = top TO top + 7
   IF cur = i THEN edgebox 0, (i - top) * 25, 320, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage

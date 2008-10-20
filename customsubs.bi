@@ -27,7 +27,7 @@ DECLARE FUNCTION load_item_name (it AS INTEGER, hidden AS INTEGER, offbyone AS I
 DECLARE FUNCTION textbox_preview_line OVERLOAD (boxnum AS INTEGER) AS STRING
 DECLARE FUNCTION textbox_preview_line OVERLOAD (box AS TextBox) AS STRING
 DECLARE SUB onetimetog(BYREF tagnum AS INTEGER)
-DECLARE SUB edit_npc (npcid AS INTEGER, npc() AS INTEGER)
+DECLARE SUB edit_npc (BYREF npcdata AS NPCType)
 DECLARE FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL picnum AS INTEGER, BYVAL picframes AS INTEGER, BYVAL picw AS INTEGER, BYVAL pich AS INTEGER) AS INTEGER
 DECLARE FUNCTION step_estimate(freq AS INTEGER, low AS INTEGER, high AS INTEGER, infix AS STRING="-", suffix AS STRING= "", zero AS STRING="never") AS STRING
 DECLARE FUNCTION speed_estimate(speed AS INTEGER, suffix AS STRING=" seconds", zero AS STRING="infinity") AS STRING
