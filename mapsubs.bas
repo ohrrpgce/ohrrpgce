@@ -28,8 +28,8 @@ DECLARE SUB fontedit (font%(), gamedir$)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE SUB resizetiledata (array%(), xoff%, yoff%, neww%, newh%, yout%, page%, layer%)
 DECLARE SUB mapmaker (font%())
-DECLARE SUB npcdef (npc() AS NPCType, npc_img() AS GraphicPair, pt%)
 DECLARE SUB shopdata ()
+DECLARE SUB npcdef (npc() AS NPCType, npc_img() AS GraphicPair, pt%)
 DECLARE SUB importsong ()
 DECLARE SUB gendata ()
 DECLARE SUB itemdata ()
@@ -59,14 +59,14 @@ DECLARE SUB resizemapmenu (map(), tilesets() AS TilesetData ptr, byref newwide, 
 DECLARE SUB make_top_map_menu(maptop, topmenu$())
 DECLARE SUB update_tilepicker(BYREF tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER)
 DECLARE SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, mapname AS STRING)
-DECLARE SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, npc() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
-DECLARE SUB mapedit_savemap (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
-DECLARE SUB new_blank_map (BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, doors() AS Door, link() AS DoorLink)
-DECLARE SUB mapedit_addmap(BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, doors() AS Door, link() AS DoorLink, tilesets() AS TilesetData ptr)
-DECLARE SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, npc() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
-DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, BYREF layer AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, npc() AS INTEGER, doors() AS Door, link() AS DoorLink)
+DECLARE SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
+DECLARE SUB mapedit_savemap (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+DECLARE SUB new_blank_map (BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
+DECLARE SUB mapedit_addmap(BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, tilesets() AS TilesetData ptr)
+DECLARE SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, BYREF layer AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr)
-DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, npc() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, defaults() AS DefArray, startlayer AS INTEGER = -1)
 DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
 DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
@@ -147,7 +147,6 @@ END FUNCTION
 
 SUB mapmaker (font())
 DIM st AS MapEditState
-DIM npc(1500)
 DIM menubar(82), cursor(600), mode$(12), list$(13), temp$(12), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(0 TO 20), gdmax(20), gdmin(20), sampmap(2), cursorpal(8), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(max_npc_defs)
 DIM her AS HeroDef
 DIM tilesets(2) as TilesetData ptr
@@ -232,13 +231,13 @@ DO
   IF pt > 0 AND pt <= gen(0) + 1 THEN
    '--silly backcompat pt adjustment
    pt = pt - 1
-   mapedit_loadmap st, pt, wide, high, map(), pass(), emap(), gmap(), visible(), tilesets(), npc(), doors(), link(), defaults(), mapname$
+   mapedit_loadmap st, pt, wide, high, map(), pass(), emap(), gmap(), visible(), tilesets(), doors(), link(), defaults(), mapname$
    GOSUB whattodo
    pt = pt + 1
    make_top_map_menu maptop, topmenu$()
   END IF
   IF pt = gen(0) + 2 THEN
-   mapedit_addmap st, map(), pass(), emap(), gmap(), npc(), doors(), link(), tilesets()
+   mapedit_addmap st, map(), pass(), emap(), gmap(), doors(), link(), tilesets()
    make_top_map_menu maptop, topmenu$()
   END IF
  END IF
@@ -292,20 +291,20 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN
-  mapedit_savemap st, pt, map(), pass(), emap(), gmap(), npc(), doors(), link(), mapname$
+  mapedit_savemap st, pt, map(), pass(), emap(), gmap(), doors(), link(), mapname$
   EXIT DO
  END IF
  usemenu csr, 0, 0, 13, 24
  IF enter_or_space() THEN
   IF csr = 0 THEN
-   mapedit_savemap st, pt, map(), pass(), emap(), gmap(), npc(), doors(), link(), mapname$
+   mapedit_savemap st, pt, map(), pass(), emap(), gmap(), doors(), link(), mapname$
    EXIT DO
   END IF
   IF csr = 1 THEN
    GOSUB gmapdata
   END IF
   IF csr = 2 THEN
-   mapedit_resize st, pt, wide, high, x, y, mapx, mapy, map(), pass(), emap(), gmap(), tilesets(), npc(), doors(), link(), mapname$
+   mapedit_resize st, pt, wide, high, x, y, mapx, mapy, map(), pass(), emap(), gmap(), tilesets(), doors(), link(), mapname$
   END IF
   IF csr = 3 THEN
    mapedit_layers gmap(), visible(), tilesets(), defaults()
@@ -314,8 +313,8 @@ DO
    npcdef st.npc_def(), npc_img(), pt
   END IF
   IF csr >= 5 AND csr <= 9 THEN editmode = csr - 5: GOSUB mapping
-  IF csr = 10 THEN mapedit_linkdoors st, pt, map(), pass(), emap(), gmap(), tilesets(), npc(), doors(), link(), mapname$
-  IF csr = 11 THEN mapedit_delete st, pt, wide, high, x, y, mapx, mapy, layer, map(), pass(), emap(), npc(), doors(), link()
+  IF csr = 10 THEN mapedit_linkdoors st, pt, map(), pass(), emap(), gmap(), tilesets(), doors(), link(), mapname$
+  IF csr = 11 THEN mapedit_delete st, pt, wide, high, x, y, mapx, mapy, layer, map(), pass(), emap(), doors(), link()
   IF csr = 12 THEN
    '--reload default passability
    temp$(0) = "No, Nevermind. No passability changes"
@@ -600,8 +599,8 @@ DO
    setmapdata map(), pass(), 20, 0
    'delete NPC
    FOR i = 0 TO 299
-    IF npc(i + 600) > 0 THEN
-     IF npc(i + 0) = x AND npc(i + 300) = y + 1 THEN npc(i + 600) = 0
+    IF st.npc_inst(i).id > 0 THEN
+     IF st.npc_inst(i).x = x * 20 AND st.npc_inst(i).y = y * 20 THEN st.npc_inst(i).id = 0
     END IF
    NEXT i
    'delete door
@@ -712,7 +711,7 @@ DO
     doorid = find_door_at_spot(x, y, doors())
     IF doorid >= 0 THEN
      'Save currently-worked-on map data
-     mapedit_savemap st, pt, map(), pass(), emap(), gmap(), npc(), doors(), link(), mapname$
+     mapedit_savemap st, pt, map(), pass(), emap(), gmap(), doors(), link(), mapname$
      doorlinkid = find_first_doorlink_by_door(doorid, link())
      IF doorlinkid >= 0 THEN
       link_one_door pt, doorlinkid, link(), doors(), map(), pass(), gmap(), tilesets()
@@ -750,8 +749,8 @@ DO
   CASE 3
    IF keyval(83) > 1 THEN 'delete
     FOR i = 0 TO 299
-     IF npc(i + 600) > 0 THEN
-      IF npc(i + 0) = x AND npc(i + 300) = y + 1 THEN npc(i + 600) = 0
+     IF st.npc_inst(i).id > 0 THEN
+      IF st.npc_inst(i).x = x * 20 AND st.npc_inst(i).y = y * 20 THEN st.npc_inst(i).id = 0
      END IF
     NEXT i
    END IF
@@ -766,8 +765,8 @@ DO
     temp = 0
     IF nd = -1 THEN
      FOR i = 0 TO 299
-      IF npc(i + 600) > 0 THEN
-       IF npc(i + 0) = x AND npc(i + 300) = y + 1 THEN npc(i + 600) = 0: temp = 1
+      IF st.npc_inst(i).id > 0 THEN
+       IF st.npc_inst(i).x = x * 20 AND st.npc_inst(i).y = y * 20 THEN st.npc_inst(i).id = 0: temp = 1
       END IF
      NEXT i
     END IF
@@ -775,9 +774,14 @@ DO
     IF temp = 0 THEN
      temp = -1
      FOR i = 299 TO 0 STEP -1
-      IF npc(i + 600) = 0 THEN temp = i
+      IF st.npc_inst(i).id = 0 THEN temp = i
      NEXT i
-     IF temp >= 0 THEN npc(temp + 0) = x: npc(temp + 300) = y + 1: npc(temp + 600) = nptr + 1: npc(temp + 900) = nd
+     IF temp >= 0 THEN
+      st.npc_inst(temp).x = x * 20
+      st.npc_inst(temp).y = y * 20
+      st.npc_inst(temp).id = nptr + 1
+      st.npc_inst(temp).dir = nd
+     END IF
     END IF
    END IF
    intgrabber(nptr, 0, max_npc_defs, 51, 52)
@@ -943,18 +947,18 @@ DO
   NEXT
   walk = walk + 1: IF walk > 3 THEN walk = 0
   FOR i = 0 TO 299
-   IF npc(i + 600) > 0 THEN
-    IF npc(i + 0) >= INT(mapx / 20) AND npc(i + 0) < INT(mapx / 20) + 16 AND npc(i + 300) > INT(mapy / 20) AND npc(i + 300) <= INT(mapy / 20) + 9 THEN
-     WITH npc_img(npc(i + 600) - 1)
-      sprite_draw .sprite + (2 * npc(i + 900)) + walk \ 2, .pal, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy, 1, -1, dpage
+   IF st.npc_inst(i).id > 0 THEN
+    IF st.npc_inst(i).x >= mapx AND st.npc_inst(i).x < mapx + 320 AND st.npc_inst(i).y >= mapy AND st.npc_inst(i).y < mapy + 200 THEN
+     WITH npc_img(st.npc_inst(i).id - 1)
+      sprite_draw .sprite + (2 * st.npc_inst(i).dir) + walk \ 2, .pal, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy, 1, -1, dpage
      END WITH
      textcolor uilook(uiSelectedItem + tog), 0
-     xtemp$ = STR$(npc(i + 600) - 1)
-     printstr xtemp$, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy + 3, dpage
-     xtemp$ = STR$(npcnum(npc(i + 600)-1))
-     printstr xtemp$, npc(i) * 20 - mapx, npc(i + 300) * 20 - mapy + 12, dpage
+     xtemp$ = STR$(st.npc_inst(i).id - 1)
+     printstr xtemp$, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy + 3, dpage
+     xtemp$ = STR$(npcnum(st.npc_inst(i).id - 1))
+     printstr xtemp$, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy + 12, dpage
     END IF
-    npcnum(npc(i + 600) - 1) = npcnum(npc(i + 600) - 1) + 1
+    npcnum(st.npc_inst(i).id - 1) = npcnum(st.npc_inst(i).id - 1) + 1
    END IF
   NEXT
  END IF
@@ -1270,7 +1274,7 @@ FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS 
  RETURN -1
 END FUNCTION
 
-SUB mapedit_addmap(BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, doors() AS Door, link() AS DoorLink, tilesets() AS TilesetData ptr)
+SUB mapedit_addmap(BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, tilesets() AS TilesetData ptr)
  DIM how AS INTEGER
  
  'Temporary buffers for making the copy
@@ -1286,28 +1290,28 @@ SUB mapedit_addmap(BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER
  '-- >=0 =Copy
  IF how = -1 THEN
   gen(genMaxMap) += 1
-  new_blank_map st, map(), pass(), emap(), gmap(), npc(), doors(), link()
-  mapedit_savemap st, gen(genMaxMap), map(), pass(), emap(), gmap(), npc(), doors(), link(), ""
+  new_blank_map st, map(), pass(), emap(), gmap(), doors(), link()
+  mapedit_savemap st, gen(genMaxMap), map(), pass(), emap(), gmap(), doors(), link(), ""
  ELSEIF how >= 0 THEN
   gen(genMaxMap) += 1
-  mapedit_loadmap st, how, copysize.x, copysize.y, map(), pass(), emap(), gmap(), visible(), tilesets(), npc(), doors(), link(), defaults(), copyname
-  mapedit_savemap st, gen(genMaxMap), map(), pass(), emap(), gmap(), npc(), doors(), link(), copyname
+  mapedit_loadmap st, how, copysize.x, copysize.y, map(), pass(), emap(), gmap(), visible(), tilesets(), doors(), link(), defaults(), copyname
+  mapedit_savemap st, gen(genMaxMap), map(), pass(), emap(), gmap(), doors(), link(), copyname
  END IF
 END SUB
 
-SUB new_blank_map (BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, doors() AS Door, link() AS DoorLink)
+SUB new_blank_map (BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
  '--flush map buffers
  cleantiledata map(), 64, 64, 3
  cleantiledata pass(), 64, 64
  cleantiledata emap(), 64, 64
  flusharray gmap(), 19, 0
- flusharray npc(), 900, 0
+ CLeanNPCL st.npc_inst()
  CleanNPCD st.npc_def()
  cleandoors doors()
  cleandoorlinks link()
 END SUB
 
-SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, npc() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
+SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
  loadrecord gmap(), game & ".map", dimbinsize(binMAP), mapnum
  visible(0) = &b111   'default all layers to visible, if they're enabled too, of course
  loadmaptilesets tilesets(), gmap()
@@ -1317,7 +1321,7 @@ SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS 
  loadtiledata maplumpname$(mapnum, "t"), map(), 3, wide, high
  loadtiledata maplumpname$(mapnum, "p"), pass()
  loadtiledata maplumpname$(mapnum, "e"), emap()
- xbload maplumpname$(mapnum, "l"), npc(), "npclocation lump is missing!"
+ LoadNPCL maplumpname(mapnum, "l"), st.npc_inst()
  LoadNPCD maplumpname(mapnum, "n"), st.npc_def()
  deserdoors game & ".dox", doors(), mapnum
  deserdoorlinks maplumpname$(mapnum, "d"), link()
@@ -1325,12 +1329,12 @@ SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS 
  verify_map_size mapnum, wide, high, map(), pass(), emap(), mapname
 END SUB
 
-SUB mapedit_savemap (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, npc() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+SUB mapedit_savemap (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
  storerecord gmap(), game & ".map", getbinsize(binMAP) / 2, mapnum
  savetiledata maplumpname$(mapnum, "t"), map(), 3
  savetiledata maplumpname$(mapnum, "p"), pass()
  savetiledata maplumpname$(mapnum, "e"), emap()
- xBSAVE maplumpname$(mapnum, "l"), npc(), 3000
+ SaveNPCL maplumpname(mapnum, "l"), st.npc_inst()
  SaveNPCD maplumpname(mapnum, "n"), st.npc_def()
  serdoors game & ".dox", doors(), mapnum
  serdoorlinks maplumpname$(mapnum, "d"), link()
@@ -1378,7 +1382,7 @@ SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INT
  waitforanykey
 END SUB
 
-SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, npc() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 'sizemap:
  DIM size AS XYPair
  DIM spot AS XYPair
@@ -1426,16 +1430,16 @@ SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
  NEXT
  edgeprint "Aligning and truncating NPCs", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
  FOR i = 0 TO 299
-  npc(i + 0) = npc(i + 0) - spot.x
-  npc(i + 300) = npc(i + 300) - spot.y
-  IF npc(i + 0) < 0 OR npc(i + 300) < 0 OR npc(i + 0) >= wide OR npc(i + 300) >= high THEN
-   npc(i + 600) = 0
+  st.npc_inst(i).x = st.npc_inst(i).x - spot.x * 20
+  st.npc_inst(i).y = st.npc_inst(i).y - spot.y * 20
+  IF st.npc_inst(i).x < 0 OR st.npc_inst(i).y < 0 OR st.npc_inst(i).x >= wide * 20 OR st.npc_inst(i).y >= high * 20 THEN
+   st.npc_inst(i).id = 0
   END IF
  NEXT i
  verify_map_size mapnum, wide, high, map(), pass(), emap(), mapname
 END SUB
 
-SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, BYREF layer AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, npc() AS INTEGER, doors() AS Door, link() AS DoorLink)
+SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, BYREF layer AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, doors() AS Door, link() AS DoorLink)
  setvispage vpage
  IF yesno("Delete this map?", NO) THEN
   printstr "Please Wait...", 0, 40, vpage
@@ -1444,14 +1448,14 @@ SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
   cleantiledata map(), wide, high, 3
   cleantiledata pass(), wide, high
   cleantiledata emap(), wide, high
-  flusharray npc(), 900, 0
+  CleanNPCL st.npc_inst()
   cleandoorlinks link()
   cleandoors doors()
 
   savetiledata maplumpname$(mapnum, "t"), map(), 3
   savetiledata maplumpname$(mapnum, "p"), pass()
   savetiledata maplumpname$(mapnum, "e"), emap()
-  xBSAVE maplumpname$(mapnum, "l"), npc(), 3000
+  SaveNPCL maplumpname(mapnum, "l"), st.npc_inst()
   serdoorlinks maplumpname$(mapnum, "d"), link()
   serdoors game + ".dox", doors(), mapnum
   '--reset scroll position
@@ -1469,8 +1473,8 @@ SUB update_tilepicker(BYREF tilepick AS XYPair, layer AS INTEGER, usetile() AS I
  tilepick.x = usetile(layer) - (tilepick.y * 16)
 END SUB
 
-SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, npc() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
- mapedit_savemap st, mapnum, map(), pass(), emap(), gmap(), npc(), doors(), link(), mapname
+SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+ mapedit_savemap st, mapnum, map(), pass(), emap(), gmap(), doors(), link(), mapname
  
  DIM state AS MenuState
  state.top = 0

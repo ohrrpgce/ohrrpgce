@@ -2177,7 +2177,7 @@ SUB loadmap_gmap(mapnum)
 END SUB
 
 SUB loadmap_npcl(mapnum)
- LoadNPCL maplumpname$(mapnum, "l"), npc(), 300
+ LoadNPCL maplumpname$(mapnum, "l"), npc()
 
  'Evaluate whether NPCs should appear or disappear based on tags
  npcplot

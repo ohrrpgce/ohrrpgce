@@ -80,30 +80,54 @@ SUB CleanNPCD(dat() as NPCType)
   NEXT
 END SUB
 
-SUB LoadNPCL(file as string, dat() as NPCInst, num as integer)
-  DIM i AS INTEGER, f AS INTEGER
-  REDIM dat(num - 1) as NPCInst
+SUB LoadNPCL(file as string, dat() as NPCInst)
+  DIM i AS INTEGER
+  DIM f AS INTEGER
   f = FREEFILE
   OPEN file FOR BINARY AS #f
-  seek #f,8
-  FOR i = 0 to num - 1
+  SEEK #f,8
+  FOR i = 0 to 299
     dat(i).x = ReadShort(f,-1) * 20
   NEXT
-  FOR i = 0 to num - 1
+  FOR i = 0 to 299
     dat(i).y = (ReadShort(f,-1) - 1) * 20
   NEXT
-  FOR i = 0 to num - 1
+  FOR i = 0 to 299
     dat(i).id = ReadShort(f,-1)
   NEXT
-  FOR i = 0 to num - 1
+  FOR i = 0 to 299
     dat(i).dir = ReadShort(f,-1)
   NEXT
-  FOR i = 0 to num - 1
+  FOR i = 0 to 299
     dat(i).frame = ReadShort(f,-1)
   NEXT
-  FOR i = 0 TO num - 1
+  FOR i = 0 TO 299
     dat(i).xgo = 0
     dat(i).ygo = 0
+  NEXT
+  CLOSE #f
+END SUB
+
+SUB SaveNPCL(file as string, dat() as NPCInst)
+  DIM i AS INTEGER
+  DIM f AS INTEGER
+  f = FREEFILE
+  OPEN file FOR BINARY AS #f
+  SEEK #f, 8
+  FOR i = 0 to 299
+    WriteShort f, -1, dat(i).x / 20
+  NEXT
+  FOR i = 0 to 299
+    WriteShort f, -1, dat(i).y / 20 + 1
+  NEXT
+  FOR i = 0 to 299
+    WriteShort f, -1, dat(i).id
+  NEXT
+  FOR i = 0 to 299
+    WriteShort f, -1, dat(i).dir
+  NEXT
+  FOR i = 0 to 299
+    WriteShort f, -1, dat(i).frame
   NEXT
   CLOSE #f
 END SUB
@@ -158,8 +182,10 @@ SUB DeserNPCL(npc() as NPCInst, z, buffer(), num as integer, xoffset as integer,
   NEXT
 END SUB
 
-SUB CleanNPCL(dat() as NPCInst, num as integer)
+SUB CleanNPCL(dat() as NPCInst, byval num as integer=-1)
+  'Num is the count of elements to erase, or -1 to autodetect the size of the array
   DIM i as integer
+  IF num = -1 THEN num = UBOUND(dat) + 1
   FOR i = 0 to num - 1
     dat(i).x = 0
     dat(i).y = 0
