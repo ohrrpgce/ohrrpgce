@@ -182,6 +182,28 @@ Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
  
 end sub
 
+Sub ReplaceSlice(byval sl as slice ptr, byref newsl as slice ptr)
+ 'This takes a new slice (normally from one of the New*Slice functions)
+ 'and copies its data over an existing tree member. Newsl gets Deleted
+ 'to prevent it from being used afterwards!
+ 'Also, this fails if newsl is part of a tree. It must be parentless
+ WITH *newsl
+  'Make sure that newsl is an orphan already
+  IF .Parent <> 0 THEN debug "ReplaceSlice: Only works with orphaned slices" : EXIT SUB
+  'Copy over slice identity
+  sl->SliceType = .SliceType
+  sl->Draw      = .Draw
+  sl->Dispose   = .Dispose
+  sl->Update    = .Update
+  sl->SliceData = .SliceData
+  sl->SliceType = .SliceType
+  'Break slice connection to data
+  .SliceData = 0
+  'Now destroy newsl
+  DeleteSlice @newsl
+ END WITH
+End Sub
+
 'this function ensures that we can't set a slice to be a child of itself (or, a child of a child of itself, etc)
 Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
  dim s as slice ptr
@@ -347,7 +369,7 @@ Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as 
  ret->Draw = @DrawTextSlice
  ret->Dispose = @DisposeTextSlice
  ret->Update = @UpdateTextSlice
- 
+
  ret->Width = textwidth(d->s)
  'split(d->s, d->lines())
  
