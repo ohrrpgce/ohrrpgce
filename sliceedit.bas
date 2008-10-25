@@ -39,7 +39,8 @@ DECLARE SUB slice_editor_refresh_append (BYREF index AS INTEGER, menu() AS Slice
 DECLARE SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, BYREF indent AS INTEGER, sl AS Slice Ptr)
 DECLARE SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
 DECLARE SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr)
-DECLARE SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr)
+DECLARE SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS Slice Ptr)
+DECLARE SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, rootsl AS Slice Ptr)
 
 'Functions that need to be aware of magic numbers for SliceType
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS INTEGER) AS INTEGER
@@ -57,7 +58,6 @@ SUB slice_editor ()
   .Attach = slScreen
   .SliceType = slRoot
  END WITH
- NewSlice(edslice)
  NewSlice(edslice)
 
  DIM menu(0) AS SliceEditMenuItem
@@ -95,7 +95,7 @@ SUB slice_editor ()
   END IF
 
   DrawSlice edslice, dpage
-  standardmenu plainmenu(), state, 0, 0, dpage, YES
+  standardmenu plainmenu(), state, 0, 0, dpage, NO
 
   SWAP vpage, dpage
   setvispage vpage
@@ -126,10 +126,11 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
   END IF
 
   usemenu state
-  slice_edit_detail_keys state, sl
+  IF state.pt = 0 AND enter_or_space() THEN EXIT DO
+  slice_edit_detail_keys state, sl, rootsl
   
   DrawSlice rootsl, dpage
-  standardmenu menu(), state, 0, 0, dpage
+  standardmenu menu(), state, 0, 0, dpage, NO
 
   SWAP vpage, dpage
   setvispage vpage
@@ -138,7 +139,7 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
  LOOP
 END SUB
 
-SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr)
+SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS Slice Ptr)
  WITH *sl
   SELECT CASE state.pt
    CASE 1:
@@ -154,14 +155,56 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr)
     IF state.need_update THEN
      ReplaceSlice sl, new_slice_by_number(slice_type)
     END IF
-   CASE 2: IF intgrabber(.X, -9999, 9999) THEN state.need_update = YES
-   CASE 3: IF intgrabber(.Y, -9999, 9999) THEN state.need_update = YES
-   CASE 4: IF intgrabber(.Width, 0, 9999) THEN state.need_update = YES
-   CASE 5: IF intgrabber(.Height, 0, 9999) THEN state.need_update = YES
+   CASE 2:
+    IF intgrabber(.X, -9999, 9999) THEN state.need_update = YES
+    IF enter_or_space() THEN
+     slice_editor_xy sl->X, sl->Y, rootsl
+     state.need_update = YES
+    END IF
+   CASE 3:
+    IF intgrabber(.Y, -9999, 9999) THEN state.need_update = YES
+    IF enter_or_space() THEN
+     slice_editor_xy sl->X, sl->Y, rootsl
+     state.need_update = YES
+    END IF
+   CASE 4:
+    IF intgrabber(.Width, 0, 9999) THEN state.need_update = YES
+    IF enter_or_space() THEN
+     slice_editor_xy sl->Width, sl->Height, rootsl
+     state.need_update = YES
+    END IF
+   CASE 5:
+    IF intgrabber(.Height, 0, 9999) THEN state.need_update = YES
+    IF enter_or_space() THEN
+     slice_editor_xy sl->Width, sl->Height, rootsl
+     state.need_update = YES
+    END IF
    CASE 6: IF intgrabber(.Visible, -1, 0) THEN state.need_update = YES
            IF enter_or_space() THEN .Visible = NOT .Visible : state.need_update = YES
   END SELECT
  END WITH
+END SUB
+
+SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, rootsl AS Slice Ptr)
+ DIM shift AS INTEGER = 0
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF enter_or_space() THEN EXIT DO
+  IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN shift = 1
+  IF keyval(scUp)    > 0 THEN y -= 1 + 9 * shift
+  IF keyval(scRight) > 0 THEN x += 1 + 9 * shift
+  IF keyval(scDown)  > 0 THEN y += 1 + 9 * shift
+  IF keyval(scLeft)  > 0 THEN x -= 1 + 9 * shift
+  DrawSlice rootsl, dpage
+  edgeprint "Arrow keys to edit, SHIFT for speed", 0, 190, uilook(uiText), dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
 END SUB
 
 SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr)
