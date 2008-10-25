@@ -40,8 +40,12 @@ DECLARE SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS Slic
 DECLARE SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
 DECLARE SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr)
 DECLARE SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr)
+
+'Functions that need to be aware of magic numbers for SliceType
+DECLARE FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS INTEGER) AS INTEGER
 DECLARE FUNCTION slice_type_as_number (slice_type AS SliceTypes) AS INTEGER
 DECLARE FUNCTION new_slice_by_number (slice_type_number AS INTEGER) AS Slice Ptr
+DECLARE FUNCTION SliceTypeNameByNum (num AS INTEGER) AS STRING
 
 '==============================================================================
 
@@ -139,9 +143,16 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr)
   SELECT CASE state.pt
    CASE 1:
     DIM slice_type AS INTEGER = slice_type_as_number(.SliceType)
-    IF intgrabber(slice_type, 0, 7) THEN
-     ReplaceSlice sl, new_slice_by_number(slice_type)
+    IF intgrabber(slice_type, 0, 5) THEN
      state.need_update = YES
+    END IF
+    IF enter_or_space() THEN
+     IF slice_edit_detail_browse_slicetype(slice_type) THEN
+      state.need_update = YES
+     END IF
+    END IF
+    IF state.need_update THEN
+     ReplaceSlice sl, new_slice_by_number(slice_type)
     END IF
    CASE 2: IF intgrabber(.X, -9999, 9999) THEN state.need_update = YES
    CASE 3: IF intgrabber(.Y, -9999, 9999) THEN state.need_update = YES
@@ -183,6 +194,92 @@ FUNCTION SliceTypeName (sl AS Slice Ptr) AS STRING
  RETURN "Unknown"
 END FUNCTION
 
+'----------------------------------------------------------------------
+' The following four functions need to be aware of magical numbers
+
+FUNCTION SliceTypeNameByNum (num AS INTEGER) AS STRING
+ 'These are arbitrary numbers that only have meaning in this editor
+ SELECT CASE num
+  CASE 0: RETURN "Generic"
+  CASE 1: RETURN "Rectangle"
+  CASE 2: RETURN "Styled Rect"
+  CASE 3: RETURN "Sprite"
+  CASE 4: RETURN "Text"
+  CASE 5: RETURN "Menu"
+ END SELECT
+ RETURN "Unknown"
+END FUNCTION
+
+FUNCTION slice_type_as_number (slice_type AS SliceTypes) AS INTEGER
+ 'These are arbitrary numbers that only have meaning in this editor
+ SELECT CASE slice_type
+  CASE slRoot:           RETURN 0
+  CASE slSpecial:        RETURN 0
+  CASE slRectangle:      RETURN 1
+  CASE slStyleRectangle: RETURN 2
+  CASE slSprite:         RETURN 3
+  CASE slText:           RETURN 4
+  CASE slMenu:           RETURN 5
+  CASE slMenuItem:       RETURN 0
+ END SELECT
+END FUNCTION
+
+FUNCTION new_slice_by_number (slice_type_number AS INTEGER) AS Slice Ptr
+ 'These are arbitrary numbers that only have meaning in this editor
+ SELECT CASE slice_type_number
+  CASE 1: DIM dat AS RectangleSliceData
+          RETURN NewRectangleSlice(0, dat)
+  CASE 2: DIM dat AS StyleRectangleSliceData
+          RETURN NewStyleRectangleSlice(0, dat)
+  'CASE 3: DIM dat AS SpriteSliceData
+  '        RETURN NewSpriteSlice(0, dat)
+  CASE 4: DIM dat AS TextSliceData
+          RETURN NewTextSlice(0, dat)
+  CASE 5: DIM dat AS MenuSliceData
+          RETURN NewMenuSlice(0, dat)
+  CASE ELSE: RETURN NewSlice()
+ END SELECT
+END FUNCTION
+
+FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS INTEGER) AS INTEGER
+
+ DIM menu(5) AS STRING
+ FOR i AS INTEGER = 0 TO UBOUND(menu)
+  menu(i) = SliceTypeNameByNum(i)
+ NEXT i
+
+ DIM state AS MenuState
+ WITH state
+  .pt = slice_type
+  .last = UBOUND(menu)
+  .size = 22
+ END WITH
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scEsc) > 1 THEN RETURN NO
+
+  usemenu state
+  
+  IF enter_or_space() THEN
+   slice_type = state.pt
+   RETURN YES
+  END IF
+  
+  standardmenu menu(), state, 0, 0, dpage
+ 
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+ RETURN NO 
+END FUNCTION
+
+'----------------------------------------------------------------------
+
 FUNCTION SlicePositionString (sl AS Slice Ptr) AS STRING
  'This shows the absolute screen position of a slice.
  WITH *sl
@@ -194,8 +291,8 @@ SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditMenuItem,
  FOR i AS INTEGER = 0 TO UBOUND(menu)
   menu(i).s = ""
  NEXT i
-
  DIM index AS INTEGER = 0
+
  DIM indent AS INTEGER = 0
  slice_editor_refresh_append index, menu(), "Previous Menu"
  slice_editor_refresh_recurse index, menu(), indent, edslice
@@ -236,34 +333,3 @@ SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMen
   END IF
  END WITH
 END SUB
-
-FUNCTION slice_type_as_number (slice_type AS SliceTypes) AS INTEGER
- SELECT CASE slice_type
-  CASE slRoot:           RETURN 0
-  CASE slSpecial:        RETURN 1
-  CASE slRectangle:      RETURN 2
-  CASE slStyleRectangle: RETURN 3
-  CASE slSprite:         RETURN 4
-  CASE slText:           RETURN 5
-  CASE slMenu:           RETURN 6
-  CASE slMenuItem:       RETURN 7
- END SELECT
-END FUNCTION
-
-FUNCTION new_slice_by_number (slice_type_number AS INTEGER) AS Slice Ptr
- SELECT CASE slice_type_number
-  CASE 2: DIM dat AS RectangleSliceData
-          RETURN NewRectangleSlice(0, dat)
-  CASE 3: DIM dat AS StyleRectangleSliceData
-          RETURN NewStyleRectangleSlice(0, dat)
-  'CASE 4: DIM dat AS SpriteSliceData
-  '        RETURN NewSpriteSlice(0, dat)
-  CASE 5: DIM dat AS TextSliceData
-          RETURN NewTextSlice(0, dat)
-  CASE 6: DIM dat AS MenuSliceData
-          RETURN NewMenuSlice(0, dat)
-  CASE 7: DIM dat AS MenuItemSliceData
-          RETURN NewMenuItemSlice(0, dat)
-  CASE ELSE: RETURN NewSlice()
- END SELECT
-END FUNCTION
