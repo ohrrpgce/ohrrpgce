@@ -182,6 +182,41 @@ Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
  
 end sub
 
+Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
+ 'Intended for use when newsl is a newly created orphan such as a New*Slice result
+ 'FIXME: maybe this could probably use some more safety checks?
+ if newsl->Parent <> 0 then debug "InsertSiblingSlice: Only inserts orphans": EXIT SUB
+ if sl->Parent = 0 then debug "InsertSiblingSlice: Root shouldn't have siblings": EXIT SUB
+
+ 'Tell the new sibling about its parent
+ newsl->Parent = sl->Parent
+
+ 'If this new sibling is an eldest child, tell the parent 
+ if sl->Parent->FirstChild = sl then
+  debug "If this new sibling is an eldest child, tell the parent "
+  sl->Parent->FirstChild = newsl
+ end if
+
+ 'Tell previous siblings that it has a new sibling.
+ if sl->PrevSibling <> 0 then
+  debug "Tell previous siblings that it has a new sibling."
+  sl->PrevSibling->NextSibling = newsl
+ end if
+ 
+ 'Tell new sibling about its adjacent siblings
+ newsl->PrevSibling = sl->PrevSibling
+ newsl->NextSibling = sl
+
+ 'Tell the supplanted sibling that the new one precedes it
+ sl->PrevSibling = newsl
+
+ 'One more mouth to feed...
+ newsl->Parent->NumChildren += 1
+ 
+ 'Verify the family
+ if verifySliceLineage(newsl, sl->Parent) = NO then debug "slice inbreeding detected"
+end sub
+
 Sub ReplaceSlice(byval sl as slice ptr, byref newsl as slice ptr)
  'This takes a new slice (normally from one of the New*Slice functions)
  'and copies its data over an existing tree member. Newsl gets Deleted

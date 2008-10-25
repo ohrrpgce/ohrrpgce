@@ -62,12 +62,14 @@ SUB slice_editor ()
 
  DIM menu(0) AS SliceEditMenuItem
  DIM plainmenu(0) AS STRING 'FIXME: This is a hack because I didn't want to re-implement standardmenu right now
- 
+
  DIM state AS MenuState
  WITH state
-  .size = 22
+  .size = 20
   .need_update = YES
  END WITH
+
+ DIM slice_type_num AS INTEGER = 0
 
  setkeys
  DO
@@ -93,9 +95,18 @@ SUB slice_editor ()
     state.need_update = YES
    END IF 
   END IF
+  IF state.pt > 0 THEN
+   IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) THEN
+    IF slice_edit_detail_browse_slicetype(slice_type_num) THEN
+     InsertSiblingSlice menu(state.pt).handle, new_slice_by_number(slice_type_num)
+     state.need_update = YES
+    END IF
+   END IF
+  END IF
 
   DrawSlice edslice, dpage
-  standardmenu plainmenu(), state, 0, 0, dpage, NO
+  standardmenu plainmenu(), state, 0, 0, dpage, YES
+  edgeprint "+ to add a slice", 0, 190, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -130,7 +141,7 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
   slice_edit_detail_keys state, sl, rootsl
   
   DrawSlice rootsl, dpage
-  standardmenu menu(), state, 0, 0, dpage, NO
+  standardmenu menu(), state, 0, 0, dpage, YES
 
   SWAP vpage, dpage
   setvispage vpage
