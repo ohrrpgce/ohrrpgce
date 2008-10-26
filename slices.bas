@@ -182,6 +182,36 @@ Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
  
 end sub
 
+Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
+ 'Only intended for use by siblings of the same parent
+ if sl1->Parent <> sl2->Parent then debug "SwapSiblingSlices: slices are not siblings": EXIT SUB
+ dim parent as slice ptr = sl1->Parent
+ dim slice_list(parent->NumChildren - 1) as slice ptr
+ dim temp_sl as slice ptr = parent->FirstChild
+ dim i as integer
+ 'Convert the children into an unlinked list
+ for i = 0 to ubound(slice_list)
+  slice_list(i) = temp_sl
+  temp_sl = temp_sl->NextSibling
+  slice_list(i)->PrevSibling = 0
+  slice_list(i)->NextSibling = 0
+ next i
+ 'Swap the two siblings
+ for i = 0 to ubound(slice_list)
+  if slice_list(i) = sl1 then
+   slice_list(i) = sl2
+  elseif slice_list(i) = sl2 then
+   slice_list(i) = sl1
+  end if
+ next i
+ 'Convert back to a doubly linked list
+ parent->FirstChild = slice_list(0)
+ for i = 1 to ubound(slice_list)
+  slice_list(i - 1)->NextSibling = slice_list(i)
+  slice_list(i)->PrevSibling = slice_list(i - 1)
+ next i 
+end sub
+
 Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
  'Intended for use when newsl is a newly created orphan such as a New*Slice result
  'FIXME: maybe this could probably use some more safety checks?

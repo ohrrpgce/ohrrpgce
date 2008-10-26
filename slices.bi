@@ -119,6 +119,7 @@ DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
 DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
 DECLARE Sub ReplaceSlice(byval sl as slice ptr, byref newsl as slice ptr)
 DECLARE Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
+DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
 DECLARE Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr

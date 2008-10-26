@@ -70,6 +70,7 @@ SUB slice_editor ()
  END WITH
 
  DIM slice_type_num AS INTEGER = 0
+ DIM shift AS INTEGER
 
  setkeys
  DO
@@ -86,7 +87,7 @@ SUB slice_editor ()
    state.need_update = NO
   END IF
 
-  usemenu state
+  shift = (keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0)
   IF enter_or_space() THEN
    IF state.pt = 0 THEN
     EXIT DO
@@ -102,7 +103,18 @@ SUB slice_editor ()
      state.need_update = YES
     END IF
    END IF
+   IF shift THEN
+    IF keyval(scUp) > 1 AND state.pt > 1 THEN
+     SwapSiblingSlices menu(state.pt).handle, menu(state.pt - 1).handle
+     state.need_update = YES
+    END IF
+    IF keyval(scDown) > 1 AND state.pt < state.last THEN
+     SwapSiblingSlices menu(state.pt).handle, menu(state.pt + 1).handle
+     state.need_update = YES
+    END IF
+   END IF
   END IF
+  usemenu state
 
   DrawSlice edslice, dpage
   standardmenu plainmenu(), state, 0, 0, dpage, YES
@@ -204,11 +216,11 @@ SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, rootsl AS Slice Ptr
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF enter_or_space() THEN EXIT DO
-  IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN shift = 1
-  IF keyval(scUp)    > 0 THEN y -= 1 + 9 * shift
-  IF keyval(scRight) > 0 THEN x += 1 + 9 * shift
-  IF keyval(scDown)  > 0 THEN y += 1 + 9 * shift
-  IF keyval(scLeft)  > 0 THEN x -= 1 + 9 * shift
+  shift = (keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0)
+  IF keyval(scUp)    > 0 THEN y -= 1 + 9 * ABS(shift)
+  IF keyval(scRight) > 0 THEN x += 1 + 9 * ABS(shift)
+  IF keyval(scDown)  > 0 THEN y += 1 + 9 * ABS(shift)
+  IF keyval(scLeft)  > 0 THEN x -= 1 + 9 * ABS(shift)
   DrawSlice rootsl, dpage
   edgeprint "Arrow keys to edit, SHIFT for speed", 0, 190, uilook(uiText), dpage
   SWAP vpage, dpage
