@@ -1,5 +1,5 @@
 'OHRRPGCE CUSTOM - Slice Collection Editor
-'(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
+'(C) Copyright 1997-2008 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 'Except, this module isn't especially crappy. Yay!
@@ -16,6 +16,7 @@
 #include "common.bi"
 #include "slices.bi"
 #include "scancodes.bi"
+#include "custom_udts.bi"
 
 '==============================================================================
 
@@ -23,6 +24,13 @@ TYPE SliceEditMenuItem
  s AS STRING
  handle AS Slice Ptr
 END TYPE
+
+'==============================================================================
+
+CONST slgrPICKTYPE = 1
+CONST slgrPICKXY = 2
+CONST slgrPICKWH = 3
+CONST slgrPICKCOL = 4
 
 '==============================================================================
 
@@ -38,8 +46,8 @@ DECLARE SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditM
 DECLARE SUB slice_editor_refresh_append (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, caption AS STRING, sl AS Slice Ptr=0)
 DECLARE SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, BYREF indent AS INTEGER, sl AS Slice Ptr)
 DECLARE SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
-DECLARE SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr)
-DECLARE SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS Slice Ptr)
+DECLARE SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr, rules() AS EditRule)
+DECLARE SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS Slice Ptr, rules() AS EditRule)
 DECLARE SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, rootsl AS Slice Ptr)
 
 'Functions that need to be aware of magic numbers for SliceType
@@ -47,6 +55,11 @@ DECLARE FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS INTEGER)
 DECLARE FUNCTION slice_type_as_number (slice_type AS SliceTypes) AS INTEGER
 DECLARE FUNCTION new_slice_by_number (slice_type_number AS INTEGER) AS Slice Ptr
 DECLARE FUNCTION SliceTypeNameByNum (num AS INTEGER) AS STRING
+
+'Slice EditRule convenience functions
+DECLARE SUB sliceed_rule(rules() AS EditRule, mode AS EditRuleMode, BYVAL dataptr AS ANY PTR, BYVAL lower AS INTEGER=0, BYVAL upper AS INTEGER=0, BYVAL group AS INTEGER = 0)
+DECLARE SUB sliceed_rule_tog(rules() AS EditRule, BYVAL dataptr AS INTEGER PTR, BYVAL group AS INTEGER=0)
+DECLARE SUB sliceed_rule_none(rules() AS EditRule, BYVAL group AS INTEGER = 0)
 
 '==============================================================================
 
@@ -131,6 +144,7 @@ END SUB
 SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
 
  DIM menu(0) AS STRING
+ DIM rules(0) AS EditRule
 
  DIM state AS MenuState
  WITH state
@@ -145,12 +159,12 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
   IF keyval(scEsc) > 1 THEN EXIT DO
 
   IF state.need_update THEN
-   slice_edit_detail_refresh state, menu(), sl
+   slice_edit_detail_refresh state, menu(), sl, rules()
   END IF
 
   usemenu state
   IF state.pt = 0 AND enter_or_space() THEN EXIT DO
-  slice_edit_detail_keys state, sl, rootsl
+  slice_edit_detail_keys state, sl, rootsl, rules()
   
   DrawSlice rootsl, dpage
   standardmenu menu(), state, 0, 0, dpage, YES
@@ -162,50 +176,46 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
  LOOP
 END SUB
 
-SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS Slice Ptr)
- WITH *sl
-  SELECT CASE state.pt
-   CASE 1:
-    DIM slice_type AS INTEGER = slice_type_as_number(.SliceType)
-    IF intgrabber(slice_type, 0, 5) THEN
+SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS Slice Ptr, rules() AS EditRule)
+ DIM rule AS EditRule = rules(state.pt)
+ SELECT CASE rule.mode
+  CASE erIntgrabber
+   DIM n AS INTEGER PTR = rule.dataptr
+   IF intgrabber(*n, rule.lower, rule.upper) THEN
+    state.need_update = YES
+   END IF
+  CASE erToggle
+   DIM n AS INTEGER PTR = rule.dataptr
+   IF intgrabber(*n, -1, 0) THEN
+    state.need_update = YES
+   END IF
+   IF enter_or_space() THEN *n = NOT *n : state.need_update = YES
+ END SELECT
+ SELECT CASE rule.group
+  CASE slgrPICKTYPE:
+   DIM slice_type AS INTEGER = slice_type_as_number(sl->SliceType)
+   IF intgrabber(slice_type, 0, 5) THEN
+    state.need_update = YES
+   END IF
+   IF enter_or_space() THEN
+    IF slice_edit_detail_browse_slicetype(slice_type) THEN
      state.need_update = YES
     END IF
-    IF enter_or_space() THEN
-     IF slice_edit_detail_browse_slicetype(slice_type) THEN
-      state.need_update = YES
-     END IF
-    END IF
-    IF state.need_update THEN
-     ReplaceSlice sl, new_slice_by_number(slice_type)
-    END IF
-   CASE 2:
-    IF intgrabber(.X, -9999, 9999) THEN state.need_update = YES
-    IF enter_or_space() THEN
-     slice_editor_xy sl->X, sl->Y, rootsl
-     state.need_update = YES
-    END IF
-   CASE 3:
-    IF intgrabber(.Y, -9999, 9999) THEN state.need_update = YES
-    IF enter_or_space() THEN
-     slice_editor_xy sl->X, sl->Y, rootsl
-     state.need_update = YES
-    END IF
-   CASE 4:
-    IF intgrabber(.Width, 0, 9999) THEN state.need_update = YES
-    IF enter_or_space() THEN
-     slice_editor_xy sl->Width, sl->Height, rootsl
-     state.need_update = YES
-    END IF
-   CASE 5:
-    IF intgrabber(.Height, 0, 9999) THEN state.need_update = YES
-    IF enter_or_space() THEN
-     slice_editor_xy sl->Width, sl->Height, rootsl
-     state.need_update = YES
-    END IF
-   CASE 6: IF intgrabber(.Visible, -1, 0) THEN state.need_update = YES
-           IF enter_or_space() THEN .Visible = NOT .Visible : state.need_update = YES
-  END SELECT
- END WITH
+   END IF
+   IF state.need_update THEN
+    ReplaceSlice sl, new_slice_by_number(slice_type)
+   END IF
+  CASE slgrPICKXY:
+   IF enter_or_space() THEN
+    slice_editor_xy sl->X, sl->Y, rootsl
+    state.need_update = YES
+   END IF
+  CASE slgrPICKWH:
+   IF enter_or_space() THEN
+    slice_editor_xy sl->Width, sl->Height, rootsl
+    state.need_update = YES
+   END IF
+ END SELECT
 END SUB
 
 SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, rootsl AS Slice Ptr)
@@ -230,16 +240,65 @@ SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, rootsl AS Slice Ptr
  LOOP
 END SUB
 
-SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr)
+SUB sliceed_rule(rules() AS EditRule, mode AS EditRuleMode, BYVAL dataptr AS ANY PTR, BYVAL lower AS INTEGER=0, BYVAL upper AS INTEGER=0, BYVAL group AS INTEGER = 0)
+ DIM index AS INTEGER = UBOUND(rules) + 1
+ REDIM PRESERVE rules(index) AS EditRule
+ WITH rules(index)
+  .dataptr = dataptr
+  .mode = mode
+  .lower = lower
+  .upper = upper
+  .group = group
+ END WITH 
+END SUB
+
+SUB sliceed_rule_none(rules() AS EditRule, BYVAL group AS INTEGER = 0)
+ sliceed_rule rules(), erNone, 0, 0, 0, group
+END SUB
+
+SUB sliceed_rule_tog(rules() AS EditRule, BYVAL dataptr AS INTEGER PTR, BYVAL group AS INTEGER=0)
+ sliceed_rule rules(), erToggle, dataptr, -1, 0, group
+END SUB
+
+SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr, rules() AS EditRule)
  REDIM menu(6)
+ REDIM rules(0)
  menu(0) = "Previous Menu"
  WITH *sl
   menu(1) = "Slice type: " & SliceTypeName(sl)
+  sliceed_rule_none rules(), slgrPICKTYPE
   menu(2) = "X: " & .X
+  sliceed_rule rules(), erIntgrabber, @.X, -9999, 9999, slgrPICKXY
   menu(3) = "Y: " & .Y
+  sliceed_rule rules(), erIntgrabber, @.Y, -9999, 9999, slgrPICKXY
   menu(4) = "Width: " & .Width
+  sliceed_rule rules(), erIntgrabber, @.Width, 0, 9999, slgrPICKWH
   menu(5) = "Height: " & .Height
+  sliceed_rule rules(), erIntgrabber, @.Height, 0, 9999, slgrPICKWH
   menu(6) = "Visible: " & yesorno(.Visible)
+  sliceed_rule_tog rules(), @.Visible
+  SELECT CASE .SliceType
+   CASE slRectangle
+    DIM dat AS RectangleSliceData Ptr
+    dat = .SliceData
+    string_array_grow_append menu(), "Background color: " & defaultint(dat->bgcol)
+    sliceed_rule rules(), erIntgrabber, @(dat->bgcol), 0, 255, slgrPICKCOL
+    string_array_grow_append menu(), "Foreground color: " & defaultint(dat->fgcol)
+    sliceed_rule rules(), erIntgrabber, @(dat->fgcol), 0, 255, slgrPICKCOL
+    string_array_grow_append menu(), "Transparent: " & yesorno(dat->transparent)
+    sliceed_rule_tog rules(), @(dat->transparent)
+    string_array_grow_append menu(), "Border: " & yesorno(dat->border)
+    sliceed_rule_tog rules(), @(dat->border)
+   CASE slStyleRectangle
+    DIM dat AS StyleRectangleSliceData Ptr
+    dat = .SliceData
+    string_array_grow_append menu(), "Style: " & dat->style
+    sliceed_rule rules(), erIntgrabber, @(dat->style), 0, 14
+    string_array_grow_append menu(), "Transparent: " & yesorno(dat->transparent)
+    sliceed_rule_tog rules(), @(dat->transparent)
+    string_array_grow_append menu(), "Border: " & yesorno(dat->border)
+    sliceed_rule_tog rules(), @(dat->border)
+  END SELECT
  END WITH
  state.last = UBOUND(menu)
  state.pt = small(state.pt, state.last)
@@ -344,6 +403,7 @@ FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS INTEGER) AS INTE
  RETURN NO 
 END FUNCTION
 
+' The preceding four functions need to be aware of magical numbers
 '----------------------------------------------------------------------
 
 FUNCTION SlicePositionString (sl AS Slice Ptr) AS STRING

@@ -110,4 +110,20 @@ TYPE MapEditState
   npc_inst(299) AS NPCInst
 END TYPE
 
+ENUM EditRuleMode
+  erNone              'Used for labels and links
+  erIntgrabber
+  erStrgrabber
+  erToggle
+END ENUM
+
+TYPE EditRule
+  dataptr AS ANY PTR  'It scares the heck out of me that I think this is the best solution
+  mode AS EditRuleMode
+  lower AS INTEGER
+  upper AS INTEGER
+  group AS INTEGER    'Marks this rule as a member of a numbered group, the meaning of which is defined in the implementation
+END TYPE
+
+
 #ENDIF

@@ -25,6 +25,7 @@ declare function zero_default(n as integer, zerocaption AS STRING="default", dis
 declare Function wordwrap(Byval inp as string, byval width as integer, byval sep as string = chr(10), byval unknown as integer = 0) as string
 declare sub split(byval in as string, ret() as string, sep as string = chr(10))
 declare function textwidth(byval z as string) as integer
+declare sub string_array_grow_append (array() AS STRING, s AS STRING)
 
 'also appears in udts.bi
 #ifndef Stack

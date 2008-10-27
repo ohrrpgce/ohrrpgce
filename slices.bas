@@ -297,7 +297,7 @@ Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
  if sl->SliceData = 0 then exit sub
  
  dim dat as RectangleSliceData ptr = cptr(RectangleSliceData ptr, sl->SliceData)
- edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol , dat->fgcol, p, dat->transparent, dat->border
+ edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol , dat->fgcol, p, dat->transparent, NOT dat->border
 end sub
 
 Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr

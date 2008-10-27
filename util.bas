@@ -12,6 +12,8 @@ CONST STACK_SIZE_INC = 512 ' in integers
 #include "compat.bi"
 #include "util.bi"
 
+OPTION EXPLICIT
+
 'DECLARE SUB debug (str$)
 
 FUNCTION bound (BYVAL n as integer, BYVAL lowest as integer, BYVAL highest as integer) as integer
@@ -264,3 +266,8 @@ function textwidth(byval z as string) as integer
  next
  return ret * 8
 end function
+
+SUB string_array_grow_append (array() AS STRING, s AS STRING)
+ REDIM PRESERVE array(UBOUND(array) + 1) AS STRING
+ array(UBOUND(array)) = s
+END SUB
