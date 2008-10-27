@@ -174,6 +174,12 @@ DECLARE SUB notification (show_msg AS STRING)
 DECLARE FUNCTION get_text_box_height(BYREF box AS TextBox) AS INTEGER
 DECLARE FUNCTION last_inv_slot() AS INTEGER
 
+'Sprite loading convenience functions
+DECLARE FUNCTION standard_sprite_load (BYVAL spritetype AS INTEGER, BYVAL index AS INTEGER) AS Frame PTR
+DECLARE FUNCTION standard_pal16_load (BYVAL palnum AS INTEGER = -1, BYVAL spritetype AS INTEGER, BYVAL index AS INTEGER) AS Palette16 PTR
+DECLARE SUB load_sprite_and_pal (BYREF img AS GraphicPair, BYVAL spritetype, BYVAL index AS INTEGER, BYVAL palnum AS INTEGER=-1)
+DECLARE SUB unload_sprite_and_pal (BYREF img AS GraphicPair)
+
 'Global variables
 EXTERN as string game, tmpdir, exename, workingdir
 EXTERN uilook() as integer
@@ -184,5 +190,6 @@ EXTERN master() as RGBcolor
 EXTERN keyv() as integer
 EXTERN gen() as integer
 EXTERN fmvol as integer
+EXTERN sprite_sizes() AS SpriteSize
 
 #ENDIF

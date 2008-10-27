@@ -86,7 +86,7 @@ END TYPE
 TYPE StyleRectangleSliceData
  style as integer
  transparent as integer
- border as integer
+ hideborder as integer
  'Declare constructor (byval bgcol as integer, byval transparent as integer = YES, byval style as integer = 0)
 END TYPE
 
@@ -97,6 +97,15 @@ Type TextSliceData
  'lines() as string
  wrap as integer
  'Declare constructor(byval st as string, byval col as integer = -1, byval ol as integer = YES)
+End Type
+
+Type SpriteSliceData
+ spritetype AS INTEGER 'PT0 thru PT8
+ record AS INTEGER
+ pal AS INTEGER     'Set pal to -1 for the default
+ frame AS INTEGER   'Currently displaying frame
+ loaded AS INTEGER  'Set to NO to force a re-load on the next draw
+ img AS GraphicPair 'No need to manually populate this, done in draw
 End Type
 
 Type MenuSliceData
@@ -127,6 +136,11 @@ DECLARE Function NewStyleRectangleSlice(byval parent as Slice ptr, byref dat as 
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
 DECLARE Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as slice ptr
 DECLARE Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceData) as slice ptr
+
+DECLARE Sub DisposeSpriteSlice(byval sl as slice ptr)
+DECLARE Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
+DECLARE Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
+DECLARE Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
 
 EXTERN Slices() as Slice ptr
 EXTERN AS SliceTable_ SliceTable

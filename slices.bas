@@ -339,7 +339,7 @@ Sub DrawStyleRectangleSlice(byval sl as slice ptr, byval p as integer)
  if sl->SliceData = 0 then exit sub
  
  dim dat as StyleRectangleSliceData ptr = cptr(StyleRectangleSliceData ptr, sl->SliceData)
- edgeboxstyle sl->screenx, sl->screeny, sl->width, sl->height, dat->style , p, dat->transparent, dat->border
+ edgeboxstyle sl->screenx, sl->screeny, sl->width, sl->height, dat->style , p, dat->transparent, dat->hideborder
 end sub
 
 Function GetStyleRectangleSliceData(byval sl as slice ptr) as StyleRectangleSliceData ptr
@@ -441,7 +441,55 @@ Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as 
  return ret
 end function
 
+'--Sprite-----------------------------------------------------------------
 
+Sub DisposeSpriteSlice(byval sl as slice ptr)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ dim dat as SpriteSliceData ptr = cptr(SpriteSliceData ptr, sl->SliceData)
+ unload_sprite_and_pal dat->img
+ delete dat
+ sl->SliceData = 0
+end sub
+
+Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ 
+ dim dat as SpriteSliceData ptr = cptr(SpriteSliceData ptr, sl->SliceData)
+
+ with *dat
+ 
+  if .loaded = NO then
+   load_sprite_and_pal .img, .spritetype, .record
+  end if
+ 
+  sprite_draw .img.sprite + .frame, .img.pal, sl->screenX, sl->screenY, , ,dpage
+ end with
+end sub
+
+Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
+ return sl->SliceData
+End Function
+
+Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
+ dim ret as Slice ptr
+ ret = NewSlice(parent)
+ if ret = 0 then 
+  debug "Out of memory?!"
+  return 0
+ end if
+ 
+ dim d as SpriteSliceData ptr = new SpriteSliceData
+ *d = dat
+ 
+ ret->SliceType = slSprite
+ ret->SliceData = d
+ ret->Draw = @DrawSpriteSlice
+ ret->Dispose = @DisposeSpriteSlice
+ 
+ return ret
+end function
 
 '--Menu-------------------------------------------------------------------
 Sub DisposeMenuSlice(byval sl as slice ptr)

@@ -19,6 +19,9 @@
 #include "music.bi"
 #include "loading.bi"
 
+'Subs and functions only used here
+DECLARE SUB setup_sprite_sizes ()
+
 'keyv() is a global declared in common.bi
 'It is populated in keyboardsetup() which has
 'different implementations in custom and game
@@ -28,6 +31,10 @@ REDIM keyv(55, 3)
 DECLARE SUB embedtext (text$, limit=0)
 DECLARE FUNCTION istag (num, zero) as integer
 #ENDIF
+
+'Allocate sprite size table
+REDIM sprite_sizes(8) AS SpriteSize
+setup_sprite_sizes
 
 'a primitive system for printing messages that scroll
 TYPE ConsoleData
@@ -3071,3 +3078,81 @@ FUNCTION last_inv_slot() AS INTEGER
  IF gen(genMaxInventory) = 0 THEN RETURN inventoryMax
  RETURN large(INT((gen(genMaxInventory) + 1) / 3), 1) * 3 -1
 END FUNCTION
+
+SUB setup_sprite_sizes ()
+ 'Populates the global sprite_sizes
+ WITH sprite_sizes(0)
+  .name = "Hero"
+  .size.x = 32
+  .size.y = 40
+  .frames = 8
+ END WITH
+ WITH sprite_sizes(1)
+  .name = "Small Enemy"
+  .size.x = 34
+  .size.y = 34
+  .frames = 1
+ END WITH
+ WITH sprite_sizes(2)
+  .name = "Medium Enemy"
+  .size.x = 50
+  .size.y = 50
+  .frames = 1
+ END WITH
+ WITH sprite_sizes(3)
+  .name = "Large Enemy"
+  .size.x = 80
+  .size.y = 80
+  .frames = 1
+ END WITH
+ WITH sprite_sizes(4)
+  .name = "Walkabout"
+  .size.x = 20
+  .size.y = 20
+  .frames = 8
+ END WITH
+ WITH sprite_sizes(5)
+  .name = "Weapon"
+  .size.x = 24
+  .size.y = 24
+  .frames = 2
+ END WITH
+ WITH sprite_sizes(6)
+  .name = "Attack"
+  .size.x = 50
+  .size.y = 50
+  .frames = 3
+ END WITH
+ WITH sprite_sizes(7)
+  .name = "Box Border"
+  .size.x = 16
+  .size.y = 16
+  .frames = 16
+ END WITH
+ WITH sprite_sizes(8)
+  .name = "Portrait"
+  .size.x = 50
+  .size.y = 50
+  .frames = 1
+ END WITH
+END SUB
+
+FUNCTION standard_sprite_load (BYVAL spritetype AS INTEGER, BYVAL index AS INTEGER) AS Frame PTR
+ WITH sprite_sizes(spritetype)
+  RETURN sprite_load(game & ".pt" & spritetype, index, .frames, .size.x, .size.y)
+ END WITH
+END FUNCTION
+
+FUNCTION standard_pal16_load (BYVAL palnum AS INTEGER = -1, BYVAL spritetype AS INTEGER, BYVAL index AS INTEGER) AS Palette16 PTR
+ RETURN palette16_load(game & ".pal", palnum, spritetype, index)
+END FUNCTION
+
+SUB load_sprite_and_pal (BYREF img AS GraphicPair, BYVAL spritetype, BYVAL index AS INTEGER, BYVAL palnum AS INTEGER=-1)
+ img.sprite = standard_sprite_load(spritetype, index)
+ img.pal    = standard_pal16_load(palnum, spritetype, index)
+END SUB
+
+SUB unload_sprite_and_pal (BYREF img AS GraphicPair)
+ IF img.sprite THEN sprite_unload @img.sprite
+ IF img.pal    THEN palette16_unload @img.pal
+END SUB

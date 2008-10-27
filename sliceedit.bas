@@ -131,7 +131,7 @@ SUB slice_editor ()
 
   DrawSlice edslice, dpage
   standardmenu plainmenu(), state, 0, 0, dpage, YES
-  edgeprint "+ to add a slice", 0, 190, uilook(uiText), dpage
+  edgeprint "+ to add a slice. SHIFT+arrows to sort", 0, 190, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -296,8 +296,8 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
     sliceed_rule rules(), erIntgrabber, @(dat->style), 0, 14
     string_array_grow_append menu(), "Transparent: " & yesorno(dat->transparent)
     sliceed_rule_tog rules(), @(dat->transparent)
-    string_array_grow_append menu(), "Border: " & yesorno(dat->border)
-    sliceed_rule_tog rules(), @(dat->border)
+    string_array_grow_append menu(), "Hide Border: " & yesorno(dat->hideborder)
+    sliceed_rule_tog rules(), @(dat->hideborder)
   END SELECT
  END WITH
  state.last = UBOUND(menu)
@@ -356,8 +356,9 @@ FUNCTION new_slice_by_number (slice_type_number AS INTEGER) AS Slice Ptr
           RETURN NewRectangleSlice(0, dat)
   CASE 2: DIM dat AS StyleRectangleSliceData
           RETURN NewStyleRectangleSlice(0, dat)
-  'CASE 3: DIM dat AS SpriteSliceData
-  '        RETURN NewSpriteSlice(0, dat)
+  CASE 3: DIM dat AS SpriteSliceData
+          dat.pal = -1 'FIXME: This is because we can't use constructors yet
+          RETURN NewSpriteSlice(0, dat)
   CASE 4: DIM dat AS TextSliceData
           RETURN NewTextSlice(0, dat)
   CASE 5: DIM dat AS MenuSliceData
