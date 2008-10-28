@@ -462,6 +462,8 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
  
   if .loaded = NO then
    load_sprite_and_pal .img, .spritetype, .record
+   sl->Width = sprite_sizes(.spritetype).size.x
+   sl->Height = sprite_sizes(.spritetype).size.y
   end if
  
   sprite_draw .img.sprite + .frame, .img.pal, sl->screenX, sl->screenY, , ,dpage

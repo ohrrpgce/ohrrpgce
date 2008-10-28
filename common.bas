@@ -3086,54 +3086,63 @@ SUB setup_sprite_sizes ()
   .size.x = 32
   .size.y = 40
   .frames = 8
+  .genmax = genMaxHeroPic
  END WITH
  WITH sprite_sizes(1)
   .name = "Small Enemy"
   .size.x = 34
   .size.y = 34
   .frames = 1
+  .genmax = genMaxEnemy1Pic
  END WITH
  WITH sprite_sizes(2)
   .name = "Medium Enemy"
   .size.x = 50
   .size.y = 50
   .frames = 1
+  .genmax = genMaxEnemy2Pic
  END WITH
  WITH sprite_sizes(3)
   .name = "Large Enemy"
   .size.x = 80
   .size.y = 80
   .frames = 1
+  .genmax = genMaxEnemy3Pic
  END WITH
  WITH sprite_sizes(4)
   .name = "Walkabout"
   .size.x = 20
   .size.y = 20
   .frames = 8
+  .genmax = genMaxNPCPic
  END WITH
  WITH sprite_sizes(5)
   .name = "Weapon"
   .size.x = 24
   .size.y = 24
   .frames = 2
+  .genmax = genMaxWeaponPic
  END WITH
  WITH sprite_sizes(6)
   .name = "Attack"
   .size.x = 50
   .size.y = 50
   .frames = 3
+  .genmax = genMaxAttackPic
  END WITH
  WITH sprite_sizes(7)
   .name = "Box Border"
   .size.x = 16
   .size.y = 16
   .frames = 16
+  .genmax = genMaxBoxBorder
  END WITH
  WITH sprite_sizes(8)
   .name = "Portrait"
   .size.x = 50
   .size.y = 50
   .frames = 1
+  .genmax = genMaxPortrait
  END WITH
 END SUB
 
@@ -3148,6 +3157,7 @@ FUNCTION standard_pal16_load (BYVAL palnum AS INTEGER = -1, BYVAL spritetype AS 
 END FUNCTION
 
 SUB load_sprite_and_pal (BYREF img AS GraphicPair, BYVAL spritetype, BYVAL index AS INTEGER, BYVAL palnum AS INTEGER=-1)
+ unload_sprite_and_pal img
  img.sprite = standard_sprite_load(spritetype, index)
  img.pal    = standard_pal16_load(palnum, spritetype, index)
 END SUB

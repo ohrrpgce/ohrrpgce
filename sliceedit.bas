@@ -17,6 +17,7 @@
 #include "slices.bi"
 #include "scancodes.bi"
 #include "custom_udts.bi"
+#include "customsubs.bi"
 
 '==============================================================================
 
@@ -31,6 +32,7 @@ CONST slgrPICKTYPE = 1
 CONST slgrPICKXY = 2
 CONST slgrPICKWH = 3
 CONST slgrPICKCOL = 4
+CONST slgrUPDATESPRITE = 5
 
 '==============================================================================
 
@@ -215,6 +217,20 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
     slice_editor_xy sl->Width, sl->Height, rootsl
     state.need_update = YES
    END IF
+  CASE slgrPICKCOL:
+   IF enter_or_space() THEN
+    DIM n AS INTEGER PTR = rule.dataptr
+    *n = color_browser_256(*n)
+    state.need_update = YES
+   END IF
+  CASE slgrUPDATESPRITE
+   IF state.need_update THEN
+    DIM dat AS SpriteSliceData Ptr
+    dat = sl->SliceData
+    dat->loaded = NO
+    dat->record = small(dat->record, gen(sprite_sizes(dat->spritetype).genmax))
+    dat->frame = small(dat->frame, sprite_sizes(dat->spritetype).frames - 1)
+   END IF
  END SELECT
 END SUB
 
@@ -298,6 +314,17 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
     sliceed_rule_tog rules(), @(dat->transparent)
     string_array_grow_append menu(), "Hide Border: " & yesorno(dat->hideborder)
     sliceed_rule_tog rules(), @(dat->hideborder)
+   CASE slSprite
+    DIM dat AS SpriteSliceData Ptr
+    dat = .SliceData
+    string_array_grow_append menu(), "Sprite Type: " & sprite_sizes(dat->spritetype).name
+    sliceed_rule rules(), erIntgrabber, @(dat->spritetype), 0, 8, slgrUPDATESPRITE
+    string_array_grow_append menu(), "Sprite Number: " & dat->record
+    sliceed_rule rules(), erIntgrabber, @(dat->record), 0, gen(sprite_sizes(dat->spritetype).genmax), slgrUPDATESPRITE
+    string_array_grow_append menu(), "Sprite Palette: " & defaultint(dat->pal)
+    sliceed_rule rules(), erIntgrabber, @(dat->pal), -1, gen(genMaxPal), slgrUPDATESPRITE
+    string_array_grow_append menu(), "Sprite Frame: " & dat->frame
+    sliceed_rule rules(), erIntgrabber, @(dat->frame), 0, sprite_sizes(dat->spritetype).frames - 1
   END SELECT
  END WITH
  state.last = UBOUND(menu)

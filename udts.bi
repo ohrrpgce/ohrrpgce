@@ -370,6 +370,7 @@ TYPE SpriteSize 'FIXME: there are a lot of places this could be used where it is
  name AS STRING
  size AS XYPair
  frames AS INTEGER
+ genmax AS INTEGER 'Offset in gen() where max record index is stored
 END TYPE
 
 #ENDIF
