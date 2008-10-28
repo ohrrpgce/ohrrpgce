@@ -193,19 +193,23 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
    END IF
    IF enter_or_space() THEN *n = NOT *n : state.need_update = YES
  END SELECT
+ DIM switchtype AS INTEGER = NO
  SELECT CASE rule.group
   CASE slgrPICKTYPE:
    DIM slice_type AS INTEGER = slice_type_as_number(sl->SliceType)
    IF intgrabber(slice_type, 0, 5) THEN
     state.need_update = YES
+    switchtype = YES
    END IF
    IF enter_or_space() THEN
     IF slice_edit_detail_browse_slicetype(slice_type) THEN
      state.need_update = YES
+     switchtype = YES
     END IF
    END IF
-   IF state.need_update THEN
+   IF switchtype THEN
     ReplaceSlice sl, new_slice_by_number(slice_type)
+    switchtype = NO
    END IF
   CASE slgrPICKXY:
    IF enter_or_space() THEN
