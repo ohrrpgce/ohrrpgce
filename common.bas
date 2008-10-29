@@ -1052,6 +1052,10 @@ FUNCTION peek8bit (array16(), index) as integer
 END FUNCTION
 
 SUB loadpalette(pal() as RGBcolor, palnum)
+IF palnum < 0 THEN
+ debug "loadpalette: invalid palnum " & palnum
+ palnum = 0
+END IF
 IF NOT isfile(workingdir + SLASH + "palettes.bin") THEN
  '.MAS fallback, palnum ignored because it doesn't matter
  DIM oldpalbuf(767)

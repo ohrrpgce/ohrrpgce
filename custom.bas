@@ -217,6 +217,8 @@ clear_box_border_cache
 'upgrade obsolete RPG files
 upgrade font()
 
+'Safety-check for negative gen(genMasterPal) because of one known game that somehow had -2
+gen(genMasterPal) = large(0, gen(genMasterPal))
 'Load palette and uicolors again (because the upgrade routine may have changed them)
 activepalette = gen(genMasterPal)
 loadpalette master(), activepalette
