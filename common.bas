@@ -2989,16 +2989,16 @@ FUNCTION getmenuname(record AS INTEGER) AS STRING
 END FUNCTION
 
 SUB draw_scrollbar(state AS MenuState, menu AS MenuDef, page AS INTEGER)
- draw_scrollbar state, menu.rect, count_menu_items(menu), menu.boxstyle, page
+ draw_scrollbar state, menu.rect, count_menu_items(menu) - 1, menu.boxstyle, page
 END SUB
 
 SUB draw_scrollbar(state AS MenuState, rect AS RectType, boxstyle AS INTEGER=0, page AS INTEGER)
- DIM count AS INTEGER = state.last - state.first + 1
+ DIM count AS INTEGER = state.last - state.first
  draw_scrollbar state, rect, count, boxstyle, page
 END SUB
 
 SUB draw_scrollbar(state AS MenuState, rect AS RectType, count AS INTEGER, boxstyle AS INTEGER=0, page AS INTEGER)
- IF (state.top > state.first OR count >= state.size) AND count > 0 THEN
+ IF (state.top > state.first OR (count-1) >= state.size) AND count > 0 THEN
   IF count > 0 THEN
    DIM sbar AS RectType
    DIM slider AS RectType
@@ -3007,8 +3007,8 @@ SUB draw_scrollbar(state AS MenuState, rect AS RectType, count AS INTEGER, boxst
    sbar.wide = 4
    sbar.high = rect.high - 4
    WITH sbar
-    slider.y = ((.high * 200) / count * (state.top - state.first)) / 200
-    slider.high = ((.high * 200) / (count - 1) * state.size) / 200
+    slider.y = ((.high * 200) / (count) * (state.top - state.first)) / 200
+    slider.high = ((.high * 200) / (count) * state.size) / 200
     rectangle .x, .y, .wide, .high, uilook(uiBackground), page
     rectangle .x, .y + slider.y, .wide, slider.high, uilook(uiTextBox + boxstyle * 2 + 1), page
    END WITH
