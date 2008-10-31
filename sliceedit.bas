@@ -43,8 +43,11 @@ DECLARE SUB slice_editor ()
 DECLARE FUNCTION SliceTypeName (sl AS Slice Ptr) AS STRING
 DECLARE FUNCTION SlicePositionString (sl AS Slice Ptr) AS STRING
 
+'Functions that use awkward adoption metaphors
+DECLARE SUB SliceAdoptSister (BYVAL sl AS Slice Ptr)
+
 'Functions only used locally
-DECLARE SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr)
+DECLARE SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYVAL cursor_seek AS Slice Ptr)
 DECLARE SUB slice_editor_refresh_append (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, caption AS STRING, sl AS Slice Ptr=0)
 DECLARE SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, BYREF indent AS INTEGER, sl AS Slice Ptr)
 DECLARE SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
@@ -80,9 +83,10 @@ SUB slice_editor ()
 
  DIM state AS MenuState
  WITH state
-  .size = 20
+  .size = 21
   .need_update = YES
  END WITH
+ DIM cursor_seek AS Slice Ptr = 0
 
  DIM slice_type_num AS INTEGER = 0
  DIM shift AS INTEGER
@@ -94,7 +98,7 @@ SUB slice_editor ()
   IF keyval(scEsc) > 1 THEN EXIT DO
 
   IF state.need_update THEN
-   slice_editor_refresh(state, menu(), edslice)
+   slice_editor_refresh(state, menu(), edslice, cursor_seek)
    REDIM plainmenu(state.last) AS STRING
    FOR i AS INTEGER = 0 TO UBOUND(plainmenu)
     plainmenu(i) = menu(i).s
@@ -119,17 +123,27 @@ SUB slice_editor ()
     END IF
    END IF
    IF shift THEN
-    IF keyval(scUp) > 1 AND state.pt > 1 THEN
-     SwapSiblingSlices menu(state.pt).handle, menu(state.pt - 1).handle
+    IF keyval(scUp) > 1 THEN
+     SwapSiblingSlices menu(state.pt).handle, menu(state.pt).handle->PrevSibling
+     cursor_seek = menu(state.pt).handle
      state.need_update = YES
     END IF
     IF keyval(scDown) > 1 AND state.pt < state.last THEN
-     SwapSiblingSlices menu(state.pt).handle, menu(state.pt + 1).handle
+     SwapSiblingSlices menu(state.pt).handle, menu(state.pt).handle->NextSibling
+     cursor_seek = menu(state.pt).handle
+     state.need_update = YES
+    END IF
+    IF keyval(scRight) > 1 THEN
+     SliceAdoptSister menu(state.pt).handle
+     cursor_seek = menu(state.pt).handle
      state.need_update = YES
     END IF
    END IF
   END IF
-  usemenu state
+  IF state.need_update = NO THEN
+   'Only do normal cursor movement when no updates are needed
+   usemenu state
+  END IF
 
   DrawSlice edslice, dpage
   standardmenu plainmenu(), state, 0, 0, dpage, YES
@@ -445,7 +459,7 @@ FUNCTION SlicePositionString (sl AS Slice Ptr) AS STRING
  END WITH
 END FUNCTION
 
-SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr)
+SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYVAL cursor_seek AS Slice Ptr)
  FOR i AS INTEGER = 0 TO UBOUND(menu)
   menu(i).s = ""
  NEXT i
@@ -454,10 +468,21 @@ SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditMenuItem,
  DIM indent AS INTEGER = 0
  slice_editor_refresh_append index, menu(), "Previous Menu"
  slice_editor_refresh_recurse index, menu(), indent, edslice
+
+ IF cursor_seek <> 0 THEN
+  FOR i AS INTEGER = 0 TO index - 1
+   IF menu(i).handle = cursor_seek THEN
+    state.pt = i
+    cursor_seek = 0
+    EXIT FOR
+   END IF
+  NEXT i
+ END IF
+ 
  WITH state
   .last = index - 1
   .pt = small(.pt, .last)
-  .top = small(.top, .pt)
+  .top = bound(.top, .pt - .size, .pt)
  END WITH
 END SUB
 
@@ -490,4 +515,20 @@ SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMen
    indent -= 1
   END IF
  END WITH
+END SUB
+
+SUB SliceAdoptSister (BYVAL sl AS Slice Ptr)
+ DIM newparent AS Slice Ptr = sl->PrevSibling
+ IF newparent = 0 THEN EXIT SUB ' Eldest sibling can't be adopted
+ '--Adopt self to elder sister's family
+ SetSliceParent sl, newparent
+ '--Re-adjust X/Y position for new parent
+ DIM oldpos AS XYPair
+ oldpos.x = sl->ScreenX
+ oldpos.y = sl->ScreenY
+ DIM newpos AS XYPair
+ newpos.x = newparent->ScreenX + sl->X
+ newpos.y = newparent->ScreenY + sl->Y
+ sl->X += oldpos.x - newpos.x
+ sl->Y += oldpos.y - newpos.y
 END SUB

@@ -184,6 +184,7 @@ end sub
 
 Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
  'Only intended for use by siblings of the same parent
+ if sl1 = 0 or sl2 = 0 then EXIT SUB ' Exit quietly when an arg is null. Valid use case for attempted swap at the beginning or end of a list
  if sl1->Parent <> sl2->Parent then debug "SwapSiblingSlices: slices are not siblings": EXIT SUB
  dim parent as slice ptr = sl1->Parent
  dim slice_list(parent->NumChildren - 1) as slice ptr
