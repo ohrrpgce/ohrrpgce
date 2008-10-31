@@ -145,7 +145,7 @@ Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
   nxt->PrevSibling = prv
  end if
  if prv then
-  nxt->NextSibling = nxt
+  prv->NextSibling = nxt
  end if
  if par then
   if par->FirstChild = sl then
