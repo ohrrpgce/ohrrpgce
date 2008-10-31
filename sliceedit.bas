@@ -45,9 +45,11 @@ DECLARE FUNCTION SlicePositionString (sl AS Slice Ptr) AS STRING
 
 'Functions that use awkward adoption metaphors
 DECLARE SUB SliceAdoptSister (BYVAL sl AS Slice Ptr)
+DECLARE SUB AdjustSlicePosToNewParent (BYVAL sl AS Slice Ptr, BYVAL newparent AS Slice Ptr)
+DECLARE SUB SliceAdoptNiece (BYVAL sl AS Slice Ptr)
 
 'Functions only used locally
-DECLARE SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYVAL cursor_seek AS Slice Ptr)
+DECLARE SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYREF cursor_seek AS Slice Ptr)
 DECLARE SUB slice_editor_refresh_append (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, caption AS STRING, sl AS Slice Ptr=0)
 DECLARE SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, BYREF indent AS INTEGER, sl AS Slice Ptr)
 DECLARE SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
@@ -135,6 +137,11 @@ SUB slice_editor ()
     END IF
     IF keyval(scRight) > 1 THEN
      SliceAdoptSister menu(state.pt).handle
+     cursor_seek = menu(state.pt).handle
+     state.need_update = YES
+    END IF
+    If keyval(scLeft) > 1 THEN
+     SliceAdoptNiece menu(state.pt).handle
      cursor_seek = menu(state.pt).handle
      state.need_update = YES
     END IF
@@ -459,7 +466,7 @@ FUNCTION SlicePositionString (sl AS Slice Ptr) AS STRING
  END WITH
 END FUNCTION
 
-SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYVAL cursor_seek AS Slice Ptr)
+SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYREF cursor_seek AS Slice Ptr)
  FOR i AS INTEGER = 0 TO UBOUND(menu)
   menu(i).s = ""
  NEXT i
@@ -522,6 +529,22 @@ SUB SliceAdoptSister (BYVAL sl AS Slice Ptr)
  IF newparent = 0 THEN EXIT SUB ' Eldest sibling can't be adopted
  '--Adopt self to elder sister's family
  SetSliceParent sl, newparent
+ AdjustSlicePosToNewParent sl, newparent
+END SUB
+
+SUB SliceAdoptNiece (BYVAL sl AS Slice Ptr)
+ DIM oldparent AS Slice Ptr = sl->Parent
+ IF oldparent = 0 THEN EXIT SUB ' No parent
+ DIM newparent AS Slice Ptr = sl->Parent->Parent
+ IF newparent = 0 THEN EXIT SUB ' No grandparent
+ 'Adopt self to parent's family
+ SetSliceParent sl, newparent
+ 'Make sure that the slice is the first sibling after its old parent
+ SwapSiblingSlices sl, oldparent->NextSibling
+ AdjustSlicePosToNewParent sl, newparent
+END SUB
+
+SUB AdjustSlicePosToNewParent (BYVAL sl AS Slice Ptr, BYVAL newparent AS Slice Ptr)
  '--Re-adjust X/Y position for new parent
  DIM oldpos AS XYPair
  oldpos.x = sl->ScreenX
