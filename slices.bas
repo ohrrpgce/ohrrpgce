@@ -75,7 +75,7 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  
  ret->SliceType = slSpecial
  ret->Visible = YES
- ret->Attached = parent
+ ret->Attached = 0
  ret->Attach = slSlice
  
  ret->Draw = @DrawNullSlice
@@ -645,7 +645,6 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
        .Width = .Attached->Width - .Attached->paddingleft - .Attached->paddingRight
        .height = .Attached->height - .Attached->paddingtop - .Attached->paddingbottom
       elseif .parent then
-       .Attached = .parent
        .ScreenX = .Parent->ScreenX + .Parent->paddingleft
        .ScreenY = .Parent->ScreenY + .Parent->paddingtop
        .Width = .Parent->Width - .Parent->paddingleft - .Parent->paddingRight
@@ -667,7 +666,6 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
        .ScreenX = .X + .Attached->ScreenX + .Attached->paddingleft
        .ScreenY = .Y + .Attached->ScreenY + .Attached->paddingtop
       elseif .parent then
-       .Attached = .parent
        .ScreenX = .X + .parent->ScreenX + .Parent->paddingleft
        .ScreenY = .Y + .parent->ScreenY + .Parent->paddingtop
       else
