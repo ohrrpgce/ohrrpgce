@@ -311,7 +311,7 @@ SUB sliceed_rule_tog(rules() AS EditRule, BYVAL dataptr AS INTEGER PTR, BYVAL gr
 END SUB
 
 SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr, rules() AS EditRule)
- REDIM menu(6)
+ REDIM menu(7)
  REDIM rules(0)
  menu(0) = "Previous Menu"
  WITH *sl
@@ -327,6 +327,8 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
   sliceed_rule rules(), erIntgrabber, @.Height, 0, 9999, slgrPICKWH
   menu(6) = "Visible: " & yesorno(.Visible)
   sliceed_rule_tog rules(), @.Visible
+  menu(7) = "Fill Parent: " & yesorno(.Fill)
+  sliceed_rule_tog rules(), @.Fill
   SELECT CASE .SliceType
    CASE slRectangle
     DIM dat AS RectangleSliceData Ptr
