@@ -24,10 +24,17 @@ Enum AttachTypes
  slScreen
 End Enum
 
+TYPE SliceFileWrite
+  name AS STRING
+  handle AS INTEGER
+  indent AS INTEGER
+END TYPE
+
 Type SliceFwd as Slice
 Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
 Type SliceDispose as Sub(Byval as SliceFwd ptr)
 Type SliceUpdate as Sub(Byval as SliceFwd ptr)
+Type SliceSave as Sub(Byval as SliceFwd ptr, byref f as SliceFileWrite)
 
 TYPE Slice
   Parent as Slice Ptr
@@ -59,6 +66,7 @@ TYPE Slice
   Draw as SliceDraw
   Dispose as SliceDispose
   Update as SliceUpdate
+  Save as SliceSave
   SliceData as any ptr
   SliceType as SliceTypes
   
@@ -73,12 +81,6 @@ TYPE SliceTable_
   textbox AS Slice Ptr
   menu AS Slice Ptr
   scriptstring AS Slice Ptr
-END TYPE
-
-TYPE SliceFileWrite
-  name AS STRING
-  handle AS INTEGER
-  indent AS INTEGER
 END TYPE
 
 '--Data containers for various slice types
@@ -112,8 +114,8 @@ Type SpriteSliceData
  record AS INTEGER
  pal AS INTEGER     'Set pal to -1 for the default
  frame AS INTEGER   'Currently displaying frame
- loaded AS INTEGER  'Set to NO to force a re-load on the next draw
- img AS GraphicPair 'No need to manually populate this, done in draw
+ loaded AS INTEGER  'UNSAVED: Set to NO to force a re-load on the next draw
+ img AS GraphicPair 'UNSAVED: No need to manually populate this, done in draw
 End Type
 
 Type MenuSliceData
@@ -154,6 +156,9 @@ DECLARE Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSl
 DECLARE Sub OpenSliceFileWrite (BYREF f AS SliceFileWrite, filename AS STRING)
 DECLARE Sub CloseSliceFileWrite (BYREF f AS SliceFileWrite)
 DECLARE Sub WriteSliceFileLine (BYREF f AS SliceFileWrite, s AS STRING)
+DECLARE Sub WriteSliceFileVal OVERLOAD (BYREF f AS SliceFileWrite, nam AS STRING, s AS STRING, quotes AS INTEGER=YES)
+DECLARE Sub WriteSliceFileVal OVERLOAD (BYREF f AS SliceFileWrite, nam AS STRING, n AS INTEGER)
+DECLARE Sub WriteSliceFileBool (BYREF f AS SliceFileWrite, nam AS STRING, b AS INTEGER)
 DECLARE Sub SaveSlice (BYREF f AS SliceFileWrite, BYVAL sl AS Slice Ptr)
 
 

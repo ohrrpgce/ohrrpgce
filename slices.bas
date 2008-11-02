@@ -35,6 +35,7 @@ Dim SliceTable as SliceTable_
 Sub DrawNullSlice(byval s as slice ptr, byval p as integer) : end sub
 Sub DisposeNullSlice(byval s as slice ptr) : end sub
 Sub UpdateNullSlice(byval s as slice ptr) : end sub
+Sub SaveNullSlice(byval s as slice ptr, byref f as SliceFileWrite) : end sub
 
 Sub SetupGameSlices
  SliceTable.Root = NewSlice
@@ -95,6 +96,7 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  ret->Draw = @DrawNullSlice
  ret->Dispose = @DisposeNullSlice
  ret->Update = @UpdateNullSlice
+ ret->Save = @SaveNullSlice
  
  return ret
 End Function
@@ -316,6 +318,15 @@ Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
  edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol , dat->fgcol, p, dat->transparent, NOT dat->border
 end sub
 
+Sub SaveRectangleSlice(byval sl as slice ptr, byref f as SliceFileWrite)
+ DIM dat AS RectangleSliceData Ptr
+ dat = sl->SliceData
+ WriteSliceFileVal f, "fg", dat->fgcol
+ WriteSliceFileVal f, "bg", dat->bgcol
+ WriteSliceFileBool f, "trans", dat->transparent
+ WriteSliceFileBool f, "border", dat->border
+End Sub
+
 Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
@@ -331,6 +342,7 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
  ret->SliceData = d
  ret->Draw = @DrawRectangleSlice
  ret->Dispose = @DisposeRectangleSlice
+ ret->Save = @SaveRectangleSlice
  
  return ret
 end function
@@ -338,8 +350,6 @@ end function
 Function GetRectangleSliceData(byval sl as slice ptr) as RectangleSliceData ptr
  return sl->SliceData
 End Function
-
-
 
 '--StyleRectangle---------------------------------------------------------
 Sub DisposeStyleRectangleSlice(byval sl as slice ptr)
@@ -362,6 +372,14 @@ Function GetStyleRectangleSliceData(byval sl as slice ptr) as StyleRectangleSlic
  return sl->SliceData
 End Function
 
+Sub SaveStyleRectangleSlice(byval sl as slice ptr, byref f as SliceFileWrite)
+ DIM dat AS StyleRectangleSliceData Ptr
+ dat = sl->SliceData
+ WriteSliceFileVal f, "style", dat->style
+ WriteSliceFileBool f, "trans", dat->transparent
+ WriteSliceFileBool f, "hideborder", dat->hideborder
+End Sub
+
 Function NewStyleRectangleSlice(byval parent as Slice ptr, byref dat as StyleRectangleSliceData) as slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
@@ -377,11 +395,10 @@ Function NewStyleRectangleSlice(byval parent as Slice ptr, byref dat as StyleRec
  ret->SliceData = d
  ret->Draw = @DrawStyleRectangleSlice
  ret->Dispose = @DisposeStyleRectangleSlice
+ ret->Save = @SaveStyleRectangleSlice
  
  return ret
 end function
-
-
 
 '--Text-------------------------------------------------------------------
 Sub DisposeTextSlice(byval sl as slice ptr)
@@ -434,6 +451,15 @@ Function GetTextSliceData(byval sl as slice ptr) as TextSliceData ptr
  return sl->SliceData
 End Function
 
+Sub SaveTextSlice(byval sl as slice ptr, byref f as SliceFileWrite)
+ DIM dat AS TextSliceData Ptr
+ dat = sl->SliceData
+ WriteSliceFileVal f, "s", dat->s
+ WriteSliceFileVal f, "col", dat->col
+ WriteSliceFileBool f, "outline", dat->outline
+ WriteSliceFileBool f, "wrap", dat->wrap
+End Sub
+
 Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
@@ -450,6 +476,7 @@ Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as 
  ret->Draw = @DrawTextSlice
  ret->Dispose = @DisposeTextSlice
  ret->Update = @UpdateTextSlice
+ ret->Save = @SaveTextSlice
 
  ret->Width = textwidth(d->s)
  'split(d->s, d->lines())
@@ -490,6 +517,15 @@ Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
  return sl->SliceData
 End Function
 
+Sub SaveSpriteSlice(byval sl as slice ptr, byref f as SliceFileWrite)
+ DIM dat AS SpriteSliceData Ptr
+ dat = sl->SliceData
+ WriteSliceFileVal f, "sprtype", dat->spritetype
+ WriteSliceFileVal f, "rec", dat->record
+ WriteSliceFileVal f, "pal", dat->pal
+ WriteSliceFileVal f, "frame", dat->frame
+end sub
+
 Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
@@ -505,6 +541,7 @@ Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData)
  ret->SliceData = d
  ret->Draw = @DrawSpriteSlice
  ret->Dispose = @DisposeSpriteSlice
+ ret->Save = @SaveSpriteSlice
  
  return ret
 end function
@@ -531,6 +568,13 @@ Function GetMenuSliceData(byval sl as slice ptr) as MenuSliceData ptr
  return sl->SliceData
 End Function
 
+Sub SaveMenuSlice(byval sl as slice ptr, byref f as SliceFileWrite)
+ DIM dat AS MenuSliceData Ptr
+ dat = sl->SliceData
+ 'FIXME: Implement me!
+ debug "SaveMenuSlice not implemented"
+end sub
+
 Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
@@ -546,11 +590,10 @@ Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as 
  ret->SliceData = d
  ret->Draw = @DrawMenuSlice
  ret->Dispose = @DisposeMenuSlice
+ ret->Save = @SaveMenuSlice
  
  return ret
 end function
-
-
 
 '--MenuItem---------------------------------------------------------------
 Sub DisposeMenuItemSlice(byval sl as slice ptr)
@@ -593,6 +636,13 @@ Function GetMenuItemSliceData(byval sl as slice ptr) as MenuItemSliceData ptr
  return sl->SliceData
 End Function
 
+Sub SaveMenuItemSlice(byval sl as slice ptr, byref f as SliceFileWrite)
+ DIM dat AS MenuItemSliceData Ptr
+ dat = sl->SliceData
+ 'FIXME: Implement me!
+ debug "SaveMenuItemSlice not implemented"
+end sub
+
 Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceData) as slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
@@ -610,10 +660,10 @@ Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceD
  ret->SliceData = d
  ret->Draw = @DrawMenuItemSlice
  ret->Dispose = @DisposeMenuItemSlice
+ ret->Save = @SaveMenuItemSlice
  
  return ret
 end function
-
 
 '==Epic prophecy of the construcinator=========================================
 /'
@@ -709,6 +759,7 @@ Sub OpenSliceFileWrite (BYREF f AS SliceFileWrite, filename AS STRING)
  f.indent = 0
  f.handle = FREEFILE
  OPEN f.name FOR OUTPUT AS f.handle
+ WriteSliceFileLine f, "#OHR SliceTree - This format has not yet been finalized"
 End Sub
 
 Sub CloseSliceFileWrite (BYREF f AS SliceFileWrite)
@@ -720,32 +771,52 @@ Sub WriteSliceFileLine (BYREF f AS SliceFileWrite, s AS STRING)
  PRINT # f.handle, STRING(f.indent, " ") & s
 End sub
 
+Sub WriteSliceFileVal (BYREF f AS SliceFileWrite, nam AS STRING, s AS STRING, quotes AS INTEGER=YES)
+ DIM valstring AS STRING = s
+ IF quotes THEN valstring = """" & s & """"
+ WriteSliceFileLine f, LCASE(nam) & ":" & valstring
+End Sub
+
+Sub WriteSliceFileVal (BYREF f AS SliceFileWrite, nam AS STRING, n AS INTEGER)
+ WriteSliceFileLine f, LCASE(nam) & ":" & n
+End Sub
+
+Sub WriteSliceFileBool (BYREF f AS SliceFileWrite, nam AS STRING, b AS INTEGER)
+ WriteSliceFileVal f, nam, yesorno(b, "true", "false"), NO
+End Sub
+
 Sub SaveSlice (BYREF f AS SliceFileWrite, BYVAL sl AS Slice Ptr)
  WriteSliceFileLine f, "{"
  f.indent += 1
- WriteSliceFileLine f, "x:" & sl->X
- WriteSliceFileLine f, "y:" & sl->Y
- WriteSliceFileLine f, "w:" & sl->Width
- WriteSliceFileLine f, "h:" & sl->Height
- WriteSliceFileLine f, "vis:" & yesorno(sl->Visible, "true", "false")
- 'WriteSliceFileLine f, "alignh:" & sl->AlignHoriz
- 'WriteSliceFileLine f, "alignv:" & sl->AlignVert
- WriteSliceFileLine f, "padt:" & sl->PaddingTop
- WriteSliceFileLine f, "padl:" & sl->PaddingLeft
- WriteSliceFileLine f, "padr:" & sl->PaddingRight
- WriteSliceFileLine f, "padb:" & sl->PaddingBottom
- WriteSliceFileLine f, "fill:" & yesorno(sl->Fill, "true", "false")
- 'WriteSliceFileLine f, "attach:" & sl->Attach 'FIXME: should probably store this as a string?
- 'WriteSliceFileLine f, "attached:" 'this should definitely NOT be the pointer. Instead need some other scheme for storing this
- WriteSliceFileLine f, "type:" & SliceTypeName(sl)
- 'sl->Save(f)
- 'Now save all children
- WriteSliceFileLine f, "child:"
- DIM child AS Slice Ptr = sl->FirstChild
- DO WHILE child <> 0
-  SaveSlice f, child
-  child = child->NextSibling
- LOOP
+ WriteSliceFileVal f, "x", sl->X
+ WriteSliceFileVal f, "y", sl->Y
+ WriteSliceFileVal f, "w", sl->Width
+ WriteSliceFileVal f, "h", sl->Height
+ WriteSliceFileBool f, "vis", sl->Visible
+ 'WriteSliceFileVal f, "alignh", sl->AlignHoriz
+ 'WriteSliceFileVal f, "alignv", sl->AlignVert
+ WriteSliceFileVal f, "padt", sl->PaddingTop
+ WriteSliceFileVal f, "padl", sl->PaddingLeft
+ WriteSliceFileVal f, "padr", sl->PaddingRight
+ WriteSliceFileVal f, "padb", sl->PaddingBottom
+ WriteSliceFileBool f, "fill", sl->Fill
+ 'WriteSliceFileVal f, "attach", sl->Attach 'FIXME: should probably store this as a string?
+ 'WriteSliceFileVal f, "attached", "" 'this should definitely NOT be the pointer. Instead need some other scheme for storing this
+ WriteSliceFileVal f, "type", SliceTypeName(sl)
+ 'Now save all properties specific to this type of slice
+ sl->Save(sl, f)
+ IF sl->NumChildren > 0 THEN
+  'Now save all children
+  WriteSliceFileLine f, "child:["
+  f.indent += 1
+  DIM child AS Slice Ptr = sl->FirstChild
+  DO WHILE child <> 0
+   SaveSlice f, child
+   child = child->NextSibling
+  LOOP
+  f.indent -= 1
+  WriteSliceFileLine f, "]"
+ END IF
  f.indent -= 1
  WriteSliceFileLine f, "}"
 End sub
