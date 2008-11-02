@@ -40,7 +40,6 @@ CONST slgrUPDATESPRITE = 5
 DECLARE SUB slice_editor ()
 
 'Functions that might go better in slices.bas ... we shall see
-DECLARE FUNCTION SliceTypeName (sl AS Slice Ptr) AS STRING
 DECLARE FUNCTION SlicePositionString (sl AS Slice Ptr) AS STRING
 
 'Functions that use awkward adoption metaphors
@@ -161,6 +160,11 @@ SUB slice_editor ()
   clearpage dpage
   dowait
  LOOP
+
+ DIM f AS SliceFileWrite
+ OpenSliceFileWrite f, workingdir & SLASH & "slicetree_0.txt"
+ SaveSlice f, edslice
+ CloseSliceFileWrite f
 
 END SUB
 
@@ -356,20 +360,6 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
  state.pt = small(state.pt, state.last)
  state.top = small(state.top, state.pt)
 END SUB
-
-FUNCTION SliceTypeName (sl AS Slice Ptr) AS STRING
- SELECT CASE sl->SliceType
-  CASE slRoot:           RETURN "Root"
-  CASE slSpecial:        RETURN "Special"
-  CASE slRectangle:      RETURN "Rectangle"
-  CASE slStyleRectangle: RETURN "Styled Rect"
-  CASE slSprite:         RETURN "Sprite"
-  CASE slText:           RETURN "Text"
-  CASE slMenu:           RETURN "Menu"
-  CASE slMenuItem:       RETURN "MenuItem"
- END SELECT
- RETURN "Unknown"
-END FUNCTION
 
 '----------------------------------------------------------------------
 ' The following four functions need to be aware of magical numbers

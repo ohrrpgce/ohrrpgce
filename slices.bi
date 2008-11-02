@@ -44,8 +44,8 @@ TYPE Slice
   Height as integer
   Visible as integer
   
-  AlignHoriz as integer
-  AlignVert as integer
+  AlignHoriz as integer 'FIXME: not implemented yet
+  AlignVert as integer  'FIXME: not implemented yet
   
   as integer PaddingTop, PaddingLeft, PaddingRight, PaddingBottom
   
@@ -74,6 +74,14 @@ TYPE SliceTable_
   menu AS Slice Ptr
   scriptstring AS Slice Ptr
 END TYPE
+
+TYPE SliceFileWrite
+  name AS STRING
+  handle AS INTEGER
+  indent AS INTEGER
+END TYPE
+
+'--Data containers for various slice types
 
 TYPE RectangleSliceData
  fgcol as integer
@@ -130,6 +138,7 @@ DECLARE Sub ReplaceSlice(byval sl as slice ptr, byref newsl as slice ptr)
 DECLARE Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
 DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
 DECLARE Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
+DECLARE FUNCTION SliceTypeName (sl AS Slice Ptr) AS STRING
 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
 DECLARE Function NewStyleRectangleSlice(byval parent as Slice ptr, byref dat as StyleRectangleSliceData) as slice ptr
@@ -141,6 +150,12 @@ DECLARE Sub DisposeSpriteSlice(byval sl as slice ptr)
 DECLARE Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
 DECLARE Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
 DECLARE Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
+
+DECLARE Sub OpenSliceFileWrite (BYREF f AS SliceFileWrite, filename AS STRING)
+DECLARE Sub CloseSliceFileWrite (BYREF f AS SliceFileWrite)
+DECLARE Sub WriteSliceFileLine (BYREF f AS SliceFileWrite, s AS STRING)
+DECLARE Sub SaveSlice (BYREF f AS SliceFileWrite, BYVAL sl AS Slice Ptr)
+
 
 EXTERN Slices() as Slice ptr
 EXTERN AS SliceTable_ SliceTable

@@ -66,6 +66,20 @@ Sub DestroyGameSlices
  
 End Sub
 
+FUNCTION SliceTypeName (sl AS Slice Ptr) AS STRING
+ SELECT CASE sl->SliceType
+  CASE slRoot:           RETURN "Root"
+  CASE slSpecial:        RETURN "Special"
+  CASE slRectangle:      RETURN "Rectangle"
+  CASE slStyleRectangle: RETURN "Styled Rect"
+  CASE slSprite:         RETURN "Sprite"
+  CASE slText:           RETURN "Text"
+  CASE slMenu:           RETURN "Menu"
+  CASE slMenuItem:       RETURN "MenuItem"
+ END SELECT
+ RETURN "Unknown"
+END FUNCTION
+
 'Creates a new Slice object, and optionally, adds it to the heirarchy somewhere
 Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  dim ret as Slice Ptr
@@ -687,3 +701,51 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
   end with
  end if
 end sub
+
+'==Slice saving and loading====================================================
+
+Sub OpenSliceFileWrite (BYREF f AS SliceFileWrite, filename AS STRING)
+ f.name = filename
+ f.indent = 0
+ f.handle = FREEFILE
+ OPEN f.name FOR OUTPUT AS f.handle
+End Sub
+
+Sub CloseSliceFileWrite (BYREF f AS SliceFileWrite)
+ IF f.indent <> 0 THEN debug "SliceFileWrite indent check fail " & f.indent & " " & f.name
+ CLOSE f.handle
+End Sub
+
+Sub WriteSliceFileLine (BYREF f AS SliceFileWrite, s AS STRING)
+ PRINT # f.handle, STRING(f.indent, " ") & s
+End sub
+
+Sub SaveSlice (BYREF f AS SliceFileWrite, BYVAL sl AS Slice Ptr)
+ WriteSliceFileLine f, "{"
+ f.indent += 1
+ WriteSliceFileLine f, "x:" & sl->X
+ WriteSliceFileLine f, "y:" & sl->Y
+ WriteSliceFileLine f, "w:" & sl->Width
+ WriteSliceFileLine f, "h:" & sl->Height
+ WriteSliceFileLine f, "vis:" & yesorno(sl->Visible, "true", "false")
+ 'WriteSliceFileLine f, "alignh:" & sl->AlignHoriz
+ 'WriteSliceFileLine f, "alignv:" & sl->AlignVert
+ WriteSliceFileLine f, "padt:" & sl->PaddingTop
+ WriteSliceFileLine f, "padl:" & sl->PaddingLeft
+ WriteSliceFileLine f, "padr:" & sl->PaddingRight
+ WriteSliceFileLine f, "padb:" & sl->PaddingBottom
+ WriteSliceFileLine f, "fill:" & yesorno(sl->Fill, "true", "false")
+ 'WriteSliceFileLine f, "attach:" & sl->Attach 'FIXME: should probably store this as a string?
+ 'WriteSliceFileLine f, "attached:" 'this should definitely NOT be the pointer. Instead need some other scheme for storing this
+ WriteSliceFileLine f, "type:" & SliceTypeName(sl)
+ 'sl->Save(f)
+ 'Now save all children
+ WriteSliceFileLine f, "child:"
+ DIM child AS Slice Ptr = sl->FirstChild
+ DO WHILE child <> 0
+  SaveSlice f, child
+  child = child->NextSibling
+ LOOP
+ f.indent -= 1
+ WriteSliceFileLine f, "}"
+End sub
