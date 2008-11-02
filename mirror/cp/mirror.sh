@@ -46,6 +46,8 @@ if [ ${SIZE} -lt 150000 ] ; then
   exit 1
 fi
 
+clamscan -i -r
+
 date "+%Y-%m-%d" > date.txt
 echo "${URL}" | cut -d "?" -f "1" > url.txt
 
