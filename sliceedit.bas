@@ -217,6 +217,11 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
     state.need_update = YES
    END IF
    IF enter_or_space() THEN *n = NOT *n : state.need_update = YES
+  CASE erStrgrabber
+   DIM s AS STRING PTR = rule.dataptr
+   IF strgrabber(*s, 256) THEN 'FIXME: this is a bad max length. Should there be a max?
+    state.need_update = YES
+   END IF
  END SELECT
  DIM switchtype AS INTEGER = NO
  SELECT CASE rule.group
@@ -343,6 +348,17 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
     sliceed_rule_tog rules(), @(dat->transparent)
     string_array_grow_append menu(), "Hide Border: " & yesorno(dat->hideborder)
     sliceed_rule_tog rules(), @(dat->hideborder)
+   CASE slText
+    DIM dat AS TextSliceData Ptr
+    dat = .SliceData
+    string_array_grow_append menu(), "Text: " & dat->s
+    sliceed_rule rules(), erStrgrabber, @(dat->s), 0, 0
+    string_array_grow_append menu(), "Color: " & dat->col
+    sliceed_rule rules(), erIntgrabber, @(dat->col), 0, 255, slgrPICKCOL
+    string_array_grow_append menu(), "Outline: " & yesorno(dat->outline)
+    sliceed_rule_tog rules(), @(dat->outline)
+    string_array_grow_append menu(), "Wrap: " & yesorno(dat->wrap)
+    sliceed_rule_tog rules(), @(dat->wrap)
    CASE slSprite
     DIM dat AS SpriteSliceData Ptr
     dat = .SliceData
