@@ -692,53 +692,49 @@ End Constructor
 
 '==General slice display=======================================================
 
+Function GetSliceDrawAttachParent(BYVAL sl AS Slice Ptr) AS Slice Ptr
+ WITH *sl
+  SELECT CASE .Attach
+   case slSlice
+    if .Attached then
+     RETURN .Attached
+    elseif .parent then
+     RETURN .parent
+    else
+     'Fall through, use screen
+    end if
+   case slScreen
+    'Fall through, use screen
+  END SELECT
+ END WITH
+ '--When no attached slice is found (or when we are explicitly attached to the screen)
+ DIM screenslice AS Slice Ptr = NewSlice()
+ WITH *screenslice
+  .X = 0
+  .Y = 0
+  .ScreenX = 0
+  .ScreenY = 0
+  .Width = 320
+  .Height = 200
+ END WITH
+ RETURN screenslice
+End Function
+
 Sub DrawSlice(byval s as slice ptr, byval page as integer)
  'first, draw this slice
  if s->Visible then
   'calc it's X,Y
+  DIM attach AS Slice Ptr
+  attach = GetSliceDrawAttachParent(s)
   with *s
    IF .Fill then
-    SELECT CASE .Attach
-     case slScreen
-      .ScreenX = 0
-      .ScreenY = 0
-      .Width = 320
-      .height = 200
-     case slSlice
-      if .Attached then
-       .ScreenX = .Attached->ScreenX + .Attached->paddingleft
-       .ScreenY = .Attached->ScreenY + .Attached->paddingtop
-       .Width = .Attached->Width - .Attached->paddingleft - .Attached->paddingRight
-       .height = .Attached->height - .Attached->paddingtop - .Attached->paddingbottom
-      elseif .parent then
-       .ScreenX = .Parent->ScreenX + .Parent->paddingleft
-       .ScreenY = .Parent->ScreenY + .Parent->paddingtop
-       .Width = .Parent->Width - .Parent->paddingleft - .Parent->paddingRight
-       .height = .Parent->height - .Parent->paddingtop - .Parent->paddingbottom
-      else
-      .ScreenX = 0
-      .ScreenY = 0
-      .Width = 320
-      .height = 200
-      end if
-    END SELECT
+    .ScreenX = attach->ScreenX + attach->paddingLeft
+    .ScreenY = attach->ScreenY + attach->paddingTop
+    .Width = attach->Width - attach->paddingLeft - attach->paddingRight
+    .height = attach->Height - attach->paddingTop - attach->paddingBottom
    ELSE ' Not fill
-    SELECT CASE .Attach
-     case slScreen
-      .ScreenX = .X
-      .ScreenY = .Y
-     case slSlice
-      if .Attached then
-       .ScreenX = .X + .Attached->ScreenX + .Attached->paddingleft
-       .ScreenY = .Y + .Attached->ScreenY + .Attached->paddingtop
-      elseif .parent then
-       .ScreenX = .X + .parent->ScreenX + .Parent->paddingleft
-       .ScreenY = .Y + .parent->ScreenY + .Parent->paddingtop
-      else
-       .ScreenX = .X
-       .ScreenY = .Y
-      end if
-    END SELECT
+    .ScreenX = .X + attach->ScreenX + attach->paddingLeft
+    .ScreenY = .Y + attach->ScreenY + attach->paddingTop
    END IF
    
    if .Draw <> 0 THEN .Draw(s, page)
