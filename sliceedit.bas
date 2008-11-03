@@ -373,7 +373,16 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
     string_array_grow_append menu(), "Sprite Frame: " & dat->frame
     sliceed_rule rules(), erIntgrabber, @(dat->frame), 0, sprite_sizes(dat->spritetype).frames - 1
   END SELECT
+  string_array_grow_append menu(), "Padding Top: " & .PaddingTop
+  sliceed_rule rules(), erIntgrabber, @.PaddingTop, -9999, 9999
+  string_array_grow_append menu(), "Padding Right: " & .PaddingRight
+  sliceed_rule rules(), erIntgrabber, @.PaddingRight, -9999, 9999
+  string_array_grow_append menu(), "Padding Bottom: " & .PaddingBottom
+  sliceed_rule rules(), erIntgrabber, @.PaddingBottom, -9999, 9999
+  string_array_grow_append menu(), "Padding Left: " & .PaddingLeft
+  sliceed_rule rules(), erIntgrabber, @.PaddingLeft, -9999, 9999
  END WITH
+  
  state.last = UBOUND(menu)
  state.pt = small(state.pt, state.last)
  state.top = small(state.top, state.pt)

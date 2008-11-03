@@ -722,7 +722,7 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
       .height = 200
       end if
     END SELECT
-   ELSE
+   ELSE ' Not fill
     SELECT CASE .Attach
      case slScreen
       .ScreenX = .X
