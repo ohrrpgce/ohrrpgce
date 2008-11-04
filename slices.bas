@@ -29,6 +29,19 @@ Dim SliceTable as SliceTable_
 
 'add other slice tables here
 
+'ScreenSlice is used by other slices with ->Attach = slScreen
+DIM SHARED ScreenSlice AS Slice Ptr
+ScreenSlice = NewSlice()
+WITH *ScreenSlice
+ 'Note that .Attach is NOT set to slScreen here. slScreen uses this, not the othetr way around
+ .X = 0
+ .Y = 0
+ .ScreenX = 0
+ .ScreenY = 0
+ .Width = 320
+ .Height = 200
+END WITH
+
 '==General slice code==========================================================
 
 'stub functions:
@@ -708,16 +721,7 @@ Function GetSliceDrawAttachParent(BYVAL sl AS Slice Ptr) AS Slice Ptr
   END SELECT
  END WITH
  '--When no attached slice is found (or when we are explicitly attached to the screen)
- DIM screenslice AS Slice Ptr = NewSlice()
- WITH *screenslice
-  .X = 0
-  .Y = 0
-  .ScreenX = 0
-  .ScreenY = 0
-  .Width = 320
-  .Height = 200
- END WITH
- RETURN screenslice
+ RETURN ScreenSlice
 End Function
 
 Function SliceXAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEGER

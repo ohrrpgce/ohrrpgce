@@ -53,6 +53,8 @@ TYPE Slice
   
   AlignHoriz as integer 'Relative to parent. 0,1,2=Left,Mid,Right. Only used when .Fill = NO
   AlignVert as integer  'Relative to parent. 0,1,2=Top,Mid,Bottom. Only used when .Fill = NO
+  AnchorHoriz as integer 'Relative to self. 0,1,2=Left,Mid,Right. Only used when .Fill = NO
+  AnchorVert as integer  'Relative to self. 0,1,2=Top,Mid,Bottom. Only used when .Fill = NO
   
   as integer PaddingTop, PaddingLeft, PaddingRight, PaddingBottom
   
