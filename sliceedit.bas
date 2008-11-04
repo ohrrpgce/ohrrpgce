@@ -176,6 +176,7 @@ SUB slice_editor ()
  OpenSliceFileWrite f, workingdir & SLASH & "slicetree_0.txt"
  SaveSlice f, edslice
  CloseSliceFileWrite f
+ DeleteSlice @edslice
 
 END SUB
 
