@@ -720,6 +720,22 @@ Function GetSliceDrawAttachParent(BYVAL sl AS Slice Ptr) AS Slice Ptr
  RETURN screenslice
 End Function
 
+Function SliceXAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEGER
+ SELECT CASE sl->AlignHoriz
+  CASE 0: RETURN alignTo->ScreenX + alignTo->paddingLeft
+  CASE 1: RETURN alignTo->ScreenX + alignTo->paddingLeft + (alignTo->Width - alignTo->paddingLeft - alignTo->paddingRight) \ 2
+  CASE 2: RETURN alignTo->ScreenX + alignTo->Width - alignTo->paddingRight
+ END SELECT
+End Function
+
+Function SliceYAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEGER
+ SELECT CASE sl->AlignVert
+  CASE 0: RETURN alignTo->ScreenY + alignTo->paddingTop
+  CASE 1: RETURN alignTo->ScreenY + alignTo->paddingTop + (alignTo->Height - alignTo->paddingTop - alignTo->paddingBottom) \ 2
+  CASE 2: RETURN alignTo->ScreenY + alignTo->Height - alignTo->paddingBottom
+ END SELECT
+End Function
+
 Sub DrawSlice(byval s as slice ptr, byval page as integer)
  'first, draw this slice
  if s->Visible then
@@ -733,8 +749,8 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
     .Width = attach->Width - attach->paddingLeft - attach->paddingRight
     .height = attach->Height - attach->paddingTop - attach->paddingBottom
    ELSE ' Not fill
-    .ScreenX = .X + attach->ScreenX + attach->paddingLeft
-    .ScreenY = .Y + attach->ScreenY + attach->paddingTop
+    .ScreenX = .X + SliceXAlign(s, attach)
+    .ScreenY = .Y + SliceYAlign(s, attach)
    END IF
    
    if .Draw <> 0 THEN .Draw(s, page)
@@ -789,8 +805,8 @@ Sub SaveSlice (BYREF f AS SliceFileWrite, BYVAL sl AS Slice Ptr)
  WriteSliceFileVal f, "w", sl->Width
  WriteSliceFileVal f, "h", sl->Height
  WriteSliceFileBool f, "vis", sl->Visible
- 'WriteSliceFileVal f, "alignh", sl->AlignHoriz
- 'WriteSliceFileVal f, "alignv", sl->AlignVert
+ WriteSliceFileVal f, "alignh", sl->AlignHoriz
+ WriteSliceFileVal f, "alignv", sl->AlignVert
  WriteSliceFileVal f, "padt", sl->PaddingTop
  WriteSliceFileVal f, "padl", sl->PaddingLeft
  WriteSliceFileVal f, "padr", sl->PaddingRight

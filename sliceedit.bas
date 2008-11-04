@@ -69,6 +69,17 @@ DECLARE SUB sliceed_rule_none(rules() AS EditRule, BYVAL group AS INTEGER = 0)
 
 '==============================================================================
 
+DIM SHARED HorizCaptions(2) AS STRING
+DIM SHARED VertCaptions(2) AS STRING
+HorizCaptions(0) = "Left"
+HorizCaptions(1) = "Center"
+HorizCaptions(2) = "Right"
+VertCaptions(0) = "Top"
+VertCaptions(1) = "Center"
+VertCaptions(2) = "Bottom"
+
+'==============================================================================
+
 SUB slice_editor ()
 
  DIM edslice AS Slice Ptr
@@ -311,7 +322,7 @@ SUB sliceed_rule_tog(rules() AS EditRule, BYVAL dataptr AS INTEGER PTR, BYVAL gr
 END SUB
 
 SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr, rules() AS EditRule)
- REDIM menu(7)
+ REDIM menu(5)
  REDIM rules(0)
  menu(0) = "Previous Menu"
  WITH *sl
@@ -325,10 +336,6 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
   sliceed_rule rules(), erIntgrabber, @.Width, 0, 9999, slgrPICKWH
   menu(5) = "Height: " & .Height
   sliceed_rule rules(), erIntgrabber, @.Height, 0, 9999, slgrPICKWH
-  menu(6) = "Visible: " & yesorno(.Visible)
-  sliceed_rule_tog rules(), @.Visible
-  menu(7) = "Fill Parent: " & yesorno(.Fill)
-  sliceed_rule_tog rules(), @.Fill
   SELECT CASE .SliceType
    CASE slRectangle
     DIM dat AS RectangleSliceData Ptr
@@ -373,6 +380,16 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
     string_array_grow_append menu(), "Sprite Frame: " & dat->frame
     sliceed_rule rules(), erIntgrabber, @(dat->frame), 0, sprite_sizes(dat->spritetype).frames - 1
   END SELECT
+  string_array_grow_append menu(), "Visible: " & yesorno(.Visible)
+  sliceed_rule_tog rules(), @.Visible
+  string_array_grow_append menu(), "Fill Parent: " & yesorno(.Fill)
+  sliceed_rule_tog rules(), @.Fill
+  IF .Fill = NO THEN
+   string_array_grow_append menu(), "Align horiz. with: " & HorizCaptions(.AlignHoriz)
+   sliceed_rule rules(), erIntgrabber, @.AlignHoriz, 0, 2
+   string_array_grow_append menu(), "Align vert. with: " & VertCaptions(.AlignVert)
+   sliceed_rule rules(), erIntgrabber, @.AlignVert, 0, 2
+  END IF
   string_array_grow_append menu(), "Padding Top: " & .PaddingTop
   sliceed_rule rules(), erIntgrabber, @.PaddingTop, -9999, 9999
   string_array_grow_append menu(), "Padding Right: " & .PaddingRight

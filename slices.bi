@@ -51,8 +51,8 @@ TYPE Slice
   Height as integer
   Visible as integer
   
-  AlignHoriz as integer 'FIXME: not implemented yet
-  AlignVert as integer  'FIXME: not implemented yet
+  AlignHoriz as integer 'Relative to parent. 0,1,2=Left,Mid,Right. Only used when .Fill = NO
+  AlignVert as integer  'Relative to parent. 0,1,2=Top,Mid,Bottom. Only used when .Fill = NO
   
   as integer PaddingTop, PaddingLeft, PaddingRight, PaddingBottom
   
@@ -164,7 +164,6 @@ DECLARE Sub SaveSlice (BYREF f AS SliceFileWrite, BYVAL sl AS Slice Ptr)
 
 EXTERN Slices() as Slice ptr
 EXTERN AS SliceTable_ SliceTable
-
 
 'NEW SLICE TYPE TEMPLATE
 'INSTRUCTIONS: Copy the following block into Slices.bas.
