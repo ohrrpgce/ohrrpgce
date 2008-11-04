@@ -87,5 +87,7 @@ scp -p mirror.tar.bz2 james_paige@motherhamster.org:mirror.motherhamster.org/
 ssh james_paige@motherhamster.org mirror.motherhamster.org/expand.sh wiki
 
 echo "uploading mirror to sourceforge"
-scp -p mirror.tar.bz2 bob_the_hamster@shell.sourceforge.net:tmp/
-ssh bob_the_hamster@shell.sourceforge.net sh script/ohrrpgce-mirror.sh
+ssh bob_the_hamster,ohrrpgce@shell.sourceforge.net create
+scp -p mirror.tar.bz2 bob_the_hamster,ohrrpgce@shell.sourceforge.net:tmp/
+ssh bob_the_hamster,ohrrpgce@shell.sourceforge.net sh script/ohrrpgce-mirror.sh
+ssh bob_the_hamster,ohrrpgce@shell.sourceforge.net shutdown
