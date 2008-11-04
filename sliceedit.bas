@@ -87,6 +87,8 @@ SUB slice_editor ()
  WITH *edslice
   .Attach = slScreen
   .SliceType = slRoot
+  .Width = 320
+  .Height = 200
  END WITH
  NewSlice(edslice)
 
@@ -390,6 +392,10 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
    sliceed_rule rules(), erIntgrabber, @.AlignHoriz, 0, 2
    string_array_grow_append menu(), "Align vert. with: " & VertCaptions(.AlignVert)
    sliceed_rule rules(), erIntgrabber, @.AlignVert, 0, 2
+   string_array_grow_append menu(), "Anchor horiz. on: " & HorizCaptions(.AnchorHoriz)
+   sliceed_rule rules(), erIntgrabber, @.AnchorHoriz, 0, 2
+   string_array_grow_append menu(), "Anchor vert. on: " & VertCaptions(.AnchorVert)
+   sliceed_rule rules(), erIntgrabber, @.AnchorVert, 0, 2
   END IF
   string_array_grow_append menu(), "Padding Top: " & .PaddingTop
   sliceed_rule rules(), erIntgrabber, @.PaddingTop, -9999, 9999

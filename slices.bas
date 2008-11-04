@@ -740,6 +740,22 @@ Function SliceYAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEG
  END SELECT
 End Function
 
+Function SliceXAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
+ SELECT CASE sl->AnchorHoriz
+  CASE 0: RETURN 0
+  CASE 1: RETURN sl->Width \ 2
+  CASE 2: RETURN sl->Width
+ END SELECT
+End Function
+
+Function SliceYAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
+ SELECT CASE sl->AnchorVert
+  CASE 0: RETURN 0
+  CASE 1: RETURN sl->Height \ 2
+  CASE 2: RETURN sl->Height
+ END SELECT
+End Function
+
 Sub DrawSlice(byval s as slice ptr, byval page as integer)
  'first, draw this slice
  if s->Visible then
@@ -753,8 +769,8 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
     .Width = attach->Width - attach->paddingLeft - attach->paddingRight
     .height = attach->Height - attach->paddingTop - attach->paddingBottom
    ELSE ' Not fill
-    .ScreenX = .X + SliceXAlign(s, attach)
-    .ScreenY = .Y + SliceYAlign(s, attach)
+    .ScreenX = .X + SliceXAlign(s, attach) - SliceXAnchor(s)
+    .ScreenY = .Y + SliceYAlign(s, attach) - SliceYAnchor(s)
    END IF
    
    if .Draw <> 0 THEN .Draw(s, page)
