@@ -646,7 +646,7 @@ Sub SaveSpriteSlice(byval sl as slice ptr, byref f as SliceFileWrite)
  dat = sl->SliceData
  WriteSliceFileVal f, "sprtype", dat->spritetype
  WriteSliceFileVal f, "rec", dat->record
- WriteSliceFileVal f, "pal", dat->pal
+ WriteSliceFileVal f, "pal", dat->pal, -1
  WriteSliceFileVal f, "frame", dat->frame
 end sub
 
@@ -1001,7 +1001,10 @@ Sub WriteSliceFileLine (BYREF f AS SliceFileWrite, s AS STRING)
  PRINT # f.handle, STRING(f.indent, " ") & s
 End sub
 
-Sub WriteSliceFileVal (BYREF f AS SliceFileWrite, nam AS STRING, s AS STRING, quotes AS INTEGER=YES)
+Sub WriteSliceFileVal (BYREF f AS SliceFileWrite, nam AS STRING, s AS STRING, quotes AS INTEGER=YES, default AS STRING="", BYVAL skipdefault AS INTEGER=YES)
+ IF skipdefault THEN
+  IF s = default THEN EXIT SUB
+ END IF
  DIM valstring AS STRING = s
  IF quotes THEN
   valstring = """" & EscapeChar(s, """") & """"
@@ -1009,11 +1012,17 @@ Sub WriteSliceFileVal (BYREF f AS SliceFileWrite, nam AS STRING, s AS STRING, qu
  WriteSliceFileLine f, LCASE(nam) & ":" & valstring
 End Sub
 
-Sub WriteSliceFileVal (BYREF f AS SliceFileWrite, nam AS STRING, n AS INTEGER)
+Sub WriteSliceFileVal (BYREF f AS SliceFileWrite, nam AS STRING, n AS INTEGER, default AS INTEGER=0, BYVAL skipdefault AS INTEGER=YES)
+ IF skipdefault THEN
+  IF n = default THEN EXIT SUB
+ END IF
  WriteSliceFileLine f, LCASE(nam) & ":" & n
 End Sub
 
-Sub WriteSliceFileBool (BYREF f AS SliceFileWrite, nam AS STRING, b AS INTEGER)
+Sub WriteSliceFileBool (BYREF f AS SliceFileWrite, nam AS STRING, b AS INTEGER, default AS INTEGER=NO, BYVAL skipdefault AS INTEGER=YES)
+ IF skipdefault THEN
+  IF b = default THEN EXIT SUB
+ END IF
  WriteSliceFileVal f, nam, yesorno(b, "true", "false"), NO
 End Sub
 
@@ -1036,7 +1045,7 @@ Sub SaveSlice (BYREF f AS SliceFileWrite, BYVAL sl AS Slice Ptr)
  WriteSliceFileBool f, "fill", sl->Fill
  'WriteSliceFileVal f, "attach", sl->Attach 'FIXME: should probably store this as a string?
  'WriteSliceFileVal f, "attached", "" 'this should definitely NOT be the pointer. Instead need some other scheme for storing this
- WriteSliceFileVal f, "type", SliceTypeName(sl)
+ WriteSliceFileVal f, "type", SliceTypeName(sl), , , NO 'Never omit type, even if it something crazy like ""
  'Now save all properties specific to this type of slice
  sl->Save(sl, f)
  IF sl->NumChildren > 0 THEN

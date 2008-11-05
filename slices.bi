@@ -169,9 +169,9 @@ DECLARE Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSl
 DECLARE Sub OpenSliceFileWrite (BYREF f AS SliceFileWrite, filename AS STRING)
 DECLARE Sub CloseSliceFileWrite (BYREF f AS SliceFileWrite)
 DECLARE Sub WriteSliceFileLine (BYREF f AS SliceFileWrite, s AS STRING)
-DECLARE Sub WriteSliceFileVal OVERLOAD (BYREF f AS SliceFileWrite, nam AS STRING, s AS STRING, quotes AS INTEGER=YES)
-DECLARE Sub WriteSliceFileVal OVERLOAD (BYREF f AS SliceFileWrite, nam AS STRING, n AS INTEGER)
-DECLARE Sub WriteSliceFileBool (BYREF f AS SliceFileWrite, nam AS STRING, b AS INTEGER)
+DECLARE Sub WriteSliceFileVal OVERLOAD (BYREF f AS SliceFileWrite, nam AS STRING, s AS STRING, quotes AS INTEGER=YES, default AS STRING="", BYVAL skipdefault AS INTEGER=YES)
+DECLARE Sub WriteSliceFileVal OVERLOAD (BYREF f AS SliceFileWrite, nam AS STRING, n AS INTEGER, default AS INTEGER=0, BYVAL skipdefault AS INTEGER=YES)
+DECLARE Sub WriteSliceFileBool (BYREF f AS SliceFileWrite, nam AS STRING, b AS INTEGER, default AS INTEGER=NO, BYVAL skipdefault AS INTEGER=YES)
 DECLARE Sub SaveSlice (BYREF f AS SliceFileWrite, BYVAL sl AS Slice Ptr)
 
 DECLARE Sub OpenSliceFileRead (BYREF f AS SliceFileRead, filename AS STRING)
