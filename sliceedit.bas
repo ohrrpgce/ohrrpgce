@@ -49,6 +49,7 @@ DECLARE SUB slice_editor ()
 
 'Functions that might go better in slices.bas ... we shall see
 DECLARE FUNCTION SlicePositionString (sl AS Slice Ptr) AS STRING
+DECLARE SUB DrawSliceAnts (BYVAL sl AS Slice Ptr, dpage AS INTEGER)
 
 'Functions that use awkward adoption metaphors
 DECLARE SUB SliceAdoptSister (BYVAL sl AS Slice Ptr)
@@ -62,7 +63,7 @@ DECLARE SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS Slic
 DECLARE SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
 DECLARE SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr, rules() AS EditRule)
 DECLARE SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS Slice Ptr, rules() AS EditRule)
-DECLARE SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, rootsl AS Slice Ptr)
+DECLARE SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL focussl AS Slice Ptr, BYVAL rootsl AS Slice Ptr)
 
 'Functions that need to be aware of magic numbers for SliceType
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS SliceTypes) AS SliceTypes
@@ -182,6 +183,9 @@ SUB slice_editor ()
   END IF
 
   DrawSlice edslice, dpage
+  IF state.pt > 0 THEN
+   DrawSliceAnts menu(state.pt).handle, dpage
+  END IF
   standardmenu plainmenu(), state, 0, 0, dpage, YES
   edgeprint "+ to add a slice. SHIFT+arrows to sort", 0, 190, uilook(uiText), dpage
 
@@ -225,6 +229,7 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
   slice_edit_detail_keys state, sl, rootsl, rules()
   
   DrawSlice rootsl, dpage
+  DrawSliceAnts sl, dpage
   standardmenu menu(), state, 0, 0, dpage, YES
 
   SWAP vpage, dpage
@@ -279,12 +284,12 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
    END IF
   CASE slgrPICKXY:
    IF enter_or_space() THEN
-    slice_editor_xy sl->X, sl->Y, rootsl
+    slice_editor_xy sl->X, sl->Y, sl, rootsl
     state.need_update = YES
    END IF
   CASE slgrPICKWH:
    IF enter_or_space() THEN
-    slice_editor_xy sl->Width, sl->Height, rootsl
+    slice_editor_xy sl->Width, sl->Height, sl, rootsl
     state.need_update = YES
    END IF
   CASE slgrPICKCOL:
@@ -304,7 +309,7 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
  END SELECT
 END SUB
 
-SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, rootsl AS Slice Ptr)
+SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL focussl AS Slice Ptr, BYVAL rootsl AS Slice Ptr)
  DIM shift AS INTEGER = 0
  setkeys
  DO
@@ -318,6 +323,7 @@ SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, rootsl AS Slice Ptr
   IF keyval(scDown)  > 0 THEN y += 1 + 9 * ABS(shift)
   IF keyval(scLeft)  > 0 THEN x -= 1 + 9 * ABS(shift)
   DrawSlice rootsl, dpage
+  DrawSliceAnts focussl, dpage
   edgeprint "Arrow keys to edit, SHIFT for speed", 0, 190, uilook(uiText), dpage
   SWAP vpage, dpage
   setvispage vpage
@@ -566,4 +572,30 @@ SUB AdjustSlicePosToNewParent (BYVAL sl AS Slice Ptr, BYVAL newparent AS Slice P
  newpos.y = newparent->ScreenY + sl->Y
  sl->X += oldpos.x - newpos.x
  sl->Y += oldpos.y - newpos.y
+END SUB
+
+SUB DrawSliceAnts (BYVAL sl AS Slice Ptr, dpage AS INTEGER)
+ STATIC ant AS INTEGER = 0
+ DIM col AS INTEGER
+ '--Draw verticals
+ FOR i AS INTEGER = 0 TO large(ABS(sl->Height) - 1, 2)
+  SELECT CASE (i + ant) MOD 3
+   CASE 0: CONTINUE FOR
+   CASE 1: col = uiLook(uiText)
+   CASE 2: col = uiLook(uiBackground)
+  END SELECT
+  putpixel sl->ScreenX, sl->ScreenY + i, col, dpage
+  putpixel sl->ScreenX + sl->Width - 1, sl->ScreenY + i, col, dpage
+ NEXT i
+ '--Draw horizontals
+ FOR i AS INTEGER = 0 TO large(ABS(sl->Width) - 1, 2)
+  SELECT CASE (i + ant) MOD 3
+   CASE 0: CONTINUE FOR
+   CASE 1: col = uiLook(uiText)
+   CASE 2: col = uiLook(uiBackground)
+  END SELECT
+  putpixel sl->ScreenX + i, sl->ScreenY, col, dpage
+  putpixel sl->ScreenX + i, sl->ScreenY + sl->Height - 1, col, dpage
+ NEXT i
+ ant = loopvar(ant, 0, 2, 1)
 END SUB

@@ -1017,7 +1017,7 @@ SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL 
 	end if
 
 	if y >= 200 or y < 0 or x < 0 then
-		debug "attempt to putpixel off-screen " & x & "," & y & "=" & c & " on page " & p
+		'debug "attempt to putpixel off-screen " & x & "," & y & "=" & c & " on page " & p
 		exit sub
 	end if
 
