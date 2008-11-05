@@ -41,6 +41,7 @@ Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
 Type SliceDispose as Sub(Byval as SliceFwd ptr)
 Type SliceUpdate as Sub(Byval as SliceFwd ptr)
 Type SliceSave as Sub(Byval as SliceFwd ptr, byref f as SliceFileWrite)
+Type SliceLoad as Function(Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
 
 TYPE Slice
   Parent as Slice Ptr
@@ -75,6 +76,7 @@ TYPE Slice
   Dispose as SliceDispose
   Update as SliceUpdate
   Save as SliceSave
+  Load as SliceLoad
   SliceData as any ptr
   SliceType as SliceTypes
   
@@ -208,6 +210,24 @@ Function Get<TYPENAME>SliceData(byval sl as slice ptr) as <TYPENAME>SliceData pt
  return sl->SliceData
 End Function
 
+Sub Save<TYPENAME>Slice(byval sl as slice ptr, byref f as SliceFileWrite)
+ DIM dat AS <TYPENAME>SliceData Ptr
+ dat = sl->SliceData
+ 'WriteSliceFileVal f, "keyname", dat->datamember
+End Sub
+
+Function Load<TYPENAME>Slice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
+ 'Return value is YES if the key is understood, NO if ignored
+ 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
+ dim dat AS <TYPENAME>SliceData Ptr
+ dat = sl->SliceData
+ select case key
+  'case "keyname": dat->datamember = n
+  case else: return NO
+ end select
+ return YES
+End Function
+
 Function New<TYPENAME>Slice(byval parent as Slice ptr, byref dat as <TYPENAME>SliceData) as slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
@@ -223,6 +243,8 @@ Function New<TYPENAME>Slice(byval parent as Slice ptr, byref dat as <TYPENAME>Sl
  ret->SliceData = d
  ret->Draw = @Draw<TYPENAME>Slice
  ret->Dispose = @Dispose<TYPENAME>Slice
+ ret->Save = @Save<TYPENAME>Slice
+ ret->Load = @Load<TYPENAME>Slice
  
  return ret
 end function

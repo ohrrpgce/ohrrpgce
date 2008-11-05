@@ -23,6 +23,13 @@
 
 '==============================================================================
 
+'String manipulation functions used by save/load
+DECLARE Function StripQuotes (s AS STRING) AS STRING
+DECLARE Function EscapeChar (s AS STRING, char AS STRING, escaper AS STRING="\") AS STRING
+DECLARE Function FindUnquotedChar (s AS STRING, char AS STRING) AS INTEGER
+
+'==============================================================================
+
 REDIM Slices(100) as Slice Ptr
 
 Dim SliceTable as SliceTable_
@@ -49,6 +56,7 @@ Sub DrawNullSlice(byval s as slice ptr, byval p as integer) : end sub
 Sub DisposeNullSlice(byval s as slice ptr) : end sub
 Sub UpdateNullSlice(byval s as slice ptr) : end sub
 Sub SaveNullSlice(byval s as slice ptr, byref f as SliceFileWrite) : end sub
+Function LoadNullSlice(Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer : return NO: end function
 
 Sub SetupGameSlices
  SliceTable.Root = NewSlice
@@ -163,6 +171,7 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  ret->Dispose = @DisposeNullSlice
  ret->Update = @UpdateNullSlice
  ret->Save = @SaveNullSlice
+ ret->Load = @LoadNullSlice
  
  return ret
 End Function
@@ -344,6 +353,8 @@ Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
   sl->Draw      = .Draw
   sl->Dispose   = .Dispose
   sl->Update    = .Update
+  sl->Save      = .Save
+  sl->Load      = .Load
   sl->SliceData = .SliceData
   sl->SliceType = .SliceType
   'Break slice connection to data
@@ -393,6 +404,21 @@ Sub SaveRectangleSlice(byval sl as slice ptr, byref f as SliceFileWrite)
  WriteSliceFileBool f, "border", dat->border
 End Sub
 
+Function LoadRectangleSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
+ 'Return value is YES if the key is understood, NO if ignored
+ 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
+ dim dat AS RectangleSliceData Ptr
+ dat = sl->SliceData
+ select case key
+  case "fg": dat->fgcol = n
+  case "bg": dat->bgcol = n
+  case "trans": dat->transparent = n
+  case "border": dat->border = n
+  case else: return NO
+ end select
+ return YES
+End Function
+
 Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
@@ -409,6 +435,7 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
  ret->Draw = @DrawRectangleSlice
  ret->Dispose = @DisposeRectangleSlice
  ret->Save = @SaveRectangleSlice
+ ret->Load = @LoadRectangleSlice
  
  return ret
 end function
@@ -443,8 +470,22 @@ Sub SaveStyleRectangleSlice(byval sl as slice ptr, byref f as SliceFileWrite)
  dat = sl->SliceData
  WriteSliceFileVal f, "style", dat->style
  WriteSliceFileBool f, "trans", dat->transparent
- WriteSliceFileBool f, "hideborder", dat->hideborder
+ WriteSliceFileBool f, "hideb", dat->hideborder
 End Sub
+
+Function LoadStyleRectangleSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
+ 'Return value is YES if the key is understood, NO if ignored
+ 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
+ dim dat AS StyleRectangleSliceData Ptr
+ dat = sl->SliceData
+ select case key
+  case "style": dat->style = n
+  case "trans": dat->transparent = n
+  case "hideb": dat->hideborder = n
+  case else: return NO
+ end select
+ return YES
+End Function
 
 Function NewStyleRectangleSlice(byval parent as Slice ptr, byref dat as StyleRectangleSliceData) as slice ptr
  dim ret as Slice ptr
@@ -462,6 +503,7 @@ Function NewStyleRectangleSlice(byval parent as Slice ptr, byref dat as StyleRec
  ret->Draw = @DrawStyleRectangleSlice
  ret->Dispose = @DisposeStyleRectangleSlice
  ret->Save = @SaveStyleRectangleSlice
+ ret->Load = @LoadStyleRectangleSlice
  
  return ret
 end function
@@ -526,6 +568,21 @@ Sub SaveTextSlice(byval sl as slice ptr, byref f as SliceFileWrite)
  WriteSliceFileBool f, "wrap", dat->wrap
 End Sub
 
+Function LoadTextSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
+ 'Return value is YES if the key is understood, NO if ignored
+ 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
+ dim dat AS TextSliceData Ptr
+ dat = sl->SliceData
+ select case key
+  case "s": dat->s = StripQuotes(valstr) : checkn = NO
+  case "col": dat->col = n
+  case "outline": dat->outline = n
+  case "wrap": dat->wrap = n
+  case else: return NO
+ end select
+ return YES
+End Function
+
 Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
@@ -543,6 +600,7 @@ Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as 
  ret->Dispose = @DisposeTextSlice
  ret->Update = @UpdateTextSlice
  ret->Save = @SaveTextSlice
+ ret->Load = @LoadTextSlice
 
  ret->Width = textwidth(d->s)
  'split(d->s, d->lines())
@@ -592,6 +650,21 @@ Sub SaveSpriteSlice(byval sl as slice ptr, byref f as SliceFileWrite)
  WriteSliceFileVal f, "frame", dat->frame
 end sub
 
+Function LoadSpriteSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
+ 'Return value is YES if the key is understood, NO if ignored
+ 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
+ dim dat AS SpriteSliceData Ptr
+ dat = sl->SliceData
+ select case key
+  case "sprtype": dat->spritetype = n
+  case "rec": dat->record = n
+  case "pal": dat->pal = n
+  case "frame": dat->frame = n
+  case else: return NO
+ end select
+ return YES
+End Function
+
 Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
@@ -608,6 +681,7 @@ Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData)
  ret->Draw = @DrawSpriteSlice
  ret->Dispose = @DisposeSpriteSlice
  ret->Save = @SaveSpriteSlice
+ ret->Load = @LoadSpriteSlice
  
  return ret
 end function
@@ -641,6 +715,20 @@ Sub SaveMenuSlice(byval sl as slice ptr, byref f as SliceFileWrite)
  debug "SaveMenuSlice not implemented"
 end sub
 
+Function LoadMenuSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
+ 'Return value is YES if the key is understood, NO if ignored
+ 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
+ dim dat AS MenuSliceData Ptr
+ dat = sl->SliceData
+ 'FIXME: Implement me!
+ debug "LoadMenuSlice not implemented"
+ select case key
+  'case "keyname": dat->datamember = n
+  case else: return NO
+ end select
+ return YES
+End Function
+
 Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
@@ -657,6 +745,7 @@ Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as 
  ret->Draw = @DrawMenuSlice
  ret->Dispose = @DisposeMenuSlice
  ret->Save = @SaveMenuSlice
+ ret->Load = @LoadMenuSlice
  
  return ret
 end function
@@ -709,6 +798,20 @@ Sub SaveMenuItemSlice(byval sl as slice ptr, byref f as SliceFileWrite)
  debug "SaveMenuItemSlice not implemented"
 end sub
 
+Function LoadMenuItemSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
+ 'Return value is YES if the key is understood, NO if ignored
+ 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
+ dim dat AS MenuItemSliceData Ptr
+ dat = sl->SliceData
+ 'FIXME: Implement me!
+ debug "LoadMenuItemSlice not implemented"
+ select case key
+  'case "keyname": dat->datamember = n
+  case else: return NO
+ end select
+ return YES
+End Function
+
 Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceData) as slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
@@ -727,6 +830,7 @@ Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceD
  ret->Draw = @DrawMenuItemSlice
  ret->Dispose = @DisposeMenuItemSlice
  ret->Save = @SaveMenuItemSlice
+ ret->Load = @LoadMenuItemSlice
  
  return ret
 end function
@@ -1073,8 +1177,14 @@ Sub LoadSlice (BYREF f AS SliceFileRead, BYVAL sl AS Slice Ptr, BYVAL skip_to_re
       newsl = NewSlice(sl)
       LoadSlice f, newsl
       mode = lsmNextChild
+     CASE ELSE
+      '--This key was not understood as a genereric data member, check to see if
+      '--it is understood as a data member specific to this type
+      IF sl->Load(sl, key, valstr, n, checkn) = NO THEN
+       debug "LoadSlice ignored key """ & key & """ at line " & f.linenum
+       debug rawline
+      END IF
     END SELECT
-    'sl->Load(sl, key, valstr, n, checkn)
     IF checkn THEN
      IF STR(n) = valstr OR (n = -1 AND valstr = "true") OR (n = 0 AND valstr = "false") THEN
      ELSE
