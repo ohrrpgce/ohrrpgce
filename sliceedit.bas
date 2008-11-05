@@ -28,6 +28,14 @@ END TYPE
 
 '==============================================================================
 
+DIM SHARED editable_slice_types(3) AS SliceTypes
+editable_slice_types(0) = SlRectangle
+editable_slice_types(1) = SlStyleRectangle
+editable_slice_types(2) = SlSprite
+editable_slice_types(3) = SlText
+
+'==============================================================================
+
 CONST slgrPICKTYPE = 1
 CONST slgrPICKXY = 2
 CONST slgrPICKWH = 3
@@ -57,10 +65,7 @@ DECLARE SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, r
 DECLARE SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, rootsl AS Slice Ptr)
 
 'Functions that need to be aware of magic numbers for SliceType
-DECLARE FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS INTEGER) AS INTEGER
-DECLARE FUNCTION slice_type_as_number (slice_type AS SliceTypes) AS INTEGER
-DECLARE FUNCTION new_slice_by_number (slice_type_number AS INTEGER) AS Slice Ptr
-DECLARE FUNCTION SliceTypeNameByNum (num AS INTEGER) AS STRING
+DECLARE FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS SliceTypes) AS SliceTypes
 
 'Slice EditRule convenience functions
 DECLARE SUB sliceed_rule(rules() AS EditRule, mode AS EditRuleMode, BYVAL dataptr AS ANY PTR, BYVAL lower AS INTEGER=0, BYVAL upper AS INTEGER=0, BYVAL group AS INTEGER = 0)
@@ -90,7 +95,15 @@ SUB slice_editor ()
   .Width = 320
   .Height = 200
  END WITH
- NewSlice(edslice)
+
+ DIM filename AS STRING
+ filename = workingdir & SLASH & "slicetree_0.txt"
+ IF isfile(filename) THEN
+  DIM fr AS SliceFileRead
+  OpenSliceFileRead fr, filename
+  LoadSlice fr, edslice
+  CloseSliceFileRead fr
+ END IF
 
  DIM menu(0) AS SliceEditMenuItem
  DIM plainmenu(0) AS STRING 'FIXME: This is a hack because I didn't want to re-implement standardmenu right now
@@ -102,10 +115,10 @@ SUB slice_editor ()
  END WITH
  DIM cursor_seek AS Slice Ptr = 0
 
- DIM slice_type_num AS INTEGER = 0
+ DIM slice_type AS SliceTypes
  DIM shift AS INTEGER
 
- setkeys
+  setkeys
  DO
   setwait 55
   setkeys
@@ -129,13 +142,17 @@ SUB slice_editor ()
     state.need_update = YES
    END IF 
   END IF
-  IF state.pt > 0 THEN
-   IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) THEN
-    IF slice_edit_detail_browse_slicetype(slice_type_num) THEN
-     InsertSiblingSlice menu(state.pt).handle, new_slice_by_number(slice_type_num)
-     state.need_update = YES
+  IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) THEN
+   IF slice_edit_detail_browse_slicetype(slice_type) THEN
+    IF state.pt > 0 THEN
+     InsertSiblingSlice menu(state.pt).handle, NewSliceOfType(slice_type)
+    ELSE
+     NewSliceOfType(slice_type, edslice)
     END IF
+    state.need_update = YES
    END IF
+  END IF
+  IF state.pt > 0 THEN
    IF shift THEN
     IF keyval(scUp) > 1 THEN
      SwapSiblingSlices menu(state.pt).handle, menu(state.pt).handle->PrevSibling
@@ -174,10 +191,10 @@ SUB slice_editor ()
   dowait
  LOOP
 
- DIM f AS SliceFileWrite
- OpenSliceFileWrite f, workingdir & SLASH & "slicetree_0.txt"
- SaveSlice f, edslice
- CloseSliceFileWrite f
+ DIM fw AS SliceFileWrite
+ OpenSliceFileWrite fw, workingdir & SLASH & "slicetree_0.txt"
+ SaveSlice fw, edslice
+ CloseSliceFileWrite fw
  DeleteSlice @edslice
 
 END SUB
@@ -240,8 +257,13 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
  DIM switchtype AS INTEGER = NO
  SELECT CASE rule.group
   CASE slgrPICKTYPE:
-   DIM slice_type AS INTEGER = slice_type_as_number(sl->SliceType)
-   IF intgrabber(slice_type, 0, 5) THEN
+   DIM slice_type AS SliceTypes = sl->SliceType
+   DIM slice_type_num AS INTEGER = 0
+   FOR i AS INTEGER = 0 TO UBOUND(editable_slice_types)
+    IF slice_type = editable_slice_types(i) THEN slice_type_num = i
+   NEXT i
+   IF intgrabber(slice_type_num, 0, UBOUND(editable_slice_types)) THEN
+    slice_type = editable_slice_types(slice_type_num)
     state.need_update = YES
     switchtype = YES
    END IF
@@ -252,7 +274,7 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
     END IF
    END IF
    IF switchtype THEN
-    ReplaceSlice sl, new_slice_by_number(slice_type)
+    ReplaceSliceType sl, NewSliceOfType(slice_type)
     switchtype = NO
    END IF
   CASE slgrPICKXY:
@@ -412,67 +434,19 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
  state.top = small(state.top, state.pt)
 END SUB
 
-'----------------------------------------------------------------------
-' The following four functions need to be aware of magical numbers
-
-FUNCTION SliceTypeNameByNum (num AS INTEGER) AS STRING
- 'These are arbitrary numbers that only have meaning in this editor
- SELECT CASE num
-  CASE 0: RETURN "Generic"
-  CASE 1: RETURN "Rectangle"
-  CASE 2: RETURN "Styled Rect"
-  CASE 3: RETURN "Sprite"
-  CASE 4: RETURN "Text"
-  CASE 5: RETURN "Menu"
- END SELECT
- RETURN "Unknown"
-END FUNCTION
-
-FUNCTION slice_type_as_number (slice_type AS SliceTypes) AS INTEGER
- 'These are arbitrary numbers that only have meaning in this editor
- SELECT CASE slice_type
-  CASE slRoot:           RETURN 0
-  CASE slSpecial:        RETURN 0
-  CASE slRectangle:      RETURN 1
-  CASE slStyleRectangle: RETURN 2
-  CASE slSprite:         RETURN 3
-  CASE slText:           RETURN 4
-  CASE slMenu:           RETURN 5
-  CASE slMenuItem:       RETURN 0
- END SELECT
-END FUNCTION
-
-FUNCTION new_slice_by_number (slice_type_number AS INTEGER) AS Slice Ptr
- 'These are arbitrary numbers that only have meaning in this editor
- SELECT CASE slice_type_number
-  CASE 1: DIM dat AS RectangleSliceData
-          RETURN NewRectangleSlice(0, dat)
-  CASE 2: DIM dat AS StyleRectangleSliceData
-          RETURN NewStyleRectangleSlice(0, dat)
-  CASE 3: DIM dat AS SpriteSliceData
-          dat.pal = -1 'FIXME: This is because we can't use constructors yet
-          RETURN NewSpriteSlice(0, dat)
-  CASE 4: DIM dat AS TextSliceData
-          RETURN NewTextSlice(0, dat)
-  CASE 5: DIM dat AS MenuSliceData
-          RETURN NewMenuSlice(0, dat)
-  CASE ELSE: RETURN NewSlice()
- END SELECT
-END FUNCTION
-
-FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS INTEGER) AS INTEGER
-
- DIM menu(5) AS STRING
- FOR i AS INTEGER = 0 TO UBOUND(menu)
-  menu(i) = SliceTypeNameByNum(i)
- NEXT i
+FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS SliceTypes) AS SliceTypes
 
  DIM state AS MenuState
  WITH state
-  .pt = slice_type
-  .last = UBOUND(menu)
+  .last = UBOUND(editable_slice_types)
   .size = 22
  END WITH
+
+ DIM menu(UBOUND(editable_slice_types)) AS STRING
+ FOR i AS INTEGER = 0 TO UBOUND(menu)
+  menu(i) = SliceTypeName(editable_slice_types(i))
+  IF editable_slice_types(i) = slice_type THEN state.pt = i
+ NEXT i
 
  setkeys
  DO
@@ -483,7 +457,7 @@ FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS INTEGER) AS INTE
   usemenu state
   
   IF enter_or_space() THEN
-   slice_type = state.pt
+   slice_type = editable_slice_types(state.pt)
    RETURN YES
   END IF
   
@@ -496,9 +470,6 @@ FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS INTEGER) AS INTE
  LOOP
  RETURN NO 
 END FUNCTION
-
-' The preceding four functions need to be aware of magical numbers
-'----------------------------------------------------------------------
 
 FUNCTION SlicePositionString (sl AS Slice Ptr) AS STRING
  'This shows the absolute screen position of a slice.

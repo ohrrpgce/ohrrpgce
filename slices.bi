@@ -30,6 +30,12 @@ TYPE SliceFileWrite
   indent AS INTEGER
 END TYPE
 
+TYPE SliceFileRead
+  name AS STRING
+  handle AS INTEGER
+  linenum AS INTEGER
+END TYPE
+
 Type SliceFwd as Slice
 Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
 Type SliceDispose as Sub(Byval as SliceFwd ptr)
@@ -138,11 +144,14 @@ DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
 DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr)
 DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
 DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
-DECLARE Sub ReplaceSlice(byval sl as slice ptr, byref newsl as slice ptr)
+DECLARE Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
 DECLARE Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
 DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
 DECLARE Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
-DECLARE FUNCTION SliceTypeName (sl AS Slice Ptr) AS STRING
+DECLARE FUNCTION SliceTypeName OVERLOAD (sl AS Slice Ptr) AS STRING
+DECLARE FUNCTION SliceTypeName OVERLOAD (t AS SliceTypes) AS STRING
+
+DECLARE FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0) AS Slice Ptr
 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
 DECLARE Function NewStyleRectangleSlice(byval parent as Slice ptr, byref dat as StyleRectangleSliceData) as slice ptr
@@ -162,6 +171,10 @@ DECLARE Sub WriteSliceFileVal OVERLOAD (BYREF f AS SliceFileWrite, nam AS STRING
 DECLARE Sub WriteSliceFileVal OVERLOAD (BYREF f AS SliceFileWrite, nam AS STRING, n AS INTEGER)
 DECLARE Sub WriteSliceFileBool (BYREF f AS SliceFileWrite, nam AS STRING, b AS INTEGER)
 DECLARE Sub SaveSlice (BYREF f AS SliceFileWrite, BYVAL sl AS Slice Ptr)
+
+DECLARE Sub OpenSliceFileRead (BYREF f AS SliceFileRead, filename AS STRING)
+DECLARE Sub CloseSliceFileRead (BYREF f AS SliceFileRead)
+DECLARE Sub LoadSlice (BYREF f AS SliceFileRead, BYVAL sl AS Slice Ptr, BYVAL skip_to_read AS INTEGER=NO)
 
 
 EXTERN Slices() as Slice ptr

@@ -81,7 +81,11 @@ Sub DestroyGameSlices
 End Sub
 
 FUNCTION SliceTypeName (sl AS Slice Ptr) AS STRING
- SELECT CASE sl->SliceType
+ RETURN SliceTypeName(sl->SliceType)
+END FUNCTION
+
+FUNCTION SliceTypeName (t AS SliceTypes) AS STRING
+ SELECT CASE t
   CASE slRoot:           RETURN "Root"
   CASE slSpecial:        RETURN "Special"
   CASE slRectangle:      RETURN "Rectangle"
@@ -92,6 +96,55 @@ FUNCTION SliceTypeName (sl AS Slice Ptr) AS STRING
   CASE slMenuItem:       RETURN "MenuItem"
  END SELECT
  RETURN "Unknown"
+END FUNCTION
+
+FUNCTION SliceTypeByName (s AS STRING) AS SliceTypes
+ SELECT CASE s
+  CASE "Root":           RETURN slRoot
+  CASE "Special":        RETURN slSpecial
+  CASE "Rectangle":      RETURN slRectangle
+  CASE "Styled Rect":    RETURN slStyleRectangle
+  CASE "Sprite":         RETURN slSprite
+  CASE "Text":           RETURN slText
+  CASE "Menu":           RETURN slMenu
+  CASE "MenuItem":       RETURN slMenuItem
+ END SELECT
+END FUNCTION
+
+FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0) AS Slice Ptr
+ SELECT CASE t
+  CASE slRoot:
+   DIM newsl AS Slice Ptr
+   newsl = NewSlice(parent)
+   newsl->SliceType = slRoot
+   RETURN newsl
+  CASE slSpecial:
+   DIM newsl AS Slice Ptr
+   newsl = NewSlice(parent)
+   newsl->SliceType = slSpecial
+   RETURN newsl
+  CASE slRectangle:
+   DIM dat AS RectangleSliceData
+   RETURN NewRectangleSlice(parent, dat)
+  CASE slStyleRectangle:
+   DIM dat AS StyleRectangleSliceData
+   RETURN NewStyleRectangleSlice(parent, dat)
+  CASE slSprite:
+   DIM dat AS SpriteSliceData
+   dat.pal = -1 'FIXME: Hack to make up for the lack of constructors
+   RETURN NewSpriteSlice(parent, dat)
+  CASE slText
+   DIM dat AS TextSliceData
+   RETURN NewTextSlice(parent, dat)
+  CASE slMenu:
+   DIM dat AS MenuSliceData
+   RETURN NewMenuSlice(parent, dat)
+  CASE slMenuItem:
+   DIM dat AS MenuItemSliceData
+   RETURN NewMenuItemSlice(parent, dat)
+ END SELECT
+ debug "NewSliceByType: Warning! type " & t & " is invalid"
+ RETURN NewSlice(parent)
 END FUNCTION
 
 'Creates a new Slice object, and optionally, adds it to the heirarchy somewhere
@@ -254,13 +307,11 @@ Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
 
  'If this new sibling is an eldest child, tell the parent 
  if sl->Parent->FirstChild = sl then
-  debug "If this new sibling is an eldest child, tell the parent "
   sl->Parent->FirstChild = newsl
  end if
 
  'Tell previous siblings that it has a new sibling.
  if sl->PrevSibling <> 0 then
-  debug "Tell previous siblings that it has a new sibling."
   sl->PrevSibling->NextSibling = newsl
  end if
  
@@ -278,14 +329,16 @@ Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
  if verifySliceLineage(newsl, sl->Parent) = NO then debug "slice inbreeding detected"
 end sub
 
-Sub ReplaceSlice(byval sl as slice ptr, byref newsl as slice ptr)
+Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
  'This takes a new slice (normally from one of the New*Slice functions)
- 'and copies its data over an existing tree member. Newsl gets Deleted
- 'to prevent it from being used afterwards!
+ 'and copies its type and type-specific data over an existing tree member.
+ 'Newsl gets Deleted to prevent it from being used afterwards!
  'Also, this fails if newsl is part of a tree. It must be parentless
  WITH *newsl
   'Make sure that newsl is an orphan already
-  IF .Parent <> 0 THEN debug "ReplaceSlice: Only works with orphaned slices" : EXIT SUB
+  IF .Parent <> 0 THEN debug "ReplaceSliceType: Only works with orphaned slices" : EXIT SUB
+  'Dispose of any old Slice Type specific data that is about to be replaced
+  IF sl->SliceData <> 0 THEN sl->Dispose(sl)
   'Copy over slice identity
   sl->SliceType = .SliceType
   sl->Draw      = .Draw
@@ -786,6 +839,47 @@ end sub
 
 '==Slice saving and loading====================================================
 
+'--String manupilation functions used by saving/loading------------------------
+
+Function FindUnquotedChar (s AS STRING, char AS STRING) AS INTEGER
+ 'Returns the index of the first occurance of a char that is not inside a double-quote
+ DIM mode AS INTEGER = 0
+ FOR i AS INTEGER = 0 TO LEN(s) - 1
+  SELECT CASE mode
+   CASE 0'--Looking
+    IF s[i] = ASC("""") THEN mode = 1
+    IF s[i] = ASC(char) THEN RETURN i
+   CASE 1'--"Found opening doublequote, seek another
+    IF s[i] = ASC("""") THEN mode = 0
+    IF s[i] = ASC("\") THEN mode = 2
+   CASE 2'--Ignoring any backslash escaped chars inside a string
+    mode = 1 ' Go back to searching for an ending quote
+  END SELECT
+ NEXT i
+ RETURN -1
+End Function
+
+Function EscapeChar (s AS STRING, char AS STRING, escaper AS STRING="\") AS STRING
+ DIM result AS STRING = ""
+ FOR i AS INTEGER = 0 TO LEN(s) - 1
+  IF s[i] = ASC(char) THEN result &= escaper
+  result &= CHR(s[i])
+ NEXT i
+ RETURN result
+End Function
+
+Function StripQuotes (s AS STRING) AS STRING
+ IF LEFT(s, 1) <> """" OR RIGHT(s, 1) <> """" THEN debug "StripQuotes: unmatched quotes": debug s
+ DIM result AS STRING = ""
+ FOR i AS INTEGER = 1 TO LEN(s) - 2
+  IF s[i] = ASC("\") AND s[i+1] = ASC("""") THEN CONTINUE FOR
+  result &= CHR(s[i])
+ NEXT i
+ RETURN result
+End Function
+
+'--saving----------------------------------------------------------------------
+
 Sub OpenSliceFileWrite (BYREF f AS SliceFileWrite, filename AS STRING)
  f.name = filename
  f.indent = 0
@@ -805,7 +899,9 @@ End sub
 
 Sub WriteSliceFileVal (BYREF f AS SliceFileWrite, nam AS STRING, s AS STRING, quotes AS INTEGER=YES)
  DIM valstring AS STRING = s
- IF quotes THEN valstring = """" & s & """"
+ IF quotes THEN
+  valstring = """" & EscapeChar(s, """") & """"
+ END IF
  WriteSliceFileLine f, LCASE(nam) & ":" & valstring
 End Sub
 
@@ -825,8 +921,10 @@ Sub SaveSlice (BYREF f AS SliceFileWrite, BYVAL sl AS Slice Ptr)
  WriteSliceFileVal f, "w", sl->Width
  WriteSliceFileVal f, "h", sl->Height
  WriteSliceFileBool f, "vis", sl->Visible
- WriteSliceFileVal f, "alignh", sl->AlignHoriz
- WriteSliceFileVal f, "alignv", sl->AlignVert
+ WriteSliceFileVal f, "alh", sl->AlignHoriz
+ WriteSliceFileVal f, "alv", sl->AlignVert
+ WriteSliceFileVal f, "anh", sl->AnchorHoriz
+ WriteSliceFileVal f, "anv", sl->AnchorVert
  WriteSliceFileVal f, "padt", sl->PaddingTop
  WriteSliceFileVal f, "padl", sl->PaddingLeft
  WriteSliceFileVal f, "padr", sl->PaddingRight
@@ -851,4 +949,154 @@ Sub SaveSlice (BYREF f AS SliceFileWrite, BYVAL sl AS Slice Ptr)
  END IF
  f.indent -= 1
  WriteSliceFileLine f, "}"
+End sub
+
+'--loading---------------------------------------------------------------------
+
+Sub OpenSliceFileRead (BYREF f AS SliceFileRead, filename AS STRING)
+ f.name = filename
+ f.handle = FREEFILE
+ OPEN f.name FOR INPUT AS f.handle
+End Sub
+
+Sub CloseSliceFileRead (BYREF f AS SliceFileRead)
+ CLOSE f.handle
+End Sub
+
+Function ReadSliceFileLine (BYREF f AS SliceFileRead) AS STRING
+ DIM s AS STRING
+ LINE INPUT # f.handle, s
+ f.linenum += 1
+ RETURN s
+End Function
+
+Function CleanSliceFileLine (s AS STRING) AS STRING
+ DIM result AS STRING
+ result = TRIM(s)
+ DIM commentmark AS INTEGER
+ commentmark = FindUnquotedChar(result, "#")
+ IF commentmark >= 0 THEN
+  '--Strip out any comments
+  result = MID(result, 1, commentmark)
+ END IF
+ RETURN result
+End Function
+
+Function LoadSliceSplitPair (BYREF s AS STRING, BYREF key AS STRING, BYREF valstr AS STRING)
+ 'Returns NO on failure
+ DIM colon AS INTEGER
+ colon = FindUnquotedChar(s, ":")
+ IF colon < 0 THEN RETURN NO
+ key = MID(s, 1, colon)
+ valstr = MID(s, colon + 2)
+ RETURN YES
+End Function
+
+Function LoadSliceConvertInt(BYREF s AS STRING) AS INTEGER
+ IF s = "true" THEN RETURN -1
+ IF s = "false" THEN RETURN 0
+ RETURN VALINT(s)
+End Function
+
+ENUM LoadSliceMode
+ lsmBegin
+ lsmReading
+ lsmNextChild
+END ENUM
+
+Sub LoadSlice (BYREF f AS SliceFileRead, BYVAL sl AS Slice Ptr, BYVAL skip_to_read AS INTEGER=NO)
+ 'sl should be a new empty slice. Its data will get overwritten.
+ DIM mode AS LoadSliceMode
+ mode = lsmBegin
+ IF skip_to_read THEN mode = lsmReading
+ DIM rawline AS STRING
+ DIM s AS STRING
+ DIM key AS STRING
+ DIM valstr AS STRING
+ DIM n AS INTEGER
+ DIM checkn AS INTEGER
+ DIM clean_exit AS INTEGER = NO
+ DIM typestr AS STRING
+ DIM typenum AS SliceTypes
+ DIM newsl AS Slice Ptr
+ DO
+  rawline = ReadSliceFileLine(f)
+  s = CleanSliceFileLine(rawline)
+  IF s = "" THEN CONTINUE DO '--Ignore blank lines
+  SELECT CASE mode
+   CASE lsmBegin
+    IF s = "{" THEN '--start a new slice
+     mode = lsmReading
+    ELSE
+     debug "LoadSlice expected { in line " & f.linenum & " but found:"
+     debug rawline 
+    END IF
+   CASE lsmReading
+    IF s = "}" THEN
+     clean_exit = YES
+     EXIT DO
+    END IF
+    IF LoadSliceSplitPair(s, key, valstr) = NO THEN
+     debug "LoadSliceSplitPair failed on line " & f.linenum
+     debug rawline
+    END IF
+    n = LoadSliceConvertInt(valstr)
+    checkn = YES
+    SELECT CASE key
+     CASE "x": sl->X = n
+     CASE "y": sl->Y = n
+     CASE "w": sl->Width = n
+     CASE "h": sl->Height = n
+     CASE "vis": sl->Visible = n
+     CASE "alh": sl->AlignHoriz = n
+     CASE "alv": sl->AlignVert = n
+     CASE "anh": sl->AnchorHoriz = n
+     CASE "anv": sl->AnchorVert = n
+     CASE "padt": sl->PaddingTop = n
+     CASE "padl": sl->PaddingLeft = n
+     CASE "padr": sl->PaddingRight = n
+     CASE "padb": sl->PaddingBottom = n
+     CASE "fill": sl->Fill = n
+     CASE "type"
+      checkn = NO
+      typestr = StripQuotes(valstr)
+      typenum = SliceTypeByName(typestr)
+      newsl = NewSliceOfType(typenum)
+      ReplaceSliceType sl, newsl
+     CASE "child"
+      checkn = NO
+      IF valstr <> "[" THEN
+       debug "LoadSlice expected [ in line " & f.linenum
+       debug rawline
+      END IF
+      'Append a new child slice, then recurse to populate it
+      newsl = NewSlice(sl)
+      LoadSlice f, newsl
+      mode = lsmNextChild
+    END SELECT
+    'sl->Load(sl, key, valstr, n, checkn)
+    IF checkn THEN
+     IF STR(n) = valstr OR (n = -1 AND valstr = "true") OR (n = 0 AND valstr = "false") THEN
+     ELSE
+      debug "LoadSlice integer conversion mismatch " & n & "<>" & valstr & " in line " & f.linenum
+      debug rawline 
+     END IF
+    END IF
+   CASE lsmNextChild
+    IF s = "]" THEN
+     mode = lsmReading
+    ELSEIF s = "{" THEN
+     'Append another child, then recurse to populate it
+     newsl = NewSlice(sl)
+     LoadSlice f, newsl, YES
+    ELSE
+     debug "LoadSlice: Expected ] or { in line " & f.linenum & " but found:"
+     debug rawline
+    END IF
+  END SELECT
+ LOOP UNTIL EOF(f.handle)
+ IF clean_exit = NO THEN
+  debug "LoadSlice: File ended mid-slice on line " & f.linenum
+  debug rawline
+ END IF
 End sub
