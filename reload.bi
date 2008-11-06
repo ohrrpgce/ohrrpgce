@@ -71,6 +71,6 @@ Declare sub SerializeXML overload (doc as ReloadDocPtr)
 Declare sub serializeXML (nod as ReloadNodePtr, ind as integer = 0)
 
 Declare sub SerializeBin overload (doc as ReloadDocPtr)
-Declare sub serializeBin (nod as ReloadNodePtr, f as integer = 0)
+Declare sub serializeBin (nod as ReloadNodePtr, f as integer = 0, table() as string)
 
 #endif

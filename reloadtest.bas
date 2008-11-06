@@ -19,7 +19,11 @@ ReloadSetContent(nod, 123)
 
 nod = ReloadAddChild(nod->parent, CreateReloadNode(doc, "bar"))
 
-ReloadSetContent(nod, 456)
+ReloadSetContent(nod, 456.789)
+
+nod = ReloadAddChild(nod->parent->parent, CreateReloadNode(doc, "bar"))
+
+ReloadSetContent(nod, "The Rain in Spain Falls Mainly on the Plain")
 
 serializeBin(doc)
 

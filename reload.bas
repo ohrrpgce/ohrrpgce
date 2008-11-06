@@ -229,6 +229,58 @@ sub ReloadDocSetRootNode(doc as ReloadDocPtr, nod as ReloadNodePtr)
 	
 end sub
 
+Function ReloadFindStringInTable(st as string, table() as string) as integer
+	for i as integer = lbound(table) to ubound(table)
+		if table(i) = st then return i
+	next
+	return -1
+end function
+
+Function ReloadAddStringToTable(st as string, table() as string) as integer
+	dim ret as integer
+	
+	ret = ReloadFindStringInTable(st, table())
+	
+	if ret <> -1 then return ret
+	
+	if table(0) = "" then
+		table(0) = st
+		return 0
+	else
+		redim preserve table(ubound(table) + 1)
+		table(ubound(table)) = st
+		return ubound(table)
+	end if
+end function
+
+sub ReloadBuildStringTable(nod as ReloadNodePtr, table() as string)
+	static first as integer, start as ReloadNodePtr
+	
+	if nod = null then exit sub
+	
+	if first = no then
+		redim table(0)
+		start = nod
+		first = yes
+	end if
+	
+	ReloadAddStringToTable(nod->name, table())
+	
+	dim n as ReloadNodePtr
+	if nod->nodeType = rliChildren then
+		n = nod->children
+		do while n <> 0
+			ReloadBuildStringTable(n, table())
+			n = n->nextSib
+		loop
+	end if
+	
+	if start = nod then
+		first = no
+		start = null
+	end if
+end sub
+
 sub SerializeXML (doc as ReloadDocPtr)
 	if doc = null then exit sub
 	
@@ -263,31 +315,53 @@ sub SerializeBin(doc as ReloadDocPtr)
 	if doc = null then exit sub
 	
 	dim f as integer = freefile
+	dim table() as string
+	
+	ReloadBuildStringTable(doc->root, table())
 	
 	kill "test.rld"
 	open "test.rld" for binary as #f
 	
-	dim i as integer
+	dim i as integer, b as ubyte
 	put #f, , "RELD"
-	i = 1
+	b = 1
+	put #f, , b
+	i = 13
 	put #f, , i
-	i = 12
-	put #f, , i
+	i = 0 
+	put #f, , i 'we're going to fill this in later
 	
-	serializeBin(doc->root, f)
+	serializeBin(doc->root, f, table())
 	
+	i = seek(f) - 1
+	put #f, 10, i 'filling in the string table position
+	
+	seek f, i + 1
+	
+	dim s as short
+	s = ubound(table) - lbound(table) + 1
+	put #f, , s
+	for i = lbound(table) to ubound(table)
+		s = len(table(i))
+		put #f, , s
+		put #f, , table(i)
+	next
 	close #f
 end sub
 
-sub serializeBin(nod as ReloadNodePtr, f as integer)
+sub serializeBin(nod as ReloadNodePtr, f as integer, table() as string)
 	dim i as integer, us as ushort
-	us = 0
+	us = ReloadFindStringInTable(nod->name, table())
+	if us = -1 then
+		print "ERROR, THIS SHOULD NOT HAPPEN"
+		exit sub
+	end if
 	put #f, , us
 	put #f, , nod->nodeType
 	
 	select case nod->nodeType
 		case rliNull
-			
+			'yeah, no
 		case rliByte
 			dim b as byte = nod->num
 			put #f, , b
@@ -310,7 +384,7 @@ sub serializeBin(nod as ReloadNodePtr, f as integer)
 			dim n as ReloadNodePtr
 			n = nod->children
 			do while n <> null
-				serializeBin(n, f)
+				serializeBin(n, f, table())
 				n = n->nextSib
 			loop
 	end select
