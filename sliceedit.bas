@@ -410,6 +410,10 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
     sliceed_rule rules(), erIntgrabber, @(dat->pal), -1, gen(genMaxPal), slgrUPDATESPRITE
     string_array_grow_append menu(), "Sprite Frame: " & dat->frame
     sliceed_rule rules(), erIntgrabber, @(dat->frame), 0, sprite_sizes(dat->spritetype).frames - 1
+    string_array_grow_append menu(), "Flip horiz.: " & yesorno(dat->flipHoriz)
+    sliceed_rule_tog rules(), @(dat->flipHoriz), slgrUPDATESPRITE
+    string_array_grow_append menu(), "Flip vert.: " & yesorno(dat->flipVert)
+    sliceed_rule_tog rules(), @(dat->flipVert), slgrUPDATESPRITE
   END SELECT
   string_array_grow_append menu(), "Visible: " & yesorno(.Visible)
   sliceed_rule_tog rules(), @.Visible

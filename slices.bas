@@ -633,6 +633,12 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
    load_sprite_and_pal .img, .spritetype, .record
    sl->Width = sprite_sizes(.spritetype).size.x
    sl->Height = sprite_sizes(.spritetype).size.y
+   if .flipHoriz then
+    .img.sprite = sprite_flip_horiz(.img.sprite, YES)
+   end if
+   if .flipVert then
+    .img.sprite = sprite_flip_vert(.img.sprite, YES)
+   end if
   end if
  
   sprite_draw .img.sprite + .frame, .img.pal, sl->screenX, sl->screenY, , ,dpage
@@ -650,6 +656,8 @@ Sub SaveSpriteSlice(byval sl as slice ptr, byref f as SliceFileWrite)
  WriteSliceFileVal f, "rec", dat->record
  WriteSliceFileVal f, "pal", dat->pal, -1
  WriteSliceFileVal f, "frame", dat->frame
+ WriteSliceFileBool f, "fliph", dat->flipHoriz
+ WriteSliceFileBool f, "flipv", dat->flipVert
 end sub
 
 Function LoadSpriteSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
@@ -662,6 +670,8 @@ Function LoadSpriteSlice (Byval sl as SliceFwd ptr, key as string, valstr as str
   case "rec": dat->record = n
   case "pal": dat->pal = n
   case "frame": dat->frame = n
+  case "fliph": dat->flipHoriz = n
+  case "flipv": dat->flipVert = n
   case else: return NO
  end select
  return YES

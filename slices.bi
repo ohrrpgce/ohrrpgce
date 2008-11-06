@@ -124,6 +124,8 @@ Type SpriteSliceData
  record AS INTEGER
  pal AS INTEGER     'Set pal to -1 for the default
  frame AS INTEGER   'Currently displaying frame
+ flipHoriz AS INTEGER  'NO normal, YES horizontally flipped
+ flipVert AS INTEGER   'NO normal, YES horizontally flipped
  loaded AS INTEGER  'UNSAVED: Set to NO to force a re-load on the next draw
  img AS GraphicPair 'UNSAVED: No need to manually populate this, done in draw
 End Type
