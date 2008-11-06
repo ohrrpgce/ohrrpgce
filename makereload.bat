@@ -1,2 +1,2 @@
 @echo off
-fbc -m reloadtest reloadtest.bas reload.bas
+fbc -g -m reloadtest reloadtest.bas reload.bas
