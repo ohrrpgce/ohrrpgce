@@ -533,12 +533,14 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
  'this ugly hack is because printstr doesn't do new lines :@
  dim lines() as string
  split(d, lines())
+ dim col as integer = dat->col
+ if col = 0 then col = uilook(uiText)
  if dat->outline then 
   for i as integer = 0 to ubound(lines)
-   edgeprint lines(i), sl->screenx, sl->screeny + i * 10, dat->col, p
+   edgeprint lines(i), sl->screenx, sl->screeny + i * 10, col, p
   next
  else
-  textcolor dat->col, 0
+  textcolor col, 0
   for i as integer = 0 to ubound(lines)
    printstr lines(i), sl->screenx, sl->screeny + i * 10, p
   next

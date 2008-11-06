@@ -393,7 +393,7 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
     dat = .SliceData
     string_array_grow_append menu(), "Text: " & dat->s
     sliceed_rule rules(), erStrgrabber, @(dat->s), 0, 0
-    string_array_grow_append menu(), "Color: " & dat->col
+    string_array_grow_append menu(), "Color: " & zero_default(dat->col)
     sliceed_rule rules(), erIntgrabber, @(dat->col), 0, 255, slgrPICKCOL
     string_array_grow_append menu(), "Outline: " & yesorno(dat->outline)
     sliceed_rule_tog rules(), @(dat->outline)
