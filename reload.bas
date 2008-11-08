@@ -38,7 +38,7 @@ end function
 Function CreateDocument() as DocPtr
 	dim ret as DocPtr
 	
-	ret = new Doc
+	ret = Callocate(1, sizeof(Doc))
 	
 	ret->version = 1
 	ret->root = null
@@ -51,7 +51,7 @@ Function CreateNode(doc as DocPtr, nam as string) as NodePtr
 	
 	if doc = null or nam = "" then return null
 	
-	ret = new Node
+	ret = Callocate(1, sizeof(Node))
 	
 	ret->doc = doc
 	ret->name = nam
@@ -64,11 +64,22 @@ End function
 
 sub FreeNode(nod as NodePtr)
 	if nod = null then exit sub
+	
+	dim tmp as NodePtr
+	
+	if nod->nodeType = rliChildren then
+		do while nod->children <> 0
+			FreeNode(nod->children)
+		loop
+	end if
+	
 	if nod->parent then
-		if nod->parent->children = nod then
-			nod->parent->children = nod->nextSib
+		if nod->parent->nodeType = rliChildren then
+			if nod->parent->children = nod then
+				nod->parent->children = nod->nextSib
+			end if
+			nod->parent->numChildren -= 1
 		end if
-		nod->parent->numChildren -= 1
 		
 		if nod->nextSib then
 			nod->nextSib->prevSib = nod->prevSib
@@ -324,12 +335,12 @@ sub SerializeBin(doc as DocPtr)
 	kill "test.rld"
 	open "test.rld" for binary as #f
 	
-	dim i as integer, b as ubyte
+	dim i as uinteger, b as ubyte
 	put #f, , "RELD"
 	b = 1
-	put #f, , b
+	put #f, , b 'version
 	i = 13
-	put #f, , i
+	put #f, , i 'size of header
 	i = 0 
 	put #f, , i 'we're going to fill this in later
 	
@@ -395,5 +406,150 @@ end sub
 Function FindChildByName(nod as NodePtr, nam as string) as NodePtr
 	return null
 End Function
+
+Function LoadNode(f as integer, doc as DocPtr) as NodePtr
+	dim ret as NodePtr
+	
+	ret = CreateNode(doc, "!")
+	
+	get #f, , ret->namenum
+	get #f, , ret->nodetype
+	
+	select case ret->nodeType
+		case 0 'null
+		case 1 'byte
+			dim b as byte
+			get #f, , b
+			ret->num = b
+		case 2 'short
+			dim s as short
+			get #f, , s
+			ret->num = s
+		case 3 'integer
+			dim i as integer
+			get #f, , i
+			ret->num = i
+		case 4 'long
+			get #f, , ret->num
+		case 5 'float
+			get #f, , ret->flo
+		case 6 'string
+			dim size as integer
+			get #f, , size
+			ret->str = string(size, " ")
+			get #f, , ret->str
+		case 7 'children
+			dim nod as nodeptr
+			get #f, , ret->numChildren
+			for i as integer = 0 to ret->numChildren - 1
+				nod = LoadNode(f, doc)
+				if nod = null then
+					freenode(ret)
+					return null
+				end if
+				AddChild(ret, nod)
+			next
+		case else
+			delete ret
+			return null
+	end select
+	
+	return ret
+End Function
+
+Sub LoadStringTable(f as integer, table() as string)
+	dim as ushort count, size
+	
+	get #f, , count
+	
+	if count <= 0 then exit sub
+	
+	for i as integer = 0 to count - 1
+		redim preserve table(i)
+		get #f, , size
+		table(i) = string(size, " ")
+		get #f, , table(i)
+	next
+end sub
+
+function FixNodeName(nod as nodeptr, table() as string) as integer
+	if nod = null then return -1
+	
+	if nod->namenum > ubound(table) or nod->namenum < 0 then
+		return -1
+	end if
+	
+	nod->name = table(nod->namenum)
+	if nod->nodetype = rliChildren then
+		dim tmp as nodeptr
+		tmp = nod->children
+		do while tmp <> null
+			FixNodeName(tmp, table())
+			tmp = tmp->nextSib
+		loop
+	end if
+end function
+
+Function LoadDocument(fil as string) as DocPtr
+	dim ret as DocPtr
+	dim f as integer = freefile
+	
+	if open(fil, for binary, as #f) then
+		return null
+	end if
+	
+	dim as ubyte ver
+	dim as integer headSize, datSize
+	dim as string magic = "    "
+	
+	dim b as ubyte, i as integer
+	
+	get #f, , magic
+	
+	if magic <> "RELD" then
+		close #f
+		return null
+	end if
+	
+	get #f, , ver
+	
+	select case ver
+		case 1 ' no biggie
+			get #f, , headSize
+			
+			if headSize <> 13 then 'uh oh, the header is the wrong size
+				close #f
+				return null
+			end if
+			
+			get #f, , datSize
+			
+		case else ' dunno. Let's quit.
+			close #f
+			return null
+	end select
+	
+	'if we got here, the document is... not yet corrupt. I guess.
+	
+	ret = CreateDocument()
+	ret->version = ver
+	
+	ret->root = LoadNode(f, ret)
+	
+	if ret->root = null then
+		delete ret
+		return null
+	end if
+	
+	'now, we load the string table
+	dim table() as string
+	
+	LoadStringTable(f, table())
+	
+	FixNodeName(ret->root, table())
+	
+	return ret
+End Function
+
 
 End Namespace

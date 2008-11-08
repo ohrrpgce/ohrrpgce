@@ -23,7 +23,7 @@ ENUM NodeInTypes
 	rliLong = 4
 	rliFloat = 5
 	rliString = 6
-	rliChildren = 8
+	rliChildren = 7
 END ENUM
 
 ENUM NodeTypes
@@ -44,6 +44,7 @@ END TYPE
 
 TYPE Node
 	name as string
+	namenum as short 'in the string table, used while loading
 	nodeType as ubyte
 	str as string
 	num as LongInt
@@ -68,6 +69,7 @@ Declare Function AddSiblingAfter(sib as NodePtr, nod as NodePtr) as NodePtr
 Declare Function AddChild(par as NodePtr, nod as NodePtr) as NodePtr
 Declare sub DocSetRootNode(doc as DocPtr, nod as NodePtr)
 
+Declare Function LoadDocument(fil as string) as DocPtr
 
 Declare sub SerializeXML overload (doc as DocPtr)
 Declare sub serializeXML (nod as NodePtr, ind as integer = 0)
