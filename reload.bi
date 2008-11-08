@@ -13,6 +13,8 @@
 #define null 0
 #endif
 
+Namespace Reload
+
 ENUM NodeInTypes
 	rliNull = 0
 	rliByte = 1
@@ -32,45 +34,47 @@ ENUM NodeTypes
 	rltChildren
 END ENUM
 
-TYPE ReloadDocPtr as ReloadDoc ptr
-TYPE ReloadNodePtr as ReloadNode ptr
+TYPE DocPtr as Doc ptr
+TYPE NodePtr as Node ptr
 
-TYPE ReloadDoc
+TYPE Doc
 	version as integer
-	root as ReloadNodePtr
+	root as NodePtr
 END TYPE
 
-TYPE ReloadNode
+TYPE Node
 	name as string
 	nodeType as ubyte
 	str as string
 	num as LongInt
 	flo as Double
 	numChildren as integer
-	children as ReloadNodePtr
-	doc as ReloadDocPtr
-	parent as ReloadNodePtr
-	nextSib as ReloadNodePtr
-	prevSib as ReloadNodePtr
+	children as NodePtr
+	doc as DocPtr
+	parent as NodePtr
+	nextSib as NodePtr
+	prevSib as NodePtr
 END TYPE
 
-Declare Function CreateReloadDocument() as ReloadDocPtr
-Declare Function CreateReloadNode(doc as ReloadDocPtr, nam as string) as ReloadNodePtr
-Declare sub FreeReloadNode(nod as ReloadNodePtr)
-Declare sub FreeReloadDocument(doc as ReloadDocPtr)
-Declare sub ReloadSetContent Overload (nod as ReloadNodePtr, dat as string)
-Declare sub ReloadSetContent(nod as ReloadNodePtr, dat as longint)
-Declare sub ReloadsetContent(nod as ReloadNodePtr, dat as double)
-Declare Function ReloadAddSiblingBefore(sib as ReloadNodePtr, nod as ReloadNodePtr) as ReloadNodePtr
-Declare Function ReloadAddSiblingAfter(sib as ReloadNodePtr, nod as ReloadNodePtr) as ReloadNodePtr
-Declare Function ReloadAddChild(par as ReloadNodePtr, nod as ReloadNodePtr) as ReloadNodePtr
-Declare sub ReloadDocSetRootNode(doc as ReloadDocPtr, nod as ReloadNodePtr)
+Declare Function CreateDocument() as DocPtr
+Declare Function CreateNode(doc as DocPtr, nam as string) as NodePtr
+Declare sub FreeNode(nod as NodePtr)
+Declare sub FreeDocument(doc as DocPtr)
+Declare sub SetContent Overload (nod as NodePtr, dat as string)
+Declare sub SetContent(nod as NodePtr, dat as longint)
+Declare sub setContent(nod as NodePtr, dat as double)
+Declare Function AddSiblingBefore(sib as NodePtr, nod as NodePtr) as NodePtr
+Declare Function AddSiblingAfter(sib as NodePtr, nod as NodePtr) as NodePtr
+Declare Function AddChild(par as NodePtr, nod as NodePtr) as NodePtr
+Declare sub DocSetRootNode(doc as DocPtr, nod as NodePtr)
 
 
-Declare sub SerializeXML overload (doc as ReloadDocPtr)
-Declare sub serializeXML (nod as ReloadNodePtr, ind as integer = 0)
+Declare sub SerializeXML overload (doc as DocPtr)
+Declare sub serializeXML (nod as NodePtr, ind as integer = 0)
 
-Declare sub SerializeBin overload (doc as ReloadDocPtr)
-Declare sub serializeBin (nod as ReloadNodePtr, f as integer = 0, table() as string)
+Declare sub SerializeBin overload (doc as DocPtr)
+Declare sub serializeBin (nod as NodePtr, f as integer = 0, table() as string)
+
+End Namespace
 
 #endif

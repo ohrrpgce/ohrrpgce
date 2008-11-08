@@ -1,30 +1,32 @@
 
 #include "reload.bi"
 
-dim doc as reloadDocPtr
+Using Reload
 
-doc = CreateReloadDocument()
+dim doc as DocPtr
 
-dim nod as reloadNodePtr
+doc = CreateDocument()
 
-nod = CreateReloadNode(doc, "test")
+dim nod as NodePtr
 
-ReloadDocSetRootNode(doc, nod)
+nod = CreateNode(doc, "test")
 
-nod = ReloadAddChild(nod, CreateReloadNode(doc, "foo"))
+DocSetRootNode(doc, nod)
 
-nod = ReloadAddChild(nod, CreateReloadNode(doc, "bar"))
+nod = AddChild(nod, CreateNode(doc, "foo"))
 
-ReloadSetContent(nod, 123)
+nod = AddChild(nod, CreateNode(doc, "bar"))
 
-nod = ReloadAddChild(nod->parent, CreateReloadNode(doc, "bar"))
+SetContent(nod, 123)
 
-ReloadSetContent(nod, 456.789)
+nod = AddChild(nod->parent, CreateNode(doc, "bar"))
 
-nod = ReloadAddChild(nod->parent->parent, CreateReloadNode(doc, "bar"))
+SetContent(nod, 456.789)
 
-ReloadSetContent(nod, "The Rain in Spain Falls Mainly on the Plain")
+nod = AddChild(nod->parent->parent, CreateNode(doc, "bar"))
+
+SetContent(nod, "The Rain in Spain Falls Mainly on the Plain")
 
 serializeBin(doc)
 
-FreeReloadDocument(doc)
+FreeDocument(doc)

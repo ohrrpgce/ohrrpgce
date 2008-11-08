@@ -6,8 +6,10 @@
 
 #include "reload.bi"
 
-Function verifyNodeLineage(byval sl as reloadNodePtr, parent as reloadNodePtr) as integer
- dim s as reloadNodePtr
+Namespace Reload
+
+Function verifyNodeLineage(byval sl as NodePtr, parent as NodePtr) as integer
+ dim s as NodePtr
  if sl = 0 then return no
  s = parent
  do while s <> 0
@@ -17,8 +19,8 @@ Function verifyNodeLineage(byval sl as reloadNodePtr, parent as reloadNodePtr) a
  return yes
 end function
 
-Function verifyNodeSiblings(byval sl as reloadNodePtr, family as reloadNodePtr) as integer
- dim s as reloadNodePtr
+Function verifyNodeSiblings(byval sl as NodePtr, family as NodePtr) as integer
+ dim s as NodePtr
  if sl = 0 then return no
  s = family
  do while s <> 0
@@ -33,10 +35,10 @@ Function verifyNodeSiblings(byval sl as reloadNodePtr, family as reloadNodePtr) 
  return yes
 end function
 
-Function CreateReloadDocument() as ReloadDocPtr
-	dim ret as ReloadDocPtr
+Function CreateDocument() as DocPtr
+	dim ret as DocPtr
 	
-	ret = new ReloadDoc
+	ret = new Doc
 	
 	ret->version = 1
 	ret->root = null
@@ -44,12 +46,12 @@ Function CreateReloadDocument() as ReloadDocPtr
 	return ret
 End function
 
-Function CreateReloadNode(doc as ReloadDocPtr, nam as string) as ReloadNodePtr
-	dim ret as ReloadNodePtr
+Function CreateNode(doc as DocPtr, nam as string) as NodePtr
+	dim ret as NodePtr
 	
 	if doc = null or nam = "" then return null
 	
-	ret = new ReloadNode
+	ret = new Node
 	
 	ret->doc = doc
 	ret->name = nam
@@ -60,7 +62,7 @@ Function CreateReloadNode(doc as ReloadDocPtr, nam as string) as ReloadNodePtr
 	return ret
 End function
 
-sub FreeReloadNode(nod as ReloadNodePtr)
+sub FreeNode(nod as NodePtr)
 	if nod = null then exit sub
 	if nod->parent then
 		if nod->parent->children = nod then
@@ -80,22 +82,22 @@ sub FreeReloadNode(nod as ReloadNodePtr)
 	delete nod
 end sub
 
-sub FreeReloadDocument(doc as ReloadDocPtr)
+sub FreeDocument(doc as DocPtr)
 	if doc = null then return
 	
 	if doc->root then
-		FreeReloadNode(doc->root)
+		FreeNode(doc->root)
 		doc->root = null
 	end if
 	
 	delete doc
 end sub
 
-sub ReloadSetContent (nod as ReloadNodePtr, dat as string)
+sub SetContent (nod as NodePtr, dat as string)
 	if nod = null then exit sub
 	if nod->nodeType = rliChildren then
 		'we need to free the children
-		FreeReloadNode(nod->Children)
+		FreeNode(nod->Children)
 		nod->Children = null
 		nod->NumChildren = 0
 	end if
@@ -103,11 +105,11 @@ sub ReloadSetContent (nod as ReloadNodePtr, dat as string)
 	nod->str = dat
 end sub
 
-sub ReloadSetContent(nod as ReloadNodePtr, dat as longint)
+sub SetContent(nod as NodePtr, dat as longint)
 	if nod = null then exit sub
 	if nod->nodeType = rliChildren then
 		'we need to free the children
-		FreeReloadNode(nod->Children)
+		FreeNode(nod->Children)
 		nod->Children = null
 		nod->NumChildren = 0
 	end if
@@ -123,11 +125,11 @@ sub ReloadSetContent(nod as ReloadNodePtr, dat as longint)
 	nod->num = dat
 end sub
 
-sub ReloadSetContent(nod as ReloadNodePtr, dat as double)
+sub SetContent(nod as NodePtr, dat as double)
 	if nod = null then exit sub
 	if nod->nodeType = rliChildren then
 		'we need to free the children
-		FreeReloadNode(nod->Children)
+		FreeNode(nod->Children)
 		nod->Children = null
 		nod->NumChildren = 0
 	end if
@@ -135,7 +137,7 @@ sub ReloadSetContent(nod as ReloadNodePtr, dat as double)
 	nod->flo = dat
 end sub
 
-Sub ReloadRemoveParent(nod as ReloadNodePtr)
+Sub RemoveParent(nod as NodePtr)
 	if nod->parent then
 		if nod->parent->children = nod then
 			nod->parent->children = nod->nextSib
@@ -155,12 +157,12 @@ Sub ReloadRemoveParent(nod as ReloadNodePtr)
 	end if
 end sub
 
-function ReloadAddChild(par as ReloadNodePtr, nod as ReloadNodePtr) as ReloadNodePtr
+function AddChild(par as NodePtr, nod as NodePtr) as NodePtr
 	
 	if verifyNodeLineage(nod, par) = NO then return nod
 	
 	'first, remove us from our old parent
-	ReloadRemoveParent(nod)
+	RemoveParent(nod)
 	
 	'next, add us to our new parent
 	if par then
@@ -172,7 +174,7 @@ function ReloadAddChild(par as ReloadNodePtr, nod as ReloadNodePtr) as ReloadNod
 		if par->children = null then
 			par->children = nod
 		else
-			dim s as ReloadNodePtr
+			dim s as NodePtr
 			s = par->children
 			do while s->NextSib <> 0
 				s = s->NextSib
@@ -186,7 +188,7 @@ function ReloadAddChild(par as ReloadNodePtr, nod as ReloadNodePtr) as ReloadNod
 	return nod
 end function
 
-function ReloadAddSiblingAfter(sib as ReloadNodePtr, nod as ReloadNodePtr) as ReloadNodePtr
+function AddSiblingAfter(sib as NodePtr, nod as NodePtr) as NodePtr
 
 	if verifyNodeSiblings(nod, sib) = NO then return nod
 	
@@ -203,7 +205,7 @@ function ReloadAddSiblingAfter(sib as ReloadNodePtr, nod as ReloadNodePtr) as Re
 	return nod
 end function
 
-function ReloadAddSiblingBefore(sib as ReloadNodePtr, nod as ReloadNodePtr) as ReloadNodePtr
+function AddSiblingBefore(sib as NodePtr, nod as NodePtr) as NodePtr
 
 	if verifyNodeSiblings(nod, sib) = NO then return nod
 	
@@ -220,26 +222,26 @@ function ReloadAddSiblingBefore(sib as ReloadNodePtr, nod as ReloadNodePtr) as R
 	return nod
 end function
 
-sub ReloadDocSetRootNode(doc as ReloadDocPtr, nod as ReloadNodePtr)
+sub DocSetRootNode(doc as DocPtr, nod as NodePtr)
 	if verifyNodeLineage(nod, doc->root) = YES and verifyNodeLineage(doc->root, nod) = YES then
-		FreeReloadNode(doc->root)
+		FreeNode(doc->root)
 	end if
 	
 	doc->root = nod
 	
 end sub
 
-Function ReloadFindStringInTable(st as string, table() as string) as integer
+Function FindStringInTable(st as string, table() as string) as integer
 	for i as integer = lbound(table) to ubound(table)
 		if table(i) = st then return i
 	next
 	return -1
 end function
 
-Function ReloadAddStringToTable(st as string, table() as string) as integer
+Function AddStringToTable(st as string, table() as string) as integer
 	dim ret as integer
 	
-	ret = ReloadFindStringInTable(st, table())
+	ret = FindStringInTable(st, table())
 	
 	if ret <> -1 then return ret
 	
@@ -253,8 +255,8 @@ Function ReloadAddStringToTable(st as string, table() as string) as integer
 	end if
 end function
 
-sub ReloadBuildStringTable(nod as ReloadNodePtr, table() as string)
-	static first as integer, start as ReloadNodePtr
+sub BuildStringTable(nod as NodePtr, table() as string)
+	static first as integer, start as NodePtr
 	
 	if nod = null then exit sub
 	
@@ -264,13 +266,13 @@ sub ReloadBuildStringTable(nod as ReloadNodePtr, table() as string)
 		first = yes
 	end if
 	
-	ReloadAddStringToTable(nod->name, table())
+	AddStringToTable(nod->name, table())
 	
-	dim n as ReloadNodePtr
+	dim n as NodePtr
 	if nod->nodeType = rliChildren then
 		n = nod->children
 		do while n <> 0
-			ReloadBuildStringTable(n, table())
+			BuildStringTable(n, table())
 			n = n->nextSib
 		loop
 	end if
@@ -281,13 +283,13 @@ sub ReloadBuildStringTable(nod as ReloadNodePtr, table() as string)
 	end if
 end sub
 
-sub SerializeXML (doc as ReloadDocPtr)
+sub SerializeXML (doc as DocPtr)
 	if doc = null then exit sub
 	
 	serializeXML(doc->root)
 end sub
 
-sub serializeXML (nod as ReloadNodePtr, ind as integer = 0)
+sub serializeXML (nod as NodePtr, ind as integer = 0)
 	if nod = null then exit sub
 	
 	print string(ind, "  ") & "<" & nod->name & ">"
@@ -301,7 +303,7 @@ sub serializeXML (nod as ReloadNodePtr, ind as integer = 0)
 		case rliString
 			print string(ind + 1, "  ") & nod->str
 		case rliChildren
-			dim n as ReloadNodePtr
+			dim n as NodePtr
 			n = nod->children
 			do while n <> null
 				serializeXML(n, ind + 1)
@@ -311,13 +313,13 @@ sub serializeXML (nod as ReloadNodePtr, ind as integer = 0)
 	print string(ind, "  ") & "</" + nod->name + ">"
 end sub
 
-sub SerializeBin(doc as ReloadDocPtr)
+sub SerializeBin(doc as DocPtr)
 	if doc = null then exit sub
 	
 	dim f as integer = freefile
 	dim table() as string
 	
-	ReloadBuildStringTable(doc->root, table())
+	BuildStringTable(doc->root, table())
 	
 	kill "test.rld"
 	open "test.rld" for binary as #f
@@ -349,9 +351,9 @@ sub SerializeBin(doc as ReloadDocPtr)
 	close #f
 end sub
 
-sub serializeBin(nod as ReloadNodePtr, f as integer, table() as string)
+sub serializeBin(nod as NodePtr, f as integer, table() as string)
 	dim i as integer, us as ushort
-	us = ReloadFindStringInTable(nod->name, table())
+	us = FindStringInTable(nod->name, table())
 	if us = -1 then
 		print "ERROR, THIS SHOULD NOT HAPPEN"
 		exit sub
@@ -381,7 +383,7 @@ sub serializeBin(nod as ReloadNodePtr, f as integer, table() as string)
 			put #f, , nod->str
 		case rliChildren
 			put #f, , cint(nod->numChildren)
-			dim n as ReloadNodePtr
+			dim n as NodePtr
 			n = nod->children
 			do while n <> null
 				serializeBin(n, f, table())
@@ -390,3 +392,8 @@ sub serializeBin(nod as ReloadNodePtr, f as integer, table() as string)
 	end select
 end sub
 
+Function FindChildByName(nod as NodePtr, nam as string) as NodePtr
+	return null
+End Function
+
+End Namespace
