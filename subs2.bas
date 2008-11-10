@@ -1529,6 +1529,7 @@ SUB textbox_copy_style_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box A
   .no_box          = boxcopier.no_box
   .opaque          = boxcopier.opaque
   .restore_music   = boxcopier.restore_music
+  .portrait_box    = boxcopier.portrait_box
   .vertical_offset = boxcopier.vertical_offset
   .shrink          = boxcopier.shrink
   .textcolor       = boxcopier.textcolor

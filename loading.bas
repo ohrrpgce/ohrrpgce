@@ -1233,6 +1233,7 @@ SUB ClearTextBox (BYREF box AS TextBox)
   .no_box         = NO
   .opaque         = NO
   .restore_music  = NO
+  .portrait_box   = NO
   '--Clear choicebox data
   FOR i = 0 TO 1
    .choice(i) = ""
