@@ -370,7 +370,8 @@ IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN ' strike, cast, dash, stand
   dx = hx - wx
   dy = hy - wy
   
-  anim_align2 24, who, 0, 0, dx, dy
+  anim_align2 24, who, 0, 0, dx, 16
+  anim_setz 24, 16 - dy
   
   anim_setframe 24, 0
   anim_appear 24
@@ -393,7 +394,8 @@ IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN ' strike, cast, dash, stand
   dx = hx - wx
   dy = hy - wy
   
-  anim_align2 24, who, 0, 0, dx, dy
+  anim_align2 24, who, 0, 0, dx, 16
+  anim_setz 24, 16 - dy
   
   anim_setframe 24, 1
  END IF
