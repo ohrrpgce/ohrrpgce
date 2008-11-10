@@ -836,6 +836,7 @@ DO
    IF keyval(scAlt) > 0 AND keyval(scV) > 1 THEN
     IF yesno("Copy box " & style_clip & "'s style to this box") THEN
      textbox_copy_style_from_box style_clip, box, st
+     textbox_edit_load box, st, m$()
     END IF
    END IF
    IF intgrabber(st.id, 0, gen(genMaxTextBox), 51, 52) THEN
