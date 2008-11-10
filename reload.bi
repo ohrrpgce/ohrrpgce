@@ -64,17 +64,18 @@ Declare sub FreeDocument(doc as DocPtr)
 Declare sub SetContent Overload (nod as NodePtr, dat as string)
 Declare sub SetContent(nod as NodePtr, dat as longint)
 Declare sub setContent(nod as NodePtr, dat as double)
+Declare sub setContent(nod as NodePtr)
 Declare Function AddSiblingBefore(sib as NodePtr, nod as NodePtr) as NodePtr
 Declare Function AddSiblingAfter(sib as NodePtr, nod as NodePtr) as NodePtr
 Declare Function AddChild(par as NodePtr, nod as NodePtr) as NodePtr
-Declare sub DocSetRootNode(doc as DocPtr, nod as NodePtr)
+Declare sub SetRootNode(doc as DocPtr, nod as NodePtr)
 
 Declare Function LoadDocument(fil as string) as DocPtr
 
 Declare sub SerializeXML overload (doc as DocPtr)
 Declare sub serializeXML (nod as NodePtr, ind as integer = 0)
 
-Declare sub SerializeBin overload (doc as DocPtr)
+Declare sub SerializeBin overload (file as string, doc as DocPtr)
 Declare sub serializeBin (nod as NodePtr, f as integer = 0, table() as string)
 
 End Namespace

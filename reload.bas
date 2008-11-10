@@ -49,7 +49,7 @@ End function
 Function CreateNode(doc as DocPtr, nam as string) as NodePtr
 	dim ret as NodePtr
 	
-	if doc = null or nam = "" then return null
+	if doc = null then return null
 	
 	ret = Callocate(1, sizeof(Node))
 	
@@ -148,6 +148,17 @@ sub SetContent(nod as NodePtr, dat as double)
 	nod->flo = dat
 end sub
 
+sub SetContent(nod as NodePtr)
+	if nod = null then exit sub
+	if nod->nodeType = rliChildren then
+		'we need to free the children
+		FreeNode(nod->Children)
+		nod->Children = null
+		nod->NumChildren = 0
+	end if
+	nod->nodeType = rliNull
+end sub
+
 Sub RemoveParent(nod as NodePtr)
 	if nod->parent then
 		if nod->parent->children = nod then
@@ -233,7 +244,7 @@ function AddSiblingBefore(sib as NodePtr, nod as NodePtr) as NodePtr
 	return nod
 end function
 
-sub DocSetRootNode(doc as DocPtr, nod as NodePtr)
+sub SetRootNode(doc as DocPtr, nod as NodePtr)
 	if verifyNodeLineage(nod, doc->root) = YES and verifyNodeLineage(doc->root, nod) = YES then
 		FreeNode(doc->root)
 	end if
@@ -243,8 +254,9 @@ sub DocSetRootNode(doc as DocPtr, nod as NodePtr)
 end sub
 
 Function FindStringInTable(st as string, table() as string) as integer
+	if st = "" then return 0
 	for i as integer = lbound(table) to ubound(table)
-		if table(i) = st then return i
+		if table(i) = st then return i + 1
 	next
 	return -1
 end function
@@ -258,11 +270,11 @@ Function AddStringToTable(st as string, table() as string) as integer
 	
 	if table(0) = "" then
 		table(0) = st
-		return 0
+		return 1
 	else
 		redim preserve table(ubound(table) + 1)
 		table(ubound(table)) = st
-		return ubound(table)
+		return ubound(table) + 1
 	end if
 end function
 
@@ -303,28 +315,57 @@ end sub
 sub serializeXML (nod as NodePtr, ind as integer = 0)
 	if nod = null then exit sub
 	
-	print string(ind, "  ") & "<" & nod->name & ">"
+	
 	select case nod->nodeType
 		case rliNull
+			print string(ind, "  ") & "<" & nod->name & " />"
 		case rliByte, rliShort, rliInt, rliLong
-		
-			print string(ind + 1, "  ") & nod->num
+			print string(ind, "  ");
+			if 1 or nod->name <> "" then
+				print "<" & nod->name & ">";
+			end if
+			print nod->num;
+			if 1 or nod->name <> "" then
+				print "</" + nod->name + ">"
+			else
+				print
+			end if
 		case rliFloat
-			print string(ind + 1, "  ") & nod->flo
+			print string(ind, "  ");
+			if 1 or nod->name <> "" then
+				print "<" & nod->name & ">";
+			end if
+			print nod->flo;
+			if 1 or nod->name <> "" then
+				print "</" + nod->name + ">"
+			else
+				print
+			end if
 		case rliString
-			print string(ind + 1, "  ") & nod->str
+			print string(ind, "  ");
+			if 1 or nod->name <> "" then
+				print "<" & nod->name & ">";
+			end if
+			print nod->str;
+			if 1 or nod->name <> "" then
+				print "</" + nod->name + ">"
+			else
+				print
+			end if
 		case rliChildren
 			dim n as NodePtr
+			print string(ind, "  ") & "<" & nod->name & ">"
 			n = nod->children
 			do while n <> null
 				serializeXML(n, ind + 1)
 				n = n->nextSib
 			loop
+			print string(ind, "  ") & "</" + nod->name + ">"
 	end select
-	print string(ind, "  ") & "</" + nod->name + ">"
+	
 end sub
 
-sub SerializeBin(doc as DocPtr)
+sub SerializeBin(file as string, doc as DocPtr)
 	if doc = null then exit sub
 	
 	dim f as integer = freefile
@@ -332,8 +373,8 @@ sub SerializeBin(doc as DocPtr)
 	
 	BuildStringTable(doc->root, table())
 	
-	kill "test.rld"
-	open "test.rld" for binary as #f
+	kill file & ".tmp"
+	open file & ".tmp" for binary as #f
 	
 	dim i as uinteger, b as ubyte
 	put #f, , "RELD"
@@ -360,6 +401,10 @@ sub SerializeBin(doc as DocPtr)
 		put #f, , table(i)
 	next
 	close #f
+	
+	kill file
+	rename file & ".tmp", file
+	kill file & ".tmp"
 end sub
 
 sub serializeBin(nod as NodePtr, f as integer, table() as string)
@@ -475,11 +520,11 @@ end sub
 function FixNodeName(nod as nodeptr, table() as string) as integer
 	if nod = null then return -1
 	
-	if nod->namenum > ubound(table) or nod->namenum < 0 then
+	if nod->namenum > ubound(table) + 1 or nod->namenum < 0 then
 		return -1
 	end if
 	
-	nod->name = table(nod->namenum)
+	if nod->namenum > 0 then nod->name = table(nod->namenum - 1)
 	if nod->nodetype = rliChildren then
 		dim tmp as nodeptr
 		tmp = nod->children
