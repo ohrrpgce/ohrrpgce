@@ -596,5 +596,61 @@ Function LoadDocument(fil as string) as DocPtr
 	return ret
 End Function
 
+Function GetString(node as nodeptr) as string
+	if node = null then return ""
+	
+	select case node->nodeType
+		case rliByte, rliShort, rliInt, rliLong
+			return str(node->num)
+		case rliFloat
+			return str(node->flo)
+		case rliNull
+			return ""
+		case rliString
+			return node->str
+		case rliChildren
+			return "<" & node->name & ">"
+		case else
+			return "Unknown value: " & node->nodeType
+	end select
+End Function
+
+Function GetInteger(node as nodeptr) as LongInt
+	if node = null then return 0
+	
+	select case node->nodeType
+		case rliByte, rliShort, rliInt, rliLong
+			return node->num
+		case rliFloat
+			return cint(node->flo)
+		case rliNull
+			return 0
+		case rliString
+			return cint(node->str)
+		case rliChildren
+			return 0
+		case else
+			return 0
+	end select
+End Function
+
+Function GetDouble(node as nodeptr) as Double
+	if node = null then return 0.0
+	
+	select case node->nodeType
+		case rliByte, rliShort, rliInt, rliLong
+			return cdbl(node->num)
+		case rliFloat
+			return node->flo
+		case rliNull
+			return 0.0
+		case rliString
+			return cdbl(node->str)
+		case rliChildren
+			return 0.0
+		case else
+			return 0.0
+	end select
+End Function
 
 End Namespace

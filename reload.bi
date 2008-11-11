@@ -78,6 +78,11 @@ Declare sub serializeXML (nod as NodePtr, ind as integer = 0)
 Declare sub SerializeBin overload (file as string, doc as DocPtr)
 Declare sub serializeBin (nod as NodePtr, f as integer = 0, table() as string)
 
+Declare Function GetString(node as nodeptr) as string
+Declare Function GetInteger(node as nodeptr) as LongInt
+Declare Function GetFloat(node as nodeptr) as Double
+
+
 End Namespace
 
 #endif
