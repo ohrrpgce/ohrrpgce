@@ -438,13 +438,23 @@ sub serializeBin(nod as NodePtr, f as integer, table() as string)
 			put #f, , i
 			put #f, , nod->str
 		case rliChildren
+			dim as integer here, here2, dif
+			here = 0
+			put #f, , here 'will fill this in later
 			put #f, , cint(nod->numChildren)
+			here = seek(f)
 			dim n as NodePtr
 			n = nod->children
 			do while n <> null
 				serializeBin(n, f, table())
 				n = n->nextSib
 			loop
+			here2= seek(f)
+			dif = here2 - here
+			seek #f, here - 8
+			put #f, , dif
+			seek #f, here2
+			
 	end select
 end sub
 
@@ -485,6 +495,8 @@ Function LoadNode(f as integer, doc as DocPtr) as NodePtr
 			get #f, , ret->str
 		case 7 'children
 			dim nod as nodeptr
+			dim size as integer
+			get #f, , size
 			get #f, , ret->numChildren
 			for i as integer = 0 to ret->numChildren - 1
 				nod = LoadNode(f, doc)

@@ -15,7 +15,8 @@ starttime = timer
 if doc = null then
 	print "Error loading document!"
 else
-	'serializeXML(doc)
+	serializeXML(doc)
+	starttime = timer
 	FreeDocument(doc)
 	print "Tore down memory in " & int((timer - starttime) * 1000) & " ms"
 	
