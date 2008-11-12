@@ -203,6 +203,28 @@ SUB gfx_close()
   SDL_Quit()
 END SUB
 
+SUB gfx_allocatepages(spage() AS UBYTE PTR)
+  spage(0) = callocate(320 * 200)
+  spage(1) = spage(0) 'For gfx_sdl, page 0 and 1 are the same! SDL does double-buffering internally
+  FOR i AS INTEGER = 2 TO 3
+    spage(i) = callocate(320 * 200)
+  NEXT
+END SUB
+
+SUB gfx_deallocatepages(spage() AS UBYTE PTR)
+	IF spage(0) THEN
+		deallocate(spage(0))
+		spage(0) = NULL
+		spage(1) = NULL
+	END IF
+	FOR i AS INTEGER = 2 TO UBOUND(spage)
+		IF spage(i) THEN
+			deallocate(spage(i))
+			spage(i) = NULL
+		END IF
+	NEXT
+END SUB
+
 SUB gfx_showpage(byval raw as ubyte ptr)
   'takes a pointer to raw 8-bit data at 320x200
   IF screenbuffer = NULL THEN

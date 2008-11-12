@@ -23,6 +23,9 @@ WHAT IS NEW?
   * Bugfixes
     * Bug 684: Lower half of inventory screen gets deleted when you
       load [James]
+    * Bug 348: Weapon is drawn behind other heroes [James]
+    * Bug 689: When a hero who is currently picking a target dies,
+      next hero's targetting was broken [James]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]
@@ -33,6 +36,7 @@ WHAT IS NEW?
     * New slice routines for rectangular objects of various styles that
       can be organized into a tree and positioned and sized relative to
       one another. [Mike]
+    * gfx_sdl backend flipping and fading problems fixed [James]
 
 October 03 2008 [xocolatl+]
 

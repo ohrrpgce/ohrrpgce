@@ -4,6 +4,8 @@
 
 declare sub gfx_init()		'initilization, including gfx_screenres
 declare sub gfx_close()		'put it back how we found it
+declare sub gfx_allocatepages(spage() as ubyte ptr)
+declare sub gfx_deallocatepages(spage() as ubyte ptr)
 declare sub gfx_showpage(byval raw as ubyte ptr) 'the main event
 declare sub gfx_setpal(pal() as RGBcolor) 'set colour palette
 declare function gfx_screenshot(fname as string, byval page as integer) as integer

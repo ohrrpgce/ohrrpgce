@@ -110,7 +110,7 @@ alert = 0
 alert$ = ""
 
 fadeout 240, 240, 240
-vpage = 0: dpage = 1: needf = 1: fiptr = 0
+needf = 1: fiptr = 0
 reset_battle_state bat
 reset_victory_state vic
 reset_rewards_state rew
@@ -244,6 +244,9 @@ DO
   END IF
   IF bat.hero_turn >= 0 AND bat.targ.mode > targNONE THEN GOSUB picktarg
  END IF
+
+ '--Begin display 
+ copypage 2, dpage
  GOSUB sprite
  GOSUB display
  IF vic.state = vicEXITDELAY THEN vic.state = vicEXIT
@@ -278,7 +281,6 @@ DO
 
  SWAP vpage, dpage
  setvispage vpage
- copypage 2, dpage
  IF needf = 1 THEN
   needf = 0
   fadein
@@ -286,7 +288,6 @@ DO
  END IF
  dowait
 LOOP
-
 donebattle:
 writestats exstat(), bstat()
 IF fatal THEN battle = 0

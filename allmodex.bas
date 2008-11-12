@@ -138,9 +138,7 @@ sub setmodex()
 	dim i as integer
 
 	'initialise software gfx
-	for i = 0 to 3
-		spage(i) = callocate(320 * 200)
-	next
+	gfx_allocatepages(spage())
 	'other spage slots are for temporary pages
 	setclip
 
@@ -180,12 +178,7 @@ sub restoremode()
 	mutexdestroy keybdmutex
 
 	'clear up software gfx
-	for i = 0 to ubound(spage)
-		if spage(i) then
-			deallocate(spage(i))
-			spage(i) = NULL
-		end if
-	next
+	gfx_deallocatepages spage()
 
 	releasestack
 end sub
