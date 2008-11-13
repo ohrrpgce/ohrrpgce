@@ -110,7 +110,7 @@ end function
 sub optimize(node as nodePtr)
 	select case node->nodeType
 		case rliString
-			if Str(ValLng(node->str)) = node->str then
+			if ValLng(node->str) <> 0 || Str(ValLng(node->str)) = "0" then
 				SetContent(node, ValLng(node->str))
 			end if
 		case rliChildren
