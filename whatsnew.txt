@@ -20,6 +20,7 @@ WHAT IS NEW?
     * Added "Connected boxes" navigation tool to the text box editor
       [James]
     * New enemy bitset "Never flinch when hit" [James]
+    * New attack bitselt "Do not cause target to flinch" [James]
 
   * Bugfixes
     * Bug 684: Lower half of inventory screen gets deleted when you

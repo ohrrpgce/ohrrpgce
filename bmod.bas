@@ -44,7 +44,7 @@ DECLARE SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, 
 DECLARE SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bstat() As BattleStats, exstat() AS INTEGER)
 DECLARE SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, bstat() As BattleStats, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
 DECLARE SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, atk() AS INTEGER)
-DECLARE SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite)
+DECLARE SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite, atk() AS INTEGER)
 
 'these are the battle global variables
 DIM as string battlecaption
@@ -681,7 +681,7 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
   END IF
   FOR i = 0 TO tcount
    anim_disappear 12 + i
-   anim_flinchdone bslot(bat.acting).t(i), bslot()
+   anim_flinchdone bslot(bat.acting).t(i), bslot(), atk()
   NEXT i
   anim_wait 2
  NEXT j
@@ -721,7 +721,7 @@ IF atk(15) = 7 THEN
    anim_inflict bslot(bat.acting).t(i), tcount
    anim_flinchstart bslot(bat.acting).t(i), bslot(), atk()
    anim_wait 3
-   anim_flinchdone bslot(bat.acting).t(i), bslot()
+   anim_flinchdone bslot(bat.acting).t(i), bslot(), atk()
    IF i = 0 THEN
     'attacker's weapon picture vanishes after the first hit
     anim_disappear 24
@@ -795,7 +795,7 @@ IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
   anim_wait 3
   FOR i = 0 TO tcount
    anim_disappear 12 + i
-   anim_flinchdone bslot(bat.acting).t(i), bslot()
+   anim_flinchdone bslot(bat.acting).t(i), bslot(), atk()
   NEXT i
   anim_wait 3
  NEXT j
@@ -846,7 +846,7 @@ IF atk(15) = 9 THEN
   anim_waitforall
   FOR i = 0 TO tcount
    anim_disappear 12 + i
-   anim_flinchdone bslot(bat.acting).t(i), bslot()
+   anim_flinchdone bslot(bat.acting).t(i), bslot(), atk()
   NEXT i
   anim_wait 3
  NEXT j
@@ -895,7 +895,7 @@ IF atk(15) = 4 AND tcount = 0 THEN
    anim_disappear 12 + i
   NEXT i
   FOR i = 0 TO tcount
-   anim_flinchdone bslot(bat.acting).t(i), bslot()
+   anim_flinchdone bslot(bat.acting).t(i), bslot(), atk()
   NEXT i
   anim_wait 3
  NEXT j
@@ -942,7 +942,7 @@ IF atk(15) = 5 THEN
    anim_disappear 12 + i
   NEXT i
   FOR i = 0 TO tcount
-   anim_flinchdone bslot(bat.acting).t(i), bslot()
+   anim_flinchdone bslot(bat.acting).t(i), bslot(), atk()
   NEXT i
   anim_wait 2
  NEXT j
@@ -2452,7 +2452,8 @@ SUB anim_setdir(who, d)
 END SUB
 
 SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, atk() AS INTEGER)
- IF bslot(who).never_flinch = NO THEN
+ '--If enemy can flinch and if attack allows flinching
+ IF bslot(who).never_flinch = NO AND readbit(atk(), 65, 18) = NO THEN
   DIM flinch_x_dist AS INTEGER
   flinch_x_dist = 3
   IF is_enemy(who) THEN flinch_x_dist = -3
@@ -2469,8 +2470,9 @@ SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, atk() AS INTEGER)
  END IF
 END SUB
 
-SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite)
- IF bslot(who).never_flinch = NO THEN
+SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite, atk() AS INTEGER)
+ '--If enemy can flinch and if attack allows flinching
+ IF bslot(who).never_flinch = NO AND readbit(atk(), 65, 18) = NO THEN
   DIM flinch_x_dist AS INTEGER
   flinch_x_dist = -3
   IF is_enemy(who) THEN flinch_x_dist = 3
