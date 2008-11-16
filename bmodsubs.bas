@@ -713,6 +713,7 @@ IF formdata(i * 4) > 0 THEN
   .enemy_untargetable = xreadbit(tempbits(), 60)
   .hero_untargetable = xreadbit(tempbits(), 61)
   .death_unneeded = xreadbit(tempbits(), 62)
+  .never_flinch = xreadbit(tempbits(), 63)
   FOR o = 0 TO 7
    .weak(o) = xreadbit(tempbits(), o)
    .strong(o) = xreadbit(tempbits(), 8 + o)

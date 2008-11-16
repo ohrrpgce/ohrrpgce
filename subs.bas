@@ -111,26 +111,27 @@ edgebox 219, 99, 82, 82, uilook(uiDisabledItem), uilook(uiMenuItem), 3
 '-------------------------------------------------------------------------
 
 '--bitsets
-DIM ebit$(62)
+DIM ebit(63) AS STRING
 
 FOR i = 0 TO 7
- ebit$(0 + i) = elemtype$(0) & " " & names(17 + i)
- ebit$(8 + i) = elemtype$(1) & " " & names(17 + i)
- ebit$(16 + i) = elemtype$(2) & " " & names(17 + i)
- ebit$(24 + i) = "Is " & names(9 + i)
+ ebit(0 + i) = elemtype$(0) & " " & names(17 + i)
+ ebit(8 + i) = elemtype$(1) & " " & names(17 + i)
+ ebit(16 + i) = elemtype$(2) & " " & names(17 + i)
+ ebit(24 + i) = "Is " & names(9 + i)
 NEXT i
 FOR i = 32 TO 53
- ebit$(i) = "" 'preferable to be blank, so we can hide it
+ ebit(i) = "" 'preferable to be blank, so we can hide it
 NEXT i
-ebit$(54) = "Harmed by Cure"
-ebit$(55) = "MP Idiot"
-ebit$(56) = "Boss"
-ebit$(57) = "Unescapable"
-ebit$(58) = "Die Without Boss"
-ebit$(59) = "Flee instead of Die"
-ebit$(60) = "Untargetable by Enemies"
-ebit$(61) = "Untargetable by Heros"
-ebit$(62) = "Win battle even if alive"
+ebit(54) = "Harmed by Cure"
+ebit(55) = "MP Idiot"
+ebit(56) = "Boss"
+ebit(57) = "Unescapable"
+ebit(58) = "Die Without Boss"
+ebit(59) = "Flee instead of Die"
+ebit(60) = "Untargetable by Enemies"
+ebit(61) = "Untargetable by Heros"
+ebit(62) = "Win battle even if alive"
+ebit(63) = "Never flinch when attacked"
 
 '-------------------------------------------------------------------------
 
@@ -614,7 +615,7 @@ DO
     recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), recbuf(EnDatPicSize) + 1, recbuf(EnDatPic), 1, previewsize(recbuf(EnDatPicSize)), previewsize(recbuf(EnDatPicSize)))
     GOSUB EnUpdateMenu
    CASE EnMenuBitsetAct
-    editbitset recbuf(), EnDatBitset, 62, ebit$()
+    editbitset recbuf(), EnDatBitset, UBOUND(ebit), ebit()
   END SELECT
  END IF
 

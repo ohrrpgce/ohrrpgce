@@ -19,6 +19,7 @@ WHAT IS NEW?
     * ALT+C and ALT+V to copy/paste text box styles [James]
     * Added "Connected boxes" navigation tool to the text box editor
       [James]
+    * New enemy bitset "Never flinch when hit" [James]
 
   * Bugfixes
     * Bug 684: Lower half of inventory screen gets deleted when you

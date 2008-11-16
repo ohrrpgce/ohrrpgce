@@ -55,6 +55,7 @@ TYPE BattleSprite
   enemy_untargetable  AS INTEGER 'YES/NO
   hero_untargetable   AS INTEGER 'YES/NO
   death_unneeded AS INTEGER 'YES/NO
+  never_flinch   AS INTEGER 'YES/NO
 END TYPE
 
 UNION BattleStatsSingle

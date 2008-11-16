@@ -43,6 +43,8 @@ DECLARE SUB reset_rewards_state (BYREF rew AS RewardsState)
 DECLARE SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, exstat() AS INTEGER, bslot() AS BattleSprite)
 DECLARE SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bstat() As BattleStats, exstat() AS INTEGER)
 DECLARE SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, bstat() As BattleStats, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
+DECLARE SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, atk() AS INTEGER)
+DECLARE SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite)
 
 'these are the battle global variables
 DIM as string battlecaption
@@ -672,25 +674,14 @@ IF atk(15) = 0 OR atk(15) = 3 OR atk(15) = 6 OR (atk(15) = 4 AND tcount > 0) THE
   END IF
   FOR i = 0 TO tcount
    anim_inflict bslot(bat.acting).t(i), tcount
-   temp = 3: IF is_enemy(bslot(bat.acting).t(i)) THEN temp = -3
-   anim_setmove bslot(bat.acting).t(i), temp, 0, 2, 0
-   if is_hero(bslot(bat.acting).t(i)) then
-    IF readbit(atk(), 20, 0) = 0 THEN
-     anim_setframe bslot(bat.acting).t(i), 5
-    END IF
-    IF readbit(atk(), 20, 0) = 1 THEN
-     anim_setframe bslot(bat.acting).t(i), 2
-    END IF
-   end if
+   anim_flinchstart bslot(bat.acting).t(i), bslot(), atk()
   NEXT i
   IF atk(15) <> 4 THEN
    anim_wait 3
   END IF
   FOR i = 0 TO tcount
    anim_disappear 12 + i
-   temp = -3: IF is_enemy(bslot(bat.acting).t(i)) THEN temp = 3
-   anim_setmove bslot(bat.acting).t(i), temp, 0, 2, 0
-   anim_setframe bslot(bat.acting).t(i), 0
+   anim_flinchdone bslot(bat.acting).t(i), bslot()
   NEXT i
   anim_wait 2
  NEXT j
@@ -728,23 +719,9 @@ IF atk(15) = 7 THEN
    anim_waitforall
    'inflict damage
    anim_inflict bslot(bat.acting).t(i), tcount
-   'make the target flinch back
-   targetflinch = 3: IF is_enemy(bslot(bat.acting).t(i)) THEN targetflinch = -3
-   anim_setmove bslot(bat.acting).t(i), targetflinch, 0, 2, 0
-   'show harm animation
-   if is_hero(bslot(bat.acting).t(i)) then
-    IF readbit(atk(), 20, 0) = 0 THEN
-     anim_setframe bslot(bat.acting).t(i), 5
-    END IF
-    IF readbit(atk(), 20, 0) = 1 THEN
-     anim_setframe bslot(bat.acting).t(i), 2
-    END IF
-   end if
+   anim_flinchstart bslot(bat.acting).t(i), bslot(), atk()
    anim_wait 3
-   'recover from flinch
-   targetflinch = -3: IF is_enemy(bslot(bat.acting).t(i)) THEN targetflinch = 3
-   anim_setmove bslot(bat.acting).t(i), targetflinch, 0, 2, 0
-   anim_setframe bslot(bat.acting).t(i), 0
+   anim_flinchdone bslot(bat.acting).t(i), bslot()
    IF i = 0 THEN
     'attacker's weapon picture vanishes after the first hit
     anim_disappear 24
@@ -813,22 +790,12 @@ IF (atk(15) >= 1 AND atk(15) <= 2) OR atk(15) = 8 THEN
   anim_setframe bat.acting, 0
   FOR i = 0 TO tcount
    anim_inflict bslot(bat.acting).t(i), tcount
-   temp = 3: IF is_enemy(bslot(bat.acting).t(i)) THEN temp = -3
-   anim_setmove bslot(bat.acting).t(i), temp, 0, 2, 0
-   if is_hero(bslot(bat.acting).t(i)) then
-    IF readbit(atk(), 20, 0) = 0 THEN
-     anim_setframe bslot(bat.acting).t(i), 5
-    ELSE
-     anim_setframe bslot(bat.acting).t(i), 2
-    END IF
-   end if
+   anim_flinchstart bslot(bat.acting).t(i), bslot(), atk()
   NEXT i
   anim_wait 3
   FOR i = 0 TO tcount
    anim_disappear 12 + i
-   temp = -3: IF is_enemy(bslot(bat.acting).t(i)) THEN temp = 3
-   anim_setmove bslot(bat.acting).t(i), temp, 0, 2, 0
-   anim_setframe bslot(bat.acting).t(i), 0
+   anim_flinchdone bslot(bat.acting).t(i), bslot()
   NEXT i
   anim_wait 3
  NEXT j
@@ -867,15 +834,7 @@ IF atk(15) = 9 THEN
   anim_waitforall
   FOR i = 0 TO tcount
    anim_inflict bslot(bat.acting).t(i), tcount
-   temp = 3: IF is_enemy(bslot(bat.acting).t(i)) THEN temp = -3
-   anim_setmove bslot(bat.acting).t(i), temp, 0, 2, 0
-   if is_hero(bslot(bat.acting).t(i)) then
-    IF readbit(atk(), 20, 0) = 0 THEN
-     anim_setframe bslot(bat.acting).t(i), 5
-    ELSE
-     anim_setframe bslot(bat.acting).t(i), 2
-    END IF
-   end if
+   anim_flinchstart bslot(bat.acting).t(i), bslot(), atk()
    yt = (bslot(bslot(bat.acting).t(i)).h - 50) + 2
    IF is_hero(bat.acting) THEN
     anim_absmove 12 + i, -50, bslot(bslot(bat.acting).t(i)).y + yt, 5, 7
@@ -887,9 +846,7 @@ IF atk(15) = 9 THEN
   anim_waitforall
   FOR i = 0 TO tcount
    anim_disappear 12 + i
-   temp = -3: IF is_enemy(bslot(bat.acting).t(i)) THEN temp = 3
-   anim_setmove bslot(bat.acting).t(i), temp, 0, 2, 0
-   anim_setframe bslot(bat.acting).t(i), 0
+   anim_flinchdone bslot(bat.acting).t(i), bslot()
   NEXT i
   anim_wait 3
  NEXT j
@@ -931,24 +888,14 @@ IF atk(15) = 4 AND tcount = 0 THEN
   anim_setframe bat.acting, 0
   FOR i = 0 TO tcount
    anim_inflict bslot(bat.acting).t(i), tcount
-   temp = 3: IF is_enemy(bslot(bat.acting).t(i)) THEN temp = -3
-   anim_setmove bslot(bat.acting).t(i), temp, 0, 2, 0
-   if is_hero(bslot(bat.acting).t(i)) then
-    IF readbit(atk(), 20, 0) = 0 THEN
-     anim_setframe bslot(bat.acting).t(i), 5
-    ELSE
-     anim_setframe bslot(bat.acting).t(i), 2
-    END IF
-   end if
+   anim_flinchstart bslot(bat.acting).t(i), bslot(), atk()
   NEXT i
   anim_wait 3
   FOR i = 0 TO 7
    anim_disappear 12 + i
   NEXT i
   FOR i = 0 TO tcount
-   temp = -3: IF is_enemy(bslot(bat.acting).t(i)) THEN temp = 3
-   anim_setmove bslot(bat.acting).t(i), temp, 0, 2, 0
-   anim_setframe bslot(bat.acting).t(i), 0
+   anim_flinchdone bslot(bat.acting).t(i), bslot()
   NEXT i
   anim_wait 3
  NEXT j
@@ -988,24 +935,14 @@ IF atk(15) = 5 THEN
   anim_setframe bat.acting, 0
   FOR i = 0 TO tcount
    anim_inflict bslot(bat.acting).t(i), tcount
-   temp = 3: IF is_enemy(bslot(bat.acting).t(i)) THEN temp = -3
-   anim_setmove bslot(bat.acting).t(i), temp, 0, 2, 0
-   if is_hero(bslot(bat.acting).t(i)) then
-    IF readbit(atk(), 20, 0) = 0 THEN
-     anim_setframe bslot(bat.acting).t(i), 5
-    ELSE
-     anim_setframe bslot(bat.acting).t(i), 2
-    END IF
-   end if
+   anim_flinchstart bslot(bat.acting).t(i), bslot(), atk()
   NEXT i
   anim_waitforall
   FOR i = 0 TO 11
    anim_disappear 12 + i
   NEXT i
   FOR i = 0 TO tcount
-   temp = -3: IF is_enemy(bslot(bat.acting).t(i)) THEN temp = 3
-   anim_setmove bslot(bat.acting).t(i), temp, 0, 2, 0
-   anim_setframe bslot(bat.acting).t(i), 0
+   anim_flinchdone bslot(bat.acting).t(i), bslot()
   NEXT i
   anim_wait 2
  NEXT j
@@ -2512,6 +2449,34 @@ END SUB
 
 SUB anim_setdir(who, d)
  pushw 21: pushw who: pushw d
+END SUB
+
+SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, atk() AS INTEGER)
+ IF bslot(who).never_flinch = NO THEN
+  DIM flinch_x_dist AS INTEGER
+  flinch_x_dist = 3
+  IF is_enemy(who) THEN flinch_x_dist = -3
+  anim_setmove who, flinch_x_dist, 0, 2, 0
+  IF is_hero(who) THEN
+   IF readbit(atk(), 20, 0) = 0 THEN
+    '--Show Harmed frame
+    anim_setframe who, 5
+   ELSE
+    '--Show attack1 frame when healed
+    anim_setframe who, 2
+   END IF
+  END IF
+ END IF
+END SUB
+
+SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite)
+ IF bslot(who).never_flinch = NO THEN
+  DIM flinch_x_dist AS INTEGER
+  flinch_x_dist = -3
+  IF is_enemy(who) THEN flinch_x_dist = 3
+  anim_setmove who, flinch_x_dist, 0, 2, 0
+  anim_setframe who, 0
+ END IF
 END SUB
 
 FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
