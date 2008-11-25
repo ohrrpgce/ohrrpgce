@@ -12,7 +12,9 @@ CONST STACK_SIZE_INC = 512 ' in integers
 #include "compat.bi"
 #include "util.bi"
 
+#if __FB_LANG__ <> "fb"
 OPTION EXPLICIT
+#endif
 
 'DECLARE SUB debug (str$)
 
