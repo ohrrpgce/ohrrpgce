@@ -2337,15 +2337,6 @@ END IF
 
 screenshot shot$, vpage, master()
 
-IF isfile(shot$) THEN
- fh = FREEFILE
- OPEN shot$ FOR BINARY AS #fh
- a$ = CHR$(0)
- PUT #fh, 48, a$
- PUT #fh, 52, a$
- CLOSE #fh
-END IF
-
 END SUB
 
 SUB tagdisplay

@@ -2359,25 +2359,32 @@ SUB copyfile (s$, d$)
 end SUB
 
 SUB screenshot (f$, BYVAL p as integer, maspal() as RGBcolor)
-'Not sure whether this should be in here or in gfx. Possibly both?
-'	bsave f$, 0
-
 	'try external first
 	if gfx_screenshot(f$, p) = 0 then
 		'otherwise save it ourselves
+		dim fr as Frame
+		fr.w = 320
+		fr.h = 200
+		fr.image = spage(p)
+		fr.mask = NULL
+		fr.refcount = -1234  'not refcounted
+
+		sprite_export_bmp8(f$, @fr, maspal())
+	end if
+END SUB
+
+SUB sprite_export_bmp8 (f$, fr as Frame Ptr, maspal() as RGBcolor)
+'Not sure whether this should be in here or in gfx. Possibly both?
+'	bsave f$, 0
+
 		dim header as BITMAPFILEHEADER
 		dim info as BITMAPINFOHEADER
 		dim argb as RGBQUAD
 
-		dim as integer of, w, h, i, bfSize, biSizeImage, bfOffBits, biClrUsed, pitch
+		dim as integer of, h, i, bfSize, biSizeImage, bfOffBits, biClrUsed, pitch
 		dim as ubyte ptr s
 
-		w = 320
-		h = 200
-		s = spage(p)
-		pitch = w
-
-		biSizeImage = w * h
+		biSizeImage = fr->w * fr->h
 		bfOffBits = 54 + 1024
 		bfSize = bfOffBits + biSizeImage
 		biClrUsed = 256
@@ -2389,8 +2396,8 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as RGBcolor)
 		header.bfOffBits = bfOffBits
 
 		info.biSize = 40
-		info.biWidth = w
-		info.biHeight = h
+		info.biWidth = fr->w
+		info.biHeight = fr->h
 		info.biPlanes = 1
 		info.biBitCount = 8
 		info.biCompression = 0
@@ -2414,7 +2421,9 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as RGBcolor)
 			put #of, , argb
 		next
 
-		s += (h - 1) * pitch
+		h = fr->h
+		pitch = fr->w
+		s = fr->image + (h - 1) * pitch
 		while h > 0
 			fput(of, , s, pitch)
 			s -= pitch
@@ -2422,7 +2431,6 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as RGBcolor)
 		wend
 
 		close #of
-	end if
 end SUB
 
 FUNCTION setmouse (mbuf() as integer) as integer

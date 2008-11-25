@@ -80,6 +80,7 @@ DECLARE FUNCTION getfmvol () as integer
 DECLARE SUB setfmvol (BYVAL vol as integer)
 DECLARE SUB copyfile (s as string, d as string)
 DECLARE SUB screenshot (f as string, BYVAL p as integer, maspal() as RGBcolor)
+DECLARE SUB sprite_export_bmp8 (f$, fr as Frame Ptr, maspal() as RGBcolor)
 DECLARE SUB loadbmp (f as string, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
 DECLARE SUB bitmap2pal (bmp as string, pal() as RGBcolor)
 DECLARE FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
