@@ -754,52 +754,6 @@ SUB saveitemdata (array(), index)
 storerecord array(), game & ".itm", 100, index
 END SUB
 
-SUB loadoldattackdata (array(), index)
-loadrecord array(), game & ".dt6", 40, index
-END SUB
-
-SUB saveoldattackdata (array(), index)
-storerecord array(), game & ".dt6", 40, index
-END SUB
-
-SUB loadnewattackdata (array(), index)
-size = getbinsize(binATTACK) \ 2
-IF size > 0 THEN
- loadrecord array(), workingdir + SLASH + "attack.bin", size, index
-END IF
-END SUB
-
-SUB savenewattackdata (array(), index)
-size = curbinsize(binATTACK) \ 2
-IF size > 0 THEN
- storerecord array(), workingdir + SLASH + "attack.bin", size, index
-END IF
-END SUB
-
-SUB loadattackdata (array(), index)
-loadoldattackdata array(), index
-size = getbinsize(binATTACK) \ 2 'size of record in RPG file
-IF size > 0 THEN
- DIM buf(size)
- loadnewattackdata buf(), index
- FOR i = 0 TO size
-  array(40 + i) = buf(i)
- NEXT i
-END IF
-END SUB
-
-SUB saveattackdata (array(), index)
-saveoldattackdata array(), index
-size = curbinsize(binATTACK) / 2 'size of record supported by engine
-IF size > 0 THEN
- DIM buf(size)
- FOR i = 0 TO size
-  buf(i) = array(40 + i)
- NEXT i
- savenewattackdata buf(), index
-END IF
-END SUB
-
 FUNCTION defbinsize (id) as integer
  'returns the default size in BYTES to use for getbinsize() when no BINSIZE data is available at all
  IF id = 0 THEN RETURN 0  'attack.bin

@@ -68,4 +68,12 @@ declare Sub LoadTextBox (BYREF box AS TextBox, record AS INTEGER)
 declare Sub SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
 declare Sub ClearTextBox (BYREF box AS TextBox)
 
+DECLARE SUB loadoldattackdata (array() as integer, index as integer)
+DECLARE SUB saveoldattackdata (array() as integer, index as integer)
+DECLARE SUB loadnewattackdata (array() as integer, index as integer)
+DECLARE SUB savenewattackdata (array() as integer, index as integer)
+DECLARE SUB loadattackdata OVERLOAD (array() as integer, BYVAL index as integer)
+DECLARE SUB loadattackdata OVERLOAD (BYREF atkdat as AttackData, BYVAL index as integer)
+DECLARE SUB saveattackdata (array() as integer, index as integer)
+
 #ENDIF

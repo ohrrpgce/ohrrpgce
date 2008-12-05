@@ -245,6 +245,96 @@ Union Stats
        sta(11) as integer
 End Union
 
+Type AttackDataTag
+	tag as integer
+	condition as integer
+	tagcheck as integer
+End Type
+
+Type AttackDataItem
+	id as integer 'ID + 1
+	number as integer 'positive to consume, negative to aquire
+End Type
+
+Type AttackData
+	name as string
+	description as string
+	picture as integer
+	pal as integer
+	anim_pattern as integer
+	targ_class as integer
+	targ_set as integer
+	damage_math as integer
+	aim_math as integer
+	base_atk_stat as integer
+	base_def_stat as integer
+	mp_cost as integer
+	hp_cost as integer
+	money_cost as integer
+	extra_damage as integer
+	chain_to as integer 'ID +1
+	chain_rate as integer
+	attacker_anim as integer
+	attack_anim as integer
+	attack_delay as integer 'in ticks
+	hits as integer
+	targ_stat as integer
+	prefer_targ as integer
+	prefer_targ_stat as integer
+	caption_time as integer
+	caption as string
+	caption_delay as integer
+	tagset(1) as AttackDataTag
+	item(2) as AttackDataItem
+	sound_effect as integer ' ID + 1
+	'----Bitsets----
+	cure_instead_of_harm as integer
+	divide_spread_damage as integer
+	absorb_damage as integer
+	unreversable_picture as integer
+	can_steal_item as integer
+	elemental_damage(7) as integer
+	monster_type_bonus(7) as integer
+	fail_vs_elemental(7) as integer
+	fail_vs_monster_type(7) as integer
+	cannot_target_enemy_slot(7) as integer
+	cannot_target_hero_slot(3) as integer
+	ignore_extra_hits as integer
+	erase_rewards as integer
+	show_damage_without_inflicting as integer
+	store_targ as integer
+	delete_stored_targ as integer
+	automatic_targ as integer
+	show_name as integer
+	do_not_display_damage as integer
+	reset_targ_stat_before_hit as integer
+	allow_cure_to_exceed_maximum as integer
+	useable_outside_battle as integer
+	obsolete_damage_mp as integer
+	do_not_randomize as integer
+	damage_can_be_zero as integer
+	force_run as integer
+	mutable as integer
+	fail_if_targ_poison as integer
+	fail_if_targ_regen as integer
+	fail_if_targ_stun as integer
+	fail_if_targ_mute as integer
+	percent_damage_not_set as integer
+	check_costs_as_weapon as integer
+	no_chain_on_failure as integer
+	reset_poison as integer
+	reset_regen as integer
+	reset_stun as integer
+	reset_mute as integer
+	cancel_targets_attack as integer
+	not_cancellable_by_attacks as integer
+	no_spawn_on_attack as integer
+	no_spawn_on_kill as integer
+	check_costs_as_item as integer
+	recheck_costs_after_delay as integer
+	targ_does_not_flinch as integer
+End Type
+
 Type SpellList
 	attack as integer
 	learned as integer

@@ -47,6 +47,7 @@ DECLARE Sub MenuSound(byval s as integer)
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi" 
+#include "loading.bi"
 #include "gglobals.bi"
 #include "const.bi"
 #include "uiconst.bi"

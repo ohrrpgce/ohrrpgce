@@ -1254,3 +1254,149 @@ SUB ClearTextBox (BYREF box AS TextBox)
   .portrait_pos.y = 0
  END WITH
 END SUB
+
+SUB loadoldattackdata (array(), index)
+ loadrecord array(), game & ".dt6", 40, index
+END SUB
+
+SUB saveoldattackdata (array(), index)
+ storerecord array(), game & ".dt6", 40, index
+END SUB
+
+SUB loadnewattackdata (array(), index)
+ DIM size AS INTEGER = getbinsize(binATTACK) \ 2
+ IF size > 0 THEN
+  loadrecord array(), workingdir + SLASH + "attack.bin", size, index
+ END IF
+END SUB
+
+SUB savenewattackdata (array(), index)
+ DIM size AS INTEGER = curbinsize(binATTACK) \ 2
+ IF size > 0 THEN
+  storerecord array(), workingdir + SLASH + "attack.bin", size, index
+ END IF
+END SUB
+
+SUB loadattackdata (array() AS INTEGER, BYVAL index AS INTEGER)
+ loadoldattackdata array(), index
+ DIM size AS INTEGER = getbinsize(binATTACK) \ 2 'size of record in RPG file
+ IF size > 0 THEN
+  DIM buf(size)
+  loadnewattackdata buf(), index
+  FOR i AS INTEGER = 0 TO size
+   array(40 + i) = buf(i)
+  NEXT i
+ END IF
+END SUB
+
+SUB loadattackdata (BYREF atkdat AS AttackData, BYVAL index AS INTEGER)
+ DIM buf(40 + dimbinsize(binATTACK)) AS INTEGER
+ loadattackdata buf(), index
+ WITH atkdat
+  .name = readbadbinstring(buf(), 24, 10, 1)
+  .description = readbinstring(buf(), 73, 38)
+  .picture = buf(0)
+  .pal = buf(1)
+  .anim_pattern = buf(2)
+  .targ_class = buf(3)
+  .targ_set = buf(4)
+  .damage_math = buf(5)
+  .aim_math = buf(6)
+  .base_atk_stat = buf(7)
+  .base_def_stat = buf(58)
+  .mp_cost = buf(8)
+  .hp_cost = buf(9)
+  .money_cost = buf(10)
+  .extra_damage = buf(11)
+  .chain_to = buf(12)
+  .chain_rate = buf(13)
+  .attacker_anim = buf(14)
+  .attack_anim = buf(15)
+  .attack_delay = buf(16)
+  .hits = buf(17)
+  .targ_stat = buf(18)
+  .prefer_targ = buf(19)
+  .prefer_targ_stat = buf(100)
+  .caption_time = buf(36)
+  .caption = readbinstring$(buf(), 37, 38)
+  .caption_delay = buf(57)
+  FOR i AS INTEGER = 0 TO 1
+   WITH .tagset(i)
+    .tag = buf(59 + i*3)
+    .condition = buf(60 + i*3)
+    .tagcheck = buf(61 + i*3)
+   END WITH
+  NEXT i
+  FOR i AS INTEGER = 0 TO 2
+   WITH .item(i)
+    .id = buf(93 + i*2)
+    .number = buf(94 + i*2)
+   END WITH
+  NEXT i
+  .sound_effect = buf(99)
+  '----Bitsets----
+  .cure_instead_of_harm           = xreadbit(buf(), 0, 20)
+  .divide_spread_damage           = xreadbit(buf(), 1, 20)
+  .absorb_damage                  = xreadbit(buf(), 2, 20)
+  .unreversable_picture           = xreadbit(buf(), 3, 20)
+  .can_steal_item                 = xreadbit(buf(), 4, 20)
+  FOR i AS INTEGER = 0 TO 7
+   .elemental_damage(i)           = xreadbit(buf(), 5+i, 20)
+   .monster_type_bonus(i)         = xreadbit(buf(), 13+i, 20)
+   .fail_vs_elemental(i)          = xreadbit(buf(), 21+i, 20)
+   .fail_vs_monster_type(i)       = xreadbit(buf(), 29+i, 20)
+  NEXT i
+  FOR i AS INTEGER = 0 TO 7
+   .cannot_target_enemy_slot(i)   = xreadbit(buf(), 37+i, 20)
+  NEXT i
+  FOR i AS INTEGER = 0 TO 3
+   .cannot_target_hero_slot(i)    = xreadbit(buf(), 45+i, 20)
+  NEXT i
+  .ignore_extra_hits              = xreadbit(buf(), 49, 20)
+  .erase_rewards                  = xreadbit(buf(), 50, 20)
+  .show_damage_without_inflicting = xreadbit(buf(), 51, 20)
+  .store_targ                     = xreadbit(buf(), 52, 20)
+  .delete_stored_targ             = xreadbit(buf(), 53, 20)
+  .automatic_targ                 = xreadbit(buf(), 54, 20)
+  .show_name                      = xreadbit(buf(), 55, 20)
+  .do_not_display_damage          = xreadbit(buf(), 56, 20)
+  .reset_targ_stat_before_hit     = xreadbit(buf(), 57, 20)
+  .allow_cure_to_exceed_maximum   = xreadbit(buf(), 58, 20)
+  .useable_outside_battle         = xreadbit(buf(), 59, 20)
+  .obsolete_damage_mp             = xreadbit(buf(), 60, 20)
+  .do_not_randomize               = xreadbit(buf(), 61, 20)
+  .damage_can_be_zero             = xreadbit(buf(), 62, 20)
+  .force_run                      = xreadbit(buf(), 63, 20)
+  .mutable                        = xreadbit(buf(), 0, 65)
+  .fail_if_targ_poison            = xreadbit(buf(), 1, 65)
+  .fail_if_targ_regen             = xreadbit(buf(), 2, 65)
+  .fail_if_targ_stun              = xreadbit(buf(), 3, 65)
+  .fail_if_targ_mute              = xreadbit(buf(), 4, 65)
+  .percent_damage_not_set         = xreadbit(buf(), 5, 65)
+  .check_costs_as_weapon          = xreadbit(buf(), 6, 65)
+  .no_chain_on_failure            = xreadbit(buf(), 7, 65)
+  .reset_poison                   = xreadbit(buf(), 8, 65)
+  .reset_regen                    = xreadbit(buf(), 9, 65)
+  .reset_stun                     = xreadbit(buf(), 10, 65)
+  .reset_mute                     = xreadbit(buf(), 11, 65)
+  .cancel_targets_attack          = xreadbit(buf(), 12, 65)
+  .not_cancellable_by_attacks     = xreadbit(buf(), 13, 65)
+  .no_spawn_on_attack             = xreadbit(buf(), 14, 65)
+  .no_spawn_on_kill               = xreadbit(buf(), 15, 65)
+  .check_costs_as_item            = xreadbit(buf(), 16, 65)
+  .recheck_costs_after_delay      = xreadbit(buf(), 17, 65)
+  .targ_does_not_flinch           = xreadbit(buf(), 18, 65)
+ END WITH
+END SUB
+
+SUB saveattackdata (array(), index)
+ saveoldattackdata array(), index
+ DIM size AS INTEGER = curbinsize(binATTACK) / 2 'size of record supported by engine
+ IF size > 0 THEN
+  DIM buf(size)
+  FOR i AS INTEGER = 0 TO size
+   buf(i) = array(40 + i)
+  NEXT i
+  savenewattackdata buf(), index
+ END IF
+END SUB

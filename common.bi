@@ -60,12 +60,6 @@ DECLARE SUB loadenemydata (array() as integer, index as integer, altfile as inte
 DECLARE SUB saveenemydata (array() as integer, index as integer, altfile as integer = 0)
 DECLARE SUB loaditemdata (array() as integer, index as integer)
 DECLARE SUB saveitemdata (array() as integer, index as integer)
-DECLARE SUB loadoldattackdata (array() as integer, index as integer)
-DECLARE SUB saveoldattackdata (array() as integer, index as integer)
-DECLARE SUB loadnewattackdata (array() as integer, index as integer)
-DECLARE SUB savenewattackdata (array() as integer, index as integer)
-DECLARE SUB loadattackdata (array() as integer, index as integer)
-DECLARE SUB saveattackdata (array() as integer, index as integer)
 DECLARE FUNCTION maplumpname (map as integer, oldext as string) as string
 DECLARE SUB getpal16 (array() as integer, aoffset as integer, foffset as integer, autotype as integer=-1, sprite as integer=0)
 DECLARE SUB storepal16 (array() as integer, aoffset as integer, foffset as integer)

@@ -20,6 +20,7 @@ DECLARE FUNCTION consumeitem (index)
 
 'misc
 #include "common.bi"
+#include "loading.bi"
 #INCLUDE "compat.bi"
 #INCLUDE "gglobals.bi"
 #INCLUDE "const.bi"
