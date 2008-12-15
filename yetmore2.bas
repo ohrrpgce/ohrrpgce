@@ -62,7 +62,7 @@ END IF
 
 END SUB
 
-FUNCTION cropmovement (x, y, xgo, ygo)
+FUNCTION cropmovement (x as integer, y as integer, xgo as integer, ygo as integer) as integer
  'crops movement at edge of map, or wraps
  'returns true if ran into wall at edge
  cropmovement = 0
@@ -150,7 +150,7 @@ IF veh(0) THEN
 END IF
 END SUB
 
-FUNCTION framewalkabout (x, y, framex, framey, mapwide, maphigh, wrapmode)
+FUNCTION framewalkabout (x as integer, y as integer, framex as integer, framey as integer, mapwide as integer, maphigh as integer, wrapmode as integer) as integer
 'Given an X and a Y returns true if a walkabout at that
 'spot would be on-screen, and false if off-screen.
 'Also checks wraparound map, and sets framex and framey
@@ -276,7 +276,7 @@ NEXT i
 
 END SUB
 
-FUNCTION isonscreen (x, y)
+FUNCTION isonscreen (x as integer, y as integer) as integer
 IF x >= mapx - 20 AND x <= mapx + 340 AND y >= mapy - 20 AND y <= mapy + 200 THEN
  isonscreen = -1
 ELSE
@@ -374,41 +374,45 @@ NEXT i
 
 END SUB
 
-FUNCTION str2int (stri$)
+FUNCTION str2int (stri as string) as integer
 
-n = 0
-s$ = LTRIM$(stri$)
-sign = 1
+ DIM n AS INTEGER = 0
+ DIM s AS STRING = LTRIM(stri)
+ DIM sign AS INTEGER = 1
 
-FOR i = 1 TO LEN(s$)
- c$ = MID$(s$, i, 1)
- IF c$ = "-" AND i = 1 THEN sign = -1
- c = ASC(c$) - 48
- IF c >= 0 AND c <= 9 THEN
-  n = n * 10 + (c * sign)
- END IF
-NEXT i
+ DIM ch AS STRING
+ DIM c AS INTEGER
+ FOR i AS INTEGER = 1 TO LEN(s)
+  ch = MID(s, i, 1)
+  IF ch = "-" AND i = 1 THEN sign = -1
+  c = ASC(ch) - 48
+  IF c >= 0 AND c <= 9 THEN
+   n = n * 10 + (c * sign)
+  END IF
+ NEXT i
 
-str2int = n
+ RETURN n
 
 END FUNCTION
 
-FUNCTION str2lng& (stri$)
+FUNCTION str2lng (stri as string) as long
 
-n& = 0
-s$ = LTRIM$(stri$)
-sign = 1
+ DIM n AS LONG = 0
+ DIM s AS STRING = LTRIM(stri)
+ DIM sign AS INTEGER = 1
 
-FOR i = 1 TO LEN(s$)
- c$ = MID$(s$, i, 1)
- IF c$ = "-" AND i = 1 THEN sign = -1
- c = ASC(c$) - 48
- IF c >= 0 AND c <= 9 THEN
-  n& = n& * 10 + (c * sign)
- END IF
-NEXT i
+ DIM ch AS STRING
+ DIM c AS INTEGER
+ FOR i AS INTEGER = 1 TO LEN(s)
+  ch = MID(s, i, 1)
+  IF ch = "-" AND i = 1 THEN sign = -1
+  c = ASC(ch) - 48
+  IF c >= 0 AND c <= 9 THEN
+   n = n * 10 + (c * sign)
+  END IF
+ NEXT i
 
-str2lng& = n&
+ RETURN n
 
 END FUNCTION
 
@@ -512,7 +516,7 @@ SUB cleanuptemp
   KILL tmpdir + "filelist.tmp"
 END SUB
 
-FUNCTION checkfordeath (stat())
+FUNCTION checkfordeath (stat() as integer) as integer
 checkfordeath = 0' --default alive
 
 o = 0
@@ -624,7 +628,7 @@ SUB verquit
  LOOP
 END SUB
 
-FUNCTION titlescr
+FUNCTION titlescr () as integer
 titlescr = -1 ' default return true for success
 loadpage game + ".mxs", gen(genTitle), 3
 needf = 2
@@ -682,8 +686,8 @@ FOR i = 0 TO max_npc_defs
 NEXT i
 END SUB
 
-FUNCTION mapstatetemp$(mapnum, prefix$)
- RETURN tmpdir & prefix$ & mapnum
+FUNCTION mapstatetemp(mapnum as integer, prefix as string) as string
+ RETURN tmpdir & prefix & mapnum
 END FUNCTION
 
 SUB savemapstate_gmap(mapnum, prefix$)
@@ -916,7 +920,7 @@ SUB deletetemps
  KILL tmpdir + "filelist.tmp"
 END SUB
 
-FUNCTION decodetrigger (trigger, trigtype)
+FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
  DIM buf(19)
  'debug "decoding " + STR$(trigger) + " type " + STR$(trigtype)
  decodetrigger = trigger  'default

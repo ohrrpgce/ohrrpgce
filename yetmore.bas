@@ -87,7 +87,7 @@ IF box.hero_lock < 0 THEN
 END IF '---end if > 0
 END SUB
 
-FUNCTION checksaveslot (slot)
+FUNCTION checksaveslot (slot as integer) as integer
  DIM AS SHORT saveversion
  sg$ = savefile
  savh = FREEFILE
@@ -366,7 +366,7 @@ IF fpi > -1 THEN
 END IF
 END SUB
 
-FUNCTION functiondone
+FUNCTION functiondone ()  as integer
 'returns 0 when returning a value to a caller
 'returns 1 when all scripts are finished
 'returns 2 when reactivating a suspended script
@@ -477,11 +477,11 @@ IF curcmd->kind = tymath THEN IF curcmd->value >= 20 THEN EXIT SUB
 GOTO quickrepeat
 END SUB
 
-FUNCTION gethighbyte (n)
+FUNCTION gethighbyte (n) as integer
 RETURN n SHL 8
 END FUNCTION
 
-FUNCTION getnpcref (seekid, offset)
+FUNCTION getnpcref (seekid as integer, offset as integer) as integer
 SELECT CASE seekid
 
  CASE -300 TO -1'--direct reference
@@ -514,7 +514,7 @@ FOR i = bound(retvals(0), 0, 255) TO bound(retvals(1), 0, 255)
 NEXT i
 END SUB
 
-FUNCTION herobyrank (slot)
+FUNCTION herobyrank (slot as integer) as integer
 result = -1
 IF slot >= 0 AND slot <= 3 THEN
  j = -1
@@ -615,7 +615,7 @@ END IF
 
 END SUB
 
-FUNCTION partybyrank (slot)
+FUNCTION partybyrank (slot as integer) as integer
 result = -1
 IF slot >= 0 AND slot <= 3 THEN
  j = -1
@@ -630,7 +630,7 @@ END IF
 partybyrank = result
 END FUNCTION
 
-FUNCTION playtime$ (d, h, m)
+FUNCTION playtime (d as integer, h as integer, m as integer) as string
 s$ = ""
 
 SELECT CASE d
@@ -680,7 +680,7 @@ END IF
 
 END SUB
 
-FUNCTION rankincaterpillar (heroid)
+FUNCTION rankincaterpillar (heroid as integer) as integer
 result = -1
 o = 0
 FOR i = 0 TO 3
@@ -692,7 +692,7 @@ NEXT i
 rankincaterpillar = result
 END FUNCTION
 
-FUNCTION readfoemap (x, y, wide, high, fh)
+FUNCTION readfoemap (x as integer, y as integer, wide as integer, high as integer, fh as integer) as integer
 
 a$ = CHR$(0)
 
@@ -2843,7 +2843,7 @@ FOR i = bound(retvals(3), 0, 255) TO bound(retvals(4), 0, 255)
 NEXT i
 END SUB
 
-FUNCTION vehiclestuff (disx, disy, vehedge)
+FUNCTION vehiclestuff (disx as integer, disy as integer, vehedge as integer) as integer
 STATIC aheadx, aheady
 
 result = 0
@@ -3036,7 +3036,7 @@ RETRACE
 
 END FUNCTION
 
-FUNCTION vehpass (n, tile, default)
+FUNCTION vehpass (n as integer, tile as integer, default as integer) as integer
 
 '--true means passable
 '--false means impassable
@@ -3118,7 +3118,7 @@ END IF
 
 END SUB
 
-FUNCTION wrappass (x, y, xgo, ygo, isveh)
+FUNCTION wrappass (x as integer, y as integer, xgo as integer, ygo as integer, isveh as integer) as integer
 ' returns true if blocked by terrain
 DIM pd(3)
 
@@ -3145,7 +3145,7 @@ IF xgo < 0 AND movdivis(xgo) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (isveh A
 END FUNCTION
 
 
-FUNCTION wrapcollision (xa, ya, xgoa, ygoa, xb, yb, xgob, ygob)
+FUNCTION wrapcollision (xa as integer, ya as integer, xgoa as integer, ygoa as integer, xb as integer, yb as integer, xgob as integer, ygob as integer) as integer
  x1 = (xa - bound(xgoa, -20, 20)) \ 20
  x2 = (xb - bound(xgob, -20, 20)) \ 20
  y1 = (ya - bound(ygoa, -20, 20)) \ 20
@@ -3159,7 +3159,7 @@ FUNCTION wrapcollision (xa, ya, xgoa, ygoa, xb, yb, xgob, ygob)
 
 END FUNCTION
 
-FUNCTION wraptouch (x1, y1, x2, y2, distance)
+FUNCTION wraptouch (x1 as integer, y1 as integer, x2 as integer, y2 as integer, distance as integer) as integer
  'whether 2 walkabouts are within distance pixels horizontally + vertically
  wraptouch = 0
  IF gmap(5) = 1 THEN
@@ -3201,20 +3201,20 @@ SUB readstackcommand (state as ScriptInst, stk as Stack, i)
  i -= 2
 END SUB
 
-FUNCTION localvariablename$ (value, scriptargs)
+FUNCTION localvariablename (value as integer, scriptargs as integer) as string
  'get a variable name from a local variable number
  'locals (and args) numbered from 0
  IF scriptargs = 999 THEN
   'old HS file
-  localvariablename$ = "local" & value
+  RETURN "local" & value
  ELSEIF value < scriptargs THEN
-  localvariablename$ = "arg" & value
+  RETURN "arg" & value
  ELSE
-  localvariablename$ = "var" & (value - scriptargs)
+  RETURN "var" & (value - scriptargs)
  END IF
 END FUNCTION
 
-FUNCTION mathvariablename$ (value, scriptargs)
+FUNCTION mathvariablename (value as integer, scriptargs as integer) as string
  'get a variable name from an variable id number passed to a math function or for
  'locals (and args) numbered from 0
  IF value >= 0 THEN
@@ -3229,7 +3229,7 @@ FUNCTION mathvariablename$ (value, scriptargs)
  END IF
 END FUNCTION
 
-FUNCTION scriptstate$ (targetscript)
+FUNCTION scriptstate (targetscript as integer) as string
  IF nowscript <= -1 THEN EXIT FUNCTION
 
  IF targetscript = -1 OR targetscript = nowscript THEN
@@ -3459,7 +3459,7 @@ FUNCTION scriptstate$ (targetscript)
  reloadscript scrat(nowscript)
 END FUNCTION
 
-FUNCTION backcompat_sound_id (id AS INTEGER)
+FUNCTION backcompat_sound_id (id AS INTEGER) as integer
   IF backcompat_sound_slot_mode THEN
    'BACKWARDS COMPATABILITY HACK
    IF id >= 0 AND id <= 7 THEN

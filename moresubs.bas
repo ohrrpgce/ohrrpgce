@@ -134,7 +134,7 @@ END IF
 
 END SUB
 
-FUNCTION atlevel (now, a0, a99)
+FUNCTION atlevel (now as integer, a0 as integer, a99 as integer) as integer
 
 'CLS : a = 80: b = 8500: PRINT : FOR i = 0 TO 99 STEP 5: PRINT i; " "; atlevel(i, a, b): LINE (640, i)-(640 - atlevel(i, a, b) / 100, i), 4: NEXT i
 
@@ -144,7 +144,7 @@ atlevel = (.8 + now / 50) * now * ((a99 - a0) / 275.222) + a0 + .1
 
 END FUNCTION
 
-FUNCTION averagelev (stat())
+FUNCTION averagelev (stat() as integer) as integer
 average = 0
 count = 0
 FOR i = 0 TO 3
@@ -253,7 +253,7 @@ LOOP
 
 END SUB
 
-FUNCTION consumeitem (index)
+FUNCTION consumeitem (index as integer) as integer
 '--subtracts one of an item at a location. If the item is depleted, returns true. If there are some of the item left, it returns false
 consumeitem = 0
 inventory(index).num -= 1
@@ -264,7 +264,7 @@ END IF
 itstr index
 END FUNCTION
 
-FUNCTION countitem (it)
+FUNCTION countitem (it as integer) as integer
 total = 0
 FOR o = 0 TO last_inv_slot()
  IF inventory(o).used AND it - 1 = inventory(o).id THEN
@@ -274,7 +274,7 @@ NEXT o
 countitem = total
 END FUNCTION
 
-SUB delitem (it, amount)
+SUB delitem (it as integer, amount as integer)
 FOR o = 0 TO last_inv_slot()
  IF inventory(o).used AND it - 1 = inventory(o).id THEN
   IF inventory(o).num <= amount THEN
@@ -459,7 +459,7 @@ NEXT j
 
 END SUB
 
-FUNCTION findhero (who, f, l, d)
+FUNCTION findhero (who as integer, f as integer, l as integer, d as integer) as integer
 result = -1
 FOR i = f TO l STEP d
  IF hero(i) = who OR (who = -1 AND hero(i)) THEN result = i: EXIT FOR
@@ -674,7 +674,7 @@ IF hero(acsr) AND ecsr < 0 THEN info$ = names(acsr) ELSE info$ = ""
 RETRACE
 END SUB
 
-FUNCTION istag (num, zero)
+FUNCTION istag (num as integer, zero as integer) as integer
 IF num = 0 THEN RETURN zero 'why go through all that just to return defaults?
 IF num = 1 THEN RETURN 0
 IF num = -1 THEN RETURN -1
@@ -1013,7 +1013,7 @@ SUB minimap (x, y, tilesets() as TilesetData ptr)
  MenuSound gen(genCancelSFX)
 END SUB
 
-FUNCTION teleporttool (tilesets() as TilesetData ptr)
+FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
  REDIM tilemap(2) AS INTEGER
  REDIM mini(0, 0) AS UBYTE
  DIM zoom AS INTEGER
@@ -1163,7 +1163,7 @@ SUB teleporttooltend (mini() AS UBYTE, tilemap(), tilesets() AS TilesetData ptr,
 END SUB
 
 
-FUNCTION movdivis (xygo)
+FUNCTION movdivis (xygo as integer) as integer
 IF (xygo \ 20) * 20 = xygo AND xygo <> 0 THEN
  movdivis = -1
 ELSE
@@ -1171,7 +1171,7 @@ ELSE
 END IF
 END FUNCTION
 
-FUNCTION onwho (w$, alone)
+FUNCTION onwho (caption as string, alone as integer) as integer
 
 '-- pre-select the first hero
 FOR i = 0 TO 3
@@ -1220,8 +1220,8 @@ DO
    o = o + 1
   END IF
  NEXT i
- edgeprint CHR$(25), 106 + w * 30, 90, uilook(uiSelectedItem + tog), dpage
- edgeprint w$, xstring(w$, 160), 80, uilook(uiText), dpage
+ edgeprint CHR(25), 106 + w * 30, 90, uilook(uiSelectedItem + tog), dpage
+ edgeprint caption, xstring(caption, 160), 80, uilook(uiText), dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -1274,7 +1274,7 @@ END IF
 
 END SUB
 
-FUNCTION readscriptvar (id)
+FUNCTION readscriptvar (id as integer) as integer
 
 SELECT CASE id
  CASE IS < 0 'local variable
@@ -1512,7 +1512,7 @@ w = getkey
 fadeout 0, 0, 0
 END SUB
 
-FUNCTION runscript (id, index, newcall, er$, trigger)
+FUNCTION runscript (id as integer, index as integer, newcall as integer, er as string, trigger as integer) as integer
 
 IF trigger <> 0 THEN n = decodetrigger(id, trigger) ELSE n = id
 
@@ -1598,7 +1598,7 @@ RETURN 1 '--success
 
 END FUNCTION
 
-FUNCTION loadscript (n)
+FUNCTION loadscript (n as integer) as integer
  DIM thisscr as ScriptData
  DIM temp as short
 
@@ -2057,7 +2057,7 @@ SELECT CASE AS CONST curcmd->value
 END SELECT
 END SUB
 
-FUNCTION settingstring (searchee$, setting$, result$)
+FUNCTION settingstring (searchee$, setting$, result$) as integer
 
 ' checks to see if searchee$ begins with setting$ =
 ' if so, sets result$ to the uppercased space-trimmed value that
@@ -2195,7 +2195,7 @@ NEXT i
 RETRACE
 END SUB
 
-FUNCTION useinn (inn, price, needf, stat(), holdscreen)
+FUNCTION useinn (inn as integer, price as integer, needf as integer, stat() as integer, holdscreen as integer) as integer
 DIM menu$(1), sname$(40)
 DIM AS INTEGER i, y
 
@@ -2351,20 +2351,21 @@ END SELECT
 
 END SUB
 
-FUNCTION getdisplayname$ (default$)
+FUNCTION getdisplayname (default AS STRING) AS STRING
  '--Get game's display name
- f$ = workingdir + SLASH + "browse.txt"
- IF isfile(f$) THEN
+ DIM f AS STRING
+ f = workingdir & SLASH & "browse.txt"
+ IF isfile(f) THEN
   setpicstuf buffer(), 40, -1
-  loadset f$, 0, 0
-  s$ = STRING$(bound(buffer(0), 0, 38), " ")
-  array2str buffer(), 2, s$
-  IF LEN(s$) > 0 THEN
-  	getdisplayname$ = s$
-  	EXIT FUNCTION
+  loadset f, 0, 0
+  DIM s AS STRING
+  s = STRING(bound(buffer(0), 0, 38), " ")
+  array2str buffer(), 2, s
+  IF LEN(s) > 0 THEN
+   RETURN s
   END IF
  END IF
- getdisplayname$ = default$
+ RETURN default
 END FUNCTION
 
 FUNCTION herocount (last AS INTEGER = 3) AS INTEGER

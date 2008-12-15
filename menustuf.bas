@@ -537,7 +537,7 @@ setbit permask(), 0, 3 + i, t2
 setbit permask(), 0, 3 + o, t1
 END SUB
 
-FUNCTION items (stat())
+FUNCTION items (stat() as integer) as integer
 DIM itemdata(100) AS INTEGER
 DIM itemtemp(100) AS INTEGER
 DIM atktemp(40 + dimbinsize(binATTACK)) AS INTEGER
@@ -1118,7 +1118,7 @@ LOOP
 
 END SUB
 
-FUNCTION picksave (loading)
+FUNCTION picksave (loading as integer) as integer
 
 DIM full(3), herosname$(3), mapname$(3), svtime$(3), lev$(3), id(3, 3), tstat(3, 1, 16), confirm$(1), menu$(1)
 DIM sprites(3, 3) AS GraphicPair
@@ -2079,7 +2079,7 @@ RETRACE
 
 END SUB
 
-FUNCTION trylearn (who, atk, learntype)
+FUNCTION trylearn (who as integer, atk as integer, learntype as integer) as integer
 'first arg is hero position in the party
 
 '--returns 1 when the spell was learned, 0 when it was not learned

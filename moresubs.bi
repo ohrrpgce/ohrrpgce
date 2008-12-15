@@ -21,7 +21,7 @@ DECLARE SUB loadglobalvars (slot as integer, first as integer, last as integer)
 DECLARE SUB minimap (x as integer, y as integer, tilesets() as TilesetData ptr)
 DECLARE FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
 DECLARE FUNCTION movdivis (xygo as integer) as integer
-DECLARE FUNCTION onwho (w as string, alone as integer) as integer
+DECLARE FUNCTION onwho (caption as string, alone as integer) as integer
 DECLARE SUB readjoysettings
 DECLARE FUNCTION readscriptvar (id as integer) as integer
 DECLARE SUB renamehero (who as integer)
