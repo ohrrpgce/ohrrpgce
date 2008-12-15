@@ -10,48 +10,6 @@
 #include "game_udts.bi"
 #include "scancodes.bi"
 #include "slices.bi"
-
-'basic subs and functions
-DECLARE SUB LoadGen
-DECLARE SUB reset_game_state ()
-DECLARE SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
-DECLARE SUB check_menu_tags ()
-
-DECLARE SUB reset_map_state (map AS MapModeState)
-DECLARE SUB opendoor (dforce AS INTEGER=0)
-DECLARE SUB thrudoor (door_id AS INTEGER)
-DECLARE SUB advance_text_box ()
-DECLARE SUB draw_plotsprites
-DECLARE SUB slice_test_suite ()
-DECLARE FUNCTION menus_allow_gameplay () AS INTEGER
-DECLARE FUNCTION menus_allow_player () AS INTEGER
-DECLARE FUNCTION allowed_to_open_main_menu () AS INTEGER
-DECLARE SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat() AS INTEGER, catx() AS INTEGER, caty() AS INTEGER, tilesets() AS TilesetData ptr)
-DECLARE SUB dotimer(byval l as integer)
-DECLARE Sub MenuSound(byval s as integer)
-DECLARE FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
-DECLARE SUB remove_menu (slot AS INTEGER)
-DECLARE SUB bring_menu_forward (slot AS INTEGER)
-DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
-DECLARE sub dotimerafterbattle()
-DECLARE FUNCTION count_sav(filename AS STRING) AS INTEGER
-DECLARE FUNCTION game_usemenu (state AS MenuState) AS INTEGER
-DECLARE FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER
-DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING, minimum AS INTEGER=0) AS INTEGER
-DECLARE FUNCTION bound_menuslot(menuslot AS INTEGER, cmd AS STRING) AS INTEGER
-DECLARE FUNCTION bound_menuslot_and_mislot(menuslot AS INTEGER, mislot AS INTEGER, cmd AS STRING) AS INTEGER
-DECLARE FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
-DECLARE FUNCTION find_menu_id (id AS INTEGER) AS INTEGER
-DECLARE FUNCTION find_menu_handle(menu_handle AS INTEGER) AS INTEGER
-DECLARE FUNCTION find_menu_item_handle_in_menuslot (handle AS INTEGER, menuslot AS INTEGER) AS INTEGER
-DECLARE FUNCTION find_menu_item_handle(handle AS INTEGER, BYREF found_in_menuslot AS INTEGER) AS INTEGER
-DECLARE FUNCTION assign_menu_item_handle (BYREF mi AS MenuDefItem) AS INTEGER
-DECLARE FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
-DECLARE FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER, visible_only AS INTEGER=YES) AS INTEGER
-DECLARE FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING, mislot AS INTEGER=0, visible_only AS INTEGER=YES) AS INTEGER
-DECLARE SUB loadmaplumps (mapnum as integer, loadmask as integer)
-
-'---INCLUDE FILES---
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
@@ -67,7 +25,19 @@ DECLARE SUB loadmaplumps (mapnum as integer, loadmask as integer)
 #include "menustuf.bi"
 #include "bmodsubs.bi"
 #include "bmod.bi"
+#include "game.bi"
 
+
+'local subs and functions
+DECLARE SUB LoadGen
+DECLARE SUB reset_game_state ()
+DECLARE SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
+DECLARE SUB reset_map_state (map AS MapModeState)
+DECLARE SUB opendoor (dforce AS INTEGER=0)
+DECLARE SUB thrudoor (door_id AS INTEGER)
+DECLARE SUB advance_text_box ()
+DECLARE SUB draw_plotsprites
+DECLARE SUB slice_test_suite ()
 
 REMEMBERSTATE
 
@@ -954,7 +924,7 @@ FOR whoi = 0 TO 3
      WHILE hero(o) = 0 AND o < 4: o = o + 1: WEND
     NEXT i
     IF o < 4 THEN
-     stat(o, 0, 0) = bound(stat(o, 0, 0) - gmap(9), 0, stat(o, 1, 0))
+     stat(o, 0, 0) = large(stat(o, 0, 0) - gmap(9), 0)
      IF gmap(10) THEN
       harmtileflash = YES
      END IF

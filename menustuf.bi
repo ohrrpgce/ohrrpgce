@@ -1,8 +1,6 @@
 #ifndef MENUSTUF_BI
 #define MENUSTUF_BI
 DECLARE SUB buystuff (id as integer, shoptype as integer, storebuf() as integer, stat() as integer)
-DECLARE SUB setshopstock (id as integer, recordsize as integer, storebuf() as integer, stufbuf() as integer)
-DECLARE SUB loadtrades(index as integer, tradestf() as integer, b() as integer, recordsize as integer)
 DECLARE FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
 DECLARE SUB doequip (toequip as integer, who as integer, where as integer, defwep as integer, stat() as integer)
 DECLARE SUB equip (pt as integer, stat() as integer)

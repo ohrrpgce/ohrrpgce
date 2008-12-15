@@ -14,14 +14,12 @@ DECLARE SUB evalitemtag
 DECLARE FUNCTION findhero (who as integer, f as integer, l as integer, d as integer) as integer
 DECLARE SUB getnames (stat() as string)
 DECLARE SUB heroswap (iAll as integer, stat() as integer)
-DECLARE FUNCTION howmanyh (f as integer, l as integer) as integer
 DECLARE FUNCTION istag (num as integer, zero as integer) as integer
 DECLARE SUB loaddoor (map as integer)
 DECLARE SUB loadgame (slot as integer, stat() as integer)
 DECLARE SUB loadglobalvars (slot as integer, first as integer, last as integer)
 DECLARE SUB minimap (x as integer, y as integer, tilesets() as TilesetData ptr)
 DECLARE FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
-DECLARE SUB teleporttooltend (mini() AS UBYTE, tilemap() as integer, tilesets() AS TilesetData ptr, BYREF zoom as integer, BYVAL map as integer, mapsize AS XYPair, minisize AS XYPair, offset AS XYPair)
 DECLARE FUNCTION movdivis (xygo as integer) as integer
 DECLARE FUNCTION onwho (w as string, alone as integer) as integer
 DECLARE SUB readjoysettings
@@ -45,6 +43,5 @@ DECLARE SUB tagdisplay
 DECLARE SUB writejoysettings
 DECLARE SUB writescriptvar (BYVAL id as integer, BYVAL newval as integer)
 DECLARE FUNCTION getdisplayname (default as string) as string
-DECLARE FUNCTION herocount () AS INTEGER
-DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
+DECLARE FUNCTION herocount (last as integer = 3) as integer
 #endif

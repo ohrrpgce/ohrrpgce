@@ -7,62 +7,6 @@
 DEFINT A-Z
 
 #include "udts.bi"
-
-'basic subs and functions
-DECLARE FUNCTION str2int% (stri$)
-DECLARE FUNCTION str2lng& (stri$)
-DECLARE SUB innRestore (stat%())
-DECLARE SUB renamehero (who%)
-DECLARE FUNCTION strgrabber (s$, maxl) AS INTEGER
-DECLARE SUB calibrate ()
-DECLARE FUNCTION settingstring% (searchee$, setting$, result$)
-DECLARE SUB writejoysettings ()
-DECLARE SUB writescriptvar (BYVAL id%, BYVAL newval%)
-DECLARE FUNCTION readscriptvar% (id%)
-DECLARE FUNCTION gethighbyte% (n%)
-DECLARE SUB vishero (stat%())
-DECLARE SUB sellstuff (id%, storebuf%(), stat%())
-DECLARE SUB buystuff (id%, shoptype%, storebuf%(), stat%())
-DECLARE SUB playtimer ()
-DECLARE FUNCTION averagelev% (stat%())
-DECLARE FUNCTION countitem% (it%)
-DECLARE FUNCTION movdivis% (xygo%)
-DECLARE FUNCTION onwho% (w$, alone)
-DECLARE SUB minimap (x%, y%, tilesets() as TilesetData ptr)
-DECLARE SUB heroswap (iAll%, stat%())
-DECLARE FUNCTION useinn (inn%, price%, needf%, stat%(), holdscreen)
-DECLARE SUB savegame (slot%, stat%())
-DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
-DECLARE SUB scripterr (e$)
-DECLARE SUB itstr (i%)
-DECLARE FUNCTION findhero% (who%, f%, l%, d%)
-DECLARE FUNCTION howmanyh% (f%, l%)
-DECLARE FUNCTION consumeitem% (index%)
-DECLARE FUNCTION istag% (num%, zero%)
-DECLARE SUB doswap (s%, d%, stat%())
-DECLARE SUB control ()
-DECLARE FUNCTION picksave% (load%)
-DECLARE SUB equip (pt%, stat%())
-DECLARE FUNCTION items% (stat%())
-DECLARE SUB spells (pt%, stat%())
-DECLARE SUB getnames (stat$())
-DECLARE SUB resetlmp (slot%, lev%)
-DECLARE FUNCTION battle (form%, fatal%, exstat%())
-DECLARE SUB addhero (who, slot, stat(), forcelevel=-1)
-DECLARE FUNCTION atlevel% (now%, a0%, a99%)
-DECLARE SUB snapshot ()
-DECLARE FUNCTION exptolevel& (level%)
-DECLARE SUB deletetemps ()
-DECLARE FUNCTION decodetrigger (trigger%, trigtype%)
-DECLARE Sub MenuSound(byval s as integer)
-DECLARE SUB freescripts (mem%)
-DECLARE FUNCTION loadscript% (n%)
-DECLARE SUB killallscripts ()
-DECLARE SUB remove_menu (record AS INTEGER)
-DECLARE FUNCTION herocount () AS INTEGER
-DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
-DECLARE SUB teleporttooltend (mini() AS UBYTE, tilemap(), tilesets() AS TilesetData ptr, BYREF zoom as integer, BYVAL map as integer, BYREF mapsize AS XYPair, BYREF minisize AS XYPair, BYREF offset AS XYPair)
-
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
@@ -74,11 +18,20 @@ DECLARE SUB teleporttooltend (mini() AS UBYTE, tilemap(), tilesets() AS TilesetD
 #include "scancodes.bi"
 #include "slices.bi"
 
+#include "game.bi"
+#include "yetmore.bi"
+#include "yetmore2.bi"
+#include "moresubs.bi"
+#include "menustuf.bi"
+#include "bmodsubs.bi"
+
 '--Local subs and functions
 DECLARE SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
-
+DECLARE SUB teleporttooltend (mini() AS UBYTE, tilemap() as integer, tilesets() AS TilesetData ptr, BYREF zoom as integer, BYVAL map as integer, mapsize AS XYPair, minisize AS XYPair, offset AS XYPair)
+DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
 
 REM $STATIC
+
 SUB addhero (who, slot, stat(), forcelevel=-1)
 DIM wbuf(100), thishbits(4)
 
@@ -721,14 +674,6 @@ IF hero(acsr) AND ecsr < 0 THEN info$ = names(acsr) ELSE info$ = ""
 RETRACE
 END SUB
 
-FUNCTION howmanyh (f, l)
-temp = 0
-FOR i = f TO l
- IF hero(i) THEN temp = temp + 1
-NEXT i
-howmanyh = temp
-END FUNCTION
-
 FUNCTION istag (num, zero)
 IF num = 0 THEN RETURN zero 'why go through all that just to return defaults?
 IF num = 1 THEN RETURN 0
@@ -1238,7 +1183,7 @@ NEXT i
 
 '-- if there is only one hero, return immediately
 '--unless we are in alone-mode
-IF alone = 0 AND howmanyh(0, 3) <= 1 THEN onwho = w: setkeys: EXIT FUNCTION
+IF alone = 0 AND herocount() <= 1 THEN onwho = w: setkeys: EXIT FUNCTION
 
 menusound gen(genAcceptSFX)
 copypage dpage, vpage
@@ -2422,13 +2367,13 @@ FUNCTION getdisplayname$ (default$)
  getdisplayname$ = default$
 END FUNCTION
 
-FUNCTION herocount () AS INTEGER
+FUNCTION herocount (last AS INTEGER = 3) AS INTEGER
 '--differs from liveherocount() in that it does not care if they are alive
  DIM i AS INTEGER
  DIM count AS INTEGER
  count = 0
- FOR i = 0 TO 3
-  IF hero(i) > 0 THEN count + = 1
+ FOR i = 0 TO last
+  IF hero(i) > 0 THEN count += 1
  NEXT i
  RETURN count
 END FUNCTION

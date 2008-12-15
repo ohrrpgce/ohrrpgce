@@ -691,6 +691,14 @@ NEXT o
 liveherocount = i
 END FUNCTION
 
+FUNCTION liveherocount (oobstat() AS integer) as integer
+i = 0
+FOR o = 0 TO 3
+ IF hero(o) > 0 AND oobstat(o, 0, 0) > 0 THEN i = i + 1
+NEXT o
+liveherocount = i
+END FUNCTION
+
 SUB loadfoe (i as integer, formdata() as integer, es() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead as integer = NO)
 DIM tempbits(4) AS INTEGER ' This is a hack because readbit doesn't work on double-index arrays
 IF formdata(i * 4) > 0 THEN
@@ -1078,7 +1086,7 @@ SUB giveheroexperience (i as integer, exstat() as integer, exper as integer)
  END IF
 END SUB
 
-SUB setheroexperience (BYVAL who as integer, BYVAL amount as integer, BYVAL allowforget as integer, exstat() as integer, exlev() AS LONG)
+SUB setheroexperience (BYVAL who as integer, BYVAL amount as integer, BYVAL allowforget as integer, exstat() as integer, exlev() as integer)
  'unlike giveheroexperience, this can cause delevelling
  DIM dummystats(40) AS BattleStats
 

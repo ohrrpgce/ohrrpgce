@@ -5,44 +5,6 @@
 '
 '$DYNAMIC
 DEFINT A-Z
-'basic subs and functions
-DECLARE FUNCTION focuscost% (cost%, focus%)
-DECLARE SUB renamehero (who%)
-DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
-DECLARE SUB herobattlebits_raw (bitbuf(), who%)
-DECLARE SUB unequip (who%, where%, defwep%, stat%(), resetdw%)
-DECLARE FUNCTION gethighbyte% (n%)
-DECLARE SUB vishero (stat%())
-DECLARE SUB doequip (toequip%, who%, where%, defwep%, stat%())
-DECLARE FUNCTION playtime$ (d%, h%, m%)
-DECLARE SUB playtimer ()
-DECLARE FUNCTION averagelev% (stat%())
-DECLARE FUNCTION istag% (num%, zero%)
-DECLARE SUB evalherotag (stat%())
-DECLARE SUB delitem (it%, num%)
-DECLARE FUNCTION consumeitem% (index%)
-DECLARE SUB evalitemtag ()
-DECLARE SUB itstr (i%)
-DECLARE SUB control ()
-DECLARE FUNCTION picksave% (load%)
-DECLARE SUB equip (pt%, stat%())
-DECLARE FUNCTION items% (stat%())
-DECLARE SUB getitem (getit%, num%)
-DECLARE SUB oobcure (w%, t%, atk%, spred%, stat%())
-DECLARE SUB spells (pt%, stat%())
-DECLARE SUB status (pt%, stat%())
-DECLARE SUB getnames (stat$())
-DECLARE SUB resetlmp (slot%, lev%)
-DECLARE FUNCTION battle (form%, fatal%, exstat%())
-DECLARE SUB addhero (who, slot, stat(), forcelevel=-1)
-DECLARE FUNCTION atlevel% (now%, a0%, a99%)
-DECLARE SUB snapshot ()
-DECLARE SUB checkTagCond(t,check,tag,tagand) 'in bmod.bas
-DECLARE FUNCTION countitem% (it%)
-DECLARE SUB loadshopstuf (array%(), id%)
-DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
-
-DECLARE Sub MenuSound(byval s as integer)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -54,19 +16,24 @@ DECLARE Sub MenuSound(byval s as integer)
 #include "game_udts.bi"
 #include "scancodes.bi"
 
-DECLARE FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
-DECLARE FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk AS INTEGER, stat() AS INTEGER, recheck AS INTEGER=NO) AS INTEGER
-DECLARE FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INTEGER, stat() AS INTEGER, spread AS INTEGER) AS INTEGER
+#include "game.bi"
+#include "yetmore.bi"
+#include "moresubs.bi"
+#include "menustuf.bi"
+#include "bmodsubs.bi"
+#include "bmod.bi"
 
 '--SUBs and FUNCTIONS only used locally
-DECLARE SUB loadtrades(index, tradestf(), b(), recordsize)
-DECLARE SUB setshopstock (id, recordsize, storebuf(), stufbuf())
+DECLARE SUB loadtrades(index as integer, tradestf() as integer, b() as integer, recordsize as integer)
+DECLARE SUB setshopstock (id as integer, recordsize as integer, storebuf() as integer, stufbuf() as integer)
 DECLARE SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_do_equip(BYVAL item AS INTEGER, BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_back_to_menu(BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
 
 REM $STATIC
+
+
 SUB buystuff (id, shoptype, storebuf(), stat())
 DIM b(dimbinsize(1) * 50), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walks(15), tradestf(3, 1)
 DIM is_equipable AS INTEGER

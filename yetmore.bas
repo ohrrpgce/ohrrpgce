@@ -15,106 +15,22 @@ DEFINT A-Z
 #include "uiconst.bi"
 #include "loading.bi"
 
+#include "game.bi"
+#include "yetmore.bi"
+#include "yetmore2.bi"
+#include "moresubs.bi"
+#include "menustuf.bi"
+#include "bmodsubs.bi"
 
 'FIXME: this should not be called directly here. needs wrapping in allmodex.bi
 'Mike: why? it's already wrapped in gfx_*.bas
 #include "gfx.bi"
 
-
-'basic subs and functions
-DECLARE FUNCTION str2int% (stri$)
-DECLARE FUNCTION str2lng& (stri$)
-DECLARE SUB setScriptArg (arg%, value%)
-DECLARE SUB wrapaheadxy (x%, y%, direction%, distance%, unitsize%)
-DECLARE SUB aheadxy (x%, y%, direction%, distance%)
-DECLARE SUB wrapxy (x%, y%, wide%, high%)
-DECLARE FUNCTION partybyrank% (slot%)
-DECLARE FUNCTION herobyrank% (slot%)
-DECLARE FUNCTION rankincaterpillar% (heroid%)
-DECLARE SUB embedtext (text$, limit=0)
-DECLARE SUB renamehero (who%)
-DECLARE FUNCTION vehiclestuff% (disx%, disy%, vehedge%)
-DECLARE FUNCTION trylearn% (who%, atk%, learntype%)
-DECLARE SUB correctbackdrop ()
-DECLARE FUNCTION gethighbyte% (n%)
-DECLARE SUB wrappedsong (songnumber%)
-DECLARE SUB stopsong ()
-DECLARE SUB delitem (it%, num%)
-DECLARE FUNCTION getnpcref% (seekid%, offset%)
-DECLARE SUB suspendresume (id%)
-DECLARE SUB scriptwatcher (mode%, callspot%)
-DECLARE SUB onkeyscript (scriptnum%)
-DECLARE SUB greyscalepal ()
-DECLARE SUB tweakpalette ()
-DECLARE SUB vishero (stat%())
-DECLARE SUB forceparty (stat%())
-DECLARE SUB scriptdump (s$)
-DECLARE FUNCTION vehpass% (n%, tile%, default%)
-DECLARE FUNCTION readfoemap% (x%, y%, wide%, high%, fh%)
-DECLARE FUNCTION playtime$ (d%, h%, m%)
-DECLARE FUNCTION averagelev% (stat%())
-DECLARE FUNCTION countitem% (it%)
-DECLARE FUNCTION movdivis% (xygo%)
-DECLARE FUNCTION onwho% (w$, alone)
-DECLARE SUB heroswap (iAll%, stat%())
-DECLARE FUNCTION runscript% (n%, index%, newcall%, er$, trigger%)
-DECLARE SUB scripterr (e$)
-DECLARE SUB itstr (i%)
-DECLARE FUNCTION findhero% (who%, f%, l%, d%)
-DECLARE FUNCTION howmanyh% (f%, l%)
-DECLARE FUNCTION consumeitem% (index%)
-DECLARE FUNCTION istag% (num%, zero%)
-DECLARE SUB doswap (s%, d%, stat%())
-DECLARE SUB control ()
-DECLARE SUB equip (pt%, stat%())
-DECLARE FUNCTION items% (stat%())
-DECLARE SUB getitem (getit%, num%)
-DECLARE SUB spells (pt%, stat%())
-DECLARE SUB status (pt%, stat%())
-DECLARE SUB getnames (stat$())
-DECLARE SUB resetlmp (slot%, lev%)
-DECLARE FUNCTION battle (form%, fatal%, exstat%())
-DECLARE SUB addhero (who, slot, stat(), forcelevel=-1)
-DECLARE FUNCTION atlevel% (now%, a0%, a99%)
-DECLARE SUB snapshot ()
-DECLARE FUNCTION checksaveslot (slot%)
-DECLARE FUNCTION exptolevel& (level%)
-DECLARE SUB updatestatslevelup (i%, exstat%(), stat%(), allowforget%)
-DECLARE SUB giveheroexperience (i%, exstat%(), exper&)
-DECLARE FUNCTION liveherocount% (stat%())
-DECLARE SUB cleanuptemp ()
-DECLARE FUNCTION getdisplayname$ (default$)
-DECLARE SUB interpolatecat ()
-DECLARE FUNCTION scriptstate$ (targetscript% = -1)
-DECLARE FUNCTION decodetrigger (trigger%, trigtype%)
-DECLARE SUB loadglobalvars (slot%, first%, last%)
-DECLARE SUB saveglobalvars (slot%, first%, last%)
-DECLARE FUNCTION loadscript% (n%)
-DECLARE SUB killallscripts ()
-DECLARE SUB reloadscript (si as ScriptInst, updatestats = -1)
-DECLARE FUNCTION localvariablename$ (value%, scriptargs%)
-DECLARE FUNCTION mathvariablename$ (value%, scriptargs%)
-DECLARE FUNCTION backcompat_sound_id (id AS INTEGER)
-DECLARE SUB setheroexperience (BYVAL who, BYVAL amount, BYVAL allowforget, exstat(), exlev())
-DECLARE SUB cropposition (BYREF x, BYREF y, unitsize)
-DECLARE SUB limitcamera ()
-DECLARE FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING, minimum AS INTEGER=0) AS INTEGER
-DECLARE FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER
-DECLARE FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
-DECLARE FUNCTION bound_formation(form AS INTEGER, cmd AS STRING) AS INTEGER
-DECLARE FUNCTION bound_formation_slot(form AS INTEGER, slot AS INTEGER, cmd AS STRING) AS INTEGER
-DECLARE SUB MenuSound(byval s as integer)
-DECLARE FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
-DECLARE FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
-DECLARE SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
-DECLARE FUNCTION valid_plotsprite(byval s as integer, byval cmd as string) as integer
-DECLARE FUNCTION grow_plotsprites AS INTEGER
-
-
 'these variables hold information used by breakpoint to step to the desired position
 DIM SHARED waitforscript, waitfordepth, stepmode, lastscriptnum
 
 REM $STATIC
+
 SUB add_rem_swap_lock_hero (box AS TextBox, stat())
 '---ADD/REMOVE/SWAP/LOCK
 '---ADD---
@@ -127,10 +43,10 @@ IF box.hero_addrem > 0 THEN
 END IF '---end if > 0
 '---REMOVE---
 IF box.hero_addrem < 0 THEN
- IF howmanyh(0, 40) > 1 THEN
+ IF herocount(40) > 1 THEN
   i = findhero(-box.hero_addrem, 0, 40, 1)
   IF i > -1 THEN hero(i) = 0
-  IF howmanyh(0, 3) = 0 THEN forceparty stat()
+  IF herocount(3) = 0 THEN forceparty stat()
  END IF
 END IF '---end if < 0
 vishero stat()
@@ -153,7 +69,7 @@ IF box.hero_swap < 0 THEN
   FOR o = 40 TO 4 STEP -1
    IF hero(o) = 0 THEN
     doswap i, o, stat()
-    IF howmanyh(0, 3) = 0 THEN forceparty stat()
+    IF herocount(3) = 0 THEN forceparty stat()
     EXIT FOR
    END IF
   NEXT o
@@ -285,7 +201,7 @@ END SUB
 SUB scriptstat (id, stat())
 'contains an assortment of scripting commands that
 'depend on access to the hero stat array stat()
-DIM dummystats(40, 1, 1) 'just need HP and MP
+DIM dummystats(40) as BattleStats 'just need HP and MP
 
 SELECT CASE AS CONST id
  CASE 64'--get hero stat
@@ -300,10 +216,10 @@ SELECT CASE AS CONST id
    vishero stat()
   END IF
  CASE 67'--delete hero
-  IF howmanyh(0, 40) > 1 THEN
+  IF herocount(40) > 1 THEN
    i = findhero(bound(retvals(0), 0, 59) + 1, 0, 40, 1)
    IF i > -1 THEN hero(i) = 0
-   IF howmanyh(0, 3) = 0 THEN forceparty stat()
+   IF herocount(3) = 0 THEN forceparty stat()
    vishero stat()
   END IF
  CASE 68'--swap out hero
@@ -312,7 +228,7 @@ SELECT CASE AS CONST id
    FOR o = 40 TO 4 STEP -1
     IF hero(o) = 0 THEN
      doswap i, o, stat()
-     IF howmanyh(0, 3) = 0 THEN forceparty stat()
+     IF herocount(3) = 0 THEN forceparty stat()
      vishero stat()
      EXIT FOR
     END IF
@@ -1084,7 +1000,7 @@ SELECT CASE AS CONST id
  CASE 65'--resume overlay
   setbit gen(), 44, suspendoverlay, 0
  CASE 70'--room in active party
-  scriptret = 4 - howmanyh(0, 3)
+  scriptret = 4 - herocount(3)
  CASE 71'--lock hero
   temp = findhero(retvals(0) + 1, 0, 40, 1)
   IF temp > -1 THEN setbit hmask(), 0, temp, 1
