@@ -24,6 +24,7 @@ function mirrormedia () {
     -"*" \
     +"${EXT}" \
     -"*/Image:*" \
+    -"*/Media:*" \
     > /dev/null
 
   rm -R *.gif hts-* *.html
