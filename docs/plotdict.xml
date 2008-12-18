@@ -1971,16 +1971,16 @@ end</example>
 			<shortname>NPC extra</shortname>
 			<description>Returns the npc instance-specific extra data field requested in <p>which</p>. You may use the constants <ref>extra1</ref> and <ref>extra2</ref> to refer to them. If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
 			<seealso>
-		        <ref>setnpcextra</ref>
-            </seealso>
+				<ref>setnpcextra</ref>
+			</seealso>
 		</command>
 		<command id="setnpcextra">
 			<cannon>set NPC extra (who,which, value)</cannon>
 			<shortname>set NPC extra</shortname>
 			<description>Sets the npc instance-specific extra data field requested in <p>which</p>. You may use the constants <ref>extra1</ref> and <ref>extra2</ref> to refer to them.  If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
 			<seealso>
-		    <ref>npcextra</ref>
-		  </seealso>
+				<ref>npcextra</ref>
+			</seealso>
 		</command>
 		<command id="roominactiveparty">
 			<cannon>room in active party</cannon>
@@ -2005,7 +2005,7 @@ end</example>
 		<command id="getmaptileset">
 			<cannon>get map tileset</cannon>
 			<shortname>get map tileset</shortname>
-			<description>Returns the ID number of the default tileset for the map. <ref>loadtileset</ref> does not affect the value returned by this function, but <ref>changetileset</ref> does. So you might need to use <ref>layertileset</ref> to find the actual currently in-use tileset.</description>
+			<description>Returns the ID number of the default tileset for the map. <ref>loadtileset</ref> does not affect the value returned by this function, but <ref>changetileset</ref> does. Use <ref>layertileset</ref> instead to find the actual currently in-use tileset(s).</description>
 		</command>
 		<command id="layertileset">
 			<cannon>layer tileset (layer)</cannon>
@@ -2095,14 +2095,14 @@ end</example>
           Joystick scan codes:
           <ul><li>128 BUTTON 1</li><li>129 BUTTON 2</li><li>130-143 BUTTON 3-16</li><li>144 X LEFT</li><li>145 X RIGHT</li><li>146 Y UP</li><li>147 Y DOWN</li></ul>
           <note>You can NOT wait for the player to press a key by continually polling <p>key is pressed</p> unless you stick a <ref>wait</ref> in your do loop. That's because <p>key is pressed</p> does not return real time data, but the state of the keyboard at the beginning of the current game tick.</note></description>
-            <seealso>
-                <ref>keyval</ref>
-            </seealso>
-        </command>
+			<seealso>
+				<ref>keyval</ref>
+			</seealso>
+		</command>
 		<command id="keyval">
 			<cannon>keyval (scancode)</cannon>
 			<shortname>keyval</shortname>
-            <description>Returns a bitmask for the state of the specified key. The argument is a scancode, see <ref>keyispressed</ref>. The first (least significant) bit is whether the key was depressed at the beginning of the current tick. The second bit is whether the key was pushed down by the player since the start of the previous tick (or when the key starts to repeatedly trigger after being held down for a while). It can therefore return 0, 1, 2 or 3: <lb/><lb/>0 = not pressed<lb/>1 = key held down since last tick, but is not a new press<lb/>2 = the player pressed the key and released it, all in the same tick<lb/>3 = new keypress (or typematic repeat)
+			<description>Returns a bitmask for the state of the specified key. The argument is a scancode, see <ref>keyispressed</ref>. The first (least significant) bit is whether the key was depressed at the beginning of the current tick. The second bit is whether the key was pushed down by the player since the start of the previous tick (or when the key starts to repeatedly trigger after being held down for a while). It can therefore return 0, 1, 2 or 3: <lb/><lb/>0 = not pressed<lb/>1 = key held down since last tick, but is not a new press<lb/>2 = the player pressed the key and released it, all in the same tick<lb/>3 = new keypress (or typematic repeat)
             <danger>Just like <ref>keyispressed</ref>, this command does not return real time data, but the situation at the beginning of the current game tick.</danger>
             <note>The joystick scancodes described in <ref>keyispressed</ref> do not work in this command.</note></description>
             <seealso>
@@ -2157,7 +2157,7 @@ end</example>
 		<command id="pickhero">
 			<cannon>pick hero</cannon>
 			<shortname>pick hero</shortname>
-			<description>Pops up a hero-picker box that lets you choose one of the heroes in your active party. The return value is the position in the party of the hero you picked.</description>
+			<description>Pops up a hero-picker box that lets you choose one of the heroes in your active party. The return value is the position in the party of the hero you picked, or -1 if the player cancelled.</description>
 		</command>
 		<command id="renamehero">
 			<cannon>rename hero(who)</cannon>
@@ -2500,7 +2500,7 @@ write pass block(15,3,pass)
 		<command id="changetileset">
 			<cannon>change tileset (tileset, layer)</cannon>
 			<shortname>change tileset</shortname>
-			<description>An alternative to <ref>loadtileset</ref>: Changes and loads in the default or a map layer tileset for the current map. <p>tileset</p> is the ID number of the tileset to load. You can use the constant <p>tileset:default</p> to set a layer to use the default tileset. <p>layer</p> is the layer number (0-2) to change, or the constant <p>tileset:default</p> which changes the default tileset. It defaults to <p>tileset:default</p> if omitted. <p>change tileset</p> with no arguments restores the set tilesets after using load tileset. Unlike load tileset, this command's effects last to the next time you come back to this map if you save the map state (either tilemap or npcs, or general map settings via <ref>savemapstate</ref>). To undo the effects, you'll need to use <ref>resetmapstate</ref></description>
+			<description>An alternative to <ref>loadtileset</ref>: Changes and loads in the default or a map layer tileset for the current map. Unlike load tileset, this command's effects last to the next time you come back to this map if you save the map state (in General Map Settings, or mapstate:mapsettings with <ref>savemapstate</ref>). To undo the effects, you'll need to use <ref>resetmapstate</ref>. <p>tileset</p> is the ID number of the tileset to load. You can use the constant <p>tileset:default</p> to set a layer to use the default tileset. <p>layer</p> is the layer number (0-2) to change, or the constant <p>tileset:default</p> which changes the default tileset. It defaults to <p>tileset:default</p> if omitted. <p>change tileset</p> with no arguments restores the set tilesets after using load tileset. </description>
 			<seealso>
 				<ref>getmaptileset</ref>
 				<ref>layertileset</ref>
