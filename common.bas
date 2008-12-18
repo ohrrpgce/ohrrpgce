@@ -1079,23 +1079,28 @@ array2str nameread(), 1, a$
 RETURN a$
 END FUNCTION
 
-FUNCTION createminimap (array() AS UBYTE, map() AS INTEGER, tilesets() AS TilesetData ptr, zoom AS INTEGER = -1) AS INTEGER
- 'return value is zoom level
- 'we don't have any sprite struct, so redim array() (dynamic array) and pass back the pixel data
+FUNCTION createminimap (map() AS INTEGER, tilesets() AS TilesetData ptr, BYREF zoom AS INTEGER = -1) AS Frame PTR
+ 'if zoom is -1, calculate and store it
 
  IF zoom = -1 THEN
   'auto-detect best zoom
-   zoom = bound(small(320 \ map(0), 200 \ map(1)), 1, 20)
+  zoom = bound(small(320 \ map(0), 200 \ map(1)), 1, 20)
  END IF
 
- REDIM array(zoom * map(0) - 1, zoom * map(1) - 1) AS UBYTE
- DIM AS SINGLE fraction, rand
+ DIM mini as Frame Ptr
+ mini = Callocate(sizeof(Frame))
+ mini->w = zoom * map(0)
+ mini->h = zoom * map(1)
+ mini->image = Allocate(zoom * map(0) * zoom * map(1))
+ mini->mask = NULL
+ mini->refcount = -1234
+ 'REDIM array(zoom * map(0) - 1, zoom * map(1) - 1) AS UBYTE
+ DIM AS SINGLE fraction
  fraction = 20 / zoom
- rand = RND
 
  setmapdata map(), map(), 20, 0
- FOR i = 0 TO zoom * map(0) - 1
-  FOR j = 0 TO zoom * map(1) - 1
+ FOR j = 0 TO zoom * map(1) - 1
+  FOR i = 0 TO zoom * map(0) - 1
    tx = i \ zoom
    ty = j \ zoom
    x = INT(((i MOD zoom) + RND) * fraction)
@@ -1108,14 +1113,15 @@ FUNCTION createminimap (array() AS UBYTE, map() AS INTEGER, tilesets() AS Tilese
     WITH *tilesets(k)
      IF block > 207 THEN block = (block - 48 + .tastuf(20) + .anim(1).cycle) MOD 160
      IF block > 159 THEN block = (block + .tastuf(0) + .anim(0).cycle) MOD 160
-     array(i, j) = .spr->image[block * 400 + y * 20 + x]
-     IF array(i, j) <> 0 THEN EXIT FOR
+     DIM AS INTEGER temp = .spr->image[block * 400 + y * 20 + x]
+     mini->image[i + j * mini->w] = temp 
+     IF temp <> 0 THEN EXIT FOR
     END WITH
    NEXT
   NEXT
  NEXT
 
- RETURN zoom
+ RETURN mini
 END FUNCTION
 
 FUNCTION readattackname (index) as string

@@ -72,7 +72,7 @@ DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
 DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS INTEGER
-DECLARE SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, minimap() AS UBYTE, map() AS INTEGER, tilesets() AS TilesetData ptr)
+DECLARE SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, BYREF minimap AS Frame Ptr, map() AS INTEGER, tilesets() AS TilesetData ptr)
 DECLARE SUB show_minimap(map() AS INTEGER, tilesets() AS TilesetData ptr)
 
 #include "compat.bi"
@@ -1788,7 +1788,7 @@ END SUB
 
 SUB resizemapmenu (map(), tilesets() as TilesetData ptr, byref tempw, byref temph, byref tempx, byref tempy)
  'returns the new size and offset in passed args, or -1 width to cancel
-REDIM minimap(0,0) AS UBYTE
+DIM minimap AS Frame Ptr
 DIM menu$(6), tog, csr = 1, zoom = 0
 wide = map(0)
 high = map(1)
@@ -1797,7 +1797,7 @@ temph = high
 tempx = 0
 tempy = 0
 setmapdata map(), map(), 20, 0
-resize_rezoom_mini_map zoom, wide, high, tempx, tempy, tempw, temph, minimap(), map(), tilesets()
+resize_rezoom_mini_map zoom, wide, high, tempx, tempy, tempw, temph, minimap, map(), tilesets()
 GOSUB buildmenu
 setkeys
 DO
@@ -1809,7 +1809,11 @@ DO
  IF keyval(56) > 0 THEN incval = 8 ELSE incval = 1
  SELECT CASE csr
   CASE 0
-   IF keyval(28) > 1 THEN EXIT DO
+   IF keyval(28) > 1 THEN
+    tempw = -1
+    temph = -1
+    EXIT DO
+   END IF
   CASE 1
    IF keyval(75) > 0 THEN tempw -= incval 
    IF keyval(77) > 0 THEN tempw += incval
@@ -1827,16 +1831,12 @@ DO
    IF keyval(77) > 0 THEN tempy += incval: temph -= incval
    GOSUB correcth
  END SELECT
- IF keyval(28) > 1 THEN EXIT SUB
+ IF keyval(28) > 1 THEN EXIT DO
 
  clearpage dpage
  drawoffx = large(0, -tempx * zoom)
  drawoffy = large(0, -tempy * zoom)
- FOR i = 0 TO UBOUND(minimap, 1) - 1
-  FOR j = 0 TO UBOUND(minimap, 2) - 1
-   putpixel drawoffx + i, drawoffy + j, minimap(i, j), dpage
-  NEXT
- NEXT
+ sprite_draw minimap, NULL, drawoffx, drawoffy, 1, NO, dpage
  standardmenu menu$(), UBOUND(menu$), 28, csr, 0, 0, 140, dpage, YES
  drawbox drawoffx + zoom * tempx, drawoffy + zoom * tempy, zoom * tempw, zoom * temph, 14 + tog, dpage
 
@@ -1844,9 +1844,7 @@ DO
  setvispage vpage
  dowait
 LOOP
-'cancel
-tempw = -1
-temph = -1
+sprite_unload @minimap
 EXIT SUB
 
 correctw:
@@ -1870,7 +1868,7 @@ WHILE temph * tempw > 32000
  temph = large(temph - 1, 10)
  tempw = large(tempw - 1, 16)
 WEND
-resize_rezoom_mini_map zoom, wide, high, tempx, tempy, tempw, temph, minimap(), map(), tilesets()
+resize_rezoom_mini_map zoom, wide, high, tempx, tempy, tempw, temph, minimap, map(), tilesets()
 
 buildmenu:
 menu$(0) = "Cancel"
@@ -1892,7 +1890,7 @@ RETRACE
 
 END SUB
 
-SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, minimap() AS UBYTE, map() AS INTEGER, tilesets() AS TilesetData ptr)
+SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, BYREF minimap AS Frame Ptr, map() AS INTEGER, tilesets() AS TilesetData ptr)
  DIM lastzoom AS INTEGER
  lastzoom = zoom
  DIM AS INTEGER tw, th
@@ -1902,21 +1900,18 @@ SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEG
  IF tempy < 0 THEN th -= tempy
  zoom = bound(small(320 \ tw, 200 \ th), 1, 20)
  IF zoom <> lastzoom THEN
-  createminimap minimap(), map(), tilesets(), zoom
+  sprite_unload @minimap
+  minimap = createminimap(map(), tilesets(), zoom)
  END IF
 END SUB
 
 SUB show_minimap(map() AS INTEGER, tilesets() AS TilesetData ptr)
- REDIM minimap(0,0) AS UBYTE
- createminimap minimap(), map(), tilesets()
+ DIM minimap AS Frame Ptr
+ minimap = createminimap(map(), tilesets())
 
  clearpage vpage
- DIM AS INTEGER i, j
- FOR i = 0 TO UBOUND(minimap, 1) - 1
-  FOR j = 0 TO UBOUND(minimap, 2) - 1
-   putpixel i, j, minimap(i, j), vpage
-  NEXT
- NEXT
+ sprite_draw minimap, NULL, 0, 0, 1, NO, vpage
+ sprite_unload @minimap
 
  edgeprint "Press Any Key", 0, 180, uilook(uiText), vpage
  setvispage vpage

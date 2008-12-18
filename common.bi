@@ -72,7 +72,7 @@ DECLARE SUB loadpalette(pal() as RGBcolor, palnum as integer)
 DECLARE SUB savepalette(pal() as RGBcolor, palnum as integer)
 DECLARE SUB convertpalette(oldpal() as integer, newpal() as RGBcolor)
 DECLARE FUNCTION getmapname (m as integer) as string
-DECLARE FUNCTION createminimap (array() AS UBYTE, map() AS INTEGER, tilesets() AS TilesetData ptr, zoom AS INTEGER = -1) AS INTEGER
+DECLARE FUNCTION createminimap (map() AS INTEGER, tilesets() AS TilesetData ptr, BYREF zoom AS INTEGER = -1) AS Frame PTR
 DECLARE SUB loadtanim (n as integer, tastuf() as integer)
 DECLARE SUB savetanim (n as integer, tastuf() as integer)
 DECLARE SUB animatetilesets (tilesets() AS TilesetData ptr)

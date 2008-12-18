@@ -27,7 +27,7 @@ DEFINT A-Z
 
 '--Local subs and functions
 DECLARE SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
-DECLARE SUB teleporttooltend (mini() AS UBYTE, tilemap() as integer, tilesets() AS TilesetData ptr, BYREF zoom as integer, BYVAL map as integer, mapsize AS XYPair, minisize AS XYPair, offset AS XYPair)
+DECLARE SUB teleporttooltend (BYREF mini AS Frame Ptr, tilemap(), tilesets() AS TilesetData ptr, BYREF zoom, BYVAL map, BYREF mapsize AS XYPair, BYREF minisize AS XYPair, BYREF offset AS XYPair)
 DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
 
 REM $STATIC
@@ -968,26 +968,21 @@ END IF
 END SUB
 
 SUB minimap (x, y, tilesets() as TilesetData ptr)
- REDIM mini(0, 0) AS UBYTE
- DIM zoom AS INTEGER
- zoom = createminimap(mini(), scroll(), tilesets())
+ DIM mini AS Frame Ptr
+ DIM zoom AS INTEGER = -1
+ mini = createminimap(scroll(), tilesets(), zoom)
 
  DIM minisize AS XYPair
- minisize.x = UBOUND(mini, 1)
- minisize.y = UBOUND(mini, 2)
+ minisize.x = mini->w
+ minisize.y = mini->h
  
  DIM offset AS XYPair
  offset.x = 160 - minisize.x / 2
  offset.y = 100 - minisize.y / 2
 
  edgeboxstyle offset.x - 2, offset.y - 2, minisize.x + 4, minisize.y + 4, 0, vpage
- DIM AS INTEGER tx, ty
- FOR tx = 0 TO minisize.x - 1
-  FOR ty = 0 TO minisize.y - 1
-   putpixel offset.x + tx, offset.y + ty, mini(tx, ty), vpage
-  NEXT ty
- NEXT tx
- copypage vpage, dpage
+ sprite_draw mini, NULL, offset.x, offset.y, 1, NO, vpage
+ sprite_unload @mini
 
  MenuSound gen(genAcceptSFX)
 
@@ -1003,8 +998,7 @@ SUB minimap (x, y, tilesets() as TilesetData ptr)
   FOR i = 1 TO 99
    IF keyval(i) > 1 THEN EXIT DO
   NEXT i
-  rectangle offset.x + (x / 20) * zoom, offset.y + (y / 20) * zoom, zoom, zoom, uilook(uiSelectedItem) * tog, dpage
-  copypage dpage, vpage
+  rectangle offset.x + (x / 20) * zoom, offset.y + (y / 20) * zoom, zoom, zoom, uilook(uiSelectedItem) * tog, vpage
   setvispage vpage
   dowait
  LOOP
@@ -1015,7 +1009,7 @@ END SUB
 
 FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
  REDIM tilemap(2) AS INTEGER
- REDIM mini(0, 0) AS UBYTE
+ DIM mini AS Frame Ptr
  DIM zoom AS INTEGER
  DIM i AS INTEGER
 
@@ -1024,7 +1018,7 @@ FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
  DIM offset AS XYPair
 
  'We don't bother reloading tilesets and tilemaps if not changing map
- teleporttooltend mini(), scroll(), tilesets(), zoom, -1, mapsize, minisize, offset
+ teleporttooltend mini, scroll(), tilesets(), zoom, -1, mapsize, minisize, offset
 
  DIM dest AS XYPair
  dest.x = catx(0) \ 20
@@ -1065,7 +1059,7 @@ FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
   IF preview_delay > 0 THEN
    preview_delay -= 1
    IF preview_delay = 0 THEN
-    teleporttooltend mini(), tilemap(), tilesets(), zoom, destmap, mapsize, minisize, offset
+    teleporttooltend mini, tilemap(), tilesets(), zoom, destmap, mapsize, minisize, offset
     dest.x = small(dest.x, mapsize.x - 1)
     dest.y = small(dest.y, mapsize.y - 1)
     camera.x = bound(dest.x * zoom - minisize.x \ 2, 0, mapsize.x * zoom - minisize.x)
@@ -1126,6 +1120,7 @@ FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
   setvispage dpage
   dowait
  LOOP
+ sprite_unload @mini
  setkeys
  flusharray carray(), 7, 0
  MenuSound gen(genCancelSFX)
@@ -1135,16 +1130,12 @@ redraw:
  'reblit the minimap to a spare page
  copypage 3, vpage
  edgeboxstyle offset.x - 2, offset.y - 2, minisize.x + 4, minisize.y + 4, 0, vpage
- FOR ty = 0 TO minisize.y - 1
-  FOR tx = 0 TO minisize.x - 1
-   putpixel offset.x + tx, offset.y + ty, mini(tx + camera.x, ty + camera.y), vpage
-  NEXT
- NEXT
+ sprite_draw mini, NULL, offset.x - camera.x, offset.y - camera.y, 1, NO, vpage
  RETRACE
 
 END FUNCTION
 
-SUB teleporttooltend (mini() AS UBYTE, tilemap(), tilesets() AS TilesetData ptr, BYREF zoom, BYVAL map, mapsize AS XYPair, minisize AS XYPair, offset AS XYPair)
+SUB teleporttooltend (BYREF mini AS Frame Ptr, tilemap(), tilesets() AS TilesetData ptr, BYREF zoom, BYVAL map, BYREF mapsize AS XYPair, BYREF minisize AS XYPair, BYREF offset AS XYPair)
  IF map > -1 THEN
   DIM gmap2(dimbinsize(binMAP)) AS INTEGER
   loadtiledata maplumpname$(map, "t"), tilemap(), 3
@@ -1153,11 +1144,12 @@ SUB teleporttooltend (mini() AS UBYTE, tilemap(), tilesets() AS TilesetData ptr,
  END IF
  'minimum zoom level to make tiles easy to pick
  zoom = bound(small(320 \ tilemap(0), 200 \ tilemap(1)), 5, 20)
- createminimap(mini(), tilemap(), tilesets(), zoom)
+ sprite_unload @mini
+ mini = createminimap(tilemap(), tilesets(), zoom)
  mapsize.x = tilemap(0)
  mapsize.y = tilemap(1)
- offset.x = large(160 - UBOUND(mini, 1) / 2, 0)
- offset.y = large(100 - UBOUND(mini, 2) / 2, 0)
+ offset.x = large(160 - mini->w / 2, 0)
+ offset.y = large(100 - mini->h / 2, 0)
  minisize.x = 320 - offset.x * 2
  minisize.y = 200 - offset.y * 2
 END SUB

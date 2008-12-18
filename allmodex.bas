@@ -3602,7 +3602,7 @@ sub sprite_delete(byval f as frame ptr ptr)
 		.image = 0
 		if .mask <> 0 then deallocate(.mask)
 		.mask = 0
-		sprite_remove_cache(.cache)
+		if .refcount <> -1234 then sprite_remove_cache(.cache)
 	end with
 	deallocate(*f)
 	*f = 0
@@ -3771,17 +3771,15 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 end function
 
 'Public:
-' Releases a reference to a sprite. Decrements the refcount, and nulls the pointer.
-' Although the pointer is still valid, the caller can no longer use it without
-' breaking the reference system
+' Releases a reference to a sprite and nulls the pointer.
+' If it is refcounted, decrements the refcount, otherwise it is freed immediately.
 sub sprite_unload(byval p as frame ptr ptr)
 	if p = 0 then exit sub
 	if *p = 0 then exit sub
 	'debug("Unloading " & (*p)->cache & "(" & (*p)->refcount & ")")
-	(*p)->refcount -= 1
+	if (*p)->refcount <> -1234 then (*p)->refcount -= 1
 	if (*p)->refcount <= 0 then
 		'debug("Zap!")
-		dim tmp as frame ptr
 		sprite_delete(p)
 	end if
 	*p = 0
@@ -3797,6 +3795,7 @@ function sprite_is_valid(byval p as frame ptr) as integer
 	
 	if p->w < 0 or p->h < 0 then return 0
 	
+	'I don't know why we require a mask
 	if p->mask = 0 or p->image = 0 then return 0
 	
 	if p->mask = &hBAADF00D or p->image = &hBAADF00D then return 0
@@ -3830,19 +3829,19 @@ function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as fra
 	ret->h = p->h
 	ret->refcount = -1234 'that is, it's not refcounted
 	if p->image then
-		ret->image = callocate(ret->w * ret->h)
 		if clr = 0 then
-			for i = 0 to ret->w * ret->h - 1
-				ret->image[i] = p->image[i]
-			next
+			ret->image = allocate(ret->w * ret->h)
+			memcpy(ret->image, p->image, ret->w * ret->h)
+		else
+			ret->image = callocate(ret->w * ret->h)
 		end if
 	end if
 	if p->mask then
-		ret->mask = callocate(ret->w * ret->h)
 		if clr = 0 then
-			for i = 0 to ret->w * ret->h - 1
-				ret->mask[i] = p->mask[i]
-			next
+			ret->mask = allocate(ret->w * ret->h)
+			memcpy(ret->mask, p->mask, ret->w * ret->h)
+		else
+			ret->mask = callocate(ret->w * ret->h)
 		end if
 	end if
 	
@@ -3852,9 +3851,10 @@ function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as fra
 	
 end function
 
+'not used anywhere
 function sprite_reference(byval p as frame ptr) as frame ptr
 	if p = 0 then return 0
-	p->refcount += 1
+	if p->refcount <> -1234 then p->refcount += 1
 	return p
 end function
 
