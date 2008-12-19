@@ -1804,7 +1804,11 @@ DO
  setwait 55
  setkeys
  tog = tog xor 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(1) > 1 THEN
+  tempw = -1
+  temph = -1
+  EXIT DO
+ END IF
  usemenu csr, 0, 0, 4, 10
  IF keyval(56) > 0 THEN incval = 8 ELSE incval = 1
  SELECT CASE csr
