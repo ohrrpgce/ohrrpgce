@@ -1088,13 +1088,13 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 AND retvals(0) <= 4095 THEN
    scriptret = global(retvals(0))
   ELSE
-   scripterr "Cannot read global " & retvals(0) & ". out of range"
+   scripterr "readglobal: Cannot read global " & retvals(0) & ". Out of range"
   END IF
  CASE 115'--write global
   IF retvals(0) >= 0 AND retvals(0) <= 4095 THEN
    global(retvals(0)) = retvals(1)
   ELSE
-   scripterr "Cannot write global " & retvals(0) & ". out of range"
+   scripterr "writeglobal: Cannot write global " & retvals(0) & ". Out of range"
   END IF
  CASE 116'--hero is walking
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN

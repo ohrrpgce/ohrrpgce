@@ -195,7 +195,7 @@ FUNCTION zero_default(n as integer, zerocaption AS STRING="default", displayoffs
  RETURN "" & (n + displayoffset)
 END FUNCTION
 
-Function wordwrap(Byval z as string, byval wid as integer, byval sep as string, byval unknown as integer = 0) as string
+Function wordwrap(Byval z as string, byval wid as integer, byval sep as string) as string
  dim as string ret, in
  in = z
  if len(in) <= wid then return in

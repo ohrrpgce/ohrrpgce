@@ -1274,7 +1274,7 @@ SELECT CASE id
  CASE 0 TO 4095 'global variable
   readscriptvar = global(id)
  CASE ELSE
-  scripterr "Cannot read global " & id & ". out of range"
+  scripterr "Cannot read global " & id & ". Out of range"
 END SELECT
 
 END FUNCTION
@@ -1959,26 +1959,27 @@ storerecord buf(), fh, last - first + 1, -1
 CLOSE #fh
 END SUB
 
-SUB scripterr (e$)
+SUB scripterr (e AS STRING)
+  DIM AS INTEGER y = 30
 
-'errormode = 1
-
-'SELECT CASE errormode
-' CASE 1'--show error on screen
-  debug "Scripterr: " & e$
+  debug "Scripterr: " & e
 
   textcolor uilook(uiText), 0
   clearpage vpage
   setpal master()
-  centerbox 160, 20, 310, 30, 3, vpage
+  centerbox 160, 15, 310, 20, 3, vpage
   printstr "Script Error!", 108, 10, vpage
-  printstr e$, 160 - 4 * LEN(e$), 20, vpage
-  setvispage vpage
-  w = getkey
-' CASE 2'--write error to file
-'  debug e$
-'END SELECT
+  e = wordwrap(e, 38)
+  DO
+    DIM AS INTEGER where = INSTR(e, CHR(10))
+    printstr MID(e, 1, small(LEN(e), where - 1)), 8, y, vpage
+    y += 10
+    IF where = 0 THEN EXIT DO
+    e$ = MID(e, where + 1)
+  LOOP
 
+  setvispage vpage
+  getkey
 END SUB
 
 SUB scriptmath
@@ -2335,10 +2336,10 @@ SUB writescriptvar (BYVAL id, BYVAL newval)
 SELECT CASE id
  CASE IS < 0 'local variable
   heap(scrat(nowscript).heap + ABS(id) - 1) = newval
- CASE 0 TO 1024 'global variable
+ CASE 0 TO 4095 'global variable
   global(id) = newval
  CASE ELSE
-  scripterr "Cannot write global" + XSTR$(id) + ". out of range"
+  scripterr "Cannot write global " & id &  ". Out of range"
 END SELECT
 
 END SUB

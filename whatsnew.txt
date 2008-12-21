@@ -28,6 +28,7 @@ WHAT IS NEW?
     * Bug 348: Weapon is drawn behind other heroes [James]
     * Bug 689: When a hero who is currently picking a target dies,
       next hero's targetting was broken [James]
+    * Bug 698: Global variables 1025-4095 couldn't be set :(
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]

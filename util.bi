@@ -22,7 +22,7 @@ declare function rotascii (s as string, o as integer) as string
 declare function escape_string(s as string, chars as string) as string
 declare function sign_string(n as integer, neg_str as string, zero_str as string, pos_str as string) as string
 declare function zero_default(n as integer, zerocaption AS STRING="default", displayoffset AS INTEGER = 0) as string
-declare Function wordwrap(Byval inp as string, byval width as integer, byval sep as string = chr(10), byval unknown as integer = 0) as string
+declare Function wordwrap(Byval inp as string, byval width as integer, byval sep as string = chr(10)) as string
 declare sub split(byval in as string, ret() as string, sep as string = chr(10))
 declare function textwidth(byval z as string) as integer
 declare sub string_array_grow_append (array() AS STRING, s AS STRING)
